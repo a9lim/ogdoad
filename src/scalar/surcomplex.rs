@@ -77,7 +77,7 @@ impl<S: Scalar> Scalar for Surcomplex<S> {
             im: ad.add(&bc),
         }
     }
-    fn characteristic() -> u32 {
+    fn characteristic() -> u128 {
         // adjoining i does not change the characteristic
         S::characteristic()
     }

@@ -3,8 +3,8 @@
 //! Turning-Corners game recurrence.
 
 use super::engine::IntegerMV;
-use crate::clifford::{CliffordAlgebra, Metric};
-use crate::games::Game;
+use crate::clifford::CliffordAlgebra;
+use crate::games::{Game, GameExterior};
 use crate::scalar::Integer;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -98,8 +98,8 @@ impl PyGame {
 
 #[pyclass(name = "GameExterior", module = "pleroma")]
 struct PyGameExterior {
+    inner: GameExterior,
     alg: Arc<CliffordAlgebra<Integer>>,
-    gens: Vec<Game>,
 }
 
 #[pymethods]
@@ -107,41 +107,97 @@ impl PyGameExterior {
     #[new]
     fn new(gens: Vec<PyGame>) -> Self {
         let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
-        let n = games.len();
-        PyGameExterior {
-            alg: Arc::new(CliffordAlgebra::new(n, Metric::grassmann(n))),
-            gens: games,
-        }
+        PyGameExterior::from_inner(GameExterior::new(games))
+    }
+    #[staticmethod]
+    fn free(gens: Vec<PyGame>) -> Self {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        PyGameExterior::from_inner(GameExterior::free(games))
+    }
+    #[staticmethod]
+    fn with_relation_bound(gens: Vec<PyGame>, bound: i64) -> Self {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        PyGameExterior::from_inner(GameExterior::with_relation_search(games, bound))
     }
     #[getter]
     fn dim(&self) -> usize {
-        self.gens.len()
+        self.inner.algebra().dim
+    }
+    fn relations(&self) -> Vec<Vec<i64>> {
+        self.inner
+            .relations()
+            .iter()
+            .map(|r| r.coeffs.clone())
+            .collect()
     }
     /// The grade-1 generator e_i (an `IntegerMV`) standing for game g_i.
     fn generator(&self, i: usize) -> IntegerMV {
         IntegerMV {
             alg: self.alg.clone(),
-            mv: self.alg.gen(i),
+            mv: self.inner.generator(i),
         }
     }
     /// The game g_i a generator stands for.
     fn game(&self, i: usize) -> PyGame {
         PyGame {
-            inner: self.gens[i].clone(),
+            inner: self.inner.game(i).clone(),
         }
+    }
+    fn reduce(&self, mv: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(mv)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.reduce(&mv.mv),
+        })
+    }
+    fn add(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.add(&a.mv, &b.mv),
+        })
+    }
+    fn wedge(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.wedge(&a.mv, &b.mv),
+        })
+    }
+    fn is_zero(&self, mv: &IntegerMV) -> PyResult<bool> {
+        self.ensure_mv(mv)?;
+        Ok(self.inner.is_zero(&mv.mv))
     }
     /// Map a grade-1 element Σ c_i e_i back to the game Σ c_i·g_i (the module map
     /// Λ¹ → game group). Errors if the multivector is not purely grade 1.
     fn value_of_grade1(&self, mv: &IntegerMV) -> PyResult<PyGame> {
-        let mut acc = Game::zero();
-        for (&blade, coeff) in &mv.mv.terms {
-            if blade.count_ones() != 1 {
-                return Err(PyValueError::new_err("expected a grade-1 element"));
-            }
-            let idx = blade.trailing_zeros() as usize;
-            acc = acc.add(&self.gens[idx].times_int(coeff.0));
+        self.ensure_mv(mv)?;
+        let reduced = self.inner.reduce(&mv.mv);
+        if reduced.terms.keys().any(|blade| blade.count_ones() != 1) {
+            return Err(PyValueError::new_err("expected a grade-1 element"));
         }
-        Ok(PyGame { inner: acc })
+        Ok(PyGame {
+            inner: self.inner.value_of_grade1(&reduced),
+        })
+    }
+}
+
+impl PyGameExterior {
+    fn from_inner(inner: GameExterior) -> Self {
+        let alg = Arc::new(inner.algebra().clone());
+        PyGameExterior { inner, alg }
+    }
+
+    fn ensure_mv(&self, mv: &IntegerMV) -> PyResult<()> {
+        if self.alg.as_ref() == mv.alg.as_ref() {
+            Ok(())
+        } else {
+            Err(PyValueError::new_err(
+                "multivector belongs to a different GameExterior algebra",
+            ))
+        }
     }
 }
 

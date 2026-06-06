@@ -337,8 +337,8 @@ impl QuadricFit {
     }
 }
 
-/// F₂ scalar product of two coefficient vectors stored as `u64` bitmasks.
-fn f2_dot(a: u64, b: u64) -> bool {
+/// F₂ scalar product of two coefficient vectors stored as `u128` bitmasks.
+fn f2_dot(a: u128, b: u128) -> bool {
     (a & b).count_ones() & 1 == 1
 }
 
@@ -363,18 +363,22 @@ pub fn fit_f2_quadratic(set: &[u32], k: usize) -> Option<QuadricFit> {
             nbits += 1;
         }
     }
-    // Feature vector φ(v) over the coefficient layout (as a u64 bitmask).
-    let phi = |v: u32| -> u64 {
-        let mut f = 1u64; // constant
+    assert!(
+        nbits <= u128::BITS as usize,
+        "coefficient layout must fit in u128"
+    );
+    // Feature vector φ(v) over the coefficient layout (as a u128 bitmask).
+    let phi = |v: u32| -> u128 {
+        let mut f = 1u128; // constant
         for i in 0..k {
             if v & (1 << i) != 0 {
-                f |= 1u64 << (1 + i);
+                f |= 1u128 << (1 + i);
             }
         }
         for i in 0..k {
             for j in (i + 1)..k {
                 if v & (1 << i) != 0 && v & (1 << j) != 0 {
-                    f |= 1u64 << pair_index[i][j];
+                    f |= 1u128 << pair_index[i][j];
                 }
             }
         }
@@ -383,7 +387,7 @@ pub fn fit_f2_quadratic(set: &[u32], k: usize) -> Option<QuadricFit> {
     let in_set: std::collections::HashSet<u32> = set.iter().copied().collect();
 
     // Build the augmented system: rows (φ(v) | target), target = 0 iff v ∈ set.
-    let mut rows: Vec<(u64, bool)> = (0..(1u32 << k))
+    let mut rows: Vec<(u128, bool)> = (0..(1u32 << k))
         .map(|v| (phi(v), !in_set.contains(&v)))
         .collect();
 
@@ -391,11 +395,11 @@ pub fn fit_f2_quadratic(set: &[u32], k: usize) -> Option<QuadricFit> {
     let mut pivots: Vec<(usize, usize)> = Vec::new(); // (bit, row index)
     let mut r = 0usize;
     for bit in 0..nbits {
-        if let Some(p) = (r..rows.len()).find(|&i| rows[i].0 & (1u64 << bit) != 0) {
+        if let Some(p) = (r..rows.len()).find(|&i| rows[i].0 & (1u128 << bit) != 0) {
             rows.swap(r, p);
             let (prow, ptgt) = rows[r];
             for i in 0..rows.len() {
-                if i != r && rows[i].0 & (1u64 << bit) != 0 {
+                if i != r && rows[i].0 & (1u128 << bit) != 0 {
                     rows[i].0 ^= prow;
                     rows[i].1 ^= ptgt;
                 }
@@ -409,21 +413,21 @@ pub fn fit_f2_quadratic(set: &[u32], k: usize) -> Option<QuadricFit> {
         return None; // not a quadric
     }
     // Read off one solution (free variables = 0).
-    let mut sol = 0u64;
+    let mut sol = 0u128;
     for &(bit, row) in &pivots {
         if rows[row].1 {
-            sol |= 1u64 << bit;
+            sol |= 1u128 << bit;
         }
     }
     // (Sanity is guaranteed by construction; the form below reproduces `set`.)
     let _ = f2_dot; // (kept for clarity of the dot-product convention)
 
     let constant = sol & 1 != 0;
-    let qd: Vec<bool> = (0..k).map(|i| sol & (1u64 << (1 + i)) != 0).collect();
+    let qd: Vec<bool> = (0..k).map(|i| sol & (1u128 << (1 + i)) != 0).collect();
     let mut bmat = vec![0u32; k];
     for i in 0..k {
         for j in (i + 1)..k {
-            if sol & (1u64 << pair_index[i][j]) != 0 {
+            if sol & (1u128 << pair_index[i][j]) != 0 {
                 bmat[i] |= 1 << j;
                 bmat[j] |= 1 << i;
             }
@@ -604,6 +608,15 @@ mod tests {
         let lin = fit_f2_quadratic(&[0, 3], 2).unwrap();
         assert!(!lin.is_genuinely_quadratic());
         assert_eq!(lin.arf.rank, 0);
+    }
+
+    #[test]
+    fn fit_supports_the_documented_k12_bound() {
+        let set: Vec<u32> = (0..(1u32 << 12)).collect();
+        let fit = fit_f2_quadratic(&set, 12).unwrap();
+        assert_eq!(fit.qd.len(), 12);
+        assert_eq!(fit.arf.rank, 0);
+        assert!(!fit.constant);
     }
 
     #[test]

@@ -35,6 +35,15 @@ fn mex(seen: &HashSet<u64>) -> u64 {
     m
 }
 
+fn lower_mask(n: u64) -> u64 {
+    assert!(n < 64, "coin bitmask positions must be < 64");
+    if n == 0 {
+        0
+    } else {
+        (1u64 << n) - 1
+    }
+}
+
 /// Nim-multiplication via Conway's Turning-Corners excludant recurrence — the
 /// *game* definition of the product.
 pub fn nim_mul_mex(x: u64, y: u64) -> u64 {
@@ -83,12 +92,14 @@ pub fn nim_mul_mex(x: u64, y: u64) -> u64 {
 /// "Turn coin `n` and exactly one strictly-lower coin." Single-coin Grundy
 /// `g(n) = n`; its tartan square is Turning Corners.
 pub fn singleton_companions(n: u64) -> Vec<u64> {
+    assert!(n < 64, "coin bitmask positions must be < 64");
     (0..n).map(|i| 1u64 << i).collect()
 }
 
 /// Turning Turtles: "turn coin `n` and optionally one strictly-lower coin."
 /// Single-coin Grundy `g(n) = n + 1`.
 pub fn turtles_companions(n: u64) -> Vec<u64> {
+    assert!(n < 64, "coin bitmask positions must be < 64");
     let mut v = vec![0u64]; // the empty companion set (turn n alone)
     v.extend((0..n).map(|i| 1u64 << i));
     v
@@ -101,11 +112,16 @@ pub fn grundy_1d<F: Fn(u64) -> Vec<u64>>(
     n: u64,
     memo: &mut HashMap<u64, u64>,
 ) -> u64 {
+    let allowed = lower_mask(n);
     if let Some(&v) = memo.get(&n) {
         return v;
     }
     let mut seen = HashSet::new();
     for s in companions(n) {
+        assert!(
+            s & !allowed == 0,
+            "companion mask contains a coin that is not strictly lower than n"
+        );
         let mut acc = 0u64;
         let mut ss = s;
         while ss != 0 {
@@ -134,13 +150,24 @@ where
     A: Fn(u64) -> Vec<u64>,
     B: Fn(u64) -> Vec<u64>,
 {
+    assert!(x < 64 && y < 64, "tartan bitmask positions must be < 64");
+    let allowed_x = lower_mask(x);
+    let allowed_y = lower_mask(y);
     if let Some(&v) = memo.get(&(x, y)) {
         return v;
     }
     let mut seen = HashSet::new();
     for ta in comp_a(x) {
+        assert!(
+            ta & !allowed_x == 0,
+            "row companion mask contains a coin that is not strictly lower than x"
+        );
         let acells = ta | (1u64 << x); // rows turned (rightmost = x)
         for tb in comp_b(y) {
+            assert!(
+                tb & !allowed_y == 0,
+                "column companion mask contains a coin that is not strictly lower than y"
+            );
             let bcells = tb | (1u64 << y); // cols turned (rightmost = y)
                                            // XOR the values of every turned cell except (x,y) itself.
             let mut acc = 0u64;
@@ -200,6 +227,20 @@ mod tests {
         for n in 0..10 {
             assert_eq!(grundy_1d(&turtles_companions, n, &mut m2), n + 1); // g(n) = n+1
         }
+    }
+
+    #[test]
+    #[should_panic(expected = "positions must be < 64")]
+    fn companion_bitmasks_are_bounded_by_u64_width() {
+        let _ = singleton_companions(64);
+    }
+
+    #[test]
+    #[should_panic(expected = "not strictly lower than n")]
+    fn custom_companion_masks_must_use_lower_coins() {
+        let bad = |n| vec![1u64 << n];
+        let mut memo = HashMap::new();
+        let _ = grundy_1d(&bad, 3, &mut memo);
     }
 
     #[test]

@@ -47,12 +47,12 @@ pub trait Scalar: Clone + PartialEq + Debug {
     fn neg(&self) -> Self;
     fn mul(&self, rhs: &Self) -> Self;
 
-    /// Field characteristic: 0 for surreal / surcomplex / rational, 2 for
-    /// nimbers. The engine reads this because char 2 is genuinely different:
-    /// `-1 == 1` so blade-reordering signs vanish, and the quadratic form Q
-    /// (the squares) must be carried independently of the alternating
-    /// off-diagonal bilinear form B — see the notes in `clifford/engine.rs`.
-    fn characteristic() -> u32;
+    /// Ring characteristic: 0 for characteristic-0 domains, a positive additive
+    /// order of `1` for finite fields and finite quotient rings (`Z/p^k`,
+    /// truncated Witt vectors, etc.). The engine itself gets signs from
+    /// [`Scalar::neg`]; callers that care about characteristic must distinguish
+    /// fields from local rings separately.
+    fn characteristic() -> u128;
 
     /// Multiplicative inverse, or `None` if not invertible (zero) or not
     /// finitely representable in this backend (e.g. a non-monomial surreal,

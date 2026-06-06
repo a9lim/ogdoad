@@ -82,12 +82,15 @@ fn wedge_sign<S: Scalar>(a: u32, b: u32) -> S {
 ///     algebra (`e_i e_j = e_i∧e_j` for i<j); a nonzero antisymmetric choice of
 ///     `a` interpolates toward the Weyl algebra. `b` stays the anticommutator
 ///     regardless of `a` (the lower entry is `B(e_j,e_i) = b - a`).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Metric<S: Scalar> {
     pub q: Vec<S>,
     pub b: BTreeMap<(usize, usize), S>,
     pub a: BTreeMap<(usize, usize), S>,
 }
+
+/// Blade masks are `u32`, so the basis has at most 32 named generators.
+pub const MAX_BASIS_DIM: usize = 32;
 
 impl<S: Scalar> Metric<S> {
     /// Orthogonal metric from a list of squares (b = 0). `Cl(p,q,r)` style.
@@ -111,11 +114,13 @@ impl<S: Scalar> Metric<S> {
     /// A symmetric-polar Clifford metric: squares `q` and anticommutators `b`
     /// (i<j), with no in-order contraction (`a` empty). The ordinary case.
     pub fn new(q: Vec<S>, b: BTreeMap<(usize, usize), S>) -> Self {
-        Metric {
+        let metric = Metric {
             q,
             b,
             a: BTreeMap::new(),
-        }
+        };
+        metric.validate_for_dim(metric.q.len());
+        metric
     }
 
     /// A general-bilinear-form metric: squares `q`, polar form `b` (i<j), and the
@@ -125,7 +130,33 @@ impl<S: Scalar> Metric<S> {
         b: BTreeMap<(usize, usize), S>,
         a: BTreeMap<(usize, usize), S>,
     ) -> Self {
-        Metric { q, b, a }
+        let metric = Metric { q, b, a };
+        metric.validate_for_dim(metric.q.len());
+        metric
+    }
+
+    pub(crate) fn validate_for_dim(&self, dim: usize) {
+        assert!(
+            dim <= MAX_BASIS_DIM,
+            "CliffordAlgebra supports at most {MAX_BASIS_DIM} generators"
+        );
+        assert_eq!(
+            self.q.len(),
+            dim,
+            "metric q length must equal algebra dimension"
+        );
+        Self::validate_keys("b", &self.b, dim);
+        Self::validate_keys("a", &self.a, dim);
+    }
+
+    fn validate_keys(name: &str, map: &BTreeMap<(usize, usize), S>, dim: usize) {
+        for &(i, j) in map.keys() {
+            assert!(i < j, "{name}-keys must satisfy i < j");
+            assert!(
+                j < dim,
+                "{name}-key ({i},{j}) is out of range for dimension {dim}"
+            );
+        }
     }
 
     /// True iff there is any in-order contraction — i.e. this is a genuinely
@@ -245,7 +276,7 @@ impl<S: Scalar> Metric<S> {
         for (&(i, j), v) in &other.a {
             a.insert((i + n, j + n), v.clone());
         }
-        Metric { q, b, a }
+        Metric::general(q, b, a)
     }
 
     pub(crate) fn q_val(&self, i: usize) -> S {
@@ -328,7 +359,7 @@ pub struct Multivector<S: Scalar> {
 }
 
 /// A Clifford algebra: dimension + metric. Produces and combines multivectors.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CliffordAlgebra<S: Scalar> {
     pub dim: usize,
     pub metric: Metric<S>,
@@ -336,6 +367,7 @@ pub struct CliffordAlgebra<S: Scalar> {
 
 impl<S: Scalar> CliffordAlgebra<S> {
     pub fn new(dim: usize, metric: Metric<S>) -> Self {
+        metric.validate_for_dim(dim);
         CliffordAlgebra { dim, metric }
     }
 
@@ -359,10 +391,21 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// Embed a multivector of the *second* factor into `first ⊗̂ self`: shift every
     /// blade's generator bits up by `shift` (= the first factor's dimension).
     pub fn embed_second(&self, v: &Multivector<S>, shift: usize) -> Multivector<S> {
+        assert!(shift <= MAX_BASIS_DIM, "basis shift out of range");
         let terms = v
             .terms
             .iter()
-            .map(|(&blade, c)| (blade << shift, c.clone()))
+            .map(|(&blade, c)| {
+                if blade != 0 {
+                    let highest = (u32::BITS - 1 - blade.leading_zeros()) as usize;
+                    assert!(
+                        highest + shift < MAX_BASIS_DIM,
+                        "embedded blade exceeds {MAX_BASIS_DIM} generators"
+                    );
+                }
+                let shifted = if blade == 0 { 0 } else { blade << shift };
+                (shifted, c.clone())
+            })
             .collect();
         Multivector { terms }
     }
@@ -383,6 +426,8 @@ impl<S: Scalar> CliffordAlgebra<S> {
 
     /// The basis vector e_i.
     pub fn gen(&self, i: usize) -> Multivector<S> {
+        assert!(i < self.dim, "generator index {i} out of range");
+        assert!(i < MAX_BASIS_DIM, "generator index {i} exceeds blade mask");
         let mut terms = BTreeMap::new();
         terms.insert(1u32 << i, S::one());
         Multivector { terms }
@@ -392,6 +437,12 @@ impl<S: Scalar> CliffordAlgebra<S> {
     pub fn blade(&self, gens: &[usize]) -> Multivector<S> {
         let mut mask = 0u32;
         for &g in gens {
+            assert!(g < self.dim, "blade generator index {g} out of range");
+            assert!(g < MAX_BASIS_DIM, "blade generator index {g} exceeds mask");
+            assert!(
+                mask & (1u32 << g) == 0,
+                "blade expects a set of distinct generators"
+            );
             mask |= 1 << g;
         }
         let mut terms = BTreeMap::new();
@@ -525,6 +576,27 @@ mod tests {
 
     fn r(n: i128) -> Rational {
         Rational::int(n)
+    }
+
+    #[test]
+    #[should_panic(expected = "at most 32 generators")]
+    fn algebra_dimension_must_fit_blade_mask() {
+        let _ = CliffordAlgebra::new(33, Metric::<Rational>::grassmann(33));
+    }
+
+    #[test]
+    #[should_panic(expected = "b-keys must satisfy i < j")]
+    fn metric_rejects_reversed_or_diagonal_polar_keys() {
+        let mut b = BTreeMap::new();
+        b.insert((1usize, 0usize), r(1));
+        let _ = Metric::new(vec![r(1), r(1)], b);
+    }
+
+    #[test]
+    #[should_panic(expected = "generator index 2 out of range")]
+    fn generator_index_must_be_in_the_algebra() {
+        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+        let _ = alg.gen(2);
     }
 
     #[test]

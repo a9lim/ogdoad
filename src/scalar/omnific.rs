@@ -99,7 +99,7 @@ impl Scalar for Omnific {
     fn mul(&self, rhs: &Self) -> Self {
         Omnific(self.0.mul(&rhs.0))
     }
-    fn characteristic() -> u32 {
+    fn characteristic() -> u128 {
         0
     }
     fn inv(&self) -> Option<Self> {

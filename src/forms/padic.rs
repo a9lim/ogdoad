@@ -58,6 +58,26 @@ fn square_free(mut n: i128) -> i128 {
     sign * res
 }
 
+fn is_prime(p: u64) -> bool {
+    if p < 2 {
+        return false;
+    }
+    if p == 2 {
+        return true;
+    }
+    if p % 2 == 0 {
+        return false;
+    }
+    let mut d = 3u64;
+    while d <= p / d {
+        if p % d == 0 {
+            return false;
+        }
+        d += 2;
+    }
+    true
+}
+
 /// `p`-adic valuation `v_p(n)` (for `n ≠ 0`).
 fn val_p(mut n: i128, p: i128) -> u32 {
     let mut k = 0;
@@ -104,6 +124,7 @@ fn legendre(a: i128, p: i128) -> i8 {
 /// Is the nonzero integer `n` a square in `Q_p`? `v_p(n)` even **and** the unit part
 /// is a square unit (`≡ □ mod p` for odd `p`; `≡ 1 mod 8` for `p = 2`).
 pub fn is_square_qp(n: i64, p: u64) -> bool {
+    assert!(is_prime(p), "Q_p square test needs p prime");
     let n = n as i128;
     let p = p as i128;
     if n == 0 {
@@ -153,6 +174,7 @@ fn omega2(u: i128) -> i128 {
 /// `(a,b)_p = (−1)^{αβ ε(p)} (u|p)^β (v|p)^α`; for `p = 2`,
 /// `(a,b)_2 = (−1)^{ε(u)ε(v) + α ω(v) + β ω(u)}`.
 pub fn hilbert_symbol_qp(a: i64, b: i64, p: u64) -> i8 {
+    assert!(is_prime(p), "Hilbert symbol needs p prime");
     let a = square_free(a as i128);
     let b = square_free(b as i128);
     assert!(a != 0 && b != 0, "Hilbert symbol needs nonzero arguments");
@@ -245,8 +267,17 @@ fn is_perfect_square(n: i128) -> bool {
     if n < 0 {
         return false;
     }
-    let r = (n as f64).sqrt() as i128;
-    (r - 1..=r + 1).any(|k| k >= 0 && k * k == n)
+    let mut lo = 0i128;
+    let mut hi = n;
+    while lo <= hi {
+        let mid = lo + (hi - lo) / 2;
+        if mid == 0 || mid <= n / mid {
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+    hi * hi == n
 }
 
 /// Local isotropy of a nondegenerate integer diagonal form over `Q_p`, by rank
@@ -414,5 +445,18 @@ mod tests {
         assert!(is_isotropic_q(&[2, -8])); // −(2·−8)=16 = 4²
         assert!(!is_isotropic_q(&[1, -2])); // −(−2)=2, not a square
         assert!(!is_isotropic_q(&[1, 1])); // −1 not a square
+    }
+
+    #[test]
+    fn rank_two_square_test_is_exact_near_i64_limit() {
+        let a = 3_037_000_499i64;
+        assert!(is_isotropic_q(&[a, -a])); // −a·(−a) = a², exactly.
+        assert!(!is_isotropic_q(&[a, -(a - 1)]));
+    }
+
+    #[test]
+    fn qp_apis_reject_nonprime_places() {
+        assert!(std::panic::catch_unwind(|| is_square_qp(2, 9)).is_err());
+        assert!(std::panic::catch_unwind(|| hilbert_symbol_qp(2, 3, 1)).is_err());
     }
 }

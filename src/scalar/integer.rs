@@ -34,7 +34,7 @@ impl Scalar for Integer {
     fn mul(&self, rhs: &Self) -> Self {
         Integer(self.0 * rhs.0)
     }
-    fn characteristic() -> u32 {
+    fn characteristic() -> u128 {
         0
     }
     fn inv(&self) -> Option<Self> {

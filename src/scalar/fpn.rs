@@ -218,9 +218,9 @@ impl<const P: u64, const N: usize> Scalar for Fpn<P, N> {
         Fpn(out)
     }
 
-    fn characteristic() -> u32 {
+    fn characteristic() -> u128 {
         // The *characteristic* is the prime p, not the order p^N.
-        P as u32
+        P as u128
     }
 
     fn inv(&self) -> Option<Self> {

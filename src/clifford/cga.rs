@@ -50,11 +50,12 @@ pub struct Cga<S: Scalar> {
 }
 
 impl<S: Scalar> Cga<S> {
-    /// Build the CGA of `ℝⁿ`. Panics in characteristic 2 (CGA needs `½`).
+    /// Build the CGA of `ℝⁿ`. Panics unless `2` is invertible (CGA needs `½`).
     pub fn new(n: usize) -> Self {
+        let two = S::one().add(&S::one());
         assert!(
-            S::characteristic() != 2,
-            "CGA needs ½ — use a characteristic-0 backend (surreal/rational)"
+            two.inv().is_some(),
+            "CGA needs 1/2, so 2 must be invertible in the scalar backend"
         );
         let mut q = vec![S::one(); n];
         q.push(S::zero()); // n_o
@@ -199,6 +200,7 @@ pub fn exp_nilpotent<S: Scalar>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scalar::Integer;
     use crate::scalar::Rational;
     use crate::scalar::Surreal;
 
@@ -207,6 +209,11 @@ mod tests {
     }
     fn rs(num: i128, den: i128) -> Rational {
         Rational::new(num, den)
+    }
+
+    #[test]
+    fn cga_rejects_rings_without_one_half() {
+        assert!(std::panic::catch_unwind(|| Cga::<Integer>::new(1)).is_err());
     }
 
     #[test]

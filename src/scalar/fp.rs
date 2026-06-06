@@ -64,8 +64,8 @@ impl<const P: u64> Scalar for Fp<P> {
     fn mul(&self, rhs: &Self) -> Self {
         Fp(((self.0 as u128 * rhs.0 as u128) % P as u128) as u64)
     }
-    fn characteristic() -> u32 {
-        P as u32
+    fn characteristic() -> u128 {
+        P as u128
     }
     fn inv(&self) -> Option<Self> {
         if self.0 == 0 {

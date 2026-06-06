@@ -17,10 +17,9 @@
 //!
 //! Like `Fp`/`Fpn`, both the prime `p` and the precision `k` live in the **type**
 //! (`Scalar::zero()/one()` take no `self`): `Zp<const P: u64, const K: u32>` is
-//! `Z/p^k`, carried as the residue in `[0, p^k)`. `characteristic()` returns **0** —
-//! `Z/p^k` is a length-`k` truncation of the characteristic-0 ring `Z_p`, and is not
-//! a finite field of characteristic `p`; reporting 0 keeps it out of the
-//! finite-field classifier, which would be wrong here.
+//! `Z/p^k`, carried as the residue in `[0, p^k)`. Its characteristic is the
+//! modulus `p^k` (the additive order of `1`), even though it is a truncation of
+//! the characteristic-0 ring `Z_p` and not a field of characteristic `p`.
 
 use crate::scalar::Scalar;
 use std::fmt;
@@ -96,10 +95,10 @@ impl<const P: u64, const K: u32> Scalar for Zp<P, K> {
         Zp(((self.0 as u128 * rhs.0 as u128) % m) as u64)
     }
 
-    fn characteristic() -> u32 {
-        // Z/p^k is a truncation of the characteristic-0 ring Z_p, and is a local
-        // *ring*, not a field — so 0, matching Integer/Omnific (NOT the prime p).
-        0
+    fn characteristic() -> u128 {
+        // The finite quotient Z/p^k has characteristic p^k: p^k · 1 = 0, and no
+        // smaller positive multiple of 1 vanishes.
+        Self::modulus()
     }
 
     fn inv(&self) -> Option<Self> {
@@ -182,10 +181,11 @@ mod tests {
     }
 
     #[test]
-    fn characteristic_is_zero_not_p() {
-        // It is the integers underneath, not a char-p field.
-        assert_eq!(Zp::<2, 3>::characteristic(), 0);
-        assert_eq!(Zp::<3, 3>::characteristic(), 0);
+    fn characteristic_is_the_modulus_not_the_prime() {
+        // It is not the char-p field F_p, but the finite quotient still has a
+        // literal ring characteristic: the additive order of 1.
+        assert_eq!(Zp::<2, 3>::characteristic(), 8);
+        assert_eq!(Zp::<3, 3>::characteristic(), 27);
     }
 
     #[test]

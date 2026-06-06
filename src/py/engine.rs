@@ -9,7 +9,7 @@ use super::scalars::{
     wrap_nimber, wrap_omnific, wrap_surcomplex, wrap_surreal, PyInteger, PyNimber, PyOmnific,
     PySurcomplex, PySurreal,
 };
-use crate::clifford::{Cga, CliffordAlgebra, Metric, Multivector};
+use crate::clifford::{Cga, CliffordAlgebra, Metric, Multivector, MAX_BASIS_DIM};
 use crate::scalar::{Integer, Nimber, Omnific, Scalar, Surcomplex, Surreal};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -42,10 +42,22 @@ macro_rules! backend {
                 for item in &q {
                     qv.push($parse(item)?);
                 }
+                let dim = qv.len();
+                if dim > MAX_BASIS_DIM {
+                    return Err(PyValueError::new_err(format!(
+                        "algebra dimension must be <= {MAX_BASIS_DIM}"
+                    )));
+                }
                 let mut bm: BTreeMap<(usize, usize), $scalar> = BTreeMap::new();
                 if let Some(d) = b {
                     for (k, v) in d.iter() {
                         let (i, j): (usize, usize) = k.extract()?;
+                        if i == j {
+                            return Err(PyValueError::new_err("b-keys must be off-diagonal"));
+                        }
+                        if i >= dim || j >= dim {
+                            return Err(PyValueError::new_err("b-key index out of range"));
+                        }
                         let key = if i < j { (i, j) } else { (j, i) };
                         bm.insert(key, $parse(&v)?);
                     }
@@ -59,10 +71,12 @@ macro_rules! backend {
                         if i >= j {
                             return Err(PyValueError::new_err("a-keys must satisfy i < j"));
                         }
+                        if j >= dim {
+                            return Err(PyValueError::new_err("a-key index out of range"));
+                        }
                         am.insert((i, j), $parse(&v)?);
                     }
                 }
-                let dim = qv.len();
                 let metric = Metric::general(qv, bm, am);
                 Ok($alg {
                     inner: Arc::new(CliffordAlgebra::new(dim, metric)),
@@ -75,10 +89,15 @@ macro_rules! backend {
             }
 
             /// The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other).
-            fn graded_tensor(&self, other: &$alg) -> $alg {
-                $alg {
-                    inner: Arc::new(self.inner.graded_tensor(&other.inner)),
+            fn graded_tensor(&self, other: &$alg) -> PyResult<$alg> {
+                if self.inner.dim + other.inner.dim > MAX_BASIS_DIM {
+                    return Err(PyValueError::new_err(format!(
+                        "graded tensor dimension exceeds {MAX_BASIS_DIM}"
+                    )));
                 }
+                Ok($alg {
+                    inner: Arc::new(self.inner.graded_tensor(&other.inner)),
+                })
             }
 
             /// The even subalgebra as a Clifford algebra one dimension smaller
@@ -93,17 +112,29 @@ macro_rules! backend {
                         )
                     })
             }
-            fn gen(&self, i: usize) -> $mv {
-                $mv {
+            fn gen(&self, i: usize) -> PyResult<$mv> {
+                if i >= self.inner.dim {
+                    return Err(PyValueError::new_err("generator index out of range"));
+                }
+                Ok($mv {
                     alg: self.inner.clone(),
                     mv: self.inner.gen(i),
-                }
+                })
             }
-            fn blade(&self, gens: Vec<usize>) -> $mv {
-                $mv {
+            fn blade(&self, gens: Vec<usize>) -> PyResult<$mv> {
+                let mut seen = std::collections::BTreeSet::new();
+                for &g in &gens {
+                    if g >= self.inner.dim {
+                        return Err(PyValueError::new_err("blade generator index out of range"));
+                    }
+                    if !seen.insert(g) {
+                        return Err(PyValueError::new_err("blade expects distinct generators"));
+                    }
+                }
+                Ok($mv {
                     alg: self.inner.clone(),
                     mv: self.inner.blade(&gens),
-                }
+                })
             }
             fn scalar(&self, s: &Bound<'_, PyAny>) -> PyResult<$mv> {
                 Ok($mv {
@@ -128,42 +159,15 @@ macro_rules! backend {
             /// the image of `e_i`): the scalar by which its outermorphism scales
             /// the pseudoscalar. Char-faithful (the char-2 determinant over nimbers).
             fn determinant(&self, matrix: Vec<Vec<Bound<'_, PyAny>>>) -> PyResult<$scalar_py> {
-                let n = matrix.len();
-                let mut cols: Vec<Vec<$scalar>> = Vec::with_capacity(n);
-                for col in &matrix {
-                    if col.len() != n {
-                        return Err(PyValueError::new_err(
-                            "matrix must be square (n columns of length n)",
-                        ));
-                    }
-                    let mut c = Vec::with_capacity(n);
-                    for x in col {
-                        c.push($parse(x)?);
-                    }
-                    cols.push(c);
-                }
-                let lm = crate::clifford::LinearMap::from_columns(cols);
+                let lm = self.parse_linear_map(matrix)?;
                 Ok($wrap(crate::clifford::determinant(&self.inner, &lm)))
             }
 
             /// Apply the outermorphism of a (column-major) linear map to a
             /// multivector: `f(a∧b) = f(a)∧f(b)`.
             fn outermorphism(&self, matrix: Vec<Vec<Bound<'_, PyAny>>>, mv: &$mv) -> PyResult<$mv> {
-                let n = matrix.len();
-                let mut cols: Vec<Vec<$scalar>> = Vec::with_capacity(n);
-                for col in &matrix {
-                    if col.len() != n {
-                        return Err(PyValueError::new_err(
-                            "matrix must be square (n columns of length n)",
-                        ));
-                    }
-                    let mut c = Vec::with_capacity(n);
-                    for x in col {
-                        c.push($parse(x)?);
-                    }
-                    cols.push(c);
-                }
-                let lm = crate::clifford::LinearMap::from_columns(cols);
+                self.ensure_mv(mv)?;
+                let lm = self.parse_linear_map(matrix)?;
                 Ok($mv {
                     alg: self.inner.clone(),
                     mv: crate::clifford::apply_outermorphism(&self.inner, &lm, &mv.mv),
@@ -209,6 +213,45 @@ macro_rules! backend {
             }
         }
 
+        impl $alg {
+            fn ensure_mv(&self, mv: &$mv) -> PyResult<()> {
+                if self.inner.as_ref() == mv.alg.as_ref() {
+                    Ok(())
+                } else {
+                    Err(PyValueError::new_err(
+                        "multivector belongs to a different Clifford algebra",
+                    ))
+                }
+            }
+
+            fn parse_linear_map(
+                &self,
+                matrix: Vec<Vec<Bound<'_, PyAny>>>,
+            ) -> PyResult<crate::clifford::LinearMap<$scalar>> {
+                let n = matrix.len();
+                if n != self.inner.dim {
+                    return Err(PyValueError::new_err(format!(
+                        "matrix dimension {n} does not match algebra dimension {}",
+                        self.inner.dim
+                    )));
+                }
+                let mut cols: Vec<Vec<$scalar>> = Vec::with_capacity(n);
+                for col in &matrix {
+                    if col.len() != n {
+                        return Err(PyValueError::new_err(
+                            "matrix must be square (n columns of length n)",
+                        ));
+                    }
+                    let mut c = Vec::with_capacity(n);
+                    for x in col {
+                        c.push($parse(x)?);
+                    }
+                    cols.push(c);
+                }
+                Ok(crate::clifford::LinearMap::from_columns(cols))
+            }
+        }
+
         #[pyclass(name = $mv_name, module = "pleroma", from_py_object)]
         #[derive(Clone)]
         pub(crate) struct $mv {
@@ -216,21 +259,35 @@ macro_rules! backend {
             pub(crate) mv: Multivector<$scalar>,
         }
 
-        #[pymethods]
         impl $mv {
-            fn __add__(&self, other: &$mv) -> $mv {
-                $mv {
-                    alg: self.alg.clone(),
-                    mv: self.alg.add(&self.mv, &other.mv),
+            fn ensure_same_algebra(&self, other: &$mv) -> PyResult<()> {
+                if self.alg.as_ref() == other.alg.as_ref() {
+                    Ok(())
+                } else {
+                    Err(PyValueError::new_err(
+                        "multivectors belong to different Clifford algebras",
+                    ))
                 }
             }
-            fn __sub__(&self, other: &$mv) -> $mv {
+        }
+
+        #[pymethods]
+        impl $mv {
+            fn __add__(&self, other: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(other)?;
+                Ok($mv {
+                    alg: self.alg.clone(),
+                    mv: self.alg.add(&self.mv, &other.mv),
+                })
+            }
+            fn __sub__(&self, other: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(other)?;
                 let neg_one = <$scalar as Scalar>::one().neg();
                 let neg = self.alg.scalar_mul(&neg_one, &other.mv);
-                $mv {
+                Ok($mv {
                     alg: self.alg.clone(),
                     mv: self.alg.add(&self.mv, &neg),
-                }
+                })
             }
             fn __neg__(&self) -> $mv {
                 let neg_one = <$scalar as Scalar>::one().neg();
@@ -241,9 +298,11 @@ macro_rules! backend {
             }
             fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<$mv> {
                 if let Ok(o) = other.cast::<$mv>() {
+                    let other = o.borrow();
+                    self.ensure_same_algebra(&other)?;
                     return Ok($mv {
                         alg: self.alg.clone(),
-                        mv: self.alg.mul(&self.mv, &o.borrow().mv),
+                        mv: self.alg.mul(&self.mv, &other.mv),
                     });
                 }
                 let s = $parse(other)?;
@@ -270,13 +329,14 @@ macro_rules! backend {
                 }
             }
             /// Exterior (wedge) product; also bound to the `^` operator.
-            fn wedge(&self, other: &$mv) -> $mv {
-                $mv {
+            fn wedge(&self, other: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(other)?;
+                Ok($mv {
                     alg: self.alg.clone(),
                     mv: self.alg.wedge(&self.mv, &other.mv),
-                }
+                })
             }
-            fn __xor__(&self, other: &$mv) -> $mv {
+            fn __xor__(&self, other: &$mv) -> PyResult<$mv> {
                 self.wedge(other)
             }
             fn reverse(&self) -> $mv {
@@ -313,6 +373,7 @@ macro_rules! backend {
             }
             /// Sandwich self · x · self⁻¹ (rotor/versor action; untwisted).
             fn sandwich(&self, x: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(x)?;
                 self.alg
                     .sandwich(&self.mv, &x.mv)
                     .map(|mv| $mv {
@@ -324,6 +385,7 @@ macro_rules! backend {
             /// Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
             /// versor action; for an odd versor it gives a genuine reflection.
             fn twisted_sandwich(&self, x: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(x)?;
                 self.alg
                     .twisted_sandwich(&self.mv, &x.mv)
                     .map(|mv| $mv {
@@ -342,13 +404,18 @@ macro_rules! backend {
             /// The exterior-Hopf coproduct Δ, returned as a multivector over the
             /// graded tensor square `Cl ⊗̂ Cl` (a tensor `e_T ⊗ e_U` is the blade
             /// `T | (U << dim)`).
-            fn coproduct(&self) -> $mv {
+            fn coproduct(&self) -> PyResult<$mv> {
+                if self.alg.dim * 2 > MAX_BASIS_DIM {
+                    return Err(PyValueError::new_err(format!(
+                        "coproduct tensor encoding needs 2*dim <= {MAX_BASIS_DIM}"
+                    )));
+                }
                 let tensor = self.alg.graded_tensor(&self.alg);
                 let co = crate::clifford::coproduct(&self.alg, &self.mv);
-                $mv {
+                Ok($mv {
                     alg: Arc::new(tensor),
                     mv: co,
-                }
+                })
             }
             /// The exterior-Hopf antipode (the grade involution `(−1)^k`).
             fn antipode(&self) -> $mv {
@@ -376,6 +443,7 @@ macro_rules! backend {
             }
             /// Reflect x in the hyperplane ⊥ self (self must be an invertible vector).
             fn reflect(&self, x: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(x)?;
                 self.alg
                     .reflect(&self.mv, &x.mv)
                     .map(|mv| $mv {
@@ -384,23 +452,25 @@ macro_rules! backend {
                     })
                     .ok_or_else(|| PyValueError::new_err("not an invertible vector"))
             }
-            fn left_contract(&self, other: &$mv) -> $mv {
-                $mv {
+            fn left_contract(&self, other: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(other)?;
+                Ok($mv {
                     alg: self.alg.clone(),
                     mv: self.alg.left_contract(&self.mv, &other.mv),
-                }
+                })
             }
-            fn right_contract(&self, other: &$mv) -> $mv {
-                $mv {
+            fn right_contract(&self, other: &$mv) -> PyResult<$mv> {
+                self.ensure_same_algebra(other)?;
+                Ok($mv {
                     alg: self.alg.clone(),
                     mv: self.alg.right_contract(&self.mv, &other.mv),
-                }
+                })
             }
             /// `<<` is left contraction, `>>` is right contraction.
-            fn __lshift__(&self, other: &$mv) -> $mv {
+            fn __lshift__(&self, other: &$mv) -> PyResult<$mv> {
                 self.left_contract(other)
             }
-            fn __rshift__(&self, other: &$mv) -> $mv {
+            fn __rshift__(&self, other: &$mv) -> PyResult<$mv> {
                 self.right_contract(other)
             }
             fn dual(&self) -> PyResult<$mv> {
@@ -423,9 +493,11 @@ macro_rules! backend {
             /// Division: by a scalar, or by a versor (multiply by its inverse).
             fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<$mv> {
                 if let Ok(o) = other.cast::<$mv>() {
+                    let other = o.borrow();
+                    self.ensure_same_algebra(&other)?;
                     let oinv = self
                         .alg
-                        .versor_inverse(&o.borrow().mv)
+                        .versor_inverse(&other.mv)
                         .ok_or_else(|| PyValueError::new_err("divisor not an invertible versor"))?;
                     return Ok($mv {
                         alg: self.alg.clone(),
@@ -445,7 +517,8 @@ macro_rules! backend {
             }
             fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
                 if let Ok(o) = other.cast::<$mv>() {
-                    self.mv == o.borrow().mv
+                    let other = o.borrow();
+                    self.alg.as_ref() == other.alg.as_ref() && self.mv == other.mv
                 } else {
                     false
                 }

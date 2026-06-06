@@ -224,10 +224,11 @@ impl<const P: u64, const N: usize, const F: usize> Scalar for WittVec<P, N, F> {
         WittVec(Self::ring_mul(&self.0, &rhs.0))
     }
 
-    fn characteristic() -> u32 {
-        // A truncation of the characteristic-0 ring W(F_q); a local ring, not a
-        // finite field — so 0, matching Zp/Integer/Omnific (NOT the prime p).
-        0
+    fn characteristic() -> u128 {
+        // The length-N truncation W_N(F_q) is a finite quotient of the
+        // characteristic-0 Witt ring, with p^N · 1 = 0 and no smaller positive
+        // multiple of 1 vanishing.
+        Self::modulus()
     }
 
     fn inv(&self) -> Option<Self> {
@@ -300,9 +301,10 @@ mod tests {
 
     #[test]
     fn residue_is_the_field_fq() {
-        // Reducing W_N(F_q) mod p recovers F_q = Fpn<P,F>, and characteristic is 0.
+        // Reducing W_N(F_q) mod p recovers F_q = Fpn<P,F>, while the finite
+        // truncated ring itself has characteristic p^N.
         assert_eq!(WittVec::<3, 2, 2>([4, 7]).residue(), Fpn::<3, 2>([1, 1]));
-        assert_eq!(WittVec::<2, 3, 1>::characteristic(), 0);
+        assert_eq!(WittVec::<2, 3, 1>::characteristic(), 8);
     }
 
     #[test]

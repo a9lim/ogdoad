@@ -90,7 +90,7 @@ impl Scalar for Rational {
     fn mul(&self, rhs: &Self) -> Self {
         Rational::new(self.num * rhs.num, self.den * rhs.den)
     }
-    fn characteristic() -> u32 {
+    fn characteristic() -> u128 {
         0
     }
     fn inv(&self) -> Option<Self> {

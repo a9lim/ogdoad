@@ -217,7 +217,7 @@ impl Scalar for Nimber {
     fn mul(&self, rhs: &Self) -> Self {
         Nimber(nim_mul(self.0, rhs.0))
     }
-    fn characteristic() -> u32 {
+    fn characteristic() -> u128 {
         2
     }
     fn inv(&self) -> Option<Self> {

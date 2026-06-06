@@ -6,7 +6,7 @@
 //! a product of commuting "halves" `½(1 + w)` with `w² = +1`, take the minimal
 //! left ideal `S = Cl·f` (the spinor module), pick a basis, and read off the
 //! matrix of left multiplication by each generator on that basis. Those matrices
-//! satisfy the Clifford relations `Mᵢ² = qᵢ·I`, `MᵢMⱼ + MⱼMᵢ = 2bᵢⱼ·I`
+//! satisfy the Clifford relations `Mᵢ² = qᵢ·I`, `MᵢMⱼ + MⱼMᵢ = bᵢⱼ·I`
 //! automatically (left multiplication is an algebra representation), and the
 //! ideal's dimension matches the classifier's `matrix_dim · dim_ℝ(K)`.
 //!

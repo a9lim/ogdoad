@@ -18,6 +18,14 @@ use crate::clifford::Metric;
 use crate::forms::arf_invariant;
 use crate::scalar::Nimber;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WittClassError {
+    Singular {
+        radical_dim: usize,
+        radical_anisotropic: bool,
+    },
+}
+
 /// A class in the Witt group `W_q(F) ≅ ℤ/2` of a finite nim-field: the Arf
 /// invariant of a form's anisotropic core (hyperbolic planes are the identity).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -32,13 +40,24 @@ impl WittClass {
         WittClass { arf: 0 }
     }
 
-    /// The Witt class of a nimber Clifford metric — the Arf invariant of its
-    /// nonsingular core. (Arf is a Witt invariant: it ignores hyperbolic summands
-    /// and the polar-form radical, so this is well defined on the class.)
-    pub fn from_metric(metric: &Metric<Nimber>) -> Self {
-        WittClass {
-            arf: arf_invariant(metric).arf,
+    /// Checked Witt class of a nimber Clifford metric. The Witt group here is the
+    /// group of nonsingular quadratic forms, so a nonzero polar-form radical is
+    /// rejected instead of being silently erased.
+    pub fn try_from_metric(metric: &Metric<Nimber>) -> Result<Self, WittClassError> {
+        let arf = arf_invariant(metric);
+        if arf.radical_dim != 0 {
+            return Err(WittClassError::Singular {
+                radical_dim: arf.radical_dim,
+                radical_anisotropic: arf.radical_anisotropic,
+            });
         }
+        Ok(WittClass { arf: arf.arf })
+    }
+
+    /// The Witt class of a nonsingular nimber Clifford metric.
+    pub fn from_metric(metric: &Metric<Nimber>) -> Self {
+        Self::try_from_metric(metric)
+            .expect("WittClass::from_metric needs a nonsingular quadratic form")
     }
 
     /// The group operation: the class of the orthogonal sum `⊥` of two forms.
@@ -120,11 +139,17 @@ impl WittClassG {
         }
     }
 
-    /// Char-2 Witt class from a nimber metric (the Arf invariant).
+    /// Checked char-2 Witt class from a nonsingular nimber metric.
+    pub fn try_char2_from_metric(metric: &Metric<Nimber>) -> Result<Self, WittClassError> {
+        Ok(WittClassG::Char2 {
+            arf: WittClass::try_from_metric(metric)?.arf,
+        })
+    }
+
+    /// Char-2 Witt class from a nonsingular nimber metric (the Arf invariant).
     pub fn char2_from_metric(metric: &Metric<Nimber>) -> Self {
-        WittClassG::Char2 {
-            arf: arf_invariant(metric).arf,
-        }
+        Self::try_char2_from_metric(metric)
+            .expect("WittClassG::char2_from_metric needs a nonsingular quadratic form")
     }
 
     /// The identity of the odd-char group with the given `kappa`.
@@ -295,5 +320,18 @@ mod tests {
         assert_eq!(aniso.arf, 1);
         assert_eq!(split.arf, 0);
         assert_eq!(aniso.add(&split), aniso);
+    }
+
+    #[test]
+    fn singular_forms_are_not_silently_projected_to_witt_classes() {
+        let defective = metric(&[0, 0, 1], &[((0, 1), 1)]);
+        assert_eq!(
+            WittClass::try_from_metric(&defective),
+            Err(WittClassError::Singular {
+                radical_dim: 1,
+                radical_anisotropic: true,
+            })
+        );
+        assert!(WittClassG::try_char2_from_metric(&defective).is_err());
     }
 }

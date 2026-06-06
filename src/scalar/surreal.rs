@@ -156,7 +156,7 @@ impl Scalar for Surreal {
         }
     }
 
-    fn characteristic() -> u32 {
+    fn characteristic() -> u128 {
         0
     }
 

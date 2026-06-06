@@ -165,10 +165,14 @@ fn main() {
         ext.game(0).is_number(),
         ext.game(1).is_number()
     );
-    let g0g1 = ext.algebra().wedge(&ext.generator(0), &ext.generator(1));
+    let g0g1 = ext.wedge(&ext.generator(0), &ext.generator(1));
     println!(
-        "  g0 ∧ g1 = {}   (genuine grade-2 over non-numbers)",
+        "  g0 ∧ g1 = {}   (nonzero grade-2, with game relations imposed)",
         g0g1.display()
+    );
+    println!(
+        "  2·(g0 ∧ g1) = 0 ? {}   (the relation 2⋆=0 propagates)",
+        ext.is_zero(&ext.scalar_mul(2, &g0g1))
     );
     let two_g0 = ext.algebra().scalar_mul(&Integer(2), &ext.generator(0));
     println!(

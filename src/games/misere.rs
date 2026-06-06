@@ -89,8 +89,9 @@ pub fn misere_nim_p_predicted(heaps: &[u32]) -> bool {
 // quotient) carrying a distinguished P-set. We compute it *bounded*: positions
 // are sums of atoms up to `elem_bound`, tested against sums up to `test_bound`.
 // For a game with a finite quotient this is exact once the bounds exceed its
-// pretension; otherwise it is a sound under-approximation of the congruence (it
-// may merge fewer classes than the true quotient — never more). The point of the
+// pretension; otherwise it is a finite observational approximation of the
+// congruence (bounded tests may merge more positions than the true quotient,
+// i.e. return a coarser quotient). The point of the
 // instrument is to ask, of the resulting P-set, the question the project cares
 // about: is it a quadric, and what is its Arf (win-bias)?
 
