@@ -280,6 +280,61 @@ Arf). So the open problem reaches its sharpest form yet:
 Referencing `Q` is cheating; referencing only `B` does not (yet) integrate up to
 `Q`. The kernel solver + `fit_f2_quadratic` are the bench any candidate runs on.
 
+### The framing obstruction: why `B` can't, and what exactly is missing
+
+`experiments/framing_obstruction.py` resolves the "`B` alone, not `Q`" dichotomy
+into a **symmetry-breaking ladder**, turning the open question from "mysterious" to
+"open in exactly one named corner." Two classical facts drive it: the quadratic
+refinements of a fixed symplectic `B` form a **torsor under the linear duals `V*`**
+(two forms share a polar form iff they differ by a linear functional — *Quadratic
+forms and their duals*, arXiv:2506.23613), and `Sp(2m,2)` acts on those refinements
+with **two orbits**, Arf the complete invariant, the stabiliser of a form its
+orthogonal group `O(Q)` (the F₂ classification).
+
+**The no-go (frame-blind games realise no quadric at all).** If a game's move
+relation on `V = F₂^m` is built from a fixed nondegenerate symplectic `B` and the
+F₂-linear structure *alone*, then every `g ∈ Sp(B)` is an automorphism of the move
+graph, so retrograde Win/Loss outcomes are `Sp(B)`-invariant and the P-set is a
+union of `Sp(B)`-orbits on `V`. But for nondegenerate `B`, `Sp(B)` is **transitive
+on `V∖{0}`**, so the only invariant subsets are `∅, {0}, V∖{0}, V` — and a genuine
+quadric (size `2^{m-1} ± 2^{m/2-1}`) is none of them. Verified over F₂⁴:
+`|Sp(4,2)| = 720`, the orbit of `e₀` is all 15 nonzero vectors, and the
+set-stabiliser of `{Q=0}` *is* `O(Q)` with `|O⁺| = 72` (orbit 10 = #Arf-0
+refinements) / `|O⁻| = 120` (orbit 6 = #Arf-1 refinements). So a frame-blind game
+**provably cannot** have a Gold quadric as its P-set — which subsumes and explains
+*every* negative result above (B-coupled descent → subspace, single-bit → wrong
+quadric): they were all hunting inside an `Sp(B)`-orbit, where no quadric lives.
+
+**`B` + the coordinate frame gives the split quadric.** A concrete game escapes
+`Sp(B)`-equivariance the moment it reads the standard basis. The all-downward rule
+"move `v → w<v` iff `Q_frame(w) ≠ Q_frame(v)`", with the **frame quadric**
+`Q_frame(v) = Σ_{i<j ∈ v} B(eᵢ,eⱼ)` (built from `B` + frame, zero diagonal, *no*
+reference to a diagonal), has kernel **exactly `{Q_frame=0}`** — verified 119/119
+over random nondegenerate `B` on F₂⁴, F₂⁶, F₂⁸. The proof is one line (any `Q=1`
+point descends to `0 ∈ {Q=0}`; any `Q=0` point reaches only `Q=1` points). So a
+*natural* `B`-game **does** realise a genuine quadric P-set — the existing probes
+understated this. The catch: its Arf is pinned by `(B, frame)`.
+
+**The gap to the Gold form is exactly the framing.** The Gold form decomposes as
+`Q_gold = Q_frame ⊕ ℓ_diag`, where `ℓ_diag(v) = Σᵢ qᵢ vᵢ` is the linear functional of
+the **diagonal** `qᵢ = Q_gold(eᵢ) = Tr(eᵢ^{1+2^a})` — the single-coin self-Gold
+values (themselves coin-turning self-products, per `gold_form_from_games.py`). This
+is a *framing* in the Arf–Kervaire sense: the datum a symplectic form needs to
+become a quadratic one. And it is never free — for **every** genuinely-quadratic
+Gold form (m up to 16) the frame quadric is split (`Arf 0`, O⁺) and the diagonal
+flips it to the Gold O⁻ (`Arf 1`). The whole O⁻/Arf-1 content of the Gold form — the
+reason `trace_form_arf.py` found every positive-rank Gold form is O⁻ — **is** the
+framing; `B` and the frame contribute Arf 0.
+
+So the ladder is `Sp(B)` (no quadric) → `O(Q_frame)` (the split frame quadric, via
+the frame) → `O(Q_gold)` (the Gold quadric, via the diagonal framing). The open
+question's residue is now sharp and small: **the `m`-bit diagonal framing**, not
+derivable from `B`, is the only thing between a natural `B`-game and the Gold
+quadric — the game-theoretic shadow of the topological framing behind Arf–Kervaire.
+Whether *that* framing is itself game-natural (a marking, a misère/scoring twist, a
+field-multiplicative coupling that carries the Frobenius non-locally) is the honest
+open corner; the no-go closes every frame-blind and `Sp(B)`-symmetric route.
+
 ## The char-0 companion: a matrix-algebra classifier (`forms/char0.rs`)
 
 The Arf invariant returns the isomorphism class of a *char-2* Clifford algebra.

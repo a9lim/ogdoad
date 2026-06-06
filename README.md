@@ -173,6 +173,11 @@ question (a *natural* game realizing those forms' P-positions).
 - **The open research question** (explored in `NOTES.md`): the Arf invariant of a
   nim-Clifford form *is* the win-bias of the form in the counting sense, and the
   Arf-bearing forms are built from game operations — but a *natural* game whose
-  P-positions are those forms' zero sets is not yet found (normal disjunctive
-  play is XOR-linear, so a candidate must be interactive or misère). Also open:
-  Gonshor's surreal exponential.
+  P-positions are a Gold form's zero set `{Q=0}` is not yet found. The
+  `framing_obstruction` probe now pins down why: a game seeing only the symplectic
+  form `B` is `Sp(B)`-equivariant, and `Sp(B)` is transitive on nonzero vectors, so
+  it can realize **no** quadric (a clean no-go); adding the coordinate frame gives a
+  genuine quadric P-set, but the *split* one; and the gap to the Gold form is
+  exactly an `m`-bit *framing* (the diagonal `q_i = Tr(e_i^{1+2^a})`), which always
+  carries Arf 1. Whether that framing is itself game-natural is the residue. Also
+  open: Gonshor's surreal exponential.

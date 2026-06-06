@@ -7,6 +7,7 @@
 \usepackage[hidelinks]{hyperref}
 
 \newtheorem{observation}{Observation}
+\newtheorem{proposition}{Proposition}
 \newtheorem*{question}{Open question}
 \theoremstyle{definition}
 \newtheorem{remark}{Remark}
@@ -50,7 +51,14 @@ interactive-game kernel solver and a (bounded) misère indistinguishability-quot
 computer. These pin the obstruction to the polar form, separate a tautological
 ``solution'' (a rule that references $Q$ itself) from a genuine one, and, via a
 sweep of $292$ octal games, rule out the one misère-quotient shape that could
-host such a zero set as a quadric in the range searched. The classical results we
+host such a zero set as a quadric in the range searched. We then prove a
+structural no-go that explains these negatives uniformly: a game whose move rule
+sees only the symplectic form $B$ is $\mathrm{Sp}(B)$-equivariant, hence---as
+$\mathrm{Sp}(B)$ is transitive on nonzero vectors---can have no quadric as its
+$P$-set; a game that also reads the coordinate frame does realise a genuine
+quadric, but the \emph{split} one, and the gap to the Gold form is exactly a
+\emph{framing}, the diagonal $q_i=\Tr(e_i^{1+2^a})$, which we find always carries
+$\Arf=1$. The classical results we
 lean on (the Arf--Clifford correspondence, Dickson's theorem, the Gold-function
 ranks, and Turning-Corners~$=$~nim-multiplication) are reproduced by the tool as
 validation, not claimed as new.
@@ -339,19 +347,87 @@ $2$-groups. The quadric $P$-set, if it exists, does not arise from an
 elementary-$2$-abelian octal misère quotient in this range.
 \end{observation}
 
+\paragraph{The symplectic obstruction.}
+The interactive negatives above---a $B$-coupled descent collapsing to a subspace,
+a single-bit $B$-gated turn giving the wrong quadric---are not accidents but
+instances of one structural fact.
+
+\begin{proposition}\label{prop:nogo}
+Let $B$ be a nondegenerate alternating form on $V=\F_2^{2m'}$, and let a finite
+game have position set $V$ and a move relation invariant under $\mathrm{Sp}(B)$
+(in particular, any rule defined from $B$ and the $\F_2$-linear structure alone).
+Then its normal-play $P$-set is a union of $\mathrm{Sp}(B)$-orbits on $V$, and
+since $\mathrm{Sp}(B)$ is transitive on $V\setminus\{0\}$ that set is one of
+$\varnothing,\{0\},V\setminus\{0\},V$---never a genuine quadric.
+\end{proposition}
+
+\begin{proof}
+Each $g\in\mathrm{Sp}(B)$ is an automorphism of the move graph, and retrograde
+Win/Loss/Draw outcomes are determined by the graph alone, so the outcome function
+is $\mathrm{Sp}(B)$-invariant and the $P$-set is a union of orbits. A symplectic
+group is transitive on the nonzero vectors of its space~\cite{Taylor}, so the
+orbits are $\{0\}$ and $V\setminus\{0\}$. A nondegenerate quadric has
+$2^{2m'-1}\pm 2^{m'-1}$ points, which is none of $0,1,|V|-1,|V|$.
+\end{proof}
+
+\noindent Over $\F_{2^4}$ we confirm the surrounding arithmetic directly:
+$|\mathrm{Sp}(4,2)|=720$, the orbit of any nonzero vector is all $15$ nonzero
+vectors, and the set-stabiliser of a quadric $\{Q=0\}$ is its orthogonal group
+$O(Q)$, of order $72$ (type $O^+$, orbit $10$) or $120$ (type $O^-$, orbit $6$);
+the orbit sizes are exactly the numbers of $\Arf$-$0$ and $\Arf$-$1$ refinements
+of $B$ ($10+6=16$).
+
+\paragraph{$B$ with a frame realises the split quadric.}
+A game escapes $\mathrm{Sp}(B)$-equivariance as soon as it reads the standard
+basis. Define the \emph{frame quadric}
+$Q_{\mathrm{frame}}(v)=\sum_{i<j}B(e_i,e_j)\,v_iv_j$, built from $B$ and the frame
+with zero diagonal. The all-downward rule ``move $v\to w$ iff $w<v$ and
+$Q_{\mathrm{frame}}(w)\neq Q_{\mathrm{frame}}(v)$'' has kernel exactly
+$\{Q_{\mathrm{frame}}=0\}$: any $v$ with $Q_{\mathrm{frame}}(v)=1$ moves to $0$, a
+terminal loss, so is a win; any $v$ with $Q_{\mathrm{frame}}(v)=0$ reaches only
+wins, so is a loss. We verify this on $119/119$ random nondegenerate $B$ over
+$\F_{2^4},\F_{2^6},\F_{2^8}$. So a \emph{natural} $B$-game does have a genuine
+quadric $P$-set---but $Q_{\mathrm{frame}}$, whose Arf is fixed by $(B,\text{frame})$.
+
+\paragraph{The gap is a framing, and it carries the Arf.}
+Two quadratic forms share a polar form iff they differ by a linear functional, so
+the refinements of $B$ form a torsor under $V^\ast$. In particular
+$Q_a = Q_{\mathrm{frame}} + \ell$, where $\ell(v)=\sum_i q_i v_i$ is the functional
+of the \emph{diagonal} $q_i=Q_a(e_i)=\Tr(e_i^{1+2^a})$, the single-coin self-Gold
+values. This is a \emph{framing} in the Arf--Kervaire sense---the datum a
+symplectic form needs to become a quadratic one---and it is never free: for every
+genuinely-quadratic Gold form we tested (up to $\F_{2^{16}}$),
+$\Arf(Q_{\mathrm{frame}})=0$ while $\Arf(Q_a)=1$, so the diagonal always flips the
+split frame quadric to the Gold $O^-$. The whole $O^-$/$\Arf$-$1$ content of the
+Gold form---the uniform $O^-$ column of Table~\ref{tab:gold}---is the framing;
+$B$ and the frame contribute $\Arf\,0$. The obstruction is thus a ladder of
+symmetry-breaking, each rung a single datum:
+\[
+  \mathrm{Sp}(B)\ \text{(no quadric)}\
+  \xrightarrow{\ \text{frame}\ }\
+  O(Q_{\mathrm{frame}})\ \text{(split quadric)}\
+  \xrightarrow{\ \text{diagonal}\ }\
+  O(Q_a)\ \text{(Gold quadric)}.
+\]
+
 \begin{question}[sharpened]
-Is there a game whose moves are built from the combinatorial data---the polar
-form $B$ / coin-turning---\emph{alone, not from $Q$ itself}---whose $P$-set
-(kernel, or misère-quotient $P$-portion) is the Gold quadric $\{Q=0\}$?
-Referencing $Q$ is tautological; referencing only $B$ does not (yet) integrate up
-to $Q$; and no $(\mathbb{Z}/2)^{k\ge2}$ misère quotient---the only shape that
-could carry such a $P$-set as a quadric---appears among the octal games searched.
+The residue is a single named datum. By Proposition~\ref{prop:nogo} no
+$\mathrm{Sp}(B)$-equivariant game realises any quadric; a game that reads the frame
+realises the \emph{split} frame quadric (Arf $0$); and the only thing between that
+and the Gold quadric is the $m$-bit diagonal framing $q_i=\Tr(e_i^{1+2^a})$, not
+derivable from $B$. Is this framing itself game-natural---a coin marking, a misère
+or scoring twist, or a field-multiplicative coupling carrying the Frobenius
+non-locally---so that some natural game has $P$-set the Gold quadric $\{Q=0\}$ with
+its $\Arf$-$1$ win-bias? Referencing $Q$ is tautological, the frame yields only Arf
+$0$, and no $(\mathbb{Z}/2)^{k\ge2}$ misère quotient appears among the octal games
+searched.
 \end{question}
 
-A candidate must hit the win-bias of Table~\ref{tab:bias}, and now also clear the
-test bench above. The deepest relative, Welter's game, lands in the
-representation theory of symmetric groups~\cite{Irie18} rather than in Arf
-invariants.
+A candidate must hit the win-bias of Table~\ref{tab:bias}, and now also clear both
+the test bench and Proposition~\ref{prop:nogo}: its move rule must break the
+$\mathrm{Sp}(B)$ symmetry down to $O(Q_a)$, i.e.\ encode the diagonal framing. The
+deepest relative, Welter's game, lands in the representation theory of symmetric
+groups~\cite{Irie18} rather than in Arf invariants.
 
 \paragraph{Beyond the open thread.}
 The library has also grown into a fuller Clifford engine: a characteristic-$0$
@@ -399,6 +475,8 @@ forms over $\F_2$: two old problems become one}, The Mathematical Intelligencer
 \textbf{38} (2016); arXiv:1601.07664.
 \bibitem{PS} T.~E.~Plambeck, A.~N.~Siegel, \emph{Misère quotients for impartial
 games}, J.\ Combin.\ Theory Ser.\ A \textbf{115} (2008), 593--622.
+\bibitem{Taylor} D.~E.~Taylor, \emph{The Geometry of the Classical Groups},
+Sigma Series in Pure Mathematics~\textbf{9}, Heldermann Verlag, 1992.
 \end{thebibliography}
 
 \end{document}

@@ -163,8 +163,10 @@ demo.py            # the same tour from Python
 experiments/       # research probes ON TOP of the shipped lib: Arf of Gold
                    # forms, the game-built synthesis, the Arf win-bias,
                    # artin_arf (the trace ↔ Arf unification),
-                   # open_question_probe (the polar-form obstruction), and
-                   # tartan_bilinear (B realized by Turning-Corners). See NOTES.md.
+                   # open_question_probe (the polar-form obstruction),
+                   # tartan_bilinear (B realized by Turning-Corners), and
+                   # framing_obstruction (the Sp(B) no-go + the diagonal-framing
+                   # ladder for the open question). See NOTES.md.
 ```
 
 The math thread (Arf↔Clifford, the games bridge, the char-0/char-2 classifier
