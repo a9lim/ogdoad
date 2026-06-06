@@ -99,11 +99,12 @@ Pure-Rust math core (`cargo test`, no Python in the loop), Python layer on top.
 Four pillars under `src/`, each re-exported flat (`scalar::Nimber`,
 `clifford::sandwich`, `forms::arf_invariant`, …):
 
-- `scalar/` — the `Scalar` trait + an exact `Rational`/`Integer`, and the
-  game-backed coefficient worlds: `nimber` (On₂ in `u64`, nim-add = XOR, nim-mul
-  via Fermat-power recursion), `surreal` (Conway normal form with recursive
-  exponents), `surcomplex` (adjoin `i`), `omnific` (`Oz`), `onag` (ordinal
-  nimbers), `fp` (odd-characteristic prime fields).
+- `scalar/` — the `Scalar` trait, two exact non-game rings as sibling modules
+  (`rational` = ℚ for engine validation, `integer` = ℤ for game coefficients),
+  and the game-backed coefficient worlds: `nimber` (On₂ in `u64`, nim-add = XOR,
+  nim-mul via Fermat-power recursion), `surreal` (Conway normal form with
+  recursive exponents), `surcomplex` (adjoin `i`), `omnific` (`Oz`), `onag`
+  (ordinal nimbers), `fp` (odd-characteristic prime fields).
 - `clifford/` — the multivector engine (`engine`: independent `q`/`b`/`a`,
   characteristic-faithful) with the geometry split out (`versor`), plus
   outermorphisms, the exterior Hopf algebra, conformal/projective GA, and

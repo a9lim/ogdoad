@@ -30,10 +30,15 @@ src/
                 # paths stay shallow (scalar::Nimber, clifford::sandwich, …).
 
   scalar/         # PILLAR — the commutative coefficient worlds (generic Scalar)
-    mod.rs        # Scalar trait (add/neg/mul/zero/one/is_zero) + an exact
-                  # Rational used ONLY to validate the engine in char 0, plus an
-                  # exact Integer (ℤ) used as the coefficient ring for the game
-                  # exterior algebra (games/partizan.rs).
+    mod.rs        # just the Scalar trait (add/neg/mul/zero/one/is_zero/inv/
+                  # characteristic) + the flat re-export hub for the worlds below.
+    rational.rs   # exact ℚ over i128, NOT a game backend — the char-0 scalar that
+                  # validates the geometric product against the known Cl(p,q)
+                  # classification before we trust the exotic backends.
+    integer.rs    # exact ℤ — the coefficient ring for the exterior algebra of the
+                  # game group (games/partizan.rs): games are a ℤ-module, not a
+                  # ring, so Λ over ℤ is the structure that lives on all of
+                  # game-world. Only ±1 invertible (Grassmann never calls inv).
     nimber.rs     # On₂ in u64 (= F_{2^64}): nim_add = XOR; nim_mul via Fermat-
                   # power recursion, memoised on 2^i ⊗ 2^j. Also nim_square /
                   # nim_sqrt (Frobenius & its inverse), nim_trace, and the
