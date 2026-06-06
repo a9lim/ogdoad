@@ -1,0 +1,15 @@
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "pleroma"
+version = "0.0.0"
+description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games"
+requires-python = ">=3.9"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+
+[tool.maturin]
+features = ["python"]
+module-name = "pleroma"

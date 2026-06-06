@@ -1,0 +1,21 @@
+[package]
+name = "pleroma"
+version = "0.0.0"
+edition = "2021"
+description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games: nimbers, surreals, surcomplex."
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "pleroma"
+# cdylib for the Python extension module; rlib for `cargo test` and examples.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# PyO3 is optional and only pulled in for the Python build. Gating it behind
+# the `python` feature keeps `cargo test` pure-Rust (no libpython linkage),
+# so the math core stays verifiable without the Python toolchain in the loop.
+pyo3 = { version = "0.28", features = ["abi3-py39"], optional = true }
+
+[features]
+default = []
+python = ["dep:pyo3", "pyo3/extension-module"]
