@@ -81,9 +81,17 @@ methods: `.inverse()`, `.sandwich(x)`, `.reflect(x)`, `.dual()`, `.norm2()`,
 `.grade(k)`, `.grade_involution()`, `.reverse()`, `.scalar_part()`,
 `.is_zero()`; algebra has `.pseudoscalar()`. Scalars have `.inv()` and `/`.
 Builders: `omega()`, `epsilon()`, `omega_pow(x)`, `rational(p, q)`, `surreal(n)`,
-`Nimber(n)`, `Surcomplex(re, im)`. Module functions: `arf_invariant(nimber_alg)`
-(the char-2 Clifford classifier) and `nim_mul_mex(x, y)` (the Turning-Corners
-game product).
+`Nimber(n)`, `Surcomplex(re, im)`, `omnific(n)`, `Ordinal(n)`. Module functions:
+`arf_invariant(nimber_alg)` (the char-2 Clifford classifier) and `nim_mul_mex(x, y)`
+(the Turning-Corners game product).
+
+The expansion pass adds more from Python too: the `OmnificAlgebra` (Oz) and
+`Ordinal` (transfinite nimber) backends; `classify_oddchar(p, q)` /
+`oddchar_witt(p, q)` (the odd-characteristic third leg of the trichotomy); the GA
+methods `.determinant(M)` / `.outermorphism(M, v)` / `.spinor_rep()` /
+`.coproduct()` / `.antipode()` / `.exp_nilpotent()`; `Cga(n)` (conformal GA over
+the surreals — exact `ω`-scale points and `ε`-radius spheres); and
+`springer_decompose(surreal_alg)`. See the second half of `demo.py`.
 
 ## architecture
 
@@ -96,6 +104,10 @@ Pure-Rust math core (`cargo test`, no Python in the loop), Python layer on top.
 - `surcomplex.rs` — adjoin `i` over any backend
 - `arf.rs` — Arf invariant (the char-2 Clifford classifier), over any nim-field
 - `games.rs` — nim-multiplication as Conway's Turning-Corners game (= `nim_mul`)
+- `fp.rs` / `disc.rs` — odd-characteristic fields + discriminant/Hasse classifier
+- `omnific.rs` / `onag.rs` — omnific integers `Oz` + transfinite ordinal nimbers
+- `outermorphism.rs` / `hopf.rs` / `cga.rs` / `spinor.rs` — the GA-engine layer
+- `springer.rs` — non-Archimedean valuation decomposition over the surreals
 - `py.rs` — PyO3 per-backend classes (`python` feature; abi3)
 
 `experiments/` uses the shipped library for the research probe: Arf invariants
@@ -109,16 +121,22 @@ Run the Rust tour without Python: `cargo run --example tour`.
 
 ## status
 
-**Core + bindings + versor/GA layer + Arf classifier complete and verified.**
-43 `cargo test` checks green — nim-field axioms and inverses, Cl(0,1)≅ℂ, Cl(2,0),
-Grassmann nilpotents, char-2 commutativity *and* the faithful non-commutative
-char-2 case, associativity over non-orthogonal metrics in both characteristics,
-recursive-exponent surreal arithmetic (`ω^ω`, `ω·ε=1`, `√ω`), a Clifford metric
-with `e0²=ω, e1²=ε`, versor inverse / reflection / rotor / contraction / dual,
-the Arf invariant (`A⊕A ≅ H⊕H`, and Gold-function ranks `m−2·gcd(a,m)`), the
-game definition of nim-multiplication (Turning Corners) agreeing with the
-algebraic one, and the surcomplex char-2 degeneracy theorem. Python bindings
-build as an abi3 wheel and import on CPython 3.14.
+**Core + bindings + versor/GA layer + Arf classifier + the expansion pass
+complete and verified.** 144 `cargo test` checks green — nim-field axioms and
+inverses, Cl(0,1)≅ℂ, Cl(2,0), Grassmann nilpotents, char-2 commutativity *and*
+the faithful non-commutative char-2 case, associativity over non-orthogonal
+metrics in both characteristics, recursive-exponent surreal arithmetic (`ω^ω`,
+`ω·ε=1`, `√ω`), a Clifford metric with `e0²=ω, e1²=ε`, versor inverse /
+reflection / rotor / contraction / dual, the Arf invariant (`A⊕A ≅ H⊕H`, and
+Gold-function ranks `m−2·gcd(a,m)`), the game definition of nim-multiplication
+(Turning Corners), and the surcomplex char-2 degeneracy theorem. The expansion
+pass adds: the odd-characteristic trichotomy (`dim+disc` completeness vs a
+brute-force congruence oracle; the order-4 Witt group `ℤ/4` vs `ℤ/2×ℤ/2`),
+outermorphism determinants (char-faithful), the exterior Hopf axioms (both
+characteristics), conformal GA with exact surreal `∞`/`ε`, concrete spinor
+modules matching the classifier, omnific-integer exterior algebra, ordinal
+nim-addition, and the non-Archimedean Springer decomposition. Python bindings
+build as an abi3 wheel and import on CPython 3.14; `demo.py` tours all of it.
 
 The `experiments/` probes (run on the shipped library) reproduce the
 Gold-function ranks, show the Arf-bearing forms are composites of game

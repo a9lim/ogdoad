@@ -27,8 +27,16 @@ use crate::surreal::Surreal;
 /// An omnific integer: a surreal with no infinitesimal part and an integer
 /// constant term. The inner surreal is private so every value is validated at
 /// construction; arithmetic preserves the property automatically.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Omnific(Surreal);
+
+impl std::fmt::Debug for Omnific {
+    // delegate to the inner surreal so multivector displays read `ω·e0e1`, not
+    // `Omnific(ω)·e0e1`.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
+}
 
 /// True iff the surreal `s` is an omnific integer (see the module docs).
 pub fn is_omnific_integer(s: &Surreal) -> bool {

@@ -6,13 +6,17 @@
 //! generic engine to the concrete scalar type — so there is no runtime
 //! dispatch and no way to mix scalar worlds in one algebra.
 
+use crate::cga::Cga;
 use crate::clifford::{CliffordAlgebra, Metric, Multivector};
+use crate::fp::Fp;
 use crate::nimber::Nimber;
+use crate::omnific::Omnific;
+use crate::onag::Ordinal;
 use crate::partizan::Game;
 use crate::scalar::{Integer, Rational, Scalar};
 use crate::surcomplex::Surcomplex;
 use crate::surreal::Surreal;
-use crate::witt::WittClass;
+use crate::witt::{WittClass, WittClassG};
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -397,6 +401,110 @@ fn wrap_surcomplex(s: Surcomplex<Surreal>) -> PySurcomplex {
     PySurcomplex { inner: s }
 }
 
+// --- Omnific integers Oz: the surreal integers, a transfinite ring ----------
+
+#[pyclass(name = "Omnific", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyOmnific {
+    inner: Omnific,
+}
+
+#[pymethods]
+impl PyOmnific {
+    #[new]
+    fn new(value: i128) -> Self {
+        PyOmnific {
+            inner: Omnific::from_int(value),
+        }
+    }
+    /// The underlying surreal value.
+    fn surreal(&self) -> PySurreal {
+        PySurreal {
+            inner: self.inner.inner().clone(),
+        }
+    }
+    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyOmnific> {
+        Ok(PyOmnific {
+            inner: self.inner.add(&parse_omnific(other)?),
+        })
+    }
+    fn __radd__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyOmnific> {
+        self.__add__(other)
+    }
+    fn __sub__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyOmnific> {
+        Ok(PyOmnific {
+            inner: self.inner.sub(&parse_omnific(other)?),
+        })
+    }
+    fn __neg__(&self) -> PyOmnific {
+        PyOmnific {
+            inner: self.inner.neg(),
+        }
+    }
+    fn __mul__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match parse_omnific(other) {
+            Ok(o) => PyOmnific {
+                inner: self.inner.mul(&o),
+            }
+            .into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
+    fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyOmnific> {
+        Ok(PyOmnific {
+            inner: self.inner.mul(&parse_omnific(other)?),
+        })
+    }
+    fn inv(&self) -> PyResult<PyOmnific> {
+        self.inner
+            .inv()
+            .map(|o| PyOmnific { inner: o })
+            .ok_or_else(|| PyValueError::new_err("Oz is a ring: only ±1 are invertible"))
+    }
+    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
+        matches!(parse_omnific(other), Ok(o) if o == self.inner)
+    }
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.inner.inner())
+    }
+}
+
+fn parse_omnific(obj: &Bound<'_, PyAny>) -> PyResult<Omnific> {
+    if let Ok(o) = obj.cast::<PyOmnific>() {
+        return Ok(o.borrow().inner.clone());
+    }
+    if let Ok(s) = obj.cast::<PySurreal>() {
+        return Omnific::from_surreal(s.borrow().inner.clone())
+            .ok_or_else(|| PyValueError::new_err("surreal is not an omnific integer"));
+    }
+    if let Ok(v) = obj.extract::<i128>() {
+        return Ok(Omnific::from_int(v));
+    }
+    Err(PyTypeError::new_err(
+        "expected Omnific, omnific Surreal, or int",
+    ))
+}
+
+fn wrap_omnific(o: Omnific) -> PyOmnific {
+    PyOmnific { inner: o }
+}
+
+/// The omnific integer `n`.
+#[pyfunction]
+fn omnific(n: i128) -> PyOmnific {
+    PyOmnific {
+        inner: Omnific::from_int(n),
+    }
+}
+
+/// `ω` as an omnific integer.
+#[pyfunction]
+fn omnific_omega() -> PyOmnific {
+    PyOmnific {
+        inner: Omnific::omega(),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Algebra + multivector, one pair per backend
 // ---------------------------------------------------------------------------
@@ -503,6 +611,87 @@ macro_rules! backend {
                     mv: self.inner.pseudoscalar(),
                 }
             }
+
+            /// The determinant of a linear map given column-major (`matrix[i]` =
+            /// the image of `e_i`): the scalar by which its outermorphism scales
+            /// the pseudoscalar. Char-faithful (the char-2 determinant over nimbers).
+            fn determinant(&self, matrix: Vec<Vec<Bound<'_, PyAny>>>) -> PyResult<$scalar_py> {
+                let n = matrix.len();
+                let mut cols: Vec<Vec<$scalar>> = Vec::with_capacity(n);
+                for col in &matrix {
+                    if col.len() != n {
+                        return Err(PyValueError::new_err(
+                            "matrix must be square (n columns of length n)",
+                        ));
+                    }
+                    let mut c = Vec::with_capacity(n);
+                    for x in col {
+                        c.push($parse(x)?);
+                    }
+                    cols.push(c);
+                }
+                let lm = crate::outermorphism::LinearMap::from_columns(cols);
+                Ok($wrap(crate::outermorphism::determinant(&self.inner, &lm)))
+            }
+
+            /// Apply the outermorphism of a (column-major) linear map to a
+            /// multivector: `f(a∧b) = f(a)∧f(b)`.
+            fn outermorphism(&self, matrix: Vec<Vec<Bound<'_, PyAny>>>, mv: &$mv) -> PyResult<$mv> {
+                let n = matrix.len();
+                let mut cols: Vec<Vec<$scalar>> = Vec::with_capacity(n);
+                for col in &matrix {
+                    if col.len() != n {
+                        return Err(PyValueError::new_err(
+                            "matrix must be square (n columns of length n)",
+                        ));
+                    }
+                    let mut c = Vec::with_capacity(n);
+                    for x in col {
+                        c.push($parse(x)?);
+                    }
+                    cols.push(c);
+                }
+                let lm = crate::outermorphism::LinearMap::from_columns(cols);
+                Ok($mv {
+                    alg: self.inner.clone(),
+                    mv: crate::outermorphism::apply_outermorphism(&self.inner, &lm, &mv.mv),
+                })
+            }
+
+            /// A concrete spinor representation: `(idempotent, basis, gen_matrices)`
+            /// realizing the classification on column spinors. Nondegenerate
+            /// orthogonal char-0 metrics only.
+            #[allow(clippy::type_complexity)]
+            fn spinor_rep(&self) -> PyResult<($mv, Vec<$mv>, Vec<Vec<Vec<$scalar_py>>>)> {
+                let rep = crate::spinor::spinor_rep(&self.inner).ok_or_else(|| {
+                    PyValueError::new_err(
+                        "spinor_rep needs a nondegenerate orthogonal characteristic-0 metric",
+                    )
+                })?;
+                let idempotent = $mv {
+                    alg: self.inner.clone(),
+                    mv: rep.idempotent,
+                };
+                let basis: Vec<$mv> = rep
+                    .basis
+                    .into_iter()
+                    .map(|mv| $mv {
+                        alg: self.inner.clone(),
+                        mv,
+                    })
+                    .collect();
+                let gen_matrices: Vec<Vec<Vec<$scalar_py>>> = rep
+                    .gen_matrices
+                    .into_iter()
+                    .map(|m| {
+                        m.into_iter()
+                            .map(|row| row.into_iter().map($wrap).collect())
+                            .collect()
+                    })
+                    .collect();
+                Ok((idempotent, basis, gen_matrices))
+            }
+
             fn __repr__(&self) -> String {
                 format!("{}(dim={})", $alg_name, self.inner.dim)
             }
@@ -638,6 +827,41 @@ macro_rules! backend {
                     mv: self.alg.even_part(&self.mv),
                 }
             }
+            /// The exterior-Hopf coproduct Δ, returned as a multivector over the
+            /// graded tensor square `Cl ⊗̂ Cl` (a tensor `e_T ⊗ e_U` is the blade
+            /// `T | (U << dim)`).
+            fn coproduct(&self) -> $mv {
+                let tensor = self.alg.graded_tensor(&self.alg);
+                let co = crate::hopf::coproduct(&self.alg, &self.mv);
+                $mv {
+                    alg: Arc::new(tensor),
+                    mv: co,
+                }
+            }
+            /// The exterior-Hopf antipode (the grade involution `(−1)^k`).
+            fn antipode(&self) -> $mv {
+                $mv {
+                    alg: self.alg.clone(),
+                    mv: crate::hopf::antipode(&self.alg, &self.mv),
+                }
+            }
+            /// The exterior-Hopf counit (the scalar part).
+            fn counit(&self) -> $scalar_py {
+                $wrap(crate::hopf::counit(&self.alg, &self.mv))
+            }
+            /// `exp(self)` for a nilpotent multivector — the terminating series
+            /// `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
+            /// needing transcendental cos/sin).
+            fn exp_nilpotent(&self) -> PyResult<$mv> {
+                crate::cga::exp_nilpotent(&self.alg, &self.mv)
+                    .map(|mv| $mv {
+                        alg: self.alg.clone(),
+                        mv,
+                    })
+                    .ok_or_else(|| {
+                        PyValueError::new_err("not nilpotent — would need a transcendental exp")
+                    })
+            }
             /// Reflect x in the hyperplane ⊥ self (self must be an invertible vector).
             fn reflect(&self, x: &$mv) -> PyResult<$mv> {
                 self.alg
@@ -761,6 +985,18 @@ backend!(
     parse_integer,
     PyInteger,
     wrap_integer
+);
+// Omnific-integer backend: the surreal mirror of ℤ — exterior algebra over a
+// transfinite ring (ω-scale coefficients).
+backend!(
+    OmnificAlgebra,
+    "OmnificAlgebra",
+    OmnificMV,
+    "OmnificMV",
+    Omnific,
+    parse_omnific,
+    PyOmnific,
+    wrap_omnific
 );
 
 // ---------------------------------------------------------------------------
@@ -1132,6 +1368,328 @@ impl PyGameExterior {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Transfinite (ordinal) nimbers
+// ---------------------------------------------------------------------------
+
+#[pyclass(name = "Ordinal", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyOrdinal {
+    inner: Ordinal,
+}
+
+#[pymethods]
+impl PyOrdinal {
+    #[new]
+    fn new(n: u64) -> Self {
+        PyOrdinal {
+            inner: Ordinal::from_u64(n),
+        }
+    }
+    /// `ω`, the first infinite ordinal nimber.
+    #[staticmethod]
+    fn omega() -> PyOrdinal {
+        PyOrdinal {
+            inner: Ordinal::omega(),
+        }
+    }
+    /// `ω^exp` (coefficient 1).
+    #[staticmethod]
+    fn omega_pow(exp: &PyOrdinal) -> PyOrdinal {
+        PyOrdinal {
+            inner: Ordinal::omega_pow(exp.inner.clone()),
+        }
+    }
+    /// `ω^exp · coeff`.
+    #[staticmethod]
+    fn monomial(exp: &PyOrdinal, coeff: u64) -> PyOrdinal {
+        PyOrdinal {
+            inner: Ordinal::monomial(exp.inner.clone(), coeff),
+        }
+    }
+    /// Nim-addition (complete and exact): XOR of like-`ω`-power coefficients.
+    fn nim_add(&self, other: &PyOrdinal) -> PyOrdinal {
+        PyOrdinal {
+            inner: self.inner.nim_add(&other.inner),
+        }
+    }
+    /// Nim-multiplication (partial): exact for finite × finite; `None` when either
+    /// operand is infinite (the general ordinal product is staged).
+    fn nim_mul(&self, other: &PyOrdinal) -> Option<PyOrdinal> {
+        self.inner
+            .nim_mul(&other.inner)
+            .map(|o| PyOrdinal { inner: o })
+    }
+    fn is_zero(&self) -> bool {
+        self.inner.is_zero()
+    }
+    /// The finite nimber value, if this ordinal is finite.
+    fn as_finite(&self) -> Option<u64> {
+        self.inner.as_finite()
+    }
+    fn __richcmp__(&self, other: &PyOrdinal, op: CompareOp) -> bool {
+        op.matches(self.inner.cmp(&other.inner))
+    }
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.inner)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Odd-characteristic classifier (the trichotomy's third leg)
+// ---------------------------------------------------------------------------
+
+fn fp_diag<const P: u64>(q: &[i64]) -> Metric<Fp<P>> {
+    Metric::diagonal(q.iter().map(|&x| Fp::<P>::new(x)).collect())
+}
+
+#[pyclass(name = "OddCharType", module = "pleroma")]
+struct PyOddCharType {
+    inner: crate::disc::OddCharType,
+}
+
+#[pymethods]
+impl PyOddCharType {
+    #[getter]
+    fn p(&self) -> u64 {
+        self.inner.p
+    }
+    #[getter]
+    fn dim(&self) -> usize {
+        self.inner.dim
+    }
+    #[getter]
+    fn radical_dim(&self) -> usize {
+        self.inner.radical_dim
+    }
+    #[getter]
+    fn disc_is_square(&self) -> bool {
+        self.inner.disc_is_square
+    }
+    #[getter]
+    fn hasse(&self) -> i8 {
+        self.inner.hasse
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
+#[pyclass(name = "WittClassG", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyWittClassG {
+    inner: WittClassG,
+}
+
+#[pymethods]
+impl PyWittClassG {
+    fn add(&self, other: &PyWittClassG) -> PyWittClassG {
+        PyWittClassG {
+            inner: self.inner.add(&other.inner),
+        }
+    }
+    fn __add__(&self, other: &PyWittClassG) -> PyWittClassG {
+        self.add(other)
+    }
+    fn __eq__(&self, other: &PyWittClassG) -> bool {
+        self.inner == other.inner
+    }
+    fn __repr__(&self) -> String {
+        match self.inner {
+            WittClassG::Char0 { signature } => format!("WittClassG::Char0(signature={signature})"),
+            WittClassG::OddChar { kappa, e0, sclass } => {
+                format!("WittClassG::OddChar(kappa={kappa}, e0={e0}, sclass={sclass})")
+            }
+            WittClassG::Char2 { arf } => format!("WittClassG::Char2(arf={arf})"),
+        }
+    }
+}
+
+/// Classify a diagonal odd-characteristic form `q` over `F_p` (dimension +
+/// discriminant + Hasse). Supported primes: 3, 5, 7, 11, 13.
+#[pyfunction]
+fn classify_oddchar(p: u64, q: Vec<i64>) -> PyResult<PyOddCharType> {
+    let res = match p {
+        3 => crate::disc::classify_oddchar(&fp_diag::<3>(&q)),
+        5 => crate::disc::classify_oddchar(&fp_diag::<5>(&q)),
+        7 => crate::disc::classify_oddchar(&fp_diag::<7>(&q)),
+        11 => crate::disc::classify_oddchar(&fp_diag::<11>(&q)),
+        13 => crate::disc::classify_oddchar(&fp_diag::<13>(&q)),
+        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
+    };
+    res.map(|t| PyOddCharType { inner: t })
+        .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+}
+
+/// The odd-characteristic Witt class of a diagonal form `q` over `F_p`.
+#[pyfunction]
+fn oddchar_witt(p: u64, q: Vec<i64>) -> PyResult<PyWittClassG> {
+    let res = match p {
+        3 => crate::disc::oddchar_witt(&fp_diag::<3>(&q)),
+        5 => crate::disc::oddchar_witt(&fp_diag::<5>(&q)),
+        7 => crate::disc::oddchar_witt(&fp_diag::<7>(&q)),
+        11 => crate::disc::oddchar_witt(&fp_diag::<11>(&q)),
+        13 => crate::disc::oddchar_witt(&fp_diag::<13>(&q)),
+        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
+    };
+    res.map(|w| PyWittClassG { inner: w })
+        .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+}
+
+/// Is `x` a square mod `p`? (Euler's criterion.) Supported primes: 3, 5, 7, 11, 13.
+#[pyfunction]
+fn is_square_mod(p: u64, x: i64) -> PyResult<bool> {
+    Ok(match p {
+        3 => crate::disc::is_square(Fp::<3>::new(x)),
+        5 => crate::disc::is_square(Fp::<5>::new(x)),
+        7 => crate::disc::is_square(Fp::<7>::new(x)),
+        11 => crate::disc::is_square(Fp::<11>::new(x)),
+        13 => crate::disc::is_square(Fp::<13>::new(x)),
+        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
+    })
+}
+
+/// The Hasse–Witt invariant of a diagonal form `q` over `F_p` (always +1 over a
+/// finite field). Supported primes: 3, 5, 7, 11, 13.
+#[pyfunction]
+fn hasse_invariant(p: u64, q: Vec<i64>) -> PyResult<i8> {
+    let res = match p {
+        3 => crate::disc::hasse_invariant(&fp_diag::<3>(&q)),
+        5 => crate::disc::hasse_invariant(&fp_diag::<5>(&q)),
+        7 => crate::disc::hasse_invariant(&fp_diag::<7>(&q)),
+        11 => crate::disc::hasse_invariant(&fp_diag::<11>(&q)),
+        13 => crate::disc::hasse_invariant(&fp_diag::<13>(&q)),
+        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
+    };
+    res.ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+}
+
+// ---------------------------------------------------------------------------
+// Non-Archimedean Springer decomposition (surreal)
+// ---------------------------------------------------------------------------
+
+#[pyclass(name = "SpringerDecomp", module = "pleroma")]
+struct PySpringerDecomp {
+    #[pyo3(get)]
+    graded: Vec<(String, (usize, usize))>,
+    #[pyo3(get)]
+    radical_dim: usize,
+    #[pyo3(get)]
+    total_signature: (usize, usize),
+}
+
+#[pymethods]
+impl PySpringerDecomp {
+    fn __repr__(&self) -> String {
+        format!(
+            "SpringerDecomp(graded={:?}, radical_dim={}, total_signature={:?})",
+            self.graded, self.radical_dim, self.total_signature
+        )
+    }
+}
+
+/// The non-Archimedean Springer decomposition of a diagonal surreal form: its
+/// ω-adic valuation filtration into residue ℝ-signatures.
+#[pyfunction]
+fn springer_decompose(alg: &SurrealAlgebra) -> PyResult<PySpringerDecomp> {
+    let d = crate::springer::springer_decompose(&alg.inner.metric)
+        .ok_or_else(|| PyValueError::new_err("Springer decomposition needs a diagonal metric"))?;
+    let graded = d
+        .graded
+        .iter()
+        .map(|rf| (format!("{:?}", rf.valuation), rf.signature))
+        .collect();
+    Ok(PySpringerDecomp {
+        graded,
+        radical_dim: d.radical_dim,
+        total_signature: d.total_signature,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Conformal geometric algebra over the surreals
+// ---------------------------------------------------------------------------
+
+#[pyclass(name = "Cga", module = "pleroma")]
+struct PyCga {
+    inner: Cga<Surreal>,
+}
+
+impl PyCga {
+    fn wrap(&self, mv: Multivector<Surreal>) -> SurrealMV {
+        SurrealMV {
+            alg: Arc::new(self.inner.alg.clone()),
+            mv,
+        }
+    }
+}
+
+#[pymethods]
+impl PyCga {
+    #[new]
+    fn new(n: usize) -> Self {
+        PyCga { inner: Cga::new(n) }
+    }
+    #[getter]
+    fn n(&self) -> usize {
+        self.inner.n
+    }
+    #[getter]
+    fn dim(&self) -> usize {
+        self.inner.alg.dim
+    }
+    fn n_o(&self) -> SurrealMV {
+        self.wrap(self.inner.n_o())
+    }
+    fn n_inf(&self) -> SurrealMV {
+        self.wrap(self.inner.n_inf())
+    }
+    /// Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`.
+    fn up(&self, p: Vec<Bound<'_, PyAny>>) -> PyResult<SurrealMV> {
+        let mut pv = Vec::with_capacity(p.len());
+        for x in &p {
+            pv.push(parse_surreal(x)?);
+        }
+        Ok(self.wrap(self.inner.up(&pv)))
+    }
+    /// Recover a Euclidean point from a null vector (`None` if not normalizable).
+    fn down(&self, x: &SurrealMV) -> Option<Vec<PySurreal>> {
+        self.inner
+            .down(&x.mv)
+            .map(|v| v.into_iter().map(|s| PySurreal { inner: s }).collect())
+    }
+    /// The conformal inner product `x · y` (= `−½|p−q|²` on lifted points).
+    fn inner(&self, x: &SurrealMV, y: &SurrealMV) -> PySurreal {
+        PySurreal {
+            inner: self.inner.inner(&x.mv, &y.mv),
+        }
+    }
+    /// The sphere of squared radius `r2` about center `c`.
+    fn sphere(&self, c: Vec<Bound<'_, PyAny>>, r2: &Bound<'_, PyAny>) -> PyResult<SurrealMV> {
+        let mut cv = Vec::with_capacity(c.len());
+        for x in &c {
+            cv.push(parse_surreal(x)?);
+        }
+        Ok(self.wrap(self.inner.sphere(&cv, &parse_surreal(r2)?)))
+    }
+    /// The plane `{x : x·normal = d}`.
+    fn plane(&self, normal: Vec<Bound<'_, PyAny>>, d: &Bound<'_, PyAny>) -> PyResult<SurrealMV> {
+        let mut nv = Vec::with_capacity(normal.len());
+        for x in &normal {
+            nv.push(parse_surreal(x)?);
+        }
+        Ok(self.wrap(self.inner.plane(&nv, &parse_surreal(d)?)))
+    }
+    /// The point pair / oriented join `a ∧ b`.
+    fn point_pair(&self, a: &SurrealMV, b: &SurrealMV) -> SurrealMV {
+        self.wrap(self.inner.point_pair(&a.mv, &b.mv))
+    }
+    /// The IPNS meet (intersection) `x ∧ y`.
+    fn meet(&self, x: &SurrealMV, y: &SurrealMV) -> SurrealMV {
+        self.wrap(self.inner.meet(&x.mv, &y.mv))
+    }
+}
+
 #[pyfunction]
 fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
@@ -1151,6 +1709,12 @@ fn pleroma(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyInteger>()?;
     m.add_class::<IntegerAlgebra>()?;
     m.add_class::<IntegerMV>()?;
+    // Omnific-integer backend (Oz)
+    m.add_class::<PyOmnific>()?;
+    m.add_class::<OmnificAlgebra>()?;
+    m.add_class::<OmnificMV>()?;
+    m.add_function(wrap_pyfunction!(omnific, m)?)?;
+    m.add_function(wrap_pyfunction!(omnific_omega, m)?)?;
     m.add_function(wrap_pyfunction!(omega, m)?)?;
     m.add_function(wrap_pyfunction!(epsilon, m)?)?;
     m.add_function(wrap_pyfunction!(omega_pow, m)?)?;
@@ -1176,6 +1740,20 @@ fn pleroma(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // partizan games + the exterior algebra of the game group
     m.add_class::<PyGame>()?;
     m.add_class::<PyGameExterior>()?;
+    // transfinite (ordinal) nimbers
+    m.add_class::<PyOrdinal>()?;
+    // odd-characteristic classifier (the trichotomy's third leg)
+    m.add_class::<PyOddCharType>()?;
+    m.add_class::<PyWittClassG>()?;
+    m.add_function(wrap_pyfunction!(classify_oddchar, m)?)?;
+    m.add_function(wrap_pyfunction!(oddchar_witt, m)?)?;
+    m.add_function(wrap_pyfunction!(is_square_mod, m)?)?;
+    m.add_function(wrap_pyfunction!(hasse_invariant, m)?)?;
+    // non-Archimedean Springer decomposition
+    m.add_class::<PySpringerDecomp>()?;
+    m.add_function(wrap_pyfunction!(springer_decompose, m)?)?;
+    // conformal geometric algebra (surreal)
+    m.add_class::<PyCga>()?;
     m.add_function(wrap_pyfunction!(version, m)?)?;
     Ok(())
 }

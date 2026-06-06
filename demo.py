@@ -120,3 +120,91 @@ print("  generators are non-numbers:", not ext.game(0).is_number(), not ext.game
 print("  g0 ∧ g1 = -(g1 ∧ g0):", (g0 ^ g1), "==", -(g1 ^ g0))
 print("  value(g0 + g1) = ⋆ + ↑ :", ext.value_of_grade1(g0 + g1))
 print("  value(2·g0) = ⋆+⋆ = 0  :", ext.value_of_grade1(2 * g0) == pl.Game.zero())
+
+
+# ===========================================================================
+# The expansion pass: new scalars, GA configurations, deeper invariants
+# ===========================================================================
+
+section("Fp — odd characteristic, completing the classification trichotomy")
+# char 0: signature → matrix algebra. char 2: Arf. odd char: dim + discriminant.
+print("  F₃ <1,1> :", pl.classify_oddchar(3, [1, 1]))   # disc 1 = square
+print("  F₃ <1,2> :", pl.classify_oddchar(3, [1, 2]))   # disc 2 = nonsquare
+print("  Hasse always +1 over a finite field:", pl.hasse_invariant(5, [1, 2, 3, 4]))
+# the odd-char Witt group: ℤ/4 when −1 is a nonsquare (F₃), ℤ/2×ℤ/2 when it is (F₅)
+g3 = pl.oddchar_witt(3, [1]); zero3 = pl.oddchar_witt(3, [])
+print("  W(F₃) is ℤ/4 :", g3 + g3 != zero3, "and", g3 + g3 + g3 + g3 == zero3)
+g5, h5 = pl.oddchar_witt(5, [1]), pl.oddchar_witt(5, [2])
+print("  W(F₅) is ℤ/2×ℤ/2 :", g5 + g5 == pl.oddchar_witt(5, []) and h5 + h5 == pl.oddchar_witt(5, []))
+
+section("Oz — omnific integers: an exterior algebra over a transfinite ring")
+Oz = pl.OmnificAlgebra(q=[0, 0, 0])  # Grassmann over Oz
+e0, e1, e2 = Oz.gen(0), Oz.gen(1), Oz.gen(2)
+w = pl.omnific_omega()
+print("  e0² = 0 (nilpotent):", (e0 * e0).is_zero())
+print("  (ω·e0) ∧ e1 ∧ e2   :", (w * e0) ^ e1 ^ e2, "  (ω-scale coefficient)")
+print("  ω is not a unit (1/ω=ε ∉ Oz):", end=" ")
+try:
+    w.inv(); print("?!")
+except ValueError:
+    print("correctly rejected")
+
+section("ordinal nimbers On₂ — the char-2 mirror of the surreals")
+omega = pl.Ordinal.omega()
+print("  ω ⊕ ω        =", omega.nim_add(omega), "   (self-inverse)")
+print("  ω·2 ⊕ ω      =", pl.Ordinal.monomial(pl.Ordinal(1), 2).nim_add(omega))
+print("  ω < ω²       :", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
+print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
+print("  ω ⊗ ω        :", omega.nim_mul(omega), "  (general infinite product is staged; ω³=2 is the target)")
+
+section("outermorphisms + determinant — Grassmann's def, char-faithful")
+R = pl.SurrealAlgebra(q=[1, 1])
+print("  det [[2,1],[3,4]] = 2·4−1·3 =", R.determinant([[2, 3], [1, 4]]))  # columns f(e_i)
+N = pl.NimberAlgebra(q=[1, 1])
+print("  the char-2 determinant (= permanent):", N.determinant([[2, 1], [3, 1]]))
+
+section("exterior Hopf algebra — antipode = grade involution (not reversion-twist)")
+H = pl.SurrealAlgebra(q=[0, 0])  # exterior algebra
+b = H.gen(0) ^ H.gen(1)
+print("  Δ(e0) primitive (lives in Cl⊗̂Cl):", H.gen(0).coproduct())
+print("  S(e0) = −e0          :", H.gen(0).antipode() == -H.gen(0))
+print("  S(e0∧e1) = +e0∧e1    :", b.antipode() == b, " (grade 2: (−1)²=+1)")
+
+section("concrete spinor modules — the classification as matrices on spinors")
+S = pl.SurrealAlgebra(q=[1, 1, 1])  # Cl(3,0) ≅ M₂(ℂ)
+idem, basis, M = S.spinor_rep()
+print("  Cl(3,0) minimal ideal real-dim:", len(basis), "(= 2 cols × ℂ)")
+
+
+def _matmul(a, b):
+    n = len(a)
+    return [[sum((a[i][k] * b[k][j] for k in range(n)), pl.surreal(0))
+             for j in range(n)] for i in range(n)]
+
+
+M0sq = _matmul(M[0], M[0])
+holds = all(M0sq[i][j] == pl.surreal(1 if i == j else 0)
+            for i in range(len(basis)) for j in range(len(basis)))
+print("  M0² = q0·I (the Clifford relation, on the spinor matrices):", holds)
+
+section("conformal GA over the surreals — exact ∞ and infinitesimal radii")
+cga = pl.Cga(2)
+p_inf = cga.up([pl.omega(), 0])             # a point at ω-scale
+print("  up(ω, 0) still null:", cga.inner(p_inf, p_inf) == pl.surreal(0))
+eps = pl.epsilon()
+sph = cga.sphere([0, 0], eps * eps)         # a sphere of radius ε
+on, off = cga.up([eps, 0]), cga.up([2 * eps, 0])
+print("  ε-sphere: ε-point on, 2ε-point off:",
+      cga.inner(on, sph) == pl.surreal(0), cga.inner(off, sph) != pl.surreal(0))
+
+section("projective GA — exact nilpotent motor (no transcendentals)")
+P = pl.SurrealAlgebra(q=[0, 1, 1])          # Cl(2,0,1), e0 the ideal direction
+motor = (P.gen(0) ^ P.gen(1)).exp_nilpotent()  # B² = 0 ⇒ exp(B) = 1 + B
+print("  exp(e0∧e1) = 1 + B:", motor == P.scalar(1) + (P.gen(0) ^ P.gen(1)))
+print("  it translates e1 ↦ e1 + 2e0:", motor.sandwich(P.gen(1)) == P.gen(1) + 2 * P.gen(0))
+
+section("non-Archimedean Springer decomposition (surreal)")
+form = pl.SurrealAlgebra(q=[pl.omega(), pl.epsilon(), 1, -1])
+print("  valuation filtration of ⟨ω, ε, 1, −1⟩:")
+print("   ", pl.springer_decompose(form))
+print("  (W(No)=W(ℝ)=ℤ — the value group is 2-divisible; the filtration is the novelty)")
