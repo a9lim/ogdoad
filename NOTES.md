@@ -144,6 +144,26 @@ That is the sharp residue: the form is made of games; whether its Arf invariant
 *means* something about play is open. The instrument to test a candidate game is
 here and validated end to end.
 
+### The Arf invariant *is* a win-bias (counting sense)
+
+Dickson (1901): the Arf invariant of a quadratic form over F₂ is the value the
+form takes most often. Quantitatively, for a nonsingular form on F₂^{2m'},
+`#{v : Q(v)=0} = 2^{2m'-1} + (-1)^Arf · 2^{m'-1}`. So if a game had P-positions
+(second-player wins) exactly `{v : Q(v)=0}`, the Arf invariant would be the
+**sign of the win-bias**: which player wins from more starting positions, the
+margin a fixed Gauss-sum `2^{m-rank/2-1}` (a square-root-scale fluctuation
+around 50/50). `experiments/arf_win_bias.py` brute-forces the value
+distribution of the game-built Gold forms and confirms the zero-count matches
+the Arf-predicted bias exactly in every case.
+
+So the Arf invariant *is* a win-bias — in the counting sense. The one missing
+piece is a **natural game** whose P-positions are `{Q=0}`. Normal-play
+disjunctive sums can't do it (their outcomes are XOR-linear, never quadratic),
+so a candidate must be *interactive* (e.g. a coin-turning / lights-out style
+game coupled through the polar form) or *misère* (where sums are genuinely
+non-linear). Constructing or ruling out such a game is the open problem; the
+win-bias check above is the target any candidate must hit.
+
 ## References
 
 - C. Arf, *Untersuchungen über quadratische Formen in Körpern der
