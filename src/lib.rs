@@ -9,18 +9,24 @@
 //!   - `surcomplex`: adjoin i over any backend
 //!   - `clifford`  : the multivector engine + versor/GA layer, generic over Scalar
 //!   - `arf`       : the Arf invariant (the char-2 Clifford classifier)
+//!   - `classify`  : the char-0 Clifford classifier (Cl(p,q) → matrix algebra)
 //!   - `games`     : nim-multiplication as Conway's Turning-Corners game
+//!   - `witt`      : the Witt group of quadratic forms over a nim-field (ℤ/2)
+//!   - `partizan`  : short partizan games + the exterior algebra of the game group
 //!   - `py`        : PyO3 per-backend bindings (feature = "python")
 //!
 //! See `NOTES.md` for the mathematical thread.
 
 pub mod arf;
+pub mod classify;
 pub mod clifford;
 pub mod games;
 pub mod nimber;
+pub mod partizan;
 pub mod scalar;
 pub mod surcomplex;
 pub mod surreal;
+pub mod witt;
 
 #[cfg(feature = "python")]
 mod py;

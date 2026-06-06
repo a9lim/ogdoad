@@ -16,8 +16,8 @@
 //! reduction over the field (normalising pairs with `nim_inv`), then the Arf
 //! sum is pushed to F₂ by the field trace. `arf_invariant` uses the latter.
 
-use crate::clifford::Metric;
-use crate::nimber::{nim_add, nim_inv, nim_mul, Nimber};
+use crate::clifford::{Metric, Multivector};
+use crate::nimber::{nim_add, nim_inv, nim_mul, nim_trace, Nimber};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArfResult {
@@ -135,19 +135,6 @@ fn min_field_degree(max_val: u64) -> u32 {
     }
 }
 
-/// Field trace F_{2^m} → F₂:  Tr(x) = x + x² + x⁴ + … + x^{2^{m-1}} ∈ {0,1}.
-/// The Arf invariant lives in k/℘(k); for a finite field this trace realises
-/// the canonical isomorphism k/℘(k) ≅ F₂.
-fn nim_trace(x: u64, m: u32) -> u64 {
-    let mut acc = x;
-    let mut t = x;
-    for _ in 1..m {
-        t = nim_mul(t, t);
-        acc ^= t;
-    }
-    acc
-}
-
 fn vscale(c: u64, v: &[u64]) -> Vec<u64> {
     v.iter().map(|&x| nim_mul(c, x)).collect()
 }
@@ -255,6 +242,80 @@ pub fn arf_invariant(metric: &Metric<Nimber>) -> ArfResult {
     arf_nimber(metric)
 }
 
+// ---------------------------------------------------------------------------
+// The Dickson invariant — the characteristic-2 determinant replacement
+// ---------------------------------------------------------------------------
+
+/// Rank of a matrix over the nim-field F_{2^64}, by Gaussian elimination with nim
+/// arithmetic. Rows are dense u64 vectors (all the same length).
+fn nim_matrix_rank(mut rows: Vec<Vec<u64>>) -> usize {
+    let nrows = rows.len();
+    if nrows == 0 {
+        return 0;
+    }
+    let ncols = rows[0].len();
+    let mut pr = 0usize; // current pivot row
+    for col in 0..ncols {
+        let Some(p) = (pr..nrows).find(|&r| rows[r][col] != 0) else {
+            continue;
+        };
+        rows.swap(pr, p);
+        let inv = nim_inv(rows[pr][col]).unwrap();
+        for c in col..ncols {
+            rows[pr][c] = nim_mul(rows[pr][c], inv);
+        }
+        for r in 0..nrows {
+            if r != pr && rows[r][col] != 0 {
+                let f = rows[r][col];
+                for c in col..ncols {
+                    rows[r][c] = nim_add(rows[r][c], nim_mul(f, rows[pr][c]));
+                }
+            }
+        }
+        pr += 1;
+        if pr == nrows {
+            break;
+        }
+    }
+    pr
+}
+
+/// The **Dickson invariant** `D(g) ∈ F₂` of an orthogonal transformation `g`,
+/// given as an n×n matrix over a nim-field: `D(g) = dim Im(g − I) mod 2`
+/// (`= rank(g + I) mod 2`, since `−1 = 1`).
+///
+/// In characteristic 2 the determinant of any `g ∈ O(Q)` is forced to `1`, so it
+/// cannot separate rotations from reflections — the Dickson invariant is the
+/// replacement, with `SO(Q) = ker D`. A single reflection has `D = 1`; a product
+/// of `k` reflections has `D = k mod 2`. It is the companion to the Arf
+/// invariant: **Arf classifies the form, Dickson classifies `O(Q)`.**
+pub fn dickson_matrix(g: &[Vec<u64>]) -> u8 {
+    let n = g.len();
+    let mut m: Vec<Vec<u64>> = g.to_vec();
+    for i in 0..n {
+        m[i][i] = nim_add(m[i][i], 1); // g − I  (= g + I in char 2)
+    }
+    (nim_matrix_rank(m) % 2) as u8
+}
+
+/// The Dickson invariant of a Clifford **versor** (a product of vectors) acting
+/// by the twisted adjoint: it is the ℤ₂-grade parity of the versor — an even
+/// versor (rotor) lies in `SO` with `D = 0`, an odd versor (e.g. a single vector,
+/// a reflection) has `D = 1`. Returns `None` if the multivector is not of
+/// homogeneous grade parity (hence not a versor) or is zero.
+pub fn dickson_of_versor(v: &Multivector<Nimber>) -> Option<u8> {
+    let mut parity: Option<u8> = None;
+    for &blade in v.terms.keys() {
+        let p = (blade.count_ones() % 2) as u8;
+        match parity {
+            None => parity = Some(p),
+            Some(q) if q != p => return None,
+            _ => {}
+        }
+    }
+    parity
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -266,7 +327,7 @@ mod tests {
         for &((i, j), v) in bs {
             b.insert((i, j), Nimber(v));
         }
-        Metric { q, b }
+        Metric::new(q, b)
     }
     fn b1(pairs: &[(usize, usize)]) -> Vec<((usize, usize), u64)> {
         pairs.iter().map(|&p| (p, 1)).collect()
@@ -305,10 +366,28 @@ mod tests {
     }
 
     #[test]
+    fn arf_additive_over_graded_tensor() {
+        // The same A⊕A ≅ H⊕H fact, but built with the `direct_sum` *operation*
+        // rather than a hand-written 4-generator metric: arf is additive over ⟂.
+        let a = metric(&[1, 1], &b1(&[(0, 1)])); // anisotropic plane, Arf 1
+        let h = metric(&[0, 0], &b1(&[(0, 1)])); // hyperbolic plane,  Arf 0
+        let aa = arf_invariant(&a.direct_sum(&a));
+        let hh = arf_invariant(&h.direct_sum(&h));
+        let ah = arf_invariant(&a.direct_sum(&h));
+        assert_eq!(aa.arf, 0); // 1 + 1 = 0
+        assert_eq!(hh.arf, 0); // 0 + 0 = 0  ⇒  A⊕A ≅ H⊕H
+        assert_eq!(ah.arf, 1); // 1 + 0 = 1
+        assert_eq!((aa.rank, hh.rank, ah.rank), (4, 4, 4));
+    }
+
+    #[test]
     fn radical_is_detected() {
         // Q = x0 x1 + x2²: rank-2 core ⊕ a defective radical direction.
         let r = arf_invariant(&metric(&[0, 0, 1], &b1(&[(0, 1)])));
-        assert_eq!((r.rank, r.radical_dim, r.radical_anisotropic, r.arf), (2, 1, true, 0));
+        assert_eq!(
+            (r.rank, r.radical_dim, r.radical_anisotropic, r.arf),
+            (2, 1, true, 0)
+        );
     }
 
     #[test]
@@ -320,6 +399,53 @@ mod tests {
         //   q=[*2,*2], b01=*1:  S = *2⊗*2 = *3,  Tr(*3) = *3+*2 = *1       ⇒ O-
         let r2 = arf_invariant(&metric(&[2, 2], &b1(&[(0, 1)])));
         assert_eq!((r2.arf, r2.o_type, r2.rank), (1, "O-", 2));
+    }
+
+    #[test]
+    fn dickson_separates_rotations_from_reflections() {
+        // identity is a rotation: D = 0.
+        assert_eq!(dickson_matrix(&[vec![1, 0], vec![0, 1]]), 0);
+        // the swap (0 1; 1 0) preserves the hyperbolic form x0 x1 and is a
+        // reflection (odd): D = 1.
+        assert_eq!(dickson_matrix(&[vec![0, 1], vec![1, 0]]), 1);
+        // a hyperbolic "rotation" diag(t, t⁻¹) preserves x0 x1; for t=*2 in F₄,
+        // t⁻¹ = *3, so g = diag(*2,*3): D = 0 (in SO).
+        assert_eq!(dickson_matrix(&[vec![2, 0], vec![0, 3]]), 0);
+        // composing two reflections (here swap∘swap = identity) gives D = 0.
+        let swap = [[0u64, 1], [1, 0]];
+        let mut comp = vec![vec![0u64; 2]; 2];
+        for i in 0..2 {
+            for j in 0..2 {
+                let mut acc = 0u64;
+                for k in 0..2 {
+                    acc ^= nim_mul(swap[i][k], swap[k][j]);
+                }
+                comp[i][j] = acc;
+            }
+        }
+        assert_eq!(dickson_matrix(&comp), 0);
+    }
+
+    #[test]
+    fn dickson_of_versor_is_grade_parity() {
+        use crate::clifford::{CliffordAlgebra, Metric};
+        let alg = CliffordAlgebra::new(
+            2,
+            Metric::new(vec![Nimber(1), Nimber(1)], {
+                let mut b = BTreeMap::new();
+                b.insert((0, 1), Nimber(1));
+                b
+            }),
+        );
+        let scalar_one = alg.scalar(Nimber(1));
+        let e0 = alg.gen(0);
+        let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
+        assert_eq!(dickson_of_versor(&scalar_one), Some(0)); // identity rotor
+        assert_eq!(dickson_of_versor(&e0), Some(1)); // a vector = a reflection
+        assert_eq!(dickson_of_versor(&e0e1), Some(0)); // a bivector = a rotor
+                                                       // mixed parity ⇒ not a versor
+        let mixed = alg.add(&e0, &e0e1);
+        assert_eq!(dickson_of_versor(&mixed), None);
     }
 
     #[test]

@@ -65,22 +65,186 @@ fn wedge_sign<S: Scalar>(a: u32, b: u32) -> S {
     }
 }
 
-/// The metric: squares `q` and anticommutators `b` (keyed (i,j) with i<j).
+/// The metric of a Clifford algebra of a (possibly general, possibly degenerate)
+/// bilinear form. We store the full bilinear form `B(e_i, e_j)` factored into
+/// three pieces so the common case is cheap and the general case is reachable:
+///
+///   * `q[i]   = B(e_i, e_i) = e_i²`                  — the quadratic form (diagonal)
+///   * `b[(i,j)] = B(e_i,e_j) + B(e_j,e_i) = {e_i,e_j}`  (i<j) — the *polar* /
+///     anticommutator form (always symmetric; carried independently of `q`,
+///     which is the whole point in char 2 — see the module docs).
+///   * `a[(i,j)] = B(e_i, e_j)` for i<j — the **strictly-upper / in-order
+///     contraction** part. This is what promotes the engine from "Clifford of a
+///     *symmetric* polar form" to "Clifford of a *general* bilinear form"
+///     (Chevalley/Fauser): the geometric product gains an in-order scalar
+///     `e_i e_j = e_i∧e_j + a[(i,j)]` for i<j. `a` empty ⇒ the ordinary Clifford
+///     algebra (`e_i e_j = e_i∧e_j` for i<j); a nonzero antisymmetric choice of
+///     `a` interpolates toward the Weyl algebra. `b` stays the anticommutator
+///     regardless of `a` (the lower entry is `B(e_j,e_i) = b - a`).
 #[derive(Clone, Debug)]
 pub struct Metric<S: Scalar> {
     pub q: Vec<S>,
     pub b: BTreeMap<(usize, usize), S>,
+    pub a: BTreeMap<(usize, usize), S>,
 }
 
 impl<S: Scalar> Metric<S> {
     /// Orthogonal metric from a list of squares (b = 0). `Cl(p,q,r)` style.
     pub fn diagonal(q: Vec<S>) -> Self {
-        Metric { q, b: BTreeMap::new() }
+        Metric {
+            q,
+            b: BTreeMap::new(),
+            a: BTreeMap::new(),
+        }
     }
 
     /// The fully-null metric: exterior/Grassmann algebra on `n` generators.
     pub fn grassmann(n: usize) -> Self {
-        Metric { q: vec![S::zero(); n], b: BTreeMap::new() }
+        Metric {
+            q: vec![S::zero(); n],
+            b: BTreeMap::new(),
+            a: BTreeMap::new(),
+        }
+    }
+
+    /// A symmetric-polar Clifford metric: squares `q` and anticommutators `b`
+    /// (i<j), with no in-order contraction (`a` empty). The ordinary case.
+    pub fn new(q: Vec<S>, b: BTreeMap<(usize, usize), S>) -> Self {
+        Metric {
+            q,
+            b,
+            a: BTreeMap::new(),
+        }
+    }
+
+    /// A general-bilinear-form metric: squares `q`, polar form `b` (i<j), and the
+    /// in-order contraction `a` (i<j). See the struct docs.
+    pub fn general(
+        q: Vec<S>,
+        b: BTreeMap<(usize, usize), S>,
+        a: BTreeMap<(usize, usize), S>,
+    ) -> Self {
+        Metric { q, b, a }
+    }
+
+    /// True iff there is any in-order contraction — i.e. this is a genuinely
+    /// general bilinear form and needs the Chevalley product path.
+    fn has_upper(&self) -> bool {
+        self.a.values().any(|v| !v.is_zero())
+    }
+
+    fn a_val(&self, i: usize, j: usize) -> S {
+        // a is stored for i<j only.
+        self.a.get(&(i, j)).cloned().unwrap_or_else(S::zero)
+    }
+
+    /// The full bilinear form `B(e_i, e_j)`, reconstructed from (q, b, a):
+    ///   * `i == j`: `q_i`
+    ///   * `i  < j`: `a_{ij}`                 (the in-order / upper contraction)
+    ///   * `i  > j`: `b_{ji} − a_{ji}`        (the lower entry; b is the symmetric
+    ///                                         polar form, so `B(e_j,e_i)=b−B(e_i,e_j)`)
+    fn bil(&self, i: usize, j: usize) -> S {
+        use std::cmp::Ordering::*;
+        match i.cmp(&j) {
+            Equal => self.q_val(i),
+            Less => self.a_val(i, j),
+            Greater => self.b_val(j, i).sub(&self.a_val(j, i)),
+        }
+    }
+
+    /// The B-contraction `e_i ⌟_B W_T` only (no wedge term): the multivector
+    /// `Σ_k (−1)^k B(e_i, e_{j_k}) W_{T∖j_k}` over the set bits `j_k` of `t` in
+    /// ascending order. Used by the general (Chevalley) geometric product.
+    fn contract_vec_blade(&self, i: usize, t: u32) -> BTreeMap<u32, S> {
+        let mut out: BTreeMap<u32, S> = BTreeMap::new();
+        let mut tt = t;
+        let mut k = 0u32;
+        while tt != 0 {
+            let j = tt.trailing_zeros() as usize;
+            tt &= tt - 1;
+            let c = self.bil(i, j);
+            if !c.is_zero() {
+                let coeff = if k & 1 == 0 { c } else { c.neg() };
+                let e = out.entry(t ^ (1 << j)).or_insert_with(S::zero);
+                *e = e.add(&coeff);
+                if e.is_zero() {
+                    out.remove(&(t ^ (1 << j)));
+                }
+            }
+            k += 1;
+        }
+        out
+    }
+
+    /// `e_i · W_T` in the wedge basis (Chevalley): wedge part `e_i ∧ W_T` (when
+    /// `i ∉ T`) plus the B-contraction `e_i ⌟_B W_T`.
+    fn vec_times_blade(&self, i: usize, t: u32) -> BTreeMap<u32, S> {
+        let mut out = self.contract_vec_blade(i, t);
+        if t & (1 << i) == 0 {
+            let sign = wedge_sign::<S>(1 << i, t);
+            let e = out.entry(t | (1 << i)).or_insert_with(S::zero);
+            *e = e.add(&sign);
+            if e.is_zero() {
+                out.remove(&(t | (1 << i)));
+            }
+        }
+        out
+    }
+
+    fn vec_times_mv(&self, i: usize, mv: &BTreeMap<u32, S>) -> BTreeMap<u32, S> {
+        let mut out: BTreeMap<u32, S> = BTreeMap::new();
+        for (&t, c) in mv {
+            merge(&mut out, scale(self.vec_times_blade(i, t), c));
+        }
+        out
+    }
+
+    /// The general-bilinear-form geometric product of two wedge blades,
+    /// `W_S · W_T`, via the Chevalley recursion
+    ///   `(e_i ∧ X) · Y = e_i · (X · Y) − (e_i ⌟_B X) · Y`,
+    /// peeling the minimum generator `i` of `S` (so `W_S = e_i ∧ W_{S∖i}` with no
+    /// sign). Recurses on a strictly smaller leading blade ⇒ terminates. With `a`
+    /// empty (`B` lower-triangular) this reproduces `reduce_word` exactly.
+    fn geom_product_blades(&self, s: u32, t: u32) -> BTreeMap<u32, S> {
+        if s == 0 {
+            let mut m = BTreeMap::new();
+            m.insert(t, S::one());
+            return m;
+        }
+        let i = s.trailing_zeros() as usize;
+        let s_rest = s ^ (1 << i);
+        let xy = self.geom_product_blades(s_rest, t);
+        let part1 = self.vec_times_mv(i, &xy);
+        let contraction = self.contract_vec_blade(i, s_rest);
+        let mut part2: BTreeMap<u32, S> = BTreeMap::new();
+        for (&u, cu) in &contraction {
+            merge(&mut part2, scale(self.geom_product_blades(u, t), cu));
+        }
+        let mut out = part1;
+        merge(&mut out, scale(part2, &S::one().neg()));
+        out
+    }
+
+    /// Orthogonal direct sum `M ⟂ M'`: a block-diagonal metric on the disjoint
+    /// union of the two generator sets (the second block's indices are shifted up
+    /// by `self`'s dimension). The two blocks are mutually orthogonal — cross
+    /// polar form 0 — so cross generators anticommute (char 0) / commute (char 2).
+    /// These are exactly the relations of the Clifford algebra of the orthogonal
+    /// sum of the two forms, i.e. the **graded tensor product** of the algebras;
+    /// and the Arf invariant is additive over it.
+    pub fn direct_sum(&self, other: &Metric<S>) -> Metric<S> {
+        let n = self.q.len();
+        let mut q = self.q.clone();
+        q.extend(other.q.iter().cloned());
+        let mut b = self.b.clone();
+        for (&(i, j), v) in &other.b {
+            b.insert((i + n, j + n), v.clone());
+        }
+        let mut a = self.a.clone();
+        for (&(i, j), v) in &other.a {
+            a.insert((i + n, j + n), v.clone());
+        }
+        Metric { q, b, a }
     }
 
     fn q_val(&self, i: usize) -> S {
@@ -92,7 +256,13 @@ impl<S: Scalar> Metric<S> {
         self.b.get(&key).cloned().unwrap_or_else(S::zero)
     }
 
-    /// Reduce a generator word to canonical multivector terms.
+    /// Reduce a generator word to canonical multivector terms — the original
+    /// swap/contract reduction for the *symmetric-polar* case (`a` empty). It is
+    /// now retained solely as the **independent oracle** the general Chevalley
+    /// product (`geom_product_blades`) is cross-validated against in the tests
+    /// (`general_product_reproduces_reduce_word_when_a_empty`), so the production
+    /// engine has a second, structurally different implementation to agree with.
+    #[cfg(test)]
     fn reduce_word(&self, word: &[usize]) -> BTreeMap<u32, S> {
         for p in 0..word.len().saturating_sub(1) {
             let (a, c) = (word[p], word[p + 1]);
@@ -168,8 +338,38 @@ impl<S: Scalar> CliffordAlgebra<S> {
         CliffordAlgebra { dim, metric }
     }
 
+    /// The graded (super) tensor product Cl(self) ⊗̂ Cl(other) ≅ Cl(self ⟂ other):
+    /// generators of `self` keep their indices, generators of `other` are shifted
+    /// up by `self.dim`, and the two blocks are mutually orthogonal. This is the
+    /// composable form of "orthogonal sum of quadratic forms" — the operation the
+    /// Arf invariant is additive over (`arf(A ⊗̂ B) = arf(A) + arf(B)`).
+    pub fn graded_tensor(&self, other: &CliffordAlgebra<S>) -> CliffordAlgebra<S> {
+        CliffordAlgebra::new(self.dim + other.dim, self.metric.direct_sum(&other.metric))
+    }
+
+    /// Embed a multivector of the *first* factor into `self ⊗̂ other`: the left
+    /// block's generator indices are unchanged, so the blades carry over as-is.
+    pub fn embed_first(&self, v: &Multivector<S>) -> Multivector<S> {
+        Multivector {
+            terms: v.terms.clone(),
+        }
+    }
+
+    /// Embed a multivector of the *second* factor into `first ⊗̂ self`: shift every
+    /// blade's generator bits up by `shift` (= the first factor's dimension).
+    pub fn embed_second(&self, v: &Multivector<S>, shift: usize) -> Multivector<S> {
+        let terms = v
+            .terms
+            .iter()
+            .map(|(&blade, c)| (blade << shift, c.clone()))
+            .collect();
+        Multivector { terms }
+    }
+
     pub fn zero(&self) -> Multivector<S> {
-        Multivector { terms: BTreeMap::new() }
+        Multivector {
+            terms: BTreeMap::new(),
+        }
     }
 
     pub fn scalar(&self, s: S) -> Multivector<S> {
@@ -205,17 +405,20 @@ impl<S: Scalar> CliffordAlgebra<S> {
     }
 
     pub fn scalar_mul(&self, s: &S, a: &Multivector<S>) -> Multivector<S> {
-        Multivector { terms: scale(a.terms.clone(), s) }
+        Multivector {
+            terms: scale(a.terms.clone(), s),
+        }
     }
 
-    /// Geometric (Clifford) product.
+    /// Geometric (Clifford) product. Computed in the wedge basis via the
+    /// general-bilinear-form (Chevalley) product, so it is correct for an
+    /// arbitrary metric `(q, b, a)` — ordinary Clifford when `a` is empty, and
+    /// the deformed quantum-Clifford / Weyl-interpolating product when it isn't.
     pub fn mul(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut out: BTreeMap<u32, S> = BTreeMap::new();
         for (&ba, ca) in &a.terms {
             for (&bb, cb) in &b.terms {
-                let mut word = bits(ba);
-                word.extend(bits(bb));
-                let reduced = self.metric.reduce_word(&word);
+                let reduced = self.metric.geom_product_blades(ba, bb);
                 let coeff = ca.mul(cb);
                 merge(&mut out, scale(reduced, &coeff));
             }
@@ -280,6 +483,40 @@ impl<S: Scalar> CliffordAlgebra<S> {
         v.terms.get(&0).cloned().unwrap_or_else(S::zero)
     }
 
+    /// Projection onto the even subalgebra (the sum of even-grade blades). The
+    /// even part is closed under the geometric product — it is a subalgebra.
+    pub fn even_part(&self, v: &Multivector<S>) -> Multivector<S> {
+        let terms = v
+            .terms
+            .iter()
+            .filter(|(&blade, _)| grade(blade) & 1 == 0)
+            .map(|(&blade, c)| (blade, c.clone()))
+            .collect();
+        Multivector { terms }
+    }
+
+    /// The even subalgebra Cl⁰ presented as a Clifford algebra one dimension
+    /// smaller. For a diagonal (orthogonal) metric with a non-null generator
+    /// e_p, the map `f_i = e_i e_p` (i ≠ p) is an algebra isomorphism
+    /// Cl(Q)⁰ ≅ Cl(Q′) with `f_i² = −q_i q_p` — the classical
+    /// `Cl(p,q)⁰ ≅ Cl(p, q−1) ≅ Cl(q, p−1)`. Returns the smaller algebra, or
+    /// `None` if the metric is non-orthogonal (`b`/`a` nonempty) or has no
+    /// non-null generator to pivot on.
+    pub fn even_subalgebra(&self) -> Option<CliffordAlgebra<S>> {
+        if !self.metric.b.is_empty() || self.metric.has_upper() {
+            return None; // only the orthogonal case has this clean presentation
+        }
+        let p = (0..self.dim)
+            .rev()
+            .find(|&i| !self.metric.q_val(i).is_zero())?;
+        let qp = self.metric.q_val(p);
+        let qprime: Vec<S> = (0..self.dim)
+            .filter(|&i| i != p)
+            .map(|i| self.metric.q_val(i).mul(&qp).neg())
+            .collect();
+        Some(CliffordAlgebra::new(self.dim - 1, Metric::diagonal(qprime)))
+    }
+
     /// The spinor norm ⟨v ṽ⟩₀ (scalar part of `v * reverse(v)`).
     pub fn norm2(&self, v: &Multivector<S>) -> S {
         let rev = self.reverse(v);
@@ -290,7 +527,11 @@ impl<S: Scalar> CliffordAlgebra<S> {
     pub fn grade_involution(&self, v: &Multivector<S>) -> Multivector<S> {
         let mut terms = BTreeMap::new();
         for (&blade, coeff) in &v.terms {
-            let c = if grade(blade) & 1 == 1 { coeff.neg() } else { coeff.clone() };
+            let c = if grade(blade) & 1 == 1 {
+                coeff.neg()
+            } else {
+                coeff.clone()
+            };
             if !c.is_zero() {
                 terms.insert(blade, c);
             }
@@ -313,18 +554,35 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Some(self.scalar_mul(&ninv, &rev))
     }
 
-    /// The sandwich product v x v⁻¹ (rotor / versor action). `None` if v isn't
-    /// invertible as a versor.
+    /// The (untwisted) sandwich product v x v⁻¹ — the rotor action. Correct for
+    /// *even* versors (rotors); for odd versors use `twisted_sandwich`. `None`
+    /// if v isn't invertible as a versor.
     pub fn sandwich(&self, v: &Multivector<S>, x: &Multivector<S>) -> Option<Multivector<S>> {
         let vinv = self.versor_inverse(v)?;
         Some(self.mul(&self.mul(v, x), &vinv))
     }
 
-    /// Reflection of x in the hyperplane orthogonal to vector n: −(n x n⁻¹).
+    /// The **twisted adjoint** (Pin/Spin) action: α(v) x v⁻¹, where α is the
+    /// grade involution. This is the representation-theoretically correct versor
+    /// action on Pin(Q): for an *odd* versor (e.g. a single vector) the α-sign is
+    /// exactly what turns it into a genuine reflection in every signature; for an
+    /// *even* versor (rotor) α(v)=v, so it coincides with `sandwich`. `None` if v
+    /// isn't an invertible versor.
+    pub fn twisted_sandwich(
+        &self,
+        v: &Multivector<S>,
+        x: &Multivector<S>,
+    ) -> Option<Multivector<S>> {
+        let vinv = self.versor_inverse(v)?;
+        let av = self.grade_involution(v);
+        Some(self.mul(&self.mul(&av, x), &vinv))
+    }
+
+    /// Reflection of x in the hyperplane orthogonal to vector n. This is just the
+    /// twisted adjoint by the vector n: α(n) x n⁻¹ = −(n x n⁻¹), since n is odd.
+    /// Routing through `twisted_sandwich` keeps the single sign convention.
     pub fn reflect(&self, n: &Multivector<S>, x: &Multivector<S>) -> Option<Multivector<S>> {
-        let ninv = self.versor_inverse(n)?;
-        let nxni = self.mul(&self.mul(n, x), &ninv);
-        Some(self.scalar_mul(&S::one().neg(), &nxni))
+        self.twisted_sandwich(n, x)
     }
 
     /// Left contraction a ⌟ b = Σ_{r≤s} ⟨⟨a⟩_r ⟨b⟩_s⟩_{s−r}.
@@ -466,7 +724,10 @@ mod tests {
         let (e0, e1) = (alg.gen(0), alg.gen(1));
         assert_eq!(alg.mul(&e0, &e1), alg.wedge(&e0, &e1));
         // antisymmetry
-        assert_eq!(alg.mul(&e0, &e1), alg.scalar_mul(&r(-1), &alg.mul(&e1, &e0)));
+        assert_eq!(
+            alg.mul(&e0, &e1),
+            alg.scalar_mul(&r(-1), &alg.mul(&e1, &e0))
+        );
     }
 
     #[test]
@@ -476,7 +737,7 @@ mod tests {
         let e0 = alg.gen(0);
         let e1 = alg.gen(1);
         assert_eq!(alg.mul(&e0, &e1), alg.mul(&e1, &e0)); // commute
-        // e0^2 = q0 = 2 (a nimber!), not ±1
+                                                          // e0^2 = q0 = 2 (a nimber!), not ±1
         assert_eq!(alg.mul(&e0, &e0), alg.scalar(Nimber(2)));
     }
 
@@ -485,7 +746,7 @@ mod tests {
         // char 2 with b[(0,1)] = t ⇒ e0 e1 + e1 e0 = t ≠ 0 ⇒ non-commutative.
         let mut b = BTreeMap::new();
         b.insert((0usize, 1usize), Nimber(1));
-        let alg = CliffordAlgebra::new(2, Metric { q: vec![Nimber(0), Nimber(0)], b });
+        let alg = CliffordAlgebra::new(2, Metric::new(vec![Nimber(0), Nimber(0)], b));
         let e0 = alg.gen(0);
         let e1 = alg.gen(1);
         let anti = alg.add(&alg.mul(&e0, &e1), &alg.mul(&e1, &e0));
@@ -512,7 +773,7 @@ mod tests {
         let mut b = BTreeMap::new();
         b.insert((0usize, 1usize), r(1)); // non-orthogonal
         b.insert((1usize, 2usize), r(-1));
-        let alg = CliffordAlgebra::new(3, Metric { q: vec![r(1), r(-1), r(2)], b });
+        let alg = CliffordAlgebra::new(3, Metric::new(vec![r(1), r(-1), r(2)], b));
         let gens = [
             alg.gen(0),
             alg.gen(1),
@@ -534,7 +795,10 @@ mod tests {
         // q=2: e0⁻¹ = e0/2
         let alg2 = CliffordAlgebra::new(1, Metric::diagonal(vec![r(2)]));
         let e0 = alg2.gen(0);
-        assert_eq!(alg2.mul(&e0, &alg2.versor_inverse(&e0).unwrap()), alg2.scalar(r(1)));
+        assert_eq!(
+            alg2.mul(&e0, &alg2.versor_inverse(&e0).unwrap()),
+            alg2.scalar(r(1))
+        );
         // a null vector has no inverse
         let alg0 = CliffordAlgebra::new(1, Metric::<Rational>::grassmann(1));
         assert!(alg0.versor_inverse(&alg0.gen(0)).is_none());
@@ -563,13 +827,34 @@ mod tests {
     }
 
     #[test]
+    fn twisted_adjoint_matches_reflect_and_sandwich() {
+        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let x = alg.add(&alg.scalar_mul(&r(3), &e0), &alg.scalar_mul(&r(4), &e1));
+        // Odd versor (a vector): twisted adjoint == reflection in its ⊥ hyperplane.
+        assert_eq!(
+            alg.twisted_sandwich(&e1, &x).unwrap(),
+            alg.reflect(&e1, &x).unwrap()
+        );
+        // Even versor (a rotor): α(v)=v, so twisted == untwisted sandwich.
+        let rotor = alg.mul(&e0, &e1);
+        assert_eq!(
+            alg.twisted_sandwich(&rotor, &x).unwrap(),
+            alg.sandwich(&rotor, &x).unwrap()
+        );
+    }
+
+    #[test]
     fn left_contraction_lowers_grade() {
         let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![r(1), r(1), r(1)]));
         let e0 = alg.gen(0);
         let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
         assert_eq!(alg.left_contract(&e0, &e0e1), alg.gen(1)); // e0 ⌟ (e0∧e1) = e1
         let three = alg.scalar(r(3));
-        assert_eq!(alg.left_contract(&three, &e0e1), alg.scalar_mul(&r(3), &e0e1));
+        assert_eq!(
+            alg.left_contract(&three, &e0e1),
+            alg.scalar_mul(&r(3), &e0e1)
+        );
     }
 
     #[test]
@@ -590,7 +875,10 @@ mod tests {
         );
         let expect = alg.add(
             &alg.scalar(r(5)),
-            &alg.add(&alg.scalar_mul(&r(-1), &alg.gen(0)), &alg.mul(&alg.gen(0), &alg.gen(1))),
+            &alg.add(
+                &alg.scalar_mul(&r(-1), &alg.gen(0)),
+                &alg.mul(&alg.gen(0), &alg.gen(1)),
+            ),
         );
         assert_eq!(alg.grade_involution(&v), expect);
     }
@@ -598,10 +886,139 @@ mod tests {
     #[test]
     fn versor_over_surreal_metric() {
         // e0² = ω (a monomial ⇒ invertible). e0⁻¹ = ε·e0, and sandwich works.
-        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon()]));
+        let alg = CliffordAlgebra::new(
+            2,
+            Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon()]),
+        );
         let e0 = alg.gen(0);
         let inv = alg.versor_inverse(&e0).unwrap();
         assert_eq!(alg.mul(&e0, &inv), alg.scalar(Surreal::one()));
+    }
+
+    #[test]
+    fn even_subalgebra_of_cl30_is_quaternions() {
+        // Cl(3,0)⁰ ≅ Cl(0,2) ≅ ℍ: two generators squaring to −1 that anticommute.
+        let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![r(1), r(1), r(1)]));
+        let even = alg.even_subalgebra().unwrap();
+        assert_eq!(even.dim, 2);
+        let (f0, f1) = (even.gen(0), even.gen(1));
+        assert_eq!(even.mul(&f0, &f0), even.scalar(r(-1))); // i² = −1
+        assert_eq!(even.mul(&f1, &f1), even.scalar(r(-1))); // j² = −1
+        assert_eq!(
+            even.mul(&f0, &f1),
+            even.scalar_mul(&r(-1), &even.mul(&f1, &f0))
+        ); // ij = −ji
+    }
+
+    #[test]
+    fn even_part_projection() {
+        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+        // 5 + 2 e0 + 3 e0e1  ↦  5 + 3 e0e1
+        let v = alg.add(
+            &alg.scalar(r(5)),
+            &alg.add(
+                &alg.scalar_mul(&r(2), &alg.gen(0)),
+                &alg.mul(&alg.gen(0), &alg.gen(1)),
+            ),
+        );
+        let expect = alg.add(&alg.scalar(r(5)), &alg.mul(&alg.gen(0), &alg.gen(1)));
+        assert_eq!(alg.even_part(&v), expect);
+    }
+
+    #[test]
+    fn graded_tensor_blocks_are_orthogonal() {
+        // Cl(1,0) ⊗̂ Cl(0,1): e0²=+1 (left), e1²=−1 (right), and the two blocks
+        // anticommute (cross polar form 0 ⇒ in char 0, e0 e1 = −e1 e0).
+        let left = CliffordAlgebra::new(1, Metric::diagonal(vec![r(1)]));
+        let right = CliffordAlgebra::new(1, Metric::diagonal(vec![r(-1)]));
+        let alg = left.graded_tensor(&right);
+        assert_eq!(alg.dim, 2);
+        let e0 = alg.gen(0); // from the left factor
+        let e1 = alg.gen(1); // from the right factor (shifted)
+        assert_eq!(alg.mul(&e0, &e0), alg.scalar(r(1)));
+        assert_eq!(alg.mul(&e1, &e1), alg.scalar(r(-1)));
+        // cross generators anticommute
+        assert_eq!(
+            alg.mul(&e0, &e1),
+            alg.scalar_mul(&r(-1), &alg.mul(&e1, &e0))
+        );
+        // the embeddings agree with native generators
+        assert_eq!(alg.embed_first(&left.gen(0)), e0);
+        assert_eq!(alg.embed_second(&right.gen(0), left.dim), e1);
+    }
+
+    #[test]
+    fn general_product_reproduces_reduce_word_when_a_empty() {
+        // The Chevalley general-B product must agree blade-for-blade with the
+        // proven `reduce_word` on every metric whose upper part `a` is empty.
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), r(1));
+        b.insert((1usize, 2usize), r(-1));
+        b.insert((0usize, 2usize), r(2));
+        let m = Metric::new(vec![r(1), r(-1), r(2)], b);
+        for ba in 0u32..8 {
+            for bb in 0u32..8 {
+                let word: Vec<usize> = bits(ba).into_iter().chain(bits(bb)).collect();
+                assert_eq!(
+                    m.geom_product_blades(ba, bb),
+                    m.reduce_word(&word),
+                    "mismatch on blades {ba:#b}·{bb:#b}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn general_bilinear_in_order_contraction() {
+        // q=[1,1], b empty, a[(0,1)] = 5: the in-order product gains the scalar,
+        //   e0 e1 = e0∧e1 + 5,   but the anticommutator {e0,e1} = b = 0 is unchanged.
+        let mut a = BTreeMap::new();
+        a.insert((0usize, 1usize), r(5));
+        let alg = CliffordAlgebra::new(2, Metric::general(vec![r(1), r(1)], BTreeMap::new(), a));
+        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let blade = alg.wedge(&e0, &e1);
+        assert_eq!(alg.mul(&e0, &e1), alg.add(&blade, &alg.scalar(r(5)))); // e0∧e1 + 5
+                                                                           // anticommutator depends only on b (here 0), not on a
+        assert_eq!(alg.add(&alg.mul(&e0, &e1), &alg.mul(&e1, &e0)), alg.zero());
+    }
+
+    #[test]
+    fn associativity_general_bilinear_form() {
+        // A genuinely general bilinear form: nonzero polar b AND nonzero in-order
+        // a, in both characteristics. The Chevalley product must stay associative.
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), r(1));
+        b.insert((1usize, 2usize), r(2));
+        let mut a = BTreeMap::new();
+        a.insert((0usize, 1usize), r(3));
+        a.insert((0usize, 2usize), r(-1));
+        let alg = CliffordAlgebra::new(3, Metric::general(vec![r(2), r(-1), r(1)], b, a));
+        let gens = [
+            alg.gen(0),
+            alg.gen(1),
+            alg.gen(2),
+            alg.mul(&alg.gen(0), &alg.gen(1)),
+            alg.add(&alg.gen(2), &alg.scalar(r(3))),
+        ];
+        assert_associative(&alg, &gens);
+
+        // char 2 version
+        let mut bn = BTreeMap::new();
+        bn.insert((0usize, 1usize), Nimber(1));
+        let mut an = BTreeMap::new();
+        an.insert((0usize, 1usize), Nimber(2));
+        an.insert((1usize, 2usize), Nimber(3));
+        let algn = CliffordAlgebra::new(
+            3,
+            Metric::general(vec![Nimber(2), Nimber(1), Nimber(0)], bn, an),
+        );
+        let gensn = [
+            algn.gen(0),
+            algn.gen(1),
+            algn.gen(2),
+            algn.mul(&algn.gen(0), &algn.gen(1)),
+        ];
+        assert_associative(&algn, &gensn);
     }
 
     #[test]
@@ -609,7 +1026,7 @@ mod tests {
         let mut b = BTreeMap::new();
         b.insert((0usize, 1usize), Nimber(1));
         b.insert((0usize, 2usize), Nimber(3));
-        let alg = CliffordAlgebra::new(3, Metric { q: vec![Nimber(2), Nimber(1), Nimber(0)], b });
+        let alg = CliffordAlgebra::new(3, Metric::new(vec![Nimber(2), Nimber(1), Nimber(0)], b));
         let gens = [
             alg.gen(0),
             alg.gen(1),

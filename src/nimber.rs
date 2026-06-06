@@ -97,6 +97,88 @@ pub fn nim_pow(mut base: u64, mut exp: u64) -> u64 {
     acc
 }
 
+/// Nim-square (the Frobenius endomorphism x ↦ x² of On₂). F₂-linear, and a
+/// *bijection* on every finite nim-field F_{2^m} — char-2 squaring has no kernel.
+#[inline]
+pub fn nim_square(x: u64) -> u64 {
+    nim_mul(x, x)
+}
+
+/// Nim-square-root: the inverse Frobenius. In F_{2^64} every element is a unique
+/// square, and `√x = x^{2^{63}}` because `x^{2^{64}} = x` there, so
+/// `(x^{2^{63}})² = x`. The root lands in whatever subfield `x` lives in (the
+/// global Frobenius restricts to each subfield), so this is also the square root
+/// in any F_{2^{2^k}} ⊆ F_{2^64}. Always defined — no `Option`.
+pub fn nim_sqrt(x: u64) -> u64 {
+    nim_pow(x, 1u64 << 63)
+}
+
+/// Field trace F_{2^m} → F₂:  `Tr(x) = x + x² + x⁴ + … + x^{2^{m-1}} ∈ {0,1}`.
+/// This is the canonical map realising k/℘(k) ≅ F₂ that the Arf invariant is read
+/// through (see `arf.rs`); it is *also* the obstruction to solving the
+/// Artin–Schreier equation `y² + y = c` (solvable iff `Tr(c) = 0`). One trace,
+/// both roles — that is the unification. `m` must be the degree of a nim-subfield
+/// (a power of two: 1, 2, 4, …, 64).
+pub fn nim_trace(x: u64, m: u32) -> u64 {
+    let mut acc = x;
+    let mut t = x;
+    for _ in 1..m {
+        t = nim_square(t);
+        acc ^= t;
+    }
+    acc
+}
+
+/// Insert `val` (with its associated y-combination `yc`) into an XOR pivot table
+/// keyed by highest set bit. Used by the Artin–Schreier solver.
+fn xor_basis_insert(table: &mut [Option<(u64, u64)>; 64], mut val: u64, mut yc: u64) {
+    while val != 0 {
+        let h = (63 - val.leading_zeros()) as usize;
+        match table[h] {
+            Some((pv, pc)) => {
+                val ^= pv;
+                yc ^= pc;
+            }
+            None => {
+                table[h] = Some((val, yc));
+                return;
+            }
+        }
+    }
+}
+
+/// Solve the Artin–Schreier equation `y² + y = c` in F_{2^m}. The map
+/// `L(y) = y² + y` is F₂-linear with kernel {0,1}, and its image is exactly the
+/// trace-zero hyperplane — so a solution exists **iff `nim_trace(c, m) = 0`**, and
+/// when it does there are exactly two (`y` and `y+1`). Returns one solution, or
+/// `None` when `c` is not in the image. Solved by Gaussian elimination over F₂ on
+/// the bit-basis of F_{2^m} (exact; no fragile closed-form).
+pub fn nim_solve_artin_schreier(c: u64, m: u32) -> Option<u64> {
+    let mut table: [Option<(u64, u64)>; 64] = [None; 64];
+    for k in 0..m {
+        let e = 1u64 << k;
+        xor_basis_insert(&mut table, nim_square(e) ^ e, e);
+    }
+    let (mut val, mut yc) = (c, 0u64);
+    while val != 0 {
+        let h = (63 - val.leading_zeros()) as usize;
+        match table[h] {
+            Some((pv, pc)) => {
+                val ^= pv;
+                yc ^= pc;
+            }
+            None => return None, // c ∉ image(L)  ⇔  Tr(c) ≠ 0
+        }
+    }
+    Some(yc)
+}
+
+/// Whether `y² + y = c` is solvable in F_{2^m} — i.e. `Tr(c) = 0`. The same
+/// trace, hence the same answer, as the Arf-reduction path.
+pub fn nim_is_artin_schreier_solvable(c: u64, m: u32) -> bool {
+    nim_trace(c, m) == 0
+}
+
 /// Nim-multiplicative inverse in F_{2^64}. The group F_{2^64}^* is cyclic of
 /// order 2^64 − 1, so x^(2^64 − 2) = x^{-1}; and the inverse in the big field
 /// agrees with the inverse in whatever subfield x actually lives in.
@@ -167,7 +249,7 @@ mod tests {
         assert_eq!(nim_mul(4, 4), 6);
         assert_eq!(nim_mul(2, 4), 8);
         assert_eq!(nim_mul(16, 16), 24); // F_2 (x) F_2 = (3/2)*16
-        // identity / zero
+                                         // identity / zero
         assert_eq!(nim_mul(1, 37), 37);
         assert_eq!(nim_mul(0, 37), 0);
     }
@@ -210,7 +292,21 @@ mod tests {
     #[test]
     fn inverse_round_trips() {
         // x ⊗ x^{-1} = 1 for a spread of nonzero nimbers across several fields.
-        for x in [1u64, 2, 3, 4, 5, 15, 16, 255, 256, 65535, 65536, 1_000_000, u64::MAX] {
+        for x in [
+            1u64,
+            2,
+            3,
+            4,
+            5,
+            15,
+            16,
+            255,
+            256,
+            65535,
+            65536,
+            1_000_000,
+            u64::MAX,
+        ] {
             let inv = nim_inv(x).unwrap();
             assert_eq!(nim_mul(x, inv), 1, "inverse of {x}");
         }
@@ -219,6 +315,79 @@ mod tests {
         for x in 1u64..16 {
             let brute = (1u64..16).find(|&y| nim_mul(x, y) == 1).unwrap();
             assert_eq!(nim_inv(x).unwrap(), brute, "F_16 inverse of {x}");
+        }
+    }
+
+    #[test]
+    fn sqrt_is_inverse_frobenius() {
+        // √ is the unique inverse of squaring in char 2: (√x)² = x and √(x²) = x.
+        for x in [
+            0u64,
+            1,
+            2,
+            3,
+            5,
+            15,
+            16,
+            255,
+            256,
+            65535,
+            65536,
+            1 << 40,
+            u64::MAX,
+        ] {
+            assert_eq!(nim_square(nim_sqrt(x)), x, "(√{x})² ≠ {x}");
+            assert_eq!(nim_sqrt(nim_square(x)), x, "√({x}²) ≠ {x}");
+        }
+        // a square root stays inside the subfield its argument lives in (F_16).
+        for x in 0u64..16 {
+            assert!(nim_sqrt(x) < 16, "√{x} left F_16");
+        }
+    }
+
+    #[test]
+    fn trace_is_in_f2_and_is_additive() {
+        // Tr lands in {0,1} and is F₂-linear (additive) over F_16.
+        for x in 0u64..16 {
+            assert!(nim_trace(x, 4) <= 1);
+            for y in 0u64..16 {
+                assert_eq!(nim_trace(x ^ y, 4), nim_trace(x, 4) ^ nim_trace(y, 4));
+            }
+        }
+    }
+
+    #[test]
+    fn artin_schreier_solvable_iff_trace_zero() {
+        // The unification: y²+y=c is solvable exactly when Tr(c)=0, and the solver
+        // returns a genuine root when it is. Checked exhaustively on F_16.
+        let m = 4;
+        for c in 0u64..16 {
+            let solvable = nim_trace(c, m) == 0;
+            assert_eq!(nim_is_artin_schreier_solvable(c, m), solvable);
+            match nim_solve_artin_schreier(c, m) {
+                Some(y) => {
+                    assert!(solvable, "solver returned a root for trace-1 c={c}");
+                    assert_eq!(nim_square(y) ^ y, c, "y²+y ≠ c for c={c}");
+                    assert!(y < 16, "root left F_16");
+                }
+                None => assert!(!solvable, "solver gave up on trace-0 c={c}"),
+            }
+        }
+        // Exactly half of F_16 is trace-zero (the image is a hyperplane).
+        let solvable_count = (0u64..16).filter(|&c| nim_trace(c, m) == 0).count();
+        assert_eq!(solvable_count, 8);
+    }
+
+    #[test]
+    fn artin_schreier_over_f256() {
+        // larger field: solver agrees with the trace obstruction on a sample.
+        let m = 8;
+        for c in (0u64..256).step_by(7) {
+            let y = nim_solve_artin_schreier(c, m);
+            assert_eq!(y.is_some(), nim_trace(c, m) == 0, "c={c}");
+            if let Some(y) = y {
+                assert_eq!(nim_square(y) ^ y, c);
+            }
         }
     }
 

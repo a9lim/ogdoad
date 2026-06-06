@@ -26,33 +26,59 @@ bindings on top. "With nilpotents" = the quadratic form may be degenerate
 ```
 src/
   scalar.rs     # Scalar trait (add/neg/mul/zero/one/is_zero) + an exact
-                # Rational used ONLY to validate the engine in char 0.
+                # Rational used ONLY to validate the engine in char 0, plus an
+                # exact Integer (ℤ) used as the coefficient ring for the game
+                # exterior algebra (partizan.rs).
   nimber.rs     # On₂ in u64 (= F_{2^64}): nim_add = XOR; nim_mul via Fermat-
-                # power recursion, memoised on 2^i ⊗ 2^j.
-  clifford.rs   # Metric { q, b } + CliffordAlgebra<S> + Multivector<S>.
-                # The whole engine, generic over Scalar. reduce_word is the core.
-                # Also the versor/GA layer: versor_inverse, sandwich, reflect,
-                # left/right_contract, dual, grade_involution, norm2.
+                # power recursion, memoised on 2^i ⊗ 2^j. Also nim_square /
+                # nim_sqrt (Frobenius & its inverse), nim_trace, and the
+                # Artin–Schreier solver (y²+y=c, solvable ⇔ Tr(c)=0).
+  clifford.rs   # Metric { q, b, a } + CliffordAlgebra<S> + Multivector<S>.
+                # The whole engine, generic over Scalar. geom_product_blades is
+                # the core (general-bilinear Chevalley product; reduce_word is a
+                # #[cfg(test)] oracle it is cross-validated against). The
+                # versor/GA layer: versor_inverse, sandwich, twisted_sandwich
+                # (Pin action), reflect, left/right_contract, dual,
+                # grade_involution, norm2. Plus even_part / even_subalgebra and
+                # direct_sum / graded_tensor.
   surreal.rs    # Conway normal form: Vec<(exponent: Surreal, coeff: Rational)>
                 # with recursive exponents. Hahn arithmetic: ω^a·ω^b = ω^{a+b}.
   surcomplex.rs # Surcomplex<S> = adjoin i over any backend.
+  classify.rs   # the char-0 Clifford classifier (companion to arf.rs): Cl(p,q)
+                # → matrix algebra over ℝ/ℂ/ℍ via the 8-fold table (real-closed
+                # surreal/rational) and the 2-fold table (surcomplex). Diagonal
+                # metrics; signature read off the surreal/rational signs.
   arf.rs        # Arf invariant (the char-2 Clifford classifier): arf_f2 (F₂,
                 # bitmask) + arf_nimber (any nim-field, via symplectic reduction
-                # + the field trace). arf_invariant routes to arf_nimber.
+                # + the field trace). arf_invariant routes to arf_nimber. Also
+                # the Dickson invariant: dickson_matrix (rank(g−I) mod 2, the
+                # char-2 determinant; ker = SO) + dickson_of_versor.
+  witt.rs       # WittClass: the Witt group W_q(F) ≅ ℤ/2 of a finite nim-field,
+                # Arf-classified. Makes A⊕A ≅ H⊕H a one-line group identity.
   games.rs      # nim_mul_mex: nim-multiplication as Conway's Turning-Corners
                 # mex recurrence (the GAME definition); == algebraic nim_mul.
+  partizan.rs   # short partizan games (sum/neg/order/birthday/is_number) + the
+                # exterior algebra of the GAME group: Λ over ℤ on game
+                # generators (Clifford-adjacent structure living on all of
+                # game-world, including non-numbers ⋆/↑). NB: distinct from
+                # games.rs — that is coin-turning; this is partizan + exterior.
   py.rs         # PyO3 per-backend classes (feature = "python"). The backend!
-                # macro stamps out <World>Algebra + <World>MV.
+                # macro stamps out <World>Algebra + <World>MV (now incl. the
+                # Integer backend). Plus classify/witt/dickson/nim-field/Game
+                # bindings.
   lib.rs
 examples/tour.rs   # cargo run --example tour   (Rust-only demo)
 demo.py            # the same tour from Python
-experiments/       # research probes ON TOP of the shipped lib (Arf of Gold
-                   # forms, the game-built synthesis, the Arf win-bias). See NOTES.md.
+experiments/       # research probes ON TOP of the shipped lib: Arf of Gold
+                   # forms, the game-built synthesis, the Arf win-bias,
+                   # artin_arf (the trace ↔ Arf unification), and
+                   # open_question_probe (the polar-form obstruction). See NOTES.md.
 ```
 
-The math thread (Arf↔Clifford, the games bridge, the open play-semantics
+The math thread (Arf↔Clifford, the games bridge, the char-0/char-2 classifier
+symmetry, the Artin–Schreier ↔ Arf unification, the open play-semantics
 question) is written up in `NOTES.md` — read it before touching `arf.rs`,
-`games.rs`, or `experiments/`.
+`classify.rs`, `games.rs`, `witt.rs`, or `experiments/`.
 
 ## Commands
 
@@ -79,12 +105,20 @@ PATH (`. "$HOME/.cargo/env"`).
    i<j). In char ≠ 2 they're linked; in char 2 they are NOT — `b` is alternating
    (`b(i,i)=0`) yet `q[i]` can be nonzero. Collapsing to one symmetric bilinear
    form silently makes every char-2 algebra commutative and throws away the
-   entire point of the nimber backend.
+   entire point of the nimber backend. There is now a THIRD, *optional* field
+   `a[(i,j)]` (i<j): the in-order / asymmetric contraction that lifts the engine
+   to a general (non-symmetric) bilinear form `B` — `e_i e_j = e_i∧e_j + a_{ij}`
+   for i<j; `b` stays the (symmetric) anticommutator regardless. `a` empty ⇒ the
+   ordinary Clifford algebra. Build metrics with `Metric::new(q, b)` (a empty),
+   `Metric::diagonal`, `Metric::grassmann`, or `Metric::general(q, b, a)` rather
+   than the bare struct literal, so the `a` field is handled for you (`a` is keyed
+   i<j only).
 
 3. **Signs go through the scalar's own `neg()`, never a literal `-1` or a
-   `characteristic()` branch.** `reduce_word` emits `S::one().neg()` on a swap.
-   For nimbers `neg` is identity, so `-1 = 1` and char-2 sign-vanishing falls
-   out for free. Hardcoding signs breaks char 2.
+   `characteristic()` branch.** The product (`geom_product_blades`, and the
+   `#[cfg(test)]` oracle `reduce_word`) emits `S::one().neg()` from the wedge
+   antisymmetry. For nimbers `neg` is identity, so `-1 = 1` and char-2
+   sign-vanishing falls out for free. Hardcoding signs breaks char 2.
 
 4. **Surreal arithmetic recurses only on exponents.** Every op (add/mul/cmp) on
    a `Surreal` recurses into its *exponents*, which are strictly simpler (lower
@@ -97,8 +131,12 @@ PATH (`. "$HOME/.cargo/env"`).
    add a runtime-tagged "any scalar" path.
 
 6. **Verify, don't claim.** Engine + every backend have `cargo test` checks. The
-   `associativity_*_nonorthogonal` tests are the ones that actually catch
-   `reduce_word` bugs — add a test before trusting a new operation.
+   `associativity_*` tests (incl. `associativity_general_bilinear_form`) are the
+   ones that actually catch product bugs, and `general_product_reproduces_reduce_word_when_a_empty`
+   pins the general engine to the independent oracle — add a test before trusting
+   a new operation. The char-0 classifier is checked against the known low-dim
+   table + a dimension-consistency sweep; Dickson against known O(Q) elements;
+   the Artin–Schreier solver against the trace obstruction exhaustively on F₁₆.
 
 ## Style
 

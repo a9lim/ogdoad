@@ -65,11 +65,7 @@ mod tests {
         // Turning-Corners Grundy values == Fermat-power nim-multiplication.
         for x in 0u64..48 {
             for y in 0u64..48 {
-                assert_eq!(
-                    nim_mul_mex(x, y),
-                    nim_mul(x, y),
-                    "mismatch at ({x}, {y})"
-                );
+                assert_eq!(nim_mul_mex(x, y), nim_mul(x, y), "mismatch at ({x}, {y})");
             }
         }
     }

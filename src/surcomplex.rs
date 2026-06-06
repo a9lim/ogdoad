@@ -26,27 +26,45 @@ impl<S: Scalar> Surcomplex<S> {
 
     /// The imaginary unit i.
     pub fn i() -> Self {
-        Surcomplex { re: S::zero(), im: S::one() }
+        Surcomplex {
+            re: S::zero(),
+            im: S::one(),
+        }
     }
 
     /// Complex conjugate a − b·i.
     pub fn conj(&self) -> Self {
-        Surcomplex { re: self.re.clone(), im: self.im.neg() }
+        Surcomplex {
+            re: self.re.clone(),
+            im: self.im.neg(),
+        }
     }
 }
 
 impl<S: Scalar> Scalar for Surcomplex<S> {
     fn zero() -> Self {
-        Surcomplex { re: S::zero(), im: S::zero() }
+        Surcomplex {
+            re: S::zero(),
+            im: S::zero(),
+        }
     }
     fn one() -> Self {
-        Surcomplex { re: S::one(), im: S::zero() }
+        Surcomplex {
+            re: S::one(),
+            im: S::zero(),
+        }
     }
     fn add(&self, rhs: &Self) -> Self {
-        Surcomplex { re: self.re.add(&rhs.re), im: self.im.add(&rhs.im) }
+        Surcomplex {
+            re: self.re.add(&rhs.re),
+            im: self.im.add(&rhs.im),
+        }
     }
     fn neg(&self) -> Self {
-        Surcomplex { re: self.re.neg(), im: self.im.neg() }
+        Surcomplex {
+            re: self.re.neg(),
+            im: self.im.neg(),
+        }
     }
     fn mul(&self, rhs: &Self) -> Self {
         // (a+bi)(c+di) = (ac − bd) + (ad + bc) i
@@ -54,7 +72,10 @@ impl<S: Scalar> Scalar for Surcomplex<S> {
         let bd = self.im.mul(&rhs.im);
         let ad = self.re.mul(&rhs.im);
         let bc = self.im.mul(&rhs.re);
-        Surcomplex { re: ac.sub(&bd), im: ad.add(&bc) }
+        Surcomplex {
+            re: ac.sub(&bd),
+            im: ad.add(&bc),
+        }
     }
     fn characteristic() -> u32 {
         // adjoining i does not change the characteristic
@@ -64,7 +85,10 @@ impl<S: Scalar> Scalar for Surcomplex<S> {
         // (a+bi)^{-1} = (a − bi)/(a²+b²), valid when the norm a²+b² inverts in S.
         let n = self.re.mul(&self.re).add(&self.im.mul(&self.im));
         let ninv = n.inv()?;
-        Some(Surcomplex { re: self.re.mul(&ninv), im: self.im.neg().mul(&ninv) })
+        Some(Surcomplex {
+            re: self.re.mul(&ninv),
+            im: self.im.neg().mul(&ninv),
+        })
     }
     fn is_zero(&self) -> bool {
         self.re.is_zero() && self.im.is_zero()

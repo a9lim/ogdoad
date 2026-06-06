@@ -168,6 +168,126 @@ game coupled through the polar form) or *misère* (where sums are genuinely
 non-linear). Constructing or ruling out such a game is the open problem; the
 win-bias check above is the target any candidate must hit.
 
+### Sharpening the obstruction: it is exactly the polar form
+
+`experiments/open_question_probe.py` pins down *why* normal play fails and what a
+candidate must supply. The P-positions of a disjunctive sum of impartial games
+are `{XOR of Grundy = 0}` — a **subspace**. The Gold zero set is a quadric, and in
+char 2 the deviation is measured term-for-term by the polar form:
+
+> `Q(u ⊕ v) = Q(u) ⊕ Q(v) ⊕ B(u,v)`, so for `u,v ∈ {Q=0}`:
+> `u ⊕ v ∈ {Q=0} ⟺ B(u,v) = 0`.
+
+The probe confirms this exactly: for the nondegenerate Gold forms (e.g. over F₂⁸)
+`{Q=0}` is **not** a subspace, and its failure to be XOR-closed is governed
+*precisely* by `B`. (Over F₂⁴ the low-rank/degenerate members collapse to a
+subspace — there normal play is *not* excluded; the obstruction only bites once
+the form is genuinely quadratic.)
+
+This decomposes the problem into three layers, two already game-realizable:
+
+- the **linear** part is Grundy/XOR — Sprague–Grundy;
+- the **obstruction** to XOR-closure is exactly `B`, the coin-turning / nim-product
+  bilinear form — the Product Theorem / Tartan games;
+- the **only** genuinely missing ingredient is a *play rule* that couples
+  positions through `B` and reads out the quadratic `Q` (not the bilinear `B`).
+
+So the open question is now sharp and constructive: build (or rule out) an
+interactive/misère game whose between-component coupling is the polar form `B`
+and whose outcome is `Q`. The two game-realizable layers and the win-bias target
+are all in place; what remains is the quadratic *play* rule. Concrete next steps:
+misère coin-turning quotients (genuinely non-linear sums) and Tartan-product
+couplings, both buildable on the shipped nim-product and the Arf/win-bias
+instrument.
+
+## The char-0 companion: a matrix-algebra classifier (`classify.rs`)
+
+The Arf invariant returns the isomorphism class of a *char-2* Clifford algebra.
+Until now char 0 had the engine but no classifier — an asymmetry. `classify.rs`
+closes it: `Cl(p,q)` over a real-closed field follows the 8-fold Bott table
+indexed by `s = (q − p) mod 8`, and over an algebraically closed field the 2-fold
+table. Because the surreals are real-closed, this *is* the genuine ℝ-Clifford
+classification — and the signature is read off the **signs** of the surreal
+squares, which may be infinite (ω) or infinitesimal (ε); only the sign matters,
+since a real-closed field has square roots of positives (`√ω = ω^{1/2}`).
+
+Cross-checks worth keeping: it reproduces `Cl(1,3) ≅ M₂(ℍ)` but `Cl(3,1) ≅ M₄(ℝ)`
+(the two spacetime conventions are genuinely different algebras), `Cl(4,1) ≅
+M₄(ℂ)` (conformal GA), and — tying it to the even subalgebra — `Cl(3,0)⁰ ≅
+Cl(0,2) ≅ ℍ`. So both characteristics now carry a real classifier: **Arf for
+char 2, the matrix-algebra name for char 0.**
+
+## Artin–Schreier ↔ Arf: one trace, two roles
+
+The trace `Tr_{F_{2^m}/F₂}(x) = Σ x^{2^i}` that pushes the Arf invariant down to
+F₂ (the canonical `k/℘(k) ≅ F₂`) is the *same* trace that obstructs the
+Artin–Schreier equation `y² + y = c`: it is solvable iff `Tr(c) = 0`. So the two
+halves of this repo — the Arf classifier and the field arithmetic of `On₂` — run
+on one object. `nimber.rs` now exposes it directly: `nim_sqrt` (the inverse
+Frobenius, `x^{2^{63}}` in F_{2^64}, always defined in char 2), `nim_trace`, and
+`nim_solve_artin_schreier` (an exact F₂ linear solve, solvable exactly on the
+trace-zero hyperplane — half the field).
+
+This sharpens "the Arf invariant is a win-bias". Dickson's zero-count
+`#{Q=0} = 2^{2m−1} + (−1)^Arf·2^{m−1}` is, term by term, counting how often the
+form's value is Artin–Schreier-solvable; the win-bias sign *is* the trace
+obstruction aggregated over the form. The field-level operation behind the bias
+is now in the library, not just implied.
+
+## Dickson: classifying `O(Q)`, not the form (`arf.rs`)
+
+In char 2 the determinant of any `g ∈ O(Q)` is forced to 1, so it cannot tell a
+rotation from a reflection. The **Dickson invariant** `D(g) = rank(g − I) mod 2`
+is the replacement, with `SO(Q) = ker D`: a single reflection has `D = 1`, a
+product of k reflections `D = k mod 2`. `dickson_matrix` computes it over any
+nim-field; `dickson_of_versor` reads it off a Clifford versor as its grade
+parity. This is the companion to Arf on the *other* side of the same geometry:
+**Arf classifies the form, Dickson classifies the form's isometries.**
+
+## The Witt group makes additivity a group law (`witt.rs`)
+
+`A ⊕ A ≅ H ⊕ H` was checked pointwise via the Arf invariant. The Witt group
+`W_q(F)` of nonsingular quadratic forms mod hyperbolics is the home of that fact:
+over a finite nim-field it is `≅ ℤ/2`, classified completely by Arf, with `⊥` as
+the group operation and the hyperbolic plane as identity. `WittClass` makes the
+additivity a one-liner: `w(A) + w(A) = 0` *is* `A ⊕ A ≅ H ⊕ H`.
+
+## General bilinear form: deforming the product (`clifford.rs`)
+
+The engine now computes `Cl(V, B)` for an *arbitrary* (not necessarily symmetric)
+bilinear form `B`, via the Chevalley product `e_i e_j = e_i∧e_j + B(e_i,e_j)` in
+the wedge basis. `B` is stored factored as `(q, b, a)`: diagonal `q`, symmetric
+polar `b` (the anticommutator), and the new strictly-upper / in-order contraction
+`a`. With `a` empty this is the ordinary Clifford algebra (and the general
+Chevalley product is cross-validated, blade for blade, against the original
+swap-reduction now kept as a `#[cfg(test)]` oracle).
+
+Honest scope: the antisymmetric part of `B` is a *gauge* — `Cl(V, B)` is
+isomorphic as an algebra to `Cl(V, sym B)`, so `a` does not create new algebras;
+it deforms the *product* and the identification between the geometric and
+exterior structures (the quantum-Clifford / normal-ordering setting of
+Fauser–Oziewicz, interpolating toward the Weyl side). It is the right amount of
+generality, faithfully implemented, not a claim of new isomorphism classes.
+
+## The exterior algebra of the game group (`partizan.rs`)
+
+A Clifford algebra needs a commutative scalar *ring*, which is exactly why this
+project only reaches the three field-like cores. An **exterior algebra** needs
+only a commutative ring of *coefficients* (ℤ) and a *module* of generators — and
+the group of partizan games under disjunctive sum is a ℤ-module. So `Λ(game
+group)` is well defined on **all** of game-world, the one Clifford-adjacent
+structure that does not require the (nonexistent) game product.
+
+`partizan.rs` ships a small short-game engine (sum, negation, the recursive
+order, birthday, the number test) and the bridge `Λ¹ → (game group)`,
+`e_i ↦ g_i`, built on the shipped Grassmann engine over the new ℤ scalar. The
+point is the generators may be **non-numbers** (`⋆`, `↑`) — precisely where the
+Conway product, and hence the entire Clifford story, is undefined — yet the wedge
+structure (antisymmetry, grading) is perfectly well defined on them. The
+2-torsion of `⋆` even surfaces as a relation: `value(2·e_⋆) = ⋆ + ⋆ = 0`. This is
+the structural answer to "what lives on the whole game group, not just its
+numbers."
+
 ## References
 
 - C. Arf, *Untersuchungen über quadratische Formen in Körpern der
@@ -179,3 +299,11 @@ win-bias check above is the target any candidate must hit.
   one", arXiv:1601.07664.
 - Y. Irie, *p-Saturations of Welter's Game and the Irreducible Representations
   of Symmetric Groups* (2018).
+- P. Lounesto, *Clifford Algebras and Spinors* (2nd ed.), Table 16.4 — the
+  `Cl(p,q)` classification by `(q−p) mod 8` used in `classify.rs`.
+- C. Chevalley, *The Algebraic Theory of Spinors* (1954); B. Fauser & Z.
+  Oziewicz, *Clifford Hopf gebra for two-dimensional space* / "Clifford algebra
+  of an arbitrary bilinear form" — associativity of the deformed product.
+- L. E. Dickson, *Linear Groups* (1901) — the Dickson invariant; the value a
+  binary quadratic form takes most often (the Arf win-bias).
+- E. Artin, *Geometric Algebra* (1957) — `SO(Q) = ker D` in characteristic 2.

@@ -54,7 +54,9 @@ impl Surreal {
         if q.is_zero() {
             Surreal { terms: Vec::new() }
         } else {
-            Surreal { terms: vec![(Surreal::zero(), q)] }
+            Surreal {
+                terms: vec![(Surreal::zero(), q)],
+            }
         }
     }
 
@@ -67,7 +69,9 @@ impl Surreal {
         if coeff.is_zero() {
             Surreal { terms: Vec::new() }
         } else {
-            Surreal { terms: vec![(exp, coeff)] }
+            Surreal {
+                terms: vec![(exp, coeff)],
+            }
         }
     }
 
@@ -116,18 +120,26 @@ impl Scalar for Surreal {
     }
 
     fn one() -> Self {
-        Surreal { terms: vec![(Surreal::zero(), Rational::one())] }
+        Surreal {
+            terms: vec![(Surreal::zero(), Rational::one())],
+        }
     }
 
     fn add(&self, rhs: &Self) -> Self {
         let mut raw = self.terms.clone();
         raw.extend(rhs.terms.iter().cloned());
-        Surreal { terms: canonicalize(raw) }
+        Surreal {
+            terms: canonicalize(raw),
+        }
     }
 
     fn neg(&self) -> Self {
         Surreal {
-            terms: self.terms.iter().map(|(e, c)| (e.clone(), c.neg())).collect(),
+            terms: self
+                .terms
+                .iter()
+                .map(|(e, c)| (e.clone(), c.neg()))
+                .collect(),
         }
     }
 
@@ -139,7 +151,9 @@ impl Scalar for Surreal {
                 raw.push((a.add(b), r.mul(s)));
             }
         }
-        Surreal { terms: canonicalize(raw) }
+        Surreal {
+            terms: canonicalize(raw),
+        }
     }
 
     fn characteristic() -> u32 {
@@ -153,7 +167,9 @@ impl Scalar for Surreal {
         if self.terms.len() == 1 {
             let (e, c) = &self.terms[0];
             let cinv = c.inv()?;
-            Some(Surreal { terms: vec![(e.neg(), cinv)] })
+            Some(Surreal {
+                terms: vec![(e.neg(), cinv)],
+            })
         } else {
             None
         }
@@ -239,7 +255,7 @@ mod tests {
     fn epsilon_is_a_positive_infinitesimal() {
         let eps = Surreal::epsilon();
         assert_eq!(eps.sign(), Ordering::Greater); // ε > 0
-        // ε < any positive rational
+                                                   // ε < any positive rational
         let tiny = Surreal::from_rational(Rational::new(1, 1_000_000));
         assert_eq!(eps.cmp(&tiny), Ordering::Less);
     }
@@ -288,7 +304,7 @@ mod tests {
         assert_eq!(three.mul(&three.inv().unwrap()), Surreal::one()); // 3·⅓ = 1
         let w2 = Surreal::omega_pow(int(2));
         assert_eq!(w2.mul(&w2.inv().unwrap()), Surreal::one()); // ω²·ω⁻² = 1
-        // a genuine sum has no finite-support inverse
+                                                                // a genuine sum has no finite-support inverse
         assert!(Surreal::omega().add(&int(1)).inv().is_none());
         assert!(Surreal::zero().inv().is_none());
     }

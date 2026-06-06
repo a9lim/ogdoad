@@ -67,3 +67,56 @@ def arf(qs, bs):
 print("  Q = x0·x1        (hyperbolic) :", arf([0, 0], [(0, 1)]))
 print("  Q = x0²+x0x1+x1² (anisotropic):", arf([1, 1], [(0, 1)]))
 print("  A⊕A ≅ H⊕H (Arf additive)      :", arf([1, 1, 1, 1], [(0, 1), (2, 3)]).o_type)
+
+section("char-0 classifier — the companion to Arf (Cl(p,q) → matrix algebra)")
+def cl(qs):
+    return pl.classify_surreal(pl.SurrealAlgebra(q=qs))
+print("  Cl(0,2)  =", cl([-1, -1]),       "  (the quaternions ℍ)")
+print("  Cl(3,0)  =", cl([1, 1, 1]),      "  (M₂(ℂ))")
+print("  Cl(1,3)  =", cl([1, -1, -1, -1]),"  (spacetime, M₂(ℍ))")
+print("  Cl(3,1)  =", cl([1, 1, 1, -1]),  "  (≠ Cl(1,3): M₄(ℝ))")
+print("  Cl(4,1)  =", cl([1, 1, 1, 1, -1]),"  (conformal GA, M₄(ℂ))")
+print("  surcomplex Cl(2,ℂ) =", pl.classify_surcomplex(
+    pl.SurcomplexAlgebra([pl.Surcomplex(1), pl.Surcomplex(1)])))
+
+section("even subalgebra + graded tensor product")
+cl30 = pl.SurrealAlgebra(q=[1, 1, 1])
+print("  Cl(3,0)⁰         =", pl.classify_surreal(cl30.even_subalgebra()), "  (≅ Cl(0,2) = ℍ)")
+tens = pl.SurrealAlgebra(q=[1]).graded_tensor(pl.SurrealAlgebra(q=[-1]))
+print("  Cl(1,0) ⊗̂ Cl(0,1) =", pl.classify_surreal(tens), "  (≅ Cl(1,1) = M₂(ℝ))")
+
+section("general bilinear form — the in-order contraction `a` deforms the product")
+# a[(0,1)] = 5: e0 e1 = e0∧e1 + 5, while the anticommutator {e0,e1}=b stays 0.
+D = pl.SurrealAlgebra(q=[1, 1], b=None, a={(0, 1): pl.surreal(5)})
+d0, d1 = D.gen(0), D.gen(1)
+print("  e0 e1            =", d0 * d1, "  (= e0∧e1 + 5)")
+print("  {e0,e1} = b = 0  :", d0 * d1 + d1 * d0)
+
+section("twisted adjoint (Pin) — the correct versor action")
+P = pl.SurrealAlgebra(q=[1, 1])
+p0, p1 = P.gen(0), P.gen(1)
+print("  twisted_sandwich e1 on 3e0+4e1 =", p1.twisted_sandwich(3 * p0 + 4 * p1), " (= reflection)")
+
+section("Artin–Schreier ↔ Arf — the same field trace, two roles")
+root = pl.Nimber(pl.nim_sqrt(2))
+print("  √*2 in On₂           =", root, " (since (√*2)² =", root * root, ")")
+for c in range(4):
+    y = pl.nim_solve_artin_schreier(c, 2)
+    print(f"  y²+y=*{c} in F₄: Tr=*{pl.nim_trace(c,2)}  ->  "
+          + (f"y=*{y}" if y is not None else "no solution"))
+
+section("Witt group (ℤ/2) + Dickson invariant (char-2 determinant)")
+A = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})  # anisotropic plane
+wA = pl.witt_class(A)
+print("  w(A) =", wA, "   w(A)+w(A) =", wA + wA, " (A⊕A ≅ H⊕H)")
+print("  Dickson(swap)  =", pl.dickson_matrix([[0, 1], [1, 0]]), " (a reflection)")
+print("  Dickson(diag *2,*3 rotation) =", pl.dickson_matrix([[2, 0], [0, 3]]), " (in SO)")
+
+section("exterior algebra of the GAME group — lives where Clifford can't")
+# Λ needs only a ℤ-module; the game group is one, even for non-numbers (⋆, ↑).
+ext = pl.GameExterior([pl.Game.star(), pl.Game.up()])
+g0, g1 = ext.generator(0), ext.generator(1)
+print("  generators are non-numbers:", not ext.game(0).is_number(), not ext.game(1).is_number())
+print("  g0 ∧ g1 = -(g1 ∧ g0):", (g0 ^ g1), "==", -(g1 ^ g0))
+print("  value(g0 + g1) = ⋆ + ↑ :", ext.value_of_grade1(g0 + g1))
+print("  value(2·g0) = ⋆+⋆ = 0  :", ext.value_of_grade1(2 * g0) == pl.Game.zero())

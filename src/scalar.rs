@@ -68,7 +68,10 @@ impl Rational {
         let sign = if den < 0 { -1 } else { 1 };
         let (num, den) = (num * sign, den * sign);
         let g = gcd(num, den).max(1);
-        Rational { num: num / g, den: den / g }
+        Rational {
+            num: num / g,
+            den: den / g,
+        }
     }
 
     pub fn int(n: i128) -> Self {
@@ -109,7 +112,10 @@ impl Scalar for Rational {
         Rational::new(self.num * rhs.den + rhs.num * self.den, self.den * rhs.den)
     }
     fn neg(&self) -> Self {
-        Rational { num: -self.num, den: self.den }
+        Rational {
+            num: -self.num,
+            den: self.den,
+        }
     }
     fn mul(&self, rhs: &Self) -> Self {
         Rational::new(self.num * rhs.num, self.den * rhs.den)
@@ -122,6 +128,49 @@ impl Scalar for Rational {
             None
         } else {
             Some(Rational::new(self.den, self.num))
+        }
+    }
+}
+
+/// The integers ℤ as a `Scalar`. Used as the coefficient ring for the exterior
+/// algebra of the *game group* (`partizan.rs`): games form an abelian group — a
+/// ℤ-module — but not a ring, so an exterior algebra (which needs only a
+/// commutative ring of coefficients and a module of generators) is exactly the
+/// Clifford-adjacent structure that lives on *all* of game-world, not only the
+/// field-like cores. Only `±1` are invertible, which is fine: the Grassmann
+/// product never calls `inv`.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Integer(pub i64);
+
+impl fmt::Debug for Integer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Scalar for Integer {
+    fn zero() -> Self {
+        Integer(0)
+    }
+    fn one() -> Self {
+        Integer(1)
+    }
+    fn add(&self, rhs: &Self) -> Self {
+        Integer(self.0 + rhs.0)
+    }
+    fn neg(&self) -> Self {
+        Integer(-self.0)
+    }
+    fn mul(&self, rhs: &Self) -> Self {
+        Integer(self.0 * rhs.0)
+    }
+    fn characteristic() -> u32 {
+        0
+    }
+    fn inv(&self) -> Option<Self> {
+        match self.0 {
+            1 | -1 => Some(*self),
+            _ => None, // ℤ has only the units ±1
         }
     }
 }
