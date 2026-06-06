@@ -64,9 +64,11 @@ src/
   fp.rs         # Fp<const P>: the prime field F_P (odd characteristic), a
                 # comparison backend completing the char trichotomy. Genuine neg.
   onag.rs       # transfinite (ordinal) nimbers: Ordinal in CNF (mirror of
-                # surreal.rs). nim-add COMPLETE (coeff XOR); nim-mul PARTIAL
-                # (finite via nim_mul, infinite staged — ω³=2 is the target). The
-                # char-2 mirror that makes On₂'s closure reachable (lacks F₈ today).
+                # surreal.rs). nim-add COMPLETE (coeff XOR); nim-mul COMPLETE
+                # across the whole field φ_{ω+1} (all ordinals < ω³ Cantor) via
+                # DiMuro Lemma 1.1: polynomial mult in (finite nimbers)[ω] mod
+                # ω³−2. ω⊗ω⊗ω=2 (Conway's nim-cube-root); F₄(ω)≅F₆₄ field axioms
+                # verified exhaustively. Above ω³ staged (Lenstra/DiMuro tower).
   classify.rs   # the char-0 Clifford classifier (companion to arf.rs): Cl(p,q)
                 # → matrix algebra over ℝ/ℂ/ℍ via the 8-fold table (real-closed
                 # surreal/rational) and the 2-fold table (surcomplex). Diagonal

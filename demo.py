@@ -155,7 +155,16 @@ print("  ω ⊕ ω        =", omega.nim_add(omega), "   (self-inverse)")
 print("  ω·2 ⊕ ω      =", pl.Ordinal.monomial(pl.Ordinal(1), 2).nim_add(omega))
 print("  ω < ω²       :", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
 print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
-print("  ω ⊗ ω        :", omega.nim_mul(omega), "  (general infinite product is staged; ω³=2 is the target)")
+# nim-multiplication: full across the field φ_{ω+1} (ordinals < ω³), via the
+# DiMuro/Conway construction. ω is the nim cube root of 2.
+print("  ω ⊗ ω        =", omega.nim_mul(omega), "  (just polynomial mult)")
+omega_sq = omega.nim_mul(omega)
+print("  ω ⊗ ω ⊗ ω    =", omega_sq.nim_mul(omega), "  (the headline: ω³ = 2)")
+# (ω + 1)³ in characteristic 2 = ω³ + ω² + ω + 1 = 2 + ω² + ω + 1 = ω² + ω + *3
+w1 = omega.nim_add(pl.Ordinal(1))
+print("  (ω+1)³       =", w1.nim_mul(w1).nim_mul(w1), "  (= ω² + ω + nim_add(2,1))")
+# higher fields stay staged: any CNF exponent ≥ 3 returns None
+print("  ω³·ω staged  :", pl.Ordinal.omega_pow(pl.Ordinal(3)).nim_mul(omega))
 
 section("outermorphisms + determinant — Grassmann's def, char-faithful")
 R = pl.SurrealAlgebra(q=[1, 1])

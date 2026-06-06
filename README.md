@@ -135,8 +135,11 @@ brute-force congruence oracle; the order-4 Witt group `ℤ/4` vs `ℤ/2×ℤ/2`)
 outermorphism determinants (char-faithful), the exterior Hopf axioms (both
 characteristics), conformal GA with exact surreal `∞`/`ε`, concrete spinor
 modules matching the classifier, omnific-integer exterior algebra, ordinal
-nim-addition, and the non-Archimedean Springer decomposition. Python bindings
-build as an abi3 wheel and import on CPython 3.14; `demo.py` tours all of it.
+nim-arithmetic — including ordinal nim-multiplication across the whole field
+`φ_{ω+1}` via the Conway/DiMuro construction, with `ω⊗ω⊗ω = 2` and the
+F₄(ω) ≅ F₆₄ field axioms exhaustively verified — and the non-Archimedean
+Springer decomposition. Python bindings build as an abi3 wheel and import on
+CPython 3.14; `demo.py` tours all of it.
 
 The `experiments/` probes (run on the shipped library) reproduce the
 Gold-function ranks, show the Arf-bearing forms are composites of game
@@ -153,6 +156,11 @@ question (a *natural* game realizing those forms' P-positions).
   `inv()` returns `None`/raises. Versor inverse needs the scalar norm to invert,
   so it works whenever that norm is a monomial (e.g. metrics like `[ω, ε]`).
 - **Nimbers cap at `u64`** (the field F_{2^64}); widening to `u128` is mechanical.
+- **Ordinal nim-multiplication is complete inside `φ_{ω+1}`** (every ordinal
+  `< ω³` Cantor) but **staged above**: the next field would adjoin a degree-5
+  root over `φ_{ω+1}`, and the general construction climbs the Lenstra/DiMuro
+  tower via `α_p` elements that need real computation in successively larger
+  finite fields. Any ordinal whose CNF has an exponent `≥ 3` returns `None`.
 - The general char-2 product reduces blade words directly; fine for a playground,
   not optimized for large algebras.
 - **The open research question** (explored in `NOTES.md`): the Arf invariant of a

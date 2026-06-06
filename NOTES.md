@@ -422,13 +422,23 @@ On₂'s closure. `onag.rs` is the char-2 mirror of `surreal.rs`: ordinals in Can
 normal form, with the same exponent-only recursion as the termination argument.
 **nim-addition is complete and exact** — like-`ω`-power coefficients XOR, giving
 the genuine transfinite characteristic-2 additive group (`ω⊕ω=0`, `ω⊕1=ω+1`,
-`ω·2⊕ω=ω·3`). **nim-multiplication is partial by design**: finite×finite delegates
-to the proven `nim_mul`; any infinite operand returns `None`. The general ordinal
-nim-product (Conway *ONAG* ch. 6 / Lenstra 1978) is intricate and *staged*; the
-landmark it must reproduce — Conway's `ω³ = 2` (ω is the nim-cube-root of 2, the
-source of the missing `F₈`) — is recorded as the target, but `ω⊗ω` is **not**
-hardcoded, since its value is not asserted without the reference worked through.
-This is the one feature deliberately left half-built, with the boundary explicit.
+`ω·2⊕ω=ω·3`). **nim-multiplication is now implemented across the whole field
+`φ_{ω+1}`** — every ordinal strictly below `ω³` Cantor — via the DiMuro
+construction (*arXiv:1108.0962*, extending Conway *ONAG* ch. 6 and Lenstra 1977
+"On the algebraic closure of two"). The field tower has `φ_n = F_{2^{2^n}}`
+(finite, the Fermat-power layers) and `φ_ω = ω = ⋃F_{2^{2^n}}`, which lacks
+degree-3 roots; the lex-earliest irreducible is `x³ − 2`, so adjoining `ω` itself
+as the root gives `φ_{ω+1}` with **`ω³ = 2`** — the missing `F₈` arrives via
+`F_2(ω) ⊂ F_4(ω) ≅ F_{64}`. DiMuro Lemma 1.1 turns this into an algorithm: a
+Cantor ordinal `[ω²·a + ω·b + c]` *equals* the field element `ω²⊗a ⊕ ω⊗b ⊕ c`,
+so multiplication is polynomial mult in `(finite nimbers)[ω]` with the relations
+`ω³ = 2`, `ω⁴ = 2⊗ω`. Verified end-to-end: `ω⊗ω = ω²`, `ω⊗ω⊗ω = 2`,
+`(ω+1)³ = ω²+ω+3` (matches the char-2 binomial expansion by hand), and the full
+**F₄(ω) ≅ F₆₄ field axioms checked exhaustively** (64³ associativity triples,
+distributivity, every nonzero invertible). Above `ω³` it remains staged — the
+next field would adjoin a degree-5 root and the general construction climbs the
+Lenstra/DiMuro tower through `α_p` elements requiring nontrivial work in
+successively larger finite fields.
 
 ## New geometric-algebra structure on the engine
 
@@ -496,7 +506,12 @@ the built-in check is that the residue signatures sum to the ordinary
   Charakteristik 2* (1941).
 - J. H. Conway, *On Numbers and Games*, ch. 6 (the field On₂ of ordinal nimbers;
   ω³ = 2; algebraic closure below ω^{ω^ω}).
-- H. W. Lenstra, *Nim multiplication* (Séminaire de Théorie des Nombres, 1978).
+- H. W. Lenstra, *On the algebraic closure of two* (1977) and *Nim
+  multiplication* (Séminaire de Théorie des Nombres, 1978).
+- J. DiMuro, *On On_p* (arXiv:1108.0962, 2015) — the explicit field-tower
+  construction `φ_Δ` and Lemma 1.1 (the ordinal `[Σ φⁱ αᵢ]` equals the field
+  element `Σ φⁱ ⊗ αᵢ`) that makes ordinal nim-multiplication concrete in
+  `onag.rs` across the whole of `φ_{ω+1}`.
 - T. Y. Lam, *Introduction to Quadratic Forms over Fields* (the Witt group of a
   finite field; signed discriminant and Hasse invariant).
 - T. A. Springer, *Quadratic forms over fields with a discrete valuation* (1955).
