@@ -57,6 +57,12 @@ src/
                 # Arf-classified. Makes A⊕A ≅ H⊕H a one-line group identity.
   games.rs      # nim_mul_mex: nim-multiplication as Conway's Turning-Corners
                 # mex recurrence (the GAME definition); == algebraic nim_mul.
+                # Also general 1-D coin-turning games (grundy_1d) and the 2-D
+                # Tartan product (tartan_grundy), with the Tartan/Product theorem
+                # (tartan == nim-product of component Grundy values) verified.
+  misere.rs     # misère-play outcomes (misere_is_n/_is_p) for any finite
+                # impartial game; misère Nim vs Bouton's theorem. The instrument
+                # for the non-linear (misère) route to the open question.
   partizan.rs   # short partizan games (sum/neg/order/birthday/is_number) + the
                 # exterior algebra of the GAME group: Λ over ℤ on game
                 # generators (Clifford-adjacent structure living on all of
@@ -71,8 +77,9 @@ examples/tour.rs   # cargo run --example tour   (Rust-only demo)
 demo.py            # the same tour from Python
 experiments/       # research probes ON TOP of the shipped lib: Arf of Gold
                    # forms, the game-built synthesis, the Arf win-bias,
-                   # artin_arf (the trace ↔ Arf unification), and
-                   # open_question_probe (the polar-form obstruction). See NOTES.md.
+                   # artin_arf (the trace ↔ Arf unification),
+                   # open_question_probe (the polar-form obstruction), and
+                   # tartan_bilinear (B realized by Turning-Corners). See NOTES.md.
 ```
 
 The math thread (Arf↔Clifford, the games bridge, the char-0/char-2 classifier

@@ -10,7 +10,8 @@
 //!   - `clifford`  : the multivector engine + versor/GA layer, generic over Scalar
 //!   - `arf`       : the Arf invariant (the char-2 Clifford classifier)
 //!   - `classify`  : the char-0 Clifford classifier (Cl(p,q) → matrix algebra)
-//!   - `games`     : nim-multiplication as Conway's Turning-Corners game
+//!   - `games`     : nim-mult as Turning-Corners; general coin-turning + Tartan products
+//!   - `misere`    : misère-play outcomes — where disjunctive sums go non-linear
 //!   - `witt`      : the Witt group of quadratic forms over a nim-field (ℤ/2)
 //!   - `partizan`  : short partizan games + the exterior algebra of the game group
 //!   - `py`        : PyO3 per-backend bindings (feature = "python")
@@ -21,6 +22,7 @@ pub mod arf;
 pub mod classify;
 pub mod clifford;
 pub mod games;
+pub mod misere;
 pub mod nimber;
 pub mod partizan;
 pub mod scalar;

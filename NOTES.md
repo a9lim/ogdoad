@@ -200,6 +200,37 @@ misère coin-turning quotients (genuinely non-linear sums) and Tartan-product
 couplings, both buildable on the shipped nim-product and the Arf/win-bias
 instrument.
 
+### Both next steps, built
+
+*Tartan side — the bilinear layer is game-built.* `games.rs` now carries general
+1-D coin-turning games (companion-set encoding, `grundy_1d`) and the 2-D Tartan
+product (`tartan_grundy`), with the **Tartan/Product theorem verified**
+(`tartan_grundy = nim-product of the component Grundy values`), recovering Turning
+Corners as the tartan square of the game with `g(n)=n`. `experiments/tartan_bilinear.py`
+then shows the Gold form's polar form `B(e_i,e_j) = Tr(e_i ⊗ e_j^{2^a} ⊕ …)` is
+reproduced *exactly* by Turning-Corners products and the trace — so the obstruction
+`B` identified above is, concretely, a composite of coin-turning games. Two of the
+three layers (linear Grundy, bilinear `B`) are now realized in code from actual
+games.
+
+*Misère side — the non-linearity bar is cleared.* `misere.rs` is a memoised
+misère-outcome evaluator for any finite impartial game, with misère Nim checked
+against Bouton's theorem. The point it nails down: the misère P-set is **not**
+`{⊕ = 0}` — `[1]` has nim-sum 1 yet is a P-position, `[1,1]` has nim-sum 0 yet is
+an N-position — so it is neither a subspace nor a coset, and the outcome is not an
+XOR-linear function of the position. That is exactly the property normal-play sums
+*lack* and a quadratic `{Q=0}` P-set *requires*. So misère clears the bar that
+ruled out normal play.
+
+*Where it still stops.* Both prerequisites now hold in code — the coupling `B` is
+game-built, and misère supplies genuine non-linearity — but neither yet exhibits a
+game whose P-set is an actual Gold *quadric* `{Q=0}`. The misère Nim P-set is
+non-linear but is not (a priori) a Gold quadric, and the Tartan layer realizes `B`
+without yet a play rule that reads out `Q` rather than `B`. The remaining gap is
+unchanged in kind — a *quadratic play rule* — but the surrounding scaffolding for
+testing candidates (Tartan couplings + misère outcomes + the Arf/win-bias check)
+is now all in place.
+
 ## The char-0 companion: a matrix-algebra classifier (`classify.rs`)
 
 The Arf invariant returns the isomorphism class of a *char-2* Clifford algebra.
