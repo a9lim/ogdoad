@@ -14,15 +14,24 @@
 //!                        surreal-value bridge) plus the exterior algebra of the
 //!                        game group (the Clifford-adjacent structure that lives
 //!                        on all of game-world, not just the numbers).
+//!   * [`thermography`] — temperature theory: stops, cooling, and the
+//!                        thermograph (mean value + temperature) of a short game.
+//!   * [`hackenbush`]   — red/blue/green Hackenbush: the one structure whose value
+//!                        reads out as surreal (blue–red), nimber (green), or a
+//!                        general partizan game (mixed) — the unifier.
 
 pub mod coin_turning;
 pub mod grundy;
+pub mod hackenbush;
 pub mod kernel;
 pub mod misere;
 pub mod partizan;
+pub mod thermography;
 
 pub use coin_turning::*;
 pub use grundy::*;
+pub use hackenbush::*;
 pub use kernel::*;
 pub use misere::*;
 pub use partizan::*;
+pub use thermography::*;

@@ -294,3 +294,31 @@ print("  commutator [e0,e1] = 2 e0e1   :", e0.commutator(e1))
 blade = (e0 + e1) ^ e2
 print("  factor the blade (e0+e1)∧e2   :", blade.factor_blade())
 print("  e0∧e1 + e1∧e2 ... meet(planes):", (e0 ^ e1).meet(e1 ^ e2), " (their common line, ±e1)")
+
+section("nimber field toolkit — degree, minimal polynomial, order, discrete log")
+print("  *2 over F₂: degree", pl.nim_degree(2), " min_poly", pl.nim_min_poly(2), " (x²+x+1)")
+print("  conjugates of *5         :", pl.nim_conjugates(5), " order", pl.nim_order(5))
+print("  relative trace F₁₆→F₄(*7):", pl.nim_relative_trace(7, 4, 2),
+      " norm:", pl.nim_relative_norm(7, 4, 2))
+print("  log_*2(*3) in F₄         :", pl.nim_discrete_log(2, 3), " (2² = 3)")
+
+section("thermography — temperature, mean value, stops")
+for g, name in [(pl.Game.switch(1, -1), "{1|-1}"),
+                (pl.Game.switch(3, -1), "{3|-1}"),
+                (pl.Game.star(), "*"), (pl.Game.up(), "↑")]:
+    print(f"  {name:8} temp={g.temperature()!r:>4}  mean={g.mean_value()!r:>4}"
+          f"  stops=({g.left_stop()!r},{g.right_stop()!r})")
+
+section("surreal sign-expansion & floor (the omnific bridge)")
+print("  sign expansion of 3/4    :", pl.rational(3, 4).sign_expansion(), " (+ − +)")
+print("  from [+,−,+]             :", pl.Surreal.from_sign_expansion([True, False, True]))
+print("  floor(ω + ½) = ω, frac = :", (pl.omega() + pl.rational(1, 2)).floor(),
+      "/", (pl.omega() + pl.rational(1, 2)).frac())
+
+section("HACKENBUSH — one structure, three value worlds")
+print("  blue–blue–blue stalk → surreal number :", pl.Hackenbush.string(["b", "b", "b"]).value())
+print("  green–green stalk     → nimber (Nim)   : *%d" % pl.Hackenbush.string(["g", "g"]).grundy())
+print("  blue–red string  → sign-exp surreal    :", pl.Hackenbush.string(["b", "r"]).value(),
+      "(= sign expansion + −)")
+tri = pl.Hackenbush([(0, 1, "g"), (1, 2, "g"), (2, 0, "g")])
+print("  green triangle (fusion principle)      : *%d" % tri.grundy())

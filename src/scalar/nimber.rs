@@ -190,6 +190,257 @@ pub fn nim_inv(x: u128) -> Option<u128> {
     }
 }
 
+// ===========================================================================
+// Finite-field analysis: conjugates, degree, minimal polynomial, relative
+// trace/norm, multiplicative order, primitive elements, discrete log.
+//
+// Everything here lives in F_{2^128} (= `Nimber(u128)`). Its subfields are
+// exactly F_{2^d} for d | 128 — i.e. d ∈ {1,2,4,8,16,32,64,128}, all powers of
+// two — and these coincide with the nim-initial-segment fields F_{2^{2^k}}.
+// ===========================================================================
+
+/// Apply the Frobenius `x ↦ x²` exactly `k` times: returns `x^{2^k}`.
+#[inline]
+fn frobenius_iter(mut x: u128, k: u32) -> u128 {
+    for _ in 0..k {
+        x = nim_square(x);
+    }
+    x
+}
+
+/// The degree of `x` over F₂: the least `d ∈ {1,2,4,…,128}` (a divisor of 128)
+/// with `x^{2^d} = x`, i.e. the dimension of the smallest nim-subfield F_{2^d}
+/// containing `x`. The set `{d : x^{2^d}=x}` is the multiples of the true degree,
+/// and `128` always lies in it, so the degree divides 128 and is a power of two.
+/// `nim_degree(0) = nim_degree(1) = 1`.
+pub fn nim_degree(x: u128) -> u32 {
+    for &d in &[1u32, 2, 4, 8, 16, 32, 64] {
+        if frobenius_iter(x, d) == x {
+            return d;
+        }
+    }
+    128
+}
+
+/// The distinct Galois conjugates of `x` over F₂: `x, x², x⁴, …, x^{2^{d-1}}`
+/// where `d = nim_degree(x)`. These are exactly the roots of `x`'s minimal
+/// polynomial, each appearing once.
+pub fn nim_conjugates(x: u128) -> Vec<u128> {
+    let d = nim_degree(x);
+    let mut out = Vec::with_capacity(d as usize);
+    let mut c = x;
+    for _ in 0..d {
+        out.push(c);
+        c = nim_square(c);
+    }
+    out
+}
+
+/// The minimal polynomial of `x` over F₂, as coefficients in `{0,1}` from the
+/// constant term up. It is monic of degree [`nim_degree`], so the last entry is
+/// the leading `1`. Computed as `∏(X + xᵢ)` over the conjugates (in char 2,
+/// `−xᵢ = xᵢ`); the product is formed in F_{2^128} and is guaranteed to land in
+/// F₂ exactly because the conjugate orbit is Galois-closed.
+pub fn nim_min_poly(x: u128) -> Vec<u8> {
+    let mut poly = vec![1u128]; // the constant polynomial 1 (coeff of X^0)
+    for c in nim_conjugates(x) {
+        // multiply `poly` by (X + c)
+        let mut next = vec![0u128; poly.len() + 1];
+        for (i, &a) in poly.iter().enumerate() {
+            next[i + 1] ^= a; // the X·(…) part
+            next[i] ^= nim_mul(c, a); // the c·(…) part
+        }
+        poly = next;
+    }
+    poly.into_iter()
+        .map(|coeff| {
+            debug_assert!(coeff <= 1, "minimal-polynomial coefficient left F₂");
+            coeff as u8
+        })
+        .collect()
+}
+
+/// Relative trace `Tr_{F_{2^m}/F_{2^e}}(x) = Σ_{i=0}^{m/e−1} x^{2^{ei}}` — the
+/// F_{2^e}-linear surjection onto the subfield. [`nim_trace`] is the `e = 1`
+/// case (target F₂). Requires `e | m`.
+pub fn nim_relative_trace(x: u128, m: u32, e: u32) -> u128 {
+    assert!(e > 0 && m % e == 0, "relative trace needs e | m");
+    let mut acc = 0u128;
+    let mut t = x;
+    for _ in 0..(m / e) {
+        acc ^= t;
+        t = frobenius_iter(t, e);
+    }
+    acc
+}
+
+/// Relative norm `N_{F_{2^m}/F_{2^e}}(x) = ∏_{i=0}^{m/e−1} x^{2^{ei}}
+/// = x^{(2^m−1)/(2^e−1)}` — the multiplicative companion of the relative trace.
+/// The norm to the *prime* field (`e = 1`) is always `1` for nonzero `x` (F₂* is
+/// trivial), so the relative norm to a larger subfield is the informative one.
+/// Requires `e | m`.
+pub fn nim_relative_norm(x: u128, m: u32, e: u32) -> u128 {
+    assert!(e > 0 && m % e == 0, "relative norm needs e | m");
+    let mut acc = 1u128;
+    let mut t = x;
+    for _ in 0..(m / e) {
+        acc = nim_mul(acc, t);
+        t = frobenius_iter(t, e);
+    }
+    acc
+}
+
+/// The distinct prime factors of `2^128 − 1` (which is squarefree):
+/// `3 · 5 · 17 · 257 · 641 · 65537 · 274177 · 6700417 · 67280421310721`.
+/// (The Fermat-number factorizations: 2^32+1 = 641·6700417, 2^64+1 =
+/// 274177·67280421310721.) Every multiplicative order in F_{2^128}* divides this.
+const ORDER_FACTORS: [u128; 9] = [3, 5, 17, 257, 641, 65537, 274177, 6700417, 67280421310721];
+
+/// The multiplicative order of `x` in F_{2^128}* — the least `k > 0` with the
+/// `k`-fold nim-power `x^{⊗k} = 1`. `None` for `x = 0`. Always divides `2^128−1`.
+pub fn nim_order(x: u128) -> Option<u128> {
+    if x == 0 {
+        return None;
+    }
+    let mut ord = u128::MAX; // 2^128 − 1
+    for &p in &ORDER_FACTORS {
+        while ord % p == 0 && nim_pow(x, ord / p) == 1 {
+            ord /= p;
+        }
+    }
+    Some(ord)
+}
+
+/// Whether `x` generates the *full* group F_{2^128}* (order `2^128 − 1`). An
+/// element can generate a proper subfield's group without being primitive here;
+/// a primitive element necessarily lies outside every proper subfield (so
+/// `x ≥ 2^64`).
+pub fn nim_is_primitive(x: u128) -> bool {
+    x != 0
+        && ORDER_FACTORS
+            .iter()
+            .all(|&p| nim_pow(x, u128::MAX / p) != 1)
+}
+
+/// A primitive element of F_{2^128}* (a generator of the whole multiplicative
+/// group). Searches upward from `2^64` — the floor below which everything sits
+/// in the proper subfield F_{2^64}. Deterministic; primitive elements have
+/// density `φ(2^128−1)/(2^128−1) ≈ 0.30`, so this returns quickly.
+pub fn nim_primitive_element() -> u128 {
+    let mut x = 1u128 << 64;
+    loop {
+        if nim_is_primitive(x) {
+            return x;
+        }
+        x += 1;
+    }
+}
+
+/// `(a·b) mod m` for `a, b < m ≤ 2^128−1`'s largest prime factor (`≈ 6.7e13`),
+/// so `a·b < 4.5e27 < u128::MAX` and the direct product is exact.
+#[inline]
+fn mulmod(a: u128, b: u128, m: u128) -> u128 {
+    (a * b) % m
+}
+
+/// Modular inverse `a⁻¹ mod m` by extended Euclid (`a, m` fit comfortably in
+/// `i128`). `None` iff `gcd(a,m) ≠ 1`.
+fn mod_inv(a: u128, m: u128) -> Option<u128> {
+    let (mut old_r, mut r) = (a as i128, m as i128);
+    let (mut old_s, mut s) = (1i128, 0i128);
+    while r != 0 {
+        let q = old_r / r;
+        old_r -= q * r;
+        std::mem::swap(&mut old_r, &mut r);
+        old_s -= q * s;
+        std::mem::swap(&mut old_s, &mut s);
+    }
+    if old_r != 1 {
+        return None;
+    }
+    Some(old_s.rem_euclid(m as i128) as u128)
+}
+
+/// Garner CRT: the unique `e ∈ [0, ∏mᵢ)` with `e ≡ rᵢ (mod mᵢ)` for pairwise
+/// coprime `mᵢ`. The partial products stay below `2^128−1`, so plain `u128`
+/// arithmetic suffices.
+fn crt(residues: &[u128], moduli: &[u128]) -> Option<u128> {
+    let mut e: u128 = 0;
+    let mut radix: u128 = 1;
+    for (&r, &m) in residues.iter().zip(moduli) {
+        let diff = (r % m + m - e % m) % m;
+        let inv = mod_inv(radix % m, m)?;
+        let coeff = mulmod(diff, inv, m);
+        e += coeff * radix; // < ∏ so far ≤ 2^128−1
+        radix = radix.checked_mul(m)?;
+    }
+    Some(e)
+}
+
+/// Baby-step/giant-step in a cyclic subgroup of *prime* order `p`: the `k ∈
+/// [0,p)` with the `k`-fold nim-power `g^{⊗k} = h`, or `None` if `h ∉ ⟨g⟩`. `g`
+/// must have order exactly `p`. Cost ≈ `√p` time and memory.
+fn bsgs_prime_order(g: u128, h: u128, p: u128) -> Option<u128> {
+    if h == 1 {
+        return Some(0);
+    }
+    let mut m = (p as f64).sqrt() as u128;
+    while m * m < p {
+        m += 1;
+    }
+    m = m.max(1);
+    let mut table: HashMap<u128, u128> = HashMap::with_capacity(m as usize);
+    let mut cur = 1u128;
+    for j in 0..m {
+        table.entry(cur).or_insert(j);
+        cur = nim_mul(cur, g);
+    }
+    let factor = nim_inv(nim_pow(g, m))?; // g^{−m}
+    let mut gamma = h;
+    for i in 0..m {
+        if let Some(&j) = table.get(&gamma) {
+            return Some(i * m + j);
+        }
+        gamma = nim_mul(gamma, factor);
+    }
+    None
+}
+
+/// Discrete logarithm in F_{2^128}*: the least `e ≥ 0` with the `e`-fold
+/// nim-power `base^{⊗e} = x`, or `None` if `x ∉ ⟨base⟩` (or `base = 0`). Solved
+/// by Pohlig–Hellman over the (squarefree) factorization of `ord(base)` with a
+/// baby-step/giant-step per prime, recombined by CRT.
+///
+/// Cost is dominated by the largest prime `p | ord(base)`, at `≈ √p`. For a
+/// primitive `base` that prime is `67280421310721`, so the table is `≈ 8.2·10⁶`
+/// entries — feasible but heavy; logs inside a proper subfield (small `ord`) are
+/// effectively instant.
+pub fn nim_discrete_log(base: u128, x: u128) -> Option<u128> {
+    if base == 0 {
+        return None;
+    }
+    if x == 1 {
+        return Some(0);
+    }
+    if x == base {
+        return Some(1); // cheap shortcut: avoids full Pohlig–Hellman for the trivial log
+    }
+    let n = nim_order(base)?;
+    let mut moduli = Vec::new();
+    let mut residues = Vec::new();
+    for &p in &ORDER_FACTORS {
+        if n % p != 0 {
+            continue;
+        }
+        let g_p = nim_pow(base, n / p);
+        let h_p = nim_pow(x, n / p);
+        residues.push(bsgs_prime_order(g_p, h_p, p)?); // None ⟹ x ∉ ⟨base⟩
+        moduli.push(p);
+    }
+    let e = crt(&residues, &moduli)?;
+    (nim_pow(base, e) == x).then_some(e)
+}
+
 /// A nimber, i.e. an element of On_2 truncated to F_{2^128}.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Nimber(pub u128);
@@ -222,6 +473,33 @@ impl Scalar for Nimber {
     }
     fn inv(&self) -> Option<Self> {
         nim_inv(self.0).map(Nimber)
+    }
+}
+
+impl Nimber {
+    /// Degree over F₂ — the smallest nim-subfield F_{2^d} containing this nimber.
+    pub fn degree(&self) -> u32 {
+        nim_degree(self.0)
+    }
+    /// The Galois conjugates `x, x², x⁴, …` (roots of the minimal polynomial).
+    pub fn conjugates(&self) -> Vec<Nimber> {
+        nim_conjugates(self.0).into_iter().map(Nimber).collect()
+    }
+    /// Minimal polynomial over F₂, coefficients `{0,1}` from the constant term up.
+    pub fn min_poly(&self) -> Vec<u8> {
+        nim_min_poly(self.0)
+    }
+    /// Multiplicative order in F_{2^128}* (`None` for `*0`).
+    pub fn order(&self) -> Option<u128> {
+        nim_order(self.0)
+    }
+    /// Whether this generates the whole multiplicative group F_{2^128}*.
+    pub fn is_primitive(&self) -> bool {
+        nim_is_primitive(self.0)
+    }
+    /// Discrete log to base `self`: least `e` with `self^{⊗e} = x`, else `None`.
+    pub fn discrete_log(&self, x: Nimber) -> Option<u128> {
+        nim_discrete_log(self.0, x.0)
     }
 }
 
@@ -397,5 +675,138 @@ mod tests {
         for &(a, b, c) in &[(255u128, 256, 257), (1000, 999, 7), (65535, 65536, 3)] {
             assert_eq!(nim_mul(nim_mul(a, b), c), nim_mul(a, nim_mul(b, c)));
         }
+    }
+
+    // ----- finite-field analysis toolkit -----
+
+    fn brute_order(x: u128) -> u128 {
+        let mut k = 1u128;
+        let mut cur = x;
+        while cur != 1 {
+            cur = nim_mul(cur, x);
+            k += 1;
+        }
+        k
+    }
+
+    /// Evaluate `Σ poly[i]·x^{⊗i}` in nim arithmetic (poly over F₂).
+    fn eval_poly_f2(poly: &[u8], x: u128) -> u128 {
+        let mut acc = 0u128;
+        let mut xpow = 1u128;
+        for &c in poly {
+            if c == 1 {
+                acc ^= xpow;
+            }
+            xpow = nim_mul(xpow, x);
+        }
+        acc
+    }
+
+    #[test]
+    fn order_factors_are_2_128_minus_1() {
+        let mut prod = 1u128;
+        for &p in &ORDER_FACTORS {
+            prod = prod.checked_mul(p).expect("ORDER_FACTORS overflow");
+        }
+        assert_eq!(prod, u128::MAX); // 2^128 − 1, squarefree
+    }
+
+    #[test]
+    fn degree_is_smallest_containing_subfield() {
+        assert_eq!(nim_degree(0), 1);
+        assert_eq!(nim_degree(1), 1);
+        assert_eq!(nim_degree(2), 2); // F_4 \ F_2
+        assert_eq!(nim_degree(3), 2);
+        for x in 4u128..16 {
+            assert_eq!(nim_degree(x), 4, "deg {x}"); // F_16 \ F_4
+        }
+        assert_eq!(nim_degree(16), 8); // F_256 \ F_16
+    }
+
+    #[test]
+    fn conjugates_and_min_poly() {
+        for x in 0u128..16 {
+            let conj = nim_conjugates(x);
+            assert_eq!(conj.len() as u32, nim_degree(x));
+            let mut s = conj.clone();
+            s.sort_unstable();
+            s.dedup();
+            assert_eq!(s.len(), conj.len(), "conjugates of {x} not distinct");
+
+            let mp = nim_min_poly(x);
+            assert_eq!(mp.len() as u32, nim_degree(x) + 1);
+            assert_eq!(*mp.last().unwrap(), 1, "min poly of {x} not monic");
+            assert!(mp.iter().all(|&c| c <= 1));
+            for &c in &conj {
+                assert_eq!(eval_poly_f2(&mp, c), 0, "min poly of {x}: root {c}");
+            }
+        }
+    }
+
+    #[test]
+    fn relative_trace_and_norm() {
+        // the e=1 relative trace is the existing F₂ trace
+        for x in 0u128..16 {
+            assert_eq!(nim_relative_trace(x, 4, 1), nim_trace(x, 4));
+        }
+        // relative trace/norm land in the target subfield F_16
+        for x in 0u128..256 {
+            assert!(nim_relative_trace(x, 8, 4) < 16);
+            assert!(nim_relative_norm(x, 8, 4) < 16);
+        }
+        // norm to the prime field is 1 for every nonzero element
+        for x in 1u128..16 {
+            assert_eq!(nim_relative_norm(x, 4, 1), 1);
+        }
+        // the relative norm is multiplicative
+        for a in 1u128..16 {
+            for b in 1u128..16 {
+                assert_eq!(
+                    nim_relative_norm(nim_mul(a, b), 4, 2),
+                    nim_mul(nim_relative_norm(a, 4, 2), nim_relative_norm(b, 4, 2)),
+                    "norm({a}⊗{b})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn order_matches_brute_force_in_subfields() {
+        for x in 1u128..16 {
+            assert_eq!(nim_order(x), Some(brute_order(x)), "order of {x}");
+        }
+        assert_eq!(nim_order(0), None);
+        assert_eq!(nim_order(2), Some(3)); // 2 generates F_4*
+        for x in 1u128..16 {
+            assert!(!nim_is_primitive(x)); // all sit in a proper subfield
+        }
+    }
+
+    #[test]
+    fn discrete_log_round_trips() {
+        // ⟨2⟩ = {1,2,3} ⊂ F_4 (order 3)
+        assert_eq!(nim_discrete_log(2, 1), Some(0));
+        assert_eq!(nim_discrete_log(2, 2), Some(1));
+        assert_eq!(nim_discrete_log(2, 3), Some(2));
+        assert_eq!(nim_discrete_log(2, 4), None); // 4 ∉ ⟨2⟩
+
+        // a generator of F_256* (order 255 = 3·5·17): exercises Pohlig–Hellman + CRT
+        let g = (16u128..256).find(|&g| nim_order(g) == Some(255)).unwrap();
+        for e in 0u128..255 {
+            assert_eq!(nim_discrete_log(g, nim_pow(g, e)), Some(e), "log_{g}");
+        }
+        // a non-generator base (order 51)
+        let h = nim_pow(g, 5);
+        assert_eq!(nim_order(h), Some(51));
+        let target = nim_pow(h, 7);
+        let e = nim_discrete_log(h, target).unwrap();
+        assert!(e < 51 && nim_pow(h, e) == target);
+    }
+
+    #[test]
+    fn primitive_element_generates_full_group() {
+        let g = nim_primitive_element();
+        assert!(nim_is_primitive(g));
+        assert_eq!(nim_order(g), Some(u128::MAX)); // order 2^128 − 1
     }
 }

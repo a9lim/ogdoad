@@ -5,11 +5,16 @@
 use super::engine::IntegerMV;
 use super::scalars::{parse_surreal, PySurreal};
 use crate::clifford::CliffordAlgebra;
-use crate::games::{Game, GameExterior};
-use crate::scalar::Integer;
+use crate::games::{thermography, Color, Game, GameExterior, Hackenbush};
+use crate::scalar::{Integer, Rational, Surreal};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::sync::Arc;
+
+/// Wrap a dyadic `Rational` (a thermograph coordinate) as a `Surreal` for Python.
+fn rat_to_py(r: Rational) -> PySurreal {
+    PySurreal::from_inner(Surreal::from_rational(r))
+}
 
 /// Nim-multiplication via Conway's Turning-Corners game recurrence (the
 /// game-theoretic definition; equals the algebraic nim-product).
@@ -66,6 +71,32 @@ impl PyGame {
         PyGame {
             inner: Game::switch(a, b),
         }
+    }
+    /// A general game `{ left | right }` from explicit option lists.
+    #[staticmethod]
+    fn of(left: Vec<PyGame>, right: Vec<PyGame>) -> PyGame {
+        PyGame {
+            inner: Game::new(
+                left.into_iter().map(|g| g.inner).collect(),
+                right.into_iter().map(|g| g.inner).collect(),
+            ),
+        }
+    }
+    /// The Left options.
+    fn left(&self) -> Vec<PyGame> {
+        self.inner
+            .left()
+            .iter()
+            .map(|g| PyGame { inner: g.clone() })
+            .collect()
+    }
+    /// The Right options.
+    fn right(&self) -> Vec<PyGame> {
+        self.inner
+            .right()
+            .iter()
+            .map(|g| PyGame { inner: g.clone() })
+            .collect()
     }
     fn __add__(&self, other: &PyGame) -> PyGame {
         PyGame {
@@ -131,8 +162,114 @@ impl PyGame {
             .map(|inner| PyGame { inner })
             .ok_or_else(|| PyValueError::new_err("surreal is not a dyadic rational"))
     }
+    /// The ordinal sum `G : H` (play in `H`; a move in the base `G` discards `H`).
+    fn ordinal_sum(&self, h: &PyGame) -> PyGame {
+        PyGame {
+            inner: self.inner.ordinal_sum(&h.inner),
+        }
+    }
+    /// Temperature `t(G)` as a surreal (`−1` for a number); `None` for the rare
+    /// degenerate positions outside temperature theory.
+    fn temperature(&self) -> Option<PySurreal> {
+        thermography::temperature(&self.inner).map(rat_to_py)
+    }
+    /// Mean (mast) value as a surreal.
+    fn mean_value(&self) -> Option<PySurreal> {
+        thermography::mean_value(&self.inner).map(rat_to_py)
+    }
+    /// Left stop `LS(G)` (left wall at temperature 0).
+    fn left_stop(&self) -> Option<PySurreal> {
+        thermography::left_stop(&self.inner).map(rat_to_py)
+    }
+    /// Right stop `RS(G)` (right wall at temperature 0).
+    fn right_stop(&self) -> Option<PySurreal> {
+        thermography::right_stop(&self.inner).map(rat_to_py)
+    }
+    /// The thermograph as `(mean, temperature, left_wall, right_wall)`, where each
+    /// wall is a list of `(t, value)` breakpoints. `None` if undefined.
+    #[allow(clippy::type_complexity)]
+    fn thermograph(
+        &self,
+    ) -> Option<(
+        PySurreal,
+        PySurreal,
+        Vec<(PySurreal, PySurreal)>,
+        Vec<(PySurreal, PySurreal)>,
+    )> {
+        let th = thermography::thermograph(&self.inner)?;
+        let wall = |w: &thermography::Pl| {
+            w.points()
+                .iter()
+                .map(|(t, v)| (rat_to_py(t.clone()), rat_to_py(v.clone())))
+                .collect::<Vec<_>>()
+        };
+        Some((
+            rat_to_py(th.mast.clone()),
+            rat_to_py(th.temperature.clone()),
+            wall(&th.left_wall),
+            wall(&th.right_wall),
+        ))
+    }
     fn __repr__(&self) -> String {
         self.inner.display()
+    }
+}
+
+/// Parse a colour name (`"blue"`/`"red"`/`"green"`, case-insensitive) or its
+/// initial (`"b"`/`"r"`/`"g"`).
+fn parse_color(s: &str) -> PyResult<Color> {
+    match s.trim().to_lowercase().as_str() {
+        "blue" | "b" | "l" | "left" => Ok(Color::Blue),
+        "red" | "r" => Ok(Color::Red),
+        "green" | "g" | "e" => Ok(Color::Green),
+        other => Err(PyValueError::new_err(format!(
+            "unknown colour {other:?} (expected blue/red/green)"
+        ))),
+    }
+}
+
+#[pyclass(name = "Hackenbush", module = "pleroma")]
+struct PyHackenbush {
+    inner: Hackenbush,
+}
+
+#[pymethods]
+impl PyHackenbush {
+    /// A position from `(u, v, colour)` edges; vertex `0` is the ground.
+    #[new]
+    fn new(edges: Vec<(usize, usize, String)>) -> PyResult<Self> {
+        let edges = edges
+            .into_iter()
+            .map(|(u, v, c)| Ok((u, v, parse_color(&c)?)))
+            .collect::<PyResult<Vec<_>>>()?;
+        Ok(PyHackenbush {
+            inner: Hackenbush::new(edges),
+        })
+    }
+    /// A stalk `0—1—2—…` from the ground, edge `i` coloured `colors[i]`.
+    #[staticmethod]
+    fn string(colors: Vec<String>) -> PyResult<Self> {
+        let cs = colors
+            .iter()
+            .map(|c| parse_color(c))
+            .collect::<PyResult<Vec<_>>>()?;
+        Ok(PyHackenbush {
+            inner: Hackenbush::string(&cs),
+        })
+    }
+    /// The partizan game value (the universal evaluator).
+    fn to_game(&self) -> PyGame {
+        PyGame {
+            inner: self.inner.to_game(),
+        }
+    }
+    /// The surreal number value (`None` if the value is not a number).
+    fn value(&self) -> Option<PySurreal> {
+        self.inner.value().map(PySurreal::from_inner)
+    }
+    /// The Sprague–Grundy / nim value (`Some` only for all-green positions).
+    fn grundy(&self) -> Option<u128> {
+        self.inner.grundy()
     }
 }
 
@@ -244,6 +381,7 @@ impl PyGameExterior {
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
     m.add_class::<PyGameExterior>()?;
+    m.add_class::<PyHackenbush>()?;
     m.add_function(wrap_pyfunction!(nim_mul_mex, m)?)?;
     m.add_function(wrap_pyfunction!(grundy_graph, m)?)?;
     Ok(())

@@ -19,3 +19,7 @@ pyo3 = { version = "0.28", features = ["abi3-py39"], optional = true }
 [features]
 default = []
 python = ["dep:pyo3", "pyo3/extension-module"]
+
+[dev-dependencies]
+# Property-based testing of the Scalar ring axioms across every backend.
+proptest = "1"

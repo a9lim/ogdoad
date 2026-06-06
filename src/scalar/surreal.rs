@@ -20,7 +20,7 @@
 //! The leading (largest-exponent) term dominates everything below it, so
 //! sign(x) = sign of the leading coefficient and x < y ⇔ sign(x − y) < 0.
 
-use crate::scalar::{Rational, Scalar};
+use crate::scalar::{Ordinal, Rational, Scalar};
 use std::cmp::Ordering;
 use std::fmt;
 
@@ -175,6 +175,126 @@ impl Surreal {
             return None;
         }
         Some(Surreal::from_rational(simplest_rational_between(qa, qb)))
+    }
+
+    // -- floor / fractional part : the bridge to the omnific integers Oz --
+
+    /// The **floor** ⌊x⌋ — the greatest omnific integer ≤ `x`, as a `Surreal`.
+    /// Concretely: keep every infinite term (`ω`-exponent `> 0`, any rational
+    /// coefficient), replace the constant term by `⌊coeff⌋`, and drop every
+    /// infinitesimal term (`ω`-exponent `< 0`). The result is always an omnific
+    /// integer ([`crate::scalar::Omnific`]); `Omnific::floor` wraps it as one.
+    /// Satisfies `⌊x⌋ ≤ x < ⌊x⌋ + 1`.
+    pub fn floor(&self) -> Surreal {
+        let mut terms: Vec<(Surreal, Rational)> = Vec::new();
+        for (e, c) in &self.terms {
+            match e.sign() {
+                Ordering::Greater => terms.push((e.clone(), c.clone())), // infinite term kept
+                Ordering::Equal => {
+                    let f = c.floor();
+                    if f != 0 {
+                        terms.push((Surreal::zero(), Rational::int(f)));
+                    }
+                }
+                Ordering::Less => {} // infinitesimal term dropped
+            }
+        }
+        // terms stay strictly descending (a subset of self's, same order)
+        Surreal { terms }
+    }
+
+    /// The **fractional part** `x − ⌊x⌋`, always in `[0, 1)` (it may be an
+    /// infinitesimal-carrying value such as `½ + ε`).
+    pub fn frac(&self) -> Surreal {
+        self.sub(&self.floor())
+    }
+
+    // -- sign expansion : the canonical surreal-tree encoding (finite case) --
+
+    /// The **sign expansion** of a *dyadic* surreal: the sequence of left/right
+    /// turns (`true = +`, `false = −`) on the path from the root `0` to `x` in
+    /// the surreal tree. Its length is exactly the
+    /// [birthday](Self::dyadic_birthday). `None` for non-dyadics (`1/3`,
+    /// `ω`, `ε`, …), whose sign expansions are transfinite and so not finitely
+    /// listable here. Inverse of [`from_sign_expansion`](Self::from_sign_expansion).
+    ///
+    /// Examples: `0 ↦ []`, `1 ↦ [+]`, `2 ↦ [+,+]`, `½ ↦ [+,−]`, `¾ ↦ [+,−,+]`.
+    pub fn sign_expansion(&self) -> Option<Vec<bool>> {
+        if !self.is_dyadic() {
+            return None;
+        }
+        let x = self.as_rational().unwrap();
+        let (mut lo, mut hi): (Option<Rational>, Option<Rational>) = (None, None);
+        let mut signs = Vec::new();
+        loop {
+            let v = simplest_in_cut(&lo, &hi);
+            match x.cmp(&v) {
+                Ordering::Equal => break,
+                Ordering::Greater => {
+                    signs.push(true);
+                    lo = Some(v);
+                }
+                Ordering::Less => {
+                    signs.push(false);
+                    hi = Some(v);
+                }
+            }
+        }
+        Some(signs)
+    }
+
+    /// The dyadic surreal with the given finite sign expansion (`true = +`), by
+    /// walking the surreal tree. The empty sequence is `0`. Inverse of
+    /// [`sign_expansion`](Self::sign_expansion).
+    pub fn from_sign_expansion(signs: &[bool]) -> Surreal {
+        let (mut lo, mut hi): (Option<Rational>, Option<Rational>) = (None, None);
+        for &s in signs {
+            let v = simplest_in_cut(&lo, &hi);
+            if s {
+                lo = Some(v);
+            } else {
+                hi = Some(v);
+            }
+        }
+        Surreal::from_rational(simplest_in_cut(&lo, &hi))
+    }
+
+    /// The **birthday** as an [`Ordinal`], for dyadics (a finite ordinal equal to
+    /// the sign-expansion length). `None` for non-dyadics, whose birthdays are
+    /// infinite ordinals not produced by this finite-support representation.
+    pub fn birthday_ordinal(&self) -> Option<Ordinal> {
+        self.dyadic_birthday().map(Ordinal::from_u128)
+    }
+}
+
+/// The simplest dyadic strictly **below** `h` (the value of the cut `{|h}`).
+fn simplest_below_rat(h: &Rational) -> Rational {
+    if h.sign() == Ordering::Greater {
+        Rational::zero() // 0 is the simplest number below any positive
+    } else {
+        let f = h.floor();
+        if Rational::int(f).cmp(h) == Ordering::Less {
+            Rational::int(f) // h non-integer: ⌊h⌋ is the closest-to-0 integer below it
+        } else {
+            Rational::int(f - 1) // h an integer: the next integer down
+        }
+    }
+}
+
+/// The simplest dyadic strictly **above** `l` (the value of the cut `{l|}`).
+fn simplest_above_rat(l: &Rational) -> Rational {
+    simplest_below_rat(&l.neg()).neg()
+}
+
+/// The simplest dyadic strictly inside the open cut `(lo, hi)`; `None` bounds are
+/// `∓∞`. This is the surreal-tree node selected at each step of a sign-expansion
+/// walk.
+fn simplest_in_cut(lo: &Option<Rational>, hi: &Option<Rational>) -> Rational {
+    match (lo, hi) {
+        (None, None) => Rational::zero(),
+        (None, Some(h)) => simplest_below_rat(h),
+        (Some(l), None) => simplest_above_rat(l),
+        (Some(l), Some(h)) => simplest_rational_between(l.clone(), h.clone()),
     }
 }
 
@@ -514,5 +634,87 @@ mod tests {
         assert_eq!(int(-1).simplest_above().unwrap(), int(0)); // {-1|} = 0
         assert_eq!(int(-2).simplest_below().unwrap(), int(-3)); // {|-2} = -3
         assert_eq!(int(1).simplest_below().unwrap(), int(0)); // {|1} = 0
+    }
+
+    #[test]
+    fn floor_and_frac() {
+        use crate::scalar::is_omnific_integer;
+        let w = Surreal::omega();
+        let eps = Surreal::epsilon();
+        let half = dyadic(1, 2);
+        let cases = [
+            (w.add(&half), w.clone()),      // ⌊ω+½⌋ = ω
+            (w.sub(&half), w.sub(&int(1))), // ⌊ω−½⌋ = ω−1
+            (dyadic(3, 2), int(1)),         // ⌊3/2⌋ = 1
+            (dyadic(-3, 2), int(-2)),       // ⌊−3/2⌋ = −2
+            (eps.clone(), int(0)),          // ⌊ε⌋ = 0
+            (int(5), int(5)),               // ⌊5⌋ = 5
+            (w.clone(), w.clone()),         // ⌊ω⌋ = ω
+            (
+                Surreal::monomial(int(1), Rational::new(1, 2)),
+                Surreal::monomial(int(1), Rational::new(1, 2)),
+            ), // ⌊½ω⌋ = ½ω
+        ];
+        for (x, expected) in cases {
+            let f = x.floor();
+            assert_eq!(f, expected, "floor of {:?}", x);
+            assert!(is_omnific_integer(&f), "floor of {:?} not omnific", x);
+            // ⌊x⌋ ≤ x < ⌊x⌋ + 1
+            assert!(f.cmp(&x) != Ordering::Greater);
+            assert!(x.cmp(&f.add(&int(1))) == Ordering::Less);
+            // fractional part in [0,1)
+            let fr = x.frac();
+            assert!(fr.sign() != Ordering::Less);
+            assert!(fr.cmp(&int(1)) == Ordering::Less);
+            assert_eq!(f.add(&fr), x); // x = ⌊x⌋ + {x}
+        }
+    }
+
+    #[test]
+    fn sign_expansion_round_trips() {
+        let cases: [(Surreal, Vec<bool>); 6] = [
+            (int(0), vec![]),
+            (int(1), vec![true]),
+            (int(2), vec![true, true]),
+            (int(-1), vec![false]),
+            (dyadic(1, 2), vec![true, false]),
+            (dyadic(3, 4), vec![true, false, true]),
+        ];
+        for (s, signs) in &cases {
+            assert_eq!(
+                s.sign_expansion().as_ref(),
+                Some(signs),
+                "sign exp of {:?}",
+                s
+            );
+            assert_eq!(&Surreal::from_sign_expansion(signs), s);
+            // length is the birthday
+            assert_eq!(signs.len() as u128, s.dyadic_birthday().unwrap());
+        }
+        // a longer sweep of dyadics round-trips
+        for num in -8i128..=8 {
+            for k in 0..4u32 {
+                let s = dyadic(num, 1i128 << k);
+                let signs = s.sign_expansion().unwrap();
+                assert_eq!(Surreal::from_sign_expansion(&signs), s);
+                assert_eq!(signs.len() as u128, s.dyadic_birthday().unwrap());
+            }
+        }
+        // non-dyadics have no finite sign expansion
+        assert!(Surreal::from_rational(Rational::new(1, 3))
+            .sign_expansion()
+            .is_none());
+        assert!(Surreal::omega().sign_expansion().is_none());
+        assert!(Surreal::epsilon().sign_expansion().is_none());
+    }
+
+    #[test]
+    fn birthday_ordinal_is_finite_for_dyadics() {
+        assert_eq!(
+            dyadic(3, 4).birthday_ordinal().unwrap().as_finite(),
+            Some(3)
+        );
+        assert_eq!(int(0).birthday_ordinal().unwrap().as_finite(), Some(0));
+        assert!(Surreal::omega().birthday_ordinal().is_none());
     }
 }

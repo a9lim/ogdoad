@@ -76,6 +76,34 @@ impl PyNimber {
     fn __hash__(&self) -> isize {
         self.inner.0 as isize
     }
+    /// Degree over F₂ (dimension of the smallest nim-subfield containing it).
+    fn degree(&self) -> u32 {
+        self.inner.degree()
+    }
+    /// The Galois conjugates `x, x², x⁴, …` over F₂.
+    fn conjugates(&self) -> Vec<PyNimber> {
+        self.inner
+            .conjugates()
+            .into_iter()
+            .map(|inner| PyNimber { inner })
+            .collect()
+    }
+    /// Minimal polynomial over F₂: coefficients `{0,1}` from the constant term up.
+    fn min_poly(&self) -> Vec<u32> {
+        self.inner.min_poly().into_iter().map(u32::from).collect()
+    }
+    /// Multiplicative order in F_{2^128}* (`None` for `*0`).
+    fn order(&self) -> Option<u128> {
+        self.inner.order()
+    }
+    /// Whether this generates the full multiplicative group F_{2^128}*.
+    fn is_primitive(&self) -> bool {
+        self.inner.is_primitive()
+    }
+    /// Discrete log to base `self`: least `e` with `self**e == x`, else `None`.
+    fn discrete_log(&self, x: &Bound<'_, PyAny>) -> PyResult<Option<u128>> {
+        Ok(self.inner.discrete_log(parse_nimber(x)?))
+    }
     fn __repr__(&self) -> String {
         format!("{:?}", self.inner)
     }
@@ -202,6 +230,34 @@ impl PySurreal {
             .ok_or_else(|| {
                 PyValueError::new_err("no dyadic between (need finite rationals with a < b)")
             })
+    }
+    /// The floor ⌊x⌋ as a surreal — the greatest omnific integer ≤ x.
+    fn floor(&self) -> PySurreal {
+        PySurreal {
+            inner: self.inner.floor(),
+        }
+    }
+    /// The floor ⌊x⌋ as an `Omnific` integer.
+    fn omnific_floor(&self) -> PyOmnific {
+        wrap_omnific(Omnific::floor(&self.inner))
+    }
+    /// The fractional part `x − ⌊x⌋`, in `[0, 1)`.
+    fn frac(&self) -> PySurreal {
+        PySurreal {
+            inner: self.inner.frac(),
+        }
+    }
+    /// The sign expansion (`True = +`) of a dyadic surreal; `None` for
+    /// non-dyadics (transfinite expansion). Length equals the birthday.
+    fn sign_expansion(&self) -> Option<Vec<bool>> {
+        self.inner.sign_expansion()
+    }
+    /// The dyadic surreal with the given finite sign expansion (`True = +`).
+    #[staticmethod]
+    fn from_sign_expansion(signs: Vec<bool>) -> PySurreal {
+        PySurreal {
+            inner: Surreal::from_sign_expansion(&signs),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{:?}", self.inner)
@@ -604,6 +660,65 @@ fn nim_solve_artin_schreier(c: u128, m: u128) -> Option<u128> {
 fn nim_is_artin_schreier_solvable(c: u128, m: u128) -> bool {
     crate::scalar::nim_is_artin_schreier_solvable(c, m)
 }
+
+// --- finite-field analysis toolkit ---
+
+/// Degree of `x` over F₂ (the smallest nim-subfield F_{2^d} containing it).
+#[pyfunction]
+fn nim_degree(x: u128) -> u32 {
+    crate::scalar::nim_degree(x)
+}
+
+/// The Galois conjugates `x, x², x⁴, …` over F₂.
+#[pyfunction]
+fn nim_conjugates(x: u128) -> Vec<u128> {
+    crate::scalar::nim_conjugates(x)
+}
+
+/// Minimal polynomial of `x` over F₂: coefficients `{0,1}` from the constant up.
+#[pyfunction]
+fn nim_min_poly(x: u128) -> Vec<u32> {
+    crate::scalar::nim_min_poly(x)
+        .into_iter()
+        .map(u32::from)
+        .collect()
+}
+
+/// Relative trace `Tr_{F_{2^m}/F_{2^e}}(x)` (the `e=1` case is `nim_trace`).
+#[pyfunction]
+fn nim_relative_trace(x: u128, m: u32, e: u32) -> u128 {
+    crate::scalar::nim_relative_trace(x, m, e)
+}
+
+/// Relative norm `N_{F_{2^m}/F_{2^e}}(x)` (norm to the prime field is trivial).
+#[pyfunction]
+fn nim_relative_norm(x: u128, m: u32, e: u32) -> u128 {
+    crate::scalar::nim_relative_norm(x, m, e)
+}
+
+/// Multiplicative order of `x` in F_{2^128}* (`None` for `*0`).
+#[pyfunction]
+fn nim_order(x: u128) -> Option<u128> {
+    crate::scalar::nim_order(x)
+}
+
+/// Whether `x` generates the full group F_{2^128}*.
+#[pyfunction]
+fn nim_is_primitive(x: u128) -> bool {
+    crate::scalar::nim_is_primitive(x)
+}
+
+/// A primitive element (generator) of F_{2^128}*.
+#[pyfunction]
+fn nim_primitive_element() -> u128 {
+    crate::scalar::nim_primitive_element()
+}
+
+/// Discrete log in F_{2^128}*: least `e` with `base**e == x`, else `None`.
+#[pyfunction]
+fn nim_discrete_log(base: u128, x: u128) -> Option<u128> {
+    crate::scalar::nim_discrete_log(base, x)
+}
 // ---------------------------------------------------------------------------
 // Transfinite (ordinal) nimbers
 // ---------------------------------------------------------------------------
@@ -689,5 +804,14 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(nim_trace, m)?)?;
     m.add_function(wrap_pyfunction!(nim_solve_artin_schreier, m)?)?;
     m.add_function(wrap_pyfunction!(nim_is_artin_schreier_solvable, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_degree, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_conjugates, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_min_poly, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_relative_trace, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_relative_norm, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_order, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_is_primitive, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_primitive_element, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_discrete_log, m)?)?;
     Ok(())
 }

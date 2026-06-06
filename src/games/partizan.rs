@@ -153,6 +153,24 @@ impl Game {
         }
     }
 
+    /// The **ordinal sum** `G : H` ("`G` then `H`"): play in the subordinate `H`
+    /// freely, but a move into the base `G` discards `H` entirely. Recursively
+    /// `G : H = { G^L, G:H^L | G^R, G:H^R }` — the `G`-moves go to the bare
+    /// `G`-options (no `:H`), the `H`-moves keep the base. Not commutative, and
+    /// distinct from the disjunctive [`add`](Self::add). (Berlekamp's Hackenbush
+    /// strings are ordinal sums of single edges.)
+    pub fn ordinal_sum(&self, h: &Game) -> Game {
+        let mut left: Vec<Game> = self.left().to_vec();
+        for hl in h.left() {
+            left.push(self.ordinal_sum(hl));
+        }
+        let mut right: Vec<Game> = self.right().to_vec();
+        for hr in h.right() {
+            right.push(self.ordinal_sum(hr));
+        }
+        Game::new(left, right)
+    }
+
     /// A readable structural form: `0` for `{|}`, else `{L|R}` recursively.
     pub fn display(&self) -> String {
         if self.left().is_empty() && self.right().is_empty() {
@@ -814,6 +832,29 @@ mod tests {
         assert_eq!(Game::zero().birthday(), 0);
         assert_eq!(Game::star().birthday(), 1);
         assert_eq!(Game::integer(3).birthday(), 3);
+    }
+
+    #[test]
+    fn ordinal_sum_basics() {
+        // 0 is a left identity, and `G:0 = G` structurally.
+        assert!(Game::zero().ordinal_sum(&Game::up()).eq(&Game::up()));
+        assert!(Game::switch(2, -1)
+            .ordinal_sum(&Game::zero())
+            .structural_eq(&Game::switch(2, -1)));
+        // ⋆ : ⋆ = ⋆2 (a 2-edge green Hackenbush path).
+        let star2 = Game::new(
+            vec![Game::integer(0), Game::star()],
+            vec![Game::integer(0), Game::star()],
+        );
+        assert!(Game::star().ordinal_sum(&Game::star()).eq(&star2));
+        // ordinal sum of positive integers is ordinary addition: 1:1 = 2.
+        assert!(Game::integer(1)
+            .ordinal_sum(&Game::integer(1))
+            .eq(&Game::integer(2)));
+        // not commutative in general: 1:⋆ ≠ ⋆:1.
+        assert!(!Game::integer(1)
+            .ordinal_sum(&Game::star())
+            .eq(&Game::star().ordinal_sum(&Game::integer(1))));
     }
 
     #[test]

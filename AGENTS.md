@@ -42,12 +42,23 @@ src/
     nimber.rs     # On₂ in u128 (= F_{2^128}): nim_add = XOR; nim_mul via Fermat-
                   # power recursion, memoised on 2^i ⊗ 2^j. Also nim_square /
                   # nim_sqrt (Frobenius & its inverse), nim_trace, and the
-                  # Artin–Schreier solver (y²+y=c, solvable ⇔ Tr(c)=0).
+                  # Artin–Schreier solver (y²+y=c, solvable ⇔ Tr(c)=0). Plus the
+                  # FINITE-FIELD ANALYSIS TOOLKIT: nim_degree (smallest containing
+                  # subfield), nim_conjugates / nim_min_poly (Galois orbit over F₂),
+                  # nim_relative_trace/_norm (to any subfield), nim_order,
+                  # nim_is_primitive / nim_primitive_element, and nim_discrete_log
+                  # (Pohlig–Hellman + BSGS over the known factorization of 2^128−1;
+                  # cheap in subfields, heavy for a primitive base).
     surreal.rs    # Conway normal form: Vec<(exponent: Surreal, coeff: Rational)>
                   # with recursive exponents. Hahn arithmetic: ω^a·ω^b = ω^{a+b}.
                   # Plus the {L|R}/simplicity bridge (dyadic case): as_rational/
                   # as_dyadic/is_dyadic/dyadic_birthday + simplest_above/_below/
                   # simplest_between (the shallowest surreal-tree node in (a,b)).
+                  # Plus floor/frac (the Oz bridge — Omnific::floor wraps it) and
+                  # the EXACT sign-expansion: sign_expansion/from_sign_expansion
+                  # (dyadic, round-trips, length = birthday) + birthday_ordinal.
+                  # NB: transfinite sign expansions (ω, ε; Gonshor) are NOT done —
+                  # the finite/dyadic case only, on purpose (no ℝ-truncation).
     surcomplex.rs # Surcomplex<S> = adjoin i over any backend.
     omnific.rs    # the omnific integers Oz: Omnific(Surreal) newtype, a transfinite
                   # commutative RING (not field). Surreal mirror of Integer; the
@@ -148,6 +159,14 @@ src/
 
   games/          # PILLAR — combinatorial game theory (mostly Scalar-free)
     mod.rs        # re-exports the modules below flat.
+    thermography.rs # temperature theory: the piecewise-linear thermograph (Pl) of a
+                  # short game — left/right scaffolds, stops, cooling (cooled_stops),
+                  # temperature, and mean (mast) value. Switches/numbers/↑/⋆ pinned;
+                  # mean is additive. (Atomic weight is NOT done yet — deferred.)
+    hackenbush.rs # red/blue/green Hackenbush: Hackenbush{edges, ground=0}, to_game()
+                  # (the universal evaluator via move-and-prune), value() → surreal
+                  # number (blue–red), grundy() → nimber (all-green = Nim). The
+                  # capstone tying surreals+nimbers+sign-expansion through one object.
     coin_turning.rs # (was games.rs) nim_mul_mex: nim-mult as Conway's Turning-
                   # Corners mex recurrence (== algebraic nim_mul). Plus general 1-D
                   # coin-turning (grundy_1d) and the 2-D Tartan product
@@ -169,6 +188,7 @@ src/
                   # the game↔surreal bridge (number_value / from_surreal, numbers
                   # only) + the exterior algebra of the GAME group: Λ over ℤ on game
                   # generators (living on all of game-world, incl. non-numbers ⋆/↑).
+                  # Also Game::ordinal_sum (G:H — Hackenbush strings are these).
                   # NB: distinct from coin_turning.rs — that is coin-turning.
 
   py/             # PyO3 bindings (feature = "python"), split per pillar
@@ -283,6 +303,15 @@ PATH (`. "$HOME/.cargo/env"`).
 smoke-tested via `demo.py`. After touching `clifford/` or `scalar/surreal.rs`, run
 `cargo test` **and** rebuild + run `demo.py` — display changes don't surface in
 `cargo test`.
+
+Beyond the per-module unit tests there are two **property-based** suites (dev-dep
+`proptest`, integration tests in `tests/`): `tests/scalar_axioms.rs` fuzzes the
+commutative-ring axioms across every backend, and `tests/clifford_axioms.rs`
+fuzzes geometric-product associativity/distributivity over random metrics in
+char 0 and char 2. These are the randomized safety net under the
+`Scalar`-is-a-commutative-ring assumption and the product engine. (serde
+(de)serialization is intentionally NOT shipped yet — the invariant-carrying types
+need custom invariant-preserving deserialization, not a naive derive.)
 
 ## Things that look like bugs but are not
 
