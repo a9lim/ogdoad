@@ -1,14 +1,18 @@
 //! pleroma — Clifford algebras (with nilpotents) over the field-like
 //! subclasses of combinatorial games.
 //!
-//! Stage 1 (this file's current scope): the pure-Rust math core.
-//!   - `scalar`  : the Scalar trait + an exact Rational for engine validation
-//!   - `nimber`  : On_2 (characteristic 2) — exact, the novel backend
-//!   - `clifford`: the multivector engine, generic over Scalar  [next]
-//!   - `surreal` : Conway normal form scalars (characteristic 0) [next]
-//!   - `surcomplex`: adjoin i over any backend                    [next]
+//! Pure-Rust math core (generic over the `Scalar` trait), with optional PyO3
+//! bindings behind the `python` feature (abi3).
+//!   - `scalar`    : the Scalar trait + an exact Rational for engine validation
+//!   - `nimber`    : On_2 (characteristic 2) — exact nim-add/mul/inv, the novel backend
+//!   - `surreal`   : Conway normal form scalars with recursive exponents (char 0)
+//!   - `surcomplex`: adjoin i over any backend
+//!   - `clifford`  : the multivector engine + versor/GA layer, generic over Scalar
+//!   - `arf`       : the Arf invariant (the char-2 Clifford classifier)
+//!   - `games`     : nim-multiplication as Conway's Turning-Corners game
+//!   - `py`        : PyO3 per-backend bindings (feature = "python")
 //!
-//! Stage 2: PyO3 bindings + maturin packaging (abi3, robust on Python 3.14).
+//! See `NOTES.md` for the mathematical thread.
 
 pub mod arf;
 pub mod clifford;

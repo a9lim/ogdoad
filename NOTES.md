@@ -79,9 +79,13 @@ So the genuinely open question this project points at:
 This is the char-2 game-theoretic analogue of a *quadratic refinement of a
 symplectic form* — the same structure that produces the Arf–Kervaire invariant
 from framings in topology. I have not found it in the literature, and I won't
-claim it exists. What this repo provides is the tooling to explore it
-computationally: build a candidate form over the nimber backend and read off its
-Arf invariant and orthogonal type.
+claim it exists.
+
+> **This framing is refined by the three sections below.** The probes show the
+> answer is more than "open": the Arf-bearing forms *are* built from game
+> operations, and the Arf invariant *is* a win-bias in the counting sense. What
+> remains open narrows to one thing — a *natural game* whose P-positions are a
+> form's zero set. Read on.
 
 ## Empirical probe: quadratic forms intrinsic to the nim-field
 

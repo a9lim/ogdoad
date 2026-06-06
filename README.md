@@ -81,7 +81,9 @@ methods: `.inverse()`, `.sandwich(x)`, `.reflect(x)`, `.dual()`, `.norm2()`,
 `.grade(k)`, `.grade_involution()`, `.reverse()`, `.scalar_part()`,
 `.is_zero()`; algebra has `.pseudoscalar()`. Scalars have `.inv()` and `/`.
 Builders: `omega()`, `epsilon()`, `omega_pow(x)`, `rational(p, q)`, `surreal(n)`,
-`Nimber(n)`, `Surcomplex(re, im)`.
+`Nimber(n)`, `Surcomplex(re, im)`. Module functions: `arf_invariant(nimber_alg)`
+(the char-2 Clifford classifier) and `nim_mul_mex(x, y)` (the Turning-Corners
+game product).
 
 ## architecture
 
@@ -108,7 +110,7 @@ Run the Rust tour without Python: `cargo run --example tour`.
 ## status
 
 **Core + bindings + versor/GA layer + Arf classifier complete and verified.**
-40 `cargo test` checks green — nim-field axioms and inverses, Cl(0,1)≅ℂ, Cl(2,0),
+43 `cargo test` checks green — nim-field axioms and inverses, Cl(0,1)≅ℂ, Cl(2,0),
 Grassmann nilpotents, char-2 commutativity *and* the faithful non-commutative
 char-2 case, associativity over non-orthogonal metrics in both characteristics,
 recursive-exponent surreal arithmetic (`ω^ω`, `ω·ε=1`, `√ω`), a Clifford metric
@@ -116,7 +118,13 @@ with `e0²=ω, e1²=ε`, versor inverse / reflection / rotor / contraction / dua
 the Arf invariant (`A⊕A ≅ H⊕H`, and Gold-function ranks `m−2·gcd(a,m)`), the
 game definition of nim-multiplication (Turning Corners) agreeing with the
 algebraic one, and the surcomplex char-2 degeneracy theorem. Python bindings
-build as an abi3 wheel and import on CPython 3.14. 43 checks total.
+build as an abi3 wheel and import on CPython 3.14.
+
+The `experiments/` probes (run on the shipped library) reproduce the
+Gold-function ranks, show the Arf-bearing forms are composites of game
+operations, and confirm the Arf invariant equals the win-bias (zero-count) of
+those forms — see `NOTES.md` for the full thread and the remaining open
+question (a *natural* game realizing those forms' P-positions).
 
 ## honest limitations / future directions
 
@@ -129,7 +137,9 @@ build as an abi3 wheel and import on CPython 3.14. 43 checks total.
 - **Nimbers cap at `u64`** (the field F_{2^64}); widening to `u128` is mechanical.
 - The general char-2 product reduces blade words directly; fine for a playground,
   not optimized for large algebras.
-- **Not yet explored:** whether a nim-Clifford form's Arf invariant over the
-  finite nim-fields F_{2^{2^n}} carries Sprague–Grundy meaning — the one thread
-  that would make this "Clifford that knows it's made of games." Also: Gonshor's
-  surreal exponential, and an inverse/division op on the surreal backend.
+- **The open research question** (explored in `NOTES.md`): the Arf invariant of a
+  nim-Clifford form *is* the win-bias of the form in the counting sense, and the
+  Arf-bearing forms are built from game operations — but a *natural* game whose
+  P-positions are those forms' zero sets is not yet found (normal disjunctive
+  play is XOR-linear, so a candidate must be interactive or misère). Also open:
+  Gonshor's surreal exponential.

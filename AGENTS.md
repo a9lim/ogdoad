@@ -36,12 +36,23 @@ src/
   surreal.rs    # Conway normal form: Vec<(exponent: Surreal, coeff: Rational)>
                 # with recursive exponents. Hahn arithmetic: ω^a·ω^b = ω^{a+b}.
   surcomplex.rs # Surcomplex<S> = adjoin i over any backend.
+  arf.rs        # Arf invariant (the char-2 Clifford classifier): arf_f2 (F₂,
+                # bitmask) + arf_nimber (any nim-field, via symplectic reduction
+                # + the field trace). arf_invariant routes to arf_nimber.
+  games.rs      # nim_mul_mex: nim-multiplication as Conway's Turning-Corners
+                # mex recurrence (the GAME definition); == algebraic nim_mul.
   py.rs         # PyO3 per-backend classes (feature = "python"). The backend!
                 # macro stamps out <World>Algebra + <World>MV.
   lib.rs
 examples/tour.rs   # cargo run --example tour   (Rust-only demo)
 demo.py            # the same tour from Python
+experiments/       # research probes ON TOP of the shipped lib (Arf of Gold
+                   # forms, the game-built synthesis, the Arf win-bias). See NOTES.md.
 ```
+
+The math thread (Arf↔Clifford, the games bridge, the open play-semantics
+question) is written up in `NOTES.md` — read it before touching `arf.rs`,
+`games.rs`, or `experiments/`.
 
 ## Commands
 
@@ -95,7 +106,8 @@ PATH (`. "$HOME/.cargo/env"`).
 - Display is deliberate and should stay readable: blades render `e0e1`;
   coefficients `1`/`-1` are elided; nimbers print `*n`; surreals print CNF
   (`3ω^2 - ω + 5`, `ω^(ω)`, `ω^-1`). Keep `display()` / `Debug` matching this.
-- Python operators: `*` geometric, `^` wedge, `**` power, `+`/`-`, `==`.
+- Python operators: `*` geometric, `^` wedge, `<<`/`>>` left/right contraction,
+  `~` reverse, `/` divide (scalar or versor), `**` power, `+`/`-`, `==`.
 
 ## Testing
 
@@ -124,6 +136,12 @@ smoke-tested via `demo.py`. After touching `clifford.rs` or `surreal.rs`, run
 - **`nim_mul`'s `1u64 << (1u64 << n)` looks overflow-prone.** It isn't for valid
   u64 inputs: bit positions are < 64, so Fermat indices `n ≤ 5` and the shift is
   ≤ 32.
+- **`nim_mul_mex` is the slow *game* definition (the mex recurrence), for
+  validation and small arguments only.** It's exponential in the argument size —
+  fine up to ~48, infeasible over a whole field like F_{2^16}. For real
+  computation use the algebraic product (`nim_mul` / `Nimber.__mul__`), which it
+  is proven equal to. Experiments use the fast product and only `nim_mul_mex` on
+  tiny fields.
 - **Pyright flags `import pleroma` as unresolved.** It's installed in `.venv`;
   the editor's interpreter is the system Python. `.venv/bin/python` runs fine.
 - **The `neg_one` branch in `Multivector::display` never fires for nimbers.**
