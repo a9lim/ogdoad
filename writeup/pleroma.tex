@@ -1,0 +1,303 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{observation}{Observation}
+\newtheorem*{question}{Open question}
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\No}{\mathbf{No}}
+\newcommand{\On}{\mathrm{On}_2}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Arf}{\operatorname{Arf}}
+\newcommand{\nimmul}{\otimes}
+\newcommand{\Cl}{\mathrm{Cl}}
+
+\title{Clifford algebras over the field-cores of combinatorial games,\\
+and the Arf invariant as a win-bias}
+\author{a9lim}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Conway's combinatorial games form a partially ordered abelian group under
+disjunctive sum but not a ring, so a Clifford algebra---which needs a
+commutative scalar ring---can only be built over the field-like subclasses of
+game-world: the surreal numbers $\No$, the surcomplex numbers $\No[i]$, and the
+nimbers $\On$. We describe \texttt{pleroma}, a small library realising Clifford
+algebras (with nilpotents) over all three, and focus on the characteristic-$2$
+nimber case, where the Clifford algebra is classified by the \emph{Arf
+invariant} of an $\F_2$ quadratic form (Ovsienko). This is an experimental note.
+Its modest contributions are: (i) an implementation that keeps the quadratic and
+polar forms independent, so the char-$2$ theory is faithful, and that computes
+the Arf invariant over any nim-subfield via the field trace; (ii) the
+observation, verified computationally, that the Arf-bearing Gold forms
+$\Tr(x^{1+2^a})$ are \emph{composites of combinatorial-game operations}; and
+(iii) the framing of the Arf invariant as a \emph{win-bias}: by Dickson's
+democratic-value theorem it is exactly the sign of the majority margin of the
+form's zero-set, which we confirm on the game-built forms. We close with a sharp
+open question: is there a \emph{natural} game whose $P$-positions are such a
+form's zero set? The classical results we lean on (the Arf--Clifford
+correspondence, Dickson's theorem, the Gold-function ranks, and
+Turning-Corners~$=$~nim-multiplication) are reproduced by the tool as
+validation, not claimed as new.
+\end{abstract}
+
+\section{Why three backends}
+
+A (short, partizan) combinatorial game is a pair $\{L \mid R\}$ of sets of
+previously-constructed games; under the disjunctive sum the games form a
+partially ordered abelian group~\cite{Conway76,WW}. They do \emph{not} form a
+ring: Conway's game product is only a congruence on the \emph{numbers}, the
+surreal subclass~$\No$. A Clifford algebra is a quotient of a tensor algebra and
+requires a commutative ring of scalars, so ``Clifford over games'' is forced
+onto the field-like cores of game-world:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+core & structure & Clifford flavour \\
+\midrule
+$\No$ (surreals) & real-closed field, char $0$ & the $\Cl(p,q)$ theory over $\mathbb{R}$, exotic scalars \\
+$\No[i]$ (surcomplex) & algebraically closed, char $0$ & the complex Clifford theory \\
+$\On$ (nimbers) & algebraically closed, char $\mathbf{2}$ & genuinely different \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+$\No$ is real-closed~\cite{Conway76}, so finite-dimensional Clifford algebras
+over it are classified exactly as over $\mathbb{R}$ (the $8$-fold periodicity),
+but one may now use infinite or infinitesimal metric entries such as
+$e_0^2=\omega$, $e_1^2=\varepsilon=\omega^{-1}$. $\No[i]$ is algebraically
+closed and gives the complex theory. The nimbers $\On$---the ordinals under
+nim-addition and nim-multiplication---form an algebraically closed field of
+\emph{characteristic $2$}~\cite{Conway76}, with the finite subfields
+$\F_{2^{2^k}}$ consisting of the nimbers below $2^{2^k}$. This is the only core
+where Clifford theory acquires a new character, and it is our focus.
+
+\section{Characteristic $2$, faithfully}
+
+In characteristic $2$ a quadratic form is not determined by a symmetric bilinear
+form. Writing $q_i = Q(e_i)$ for the squares and $b_{ij}=Q(e_i+e_j)+Q(e_i)+Q(e_j)$
+for the polar form, the relations defining the algebra are
+\[
+  e_i^2 = q_i, \qquad e_i e_j + e_j e_i = b_{ij},
+\]
+and the polar form is \emph{alternating} ($b_{ii}=0$) while $q_i$ may be nonzero.
+If one collapses $(q,b)$ into a single symmetric bilinear form, every char-$2$
+algebra over an orthogonal basis becomes commutative and the content is lost.
+\texttt{pleroma} therefore stores $q$ and $b$ as independent data and reduces
+products by a word-rewriting routine whose only use of the sign is through the
+scalar's own negation; since $-1=1$ in $\On$, the char-$2$ sign-vanishing falls
+out automatically.
+
+For a nonsingular quadratic form $Q$ on $\F_2^{2m}$ with symplectic basis
+$\{a_k,b_k\}$, the \emph{Arf invariant} is
+\(
+  \Arf(Q) = \sum_{k} Q(a_k)\,Q(b_k) \in \F_2
+\)~\cite{Arf41};
+it is independent of the basis and is a complete invariant. The crucial fact for
+us is the classification it controls.
+
+\begin{quotation}
+\noindent\textbf{Theorem (Ovsienko~\cite{Ovsienko16}).} The classification of
+(real) Clifford algebras is equivalent to the classification of quadratic forms
+over $\F_2$, with the Arf invariant the complete invariant.
+\end{quotation}
+
+\noindent
+So computing $\Arf$ of a nim-Clifford form returns the isomorphism class of the
+algebra: it is the char-$2$ Clifford classifier, not a toy. \texttt{pleroma}
+computes it for a form over any nim-subfield $\F_{2^{2^k}}$ by symplectic
+reduction over the field, then pushes the result to $\F_2$ via the trace
+$\Tr_{\F_{2^m}/\F_2}(x)=x+x^2+\cdots+x^{2^{m-1}}$, which realises the canonical
+isomorphism $k/\wp(k)\cong\F_2$. Over $\F_4$, for instance, the form with
+$q=(\ast 2,\ast 2)$ is of type $O^-$ and $q=(\ast 2,\ast 3)$ is hyperbolic.
+
+\section{The bridge to games}
+
+Nim-addition is the disjunctive sum (Sprague--Grundy), and nim-multiplication is
+itself a game. Conway's \emph{Turning Corners} has, for the single coin at
+$(x,y)$, the Grundy value given by the excludant recurrence
+\begin{equation}\label{eq:tc}
+  x \nimmul y \;=\; \operatorname{mex}\bigl\{\,(i\nimmul y)\oplus(x\nimmul j)\oplus(i\nimmul j)
+        \;:\; 0\le i<x,\ 0\le j<y \,\bigr\},
+\end{equation}
+which is Conway's definition of nim-multiplication~\cite{Conway76,WW}. We
+implement~\eqref{eq:tc} directly and verify it agrees with the algebraic
+Fermat-power product (computed via $F_n\nimmul F_n=\tfrac32 F_n$ for Fermat
+$2$-powers $F_n=2^{2^n}$) on all pairs $x,y<48$: two independent definitions,
+one combinatorial and one field-theoretic, of the same product.
+
+This makes three operations game-realizable: the nim-product $\nimmul$ (Turning
+Corners), the Frobenius $\square\colon v\mapsto v^2 = v\nimmul v$ (the diagonal
+of Turning Corners), and $\oplus$ (disjunctive sum); hence also the trace, which
+is iterated $\square$ and $\oplus$.
+
+\paragraph{Gold forms, and a validation.}
+The natural quadratic forms on a char-$2$ field are
+$Q_a(x)=\Tr\!\left(x\cdot x^{2^a}\right)=\Tr\!\left(x^{1+2^a}\right)$, the
+\emph{Gold forms}~\cite{Gold68}: $g=\mathrm{Frob}^a$ is additive, so $Q_a$ is
+genuinely quadratic. As a standard cross-check, the polar-form rank our
+classifier computes reproduces the known Gold-function rank
+$\operatorname{rank}=m-2\gcd(a,m)$ (in the regime $m=2^k$, where $m/\gcd$ is
+even)~\cite{LN}; see Table~\ref{tab:gold}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rrccccc}
+\toprule
+field & $a$ & $Q$ & $\Arf$ & type & rank & $m-2\gcd(a,m)$ \\
+\midrule
+$\F_{2^{4}}$  & $1$ & $\Tr(x^3)$    & $1$ & $O^-$ & $2$  & $2$ \\
+$\F_{2^{8}}$  & $1$ & $\Tr(x^3)$    & $1$ & $O^-$ & $6$  & $6$ \\
+$\F_{2^{8}}$  & $2$ & $\Tr(x^5)$    & $1$ & $O^-$ & $4$  & $4$ \\
+$\F_{2^{16}}$ & $1$ & $\Tr(x^3)$    & $1$ & $O^-$ & $14$ & $14$ \\
+$\F_{2^{16}}$ & $4$ & $\Tr(x^{17})$ & $1$ & $O^-$ & $8$  & $8$ \\
+$\F_{2^{32}}$ & $1$ & $\Tr(x^3)$    & $1$ & $O^-$ & $30$ & $30$ \\
+\bottomrule
+\end{tabular}
+\caption{The classifier's rank matches the Gold-function formula
+(15/15 cases up to $m=32$; a representative selection).}
+\label{tab:gold}
+\end{table}
+
+\paragraph{The Gold forms are game-built.}
+Because $\nimmul$, $\square$, $\oplus$, and the trace are all game operations,
+the Gold form
+\(
+  Q_a(v) = \Tr\!\bigl(v \nimmul v^{2^a}\bigr)
+\)
+is a composite of combinatorial-game operations applied to a position's nimber
+value $v$ (and under the $1$-dimensional coin-turning game with single-coin
+Grundy value $g(n)=2^n$, a position's value \emph{is} a nimber). We confirm this
+by rebuilding $Q_a$ from literal Turning-Corners products and checking equality
+with the field computation on the small fields where the
+recurrence~\eqref{eq:tc} is tractable.
+
+\begin{observation}\label{obs:built}
+The quadratic forms whose Arf invariants classify the nim-Clifford algebras are
+not merely defined over the value field of games; they are composites of game
+operations. The char-$2$ Clifford theory is, in this constructive sense, made of
+games.
+\end{observation}
+
+\section{The Arf invariant as a win-bias}
+
+The semantic payoff comes from a classical counting fact.
+
+\begin{quotation}
+\noindent\textbf{Theorem (Dickson~\cite{Dickson01}; Arf~\cite{Arf41}).}
+Over $\F_2$, the Arf invariant of a quadratic form is the value the form takes
+most often. For a nonsingular form on $\F_2^{2m'}$,
+\[
+  \#\{\,v : Q(v)=0\,\} \;=\; 2^{2m'-1} + (-1)^{\Arf(Q)}\,2^{m'-1}.
+\]
+\end{quotation}
+
+\noindent
+Read game-theoretically: if a game had $P$-positions (second-player wins)
+exactly $\{v:Q(v)=0\}$, then $\Arf(Q)$ would be precisely the \emph{sign of the
+win-bias}---which player wins from more starting positions---with a fixed margin
+of $2^{m'-1}$, a Gauss-sum, i.e.\ a square-root-scale fluctuation about
+$50/50$. The Arf invariant is the second-order tiebreaker of an otherwise
+near-fair game.
+
+We verify the count directly on the game-built Gold forms, handling the radical:
+for rank $r$ and an isotropic radical, $\#\{Q=0\}=2^{m-1}+(-1)^{\Arf}2^{m-r/2-1}$
+(and exactly $2^{m-1}$ when the radical is anisotropic). The brute-forced
+zero-counts match in every case (Table~\ref{tab:bias}).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rrcccr}
+\toprule
+field & $a$ & $\Arf$ & rank & $\#\{Q=0\}$ & bias \\
+\midrule
+$\F_{2^{4}}$  & $1$ & $1$ & $2$  & $4$     & $-4$ \\
+$\F_{2^{8}}$  & $1$ & $1$ & $6$  & $112$   & $-16$ \\
+$\F_{2^{8}}$  & $2$ & $1$ & $4$  & $96$    & $-32$ \\
+$\F_{2^{16}}$ & $1$ & $1$ & $14$ & $32512$ & $-256$ \\
+$\F_{2^{16}}$ & $4$ & $1$ & $8$  & $30720$ & $-2048$ \\
+\bottomrule
+\end{tabular}
+\caption{Zero-counts of the game-built Gold forms match
+$2^{m-1}+(-1)^{\Arf}2^{m-r/2-1}$ (bias $=\#\{Q=0\}-2^{m-1}$);
+10/10 cases verified.}
+\label{tab:bias}
+\end{table}
+
+\begin{observation}
+On the game-built forms, the Arf invariant equals the win-bias in the counting
+sense: it is the sign of the majority margin of the zero-set.
+\end{observation}
+
+\section{What remains open}
+
+The bridge closes at the level of \emph{construction} (Observation~\ref{obs:built})
+and of \emph{counting} (the Arf invariant is the zero-set bias). What is not
+established is a \emph{realisation}: a natural game whose $P$-positions are
+$\{v:Q(v)=0\}$. The obstruction is structural and informative.
+
+\begin{remark}
+Normal-play disjunctive sums cannot do it. Their outcomes are $\oplus$-linear in
+the components (Sprague--Grundy), so a $P$-position set is always a linear
+subspace, never a genuine quadric. This is exactly why coin-turning yields the
+\emph{bilinear} nim-product but not a quadratic refinement.
+\end{remark}
+
+\begin{question}
+Is there a natural, necessarily non-disjunctive game whose $P$-positions are the
+zero set of a Gold form $Q_a$ (equivalently, whose win-bias is read off by
+$\Arf(Q_a)$)? Two candidate families avoid the linearity obstruction:
+\emph{interactive} coin-turning / lights-out games coupled through the polar form
+$b$, and \emph{misère} play, where sums are genuinely non-linear and quadratic
+structure can live in a misère quotient~\cite{WW}. We are not aware of either in
+the literature; Welter's game, the deepest relative, lands in the representation
+theory of symmetric groups~\cite{Irie18} rather than in Arf invariants.
+\end{question}
+
+A candidate must hit the win-bias of Table~\ref{tab:bias}; \texttt{pleroma}
+makes that target computable. The source, tests, and the three experiments
+underlying Tables~\ref{tab:gold} and~\ref{tab:bias} are available at
+\url{https://github.com/a9lim/pleroma}.
+
+\section*{Acknowledgements}
+The \texttt{pleroma} library, the experiments, and this note were developed in
+collaboration with Claude (Anthropic), which wrote the Rust/Python
+implementation and ran the computational probes; direction, framing, and
+verification are the author's.
+
+\begin{thebibliography}{9}
+\bibitem{Arf41} C.~Arf, \emph{Untersuchungen \"uber quadratische Formen in
+K\"orpern der Charakteristik~2, I}, J.\ Reine Angew.\ Math.\ \textbf{183}
+(1941), 148--167.
+\bibitem{WW} E.~R.~Berlekamp, J.~H.~Conway, R.~K.~Guy, \emph{Winning Ways for
+Your Mathematical Plays}, 2nd ed., A~K Peters, 2001--2004.
+\bibitem{Conway76} J.~H.~Conway, \emph{On Numbers and Games}, Academic Press,
+1976.
+\bibitem{Dickson01} L.~E.~Dickson, \emph{Linear Groups, with an Exposition of
+the Galois Field Theory}, Teubner, 1901.
+\bibitem{Gold68} R.~Gold, \emph{Maximal recursive sequences with $3$-valued
+recursive cross-correlation functions}, IEEE Trans.\ Inform.\ Theory \textbf{14}
+(1968), 154--156.
+\bibitem{Irie18} Y.~Irie, \emph{$p$-Saturations of Welter's game and the
+irreducible representations of symmetric groups}, J.\ Algebraic Combin.\
+(2018); arXiv:1604.07214.
+\bibitem{LN} R.~Lidl, H.~Niederreiter, \emph{Finite Fields}, 2nd ed., Cambridge
+University Press, 1997.
+\bibitem{Ovsienko16} V.~Ovsienko, \emph{Real Clifford algebras and quadratic
+forms over $\F_2$: two old problems become one}, The Mathematical Intelligencer
+\textbf{38} (2016); arXiv:1601.07664.
+\end{thebibliography}
+
+\end{document}

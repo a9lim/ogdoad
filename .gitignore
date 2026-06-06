@@ -5,3 +5,9 @@ __pycache__/
 *.pyd
 .venv/
 dist/
+
+# LaTeX: keep .tex and the compiled .pdf; ignore the local tectonic binary + aux
+writeup/tectonic
+writeup/*.aux
+writeup/*.log
+writeup/*.out
