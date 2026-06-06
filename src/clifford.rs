@@ -31,7 +31,7 @@ use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
 /// Ascending list of set-bit indices of a blade mask.
-fn bits(mask: u32) -> Vec<usize> {
+pub fn bits(mask: u32) -> Vec<usize> {
     let mut v = Vec::new();
     let mut m = mask;
     while m != 0 {
@@ -42,7 +42,8 @@ fn bits(mask: u32) -> Vec<usize> {
     v
 }
 
-fn grade(mask: u32) -> u32 {
+/// The grade (number of generators) of a blade mask.
+pub fn grade(mask: u32) -> u32 {
     mask.count_ones()
 }
 

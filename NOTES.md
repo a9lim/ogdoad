@@ -368,10 +368,146 @@ structure (antisymmetry, grading) is perfectly well defined on them. The
 the structural answer to "what lives on the whole game group, not just its
 numbers."
 
+# The expansion pass: more number systems, configurations, intricacies
+
+A second arc widens the project along three axes — new scalar worlds, new
+geometric-algebra structure on the engine, and deeper invariant theory — each
+landed as an additive, `cargo test`-green module. The through-line is the same
+char-0/char-2 mirror the rest of the repo runs on.
+
+## New scalar worlds
+
+### Odd characteristic: `Fp` and the invariant trichotomy (`fp.rs`, `disc.rs`)
+
+The classifier story had a hole. Char 0 is named by signature → a matrix algebra
+(`classify.rs`); char 2 by the Arf invariant (`arf.rs`); **odd characteristic**
+had neither backend nor classifier. `fp.rs` adds `Fp<const P>` — the prime field
+`F_P`, carried in the *type* (a different prime is a different type, matching the
+per-backend no-mixing discipline; the modulus can't live in the value because
+`Scalar::zero()`/`one()` take no `self`). Unlike the nimbers, `neg` here is a
+genuine negation (`P−a ≠ a`), so the Clifford antisymmetry signs are real.
+
+`disc.rs` then completes the trichotomy: over a finite field a nondegenerate form
+is classified completely by **dimension + discriminant** (det mod squares) — the
+odd-char analogue of Arf-completeness, verified here against an *independent*
+brute-force congruence search. The **Hasse–Witt / Clifford invariant** is
+computed honestly (a search for a representing vector) and comes out identically
+`+1`: finite fields have trivial Brauer group, so it adds no classifying power —
+we compute it to *exhibit* that, not to lean on it. `witt::WittClassG` is the
+group-theoretic home: a `Char0/OddChar/Char2` enum whose odd-char part is the
+order-4 Witt group `W(F_q)` — `ℤ/4` when `−1` is a nonsquare (`q≡3 mod 4`),
+`ℤ/2×ℤ/2` when it is a square (`q≡1 mod 4`). The group law uses the **signed**
+discriminant `(−1)^{m(m−1)/2}·det` (a genuine Witt invariant, unlike the bare
+det); the `(−1)^{mn}` twist in its `⊥`-multiplication is exactly what produces
+the `ℤ/4` — verified by walking the order of `⟨1⟩` in both fields. This is the
+characteristic mirror of the existing Artin–Schreier↔Arf unification: **signature
+/ discriminant+Hasse / Arf, one trichotomy across the three characteristics.**
+
+### Omnific integers `Oz` (`omnific.rs`)
+
+The surreal mirror of the `ℤ` backend: a *transfinite commutative ring*. A surreal
+is an omnific integer iff its CNF has no infinitesimal terms and an integer
+constant term (`ω`, `ω²+3`, `½ω` yes; `ε`, `ω+½`, `5/3` no). A Clifford algebra
+needs only a commutative ring of scalars, so `Oz` supports the
+Clifford-with-nilpotents / exterior structure — the headline being an **exterior
+algebra with genuinely transfinite coefficients** (`ω·e₀ ∧ e₁ = ω·e₀e₁`), checked
+against the `ℤ` backend on integer inputs. Only `±1` are units (it is a ring, not
+a field: `1/ω = ε` leaves `Oz`).
+
+### Transfinite (ordinal) nimbers (`onag.rs`)
+
+The shipped `Nimber(u64)` backend is a *single* layer `F_{2^64}`; even `⋃ F_{2^{2^n}}`
+is not algebraically closed (it lacks `F₈`, degree 3), despite the docs leaning on
+On₂'s closure. `onag.rs` is the char-2 mirror of `surreal.rs`: ordinals in Cantor
+normal form, with the same exponent-only recursion as the termination argument.
+**nim-addition is complete and exact** — like-`ω`-power coefficients XOR, giving
+the genuine transfinite characteristic-2 additive group (`ω⊕ω=0`, `ω⊕1=ω+1`,
+`ω·2⊕ω=ω·3`). **nim-multiplication is partial by design**: finite×finite delegates
+to the proven `nim_mul`; any infinite operand returns `None`. The general ordinal
+nim-product (Conway *ONAG* ch. 6 / Lenstra 1978) is intricate and *staged*; the
+landmark it must reproduce — Conway's `ω³ = 2` (ω is the nim-cube-root of 2, the
+source of the missing `F₈`) — is recorded as the target, but `ω⊗ω` is **not**
+hardcoded, since its value is not asserted without the reference worked through.
+This is the one feature deliberately left half-built, with the boundary explicit.
+
+## New geometric-algebra structure on the engine
+
+### Outermorphisms and the determinant (`outermorphism.rs`)
+
+A grade-1 linear map lifts to an algebra endomorphism by `f(a∧b)=f(a)∧f(b)`. The
+**determinant** falls out as Grassmann defined it — the scalar by which the lift
+scales the pseudoscalar, `f(I)=det(f)·I` — a computation structurally independent
+of cofactor expansion, so it doubles as an engine check. Multiplicativity
+`det(f∘g)=det(f)det(g)` is verified over Rational *and* Nimber: the char-2
+determinant (= permanent) comes out right with no sign hardcoded, because the lift
+inherits its signs from `wedge`.
+
+### The exterior Hopf algebra (`hopf.rs`)
+
+Coproduct (the unshuffle split on blades, `Δ(e_S)=Σ_{T⊆S} sign·(e_T⊗e_{S∖T})`,
+the sign read straight off `wedge` so char 2 collapses it to `+`), counit, and
+antipode, with the Hopf axioms — counit law, coassociativity, and the antipode
+axiom `m∘(S⊗id)∘Δ=η∘ε` — checked over both characteristics. A worked subtlety: for
+this primitively-generated coproduct the antipode is the **grade involution**
+`(−1)^k`, *not* the reversion-twisted `(−1)^{k(k+1)/2}` — `S(v∧w)=+v∧w` by the
+axiom, which the tests pin down.
+
+### Conformal and projective GA, over the surreals (`cga.rs`)
+
+The conformal model `Cl(n+1,1)` in a null basis (`up(p)=n_o+p+½|p|²n_∞`,
+`up(p)·up(q)=−½|p−q|²`), generic over the scalar — so it runs over the **surreals**,
+where a point sits at `ω`-scale and is *still* exactly null, and a sphere of
+radius `ε` exactly contains a point at infinitesimal distance and excludes one at
+`2ε`. Both are impossible with floating point. (A worked bug: the inner product
+must be symmetrized `½⟨xy+yx⟩` — the engine carries the polar form in the
+anticommutator, so `⟨xy⟩₀` alone is the asymmetric contraction.) CGA needs `½`, so
+it is a char-0 feature. PGA `Cl(n,0,1)` adds the **exact nilpotent-motor
+exponential**: `exp(B)=1+B+…` terminates when `B²=0`, giving exact translations
+(`exp(e₀∧e₁)` translates `e₁↦e₁+2e₀`) with no transcendentals — the rotational
+motor (`B²<0`, needing `cos`/`sin`) is honestly out of scope and returns `None`.
+
+### Concrete spinor modules (`spinor.rs`)
+
+Where `classify.rs` *names* `Cl(p,q)≅M_d(K)`, this *builds* it: a primitive
+idempotent `f=∏½(1+w)` from commuting `+1`-square blades, the minimal left ideal
+`Cl·f`, and the matrices of left multiplication by each generator on it. Those
+matrices satisfy the Clifford relations `Mᵢ²=qᵢ·I`, `MᵢMⱼ+MⱼMᵢ=0` automatically,
+and the ideal dimension matches the classifier's `matrix_dim·dim_ℝ(K)` — verified
+on `Cl(2,0)`, `Cl(3,0)` (Pauli), `Cl(0,2)` (quaternion), `Cl(1,1)`, `Cl(4,0)`. The
+abstract classification, realized as explicit operators on column spinors.
+
+## Deeper invariant theory
+
+### Non-Archimedean Springer decomposition (`springer.rs`)
+
+The surreal Hahn field `ℝ((ω^No))` is real-closed but non-Archimedean, with the
+ω-adic valuation. `springer_decompose` splits a diagonal form into
+**valuation-graded residue forms** over ℝ — the form's entries bucketed by leading
+exponent, each piece a residue ℝ-signature. The honest headline: because the value
+group `No` is **2-divisible** (`Γ/2Γ=0`), Springer gives `W(No)≅W(ℝ)=ℤ` — *no
+bigger Witt group*. The novelty is the valuation **filtration** itself, which no
+Archimedean Clifford library exposes (over ℝ every nonzero entry has valuation 0);
+the built-in check is that the residue signatures sum to the ordinary
+`classify_surreal` signature.
+
 ## References
 
 - C. Arf, *Untersuchungen über quadratische Formen in Körpern der
   Charakteristik 2* (1941).
+- J. H. Conway, *On Numbers and Games*, ch. 6 (the field On₂ of ordinal nimbers;
+  ω³ = 2; algebraic closure below ω^{ω^ω}).
+- H. W. Lenstra, *Nim multiplication* (Séminaire de Théorie des Nombres, 1978).
+- T. Y. Lam, *Introduction to Quadratic Forms over Fields* (the Witt group of a
+  finite field; signed discriminant and Hasse invariant).
+- T. A. Springer, *Quadratic forms over fields with a discrete valuation* (1955).
+- D. Hestenes & G. Sobczyk, *Clifford Algebra to Geometric Calculus* (the
+  outermorphism and the determinant as the pseudoscalar action).
+- H. Li, *Invariant Algebras and Geometric Reasoning* / D. Hestenes, *Conformal
+  geometric algebra* (the null-cone model `up(p)=n_o+p+½|p|²n_∞`).
+- B. Fauser & Z. Oziewicz, *Clifford Hopf gebra* (the exterior/Clifford Hopf
+  structure: coproduct, counit, antipode).
+- P. Lounesto, *Clifford Algebras and Spinors*, ch. on minimal left ideals (the
+  primitive-idempotent construction of spinor modules).
 - Berlekamp, Conway, Guy, *Winning Ways for Your Mathematical Plays*, vol. 3
   (coin-turning games; Turning Turtles / Turning Corners; the Product Theorem).
 - Conway, *On Numbers and Games* (the surreal/nimber fields; `On₂`).

@@ -40,14 +40,45 @@ src/
                 # versor/GA layer: versor_inverse, sandwich, twisted_sandwich
                 # (Pin action), reflect, left/right_contract, dual,
                 # grade_involution, norm2. Plus even_part / even_subalgebra and
-                # direct_sum / graded_tensor.
+                # direct_sum / graded_tensor. (bits/grade are now pub.)
+  outermorphism.rs # lift a grade-1 LinearMap<S> to all grades (f(a∧b)=f(a)∧f(b));
+                # determinant as the pseudoscalar action f(I)=det·I; compose,
+                # inverse_outermorphism. Char-faithful (det multiplicative over
+                # Nimber too — the char-2 determinant).
+  hopf.rs       # the exterior Hopf algebra: unshuffle coproduct (sign read off
+                # wedge), counit, antipode = grade involution (NOT reversion-
+                # twist). Hopf axioms tested over Rational AND Nimber.
+  cga.rs        # conformal (Cl(n+1,1) null basis: up/down/inner/sphere/plane/
+                # meet) + projective (pga = Cl(n,0,1), exp_nilpotent terminating
+                # motor exp) GA. Char-0 (needs ½); surreal ∞/ε radii are exact.
+  spinor.rs     # concrete minimal left ideals Cl·f from a primitive idempotent
+                # ∏½(1+w); basis + gen_matrices realizing M_d(K) on column
+                # spinors. Ideal dim matches classify; Clifford relations hold.
   surreal.rs    # Conway normal form: Vec<(exponent: Surreal, coeff: Rational)>
                 # with recursive exponents. Hahn arithmetic: ω^a·ω^b = ω^{a+b}.
+                # (Rational now has is_integer, used by omnific.rs.)
   surcomplex.rs # Surcomplex<S> = adjoin i over any backend.
+  omnific.rs    # the omnific integers Oz: Omnific(Surreal) newtype, a transfinite
+                # commutative RING (not field). Surreal mirror of the Integer
+                # backend; supports the exterior algebra with ω-scale coefficients.
+  fp.rs         # Fp<const P>: the prime field F_P (odd characteristic), a
+                # comparison backend completing the char trichotomy. Genuine neg.
+  onag.rs       # transfinite (ordinal) nimbers: Ordinal in CNF (mirror of
+                # surreal.rs). nim-add COMPLETE (coeff XOR); nim-mul PARTIAL
+                # (finite via nim_mul, infinite staged — ω³=2 is the target). The
+                # char-2 mirror that makes On₂'s closure reachable (lacks F₈ today).
   classify.rs   # the char-0 Clifford classifier (companion to arf.rs): Cl(p,q)
                 # → matrix algebra over ℝ/ℂ/ℍ via the 8-fold table (real-closed
                 # surreal/rational) and the 2-fold table (surcomplex). Diagonal
                 # metrics; signature read off the surreal/rational signs.
+  disc.rs       # the odd-char classifier (third leg of the trichotomy): discriminant
+                # + is_square (Euler) + hilbert_symbol/hasse_invariant (≡ +1 over
+                # finite fields) + classify_oddchar + oddchar_witt. dim+disc
+                # completeness checked vs a brute-force congruence search.
+  springer.rs   # non-Archimedean Springer decomposition over the surreals: a
+                # diagonal form's ω-adic valuation filtration into residue ℝ-forms.
+                # Honest: value group is 2-divisible ⇒ W(No)=W(ℝ)=ℤ (no bigger
+                # group); the filtration itself is the novelty.
   arf.rs        # Arf invariant (the char-2 Clifford classifier): arf_f2 (F₂,
                 # bitmask) + arf_nimber (any nim-field, via symplectic reduction
                 # + the field trace). arf_invariant routes to arf_nimber. Also
@@ -56,7 +87,9 @@ src/
                 # fit_f2_quadratic (is a set a quadric? its Arf?) — the shared
                 # test bench for the open-question probes.
   witt.rs       # WittClass: the Witt group W_q(F) ≅ ℤ/2 of a finite nim-field,
-                # Arf-classified. Makes A⊕A ≅ H⊕H a one-line group identity.
+                # Arf-classified. Makes A⊕A ≅ H⊕H a one-line group identity. Plus
+                # WittClassG: the Char0/OddChar/Char2 trichotomy enum (odd-char is
+                # the order-4 group ℤ/4 or ℤ/2×ℤ/2; see disc.rs).
   games.rs      # nim_mul_mex: nim-multiplication as Conway's Turning-Corners
                 # mex recurrence (the GAME definition); == algebraic nim_mul.
                 # Also general 1-D coin-turning games (grundy_1d) and the 2-D

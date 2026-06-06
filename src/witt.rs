@@ -78,6 +78,100 @@ impl WittClass {
     }
 }
 
+/// The Witt class across **all three characteristics** — the group-theoretic
+/// home of the classifier trichotomy (char-0 signature / odd-char
+/// discriminant / char-2 Arf), mirroring the Artin–Schreier↔Arf unification.
+///
+/// * `Char0`: over a real-closed field `W(ℝ) ≅ ℤ`, classified by the signature
+///   `p − q` (the only invariant; the group law adds signatures).
+/// * `OddChar`: over a finite field `F_q` of odd characteristic `W(F_q)` has
+///   order 4. Its invariants are `e0 = dim mod 2` and `sclass` = the
+///   **signed discriminant** `(−1)^{m(m−1)/2}·det` mod squares (a genuine Witt
+///   invariant, unlike the ordinary det when `−1` is a nonsquare). The group is
+///   `ℤ/4` when `−1` is a nonsquare (`q ≡ 3 mod 4`, `kappa = 1`) and `ℤ/2 × ℤ/2`
+///   when `−1` is a square (`q ≡ 1 mod 4`, `kappa = 0`). The `(−1)^{mn}`
+///   correction in the signed-discriminant sum is exactly the `kappa` term in
+///   `add`, and is what produces the `ℤ/4` when `kappa = 1`.
+/// * `Char2`: over a finite nim-field `W ≅ ℤ/2`, classified by the Arf invariant
+///   (this is the existing `WittClass`, re-homed as a variant).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WittClassG {
+    Char0 {
+        signature: isize,
+    },
+    OddChar {
+        /// nonsquareness of `−1`: 0 if `−1` is a square (`q≡1 mod 4`), else 1.
+        kappa: u8,
+        /// dimension mod 2.
+        e0: u8,
+        /// signed-discriminant square-class: 0 if a square, 1 if a nonsquare.
+        sclass: u8,
+    },
+    Char2 {
+        arf: u8,
+    },
+}
+
+impl WittClassG {
+    /// Char-0 Witt class from a signature `(p, q)`.
+    pub fn char0(p: usize, q: usize) -> Self {
+        WittClassG::Char0 {
+            signature: p as isize - q as isize,
+        }
+    }
+
+    /// Char-2 Witt class from a nimber metric (the Arf invariant).
+    pub fn char2_from_metric(metric: &Metric<Nimber>) -> Self {
+        WittClassG::Char2 {
+            arf: arf_invariant(metric).arf,
+        }
+    }
+
+    /// The identity of the odd-char group with the given `kappa`.
+    pub fn oddchar_zero(kappa: u8) -> Self {
+        WittClassG::OddChar {
+            kappa,
+            e0: 0,
+            sclass: 0,
+        }
+    }
+
+    /// The group operation `⊥`. Panics if the two classes are in different
+    /// characteristic regimes (you cannot add across characteristics).
+    pub fn add(&self, other: &WittClassG) -> WittClassG {
+        match (*self, *other) {
+            (WittClassG::Char0 { signature: a }, WittClassG::Char0 { signature: b }) => {
+                WittClassG::Char0 { signature: a + b }
+            }
+            (WittClassG::Char2 { arf: a }, WittClassG::Char2 { arf: b }) => {
+                WittClassG::Char2 { arf: a ^ b }
+            }
+            (
+                WittClassG::OddChar {
+                    kappa: ka,
+                    e0: e0a,
+                    sclass: sa,
+                },
+                WittClassG::OddChar {
+                    kappa: kb,
+                    e0: e0b,
+                    sclass: sb,
+                },
+            ) => {
+                assert_eq!(ka, kb, "odd-char Witt classes from different fields");
+                // signed-disc multiplies with a (−1)^{mn} = (−1)^{e0a·e0b} twist:
+                let twist = if e0a & e0b == 1 { ka } else { 0 };
+                WittClassG::OddChar {
+                    kappa: ka,
+                    e0: e0a ^ e0b,
+                    sclass: sa ^ sb ^ twist,
+                }
+            }
+            _ => panic!("cannot add Witt classes across characteristics"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

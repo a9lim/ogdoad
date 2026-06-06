@@ -82,6 +82,12 @@ impl Rational {
     pub fn sign(&self) -> Ordering {
         self.num.cmp(&0)
     }
+
+    /// True iff this rational is a (rational) integer, i.e. its denominator is 1.
+    /// Used by the omnific-integer backend to test the constant CNF term.
+    pub fn is_integer(&self) -> bool {
+        self.den == 1
+    }
 }
 
 impl fmt::Debug for Rational {
