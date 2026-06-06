@@ -2,7 +2,7 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage{booktabs}
+\usepackage{array,booktabs}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 
@@ -20,8 +20,7 @@
 \newcommand{\nimmul}{\otimes}
 \newcommand{\Cl}{\mathrm{Cl}}
 
-\title{Clifford algebras over the field-cores of combinatorial games,\\
-and the Arf invariant as a win-bias}
+\title{Draft: game-built quadratic forms in the nimber Clifford backend}
 \author{a9lim}
 \date{June 2026}
 
@@ -29,147 +28,154 @@ and the Arf invariant as a win-bias}
 \maketitle
 
 \begin{abstract}
-Conway's combinatorial games form a partially ordered abelian group under
-disjunctive sum but not a ring, so a Clifford algebra---which needs a
-commutative scalar ring---can only be built over the field-like subclasses of
-game-world: the surreal numbers $\No$, the surcomplex numbers $\No[i]$, and the
-nimbers $\On$. We describe \texttt{pleroma}, a small library realising Clifford
-algebras (with nilpotents) over all three, and focus on the characteristic-$2$
-nimber case, where the Clifford algebra is classified by the \emph{Arf
-invariant} of an $\F_2$ quadratic form (Ovsienko). This is an experimental note.
-Its modest contributions are: (i) an implementation that keeps the quadratic and
-polar forms independent, so the char-$2$ theory is faithful, and that computes
-the Arf invariant over any nim-subfield via the field trace; (ii) the
-observation, verified computationally, that the Arf-bearing Gold forms
-$\Tr(x^{1+2^a})$ are \emph{composites of combinatorial-game operations}; and
-(iii) the framing of the Arf invariant as a \emph{win-bias}: by Dickson's
-democratic-value theorem it is exactly the sign of the majority margin of the
-form's zero-set, which we confirm on the game-built forms. We close with a sharp
-open question---is there a \emph{natural} game whose $P$-positions are such a
-form's zero set?---and narrow it with two computational probes: an
-interactive-game kernel solver and a (bounded) misère indistinguishability-quotient
-computer. These pin the obstruction to the polar form, separate a tautological
-``solution'' (a rule that references $Q$ itself) from a genuine one, and, via a
-sweep of $292$ octal games, rule out the one misère-quotient shape that could
-host such a zero set as a quadric in the range searched. We then prove a
-structural no-go that explains these negatives uniformly: a game whose move rule
-sees only the symplectic form $B$ is $\mathrm{Sp}(B)$-equivariant, hence---as
-$\mathrm{Sp}(B)$ is transitive on nonzero vectors---can have no quadric as its
-$P$-set; a game that also reads the coordinate frame does realise a genuine
-quadric, but the \emph{split} one, and the gap to the Gold form is exactly a
-\emph{framing}, the diagonal $q_i=\Tr(e_i^{1+2^a})$, which we find always carries
-$\Arf=1$. The classical results we
-lean on (the Arf--Clifford correspondence, Dickson's theorem, the Gold-function
-ranks, and Turning-Corners~$=$~nim-multiplication) are reproduced by the tool as
-validation, not claimed as new.
+This is a draft experimental note about the part of \texttt{pleroma} that seems
+mathematically worth isolating. Conway games under disjunctive sum do not form a
+scalar ring, so the project does not construct ``Clifford algebras over all
+games''. Instead it builds Clifford algebras over field-like game-value worlds,
+with emphasis on the characteristic-$2$ nimber backend. The main point is that
+the char-$2$ engine keeps the quadratic data $q_i=e_i^2$ and the polar data
+$b_{ij}=e_i e_j+e_j e_i$ independent, then computes trace-Arf invariants of
+quadratic forms over finite nimber subfields.
+
+The experimental bridge is this: the Gold trace forms
+\[
+  Q_a(x)=\Tr(x\,x^{2^a})
+\]
+are standard quadratic forms over fields of characteristic $2$, but in the
+nimber setting they are also composites of combinatorial-game operations:
+nim-product via Turning Corners, Frobenius squaring via the diagonal product,
+and XOR via disjunctive sum. Their Arf invariant has the classical zero-count
+interpretation. Therefore, if a natural game had $P$-positions exactly
+$\{x:Q_a(x)=0\}$, the Arf invariant would be the sign of the second-player
+win-bias. The note does not claim such a game has been found. It records the
+construction, the validation checks, and the current obstructions.
 \end{abstract}
 
-\section{Why three backends}
+\section{Scope}
 
-A (short, partizan) combinatorial game is a pair $\{L \mid R\}$ of sets of
-previously-constructed games; under the disjunctive sum the games form a
-partially ordered abelian group~\cite{Conway76,WW}. They do \emph{not} form a
-ring: Conway's game product is only a congruence on the \emph{numbers}, the
-surreal subclass~$\No$. A Clifford algebra is a quotient of a tensor algebra and
-requires a commutative ring of scalars, so ``Clifford over games'' is forced
-onto the field-like cores of game-world:
+A short partizan game is built recursively as $\{L\mid R\}$, and games form a
+partially ordered abelian group under disjunctive sum~\cite{Conway76,WW}. They
+do not form a ring: Conway multiplication is defined on the number subclass,
+not on arbitrary games. Since a Clifford algebra needs a commutative scalar
+ring, the phrase ``Clifford over games'' has to be interpreted through scalar
+subworlds:
 
 \begin{center}
-\begin{tabular}{lll}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.18\linewidth}
+>{\raggedright\arraybackslash}p{0.28\linewidth}
+>{\raggedright\arraybackslash}p{0.45\linewidth}@{}}
 \toprule
-core & structure & Clifford flavour \\
+world & algebraic structure & role here \\
 \midrule
-$\No$ (surreals) & real-closed field, char $0$ & the $\Cl(p,q)$ theory over $\mathbb{R}$, exotic scalars \\
-$\No[i]$ (surcomplex) & algebraically closed, char $0$ & the complex Clifford theory \\
-$\On$ (nimbers) & algebraically closed, char $\mathbf{2}$ & genuinely different \\
+$\No$ & real-closed field, char $0$ & ordinary real Clifford theory with surreal scalars \\
+$\No[i]$ & algebraically closed field, char $0$ & ordinary complex Clifford theory \\
+finite nimbers & finite fields of char $2$ & the genuinely different Clifford backend \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent
-$\No$ is real-closed~\cite{Conway76}, so finite-dimensional Clifford algebras
-over it are classified exactly as over $\mathbb{R}$ (the $8$-fold periodicity),
-but one may now use infinite or infinitesimal metric entries such as
-$e_0^2=\omega$, $e_1^2=\varepsilon=\omega^{-1}$. $\No[i]$ is algebraically
-closed and gives the complex theory. The nimbers $\On$---the ordinals under
-nim-addition and nim-multiplication---form an algebraically closed field of
-\emph{characteristic $2$}~\cite{Conway76}, with the finite subfields
-$\F_{2^{2^k}}$ consisting of the nimbers below $2^{2^k}$. This is the only core
-where Clifford theory acquires a new character, and it is our focus.
+The implemented \texttt{Nimber} scalar is finite: \texttt{u128} realizes
+$\F_{2^{128}}$, containing the nimber subfields $\F_{2^m}$ for
+$m=1,2,4,\ldots,128$. It is not the whole proper-class field $\On$.
 
-\section{Characteristic $2$, faithfully}
+\section{The char-2 Clifford datum}
 
-In characteristic $2$ a quadratic form is not determined by a symmetric bilinear
-form. Writing $q_i = Q(e_i)$ for the squares and $b_{ij}=Q(e_i+e_j)+Q(e_i)+Q(e_j)$
-for the polar form, the relations defining the algebra are
+In characteristic $2$, a quadratic form is not determined by its polar form.
+For basis vectors the Clifford relations are
 \[
-  e_i^2 = q_i, \qquad e_i e_j + e_j e_i = b_{ij},
+  e_i^2=q_i,\qquad e_i e_j+e_j e_i=b_{ij}.
 \]
-and the polar form is \emph{alternating} ($b_{ii}=0$) while $q_i$ may be nonzero.
-If one collapses $(q,b)$ into a single symmetric bilinear form, every char-$2$
-algebra over an orthogonal basis becomes commutative and the content is lost.
-\texttt{pleroma} therefore stores $q$ and $b$ as independent data and reduces
-products by a word-rewriting routine whose only use of the sign is through the
-scalar's own negation; since $-1=1$ in $\On$, the char-$2$ sign-vanishing falls
-out automatically.
+The polar form is alternating, so $b_{ii}=0$, but $q_i$ can be nonzero. A
+faithful characteristic-$2$ implementation must store $q$ and $b$ separately.
+This is the main implementation discipline behind the nimber backend.
 
-For a nonsingular quadratic form $Q$ on $\F_2^{2m}$ with symplectic basis
-$\{a_k,b_k\}$, the \emph{Arf invariant} is
-\(
-  \Arf(Q) = \sum_{k} Q(a_k)\,Q(b_k) \in \F_2
-\)~\cite{Arf41};
-it is independent of the basis and is a complete invariant. The crucial fact for
-us is the classification it controls.
+For a nonsingular quadratic form over $\F_2$ with symplectic basis
+$(a_k,b_k)$, the Arf invariant is
+\[
+  \Arf(Q)=\sum_k Q(a_k)Q(b_k)\in \F_2.
+\]
+It classifies nonsingular binary quadratic spaces at fixed dimension. Over a
+finite characteristic-$2$ field, the corresponding value lies in
+$F/\wp(F)$, with $\wp(y)=y^2+y$; for finite fields this quotient is read by the
+field trace to $\F_2$.
 
-\begin{quotation}
-\noindent\textbf{Theorem (Ovsienko~\cite{Ovsienko16}).} The classification of
-(real) Clifford algebras is equivalent to the classification of quadratic forms
-over $\F_2$, with the Arf invariant the complete invariant.
-\end{quotation}
+\begin{remark}
+Ovsienko~\cite{Ovsienko16} identifies a precise bridge between Dickson's
+classification of quadratic forms over $\F_2$ and the classical classification
+of real Clifford algebras. We use that paper as motivation for the Arf/Clifford
+connection, not as a blanket classification theorem for all Clifford algebras
+over finite nimber fields. In the code, rank and radical data are reported
+alongside Arf, and degenerate forms are not collapsed to a single Arf bit.
+\end{remark}
 
-\noindent
-So computing $\Arf$ of a nim-Clifford form returns the isomorphism class of the
-algebra: it is the char-$2$ Clifford classifier, not a toy. \texttt{pleroma}
-computes it for a form over any nim-subfield $\F_{2^{2^k}}$ by symplectic
-reduction over the field, then pushes the result to $\F_2$ via the trace
-$\Tr_{\F_{2^m}/\F_2}(x)=x+x^2+\cdots+x^{2^{m-1}}$, which realises the canonical
-isomorphism $k/\wp(k)\cong\F_2$. Over $\F_4$, for instance, the form with
-$q=(\ast 2,\ast 2)$ is of type $O^-$ and $q=(\ast 2,\ast 3)$ is hyperbolic.
+The small finite-field check used throughout is:
+\[
+  q=(\ast2,\ast2),\ b_{01}=\ast1 \quad\text{has Arf }1,
+\]
+whereas
+\[
+  q=(\ast2,\ast3),\ b_{01}=\ast1 \quad\text{has Arf }0.
+\]
+The polar entry is part of the form.
 
-\section{The bridge to games}
+\section{Gold forms from game operations}
 
-Nim-addition is the disjunctive sum (Sprague--Grundy), and nim-multiplication is
-itself a game. Conway's \emph{Turning Corners} has, for the single coin at
-$(x,y)$, the Grundy value given by the excludant recurrence
+Nim-addition is XOR, and XOR is the disjunctive sum of impartial game values.
+Nim-multiplication is also game-theoretic: Conway's Turning-Corners product has
+the mex recurrence
 \begin{equation}\label{eq:tc}
-  x \nimmul y \;=\; \operatorname{mex}\bigl\{\,(i\nimmul y)\oplus(x\nimmul j)\oplus(i\nimmul j)
-        \;:\; 0\le i<x,\ 0\le j<y \,\bigr\},
+  x\nimmul y
+  =
+  \operatorname{mex}
+  \left\{
+    (i\nimmul y)\oplus(x\nimmul j)\oplus(i\nimmul j):
+    0\leq i<x,\ 0\leq j<y
+  \right\}.
 \end{equation}
-which is Conway's definition of nim-multiplication~\cite{Conway76,WW}. We
-implement~\eqref{eq:tc} directly and verify it agrees with the algebraic
-Fermat-power product (computed via $F_n\nimmul F_n=\tfrac32 F_n$ for Fermat
-$2$-powers $F_n=2^{2^n}$) on all pairs $x,y<48$: two independent definitions,
-one combinatorial and one field-theoretic, of the same product.
+The repo implements this recurrence directly for small arguments and checks it
+against the fast algebraic nim product.
 
-This makes three operations game-realizable: the nim-product $\nimmul$ (Turning
-Corners), the Frobenius $\square\colon v\mapsto v^2 = v\nimmul v$ (the diagonal
-of Turning Corners), and $\oplus$ (disjunctive sum); hence also the trace, which
-is iterated $\square$ and $\oplus$.
+Thus the following operations are game-realizable at the level of nimber
+values:
+\[
+  x\oplus y,\qquad x\nimmul y,\qquad x\mapsto x^2=x\nimmul x,\qquad
+  \Tr(x)=x+x^2+\cdots+x^{2^{m-1}}.
+\]
 
-\paragraph{Gold forms, and a validation.}
-The natural quadratic forms on a char-$2$ field are
-$Q_a(x)=\Tr\!\left(x\cdot x^{2^a}\right)=\Tr\!\left(x^{1+2^a}\right)$, the
-\emph{Gold forms}~\cite{Gold68}: $g=\mathrm{Frob}^a$ is additive, so $Q_a$ is
-genuinely quadratic. As a standard cross-check, the polar-form rank our
-classifier computes reproduces the known Gold-function rank
-$\operatorname{rank}=m-2\gcd(a,m)$ (in the regime $m=2^k$, where $m/\gcd$ is
-even)~\cite{LN}; see Table~\ref{tab:gold}.
+For $F=\F_{2^m}$ and $a\geq 1$, define the Gold trace form
+\[
+  Q_a(x)=\Tr\!\left(x\,x^{2^a}\right)=\Tr\!\left(x^{1+2^a}\right).
+\]
+Since Frobenius $x\mapsto x^{2^a}$ is additive, $Q_a$ is a quadratic form over
+$\F_2$. In the nimber backend, it is also a composite of the game operations
+above.
+
+\begin{observation}\label{obs:built}
+The Gold forms are not merely defined on a field of game values. In the finite
+nimber fields tested here, they are built from nim/game operations: Turning
+Corners for multiplication, diagonal Turning Corners for Frobenius squaring,
+and disjunctive sum for XOR and trace.
+\end{observation}
+
+This observation is modest but useful: it gives a concrete quadratic form at
+the interface between impartial-game arithmetic and characteristic-$2$
+quadratic-form theory.
+
+\subsection{Rank check}
+
+The polar rank of Gold forms is known. In the tested regime
+$m=2^k$ and $1\leq a\leq k$, the rank is
+\[
+  \operatorname{rank} B_{Q_a}=m-2\gcd(a,m).
+\]
+The classifier reproduces this formula in all tested cases. Representative
+rows are shown in Table~\ref{tab:gold}.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{rrccccc}
 \toprule
-field & $a$ & $Q$ & $\Arf$ & type & rank & $m-2\gcd(a,m)$ \\
+field & $a$ & $Q$ & $\Arf$ & type & rank & formula \\
 \midrule
 $\F_{2^{4}}$  & $1$ & $\Tr(x^3)$    & $1$ & $O^-$ & $2$  & $2$ \\
 $\F_{2^{8}}$  & $1$ & $\Tr(x^3)$    & $1$ & $O^-$ & $6$  & $6$ \\
@@ -179,56 +185,38 @@ $\F_{2^{16}}$ & $4$ & $\Tr(x^{17})$ & $1$ & $O^-$ & $8$  & $8$ \\
 $\F_{2^{32}}$ & $1$ & $\Tr(x^3)$    & $1$ & $O^-$ & $30$ & $30$ \\
 \bottomrule
 \end{tabular}
-\caption{The classifier's rank matches the Gold-function formula
-(15/15 cases up to $m=32$; a representative selection).}
+\caption{Representative output of \texttt{experiments/trace\_form\_arf.py}.
+The script checks all $15$ cases with $m=2,4,8,16,32$ and
+$1\leq a\leq \log_2 m$.}
 \label{tab:gold}
 \end{table}
 
-\paragraph{The Gold forms are game-built.}
-Because $\nimmul$, $\square$, $\oplus$, and the trace are all game operations,
-the Gold form
-\(
-  Q_a(v) = \Tr\!\bigl(v \nimmul v^{2^a}\bigr)
-\)
-is a composite of combinatorial-game operations applied to a position's nimber
-value $v$ (and under the $1$-dimensional coin-turning game with single-coin
-Grundy value $g(n)=2^n$, a position's value \emph{is} a nimber). We confirm this
-by rebuilding $Q_a$ from literal Turning-Corners products and checking equality
-with the field computation on the small fields where the
-recurrence~\eqref{eq:tc} is tractable.
+Most of these forms have a nontrivial radical. The statement is therefore not
+``nondegenerate Gold form'' but ``positive-rank quadratic form with a
+nonsingular core whose Arf value is computed after symplectic reduction.''
 
-\begin{observation}\label{obs:built}
-The quadratic forms whose Arf invariants classify the nim-Clifford algebras are
-not merely defined over the value field of games; they are composites of game
-operations. The char-$2$ Clifford theory is, in this constructive sense, made of
-games.
-\end{observation}
+\section{Arf as conditional win-bias}
 
-\section{The Arf invariant as a win-bias}
-
-The semantic payoff comes from a classical counting fact.
-
-\begin{quotation}
-\noindent\textbf{Theorem (Dickson~\cite{Dickson01}; Arf~\cite{Arf41}).}
-Over $\F_2$, the Arf invariant of a quadratic form is the value the form takes
-most often. For a nonsingular form on $\F_2^{2m'}$,
+The relevant counting theorem is classical. If $Q$ is nonsingular on
+$\F_2^{2r}$, then
 \[
-  \#\{\,v : Q(v)=0\,\} \;=\; 2^{2m'-1} + (-1)^{\Arf(Q)}\,2^{m'-1}.
+  \#\{x:Q(x)=0\}
+  =
+  2^{2r-1}+(-1)^{\Arf(Q)}2^{r-1}.
 \]
-\end{quotation}
+For degenerate forms, the code uses the standard radical-adjusted count: an
+anisotropic radical balances the values, while an isotropic radical scales the
+bias of the nonsingular core.
 
-\noindent
-Read game-theoretically: if a game had $P$-positions (second-player wins)
-exactly $\{v:Q(v)=0\}$, then $\Arf(Q)$ would be precisely the \emph{sign of the
-win-bias}---which player wins from more starting positions---with a fixed margin
-of $2^{m'-1}$, a Gauss-sum, i.e.\ a square-root-scale fluctuation about
-$50/50$. The Arf invariant is the second-order tiebreaker of an otherwise
-near-fair game.
+The game interpretation is conditional:
 
-We verify the count directly on the game-built Gold forms, handling the radical:
-for rank $r$ and an isotropic radical, $\#\{Q=0\}=2^{m-1}+(-1)^{\Arf}2^{m-r/2-1}$
-(and exactly $2^{m-1}$ when the radical is anisotropic). The brute-forced
-zero-counts match in every case (Table~\ref{tab:bias}).
+\begin{quote}
+If a game has $P$-positions exactly $\{x:Q(x)=0\}$, then the Arf invariant is
+the sign of the bias between second-player wins and first-player wins.
+\end{quote}
+
+This is not a claim that such a game has been found. It is a target for a game
+semantics.
 
 \begin{table}[h]
 \centering
@@ -243,212 +231,144 @@ $\F_{2^{16}}$ & $1$ & $1$ & $14$ & $32512$ & $-256$ \\
 $\F_{2^{16}}$ & $4$ & $1$ & $8$  & $30720$ & $-2048$ \\
 \bottomrule
 \end{tabular}
-\caption{Zero-counts of the game-built Gold forms match
-$2^{m-1}+(-1)^{\Arf}2^{m-r/2-1}$ (bias $=\#\{Q=0\}-2^{m-1}$);
-10/10 cases verified.}
+\caption{Representative zero-counts from
+\texttt{experiments/arf\_win\_bias.py}. The bias is
+$\#\{Q=0\}-2^{m-1}$.}
 \label{tab:bias}
 \end{table}
 
-\begin{observation}
-On the game-built forms, the Arf invariant equals the win-bias in the counting
-sense: it is the sign of the majority margin of the zero-set.
-\end{observation}
+\section{What blocks the game semantics}
 
-\section{What remains open, and how far we narrowed it}
-
-The bridge closes at the level of \emph{construction} (Observation~\ref{obs:built})
-and of \emph{counting} (the Arf invariant is the zero-set bias). What is not
-established is a \emph{realisation}: a natural game whose $P$-positions are
-$\{v:Q(v)=0\}$. The obstruction is structural and informative.
-
-\begin{remark}\label{rem:linear}
-Normal-play disjunctive sums cannot do it. Their outcomes are $\oplus$-linear in
-the components (Sprague--Grundy), so a $P$-position set is always a linear
-subspace, never a genuine quadric. This is exactly why coin-turning yields the
-\emph{bilinear} nim-product but not a quadratic refinement.
-\end{remark}
-
-\paragraph{The obstruction is exactly the polar form.}
-In characteristic $2$, $Q(u+v)=Q(u)+Q(v)+B(u,v)$, so for $u,v$ already in the
-zero set ($Q(u)=Q(v)=0$),
+For a normal-play disjunctive sum of impartial games, the P-condition is
+linear in Grundy coordinates:
 \[
-  u+v \in \{Q=0\} \iff B(u,v)=0.
+  g_1\oplus\cdots\oplus g_n=0.
 \]
-The failure of the candidate $P$-set to be a subspace is therefore measured,
-term for term, by the polar form $B$---and $B$ is the \emph{game-realizable}
-nim-product / coin-turning (Tartan) form. We confirm this concretely: the polar
-form of a Gold form, $B(e_i,e_j)=\Tr\!\bigl(e_i\nimmul e_j^{2^a}\oplus e_j\nimmul
-e_i^{2^a}\bigr)$, is reproduced exactly from literal Turning-Corners products on
-the bit basis. So of the three layers a $P$-position game would need---the
-\emph{linear} part (Grundy/$\oplus$), the \emph{bilinear} coupling $B$, and a
-\emph{quadratic} play rule---the first two are already built from games; the open
-piece is precisely a play rule that reads out $Q$ rather than $B$.
+So normal-play sums give linear P-sets, not genuine quadrics.
 
-\paragraph{A test bench.}
-To interrogate any candidate, \texttt{pleroma} solves over $\F_2$ whether a set
-$S\subseteq\F_2^k$ is the zero set of \emph{some} quadratic form (constant,
-linear, and quadratic terms, by Gaussian elimination), returning its Arf
-invariant and---crucially---whether it is a \emph{genuine} quadric (nonzero polar
-rank) or a mere affine flat. As a sanity check it finds exactly $2^7$ of the
-$2^8$ subsets of $\F_2^3$ to be quadrics. Every $P$-set below is classified by
-this routine.
+For a quadratic form in characteristic $2$,
+\[
+  Q(u+v)=Q(u)+Q(v)+B(u,v).
+\]
+Thus for $u,v\in\{Q=0\}$,
+\[
+  u+v\in\{Q=0\}\quad\Longleftrightarrow\quad B(u,v)=0.
+\]
+The polar form is exactly the obstruction to XOR-closure. The first two layers
+are game-built: XOR is disjunctive sum and $B$ is built from nim products. The
+missing layer is a play rule that integrates that bilinear data into the
+quadratic zero set.
 
-\paragraph{Two routes.}
-Remark~\ref{rem:linear} leaves two escapes. \emph{Misère} play first: misère sums
-are genuinely non-linear---the misère-Nim $P$-set is not $\{\oplus=0\}$, not even
-a coset (Bouton~\cite{Bouton}), clearing the bar normal play fails---and quadratic
-structure could live in a misère quotient~\cite{PS,WW}. We implement a bounded
-indistinguishability-quotient computer (verified to return $\star\mapsto\mathbb{Z}/2$);
-the $\F_2$-quadric question applies only when the quotient is an elementary abelian
-$2$-group $(\mathbb{Z}/2)^k$. \emph{Interactive} play second: a retrograde
-Win/Loss/Draw kernel solver for arbitrary finite game graphs lets us test any
-non-disjunctive move rule. Two findings sharpen the question rather than answer it.
-First, \emph{existence is trivial}: a hand-built acyclic game has $P$-set exactly
-$\{Q=0\}$, so the question was never about existence but about a \emph{natural}
-rule. Second, among uniform terminating rules on $\F_2^m$, the rule ``move iff you
-flip $Q$'' does reproduce $\{Q=0\}$---but only by referencing $Q$ in the move
-legality, i.e.\ tautologically; the rules coupled through the legitimate
-combinatorial datum $B$ do \emph{not} (a $B$-coupled descent gives an affine
-subspace, a single-bit $B$-gated turn a \emph{different} quadric).
+\subsection{Test benches}
 
-\paragraph{A hunt over octal games.}
-The one quotient shape that could host a quadric $P$-set is $(\mathbb{Z}/2)^k$
-with $k\ge 2$ and Arf-rank $\ge 2$. We swept $292$ octal codes (length $\le 3$,
-$d_1$ odd, heaps to $4$; $876$ bounded misère quotients in all), classifying each
-$(\mathbb{Z}/2)^k$ $P$-set with the test bench. The result is a clean negative
-(Table~\ref{tab:hunt}): the misère-quotient orders that occur are
-$2,6,10,12,14$---\emph{no power of $2$ above $2$ appears at all}, so no
-$(\mathbb{Z}/2)^{k\ge2}$ arises, and there are no quadric $P$-sets.
+The repo contains two kinds of probes.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{rr}
-\toprule
-misère-quotient order & \# codes$\times$cutoffs \\
-\midrule
-$2$  & $432$ \\
-$6$  & $433$ \\
-$10$ & $6$ \\
-$12$ & $2$ \\
-$14$ & $3$ \\
-\bottomrule
-\end{tabular}
-\caption{Bounded misère-quotient orders over $292$ octal games (each at heap
-cutoffs $1..k$, $k=2,3,4$). The only elementary-abelian-$2$ quotient is
-$\mathbb{Z}/2$ (order $2$, a linear $P$-set); the wild quotients have orders
-$6,10,12,14$, never $4,8,16$. No genuine quadric $P$-set occurs.}
-\label{tab:hunt}
-\end{table}
+\begin{itemize}[leftmargin=*]
+\item \texttt{fit\_f2\_quadratic} tests whether a subset of $\F_2^k$ is the zero
+set of a quadratic polynomial, and whether the result has nonzero polar rank.
+\item A bounded misere quotient computer tests small quotient P-sets. The octal
+sweep checked $292$ octal codes, heap cutoff at most $4$, and found quotient
+orders $2,6,10,12,14$, with no elementary abelian $2$-group of rank at least
+$2$.
+\item An interactive-kernel solver tests finite move graphs. It confirms that
+an ad hoc acyclic game can realize any subset, and that a rule referencing $Q$
+itself realizes $\{Q=0\}$ tautologically. The tested $B$-coupled rules do not
+produce the Gold zero set.
+\end{itemize}
 
-\begin{observation}
-Among the octal games searched, the only elementary abelian $2$-group misère
-quotient is $\mathbb{Z}/2$, whose $P$-set is linear; the wild quotients are not
-$2$-groups. The quadric $P$-set, if it exists, does not arise from an
-elementary-$2$-abelian octal misère quotient in this range.
-\end{observation}
+These are negative results in bounded searches, not impossibility theorems for
+all games.
 
-\paragraph{The symplectic obstruction.}
-The interactive negatives above---a $B$-coupled descent collapsing to a subspace,
-a single-bit $B$-gated turn giving the wrong quadric---are not accidents but
-instances of one structural fact.
+\subsection{Frame-blind no-go}
+
+There is, however, a clean obstruction for rules that see only a nondegenerate
+symplectic form and no frame.
 
 \begin{proposition}\label{prop:nogo}
-Let $B$ be a nondegenerate alternating form on $V=\F_2^{2m'}$, and let a finite
-game have position set $V$ and a move relation invariant under $\mathrm{Sp}(B)$
-(in particular, any rule defined from $B$ and the $\F_2$-linear structure alone).
-Then its normal-play $P$-set is a union of $\mathrm{Sp}(B)$-orbits on $V$, and
-since $\mathrm{Sp}(B)$ is transitive on $V\setminus\{0\}$ that set is one of
-$\varnothing,\{0\},V\setminus\{0\},V$---never a genuine quadric.
+Let $B$ be a nondegenerate alternating form on $V=\F_2^{2r}$ with $r\geq 2$.
+If a finite normal-play game has position set $V$ and a move relation invariant
+under $\operatorname{Sp}(B)$, then its $P$-set is not a nondegenerate quadric.
 \end{proposition}
 
 \begin{proof}
-Each $g\in\mathrm{Sp}(B)$ is an automorphism of the move graph, and retrograde
-Win/Loss/Draw outcomes are determined by the graph alone, so the outcome function
-is $\mathrm{Sp}(B)$-invariant and the $P$-set is a union of orbits. A symplectic
-group is transitive on the nonzero vectors of its space~\cite{Taylor}, so the
-orbits are $\{0\}$ and $V\setminus\{0\}$. A nondegenerate quadric has
-$2^{2m'-1}\pm 2^{m'-1}$ points, which is none of $0,1,|V|-1,|V|$.
+Each element of $\operatorname{Sp}(B)$ is an automorphism of the move graph, so
+the retrograde outcome function is $\operatorname{Sp}(B)$-invariant. The P-set
+is therefore a union of symplectic orbits. For $r\geq2$, the symplectic group is
+transitive on $V\setminus\{0\}$~\cite{Taylor}, so the invariant subsets are only
+$\varnothing$, $\{0\}$, $V\setminus\{0\}$, and $V$. A nondegenerate quadric in
+dimension at least $4$ has $2^{2r-1}\pm2^{r-1}$ points, which is none of these.
 \end{proof}
 
-\noindent Over $\F_{2^4}$ we confirm the surrounding arithmetic directly:
-$|\mathrm{Sp}(4,2)|=720$, the orbit of any nonzero vector is all $15$ nonzero
-vectors, and the set-stabiliser of a quadric $\{Q=0\}$ is its orthogonal group
-$O(Q)$, of order $72$ (type $O^+$, orbit $10$) or $120$ (type $O^-$, orbit $6$);
-the orbit sizes are exactly the numbers of $\Arf$-$0$ and $\Arf$-$1$ refinements
-of $B$ ($10+6=16$).
+The hypothesis matters. Coordinate-dependent rules have already broken
+$\operatorname{Sp}(B)$ symmetry, so this proposition does not explain every
+negative probe. It explains only genuinely frame-blind $B$-only rules.
 
-\paragraph{$B$ with a frame realises the split quadric.}
-A game escapes $\mathrm{Sp}(B)$-equivariance as soon as it reads the standard
-basis. Define the \emph{frame quadric}
-$Q_{\mathrm{frame}}(v)=\sum_{i<j}B(e_i,e_j)\,v_iv_j$, built from $B$ and the frame
-with zero diagonal. The all-downward rule ``move $v\to w$ iff $w<v$ and
-$Q_{\mathrm{frame}}(w)\neq Q_{\mathrm{frame}}(v)$'' has kernel exactly
-$\{Q_{\mathrm{frame}}=0\}$: any $v$ with $Q_{\mathrm{frame}}(v)=1$ moves to $0$, a
-terminal loss, so is a win; any $v$ with $Q_{\mathrm{frame}}(v)=0$ reaches only
-wins, so is a loss. We verify this on $119/119$ random nondegenerate $B$ over
-$\F_{2^4},\F_{2^6},\F_{2^8}$. So a \emph{natural} $B$-game does have a genuine
-quadric $P$-set---but $Q_{\mathrm{frame}}$, whose Arf is fixed by $(B,\text{frame})$.
+\subsection{The diagonal framing}
 
-\paragraph{The gap is a framing, and it carries the Arf.}
-Two quadratic forms share a polar form iff they differ by a linear functional, so
-the refinements of $B$ form a torsor under $V^\ast$. In particular
-$Q_a = Q_{\mathrm{frame}} + \ell$, where $\ell(v)=\sum_i q_i v_i$ is the functional
-of the \emph{diagonal} $q_i=Q_a(e_i)=\Tr(e_i^{1+2^a})$, the single-coin self-Gold
-values. This is a \emph{framing} in the Arf--Kervaire sense---the datum a
-symplectic form needs to become a quadratic one---and it is never free: for every
-genuinely-quadratic Gold form we tested (up to $\F_{2^{16}}$),
-$\Arf(Q_{\mathrm{frame}})=0$ while $\Arf(Q_a)=1$, so the diagonal always flips the
-split frame quadric to the Gold $O^-$. The whole $O^-$/$\Arf$-$1$ content of the
-Gold form---the uniform $O^-$ column of Table~\ref{tab:gold}---is the framing;
-$B$ and the frame contribute $\Arf\,0$. The obstruction is thus a ladder of
-symmetry-breaking, each rung a single datum:
+Once a coordinate frame is allowed, a canonical-looking quadratic refinement of
+$B$ is
 \[
-  \mathrm{Sp}(B)\ \text{(no quadric)}\
-  \xrightarrow{\ \text{frame}\ }\
-  O(Q_{\mathrm{frame}})\ \text{(split quadric)}\
-  \xrightarrow{\ \text{diagonal}\ }\
-  O(Q_a)\ \text{(Gold quadric)}.
+  Q_{\mathrm{frame}}(v)=\sum_{i<j}B(e_i,e_j)v_i v_j.
 \]
+For the Gold polar forms tested in this repo, the Gold form decomposes as
+\[
+  Q_a(v)=Q_{\mathrm{frame}}(v)+\ell_{\mathrm{diag}}(v),
+  \qquad
+  \ell_{\mathrm{diag}}(v)=\sum_i Q_a(e_i)v_i.
+\]
+In the tested genuinely quadratic Gold cases up to $\F_{2^{16}}$,
+$Q_{\mathrm{frame}}$ has Arf $0$ and the diagonal term changes the form to the
+Gold Arf-$1$ class.
 
-\begin{question}[sharpened]
-The residue is a single named datum. By Proposition~\ref{prop:nogo} no
-$\mathrm{Sp}(B)$-equivariant game realises any quadric; a game that reads the frame
-realises the \emph{split} frame quadric (Arf $0$); and the only thing between that
-and the Gold quadric is the $m$-bit diagonal framing $q_i=\Tr(e_i^{1+2^a})$, not
-derivable from $B$. Is this framing itself game-natural---a coin marking, a misère
-or scoring twist, or a field-multiplicative coupling carrying the Frobenius
-non-locally---so that some natural game has $P$-set the Gold quadric $\{Q=0\}$ with
-its $\Arf$-$1$ win-bias? Referencing $Q$ is tautological, the frame yields only Arf
-$0$, and no $(\mathbb{Z}/2)^{k\ge2}$ misère quotient appears among the octal games
-searched.
+\begin{remark}
+This is an experimental pattern for the Gold polar forms tested here, not a
+theorem about every alternating form plus every coordinate frame. Random
+nondegenerate alternating forms can give a zero-diagonal frame quadric of Arf
+$1$.
+\end{remark}
+
+The remaining question is therefore sharper than the original slogan.
+
+\begin{question}
+Is the diagonal framing
+\[
+  q_i=Q_a(e_i)=\Tr(e_i^{1+2^a})
+\]
+itself game-natural, in a way that yields a natural game with P-set
+$\{x:Q_a(x)=0\}$?
 \end{question}
 
-A candidate must hit the win-bias of Table~\ref{tab:bias}, and now also clear both
-the test bench and Proposition~\ref{prop:nogo}: its move rule must break the
-$\mathrm{Sp}(B)$ symmetry down to $O(Q_a)$, i.e.\ encode the diagonal framing. The
-deepest relative, Welter's game, lands in the representation theory of symmetric
-groups~\cite{Irie18} rather than in Arf invariants.
+\section{Validation status}
 
-\paragraph{Beyond the open thread.}
-The library has also grown into a fuller Clifford engine: a characteristic-$0$
-classifier (the companion to the Arf invariant, returning $\Cl(p,q)$ as a matrix
-algebra over $\mathbb{R}$, $\mathbb{C}$, or $\mathbb{H}$ by $8$-fold periodicity);
-general-bilinear-form (quantum-Clifford) products; the Witt group
-$W_q(\F_{2^m})\cong\mathbb{Z}/2$; the Dickson invariant (the characteristic-$2$
-determinant, with $\mathrm{SO}=\ker D$); and the exterior algebra of the game
-\emph{group} over $\mathbb{Z}$---the one Clifford-adjacent structure that lives on
-\emph{all} of game-world, non-numbers ($\star$, $\uparrow$) included, since it
-needs only a module and not the (nonexistent) game product. These round out the
-engine; the open thread above remains its sharpest point.
+The claims above are backed by implementation checks, not by a finished proof
+of the open game statement.
 
-The source, tests, and the experiments underlying all tables are available at
-\url{https://github.com/a9lim/pleroma}.
+\begin{itemize}[leftmargin=*]
+\item \texttt{cargo test} exercises the scalar arithmetic, Clifford product,
+Arf computation, quadratic fitting, misere machinery, and related invariant
+modules.
+\item \path{experiments/trace_form_arf.py} checks the Gold rank formula.
+\item \path{experiments/gold_form_from_games.py} and
+\path{experiments/tartan_bilinear.py} rebuild the Gold form and polar form
+from literal Turning-Corners products in small fields.
+\item \path{experiments/arf_win_bias.py} checks the zero-count formula.
+\item The \texttt{misere\_quotient}, \texttt{octal\_hunt}, and
+\texttt{interactive\_kernel} examples implement the current negative probes.
+\end{itemize}
+
+\section{Conclusion}
+
+The meaningful content is the construction of a game-operation-built family of
+characteristic-$2$ quadratic forms inside a faithful nimber Clifford backend,
+together with a precise conditional interpretation of Arf as a P-set bias. The
+draft does not solve the game-semantics problem. It narrows it to a named
+missing datum: the diagonal quadratic framing that turns the game-built polar
+form into the Gold quadric.
 
 \section*{Acknowledgements}
-The \texttt{pleroma} library, the experiments, and this note were developed in
-collaboration with Claude (Anthropic), which wrote the Rust/Python
-implementation and ran the computational probes; direction, framing, and
-verification are the author's.
+The \texttt{pleroma} library, experiments, and this draft were developed with
+LLM assistance. Mathematical direction, framing, and responsibility for claims
+remain the author's.
 
 \begin{thebibliography}{9}
 \bibitem{Arf41} C.~Arf, \emph{Untersuchungen \"uber quadratische Formen in
@@ -463,17 +383,14 @@ Your Mathematical Plays}, 2nd ed., A~K Peters, 2001--2004.
 \bibitem{Dickson01} L.~E.~Dickson, \emph{Linear Groups, with an Exposition of
 the Galois Field Theory}, Teubner, 1901.
 \bibitem{Gold68} R.~Gold, \emph{Maximal recursive sequences with $3$-valued
-recursive cross-correlation functions}, IEEE Trans.\ Inform.\ Theory \textbf{14}
-(1968), 154--156.
-\bibitem{Irie18} Y.~Irie, \emph{$p$-Saturations of Welter's game and the
-irreducible representations of symmetric groups}, J.\ Algebraic Combin.\
-(2018); arXiv:1604.07214.
-\bibitem{LN} R.~Lidl, H.~Niederreiter, \emph{Finite Fields}, 2nd ed., Cambridge
-University Press, 1997.
+recursive cross-correlation functions}, IEEE Trans.\ Inform.\ Theory
+\textbf{14} (1968), 154--156.
+\bibitem{LN} R.~Lidl, H.~Niederreiter, \emph{Finite Fields}, 2nd ed.,
+Cambridge University Press, 1997.
 \bibitem{Ovsienko16} V.~Ovsienko, \emph{Real Clifford algebras and quadratic
 forms over $\F_2$: two old problems become one}, The Mathematical Intelligencer
 \textbf{38} (2016); arXiv:1601.07664.
-\bibitem{PS} T.~E.~Plambeck, A.~N.~Siegel, \emph{Misère quotients for impartial
+\bibitem{PS} T.~E.~Plambeck, A.~N.~Siegel, \emph{Misere quotients for impartial
 games}, J.\ Combin.\ Theory Ser.\ A \textbf{115} (2008), 593--622.
 \bibitem{Taylor} D.~E.~Taylor, \emph{The Geometry of the Classical Groups},
 Sigma Series in Pure Mathematics~\textbf{9}, Heldermann Verlag, 1992.
