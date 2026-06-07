@@ -452,7 +452,10 @@ impl FiniteField for Nimber {
     }
 
     fn is_primitive(&self) -> bool {
-        self.0 != 0 && ORDER_FACTORS.iter().all(|&p| nim_pow(self.0, u128::MAX / p) != 1)
+        self.0 != 0
+            && ORDER_FACTORS
+                .iter()
+                .all(|&p| nim_pow(self.0, u128::MAX / p) != 1)
     }
 
     fn discrete_log(&self, x: Nimber) -> Option<u128> {

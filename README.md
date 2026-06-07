@@ -99,12 +99,14 @@ Pure-Rust math core (`cargo test`, no Python in the loop), Python layer on top.
 Four pillars under `src/`, each re-exported flat (`scalar::Nimber`,
 `clifford::sandwich`, `forms::arf_invariant`, …):
 
-- `scalar/` — the `Scalar` trait, two exact non-game rings as sibling modules
-  (`rational` = ℚ for engine validation, `integer` = ℤ for game coefficients),
-  and the game-backed coefficient worlds: `nimber` (On₂ in `u128`, nim-add = XOR,
-  nim-mul via Fermat-power recursion), `surreal` (Conway normal form with
-  recursive exponents), `surcomplex` (adjoin `i`), `omnific` (`Oz`), `onag`
-  (ordinal nimbers), `fp` (odd-characteristic prime fields).
+- `scalar/` — the `Scalar` trait and the coefficient worlds, grouped **by place**
+  into the "any number" table, each field beside its ring of integers:
+  `exact/` (ℚ `rational`, ℤ `integer`), `big/` (the transfinite worlds — `surreal`
+  `No`, `omnific` `Oz`, `onag` ordinal nimbers), `small/` (p-adic — `qp` Q_p, `zp`
+  Z_p), and `finite_field/` (the finite residue fields — `fp` F_p, `fpn` F_{pⁿ},
+  `nimber` F_2¹²⁸, `wittvec` W_n, all sharing one `FiniteField` Galois trait).
+  `surcomplex` (adjoin `i` over any backend) is the lone functor, orthogonal to the
+  table. The char trichotomy that organises `forms/` cuts *across* this grouping.
 - `clifford/` — the multivector engine (`engine`: independent `q`/`b`/`a`,
   characteristic-faithful) with the geometry split out (`versor`), plus
   outermorphisms, the exterior Hopf algebra, conformal/projective GA, and

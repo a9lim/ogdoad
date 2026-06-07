@@ -449,7 +449,6 @@ fn game_of_dyadic(num: i128, k: u32) -> Game {
     Game::new(vec![game_of_dyadic(ln, lk)], vec![game_of_dyadic(rn, rk)])
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -594,5 +593,4 @@ mod tests {
         assert_eq!(ngd.birthday().unwrap().as_finite(), Some(fin.birthday()));
         assert!(ngd.to_finite_game().is_some());
     }
-
 }

@@ -34,8 +34,8 @@
 //!     real `k`-th roots of a non-monomial Hahn series.
 
 mod analytic;
-mod simplicity;
 mod sign_expansion;
+mod simplicity;
 
 pub use sign_expansion::SignExpansion;
 

@@ -29,77 +29,99 @@ src/
                 # Each pillar's mod.rs re-exports its children flat, so public
                 # paths stay shallow (scalar::Nimber, clifford::sandwich, …).
 
-  scalar/         # PILLAR — the commutative coefficient worlds (generic Scalar)
-    mod.rs        # just the Scalar trait (add/neg/mul/zero/one/is_zero/inv/
-                  # characteristic) + the flat re-export hub for the worlds below.
-    rational.rs   # exact ℚ over i128, NOT a game backend — the char-0 scalar that
+  scalar/         # PILLAR — the commutative coefficient worlds (generic Scalar).
+                  # Grouped BY PLACE into the "any number" table: each field beside
+                  # its ring of integers. Subdirs re-export flat, so public paths
+                  # stay shallow (scalar::Nimber, scalar::Surreal, …) regardless of
+                  # depth. (The char trichotomy that organises forms/ cuts ACROSS
+                  # this table — the two pillars are complementary views.)
+    mod.rs        # the Scalar trait (add/neg/mul/zero/one/is_zero/inv/
+                  # characteristic) + the "any number" table doc + the flat
+                  # re-export hub chaining the family subdirs below.
+    surcomplex.rs # Surcomplex<S> = adjoin i over ANY backend (carries conj()). The
+                  # one generic *functor*, not a concrete world — sits at the root,
+                  # orthogonal to the table.
+
+    exact/        # FAMILY — the Archimedean char-0 base (field + ring of integers)
+      rational.rs # exact ℚ over i128, NOT a game backend — the char-0 scalar that
                   # validates the geometric product against the known Cl(p,q)
                   # classification before we trust the exotic backends.
-    integer.rs    # exact ℤ — the coefficient ring for the exterior algebra of the
-                  # game group (games/partizan.rs): games are a ℤ-module, not a
+      integer.rs  # exact ℤ — the coefficient ring for the exterior algebra of the
+                  # game group (games/game_exterior.rs): games are a ℤ-module, not a
                   # ring, so Λ over ℤ is the structure that lives on all of
                   # game-world. Only ±1 invertible (Grassmann never calls inv).
-    nimber.rs     # On₂ in u128 (= F_{2^128}): nim_add = XOR; nim_mul via Fermat-
-                  # power recursion, memoised on 2^i ⊗ 2^j. Also nim_square /
-                  # nim_sqrt (Frobenius & its inverse), nim_trace, and the
-                  # Artin–Schreier solver (y²+y=c, solvable ⇔ Tr(c)=0). Plus the
-                  # FINITE-FIELD ANALYSIS TOOLKIT: nim_degree (smallest containing
-                  # subfield), nim_conjugates / nim_min_poly (Galois orbit over F₂),
-                  # nim_relative_trace/_norm (to any subfield), nim_order,
-                  # nim_is_primitive / nim_primitive_element, and nim_discrete_log
-                  # (Pohlig–Hellman + BSGS over the known factorization of 2^128−1;
-                  # cheap in subfields, heavy for a primitive base).
-    surreal.rs    # Conway normal form: Vec<(exponent: Surreal, coeff: Rational)>
-                  # with recursive exponents. Hahn arithmetic: ω^a·ω^b = ω^{a+b}.
-                  # Plus the {L|R}/simplicity bridge (dyadic case): as_rational/
-                  # as_dyadic/is_dyadic/dyadic_birthday + simplest_above/_below/
-                  # simplest_between (the shallowest surreal-tree node in (a,b)).
-                  # Plus floor/frac (the Oz bridge — Omnific::floor wraps it) and
-                  # the EXACT sign-expansion: sign_expansion/from_sign_expansion
-                  # (dyadic, round-trips, length = birthday) + birthday_ordinal.
-                  # Plus the LAZY FIELD layer: inv_to_terms (Neumann-series inverse
-                  # to n terms — non-monomials too, the Zp-style precision contract),
-                  # sqrt/nth_root (real-closed roots; Some iff the leading coeff is a
-                  # perfect ℚ-power, so √2/√(2ω) honestly return None, √ω exact).
-                  # Plus TRANSFINITE (Gonshor) sign expansions for the representable
-                  # subclass: SignExpansion{runs:(bool,Ordinal)} + as_ordinal +
-                  # transfinite_sign_expansion (every ordinal ↦ all-pluses incl ω^ω;
-                  # ε=+(−)^ω) + Ordinal-indexed birthday_ordinal. None outside the
-                  # subclass (√ω, ½ω, ω−1) — honest, not a ℝ-truncation.
-    surcomplex.rs # Surcomplex<S> = adjoin i over any backend (carries conj()).
-    omnific.rs    # the omnific integers Oz: Omnific(Surreal) newtype, a transfinite
-                  # commutative RING (not field). Surreal mirror of Integer; the
-                  # exterior algebra with ω-scale coefficients.
-    onag.rs       # transfinite (ordinal) nimbers: Ordinal in CNF (mirror of
-                  # scalar/surreal.rs). nim-add COMPLETE (coeff XOR); nim-mul
-                  # COMPLETE across φ_{ω+1} (all ordinals < ω³ Cantor) via DiMuro
-                  # Lemma 1.1: poly mult in (finite nimbers)[ω] mod ω³−2.
-                  # ω⊗ω⊗ω=2; F₄(ω)≅F₆₄ verified. Above ω³ staged (Lenstra tower).
-                  # Also ORDINARY (Cantor) ord_add/ord_mul (NOT nim: ω+ω=ω·2, 1+ω=ω)
-                  # — the surreal birthday's run-length arithmetic lives here.
-    fp.rs         # Fp<const P>: the prime field F_P (odd characteristic), a
-                  # comparison backend completing the char trichotomy. Genuine neg.
-    fpn.rs        # Fpn<const P, const N>: finite extension fields F_{p^N} via a
+
+    big/          # FAMILY — the transfinite worlds (the number may be infinite)
+      surreal/    # No (real-closed char 0). SPLIT into a subdir, all impl Surreal:
+        mod.rs    #   CNF core: Vec<(exponent: Surreal, coeff: Rational)>, recursive
+                  #   exponents, Hahn arithmetic ω^a·ω^b = ω^{a+b}, Scalar, Debug,
+                  #   the truncate() precision knob, and the (shared) test module.
+        simplicity.rs    # the {L|R}/simplicity bridge (dyadic case): as_rational/
+                  #   as_dyadic/is_dyadic/dyadic_birthday + simplest_above/_below/
+                  #   simplest_between, and floor/frac (the Oz bridge — Omnific::floor
+                  #   wraps it). simplest_in_cut is pub(super) for sign_expansion.
+        sign_expansion.rs # EXACT sign_expansion/from_sign_expansion (dyadic,
+                  #   round-trips, length = birthday) + as_ordinal + the TRANSFINITE
+                  #   (Gonshor) SignExpansion{runs:(bool,Ordinal)} + birthday_ordinal
+                  #   (every ordinal ↦ all-pluses incl ω^ω; ε=+(−)^ω). None outside
+                  #   the representable subclass (√ω, ½ω, ω−1) — honest, not ℝ-trunc.
+        analytic.rs      # the LAZY FIELD layer: inv_to_terms (Neumann-series inverse
+                  #   to n terms — non-monomials too, the Zp-style precision contract)
+                  #   + sqrt/nth_root (real-closed roots; Some iff the leading coeff
+                  #   is a perfect ℚ-power, so √2/√(2ω) honestly None, √ω exact).
+      omnific.rs  # the omnific integers Oz: Omnific(Surreal) newtype, a transfinite
+                  # commutative RING (not field). Surreal mirror of Integer (the ring
+                  # of integers of No); the exterior algebra with ω-scale coeffs.
+      onag.rs     # transfinite (ordinal) NIMBERS: Ordinal in CNF — the char-2 mirror
+                  # of surreal (coeff XOR). nim-add COMPLETE; nim-mul COMPLETE across
+                  # φ_{ω+1} (all ordinals < ω³ Cantor) via DiMuro Lemma 1.1: poly mult
+                  # in (finite nimbers)[ω] mod ω³−2. ω⊗ω⊗ω=2; F₄(ω)≅F₆₄ verified.
+                  # Above ω³ staged (Lenstra tower). Also ORDINARY (Cantor)
+                  # ord_add/ord_mul (NOT nim: ω+ω=ω·2, 1+ω=ω) — the surreal
+                  # birthday's run-length arithmetic lives here.
+
+    small/        # FAMILY — the non-Archimedean (p-adic) local world
+      qp.rs       # Qp<const P, const K>: the p-adic FIELD Q_p (field of fractions of
+                  # Zp; the p-adic mirror of ℚ / of Omnific⊂Surreal). p^val·unit,
+                  # char()=0, inv TOTAL on nonzero (1/p exists). CAPPED-RELATIVE
+                  # precision: mul/inv exact, addition NOT associative across
+                  # precision boundaries (a precision model, like float) — used at
+                  # the forms layer (valuation/residue), EXCLUDED from the exact-ring
+                  # fuzz suite.
+      zp.rs       # Zp<const P, const K>: the p-adic integers Z_p to precision k
+                  # (= Z/p^k), the ring of integers of Q_p. A LOCAL RING (p a
+                  # non-unit) — char()=0, inv = Omnific pattern (units only). Cl over
+                  # it is non-semisimple. residue field F_p.
+
+    finite_field/ # FAMILY — the finite residue worlds (the char trichotomy's finite
+                  # leg + the unramified ring of integers)
+      mod.rs      # the FiniteField TRAIT: the shared Galois engine (degree,
+                  # conjugates, min_poly_monic, relative_trace/_norm[_over],
+                  # multiplicative_order, is_primitive, discrete_log) as default
+                  # methods. An impl supplies only frobenius, integer pow, ext_degree,
+                  # group_order, and group_order_factors. nimber + fpn both impl it —
+                  # one verified algorithm, two backends (was duplicated).
+      fp.rs       # Fp<const P>: the prime field F_P (odd characteristic), the residue
+                  # field of Zp and the base of every extension here. Genuine neg.
+      fpn.rs      # Fpn<const P, const N>: finite extension fields F_{p^N} via a
                   # (P,N)-keyed irreducible reduction poly. Completes the odd-char
                   # tower AND the char-2 odd-DEGREE fields nimbers can't reach (F_8).
                   # Schoolbook mul+reduce, Fermat inv, is_square (Euler/Frobenius).
-                  # Plus the GALOIS TOOLKIT mirroring nimber.rs: frobenius, degree,
-                  # conjugates, min_poly, relative_trace/_norm, multiplicative_order
-                  # (NB the static order()=field order p^N), is_primitive,
-                  # primitive_element, discrete_log — symmetrizing the char trichotomy.
-    zp.rs         # Zp<const P, const K>: the p-adic integers Z_p to precision k
-                  # (= Z/p^k). A LOCAL RING (p a non-unit), not Q_p — char()=0,
-                  # inv = Omnific pattern (units only). Cl over it is non-semisimple.
-    qp.rs         # Qp<const P, const K>: the p-adic FIELD Q_p (field of fractions of
-                  # Zp; the empty cell in the "any number" table, the p-adic mirror
-                  # of Omnific⊂Surreal). p^val·unit, char()=0, inv TOTAL on nonzero
-                  # (1/p exists). CAPPED-RELATIVE precision: mul/inv exact, addition
-                  # NOT associative across precision boundaries (a precision model,
-                  # like float) — used at the forms layer (valuation/residue), and
-                  # deliberately EXCLUDED from the exact-ring fuzz suite.
-    wittvec.rs    # WittVec<const P, const N, const F>: Witt vectors W_N(F_q), as the
+                  # impl FiniteField (frobenius/pow/ext_degree/group_order); keeps
+                  # only min_poly (F_p projection) + primitive_element. (NB the static
+                  # order() = field order p^N, ≠ multiplicative_order(&self).)
+      nimber.rs   # On₂ in u128 (= F_{2^128}): nim_add = XOR; nim_mul via Fermat-power
+                  # recursion, memoised on 2^i ⊗ 2^j. Also nim_square / nim_sqrt
+                  # (Frobenius & inverse), nim_trace, the Artin–Schreier solver
+                  # (y²+y=c, solvable ⇔ Tr(c)=0). impl FiniteField; the nim_* free fns
+                  # (the Python-bound u128 surface) delegate to the trait. OVERRIDES
+                  # is_primitive (direct subgroup check) and discrete_log (Pohlig–
+                  # Hellman + BSGS over the known 2^128−1 factorization ORDER_FACTORS).
+      wittvec.rs  # WittVec<const P, const N, const F>: Witt vectors W_N(F_q), as the
                   # truncated unramified ring (Z/p^N)[t]/(f̃) (NOT the forms Witt
-                  # group). Witt/Teichmüller coords + carry-formula oracle on top.
+                  # group). The char-p analogue of Z_p (= W(F_p)) — the ring of
+                  # integers of the unramified extension. Witt/Teichmüller coords +
+                  # carry-formula oracle on top.
 
   clifford/       # PILLAR — the multivector engine + GA layer (generic Scalar)
     mod.rs        # thin hub: re-exports engine + versor + the structured-algebra
@@ -162,8 +184,13 @@ src/
     char2.rs      # (was arf.rs) the Arf invariant (char-2 classifier): arf_f2 (F₂
                   # bitmask) + arf_nimber (any nim-field, symplectic reduction + the
                   # field trace). Also the Dickson invariant (dickson_matrix =
-                  # rank(g−I) mod 2, ker = SO; dickson_of_versor) and
-                  # fit_f2_quadratic (is a set a quadric? its Arf?).
+                  # rank(g−I) mod 2, ker = SO; dickson_of_versor). The CLASSIFIER —
+                  # the quadric-fitting research bench split out to quadric_fit.rs.
+    quadric_fit.rs # the "is this P-set a quadric?" research BENCH (split from
+                  # char2.rs): fit_f2_quadratic (Gaussian elim over the 2^k membership
+                  # equations) + QuadricFit{constant,qd,bmat,arf} + is_genuinely_
+                  # quadratic. The instrument the game probes / misere_quotient /
+                  # octal_hunt feed P-positions into — distinct from the classifier.
     witt.rs       # WittClass: the Witt group W_q(F) ≅ ℤ/2 of a finite nim-field,
                   # Arf-classified. Plus WittClassG: the Char0/OddChar/Char2
                   # trichotomy enum (odd-char is order-4: ℤ/4 or ℤ/2×ℤ/2) with the
@@ -231,14 +258,21 @@ src/
                   # CANONICAL FORM (dominated/reversible reduction; structural_string
                   # vs canonical_string — the latter canonicalizes, a value key) +
                   # the game↔surreal bridge (number_value / from_surreal, numbers
-                  # only) + the exterior algebra of the GAME group: Λ over ℤ on game
-                  # generators (living on all of game-world, incl. non-numbers ⋆/↑).
-                  # Also Game::ordinal_sum (G:H — Hackenbush strings are these),
-                  # Game::nim_heap (⋆n, the far star) + Game::is_all_small (atomic-
-                  # weight domain), and NumberGame: transfinite NUMBER games (ω, ε)
-                  # carried by their Surreal value — value/birthday(Ordinal)/sum/cmp
-                  # delegate to surreal, no infinite option tree (the finite Game
-                  # engine is untouched). NB: distinct from coin_turning.rs.
+                  # only). Also Game::ordinal_sum (G:H — Hackenbush strings are
+                  # these), Game::nim_heap (⋆n, the far star) + Game::is_all_small
+                  # (atomic-weight domain), and NumberGame: transfinite NUMBER games
+                  # (ω, ε) carried by their Surreal value — value/birthday(Ordinal)/
+                  # sum/cmp delegate to surreal, no infinite option tree (the finite
+                  # Game engine is untouched). The Λ-of-the-game-group exterior
+                  # algebra split out to game_exterior.rs. NB: distinct from
+                  # coin_turning.rs.
+    game_exterior.rs # the exterior algebra of the GAME group: Λ over ℤ on game
+                  # generators (living on all of game-world, incl. non-numbers ⋆/↑ —
+                  # needs only the ℤ-module structure, not the game product). Split
+                  # from partizan.rs: GameExterior (free Grassmann engine quotiented
+                  # by integer game relations such as 2⋆=0, propagated through the
+                  # exterior ideal) + GameRelation + the integer-lattice relation-
+                  # reduction suite (reduce_integer_vector / normalize_relation_rows).
 
   py/             # PyO3 bindings (feature = "python"), split per pillar
     mod.rs        # the #[pymodule]; chains each submodule's pub(crate) register().
@@ -275,9 +309,9 @@ experiments/       # research probes ON TOP of the shipped lib: Arf of Gold
 The math thread (Arf↔Clifford, the games bridge, the char-0/char-2 classifier
 symmetry, the Artin–Schreier ↔ Arf unification, the open play-semantics
 question) is written up in `NOTES.md` — read it before touching `forms/char2.rs`,
-`forms/char0.rs`, `games/coin_turning.rs`, `games/kernel.rs`, `games/misere.rs`,
-`forms/witt.rs`, `experiments/`, or the `misere_quotient` / `interactive_kernel`
-examples.
+`forms/quadric_fit.rs`, `forms/char0.rs`, `games/coin_turning.rs`,
+`games/kernel.rs`, `games/misere.rs`, `forms/witt.rs`, `experiments/`, or the
+`misere_quotient` / `interactive_kernel` examples.
 
 ## Commands
 
@@ -419,6 +453,14 @@ need custom invariant-preserving deserialization, not a naive derive.)
 - **`Fpn::order()` is the field order `p^N` (static, no self); the element's
   multiplicative order is `multiplicative_order(&self)`.** Different things; the name
   split is deliberate (the static `order()` predates the Galois toolkit).
+- **The `nim_*` Galois free fns delegate to the `FiniteField` trait; don't re-add
+  inherent `Nimber` Galois methods.** `nim_degree(x)` etc. call `Nimber(x).degree()`
+  (the trait default). An inherent `Nimber::degree` would take precedence and
+  recurse forever back through the free fn — that's why the old `impl Nimber`
+  wrappers were removed. The trait lives in `scalar/finite_field/mod.rs`; to add a
+  Galois op, add a default method there (both nimber and fpn get it free). Nimber
+  *overrides* `is_primitive` / `discrete_log` for the sharper large-field algorithms
+  — that's intended, not duplication.
 - **Atomic weight's integer branch is NOT `1 + max_R aw(G^R)`.** It's a predicate
   over `A`'s raw option *games* (`A^R = aw(G^R)+2`) comparing an integer `n` via
   `le`/`fuzzy`, bounded by the *tightest* right option — so it stays correct when an
