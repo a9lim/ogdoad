@@ -5,7 +5,7 @@
 //! already exposes an *inherent* `valuation()` and a way to name its prime element
 //! ([`Qp`](crate::scalar::Qp)/[`Qq`](crate::scalar::Qq) via `from_p_power(1)`,
 //! [`Laurent`](crate::scalar::Laurent) via `t()`). This trait promotes that shared
-//! shape to the type system so the [`Eisenstein`](crate::scalar::Eisenstein)
+//! shape to the type system so the [`Ramified`](crate::scalar::Ramified)
 //! ramified-extension functor can fold a *generic* base valuation — it adjoins a
 //! uniformizer `π` with `πᴱ = ϖ`, and `ϖ = S::uniformizer()` is exactly the datum
 //! it needs from the base field.
@@ -14,7 +14,7 @@
 //! manifest): only the discretely-valued local fields are `Valued`. The exact
 //! Archimedean worlds (`Rational`, `Surreal`) carry no canonical uniformizer and
 //! are intentionally left out. The rings of integers (`Zp`, `WittVec`) are also
-//! left out: an `Eisenstein` base must be a *field* so its `inv` is total on
+//! left out: a `Ramified` base must be a *field* so its `inv` is total on
 //! nonzero.
 
 use crate::scalar::{Laurent, Qp, Qq, Scalar};

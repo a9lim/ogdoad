@@ -1,5 +1,6 @@
-//! Eisenstein (totally ramified) extensions: adjoin a uniformizer `π` with
-//! `πᴱ = ϖ` (the base uniformizer) to a [`Valued`] field.
+//! Ramified (totally ramified) local extensions: adjoin a uniformizer `π` with
+//! `πᴱ = ϖ` (the base uniformizer) to a [`Valued`] field — `π` is a root of an
+//! Eisenstein polynomial, the mnemonic the old type name carried.
 //!
 //! This is the **third root-level functor**, completing the square of ways to
 //! grow a field beside [`Surcomplex`](crate::scalar::Surcomplex) and
@@ -9,7 +10,7 @@
 //!     `x² + 1`) — the *unramified* flavour.
 //!   * `Laurent<S, K>` adjoins a **transcendental, value-group-extending** element
 //!     `t` with a fresh valuation.
-//!   * `Eisenstein<S, E>` adjoins an **algebraic, value-group-extending** root of
+//!   * `Ramified<S, E>` adjoins an **algebraic, value-group-extending** root of
 //!     the Eisenstein polynomial `xᴱ − ϖ` — the *ramified* flavour, the cell the
 //!     table was missing. It refines the value group: `v(π) = 1`, `v(ϖ) = E`.
 //!
@@ -20,7 +21,7 @@
 //! ## Always a field (Eisenstein's criterion)
 //!
 //! `xᴱ − ϖ` is Eisenstein at the prime `ϖ` (`v(ϖ) = 1`, so `ϖ² ∤ ϖ`), hence
-//! **irreducible** over the base field for *every* `E`. So `Eisenstein<S, E>` is a
+//! **irreducible** over the base field for *every* `E`. So `Ramified<S, E>` is a
 //! field whenever `S` is — and `inv` is total on nonzero. Over a char-0 base
 //! (`Qp`, `Qq`) the extension is also separable for all `E`. Over an
 //! equal-characteristic base (`Laurent` of char `p`) it is **inseparable** when
@@ -33,10 +34,10 @@
 //! ## Precision contract
 //!
 //! Every [`Valued`] base in this crate (`Qp`/`Qq`/`Laurent`) is a *capped-relative
-//! precision model*, so `Eisenstein` over it inherits that contract: `mul`/`inv`
+//! precision model*, so `Ramified` over it inherits that contract: `mul`/`inv`
 //! are exact, additive cancellation below the retained window reads as `0`. Like
 //! its bases it is therefore **excluded from the exact-ring fuzz suite**. The
-//! *valuation* is nonetheless exact (see [`Eisenstein::valuation`]).
+//! *valuation* is nonetheless exact (see [`Ramified::valuation`]).
 
 use crate::scalar::{Scalar, Valued};
 use std::fmt;
@@ -46,15 +47,15 @@ use std::fmt;
 /// always exactly length `E` (a fixed basis — there is nothing to canonicalize but
 /// the length), all-zero being the field zero.
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct Eisenstein<S: Valued, const E: usize> {
+pub struct Ramified<S: Valued, const E: usize> {
     coeffs: Vec<S>,
 }
 
-impl<S: Valued, const E: usize> Eisenstein<S, E> {
+impl<S: Valued, const E: usize> Ramified<S, E> {
     /// Build from components, padding with zeros (or truncating) to length `E`.
     pub fn new(mut coeffs: Vec<S>) -> Self {
         coeffs.resize(E, S::zero());
-        Eisenstein { coeffs }
+        Ramified { coeffs }
     }
 
     /// Embed a base scalar `s` as the constant `a₀ = s`.
@@ -63,22 +64,22 @@ impl<S: Valued, const E: usize> Eisenstein<S, E> {
         if E > 0 {
             coeffs[0] = s;
         }
-        Eisenstein { coeffs }
+        Ramified { coeffs }
     }
 
     /// The uniformizer `π` (the basis element `a₁ = 1`).
     pub fn pi() -> Self {
-        debug_assert!(E >= 2, "Eisenstein needs E >= 2 to be a proper extension");
+        debug_assert!(E >= 2, "Ramified needs E >= 2 to be a proper extension");
         let mut coeffs = vec![S::zero(); E];
         coeffs[1] = S::one();
-        Eisenstein { coeffs }
+        Ramified { coeffs }
     }
 
     /// The basis power `π^k` for `k < E` — i.e. the unit basis vector `e_k`.
     fn pi_basis(k: usize) -> Self {
         let mut coeffs = vec![S::zero(); E];
         coeffs[k] = S::one();
-        Eisenstein { coeffs }
+        Ramified { coeffs }
     }
 
     /// The (extension-normalized, `v(π) = 1`) valuation: `min_i (E·v_S(a_i) + i)`
@@ -101,7 +102,7 @@ impl<S: Valued, const E: usize> Eisenstein<S, E> {
 
     /// Whether this lies in the ring of integers `O_S[π]` — the same-type
     /// valuation subring (valuation `≥ 0`), exactly as [`Laurent::is_integral`].
-    /// So `Eisenstein` stays out of the [`HasRingOfIntegers`] pairing (it is a
+    /// So `Ramified` stays out of the [`HasRingOfIntegers`] pairing (it is a
     /// valuation functor, not an algebraic one).
     ///
     /// [`Laurent::is_integral`]: crate::scalar::Laurent::is_integral
@@ -116,7 +117,7 @@ impl<S: Valued, const E: usize> Eisenstein<S, E> {
     }
 }
 
-impl<S: Valued, const E: usize> fmt::Debug for Eisenstein<S, E> {
+impl<S: Valued, const E: usize> fmt::Debug for Ramified<S, E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_zero() {
             return write!(f, "0 (π^{E}=ϖ)");
@@ -140,9 +141,9 @@ impl<S: Valued, const E: usize> fmt::Debug for Eisenstein<S, E> {
     }
 }
 
-impl<S: Valued, const E: usize> Scalar for Eisenstein<S, E> {
+impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
     fn zero() -> Self {
-        Eisenstein {
+        Ramified {
             coeffs: vec![S::zero(); E],
         }
     }
@@ -152,11 +153,11 @@ impl<S: Valued, const E: usize> Scalar for Eisenstein<S, E> {
         if E > 0 {
             coeffs[0] = S::one();
         }
-        Eisenstein { coeffs }
+        Ramified { coeffs }
     }
 
     fn add(&self, rhs: &Self) -> Self {
-        Eisenstein {
+        Ramified {
             coeffs: self
                 .coeffs
                 .iter()
@@ -167,7 +168,7 @@ impl<S: Valued, const E: usize> Scalar for Eisenstein<S, E> {
     }
 
     fn neg(&self) -> Self {
-        Eisenstein {
+        Ramified {
             coeffs: self.coeffs.iter().map(|a| a.neg()).collect(),
         }
     }
@@ -194,7 +195,7 @@ impl<S: Valued, const E: usize> Scalar for Eisenstein<S, E> {
                 }
             }
         }
-        Eisenstein { coeffs: out }
+        Ramified { coeffs: out }
     }
 
     fn characteristic() -> u128 {
@@ -216,7 +217,7 @@ impl<S: Valued, const E: usize> Scalar for Eisenstein<S, E> {
             let w = S::uniformizer();
             let norm = a.mul(a).sub(&w.mul(&b.mul(b)));
             let ninv = norm.inv()?;
-            return Some(Eisenstein {
+            return Some(Ramified {
                 coeffs: vec![a.mul(&ninv), b.neg().mul(&ninv)],
             });
         }
@@ -233,7 +234,7 @@ impl<S: Valued, const E: usize> Scalar for Eisenstein<S, E> {
         let mut e0 = vec![S::zero(); E];
         e0[0] = S::one();
         let c = crate::linalg::field::solve(m, e0)?;
-        Some(Eisenstein { coeffs: c })
+        Some(Ramified { coeffs: c })
     }
 
     fn is_zero(&self) -> bool {
@@ -247,9 +248,9 @@ mod tests {
     use crate::scalar::{Fp, Laurent, Qp};
 
     // Q_3(√3): ramified quadratic, the ramified twin of Q_9.
-    type E2 = Eisenstein<Qp<3, 6>, 2>;
+    type E2 = Ramified<Qp<3, 6>, 2>;
     // Q_2(2^{1/3}): exercises the E ≥ 3 matrix-solve inverse.
-    type E3 = Eisenstein<Qp<2, 8>, 3>;
+    type E3 = Ramified<Qp<2, 8>, 3>;
 
     fn q3(n: i128) -> Qp<3, 6> {
         Qp::from_i128(n)
@@ -344,7 +345,7 @@ mod tests {
     #[test]
     fn characteristic_is_inherited_from_the_base() {
         assert_eq!(E2::characteristic(), 0); // over Q_3
-        type EW = Eisenstein<Laurent<Fp<2>, 6>, 2>;
+        type EW = Ramified<Laurent<Fp<2>, 6>, 2>;
         assert_eq!(EW::characteristic(), 2); // over F_2((t))
     }
 
@@ -353,7 +354,7 @@ mod tests {
         // E = 2 over a char-2 base is WILD (p | E): x² − t is inseparable but
         // still irreducible (Eisenstein), so the extension is a field and inv is
         // total on nonzero — the separability subtlety is invisible to arithmetic.
-        type EW = Eisenstein<Laurent<Fp<2>, 8>, 2>;
+        type EW = Ramified<Laurent<Fp<2>, 8>, 2>;
         let t = Laurent::<Fp<2>, 8>::t();
         // π² = t.
         let pi = EW::pi();

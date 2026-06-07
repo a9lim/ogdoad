@@ -29,7 +29,7 @@
 //! swapped for the canonical **Conway polynomials** later (which additionally give
 //! compatible embeddings `F_{p^n} ↪ F_{p^{nm}}`) without touching anything else.
 //! `mul` is schoolbook multiply-then-reduce — the degree-`N`, odd-`p` generalisation
-//! of `onag.rs`'s "reduce mod `ω³ = 2`".
+//! of `big::ordinal`'s "reduce mod `ω³ = 2`".
 
 use super::FiniteField;
 use crate::scalar::{Fp, Scalar};

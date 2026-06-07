@@ -20,56 +20,62 @@
 //! |---|---|---|---|
 //! | [`exact`]        — Archimedean        | `Rational` ℚ       | `Integer` ℤ   | — |
 //! | [`big`]          — transfinite        | `Surreal` No       | `Omnific` Oz  | ≈ℝ |
+//! | [`big`]          — transfinite char-2 | `Ordinal` On₂      | (itself)      | — |
 //! | [`small`]        — p-adic             | `Qp` Q_p           | `Zp` Z_p      | F_p |
 //! | [`small`]        — p-adic, unramified | `Qq` Q_q           | `WittVec` W_N | F_q |
 //! | [`finite_field`] — finite             | `Fp`/`Fpn` F_{p^n} | (itself)      | — |
 //! | [`finite_field`] — char-2 nim         | `Nimber` F_2¹²⁸    | (itself)      | — |
 //!
+//! `Ordinal` On₂ (the transfinite nimbers, [`big::ordinal`]) is algebraically
+//! closed of characteristic 2, not a local field — so its ring-of-integers cell is
+//! "(itself)", honestly vacuous, exactly as for the finite fields.
+//!
 //! The **equal-characteristic local** cell — `F_q((t))` over `F_q[[t]]`, the
 //! char-`p` mirror of the `Qp`/`Zp` row — is filled by the [`Laurent`] functor
 //! (below), not a row of its own.
 //!
-//! Three **root-level functors** sit *orthogonal* to the table — the ways to grow
-//! a field, by an algebraic root or a transcendental, residue- or value-extending:
+//! The [`functor`] module sits *orthogonal* to the table — the ways to grow a
+//! field, by an algebraic root or a transcendental, residue- or value-extending
+//! (see [`functor`] for the full 2×2 square):
 //!   * [`Surcomplex`] is `Surcomplex<S>` — a generic *i-adjunction* functor
 //!     (adjoin a root of `x²+1`) over any backend, not a concrete world.
 //!   * [`Laurent`] is `Laurent<S, K>` — a generic *t-adjunction* functor (adjoin a
 //!     transcendental `t` with a valuation), the formal Laurent field `S((t))`.
 //!     Applied to a finite field it fills the **equal-characteristic local** cell
 //!     (`F_q((t))`, the char-`p` mirror of `Qp`); its ring of integers is `F_q[[t]]`.
-//!   * [`Eisenstein`] is `Eisenstein<S, E>` — a generic *ramified* `π`-adjunction
+//!   * [`Ramified`] is `Ramified<S, E>` — a generic *ramified* `π`-adjunction
 //!     functor (adjoin a root of the Eisenstein polynomial `xᴱ − ϖ`) over a
 //!     [`Valued`] base. It fills the **ramified** local cell: `Q_p(p^{1/E})` over
 //!     `Qp`, the ramified twin of the unramified `Qq`. The valuation datum it
 //!     needs from the base is abstracted by the [`Valued`] trait.
+//!   * [`Gauss`] is `Gauss<S>` — a generic *t-adjunction* with the **Gauss
+//!     valuation** over a [`Valued`] base, the rational function field `S(t)` with
+//!     `v(t) = 0`. The residue-extending twin of `Laurent` (residue field `k(t̄)`,
+//!     value group unchanged); the fourth, last corner of the functor square.
 //!
-//! And [`onag`](big::onag)'s ordinal nimbers are the **char-2 mirror of the
+//! And [`ordinal`](big::ordinal)'s nimbers are the **char-2 mirror of the
 //! surreals** — the transfinite "big" number in characteristic 2 — so they sit
 //! in [`big`] alongside `Surreal`/`Omnific`, not with the finite nim-field.
 //!
 //! The characteristic trichotomy that organises [`crate::forms`] cuts *across*
-//! this table (char 0 in `exact`/`big`/`small`, char 2 in `nimber`/`onag`, odd and
-//! even in `finite_field`); the two pillars are complementary views of the same
-//! backends.
+//! this table (char 0 in `exact`/`big`/`small`, char 2 in `nimber`/`ordinal`, odd
+//! and even in `finite_field`); the two pillars are complementary views of the
+//! same backends.
 
 pub mod big;
-pub mod eisenstein;
 pub mod exact;
 pub mod finite_field;
+pub mod functor;
 pub mod integrality;
-pub mod laurent;
 pub mod small;
-pub mod surcomplex;
 pub mod valued;
 
 pub use big::*;
-pub use eisenstein::*;
 pub use exact::*;
 pub use finite_field::*;
+pub use functor::*;
 pub use integrality::*;
-pub use laurent::*;
 pub use small::*;
-pub use surcomplex::*;
 pub use valued::*;
 
 use std::fmt::Debug;
@@ -183,7 +189,8 @@ impl_scalar_ops!([const P: u128, const K: u128] Zp<P, K>);
 impl_scalar_ops!([const P: u128, const N: usize, const F: usize] Qq<P, N, F>);
 impl_scalar_ops!([S: Scalar] Surcomplex<S>);
 impl_scalar_ops!([S: Scalar, const K: usize] Laurent<S, K>);
-impl_scalar_ops!([S: Valued, const E: usize] Eisenstein<S, E>);
+impl_scalar_ops!([S: Valued, const E: usize] Ramified<S, E>);
+impl_scalar_ops!([S: Valued] Gauss<S>);
 
 #[cfg(test)]
 mod ops_tests {

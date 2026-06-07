@@ -41,7 +41,7 @@
 //!     order; over a general base it is `O_K[i]`, which we do not claim is maximal.)
 //!   * **Valuation functors keep a same-type subring.**
 //!     [`Laurent`](crate::scalar::Laurent) and
-//!     [`Eisenstein`](crate::scalar::Eisenstein) adjoin (a transcendental / a
+//!     [`Ramified`](crate::scalar::Ramified) adjoin (a transcendental / a
 //!     ramified root with) a *valuation*; their ring of integers is the
 //!     valuation-`≥ 0` subring of the *same* type (`is_integral`), so they stay
 //!     out of the pairing — the same honesty as `Laurent` above.

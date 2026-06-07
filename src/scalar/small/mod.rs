@@ -18,7 +18,12 @@
 //! `Z_p`'s residue field is `F_p`, linking this place to `finite_field/`. The
 //! unramified `(Q_q, W_N(F_q))` is its residue-degree-`F` lift, with residue field
 //! `F_q` — the ring of integers `WittVec` living over in `finite_field/`.
+//!
+//! [`analytic`] adds the **analytic layer** these worlds share with the surreals
+//! (the mirror of `big/surreal/analytic.rs`): Hensel-lifted `is_square`/`sqrt` and
+//! the Teichmüller representative `τ`, across all four backends.
 
+pub mod analytic;
 pub mod qp;
 pub mod qq;
 pub mod zp;

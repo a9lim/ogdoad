@@ -48,24 +48,44 @@ src/
                   # (so `Surreal + Surreal`, `-nimber` work). NOT a Scalar
                   # supertrait — see the operators note under "things that look
                   # like bugs". `/` stays a method (inv is partial).
-    surcomplex.rs # Surcomplex<S> = adjoin i over ANY backend (carries conj()). One
-                  # of the TWO root-level *functors* (the ALGEBRAIC one — adjoin a
-                  # root of x²+1), not a concrete world; orthogonal to the table.
-    laurent.rs    # Laurent<S, const K> = S((t)), formal Laurent series to relative
-                  # precision K. The TRANSCENDENTAL root functor (adjoin t with a
-                  # valuation) — the transcendental twin of surcomplex. Over a finite
-                  # field it fills the EQUAL-CHARACTERISTIC local cell: F_q((t)) (char
-                  # p, the mirror of Qp); ring of integers F_q[[t]] = the val≥0
-                  # subring (Laurent::is_integral). Capped-relative like Qp (mul/inv
-                  # exact, addition non-assoc across precision); field iff S is.
-                  # EXCLUDED from the exact-ring fuzz suite.
     integrality.rs # the (field, ring-of-integers) pairing made STRUCTURAL: the
                   # HasFractionField {Frac; to_fraction} + HasRingOfIntegers {Int;
                   # is_integral/to_integer} trait pair (Int: HasFractionField<Frac=
                   # Self> ties the loop). Impl'd for the four distinct-type rows
-                  # (ℤ⊂ℚ, Oz⊂No, Zp⊂Qp, W_N⊂Qq); the generic frac∘int=id round-trip is
-                  # the manifest's test. Laurent's F_q[[t]] is a same-type valuation
-                  # subring, so it stays out (is_integral only) — honest, not a gap.
+                  # (ℤ⊂ℚ, Oz⊂No, Zp⊂Qp, W_N⊂Qq) PLUS the blanket Surcomplex transport
+                  # (ℤ[i]⊂ℚ[i] falls out); the generic frac∘int=id round-trip is the
+                  # manifest's test. Laurent/Ramified F_q[[t]]/O[π] are same-type
+                  # valuation subrings, so they stay out (is_integral only) — honest.
+    valued.rs     # the Valued trait: a discrete valuation + canonical uniformizer ϖ,
+                  # impl'd for the local FIELDS (Qp/Qq/Laurent). The spine of the
+                  # "local fields" view (cuts across small/ + functor/), and the datum
+                  # Ramified folds from its base. NOT a Scalar supertrait (rings of
+                  # integers + exact Archimedean worlds excluded), same as the ops.
+    functor/      # the root-level *functors* — ways to GROW a field, orthogonal to
+                  # the place table. 2×2 (algebraic|transcendental × residue|value-
+                  # extending), ALL FOUR corners filled (see functor/mod.rs).
+      surcomplex.rs # Surcomplex<S> = adjoin i over ANY backend (carries conj()). The
+                  #   ALGEBRAIC, residue-extending corner (root of x²+1), not a world.
+      laurent.rs  #   Laurent<S, const K> = S((t)), formal Laurent series to relative
+                  #   precision K. The TRANSCENDENTAL, VALUE-extending corner (adjoin t
+                  #   as a uniformizer, v(t)=1). Over a finite field it fills the EQUAL-
+                  #   CHARACTERISTIC local cell: F_q((t)) (char p, the mirror of Qp);
+                  #   ring of integers F_q[[t]] = the val≥0 subring (Laurent::is_
+                  #   integral). Capped-relative like Qp (mul/inv exact, addition non-
+                  #   assoc across precision); field iff S is. EXCLUDED from the fuzz.
+      ramified.rs #   Ramified<S, const E> (was Eisenstein) = adjoin a root of the
+                  #   Eisenstein polynomial xᴱ−ϖ over a Valued base. The ALGEBRAIC,
+                  #   value-extending corner — the RAMIFIED local cell: Q_p(p^{1/E})
+                  #   over Qp, the ramified twin of Qq. Exact ramified valuation
+                  #   (unique min via distinct residues mod E); E=2 norm-form inverse,
+                  #   E≥3 regular-rep solve. Always a field (Eisenstein's criterion),
+                  #   incl. wild/inseparable p|E. Capped-relative, EXCLUDED from fuzz.
+      gauss.rs    #   Gauss<S> = S(t) with the GAUSS valuation over a Valued base. The
+                  #   TRANSCENDENTAL, RESIDUE-extending corner (adjoin t as a UNIT,
+                  #   v(t)=0, transcendental residue ⇒ residue field k(t̄), value group
+                  #   unchanged) — the last corner, Laurent's residue-extending twin.
+                  #   num/den rational functions, NO gcd (inv=den/num; eq by cross-
+                  #   mult; monic denom). Valued itself; precision model, EXCLUDED.
 
     exact/        # FAMILY — the Archimedean char-0 base (field + ring of integers)
       rational.rs # exact ℚ over i128, NOT a game backend — the char-0 scalar that
@@ -77,7 +97,7 @@ src/
                   # game-world. Only ±1 invertible (Grassmann never calls inv).
 
     big/          # FAMILY — the transfinite worlds (the number may be infinite)
-      cnf.rs      # the ONE thing surreal & onag genuinely share: merge_descending,
+      cnf.rs      # the ONE thing surreal & ordinal genuinely share: merge_descending,
                   # the descending-CNF canonicalizer parameterized by the 3 places
                   # they differ (exponent order: No value-order vs ordinal lex;
                   # coeff merge: + vs XOR; zero test). Deliberately a shared
@@ -106,8 +126,9 @@ src/
       omnific.rs  # the omnific integers Oz: Omnific(Surreal) newtype, a transfinite
                   # commutative RING (not field). Surreal mirror of Integer (the ring
                   # of integers of No); the exterior algebra with ω-scale coeffs.
-      onag/       # transfinite (ordinal) NIMBERS — the char-2 mirror of surreal.
-                  # SPLIT into a subdir like surreal/, all impl Ordinal:
+      ordinal/    # transfinite (ordinal) NIMBERS On₂ — the char-2 mirror of surreal
+                  # (was onag/, after Conway's ONAG; renamed name-by-object for the
+                  # type Ordinal). SPLIT into a subdir like surreal/, all impl Ordinal:
         mod.rs    #   CNF core: Ordinal = Vec<(exponent: Ordinal, coeff: u128)>,
                   #   constructors, the lexicographic cmp, as_finite, Debug.
         nim.rs    #   char-2 NIM arithmetic: nim_add (coeff XOR) COMPLETE; nim_mul
@@ -115,9 +136,9 @@ src/
                   #   Lemma 1.1: poly mult in (finite nimbers)[ω] mod ω³−2. ω⊗ω⊗ω=2;
                   #   F₄(ω)≅F₆₄ verified. Above ω³ staged (Lenstra tower). The XOR
                   #   canonicalize (= the char-2 coeff merge) lives here.
-        ordinal.rs #  ORDINARY (Cantor) ord_add/ord_mul (NOT nim: ω+ω=ω·2, 1+ω=ω) —
+        cantor.rs #   ORDINARY (Cantor) ord_add/ord_mul (NOT nim: ω+ω=ω·2, 1+ω=ω) —
                   #   the surreal birthday's run-length arithmetic. A distinct
-                  #   algebra from nim, sharing only the CNF shape.
+                  #   algebra from nim, sharing only the CNF shape. (Was ordinal.rs.)
 
     small/        # FAMILY — the non-Archimedean (p-adic) local world
       qp.rs       # Qp<const P, const K>: the p-adic FIELD Q_p (field of fractions of
@@ -137,6 +158,12 @@ src/
                   # with F=1 IS Qp. p^val·(Witt unit), char()=0, inv TOTAL on nonzero.
                   # Capped-relative (excluded from the fuzz suite). Completes the
                   # (field, ring of integers) pairing on the unramified leg.
+      analytic.rs # the ANALYTIC layer over all four backends (mirror of surreal/
+                  # analytic.rs): Hensel-lifted is_square/sqrt (Tonelli residue seed
+                  # over F_p/F_q + Newton lift y←(y+u/y)/2; ODD p only — dyadic sqrt
+                  # is the forms mod-8 story, asserted) and the Teichmüller rep τ
+                  # (the (q−1)th root of unity; added to Zp/Qp/Qq, WittVec already
+                  # had it). nth_root + p-adic log/exp are the documented next ops.
 
     finite_field/ # FAMILY — the finite residue worlds (the char trichotomy's finite
                   # leg + the unramified ring of integers)

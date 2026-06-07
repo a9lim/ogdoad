@@ -20,7 +20,7 @@
 //!
 //!   * [`nim`] — the char-2 nim arithmetic: nim-addition (XOR of like-power
 //!     coefficients) and the `φ_{ω+1}` field product (the DiMuro tower).
-//!   * [`ordinal`] — the *ordinary* (Cantor) ordinal arithmetic `ord_add`/
+//!   * [`cantor`] — the *ordinary* (Cantor) ordinal arithmetic `ord_add`/
 //!     `ord_mul` (`ω + ω = ω·2`, `1 + ω = ω`), a genuinely different operation
 //!     from nim, used by the surreal birthday's run-length sums.
 //!
@@ -47,8 +47,8 @@
 //!   in successively larger finite fields. An ordinal with any CNF exponent
 //!   `≥ 3` returns `None`.
 
+mod cantor;
 mod nim;
-mod ordinal;
 
 use std::cmp::Ordering;
 use std::fmt;

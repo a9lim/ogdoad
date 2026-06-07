@@ -2,7 +2,7 @@
 //! (nim-addition = XOR of like-`ω`-power coefficients) and the field product
 //! across `φ_{ω+1}` (ordinals `< ω³`) via the DiMuro/Conway tower. The CNF
 //! canonicalizer lives here because its like-term merge *is* the nim addition
-//! (XOR); the ordinary-ordinal merge in [`ordinal`](super::ordinal) builds its
+//! (XOR); the ordinary-ordinal merge in [`cantor`](super::cantor) builds its
 //! terms directly instead. See the [module overview](super) for the field tower.
 
 use super::Ordinal;

@@ -102,11 +102,16 @@ Four pillars under `src/`, each re-exported flat (`scalar::Nimber`,
 - `scalar/` — the `Scalar` trait and the coefficient worlds, grouped **by place**
   into the "any number" table, each field beside its ring of integers:
   `exact/` (ℚ `rational`, ℤ `integer`), `big/` (the transfinite worlds — `surreal`
-  `No`, `omnific` `Oz`, `onag` ordinal nimbers), `small/` (p-adic — `qp` Q_p, `zp`
+  `No`, `omnific` `Oz`, `ordinal` nimbers On₂), `small/` (p-adic — `qp` Q_p, `zp`
   Z_p), and `finite_field/` (the finite residue fields — `fp` F_p, `fpn` F_{pⁿ},
-  `nimber` F_2¹²⁸, `wittvec` W_n, all sharing one `FiniteField` Galois trait).
-  `surcomplex` (adjoin `i` over any backend) is the lone functor, orthogonal to the
-  table. The char trichotomy that organises `forms/` cuts *across* this grouping.
+  `nimber` F_2¹²⁸, `wittvec` W_n, all sharing one `FiniteField` Galois trait). The
+  `functor/` module holds the field-growing functors orthogonal to the table — the
+  2×2 square of `surcomplex` (adjoin `i`), `ramified` (Eisenstein root `xᴱ−ϖ`),
+  `laurent` (adjoin `t`, `v(t)=1`), and `gauss` (adjoin `t`, `v(t)=0`) — and
+  `valued`/`integrality` carry the local-field and (field, ring of integers) views.
+  `small/analytic` adds Hensel `sqrt` + the Teichmüller lift to the p-adic worlds
+  (the mirror of the surreal analytic layer). The char trichotomy that organises
+  `forms/` cuts *across* this grouping.
 - `clifford/` — the multivector engine (`engine`: independent `q`/`b`/`a`,
   characteristic-faithful) with the geometry split out (`versor`), plus
   outermorphisms, the exterior Hopf algebra, conformal/projective GA, and

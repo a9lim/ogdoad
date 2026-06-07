@@ -1,6 +1,6 @@
 //! The one piece of machinery the two transfinite backends genuinely share.
 //!
-//! `surreal` (`No`) and `onag` (`On₂`) both store a number as a descending
+//! `surreal` (`No`) and `ordinal` (`On₂`) both store a number as a descending
 //! Conway-normal-form / Hahn series — `Vec<(exponent, coeff)>` with *recursive*
 //! exponents, kept strictly descending with like powers merged and zero
 //! coefficients dropped. That merge is [`merge_descending`], parameterized by the

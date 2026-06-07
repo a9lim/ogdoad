@@ -77,7 +77,7 @@ systems:
 | `Integer`, `Omnific` | coefficient rings for exterior/nilpotent structures |
 | `Fp`, `Fpn`, `Zp`, `WittVec` | comparison scalar worlds for the characteristic trichotomy |
 | `Qp` | the p-adic *field* `Q_p` (capped-relative precision model; Zp's field of fractions) — the empty cell in the "any number" table; feeds the p-adic Springer leg |
-| `Ordinal` in `onag.rs` | staged transfinite nimbers below `omega^3`, including `F_4(omega) ~= F_64` |
+| `Ordinal` in `big/ordinal/` | staged transfinite nimbers below `omega^3`, including `F_4(omega) ~= F_64` |
 
 The writeup should focus on `Nimber`, and mention the others only as context.
 
@@ -367,7 +367,7 @@ The draft paper should stay narrow:
    no-go, Galois-natural `x`-evaluator yes, the fixed-rule middle open.
 
 Do not make the paper a catalogue of every module. The odd-characteristic,
-p-adic, Witt, Brauer-Wall, CGA, spinor, Hopf, and transfinite-onag modules are
+p-adic, Witt, Brauer-Wall, CGA, spinor, Hopf, and transfinite-ordinal modules are
 useful infrastructure, but they belong in a separate implementation appendix or
 README section unless they are needed for the Arf/game thread. The same goes for
 the "completeness" round-out layer added later — `Qp` (p-adic field) + p-adic
