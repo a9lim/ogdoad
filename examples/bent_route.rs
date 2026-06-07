@@ -1,13 +1,13 @@
 //! The bent route to the open question.
 //!   cargo run --example bent_route
 //!
-//! Bent (nondegenerate) game-realizable forms are the SHARPEST Tier-2 target. The
+//! Bent (nondegenerate) game-realizable forms are a clean Tier-2 target. The
 //! polar form B then has trivial radical R(B) = {0}, so:
 //!   (i)  the symmetric-B loopy rule whose Loss-set is R(B) (loopy_quadric.rs)
-//!        collapses to {0} — the radical route is DEAD, no coincidence can fake a
+//!        collapses to {0} — the radical route is empty, no coincidence can fake a
 //!        hit (cf. the (m,a)=(4,1) artifact where R(B) happened to equal {Q=0});
-//!   (ii) the frame-blind Sp(B) no-go bites in FULL — no degenerate part for it to
-//!        be silent on. So any candidate rule MUST be frame-dependent.
+//!   (ii) the frame-blind Sp(B) no-go applies without a degenerate radical layer.
+//!        So any candidate rule in this setting must use more than B alone.
 //!
 //! Read the form as an ISING ENERGY over F_2:
 //!     Q(v) = Σ_{i<j} B_ij v_i v_j  +  Σ_i q_i v_i,
@@ -59,7 +59,9 @@ fn describe(label: &str, p: &[u128], zero: &[u128], draws: usize, m: u128) {
     let n = 1usize << m;
     let ps: std::collections::HashSet<u128> = p.iter().copied().collect();
     let zs: std::collections::HashSet<u128> = zero.iter().copied().collect();
-    let agree = (0..n as u128).filter(|v| ps.contains(v) == zs.contains(v)).count();
+    let agree = (0..n as u128)
+        .filter(|v| ps.contains(v) == zs.contains(v))
+        .count();
     print!(
         "  {label:<28} |P|={:<3} draws={draws:<3} agree {agree}/{n} with {{Q=0}}",
         p.len()
@@ -69,7 +71,11 @@ fn describe(label: &str, p: &[u128], zero: &[u128], draws: usize, m: u128) {
     } else {
         match fit_f2_quadratic(p, m as usize) {
             Some(f) if f.is_genuinely_quadratic() => {
-                let bent = if f.arf.rank == m as usize { ", BENT" } else { "" };
+                let bent = if f.arf.rank == m as usize {
+                    ", BENT"
+                } else {
+                    ""
+                };
                 println!("   quadric (Arf={}, rank={}{bent})", f.arf.arf, f.arf.rank)
             }
             Some(_) => println!("   affine/linear (a subspace coset)"),
@@ -91,7 +97,9 @@ fn main() {
             z == half + off || z == half - off
         })
         .expect("a bent component exists");
-    let zero: Vec<u128> = (0..n as u128).filter(|&v| gold(v, lam, a, m) == 0).collect();
+    let zero: Vec<u128> = (0..n as u128)
+        .filter(|&v| gold(v, lam, a, m) == 0)
+        .collect();
     let z = zero.len() as u128;
     let arf = if z == half + off { 0 } else { 1 };
     println!(
@@ -113,7 +121,9 @@ fn main() {
     // Sanity: the local energy change ΔQ_i(v) = q_i ⊕ B(v,e_i) = Q(v⊕e_i) ⊕ Q(v).
     let q_diag: Vec<u128> = (0..m).map(|i| gold(1 << i, lam, a, m)).collect();
     let delta = |v: u128, i: u128| q_diag[i as usize] ^ polar(v, 1 << i, lam, a, m);
-    assert!((0..n as u128).all(|v| (0..m).all(|i| delta(v, i) == (gold(v ^ (1 << i), lam, a, m) ^ gold(v, lam, a, m)))));
+    assert!((0..n as u128).all(
+        |v| (0..m).all(|i| delta(v, i) == (gold(v ^ (1 << i), lam, a, m) ^ gold(v, lam, a, m)))
+    ));
     println!("(ii) candidate rules (downward: turn OFF set bits only, so play terminates):\n");
 
     // Rule A — LOCAL SPIN-FLIP / Ising: turn off bit i iff the local energy changes,
@@ -174,6 +184,6 @@ fn main() {
     println!("   per-coin field q_i to B. It does NOT align B's quadric to {{Q=0}}; it leaves");
     println!("   the quadric variety entirely. So the naive local-field assembly fails: the");
     println!("   diagonal framing must enter some other way than a per-coin spin-flip gate.");
-    println!("This sharpens the open question on the cleanest case: B+frame is provably enough");
-    println!("for the right quadric CLASS; aligning to the specific Gold quadric is the open core.");
+    println!("This sharpens the open question on this bent case: B+frame can reach a");
+    println!("right-Arf quadric class, but aligning to the specific Gold quadric remains open.");
 }

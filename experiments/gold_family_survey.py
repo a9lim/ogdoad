@@ -1,5 +1,5 @@
-"""Broadening the form: the whole game-realizable quadratic family, and where it
-goes BENT — the forms the single Gold form can never reach.
+"""Broadening the form: a game-realizable quadratic trace family, and where it
+goes BENT in the sampled cases.
 
 NOTES.md fixes one form, the Gold form Q_a(x) = Tr(x^{1+2^a}), and hunts for a
 natural game with P-set {Q_a=0}. This probe broadens the *form* side. The general
@@ -8,10 +8,11 @@ arXiv:1305.3700)
 
     Q_c(x) = Σ_{i=1}^{m/2-1} Tr_1^m(c_i · x^{1+2^i})   [ + a half-trace middle term ]
 
-— and EVERY term is game-realizable: x^{1+2^i} = x ⊗ x^{2^i} is a Turning-Corners
-product of x with its i-fold Frobenius image, the coefficient c_i is one more
-nim-product, and the sum/trace are XOR. So the whole space of quadratic forms,
-not just the coefficient-1 Gold atom, is built from coin-turning game operations.
+— and each displayed term is game-realizable: x^{1+2^i} = x ⊗ x^{2^i} is a
+Turning-Corners product of x with its i-fold Frobenius image, the coefficient c_i
+is one more nim-product, and the sum/trace are XOR. This script does not implement
+the affine bookkeeping or the half-trace middle term; it probes a large
+trace-presented family, not every Boolean quadratic form.
 
 WHY THIS MATTERS FOR THE OPEN QUESTION. A form's zero set {Q=0} is farthest from
 any XOR-subspace exactly when the form is BENT — nondegenerate polar form, rank m,
@@ -29,8 +30,8 @@ Tier-2 target. Two facts this probe pins down:
 The conclusion reshapes the route question (the "& route" half of the thread):
 on a bent form the radical is {0}, so the symmetric-B loopy rule (whose Loss-set
 is exactly R(B), see loopy_quadric.rs) collapses to Loss = {0} — useless — and the
-frame-blind Sp(B) no-go bites with NO degenerate part to be silent on. Bent
-game-realizable forms are therefore the *purest* statement of the open question:
+frame-blind Sp(B) no-go applies without a degenerate radical layer. Bent
+game-realizable forms are therefore a clean stress test for the open question:
 no radical coincidence (the m=4 (m,a)=(4,1) artifact) can masquerade as a hit.
 
 Honest scope: the i = m/2 half-trace middle term is omitted here (it needs a
@@ -93,9 +94,9 @@ def arf_of(coeffs, m):
 
 def part1_components_go_bent(m):
     print("=" * 72)
-    print("PART 1 — scaled Gold components Tr(λ·x^{1+2^a}): 2/3 are BENT (rank m)")
+    print("PART 1 — scaled Gold components Tr(λ·x^{1+2^a}): bent counts by exponent")
     print("=" * 72)
-    print(f"  unscaled Gold (λ=1) has rank m - gcd(2a,m) < m — NEVER bent.")
+    print(f"  in this scan, unscaled Gold (λ=1) has rank m - gcd(2a,m) < m, so it is not bent.")
     print(f"  scanning all λ ∈ F_{{2^{m}}}* :\n")
     print(f"  {'a':>2} {'gcd(a,m)':>8} {'APN?':>5} | rank distribution over λ        bent count   (2(2^m-1)/3)")
     print("  " + "-" * 86)
@@ -110,7 +111,7 @@ def part1_components_go_bent(m):
               f"{bent:>6}        {2 * ((1 << m) - 1) // 3 if apn else '—':>10}")
     print("\n  ⇒ gcd(a,m)=1 (APN exponent) gives exactly 2(2^m-1)/3 bent components;")
     print("    gcd(a,m)>1 (non-APN) gives a different split. Either way bent is reached")
-    print("    by ONE extra nim-multiplication (the coefficient λ) — game-realizable.\n")
+    print("    by ONE extra nim-multiplication (the coefficient λ) in these tested cases.\n")
 
 
 def part2_zero_count(m):
@@ -159,7 +160,7 @@ def part3_sums_and_route(m):
                   for d in range(1 << m))]
     print(f"  bent witness λ={c}: radical R(B) = {rad}  (|R(B)|={len(rad)})")
     print("  ⇒ symmetric-B loopy Loss-set = R(B) = {0}: the radical route is empty here.")
-    print("  ⇒ bent forms are the PUREST Tier-2 target: no radical can fake a {Q=0} hit")
+    print("  ⇒ bent forms are a clean Tier-2 target: no radical can fake a {Q=0} hit")
     print("    (the (m,a)=(4,1) coincidence in loopy_quadric.rs cannot recur), and the")
     print("    frame-blind Sp(B) no-go applies in full. The next route probe should feed")
     print("    a bent {Q=0} into the interactive/misère instruments, where it is hardest.")

@@ -1,4 +1,5 @@
-//! The **adele ring** `A_Q` — the first scalar that lives at *every place at once*.
+//! The **adele ring** `A_Q` — modeled here as a scalar with components at every
+//! rational place at once.
 //!
 //! Where the rest of the "any number" table picks one place — `Rational` is the
 //! Archimedean place `ℝ`, each [`Qp`](crate::scalar::Qp) is one prime place — the
@@ -14,15 +15,14 @@
 //! nonzero valuation at only finitely many primes. So the image of `q ∈ ℚ` is just
 //! `{ principal: q, real: q, finite: ∅ }`, and **principal adeles cost nothing**.
 //!
-//! `Adele` is a genuine [`Scalar`] (characteristic 0); its `inv` is total on the
-//! **idele** group `A_Q^*` (units at every place). Like [`Qp`](crate::scalar::Qp)
-//! it inherits capped-relative precision at each finite place, so addition is not
-//! associative across precision boundaries — it is a *precision model*, **excluded
-//! from the exact-ring fuzz suite**. The exact facts (additive group, the
-//! multiplicative idele group, the diagonal ring homomorphism `ℚ ↪ A_Q`) are tested
-//! directly, and the local–global *payoff* (product formula, Hilbert reciprocity,
-//! adelic Hasse–Minkowski, the Brauer exact sequence) lives in
-//! [`forms::adelic`](crate::forms::adelic).
+//! `Adele` implements [`Scalar`] with characteristic 0; its `inv` is intended for
+//! the **idele** group `A_Q^*` (units at every place). Like
+//! [`Qp`](crate::scalar::Qp), it inherits capped-relative precision at each finite
+//! place, so addition is not associative across precision boundaries. It is
+//! therefore a *precision model*, **excluded from the exact-ring fuzz suite**.
+//! The tested facts are the diagonal embedding, the finite-place bookkeeping, the
+//! multiplicative idele behavior in represented cases, and the local–global
+//! routines in [`forms::adelic`](crate::forms::adelic).
 //!
 //! Deliberately **not** [`Valued`](crate::scalar::Valued) (an adele has a whole
 //! family of valuations, no single canonical one — use [`Adele::local_at`] and

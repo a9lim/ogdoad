@@ -69,7 +69,7 @@ world & algebraic structure & role here \\
 \midrule
 $\No$ & real-closed field, char $0$ & ordinary real Clifford theory with surreal scalars \\
 $\No[i]$ & algebraically closed field, char $0$ & ordinary complex Clifford theory \\
-finite nimbers & finite fields of char $2$ & the genuinely different Clifford backend \\
+finite nimber subfields & finite fields of char $2$ & characteristic-$2$ Clifford and Arf experiments \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -164,12 +164,13 @@ quadratic-form theory.
 \subsection{Rank check}
 
 The polar rank of Gold forms is known. In the tested regime
-$m=2^k$ and $1\leq a\leq k$, the rank is
+$m=2^k$ and $1\leq a\leq k$, the general formula
 \[
-  \operatorname{rank} B_{Q_a}=m-2\gcd(a,m).
+  \operatorname{rank} B_{Q_a}=m-\gcd(2a,m)
 \]
-The classifier reproduces this formula in all tested cases. Representative
-rows are shown in Table~\ref{tab:gold}.
+specializes to $m-2\gcd(a,m)$ because $m/\gcd(a,m)$ is even. The classifier
+reproduces the general formula in all tested cases. Representative rows are
+shown in Table~\ref{tab:gold}.
 
 \begin{table}[h]
 \centering
@@ -194,6 +195,32 @@ $1\leq a\leq \log_2 m$.}
 Most of these forms have a nontrivial radical. The statement is therefore not
 ``nondegenerate Gold form'' but ``positive-rank quadratic form with a
 nonsingular core whose Arf value is computed after symplectic reduction.''
+
+\section{A broader trace family}
+
+The coefficient-$1$ Gold form is only one trace monomial. A standard trace
+description of the quadratic part of Boolean functions over $\F_{2^m}$ uses
+terms
+\[
+  \Tr(c_i x^{1+2^i})
+\]
+plus affine terms and, in even degree, a middle half-trace term. The monomials
+displayed here are still game-operation-built in the nimber backend:
+$c_i x^{1+2^i}=c_i\nimmul x\nimmul x^{2^i}$, followed by trace/XOR.
+
+The current implementation does not claim to package every Boolean quadratic
+function. The probe \texttt{experiments/gold\_family\_survey.py} deliberately
+omits the middle term and affine bookkeeping. What it does check, exhaustively
+over $\F_{256}$, is that scaled Gold components
+\[
+  Q_{\lambda,a}(x)=\Tr(\lambda x^{1+2^a})
+\]
+already reach nondegenerate (bent) forms for many $\lambda$. For APN Gold
+exponents in that field, the observed count matches the classical
+$2(2^m-1)/3$ bent-component count. This matters for the open game question
+because a bent form has trivial radical: the loopy radical route collapses to
+$\{0\}$, and the frame-blind symplectic no-go applies without a degenerate
+layer to hide in.
 
 \section{Arf as conditional win-bias}
 
@@ -261,7 +288,8 @@ quadratic zero set.
 
 \subsection{Test benches}
 
-The repo contains two kinds of probes.
+The repo contains several probes. They are useful for narrowing the target, but
+they are not a proof that no natural game exists.
 
 \begin{itemize}[leftmargin=*]
 \item \texttt{fit\_f2\_quadratic} tests whether a subset of $\F_2^k$ is the zero
@@ -270,14 +298,25 @@ set of a quadratic polynomial, and whether the result has nonzero polar rank.
 sweep checked $292$ octal codes, heap cutoff at most $4$, and found quotient
 orders $2,6,10,12,14$, with no elementary abelian $2$-group of rank at least
 $2$.
+\item \texttt{experiments/misere\_kernel.py} checks the kernel obstruction on
+the smallest wild misere quotient $R_8$: the canonical group/kernel shadow is
+linear, while the genuinely misere P-element lies outside that vector-space
+part.
 \item An interactive-kernel solver tests finite move graphs. It confirms that
 an ad hoc acyclic game can realize any subset, and that a rule referencing $Q$
 itself realizes $\{Q=0\}$ tautologically. The tested $B$-coupled rules do not
 produce the Gold zero set.
+\item \texttt{examples/loopy\_quadric.rs} tests cyclic move graphs with Draw
+sets. The symmetric $B$-coupled rule has Loss-set equal to the radical $R(B)$,
+so it reproduces the obstruction rather than the Gold zero set.
+\item \texttt{examples/bent\_route.rs} repeats route probes on a bent scaled
+Gold component. In that example, a $B$ plus coordinate-frame rule reaches a
+quadric of the correct Arf class but not the specific Gold zero set; the naive
+local-field/spin-flip completion leaves the quadric variety.
 \end{itemize}
 
-These are negative results in bounded searches, not impossibility theorems for
-all games.
+Except for the frame-blind proposition below and the quoted misere-kernel
+structure theorem, these are bounded or example-level negative results.
 
 \subsection{Frame-blind no-go}
 
@@ -352,18 +391,23 @@ modules.
 \path{experiments/tartan_bilinear.py} rebuild the Gold form and polar form
 from literal Turning-Corners products in small fields.
 \item \path{experiments/arf_win_bias.py} checks the zero-count formula.
-\item The \texttt{misere\_quotient}, \texttt{octal\_hunt}, and
-\texttt{interactive\_kernel} examples implement the current negative probes.
+\item The \texttt{misere\_quotient}, \texttt{octal\_hunt},
+\texttt{interactive\_kernel}, \texttt{loopy\_quadric}, and
+\texttt{bent\_route} examples implement the current route probes.
+\item \path{experiments/gold_family_survey.py} checks the scaled-component
+bent examples discussed above.
+\item \path{experiments/misere_kernel.py} checks the misere-kernel reading on
+$R_8$.
 \end{itemize}
 
 \section{Conclusion}
 
-The meaningful content is the construction of a game-operation-built family of
-characteristic-$2$ quadratic forms inside a faithful nimber Clifford backend,
-together with a precise conditional interpretation of Arf as a P-set bias. The
-draft does not solve the game-semantics problem. It narrows it to a named
-missing datum: the diagonal quadratic framing that turns the game-built polar
-form into the Gold quadric.
+The meaningful content is the construction of game-operation-built
+characteristic-$2$ trace forms inside a nimber Clifford backend, together with a
+precise conditional interpretation of Arf as a P-set bias. The draft does not
+solve the game-semantics problem. It narrows the current search to a named
+missing datum: a non-tautological way for play to use the diagonal quadratic
+framing that turns the game-built polar form into the target quadric.
 
 \section*{Acknowledgements}
 The \texttt{pleroma} library, experiments, and this draft were developed with

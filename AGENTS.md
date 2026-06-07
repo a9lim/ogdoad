@@ -4,16 +4,17 @@ Working notes for agents editing this repo. Global rules still apply.
 
 ## What this is
 
-Clifford algebras (with nilpotents) over the field-like subclasses of Conway's
-combinatorial games. Games under disjunctive sum are an abelian group, **not a
-ring** — Conway multiplication is only a congruence on the numbers. A Clifford
-algebra needs a commutative scalar ring, so this only lives on the three
-field-like cores of game-world, and each is a backend:
+Clifford algebras (with nilpotents) over commutative scalar worlds adjacent to
+Conway's combinatorial games. Games under disjunctive sum are an abelian group,
+**not a ring** — Conway multiplication is only defined on the number/nimber
+subclasses. A Clifford algebra needs a commutative scalar ring, so the direct
+game-valued Clifford story only lives on the field-like cores:
 
 - **nimbers** `Nimber(u128)` — the finite field `F_{2^128}` with nim
-  arithmetic, characteristic **2**. The only backend where Clifford gets a
-  genuinely new flavour (alternating polar form, `q ≠ b`). Full `On₂` is the
-  mathematical horizon, not what the fixed-width backend stores.
+  arithmetic, characteristic **2**. This is the backend where the char-2
+  distinction between quadratic data and polar data (`q ≠ b`) matters most.
+  Full `On₂` is the mathematical horizon, not what the fixed-width backend
+  stores.
 - **surreals** `Surreal` — finite-support Hahn/CNF numbers with rational
   coefficients, char 0. The real-closed Clifford table is exposed only when the
   represented metric entries are exactly square-equivalent to `±1`; entries may
@@ -22,8 +23,10 @@ field-like cores of game-world, and each is a backend:
   backend. The algebraically-closed Clifford table is likewise restricted to
   represented exact square classes.
 
-A pure Rust math core, generic over a `Scalar` trait, with PyO3 per-backend
-bindings on top. "With nilpotents" = the quadratic form may be degenerate
+The repo also has comparison scalar worlds (`Fp/Fpn`, `Zp/Qp/Qq`, Laurent,
+ramified/Gauss functors, and an adelic precision model) for form-theory
+experiments. A pure Rust math core, generic over a `Scalar` trait, with PyO3
+per-backend bindings on top. "With nilpotents" = the quadratic form may be degenerate
 (`q[i]=0` ⇒ `eᵢ²=0`); all-zero `q` is the exterior/Grassmann algebra.
 
 ## Layout
@@ -87,6 +90,12 @@ src/
                   #   num/den rational functions, NO gcd (inv=den/num; eq by cross-
                   #   mult; monic denom). Valued itself; precision model, EXCLUDED.
 
+    global/       # FAMILY — the adelic/global place. Adele is a finite-precision
+                  # restricted-product model over Q, with LocalQp as the runtime-prime
+                  # p-adic cell. Useful for product formula / Hilbert reciprocity /
+                  # Hasse-Minkowski experiments in forms/adelic.rs; not an exact
+                  # infinite-memory adele implementation.
+
     exact/        # FAMILY — the Archimedean char-0 base (field + ring of integers)
       rational.rs # exact ℚ over i128, NOT a game backend — the char-0 scalar that
                   # validates the geometric product against the known Cl(p,q)
@@ -132,10 +141,11 @@ src/
         mod.rs    #   CNF core: Ordinal = Vec<(exponent: Ordinal, coeff: u128)>,
                   #   constructors, the lexicographic cmp, as_finite, Debug.
         nim.rs    #   char-2 NIM arithmetic: nim_add (coeff XOR) COMPLETE; nim_mul
-                  #   COMPLETE across φ_{ω+1} (all ordinals < ω³ Cantor) via DiMuro
-                  #   Lemma 1.1: poly mult in (finite nimbers)[ω] mod ω³−2. ω⊗ω⊗ω=2;
-                  #   F₄(ω)≅F₆₄ verified. Above ω³ staged (Lenstra tower). The XOR
-                  #   canonicalize (= the char-2 coeff merge) lives here.
+                  #   implemented below ω^ω via the current degree-3 tower. The old
+                  #   φ_{ω+1}/<ω³ path is still tested as the one-generator case
+                  #   (ω⊗ω⊗ω=2, F₄(ω)≅F₆₄). At ω^ω and above, multiplication returns
+                  #   None rather than speculating. The XOR canonicalize (= the
+                  #   char-2 coeff merge) lives here.
         cantor.rs #   ORDINARY (Cantor) ord_add/ord_mul (NOT nim: ω+ω=ω·2, 1+ω=ω) —
                   #   the surreal birthday's run-length arithmetic. A distinct
                   #   algebra from nim, sharing only the CNF shape. (Was ordinal.rs.)
@@ -264,7 +274,7 @@ src/
 
   forms/          # PILLAR — quadratic forms & invariants, by the char trichotomy
     mod.rs        # re-exports the legs + classify + diagonalize/equivalence +
-                  # witt/witt_ring + brauer_wall + padic + springer.
+                  # witt/witt_ring + brauer_wall + padic + adelic + springer.
     classify.rs   # the classifier FAÇADE: ClassifyForm + WittClassify +
                   # IsometryClassify + WittDecompose + BrauerWallClassify, keyed on
                   # the scalar so `metric.classify()` / `.witt_class()` /
@@ -317,6 +327,9 @@ src/
     padic.rs      # the GENUINE Hilbert symbol over Q_p (odd-p + p=2 mod-8) — nontrivial
                   # unlike oddchar's +1 — + Hasse–Minkowski is_isotropic_q over Q.
                   # Oracle: Hilbert reciprocity ∏_v=+1. Where Hasse does real work.
+    adelic.rs     # local-global rational form helpers: Hilbert product over all
+                  # places, rank>=3 adelic Hasse-Minkowski breakdown, and Brauer
+                  # local invariant sums. Reuses padic.rs; not a new symbol engine.
     springer.rs   # non-Archimedean Springer decomposition over the surreals: a
                   # diagonal form's ω-adic valuation filtration into residue ℝ-forms.
                   # Honest: value group 2-divisible ⇒ W(No)=W(ℝ)=ℤ; the filtration
@@ -360,7 +373,7 @@ src/
     hackenbush.rs # red/blue/green Hackenbush: Hackenbush{edges, ground=0}, to_game()
                   # (the universal evaluator via move-and-prune), value() → surreal
                   # number (blue–red), grundy() → nimber (all-green = Nim). The
-                  # capstone tying surreals+nimbers+sign-expansion through one object.
+                  # bridge tying surreals+nimbers+sign-expansion through one object.
     coin_turning.rs # (was games.rs) nim_mul_mex: nim-mult as Conway's Turning-
                   # Corners mex recurrence (== algebraic nim_mul). Plus general 1-D
                   # coin-turning (grundy_1d) and the 2-D Tartan product
@@ -425,8 +438,9 @@ examples/interactive_kernel.rs # B-coupled interactive games vs {Q=0}
 examples/octal_hunt.rs         # sweep octal games for a (ℤ/2)^k quadric P-set
                                # (cargo run --release --example octal_hunt)
 examples/loopy_quadric.rs      # cyclic (Draw-set) rules vs {Q=0}; the radical collapse
-examples/bent_route.rs         # route probes on a BENT form: B+frame reaches the right
-                               # quadric class, the local-field (Ising) completion fails
+examples/bent_route.rs         # route probes on one BENT form: B+frame reaches a right-
+                               # Arf quadric class there; the local-field (Ising)
+                               # completion fails to hit the target Gold zero set
 demo.py            # the same tour from Python
 experiments/       # research probes ON TOP of the shipped lib: Arf of Gold
                    # forms, the game-built synthesis, the Arf win-bias,
@@ -435,13 +449,12 @@ experiments/       # research probes ON TOP of the shipped lib: Arf of Gold
                    # tartan_bilinear (B realized by Turning-Corners),
                    # framing_obstruction (the Sp(B) no-go + the diagonal-framing
                    # ladder for the open question), and gold_family_survey (the
-                   # full game-realizable quadratic family Σ Tr(c_i x^{1+2^i}) and
-                   # where it goes BENT — components Tr(λ x^{1+2^a}) bent for 2/3 of
-                   # λ, the nondegenerate forms single Gold can't reach), and
-                   # misere_kernel (the misère kernel no-go: a quotient's only F_2-
-                   # vector-space part is its kernel K, which by Plambeck–Siegel Thm
-                   # 6.4 carries the XOR-linear normal-play P-set — so the misère
-                   # route can't give a genuine quadric; verified on R8). See NOTES.md.
+                   # trace-family probe Σ Tr(c_i x^{1+2^i}) and where sampled/scaled
+                   # cases go BENT — components Tr(λ x^{1+2^a}) bent for 2/3 of λ
+                   # in the APN cases tested), and misere_kernel (the misère kernel
+                   # obstruction: the canonical group/kernel shadow carries the
+                   # XOR-linear normal-play P-set by Plambeck–Siegel Thm 6.4;
+                   # checked on R8). See NOTES.md.
 ```
 
 The math thread (Arf↔Clifford, the games bridge, the char-0/char-2 classifier

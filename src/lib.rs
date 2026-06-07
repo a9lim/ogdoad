@@ -5,22 +5,22 @@
 //! bindings behind the `python` feature (abi3). The source is organised into
 //! four pillars plus the bindings:
 //!
-//!   - [`scalar`]   — the commutative coefficient worlds: the `Scalar` trait,
-//!                    the exact `Rational`/`Integer`, and the game-backed
-//!                    fields (nimbers, surreals, surcomplex, omnific, ordinal
-//!                    nimbers, prime fields).
+//!   - [`scalar`]   — the coefficient worlds: the `Scalar` trait, exact
+//!                    `Rational`/`Integer`, game-adjacent nimber/surreal
+//!                    backends, finite fields, p-adic/local functors, and the
+//!                    adelic precision model.
 //!   - [`clifford`] — the multivector engine (Metric + general bilinear form +
 //!                    geometric product), generic over `Scalar`, plus the GA
 //!                    layer: outermorphisms, the exterior Hopf algebra,
 //!                    conformal/projective GA, and spinor modules.
 //!   - [`forms`]    — quadratic forms and their invariants across the
 //!                    characteristic trichotomy: char-0 / odd-char / char-2
-//!                    classifiers, the Witt group, and the Springer
-//!                    decomposition.
+//!                    classifiers, Witt/Brauer-Wall utilities, Springer
+//!                    decompositions, and rational local-global helpers.
 //!   - [`games`]    — combinatorial game theory: coin-turning & Tartan
-//!                    products, normal- and misère-play outcomes (over a shared
-//!                    game-graph primitive), and short partizan games with the
-//!                    exterior algebra of the game group.
+//!                    products, normal-, misère-, and loopy finite-game probes,
+//!                    plus short partizan games and the exterior algebra of the
+//!                    game group.
 //!   - `py`         — PyO3 per-backend bindings (feature = "python").
 //!
 //! See `NOTES.md` for the mathematical thread and `AGENTS.md` for the layout.

@@ -25,14 +25,14 @@
 //! | [`small`]        — p-adic, unramified | `Qq` Q_q           | `WittVec` W_N | F_q |
 //! | [`finite_field`] — finite             | `Fp`/`Fpn` F_{p^n} | (itself)      | — |
 //! | [`finite_field`] — char-2 nim         | `Nimber` F_2¹²⁸    | (itself)      | — |
-//! | [`global`]       — all places at once | `Adele` A_Q        | (∏ Z_p × ℝ)   | — |
+//! | [`global`]       — all places at once | `Adele` A_Q model  | integral predicate | — |
 //!
-//! The [`global`] family is the capstone of the place-organized table: every other
-//! row picks *one* place, while the adele ring `A_Q = ∏'_v Q_v` is the restricted
-//! product over *all* of them — the home of the local–global passage (the product
-//! formula, Hilbert reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms::adelic)).
-//! Its runtime-prime cell [`LocalQp`] is the const-generic gap-filler the table
-//! otherwise can't supply.
+//! The [`global`] family is the place-organized table's local-global row: every
+//! other row picks *one* place, while `Adele` is a finite-precision model of the
+//! restricted product over all rational places (product formula, Hilbert
+//! reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms::adelic)).
+//! Its runtime-prime cell [`LocalQp`] fills the const-generic gap the table
+//! otherwise cannot represent.
 //!
 //! `Ordinal` On₂ (the transfinite nimbers, [`big::ordinal`]) is algebraically
 //! closed of characteristic 2, not a local field — so its ring-of-integers cell is

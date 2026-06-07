@@ -7,7 +7,7 @@ game-semantics question.
 The short version:
 
 Pleroma is a Clifford-algebra lab over the field-like cores of Conway game
-worlds. The genuinely new thread is not "Clifford over all games"; that phrase
+worlds. The main thread is not "Clifford over all games"; that phrase
 is false because games under disjunctive sum are an abelian group, not a scalar
 ring. The new thread is:
 
@@ -76,8 +76,9 @@ systems:
 | `Surcomplex` | `Surreal[i]`; the algebraically-closed form table is available only on represented exact square classes |
 | `Integer`, `Omnific` | coefficient rings for exterior/nilpotent structures |
 | `Fp`, `Fpn`, `Zp`, `WittVec` | comparison scalar worlds for the characteristic trichotomy |
-| `Qp` | the p-adic *field* `Q_p` (capped-relative precision model; Zp's field of fractions) — the empty cell in the "any number" table; feeds the p-adic Springer leg |
-| `Ordinal` in `big/ordinal/` | staged transfinite nimbers below `omega^3`, including `F_4(omega) ~= F_64` |
+| `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss` | local-field-style backends/functors, mostly precision models; used for valuation and Springer/Hilbert-symbol experiments |
+| `Adele`, `LocalQp` | a runtime-prime adelic precision model over `Q`; used by the local-global form layer |
+| `Ordinal` in `big/ordinal/` | staged transfinite nimbers: nim-addition on represented CNF terms; nim-multiplication below `omega^omega` via the current degree-3 tower |
 
 The writeup should focus on `Nimber`, and mention the others only as context.
 
@@ -152,30 +153,33 @@ The experiments then check:
   Turning-Corners products on small fields.
 - `experiments/tartan_bilinear.py`: rebuilds the polar form using game products.
 
-The precise novelty is not that Gold forms are new. They are not. The novelty is
-that this repo makes the Gold forms into a concrete bridge object between:
+The useful contribution is not that Gold forms are new. They are not. The repo
+makes them into a concrete bridge object between:
 
 - the nimber field of impartial game values,
 - characteristic-2 quadratic form theory,
 - Arf classification/counting,
 - and candidate P-set game semantics.
 
-## Broadening the form: the game-realizable quadratic family
+## Broadening the form: a game-realizable quadratic trace family
 
 The thread above fixes one form (Gold, coefficient 1) and hunts for a game. The
-form side is much larger, and all of it is game-realizable. **Theorem (trace
-representation, e.g. Carlet; arXiv:1305.3700):** every quadratic Boolean function
-on `F_{2^m}` is
+form side is much larger. A standard trace representation (e.g. Carlet;
+arXiv:1305.3700) describes the quadratic part of Boolean functions on
+`F_{2^m}` using trace monomials of the form
 
 ```text
 Q_c(x) = Σ_{i=1}^{m/2-1} Tr_1^m(c_i · x^{1+2^i})   [ + a half-trace middle term ]
 ```
 
-with `c_i ∈ F_{2^m}`. Each monomial `c_i·x^{1+2^i} = c_i ⊗ x ⊗ x^{2^i}` is
-nim-products of `x` with its `i`-fold Frobenius image, so **the whole space of
-quadratic forms is built from coin-turning operations**, not just the
-coefficient-1 Gold atom. Gold `Tr(x^{1+2^a})` is the single-monomial,
-coefficient-1 case.
+with `c_i ∈ F_{2^m}`, plus the usual affine terms and, in even degree, the
+middle/half-trace term. Each displayed monomial
+`c_i·x^{1+2^i} = c_i ⊗ x ⊗ x^{2^i}` is built from nim-products of `x` with its
+`i`-fold Frobenius image. Thus a large trace-presented quadratic family is
+available from coin-turning operations, not just the coefficient-1 Gold atom.
+The current probe intentionally omits the middle term and affine bookkeeping;
+that omission is harmless for the bent examples it tests, but it should not be
+phrased as a complete implementation of every Boolean quadratic form.
 
 Why this matters for the open question: `{Q=0}` is farthest from any XOR-subspace
 exactly when `Q` is **bent** (nondegenerate polar form, rank `m`, trivial radical,
@@ -183,28 +187,27 @@ exactly when `Q` is **bent** (nondegenerate polar form, rank `m`, trivial radica
 cleanest Tier-2 target. **Implemented-and-tested** (`experiments/gold_family_survey.py`,
 exhaustive over `F_256`):
 
-- The **unscaled** Gold form `Tr(x^{1+2^a})` is **never bent** — radical
+- The **unscaled** Gold form `Tr(x^{1+2^a})` is not bent in the tested
+  power-of-two fields — radical
   `F_{2^{gcd(2a,m)}}`, dim ≥ 1, rank `m − gcd(2a,m)`.
 - But its **components** `Tr(λ·x^{1+2^a})` **are bent for 2/3 of `λ`** when
   `gcd(a,m)=1` (APN exponent) — exactly the classical count `2(2^m-1)/3` of bent
   components of a Gold power map, reproduced over `F_256` (170/255 for `a=1,3`).
   For `gcd(a,m)>1` (non-APN, e.g. `a=2` on `F_256`) the split differs (204 bent,
   51 of rank 4). **A single extra nim-multiplication — the coefficient `λ` —
-  already unlocks nondegenerate game-realizable forms.** Multi-term sums reach
-  bent generically too.
+  already unlocks nondegenerate game-realizable forms in these cases.** Random
+  multi-term samples in the same script also produce bent examples.
 - Bent witnesses validate the zero-count `#{Q=0} = 2^{m-1} + (−1)^Arf·2^{m/2-1}`
   exactly. **Observation (not yet a theorem):** all 170 bent components of
   `Tr(λ·x^{1+2})` over `F_256` carry **Arf 0** — single-component broadening
   reaches bent at only one win-bias sign; Arf-1 bent forms appear to need sums.
 
-The route consequence sharpens the open question. On a bent form `R(B) = {0}`, so
+The route consequence sharpens the current probes. On a bent form `R(B) = {0}`, so
 the symmetric-`B` loopy rule (Loss-set `= R(B)`, see `loopy_quadric.rs`) collapses
 to `Loss = {0}` — the radical route is empty — and the frame-blind `Sp(B)` no-go
-applies in full, with **no degenerate part for it to be silent on**. So bent
-game-realizable forms are the *purest* Tier-2 statement: the `(m,a)=(4,1)` radical
-coincidence that masqueraded as a hit in `loopy_quadric.rs` provably cannot recur.
-The next route probe should feed a bent `{Q=0}` into the interactive/misère
-instruments, where realizing it is hardest.
+applies without a degenerate radical layer. Bent game-realizable forms are
+therefore a cleaner Tier-2 test than the degenerate Gold examples: the `(m,a) =
+(4,1)` radical coincidence from `loopy_quadric.rs` cannot recur for a bent form.
 
 ## Arf as a conditional win-bias
 
@@ -279,33 +282,34 @@ XOR-linear. The current bounded results are negative:
 - the octal sweep over 292 codes, heap cutoff <= 4, found quotient orders
   `2, 6, 10, 12, 14`, no `(Z/2)^k` for `k >= 2`.
 
-**Why — the kernel no-go (a structural obstruction, not an empty search).** The
+**Why — the kernel obstruction (a structural obstruction, not an empty search).** The
 empirical negatives are explained by the Plambeck-Siegel structure theory
-("Misere quotients for impartial games", JCTA 2008), and it closes the misere
-route for *genuine* quadrics:
+("Misere quotients for impartial games", JCTA 2008), and it blocks the current
+misere-quotient route to *genuine* quadrics:
 
 - Every finite misere quotient `Q` has a **kernel** `K` — the mutual-divisibility
   class of the product of all idempotents — which is the **maximal subgroup** of
   `Q`; the map `x -> zx` (`z` = kernel identity) surjects `Q ->> K`, and every
-  homomorphism `Q ->` group factors through it. So `K` is the **only** `F_2`-vector-
-  space part of `Q`. (Tame `T_n = K_n u {1,a}`, `K_n ~= (Z/2)^n`, `|T_n| = 2^n+2`
+  homomorphism from `Q` to a group factors through it. So `K` is the canonical
+  group shadow available inside this quotient formalism. (Tame
+  `T_n = K_n ∪ {1,a}`, `K_n ~= (Z/2)^n`, `|T_n| = 2^n+2`
   — the genuine `(Z/2)^n` is the *kernel*, never the whole quotient, which is why
   the example's "is the quotient `(Z/2)^k`" test never fires for `k >= 2`.)
 - **Theorem 6.4:** `z*Phi(G) = z*Phi(H) <=> G,H have the same *normal-play* Grundy
   value`. So `K` is (isomorphic to) the **normal-play nim-value group** `(Z/2)^k`
-  under XOR, and `P n K` is the normal-play `{Grundy = 0}` set — **XOR-linear**.
+  under XOR, and `P ∩ K` is the normal-play `{Grundy = 0}` set — **XOR-linear**.
 
-A genuine quadric is a *nonlinear* zero set *on a vector space*. The only vector-
-space part of a misere quotient is `K`, and there the P-structure is the linear
-normal-play one (Thm 6.4). The genuine misere non-linearity lives **off** the
-kernel, among the non-group "fickle units", where there is no ambient vector space
-and "quadric" is undefined. **So the misere quotient places its non-linearity
-exactly where the quadratic-form framing cannot reach it** — the misere analog of
-the frame-blind `Sp(B)` no-go. Verified concretely on `R8`, the smallest wild
-quotient (`experiments/misere_kernel.py`): kernel `(Z/2)^2`, `P n K = {0}` (linear),
-the lone genuine P-element a fickle unit outside `K`. (Caveat: Thm 6.4 carries a
-regularity hypothesis on the closed game set, satisfied by the regular finite
-quotients arising in practice.)
+A genuine quadric is a nonlinear zero set on a vector space. In the standard
+misere-quotient structure, the canonical vector-space candidate is `K`, and
+there the P-structure is the linear normal-play one (Thm 6.4). The genuinely
+misere non-linear behavior appears off the kernel, among non-group "fickle
+units", where this vector-space/quadric framing no longer applies. This is a
+real obstruction to the quotient-kernel route, not merely an empty search.
+`experiments/misere_kernel.py` verifies the reading concretely on `R8`, the
+smallest wild quotient: kernel `(Z/2)^2`, `P ∩ K = {0}` (linear), and the lone
+genuine P-element outside `K`. Caveat: Thm 6.4 has a regularity hypothesis on
+the closed game set; the script checks a regular finite quotient, not every
+conceivable misere construction.
 
 ### Interactive route
 
@@ -350,7 +354,7 @@ energy** `Q(v) = Σ_{i<j} B_ij v_i v_j + Σ_i q_i v_i` (couplings `B` + per-coin
 `q_i = Q(e_i)`, both game-realizable), two results stand out (`m=8`, `λ=2`, bent
 Arf 0):
 
-- **B + frame already reaches the right quadric *class*.** A single-bit rule gated
+- **B + frame reaches the right quadric *class* in this probe.** A single-bit rule gated
   by `B` alone in the bit frame (no diagonal, no `Q`) produces a genuine **bent
   quadric of the correct Arf** — but a *different* member of the isometry class
   (agreement with `{Q=0}` exactly at chance, `128/256`). So the residual gap to the
@@ -362,9 +366,10 @@ Arf 0):
   diagonal framing must enter some way *other than* a per-coin spin-flip gate — a
   concrete negative that narrows the search.
 
-Net: on the cleanest case, "B + frame" is provably enough for the right quadric
-*class*; aligning to the specific Gold quadric (the diagonal framing's naturality)
-is the open core, and the obvious local-field assembly is now ruled out.
+Net: on this clean bent case, a `B` plus coordinate-frame rule can land in the
+right quadric class, but not on the specific Gold zero set. Aligning to that
+specific quadric (the diagonal framing's naturality) remains open, and the
+tested local-field/spin-flip assembly is a concrete negative example.
 
 ### Frame-blind no-go
 
@@ -416,15 +421,14 @@ Caveat: do not state that every `B + frame` construction is split. Random
 nondegenerate alternating forms can give `Q_frame` of Arf 1. The supported claim
 is about the Gold polar forms tested here.
 
-## The naturality dichotomy: the open problem is a definition problem
+## The naturality dichotomy: the open problem depends on a definition
 
 The probes (`open_question_probe.py`, `interactive_kernel.rs`,
 `framing_obstruction.py`) keep hitting the same wall from different angles, and
-together they show the wall is **definitional, not mathematical**: every concrete
-obstruction to `{Q_a=0}` being a P-set dissolves, and every concrete construction
-that reaches it is a tautological evaluator. What separates "tautological" from
-"natural" is the only thing doing real work. So the open problem is, precisely, to
-*define* that line.
+together they put pressure on the word "natural": frame-blind rules are too
+symmetrical, while constructions that directly evaluate `Q` are tautological.
+What separates a legitimate game rule from an evaluator is now part of the
+problem, not background prose.
 
 Organize candidate games by the symmetry group of their **encoding** — the map
 `x ↦ (initial configuration)` — as a subgroup `G ≤ GL(V)` under which the move
@@ -471,7 +475,7 @@ whether anything *in the gap* — a fixed-rule game more constrained than an
 evaluator but not frame-blind — realizes the quadric. Resolving it requires first
 *defining* the gap (an encoding-complexity / equivariance condition admitting the
 Frobenius-diagonal symmetry but forbidding per-`x` lookup), at which point the
-question becomes decidable rather than a matter of taste.
+question becomes sharper than the current taste-level word "natural".
 
 ## What should be in the writeup
 
@@ -489,7 +493,7 @@ Do not make the paper a catalogue of every module. The odd-characteristic,
 p-adic, Witt, Brauer-Wall, CGA, spinor, Hopf, and transfinite-ordinal modules are
 useful infrastructure, but they belong in a separate implementation appendix or
 README section unless they are needed for the Arf/game thread. The same goes for
-the "completeness" round-out layer added later — `Qp` (p-adic field) + p-adic
+the implementation round-out layer added later — `Qp` (p-adic field) + p-adic
 Springer, surreal lazy inversion / real roots / Gonshor transfinite birthdays,
 the `Fpn` Galois toolkit, field invariants (level/u/Pythagoras), Hermitian forms
 over surcomplex, the Cayley bivector↔rotor transform + general multivector
@@ -503,7 +507,9 @@ Springer sibling over `F_q((t))` (`springer_laurent.rs`), the divided-power
 algebra `Γ` (`divided_power.rs`, the char-faithful symmetric mirror of the
 exterior Hopf algebra), and the transfinite surreal↔game round trip via the sign
 expansion (`number_game.rs` / `from_transfinite_sign_expansion`) — appendix
-material too; none of it touches the Arf/game thread.
+material too; none of it touches the Arf/game thread. The same is true of the
+new adelic/global layer (`scalar/global`, `forms/adelic`): useful context for
+local-global form experiments, but not evidence for the game-semantics claim.
 
 ## Useful commands
 
@@ -524,11 +530,8 @@ cargo run --example bent_route
 cargo run --release --example octal_hunt
 ```
 
-Current checked state during the rewrite pass:
-
-- `cargo test`: 208 passed.
-- the listed experiments/examples matched the tables and claims used in the
-  rewritten draft.
+Do not treat the numbers in old notes as current. Re-run the relevant commands
+when using a table or claim in the paper.
 
 ## References to keep close
 

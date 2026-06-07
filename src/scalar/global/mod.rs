@@ -3,9 +3,10 @@
 //!
 //! The rest of the "any number" table is organized *by place*: [`exact`] is the
 //! Archimedean place `ℝ`, [`small`] is one prime place `Q_p` at a time. The adele
-//! ring is the **restricted product** `∏'_v Q_v` over all of them simultaneously —
-//! a genuinely new family, the capstone of the place-organized table where the
-//! local–global passage lives.
+//! ring is modeled as the **restricted product** `∏'_v Q_v` over all of them
+//! simultaneously. In this repo it is a finite-precision scalar model for the
+//! local–global passage, not a complete exact implementation of the analytic
+//! adele ring.
 //!
 //! Two types:
 //!   * [`LocalQp`] — a **runtime-prime** `p`-adic cell (the const-generic `Qp<P,K>`

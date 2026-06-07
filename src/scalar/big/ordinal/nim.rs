@@ -1,9 +1,11 @@
 //! Char-2 **nim arithmetic** on ordinals: the transfinite additive group
 //! (nim-addition = XOR of like-`ω`-power coefficients) and the field product
-//! across `φ_{ω+1}` (ordinals `< ω³`) via the DiMuro/Conway tower. The CNF
-//! canonicalizer lives here because its like-term merge *is* the nim addition
-//! (XOR); the ordinary-ordinal merge in [`cantor`](super::cantor) builds its
-//! terms directly instead. See the [module overview](super) for the field tower.
+//! below `ω^ω` via the current DiMuro/Conway degree-3 tower. The older
+//! `φ_{ω+1}` (`< ω³`) reduction is still present as the one-generator helper and
+//! regression oracle. The CNF canonicalizer lives here because its like-term
+//! merge *is* nim addition (XOR); the ordinary-ordinal merge in
+//! [`cantor`](super::cantor) builds its terms directly instead. See the
+//! [module overview](super) for the field tower.
 
 use super::Ordinal;
 use crate::scalar::nim_mul;

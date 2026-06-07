@@ -1,4 +1,4 @@
-"""The misère kernel no-go: why the misère route cannot give a genuine quadric.
+"""The misère kernel obstruction for the quotient-kernel route to a genuine quadric.
 
 The misère route looked promising because misère sums are NOT XOR-linear, so the
 P-set escapes the normal-play subspace obstruction. But a quadric {Q=0} needs an
@@ -10,23 +10,23 @@ games", JCTA 2008):
   * Every finite misère quotient Q has a KERNEL K — the mutual-divisibility class of
     the product z of all idempotents. K is the maximal subgroup of Q, the quotient
     map x ↦ zx surjects Q ↠ K, and every homomorphism from Q to a group factors
-    through it. So K is the canonical (and essentially only) F_2-vector-space shadow
-    of Q. (Tame quotients: T_n = K_n ∪ {1,a}, K_n ≅ (Z/2)^n, |T_n|=2^n+2 — never a
-    group; the genuine (Z/2)^n is the kernel, not the whole quotient.)
+    through it. So K is the canonical group shadow this quotient formalism gives.
+    (Tame quotients: T_n = K_n ∪ {1,a}, K_n ≅ (Z/2)^n, |T_n|=2^n+2 — never a group;
+    the genuine (Z/2)^n is the kernel, not the whole quotient.)
 
   * THEOREM 6.4: z·Φ(G) = z·Φ(H)  ⟺  G, H have the same NORMAL-play Grundy value.
     So K ≅ the normal-play nim-value group (Z/2)^k under XOR, and the P-portion
     restricted to K is the normal-play {Grundy = 0} set — XOR-LINEAR, a subspace.
 
-THE NO-GO. A genuine quadric is a nonlinear zero set on a vector space. The only
-vector-space part of a misère quotient is its kernel K, and on K the P-structure is
-(Theorem 6.4) the linear normal-play one. The genuine misère non-linearity lives
-OFF the kernel, among the non-group elements (the "fickle units"), where there is
-no ambient vector space and "quadric" is not even defined. So the misère quotient
-places its non-linearity exactly where the quadratic-form framing cannot reach it.
+THE OBSTRUCTION. A genuine quadric is a nonlinear zero set on a vector space. In
+the standard misère-quotient structure, the canonical vector-space candidate is
+the kernel K, and on K the P-structure is (Theorem 6.4) the linear normal-play
+one. The genuine misère non-linearity lives off the kernel, among the non-group
+elements (the "fickle units"), where this vector-space/quadric framing no longer
+applies.
 
-This is the misère analog of the frame-blind Sp(B) no-go: a structural reason the
-route cannot work, not merely an empty search. (Caveat: Theorem 6.4 carries a
+This is the misère analog of the frame-blind Sp(B) no-go for the quotient-kernel
+route: a structural obstruction, not merely an empty search. (Caveat: Theorem 6.4 carries a
 regularity hypothesis on the closed game set A; it holds for the regular finite
 quotients that arise in practice.)
 
@@ -156,15 +156,15 @@ if __name__ == "__main__":
 
     PK = [coord[e] for e in P if e in K]
     P_outside = [name(e) for e in P if e not in K]
-    print(f"\n  P ∩ K  (the only vector-space part) = {PK}  "
+    print(f"\n  P ∩ K  (the canonical kernel vector-space shadow) = {PK}  "
           f"= {{0}} = the normal-play {{Grundy=0}} set (Theorem 6.4)")
     print(f"  P elements OUTSIDE the kernel (fickle units, no ambient space): {P_outside}")
 
     affine = is_affine_subspace(PK)
     print(f"\n  Is P∩K an affine subspace (linear, NOT a genuine quadric)? {affine}")
-    print("\nConclusion. On R8 — the smallest, most promising wild quotient — the only")
-    print("F_2-vector-space part is the kernel (Z/2)², and there the P-set is the linear")
+    print("\nConclusion. On R8 — the smallest, most promising wild quotient in this probe —")
+    print("the canonical kernel shadow is (Z/2)², and there the P-set is the linear")
     print("normal-play {Grundy=0} (Thm 6.4). The genuine misère non-linearity (the element")
     print("a ∈ P) lives among the non-group fickle units, where 'quadric' has no ambient.")
-    print("So the misère route cannot realise a genuine Gold quadric — a structural no-go,")
-    print("the misère analog of the frame-blind Sp(B) obstruction.")
+    print("So the quotient-kernel route does not realise a genuine Gold quadric here —")
+    print("a structural obstruction analogous to the frame-blind Sp(B) obstruction.")

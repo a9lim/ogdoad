@@ -1,191 +1,146 @@
 # pleroma
 
-A playground for **Clifford algebras (with nilpotents)** over the field-like
-subclasses of Conway's combinatorial games — built as a verified Rust core with
-Python bindings.
+`pleroma` is a Rust research playground for Clifford algebras, quadratic forms,
+and combinatorial-game arithmetic, with optional Python bindings.
 
-## why this is the interesting shape
+The central constraint is mathematical, not just architectural: Conway games
+under disjunctive sum form an abelian group, not a scalar ring. Conway
+multiplication is defined on the number/nimber sides, not on arbitrary games.
+So this project does **not** build Clifford algebras over all games. It builds a
+generic Clifford engine over commutative scalar backends that are adjacent to
+game theory:
 
-Games under disjunctive sum are an abelian group but **not a ring** — Conway's
-multiplication is only a congruence on the *numbers*. A Clifford algebra needs a
-commutative scalar ring, so "Clifford over games" funnels you into the three
-field-like cores of game-world, and the answer forks on which you pick:
+| backend | implemented object | Clifford/form role |
+| --- | --- | --- |
+| `Nimber(u128)` | the finite nim-field `F_{2^128}` | characteristic-2 Clifford examples, Arf/radical data, finite-field experiments |
+| `Surreal` | finite-support Hahn/CNF surreals with rational coefficients | a represented subdomain of real-closed Clifford theory, including infinite/infinitesimal monomials |
+| `Surcomplex<Surreal>` | adjoining `i` to the implemented surreal backend | represented subdomain of complex Clifford theory |
+| `Rational`, `Integer`, `Omnific`, `Fp`, `Fpn`, `Zp`, `Qp`, `Qq`, `WittVec`, `Laurent`, `Ramified`, `Gauss`, `Adele` | comparison rings/fields and precision models | form invariants, local/global tests, exterior/game-group constructions |
 
-| scalar backend | structure | what Clifford does there |
-|---|---|---|
-| **surreals** `No` | real-closed field, char 0 | exactly the Cl(p,q) classification over ℝ — 8-fold periodicity — but with surreal (infinite/infinitesimal) metric entries |
-| **surcomplex** `No[i]` | algebraically closed, char 0 | complex Clifford theory, 2-fold periodicity |
-| **nimbers** `On₂` | algebraically closed, char **2** | the genuinely new beast: char-2 Clifford, alternating bilinear form |
+"With nilpotents" means the quadratic form may be degenerate. If `Q(e_i) = 0`,
+then `e_i^2 = 0`; the all-zero metric is the exterior/Grassmann algebra.
 
-"With nilpotents" = the quadratic form may be **degenerate**: a basis vector
-with `Q(eᵢ) = 0` squares to zero. `Q ≡ 0` recovers the full Grassmann/exterior
-algebra; mixed signatures give `Cl(p,q,r)` with `r` null directions.
+## The Char-2 Point
 
-## char 2 is not a footnote
+In characteristic 2, the quadratic form and its polar form carry different
+data. The engine stores
 
-Over the nimbers, `eᵢeⱼ + eⱼeᵢ = 2B = 0`, so the bilinear form drops out of the
-anticommutator and the algebra over an *orthogonal* basis becomes commutative.
-To get the real (non-commutative) char-2 theory the engine carries the quadratic
-form `q` (the squares `eᵢ²`) **independently** of the alternating off-diagonal
-form `b` (the anticommutators `{eᵢ,eⱼ}`) — they no longer determine each other.
-A nonzero off-diagonal `b[(i,j)]` is exactly what makes a nim-Clifford algebra
-non-commutative.
+```text
+e_i^2 = q_i
+e_i e_j + e_j e_i = b_ij
+```
 
-## quickstart
+separately. For nimbers, `-1 = 1`, so an orthogonal basis with `b = 0` gives a
+commutative Clifford product. A nonzero off-diagonal `b[(i,j)]` is what makes a
+characteristic-2 example noncommutative.
 
-Needs Rust (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
-and a Python ≥ 3.9. From the repo root:
+## Quickstart
+
+Requires Rust and Python >= 3.9.
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install maturin
-VIRTUAL_ENV=.venv .venv/bin/maturin develop   # builds the abi3 extension
+VIRTUAL_ENV=.venv .venv/bin/maturin develop
 .venv/bin/python demo.py
 ```
 
 ```python
 import pleroma as pl
 
-# char-2 nimber Clifford, non-orthogonal ⇒ non-commutative
+# characteristic-2 nimber Clifford, non-orthogonal => noncommutative
 A = pl.NimberAlgebra(q=[pl.Nimber(2), pl.Nimber(3)], b={(0, 1): 1})
 e0, e1 = A.gen(0), A.gen(1)
-e0 * e1            # e0e1            (* is the geometric product)
-e0 * e1 + e1 * e0  # *1              (the anticommutator b[(0,1)])
+e0 * e1 + e1 * e0      # *1
+e0 ** 2                # *2
 
-# surreal metric: infinite & infinitesimal squares, unit bivector anyway
+# surreal metric: infinite and infinitesimal squares
 S = pl.SurrealAlgebra(q=[pl.omega(), pl.epsilon()])
-(S.gen(0) * S.gen(1)) ** 2          # -1
+(S.gen(0) * S.gen(1)) ** 2     # -1
 
-# surreal scalars: recursive exponents, exact order
+# finite-support surreal arithmetic
 w = pl.omega()
-(w + 1) * (w - 1)                   # ω^2 - 1
-pl.omega_pow(pl.omega())           # ω^(ω)
-w > 1_000_000                       # True
+(w + 1) * (w - 1)              # ω^2 - 1
+pl.omega_pow(pl.omega())       # ω^(ω)
 ```
 
-```python
-# versors: reflections and rotations (Cl(3,0))
-E = pl.SurrealAlgebra(q=[1, 1, 1])
-e0, e1 = E.gen(0), E.gen(1)
-e1.reflect(e0)                      # e0   (reflection in the hyperplane ⊥ e1)
-(e0 * e1).sandwich(3*e0 + 4*e1)    # rotor action; norm² preserved
-e0.inverse()                        # versor inverse
-~(e0 * e1)                          # reversion (~ = reverse)
-e0 << (e0 ^ e1)                     # left contraction  (e1)
-e0.dual()                           # Hodge dual
+Python exposes the main Clifford backends (`NimberAlgebra`, `SurrealAlgebra`,
+`SurcomplexAlgebra`, `IntegerAlgebra`, `OmnificAlgebra`), scalar classes
+(`Nimber`, `Surreal`, `Surcomplex`, `Integer`, `Omnific`, `Ordinal`), form
+helpers (`arf_invariant`, `classify_surreal`, `FiniteFieldForm`, `hilbert_symbol_qp`,
+`is_isotropic_q`, `bw_class_*`, ...), and game helpers (`Game`, `GameExterior`,
+`Hackenbush`, `nim_mul_mex`, `grundy_graph`). `Ordinal` is currently exposed as
+a scalar object, not as a Clifford-algebra backend in Python.
+
+Run the Rust tour without Python:
+
+```sh
+cargo run --example tour
 ```
 
-Operators: `*` geometric, `^` wedge, `<<`/`>>` left/right contraction, `**`
-power, `/` divide (by scalar or versor), `~` reverse, `+`/`-`, `==`. Multivector
-methods: `.inverse()`, `.sandwich(x)`, `.reflect(x)`, `.dual()`, `.norm2()`,
-`.grade(k)`, `.grade_involution()`, `.reverse()`, `.scalar_part()`,
-`.is_zero()`; algebra has `.pseudoscalar()`. Scalars have `.inv()` and `/`.
-Builders: `omega()`, `epsilon()`, `omega_pow(x)`, `rational(p, q)`, `surreal(n)`,
-`Nimber(n)`, `Surcomplex(re, im)`, `omnific(n)`, `Ordinal(n)`. Module functions:
-`arf_invariant(nimber_alg)` (the char-2 Clifford classifier) and `nim_mul_mex(x, y)`
-(the Turning-Corners game product).
+## Layout
 
-The expansion pass adds more from Python too: the `OmnificAlgebra` (Oz) and
-`Ordinal` (transfinite nimber) backends; `classify_oddchar(p, q)` /
-`oddchar_witt(p, q)` (the odd-characteristic third leg of the trichotomy); the GA
-methods `.determinant(M)` / `.outermorphism(M, v)` / `.spinor_rep()` /
-`.coproduct()` / `.antipode()` / `.exp_nilpotent()`; `Cga(n)` (conformal GA over
-the surreals — exact `ω`-scale points and `ε`-radius spheres); and
-`springer_decompose(surreal_alg)`. See the second half of `demo.py`.
+- `src/scalar/` defines the `Scalar` trait and the coefficient worlds.
+  The place-organized table includes exact (`Rational`, `Integer`), big
+  (`Surreal`, `Omnific`, `Ordinal`), small/local (`Zp`, `Qp`, `Qq`), finite-field
+  (`Fp`, `Fpn`, `Nimber`, `WittVec`), functor (`Surcomplex`, `Laurent`,
+  `Ramified`, `Gauss`), and global (`Adele`, `LocalQp`) modules. Several local
+  and global backends are finite-precision models, not exact scalar fields.
+- `src/clifford/` contains the generic multivector engine, geometric product,
+  inverse, versor operations, outermorphisms, Hopf/divided-power structures,
+  conformal/projective GA, and spinor helpers.
+- `src/forms/` contains quadratic-form classifiers and invariants: characteristic
+  0, odd characteristic, characteristic 2, Witt/Brauer-Wall utilities, Springer
+  decompositions, symplectic/hermitian forms, and the adelic local-global layer
+  over rational forms.
+- `src/games/` contains normal-play and misere impartial game code, short
+  partizan games, thermography/atomic weight, Hackenbush, loopy finite graphs,
+  and the exterior algebra of the game group over `Integer`.
+- `src/py/` contains the optional PyO3 bindings behind the `python` feature.
 
-## architecture
+## Research Thread
 
-Pure-Rust math core (`cargo test`, no Python in the loop), Python layer on top.
-Four pillars under `src/`, each re-exported flat (`scalar::Nimber`,
-`clifford::sandwich`, `forms::arf_invariant`, …):
+The narrow mathematical thread in `NOTES.md` and `writeup/pleroma.tex` is not a
+claim of a new Clifford classification theorem. It is a draft investigation of
+game-built quadratic forms in the nimber backend:
 
-- `scalar/` — the `Scalar` trait and the coefficient worlds, grouped **by place**
-  into the "any number" table, each field beside its ring of integers:
-  `exact/` (ℚ `rational`, ℤ `integer`), `big/` (the transfinite worlds — `surreal`
-  `No`, `omnific` `Oz`, `ordinal` nimbers On₂), `small/` (p-adic — `qp` Q_p, `zp`
-  Z_p), and `finite_field/` (the finite residue fields — `fp` F_p, `fpn` F_{pⁿ},
-  `nimber` F_2¹²⁸, `wittvec` W_n, all sharing one `FiniteField` Galois trait). The
-  `functor/` module holds the field-growing functors orthogonal to the table — the
-  2×2 square of `surcomplex` (adjoin `i`), `ramified` (Eisenstein root `xᴱ−ϖ`),
-  `laurent` (adjoin `t`, `v(t)=1`), and `gauss` (adjoin `t`, `v(t)=0`) — and
-  `valued`/`integrality` carry the local-field and (field, ring of integers) views.
-  `small/analytic` adds Hensel `sqrt` + the Teichmüller lift to the p-adic worlds
-  (the mirror of the surreal analytic layer). The char trichotomy that organises
-  `forms/` cuts *across* this grouping.
-- `clifford/` — the multivector engine (`engine`: independent `q`/`b`/`a`,
-  characteristic-faithful) with the geometry split out (`versor`), plus
-  outermorphisms, the exterior Hopf algebra, conformal/projective GA, and
-  spinor modules.
-- `forms/` — quadratic-form classifiers across the characteristic trichotomy:
-  `char0` (Cl(p,q) → matrix algebra), `oddchar` (discriminant/Hasse), `char2`
-  (the Arf invariant), plus the Witt group and the Springer decomposition.
-- `games/` — combinatorial game theory: `coin_turning` (nim-mult as Conway's
-  Turning-Corners game), normal- and misère-play outcomes, and short partizan
-  games with the exterior algebra of the game group.
-- `py/` — PyO3 per-backend classes (`python` feature; abi3), split per pillar.
+1. Turning-Corners games realize nim multiplication.
+2. Frobenius squaring and traces are built from nim multiplication and XOR.
+3. Gold-style trace forms `Tr(lambda * x^(1+2^a))` are therefore expressible from
+   game-value operations.
+4. The Arf invariant gives the standard zero-count bias for a quadratic zero set.
+5. The open question is whether a natural game rule has such a zero set as its
+   P-positions. Current probes include normal-play, misere quotient, interactive,
+   loopy, and bent-form searches; they narrow the target but do not solve it.
 
-`experiments/` uses the shipped library for the research probe: Arf invariants
-of Gold forms over the nim-fields, and the demonstration that those forms are
-composites of game operations.
+## Status And Limits
 
-See [`NOTES.md`](NOTES.md) for the math thread: the Arf↔Clifford classification,
-the coin-turning↔nim-multiplication bridge to games, and the open question.
+This is active research code with tests, examples, and experiments. Treat green
+tests as regression evidence, not as a proof of the mathematical program.
 
-Run the Rust tour without Python: `cargo run --example tour`.
+Useful checks:
 
-## status
+```sh
+cargo fmt --check
+cargo test
+cargo check --features python
+cargo check --examples
+git diff --check
+```
 
-**Core + bindings + versor/GA layer + Arf classifier + the expansion pass
-complete and verified.** 144 `cargo test` checks green — nim-field axioms and
-inverses, Cl(0,1)≅ℂ, Cl(2,0), Grassmann nilpotents, char-2 commutativity *and*
-the faithful non-commutative char-2 case, associativity over non-orthogonal
-metrics in both characteristics, recursive-exponent surreal arithmetic (`ω^ω`,
-`ω·ε=1`, `√ω`), a Clifford metric with `e0²=ω, e1²=ε`, versor inverse /
-reflection / rotor / contraction / dual, the Arf invariant (`A⊕A ≅ H⊕H`, and
-Gold-function ranks `m−2·gcd(a,m)`), the game definition of nim-multiplication
-(Turning Corners), and the surcomplex char-2 degeneracy theorem. The expansion
-pass adds: the odd-characteristic trichotomy (`dim+disc` completeness vs a
-brute-force congruence oracle; the order-4 Witt group `ℤ/4` vs `ℤ/2×ℤ/2`),
-outermorphism determinants (char-faithful), the exterior Hopf axioms (both
-characteristics), conformal GA with exact surreal `∞`/`ε`, concrete spinor
-modules matching the classifier, omnific-integer exterior algebra, ordinal
-nim-arithmetic — including ordinal nim-multiplication across the whole field
-`φ_{ω+1}` via the Conway/DiMuro construction, with `ω⊗ω⊗ω = 2` and the
-F₄(ω) ≅ F₆₄ field axioms exhaustively verified — and the non-Archimedean
-Springer decomposition. Python bindings build as an abi3 wheel and import on
-CPython 3.14; `demo.py` tours all of it.
+Important scope boundaries:
 
-The `experiments/` probes (run on the shipped library) reproduce the
-Gold-function ranks, show the Arf-bearing forms are composites of game
-operations, and confirm the Arf invariant equals the win-bias (zero-count) of
-those forms — see `NOTES.md` for the full thread and the remaining open
-question (a *natural* game realizing those forms' P-positions).
-
-## honest limitations / future directions
-
-- **Surreal coefficients are ℚ**, the exact finite stand-in for ℝ (true CNF
-  allows any real). Exponents *are* fully recursive surreals.
-- **Surreal inverse is exact only for monomials** (`coeff·ω^e`). A genuine sum
-  inverts to an infinite Hahn series this finite representation can't hold, so
-  `inv()` returns `None`/raises. Versor inverse needs the scalar norm to invert,
-  so it works whenever that norm is a monomial (e.g. metrics like `[ω, ε]`).
-- **Nimbers cap at `u128`** (the field F_{2^128}); going beyond that needs a
-  wider/storage-generic field representation rather than another scalar rename.
-- **Ordinal nim-multiplication is complete inside `φ_{ω+1}`** (every ordinal
-  `< ω³` Cantor) but **staged above**: the next field would adjoin a degree-5
-  root over `φ_{ω+1}`, and the general construction climbs the Lenstra/DiMuro
-  tower via `α_p` elements that need real computation in successively larger
-  finite fields. Any ordinal whose CNF has an exponent `≥ 3` returns `None`.
-- The general char-2 product reduces blade words directly; fine for a playground,
-  not optimized for large algebras.
-- **The open research question** (explored in `NOTES.md`): the Arf invariant of a
-  nim-Clifford form *is* the win-bias of the form in the counting sense, and the
-  Arf-bearing forms are built from game operations — but a *natural* game whose
-  P-positions are a Gold form's zero set `{Q=0}` is not yet found. The
-  `framing_obstruction` probe now pins down why: a game seeing only the symplectic
-  form `B` is `Sp(B)`-equivariant, and `Sp(B)` is transitive on nonzero vectors, so
-  it can realize **no** quadric (a clean no-go); adding the coordinate frame gives a
-  genuine quadric P-set, but the *split* one; and the gap to the Gold form is
-  exactly an `m`-bit *framing* (the diagonal `q_i = Tr(e_i^{1+2^a})`), which always
-  carries Arf 1. Whether that framing is itself game-natural is the residue. Also
-  open: Gonshor's surreal exponential.
+- `Nimber(u128)` is exactly `F_{2^128}`. It contains nim subfields whose degrees
+  divide 128; it is not the proper-class field of all nimbers and not all finite
+  characteristic-2 fields.
+- `Ordinal` nim-addition is implemented generally on the represented CNF terms.
+  Nim-multiplication is implemented below `ω^ω` through the current degree-3
+  tower; ordinals with infinite CNF exponents return `None`.
+- `Surreal` uses finite support and rational coefficients. Non-monomial inverses
+  are generally infinite Hahn series and are not represented by `inv()`.
+- `Qp`, `Qq`, `Laurent`, `Gauss`, and `Adele` are finite-precision models in the
+  current implementation. They are useful for local/global form experiments, but
+  they are not exact infinite-memory local fields.
+- The Gold/Arf game thread is conditional: if a game has P-set `{Q = 0}`, Arf
+  predicts the win-bias. The repo has not found a non-tautological natural game
+  with that P-set.
