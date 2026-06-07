@@ -78,31 +78,36 @@ impl PyNimber {
     }
     /// Degree over F₂ (dimension of the smallest nim-subfield containing it).
     fn degree(&self) -> u32 {
-        self.inner.degree()
+        crate::scalar::nim_degree(self.inner.0)
     }
     /// The Galois conjugates `x, x², x⁴, …` over F₂.
     fn conjugates(&self) -> Vec<PyNimber> {
-        self.inner
-            .conjugates()
+        crate::scalar::nim_conjugates(self.inner.0)
             .into_iter()
-            .map(|inner| PyNimber { inner })
+            .map(|v| PyNimber { inner: Nimber(v) })
             .collect()
     }
     /// Minimal polynomial over F₂: coefficients `{0,1}` from the constant term up.
     fn min_poly(&self) -> Vec<u32> {
-        self.inner.min_poly().into_iter().map(u32::from).collect()
+        crate::scalar::nim_min_poly(self.inner.0)
+            .into_iter()
+            .map(u32::from)
+            .collect()
     }
     /// Multiplicative order in F_{2^128}* (`None` for `*0`).
     fn order(&self) -> Option<u128> {
-        self.inner.order()
+        crate::scalar::nim_order(self.inner.0)
     }
     /// Whether this generates the full multiplicative group F_{2^128}*.
     fn is_primitive(&self) -> bool {
-        self.inner.is_primitive()
+        crate::scalar::nim_is_primitive(self.inner.0)
     }
     /// Discrete log to base `self`: least `e` with `self**e == x`, else `None`.
     fn discrete_log(&self, x: &Bound<'_, PyAny>) -> PyResult<Option<u128>> {
-        Ok(self.inner.discrete_log(parse_nimber(x)?))
+        Ok(crate::scalar::nim_discrete_log(
+            self.inner.0,
+            parse_nimber(x)?.0,
+        ))
     }
     fn __repr__(&self) -> String {
         format!("{:?}", self.inner)
