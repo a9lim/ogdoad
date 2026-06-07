@@ -30,6 +30,7 @@
 //! `mul` is schoolbook multiply-then-reduce — the degree-`N`, odd-`p` generalisation
 //! of `onag.rs`'s "reduce mod `ω³ = 2`".
 
+use super::FiniteField;
 use crate::scalar::Scalar;
 use std::fmt;
 
@@ -142,80 +143,22 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
         Fpn(coeffs)
     }
 
-    // ===== The finite-field analysis toolkit (mirror of `nimber.rs`) =====
+    // ===== The finite-field analysis toolkit =====
     //
-    // The char-2 leg (`Nimber`) shipped the deluxe Galois suite; this gives the
-    // odd-characteristic (and char-2 odd-degree) leg the same toolkit, so the
-    // characteristic trichotomy is symmetric.
-
-    /// Exponentiation `self^e` by square-and-multiply.
-    pub fn pow(&self, mut e: u128) -> Self {
-        let mut base = *self;
-        let mut acc = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                acc = acc.mul(&base);
-            }
-            base = base.mul(&base);
-            e >>= 1;
-        }
-        acc
-    }
-
-    /// The **Frobenius** automorphism `x ↦ x^p` (the generator of `Gal(F_{p^N}/F_p)`).
-    pub fn frobenius(&self) -> Self {
-        self.pow(P)
-    }
-
-    /// `self^{p^k}` — the Frobenius applied `k` times.
-    fn frobenius_iter(&self, k: usize) -> Self {
-        let mut x = *self;
-        for _ in 0..k {
-            x = x.frobenius();
-        }
-        x
-    }
-
-    /// The **degree** of `self` over `F_p`: the least `d | N` with `x^{p^d} = x`,
-    /// i.e. the dimension of the smallest subfield `F_{p^d}` containing it.
-    pub fn degree(&self) -> usize {
-        for d in 1..=N {
-            if N % d == 0 && self.frobenius_iter(d) == *self {
-                return d;
-            }
-        }
-        N
-    }
-
-    /// The distinct **Galois conjugates** `x, x^p, …, x^{p^{d-1}}` (`d = degree`) —
-    /// the roots of the minimal polynomial, each once.
-    pub fn conjugates(&self) -> Vec<Self> {
-        let d = self.degree();
-        let mut out = Vec::with_capacity(d);
-        let mut c = *self;
-        for _ in 0..d {
-            out.push(c);
-            c = c.frobenius();
-        }
-        out
-    }
+    // The shared Galois engine (degree, conjugates, minimal-polynomial product,
+    // relative trace/norm, multiplicative order, discrete log) is the
+    // `FiniteField` trait below — one algorithm over `Nimber` and `Fpn` both.
+    // `Fpn` keeps only the two pieces that are genuinely per-backend: the `F_p`
+    // projection of the minimal polynomial, and primitive-element enumeration.
 
     /// The **minimal polynomial** over `F_p`, as coefficients in `[0, P)` from the
-    /// constant term up — monic of degree [`degree`](Self::degree). Formed as
-    /// `∏ (X − xᵢ)` over the conjugates in `F_{p^N}[X]`; the Galois-closed orbit
-    /// guarantees the result lands in `F_p`.
+    /// constant term up — monic of degree [`degree`](FiniteField::degree). The
+    /// shared `∏ (X − xᵢ)` construction is [`FiniteField::min_poly_monic`]; this
+    /// projects each coefficient (Galois-closure guarantees it lies in `F_p`) to
+    /// its base-field value.
     pub fn min_poly(&self) -> Vec<u128> {
-        let mut poly = vec![Self::one()]; // constant polynomial 1
-        for c in self.conjugates() {
-            let neg_c = c.neg();
-            let mut next = vec![Self::zero(); poly.len() + 1];
-            for (i, a) in poly.iter().enumerate() {
-                next[i + 1] = next[i + 1].add(a); // X · a
-                next[i] = next[i].add(&neg_c.mul(a)); // (−c) · a
-            }
-            poly = next;
-        }
-        poly.into_iter()
+        self.min_poly_monic()
+            .into_iter()
             .map(|coeff| {
                 debug_assert!(
                     coeff.0[1..].iter().all(|&c| c == 0),
@@ -224,53 +167,6 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
                 coeff.0[0]
             })
             .collect()
-    }
-
-    /// The **relative trace** `Tr_{F_{p^N}/F_{p^e}}(x) = Σ_{i} x^{p^{e·i}}` — the
-    /// `F_{p^e}`-linear surjection onto the subfield. `e = 1` is the absolute
-    /// trace to `F_p`. Requires `e | N`.
-    pub fn relative_trace(&self, e: usize) -> Self {
-        assert!(e > 0 && N % e == 0, "relative trace needs e | N");
-        let mut acc = Self::zero();
-        let mut t = *self;
-        for _ in 0..(N / e) {
-            acc = acc.add(&t);
-            t = t.frobenius_iter(e);
-        }
-        acc
-    }
-
-    /// The **relative norm** `N_{F_{p^N}/F_{p^e}}(x) = ∏_{i} x^{p^{e·i}}` — the
-    /// multiplicative companion of the relative trace. Requires `e | N`.
-    pub fn relative_norm(&self, e: usize) -> Self {
-        assert!(e > 0 && N % e == 0, "relative norm needs e | N");
-        let mut acc = Self::one();
-        let mut t = *self;
-        for _ in 0..(N / e) {
-            acc = acc.mul(&t);
-            t = t.frobenius_iter(e);
-        }
-        acc
-    }
-
-    /// The **multiplicative order** of `self` in `F_{p^N}*` (least `k > 0` with
-    /// `self^k = 1`), or `None` for `0`. Divides `p^N − 1`.
-    pub fn multiplicative_order(&self) -> Option<u128> {
-        if self.is_zero() {
-            return None;
-        }
-        let mut ord = Self::order() - 1; // p^N − 1
-        for p in distinct_primes(Self::order() - 1) {
-            while ord % p == 0 && self.pow(ord / p) == Self::one() {
-                ord /= p;
-            }
-        }
-        Some(ord)
-    }
-
-    /// Whether `self` generates the whole multiplicative group `F_{p^N}*`.
-    pub fn is_primitive(&self) -> bool {
-        self.multiplicative_order() == Some(Self::order() - 1)
     }
 
     /// A **primitive element** (a generator of `F_{p^N}*`), found by scanning the
@@ -285,23 +181,42 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
         }
         panic!("Fpn: no primitive element found (unreachable for a field)");
     }
+}
 
-    /// **Discrete logarithm** to base `self`: the least `e ≥ 0` with
-    /// `self^e = x`, or `None` if `x ∉ ⟨self⟩`. Brute-forced over the (small)
-    /// cyclic subgroup `⟨self⟩`.
-    pub fn discrete_log(&self, x: Self) -> Option<u128> {
-        if self.is_zero() {
-            return None;
-        }
-        let n = self.multiplicative_order()?;
-        let mut cur = Self::one();
-        for e in 0..n {
-            if cur == x {
-                return Some(e);
+/// `Fpn` plugs into the shared [`FiniteField`] engine by supplying only the
+/// field shape: the Frobenius `x ↦ x^p`, integer exponentiation, the extension
+/// degree `N`, and the multiplicative-group order `p^N − 1` with its factors.
+/// Every Galois notion is then a default method. The brute-force discrete log
+/// (the trait default) suffices for the small orders here — no Pohlig–Hellman
+/// needed, unlike the nimber `F_{2^128}`.
+impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
+    fn frobenius(&self) -> Self {
+        self.pow(P)
+    }
+
+    fn pow(&self, mut e: u128) -> Self {
+        let mut base = *self;
+        let mut acc = Self::one();
+        while e > 0 {
+            if e & 1 == 1 {
+                acc = acc.mul(&base);
             }
-            cur = cur.mul(self);
+            base = base.mul(&base);
+            e >>= 1;
         }
-        None
+        acc
+    }
+
+    fn ext_degree() -> usize {
+        N
+    }
+
+    fn group_order() -> u128 {
+        Self::order() - 1
+    }
+
+    fn group_order_factors() -> Vec<u128> {
+        distinct_primes(Self::order() - 1)
     }
 }
 
@@ -441,6 +356,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
 mod tests {
     use super::*;
     use crate::clifford::{CliffordAlgebra, Metric};
+    use crate::scalar::FiniteField;
 
     /// Every element of `F_{p^N}`, enumerated by base-`P` digits.
     fn elems<const P: u128, const N: usize>() -> Vec<Fpn<P, N>> {

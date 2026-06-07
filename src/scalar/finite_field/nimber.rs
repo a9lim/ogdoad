@@ -18,6 +18,7 @@
 //! CORRECTNESS STATUS: verified by the `tests` module below (known F_4 / F_16
 //! products + field axioms over a range) once `cargo test` can run.
 
+use super::FiniteField;
 use crate::scalar::Scalar;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -194,68 +195,39 @@ pub fn nim_inv(x: u128) -> Option<u128> {
 // Finite-field analysis: conjugates, degree, minimal polynomial, relative
 // trace/norm, multiplicative order, primitive elements, discrete log.
 //
-// Everything here lives in F_{2^128} (= `Nimber(u128)`). Its subfields are
-// exactly F_{2^d} for d | 128 — i.e. d ∈ {1,2,4,8,16,32,64,128}, all powers of
-// two — and these coincide with the nim-initial-segment fields F_{2^{2^k}}.
+// The shared Galois engine is the `FiniteField` trait (scalar/finite_field) —
+// `impl FiniteField for Nimber` below supplies the Frobenius and the field
+// shape, and these free `nim_*` functions (the `u128`-keyed surface the Python
+// layer binds) delegate to it. Everything lives in F_{2^128} (= `Nimber(u128)`),
+// whose subfields are exactly F_{2^d} for d | 128 = {1,2,4,…,128}.
 // ===========================================================================
-
-/// Apply the Frobenius `x ↦ x²` exactly `k` times: returns `x^{2^k}`.
-#[inline]
-fn frobenius_iter(mut x: u128, k: u32) -> u128 {
-    for _ in 0..k {
-        x = nim_square(x);
-    }
-    x
-}
 
 /// The degree of `x` over F₂: the least `d ∈ {1,2,4,…,128}` (a divisor of 128)
 /// with `x^{2^d} = x`, i.e. the dimension of the smallest nim-subfield F_{2^d}
-/// containing `x`. The set `{d : x^{2^d}=x}` is the multiples of the true degree,
-/// and `128` always lies in it, so the degree divides 128 and is a power of two.
-/// `nim_degree(0) = nim_degree(1) = 1`.
+/// containing `x`. `nim_degree(0) = nim_degree(1) = 1`.
 pub fn nim_degree(x: u128) -> u32 {
-    for &d in &[1u32, 2, 4, 8, 16, 32, 64] {
-        if frobenius_iter(x, d) == x {
-            return d;
-        }
-    }
-    128
+    Nimber(x).degree() as u32
 }
 
 /// The distinct Galois conjugates of `x` over F₂: `x, x², x⁴, …, x^{2^{d-1}}`
 /// where `d = nim_degree(x)`. These are exactly the roots of `x`'s minimal
 /// polynomial, each appearing once.
 pub fn nim_conjugates(x: u128) -> Vec<u128> {
-    let d = nim_degree(x);
-    let mut out = Vec::with_capacity(d as usize);
-    let mut c = x;
-    for _ in 0..d {
-        out.push(c);
-        c = nim_square(c);
-    }
-    out
+    Nimber(x).conjugates().into_iter().map(|n| n.0).collect()
 }
 
 /// The minimal polynomial of `x` over F₂, as coefficients in `{0,1}` from the
-/// constant term up. It is monic of degree [`nim_degree`], so the last entry is
-/// the leading `1`. Computed as `∏(X + xᵢ)` over the conjugates (in char 2,
-/// `−xᵢ = xᵢ`); the product is formed in F_{2^128} and is guaranteed to land in
-/// F₂ exactly because the conjugate orbit is Galois-closed.
+/// constant term up. Monic of degree [`nim_degree`], so the last entry is the
+/// leading `1`. The shared `∏(X + xᵢ)` construction is
+/// [`FiniteField::min_poly_monic`]; this projects each coefficient (Galois
+/// closure guarantees it lands in F₂) to its bit value.
 pub fn nim_min_poly(x: u128) -> Vec<u8> {
-    let mut poly = vec![1u128]; // the constant polynomial 1 (coeff of X^0)
-    for c in nim_conjugates(x) {
-        // multiply `poly` by (X + c)
-        let mut next = vec![0u128; poly.len() + 1];
-        for (i, &a) in poly.iter().enumerate() {
-            next[i + 1] ^= a; // the X·(…) part
-            next[i] ^= nim_mul(c, a); // the c·(…) part
-        }
-        poly = next;
-    }
-    poly.into_iter()
-        .map(|coeff| {
-            debug_assert!(coeff <= 1, "minimal-polynomial coefficient left F₂");
-            coeff as u8
+    Nimber(x)
+        .min_poly_monic()
+        .into_iter()
+        .map(|c| {
+            debug_assert!(c.0 <= 1, "minimal-polynomial coefficient left F₂");
+            c.0 as u8
         })
         .collect()
 }
@@ -264,14 +236,7 @@ pub fn nim_min_poly(x: u128) -> Vec<u8> {
 /// F_{2^e}-linear surjection onto the subfield. [`nim_trace`] is the `e = 1`
 /// case (target F₂). Requires `e | m`.
 pub fn nim_relative_trace(x: u128, m: u32, e: u32) -> u128 {
-    assert!(e > 0 && m % e == 0, "relative trace needs e | m");
-    let mut acc = 0u128;
-    let mut t = x;
-    for _ in 0..(m / e) {
-        acc ^= t;
-        t = frobenius_iter(t, e);
-    }
-    acc
+    Nimber(x).relative_trace_over(m as usize, e as usize).0
 }
 
 /// Relative norm `N_{F_{2^m}/F_{2^e}}(x) = ∏_{i=0}^{m/e−1} x^{2^{ei}}
@@ -280,14 +245,7 @@ pub fn nim_relative_trace(x: u128, m: u32, e: u32) -> u128 {
 /// trivial), so the relative norm to a larger subfield is the informative one.
 /// Requires `e | m`.
 pub fn nim_relative_norm(x: u128, m: u32, e: u32) -> u128 {
-    assert!(e > 0 && m % e == 0, "relative norm needs e | m");
-    let mut acc = 1u128;
-    let mut t = x;
-    for _ in 0..(m / e) {
-        acc = nim_mul(acc, t);
-        t = frobenius_iter(t, e);
-    }
-    acc
+    Nimber(x).relative_norm_over(m as usize, e as usize).0
 }
 
 /// The distinct prime factors of `2^128 − 1` (which is squarefree):
@@ -299,16 +257,7 @@ const ORDER_FACTORS: [u128; 9] = [3, 5, 17, 257, 641, 65537, 274177, 6700417, 67
 /// The multiplicative order of `x` in F_{2^128}* — the least `k > 0` with the
 /// `k`-fold nim-power `x^{⊗k} = 1`. `None` for `x = 0`. Always divides `2^128−1`.
 pub fn nim_order(x: u128) -> Option<u128> {
-    if x == 0 {
-        return None;
-    }
-    let mut ord = u128::MAX; // 2^128 − 1
-    for &p in &ORDER_FACTORS {
-        while ord % p == 0 && nim_pow(x, ord / p) == 1 {
-            ord /= p;
-        }
-    }
-    Some(ord)
+    Nimber(x).multiplicative_order()
 }
 
 /// Whether `x` generates the *full* group F_{2^128}* (order `2^128 − 1`). An
@@ -316,10 +265,7 @@ pub fn nim_order(x: u128) -> Option<u128> {
 /// a primitive element necessarily lies outside every proper subfield (so
 /// `x ≥ 2^64`).
 pub fn nim_is_primitive(x: u128) -> bool {
-    x != 0
-        && ORDER_FACTORS
-            .iter()
-            .all(|&p| nim_pow(x, u128::MAX / p) != 1)
+    Nimber(x).is_primitive()
 }
 
 /// A primitive element of F_{2^128}* (a generator of the whole multiplicative
@@ -476,29 +422,40 @@ impl Scalar for Nimber {
     }
 }
 
-impl Nimber {
-    /// Degree over F₂ — the smallest nim-subfield F_{2^d} containing this nimber.
-    pub fn degree(&self) -> u32 {
-        nim_degree(self.0)
+/// `Nimber` plugs into the shared [`FiniteField`] engine: the Frobenius is
+/// nim-squaring, the field is `F_{2^128}` (`ext_degree = 128`), and the
+/// multiplicative group has order `2^128 − 1` with the known squarefree
+/// factorization [`ORDER_FACTORS`]. Two methods are overridden with the sharper
+/// char-2 / large-field algorithms: [`is_primitive`](FiniteField::is_primitive)
+/// (a direct subgroup check, avoiding a full order computation) and
+/// [`discrete_log`](FiniteField::discrete_log) (Pohlig–Hellman, vs the trait's
+/// brute force — essential for the `≈ 6.7·10¹³` largest prime factor).
+impl FiniteField for Nimber {
+    fn frobenius(&self) -> Self {
+        Nimber(nim_square(self.0))
     }
-    /// The Galois conjugates `x, x², x⁴, …` (roots of the minimal polynomial).
-    pub fn conjugates(&self) -> Vec<Nimber> {
-        nim_conjugates(self.0).into_iter().map(Nimber).collect()
+
+    fn pow(&self, e: u128) -> Self {
+        Nimber(nim_pow(self.0, e))
     }
-    /// Minimal polynomial over F₂, coefficients `{0,1}` from the constant term up.
-    pub fn min_poly(&self) -> Vec<u8> {
-        nim_min_poly(self.0)
+
+    fn ext_degree() -> usize {
+        128
     }
-    /// Multiplicative order in F_{2^128}* (`None` for `*0`).
-    pub fn order(&self) -> Option<u128> {
-        nim_order(self.0)
+
+    fn group_order() -> u128 {
+        u128::MAX // 2^128 − 1
     }
-    /// Whether this generates the whole multiplicative group F_{2^128}*.
-    pub fn is_primitive(&self) -> bool {
-        nim_is_primitive(self.0)
+
+    fn group_order_factors() -> Vec<u128> {
+        ORDER_FACTORS.to_vec()
     }
-    /// Discrete log to base `self`: least `e` with `self^{⊗e} = x`, else `None`.
-    pub fn discrete_log(&self, x: Nimber) -> Option<u128> {
+
+    fn is_primitive(&self) -> bool {
+        self.0 != 0 && ORDER_FACTORS.iter().all(|&p| nim_pow(self.0, u128::MAX / p) != 1)
+    }
+
+    fn discrete_log(&self, x: Nimber) -> Option<u128> {
         nim_discrete_log(self.0, x.0)
     }
 }
