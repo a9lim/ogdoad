@@ -49,6 +49,70 @@ pub use small::*;
 pub use surcomplex::*;
 
 use std::fmt::Debug;
+use std::ops::{Add, Mul, Neg, Sub};
+
+/// Generate the owned-value operators `+`, `-` (binary and unary), and `*` for a
+/// [`Scalar`] backend by forwarding to its trait methods, so downstream code can
+/// write `a + b`, `a * b`, `-a` instead of `a.add(&b)`, `a.mul(&b)`, `a.neg()`.
+///
+/// Deliberately *not* a [`Scalar`] supertrait bound: these are concrete-type
+/// conveniences for callers (`Surreal + Surreal`, `-nimber`), so generic engine
+/// code over `S: Scalar` keeps resolving `.add(&x)` / `.mul(&x)` to the `&self`
+/// trait methods — operators-on-`S` would shadow them at owned-receiver sites and
+/// force clones the borrow-based engine avoids. Division stays a method
+/// ([`Scalar::inv`] is partial — `Div` would have to panic), and the
+/// by-reference operator forms are omitted for the same reason.
+///
+/// The generic-backend form takes its generic clause in brackets, e.g.
+/// `impl_scalar_ops!([const P: u128] Fp<P>)` or `impl_scalar_ops!([S: Scalar]
+/// Surcomplex<S>)`; the bare form `impl_scalar_ops!(Rational)` is for the
+/// concrete ones. (Brackets, not `<…>`, so the matcher stays unambiguous.)
+macro_rules! impl_scalar_ops {
+    ([$($gen:tt)*] $ty:ty) => {
+        impl<$($gen)*> Add for $ty {
+            type Output = $ty;
+            #[inline]
+            fn add(self, rhs: $ty) -> $ty { <$ty as $crate::scalar::Scalar>::add(&self, &rhs) }
+        }
+        impl<$($gen)*> Sub for $ty {
+            type Output = $ty;
+            #[inline]
+            fn sub(self, rhs: $ty) -> $ty { <$ty as $crate::scalar::Scalar>::sub(&self, &rhs) }
+        }
+        impl<$($gen)*> Mul for $ty {
+            type Output = $ty;
+            #[inline]
+            fn mul(self, rhs: $ty) -> $ty { <$ty as $crate::scalar::Scalar>::mul(&self, &rhs) }
+        }
+        impl<$($gen)*> Neg for $ty {
+            type Output = $ty;
+            #[inline]
+            fn neg(self) -> $ty { <$ty as $crate::scalar::Scalar>::neg(&self) }
+        }
+    };
+    ($ty:ty) => {
+        impl Add for $ty {
+            type Output = $ty;
+            #[inline]
+            fn add(self, rhs: $ty) -> $ty { <$ty as $crate::scalar::Scalar>::add(&self, &rhs) }
+        }
+        impl Sub for $ty {
+            type Output = $ty;
+            #[inline]
+            fn sub(self, rhs: $ty) -> $ty { <$ty as $crate::scalar::Scalar>::sub(&self, &rhs) }
+        }
+        impl Mul for $ty {
+            type Output = $ty;
+            #[inline]
+            fn mul(self, rhs: $ty) -> $ty { <$ty as $crate::scalar::Scalar>::mul(&self, &rhs) }
+        }
+        impl Neg for $ty {
+            type Output = $ty;
+            #[inline]
+            fn neg(self) -> $ty { <$ty as $crate::scalar::Scalar>::neg(&self) }
+        }
+    };
+}
 
 pub trait Scalar: Clone + PartialEq + Debug {
     fn zero() -> Self;
@@ -75,5 +139,44 @@ pub trait Scalar: Clone + PartialEq + Debug {
 
     fn sub(&self, rhs: &Self) -> Self {
         self.add(&rhs.neg())
+    }
+}
+
+// The operator manifest: every backend gets `+ - *` and unary `-` forwarded to
+// its `Scalar` methods, so the whole table reads uniformly (`a + b`, `-a`). The
+// const-/type-generic backends carry their generic clause; the concrete ones
+// don't. (See [`impl_scalar_ops`].)
+impl_scalar_ops!(Rational);
+impl_scalar_ops!(Integer);
+impl_scalar_ops!(Surreal);
+impl_scalar_ops!(Omnific);
+impl_scalar_ops!(Nimber);
+impl_scalar_ops!([const P: u128] Fp<P>);
+impl_scalar_ops!([const P: u128, const N: usize] Fpn<P, N>);
+impl_scalar_ops!([const P: u128, const N: usize, const F: usize] WittVec<P, N, F>);
+impl_scalar_ops!([const P: u128, const K: u128] Qp<P, K>);
+impl_scalar_ops!([const P: u128, const K: u128] Zp<P, K>);
+impl_scalar_ops!([S: Scalar] Surcomplex<S>);
+
+#[cfg(test)]
+mod ops_tests {
+    use super::*;
+
+    /// Operators must agree with the `Scalar` trait methods they forward to —
+    /// over a char-0 field and a char-2 one (where `-a = a`).
+    #[test]
+    fn operators_match_trait_methods() {
+        let (a, b) = (Rational::new(2, 3), Rational::new(1, 6));
+        assert_eq!(a.clone() + b.clone(), Scalar::add(&a, &b));
+        assert_eq!(a.clone() - b.clone(), Scalar::sub(&a, &b));
+        assert_eq!(a.clone() * b.clone(), Scalar::mul(&a, &b));
+        assert_eq!(-a.clone(), Scalar::neg(&a));
+        assert_eq!(a.clone() - a.clone(), Rational::zero());
+
+        // char 2: `+` is XOR, `*` the nim product, and unary `-` is identity.
+        let (x, y) = (Nimber(6), Nimber(3));
+        assert_eq!(x + y, Scalar::add(&x, &y));
+        assert_eq!(x * y, Scalar::mul(&x, &y));
+        assert_eq!(-x, x);
     }
 }
