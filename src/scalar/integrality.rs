@@ -25,8 +25,28 @@
 //! of `F_q((t))` is the valuation subring (`Laurent::is_integral`, valuation `≥ 0`)
 //! *inside* the same `Laurent<S, K>`, not a separate world — so it stays outside
 //! this trait pairing, honestly, rather than pointing `Int` at itself.
+//!
+//! ## Functors split on this exact line
+//!
+//! The two kinds of root-level functor differ precisely in how they treat this
+//! pairing, which is a clean structural dichotomy:
+//!
+//!   * **Algebraic functors transport the distinct-type pairing.**
+//!     [`Surcomplex`](crate::scalar::Surcomplex) is `i`-adjunction; if the base `R`
+//!     has a fraction field, so does `R[i]` (componentwise), and if `K` has a ring
+//!     of integers `O_K`, then `K[i]` has the order `O_K[i]`. The blanket impls
+//!     below make this functorial: the `S = Rational` instance is the **Gaussian**
+//!     row `ℤ[i] ⊂ ℚ[i]`, the `S = Surreal` instance is `Omnific[i] ⊂ Surcomplex`,
+//!     all from one pair of impls. (For `ℚ(i)` the order `ℤ[i]` is the maximal
+//!     order; over a general base it is `O_K[i]`, which we do not claim is maximal.)
+//!   * **Valuation functors keep a same-type subring.**
+//!     [`Laurent`](crate::scalar::Laurent) and
+//!     [`Eisenstein`](crate::scalar::Eisenstein) adjoin (a transcendental / a
+//!     ramified root with) a *valuation*; their ring of integers is the
+//!     valuation-`≥ 0` subring of the *same* type (`is_integral`), so they stay
+//!     out of the pairing — the same honesty as `Laurent` above.
 
-use crate::scalar::{Integer, Omnific, Qp, Qq, Rational, Scalar, Surreal, WittVec, Zp};
+use crate::scalar::{Integer, Omnific, Qp, Qq, Rational, Scalar, Surcomplex, Surreal, WittVec, Zp};
 
 /// A (commutative) ring that knows its field of fractions.
 pub trait HasFractionField: Scalar {
@@ -151,6 +171,32 @@ impl<const P: u128, const N: usize, const F: usize> HasRingOfIntegers for Qq<P, 
     }
 }
 
+// ───────────── functorial: Surcomplex transports the pairing ─────────────
+//
+// The algebraic `i`-adjunction functor preserves the (field, ring of integers)
+// relationship: `Frac(R[i]) = Frac(R)[i]` and `O_{K[i]} = O_K[i]`. The round-trip
+// law closes because `(K::Int)::Frac = K` already holds for the base pair.
+
+impl<R: HasFractionField> HasFractionField for Surcomplex<R> {
+    type Frac = Surcomplex<R::Frac>;
+    fn to_fraction(&self) -> Surcomplex<R::Frac> {
+        Surcomplex::new(self.re.to_fraction(), self.im.to_fraction())
+    }
+}
+
+impl<K: HasRingOfIntegers> HasRingOfIntegers for Surcomplex<K> {
+    type Int = Surcomplex<K::Int>;
+    fn is_integral(&self) -> bool {
+        self.re.is_integral() && self.im.is_integral()
+    }
+    fn to_integer(&self) -> Option<Surcomplex<K::Int>> {
+        Some(Surcomplex::new(
+            self.re.to_integer()?,
+            self.im.to_integer()?,
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,5 +276,27 @@ mod tests {
         let u = WittVec::<2, 4, 2>([1, 1]);
         assert!(u.to_fraction().is_integral());
         assert_eq!(u.to_fraction().to_integer(), Some(u));
+    }
+
+    #[test]
+    fn surcomplex_transports_the_gaussian_pairing() {
+        // ℤ[i] ⊂ ℚ[i], the S = Rational instance of the blanket impls — every
+        // Gaussian integer round-trips through the Gaussian rationals.
+        for re in -3i128..=3 {
+            for im in -3i128..=3 {
+                assert_pairs(&Surcomplex::new(Integer(re), Integer(im)));
+            }
+        }
+        // a genuine Gaussian fraction (½i) is not integral.
+        let half_i = Surcomplex::new(Rational::int(0), Rational::new(1, 2));
+        assert!(!half_i.is_integral());
+        assert_eq!(half_i.to_integer(), None);
+        // an integer-valued surcomplex recovers itself.
+        let g = Surcomplex::new(Rational::int(3), Rational::int(-2));
+        assert!(g.is_integral());
+        assert_eq!(
+            g.to_integer(),
+            Some(Surcomplex::new(Integer(3), Integer(-2)))
+        );
     }
 }

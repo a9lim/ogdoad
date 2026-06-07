@@ -19,6 +19,12 @@
 //! is a fact about the field, so [`ClassifyForm`] resolves it from the scalar
 //! type — call `metric.classify()` / `algebra.classify()` (and `witt_class()`)
 //! and the right leg is selected at compile time, no manual char-dispatch.
+//!
+//! Alongside the symmetric bilinear forms sit the other two members of the
+//! "form + involution" family: [`symplectic`] alternating forms (rank is the
+//! complete invariant, char-uniform) and [`hermitian`] forms over the surcomplex
+//! field (Sylvester signature; [`HermitianForm::from_skew`] handles the
+//! skew-Hermitian case via multiplication by `i`).
 
 pub mod brauer_wall;
 pub mod char0;
@@ -34,6 +40,7 @@ pub mod quadric_fit;
 pub mod springer;
 pub mod springer_laurent;
 pub mod springer_padic;
+pub mod symplectic;
 pub mod witt;
 pub mod witt_ring;
 
@@ -51,5 +58,6 @@ pub use quadric_fit::*;
 pub use springer::*;
 pub use springer_laurent::*;
 pub use springer_padic::*;
+pub use symplectic::*;
 pub use witt::*;
 pub use witt_ring::*;

@@ -109,6 +109,39 @@ impl<S: Scalar> HermitianForm<S> {
         Some(HermitianForm { gram })
     }
 
+    /// Build from a **skew-Hermitian** Gram matrix (`H* = −H`, so the diagonal is
+    /// purely imaginary), returning the *Hermitian* form `iH` that classifies it.
+    ///
+    /// Over a field carrying the conjugation `i ↦ −i`, multiplication by `i` is a
+    /// bijection `{skew-Hermitian} → {Hermitian}` (`conj(i) = −i` makes `(iH)* =
+    /// iH` exactly when `H* = −H`), so the entire signature machinery transports —
+    /// the skew-Hermitian invariant is the signature of `iH`. `None` if the input
+    /// is not square and skew-Hermitian.
+    pub fn from_skew(gram: Vec<Vec<Surcomplex<S>>>) -> Option<Self> {
+        let n = gram.len();
+        for row in &gram {
+            if row.len() != n {
+                return None;
+            }
+        }
+        for i in 0..n {
+            if !gram[i][i].re.is_zero() {
+                return None; // skew-Hermitian diagonal is purely imaginary
+            }
+            for j in 0..n {
+                if gram[i][j] != gram[j][i].conj().neg() {
+                    return None; // H* = −H
+                }
+            }
+        }
+        let i_unit = Surcomplex::i();
+        let h: Vec<Vec<Surcomplex<S>>> = gram
+            .iter()
+            .map(|row| row.iter().map(|x| i_unit.mul(x)).collect())
+            .collect();
+        Self::from_gram(h)
+    }
+
     /// A diagonal Hermitian form from real entries.
     pub fn diagonal(reals: Vec<S>) -> Self {
         let n = reals.len();
@@ -248,6 +281,33 @@ mod tests {
         let rad = HermitianForm::<Rational>::diagonal(vec![Rational::int(0), Rational::int(5)]);
         assert_eq!(h.direct_sum(&h).signature(rsign).pos, 2); // additive
         assert_eq!(rad.signature(rsign).radical, 1);
+    }
+
+    #[test]
+    fn skew_hermitian_signature_via_multiplication_by_i() {
+        // The real skew-symmetric form [[0,1],[−1,0]] is skew-Hermitian; iH =
+        // [[0,i],[−i,0]] is the standard Hermitian form with eigenvalues ±1, so
+        // the skew-Hermitian signature is (1,1).
+        let h = HermitianForm::<Rational>::from_skew(vec![
+            vec![gc(0, 0), gc(1, 0)],
+            vec![gc(-1, 0), gc(0, 0)],
+        ])
+        .unwrap();
+        // det(iH) = −1 < 0 ⇒ indefinite ⇒ signature (1,1) (the exact diagonal
+        // values depend on the congruence path, only the signs are invariant).
+        let sig = h.signature(rsign);
+        assert_eq!((sig.pos, sig.neg), (1, 1));
+        // a purely-imaginary diagonal is allowed (skew-Hermitian); a real one is not.
+        assert!(HermitianForm::<Rational>::from_skew(vec![
+            vec![gc(0, 2), gc(0, 0)],
+            vec![gc(0, 0), gc(0, -3)],
+        ])
+        .is_some());
+        assert!(HermitianForm::<Rational>::from_skew(vec![
+            vec![gc(1, 0), gc(0, 0)],
+            vec![gc(0, 0), gc(0, 0)],
+        ])
+        .is_none());
     }
 
     #[test]

@@ -29,14 +29,19 @@
 //! char-`p` mirror of the `Qp`/`Zp` row — is filled by the [`Laurent`] functor
 //! (below), not a row of its own.
 //!
-//! Two **root-level functors** sit *orthogonal* to the table — the two ways to
-//! grow a field, algebraic and transcendental:
+//! Three **root-level functors** sit *orthogonal* to the table — the ways to grow
+//! a field, by an algebraic root or a transcendental, residue- or value-extending:
 //!   * [`Surcomplex`] is `Surcomplex<S>` — a generic *i-adjunction* functor
 //!     (adjoin a root of `x²+1`) over any backend, not a concrete world.
 //!   * [`Laurent`] is `Laurent<S, K>` — a generic *t-adjunction* functor (adjoin a
 //!     transcendental `t` with a valuation), the formal Laurent field `S((t))`.
 //!     Applied to a finite field it fills the **equal-characteristic local** cell
 //!     (`F_q((t))`, the char-`p` mirror of `Qp`); its ring of integers is `F_q[[t]]`.
+//!   * [`Eisenstein`] is `Eisenstein<S, E>` — a generic *ramified* `π`-adjunction
+//!     functor (adjoin a root of the Eisenstein polynomial `xᴱ − ϖ`) over a
+//!     [`Valued`] base. It fills the **ramified** local cell: `Q_p(p^{1/E})` over
+//!     `Qp`, the ramified twin of the unramified `Qq`. The valuation datum it
+//!     needs from the base is abstracted by the [`Valued`] trait.
 //!
 //! And [`onag`](big::onag)'s ordinal nimbers are the **char-2 mirror of the
 //! surreals** — the transfinite "big" number in characteristic 2 — so they sit
@@ -48,20 +53,24 @@
 //! backends.
 
 pub mod big;
+pub mod eisenstein;
 pub mod exact;
 pub mod finite_field;
 pub mod integrality;
 pub mod laurent;
 pub mod small;
 pub mod surcomplex;
+pub mod valued;
 
 pub use big::*;
+pub use eisenstein::*;
 pub use exact::*;
 pub use finite_field::*;
 pub use integrality::*;
 pub use laurent::*;
 pub use small::*;
 pub use surcomplex::*;
+pub use valued::*;
 
 use std::fmt::Debug;
 use std::ops::{Add, Mul, Neg, Sub};
@@ -174,6 +183,7 @@ impl_scalar_ops!([const P: u128, const K: u128] Zp<P, K>);
 impl_scalar_ops!([const P: u128, const N: usize, const F: usize] Qq<P, N, F>);
 impl_scalar_ops!([S: Scalar] Surcomplex<S>);
 impl_scalar_ops!([S: Scalar, const K: usize] Laurent<S, K>);
+impl_scalar_ops!([S: Valued, const E: usize] Eisenstein<S, E>);
 
 #[cfg(test)]
 mod ops_tests {
