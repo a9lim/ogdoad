@@ -29,23 +29,32 @@
 //! * **nim-addition is complete and exact** ([`nim`]): like-`ω`-power
 //!   coefficients combine by XOR (so `α ⊕ α = 0`, `ω ⊕ 1 = ω+1`), giving the
 //!   genuine transfinite characteristic-2 additive group.
-//! * **nim-multiplication is implemented across the whole field `φ_{ω+1}`** —
-//!   every ordinal strictly below `ω³` (Cantor). Following DiMuro
-//!   (*arXiv:1108.0962*, extending Conway *ONAG* ch. 6 and Lenstra 1977 "On
-//!   the algebraic closure of two"): the field tower is `φ_n = F_{2^{2^n}}`
-//!   (finite), `φ_ω = ω = ⋃ F_{2^{2^n}}` (still not algebraically closed —
-//!   missing degree 3), and the next field `φ_{ω+1}` is obtained by adjoining
-//!   `ω` as the root of the lex-earliest irreducible `x³ − 2`. DiMuro
-//!   Lemma 1.1: the Cantor ordinal `[ω²·a + ω·b + c]` equals the field element
-//!   `ω²⊗a ⊕ ω⊗b ⊕ c`. So nim-multiplication of any pair of ordinals
-//!   `< ω³` reduces to polynomial multiplication in `(finite nimbers)[ω]` with
-//!   the relations `ω³ = 2`, `ω⁴ = 2⊗ω`. The headline `ω ⊗ ω ⊗ ω = 2` and the
-//!   full F_4(ω) ≅ F_64 field axioms (exhaustively checked) fall out of this.
-//! * **Above `ω³` it is still staged.** The next field `φ_{ω+2}` would adjoin
-//!   a degree-5 root over `φ_{ω+1}`, and the general construction climbs the
-//!   Lenstra/DiMuro tower via α_p elements that require nontrivial computation
-//!   in successively larger finite fields. An ordinal with any CNF exponent
-//!   `≥ 3` returns `None`.
+//! * **nim-multiplication is implemented across the whole degree-3ⁿ tower** —
+//!   every ordinal strictly below **`ω^ω`** (all CNF exponents finite). Following
+//!   DiMuro (*arXiv:1108.0962*, extending Conway *ONAG* ch. 6 and Lenstra 1977 "On
+//!   the algebraic closure of two"): the finite layers are `F_{2^{2^n}}`, then `ω`
+//!   supplies the missing cube roots (`ω³ = 2`), and the tower of cube-root
+//!   generators
+//!   `g₀ = ω, g₁ = ω³, g₂ = ω⁹, …, gₙ = ω^(3ⁿ)`  with  `g₀³ = 2,  gₙ³ = g_{n-1}`
+//!   climbs to `ω^ω`. Every ordinal `< ω^ω` is a multivariate monomial in the `gₙ`
+//!   read off the **base-3 digits** of its exponents (`ω^e = ⊗ₖ gₖ^{dₖ}`,
+//!   `e = Σ dₖ·3ᵏ`), so nim-multiplication is digit-vector addition with the
+//!   cube-root carries `gₖ³ = g_{k-1}`, `g₀³ = 2` (`nim::tower_mul`). This strictly
+//!   subsumes the old `< ω³`, `(ω³−2)`-reduction path (the one-generator,
+//!   single-digit case) — the `f4_adjoin_omega_is_a_field` (F₆₄) and
+//!   `omega_cubed_is_two` checks remain green as regression. New worked relations:
+//!   `(ω³)⊗³ = ω`, `(ω⁹)⊗³ = ω³`.
+//! * **At `ω^ω` and above it is staged.** `ω^ω` is the first ordinal with an
+//!   *infinite* CNF exponent; any such ordinal returns `None`. Reaching the full
+//!   algebraic closure (the ordinals `< ω^{ω^ω}`) additionally requires: the other
+//!   primes (degree 5, 7, …) whose generators enter at `ω^ω` and are *not* defined
+//!   by a clean cube-root relation but by a root-finding condition over the
+//!   partially-built field (Artin–Schreier-flavoured — cf.
+//!   [`finite_field::nimber::artin_schreier`](crate::scalar::finite_field)); and the
+//!   transfinite levels `ω^ω → ω^{ω²} → … → ω^{ω^ω}` where the exponents themselves
+//!   become infinite ordinals (the CNF recursion already supports this
+//!   structurally). That is a multi-stage research climb, deliberately not shipped
+//!   speculatively.
 
 mod cantor;
 mod nim;

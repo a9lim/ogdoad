@@ -7,6 +7,80 @@
 
 use super::Ordinal;
 use crate::scalar::nim_mul;
+use std::collections::BTreeMap;
+
+/// A **tower element**: a sparse map from a *generator-power key* to a finite-nimber
+/// coefficient. The key is the base-3 digit vector `(d₀, d₁, …)` of an exponent,
+/// where digit `dₖ` is the power of the generator `gₖ = ω^(3ᵏ)` (each `dₖ < 3` in
+/// canonical form). So the ordinal `ω^e · c` (finite `e = Σ dₖ·3ᵏ`) is the single
+/// entry `key ↦ c`, and a general ordinal `< ω^ω` is the XOR of its terms' entries.
+/// This is the recursive view that generalizes the flat `[c₀,c₁,c₂]`-mod-`(ω³−2)`
+/// representation (which is the one-generator, `key.len() ≤ 1` special case).
+type TowerElem = BTreeMap<Vec<u8>, u128>;
+
+/// The base-3 digit vector of a finite exponent `e` (least-significant first, no
+/// trailing zeros). `e = 0` ⇒ the empty key (the scalar position `ω^0`).
+fn base3_digits(mut e: u128) -> Vec<u8> {
+    let mut v = Vec::new();
+    while e > 0 {
+        v.push((e % 3) as u8);
+        e /= 3;
+    }
+    v
+}
+
+/// Reduce a raw generator-power vector (digits may be `≥ 3`) to canonical digits
+/// `< 3` plus an accumulated finite-nimber scalar, via the cube-root relations
+/// `gₖ³ = g_{k-1}` (three at place `k` ⇒ one at place `k−1`) and `g₀³ = 2` (three at
+/// place 0 ⇒ the scalar `2`). Processing high → low lets a single pass suffice
+/// (each place carries at most once for a digit `≤ 4`).
+fn reduce_key(raw: &[u32]) -> (Vec<u8>, u128) {
+    let mut d: Vec<u32> = raw.to_vec();
+    let mut s = 1u128;
+    for k in (0..d.len()).rev() {
+        while d[k] >= 3 {
+            d[k] -= 3;
+            if k == 0 {
+                s = nim_mul(s, 2);
+            } else {
+                d[k - 1] += 1;
+            }
+        }
+    }
+    let mut key: Vec<u8> = d.iter().map(|&x| x as u8).collect();
+    while key.last() == Some(&0) {
+        key.pop();
+    }
+    (key, s)
+}
+
+/// Nim-multiply two tower elements. For each pair of monomials, the generator-power
+/// vectors **add** (ordinary integer addition — `gₖ^i ⊗ gₖ^j = gₖ^{i+j}`), the
+/// coefficients nim-multiply, the result is reduced to canonical digits, and like
+/// terms XOR-accumulate (char 2).
+fn tower_mul(a: &TowerElem, b: &TowerElem) -> TowerElem {
+    let mut out: TowerElem = BTreeMap::new();
+    for (ka, &va) in a {
+        if va == 0 {
+            continue;
+        }
+        for (kb, &vb) in b {
+            if vb == 0 {
+                continue;
+            }
+            let len = ka.len().max(kb.len());
+            let raw: Vec<u32> = (0..len)
+                .map(|i| {
+                    ka.get(i).copied().unwrap_or(0) as u32 + kb.get(i).copied().unwrap_or(0) as u32
+                })
+                .collect();
+            let (rk, s1) = reduce_key(&raw);
+            let coeff = nim_mul(nim_mul(va, vb), s1);
+            *out.entry(rk).or_insert(0) ^= coeff;
+        }
+    }
+    out
+}
 
 /// Sort a raw term list into descending CNF and merge like `ω`-powers by **XOR**
 /// (nim-addition of coefficients), dropping zeros. Exponents order by the ordinal
@@ -57,11 +131,50 @@ impl Ordinal {
         }
     }
 
-    /// Nim-multiplication. Exact across the whole field `φ_{ω+1}` (ordinals
-    /// `< ω³`), via polynomial multiplication in `(finite nimbers)[ω]` modulo
-    /// `ω³ − 2` — the field-tower construction of Conway / DiMuro (see the
-    /// module docs). Returns `None` only when either operand has a CNF exponent
-    /// `≥ 3`, i.e. lives in a higher field whose general algorithm is staged.
+    /// View this ordinal as a [`TowerElem`] of the degree-3ⁿ cube-root tower —
+    /// every ordinal `< ω^ω` (all CNF exponents finite). Returns `None` if any
+    /// exponent is infinite (`≥ ω`), i.e. the ordinal is `≥ ω^ω` and lives above
+    /// the implemented tower.
+    fn as_below_omega_omega(&self) -> Option<TowerElem> {
+        let mut t: TowerElem = BTreeMap::new();
+        for (exp, c) in &self.terms {
+            let e = exp.as_finite()?; // infinite exponent ⇒ ≥ ω^ω, staged
+            *t.entry(base3_digits(e)).or_insert(0) ^= *c;
+        }
+        Some(t)
+    }
+
+    /// Rebuild an ordinal from a [`TowerElem`] (inverse of [`as_below_omega_omega`]):
+    /// each key `(d₀,d₁,…)` becomes the exponent `e = Σ dₖ·3ᵏ`, emitting `ω^e · c`.
+    fn from_tower_elem(t: &TowerElem) -> Self {
+        let mut raw = Vec::new();
+        for (key, &c) in t {
+            if c == 0 {
+                continue;
+            }
+            let mut e: u128 = 0;
+            let mut pow: u128 = 1;
+            for &d in key {
+                e += d as u128 * pow;
+                pow *= 3;
+            }
+            raw.push((Ordinal::from_u128(e), c));
+        }
+        Ordinal {
+            terms: canonicalize(raw),
+        }
+    }
+
+    /// Nim-multiplication. Exact across the **degree-3ⁿ cube-root tower** — every
+    /// pair of ordinals `< ω^ω` — via the generators `gₙ = ω^(3ⁿ)` with `g₀³ = 2`
+    /// and `gₙ³ = g_{n-1}` (Conway / DiMuro; see the module docs). An ordinal
+    /// `< ω^ω` is a multivariate monomial in the `gₙ` (base-3 digits of its
+    /// exponents, each `≤ 2`), so the product is digit-vector addition with
+    /// cube-root carries ([`tower_mul`]). This strictly subsumes the old
+    /// `< ω³`, `(ω³−2)`-reduction path (the one-generator case).
+    ///
+    /// Returns `None` only when an operand has an **infinite** CNF exponent
+    /// (`≥ ω^ω`) — the higher tower (other primes, the `ω^ω …` levels) is staged.
     pub fn nim_mul(&self, other: &Ordinal) -> Option<Ordinal> {
         // Zero is absorbing in any field.
         if self.is_zero() || other.is_zero() {
@@ -71,27 +184,11 @@ impl Ordinal {
         if let (Some(a), Some(b)) = (self.as_finite(), other.as_finite()) {
             return Some(Ordinal::from_u128(nim_mul(a, b)));
         }
-        // Field path: both ordinals live in `φ_{ω+1}` (below ω³ Cantor).
-        if let (Some(a), Some(b)) = (self.as_below_omega3(), other.as_below_omega3()) {
-            // Polynomial product in ω over the finite nimbers, degree ≤ 4.
-            let mut p = [0u128; 5];
-            for (i, &ai) in a.iter().enumerate() {
-                if ai == 0 {
-                    continue;
-                }
-                for (j, &bj) in b.iter().enumerate() {
-                    if bj != 0 {
-                        p[i + j] ^= nim_mul(ai, bj);
-                    }
-                }
-            }
-            // Reduce mod ω³ − 2:  ω³ → 2,  ω⁴ → 2⊗ω.
-            let c0 = p[0] ^ nim_mul(2, p[3]);
-            let c1 = p[1] ^ nim_mul(2, p[4]);
-            let c2 = p[2];
-            return Some(Ordinal::from_omega3_coeffs([c0, c1, c2]));
+        // Tower path: both ordinals are < ω^ω (all CNF exponents finite).
+        if let (Some(a), Some(b)) = (self.as_below_omega_omega(), other.as_below_omega_omega()) {
+            return Some(Ordinal::from_tower_elem(&tower_mul(&a, &b)));
         }
-        // Higher fields (CNF exponent ≥ 3) — staged.
+        // ω^ω and above — the higher Lenstra tower is staged (Stage B).
         None
     }
 }
@@ -238,17 +335,104 @@ mod tests {
     }
 
     #[test]
-    fn higher_field_nim_mul_is_staged() {
-        // The honest boundary: any ordinal whose CNF has an exponent ≥ 3 is in a
-        // higher field (degree-5 extension next, then the Lenstra/DiMuro tower
-        // climbing through α_p elements) and is **not** implemented. ω³ itself,
-        // ω^ω, and any product involving them returns `None`.
+    fn cube_root_tower_relations() {
+        // The generators gₙ = ω^(3ⁿ) and their cube-root relations gₙ³ = g_{n-1}.
+        let omega = Ordinal::omega(); // g_0
+        let w3 = Ordinal::omega_pow(fin(3)); // g_1 = ω^3
+        let w9 = Ordinal::omega_pow(fin(9)); // g_2 = ω^9
+                                             // (ω^3)² = ω^6, (ω^3) ⊗ ω = ω^4 (the worked examples)
+        assert_eq!(w3.nim_mul(&w3).unwrap(), Ordinal::omega_pow(fin(6)));
+        assert_eq!(w3.nim_mul(&omega).unwrap(), Ordinal::omega_pow(fin(4)));
+        // g_1³ = g_0:  (ω^3)⊗³ = ω
+        let w3_cubed = w3.nim_mul(&w3).unwrap().nim_mul(&w3).unwrap();
+        assert_eq!(w3_cubed, omega);
+        // g_2³ = g_1:  (ω^9)⊗³ = ω^3
+        let w9_cubed = w9.nim_mul(&w9).unwrap().nim_mul(&w9).unwrap();
+        assert_eq!(w9_cubed, w3);
+    }
+
+    #[test]
+    fn consistency_with_below_omega3_path() {
+        // The new tower path must agree, element-for-element, with the old
+        // [c₀,c₁,c₂]-mod-(ω³−2) reduction on every pair of φ_{ω+1} elements — the
+        // proof the generalization is faithful on the overlap.
+        let elems: Vec<Ordinal> = (0..64u128)
+            .map(|i| Ordinal::from_omega3_coeffs([i & 3, (i >> 2) & 3, (i >> 4) & 3]))
+            .collect();
+        for a in &elems {
+            for b in &elems {
+                let (ca, cb) = (a.as_below_omega3().unwrap(), b.as_below_omega3().unwrap());
+                let mut p = [0u128; 5];
+                for (i, &ai) in ca.iter().enumerate() {
+                    for (j, &bj) in cb.iter().enumerate() {
+                        p[i + j] ^= nim_mul(ai, bj);
+                    }
+                }
+                let old = Ordinal::from_omega3_coeffs([
+                    p[0] ^ nim_mul(2, p[3]),
+                    p[1] ^ nim_mul(2, p[4]),
+                    p[2],
+                ]);
+                assert_eq!(a.nim_mul(b).unwrap(), old, "tower path disagrees with old");
+            }
+        }
+    }
+
+    #[test]
+    fn tower_multiplication_ring_axioms() {
+        // The field generated by ω^3 (= g_1) is F_2(ω,ω^3) = F_{2^18} — far too big
+        // to enumerate (g_0³=2 already drags in F_4, so it is *not* the naive
+        // 0/1-combination of ω^0..ω^8). So the decisive Stage-A check is the
+        // commutative-ring axioms on a varied sample of ordinals < ω^ω spanning
+        // several generators (exponents up to 27 = 3³, i.e. g_3) and coeffs in
+        // F_4 — exercising the digit-carry reduction across the whole tower.
+        // Inverses/closure at the g_0 level remain exhaustively pinned by the
+        // F_64 test above.
+        let mut elems: Vec<Ordinal> = Vec::new();
+        for &e in &[0u128, 1, 2, 3, 4, 5, 6, 8, 9, 10, 18, 27] {
+            for c in 1..=3u128 {
+                elems.push(Ordinal::monomial(fin(e), c));
+            }
+        }
+        // a few genuinely multi-term ordinals.
+        elems.push(Ordinal::omega().nim_add(&fin(1))); // ω + 1
+        elems.push(
+            Ordinal::omega_pow(fin(3))
+                .nim_add(&Ordinal::omega())
+                .nim_add(&fin(2)),
+        ); // ω^3 + ω + 2
+        elems.push(Ordinal::omega_pow(fin(9)).nim_add(&Ordinal::omega_pow(fin(3)))); // ω^9 + ω^3
+
+        for a in &elems {
+            for b in &elems {
+                // every product is defined (all exponents finite ⇒ < ω^ω) …
+                let ab = a.nim_mul(b).expect("< ω^ω is closed under ⊗");
+                // … and commutative.
+                assert_eq!(ab, b.nim_mul(a).unwrap(), "non-commutative");
+                for c in &elems {
+                    let l = ab.nim_mul(c).unwrap();
+                    let r = a.nim_mul(&b.nim_mul(c).unwrap()).unwrap();
+                    assert_eq!(l, r, "× not associative");
+                    let l = a.nim_mul(&b.nim_add(c)).unwrap();
+                    let r = ab.nim_add(&a.nim_mul(c).unwrap());
+                    assert_eq!(l, r, "× not distributive over ⊕");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn staging_boundary_is_omega_omega() {
+        // The boundary moved up from ω³ to ω^ω: ordinals with FINITE exponents
+        // (< ω^ω) all multiply; the first INFINITE exponent (ω^ω) is staged.
         let omega = Ordinal::omega();
-        let omega_3 = Ordinal::omega_pow(fin(3)); // the ordinal [ω³]
-        let omega_omega = Ordinal::omega_pow(omega.clone()); // [ω^ω]
-        assert_eq!(omega.nim_mul(&omega_3), None);
-        assert_eq!(omega_3.nim_mul(&omega), None);
+        // ω^3 (and any finite-exponent ordinal) now multiplies fine.
+        assert!(Ordinal::omega_pow(fin(3)).nim_mul(&omega).is_some());
+        assert!(Ordinal::omega_pow(fin(100)).nim_mul(&omega).is_some());
+        // ω^ω and above (infinite exponent) are the staged Stage-B tower.
+        let omega_omega = Ordinal::omega_pow(omega.clone());
         assert_eq!(omega_omega.nim_mul(&omega), None);
+        assert_eq!(omega.nim_mul(&omega_omega), None);
         assert_eq!(omega_omega.nim_mul(&omega_omega), None);
     }
 }
