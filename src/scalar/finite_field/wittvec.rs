@@ -38,7 +38,7 @@
 //! `Z/p^n`-extensions (Artin–Schreier–Witt theory) — extending the Arf↔Artin–
 //! Schreier thread. (Documented as motivation; the solver itself is future work.)
 
-use crate::scalar::fpn::reduction;
+use crate::scalar::finite_field::fpn::reduction;
 use crate::scalar::{Fpn, Scalar};
 use std::fmt;
 

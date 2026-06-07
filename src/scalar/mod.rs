@@ -6,39 +6,47 @@
 //! `Scalar` impl, and the multivector engine in `clifford/` is written once,
 //! generic over this trait.
 //!
-//! This module is just the trait; every coefficient world is a sibling module,
-//! re-exported flat (`scalar::Nimber`, `scalar::Surreal`, …). Two of them are
-//! not game-backends but exact rings the engine needs: [`rational`] (ℚ, to
-//! validate the geometric product in char 0) and [`integer`] (ℤ, the coefficient
-//! ring for the exterior algebra of the game group).
+//! This module is the trait; every coefficient world is a descendant module,
+//! re-exported flat (`scalar::Nimber`, `scalar::Surreal`, …) so public paths stay
+//! shallow regardless of how deep the family tree goes.
+//!
+//! # The "any number" table
+//!
+//! The backends are grouped by *place* — the kind of number — and almost every
+//! field ships with its **ring of integers**, the same (field, ring) pattern four
+//! times over:
+//!
+//! | place | field | ring of integers | residue |
+//! |---|---|---|---|
+//! | [`exact`]        — Archimedean | `Rational` ℚ    | `Integer` ℤ   | — |
+//! | [`big`]          — transfinite | `Surreal` No    | `Omnific` Oz  | ≈ℝ |
+//! | [`small`]        — p-adic      | `Qp` Q_p        | `Zp` Z_p      | F_p |
+//! | [`finite_field`] — finite      | `Fpn` F_{p^n}   | `WittVec` W_n | F_q |
+//! | [`finite_field`] — char-2 nim  | `Nimber` F_2¹²⁸ | (Witt / F₂)   | F₂ |
+//!
+//! Two backends sit *orthogonal* to the table:
+//!   * [`Surcomplex`] is `Surcomplex<S>` — a generic *i-adjunction functor* over
+//!     any backend, not a concrete world; it lives at the pillar root.
+//!   * [`onag`](big::onag)'s ordinal nimbers are the **char-2 mirror of the
+//!     surreals** — the transfinite "big" number in characteristic 2 — so they sit
+//!     in [`big`] alongside `Surreal`/`Omnific`, not with the finite nim-field.
+//!
+//! The characteristic trichotomy that organises [`crate::forms`] cuts *across*
+//! this table (char 0 in `exact`/`big`/`small`, char 2 in `nimber`/`onag`, odd and
+//! even in `finite_field`); the two pillars are complementary views of the same
+//! backends.
 
-// The coefficient worlds, each a commutative-ring `Scalar` backend, re-exported
-// flat so call sites read `scalar::Nimber`, `scalar::Rational`, etc.
-pub mod fp;
-pub mod fpn;
-pub mod integer;
-pub mod nimber;
-pub mod omnific;
-pub mod onag;
-pub mod qp;
-pub mod rational;
+pub mod big;
+pub mod exact;
+pub mod finite_field;
+pub mod small;
 pub mod surcomplex;
-pub mod surreal;
-pub mod wittvec;
-pub mod zp;
 
-pub use fp::*;
-pub use fpn::*;
-pub use integer::*;
-pub use nimber::*;
-pub use omnific::*;
-pub use onag::*;
-pub use qp::*;
-pub use rational::*;
+pub use big::*;
+pub use exact::*;
+pub use finite_field::*;
+pub use small::*;
 pub use surcomplex::*;
-pub use surreal::*;
-pub use wittvec::*;
-pub use zp::*;
 
 use std::fmt::Debug;
 
