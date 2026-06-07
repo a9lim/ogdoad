@@ -19,8 +19,27 @@
 //!
 //! The leading (largest-exponent) term dominates everything below it, so
 //! sign(x) = sign of the leading coefficient and x < y ⇔ sign(x − y) < 0.
+//!
+//! ## Layout
+//!
+//! This module is the CNF **core** — the representation, the canonical form, and
+//! the ring/field arithmetic ([`Scalar`]). Three companion files carry the
+//! theory built on top, all as further `impl Surreal` blocks:
+//!
+//!   * [`simplicity`] — the `{L|R}` / simplicity bridge (dyadic recognition,
+//!     birthdays, `simplest_*`) and `floor`/`frac` (the bridge to `Oz`).
+//!   * [`sign_expansion`] — the sign-expansion encoding, finite and (Gonshor)
+//!     transfinite, plus the [`SignExpansion`] type and `as_ordinal`.
+//!   * [`analytic`] — the lazy/truncated field layer: Neumann-series inverse and
+//!     real `k`-th roots of a non-monomial Hahn series.
 
-use crate::scalar::{Ordinal, Rational, Scalar};
+mod analytic;
+mod simplicity;
+mod sign_expansion;
+
+pub use sign_expansion::SignExpansion;
+
+use crate::scalar::{Rational, Scalar};
 use std::cmp::Ordering;
 use std::fmt;
 
@@ -107,250 +126,9 @@ impl Surreal {
         &self.terms
     }
 
-    // -- The {L|R} / simplicity bridge: finite rationals, dyadics, birthday --
-
-    /// This surreal as a finite rational, if it is one — a single constant
-    /// (`ω⁰`) term, or zero. `None` for anything carrying an `ω`-term
-    /// (infinite/infinitesimal), which no short game can reach.
-    pub fn as_rational(&self) -> Option<Rational> {
-        match self.terms.as_slice() {
-            [] => Some(Rational::zero()),
-            [(e, c)] if e.is_zero() => Some(c.clone()),
-            _ => None,
-        }
-    }
-
-    /// This surreal as a dyadic rational `num / 2^k` — exactly the values a short
-    /// partizan game can take ([`crate::games::Game::number_value`]). Returns
-    /// `(num, k)` with `num` odd whenever `k > 0`. `None` for non-dyadics.
-    pub fn as_dyadic(&self) -> Option<(i128, u32)> {
-        let q = self.as_rational()?;
-        let den = q.denom();
-        if den & (den - 1) != 0 {
-            return None; // denominator is not a power of two
-        }
-        Some((q.numer(), den.trailing_zeros()))
-    }
-
-    /// True iff this surreal is a dyadic rational.
-    pub fn is_dyadic(&self) -> bool {
-        self.as_dyadic().is_some()
-    }
-
-    /// The birthday of a dyadic rational — the day it is born in the surreal
-    /// construction (`0`↦0, `±n`↦n, `½`↦2, `¼`/`¾`↦3, …), equal to the
-    /// [birthday](crate::games::Game::birthday) of its canonical game. `None`
-    /// for non-dyadics, whose birthday is an infinite ordinal outside this
-    /// finite-support representation.
-    pub fn dyadic_birthday(&self) -> Option<u128> {
-        let (num, k) = self.as_dyadic()?;
-        Some(birthday_dyadic(num, k))
-    }
-
-    /// The simplest surreal strictly greater than `self` — the value of `{self|}`
-    /// — when `self` is a finite rational. `None` if `self` carries an `ω`-term.
-    pub fn simplest_above(&self) -> Option<Surreal> {
-        let q = self.as_rational()?;
-        let v = if q.sign() == Ordering::Less {
-            Rational::zero() // 0 is the simplest number above any negative
-        } else {
-            Rational::int(q.floor() + 1) // the least integer strictly above q ≥ 0
-        };
-        Some(Surreal::from_rational(v))
-    }
-
-    /// The simplest surreal strictly less than `self` — the value of `{|self}` —
-    /// when `self` is a finite rational. `None` if `self` carries an `ω`-term.
-    pub fn simplest_below(&self) -> Option<Surreal> {
-        Some(self.neg().simplest_above()?.neg())
-    }
-
-    /// The unique simplest surreal strictly between `a` and `b` (Conway's
-    /// simplicity theorem), realised when that value is dyadic — i.e. when `a`
-    /// and `b` are finite rationals with `a < b`. The result is always dyadic.
-    /// `None` if either endpoint carries an `ω`-term or `a ≥ b`.
-    pub fn simplest_between(a: &Surreal, b: &Surreal) -> Option<Surreal> {
-        let (qa, qb) = (a.as_rational()?, b.as_rational()?);
-        if qa.cmp(&qb) != Ordering::Less {
-            return None;
-        }
-        Some(Surreal::from_rational(simplest_rational_between(qa, qb)))
-    }
-
-    // -- floor / fractional part : the bridge to the omnific integers Oz --
-
-    /// The **floor** ⌊x⌋ — the greatest omnific integer ≤ `x`, as a `Surreal`.
-    /// Concretely: keep every infinite term (`ω`-exponent `> 0`, any rational
-    /// coefficient), floor the finite constant, and drop every infinitesimal
-    /// term (`ω`-exponent `< 0`). If the finite constant is already an integer,
-    /// a negative infinitesimal tail borrows one from that integer part. The
-    /// result is always an omnific integer ([`crate::scalar::Omnific`]);
-    /// `Omnific::floor` wraps it as one. Satisfies `⌊x⌋ ≤ x < ⌊x⌋ + 1`.
-    pub fn floor(&self) -> Surreal {
-        let mut terms: Vec<(Surreal, Rational)> = Vec::new();
-        let mut constant = Rational::zero();
-        let mut saw_constant = false;
-        let mut infinitesimal_sign = Ordering::Equal;
-        for (e, c) in &self.terms {
-            match e.sign() {
-                Ordering::Greater => terms.push((e.clone(), c.clone())), // infinite term kept
-                Ordering::Equal => {
-                    constant = c.clone();
-                    saw_constant = true;
-                }
-                Ordering::Less if infinitesimal_sign == Ordering::Equal => {
-                    infinitesimal_sign = c.sign();
-                }
-                Ordering::Less => {} // lower infinitesimals are dominated
-            }
-        }
-        let mut f = constant.floor();
-        if (!saw_constant || constant.is_integer()) && infinitesimal_sign == Ordering::Less {
-            f -= 1;
-        }
-        if f != 0 {
-            terms.push((Surreal::zero(), Rational::int(f)));
-        }
-        // terms stay strictly descending (a subset of self's, same order)
-        Surreal { terms }
-    }
-
-    /// The **fractional part** `x − ⌊x⌋`, always in `[0, 1)` (it may be an
-    /// infinitesimal-carrying value such as `½ + ε`).
-    pub fn frac(&self) -> Surreal {
-        self.sub(&self.floor())
-    }
-
-    // -- sign expansion : the canonical surreal-tree encoding (finite case) --
-
-    /// The **sign expansion** of a *dyadic* surreal: the sequence of left/right
-    /// turns (`true = +`, `false = −`) on the path from the root `0` to `x` in
-    /// the surreal tree. Its length is exactly the
-    /// [birthday](Self::dyadic_birthday). `None` for non-dyadics (`1/3`,
-    /// `ω`, `ε`, …), whose sign expansions are transfinite and so not finitely
-    /// listable here. Inverse of [`from_sign_expansion`](Self::from_sign_expansion).
-    ///
-    /// Examples: `0 ↦ []`, `1 ↦ [+]`, `2 ↦ [+,+]`, `½ ↦ [+,−]`, `¾ ↦ [+,−,+]`.
-    pub fn sign_expansion(&self) -> Option<Vec<bool>> {
-        if !self.is_dyadic() {
-            return None;
-        }
-        let x = self.as_rational().unwrap();
-        let (mut lo, mut hi): (Option<Rational>, Option<Rational>) = (None, None);
-        let mut signs = Vec::new();
-        loop {
-            let v = simplest_in_cut(&lo, &hi);
-            match x.cmp(&v) {
-                Ordering::Equal => break,
-                Ordering::Greater => {
-                    signs.push(true);
-                    lo = Some(v);
-                }
-                Ordering::Less => {
-                    signs.push(false);
-                    hi = Some(v);
-                }
-            }
-        }
-        Some(signs)
-    }
-
-    /// The dyadic surreal with the given finite sign expansion (`true = +`), by
-    /// walking the surreal tree. The empty sequence is `0`. Inverse of
-    /// [`sign_expansion`](Self::sign_expansion).
-    pub fn from_sign_expansion(signs: &[bool]) -> Surreal {
-        let (mut lo, mut hi): (Option<Rational>, Option<Rational>) = (None, None);
-        for &s in signs {
-            let v = simplest_in_cut(&lo, &hi);
-            if s {
-                lo = Some(v);
-            } else {
-                hi = Some(v);
-            }
-        }
-        Surreal::from_rational(simplest_in_cut(&lo, &hi))
-    }
-
-    /// This surreal as a (non-negative) **ordinal**, if it is one: an ordinal is
-    /// exactly a surreal whose CNF has all non-negative ordinal exponents and
-    /// positive *integer* coefficients (so the surreal value equals the Cantor
-    /// normal form). Covers `0`, every natural, `ω`, `ω·n`, `ω^k`, and the
-    /// transfinite `ω^ω`, `ω^{ω^ω}`, …. `None` for anything with a negative or
-    /// fractional coefficient (`ω−1`, `½ω`) or a non-ordinal exponent (`√ω =
-    /// ω^{1/2}`). Recurses only on the strictly-simpler exponents.
-    pub fn as_ordinal(&self) -> Option<Ordinal> {
-        let mut result = Ordinal::zero();
-        for (e, c) in &self.terms {
-            if !c.is_integer() || c.sign() != Ordering::Greater {
-                return None; // coefficient must be a positive natural
-            }
-            if e.sign() == Ordering::Less {
-                return None; // exponent must be ≥ 0 to be an ordinal power
-            }
-            let eord = e.as_ordinal()?; // recursion: exponent is strictly simpler
-                                        // terms are descending, so ord_add appends in CNF order.
-            result = result.ord_add(&Ordinal::monomial(eord, c.numer() as u128));
-        }
-        Some(result)
-    }
-
-    /// The **(possibly transfinite) sign expansion** over the *representable
-    /// subclass* — the run-length-encoded ±-sequence whose length is the
-    /// birthday. Confident Gonshor cases: `0` (empty); dyadics (the exact finite
-    /// path); every non-negative ordinal `α` ↦ `α` pluses, and its negative ↦
-    /// `α` minuses (covers `ω`, `ω·n`, `ω^ω`, …); and `ε = ω⁻¹ ↦ +(−)^ω`.
-    /// Returns `None` outside that subclass — the honest boundary: `√ω`,
-    /// `ω−1`, `½ω`, mixed ordinal+infinitesimal — rather than emitting an
-    /// unverified interleaving.
-    pub fn transfinite_sign_expansion(&self) -> Option<SignExpansion> {
-        if self.is_zero() {
-            return Some(SignExpansion { runs: Vec::new() });
-        }
-        // Dyadic / finite: the exact tree walk, run-length encoded.
-        if let Some(signs) = self.sign_expansion() {
-            return Some(SignExpansion::from_finite(&signs));
-        }
-        // A non-negative ordinal is α pluses; its negation, α minuses.
-        if let Some(alpha) = self.as_ordinal() {
-            if !alpha.is_zero() {
-                return Some(SignExpansion {
-                    runs: vec![(true, alpha)],
-                });
-            }
-        }
-        if let Some(alpha) = self.neg().as_ordinal() {
-            if !alpha.is_zero() {
-                return Some(SignExpansion {
-                    runs: vec![(false, alpha)],
-                });
-            }
-        }
-        // ε = ω⁻¹ : one plus, then ω minuses (Gonshor). The one confident
-        // infinitesimal; ω^{-k} for k ≥ 2 and rational multiples are out of scope.
-        if *self == Surreal::epsilon() {
-            return Some(SignExpansion {
-                runs: vec![(true, Ordinal::from_u128(1)), (false, Ordinal::omega())],
-            });
-        }
-        None
-    }
-
-    /// The **birthday** as an [`Ordinal`]. Dyadics use the fast finite path;
-    /// otherwise the birthday is the ordinal *length* of the
-    /// [transfinite sign expansion](Self::transfinite_sign_expansion) — so
-    /// `ω ↦ ω`, `ω+1 ↦ ω+1`, `ε ↦ ω`, `ω^ω ↦ ω^ω`. `None` outside the
-    /// representable subclass (`√ω`, …).
-    pub fn birthday_ordinal(&self) -> Option<Ordinal> {
-        if let Some(b) = self.dyadic_birthday() {
-            return Some(Ordinal::from_u128(b));
-        }
-        Some(self.transfinite_sign_expansion()?.length())
-    }
-
-    // -- lazy/truncated field arithmetic : Hahn-series inversion and roots --
-
     /// Keep the `n` leading (largest-exponent) terms. Terms are stored strictly
-    /// descending, so this is the top-`n` of the Hahn series.
+    /// descending, so this is the top-`n` of the Hahn series. Used by the
+    /// [`analytic`] layer (and its tests) to bound working precision.
     fn truncate(&self, n: usize) -> Surreal {
         if self.terms.len() <= n {
             self.clone()
@@ -359,265 +137,6 @@ impl Surreal {
                 terms: self.terms[..n].to_vec(),
             }
         }
-    }
-
-    /// The **truncated multiplicative inverse**: the `n` leading terms of `1/x`,
-    /// summed as the Neumann series of its infinite Hahn expansion. Where
-    /// [`Scalar::inv`] returns `None` for any non-monomial (the exact inverse has
-    /// infinite support), this returns that inverse to a chosen precision `n` —
-    /// the surreal analogue of the precision-`k` truncation in
-    /// [`Zp`](crate::scalar::Zp)/[`Qp`](crate::scalar::Qp). `None` only for `0`.
-    ///
-    /// Method: factor `x = m·(1+r)` with `m` the leading monomial and `r` an
-    /// infinitesimal (leading exponent `< 0`); then `1/x = m⁻¹·Σ_{k≥0}(−r)^k`,
-    /// which converges in the Hahn (valuation) sense because `(−r)^k` leads at
-    /// `k·deg(r) → −∞`. Example: `1/(ω+1) = ω⁻¹ − ω⁻² + ω⁻³ − …`.
-    pub fn inv_to_terms(&self, n: usize) -> Option<Surreal> {
-        if self.is_zero() {
-            return None;
-        }
-        if n == 0 {
-            return Some(Surreal::zero());
-        }
-        let (e0, c0) = self.terms[0].clone();
-        let m_inv = Surreal::monomial(e0.neg(), c0.inv()?); // ℚ unit: always Some
-        let r = m_inv.mul(self).sub(&Surreal::one()); // x = m·(1+r)
-        if r.is_zero() {
-            return Some(m_inv); // x was a monomial — exact inverse
-        }
-        let neg_r = r.neg();
-        let w = 2 * n + 8; // internal working width, final trimmed to n
-        let mut series = Surreal::one();
-        let mut power = Surreal::one();
-        for _ in 0..(4 * w + 16) {
-            power = power.mul(&neg_r).truncate(w);
-            if power.is_zero() {
-                break;
-            }
-            if series.terms.len() >= w
-                && power.terms[0].0.cmp(&series.terms[w - 1].0) == Ordering::Less
-            {
-                break; // this (and all smaller) powers no longer reach the window
-            }
-            series = series.add(&power).truncate(w);
-        }
-        Some(m_inv.mul(&series).truncate(n))
-    }
-
-    /// The **truncated real square root** to `n` leading terms, or `None`. `Some`
-    /// iff `self ≥ 0` **and** its leading coefficient is a perfect square in ℚ —
-    /// the deliberate ℚ-coefficient boundary: `√2` and `√(2ω)` are `None`
-    /// (`√2` is not a finite-CNF-with-ℚ-coeffs surreal), while `√ω = ω^{1/2}`
-    /// and `√(ω²+2ω+1) = ω+1` are exact in their leading terms.
-    pub fn sqrt(&self, n: usize) -> Option<Surreal> {
-        self.nth_root(2, n)
-    }
-
-    /// The **truncated real `k`-th root** to `n` leading terms (`k ≥ 1`), or
-    /// `None`. `Some` iff the leading coefficient is a perfect ℚ `k`-th power
-    /// (and, for even `k`, `self > 0`). See [`sqrt`](Self::sqrt) for the scope.
-    pub fn nth_root(&self, k: u32, n: usize) -> Option<Surreal> {
-        if k == 0 {
-            return None;
-        }
-        if self.is_zero() {
-            return Some(Surreal::zero());
-        }
-        if k % 2 == 0 && self.sign() == Ordering::Less {
-            return None; // no real even root of a negative
-        }
-        let (e0, c0) = self.terms[0].clone();
-        // leading root: ω^{e0/k} · c0^{1/k}, the latter exact-in-ℚ or None.
-        let root_c0 = c0.nth_root(k)?;
-        let e0_over_k = e0.mul(&Surreal::from_rational(Rational::new(1, k as i128)));
-        let root_m = Surreal::monomial(e0_over_k, root_c0);
-        // (1+r)^{1/k} via the binomial series; r infinitesimal.
-        let m_inv = Surreal::monomial(e0.neg(), c0.inv()?);
-        let r = m_inv.mul(self).sub(&Surreal::one());
-        if r.is_zero() {
-            return Some(root_m); // exact (monomial radicand)
-        }
-        let alpha = Rational::new(1, k as i128);
-        let series = binomial_series(&r, alpha, n);
-        Some(root_m.mul(&series).truncate(n))
-    }
-}
-
-/// `Σ_j binom(α, j) · r^j` truncated to (about) `n` leading terms, with `r` an
-/// infinitesimal (leading exponent `< 0`) so the series converges in the Hahn
-/// sense. `binom(α,j) = binom(α,j−1)·(α−(j−1))/j` accumulated over ℚ.
-fn binomial_series(r: &Surreal, alpha: Rational, n: usize) -> Surreal {
-    let w = 2 * n + 8;
-    let mut series = Surreal::one();
-    let mut power = Surreal::one(); // r^j
-    let mut coeff = Rational::one(); // binom(α, j)
-    for j in 1..=(4 * w + 16) {
-        let jm1 = Rational::int((j - 1) as i128);
-        let jr = Rational::int(j as i128);
-        coeff = coeff.mul(&alpha.sub(&jm1)).mul(&jr.inv().unwrap());
-        power = power.mul(r).truncate(w);
-        if power.is_zero() {
-            break;
-        }
-        if coeff.is_zero() {
-            continue; // α a nonneg integer ⇒ later binomials vanish, but keep marching
-        }
-        let contrib = Surreal::monomial(Surreal::zero(), coeff.clone())
-            .mul(&power)
-            .truncate(w);
-        if series.terms.len() >= w
-            && contrib.terms[0].0.cmp(&series.terms[w - 1].0) == Ordering::Less
-        {
-            break;
-        }
-        series = series.add(&contrib).truncate(w);
-    }
-    series
-}
-
-/// The simplest dyadic strictly **below** `h` (the value of the cut `{|h}`).
-fn simplest_below_rat(h: &Rational) -> Rational {
-    if h.sign() == Ordering::Greater {
-        Rational::zero() // 0 is the simplest number below any positive
-    } else {
-        let f = h.floor();
-        if Rational::int(f).cmp(h) == Ordering::Less {
-            Rational::int(f) // h non-integer: ⌊h⌋ is the closest-to-0 integer below it
-        } else {
-            Rational::int(f - 1) // h an integer: the next integer down
-        }
-    }
-}
-
-/// The simplest dyadic strictly **above** `l` (the value of the cut `{l|}`).
-fn simplest_above_rat(l: &Rational) -> Rational {
-    simplest_below_rat(&l.neg()).neg()
-}
-
-/// The simplest dyadic strictly inside the open cut `(lo, hi)`; `None` bounds are
-/// `∓∞`. This is the surreal-tree node selected at each step of a sign-expansion
-/// walk.
-fn simplest_in_cut(lo: &Option<Rational>, hi: &Option<Rational>) -> Rational {
-    match (lo, hi) {
-        (None, None) => Rational::zero(),
-        (None, Some(h)) => simplest_below_rat(h),
-        (Some(l), None) => simplest_above_rat(l),
-        (Some(l), Some(h)) => simplest_rational_between(l.clone(), h.clone()),
-    }
-}
-
-/// Strip factors of two from a dyadic `num / 2^k` to put it in lowest terms.
-fn reduce_dyadic(mut num: i128, mut k: u32) -> (i128, u32) {
-    while k > 0 && num % 2 == 0 {
-        num /= 2;
-        k -= 1;
-    }
-    (num, k)
-}
-
-/// Birthday of the dyadic `num / 2^k` via the canonical `{L|R}` recursion: an
-/// integer `n` is born on day `|n|`; a non-integer dyadic on `1 +` the later of
-/// its two nearest-dyadic options at `±1/2^k`.
-fn birthday_dyadic(num: i128, k: u32) -> u128 {
-    if k == 0 {
-        return num.unsigned_abs();
-    }
-    let (ln, lk) = reduce_dyadic(num - 1, k);
-    let (rn, rk) = reduce_dyadic(num + 1, k);
-    1 + birthday_dyadic(ln, lk).max(birthday_dyadic(rn, rk))
-}
-
-/// The simplest dyadic strictly between two rationals `a < b` (the shallowest
-/// node of the surreal tree inside the interval).
-fn simplest_rational_between(a: Rational, b: Rational) -> Rational {
-    // Reflect so the descent only handles the non-negative spine.
-    if b.sign() != Ordering::Greater {
-        return simplest_rational_between(b.neg(), a.neg()).neg();
-    }
-    if a.sign() == Ordering::Less {
-        return Rational::zero(); // a < 0 < b: 0 is the root, simplest of all
-    }
-    // 0 ≤ a < b. The least integer strictly above a:
-    let c = a.floor() + 1;
-    if Rational::int(c).cmp(&b) == Ordering::Less {
-        return Rational::int(c); // an integer lives in (a,b); c is closest to 0
-    }
-    // a and b lie inside one open unit interval (m, m+1).
-    let m = a.floor();
-    let off = Rational::int(m);
-    off.add(&simplest_in_unit(a.sub(&off), b.sub(&off)))
-}
-
-/// The shallowest dyadic in `(a, b)` with `0 ≤ a < b ≤ 1`, by binary
-/// subdivision of the unit interval.
-fn simplest_in_unit(a: Rational, b: Rational) -> Rational {
-    let half = Rational::new(1, 2);
-    let mut lo = Rational::zero();
-    let mut hi = Rational::one();
-    loop {
-        let mid = lo.add(&hi).mul(&half);
-        let below_b = mid.cmp(&b) == Ordering::Less;
-        let above_a = a.cmp(&mid) == Ordering::Less;
-        if above_a && below_b {
-            return mid;
-        } else if !above_a {
-            lo = mid; // mid ≤ a: search the upper half
-        } else {
-            hi = mid; // mid ≥ b: search the lower half
-        }
-    }
-}
-
-/// A (possibly transfinite) sign expansion as **runs**: `(sign, length)` pairs,
-/// `true = +`, lengths ordinals. A finite expansion is just runs with finite
-/// lengths; `ω`-many pluses is a single run `(true, ω)`. The total length (the
-/// ordinary ordinal sum of the run lengths) is the surreal's birthday.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SignExpansion {
-    runs: Vec<(bool, Ordinal)>,
-}
-
-impl SignExpansion {
-    /// The runs `(sign, length)`, left to right.
-    pub fn runs(&self) -> &[(bool, Ordinal)] {
-        &self.runs
-    }
-
-    /// The total ordinal length = the birthday (ordinary ordinal sum of runs).
-    pub fn length(&self) -> Ordinal {
-        let mut len = Ordinal::zero();
-        for (_, l) in &self.runs {
-            len = len.ord_add(l);
-        }
-        len
-    }
-
-    /// Run-length-encode a finite ±-sequence (`true = +`).
-    pub fn from_finite(signs: &[bool]) -> Self {
-        let mut runs: Vec<(bool, Ordinal)> = Vec::new();
-        for &s in signs {
-            if let Some(last) = runs.last_mut() {
-                if last.0 == s {
-                    last.1 = last.1.ord_add(&Ordinal::from_u128(1));
-                    continue;
-                }
-            }
-            runs.push((s, Ordinal::from_u128(1)));
-        }
-        SignExpansion { runs }
-    }
-
-    /// The flat ±-sequence, when every run length is finite; `None` if any run
-    /// is transfinite (e.g. `ω`-many signs).
-    pub fn as_finite(&self) -> Option<Vec<bool>> {
-        let mut out = Vec::new();
-        for (s, l) in &self.runs {
-            let n = l.as_finite()?;
-            for _ in 0..n {
-                out.push(*s);
-            }
-        }
-        Some(out)
     }
 }
 
@@ -677,6 +196,7 @@ impl Scalar for Surreal {
         // A monomial coeff·ω^e inverts exactly to (1/coeff)·ω^{-e}. A genuine
         // sum has an inverse of infinite Hahn support (e.g. 1/(ω+1) =
         // ω⁻¹ − ω⁻² + ω⁻³ − …), which this finite representation can't hold.
+        // [`Surreal::inv_to_terms`] gives that inverse to a chosen precision.
         if self.terms.len() == 1 {
             let (e, c) = &self.terms[0];
             let cinv = c.inv()?;
@@ -741,6 +261,7 @@ impl fmt::Debug for Surreal {
 mod tests {
     use super::*;
     use crate::clifford::{CliffordAlgebra, Metric};
+    use crate::scalar::Ordinal;
 
     fn int(n: i128) -> Surreal {
         Surreal::from_int(n)
