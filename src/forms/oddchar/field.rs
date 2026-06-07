@@ -64,7 +64,7 @@ impl<const P: u128, const N: usize> FiniteOddField for Fpn<P, N> {
     }
 
     fn is_supported_odd_field() -> bool {
-        Fp::<P>::modulus_is_prime() && P != 2 && N > 0
+        Fpn::<P, N>::is_supported_field() && P != 2
     }
 
     fn from_i128(n: i128) -> Self {

@@ -1,20 +1,22 @@
-//! Springer decomposition of a quadratic form over the **surreal** field — the
-//! non-Archimedean quadratic-form theory the surreal backend uniquely supports.
+//! Springer-style decomposition of a diagonal quadratic form over the implemented
+//! **surreal** Hahn/CNF backend — the non-Archimedean valuation structure this
+//! scalar world uniquely exposes.
 //!
-//! The surreal Hahn field `ℝ((ω^No))` is real-closed but **non-Archimedean**: it
-//! carries the ω-adic valuation `v(Σ ω^{y_i} r_i) = y_0` (the leading exponent),
-//! with residue field ℝ (the leading coefficient) and value group `No` under
-//! addition. Springer's theorem decomposes a form over such a field into
-//! valuation-graded **residue forms** over ℝ.
+//! A surreal Hahn series carries the ω-adic valuation
+//! `v(Σ ω^{y_i} r_i) = y_0` (the leading exponent). In this finite-support model
+//! the residue coefficient is rational, while the ideal mathematical comparison
+//! point has residue field ℝ and value group `No` under addition. Springer's
+//! theorem decomposes a form over such a field into valuation-graded residue
+//! forms.
 //!
 //! ## The honest headline: no bigger Witt group
 //!
 //! Springer's theorem gives `W(F) ≅ W(k) ⊕ (W(k) ⊗ Γ/2Γ)` for a Henselian valued
-//! field with residue field `k` and value group `Γ`. Here `Γ = No` under
-//! addition is **2-divisible** (every surreal has a half: `a/2` exists), so
-//! `Γ/2Γ = 0` and the second summand vanishes: `W(No) ≅ W(ℝ) = ℤ`. There is no
-//! larger Witt group to report — the surreal signature is still the only
-//! invariant.
+//! field with residue field `k` and value group `Γ`. For the full surreal value
+//! group, `Γ` is **2-divisible** (every surreal has a half: `a/2` exists), so
+//! `Γ/2Γ = 0` and the second summand vanishes. In this crate, treat the
+//! filtration as implemented valuation data, not as proof that the finite-support
+//! scalar model is itself a full real-closed field.
 //!
 //! What *is* new, and what this module exposes, is the **valuation filtration**
 //! itself: the form's entries grouped by ω-adic valuation, each graded piece a
@@ -183,7 +185,7 @@ mod tests {
     #[test]
     fn nonorthogonal_metric_is_diagonalized_first() {
         let mut b = std::collections::BTreeMap::new();
-        b.insert((0usize, 1usize), Surreal::from_int(2));
+        b.insert((0usize, 1usize), Surreal::from_int(1));
         let m = Metric::new(vec![w(0), w(0)], b);
         let d = springer_decompose(&m).unwrap();
         assert_eq!(d.total_signature, (1, 1));

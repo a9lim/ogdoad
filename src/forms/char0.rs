@@ -5,9 +5,13 @@
 //!
 //! ## The two tables
 //!
-//! Over a **real-closed** field (the surreals) every nonzero square can be
-//! rescaled to ±1 (the field is real-closed, so √ exists for positive elements
-//! — even √ω = ω^{1/2}). So a *diagonal* metric is classified by its signature
+//! Over a **real-closed** field every nonzero square can be rescaled to ±1
+//! (positive elements have square roots). The crate's `Surreal` backend is only
+//! a finite-support Hahn/CNF model with rational coefficients, so the real table
+//! is returned only when the actual represented coefficients can be rescaled by
+//! exact square roots in this implementation. For example `ω` is accepted
+//! (`√ω = ω^{1/2}` is represented), while the rational coefficient `2` is not.
+//! On that checked subdomain, a metric is classified by its signature
 //! `(p, q, r)` = (#positive, #negative, #null) squares, and the nondegenerate
 //! `Cl(p,q)` follows the 8-fold Bott table indexed by `s = (q − p) mod 8`
 //! (with `n = p+q`):
@@ -19,9 +23,11 @@
 //! | 2 | ℍ(2^{(n−2)/2})     |   | 6 | ℝ(2^{n/2})         |
 //! | 3 | ℍ(2^{(n−3)/2})²    |   | 7 | ℝ(2^{(n−1)/2})²    |
 //!
-//! Over an **algebraically closed** field (surcomplex) all nonzero squares are
-//! equivalent, so only `(n, r)` matter and the classification is 2-fold:
-//! `Cl(n,ℂ) ≅ ℂ(2^{n/2})` for n even, `ℂ(2^{(n−1)/2})²` for n odd.
+//! Over an **algebraically closed** field all nonzero squares are equivalent, so
+//! only `(n, r)` matter and the classification is 2-fold:
+//! `Cl(n,ℂ) ≅ ℂ(2^{n/2})` for n even, `ℂ(2^{(n−1)/2})²` for n odd. As above,
+//! `Surcomplex<Surreal>` exposes that table only for diagonal entries whose
+//! square roots are actually represented by the finite-support backend.
 //!
 //! The null directions (radical of dim `r`) contribute an exterior factor:
 //! `Cl(p,q,r) ≅ Cl(p,q) ⊗ Λ(F^r)` over the ground field `F ∈ {ℝ, ℂ}`.
@@ -202,28 +208,95 @@ pub fn classify_complex(n: usize, r: usize) -> CliffordType {
     }
 }
 
-/// Extract `(p, q, r)` from a metric using a sign function: positive squares,
-/// negative squares, and null (radical) directions. A non-orthogonal metric
-/// (`b`/`a` nonempty) is first [diagonalized](crate::forms::diagonalize) by
-/// congruence — possible because char 0 has `½` — so any symmetric form is
-/// accepted, not only diagonal ones.
-pub(crate) fn signature<S: crate::scalar::Scalar>(
-    metric: &Metric<S>,
-    sign: impl Fn(&S) -> Ordering,
-) -> Option<(usize, usize, usize)> {
-    if !metric.b.is_empty() || !metric.a.is_empty() {
-        let diag = crate::forms::diagonalize(metric)?;
-        return signature(&diag, sign);
+fn exact_surreal_sqrt_nonnegative(x: &Surreal) -> Option<Surreal> {
+    if x.is_zero() {
+        return Some(Surreal::zero());
     }
+    if x.sign() != Ordering::Greater {
+        return None;
+    }
+    let base = x.terms().len().max(1);
+    for n in 1..=(8 * base + 32) {
+        let root = x.sqrt(n)?;
+        if root.mul(&root) == *x {
+            return Some(root);
+        }
+    }
+    None
+}
+
+fn exact_surcomplex_sqrt(z: &Surcomplex<Surreal>) -> Option<Surcomplex<Surreal>> {
+    if z.is_zero() {
+        return Some(Surcomplex::zero());
+    }
+    let root = if z.im.is_zero() {
+        match z.re.sign() {
+            Ordering::Greater => {
+                let root = exact_surreal_sqrt_nonnegative(&z.re)?;
+                Surcomplex::new(root, Surreal::zero())
+            }
+            Ordering::Less => {
+                let root = exact_surreal_sqrt_nonnegative(&z.re.neg())?;
+                Surcomplex::new(Surreal::zero(), root)
+            }
+            Ordering::Equal => Surcomplex::zero(),
+        }
+    } else {
+        let norm_sq = z.re.mul(&z.re).add(&z.im.mul(&z.im));
+        let norm = exact_surreal_sqrt_nonnegative(&norm_sq)?;
+        let half = Surreal::from_rational(Rational::new(1, 2));
+        let a2 = norm.add(&z.re).mul(&half);
+        let b2 = norm.sub(&z.re).mul(&half);
+        let a = exact_surreal_sqrt_nonnegative(&a2)?;
+        let mut b = exact_surreal_sqrt_nonnegative(&b2)?;
+        if z.im.sign() == Ordering::Less {
+            b = b.neg();
+        }
+        Surcomplex::new(a, b)
+    };
+    if root.mul(&root) == *z {
+        Some(root)
+    } else {
+        None
+    }
+}
+
+/// Signature over the implemented `Surreal` subdomain where every nonzero
+/// diagonal entry is exactly square-equivalent to ±1.
+pub(crate) fn surreal_signature(metric: &Metric<Surreal>) -> Option<(usize, usize, usize)> {
+    let diag = crate::forms::as_diagonal(metric)?;
     let (mut p, mut q, mut r) = (0, 0, 0);
-    for x in &metric.q {
-        match sign(x) {
-            Ordering::Greater => p += 1,
-            Ordering::Less => q += 1,
+    for x in &diag.q {
+        match x.sign() {
+            Ordering::Greater => {
+                exact_surreal_sqrt_nonnegative(x)?;
+                p += 1;
+            }
+            Ordering::Less => {
+                exact_surreal_sqrt_nonnegative(&x.neg())?;
+                q += 1;
+            }
             Ordering::Equal => r += 1,
         }
     }
     Some((p, q, r))
+}
+
+/// Rank/radical over the implemented `Surcomplex<Surreal>` subdomain where each
+/// nonzero diagonal entry has an exact represented square root.
+pub(crate) fn surcomplex_rank(metric: &Metric<Surcomplex<Surreal>>) -> Option<(usize, usize)> {
+    let diag = crate::forms::as_diagonal(metric)?;
+    let mut nonzero = 0usize;
+    let mut radical = 0usize;
+    for z in &diag.q {
+        if z.is_zero() {
+            radical += 1;
+        } else {
+            exact_surcomplex_sqrt(z)?;
+            nonzero += 1;
+        }
+    }
+    Some((nonzero, radical))
 }
 
 fn rational_square_class(x: &Rational) -> i128 {
@@ -275,22 +348,18 @@ pub fn classify_rational(metric: &Metric<Rational>) -> Option<RationalCliffordTy
     })
 }
 
-/// Classify a surreal-scalar Clifford algebra. The surreals are real-closed, so
-/// this is the genuine ℝ-Clifford classification — with metric entries allowed to
-/// be infinite (ω) or infinitesimal (ε); only their *sign* matters. Diagonal
-/// metrics only.
+/// Classify a surreal-scalar Clifford algebra when the represented coefficients
+/// can be exactly rescaled to ±1. Returns `None` for forms such as `⟨2⟩`, which
+/// would need `√2` outside the finite-support rational-coefficient backend.
 pub fn classify_surreal(metric: &Metric<Surreal>) -> Option<CliffordType> {
-    let (p, q, r) = signature(metric, |x| x.sign())?;
+    let (p, q, r) = surreal_signature(metric)?;
     Some(classify_real(p, q, r))
 }
 
-/// Classify a surcomplex-scalar Clifford algebra. The field is algebraically
-/// closed, so only nondegenerate-dimension and radical matter (2-fold). Diagonal
-/// metrics only.
+/// Classify a surcomplex-scalar Clifford algebra on the exact-square subdomain.
+/// Returns `None` when a diagonal entry has no represented square root.
 pub fn classify_surcomplex(metric: &Metric<Surcomplex<Surreal>>) -> Option<CliffordType> {
-    let diag = crate::forms::as_diagonal(metric)?;
-    let nonzero = diag.q.iter().filter(|z| !z.is_zero()).count();
-    let r = diag.q.len() - nonzero;
+    let (nonzero, r) = surcomplex_rank(metric)?;
     Some(classify_complex(nonzero, r))
 }
 
@@ -303,10 +372,11 @@ mod tests {
     fn rat(n: i128) -> Rational {
         Rational::int(n)
     }
+    fn surreal_diag(qs: &[i128]) -> Metric<Surreal> {
+        Metric::diagonal(qs.iter().map(|&x| Surreal::from_int(x)).collect())
+    }
     fn cl_real(qs: &[i128]) -> Option<CliffordType> {
-        classify_surreal(&Metric::diagonal(
-            qs.iter().map(|&x| Surreal::from_int(x)).collect(),
-        ))
+        classify_surreal(&surreal_diag(qs))
     }
     fn name(qs: &[i128]) -> String {
         cl_real(qs).unwrap().display()
@@ -382,19 +452,55 @@ mod tests {
     }
 
     #[test]
-    fn surreal_signs_classify_by_sign_only() {
-        // Infinite/infinitesimal squares, but the signature is (1,1): Cl(1,1)=M₂(ℝ).
+    fn surreal_accepts_represented_exact_square_classes() {
+        // Infinite/infinitesimal square classes are represented exactly here:
+        // sqrt(ω)=ω^(1/2), sqrt(ε)=ω^(-1/2), so the signature is (1,1).
         let m = Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon().neg()]);
         assert_eq!(classify_surreal(&m).unwrap().display(), "M_2(R)");
+        assert_eq!(
+            classify_surreal(&surreal_diag(&[4])).unwrap().display(),
+            "R ⊕ R"
+        );
     }
 
     #[test]
-    fn surcomplex_is_two_fold() {
+    fn surreal_declines_unrepresented_square_classes() {
+        // The implemented Surreal model has rational coefficients, not all real
+        // coefficients, so sqrt(2) is absent and ⟨2⟩ must not be collapsed to ⟨1⟩.
+        assert_eq!(classify_surreal(&surreal_diag(&[2])), None);
+    }
+
+    #[test]
+    fn surcomplex_is_two_fold_on_exact_square_subdomain() {
         let even =
             Metric::<Surcomplex<Surreal>>::diagonal(vec![Surcomplex::one(), Surcomplex::one()]);
         assert_eq!(classify_surcomplex(&even).unwrap().display(), "M_2(C)"); // n=2
         let odd = Metric::<Surcomplex<Surreal>>::diagonal(vec![Surcomplex::one()]);
         assert_eq!(classify_surcomplex(&odd).unwrap().display(), "C ⊕ C"); // n=1
+        let minus_one = Metric::<Surcomplex<Surreal>>::diagonal(vec![Surcomplex::new(
+            Surreal::from_int(-1),
+            Surreal::zero(),
+        )]);
+        assert_eq!(classify_surcomplex(&minus_one).unwrap().display(), "C ⊕ C");
+        let square_of_two_plus_i = Metric::<Surcomplex<Surreal>>::diagonal(vec![Surcomplex::new(
+            Surreal::from_int(3),
+            Surreal::from_int(4),
+        )]);
+        assert_eq!(
+            classify_surcomplex(&square_of_two_plus_i)
+                .unwrap()
+                .display(),
+            "C ⊕ C"
+        );
+    }
+
+    #[test]
+    fn surcomplex_declines_unrepresented_square_classes() {
+        let two = Metric::<Surcomplex<Surreal>>::diagonal(vec![Surcomplex::new(
+            Surreal::from_int(2),
+            Surreal::zero(),
+        )]);
+        assert_eq!(classify_surcomplex(&two), None);
     }
 
     #[test]

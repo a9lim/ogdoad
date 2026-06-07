@@ -4,8 +4,8 @@
 //! The classification of a quadratic form (equivalently, of the Clifford
 //! algebra it builds) is *one* theory split three ways by `char F`:
 //!
-//!   * [`char0`]   — real-closed / algebraically-closed char 0: the 8-fold
-//!                   (real) and 2-fold (complex) periodicity tables.
+//!   * [`char0`]   — char 0: the 8-fold real and 2-fold complex tables on the
+//!                   exact-square subdomains represented by the scalar backends.
 //!   * [`oddchar`] — odd characteristic: discriminant + Hasse invariant.
 //!   * [`char2`]   — characteristic 2: the Arf invariant (and Dickson).
 //!

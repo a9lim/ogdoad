@@ -94,22 +94,30 @@ impl PyCliffordType {
     }
 }
 
-/// Classify a surreal Clifford algebra (the genuine real classification) as a
-/// matrix algebra over ℝ/ℂ/ℍ. Symmetric metrics are diagonalized when possible.
+/// Classify a surreal Clifford algebra on the exact-square real-table subdomain
+/// as a matrix algebra over ℝ/ℂ/ℍ. Symmetric metrics are diagonalized when possible.
 #[pyfunction]
 fn classify_surreal(alg: &SurrealAlgebra) -> PyResult<PyCliffordType> {
     crate::forms::classify_surreal(&alg.inner.metric)
         .map(|t| PyCliffordType { inner: t })
-        .ok_or_else(|| PyValueError::new_err("classifier could not diagonalize this metric"))
+        .ok_or_else(|| {
+            PyValueError::new_err(
+                "classifier could not diagonalize this metric or needs an unrepresented square root",
+            )
+        })
 }
 
-/// Classify a surcomplex Clifford algebra (the 2-fold complex classification).
-/// Symmetric metrics are diagonalized when possible.
+/// Classify a surcomplex Clifford algebra on the exact-square complex-table
+/// subdomain. Symmetric metrics are diagonalized when possible.
 #[pyfunction]
 fn classify_surcomplex(alg: &SurcomplexAlgebra) -> PyResult<PyCliffordType> {
     crate::forms::classify_surcomplex(&alg.inner.metric)
         .map(|t| PyCliffordType { inner: t })
-        .ok_or_else(|| PyValueError::new_err("classifier could not diagonalize this metric"))
+        .ok_or_else(|| {
+            PyValueError::new_err(
+                "classifier could not diagonalize this metric or needs an unrepresented square root",
+            )
+        })
 }
 
 // ---------------------------------------------------------------------------
@@ -550,12 +558,13 @@ fn is_isometric_oddchar(p: u128, q1: Vec<i128>, q2: Vec<i128>) -> PyResult<bool>
     f1.is_isometric(&f2)
 }
 
-/// Witt decomposition of a real (surreal) form: returns `(witt_index,
-/// anisotropic_pos, anisotropic_neg, radical_dim)`.
+/// Witt decomposition of a surreal form on the exact-square real-table subdomain:
+/// returns `(witt_index, anisotropic_pos, anisotropic_neg, radical_dim)`.
 #[pyfunction]
 fn witt_decompose_real(alg: &SurrealAlgebra) -> PyResult<(usize, usize, usize, usize)> {
-    let d = crate::forms::witt_decompose_real(&alg.inner.metric)
-        .ok_or_else(|| PyValueError::new_err("could not diagonalize the metric"))?;
+    let d = crate::forms::witt_decompose_real(&alg.inner.metric).ok_or_else(|| {
+        PyValueError::new_err("metric is outside the exact-square real-table subdomain")
+    })?;
     Ok((
         d.witt_index,
         d.anisotropic_pos,
@@ -687,13 +696,15 @@ impl PyBrauerWallClass {
     }
 }
 
-/// The Brauer–Wall class of a surreal (real) Clifford algebra: the Bott index
-/// `s = (q − p) mod 8` in `BW(ℝ) ≅ ℤ/8` — the periodicity table as a group element.
+/// The Brauer–Wall class of a surreal Clifford algebra on the exact-square
+/// real-table subdomain: the Bott index `s = (q − p) mod 8`.
 #[pyfunction]
 fn bw_class_real(alg: &SurrealAlgebra) -> PyResult<PyBrauerWallClass> {
     crate::forms::bw_class_real(&alg.inner.metric)
         .map(|c| PyBrauerWallClass { inner: c })
-        .ok_or_else(|| PyValueError::new_err("Brauer–Wall class needs a diagonal metric"))
+        .ok_or_else(|| {
+            PyValueError::new_err("metric is outside the exact-square real-table subdomain")
+        })
 }
 
 /// The Brauer–Wall class of a surcomplex (complex) Clifford algebra in

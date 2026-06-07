@@ -4,10 +4,12 @@
 //!
 //! [`Surcomplex`] carries the conjugation `i ↦ −i` ([`Surcomplex::conj`]); a
 //! Hermitian form has a conjugate-symmetric Gram matrix `H* = H` (so the diagonal
-//! is real). Over the algebraically-closed surcomplex field (real-closed base),
-//! a nondegenerate Hermitian form is classified completely by its **signature**
-//! `(p, q)` — Sylvester's law of inertia, the unitary-group `U(p,q)` analogue of
-//! the orthogonal signature. We reduce by **unitary (conjugate) congruence**
+//! is real). Over the ideal algebraically-closed complexification of a real-closed
+//! base, a nondegenerate Hermitian form is classified completely by its
+//! **signature** `(p, q)` — Sylvester's law of inertia, the unitary-group
+//! `U(p,q)` analogue of the orthogonal signature. The implemented finite-support
+//! backend should be read with the same exact-representability caveat as
+//! `forms::char0`. We reduce by **unitary (conjugate) congruence**
 //! `H ↦ M* H M`, which keeps the form Hermitian and drives it to a real diagonal,
 //! then read the signs.
 

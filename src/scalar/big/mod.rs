@@ -1,9 +1,9 @@
 //! **Big** — the transfinite worlds, where the number is allowed to be infinite.
 //! Conway normal form / Hahn series `Σ ω^{exp}·coeff` with recursive exponents.
 //!
-//!   * [`surreal`] — `No`, the real-closed char-0 field. The transfinite mirror of
-//!     ℚ/ℝ; coefficients are ℚ (the honest finite truncation), exponents are fully
-//!     recursive surreals.
+//!   * [`surreal`] — finite-support surreal Hahn/CNF numbers, char 0. The
+//!     transfinite mirror of ℚ/ℝ; coefficients are ℚ (the honest finite
+//!     truncation), exponents are fully recursive surreals.
 //!   * [`omnific`] — `Oz ⊂ No`, the omnific *integers*: the ring of integers of the
 //!     surreals, the transfinite mirror of ℤ (and the surreal mirror of `Z_p`).
 //!   * [`onag`] — transfinite (ordinal) **nimbers**: the char-2 sibling of
@@ -16,8 +16,9 @@
 //! primitives where they differ — the exponent order (`No`'s value order vs the
 //! ordinal lexicographic order), the like-coefficient merge (ordinary `+` vs nim
 //! `XOR`), and the zero test. Everything else (comparison, multiplication,
-//! negation, the field structure) is backend-specific and stays so: `No` is a
-//! real-closed field, `On₂` a characteristic-2 world with no negation. See
+//! negation, the field-like structure) is backend-specific and stays so: the
+//! implemented `Surreal` model has finite support and rational coefficients,
+//! while `On₂` is a characteristic-2 world with no negation. See
 //! [`cnf`] for why this is a shared *function*, not a shared `Cnf<C>` *type*.
 
 pub(crate) mod cnf;

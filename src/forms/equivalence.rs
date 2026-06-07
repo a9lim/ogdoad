@@ -3,10 +3,11 @@
 //!
 //! Two quadratic forms over the same field are **isometric** iff they share the
 //! complete invariant of that field's leg of the trichotomy: the full signature
-//! over a real-closed field, the rank over an algebraically closed one, `(dim,
-//! discriminant)` over a finite odd-characteristic field, and the Arf data over
-//! a nim-field. Each `isometric_*` here is exactly that comparison, run on the
-//! diagonalized form so it accepts arbitrary (non-diagonal) metrics.
+//! over the exact-square `Surreal` subdomain, the rank over the exact-square
+//! `Surcomplex` subdomain, `(dim, discriminant)` over a finite odd-characteristic
+//! field, and the characteristic-2 Arf/radical data over a nim-field. Each
+//! `isometric_*` here is exactly that comparison, run on the diagonalized form so
+//! it accepts arbitrary (non-diagonal) metrics.
 //!
 //! **Witt decomposition** writes a form as `k · H ⊥ (anisotropic)`: `k`
 //! hyperbolic planes (the Witt index) plus an anisotropic kernel unique up to
@@ -16,7 +17,7 @@
 use crate::clifford::Metric;
 use crate::forms::FiniteOddField;
 use crate::forms::{arf_invariant, as_diagonal, classify_finite_odd};
-use crate::scalar::{Nimber, Rational, Scalar, Surcomplex, Surreal};
+use crate::scalar::{Nimber, Rational, Surcomplex, Surreal};
 
 // ----------------------------------------------------------------------------
 // Isometry
@@ -25,8 +26,8 @@ use crate::scalar::{Nimber, Rational, Scalar, Surcomplex, Surreal};
 /// Are two real (surreal-scalar) forms isometric? `Some(true/false)`, or `None`
 /// if either fails to diagonalize.
 pub fn isometric_real(m1: &Metric<Surreal>, m2: &Metric<Surreal>) -> Option<bool> {
-    let s1 = crate::forms::char0::signature(m1, |x| x.sign())?;
-    let s2 = crate::forms::char0::signature(m2, |x| x.sign())?;
+    let s1 = crate::forms::char0::surreal_signature(m1)?;
+    let s2 = crate::forms::char0::surreal_signature(m2)?;
     Some(s1 == s2)
 }
 
@@ -36,18 +37,13 @@ pub fn isometric_rational(m1: &Metric<Rational>, m2: &Metric<Rational>) -> Optio
     Some(crate::forms::classify_rational(m1)? == crate::forms::classify_rational(m2)?)
 }
 
-/// Are two surcomplex forms isometric? Over an algebraically closed field the
-/// only invariants are rank and radical dimension.
+/// Are two surcomplex forms isometric on the exact-square subdomain? Over an
+/// algebraically closed field the only invariants are rank and radical dimension.
 pub fn isometric_surcomplex(
     m1: &Metric<Surcomplex<Surreal>>,
     m2: &Metric<Surcomplex<Surreal>>,
 ) -> Option<bool> {
-    let rank = |m: &Metric<Surcomplex<Surreal>>| -> Option<(usize, usize)> {
-        let d = as_diagonal(m)?;
-        let nz = d.q.iter().filter(|z| !z.is_zero()).count();
-        Some((nz, d.q.len() - nz))
-    };
-    Some(rank(m1)? == rank(m2)?)
+    Some(crate::forms::char0::surcomplex_rank(m1)? == crate::forms::char0::surcomplex_rank(m2)?)
 }
 
 /// Are two forms over the same finite odd field isometric? Over a finite field
@@ -56,12 +52,20 @@ pub fn isometric_finite_odd<F: FiniteOddField>(m1: &Metric<F>, m2: &Metric<F>) -
     Some(classify_finite_odd(m1)? == classify_finite_odd(m2)?)
 }
 
-/// Are two nim-field (characteristic 2) forms isometric? The Arf data
-/// `(arf, rank, radical_dim, radical_anisotropic)` is the complete invariant.
+/// Are two nim-field (characteristic 2) forms isometric? In the nondefective
+/// case the Arf invariant of the symplectic complement is part of the invariant.
+/// If the polar radical is defective (`Q` nonzero on the radical), adding that
+/// radical direction to a symplectic pair toggles the complement's Arf value, so
+/// the complement Arf is not an isometry invariant and is deliberately ignored.
 pub fn isometric_nimber(m1: &Metric<Nimber>, m2: &Metric<Nimber>) -> Option<bool> {
     let a1 = arf_invariant(m1)?;
     let a2 = arf_invariant(m2)?;
-    Some(a1 == a2)
+    Some(
+        a1.rank == a2.rank
+            && a1.radical_dim == a2.radical_dim
+            && a1.radical_anisotropic == a2.radical_anisotropic
+            && (a1.radical_anisotropic || a1.arf == a2.arf),
+    )
 }
 
 // ----------------------------------------------------------------------------
@@ -82,10 +86,10 @@ pub struct RealWittDecomp {
     pub radical_dim: usize,
 }
 
-/// Witt decomposition over the real-closed surreals: `form ≅ k·H ⊥ ⟨±1⟩^{|p−q|}`
-/// plus the radical. `k = min(p, q)`.
+/// Witt decomposition over the exact-square surreal subdomain:
+/// `form ≅ k·H ⊥ ⟨±1⟩^{|p−q|}` plus the radical. `k = min(p, q)`.
 pub fn witt_decompose_real(m: &Metric<Surreal>) -> Option<RealWittDecomp> {
-    let (p, q, r) = crate::forms::char0::signature(m, |x| x.sign())?;
+    let (p, q, r) = crate::forms::char0::surreal_signature(m)?;
     let k = p.min(q);
     Some(RealWittDecomp {
         witt_index: k,
@@ -177,9 +181,11 @@ mod tests {
         // ⟨1,−1⟩ ≅ ⟨1,−1⟩ but ≇ ⟨1,1⟩.
         assert_eq!(isometric_real(&rsur(&[1, -1]), &rsur(&[-1, 1])), Some(true));
         assert_eq!(isometric_real(&rsur(&[1, -1]), &rsur(&[1, 1])), Some(false));
+        // The implemented Surreal backend cannot rescale ⟨2⟩ to ⟨1⟩ exactly.
+        assert_eq!(isometric_real(&rsur(&[1]), &rsur(&[2])), None);
         // the skewed hyperbolic plane is isometric to ⟨1,−1⟩.
         let mut b = BTreeMap::new();
-        b.insert((0, 1), Surreal::from_int(2));
+        b.insert((0, 1), Surreal::from_int(1));
         let h = Metric::new(vec![Surreal::from_int(0), Surreal::from_int(0)], b);
         assert_eq!(isometric_real(&h, &rsur(&[1, -1])), Some(true));
     }
@@ -254,5 +260,23 @@ mod tests {
         };
         assert_eq!(isometric_nimber(&plane(1, 1), &plane(1, 1)), Some(true));
         assert_eq!(isometric_nimber(&plane(1, 1), &plane(0, 0)), Some(false));
+    }
+
+    #[test]
+    fn defective_radical_ignores_complement_arf() {
+        // With a defective radical r (Q(r)=1), replacing both symplectic vectors
+        // by a+r and b+r toggles the complement Arf but preserves the whole form.
+        let mut b = BTreeMap::new();
+        b.insert((0, 1), Nimber(1));
+        let split_complement = Metric::new(vec![Nimber(0), Nimber(0), Nimber(1)], b.clone());
+        let anisotropic_complement = Metric::new(vec![Nimber(1), Nimber(1), Nimber(1)], b);
+        let a1 = arf_invariant(&split_complement).unwrap();
+        let a2 = arf_invariant(&anisotropic_complement).unwrap();
+        assert_ne!(a1.arf, a2.arf);
+        assert!(a1.radical_anisotropic && a2.radical_anisotropic);
+        assert_eq!(
+            isometric_nimber(&split_complement, &anisotropic_complement),
+            Some(true)
+        );
     }
 }

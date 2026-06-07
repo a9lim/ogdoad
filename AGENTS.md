@@ -10,12 +10,17 @@ ring** — Conway multiplication is only a congruence on the numbers. A Clifford
 algebra needs a commutative scalar ring, so this only lives on the three
 field-like cores of game-world, and each is a backend:
 
-- **nimbers** `On₂` — algebraically closed, characteristic **2**. The only
-  backend where Clifford gets a genuinely new flavour (alternating polar form,
-  `q ≠ b`).
-- **surreals** `No` — real-closed, char 0. Cl(p,q) exactly as over ℝ, but metric
-  entries may be infinite/infinitesimal.
-- **surcomplex** `No[i]` — algebraically closed, char 0.
+- **nimbers** `Nimber(u128)` — the finite field `F_{2^128}` with nim
+  arithmetic, characteristic **2**. The only backend where Clifford gets a
+  genuinely new flavour (alternating polar form, `q ≠ b`). Full `On₂` is the
+  mathematical horizon, not what the fixed-width backend stores.
+- **surreals** `Surreal` — finite-support Hahn/CNF numbers with rational
+  coefficients, char 0. The real-closed Clifford table is exposed only when the
+  represented metric entries are exactly square-equivalent to `±1`; entries may
+  still be infinite/infinitesimal.
+- **surcomplex** `Surcomplex<Surreal>` — adjoin `i` to the implemented surreal
+  backend. The algebraically-closed Clifford table is likewise restricted to
+  represented exact square classes.
 
 A pure Rust math core, generic over a `Scalar` trait, with PyO3 per-backend
 bindings on top. "With nilpotents" = the quadratic form may be degenerate
@@ -78,7 +83,7 @@ src/
                   # coeff merge: + vs XOR; zero test). Deliberately a shared
                   # FUNCTION, not a Cnf<C> TYPE — the orders/algebras diverge (No is
                   # a field, On₂ isn't), so a shared type would be a false identity.
-      surreal/    # No (real-closed char 0). SPLIT into a subdir, all impl Surreal:
+      surreal/    # finite-support surreal Hahn/CNF backend (char 0). SPLIT into a subdir, all impl Surreal:
         mod.rs    #   CNF core: Vec<(exponent: Surreal, coeff: Rational)>, recursive
                   #   exponents, Hahn arithmetic ω^a·ω^b = ω^{a+b}, Scalar, Debug,
                   #   the truncate() precision knob, and the (shared) test module.
@@ -340,8 +345,8 @@ src/
                   # (retrograde analysis); P-positions = Loss. The interactive route.
                   # Plus scoring_values: the Milnor minimax interval (left,right) on a
                   # DAG — the integer-valued scoring knob for the open question.
-    misere.rs     # misère-play outcomes (misere_is_n/_is_p) for any finite
-                  # impartial game; misère Nim vs Bouton; the bounded
+    misere.rs     # misère-play outcomes (misere_is_n/_is_p) for finite acyclic
+                  # impartial games; misère Nim vs Bouton; the bounded
                   # indistinguishability quotient (misere_quotient); octal games
                   # (octal_moves, octal_misere_quotient). The non-linear route.
     partizan.rs   # short partizan games (sum/neg/order/birthday/is_number) + the
@@ -518,8 +523,9 @@ need custom invariant-preserving deserialization, not a naive derive.)
   when `b` is empty and the scalar is a nimber. Correct: `{e0,e1}=2B=0` and
   `-1=1`. Set an off-diagonal `b[(i,j)]` to get non-commutativity.
 - **Surcomplex over nimbers is degenerate.** `i²=1`, `(1+i)²=0`, not a field.
-  That's the theorem — On₂ is already algebraically closed, so `i` adjoins
-  nothing. Surcomplex is only meaningful over the surreals.
+  Full `On₂` is algebraically closed, while the shipped `Nimber(u128)` is
+  `F_{2^128}`; either way the char-2 adjunction is not the useful complex
+  backend. Surcomplex is only meaningful over char-0 scalar worlds here.
 - **Surreal coefficients are ℚ, not ℝ** — the honest finite truncation of true
   CNF. Exponents *are* fully recursive surreals. Don't "fix" this expecting
   irrational coefficients.
@@ -589,6 +595,8 @@ need custom invariant-preserving deserialization, not a naive derive.)
 - nim-field: `F_{2^{2^k}}` = nimbers `< 2^{2^k}`. `F_n ⊗ F_n = (3/2)F_n` for a
   Fermat 2-power `F_n = 2^{2^n}`; distinct Fermat powers multiply ordinarily.
 - A real-closed field gives the full Cl(p,q) classification (8-fold periodicity);
-  that's why the surreal backend reproduces ℝ-Clifford with exotic scalars.
-- Surreal CNF is the Hahn series field ℝ((ω^No)); the ω-map is the monomial map
-  and `ω^a·ω^b = ω^{a+b}` is a group homomorphism (No,+) → (No>0,×).
+  the implemented surreal backend reproduces that table only on the exact-square
+  subdomain it can represent.
+- Surreal CNF is modeled as finite-support Hahn series with rational
+  coefficients; the ω-map is the monomial map and `ω^a·ω^b = ω^{a+b}` is a group
+  homomorphism on represented monomials.

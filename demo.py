@@ -271,8 +271,8 @@ heap = [[j for j in range(h)] for h in range(6)]
 print("  Grundy of nim-heap paths 0..5:", pl.grundy_graph(heap), " (g=0 ⟺ Loss/P)")
 
 section("forms now accept ARBITRARY (non-diagonal) metrics — diagonalization")
-# A skew hyperbolic plane: q=[0,0], off-diagonal {e0,e1}=2 ⇒ B(e0,e1)=1.
-H = pl.SurrealAlgebra(q=[0, 0], b={(0, 1): 2})
+# A skew hyperbolic plane whose diagonalization is exactly represented.
+H = pl.SurrealAlgebra(q=[0, 0], b={(0, 1): 1})
 print("  classify skew-H over the surreals:", pl.classify_surreal(H), " (= M₂(ℝ), as ⟨1,−1⟩)")
 print("  is_isometric ⟨1,1⟩≅⟨2,3⟩ over F₅ :", pl.is_isometric_oddchar(5, [1, 1], [2, 3]))
 

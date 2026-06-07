@@ -17,9 +17,10 @@
 //! level. It is deliberately *not* a shared `Cnf<C>` type: the exponent ordering
 //! is field-dependent for `No` and lexicographic for `On₂`, and everything built
 //! on top of it (comparison, equality, multiplication, negation) diverges
-//! accordingly — `No` is a real-closed *field*, `On₂` a characteristic-2 world
-//! with no negation. Sharing the *shape* without falsely sharing the *algebra*
-//! is the honest unification; this function is its locus.
+//! accordingly — the implemented `Surreal` model is a finite-support char-0
+//! Hahn/CNF scalar world, while `On₂` is a characteristic-2 world with no
+//! negation. Sharing the *shape* without falsely sharing the *algebra* is the
+//! honest unification; this function is its locus.
 
 use std::cmp::Ordering;
 

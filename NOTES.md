@@ -72,8 +72,8 @@ systems:
 | backend | role |
 | --- | --- |
 | `Nimber(u128)` | finite nim-field `F_{2^128}` with nim add/mul; main char-2 backend |
-| `Surreal` | real-closed characteristic-0 backend, useful for exact infinite/infinitesimal metrics |
-| `Surcomplex` | algebraically closed characteristic-0 backend |
+| `Surreal` | finite-support Hahn/CNF characteristic-0 backend; the real-closed form table is available only on represented exact square classes |
+| `Surcomplex` | `Surreal[i]`; the algebraically-closed form table is available only on represented exact square classes |
 | `Integer`, `Omnific` | coefficient rings for exterior/nilpotent structures |
 | `Fp`, `Fpn`, `Zp`, `WittVec` | comparison scalar worlds for the characteristic trichotomy |
 | `Qp` | the p-adic *field* `Q_p` (capped-relative precision model; Zp's field of fractions) — the empty cell in the "any number" table; feeds the p-adic Springer leg |

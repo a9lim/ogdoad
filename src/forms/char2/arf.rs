@@ -29,7 +29,9 @@ pub struct ArfResult {
     pub radical_dim: usize,
     /// Whether Q is nonzero somewhere on the radical (a "defective" direction).
     pub radical_anisotropic: bool,
-    /// Orthogonal type of the nonsingular core: "O+" (split) iff Arf=0.
+    /// Orthogonal type of the chosen symplectic complement: "O+" (split) iff
+    /// Arf=0. When `radical_anisotropic` is true, this complement type is not an
+    /// isometry invariant of the whole singular form.
     pub o_type: &'static str,
 }
 

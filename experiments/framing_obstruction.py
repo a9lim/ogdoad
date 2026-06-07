@@ -1,8 +1,9 @@
-"""The framing obstruction: why the Gold quadric needs more than the coin-turning B.
+"""The framing obstruction probe: why the Gold quadric needs more than B alone.
 
-This probe resolves the structure of NOTES.md's open question — "a game whose moves
-are built from B (coin-turning) alone, not from Q itself, with P-set the Gold quadric
-{Q=0}" — into a symmetry-breaking ladder, using two classical facts:
+This probe stress-tests the structure of NOTES.md's open question — "a game whose
+moves are built from B (coin-turning) alone, not from Q itself, with P-set the
+Gold quadric {Q=0}" — by organizing the obstruction into a symmetry-breaking
+ladder, using two classical facts:
 
   (i)  the quadratic refinements of a fixed symplectic form B form a torsor under the
        linear duals V* (two forms share a polar form iff they differ by a linear
@@ -17,20 +18,20 @@ THE LADDER (each rung adds exactly one datum, breaking one layer of symmetry):
   --------------------------------------------------------------------------------
   abstract B only            Sp(B)        NO quadric  (Sp(B) is transitive on V\\{0},
                                           so the only invariant sets are 0/{0}/V\\0/V)
-  B + coordinate frame       O(Q_frame)   the FRAME quadric {Q_frame=0}, a genuine
-                                          quadric, Arf pinned by (B,frame)
+  B + coordinate frame       O(Q_frame)   the FRAME quadric {Q_frame=0}, via an
+                                          explicit oracle rule using Q_frame
   B + frame + diagonal q_i   O(Q_gold)    the GOLD quadric {Q_gold=0}, any Arf
 
 The diagonal q_i = Q(e_i) = Tr(e_i^{1+2^a}) is the single-coin self-Gold value — a
 FRAMING in the Arf-Kervaire sense. And empirically (Part 3) it always carries Arf 1:
 Q_frame is split (O+) in the standard basis, the framing flips it to the Gold O-.
 
-So the open question is answered structurally:
+So the probe supports this structural reading:
   * frame-blind (Sp(B)-equivariant) games provably cannot realize ANY quadric;
-  * a natural B+frame game DOES realize a genuine quadric — but the SPLIT one,
-    never the Gold form's Arf;
+  * a deliberately framed B+frame rule realizes the split frame quadric, not by
+    natural play semantics but by directly reading Q_frame;
   * the gap to the Gold quadric is exactly the diagonal framing, m bits not derivable
-    from B — the game-theoretic shadow of the topological framing behind Arf-Kervaire.
+    from B in this model.
 """
 
 import itertools
@@ -169,10 +170,10 @@ def part1_nogo():
 
 def part2_frame_quadric():
     print("=" * 72)
-    print("PART 2 — B + frame realizes the genuine FRAME quadric {Q_frame=0}")
+    print("PART 2 — an explicit B+frame rule realizes the FRAME quadric {Q_frame=0}")
     print("=" * 72)
     print("Rule: move v -> any w<v with Q_frame(w) != Q_frame(v). Q_frame(v) =")
-    print("Σ_{i<j∈v} B(e_i,e_j) uses only B + the coordinate frame, NO diagonal.\n")
+    print("Σ_{i<j∈v} B(e_i,e_j). This is a framed oracle rule, not natural semantics.\n")
     import random
     rng = random.Random(0xF00D)
     for m in (4, 6, 8):
@@ -196,9 +197,9 @@ def part2_frame_quadric():
             ok += (ker == zeros)
             if arf([0] * m, pairs, m).rank >= 2:
                 genuine += 1
-        print(f"  m={m}: kernel == {{Q_frame=0}} in {ok}/{tot} random nondegenerate B "
+        print(f"  m={m}: kernel == {{Q_frame=0}} in {ok}/{tot} random B/frame samples "
               f"({genuine} genuinely quadratic)")
-    print("  ⇒ a natural B+frame game robustly realizes a genuine quadric P-set.\n")
+    print("  ⇒ the explicit framed rule realizes the frame quadric by construction.\n")
 
 
 # ----------------------------------------------------------------------------- part 3
@@ -232,9 +233,9 @@ def part3_framing_flips_arf():
             af = arf([0] * m, pairs, m)
             print(f"{m:>3} {a:>2} {ag.rank:>4} {gcd(a, m):>3} | {ag.arf:>9} {af.arf:>10} "
                   f"{str(decomp):>9}")
-    print("\n  Reading: whenever the Gold form is genuinely quadratic (rank≥2), the")
-    print("  frame quadric is SPLIT (Arf 0) and the diagonal framing flips it to the")
-    print("  Gold O- (Arf 1). The entire Arf content of the Gold form is the framing.")
+    print("\n  Reading for these Gold polar forms: whenever the form is genuinely")
+    print("  quadratic (rank≥2), the frame quadric is split (Arf 0) and the diagonal")
+    print("  framing flips it to the Gold O- (Arf 1).")
 
 
 if __name__ == "__main__":

@@ -102,8 +102,9 @@ impl WittClass {
 /// home of the classifier trichotomy (char-0 signature / odd-char
 /// discriminant / char-2 Arf), mirroring the Artin–Schreier↔Arf unification.
 ///
-/// * `Char0`: over a real-closed field `W(ℝ) ≅ ℤ`, classified by the signature
-///   `p − q` (the only invariant; the group law adds signatures).
+/// * `Char0`: over the exact-square surreal subdomain, the real-table Witt class
+///   is classified by the signature `p − q`; forms outside that subdomain are
+///   rejected by the classifier instead of being collapsed to a false real class.
 /// * `OddChar`: over a finite field `F_q` of odd characteristic `W(F_q)` has
 ///   order 4. Its invariants are `e0 = dim mod 2` and `sclass` = the
 ///   **signed discriminant** `(−1)^{m(m−1)/2}·det` mod squares (a genuine Witt

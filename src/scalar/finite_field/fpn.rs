@@ -6,8 +6,9 @@
 //! that asymmetry: it is `F_{p^n}` for any supported `(p, n)`, the odd-characteristic
 //! analogue of the nimber tower. It also supplies the **char-2 odd-degree** fields
 //! the nimbers cannot reach — the finite nimbers realise only `F_{2^{2^k}}` (degrees
-//! that are powers of two), so `F_8` (degree 3), `F_32` (degree 5), … are *not*
-//! nimber subfields; `Fpn<2, 3>` is the only way to get `F_8` here.
+//! that are powers of two), so `F_8` (degree 3) is not a nimber subfield;
+//! `Fpn<2, 3>` is the way to get it here. Higher fields such as `F_32` need an
+//! explicit reduction polynomial before the type is supported.
 //!
 //! ## The const-generic modulus, two parameters
 //!
@@ -31,7 +32,7 @@
 //! of `onag.rs`'s "reduce mod `ω³ = 2`".
 
 use super::FiniteField;
-use crate::scalar::Scalar;
+use crate::scalar::{Fp, Scalar};
 use std::fmt;
 
 /// An element of `F_{p^N}`: the coefficients of `c_0 + c_1 x + … + c_{N-1} x^{N-1}`,
@@ -63,8 +64,24 @@ pub(crate) const fn reduction<const P: u128, const N: usize>() -> &'static [u128
 }
 
 impl<const P: u128, const N: usize> Fpn<P, N> {
+    /// Whether this const-generic pair has a prime base field and a shipped
+    /// irreducible reduction polynomial.
+    pub fn is_supported_field() -> bool {
+        Fp::<P>::modulus_is_prime()
+            && N > 0
+            && matches!((P, N), (_, 1) | (2, 2) | (2, 3) | (3, 2) | (5, 2) | (3, 3))
+    }
+
+    pub fn assert_supported_field() {
+        assert!(
+            Self::is_supported_field(),
+            "Fpn<{P},{N}> needs prime P, N>0, and a supported irreducible reduction polynomial"
+        );
+    }
+
     /// The field order `p^N`.
     pub fn order() -> u128 {
+        Self::assert_supported_field();
         let mut acc = 1u128;
         for _ in 0..N {
             acc = acc.checked_mul(P).expect("Fpn order exceeds u128");
@@ -74,17 +91,21 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 
     /// Embed a base-field constant `c ∈ F_p` as the degree-0 element.
     pub fn constant(c: u128) -> Self {
+        Self::assert_supported_field();
         let mut out = [0u128; N];
-        if N > 0 {
-            out[0] = c % P;
-        }
+        out[0] = c % P;
         Fpn(out)
     }
 
     /// Build from a coefficient slice (low-to-high), reducing each entry mod `P`.
     /// Extra trailing coefficients beyond `N` must be zero (else it is not an
-    /// element of this field); they are ignored here, so prefer length `≤ N`.
+    /// element of this field).
     pub fn from_coeffs(cs: &[u128]) -> Self {
+        Self::assert_supported_field();
+        assert!(
+            cs.iter().skip(N).all(|&c| c % P == 0),
+            "Fpn::from_coeffs received nonzero coefficients beyond degree {N}"
+        );
         let mut out = [0u128; N];
         for (i, slot) in out.iter_mut().enumerate() {
             if i < cs.len() {
@@ -101,6 +122,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
     /// classifier reads — so this is what lets the invariant theory run over a
     /// genuine extension field, not just a prime field.
     pub fn is_square(&self) -> bool {
+        Self::assert_supported_field();
         if self.is_zero() {
             return true;
         }
@@ -123,6 +145,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 
     /// The generator `x` (the class of the indeterminate), i.e. `[0, 1, 0, …]`.
     pub fn generator() -> Self {
+        Self::assert_supported_field();
         let mut out = [0u128; N];
         if N > 1 {
             out[1] = 1 % P;
@@ -135,6 +158,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 
     /// The element with index `code` in `[0, p^N)` (base-`P` digits = coefficients).
     fn from_code(mut code: u128) -> Self {
+        Self::assert_supported_field();
         let mut coeffs = [0u128; N];
         for slot in coeffs.iter_mut() {
             *slot = code % P;
@@ -157,6 +181,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
     /// projects each coefficient (Galois-closure guarantees it lies in `F_p`) to
     /// its base-field value.
     pub fn min_poly(&self) -> Vec<u128> {
+        Self::assert_supported_field();
         self.min_poly_monic()
             .into_iter()
             .map(|coeff| {
@@ -172,6 +197,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
     /// A **primitive element** (a generator of `F_{p^N}*`), found by scanning the
     /// field — cheap for the modest orders in this tower.
     pub fn primitive_element() -> Self {
+        Self::assert_supported_field();
         let target = Self::order() - 1;
         for code in 1..Self::order() {
             let el = Self::from_code(code);
@@ -191,10 +217,12 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 /// needed, unlike the nimber `F_{2^128}`.
 impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn frobenius(&self) -> Self {
+        Self::assert_supported_field();
         self.pow(P)
     }
 
     fn pow(&self, mut e: u128) -> Self {
+        Self::assert_supported_field();
         let mut base = *self;
         let mut acc = Self::one();
         while e > 0 {
@@ -208,14 +236,17 @@ impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     }
 
     fn ext_degree() -> usize {
+        Self::assert_supported_field();
         N
     }
 
     fn group_order() -> u128 {
+        Self::assert_supported_field();
         Self::order() - 1
     }
 
     fn group_order_factors() -> Vec<u128> {
+        Self::assert_supported_field();
         distinct_primes(Self::order() - 1)
     }
 }
@@ -266,18 +297,19 @@ impl<const P: u128, const N: usize> fmt::Debug for Fpn<P, N> {
 
 impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     fn zero() -> Self {
+        Self::assert_supported_field();
         Fpn([0u128; N])
     }
 
     fn one() -> Self {
+        Self::assert_supported_field();
         let mut out = [0u128; N];
-        if N > 0 {
-            out[0] = 1 % P;
-        }
+        out[0] = 1 % P;
         Fpn(out)
     }
 
     fn add(&self, rhs: &Self) -> Self {
+        Self::assert_supported_field();
         let mut out = [0u128; N];
         for i in 0..N {
             out[i] = ((self.0[i] as u128 + rhs.0[i] as u128) % P as u128) as u128;
@@ -286,6 +318,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     }
 
     fn neg(&self) -> Self {
+        Self::assert_supported_field();
         let mut out = [0u128; N];
         for i in 0..N {
             out[i] = if self.0[i] == 0 { 0 } else { P - self.0[i] };
@@ -294,6 +327,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_supported_field();
         let p = P as u128;
         // Schoolbook product into a degree-(2N-2) scratch, then reduce mod m(x).
         let mut scratch = vec![0u128; 2 * N - 1];
@@ -329,11 +363,13 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     }
 
     fn characteristic() -> u128 {
+        Self::assert_supported_field();
         // The *characteristic* is the prime p, not the order p^N.
         P as u128
     }
 
     fn inv(&self) -> Option<Self> {
+        Self::assert_supported_field();
         if self.is_zero() {
             return None;
         }
@@ -419,6 +455,22 @@ mod tests {
         assert_eq!(Fpn::<2, 3>::order(), 8);
         assert_eq!(Fpn::<3, 3>::characteristic(), 3); // F_27 has characteristic 3
         assert_eq!(Fpn::<3, 3>::order(), 27);
+    }
+
+    #[test]
+    fn unsupported_parameters_are_rejected() {
+        assert!(std::panic::catch_unwind(|| Fpn::<4, 2>::one()).is_err());
+        assert!(std::panic::catch_unwind(|| Fpn::<3, 0>::zero()).is_err());
+        assert!(std::panic::catch_unwind(|| Fpn::<2, 5>::one()).is_err());
+    }
+
+    #[test]
+    fn from_coeffs_rejects_nonzero_high_terms() {
+        assert_eq!(
+            Fpn::<2, 3>::from_coeffs(&[1, 0, 1, 0]),
+            Fpn::<2, 3>([1, 0, 1])
+        );
+        assert!(std::panic::catch_unwind(|| Fpn::<2, 3>::from_coeffs(&[1, 0, 0, 1])).is_err());
     }
 
     #[test]

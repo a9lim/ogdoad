@@ -32,8 +32,8 @@ use crate::scalar::{Fp, Fpn, Nimber, Rational, Scalar, Surcomplex, Surreal};
 ///
 /// | scalar | `Class` | leg |
 /// |---|---|---|
-/// | [`Surreal`] | [`CliffordType`] | real-closed char 0 (8-fold) |
-/// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordType`] | alg-closed char 0 (2-fold) |
+/// | [`Surreal`] | [`CliffordType`] | exact-square char 0 subdomain (8-fold) |
+/// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordType`] | exact-square char 0 subdomain (2-fold) |
 /// | [`Rational`] | [`RationalCliffordType`] | char 0, full Hasse–Minkowski |
 /// | [`Fp<P>`](Fp) | [`OddCharType`] | odd characteristic |
 /// | [`Nimber`] | [`ArfResult`] | characteristic 2 (Arf) |
@@ -122,7 +122,7 @@ impl ClassifyForm for Nimber {
 
 impl WittClassify for Surreal {
     fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
-        let (p, q, _r) = crate::forms::char0::signature(metric, |x| x.sign())?;
+        let (p, q, _r) = crate::forms::char0::surreal_signature(metric)?;
         Some(WittClassG::char0(p, q))
     }
 }

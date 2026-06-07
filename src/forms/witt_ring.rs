@@ -89,10 +89,15 @@ pub fn pfister<S: Scalar>(scales: &[S]) -> Metric<S> {
     acc
 }
 
-/// Membership in the **fundamental ideal** `I = ker(e₀)`: a (diagonal) form is in
-/// `I` iff its nondegenerate dimension is even.
-pub fn in_fundamental_ideal<S: Scalar>(metric: &Metric<S>) -> bool {
-    metric.q.iter().filter(|x| !x.is_zero()).count() % 2 == 0
+/// Membership in the **fundamental ideal** `I = ker(e₀)`: a diagonal form is in
+/// `I` iff its nondegenerate dimension is even. Returns `None` for non-diagonal
+/// representatives instead of reading the raw diagonal slots as if they were a
+/// diagonalized form.
+pub fn in_fundamental_ideal<S: Scalar>(metric: &Metric<S>) -> Option<bool> {
+    if !metric.b.is_empty() || !metric.a.is_empty() {
+        return None;
+    }
+    Some(metric.q.iter().filter(|x| !x.is_zero()).count() % 2 == 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -152,6 +157,7 @@ pub fn e_real(signature: i128, n: usize) -> Option<u8> {
 mod tests {
     use super::*;
     use crate::scalar::{Fp, Fpn};
+    use std::collections::BTreeMap;
 
     fn diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {
         Metric::diagonal(qs.iter().map(|&x| Fp::<P>(x)).collect())
@@ -162,6 +168,16 @@ mod tests {
         // ⟨1,2⟩ ⊗ ⟨1,2⟩ = ⟨1,2,2,4⟩ over F_5.
         let t = tensor_form(&diag::<5>(&[1, 2]), &diag::<5>(&[1, 2])).unwrap();
         assert_eq!(t.q, vec![Fp::<5>(1), Fp::<5>(2), Fp::<5>(2), Fp::<5>(4)]);
+    }
+
+    #[test]
+    fn fundamental_ideal_requires_diagonal_representative() {
+        assert_eq!(in_fundamental_ideal(&diag::<5>(&[1, 2])), Some(true));
+        assert_eq!(in_fundamental_ideal(&diag::<5>(&[1, 2, 3])), Some(false));
+        let mut b = BTreeMap::new();
+        b.insert((0, 1), Fp::<5>(2));
+        let hyperbolic = Metric::new(vec![Fp::<5>::zero(), Fp::<5>::zero()], b);
+        assert_eq!(in_fundamental_ideal(&hyperbolic), None);
     }
 
     #[test]

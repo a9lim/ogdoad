@@ -101,10 +101,10 @@ impl BrauerWallClass {
     }
 }
 
-/// The Brauer–Wall class of `Cl(Q)` over the **reals** (surreal backend):
-/// `s = (q − p) mod 8`, the Bott index. Reuses [`classify_surreal`]'s signature
-/// reading — so this `ℤ/8` *is literally* the char-0 periodicity table. `None` if
-/// the metric is non-diagonal.
+/// The Brauer–Wall class of `Cl(Q)` over the **real-table** surreal subdomain:
+/// `s = (q − p) mod 8`, the Bott index. Reuses [`classify_surreal`]'s checked
+/// signature reading. `None` if the metric cannot be exactly reduced to ±1
+/// squares in the implemented `Surreal` backend.
 pub fn bw_class_real(metric: &Metric<Surreal>) -> Option<BrauerWallClass> {
     let (p, q) = classify_surreal(metric)?.signature;
     Some(BrauerWallClass::Real(
@@ -112,8 +112,9 @@ pub fn bw_class_real(metric: &Metric<Surreal>) -> Option<BrauerWallClass> {
     ))
 }
 
-/// The Brauer–Wall class of `Cl(Q)` over the **complexes** (surcomplex backend):
-/// the dimension parity `n mod 2`. `None` if non-diagonal.
+/// The Brauer–Wall class of `Cl(Q)` over the **complex-table** surcomplex
+/// subdomain: the dimension parity `n mod 2`. `None` if a nonzero square class
+/// cannot be represented by an exact square root in this backend.
 pub fn bw_class_complex(metric: &Metric<Surcomplex<Surreal>>) -> Option<BrauerWallClass> {
     let ct = classify_surcomplex(metric)?;
     let (p, q) = ct.signature;

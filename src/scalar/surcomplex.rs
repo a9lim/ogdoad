@@ -1,15 +1,16 @@
 //! Surcomplex numbers: adjoin i (with i² = −1) to any scalar backend.
 //!
-//! Generic over `S`, so `Surcomplex<Surreal>` is the surreal analogue of ℂ —
-//! and, since the surreals are real-closed, an algebraically closed field.
-//! `Surcomplex<Rational>` is the Gaussian rationals ℚ[i], handy for tests.
+//! Generic over `S`, so `Surcomplex<Surreal>` is the complexification of the
+//! implemented finite-support surreal backend. `Surcomplex<Rational>` is the
+//! Gaussian rationals ℚ[i], handy for tests.
 //!
 //! Over a *characteristic-2* backend this construction is **degenerate**, and
 //! the tool demonstrates exactly why: i² = −1 = 1, so (1+i)² = 1 + 2i + i²
 //! = 1 + 0 + 1 = 0. `1+i` is a nonzero nilpotent ⇒ zero divisors ⇒ not a
 //! field. This is the concrete reason surcomplex only does something useful
-//! over the surreals: On₂ is already algebraically closed, so there is nothing
-//! for `i` to adjoin. (See `tests::nimber_surcomplex_is_degenerate`.)
+//! over characteristic-0 scalar worlds here. Full `On₂` is algebraically closed,
+//! while the fixed-width `Nimber` backend is `F_{2^128}`; neither makes this
+//! char-2 adjunction a field. (See `tests::nimber_surcomplex_is_degenerate`.)
 
 use crate::scalar::Scalar;
 

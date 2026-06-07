@@ -21,7 +21,7 @@
 //! modulus `p^k` (the additive order of `1`), even though it is a truncation of
 //! the characteristic-0 ring `Z_p` and not a field of characteristic `p`.
 
-use crate::scalar::Scalar;
+use crate::scalar::{Fp, Scalar};
 use std::fmt;
 
 /// An element of `Z/p^k` (the `p`-adic integers to precision `k`): the residue in
@@ -30,8 +30,16 @@ use std::fmt;
 pub struct Zp<const P: u128, const K: u128>(pub u128);
 
 impl<const P: u128, const K: u128> Zp<P, K> {
+    pub fn assert_supported_ring() {
+        assert!(
+            Fp::<P>::modulus_is_prime() && K > 0,
+            "Zp<P,K> needs prime P and positive precision K, got P={P}, K={K}"
+        );
+    }
+
     /// The modulus `p^k`.
     pub fn modulus() -> u128 {
+        Self::assert_supported_ring();
         let mut acc = 1u128;
         for _ in 0..K {
             acc = acc.checked_mul(P).expect("Zp modulus exceeds u128");
@@ -41,6 +49,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
 
     /// Reduce an integer (possibly negative) into `Z/p^k`.
     pub fn new(n: i128) -> Self {
+        Self::assert_supported_ring();
         let m = Self::modulus() as i128;
         Zp((((n % m) + m) % m) as u128)
     }
@@ -48,6 +57,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
     /// The `p`-adic valuation of this element, capped at the precision `k`
     /// (`v_p(0)` reads as `k`, the precision floor).
     pub fn valuation(&self) -> u128 {
+        Self::assert_supported_ring();
         if self.0 == 0 {
             return K;
         }
@@ -62,6 +72,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
 
     /// Whether this element is a unit (invertible) in `Z/p^k`: iff `p ∤ a`.
     pub fn is_unit(&self) -> bool {
+        Self::assert_supported_ring();
         self.0 % P != 0
     }
 }
@@ -74,19 +85,23 @@ impl<const P: u128, const K: u128> fmt::Debug for Zp<P, K> {
 
 impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
     fn zero() -> Self {
+        Self::assert_supported_ring();
         Zp(0)
     }
 
     fn one() -> Self {
+        Self::assert_supported_ring();
         Zp((1 % Self::modulus()) as u128)
     }
 
     fn add(&self, rhs: &Self) -> Self {
+        Self::assert_supported_ring();
         let m = Self::modulus();
-        Zp(((self.0 as u128 + rhs.0 as u128) % m) as u128)
+        Zp(self.0.checked_add(rhs.0).expect("Zp addition exceeds u128") % m)
     }
 
     fn neg(&self) -> Self {
+        Self::assert_supported_ring();
         if self.0 == 0 {
             Zp(0)
         } else {
@@ -95,17 +110,24 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_supported_ring();
         let m = Self::modulus();
-        Zp(((self.0 as u128 * rhs.0 as u128) % m) as u128)
+        Zp(self
+            .0
+            .checked_mul(rhs.0)
+            .expect("Zp multiplication exceeds u128")
+            % m)
     }
 
     fn characteristic() -> u128 {
+        Self::assert_supported_ring();
         // The finite quotient Z/p^k has characteristic p^k: p^k · 1 = 0, and no
         // smaller positive multiple of 1 vanishes.
         Self::modulus()
     }
 
     fn inv(&self) -> Option<Self> {
+        Self::assert_supported_ring();
         // Local ring: a unit iff p ∤ a. Invert units by extended Euclid mod p^k;
         // return None for non-units (p | a, including 0) — the Omnific discipline,
         // never leaving the ring with a spurious 1/p.
@@ -121,6 +143,9 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
             std::mem::swap(&mut t, &mut newt);
             r -= quot * newr;
             std::mem::swap(&mut r, &mut newr);
+        }
+        if r != 1 {
+            return None;
         }
         // r = gcd = 1 for a unit; t is the inverse.
         Some(Zp((((t % m) + m) % m) as u128))
@@ -190,6 +215,12 @@ mod tests {
         // literal ring characteristic: the additive order of 1.
         assert_eq!(Zp::<2, 3>::characteristic(), 8);
         assert_eq!(Zp::<3, 3>::characteristic(), 27);
+    }
+
+    #[test]
+    fn invalid_parameters_are_rejected() {
+        assert!(std::panic::catch_unwind(|| Zp::<4, 3>::one()).is_err());
+        assert!(std::panic::catch_unwind(|| Zp::<5, 0>::one()).is_err());
     }
 
     #[test]

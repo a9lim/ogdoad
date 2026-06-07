@@ -33,7 +33,7 @@
 //! layer (valuation + residue square class, both robust to relative precision)
 //! and is deliberately **excluded from the exact-ring fuzz suite**.
 
-use crate::scalar::Scalar;
+use crate::scalar::{Fp, Scalar};
 use std::fmt;
 
 /// An element of `Q_p` to precision `k`: `p^{val} · unit` with `p ∤ unit` carried
@@ -57,8 +57,16 @@ fn p_pow<const P: u128>(e: u128) -> u128 {
 }
 
 impl<const P: u128, const K: u128> Qp<P, K> {
+    pub fn assert_supported_field() {
+        assert!(
+            Fp::<P>::modulus_is_prime() && K > 0,
+            "Qp<P,K> needs prime P and positive precision K, got P={P}, K={K}"
+        );
+    }
+
     /// The mantissa modulus `p^k`.
     pub fn modulus() -> u128 {
+        Self::assert_supported_field();
         p_pow::<P>(K)
     }
 
@@ -81,6 +89,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
 
     /// Embed a (signed) integer, extracting its p-adic valuation.
     pub fn from_i128(n: i128) -> Self {
+        Self::assert_supported_field();
         if n == 0 {
             return Qp { unit: 0, val: 0 };
         }
@@ -98,6 +107,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
 
     /// `p^v` — the pure power, mantissa `1`. `from_p_power(-1)` is `1/p`.
     pub fn from_p_power(v: i128) -> Self {
+        Self::assert_supported_field();
         Qp {
             unit: 1 % Self::modulus(),
             val: v,
@@ -106,6 +116,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
 
     /// The p-adic valuation, or `None` for zero (whose valuation is `+∞`).
     pub fn valuation(&self) -> Option<i128> {
+        Self::assert_supported_field();
         if self.unit == 0 {
             None
         } else {
@@ -115,6 +126,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
 
     /// The unit mantissa in `[0, p^k)`.
     pub fn unit(&self) -> u128 {
+        Self::assert_supported_field();
         self.unit
     }
 }
@@ -134,10 +146,12 @@ impl<const P: u128, const K: u128> fmt::Debug for Qp<P, K> {
 
 impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
     fn zero() -> Self {
+        Self::assert_supported_field();
         Qp { unit: 0, val: 0 }
     }
 
     fn one() -> Self {
+        Self::assert_supported_field();
         Qp {
             unit: 1 % Self::modulus(),
             val: 0,
@@ -145,6 +159,7 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
     }
 
     fn add(&self, rhs: &Self) -> Self {
+        Self::assert_supported_field();
         if self.unit == 0 {
             return *rhs;
         }
@@ -162,9 +177,16 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
         let shifted = if d >= K {
             0 // below precision — the higher-valuation term vanishes
         } else {
-            (p_pow::<P>(d).wrapping_mul(hi.unit)) % m
+            p_pow::<P>(d)
+                .checked_mul(hi.unit)
+                .expect("Qp addition mantissa product exceeds u128")
+                % m
         };
-        let b = (lo.unit + shifted) % m;
+        let b = lo
+            .unit
+            .checked_add(shifted)
+            .expect("Qp addition mantissa sum exceeds u128")
+            % m;
         if b == 0 {
             return Qp { unit: 0, val: 0 }; // cancelled below precision
         }
@@ -172,6 +194,7 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
     }
 
     fn neg(&self) -> Self {
+        Self::assert_supported_field();
         if self.unit == 0 {
             return *self;
         }
@@ -182,22 +205,32 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_supported_field();
         if self.unit == 0 || rhs.unit == 0 {
             return Qp { unit: 0, val: 0 };
         }
         // Product of units is a unit: no renormalization needed.
         let m = Self::modulus();
         Qp {
-            unit: (self.unit.wrapping_mul(rhs.unit)) % m,
-            val: self.val + rhs.val,
+            unit: self
+                .unit
+                .checked_mul(rhs.unit)
+                .expect("Qp multiplication mantissa product exceeds u128")
+                % m,
+            val: self
+                .val
+                .checked_add(rhs.val)
+                .expect("Qp multiplication valuation exceeds i128"),
         }
     }
 
     fn characteristic() -> u128 {
+        Self::assert_supported_field();
         0 // a genuine field of characteristic 0 — unlike Zp's modulus p^k
     }
 
     fn inv(&self) -> Option<Self> {
+        Self::assert_supported_field();
         // Total on nonzero: (p^v·u)^{-1} = p^{-v}·u^{-1}. THE field property,
         // versus Zp::inv which is None for any p-divisible element.
         if self.unit == 0 {
@@ -212,6 +245,9 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
             std::mem::swap(&mut t, &mut newt);
             r -= quot * newr;
             std::mem::swap(&mut r, &mut newr);
+        }
+        if r != 1 {
+            return None;
         }
         let uinv = (((t % m) + m) % m) as u128;
         Some(Qp {
@@ -272,6 +308,12 @@ mod tests {
     fn characteristic_is_zero_not_the_modulus() {
         assert_eq!(Q5::characteristic(), 0);
         assert_eq!(Q2::characteristic(), 0);
+    }
+
+    #[test]
+    fn invalid_parameters_are_rejected() {
+        assert!(std::panic::catch_unwind(|| Qp::<4, 3>::one()).is_err());
+        assert!(std::panic::catch_unwind(|| Qp::<5, 0>::one()).is_err());
     }
 
     #[test]

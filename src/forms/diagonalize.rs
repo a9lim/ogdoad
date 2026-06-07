@@ -166,11 +166,12 @@ mod tests {
 
     #[test]
     fn off_diagonal_real_form_keeps_its_signature() {
-        // ⟨2,2⟩ skewed by an off-diagonal: q=[2,2], B(e0,e1)=1 (b=2). Gram
-        // [[2,1],[1,2]] is positive-definite (eigenvalues 1,3) ⇒ signature (2,0).
+        // ⟨1,2⟩ skewed by an off-diagonal: q=[1,2], B(e0,e1)=1 (b=2). Gram
+        // [[1,1],[1,2]] is positive-definite and diagonalizes to square classes
+        // represented by the finite-support surreal backend.
         let mut b = BTreeMap::new();
         b.insert((0, 1), rat(2));
-        let m = Metric::new(vec![rat(2), rat(2)], b);
+        let m = Metric::new(vec![rat(1), rat(2)], b);
         let d = diagonalize(&m).unwrap();
         assert!(d.q.iter().all(|x| x.sign() == std::cmp::Ordering::Greater));
         assert_eq!(

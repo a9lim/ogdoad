@@ -8,33 +8,79 @@
 //! values no longer determine the outcome of a sum.
 //!
 //! This module is the instrument for the misère route: a memoised misère-outcome
-//! evaluator for any finite impartial game (given a `moves` function), plus the
-//! canonical witness that misère is non-linear — misère Nim, whose P-set is
+//! evaluator for finite acyclic impartial games (given a `moves` function), plus
+//! the canonical witness that misère is non-linear — misère Nim, whose P-set is
 //! provably *not* `{⊕ = 0}` and not even a coset. That clears the bar normal play
 //! fails. Whether a misère game's P-set is an actual Gold quadric is the part
 //! that stays open; this gives the tooling to test candidates.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
-/// Misère outcome of a finite impartial game: `true` = **N-position** (the player
-/// to move wins under misère, last-to-move-loses), `false` = **P-position** (the
-/// previous player wins). `moves(p)` lists the positions reachable in one move; a
-/// position with no moves is terminal, and under misère the player who *cannot*
-/// move **wins**, so a terminal position is an N-position. Memoised on positions.
-pub fn misere_is_n<P, F>(pos: &P, moves: &F, memo: &mut HashMap<P, bool>) -> bool
+fn misere_is_n_inner<P, F>(
+    pos: &P,
+    moves: &F,
+    memo: &mut HashMap<P, bool>,
+    visiting: &mut HashSet<P>,
+) -> Option<bool>
 where
     P: Clone + Eq + Hash,
     F: Fn(&P) -> Vec<P>,
 {
     if let Some(&v) = memo.get(pos) {
-        return v;
+        return Some(v);
+    }
+    if !visiting.insert(pos.clone()) {
+        return None;
     }
     let nexts = moves(pos);
     // terminal ⇒ N (can't-move wins); otherwise N ⟺ some move reaches a P.
-    let result = nexts.is_empty() || nexts.iter().any(|q| !misere_is_n(q, moves, memo));
+    let mut result = nexts.is_empty();
+    if !result {
+        for q in &nexts {
+            match misere_is_n_inner(q, moves, memo, visiting) {
+                Some(false) => {
+                    result = true;
+                    break;
+                }
+                Some(true) => {}
+                None => {
+                    visiting.remove(pos);
+                    return None;
+                }
+            }
+        }
+    }
+    visiting.remove(pos);
     memo.insert(pos.clone(), result);
-    result
+    Some(result)
+}
+
+/// Misère outcome of a finite **acyclic** impartial game: `true` =
+/// **N-position** (the player to move wins under misère, last-to-move-loses),
+/// `false` = **P-position** (the previous player wins). `moves(p)` lists the
+/// positions reachable in one move; a position with no moves is terminal, and
+/// under misère the player who *cannot* move **wins**, so a terminal position is
+/// an N-position. Memoised on positions. Returns `None` if the move graph has a
+/// directed cycle.
+pub fn try_misere_is_n<P, F>(pos: &P, moves: &F, memo: &mut HashMap<P, bool>) -> Option<bool>
+where
+    P: Clone + Eq + Hash,
+    F: Fn(&P) -> Vec<P>,
+{
+    let mut visiting = HashSet::new();
+    misere_is_n_inner(pos, moves, memo, &mut visiting)
+}
+
+/// Misère outcome of a finite **acyclic** impartial game. Panics if the move
+/// graph has a directed cycle; use [`try_misere_is_n`] when cyclic input is
+/// possible.
+pub fn misere_is_n<P, F>(pos: &P, moves: &F, memo: &mut HashMap<P, bool>) -> bool
+where
+    P: Clone + Eq + Hash,
+    F: Fn(&P) -> Vec<P>,
+{
+    try_misere_is_n(pos, moves, memo).expect("misere_is_n requires an acyclic move graph")
 }
 
 /// Convenience: `true` iff `pos` is a misère P-position (second player wins).
@@ -330,6 +376,20 @@ mod tests {
             }
         }
         rec(&mut Vec::new(), 4, &mut memo);
+    }
+
+    #[test]
+    fn cyclic_game_is_rejected() {
+        fn self_loop(_: &u8) -> Vec<u8> {
+            vec![0]
+        }
+        let mut memo = HashMap::new();
+        assert_eq!(try_misere_is_n(&0u8, &self_loop, &mut memo), None);
+        assert!(std::panic::catch_unwind(|| {
+            let mut memo = HashMap::new();
+            misere_is_n(&0u8, &self_loop, &mut memo);
+        })
+        .is_err());
     }
 
     #[test]
