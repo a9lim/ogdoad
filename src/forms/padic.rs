@@ -280,10 +280,25 @@ fn is_perfect_square(n: i128) -> bool {
     hi * hi == n
 }
 
+/// The **Hilbert reciprocity product** `∏_v (a,b)_v` over all places of `ℚ` — the
+/// multiplicative product formula for the quaternion-algebra class `(a,b)`. It is
+/// `+1` for every nonzero `a, b` (Hilbert's reciprocity law); the local symbols are
+/// `+1` at all but finitely many places (those dividing `2ab`). This is the
+/// structural form of the oracle the tests use, exposed for the adelic layer.
+pub fn hilbert_reciprocity_product(a: i128, b: i128) -> i8 {
+    let mut prod = hilbert_symbol_real(a, b);
+    let mut primes = relevant_primes(&[a, b]);
+    primes.insert(2);
+    for p in primes {
+        prod *= hilbert_symbol_qp(a, b, p);
+    }
+    prod
+}
+
 /// Local isotropy of a nondegenerate integer diagonal form over `Q_p`, by rank
 /// (Serre IV.2.2): n=1 never; n=2 iff `−d` is a square; n=3 iff `(−1,−d)_p = ε_p`;
 /// n=4 iff `d` is a nonsquare or `ε_p = (−1,−1)_p`; n≥5 always.
-fn is_isotropic_at_p(entries: &[i128], p: u128) -> bool {
+pub(crate) fn is_isotropic_at_p(entries: &[i128], p: u128) -> bool {
     let n = entries.len();
     let d = disc_class(entries);
     match n {
@@ -357,14 +372,7 @@ mod tests {
 
     /// The Hilbert reciprocity oracle: ∏ over all places = +1.
     fn reciprocity_holds(a: i128, b: i128) -> bool {
-        let mut prod = hilbert_symbol_real(a, b);
-        // nontrivial only at primes dividing 2ab
-        let mut primes = relevant_primes(&[a, b]);
-        primes.insert(2);
-        for p in primes {
-            prod *= hilbert_symbol_qp(a, b, p);
-        }
-        prod == 1
+        hilbert_reciprocity_product(a, b) == 1
     }
 
     #[test]

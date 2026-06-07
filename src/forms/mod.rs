@@ -26,6 +26,7 @@
 //! field (Sylvester signature; [`HermitianForm::from_skew`] handles the
 //! skew-Hermitian case via multiplication by `i`).
 
+pub mod adelic;
 pub mod brauer_wall;
 pub mod char0;
 pub mod char2;
@@ -44,6 +45,7 @@ pub mod symplectic;
 pub mod witt;
 pub mod witt_ring;
 
+pub use adelic::*;
 pub use brauer_wall::*;
 pub use char0::*;
 pub use char2::*;

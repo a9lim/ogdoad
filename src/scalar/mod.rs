@@ -25,6 +25,14 @@
 //! | [`small`]        — p-adic, unramified | `Qq` Q_q           | `WittVec` W_N | F_q |
 //! | [`finite_field`] — finite             | `Fp`/`Fpn` F_{p^n} | (itself)      | — |
 //! | [`finite_field`] — char-2 nim         | `Nimber` F_2¹²⁸    | (itself)      | — |
+//! | [`global`]       — all places at once | `Adele` A_Q        | (∏ Z_p × ℝ)   | — |
+//!
+//! The [`global`] family is the capstone of the place-organized table: every other
+//! row picks *one* place, while the adele ring `A_Q = ∏'_v Q_v` is the restricted
+//! product over *all* of them — the home of the local–global passage (the product
+//! formula, Hilbert reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms::adelic)).
+//! Its runtime-prime cell [`LocalQp`] is the const-generic gap-filler the table
+//! otherwise can't supply.
 //!
 //! `Ordinal` On₂ (the transfinite nimbers, [`big::ordinal`]) is algebraically
 //! closed of characteristic 2, not a local field — so its ring-of-integers cell is
@@ -66,6 +74,7 @@ pub mod big;
 pub mod exact;
 pub mod finite_field;
 pub mod functor;
+pub mod global;
 pub mod integrality;
 pub mod small;
 pub mod valued;
@@ -74,6 +83,7 @@ pub use big::*;
 pub use exact::*;
 pub use finite_field::*;
 pub use functor::*;
+pub use global::*;
 pub use integrality::*;
 pub use small::*;
 pub use valued::*;
@@ -191,6 +201,7 @@ impl_scalar_ops!([S: Scalar] Surcomplex<S>);
 impl_scalar_ops!([S: Scalar, const K: usize] Laurent<S, K>);
 impl_scalar_ops!([S: Valued, const E: usize] Ramified<S, E>);
 impl_scalar_ops!([S: Valued] Gauss<S>);
+impl_scalar_ops!(Adele);
 
 #[cfg(test)]
 mod ops_tests {
