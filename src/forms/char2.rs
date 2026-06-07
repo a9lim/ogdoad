@@ -17,6 +17,7 @@
 //! sum is pushed to F₂ by the field trace. `arf_invariant` uses the latter.
 
 use crate::clifford::{CliffordAlgebra, Metric, Multivector};
+use crate::linalg::f2;
 use crate::scalar::{nim_add, nim_inv, nim_mul, nim_trace, Nimber};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -249,40 +250,6 @@ pub fn arf_invariant(metric: &Metric<Nimber>) -> Option<ArfResult> {
 // The Dickson invariant — the characteristic-2 determinant replacement
 // ---------------------------------------------------------------------------
 
-/// Rank of a matrix over the nim-field F_{2^128}, by Gaussian elimination with nim
-/// arithmetic. Rows are dense u128 vectors (all the same length).
-fn nim_matrix_rank(mut rows: Vec<Vec<u128>>) -> usize {
-    let nrows = rows.len();
-    if nrows == 0 {
-        return 0;
-    }
-    let ncols = rows[0].len();
-    let mut pr = 0usize; // current pivot row
-    for col in 0..ncols {
-        let Some(p) = (pr..nrows).find(|&r| rows[r][col] != 0) else {
-            continue;
-        };
-        rows.swap(pr, p);
-        let inv = nim_inv(rows[pr][col]).unwrap();
-        for c in col..ncols {
-            rows[pr][c] = nim_mul(rows[pr][c], inv);
-        }
-        for r in 0..nrows {
-            if r != pr && rows[r][col] != 0 {
-                let f = rows[r][col];
-                for c in col..ncols {
-                    rows[r][c] = nim_add(rows[r][c], nim_mul(f, rows[pr][c]));
-                }
-            }
-        }
-        pr += 1;
-        if pr == nrows {
-            break;
-        }
-    }
-    pr
-}
-
 /// The **Dickson invariant** `D(g) ∈ F₂` of an orthogonal transformation `g`,
 /// given as an n×n matrix over a nim-field: `D(g) = dim Im(g − I) mod 2`
 /// (`= rank(g + I) mod 2`, since `−1 = 1`).
@@ -298,7 +265,7 @@ pub fn dickson_matrix(g: &[Vec<u128>]) -> u8 {
     for i in 0..n {
         m[i][i] = nim_add(m[i][i], 1); // g − I  (= g + I in char 2)
     }
-    (nim_matrix_rank(m) % 2) as u8
+    (f2::nim_rank(m) % 2) as u8
 }
 
 /// The Dickson invariant of a Clifford **versor** (a product of vectors) acting

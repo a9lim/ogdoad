@@ -19,6 +19,7 @@
 //! algebra suffices; monomial blades and vectors are factored without division.
 
 use crate::clifford::{bits, grade, CliffordAlgebra, Multivector};
+use crate::linalg::field;
 use crate::scalar::Scalar;
 use std::collections::BTreeSet;
 
@@ -35,54 +36,6 @@ fn homogeneous_grade<S: Scalar>(a: &Multivector<S>) -> Option<usize> {
         }
     }
     g // None ⇔ zero (no terms)
-}
-
-/// A basis of the right nullspace `{ x : M x = 0 }` of a row-major matrix with
-/// `ncols` columns, by reduction using unit pivots. Over a field this is ordinary
-/// RREF; over a ring it returns only the free kernel basis visible through unit
-/// pivots and must not be used as a decomposability criterion.
-fn unit_pivot_nullspace<S: Scalar>(mut m: Vec<Vec<S>>, ncols: usize) -> Vec<Vec<S>> {
-    let nrows = m.len();
-    let mut pivot_cols: Vec<usize> = Vec::new();
-    let mut row = 0;
-    for col in 0..ncols {
-        let Some(piv) = (row..nrows).find(|&r| m[r][col].inv().is_some()) else {
-            continue;
-        };
-        m.swap(row, piv);
-        let pinv = m[row][col].inv().expect("pivot is invertible");
-        for c in 0..ncols {
-            m[row][c] = m[row][c].mul(&pinv);
-        }
-        for r in 0..nrows {
-            if r == row {
-                continue;
-            }
-            let f = m[r][col].clone();
-            if f.is_zero() {
-                continue;
-            }
-            for c in 0..ncols {
-                let sub = f.mul(&m[row][c]);
-                m[r][c] = m[r][c].sub(&sub);
-            }
-        }
-        pivot_cols.push(col);
-        row += 1;
-        if row == nrows {
-            break;
-        }
-    }
-    let mut basis = Vec::new();
-    for fc in (0..ncols).filter(|c| !pivot_cols.contains(c)) {
-        let mut x = vec![S::zero(); ncols];
-        x[fc] = S::one();
-        for (ri, &pc) in pivot_cols.iter().enumerate() {
-            x[pc] = m[ri][fc].neg();
-        }
-        basis.push(x);
-    }
-    basis
 }
 
 fn combinations(n: usize, k: usize) -> Vec<u128> {
@@ -214,7 +167,7 @@ pub fn blade_subspace<S: Scalar>(
                 .collect()
         })
         .collect();
-    Some(unit_pivot_nullspace(mat, n))
+    Some(field::unit_pivot_nullspace(mat, n))
 }
 
 /// Whether `A` is a **blade** (a decomposable homogeneous multivector). Scalars,

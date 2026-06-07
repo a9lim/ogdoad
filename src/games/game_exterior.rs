@@ -18,6 +18,7 @@
 
 use super::Game;
 use crate::clifford::{bits, CliffordAlgebra, Metric, Multivector};
+use crate::linalg::integer::reduce_integer_vector;
 use crate::scalar::Integer;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -348,113 +349,6 @@ fn grade_masks(n: usize, grade: usize) -> Vec<u128> {
     out
 }
 
-fn leading(row: &[i128]) -> Option<usize> {
-    row.iter().position(|&x| x != 0)
-}
-
-fn row_is_zero(row: &[i128]) -> bool {
-    row.iter().all(|&x| x == 0)
-}
-
-fn checked_abs(x: i128) -> i128 {
-    x.checked_abs()
-        .expect("integer relation coefficient magnitude exceeds i128")
-}
-
-fn negate_row(row: &mut [i128]) {
-    for x in row {
-        *x = x
-            .checked_neg()
-            .expect("integer relation coefficient magnitude exceeds i128");
-    }
-}
-
-fn sub_row_multiple(target: &mut [i128], source: &[i128], q: i128) {
-    for (t, &s) in target.iter_mut().zip(source) {
-        let delta = q
-            .checked_mul(s)
-            .expect("integer relation row operation exceeds i128");
-        *t = t
-            .checked_sub(delta)
-            .expect("integer relation row operation exceeds i128");
-    }
-}
-
-/// Row Hermite normal form for an integer row lattice.
-///
-/// The returned rows generate exactly the same submodule as the input rows, have
-/// increasing leading columns, positive pivots, zeros below each pivot, and
-/// residues above pivots reduced modulo the pivot. This gives
-/// [`reduce_integer_vector`] a canonical quotient representative for
-/// `Z^n / <rows>`.
-fn normalize_relation_rows(mut rows: Vec<Vec<i128>>) -> Vec<Vec<i128>> {
-    let width = rows.first().map_or(0, Vec::len);
-    assert!(
-        rows.iter().all(|r| r.len() == width),
-        "integer relation rows must have equal width"
-    );
-    rows.retain(|r| !row_is_zero(r));
-    let mut rank = 0usize;
-    for col in 0..width {
-        let Some(pivot) = (rank..rows.len()).find(|&r| rows[r][col] != 0) else {
-            continue;
-        };
-        rows.swap(rank, pivot);
-        if rows[rank][col] < 0 {
-            negate_row(&mut rows[rank]);
-        }
-
-        loop {
-            let Some(r) = ((rank + 1)..rows.len()).find(|&r| rows[r][col] != 0) else {
-                break;
-            };
-            let pivot_val = rows[rank][col];
-            let q = rows[r][col].div_euclid(pivot_val);
-            let source = rows[rank].clone();
-            sub_row_multiple(&mut rows[r], &source, q);
-            if rows[r][col] != 0 && checked_abs(rows[r][col]) < checked_abs(rows[rank][col]) {
-                rows.swap(rank, r);
-                if rows[rank][col] < 0 {
-                    negate_row(&mut rows[rank]);
-                }
-            }
-        }
-
-        if rows[rank][col] < 0 {
-            negate_row(&mut rows[rank]);
-        }
-        let pivot_val = rows[rank][col];
-        let source = rows[rank].clone();
-        for r in 0..rows.len() {
-            if r == rank || rows[r][col] == 0 {
-                continue;
-            }
-            let q = rows[r][col].div_euclid(pivot_val);
-            sub_row_multiple(&mut rows[r], &source, q);
-        }
-        rank += 1;
-    }
-    rows.retain(|r| !row_is_zero(r));
-    rows.sort_by_key(|r| leading(r).unwrap_or(usize::MAX));
-    rows
-}
-
-fn reduce_integer_vector(v: &mut [i128], rows: Vec<Vec<i128>>) {
-    for row in normalize_relation_rows(rows) {
-        let Some(lead) = leading(&row) else {
-            continue;
-        };
-        let pivot = row[lead];
-        debug_assert!(pivot > 0);
-        let q = v[lead].div_euclid(pivot);
-        if q != 0 {
-            for i in 0..v.len() {
-                v[i] -= q * row[i];
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -516,27 +410,5 @@ mod tests {
         let e1 = ext.generator(1);
         assert_eq!(ext.reduce(&e0), ext.reduce(&e1));
         assert!(ext.is_zero(&ext.wedge(&e0, &e1)));
-    }
-
-    #[test]
-    fn integer_relation_reduction_uses_the_full_row_lattice() {
-        let rows = vec![vec![2, 0], vec![3, 0]];
-        assert_eq!(normalize_relation_rows(rows.clone()), vec![vec![1, 0]]);
-
-        let mut v = vec![5, 7];
-        reduce_integer_vector(&mut v, rows);
-        assert_eq!(v, vec![0, 7]);
-    }
-
-    #[test]
-    fn integer_relation_reduction_handles_coupled_relations() {
-        let rows = vec![vec![2, 4], vec![6, 10]];
-        let mut v = vec![8, 14]; // one copy of each relation
-        reduce_integer_vector(&mut v, rows.clone());
-        assert_eq!(v, vec![0, 0]);
-
-        let mut shifted = vec![9, 14];
-        reduce_integer_vector(&mut shifted, rows);
-        assert_ne!(shifted, vec![0, 0]);
     }
 }

@@ -14,7 +14,8 @@
 //! Witt group made concrete.
 
 use crate::clifford::Metric;
-use crate::forms::{arf_invariant, as_diagonal, classify_oddchar};
+use crate::forms::FiniteOddField;
+use crate::forms::{arf_invariant, as_diagonal, classify_finite_odd, classify_oddchar};
 use crate::scalar::{Fp, Nimber, Rational, Scalar, Surcomplex, Surreal};
 
 // ----------------------------------------------------------------------------
@@ -53,6 +54,12 @@ pub fn isometric_surcomplex(
 /// discriminant square-class)` is a complete invariant.
 pub fn isometric_oddchar<const P: u128>(m1: &Metric<Fp<P>>, m2: &Metric<Fp<P>>) -> Option<bool> {
     Some(classify_oddchar(m1)? == classify_oddchar(m2)?)
+}
+
+/// Are two forms over the same finite odd field isometric? Over a finite field
+/// `(dim, discriminant square-class)` is a complete invariant.
+pub fn isometric_finite_odd<F: FiniteOddField>(m1: &Metric<F>, m2: &Metric<F>) -> Option<bool> {
+    Some(classify_finite_odd(m1)? == classify_finite_odd(m2)?)
 }
 
 /// Are two nim-field (characteristic 2) forms isometric? The Arf data
@@ -98,7 +105,10 @@ pub fn witt_decompose_real(m: &Metric<Surreal>) -> Option<RealWittDecomp> {
 /// planes plus an anisotropic kernel of dimension 0, 1, or 2.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OddWittDecomp {
+    /// Characteristic prime.
     pub p: u128,
+    /// Field order `q`; equal to `p` for prime fields and `p^n` for extensions.
+    pub field_order: u128,
     /// Number of hyperbolic planes split off.
     pub witt_index: usize,
     /// Dimension of the anisotropic kernel: `0` (hyperbolic), `1` (odd dim), or
@@ -115,14 +125,17 @@ pub struct OddWittDecomp {
 /// hyperbolic (dim 0) iff its discriminant matches the hyperbolic one, else its
 /// anisotropic kernel is the unique anisotropic plane (dim 2).
 pub fn witt_decompose_oddchar<const P: u128>(m: &Metric<Fp<P>>) -> Option<OddWittDecomp> {
-    if !Fp::<P>::modulus_is_prime() || P == 2 {
-        return None;
-    }
+    witt_decompose_finite_odd(m)
+}
+
+/// Witt decomposition over any finite field `F_q` of odd characteristic.
+pub fn witt_decompose_finite_odd<F: FiniteOddField>(m: &Metric<F>) -> Option<OddWittDecomp> {
+    F::ensure_supported()?;
     let d = as_diagonal(m)?;
-    let nonzero: Vec<Fp<P>> = d.q.into_iter().filter(|x| !x.is_zero()).collect();
+    let nonzero: Vec<F> = d.q.into_iter().filter(|x| !x.is_zero()).collect();
     let dim = nonzero.len();
     let radical_dim = m.q.len() - dim;
-    let det = nonzero.iter().fold(Fp::<P>::one(), |acc, x| acc.mul(x));
+    let det = nonzero.iter().fold(F::one(), |acc, x| acc.mul(x));
 
     let anisotropic_dim = if dim % 2 == 1 {
         1
@@ -130,11 +143,11 @@ pub fn witt_decompose_oddchar<const P: u128>(m: &Metric<Fp<P>>) -> Option<OddWit
         // even dim 2k: hyperbolic iff (−1)^k · det is a square.
         let k = dim / 2;
         let sign = if k % 2 == 1 {
-            Fp::<P>::new(-1)
+            F::from_i128(-1)
         } else {
-            Fp::<P>::one()
+            F::one()
         };
-        if super::is_square(sign.mul(&det)) {
+        if F::is_square_value(sign.mul(&det)) {
             0
         } else {
             2
@@ -143,15 +156,16 @@ pub fn witt_decompose_oddchar<const P: u128>(m: &Metric<Fp<P>>) -> Option<OddWit
     let witt_index = (dim - anisotropic_dim) / 2;
     // anisotropic kernel disc = det · (−1)^{witt_index} (mod squares).
     let twist = if witt_index % 2 == 1 {
-        Fp::<P>::new(-1)
+        F::from_i128(-1)
     } else {
-        Fp::<P>::one()
+        F::one()
     };
     Some(OddWittDecomp {
-        p: P,
+        p: F::characteristic_prime(),
+        field_order: F::field_order(),
         witt_index,
         anisotropic_dim,
-        anisotropic_disc_is_square: super::is_square(det.mul(&twist)),
+        anisotropic_disc_is_square: F::is_square_value(det.mul(&twist)),
         radical_dim,
     })
 }

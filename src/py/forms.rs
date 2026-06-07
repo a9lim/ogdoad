@@ -5,8 +5,8 @@
 
 use super::engine::{NimberAlgebra, NimberMV, SurcomplexAlgebra, SurrealAlgebra};
 use crate::clifford::Metric;
-use crate::forms::{WittClass, WittClassG};
-use crate::scalar::Fp;
+use crate::forms::{FiniteOddField, WittClass, WittClassG};
+use crate::scalar::{Fp, Fpn};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
@@ -175,8 +175,154 @@ fn dickson_of_versor(v: &NimberMV) -> PyResult<u8> {
 // Odd-characteristic classifier (the trichotomy's third leg)
 // ---------------------------------------------------------------------------
 
-fn fp_diag<const P: u128>(q: &[i128]) -> Metric<Fp<P>> {
-    Metric::diagonal(q.iter().map(|&x| Fp::<P>::new(x)).collect())
+fn finite_diag<F: FiniteOddField>(q: &[i128]) -> Metric<F> {
+    Metric::diagonal(q.iter().map(|&x| F::from_i128(x)).collect())
+}
+
+fn unsupported_finite_field_err() -> PyErr {
+    PyValueError::new_err("supported odd finite fields: F_3, F_5, F_7, F_11, F_13, F_9, F_25, F_27")
+}
+
+fn finite_field_order(p: u128, degree: usize) -> PyResult<u128> {
+    match (p, degree) {
+        (3, 1) => Ok(3),
+        (5, 1) => Ok(5),
+        (7, 1) => Ok(7),
+        (11, 1) => Ok(11),
+        (13, 1) => Ok(13),
+        (3, 2) => Ok(9),
+        (5, 2) => Ok(25),
+        (3, 3) => Ok(27),
+        _ => Err(unsupported_finite_field_err()),
+    }
+}
+
+macro_rules! with_finite_odd_metric {
+    ($p:expr, $degree:expr, $q:expr, |$metric:ident| $body:expr) => {{
+        match ($p, $degree) {
+            (3, 1) => {
+                let $metric = finite_diag::<Fp<3>>($q);
+                $body
+            }
+            (5, 1) => {
+                let $metric = finite_diag::<Fp<5>>($q);
+                $body
+            }
+            (7, 1) => {
+                let $metric = finite_diag::<Fp<7>>($q);
+                $body
+            }
+            (11, 1) => {
+                let $metric = finite_diag::<Fp<11>>($q);
+                $body
+            }
+            (13, 1) => {
+                let $metric = finite_diag::<Fp<13>>($q);
+                $body
+            }
+            (3, 2) => {
+                let $metric = finite_diag::<Fpn<3, 2>>($q);
+                $body
+            }
+            (5, 2) => {
+                let $metric = finite_diag::<Fpn<5, 2>>($q);
+                $body
+            }
+            (3, 3) => {
+                let $metric = finite_diag::<Fpn<3, 3>>($q);
+                $body
+            }
+            _ => return Err(unsupported_finite_field_err()),
+        }
+    }};
+}
+
+macro_rules! with_finite_odd_metrics {
+    ($p:expr, $degree:expr, $q1:expr, $q2:expr, |$m1:ident, $m2:ident| $body:expr) => {{
+        match ($p, $degree) {
+            (3, 1) => {
+                let $m1 = finite_diag::<Fp<3>>($q1);
+                let $m2 = finite_diag::<Fp<3>>($q2);
+                $body
+            }
+            (5, 1) => {
+                let $m1 = finite_diag::<Fp<5>>($q1);
+                let $m2 = finite_diag::<Fp<5>>($q2);
+                $body
+            }
+            (7, 1) => {
+                let $m1 = finite_diag::<Fp<7>>($q1);
+                let $m2 = finite_diag::<Fp<7>>($q2);
+                $body
+            }
+            (11, 1) => {
+                let $m1 = finite_diag::<Fp<11>>($q1);
+                let $m2 = finite_diag::<Fp<11>>($q2);
+                $body
+            }
+            (13, 1) => {
+                let $m1 = finite_diag::<Fp<13>>($q1);
+                let $m2 = finite_diag::<Fp<13>>($q2);
+                $body
+            }
+            (3, 2) => {
+                let $m1 = finite_diag::<Fpn<3, 2>>($q1);
+                let $m2 = finite_diag::<Fpn<3, 2>>($q2);
+                $body
+            }
+            (5, 2) => {
+                let $m1 = finite_diag::<Fpn<5, 2>>($q1);
+                let $m2 = finite_diag::<Fpn<5, 2>>($q2);
+                $body
+            }
+            (3, 3) => {
+                let $m1 = finite_diag::<Fpn<3, 3>>($q1);
+                let $m2 = finite_diag::<Fpn<3, 3>>($q2);
+                $body
+            }
+            _ => return Err(unsupported_finite_field_err()),
+        }
+    }};
+}
+
+macro_rules! with_finite_odd_value {
+    ($p:expr, $degree:expr, $x:expr, |$value:ident| $body:expr) => {{
+        match ($p, $degree) {
+            (3, 1) => {
+                let $value = <Fp<3> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            (5, 1) => {
+                let $value = <Fp<5> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            (7, 1) => {
+                let $value = <Fp<7> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            (11, 1) => {
+                let $value = <Fp<11> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            (13, 1) => {
+                let $value = <Fp<13> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            (3, 2) => {
+                let $value = <Fpn<3, 2> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            (5, 2) => {
+                let $value = <Fpn<5, 2> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            (3, 3) => {
+                let $value = <Fpn<3, 3> as FiniteOddField>::from_i128($x);
+                $body
+            }
+            _ => return Err(unsupported_finite_field_err()),
+        }
+    }};
 }
 
 #[pyclass(name = "OddCharType", module = "pleroma")]
@@ -189,6 +335,10 @@ impl PyOddCharType {
     #[getter]
     fn p(&self) -> u128 {
         self.inner.p
+    }
+    #[getter]
+    fn field_order(&self) -> u128 {
+        self.inner.field_order
     }
     #[getter]
     fn dim(&self) -> usize {
@@ -208,6 +358,122 @@ impl PyOddCharType {
     }
     fn __repr__(&self) -> String {
         self.inner.display()
+    }
+}
+
+#[pyclass(name = "FiniteFieldForm", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyFiniteFieldForm {
+    p: u128,
+    degree: usize,
+    q: Vec<i128>,
+}
+
+#[pymethods]
+impl PyFiniteFieldForm {
+    #[new]
+    #[pyo3(signature = (p, q, degree=1))]
+    fn new(p: u128, q: Vec<i128>, degree: usize) -> PyResult<Self> {
+        finite_field_order(p, degree)?;
+        Ok(PyFiniteFieldForm { p, degree, q })
+    }
+
+    #[getter]
+    fn p(&self) -> u128 {
+        self.p
+    }
+
+    #[getter]
+    fn degree(&self) -> usize {
+        self.degree
+    }
+
+    #[getter]
+    fn field_order(&self) -> PyResult<u128> {
+        finite_field_order(self.p, self.degree)
+    }
+
+    #[getter]
+    fn diagonal(&self) -> Vec<i128> {
+        self.q.clone()
+    }
+
+    fn classify(&self) -> PyResult<PyOddCharType> {
+        let res = with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
+            crate::forms::classify_finite_odd(&m)
+        });
+        res.map(|inner| PyOddCharType { inner })
+            .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    }
+
+    fn witt_class(&self) -> PyResult<PyWittClassG> {
+        let res = with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
+            crate::forms::finite_odd_witt(&m)
+        });
+        res.map(|inner| PyWittClassG { inner })
+            .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    }
+
+    fn witt_decompose(&self) -> PyResult<(usize, usize, bool, usize)> {
+        let d = with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
+            crate::forms::witt_decompose_finite_odd(&m)
+        })
+        .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))?;
+        Ok((
+            d.witt_index,
+            d.anisotropic_dim,
+            d.anisotropic_disc_is_square,
+            d.radical_dim,
+        ))
+    }
+
+    fn is_isometric(&self, other: &PyFiniteFieldForm) -> PyResult<bool> {
+        if self.p != other.p || self.degree != other.degree {
+            return Err(PyValueError::new_err(
+                "isometry needs both forms over the same finite field",
+            ));
+        }
+        with_finite_odd_metrics!(self.p, self.degree, &self.q, &other.q, |m1, m2| {
+            crate::forms::isometric_finite_odd(&m1, &m2)
+                .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+        })
+    }
+
+    fn is_square(&self, x: i128) -> PyResult<bool> {
+        Ok(with_finite_odd_value!(self.p, self.degree, x, |value| {
+            crate::forms::is_square_finite(value)
+        }))
+    }
+
+    fn hasse_invariant(&self) -> PyResult<i8> {
+        with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
+            crate::forms::hasse_invariant_finite_odd(&m)
+                .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+        })
+    }
+
+    fn e_staircase(&self) -> PyResult<(u8, u8, i8, usize)> {
+        let s = with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
+            crate::forms::e_staircase_finite_odd(&m)
+        })
+        .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))?;
+        Ok((s.e0, s.e1, s.e2, s.stabilizes_at))
+    }
+
+    fn bw_class(&self) -> PyResult<PyBrauerWallClass> {
+        let res = with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
+            crate::forms::bw_class_finite_odd(&m)
+        });
+        res.map(|inner| PyBrauerWallClass { inner })
+            .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!(
+            "FiniteFieldForm(F_{}, diagonal={:?})",
+            self.field_order()?,
+            self.q
+        ))
     }
 }
 
@@ -245,59 +511,26 @@ impl PyWittClassG {
 /// discriminant + Hasse). Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
 fn classify_oddchar(p: u128, q: Vec<i128>) -> PyResult<PyOddCharType> {
-    let res = match p {
-        3 => crate::forms::classify_oddchar(&fp_diag::<3>(&q)),
-        5 => crate::forms::classify_oddchar(&fp_diag::<5>(&q)),
-        7 => crate::forms::classify_oddchar(&fp_diag::<7>(&q)),
-        11 => crate::forms::classify_oddchar(&fp_diag::<11>(&q)),
-        13 => crate::forms::classify_oddchar(&fp_diag::<13>(&q)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    };
-    res.map(|t| PyOddCharType { inner: t })
-        .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    PyFiniteFieldForm::new(p, q, 1)?.classify()
 }
 
 /// The odd-characteristic Witt class of a diagonal form `q` over `F_p`.
 #[pyfunction]
 fn oddchar_witt(p: u128, q: Vec<i128>) -> PyResult<PyWittClassG> {
-    let res = match p {
-        3 => crate::forms::oddchar_witt(&fp_diag::<3>(&q)),
-        5 => crate::forms::oddchar_witt(&fp_diag::<5>(&q)),
-        7 => crate::forms::oddchar_witt(&fp_diag::<7>(&q)),
-        11 => crate::forms::oddchar_witt(&fp_diag::<11>(&q)),
-        13 => crate::forms::oddchar_witt(&fp_diag::<13>(&q)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    };
-    res.map(|w| PyWittClassG { inner: w })
-        .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    PyFiniteFieldForm::new(p, q, 1)?.witt_class()
 }
 
 /// Is `x` a square mod `p`? (Euler's criterion.) Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
 fn is_square_mod(p: u128, x: i128) -> PyResult<bool> {
-    Ok(match p {
-        3 => crate::forms::is_square(Fp::<3>::new(x)),
-        5 => crate::forms::is_square(Fp::<5>::new(x)),
-        7 => crate::forms::is_square(Fp::<7>::new(x)),
-        11 => crate::forms::is_square(Fp::<11>::new(x)),
-        13 => crate::forms::is_square(Fp::<13>::new(x)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    })
+    PyFiniteFieldForm::new(p, Vec::new(), 1)?.is_square(x)
 }
 
 /// The Hasse–Witt invariant of a diagonal form `q` over `F_p` (always +1 over a
 /// finite field). Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
 fn hasse_invariant(p: u128, q: Vec<i128>) -> PyResult<i8> {
-    let res = match p {
-        3 => crate::forms::hasse_invariant(&fp_diag::<3>(&q)),
-        5 => crate::forms::hasse_invariant(&fp_diag::<5>(&q)),
-        7 => crate::forms::hasse_invariant(&fp_diag::<7>(&q)),
-        11 => crate::forms::hasse_invariant(&fp_diag::<11>(&q)),
-        13 => crate::forms::hasse_invariant(&fp_diag::<13>(&q)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    };
-    res.ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    PyFiniteFieldForm::new(p, q, 1)?.hasse_invariant()
 }
 
 /// Witt decomposition of a diagonal odd-char form `q` over `F_p`: returns
@@ -305,36 +538,16 @@ fn hasse_invariant(p: u128, q: Vec<i128>) -> PyResult<i8> {
 /// Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
 fn witt_decompose_oddchar(p: u128, q: Vec<i128>) -> PyResult<(usize, usize, bool, usize)> {
-    let d = match p {
-        3 => crate::forms::witt_decompose_oddchar(&fp_diag::<3>(&q)),
-        5 => crate::forms::witt_decompose_oddchar(&fp_diag::<5>(&q)),
-        7 => crate::forms::witt_decompose_oddchar(&fp_diag::<7>(&q)),
-        11 => crate::forms::witt_decompose_oddchar(&fp_diag::<11>(&q)),
-        13 => crate::forms::witt_decompose_oddchar(&fp_diag::<13>(&q)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    }
-    .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))?;
-    Ok((
-        d.witt_index,
-        d.anisotropic_dim,
-        d.anisotropic_disc_is_square,
-        d.radical_dim,
-    ))
+    PyFiniteFieldForm::new(p, q, 1)?.witt_decompose()
 }
 
 /// Are two diagonal odd-char forms over `F_p` isometric? `(dim, discriminant)`
 /// is a complete invariant. Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
 fn is_isometric_oddchar(p: u128, q1: Vec<i128>, q2: Vec<i128>) -> PyResult<bool> {
-    let res = match p {
-        3 => crate::forms::isometric_oddchar(&fp_diag::<3>(&q1), &fp_diag::<3>(&q2)),
-        5 => crate::forms::isometric_oddchar(&fp_diag::<5>(&q1), &fp_diag::<5>(&q2)),
-        7 => crate::forms::isometric_oddchar(&fp_diag::<7>(&q1), &fp_diag::<7>(&q2)),
-        11 => crate::forms::isometric_oddchar(&fp_diag::<11>(&q1), &fp_diag::<11>(&q2)),
-        13 => crate::forms::isometric_oddchar(&fp_diag::<13>(&q1), &fp_diag::<13>(&q2)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    };
-    res.ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    let f1 = PyFiniteFieldForm::new(p, q1, 1)?;
+    let f2 = PyFiniteFieldForm::new(p, q2, 1)?;
+    f1.is_isometric(&f2)
 }
 
 /// Witt decomposition of a real (surreal) form: returns `(witt_index,
@@ -404,16 +617,7 @@ fn springer_decompose(alg: &SurrealAlgebra) -> PyResult<PySpringerDecomp> {
 /// Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
 fn e_staircase_oddchar(p: u128, q: Vec<i128>) -> PyResult<(u8, u8, i8, usize)> {
-    let s = match p {
-        3 => crate::forms::e_staircase_oddchar(&fp_diag::<3>(&q)),
-        5 => crate::forms::e_staircase_oddchar(&fp_diag::<5>(&q)),
-        7 => crate::forms::e_staircase_oddchar(&fp_diag::<7>(&q)),
-        11 => crate::forms::e_staircase_oddchar(&fp_diag::<11>(&q)),
-        13 => crate::forms::e_staircase_oddchar(&fp_diag::<13>(&q)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    }
-    .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))?;
-    Ok((s.e0, s.e1, s.e2, s.stabilizes_at))
+    PyFiniteFieldForm::new(p, q, 1)?.e_staircase()
 }
 
 /// The real cohomological invariant `eₙ` of a form of signature `σ` over `ℝ`:
@@ -505,16 +709,7 @@ fn bw_class_complex(alg: &SurcomplexAlgebra) -> PyResult<PyBrauerWallClass> {
 /// graded part, `BW(F_q) ≅ W(F_q)`). Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
 fn bw_class_oddchar(p: u128, q: Vec<i128>) -> PyResult<PyBrauerWallClass> {
-    let res = match p {
-        3 => crate::forms::bw_class_oddchar(&fp_diag::<3>(&q)),
-        5 => crate::forms::bw_class_oddchar(&fp_diag::<5>(&q)),
-        7 => crate::forms::bw_class_oddchar(&fp_diag::<7>(&q)),
-        11 => crate::forms::bw_class_oddchar(&fp_diag::<11>(&q)),
-        13 => crate::forms::bw_class_oddchar(&fp_diag::<13>(&q)),
-        _ => return Err(PyValueError::new_err("supported primes: 3, 5, 7, 11, 13")),
-    };
-    res.map(|c| PyBrauerWallClass { inner: c })
-        .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
+    PyFiniteFieldForm::new(p, q, 1)?.bw_class()
 }
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -522,6 +717,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCliffordType>()?;
     m.add_class::<PyWittClass>()?;
     m.add_class::<PyOddCharType>()?;
+    m.add_class::<PyFiniteFieldForm>()?;
     m.add_class::<PyWittClassG>()?;
     m.add_class::<PySpringerDecomp>()?;
     m.add_class::<PyBrauerWallClass>()?;

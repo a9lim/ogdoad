@@ -25,7 +25,9 @@
 //! the *actual* `direct_sum`/`graded_tensor`, in every leg.
 
 use crate::clifford::Metric;
-use crate::forms::{classify_surcomplex, classify_surreal, oddchar_witt, WittClassG};
+use crate::forms::{
+    classify_surcomplex, classify_surreal, finite_odd_witt, FiniteOddField, WittClassG,
+};
 use crate::scalar::{Fp, Surcomplex, Surreal};
 
 /// A class in the Brauer–Wall group, by characteristic leg. Each leg's `add` is the
@@ -122,11 +124,16 @@ pub fn bw_class_complex(metric: &Metric<Surcomplex<Surreal>>) -> Option<BrauerWa
 /// order-4 `oddchar` Witt data (`BW(F_q) ≅ W(F_q)` over a finite field, since the
 /// Brauer group is trivial). `None` if non-diagonal.
 pub fn bw_class_oddchar<const P: u128>(metric: &Metric<Fp<P>>) -> Option<BrauerWallClass> {
-    match oddchar_witt(metric)? {
+    bw_class_finite_odd(metric)
+}
+
+/// The Brauer-Wall class of `Cl(Q)` over any finite field of odd characteristic.
+pub fn bw_class_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<BrauerWallClass> {
+    match finite_odd_witt(metric)? {
         WittClassG::OddChar { kappa, e0, sclass } => {
             Some(BrauerWallClass::OddChar { kappa, e0, sclass })
         }
-        _ => unreachable!("oddchar_witt over Fp returns the OddChar variant"),
+        _ => unreachable!("finite_odd_witt returns the OddChar variant"),
     }
 }
 

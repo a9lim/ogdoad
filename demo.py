@@ -133,6 +133,8 @@ section("Fp — odd characteristic, completing the classification trichotomy")
 print("  F₃ <1,1> :", pl.classify_oddchar(3, [1, 1]))   # disc 1 = square
 print("  F₃ <1,2> :", pl.classify_oddchar(3, [1, 2]))   # disc 2 = nonsquare
 print("  Hasse always +1 over a finite field:", pl.hasse_invariant(5, [1, 2, 3, 4]))
+f9 = pl.FiniteFieldForm(3, [1, 1], degree=2)
+print("  F₉ <1,1> via FiniteFieldForm:", f9.classify(), "W=", f9.witt_class())
 # the odd-char Witt group: ℤ/4 when −1 is a nonsquare (F₃), ℤ/2×ℤ/2 when it is (F₅)
 g3 = pl.oddchar_witt(3, [1]); zero3 = pl.oddchar_witt(3, [])
 print("  W(F₃) is ℤ/4 :", g3 + g3 != zero3, "and", g3 + g3 + g3 + g3 == zero3)

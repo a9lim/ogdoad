@@ -9,16 +9,17 @@
 //! This module ships the short-game engine — sum, negation, the recursive order,
 //! birthday, the number test, and the **canonical form** (dominated/reversible
 //! reduction, the value key) — together with the game↔surreal bridge
-//! ([`Game::number_value`] / [`Game::from_surreal`], numbers only) and
-//! [`NumberGame`], the numbers-only view that carries *transfinite* number games
-//! (`ω`, `ε`) by their [`Surreal`] value with no infinite option tree.
+//! ([`Game::number_value`] / [`Game::from_surreal`], numbers only). The
+//! numbers-only view that carries *transfinite* number games (`ω`, `ε`) by their
+//! [`Surreal`] value with no infinite option tree lives in the sibling
+//! [`number_game`](crate::games::number_game) module.
 //!
 //! The exterior algebra of the game group — the one Clifford-adjacent structure
 //! that lives on *all* of game-world because it needs only the ℤ-module structure,
 //! not the game product — is the sibling module
 //! [`game_exterior`](crate::games::game_exterior).
 
-use crate::scalar::{Ordinal, Scalar, Surreal};
+use crate::scalar::{Scalar, Surreal};
 use std::cmp::Ordering;
 use std::sync::Arc;
 
@@ -344,64 +345,6 @@ impl Game {
     }
 }
 
-/// A transfinite **number-valued** game, carried by its surreal value rather than
-/// a (necessarily infinite) option tree. Numbers are the one transfinite class
-/// needing no materialized options: value, birthday, and the group/order
-/// operations all come from [`Surreal`]. The finite [`Game`] engine is untouched
-/// — `NumberGame` is a parallel *view*, not a `Game`, the numbers-only honoring
-/// of "games of transfinite birthday" (`ω = {0,1,2,…|}` is a number).
-#[derive(Clone, Debug, PartialEq)]
-pub struct NumberGame {
-    value: Surreal,
-}
-
-impl NumberGame {
-    /// The number-game of a surreal value (always succeeds — no options built).
-    pub fn from_surreal(s: &Surreal) -> NumberGame {
-        NumberGame { value: s.clone() }
-    }
-
-    /// The exact surreal value.
-    pub fn value(&self) -> &Surreal {
-        &self.value
-    }
-
-    /// The birthday as an [`Ordinal`], via [`Surreal::birthday_ordinal`]. `None`
-    /// when the value is outside the representable sign-expansion subclass (e.g.
-    /// `√ω`).
-    pub fn birthday(&self) -> Option<Ordinal> {
-        self.value.birthday_ordinal()
-    }
-
-    /// Negation (additive inverse) — surreal negation.
-    pub fn neg(&self) -> NumberGame {
-        NumberGame {
-            value: self.value.neg(),
-        }
-    }
-
-    /// Disjunctive sum: for numbers this is exactly surreal addition (no options
-    /// materialized).
-    pub fn add(&self, other: &NumberGame) -> NumberGame {
-        NumberGame {
-            value: self.value.add(&other.value),
-        }
-    }
-
-    /// The game order = the surreal order on values.
-    pub fn cmp(&self, other: &NumberGame) -> Ordering {
-        self.value.cmp(&other.value)
-    }
-
-    /// Bridge to the finite engine: `Some(short Game)` iff the value is dyadic;
-    /// `None` for genuinely transfinite numbers (`ω`, `ε`, …), which have no
-    /// finite option tree. On dyadics this agrees with
-    /// [`Game::from_surreal`]/[`Game::number_value`].
-    pub fn to_finite_game(&self) -> Option<Game> {
-        Game::from_surreal(&self.value)
-    }
-}
-
 /// Keep only the order-maximal games (Left options of a canonical form): drop any
 /// option dominated by — or equal to — a kept one.
 fn maximal_games(opts: &[Game]) -> Vec<Game> {
@@ -567,30 +510,5 @@ mod tests {
         assert_eq!(Game::star().number_value(), None);
         assert_eq!(Game::up().number_value(), None);
         assert_eq!(Game::switch(1, -1).number_value(), None);
-    }
-
-    #[test]
-    fn number_game_transfinite_bridge() {
-        use crate::scalar::{Ordinal, Rational, Surreal};
-        let w = Surreal::omega();
-        let ng = NumberGame::from_surreal(&w);
-        assert_eq!(ng.value(), &w);
-        assert_eq!(ng.birthday(), Some(Ordinal::omega())); // birthday(ω) = ω
-        assert!(ng.to_finite_game().is_none()); // ω is not a short game
-                                                // ω + 1 by pure surreal delegation; order against a big finite number.
-        let one = NumberGame::from_surreal(&Surreal::from_int(1));
-        assert_eq!(ng.add(&one).value(), &w.add(&Surreal::from_int(1)));
-        assert_eq!(
-            ng.cmp(&NumberGame::from_surreal(&Surreal::from_int(1_000_000))),
-            Ordering::Greater
-        );
-        assert_eq!(ng.neg().value(), &w.neg());
-        // On the dyadic overlap the transfinite birthday matches the finite game's,
-        // and the downcast to a short game succeeds.
-        let d = Surreal::from_rational(Rational::new(3, 4));
-        let ngd = NumberGame::from_surreal(&d);
-        let fin = Game::from_surreal(&d).unwrap();
-        assert_eq!(ngd.birthday().unwrap().as_finite(), Some(fin.birthday()));
-        assert!(ngd.to_finite_game().is_some());
     }
 }

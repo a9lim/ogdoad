@@ -48,7 +48,7 @@
 //! ([`char2::arf_invariant`]); we do **not** claim "Arf = e₂".
 
 use crate::clifford::Metric;
-use crate::forms::{hasse_invariant, oddchar_witt, WittClassG};
+use crate::forms::{finite_odd_witt, hasse_invariant_finite_odd, FiniteOddField, WittClassG};
 use crate::scalar::{Fp, Scalar};
 
 // ---------------------------------------------------------------------------
@@ -119,14 +119,19 @@ pub struct EnStaircase {
 /// non-diagonal. Over a finite field `I² = 0`, so `stabilizes_at = 2` and `e₂` is
 /// always `+1`; the genuine content is `(e₀, e₁)`.
 pub fn e_staircase_oddchar<const P: u128>(metric: &Metric<Fp<P>>) -> Option<EnStaircase> {
-    let (e0, e1) = match oddchar_witt(metric)? {
+    e_staircase_finite_odd(metric)
+}
+
+/// The `(e₀, e₁, e₂)` staircase over any finite field of odd characteristic.
+pub fn e_staircase_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<EnStaircase> {
+    let (e0, e1) = match finite_odd_witt(metric)? {
         WittClassG::OddChar { e0, sclass, .. } => (e0, sclass),
-        _ => unreachable!("oddchar_witt over Fp returns the OddChar variant"),
+        _ => unreachable!("finite_odd_witt returns the OddChar variant"),
     };
     Some(EnStaircase {
         e0,
         e1,
-        e2: hasse_invariant(metric)?,
+        e2: hasse_invariant_finite_odd(metric)?,
         stabilizes_at: 2,
     })
 }
@@ -151,7 +156,7 @@ pub fn e_real(signature: i128, n: usize) -> Option<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::WittClassG;
+    use crate::forms::{hasse_invariant, oddchar_witt, WittClassG};
     use crate::scalar::Fpn;
 
     fn diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {

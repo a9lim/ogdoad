@@ -11,11 +11,13 @@
 //!   * [`misere`]       — misère-play outcomes, indistinguishability quotients,
 //!                        and octal games.
 //!   * [`partizan`]     — short partizan games (sum, order, canonical form, the
-//!                        surreal-value bridge) plus the exterior algebra of the
-//!                        game group (the Clifford-adjacent structure that lives
-//!                        on all of game-world, not just the numbers).
+//!                        surreal-value bridge).
+//!   * [`number_game`]  — transfinite number-valued games carried by their
+//!                        surreal value, without materializing infinite options.
 //!   * [`thermography`] — temperature theory: stops, cooling, and the
 //!                        thermograph (mean value + temperature) of a short game.
+//!   * [`piecewise`]    — the piecewise-linear rational scaffold machinery used
+//!                        by thermography.
 //!   * [`hackenbush`]   — red/blue/green Hackenbush: the one structure whose value
 //!                        reads out as surreal (blue–red), nimber (green), or a
 //!                        general partizan game (mixed) — the unifier.
@@ -27,7 +29,9 @@ pub mod grundy;
 pub mod hackenbush;
 pub mod kernel;
 pub mod misere;
+pub mod number_game;
 pub mod partizan;
+pub mod piecewise;
 pub mod thermography;
 
 pub use atomic_weight::*;
@@ -37,5 +41,7 @@ pub use grundy::*;
 pub use hackenbush::*;
 pub use kernel::*;
 pub use misere::*;
+pub use number_game::*;
 pub use partizan::*;
+pub use piecewise::*;
 pub use thermography::*;

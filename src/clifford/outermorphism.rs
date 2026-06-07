@@ -15,6 +15,7 @@
 //! doubles as a check on the engine's `wedge`.
 
 use crate::clifford::{bits, CliffordAlgebra, Multivector};
+use crate::linalg::field;
 use crate::scalar::Scalar;
 
 /// A linear map `V → V` on grade 1, stored column-major: `cols[i]` is the image
@@ -191,51 +192,16 @@ pub fn char_poly<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> Vec<S
 /// the singular case.
 pub fn inverse_outermorphism<S: Scalar>(f: &LinearMap<S>) -> Option<LinearMap<S>> {
     let n = f.n;
-    // Row-major working matrix `m[r][c] = M[r][c] = cols[c][r]`, augmented with I.
-    let mut m: Vec<Vec<S>> = (0..n)
+    // Row-major working matrix `m[r][c] = M[r][c] = cols[c][r]`.
+    let m: Vec<Vec<S>> = (0..n)
         .map(|r| (0..n).map(|c| f.cols[c][r].clone()).collect())
         .collect();
-    let mut inv = LinearMap::<S>::identity(n).matrix_rows();
-    for col in 0..n {
-        // Find a pivot row at/after `col` with an invertible entry in `col`.
-        let piv = (col..n).find(|&r| m[r][col].inv().is_some())?;
-        m.swap(col, piv);
-        inv.swap(col, piv);
-        let pinv = m[col][col].inv()?;
-        // Scale the pivot row to make the pivot 1.
-        for c in 0..n {
-            m[col][c] = m[col][c].mul(&pinv);
-            inv[col][c] = inv[col][c].mul(&pinv);
-        }
-        // Eliminate the pivot column from every other row.
-        for r in 0..n {
-            if r == col {
-                continue;
-            }
-            let factor = m[r][col].clone();
-            if factor.is_zero() {
-                continue;
-            }
-            for c in 0..n {
-                m[r][c] = m[r][c].sub(&factor.mul(&m[col][c]));
-                inv[r][c] = inv[r][c].sub(&factor.mul(&inv[col][c]));
-            }
-        }
-    }
+    let inv = field::inverse_matrix(m)?;
     // inv is now M⁻¹ in row-major form; convert back to columns.
     let cols = (0..n)
         .map(|i| (0..n).map(|j| inv[j][i].clone()).collect())
         .collect();
     Some(LinearMap { n, cols })
-}
-
-impl<S: Scalar> LinearMap<S> {
-    /// Row-major matrix `rows[r][c] = M[r][c] = cols[c][r]`.
-    fn matrix_rows(&self) -> Vec<Vec<S>> {
-        (0..self.n)
-            .map(|r| (0..self.n).map(|c| self.cols[c][r].clone()).collect())
-            .collect()
-    }
 }
 
 #[cfg(test)]

@@ -19,8 +19,7 @@
 
 use crate::clifford::Metric;
 use crate::forms::{as_diagonal, WittClassG};
-use crate::scalar::Fp;
-use crate::scalar::Scalar;
+use crate::scalar::{Fp, Fpn, Scalar};
 
 fn assert_odd_prime<const P: u128>() {
     Fp::<P>::assert_prime_modulus();
@@ -32,6 +31,77 @@ fn ensure_odd_prime<const P: u128>() -> Option<()> {
         Some(())
     } else {
         None
+    }
+}
+
+/// Finite fields of odd characteristic, with the operations the form classifiers
+/// actually need: field-order metadata, base-field constants, and square classes.
+/// This is intentionally narrower than [`Scalar`]: it is a form-theory façade, not
+/// a new scalar-world requirement.
+pub trait FiniteOddField: Scalar + Copy {
+    /// Characteristic prime `p`.
+    fn characteristic_prime() -> u128;
+
+    /// Field order `q = p^n`.
+    fn field_order() -> u128;
+
+    /// Whether this type is a supported finite field of odd characteristic.
+    fn is_supported_odd_field() -> bool;
+
+    /// Embed an ordinary integer through the prime subfield.
+    fn from_i128(n: i128) -> Self;
+
+    /// Square-class test in the field. `0` counts as a square.
+    fn is_square_value(x: Self) -> bool;
+
+    fn ensure_supported() -> Option<()> {
+        Self::is_supported_odd_field().then_some(())
+    }
+}
+
+impl<const P: u128> FiniteOddField for Fp<P> {
+    fn characteristic_prime() -> u128 {
+        P
+    }
+
+    fn field_order() -> u128 {
+        P
+    }
+
+    fn is_supported_odd_field() -> bool {
+        Fp::<P>::modulus_is_prime() && P != 2
+    }
+
+    fn from_i128(n: i128) -> Self {
+        Fp::<P>::new(n)
+    }
+
+    fn is_square_value(x: Self) -> bool {
+        is_square(x)
+    }
+}
+
+impl<const P: u128, const N: usize> FiniteOddField for Fpn<P, N> {
+    fn characteristic_prime() -> u128 {
+        P
+    }
+
+    fn field_order() -> u128 {
+        Fpn::<P, N>::order()
+    }
+
+    fn is_supported_odd_field() -> bool {
+        Fp::<P>::modulus_is_prime() && P != 2 && N > 0
+    }
+
+    fn from_i128(n: i128) -> Self {
+        let m = P as i128;
+        let v = ((n % m) + m) % m;
+        Fpn::<P, N>::constant(v as u128)
+    }
+
+    fn is_square_value(x: Self) -> bool {
+        x.is_square()
     }
 }
 
@@ -55,6 +125,15 @@ pub fn is_square<const P: u128>(x: Fp<P>) -> bool {
         return true;
     }
     fp_pow(x, (P - 1) / 2) == Fp::<P>::one()
+}
+
+/// Square-class predicate over any supported finite field of odd characteristic.
+pub fn is_square_finite<F: FiniteOddField>(x: F) -> bool {
+    assert!(
+        F::is_supported_odd_field(),
+        "odd-characteristic finite-field form theory needs odd finite fields"
+    );
+    F::is_square_value(x)
 }
 
 /// The Hilbert symbol `(a, b)` over `F_P`: `+1` iff `z² = a x² + b y²` has a
@@ -82,7 +161,10 @@ pub fn hilbert_symbol<const P: u128>(a: Fp<P>, b: Fp<P>) -> i8 {
 /// The classification of a nondegenerate-plus-radical diagonal form over `F_P`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OddCharType {
+    /// Characteristic prime.
     pub p: u128,
+    /// Field order `q`; equal to `p` for prime fields and `p^n` for extensions.
+    pub field_order: u128,
     /// Nondegenerate dimension (number of nonzero diagonal entries).
     pub dim: usize,
     /// Radical (null) dimension.
@@ -97,40 +179,41 @@ pub struct OddCharType {
 impl OddCharType {
     pub fn display(&self) -> String {
         let d = if self.disc_is_square { "□" } else { "✶" };
+        let field = format!("F_{}", self.field_order);
         let rad = if self.radical_dim > 0 {
-            format!(" ⊗ Λ(F_{}^{})", self.p, self.radical_dim)
+            format!(" ⊗ Λ({}^{})", field, self.radical_dim)
         } else {
             String::new()
         };
         format!(
-            "F_{}: dim {} disc {} hasse {:+}{}",
-            self.p, self.dim, d, self.hasse, rad
+            "{}: dim {} disc {} hasse {:+}{}",
+            field, self.dim, d, self.hasse, rad
         )
     }
 }
 
-/// The Hasse invariant `∏_{i<j} (q_i, q_j)` of a form (nonzero diagonal entries
-/// only; non-diagonal metrics are congruence-diagonalized first). Always `+1`
-/// over a finite field.
-pub fn hasse_invariant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<i8> {
-    ensure_odd_prime::<P>()?;
+/// The Hasse invariant `∏_{i<j} (q_i, q_j)` over a finite odd field. Finite
+/// fields have trivial Brauer group, so every nonzero Hilbert symbol is `+1`;
+/// the prime-field [`hilbert_symbol`] wrapper below still keeps the brute-force
+/// witness for tests and pedagogy.
+pub fn hasse_invariant_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<i8> {
+    F::ensure_supported()?;
     let metric = as_diagonal(metric)?;
-    let qs: Vec<Fp<P>> = metric.q.iter().copied().filter(|x| !x.is_zero()).collect();
+    let qs: Vec<F> = metric.q.iter().copied().filter(|x| !x.is_zero()).collect();
     let mut h = 1i8;
     for i in 0..qs.len() {
-        for j in (i + 1)..qs.len() {
-            h *= hilbert_symbol(qs[i], qs[j]);
+        for _j in (i + 1)..qs.len() {
+            h *= 1;
         }
     }
     Some(h)
 }
 
-/// The discriminant (product of the nonzero diagonal entries = det of the
-/// nondegenerate part). Non-diagonal metrics are congruence-diagonalized first.
-pub fn discriminant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<Fp<P>> {
-    ensure_odd_prime::<P>()?;
+/// The discriminant of the nondegenerate diagonal part over any finite odd field.
+pub fn discriminant_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<F> {
+    F::ensure_supported()?;
     let metric = as_diagonal(metric)?;
-    let mut d = Fp::<P>::one();
+    let mut d = F::one();
     for x in &metric.q {
         if !x.is_zero() {
             d = d.mul(x);
@@ -139,22 +222,73 @@ pub fn discriminant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<Fp<P>> {
     Some(d)
 }
 
+/// Classify a form over any finite field of odd characteristic.
+pub fn classify_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<OddCharType> {
+    F::ensure_supported()?;
+    let metric = as_diagonal(metric)?;
+    let dim = metric.q.iter().filter(|x| !x.is_zero()).count();
+    let radical_dim = metric.q.len() - dim;
+    let disc = discriminant_finite_odd(&metric)?;
+    Some(OddCharType {
+        p: F::characteristic_prime(),
+        field_order: F::field_order(),
+        dim,
+        radical_dim,
+        disc_is_square: F::is_square_value(disc),
+        hasse: hasse_invariant_finite_odd(&metric)?,
+    })
+}
+
+/// The finite odd-field Witt class `(dim mod 2, signed discriminant class)`.
+pub fn finite_odd_witt<F: FiniteOddField>(metric: &Metric<F>) -> Option<WittClassG> {
+    F::ensure_supported()?;
+    let metric = as_diagonal(metric)?;
+    let mut det = F::one();
+    let mut m = 0usize;
+    for x in &metric.q {
+        if !x.is_zero() {
+            det = det.mul(x);
+            m += 1;
+        }
+    }
+    let signed = if (m * (m.wrapping_sub(1)) / 2) & 1 == 1 {
+        det.neg()
+    } else {
+        det
+    };
+    let kappa = if F::is_square_value(F::from_i128(-1)) {
+        0
+    } else {
+        1
+    };
+    Some(WittClassG::OddChar {
+        kappa,
+        e0: (m & 1) as u8,
+        sclass: if F::is_square_value(signed) { 0 } else { 1 },
+    })
+}
+
+/// The Hasse invariant `∏_{i<j} (q_i, q_j)` of a form (nonzero diagonal entries
+/// only; non-diagonal metrics are congruence-diagonalized first). Always `+1`
+/// over a finite field.
+pub fn hasse_invariant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<i8> {
+    ensure_odd_prime::<P>()?;
+    hasse_invariant_finite_odd(metric)
+}
+
+/// The discriminant (product of the nonzero diagonal entries = det of the
+/// nondegenerate part). Non-diagonal metrics are congruence-diagonalized first.
+pub fn discriminant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<Fp<P>> {
+    ensure_odd_prime::<P>()?;
+    discriminant_finite_odd(metric)
+}
+
 /// Classify an odd-characteristic form. Non-diagonal metrics are
 /// congruence-diagonalized first (char ≠ 2 always has `½`), so any symmetric
 /// metric is accepted.
 pub fn classify_oddchar<const P: u128>(metric: &Metric<Fp<P>>) -> Option<OddCharType> {
     ensure_odd_prime::<P>()?;
-    let metric = as_diagonal(metric)?;
-    let dim = metric.q.iter().filter(|x| !x.is_zero()).count();
-    let radical_dim = metric.q.len() - dim;
-    let disc = discriminant(&metric)?;
-    Some(OddCharType {
-        p: P,
-        dim,
-        radical_dim,
-        disc_is_square: is_square(disc),
-        hasse: hasse_invariant(&metric)?,
-    })
+    classify_finite_odd(metric)
 }
 
 /// The odd-characteristic Witt class: `(dim mod 2, signed discriminant class)`,
@@ -163,27 +297,7 @@ pub fn classify_oddchar<const P: u128>(metric: &Metric<Fp<P>>) -> Option<OddChar
 /// is the genuine Witt invariant; see `witt::WittClassG`.
 pub fn oddchar_witt<const P: u128>(metric: &Metric<Fp<P>>) -> Option<WittClassG> {
     ensure_odd_prime::<P>()?;
-    let metric = as_diagonal(metric)?;
-    let mut det = Fp::<P>::one();
-    let mut m = 0usize;
-    for x in &metric.q {
-        if !x.is_zero() {
-            det = det.mul(x);
-            m += 1;
-        }
-    }
-    // signed discriminant: twist by (−1)^{m(m−1)/2}
-    let signed = if (m * (m.wrapping_sub(1)) / 2) & 1 == 1 {
-        det.neg()
-    } else {
-        det
-    };
-    let kappa = if is_square(Fp::<P>::new(-1)) { 0 } else { 1 };
-    Some(WittClassG::OddChar {
-        kappa,
-        e0: (m & 1) as u8,
-        sclass: if is_square(signed) { 0 } else { 1 },
-    })
+    finite_odd_witt(metric)
 }
 
 #[cfg(test)]

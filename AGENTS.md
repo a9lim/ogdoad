@@ -139,17 +139,30 @@ src/
                   # integers of the unramified extension. Witt/Teichmüller coords +
                   # carry-formula oracle on top.
 
+  linalg/         # crate-private shared linear algebra, deliberately below the
+                  # mathematical pillars rather than a public API.
+    field.rs      # Gaussian solve / inverse_matrix / unit-pivot nullspace over a
+                  # Scalar field. Used by multivector_inverse, blade analysis, and
+                  # inverse_outermorphism.
+    f2.rs         # nim-field row rank for F₂/F_{2^k}-style Dickson computations.
+    integer.rs    # integer relation row normalization + vector reduction for the
+                  # game exterior algebra's lattice quotient.
+
   clifford/       # PILLAR — the multivector engine + GA layer (generic Scalar)
     mod.rs        # thin hub: re-exports engine + versor + the structured-algebra
                   # modules flat (clifford::Metric, clifford::sandwich, …).
-    engine.rs     # Metric { q, b, a } + CliffordAlgebra<S> + Multivector<S>. The
-                  # associative-algebra core: geom_product_blades (general-bilinear
-                  # Chevalley product; reduce_word is a #[cfg(test)] oracle it is
-                  # cross-validated against), blade arithmetic, grade projection.
-                  # (bits/grade are pub; q_val/has_upper are pub(crate).) Also the
-                  # GENERAL multivector_inverse (any invertible element, not just a
-                  # versor): 2^dim left-mult matrix + Gauss-Jordan over the field
-                  # (solve_linear) — char-faithful (char 2 too).
+    engine.rs     # thin engine hub + product/regression tests. Public paths stay
+                  # clifford::Metric / CliffordAlgebra / Multivector / bits / grade.
+    engine/       # the associative-algebra core split by concept:
+      basis.rs    # bits / grade / MAX_BASIS_DIM / wedge_sign.
+      metric.rs   # Metric {q,b,a}, constructors, direct_sum, q_val/has_upper.
+      product.rs  # geom_product_blades (general-bilinear Chevalley product) plus
+                  # the cfg(test) reduce_word oracle it is cross-validated against.
+      algebra.rs  # CliffordAlgebra<S>: blade arithmetic, grade projection,
+                  # wedge/reverse/graded_tensor/embeddings.
+      multivector.rs # Multivector<S>: term store, zero/display helpers.
+      inverse.rs  # GENERAL multivector_inverse via the shared linalg::field solver.
+      terms.rs    # local term-map scale/merge helpers.
     versor.rs     # the GA layer on top: versor_inverse, sandwich, twisted_sandwich
                   # (Pin action), reflect, left/right_contract, dual/undual,
                   # grade_involution, norm2, even_part / even_subalgebra. Plus the
@@ -183,13 +196,14 @@ src/
   forms/          # PILLAR — quadratic forms & invariants, by the char trichotomy
     mod.rs        # re-exports the legs + classify + diagonalize/equivalence +
                   # witt/witt_ring + brauer_wall + padic + springer.
-    classify.rs   # the classifier FAÇADE: ClassifyForm (type Class; classify) +
-                  # WittClassify (witt_class → WittClassG), keyed on the scalar so
-                  # `metric.classify()` / `algebra.classify()` pick the right leg at
-                  # compile time (Surreal→CliffordType, Fp<P>→OddCharType,
-                  # Nimber→ArfResult, …) — no manual char-dispatch. Rational &
-                  # Surcomplex impl ClassifyForm but not WittClassify (their Witt
-                  # data isn't a single WittClassG — honest, not a gap).
+    classify.rs   # the classifier FAÇADE: ClassifyForm + WittClassify +
+                  # IsometryClassify + WittDecompose + BrauerWallClassify, keyed on
+                  # the scalar so `metric.classify()` / `.witt_class()` /
+                  # `.isometric_to()` / `.witt_decompose()` / `.bw_class()` pick the
+                  # right leg at compile time (Surreal→CliffordType, Fp/Fpn→
+                  # OddCharType, Nimber→ArfResult, …). Rational & Surcomplex impl
+                  # ClassifyForm but not WittClassify (their Witt data isn't a single
+                  # WittClassG — honest, not a gap).
     diagonalize.rs # congruence diagonalization (char ≠ 2): gram, diagonalize,
                   # as_diagonal. Returns None in char 2 (nonsingular forms aren't
                   # diagonalizable there — use char2.rs's symplectic Arf reduction).
@@ -200,10 +214,12 @@ src/
                   # matrix algebra over ℝ/ℂ/ℍ via the 8-fold table (real-closed
                   # surreal/rational) and the 2-fold table (surcomplex). Non-diagonal
                   # metrics are diagonalized first (signature is pub(crate)).
-    oddchar.rs    # (was disc.rs) the odd-char classifier: discriminant + is_square
-                  # (Euler) + hilbert_symbol/hasse_invariant (≡ +1 over finite
-                  # fields) + classify_oddchar + oddchar_witt. dim+disc complete.
-                  # Non-diagonal metrics are diagonalized first (as_diagonal).
+    oddchar.rs    # (was disc.rs) the odd-char classifier: FiniteOddField unifies Fp
+                  # and Fpn square classes + field metadata; classify_finite_odd /
+                  # finite_odd_witt are the generic implementation, while
+                  # classify_oddchar / oddchar_witt remain the prime-field wrappers.
+                  # discriminant + hasse_invariant (≡ +1 over finite fields);
+                  # dim+disc complete. Non-diagonal metrics diagonalized first.
     char2.rs      # (was arf.rs) the Arf invariant (char-2 classifier): arf_f2 (F₂
                   # bitmask) + arf_nimber (any nim-field, symplectic reduction + the
                   # field trace). Also the Dickson invariant (dickson_matrix =
@@ -247,10 +263,12 @@ src/
 
   games/          # PILLAR — combinatorial game theory (mostly Scalar-free)
     mod.rs        # re-exports the modules below flat.
-    thermography.rs # temperature theory: the piecewise-linear thermograph (Pl) of a
-                  # short game — left/right scaffolds, stops, cooling (cooled_stops),
-                  # temperature, and mean (mast) value. Switches/numbers/↑/⋆ pinned;
-                  # mean is additive. (Atomic weight now lives in atomic_weight.rs.)
+    piecewise.rs  # Pl: exact rational piecewise-linear wall arithmetic (max/min,
+                  # subtraction, crossings, cleanup) used by thermography.
+    thermography.rs # temperature theory: the thermograph of a short game — left/right
+                  # scaffolds, stops, cooling (cooled_stops), temperature, and mean
+                  # (mast) value. Switches/numbers/↑/⋆ pinned; mean is additive.
+                  # (Atomic weight now lives in atomic_weight.rs.)
     atomic_weight.rs # atomic weight of ALL-SMALL games (finishes thermography): the
                   # two-ahead rule (Siegel Constructive Atomic Weight; Larsson–
                   # Nowakowski arXiv:2007.03949 Thm 10). A={aw(G^L)−2|aw(G^R)+2};
@@ -283,19 +301,18 @@ src/
                   # the game↔surreal bridge (number_value / from_surreal, numbers
                   # only). Also Game::ordinal_sum (G:H — Hackenbush strings are
                   # these), Game::nim_heap (⋆n, the far star) + Game::is_all_small
-                  # (atomic-weight domain), and NumberGame: transfinite NUMBER games
-                  # (ω, ε) carried by their Surreal value — value/birthday(Ordinal)/
-                  # sum/cmp delegate to surreal, no infinite option tree (the finite
-                  # Game engine is untouched). The Λ-of-the-game-group exterior
-                  # algebra split out to game_exterior.rs. NB: distinct from
-                  # coin_turning.rs.
+                  # (atomic-weight domain). The Λ-of-the-game-group exterior algebra
+                  # split out to game_exterior.rs. NB: distinct from coin_turning.rs.
+    number_game.rs # transfinite NUMBER games (ω, ε) carried by their Surreal value —
+                  # value/birthday(Ordinal)/sum/cmp delegate to surreal, no infinite
+                  # option tree (the finite Game engine is untouched).
     game_exterior.rs # the exterior algebra of the GAME group: Λ over ℤ on game
                   # generators (living on all of game-world, incl. non-numbers ⋆/↑ —
                   # needs only the ℤ-module structure, not the game product). Split
                   # from partizan.rs: GameExterior (free Grassmann engine quotiented
                   # by integer game relations such as 2⋆=0, propagated through the
-                  # exterior ideal) + GameRelation + the integer-lattice relation-
-                  # reduction suite (reduce_integer_vector / normalize_relation_rows).
+                  # exterior ideal) + GameRelation; integer-lattice normalization and
+                  # reduction live in linalg/integer.rs.
 
   py/             # PyO3 bindings (feature = "python"), split per pillar
     mod.rs        # the #[pymodule]; chains each submodule's pub(crate) register().
@@ -308,8 +325,10 @@ src/
                   # Arc-C suite (clifford_conjugate, scalar_product, commutator,
                   # anticommutator, undual, meet, is_blade, factor_blade); algebra
                   # methods add trace / char_poly alongside determinant.
-    forms.rs      # classify / witt / dickson / odd-char / springer bindings, plus
-                  # witt_decompose_real / witt_decompose_oddchar / is_isometric_oddchar.
+    forms.rs      # classify / witt / dickson / springer bindings, plus
+                  # FiniteFieldForm (runtime Fp/Fpn form wrapper) and compatibility
+                  # wrappers for classify_oddchar / witt_decompose_oddchar /
+                  # is_isometric_oddchar.
     games.rs      # Game (incl. canonical/is_canonical/canonical_string/
                   # number_value/from_surreal) / GameExterior + nim_mul_mex +
                   # grundy_graph.
