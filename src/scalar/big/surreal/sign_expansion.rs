@@ -84,6 +84,54 @@ impl Surreal {
         Some(result)
     }
 
+    /// The surreal equal to a (non-negative) **ordinal** — the inverse of
+    /// [`as_ordinal`](Self::as_ordinal). An ordinal `Σ ω^{βᵢ}·cᵢ` in Cantor normal
+    /// form maps to the surreal with the *same* CNF, each exponent converted
+    /// recursively (the recursion is on strictly-simpler ordinals, matching the
+    /// surreal "recurse only on exponents" discipline). Round-trips:
+    /// `from_ordinal(o).as_ordinal() == Some(o)`.
+    pub fn from_ordinal(o: &Ordinal) -> Surreal {
+        let mut acc = Surreal::zero();
+        for (exp, c) in o.terms() {
+            let exp_s = Surreal::from_ordinal(exp); // strictly-simpler exponent
+            acc = acc.add(&Surreal::monomial(exp_s, Rational::int(*c as i128)));
+        }
+        acc
+    }
+
+    /// Reconstruct a surreal from its (possibly transfinite) **sign expansion** —
+    /// the inverse of [`transfinite_sign_expansion`](Self::transfinite_sign_expansion)
+    /// on the same representable subclass, and the transfinite analogue of
+    /// [`from_sign_expansion`](Self::from_sign_expansion). `None` outside the
+    /// subclass. Round-trips:
+    /// `from_transfinite_sign_expansion(x.transfinite_sign_expansion()?) == Some(x)`.
+    pub fn from_transfinite_sign_expansion(se: &SignExpansion) -> Option<Surreal> {
+        let runs = se.runs();
+        // empty ↦ 0
+        if runs.is_empty() {
+            return Some(Surreal::zero());
+        }
+        // all-finite runs ↦ the exact dyadic tree walk.
+        if let Some(signs) = se.as_finite() {
+            return Some(Surreal::from_sign_expansion(&signs));
+        }
+        // a single transfinite run of one sign ↦ ±(the ordinal of that length):
+        // α-many pluses is the ordinal α, α-many minuses its negation.
+        if runs.len() == 1 {
+            let (sign, len) = &runs[0];
+            let s = Surreal::from_ordinal(len);
+            return Some(if *sign { s } else { s.neg() });
+        }
+        // ε = ω⁻¹ ↦ `+(−)^ω` (the one pinned infinitesimal).
+        if runs.len() == 2 {
+            let ((s0, l0), (s1, l1)) = (&runs[0], &runs[1]);
+            if *s0 && !*s1 && *l0 == Ordinal::from_u128(1) && *l1 == Ordinal::omega() {
+                return Some(Surreal::epsilon());
+            }
+        }
+        None
+    }
+
     /// The **(possibly transfinite) sign expansion** over the *representable
     /// subclass* — the run-length-encoded ±-sequence whose length is the
     /// birthday. Confident Gonshor cases: `0` (empty); dyadics (the exact finite
@@ -188,5 +236,73 @@ impl SignExpansion {
             }
         }
         Some(out)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn rat(n: i128, d: i128) -> Surreal {
+        Surreal::from_rational(Rational::new(n, d))
+    }
+
+    #[test]
+    fn from_ordinal_inverts_as_ordinal() {
+        // ordinal-valued surreals round-trip through the ordinal and back.
+        let cases = [
+            Surreal::from_int(0),
+            Surreal::from_int(5),
+            Surreal::omega(),                                          // ω
+            Surreal::omega().add(&Surreal::from_int(1)),               // ω+1
+            Surreal::monomial(Surreal::from_int(1), Rational::int(3)), // ω·3
+            Surreal::omega_pow(Surreal::from_int(2)),                  // ω²
+            Surreal::omega_pow(Surreal::omega()),                      // ω^ω
+        ];
+        for s in &cases {
+            let o = s.as_ordinal().expect("ordinal-valued");
+            assert_eq!(
+                &Surreal::from_ordinal(&o),
+                s,
+                "from_ordinal∘as_ordinal ≠ id: {s:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn transfinite_sign_expansion_round_trips() {
+        // The full round trip across the representable subclass: dyadic, ordinal,
+        // negative-ordinal, and the pinned infinitesimal ε — each recovered from
+        // its (run-length) sign expansion, and the length matches the birthday.
+        let cases = [
+            Surreal::zero(),
+            Surreal::from_int(1),
+            Surreal::from_int(-1),
+            Surreal::from_int(2),
+            rat(1, 2),
+            rat(1, 2).neg(),
+            rat(3, 4),
+            rat(3, 4).neg(),
+            Surreal::omega(),                                          // ω
+            Surreal::omega().add(&Surreal::from_int(1)),               // ω+1
+            Surreal::monomial(Surreal::from_int(1), Rational::int(3)), // ω·3
+            Surreal::omega_pow(Surreal::from_int(2)),                  // ω²
+            Surreal::omega_pow(Surreal::omega()),                      // ω^ω
+            Surreal::omega().neg(),                                    // −ω
+            Surreal::epsilon(),                                        // ε
+        ];
+        for s in &cases {
+            let se = s.transfinite_sign_expansion().expect("representable");
+            assert_eq!(
+                Surreal::from_transfinite_sign_expansion(&se).as_ref(),
+                Some(s),
+                "sign-expansion round trip failed: {s:?}"
+            );
+            assert_eq!(
+                se.length(),
+                s.birthday_ordinal().unwrap(),
+                "length ≠ birthday: {s:?}"
+            );
+        }
     }
 }

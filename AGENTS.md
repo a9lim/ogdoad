@@ -43,9 +43,24 @@ src/
                   # (so `Surreal + Surreal`, `-nimber` work). NOT a Scalar
                   # supertrait — see the operators note under "things that look
                   # like bugs". `/` stays a method (inv is partial).
-    surcomplex.rs # Surcomplex<S> = adjoin i over ANY backend (carries conj()). The
-                  # one generic *functor*, not a concrete world — sits at the root,
-                  # orthogonal to the table.
+    surcomplex.rs # Surcomplex<S> = adjoin i over ANY backend (carries conj()). One
+                  # of the TWO root-level *functors* (the ALGEBRAIC one — adjoin a
+                  # root of x²+1), not a concrete world; orthogonal to the table.
+    laurent.rs    # Laurent<S, const K> = S((t)), formal Laurent series to relative
+                  # precision K. The TRANSCENDENTAL root functor (adjoin t with a
+                  # valuation) — the transcendental twin of surcomplex. Over a finite
+                  # field it fills the EQUAL-CHARACTERISTIC local cell: F_q((t)) (char
+                  # p, the mirror of Qp); ring of integers F_q[[t]] = the val≥0
+                  # subring (Laurent::is_integral). Capped-relative like Qp (mul/inv
+                  # exact, addition non-assoc across precision); field iff S is.
+                  # EXCLUDED from the exact-ring fuzz suite.
+    integrality.rs # the (field, ring-of-integers) pairing made STRUCTURAL: the
+                  # HasFractionField {Frac; to_fraction} + HasRingOfIntegers {Int;
+                  # is_integral/to_integer} trait pair (Int: HasFractionField<Frac=
+                  # Self> ties the loop). Impl'd for the four distinct-type rows
+                  # (ℤ⊂ℚ, Oz⊂No, Zp⊂Qp, W_N⊂Qq); the generic frac∘int=id round-trip is
+                  # the manifest's test. Laurent's F_q[[t]] is a same-type valuation
+                  # subring, so it stays out (is_integral only) — honest, not a gap.
 
     exact/        # FAMILY — the Archimedean char-0 base (field + ring of integers)
       rational.rs # exact ℚ over i128, NOT a game backend — the char-0 scalar that
@@ -72,10 +87,13 @@ src/
                   #   simplest_between, and floor/frac (the Oz bridge — Omnific::floor
                   #   wraps it). simplest_in_cut is pub(super) for sign_expansion.
         sign_expansion.rs # EXACT sign_expansion/from_sign_expansion (dyadic,
-                  #   round-trips, length = birthday) + as_ordinal + the TRANSFINITE
-                  #   (Gonshor) SignExpansion{runs:(bool,Ordinal)} + birthday_ordinal
-                  #   (every ordinal ↦ all-pluses incl ω^ω; ε=+(−)^ω). None outside
-                  #   the representable subclass (√ω, ½ω, ω−1) — honest, not ℝ-trunc.
+                  #   round-trips, length = birthday) + as_ordinal + from_ordinal (its
+                  #   inverse: Ordinal→Surreal CNF) + the TRANSFINITE (Gonshor)
+                  #   SignExpansion{runs:(bool,Ordinal)} + birthday_ordinal + the
+                  #   transfinite inverse from_transfinite_sign_expansion (closes the
+                  #   round trip on the representable subclass). Every ordinal ↦
+                  #   all-pluses incl ω^ω; ε=+(−)^ω. None outside the representable
+                  #   subclass (√ω, ½ω, ω−1) — honest, not ℝ-trunc.
         analytic.rs      # the LAZY FIELD layer: inv_to_terms (Neumann-series inverse
                   #   to n terms — non-monomials too, the Zp-style precision contract)
                   #   + sqrt/nth_root (real-closed roots; Some iff the leading coeff
@@ -108,6 +126,12 @@ src/
                   # (= Z/p^k), the ring of integers of Q_p. A LOCAL RING (p a
                   # non-unit) — char()=0, inv = Omnific pattern (units only). Cl over
                   # it is non-semisimple. residue field F_p.
+      qq.rs       # Qq<const P, const N, const F>: the UNRAMIFIED extension Q_q =
+                  # Frac(W_N(F_q)) of Q_p, residue degree F (residue field F_q). The
+                  # field of fractions of WittVec — to WittVec what Qp is to Zp; Qq
+                  # with F=1 IS Qp. p^val·(Witt unit), char()=0, inv TOTAL on nonzero.
+                  # Capped-relative (excluded from the fuzz suite). Completes the
+                  # (field, ring of integers) pairing on the unramified leg.
 
     finite_field/ # FAMILY — the finite residue worlds (the char trichotomy's finite
                   # leg + the unramified ring of integers)
@@ -138,8 +162,9 @@ src/
       wittvec.rs  # WittVec<const P, const N, const F>: Witt vectors W_N(F_q), as the
                   # truncated unramified ring (Z/p^N)[t]/(f̃) (NOT the forms Witt
                   # group). The char-p analogue of Z_p (= W(F_p)) — the ring of
-                  # integers of the unramified extension. Witt/Teichmüller coords +
-                  # carry-formula oracle on top.
+                  # integers of the unramified extension (its FIELD of fractions is
+                  # small/qq.rs). Witt/Teichmüller coords + carry-formula oracle, plus
+                  # p_valuation/try_divide_by_p (the hooks Qq uses to peel a unit).
 
   linalg/         # crate-private shared linear algebra, deliberately below the
                   # mathematical pillars rather than a public API.
@@ -185,6 +210,16 @@ src/
     hopf.rs       # the exterior Hopf algebra: unshuffle coproduct (sign read off
                   # wedge), counit, antipode = grade involution (NOT reversion-
                   # twist). Hopf axioms tested over Rational AND Nimber.
+    divided_power.rs # the CHAR-FAITHFUL symmetric mirror of hopf.rs: the divided
+                  # power algebra Γ(V) (dual of Sym), DividedPowerAlgebra +
+                  # DpVector{terms: multidegree→coeff}. BINOMIAL product (the dual of
+                  # Sym's free product), DECONCATENATION coproduct (sign-free mirror
+                  # of the exterior unshuffle), antipode = (−1)^{|α|} grade
+                  # involution. Binomials embed via the scalar's own +, so they
+                  # reduce mod char: (γᵢ⁽¹⁾)²=2γᵢ⁽²⁾=0 in char 2 while γᵢ⁽²⁾≠0 — the
+                  # honest Γ≠Sym (mirror of exterior eᵢ²=0). Axioms tested over
+                  # Rational AND Nimber. Standalone (own monomials, not the blade
+                  # engine); no Python binding.
     cga.rs        # conformal (Cl(n+1,1) null basis: up/down/inner/sphere/plane/
                   # meet) + projective (pga = Cl(n,0,1), exp_nilpotent terminating
                   # motor exp) GA. Char-0 (needs ½); surreal ∞/ε radii are exact.
@@ -259,6 +294,14 @@ src/
                   # square-class). The novelty vs surreal: value group ℤ NOT 2-divisible
                   # ⇒ TWO residue layers (val even/odd) survive (parity_layer) =
                   # W(Q_p)=W(F_p)⊕W(F_p). Odd p, already-diagonal only.
+    springer_laurent.rs # the THIRD Springer sibling, over the equal-characteristic
+                  # local field F_q((t)) (Laurent backend). t-adic valuation buckets,
+                  # residue F_q-forms (dim + disc square-class via is_square_finite).
+                  # Novelty vs the Qp twin: EQUAL characteristic (the field is char p)
+                  # and a general residue field F_q (extension square-class, not just
+                  # F_p). Value group ℤ ⇒ two parity layers = W(F_q((t)))=W(F_q)². Odd
+                  # residue char, already-diagonal only; residue char 2 REJECTED (the
+                  # Springer second-residue-map boundary — char-2 Witt lives in char2/).
     invariants.rs # numeric FIELD INVARIANTS the Witt ring implies: level/Stufe s(F),
                   # pythagoras_number, u_invariant, is_sum_of_n_squares — computed over
                   # finite F_p (level≤2, u=2); ℝ/Q_p textbook constants documented.
@@ -311,7 +354,12 @@ src/
                   # split out to game_exterior.rs. NB: distinct from coin_turning.rs.
     number_game.rs # transfinite NUMBER games (ω, ε) carried by their Surreal value —
                   # value/birthday(Ordinal)/sum/cmp delegate to surreal, no infinite
-                  # option tree (the finite Game engine is untouched).
+                  # option tree (the finite Game engine is untouched). Plus the FULL
+                  # transfinite round trip via sign_expansion/from_sign_expansion: the
+                  # run-length sign expansion is the finite encoding of the (infinite)
+                  # {L|R} tree (ω={0,1,2,…|} can't be listed but +^ω is finite data),
+                  # closing surreal↔game THROUGH the canonical birthday path, not a
+                  # stored value — the transfinite analogue of the dyadic Game bridge.
     game_exterior.rs # the exterior algebra of the GAME group: Λ over ℤ on game
                   # generators (living on all of game-world, incl. non-numbers ⋆/↑ —
                   # needs only the ℤ-module structure, not the game product). Split

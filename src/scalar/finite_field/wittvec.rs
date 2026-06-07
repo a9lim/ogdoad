@@ -163,6 +163,30 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
         acc
     }
 
+    /// The `p`-adic valuation, capped at the precision `N` (`v_p(0)` reads as `N`,
+    /// the precision floor — exactly the [`Zp`](crate::scalar::Zp) discipline). A
+    /// unit (residue `≠ 0`) has valuation `0`.
+    pub fn p_valuation(&self) -> usize {
+        let mut w = *self;
+        let mut v = 0;
+        while v < N && w.residue().is_zero() {
+            w = w.divide_by_p();
+            v += 1;
+        }
+        v
+    }
+
+    /// If this vector is divisible by `p` (residue `0`), divide by `p` (precision
+    /// drops one digit); else `None`. The hook the fraction field [`Qq`](crate::scalar::Qq)
+    /// uses to peel a Witt unit out of an arbitrary vector.
+    pub fn try_divide_by_p(&self) -> Option<Self> {
+        if self.residue().is_zero() {
+            Some(self.divide_by_p())
+        } else {
+            None
+        }
+    }
+
     /// Divide by `p` an element all of whose coefficients are `≡ 0 mod p`.
     fn divide_by_p(&self) -> Self {
         let mut out = [0u128; F];

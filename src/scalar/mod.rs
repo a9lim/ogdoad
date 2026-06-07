@@ -18,18 +18,29 @@
 //!
 //! | place | field | ring of integers | residue |
 //! |---|---|---|---|
-//! | [`exact`]        — Archimedean | `Rational` ℚ    | `Integer` ℤ   | — |
-//! | [`big`]          — transfinite | `Surreal` No    | `Omnific` Oz  | ≈ℝ |
-//! | [`small`]        — p-adic      | `Qp` Q_p        | `Zp` Z_p      | F_p |
-//! | [`finite_field`] — finite      | `Fpn` F_{p^n}   | `WittVec` W_n | F_q |
-//! | [`finite_field`] — char-2 nim  | `Nimber` F_2¹²⁸ | (Witt / F₂)   | F₂ |
+//! | [`exact`]        — Archimedean        | `Rational` ℚ       | `Integer` ℤ   | — |
+//! | [`big`]          — transfinite        | `Surreal` No       | `Omnific` Oz  | ≈ℝ |
+//! | [`small`]        — p-adic             | `Qp` Q_p           | `Zp` Z_p      | F_p |
+//! | [`small`]        — p-adic, unramified | `Qq` Q_q           | `WittVec` W_N | F_q |
+//! | [`finite_field`] — finite             | `Fp`/`Fpn` F_{p^n} | (itself)      | — |
+//! | [`finite_field`] — char-2 nim         | `Nimber` F_2¹²⁸    | (itself)      | — |
 //!
-//! Two backends sit *orthogonal* to the table:
-//!   * [`Surcomplex`] is `Surcomplex<S>` — a generic *i-adjunction functor* over
-//!     any backend, not a concrete world; it lives at the pillar root.
-//!   * [`onag`](big::onag)'s ordinal nimbers are the **char-2 mirror of the
-//!     surreals** — the transfinite "big" number in characteristic 2 — so they sit
-//!     in [`big`] alongside `Surreal`/`Omnific`, not with the finite nim-field.
+//! The **equal-characteristic local** cell — `F_q((t))` over `F_q[[t]]`, the
+//! char-`p` mirror of the `Qp`/`Zp` row — is filled by the [`Laurent`] functor
+//! (below), not a row of its own.
+//!
+//! Two **root-level functors** sit *orthogonal* to the table — the two ways to
+//! grow a field, algebraic and transcendental:
+//!   * [`Surcomplex`] is `Surcomplex<S>` — a generic *i-adjunction* functor
+//!     (adjoin a root of `x²+1`) over any backend, not a concrete world.
+//!   * [`Laurent`] is `Laurent<S, K>` — a generic *t-adjunction* functor (adjoin a
+//!     transcendental `t` with a valuation), the formal Laurent field `S((t))`.
+//!     Applied to a finite field it fills the **equal-characteristic local** cell
+//!     (`F_q((t))`, the char-`p` mirror of `Qp`); its ring of integers is `F_q[[t]]`.
+//!
+//! And [`onag`](big::onag)'s ordinal nimbers are the **char-2 mirror of the
+//! surreals** — the transfinite "big" number in characteristic 2 — so they sit
+//! in [`big`] alongside `Surreal`/`Omnific`, not with the finite nim-field.
 //!
 //! The characteristic trichotomy that organises [`crate::forms`] cuts *across*
 //! this table (char 0 in `exact`/`big`/`small`, char 2 in `nimber`/`onag`, odd and
@@ -39,12 +50,16 @@
 pub mod big;
 pub mod exact;
 pub mod finite_field;
+pub mod integrality;
+pub mod laurent;
 pub mod small;
 pub mod surcomplex;
 
 pub use big::*;
 pub use exact::*;
 pub use finite_field::*;
+pub use integrality::*;
+pub use laurent::*;
 pub use small::*;
 pub use surcomplex::*;
 
@@ -156,7 +171,9 @@ impl_scalar_ops!([const P: u128, const N: usize] Fpn<P, N>);
 impl_scalar_ops!([const P: u128, const N: usize, const F: usize] WittVec<P, N, F>);
 impl_scalar_ops!([const P: u128, const K: u128] Qp<P, K>);
 impl_scalar_ops!([const P: u128, const K: u128] Zp<P, K>);
+impl_scalar_ops!([const P: u128, const N: usize, const F: usize] Qq<P, N, F>);
 impl_scalar_ops!([S: Scalar] Surcomplex<S>);
+impl_scalar_ops!([S: Scalar, const K: usize] Laurent<S, K>);
 
 #[cfg(test)]
 mod ops_tests {

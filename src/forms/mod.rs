@@ -10,8 +10,10 @@
 //!   * [`char2`]   — characteristic 2: the Arf invariant (and Dickson).
 //!
 //! [`witt`] packages the Witt group across all three legs ([`WittClassG`]),
-//! and [`springer`] is the non-Archimedean valuation decomposition over the
-//! surreals.
+//! and the Springer trio is the discrete-valuation decomposition across the three
+//! complete valued fields: [`springer`] over the surreals (char 0, residue ℝ),
+//! [`springer_padic`] over `Q_p` (char 0, residue `F_p`), and
+//! [`springer_laurent`] over `F_q((t))` (char `p`, residue `F_q`).
 //!
 //! [`classify`] is the façade over the trichotomy: which leg classifies a form
 //! is a fact about the field, so [`ClassifyForm`] resolves it from the scalar
@@ -30,6 +32,7 @@ pub mod oddchar;
 pub mod padic;
 pub mod quadric_fit;
 pub mod springer;
+pub mod springer_laurent;
 pub mod springer_padic;
 pub mod witt;
 pub mod witt_ring;
@@ -46,6 +49,7 @@ pub use oddchar::*;
 pub use padic::*;
 pub use quadric_fit::*;
 pub use springer::*;
+pub use springer_laurent::*;
 pub use springer_padic::*;
 pub use witt::*;
 pub use witt_ring::*;

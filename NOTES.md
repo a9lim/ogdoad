@@ -375,7 +375,16 @@ Springer, surreal lazy inversion / real roots / Gonshor transfinite birthdays,
 the `Fpn` Galois toolkit, field invariants (level/u/Pythagoras), Hermitian forms
 over surcomplex, the Cayley bivector↔rotor transform + general multivector
 inverse, and atomic weight (`atomic_weight.rs`, finishing thermography) — all
-appendix material, none of it changes the Arf/game claims.
+appendix material, none of it changes the Arf/game claims. The same goes for the
+symmetry round-out that squared the "any number" table: the `Laurent<S,K>`
+transcendental functor (`F_q((t))`, the equal-char local field) and the `Qq`
+unramified field `Frac(W_N(F_q))`, the `HasFractionField`/`HasRingOfIntegers`
+trait pair making the (field, ring-of-integers) pairing structural, the third
+Springer sibling over `F_q((t))` (`springer_laurent.rs`), the divided-power
+algebra `Γ` (`divided_power.rs`, the char-faithful symmetric mirror of the
+exterior Hopf algebra), and the transfinite surreal↔game round trip via the sign
+expansion (`number_game.rs` / `from_transfinite_sign_expansion`) — appendix
+material too; none of it touches the Arf/game thread.
 
 ## Useful commands
 

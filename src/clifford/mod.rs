@@ -13,8 +13,10 @@
 //!
 //! On top of those sit the structured-algebra modules: [`outermorphism`]
 //! (lift a linear map to all grades; determinant via the pseudoscalar),
-//! [`hopf`] (the exterior Hopf algebra), [`cga`] (conformal & projective GA),
-//! and [`spinor`] (concrete left-ideal / left-regular spinor modules).
+//! [`hopf`] (the exterior Hopf algebra) with its char-faithful symmetric mirror
+//! [`divided_power`] (the divided power algebra `Γ`, dual to `Sym`),
+//! [`cga`] (conformal & projective GA), and [`spinor`] (concrete left-ideal /
+//! left-regular spinor modules).
 //!
 //! Everything is re-exported flat, so downstream code reads `clifford::Metric`,
 //! `clifford::sandwich`, `clifford::coproduct`, `clifford::up`, … regardless of
@@ -22,6 +24,7 @@
 
 pub mod blade;
 pub mod cga;
+pub mod divided_power;
 pub mod engine;
 pub mod hopf;
 pub mod outermorphism;
@@ -31,6 +34,7 @@ pub mod versor;
 
 pub use blade::*;
 pub use cga::*;
+pub use divided_power::*;
 pub use engine::*;
 pub use hopf::*;
 pub use outermorphism::*;
