@@ -88,7 +88,8 @@ fn ensure_pivot<S: Scalar>(g: &mut [Vec<S>], k: usize) -> bool {
 
 /// An isometric **diagonal** metric for a symmetric form, by congruence
 /// (Gram–Schmidt over the field). `None` in characteristic 2, where nonsingular
-/// forms are not diagonalizable (use the Arf reduction in `char2.rs`).
+/// forms are not diagonalizable (use the Arf reduction in `char2.rs`), or when
+/// a generic scalar-ring call encounters a nonzero nonunit pivot.
 ///
 /// The diagonal entries are the squares of an orthogonal basis; null entries are
 /// the radical. Equal as a quadratic form to the input — the classifiers may be
@@ -100,7 +101,7 @@ pub fn diagonalize<S: Scalar>(m: &Metric<S>) -> Option<Metric<S>> {
         if !ensure_pivot(&mut g, k) {
             break; // remaining block is the radical (all zero)
         }
-        let pivot_inv = g[k][k].inv().expect("pivot is nonzero after ensure_pivot");
+        let pivot_inv = g[k][k].inv()?;
         for r in (k + 1)..n {
             if g[r][k].is_zero() {
                 continue;
@@ -138,7 +139,7 @@ pub fn as_diagonal<S: Scalar>(m: &Metric<S>) -> Option<Metric<S>> {
 mod tests {
     use super::*;
     use crate::forms::{classify_oddchar, classify_rational, classify_surreal};
-    use crate::scalar::{Fp, Rational, Surreal};
+    use crate::scalar::{Fp, Rational, Surreal, Zp};
     use std::collections::BTreeMap;
 
     fn rat(n: i128) -> Rational {
@@ -158,10 +159,8 @@ mod tests {
         assert_eq!(det.sign(), std::cmp::Ordering::Less);
         // and it classifies as the same algebra as the diagonal ⟨1,−1⟩.
         assert_eq!(
-            classify_rational(&m).unwrap().display(),
-            classify_rational(&Metric::diagonal(vec![rat(1), rat(-1)]))
-                .unwrap()
-                .display()
+            classify_rational(&m).unwrap(),
+            classify_rational(&Metric::diagonal(vec![rat(1), rat(-1)])).unwrap()
         );
     }
 
@@ -209,5 +208,11 @@ mod tests {
         let m = Metric::new(vec![Nimber(1), Nimber(1)], b);
         assert!(diagonalize(&m).is_none());
         assert!(as_diagonal(&m).is_none());
+    }
+
+    #[test]
+    fn nonfield_nonunit_pivot_returns_none() {
+        let m = Metric::diagonal(vec![Zp::<3, 2>::new(3)]);
+        assert!(diagonalize(&m).is_none());
     }
 }

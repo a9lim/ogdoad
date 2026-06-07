@@ -14,7 +14,7 @@
 //! On top of those sit the structured-algebra modules: [`outermorphism`]
 //! (lift a linear map to all grades; determinant via the pseudoscalar),
 //! [`hopf`] (the exterior Hopf algebra), [`cga`] (conformal & projective GA),
-//! and [`spinor`] (concrete minimal left ideals / spinor modules).
+//! and [`spinor`] (concrete left-ideal / left-regular spinor modules).
 //!
 //! Everything is re-exported flat, so downstream code reads `clifford::Metric`,
 //! `clifford::sandwich`, `clifford::coproduct`, `clifford::up`, … regardless of

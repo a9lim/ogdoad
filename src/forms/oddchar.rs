@@ -22,6 +22,19 @@ use crate::forms::{as_diagonal, WittClassG};
 use crate::scalar::Fp;
 use crate::scalar::Scalar;
 
+fn assert_odd_prime<const P: u128>() {
+    Fp::<P>::assert_prime_modulus();
+    assert!(P != 2, "odd-characteristic form theory needs P odd");
+}
+
+fn ensure_odd_prime<const P: u128>() -> Option<()> {
+    if Fp::<P>::modulus_is_prime() && P != 2 {
+        Some(())
+    } else {
+        None
+    }
+}
+
 /// `base^e` in `F_P` by square-and-multiply.
 fn fp_pow<const P: u128>(mut base: Fp<P>, mut e: u128) -> Fp<P> {
     let mut acc = Fp::<P>::one();
@@ -37,6 +50,7 @@ fn fp_pow<const P: u128>(mut base: Fp<P>, mut e: u128) -> Fp<P> {
 
 /// Euler's criterion: is `x` a square in `F_P`? (`0` counts as a square.)
 pub fn is_square<const P: u128>(x: Fp<P>) -> bool {
+    assert_odd_prime::<P>();
     if x.is_zero() {
         return true;
     }
@@ -47,6 +61,7 @@ pub fn is_square<const P: u128>(x: Fp<P>) -> bool {
 /// nontrivial solution. Over a finite field this is identically `+1` for nonzero
 /// `a, b` (computed by an honest search, which always succeeds).
 pub fn hilbert_symbol<const P: u128>(a: Fp<P>, b: Fp<P>) -> i8 {
+    assert_odd_prime::<P>();
     for x in 0..P {
         for y in 0..P {
             for z in 0..P {
@@ -98,6 +113,7 @@ impl OddCharType {
 /// only; non-diagonal metrics are congruence-diagonalized first). Always `+1`
 /// over a finite field.
 pub fn hasse_invariant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<i8> {
+    ensure_odd_prime::<P>()?;
     let metric = as_diagonal(metric)?;
     let qs: Vec<Fp<P>> = metric.q.iter().copied().filter(|x| !x.is_zero()).collect();
     let mut h = 1i8;
@@ -112,6 +128,7 @@ pub fn hasse_invariant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<i8> {
 /// The discriminant (product of the nonzero diagonal entries = det of the
 /// nondegenerate part). Non-diagonal metrics are congruence-diagonalized first.
 pub fn discriminant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<Fp<P>> {
+    ensure_odd_prime::<P>()?;
     let metric = as_diagonal(metric)?;
     let mut d = Fp::<P>::one();
     for x in &metric.q {
@@ -126,6 +143,7 @@ pub fn discriminant<const P: u128>(metric: &Metric<Fp<P>>) -> Option<Fp<P>> {
 /// congruence-diagonalized first (char ≠ 2 always has `½`), so any symmetric
 /// metric is accepted.
 pub fn classify_oddchar<const P: u128>(metric: &Metric<Fp<P>>) -> Option<OddCharType> {
+    ensure_odd_prime::<P>()?;
     let metric = as_diagonal(metric)?;
     let dim = metric.q.iter().filter(|x| !x.is_zero()).count();
     let radical_dim = metric.q.len() - dim;
@@ -144,6 +162,7 @@ pub fn classify_oddchar<const P: u128>(metric: &Metric<Fp<P>>) -> Option<OddChar
 /// congruence-diagonalized first. The signed discriminant `(−1)^{m(m−1)/2}·det`
 /// is the genuine Witt invariant; see `witt::WittClassG`.
 pub fn oddchar_witt<const P: u128>(metric: &Metric<Fp<P>>) -> Option<WittClassG> {
+    ensure_odd_prime::<P>()?;
     let metric = as_diagonal(metric)?;
     let mut det = Fp::<P>::one();
     let mut m = 0usize;
@@ -202,6 +221,14 @@ mod tests {
                 .unwrap()
                 .disc_is_square
         );
+    }
+
+    #[test]
+    fn invalid_moduli_are_rejected() {
+        assert!(classify_oddchar(&diag::<2>(&[1, 1])).is_none());
+        assert!(classify_oddchar(&diag::<9>(&[1, 1])).is_none());
+        assert!(std::panic::catch_unwind(|| is_square::<2>(Fp::<2>(1))).is_err());
+        assert!(std::panic::catch_unwind(|| is_square::<9>(Fp::<9>(1))).is_err());
     }
 
     #[test]

@@ -50,13 +50,12 @@ pub struct SpringerDecomp {
     pub total_signature: (usize, usize),
 }
 
-/// Decompose a *diagonal* surreal quadratic form by ω-adic valuation. Returns
-/// `None` if the metric is non-orthogonal (`b`/`a` nonempty) — only diagonal
-/// forms are handled (consistent with `classify::classify_surreal`).
+/// Decompose a surreal quadratic form by ω-adic valuation. Non-orthogonal
+/// symmetric metrics are first congruence-diagonalized, matching
+/// [`classify_surreal`](crate::forms::classify_surreal). Returns `None` only if
+/// that diagonalization is impossible in the finite surreal representation.
 pub fn springer_decompose(metric: &Metric<Surreal>) -> Option<SpringerDecomp> {
-    if !metric.b.is_empty() || !metric.a.is_empty() {
-        return None;
-    }
+    let metric = crate::forms::as_diagonal(metric)?;
     // buckets: (valuation, (p, q)) — Surreal is not Ord/Hash, so we bucket with
     // an O(n²) cmp-based scan (fine for the small metrics this is used on).
     let mut buckets: Vec<(Surreal, (usize, usize))> = Vec::new();
@@ -182,10 +181,12 @@ mod tests {
     }
 
     #[test]
-    fn nonorthogonal_metric_is_rejected() {
+    fn nonorthogonal_metric_is_diagonalized_first() {
         let mut b = std::collections::BTreeMap::new();
-        b.insert((0usize, 1usize), Surreal::one());
-        let m = Metric::new(vec![Surreal::omega(), Surreal::omega()], b);
-        assert!(springer_decompose(&m).is_none());
+        b.insert((0usize, 1usize), Surreal::from_int(2));
+        let m = Metric::new(vec![w(0), w(0)], b);
+        let d = springer_decompose(&m).unwrap();
+        assert_eq!(d.total_signature, (1, 1));
+        assert_eq!(d.total_signature, classify_surreal(&m).unwrap().signature);
     }
 }

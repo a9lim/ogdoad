@@ -95,21 +95,21 @@ impl PyCliffordType {
 }
 
 /// Classify a surreal Clifford algebra (the genuine real classification) as a
-/// matrix algebra over ℝ/ℂ/ℍ. Diagonal metrics only.
+/// matrix algebra over ℝ/ℂ/ℍ. Symmetric metrics are diagonalized when possible.
 #[pyfunction]
 fn classify_surreal(alg: &SurrealAlgebra) -> PyResult<PyCliffordType> {
     crate::forms::classify_surreal(&alg.inner.metric)
         .map(|t| PyCliffordType { inner: t })
-        .ok_or_else(|| PyValueError::new_err("classifier needs a diagonal (orthogonal) metric"))
+        .ok_or_else(|| PyValueError::new_err("classifier could not diagonalize this metric"))
 }
 
 /// Classify a surcomplex Clifford algebra (the 2-fold complex classification).
-/// Diagonal metrics only.
+/// Symmetric metrics are diagonalized when possible.
 #[pyfunction]
 fn classify_surcomplex(alg: &SurcomplexAlgebra) -> PyResult<PyCliffordType> {
     crate::forms::classify_surcomplex(&alg.inner.metric)
         .map(|t| PyCliffordType { inner: t })
-        .ok_or_else(|| PyValueError::new_err("classifier needs a diagonal (orthogonal) metric"))
+        .ok_or_else(|| PyValueError::new_err("classifier could not diagonalize this metric"))
 }
 
 // ---------------------------------------------------------------------------
@@ -375,12 +375,13 @@ impl PySpringerDecomp {
     }
 }
 
-/// The non-Archimedean Springer decomposition of a diagonal surreal form: its
-/// ω-adic valuation filtration into residue ℝ-signatures.
+/// The non-Archimedean Springer decomposition of a surreal form: diagonalizes
+/// first, then reads the ω-adic valuation filtration into residue ℝ-signatures.
 #[pyfunction]
 fn springer_decompose(alg: &SurrealAlgebra) -> PyResult<PySpringerDecomp> {
-    let d = crate::forms::springer_decompose(&alg.inner.metric)
-        .ok_or_else(|| PyValueError::new_err("Springer decomposition needs a diagonal metric"))?;
+    let d = crate::forms::springer_decompose(&alg.inner.metric).ok_or_else(|| {
+        PyValueError::new_err("Springer decomposition could not diagonalize this metric")
+    })?;
     let graded = d
         .graded
         .iter()

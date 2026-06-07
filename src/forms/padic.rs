@@ -31,7 +31,7 @@ pub enum Place {
 
 /// The square-free part of `n` (sign preserved): `n` with every squared prime
 /// factor removed. The canonical representative of `n`'s class in `Q*/Q*²`.
-fn square_free(mut n: i128) -> i128 {
+pub(crate) fn square_free(mut n: i128) -> i128 {
     if n == 0 {
         return 0;
     }
@@ -230,7 +230,7 @@ pub fn hasse_at_place(entries: &[i128], place: Place) -> i8 {
 }
 
 /// The square class of the discriminant `∏ a_i`, kept square-free / small.
-fn disc_class(entries: &[i128]) -> i128 {
+pub(crate) fn disc_class(entries: &[i128]) -> i128 {
     let mut d: i128 = 1;
     for &e in entries {
         d = square_free(d * square_free(e as i128));
@@ -240,7 +240,7 @@ fn disc_class(entries: &[i128]) -> i128 {
 
 /// The primes that can carry a nontrivial local condition: `2` together with every
 /// prime dividing some entry.
-fn relevant_primes(entries: &[i128]) -> BTreeSet<u128> {
+pub(crate) fn relevant_primes(entries: &[i128]) -> BTreeSet<u128> {
     let mut ps = BTreeSet::new();
     ps.insert(2);
     for &e in entries {

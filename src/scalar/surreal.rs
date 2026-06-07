@@ -181,23 +181,35 @@ impl Surreal {
 
     /// The **floor** ⌊x⌋ — the greatest omnific integer ≤ `x`, as a `Surreal`.
     /// Concretely: keep every infinite term (`ω`-exponent `> 0`, any rational
-    /// coefficient), replace the constant term by `⌊coeff⌋`, and drop every
-    /// infinitesimal term (`ω`-exponent `< 0`). The result is always an omnific
-    /// integer ([`crate::scalar::Omnific`]); `Omnific::floor` wraps it as one.
-    /// Satisfies `⌊x⌋ ≤ x < ⌊x⌋ + 1`.
+    /// coefficient), floor the finite constant, and drop every infinitesimal
+    /// term (`ω`-exponent `< 0`). If the finite constant is already an integer,
+    /// a negative infinitesimal tail borrows one from that integer part. The
+    /// result is always an omnific integer ([`crate::scalar::Omnific`]);
+    /// `Omnific::floor` wraps it as one. Satisfies `⌊x⌋ ≤ x < ⌊x⌋ + 1`.
     pub fn floor(&self) -> Surreal {
         let mut terms: Vec<(Surreal, Rational)> = Vec::new();
+        let mut constant = Rational::zero();
+        let mut saw_constant = false;
+        let mut infinitesimal_sign = Ordering::Equal;
         for (e, c) in &self.terms {
             match e.sign() {
                 Ordering::Greater => terms.push((e.clone(), c.clone())), // infinite term kept
                 Ordering::Equal => {
-                    let f = c.floor();
-                    if f != 0 {
-                        terms.push((Surreal::zero(), Rational::int(f)));
-                    }
+                    constant = c.clone();
+                    saw_constant = true;
                 }
-                Ordering::Less => {} // infinitesimal term dropped
+                Ordering::Less if infinitesimal_sign == Ordering::Equal => {
+                    infinitesimal_sign = c.sign();
+                }
+                Ordering::Less => {} // lower infinitesimals are dominated
             }
+        }
+        let mut f = constant.floor();
+        if (!saw_constant || constant.is_integer()) && infinitesimal_sign == Ordering::Less {
+            f -= 1;
+        }
+        if f != 0 {
+            terms.push((Surreal::zero(), Rational::int(f)));
         }
         // terms stay strictly descending (a subset of self's, same order)
         Surreal { terms }
@@ -648,6 +660,9 @@ mod tests {
             (dyadic(3, 2), int(1)),         // ⌊3/2⌋ = 1
             (dyadic(-3, 2), int(-2)),       // ⌊−3/2⌋ = −2
             (eps.clone(), int(0)),          // ⌊ε⌋ = 0
+            (eps.neg(), int(-1)),           // ⌊−ε⌋ = −1
+            (int(1).sub(&eps), int(0)),     // ⌊1−ε⌋ = 0
+            (w.sub(&eps), w.sub(&int(1))),  // ⌊ω−ε⌋ = ω−1
             (int(5), int(5)),               // ⌊5⌋ = 5
             (w.clone(), w.clone()),         // ⌊ω⌋ = ω
             (

@@ -50,8 +50,14 @@ pub struct Cga<S: Scalar> {
 }
 
 impl<S: Scalar> Cga<S> {
-    /// Build the CGA of `ℝⁿ`. Panics unless `2` is invertible (CGA needs `½`).
+    /// Build the CGA of `ℝⁿ`. Panics unless the backend has characteristic 0
+    /// and `2` is invertible (CGA needs `½`).
     pub fn new(n: usize) -> Self {
+        assert_eq!(
+            S::characteristic(),
+            0,
+            "CGA is a characteristic-0 Euclidean construction"
+        );
         let two = S::one().add(&S::one());
         assert!(
             two.inv().is_some(),
@@ -200,6 +206,7 @@ pub fn exp_nilpotent<S: Scalar>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scalar::Fp;
     use crate::scalar::Integer;
     use crate::scalar::Rational;
     use crate::scalar::Surreal;
@@ -214,6 +221,11 @@ mod tests {
     #[test]
     fn cga_rejects_rings_without_one_half() {
         assert!(std::panic::catch_unwind(|| Cga::<Integer>::new(1)).is_err());
+    }
+
+    #[test]
+    fn cga_rejects_positive_characteristic() {
+        assert!(std::panic::catch_unwind(|| Cga::<Fp<3>>::new(1)).is_err());
     }
 
     #[test]

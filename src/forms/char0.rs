@@ -5,12 +5,12 @@
 //!
 //! ## The two tables
 //!
-//! Over a **real-closed** field (the surreals, or ℚ as a stand-in) every
-//! nonzero square can be rescaled to ±1 (the field is real-closed, so √ exists
-//! for positive elements — even √ω = ω^{1/2}). So a *diagonal* metric is
-//! classified by its signature `(p, q, r)` = (#positive, #negative, #null)
-//! squares, and the nondegenerate `Cl(p,q)` follows the 8-fold Bott table
-//! indexed by `s = (q − p) mod 8` (with `n = p+q`):
+//! Over a **real-closed** field (the surreals) every nonzero square can be
+//! rescaled to ±1 (the field is real-closed, so √ exists for positive elements
+//! — even √ω = ω^{1/2}). So a *diagonal* metric is classified by its signature
+//! `(p, q, r)` = (#positive, #negative, #null) squares, and the nondegenerate
+//! `Cl(p,q)` follows the 8-fold Bott table indexed by `s = (q − p) mod 8`
+//! (with `n = p+q`):
 //!
 //! | s | algebra            |   | s | algebra            |
 //! |---|--------------------|---|---|--------------------|
@@ -25,8 +25,14 @@
 //!
 //! The null directions (radical of dim `r`) contribute an exterior factor:
 //! `Cl(p,q,r) ≅ Cl(p,q) ⊗ Λ(F^r)` over the ground field `F ∈ {ℝ, ℂ}`.
+//!
+//! The rational backend is **not** treated as real-closed. `classify_rational`
+//! reports the genuine Hasse--Minkowski invariant package: dimension, radical,
+//! discriminant square-class, real signature, and the local Hasse invariants at
+//! the real place and the finitely many relevant `Q_p` places.
 
 use crate::clifford::Metric;
+use crate::forms::{disc_class, hasse_at_place, relevant_primes, square_free, Place};
 use crate::scalar::Surcomplex;
 use crate::scalar::Surreal;
 use crate::scalar::{Rational, Scalar};
@@ -88,6 +94,61 @@ impl CliffordType {
         } else {
             core
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RationalPlaceInvariant {
+    pub place: Place,
+    /// Hasse invariant at this place: `+1` or `-1`.
+    pub hasse: i8,
+}
+
+/// Complete rational quadratic-form invariants for the metric underlying a
+/// rational Clifford algebra.
+///
+/// The nondegenerate part is classified over `Q` by `(dim, discriminant,
+/// Hasse_v for all places v)`; only the real place and primes dividing
+/// `2·disc` can be nontrivial, so the finite list here is complete. The
+/// `real_closure` field records what the algebra becomes after scalar extension
+/// to `R`, but it is not used as a substitute for the rational invariant.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RationalCliffordType {
+    pub dim: usize,
+    pub radical_dim: usize,
+    /// Canonical representative of the discriminant in `Q*/Q*²`.
+    pub discriminant: i128,
+    pub signature: (usize, usize),
+    pub local_hasse: Vec<RationalPlaceInvariant>,
+    pub real_closure: CliffordType,
+}
+
+impl RationalCliffordType {
+    pub fn display(&self) -> String {
+        let locals = self
+            .local_hasse
+            .iter()
+            .map(|h| match h.place {
+                Place::Real => format!("R:{:+}", h.hasse),
+                Place::Prime(p) => format!("Q_{}:{:+}", p, h.hasse),
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        let rad = if self.radical_dim > 0 {
+            format!(" radical {}", self.radical_dim)
+        } else {
+            String::new()
+        };
+        format!(
+            "Q: dim {} disc {} sig ({},{}) hasse [{}]{}; over R: {}",
+            self.dim,
+            self.discriminant,
+            self.signature.0,
+            self.signature.1,
+            locals,
+            rad,
+            self.real_closure.display()
+        )
     }
 }
 
@@ -165,11 +226,53 @@ pub(crate) fn signature<S: crate::scalar::Scalar>(
     Some((p, q, r))
 }
 
-/// Classify a rational-scalar Clifford algebra (the validation backend). Diagonal
-/// metrics only; `None` otherwise.
-pub fn classify_rational(metric: &Metric<Rational>) -> Option<CliffordType> {
-    let (p, q, r) = signature(metric, |x| x.sign())?;
-    Some(classify_real(p, q, r))
+fn rational_square_class(x: &Rational) -> i128 {
+    square_free(x.numer() * x.denom())
+}
+
+/// Classify a rational-scalar quadratic form by the genuine rational invariants:
+/// nondegenerate dimension, radical, discriminant square-class, real signature,
+/// and the Hasse invariant at every relevant place.
+pub fn classify_rational(metric: &Metric<Rational>) -> Option<RationalCliffordType> {
+    let diag = crate::forms::as_diagonal(metric)?;
+    let mut entries = Vec::new();
+    let mut radical_dim = 0usize;
+    let mut signature = (0usize, 0usize);
+    for x in &diag.q {
+        if x.is_zero() {
+            radical_dim += 1;
+            continue;
+        }
+        match x.sign() {
+            Ordering::Greater => signature.0 += 1,
+            Ordering::Less => signature.1 += 1,
+            Ordering::Equal => unreachable!("zero handled above"),
+        }
+        entries.push(rational_square_class(x));
+    }
+    let discriminant = if entries.is_empty() {
+        1
+    } else {
+        disc_class(&entries)
+    };
+    let mut local_hasse = vec![RationalPlaceInvariant {
+        place: Place::Real,
+        hasse: hasse_at_place(&entries, Place::Real),
+    }];
+    for p in relevant_primes(&entries) {
+        local_hasse.push(RationalPlaceInvariant {
+            place: Place::Prime(p),
+            hasse: hasse_at_place(&entries, Place::Prime(p)),
+        });
+    }
+    Some(RationalCliffordType {
+        dim: entries.len(),
+        radical_dim,
+        discriminant,
+        signature,
+        local_hasse,
+        real_closure: classify_real(signature.0, signature.1, radical_dim),
+    })
 }
 
 /// Classify a surreal-scalar Clifford algebra. The surreals are real-closed, so
@@ -201,7 +304,9 @@ mod tests {
         Rational::int(n)
     }
     fn cl_real(qs: &[i128]) -> Option<CliffordType> {
-        classify_rational(&Metric::diagonal(qs.iter().map(|&x| rat(x)).collect()))
+        classify_surreal(&Metric::diagonal(
+            qs.iter().map(|&x| Surreal::from_int(x)).collect(),
+        ))
     }
     fn name(qs: &[i128]) -> String {
         cl_real(qs).unwrap().display()
@@ -257,6 +362,26 @@ mod tests {
     }
 
     #[test]
+    fn rational_classification_keeps_square_classes_and_local_hasse_data() {
+        let one = classify_rational(&Metric::diagonal(vec![rat(1)])).unwrap();
+        let two = classify_rational(&Metric::diagonal(vec![rat(2)])).unwrap();
+        assert_eq!(one.signature, two.signature);
+        assert_ne!(one.discriminant, two.discriminant);
+
+        let h = classify_rational(&Metric::diagonal(vec![rat(-1), rat(-1)])).unwrap();
+        assert_eq!(h.discriminant, 1);
+        assert_eq!(h.signature, (0, 2));
+        assert!(h
+            .local_hasse
+            .iter()
+            .any(|x| x.place == Place::Real && x.hasse == -1));
+        assert!(h
+            .local_hasse
+            .iter()
+            .any(|x| x.place == Place::Prime(2) && x.hasse == -1));
+    }
+
+    #[test]
     fn surreal_signs_classify_by_sign_only() {
         // Infinite/infinitesimal squares, but the signature is (1,1): Cl(1,1)=M₂(ℝ).
         let m = Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon().neg()]);
@@ -277,14 +402,23 @@ mod tests {
         // Cl(3,0)⁰ ≅ Cl(0,2) = ℍ — ties the classifier to even_subalgebra.
         let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![rat(1), rat(1), rat(1)]));
         let even = alg.even_subalgebra().unwrap();
-        assert_eq!(classify_rational(&even.metric).unwrap().display(), "H");
+        assert_eq!(
+            classify_rational(&even.metric)
+                .unwrap()
+                .real_closure
+                .display(),
+            "H"
+        );
         // Cl(1,3)⁰ ≅ Cl(1,2) ... check it matches a direct signature classification.
         let st = CliffordAlgebra::new(4, Metric::diagonal(vec![rat(1), rat(-1), rat(-1), rat(-1)]));
         let st_even = st.even_subalgebra().unwrap();
         // pivot is the last non-null (a −1 direction): f_i² = −q_i·(−1) = q_i.
         // signature of the even part here is (1,2) ⇒ same class as Cl(1,2).
         assert_eq!(
-            classify_rational(&st_even.metric).unwrap().display(),
+            classify_rational(&st_even.metric)
+                .unwrap()
+                .real_closure
+                .display(),
             classify_real(1, 2, 0).display()
         );
     }

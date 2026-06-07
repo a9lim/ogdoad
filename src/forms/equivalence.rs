@@ -29,13 +29,10 @@ pub fn isometric_real(m1: &Metric<Surreal>, m2: &Metric<Surreal>) -> Option<bool
     Some(s1 == s2)
 }
 
-/// Are two rational forms isometric *as real forms* (same signature)? Rational
-/// isometry is finer (it would track square classes too); this is the
-/// real-closed comparison the surreal backend realises.
+/// Are two rational forms isometric by the Hasse--Minkowski invariant package:
+/// dimension, discriminant square-class, and Hasse invariant at every place.
 pub fn isometric_rational(m1: &Metric<Rational>, m2: &Metric<Rational>) -> Option<bool> {
-    let s1 = crate::forms::char0::signature(m1, |x| x.sign())?;
-    let s2 = crate::forms::char0::signature(m2, |x| x.sign())?;
-    Some(s1 == s2)
+    Some(crate::forms::classify_rational(m1)? == crate::forms::classify_rational(m2)?)
 }
 
 /// Are two surcomplex forms isometric? Over an algebraically closed field the
@@ -118,6 +115,9 @@ pub struct OddWittDecomp {
 /// hyperbolic (dim 0) iff its discriminant matches the hyperbolic one, else its
 /// anisotropic kernel is the unique anisotropic plane (dim 2).
 pub fn witt_decompose_oddchar<const P: u128>(m: &Metric<Fp<P>>) -> Option<OddWittDecomp> {
+    if !Fp::<P>::modulus_is_prime() || P == 2 {
+        return None;
+    }
     let d = as_diagonal(m)?;
     let nonzero: Vec<Fp<P>> = d.q.into_iter().filter(|x| !x.is_zero()).collect();
     let dim = nonzero.len();
@@ -178,6 +178,14 @@ mod tests {
         b.insert((0, 1), Surreal::from_int(2));
         let h = Metric::new(vec![Surreal::from_int(0), Surreal::from_int(0)], b);
         assert_eq!(isometric_real(&h, &rsur(&[1, -1])), Some(true));
+    }
+
+    #[test]
+    fn rational_isometry_sees_square_classes() {
+        let q1 = Metric::diagonal(vec![Rational::int(1)]);
+        let q2 = Metric::diagonal(vec![Rational::int(2)]);
+        assert_eq!(isometric_rational(&q1, &q1), Some(true));
+        assert_eq!(isometric_rational(&q1, &q2), Some(false));
     }
 
     #[test]

@@ -1,35 +1,48 @@
-//! Concrete spinor modules: minimal left ideals and the matrices that realize a
-//! Clifford algebra's classification as operators on column spinors.
+//! Concrete spinor modules: left ideals and the matrices that realize Clifford
+//! generators as operators on column spinors.
 //!
-//! The char-0 classifier (`classify.rs`) *names* the matrix algebra `Cl(p,q) ≅
-//! M_d(K)`; this module *builds* it. We construct a primitive idempotent `f` as
-//! a product of commuting "halves" `½(1 + w)` with `w² = +1`, take the minimal
-//! left ideal `S = Cl·f` (the spinor module), pick a basis, and read off the
+//! The char-0 classifier (`classify.rs`) *names* the real-closed matrix algebra
+//! `Cl(p,q) ≅ M_d(K)`; this module builds concrete operator matrices. It searches
+//! for an idempotent `f` as a product of commuting "halves" `½(1 + w)` with
+//! `w² = +1`, takes the left ideal `S = Cl·f`, picks a basis, and reads off the
 //! matrix of left multiplication by each generator on that basis. Those matrices
 //! satisfy the Clifford relations `Mᵢ² = qᵢ·I`, `MᵢMⱼ + MⱼMᵢ = bᵢⱼ·I`
-//! automatically (left multiplication is an algebra representation), and the
-//! ideal's dimension matches the classifier's `matrix_dim · dim_ℝ(K)`.
+//! automatically. When the idempotent search reaches a minimal ideal in the
+//! standard real-closed table, its dimension matches `matrix_dim · dim_ℝ(K)`;
+//! otherwise the constructor keeps the complete left-regular representation
+//! rather than returning an incomplete guess.
 //!
 //! ## Scope
 //!
 //! Nondegenerate **orthogonal** metrics (`b`,`a` empty, no null `qᵢ`) in
-//! characteristic 0 (the idempotents need `½`). The primitive idempotent is
-//! found greedily — taking commuting `+1`-square blades until the ideal stops
-//! shrinking — which covers the standard low-dimensional algebras. Degenerate or
-//! char-2 metrics return `None`.
+//! characteristic 0. The constructor first searches for commuting idempotent
+//! cuts `½(1+w)` and uses the resulting left ideal when that shrinks the module.
+//! If no further explicit cut is found, it still returns the complete
+//! left-regular representation (`f = 1`). Degenerate, nonorthogonal,
+//! positive-characteristic, or non-enumerable dimensions return `None`.
 
+use crate::clifford::MAX_BASIS_DIM;
 use crate::clifford::{bits, CliffordAlgebra, Multivector};
 use crate::scalar::Scalar;
 
+/// Explicit spinor matrices grow exponentially (`basis_dim²` entries per
+/// generator), so this constructor is intentionally capped instead of pretending
+/// a 128-generator representation is materializable.
+const MAX_EXPLICIT_SPINOR_DIM: usize = 10;
+
 /// A concrete spinor representation of a Clifford algebra.
 pub struct SpinorRep<S: Scalar> {
-    /// The primitive idempotent `f` (`f² = f`).
+    /// The idempotent `f` (`f² = f`) generating the represented left ideal.
     pub idempotent: Multivector<S>,
-    /// A basis of the minimal left ideal `Cl·f` (in reduced echelon form).
+    /// A basis of the left ideal `Cl·f` (in reduced echelon form). If
+    /// `is_left_regular` is true, this is the whole algebra.
     pub basis: Vec<Multivector<S>>,
     /// `gen_matrices[i]` is the matrix of left multiplication by `eᵢ` on `basis`
     /// (indexed `[row][col]`; column `j` is the action on `basis[j]`).
     pub gen_matrices: Vec<Vec<Vec<S>>>,
+    /// True when the constructor fell back to `f = 1`, i.e. the complete
+    /// left-regular representation.
+    pub is_left_regular: bool,
 }
 
 fn is_idempotent<S: Scalar>(alg: &CliffordAlgebra<S>, f: &Multivector<S>) -> bool {
@@ -75,50 +88,81 @@ fn rref<S: Scalar>(
     Some(basis)
 }
 
+fn blade_count(dim: usize) -> Option<u128> {
+    if dim >= MAX_BASIS_DIM || dim > MAX_EXPLICIT_SPINOR_DIM {
+        None
+    } else {
+        Some(1u128 << dim)
+    }
+}
+
 /// All `blade · f` for blades of the algebra — a spanning set for the left ideal.
 fn ideal_spanning_set<S: Scalar>(
     alg: &CliffordAlgebra<S>,
     f: &Multivector<S>,
-) -> Vec<Multivector<S>> {
-    (0..(1u128 << alg.dim))
-        .map(|mask| alg.mul(&alg.blade(&bits(mask)), f))
-        .collect()
+) -> Option<Vec<Multivector<S>>> {
+    let count = blade_count(alg.dim)?;
+    Some(
+        (0..count)
+            .map(|mask| alg.mul(&alg.blade(&bits(mask)), f))
+            .collect(),
+    )
 }
 
 fn ideal_dim<S: Scalar>(alg: &CliffordAlgebra<S>, f: &Multivector<S>) -> usize {
-    rref(alg, &ideal_spanning_set(alg, f))
-        .map(|b| b.len())
-        .unwrap_or(0)
+    let Some(spanning) = ideal_spanning_set(alg, f) else {
+        return 0;
+    };
+    rref(alg, &spanning).map(|b| b.len()).unwrap_or(0)
 }
 
 /// Coordinates of `target` in a reduced-echelon `basis` (pivot coefficients).
-fn coords<S: Scalar>(basis: &[(u128, Multivector<S>)], target: &Multivector<S>) -> Vec<S> {
-    basis
+fn coords<S: Scalar>(
+    alg: &CliffordAlgebra<S>,
+    basis: &[(u128, Multivector<S>)],
+    target: &Multivector<S>,
+) -> Option<Vec<S>> {
+    let coords: Vec<S> = basis
         .iter()
         .map(|(p, _)| target.terms.get(p).cloned().unwrap_or_else(S::zero))
-        .collect()
+        .collect();
+    let mut recon = alg.zero();
+    for (c, (_, b)) in coords.iter().zip(basis.iter()) {
+        recon = alg.add(&recon, &alg.scalar_mul(c, b));
+    }
+    if recon == *target {
+        Some(coords)
+    } else {
+        None
+    }
 }
 
-/// Build a concrete spinor representation. `None` for non-orthogonal, degenerate,
-/// or characteristic-2 metrics (see the module docs).
+/// Build a concrete spinor representation. `None` for non-orthogonal,
+/// degenerate, positive-characteristic, or non-enumerable metrics (see the
+/// module docs).
 pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
     if !alg.metric.b.is_empty() || !alg.metric.a.is_empty() {
         return None; // orthogonal metrics only
     }
+    if S::characteristic() != 0 {
+        return None;
+    }
+    blade_count(alg.dim)?;
     if (0..alg.dim).any(|i| alg.metric.q.get(i).map(|x| x.is_zero()).unwrap_or(true)) {
         return None; // nondegenerate only (no null generators)
     }
     let half = S::one().add(&S::one()).inv()?; // needs ½ (char 0)
     let one = alg.scalar(S::one());
 
-    // Greedily multiply in commuting ½(1+w) factors (w² = +1) until the ideal
-    // stops shrinking — yielding a primitive idempotent.
+    // Greedily multiply in commuting ½(1+w) factors (w² = +1) while they shrink
+    // the represented left ideal. If no cut applies, f=1 gives the full regular
+    // representation.
     let mut f = one.clone();
     let mut chosen: Vec<Multivector<S>> = Vec::new();
     let mut cur = ideal_dim(alg, &f);
     loop {
         let mut progressed = false;
-        for mask in 1..(1u128 << alg.dim) {
+        for mask in 1..blade_count(alg.dim)? {
             let w = alg.blade(&bits(mask));
             if alg.mul(&w, &w) != one {
                 continue; // need w² = +1
@@ -145,7 +189,8 @@ pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
         }
     }
 
-    let basis = rref(alg, &ideal_spanning_set(alg, &f))?;
+    let is_left_regular = f == one;
+    let basis = rref(alg, &ideal_spanning_set(alg, &f)?)?;
     let k = basis.len();
 
     // gen_matrices[i][row][col]: left multiplication by e_i on the basis.
@@ -153,7 +198,7 @@ pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
     for i in 0..alg.dim {
         for (col, (_, bvec)) in basis.iter().enumerate() {
             let target = alg.mul(&alg.gen(i), bvec);
-            let cs = coords(&basis, &target);
+            let cs = coords(alg, &basis, &target)?;
             for (row, c) in cs.into_iter().enumerate() {
                 gen_matrices[i][row][col] = c;
             }
@@ -165,6 +210,7 @@ pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
         idempotent: f,
         basis: basis_vectors,
         gen_matrices,
+        is_left_regular,
     })
 }
 
@@ -222,7 +268,7 @@ mod tests {
 
     /// Expected minimal-ideal real dimension = matrix_dim · dim_ℝ(base).
     fn expected_ideal_dim(qs: &[i128]) -> usize {
-        let t = classify_rational(&cl(qs).metric).unwrap();
+        let t = classify_rational(&cl(qs).metric).unwrap().real_closure;
         let base = match t.base {
             BaseField::R => 1,
             BaseField::C => 2,
@@ -277,6 +323,7 @@ mod tests {
         let alg = cl(&[-1, -1]);
         let rep = spinor_rep(&alg).unwrap();
         assert_eq!(rep.basis.len(), 4);
+        assert!(rep.is_left_regular);
         // f = 1 (no idempotent factor was found)
         assert_eq!(rep.idempotent, alg.scalar(r(1)));
     }
@@ -302,5 +349,28 @@ mod tests {
         b.insert((0usize, 1usize), r(1));
         let alg = CliffordAlgebra::new(2, Metric::new(vec![r(1), r(1)], b));
         assert!(spinor_rep(&alg).is_none());
+    }
+
+    #[test]
+    fn nonsquare_rational_metrics_get_complete_regular_representation() {
+        let alg = cl(&[2]);
+        let rep = spinor_rep(&alg).unwrap();
+        assert!(rep.is_left_regular);
+        assert_eq!(rep.basis.len(), 2);
+        let m0 = &rep.gen_matrices[0];
+        assert_eq!(mat_mul(m0, m0), scalar_id(r(2), rep.basis.len()));
+    }
+
+    #[test]
+    fn positive_characteristic_and_non_enumerable_dims_are_rejected() {
+        use crate::scalar::Fp;
+        let fp_alg = CliffordAlgebra::new(1, Metric::diagonal(vec![Fp::<3>::one()]));
+        assert!(spinor_rep(&fp_alg).is_none());
+
+        let large = CliffordAlgebra::new(
+            MAX_EXPLICIT_SPINOR_DIM + 1,
+            Metric::diagonal(vec![r(1); MAX_EXPLICIT_SPINOR_DIM + 1]),
+        );
+        assert!(spinor_rep(&large).is_none());
     }
 }

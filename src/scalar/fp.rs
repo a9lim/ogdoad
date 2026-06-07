@@ -14,9 +14,9 @@
 //! value alone. We carry it in the **type**: `Fp<P>` is the field of `P`
 //! elements. A different prime is a different type — exactly the per-backend,
 //! no-mixing discipline the rest of the crate already uses (you cannot
-//! accidentally add an `Fp<3>` to an `Fp<5>`). `P` must be prime; this is
-//! checked in the tests, and `inv` degrades gracefully (returns `None` on a
-//! non-unit) rather than misbehaving if it is not.
+//! accidentally add an `Fp<3>` to an `Fp<5>`). `P` must be prime; scalar
+//! operations assert this instead of silently turning field-theory APIs into
+//! arithmetic over `Z/PZ`.
 //!
 //! Unlike the nimbers, `neg` here is a *genuine* negation (`P − a ≠ a` for
 //! `a ≠ 0`), so the Clifford antisymmetry signs are real — a useful contrast to
@@ -30,8 +30,33 @@ use std::fmt;
 pub struct Fp<const P: u128>(pub u128);
 
 impl<const P: u128> Fp<P> {
+    pub fn modulus_is_prime() -> bool {
+        if P < 2 {
+            return false;
+        }
+        if P == 2 {
+            return true;
+        }
+        if P % 2 == 0 {
+            return false;
+        }
+        let mut d = 3u128;
+        while d <= P / d {
+            if P % d == 0 {
+                return false;
+            }
+            d += 2;
+        }
+        true
+    }
+
+    pub fn assert_prime_modulus() {
+        assert!(Self::modulus_is_prime(), "Fp<P> needs prime P, got {P}");
+    }
+
     /// Reduce an integer (possibly negative) into `F_P`.
     pub fn new(n: i128) -> Self {
+        Self::assert_prime_modulus();
         let m = P as i128;
         let v = (((n as i128) % m) + m) % m;
         Fp(v as u128)
@@ -46,15 +71,19 @@ impl<const P: u128> fmt::Debug for Fp<P> {
 
 impl<const P: u128> Scalar for Fp<P> {
     fn zero() -> Self {
+        Self::assert_prime_modulus();
         Fp(0)
     }
     fn one() -> Self {
+        Self::assert_prime_modulus();
         Fp(1 % P)
     }
     fn add(&self, rhs: &Self) -> Self {
+        Self::assert_prime_modulus();
         Fp(((self.0 as u128 + rhs.0 as u128) % P as u128) as u128)
     }
     fn neg(&self) -> Self {
+        Self::assert_prime_modulus();
         if self.0 == 0 {
             Fp(0)
         } else {
@@ -62,12 +91,15 @@ impl<const P: u128> Scalar for Fp<P> {
         }
     }
     fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_prime_modulus();
         Fp(((self.0 as u128 * rhs.0 as u128) % P as u128) as u128)
     }
     fn characteristic() -> u128 {
+        Self::assert_prime_modulus();
         P as u128
     }
     fn inv(&self) -> Option<Self> {
+        Self::assert_prime_modulus();
         if self.0 == 0 {
             return None;
         }
@@ -168,5 +200,11 @@ mod tests {
         // (e0e1)² = 1
         let e0e1 = alg.mul(&e0, &e1);
         assert_eq!(alg.mul(&e0e1, &e0e1), alg.scalar(Fp::<3>(1)));
+    }
+
+    #[test]
+    fn composite_modulus_is_rejected() {
+        assert!(std::panic::catch_unwind(|| Fp::<4>::one()).is_err());
+        assert!(std::panic::catch_unwind(|| Fp::<9>::new(2)).is_err());
     }
 }
