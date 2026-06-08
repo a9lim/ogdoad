@@ -671,6 +671,56 @@ So two unbuilt routes, both worth exploring, neither attempted here:
 Left at the hardcoded table (route "a") for now: minimal, fully source-pinned, explicit
 boundary. (b)/(c) are the way to push the wall — (b) for self-verification, (c) for reach.
 
+## Characteristic-2 local–global: the Artin–Schreier symbol over F_{2^m}(t)
+
+Claim level: **standard math, source-verified** (the symbol + reciprocity),
+**implemented-and-tested** (`forms/function_field_char2.rs`, `forms/char2/field.rs`).
+The wild-term Witt decomposition (below) is a separate **research-grade** build, in
+progress. Appendix material — it rounds out the local↔global table into char 2 and
+touches no Arf/game claim.
+
+The odd-`q` local–global layer (`forms/function_field.rs`) needs odd residue
+characteristic: its tame Hilbert symbol uses the multiplicative square class
+`u^{(|κ|−1)/2}`, undefined when `|κ| = 2^k`. The char-2 replacement is genuinely a
+*different formula*, not the same one at `p = 2`:
+
+- **The symbol is the asymmetric Artin–Schreier symbol** `[a, b)`: `a ∈ F_q(t)`
+  additive (mod `℘(K)`, `℘(x)=x²+x`), `b ∈ F_q(t)*` multiplicative. The local
+  invariant is the **Schmid formula** `s_v(a,b) = Tr_{κ/F₂}(Res_v(a·dlog b)) ∈ F₂`
+  (Serre, *Local Fields* XIV §5; Gille–Szamuely §9.2). `[a,b)` splits at `v` iff
+  `s_v = 0`; its reduced-norm form is the 2-Pfister `[1,a] ⊥ b·[1,a]`, isotropic iff
+  the algebra splits. Reciprocity `∑_v s_v = 0` is the residue theorem on `P¹` — the
+  additive analogue of `∏_v (a,b)_v = +1` — so ramification is even.
+- **The square-class capability is additive too.** `FiniteChar2Field` mirrors
+  `FiniteOddField` with `artin_schreier_class = Tr_{F_q/F₂}` where the odd one carries
+  `is_square_value`: in a finite char-2 field *every* element is a square (Frobenius
+  is onto), so the working local datum is the additive `F/℘(F) ≅ F₂`, read by the same
+  trace the Arf reduction already uses.
+- **The residue engine** is the Hensel-parametrization formula
+  `Res_P(g dt) = [u^{m-1}]( B(T(u))·P'(T(u))⁻¹ )` with `T(u)` the local series
+  `P(T) = u` over `κ = F_q[t]/(P)`; the place `∞` via `u = 1/t`, `dt = u⁻²du` (the
+  char-2 sign vanishes). Verified against source residue oracles (`t/P²→1`, `1/P³→0`,
+  `t/P³→1` at `P = t²+t+1` over F₄) **and** the reciprocity sweep (a wrong residue
+  desyncs `∑_v s_v`).
+
+**The wild-term finding (it saved a wrong build).** The natural next step — a char-2
+Springer decomposition `W_q(F_{2^m}((π))) = W_q(k) ⊕ W_q(k)`, the odd-char story
+verbatim — is **false**. In char 2 there is a third, *wild* summand: Aravire–Jacob
+(*Quadratic forms over rational function fields in characteristic 2*, Thm 1.3) give
+`φ = φ₀ ⊥ ψ ⊥ ⟨π⟩φ₁` with `ψ ∈ R_π = {[1,r] : r ∈ π⁻¹·k[π⁻²]}` (binary forms in
+*negative odd* powers of `π`). Witness: `[1, π⁻¹]` has zero `W_q(k)` and zero
+`π·W_q(k)` parts yet is anisotropic — `℘(x)` of a pole-order-`n` element has *even*
+pole order `2n`, never `π⁻¹`'s odd order 1. The same odd/even obstruction surfaces in
+the residue engine: Hermite reduction lowers a pole order `j → j−1` only when `j` is
+even, so odd-order poles are irreducible — the differential-level shadow of `R_π`. The
+char-2 Witt/Springer decomposition (`(φ₀, ψ, φ₁)`, the rank-by-rank global isotropy,
+`u(F_{2^m}(t)) = 4`) is the in-progress Part B; the naive two-layer version must **not**
+be shipped.
+
+References: Serre, *Local Fields* XIV; Gille–Szamuely, *Central Simple Algebras and
+Galois Cohomology* §9; Elman–Karpenko–Merkurjev §§7, 14; Aravire–Jacob (the char-2
+function-field Witt theory). Independent theory pass cross-checked via Codex.
+
 ## Useful commands
 
 ```sh

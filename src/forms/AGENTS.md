@@ -44,7 +44,11 @@ witt_ring + brauer_wall + padic + adelic + springer + the symplectic/hermitian
 - **`char2/`** — characteristic-2 invariants (re-exported flat): `arf.rs` (the Arf
   invariant: `arf_f2` F₂ bitmask + `arf_nimber` any nim-field, symplectic reduction
   + trace), `dickson.rs` (`dickson_matrix = rank(g−I) mod 2`, ker = SO;
-  `dickson_of_versor` delegates to the generic versor grade parity).
+  `dickson_of_versor` delegates to the generic versor grade parity), `field.rs`
+  (`FiniteChar2Field` — the **additive** mirror of `FiniteOddField`: carries
+  `artin_schreier_class = Tr_{F_q/F₂}` instead of `is_square_value`, since in char 2
+  the multiplicative square class is trivial and the working datum is `F/℘(F) ≅ F₂`;
+  impl for `Fp<2>`/`Fpn<2,N>`, NOT `Nimber` — same boundary as `FiniteOddField`).
 
 The char0↔char2 classifier **symmetry** (the real 8-fold table mirrored by the
 char-2 Arf/Brauer–Wall story) is one of the project's central threads.
@@ -118,6 +122,17 @@ One generic engine for the discretely-valued legs + the surreal odd-one-out:
   count). Names carry `_ff` where `padic.rs` collides (e.g. `hasse_at_place_ff`).
   Exact (the product formula is `deg`-counting); odd residue char only — the
   `springer_laurent` boundary. Cross-checked against `springer_decompose_laurent`.
+- **`function_field_char2.rs`** — the **equal-characteristic-2** mirror: the
+  **asymmetric Artin–Schreier symbol** `[a,b)` over `F_{2^m}(t)` (`a` additive mod
+  `℘`, `b` multiplicative), NOT the tame symbol. Local invariant = the **Schmid
+  formula** `s_v(a,b) = Tr_{κ/F₂}(Res_v(a·dlog b))` (`as_symbol_at`), via a from-scratch
+  **residue-of-differentials engine** (Hensel series `T(u)`, `P(T)=u`; the `∞` place by
+  `u=1/t`). Reciprocity `∑_v s_v = 0` (`as_symbol_reciprocity_sum`, the gold oracle) +
+  even ramification (`as_symbol_ramified_places`). Generic over `FiniteChar2Field`
+  (so `F₂(t)`, `F₄(t)`, `F₈(t)` share one engine). Names carry `as_symbol_*` / `Char2Place`
+  to avoid colliding with the odd `function_field` flat re-exports. **Read NOTES.md:**
+  the char-2 Springer/Witt decomposition is NOT `W_q(k)²` — the wild `R_π` term
+  (Aravire–Jacob) is a separate in-progress build; do not ship the naive two-layer form.
 
 ## The "form + involution" siblings
 
