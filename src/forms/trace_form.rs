@@ -20,8 +20,9 @@
 //! `.classify()` reads off the Arf invariant (rank, radical, win-bias zero-count).
 //!
 //! The same construction over `Surcomplex` (`σ = ` conjugation, `k = 1`) gives the
-//! **norm form** `Tr(x·x̄) = 2(a²+b²)` — the binary Pfister/norm form — and over an
-//! odd-characteristic `Fpn` an ordinary diagonalizable trace form.
+//! **norm form** `Tr(x·x̄) = 2(a²+b²)` — the binary Pfister/norm form; over `Qq` it
+//! gives an unramified local trace form using a Teichmuller-lifted residue basis; and
+//! over an odd-characteristic `Fpn` it gives an ordinary diagonalizable trace form.
 //!
 //! Boundary: the form has dimension `[E:F]`, so as a [`Metric`] it is capped at
 //! `MAX_BASIS_DIM = 128` — exactly the degree of the full nim-field `F_{2^128}`.

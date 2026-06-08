@@ -525,25 +525,32 @@ algebraic-closure surcomplex `√(a+bi)` falling out as a blanket
 `Surcomplex<R: ExactRoots+Ordered>` impl (it used to be a private helper inside
 `forms/char0`). It makes surcomplex root-taking first-class and the classifier call
 a trait, but changes no Arf/game claim.
-The latest symmetry round-out is three more trait/mirror closures of the same kind,
-none touching the Arf/game thread: (1) the `ResidueField` trait
-(`scalar/residue.rs`) promotes the residue-field column `k = 𝒪/𝔪` to the type
-system — the last piece of the local-field package `(K,𝒪,𝔪,k,Γ,ϖ)` after
-`integrality`/`valued`/`analytic` — which lets the two discrete Springer siblings
-collapse into one generic `springer_decompose_local` (`forms/springer_local.rs`)
-and adds the unramified `Q_q` decomposition (residue `F_q`) for free, so the
-mixed-characteristic leg now reaches general `F_q` residues like the equal-char
-Laurent leg; the surreal Springer stays separate exactly because its value group is
-divisible. (2) `NimberGame` (`games/nimber_game.rs`) is the char-2 mirror of
-`NumberGame` — transfinite Nim heaps `⋆α` carried by their `Ordinal` Grundy value —
-closing the `No ↔ On₂` symmetry at the *games* layer (it had only lived at the
-scalar layer via the shared CNF core). (3) the `FieldExtension` trait
-(`scalar/extension.rs`) gives one relative-trace/norm interface across the
-algebraic-closure functor (`Surcomplex`, deg 2), the finite-field tower (`Fpn/Fp`,
-delegating to the existing `FiniteField` machinery), and the unramified local
-extension (`Q_q/Q_p`, via the Witt Frobenius); `Ramified` (non-Galois, degenerate
-trace form) and `Gauss` (transcendental) are excluded honestly, the same boundary
-`analytic` draws. All appendix material; none of it changes the Arf/game claims.
+The latest symmetry round-out is five more trait/mirror closures of the same kind,
+none touching the Arf/game thread: (1) `ResidueField` (`scalar/residue.rs`) now carries
+not only `k = 𝒪/𝔪` and the angular component but also the multiplicative
+Teichmuller section `τ : k → 𝒪`, so the local-field package `(K,𝒪,𝔪,k,Γ,ϖ)` is typed
+all the way through; this is what lets the two discrete Springer siblings collapse
+into one generic `springer_decompose_local` (`forms/springer_local.rs`) and gives the
+unramified `Q_q` decomposition (residue `F_q`) the same generic path as Laurent. The
+surreal Springer stays separate exactly because its value group is divisible.
+(2) `NimberGame` (`games/nimber_game.rs`) is the char-2 mirror of `NumberGame` —
+transfinite Nim heaps `⋆α` carried by their `Ordinal` Grundy value — closing the
+`No ↔ On₂` symmetry at the *games* layer (it had only lived at the scalar layer via
+the shared CNF core). (3) `FieldExtension` (`scalar/extension.rs`) gives one
+relative-trace/norm interface across the algebraic-closure functor (`Surcomplex`,
+deg 2), the finite-field tower (`Fpn/Fp`, delegating to the existing `FiniteField`
+machinery), the unramified local extension (`Q_q/Q_p`, via the Witt Frobenius), and
+the concrete nim-field (`Nimber/F_2`). (4) `CyclicGaloisExtension` now includes the
+unramified `Q_q/Q_p` leg too, using a Teichmuller-lifted residue basis and the
+Witt-Frobenius, so `forms::trace_form` sees `Surcomplex`, `Fpn`, `Qq`, and `Nimber`
+through one `(basis,σ)` interface. (5) the functor corners carry their
+valuation/residue signatures explicitly: `Ramified<S,E>` is `Valued` with the new
+uniformizer `π` and residue field `k`, while `Gauss<S>` has residue field `k(tbar)`;
+`ExactScalar`/`ExactFieldScalar`/`PrecisionScalar` separately mark exact represented
+rings/fields versus capped-relative models. `Ramified` and `Gauss` remain excluded
+from finite `FieldExtension`/`CyclicGaloisExtension` honestly (non-Galois/infinite
+degree), the same boundary `analytic` draws. All appendix material; none of it
+changes the Arf/game claims.
 
 ## Useful commands
 

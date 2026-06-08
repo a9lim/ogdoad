@@ -148,8 +148,9 @@ One generic engine for the discretely-valued legs + the surreal odd-one-out:
   **Frobenius-twisted** trace form `Q_k(x) = Tr_{E/F}(x·σ^k(x))` (q on the diagonal,
   the alternating polar `Tr(eᵢσ^k eⱼ + eⱼσ^k eᵢ)` off it). NOT the naive `Tr(x²)`,
   whose polar form vanishes in char 2 (Frobenius is additive) — that's the trap the
-  twist avoids. Instances: `Surcomplex` k=1 → the **norm form** `⟨2,2⟩`; odd `Fpn`
-  → a diagonalizable trace form. Two char-2 entry points to the **Gold form**
+  twist avoids. Instances: `Surcomplex` k=1 → the **norm form** `⟨2,2⟩`; unramified
+  `Qq/Qp` via the Teichmuller-lifted residue basis; odd `Fpn` → a diagonalizable
+  trace form. Two char-2 entry points to the **Gold form**
   `Tr(x^{1+2^a})`, classified → `ArfResult` (rank `= m − gcd(2a,m)`, Arf → the
   zero-count): `trace_form_arf::<E: …<Base=Fp<2>>>(k)` (the typed `Fpn<2,m>` path —
   build over `F_2`, lift `F_2 ↪ Nimber` via `Metric::map`), and `gold_form(m, a)`

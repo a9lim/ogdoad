@@ -28,11 +28,17 @@
 //! | [`global`]       — all places at once | `Adele` A_Q model  | integral predicate | — |
 //!
 //! The **residue** column is itself structural, via [`residue`] ([`ResidueField`]):
-//! the discretely-valued local fields know their residue field `k = 𝒪/𝔪` and the
-//! reduction `𝒪 → k` (`Qp → F_p`, `Qq → F_q`, `Laurent → F_q`), the last piece of
-//! the local-field package `(K, 𝒪, 𝔪, k, Γ, ϖ)` to leave the doc comments — joining
-//! [`integrality`] (the `𝒪`/`K` pairing), [`valued`] (`Γ`, `ϖ`), and [`analytic`]
-//! (roots). It is what lets the discrete Springer decomposition be written once.
+//! the discretely-valued local fields/functors know their residue field `k = 𝒪/𝔪`,
+//! the reduction `𝒪 → k`, the angular component, and the Teichmuller section
+//! (`Qp → F_p`, `Qq → F_q`, `Laurent → k`, `Ramified → k`, `Gauss → k(tbar)`). It is
+//! the last piece of the local-field package `(K, 𝒪, 𝔪, k, Γ, ϖ)` to leave the doc
+//! comments — joining [`integrality`] (the `𝒪`/`K` pairing), [`valued`] (`Γ`, `ϖ`),
+//! and [`analytic`] (roots). It is what lets the discrete Springer decomposition be
+//! written once.
+//!
+//! Exact-vs-capped arithmetic is named separately by [`exactness`]:
+//! [`ExactScalar`], [`ExactFieldScalar`], and [`PrecisionScalar`] are opt-in markers,
+//! not part of the base [`Scalar`] contract.
 //!
 //! The [`global`] family is the place-organized table's local-global row: every
 //! other row picks *one* place, while `Adele` is a finite-precision model of the

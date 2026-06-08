@@ -41,9 +41,10 @@ The pairing is not decorative — it is made structural by the
 `HasFractionField` / `HasRingOfIntegers` trait pair (`ℤ⊂ℚ`, `Oz⊂No`, `Zp⊂Qp`,
 `W_N⊂Qq`, `F_q[t]⊂F_q(t)`, and `ℤ[i]⊂ℚ[i]` for free via the surcomplex transport).
 The rest of the local-field data is structural too — the valuation and uniformizer
-(`Valued`) and the residue field `k = 𝒪/𝔪` (`ResidueField`: `Qp→F_p`, `Qq→F_q`,
-`Laurent→F_q`) — so the whole package `(K, 𝒪, 𝔪, k, Γ, ϖ)` lives in the type
-system rather than the comments.
+(`Valued`) and the residue field `k = 𝒪/𝔪` with angular component plus
+Teichmuller section (`ResidueField`: `Qp→F_p`, `Qq→F_q`, `Laurent→k`,
+`Ramified→k`, `Gauss→k(tbar)`) — so the whole package `(K, 𝒪, 𝔪, k, Γ, ϖ)`
+lives in the type system rather than the comments.
 
 ## The symmetries
 
@@ -73,16 +74,20 @@ grow a field, and all four corners are filled:
 | **transcendental** | `Gauss` (adjoin a unit `t`) | `Laurent` (adjoin a uniformizer `t`) |
 
 `Laurent` over a finite field is the equal-characteristic mirror of `Qp`;
-`Ramified` is the ramified twin of the unramified `Qq`. The finite *separable*
-extensions among these carry a uniform relative trace/norm (`FieldExtension`): the
-algebraic-closure functor `Surcomplex` (degree 2), the finite tower `Fpn/Fp`, the
-unramified `Qq/Qp`, and the nim-field `Nimber/F_2` (`F_{2^128}`, the main char-2
-field) — one interface for the norm map that feeds Hilbert symbols, the Brauer–Wall
-group, and Hermitian forms. The cyclic-Galois ones (`CyclicGaloisExtension`, adding
-a basis and the generator `σ`) feed the **twisted trace form** `Tr_{E/F}(x·σ^k(x))`
-(`forms::trace_form`), which lands back in the form classifiers: the binary norm
-form over `Surcomplex`, and the **Gold form** `Tr(x^{1+2^a})` over the nim-fields,
-Arf-classified — the typed-core home of the game-built quadratic-form thread.
+`Ramified` is the ramified twin of the unramified `Qq`. The functor corners now keep
+their residue/value signatures too: `Ramified` is valued by the new uniformizer `π`
+with the base residue field, and `Gauss` has unchanged value group with residue
+`k(tbar)`. The finite *separable* extensions among these carry a uniform relative
+trace/norm (`FieldExtension`): the algebraic-closure functor `Surcomplex` (degree 2),
+the finite tower `Fpn/Fp`, the unramified `Qq/Qp`, and the nim-field `Nimber/F_2`
+(`F_{2^128}`, the main char-2 field) — one interface for the norm map that feeds
+Hilbert symbols, the Brauer–Wall group, and Hermitian forms. The cyclic-Galois ones
+(`CyclicGaloisExtension`, adding a basis and the generator `σ`) feed the **twisted
+trace form** `Tr_{E/F}(x·σ^k(x))` (`forms::trace_form`), which lands back in the form
+classifiers: the binary norm form over `Surcomplex`, unramified local trace forms
+over `Qq`, ordinary finite-field trace forms over `Fpn`, and the **Gold form**
+`Tr(x^{1+2^a})` over the nim-fields, Arf-classified — the typed-core home of the
+game-built quadratic-form thread.
 
 **local ↔ global.** The Springer decomposition appears across the complete valued
 fields, and the value group controls the answer: over the surreals the value group
@@ -230,6 +235,8 @@ Scope boundaries worth stating plainly:
 - `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss`, and `Adele` are finite-precision
   (capped-relative) models, not exact infinite-memory local fields. They are useful
   for local/global form experiments and excluded from the exact-ring fuzz.
+- `ExactScalar` / `ExactFieldScalar` / `PrecisionScalar` name that exact-vs-capped
+  precision boundary explicitly. They are opt-in markers, not `Scalar` supertraits.
 - The Gold/Arf game thread is conditional: *if* a game has P-set `{Q = 0}`, Arf
   predicts the win-bias. No non-tautological natural game with that P-set has been
   found.

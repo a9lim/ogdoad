@@ -109,8 +109,10 @@ Two property suites (dev-dep `proptest`, in `tests/`): `scalar_axioms.rs` fuzzes
 commutative-ring axioms across every backend, `clifford_axioms.rs` fuzzes geometric-
 product associativity/distributivity over random metrics in char 0 and char 2. The
 capped-relative precision models (Qp/Qq/Laurent/Ramified/Gauss/Adele) are excluded
-from the exact-ring fuzz by design. (serde is intentionally NOT shipped — the
-invariant-carrying types need custom deserialization, not a naive derive.)
+from the exact-ring fuzz by design; `ExactScalar`/`ExactFieldScalar`/`PrecisionScalar`
+mark that boundary without becoming `Scalar` supertraits. (serde is intentionally NOT
+shipped — the invariant-carrying types need custom deserialization, not a naive
+derive.)
 
 The narrow math thread (Arf↔Clifford, the games bridge, the char-0/char-2 classifier
 symmetry, the open play-semantics question) is written up in `NOTES.md` — read it
