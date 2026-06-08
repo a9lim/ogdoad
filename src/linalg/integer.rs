@@ -104,6 +104,203 @@ pub(crate) fn reduce_integer_vector(v: &mut [i128], rows: Vec<Vec<i128>>) {
     }
 }
 
+fn ck_mul(a: i128, b: i128) -> i128 {
+    a.checked_mul(b)
+        .expect("integer normal-form multiply exceeds i128")
+}
+
+fn ck_sub(a: i128, b: i128) -> i128 {
+    a.checked_sub(b)
+        .expect("integer normal-form subtract exceeds i128")
+}
+
+fn ck_add(a: i128, b: i128) -> i128 {
+    a.checked_add(b)
+        .expect("integer normal-form add exceeds i128")
+}
+
+// `normalize_relation_rows` above is the crate's row Hermite normal form (reduced
+// upper-triangular HNF: increasing leading columns, positive pivots, zeros below
+// each pivot, above-pivot entries reduced mod the pivot). The genus layer (M3)
+// will add a dedicated HNF entry point when it needs one.
+
+/// Extended Euclidean algorithm: returns `(g, x, y)` with `g = gcd(a, b) ≥ 0`
+/// and the Bézout identity `a·x + b·y = g`. `gcd(0, 0)` is `0` with `(x, y) =
+/// (1, 0)`.
+pub(crate) fn ext_gcd(a: i128, b: i128) -> (i128, i128, i128) {
+    let (mut r0, mut r1) = (a, b);
+    let (mut s0, mut s1) = (1i128, 0i128);
+    let (mut t0, mut t1) = (0i128, 1i128);
+    while r1 != 0 {
+        let q = r0.div_euclid(r1);
+        let r2 = ck_sub(r0, ck_mul(q, r1));
+        r0 = r1;
+        r1 = r2;
+        let s2 = ck_sub(s0, ck_mul(q, s1));
+        s0 = s1;
+        s1 = s2;
+        let t2 = ck_sub(t0, ck_mul(q, t1));
+        t0 = t1;
+        t1 = t2;
+    }
+    if r0 < 0 {
+        (-r0, -s0, -t0)
+    } else {
+        (r0, s0, t0)
+    }
+}
+
+fn swap_cols(m: &mut [Vec<i128>], a: usize, b: usize) {
+    if a == b {
+        return;
+    }
+    for row in m.iter_mut() {
+        row.swap(a, b);
+    }
+}
+
+/// Replace rows `t`, `i` by `[[x, y], [u, v]] · [row_t; row_i]` (a left action
+/// by a 2×2 integer matrix). Used with a unimodular matrix to clear a column
+/// against a pivot via Bézout.
+fn combine_rows(m: &mut [Vec<i128>], t: usize, i: usize, x: i128, y: i128, u: i128, v: i128) {
+    let cols = m[t].len();
+    for c in 0..cols {
+        let a0 = m[t][c];
+        let b0 = m[i][c];
+        m[t][c] = ck_add(ck_mul(x, a0), ck_mul(y, b0));
+        m[i][c] = ck_add(ck_mul(u, a0), ck_mul(v, b0));
+    }
+}
+
+/// The column analogue of [`combine_rows`] (a right action on columns `t`, `j`).
+fn combine_cols(m: &mut [Vec<i128>], t: usize, j: usize, x: i128, y: i128, u: i128, v: i128) {
+    for row in m.iter_mut() {
+        let a0 = row[t];
+        let b0 = row[j];
+        row[t] = ck_add(ck_mul(x, a0), ck_mul(y, b0));
+        row[j] = ck_add(ck_mul(u, a0), ck_mul(v, b0));
+    }
+}
+
+/// Smith normal form invariant factors of an integer matrix.
+///
+/// Returns the diagonal `d₀, d₁, …, d_{k-1}` (`k = min(rows, cols)`) of the
+/// Smith normal form, each non-negative and satisfying the divisibility chain
+/// `d₀ | d₁ | … `, with zero invariant factors (rank deficiency) trailing. The
+/// elimination uses unimodular row/column operations built from [`ext_gcd`], so
+/// the multiset of invariant factors is an isomorphism invariant of the
+/// underlying map ℤ^cols → ℤ^rows: for a nonsingular square `M`, `∏ dᵢ =
+/// |det M|` and the cokernel ℤ^n / Mℤ^n ≅ ⨁ ℤ/dᵢ.
+pub(crate) fn smith_normal_form(mut m: Vec<Vec<i128>>) -> Vec<i128> {
+    let rows = m.len();
+    if rows == 0 {
+        return Vec::new();
+    }
+    let cols = m[0].len();
+    assert!(
+        m.iter().all(|r| r.len() == cols),
+        "smith_normal_form rows must have equal width"
+    );
+    let k = rows.min(cols);
+    for t in 0..k {
+        loop {
+            if m[t][t] == 0 {
+                // Bring any nonzero entry of the trailing submatrix to (t, t).
+                let mut pivot = None;
+                'search: for i in t..rows {
+                    for j in t..cols {
+                        if m[i][j] != 0 {
+                            pivot = Some((i, j));
+                            break 'search;
+                        }
+                    }
+                }
+                match pivot {
+                    None => break, // trailing submatrix is zero ⇒ all remaining factors are 0
+                    Some((i, j)) => {
+                        m.swap(t, i);
+                        swap_cols(&mut m, t, j);
+                    }
+                }
+            }
+
+            // Clear the column below the pivot. When the pivot divides the
+            // entry, a plain reduction zeroes it and leaves the pivot row intact;
+            // otherwise a unimodular `ext_gcd` combine shrinks the pivot to the
+            // gcd. Using the combine *only* in the non-dividing case is what
+            // guarantees termination: each combine strictly decreases |pivot| (a
+            // positive integer), and the divisible branch never churns the pivot
+            // row (the bug a blanket combine causes, e.g. ext_gcd(1, −1) rewriting
+            // the pivot row as its negative).
+            let mut changed = false;
+            for i in (t + 1)..rows {
+                if m[i][t] == 0 {
+                    continue;
+                }
+                if m[i][t] % m[t][t] == 0 {
+                    let q = m[i][t] / m[t][t];
+                    for c in 0..cols {
+                        m[i][c] = ck_sub(m[i][c], ck_mul(q, m[t][c]));
+                    }
+                } else {
+                    let (g, x, y) = ext_gcd(m[t][t], m[i][t]);
+                    let u = -m[i][t] / g;
+                    let v = m[t][t] / g;
+                    combine_rows(&mut m, t, i, x, y, u, v);
+                    changed = true;
+                }
+            }
+            if changed {
+                continue;
+            }
+
+            // Clear the row to the right of the pivot (the column-clear dual).
+            for j in (t + 1)..cols {
+                if m[t][j] == 0 {
+                    continue;
+                }
+                if m[t][j] % m[t][t] == 0 {
+                    let q = m[t][j] / m[t][t];
+                    for r in 0..rows {
+                        m[r][j] = ck_sub(m[r][j], ck_mul(q, m[r][t]));
+                    }
+                } else {
+                    let (g, x, y) = ext_gcd(m[t][t], m[t][j]);
+                    let u = -m[t][j] / g;
+                    let v = m[t][t] / g;
+                    combine_cols(&mut m, t, j, x, y, u, v);
+                    changed = true;
+                }
+            }
+            if changed {
+                continue;
+            }
+
+            // Pivot now alone in its row and column. Enforce divisibility into
+            // the trailing submatrix; a violation shrinks the pivot's gcd.
+            let p = m[t][t];
+            let mut violated = None;
+            'div: for i in (t + 1)..rows {
+                for j in (t + 1)..cols {
+                    if m[i][j] % p != 0 {
+                        violated = Some(i);
+                        break 'div;
+                    }
+                }
+            }
+            match violated {
+                Some(i) => {
+                    for c in 0..cols {
+                        m[t][c] = ck_add(m[t][c], m[i][c]);
+                    }
+                }
+                None => break,
+            }
+        }
+    }
+    (0..k).map(|i| m[i][i].abs()).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -124,5 +321,75 @@ mod tests {
         let mut shifted = vec![9, 14];
         reduce_integer_vector(&mut shifted, rows);
         assert_ne!(shifted, vec![0, 0]);
+    }
+
+    #[test]
+    fn ext_gcd_satisfies_bezout() {
+        for &(a, b) in &[(12, 18), (-12, 18), (7, 0), (0, 0), (-5, -15), (1071, 462)] {
+            let (g, x, y) = ext_gcd(a, b);
+            assert!(g >= 0);
+            assert_eq!(a * x + b * y, g, "Bezout failed for ({a}, {b})");
+            if a != 0 || b != 0 {
+                assert_eq!(a % g, 0);
+                assert_eq!(b % g, 0);
+            }
+        }
+    }
+
+    #[test]
+    fn smith_diagonalizes_coprime_and_repeated() {
+        // ℤ/2 ⊕ ℤ/3 ≅ ℤ/6, so the invariant factors collapse to [1, 6].
+        assert_eq!(smith_normal_form(vec![vec![2, 0], vec![0, 3]]), vec![1, 6]);
+        // ℤ/2 ⊕ ℤ/2 ⊕ ℤ/2 stays [2, 2, 2] (already a divisibility chain).
+        let diag2 = vec![vec![2, 0, 0], vec![0, 2, 0], vec![0, 0, 2]];
+        let d = smith_normal_form(diag2);
+        assert_eq!(d, vec![2, 2, 2]);
+        for w in d.windows(2) {
+            assert_eq!(w[1] % w[0], 0);
+        }
+    }
+
+    #[test]
+    fn smith_invariant_factors_match_det_and_gcd() {
+        // A_2 Gram: det 3, cokernel ℤ/3 ⇒ invariant factors [1, 3].
+        let a2 = vec![vec![2, -1], vec![-1, 2]];
+        assert_eq!(smith_normal_form(a2), vec![1, 3]);
+        // Rank-deficient: trailing zero factor.
+        let singular = vec![vec![2, 4], vec![1, 2]];
+        assert_eq!(smith_normal_form(singular), vec![1, 0]);
+
+        // General check on a nonsingular matrix: d₀ = gcd of all entries,
+        // ∏ dᵢ = |det|, divisibility chain holds.
+        let m = vec![vec![2, 4, 4], vec![-6, 6, 12], vec![10, 4, 16]];
+        let d = smith_normal_form(m);
+        assert_eq!(d[0], 2); // gcd of all entries
+        assert_eq!(d.iter().product::<i128>(), 624); // |det|
+        for w in d.windows(2) {
+            assert_eq!(w[1] % w[0], 0);
+        }
+    }
+
+    #[test]
+    fn smith_terminates_on_unimodular_8x8() {
+        // Regression: a blanket ext_gcd combine churns forever here (the pivot is
+        // already 1, so it never shrinks). The E_8 Cartan matrix is unimodular ⇒
+        // SNF is all ones.
+        let e8 = vec![
+            vec![2, -1, 0, 0, 0, 0, 0, 0],
+            vec![-1, 2, -1, 0, 0, 0, 0, 0],
+            vec![0, -1, 2, -1, 0, 0, 0, 0],
+            vec![0, 0, -1, 2, -1, 0, 0, 0],
+            vec![0, 0, 0, -1, 2, -1, 0, -1],
+            vec![0, 0, 0, 0, -1, 2, -1, 0],
+            vec![0, 0, 0, 0, 0, -1, 2, 0],
+            vec![0, 0, 0, 0, -1, 0, 0, 2],
+        ];
+        assert_eq!(smith_normal_form(e8), vec![1, 1, 1, 1, 1, 1, 1, 1]);
+    }
+
+    #[test]
+    fn smith_handles_rectangular_and_zero() {
+        assert_eq!(smith_normal_form(vec![vec![6, 10, 15]]), vec![1]);
+        assert_eq!(smith_normal_form(vec![vec![0, 0], vec![0, 0]]), vec![0, 0]);
     }
 }

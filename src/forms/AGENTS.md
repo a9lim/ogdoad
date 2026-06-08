@@ -204,6 +204,36 @@ One generic engine for the discretely-valued legs + the surreal odd-one-out:
   The form has dim `[E:F]`, capped at `MAX_BASIS_DIM=128` (= the full nim-field's
   degree); the small power-of-two `m` keep the tests fast.
 
+## Integral lattices (the arithmetic view — Arc 4)
+
+The classifiers above work over a *field* (square classes / Witt / Arf). An
+**integral lattice** is the complementary object: a free ℤ-module with an
+integer Gram matrix. Its invariants are arithmetic (det, level, minimum, kissing
+number, |Aut|), and the coarse classification is the **genus** (local
+equivalence at every place), which reuses the `padic.rs`/`adelic.rs` primitives.
+Staged M1→M4 (M2–M4 land later: `root_lattices.rs`, `genus.rs`, `mass_formula.rs`).
+
+- **`lattice.rs`** (M1) — `IntegralForm { gram: Vec<Vec<i128>> }` (private Gram,
+  built via `new` (square+symmetric-checked) / `diagonal`, never a struct literal).
+  Convention: **norm** `Q(x) = xᵀGx` (a "norm-2 root" has `Q=2`; twice the value of
+  `½Q`). `determinant` (fraction-free **Bareiss**, exact), `is_even`/`is_unimodular`,
+  `is_positive_definite` (Sylvester leading-minors via Bareiss, exact),
+  `invariant_factors` (SNF → discriminant group `L#/L`), `level` (smallest `N` with
+  `N·G⁻¹` even-integral, via the exact `Rational` inverse), `direct_sum`. The
+  positive-definite geometry: `short_vectors` (**Fincke–Pohst**: float LDLᵀ bounds
+  the box, exact i128 norm filters the leaves — float error can't add/drop a vector),
+  `minimum`/`minimal_vectors`/`kissing_number`, and `automorphism_group_order`
+  (backtracking over basis-vector images: `vᵢ` a lattice vector of norm `G[i][i]`
+  with `⟨vᵢ,vⱼ⟩ = G[i][j]` — every complete assignment is an automorphism, so the
+  count is exact). **Looks like a bug, isn't:** (a) the geometry methods return `None`
+  for indefinite lattices on purpose (infinitely many vectors of each norm); (b) |Aut|
+  is bounded by an explicit node budget (`AUTO_NODE_BUDGET`) and returns `None` past
+  it (`E₈`/Leech are too big to brute-force) — an honest `None`, not a silent truncation
+  (`automorphism_group_order_bounded` exposes the budget); (c) `level(⟨1⟩)=2`, not 1 —
+  `ℤ` is odd, so the smallest `N` making `N·G⁻¹` even-diagonal is 2 (cf. `A_1=⟨2⟩→4`,
+  `E₈→1`). Oracles: `A_2`/`A_3`/`D_4`/`E_8` det, kissing (6/12/24/240), |Aut|
+  (12/48/1152), level (3/·/·/1), `Z^n` (|Aut| `2ⁿ·n!`).
+
 ## Things that look like bugs but are not (forms layer)
 
 - **`diagonalize`/`as_diagonal` return `None` in characteristic 2.** Not a bug: a

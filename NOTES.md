@@ -759,6 +759,43 @@ theory); Csahók–Kutas–Montessinos–Zábrádi (arXiv 2203.04068, the explic
 minimization + Hasse–Minkowski over `F(t)`). Independent theory pass cross-checked via
 Codex (including the oracle-7 correction above).
 
+## Integral lattices and the genus (the arithmetic view of a form)
+
+Claim level: **standard math** (classical lattice theory — Conway–Sloane *SPLAG*),
+**implemented-and-tested** (`forms/lattice.rs`; `linalg/integer.rs` SNF/ext-gcd).
+Appendix material — it touches no Arf/game claim. This is the **adelic layer's
+intended payload**: the local–global machinery (`forms/padic`, `forms/adelic`)
+classifies forms over a field; the integral lattice is the object whose *genus* is
+"local equivalence at every place," so the genus computation (M3) is where those
+p-adic primitives finally land on a ℤ-form rather than a square class.
+
+Staged M1→M4, each shippable; M1 (delivered) is the geometry of one lattice:
+
+- An `IntegralForm` is a symmetric integer Gram matrix `G`. **Exact** invariants:
+  determinant (fraction-free Bareiss), even/unimodular, positive-definiteness
+  (Sylvester), the discriminant group `L#/L ≅ ⨁ ℤ/dᵢ` (Smith normal form), and the
+  **level** `N` = smallest positive integer with `N·G⁻¹` even-integral (the level of
+  the theta modular form; `E₈→1`, `A_2→3`, `A_1=⟨2⟩→4`, and `⟨1⟩→2` because `ℤ` is
+  odd — *not* 1, a standard subtlety).
+- **Positive-definite geometry.** Short vectors by Fincke–Pohst (float LDLᵀ bounds
+  the search box; the exact integer norm filters every leaf, so float error can
+  neither add nor drop a vector), giving minimum / minimal vectors / kissing number,
+  and `|Aut(L)|` by backtracking over the images of a basis (each basis vector maps
+  to a lattice vector of the same norm with the same pairwise inner products; every
+  complete assignment is an automorphism, so the count is exact). The automorphism
+  search is exponential and **bounded by an explicit node budget** — past it the
+  answer is an honest `None`, never a silently truncated count (`E₈`'s Weyl group of
+  order ~7·10⁸ and the Leech lattice are deliberately out of brute-force reach).
+- Oracles pin it to the classical numbers: `A_2`/`A_3`/`D_4`/`E_8` kissing numbers
+  6/12/24/**240**, |Aut| 12/48/**1152**, det 3/4/4/**1**, and `Aut(ℤⁿ)=2ⁿ·n!`.
+
+M2 adds the `A_n`/`D_n`/`E_{6,7,8}` catalogue (with the `E₈` ↔ mod-8 Bott /
+`brauer_wall` BW(ℝ)=ℤ/8 resonance as a NOTES line, not a theorem); M3 the genus and
+`are_in_same_genus`; M4 the Conway–Sloane mass formula and the Leech lattice `Λ₂₄`
+with `Aut(Λ₂₄) = Co₀` — the **buildable** Conway-group connection that closes the
+loop to the repo's namesake. The **Monster** stays a thematic line only: it is
+monstrous moonshine (VOAs, the Griess algebra), not a quadratic-form computation.
+
 ## Useful commands
 
 ```sh
