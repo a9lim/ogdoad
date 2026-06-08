@@ -40,6 +40,10 @@ integers**:
 The pairing is not decorative — it is made structural by the
 `HasFractionField` / `HasRingOfIntegers` trait pair (`ℤ⊂ℚ`, `Oz⊂No`, `Zp⊂Qp`,
 `W_N⊂Qq`, `F_q[t]⊂F_q(t)`, and `ℤ[i]⊂ℚ[i]` for free via the surcomplex transport).
+The rest of the local-field data is structural too — the valuation and uniformizer
+(`Valued`) and the residue field `k = 𝒪/𝔪` (`ResidueField`: `Qp→F_p`, `Qq→F_q`,
+`Laurent→F_q`) — so the whole package `(K, 𝒪, 𝔪, k, Γ, ϖ)` lives in the type
+system rather than the comments.
 
 ## The symmetries
 
@@ -56,6 +60,9 @@ over recursive exponents, sharing one canonicalizer. They differ in exactly thre
 places — the exponent order, the coefficient merge (`+` vs `XOR`), and the zero
 test — which is why the shared code is a *function*, not a type. No is where
 infinite/infinitesimal Clifford metrics live; On₂ is the proper-class char-2 field.
+The same mirror reads out at the *games* layer: `NumberGame` (a transfinite
+surreal-valued game) and `NimberGame` (a transfinite Nim heap `⋆α` carried by its
+ordinal Grundy value) are the two views, one per characteristic.
 
 **The 2×2 functor table.** Orthogonal to the place table, there are four ways to
 grow a field, and all four corners are filled:
@@ -66,12 +73,19 @@ grow a field, and all four corners are filled:
 | **transcendental** | `Gauss` (adjoin a unit `t`) | `Laurent` (adjoin a uniformizer `t`) |
 
 `Laurent` over a finite field is the equal-characteristic mirror of `Qp`;
-`Ramified` is the ramified twin of the unramified `Qq`.
+`Ramified` is the ramified twin of the unramified `Qq`. The finite *separable*
+extensions among these carry a uniform relative trace/norm (`FieldExtension`): the
+algebraic-closure functor `Surcomplex` (degree 2), the finite tower `Fpn/Fp`, and
+the unramified `Qq/Qp` — one interface for the norm map that feeds Hilbert symbols,
+the Brauer–Wall group, and Hermitian forms.
 
-**local ↔ global.** The Springer decomposition appears three times, once per
-complete valued field, and the value group controls the answer: over the surreals
-the value group is 2-divisible (`W(No)=W(ℝ)=ℤ`), but over `Q_p` and `F_q((t))` it
-is `ℤ`, so two residue layers survive (`W(Q_p)=W(F_p)²`). The adelic layer then
+**local ↔ global.** The Springer decomposition appears across the complete valued
+fields, and the value group controls the answer: over the surreals the value group
+is 2-divisible (`W(No)=W(ℝ)=ℤ`), but over `Q_p`, the unramified `Q_q`, and
+`F_q((t))` it is `ℤ`, so two residue layers survive (`W(Q_p)=W(F_p)²`). The
+discretely-valued legs share **one** generic engine keyed on the `ResidueField`
+trait; the surreal leg keeps its own, exactly because its value group is divisible —
+that mismatch is the symmetry, not a gap. The adelic layer then
 glues the local data: Hasse–Minkowski isotropy over ℚ and Hilbert reciprocity
 `∏_v (a,b)_v = +1` (the multiplicative product formula). The same local–global
 package recurs in **equal characteristic** over the global function field `F_q(t)`

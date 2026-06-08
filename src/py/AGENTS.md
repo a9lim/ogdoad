@@ -21,7 +21,8 @@ Split per pillar:
   (the RUNTIME Fp/Fpn form wrapper — the pattern that sidesteps const generics for
   the odd-char leg), the Brauer–Wall classes, `classify_real`/`classify_complex`,
   `hilbert_product`, and `isotropy_over_adeles`/`AdelicIsotropy`.
-- **`games.rs`** — `Game` / `NumberGame` / `GameExterior` / `Hackenbush` +
+- **`games.rs`** — `Game` / `NumberGame` / `NimberGame` (the char-2 transfinite
+  Nim-heap mirror) / `GameExterior` / `Hackenbush` +
   `nim_mul_mex` / `grundy_graph` / `mex`; the kernel outcome surface
   (`outcomes`/`p_positions`/`scoring_values`, Win/Loss/Draw as strings); the misère/
   octal surface (`nim_canonical`, `misere_nim_p_predicted`, `nim_moves`,

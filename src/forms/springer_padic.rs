@@ -1,101 +1,59 @@
-//! Springer decomposition of a quadratic form over the **p-adic field** `Q_p` —
-//! the discretely-valued mirror of [`springer`](crate::forms::springer) (which
-//! lives over the surreals).
+//! Springer decomposition over the **mixed-characteristic** local fields `Q_p`
+//! (residue `F_p`) and its unramified extensions `Q_q` (residue `F_q`) — two named
+//! entry points into the generic engine
+//! [`springer_decompose_local`](crate::forms::springer_decompose_local), and the
+//! discretely-valued mirror of [`springer`](crate::forms::springer) (the surreals).
 //!
 //! `Q_p` is Henselian with residue field `F_p` and value group `ℤ`. Springer's
-//! theorem gives `W(Q_p) ≅ W(F_p) ⊕ (W(F_p) ⊗ ℤ/2ℤ)`. The genuine novelty
-//! against the surreal twin: there the value group `No` is **2-divisible**, so
-//! the second summand vanishes (`W(No) = W(ℝ)`); here `ℤ/2ℤ ≠ 0`, so **two
-//! residue layers survive** — the valuation-even and valuation-odd parts are
-//! independent `F_p`-form summands. Scaling an entry by `p²` is a square in
-//! `Q_p`, so only the valuation *parity* matters for the Witt class, and the two
-//! parities give the two `W(F_p)` copies.
+//! theorem gives `W(Q_p) ≅ W(F_p) ⊕ (W(F_p) ⊗ ℤ/2ℤ)`. The genuine novelty against
+//! the surreal twin: there the value group `No` is **2-divisible**, so the second
+//! summand vanishes (`W(No) = W(ℝ)`); here `ℤ/2ℤ ≠ 0`, so **two residue layers
+//! survive** — the valuation-even and valuation-odd parts are independent residue
+//! summands. Scaling an entry by `p²` is a square in `Q_p`, so only the valuation
+//! *parity* matters for the Witt class, and the two parities give the two `W(F_p)`
+//! copies ([`LocalSpringerDecomp::parity_layer`]).
 //!
-//! This reads the filtration off a [`Qp`](crate::scalar::Qp)-valued diagonal
-//! metric: bucket the entries by p-adic valuation, each bucket a residue
-//! `F_p`-form recorded by dimension and discriminant square-class. Requires an
-//! odd prime `p` (the residue square-class theory) and an already-diagonal metric
-//! (`Qp` is a precision model, so we don't congruence-diagonalize over it).
+//! `Q_q = Frac(W_N(F_q))`, the unramified extension of residue degree `F`, is the
+//! same story with residue field `F_q = F_{p^F}` in place of `F_p` — and `Q_q` with
+//! `F = 1` *is* `Q_p`. Adding it is what makes the mixed-characteristic leg reach
+//! general `F_q` residues, matching the equal-characteristic Laurent leg
+//! ([`springer_laurent`](crate::forms::springer_laurent)) which already did: the
+//! per-layer discriminant square-class then lives in `F_q*/(F_q*)²` and genuinely
+//! exercises the extension-field square-class, not just `F_p`.
+//!
+//! Both read the filtration off a diagonal metric, bucketing entries by valuation;
+//! both require an **odd** residue characteristic (`p = 2`, resp. residue char 2,
+//! returns `None`) and an already-diagonal metric (`Qp`/`Qq` are precision models,
+//! so we do not congruence-diagonalize over them). The residue-characteristic-2
+//! boundary is the same one documented on the generic engine and the Laurent
+//! sibling.
 
 use crate::clifford::Metric;
-use crate::forms::is_square;
-use crate::scalar::{Fp, Qp};
+use crate::forms::springer_local::springer_decompose_local;
+use crate::scalar::{Qp, Qq};
 
-/// One graded piece of a p-adic Springer decomposition: a residue `F_p`-form at a
-/// fixed p-adic valuation.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PadicResidueForm {
-    /// The p-adic valuation of this graded piece.
-    pub valuation: i128,
-    /// The residue form's dimension (number of entries at this valuation).
-    pub dim: usize,
-    /// Whether the residue form's discriminant (product of the residue units mod
-    /// `p`) is a square in `F_p` — the `H¹` datum of this layer.
-    pub disc_is_square: bool,
-}
+pub use crate::forms::springer_local::{
+    LocalResidueForm as PadicResidueForm, LocalSpringerDecomp as PadicSpringerDecomp,
+};
 
-/// A p-adic Springer decomposition: the valuation-graded residue forms (sorted
-/// most-negative-valuation... actually most *infinite* first, i.e. descending),
-/// and the radical (genuinely zero entries).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PadicSpringerDecomp {
-    pub graded: Vec<PadicResidueForm>,
-    pub radical_dim: usize,
-}
-
-impl PadicSpringerDecomp {
-    /// The residue layers whose valuation has the given parity (`0` = even,
-    /// `1` = odd) — the two summands `W(F_p) ⊕ W(F_p)` of `W(Q_p)`.
-    pub fn parity_layer(&self, parity: u8) -> Vec<&PadicResidueForm> {
-        self.graded
-            .iter()
-            .filter(|g| (g.valuation.rem_euclid(2) as u8) == parity)
-            .collect()
-    }
-}
-
-/// Decompose a `Q_p` diagonal quadratic form by p-adic valuation. `None` if `p`
-/// is not an odd prime, or the metric is non-diagonal.
+/// Decompose a `Q_p` diagonal quadratic form by p-adic valuation. `None` if `p` is
+/// not an odd prime, or the metric is non-diagonal. A thin wrapper over
+/// [`springer_decompose_local`] (residue field `F_p`).
 pub fn springer_decompose_qp<const P: u128, const K: u128>(
     metric: &Metric<Qp<P, K>>,
 ) -> Option<PadicSpringerDecomp> {
-    if P == 2 || !Fp::<P>::modulus_is_prime() {
-        return None;
-    }
-    if !metric.b.is_empty() || metric.has_upper() {
-        return None; // already-diagonal only (Qp is a precision model)
-    }
-    let mut buckets: Vec<(i128, usize, bool)> = Vec::new(); // (valuation, dim, disc_is_square)
-    let mut radical_dim = 0usize;
-    for x in &metric.q {
-        match x.valuation() {
-            None => radical_dim += 1, // a genuine zero
-            Some(v) => {
-                let residue = x.unit() % P; // leading p-adic digit ∈ F_p*
-                let sq = is_square::<P>(Fp::<P>(residue));
-                match buckets.iter_mut().find(|(bv, _, _)| *bv == v) {
-                    Some((_, dim, disc)) => {
-                        *dim += 1;
-                        *disc = *disc == sq; // square-class is multiplicative (XNOR)
-                    }
-                    None => buckets.push((v, 1, sq)),
-                }
-            }
-        }
-    }
-    buckets.sort_by_key(|x| std::cmp::Reverse(x.0)); // descending valuation
-    let graded = buckets
-        .into_iter()
-        .map(|(valuation, dim, disc_is_square)| PadicResidueForm {
-            valuation,
-            dim,
-            disc_is_square,
-        })
-        .collect();
-    Some(PadicSpringerDecomp {
-        graded,
-        radical_dim,
-    })
+    springer_decompose_local(metric)
+}
+
+/// Decompose a `Q_q` diagonal quadratic form by p-adic valuation, reading the
+/// per-layer square-class in the residue field `F_q = F_{p^F}`. `None` if the
+/// residue characteristic is `2` or the residue field is unsupported, or the metric
+/// is non-diagonal. The unramified generalization of [`springer_decompose_qp`]
+/// (`F = 1` recovers it).
+pub fn springer_decompose_qq<const P: u128, const N: usize, const F: usize>(
+    metric: &Metric<Qq<P, N, F>>,
+) -> Option<PadicSpringerDecomp> {
+    springer_decompose_local(metric)
 }
 
 #[cfg(test)]
@@ -152,5 +110,42 @@ mod tests {
         assert_eq!(d.graded.len(), 1);
         // p = 2 is rejected (residue square-class theory needs odd p).
         assert!(springer_decompose_qp(&Metric::diagonal(vec![Qp::<2, 4>::from_i128(1)])).is_none());
+    }
+
+    #[test]
+    fn unramified_qq_recovers_qp_when_residue_degree_is_one() {
+        // Q_q with F = 1 IS Q_p — the decomposition must agree with the Q_p path.
+        type Q5Unram = Qq<5, 4, 1>;
+        let mqq = Metric::diagonal(vec![Q5Unram::from_int(1), Q5Unram::from_int(5)]);
+        let dqq = springer_decompose_qq(&mqq).unwrap();
+        let mqp = Metric::diagonal(vec![Q5::from_i128(1), Q5::from_i128(5)]);
+        let dqp = springer_decompose_qp(&mqp).unwrap();
+        assert_eq!(dqq, dqp);
+    }
+
+    #[test]
+    fn unramified_qq_reads_f9_square_class() {
+        // The genuine extension-residue content: residue field F_9, square-class in
+        // F_9*/(F_9*)², invisible to a bare-Q_p (F_3) decomposition.
+        use crate::scalar::{Fpn, WittVec};
+        type Q9 = Qq<3, 3, 2>;
+        let ns = (0..9u128)
+            .map(|c| Fpn::<3, 2>([c % 3, c / 3]))
+            .find(|x| !x.is_zero() && !x.is_square())
+            .expect("F_9 has nonsquares");
+        // ⟨ns², ns·p⟩: val 0 carries ns² (square), val 1 carries ns (nonsquare).
+        let m = Metric::diagonal(vec![
+            Q9::from_witt(WittVec::<3, 3, 2>(ns.mul(&ns).0)),
+            Q9::from_witt(WittVec::<3, 3, 2>(ns.0)).mul(&Q9::from_int(3)),
+        ]);
+        let d = springer_decompose_qq(&m).unwrap();
+        assert_eq!(d.graded.len(), 2);
+        assert_eq!(d.graded[0].valuation, 1); // descending
+        assert!(!d.graded[0].disc_is_square, "ns is a nonsquare in F_9");
+        assert!(d.graded[1].disc_is_square, "ns² is a square in F_9");
+        // residue characteristic 2 (Q_q over F_{2^…}) is rejected.
+        assert!(
+            springer_decompose_qq(&Metric::diagonal(vec![Qq::<2, 4, 2>::from_int(1)])).is_none()
+        );
     }
 }

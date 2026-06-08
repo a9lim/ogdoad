@@ -827,8 +827,17 @@ fn nim_discrete_log(base: u128, x: u128) -> Option<u128> {
 
 #[pyclass(name = "Ordinal", module = "pleroma", from_py_object)]
 #[derive(Clone)]
-struct PyOrdinal {
+pub(crate) struct PyOrdinal {
     inner: Ordinal,
+}
+
+impl PyOrdinal {
+    pub(crate) fn from_inner(inner: Ordinal) -> PyOrdinal {
+        PyOrdinal { inner }
+    }
+    pub(crate) fn as_ordinal(&self) -> &Ordinal {
+        &self.inner
+    }
 }
 
 #[pymethods]

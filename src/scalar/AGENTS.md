@@ -23,7 +23,9 @@ transfinite); the trichotomy says *which classification theory applies*.
 
 The (field, ring-of-integers) pairing is made **structural** in `integrality.rs`
 (`HasFractionField` / `HasRingOfIntegers`); the local-field view is made
-structural in `valued.rs` (`Valued`); root-taking in `analytic.rs`.
+structural in `valued.rs` (`Valued`); the **residue field** column `k = 𝒪/𝔪` in
+`residue.rs` (`ResidueField`); root-taking in `analytic.rs`; finite separable
+**extensions** (relative trace/norm) in `extension.rs` (`FieldExtension`).
 
 - **`poly.rs`** — `Poly<S>`, the shared dense-univariate polynomial ring `S[t]`
   (low-degree-first, trimmed). The crate's one polynomial primitive: `Gauss` and
@@ -63,6 +65,24 @@ structural in `valued.rs` (`Valued`); root-taking in `analytic.rs`.
   Surcomplex blanket needs. The residue Tonelli roots (`fp_sqrt`/`fq_sqrt`) live
   here (shared with `small/analytic`'s Hensel seed). Gauss/Ramified excluded
   honestly. NOT a `Scalar` supertrait, like `Valued`.
+- **`residue.rs`** — the `ResidueField: Valued` trait: the residue field `k = 𝒪/𝔪`
+  (assoc type `Residue`) + two reductions — `residue` (canonical `𝒪 → k`, `None`
+  below the integers) and `residue_unit` (the **angular component** `ac(x) ∈ k*`,
+  `None` only for 0). Impl'd for the local FIELDS (Qp→Fp, Qq→Fq, Laurent→S), the
+  last piece of the local-field package `(K,𝒪,𝔪,k,Γ,ϖ)`. It's what lets
+  `forms/springer_local.rs` write the discrete Springer decomposition once. Globals
+  (Adele/RationalFunction) stay out — per-place residues live at the forms layer.
+  NOT a `Scalar` supertrait, like `Valued`.
+- **`extension.rs`** — the `FieldExtension: Scalar` trait: a finite separable
+  extension `E/F` with `extension_degree`/`embed`/`trace`/`norm` to a distinguished
+  `Base`. The orthogonal view of `FiniteField`'s relative trace/norm (one fixed base
+  vs. any subfield). Impl'd for `Surcomplex<S: Ordered>` (deg 2), `Fpn<P,N>` over
+  `Fp<P>` (deg N, **delegates to** the tested `FiniteField` relative trace/norm), and
+  `Qq<P,N,F>` over `Qq<P,N,1>`=`Q_p` (deg F, via the Witt Frobenius `witt_components
+  ∘ frobenius ∘ from_witt_components`; base is in the Qq family to dodge the
+  Qp-`u128`/Qq-`usize` const-kind clash). Ramified (non-Galois, degenerate trace
+  form) and Gauss (transcendental, infinite degree) excluded honestly — the SAME
+  boundary `analytic.rs` draws. NOT a `Scalar` supertrait.
 
 ## `exact/` — the Archimedean char-0 base (field + ring of integers)
 

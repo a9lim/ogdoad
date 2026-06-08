@@ -10,10 +10,15 @@
 //! * [`char2`] — characteristic 2: the Arf invariant (and Dickson).
 //!
 //! [`witt`] packages the Witt group across all three legs ([`WittClassG`]),
-//! and the Springer trio is the discrete-valuation decomposition across the three
-//! complete valued fields: [`springer`] over the surreals (char 0, residue ℝ),
-//! [`springer_padic`] over `Q_p` (char 0, residue `F_p`), and
-//! [`springer_laurent`] over `F_q((t))` (char `p`, residue `F_q`).
+//! and the Springer decomposition is the valuation-graded decomposition across the
+//! complete valued fields. The discretely-valued legs share **one** engine,
+//! [`springer_local`] ([`springer_decompose_local`]), keyed off the
+//! [`ResidueField`](crate::scalar::ResidueField) trait: [`springer_padic`] over
+//! `Q_p`/`Q_q` (char 0, residue `F_p`/`F_q`) and [`springer_laurent`] over
+//! `F_q((t))` (char `p`, residue `F_q`). [`springer`] over the surreals (char 0,
+//! residue ℝ) is the one that does *not* fit — its value group is 2-divisible, so
+//! the second residue map collapses — and keeps its own engine; that mismatch *is*
+//! the local–global symmetry, not a gap.
 //!
 //! [`classify`] is the façade over the trichotomy: which leg classifies a form
 //! is a fact about the field, so [`ClassifyForm`] resolves it from the scalar
@@ -41,6 +46,7 @@ pub mod padic;
 pub mod quadric_fit;
 pub mod springer;
 pub mod springer_laurent;
+pub mod springer_local;
 pub mod springer_padic;
 pub mod symplectic;
 pub mod witt;
@@ -61,6 +67,7 @@ pub use padic::*;
 pub use quadric_fit::*;
 pub use springer::*;
 pub use springer_laurent::*;
+pub use springer_local::*;
 pub use springer_padic::*;
 pub use symplectic::*;
 pub use witt::*;

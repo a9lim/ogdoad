@@ -22,6 +22,13 @@ Clifford story lives on the scalar backends and not on all games.
   value — value/birthday/sum/cmp delegate to surreal, no infinite option tree. Plus
   the FULL transfinite round trip via sign_expansion/from_sign_expansion (the run-
   length sign expansion is the finite encoding of the infinite {L|R} tree).
+- **`nimber_game.rs`** — the CHAR-2 MIRROR of `number_game.rs`: transfinite NIMBER
+  games (Nim heaps `⋆α`) carried by their `Ordinal` (On₂) Grundy value — grundy/
+  add(=nim-add XOR)/cmp/to_finite_game delegate to `Ordinal`, no infinite option
+  tree. `neg` is the identity (char 2: every impartial game is self-inverse);
+  `turning_corners` is the nim-product (Conway's coin game, `ω³=2`), `None` ≥ ω^ω.
+  Closes the `No ↔ On₂` symmetry at the games layer (it had only lived at the scalar
+  layer via the shared CNF core). Bound to Python as `NimberGame`.
 - **`game_exterior.rs`** — the exterior algebra of the GAME group: Λ over ℤ on game
   generators (living on all of game-world, incl. non-numbers ⋆/↑ — needs only the
   ℤ-module structure). `GameExterior` (free Grassmann engine quotiented by integer

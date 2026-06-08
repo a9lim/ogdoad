@@ -62,17 +62,30 @@ char-2 Arf/Brauer–Wall story) is one of the project's central threads.
   (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_oddchar` (order-4 ≅
   W(F_q), DISCOVERED not asserted). Law = graded_tensor.
 
-## Springer — the discrete-valuation trio (a local–global symmetry)
+## Springer — the discrete-valuation decomposition (a local–global symmetry)
 
-Three siblings, one per complete valued field, differing in the value group:
+One generic engine for the discretely-valued legs + the surreal odd-one-out:
 
-- **`springer.rs`** — over the surreals (char 0, residue ℝ). Value group 2-divisible
-  ⇒ W(No)=W(ℝ)=ℤ; the ω-adic filtration itself is the novelty.
-- **`springer_padic.rs`** — over `Q_p` (char 0, residue F_p). Value group ℤ NOT
-  2-divisible ⇒ TWO residue layers survive (`parity_layer`) = W(Q_p)=W(F_p)⊕W(F_p).
-- **`springer_laurent.rs`** — over `F_q((t))` (EQUAL characteristic p, residue F_q).
-  Two parity layers = W(F_q((t)))=W(F_q)². Odd residue char only; residue char 2
-  REJECTED (the char-2 Witt boundary).
+- **`springer_local.rs`** — the GENERIC engine `springer_decompose_local<K:
+  ResidueField>` (+ `LocalResidueForm`/`LocalSpringerDecomp`/`parity_layer`), keyed
+  off the `scalar::ResidueField` trait. ONE implementation; the residue field `k` is
+  read through the trait (`residue_unit` = the angular component), the square-class
+  via `is_square_finite`. Odd residue char only.
+- **`springer_padic.rs`** — the **mixed-characteristic** named entry points (thin
+  wrappers + `Padic*` aliases): `springer_decompose_qp` over `Q_p` (residue F_p) AND
+  `springer_decompose_qq` over `Q_q` (residue F_q, the unramified extension — `F=1`
+  recovers Q_p). Value group ℤ NOT 2-divisible ⇒ TWO residue layers survive
+  (`parity_layer`) = W=W(k)². Adding Q_q makes this leg reach general F_q residues,
+  matching the Laurent leg.
+- **`springer_laurent.rs`** — the **equal-characteristic** entry point (wrapper +
+  `Laurent*` aliases): `springer_decompose_laurent` over `F_q((t))` (char p, residue
+  F_q). Same two-layer story; residue char 2 REJECTED (the char-2 Witt boundary).
+  Used by `function_field.rs` as an independent oracle.
+- **`springer.rs`** — over the surreals (char 0, residue ℝ). The ONE that does NOT
+  fit the generic engine: value group 2-divisible ⇒ W(No)=W(ℝ)=ℤ (second layer
+  collapses), residue ℝ is a signature not a finite square-class. Keeps its own
+  engine (owns the flat `ResidueForm`/`SpringerDecomp`/`springer_decompose` names) —
+  that mismatch IS the symmetry, not a gap. So it stays out of `ResidueField`.
 
 ## Local–global
 

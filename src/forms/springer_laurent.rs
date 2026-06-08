@@ -1,123 +1,51 @@
-//! Springer decomposition of a quadratic form over the **equal-characteristic
-//! local field** `F_q((t))` — the third sibling of [`springer`](crate::forms::springer)
-//! (surreals) and [`springer_padic`](crate::forms::springer_padic) (`Q_p`).
-//!
-//! The three complete the discrete-valuation Springer trichotomy:
-//!
-//! | field | char | value group | residue | second layer |
-//! |---|---|---|---|---|
-//! | `No`        (surreal) | 0   | `No` (2-divisible) | ℝ   | collapses — `W(No)=W(ℝ)` |
-//! | `Q_p`       (p-adic)  | 0   | ℤ                  | F_p | survives — `W(Q_p)=W(F_p)²` |
-//! | `F_q((t))`  (Laurent) | **p** | ℤ                | **F_q** | survives — `W(F_q((t)))=W(F_q)²` |
+//! Springer decomposition over the **equal-characteristic** local field `F_q((t))`
+//! — the third discretely-valued sibling, beside [`springer`](crate::forms::springer)
+//! (surreals) and [`springer_padic`](crate::forms::springer_padic) (`Q_p`/`Q_q`),
+//! and a named entry point into the generic engine
+//! [`springer_decompose_local`](crate::forms::springer_decompose_local). See that
+//! engine for the full discrete-valuation trichotomy table.
 //!
 //! The novelty against the `Q_p` twin is twofold: this is the **equal
-//! characteristic** case (the field itself has characteristic `p`, not `0`), and
-//! the residue field is a general **`F_q = F_{p^n}`**, so the per-layer
-//! discriminant square-class lives in `F_q*/(F_q*)²` and genuinely exercises the
-//! extension-field square-class (`Fpn::is_square`), not just `F_p`.
+//! characteristic** case (the field itself has characteristic `p`, not `0`), and the
+//! residue field is a general **`F_q = F_{p^n}`** — the same general-residue reach
+//! the `Q_q` sibling gives the mixed-characteristic leg. The per-layer discriminant
+//! square-class lives in `F_q*/(F_q*)²` and genuinely exercises the extension-field
+//! square-class (`Fpn::is_square`), not just `F_p`.
 //!
-//! Like the `Q_p` sibling: the value group `ℤ` is **not** 2-divisible, so scaling
-//! an entry by `t²` is a square but scaling by `t` is not — only the valuation
-//! *parity* matters for the Witt class, and the two parities give the two
-//! `W(F_q)` summands ([`LaurentSpringerDecomp::parity_layer`]).
-//!
-//! Reads the filtration off a [`Laurent`](crate::scalar::Laurent)-valued diagonal
-//! metric: bucket entries by `t`-adic valuation, each bucket a residue `F_q`-form
-//! recorded by dimension and discriminant square-class. Requires an **odd**
+//! Like the `Q_p`/`Q_q` siblings: the value group `ℤ` is **not** 2-divisible, so
+//! scaling an entry by `t²` is a square but scaling by `t` is not — only the
+//! valuation *parity* matters for the Witt class, and the two parities give the two
+//! `W(F_q)` summands ([`LocalSpringerDecomp::parity_layer`]). Requires an **odd**
 //! residue characteristic and an already-diagonal metric (`Laurent` is a precision
-//! model, so we don't congruence-diagonalize over it).
+//! model).
 //!
 //! ## The residue-characteristic-2 boundary (honest scope)
 //!
 //! Residue characteristic 2 — `F_{2^n}((t))` — is **rejected** (returns `None`),
-//! exactly as the `Q_p` sibling rejects `p = 2`. This is not laziness: Springer's
-//! second residue map requires residue characteristic `≠ 2`, and a *diagonal*
-//! char-2 form is totally singular (the polar form vanishes), so the clean
-//! `W(F_q((t))) = W(F_q) ⊕ W(F_q)` grading genuinely does not hold there. The
+//! exactly as the `Q_p`/`Q_q` siblings reject residue char 2. This is not laziness:
+//! Springer's second residue map requires residue characteristic `≠ 2`, and a
+//! *diagonal* char-2 form is totally singular (the polar form vanishes), so the
+//! clean `W(F_q((t))) = W(F_q) ⊕ W(F_q)` grading genuinely does not hold there. The
 //! char-2 Witt/Arf theory lives in [`char2`](crate::forms::char2), over the full
 //! `(q, b)` metric, not through this valuation filtration.
 
 use crate::clifford::Metric;
-use crate::forms::{is_square_finite, FiniteOddField};
+use crate::forms::springer_local::springer_decompose_local;
+use crate::forms::FiniteOddField;
 use crate::scalar::Laurent;
 
-/// One graded piece of a Laurent Springer decomposition: a residue `F_q`-form at a
-/// fixed `t`-adic valuation.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LaurentResidueForm {
-    /// The `t`-adic valuation of this graded piece.
-    pub valuation: i128,
-    /// The residue form's dimension (number of entries at this valuation).
-    pub dim: usize,
-    /// Whether the residue form's discriminant (product of the residue units in
-    /// `F_q`) is a square in `F_q` — the `H¹` datum of this layer.
-    pub disc_is_square: bool,
-}
+pub use crate::forms::springer_local::{
+    LocalResidueForm as LaurentResidueForm, LocalSpringerDecomp as LaurentSpringerDecomp,
+};
 
-/// A Laurent Springer decomposition: the valuation-graded residue forms (sorted
-/// descending by valuation), and the radical (genuinely zero entries).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LaurentSpringerDecomp {
-    pub graded: Vec<LaurentResidueForm>,
-    pub radical_dim: usize,
-}
-
-impl LaurentSpringerDecomp {
-    /// The residue layers whose valuation has the given parity (`0` = even,
-    /// `1` = odd) — the two summands `W(F_q) ⊕ W(F_q)` of `W(F_q((t)))`.
-    pub fn parity_layer(&self, parity: u8) -> Vec<&LaurentResidueForm> {
-        self.graded
-            .iter()
-            .filter(|g| (g.valuation.rem_euclid(2) as u8) == parity)
-            .collect()
-    }
-}
-
-/// Decompose an `F_q((t))` diagonal quadratic form by `t`-adic valuation. `None`
-/// if the residue field is not a supported finite field of odd characteristic, or
-/// the metric is non-diagonal.
+/// Decompose an `F_q((t))` diagonal quadratic form by `t`-adic valuation. `None` if
+/// the residue field is not a supported finite field of odd characteristic, or the
+/// metric is non-diagonal. A thin wrapper over [`springer_decompose_local`] (residue
+/// field `S = F_q`).
 pub fn springer_decompose_laurent<S: FiniteOddField, const K: usize>(
     metric: &Metric<Laurent<S, K>>,
 ) -> Option<LaurentSpringerDecomp> {
-    if !S::is_supported_odd_field() {
-        return None; // odd residue characteristic only (see the char-2 boundary)
-    }
-    if !metric.b.is_empty() || metric.has_upper() {
-        return None; // already-diagonal only (Laurent is a precision model)
-    }
-    let mut buckets: Vec<(i128, usize, bool)> = Vec::new(); // (valuation, dim, disc_is_square)
-    let mut radical_dim = 0usize;
-    for x in &metric.q {
-        match x.valuation() {
-            None => radical_dim += 1, // a genuine zero
-            Some(v) => {
-                let residue = x
-                    .leading_coeff()
-                    .expect("nonzero series has a leading coeff");
-                let sq = is_square_finite::<S>(residue);
-                match buckets.iter_mut().find(|(bv, _, _)| *bv == v) {
-                    Some((_, dim, disc)) => {
-                        *dim += 1;
-                        *disc = *disc == sq; // square-class is multiplicative (XNOR)
-                    }
-                    None => buckets.push((v, 1, sq)),
-                }
-            }
-        }
-    }
-    buckets.sort_by_key(|x| std::cmp::Reverse(x.0)); // descending valuation
-    let graded = buckets
-        .into_iter()
-        .map(|(valuation, dim, disc_is_square)| LaurentResidueForm {
-            valuation,
-            dim,
-            disc_is_square,
-        })
-        .collect();
-    Some(LaurentSpringerDecomp {
-        graded,
-        radical_dim,
-    })
+    springer_decompose_local(metric)
 }
 
 #[cfg(test)]

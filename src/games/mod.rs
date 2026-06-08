@@ -16,6 +16,9 @@
 //!   surreal-value bridge).
 //! * [`number_game`] — transfinite number-valued games carried by their surreal
 //!   value, without materializing infinite options.
+//! * [`nimber_game`] — its char-2 mirror: transfinite nimber-valued (impartial)
+//!   games — Nim heaps `⋆α` — carried by their ordinal Grundy value (`No ↔ On₂` at
+//!   the games layer).
 //! * [`thermography`] — temperature theory: stops, cooling, and the thermograph
 //!   (mean value + temperature) of a short game.
 //! * [`piecewise`] — the piecewise-linear rational scaffold machinery used by
@@ -32,6 +35,7 @@ pub mod hackenbush;
 pub mod kernel;
 pub mod loopy;
 pub mod misere;
+pub mod nimber_game;
 pub mod number_game;
 pub mod partizan;
 pub mod piecewise;
@@ -45,6 +49,7 @@ pub use hackenbush::*;
 pub use kernel::*;
 pub use loopy::*;
 pub use misere::*;
+pub use nimber_game::*;
 pub use number_game::*;
 pub use partizan::*;
 pub use piecewise::*;

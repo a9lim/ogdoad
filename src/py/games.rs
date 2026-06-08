@@ -3,11 +3,11 @@
 //! Turning-Corners game recurrence.
 
 use super::engine::IntegerMV;
-use super::scalars::{parse_surreal, PySurreal};
+use super::scalars::{parse_surreal, PyOrdinal, PySurreal};
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
     thermography, AbstractGame, Color, Game, GameExterior, Hackenbush, LoopyGraph, LoopyNimber,
-    NumberGame, Outcome, Quotient,
+    NimberGame, NumberGame, Outcome, Quotient,
 };
 use crate::scalar::{Integer, Rational, Surreal};
 use pyo3::basic::CompareOp;
@@ -567,6 +567,71 @@ impl PyNumberGame {
     }
 }
 
+/// A transfinite **nimber-valued** (impartial) game — the Nim heap `⋆α` (e.g.
+/// `⋆ω`) — carried by its ordinal Grundy value. The char-2 mirror of `NumberGame`:
+/// Grundy value / disjunctive sum (XOR) / Turning-Corners product all delegate to
+/// the `Ordinal` (`On₂`) backend, completing the `No ↔ On₂` symmetry at the games
+/// layer.
+#[pyclass(name = "NimberGame", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyNimberGame {
+    inner: NimberGame,
+}
+
+#[pymethods]
+impl PyNimberGame {
+    /// The transfinite Nim heap `⋆α` of a given ordinal Grundy value.
+    #[staticmethod]
+    fn from_ordinal(o: &PyOrdinal) -> PyNimberGame {
+        PyNimberGame {
+            inner: NimberGame::from_ordinal(o.as_ordinal()),
+        }
+    }
+    /// The finite Nim heap `⋆n`.
+    #[staticmethod]
+    fn nim_heap(n: u128) -> PyNimberGame {
+        PyNimberGame {
+            inner: NimberGame::nim_heap(n),
+        }
+    }
+    /// The exact Grundy value (a transfinite nimber). P-position ⟺ this is `0`.
+    fn grundy(&self) -> PyOrdinal {
+        PyOrdinal::from_inner(self.inner.grundy().clone())
+    }
+    /// The Grundy value as a finite nimber, if the heap is finite (`< ω`).
+    fn grundy_finite(&self) -> Option<u128> {
+        self.inner.grundy().as_finite()
+    }
+    /// The short `Game`, if the heap is finite; `None` for transfinite heaps.
+    fn to_finite_game(&self) -> Option<PyGame> {
+        self.inner.to_finite_game().map(|inner| PyGame { inner })
+    }
+    /// The **Turning-Corners product** (nim-multiplication); `None` at/above `ω^ω`.
+    fn turning_corners(&self, other: &PyNimberGame) -> Option<PyNimberGame> {
+        self.inner
+            .turning_corners(&other.inner)
+            .map(|inner| PyNimberGame { inner })
+    }
+    /// Disjunctive sum = Sprague–Grundy XOR of the Grundy values.
+    fn __add__(&self, other: &PyNimberGame) -> PyNimberGame {
+        PyNimberGame {
+            inner: self.inner.add(&other.inner),
+        }
+    }
+    /// Negation — the identity (every impartial game is its own inverse).
+    fn __neg__(&self) -> PyNimberGame {
+        PyNimberGame {
+            inner: self.inner.neg(),
+        }
+    }
+    fn __richcmp__(&self, other: &PyNimberGame, op: CompareOp) -> bool {
+        op.matches(self.inner.cmp(&other.inner))
+    }
+    fn __repr__(&self) -> String {
+        format!("NimberGame(⋆{:?})", self.inner.grundy())
+    }
+}
+
 /// A bounded misère indistinguishability quotient: the elements (atom-multisets),
 /// their class ids, the per-class representatives, and which classes are P.
 #[pyclass(name = "Quotient", module = "pleroma")]
@@ -693,6 +758,7 @@ impl PyLoopyGraph {
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
     m.add_class::<PyNumberGame>()?;
+    m.add_class::<PyNimberGame>()?;
     m.add_class::<PyGameExterior>()?;
     m.add_class::<PyHackenbush>()?;
     m.add_class::<PyQuotient>()?;

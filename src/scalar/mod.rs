@@ -27,6 +27,13 @@
 //! | [`finite_field`] — char-2 nim         | `Nimber` F_2¹²⁸    | (itself)      | — |
 //! | [`global`]       — all places at once | `Adele` A_Q model  | integral predicate | — |
 //!
+//! The **residue** column is itself structural, via [`residue`] ([`ResidueField`]):
+//! the discretely-valued local fields know their residue field `k = 𝒪/𝔪` and the
+//! reduction `𝒪 → k` (`Qp → F_p`, `Qq → F_q`, `Laurent → F_q`), the last piece of
+//! the local-field package `(K, 𝒪, 𝔪, k, Γ, ϖ)` to leave the doc comments — joining
+//! [`integrality`] (the `𝒪`/`K` pairing), [`valued`] (`Γ`, `ϖ`), and [`analytic`]
+//! (roots). It is what lets the discrete Springer decomposition be written once.
+//!
 //! The [`global`] family is the place-organized table's local-global row: every
 //! other row picks *one* place, while `Adele` is a finite-precision model of the
 //! restricted product over all rational places (product formula, Hilbert
@@ -73,22 +80,26 @@
 pub mod analytic;
 pub mod big;
 pub mod exact;
+pub mod extension;
 pub mod finite_field;
 pub mod functor;
 pub mod global;
 pub mod integrality;
 pub mod poly;
+pub mod residue;
 pub mod small;
 pub mod valued;
 
 pub use analytic::*;
 pub use big::*;
 pub use exact::*;
+pub use extension::*;
 pub use finite_field::*;
 pub use functor::*;
 pub use global::*;
 pub use integrality::*;
 pub use poly::*;
+pub use residue::*;
 pub use small::*;
 pub use valued::*;
 

@@ -358,6 +358,14 @@ print("  value =", ng.value(), " birthday =", ng.birthday_repr(),
       " short game? =", ng.to_finite_game())
 print("  ω + 1 (delegated to surreal) :", (ng + pl.NumberGame.from_surreal(pl.surreal(1))).value())
 
+section("NimberGame — the char-2 mirror: transfinite Nim heaps ⋆α (No ↔ On₂)")
+wg = pl.NimberGame.from_ordinal(pl.Ordinal.omega())  # the heap ⋆ω
+print("  grundy(⋆ω) =", wg.grundy(), " short game? =", wg.to_finite_game())
+print("  ⋆ω + ⋆ω = 0 (XOR, a P-position) :", (wg + wg).grundy())
+print("  ⋆ω + ⋆1 (disjunctive sum)       :", (wg + pl.NimberGame.nim_heap(1)).grundy())
+print("  ⋆ω ⊗ ⋆ω ⊗ ⋆ω = ⋆2 (Conway ω³=2):",
+      wg.turning_corners(wg).turning_corners(wg).grundy())
+
 section("Cayley transform — bivector (Lie algebra) ↔ rotor (Spin group)")
 G = pl.SurrealAlgebra(q=[1, 1, 1])
 B = G.gen(0) ^ G.gen(1)
