@@ -39,27 +39,39 @@ pub enum BrauerWallClass {
     /// `BW(ℂ) ≅ ℤ/2`: the dimension parity.
     Complex(u8),
     /// `BW(F_q)`: the order-4 graded part, carried as the `oddchar` Witt data.
-    OddChar { kappa: u8, e0: u8, sclass: u8 },
+    OddChar {
+        field_order: u128,
+        kappa: u8,
+        e0: u8,
+        sclass: u8,
+    },
 }
 
 impl BrauerWallClass {
     /// The group operation induced by the graded tensor product `⊗̂`. Panics across
     /// different legs (you cannot tensor algebras over different ground fields).
     pub fn add(&self, other: &BrauerWallClass) -> BrauerWallClass {
+        self.try_add(other)
+            .expect("invalid Brauer-Wall class addition")
+    }
+
+    pub fn try_add(&self, other: &BrauerWallClass) -> Result<BrauerWallClass, &'static str> {
         match (*self, *other) {
             (BrauerWallClass::Real(a), BrauerWallClass::Real(b)) => {
-                BrauerWallClass::Real((a + b) % 8)
+                Ok(BrauerWallClass::Real((a + b) % 8))
             }
             (BrauerWallClass::Complex(a), BrauerWallClass::Complex(b)) => {
-                BrauerWallClass::Complex((a + b) % 2)
+                Ok(BrauerWallClass::Complex((a + b) % 2))
             }
             (
                 BrauerWallClass::OddChar {
+                    field_order: qa,
                     kappa: ka,
                     e0: e0a,
                     sclass: sa,
                 },
                 BrauerWallClass::OddChar {
+                    field_order: qb,
                     kappa: kb,
                     e0: e0b,
                     sclass: sb,
@@ -67,23 +79,33 @@ impl BrauerWallClass {
             ) => {
                 // The BW(F_q) law is exactly the order-4 odd-char Witt group law.
                 let w = WittClassG::OddChar {
+                    field_order: qa,
                     kappa: ka,
                     e0: e0a,
                     sclass: sa,
                 }
-                .add(&WittClassG::OddChar {
+                .try_add(&WittClassG::OddChar {
+                    field_order: qb,
                     kappa: kb,
                     e0: e0b,
                     sclass: sb,
-                });
+                })?;
                 match w {
-                    WittClassG::OddChar { kappa, e0, sclass } => {
-                        BrauerWallClass::OddChar { kappa, e0, sclass }
-                    }
+                    WittClassG::OddChar {
+                        field_order,
+                        kappa,
+                        e0,
+                        sclass,
+                    } => Ok(BrauerWallClass::OddChar {
+                        field_order,
+                        kappa,
+                        e0,
+                        sclass,
+                    }),
                     _ => unreachable!(),
                 }
             }
-            _ => panic!("cannot add Brauer–Wall classes across different ground fields"),
+            _ => Err("cannot add Brauer-Wall classes across different ground fields"),
         }
     }
 
@@ -92,7 +114,10 @@ impl BrauerWallClass {
         match *self {
             BrauerWallClass::Real(_) => BrauerWallClass::Real(0),
             BrauerWallClass::Complex(_) => BrauerWallClass::Complex(0),
-            BrauerWallClass::OddChar { kappa, .. } => BrauerWallClass::OddChar {
+            BrauerWallClass::OddChar {
+                field_order, kappa, ..
+            } => BrauerWallClass::OddChar {
+                field_order,
                 kappa,
                 e0: 0,
                 sclass: 0,
@@ -126,9 +151,17 @@ pub fn bw_class_complex(metric: &Metric<Surcomplex<Surreal>>) -> Option<BrauerWa
 /// over a finite field, since the Brauer group is trivial). `None` if non-diagonal.
 pub fn bw_class_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<BrauerWallClass> {
     match finite_odd_witt(metric)? {
-        WittClassG::OddChar { kappa, e0, sclass } => {
-            Some(BrauerWallClass::OddChar { kappa, e0, sclass })
-        }
+        WittClassG::OddChar {
+            field_order,
+            kappa,
+            e0,
+            sclass,
+        } => Some(BrauerWallClass::OddChar {
+            field_order,
+            kappa,
+            e0,
+            sclass,
+        }),
         _ => unreachable!("finite_odd_witt returns the OddChar variant"),
     }
 }
@@ -231,7 +264,7 @@ mod tests {
     }
 
     fn oddchar_diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {
-        Metric::diagonal(qs.iter().map(|&x| Fp::<P>(x)).collect())
+        Metric::diagonal(qs.iter().map(|&x| Fp::<P>::from_u128(x)).collect())
     }
 
     #[test]
@@ -239,14 +272,19 @@ mod tests {
         // The class is a homomorphism over direct_sum (= graded tensor of Cliffords),
         // and the group it generates has order 4 — discovered, with the q mod 4
         // dichotomy: ℤ/4 over F_3 (−1 nonsquare), (ℤ/2)² over F_5 (−1 square).
-        fn collect_group<const P: u128>() -> (BTreeSet<(u8, u8, u8)>, bool) {
+        fn collect_group<const P: u128>() -> (BTreeSet<(u128, u8, u8, u8)>, bool) {
             // generate from ⟨1⟩ and ⟨nonsquare⟩, closing under add
             let gens: Vec<BrauerWallClass> = (1..P)
                 .map(|a| bw_class_finite_odd(&oddchar_diag::<P>(&[a])).unwrap())
                 .collect();
-            let mut seen: BTreeSet<(u8, u8, u8)> = BTreeSet::new();
+            let mut seen: BTreeSet<(u128, u8, u8, u8)> = BTreeSet::new();
             let key = |c: &BrauerWallClass| match *c {
-                BrauerWallClass::OddChar { kappa, e0, sclass } => (kappa, e0, sclass),
+                BrauerWallClass::OddChar {
+                    field_order,
+                    kappa,
+                    e0,
+                    sclass,
+                } => (field_order, kappa, e0, sclass),
                 _ => unreachable!(),
             };
             let id = gens[0].zero_like();

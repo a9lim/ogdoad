@@ -16,8 +16,7 @@ pub struct Rational {
     den: i128, // always > 0, gcd(num, den) == 1
 }
 
-fn gcd(a: i128, b: i128) -> i128 {
-    let (mut a, mut b) = (a.abs(), b.abs());
+fn gcd_u128(mut a: u128, mut b: u128) -> u128 {
     while b != 0 {
         let t = b;
         b = a % b;
@@ -42,7 +41,7 @@ fn isqrt_exact(n: i128) -> Option<i128> {
     while (x + 1).checked_mul(x + 1).is_some_and(|v| v <= n) {
         x += 1;
     }
-    if x * x == n {
+    if x.checked_mul(x) == Some(n) {
         Some(x)
     } else {
         None
@@ -82,15 +81,25 @@ fn inth_root_exact(n: i128, k: u32) -> Option<i128> {
 }
 
 impl Rational {
-    pub fn new(num: i128, den: i128) -> Self {
-        assert!(den != 0, "zero denominator");
-        let sign = if den < 0 { -1 } else { 1 };
-        let (num, den) = (num * sign, den * sign);
-        let g = gcd(num, den).max(1);
-        Rational {
+    pub fn try_new(num: i128, den: i128) -> Option<Self> {
+        if den == 0 {
+            return None;
+        }
+        let (num, den) = if den < 0 {
+            (num.checked_neg()?, den.checked_neg()?)
+        } else {
+            (num, den)
+        };
+        let g = gcd_u128(num.unsigned_abs(), den as u128).max(1);
+        let g = i128::try_from(g).ok()?;
+        Some(Rational {
             num: num / g,
             den: den / g,
-        }
+        })
+    }
+
+    pub fn new(num: i128, den: i128) -> Self {
+        Self::try_new(num, den).expect("Rational::new received zero denominator or overflowed i128")
     }
 
     pub fn int(n: i128) -> Self {
@@ -178,16 +187,36 @@ impl Scalar for Rational {
         Rational { num: 1, den: 1 }
     }
     fn add(&self, rhs: &Self) -> Self {
-        Rational::new(self.num * rhs.den + rhs.num * self.den, self.den * rhs.den)
+        let lhs = self
+            .num
+            .checked_mul(rhs.den)
+            .and_then(|x| x.checked_add(rhs.num.checked_mul(self.den)?));
+        let den = self.den.checked_mul(rhs.den);
+        Rational::try_new(
+            lhs.expect("Rational addition overflowed i128"),
+            den.expect("Rational addition denominator overflowed i128"),
+        )
+        .expect("Rational addition normalization overflowed i128")
     }
     fn neg(&self) -> Self {
         Rational {
-            num: -self.num,
+            num: self
+                .num
+                .checked_neg()
+                .expect("Rational negation overflowed i128"),
             den: self.den,
         }
     }
     fn mul(&self, rhs: &Self) -> Self {
-        Rational::new(self.num * rhs.num, self.den * rhs.den)
+        Rational::try_new(
+            self.num
+                .checked_mul(rhs.num)
+                .expect("Rational multiplication numerator overflowed i128"),
+            self.den
+                .checked_mul(rhs.den)
+                .expect("Rational multiplication denominator overflowed i128"),
+        )
+        .expect("Rational multiplication normalization overflowed i128")
     }
     fn characteristic() -> u128 {
         0

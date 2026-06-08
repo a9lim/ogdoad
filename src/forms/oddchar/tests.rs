@@ -4,19 +4,19 @@ use crate::forms::WittClassG;
 use crate::scalar::{Fp, Fpn, Scalar};
 
 fn diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {
-    Metric::diagonal(qs.iter().map(|&x| Fp::<P>(x)).collect())
+    Metric::diagonal(qs.iter().map(|&x| Fp::<P>::from_u128(x)).collect())
 }
 
 #[test]
 fn euler_criterion_matches_brute_force() {
     for p_elt in 0..7u128 {
-        let x = Fp::<7>(p_elt);
-        let brute = (0..7).any(|y| Fp::<7>(y).mul(&Fp::<7>(y)) == x);
+        let x = Fp::<7>::from_u128(p_elt);
+        let brute = (0..7).any(|y| Fp::<7>::from_u128(y).mul(&Fp::<7>::from_u128(y)) == x);
         assert_eq!(is_square::<7>(x), brute, "x = {p_elt} mod 7");
     }
     for p_elt in 0..5u128 {
-        let x = Fp::<5>(p_elt);
-        let brute = (0..5).any(|y| Fp::<5>(y).mul(&Fp::<5>(y)) == x);
+        let x = Fp::<5>::from_u128(p_elt);
+        let brute = (0..5).any(|y| Fp::<5>::from_u128(y).mul(&Fp::<5>::from_u128(y)) == x);
         assert_eq!(is_square::<5>(x), brute, "x = {p_elt} mod 5");
     }
 }
@@ -39,9 +39,9 @@ fn discriminant_distinguishes_planes_over_f3() {
 #[test]
 fn invalid_moduli_are_rejected() {
     assert!(classify_finite_odd(&diag::<2>(&[1, 1])).is_none());
-    assert!(classify_finite_odd(&diag::<9>(&[1, 1])).is_none());
-    assert!(std::panic::catch_unwind(|| is_square::<2>(Fp::<2>(1))).is_err());
-    assert!(std::panic::catch_unwind(|| is_square::<9>(Fp::<9>(1))).is_err());
+    assert!(std::panic::catch_unwind(|| diag::<9>(&[1, 1])).is_err());
+    assert!(std::panic::catch_unwind(|| is_square::<2>(Fp::<2>::from_u128(1))).is_err());
+    assert!(std::panic::catch_unwind(|| is_square::<9>(Fp::<9>::from_u128(1))).is_err());
 }
 
 #[test]
@@ -49,12 +49,18 @@ fn hasse_is_trivial_over_finite_fields() {
     // Every Hilbert symbol of nonzero pairs is +1, so every Hasse invariant is.
     for a in 1..5u128 {
         for b in 1..5u128 {
-            assert_eq!(hilbert_symbol::<5>(Fp::<5>(a), Fp::<5>(b)), 1);
+            assert_eq!(
+                hilbert_symbol::<5>(Fp::<5>::from_u128(a), Fp::<5>::from_u128(b)),
+                1
+            );
         }
     }
     for a in 1..7u128 {
         for b in 1..7u128 {
-            assert_eq!(hilbert_symbol::<7>(Fp::<7>(a), Fp::<7>(b)), 1);
+            assert_eq!(
+                hilbert_symbol::<7>(Fp::<7>::from_u128(a), Fp::<7>::from_u128(b)),
+                1
+            );
         }
     }
     assert_eq!(
@@ -86,11 +92,11 @@ fn is_isometric<const P: u128>(d1: &[Fp<P>], d2: &[Fp<P>]) -> bool {
     }
     for code in 0..total {
         // decode an n×n matrix in base P
-        let mut m = vec![vec![Fp::<P>(0); n]; n];
+        let mut m = vec![vec![Fp::<P>::from_u128(0); n]; n];
         let mut c = code;
         for row in m.iter_mut() {
             for entry in row.iter_mut() {
-                *entry = Fp::<P>(c % P);
+                *entry = Fp::<P>::from_u128(c % P);
                 c /= P;
             }
         }
@@ -101,11 +107,11 @@ fn is_isometric<const P: u128>(d1: &[Fp<P>], d2: &[Fp<P>]) -> bool {
         let mut ok = true;
         'pair: for i in 0..n {
             for j in 0..n {
-                let mut c_ij = Fp::<P>(0);
+                let mut c_ij = Fp::<P>::from_u128(0);
                 for k in 0..n {
                     c_ij = c_ij.add(&m[k][i].mul(&d1[k]).mul(&m[k][j]));
                 }
-                let want = if i == j { d2[i] } else { Fp::<P>(0) };
+                let want = if i == j { d2[i] } else { Fp::<P>::from_u128(0) };
                 if c_ij != want {
                     ok = false;
                     break 'pair;
@@ -132,7 +138,7 @@ fn dim_plus_disc_is_complete_over_finite_fields() {
             for f in &forms {
                 for e in 1..P {
                     let mut g = f.clone();
-                    g.push(Fp::<P>(e));
+                    g.push(Fp::<P>::from_u128(e));
                     next.push(g);
                 }
             }
@@ -181,7 +187,7 @@ fn oddchar_witt_is_a_homomorphism() {
 fn witt_group_is_z4_when_minus_one_nonsquare() {
     // F_3: −1 = 2 is a nonsquare (q ≡ 3 mod 4) ⇒ W(F_3) ≅ ℤ/4.
     let g = finite_odd_witt(&diag::<3>(&[1])).unwrap();
-    let id = WittClassG::oddchar_zero(1);
+    let id = WittClassG::oddchar_zero(3, 1);
     let g2 = g.add(&g);
     let g3 = g2.add(&g);
     let g4 = g3.add(&g);
@@ -194,7 +200,7 @@ fn witt_group_is_z4_when_minus_one_nonsquare() {
 #[test]
 fn witt_group_is_z2xz2_when_minus_one_square() {
     // F_5: −1 = 4 is a square (q ≡ 1 mod 4) ⇒ W(F_5) ≅ ℤ/2 × ℤ/2.
-    let id = WittClassG::oddchar_zero(0);
+    let id = WittClassG::oddchar_zero(5, 0);
     let g = finite_odd_witt(&diag::<5>(&[1])).unwrap(); // 1 is a square
     let h = finite_odd_witt(&diag::<5>(&[2])).unwrap(); // 2 is a nonsquare
                                                         // every nonidentity element has order 2 (exponent 2)
@@ -219,7 +225,7 @@ fn extension_fields_use_the_same_trait_path() {
     assert_eq!(
         finite_odd_witt(&f9)
             .unwrap()
-            .add(&WittClassG::oddchar_zero(0)),
+            .add(&WittClassG::oddchar_zero(9, 0)),
         finite_odd_witt(&f9).unwrap()
     );
 }

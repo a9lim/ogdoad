@@ -121,6 +121,8 @@ pub enum WittClassG {
         signature: isize,
     },
     OddChar {
+        /// Field order `q`; finite fields of the same order are canonically unique.
+        field_order: u128,
         /// nonsquareness of `−1`: 0 if `−1` is a square (`q≡1 mod 4`), else 1.
         kappa: u8,
         /// dimension mod 2.
@@ -155,8 +157,9 @@ impl WittClassG {
     }
 
     /// The identity of the odd-char group with the given `kappa`.
-    pub fn oddchar_zero(kappa: u8) -> Self {
+    pub fn oddchar_zero(field_order: u128, kappa: u8) -> Self {
         WittClassG::OddChar {
+            field_order,
             kappa,
             e0: 0,
             sclass: 0,
@@ -166,35 +169,44 @@ impl WittClassG {
     /// The group operation `⊥`. Panics if the two classes are in different
     /// characteristic regimes (you cannot add across characteristics).
     pub fn add(&self, other: &WittClassG) -> WittClassG {
+        self.try_add(other).expect("invalid Witt-class addition")
+    }
+
+    pub fn try_add(&self, other: &WittClassG) -> Result<WittClassG, &'static str> {
         match (*self, *other) {
             (WittClassG::Char0 { signature: a }, WittClassG::Char0 { signature: b }) => {
-                WittClassG::Char0 { signature: a + b }
+                Ok(WittClassG::Char0 { signature: a + b })
             }
             (WittClassG::Char2 { arf: a }, WittClassG::Char2 { arf: b }) => {
-                WittClassG::Char2 { arf: a ^ b }
+                Ok(WittClassG::Char2 { arf: a ^ b })
             }
             (
                 WittClassG::OddChar {
+                    field_order: qa,
                     kappa: ka,
                     e0: e0a,
                     sclass: sa,
                 },
                 WittClassG::OddChar {
+                    field_order: qb,
                     kappa: kb,
                     e0: e0b,
                     sclass: sb,
                 },
             ) => {
-                assert_eq!(ka, kb, "odd-char Witt classes from different fields");
+                if qa != qb || ka != kb {
+                    return Err("odd-char Witt classes are from different finite fields");
+                }
                 // signed-disc multiplies with a (−1)^{mn} = (−1)^{e0a·e0b} twist:
                 let twist = if e0a & e0b == 1 { ka } else { 0 };
-                WittClassG::OddChar {
+                Ok(WittClassG::OddChar {
+                    field_order: qa,
                     kappa: ka,
                     e0: e0a ^ e0b,
                     sclass: sa ^ sb ^ twist,
-                }
+                })
             }
-            _ => panic!("cannot add Witt classes across characteristics"),
+            _ => Err("cannot add Witt classes across characteristics"),
         }
     }
 
@@ -212,60 +224,69 @@ impl WittClassG {
     /// a **module over** the bilinear Witt ring, not a ring — so there is no
     /// quadratic-form ring product to return. (See `forms/witt_ring.rs` for why.)
     pub fn mul(&self, other: &WittClassG) -> WittClassG {
+        self.try_mul(other)
+            .expect("invalid Witt-class multiplication")
+    }
+
+    pub fn try_mul(&self, other: &WittClassG) -> Result<WittClassG, &'static str> {
         match (*self, *other) {
             (WittClassG::Char0 { signature: a }, WittClassG::Char0 { signature: b }) => {
-                WittClassG::Char0 { signature: a * b }
+                Ok(WittClassG::Char0 { signature: a * b })
             }
             (
                 WittClassG::OddChar {
+                    field_order: qa,
                     kappa: ka,
                     e0: e0a,
                     sclass: sa,
                 },
                 WittClassG::OddChar {
+                    field_order: qb,
                     kappa: kb,
                     e0: e0b,
                     sclass: sb,
                 },
             ) => {
-                assert_eq!(ka, kb, "odd-char Witt classes from different fields");
+                if qa != qb || ka != kb {
+                    return Err("odd-char Witt classes are from different finite fields");
+                }
                 if ka == 1 {
                     // ℤ/4 via z = e0 + 2·sclass; multiply mod 4.
                     let za = (e0a + 2 * sa) as i32;
                     let zb = (e0b + 2 * sb) as i32;
                     let z = (za * zb).rem_euclid(4);
-                    WittClassG::OddChar {
+                    Ok(WittClassG::OddChar {
+                        field_order: qa,
                         kappa: 1,
                         e0: (z & 1) as u8,
                         sclass: ((z >> 1) & 1) as u8,
-                    }
+                    })
                 } else {
                     // F₂[ℤ/2] = F₂[t]/(t²−1): (a,b) = (e0⊕sclass, sclass), t² = 1.
                     let (a1, b1) = (e0a ^ sa, sa);
                     let (a2, b2) = (e0b ^ sb, sb);
                     let ar = (a1 & a2) ^ (b1 & b2);
                     let br = (a1 & b2) ^ (a2 & b1);
-                    WittClassG::OddChar {
+                    Ok(WittClassG::OddChar {
+                        field_order: qa,
                         kappa: 0,
                         e0: ar ^ br,
                         sclass: br,
-                    }
+                    })
                 }
             }
-            (WittClassG::Char2 { .. }, WittClassG::Char2 { .. }) => {
-                panic!(
-                    "char-2 quadratic Witt classes form a MODULE over the bilinear \
-                     Witt ring, not a ring — there is no quadratic ring product"
-                )
-            }
-            _ => panic!("cannot multiply Witt classes across characteristics"),
+            (WittClassG::Char2 { .. }, WittClassG::Char2 { .. }) => Err(
+                "char-2 quadratic Witt classes form a module over the bilinear Witt ring, not a ring",
+            ),
+            _ => Err("cannot multiply Witt classes across characteristics"),
         }
     }
 
     /// The ring unit `⟨1⟩` of the odd-char Witt ring with the given `kappa`
     /// (`e0 = 1`, `sclass = 0`). The identity for [`mul`](Self::mul).
-    pub fn oddchar_one(kappa: u8) -> Self {
+    pub fn oddchar_one(field_order: u128, kappa: u8) -> Self {
         WittClassG::OddChar {
+            field_order,
             kappa,
             e0: 1,
             sclass: 0,

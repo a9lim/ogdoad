@@ -26,15 +26,18 @@ use crate::forms::{
 };
 use crate::scalar::{Fp, Fpn, Nimber, Rational, Scalar, Surcomplex, Surreal};
 
-/// Classify the quadratic form / Clifford algebra of a [`Metric`] over `Self`,
-/// dispatched on the scalar field. The [`Class`](ClassifyForm::Class) associated
-/// type is the leg-specific datum:
+/// Classify the quadratic form data attached to a [`Metric`] over `Self`,
+/// dispatched on the scalar field. For real/complex-style legs this is also the
+/// implemented Clifford-algebra closure type; for `Rational` it is the complete
+/// Hasse-Minkowski quadratic-form invariant, not a full rational Brauer-Wall
+/// class. The [`Class`](ClassifyForm::Class) associated type is the leg-specific
+/// datum:
 ///
 /// | scalar | `Class` | leg |
 /// |---|---|---|
 /// | [`Surreal`] | [`CliffordType`] | exact-square char 0 subdomain (8-fold) |
 /// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordType`] | exact-square char 0 subdomain (2-fold) |
-/// | [`Rational`] | [`RationalCliffordType`] | char 0, full Hasse–Minkowski |
+/// | [`Rational`] | [`RationalCliffordType`] | char 0, full Hasse-Minkowski form invariant |
 /// | [`Fp<P>`](Fp) | [`OddCharType`] | odd characteristic |
 /// | [`Nimber`] | [`ArfResult`] | characteristic 2 (Arf) |
 ///

@@ -31,6 +31,7 @@
 //! `mul` is schoolbook multiply-then-reduce — the degree-`N`, odd-`p` generalisation
 //! of `big::ordinal`'s "reduce mod `ω³ = 2`".
 
+use super::fp::{add_mod, mul_mod};
 use super::FiniteField;
 use crate::scalar::{Fp, Scalar};
 use std::fmt;
@@ -38,7 +39,7 @@ use std::fmt;
 /// An element of `F_{p^N}`: the coefficients of `c_0 + c_1 x + … + c_{N-1} x^{N-1}`,
 /// each reduced into `[0, P)`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Fpn<const P: u128, const N: usize>(pub [u128; N]);
+pub struct Fpn<const P: u128, const N: usize>([u128; N]);
 
 /// Low coefficients `r` of the reduction rule `x^N = Σ_i r_i x^i` for the supported
 /// `(P, N)` fields. Each returned slice has length `N`. Unsupported pairs are a
@@ -115,6 +116,21 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
         Fpn(out)
     }
 
+    /// The canonical coefficient array, low degree first.
+    pub fn coeffs(&self) -> &[u128; N] {
+        &self.0
+    }
+
+    /// Consume the field element and return its canonical coefficient array.
+    pub fn into_coeffs(self) -> [u128; N] {
+        self.0
+    }
+
+    /// The coefficient of `x^i`, or zero past the degree.
+    pub fn coeff(&self, i: usize) -> u128 {
+        self.0.get(i).copied().unwrap_or(0)
+    }
+
     /// Is this element a square in `F_{p^N}`? In characteristic 2 the Frobenius
     /// `x ↦ x²` is a bijection, so *every* element is a square; in odd
     /// characteristic this is Euler's criterion `x^{(q−1)/2} = 1` (with `0` a
@@ -189,7 +205,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
                     coeff.0[1..].iter().all(|&c| c == 0),
                     "minimal-polynomial coefficient left F_p"
                 );
-                coeff.0[0]
+                coeff.coeff(0)
             })
             .collect()
     }
@@ -312,7 +328,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
         Self::assert_supported_field();
         let mut out = [0u128; N];
         for i in 0..N {
-            out[i] = (self.0[i] + rhs.0[i]) % P;
+            out[i] = add_mod::<P>(self.0[i], rhs.0[i]);
         }
         Fpn(out)
     }
@@ -328,7 +344,6 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
 
     fn mul(&self, rhs: &Self) -> Self {
         Self::assert_supported_field();
-        let p = P;
         // Schoolbook product into a degree-(2N-2) scratch, then reduce mod m(x).
         let mut scratch = vec![0u128; 2 * N - 1];
         for i in 0..N {
@@ -337,7 +352,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
             }
             let ai = self.0[i];
             for j in 0..N {
-                scratch[i + j] = (scratch[i + j] + ai * rhs.0[j]) % p;
+                scratch[i + j] = add_mod::<P>(scratch[i + j], mul_mod::<P>(ai, rhs.0[j]));
             }
         }
         // x^k = x^{k-N} · x^N = x^{k-N} · Σ_i red_i x^i, folding top down. (Degree 1 =
@@ -351,14 +366,12 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
                 }
                 scratch[k] = 0;
                 for i in 0..N {
-                    scratch[k - N + i] = (scratch[k - N + i] + c * red[i]) % p;
+                    scratch[k - N + i] = add_mod::<P>(scratch[k - N + i], mul_mod::<P>(c, red[i]));
                 }
             }
         }
         let mut out = [0u128; N];
-        for i in 0..N {
-            out[i] = scratch[i] as u128;
-        }
+        out[..N].copy_from_slice(&scratch[..N]);
         Fpn(out)
     }
 
@@ -404,7 +417,7 @@ mod tests {
                     *slot = code % P;
                     code /= P;
                 }
-                Fpn(coeffs)
+                Fpn::from_coeffs(&coeffs)
             })
             .collect()
     }
@@ -468,7 +481,7 @@ mod tests {
     fn from_coeffs_rejects_nonzero_high_terms() {
         assert_eq!(
             Fpn::<2, 3>::from_coeffs(&[1, 0, 1, 0]),
-            Fpn::<2, 3>([1, 0, 1])
+            Fpn::<2, 3>::from_coeffs(&[1, 0, 1])
         );
         assert!(std::panic::catch_unwind(|| Fpn::<2, 3>::from_coeffs(&[1, 0, 0, 1])).is_err());
     }
@@ -522,8 +535,8 @@ mod tests {
         // Absolute trace/norm to F_2 land in the prime field (constant element).
         let tr = x.relative_trace(1);
         let nm = x.relative_norm(1);
-        assert!(tr.0[1..].iter().all(|&c| c == 0), "trace not in F_2");
-        assert!(nm.0[1..].iter().all(|&c| c == 0), "norm not in F_2");
+        assert!(tr.coeffs()[1..].iter().all(|&c| c == 0), "trace not in F_2");
+        assert!(nm.coeffs()[1..].iter().all(|&c| c == 0), "norm not in F_2");
         // F_9: orders divide 8; the primitive element has order exactly 8.
         let h = Fpn::<3, 2>::primitive_element();
         assert_eq!(h.multiplicative_order(), Some(8));

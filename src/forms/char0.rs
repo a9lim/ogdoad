@@ -38,7 +38,7 @@
 //! the real place and the finitely many relevant `Q_p` places.
 
 use crate::clifford::Metric;
-use crate::forms::{disc_class, hasse_at_place, relevant_primes, square_free, Place};
+use crate::forms::{hasse_at_place, relevant_primes, try_disc_class, try_square_free, Place};
 use crate::scalar::Surcomplex;
 use crate::scalar::Surreal;
 use crate::scalar::{ExactRoots, Rational, Scalar};
@@ -117,7 +117,8 @@ pub struct RationalPlaceInvariant {
 /// Hasse_v for all places v)`; only the real place and primes dividing
 /// `2·disc` can be nontrivial, so the finite list here is complete. The
 /// `real_closure` field records what the algebra becomes after scalar extension
-/// to `R`, but it is not used as a substitute for the rational invariant.
+/// to `R`, but it is not used as a substitute for the rational invariant. This
+/// is not a full rational Brauer/Brauer-Wall class of the Clifford algebra.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RationalCliffordType {
     pub dim: usize,
@@ -249,8 +250,8 @@ pub(crate) fn surcomplex_rank(metric: &Metric<Surcomplex<Surreal>>) -> Option<(u
     Some((nonzero, radical))
 }
 
-fn rational_square_class(x: &Rational) -> i128 {
-    square_free(x.numer() * x.denom())
+fn rational_square_class(x: &Rational) -> Option<i128> {
+    try_square_free(x.numer().checked_mul(x.denom())?)
 }
 
 /// Classify a rational-scalar quadratic form by the genuine rational invariants:
@@ -271,12 +272,12 @@ pub fn classify_rational(metric: &Metric<Rational>) -> Option<RationalCliffordTy
             Ordering::Less => signature.1 += 1,
             Ordering::Equal => unreachable!("zero handled above"),
         }
-        entries.push(rational_square_class(x));
+        entries.push(rational_square_class(x)?);
     }
     let discriminant = if entries.is_empty() {
         1
     } else {
-        disc_class(&entries)
+        try_disc_class(&entries)?
     };
     let mut local_hasse = vec![RationalPlaceInvariant {
         place: Place::Real,

@@ -136,7 +136,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
     /// is `W_k(F_p)`, so this is the prime-field instance of
     /// [`WittVec::teichmuller`](crate::scalar::WittVec::teichmuller).)
     pub fn teichmuller(a: Fp<P>) -> Self {
-        let mut t = Zp::new(a.0 as i128);
+        let mut t = Zp::new(a.value() as i128);
         for _ in 0..K {
             t = spow(&t, P);
         }
@@ -183,7 +183,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
     /// The **Teichmüller representative** `τ(a) ∈ Q_p` of a residue `a ∈ F_p`
     /// (a unit of valuation 0), via `t ← t^p`.
     pub fn teichmuller(a: Fp<P>) -> Self {
-        let mut t = Qp::from_i128(a.0 as i128);
+        let mut t = Qp::from_i128(a.value() as i128);
         for _ in 0..K {
             t = spow(&t, P);
         }
@@ -241,7 +241,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
         }
         let seed_res = fq_sqrt(u.residue())?;
         let two_inv = Self::two_inv().expect("odd p ⇒ 2 is a unit");
-        let root_unit = newton_sqrt(&u, WittVec(seed_res.0), &two_inv);
+        let root_unit = newton_sqrt(&u, WittVec(seed_res.into_coeffs()), &two_inv);
         let mut acc = root_unit;
         let p = WittVec::<P, N, F>::from_int(P as i128);
         for _ in 0..(v / 2) {
@@ -283,7 +283,11 @@ impl<const P: u128, const N: usize, const F: usize> Qq<P, N, F> {
         let seed_res = fq_sqrt(self.unit_residue().expect("nonzero ⇒ residue"))?;
         let two_inv = Qq::from_int(2).inv().expect("odd p ⇒ 2 invertible");
         let unit = Qq::from_witt(self.unit()); // val-0 unit part
-        let root_unit = newton_sqrt(&unit, Qq::from_witt(WittVec(seed_res.0)), &two_inv);
+        let root_unit = newton_sqrt(
+            &unit,
+            Qq::from_witt(WittVec(seed_res.into_coeffs())),
+            &two_inv,
+        );
         Some(Qq::from_p_power(v / 2).mul(&root_unit))
     }
 
@@ -349,7 +353,7 @@ mod tests {
         // equivalently τ(a) is Frobenius-fixed: τ(a)^p = τ(a).
         type Z = Zp<7, 4>;
         for a in 1..7u128 {
-            let t = Z::teichmuller(Fp::<7>(a));
+            let t = Z::teichmuller(Fp::<7>::from_u128(a));
             assert_eq!(t.0 % 7, a, "τ lifts the residue");
             assert_eq!(spow(&t, 7), t, "τ is Frobenius-fixed (τ^p = τ)");
             // a (p−1)-th root of unity
@@ -357,8 +361,8 @@ mod tests {
         }
         // Qp agrees with Zp on the lift.
         for a in 1..7u128 {
-            let tq = Qp::<7, 4>::teichmuller(Fp::<7>(a));
-            assert_eq!(tq.unit(), Zp::<7, 4>::teichmuller(Fp::<7>(a)).0);
+            let tq = Qp::<7, 4>::teichmuller(Fp::<7>::from_u128(a));
+            assert_eq!(tq.unit(), Zp::<7, 4>::teichmuller(Fp::<7>::from_u128(a)).0);
         }
     }
 

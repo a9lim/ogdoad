@@ -101,7 +101,7 @@ mod tests {
         // actual F_9 nonsquare `ns`: `ns²` is a square, `ns` is not — content
         // invisible to an F_p-only decomposition.
         let ns = (0..9u128)
-            .map(|c| Fpn::<3, 2>([c % 3, c / 3]))
+            .map(|c| Fpn::<3, 2>::from_coeffs(&[c % 3, c / 3]))
             .find(|x| !x.is_zero() && !x.is_square())
             .expect("F_9 has nonsquares");
         let sq = ns.mul(&ns); // a square by construction

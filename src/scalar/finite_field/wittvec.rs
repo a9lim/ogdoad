@@ -85,7 +85,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
         for i in 0..F {
             c[i] = self.0[i] % P;
         }
-        Fpn(c)
+        Fpn::from_coeffs(&c)
     }
 
     /// Multiply two ring elements (polynomials over `Z/p^N` mod the lifted `f̃`).
@@ -140,7 +140,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
     /// multiplicative lift with `τ(x) ≡ x mod p`. Computed as `x̃^{q^{N-1}}` for any
     /// lift `x̃` (the power iteration stabilises modulo `p^N`).
     pub fn teichmuller(x: Fpn<P, F>) -> Self {
-        let mut y = WittVec::<P, N, F>(x.0); // naive lift (coeffs already in [0,p))
+        let mut y = WittVec::<P, N, F>(x.into_coeffs()); // naive lift (coeffs already in [0,p))
         for _ in 0..N.saturating_sub(1) {
             y = y.pow(Self::residue_order());
         }
@@ -267,7 +267,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
         // the precision each step. `None` for non-units (the Omnific discipline).
         let r = self.residue();
         let rinv = r.inv()?; // None iff residue is 0 ⇒ non-unit
-        let mut b = WittVec::<P, N, F>(rinv.0); // lift of the F_q inverse (precision 1)
+        let mut b = WittVec::<P, N, F>(rinv.into_coeffs()); // lift of the F_q inverse
         let two = Self::one().add(&Self::one());
         let mut prec = 1usize;
         while prec < N {
@@ -333,7 +333,10 @@ mod tests {
     fn residue_is_the_field_fq() {
         // Reducing W_N(F_q) mod p recovers F_q = Fpn<P,F>, while the finite
         // truncated ring itself has characteristic p^N.
-        assert_eq!(WittVec::<3, 2, 2>([4, 7]).residue(), Fpn::<3, 2>([1, 1]));
+        assert_eq!(
+            WittVec::<3, 2, 2>([4, 7]).residue(),
+            Fpn::<3, 2>::from_coeffs(&[1, 1])
+        );
         assert_eq!(WittVec::<2, 3, 1>::characteristic(), 8);
     }
 
@@ -363,16 +366,16 @@ mod tests {
                 for y0 in 0..2u128 {
                     for y1 in 0..2u128 {
                         let a = WittVec::<2, 2, 1>::from_witt_components(&[
-                            Fpn::<2, 1>([x0]),
-                            Fpn::<2, 1>([x1]),
+                            Fpn::<2, 1>::from_coeffs(&[x0]),
+                            Fpn::<2, 1>::from_coeffs(&[x1]),
                         ]);
                         let b = WittVec::<2, 2, 1>::from_witt_components(&[
-                            Fpn::<2, 1>([y0]),
-                            Fpn::<2, 1>([y1]),
+                            Fpn::<2, 1>::from_coeffs(&[y0]),
+                            Fpn::<2, 1>::from_coeffs(&[y1]),
                         ]);
                         let z = a.add(&b).witt_components();
-                        assert_eq!(z[0].0[0], (x0 + y0) % 2, "z₀ = x₀+y₀");
-                        assert_eq!(z[1].0[0], (x1 + y1 + x0 * y0) % 2, "z₁ = x₁+y₁+x₀y₀");
+                        assert_eq!(z[0].coeff(0), (x0 + y0) % 2, "z₀ = x₀+y₀");
+                        assert_eq!(z[1].coeff(0), (x1 + y1 + x0 * y0) % 2, "z₁ = x₁+y₁+x₀y₀");
                     }
                 }
             }

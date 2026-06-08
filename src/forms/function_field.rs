@@ -121,6 +121,10 @@ fn kappa_order<S: FiniteOddField>(place: &FFPlace<S>) -> u128 {
 
 /// The valuation `v_place(a)` of a **nonzero** `a ∈ F_q(t)`.
 pub fn valuation_at<S: FiniteOddField>(a: &RationalFunction<S>, place: &FFPlace<S>) -> i128 {
+    assert!(
+        !a.is_zero(),
+        "valuation_at needs a nonzero rational function"
+    );
     match place {
         FFPlace::Finite(pi) => {
             let (mn, _) = strip_factor(a.num().clone(), pi);
@@ -139,6 +143,10 @@ pub fn valuation_at<S: FiniteOddField>(a: &RationalFunction<S>, place: &FFPlace<
 /// of the residue field: a [`Poly`] of degree `< deg π` at a finite place, or a
 /// constant (an `F_q` element) at the degree place.
 fn residue_unit_at<S: FiniteOddField>(a: &RationalFunction<S>, place: &FFPlace<S>) -> Poly<S> {
+    assert!(
+        !a.is_zero(),
+        "residue_unit_at needs a nonzero rational function"
+    );
     match place {
         FFPlace::Finite(pi) => {
             let (_, num_s) = strip_factor(a.num().clone(), pi);
@@ -185,6 +193,9 @@ fn chi_kappa<S: FiniteOddField>(unit: &Poly<S>, place: &FFPlace<S>) -> i8 {
 /// valuation is even **and** the residue unit is a square in `κ`. The mirror of
 /// [`is_square_qp`](crate::forms::is_square_qp).
 pub fn is_local_square<S: FiniteOddField>(a: &RationalFunction<S>, place: &FFPlace<S>) -> bool {
+    if a.is_zero() {
+        return false;
+    }
     valuation_at(a, place).rem_euclid(2) == 0 && chi_kappa(&residue_unit_at(a, place), place) == 1
 }
 
@@ -202,6 +213,10 @@ pub fn hilbert_symbol_ff<S: FiniteOddField>(
     b: &RationalFunction<S>,
     place: &FFPlace<S>,
 ) -> i8 {
+    assert!(
+        !a.is_zero() && !b.is_zero(),
+        "Hilbert symbol over F_q(t) needs nonzero arguments"
+    );
     let al = valuation_at(a, place);
     let be = valuation_at(b, place);
     let ca = chi_kappa(&residue_unit_at(a, place), place);
@@ -221,6 +236,10 @@ pub fn hilbert_symbol_ff<S: FiniteOddField>(
 /// all entries are units, so every symbol is `+1`. Mirror of
 /// [`relevant_primes`](crate::forms::padic).
 pub fn relevant_places<S: FiniteOddField>(entries: &[RationalFunction<S>]) -> Vec<FFPlace<S>> {
+    assert!(
+        entries.iter().all(|a| !a.is_zero()),
+        "relevant_places over F_q(t) needs nonzero entries"
+    );
     let mut polys: Vec<Poly<S>> = Vec::new();
     for a in entries {
         let factors = monic_irreducible_factors(a.num())
@@ -311,6 +330,9 @@ pub fn is_isotropic_at_place<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
     place: &FFPlace<S>,
 ) -> bool {
+    if entries.iter().any(|a| a.is_zero()) {
+        return true;
+    }
     match entries.len() {
         0 | 1 => false,
         2 => is_local_square(&entries[0].mul(&entries[1]).neg(), place),
@@ -357,6 +379,9 @@ impl<S: FiniteOddField> FFAdelicIsotropy<S> {
 pub fn isotropy_over_ff_adeles<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
 ) -> FFAdelicIsotropy<S> {
+    if entries.iter().any(|a| a.is_zero()) {
+        return FFAdelicIsotropy { local: Vec::new() };
+    }
     let local = relevant_places(entries)
         .into_iter()
         .map(|pl| {

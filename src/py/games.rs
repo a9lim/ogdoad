@@ -666,6 +666,21 @@ impl PyQuotient {
     fn class_is_p(&self) -> Vec<bool> {
         self.inner.class_is_p.clone()
     }
+    /// Class multiplication table, if represented at the current bounds.
+    #[getter]
+    fn multiplication(&self) -> Option<Vec<Vec<usize>>> {
+        self.inner.multiplication.clone()
+    }
+    /// Whether every represented product agrees with the multiplication table.
+    #[getter]
+    fn multiplication_consistent(&self) -> bool {
+        self.inner.multiplication_consistent
+    }
+    /// Whether the bounded element set is closed under disjunctive sum.
+    #[getter]
+    fn elements_closed_under_sum(&self) -> bool {
+        self.inner.elements_closed_under_sum
+    }
     fn __repr__(&self) -> String {
         format!(
             "Quotient(num_classes={}, elements={})",

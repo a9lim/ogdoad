@@ -104,6 +104,7 @@ pub fn finite_odd_witt<F: FiniteOddField>(metric: &Metric<F>) -> Option<WittClas
         1
     };
     Some(WittClassG::OddChar {
+        field_order: F::field_order(),
         kappa,
         e0: (m & 1) as u8,
         sclass: if F::is_square_value(signed) { 0 } else { 1 },

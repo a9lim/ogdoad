@@ -160,14 +160,22 @@ mod tests {
     use std::collections::BTreeMap;
 
     fn diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {
-        Metric::diagonal(qs.iter().map(|&x| Fp::<P>(x)).collect())
+        Metric::diagonal(qs.iter().map(|&x| Fp::<P>::from_u128(x)).collect())
     }
 
     #[test]
     fn tensor_form_multiplies_entries() {
         // ⟨1,2⟩ ⊗ ⟨1,2⟩ = ⟨1,2,2,4⟩ over F_5.
         let t = tensor_form(&diag::<5>(&[1, 2]), &diag::<5>(&[1, 2])).unwrap();
-        assert_eq!(t.q, vec![Fp::<5>(1), Fp::<5>(2), Fp::<5>(2), Fp::<5>(4)]);
+        assert_eq!(
+            t.q,
+            vec![
+                Fp::<5>::from_u128(1),
+                Fp::<5>::from_u128(2),
+                Fp::<5>::from_u128(2),
+                Fp::<5>::from_u128(4)
+            ]
+        );
     }
 
     #[test]
@@ -175,7 +183,7 @@ mod tests {
         assert_eq!(in_fundamental_ideal(&diag::<5>(&[1, 2])), Some(true));
         assert_eq!(in_fundamental_ideal(&diag::<5>(&[1, 2, 3])), Some(false));
         let mut b = BTreeMap::new();
-        b.insert((0, 1), Fp::<5>(2));
+        b.insert((0, 1), Fp::<5>::from_u128(2));
         let hyperbolic = Metric::new(vec![Fp::<5>::zero(), Fp::<5>::zero()], b);
         assert_eq!(in_fundamental_ideal(&hyperbolic), None);
     }
@@ -183,9 +191,9 @@ mod tests {
     #[test]
     fn pfister_shapes() {
         // ⟨⟨a⟩⟩ = ⟨1,−a⟩; ⟨⟨a,b⟩⟩ = ⟨1,−a,−b,ab⟩.
-        let p1 = pfister(&[Fp::<7>(3)]);
+        let p1 = pfister(&[Fp::<7>::from_u128(3)]);
         assert_eq!(p1.q, vec![Fp::<7>::one(), Fp::<7>::new(-3)]);
-        let p2 = pfister(&[Fp::<7>(3), Fp::<7>(5)]);
+        let p2 = pfister(&[Fp::<7>::from_u128(3), Fp::<7>::from_u128(5)]);
         // ⟨1, −3⟩ ⊗ ⟨1, −5⟩ = ⟨1, −5, −3, 15⟩
         assert_eq!(
             p2.q,
@@ -193,7 +201,7 @@ mod tests {
                 Fp::<7>::one(),
                 Fp::<7>::new(-5),
                 Fp::<7>::new(-3),
-                Fp::<7>(15 % 7),
+                Fp::<7>::from_u128(15 % 7),
             ]
         );
     }
@@ -205,18 +213,18 @@ mod tests {
         // hyperbolic). So I² = 0 and the odd-char staircase stops at (e₀, e₁).
         for a in 1..5u128 {
             for b in 1..5u128 {
-                let p = pfister(&[Fp::<5>(a), Fp::<5>(b)]);
+                let p = pfister(&[Fp::<5>::from_u128(a), Fp::<5>::from_u128(b)]);
                 assert_eq!(
                     finite_odd_witt(&p).unwrap(),
-                    WittClassG::oddchar_zero(0), // F_5: −1 square, identity has kappa 0
+                    WittClassG::oddchar_zero(5, 0), // F_5: −1 square, identity has kappa 0
                     "2-fold Pfister ⟨⟨{a},{b}⟩⟩ over F_5 must be hyperbolic"
                 );
             }
         }
         for a in 1..3u128 {
             for b in 1..3u128 {
-                let p = pfister(&[Fp::<3>(a), Fp::<3>(b)]);
-                assert_eq!(finite_odd_witt(&p).unwrap(), WittClassG::oddchar_zero(1));
+                let p = pfister(&[Fp::<3>::from_u128(a), Fp::<3>::from_u128(b)]);
+                assert_eq!(finite_odd_witt(&p).unwrap(), WittClassG::oddchar_zero(3, 1));
             }
         }
     }
@@ -235,7 +243,7 @@ mod tests {
                     *slot = c % 3;
                     c /= 3;
                 }
-                Fpn(coeffs)
+                Fpn::from_coeffs(&coeffs)
             })
             .filter(|x| !x.is_zero())
             .collect();
@@ -302,8 +310,8 @@ mod tests {
     #[test]
     fn ring_unit_is_neutral() {
         // ⟨1⟩ is the multiplicative identity in both odd-char ring structures.
-        let one3 = WittClassG::oddchar_one(1);
-        let one5 = WittClassG::oddchar_one(0);
+        let one3 = WittClassG::oddchar_one(3, 1);
+        let one5 = WittClassG::oddchar_one(5, 0);
         for m in [diag::<3>(&[1]), diag::<3>(&[2]), diag::<3>(&[1, 2])] {
             let c = finite_odd_witt(&m).unwrap();
             assert_eq!(c.mul(&one3), c);

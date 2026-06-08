@@ -29,33 +29,44 @@ pub enum Place {
 
 // --- elementary number theory (i128 internals; square-free keeps values tiny) ---
 
-/// The square-free part of `n` (sign preserved): `n` with every squared prime
-/// factor removed. The canonical representative of `n`'s class in `Q*/Q*²`.
-pub(crate) fn square_free(mut n: i128) -> i128 {
+fn signed_u128(sign: i128, n: u128) -> Option<i128> {
+    if sign < 0 {
+        if n == (i128::MAX as u128) + 1 {
+            Some(i128::MIN)
+        } else {
+            i128::try_from(n).ok()?.checked_neg()
+        }
+    } else {
+        i128::try_from(n).ok()
+    }
+}
+
+/// Checked square-free part of `n` (sign preserved).
+pub(crate) fn try_square_free(n: i128) -> Option<i128> {
     if n == 0 {
-        return 0;
+        return Some(0);
     }
     let sign = n.signum();
-    n = n.abs();
-    let mut res: i128 = 1;
-    let mut d: i128 = 2;
-    while d * d <= n {
-        if n % d == 0 {
+    let mut n = n.unsigned_abs();
+    let mut res: u128 = 1;
+    let mut d: u128 = 2;
+    while d <= n / d {
+        if n.is_multiple_of(d) {
             let mut e = 0;
-            while n % d == 0 {
+            while n.is_multiple_of(d) {
                 n /= d;
                 e += 1;
             }
             if e % 2 == 1 {
-                res *= d;
+                res = res.checked_mul(d)?;
             }
         }
         d += 1;
     }
     if n > 1 {
-        res *= n;
+        res = res.checked_mul(n)?;
     }
-    sign * res
+    signed_u128(sign, res)
 }
 
 fn is_prime(p: u128) -> bool {
@@ -79,10 +90,11 @@ fn is_prime(p: u128) -> bool {
 }
 
 /// `p`-adic valuation `v_p(n)` (for `n ≠ 0`).
-fn val_p(mut n: i128, p: i128) -> u128 {
+fn val_p(n: i128, p: i128) -> u128 {
     let mut k = 0;
-    n = n.abs();
-    while n % p == 0 {
+    let mut n = n.unsigned_abs();
+    let p = p as u128;
+    while n.is_multiple_of(p) {
         n /= p;
         k += 1;
     }
@@ -99,19 +111,20 @@ fn unit_part(mut n: i128, p: i128) -> i128 {
 
 /// The Legendre symbol `(a | p)` for an odd prime `p`: `0` if `p | a`, else `±1`.
 fn legendre(a: i128, p: i128) -> i8 {
-    let a = a.rem_euclid(p);
+    let p_u = p as u128;
+    let a = a.rem_euclid(p) as u128;
     if a == 0 {
         return 0;
     }
     // a^{(p-1)/2} mod p
     let mut base = a;
-    let mut e = (p - 1) / 2;
-    let mut acc: i128 = 1;
+    let mut e = (p_u - 1) / 2;
+    let mut acc: u128 = 1;
     while e > 0 {
         if e & 1 == 1 {
-            acc = (acc * base) % p;
+            acc = mul_mod_runtime(acc, base, p_u);
         }
-        base = (base * base) % p;
+        base = mul_mod_runtime(base, base, p_u);
         e >>= 1;
     }
     if acc == 1 {
@@ -121,23 +134,55 @@ fn legendre(a: i128, p: i128) -> i8 {
     } // acc is p-1 ≡ -1
 }
 
-/// Is the nonzero integer `n` a square in `Q_p`? `v_p(n)` even **and** the unit part
-/// is a square unit (`≡ □ mod p` for odd `p`; `≡ 1 mod 8` for `p = 2`).
-pub fn is_square_qp(n: i128, p: u128) -> bool {
-    assert!(is_prime(p), "Q_p square test needs p prime");
+fn add_mod_runtime(a: u128, b: u128, m: u128) -> u128 {
+    debug_assert!(m > 0 && a < m && b < m);
+    if a >= m - b {
+        a - (m - b)
+    } else {
+        a + b
+    }
+}
+
+fn mul_mod_runtime(mut a: u128, mut b: u128, m: u128) -> u128 {
+    debug_assert!(m > 0 && a < m && b < m);
+    let mut acc = 0u128;
+    while b > 0 {
+        if b & 1 == 1 {
+            acc = add_mod_runtime(acc, a, m);
+        }
+        b >>= 1;
+        if b > 0 {
+            a = add_mod_runtime(a, a, m);
+        }
+    }
+    acc
+}
+
+/// Checked version of [`is_square_qp`]. Returns `None` when `p` is not a prime
+/// representable by the bounded `i128` implementation.
+pub fn try_is_square_qp(n: i128, p: u128) -> Option<bool> {
+    if !is_prime(p) || i128::try_from(p).is_err() {
+        return None;
+    }
     let p = p as i128;
     if n == 0 {
-        return false;
+        return Some(false);
     }
     if !val_p(n, p).is_multiple_of(2) {
-        return false;
+        return Some(false);
     }
     let u = unit_part(n, p);
-    if p == 2 {
+    Some(if p == 2 {
         u.rem_euclid(8) == 1
     } else {
         legendre(u, p) == 1
-    }
+    })
+}
+
+/// Is the nonzero integer `n` a square in `Q_p`? `v_p(n)` even **and** the unit part
+/// is a square unit (`≡ □ mod p` for odd `p`; `≡ 1 mod 8` for `p = 2`).
+pub fn is_square_qp(n: i128, p: u128) -> bool {
+    try_is_square_qp(n, p).expect("Q_p square test needs prime p ≤ i128::MAX")
 }
 
 // --- the Hilbert symbol ---
@@ -195,19 +240,22 @@ pub(crate) fn tame_hilbert_symbol(
     s
 }
 
-/// The Hilbert symbol `(a, b)_p` over `Q_p`, for nonzero integers `a, b`. Standard
-/// explicit formulas (Serre III.1): for odd `p`, with `a = p^α u`, `b = p^β v`,
-/// `(a,b)_p = (−1)^{αβ ε(p)} (u|p)^β (v|p)^α` (the [`tame_hilbert_symbol`] with the
-/// Legendre character); for `p = 2`, `(a,b)_2 = (−1)^{ε(u)ε(v) + α ω(v) + β ω(u)}`.
-pub fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> i8 {
-    assert!(is_prime(p), "Hilbert symbol needs p prime");
-    let a = square_free(a);
-    let b = square_free(b);
-    assert!(a != 0 && b != 0, "Hilbert symbol needs nonzero arguments");
+/// Checked version of [`hilbert_symbol_qp`]. Returns `None` when `p` is not a
+/// representable prime, either argument is zero, or square-class reduction
+/// overflows the bounded `i128` implementation.
+pub fn try_hilbert_symbol_qp(a: i128, b: i128, p: u128) -> Option<i8> {
+    if !is_prime(p) || i128::try_from(p).is_err() {
+        return None;
+    }
+    let a = try_square_free(a)?;
+    let b = try_square_free(b)?;
+    if a == 0 || b == 0 {
+        return None;
+    }
     let pi = p as i128;
     let (al, be) = (val_p(a, pi), val_p(b, pi));
     let (ua, ub) = (unit_part(a, pi), unit_part(b, pi));
-    if p == 2 {
+    Some(if p == 2 {
         let expo = (eps2(ua) * eps2(ub) + (al as i128) * omega2(ub) + (be as i128) * omega2(ua))
             .rem_euclid(2);
         if expo == 0 {
@@ -224,7 +272,16 @@ pub fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> i8 {
             legendre(ub, pi),
             legendre(-1, pi),
         )
-    }
+    })
+}
+
+/// The Hilbert symbol `(a, b)_p` over `Q_p`, for nonzero integers `a, b`. Standard
+/// explicit formulas (Serre III.1): for odd `p`, with `a = p^α u`, `b = p^β v`,
+/// `(a,b)_p = (−1)^{αβ ε(p)} (u|p)^β (v|p)^α` (the [`tame_hilbert_symbol`] with the
+/// Legendre character); for `p = 2`, `(a,b)_2 = (−1)^{ε(u)ε(v) + α ω(v) + β ω(u)}`.
+pub fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> i8 {
+    try_hilbert_symbol_qp(a, b, p)
+        .expect("Hilbert symbol needs prime p ≤ i128::MAX and nonzero arguments")
 }
 
 /// The Hilbert symbol at an arbitrary place of `Q` (named `_at` to avoid clashing
@@ -251,12 +308,31 @@ pub fn hasse_at_place(entries: &[i128], place: Place) -> i8 {
 }
 
 /// The square class of the discriminant `∏ a_i`, kept square-free / small.
-pub(crate) fn disc_class(entries: &[i128]) -> i128 {
+pub(crate) fn try_disc_class(entries: &[i128]) -> Option<i128> {
     let mut d: i128 = 1;
     for &e in entries {
-        d = square_free(d * square_free(e));
+        d = try_square_free(d.checked_mul(try_square_free(e)?)?)?;
     }
-    d
+    Some(d)
+}
+
+fn neg_product(a: i128, b: i128) -> Option<i128> {
+    a.checked_mul(b)?.checked_neg()
+}
+
+pub(crate) fn try_is_isotropic_at_p(entries: &[i128], p: u128) -> Option<bool> {
+    let n = entries.len();
+    let d = try_disc_class(entries)?;
+    Some(match n {
+        0 | 1 => false,
+        2 => is_square_qp(neg_product(entries[0], entries[1])?, p),
+        3 => hilbert_symbol_qp(-1, d.checked_neg()?, p) == hasse_at_place(entries, Place::Prime(p)),
+        4 => {
+            !is_square_qp(d, p)
+                || hasse_at_place(entries, Place::Prime(p)) == hilbert_symbol_qp(-1, -1, p)
+        }
+        _ => true,
+    })
 }
 
 /// The primes that can carry a nontrivial local condition: `2` together with every
@@ -265,19 +341,19 @@ pub(crate) fn relevant_primes(entries: &[i128]) -> BTreeSet<u128> {
     let mut ps = BTreeSet::new();
     ps.insert(2);
     for &e in entries {
-        let mut n = e.abs();
-        let mut d: i128 = 2;
-        while d * d <= n {
-            if n % d == 0 {
-                ps.insert(d as u128);
-                while n % d == 0 {
+        let mut n = e.unsigned_abs();
+        let mut d: u128 = 2;
+        while d <= n / d {
+            if n.is_multiple_of(d) {
+                ps.insert(d);
+                while n.is_multiple_of(d) {
                     n /= d;
                 }
             }
             d += 1;
         }
         if n > 1 {
-            ps.insert(n as u128);
+            ps.insert(n);
         }
     }
     ps
@@ -298,7 +374,7 @@ pub(crate) fn is_perfect_square(n: i128) -> bool {
             hi = mid - 1;
         }
     }
-    hi * hi == n
+    hi.checked_mul(hi) == Some(n)
 }
 
 /// The **Hilbert reciprocity product** `∏_v (a,b)_v` over all places of `ℚ` — the
@@ -320,18 +396,7 @@ pub fn hilbert_reciprocity_product(a: i128, b: i128) -> i8 {
 /// (Serre IV.2.2): n=1 never; n=2 iff `−d` is a square; n=3 iff `(−1,−d)_p = ε_p`;
 /// n=4 iff `d` is a nonsquare or `ε_p = (−1,−1)_p`; n≥5 always.
 pub(crate) fn is_isotropic_at_p(entries: &[i128], p: u128) -> bool {
-    let n = entries.len();
-    let d = disc_class(entries);
-    match n {
-        0 | 1 => false,
-        2 => is_square_qp(-(entries[0] * entries[1]), p),
-        3 => hilbert_symbol_qp(-1, -d, p) == hasse_at_place(entries, Place::Prime(p)),
-        4 => {
-            !is_square_qp(d, p)
-                || hasse_at_place(entries, Place::Prime(p)) == hilbert_symbol_qp(-1, -1, p)
-        }
-        _ => true,
-    }
+    try_is_isotropic_at_p(entries, p).expect("local isotropy square-class overflowed i128")
 }
 
 /// Whether a diagonal form `⟨a_1,…,a_n⟩` over `Q` is **isotropic** (represents 0
@@ -341,27 +406,34 @@ pub(crate) fn is_isotropic_at_p(entries: &[i128], p: u128) -> bool {
 /// rank ≥ 3 needs `ℝ`-indefiniteness plus the local condition at each prime dividing
 /// `2·∏a_i` (all other primes are automatically isotropic for rank ≥ 3).
 pub fn is_isotropic_q(entries: &[i128]) -> bool {
+    try_is_isotropic_q(entries).expect("rational isotropy square-class overflowed i128")
+}
+
+pub fn try_is_isotropic_q(entries: &[i128]) -> Option<bool> {
     if entries.contains(&0) {
-        return true; // a null coordinate direction
+        return Some(true); // a null coordinate direction
     }
     let n = entries.len();
     if n <= 1 {
-        return false;
+        return Some(false);
     }
     if n == 2 {
         // ⟨a,b⟩ isotropic over Q iff −ab is a (global) square.
-        return is_perfect_square(-(entries[0] * entries[1]));
+        return Some(is_perfect_square(neg_product(entries[0], entries[1])?));
     }
     // rank ≥ 3: real place must be indefinite …
     let has_pos = entries.iter().any(|&e| e > 0);
     let has_neg = entries.iter().any(|&e| e < 0);
     if !(has_pos && has_neg) {
-        return false; // definite over ℝ ⇒ anisotropic at ∞
+        return Some(false); // definite over ℝ ⇒ anisotropic at ∞
     }
     // … and isotropic at every relevant prime.
-    relevant_primes(entries)
-        .into_iter()
-        .all(|p| is_isotropic_at_p(entries, p))
+    for p in relevant_primes(entries) {
+        if !try_is_isotropic_at_p(entries, p)? {
+            return Some(false);
+        }
+    }
+    Some(true)
 }
 
 #[cfg(test)]

@@ -102,16 +102,16 @@ impl<const P: u128, const N: usize> FieldExtension for Fpn<P, N> {
         N
     }
     fn embed(base: &Fp<P>) -> Self {
-        Fpn::<P, N>::constant(base.0)
+        Fpn::<P, N>::constant(base.value())
     }
     fn trace(&self) -> Fp<P> {
         use crate::scalar::FiniteField;
         // trace to the degree-1 (prime) subfield; the result is a constant element.
-        Fp::<P>(self.relative_trace(1).0[0])
+        Fp::<P>::from_u128(self.relative_trace(1).coeff(0))
     }
     fn norm(&self) -> Fp<P> {
         use crate::scalar::FiniteField;
-        Fp::<P>(self.relative_norm(1).0[0])
+        Fp::<P>::from_u128(self.relative_norm(1).coeff(0))
     }
 }
 
@@ -213,15 +213,15 @@ impl FieldExtension for Nimber {
         128
     }
     fn embed(base: &Fp<2>) -> Self {
-        Nimber(base.0)
+        Nimber(base.value())
     }
     fn trace(&self) -> Fp<2> {
-        Fp::<2>(nim_trace(self.0, 128))
+        Fp::<2>::from_u128(nim_trace(self.0, 128))
     }
     fn norm(&self) -> Fp<2> {
         // N_{F_{2^128}/F_2} maps onto F_2* = {1}, so every nonzero element norms to
         // 1 (and 0 to 0): N(x) = x^{(2^128−1)/(2−1)} = x^{2^128−1} = 1 for x ≠ 0.
-        Fp::<2>(u128::from(self.0 != 0))
+        Fp::<2>::from_u128(u128::from(self.0 != 0))
     }
 }
 
@@ -281,7 +281,7 @@ impl<const P: u128, const N: usize> CyclicGaloisExtension for Fpn<P, N> {
             .map(|j| {
                 let mut a = [0u128; N];
                 a[j] = 1;
-                Fpn::<P, N>(a)
+                Fpn::<P, N>::from_coeffs(&a)
             })
             .collect()
     }
@@ -345,27 +345,36 @@ mod tests {
         type F9 = Fpn<3, 2>;
         assert_eq!(<F9 as FieldExtension>::extension_degree(), 2);
         for code in 0..9u128 {
-            let x = Fpn::<3, 2>([code % 3, code / 3]);
+            let x = Fpn::<3, 2>::from_coeffs(&[code % 3, code / 3]);
             // FieldExtension trace/norm = FiniteField relative trace/norm to F_3,
             // read as the prime-field element.
-            assert_eq!(FieldExtension::trace(&x), Fp::<3>(x.relative_trace(1).0[0]));
-            assert_eq!(FieldExtension::norm(&x), Fp::<3>(x.relative_norm(1).0[0]));
+            assert_eq!(
+                FieldExtension::trace(&x),
+                Fp::<3>::from_u128(x.relative_trace(1).coeff(0))
+            );
+            assert_eq!(
+                FieldExtension::norm(&x),
+                Fp::<3>::from_u128(x.relative_norm(1).coeff(0))
+            );
             // norm and trace land in the prime field; norm = x^{1+p} for F_{p²}.
             assert_eq!(
                 FieldExtension::norm(&x),
-                Fp::<3>(x.mul(&x.frobenius()).0[0])
+                Fp::<3>::from_u128(x.mul(&x.frobenius()).coeff(0))
             );
         }
         // multiplicativity of the norm over F_9*.
-        let a = Fpn::<3, 2>([1, 1]);
-        let b = Fpn::<3, 2>([2, 1]);
+        let a = Fpn::<3, 2>::from_coeffs(&[1, 1]);
+        let b = Fpn::<3, 2>::from_coeffs(&[2, 1]);
         assert_eq!(
             FieldExtension::norm(&a.mul(&b)),
             FieldExtension::norm(&a).mul(&FieldExtension::norm(&b))
         );
         // embedding the prime field: norm = c^N = c² here.
-        let c = <F9 as FieldExtension>::embed(&Fp::<3>(2));
-        assert_eq!(FieldExtension::norm(&c), Fp::<3>(2).mul(&Fp::<3>(2)));
+        let c = <F9 as FieldExtension>::embed(&Fp::<3>::from_u128(2));
+        assert_eq!(
+            FieldExtension::norm(&c),
+            Fp::<3>::from_u128(2).mul(&Fp::<3>::from_u128(2))
+        );
     }
 
     // ---------- Qq over Qp (the unramified local extension, Witt Frobenius) ----------
@@ -377,13 +386,13 @@ mod tests {
 
         // a Witt unit with residue the F_9 generator g: its norm has residue
         // N_{F9/F3}(g) = g^{1+3} = g^4, its trace has residue g + g^3 (both ∈ F_3).
-        let g = Fpn::<3, 2>([0, 1]); // F_9 generator
-        let x = Q9::from_witt(WittVec::<3, 3, 2>(g.0));
+        let g = Fpn::<3, 2>::from_coeffs(&[0, 1]); // F_9 generator
+        let x = Q9::from_witt(WittVec::<3, 3, 2>(g.into_coeffs()));
         let n = FieldExtension::norm(&x); // a Qq<3,3,1> = Q_3 element
                                           // its residue (∈ F_3) matches the finite-field norm of g.
         assert_eq!(
             n.unit().0[0] % 3,
-            FieldExtension::norm(&g).0,
+            FieldExtension::norm(&g).value(),
             "norm residue = N_{{F9/F3}}(g)"
         );
 
@@ -423,7 +432,10 @@ mod tests {
             &Surcomplex::new(Rational::int(2), Rational::int(1)),
             &Surcomplex::new(Rational::int(1), Rational::int(3)),
         );
-        norm_is_multiplicative(&Fpn::<3, 2>([1, 2]), &Fpn::<3, 2>([2, 2]));
+        norm_is_multiplicative(
+            &Fpn::<3, 2>::from_coeffs(&[1, 2]),
+            &Fpn::<3, 2>::from_coeffs(&[2, 2]),
+        );
     }
 
     // ---------- Nimber as a FieldExtension of F_2 ----------
@@ -431,22 +443,35 @@ mod tests {
     #[test]
     fn nimber_is_a_field_extension_of_f2() {
         assert_eq!(<Nimber as FieldExtension>::extension_degree(), 128);
-        assert_eq!(<Nimber as FieldExtension>::embed(&Fp::<2>(1)), Nimber(1));
-        assert_eq!(<Nimber as FieldExtension>::embed(&Fp::<2>(0)), Nimber(0));
+        assert_eq!(
+            <Nimber as FieldExtension>::embed(&Fp::<2>::from_u128(1)),
+            Nimber(1)
+        );
+        assert_eq!(
+            <Nimber as FieldExtension>::embed(&Fp::<2>::from_u128(0)),
+            Nimber(0)
+        );
 
         // the relative trace IS the absolute nim-trace to F_2, and it is additive.
         let a = Nimber(0b1011);
         let b = Nimber(0b0110);
-        assert_eq!(FieldExtension::trace(&a), Fp::<2>(nim_trace(a.0, 128)));
+        assert_eq!(
+            FieldExtension::trace(&a),
+            Fp::<2>::from_u128(nim_trace(a.0, 128))
+        );
         assert_eq!(
             FieldExtension::trace(&a.add(&b)),
             FieldExtension::trace(&a).add(&FieldExtension::trace(&b))
         );
 
         // norm onto F_2* = {1}: every nonzero element has norm 1, zero has norm 0.
-        assert_eq!(FieldExtension::norm(&Nimber(0)), Fp::<2>(0));
+        assert_eq!(FieldExtension::norm(&Nimber(0)), Fp::<2>::from_u128(0));
         for x in [Nimber(1), Nimber(2), Nimber(0xabc), Nimber(u128::MAX)] {
-            assert_eq!(FieldExtension::norm(&x), Fp::<2>(1), "norm of {x:?}");
+            assert_eq!(
+                FieldExtension::norm(&x),
+                Fp::<2>::from_u128(1),
+                "norm of {x:?}"
+            );
         }
     }
 
@@ -472,8 +497,14 @@ mod tests {
     fn cyclic_galois_fpn() {
         type F9 = Fpn<3, 2>;
         let basis = <F9 as CyclicGaloisExtension>::basis();
-        assert_eq!(basis, vec![Fpn::<3, 2>([1, 0]), Fpn::<3, 2>([0, 1])]);
-        let x = Fpn::<3, 2>([1, 2]);
+        assert_eq!(
+            basis,
+            vec![
+                Fpn::<3, 2>::from_coeffs(&[1, 0]),
+                Fpn::<3, 2>::from_coeffs(&[0, 1])
+            ]
+        );
+        let x = Fpn::<3, 2>::from_coeffs(&[1, 2]);
         assert_eq!(x.sigma(), x.frobenius()); // σ = Frobenius
         assert_eq!(x.sigma_power(2), x); // Frobenius has order N = 2 on F_{3²}
     }

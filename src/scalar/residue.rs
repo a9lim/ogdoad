@@ -75,13 +75,14 @@ impl<const P: u128, const K: u128> ResidueField for Qp<P, K> {
         match self.valuation() {
             None => Some(Fp::<P>::zero()), // 0 ↦ 0
             Some(v) if v < 0 => None,      // not integral
-            Some(0) => Some(Fp::<P>(self.unit() % P)),
+            Some(0) => Some(Fp::<P>::from_u128(self.unit() % P)),
             Some(_) => Some(Fp::<P>::zero()), // in 𝔪
         }
     }
     fn residue_unit(&self) -> Option<Fp<P>> {
         // `unit()` is the unit mantissa u of x = p^v·u; None only for 0.
-        self.valuation().map(|_| Fp::<P>(self.unit() % P))
+        self.valuation()
+            .map(|_| Fp::<P>::from_u128(self.unit() % P))
     }
 }
 
@@ -159,13 +160,13 @@ mod tests {
         // extension residue carried by the angular component.
         type Q9 = Qq<3, 3, 2>;
         let g = Q9::from_witt(crate::scalar::WittVec::<3, 3, 2>([0, 1])); // residue = F_9 generator
-        assert_eq!(g.residue(), Some(Fpn::<3, 2>([0, 1])));
-        assert_eq!(g.residue_unit(), Some(Fpn::<3, 2>([0, 1])));
+        assert_eq!(g.residue(), Some(Fpn::<3, 2>::from_coeffs(&[0, 1])));
+        assert_eq!(g.residue_unit(), Some(Fpn::<3, 2>::from_coeffs(&[0, 1])));
         // scaled by p: residue collapses to 0, angular component survives.
         let pg = g.mul(&Q9::from_int(3));
         assert_eq!(pg.valuation(), Some(1));
         assert_eq!(pg.residue(), Some(Fpn::<3, 2>::zero()));
-        assert_eq!(pg.residue_unit(), Some(Fpn::<3, 2>([0, 1])));
+        assert_eq!(pg.residue_unit(), Some(Fpn::<3, 2>::from_coeffs(&[0, 1])));
     }
 
     #[test]

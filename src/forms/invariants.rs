@@ -43,7 +43,7 @@ fn sums_of_n_squares<const P: u128>(n: usize) -> BTreeSet<u128> {
 
 /// Is `x` a sum of exactly `n` squares in `F_P`?
 pub fn is_sum_of_n_squares<const P: u128>(x: Fp<P>, n: usize) -> bool {
-    sums_of_n_squares::<P>(n).contains(&(x.0 % P))
+    sums_of_n_squares::<P>(n).contains(&(x.value() % P))
 }
 
 /// The **level (Stufe)** `s(F_P)`: the least `n` with `−1` a sum of `n` squares,
@@ -173,8 +173,8 @@ mod tests {
 
     #[test]
     fn sum_of_squares_spot_checks() {
-        assert!(is_sum_of_n_squares::<3>(Fp::<3>(2), 2)); // 2 = 1 + 1
-        assert!(!is_sum_of_n_squares::<3>(Fp::<3>(2), 1)); // 2 is not a square mod 3
-        assert!(is_sum_of_n_squares::<5>(Fp::<5>(4), 1)); // 4 = 2²
+        assert!(is_sum_of_n_squares::<3>(Fp::<3>::from_u128(2), 2)); // 2 = 1 + 1
+        assert!(!is_sum_of_n_squares::<3>(Fp::<3>::from_u128(2), 1)); // 2 is not a square mod 3
+        assert!(is_sum_of_n_squares::<5>(Fp::<5>::from_u128(4), 1)); // 4 = 2²
     }
 }

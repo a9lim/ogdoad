@@ -244,16 +244,16 @@ impl<const P: u128> ExactRoots for Fp<P> {
         if P == 2 {
             return true; // Frobenius onto in char 2
         }
-        fp_is_square(self.0, P)
+        fp_is_square(self.value(), P)
     }
     fn sqrt(&self) -> Option<Self> {
-        if self.0 == 0 {
-            return Some(Fp(0));
+        if self.value() == 0 {
+            return Some(Fp::zero());
         }
         if P == 2 {
             return Some(*self); // x² = x for x ∈ {0,1}
         }
-        fp_sqrt(self.0, P).map(Fp)
+        fp_sqrt(self.value(), P).map(Fp::from_u128)
     }
 }
 

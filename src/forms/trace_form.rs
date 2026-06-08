@@ -93,7 +93,9 @@ pub fn trace_form_arf<E>(k: usize) -> Option<ArfResult>
 where
     E: CyclicGaloisExtension + FieldExtension<Base = Fp<2>>,
 {
-    trace_twisted_form::<E>(k).map(|x| Nimber(x.0)).classify()
+    trace_twisted_form::<E>(k)
+        .map(|x| Nimber(x.value()))
+        .classify()
 }
 
 /// The **Gold form** `Q_a(x) = Tr_{F_{2^m}/F_2}(x^{1+2^a})` over the nim subfield
@@ -183,10 +185,10 @@ mod tests {
     fn metric_map_lifts_fp2_to_nimber() {
         // base-change F_2 ↪ Nimber preserves the form's structure.
         let over_f2 = trace_twisted_form::<Fpn<2, 3>>(1);
-        let lifted = over_f2.map(|x| Nimber(x.0));
+        let lifted = over_f2.map(|x| Nimber(x.value()));
         assert_eq!(lifted.q.len(), over_f2.q.len());
         for (i, qi) in over_f2.q.iter().enumerate() {
-            assert_eq!(lifted.q[i].0, qi.0);
+            assert_eq!(lifted.q[i].0, qi.value());
         }
         assert_eq!(lifted.b.len(), over_f2.b.len());
     }

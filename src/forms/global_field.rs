@@ -84,6 +84,10 @@ pub trait GlobalField: Scalar {
     /// product formula for the quaternion-algebra class `(a,b)`. It is `+1` for
     /// every nonzero `a, b` (Hilbert/Weil reciprocity), the gold oracle.
     fn reciprocity_product(a: &Self, b: &Self) -> i8 {
+        assert!(
+            !a.is_zero() && !b.is_zero(),
+            "reciprocity_product needs nonzero arguments"
+        );
         let pair = [a.clone(), b.clone()];
         Self::relevant_places(&pair)
             .iter()
@@ -93,6 +97,10 @@ pub trait GlobalField: Scalar {
     /// The places where the quaternion algebra `(a, b)` **ramifies** (symbol
     /// `−1`). The count is always **even** — reciprocity, additively.
     fn ramified_places(a: &Self, b: &Self) -> Vec<Self::Place> {
+        assert!(
+            !a.is_zero() && !b.is_zero(),
+            "ramified_places needs nonzero arguments"
+        );
         let pair = [a.clone(), b.clone()];
         Self::relevant_places(&pair)
             .into_iter()
@@ -123,8 +131,12 @@ pub trait GlobalField: Scalar {
 /// The integer representative of a rational's class in `ℚ*/(ℚ*)²`: `num·den`
 /// (since `1/den ~ den` modulo squares). All the local/global symbols depend only
 /// on this class.
+fn try_rat_square_class(q: &Rational) -> Option<i128> {
+    q.numer().checked_mul(q.denom())
+}
+
 fn rat_square_class(q: &Rational) -> i128 {
-    q.numer() * q.denom()
+    try_rat_square_class(q).expect("rational square-class representative overflowed i128")
 }
 
 impl GlobalField for Rational {
@@ -132,6 +144,10 @@ impl GlobalField for Rational {
 
     fn relevant_places(entries: &[Self]) -> Vec<Self::Place> {
         use crate::forms::padic::{relevant_primes, Place};
+        assert!(
+            entries.iter().all(|x| !x.is_zero()),
+            "relevant_places over Q needs nonzero entries"
+        );
         let classes: Vec<i128> = entries.iter().map(rat_square_class).collect();
         let mut places = vec![Place::Real];
         places.extend(relevant_primes(&classes).into_iter().map(Place::Prime));
@@ -144,6 +160,9 @@ impl GlobalField for Rational {
 
     fn is_local_square(x: &Self, place: &Self::Place) -> bool {
         use crate::forms::padic::{is_square_qp, Place};
+        if x.is_zero() {
+            return false;
+        }
         let c = rat_square_class(x);
         match place {
             // a real number is a square iff it is ≥ 0 (its square-class sign).
@@ -153,6 +172,9 @@ impl GlobalField for Rational {
     }
 
     fn is_global_square(x: &Self) -> bool {
+        if x.is_zero() {
+            return false;
+        }
         crate::forms::padic::is_perfect_square(rat_square_class(x))
     }
 

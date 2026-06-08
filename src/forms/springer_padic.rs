@@ -130,13 +130,13 @@ mod tests {
         use crate::scalar::{Fpn, WittVec};
         type Q9 = Qq<3, 3, 2>;
         let ns = (0..9u128)
-            .map(|c| Fpn::<3, 2>([c % 3, c / 3]))
+            .map(|c| Fpn::<3, 2>::from_coeffs(&[c % 3, c / 3]))
             .find(|x| !x.is_zero() && !x.is_square())
             .expect("F_9 has nonsquares");
         // ⟨ns², ns·p⟩: val 0 carries ns² (square), val 1 carries ns (nonsquare).
         let m = Metric::diagonal(vec![
-            Q9::from_witt(WittVec::<3, 3, 2>(ns.mul(&ns).0)),
-            Q9::from_witt(WittVec::<3, 3, 2>(ns.0)).mul(&Q9::from_int(3)),
+            Q9::from_witt(WittVec::<3, 3, 2>(ns.mul(&ns).into_coeffs())),
+            Q9::from_witt(WittVec::<3, 3, 2>(ns.into_coeffs())).mul(&Q9::from_int(3)),
         ]);
         let d = springer_decompose_qq(&m).unwrap();
         assert_eq!(d.graded.len(), 2);

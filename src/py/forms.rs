@@ -182,10 +182,10 @@ impl PyWittClass {
 
 /// The Witt class (in `W_q ≅ ℤ/2`) of a nimber Clifford metric.
 #[pyfunction]
-fn witt_class(alg: &NimberAlgebra) -> PyWittClass {
-    PyWittClass {
-        inner: WittClass::from_metric(&alg.inner.metric),
-    }
+fn witt_class(alg: &NimberAlgebra) -> PyResult<PyWittClass> {
+    WittClass::try_from_metric(&alg.inner.metric)
+        .map(|inner| PyWittClass { inner })
+        .map_err(|err| PyValueError::new_err(format!("Witt class is undefined: {err:?}")))
 }
 
 /// The Dickson invariant of an orthogonal matrix over the nim-field (the char-2
@@ -515,22 +515,24 @@ struct PyWittClassG {
 
 #[pymethods]
 impl PyWittClassG {
-    fn add(&self, other: &PyWittClassG) -> PyWittClassG {
-        PyWittClassG {
-            inner: self.inner.add(&other.inner),
-        }
+    fn add(&self, other: &PyWittClassG) -> PyResult<PyWittClassG> {
+        self.inner
+            .try_add(&other.inner)
+            .map(|inner| PyWittClassG { inner })
+            .map_err(PyValueError::new_err)
     }
-    fn __add__(&self, other: &PyWittClassG) -> PyWittClassG {
+    fn __add__(&self, other: &PyWittClassG) -> PyResult<PyWittClassG> {
         self.add(other)
     }
     /// The Witt-**ring** product (tensor of forms). Defined on the char-0 and
     /// odd-char legs; panics on a char-2 operand (`W_q` is a module, not a ring).
-    fn mul(&self, other: &PyWittClassG) -> PyWittClassG {
-        PyWittClassG {
-            inner: self.inner.mul(&other.inner),
-        }
+    fn mul(&self, other: &PyWittClassG) -> PyResult<PyWittClassG> {
+        self.inner
+            .try_mul(&other.inner)
+            .map(|inner| PyWittClassG { inner })
+            .map_err(PyValueError::new_err)
     }
-    fn __mul__(&self, other: &PyWittClassG) -> PyWittClassG {
+    fn __mul__(&self, other: &PyWittClassG) -> PyResult<PyWittClassG> {
         self.mul(other)
     }
     fn __eq__(&self, other: &PyWittClassG) -> bool {
@@ -539,8 +541,15 @@ impl PyWittClassG {
     fn __repr__(&self) -> String {
         match self.inner {
             WittClassG::Char0 { signature } => format!("WittClassG::Char0(signature={signature})"),
-            WittClassG::OddChar { kappa, e0, sclass } => {
-                format!("WittClassG::OddChar(kappa={kappa}, e0={e0}, sclass={sclass})")
+            WittClassG::OddChar {
+                field_order,
+                kappa,
+                e0,
+                sclass,
+            } => {
+                format!(
+                    "WittClassG::OddChar(field_order={field_order}, kappa={kappa}, e0={e0}, sclass={sclass})"
+                )
             }
             WittClassG::Char2 { arf } => format!("WittClassG::Char2(arf={arf})"),
         }
@@ -676,8 +685,12 @@ fn e_real(signature: i128, n: usize) -> Option<u8> {
 /// The Hilbert symbol `(a, b)_p` over `Q_p` (`p`-adic). Unlike the finite-field
 /// Hilbert symbol (always `+1`), this is genuinely nontrivial — e.g. `(−1,−1)_2 = −1`.
 #[pyfunction]
-fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> i8 {
-    crate::forms::hilbert_symbol_qp(a, b, p)
+fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> PyResult<i8> {
+    crate::forms::try_hilbert_symbol_qp(a, b, p).ok_or_else(|| {
+        PyValueError::new_err(
+            "Hilbert symbol needs prime p <= i128::MAX, nonzero arguments, and bounded square classes",
+        )
+    })
 }
 
 /// The Hilbert symbol `(a, b)_∞` over `ℝ` (`−1` iff both are negative).
@@ -688,24 +701,33 @@ fn hilbert_symbol_real(a: i128, b: i128) -> i8 {
 
 /// Is the integer `n` a square in `Q_p`?
 #[pyfunction]
-fn is_square_qp(n: i128, p: u128) -> bool {
-    crate::forms::is_square_qp(n, p)
+fn is_square_qp(n: i128, p: u128) -> PyResult<bool> {
+    crate::forms::try_is_square_qp(n, p)
+        .ok_or_else(|| PyValueError::new_err("Q_p square test needs prime p <= i128::MAX"))
 }
 
 /// Is the diagonal rational/integer form `⟨a₁,…,aₙ⟩` isotropic over `Q`? By the
 /// **Hasse–Minkowski** principle (isotropic over `ℝ` and every `Q_p`). E.g.
 /// `⟨1,1,1⟩` is anisotropic, `⟨1,1,-1⟩` isotropic, `⟨1,1,-3⟩` anisotropic.
 #[pyfunction]
-fn is_isotropic_q(entries: Vec<i128>) -> bool {
-    crate::forms::is_isotropic_q(&entries)
+fn is_isotropic_q(entries: Vec<i128>) -> PyResult<bool> {
+    crate::forms::try_is_isotropic_q(&entries).ok_or_else(|| {
+        PyValueError::new_err("rational isotropy overflowed bounded i128 arithmetic")
+    })
 }
 
 /// The Hilbert-symbol product `∏_v (a, b)_v` over all places of `ℚ`, for `a, b ∈
 /// ℚ^*` passed as `(num, den)` pairs. Equal to `+1` for all `a, b` — Hilbert
 /// reciprocity, the multiplicative analogue of the adelic product formula.
 #[pyfunction]
-fn hilbert_product(a: (i128, i128), b: (i128, i128)) -> i8 {
-    crate::forms::hilbert_product(&Rational::new(a.0, a.1), &Rational::new(b.0, b.1))
+fn hilbert_product(a: (i128, i128), b: (i128, i128)) -> PyResult<i8> {
+    let a = Rational::try_new(a.0, a.1).ok_or_else(|| {
+        PyValueError::new_err("first rational has zero denominator or overflowed bounded i128")
+    })?;
+    let b = Rational::try_new(b.0, b.1).ok_or_else(|| {
+        PyValueError::new_err("second rational has zero denominator or overflowed bounded i128")
+    })?;
+    Ok(crate::forms::hilbert_product(&a, &b))
 }
 
 /// The per-place isotropy breakdown of a `ℚ`-form (rank ≥ 3): isotropy at `ℝ` and
@@ -769,12 +791,13 @@ struct PyBrauerWallClass {
 
 #[pymethods]
 impl PyBrauerWallClass {
-    fn add(&self, other: &PyBrauerWallClass) -> PyBrauerWallClass {
-        PyBrauerWallClass {
-            inner: self.inner.add(&other.inner),
-        }
+    fn add(&self, other: &PyBrauerWallClass) -> PyResult<PyBrauerWallClass> {
+        self.inner
+            .try_add(&other.inner)
+            .map(|inner| PyBrauerWallClass { inner })
+            .map_err(PyValueError::new_err)
     }
-    fn __add__(&self, other: &PyBrauerWallClass) -> PyBrauerWallClass {
+    fn __add__(&self, other: &PyBrauerWallClass) -> PyResult<PyBrauerWallClass> {
         self.add(other)
     }
     fn __eq__(&self, other: &PyBrauerWallClass) -> bool {

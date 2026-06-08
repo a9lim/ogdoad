@@ -23,6 +23,7 @@ use crate::scalar::Integer;
 use std::collections::{BTreeMap, BTreeSet};
 
 const DEFAULT_RELATION_BOUND: i128 = 3;
+const MAX_AUTO_RELATION_CANDIDATES: usize = 100;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GameRelation {
     pub coeffs: Vec<i128>,
@@ -51,6 +52,7 @@ pub struct GameExterior {
     alg: CliffordAlgebra<Integer>,
     gens: Vec<Game>,
     relations: Vec<GameRelation>,
+    relation_search_complete: bool,
 }
 
 impl GameExterior {
@@ -65,14 +67,18 @@ impl GameExterior {
         GameExterior::with_relations(gens, vec![])
     }
 
-    /// Build the quotient using small discovered relations `Σ c_i g_i = 0`.
-    /// Automatic discovery always checks singleton torsion and checks pair/full
-    /// coefficient searches only for two-generator presentations; larger
-    /// presentations should use [`with_relations`](Self::with_relations) for
-    /// known cross-generator relations.
+    /// Build the quotient using all bounded discovered relations `Σ c_i g_i = 0`
+    /// with coefficients in `[-bound, bound]`, when that finite search is small
+    /// enough to run exhaustively. If the coefficient box is too large, automatic
+    /// discovery falls back to singleton torsion and
+    /// [`relation_search_complete`](Self::relation_search_complete) reports
+    /// `false`; use [`with_relations`](Self::with_relations) for known larger
+    /// cross-generator relations.
     pub fn with_relation_search(gens: Vec<Game>, bound: i128) -> GameExterior {
-        let relations = discover_relations(&gens, bound);
-        GameExterior::with_relations(gens, relations)
+        let (relations, complete) = discover_relations(&gens, bound);
+        let mut ext = GameExterior::with_relations(gens, relations);
+        ext.relation_search_complete = complete;
+        ext
     }
 
     /// Build the quotient from explicit integer relations among the supplied
@@ -95,6 +101,7 @@ impl GameExterior {
             alg: CliffordAlgebra::new(n, Metric::grassmann(n)),
             gens,
             relations,
+            relation_search_complete: true,
         }
     }
 
@@ -106,6 +113,10 @@ impl GameExterior {
 
     pub fn relations(&self) -> &[GameRelation] {
         &self.relations
+    }
+
+    pub fn relation_search_complete(&self) -> bool {
+        self.relation_search_complete
     }
 
     /// The grade-1 generator `e_i` (corresponding to the game `g_i`).
@@ -258,9 +269,9 @@ fn canonical_relation(mut coeffs: Vec<i128>) -> Option<Vec<i128>> {
     Some(coeffs)
 }
 
-fn discover_relations(gens: &[Game], bound: i128) -> Vec<GameRelation> {
+fn discover_relations(gens: &[Game], bound: i128) -> (Vec<GameRelation>, bool) {
     if gens.is_empty() || bound <= 0 {
-        return Vec::new();
+        return (Vec::new(), true);
     }
     let n = gens.len();
     let mut seen = BTreeSet::new();
@@ -276,34 +287,50 @@ fn discover_relations(gens: &[Game], bound: i128) -> Vec<GameRelation> {
         }
     }
 
-    if n > 2 {
-        return out;
+    let Some(count) = bounded_relation_candidate_count(n, bound) else {
+        return (out, false);
+    };
+    if count > MAX_AUTO_RELATION_CANDIDATES {
+        return (out, false);
     }
 
     let mut candidates = Vec::new();
-    for i in 0..n {
-        for j in (i + 1)..n {
-            for a in -bound..=bound {
-                for b in -bound..=bound {
-                    if a == 0 && b == 0 {
-                        continue;
-                    }
-                    let mut coeffs = vec![0i128; n];
-                    coeffs[i] = a;
-                    coeffs[j] = b;
-                    let Some(key) = canonical_relation(coeffs) else {
-                        continue;
-                    };
-                    candidates.push(key);
-                }
-            }
+    enumerate_bounded_relations(n, bound, &mut |coeffs| {
+        if let Some(key) = canonical_relation(coeffs) {
+            candidates.push(key);
         }
-    }
+    });
     candidates.sort_by_key(|v| (v.iter().map(|c| c.abs()).sum::<i128>(), v.clone()));
     for coeffs in candidates {
         push_relation_if_independent(gens, coeffs, &mut seen, &mut out);
     }
-    out
+    (out, true)
+}
+
+fn bounded_relation_candidate_count(n: usize, bound: i128) -> Option<usize> {
+    let width = usize::try_from(bound.checked_mul(2)?.checked_add(1)?).ok()?;
+    let mut count = 1usize;
+    for _ in 0..n {
+        count = count.checked_mul(width)?;
+    }
+    count.checked_sub(1)
+}
+
+fn enumerate_bounded_relations(n: usize, bound: i128, f: &mut impl FnMut(Vec<i128>)) {
+    fn rec(i: usize, n: usize, bound: i128, coeffs: &mut [i128], f: &mut impl FnMut(Vec<i128>)) {
+        if i == n {
+            if coeffs.iter().any(|&c| c != 0) {
+                f(coeffs.to_vec());
+            }
+            return;
+        }
+        for c in -bound..=bound {
+            coeffs[i] = c;
+            rec(i + 1, n, bound, coeffs, f);
+        }
+    }
+    let mut coeffs = vec![0i128; n];
+    rec(0, n, bound, &mut coeffs, f);
 }
 
 fn push_relation_if_independent(
@@ -410,5 +437,22 @@ mod tests {
         let e1 = ext.generator(1);
         assert_eq!(ext.reduce(&e0), ext.reduce(&e1));
         assert!(ext.is_zero(&ext.wedge(&e0, &e1)));
+    }
+
+    #[test]
+    fn relation_search_finds_three_generator_cross_relations() {
+        let star = Game::star();
+        let up = Game::up();
+        let sum = star.add(&up);
+        let ext = GameExterior::with_relation_search(vec![star, up, sum], 1);
+        assert!(ext.relation_search_complete());
+        assert!(ext
+            .relations()
+            .iter()
+            .any(|r| r.coeffs == vec![1, 1, -1] || r.coeffs == vec![-1, -1, 1]));
+        let e0 = ext.generator(0);
+        let e1 = ext.generator(1);
+        let e2 = ext.generator(2);
+        assert_eq!(ext.add(&e0, &e1), e2);
     }
 }

@@ -55,7 +55,7 @@ impl<const P: u128> FiniteOddField for Fp<P> {
     }
 
     fn from_index(i: u128) -> Self {
-        Fp::<P>(i % P)
+        Fp::<P>::from_u128(i)
     }
 
     fn is_square_value(x: Self) -> bool {
@@ -140,7 +140,11 @@ pub fn hilbert_symbol<const P: u128>(a: Fp<P>, b: Fp<P>) -> i8 {
                 if x == 0 && y == 0 && z == 0 {
                     continue;
                 }
-                let (fx, fy, fz) = (Fp::<P>(x), Fp::<P>(y), Fp::<P>(z));
+                let (fx, fy, fz) = (
+                    Fp::<P>::from_u128(x),
+                    Fp::<P>::from_u128(y),
+                    Fp::<P>::from_u128(z),
+                );
                 let rhs = a.mul(&fx.mul(&fx)).add(&b.mul(&fy.mul(&fy)));
                 if fz.mul(&fz) == rhs {
                     return 1;

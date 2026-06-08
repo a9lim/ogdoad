@@ -25,9 +25,33 @@
 use crate::scalar::Scalar;
 use std::fmt;
 
-/// An element of the prime field `F_P` (invariant: `0 ≤ .0 < P`).
+/// An element of the prime field `F_P` (invariant: `0 ≤ value < P`).
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Fp<const P: u128>(pub u128);
+pub struct Fp<const P: u128>(u128);
+
+pub(crate) fn add_mod<const P: u128>(a: u128, b: u128) -> u128 {
+    debug_assert!(P > 0 && a < P && b < P);
+    if a >= P - b {
+        a - (P - b)
+    } else {
+        a + b
+    }
+}
+
+pub(crate) fn mul_mod<const P: u128>(mut a: u128, mut b: u128) -> u128 {
+    debug_assert!(P > 0 && a < P && b < P);
+    let mut acc = 0u128;
+    while b > 0 {
+        if b & 1 == 1 {
+            acc = add_mod::<P>(acc, a);
+        }
+        b >>= 1;
+        if b > 0 {
+            a = add_mod::<P>(a, a);
+        }
+    }
+    acc
+}
 
 impl<const P: u128> Fp<P> {
     pub fn modulus_is_prime() -> bool {
@@ -57,9 +81,28 @@ impl<const P: u128> Fp<P> {
     /// Reduce an integer (possibly negative) into `F_P`.
     pub fn new(n: i128) -> Self {
         Self::assert_prime_modulus();
-        let m = P as i128;
-        let v = ((n % m) + m) % m;
-        Fp(v as u128)
+        let v = if n >= 0 {
+            (n as u128) % P
+        } else {
+            let r = n.unsigned_abs() % P;
+            if r == 0 {
+                0
+            } else {
+                P - r
+            }
+        };
+        Fp(v)
+    }
+
+    /// Reduce an unsigned integer into `F_P`.
+    pub fn from_u128(n: u128) -> Self {
+        Self::assert_prime_modulus();
+        Fp(n % P)
+    }
+
+    /// The canonical representative in `[0, P)`.
+    pub fn value(self) -> u128 {
+        self.0
     }
 }
 
@@ -80,7 +123,7 @@ impl<const P: u128> Scalar for Fp<P> {
     }
     fn add(&self, rhs: &Self) -> Self {
         Self::assert_prime_modulus();
-        Fp((self.0 + rhs.0) % P)
+        Fp(add_mod::<P>(self.0, rhs.0))
     }
     fn neg(&self) -> Self {
         Self::assert_prime_modulus();
@@ -92,7 +135,7 @@ impl<const P: u128> Scalar for Fp<P> {
     }
     fn mul(&self, rhs: &Self) -> Self {
         Self::assert_prime_modulus();
-        Fp((self.0 * rhs.0) % P)
+        Fp(mul_mod::<P>(self.0, rhs.0))
     }
     fn characteristic() -> u128 {
         Self::assert_prime_modulus();
@@ -103,21 +146,25 @@ impl<const P: u128> Scalar for Fp<P> {
         if self.0 == 0 {
             return None;
         }
-        // Extended Euclid: find x with a·x ≡ 1 (mod P).
-        let (mut t, mut newt) = (0i128, 1i128);
-        let (mut r, mut newr) = (P as i128, self.0 as i128);
-        while newr != 0 {
-            let quot = r / newr;
-            t -= quot * newt;
-            std::mem::swap(&mut t, &mut newt);
-            r -= quot * newr;
-            std::mem::swap(&mut r, &mut newr);
+        Some(self.pow(P - 2))
+    }
+}
+
+impl<const P: u128> Fp<P> {
+    pub fn pow(&self, mut e: u128) -> Self {
+        Self::assert_prime_modulus();
+        let mut base = *self;
+        let mut acc = Self::one();
+        while e > 0 {
+            if e & 1 == 1 {
+                acc = acc.mul(&base);
+            }
+            e >>= 1;
+            if e > 0 {
+                base = base.mul(&base);
+            }
         }
-        if r != 1 {
-            return None; // not invertible (only happens if P is not prime)
-        }
-        let m = P as i128;
-        Some(Fp((((t % m) + m) % m) as u128))
+        acc
     }
 }
 
@@ -127,7 +174,7 @@ mod tests {
     use crate::clifford::{CliffordAlgebra, Metric};
 
     fn elems<const P: u128>() -> Vec<Fp<P>> {
-        (0..P).map(Fp::<P>).collect()
+        (0..P).map(Fp::<P>::from_u128).collect()
     }
 
     fn check_field_axioms<const P: u128>() {
@@ -178,9 +225,9 @@ mod tests {
     fn negation_is_genuine() {
         // unlike nimbers, neg is a real negation: −1 = P−1 ≠ 1 for odd P.
         let one = Fp::<5>::one();
-        assert_eq!(one.neg(), Fp::<5>(4));
+        assert_eq!(one.neg(), Fp::<5>::from_u128(4));
         assert_ne!(one.neg(), one);
-        assert_eq!(Fp::<5>::new(-1), Fp::<5>(4));
+        assert_eq!(Fp::<5>::new(-1), Fp::<5>::from_u128(4));
         assert_eq!(Fp::<5>::characteristic(), 5);
     }
 
@@ -188,10 +235,13 @@ mod tests {
     fn clifford_over_f3_monomorphises() {
         // Cl over F_3 with q = [1, 2]: real antisymmetry (−1 = 2), and
         // (e0e1)² = −(q0 q1) = −2 = 1 (mod 3).
-        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Fp::<3>(1), Fp::<3>(2)]));
+        let alg = CliffordAlgebra::new(
+            2,
+            Metric::diagonal(vec![Fp::<3>::from_u128(1), Fp::<3>::from_u128(2)]),
+        );
         let (e0, e1) = (alg.gen(0), alg.gen(1));
-        assert_eq!(alg.mul(&e0, &e0), alg.scalar(Fp::<3>(1)));
-        assert_eq!(alg.mul(&e1, &e1), alg.scalar(Fp::<3>(2)));
+        assert_eq!(alg.mul(&e0, &e0), alg.scalar(Fp::<3>::from_u128(1)));
+        assert_eq!(alg.mul(&e1, &e1), alg.scalar(Fp::<3>::from_u128(2)));
         // e0 e1 = −(e1 e0), and −1 = 2 in F_3
         assert_eq!(
             alg.mul(&e0, &e1),
@@ -199,7 +249,7 @@ mod tests {
         );
         // (e0e1)² = 1
         let e0e1 = alg.mul(&e0, &e1);
-        assert_eq!(alg.mul(&e0e1, &e0e1), alg.scalar(Fp::<3>(1)));
+        assert_eq!(alg.mul(&e0e1, &e0e1), alg.scalar(Fp::<3>::from_u128(1)));
     }
 
     #[test]

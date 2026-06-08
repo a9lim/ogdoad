@@ -141,9 +141,12 @@ pub fn misere_nim_p_predicted(heaps: &[u128]) -> bool {
 // For a game with a finite quotient this is exact once the bounds exceed its
 // pretension; otherwise it is a finite observational approximation of the
 // congruence (bounded tests may merge more positions than the true quotient,
-// i.e. return a coarser quotient). The point of the
-// instrument is to ask, of the resulting P-set, the question the project cares
-// about: is it a quadric, and what is its Arf (win-bias)?
+// i.e. return a coarser quotient). When the enumerated elements are closed under
+// sum, the computed quotient also carries the finite commutative monoid table;
+// otherwise the table is an explicitly bounded partial witness, not a
+// certification of the true quotient. The point of the instrument is to ask, of
+// the resulting P-set, the question the project cares about: is it a quadric,
+// and what is its Arf (win-bias)?
 
 /// An abstract finite impartial game: position 0 is the empty game (the identity
 /// under disjunctive sum, with no moves); positions `1..moves.len()` carry option
@@ -218,6 +221,29 @@ pub struct Quotient {
     pub class_rep: Vec<Vec<usize>>,
     /// P-status of each class (`true` = a misère P-position / second-player win).
     pub class_is_p: Vec<bool>,
+    /// Multiplication table of quotient classes, if every class product is
+    /// represented by the bounded element set. Entry `[a][b]` is the class of
+    /// `rep(a) + rep(b)`.
+    pub multiplication: Option<Vec<Vec<usize>>>,
+    /// `true` iff every represented element product that stayed inside the bound
+    /// agrees with [`multiplication`](Self::multiplication). This checks
+    /// well-definedness against the sampled congruence.
+    pub multiplication_consistent: bool,
+    /// `true` iff the enumerated element set itself is closed under disjunctive
+    /// sum. With length cutoffs this is usually false except for trivial inputs;
+    /// it is exposed so callers do not mistake a bounded table for a closed
+    /// quotient proof.
+    pub elements_closed_under_sum: bool,
+}
+
+impl Quotient {
+    pub fn class_product(&self, a: usize, b: usize) -> Option<usize> {
+        self.multiplication
+            .as_ref()
+            .and_then(|m| m.get(a))
+            .and_then(|row| row.get(b))
+            .copied()
+    }
 }
 
 /// Build a quotient from `elements` and a `tests` set, given an `outcome`
@@ -256,6 +282,8 @@ fn build_quotient(
         }
     }
     let class_is_p: Vec<bool> = class_rep.iter().map(|r| !outcome(r)).collect();
+    let (multiplication, multiplication_consistent, elements_closed_under_sum) =
+        build_multiplication(&elements, &class_of, &class_rep, uniq.len());
 
     Quotient {
         num_classes: uniq.len(),
@@ -263,7 +291,78 @@ fn build_quotient(
         class_of,
         class_rep,
         class_is_p,
+        multiplication,
+        multiplication_consistent,
+        elements_closed_under_sum,
     }
+}
+
+fn sum_multiset(a: &[usize], b: &[usize]) -> Vec<usize> {
+    let mut out = a.to_vec();
+    out.extend_from_slice(b);
+    out.sort_unstable();
+    out
+}
+
+fn build_multiplication(
+    elements: &[Vec<usize>],
+    class_of: &[usize],
+    class_rep: &[Vec<usize>],
+    num_classes: usize,
+) -> (Option<Vec<Vec<usize>>>, bool, bool) {
+    let element_index: HashMap<Vec<usize>, usize> = elements
+        .iter()
+        .cloned()
+        .enumerate()
+        .map(|(i, e)| (e, i))
+        .collect();
+    let mut table = vec![vec![None; num_classes]; num_classes];
+    let mut closed_under_sum = true;
+
+    for (i, a) in elements.iter().enumerate() {
+        for (j, b) in elements.iter().enumerate() {
+            let prod = sum_multiset(a, b);
+            let Some(&k) = element_index.get(&prod) else {
+                closed_under_sum = false;
+                continue;
+            };
+            let ca = class_of[i];
+            let cb = class_of[j];
+            let cp = class_of[k];
+            match table[ca][cb] {
+                Some(prev) if prev != cp => return (None, false, closed_under_sum),
+                Some(_) => {}
+                None => {
+                    table[ca][cb] = Some(cp);
+                    table[cb][ca] = Some(cp);
+                }
+            }
+        }
+    }
+
+    for a in 0..num_classes {
+        for b in 0..num_classes {
+            if table[a][b].is_none() {
+                let prod = sum_multiset(&class_rep[a], &class_rep[b]);
+                let Some(&k) = element_index.get(&prod) else {
+                    return (None, false, closed_under_sum);
+                };
+                let cp = class_of[k];
+                table[a][b] = Some(cp);
+                table[b][a] = Some(cp);
+            }
+        }
+    }
+
+    let table = table
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|c| c.expect("all class products filled"))
+                .collect()
+        })
+        .collect();
+    (Some(table), true, closed_under_sum)
 }
 
 /// Compute the bounded misère quotient of `game` over the generating `atoms`,
@@ -413,6 +512,9 @@ mod tests {
         // a²=1: two ⋆'s fall in the identity (empty) class.
         let two = q.class_of[q.elements.iter().position(|e| e == &vec![1, 1]).unwrap()];
         assert_eq!(two, empty_class);
+        assert_eq!(q.class_product(star_class, star_class), Some(empty_class));
+        assert!(q.multiplication_consistent);
+        assert!(!q.elements_closed_under_sum);
         // exactly one P-class (the win-bias is a single coset)
         assert_eq!(q.class_is_p.iter().filter(|&&p| p).count(), 1);
     }
