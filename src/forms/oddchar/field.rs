@@ -24,6 +24,11 @@ pub trait FiniteOddField: Scalar + Copy {
     /// Embed an ordinary integer through the prime subfield.
     fn from_i128(n: i128) -> Self;
 
+    /// Enumerate the field: index `i ∈ [0, field_order())` ↦ a distinct element,
+    /// covering all of `F_q` exactly once. Used to enumerate monic polynomials over
+    /// `F_q` (e.g. trial-division factorization in the function-field place layer).
+    fn from_index(i: u128) -> Self;
+
     /// Square-class test in the field. `0` counts as a square.
     fn is_square_value(x: Self) -> bool;
 
@@ -49,6 +54,10 @@ impl<const P: u128> FiniteOddField for Fp<P> {
         Fp::<P>::new(n)
     }
 
+    fn from_index(i: u128) -> Self {
+        Fp::<P>(i % P)
+    }
+
     fn is_square_value(x: Self) -> bool {
         is_square(x)
     }
@@ -71,6 +80,17 @@ impl<const P: u128, const N: usize> FiniteOddField for Fpn<P, N> {
         let m = P as i128;
         let v = ((n % m) + m) % m;
         Fpn::<P, N>::constant(v as u128)
+    }
+
+    fn from_index(i: u128) -> Self {
+        // base-P digits of `i` are the polynomial-basis coordinates of the element.
+        let mut digits = [0u128; N];
+        let mut x = i;
+        for d in digits.iter_mut() {
+            *d = x % P;
+            x /= P;
+        }
+        Fpn::<P, N>::from_coeffs(&digits)
     }
 
     fn is_square_value(x: Self) -> bool {

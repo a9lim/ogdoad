@@ -21,13 +21,14 @@
 //!
 //! ## Representation (no gcd — `inv` is `den/num`)
 //!
-//! An element is a quotient `num(t) / den(t)` of polynomials over `S`, the
+//! An element is a quotient `num(t) / den(t)` of [`Poly`]s over `S`, the
 //! denominator normalized monic. **No common-factor reduction is performed**: this
 //! is a field by `inv(num/den) = den/num` (total on nonzero), so reduction is never
 //! needed for invertibility, and gcd over a precision-model base would be unstable.
 //! Equality is therefore by **cross-multiplication** (`a/b = c/d ⇔ a·d = c·b`), not
 //! structural — degrees can grow under repeated operations (the polynomial analogue
-//! of the relative-precision window, acceptable for a precision-model functor).
+//! of the relative-precision window, acceptable for a precision-model functor). The
+//! polynomial arithmetic lives in the shared [`Poly`] type, not here.
 //!
 //! ## Precision contract
 //!
@@ -39,126 +40,73 @@
 //! valuation subring, so `Gauss` stays out of the [`HasRingOfIntegers`] pairing,
 //! the same honesty as `Laurent`/`Ramified`.
 //!
+//! [`Poly`]: crate::scalar::Poly
 //! [`HasRingOfIntegers`]: crate::scalar::HasRingOfIntegers
 
-use crate::scalar::{Scalar, Valued};
+use crate::scalar::{Poly, Scalar, Valued};
 use std::fmt;
 
-// ───────────────────────── polynomial helpers (low-degree first) ─────────────
-
-/// Drop trailing zero coefficients so the leading term is nonzero (the zero
-/// polynomial becomes empty).
-fn trim<S: Scalar>(mut p: Vec<S>) -> Vec<S> {
-    while p.last().map(|c| c.is_zero()).unwrap_or(false) {
-        p.pop();
-    }
-    p
-}
-
-fn poly_add<S: Scalar>(a: &[S], b: &[S]) -> Vec<S> {
-    let n = a.len().max(b.len());
-    let mut out = Vec::with_capacity(n);
-    for i in 0..n {
-        let x = a.get(i).cloned().unwrap_or_else(S::zero);
-        let y = b.get(i).cloned().unwrap_or_else(S::zero);
-        out.push(x.add(&y));
-    }
-    trim(out)
-}
-
-fn poly_neg<S: Scalar>(a: &[S]) -> Vec<S> {
-    a.iter().map(|c| c.neg()).collect()
-}
-
-fn poly_mul<S: Scalar>(a: &[S], b: &[S]) -> Vec<S> {
-    if a.is_empty() || b.is_empty() {
-        return Vec::new();
-    }
-    let mut out = vec![S::zero(); a.len() + b.len() - 1];
-    for (i, x) in a.iter().enumerate() {
-        if x.is_zero() {
-            continue;
-        }
-        for (j, y) in b.iter().enumerate() {
-            out[i + j] = out[i + j].add(&x.mul(y));
-        }
-    }
-    trim(out)
-}
-
-/// Multiply every coefficient by `s`.
-fn poly_scale<S: Scalar>(a: &[S], s: &S) -> Vec<S> {
-    trim(a.iter().map(|c| c.mul(s)).collect())
-}
-
-/// Structural equality of two (trimmed) polynomials.
-fn poly_eq<S: Scalar>(a: &[S], b: &[S]) -> bool {
-    let (a, b) = (trim(a.to_vec()), trim(b.to_vec()));
-    a.len() == b.len() && a.iter().zip(&b).all(|(x, y)| x == y)
-}
-
-/// The Gauss valuation of a polynomial: the minimum coefficient valuation, or
-/// `None` for the zero polynomial.
-fn poly_valuation<S: Valued>(a: &[S]) -> Option<i128> {
-    a.iter().filter_map(|c| c.valuation()).min()
-}
-
-// ───────────────────────── the field S(t) ─────────────────────────
-
 /// An element of the rational function field `S(t)`: `num(t) / den(t)` with `den`
-/// normalized monic, polynomials stored low-degree-first.
+/// normalized monic.
 #[derive(Clone)]
 pub struct Gauss<S: Valued> {
-    num: Vec<S>,
-    den: Vec<S>,
+    num: Poly<S>,
+    den: Poly<S>,
 }
 
 impl<S: Valued> Gauss<S> {
-    /// Build `num / den`, normalizing the denominator to monic. The denominator
-    /// must be nonzero. A zero numerator collapses to the canonical zero `0 / 1`.
-    pub fn new(num: Vec<S>, den: Vec<S>) -> Self {
-        let num = trim(num);
-        let den = trim(den);
-        assert!(!den.is_empty(), "Gauss: zero denominator");
-        if num.is_empty() {
+    /// Assemble `num / den` (already-`Poly`), normalizing the denominator to monic.
+    fn from_polys(num: Poly<S>, den: Poly<S>) -> Self {
+        assert!(!den.is_zero(), "Gauss: zero denominator");
+        if num.is_zero() {
             return Gauss {
-                num: Vec::new(),
-                den: vec![S::one()],
+                num: Poly::zero(),
+                den: Poly::one(),
             };
         }
         // Make the denominator monic: divide both by its leading coefficient (a
         // nonzero element of the field S, hence invertible).
         let lead_inv = den
-            .last()
+            .leading()
             .unwrap()
             .inv()
             .expect("a field's nonzero leading coefficient inverts");
         Gauss {
-            num: poly_scale(&num, &lead_inv),
-            den: poly_scale(&den, &lead_inv),
+            num: num.scale(&lead_inv),
+            den: den.scale(&lead_inv),
         }
+    }
+
+    /// Build `num / den` from low-degree-first coefficient vectors, normalizing the
+    /// denominator to monic. The denominator must be nonzero. A zero numerator
+    /// collapses to the canonical zero `0 / 1`.
+    pub fn new(num: Vec<S>, den: Vec<S>) -> Self {
+        Gauss::from_polys(Poly::new(num), Poly::new(den))
     }
 
     /// Embed a base scalar as the constant rational function `s / 1`.
     pub fn from_base(s: S) -> Self {
-        Gauss::new(vec![s], vec![S::one()])
+        Gauss::from_polys(Poly::constant(s), Poly::one())
     }
 
     /// The indeterminate `t` (a unit of valuation 0 with transcendental residue).
     pub fn t() -> Self {
-        Gauss::new(vec![S::zero(), S::one()], vec![S::one()])
+        Gauss::from_polys(Poly::x(), Poly::one())
     }
 
     /// The numerator / denominator coefficient slices (low-degree first).
     pub fn parts(&self) -> (&[S], &[S]) {
-        (&self.num, &self.den)
+        (self.num.coeffs(), self.den.coeffs())
     }
 
     /// The **Gauss valuation** `v(num) − v(den)`, or `None` for zero. Exact
     /// whenever the base valuation is (it never depends on additive cancellation).
     pub fn valuation(&self) -> Option<i128> {
-        let vn = poly_valuation(&self.num)?; // None ⇒ zero
-        let vd = poly_valuation(&self.den).expect("denominator is nonzero");
+        let vn = self.num.min_coeff_valuation()?; // None ⇒ zero
+        let vd = self
+            .den
+            .min_coeff_valuation()
+            .expect("denominator is nonzero");
         Some(vn - vd)
     }
 
@@ -176,10 +124,7 @@ impl<S: Valued> Gauss<S> {
 impl<S: Valued> PartialEq for Gauss<S> {
     /// Cross-multiplication: `a/b = c/d ⇔ a·d = c·b` (no reduced canonical form).
     fn eq(&self, other: &Self) -> bool {
-        poly_eq(
-            &poly_mul(&self.num, &other.den),
-            &poly_mul(&other.num, &self.den),
-        )
+        self.num.mul(&other.den) == other.num.mul(&self.den)
     }
 }
 
@@ -202,10 +147,15 @@ impl<S: Valued> fmt::Debug for Gauss<S> {
             }
             parts.join(" + ")
         }
-        if poly_eq(&self.den, &[S::one()]) {
-            write!(f, "{}", fmt_poly(&self.num))
+        if self.den == Poly::one() {
+            write!(f, "{}", fmt_poly(self.num.coeffs()))
         } else {
-            write!(f, "[{}] / [{}]", fmt_poly(&self.num), fmt_poly(&self.den))
+            write!(
+                f,
+                "[{}] / [{}]",
+                fmt_poly(self.num.coeffs()),
+                fmt_poly(self.den.coeffs())
+            )
         }
     }
 }
@@ -213,37 +163,34 @@ impl<S: Valued> fmt::Debug for Gauss<S> {
 impl<S: Valued> Scalar for Gauss<S> {
     fn zero() -> Self {
         Gauss {
-            num: Vec::new(),
-            den: vec![S::one()],
+            num: Poly::zero(),
+            den: Poly::one(),
         }
     }
 
     fn one() -> Self {
         Gauss {
-            num: vec![S::one()],
-            den: vec![S::one()],
+            num: Poly::one(),
+            den: Poly::one(),
         }
     }
 
     fn add(&self, rhs: &Self) -> Self {
         // a/b + c/d = (a·d + c·b) / (b·d)
-        let num = poly_add(
-            &poly_mul(&self.num, &rhs.den),
-            &poly_mul(&rhs.num, &self.den),
-        );
-        let den = poly_mul(&self.den, &rhs.den);
-        Gauss::new(num, den)
+        let num = self.num.mul(&rhs.den).add(&rhs.num.mul(&self.den));
+        let den = self.den.mul(&rhs.den);
+        Gauss::from_polys(num, den)
     }
 
     fn neg(&self) -> Self {
         Gauss {
-            num: poly_neg(&self.num),
+            num: self.num.neg(),
             den: self.den.clone(),
         }
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        Gauss::new(poly_mul(&self.num, &rhs.num), poly_mul(&self.den, &rhs.den))
+        Gauss::from_polys(self.num.mul(&rhs.num), self.den.mul(&rhs.den))
     }
 
     fn characteristic() -> u128 {
@@ -251,15 +198,15 @@ impl<S: Valued> Scalar for Gauss<S> {
     }
 
     fn inv(&self) -> Option<Self> {
-        if self.num.is_empty() {
+        if self.num.is_zero() {
             return None; // zero
         }
         // (num/den)⁻¹ = den/num — total on nonzero, no gcd needed.
-        Some(Gauss::new(self.den.clone(), self.num.clone()))
+        Some(Gauss::from_polys(self.den.clone(), self.num.clone()))
     }
 
     fn is_zero(&self) -> bool {
-        self.num.is_empty()
+        self.num.is_zero()
     }
 }
 

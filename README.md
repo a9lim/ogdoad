@@ -34,11 +34,12 @@ integers**:
 | Archimedean (char 0) | `Rational` ℚ | `Integer` ℤ |
 | transfinite | `Surreal` (No) | `Omnific` (Oz) |
 | p-adic (char 0) | `Qp`, `Qq` | `Zp`, `WittVec` |
+| function field (char p) | `RationalFunction` F_q(t) | `Poly` F_q[t] |
 | finite | `Fp`, `Fpn`, `Nimber` | — |
 
 The pairing is not decorative — it is made structural by the
 `HasFractionField` / `HasRingOfIntegers` trait pair (`ℤ⊂ℚ`, `Oz⊂No`, `Zp⊂Qp`,
-`W_N⊂Qq`, and `ℤ[i]⊂ℚ[i]` for free via the surcomplex transport).
+`W_N⊂Qq`, `F_q[t]⊂F_q(t)`, and `ℤ[i]⊂ℚ[i]` for free via the surcomplex transport).
 
 ## The symmetries
 
@@ -72,7 +73,11 @@ complete valued field, and the value group controls the answer: over the surreal
 the value group is 2-divisible (`W(No)=W(ℝ)=ℤ`), but over `Q_p` and `F_q((t))` it
 is `ℤ`, so two residue layers survive (`W(Q_p)=W(F_p)²`). The adelic layer then
 glues the local data: Hasse–Minkowski isotropy over ℚ and Hilbert reciprocity
-`∏_v (a,b)_v = +1` (the multiplicative product formula).
+`∏_v (a,b)_v = +1` (the multiplicative product formula). The same local–global
+package recurs in **equal characteristic** over the global function field `F_q(t)`
+(`forms::function_field`): the tame Hilbert symbol at each monic-irreducible place
+plus the degree place `∞`, reciprocity `∏_v (a,b)_v = +1`, and Hasse–Minkowski —
+and here it is **exact** (no precision model), the char-`p` mirror of the ℚ stack.
 
 **the games bridge.** Red/blue/green Hackenbush is the one object that reads out as
 a surreal (blue−red), a nimber (all-green = Nim), or a general partizan game — and

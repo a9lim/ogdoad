@@ -82,6 +82,17 @@ Three siblings, one per complete valued field, differing in the value group:
 - **`adelic.rs`** — local–global rational helpers: `hilbert_product` over all places,
   rank≥3 adelic Hasse–Minkowski breakdown (`isotropy_over_adeles`/`AdelicIsotropy`),
   Brauer local invariant sums. Reuses `padic.rs`.
+- **`function_field.rs`** — the **equal-characteristic mirror** of `padic.rs`+`adelic.rs`
+  over the global function field `F_q(t)` (`scalar::RationalFunction`). Places
+  `FFPlace{Infinite, Finite(π)}` (monic irreducibles + the degree place), the **tame**
+  Hilbert symbol `hilbert_symbol_ff` (the odd-`p` `hilbert_symbol_qp` branch with the
+  residue Legendre → `χ_κ`; **no `p=2` branch** since `q` is odd), reciprocity
+  `hilbert_reciprocity_product_ff`, `is_isotropic_ff`/`is_isotropic_at_place`/
+  `isotropy_over_ff_adeles` (Hasse–Minkowski, u-invariant 4 like `Q_p`, but **no
+  archimedean place** ⇒ no definiteness condition), and `ramified_places_ff` (even
+  count). Names carry `_ff` where `padic.rs` collides (e.g. `hasse_at_place_ff`).
+  Exact (the product formula is `deg`-counting); odd residue char only — the
+  `springer_laurent` boundary. Cross-checked against `springer_decompose_laurent`.
 
 ## The "form + involution" siblings
 

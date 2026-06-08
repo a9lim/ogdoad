@@ -77,6 +77,7 @@ pub mod finite_field;
 pub mod functor;
 pub mod global;
 pub mod integrality;
+pub mod poly;
 pub mod small;
 pub mod valued;
 
@@ -87,6 +88,7 @@ pub use finite_field::*;
 pub use functor::*;
 pub use global::*;
 pub use integrality::*;
+pub use poly::*;
 pub use small::*;
 pub use valued::*;
 
@@ -204,6 +206,8 @@ impl_scalar_ops!([S: Scalar, const K: usize] Laurent<S, K>);
 impl_scalar_ops!([S: Valued, const E: usize] Ramified<S, E>);
 impl_scalar_ops!([S: Valued] Gauss<S>);
 impl_scalar_ops!(Adele);
+impl_scalar_ops!([S: Scalar] RationalFunction<S>);
+impl_scalar_ops!([S: Scalar] Poly<S>);
 
 #[cfg(test)]
 mod ops_tests {

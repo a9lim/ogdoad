@@ -12,7 +12,8 @@ Conway's combinatorial games. Games under disjunctive sum are an abelian group,
 subclasses. A Clifford algebra needs a commutative scalar ring, so the direct
 game-valued Clifford story only lives on the field-like cores (nimbers, surreals,
 surcomplex). The repo also carries comparison scalar worlds (Fp/Fpn, Zp/Qp/Qq,
-Laurent, ramified/Gauss functors, an adelic precision model) for form-theory
+Laurent, ramified/Gauss functors, an adelic precision model, and the exact global
+function field `F_q(t)` = `RationalFunction` over `Poly` = `F_q[t]`) for form-theory
 experiments. A pure Rust math core, generic over a `Scalar` trait, with PyO3
 per-backend bindings on top. "With nilpotents" = the quadratic form may be
 degenerate (`q[i]=0` ⇒ `eᵢ²=0`); all-zero `q` is the exterior/Grassmann algebra.

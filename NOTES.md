@@ -509,7 +509,14 @@ exterior Hopf algebra), and the transfinite surreal↔game round trip via the si
 expansion (`number_game.rs` / `from_transfinite_sign_expansion`) — appendix
 material too; none of it touches the Arf/game thread. The same is true of the
 new adelic/global layer (`scalar/global`, `forms/adelic`): useful context for
-local-global form experiments, but not evidence for the game-semantics claim.
+local-global form experiments, but not evidence for the game-semantics claim. Its
+equal-characteristic mirror — the exact global function field `F_q(t)`
+(`scalar/global/function_field.rs` = `RationalFunction` over the shared `Poly`
+ring `F_q[t]`) and its local–global form layer (`forms/function_field.rs`: tame
+Hilbert symbol, reciprocity `∏_v (a,b)_v = +1`, Hasse–Minkowski, cross-checked
+against `springer_laurent`) — is the same kind of "any number" table round-out
+(it completes local↔global into a 2-row char-0/char-`p` table and fills the
+function-field row's `F_q[t]⊂F_q(t)` pairing), and likewise touches no Arf/game claim.
 The analytic-layer unification (`scalar/analytic.rs`) is the same kind of
 round-out: the scattered root-taking methods are now two traits — `ExactRoots`
 (exact `sqrt`/`is_square` across ℚ, the nim/finite fields, the p-adics, `Surreal`,

@@ -6,7 +6,9 @@
 //! strategy, so a regression in any backend's arithmetic surfaces here rather
 //! than as a mysterious geometric-product failure.
 
-use pleroma::scalar::{Fp, Integer, Nimber, Rational, Scalar, Surcomplex, Surreal};
+use pleroma::scalar::{
+    Fp, Integer, Nimber, Poly, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
+};
 use proptest::prelude::*;
 
 /// Every commutative-ring law, checked on one triple `(a, b, c)`.
@@ -78,6 +80,21 @@ fn surcomplexes() -> impl Strategy<Value = Surcomplex<Surreal>> {
     (surreals(), surreals()).prop_map(|(re, im)| Surcomplex::new(re, im))
 }
 
+/// Small rational functions over `F_7`: `num/den` with `num, den` of degree < 3,
+/// the denominator forced nonzero. `F_q(t)` is exact, so — unlike the local
+/// precision models — it belongs in this exact-ring fuzz.
+fn rational_functions() -> impl Strategy<Value = RationalFunction<Fp<7>>> {
+    let coeffs = || prop::collection::vec((0i128..7).prop_map(Fp::<7>::new), 0..3);
+    (coeffs(), coeffs()).prop_map(|(num, den)| {
+        let den = if Poly::new(den.clone()).is_zero() {
+            vec![Fp::<7>::new(1)]
+        } else {
+            den
+        };
+        RationalFunction::new(num, den)
+    })
+}
+
 macro_rules! axiom_suite {
     ($name:ident, $ty:ty, $strat:expr) => {
         proptest! {
@@ -96,3 +113,8 @@ axiom_suite!(rational_ring_axioms, Rational, rationals());
 axiom_suite!(fp7_field_axioms, Fp<7>, fp7());
 axiom_suite!(surreal_ring_axioms, Surreal, surreals());
 axiom_suite!(surcomplex_ring_axioms, Surcomplex<Surreal>, surcomplexes());
+axiom_suite!(
+    rational_function_field_axioms,
+    RationalFunction<Fp<7>>,
+    rational_functions()
+);

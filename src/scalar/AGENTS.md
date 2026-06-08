@@ -17,12 +17,21 @@ transfinite); the trichotomy says *which classification theory applies*.
  Archimedean  Rational (ℚ)              Integer (ℤ)               exact/
  transfinite  Surreal (No)              Omnific (Oz)              big/
  p-adic       Qp, Qq                    Zp, WittVec              small/, finite_field/
+ fn field     RationalFunction (F_q(t)) Poly (F_q[t])            global/, poly.rs
  finite       Fp, Fpn, Nimber           —                        finite_field/
 ```
 
 The (field, ring-of-integers) pairing is made **structural** in `integrality.rs`
 (`HasFractionField` / `HasRingOfIntegers`); the local-field view is made
 structural in `valued.rs` (`Valued`); root-taking in `analytic.rs`.
+
+- **`poly.rs`** — `Poly<S>`, the shared dense-univariate polynomial ring `S[t]`
+  (low-degree-first, trimmed). The crate's one polynomial primitive: `Gauss` and
+  `RationalFunction` store `num/den` as `Poly` pairs, and the function-field place
+  layer (`forms/function_field.rs`) uses its `divrem`/`gcd`/`pow_mod` (Euler's
+  criterion in `F_q[t]/(π)`). As `S[t]` it is the **ring of integers** of `S(t)`,
+  so it impls `Scalar` + `HasFractionField` (Frac = `RationalFunction<S>`); its
+  units are the nonzero constants, so `inv` is partial.
 
 ## The `Scalar` trait + the trait layer (`mod.rs` and friends)
 
@@ -165,6 +174,14 @@ Hasse–Minkowski experiments in `forms/adelic.rs`; not an exact infinite-memory
 adele. `LocalQp` (runtime prime, NOT const-generic) is the analogue of
 `forms`'s runtime `FiniteFieldForm`.
 
+`RationalFunction<S>` (in `global/function_field.rs`) is the **equal-characteristic
+mirror**: the global function field `F_q(t)`, the char-`p` analogue of `ℚ` as a
+global field. Same field-of-fractions arithmetic as `Gauss` (over `Poly`, `inv =
+den/num`, cross-mult equality) but a different ROLE — it carries *all* its place
+valuations at once, so like `Adele` it is deliberately **not** `Valued`. Unlike
+the precision-model functors it is **exact**, so it *joins* the `scalar_axioms`
+fuzz. It feeds `forms/function_field.rs` (the `forms/padic`+`forms/adelic` mirror).
+
 ## Things that look like bugs but are not (scalar layer)
 
 - **Scalar `+ - *` operators are concrete-only, NOT a `Scalar` supertrait.**
@@ -208,6 +225,12 @@ adele. `LocalQp` (runtime prime, NOT const-generic) is the analogue of
 - **`scalar * multivector` works via the scalar's `__mul__` returning
   `NotImplemented`** so Python falls back to the MV's `__rmul__`. Don't make the
   scalar ops raise on a non-scalar operand.
+- **`Poly<S>` has BOTH inherent methods and a `Scalar` impl with the same names**
+  (`add`/`mul`/`neg`/`zero`/`one`/`is_zero`). Not duplication to "clean up": the
+  inherent methods are what `Gauss`/`RationalFunction`/the place layer call by
+  value, and they SHADOW the trait at every concrete `Poly::…` site (so the trait
+  bodies delegate, not recurse). The `Scalar` impl exists only so `Poly = F_q[t]`
+  can be the `HasFractionField` ring of integers of `RationalFunction = F_q(t)`.
 
 ## Math facts worth not re-deriving
 

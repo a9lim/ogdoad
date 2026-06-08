@@ -46,7 +46,10 @@
 //!     valuation-`≥ 0` subring of the *same* type (`is_integral`), so they stay
 //!     out of the pairing — the same honesty as `Laurent` above.
 
-use crate::scalar::{Integer, Omnific, Qp, Qq, Rational, Scalar, Surcomplex, Surreal, WittVec, Zp};
+use crate::scalar::{
+    Integer, Omnific, Poly, Qp, Qq, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
+    WittVec, Zp,
+};
 
 /// A (commutative) ring that knows its field of fractions.
 pub trait HasFractionField: Scalar {
@@ -171,6 +174,33 @@ impl<const P: u128, const N: usize, const F: usize> HasRingOfIntegers for Qq<P, 
     }
 }
 
+// ───────────────────────── F_q[t] ⊂ F_q(t) ─────────────────────────
+//
+// The char-p mirror of `ℤ ⊂ ℚ`, and the one **distinct-type** pairing on the
+// finite/function-field row (the local `F_q[[t]] ⊂ F_q((t))` of `Laurent` is the
+// same-type valuation subring, so it stays out — see the module note above). Here
+// the ring of integers `F_q[t] = Poly<S>` is a genuinely separate backend from the
+// global field `RationalFunction<S> = F_q(t)`, so the pairing is structural.
+
+impl<S: Scalar> HasFractionField for Poly<S> {
+    type Frac = RationalFunction<S>;
+    fn to_fraction(&self) -> RationalFunction<S> {
+        RationalFunction::from_poly(self.clone())
+    }
+}
+
+impl<S: Scalar> HasRingOfIntegers for RationalFunction<S> {
+    type Int = Poly<S>;
+    fn is_integral(&self) -> bool {
+        // integral ⟺ a polynomial ⟺ the (monic) denominator divides the numerator.
+        self.num().rem(self.den()).is_zero()
+    }
+    fn to_integer(&self) -> Option<Poly<S>> {
+        let (quot, rem) = self.num().divrem(self.den());
+        rem.is_zero().then_some(quot)
+    }
+}
+
 // ───────────── functorial: Surcomplex transports the pairing ─────────────
 //
 // The algebraic `i`-adjunction functor preserves the (field, ring of integers)
@@ -276,6 +306,32 @@ mod tests {
         let u = WittVec::<2, 4, 2>([1, 1]);
         assert!(u.to_fraction().is_integral());
         assert_eq!(u.to_fraction().to_integer(), Some(u));
+    }
+
+    #[test]
+    fn poly_rational_function_pairing() {
+        use crate::scalar::Fp;
+        type P = Poly<Fp<5>>;
+        // every polynomial round-trips through F_5(t) = Frac(F_5[t]).
+        let samples = [
+            P::constant(Fp::<5>::new(3)),
+            P::x(),
+            Poly::new(vec![Fp::<5>::new(1), Fp::<5>::new(0), Fp::<5>::new(2)]), // 2t² + 1
+        ];
+        for p in &samples {
+            assert_pairs(p);
+        }
+        // a genuine rational function 1/t is not a polynomial.
+        let inv_t = RationalFunction::<Fp<5>>::t().inv().unwrap();
+        assert!(!inv_t.is_integral());
+        assert_eq!(inv_t.to_integer(), None);
+        // t²/t IS integral and recovers the polynomial t (the stored form is unreduced).
+        let t2_over_t = RationalFunction::new(
+            vec![Fp::<5>::new(0), Fp::<5>::new(0), Fp::<5>::new(1)],
+            vec![Fp::<5>::new(0), Fp::<5>::new(1)],
+        );
+        assert!(t2_over_t.is_integral());
+        assert_eq!(t2_over_t.to_integer(), Some(P::x()));
     }
 
     #[test]
