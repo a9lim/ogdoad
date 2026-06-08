@@ -83,7 +83,7 @@ fn dpoly<S: Scalar>(p: &Poly<S>) -> Poly<S> {
 }
 
 /// The multiplicity of `pi` in `p` and the cofactor `p / pi^mult`.
-fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (usize, Poly<S>) {
+pub(crate) fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (usize, Poly<S>) {
     let mut mult = 0usize;
     if p.is_zero() {
         return (0, p);
@@ -118,7 +118,7 @@ fn egcd<S: Scalar>(a: &Poly<S>, b: &Poly<S>) -> (Poly<S>, Poly<S>, Poly<S>) {
 }
 
 /// `e⁻¹ mod m`, for `gcd(e, m) = 1` (so the gcd is a nonzero constant unit).
-fn inverse_mod<S: Scalar>(e: &Poly<S>, m: &Poly<S>) -> Poly<S> {
+pub(crate) fn inverse_mod<S: Scalar>(e: &Poly<S>, m: &Poly<S>) -> Poly<S> {
     let (g, x, _) = egcd(e, m);
     let unit = g
         .coeff(0)
@@ -323,7 +323,7 @@ fn residue_infinity<S: FiniteChar2Field>(num: &Poly<S>, den: &Poly<S>) -> S {
 /// `Tr_{κ/F₂}(z)` for `z ∈ κ = F_q[t]/(P)`: the relative trace `κ → F_q`
 /// (`Σ_{i<deg P} z^{q^i}`, a constant) composed with `Tr_{F_q/F₂}` (the
 /// Artin–Schreier class).
-fn trace_kappa_to_f2<S: FiniteChar2Field>(z: &Poly<S>, p: &Poly<S>) -> u8 {
+pub(crate) fn trace_kappa_to_f2<S: FiniteChar2Field>(z: &Poly<S>, p: &Poly<S>) -> u8 {
     let d = p.degree().expect("a place modulus has degree ≥ 1");
     let q = S::field_order();
     let mut term = z.rem(p);

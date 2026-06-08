@@ -673,11 +673,13 @@ boundary. (b)/(c) are the way to push the wall — (b) for self-verification, (c
 
 ## Characteristic-2 local–global: the Artin–Schreier symbol over F_{2^m}(t)
 
-Claim level: **standard math, source-verified** (the symbol + reciprocity),
-**implemented-and-tested** (`forms/function_field_char2.rs`, `forms/char2/field.rs`).
-The wild-term Witt decomposition (below) is a separate **research-grade** build, in
-progress. Appendix material — it rounds out the local↔global table into char 2 and
-touches no Arf/game claim.
+Claim level: **standard math, source-verified** (the symbol + reciprocity, and the
+local Aravire–Jacob Witt decomposition + rank-by-rank local isotropy),
+**implemented-and-tested** (`forms/function_field_char2.rs`, `forms/char2/field.rs`,
+`forms/springer_char2.rs`). The remaining *global* char-2 Hasse–Minkowski **for
+forms** (isotropy over `F_{2^m}(t)` itself, not just the per-place symbol) needs a
+global `℘`-reduction layer and is the next build. Appendix material — it rounds out
+the local↔global table into char 2 and touches no Arf/game claim.
 
 The odd-`q` local–global layer (`forms/function_field.rs`) needs odd residue
 characteristic: its tame Hilbert symbol uses the multiplicative square class
@@ -712,10 +714,21 @@ verbatim — is **false**. In char 2 there is a third, *wild* summand: Aravire�
 `π·W_q(k)` parts yet is anisotropic — `℘(x)` of a pole-order-`n` element has *even*
 pole order `2n`, never `π⁻¹`'s odd order 1. The same odd/even obstruction surfaces in
 the residue engine: Hermite reduction lowers a pole order `j → j−1` only when `j` is
-even, so odd-order poles are irreducible — the differential-level shadow of `R_π`. The
-char-2 Witt/Springer decomposition (`(φ₀, ψ, φ₁)`, the rank-by-rank global isotropy,
-`u(F_{2^m}(t)) = 4`) is the in-progress Part B; the naive two-layer version must **not**
-be shipped.
+even, so odd-order poles are irreducible — the differential-level shadow of `R_π`.
+
+**The decomposition, delivered (`forms/springer_char2.rs`).** The three-layer local
+decomposition `φ ↦ (φ₀, ψ, φ₁)` at a place of `F_{2^m}(t)` is now implemented: split
+each block coefficient by Laurent-exponent parity (`K = K² ⊕ πK²`), apply the AJ
+relation `[a,b] ≅ [1, a_ev·b] ⊥ ⟨π⟩[1, a_odd·b]`, and push each `[1,c]` to its
+Artin–Schreier normal form (clear even/positive poles via `c_{n/2} += √c_n`, keep the
+`κ`-constant Arf bit and the odd negative poles `R_π`). The rank-by-rank **local**
+isotropy (`[a,b]` iso ⟺ `ab ∈ ℘(K_v)`; ranks 3/4 via the Part-A symbol `s_v`; `u(K_v)
+= 4` ⇒ rank ≥ 5 isotropic) is pinned to ten source-derived oracles (independent of the
+engine, cross-checked via Codex) spanning the `φ₀`/`ψ`/`φ₁` coordinates and every
+rank-by-rank branch — including the genuinely anisotropic 4-dim class realising `u = 4`
+(`[1,1] ⊥ [π, π⁻¹]`). The naive two-layer `W = W_q(k)²` version was correctly avoided.
+What remains is the **global** form-isotropy layer (`℘`-reduction over `F_q(t)`,
+beyond the per-place symbol).
 
 References: Serre, *Local Fields* XIV; Gille–Szamuely, *Central Simple Algebras and
 Galois Cohomology* §9; Elman–Karpenko–Merkurjev §§7, 14; Aravire–Jacob (the char-2

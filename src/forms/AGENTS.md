@@ -130,9 +130,25 @@ One generic engine for the discretely-valued legs + the surreal odd-one-out:
   `u=1/t`). Reciprocity `∑_v s_v = 0` (`as_symbol_reciprocity_sum`, the gold oracle) +
   even ramification (`as_symbol_ramified_places`). Generic over `FiniteChar2Field`
   (so `F₂(t)`, `F₄(t)`, `F₈(t)` share one engine). Names carry `as_symbol_*` / `Char2Place`
-  to avoid colliding with the odd `function_field` flat re-exports. **Read NOTES.md:**
-  the char-2 Springer/Witt decomposition is NOT `W_q(k)²` — the wild `R_π` term
-  (Aravire–Jacob) is a separate in-progress build; do not ship the naive two-layer form.
+  to avoid colliding with the odd `function_field` flat re-exports. The crate-private
+  engine helpers (`strip_factor`/`inverse_mod`/`trace_kappa_to_f2`) are `pub(crate)` so
+  `springer_char2.rs` reuses them.
+- **`springer_char2.rs`** — the **char-2 local Witt/Springer decomposition**, the
+  equal-char-2 mirror of `springer_local.rs` (but NOT the odd story at `p=2`: the wild
+  `R_π` summand the `W=W(k)²` grading misses). `springer_decompose_local_char2(form,
+  place)` gives the **Aravire–Jacob** `(φ₀, ψ, φ₁)` (`Char2LocalDecomp`): split each
+  block coeff by Laurent-parity (`K=K²⊕πK²`), apply `[a,b]≅[1,a_ev·b]⊥⟨π⟩[1,a_odd·b]`,
+  push each `[1,c]` to **Artin–Schreier normal form** (`asnf`: drop positive poles,
+  clear even neg poles via `c_{n/2}+=√c_n`, keep the `κ`-constant Arf bit + odd neg
+  poles `R_π`). Local isotropy `local_anisotropic_dim_char2`/`local_is_isotropic_char2`
+  is rank-by-rank (`ab∈℘(K_v)`; ranks 3/4 via the Part-A symbol `as_symbol_at`;
+  `u(K_v)=4` ⇒ rank ≥ 5 isotropic). The form is `Char2QuadForm` (binary blocks + a
+  totally-singular tail). **Read NOTES.md** before touching: this is the corrected
+  three-layer decomposition (the naive `W_q(k)²` was rightly avoided), pinned to ten
+  source-derived oracles. **Looks like a bug, isn't:** unsupported singular configs
+  (`#singular ≥ 2`) and rank ≥ 5 return `None` from `local_anisotropic_dim_char2` (only
+  the source-pinned shapes get an exact dimension); the *global* form Hasse–Minkowski
+  over `F_q(t)` is deliberately NOT here yet (needs a global `℘`-reduction layer).
 
 ## The "form + involution" siblings
 
