@@ -7,7 +7,7 @@
 //! than as a mysterious geometric-product failure.
 
 use pleroma::scalar::{
-    Fp, Integer, Nimber, Poly, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
+    Fp, Integer, Nimber, Ordinal, Poly, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
 };
 use proptest::prelude::*;
 
@@ -118,3 +118,92 @@ axiom_suite!(
     RationalFunction<Fp<7>>,
     rational_functions()
 );
+
+// --- transfinite ordinal nimbers On₂: a PARTIAL field (nim_mul is `Option`) ---
+//
+// `Ordinal` is deliberately NOT a `Scalar`: nim-multiplication is partial — `None`
+// at ω^ω and above, the staged tower boundary — so it can't ride the `axiom_suite!`
+// macro. This bespoke checker fuzzes the transfinite char-2 field laws instead.
+// nim-addition is total and always checked; nim-multiplication's ring laws are
+// checked only where every needed product is defined, and the partiality itself is
+// pinned (a product is defined iff a factor is `0` or both factors are `< ω^ω`), so
+// a `None` is always a meaningful boundary fact and can never silently pass.
+
+/// True iff every CNF exponent is finite — i.e. the ordinal is `< ω^ω`, the region
+/// where nim-multiplication is implemented (the degree-3 cube-root tower).
+fn below_omega_omega(o: &Ordinal) -> bool {
+    o.terms().iter().all(|(e, _)| e.as_finite().is_some())
+}
+
+/// Small ordinal exponents: mostly finite (so products land inside the tower),
+/// occasionally infinite (`ω`, `ω+1`) to exercise the `≥ ω^ω` boundary.
+fn ordinal_exp() -> impl Strategy<Value = Ordinal> {
+    prop_oneof![
+        8 => (0u128..6).prop_map(Ordinal::from_u128),
+        1 => Just(Ordinal::omega()),
+        1 => Just(Ordinal::omega().nim_add(&Ordinal::from_u128(1))),
+    ]
+}
+
+/// A small ordinal: the nim-sum (XOR) of up to three monomials `ω^exp · coeff`,
+/// coefficients in `F_4` (`1..=3`).
+fn ordinals() -> impl Strategy<Value = Ordinal> {
+    prop::collection::vec((ordinal_exp(), 1u128..4), 0..3).prop_map(|terms| {
+        terms.into_iter().fold(Ordinal::zero(), |acc, (e, c)| {
+            acc.nim_add(&Ordinal::monomial(e, c))
+        })
+    })
+}
+
+/// The transfinite char-2 field laws on one triple, partiality handled explicitly.
+fn ordinal_field_axioms(a: &Ordinal, b: &Ordinal, c: &Ordinal) {
+    // (On₂, ⊕) is an abelian group of characteristic 2 — total, always checked.
+    assert!(
+        a.nim_add(b).nim_add(c) == a.nim_add(&b.nim_add(c)),
+        "⊕ associative"
+    );
+    assert!(a.nim_add(b) == b.nim_add(a), "⊕ commutative");
+    assert!(a.nim_add(&Ordinal::zero()) == *a, "0 is the ⊕-identity");
+    assert!(a.nim_add(a).is_zero(), "α ⊕ α = 0 (char 2)");
+
+    // ⊗ is partial: `Some` iff a factor is `0` or both factors are `< ω^ω`. Pin
+    // that equivalence so a `None` is always a checked boundary fact, never a
+    // silent skip.
+    for (x, y) in [(a, b), (b, c), (a, c), (a, a)] {
+        let defined = x.is_zero() || y.is_zero() || (below_omega_omega(x) && below_omega_omega(y));
+        assert_eq!(
+            x.nim_mul(y).is_some(),
+            defined,
+            "⊗ is defined iff a factor is 0 or both factors are < ω^ω",
+        );
+    }
+
+    // Where all three are `< ω^ω` every product is defined, and the commutative-ring
+    // laws must hold.
+    if below_omega_omega(a) && below_omega_omega(b) && below_omega_omega(c) {
+        let one = Ordinal::from_u128(1);
+        let ab = a.nim_mul(b).unwrap();
+        assert!(
+            ab.nim_mul(c).unwrap() == a.nim_mul(&b.nim_mul(c).unwrap()).unwrap(),
+            "⊗ associative"
+        );
+        assert!(ab == b.nim_mul(a).unwrap(), "⊗ commutative");
+        assert!(a.nim_mul(&one).unwrap() == *a, "1 is the ⊗-identity");
+        assert!(
+            a.nim_mul(&Ordinal::zero()).unwrap().is_zero(),
+            "0 absorbs under ⊗"
+        );
+        assert!(
+            a.nim_mul(&b.nim_add(c)).unwrap() == ab.nim_add(&a.nim_mul(c).unwrap()),
+            "⊗ distributes over ⊕"
+        );
+    }
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(256))]
+    #[test]
+    fn ordinal_partial_field_axioms(a in ordinals(), b in ordinals(), c in ordinals()) {
+        ordinal_field_axioms(&a, &b, &c);
+    }
+}
