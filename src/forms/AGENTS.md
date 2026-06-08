@@ -211,8 +211,8 @@ The classifiers above work over a *field* (square classes / Witt / Arf). An
 integer Gram matrix. Its invariants are arithmetic (det, level, minimum, kissing
 number, |Aut|), and the coarse classification is the **genus** (local
 equivalence at every place), which reuses the `padic.rs`/`adelic.rs` primitives.
-Staged M1→M4 (M1–M3 landed: `lattice.rs`, `root_lattices.rs`, `genus.rs`; M4
-`mass_formula.rs` + Leech lands last).
+Staged M1→M4, all landed: `lattice.rs`, `root_lattices.rs`, `genus.rs`,
+`mass_formula.rs` (+ the Leech lattice).
 
 - **`lattice.rs`** (M1) — `IntegralForm { gram: Vec<Vec<i128>> }` (private Gram,
   built via `new` (square+symmetric-checked) / `diagonal`, never a struct literal).
@@ -258,6 +258,19 @@ Staged M1→M4 (M1–M3 landed: `lattice.rs`, `root_lattices.rs`, `genus.rs`; M4
   wrong there — documented, not silent); (b) signs/oddity are unused for odd `p`. The
   `Z⁸` (`1₀^{+8}`, type I) vs `E_8` (`1_{II}^{+8}`, type II) oracle pins the
   type-I/II distinction; randomised `Uᵀ G U` isometry invariance pins the whole engine.
+- **`mass_formula.rs`** (M4) — the **Minkowski–Siegel mass** of the even-unimodular
+  genus, `mass(n) = |B_{n/2}|/n · ∏_{j<n/2} |B_{2j}|/(4j)` (hardcoded Bernoulli table
+  `B_2..B_24`, checked cross-reduced rational mul → exact `(num, den)` or `None` past
+  the i128 ceiling). `mass(8) = 1/696729600 = 1/|W(E_8)|` — the formula *recovers* the
+  `E_8` automorphism order the brute-force counter refuses; `n = 16, 24` match the
+  published Niemeier values (the i128 model reaches exactly to 24). Plus the **Leech
+  lattice** `leech()`: built from the Golay `[24,12,8]` code (`golay_generator`,
+  `[I₁₂|A]`) → a `√8·Λ₂₄ ⊂ ℤ²⁴` spanning set (`2·`Golay rows, `4(e₀+eᵢ)`, one odd
+  `(−3,1²³)`) → HNF basis `B` → `Gram = B·Bᵀ/8`. **Validated, not trusted:** rank-24
+  even unimodular with **no roots** *is* Leech (Niemeier), so the test checks `det=1`,
+  even, `short_vectors(2)` empty (cheap — bound 2 < min 4; the full kissing 196560 is
+  not enumerated). `|Aut(Λ₂₄)| = |Co₀|` is the recorded constant `LEECH_AUT_ORDER` (far
+  past brute force). Monster stays a NOTES remark (moonshine, not a form computation).
 
 ## Things that look like bugs but are not (forms layer)
 

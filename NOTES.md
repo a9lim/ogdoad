@@ -812,10 +812,30 @@ the rare Allcock edge cases — never a false positive. The independent theory p
 the `ℤ⁸` (`1₀^{+8}`, type I) vs `E_8` (`1_{II}^{+8}`, type II) distinction that pins
 the type-I/II computation.
 
-M4 will add the Conway–Sloane mass formula `∑ 1/|Aut| = mass(genus)` and the Leech
-lattice `Λ₂₄` with `Aut(Λ₂₄) = Co₀` — the **buildable** Conway-group connection that
-closes the loop to the repo's namesake. The **Monster** stays a thematic line only: it
-is monstrous moonshine (VOAs, the Griess algebra), not a quadratic-form computation.
+M4 (delivered, `mass_formula.rs`) is the Minkowski–Siegel mass and the Leech lattice.
+The mass of the even-unimodular genus has the Bernoulli closed form `mass(n) =
+|B_{n/2}|/n · ∏_{j=1}^{n/2-1} |B_{2j}|/(4j)`. At `n = 8` it is `1/696729600 =
+1/|W(E_8)|` — and since `E_8` is alone in its genus, the formula **recovers** the
+automorphism order `|Aut(E_8)|` that the brute-force counter deliberately refuses to
+compute (a satisfying cross-check: the analytic mass hands back the group order the
+combinatorial search can't reach). `n = 16` and `n = 24` (the Niemeier mass) match the
+published values; the i128 rational model reaches exactly to rank 24, the honest
+ceiling. The **Leech lattice** `Λ₂₄` is built from the binary Golay code `[24,12,8]`
+(spanning set of `√8·Λ₂₄ ⊂ ℤ²⁴`, HNF basis, `Gram = B·Bᵀ/8`) and **validated, not
+trusted**: a rank-24 even unimodular lattice with no roots is Leech by Niemeier's
+classification, so the test checks `det = 1`, even, and `short_vectors(2)` empty.
+`Aut(Λ₂₄) = Co₀` (order `8315553613086720000`) is recorded as a constant — far past
+brute-force reach. Claim level: **standard math** (Conway–Sloane *SPLAG* Ch. 4/16,
+Wilson Thm 1.4), **implemented-and-tested**; mass values and the Golay generator
+cross-checked with an independent Codex pass.
+
+The **Monster** stays a thematic line only: `Λ₂₄ → Co₀ → Co₁` is a quadratic-form
+computation, but the Monster is monstrous moonshine (vertex operator algebras, the
+Griess algebra, the `j`-function) — a research field, not a lattice invariant.
+
+This closes Arc 4 and the four-arc expansion: tropical thermography, transfinite
+ordinal nim-multiplication, the characteristic-2 local–global table, and now the
+integral-lattice/genus/Leech chain — each an independent, shipped, tested layer.
 
 ## Useful commands
 
