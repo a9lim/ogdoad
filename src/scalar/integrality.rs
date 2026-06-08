@@ -121,7 +121,7 @@ impl<const P: u128, const K: u128> HasRingOfIntegers for Qp<P, K> {
     type Int = Zp<P, K>;
     fn is_integral(&self) -> bool {
         // valuation ≥ 0 (zero has valuation +∞, hence integral).
-        self.valuation().map_or(true, |v| v >= 0)
+        self.valuation().is_none_or(|v| v >= 0)
     }
     fn to_integer(&self) -> Option<Zp<P, K>> {
         let Some(v) = self.valuation() else {
@@ -152,7 +152,7 @@ impl<const P: u128, const N: usize, const F: usize> HasFractionField for WittVec
 impl<const P: u128, const N: usize, const F: usize> HasRingOfIntegers for Qq<P, N, F> {
     type Int = WittVec<P, N, F>;
     fn is_integral(&self) -> bool {
-        self.valuation().map_or(true, |v| v >= 0)
+        self.valuation().is_none_or(|v| v >= 0)
     }
     fn to_integer(&self) -> Option<WittVec<P, N, F>> {
         let Some(v) = self.valuation() else {

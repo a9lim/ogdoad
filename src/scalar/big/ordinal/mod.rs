@@ -116,6 +116,11 @@ impl Ordinal {
     }
 
     /// The ordinal order (lexicographic on descending CNF terms).
+    // Inherent value-order, deliberately kept off `std::cmp::Ord`: orders and
+    // operators are opt-in here, not blanket trait impls (see AGENTS.md). The
+    // ordinal (lex) order also differs from the nim-value structure on the same
+    // CNF, so a single std `Ord` impl would be ambiguous.
+    #[allow(clippy::should_implement_trait)]
     pub fn cmp(&self, other: &Ordinal) -> Ordering {
         for ((e1, c1), (e2, c2)) in self.terms.iter().zip(other.terms.iter()) {
             match e1.cmp(e2) {

@@ -256,9 +256,9 @@ fn distinct_primes(mut n: u128) -> Vec<u128> {
     let mut out = Vec::new();
     let mut d = 2u128;
     while d * d <= n {
-        if n % d == 0 {
+        if n.is_multiple_of(d) {
             out.push(d);
-            while n % d == 0 {
+            while n.is_multiple_of(d) {
                 n /= d;
             }
         }
@@ -312,7 +312,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
         Self::assert_supported_field();
         let mut out = [0u128; N];
         for i in 0..N {
-            out[i] = ((self.0[i] as u128 + rhs.0[i] as u128) % P as u128) as u128;
+            out[i] = (self.0[i] + rhs.0[i]) % P;
         }
         Fpn(out)
     }
@@ -328,16 +328,16 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
 
     fn mul(&self, rhs: &Self) -> Self {
         Self::assert_supported_field();
-        let p = P as u128;
+        let p = P;
         // Schoolbook product into a degree-(2N-2) scratch, then reduce mod m(x).
         let mut scratch = vec![0u128; 2 * N - 1];
         for i in 0..N {
             if self.0[i] == 0 {
                 continue;
             }
-            let ai = self.0[i] as u128;
+            let ai = self.0[i];
             for j in 0..N {
-                scratch[i + j] = (scratch[i + j] + ai * rhs.0[j] as u128) % p;
+                scratch[i + j] = (scratch[i + j] + ai * rhs.0[j]) % p;
             }
         }
         // x^k = x^{k-N} · x^N = x^{k-N} · Σ_i red_i x^i, folding top down. (Degree 1 =
@@ -351,7 +351,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
                 }
                 scratch[k] = 0;
                 for i in 0..N {
-                    scratch[k - N + i] = (scratch[k - N + i] + c * red[i] as u128) % p;
+                    scratch[k - N + i] = (scratch[k - N + i] + c * red[i]) % p;
                 }
             }
         }
@@ -365,7 +365,7 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     fn characteristic() -> u128 {
         Self::assert_supported_field();
         // The *characteristic* is the prime p, not the order p^N.
-        P as u128
+        P
     }
 
     fn inv(&self) -> Option<Self> {
@@ -401,8 +401,8 @@ mod tests {
             .map(|mut code| {
                 let mut coeffs = [0u128; N];
                 for slot in coeffs.iter_mut() {
-                    *slot = (code % P as u128) as u128;
-                    code /= P as u128;
+                    *slot = code % P;
+                    code /= P;
                 }
                 Fpn(coeffs)
             })
@@ -459,9 +459,9 @@ mod tests {
 
     #[test]
     fn unsupported_parameters_are_rejected() {
-        assert!(std::panic::catch_unwind(|| Fpn::<4, 2>::one()).is_err());
-        assert!(std::panic::catch_unwind(|| Fpn::<3, 0>::zero()).is_err());
-        assert!(std::panic::catch_unwind(|| Fpn::<2, 5>::one()).is_err());
+        assert!(std::panic::catch_unwind(Fpn::<4, 2>::one).is_err());
+        assert!(std::panic::catch_unwind(Fpn::<3, 0>::zero).is_err());
+        assert!(std::panic::catch_unwind(Fpn::<2, 5>::one).is_err());
     }
 
     #[test]

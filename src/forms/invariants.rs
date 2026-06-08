@@ -53,13 +53,9 @@ pub fn level<const P: u128>() -> Option<usize> {
     if !Fp::<P>::modulus_is_prime() {
         return None;
     }
-    let minus_one = (P - 1) % P; // −1 in F_P
-    for n in 1..=4 {
-        if sums_of_n_squares::<P>(n).contains(&minus_one) {
-            return Some(n);
-        }
-    }
-    None // unreachable for a finite field (level ≤ 2)
+    // −1 in F_P. Level ≤ 2 for any finite field; the search to 4 is a margin.
+    let minus_one = (P - 1) % P;
+    (1..=4).find(|&n| sums_of_n_squares::<P>(n).contains(&minus_one))
 }
 
 /// The **Pythagoras number** `p(F_P)`: the least `n` such that every sum of

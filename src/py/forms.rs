@@ -6,7 +6,7 @@
 use super::engine::{NimberAlgebra, NimberMV, SurcomplexAlgebra, SurrealAlgebra};
 use crate::clifford::Metric;
 use crate::forms::{FiniteOddField, WittClass, WittClassG};
-use crate::scalar::{Fp, Fpn};
+use crate::scalar::{Fp, Fpn, Rational};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
@@ -118,6 +118,28 @@ fn classify_surcomplex(alg: &SurcomplexAlgebra) -> PyResult<PyCliffordType> {
                 "classifier could not diagonalize this metric or needs an unrepresented square root",
             )
         })
+}
+
+/// Classify a real Clifford algebra directly from its signature `(p, q, r)`
+/// (`p` plus-squares, `q` minus-squares, `r` null/radical dimensions) — the
+/// 8-fold table, no metric needed. Complement to `classify_surreal`.
+#[pyfunction]
+#[pyo3(signature = (p, q, r=0))]
+fn classify_real(p: usize, q: usize, r: usize) -> PyCliffordType {
+    PyCliffordType {
+        inner: crate::forms::classify_real(p, q, r),
+    }
+}
+
+/// Classify a complex Clifford algebra directly from `(n, r)` (`n` nondegenerate
+/// dimensions, `r` null/radical) — the 2-fold table. Complement to
+/// `classify_surcomplex`.
+#[pyfunction]
+#[pyo3(signature = (n, r=0))]
+fn classify_complex(n: usize, r: usize) -> PyCliffordType {
+    PyCliffordType {
+        inner: crate::forms::classify_complex(n, r),
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -501,6 +523,16 @@ impl PyWittClassG {
     fn __add__(&self, other: &PyWittClassG) -> PyWittClassG {
         self.add(other)
     }
+    /// The Witt-**ring** product (tensor of forms). Defined on the char-0 and
+    /// odd-char legs; panics on a char-2 operand (`W_q` is a module, not a ring).
+    fn mul(&self, other: &PyWittClassG) -> PyWittClassG {
+        PyWittClassG {
+            inner: self.inner.mul(&other.inner),
+        }
+    }
+    fn __mul__(&self, other: &PyWittClassG) -> PyWittClassG {
+        self.mul(other)
+    }
     fn __eq__(&self, other: &PyWittClassG) -> bool {
         self.inner == other.inner
     }
@@ -668,6 +700,63 @@ fn is_isotropic_q(entries: Vec<i128>) -> bool {
     crate::forms::is_isotropic_q(&entries)
 }
 
+/// The Hilbert-symbol product `∏_v (a, b)_v` over all places of `ℚ`, for `a, b ∈
+/// ℚ^*` passed as `(num, den)` pairs. Equal to `+1` for all `a, b` — Hilbert
+/// reciprocity, the multiplicative analogue of the adelic product formula.
+#[pyfunction]
+fn hilbert_product(a: (i128, i128), b: (i128, i128)) -> i8 {
+    crate::forms::hilbert_product(&Rational::new(a.0, a.1), &Rational::new(b.0, b.1))
+}
+
+/// The per-place isotropy breakdown of a `ℚ`-form (rank ≥ 3): isotropy at `ℝ` and
+/// at each relevant prime. `is_global()` (isotropic everywhere) equals
+/// `is_isotropic_q` (Hasse–Minkowski).
+#[pyclass(name = "AdelicIsotropy", module = "pleroma")]
+struct PyAdelicIsotropy {
+    inner: crate::forms::AdelicIsotropy,
+}
+
+#[pymethods]
+impl PyAdelicIsotropy {
+    /// Isotropy over the Archimedean completion `ℝ`.
+    #[getter]
+    fn real(&self) -> bool {
+        self.inner.real
+    }
+    /// Isotropy over `Q_p` at each relevant prime, as a `{p: bool}` dict.
+    #[getter]
+    fn local(&self) -> std::collections::BTreeMap<u128, bool> {
+        self.inner.local.clone()
+    }
+    /// Isotropic over `ℚ` iff isotropic at every place (the local–global principle).
+    fn is_global(&self) -> bool {
+        self.inner.is_global()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "AdelicIsotropy(real={}, local={:?}, is_global={})",
+            self.inner.real,
+            self.inner.local,
+            self.inner.is_global()
+        )
+    }
+}
+
+/// The adelic Hasse–Minkowski decomposition of a diagonal integer form of **rank
+/// ≥ 3**: isotropy at `ℝ` and each relevant prime. Errors on rank ≤ 2 (there
+/// isotropy is a global-square condition — use `is_isotropic_q`).
+#[pyfunction]
+fn isotropy_over_adeles(entries: Vec<i128>) -> PyResult<PyAdelicIsotropy> {
+    if entries.len() < 3 {
+        return Err(PyValueError::new_err(
+            "adelic isotropy decomposition needs rank ≥ 3 (use is_isotropic_q for rank ≤ 2)",
+        ));
+    }
+    Ok(PyAdelicIsotropy {
+        inner: crate::forms::isotropy_over_adeles(&entries),
+    })
+}
+
 // ---------------------------------------------------------------------------
 // Brauer–Wall group
 // ---------------------------------------------------------------------------
@@ -732,9 +821,14 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyWittClassG>()?;
     m.add_class::<PySpringerDecomp>()?;
     m.add_class::<PyBrauerWallClass>()?;
+    m.add_class::<PyAdelicIsotropy>()?;
     m.add_function(wrap_pyfunction!(arf_invariant, m)?)?;
     m.add_function(wrap_pyfunction!(classify_surreal, m)?)?;
     m.add_function(wrap_pyfunction!(classify_surcomplex, m)?)?;
+    m.add_function(wrap_pyfunction!(classify_real, m)?)?;
+    m.add_function(wrap_pyfunction!(classify_complex, m)?)?;
+    m.add_function(wrap_pyfunction!(hilbert_product, m)?)?;
+    m.add_function(wrap_pyfunction!(isotropy_over_adeles, m)?)?;
     m.add_function(wrap_pyfunction!(witt_class, m)?)?;
     m.add_function(wrap_pyfunction!(dickson_matrix, m)?)?;
     m.add_function(wrap_pyfunction!(dickson_of_versor, m)?)?;

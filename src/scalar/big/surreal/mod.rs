@@ -102,6 +102,9 @@ impl Surreal {
     }
 
     /// Total order on surreal *values*: sign of the difference.
+    // Inherent value-order, deliberately kept off `std::cmp::Ord`: orders and
+    // operators are opt-in here, not blanket trait impls (see AGENTS.md).
+    #[allow(clippy::should_implement_trait)]
     pub fn cmp(&self, other: &Surreal) -> Ordering {
         self.sub(other).sign()
     }

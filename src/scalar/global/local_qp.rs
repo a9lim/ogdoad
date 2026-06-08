@@ -34,12 +34,12 @@ fn is_prime(p: u128) -> bool {
     if p < 2 {
         return false;
     }
-    if p % 2 == 0 {
+    if p.is_multiple_of(2) {
         return p == 2;
     }
     let mut d = 3u128;
     while d <= p / d {
-        if p % d == 0 {
+        if p.is_multiple_of(d) {
             return false;
         }
         d += 2;
@@ -107,7 +107,7 @@ impl LocalQp {
             };
         }
         let mut v = val;
-        while u % p == 0 {
+        while u.is_multiple_of(p) {
             u /= p;
             v += 1;
         }

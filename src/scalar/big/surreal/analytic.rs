@@ -80,7 +80,7 @@ impl Surreal {
         if self.is_zero() {
             return Some(Surreal::zero());
         }
-        if k % 2 == 0 && self.sign() == Ordering::Less {
+        if k.is_multiple_of(2) && self.sign() == Ordering::Less {
             return None; // no real even root of a negative
         }
         let (e0, c0) = self.terms[0].clone();

@@ -54,10 +54,7 @@ pub(crate) fn normalize_relation_rows(mut rows: Vec<Vec<i128>>) -> Vec<Vec<i128>
             negate_row(&mut rows[rank]);
         }
 
-        loop {
-            let Some(r) = ((rank + 1)..rows.len()).find(|&r| rows[r][col] != 0) else {
-                break;
-            };
+        while let Some(r) = ((rank + 1)..rows.len()).find(|&r| rows[r][col] != 0) {
             let pivot_val = rows[rank][col];
             let q = rows[r][col].div_euclid(pivot_val);
             let source = rows[rank].clone();

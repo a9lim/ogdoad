@@ -69,6 +69,9 @@ impl NumberGame {
     }
 
     /// The game order = the surreal order on values.
+    // Inherent value-order, deliberately kept off `std::cmp::Ord` to mirror
+    // `Surreal::cmp` and the partial `Game` order (see AGENTS.md).
+    #[allow(clippy::should_implement_trait)]
     pub fn cmp(&self, other: &NumberGame) -> Ordering {
         self.value.cmp(&other.value)
     }

@@ -232,7 +232,7 @@ mod tests {
                 let mut c = code;
                 let mut coeffs = [0u128; 2];
                 for slot in coeffs.iter_mut() {
-                    *slot = (c % 3) as u128;
+                    *slot = c % 3;
                     c /= 3;
                 }
                 Fpn(coeffs)

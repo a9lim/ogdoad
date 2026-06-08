@@ -5,7 +5,10 @@
 use super::engine::IntegerMV;
 use super::scalars::{parse_surreal, PySurreal};
 use crate::clifford::CliffordAlgebra;
-use crate::games::{thermography, Color, Game, GameExterior, Hackenbush, NumberGame};
+use crate::games::{
+    thermography, AbstractGame, Color, Game, GameExterior, Hackenbush, LoopyGraph, LoopyNimber,
+    NumberGame, Outcome, Quotient,
+};
 use crate::scalar::{Integer, Rational, Surreal};
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyValueError;
@@ -33,6 +36,118 @@ fn grundy_graph(succ: Vec<Vec<usize>>) -> PyResult<Vec<u128>> {
     crate::games::grundy_graph(&succ)
         .ok_or_else(|| PyValueError::new_err("graph has a cycle — Grundy value is undefined"))
 }
+
+/// The minimal excludant `mex(S)` — the least non-negative integer not in the
+/// multiset `values`. The core of the Sprague–Grundy recurrence.
+#[pyfunction]
+fn mex(values: Vec<u128>) -> u128 {
+    crate::games::mex(values)
+}
+
+// ---------------------------------------------------------------------------
+// Outcomes of a finite game graph (kernel): Win / Loss / Draw + scoring
+// ---------------------------------------------------------------------------
+
+fn outcome_name(o: Outcome) -> String {
+    match o {
+        Outcome::Loss => "Loss",
+        Outcome::Win => "Win",
+        Outcome::Draw => "Draw",
+    }
+    .to_string()
+}
+
+/// Normal-play outcome `"Win"`/`"Loss"`/`"Draw"` of every position of a finite
+/// game graph given as adjacency lists (`succ[v]` = positions reachable from `v`).
+/// Retrograde analysis; `"Loss"` = P-position. Cyclic graphs are fine (→ `"Draw"`).
+#[pyfunction]
+fn outcomes(succ: Vec<Vec<usize>>) -> Vec<String> {
+    crate::games::outcomes(&succ)
+        .into_iter()
+        .map(outcome_name)
+        .collect()
+}
+
+/// The P-positions (Loss positions) of a finite game graph, as node indices.
+#[pyfunction]
+fn p_positions(succ: Vec<Vec<usize>>) -> Vec<usize> {
+    crate::games::p_positions(&succ)
+}
+
+/// Milnor scoring-game minimax on a finite **acyclic** graph: the `(left, right)`
+/// value interval of every position (`left` = optimal score with Left/maximizer
+/// to move, `right` with Right/minimizer), where `terminal_score[v]` scores each
+/// move-less position. Errors on a cycle (loopy scoring is out of scope).
+#[pyfunction]
+fn scoring_values(succ: Vec<Vec<usize>>, terminal_score: Vec<i128>) -> PyResult<Vec<(i128, i128)>> {
+    crate::games::scoring_values(&succ, &terminal_score)
+        .map(|v| v.into_iter().map(|s| (s.left, s.right)).collect())
+        .ok_or_else(|| PyValueError::new_err("graph has a cycle — scoring value is undefined"))
+}
+
+// ---------------------------------------------------------------------------
+// Misère play: Nim witnesses, octal moves, and the indistinguishability quotient
+// ---------------------------------------------------------------------------
+
+/// Normalize a Nim heap-multiset: drop empty heaps and sort ascending.
+#[pyfunction]
+fn nim_canonical(heaps: Vec<u128>) -> Vec<u128> {
+    crate::games::nim_canonical(heaps)
+}
+
+/// The closed-form misère-Nim P-position rule: with every heap `≤ 1`, a P iff an
+/// odd number of heaps; otherwise (some heap `≥ 2`) a P iff the XOR is `0`.
+#[pyfunction]
+fn misere_nim_p_predicted(heaps: Vec<u128>) -> bool {
+    crate::games::misere_nim_p_predicted(&heaps)
+}
+
+/// The moves of Nim: reduce any one heap to any strictly smaller size.
+#[pyfunction]
+fn nim_moves(pos: Vec<u128>) -> Vec<Vec<u128>> {
+    crate::games::nim_moves(&pos)
+}
+
+/// The moves of an octal game `0.d₁d₂…` (`code[k-1] = dₖ`) on a heap-multiset:
+/// remove `k` tokens leaving the heap empty (`dₖ & 1`), one nonempty heap
+/// (`dₖ & 2`), or two nonempty heaps (`dₖ & 4`). Nim is `0.333…`.
+#[pyfunction]
+fn octal_moves(code: Vec<u8>, pos: Vec<u128>) -> Vec<Vec<u128>> {
+    crate::games::octal_moves(&code, &pos)
+}
+
+/// The bounded misère indistinguishability quotient of an octal game, over single
+/// heaps `1..=max_heap` as atoms (elements are sums up to `elem_bound`, separated
+/// by tests up to `test_bound`).
+#[pyfunction]
+fn octal_misere_quotient(
+    code: Vec<u8>,
+    max_heap: usize,
+    elem_bound: usize,
+    test_bound: usize,
+) -> PyQuotient {
+    PyQuotient {
+        inner: crate::games::octal_misere_quotient(&code, max_heap, elem_bound, test_bound),
+    }
+}
+
+/// Loopy impartial nim-values of a (possibly cyclic) game graph: each position is
+/// an ordinary nimber, or `None` for a Draw position (the loopy `∞`/`Side`).
+/// Errors when the non-Draw subgraph still has a cycle (needs full sidling).
+#[pyfunction]
+fn loopy_nim_values(succ: Vec<Vec<usize>>) -> PyResult<Vec<Option<u128>>> {
+    crate::games::loopy_nim_values(&succ)
+        .map(|vs| {
+            vs.into_iter()
+                .map(|x| match x {
+                    LoopyNimber::Value(n) => Some(n),
+                    LoopyNimber::Side => None,
+                })
+                .collect()
+        })
+        .ok_or_else(|| PyValueError::new_err("non-Draw subgraph has a cycle — needs full sidling"))
+}
+
 // ---------------------------------------------------------------------------
 // Partizan games + the exterior algebra of the game group
 // ---------------------------------------------------------------------------
@@ -452,12 +567,148 @@ impl PyNumberGame {
     }
 }
 
+/// A bounded misère indistinguishability quotient: the elements (atom-multisets),
+/// their class ids, the per-class representatives, and which classes are P.
+#[pyclass(name = "Quotient", module = "pleroma")]
+struct PyQuotient {
+    inner: Quotient,
+}
+
+#[pymethods]
+impl PyQuotient {
+    /// The enumerated elements (sorted atom-multisets, up to `elem_bound`).
+    #[getter]
+    fn elements(&self) -> Vec<Vec<usize>> {
+        self.inner.elements.clone()
+    }
+    /// The class id of each element (parallel to `elements`).
+    #[getter]
+    fn class_of(&self) -> Vec<usize> {
+        self.inner.class_of.clone()
+    }
+    /// The number of distinct classes (the order of the bounded quotient monoid).
+    #[getter]
+    fn num_classes(&self) -> usize {
+        self.inner.num_classes
+    }
+    /// A representative multiset for each class.
+    #[getter]
+    fn class_rep(&self) -> Vec<Vec<usize>> {
+        self.inner.class_rep.clone()
+    }
+    /// P-status of each class (`True` = a misère P-position / second-player win).
+    #[getter]
+    fn class_is_p(&self) -> Vec<bool> {
+        self.inner.class_is_p.clone()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "Quotient(num_classes={}, elements={})",
+            self.inner.num_classes,
+            self.inner.elements.len()
+        )
+    }
+}
+
+/// An abstract finite impartial game for misère analysis: position `0` is the
+/// empty game (no moves); position `p` carries the option list `moves[p]` (each
+/// option is a position index; `0` = move to empty).
+#[pyclass(name = "AbstractGame", module = "pleroma")]
+struct PyAbstractGame {
+    inner: AbstractGame,
+}
+
+#[pymethods]
+impl PyAbstractGame {
+    #[new]
+    fn new(moves: Vec<Vec<usize>>) -> Self {
+        PyAbstractGame {
+            inner: AbstractGame { moves },
+        }
+    }
+    /// Misère outcome of a disjunctive sum (a multiset of component positions):
+    /// `True` = N (next player / first-player win), `False` = P.
+    fn misere_outcome(&self, pos: Vec<usize>) -> bool {
+        let mut memo = std::collections::HashMap::new();
+        self.inner.misere_outcome(&pos, &mut memo)
+    }
+    /// The bounded misère indistinguishability quotient over the generating
+    /// `atoms` (elements are sums up to `elem_bound`, tests up to `test_bound`).
+    fn misere_quotient(
+        &self,
+        atoms: Vec<usize>,
+        elem_bound: usize,
+        test_bound: usize,
+    ) -> PyQuotient {
+        PyQuotient {
+            inner: crate::games::misere_quotient(&self.inner, &atoms, elem_bound, test_bound),
+        }
+    }
+}
+
+/// A loopy game as a finite move graph (`succ[v]` = positions reachable from `v`);
+/// the graph may be cyclic. Outcomes come from the retrograde kernel analysis
+/// (Win / Loss / Draw, where Loss = P-position and Draw is the loopy escape).
+#[pyclass(name = "LoopyGraph", module = "pleroma")]
+struct PyLoopyGraph {
+    inner: LoopyGraph,
+}
+
+#[pymethods]
+impl PyLoopyGraph {
+    #[new]
+    fn new(succ: Vec<Vec<usize>>) -> Self {
+        PyLoopyGraph {
+            inner: LoopyGraph::new(succ),
+        }
+    }
+    /// `"Win"`/`"Loss"`/`"Draw"` of every position.
+    fn outcomes(&self) -> Vec<String> {
+        self.inner
+            .outcomes()
+            .into_iter()
+            .map(outcome_name)
+            .collect()
+    }
+    /// The Loss positions = P-positions (the player to move loses).
+    fn loss_set(&self) -> Vec<usize> {
+        self.inner.loss_set()
+    }
+    /// The Win positions = N-positions (the player to move wins).
+    fn win_set(&self) -> Vec<usize> {
+        self.inner.win_set()
+    }
+    /// The Draw positions — the loopy degree of freedom.
+    fn draw_set(&self) -> Vec<usize> {
+        self.inner.draw_set()
+    }
+    /// A coarse catalogue reading of position `v` via its impartial outcome:
+    /// `"0"` for a Loss, `"dud"` for a Draw, `None` for a Win (a nonzero loopy
+    /// nimber — use `loopy_nim_values`).
+    fn classify(&self, v: usize) -> Option<String> {
+        self.inner.classify(v).map(|lv| lv.name().to_string())
+    }
+}
+
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
     m.add_class::<PyNumberGame>()?;
     m.add_class::<PyGameExterior>()?;
     m.add_class::<PyHackenbush>()?;
+    m.add_class::<PyQuotient>()?;
+    m.add_class::<PyAbstractGame>()?;
+    m.add_class::<PyLoopyGraph>()?;
     m.add_function(wrap_pyfunction!(nim_mul_mex, m)?)?;
     m.add_function(wrap_pyfunction!(grundy_graph, m)?)?;
+    m.add_function(wrap_pyfunction!(mex, m)?)?;
+    m.add_function(wrap_pyfunction!(outcomes, m)?)?;
+    m.add_function(wrap_pyfunction!(p_positions, m)?)?;
+    m.add_function(wrap_pyfunction!(scoring_values, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_canonical, m)?)?;
+    m.add_function(wrap_pyfunction!(misere_nim_p_predicted, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_moves, m)?)?;
+    m.add_function(wrap_pyfunction!(octal_moves, m)?)?;
+    m.add_function(wrap_pyfunction!(octal_misere_quotient, m)?)?;
+    m.add_function(wrap_pyfunction!(loopy_nim_values, m)?)?;
     Ok(())
 }

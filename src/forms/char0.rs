@@ -193,7 +193,7 @@ pub fn classify_real(p: usize, q: usize, r: usize) -> CliffordType {
 
 /// Classify a complex Clifford algebra from `(n, r)` (nondegenerate dim, radical).
 pub fn classify_complex(n: usize, r: usize) -> CliffordType {
-    let (matrix_dim, doubled) = if n % 2 == 0 {
+    let (matrix_dim, doubled) = if n.is_multiple_of(2) {
         (p2(n / 2), false)
     } else {
         (p2((n - 1) / 2), true)

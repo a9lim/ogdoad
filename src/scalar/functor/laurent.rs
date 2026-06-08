@@ -131,7 +131,7 @@ impl<S: Scalar, const K: usize> Laurent<S, K> {
     /// is exposed here as an inherent predicate instead of via the
     /// [`HasRingOfIntegers`](crate::scalar::HasRingOfIntegers) pairing.
     pub fn is_integral(&self) -> bool {
-        self.valuation().map_or(true, |v| v >= 0)
+        self.valuation().is_none_or(|v| v >= 0)
     }
 
     /// The retained coefficients of the unit series (lowest exponent first).

@@ -127,6 +127,8 @@ mod tests {
     fn sprague_grundy_theorem_is_boutons_xor() {
         // Nim: a position is a multiset of heap sizes; a move shrinks one heap.
         // The Sprague–Grundy theorem says g(position) = XOR of the heap sizes.
+        // `&Vec` matches the `Fn(&P)` move-generator bound (`P = Vec<u128>`).
+        #[allow(clippy::ptr_arg)]
         fn nim_moves(heaps: &Vec<u128>) -> Vec<Vec<u128>> {
             let mut out = Vec::new();
             for (i, &h) in heaps.iter().enumerate() {

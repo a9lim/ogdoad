@@ -372,3 +372,36 @@ for g, name in [(pl.Game.zero(), "0"), (pl.Game.star(), "⋆"), (pl.Game.star_n(
                 (pl.Game.up(), "↑"), (pl.Game.up().times_int(2), "⇑"),
                 (pl.Game.up().times_int(-1), "↓"), (pl.Game.up() + pl.Game.star(), "↑*")]:
     print(f"  aw({name:3}) = {g.atomic_weight_int()!r:>3}   all-small={g.is_all_small()}")
+
+section("game outcomes — Win/Loss/Draw of a finite move graph (kernel)")
+# cycle-with-exit: 0→1, 1→{2,0}, 2 terminal. Retrograde analysis resolves it.
+succ = [[1], [2, 0], []]
+print("  outcomes (Loss=P)            :", pl.outcomes(succ))
+print("  P-positions                  :", pl.p_positions(succ))
+# Milnor scoring: 0→{1,2} with terminal scores 3,7 ⇒ first-move advantage (7,3).
+print("  scoring (left,right)         :", pl.scoring_values([[1, 2], [], []], [0, 3, 7]))
+
+section("loopy games — the Draw escape a cyclic rule opens up")
+g = pl.LoopyGraph([[1], [0], [3], []])           # 0↔1 a drawn 2-cycle; 2→3 terminal
+print("  outcomes                     :", g.outcomes())
+print("  draw-set (the loopy d.o.f.)  :", g.draw_set())
+print("  loopy nim-values (None=Side) :", pl.loopy_nim_values([[1], [0], [3], []]))
+
+section("misère play — Nim witness + the octal indistinguishability quotient")
+print("  misère-Nim P([1,1,1])        :", pl.misere_nim_p_predicted([1, 1, 1]))
+q = pl.octal_misere_quotient([3, 3, 3], 3, 3, 3)  # 0.333 = Nim, bounded quotient
+print("  Nim misère quotient          :", q, " classes:", q.num_classes)
+
+section("char-0 Clifford from a bare signature (no metric needed)")
+print("  Cl(0,3) over ℝ               :", pl.classify_real(0, 3))
+print("  Cl(3) over ℂ                 :", pl.classify_complex(3))
+
+section("local–global — Hasse–Minkowski + Hilbert reciprocity over ℚ")
+ai = pl.isotropy_over_adeles([1, 1, 1])           # ⟨1,1,1⟩ anisotropic over ℚ
+print("  ⟨1,1,1⟩ isotropy by place    :", ai, " global:", ai.is_global())
+print("  ∏_v (−1,−1)_v = +1 (recip.)  :", pl.hilbert_product((-1, 1), (-1, 1)))
+
+section("nimber Galois — Frobenius x↦x² and its inverse, the nim √")
+n = pl.Nimber(5)
+print("  *5² (Frobenius)              :", n.frobenius(), " == *5**2:", n ** 2)
+print("  √*5  (inverse Frobenius)     :", n.sqrt(), " squares back:", n.sqrt() ** 2)

@@ -108,7 +108,7 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
     /// [`Laurent::is_integral`]: crate::scalar::Laurent::is_integral
     /// [`HasRingOfIntegers`]: crate::scalar::HasRingOfIntegers
     pub fn is_integral(&self) -> bool {
-        self.valuation().map_or(true, |v| v >= 0)
+        self.valuation().is_none_or(|v| v >= 0)
     }
 
     /// The coordinate components `a₀ … a_{E−1}`.

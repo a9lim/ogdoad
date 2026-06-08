@@ -91,7 +91,7 @@ fn main() {
 
     rule("char-0 classifier — Cl(p,q) as a matrix algebra (companion to Arf)");
     let cl = |qs: &[i128]| {
-        let q = qs.iter().map(|&x| Surreal::from_int(x as i128)).collect();
+        let q = qs.iter().map(|&x| Surreal::from_int(x)).collect();
         classify_surreal(&Metric::diagonal(q)).unwrap().display()
     };
     println!("  Cl(0,2) = {}   (the quaternions)", cl(&[-1, -1]));

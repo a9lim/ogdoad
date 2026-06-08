@@ -175,7 +175,7 @@ impl<S: Scalar> Cga<S> {
 /// generator `e_0` (`q = 0`) and `n` Euclidean ones.
 pub fn pga<S: Scalar>(n: usize) -> CliffordAlgebra<S> {
     let mut q = vec![S::zero()]; // e_0 null (the ideal/projective direction)
-    q.extend(std::iter::repeat(S::one()).take(n));
+    q.extend(std::iter::repeat_n(S::one(), n));
     CliffordAlgebra::new(n + 1, Metric::diagonal(q))
 }
 

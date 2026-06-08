@@ -121,6 +121,10 @@ impl Game {
     }
 
     /// Value equality: `G = H ⟺ G ≤ H ≤ G`.
+    // Inherent *value* equality, distinct from the structural derive: the game
+    // order is partial (games can be confused), so `Game` is not value-`Eq`/`Ord`
+    // via std — kept an inherent method by design (see AGENTS.md).
+    #[allow(clippy::should_implement_trait)]
     pub fn eq(&self, other: &Game) -> bool {
         self.le(other) && other.le(self)
     }

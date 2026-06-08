@@ -63,7 +63,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
         }
         let mut n = self.0;
         let mut v = 0;
-        while n % P == 0 {
+        while n.is_multiple_of(P) {
             n /= P;
             v += 1;
         }
@@ -73,7 +73,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
     /// Whether this element is a unit (invertible) in `Z/p^k`: iff `p ∤ a`.
     pub fn is_unit(&self) -> bool {
         Self::assert_supported_ring();
-        self.0 % P != 0
+        !self.0.is_multiple_of(P)
     }
 }
 
@@ -91,7 +91,7 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
 
     fn one() -> Self {
         Self::assert_supported_ring();
-        Zp((1 % Self::modulus()) as u128)
+        Zp(1 % Self::modulus())
     }
 
     fn add(&self, rhs: &Self) -> Self {
@@ -105,7 +105,7 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
         if self.0 == 0 {
             Zp(0)
         } else {
-            Zp((Self::modulus() - self.0 as u128) as u128)
+            Zp(Self::modulus() - self.0)
         }
     }
 
@@ -158,7 +158,7 @@ mod tests {
     use crate::clifford::{CliffordAlgebra, Metric};
 
     fn elems<const P: u128, const K: u128>() -> Vec<Zp<P, K>> {
-        (0..Zp::<P, K>::modulus() as u128).map(Zp::<P, K>).collect()
+        (0..Zp::<P, K>::modulus()).map(Zp::<P, K>).collect()
     }
 
     fn check_ring_axioms<const P: u128, const K: u128>() {
@@ -219,8 +219,8 @@ mod tests {
 
     #[test]
     fn invalid_parameters_are_rejected() {
-        assert!(std::panic::catch_unwind(|| Zp::<4, 3>::one()).is_err());
-        assert!(std::panic::catch_unwind(|| Zp::<5, 0>::one()).is_err());
+        assert!(std::panic::catch_unwind(Zp::<4, 3>::one).is_err());
+        assert!(std::panic::catch_unwind(Zp::<5, 0>::one).is_err());
     }
 
     #[test]

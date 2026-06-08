@@ -175,9 +175,8 @@ mod tests {
         // s = (q − p) mod 8 — BW(ℝ) and the 8-fold periodicity table coincide.
         for p in 0..5usize {
             for q in 0..5usize {
-                let signs: Vec<i32> = std::iter::repeat(1)
-                    .take(p)
-                    .chain(std::iter::repeat(-1).take(q))
+                let signs: Vec<i32> = std::iter::repeat_n(1, p)
+                    .chain(std::iter::repeat_n(-1, q))
                     .collect();
                 if signs.is_empty() {
                     continue;

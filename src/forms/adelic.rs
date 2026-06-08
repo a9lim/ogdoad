@@ -85,7 +85,7 @@ pub fn isotropy_over_adeles(entries: &[i128]) -> AdelicIsotropy {
     );
     // Real place: a diagonal form is isotropic over ℝ iff it has a zero entry or is
     // indefinite (entries of both signs).
-    let has_zero = entries.iter().any(|&e| e == 0);
+    let has_zero = entries.contains(&0);
     let has_pos = entries.iter().any(|&e| e > 0);
     let has_neg = entries.iter().any(|&e| e < 0);
     let real = has_zero || (has_pos && has_neg);

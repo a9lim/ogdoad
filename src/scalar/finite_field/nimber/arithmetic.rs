@@ -8,6 +8,7 @@
 //!      binary expansion of i  (distinct Fermat powers nim-multiply to their
 //!      ordinary product);
 //!   3. F_n (x) F_n = (3/2) F_n = F_n XOR (F_n >> 1).
+//!
 //! A Fermat power appearing in both factors gets squared via (3), which emits
 //! a bit at position 2^n - 1 < 2^n, so every squaring strictly lowers the
 //! largest Fermat index in play — that is what makes the recursion terminate.

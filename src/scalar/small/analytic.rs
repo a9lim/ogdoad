@@ -98,7 +98,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
             return true; // 0 = 0²
         }
         let v = self.valuation();
-        if v % 2 != 0 {
+        if !v.is_multiple_of(2) {
             return false;
         }
         let unit = self.0 / ipow(P, v);
@@ -116,7 +116,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
             return Some(Zp(0));
         }
         let v = self.valuation();
-        if v % 2 != 0 {
+        if !v.is_multiple_of(2) {
             return None;
         }
         let unit_val = self.0 / ipow(P, v);

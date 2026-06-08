@@ -169,7 +169,7 @@ impl<S: Valued> Gauss<S> {
     ///
     /// [`Laurent::is_integral`]: crate::scalar::Laurent::is_integral
     pub fn is_integral(&self) -> bool {
-        self.valuation().map_or(true, |v| v >= 0)
+        self.valuation().is_none_or(|v| v >= 0)
     }
 }
 

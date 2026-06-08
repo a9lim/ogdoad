@@ -5,7 +5,8 @@
 //! as the per-backend parse/wrap hooks.
 
 use crate::scalar::{
-    ExactRoots, Integer, Nimber, Omnific, Ordinal, Rational, Scalar, Surcomplex, Surreal,
+    ExactRoots, FiniteField, Integer, Nimber, Omnific, Ordinal, Rational, Scalar, Surcomplex,
+    Surreal,
 };
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyTypeError, PyValueError};
@@ -110,6 +111,30 @@ impl PyNimber {
             self.inner.0,
             parse_nimber(x)?.0,
         ))
+    }
+    /// `self` raised to the power `e` in `F_{2^128}` (fast exponentiation).
+    fn pow(&self, e: u128) -> PyNimber {
+        PyNimber {
+            inner: self.inner.pow(e),
+        }
+    }
+    fn __pow__(&self, e: u128, modulo: Option<u128>) -> PyResult<PyNimber> {
+        if modulo.is_some() {
+            return Err(PyValueError::new_err("nimber ** does not take a modulus"));
+        }
+        Ok(self.pow(e))
+    }
+    /// The Frobenius image `x²` — the generator of `Gal(F_{2^128}/F₂)`.
+    fn frobenius(&self) -> PyNimber {
+        PyNimber {
+            inner: self.inner.frobenius(),
+        }
+    }
+    /// The nim square root (unique in characteristic 2 — Frobenius is a bijection).
+    fn sqrt(&self) -> PyNimber {
+        PyNimber {
+            inner: Nimber(crate::scalar::nim_sqrt(self.inner.0)),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{:?}", self.inner)

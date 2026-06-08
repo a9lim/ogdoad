@@ -36,10 +36,10 @@ fn isqrt_exact(n: i128) -> Option<i128> {
         return Some(0);
     }
     let mut x = (n as f64).sqrt() as i128;
-    while x > 0 && x.checked_mul(x).map_or(true, |v| v > n) {
+    while x > 0 && x.checked_mul(x).is_none_or(|v| v > n) {
         x -= 1;
     }
-    while (x + 1).checked_mul(x + 1).map_or(false, |v| v <= n) {
+    while (x + 1).checked_mul(x + 1).is_some_and(|v| v <= n) {
         x += 1;
     }
     if x * x == n {
@@ -62,16 +62,16 @@ fn inth_root_exact(n: i128, k: u32) -> Option<i128> {
         return Some(0);
     }
     let neg = n < 0;
-    if neg && k % 2 == 0 {
+    if neg && k.is_multiple_of(2) {
         return None; // no real even root of a negative
     }
     let a = n.abs();
     let pw = |b: i128| -> Option<i128> { b.checked_pow(k) };
     let mut x = (a as f64).powf(1.0 / k as f64) as i128;
-    while x > 0 && pw(x).map_or(true, |v| v > a) {
+    while x > 0 && pw(x).is_none_or(|v| v > a) {
         x -= 1;
     }
-    while pw(x + 1).map_or(false, |v| v <= a) {
+    while pw(x + 1).is_some_and(|v| v <= a) {
         x += 1;
     }
     if pw(x) == Some(a) {
@@ -119,6 +119,9 @@ impl Rational {
     }
 
     /// Total order on values (denominator is always positive).
+    // Inherent value-order, deliberately kept off `std::cmp::Ord`: orders and
+    // operators are opt-in here, not blanket trait impls (see AGENTS.md).
+    #[allow(clippy::should_implement_trait)]
     pub fn cmp(&self, other: &Self) -> Ordering {
         self.sub(other).sign()
     }

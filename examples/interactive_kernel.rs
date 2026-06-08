@@ -84,10 +84,7 @@ fn describe_pset(label: &str, p: &[u128], zero: &[u128], draws: usize, m: u128) 
 fn main() {
     let (m, a) = (4u128, 1u128);
     let n = 1usize << m;
-    let zero: Vec<u128> = (0..n as u128)
-        .filter(|&v| gold(v, a, m) == 0)
-        .map(|v| v as u128)
-        .collect();
+    let zero: Vec<u128> = (0..n as u128).filter(|&v| gold(v, a, m) == 0).collect();
     println!(
         "Gold form Q_{a} on F_2^{m}:  |{{Q=0}}| = {} of {n}",
         zero.len()

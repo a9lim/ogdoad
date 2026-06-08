@@ -80,7 +80,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
             return Qp { unit: 0, val: 0 };
         }
         let mut v = val;
-        while u % P == 0 {
+        while u.is_multiple_of(P) {
             u /= P;
             v += 1;
         }
@@ -312,8 +312,8 @@ mod tests {
 
     #[test]
     fn invalid_parameters_are_rejected() {
-        assert!(std::panic::catch_unwind(|| Qp::<4, 3>::one()).is_err());
-        assert!(std::panic::catch_unwind(|| Qp::<5, 0>::one()).is_err());
+        assert!(std::panic::catch_unwind(Qp::<4, 3>::one).is_err());
+        assert!(std::panic::catch_unwind(Qp::<5, 0>::one).is_err());
     }
 
     #[test]

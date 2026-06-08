@@ -65,12 +65,12 @@ fn is_prime(p: u128) -> bool {
     if p == 2 {
         return true;
     }
-    if p % 2 == 0 {
+    if p.is_multiple_of(2) {
         return false;
     }
     let mut d = 3u128;
     while d <= p / d {
-        if p % d == 0 {
+        if p.is_multiple_of(d) {
             return false;
         }
         d += 2;
@@ -125,12 +125,11 @@ fn legendre(a: i128, p: i128) -> i8 {
 /// is a square unit (`≡ □ mod p` for odd `p`; `≡ 1 mod 8` for `p = 2`).
 pub fn is_square_qp(n: i128, p: u128) -> bool {
     assert!(is_prime(p), "Q_p square test needs p prime");
-    let n = n as i128;
     let p = p as i128;
     if n == 0 {
         return false;
     }
-    if val_p(n, p) % 2 != 0 {
+    if !val_p(n, p).is_multiple_of(2) {
         return false;
     }
     let u = unit_part(n, p);
@@ -175,8 +174,8 @@ fn omega2(u: i128) -> i128 {
 /// `(a,b)_2 = (−1)^{ε(u)ε(v) + α ω(v) + β ω(u)}`.
 pub fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> i8 {
     assert!(is_prime(p), "Hilbert symbol needs p prime");
-    let a = square_free(a as i128);
-    let b = square_free(b as i128);
+    let a = square_free(a);
+    let b = square_free(b);
     assert!(a != 0 && b != 0, "Hilbert symbol needs nonzero arguments");
     let pi = p as i128;
     let (al, be) = (val_p(a, pi), val_p(b, pi));
@@ -233,9 +232,9 @@ pub fn hasse_at_place(entries: &[i128], place: Place) -> i8 {
 pub(crate) fn disc_class(entries: &[i128]) -> i128 {
     let mut d: i128 = 1;
     for &e in entries {
-        d = square_free(d * square_free(e as i128));
+        d = square_free(d * square_free(e));
     }
-    d as i128
+    d
 }
 
 /// The primes that can carry a nontrivial local condition: `2` together with every
@@ -244,7 +243,7 @@ pub(crate) fn relevant_primes(entries: &[i128]) -> BTreeSet<u128> {
     let mut ps = BTreeSet::new();
     ps.insert(2);
     for &e in entries {
-        let mut n = (e as i128).abs();
+        let mut n = e.abs();
         let mut d: i128 = 2;
         while d * d <= n {
             if n % d == 0 {
@@ -303,7 +302,7 @@ pub(crate) fn is_isotropic_at_p(entries: &[i128], p: u128) -> bool {
     let d = disc_class(entries);
     match n {
         0 | 1 => false,
-        2 => is_square_qp((-(entries[0] as i128 * entries[1] as i128)) as i128, p),
+        2 => is_square_qp(-(entries[0] * entries[1]), p),
         3 => hilbert_symbol_qp(-1, -d, p) == hasse_at_place(entries, Place::Prime(p)),
         4 => {
             !is_square_qp(d, p)
@@ -320,7 +319,7 @@ pub(crate) fn is_isotropic_at_p(entries: &[i128], p: u128) -> bool {
 /// rank ≥ 3 needs `ℝ`-indefiniteness plus the local condition at each prime dividing
 /// `2·∏a_i` (all other primes are automatically isotropic for rank ≥ 3).
 pub fn is_isotropic_q(entries: &[i128]) -> bool {
-    if entries.iter().any(|&e| e == 0) {
+    if entries.contains(&0) {
         return true; // a null coordinate direction
     }
     let n = entries.len();
@@ -329,7 +328,7 @@ pub fn is_isotropic_q(entries: &[i128]) -> bool {
     }
     if n == 2 {
         // ⟨a,b⟩ isotropic over Q iff −ab is a (global) square.
-        return is_perfect_square(-(entries[0] as i128 * entries[1] as i128));
+        return is_perfect_square(-(entries[0] * entries[1]));
     }
     // rank ≥ 3: real place must be indefinite …
     let has_pos = entries.iter().any(|&e| e > 0);

@@ -341,6 +341,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::type_complexity)] // test fixture: list of (q-diagonal, polar-pairs)
     fn general_agrees_with_f2_bitmask() {
         // The general nim-field path must match the F₂ bitmask version on every
         // F₂ form (arf, rank, radical_dim, anisotropy, type all invariant).

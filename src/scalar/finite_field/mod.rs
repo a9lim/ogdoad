@@ -114,7 +114,7 @@ pub trait FiniteField: Scalar + Copy {
     /// The **relative trace** `Tr_{F_{p^m}/F_{p^e}}(x) = Σ_i x^{p^{e·i}}`, viewing
     /// `x` inside the degree-`m` subfield. Requires `e | m`.
     fn relative_trace_over(&self, m: usize, e: usize) -> Self {
-        assert!(e > 0 && m % e == 0, "relative trace needs e | m");
+        assert!(e > 0 && m.is_multiple_of(e), "relative trace needs e | m");
         let mut acc = Self::zero();
         let mut t = *self;
         for _ in 0..(m / e) {
@@ -127,7 +127,7 @@ pub trait FiniteField: Scalar + Copy {
     /// The **relative norm** `N_{F_{p^m}/F_{p^e}}(x) = ∏_i x^{p^{e·i}}` — the
     /// multiplicative companion of [`relative_trace_over`]. Requires `e | m`.
     fn relative_norm_over(&self, m: usize, e: usize) -> Self {
-        assert!(e > 0 && m % e == 0, "relative norm needs e | m");
+        assert!(e > 0 && m.is_multiple_of(e), "relative norm needs e | m");
         let mut acc = Self::one();
         let mut t = *self;
         for _ in 0..(m / e) {
@@ -189,5 +189,5 @@ pub trait FiniteField: Scalar + Copy {
 
 /// The divisors of `n` in ascending order (small `n` = a field's extension degree).
 fn divisors(n: usize) -> Vec<usize> {
-    (1..=n).filter(|d| n % d == 0).collect()
+    (1..=n).filter(|d| n.is_multiple_of(*d)).collect()
 }

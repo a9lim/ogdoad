@@ -37,12 +37,12 @@ impl<const P: u128> Fp<P> {
         if P == 2 {
             return true;
         }
-        if P % 2 == 0 {
+        if P.is_multiple_of(2) {
             return false;
         }
         let mut d = 3u128;
         while d <= P / d {
-            if P % d == 0 {
+            if P.is_multiple_of(d) {
                 return false;
             }
             d += 2;
@@ -58,7 +58,7 @@ impl<const P: u128> Fp<P> {
     pub fn new(n: i128) -> Self {
         Self::assert_prime_modulus();
         let m = P as i128;
-        let v = (((n as i128) % m) + m) % m;
+        let v = ((n % m) + m) % m;
         Fp(v as u128)
     }
 }
@@ -80,7 +80,7 @@ impl<const P: u128> Scalar for Fp<P> {
     }
     fn add(&self, rhs: &Self) -> Self {
         Self::assert_prime_modulus();
-        Fp(((self.0 as u128 + rhs.0 as u128) % P as u128) as u128)
+        Fp((self.0 + rhs.0) % P)
     }
     fn neg(&self) -> Self {
         Self::assert_prime_modulus();
@@ -92,11 +92,11 @@ impl<const P: u128> Scalar for Fp<P> {
     }
     fn mul(&self, rhs: &Self) -> Self {
         Self::assert_prime_modulus();
-        Fp(((self.0 as u128 * rhs.0 as u128) % P as u128) as u128)
+        Fp((self.0 * rhs.0) % P)
     }
     fn characteristic() -> u128 {
         Self::assert_prime_modulus();
-        P as u128
+        P
     }
     fn inv(&self) -> Option<Self> {
         Self::assert_prime_modulus();
@@ -204,7 +204,7 @@ mod tests {
 
     #[test]
     fn composite_modulus_is_rejected() {
-        assert!(std::panic::catch_unwind(|| Fp::<4>::one()).is_err());
+        assert!(std::panic::catch_unwind(Fp::<4>::one).is_err());
         assert!(std::panic::catch_unwind(|| Fp::<9>::new(2)).is_err());
     }
 }

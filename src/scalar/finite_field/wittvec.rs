@@ -96,9 +96,9 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
             if a[i] == 0 {
                 continue;
             }
-            let ai = a[i] as u128;
+            let ai = a[i];
             for j in 0..F {
-                scratch[i + j] = (scratch[i + j] + ai * b[j] as u128) % m;
+                scratch[i + j] = (scratch[i + j] + ai * b[j]) % m;
             }
         }
         // reduce mod f̃ (the same reduction poly as Fpn<P,F>, lifted to Z/p^N).
@@ -111,7 +111,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
                 }
                 scratch[k] = 0;
                 for i in 0..F {
-                    scratch[k - F + i] = (scratch[k - F + i] + c * red[i] as u128) % m;
+                    scratch[k - F + i] = (scratch[k - F + i] + c * red[i]) % m;
                 }
             }
         }
@@ -227,7 +227,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
     fn one() -> Self {
         let mut out = [0u128; F];
         if F > 0 {
-            out[0] = (1 % Self::modulus()) as u128;
+            out[0] = 1 % Self::modulus();
         }
         WittVec(out)
     }
@@ -236,7 +236,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
         let m = Self::modulus();
         let mut out = [0u128; F];
         for i in 0..F {
-            out[i] = ((self.0[i] as u128 + rhs.0[i] as u128) % m) as u128;
+            out[i] = (self.0[i] + rhs.0[i]) % m;
         }
         WittVec(out)
     }
@@ -245,11 +245,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
         let m = Self::modulus();
         let mut out = [0u128; F];
         for i in 0..F {
-            out[i] = if self.0[i] == 0 {
-                0
-            } else {
-                (m - self.0[i] as u128) as u128
-            };
+            out[i] = if self.0[i] == 0 { 0 } else { m - self.0[i] };
         }
         WittVec(out)
     }

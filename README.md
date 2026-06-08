@@ -1,42 +1,103 @@
 # pleroma
 
 `pleroma` is a Rust research playground for Clifford algebras, quadratic forms,
-and combinatorial-game arithmetic, with optional Python bindings.
+and combinatorial-game arithmetic, with optional Python bindings. It is built
+around a single observation: the exotic number systems it implements — surreals,
+nimbers, p-adics, Witt vectors, Laurent series — are not a grab bag. They are the
+cells of *one table*, and the same structures recur across them with the
+characteristic and the place swapped. The code is organized to make those
+symmetries visible.
 
-The central constraint is mathematical, not just architectural: Conway games
-under disjunctive sum form an abelian group, not a scalar ring. Conway
-multiplication is defined on the number/nimber sides, not on arbitrary games.
-So this project does **not** build Clifford algebras over all games. It builds a
-generic Clifford engine over commutative scalar backends that are adjacent to
-game theory:
+The central constraint is mathematical, not architectural: Conway games under
+disjunctive sum form an abelian group, **not a scalar ring**. Conway
+multiplication is defined only on the number/nimber sides. So this project does
+**not** build Clifford algebras over all games. It builds a generic Clifford
+engine over the commutative scalar backends that are *adjacent* to game theory,
+and a forms layer that classifies the result.
 
-| backend | implemented object | Clifford/form role |
+## Two views of one table of numbers
+
+Every backend is a cell in a table with two axes:
+
+- **place** — *where* the number lives (Archimedean, p-adic, finite, transfinite),
+  and whether it is a field or its ring of integers. This is how `src/scalar/` is
+  organized.
+- **characteristic** — *which* classification theory applies (char 0 / odd / 2).
+  This is how `src/forms/` is organized.
+
+The two axes are independent, and the two pillars are complementary readings of
+the same objects. The place axis pairs each **field** with its **ring of
+integers**:
+
+| | field | ring of integers |
 | --- | --- | --- |
-| `Nimber(u128)` | the finite nim-field `F_{2^128}` | characteristic-2 Clifford examples, Arf/radical data, finite-field experiments |
-| `Surreal` | finite-support Hahn/CNF surreals with rational coefficients | a represented subdomain of real-closed Clifford theory, including infinite/infinitesimal monomials |
-| `Surcomplex<Surreal>` | adjoining `i` to the implemented surreal backend | represented subdomain of complex Clifford theory |
-| `Rational`, `Integer`, `Omnific`, `Fp`, `Fpn`, `Zp`, `Qp`, `Qq`, `WittVec`, `Laurent`, `Ramified`, `Gauss`, `Adele` | comparison rings/fields and precision models | form invariants, local/global tests, exterior/game-group constructions |
+| Archimedean (char 0) | `Rational` ℚ | `Integer` ℤ |
+| transfinite | `Surreal` (No) | `Omnific` (Oz) |
+| p-adic (char 0) | `Qp`, `Qq` | `Zp`, `WittVec` |
+| finite | `Fp`, `Fpn`, `Nimber` | — |
 
-"With nilpotents" means the quadratic form may be degenerate. If `Q(e_i) = 0`,
-then `e_i^2 = 0`; the all-zero metric is the exterior/Grassmann algebra.
+The pairing is not decorative — it is made structural by the
+`HasFractionField` / `HasRingOfIntegers` trait pair (`ℤ⊂ℚ`, `Oz⊂No`, `Zp⊂Qp`,
+`W_N⊂Qq`, and `ℤ[i]⊂ℚ[i]` for free via the surcomplex transport).
 
-## The Char-2 Point
+## The symmetries
 
-In characteristic 2, the quadratic form and its polar form carry different
-data. The engine stores
+**char 0 ↔ char 2.** Classifying a quadratic form is one theory split by `char F`.
+Over a real-closed field it is the 8-fold periodic Cl(p,q) table (`M_n(ℝ/ℂ/ℍ)`);
+in characteristic 2 the quadratic and polar forms part ways and the same role is
+played by the Arf invariant and the Brauer–Wall group. The classifier façade picks
+the leg from the scalar type at compile time, so `metric.classify()` is one call
+across all three legs.
+
+**surreal No ↔ ordinal On₂.** The surreals (a char-0 field) and the ordinal
+nimbers (a char-2 non-field) are mirror images: both are Cantor-normal-form towers
+over recursive exponents, sharing one canonicalizer. They differ in exactly three
+places — the exponent order, the coefficient merge (`+` vs `XOR`), and the zero
+test — which is why the shared code is a *function*, not a type. No is where
+infinite/infinitesimal Clifford metrics live; On₂ is the proper-class char-2 field.
+
+**The 2×2 functor table.** Orthogonal to the place table, there are four ways to
+grow a field, and all four corners are filled:
+
+| | residue-extending | value-extending |
+| --- | --- | --- |
+| **algebraic** | `Surcomplex` (adjoin `i`) | `Ramified` (adjoin `π = ϖ^{1/e}`) |
+| **transcendental** | `Gauss` (adjoin a unit `t`) | `Laurent` (adjoin a uniformizer `t`) |
+
+`Laurent` over a finite field is the equal-characteristic mirror of `Qp`;
+`Ramified` is the ramified twin of the unramified `Qq`.
+
+**local ↔ global.** The Springer decomposition appears three times, once per
+complete valued field, and the value group controls the answer: over the surreals
+the value group is 2-divisible (`W(No)=W(ℝ)=ℤ`), but over `Q_p` and `F_q((t))` it
+is `ℤ`, so two residue layers survive (`W(Q_p)=W(F_p)²`). The adelic layer then
+glues the local data: Hasse–Minkowski isotropy over ℚ and Hilbert reciprocity
+`∏_v (a,b)_v = +1` (the multiplicative product formula).
+
+**the games bridge.** Red/blue/green Hackenbush is the one object that reads out as
+a surreal (blue−red), a nimber (all-green = Nim), or a general partizan game — and
+nim-multiplication itself is realized by Conway's Turning-Corners coin game. This
+is the seam where the game pillar meets the scalar pillar.
+
+## The char-2 point
+
+In characteristic 2 the quadratic form and its polar form carry different data.
+The engine stores them separately:
 
 ```text
-e_i^2 = q_i
-e_i e_j + e_j e_i = b_ij
+e_i^2          = q_i        # the quadratic form
+e_i e_j + e_j e_i = b_ij    # the polar / anticommutator (alternating: b_ii = 0)
 ```
 
-separately. For nimbers, `-1 = 1`, so an orthogonal basis with `b = 0` gives a
-commutative Clifford product. A nonzero off-diagonal `b[(i,j)]` is what makes a
-characteristic-2 example noncommutative.
+For nimbers `-1 = 1`, so an orthogonal basis with `b = 0` gives a *commutative*
+Clifford product; a nonzero off-diagonal `b[(i,j)]` is what makes a
+characteristic-2 example noncommutative. Collapsing `q` and `b` into one symmetric
+form would silently throw away the entire point of the nimber backend. (An optional
+third field `a` lifts the engine to a general, non-symmetric bilinear form.)
 
 ## Quickstart
 
-Requires Rust and Python >= 3.9.
+Requires Rust and Python ≥ 3.9.
 
 ```sh
 python3 -m venv .venv
@@ -48,29 +109,37 @@ VIRTUAL_ENV=.venv .venv/bin/maturin develop
 ```python
 import pleroma as pl
 
-# characteristic-2 nimber Clifford, non-orthogonal => noncommutative
+# characteristic-2 nimber Clifford: non-orthogonal => noncommutative
 A = pl.NimberAlgebra(q=[pl.Nimber(2), pl.Nimber(3)], b={(0, 1): 1})
 e0, e1 = A.gen(0), A.gen(1)
-e0 * e1 + e1 * e0      # *1
-e0 ** 2                # *2
+e0 * e1 + e1 * e0          # *1  (the anticommutator b[(0,1)])
 
-# surreal metric: infinite and infinitesimal squares
+# surreal metric: infinite and infinitesimal squares are exact
 S = pl.SurrealAlgebra(q=[pl.omega(), pl.epsilon()])
-(S.gen(0) * S.gen(1)) ** 2     # -1
+(S.gen(0) * S.gen(1)) ** 2          # -1
 
-# finite-support surreal arithmetic
-w = pl.omega()
-(w + 1) * (w - 1)              # ω^2 - 1
-pl.omega_pow(pl.omega())       # ω^(ω)
+# the games bridge: Hackenbush reads out as a surreal OR a nimber
+pl.Hackenbush.string(["blue", "blue"]).value()      # a surreal number
+pl.Hackenbush.string(["green", "green"]).grundy()   # a nimber (all-green = Nim)
+
+# char 0 <-> char 2: a classification on each leg
+pl.classify_real(1, 3)              # Cl(1,3) over R, the 8-fold table
+pl.arf_invariant(A)                 # the char-2 mirror invariant
+
+# local <-> global: Hasse-Minkowski + Hilbert reciprocity over Q
+pl.is_isotropic_q([1, 1, 1])        # False (anisotropic over Q)
+pl.hilbert_product((-1, 1), (-1, 1))# +1  (reciprocity)
 ```
 
-Python exposes the main Clifford backends (`NimberAlgebra`, `SurrealAlgebra`,
-`SurcomplexAlgebra`, `IntegerAlgebra`, `OmnificAlgebra`), scalar classes
-(`Nimber`, `Surreal`, `Surcomplex`, `Integer`, `Omnific`, `Ordinal`), form
-helpers (`arf_invariant`, `classify_surreal`, `FiniteFieldForm`, `hilbert_symbol_qp`,
-`is_isotropic_q`, `bw_class_*`, ...), and game helpers (`Game`, `GameExterior`,
-`Hackenbush`, `nim_mul_mex`, `grundy_graph`). `Ordinal` is currently exposed as
-a scalar object, not as a Clifford-algebra backend in Python.
+Python exposes the Clifford backends (`NimberAlgebra`, `SurrealAlgebra`,
+`SurcomplexAlgebra`, `IntegerAlgebra`, `OmnificAlgebra`), the scalar classes
+(`Nimber`, `Surreal`, `Surcomplex`, `Integer`, `Omnific`, `Ordinal`), the form
+helpers (`classify_*`, `arf_invariant`, `FiniteFieldForm`, `hilbert_symbol_qp`,
+`isotropy_over_adeles`, `bw_class_*`, …), and the game helpers (`Game`,
+`GameExterior`, `Hackenbush`, the kernel outcome/scoring functions, the misère and
+loopy machinery, `nim_mul_mex`, `grundy_graph`). The const-generic backends
+(`Qp`, `Zp`, `Fp`, `Laurent`, …) are Rust-only: Python is a runtime, and their
+parameters are compile-time. See `src/py/AGENTS.md` for the binding-scope policy.
 
 Run the Rust tour without Python:
 
@@ -80,25 +149,26 @@ cargo run --example tour
 
 ## Layout
 
-- `src/scalar/` defines the `Scalar` trait and the coefficient worlds.
-  The place-organized table includes exact (`Rational`, `Integer`), big
-  (`Surreal`, `Omnific`, `Ordinal`), small/local (`Zp`, `Qp`, `Qq`), finite-field
-  (`Fp`, `Fpn`, `Nimber`, `WittVec`), functor (`Surcomplex`, `Laurent`,
-  `Ramified`, `Gauss`), and global (`Adele`, `LocalQp`) modules. Several local
-  and global backends are finite-precision models, not exact scalar fields.
-- `src/clifford/` contains the generic multivector engine, geometric product,
-  inverse, versor operations, outermorphisms, Hopf/divided-power structures,
-  conformal/projective GA, and spinor helpers.
-- `src/forms/` contains quadratic-form classifiers and invariants: characteristic
-  0, odd characteristic, characteristic 2, Witt/Brauer-Wall utilities, Springer
-  decompositions, symplectic/hermitian forms, and the adelic local-global layer
-  over rational forms.
-- `src/games/` contains normal-play and misere impartial game code, short
-  partizan games, thermography/atomic weight, Hackenbush, loopy finite graphs,
-  and the exterior algebra of the game group over `Integer`.
-- `src/py/` contains the optional PyO3 bindings behind the `python` feature.
+A pure Rust math core, generic over a `Scalar` trait, with PyO3 per-backend
+bindings on top. Each `src/` pillar has its own `AGENTS.md` with the detailed
+file-by-file breakdown:
 
-## Research Thread
+- `src/scalar/` — the `Scalar` trait and every coefficient world, grouped by place.
+- `src/clifford/` — the multivector engine, geometric product, and the GA layer
+  (versors, outermorphisms, Hopf/divided-power structures, conformal/projective GA,
+  spinors).
+- `src/forms/` — the quadratic-form classifiers and invariants across the
+  characteristic trichotomy, plus Witt/Brauer–Wall, the Springer trio, and the
+  rational local–global layer.
+- `src/games/` — normal-, misère-, and loopy-play impartial games, short partizan
+  games, thermography/atomic weight, Hackenbush, and the exterior algebra of the
+  game group.
+- `src/py/` — the optional PyO3 bindings behind the `python` feature.
+
+See `AGENTS.md` for the working-notes summary and `NOTES.md` for the mathematical
+thread.
+
+## Research thread
 
 The narrow mathematical thread in `NOTES.md` and `writeup/pleroma.tex` is not a
 claim of a new Clifford classification theorem. It is a draft investigation of
@@ -106,41 +176,32 @@ game-built quadratic forms in the nimber backend:
 
 1. Turning-Corners games realize nim multiplication.
 2. Frobenius squaring and traces are built from nim multiplication and XOR.
-3. Gold-style trace forms `Tr(lambda * x^(1+2^a))` are therefore expressible from
+3. Gold-style trace forms `Tr(λ · x^(1+2^a))` are therefore expressible from
    game-value operations.
 4. The Arf invariant gives the standard zero-count bias for a quadratic zero set.
 5. The open question is whether a natural game rule has such a zero set as its
-   P-positions. Current probes include normal-play, misere quotient, interactive,
-   loopy, and bent-form searches; they narrow the target but do not solve it.
+   P-positions. Current probes span normal-play, misère quotient, interactive
+   (`kernel`), loopy (Draw-set), and bent-form searches; they narrow the target but
+   do not solve it.
 
-## Status And Limits
+## Status and limits
 
 This is active research code with tests, examples, and experiments. Treat green
-tests as regression evidence, not as a proof of the mathematical program.
+tests as regression evidence, not as a proof of the mathematical program. The CI
+checks are `cargo fmt --check`, `cargo clippy --all-targets` (warning-clean),
+`cargo test`, `cargo check --features python`, and `cargo check --examples`.
 
-Useful checks:
+Scope boundaries worth stating plainly:
 
-```sh
-cargo fmt --check
-cargo test
-cargo check --features python
-cargo check --examples
-git diff --check
-```
-
-Important scope boundaries:
-
-- `Nimber(u128)` is exactly `F_{2^128}`. It contains nim subfields whose degrees
-  divide 128; it is not the proper-class field of all nimbers and not all finite
-  characteristic-2 fields.
-- `Ordinal` nim-addition is implemented generally on the represented CNF terms.
-  Nim-multiplication is implemented below `ω^ω` through the current degree-3
-  tower; ordinals with infinite CNF exponents return `None`.
-- `Surreal` uses finite support and rational coefficients. Non-monomial inverses
-  are generally infinite Hahn series and are not represented by `inv()`.
-- `Qp`, `Qq`, `Laurent`, `Gauss`, and `Adele` are finite-precision models in the
-  current implementation. They are useful for local/global form experiments, but
-  they are not exact infinite-memory local fields.
-- The Gold/Arf game thread is conditional: if a game has P-set `{Q = 0}`, Arf
-  predicts the win-bias. The repo has not found a non-tautological natural game
-  with that P-set.
+- `Nimber(u128)` is exactly `F_{2^128}`. It contains the nim subfields of degree
+  dividing 128; it is not the proper-class field of all nimbers.
+- `Ordinal` nim-addition is general on the represented CNF terms; nim-multiplication
+  is implemented below `ω^ω` through the current degree-3 tower (returns `None` above).
+- `Surreal` uses finite support and rational coefficients — the honest truncation of
+  true CNF. Non-monomial inverses are infinite Hahn series and are not represented.
+- `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss`, and `Adele` are finite-precision
+  (capped-relative) models, not exact infinite-memory local fields. They are useful
+  for local/global form experiments and excluded from the exact-ring fuzz.
+- The Gold/Arf game thread is conditional: *if* a game has P-set `{Q = 0}`, Arf
+  predicts the win-bias. No non-tautological natural game with that P-set has been
+  found.

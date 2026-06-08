@@ -101,6 +101,10 @@ pub fn nim_canonical(mut heaps: Vec<u128>) -> Vec<u128> {
 }
 
 /// The moves of Nim: reduce any one heap to any strictly smaller size.
+// `&Vec` is deliberate: this is passed as a `fn` to the generic move-generator
+// bound `Fn(&P)` with `P = Vec<u128>` (see `misere_is_p`/`grundy`), where a
+// `fn(&[u128])` pointer would not unify with `fn(&Vec<u128>)`.
+#[allow(clippy::ptr_arg)]
 pub fn nim_moves(pos: &Vec<u128>) -> Vec<Vec<u128>> {
     let mut out = Vec::new();
     for i in 0..pos.len() {
@@ -151,11 +155,11 @@ pub struct AbstractGame {
 impl AbstractGame {
     /// Moves of a disjunctive sum (a multiset of nonzero component positions): in
     /// any one component, replace it by one of its options (dropping the empty).
-    fn sum_moves(&self, pos: &Vec<usize>) -> Vec<Vec<usize>> {
+    fn sum_moves(&self, pos: &[usize]) -> Vec<Vec<usize>> {
         let mut out = Vec::new();
         for idx in 0..pos.len() {
             for &q in &self.moves[pos[idx]] {
-                let mut np = pos.clone();
+                let mut np = pos.to_vec();
                 if q == 0 {
                     np.remove(idx);
                 } else {

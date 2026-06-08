@@ -4,10 +4,10 @@
 //! The classification of a quadratic form (equivalently, of the Clifford
 //! algebra it builds) is *one* theory split three ways by `char F`:
 //!
-//!   * [`char0`]   — char 0: the 8-fold real and 2-fold complex tables on the
-//!                   exact-square subdomains represented by the scalar backends.
-//!   * [`oddchar`] — odd characteristic: discriminant + Hasse invariant.
-//!   * [`char2`]   — characteristic 2: the Arf invariant (and Dickson).
+//! * [`char0`] — char 0: the 8-fold real and 2-fold complex tables on the
+//!   exact-square subdomains represented by the scalar backends.
+//! * [`oddchar`] — odd characteristic: discriminant + Hasse invariant.
+//! * [`char2`] — characteristic 2: the Arf invariant (and Dickson).
 //!
 //! [`witt`] packages the Witt group across all three legs ([`WittClassG`]),
 //! and the Springer trio is the discrete-valuation decomposition across the three

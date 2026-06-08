@@ -105,7 +105,7 @@ pub fn springer_decompose_laurent<S: FiniteOddField, const K: usize>(
             }
         }
     }
-    buckets.sort_by(|a, b| b.0.cmp(&a.0)); // descending valuation
+    buckets.sort_by_key(|x| std::cmp::Reverse(x.0)); // descending valuation
     let graded = buckets
         .into_iter()
         .map(|(valuation, dim, disc_is_square)| LaurentResidueForm {
