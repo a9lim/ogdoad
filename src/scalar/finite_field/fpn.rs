@@ -25,11 +25,12 @@
 //! Arithmetic is in `F_p[x] / (m(x))` for a monic irreducible `m` of degree `N`.
 //! [`reduction`] returns the low coefficients `r` of the reduction rule
 //! `x^N = Σ_i r_i x^i` (i.e. `m(x) = x^N − Σ_i r_i x^i`). The polynomials shipped here
-//! are verified irreducible by the exhaustive field-axiom tests below; they can be
-//! swapped for the canonical **Conway polynomials** later (which additionally give
-//! compatible embeddings `F_{p^n} ↪ F_{p^{nm}}`) without touching anything else.
-//! `mul` is schoolbook multiply-then-reduce — the degree-`N`, odd-`p` generalisation
-//! of `big::ordinal`'s "reduce mod `ω³ = 2`".
+//! are verified irreducible by the exhaustive field-axiom tests below. Where the
+//! table is known to be using the canonical **Conway polynomial**, the metadata says
+//! so; other supported fields remain honest "irreducible polynomial" models rather
+//! than pretending to carry compatible Conway embeddings. `mul` is schoolbook
+//! multiply-then-reduce — the degree-`N`, odd-`p` generalisation of `big::ordinal`'s
+//! "reduce mod `ω³ = 2`".
 
 use super::fp::{add_mod, mul_mod};
 use super::FiniteField;
@@ -41,25 +42,49 @@ use std::fmt;
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Fpn<const P: u128, const N: usize>([u128; N]);
 
+/// Provenance of the shipped reduction polynomial for an `Fpn<P,N>` backend.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReductionPolynomialKind {
+    /// Degree-1 prime field, so no extension polynomial is needed.
+    PrimeField,
+    /// The table entry is the Conway polynomial in this polynomial basis.
+    Conway,
+    /// The table entry is verified irreducible, but not claimed as Conway data.
+    Irreducible,
+}
+
 /// Low coefficients `r` of the reduction rule `x^N = Σ_i r_i x^i` for the supported
 /// `(P, N)` fields. Each returned slice has length `N`. Unsupported pairs are a
 /// compile-time error (the `panic!` fires in a `const`-evaluable position when the
 /// field is monomorphised through the engine, and at first use otherwise).
 ///
-/// The chosen reduction polynomials (all verified irreducible by the tests):
-///   * `F_4  = F_2[x]/(x²+x+1)`   → `x² = x + 1`
-///   * `F_8  = F_2[x]/(x³+x+1)`   → `x³ = x + 1`
+/// The chosen reduction polynomials (all verified irreducible by the tests; `C`
+/// marks entries also identified as Conway):
+///   * `F_4  = F_2[x]/(x²+x+1)`   → `x² = x + 1`       (`C`)
+///   * `F_8  = F_2[x]/(x³+x+1)`   → `x³ = x + 1`       (`C`)
+///   * `F_16 = F_2[x]/(x⁴+x+1)`   → `x⁴ = x + 1`       (`C`)
 ///   * `F_9  = F_3[x]/(x²+1)`     → `x² = 2`
 ///   * `F_25 = F_5[x]/(x²−2)`     → `x² = 2`
 ///   * `F_27 = F_3[x]/(x³−x+1)`   → `x³ = x + 2`
 pub(crate) const fn reduction<const P: u128, const N: usize>() -> &'static [u128] {
     match (P, N) {
-        (_, 1) => &[0],       // degree 1: F_p itself, no reduction needed
-        (2, 2) => &[1, 1],    // x² = 1 + x
-        (2, 3) => &[1, 1, 0], // x³ = 1 + x
-        (3, 2) => &[2, 0],    // x² = 2
-        (5, 2) => &[2, 0],    // x² = 2
-        (3, 3) => &[2, 1, 0], // x³ = 2 + x
+        (_, 1) => &[0],          // degree 1: F_p itself, no reduction needed
+        (2, 2) => &[1, 1],       // x² = 1 + x
+        (2, 3) => &[1, 1, 0],    // x³ = 1 + x
+        (2, 4) => &[1, 1, 0, 0], // x⁴ = 1 + x
+        (3, 2) => &[2, 0],       // x² = 2
+        (5, 2) => &[2, 0],       // x² = 2
+        (3, 3) => &[2, 1, 0],    // x³ = 2 + x
+        _ => panic!("Fpn: unsupported (P, N) finite field — add its reduction polynomial"),
+    }
+}
+
+/// Metadata companion to [`reduction`].
+pub(crate) const fn reduction_kind<const P: u128, const N: usize>() -> ReductionPolynomialKind {
+    match (P, N) {
+        (_, 1) => ReductionPolynomialKind::PrimeField,
+        (2, 2) | (2, 3) | (2, 4) => ReductionPolynomialKind::Conway,
+        (3, 2) | (5, 2) | (3, 3) => ReductionPolynomialKind::Irreducible,
         _ => panic!("Fpn: unsupported (P, N) finite field — add its reduction polynomial"),
     }
 }
@@ -70,7 +95,10 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
     pub fn is_supported_field() -> bool {
         Fp::<P>::modulus_is_prime()
             && N > 0
-            && matches!((P, N), (_, 1) | (2, 2) | (2, 3) | (3, 2) | (5, 2) | (3, 3))
+            && matches!(
+                (P, N),
+                (_, 1) | (2, 2) | (2, 3) | (2, 4) | (3, 2) | (5, 2) | (3, 3)
+            )
     }
 
     pub fn assert_supported_field() {
@@ -88,6 +116,25 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
             acc = acc.checked_mul(P).expect("Fpn order exceeds u128");
         }
         acc
+    }
+
+    /// The low coefficients of the reduction rule `x^N = Σ r_i x^i`.
+    pub fn reduction_rule() -> &'static [u128] {
+        Self::assert_supported_field();
+        reduction::<P, N>()
+    }
+
+    /// Whether this backend uses a Conway polynomial, a merely irreducible
+    /// polynomial, or no extension polynomial because `N = 1`.
+    pub fn reduction_polynomial_kind() -> ReductionPolynomialKind {
+        Self::assert_supported_field();
+        reduction_kind::<P, N>()
+    }
+
+    /// `true` exactly when this backend is tagged with Conway polynomial
+    /// provenance.
+    pub fn is_conway_polynomial() -> bool {
+        Self::reduction_polynomial_kind() == ReductionPolynomialKind::Conway
     }
 
     /// Embed a base-field constant `c ∈ F_p` as the degree-0 element.
@@ -454,12 +501,33 @@ mod tests {
     }
 
     #[test]
-    fn field_axioms_f4_f8_f9_f25_f27() {
+    fn field_axioms_f4_f8_f16_f9_f25_f27() {
         check_field_axioms::<2, 2>(); // F_4
         check_field_axioms::<2, 3>(); // F_8
+        check_field_axioms::<2, 4>(); // F_16
         check_field_axioms::<3, 2>(); // F_9
         check_field_axioms::<5, 2>(); // F_25
         check_field_axioms::<3, 3>(); // F_27
+    }
+
+    #[test]
+    fn conway_metadata_is_explicit() {
+        assert_eq!(
+            Fpn::<2, 4>::reduction_polynomial_kind(),
+            ReductionPolynomialKind::Conway
+        );
+        assert_eq!(Fpn::<2, 4>::reduction_rule(), &[1, 1, 0, 0]);
+        assert!(Fpn::<2, 2>::is_conway_polynomial());
+        assert!(Fpn::<2, 3>::is_conway_polynomial());
+        assert!(!Fpn::<3, 3>::is_conway_polynomial());
+        assert_eq!(
+            Fpn::<3, 3>::reduction_polynomial_kind(),
+            ReductionPolynomialKind::Irreducible
+        );
+        assert_eq!(
+            Fpn::<7, 1>::reduction_polynomial_kind(),
+            ReductionPolynomialKind::PrimeField
+        );
     }
 
     #[test]
@@ -492,7 +560,11 @@ mod tests {
         let x = Fpn::<2, 3>::generator();
         let x3 = x.mul(&x).mul(&x);
         assert_eq!(x3, Fpn::<2, 3>::from_coeffs(&[1, 1, 0])); // x + 1
-                                                              // F_27: x³ = x + 2.
+                                                              // F_16: x⁴ = x + 1.
+        let w = Fpn::<2, 4>::generator();
+        let w4 = w.mul(&w).mul(&w).mul(&w);
+        assert_eq!(w4, Fpn::<2, 4>::from_coeffs(&[1, 1, 0, 0])); // x + 1
+                                                                 // F_27: x³ = x + 2.
         let y = Fpn::<3, 3>::generator();
         let y3 = y.mul(&y).mul(&y);
         assert_eq!(y3, Fpn::<3, 3>::from_coeffs(&[2, 1, 0])); // x + 2
@@ -532,6 +604,10 @@ mod tests {
         for e in 0..7u128 {
             assert_eq!(g.discrete_log(g.pow(e)), Some(e % 7));
         }
+        // F_16's Conway generator has order 15 for x^4+x+1.
+        let c = Fpn::<2, 4>::generator();
+        assert_eq!(c.multiplicative_order(), Some(15));
+        assert!(c.is_primitive());
         // Absolute trace/norm to F_2 land in the prime field (constant element).
         let tr = x.relative_trace(1);
         let nm = x.relative_norm(1);

@@ -15,19 +15,16 @@
 //! the determinant square class (`sign = ±1`), and at `p = 2` the type and the
 //! oddity (trace mod 8 of the type-I part).
 //!
-//! **Claim level and the honest p = 2 boundary.** For odd `p` the symbol is a
-//! complete `ℤ_p` invariant and the comparison here is exact. For `p = 2` the
-//! symbol is complete only up to Conway–Sloane *oddity fusion* (well-defined,
-//! implemented) and *sign-walking* (the genuinely subtle part — even *SPLAG*'s
-//! printed canonical form is wrong, per Allcock, *On the classification of integral
-//! quadratic forms*). This module fuses oddities within compartments and compares
-//! per-scale signs **directly**, which is **sound** (it never declares two
-//! different genera equal) and **exact for symbols without nontrivial sign-walking
-//! trains** — i.e. all single-scale symbols, all-type-II symbols, and every case in
-//! the test battery (root lattices, `ℤⁿ`, `E_8`, and randomised `ℤ`-isometry
-//! checks). For lattices whose 2-adic symbol has adjacent type-I scales coupled by
-//! a sign-walk, [`are_in_same_genus`] can return a conservative *false negative*;
-//! that residual is the documented boundary, not a silent error.
+//! **Claim level and the p = 2 path.** For odd `p` the symbol is a complete `ℤ_p`
+//! invariant and the comparison here is exact. For `p = 2` the symbol is first
+//! canonicalised by Conway–Sloane/Allcock rules at the level this representation
+//! carries: oddities are fused within type-I compartments, and determinant signs
+//! are walked along trains so each train has at most one minus sign, placed on a
+//! smallest-dimensional term in that train. This replaces the older direct
+//! per-scale sign comparison. The symbol still records determinant only as the
+//! square-class sign (`±1`), not the full fine-symbol giver/receiver data, so this
+//! remains a genus invariant for the represented Conway–Sloane symbol rather than
+//! a replacement for a full fine-symbol implementation.
 //!
 //! References: Conway–Sloane *SPLAG* Ch. 15 §7; Allcock, *On the classification of
 //! integral quadratic forms* (the corrected 2-adic sign-walking calculus).
@@ -429,11 +426,79 @@ fn fuse_oddities(syms: &[ScaleSymbol]) -> Vec<ScaleSymbol> {
     out
 }
 
+/// Maximal type-I compartments: consecutive scales with type-I constituents.
+#[cfg(test)]
+fn two_adic_compartments(syms: &[ScaleSymbol]) -> Vec<Vec<usize>> {
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < syms.len() {
+        if syms[i].type_ii {
+            i += 1;
+            continue;
+        }
+        let mut comp = vec![i];
+        let mut j = i;
+        while j + 1 < syms.len() && !syms[j + 1].type_ii && syms[j + 1].scale == syms[j].scale + 1 {
+            j += 1;
+            comp.push(j);
+        }
+        out.push(comp);
+        i = j + 1;
+    }
+    out
+}
+
+/// Maximal trains: consecutive scales such that each adjacent pair has at least
+/// one type-I term. This is the Allcock/Sage-corrected train relation, including
+/// type-II terms that are connected to a neighboring type-I scale.
+fn two_adic_trains(syms: &[ScaleSymbol]) -> Vec<Vec<usize>> {
+    if syms.is_empty() {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    let mut cur = vec![0usize];
+    for i in 1..syms.len() {
+        let adjacent = syms[i].scale == syms[i - 1].scale + 1;
+        let connected_by_type_i = !syms[i].type_ii || !syms[i - 1].type_ii;
+        if adjacent && connected_by_type_i {
+            cur.push(i);
+        } else {
+            out.push(cur);
+            cur = vec![i];
+        }
+    }
+    out.push(cur);
+    out
+}
+
+/// Canonicalise the carried 2-adic Conway–Sloane symbol: oddity fusion within
+/// compartments, then sign-walking along trains. The fine-symbol giver/receiver
+/// data is not represented here, so oddities are handled by the fused
+/// compartment invariant already stored in [`ScaleSymbol::oddity`].
+fn canonical_2adic_symbol(syms: &[ScaleSymbol]) -> Vec<ScaleSymbol> {
+    let mut out = fuse_oddities(syms);
+    for train in two_adic_trains(&out) {
+        let sign = train.iter().fold(1i8, |acc, &i| acc * out[i].sign);
+        for &i in &train {
+            out[i].sign = 1;
+        }
+        if sign < 0 {
+            let target = train
+                .iter()
+                .copied()
+                .min_by_key(|&i| (out[i].dim, out[i].scale))
+                .expect("train is nonempty");
+            out[target].sign = -1;
+        }
+    }
+    out
+}
+
 /// Whether two integral lattices lie in the same genus.
 ///
 /// Exact for the signature, determinant, and every odd-prime symbol. At `p = 2`
-/// the comparison fuses compartment oddities and matches per-scale signs directly;
-/// see the module docs for the sound-but-conservative sign-walking boundary.
+/// the comparison uses oddity fusion plus train sign-walking before matching the
+/// carried Conway–Sloane symbols.
 pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
     let (Some(ga), Some(gb)) = (Genus::of(a), Genus::of(b)) else {
         return false;
@@ -447,7 +512,7 @@ pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
     for (&p, sa) in &ga.symbols {
         let sb = &gb.symbols[&p];
         if p == 2 {
-            if fuse_oddities(sa) != fuse_oddities(sb) {
+            if canonical_2adic_symbol(sa) != canonical_2adic_symbol(sb) {
                 return false;
             }
         } else if sa != sb {
@@ -547,6 +612,97 @@ mod tests {
             (s2[0].scale, s2[0].dim, s2[0].type_ii, s2[0].oddity),
             (1, 1, false, 1)
         );
+    }
+
+    #[test]
+    fn two_adic_compartments_and_trains_follow_the_corrected_rules() {
+        let syms = vec![
+            ScaleSymbol {
+                scale: 0,
+                dim: 1,
+                sign: 1,
+                type_ii: false,
+                oddity: 1,
+            },
+            ScaleSymbol {
+                scale: 1,
+                dim: 2,
+                sign: -1,
+                type_ii: true,
+                oddity: 0,
+            },
+            ScaleSymbol {
+                scale: 2,
+                dim: 1,
+                sign: 1,
+                type_ii: false,
+                oddity: 1,
+            },
+            ScaleSymbol {
+                scale: 4,
+                dim: 1,
+                sign: 1,
+                type_ii: false,
+                oddity: 1,
+            },
+        ];
+        assert_eq!(
+            two_adic_compartments(&syms),
+            vec![vec![0], vec![2], vec![3]]
+        );
+        assert_eq!(two_adic_trains(&syms), vec![vec![0, 1, 2], vec![3]]);
+    }
+
+    #[test]
+    fn two_adic_sign_walking_canonicalizes_train_signs() {
+        let a = vec![
+            ScaleSymbol {
+                scale: 0,
+                dim: 1,
+                sign: -1,
+                type_ii: false,
+                oddity: 1,
+            },
+            ScaleSymbol {
+                scale: 1,
+                dim: 1,
+                sign: -1,
+                type_ii: false,
+                oddity: 1,
+            },
+        ];
+        let b = vec![
+            ScaleSymbol {
+                sign: 1,
+                ..a[0].clone()
+            },
+            ScaleSymbol {
+                sign: 1,
+                ..a[1].clone()
+            },
+        ];
+        assert_ne!(fuse_oddities(&a), fuse_oddities(&b));
+        assert_eq!(canonical_2adic_symbol(&a), canonical_2adic_symbol(&b));
+
+        let c = vec![
+            ScaleSymbol {
+                scale: 0,
+                dim: 3,
+                sign: -1,
+                type_ii: false,
+                oddity: 1,
+            },
+            ScaleSymbol {
+                scale: 1,
+                dim: 1,
+                sign: 1,
+                type_ii: true,
+                oddity: 0,
+            },
+        ];
+        let canon = canonical_2adic_symbol(&c);
+        assert_eq!(canon[0].sign, 1);
+        assert_eq!(canon[1].sign, -1); // smallest-dimensional term in the train
     }
 
     #[test]

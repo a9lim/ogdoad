@@ -13,9 +13,9 @@
 //!      retrograde Win/Loss/**Draw** analysis on cyclic graphs. This is the
 //!      load-bearing part.
 //!   2. [`loopy_nim_values`] — the impartial loopy nim-values: Draw positions are
-//!      `Side` (the loopy `∞`), the rest carry an ordinary nimber. Exact when the
-//!      non-Draw subgraph is acyclic; full *sidling* (cyclic non-Draw values) is
-//!      deferred (see the note on that function).
+//!      `Side` (the loopy `∞`), the rest carry an ordinary nimber. Acyclic
+//!      non-Draw regions use the usual DAG recursion; small cyclic non-Draw
+//!      regions use a bounded sidling solver for the finite mex equations.
 //!   3. [`LoopyValue`] — a small catalogue of the canonical stoppers (`on`, `off`,
 //!      `over`, `under`, `dud`, `∗`) with their outcomes, negation, partial order,
 //!      and the partial sum-monoid. A finite tag carrying an infinite object — the
@@ -32,14 +32,16 @@
 //! `Arc` tree (it cannot represent cycles, by construction), and
 //! [`thermography`](crate::games::thermography) stays finite-game-only — loopy games
 //! never freeze to a number, so classical temperature does not apply. Partizan
-//! loopy outcomes (a two-sided Left/Right retrograde solver), full sidling, and the
-//! `±`/`tis`/`tisn` stopper arithmetic are honestly deferred.
+//! loopy outcomes (a two-sided Left/Right retrograde solver), unbounded sidling,
+//! and the `±`/`tis`/`tisn` stopper arithmetic are honestly deferred.
 
 use std::cmp::Ordering;
 
 use crate::forms::{fit_f2_quadratic, QuadricFit};
 use crate::games::grundy::mex;
 use crate::games::kernel::{self, Outcome};
+
+const MAX_SIDLING_ASSIGNMENTS: usize = 200_000;
 
 // ---------------------------------------------------------------------------
 // 1. The canonical-stopper catalogue.
@@ -299,6 +301,16 @@ pub enum LoopyNimber {
     Side,
 }
 
+/// Certificate for [`loopy_nim_values_certified`]: the outcome split, the positions
+/// promoted to `Side`, and whether the bounded sidling solver was needed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LoopyNimCertificate {
+    pub outcomes: Vec<Outcome>,
+    pub side_positions: Vec<usize>,
+    pub used_sidling_solver: bool,
+    pub sidling_assignments_examined: usize,
+}
+
 /// Loopy nim-values of an impartial game graph. Draw positions (per
 /// [`kernel::outcomes`](crate::games::outcomes)) are `Side`; the rest carry an
 /// ordinary nimber `mex`-computed over their non-`Side` options.
@@ -311,11 +323,20 @@ pub enum LoopyNimber {
 /// `grundy_graph` returning `None` on a cycle, refined by first pulling out the
 /// draws as `Side`.
 pub fn loopy_nim_values(succ: &[Vec<usize>]) -> Option<Vec<LoopyNimber>> {
+    loopy_nim_values_certified(succ).map(|(values, _)| values)
+}
+
+/// [`loopy_nim_values`] plus a small certificate explaining the outcome split and
+/// whether cyclic non-Draw sidling was solved by the bounded mex-equation search.
+pub fn loopy_nim_values_certified(
+    succ: &[Vec<usize>],
+) -> Option<(Vec<LoopyNimber>, LoopyNimCertificate)> {
     let n = succ.len();
     let out = kernel::outcomes(succ);
     let is_side: Vec<bool> = out.iter().map(|o| *o == Outcome::Draw).collect();
     let mut val = vec![0u128; n];
     let mut state = vec![0u8; n]; // 0 unvisited, 1 visiting, 2 done
+    let mut needs_sidling = false;
 
     fn dfs(
         succ: &[Vec<usize>],
@@ -344,21 +365,147 @@ pub fn loopy_nim_values(succ: &[Vec<usize>]) -> Option<Vec<LoopyNimber>> {
     }
 
     for v in 0..n {
-        if !is_side[v] {
-            dfs(succ, &is_side, v, &mut state, &mut val)?;
+        if !is_side[v] && dfs(succ, &is_side, v, &mut state, &mut val).is_none() {
+            needs_sidling = true;
+            break;
         }
     }
-    Some(
-        (0..n)
-            .map(|v| {
-                if is_side[v] {
-                    LoopyNimber::Side
-                } else {
-                    LoopyNimber::Value(val[v])
-                }
-            })
+
+    let mut assignments = 0usize;
+    if needs_sidling {
+        let (sidled, count) = solve_mex_sidling(succ, &is_side)?;
+        val = sidled;
+        assignments = count;
+    }
+
+    let values: Vec<LoopyNimber> = (0..n)
+        .map(|v| {
+            if is_side[v] {
+                LoopyNimber::Side
+            } else {
+                LoopyNimber::Value(val[v])
+            }
+        })
+        .collect();
+    let cert = LoopyNimCertificate {
+        outcomes: out,
+        side_positions: is_side
+            .iter()
+            .enumerate()
+            .filter_map(|(i, &side)| side.then_some(i))
             .collect(),
-    )
+        used_sidling_solver: needs_sidling,
+        sidling_assignments_examined: assignments,
+    };
+    Some((values, cert))
+}
+
+fn solve_mex_sidling(succ: &[Vec<usize>], is_side: &[bool]) -> Option<(Vec<u128>, usize)> {
+    let n = succ.len();
+    let finite: Vec<usize> = (0..n).filter(|&v| !is_side[v]).collect();
+    let mut order = finite.clone();
+    order.sort_by_key(|&v| succ[v].iter().filter(|&&w| !is_side[w]).count());
+    let mut assigned = vec![false; n];
+    for (v, &side) in is_side.iter().enumerate() {
+        if side {
+            assigned[v] = true;
+        }
+    }
+    let values = vec![0u128; n];
+    let max_for: Vec<u128> = (0..n)
+        .map(|v| succ[v].iter().filter(|&&w| !is_side[w]).count() as u128)
+        .collect();
+    let examined = 0usize;
+
+    struct Solver<'a> {
+        order: Vec<usize>,
+        succ: &'a [Vec<usize>],
+        is_side: &'a [bool],
+        max_for: Vec<u128>,
+        assigned: Vec<bool>,
+        values: Vec<u128>,
+        examined: usize,
+    }
+
+    impl Solver<'_> {
+        fn rec(&mut self, idx: usize) -> Option<bool> {
+            if self.examined > MAX_SIDLING_ASSIGNMENTS {
+                return None;
+            }
+            if idx == self.order.len() {
+                return Some(all_mex_equations_hold(
+                    self.succ,
+                    self.is_side,
+                    &self.values,
+                ));
+            }
+            let v = self.order[idx];
+            for candidate in 0..=self.max_for[v] {
+                self.examined += 1;
+                if self.examined > MAX_SIDLING_ASSIGNMENTS {
+                    return None;
+                }
+                self.values[v] = candidate;
+                self.assigned[v] = true;
+                if partial_mex_equations_hold(self.succ, self.is_side, &self.assigned, &self.values)
+                {
+                    match self.rec(idx + 1) {
+                        Some(true) => return Some(true),
+                        Some(false) => {}
+                        None => return None,
+                    }
+                }
+                self.assigned[v] = false;
+            }
+            Some(false)
+        }
+    }
+
+    let mut solver = Solver {
+        order,
+        succ,
+        is_side,
+        max_for,
+        assigned,
+        values,
+        examined,
+    };
+    match solver.rec(0) {
+        Some(true) => Some((solver.values, solver.examined)),
+        Some(false) | None => None,
+    }
+}
+
+fn partial_mex_equations_hold(
+    succ: &[Vec<usize>],
+    is_side: &[bool],
+    assigned: &[bool],
+    values: &[u128],
+) -> bool {
+    for v in 0..succ.len() {
+        if is_side[v] || !assigned[v] {
+            continue;
+        }
+        if succ[v].iter().any(|&w| !is_side[w] && !assigned[w]) {
+            continue;
+        }
+        if values[v] != mex_value(succ, is_side, values, v) {
+            return false;
+        }
+    }
+    true
+}
+
+fn all_mex_equations_hold(succ: &[Vec<usize>], is_side: &[bool], values: &[u128]) -> bool {
+    (0..succ.len())
+        .filter(|&v| !is_side[v])
+        .all(|v| values[v] == mex_value(succ, is_side, values, v))
+}
+
+fn mex_value(succ: &[Vec<usize>], is_side: &[bool], values: &[u128], v: usize) -> u128 {
+    mex(succ[v]
+        .iter()
+        .filter_map(|&w| (!is_side[w]).then_some(values[w])))
 }
 
 // ---------------------------------------------------------------------------
@@ -514,12 +661,22 @@ mod tests {
     }
 
     #[test]
-    fn cyclic_non_draw_subgraph_defers_to_full_sidling() {
+    fn cyclic_non_draw_subgraph_uses_bounded_sidling() {
         // cycle-with-exit: 0→1, 1→{2,0}, 2 terminal. kernel resolves 0,1 to
-        // Loss/Win (non-Draw), but they sit on a cycle ⇒ finite nim-values need the
-        // deferred sidling fixpoint ⇒ None.
+        // Loss/Win (non-Draw), and the bounded sidling solver finds the finite mex
+        // fixed point g = [0, 1, 0].
         let succ = vec![vec![1], vec![2, 0], vec![]];
-        assert_eq!(loopy_nim_values(&succ), None);
+        let (values, cert) = loopy_nim_values_certified(&succ).unwrap();
+        assert_eq!(
+            values,
+            vec![
+                LoopyNimber::Value(0),
+                LoopyNimber::Value(1),
+                LoopyNimber::Value(0)
+            ]
+        );
+        assert!(cert.used_sidling_solver);
+        assert!(cert.sidling_assignments_examined > 0);
         // but the outcome analysis is still exact.
         let g = LoopyGraph::new(succ);
         assert_eq!(

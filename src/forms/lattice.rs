@@ -24,10 +24,13 @@
 //! integer vectors, both signs included.
 //!
 //! Honest cutoff. Short-vector enumeration is Fincke–Pohst (a Cholesky-bounded
-//! box search); automorphism counting is a backtracking search over the images
-//! of a basis, which is **exponential** in general. It is bounded by an explicit
-//! node budget ([`AUTO_NODE_BUDGET`]); when the search exceeds it the count is
-//! reported as `None` rather than silently truncated. Use
+//! box search). Automorphism counting first checks the standard closed-form
+//! families this module knows how to recognize in their shipped bases (diagonal
+//! signed-permutation lattices and the `A`/`D`/`E` root lattices); everything else
+//! falls back to a backtracking search over basis images, which is **exponential**
+//! in general. The fallback is bounded by an explicit node budget
+//! ([`AUTO_NODE_BUDGET`]); when the search exceeds it the count is reported as
+//! `None` rather than silently truncated. Use
 //! [`automorphism_group_order_bounded`](IntegralForm::automorphism_group_order_bounded)
 //! to choose the budget explicitly.
 
@@ -69,6 +72,52 @@ fn lcm_i128(a: i128, b: i128) -> i128 {
         .checked_mul(b)
         .expect("lattice level exceeds i128")
         .abs()
+}
+
+fn checked_factorial(n: usize) -> Option<u128> {
+    let mut acc = 1u128;
+    for k in 2..=n {
+        acc = acc.checked_mul(k as u128)?;
+    }
+    Some(acc)
+}
+
+fn checked_pow2(n: usize) -> Option<u128> {
+    1u128.checked_shl(u32::try_from(n).ok()?)
+}
+
+fn signed_permutation_order(n: usize) -> Option<u128> {
+    checked_pow2(n)?.checked_mul(checked_factorial(n)?)
+}
+
+fn simple_laced_cartan_matches(gram: &[Vec<i128>], edges: &[(usize, usize)]) -> bool {
+    let n = gram.len();
+    if gram.iter().any(|row| row.len() != n) {
+        return false;
+    }
+    let mut adjacent = vec![vec![false; n]; n];
+    for &(a, b) in edges {
+        if a >= n || b >= n || a == b {
+            return false;
+        }
+        adjacent[a][b] = true;
+        adjacent[b][a] = true;
+    }
+    for i in 0..n {
+        for j in 0..n {
+            let expected = if i == j {
+                2
+            } else if adjacent[i][j] {
+                -1
+            } else {
+                0
+            };
+            if gram[i][j] != expected {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 /// Fraction-free (Bareiss) determinant of a square integer matrix — exact, no
@@ -399,8 +448,9 @@ impl IntegralForm {
     }
 
     /// The order of the automorphism group `Aut(L) = { U ∈ GLₙ(ℤ) : UᵀGU = G }`,
-    /// or `None` if the lattice is not positive definite or the backtracking
-    /// search exceeds [`AUTO_NODE_BUDGET`]. See
+    /// or `None` if the lattice is not positive definite or the unrecognized
+    /// fallback search exceeds [`AUTO_NODE_BUDGET`]. Recognized diagonal and
+    /// `A`/`D`/`E` root-lattice bases use closed-form Weyl/root-system orders. See
     /// [`automorphism_group_order_bounded`](IntegralForm::automorphism_group_order_bounded).
     pub fn automorphism_group_order(&self) -> Option<u128> {
         self.automorphism_group_order_bounded(AUTO_NODE_BUDGET)
@@ -420,6 +470,9 @@ impl IntegralForm {
         }
         if !self.is_positive_definite() {
             return None;
+        }
+        if let Some(order) = self.automorphism_group_order_fast() {
+            return Some(order);
         }
         let max_diag = (0..n).map(|i| self.gram[i][i]).max().unwrap();
         let cands = self.short_vectors(max_diag)?;
@@ -453,6 +506,100 @@ impl IntegralForm {
         } else {
             None
         }
+    }
+
+    /// Closed-form automorphism orders for standard bases. These are intentionally
+    /// syntactic recognizers, not a full root-system isometry classifier; arbitrary
+    /// basis changes still fall through to the exact search.
+    fn automorphism_group_order_fast(&self) -> Option<u128> {
+        let n = self.dim();
+        if n == 0 {
+            return Some(1);
+        }
+
+        // d·I_n has signed permutations, including the root lattice A_1^n at d=2.
+        let d = self.gram[0][0];
+        if d > 0
+            && (0..n).all(|i| {
+                (0..n).all(|j| {
+                    let expected = if i == j { d } else { 0 };
+                    self.gram[i][j] == expected
+                })
+            })
+        {
+            return signed_permutation_order(n);
+        }
+
+        if self.matches_a_cartan() {
+            return if n == 1 {
+                Some(2)
+            } else {
+                checked_factorial(n + 1)?.checked_mul(2)
+            };
+        }
+        if self.matches_d_cartan() {
+            return match n {
+                0 | 1 => None,
+                2 => signed_permutation_order(2),
+                3 => Some(48),
+                4 => Some(1152),
+                _ => checked_pow2(n)?.checked_mul(checked_factorial(n)?),
+            };
+        }
+        if self.matches_e6_cartan() {
+            return Some(103_680);
+        }
+        if self.matches_e7_cartan() {
+            return Some(2_903_040);
+        }
+        if self.matches_e8_cartan() {
+            return Some(696_729_600);
+        }
+        None
+    }
+
+    fn matches_a_cartan(&self) -> bool {
+        let n = self.dim();
+        if n == 0 {
+            return false;
+        }
+        let edges: Vec<(usize, usize)> = (0..n.saturating_sub(1)).map(|i| (i, i + 1)).collect();
+        simple_laced_cartan_matches(&self.gram, &edges)
+    }
+
+    fn matches_d_cartan(&self) -> bool {
+        let n = self.dim();
+        if n < 2 {
+            return false;
+        }
+        if n == 2 {
+            return simple_laced_cartan_matches(&self.gram, &[]);
+        }
+        if n == 3 {
+            return simple_laced_cartan_matches(&self.gram, &[(0, 1), (0, 2)]);
+        }
+        let mut edges: Vec<(usize, usize)> = (0..n - 3).map(|i| (i, i + 1)).collect();
+        edges.push((n - 3, n - 2));
+        edges.push((n - 3, n - 1));
+        simple_laced_cartan_matches(&self.gram, &edges)
+    }
+
+    fn matches_e6_cartan(&self) -> bool {
+        simple_laced_cartan_matches(&self.gram, &[(0, 1), (1, 2), (2, 3), (3, 4), (2, 5)])
+    }
+
+    fn matches_e7_cartan(&self) -> bool {
+        simple_laced_cartan_matches(
+            &self.gram,
+            &[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (2, 6)],
+        )
+    }
+
+    fn matches_e8_cartan(&self) -> bool {
+        simple_laced_cartan_matches(
+            &self.gram,
+            &[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (4, 7)],
+        )
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -577,6 +724,18 @@ mod tests {
         .unwrap()
     }
 
+    fn permute_basis(l: &IntegralForm, perm: &[usize]) -> IntegralForm {
+        let n = l.dim();
+        assert_eq!(perm.len(), n);
+        let mut g = vec![vec![0i128; n]; n];
+        for i in 0..n {
+            for j in 0..n {
+                g[i][j] = l.gram()[perm[i]][perm[j]];
+            }
+        }
+        IntegralForm::new(g).unwrap()
+    }
+
     #[test]
     fn rejects_non_symmetric() {
         assert!(IntegralForm::new(vec![vec![1, 2], vec![3, 4]]).is_none());
@@ -663,16 +822,21 @@ mod tests {
         assert_eq!(a_n(3).automorphism_group_order(), Some(48));
         // |Aut(D_4)| = 1152.
         assert_eq!(d4().automorphism_group_order(), Some(1152));
+        // E_8 is recognized by its standard Cartan basis instead of brute-forced.
+        assert_eq!(e8().automorphism_group_order_bounded(1), Some(696_729_600));
     }
 
     #[test]
     fn automorphism_budget_cutoff_reports_none() {
         // A tiny budget forces the search to give up rather than silently
-        // truncating: an honest None, not a wrong count.
-        assert_eq!(d4().automorphism_group_order_bounded(5), None);
+        // truncating: an honest None, not a wrong count. Use a permuted D_4 basis
+        // so this specifically exercises the fallback search instead of the
+        // standard-basis root-lattice recognizer.
+        let d4_fallback = permute_basis(&d4(), &[2, 0, 1, 3]);
+        assert_eq!(d4_fallback.automorphism_group_order_bounded(5), None);
         // With a generous budget the count is exact again.
         assert_eq!(
-            d4().automorphism_group_order_bounded(10_000_000),
+            d4_fallback.automorphism_group_order_bounded(10_000_000),
             Some(1152)
         );
     }

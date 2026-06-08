@@ -15,6 +15,8 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::sync::Arc;
 
+type PyRelationCertificate = (i128, bool, Option<usize>, Vec<(Vec<i128>, String, bool)>);
+
 /// Wrap a dyadic `Rational` (a thermograph coordinate) as a `Surreal` for Python.
 fn rat_to_py(r: Rational) -> PySurreal {
     PySurreal::from_inner(Surreal::from_rational(r))
@@ -444,6 +446,20 @@ impl PyGameExterior {
             .map(|r| r.coeffs.clone())
             .collect()
     }
+    /// Relation-search certificate:
+    /// `(bound, exhaustive, candidate_count, [(coeffs, value_key, independent), ...])`.
+    fn relation_certificate(&self) -> PyRelationCertificate {
+        let cert = self.inner.relation_search_certificate();
+        (
+            cert.bound,
+            cert.exhaustive,
+            cert.candidate_count,
+            cert.relations
+                .iter()
+                .map(|r| (r.coeffs.clone(), r.value_key.clone(), r.independent))
+                .collect(),
+        )
+    }
     /// The grade-1 generator e_i (an `IntegerMV`) standing for game g_i.
     fn generator(&self, i: usize) -> IntegerMV {
         IntegerMV {
@@ -646,6 +662,16 @@ impl PyQuotient {
     fn elements(&self) -> Vec<Vec<usize>> {
         self.inner.elements.clone()
     }
+    /// The test positions used to distinguish bounded quotient classes.
+    #[getter]
+    fn test_positions(&self) -> Vec<Vec<usize>> {
+        self.inner.test_positions.clone()
+    }
+    /// Outcome signatures parallel to `elements`: True means N-position.
+    #[getter]
+    fn signatures(&self) -> Vec<Vec<bool>> {
+        self.inner.signatures.clone()
+    }
     /// The class id of each element (parallel to `elements`).
     #[getter]
     fn class_of(&self) -> Vec<usize> {
@@ -680,6 +706,11 @@ impl PyQuotient {
     #[getter]
     fn elements_closed_under_sum(&self) -> bool {
         self.inner.elements_closed_under_sum
+    }
+    /// Whether represented classes carry a complete sampled monoid table.
+    #[getter]
+    fn has_complete_bounded_monoid(&self) -> bool {
+        self.inner.has_complete_bounded_monoid()
     }
     fn __repr__(&self) -> String {
         format!(

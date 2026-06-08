@@ -479,9 +479,11 @@ fn binary_is_hyperbolic<S: FiniteChar2Field>(
 
 /// The **local anisotropic dimension** of `form` over `K_v` at `place`, for the form
 /// shapes the char-2 theory pins exactly: rank `≤ 4` in the standard block shapes
-/// (`#singular ≤ 1`). Returns `None` for rank `≥ 5` (always isotropic, but the exact
-/// anisotropic dimension needs a full Witt reduction, out of scope here) and for
-/// unsupported singular configurations (`#singular ≥ 2`). `u(K_v) = 4`.
+/// (`#singular ≤ 1`), plus higher-rank forms that reduce to those shapes after
+/// stripping explicit hyperbolic binary blocks. Returns `None` for remaining
+/// rank-`≥ 5` anisotropic-kernel computations (always isotropic, but a full Witt
+/// reduction is needed for the exact kernel) and for unsupported singular
+/// configurations (`#singular ≥ 2`). `u(K_v) = 4`.
 pub fn local_anisotropic_dim_char2<S: FiniteChar2Field>(
     form: &Char2QuadForm<S>,
     place: &Char2Place<S>,
@@ -492,6 +494,22 @@ pub fn local_anisotropic_dim_char2<S: FiniteChar2Field>(
     let rank = 2 * nb + ns;
     if rank == 0 {
         return Some(0);
+    }
+    let reduced_blocks: Vec<_> = bl
+        .iter()
+        .filter(|(a, b)| !binary_is_hyperbolic(a, b, place))
+        .cloned()
+        .collect();
+    if reduced_blocks.len() != nb {
+        let reduced = Char2QuadForm::new(
+            reduced_blocks,
+            form.singular
+                .iter()
+                .filter(|c| !c.is_zero())
+                .cloned()
+                .collect(),
+        );
+        return local_anisotropic_dim_char2(&reduced, place);
     }
     if rank >= 5 {
         return None;
@@ -914,6 +932,38 @@ mod tests {
                 std::slice::from_ref(&one)
             ),
             Some(true)
+        );
+    }
+
+    #[test]
+    fn high_rank_anisotropic_dim_strips_explicit_hyperbolic_blocks() {
+        let zero = R2::zero();
+        let one = r2(&[1], &[1]);
+        let t = r2(&[0, 1], &[1]);
+        let inv_t = r2(&[1], &[0, 1]);
+        // [0,1] is hyperbolic, leaving the rank-4 anisotropic u=4 form.
+        assert_eq!(
+            anis(
+                &[
+                    (zero.clone(), one.clone()),
+                    (one.clone(), one.clone()),
+                    (t.clone(), inv_t.clone())
+                ],
+                &[]
+            ),
+            Some(4)
+        );
+        // Two hyperbolic blocks strip away, leaving [1,1] anisotropic over F_2((t)).
+        assert_eq!(
+            anis(
+                &[
+                    (zero.clone(), one.clone()),
+                    (one.clone(), zero.clone()),
+                    (one.clone(), one.clone())
+                ],
+                &[]
+            ),
+            Some(2)
         );
     }
 

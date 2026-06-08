@@ -213,6 +213,11 @@ fn multisets(atoms: &[usize], max: usize) -> Vec<Vec<usize>> {
 pub struct Quotient {
     /// The enumerated elements (sorted multisets of atoms, up to `elem_bound`).
     pub elements: Vec<Vec<usize>>,
+    /// The test positions used to distinguish elements.
+    pub test_positions: Vec<Vec<usize>>,
+    /// Outcome signatures parallel to `elements`: `signatures[i][j]` is the
+    /// misère N/P outcome of `elements[i] + test_positions[j]` (`true` = N).
+    pub signatures: Vec<Vec<bool>>,
     /// Class id of each element (parallel to `elements`).
     pub class_of: Vec<usize>,
     /// Number of distinct classes found.
@@ -243,6 +248,18 @@ impl Quotient {
             .and_then(|m| m.get(a))
             .and_then(|row| row.get(b))
             .copied()
+    }
+
+    /// Whether the bounded data carries a complete class multiplication table.
+    /// This is weaker than claiming the true infinite quotient is complete; it
+    /// says the represented classes have a well-defined sampled monoid product.
+    pub fn has_complete_bounded_monoid(&self) -> bool {
+        self.multiplication.is_some() && self.multiplication_consistent
+    }
+
+    /// The exact test signature used to classify an enumerated element.
+    pub fn signature_of_element(&self, element_index: usize) -> Option<&[bool]> {
+        self.signatures.get(element_index).map(Vec::as_slice)
     }
 }
 
@@ -288,6 +305,8 @@ fn build_quotient(
     Quotient {
         num_classes: uniq.len(),
         elements,
+        test_positions: tests.to_vec(),
+        signatures,
         class_of,
         class_rep,
         class_is_p,
@@ -504,6 +523,14 @@ mod tests {
         };
         let q = misere_quotient(&star, &[1], 5, 3);
         assert_eq!(q.num_classes, 2, "⋆ quotient should be order 2 (ℤ/2)");
+        assert_eq!(
+            q.test_positions,
+            vec![vec![], vec![1], vec![1, 1], vec![1, 1, 1]]
+        );
+        assert_eq!(q.signatures.len(), q.elements.len());
+        assert!(q
+            .signature_of_element(0)
+            .is_some_and(|sig| sig.len() == q.test_positions.len()));
         // the empty position is N (not P); a single ⋆ is P.
         let empty_class = q.class_of[q.elements.iter().position(|e| e.is_empty()).unwrap()];
         let star_class = q.class_of[q.elements.iter().position(|e| e == &vec![1]).unwrap()];
@@ -514,6 +541,7 @@ mod tests {
         assert_eq!(two, empty_class);
         assert_eq!(q.class_product(star_class, star_class), Some(empty_class));
         assert!(q.multiplication_consistent);
+        assert!(q.has_complete_bounded_monoid());
         assert!(!q.elements_closed_under_sum);
         // exactly one P-class (the win-bias is a single coset)
         assert_eq!(q.class_is_p.iter().filter(|&&p| p).count(), 1);

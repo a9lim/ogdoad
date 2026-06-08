@@ -18,10 +18,8 @@
 //! `E_8` is the unique rank-8 even unimodular lattice — the first place the char-0
 //! mod-8 story (`brauer_wall::bw_class_real`, `BW(ℝ) = ℤ/8`) and the lattice world
 //! visibly coincide; see NOTES.md. Its automorphism group is the Weyl group
-//! `W(E_8)` of order 696729600, far past the brute-force
-//! [`AUTO_NODE_BUDGET`](super::lattice::AUTO_NODE_BUDGET), so `E_8.automorphism_group_order()`
-//! is an honest `None` — the |Aut| oracles here live on the small lattices
-//! (`A_2 = 12`, `A_3 = 48`, `D_4 = 1152`, `D_5 = 3840`).
+//! `W(E_8)` of order 696729600, far past brute force but now returned by the
+//! standard-basis fast path in [`IntegralForm::automorphism_group_order`].
 
 use crate::forms::lattice::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
@@ -190,6 +188,7 @@ mod tests {
         assert_eq!(coxeter_number(&e6), Some(12));
         assert!(e6.is_even());
         assert!(is_root_lattice(&e6));
+        assert_eq!(e6.automorphism_group_order(), Some(103_680));
 
         let e7 = e_7();
         assert_eq!(e7.determinant(), 2);
@@ -197,6 +196,7 @@ mod tests {
         assert_eq!(coxeter_number(&e7), Some(18));
         assert!(e7.is_even());
         assert!(is_root_lattice(&e7));
+        assert_eq!(e7.automorphism_group_order(), Some(2_903_040));
 
         let e8 = e_8();
         assert_eq!(e8.determinant(), 1);
@@ -206,10 +206,9 @@ mod tests {
         assert_eq!(coxeter_number(&e8), Some(30));
         assert_eq!(e8.level(), Some(1));
         assert!(is_root_lattice(&e8));
-        // |W(E_8)| = 696729600 is far past any feasible brute-force budget ⇒ honest
-        // None. A small explicit budget exercises the cutoff fast (the full default
-        // budget would burn 10⁸ nodes proving the same thing).
-        assert_eq!(e8.automorphism_group_order_bounded(50_000), None);
+        // |W(E_8)| = 696729600 is far past brute force but recognized by the
+        // root-lattice fast path, even under a tiny fallback budget.
+        assert_eq!(e8.automorphism_group_order_bounded(1), Some(696_729_600));
     }
 
     #[test]
