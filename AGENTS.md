@@ -37,7 +37,8 @@ Beyond the library: `examples/` (Rust demos + the open-question probes:
 `interactive_kernel`, `octal_hunt`, `loopy_quadric`, `misere_quotient`,
 `bent_route`, `tour`), `experiments/` (Python research probes on top of the shipped
 lib), `demo.py` (the Python tour), `OPEN.md` (the genuine research problems),
-`ROADMAP.md` (the implemented cross-pillar bridge map plus remaining boundaries), and
+`ROADMAP.md` (the implemented cross-pillar bridge map, a proposed second-wave bridge
+spec, plus remaining boundaries), and
 `writeups/goldarf.tex` (the narrow draft note on the Gold/Arf game thread).
 
 ## Claim levels and non-claims

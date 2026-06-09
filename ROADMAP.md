@@ -9,11 +9,13 @@ or shortly after the first public release. It is deliberately distinct from
   `GameExterior`, transfinite nim excesses past the verified table, and the
   transfinite Arf/Witt question for ordinal-nimber coefficients).
 - **`ROADMAP.md`** (this file) holds *buildable bridges* — connections between the
-  four mature pillars whose mathematics is largely standard. The first
-  computational pass for all four now exists in the codebase; this document keeps
-  the mathematical contract, the implemented surfaces, and the remaining honest
-  boundaries in one place. Where a bridge brushes against an open question, it says
-  so and points back to `OPEN.md`.
+  four mature pillars whose mathematics is largely standard. It now has two tiers:
+  a **built first wave** (Bridges A–D), whose first computational pass exists in
+  the codebase, and a **proposed second wave** (Bridges E, H, I, F), specified at
+  the end of this file with worked math and oracles but **not yet implemented**.
+  This document keeps the mathematical contract, the implemented or proposed
+  surfaces, and the remaining honest boundaries in one place. Where a bridge
+  brushes against an open question, it says so and points back to `OPEN.md`.
 
 Use the project's claim-level discipline (`AGENTS.md` → "Claim levels and
 non-claims") when these land: label each piece **standard math** / **implemented
@@ -21,7 +23,7 @@ and tested** / **interpretation** / **open**.
 
 ## Why these four
 
-The five pillars currently connect like this:
+The four pillars currently connect like this:
 
 ```
             scalar ───coefficients──── clifford
@@ -313,6 +315,356 @@ All four bridges are independently implemented and tested in the Rust core:
 - **D:** `Ordinal` as a checked/panic-on-escape `Scalar`, `CliffordAlgebra<Ordinal>`
   engine tests, and finite-window ordinal Arf classification.
 
+A **proposed second wave** (Bridges E, H, I, F — theta/modular forms, the
+code↔lattice Construction A, the discriminant-form Weil representation, and the
+rational Brauer/Clifford invariant) is specified in the section below with worked
+math and oracles but is **not yet implemented**, pending a build-scope decision.
+
 Remaining open edges are not implementation TODOs inside this roadmap: the natural
 Gold-quadric game rule, game-native quadratic deformation of `GameExterior`, and
 the genuinely transfinite Arf/Witt classifier all stay in `OPEN.md`.
+
+---
+
+# Second wave — proposed bridges (not yet implemented)
+
+The first wave (A–D) closed the *pillar graph*: every pair of pillars that can talk
+now does. The second wave **deepens the spine** — it strengthens the mod-8 / `E₈` /
+local↔global thread the project is already built around, rather than reaching for a
+new pillar. Everything below is **design only**: worked mathematics, a proposed
+surface that fits the existing conventions, and the internal oracles each bridge
+would be pinned against. Nothing here is implemented yet.
+
+Claim-level discipline still applies: each proposed bridge is **standard math made
+computational**, the same status A–D shipped at — *not* a new theorem. Where the
+naive statement is subtly wrong, the corrected statement is given inline (Bridge F
+in particular: the Hasse invariant is **not** simply the Brauer class of the
+Clifford algebra).
+
+**Build order: H → E → I → F.** `codes.rs` (H) is the substrate and yields the
+`D₁₆⁺` lattice that the Bridge E headline needs; E is the visible punchline; I
+connects E back to the already-built Bridge A; F is the most careful work and is
+independent of the other three. Bridge **G** (spinor genus) is noted at the end as
+a *deferred* bridge — classical but not buildable from the current surface.
+
+```
+            (built A–D)
+   codes ──Construction A── integral/lattice ──θ series── modular forms   (E, H)
+     │  MacWilliams              │   │                          ▲
+   weight enum ↔ theta          │   └── discriminant form ──Weil rep──┘   (I)
+                                 │        (Bridge A)
+   clifford even-subalgebra ──Clifford invariant── local_global Hilbert    (F)
+                                              └── witt/Brauer (rational)
+```
+
+## Bridge E — theta series, modular forms, and the Milnor isospectral pair
+
+**Pillars:** `forms/integral/` ↔ a small new modular-forms layer.
+**Claim level:** PROPOSED — standard math (Hecke; Milnor 1964; Conway–Sloane
+Ch. 7) made computational. **The headline bridge of the second wave.**
+
+### The mathematics
+
+For a **positive-definite even** lattice `L` of rank `n` (Gram `G`), the theta
+series is the generating function of representation numbers
+
+```text
+θ_L(τ) = Σ_{v ∈ L} q^{Q(v)/2} = Σ_{m ≥ 0} r_L(m) q^m,   q = e^{2πiτ},
+r_L(m) = #{ v ∈ L : Q(v) = 2m }   (even ⇒ Q(v) ∈ 2ℤ, so the exponents are integers).
+```
+
+When `L` is even **unimodular** (so `n ≡ 0 (mod 8)`), `θ_L` is a modular form of
+weight `n/2` for the **full** modular group:
+
+```text
+θ_L ∈ M_{n/2}(SL₂(ℤ)),    M_*(SL₂ℤ) = ℂ[E₄, E₆],
+E₄ = 1 + 240 Σ σ₃(m) qᵐ,    E₆ = 1 − 504 Σ σ₅(m) qᵐ,    Δ = (E₄³ − E₆²)/1728.
+```
+
+The spaces are tiny: `dim M₄ = dim M₈ = 1`, `dim M₁₂ = 2`. Because `θ_L` has
+constant term `1` (the zero vector), low-dimensionality forces *exact* identities:
+
+- **n = 8:** `θ_{E₈} = E₄` (forced, `dim M₄ = 1`). The `q¹` coefficient is
+  `r_{E₈}(1) = 240 = 240·σ₃(1)` — the 240 roots / kissing number already computed in
+  `root_lattices.rs`.
+- **n = 16 — the Milnor punchline.** `E₈ ⊕ E₈` and `D₁₆⁺` are the two even
+  unimodular lattices of rank 16. Both `θ` are weight-8 with constant term 1, and
+  `dim M₈ = 1`, so
+
+  ```text
+  θ_{E₈⊕E₈} = θ_{D₁₆⁺} = E₄² = 1 + 480 q + 61920 q² + …
+  ```
+
+  identically — yet the two lattices are **not isometric** (this is Milnor's
+  example of isospectral non-isometric flat tori, "you can't hear the shape of a
+  16-dimensional drum"). The shared `q¹` coefficient `480` is both root systems'
+  count. The equality holds to **all** orders because `dim M₈ = 1` — the test
+  checks finitely many coefficients; the mathematics supplies the rest.
+- **n = 24 — Leech as a free oracle.** `Λ₂₄` is already built (`mass_formula::leech`)
+  and has **no roots** (`r(1) = 0`). In `M₁₂ = ⟨E₄³, Δ⟩` the unique form with
+  constant term 1 and zero `q¹` coefficient is `E₄³ − 720Δ`, so `θ_{Leech} = E₄³ −
+  720Δ` is *pinned by the existing rootlessness check* — a strong internal oracle
+  that needs no new lattice.
+
+**Siegel–Weil (second rung, honest).** The mass-weighted average of `θ` over a
+genus equals an Eisenstein series. At `n = 16` this is **consistent but degenerate**:
+both class representatives have `θ = E₄²`, so the average is trivially `E₄²`. The
+genuinely non-trivial check needs a genus whose classes have *different* theta
+series (`n = 24`'s 24 Niemeier classes, or a small multi-class non-unimodular
+genus). Ship the `n = 16` consistency check, document the degeneracy, and mark the
+non-trivial Siegel–Weil as a further rung.
+
+### Proposed surface
+
+- `forms/integral/theta.rs`
+  - `IntegralForm::theta_series(&self, terms: usize) -> Option<Vec<i128>>` — the
+    first `terms` representation numbers, bucketing `short_vectors(2·(terms−1))` by
+    `Q/2`. `None` for indefinite lattices (the same boundary `minimum`/`short_vectors`
+    already draw). Exact integer counts.
+- `forms/integral/modular.rs`
+  - `eisenstein_e4(terms)`, `eisenstein_e6(terms) -> Vec<Rational>` — exact
+    q-expansions via `σ₃`/`σ₅`.
+  - `mk_basis(weight, terms) -> Vec<Vec<Rational>>` — the monomial basis
+    `{ E₄ᵃ E₆ᵇ : 4a + 6b = weight }` of `M_{weight}(SL₂ℤ)`.
+  - `as_modular_form(q_expansion, weight, terms) -> Option<Vec<Rational>>` — solve
+    for the basis coordinates on the first `dim M_weight` coefficients, then assert
+    the remaining computed coefficients match. This is the **rigorous** bridge:
+    equality of two weight-`k` forms agreeing through `dim M_k` coefficients is
+    exact, not numerical.
+- A `D₁₆⁺` constructor (cleanest via Bridge H's `construction_a` on the Type II
+  length-16 code; or directly `d_n(16)` plus the all-halves glue vector).
+
+### Oracles / proposed tests
+
+- `θ_{E₈} = E₄`; `r(1) = 240`.
+- `θ_{E₈⊕E₈} = θ_{D₁₆⁺} = E₄²` to many terms, while `Genus`/isometry confirm the two
+  lattices are **in the same genus but not isometric** — the Milnor pair, executable.
+- `θ_{Leech} = E₄³ − 720Δ`, pinned by `r(1) = 0`.
+- `as_modular_form` round-trips each of the above into `mk_basis` coordinates.
+- Siegel–Weil `n = 16` consistency (degenerate), with the closed-form `|Aut|`
+  constants (`|W(E₈)|`, `|Aut(D₁₆⁺)| = 2¹⁵·16!`) recorded as constants — brute-force
+  `automorphism_group_order` returns `None` past its node budget, so this follows the
+  `LEECH_AUT_ORDER` convention.
+
+### Scope / caveats
+
+- Positive-definite only (indefinite theta is not a holomorphic modular form).
+- Even lattices for the clean full-level statement; odd lattices and level-`N`
+  lattices give `Γ₀(N)` forms — a documented boundary tied to the existing `level()`.
+- All coefficients exact (integer counts; rational Eisenstein). No floating point —
+  the identification is by finite-dimensionality, not numerical agreement.
+
+---
+
+## Bridge H — Construction A: codes ↔ lattices, MacWilliams ↔ theta transformation
+
+**Pillars:** a new `forms/integral/codes.rs` ↔ `forms/integral/` (lattices, theta)
+↔ `forms/char2/` and `clifford_metric_f2` (the F₂ refinement).
+**Claim level:** PROPOSED — standard math (Conway–Sloane Ch. 7; MacWilliams). The
+**most on-spine** second-wave idea: it is "the same duality read three ways."
+
+### The mathematics
+
+A binary linear code `C ⊆ F₂ⁿ` of dimension `k`. **Construction A**:
+
+```text
+L_C = (1/√2) · { x ∈ ℤⁿ : (x mod 2) ∈ C }.
+```
+
+- `det L_C = 2^{n − 2k}`; `C` **self-dual** (`k = n/2`) ⇒ `L_C` **unimodular**.
+- `C` **doubly-even** (every weight `≡ 0 mod 4`) and self-dual ⇒ `L_C` **even
+  unimodular** ⇒ (Bridge E) `θ_{L_C} ∈ M_{n/2}(SL₂ℤ)`.
+- The Hamming weight enumerator `W_C(x,y) = Σ_{c∈C} x^{n−wt(c)} y^{wt(c)}` determines
+  the theta series through the Jacobi theta constants:
+
+  ```text
+  θ_{L_C}(τ) = W_C( θ₃(2τ), θ₂(2τ) ),
+  θ₃(τ) = Σ_m q^{m²},   θ₂(τ) = Σ_m q^{(m+1/2)²}.
+  ```
+
+- **MacWilliams identity** `W_{C⊥}(x,y) = |C|⁻¹ · W_C(x+y, x−y)` is the *finite*
+  shadow of the modular transformation `θ(−1/τ) ↔ τ^{n/2} θ(τ)`: code duality,
+  lattice unimodularity, and modular invariance are **one** phenomenon. For a
+  doubly-even self-dual code the enumerator is fixed by the order-8 Gleason group —
+  the discrete reflection of `M_*(SL₂ℤ) = ℂ[E₄, E₆]`.
+
+**Corrections (caught in review — do not ship the naive versions):**
+
+1. The `1/√2` scaling is **required**: without it self-dual codes do not give
+   unimodular lattices. Since `IntegralForm` wants an integer Gram, build an integer
+   basis of the preimage `{x ∈ ℤⁿ : x mod 2 ∈ C}` and carry the `1/2` in the
+   dot-product — exactly the trick `leech()` uses when it divides its Gram by 8.
+2. **Golay Construction A is *not* Leech.** Bare Construction A on the extended
+   Golay `[24,12,8]` code gives an even unimodular rank-24 lattice, but it **has
+   roots** (the images of `2eᵢ` have norm 2). The Leech lattice is the *refined*
+   glue/shift construction already in `mass_formula::leech`. Phrase H as the code↔
+   lattice **interface**, with Leech as its known rootless refinement — never
+   "Golay → Leech."
+
+### Proposed surface
+
+- `forms/integral/codes.rs`
+  - `BinaryCode { generators: Vec<Vec<u8>>, n }` (checked F₂ row space).
+  - `dual`, `is_self_dual`, `is_doubly_even`, `minimum_distance`,
+    `weight_enumerator(&self) -> Vec<i128>`, `macwilliams_transform(&self) -> Vec<i128>`.
+  - `construction_a(&self) -> IntegralForm` (integer Gram, `1/2`-scaled).
+  - `golay_code()` (promote/share the existing `golay_generator` from
+    `mass_formula.rs`), `hamming_code()`, and the Type II length-16 code that
+    yields `D₁₆⁺` for Bridge E.
+
+### Oracles / proposed tests
+
+- MacWilliams: `code.macwilliams_transform() == code.dual().weight_enumerator()` on
+  Hamming `[7,4]` and Golay `[24,12]`.
+- A doubly-even self-dual code ⇒ `construction_a(C).is_even() && .is_unimodular()`.
+- `W_C(θ₃(2τ), θ₂(2τ)) == construction_a(C).theta_series(…)` on small codes — the
+  bridge to E.
+- The Type II length-16 code's `construction_a` is `D₁₆⁺`, feeding Bridge E's Milnor
+  test; and Golay's `construction_a` is even unimodular rank 24 **with** roots
+  (`short_vectors(2)` nonempty), pinned **distinct** from `leech()`.
+
+### Scope / caveats
+
+Binary codes and Construction A only (not B/D/E); the weight-enumerator↔theta
+identity uses the Hamming enumerator and the exact `θ₂`/`θ₃` q-expansions.
+
+---
+
+## Bridge I — the Weil representation of the discriminant form
+
+**Pillars:** `forms/integral/discriminant.rs` (Bridge A) ↔ `forms/integral/theta.rs`
+(Bridge E) ↔ `forms/witt/brauer_wall` (the mod-8 phase).
+**Claim level:** PROPOSED — standard math (Weil; Nikulin; Borcherds). The elegant
+connector: it makes the **already-built** Bridge A the local-global "bulk" whose
+unimodular boundary is exactly Bridge E.
+
+### The mathematics
+
+The finite quadratic module `(A_L, q_L)` of Bridge A carries the **Weil
+representation** `ρ_L` of (a metaplectic cover of) `SL₂(ℤ)` on `ℂ[A_L] = ⊕_{γ∈A_L}
+ℂ·e_γ`, generated by the two standard generators `T = [[1,1],[0,1]]`,
+`S = [[0,−1],[1,0]]`:
+
+```text
+ρ_L(T) e_γ = e^{ πi · q_L(γ) } · e_γ                                  (diagonal)
+ρ_L(S) e_γ = (σ / √|A_L|) · Σ_{δ ∈ A_L} e^{ −2πi · b_L(γ,δ) } · e_δ   (finite Fourier)
+σ = e^{ −2πi · sign(L) / 8 }   = the Milgram Gauss-sum phase of Bridge A.
+```
+
+The **vector-valued theta** `Θ_L = Σ_γ θ_{L+γ} e_γ` transforms under `ρ_L`. When `L`
+is **unimodular**, `A_L = 0`, `ℂ[A_L] = ℂ`, `ρ_L` is the scalar weight-`(sign/2)`
+multiplier, and `Θ_L` collapses to the scalar modular form of Bridge E. So Bridge I
+is the bulk and Bridge E is its boundary.
+
+The payoff is a **third independent route to `sign mod 8`** (after the rational
+signature and the genus oddity that Bridge A already cross-checks): the overall
+phase of `ρ_L(S)` is `σ`, the very `phase_mod8` Bridge A computes. The metaplectic
+relations `ρ(S)⁴ = 1` and `ρ((ST)³) = ρ(S²)` (with the central element acting by a
+`sign`-fixed root of unity and `γ ↦ −γ`) pin the matrices with no new theory — pure
+representation bookkeeping over the data Bridge A already exposes.
+
+### Proposed surface
+
+- `forms/integral/discriminant.rs` (extend) or `forms/integral/weil.rs`
+  - `DiscriminantForm::weil_t(&self)` — the diagonal `T`-multipliers `e^{πi q_L(γ)}`.
+  - `DiscriminantForm::weil_s(&self)` — the `S`-matrix (`f64` with `|·| = 1` checks,
+    matching Bridge A's Gauss-sum convention; an exact cyclotomic representation is a
+    nice-to-have, not required).
+  - `verify_weil_relations(&self) -> bool` — `S⁴ = I`, `(ST)³ = c·S²`, and the
+    `ρ(S)` phase `= GaussSum::phase_mod8`.
+
+### Oracles / proposed tests
+
+- The metaplectic relations on the `A_n`/`D_4`/`E_8` discriminant forms already
+  exercised by Bridge A.
+- `ρ(S)` overall phase `= phase_mod8` — Bridge A's Milgram check, recovered
+  representation-theoretically (the third route to `σ`).
+- Unimodular `E₈` ⇒ `|A_L| = 1`, a `1×1` scalar collapse whose weight matches Bridge
+  E's `θ_{E₈} = E₄`.
+
+### Scope / caveats
+
+Even lattices (so `q_L` is well-defined), matching Bridge A's boundary; matrices in
+`f64` with verified unit modulus, the same convention the Gauss sum uses.
+
+---
+
+## Bridge F — the rational Brauer class: Hasse invariant vs Clifford invariant
+
+**Pillars:** `clifford/` (even subalgebra) ↔ `forms/local_global/` (Hilbert symbols)
+↔ a new rational Brauer class in `forms/witt/`.
+**Claim level:** PROPOSED — standard math (Lam, *Introduction to Quadratic Forms
+over Fields*, Ch. V; Serre). The char-0/odd mirror of Bridge B (which classified
+the **char-2** Clifford algebra by its Arf/Brauer–Wall bit). **Read the corrected
+statement below** — the naive "Hasse invariant = Brauer class of the Clifford
+algebra" is *false*, and the codebase already declines to claim it
+(`forms/char0.rs` notes rational classification is not a full Brauer/BW class).
+
+### The mathematics (corrected)
+
+Over `ℚ`, the quadratic-form invariants live in `Br(ℚ)[2]`, which by
+Hasse–Brauer–Noether injects into `⊕_v Br(ℚ_v)[2] = ⊕_v {±1}` — a finite set of
+ramified places of even cardinality (`∏_v = +1`, Hilbert reciprocity, already an
+oracle in `local_global/`). Two **distinct** invariants of `⟨a₁,…,aₙ⟩`:
+
+```text
+Hasse–Witt   s(q) = ∏_{i<j} (aᵢ, aⱼ)_v          (Serre; the per-place pieces are
+                                                  already in hasse_at_place / hilbert_product)
+Clifford     c(q) = [ Cl⁰(q) ] ∈ Br[2]          (the class of the even Clifford algebra)
+```
+
+They are **not equal**. They differ by an explicit factor built from `(−1,−1)`,
+`(−1, d)`, `(d, d)` (`d = disc q`) determined by `n mod 8` — **Lam, Prop. V.3.20**
+(table). The honest bridge therefore verifies the *correction*, not an identity:
+
+1. forms side: `s(q)` from Hilbert products, then apply the `n mod 8`/`disc`
+   correction to obtain `c(q)`;
+2. clifford side: read the Brauer class of `Cl⁰(q)` directly for small forms (e.g.
+   identify the quaternion factor `(a, b)` of a ternary/quaternary form) as an
+   independent oracle.
+
+This is precisely the char-0 analogue of Bridge B: the algebra the `clifford` pillar
+builds, classified by the symbols the `forms` pillar computes — done correctly.
+
+### Proposed surface
+
+- `forms/witt/brauer_rational.rs`
+  - `Brauer2Class { ramified: BTreeSet<Place> }` with XOR (symmetric-difference)
+    addition — the rational 2-torsion Brauer class as its ramification set.
+  - `hasse_brauer_class(entries: &[i128]) -> Brauer2Class` (Hilbert-symbol product
+    over all places of ℚ).
+  - `clifford_brauer_class(entries: &[i128]) -> Brauer2Class` (`hasse` + the
+    `n mod 8`/`disc` correction table).
+- A `clifford`-side reader for small forms (via `even_subalgebra` / quaternion
+  identification) as the independent oracle.
+
+### Oracles / proposed tests
+
+- Reciprocity: every `Brauer2Class` has `|ramified|` even.
+- Known algebras: `⟨1,−1⟩` split (∅ ramified); `⟨−1,−1,−1⟩` → Hamilton quaternions,
+  ramified `{2, ∞}`; a spread of ternary/quaternary forms across each `n mod 8`.
+- The correction table itself: `c(q)` vs `s(q)` per dimension class.
+- Agreement with `bw_class_real` / Witt `e₂` where the surfaces overlap.
+
+### Scope / caveats
+
+`ℚ` (and `ℚ_v`) only; 2-torsion only (quadratic-form Brauer classes are 2-torsion).
+**Do not** conflate `Brauer2Class` (ungraded Brauer) with the graded
+`BrauerWallClass` until a rational Brauer–Wall story is separately modeled — keeping
+them distinct is the whole reason `char0.rs` currently stops short, and F is what
+would add the ungraded rational class correctly.
+
+---
+
+## G — spinor genus (deferred, noted for completeness)
+
+Refining `genus → spinor genus → isometry class` via the spinor norm is classical
+(Eichler; Cassels–Hall), and the `clifford/spinor_norm.rs` map is the right
+primitive in spirit. But it is **not buildable from the current surface**:
+`spinor_norm` computes one versor's norm, whereas the spinor genus needs the local
+spinor-norm *images* `θ(O(L ⊗ ℤ_p))` at every prime plus adelic class-group
+bookkeeping and the proper/improper class distinction. The one cheap, honest piece
+is **Eichler's theorem** as a documented predicate — *indefinite, rank ≥ 3* ⇒ spinor
+genus = isometry class — which would let `Genus` upgrade to a class statement in
+exactly that regime. The full definite-lattice computation is a larger build; it
+stays out of the second wave, adjacent to `OPEN.md` rather than scheduled here.
