@@ -25,6 +25,9 @@
 use crate::forms::lattice::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
 
+/// `|W(E8)|`, the automorphism group order of the `E8` root lattice.
+pub const E8_WEYL_GROUP_ORDER: u128 = 696_729_600;
+
 /// Build the simply-laced Cartan/Gram matrix on `n` nodes from a Dynkin edge list.
 fn cartan(n: usize, edges: &[(usize, usize)]) -> IntegralForm {
     let mut g = vec![vec![0i128; n]; n];
@@ -209,7 +212,10 @@ mod tests {
         assert!(is_root_lattice(&e8));
         // |W(E_8)| = 696729600 is far past brute force but recognized by the
         // root-lattice fast path, even under a tiny fallback budget.
-        assert_eq!(e8.automorphism_group_order_bounded(1), Some(696_729_600));
+        assert_eq!(
+            e8.automorphism_group_order_bounded(1),
+            Some(E8_WEYL_GROUP_ORDER)
+        );
     }
 
     #[test]

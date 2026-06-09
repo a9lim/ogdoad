@@ -129,6 +129,18 @@ wired through the façade; cyclic Galois/Frobenius maps have Clifford linear-map
 constructors; and `Ordinal` can serve as a Clifford scalar inside the verified
 Kummer boundary.
 
+The second-wave bridges E/H/I in `ROADMAP.md` are also implemented in the Rust core.
+`forms/integral/codes.rs` carries binary codes, MacWilliams, and Construction A
+(with the required `1/sqrt(2)` scaling and an `Option` boundary when the scaled Gram
+is not integral), including the Type II length-16 code whose lattice is `D16+`.
+`forms/integral/theta.rs` and `modular.rs` give exact theta coefficients and
+`E4`/`E6` q-expansion identification, pinning `theta_E8 = E4`,
+`theta_{E8+E8} = theta_{D16+} = E4^2`, and the rootless Leech `q^1` oracle.
+`DiscriminantForm` now exposes dependency-free `Complex64` Weil `S`/`T` matrices;
+the `S` prefactor is the conjugate of the positive Milgram phase, and
+`verify_weil_relations` checks the honest metaplectic relations rather than the
+oversimplified `S^4 = I` statement.
+
 The game-built Gold-form bridge is implemented, but the play rule is not. The
 standard chain is:
 
@@ -151,8 +163,8 @@ Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claim
 tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`), the
 source-verified ordinal nim Kummer tower below `omega^(omega^omega)` with `u <= 43`
 excesses, the characteristic-2 Artin-Schreier local-global layer over `F_{2^m}(t)`
-including the Aravire-Jacob wild summand, and the integral lattice/genus/mass/Leech
-chain plus the even discriminant-form/Milgram bridge. These are standard-math
+including the Aravire-Jacob wild summand, and the integral
+lattice/genus/mass/Leech/theta/code/Weil chain. These are standard-math
 implementations and useful infrastructure; cite them as such.
 
 ## Commands

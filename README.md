@@ -115,7 +115,12 @@ and `F_q(t)` as its two implementors — the local↔global mirror of the
 The integral leg has its own local/global echo: even lattices now produce
 discriminant quadratic modules, Milgram Gauss-sum phases, and rational or mod-2
 Clifford metrics. That makes the lattice signature, the real Brauer-Wall mod-8
-cycle, and the Clifford classifier directly comparable in the core.
+cycle, and the Clifford classifier directly comparable in the core. The same leg
+now carries the code/theta boundary too: binary codes feed Construction A
+lattices, exact theta series are identified inside `C[E4,E6]`, `D16+` and
+`E8 + E8` have the same `E4^2` theta series, Leech is pinned by rootlessness in
+weight 12, and discriminant forms expose Weil `S`/`T` matrices with the Milgram
+phase recovered from the standard conjugate `S` prefactor.
 
 **the games bridge.** Red/blue/green Hackenbush is the one object that reads out as
 a surreal (blue−red), a nimber (all-green = Nim), or a general partizan game — and
@@ -220,7 +225,8 @@ file-by-file breakdown:
 - `src/forms/` — the quadratic-form classifiers and invariants across the
   characteristic trichotomy, plus Witt/Brauer–Wall, the Springer trio,
   `local_global/` for Hasse–Minkowski/Hilbert symbols, and `integral/` for
-  lattices, genus, discriminant forms, Milgram checks, mass, and Leech.
+  lattices, genus, discriminant forms, Weil matrices, Milgram checks, mass, binary
+  codes/Construction A, theta/modular forms, `D16+`, and Leech.
 - `src/games/` — normal-, misère-, and loopy-play impartial games, short partizan
   games, thermography/atomic weight, Hackenbush, and the exterior algebra of the
   game group.

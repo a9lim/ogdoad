@@ -5,14 +5,19 @@
 //! genus computation, and mass/Leech layer together while the parent
 //! `forms` module re-exports both the modules and their public items flat.
 
+pub mod codes;
 pub mod discriminant;
 pub mod genus;
 pub mod lattice;
 pub mod mass_formula;
+pub mod modular;
 pub mod root_lattices;
+pub mod theta;
 
+pub use codes::*;
 pub use discriminant::*;
 pub use genus::*;
 pub use lattice::*;
 pub use mass_formula::*;
+pub use modular::*;
 pub use root_lattices::*;

@@ -40,6 +40,7 @@
 //! coordinate conditions). Mass values and the Golay generator cross-checked with
 //! an independent Codex pass.
 
+use crate::forms::integral::codes::extended_golay_generator_rows;
 use crate::forms::lattice::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
 
@@ -165,40 +166,13 @@ pub fn mass_even_unimodular(n: u128) -> Option<(i128, i128)> {
     Some(acc)
 }
 
-/// The extended binary Golay code generator `G = [I₁₂ | A]` (12×24), as a `0/1`
-/// integer matrix. `A` is the standard icosahedron-based block.
-fn golay_generator() -> Vec<Vec<i128>> {
-    let a: [[i128; 12]; 12] = [
-        [1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-        [0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1],
-        [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1],
-        [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1],
-        [0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1],
-        [0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1],
-        [1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0],
-        [1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0],
-        [1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0],
-        [1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0],
-        [1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0],
-        [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1],
-    ];
-    (0..12)
-        .map(|i| {
-            let mut row = vec![0i128; 24];
-            row[i] = 1; // I_12 block
-            row[12..24].copy_from_slice(&a[i]); // A block
-            row
-        })
-        .collect()
-}
-
 /// A spanning set of `√8 · Λ₂₄ ⊂ ℤ²⁴` (Wilson's coordinate model): twice the Golay
 /// generator rows, the `4(e₀ + eᵢ)` glue vectors, and the odd `(−3, 1²³)` vector.
 /// Every spanning vector has norm 32 (`= 4` after the `1/√8` scaling).
 fn leech_spanning_set() -> Vec<Vec<i128>> {
     let mut s: Vec<Vec<i128>> = Vec::new();
-    for g in golay_generator() {
-        s.push(g.iter().map(|&x| 2 * x).collect());
+    for g in extended_golay_generator_rows() {
+        s.push(g.iter().map(|&x| 2 * x as i128).collect());
     }
     for i in 1..24 {
         let mut v = vec![0i128; 24];
@@ -283,14 +257,14 @@ mod tests {
         // The extended Golay code is self-dual: every pair of generator rows has
         // even inner product over F_2, and every row has weight ≡ 0 mod 4
         // (doubly even). Weight 12 for the I-row + complement-ish rows here.
-        let g = golay_generator();
+        let g = extended_golay_generator_rows();
         for row in &g {
-            let wt: i128 = row.iter().sum();
+            let wt: u8 = row.iter().sum();
             assert_eq!(wt % 4, 0, "doubly even: weight {wt}");
         }
         for i in 0..12 {
             for j in 0..12 {
-                let ip: i128 = g[i].iter().zip(&g[j]).map(|(&a, &b)| a * b).sum();
+                let ip: u8 = g[i].iter().zip(&g[j]).map(|(&a, &b)| a * b).sum();
                 assert_eq!(ip % 2, 0, "self-orthogonal rows {i},{j}");
             }
         }

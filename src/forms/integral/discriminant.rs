@@ -46,6 +46,71 @@ impl GaussSum {
     }
 }
 
+/// A tiny dependency-free complex number for Gauss sums and Weil matrices.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Complex64 {
+    pub re: f64,
+    pub im: f64,
+}
+
+impl Complex64 {
+    pub fn zero() -> Self {
+        Complex64 { re: 0.0, im: 0.0 }
+    }
+
+    pub fn one() -> Self {
+        Complex64 { re: 1.0, im: 0.0 }
+    }
+
+    pub fn cis(theta: f64) -> Self {
+        Complex64 {
+            re: theta.cos(),
+            im: theta.sin(),
+        }
+    }
+
+    /// `exp(pi*i*k/4)`.
+    pub fn eighth_root(k: i128) -> Self {
+        Complex64::cis((k.rem_euclid(8) as f64) * std::f64::consts::FRAC_PI_4)
+    }
+
+    pub fn abs(&self) -> f64 {
+        self.re.hypot(self.im)
+    }
+
+    pub fn add(&self, rhs: &Self) -> Self {
+        Complex64 {
+            re: self.re + rhs.re,
+            im: self.im + rhs.im,
+        }
+    }
+
+    pub fn sub(&self, rhs: &Self) -> Self {
+        Complex64 {
+            re: self.re - rhs.re,
+            im: self.im - rhs.im,
+        }
+    }
+
+    pub fn mul(&self, rhs: &Self) -> Self {
+        Complex64 {
+            re: self.re * rhs.re - self.im * rhs.im,
+            im: self.re * rhs.im + self.im * rhs.re,
+        }
+    }
+
+    pub fn scale(&self, c: f64) -> Self {
+        Complex64 {
+            re: self.re * c,
+            im: self.im * c,
+        }
+    }
+
+    pub fn approx_eq(&self, rhs: &Self, tol: f64) -> bool {
+        self.sub(rhs).abs() <= tol
+    }
+}
+
 /// The finite discriminant quadratic module of an even lattice.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DiscriminantForm {
@@ -55,6 +120,50 @@ pub struct DiscriminantForm {
     pub reps: Vec<Vec<i128>>,
     /// The exact inverse Gram matrix.
     pub gram_inv: Vec<Vec<Rational>>,
+}
+
+fn mat_identity(n: usize) -> Vec<Vec<Complex64>> {
+    let mut out = vec![vec![Complex64::zero(); n]; n];
+    for (i, row) in out.iter_mut().enumerate() {
+        row[i] = Complex64::one();
+    }
+    out
+}
+
+fn mat_mul(a: &[Vec<Complex64>], b: &[Vec<Complex64>]) -> Vec<Vec<Complex64>> {
+    let n = a.len();
+    let m = b.first().map_or(0, Vec::len);
+    let inner = b.len();
+    let mut out = vec![vec![Complex64::zero(); m]; n];
+    for i in 0..n {
+        for k in 0..inner {
+            for j in 0..m {
+                out[i][j] = out[i][j].add(&a[i][k].mul(&b[k][j]));
+            }
+        }
+    }
+    out
+}
+
+fn mat_pow(a: &[Vec<Complex64>], exp: usize) -> Vec<Vec<Complex64>> {
+    let mut out = mat_identity(a.len());
+    for _ in 0..exp {
+        out = mat_mul(a, &out);
+    }
+    out
+}
+
+fn mat_scale(a: &[Vec<Complex64>], c: Complex64) -> Vec<Vec<Complex64>> {
+    a.iter()
+        .map(|row| row.iter().map(|x| x.mul(&c)).collect())
+        .collect()
+}
+
+fn mat_approx_eq(a: &[Vec<Complex64>], b: &[Vec<Complex64>], tol: f64) -> bool {
+    a.len() == b.len()
+        && a.iter().zip(b).all(|(ra, rb)| {
+            ra.len() == rb.len() && ra.iter().zip(rb).all(|(x, y)| x.approx_eq(y, tol))
+        })
 }
 
 fn rational_mod_int(x: Rational, modulus: i128) -> Rational {
@@ -190,6 +299,130 @@ impl DiscriminantForm {
     /// The Milgram phase as `signature mod 8`, extracted from the Gauss sum.
     pub fn milgram_signature_mod8(&self) -> Option<i128> {
         self.gauss_sum().phase_mod8(1e-8)
+    }
+
+    fn equivalent_mod_lattice(&self, a: &[i128], b: &[i128]) -> bool {
+        let n = self.gram_inv.len();
+        if a.len() != n || b.len() != n {
+            return false;
+        }
+        let diff: Vec<i128> = a.iter().zip(b).map(|(&x, &y)| x - y).collect();
+        for row in &self.gram_inv {
+            let mut coord = Rational::zero();
+            for (r, &d) in row.iter().zip(&diff) {
+                if d != 0 {
+                    coord = coord.add(&r.mul(&Rational::int(d)));
+                }
+            }
+            if !coord.is_integer() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn negation_matrix(&self) -> Option<Vec<Vec<Complex64>>> {
+        let n = self.reps.len();
+        let mut out = vec![vec![Complex64::zero(); n]; n];
+        for (col, gamma) in self.reps.iter().enumerate() {
+            let neg_gamma: Vec<i128> = gamma.iter().map(|&x| -x).collect();
+            let row = self
+                .reps
+                .iter()
+                .position(|delta| self.equivalent_mod_lattice(delta, &neg_gamma))?;
+            out[row][col] = Complex64::one();
+        }
+        Some(out)
+    }
+
+    fn weil_t_matrix(&self) -> Vec<Vec<Complex64>> {
+        let t = self.weil_t();
+        let mut out = vec![vec![Complex64::zero(); t.len()]; t.len()];
+        for (i, z) in t.into_iter().enumerate() {
+            out[i][i] = z;
+        }
+        out
+    }
+
+    /// The diagonal Weil `T` multipliers `exp(pi*i*q_L(gamma))`.
+    pub fn weil_t(&self) -> Vec<Complex64> {
+        self.reps
+            .iter()
+            .map(|gamma| {
+                let theta =
+                    std::f64::consts::PI * rational_to_f64(&self.quadratic_value_mod2(gamma));
+                Complex64::cis(theta)
+            })
+            .collect()
+    }
+
+    /// The phase index of the `S` prefactor in the standard Weil convention:
+    /// `exp(-2*pi*i*sign/8)`. The existing Milgram Gauss sum stores the conjugate
+    /// phase `exp(+2*pi*i*sign/8)`, so this returns `-sign mod 8`.
+    pub fn weil_s_prefactor_phase_mod8(&self) -> Option<i128> {
+        Some((-self.milgram_signature_mod8()?).rem_euclid(8))
+    }
+
+    /// Recover the positive Milgram signature phase from the Weil `S` prefactor.
+    pub fn weil_s_recovers_milgram_phase_mod8(&self) -> Option<i128> {
+        Some((-self.weil_s_prefactor_phase_mod8()?).rem_euclid(8))
+    }
+
+    /// The Weil `S` matrix in the basis of discriminant representatives:
+    /// `(sigma/sqrt(|A|)) * exp(-2*pi*i*b_L(gamma,delta))`.
+    pub fn weil_s(&self) -> Option<Vec<Vec<Complex64>>> {
+        let n = self.reps.len();
+        if n == 0 {
+            return None;
+        }
+        let sigma = Complex64::eighth_root(self.weil_s_prefactor_phase_mod8()?);
+        let scale = 1.0 / (n as f64).sqrt();
+        let mut out = vec![vec![Complex64::zero(); n]; n];
+        for (col, gamma) in self.reps.iter().enumerate() {
+            for (row, delta) in self.reps.iter().enumerate() {
+                let theta = -2.0
+                    * std::f64::consts::PI
+                    * rational_to_f64(&self.bilinear_value_mod1(gamma, delta));
+                out[row][col] = sigma.mul(&Complex64::cis(theta)).scale(scale);
+            }
+        }
+        Some(out)
+    }
+
+    /// Verify the finite Weil representation bookkeeping for this discriminant
+    /// form. With the standard `S` prefactor, the honest metaplectic relations are
+    /// `S^2 = sigma^2 * (gamma -> -gamma)`, `S^4 = sigma^4 * I`, and
+    /// `(ST)^3 = S^2`; for unimodular signature `0 mod 8` these collapse to the
+    /// familiar scalar relations.
+    pub fn verify_weil_relations(&self) -> bool {
+        let Some(s_phase) = self.weil_s_prefactor_phase_mod8() else {
+            return false;
+        };
+        if self.weil_s_recovers_milgram_phase_mod8() != self.milgram_signature_mod8() {
+            return false;
+        }
+        let Some(s) = self.weil_s() else {
+            return false;
+        };
+        let t = self.weil_t_matrix();
+        let Some(neg) = self.negation_matrix() else {
+            return false;
+        };
+        let tol = 1e-8;
+        if self.weil_t().iter().any(|z| (z.abs() - 1.0).abs() > tol) {
+            return false;
+        }
+        let s2 = mat_pow(&s, 2);
+        let s4 = mat_pow(&s, 4);
+        let st3 = mat_pow(&mat_mul(&s, &t), 3);
+        let s2_target = mat_scale(&neg, Complex64::eighth_root(2 * s_phase));
+        let s4_target = mat_scale(
+            &mat_identity(self.reps.len()),
+            Complex64::eighth_root(4 * s_phase),
+        );
+        mat_approx_eq(&s2, &s2_target, tol)
+            && mat_approx_eq(&s4, &s4_target, tol)
+            && mat_approx_eq(&st3, &s2, tol)
     }
 }
 
@@ -420,6 +653,9 @@ mod tests {
         assert_eq!(disc.reps.len(), 2);
         assert_eq!(disc.quadratic_value_mod2(&[1]), Rational::new(1, 2));
         assert_eq!(disc.milgram_signature_mod8(), Some(1));
+        assert_eq!(disc.weil_s_prefactor_phase_mod8(), Some(7));
+        assert_eq!(disc.weil_s_recovers_milgram_phase_mod8(), Some(1));
+        assert!(disc.verify_weil_relations());
         assert_eq!(verify_milgram(&a1), Some(true));
     }
 
@@ -430,6 +666,7 @@ mod tests {
             let disc = DiscriminantForm::from_lattice(&a).unwrap();
             assert_eq!(disc.group, vec![n as i128 + 1]);
             assert_eq!(disc.milgram_signature_mod8(), Some(n as i128 % 8));
+            assert!(disc.verify_weil_relations(), "Weil relations A_{n}");
             assert_eq!(verify_milgram(&a), Some(true), "A_{n}");
         }
 
@@ -439,6 +676,8 @@ mod tests {
         assert_eq!(disc.milgram_signature_mod8(), Some(4));
         let gs = disc.gauss_sum();
         assert!((gs.re + 1.0).abs() < 1e-8 && gs.im.abs() < 1e-8);
+        assert_eq!(disc.weil_s_recovers_milgram_phase_mod8(), Some(4));
+        assert!(disc.verify_weil_relations());
         assert_eq!(verify_milgram(&d4), Some(true));
     }
 
@@ -449,6 +688,9 @@ mod tests {
         assert!(disc.group.is_empty());
         assert_eq!(disc.reps, vec![vec![0; 8]]);
         assert_eq!(disc.milgram_signature_mod8(), Some(0));
+        assert_eq!(disc.weil_t(), vec![Complex64::one()]);
+        assert_eq!(disc.weil_s().unwrap(), vec![vec![Complex64::one()]]);
+        assert!(disc.verify_weil_relations());
         assert_eq!(verify_milgram(&e8), Some(true));
 
         let e8e8 = e8.direct_sum(&e8);

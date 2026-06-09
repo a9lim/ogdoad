@@ -260,8 +260,9 @@ integer Gram matrix. Its invariants are arithmetic (det, level, minimum, kissing
 number, |Aut|), and the coarse classification is the **genus** (local
 equivalence at every place), which reuses the `local_global/padic.rs` and
 `local_global/adelic.rs` primitives. Staged M1→M4, all landed:
-`integral/lattice.rs`, `integral/root_lattices.rs`, `integral/genus.rs`,
-`integral/mass_formula.rs` (+ the Leech lattice).
+`integral/lattice.rs`, `integral/root_lattices.rs`, `integral/discriminant.rs`,
+`integral/genus.rs`, `integral/mass_formula.rs` (+ the Leech lattice),
+`integral/codes.rs`, `integral/theta.rs`, and `integral/modular.rs`.
 
 - **`integral/lattice.rs`** (M1) — `IntegralForm { gram: Vec<Vec<i128>> }` (private Gram,
   built via `new` (square+symmetric-checked) / `diagonal`, never a struct literal).
@@ -282,7 +283,8 @@ equivalence at every place), which reuses the `local_global/padic.rs` and
   exact). **Looks like a bug, isn't:** (a) the geometry methods return `None`
   for indefinite lattices on purpose (infinitely many vectors of each norm); (b) |Aut|
   is bounded by an explicit node budget (`AUTO_NODE_BUDGET`) and returns `None` past
-  it (`E₈`/Leech are too big to brute-force) — an honest `None`, not a silent truncation
+  it (Leech is too big to brute-force; `E₈` is recognized by the ADE/root-system
+  fast path) — an honest `None`, not a silent truncation
   (`automorphism_group_order_bounded` exposes the budget); (c) `level(⟨1⟩)=2`, not 1 —
   `ℤ` is odd, so the smallest `N` making `N·G⁻¹` even-diagonal is 2 (cf. `A_1=⟨2⟩→4`,
   `E₈→1`). Oracles: `A_2`/`A_3`/`D_4`/`E_8` det, kissing (6/12/24/240), |Aut|
@@ -294,14 +296,21 @@ equivalence at every place), which reuses the `local_global/padic.rs` and
   (min 2 + roots generate `L`, index read off the HNF pivots). `E_8` is the unique rank-8
   even unimodular lattice — the visible meeting point of the char-0 mod-8 Bott /
   `brauer_wall` BW(ℝ)=ℤ/8 story and the lattice world (root AGENTS.md). Det/kissing/Coxeter
-  oracles protect every construction; |Aut| oracles only on the small ones
-  (`A_n`→`2(n+1)!`, `D_4`→1152, `D_5`→3840; `E_8`→`None`, past the budget).
+  oracles protect every construction; |Aut| oracles include the small ones
+  (`A_n`→`2(n+1)!`, `D_4`→1152, `D_5`→3840) and the named constant
+  `E8_WEYL_GROUP_ORDER = 696729600`.
 - **`integral/discriminant.rs`** — the even-lattice discriminant form bridge:
   `DiscriminantForm { group, reps, gram_inv }` represents `A_L = L#/L` as
   `Z^n/GZ^n`; `quadratic_value_mod2`, `bilinear_value_mod1`, and
   `GaussSum::phase_mod8` compute the finite quadratic module; and
   `verify_milgram` compares the Gauss-sum phase to the exact signature plus the
-  genus oddity route. This is the lattice ↔ Clifford/Brauer-Wall mod-8 seam. The
+  genus oddity route. `Complex64`, `weil_t`, `weil_s`,
+  `weil_s_prefactor_phase_mod8`, `weil_s_recovers_milgram_phase_mod8`, and
+  `verify_weil_relations` implement the discriminant-form Weil representation.
+  **Looks like a bug, isn't:** the standard Weil `S` prefactor is the conjugate of
+  the positive Milgram phase stored by `GaussSum`; the verifier checks
+  `S² = σ²·(γ↦−γ)`, `S⁴ = σ⁴·I`, and `(ST)³ = S²`, not the oversimplified
+  `S⁴ = I`. This is the lattice ↔ Clifford/Brauer-Wall mod-8 seam. The
   implementation is even-lattice only; odd type-I refinements stay a documented
   boundary.
 - **`integral/genus.rs`** (M3) — the **genus** = (signature, det, per-prime Conway–Sloane
@@ -324,13 +333,32 @@ equivalence at every place), which reuses the `local_global/padic.rs` and
   the i128 ceiling). `mass(8) = 1/696729600 = 1/|W(E_8)|` — the formula *recovers* the
   `E_8` automorphism order the brute-force counter refuses; `n = 16, 24` match the
   published Niemeier values (the i128 model reaches exactly to 24). Plus the **Leech
-  lattice** `leech()`: built from the Golay `[24,12,8]` code (`golay_generator`,
-  `[I₁₂|A]`) → a `√8·Λ₂₄ ⊂ ℤ²⁴` spanning set (`2·`Golay rows, `4(e₀+eᵢ)`, one odd
+  lattice** `leech()`: built from the Golay `[24,12,8]` code
+  (`extended_golay_generator_rows`, `[I₁₂|A]`) → a `√8·Λ₂₄ ⊂ ℤ²⁴` spanning set
+  (`2·`Golay rows, `4(e₀+eᵢ)`, one odd
   `(−3,1²³)`) → HNF basis `B` → `Gram = B·Bᵀ/8`. **Validated, not trusted:** rank-24
   even unimodular with **no roots** *is* Leech (Niemeier), so the test checks `det=1`,
   even, `short_vectors(2)` empty (cheap — bound 2 < min 4; the full kissing 196560 is
   not enumerated). `|Aut(Λ₂₄)| = |Co₀|` is computed from the factorized constant `LEECH_AUT_ORDER` (far
   past brute force). Monster stays a thematic remark (moonshine, not a form computation).
+- **`integral/codes.rs`** — binary linear codes and Construction A:
+  `BinaryCode` stores a checked row-reduced F₂ generator matrix; `dual`,
+  `is_self_dual`, `is_self_orthogonal`, `is_doubly_even`, `minimum_distance`,
+  `weight_enumerator`, and `macwilliams_transform` are exact. `construction_a`
+  uses the required `1/sqrt(2)` scaling by taking an HNF basis of
+  `{x ∈ Z^n : x mod 2 ∈ C}` and dividing dot products by 2; it returns `None` when
+  the scaled Gram is not integral. Shipped constructors: `hamming_code`,
+  `extended_hamming_code`, `golay_code`, `type_ii_e8_sum_code`,
+  `type_ii_len16_code`, and `d16_plus`. **Looks like a bug, isn't:** bare Golay
+  Construction A is even unimodular rank 24 **with roots**; it is not Leech.
+- **`integral/theta.rs` / `integral/modular.rs`** — exact theta and modular-form
+  bridge. `IntegralForm::theta_series(terms)` buckets short vectors by `Q/2` and
+  returns `None` outside the positive-definite even-lattice boundary. `eisenstein_e4`,
+  `eisenstein_e6`, `delta`, `mk_basis`, and `as_modular_form` identify q-expansions
+  exactly in `C[E4,E6]`. Oracles pin `theta_E8 = E4`,
+  `theta_{E8+E8} = theta_{D16+} = E4^2`, Leech's rootless `q^1` coefficient in
+  `E4^3 - 720 Delta`, and the degenerate rank-16 Siegel-Weil consistency using
+  the recorded `E8_WEYL_GROUP_ORDER` and `D16_PLUS_AUT_ORDER` constants.
 
 ## Things that look like bugs but are not (forms layer)
 

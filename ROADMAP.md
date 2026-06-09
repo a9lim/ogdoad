@@ -9,10 +9,9 @@ or shortly after the first public release. It is deliberately distinct from
   `GameExterior`, transfinite nim excesses past the verified table, and the
   transfinite Arf/Witt question for ordinal-nimber coefficients).
 - **`ROADMAP.md`** (this file) holds *buildable bridges* — connections between the
-  four mature pillars whose mathematics is largely standard. It now has two tiers:
-  a **built first wave** (Bridges A–D), whose first computational pass exists in
-  the codebase, and a **proposed second wave** (Bridges E, H, I, F), specified at
-  the end of this file with worked math and oracles but **not yet implemented**.
+  four mature pillars whose mathematics is largely standard. It now has a
+  **built first wave** (Bridges A–D), a **partly built second wave** (Bridges
+  E/H/I implemented, Bridge F still proposed), and the deferred Bridge G note.
   This document keeps the mathematical contract, the implemented or proposed
   surfaces, and the remaining honest boundaries in one place. Where a bridge
   brushes against an open question, it says so and points back to `OPEN.md`.
@@ -315,10 +314,10 @@ All four bridges are independently implemented and tested in the Rust core:
 - **D:** `Ordinal` as a checked/panic-on-escape `Scalar`, `CliffordAlgebra<Ordinal>`
   engine tests, and finite-window ordinal Arf classification.
 
-A **proposed second wave** (Bridges E, H, I, F — theta/modular forms, the
-code↔lattice Construction A, the discriminant-form Weil representation, and the
-rational Brauer/Clifford invariant) is specified in the section below with worked
-math and oracles but is **not yet implemented**, pending a build-scope decision.
+The second-wave bridges **E, H, and I** are now implemented and tested in the Rust
+core: theta/modular forms, code↔lattice Construction A, and the discriminant-form
+Weil representation. Bridge F (the rational Brauer/Clifford invariant correction)
+remains a proposed build target.
 
 Remaining open edges are not implementation TODOs inside this roadmap: the natural
 Gold-quadric game rule, game-native quadratic deformation of `GameExterior`, and
@@ -326,14 +325,13 @@ the genuinely transfinite Arf/Witt classifier all stay in `OPEN.md`.
 
 ---
 
-# Second wave — proposed bridges (not yet implemented)
+# Second wave — E/H/I implemented, F proposed
 
 The first wave (A–D) closed the *pillar graph*: every pair of pillars that can talk
 now does. The second wave **deepens the spine** — it strengthens the mod-8 / `E₈` /
 local↔global thread the project is already built around, rather than reaching for a
-new pillar. Everything below is **design only**: worked mathematics, a proposed
-surface that fits the existing conventions, and the internal oracles each bridge
-would be pinned against. Nothing here is implemented yet.
+new pillar. Bridges **H, E, and I** below are now standard math made computational
+in the core; Bridge **F** remains design-only.
 
 Claim-level discipline still applies: each proposed bridge is **standard math made
 computational**, the same status A–D shipped at — *not* a new theorem. Where the
@@ -343,12 +341,13 @@ Clifford algebra).
 
 **Build order: H → E → I → F.** `codes.rs` (H) is the substrate and yields the
 `D₁₆⁺` lattice that the Bridge E headline needs; E is the visible punchline; I
-connects E back to the already-built Bridge A; F is the most careful work and is
-independent of the other three. Bridge **G** (spinor genus) is noted at the end as
-a *deferred* bridge — classical but not buildable from the current surface.
+connects E back to the already-built Bridge A. Those three are built. F is the
+most careful remaining work and is independent of the other three. Bridge **G**
+(spinor genus) is noted at the end as a *deferred* bridge — classical but not
+buildable from the current surface.
 
 ```
-            (built A–D)
+            (built A–E, H, I; F still proposed)
    codes ──Construction A── integral/lattice ──θ series── modular forms   (E, H)
      │  MacWilliams              │   │                          ▲
    weight enum ↔ theta          │   └── discriminant form ──Weil rep──┘   (I)
@@ -360,7 +359,7 @@ a *deferred* bridge — classical but not buildable from the current surface.
 ## Bridge E — theta series, modular forms, and the Milnor isospectral pair
 
 **Pillars:** `forms/integral/` ↔ a small new modular-forms layer.
-**Claim level:** PROPOSED — standard math (Hecke; Milnor 1964; Conway–Sloane
+**Claim level:** IMPLEMENTED AND TESTED — standard math (Hecke; Milnor 1964; Conway–Sloane
 Ch. 7) made computational. **The headline bridge of the second wave.**
 
 ### The mathematics
@@ -414,7 +413,7 @@ series (`n = 24`'s 24 Niemeier classes, or a small multi-class non-unimodular
 genus). Ship the `n = 16` consistency check, document the degeneracy, and mark the
 non-trivial Siegel–Weil as a further rung.
 
-### Proposed surface
+### Implemented surface
 
 - `forms/integral/theta.rs`
   - `IntegralForm::theta_series(&self, terms: usize) -> Option<Vec<i128>>` — the
@@ -431,10 +430,10 @@ non-trivial Siegel–Weil as a further rung.
     the remaining computed coefficients match. This is the **rigorous** bridge:
     equality of two weight-`k` forms agreeing through `dim M_k` coefficients is
     exact, not numerical.
-- A `D₁₆⁺` constructor (cleanest via Bridge H's `construction_a` on the Type II
-  length-16 code; or directly `d_n(16)` plus the all-halves glue vector).
+- `d16_plus()` via Bridge H's `construction_a` on the indecomposable Type II
+  length-16 code.
 
-### Oracles / proposed tests
+### Oracles / implemented tests
 
 - `θ_{E₈} = E₄`; `r(1) = 240`.
 - `θ_{E₈⊕E₈} = θ_{D₁₆⁺} = E₄²` to many terms, while `Genus`/isometry confirm the two
@@ -460,7 +459,7 @@ non-trivial Siegel–Weil as a further rung.
 
 **Pillars:** a new `forms/integral/codes.rs` ↔ `forms/integral/` (lattices, theta)
 ↔ `forms/char2/` and `clifford_metric_f2` (the F₂ refinement).
-**Claim level:** PROPOSED — standard math (Conway–Sloane Ch. 7; MacWilliams). The
+**Claim level:** IMPLEMENTED AND TESTED — standard math (Conway–Sloane Ch. 7; MacWilliams). The
 **most on-spine** second-wave idea: it is "the same duality read three ways."
 
 ### The mathematics
@@ -501,18 +500,20 @@ L_C = (1/√2) · { x ∈ ℤⁿ : (x mod 2) ∈ C }.
    lattice **interface**, with Leech as its known rootless refinement — never
    "Golay → Leech."
 
-### Proposed surface
+### Implemented surface
 
 - `forms/integral/codes.rs`
-  - `BinaryCode { generators: Vec<Vec<u8>>, n }` (checked F₂ row space).
-  - `dual`, `is_self_dual`, `is_doubly_even`, `minimum_distance`,
+  - `BinaryCode` (checked row-reduced F₂ row space).
+  - `dual`, `is_self_dual`, `is_self_orthogonal`, `is_doubly_even`, `minimum_distance`,
     `weight_enumerator(&self) -> Vec<i128>`, `macwilliams_transform(&self) -> Vec<i128>`.
-  - `construction_a(&self) -> IntegralForm` (integer Gram, `1/2`-scaled).
-  - `golay_code()` (promote/share the existing `golay_generator` from
-    `mass_formula.rs`), `hamming_code()`, and the Type II length-16 code that
-    yields `D₁₆⁺` for Bridge E.
+  - `construction_a(&self) -> Option<IntegralForm>` (integer Gram, `1/2`-scaled;
+    `None` outside the integral-Gram boundary).
+  - `theta_series_via_weight_enumerator(&self, terms) -> Option<Vec<i128>>`.
+  - `golay_code()` (shared with `mass_formula::leech`), `hamming_code()`,
+    `extended_hamming_code()`, the split `E₈⊕E₈` Type II length-16 code, and the
+    indecomposable Type II length-16 code that yields `D₁₆⁺` for Bridge E.
 
-### Oracles / proposed tests
+### Oracles / implemented tests
 
 - MacWilliams: `code.macwilliams_transform() == code.dual().weight_enumerator()` on
   Hamming `[7,4]` and Golay `[24,12]`.
@@ -534,7 +535,7 @@ identity uses the Hamming enumerator and the exact `θ₂`/`θ₃` q-expansions.
 
 **Pillars:** `forms/integral/discriminant.rs` (Bridge A) ↔ `forms/integral/theta.rs`
 (Bridge E) ↔ `forms/witt/brauer_wall` (the mod-8 phase).
-**Claim level:** PROPOSED — standard math (Weil; Nikulin; Borcherds). The elegant
+**Claim level:** IMPLEMENTED AND TESTED — standard math (Weil; Nikulin; Borcherds). The elegant
 connector: it makes the **already-built** Bridge A the local-global "bulk" whose
 unimodular boundary is exactly Bridge E.
 
@@ -548,7 +549,8 @@ representation** `ρ_L` of (a metaplectic cover of) `SL₂(ℤ)` on `ℂ[A_L] = 
 ```text
 ρ_L(T) e_γ = e^{ πi · q_L(γ) } · e_γ                                  (diagonal)
 ρ_L(S) e_γ = (σ / √|A_L|) · Σ_{δ ∈ A_L} e^{ −2πi · b_L(γ,δ) } · e_δ   (finite Fourier)
-σ = e^{ −2πi · sign(L) / 8 }   = the Milgram Gauss-sum phase of Bridge A.
+σ = e^{ −2πi · sign(L) / 8 }   (the conjugate of the positive Milgram phase
+                                  convention used by `GaussSum`).
 ```
 
 The **vector-valued theta** `Θ_L = Σ_γ θ_{L+γ} e_γ` transforms under `ρ_L`. When `L`
@@ -557,28 +559,28 @@ multiplier, and `Θ_L` collapses to the scalar modular form of Bridge E. So Brid
 is the bulk and Bridge E is its boundary.
 
 The payoff is a **third independent route to `sign mod 8`** (after the rational
-signature and the genus oddity that Bridge A already cross-checks): the overall
-phase of `ρ_L(S)` is `σ`, the very `phase_mod8` Bridge A computes. The metaplectic
-relations `ρ(S)⁴ = 1` and `ρ((ST)³) = ρ(S²)` (with the central element acting by a
-`sign`-fixed root of unity and `γ ↦ −γ`) pin the matrices with no new theory — pure
-representation bookkeeping over the data Bridge A already exposes.
+signature and the genus oddity that Bridge A already cross-checks): the `S`
+prefactor is the conjugate phase, and `weil_s_recovers_milgram_phase_mod8` recovers
+Bridge A's positive `phase_mod8`. The honest metaplectic relations are
+`S² = σ²·(γ ↦ −γ)`, `S⁴ = σ⁴·I`, and `(ST)³ = S²`; for unimodular signature
+`0 mod 8` they collapse to the familiar scalar relations.
 
-### Proposed surface
+### Implemented surface
 
-- `forms/integral/discriminant.rs` (extend) or `forms/integral/weil.rs`
+- `forms/integral/discriminant.rs`
+  - `Complex64` — dependency-free complex entries for Gauss sums and Weil matrices.
   - `DiscriminantForm::weil_t(&self)` — the diagonal `T`-multipliers `e^{πi q_L(γ)}`.
-  - `DiscriminantForm::weil_s(&self)` — the `S`-matrix (`f64` with `|·| = 1` checks,
-    matching Bridge A's Gauss-sum convention; an exact cyclotomic representation is a
-    nice-to-have, not required).
-  - `verify_weil_relations(&self) -> bool` — `S⁴ = I`, `(ST)³ = c·S²`, and the
-    `ρ(S)` phase `= GaussSum::phase_mod8`.
+  - `DiscriminantForm::weil_s(&self) -> Option<Vec<Vec<Complex64>>>` — the `S`
+    matrix (`f64`; exact cyclotomic storage remains unnecessary here).
+  - `weil_s_prefactor_phase_mod8` and `weil_s_recovers_milgram_phase_mod8`.
+  - `verify_weil_relations(&self) -> bool` — the corrected metaplectic relations
+    above plus the Milgram phase recovery.
 
-### Oracles / proposed tests
+### Oracles / implemented tests
 
 - The metaplectic relations on the `A_n`/`D_4`/`E_8` discriminant forms already
   exercised by Bridge A.
-- `ρ(S)` overall phase `= phase_mod8` — Bridge A's Milgram check, recovered
-  representation-theoretically (the third route to `σ`).
+- `ρ(S)` prefactor recovers Bridge A's Milgram `phase_mod8` after conjugating back.
 - Unimodular `E₈` ⇒ `|A_L| = 1`, a `1×1` scalar collapse whose weight matches Bridge
   E's `θ_{E₈} = E₄`.
 
