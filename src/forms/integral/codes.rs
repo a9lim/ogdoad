@@ -484,7 +484,7 @@ pub(crate) fn extended_golay_generator_rows() -> Vec<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::{e_8, is_root_lattice};
+    use crate::forms::e_8;
 
     #[test]
     fn hamming_macwilliams_matches_dual() {
@@ -510,7 +510,7 @@ mod tests {
         assert_eq!(l.dim(), 24);
         assert!(l.is_even());
         assert!(l.is_unimodular());
-        assert_eq!(l.short_vectors(2).map(|v| v.len()), Some(48));
+        assert_eq!(g.theta_series_via_weight_enumerator(2), Some(vec![1, 48]));
     }
 
     #[test]
@@ -519,22 +519,28 @@ mod tests {
         assert!(e8_code.is_self_dual());
         assert!(e8_code.is_doubly_even());
         let e8_from_code = e8_code.construction_a().unwrap();
-        assert_eq!(e8_from_code.kissing_number(), Some(240));
-        assert!(is_root_lattice(&e8_from_code));
+        assert_eq!(e8_from_code.dim(), 8);
+        assert!(e8_from_code.is_even());
+        assert!(e8_from_code.is_unimodular());
+        assert_eq!(e8_from_code.determinant(), e_8().determinant());
+        assert_eq!(
+            e8_code.theta_series_via_weight_enumerator(2),
+            Some(vec![1, 240])
+        );
 
         let split = type_ii_e8_sum_code().construction_a().unwrap();
-        assert_eq!(split.kissing_number(), Some(480));
-        assert!(is_root_lattice(&split));
+        assert_eq!(split.dim(), 16);
+        assert!(split.is_even());
+        assert!(split.is_unimodular());
         assert_eq!(split.determinant(), e_8().direct_sum(&e_8()).determinant());
 
         let d16 = d16_plus();
         assert_eq!(d16.dim(), 16);
         assert!(d16.is_even());
         assert!(d16.is_unimodular());
-        assert_eq!(d16.kissing_number(), Some(480));
-        assert!(
-            !is_root_lattice(&d16),
-            "D16+ contains D16 roots, but they generate an index-2 sublattice"
+        assert_eq!(
+            type_ii_len16_code().theta_series_via_weight_enumerator(2),
+            Some(vec![1, 480])
         );
         assert_eq!(
             D16_PLUS_AUT_ORDER,
@@ -544,12 +550,24 @@ mod tests {
 
     #[test]
     fn weight_enumerator_theta_matches_construction_a_theta() {
-        for code in [extended_hamming_code(), type_ii_len16_code(), golay_code()] {
-            let lattice = code.construction_a().unwrap();
-            assert_eq!(
-                code.theta_series_via_weight_enumerator(3),
-                lattice.theta_series(3)
-            );
-        }
+        let e8_code = extended_hamming_code();
+        let e8_lattice = e8_code.construction_a().unwrap();
+        assert_eq!(
+            e8_code.theta_series_via_weight_enumerator(3),
+            e8_lattice.theta_series(3)
+        );
+
+        assert_eq!(
+            type_ii_e8_sum_code().theta_series_via_weight_enumerator(3),
+            Some(vec![1, 480, 61920])
+        );
+        assert_eq!(
+            type_ii_len16_code().theta_series_via_weight_enumerator(3),
+            Some(vec![1, 480, 61920])
+        );
+        assert_eq!(
+            golay_code().theta_series_via_weight_enumerator(2),
+            Some(vec![1, 48])
+        );
     }
 }

@@ -2,46 +2,241 @@
 //! algebra of the game group (over the `Integer` backend), and nim-mult via the
 //! Turning-Corners game recurrence.
 
-use super::engine::IntegerMV;
-use super::scalars::{parse_surreal, PyOrdinal, PySurreal};
+use super::engine::{IntegerAlgebra, IntegerMV};
+use super::forms::{wrap_quadric_fit, PyQuadricFit};
+use super::scalars::{
+    parse_rational, parse_surreal, wrap_rational, PyOrdinal, PyRational, PySurreal,
+};
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
-    thermography, AbstractGame, Color, Game, GameExterior, Hackenbush, LoopyGraph,
-    LoopyNimCertificate, LoopyNimber, NimberGame, NumberGame, Outcome, Quotient,
+    thermography, AbstractGame, Color, Game, GameExterior, GameRelation, Hackenbush, LoopyGraph,
+    LoopyNimCertificate, LoopyNimber, LoopyValue, NimberGame, NumberGame, Outcome, PartizanOutcome,
+    Quotient,
 };
-use crate::scalar::{Integer, Rational, Surreal};
+use crate::scalar::{Integer, Rational, SignExpansion, Surreal};
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
-
-type PyRelationCertificate = (i128, bool, Option<usize>, Vec<(Vec<i128>, String, bool)>);
-type PyThermograph = (
-    PySurreal,
-    PySurreal,
-    Vec<(PySurreal, PySurreal)>,
-    Vec<(PySurreal, PySurreal)>,
-);
 
 /// Wrap a dyadic `Rational` (a thermograph coordinate) as a `Surreal` for Python.
 fn rat_to_py(r: Rational) -> PySurreal {
     PySurreal::from_inner(Surreal::from_rational(r))
 }
 
-fn thermograph_to_py(th: crate::games::thermography::Thermograph) -> PyThermograph {
-    let wall = |w: &thermography::Pl| {
-        w.points()
+fn wrap_pl(inner: thermography::Pl) -> PyPl {
+    PyPl { inner }
+}
+
+fn wrap_thermograph(inner: thermography::Thermograph) -> PyThermograph {
+    PyThermograph { inner }
+}
+
+#[pyclass(name = "GameRelation", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyGameRelation {
+    inner: GameRelation,
+}
+
+#[pymethods]
+impl PyGameRelation {
+    #[new]
+    fn new(coeffs: Vec<i128>) -> Self {
+        PyGameRelation {
+            inner: GameRelation::new(coeffs),
+        }
+    }
+    #[getter]
+    fn coeffs(&self) -> Vec<i128> {
+        self.inner.coeffs.clone()
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        let Ok(rel) = other.extract::<PyRef<'_, PyGameRelation>>() else {
+            return Ok(matches!(op, CompareOp::Ne));
+        };
+        match op {
+            CompareOp::Eq => Ok(self.inner.coeffs == rel.inner.coeffs),
+            CompareOp::Ne => Ok(self.inner.coeffs != rel.inner.coeffs),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("GameRelation only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __repr__(&self) -> String {
+        format!("GameRelation(coeffs={:?})", self.inner.coeffs)
+    }
+}
+
+fn wrap_game_relation(inner: GameRelation) -> PyGameRelation {
+    PyGameRelation { inner }
+}
+
+#[pyclass(name = "GameRelationCertificate", module = "pleroma")]
+struct PyGameRelationCertificate {
+    inner: crate::games::GameRelationCertificate,
+}
+
+#[pymethods]
+impl PyGameRelationCertificate {
+    #[getter]
+    fn coeffs(&self) -> Vec<i128> {
+        self.inner.coeffs.clone()
+    }
+    #[getter]
+    fn value_key(&self) -> String {
+        self.inner.value_key.clone()
+    }
+    #[getter]
+    fn independent(&self) -> bool {
+        self.inner.independent
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "GameRelationCertificate(coeffs={:?}, value_key={:?}, independent={})",
+            self.inner.coeffs, self.inner.value_key, self.inner.independent
+        )
+    }
+}
+
+fn wrap_game_relation_certificate(
+    inner: crate::games::GameRelationCertificate,
+) -> PyGameRelationCertificate {
+    PyGameRelationCertificate { inner }
+}
+
+#[pyclass(name = "RelationSearchCertificate", module = "pleroma")]
+struct PyRelationSearchCertificate {
+    inner: crate::games::RelationSearchCertificate,
+}
+
+#[pymethods]
+impl PyRelationSearchCertificate {
+    #[getter]
+    fn bound(&self) -> i128 {
+        self.inner.bound
+    }
+    #[getter]
+    fn exhaustive(&self) -> bool {
+        self.inner.exhaustive
+    }
+    #[getter]
+    fn candidate_count(&self) -> Option<usize> {
+        self.inner.candidate_count
+    }
+    #[getter]
+    fn relations(&self) -> Vec<PyGameRelationCertificate> {
+        self.inner
+            .relations
             .iter()
-            .map(|(t, v)| (rat_to_py(t.clone()), rat_to_py(v.clone())))
-            .collect::<Vec<_>>()
-    };
-    (
-        rat_to_py(th.mast.clone()),
-        rat_to_py(th.temperature.clone()),
-        wall(&th.left_wall),
-        wall(&th.right_wall),
-    )
+            .cloned()
+            .map(wrap_game_relation_certificate)
+            .collect()
+    }
+    fn __repr__(&self) -> String {
+        let relations: Vec<_> = self
+            .inner
+            .relations
+            .iter()
+            .map(|r| {
+                format!(
+                    "GameRelationCertificate(coeffs={:?}, value_key={:?}, independent={})",
+                    r.coeffs, r.value_key, r.independent
+                )
+            })
+            .collect();
+        format!(
+            "RelationSearchCertificate(bound={}, exhaustive={}, candidate_count={:?}, relations={:?})",
+            self.inner.bound,
+            self.inner.exhaustive,
+            self.inner.candidate_count,
+            relations,
+        )
+    }
+}
+
+fn wrap_relation_search_certificate(
+    inner: crate::games::RelationSearchCertificate,
+) -> PyRelationSearchCertificate {
+    PyRelationSearchCertificate { inner }
+}
+
+#[pyclass(name = "Pl", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyPl {
+    inner: thermography::Pl,
+}
+
+#[pymethods]
+impl PyPl {
+    #[staticmethod]
+    fn constant(value: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(wrap_pl(thermography::Pl::constant(parse_rational(value)?)))
+    }
+    fn points(&self) -> Vec<(PyRational, PyRational)> {
+        self.inner
+            .points()
+            .iter()
+            .map(|(t, v)| (wrap_rational(t.clone()), wrap_rational(v.clone())))
+            .collect()
+    }
+    fn value_at(&self, t: &Bound<'_, PyAny>) -> PyResult<PyRational> {
+        Ok(wrap_rational(self.inner.value_at(&parse_rational(t)?)))
+    }
+    fn oplus_max(&self, other: &PyPl) -> PyPl {
+        wrap_pl(self.inner.oplus_max(&other.inner))
+    }
+    fn oplus_min(&self, other: &PyPl) -> PyPl {
+        wrap_pl(self.inner.oplus_min(&other.inner))
+    }
+    fn otimes(&self, other: &PyPl) -> PyPl {
+        wrap_pl(self.inner.otimes(&other.inner))
+    }
+    fn __repr__(&self) -> String {
+        format!("Pl({:?})", self.inner.points())
+    }
+}
+
+#[pyclass(name = "Thermograph", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyThermograph {
+    inner: thermography::Thermograph,
+}
+
+#[pymethods]
+impl PyThermograph {
+    #[getter]
+    fn mean(&self) -> PyRational {
+        wrap_rational(self.inner.mean())
+    }
+    #[getter]
+    fn temperature(&self) -> PyRational {
+        wrap_rational(self.inner.temperature.clone())
+    }
+    #[getter]
+    fn left_wall(&self) -> PyPl {
+        wrap_pl(self.inner.left_wall.clone())
+    }
+    #[getter]
+    fn right_wall(&self) -> PyPl {
+        wrap_pl(self.inner.right_wall.clone())
+    }
+    fn left_stop(&self) -> PyRational {
+        wrap_rational(self.inner.left_stop())
+    }
+    fn right_stop(&self) -> PyRational {
+        wrap_rational(self.inner.right_stop())
+    }
+    fn cooled_stops(&self, t: &Bound<'_, PyAny>) -> PyResult<(PyRational, PyRational)> {
+        let (l, r) = self.inner.cooled_stops(&parse_rational(t)?);
+        Ok((wrap_rational(l), wrap_rational(r)))
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "Thermograph(mean={:?}, temperature={:?})",
+            self.inner.mast, self.inner.temperature
+        )
+    }
 }
 
 /// Nim-multiplication via Conway's Turning-Corners game recurrence (the
@@ -90,6 +285,85 @@ fn check_coin_index(n: u128, label: &str) -> PyResult<()> {
     }
 }
 
+fn lower_coin_mask(n: u128, label: &str) -> PyResult<u128> {
+    check_coin_index(n, label)?;
+    Ok(if n == 0 { 0 } else { (1u128 << n) - 1 })
+}
+
+fn call_u128_moves(callback: &Bound<'_, PyAny>, pos: u128) -> PyResult<Vec<u128>> {
+    callback.call1((pos,))?.extract()
+}
+
+fn call_usize_moves(callback: &Bound<'_, PyAny>, pos: usize) -> PyResult<Vec<usize>> {
+    callback.call1((pos,))?.extract()
+}
+
+fn grundy_u128_inner(
+    pos: u128,
+    moves: &Bound<'_, PyAny>,
+    memo: &mut HashMap<u128, u128>,
+) -> PyResult<u128> {
+    if let Some(&v) = memo.get(&pos) {
+        return Ok(v);
+    }
+    let nexts = call_u128_moves(moves, pos)?;
+    let mut values = Vec::with_capacity(nexts.len());
+    for next in nexts {
+        values.push(grundy_u128_inner(next, moves, memo)?);
+    }
+    let g = crate::games::mex(values);
+    memo.insert(pos, g);
+    Ok(g)
+}
+
+fn misere_is_n_u128_inner(
+    pos: u128,
+    moves: &Bound<'_, PyAny>,
+    memo: &mut HashMap<u128, bool>,
+    visiting: &mut HashSet<u128>,
+) -> PyResult<Option<bool>> {
+    if let Some(&v) = memo.get(&pos) {
+        return Ok(Some(v));
+    }
+    if !visiting.insert(pos) {
+        return Ok(None);
+    }
+    let nexts = call_u128_moves(moves, pos)?;
+    let mut result = nexts.is_empty();
+    if !result {
+        for next in nexts {
+            match misere_is_n_u128_inner(next, moves, memo, visiting)? {
+                Some(false) => {
+                    result = true;
+                    break;
+                }
+                Some(true) => {}
+                None => {
+                    visiting.remove(&pos);
+                    return Ok(None);
+                }
+            }
+        }
+    }
+    visiting.remove(&pos);
+    memo.insert(pos, result);
+    Ok(Some(result))
+}
+
+fn loopy_succ_from_callback(n: usize, moves: &Bound<'_, PyAny>) -> PyResult<Vec<Vec<usize>>> {
+    let mut succ = Vec::with_capacity(n);
+    for v in 0..n {
+        let nexts = call_usize_moves(moves, v)?;
+        if nexts.iter().any(|&w| w >= n) {
+            return Err(PyValueError::new_err(format!(
+                "move callback for position {v} returned an out-of-range target"
+            )));
+        }
+        succ.push(nexts);
+    }
+    Ok(succ)
+}
+
 /// Legal companion masks for the named 1-D coin-turning family at coin `n`.
 /// Families: `"singleton"` (turn exactly one lower coin) and `"turtles"`
 /// (turn optionally one lower coin).
@@ -97,6 +371,56 @@ fn check_coin_index(n: u128, label: &str) -> PyResult<()> {
 fn coin_companions(kind: &str, n: u128) -> PyResult<Vec<u128>> {
     check_coin_index(n, "n")?;
     Ok((parse_coin_family(kind)?.companions())(n))
+}
+
+#[pyfunction]
+fn singleton_companions(n: u128) -> PyResult<Vec<u128>> {
+    check_coin_index(n, "n")?;
+    Ok(crate::games::singleton_companions(n))
+}
+
+#[pyfunction]
+fn turtles_companions(n: u128) -> PyResult<Vec<u128>> {
+    check_coin_index(n, "n")?;
+    Ok(crate::games::turtles_companions(n))
+}
+
+/// Single-coin Grundy value for a Python companion-mask callback.
+/// `companions(n)` must return legal bitmasks over lower coins `{0, …, n-1}`.
+#[pyfunction]
+fn grundy_1d(companions: Bound<'_, PyAny>, n: u128) -> PyResult<u128> {
+    fn inner(
+        companions: &Bound<'_, PyAny>,
+        n: u128,
+        memo: &mut HashMap<u128, u128>,
+    ) -> PyResult<u128> {
+        let allowed = lower_coin_mask(n, "n")?;
+        if let Some(&v) = memo.get(&n) {
+            return Ok(v);
+        }
+        let mut seen = HashSet::new();
+        for s in call_u128_moves(companions, n)? {
+            if s & !allowed != 0 {
+                return Err(PyValueError::new_err(
+                    "companion mask contains a coin that is not strictly lower than n",
+                ));
+            }
+            let mut acc = 0u128;
+            let mut ss = s;
+            while ss != 0 {
+                let i = ss.trailing_zeros() as u128;
+                ss &= ss - 1;
+                acc ^= inner(companions, i, memo)?;
+            }
+            seen.insert(acc);
+        }
+        let g = crate::games::mex(seen);
+        memo.insert(n, g);
+        Ok(g)
+    }
+
+    check_coin_index(n, "n")?;
+    inner(&companions, n, &mut HashMap::new())
 }
 
 /// Single-coin Grundy value of a named 1-D coin-turning family.
@@ -111,7 +435,7 @@ fn coin_turning_grundy(kind: &str, n: u128) -> PyResult<u128> {
 /// Single-cell Grundy value of the Tartan product of two named 1-D coin-turning
 /// families, computed directly from the 2-D excludant.
 #[pyfunction]
-fn tartan_grundy(kind_a: &str, kind_b: &str, x: u128, y: u128) -> PyResult<u128> {
+fn coin_turning_tartan_grundy(kind_a: &str, kind_b: &str, x: u128, y: u128) -> PyResult<u128> {
     check_coin_index(x, "x")?;
     check_coin_index(y, "y")?;
     let comp_a = parse_coin_family(kind_a)?.companions();
@@ -120,6 +444,76 @@ fn tartan_grundy(kind_a: &str, kind_b: &str, x: u128, y: u128) -> PyResult<u128>
     Ok(crate::games::tartan_grundy(
         &comp_a, &comp_b, x, y, &mut memo,
     ))
+}
+
+/// Single-cell Grundy value of the Tartan product for two Python companion-mask
+/// callbacks.
+#[pyfunction]
+fn tartan_grundy(
+    comp_a: Bound<'_, PyAny>,
+    comp_b: Bound<'_, PyAny>,
+    x: u128,
+    y: u128,
+) -> PyResult<u128> {
+    fn inner(
+        comp_a: &Bound<'_, PyAny>,
+        comp_b: &Bound<'_, PyAny>,
+        x: u128,
+        y: u128,
+        memo: &mut HashMap<(u128, u128), u128>,
+    ) -> PyResult<u128> {
+        let allowed_x = lower_coin_mask(x, "x")?;
+        let allowed_y = lower_coin_mask(y, "y")?;
+        if let Some(&v) = memo.get(&(x, y)) {
+            return Ok(v);
+        }
+        let mut seen = HashSet::new();
+        for ta in call_u128_moves(comp_a, x)? {
+            if ta & !allowed_x != 0 {
+                return Err(PyValueError::new_err(
+                    "row companion mask contains a coin that is not strictly lower than x",
+                ));
+            }
+            let acells = ta | (1u128 << x);
+            for tb in call_u128_moves(comp_b, y)? {
+                if tb & !allowed_y != 0 {
+                    return Err(PyValueError::new_err(
+                        "column companion mask contains a coin that is not strictly lower than y",
+                    ));
+                }
+                let bcells = tb | (1u128 << y);
+                let mut acc = 0u128;
+                let mut aa = acells;
+                while aa != 0 {
+                    let a = aa.trailing_zeros() as u128;
+                    aa &= aa - 1;
+                    let mut bb = bcells;
+                    while bb != 0 {
+                        let b = bb.trailing_zeros() as u128;
+                        bb &= bb - 1;
+                        if a != x || b != y {
+                            acc ^= inner(comp_a, comp_b, a, b, memo)?;
+                        }
+                    }
+                }
+                seen.insert(acc);
+            }
+        }
+        let g = crate::games::mex(seen);
+        memo.insert((x, y), g);
+        Ok(g)
+    }
+
+    check_coin_index(x, "x")?;
+    check_coin_index(y, "y")?;
+    inner(&comp_a, &comp_b, x, y, &mut HashMap::new())
+}
+
+/// Grundy value of an acyclic impartial game with `u128` positions and a Python
+/// move callback `moves(pos) -> list[u128]`.
+#[pyfunction]
+fn grundy(pos: u128, moves: Bound<'_, PyAny>) -> PyResult<u128> {
+    grundy_u128_inner(pos, &moves, &mut HashMap::new())
 }
 
 /// Sprague–Grundy values of a finite **acyclic** impartial game graph given as
@@ -152,14 +546,200 @@ fn outcome_name(o: Outcome) -> String {
     .to_string()
 }
 
-/// Normal-play outcome `"Win"`/`"Loss"`/`"Draw"` of every position of a finite
+#[pyclass(name = "Outcome", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyOutcome {
+    inner: Outcome,
+}
+
+fn wrap_outcome(inner: Outcome) -> PyOutcome {
+    PyOutcome { inner }
+}
+
+fn parse_outcome(obj: &Bound<'_, PyAny>) -> PyResult<Outcome> {
+    if let Ok(outcome) = obj.cast::<PyOutcome>() {
+        return Ok(outcome.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected Outcome"))
+}
+
+#[pymethods]
+impl PyOutcome {
+    #[staticmethod]
+    fn loss() -> Self {
+        wrap_outcome(Outcome::Loss)
+    }
+    #[staticmethod]
+    fn win() -> Self {
+        wrap_outcome(Outcome::Win)
+    }
+    #[staticmethod]
+    fn draw() -> Self {
+        wrap_outcome(Outcome::Draw)
+    }
+    fn name(&self) -> String {
+        outcome_name(self.inner)
+    }
+    fn is_loss(&self) -> bool {
+        self.inner == Outcome::Loss
+    }
+    fn is_win(&self) -> bool {
+        self.inner == Outcome::Win
+    }
+    fn is_draw(&self) -> bool {
+        self.inner == Outcome::Draw
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_outcome(other).is_ok_and(|o| o == self.inner)),
+            CompareOp::Ne => Ok(parse_outcome(other).is_ok_and(|o| o != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("Outcome only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __str__(&self) -> String {
+        self.name()
+    }
+    fn __repr__(&self) -> String {
+        format!("Outcome.{}", outcome_name(self.inner))
+    }
+}
+
+fn partizan_outcome_name(o: PartizanOutcome) -> String {
+    match o {
+        PartizanOutcome::P => "P",
+        PartizanOutcome::N => "N",
+        PartizanOutcome::L => "L",
+        PartizanOutcome::R => "R",
+        PartizanOutcome::Draw => "Draw",
+    }
+    .to_string()
+}
+
+#[pyclass(name = "PartizanOutcome", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyPartizanOutcome {
+    inner: PartizanOutcome,
+}
+
+fn wrap_partizan_outcome(inner: PartizanOutcome) -> PyPartizanOutcome {
+    PyPartizanOutcome { inner }
+}
+
+fn parse_partizan_outcome(obj: &Bound<'_, PyAny>) -> PyResult<PartizanOutcome> {
+    if let Ok(outcome) = obj.cast::<PyPartizanOutcome>() {
+        return Ok(outcome.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected PartizanOutcome"))
+}
+
+#[pymethods]
+impl PyPartizanOutcome {
+    #[staticmethod]
+    fn p() -> Self {
+        wrap_partizan_outcome(PartizanOutcome::P)
+    }
+    #[staticmethod]
+    fn n() -> Self {
+        wrap_partizan_outcome(PartizanOutcome::N)
+    }
+    #[staticmethod]
+    fn l() -> Self {
+        wrap_partizan_outcome(PartizanOutcome::L)
+    }
+    #[staticmethod]
+    fn r() -> Self {
+        wrap_partizan_outcome(PartizanOutcome::R)
+    }
+    #[staticmethod]
+    fn draw() -> Self {
+        wrap_partizan_outcome(PartizanOutcome::Draw)
+    }
+    fn name(&self) -> String {
+        partizan_outcome_name(self.inner)
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_partizan_outcome(other).is_ok_and(|o| o == self.inner)),
+            CompareOp::Ne => Ok(parse_partizan_outcome(other).is_ok_and(|o| o != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("PartizanOutcome only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __str__(&self) -> String {
+        self.name()
+    }
+    fn __repr__(&self) -> String {
+        format!("PartizanOutcome.{}", partizan_outcome_name(self.inner))
+    }
+}
+
+#[pyclass(name = "LoopyNimber", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyLoopyNimber {
+    inner: LoopyNimber,
+}
+
+fn wrap_loopy_nimber(inner: LoopyNimber) -> PyLoopyNimber {
+    PyLoopyNimber { inner }
+}
+
+fn parse_loopy_nimber(obj: &Bound<'_, PyAny>) -> PyResult<LoopyNimber> {
+    if let Ok(value) = obj.cast::<PyLoopyNimber>() {
+        return Ok(value.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected LoopyNimber"))
+}
+
+#[pymethods]
+impl PyLoopyNimber {
+    #[staticmethod]
+    fn value(n: u128) -> Self {
+        wrap_loopy_nimber(LoopyNimber::Value(n))
+    }
+    #[staticmethod]
+    fn side() -> Self {
+        wrap_loopy_nimber(LoopyNimber::Side)
+    }
+    fn to_u128(&self) -> PyResult<u128> {
+        match self.inner {
+            LoopyNimber::Value(n) => Ok(n),
+            LoopyNimber::Side => Err(PyValueError::new_err("LoopyNimber.Side has no u128 value")),
+        }
+    }
+    fn is_side(&self) -> bool {
+        self.inner == LoopyNimber::Side
+    }
+    fn is_value(&self) -> bool {
+        matches!(self.inner, LoopyNimber::Value(_))
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_loopy_nimber(other).is_ok_and(|x| x == self.inner)),
+            CompareOp::Ne => Ok(parse_loopy_nimber(other).is_ok_and(|x| x != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("LoopyNimber only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __repr__(&self) -> String {
+        match self.inner {
+            LoopyNimber::Value(n) => format!("LoopyNimber.Value({n})"),
+            LoopyNimber::Side => "LoopyNimber.Side".to_string(),
+        }
+    }
+}
+
+/// Normal-play typed [`Outcome`] of every position of a finite
 /// game graph given as adjacency lists (`succ[v]` = positions reachable from `v`).
-/// Retrograde analysis; `"Loss"` = P-position. Cyclic graphs are fine (→ `"Draw"`).
+/// Retrograde analysis; `Loss` = P-position. Cyclic graphs are fine (→ `Draw`).
 #[pyfunction]
-fn outcomes(succ: Vec<Vec<usize>>) -> Vec<String> {
+fn outcomes(succ: Vec<Vec<usize>>) -> Vec<PyOutcome> {
     crate::games::outcomes(&succ)
         .into_iter()
-        .map(outcome_name)
+        .map(wrap_outcome)
         .collect()
 }
 
@@ -169,14 +749,44 @@ fn p_positions(succ: Vec<Vec<usize>>) -> Vec<usize> {
     crate::games::p_positions(&succ)
 }
 
+#[pyclass(name = "ScoreInterval", module = "pleroma")]
+struct PyScoreInterval {
+    inner: crate::games::ScoreInterval,
+}
+
+#[pymethods]
+impl PyScoreInterval {
+    #[getter]
+    fn left(&self) -> i128 {
+        self.inner.left
+    }
+    #[getter]
+    fn right(&self) -> i128 {
+        self.inner.right
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "ScoreInterval(left={}, right={})",
+            self.inner.left, self.inner.right
+        )
+    }
+}
+
+fn wrap_score_interval(inner: crate::games::ScoreInterval) -> PyScoreInterval {
+    PyScoreInterval { inner }
+}
+
 /// Milnor scoring-game minimax on a finite **acyclic** graph: the `(left, right)`
 /// value interval of every position (`left` = optimal score with Left/maximizer
 /// to move, `right` with Right/minimizer), where `terminal_score[v]` scores each
 /// move-less position. Errors on a cycle (loopy scoring is out of scope).
 #[pyfunction]
-fn scoring_values(succ: Vec<Vec<usize>>, terminal_score: Vec<i128>) -> PyResult<Vec<(i128, i128)>> {
+fn scoring_values(
+    succ: Vec<Vec<usize>>,
+    terminal_score: Vec<i128>,
+) -> PyResult<Vec<PyScoreInterval>> {
     crate::games::scoring_values(&succ, &terminal_score)
-        .map(|v| v.into_iter().map(|s| (s.left, s.right)).collect())
+        .map(|v| v.into_iter().map(wrap_score_interval).collect())
         .ok_or_else(|| PyValueError::new_err("graph has a cycle — scoring value is undefined"))
 }
 
@@ -195,6 +805,26 @@ fn nim_canonical(heaps: Vec<u128>) -> Vec<u128> {
 #[pyfunction]
 fn misere_nim_p_predicted(heaps: Vec<u128>) -> bool {
     crate::games::misere_nim_p_predicted(&heaps)
+}
+
+/// Misère outcome of a finite acyclic impartial game with `u128` positions and a
+/// Python move callback. Returns `None` if the callback-defined graph has a cycle.
+#[pyfunction]
+fn try_misere_is_n(pos: u128, moves: Bound<'_, PyAny>) -> PyResult<Option<bool>> {
+    misere_is_n_u128_inner(pos, &moves, &mut HashMap::new(), &mut HashSet::new())
+}
+
+/// Misère N/P outcome for an acyclic Python callback game; errors on cycles.
+#[pyfunction]
+fn misere_is_n(pos: u128, moves: Bound<'_, PyAny>) -> PyResult<bool> {
+    try_misere_is_n(pos, moves)?
+        .ok_or_else(|| PyValueError::new_err("misere_is_n requires an acyclic move graph"))
+}
+
+/// `True` iff a callback-defined acyclic game is a misère P-position.
+#[pyfunction]
+fn misere_is_p(pos: u128, moves: Bound<'_, PyAny>) -> PyResult<bool> {
+    Ok(!misere_is_n(pos, moves)?)
 }
 
 /// The moves of Nim: reduce any one heap to any strictly smaller size.
@@ -227,22 +857,46 @@ fn octal_misere_quotient(
 }
 
 /// Loopy impartial nim-values of a (possibly cyclic) game graph: each position is
-/// an ordinary nimber, or `None` for a Draw position (the loopy `∞`/`Side`).
+/// a typed `LoopyNimber.Value(n)`, or `LoopyNimber.Side` for a Draw position.
 /// Errors when a cyclic non-Draw subgraph has no unique bounded sidling solution.
 #[pyfunction]
-fn loopy_nim_values(succ: Vec<Vec<usize>>) -> PyResult<Vec<Option<u128>>> {
+fn loopy_nim_values(succ: Vec<Vec<usize>>) -> PyResult<Vec<PyLoopyNimber>> {
     crate::games::loopy_nim_values(&succ)
-        .map(|vs| {
-            vs.into_iter()
-                .map(|x| match x {
-                    LoopyNimber::Value(n) => Some(n),
-                    LoopyNimber::Side => None,
-                })
-                .collect()
-        })
+        .map(|vs| vs.into_iter().map(wrap_loopy_nimber).collect())
         .ok_or_else(|| {
             PyValueError::new_err("cyclic non-Draw subgraph has no unique bounded sidling solution")
         })
+}
+
+/// `(loss_set, draw_set)` for a cyclic Python move rule on positions `0..n`.
+#[pyfunction]
+fn loopy_decision_sets(n: usize, moves: Bound<'_, PyAny>) -> PyResult<(Vec<usize>, Vec<usize>)> {
+    let succ = loopy_succ_from_callback(n, &moves)?;
+    let g = LoopyGraph::new(succ);
+    Ok((g.loss_set(), g.draw_set()))
+}
+
+/// Fit F₂ quadrics to the loss and draw sets of a callback-defined loopy rule on
+/// `F_2^k` (`positions = 0..2^k`).
+#[pyfunction]
+fn loopy_quadric_probe(
+    k: usize,
+    moves: Bound<'_, PyAny>,
+) -> PyResult<(Option<PyQuadricFit>, Option<PyQuadricFit>)> {
+    const MAX_ANF_DIM: usize = 20;
+    if k > MAX_ANF_DIM {
+        return Err(PyValueError::new_err(format!(
+            "loopy_quadric_probe is exponential in k; max supported k is {MAX_ANF_DIM}"
+        )));
+    }
+    let n = 1usize << k;
+    let (loss, draw) = loopy_decision_sets(n, moves)?;
+    let loss_u: Vec<u128> = loss.into_iter().map(|v| v as u128).collect();
+    let draw_u: Vec<u128> = draw.into_iter().map(|v| v as u128).collect();
+    Ok((
+        crate::forms::fit_f2_quadratic(&loss_u, k).map(wrap_quadric_fit),
+        crate::forms::fit_f2_quadratic(&draw_u, k).map(wrap_quadric_fit),
+    ))
 }
 
 #[pyclass(name = "LoopyNimCertificate", module = "pleroma")]
@@ -253,12 +907,12 @@ struct PyLoopyNimCertificate {
 #[pymethods]
 impl PyLoopyNimCertificate {
     #[getter]
-    fn outcomes(&self) -> Vec<String> {
+    fn outcomes(&self) -> Vec<PyOutcome> {
         self.inner
             .outcomes
             .iter()
             .copied()
-            .map(outcome_name)
+            .map(wrap_outcome)
             .collect()
     }
     #[getter]
@@ -288,21 +942,59 @@ impl PyLoopyNimCertificate {
 #[pyfunction]
 fn loopy_nim_values_certified(
     succ: Vec<Vec<usize>>,
-) -> PyResult<(Vec<Option<u128>>, PyLoopyNimCertificate)> {
+) -> PyResult<(Vec<PyLoopyNimber>, PyLoopyNimCertificate)> {
     crate::games::loopy_nim_values_certified(&succ)
         .map(|(vs, inner)| {
-            let values = vs
-                .into_iter()
-                .map(|x| match x {
-                    LoopyNimber::Value(n) => Some(n),
-                    LoopyNimber::Side => None,
-                })
-                .collect();
+            let values = vs.into_iter().map(wrap_loopy_nimber).collect();
             (values, PyLoopyNimCertificate { inner })
         })
         .ok_or_else(|| {
             PyValueError::new_err("cyclic non-Draw subgraph has no unique bounded sidling solution")
         })
+}
+
+/// Exact thermograph object for a short game, with `Rational` wall coordinates.
+#[pyfunction]
+fn thermograph(game: &PyGame) -> Option<PyThermograph> {
+    thermography::thermograph(&game.inner).map(wrap_thermograph)
+}
+
+/// The same exact thermograph, computed through the named tropical wall folds.
+#[pyfunction]
+fn thermograph_via_tropical(game: &PyGame) -> Option<PyThermograph> {
+    crate::games::tropical_thermography::thermograph_via_tropical(&game.inner).map(wrap_thermograph)
+}
+
+#[pyfunction]
+fn temperature(game: &PyGame) -> Option<PySurreal> {
+    crate::games::temperature(&game.inner).map(rat_to_py)
+}
+
+#[pyfunction]
+fn mean_value(game: &PyGame) -> Option<PySurreal> {
+    crate::games::mean_value(&game.inner).map(rat_to_py)
+}
+
+#[pyfunction]
+fn left_stop(game: &PyGame) -> Option<PySurreal> {
+    crate::games::left_stop(&game.inner).map(rat_to_py)
+}
+
+#[pyfunction]
+fn right_stop(game: &PyGame) -> Option<PySurreal> {
+    crate::games::right_stop(&game.inner).map(rat_to_py)
+}
+
+/// The atomic weight as a `Game` (`None` if the input is not all-small).
+#[pyfunction]
+fn atomic_weight(game: &PyGame) -> Option<PyGame> {
+    crate::games::atomic_weight(&game.inner).map(|inner| PyGame { inner })
+}
+
+/// The atomic weight as an integer (`None` if undefined or genuinely non-integer).
+#[pyfunction]
+fn atomic_weight_int(game: &PyGame) -> Option<i128> {
+    crate::games::atomic_weight_int(&game.inner)
 }
 
 // ---------------------------------------------------------------------------
@@ -408,6 +1100,13 @@ impl PyGame {
             inner: Game::nim_heap(n),
         }
     }
+    /// The Nim-heap `⋆n`, matching Rust's `Game::nim_heap` name.
+    #[staticmethod]
+    fn nim_heap(n: u128) -> PyGame {
+        PyGame {
+            inner: Game::nim_heap(n),
+        }
+    }
     /// Whether this game is **all-small** (a Left move iff a Right move at every
     /// position) — the domain of the atomic weight.
     fn is_all_small(&self) -> bool {
@@ -442,6 +1141,19 @@ impl PyGame {
     /// equal in value.
     fn canonical_string(&self) -> String {
         self.inner.canonical_string()
+    }
+    /// An order-independent structural string of the game tree as given; no
+    /// canonicalization.
+    fn structural_string(&self) -> String {
+        self.inner.structural_string()
+    }
+    /// Structural equality of the game trees as given, without canonicalization.
+    fn structural_eq(&self, other: &PyGame) -> bool {
+        self.inner.structural_eq(&other.inner)
+    }
+    /// A readable structural form: `0` for `{|}`, else `{L|R}` recursively.
+    fn display(&self) -> String {
+        self.inner.display()
     }
     /// The surreal value of a number-valued game (`None` for non-numbers like
     /// `⋆`, `↑`, switches).
@@ -479,16 +1191,15 @@ impl PyGame {
     fn right_stop(&self) -> Option<PySurreal> {
         thermography::right_stop(&self.inner).map(rat_to_py)
     }
-    /// The thermograph as `(mean, temperature, left_wall, right_wall)`, where each
-    /// wall is a list of `(t, value)` breakpoints. `None` if undefined.
+    /// The thermograph as a first-class exact object with `Pl` walls.
     fn thermograph(&self) -> Option<PyThermograph> {
-        thermography::thermograph(&self.inner).map(thermograph_to_py)
+        thermography::thermograph(&self.inner).map(wrap_thermograph)
     }
     /// The same thermograph, routed through the named tropical max-plus/min-plus
     /// wall folds and pinned equal to `thermograph` in the Rust tests.
     fn thermograph_via_tropical(&self) -> Option<PyThermograph> {
         crate::games::tropical_thermography::thermograph_via_tropical(&self.inner)
-            .map(thermograph_to_py)
+            .map(wrap_thermograph)
     }
     /// Cooled stops `(LS(G_t), RS(G_t))` at the rational temperature `num/den`.
     #[pyo3(signature = (num, den=1))]
@@ -505,16 +1216,67 @@ impl PyGame {
     }
 }
 
-/// Parse a colour name (`"blue"`/`"red"`/`"green"`, case-insensitive) or its
-/// initial (`"b"`/`"r"`/`"g"`).
-fn parse_color(s: &str) -> PyResult<Color> {
-    match s.trim().to_lowercase().as_str() {
-        "blue" | "b" | "l" | "left" => Ok(Color::Blue),
-        "red" | "r" => Ok(Color::Red),
-        "green" | "g" | "e" => Ok(Color::Green),
-        other => Err(PyValueError::new_err(format!(
-            "unknown colour {other:?} (expected blue/red/green)"
-        ))),
+fn color_name(c: Color) -> String {
+    match c {
+        Color::Blue => "blue",
+        Color::Red => "red",
+        Color::Green => "green",
+    }
+    .to_string()
+}
+
+#[pyclass(name = "Color", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyColor {
+    inner: Color,
+}
+
+fn wrap_color(inner: Color) -> PyColor {
+    PyColor { inner }
+}
+
+fn parse_color_obj(obj: &Bound<'_, PyAny>) -> PyResult<Color> {
+    if let Ok(color) = obj.cast::<PyColor>() {
+        return Ok(color.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected Color"))
+}
+
+#[pymethods]
+impl PyColor {
+    #[staticmethod]
+    fn blue() -> Self {
+        wrap_color(Color::Blue)
+    }
+    #[staticmethod]
+    fn red() -> Self {
+        wrap_color(Color::Red)
+    }
+    #[staticmethod]
+    fn green() -> Self {
+        wrap_color(Color::Green)
+    }
+    fn name(&self) -> String {
+        color_name(self.inner)
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_color_obj(other).is_ok_and(|c| c == self.inner)),
+            CompareOp::Ne => Ok(parse_color_obj(other).is_ok_and(|c| c != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("Color only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __str__(&self) -> String {
+        self.name()
+    }
+    fn __repr__(&self) -> String {
+        match self.inner {
+            Color::Blue => "Color.Blue".to_string(),
+            Color::Red => "Color.Red".to_string(),
+            Color::Green => "Color.Green".to_string(),
+        }
     }
 }
 
@@ -525,27 +1287,29 @@ struct PyHackenbush {
 
 #[pymethods]
 impl PyHackenbush {
-    /// A position from `(u, v, colour)` edges; vertex `0` is the ground.
+    /// A position from `(u, v, Color)` edges; vertex `0` is the ground.
     #[new]
-    fn new(edges: Vec<(usize, usize, String)>) -> PyResult<Self> {
-        let edges = edges
-            .into_iter()
-            .map(|(u, v, c)| Ok((u, v, parse_color(&c)?)))
-            .collect::<PyResult<Vec<_>>>()?;
-        Ok(PyHackenbush {
+    fn new(edges: Vec<(usize, usize, PyColor)>) -> Self {
+        let edges = edges.into_iter().map(|(u, v, c)| (u, v, c.inner)).collect();
+        PyHackenbush {
             inner: Hackenbush::new(edges),
-        })
+        }
     }
     /// A stalk `0—1—2—…` from the ground, edge `i` coloured `colors[i]`.
     #[staticmethod]
-    fn string(colors: Vec<String>) -> PyResult<Self> {
-        let cs = colors
-            .iter()
-            .map(|c| parse_color(c))
-            .collect::<PyResult<Vec<_>>>()?;
-        Ok(PyHackenbush {
+    fn string(colors: Vec<PyColor>) -> Self {
+        let cs = colors.into_iter().map(|c| c.inner).collect::<Vec<_>>();
+        PyHackenbush {
             inner: Hackenbush::string(&cs),
-        })
+        }
+    }
+    /// The edges `(u, v, Color)` as typed Python `Color` values.
+    fn edges(&self) -> Vec<(usize, usize, PyColor)> {
+        self.inner
+            .edges()
+            .iter()
+            .map(|&(u, v, c)| (u, v, wrap_color(c)))
+            .collect()
     }
     /// The partizan game value (the universal evaluator).
     fn to_game(&self) -> PyGame {
@@ -586,30 +1350,44 @@ impl PyGameExterior {
         let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
         PyGameExterior::from_inner(GameExterior::with_relation_search(games, bound))
     }
+    #[staticmethod]
+    fn with_relation_search(gens: Vec<PyGame>, bound: i128) -> Self {
+        Self::with_relation_bound(gens, bound)
+    }
+    #[staticmethod]
+    fn with_relations(gens: Vec<PyGame>, relations: Vec<PyGameRelation>) -> Self {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let relations = relations.into_iter().map(|rel| rel.inner).collect();
+        PyGameExterior::from_inner(GameExterior::with_relations(games, relations))
+    }
     #[getter]
     fn dim(&self) -> usize {
         self.inner.algebra().dim
     }
-    fn relations(&self) -> Vec<Vec<i128>> {
+    /// The underlying free Grassmann algebra before quotienting by game-group
+    /// relations. Use `reduce`/`wedge`/`add` on `GameExterior` for quotient-aware
+    /// operations.
+    fn algebra(&self) -> IntegerAlgebra {
+        IntegerAlgebra {
+            inner: self.alg.clone(),
+        }
+    }
+    fn relations(&self) -> Vec<PyGameRelation> {
         self.inner
             .relations()
             .iter()
-            .map(|r| r.coeffs.clone())
+            .cloned()
+            .map(wrap_game_relation)
             .collect()
     }
-    /// Relation-search certificate:
-    /// `(bound, exhaustive, candidate_count, [(coeffs, value_key, independent), ...])`.
-    fn relation_certificate(&self) -> PyRelationCertificate {
-        let cert = self.inner.relation_search_certificate();
-        (
-            cert.bound,
-            cert.exhaustive,
-            cert.candidate_count,
-            cert.relations
-                .iter()
-                .map(|r| (r.coeffs.clone(), r.value_key.clone(), r.independent))
-                .collect(),
-        )
+    /// Whether the automatic bounded relation search exhausted its coefficient
+    /// box. Explicit relations always report true.
+    fn relation_search_complete(&self) -> bool {
+        self.inner.relation_search_complete()
+    }
+    /// Full relation-search certificate as a named record.
+    fn relation_search_certificate(&self) -> PyRelationSearchCertificate {
+        wrap_relation_search_certificate(self.inner.relation_search_certificate().clone())
     }
     /// The grade-1 generator e_i (an `IntegerMV`) standing for game g_i.
     fn generator(&self, i: usize) -> IntegerMV {
@@ -637,6 +1415,13 @@ impl PyGameExterior {
         Ok(IntegerMV {
             alg: self.alg.clone(),
             mv: self.inner.add(&a.mv, &b.mv),
+        })
+    }
+    fn scalar_mul(&self, s: i128, mv: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(mv)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.scalar_mul(s, &mv.mv),
         })
     }
     fn wedge(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
@@ -707,6 +1492,10 @@ impl PyNumberGame {
     fn birthday_finite(&self) -> Option<u128> {
         self.inner.birthday().and_then(|o| o.as_finite())
     }
+    /// The birthday as an `Ordinal`, matching Rust's `NumberGame::birthday` name.
+    fn birthday(&self) -> Option<PyOrdinal> {
+        self.inner.birthday().map(PyOrdinal::from_inner)
+    }
     /// The birthday as an `Ordinal`, when the value is in the representable
     /// sign-expansion subclass.
     fn birthday_ordinal(&self) -> Option<PyOrdinal> {
@@ -726,6 +1515,17 @@ impl PyNumberGame {
                 .map(|(s, l)| (*s, PyOrdinal::from_inner(l.clone())))
                 .collect()
         })
+    }
+    /// Reconstruct a number game from transfinite sign-expansion runs
+    /// `(sign, length)`.
+    #[staticmethod]
+    fn from_sign_expansion(runs: Vec<(bool, PyOrdinal)>) -> Option<PyNumberGame> {
+        let se = SignExpansion::from_runs(
+            runs.into_iter()
+                .map(|(sign, len)| (sign, len.as_ordinal().clone()))
+                .collect(),
+        );
+        NumberGame::from_sign_expansion(&se).map(|inner| PyNumberGame { inner })
     }
     /// The short `Game`, if the value is dyadic; `None` for transfinite numbers.
     fn to_finite_game(&self) -> Option<PyGame> {
@@ -794,13 +1594,11 @@ impl PyNimberGame {
             .turning_corners(&other.inner)
             .map(|inner| PyNimberGame { inner })
     }
-    /// Disjunctive sum = Sprague–Grundy XOR of the Grundy values.
     fn __add__(&self, other: &PyNimberGame) -> PyNimberGame {
         PyNimberGame {
             inner: self.inner.add(&other.inner),
         }
     }
-    /// Negation — the identity (every impartial game is its own inverse).
     fn __neg__(&self) -> PyNimberGame {
         PyNimberGame {
             inner: self.inner.neg(),
@@ -878,6 +1676,16 @@ impl PyQuotient {
     fn has_complete_bounded_monoid(&self) -> bool {
         self.inner.has_complete_bounded_monoid()
     }
+    /// Product of quotient classes, if represented at the current bounds.
+    fn class_product(&self, a: usize, b: usize) -> Option<usize> {
+        self.inner.class_product(a, b)
+    }
+    /// Exact outcome signature for an enumerated element.
+    fn signature_of_element(&self, element_index: usize) -> Option<Vec<bool>> {
+        self.inner
+            .signature_of_element(element_index)
+            .map(<[bool]>::to_vec)
+    }
     fn __repr__(&self) -> String {
         format!(
             "Quotient(num_classes={}, elements={})",
@@ -923,9 +1731,110 @@ impl PyAbstractGame {
     }
 }
 
+/// Rust-name module-level wrapper for `games::misere_quotient`; Python passes
+/// the `AbstractGame` value explicitly.
+#[pyfunction]
+fn misere_quotient(
+    game: &PyAbstractGame,
+    atoms: Vec<usize>,
+    elem_bound: usize,
+    test_bound: usize,
+) -> PyQuotient {
+    PyQuotient {
+        inner: crate::games::misere_quotient(&game.inner, &atoms, elem_bound, test_bound),
+    }
+}
+
 /// A loopy game as a finite move graph (`succ[v]` = positions reachable from `v`);
 /// the graph may be cyclic. Outcomes come from the retrograde kernel analysis
 /// (Win / Loss / Draw, where Loss = P-position and Draw is the loopy escape).
+#[pyclass(name = "LoopyValue", module = "pleroma", from_py_object)]
+#[derive(Clone)]
+struct PyLoopyValue {
+    inner: LoopyValue,
+}
+
+#[pymethods]
+impl PyLoopyValue {
+    #[staticmethod]
+    fn zero() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Zero,
+        }
+    }
+    #[staticmethod]
+    fn star() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Star,
+        }
+    }
+    #[staticmethod]
+    fn on() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::On,
+        }
+    }
+    #[staticmethod]
+    fn off() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Off,
+        }
+    }
+    #[staticmethod]
+    fn over() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Over,
+        }
+    }
+    #[staticmethod]
+    fn under() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Under,
+        }
+    }
+    #[staticmethod]
+    fn dud() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Dud,
+        }
+    }
+    fn name(&self) -> &'static str {
+        self.inner.name()
+    }
+    fn form(&self) -> &'static str {
+        self.inner.form()
+    }
+    fn outcome(&self) -> PyPartizanOutcome {
+        wrap_partizan_outcome(self.inner.outcome())
+    }
+    fn __neg__(&self) -> PyLoopyValue {
+        PyLoopyValue {
+            inner: self.inner.neg(),
+        }
+    }
+    fn is_stopper(&self) -> bool {
+        self.inner.is_stopper()
+    }
+    fn __add__(&self, other: &PyLoopyValue) -> Option<PyLoopyValue> {
+        self.inner
+            .add(&other.inner)
+            .map(|inner| PyLoopyValue { inner })
+    }
+    fn __richcmp__(&self, other: &PyLoopyValue, op: CompareOp) -> bool {
+        match op {
+            CompareOp::Eq => self.inner == other.inner,
+            CompareOp::Ne => self.inner != other.inner,
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => self
+                .inner
+                .partial_cmp(&other.inner)
+                .is_some_and(|ordering| op.matches(ordering)),
+        }
+    }
+    fn __repr__(&self) -> String {
+        format!("LoopyValue({:?})", self.inner)
+    }
+}
+
 #[pyclass(name = "LoopyGraph", module = "pleroma")]
 struct PyLoopyGraph {
     inner: LoopyGraph,
@@ -939,12 +1848,22 @@ impl PyLoopyGraph {
             inner: LoopyGraph::new(succ),
         }
     }
-    /// `"Win"`/`"Loss"`/`"Draw"` of every position.
-    fn outcomes(&self) -> Vec<String> {
+    #[staticmethod]
+    fn from_rule(n: usize, moves: Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(PyLoopyGraph {
+            inner: LoopyGraph::new(loopy_succ_from_callback(n, &moves)?),
+        })
+    }
+    /// The adjacency lists.
+    fn succ(&self) -> Vec<Vec<usize>> {
+        self.inner.succ().to_vec()
+    }
+    /// Typed `Outcome` of every position.
+    fn outcomes(&self) -> Vec<PyOutcome> {
         self.inner
             .outcomes()
             .into_iter()
-            .map(outcome_name)
+            .map(wrap_outcome)
             .collect()
     }
     /// The Loss positions = P-positions (the player to move loses).
@@ -960,27 +1879,43 @@ impl PyLoopyGraph {
         self.inner.draw_set()
     }
     /// A coarse catalogue reading of position `v` via its impartial outcome:
-    /// `"0"` for a Loss, `"dud"` for a Draw, `None` for a Win (a nonzero loopy
+    /// `LoopyValue.Zero` for a Loss, `LoopyValue.Dud` for a Draw, `None` for a Win (a nonzero loopy
     /// nimber — use `loopy_nim_values`).
-    fn classify(&self, v: usize) -> Option<String> {
-        self.inner.classify(v).map(|lv| lv.name().to_string())
+    fn classify(&self, v: usize) -> Option<PyLoopyValue> {
+        self.inner.classify(v).map(|inner| PyLoopyValue { inner })
     }
 }
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
+    m.add_class::<PyOutcome>()?;
+    m.add_class::<PyPartizanOutcome>()?;
+    m.add_class::<PyLoopyNimber>()?;
+    m.add_class::<PyColor>()?;
+    m.add_class::<PyPl>()?;
+    m.add_class::<PyThermograph>()?;
     m.add_class::<PyNumberGame>()?;
     m.add_class::<PyNimberGame>()?;
     m.add_class::<PyGameExterior>()?;
+    m.add_class::<PyGameRelation>()?;
+    m.add_class::<PyGameRelationCertificate>()?;
+    m.add_class::<PyRelationSearchCertificate>()?;
+    m.add_class::<PyScoreInterval>()?;
     m.add_class::<PyHackenbush>()?;
     m.add_class::<PyQuotient>()?;
     m.add_class::<PyAbstractGame>()?;
+    m.add_class::<PyLoopyValue>()?;
     m.add_class::<PyLoopyGraph>()?;
     m.add_class::<PyLoopyNimCertificate>()?;
     m.add_function(wrap_pyfunction!(nim_mul_mex, m)?)?;
     m.add_function(wrap_pyfunction!(coin_companions, m)?)?;
+    m.add_function(wrap_pyfunction!(singleton_companions, m)?)?;
+    m.add_function(wrap_pyfunction!(turtles_companions, m)?)?;
+    m.add_function(wrap_pyfunction!(grundy_1d, m)?)?;
     m.add_function(wrap_pyfunction!(coin_turning_grundy, m)?)?;
+    m.add_function(wrap_pyfunction!(coin_turning_tartan_grundy, m)?)?;
     m.add_function(wrap_pyfunction!(tartan_grundy, m)?)?;
+    m.add_function(wrap_pyfunction!(grundy, m)?)?;
     m.add_function(wrap_pyfunction!(grundy_graph, m)?)?;
     m.add_function(wrap_pyfunction!(mex, m)?)?;
     m.add_function(wrap_pyfunction!(outcomes, m)?)?;
@@ -988,10 +1923,24 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(scoring_values, m)?)?;
     m.add_function(wrap_pyfunction!(nim_canonical, m)?)?;
     m.add_function(wrap_pyfunction!(misere_nim_p_predicted, m)?)?;
+    m.add_function(wrap_pyfunction!(try_misere_is_n, m)?)?;
+    m.add_function(wrap_pyfunction!(misere_is_n, m)?)?;
+    m.add_function(wrap_pyfunction!(misere_is_p, m)?)?;
     m.add_function(wrap_pyfunction!(nim_moves, m)?)?;
     m.add_function(wrap_pyfunction!(octal_moves, m)?)?;
     m.add_function(wrap_pyfunction!(octal_misere_quotient, m)?)?;
+    m.add_function(wrap_pyfunction!(misere_quotient, m)?)?;
     m.add_function(wrap_pyfunction!(loopy_nim_values, m)?)?;
+    m.add_function(wrap_pyfunction!(loopy_decision_sets, m)?)?;
+    m.add_function(wrap_pyfunction!(loopy_quadric_probe, m)?)?;
     m.add_function(wrap_pyfunction!(loopy_nim_values_certified, m)?)?;
+    m.add_function(wrap_pyfunction!(thermograph, m)?)?;
+    m.add_function(wrap_pyfunction!(thermograph_via_tropical, m)?)?;
+    m.add_function(wrap_pyfunction!(temperature, m)?)?;
+    m.add_function(wrap_pyfunction!(mean_value, m)?)?;
+    m.add_function(wrap_pyfunction!(left_stop, m)?)?;
+    m.add_function(wrap_pyfunction!(right_stop, m)?)?;
+    m.add_function(wrap_pyfunction!(atomic_weight, m)?)?;
+    m.add_function(wrap_pyfunction!(atomic_weight_int, m)?)?;
     Ok(())
 }

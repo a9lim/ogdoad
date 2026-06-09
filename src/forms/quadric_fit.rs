@@ -144,7 +144,7 @@ mod tests {
     }
 
     #[test]
-    fn fit_supports_beyond_the_old_coefficient_layout_ceiling() {
+    fn fit_supports_high_dimensional_quadratic_coefficient_layout() {
         let set: Vec<u128> = (0..(1u128 << 16)).collect();
         let fit = fit_f2_quadratic(&set, 16).unwrap();
         assert_eq!(fit.qd.len(), 16);

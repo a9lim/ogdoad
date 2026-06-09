@@ -84,7 +84,13 @@ with the base residue field, and `Gauss` has unchanged value group with residue
 trace/norm (`FieldExtension`): the algebraic-closure functor `Surcomplex` (degree 2),
 the finite tower `Fpn/Fp`, the unramified `Qq/Qp`, and the nim-field `Nimber/F_2`
 (`F_{2^128}`, the main char-2 field) — one interface for the norm map that feeds
-Hilbert symbols, the Brauer–Wall group, and Hermitian forms. The cyclic-Galois ones
+Hilbert symbols, the Brauer–Wall group, and Hermitian forms. The Python fixed
+`Qq*_4_*` classes expose the same trace/norm surface into their matching `Qp*_4`
+base classes. Python also exposes the fixed local-field residue package
+(`uniformizer`, residue/angular-component maps, Teichmüller sections, and
+`Qp`/`Qq` ring-of-integers projections) wherever the residue field is already a
+bound Python scalar; the fixed Gauss slices return typed `Fp*RationalFunction`
+residues for the `F_p(tbar)` field. The cyclic-Galois ones
 (`CyclicGaloisExtension`, adding a basis and the generator `σ`) feed the **twisted
 trace form** `Tr_{E/F}(x·σ^k(x))` (`forms::trace_form`), which lands back in the form
 classifiers: the binary norm form over `Surcomplex`, unramified local trace forms
@@ -187,7 +193,7 @@ pl.Hackenbush.string(["green", "green"]).grundy()   # a nimber (all-green = Nim)
 
 # char 0 <-> char 2: a classification on each leg
 pl.classify_real(1, 3)              # Cl(1,3) over R, the 8-fold table
-pl.arf_invariant(A)                 # the char-2 mirror invariant
+pl.arf_nimber(A)                    # the char-2 mirror invariant
 pl.bw_class_nimber(A)               # the char-2 Brauer-Wall class, if nonsingular
 
 # local <-> global: Hasse-Minkowski + Hilbert reciprocity over Q
@@ -195,15 +201,58 @@ pl.is_isotropic_q([1, 1, 1])        # False (anisotropic over Q)
 pl.hilbert_product((-1, 1), (-1, 1))# +1  (reciprocity)
 ```
 
-Python exposes the Clifford backends (`NimberAlgebra`, `SurrealAlgebra`,
-`SurcomplexAlgebra`, `IntegerAlgebra`, `OmnificAlgebra`), the scalar classes
-(`Nimber`, `Surreal`, `Surcomplex`, `Integer`, `Omnific`, `Ordinal`), the form
-helpers (`classify_*`, `arf_invariant`, `FiniteFieldForm`, `hilbert_symbol_qp`,
-`isotropy_over_adeles`, `bw_class_*`, …), and the game helpers (`Game`,
-`GameExterior`, `Hackenbush`, the kernel outcome/scoring functions, the misère and
-loopy machinery, `nim_mul_mex`, `grundy_graph`). The const-generic backends
-(`Qp`, `Zp`, `Fp`, `Laurent`, …) are Rust-only: Python is a runtime, and their
-parameters are compile-time. See `src/py/AGENTS.md` for the binding-scope policy.
+Python exposes the Clifford backends (`NimberAlgebra`, the fixed finite-field
+backends `Fp2Algebra`/`Fp3Algebra`/…/`F27Algebra`, the fixed p-adic slices
+`Zp2_4Algebra`/…/`Zp13_4Algebra` and `Qp2_4Algebra`/…/`Qp13_4Algebra`,
+the fixed unramified slices `WittVec2_4_2Algebra`/…/`WittVec3_4_3Algebra` and
+`Qq2_4_2Algebra`/…/`Qq3_4_3Algebra`, the fixed functor slices
+`Laurent*_6Algebra`, `RamifiedQp*_4_E2Algebra`/`RamifiedQp*_4_E3Algebra`,
+and `GaussQp*_4Algebra`,
+`RationalAlgebra`,
+`NimberPolyAlgebra`, `NimberRationalFunctionAlgebra`,
+`Fp*PolyAlgebra`, `Fp*RationalFunctionAlgebra`, `SurrealAlgebra`,
+`SurcomplexAlgebra`, `IntegerAlgebra`, `OmnificAlgebra`, `OrdinalAlgebra`), the
+same scalar families' divided-power algebras and Witt-ring representative methods
+(`tensor_form`, `pfister1`, `pfister`, `in_fundamental_ideal`), the generic GA
+versor/spinor-norm and explicit/lazy spinor-representation methods, raw
+blade-term/basis utilities, full outermorphism/inverse-outermorphism utilities,
+fixed Frobenius/Galois
+matrix helpers, the scalar classes (`Nimber`, `Fp2`,
+`Fp3`, `Fp5`, `Fp7`, `Fp11`, `Fp13`, `F4`, `F8`, `F16`, `F9`, `F25`, `F27`,
+`Zp2_4`/…/`Zp13_4`, `Qp2_4`/…/`Qp13_4`,
+`WittVec2_4_2`/…/`WittVec3_4_3`, `Qq2_4_2`/…/`Qq3_4_3`,
+`LaurentRational_6`, `LaurentFp*_6`/`LaurentF*_6`,
+`RamifiedQp*_4_E2`/`RamifiedQp*_4_E3`,
+`GaussQp*_4`, `NimberPoly`, `NimberRationalFunction`, `Fp*Poly`,
+`Fp*RationalFunction`, `Rational`, `Surreal`,
+`Surcomplex`, `Integer`, `Omnific`, `Ordinal`), the form helpers (`classify_*`, `classify_rational`,
+`arf_nimber`, `arf_ordinal_finite`, `FiniteFieldForm`, `Char2FiniteFieldForm`,
+finite-algebra classifiers, base-field isometry helpers, trace/Gold-form helpers,
+`hilbert_symbol_qp`, `hilbert_symbol_at`, `hasse_at_place`, rational Brauer
+local-invariant helpers,
+`isotropy_over_adeles`, `bw_class_*`, `BinaryCode`, `DiscriminantForm`,
+Milgram/genus-signature helpers, modular q-expansion helpers, …),
+and the game helpers (`Game`, `GameExterior`,
+`Hackenbush`, `Pl`, `Thermograph`, exact thermograph wall operations,
+`LoopyValue`, the kernel outcome/scoring functions, the misère and loopy
+machinery, Python-callback Grundy/misère/loopy probes, `nim_mul_mex`,
+`grundy_graph`). `springer_decompose_qp` and `springer_decompose_qq` expose the
+fixed odd-residue p-adic and unramified Springer cells; `springer_decompose_laurent`
+and `springer_decompose_ramified_qp4_e2` / `springer_decompose_ramified_qp4_e3`
+do the same for the fixed
+equal-characteristic and ramified local cells. Open-ended const-generic families
+beyond those fixed dispatch sets (`Qp<P,K>`, `Zp<P,K>`, `Qq<P,N,F>`,
+`WittVec<P,N,F>`, arbitrary `Laurent<S,K>`, arbitrary `Ramified<S,E>`,
+arbitrary `Gauss<S>`, …) remain Rust-only
+unless they get another explicit fixed dispatch set or runtime design.
+The exact nimber function-field monomorph `F_{2^128}(t)` is bound, the prime-field
+`F_p[t]` / `F_p(t)` rows are bound for the fixed Gauss residue fields with
+matching Clifford and divided-power backends, and the
+odd-characteristic `F_q(t)` local-global form layer is exposed through fixed
+finite-field dispatch; the characteristic-2 Artin-Schreier function-field symbol
+and the char-2 Springer local/global form-isotropy layer are exposed the same way
+over `F_2(t)`, `F_4(t)`, `F_8(t)`, and `F_16(t)`. See `src/py/AGENTS.md` for the
+binding-scope policy.
 
 Run the Rust tour without Python:
 

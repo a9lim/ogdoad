@@ -86,7 +86,7 @@ def arf_of(coeffs, m):
                    ^ qform(1 << i, coeffs, m) ^ qform(1 << j, coeffs, m))
             if bij:
                 b[(i, j)] = pl.Nimber(1)
-    return pl.arf_invariant(pl.NimberAlgebra(q=q, b=b))
+    return pl.arf_nimber(pl.NimberAlgebra(q=q, b=b))
 
 
 # ----------------------------------------------------------------------------- parts

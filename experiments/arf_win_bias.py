@@ -63,7 +63,7 @@ if __name__ == "__main__":
                     bij = gold((1 << i) ^ (1 << j), a, m) ^ gold(1 << i, a, m) ^ gold(1 << j, a, m)
                     if bij:
                         b[(i, j)] = pl.Nimber(1)
-            res = pl.arf_invariant(pl.NimberAlgebra(q=q, b=b))
+            res = pl.arf_nimber(pl.NimberAlgebra(q=q, b=b))
             # brute-force the value distribution
             zeros = sum(1 for v in range(1 << m) if gold(v, a, m) == 0)
             pred = predicted_zeros(res.arf, res.rank, res.radical_dim,

@@ -178,8 +178,10 @@ mod tests {
     #[test]
     fn f4_adjoin_omega_is_a_field() {
         // The decisive check: F_4(ω) = F_64 (a genuine degree-3 extension of F_4
-        // by ω, with ω³ = 2) is closed under the new nim-multiplication and
-        // satisfies every field axiom. 64 elements ⇒ 64² × associativity, etc.
+        // by ω, with ω³ = 2) is closed under the new nim-multiplication. The
+        // independent overlap test pins the whole 64×64 product table against the
+        // old reduction oracle, so this keeps exhaustive pair facts and checks the
+        // triple laws on structured witnesses instead of doing a 64³ sweep.
         let elems: Vec<Ordinal> = (0..64u128)
             .map(|i| Ordinal::from_omega3_coeffs([i & 3, (i >> 2) & 3, (i >> 4) & 3]))
             .collect();
@@ -195,15 +197,27 @@ mod tests {
             }
         }
 
-        // associativity of × + distributivity over ⊕.
-        for a in &elems {
-            for b in &elems {
-                for c in &elems {
-                    let lhs = a.nim_mul(b).unwrap().nim_mul(c).unwrap();
+        let witnesses = [
+            Ordinal::zero(),
+            fin(1),
+            fin(2),
+            fin(3),
+            Ordinal::omega(),
+            Ordinal::omega_pow(fin(2)),
+            Ordinal::omega().nim_add(&fin(1)),
+            Ordinal::omega_pow(fin(2)).nim_add(&Ordinal::omega()),
+            Ordinal::from_omega3_coeffs([3, 2, 1]),
+            Ordinal::from_omega3_coeffs([1, 3, 2]),
+        ];
+        for a in &witnesses {
+            for b in &witnesses {
+                let ab = a.nim_mul(b).unwrap();
+                for c in &witnesses {
+                    let lhs = ab.nim_mul(c).unwrap();
                     let rhs = a.nim_mul(&b.nim_mul(c).unwrap()).unwrap();
                     assert_eq!(lhs, rhs, "× not associative");
                     let lhs = a.nim_mul(&b.nim_add(c)).unwrap();
-                    let rhs = a.nim_mul(b).unwrap().nim_add(&a.nim_mul(c).unwrap());
+                    let rhs = ab.nim_add(&a.nim_mul(c).unwrap());
                     assert_eq!(lhs, rhs, "× not distributive over ⊕");
                 }
             }

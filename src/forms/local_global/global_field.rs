@@ -280,8 +280,9 @@ mod tests {
     }
 
     #[test]
-    fn global_isotropy_matches_legacy_q() {
-        // The trait's Hasse–Minkowski must agree with the legacy is_isotropic_q.
+    fn global_isotropy_matches_q_field_facade() {
+        // The generic Hasse-Minkowski route and the Q-specific facade are the
+        // same theorem package, exposed at different abstraction levels.
         use crate::forms::is_isotropic_q;
         let forms: &[&[i128]] = &[
             &[1, 1, 1],
@@ -303,13 +304,13 @@ mod tests {
             assert_eq!(
                 Rational::is_isotropic_global(&rats),
                 is_isotropic_q(f),
-                "trait vs legacy isotropy disagree on {f:?}"
+                "generic vs Q-specific isotropy disagree on {f:?}"
             );
         }
     }
 
     #[test]
-    fn global_isotropy_matches_legacy_function_field() {
+    fn global_isotropy_matches_function_field_facade() {
         use crate::forms::is_isotropic_ff;
         type F = RationalFunction<Fp<5>>;
         let rf = |num: &[i128], den: &[i128]| -> F {
@@ -334,7 +335,7 @@ mod tests {
             assert_eq!(
                 RationalFunction::is_isotropic_global(f),
                 is_isotropic_ff(f),
-                "trait vs legacy ff isotropy disagree on {f:?}"
+                "generic vs function-field-specific isotropy disagree on {f:?}"
             );
         }
     }

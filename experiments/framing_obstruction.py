@@ -77,7 +77,7 @@ def Bform(pairs):
 def arf(qd, pairs, m):
     q = [pl.Nimber(1 if qd[i] else 0) for i in range(m)]
     b = {(i, j): pl.Nimber(1) for (i, j) in pairs}
-    return pl.arf_invariant(pl.NimberAlgebra(q=q, b=b))
+    return pl.arf_nimber(pl.NimberAlgebra(q=q, b=b))
 
 
 def kernel(succ):

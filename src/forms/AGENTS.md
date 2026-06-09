@@ -113,13 +113,13 @@ treatment of `oddchar/`/`char2/`/`local_global/`/`integral/`.
   via `is_square_finite`. Odd residue char only. (The siblings reach it via
   `super::local`, not the flat re-export, since they consume its types directly.)
 - **`springer/padic.rs`** — the **mixed-characteristic** named entry points (thin
-  wrappers + `Padic*` aliases): `springer_decompose_qp` over `Q_p` (residue F_p) AND
+  wrappers returning `LocalSpringerDecomp`): `springer_decompose_qp` over `Q_p` (residue F_p) AND
   `springer_decompose_qq` over `Q_q` (residue F_q, the unramified extension — `F=1`
   recovers Q_p). Value group ℤ NOT 2-divisible ⇒ TWO residue layers survive
   (`parity_layer`) = W=W(k)². Adding Q_q makes this leg reach general F_q residues,
   matching the Laurent leg.
-- **`springer/laurent.rs`** — the **equal-characteristic** entry point (wrapper +
-  `Laurent*` aliases): `springer_decompose_laurent` over `F_q((t))` (char p, residue
+- **`springer/laurent.rs`** — the **equal-characteristic** named entry point (thin
+  wrapper returning `LocalSpringerDecomp`): `springer_decompose_laurent` over `F_q((t))` (char p, residue
   F_q). Same two-layer story; residue char 2 REJECTED (the char-2 Witt boundary).
   Used by `local_global/function_field.rs` as an independent oracle.
 - **`springer/surreal.rs`** — over the surreals (char 0, residue ℝ). The ONE that

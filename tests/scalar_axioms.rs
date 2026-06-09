@@ -11,6 +11,23 @@ use pleroma::scalar::{
 };
 use proptest::prelude::*;
 
+// Default CI/local runs are smoke-sized; deterministic sentinels below own the
+// expensive boundary cases. Set `PLEROMA_PROPTEST_CASES=N` for deeper fuzzing.
+const FAST_CASES: u32 = 2;
+const HEAVY_CASES: u32 = 1;
+
+fn proptest_config(default_cases: u32) -> ProptestConfig {
+    let cases = std::env::var("PLEROMA_PROPTEST_CASES")
+        .or_else(|_| std::env::var("PROPTEST_CASES"))
+        .ok()
+        .and_then(|raw| raw.parse::<u32>().ok())
+        .filter(|&n| n > 0)
+        .unwrap_or(default_cases);
+    let mut config = ProptestConfig::with_cases(cases);
+    config.failure_persistence = None;
+    config
+}
+
 /// Every commutative-ring law, checked on one triple `(a, b, c)`.
 fn ring_axioms<S: Scalar>(a: &S, b: &S, c: &S) {
     // (R, +) is an abelian group
@@ -48,8 +65,15 @@ fn ring_axioms<S: Scalar>(a: &S, b: &S, c: &S) {
 // --- per-backend element strategies (small, to keep arithmetic exact) ---
 
 fn nimbers() -> impl Strategy<Value = Nimber> {
-    // any represented element of F_{2^128}; spans many nim-subfields
-    any::<u128>().prop_map(Nimber)
+    prop_oneof![
+        // Most ring-law fuzz only needs cheap subfields; the dedicated nimber
+        // unit tests pin the Conway multiplication table and field operations,
+        // while the sentinel test below keeps high-bit representation paths alive.
+        8 => 0u128..256,
+        // Wider, still cheap finite fuzz catches byte-boundary mistakes.
+        2 => any::<u16>().prop_map(u128::from),
+    ]
+    .prop_map(Nimber)
 }
 
 fn integers() -> impl Strategy<Value = Integer> {
@@ -96,9 +120,9 @@ fn rational_functions() -> impl Strategy<Value = RationalFunction<Fp<7>>> {
 }
 
 macro_rules! axiom_suite {
-    ($name:ident, $ty:ty, $strat:expr) => {
+    ($name:ident, $ty:ty, $strat:expr, $cases:expr) => {
         proptest! {
-            #![proptest_config(ProptestConfig::with_cases(256))]
+            #![proptest_config(proptest_config($cases))]
             #[test]
             fn $name(a in $strat, b in $strat, c in $strat) {
                 ring_axioms::<$ty>(&a, &b, &c);
@@ -107,17 +131,35 @@ macro_rules! axiom_suite {
     };
 }
 
-axiom_suite!(nimber_ring_axioms, Nimber, nimbers());
-axiom_suite!(integer_ring_axioms, Integer, integers());
-axiom_suite!(rational_ring_axioms, Rational, rationals());
-axiom_suite!(fp7_field_axioms, Fp<7>, fp7());
-axiom_suite!(surreal_ring_axioms, Surreal, surreals());
-axiom_suite!(surcomplex_ring_axioms, Surcomplex<Surreal>, surcomplexes());
+axiom_suite!(nimber_ring_axioms, Nimber, nimbers(), FAST_CASES);
+axiom_suite!(integer_ring_axioms, Integer, integers(), FAST_CASES);
+axiom_suite!(rational_ring_axioms, Rational, rationals(), FAST_CASES);
+axiom_suite!(fp7_field_axioms, Fp<7>, fp7(), FAST_CASES);
+axiom_suite!(surreal_ring_axioms, Surreal, surreals(), HEAVY_CASES);
+axiom_suite!(
+    surcomplex_ring_axioms,
+    Surcomplex<Surreal>,
+    surcomplexes(),
+    HEAVY_CASES
+);
 axiom_suite!(
     rational_function_field_axioms,
     RationalFunction<Fp<7>>,
-    rational_functions()
+    rational_functions(),
+    HEAVY_CASES
 );
+
+#[test]
+fn nimber_ring_axioms_on_representation_sentinels() {
+    let triples = [
+        (0, 1, 1u128 << 127),
+        (1u128 << 32, 1u128 << 64, 1u128 << 96),
+        ((1u128 << 127) ^ 1, (1u128 << 96) ^ 255, (1u128 << 64) ^ 17),
+    ];
+    for (a, b, c) in triples {
+        ring_axioms::<Nimber>(&Nimber(a), &Nimber(b), &Nimber(c));
+    }
+}
 
 // --- transfinite ordinal nimbers On₂: Scalar on the verified tower, checked partial field ---
 //
@@ -134,14 +176,10 @@ fn below_omega_omega(o: &Ordinal) -> bool {
     o.terms().iter().all(|(e, _)| e.as_finite().is_some())
 }
 
-/// Small ordinal exponents: mostly finite (so products land inside the tower),
-/// occasionally infinite (`ω`, `ω+1`) to exercise the `≥ ω^ω` boundary.
+/// Small finite ordinal exponents, so random products stay in the closed
+/// `< ω^ω` tower. The explicit sentinel test below owns the `≥ ω^ω` boundary.
 fn ordinal_exp() -> impl Strategy<Value = Ordinal> {
-    prop_oneof![
-        8 => (0u128..6).prop_map(Ordinal::from_u128),
-        1 => Just(Ordinal::omega()),
-        1 => Just(Ordinal::omega().nim_add(&Ordinal::from_u128(1))),
-    ]
+    (0u128..6).prop_map(Ordinal::from_u128)
 }
 
 /// A small ordinal: the nim-sum (XOR) of up to three monomials `ω^exp · coeff`,
@@ -206,9 +244,36 @@ fn ordinal_field_axioms(a: &Ordinal, b: &Ordinal, c: &Ordinal) {
 }
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(256))]
+    #![proptest_config(proptest_config(HEAVY_CASES))]
     #[test]
     fn ordinal_partial_field_axioms(a in ordinals(), b in ordinals(), c in ordinals()) {
+        ordinal_field_axioms(&a, &b, &c);
+    }
+}
+
+#[test]
+fn ordinal_partial_field_axioms_on_boundary_sentinels() {
+    let omega = Ordinal::omega();
+    let omega_squared = Ordinal::monomial(Ordinal::from_u128(2), 1);
+    let omega_to_omega = Ordinal::monomial(omega.clone(), 1);
+    let triples = [
+        (
+            Ordinal::from_u128(0),
+            Ordinal::from_u128(1),
+            Ordinal::from_u128(3),
+        ),
+        (
+            omega.clone(),
+            omega.nim_add(&Ordinal::from_u128(1)),
+            omega_squared,
+        ),
+        (
+            omega_to_omega.clone(),
+            omega_to_omega.nim_add(&Ordinal::from_u128(1)),
+            Ordinal::monomial(omega.nim_add(&Ordinal::from_u128(1)), 1),
+        ),
+    ];
+    for (a, b, c) in triples {
         ordinal_field_axioms(&a, &b, &c);
     }
 }

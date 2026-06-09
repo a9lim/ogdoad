@@ -34,10 +34,7 @@ use crate::clifford::Metric;
 use crate::forms::FiniteOddField;
 use crate::scalar::Laurent;
 
-use super::local::springer_decompose_local;
-pub use super::local::{
-    LocalResidueForm as LaurentResidueForm, LocalSpringerDecomp as LaurentSpringerDecomp,
-};
+use super::local::{springer_decompose_local, LocalSpringerDecomp};
 
 /// Decompose an `F_q((t))` diagonal quadratic form by `t`-adic valuation. `None` if
 /// the residue field is not a supported finite field of odd characteristic, or the
@@ -45,7 +42,7 @@ pub use super::local::{
 /// field `S = F_q`).
 pub fn springer_decompose_laurent<S: FiniteOddField, const K: usize>(
     metric: &Metric<Laurent<S, K>>,
-) -> Option<LaurentSpringerDecomp> {
+) -> Option<LocalSpringerDecomp> {
     springer_decompose_local(metric)
 }
 

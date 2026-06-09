@@ -55,7 +55,7 @@ def trace_form(m: int, a: int):
         for j in range(i + 1, n):
             if B(1 << i, 1 << j):
                 b[(i, j)] = pl.Nimber(1)
-    return pl.arf_invariant(pl.NimberAlgebra(q=q, b=b))
+    return pl.arf_nimber(pl.NimberAlgebra(q=q, b=b))
 
 
 from math import gcd

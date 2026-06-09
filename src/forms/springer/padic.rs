@@ -33,17 +33,14 @@
 use crate::clifford::Metric;
 use crate::scalar::{Qp, Qq};
 
-use super::local::springer_decompose_local;
-pub use super::local::{
-    LocalResidueForm as PadicResidueForm, LocalSpringerDecomp as PadicSpringerDecomp,
-};
+use super::local::{springer_decompose_local, LocalSpringerDecomp};
 
 /// Decompose a `Q_p` diagonal quadratic form by p-adic valuation. `None` if `p` is
 /// not an odd prime, or the metric is non-diagonal. A thin wrapper over
 /// [`springer_decompose_local`] (residue field `F_p`).
 pub fn springer_decompose_qp<const P: u128, const K: u128>(
     metric: &Metric<Qp<P, K>>,
-) -> Option<PadicSpringerDecomp> {
+) -> Option<LocalSpringerDecomp> {
     springer_decompose_local(metric)
 }
 
@@ -54,7 +51,7 @@ pub fn springer_decompose_qp<const P: u128, const K: u128>(
 /// (`F = 1` recovers it).
 pub fn springer_decompose_qq<const P: u128, const N: usize, const F: usize>(
     metric: &Metric<Qq<P, N, F>>,
-) -> Option<PadicSpringerDecomp> {
+) -> Option<LocalSpringerDecomp> {
     springer_decompose_local(metric)
 }
 

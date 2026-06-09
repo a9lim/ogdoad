@@ -62,7 +62,8 @@ core is split by concept under `engine/`:
   divided power algebra Γ(V) (dual of Sym), with a BINOMIAL product and
   DECONCATENATION coproduct. Binomials reduce mod char: `(γᵢ⁽¹⁾)²=2γᵢ⁽²⁾=0` in char
   2 while `γᵢ⁽²⁾≠0` — the honest Γ≠Sym (mirror of exterior `eᵢ²=0`). Standalone
-  (own monomials, not the blade engine); no Python binding.
+  (own monomials, not the blade engine); Python exposes it via the
+  `<World>DividedPowerAlgebra` / `<World>DpVector` backend family.
 - **`cga.rs`** — conformal (Cl(n+1,1) null basis: up/down/inner/sphere/plane/meet)
   + projective (`pga = Cl(n,0,1)`, exp_nilpotent terminating motor exp) GA. Char-0
   (needs ½); surreal ∞/ε radii are exact.
@@ -114,8 +115,9 @@ core is split by concept under `engine/`:
 - **The `neg_one` branch in `Multivector::display` never fires for nimbers.**
   `neg(one)=one` in char 2, so the `coeff==one` branch catches it first. Harmless.
 - **`divided_power.rs` is a standalone parallel algebra, not a layer on the blade
-  engine, and has no Python binding** — intentional. Γ(V) is the dual of Sym, not a
-  view of the exterior algebra.
+  engine.** Γ(V) is the dual of Sym, not a view of the exterior algebra; Python
+  therefore binds it as separate `DividedPowerAlgebra`/`DpVector` classes rather
+  than as methods on `Multivector`.
 - **`Ordinal` is a Clifford scalar only inside its checked nim-product boundary.**
   `Scalar::mul` panics if a product escapes the source-verified Kummer tower; use
   `Ordinal::checked_mul` before constructing computations that need an explicit

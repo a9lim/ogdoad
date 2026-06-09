@@ -196,6 +196,25 @@ pub struct SignExpansion {
 }
 
 impl SignExpansion {
+    /// Build a sign expansion from run data, normalizing away zero-length runs and
+    /// merging adjacent runs with the same sign.
+    pub fn from_runs(runs: Vec<(bool, Ordinal)>) -> Self {
+        let mut normalized: Vec<(bool, Ordinal)> = Vec::new();
+        for (sign, len) in runs {
+            if len.is_zero() {
+                continue;
+            }
+            if let Some(last) = normalized.last_mut() {
+                if last.0 == sign {
+                    last.1 = last.1.ord_add(&len);
+                    continue;
+                }
+            }
+            normalized.push((sign, len));
+        }
+        SignExpansion { runs: normalized }
+    }
+
     /// The runs `(sign, length)`, left to right.
     pub fn runs(&self) -> &[(bool, Ordinal)] {
         &self.runs
@@ -267,6 +286,24 @@ mod tests {
                 "from_ordinal∘as_ordinal ≠ id: {s:?}"
             );
         }
+    }
+
+    #[test]
+    fn sign_expansion_from_runs_normalizes() {
+        let se = SignExpansion::from_runs(vec![
+            (true, Ordinal::from_u128(1)),
+            (true, Ordinal::zero()),
+            (true, Ordinal::from_u128(2)),
+            (false, Ordinal::from_u128(1)),
+        ]);
+        assert_eq!(
+            se.runs(),
+            &[
+                (true, Ordinal::from_u128(3)),
+                (false, Ordinal::from_u128(1))
+            ]
+        );
+        assert_eq!(se.as_finite(), Some(vec![true, true, true, false]));
     }
 
     #[test]

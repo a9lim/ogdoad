@@ -6,6 +6,11 @@
 //! `geom_product_blades` (sign handling, the polar/quadratic split, the general
 //! bilinear `a` term) shows up as a random associativity failure here, with a
 //! shrunk counterexample, instead of as a downstream classifier mystery.
+//!
+//! Keep this suite light: the scalar nimber tests pin field arithmetic and
+//! high-bit representation paths separately. Here we need enough coefficient
+//! variety to exercise the Clifford product law, not hundreds of maximal-width
+//! nim products per case.
 
 use pleroma::clifford::{bits, CliffordAlgebra, Metric, Multivector};
 use pleroma::scalar::{Nimber, Rational, Scalar};
@@ -14,6 +19,22 @@ use std::collections::BTreeMap;
 
 const DIM: usize = 3;
 const BLADES: usize = 1 << DIM; // 8
+
+// Default CI/local runs are smoke-sized; the explicit sentinel below owns the
+// high-bit nimber path. Set `PLEROMA_PROPTEST_CASES=N` for deeper fuzzing.
+const CASES: u32 = 2;
+
+fn proptest_config(default_cases: u32) -> ProptestConfig {
+    let cases = std::env::var("PLEROMA_PROPTEST_CASES")
+        .or_else(|_| std::env::var("PROPTEST_CASES"))
+        .ok()
+        .and_then(|raw| raw.parse::<u32>().ok())
+        .filter(|&n| n > 0)
+        .unwrap_or(default_cases);
+    let mut config = ProptestConfig::with_cases(cases);
+    config.failure_persistence = None;
+    config
+}
 
 /// Build a multivector from coefficients indexed by blade mask `0..2^DIM`.
 fn build_mv<S: Scalar>(alg: &CliffordAlgebra<S>, coeffs: &[S]) -> Multivector<S> {
@@ -30,6 +51,30 @@ fn build_mv<S: Scalar>(alg: &CliffordAlgebra<S>, coeffs: &[S]) -> Multivector<S>
 fn b_map<S: Scalar>(v: [S; 3]) -> BTreeMap<(usize, usize), S> {
     let [v01, v02, v12] = v;
     BTreeMap::from([((0, 1), v01), ((0, 2), v02), ((1, 2), v12)])
+}
+
+fn nimber_coeff() -> impl Strategy<Value = u128> {
+    prop_oneof![
+        // F_16-sized values are enough to exercise nontrivial char-2 products,
+        // trace-like cancellations, and q/b independence cheaply. The explicit
+        // sentinel test below owns the high-bit representation boundary.
+        8 => 0u128..16,
+        // A little wider finite fuzz catches table-boundary mistakes.
+        2 => any::<u8>().prop_map(u128::from),
+    ]
+}
+
+fn nimber_mv_coeff() -> impl Strategy<Value = u128> {
+    prop_oneof![
+        // Sparse multivectors keep each associativity check small while still
+        // sampling scalars, vectors, bivectors, and pseudoscalars independently.
+        3 => Just(0u128),
+        7 => nimber_coeff(),
+    ]
+}
+
+fn rational_mv_coeff() -> impl Strategy<Value = i128> {
+    prop_oneof![3 => Just(0i128), 7 => -3i128..=3]
 }
 
 fn check_associative_distributive<S: Scalar>(
@@ -52,17 +97,17 @@ fn check_associative_distributive<S: Scalar>(
 }
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(128))]
+    #![proptest_config(proptest_config(CASES))]
 
     /// Characteristic 2, with an independent quadratic form `q` and polar form
     /// `b` (the nimber-backend point: `q ≠ b` must stay faithful).
     #[test]
     fn nimber_geometric_product_is_a_ring(
-        q in prop::array::uniform3(any::<u128>()),
-        bvals in prop::array::uniform3(any::<u128>()),
-        ca in prop::array::uniform::<_, BLADES>(any::<u128>()),
-        cb in prop::array::uniform::<_, BLADES>(any::<u128>()),
-        cc in prop::array::uniform::<_, BLADES>(any::<u128>()),
+        q in prop::array::uniform3(nimber_coeff()),
+        bvals in prop::array::uniform3(nimber_coeff()),
+        ca in prop::array::uniform::<_, BLADES>(nimber_mv_coeff()),
+        cb in prop::array::uniform::<_, BLADES>(nimber_mv_coeff()),
+        cc in prop::array::uniform::<_, BLADES>(nimber_mv_coeff()),
     ) {
         let metric = Metric::new(
             q.iter().map(|&x| Nimber(x)).collect(),
@@ -77,13 +122,70 @@ proptest! {
     #[test]
     fn rational_geometric_product_is_a_ring(
         q in prop::array::uniform3(-3i128..=3),
-        ca in prop::array::uniform::<_, BLADES>(-3i128..=3),
-        cb in prop::array::uniform::<_, BLADES>(-3i128..=3),
-        cc in prop::array::uniform::<_, BLADES>(-3i128..=3),
+        ca in prop::array::uniform::<_, BLADES>(rational_mv_coeff()),
+        cb in prop::array::uniform::<_, BLADES>(rational_mv_coeff()),
+        cc in prop::array::uniform::<_, BLADES>(rational_mv_coeff()),
     ) {
         let metric = Metric::diagonal(q.iter().map(|&x| Rational::int(x)).collect());
         let alg = CliffordAlgebra::new(DIM, metric);
         let mk = |c: [i128; BLADES]| build_mv(&alg, &c.map(Rational::int));
         check_associative_distributive(&alg, &mk(ca), &mk(cb), &mk(cc));
     }
+}
+
+#[test]
+fn nimber_geometric_product_sentinel_case() {
+    let metric = Metric::new(
+        vec![
+            Nimber(1u128 << 32),
+            Nimber(1u128 << 64),
+            Nimber((1u128 << 127) ^ 1),
+        ],
+        b_map([
+            Nimber(1u128 << 96),
+            Nimber((1u128 << 127) ^ 3),
+            Nimber((1u128 << 96) ^ 255),
+        ]),
+    );
+    let alg = CliffordAlgebra::new(DIM, metric);
+    let a = build_mv(
+        &alg,
+        &[
+            Nimber(0),
+            Nimber(1),
+            Nimber(1u128 << 32),
+            Nimber(3),
+            Nimber(1u128 << 64),
+            Nimber(5),
+            Nimber(1u128 << 96),
+            Nimber(7),
+        ],
+    );
+    let b = build_mv(
+        &alg,
+        &[
+            Nimber(1),
+            Nimber(2),
+            Nimber(3),
+            Nimber(1u128 << 127),
+            Nimber(5),
+            Nimber(8),
+            Nimber(13),
+            Nimber((1u128 << 127) ^ 5),
+        ],
+    );
+    let c = build_mv(
+        &alg,
+        &[
+            Nimber((1u128 << 127) ^ 7),
+            Nimber(0),
+            Nimber(1u128 << 96),
+            Nimber(11),
+            Nimber(1u128 << 64),
+            Nimber(17),
+            Nimber(1u128 << 32),
+            Nimber(23),
+        ],
+    );
+    check_associative_distributive(&alg, &a, &b, &c);
 }

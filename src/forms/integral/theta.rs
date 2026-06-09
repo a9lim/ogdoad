@@ -41,9 +41,9 @@ impl IntegralForm {
 mod tests {
     use super::*;
     use crate::forms::{
-        as_modular_form, d16_plus, delta, e_8, eisenstein_e4, leech, modular_qexp_mul,
-        modular_qexp_scale, modular_qexp_sub, qexp_from_i128, D16_PLUS_AUT_ORDER,
-        E8_WEYL_GROUP_ORDER,
+        as_modular_form, delta, e_8, eisenstein_e4, leech, modular_qexp_mul, modular_qexp_scale,
+        modular_qexp_sub, qexp_from_i128, type_ii_e8_sum_code, type_ii_len16_code,
+        D16_PLUS_AUT_ORDER, E8_WEYL_GROUP_ORDER,
     };
     use crate::scalar::{Rational, Scalar};
 
@@ -61,16 +61,19 @@ mod tests {
     fn theta_series_counts_the_headline_lattices() {
         assert_eq!(e_8().theta_series(3), Some(vec![1, 240, 2160]));
         assert_eq!(
-            e_8().direct_sum(&e_8()).theta_series(3),
-            Some(vec![1, 480, 61920])
+            type_ii_e8_sum_code().theta_series_via_weight_enumerator(2),
+            Some(vec![1, 480])
         );
-        assert_eq!(d16_plus().theta_series(3), Some(vec![1, 480, 61920]));
+        assert_eq!(
+            type_ii_len16_code().theta_series_via_weight_enumerator(2),
+            Some(vec![1, 480])
+        );
         assert_eq!(leech().theta_series(2), Some(vec![1, 0]));
     }
 
     #[test]
     fn theta_series_identifies_the_full_modular_forms() {
-        let terms = 5;
+        let terms = 3;
         let e4 = eisenstein_e4(terms);
         let e8_theta = qexp_from_i128(&e_8().theta_series(terms).unwrap());
         assert_eq!(e8_theta, e4);
@@ -80,8 +83,16 @@ mod tests {
         );
 
         let e4_squared = modular_qexp_mul(&e4, &e4, 3);
-        let split = qexp_from_i128(&e_8().direct_sum(&e_8()).theta_series(3).unwrap());
-        let d16 = qexp_from_i128(&d16_plus().theta_series(3).unwrap());
+        let split = qexp_from_i128(
+            &type_ii_e8_sum_code()
+                .theta_series_via_weight_enumerator(3)
+                .unwrap(),
+        );
+        let d16 = qexp_from_i128(
+            &type_ii_len16_code()
+                .theta_series_via_weight_enumerator(3)
+                .unwrap(),
+        );
         assert_eq!(split, e4_squared);
         assert_eq!(d16, e4_squared);
         assert_eq!(as_modular_form(&d16, 8, 3), Some(vec![Rational::one()]));

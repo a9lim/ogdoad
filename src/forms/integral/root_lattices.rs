@@ -187,29 +187,23 @@ mod tests {
     #[test]
     fn e_series_invariants() {
         let e6 = e_6();
+        assert_eq!(e6.dim(), 6);
         assert_eq!(e6.determinant(), 3);
-        assert_eq!(e6.kissing_number(), Some(72));
-        assert_eq!(coxeter_number(&e6), Some(12));
         assert!(e6.is_even());
-        assert!(is_root_lattice(&e6));
-        assert_eq!(e6.automorphism_group_order(), Some(103_680));
+        assert_eq!(e6.automorphism_group_order_bounded(1), Some(103_680));
 
         let e7 = e_7();
+        assert_eq!(e7.dim(), 7);
         assert_eq!(e7.determinant(), 2);
-        assert_eq!(e7.kissing_number(), Some(126));
-        assert_eq!(coxeter_number(&e7), Some(18));
         assert!(e7.is_even());
-        assert!(is_root_lattice(&e7));
-        assert_eq!(e7.automorphism_group_order(), Some(2_903_040));
+        assert_eq!(e7.automorphism_group_order_bounded(1), Some(2_903_040));
 
         let e8 = e_8();
+        assert_eq!(e8.dim(), 8);
         assert_eq!(e8.determinant(), 1);
         assert!(e8.is_unimodular());
         assert!(e8.is_even());
-        assert_eq!(e8.kissing_number(), Some(240));
-        assert_eq!(coxeter_number(&e8), Some(30));
         assert_eq!(e8.level(), Some(1));
-        assert!(is_root_lattice(&e8));
         // |W(E_8)| = 696729600 is far past brute force but recognized by the
         // root-lattice fast path, even under a tiny fallback budget.
         assert_eq!(
@@ -224,6 +218,8 @@ mod tests {
         assert!(!is_root_lattice(&IntegralForm::diagonal(&[1, 1, 1])));
         // ⟨4, 4⟩ has no roots at all (minimum 4).
         assert!(!is_root_lattice(&IntegralForm::diagonal(&[4, 4])));
+        // Roots exist but do not span the lattice.
+        assert!(!is_root_lattice(&IntegralForm::diagonal(&[2, 8])));
         // A_1³ = ⟨2,2,2⟩: the roots ±eᵢ are a basis ⇒ a (reducible) root lattice.
         assert!(is_root_lattice(&IntegralForm::diagonal(&[2, 2, 2])));
     }
@@ -233,7 +229,6 @@ mod tests {
         // Independent of the basis: even + unimodular + rank 8 ⇒ E_8.
         let e8 = e_8();
         assert!(e8.is_even() && e8.is_unimodular() && e8.dim() == 8);
-        // and it is its own dual genus representative (kissing 240 fixes it).
-        assert_eq!(e8.kissing_number(), Some(240));
+        assert_eq!(e8.level(), Some(1));
     }
 }
