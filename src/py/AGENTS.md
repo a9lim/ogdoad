@@ -4,6 +4,11 @@ The PyO3 bindings, behind the `python` feature (`pyo3` is an optional dep;
 `extension-module` only enabled here). This is the ONLY place `use pyo3` may
 appear — keeping it out of the core is what stops `cargo test` linking libpython.
 
+Python exposes Rust `u128`/`i128` payloads as normal Python integers. Keep that
+width contract at the Rust boundary for form invariants, lattice entries, field
+orders, game values, and budgets. `usize` is still required for dimensions, indices,
+and PyO3 slots such as `__hash__`.
+
 `mod.rs` is the `#[pymodule]`; it chains each submodule's `pub(crate) register()`.
 Split per pillar:
 
@@ -15,7 +20,8 @@ Split per pillar:
   `nim_*` Galois free fns. `LocalQp` is the runtime-prime p-adic cell (validated
   before calling the panic-guarded Rust constructors); `Adele` exposes the diagonal
   embedding, finite-place corrections, local components, idele predicates, and the
-  product-formula surface; the tropical classes expose the dual semiring endpoints
+  product-formula surface; `Ordinal` exposes checked/staged nim operations but not a
+  Python `OrdinalAlgebra`; the tropical classes expose the dual semiring endpoints
   that thermography names.
 - **`engine.rs`** — the `backend!` macro → `<World>Algebra` + `<World>MV` pairs
   (Nimber/Surreal/Surcomplex/Integer/Omnific) + conformal GA (`Cga`). MV methods
@@ -25,14 +31,18 @@ Split per pillar:
   nonsingular nimber char-2 path as well as the supported char-0 path.
 - **`forms.rs`** — classify / witt / dickson / springer bindings, `FiniteFieldForm`
   (the RUNTIME Fp/Fpn form wrapper — the pattern that sidesteps const generics for
-  the odd-char leg), the Brauer–Wall classes (`bw_class_real`, `bw_class_complex`,
-  `bw_class_nimber`, `bw_class_oddchar`), `classify_real`/`classify_complex`,
+  the odd-char leg; char-2 `Fpn<2,N>` classification is Rust-only until a runtime
+  wrapper is designed), the Brauer–Wall classes (`bw_class_real`,
+  `bw_class_complex`, `bw_class_nimber`, `bw_class_oddchar`),
+  `classify_real`/`classify_complex`,
   `hilbert_product`, `isotropy_over_adeles`/`AdelicIsotropy`, `SymplecticForm`,
   `HermitianForm`, the finite-prime-field numeric invariants (`level`,
   `pythagoras_number`, `u_invariant`, sum-of-squares), the quadric bench
   (`fit_f2_quadratic`, `QuadricFit`), Gold-form helpers (`gold_form_arf`,
   `gold_form_algebra`), and the integral-lattice layer (`IntegralForm`, ADE
   constructors, `Genus`/`ScaleSymbol`, even-unimodular mass, Leech constants).
+  The new discriminant-form/Milgram and lattice-to-Clifford metric bridge surfaces
+  are Rust-only for now.
 - **`games.rs`** — `Game` / `NumberGame` / `NimberGame` (the char-2 transfinite
   Nim-heap mirror) / `GameExterior` / `Hackenbush` +
   `nim_mul_mex` / concrete coin-turning and Tartan probes (`coin_companions`,
@@ -83,6 +93,11 @@ Other deliberate omissions:
   finite-field enum. Until that design lands, the function-field scalar and its
   local-global form layer stay Rust-only rather than exposing a misleading partial
   dynamic API.
+- **No `OrdinalAlgebra` pyclass yet.** `Ordinal` is bound as a scalar object and now
+  implements the Rust `Scalar` trait inside the checked Kummer boundary, but the
+  Python algebra macro currently enumerates the runtime-friendly algebra backends
+  only. Binding it would need explicit checked-error behavior for products that
+  escape the verified tower.
 - **`divided_power.rs`** (Γ(V), the symmetric mirror of the exterior Hopf algebra)
   is a standalone parallel algebra and stays Rust-only — binding it means a second
   `DividedPowerAlgebra` + `DpVector` class hierarchy, not worth it.

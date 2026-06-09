@@ -22,14 +22,21 @@ arithmetic view (`integral/`). Each multi-file cluster is its own subdir with a 
 `mod.rs` that re-exports flat, so public paths stay shallow (`forms::bw_class_real`,
 `forms::springer_decompose_qp`, …) regardless of which shelf a symbol lives on.
 
+Fixed-width mathematical payloads in this pillar are `u128`/`i128`: Arf bits,
+Artin-Schreier classes, Dickson parities, Hilbert/Hasse signs, discriminant
+residues, lattice entries, automorphism counts, and node budgets all follow that
+contract. `usize` remains for dimensions and matrix indices.
+
 ## The façade
 
 - **`classify.rs`** — the classifier FAÇADE: `ClassifyForm` + `WittClassify` +
   `IsometryClassify` + `WittDecompose` + `BrauerWallClassify`, keyed on the scalar
   so `metric.classify()` / `.witt_class()` / `.isometric_to()` / `.witt_decompose()`
   / `.bw_class()` pick the right leg **at compile time** (Surreal→CliffordType,
-  Fp/Fpn→OddCharType, Nimber→ArfResult, …). `BrauerWallClassify` covers Surreal,
-  Surcomplex, odd finite fields, and nonsingular Nimber metrics. Rational &
+  Fp/Fpn→`FiniteFieldClass::{Odd, Char2}`, Nimber→ArfResult, finite-window
+  Ordinal→ArfResult, …). `BrauerWallClassify` covers Surreal, Surcomplex, odd
+  finite fields, nonsingular Nimber metrics, supported `Fpn<2,N>` metrics, and the
+  documented finite ordinal windows. Rational &
   Surcomplex impl `ClassifyForm` but not `WittClassify` (their Witt data isn't a
   single `WittClassG` — honest, not a gap).
 - **`diagonalize.rs`** — congruence diagonalization (char ≠ 2): `gram`,
@@ -53,8 +60,11 @@ arithmetic view (`integral/`). Each multi-file cluster is its own subdir with a 
   fields — ONE generic implementation keyed off the trait, Fp and Fpn share the
   path). dim + disc complete.
 - **`char2/`** — characteristic-2 invariants (re-exported flat): `arf.rs` (the Arf
-  invariant: `arf_f2` F₂ bitmask + `arf_nimber` any nim-field, symplectic reduction
-  + trace), `dickson.rs` (`dickson_matrix = rank(g−I) mod 2`, ker = SO;
+  invariant: `arf_f2` F₂ bitmask, `arf_nimber` for the represented nimber field,
+  `arf_char2`/`arf_fpn_char2` for supported finite char-2 fields, and
+  `arf_ordinal_finite` for the documented finite ordinal windows; all use
+  symplectic reduction + trace and return `ArfResult { arf: u128, ... }`),
+  `dickson.rs` (`dickson_matrix = rank(g−I) mod 2`, ker = SO;
   `dickson_of_versor` delegates to the generic versor grade parity), `field.rs`
   (`FiniteChar2Field` — the **additive** mirror of `FiniteOddField`: carries
   `artin_schreier_class = Tr_{F_q/F₂}` instead of `is_square_value`, since in char 2
@@ -71,17 +81,18 @@ re-exports flat). This is the home of the **mod-8 spine**: `BW(ℝ) ≅ ℤ/8` i
 same periodicity as the char-0 8-fold table, Bott, and `E₈` in `integral/`.
 
 - **`witt/class.rs`** — `WittClass`: the Witt group `W_q(F) ≅ ℤ/2` of a finite
-  nim-field, Arf-classified. Plus `WittClassG`: the Char0/OddChar/Char2 trichotomy
-  enum (odd-char is order-4) with the ring `mul` (Char2 panics — `W_q` is a module,
-  not a ring).
+  char-2 field/window, Arf-classified with `u128` bits. Plus `WittClassG`: the
+  Char0/OddChar/Char2 trichotomy enum (odd-char is order-4) with the ring `mul`
+  (Char2 panics — `W_q` is a module, not a ring).
 - **`witt/ring.rs`** — the Witt RING: `tensor_form`, Pfister forms, fundamental
   ideal Iⁿ, the eₙ staircase (e0=dim, e1=disc, e2=Hasse). Stabilization per field
   (I²=0 over F_q; infinite ℝ tower via `e_real`). DON'T claim Arf=e2 (char-2
   indexing is Kato's, pinned).
 - **`witt/brauer_wall.rs`** — the Brauer–Wall group BW(F): `bw_class_real` (Bott
   index (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_oddchar`
-  (order-4 ≅ W(F_q), DISCOVERED not asserted), and `bw_class_nimber` (char-2
-  Arf/Witt class `ℤ/2`, nonsingular metrics only). Law = graded_tensor.
+  (order-4 ≅ W(F_q), DISCOVERED not asserted), `bw_class_nimber`, and façade
+  dispatch for supported finite char-2 fields/windows (char-2 Arf/Witt class
+  `ℤ/2`, nonsingular metrics only). Law = graded_tensor.
 
 (The *numeric* field invariants the ring implies — level, u-invariant — live
 separately in `field_invariants.rs`, not here; the name was disambiguated from the
@@ -237,6 +248,9 @@ treatment of `oddchar/`/`char2/`/`local_global/`/`integral/`.
   (`experiments/trace_form_arf.py`, `gold_form_from_games.py`) into the typed core.
   The form has dim `[E:F]`, capped at `MAX_BASIS_DIM=128` (= the full nim-field's
   degree); the small power-of-two `m` keep the tests fast.
+  The same `CyclicGaloisExtension` basis/generator data also feeds
+  `clifford::frobenius::{galois_linear_map, frobenius_linear_map}`, giving the
+  trace-form bridge a Clifford outermorphism oracle.
 
 ## Integral lattices (`integral/` — the arithmetic view / Arc 4)
 
@@ -254,8 +268,10 @@ equivalence at every place), which reuses the `local_global/padic.rs` and
   Convention: **norm** `Q(x) = xᵀGx` (a "norm-2 root" has `Q=2`; twice the value of
   `½Q`). `determinant` (fraction-free **Bareiss**, exact), `is_even`/`is_unimodular`,
   `is_positive_definite` (Sylvester leading-minors via Bareiss, exact),
-  `invariant_factors` (SNF → discriminant group `L#/L`), `level` (smallest `N` with
-  `N·G⁻¹` even-integral, via the exact `Rational` inverse), `direct_sum`. The
+  `signature` (exact rational diagonalization), `invariant_factors` (SNF →
+  discriminant group `L#/L`), `level` (smallest `N` with `N·G⁻¹` even-integral, via
+  the exact `Rational` inverse), `clifford_metric` (rational Clifford metric),
+  `clifford_metric_f2` (even-lattice mod-2 char-2 metric), `direct_sum`. The
   positive-definite geometry: `short_vectors` (unimodular size-reduction first, then
   **Fincke–Pohst**: float LDLᵀ bounds the box, exact i128 norm filters the leaves,
   and vectors are mapped back to the original basis — float error can't add/drop a
@@ -280,6 +296,14 @@ equivalence at every place), which reuses the `local_global/padic.rs` and
   `brauer_wall` BW(ℝ)=ℤ/8 story and the lattice world (root AGENTS.md). Det/kissing/Coxeter
   oracles protect every construction; |Aut| oracles only on the small ones
   (`A_n`→`2(n+1)!`, `D_4`→1152, `D_5`→3840; `E_8`→`None`, past the budget).
+- **`integral/discriminant.rs`** — the even-lattice discriminant form bridge:
+  `DiscriminantForm { group, reps, gram_inv }` represents `A_L = L#/L` as
+  `Z^n/GZ^n`; `quadratic_value_mod2`, `bilinear_value_mod1`, and
+  `GaussSum::phase_mod8` compute the finite quadratic module; and
+  `verify_milgram` compares the Gauss-sum phase to the exact signature plus the
+  genus oddity route. This is the lattice ↔ Clifford/Brauer-Wall mod-8 seam. The
+  implementation is even-lattice only; odd type-I refinements stay a documented
+  boundary.
 - **`integral/genus.rs`** (M3) — the **genus** = (signature, det, per-prime Conway–Sloane
   symbol). Engine: the **p-adic Jordan decomposition** (`jordan_blocks`, exact over
   `Rational`): odd `p` diagonalizes (valuation-ordered Gram–Schmidt, `e_i←e_i+e_j` to

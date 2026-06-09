@@ -42,12 +42,12 @@ use std::collections::BTreeMap;
 /// mod 8 of the type-I (odd) part. For odd `p`, `det_mod8` is informational only.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ScaleSymbol {
-    pub scale: u32,
+    pub scale: u128,
     pub dim: usize,
-    pub sign: i8,
-    pub det_mod8: i64,
+    pub sign: i128,
+    pub det_mod8: i128,
     pub type_ii: bool,
-    pub oddity: i64,
+    pub oddity: i128,
 }
 
 /// The genus of a nondegenerate integral lattice: signature, determinant, and the
@@ -67,7 +67,7 @@ fn r_int(n: i128) -> Rational {
     Rational::int(n)
 }
 
-fn v_p_i128(mut x: i128, p: i128) -> u32 {
+fn v_p_i128(mut x: i128, p: i128) -> u128 {
     debug_assert!(x != 0);
     let mut k = 0;
     // (i128 has no stable `is_multiple_of` yet — the lint only applies to u128.)
@@ -86,13 +86,13 @@ fn unit_part_i128(mut x: i128, p: i128) -> i128 {
 }
 
 /// The p-adic valuation of a nonzero rational `num/den`.
-fn rat_val(r: &Rational, p: i128) -> i64 {
+fn rat_val(r: &Rational, p: i128) -> i128 {
     debug_assert!(!r.is_zero());
-    v_p_i128(r.numer(), p) as i64 - v_p_i128(r.denom(), p) as i64
+    v_p_i128(r.numer(), p) as i128 - v_p_i128(r.denom(), p) as i128
 }
 
 /// The determinant square class (`±1`) of a rational unit `r` over `ℚ_p` (odd `p`).
-fn unit_sign_odd(r: &Rational, p: i128) -> i8 {
+fn unit_sign_odd(r: &Rational, p: i128) -> i128 {
     let a = unit_part_i128(r.numer(), p).rem_euclid(p);
     let b = unit_part_i128(r.denom(), p).rem_euclid(p);
     let m = (a * b).rem_euclid(p);
@@ -106,13 +106,13 @@ fn unit_sign_odd(r: &Rational, p: i128) -> i8 {
 /// The 2-adic unit residue `u mod 8` of a nonzero rational `r = num/den` whose
 /// 2-adic valuation is `scale` (so `r / 2^scale` is a unit). Uses `odd⁻¹ ≡ odd
 /// (mod 8)`.
-fn unit_mod8(r: &Rational) -> i64 {
+fn unit_mod8(r: &Rational) -> i128 {
     let a = unit_part_i128(r.numer(), 2).rem_euclid(8);
     let b = unit_part_i128(r.denom(), 2).rem_euclid(8);
-    (a * b).rem_euclid(8) as i64
+    (a * b).rem_euclid(8)
 }
 
-fn sign_from_mod8(u: i64) -> i8 {
+fn sign_from_mod8(u: i128) -> i128 {
     if u == 1 || u == 7 {
         1
     } else {
@@ -141,18 +141,18 @@ fn rdiv(a: &Rational, b: &Rational) -> Rational {
 
 /// A raw Jordan block before per-scale aggregation.
 struct RawBlock {
-    scale: u32,
+    scale: u128,
     dim: usize,
-    sign: i8,
-    det_mod8: i64,
+    sign: i128,
+    det_mod8: i128,
     type_ii: bool,
-    oddity: i64,
+    oddity: i128,
 }
 
 /// Minimal p-adic valuation entry `(i, j)` of the symmetric matrix `a` (over the
 /// `active` index set). Returns `None` if every active entry is zero.
 fn min_val_entry(a: &RMat, active: &[usize], p: i128) -> Option<(usize, usize)> {
-    let mut best: Option<(i64, usize, usize)> = None;
+    let mut best: Option<(i128, usize, usize)> = None;
     for (ii, &i) in active.iter().enumerate() {
         for &j in &active[ii..] {
             if !a[i][j].is_zero() {
@@ -197,7 +197,7 @@ fn jordan_blocks(gram: &[Vec<i128>], p: i128) -> Option<Vec<RawBlock>> {
             continue;
         }
 
-        let scale = u32::try_from(scale).ok()?; // negative scale ⇒ not p-integral (bug)
+        let scale = u128::try_from(scale).ok()?; // negative scale ⇒ not p-integral (bug)
         if i == j {
             // 1-dimensional block ⟨a[i][i]⟩.
             let d = a[i][i].clone();
@@ -264,14 +264,14 @@ fn jordan_blocks(gram: &[Vec<i128>], p: i128) -> Option<Vec<RawBlock>> {
     Some(blocks)
 }
 
-fn mul_mod8_unit(a: i64, b: i64) -> i64 {
+fn mul_mod8_unit(a: i128, b: i128) -> i128 {
     (a * b).rem_euclid(8)
 }
 
 /// Aggregate raw blocks at prime `p` into the per-scale Conway–Sloane symbol
 /// (sorted by scale).
 fn aggregate(blocks: &[RawBlock], p: i128) -> Vec<ScaleSymbol> {
-    let mut by_scale: BTreeMap<u32, (usize, i8, i64, bool, i64)> = BTreeMap::new();
+    let mut by_scale: BTreeMap<u128, (usize, i128, i128, bool, i128)> = BTreeMap::new();
     for b in blocks {
         let e = by_scale.entry(b.scale).or_insert((0, 1, 1, p == 2, 0));
         e.0 += b.dim;
@@ -424,7 +424,7 @@ fn fuse_oddities(syms: &[ScaleSymbol]) -> Vec<ScaleSymbol> {
         }
         // start of a compartment: extend over consecutive (scale+1) type-I scales
         let mut j = i;
-        let mut total = 0i64;
+        let mut total = 0i128;
         loop {
             total += out[j].oddity;
             let extends =
@@ -566,7 +566,7 @@ mod tests {
         IntegralForm::diagonal(&vec![1i128; n])
     }
 
-    fn s2(scale: u32, dim: usize, det_mod8: i64, type_ii: bool, oddity: i64) -> ScaleSymbol {
+    fn s2(scale: u128, dim: usize, det_mod8: i128, type_ii: bool, oddity: i128) -> ScaleSymbol {
         ScaleSymbol {
             scale,
             dim,

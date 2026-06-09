@@ -177,9 +177,9 @@ mod tests {
         // filtration is richer than ℝ, but it does not yield a bigger group.
         let m = Metric::diagonal(vec![Surreal::omega(), w(1), Surreal::epsilon().neg()]);
         let d = springer_decompose(&m).unwrap();
-        let witt = d.total_signature.0 as isize - d.total_signature.1 as isize;
+        let witt = d.total_signature.0 as i128 - d.total_signature.1 as i128;
         let (p, q) = classify_surreal(&m).unwrap().signature;
-        assert_eq!(witt, p as isize - q as isize);
+        assert_eq!(witt, p as i128 - q as i128);
     }
 
     #[test]

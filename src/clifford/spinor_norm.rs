@@ -32,10 +32,10 @@ use crate::scalar::Scalar;
 /// `None` if the multivector is not of homogeneous grade parity — hence not a
 /// versor — or is zero. Generic over the scalar (the char-2 `Nimber` specialisation
 /// `forms::dickson_of_versor` delegates here).
-pub fn versor_grade_parity<S: Scalar>(v: &Multivector<S>) -> Option<u8> {
-    let mut parity: Option<u8> = None;
+pub fn versor_grade_parity<S: Scalar>(v: &Multivector<S>) -> Option<u128> {
+    let mut parity: Option<u128> = None;
     for &blade in v.terms.keys() {
-        let p = (blade.count_ones() % 2) as u8;
+        let p = (blade.count_ones() % 2) as u128;
         match parity {
             None => parity = Some(p),
             Some(q) if q != p => return None,
@@ -53,7 +53,7 @@ pub struct VersorClass<S: Scalar> {
     /// (char ≠ 2) or `F/℘(F)` (char 2) is the spinor-norm invariant.
     pub spinor_norm: S,
     /// The Dickson invariant (grade parity): `0` in `SO`, `1` an odd reflection.
-    pub dickson: u8,
+    pub dickson: u128,
 }
 
 impl<S: Scalar> CliffordAlgebra<S> {

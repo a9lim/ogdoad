@@ -46,7 +46,7 @@ fn p_set_as_f2(q: &Quotient, k: usize) -> Option<Vec<u128>> {
     }
 }
 
-fn code_str(code: &[u8]) -> String {
+fn code_str(code: &[u128]) -> String {
     format!(
         "0.{}",
         code.iter().map(|d| d.to_string()).collect::<String>()
@@ -59,12 +59,12 @@ fn main() {
 
     // Sweep: all codes of length 1–3 whose first digit allows taking a whole heap
     // of 1 (d₁ odd) — otherwise heaps of size 1 are inert and the game degenerates.
-    let mut codes: Vec<Vec<u8>> = Vec::new();
-    for d1 in [1u8, 3, 5, 7] {
+    let mut codes: Vec<Vec<u128>> = Vec::new();
+    for d1 in [1u128, 3, 5, 7] {
         codes.push(vec![d1]);
-        for d2 in 0u8..8 {
+        for d2 in 0u128..8 {
             codes.push(vec![d1, d2]);
-            for d3 in 0u8..8 {
+            for d3 in 0u128..8 {
                 codes.push(vec![d1, d2, d3]);
             }
         }

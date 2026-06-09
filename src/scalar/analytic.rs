@@ -83,7 +83,7 @@ pub trait SeriesRoots: Scalar {
 
     /// The `n` leading terms of a real `k`-th root, or `None`. See
     /// [`Surreal::nth_root_to_terms`](crate::scalar::Surreal::nth_root_to_terms).
-    fn nth_root_to_terms(&self, k: u32, n: usize) -> Option<Self>;
+    fn nth_root_to_terms(&self, k: u128, n: usize) -> Option<Self>;
 
     /// The `n` leading terms of the multiplicative inverse (a Neumann series for a
     /// non-monomial). See [`Surreal::inv_to_terms`](crate::scalar::Surreal::inv_to_terms).
@@ -141,7 +141,7 @@ pub(crate) fn fp_sqrt(a: u128, p: u128) -> Option<u128> {
         return Some(mod_pow(a, (p + 1) / 4, p)); // the fast branch
     }
     // p ≡ 1 (mod 4): full Tonelli–Shanks. Write p−1 = q·2^s with q odd.
-    let (mut q, mut s) = (p - 1, 0u32);
+    let (mut q, mut s) = (p - 1, 0u128);
     while q % 2 == 0 {
         q /= 2;
         s += 1;
@@ -160,7 +160,7 @@ pub(crate) fn fp_sqrt(a: u128, p: u128) -> Option<u128> {
             return Some(r);
         }
         // least i in 1..m with t^{2^i} = 1
-        let mut i = 1u32;
+        let mut i = 1u128;
         let mut t2 = (t * t) % p;
         while t2 != 1 {
             t2 = (t2 * t2) % p;
@@ -189,7 +189,7 @@ pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn
     }
     let one = Fpn::<P, N>::one();
     // q−1 = q'·2^s with q' odd.
-    let (mut qodd, mut s) = (Fpn::<P, N>::order() - 1, 0u32);
+    let (mut qodd, mut s) = (Fpn::<P, N>::order() - 1, 0u128);
     while qodd % 2 == 0 {
         qodd /= 2;
         s += 1;
@@ -203,7 +203,7 @@ pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn
         if t == one {
             return Some(r);
         }
-        let mut i = 1u32;
+        let mut i = 1u128;
         let mut t2 = t.mul(&t);
         while t2 != one {
             t2 = t2.mul(&t2);
@@ -435,7 +435,7 @@ impl SeriesRoots for Surreal {
         // Inherent shadows the trait method, so these delegate, not recurse.
         Surreal::sqrt_to_terms(self, n)
     }
-    fn nth_root_to_terms(&self, k: u32, n: usize) -> Option<Self> {
+    fn nth_root_to_terms(&self, k: u128, n: usize) -> Option<Self> {
         Surreal::nth_root_to_terms(self, k, n)
     }
     fn inv_to_terms(&self, n: usize) -> Option<Self> {

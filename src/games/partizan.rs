@@ -377,7 +377,7 @@ fn minimal_games(opts: &[Game]) -> Vec<Game> {
 }
 
 /// Strip factors of two from a dyadic `num / 2^k` to put it in lowest terms.
-fn reduce_dyadic_pair(mut num: i128, mut k: u32) -> (i128, u32) {
+fn reduce_dyadic_pair(mut num: i128, mut k: u128) -> (i128, u128) {
     while k > 0 && num % 2 == 0 {
         num /= 2;
         k -= 1;
@@ -387,7 +387,7 @@ fn reduce_dyadic_pair(mut num: i128, mut k: u32) -> (i128, u32) {
 
 /// The canonical game of the dyadic `num / 2^k`: an integer for `k = 0`, else
 /// `{ (num-1)/2^k | (num+1)/2^k }` with the options reduced to lowest terms.
-fn game_of_dyadic(num: i128, k: u32) -> Game {
+fn game_of_dyadic(num: i128, k: u128) -> Game {
     if k == 0 {
         return Game::integer(num);
     }

@@ -19,7 +19,7 @@ pub struct OddCharType {
     /// square. With `dim`, a complete isometry invariant over a finite field.
     pub disc_is_square: bool,
     /// The Hasse–Witt invariant — always `+1` over a finite field.
-    pub hasse: i8,
+    pub hasse: i128,
 }
 
 impl OddCharType {
@@ -42,7 +42,7 @@ impl OddCharType {
 /// fields have trivial Brauer group, so every nonzero Hilbert symbol is `+1`;
 /// the prime-field [`super::hilbert_symbol`] wrapper still keeps the brute-force
 /// witness for tests and pedagogy.
-pub fn hasse_invariant_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<i8> {
+pub fn hasse_invariant_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<i128> {
     F::ensure_supported()?;
     as_diagonal(metric)?;
     // Trivial Brauer group: every Hilbert symbol of nonzero elements is `+1`, so
@@ -106,7 +106,7 @@ pub fn finite_odd_witt<F: FiniteOddField>(metric: &Metric<F>) -> Option<WittClas
     Some(WittClassG::OddChar {
         field_order: F::field_order(),
         kappa,
-        e0: (m & 1) as u8,
+        e0: (m & 1) as u128,
         sclass: if F::is_square_value(signed) { 0 } else { 1 },
     })
 }

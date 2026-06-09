@@ -231,7 +231,7 @@ fn nim_moves(pos: Vec<u128>) -> Vec<Vec<u128>> {
 /// remove `k` tokens leaving the heap empty (`dₖ & 1`), one nonempty heap
 /// (`dₖ & 2`), or two nonempty heaps (`dₖ & 4`). Nim is `0.333…`.
 #[pyfunction]
-fn octal_moves(code: Vec<u8>, pos: Vec<u128>) -> Vec<Vec<u128>> {
+fn octal_moves(code: Vec<u128>, pos: Vec<u128>) -> Vec<Vec<u128>> {
     crate::games::octal_moves(&code, &pos)
 }
 
@@ -240,7 +240,7 @@ fn octal_moves(code: Vec<u8>, pos: Vec<u128>) -> Vec<Vec<u128>> {
 /// by tests up to `test_bound`).
 #[pyfunction]
 fn octal_misere_quotient(
-    code: Vec<u8>,
+    code: Vec<u128>,
     max_heap: usize,
     elem_bound: usize,
     test_bound: usize,

@@ -11,6 +11,10 @@ Clifford story lives on the scalar backends and not on all games.
 
 `mod.rs` re-exports every module below flat.
 
+Fixed-width game payloads use `u128`/`i128`: finite nim heaps, octal codes, Grundy
+values, scoring integers, and quotient counters follow the same repo-wide width
+contract. `usize` remains for graph nodes, option indices, and collection lengths.
+
 ## Values & arithmetic
 
 - **`partizan.rs`** — short partizan games (sum/neg/order/birthday/is_number) + the
@@ -28,7 +32,8 @@ Clifford story lives on the scalar backends and not on all games.
   tree. `neg` is the identity (char 2: every impartial game is self-inverse);
   `turning_corners` is the nim-product (Conway's coin game, `ω³=2`), `None` ≥ ω^ω.
   Closes the `No ↔ On₂` symmetry at the games layer (it had only lived at the scalar
-  layer via the shared CNF core). Bound to Python as `NimberGame`.
+  layer via the shared CNF core, and now reaches Clifford through `Scalar for
+  Ordinal` inside the checked Kummer boundary). Bound to Python as `NimberGame`.
 - **`game_exterior.rs`** — the exterior algebra of the GAME group: Λ over ℤ on game
   generators (living on all of game-world, incl. non-numbers ⋆/↑ — needs only the
   ℤ-module structure). `GameExterior` (free Grassmann engine quotiented by integer

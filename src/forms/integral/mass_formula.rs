@@ -47,7 +47,7 @@ pub const LEECH_AUT_ORDER: u128 = 8_315_553_613_086_720_000;
 
 /// `|B_k|` for an even `k`, as `(|numerator|, denominator)` in lowest terms — the
 /// Bernoulli numbers up to `B₂₄` (all the mass formula needs through rank 24).
-fn bernoulli_abs(k: u32) -> (i128, i128) {
+fn bernoulli_abs(k: u128) -> (i128, i128) {
     match k {
         2 => (1, 6),
         4 => (1, 30),
@@ -98,7 +98,7 @@ fn checked_rat_mul(
 /// `n`. `n` must be a positive multiple of 8 (otherwise no such lattice exists).
 /// Returns the exact reduced fraction `(numerator, denominator)`, or `None` if the
 /// value overflows the `i128` rational model (beyond `n = 24`).
-pub fn mass_even_unimodular(n: u32) -> Option<(i128, i128)> {
+pub fn mass_even_unimodular(n: u128) -> Option<(i128, i128)> {
     if n == 0 || !n.is_multiple_of(8) {
         return None;
     }

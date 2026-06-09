@@ -132,7 +132,7 @@ pub fn is_square_finite<F: FiniteOddField>(x: F) -> bool {
 /// The Hilbert symbol `(a, b)` over `F_P`: `+1` iff `z² = a x² + b y²` has a
 /// nontrivial solution. Over a finite field this is identically `+1` for nonzero
 /// `a, b` (computed by an honest search, which always succeeds).
-pub fn hilbert_symbol<const P: u128>(a: Fp<P>, b: Fp<P>) -> i8 {
+pub fn hilbert_symbol<const P: u128>(a: Fp<P>, b: Fp<P>) -> i128 {
     assert_odd_prime::<P>();
     for x in 0..P {
         for y in 0..P {

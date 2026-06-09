@@ -60,6 +60,7 @@ mod cantor;
 mod nim;
 mod tower;
 
+use crate::scalar::{nim_inv, Scalar};
 use std::cmp::Ordering;
 use std::fmt;
 
@@ -146,6 +147,67 @@ impl Ordinal {
             _ => None,
         }
     }
+
+    /// Checked nim-field multiplication. This is the non-panicking entry point
+    /// for callers that need to respect the source-verified Kummer boundary.
+    pub fn checked_mul(&self, other: &Ordinal) -> Option<Ordinal> {
+        self.nim_mul(other)
+    }
+
+    /// Checked multiplicative inverse on the represented exact subdomains. Finite
+    /// nimbers use the `u128` backend; the first transfinite field
+    /// `F_4(ω) = F_64` is found by exhaustive search. Larger transfinite
+    /// inverses are left as `None` rather than guessed.
+    pub fn checked_inv(&self) -> Option<Ordinal> {
+        if self.is_zero() {
+            return None;
+        }
+        if let Some(x) = self.as_finite() {
+            return nim_inv(x).map(Ordinal::from_u128);
+        }
+        let coeffs = self.as_below_omega3()?;
+        if coeffs.iter().any(|&c| c >= 4) {
+            return None;
+        }
+        let one = Ordinal::from_u128(1);
+        (1..64u128)
+            .map(|i| Ordinal::from_omega3_coeffs([i & 3, (i >> 2) & 3, (i >> 4) & 3]))
+            .find(|cand| self.nim_mul(cand).as_ref() == Some(&one))
+    }
+}
+
+impl Scalar for Ordinal {
+    fn zero() -> Self {
+        Ordinal::zero()
+    }
+
+    fn one() -> Self {
+        Ordinal::from_u128(1)
+    }
+
+    fn add(&self, rhs: &Self) -> Self {
+        self.nim_add(rhs)
+    }
+
+    fn neg(&self) -> Self {
+        self.clone()
+    }
+
+    fn mul(&self, rhs: &Self) -> Self {
+        self.checked_mul(rhs).unwrap_or_else(|| {
+            panic!(
+                "Ordinal::mul escaped the source-verified nim-product tower: left={self:?}, right={rhs:?}"
+            )
+        })
+    }
+
+    fn characteristic() -> u128 {
+        2
+    }
+
+    fn inv(&self) -> Option<Self> {
+        self.checked_inv()
+    }
 }
 
 fn fmt_exp(e: &Ordinal) -> String {
@@ -216,5 +278,32 @@ mod tests {
         assert_eq!(format!("{:?}", Ordinal::omega_pow(fin(2))), "ω^2");
         assert_eq!(format!("{:?}", Ordinal::omega().nim_add(&fin(1))), "ω + 1");
         assert_eq!(format!("{:?}", fin(5)), "5");
+    }
+
+    #[test]
+    fn scalar_impl_matches_checked_nim_arithmetic() {
+        let w = Ordinal::omega();
+        let one = Ordinal::one();
+        assert_eq!(w.add(&one), w.nim_add(&one));
+        assert_eq!(w.neg(), w);
+        assert_eq!(w.mul(&w).mul(&w), fin(2)); // ω^3 = 2
+        assert_eq!(Ordinal::characteristic(), 2);
+    }
+
+    #[test]
+    fn checked_inverse_covers_finite_and_f64_subfield() {
+        let three = fin(3);
+        assert_eq!(three.mul(&three.inv().unwrap()), Ordinal::one());
+
+        let w_plus_1 = Ordinal::omega().nim_add(&fin(1));
+        let inv = w_plus_1.inv().expect("ω+1 lies in the enumerated F_64");
+        assert_eq!(w_plus_1.mul(&inv), Ordinal::one());
+    }
+
+    #[test]
+    #[should_panic(expected = "Ordinal::mul escaped the source-verified nim-product tower")]
+    fn scalar_mul_panics_past_verified_tower() {
+        let out_of_range = Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega()));
+        let _ = out_of_range.mul(&Ordinal::omega());
     }
 }

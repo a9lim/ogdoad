@@ -425,8 +425,8 @@ mod tests {
         let pi = EW::pi();
         assert_eq!(pi.mul(&pi), EW::from_base(t.clone()));
         // a spread of nonzero elements all invert (it is a genuine field).
-        for a in 0..2u8 {
-            for b in 0..2u8 {
+        for a in 0..2u128 {
+            for b in 0..2u128 {
                 if a == 0 && b == 0 {
                     continue;
                 }

@@ -17,12 +17,14 @@
 //! sum is pushed to F₂ by the field trace. `arf_invariant` uses the latter.
 
 use crate::clifford::Metric;
-use crate::scalar::{nim_add, nim_inv, nim_mul, nim_trace, Nimber};
+use crate::forms::FiniteChar2Field;
+use crate::scalar::{nim_add, nim_inv, nim_mul, nim_trace, Fpn, Nimber, Ordinal, Scalar};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArfResult {
     /// Arf invariant of the nonsingular core (0 or 1).
-    pub arf: u8,
+    pub arf: u128,
     /// Rank of the polar form B = 2 × (number of hyperbolic pairs).
     pub rank: usize,
     /// Dimension of the polar-form radical (where B vanishes).
@@ -110,7 +112,7 @@ pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfResult {
 
     let radical_anisotropic = radical.iter().any(|&v| q_of(v, qd, bmat));
     ArfResult {
-        arf: arf as u8,
+        arf: arf as u128,
         rank: 2 * pairs,
         radical_dim: radical.len(),
         radical_anisotropic,
@@ -144,6 +146,14 @@ fn vadd(u: &[u128], v: &[u128]) -> Vec<u128> {
     u.iter().zip(v).map(|(&a, &b)| nim_add(a, b)).collect()
 }
 
+fn vscale_field<F: Scalar>(c: &F, v: &[F]) -> Vec<F> {
+    v.iter().map(|x| c.mul(x)).collect()
+}
+
+fn vadd_field<F: Scalar>(u: &[F], v: &[F]) -> Vec<F> {
+    u.iter().zip(v).map(|(a, b)| a.add(b)).collect()
+}
+
 /// Q(v) = Σ_i v_i² q_i + Σ_{i<j} v_i v_j b_{ij}, over the nim-field.
 fn qf(v: &[u128], q: &[u128], bmat: &[Vec<u128>]) -> u128 {
     let n = v.len();
@@ -168,6 +178,107 @@ fn bf(u: &[u128], v: &[u128], bmat: &[Vec<u128>]) -> u128 {
         }
     }
     acc
+}
+
+/// Q(v) = Σ_i v_i² q_i + Σ_{i<j} v_i v_j b_{ij}, over a finite char-2 field.
+fn qf_field<F: Scalar>(v: &[F], q: &[F], bmat: &[Vec<F>]) -> F {
+    let n = v.len();
+    let mut acc = F::zero();
+    for i in 0..n {
+        acc = acc.add(&v[i].mul(&v[i]).mul(&q[i]));
+        for j in (i + 1)..n {
+            acc = acc.add(&v[i].mul(&v[j]).mul(&bmat[i][j]));
+        }
+    }
+    acc
+}
+
+/// Polar form B(u,v) = Σ_{i<j} (u_i v_j + u_j v_i) b_{ij}, over a finite
+/// char-2 field.
+fn bf_field<F: Scalar>(u: &[F], v: &[F], bmat: &[Vec<F>]) -> F {
+    let n = u.len();
+    let mut acc = F::zero();
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let cross = u[i].mul(&v[j]).add(&u[j].mul(&v[i]));
+            acc = acc.add(&cross.mul(&bmat[i][j]));
+        }
+    }
+    acc
+}
+
+fn arf_char2_core<F>(
+    metric: &Metric<F>,
+    trace_to_f2: impl Fn(&F) -> Option<u128>,
+) -> Option<ArfResult>
+where
+    F: Scalar,
+{
+    if !metric.a.is_empty() {
+        return None;
+    }
+    let n = metric.q.len();
+    let q = metric.q.clone();
+    let mut bmat = vec![vec![F::zero(); n]; n];
+    for (&(i, j), v) in &metric.b {
+        bmat[i][j] = v.clone();
+        bmat[j][i] = v.clone();
+    }
+
+    let mut vectors: Vec<Vec<F>> = (0..n)
+        .map(|i| {
+            let mut e = vec![F::zero(); n];
+            e[i] = F::one();
+            e
+        })
+        .collect();
+
+    let mut s = F::zero();
+    let mut pairs = 0usize;
+    let mut radical_dim = 0usize;
+    let mut radical_anisotropic = false;
+
+    while let Some(a) = vectors.pop() {
+        if let Some(pos) = vectors
+            .iter()
+            .position(|w| !bf_field(&a, w, &bmat).is_zero())
+        {
+            let braw = vectors.swap_remove(pos);
+            let c = bf_field(&a, &braw, &bmat);
+            let c_inv = c.inv()?;
+            let b = vscale_field(&c_inv, &braw); // rescale so B(a,b) = 1
+            for w in vectors.iter_mut() {
+                let wb = bf_field(w, &b, &bmat);
+                let wa = bf_field(w, &a, &bmat);
+                let mut nw = w.clone();
+                if !wb.is_zero() {
+                    nw = vadd_field(&nw, &vscale_field(&wb, &a));
+                }
+                if !wa.is_zero() {
+                    nw = vadd_field(&nw, &vscale_field(&wa, &b));
+                }
+                *w = nw;
+            }
+            let qa = qf_field(&a, &q, &bmat);
+            let qb = qf_field(&b, &q, &bmat);
+            s = s.add(&qa.mul(&qb));
+            pairs += 1;
+        } else {
+            radical_dim += 1;
+            if !qf_field(&a, &q, &bmat).is_zero() {
+                radical_anisotropic = true;
+            }
+        }
+    }
+
+    let arf = trace_to_f2(&s)?;
+    Some(ArfResult {
+        arf,
+        rank: 2 * pairs,
+        radical_dim,
+        radical_anisotropic,
+        o_type: if arf == 1 { "O-" } else { "O+" },
+    })
 }
 
 /// Arf invariant of a nimber Clifford metric over its field of definition (the
@@ -232,7 +343,7 @@ pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
         }
     }
 
-    let arf = nim_trace(s, m) as u8;
+    let arf = nim_trace(s, m);
     Some(ArfResult {
         arf,
         rank: 2 * pairs,
@@ -242,14 +353,97 @@ pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
     })
 }
 
+/// Arf invariant of a quadratic Clifford metric over a supported finite field of
+/// characteristic 2 (`F₂` or `F_{2^N}`), reduced through the absolute trace
+/// `Tr_{F/F₂}`. This is the `Fpn<2,N>` mirror of [`arf_nimber`].
+pub fn arf_char2<F: FiniteChar2Field>(metric: &Metric<F>) -> Option<ArfResult> {
+    F::ensure_supported()?;
+    arf_char2_core(metric, |x| Some(F::artin_schreier_class(*x)))
+}
+
+/// Arf invariant for a const-generic `Fpn<P,N>` metric, returning `None` unless
+/// `P = 2`. This exists so the finite-field façade can dispatch inside the single
+/// `Fpn<P,N>` monomorphisation without pretending odd fields are char-2 fields.
+pub fn arf_fpn_char2<const P: u128, const N: usize>(
+    metric: &Metric<Fpn<P, N>>,
+) -> Option<ArfResult> {
+    if P != 2 || !Fpn::<P, N>::is_supported_field() {
+        return None;
+    }
+    use crate::scalar::FieldExtension;
+    arf_char2_core(metric, |x| Some(x.trace().value()))
+}
+
 /// Arf invariant of a nimber Clifford metric (the char-2 Clifford classifier).
 pub fn arf_invariant(metric: &Metric<Nimber>) -> Option<ArfResult> {
     arf_nimber(metric)
 }
 
+fn ordinal_f64_element(x: &Ordinal) -> bool {
+    x.as_below_omega3()
+        .is_some_and(|cs| cs.iter().all(|&c| c < 4))
+}
+
+fn ordinal_f64_trace_to_f2(x: &Ordinal) -> Option<u128> {
+    if !ordinal_f64_element(x) {
+        return None;
+    }
+    let mut acc = Ordinal::zero();
+    let mut y = x.clone();
+    for i in 0..6 {
+        acc = acc.add(&y);
+        if i != 5 {
+            y = y.checked_mul(&y)?;
+            if !ordinal_f64_element(&y) {
+                return None;
+            }
+        }
+    }
+    match acc.as_finite()? {
+        0 => Some(0),
+        1 => Some(1),
+        _ => None,
+    }
+}
+
+/// Arf invariant for finite ordinal-nimber windows represented by the `Ordinal`
+/// backend. Purely finite entries delegate to [`arf_nimber`]. Entries in the first
+/// transfinite finite field `F_4(ω) = F_64` use the same generic symplectic
+/// reduction plus the six-term absolute trace. Larger staged finite fields and
+/// genuinely transfinite coefficients return `None`; the general detector and
+/// transfinite classifier remain open.
+pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfResult> {
+    if !metric.a.is_empty() {
+        return None;
+    }
+
+    if metric.q.iter().all(|x| x.as_finite().is_some())
+        && metric.b.values().all(|x| x.as_finite().is_some())
+    {
+        let q = metric
+            .q
+            .iter()
+            .map(|x| x.as_finite().map(Nimber))
+            .collect::<Option<Vec<_>>>()?;
+        let b = metric
+            .b
+            .iter()
+            .map(|(&(i, j), x)| x.as_finite().map(|v| ((i, j), Nimber(v))))
+            .collect::<Option<BTreeMap<_, _>>>()?;
+        return arf_nimber(&Metric::new(q, b));
+    }
+
+    if metric.q.iter().all(ordinal_f64_element) && metric.b.values().all(ordinal_f64_element) {
+        return arf_char2_core(metric, ordinal_f64_trace_to_f2);
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scalar::{Fp, Fpn, Ordinal};
     use std::collections::BTreeMap;
 
     fn metric(qs: &[u128], bs: &[((usize, usize), u128)]) -> Metric<Nimber> {
@@ -262,6 +456,13 @@ mod tests {
     }
     fn b1(pairs: &[(usize, usize)]) -> Vec<((usize, usize), u128)> {
         pairs.iter().map(|&p| (p, 1)).collect()
+    }
+    fn metric_field<F: Scalar>(qs: &[F], bs: &[((usize, usize), F)]) -> Metric<F> {
+        let mut b = BTreeMap::new();
+        for ((i, j), v) in bs {
+            b.insert((*i, *j), v.clone());
+        }
+        Metric::new(qs.to_vec(), b)
     }
 
     #[test]
@@ -330,6 +531,94 @@ mod tests {
         //   q=[*2,*2], b01=*1:  S = *2⊗*2 = *3,  Tr(*3) = *3+*2 = *1       ⇒ O-
         let r2 = arf_invariant(&metric(&[2, 2], &b1(&[(0, 1)]))).unwrap();
         assert_eq!((r2.arf, r2.o_type, r2.rank), (1, "O-", 2));
+    }
+
+    #[test]
+    #[allow(clippy::type_complexity)] // compact table of F2 diagonals and polar pairs
+    fn generic_char2_agrees_with_f2_bitmask() {
+        let cases: &[(&[u128], &[(usize, usize)])] = &[
+            (&[0, 0], &[(0, 1)]),
+            (&[1, 1], &[(0, 1)]),
+            (&[0, 0, 1], &[(0, 1)]),
+            (&[1, 0, 1, 1], &[(0, 1), (2, 3)]),
+        ];
+        for (qs, ps) in cases {
+            let qf: Vec<Fp<2>> = qs.iter().map(|&x| Fp::<2>::from_u128(x)).collect();
+            let bf: Vec<((usize, usize), Fp<2>)> =
+                ps.iter().map(|&p| (p, Fp::<2>::one())).collect();
+            let general = arf_char2(&metric_field(&qf, &bf)).unwrap();
+            let n = qs.len();
+            let qd: Vec<bool> = qs.iter().map(|&x| x == 1).collect();
+            let mut bmat = vec![0u128; n];
+            for &(i, j) in *ps {
+                bmat[i] |= 1 << j;
+                bmat[j] |= 1 << i;
+            }
+            assert_eq!(general, arf_f2(n, &qd, &bmat), "mismatch on q={qs:?}");
+        }
+    }
+
+    #[test]
+    fn f8_forms_use_the_absolute_trace() {
+        type F8 = Fpn<2, 3>;
+        let a = F8::generator();
+        let one = F8::one();
+
+        // A normalized plane has Arf Tr(q0*q1). This uses the genuine F_8
+        // coefficient a rather than an F_2-valued diagonal.
+        let m = metric_field(&[a, a], &[((0, 1), one)]);
+        let r = arf_char2(&m).unwrap();
+        assert_eq!(r.rank, 2);
+        assert_eq!(r.radical_dim, 0);
+        assert_eq!(r.arf, F8::artin_schreier_class(a.mul(&a)));
+
+        // Additivity over orthogonal sums is XOR of the trace-reduced plane bits.
+        let doubled = m.direct_sum(&m);
+        assert_eq!(arf_char2(&doubled).unwrap().arf, 0);
+    }
+
+    #[test]
+    fn f8_zero_count_matches_arf_for_planes() {
+        type F8 = Fpn<2, 3>;
+        let elems: Vec<F8> = (0..F8::field_order()).map(F8::from_index).collect();
+        let planes = [
+            metric_field(&[F8::zero(), F8::zero()], &[((0, 1), F8::one())]),
+            metric_field(&[F8::generator(), F8::generator()], &[((0, 1), F8::one())]),
+        ];
+        for m in planes {
+            let r = arf_char2(&m).unwrap();
+            let q0 = m.q[0];
+            let q1 = m.q[1];
+            let b01 = m.b[&(0, 1)];
+            let zeros = elems
+                .iter()
+                .flat_map(|&x| elems.iter().map(move |&y| (x, y)))
+                .filter(|&(x, y)| {
+                    x.mul(&x)
+                        .mul(&q0)
+                        .add(&y.mul(&y).mul(&q1))
+                        .add(&x.mul(&y).mul(&b01))
+                        .is_zero()
+                })
+                .count() as i128;
+            let q = F8::field_order() as i128;
+            let expected = if r.arf == 0 { q + (q - 1) } else { q - (q - 1) };
+            assert_eq!(zeros, expected, "wrong zero count for {r:?}");
+        }
+    }
+
+    #[test]
+    fn ordinal_f64_forms_use_the_absolute_trace() {
+        let w = Ordinal::omega();
+        let one = Ordinal::one();
+        let m = metric_field(&[w.clone(), w.clone()], &[((0, 1), one)]);
+        let r = arf_ordinal_finite(&m).unwrap();
+        assert_eq!(r.rank, 2);
+        assert_eq!(r.radical_dim, 0);
+        assert_eq!(r.arf, ordinal_f64_trace_to_f2(&w.mul(&w)).unwrap());
+
+        let higher = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega())]);
+        assert_eq!(arf_ordinal_finite(&higher), None);
     }
 
     #[test]

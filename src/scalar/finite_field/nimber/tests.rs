@@ -204,7 +204,7 @@ fn brute_order(x: u128) -> u128 {
 }
 
 /// Evaluate `Σ poly[i]·x^{⊗i}` in nim arithmetic (poly over F₂).
-fn eval_poly_f2(poly: &[u8], x: u128) -> u128 {
+fn eval_poly_f2(poly: &[u128], x: u128) -> u128 {
     let mut acc = 0u128;
     let mut xpow = 1u128;
     for &c in poly {
@@ -241,14 +241,14 @@ fn degree_is_smallest_containing_subfield() {
 fn conjugates_and_min_poly() {
     for x in 0u128..16 {
         let conj = nim_conjugates(x);
-        assert_eq!(conj.len() as u32, nim_degree(x));
+        assert_eq!(conj.len() as u128, nim_degree(x));
         let mut s = conj.clone();
         s.sort_unstable();
         s.dedup();
         assert_eq!(s.len(), conj.len(), "conjugates of {x} not distinct");
 
         let mp = nim_min_poly(x);
-        assert_eq!(mp.len() as u32, nim_degree(x) + 1);
+        assert_eq!(mp.len() as u128, nim_degree(x) + 1);
         assert_eq!(*mp.last().unwrap(), 1, "min poly of {x} not monic");
         assert!(mp.iter().all(|&c| c <= 1));
         for &c in &conj {

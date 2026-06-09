@@ -57,7 +57,7 @@ pub trait FiniteChar2Field: Scalar + Copy {
     /// analogue of the odd-characteristic square class. `x ∈ ℘(F_q)` (the image of
     /// `y ↦ y² + y`) **iff** this is `0`; equivalently `y² + y = x` is solvable iff
     /// the class is `0`. `F₂`-linear in `x`.
-    fn artin_schreier_class(x: Self) -> u8;
+    fn artin_schreier_class(x: Self) -> u128;
 
     /// `Some(())` iff this is a supported char-2 finite field (the char-2 mirror of
     /// [`FiniteOddField::ensure_supported`](crate::forms::FiniteOddField::ensure_supported)).
@@ -83,9 +83,9 @@ impl FiniteChar2Field for Fp<2> {
         Fp::<2>::from_u128(i)
     }
 
-    fn artin_schreier_class(x: Self) -> u8 {
+    fn artin_schreier_class(x: Self) -> u128 {
         // Tr_{F₂/F₂} is the identity; the class is the bit itself.
-        (x.value() & 1) as u8
+        x.value() & 1
     }
 }
 
@@ -113,18 +113,18 @@ impl<const N: usize> FiniteChar2Field for Fpn<2, N> {
         Fpn::<2, N>::from_coeffs(&digits)
     }
 
-    fn artin_schreier_class(x: Self) -> u8 {
+    fn artin_schreier_class(x: Self) -> u128 {
         use crate::scalar::FieldExtension;
         // The absolute trace `F_{2^N} → F₂` (= the relative trace to the prime
         // subfield), which realises `F/℘(F) ≅ F₂`.
-        x.trace().value() as u8
+        x.trace().value()
     }
 }
 
 /// The Artin–Schreier class over any supported char-2 finite field — the additive
 /// analogue of [`is_square_finite`](crate::forms::is_square_finite). Returns
 /// `Tr_{F_q/F₂}(x) ∈ {0, 1}`; `0` iff `x ∈ ℘(F_q)`.
-pub fn artin_schreier_class_finite<F: FiniteChar2Field>(x: F) -> u8 {
+pub fn artin_schreier_class_finite<F: FiniteChar2Field>(x: F) -> u128 {
     assert!(
         F::is_supported_char2_field(),
         "characteristic-2 finite-field form theory needs a supported char-2 field"
@@ -151,7 +151,7 @@ mod tests {
         // ℘(α+1)=1 ⇒ ℘(F₄) = {0,1}.  So class 0 on {0,1} (the trace-zero hyperplane),
         // class 1 on {α, α+1}.
         type F4 = Fpn<2, 2>;
-        let expect = [(0u128, 0u8), (1, 0), (2, 1), (3, 1)]; // index → class
+        let expect = [(0u128, 0u128), (1, 0), (2, 1), (3, 1)]; // index → class
         for (i, c) in expect {
             assert_eq!(F4::artin_schreier_class(F4::from_index(i)), c, "index {i}");
         }

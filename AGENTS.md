@@ -37,7 +37,7 @@ Beyond the library: `examples/` (Rust demos + the open-question probes:
 `interactive_kernel`, `octal_hunt`, `loopy_quadric`, `misere_quotient`,
 `bent_route`, `tour`), `experiments/` (Python research probes on top of the shipped
 lib), `demo.py` (the Python tour), `OPEN.md` (the genuine research problems),
-`ROADMAP.md` (the ambitious cross-pillar bridges planned next), and
+`ROADMAP.md` (the implemented cross-pillar bridge map plus remaining boundaries), and
 `writeups/goldarf.tex` (the narrow draft note on the Gold/Arf game thread).
 
 ## Claim levels and non-claims
@@ -61,9 +61,10 @@ Scope boundaries to preserve:
 - Not a Clifford algebra over arbitrary partizan games. A Clifford algebra needs a
   commutative scalar ring; the full game group is only an abelian group.
 - Not a new classification theorem for all characteristic-2 Clifford algebras over
-  arbitrary fields. The code computes Arf and Brauer-Wall data for finite nimber
-  subfields, rejects singular metrics where a nonsingular Witt/BW class is required,
-  and keeps rank/radical data explicit.
+  arbitrary fields. The code computes Arf and Brauer-Wall data for `Nimber`,
+  supported `Fpn<2,N>` fields, and the documented finite ordinal windows; it rejects
+  singular metrics where a nonsingular Witt/BW class is required, and keeps
+  rank/radical data explicit.
 - Not a solved game-semantics theorem. Gold forms are built from game operations,
   but no non-tautological natural game is known whose P-set is their zero set.
 - Not an algebraically closed finite backend. `Nimber(u128)` is `F_{2^128}` and
@@ -79,7 +80,8 @@ recurring symmetries the project is built around:
 - **char 0 ↔ char 2** classifiers (the real 8-fold table mirrored by Arf/Brauer–Wall).
 - **surreal No ↔ ordinal On₂** (char-0 field and char-2 non-field sharing one CNF core).
 - **(field, ring of integers)** pairings, made structural in `scalar/integrality.rs`.
-- the **2×2 functor table** (algebraic|transcendental × residue|value-extending).
+- the **2×2 functor table** (algebraic|transcendental × residue|value-extending),
+  with cyclic Galois/Frobenius maps also feeding Clifford outermorphisms.
 - **local ↔ global** (the Springer trio + the local-global Hasse–Minkowski layer).
 
 ## Implemented mathematical state
@@ -96,7 +98,7 @@ The scalar landscape is broad, but not all backends have the same exactness clai
 | `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss` | local-field-style backends/functors, mostly capped-relative precision models |
 | `Adele`, `LocalQp` | runtime-prime adelic precision model over `Q` |
 | `RationalFunction` | exact global function field `F_q(t)` over `Poly = F_q[t]` |
-| `Ordinal` | staged transfinite nimbers; nim-addition on represented CNF terms and nim-multiplication through source-verified Kummer carries `alpha_u`, `u <= 43` |
+| `Ordinal` | staged transfinite nimbers; now a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms and nim-multiplication through source-verified Kummer carries `alpha_u`, `u <= 43` |
 
 The char-2 Clifford point is load-bearing. In characteristic 2, `q` and `b` are
 independent:
@@ -107,16 +109,24 @@ e_i e_j + e_j e_i = b_ij
 ```
 
 The polar form is alternating, so `b_ii = 0`, while `q_i` can be nonzero. If the
-engine collapses `q` and `b`, the nimber Clifford product becomes the wrong
-commutative object. The implemented char-2 form layer reports `ArfResult { arf,
-rank, radical_dim, radical_anisotropic, o_type }`; for degenerate forms, Arf of the
-nonsingular core is not the whole form. On nonsingular nimber metrics, the same Arf
-bit is also the implemented Brauer-Wall class `BW(F_{2^m}) ~= Z/2`; hyperbolic
-planes are `0`, the anisotropic plane is `1`, and direct sum / graded tensor adds by
-XOR. `clifford::spinor` has a separate char-2 route: no `1/2(1+w)`, honest blade
+engine collapses `q` and `b`, the char-2 Clifford product becomes the wrong
+commutative object. The implemented char-2 form layer reports `ArfResult { arf:
+u128, rank, radical_dim, radical_anisotropic, o_type }`; for degenerate forms, Arf
+of the nonsingular core is not the whole form. On nonsingular metrics over `Nimber`,
+supported `Fpn<2,N>`, and the documented finite ordinal windows, the same Arf bit is
+also the implemented Brauer-Wall class `BW(F_{2^m}) ~= Z/2`; hyperbolic planes are
+`0`, the anisotropic plane is `1`, and direct sum / graded tensor adds by XOR.
+`clifford::spinor` has a separate char-2 route: no `1/2(1+w)`, honest blade
 idempotents such as `e_i e_j` when they shrink a left ideal, and otherwise the full
 regular/lazy left action. Singular polar forms and general-bilinear `a` metrics are
 rejected.
+
+The cross-pillar bridge pass in `ROADMAP.md` is implemented in the Rust core:
+`IntegralForm` now exports rational and even-mod-2 Clifford metrics plus
+discriminant Gauss-sum/Milgram checks; finite char-2 `Fpn<2,N>` classification is
+wired through the façade; cyclic Galois/Frobenius maps have Clifford linear-map
+constructors; and `Ordinal` can serve as a Clifford scalar inside the verified
+Kummer boundary.
 
 The game-built Gold-form bridge is implemented, but the play rule is not. The
 standard chain is:
@@ -141,8 +151,8 @@ tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`), the
 source-verified ordinal nim Kummer tower below `omega^(omega^omega)` with `u <= 43`
 excesses, the characteristic-2 Artin-Schreier local-global layer over `F_{2^m}(t)`
 including the Aravire-Jacob wild summand, and the integral lattice/genus/mass/Leech
-chain. These are standard-math implementations and useful infrastructure; cite
-them as such.
+chain plus the even discriminant-form/Milgram bridge. These are standard-math
+implementations and useful infrastructure; cite them as such.
 
 ## Commands
 
@@ -184,12 +194,19 @@ VIRTUAL_ENV=.venv .venv/bin/maturin develop   # build + install the abi3 extensi
 6. **Verify, don't claim.** The `associativity_*` tests catch product bugs and
    `general_product_reproduces_reduce_word_when_a_empty` pins the general engine to
    an independent oracle. Add a test before trusting a new operation.
+7. **Fixed-width integer payloads are `u128`/`i128`.** Public arithmetic carriers,
+   invariant bits/residues, counts, budgets, and signed integral data use those
+   widths consistently. `usize` remains for indexing, dimensions, and platform ABI
+   hooks such as Python hashing; otherwise do not introduce narrower fixed-width
+   carriers without a hard external signature forcing it.
 
 ## Style
 
 - Rust 2021, `cargo fmt` clean, `cargo clippy --all-targets` warning-clean (the one
   crate-level allow — `needless_range_loop` for the matrix code — is justified in
   `lib.rs`; targeted `#[allow]`s carry a one-line reason). License: see `LICENSE`.
+- Numeric payload style is deliberate: non-index fixed-width integers are
+  `u128`/`i128` throughout the core, docs, examples, and tests.
 - Display is deliberate: blades render `e0e1`; coefficients `1`/`-1` elided; nimbers
   print `*n`; surreals print CNF (`3ω^2 - ω + 5`, `ω^(ω)`, `ω^-1`).
 - Rust scalar operators: every backend has `+ - *` and unary `-` (concrete-only, via

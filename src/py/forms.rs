@@ -22,7 +22,7 @@ struct PyArfResult {
 #[pymethods]
 impl PyArfResult {
     #[getter]
-    fn arf(&self) -> u8 {
+    fn arf(&self) -> u128 {
         self.inner.arf
     }
     #[getter]
@@ -244,7 +244,7 @@ struct PyWittClass {
 #[pymethods]
 impl PyWittClass {
     #[getter]
-    fn arf(&self) -> u8 {
+    fn arf(&self) -> u128 {
         self.inner.arf
     }
     fn add(&self, other: &PyWittClass) -> PyWittClass {
@@ -280,13 +280,13 @@ fn witt_class(alg: &NimberAlgebra) -> PyResult<PyWittClass> {
 /// The Dickson invariant of an orthogonal matrix over the nim-field (the char-2
 /// determinant replacement; `0` ⇒ rotation/SO, `1` ⇒ reflection).
 #[pyfunction]
-fn dickson_matrix(g: Vec<Vec<u128>>) -> u8 {
+fn dickson_matrix(g: Vec<Vec<u128>>) -> u128 {
     crate::forms::dickson_matrix(&g)
 }
 
 /// The Dickson invariant of a nimber Clifford versor (= its grade parity).
 #[pyfunction]
-fn dickson_of_versor(v: &NimberMV) -> PyResult<u8> {
+fn dickson_of_versor(v: &NimberMV) -> PyResult<u128> {
     crate::forms::dickson_of_versor(&v.alg, &v.mv)
         .ok_or_else(|| PyValueError::new_err("not an invertible homogeneous versor"))
 }
@@ -676,7 +676,7 @@ impl PyOddCharType {
         self.inner.disc_is_square
     }
     #[getter]
-    fn hasse(&self) -> i8 {
+    fn hasse(&self) -> i128 {
         self.inner.hasse
     }
     fn __repr__(&self) -> String {
@@ -768,14 +768,14 @@ impl PyFiniteFieldForm {
         }))
     }
 
-    fn hasse_invariant(&self) -> PyResult<i8> {
+    fn hasse_invariant(&self) -> PyResult<i128> {
         with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
             crate::forms::hasse_invariant_finite_odd(&m)
                 .ok_or_else(|| PyValueError::new_err("non-diagonal metric"))
         })
     }
 
-    fn e_staircase(&self) -> PyResult<(u8, u8, i8, usize)> {
+    fn e_staircase(&self) -> PyResult<(u128, u128, i128, usize)> {
         let s = with_finite_odd_metric!(self.p, self.degree, &self.q, |m| {
             crate::forms::e_staircase_finite_odd(&m)
         })
@@ -947,7 +947,7 @@ fn is_sum_of_n_squares(p: u128, x: i128, n: usize) -> PyResult<bool> {
 /// finite field).
 #[pyfunction]
 #[pyo3(signature = (p, q, degree=1))]
-fn hasse_invariant(p: u128, q: Vec<i128>, degree: usize) -> PyResult<i8> {
+fn hasse_invariant(p: u128, q: Vec<i128>, degree: usize) -> PyResult<i128> {
     PyFiniteFieldForm::new(p, q, degree)?.hasse_invariant()
 }
 
@@ -1040,7 +1040,7 @@ fn springer_decompose(alg: &SurrealAlgebra) -> PyResult<PySpringerDecomp> {
 /// field ⇒ `stabilizes_at = 2`, `e₂ = +1`). Returns `(e0, e1, e2, stabilizes_at)`.
 /// Supported primes: 3, 5, 7, 11, 13.
 #[pyfunction]
-fn e_staircase_oddchar(p: u128, q: Vec<i128>) -> PyResult<(u8, u8, i8, usize)> {
+fn e_staircase_oddchar(p: u128, q: Vec<i128>) -> PyResult<(u128, u128, i128, usize)> {
     PyFiniteFieldForm::new(p, q, 1)?.e_staircase()
 }
 
@@ -1048,7 +1048,7 @@ fn e_staircase_oddchar(p: u128, q: Vec<i128>) -> PyResult<(u8, u8, i8, usize)> {
 /// `Some((σ/2ⁿ) mod 2)` if the form is in `Iⁿ` (i.e. `2ⁿ | σ`), else `None`. The
 /// staircase reads the 2-adic expansion of the signature (the infinite ℝ tower).
 #[pyfunction]
-fn e_real(signature: i128, n: usize) -> Option<u8> {
+fn e_real(signature: i128, n: usize) -> Option<u128> {
     crate::forms::e_real(signature, n)
 }
 
@@ -1059,7 +1059,7 @@ fn e_real(signature: i128, n: usize) -> Option<u8> {
 /// The Hilbert symbol `(a, b)_p` over `Q_p` (`p`-adic). Unlike the finite-field
 /// Hilbert symbol (always `+1`), this is genuinely nontrivial — e.g. `(−1,−1)_2 = −1`.
 #[pyfunction]
-fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> PyResult<i8> {
+fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> PyResult<i128> {
     crate::forms::try_hilbert_symbol_qp(a, b, p).ok_or_else(|| {
         PyValueError::new_err(
             "Hilbert symbol needs prime p <= i128::MAX, nonzero arguments, and bounded square classes",
@@ -1069,7 +1069,7 @@ fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> PyResult<i8> {
 
 /// The Hilbert symbol `(a, b)_∞` over `ℝ` (`−1` iff both are negative).
 #[pyfunction]
-fn hilbert_symbol_real(a: i128, b: i128) -> i8 {
+fn hilbert_symbol_real(a: i128, b: i128) -> i128 {
     crate::forms::hilbert_symbol_real(a, b)
 }
 
@@ -1094,7 +1094,7 @@ fn is_isotropic_q(entries: Vec<i128>) -> PyResult<bool> {
 /// ℚ^*` passed as `(num, den)` pairs. Equal to `+1` for all `a, b` — Hilbert
 /// reciprocity, the multiplicative analogue of the adelic product formula.
 #[pyfunction]
-fn hilbert_product(a: (i128, i128), b: (i128, i128)) -> PyResult<i8> {
+fn hilbert_product(a: (i128, i128), b: (i128, i128)) -> PyResult<i128> {
     let a = Rational::try_new(a.0, a.1).ok_or_else(|| {
         PyValueError::new_err("first rational has zero denominator or overflowed bounded i128")
     })?;
@@ -1166,7 +1166,7 @@ struct PyScaleSymbol {
 #[pymethods]
 impl PyScaleSymbol {
     #[getter]
-    fn scale(&self) -> u32 {
+    fn scale(&self) -> u128 {
         self.inner.scale
     }
     #[getter]
@@ -1174,11 +1174,11 @@ impl PyScaleSymbol {
         self.inner.dim
     }
     #[getter]
-    fn sign(&self) -> i8 {
+    fn sign(&self) -> i128 {
         self.inner.sign
     }
     #[getter]
-    fn det_mod8(&self) -> i64 {
+    fn det_mod8(&self) -> i128 {
         self.inner.det_mod8
     }
     #[getter]
@@ -1186,7 +1186,7 @@ impl PyScaleSymbol {
         self.inner.type_ii
     }
     #[getter]
-    fn oddity(&self) -> i64 {
+    fn oddity(&self) -> i128 {
         self.inner.oddity
     }
     fn __repr__(&self) -> String {
@@ -1365,7 +1365,7 @@ impl PyIntegralForm {
     fn automorphism_group_order(&self) -> Option<u128> {
         self.inner.automorphism_group_order()
     }
-    fn automorphism_group_order_bounded(&self, node_budget: u64) -> Option<u128> {
+    fn automorphism_group_order_bounded(&self, node_budget: u128) -> Option<u128> {
         self.inner.automorphism_group_order_bounded(node_budget)
     }
     fn coxeter_number(&self) -> Option<i128> {
@@ -1421,7 +1421,7 @@ fn are_in_same_genus(a: &PyIntegralForm, b: &PyIntegralForm) -> bool {
 }
 
 #[pyfunction]
-fn mass_even_unimodular(n: u32) -> Option<(i128, i128)> {
+fn mass_even_unimodular(n: u128) -> Option<(i128, i128)> {
     crate::forms::mass_even_unimodular(n)
 }
 

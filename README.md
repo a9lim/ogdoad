@@ -51,7 +51,8 @@ lives in the type system rather than the comments.
 **char 0 ↔ char 2.** Classifying a quadratic form is one theory split by `char F`.
 Over a real-closed field it is the 8-fold periodic Cl(p,q) table (`M_n(ℝ/ℂ/ℍ)`);
 in characteristic 2 the quadratic and polar forms part ways and the same role is
-played by the Arf invariant and the Brauer–Wall group. On the nimber leg,
+played by the Arf invariant and the Brauer–Wall group. On the finite char-2 legs
+(`Nimber`, supported `Fpn<2,N>`, and the documented finite ordinal windows),
 nonsingular forms now have both the Arf classifier and the `BW(F_{2^m}) ≅ Z/2`
 Brauer-Wall class, with the same XOR law. The classifier façade picks the leg from
 the scalar type at compile time, so `metric.classify()` / `.bw_class()` are one
@@ -89,7 +90,9 @@ trace form** `Tr_{E/F}(x·σ^k(x))` (`forms::trace_form`), which lands back in t
 classifiers: the binary norm form over `Surcomplex`, unramified local trace forms
 over `Qq`, ordinary finite-field trace forms over `Fpn`, and the **Gold form**
 `Tr(x^{1+2^a})` over the nim-fields, Arf-classified — the typed-core home of the
-game-built quadratic-form thread.
+game-built quadratic-form thread. The same cyclic Galois data now also builds
+Frobenius linear maps in `clifford::frobenius`, so the scalar trace maps and
+Clifford outermorphism spectra share one basis-level computation.
 
 **local ↔ global.** The Springer decomposition appears across the complete valued
 fields, and the value group controls the answer: over the surreals the value group
@@ -108,6 +111,11 @@ The two global fields answer **one** interface: the `GlobalField` trait states t
 places, the local Hilbert symbol, reciprocity, and Hasse–Minkowski once, with `ℚ`
 and `F_q(t)` as its two implementors — the local↔global mirror of the
 `ResidueField`-keyed Springer engine.
+
+The integral leg has its own local/global echo: even lattices now produce
+discriminant quadratic modules, Milgram Gauss-sum phases, and rational or mod-2
+Clifford metrics. That makes the lattice signature, the real Brauer-Wall mod-8
+cycle, and the Clifford classifier directly comparable in the core.
 
 **the games bridge.** Red/blue/green Hackenbush is the one object that reads out as
 a surreal (blue−red), a nimber (all-green = Nim), or a general partizan game — and
@@ -135,14 +143,15 @@ characteristic-2 example noncommutative. Collapsing `q` and `b` into one symmetr
 form would silently throw away the entire point of the nimber backend. (An optional
 third field `a` lifts the engine to a general, non-symmetric bilinear form.)
 
-On nonsingular nimber metrics, the form layer also exposes the Brauer-Wall class
-as the same Arf/Witt `Z/2` datum: hyperbolic planes are zero, the anisotropic
-plane has class one, and orthogonal sum / graded tensor adds by XOR. The spinor
-module has a separate characteristic-2 representation path: it never uses the
-char-0 `1/2(1+w)` idempotent, accepts nonsingular polar forms such as the
-hyperbolic plane with null-square generators, uses blade idempotents like
-`e_i e_j` when they shrink a left ideal, and otherwise falls back honestly to the
-complete left-regular action.
+On nonsingular metrics over `Nimber`, supported `Fpn<2,N>`, and the documented
+finite ordinal windows, the form layer also exposes the Brauer-Wall class as the
+same Arf/Witt `Z/2` datum: hyperbolic planes are zero, the anisotropic plane has
+class one, and orthogonal sum / graded tensor adds by XOR. The spinor module has a
+separate characteristic-2 representation path: it never uses the char-0
+`1/2(1+w)` idempotent, accepts nonsingular polar forms such as the hyperbolic plane
+with null-square generators, uses blade idempotents like `e_i e_j` when they shrink
+a left ideal, and otherwise falls back honestly to the complete left-regular
+action.
 
 ## Quickstart
 
@@ -206,18 +215,20 @@ file-by-file breakdown:
 - `src/scalar/` — the `Scalar` trait and every coefficient world, grouped by place.
 - `src/clifford/` — the multivector engine, geometric product, and the GA layer
   (versors, outermorphisms, Hopf/divided-power structures, conformal/projective GA,
-  spinors, including characteristic-2 regular/left-ideal nimber spinors).
+  spinors, Frobenius linear maps, including characteristic-2 regular/left-ideal
+  nimber spinors).
 - `src/forms/` — the quadratic-form classifiers and invariants across the
   characteristic trichotomy, plus Witt/Brauer–Wall, the Springer trio,
   `local_global/` for Hasse–Minkowski/Hilbert symbols, and `integral/` for
-  lattices, genus, mass, and Leech.
+  lattices, genus, discriminant forms, Milgram checks, mass, and Leech.
 - `src/games/` — normal-, misère-, and loopy-play impartial games, short partizan
   games, thermography/atomic weight, Hackenbush, and the exterior algebra of the
   game group.
 - `src/py/` — the optional PyO3 bindings behind the `python` feature.
 
 See `AGENTS.md` for the working-notes summary, `OPEN.md` for the genuine research
-problems, `ROADMAP.md` for the ambitious cross-pillar bridges planned next, and
+problems, `ROADMAP.md` for the implemented cross-pillar bridges and remaining
+boundaries, and
 `writeups/goldarf.tex` for the narrow draft note on the Gold/Arf game thread.
 
 ## Research thread
@@ -248,10 +259,11 @@ Scope boundaries worth stating plainly:
 
 - `Nimber(u128)` is exactly `F_{2^128}`. It contains the nim subfields of degree
   dividing 128; it is not the proper-class field of all nimbers.
-- `Ordinal` nim-addition is general on the represented CNF terms; nim-multiplication
-  is implemented below `ω^(ω^ω)` when every Kummer carry uses the source-verified
-  DiMuro excess table through `alpha_u` for `u <= 43`. A carry needing `alpha_47`
-  or beyond returns `None`.
+- `Ordinal` nim-addition is general on the represented CNF terms and it implements
+  `Scalar` for Clifford experiments inside the checked Kummer boundary.
+  Nim-multiplication is implemented below `ω^(ω^ω)` when every carry uses the
+  source-verified DiMuro excess table through `alpha_u` for `u <= 43`; a carry past
+  that table returns `None`.
 - `Surreal` uses finite support and rational coefficients — the honest truncation of
   true CNF. Non-monomial inverses are infinite Hahn series and are not represented.
 - `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss`, and `Adele` are finite-precision
@@ -259,6 +271,9 @@ Scope boundaries worth stating plainly:
   for local/global form experiments and excluded from the exact-ring fuzz.
 - `ExactScalar` / `ExactFieldScalar` / `PrecisionScalar` name that exact-vs-capped
   precision boundary explicitly. They are opt-in markers, not `Scalar` supertraits.
+- Fixed-width integer payloads are consistently `u128`/`i128` for arithmetic
+  carriers, residues, invariants, counts, and budgets. `usize` is still used for
+  indices, dimensions, and platform ABI hooks.
 - The Gold/Arf game thread is conditional: *if* a game has P-set `{Q = 0}`, Arf
   predicts the win-bias. No non-tautological natural game with that P-set has been
   found.

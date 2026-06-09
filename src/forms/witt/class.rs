@@ -32,7 +32,7 @@ pub enum WittClassError {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WittClass {
     /// The class, 0 or 1 — equivalently the Arf invariant of the nonsingular core.
-    pub arf: u8,
+    pub arf: u128,
 }
 
 impl WittClass {
@@ -118,20 +118,20 @@ impl WittClass {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WittClassG {
     Char0 {
-        signature: isize,
+        signature: i128,
     },
     OddChar {
         /// Field order `q`; finite fields of the same order are canonically unique.
         field_order: u128,
         /// nonsquareness of `−1`: 0 if `−1` is a square (`q≡1 mod 4`), else 1.
-        kappa: u8,
+        kappa: u128,
         /// dimension mod 2.
-        e0: u8,
+        e0: u128,
         /// signed-discriminant square-class: 0 if a square, 1 if a nonsquare.
-        sclass: u8,
+        sclass: u128,
     },
     Char2 {
-        arf: u8,
+        arf: u128,
     },
 }
 
@@ -139,7 +139,7 @@ impl WittClassG {
     /// Char-0 Witt class from a signature `(p, q)`.
     pub fn char0(p: usize, q: usize) -> Self {
         WittClassG::Char0 {
-            signature: p as isize - q as isize,
+            signature: p as i128 - q as i128,
         }
     }
 
@@ -157,7 +157,7 @@ impl WittClassG {
     }
 
     /// The identity of the odd-char group with the given `kappa`.
-    pub fn oddchar_zero(field_order: u128, kappa: u8) -> Self {
+    pub fn oddchar_zero(field_order: u128, kappa: u128) -> Self {
         WittClassG::OddChar {
             field_order,
             kappa,
@@ -252,14 +252,14 @@ impl WittClassG {
                 }
                 if ka == 1 {
                     // ℤ/4 via z = e0 + 2·sclass; multiply mod 4.
-                    let za = (e0a + 2 * sa) as i32;
-                    let zb = (e0b + 2 * sb) as i32;
+                    let za = (e0a + 2 * sa) as i128;
+                    let zb = (e0b + 2 * sb) as i128;
                     let z = (za * zb).rem_euclid(4);
                     Ok(WittClassG::OddChar {
                         field_order: qa,
                         kappa: 1,
-                        e0: (z & 1) as u8,
-                        sclass: ((z >> 1) & 1) as u8,
+                        e0: (z & 1) as u128,
+                        sclass: ((z >> 1) & 1) as u128,
                     })
                 } else {
                     // F₂[ℤ/2] = F₂[t]/(t²−1): (a,b) = (e0⊕sclass, sclass), t² = 1.
@@ -284,7 +284,7 @@ impl WittClassG {
 
     /// The ring unit `⟨1⟩` of the odd-char Witt ring with the given `kappa`
     /// (`e0 = 1`, `sclass = 0`). The identity for [`mul`](Self::mul).
-    pub fn oddchar_one(field_order: u128, kappa: u8) -> Self {
+    pub fn oddchar_one(field_order: u128, kappa: u128) -> Self {
         WittClassG::OddChar {
             field_order,
             kappa,

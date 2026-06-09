@@ -15,9 +15,11 @@
 //! Witt group made concrete.
 
 use crate::clifford::Metric;
-use crate::forms::FiniteOddField;
-use crate::forms::{arf_invariant, as_diagonal, classify_finite_odd};
-use crate::scalar::{Nimber, Rational, Surcomplex, Surreal};
+use crate::forms::{
+    arf_char2, arf_fpn_char2, arf_invariant, arf_ordinal_finite, as_diagonal, classify_finite_odd,
+};
+use crate::forms::{FiniteChar2Field, FiniteOddField};
+use crate::scalar::{Fpn, Nimber, Ordinal, Rational, Surcomplex, Surreal};
 
 // ----------------------------------------------------------------------------
 // Isometry
@@ -60,12 +62,44 @@ pub fn isometric_finite_odd<F: FiniteOddField>(m1: &Metric<F>, m2: &Metric<F>) -
 pub fn isometric_nimber(m1: &Metric<Nimber>, m2: &Metric<Nimber>) -> Option<bool> {
     let a1 = arf_invariant(m1)?;
     let a2 = arf_invariant(m2)?;
-    Some(
-        a1.rank == a2.rank
-            && a1.radical_dim == a2.radical_dim
-            && a1.radical_anisotropic == a2.radical_anisotropic
-            && (a1.radical_anisotropic || a1.arf == a2.arf),
-    )
+    Some(same_char2_isometry_invariant(&a1, &a2))
+}
+
+/// Are two forms over a supported finite field of characteristic 2 isometric?
+/// Same invariant as the nimber path: rank, radical data, and Arf unless the
+/// radical is defective.
+pub fn isometric_finite_char2<F: FiniteChar2Field>(m1: &Metric<F>, m2: &Metric<F>) -> Option<bool> {
+    let a1 = arf_char2(m1)?;
+    let a2 = arf_char2(m2)?;
+    Some(same_char2_isometry_invariant(&a1, &a2))
+}
+
+/// The `Fpn<P,N>` façade helper; returns `None` unless `P = 2`.
+pub fn isometric_fpn_char2<const P: u128, const N: usize>(
+    m1: &Metric<Fpn<P, N>>,
+    m2: &Metric<Fpn<P, N>>,
+) -> Option<bool> {
+    let a1 = arf_fpn_char2(m1)?;
+    let a2 = arf_fpn_char2(m2)?;
+    Some(same_char2_isometry_invariant(&a1, &a2))
+}
+
+/// Are two supported finite-window ordinal-nimber forms isometric? Returns
+/// `None` for ordinal coefficients outside the detected finite subfields.
+pub fn isometric_ordinal_finite(m1: &Metric<Ordinal>, m2: &Metric<Ordinal>) -> Option<bool> {
+    let a1 = arf_ordinal_finite(m1)?;
+    let a2 = arf_ordinal_finite(m2)?;
+    Some(same_char2_isometry_invariant(&a1, &a2))
+}
+
+fn same_char2_isometry_invariant(
+    a1: &crate::forms::ArfResult,
+    a2: &crate::forms::ArfResult,
+) -> bool {
+    a1.rank == a2.rank
+        && a1.radical_dim == a2.radical_dim
+        && a1.radical_anisotropic == a2.radical_anisotropic
+        && (a1.radical_anisotropic || a1.arf == a2.arf)
 }
 
 // ----------------------------------------------------------------------------

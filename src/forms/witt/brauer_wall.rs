@@ -38,18 +38,18 @@ use crate::scalar::{Nimber, Surcomplex, Surreal};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BrauerWallClass {
     /// `BW(ℝ) ≅ ℤ/8`: the Bott index `s = (q − p) mod 8`.
-    Real(u8),
+    Real(u128),
     /// `BW(ℂ) ≅ ℤ/2`: the dimension parity.
-    Complex(u8),
+    Complex(u128),
     /// `BW(F_q)`: the order-4 graded part, carried as the `oddchar` Witt data.
     OddChar {
         field_order: u128,
-        kappa: u8,
-        e0: u8,
-        sclass: u8,
+        kappa: u128,
+        e0: u128,
+        sclass: u128,
     },
     /// `BW(F_{2^m}) ≅ W_q(F_{2^m}) ≅ ℤ/2`: the Arf/Witt class.
-    Char2 { arf: u8 },
+    Char2 { arf: u128 },
 }
 
 impl BrauerWallClass {
@@ -142,7 +142,7 @@ impl BrauerWallClass {
 pub fn bw_class_real(metric: &Metric<Surreal>) -> Option<BrauerWallClass> {
     let (p, q) = classify_surreal(metric)?.signature;
     Some(BrauerWallClass::Real(
-        (q as isize - p as isize).rem_euclid(8) as u8,
+        (q as i128 - p as i128).rem_euclid(8) as u128
     ))
 }
 
@@ -152,7 +152,7 @@ pub fn bw_class_real(metric: &Metric<Surreal>) -> Option<BrauerWallClass> {
 pub fn bw_class_complex(metric: &Metric<Surcomplex<Surreal>>) -> Option<BrauerWallClass> {
     let ct = classify_surcomplex(metric)?;
     let (p, q) = ct.signature;
-    Some(BrauerWallClass::Complex(((p + q) % 2) as u8))
+    Some(BrauerWallClass::Complex(((p + q) % 2) as u128))
 }
 
 /// The Brauer–Wall class of `Cl(Q)` over any finite field `F_q` of odd
@@ -193,7 +193,7 @@ mod tests {
     use crate::scalar::{Fp, Nimber, Scalar, Surcomplex};
     use std::collections::BTreeSet;
 
-    fn real_diag(signs: &[i32]) -> Metric<Surreal> {
+    fn real_diag(signs: &[i128]) -> Metric<Surreal> {
         Metric::diagonal(
             signs
                 .iter()
@@ -227,13 +227,13 @@ mod tests {
         // s = (q − p) mod 8 — BW(ℝ) and the 8-fold periodicity table coincide.
         for p in 0..5usize {
             for q in 0..5usize {
-                let signs: Vec<i32> = std::iter::repeat_n(1, p)
+                let signs: Vec<i128> = std::iter::repeat_n(1, p)
                     .chain(std::iter::repeat_n(-1, q))
                     .collect();
                 if signs.is_empty() {
                     continue;
                 }
-                let s = (q as isize - p as isize).rem_euclid(8) as u8;
+                let s = (q as i128 - p as i128).rem_euclid(8) as u128;
                 assert_eq!(
                     bw_class_real(&real_diag(&signs)),
                     Some(BrauerWallClass::Real(s))
@@ -299,12 +299,12 @@ mod tests {
         // The class is a homomorphism over direct_sum (= graded tensor of Cliffords),
         // and the group it generates has order 4 — discovered, with the q mod 4
         // dichotomy: ℤ/4 over F_3 (−1 nonsquare), (ℤ/2)² over F_5 (−1 square).
-        fn collect_group<const P: u128>() -> (BTreeSet<(u128, u8, u8, u8)>, bool) {
+        fn collect_group<const P: u128>() -> (BTreeSet<(u128, u128, u128, u128)>, bool) {
             // generate from ⟨1⟩ and ⟨nonsquare⟩, closing under add
             let gens: Vec<BrauerWallClass> = (1..P)
                 .map(|a| bw_class_finite_odd(&oddchar_diag::<P>(&[a])).unwrap())
                 .collect();
-            let mut seen: BTreeSet<(u128, u8, u8, u8)> = BTreeSet::new();
+            let mut seen: BTreeSet<(u128, u128, u128, u128)> = BTreeSet::new();
             let key = |c: &BrauerWallClass| match *c {
                 BrauerWallClass::OddChar {
                     field_order,

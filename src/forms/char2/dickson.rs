@@ -14,13 +14,13 @@ use crate::scalar::{nim_add, Nimber};
 /// replacement, with `SO(Q) = ker D`. A single reflection has `D = 1`; a product
 /// of `k` reflections has `D = k mod 2`. It is the companion to the Arf
 /// invariant: **Arf classifies the form, Dickson classifies `O(Q)`.**
-pub fn dickson_matrix(g: &[Vec<u128>]) -> u8 {
+pub fn dickson_matrix(g: &[Vec<u128>]) -> u128 {
     let n = g.len();
     let mut m: Vec<Vec<u128>> = g.to_vec();
     for i in 0..n {
         m[i][i] = nim_add(m[i][i], 1); // g − I  (= g + I in char 2)
     }
-    (f2::nim_rank(m) % 2) as u8
+    (f2::nim_rank(m) % 2) as u128
 }
 
 /// The Dickson invariant of a Clifford **versor** (a product of vectors) acting
@@ -28,7 +28,7 @@ pub fn dickson_matrix(g: &[Vec<u128>]) -> u8 {
 /// versor (rotor) lies in `SO` with `D = 0`, an odd versor (e.g. a single vector,
 /// a reflection) has `D = 1`. Returns `None` if the multivector is not of
 /// homogeneous grade parity (hence not a versor) or is zero.
-pub fn dickson_of_versor(alg: &CliffordAlgebra<Nimber>, v: &Multivector<Nimber>) -> Option<u8> {
+pub fn dickson_of_versor(alg: &CliffordAlgebra<Nimber>, v: &Multivector<Nimber>) -> Option<u128> {
     // The Dickson invariant of a versor is its grade parity, a fact independent of
     // the scalar field — so this is the char-2 specialisation of the generic
     // `clifford::versor_grade_parity`.

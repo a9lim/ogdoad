@@ -74,7 +74,12 @@ fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (i128, Poly<S>) {
 fn kappa_order<S: FiniteOddField>(place: &FFPlace<S>) -> u128 {
     let q = S::field_order();
     match place {
-        FFPlace::Finite(pi) => q.pow(pi.degree().expect("an irreducible has degree ≥ 1") as u32),
+        FFPlace::Finite(pi) => q.pow(
+            pi.degree()
+                .expect("an irreducible has degree ≥ 1")
+                .try_into()
+                .expect("place degree fits the platform exponent type"),
+        ),
         FFPlace::Infinite => q,
     }
 }
@@ -129,7 +134,7 @@ fn residue_unit_at<S: FiniteOddField>(a: &RationalFunction<S>, place: &FFPlace<S
 /// The residue quadratic character `χ_κ(u) ∈ {+1, −1}` of a **nonzero** residue
 /// unit `u ∈ κ*` — Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)` (or in `F_q`
 /// at the degree place).
-fn chi_kappa<S: FiniteOddField>(unit: &Poly<S>, place: &FFPlace<S>) -> i8 {
+fn chi_kappa<S: FiniteOddField>(unit: &Poly<S>, place: &FFPlace<S>) -> i128 {
     match place {
         FFPlace::Finite(pi) => {
             let e = (kappa_order(place) - 1) / 2;
@@ -172,7 +177,7 @@ pub fn hilbert_symbol_ff<S: FiniteOddField>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
     place: &FFPlace<S>,
-) -> i8 {
+) -> i128 {
     assert!(
         !a.is_zero() && !b.is_zero(),
         "Hilbert symbol over F_q(t) needs nonzero arguments"
@@ -221,8 +226,8 @@ pub fn relevant_places<S: FiniteOddField>(entries: &[RationalFunction<S>]) -> Ve
 pub fn hasse_at_place_ff<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
     place: &FFPlace<S>,
-) -> i8 {
-    let mut h = 1i8;
+) -> i128 {
+    let mut h = 1i128;
     for i in 0..entries.len() {
         for j in (i + 1)..entries.len() {
             h *= hilbert_symbol_ff(&entries[i], &entries[j], place);
@@ -237,7 +242,7 @@ pub fn hasse_at_place_ff<S: FiniteOddField>(
 pub fn hilbert_reciprocity_product_ff<S: FiniteOddField>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-) -> i8 {
+) -> i128 {
     <RationalFunction<S> as crate::forms::GlobalField>::reciprocity_product(a, b)
 }
 

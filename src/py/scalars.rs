@@ -76,11 +76,11 @@ impl PyNimber {
     fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
         matches!(parse_nimber(other), Ok(n) if n == self.inner)
     }
-    fn __hash__(&self) -> isize {
-        self.inner.0 as isize
+    fn __hash__(&self) -> usize {
+        self.inner.0 as usize
     }
     /// Degree over F₂ (dimension of the smallest nim-subfield containing it).
-    fn degree(&self) -> u32 {
+    fn degree(&self) -> u128 {
         crate::scalar::nim_degree(self.inner.0)
     }
     /// The Galois conjugates `x, x², x⁴, …` over F₂.
@@ -91,11 +91,8 @@ impl PyNimber {
             .collect()
     }
     /// Minimal polynomial over F₂: coefficients `{0,1}` from the constant term up.
-    fn min_poly(&self) -> Vec<u32> {
+    fn min_poly(&self) -> Vec<u128> {
         crate::scalar::nim_min_poly(self.inner.0)
-            .into_iter()
-            .map(u32::from)
-            .collect()
     }
     /// Multiplicative order in F_{2^128}* (`None` for `*0`).
     fn order(&self) -> Option<u128> {
@@ -308,7 +305,7 @@ impl PySurreal {
         self.inner.sqrt_to_terms(n).map(|inner| PySurreal { inner })
     }
     /// The **truncated real `k`-th root** to `n` leading terms (same ℚ-power scope).
-    fn nth_root(&self, k: u32, n: usize) -> Option<PySurreal> {
+    fn nth_root(&self, k: u128, n: usize) -> Option<PySurreal> {
         self.inner
             .nth_root_to_terms(k, n)
             .map(|inner| PySurreal { inner })
@@ -1215,7 +1212,7 @@ fn nim_is_artin_schreier_solvable(c: u128, m: u128) -> bool {
 
 /// Degree of `x` over F₂ (the smallest nim-subfield F_{2^d} containing it).
 #[pyfunction]
-fn nim_degree(x: u128) -> u32 {
+fn nim_degree(x: u128) -> u128 {
     crate::scalar::nim_degree(x)
 }
 
@@ -1227,22 +1224,19 @@ fn nim_conjugates(x: u128) -> Vec<u128> {
 
 /// Minimal polynomial of `x` over F₂: coefficients `{0,1}` from the constant up.
 #[pyfunction]
-fn nim_min_poly(x: u128) -> Vec<u32> {
+fn nim_min_poly(x: u128) -> Vec<u128> {
     crate::scalar::nim_min_poly(x)
-        .into_iter()
-        .map(u32::from)
-        .collect()
 }
 
 /// Relative trace `Tr_{F_{2^m}/F_{2^e}}(x)` (the `e=1` case is `nim_trace`).
 #[pyfunction]
-fn nim_relative_trace(x: u128, m: u32, e: u32) -> u128 {
+fn nim_relative_trace(x: u128, m: u128, e: u128) -> u128 {
     crate::scalar::nim_relative_trace(x, m, e)
 }
 
 /// Relative norm `N_{F_{2^m}/F_{2^e}}(x)` (norm to the prime field is trivial).
 #[pyfunction]
-fn nim_relative_norm(x: u128, m: u32, e: u32) -> u128 {
+fn nim_relative_norm(x: u128, m: u128, e: u128) -> u128 {
     crate::scalar::nim_relative_norm(x, m, e)
 }
 

@@ -43,7 +43,7 @@ pub use multivector::Multivector;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::{Nimber, Rational, Scalar, Surreal};
+    use crate::scalar::{Nimber, Ordinal, Rational, Scalar, Surreal};
     use std::collections::BTreeMap;
 
     fn r(n: i128) -> Rational {
@@ -176,6 +176,33 @@ mod tests {
             alg.gen(2),
             alg.mul(&alg.gen(0), &alg.gen(1)),
             alg.add(&alg.gen(2), &alg.scalar(Nimber(5))),
+        ];
+        assert_associative(&alg, &gens);
+    }
+
+    #[test]
+    fn ordinal_clifford_transfinite_squares_work() {
+        let omega = Ordinal::omega();
+        let omega_plus_one = omega.nim_add(&Ordinal::one());
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), Ordinal::one());
+        let alg = CliffordAlgebra::new(
+            2,
+            Metric::new(vec![omega.clone(), omega_plus_one.clone()], b),
+        );
+        let e0 = alg.gen(0);
+        let e1 = alg.gen(1);
+        assert_eq!(alg.mul(&e0, &e0), alg.scalar(omega));
+        assert_eq!(alg.mul(&e1, &e1), alg.scalar(omega_plus_one));
+        assert_eq!(
+            alg.add(&alg.mul(&e0, &e1), &alg.mul(&e1, &e0)),
+            alg.scalar(Ordinal::one())
+        );
+        let gens = [
+            e0.clone(),
+            e1.clone(),
+            alg.mul(&e0, &e1),
+            alg.add(&e0, &alg.scalar(Ordinal::from_u128(3))),
         ];
         assert_associative(&alg, &gens);
     }

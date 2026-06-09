@@ -114,12 +114,12 @@ impl<S: FiniteChar2Field> Char2QuadForm<S> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Char2LocalDecomp<S: FiniteChar2Field> {
     /// The `W_q(κ) ≅ F₂` Arf bit of the unramified part `φ₀`.
-    pub phi0: u8,
+    pub phi0: u128,
     /// The wild part `ψ ∈ R_π`: `odd pole order ↦ κ-coefficient` (`κ = F_q[t]/(P)`,
     /// or `F_q` at `∞`, stored as a reduced `Poly<S>`).
     pub psi: BTreeMap<usize, Poly<S>>,
     /// The `W_q(κ) ≅ F₂` Arf bit of the `⟨π⟩`-scaled part `φ₁`.
-    pub phi1: u8,
+    pub phi1: u128,
 }
 
 // ───────────────────────── κ-local arithmetic at a place ─────────────────────────
@@ -152,8 +152,11 @@ fn kmul<S: FiniteChar2Field>(a: &Poly<S>, b: &Poly<S>, place: &Char2Place<S>) ->
 fn kappa_sqrt<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>) -> Poly<S> {
     match place {
         Char2Place::Finite(p) => {
-            let d = p.degree().expect("a place modulus has degree ≥ 1") as u32;
-            let order = S::field_order().pow(d); // |κ| = q^{deg P}
+            let d = p.degree().expect("a place modulus has degree ≥ 1") as u128;
+            let order = S::field_order().pow(
+                d.try_into()
+                    .expect("place degree fits the platform exponent type"),
+            ); // |κ| = q^{deg P}
             z.pow_mod(order / 2, p)
         }
         Char2Place::Infinite => Poly::constant(s_pow(&z.coeff(0), S::field_order() / 2)),
@@ -161,7 +164,7 @@ fn kappa_sqrt<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>) -> Poly<S
 }
 
 /// `Tr_{κ/F₂}(z) ∈ {0,1}` at `place` (the `W_q(κ) ≅ F₂` Arf class of `[1, z]`).
-fn trace_at<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>) -> u8 {
+fn trace_at<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>) -> u128 {
     match place {
         Char2Place::Finite(p) => trace_kappa_to_f2(z, p),
         Char2Place::Infinite => artin_schreier_class_finite(z.coeff(0)),
@@ -314,7 +317,7 @@ fn asnf<S: FiniteChar2Field>(
     coeffs: &BTreeMap<i128, Poly<S>>,
     lo: i128,
     place: &Char2Place<S>,
-) -> (u8, BTreeMap<usize, Poly<S>>) {
+) -> (u128, BTreeMap<usize, Poly<S>>) {
     let mut m = coeffs.clone();
     let mut n = lo;
     while n < 0 {
@@ -358,7 +361,7 @@ fn merge_psi<S: FiniteChar2Field>(psi: &mut BTreeMap<usize, Poly<S>>, k: usize, 
 fn local_as_class<S: FiniteChar2Field>(
     c: &RationalFunction<S>,
     place: &Char2Place<S>,
-) -> (u8, BTreeMap<usize, Poly<S>>) {
+) -> (u128, BTreeMap<usize, Poly<S>>) {
     match valuation(c, place) {
         None => (0, BTreeMap::new()), // c = 0 ∈ ℘(K_v)
         Some(v) => {
@@ -472,7 +475,7 @@ fn block_contribution<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
     place: &Char2Place<S>,
-) -> (u8, u8, BTreeMap<usize, Poly<S>>) {
+) -> (u128, u128, BTreeMap<usize, Poly<S>>) {
     let va = valuation(a, place).expect("a ≠ 0");
     let vb = valuation(b, place).expect("b ≠ 0");
     // Expand a over [va, max(0,-vb)] and b over [vb, max(0,-va)]: this captures every
@@ -530,8 +533,8 @@ pub fn springer_decompose_local_char2<S: FiniteChar2Field>(
     form: &Char2QuadForm<S>,
     place: &Char2Place<S>,
 ) -> Char2LocalDecomp<S> {
-    let mut phi0 = 0u8;
-    let mut phi1 = 0u8;
+    let mut phi0 = 0u128;
+    let mut phi1 = 0u128;
     let mut psi: BTreeMap<usize, Poly<S>> = BTreeMap::new();
     for (a, b) in &form.blocks {
         if a.is_zero() || b.is_zero() {
@@ -612,8 +615,8 @@ fn semisingular_clifford_at<S: FiniteChar2Field>(
     blocks: &[(RationalFunction<S>, RationalFunction<S>)],
     c: &RationalFunction<S>,
     place: &Char2Place<S>,
-) -> u8 {
-    let mut inv = 0u8;
+) -> u128 {
+    let mut inv = 0u128;
     for (a, b) in blocks {
         if a.is_zero() || b.is_zero() {
             continue;

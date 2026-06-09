@@ -216,6 +216,7 @@ impl_scalar_ops!(Integer);
 impl_scalar_ops!(Surreal);
 impl_scalar_ops!(Omnific);
 impl_scalar_ops!(Nimber);
+impl_scalar_ops!(Ordinal);
 impl_scalar_ops!([const P: u128] Fp<P>);
 impl_scalar_ops!([const P: u128, const N: usize] Fpn<P, N>);
 impl_scalar_ops!([const P: u128, const N: usize, const F: usize] WittVec<P, N, F>);

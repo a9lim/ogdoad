@@ -72,10 +72,10 @@ impl LocalSpringerDecomp {
     /// `1` = odd) — the two summands `W(k) ⊕ W(k)` (the value group `ℤ` is not
     /// 2-divisible, so scaling an entry by `ϖ²` is a square but by `ϖ` is not, and
     /// only the valuation parity matters for the Witt class).
-    pub fn parity_layer(&self, parity: u8) -> Vec<&LocalResidueForm> {
+    pub fn parity_layer(&self, parity: u128) -> Vec<&LocalResidueForm> {
         self.graded
             .iter()
-            .filter(|g| (g.valuation.rem_euclid(2) as u8) == parity)
+            .filter(|g| (g.valuation.rem_euclid(2) as u128) == parity)
             .collect()
     }
 }

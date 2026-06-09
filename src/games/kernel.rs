@@ -107,7 +107,7 @@ fn score_dfs(
     succ: &[Vec<usize>],
     terminal_score: &[i128],
     v: usize,
-    state: &mut [u8],
+    state: &mut [u128],
     memo: &mut [Option<ScoreInterval>],
 ) -> Option<ScoreInterval> {
     match state[v] {
@@ -155,7 +155,7 @@ fn score_dfs(
 pub fn scoring_values(succ: &[Vec<usize>], terminal_score: &[i128]) -> Option<Vec<ScoreInterval>> {
     let n = succ.len();
     assert_eq!(n, terminal_score.len(), "one score per position");
-    let mut state = vec![0u8; n];
+    let mut state = vec![0u128; n];
     let mut memo: Vec<Option<ScoreInterval>> = vec![None; n];
     for v in 0..n {
         score_dfs(succ, terminal_score, v, &mut state, &mut memo)?;

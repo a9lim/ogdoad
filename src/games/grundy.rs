@@ -31,7 +31,7 @@ pub fn mex<I: IntoIterator<Item = u128>>(values: I) -> u128 {
     m
 }
 
-fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u8], g: &mut [u128]) -> Option<()> {
+fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u128], g: &mut [u128]) -> Option<()> {
     match state[v] {
         2 => return Some(()),
         1 => return None, // back-edge ⇒ a cycle ⇒ Grundy value undefined
@@ -55,7 +55,7 @@ fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u8], g: &mut [u128]) -
 /// Position `v` is a P-position (Loss) iff `result[v] == 0`.
 pub fn grundy_graph(succ: &[Vec<usize>]) -> Option<Vec<u128>> {
     let n = succ.len();
-    let mut state = vec![0u8; n];
+    let mut state = vec![0u128; n];
     let mut g = vec![0u128; n];
     for v in 0..n {
         grundy_dfs(succ, v, &mut state, &mut g)?;

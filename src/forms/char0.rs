@@ -107,7 +107,7 @@ impl CliffordType {
 pub struct RationalPlaceInvariant {
     pub place: Place,
     /// Hasse invariant at this place: `+1` or `-1`.
-    pub hasse: i8,
+    pub hasse: i128,
 }
 
 /// Complete rational quadratic-form invariants for the metric underlying a
@@ -168,7 +168,7 @@ fn p2(k: usize) -> usize {
 /// the 8-fold Bott table. `radical_dim`/`ground` are filled in by the callers.
 fn real_core(p: usize, q: usize) -> (BaseField, usize, bool) {
     let n = p + q;
-    let s = (q as isize - p as isize).rem_euclid(8) as usize;
+    let s = (q as i128 - p as i128).rem_euclid(8) as usize;
     match s {
         0 | 6 => (BaseField::R, p2(n / 2), false),
         1 | 5 => (BaseField::C, p2((n - 1) / 2), false),

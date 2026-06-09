@@ -73,7 +73,7 @@ impl Surreal {
     /// `None`. `Some` iff the leading coefficient is a perfect ℚ `k`-th power
     /// (and, for even `k`, `self > 0`). See [`sqrt_to_terms`](Self::sqrt_to_terms)
     /// for the scope.
-    pub fn nth_root_to_terms(&self, k: u32, n: usize) -> Option<Surreal> {
+    pub fn nth_root_to_terms(&self, k: u128, n: usize) -> Option<Surreal> {
         if k == 0 {
             return None;
         }

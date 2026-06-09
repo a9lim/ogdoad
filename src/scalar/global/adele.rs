@@ -44,7 +44,14 @@ pub(crate) const ADELE_PREC_NOMINAL: u128 = 16;
 /// the same `i128`-scale limitation as [`Rational`].
 pub(crate) fn adele_prec(p: u128) -> u128 {
     let mut k = ADELE_PREC_NOMINAL;
-    while k > 1 && p.checked_pow(2 * k as u32).is_none() {
+    while k > 1
+        && p.checked_pow(
+            (2 * k)
+                .try_into()
+                .expect("adele precision exponent fits the platform exponent type"),
+        )
+        .is_none()
+    {
         k -= 1;
     }
     k

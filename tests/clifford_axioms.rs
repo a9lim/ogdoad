@@ -58,18 +58,18 @@ proptest! {
     /// `b` (the nimber-backend point: `q ≠ b` must stay faithful).
     #[test]
     fn nimber_geometric_product_is_a_ring(
-        q in prop::array::uniform3(any::<u8>()),
-        bvals in prop::array::uniform3(any::<u8>()),
-        ca in prop::array::uniform::<_, BLADES>(any::<u8>()),
-        cb in prop::array::uniform::<_, BLADES>(any::<u8>()),
-        cc in prop::array::uniform::<_, BLADES>(any::<u8>()),
+        q in prop::array::uniform3(any::<u128>()),
+        bvals in prop::array::uniform3(any::<u128>()),
+        ca in prop::array::uniform::<_, BLADES>(any::<u128>()),
+        cb in prop::array::uniform::<_, BLADES>(any::<u128>()),
+        cc in prop::array::uniform::<_, BLADES>(any::<u128>()),
     ) {
         let metric = Metric::new(
-            q.iter().map(|&x| Nimber(x as u128)).collect(),
-            b_map(bvals.map(|x| Nimber(x as u128))),
+            q.iter().map(|&x| Nimber(x)).collect(),
+            b_map(bvals.map(Nimber)),
         );
         let alg = CliffordAlgebra::new(DIM, metric);
-        let mk = |c: [u8; BLADES]| build_mv(&alg, &c.map(|x| Nimber(x as u128)));
+        let mk = |c: [u128; BLADES]| build_mv(&alg, &c.map(Nimber));
         check_associative_distributive(&alg, &mk(ca), &mk(cb), &mk(cc));
     }
 

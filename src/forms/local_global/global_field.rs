@@ -53,7 +53,7 @@ pub trait GlobalField: Scalar {
     fn relevant_places(entries: &[Self]) -> Vec<Self::Place>;
 
     /// The Hilbert symbol `(a, b)_v ∈ {+1, −1}` over the completion at `place`.
-    fn hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> i8;
+    fn hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> i128;
 
     /// Whether a **nonzero** `x` is a square in the local field at `place`.
     fn is_local_square(x: &Self, place: &Self::Place) -> bool;
@@ -70,8 +70,8 @@ pub trait GlobalField: Scalar {
     // ───────────────────── the local↔global theorem (defaults) ─────────────────────
 
     /// The Hasse invariant `ε_v(⟨a_1,…,a_n⟩) = ∏_{i<j} (a_i, a_j)_v` at `place`.
-    fn hasse_at_place(entries: &[Self], place: &Self::Place) -> i8 {
-        let mut h = 1i8;
+    fn hasse_at_place(entries: &[Self], place: &Self::Place) -> i128 {
+        let mut h = 1i128;
         for i in 0..entries.len() {
             for j in (i + 1)..entries.len() {
                 h *= Self::hilbert_symbol_at(&entries[i], &entries[j], place);
@@ -83,7 +83,7 @@ pub trait GlobalField: Scalar {
     /// The **Hilbert reciprocity product** `∏_v (a,b)_v` over all places — the
     /// product formula for the quaternion-algebra class `(a,b)`. It is `+1` for
     /// every nonzero `a, b` (Hilbert/Weil reciprocity), the gold oracle.
-    fn reciprocity_product(a: &Self, b: &Self) -> i8 {
+    fn reciprocity_product(a: &Self, b: &Self) -> i128 {
         assert!(
             !a.is_zero() && !b.is_zero(),
             "reciprocity_product needs nonzero arguments"
@@ -91,7 +91,7 @@ pub trait GlobalField: Scalar {
         let pair = [a.clone(), b.clone()];
         Self::relevant_places(&pair)
             .iter()
-            .fold(1i8, |acc, pl| acc * Self::hilbert_symbol_at(a, b, pl))
+            .fold(1i128, |acc, pl| acc * Self::hilbert_symbol_at(a, b, pl))
     }
 
     /// The places where the quaternion algebra `(a, b)` **ramifies** (symbol
@@ -154,7 +154,7 @@ impl GlobalField for Rational {
         places
     }
 
-    fn hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> i8 {
+    fn hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> i128 {
         crate::forms::padic::hilbert_symbol_at(rat_square_class(a), rat_square_class(b), *place)
     }
 
@@ -208,7 +208,7 @@ impl<S: FiniteOddField> GlobalField for RationalFunction<S> {
         crate::forms::function_field::relevant_places(entries)
     }
 
-    fn hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> i8 {
+    fn hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> i128 {
         crate::forms::function_field::hilbert_symbol_ff(a, b, place)
     }
 

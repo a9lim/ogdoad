@@ -197,8 +197,11 @@ fn ps_eval_poly<S: Scalar>(
 
 /// `z⁻¹` in `κ = F_q[t]/(P)` by Fermat: `z^{|κ|−2}` with `|κ| = q^{deg P}`.
 fn kappa_inv<S: FiniteChar2Field>(z: &Poly<S>, p: &Poly<S>) -> Poly<S> {
-    let d = p.degree().expect("a place modulus has degree ≥ 1") as u32;
-    let order = S::field_order().pow(d);
+    let d = p.degree().expect("a place modulus has degree ≥ 1") as u128;
+    let order = S::field_order().pow(
+        d.try_into()
+            .expect("place degree fits the platform exponent type"),
+    );
     z.pow_mod(order - 2, p)
 }
 
@@ -288,7 +291,7 @@ fn residue_infinity<S: FiniteChar2Field>(num: &Poly<S>, den: &Poly<S>) -> S {
 /// `Tr_{κ/F₂}(z)` for `z ∈ κ = F_q[t]/(P)`: the relative trace `κ → F_q`
 /// (`Σ_{i<deg P} z^{q^i}`, a constant) composed with `Tr_{F_q/F₂}` (the
 /// Artin–Schreier class).
-pub(crate) fn trace_kappa_to_f2<S: FiniteChar2Field>(z: &Poly<S>, p: &Poly<S>) -> u8 {
+pub(crate) fn trace_kappa_to_f2<S: FiniteChar2Field>(z: &Poly<S>, p: &Poly<S>) -> u128 {
     let d = p.degree().expect("a place modulus has degree ≥ 1");
     let q = S::field_order();
     let mut term = z.rem(p);
@@ -335,7 +338,7 @@ pub fn as_symbol_at<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
     place: &Char2Place<S>,
-) -> u8 {
+) -> u128 {
     let Some((gnum, gden)) = dlog_differential(a, b) else {
         return 0; // a ∈ ℘(K) (in particular a = 0): the symbol vanishes
     };
@@ -367,10 +370,10 @@ pub fn as_symbol_places<S: FiniteChar2Field>(
 pub fn as_symbol_reciprocity_sum<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-) -> u8 {
+) -> u128 {
     as_symbol_places(a, b)
         .iter()
-        .fold(0u8, |acc, pl| acc ^ as_symbol_at(a, b, pl))
+        .fold(0u128, |acc, pl| acc ^ as_symbol_at(a, b, pl))
 }
 
 /// The places where the cyclic algebra `[a, b)` **ramifies** (symbol `1`), `b ≠ 0`.

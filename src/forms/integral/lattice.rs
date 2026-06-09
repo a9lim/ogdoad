@@ -41,14 +41,14 @@
 
 use crate::linalg::field::inverse_matrix;
 use crate::linalg::integer::smith_normal_form;
-use crate::scalar::{Rational, Scalar};
+use crate::scalar::{Nimber, Rational, Scalar};
 use std::collections::{BTreeMap, VecDeque};
 
 /// The default node budget for [`IntegralForm::automorphism_group_order`]. Beyond
 /// this many backtracking nodes the search reports `None` (the lattice is too
 /// large for brute-force automorphism enumeration — e.g. `E₈`, whose Weyl group
 /// has order ~7·10⁸, or the Leech lattice). The bound is explicit, not silent.
-pub const AUTO_NODE_BUDGET: u64 = 100_000_000;
+pub const AUTO_NODE_BUDGET: u128 = 100_000_000;
 const SHORT_VECTOR_EXACT_ENUM_LIMIT: u128 = 2_000_000;
 
 /// A positive-definite or indefinite integral lattice, recorded by its symmetric integer
@@ -81,6 +81,10 @@ fn lcm_i128(a: i128, b: i128) -> i128 {
         .abs()
 }
 
+fn rdiv(a: &Rational, b: &Rational) -> Rational {
+    a.mul(&b.inv().expect("division by zero rational"))
+}
+
 fn checked_factorial(n: usize) -> Option<u128> {
     let mut acc = 1u128;
     for k in 2..=n {
@@ -90,7 +94,11 @@ fn checked_factorial(n: usize) -> Option<u128> {
 }
 
 fn checked_pow2(n: usize) -> Option<u128> {
-    1u128.checked_shl(u32::try_from(n).ok()?)
+    if n >= 128 {
+        None
+    } else {
+        Some(1u128 << n)
+    }
 }
 
 fn signed_permutation_order(n: usize) -> Option<u128> {
@@ -403,6 +411,60 @@ impl IntegralForm {
         true
     }
 
+    /// The real signature `(p, q)`: positive and negative dimensions after exact
+    /// rational congruence diagonalization. Degenerate directions, if any, are
+    /// omitted from the pair.
+    pub fn signature(&self) -> (usize, usize) {
+        let n = self.dim();
+        let mut a: Vec<Vec<Rational>> = self
+            .gram
+            .iter()
+            .map(|row| row.iter().map(|&x| Rational::int(x)).collect())
+            .collect();
+        let mut active: Vec<usize> = (0..n).collect();
+        let (mut pos, mut neg) = (0usize, 0usize);
+        while !active.is_empty() {
+            if !active.iter().any(|&r| !a[r][r].is_zero()) {
+                let mut pair = None;
+                'find: for (ai, &r) in active.iter().enumerate() {
+                    for &s in &active[ai + 1..] {
+                        if !a[r][s].is_zero() {
+                            pair = Some((r, s));
+                            break 'find;
+                        }
+                    }
+                }
+                let Some((r, s)) = pair else {
+                    break; // remaining block is the radical
+                };
+                for &c in &active {
+                    a[r][c] = a[r][c].add(&a[s][c].clone());
+                }
+                for &rr in &active {
+                    a[rr][r] = a[rr][r].add(&a[rr][s].clone());
+                }
+            }
+            let Some(i) = active.iter().copied().find(|&r| !a[r][r].is_zero()) else {
+                break;
+            };
+            match a[i][i].sign() {
+                std::cmp::Ordering::Greater => pos += 1,
+                std::cmp::Ordering::Less => neg += 1,
+                std::cmp::Ordering::Equal => unreachable!(),
+            }
+            let pivot = a[i][i].clone();
+            let rest: Vec<usize> = active.iter().copied().filter(|&r| r != i).collect();
+            for &r in &rest {
+                for &s in &rest {
+                    let corr = rdiv(&a[r][i].mul(&a[i][s]), &pivot);
+                    a[r][s] = a[r][s].sub(&corr);
+                }
+            }
+            active = rest;
+        }
+        (pos, neg)
+    }
+
     /// The invariant factors `d₀ | d₁ | …` of the discriminant group (Smith
     /// normal form of `G`): `L# / L ≅ ⨁ ℤ/dᵢ`. For a nonsingular lattice the
     /// nonzero factors multiply to `|det G|`.
@@ -441,6 +503,48 @@ impl IntegralForm {
             }
         }
         Some(level)
+    }
+
+    /// The rational Clifford metric attached to the lattice bilinear form:
+    /// `e_i^2 = G_ii` and `{e_i,e_j} = 2G_ij`.
+    pub fn clifford_metric(&self) -> crate::clifford::Metric<Rational> {
+        let n = self.dim();
+        let q = (0..n).map(|i| Rational::int(self.gram[i][i])).collect();
+        let mut b = BTreeMap::new();
+        for i in 0..n {
+            for j in (i + 1)..n {
+                let v = self.gram[i][j]
+                    .checked_mul(2)
+                    .expect("lattice Clifford metric exceeds i128");
+                if v != 0 {
+                    b.insert((i, j), Rational::int(v));
+                }
+            }
+        }
+        crate::clifford::Metric::new(q, b)
+    }
+
+    /// The characteristic-2 quadratic refinement of an even lattice, reduced
+    /// modulo 2 from `Q/2`: `q_i = G_ii/2 (mod 2)` and `b_ij = G_ij (mod 2)`.
+    /// Returns `None` for odd lattices, where `Q/2` is not integral.
+    pub fn clifford_metric_f2(&self) -> Option<crate::clifford::Metric<Nimber>> {
+        if !self.is_even() {
+            return None;
+        }
+        let n = self.dim();
+        let q = (0..n)
+            .map(|i| Nimber((self.gram[i][i] / 2).rem_euclid(2) as u128))
+            .collect();
+        let mut b = BTreeMap::new();
+        for i in 0..n {
+            for j in (i + 1)..n {
+                let v = self.gram[i][j].rem_euclid(2) as u128;
+                if v != 0 {
+                    b.insert((i, j), Nimber(v));
+                }
+            }
+        }
+        Some(crate::clifford::Metric::new(q, b))
     }
 
     /// The orthogonal direct sum `L ⟂ M` (block-diagonal Gram).
@@ -763,7 +867,7 @@ impl IntegralForm {
     /// vectors of each basis norm) and backtracks on the Gram constraints; each
     /// complete assignment is an automorphism, so the count is exact. Returns
     /// `None` if more than `node_budget` candidate-nodes are visited.
-    pub fn automorphism_group_order_bounded(&self, node_budget: u64) -> Option<u128> {
+    pub fn automorphism_group_order_bounded(&self, node_budget: u128) -> Option<u128> {
         let n = self.dim();
         if n == 0 {
             return Some(1);
@@ -789,7 +893,7 @@ impl IntegralForm {
             })
             .collect();
         let mut count: u128 = 0;
-        let mut nodes: u64 = 0;
+        let mut nodes: u128 = 0;
         let mut chosen: Vec<usize> = Vec::with_capacity(n);
         let ok = self.aut_backtrack(
             0,
@@ -965,8 +1069,8 @@ impl IntegralForm {
         gv: &[Vec<i128>],
         chosen: &mut Vec<usize>,
         count: &mut u128,
-        nodes: &mut u64,
-        budget: u64,
+        nodes: &mut u128,
+        budget: u128,
     ) -> bool {
         if level == self.dim() {
             *count += 1;
@@ -1131,6 +1235,32 @@ mod tests {
                                            // ℤ = ⟨1⟩ is odd: G⁻¹ = [1] has odd diagonal, so the smallest N making
                                            // N·G⁻¹ even-integral is 2 (cf. A_1 = ⟨2⟩ → 4).
         assert_eq!(IntegralForm::diagonal(&[1]).level(), Some(2));
+    }
+
+    #[test]
+    fn signature_handles_indefinite_and_skew_bases() {
+        assert_eq!(IntegralForm::diagonal(&[1, 1, -1]).signature(), (2, 1));
+        let hyp = IntegralForm::new(vec![vec![0, 1], vec![1, 0]]).unwrap();
+        assert_eq!(hyp.signature(), (1, 1));
+        assert_eq!(
+            IntegralForm::new(vec![vec![0, 0], vec![0, 0]])
+                .unwrap()
+                .signature(),
+            (0, 0)
+        );
+    }
+
+    #[test]
+    fn lattice_clifford_metrics_preserve_q_and_polar_data() {
+        let a2 = a_n(2);
+        let rat = a2.clifford_metric();
+        assert_eq!(rat.q, vec![Rational::int(2), Rational::int(2)]);
+        assert_eq!(rat.b[&(0, 1)], Rational::int(-2));
+
+        let f2 = a2.clifford_metric_f2().unwrap();
+        assert_eq!(f2.q, vec![Nimber(1), Nimber(1)]);
+        assert_eq!(f2.b[&(0, 1)], Nimber(1));
+        assert!(IntegralForm::diagonal(&[1]).clifford_metric_f2().is_none());
     }
 
     #[test]

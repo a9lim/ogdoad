@@ -200,7 +200,7 @@ impl PartialOrd for LoopyValue {
             // the remaining comparable chain under < 0 < over.
             (a, b) => {
                 let rank = |v: LoopyValue| match v {
-                    Under => -1i8,
+                    Under => -1i128,
                     Zero => 0,
                     Over => 1,
                     _ => unreachable!("on/off/star/dud handled above"),
@@ -334,14 +334,14 @@ pub fn loopy_nim_values_certified(
     let out = kernel::outcomes(succ);
     let is_side: Vec<bool> = out.iter().map(|o| *o == Outcome::Draw).collect();
     let mut val = vec![0u128; n];
-    let mut state = vec![0u8; n]; // 0 unvisited, 1 visiting, 2 done
+    let mut state = vec![0u128; n]; // 0 unvisited, 1 visiting, 2 done
     let mut needs_sidling = false;
 
     fn dfs(
         succ: &[Vec<usize>],
         is_side: &[bool],
         v: usize,
-        state: &mut [u8],
+        state: &mut [u128],
         val: &mut [u128],
     ) -> Option<()> {
         match state[v] {

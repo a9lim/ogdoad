@@ -43,7 +43,7 @@ fn square_class(q: &Rational) -> i128 {
 /// quaternion algebra `(a,b)` with `a, b ∈ ℚ^*`. Equal to `+1` for all `a, b`
 /// (Hilbert reciprocity) — the multiplicative analogue of the adelic product
 /// formula `∏_v |x|_v = 1`.
-pub fn hilbert_product(a: &Rational, b: &Rational) -> i8 {
+pub fn hilbert_product(a: &Rational, b: &Rational) -> i128 {
     Rational::reciprocity_product(a, b)
 }
 
@@ -115,7 +115,7 @@ pub fn brauer_local_invariants(a: &Rational, b: &Rational) -> Vec<(Place, Ration
     let mut out = Vec::new();
     let zero = Rational::zero();
     let half = Rational::new(1, 2);
-    let inv = |sym: i8| if sym == 1 { zero.clone() } else { half.clone() };
+    let inv = |sym: i128| if sym == 1 { zero.clone() } else { half.clone() };
     out.push((Place::Real, inv(hilbert_symbol_at(ai, bi, Place::Real))));
     for p in relevant_primes(&[ai, bi]) {
         out.push((

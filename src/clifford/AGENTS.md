@@ -9,6 +9,10 @@ Everything here is generic over `S: Scalar` — the same code runs over nimbers
 modules flat, so public paths stay shallow (`clifford::Metric`,
 `clifford::sandwich`, …).
 
+Fixed-width mathematical payloads in this pillar are `u128`/`i128`: blade masks,
+divided-power exponents, spinor/Dickson parities, and Frobenius subfield data follow
+that contract. `usize` remains for dimensions, basis indices, and matrix indexing.
+
 ## The engine (`engine.rs` + `engine/`)
 
 `engine.rs` is a thin hub (+ product/regression tests). The associative-algebra
@@ -18,7 +22,8 @@ core is split by concept under `engine/`:
 - **`metric.rs`** — `Metric {q, b, a}`, constructors, `direct_sum`, `q_val`/
   `has_upper`, `map` (coefficient base-change `Metric<S>→Metric<T>`, e.g. lifting an
   `F_2` trace form into `Metric<Nimber>` for the Arf classifier — see
-  `forms/trace_form.rs`). **The metric carries `q` and `b` independently — see the rules.**
+  `forms/trace_form.rs`, or consuming `IntegralForm::clifford_metric*` from the
+  integral-lattice bridge). **The metric carries `q` and `b` independently — see the rules.**
 - **`product.rs`** — `geom_product_blades` (the general-bilinear Chevalley product)
   plus the `cfg(test)` `reduce_word` oracle it is cross-validated against.
 - **`algebra.rs`** — `CliffordAlgebra<S>`: blade arithmetic, grade projection,
@@ -44,6 +49,12 @@ core is split by concept under `engine/`:
   compose, `inverse_outermorphism`. Plus the char poly via exterior powers
   (`exterior_power_trace`, `trace`, `char_poly`). Char-faithful (the char-2
   determinant/permanent too).
+- **`frobenius.rs`** — the scalar-Galois ↔ Clifford bridge: turns
+  `CyclicGaloisExtension` bases/generators into `LinearMap<E::Base>` values via
+  `galois_linear_map` / `frobenius_linear_map`, plus
+  `nimber_subfield_frobenius_linear_map` for small represented nimber subfields.
+  Its tests pin the outermorphism spectrum (`char_poly`, determinant, and exterior
+  traces) against Frobenius.
 - **`hopf.rs`** — the exterior Hopf algebra: unshuffle coproduct (sign read off
   wedge), counit, antipode = grade involution. Hopf axioms tested over Rational
   AND Nimber.
@@ -87,6 +98,8 @@ core is split by concept under `engine/`:
    `associativity_general_bilinear_form`) catch product bugs, and
    `general_product_reproduces_reduce_word_when_a_empty` pins the general engine to
    the independent oracle. Add a test before trusting a new operation.
+4. **Respect the width contract.** Non-index fixed-width integer payloads are
+   `u128`/`i128`. Use `usize` for basis indices and dimensions only.
 
 ## Things that look like bugs but are not (clifford layer)
 
@@ -103,3 +116,7 @@ core is split by concept under `engine/`:
 - **`divided_power.rs` is a standalone parallel algebra, not a layer on the blade
   engine, and has no Python binding** — intentional. Γ(V) is the dual of Sym, not a
   view of the exterior algebra.
+- **`Ordinal` is a Clifford scalar only inside its checked nim-product boundary.**
+  `Scalar::mul` panics if a product escapes the source-verified Kummer tower; use
+  `Ordinal::checked_mul` before constructing computations that need an explicit
+  `Option` boundary.

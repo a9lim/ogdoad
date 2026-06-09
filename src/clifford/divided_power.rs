@@ -37,7 +37,7 @@ use std::collections::BTreeMap;
 
 /// A multidegree `α = (α_0,…,α_{dim−1})` — the exponent vector of a divided-power
 /// monomial `γ^{[α]}`. Always stored at length `dim`.
-type Multidegree = Vec<u32>;
+type Multidegree = Vec<u128>;
 
 /// One tensor term `γ^{[β]} ⊗ γ^{[γ]}` of `Γ ⊗ Γ`, keyed by the pair of
 /// multidegrees.
@@ -58,14 +58,14 @@ pub struct DpVector<S: Scalar> {
 }
 
 /// Integer binomial coefficient `\binom{n}{k}` (exact, small arguments).
-fn binom(n: u32, k: u32) -> u128 {
+fn binom(n: u128, k: u128) -> u128 {
     if k > n {
         return 0;
     }
-    let k = k.min(n - k) as u128;
+    let k = k.min(n - k);
     let mut acc = 1u128;
     for i in 0..k {
-        acc = acc * (n as u128 - i) / (i + 1);
+        acc = acc * (n - i) / (i + 1);
     }
     acc
 }
@@ -88,7 +88,7 @@ impl DividedPowerAlgebra {
     }
 
     fn empty_degree(&self) -> Multidegree {
-        vec![0u32; self.dim]
+        vec![0u128; self.dim]
     }
 
     /// The zero element.
@@ -113,7 +113,7 @@ impl DividedPowerAlgebra {
     }
 
     /// The divided power `γ_i^{[k]}`.
-    pub fn divided_power<S: Scalar>(&self, i: usize, k: u32) -> DpVector<S> {
+    pub fn divided_power<S: Scalar>(&self, i: usize, k: u128) -> DpVector<S> {
         assert!(i < self.dim, "generator index out of range");
         let mut deg = self.empty_degree();
         deg[i] = k;
@@ -131,7 +131,7 @@ impl DividedPowerAlgebra {
     }
 
     /// The monomial `coeff · γ^{[α]}` from a multidegree (padded / checked).
-    pub fn monomial<S: Scalar>(&self, alpha: &[u32], coeff: S) -> DpVector<S> {
+    pub fn monomial<S: Scalar>(&self, alpha: &[u128], coeff: S) -> DpVector<S> {
         assert!(alpha.len() <= self.dim, "multidegree longer than dim");
         let mut deg = self.empty_degree();
         deg[..alpha.len()].copy_from_slice(alpha);
@@ -220,7 +220,7 @@ impl DividedPowerAlgebra {
     pub fn antipode<S: Scalar>(&self, x: &DpVector<S>) -> DpVector<S> {
         let mut terms = BTreeMap::new();
         for (deg, c) in &x.terms {
-            let total: u32 = deg.iter().sum();
+            let total: u128 = deg.iter().sum();
             let v = if total % 2 == 1 { c.neg() } else { c.clone() };
             terms.insert(deg.clone(), v);
         }
@@ -229,7 +229,7 @@ impl DividedPowerAlgebra {
 }
 
 /// All multidegrees `β` with `0 ≤ β_i ≤ α_i` componentwise (the sub-monomials).
-fn sub_multidegrees(alpha: &[u32]) -> Vec<Multidegree> {
+fn sub_multidegrees(alpha: &[u128]) -> Vec<Multidegree> {
     let mut acc = vec![Vec::new()];
     for &ai in alpha {
         let mut next = Vec::new();
@@ -256,7 +256,7 @@ mod tests {
 
     /// `(ε⊗id)∘Δ = id = (id⊗ε)∘Δ`.
     fn check_counit_law<S: Scalar>(g: &DividedPowerAlgebra, x: &DpVector<S>) {
-        let empty = vec![0u32; g.dim];
+        let empty = vec![0u128; g.dim];
         let cop = g.coproduct(x);
         let mut left = g.zero::<S>();
         let mut right = g.zero::<S>();

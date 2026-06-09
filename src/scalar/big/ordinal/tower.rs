@@ -291,7 +291,7 @@ mod tests {
         Ordinal::omega_pow(Ordinal::omega_pow(fin(2))) // ω^(ω²) = χ_7
     }
     /// `χ_7^⊗n` by repeated nim-multiplication.
-    fn chi7_pow(n: u32) -> Ordinal {
+    fn chi7_pow(n: u128) -> Ordinal {
         let mut p = fin(1);
         for _ in 0..n {
             p = mul(&p, &chi7()).unwrap();
@@ -441,7 +441,7 @@ mod tests {
         // distributivity through the α_7 branching is exactly what a mis-mixed carry
         // would break. The α_7 = ω+1 *value* is source-pinned in `septic_kummer_landmark`.
         let mut elems: Vec<Ordinal> = vec![fin(1), fin(2), fin(3), w(), w().nim_add(&fin(1))];
-        for n in 1..=6u32 {
+        for n in 1..=6u128 {
             elems.push(chi7_pow(n));
         }
         elems.push(chi7().nim_add(&w())); // χ_7 + ω
@@ -490,7 +490,7 @@ mod tests {
 
     #[test]
     fn identity_preserves_large_valid_prime_digits() {
-        // p(53)=257, so digit 256 is legal. This used to truncate through `u8`
+        // p(53)=257, so digit 256 is legal. This used to truncate through `u128`
         // storage and collapse the monomial to 1 even when multiplying by 1.
         assert_eq!(place_prime(53), 257);
         let exp = Ordinal::monomial(fin(53), 256);

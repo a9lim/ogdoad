@@ -50,7 +50,7 @@ fn isqrt_exact(n: i128) -> Option<i128> {
 
 /// Exact integer `k`-th root of `n` (allowing negative `n` for odd `k`), or
 /// `None` if `n` is not a perfect `k`-th power.
-fn inth_root_exact(n: i128, k: u32) -> Option<i128> {
+fn inth_root_exact(n: i128, k: u128) -> Option<i128> {
     if k == 0 {
         return None;
     }
@@ -65,7 +65,8 @@ fn inth_root_exact(n: i128, k: u32) -> Option<i128> {
         return None; // no real even root of a negative
     }
     let a = n.abs();
-    let pw = |b: i128| -> Option<i128> { b.checked_pow(k) };
+    let k_pow = k.try_into().ok()?;
+    let pw = |b: i128| -> Option<i128> { b.checked_pow(k_pow) };
     let mut x = (a as f64).powf(1.0 / k as f64) as i128;
     while x > 0 && pw(x).is_none_or(|v| v > a) {
         x -= 1;
@@ -152,7 +153,7 @@ impl Rational {
 
     /// The exact rational `k`-th root, or `None` if it is not a perfect `k`-th
     /// power in ℚ (even `k` requires `self ≥ 0`).
-    pub fn nth_root(&self, k: u32) -> Option<Rational> {
+    pub fn nth_root(&self, k: u128) -> Option<Rational> {
         if k == 0 {
             return None;
         }

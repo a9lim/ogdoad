@@ -409,7 +409,7 @@ pub fn misere_quotient(
 /// heap of size n, remove k tokens (1 ≤ k ≤ n): leaving the heap empty needs
 /// `dₖ & 1`; leaving one nonempty heap `n−k` needs `dₖ & 2`; splitting `n−k` into
 /// two nonempty heaps needs `dₖ & 4`. (Nim is `0.333…`, Dawson's chess `0.137`.)
-pub fn octal_moves(code: &[u8], pos: &[u128]) -> Vec<Vec<u128>> {
+pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
     let mut out = Vec::new();
     for idx in 0..pos.len() {
         let n = pos[idx];
@@ -454,7 +454,7 @@ pub fn octal_moves(code: &[u8], pos: &[u128]) -> Vec<Vec<u128>> {
 /// `1..=max_heap` as atoms (a heap-multiset is a sum). Splitting moves are handled
 /// (a heap can become two), so the position type is the heap-multiset itself.
 pub fn octal_misere_quotient(
-    code: &[u8],
+    code: &[u128],
     max_heap: usize,
     elem_bound: usize,
     test_bound: usize,
@@ -502,14 +502,14 @@ mod tests {
 
     #[test]
     fn cyclic_game_is_rejected() {
-        fn self_loop(_: &u8) -> Vec<u8> {
+        fn self_loop(_: &u128) -> Vec<u128> {
             vec![0]
         }
         let mut memo = HashMap::new();
-        assert_eq!(try_misere_is_n(&0u8, &self_loop, &mut memo), None);
+        assert_eq!(try_misere_is_n(&0u128, &self_loop, &mut memo), None);
         assert!(std::panic::catch_unwind(|| {
             let mut memo = HashMap::new();
-            misere_is_n(&0u8, &self_loop, &mut memo);
+            misere_is_n(&0u128, &self_loop, &mut memo);
         })
         .is_err());
     }
@@ -550,7 +550,7 @@ mod tests {
     #[test]
     fn octal_nim_matches_misere_nim() {
         // 0.333… is Nim: octal moves' misère outcomes match Bouton's theorem.
-        let code = [3u8, 3, 3, 3];
+        let code = [3u128, 3, 3, 3];
         let mut memo: HashMap<Vec<u128>, bool> = HashMap::new();
         for heaps in [
             vec![1u128],

@@ -473,7 +473,7 @@ mod tests {
         }
         // a longer sweep of dyadics round-trips
         for num in -8i128..=8 {
-            for k in 0..4u32 {
+            for k in 0..4u128 {
                 let s = dyadic(num, 1i128 << k);
                 let signs = s.sign_expansion().unwrap();
                 assert_eq!(Surreal::from_sign_expansion(&signs), s);

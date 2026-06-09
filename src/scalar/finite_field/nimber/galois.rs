@@ -14,8 +14,8 @@ use std::collections::HashMap;
 /// The degree of `x` over F₂: the least `d ∈ {1,2,4,…,128}` (a divisor of 128)
 /// with `x^{2^d} = x`, i.e. the dimension of the smallest nim-subfield F_{2^d}
 /// containing `x`. `nim_degree(0) = nim_degree(1) = 1`.
-pub fn nim_degree(x: u128) -> u32 {
-    Nimber(x).degree() as u32
+pub fn nim_degree(x: u128) -> u128 {
+    Nimber(x).degree() as u128
 }
 
 /// The distinct Galois conjugates of `x` over F₂: `x, x², x⁴, …, x^{2^{d-1}}`
@@ -30,13 +30,13 @@ pub fn nim_conjugates(x: u128) -> Vec<u128> {
 /// leading `1`. The shared `∏(X + xᵢ)` construction is
 /// [`FiniteField::min_poly_monic`]; this projects each coefficient (Galois
 /// closure guarantees it lands in F₂) to its bit value.
-pub fn nim_min_poly(x: u128) -> Vec<u8> {
+pub fn nim_min_poly(x: u128) -> Vec<u128> {
     Nimber(x)
         .min_poly_monic()
         .into_iter()
         .map(|c| {
             debug_assert!(c.0 <= 1, "minimal-polynomial coefficient left F₂");
-            c.0 as u8
+            c.0
         })
         .collect()
 }
@@ -44,7 +44,7 @@ pub fn nim_min_poly(x: u128) -> Vec<u8> {
 /// Relative trace `Tr_{F_{2^m}/F_{2^e}}(x) = Σ_{i=0}^{m/e−1} x^{2^{ei}}` — the
 /// F_{2^e}-linear surjection onto the subfield. [`super::nim_trace`] is the
 /// `e = 1` case (target F₂). Requires `e | m`.
-pub fn nim_relative_trace(x: u128, m: u32, e: u32) -> u128 {
+pub fn nim_relative_trace(x: u128, m: u128, e: u128) -> u128 {
     Nimber(x).relative_trace_over(m as usize, e as usize).0
 }
 
@@ -53,7 +53,7 @@ pub fn nim_relative_trace(x: u128, m: u32, e: u32) -> u128 {
 /// The norm to the *prime* field (`e = 1`) is always `1` for nonzero `x` (F₂* is
 /// trivial), so the relative norm to a larger subfield is the informative one.
 /// Requires `e | m`.
-pub fn nim_relative_norm(x: u128, m: u32, e: u32) -> u128 {
+pub fn nim_relative_norm(x: u128, m: u128, e: u128) -> u128 {
     Nimber(x).relative_norm_over(m as usize, e as usize).0
 }
 

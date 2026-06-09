@@ -26,13 +26,13 @@ impl Surreal {
     /// This surreal as a dyadic rational `num / 2^k` — exactly the values a short
     /// partizan game can take ([`crate::games::Game::number_value`]). Returns
     /// `(num, k)` with `num` odd whenever `k > 0`. `None` for non-dyadics.
-    pub fn as_dyadic(&self) -> Option<(i128, u32)> {
+    pub fn as_dyadic(&self) -> Option<(i128, u128)> {
         let q = self.as_rational()?;
         let den = q.denom();
         if den & (den - 1) != 0 {
             return None; // denominator is not a power of two
         }
-        Some((q.numer(), den.trailing_zeros()))
+        Some((q.numer(), u128::from(den.trailing_zeros())))
     }
 
     /// True iff this surreal is a dyadic rational.
@@ -155,7 +155,7 @@ pub(super) fn simplest_in_cut(lo: &Option<Rational>, hi: &Option<Rational>) -> R
 }
 
 /// Strip factors of two from a dyadic `num / 2^k` to put it in lowest terms.
-fn reduce_dyadic(mut num: i128, mut k: u32) -> (i128, u32) {
+fn reduce_dyadic(mut num: i128, mut k: u128) -> (i128, u128) {
     while k > 0 && num % 2 == 0 {
         num /= 2;
         k -= 1;
@@ -166,7 +166,7 @@ fn reduce_dyadic(mut num: i128, mut k: u32) -> (i128, u32) {
 /// Birthday of the dyadic `num / 2^k` via the canonical `{L|R}` recursion: an
 /// integer `n` is born on day `|n|`; a non-integer dyadic on `1 +` the later of
 /// its two nearest-dyadic options at `±1/2^k`.
-fn birthday_dyadic(num: i128, k: u32) -> u128 {
+fn birthday_dyadic(num: i128, k: u128) -> u128 {
     if k == 0 {
         return num.unsigned_abs();
     }

@@ -110,7 +110,7 @@ fn unit_part(mut n: i128, p: i128) -> i128 {
 }
 
 /// The Legendre symbol `(a | p)` for an odd prime `p`: `0` if `p | a`, else `±1`.
-fn legendre(a: i128, p: i128) -> i8 {
+fn legendre(a: i128, p: i128) -> i128 {
     let p_u = p as u128;
     let a = a.rem_euclid(p) as u128;
     if a == 0 {
@@ -188,7 +188,7 @@ pub fn is_square_qp(n: i128, p: u128) -> bool {
 // --- the Hilbert symbol ---
 
 /// The Hilbert symbol `(a, b)_∞` over `ℝ`: `−1` iff both `a, b < 0`, else `+1`.
-pub fn hilbert_symbol_real(a: i128, b: i128) -> i8 {
+pub fn hilbert_symbol_real(a: i128, b: i128) -> i128 {
     if a < 0 && b < 0 {
         -1
     } else {
@@ -225,12 +225,12 @@ fn omega2(u: i128) -> i128 {
 pub(crate) fn tame_hilbert_symbol(
     alpha: i128,
     beta: i128,
-    chi_a: i8,
-    chi_b: i8,
-    chi_neg1: i8,
-) -> i8 {
+    chi_a: i128,
+    chi_b: i128,
+    chi_neg1: i128,
+) -> i128 {
     let (a_odd, b_odd) = (alpha.rem_euclid(2) == 1, beta.rem_euclid(2) == 1);
-    let mut s: i8 = if a_odd && b_odd { chi_neg1 } else { 1 };
+    let mut s: i128 = if a_odd && b_odd { chi_neg1 } else { 1 };
     if b_odd {
         s *= chi_a;
     }
@@ -243,7 +243,7 @@ pub(crate) fn tame_hilbert_symbol(
 /// Checked version of [`hilbert_symbol_qp`]. Returns `None` when `p` is not a
 /// representable prime, either argument is zero, or square-class reduction
 /// overflows the bounded `i128` implementation.
-pub fn try_hilbert_symbol_qp(a: i128, b: i128, p: u128) -> Option<i8> {
+pub fn try_hilbert_symbol_qp(a: i128, b: i128, p: u128) -> Option<i128> {
     if !is_prime(p) || i128::try_from(p).is_err() {
         return None;
     }
@@ -279,14 +279,14 @@ pub fn try_hilbert_symbol_qp(a: i128, b: i128, p: u128) -> Option<i8> {
 /// explicit formulas (Serre III.1): for odd `p`, with `a = p^α u`, `b = p^β v`,
 /// `(a,b)_p = (−1)^{αβ ε(p)} (u|p)^β (v|p)^α` (the [`tame_hilbert_symbol`] with the
 /// Legendre character); for `p = 2`, `(a,b)_2 = (−1)^{ε(u)ε(v) + α ω(v) + β ω(u)}`.
-pub fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> i8 {
+pub fn hilbert_symbol_qp(a: i128, b: i128, p: u128) -> i128 {
     try_hilbert_symbol_qp(a, b, p)
         .expect("Hilbert symbol needs prime p ≤ i128::MAX and nonzero arguments")
 }
 
 /// The Hilbert symbol at an arbitrary place of `Q` (named `_at` to avoid clashing
 /// with the finite-field [`oddchar::hilbert_symbol`](crate::forms::hilbert_symbol)).
-pub fn hilbert_symbol_at(a: i128, b: i128, place: Place) -> i8 {
+pub fn hilbert_symbol_at(a: i128, b: i128, place: Place) -> i128 {
     match place {
         Place::Real => hilbert_symbol_real(a, b),
         Place::Prime(p) => hilbert_symbol_qp(a, b, p),
@@ -297,8 +297,8 @@ pub fn hilbert_symbol_at(a: i128, b: i128, place: Place) -> i8 {
 
 /// The Hasse invariant `ε_v(⟨a_1,…,a_n⟩) = ∏_{i<j} (a_i, a_j)_v` at a place `v`
 /// (Serre's convention). Entries must be nonzero.
-pub fn hasse_at_place(entries: &[i128], place: Place) -> i8 {
-    let mut h = 1i8;
+pub fn hasse_at_place(entries: &[i128], place: Place) -> i128 {
+    let mut h = 1i128;
     for i in 0..entries.len() {
         for j in (i + 1)..entries.len() {
             h *= hilbert_symbol_at(entries[i], entries[j], place);
@@ -382,7 +382,7 @@ pub(crate) fn is_perfect_square(n: i128) -> bool {
 /// `+1` for every nonzero `a, b` (Hilbert's reciprocity law); the local symbols are
 /// `+1` at all but finitely many places (those dividing `2ab`). This is the
 /// structural form of the oracle the tests use, exposed for the adelic layer.
-pub fn hilbert_reciprocity_product(a: i128, b: i128) -> i8 {
+pub fn hilbert_reciprocity_product(a: i128, b: i128) -> i128 {
     let mut prod = hilbert_symbol_real(a, b);
     let mut primes = relevant_primes(&[a, b]);
     primes.insert(2);

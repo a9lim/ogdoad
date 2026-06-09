@@ -48,8 +48,8 @@ fn ring_axioms<S: Scalar>(a: &S, b: &S, c: &S) {
 // --- per-backend element strategies (small, to keep arithmetic exact) ---
 
 fn nimbers() -> impl Strategy<Value = Nimber> {
-    // any element of F_{2^64} ⊂ F_{2^128}; spans many nim-subfields
-    any::<u64>().prop_map(|x| Nimber(x as u128))
+    // any represented element of F_{2^128}; spans many nim-subfields
+    any::<u128>().prop_map(Nimber)
 }
 
 fn integers() -> impl Strategy<Value = Integer> {
@@ -61,7 +61,7 @@ fn rationals() -> impl Strategy<Value = Rational> {
 }
 
 fn fp7() -> impl Strategy<Value = Fp<7>> {
-    any::<i64>().prop_map(|x| Fp::<7>::new(x as i128))
+    any::<i128>().prop_map(Fp::<7>::new)
 }
 
 /// Small surreals: a handful of monomials `ω^e · (p/q)` with `e ∈ [−2,2]`.
@@ -119,18 +119,14 @@ axiom_suite!(
     rational_functions()
 );
 
-// --- transfinite ordinal nimbers On₂: a PARTIAL field (nim_mul is `Option`) ---
+// --- transfinite ordinal nimbers On₂: Scalar on the verified tower, checked partial field ---
 //
-// `Ordinal` is deliberately NOT a `Scalar`: nim-multiplication is partial — `None`
-// past the staged tower boundary — so it can't ride the `axiom_suite!`
-// macro. This bespoke checker fuzzes the transfinite char-2 field laws instead.
-// nim-addition is total and always checked. nim-multiplication is partial (the
-// prime-power tower, with the non-scalar-Kummer branching, reaches every product whose
-// carries stay at primes `≤ 43`, returning `None` past that / at `≥ ω^(ω^ω)`), so its
-// laws are checked where defined: commutativity (and symmetric definedness) always; the full
-// commutative-ring laws on the `< ω^ω` segment, which is pinned **totally closed** so
-// the check never silently degenerates; and associativity opportunistically where the
-// whole triangle is defined past `ω^ω`.
+// `Ordinal` implements `Scalar` with panic-on-escape multiplication for the
+// Clifford engine, but the non-panicking mathematical surface is still
+// `nim_mul -> Option`. This bespoke checker fuzzes that checked surface:
+// nim-addition is total and always checked; nim-multiplication is checked where
+// defined, with full commutative-ring laws on the `< ω^ω` segment and
+// opportunistic associativity past it.
 
 /// True iff every CNF exponent is finite — i.e. the ordinal is `< ω^ω`, the region
 /// where nim-multiplication is implemented (the degree-3 cube-root tower).

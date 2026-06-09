@@ -111,11 +111,11 @@ pub fn in_fundamental_ideal<S: Scalar>(metric: &Metric<S>) -> Option<bool> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EnStaircase {
     /// `e₀ ∈ H⁰ = ℤ/2`: the dimension mod 2.
-    pub e0: u8,
+    pub e0: u128,
     /// `e₁ ∈ H¹ = F*/F*²`: the signed-discriminant square-class (0 square / 1 not).
-    pub e1: u8,
+    pub e1: u128,
     /// `e₂ ∈ H² = Br(F)[2]`: the Hasse/Clifford invariant. `+1` over a finite field.
-    pub e2: i8,
+    pub e2: i128,
     /// `Iⁿ = 0` for `n ≥ this`. For a finite field, `2`.
     pub stabilizes_at: usize,
 }
@@ -142,7 +142,7 @@ pub fn e_staircase_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<E
 /// `eₙ = (σ / 2ⁿ) mod 2` — the staircase reads the 2-adic expansion of the
 /// signature. Returns `None` when the form is **not** in `Iⁿ` (so `eₙ` is undefined).
 /// This is the infinite tower the finite-field and `Q_p` legs truncate.
-pub fn e_real(signature: i128, n: usize) -> Option<u8> {
+pub fn e_real(signature: i128, n: usize) -> Option<u128> {
     if n >= 128 {
         return None;
     }
@@ -150,7 +150,7 @@ pub fn e_real(signature: i128, n: usize) -> Option<u8> {
     if signature % modulus != 0 {
         return None;
     }
-    Some((signature / modulus).rem_euclid(2) as u8)
+    Some((signature / modulus).rem_euclid(2) as u128)
 }
 
 #[cfg(test)]

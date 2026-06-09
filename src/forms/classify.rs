@@ -17,14 +17,47 @@
 
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
-    arf_invariant, bw_class_complex, bw_class_finite_odd, bw_class_nimber, bw_class_real,
-    classify_finite_odd, classify_rational, classify_surcomplex, classify_surreal, finite_odd_witt,
-    isometric_finite_odd, isometric_nimber, isometric_rational, isometric_real,
-    isometric_surcomplex, witt_decompose_finite_odd, witt_decompose_real, ArfResult,
-    BrauerWallClass, CliffordType, OddCharType, OddWittDecomp, RationalCliffordType,
-    RealWittDecomp, WittClassG,
+    arf_fpn_char2, arf_invariant, arf_ordinal_finite, bw_class_complex, bw_class_finite_odd,
+    bw_class_nimber, bw_class_real, classify_finite_odd, classify_rational, classify_surcomplex,
+    classify_surreal, finite_odd_witt, isometric_finite_odd, isometric_fpn_char2, isometric_nimber,
+    isometric_ordinal_finite, isometric_rational, isometric_real, isometric_surcomplex,
+    witt_decompose_finite_odd, witt_decompose_real, ArfResult, BrauerWallClass, CliffordType,
+    OddCharType, OddWittDecomp, RationalCliffordType, RealWittDecomp, WittClassG,
 };
-use crate::scalar::{Fp, Fpn, Nimber, Rational, Scalar, Surcomplex, Surreal};
+use crate::scalar::{Fp, Fpn, Nimber, Ordinal, Rational, Scalar, Surcomplex, Surreal};
+
+/// Classification data for the `Fpn<P,N>` finite-field tower. Odd-characteristic
+/// extension fields land in the usual finite-odd invariant; characteristic-2
+/// extension fields land in the Arf invariant.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FiniteFieldClass {
+    /// Finite field of odd characteristic.
+    Odd(OddCharType),
+    /// Finite field of characteristic 2.
+    Char2(ArfResult),
+}
+
+impl FiniteFieldClass {
+    pub fn display(&self) -> String {
+        match self {
+            FiniteFieldClass::Odd(c) => c.display(),
+            FiniteFieldClass::Char2(c) => {
+                format!(
+                    "char 2: Arf {} rank {} radical {}{} ({})",
+                    c.arf,
+                    c.rank,
+                    c.radical_dim,
+                    if c.radical_anisotropic {
+                        " defective"
+                    } else {
+                        ""
+                    },
+                    c.o_type
+                )
+            }
+        }
+    }
+}
 
 /// Classify the quadratic form data attached to a [`Metric`] over `Self`,
 /// dispatched on the scalar field. For real/complex-style legs this is also the
@@ -39,7 +72,9 @@ use crate::scalar::{Fp, Fpn, Nimber, Rational, Scalar, Surcomplex, Surreal};
 /// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordType`] | exact-square char 0 subdomain (2-fold) |
 /// | [`Rational`] | [`RationalCliffordType`] | char 0, full Hasse-Minkowski form invariant |
 /// | [`Fp<P>`](Fp) | [`OddCharType`] | odd characteristic |
+/// | [`Fpn<P,N>`](Fpn) | [`FiniteFieldClass`] | finite extension fields, odd or char 2 |
 /// | [`Nimber`] | [`ArfResult`] | characteristic 2 (Arf) |
+/// | [`Ordinal`] | [`ArfResult`] | detected finite ordinal-nimber windows only |
 ///
 /// `None` means the metric is outside the classifier's domain (e.g. a non-diagonal
 /// char-2 form, or a metric the diagonalizer can't reduce).
@@ -110,9 +145,13 @@ impl<const P: u128> ClassifyForm for Fp<P> {
 }
 
 impl<const P: u128, const N: usize> ClassifyForm for Fpn<P, N> {
-    type Class = OddCharType;
-    fn classify(metric: &Metric<Self>) -> Option<OddCharType> {
-        classify_finite_odd(metric)
+    type Class = FiniteFieldClass;
+    fn classify(metric: &Metric<Self>) -> Option<FiniteFieldClass> {
+        if P == 2 {
+            arf_fpn_char2(metric).map(FiniteFieldClass::Char2)
+        } else {
+            classify_finite_odd(metric).map(FiniteFieldClass::Odd)
+        }
     }
 }
 
@@ -120,6 +159,13 @@ impl ClassifyForm for Nimber {
     type Class = ArfResult;
     fn classify(metric: &Metric<Self>) -> Option<ArfResult> {
         arf_invariant(metric)
+    }
+}
+
+impl ClassifyForm for Ordinal {
+    type Class = ArfResult;
+    fn classify(metric: &Metric<Self>) -> Option<ArfResult> {
+        arf_ordinal_finite(metric)
     }
 }
 
@@ -138,13 +184,31 @@ impl<const P: u128> WittClassify for Fp<P> {
 
 impl<const P: u128, const N: usize> WittClassify for Fpn<P, N> {
     fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
-        finite_odd_witt(metric)
+        if P == 2 {
+            let arf = arf_fpn_char2(metric)?;
+            if arf.radical_dim != 0 {
+                return None;
+            }
+            Some(WittClassG::Char2 { arf: arf.arf })
+        } else {
+            finite_odd_witt(metric)
+        }
     }
 }
 
 impl WittClassify for Nimber {
     fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
         WittClassG::try_char2_from_metric(metric).ok()
+    }
+}
+
+impl WittClassify for Ordinal {
+    fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
+        let arf = arf_ordinal_finite(metric)?;
+        if arf.radical_dim != 0 {
+            return None;
+        }
+        Some(WittClassG::Char2 { arf: arf.arf })
     }
 }
 
@@ -174,13 +238,23 @@ impl<const P: u128> IsometryClassify for Fp<P> {
 
 impl<const P: u128, const N: usize> IsometryClassify for Fpn<P, N> {
     fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
-        isometric_finite_odd(m1, m2)
+        if P == 2 {
+            isometric_fpn_char2(m1, m2)
+        } else {
+            isometric_finite_odd(m1, m2)
+        }
     }
 }
 
 impl IsometryClassify for Nimber {
     fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
         isometric_nimber(m1, m2)
+    }
+}
+
+impl IsometryClassify for Ordinal {
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
+        isometric_ordinal_finite(m1, m2)
     }
 }
 
@@ -225,13 +299,31 @@ impl<const P: u128> BrauerWallClassify for Fp<P> {
 
 impl<const P: u128, const N: usize> BrauerWallClassify for Fpn<P, N> {
     fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
-        bw_class_finite_odd(metric)
+        if P == 2 {
+            let arf = arf_fpn_char2(metric)?;
+            if arf.radical_dim != 0 {
+                return None;
+            }
+            Some(BrauerWallClass::Char2 { arf: arf.arf })
+        } else {
+            bw_class_finite_odd(metric)
+        }
     }
 }
 
 impl BrauerWallClassify for Nimber {
     fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
         bw_class_nimber(metric)
+    }
+}
+
+impl BrauerWallClassify for Ordinal {
+    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
+        let arf = arf_ordinal_finite(metric)?;
+        if arf.radical_dim != 0 {
+            return None;
+        }
+        Some(BrauerWallClass::Char2 { arf: arf.arf })
     }
 }
 
@@ -332,8 +424,40 @@ mod tests {
 
         // finite extension field: the same façade reaches the generic odd-field leg.
         let f9 = Metric::diagonal(vec![Fpn::<3, 2>::constant(1), Fpn::<3, 2>::generator()]);
-        assert_eq!(f9.classify(), classify_finite_odd(&f9));
+        assert_eq!(
+            f9.classify(),
+            classify_finite_odd(&f9).map(FiniteFieldClass::Odd)
+        );
         assert_eq!(f9.witt_class(), finite_odd_witt(&f9));
+
+        // finite extension field, characteristic 2: the same façade now reaches
+        // the generic Arf leg rather than falling through the odd-char classifier.
+        let mut b = std::collections::BTreeMap::new();
+        b.insert((0usize, 1usize), Fpn::<2, 3>::one());
+        let f8 = Metric::new(vec![Fpn::<2, 3>::generator(), Fpn::<2, 3>::generator()], b);
+        assert_eq!(
+            f8.classify(),
+            arf_fpn_char2(&f8).map(FiniteFieldClass::Char2)
+        );
+        assert!(matches!(f8.classify(), Some(FiniteFieldClass::Char2(_))));
+
+        // ordinal-nimber coefficients classify only inside detected finite
+        // windows; the first transfinite one is F_4(ω) = F_64.
+        let mut b = std::collections::BTreeMap::new();
+        b.insert((0usize, 1usize), Ordinal::one());
+        let omega = Ordinal::omega();
+        let ord = Metric::new(vec![omega.clone(), omega], b);
+        let arf = arf_ordinal_finite(&ord).unwrap();
+        assert_eq!(ord.classify(), Some(arf.clone()));
+        assert_eq!(ord.witt_class(), Some(WittClassG::Char2 { arf: arf.arf }));
+        assert_eq!(
+            ord.bw_class(),
+            Some(BrauerWallClass::Char2 { arf: arf.arf })
+        );
+
+        let outside_window = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega())]);
+        assert_eq!(outside_window.classify(), None);
+        assert_eq!(outside_window.bw_class(), None);
     }
 
     #[test]
@@ -363,8 +487,18 @@ mod tests {
         assert_eq!(f9.bw_class(), bw_class_finite_odd(&f9));
 
         let mut b = std::collections::BTreeMap::new();
+        b.insert((0usize, 1usize), Fpn::<2, 3>::one());
+        let f8 = Metric::new(vec![Fpn::<2, 3>::zero(), Fpn::<2, 3>::zero()], b);
+        assert_eq!(f8.bw_class(), Some(BrauerWallClass::Char2 { arf: 0 }));
+
+        let mut b = std::collections::BTreeMap::new();
         b.insert((0usize, 1usize), Nimber::one());
         let n = Metric::new(vec![Nimber::zero(), Nimber::zero()], b);
         assert_eq!(n.bw_class(), bw_class_nimber(&n));
+
+        let mut b = std::collections::BTreeMap::new();
+        b.insert((0usize, 1usize), Ordinal::one());
+        let ord = Metric::new(vec![Ordinal::omega(), Ordinal::omega()], b);
+        assert_eq!(ord.isometric_to(&ord), Some(true));
     }
 }
