@@ -118,6 +118,25 @@ mod tests {
     }
 
     #[test]
+    fn multivector_operator_traits_forward_to_additive_and_wedge_ops() {
+        let alg = CliffordAlgebra::new(3, Metric::grassmann(3));
+        let e0 = alg.gen(0);
+        let e1 = alg.gen(1);
+
+        let sum = e0.clone() + e1.clone();
+        assert_eq!(sum, alg.add(&e0, &e1));
+        assert_eq!(sum - e1.clone(), e0);
+        assert_eq!(-e1.clone(), alg.scalar_mul(&r(-1), &e1));
+
+        let e01 = e0.clone() ^ e1.clone();
+        assert_eq!(e01, alg.wedge(&e0, &e1));
+        assert_eq!(
+            e1 ^ e0,
+            alg.scalar_mul(&r(-1), &alg.wedge(&alg.gen(0), &alg.gen(1)))
+        );
+    }
+
+    #[test]
     fn nimber_orthogonal_is_commutative() {
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Nimber(2), Nimber(3)]));
         let e0 = alg.gen(0);

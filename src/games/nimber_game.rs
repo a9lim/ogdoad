@@ -119,6 +119,31 @@ impl NimberGame {
     }
 }
 
+impl std::ops::Add for NimberGame {
+    type Output = NimberGame;
+
+    fn add(self, rhs: NimberGame) -> NimberGame {
+        NimberGame::add(&self, &rhs)
+    }
+}
+
+impl std::ops::Neg for NimberGame {
+    type Output = NimberGame;
+
+    fn neg(self) -> NimberGame {
+        NimberGame::neg(&self)
+    }
+}
+
+impl std::ops::Mul for NimberGame {
+    type Output = NimberGame;
+
+    fn mul(self, rhs: NimberGame) -> NimberGame {
+        self.turning_corners(&rhs)
+            .expect("NimberGame::mul escaped the verified Turning-Corners product boundary")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -178,6 +203,19 @@ mod tests {
         let www =
             NimberGame::from_ordinal(&Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega())));
         assert!(www.turning_corners(&www).is_none());
+    }
+
+    #[test]
+    fn operator_traits_delegate_to_nim_arithmetic() {
+        let two = NimberGame::nim_heap(2);
+        let three = NimberGame::nim_heap(3);
+
+        assert_eq!(
+            (two.clone() + three.clone()).grundy(),
+            &Ordinal::from_u128(2).nim_add(&Ordinal::from_u128(3))
+        );
+        assert_eq!(-two.clone(), two);
+        assert_eq!(two * three, NimberGame::nim_heap(1));
     }
 
     #[test]

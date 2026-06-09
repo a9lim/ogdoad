@@ -349,6 +349,22 @@ impl Game {
     }
 }
 
+impl std::ops::Add for Game {
+    type Output = Game;
+
+    fn add(self, rhs: Game) -> Game {
+        Game::add(&self, &rhs)
+    }
+}
+
+impl std::ops::Neg for Game {
+    type Output = Game;
+
+    fn neg(self) -> Game {
+        Game::neg(&self)
+    }
+}
+
 /// Keep only the order-maximal games (Left options of a canonical form): drop any
 /// option dominated by — or equal to — a kept one.
 fn maximal_games(opts: &[Game]) -> Vec<Game> {
@@ -419,6 +435,19 @@ mod tests {
         assert_eq!(Game::zero().birthday(), 0);
         assert_eq!(Game::star().birthday(), 1);
         assert_eq!(Game::integer(3).birthday(), 3);
+    }
+
+    #[test]
+    fn operator_traits_forward_to_game_group_operations() {
+        let sum = Game::integer(2) + Game::integer(3);
+        assert!(sum.eq(&Game::integer(5)));
+
+        let up = Game::up();
+        let cancelled = up.clone() + -up;
+        assert!(cancelled.eq(&Game::zero()));
+
+        let star_zero = Game::star() + Game::star();
+        assert!(star_zero.eq(&Game::zero()));
     }
 
     #[test]

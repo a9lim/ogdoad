@@ -85,6 +85,32 @@ impl NumberGame {
     }
 }
 
+impl std::ops::Add for NumberGame {
+    type Output = NumberGame;
+
+    fn add(self, rhs: NumberGame) -> NumberGame {
+        NumberGame::add(&self, &rhs)
+    }
+}
+
+impl std::ops::Neg for NumberGame {
+    type Output = NumberGame;
+
+    fn neg(self) -> NumberGame {
+        NumberGame::neg(&self)
+    }
+}
+
+impl std::ops::Mul for NumberGame {
+    type Output = NumberGame;
+
+    fn mul(self, rhs: NumberGame) -> NumberGame {
+        NumberGame {
+            value: <Surreal as Scalar>::mul(&self.value, &rhs.value),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,6 +137,16 @@ mod tests {
         let fin = Game::from_surreal(&d).unwrap();
         assert_eq!(ngd.birthday().unwrap().as_finite(), Some(fin.birthday()));
         assert!(ngd.to_finite_game().is_some());
+    }
+
+    #[test]
+    fn operator_traits_delegate_to_surreal_arithmetic() {
+        let two = NumberGame::from_surreal(&Surreal::from_int(2));
+        let three = NumberGame::from_surreal(&Surreal::from_int(3));
+
+        assert_eq!((two.clone() + three.clone()).value(), &Surreal::from_int(5));
+        assert_eq!((-two.clone()).value(), &Surreal::from_int(-2));
+        assert_eq!((two * three).value(), &Surreal::from_int(6));
     }
 
     #[test]

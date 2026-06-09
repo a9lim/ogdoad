@@ -92,6 +92,22 @@ impl WittClass {
     }
 }
 
+impl std::ops::Add for WittClass {
+    type Output = WittClass;
+
+    fn add(self, rhs: WittClass) -> WittClass {
+        WittClass::add(&self, &rhs)
+    }
+}
+
+impl std::ops::Neg for WittClass {
+    type Output = WittClass;
+
+    fn neg(self) -> WittClass {
+        WittClass::neg(&self)
+    }
+}
+
 /// The Witt class across **all three characteristics** — the group-theoretic
 /// home of the classifier trichotomy (char-0 signature / odd-char
 /// discriminant / char-2 Arf), mirroring the Artin–Schreier↔Arf unification.
@@ -309,6 +325,8 @@ mod tests {
         assert_eq!(a.add(&a), h);
         assert_eq!(a.add(&h), a);
         assert_eq!(h.add(&h), h);
+        assert_eq!(a + a, h);
+        assert_eq!(-a, a);
         // direct_sum of the underlying forms agrees with the abstract group law.
         let am = metric(&[1, 1], &[((0, 1), 1)]);
         let combined = WittClass::try_from_metric(&am.direct_sum(&am))
