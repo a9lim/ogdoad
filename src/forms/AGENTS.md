@@ -319,8 +319,8 @@ equivalence at every place), which reuses the `local_global/padic.rs` and
   (`1_{II}^{+8}`, type II), Sage canonical-symbol examples, and randomised
   `Uᵀ G U` isometry invariance pin the engine.
 - **`integral/mass_formula.rs`** (M4) — the **Minkowski–Siegel mass** of the even-unimodular
-  genus, `mass(n) = |B_{n/2}|/n · ∏_{j<n/2} |B_{2j}|/(4j)` (hardcoded Bernoulli table
-  `B_2..B_24`, checked cross-reduced rational mul → exact `(num, den)` or `None` past
+  genus, `mass(n) = |B_{n/2}|/n · ∏_{j<n/2} |B_{2j}|/(4j)` (Bernoulli numbers generated
+  by exact recurrence, checked cross-reduced rational mul → exact `(num, den)` or `None` past
   the i128 ceiling). `mass(8) = 1/696729600 = 1/|W(E_8)|` — the formula *recovers* the
   `E_8` automorphism order the brute-force counter refuses; `n = 16, 24` match the
   published Niemeier values (the i128 model reaches exactly to 24). Plus the **Leech
@@ -329,7 +329,7 @@ equivalence at every place), which reuses the `local_global/padic.rs` and
   `(−3,1²³)`) → HNF basis `B` → `Gram = B·Bᵀ/8`. **Validated, not trusted:** rank-24
   even unimodular with **no roots** *is* Leech (Niemeier), so the test checks `det=1`,
   even, `short_vectors(2)` empty (cheap — bound 2 < min 4; the full kissing 196560 is
-  not enumerated). `|Aut(Λ₂₄)| = |Co₀|` is the recorded constant `LEECH_AUT_ORDER` (far
+  not enumerated). `|Aut(Λ₂₄)| = |Co₀|` is computed from the factorized constant `LEECH_AUT_ORDER` (far
   past brute force). Monster stays a thematic remark (moonshine, not a form computation).
 
 ## Things that look like bugs but are not (forms layer)

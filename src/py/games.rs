@@ -57,6 +57,17 @@ enum CoinFamily {
     Turtles,
 }
 
+type CompanionFn = fn(u128) -> Vec<u128>;
+
+impl CoinFamily {
+    fn companions(self) -> CompanionFn {
+        match self {
+            CoinFamily::Singleton => crate::games::singleton_companions,
+            CoinFamily::Turtles => crate::games::turtles_companions,
+        }
+    }
+}
+
 fn parse_coin_family(name: &str) -> PyResult<CoinFamily> {
     match name.trim().to_ascii_lowercase().as_str() {
         "singleton" | "singletons" | "turning-corners" | "turning_corners" | "corners" => {
@@ -85,10 +96,7 @@ fn check_coin_index(n: u128, label: &str) -> PyResult<()> {
 #[pyfunction]
 fn coin_companions(kind: &str, n: u128) -> PyResult<Vec<u128>> {
     check_coin_index(n, "n")?;
-    Ok(match parse_coin_family(kind)? {
-        CoinFamily::Singleton => crate::games::singleton_companions(n),
-        CoinFamily::Turtles => crate::games::turtles_companions(n),
-    })
+    Ok((parse_coin_family(kind)?.companions())(n))
 }
 
 /// Single-coin Grundy value of a named 1-D coin-turning family.
@@ -96,14 +104,8 @@ fn coin_companions(kind: &str, n: u128) -> PyResult<Vec<u128>> {
 fn coin_turning_grundy(kind: &str, n: u128) -> PyResult<u128> {
     check_coin_index(n, "n")?;
     let mut memo = HashMap::new();
-    Ok(match parse_coin_family(kind)? {
-        CoinFamily::Singleton => {
-            crate::games::grundy_1d(&crate::games::singleton_companions, n, &mut memo)
-        }
-        CoinFamily::Turtles => {
-            crate::games::grundy_1d(&crate::games::turtles_companions, n, &mut memo)
-        }
-    })
+    let companions = parse_coin_family(kind)?.companions();
+    Ok(crate::games::grundy_1d(&companions, n, &mut memo))
 }
 
 /// Single-cell Grundy value of the Tartan product of two named 1-D coin-turning
@@ -112,38 +114,12 @@ fn coin_turning_grundy(kind: &str, n: u128) -> PyResult<u128> {
 fn tartan_grundy(kind_a: &str, kind_b: &str, x: u128, y: u128) -> PyResult<u128> {
     check_coin_index(x, "x")?;
     check_coin_index(y, "y")?;
-    let (a, b) = (parse_coin_family(kind_a)?, parse_coin_family(kind_b)?);
+    let comp_a = parse_coin_family(kind_a)?.companions();
+    let comp_b = parse_coin_family(kind_b)?.companions();
     let mut memo = HashMap::new();
-    Ok(match (a, b) {
-        (CoinFamily::Singleton, CoinFamily::Singleton) => crate::games::tartan_grundy(
-            &crate::games::singleton_companions,
-            &crate::games::singleton_companions,
-            x,
-            y,
-            &mut memo,
-        ),
-        (CoinFamily::Singleton, CoinFamily::Turtles) => crate::games::tartan_grundy(
-            &crate::games::singleton_companions,
-            &crate::games::turtles_companions,
-            x,
-            y,
-            &mut memo,
-        ),
-        (CoinFamily::Turtles, CoinFamily::Singleton) => crate::games::tartan_grundy(
-            &crate::games::turtles_companions,
-            &crate::games::singleton_companions,
-            x,
-            y,
-            &mut memo,
-        ),
-        (CoinFamily::Turtles, CoinFamily::Turtles) => crate::games::tartan_grundy(
-            &crate::games::turtles_companions,
-            &crate::games::turtles_companions,
-            x,
-            y,
-            &mut memo,
-        ),
-    })
+    Ok(crate::games::tartan_grundy(
+        &comp_a, &comp_b, x, y, &mut memo,
+    ))
 }
 
 /// Sprague–Grundy values of a finite **acyclic** impartial game graph given as

@@ -105,6 +105,28 @@ fn signed_permutation_order(n: usize) -> Option<u128> {
     checked_pow2(n)?.checked_mul(checked_factorial(n)?)
 }
 
+fn a_root_automorphism_order(n: usize) -> Option<u128> {
+    if n == 0 {
+        None
+    } else if n == 1 {
+        Some(2)
+    } else {
+        checked_factorial(n + 1)?.checked_mul(2)
+    }
+}
+
+fn d_root_automorphism_order(n: usize) -> Option<u128> {
+    match n {
+        0 | 1 => None,
+        2 => signed_permutation_order(2),  // D_2 = A_1 x A_1.
+        3 => a_root_automorphism_order(3), // D_3 = A_3.
+        4 => checked_pow2(3)?
+            .checked_mul(checked_factorial(4)?)?
+            .checked_mul(6), // triality: Aut(D_4 diagram) = S_3.
+        _ => checked_pow2(n)?.checked_mul(checked_factorial(n)?),
+    }
+}
+
 fn square_ge_scaled(r: u128, num: u128, den: u128) -> bool {
     match r.checked_mul(r).and_then(|rr| rr.checked_mul(den)) {
         Some(lhs) => lhs >= num,
@@ -198,18 +220,8 @@ impl RootComponentKind {
 
     fn automorphism_order(self) -> Option<u128> {
         match self {
-            RootComponentKind::A(n) => {
-                if n == 1 {
-                    Some(2)
-                } else {
-                    checked_factorial(n + 1)?.checked_mul(2)
-                }
-            }
-            RootComponentKind::D(n) => match n {
-                4 => Some(1152),
-                _ if n >= 5 => checked_pow2(n)?.checked_mul(checked_factorial(n)?),
-                _ => None,
-            },
+            RootComponentKind::A(n) => a_root_automorphism_order(n),
+            RootComponentKind::D(n) => d_root_automorphism_order(n),
             RootComponentKind::E(6) => Some(103_680),
             RootComponentKind::E(7) => Some(2_903_040),
             RootComponentKind::E(8) => Some(696_729_600),
@@ -935,20 +947,10 @@ impl IntegralForm {
         }
 
         if self.matches_a_cartan() {
-            return if n == 1 {
-                Some(2)
-            } else {
-                checked_factorial(n + 1)?.checked_mul(2)
-            };
+            return a_root_automorphism_order(n);
         }
         if self.matches_d_cartan() {
-            return match n {
-                0 | 1 => None,
-                2 => signed_permutation_order(2),
-                3 => Some(48),
-                4 => Some(1152),
-                _ => checked_pow2(n)?.checked_mul(checked_factorial(n)?),
-            };
+            return d_root_automorphism_order(n);
         }
         if self.matches_e6_cartan() {
             return Some(103_680);

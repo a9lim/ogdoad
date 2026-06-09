@@ -59,6 +59,14 @@ impl BaseField {
             BaseField::H => "H",
         }
     }
+
+    fn real_dimension_log2(self) -> usize {
+        match self {
+            BaseField::R => 0,
+            BaseField::C => 1,
+            BaseField::H => 2,
+        }
+    }
 }
 
 /// The isomorphism class of a char-0 Clifford algebra: a matrix algebra (or a
@@ -165,18 +173,19 @@ fn p2(k: usize) -> usize {
 }
 
 /// Classify the nondegenerate real Clifford algebra `Cl(p,q)` (no radical) by
-/// the 8-fold Bott table. `radical_dim`/`ground` are filled in by the callers.
+/// Bott periodicity. `radical_dim`/`ground` are filled in by the callers.
 fn real_core(p: usize, q: usize) -> (BaseField, usize, bool) {
     let n = p + q;
     let s = (q as i128 - p as i128).rem_euclid(8) as usize;
-    match s {
-        0 | 6 => (BaseField::R, p2(n / 2), false),
-        1 | 5 => (BaseField::C, p2((n - 1) / 2), false),
-        2 | 4 => (BaseField::H, p2((n - 2) / 2), false),
-        3 => (BaseField::H, p2((n - 3) / 2), true),
-        7 => (BaseField::R, p2((n - 1) / 2), true),
+    let base = match s {
+        0 | 6 | 7 => BaseField::R,
+        1 | 5 => BaseField::C,
+        2..=4 => BaseField::H,
         _ => unreachable!(),
-    }
+    };
+    let doubled = s % 4 == 3;
+    let matrix_exp = (n - base.real_dimension_log2() - usize::from(doubled)) / 2;
+    (base, p2(matrix_exp), doubled)
 }
 
 /// Classify a real Clifford algebra from its signature `(p, q, r)`.
@@ -194,11 +203,8 @@ pub fn classify_real(p: usize, q: usize, r: usize) -> CliffordType {
 
 /// Classify a complex Clifford algebra from `(n, r)` (nondegenerate dim, radical).
 pub fn classify_complex(n: usize, r: usize) -> CliffordType {
-    let (matrix_dim, doubled) = if n.is_multiple_of(2) {
-        (p2(n / 2), false)
-    } else {
-        (p2((n - 1) / 2), true)
-    };
+    let doubled = !n.is_multiple_of(2);
+    let matrix_dim = p2((n - usize::from(doubled)) / 2);
     CliffordType {
         base: BaseField::C,
         matrix_dim,
