@@ -67,7 +67,8 @@
 //! `≥ 5` always isotropic.)
 
 use crate::forms::function_field_char2::{
-    char2_monic_irreducible_factors, inverse_mod, strip_factor, trace_kappa_to_f2,
+    char2_monic_irreducible_factors, hensel_series, inverse_mod, ps_eval_poly, strip_factor,
+    trace_kappa_to_f2,
 };
 use crate::forms::{artin_schreier_class_finite, as_symbol_at, Char2Place, FiniteChar2Field};
 use crate::scalar::{Poly, RationalFunction, Scalar};
@@ -219,20 +220,16 @@ fn laurent_finite<S: FiniteChar2Field>(
         pmod = pmod.mul(p);
     }
     let e_inv = inverse_mod(&e, &pmod);
-    let mut b = ncof.mul(&e_inv).rem(&pmod); // g mod P^count
-    let mut digits = Vec::with_capacity(count);
-    for _ in 0..count {
-        let (q, r) = b.divrem(p);
-        digits.push(r); // g_k = k-th P-adic digit (deg < deg P) ∈ κ
-        b = q;
-    }
+    let b = ncof.mul(&e_inv).rem(&pmod); // g mod P^count
+    let t = hensel_series(p, count);
+    let coeffs = ps_eval_poly(&b, &t, count, p); // g(T(u)) in κ[[u]]
     let mut out = Vec::with_capacity(len);
     for n in n_lo..=n_hi {
         let i = n - val;
-        if i < 0 || (i as usize) >= digits.len() {
+        if i < 0 || (i as usize) >= coeffs.len() {
             out.push(Poly::zero());
         } else {
-            out.push(digits[i as usize].clone());
+            out.push(coeffs[i as usize].clone());
         }
     }
     out
@@ -385,59 +382,24 @@ fn local_is_pe<S: FiniteChar2Field>(c: &RationalFunction<S>, place: &Char2Place<
     e == 0 && r.is_empty()
 }
 
-fn split_poly_by_uniformizer<S: Scalar>(poly: &Poly<S>, pi: &Poly<S>) -> (Poly<S>, Poly<S>) {
-    let mut q = poly.clone();
-    let pi2 = pi.mul(pi);
-    let mut even = Poly::zero();
-    let mut odd = Poly::zero();
-    let mut pow = Poly::one();
-    let mut pow_level = 0usize;
-    let mut k = 0usize;
-    while !q.is_zero() {
-        let (next, digit) = q.divrem(pi);
-        let level = k / 2;
-        while pow_level < level {
-            pow = pow.mul(&pi2);
-            pow_level += 1;
-        }
-        let term = digit.mul(&pow);
-        if k & 1 == 0 {
-            even = even.add(&term);
-        } else {
-            odd = odd.add(&term);
-        }
-        q = next;
-        k += 1;
+fn dpoly<S: Scalar>(p: &Poly<S>) -> Poly<S> {
+    let cs = p.coeffs();
+    if cs.len() <= 1 {
+        return Poly::zero();
     }
-    (even, odd)
+    let mut out = vec![S::zero(); cs.len() - 1];
+    for (i, c) in cs.iter().enumerate().skip(1) {
+        if i & 1 == 1 {
+            out[i - 1] = c.clone();
+        }
+    }
+    Poly::new(out)
 }
 
-fn split_poly_by_x_parity<S: Scalar>(poly: &Poly<S>) -> (Poly<S>, Poly<S>) {
-    let mut even = Vec::new();
-    let mut odd = Vec::new();
-    for (i, c) in poly.coeffs().iter().cloned().enumerate() {
-        let out = if i & 1 == 0 { &mut even } else { &mut odd };
-        let j = i / 2;
-        if out.len() <= j {
-            out.resize_with(j + 1, S::zero);
-        }
-        out[j] = c;
-    }
-    (Poly::new(even), Poly::new(odd))
-}
-
-fn quotient_in_square_subfield<S: Scalar>(
-    num_even: Poly<S>,
-    num_odd: Poly<S>,
-    den_even: Poly<S>,
-    den_odd: Poly<S>,
-) -> bool {
-    // In K = K² ⊕ πK², (n0 + πn1)/(d0 + πd1) lies in K² iff
-    // n0*d1 + n1*d0 = 0. This is the purely-inseparable char-2 analogue of
-    // rationalising the denominator.
-    num_even
-        .mul(&den_odd)
-        .add(&num_odd.mul(&den_even))
+fn rational_derivative_is_zero<S: Scalar>(f: &RationalFunction<S>) -> bool {
+    dpoly(f.num())
+        .mul(f.den())
+        .add(&f.num().mul(&dpoly(f.den())))
         .is_zero()
 }
 
@@ -449,22 +411,7 @@ fn local_is_square<S: FiniteChar2Field>(f: &RationalFunction<S>, place: &Char2Pl
     if v & 1 != 0 {
         return false;
     }
-    match place {
-        Char2Place::Finite(p) => {
-            let (_, ncof) = strip_factor(f.num().clone(), p);
-            let (_, dcof) = strip_factor(f.den().clone(), p);
-            let (ne, no) = split_poly_by_uniformizer(&ncof, p);
-            let (de, do_) = split_poly_by_uniformizer(&dcof, p);
-            quotient_in_square_subfield(ne, no, de, do_)
-        }
-        Char2Place::Infinite => {
-            let nt = Poly::new(f.num().coeffs().iter().rev().cloned().collect());
-            let dt = Poly::new(f.den().coeffs().iter().rev().cloned().collect());
-            let (ne, no) = split_poly_by_x_parity(&nt);
-            let (de, do_) = split_poly_by_x_parity(&dt);
-            quotient_in_square_subfield(ne, no, de, do_)
-        }
-    }
+    rational_derivative_is_zero(f)
 }
 
 // ───────────────────────── the decomposition ─────────────────────────
@@ -1314,6 +1261,26 @@ mod tests {
             local_anisotropic_dim_char2(&Char2QuadForm::from_blocks(blocks), &p),
             Some(2)
         );
+    }
+
+    #[test]
+    fn degree_two_place_keeps_hensel_carries_in_asnf() {
+        // P = t²+t+1. In the completion at P,
+        // ℘(t/P) = (t/P)² + t/P = (t³+t)/P², so [1, ℘(t/P)] is hyperbolic.
+        // Treating polynomial P-adic digits as κ[[P]] coefficients drops the
+        // Hensel carries and leaves a false wild obstruction here.
+        let p_poly = p2(&[1, 1, 1]);
+        let place = Char2Place::Finite(p_poly.clone());
+        let p_sq = p_poly.mul(&p_poly);
+        let wp = R2::new(p2(&[0, 1, 0, 1]).coeffs().to_vec(), p_sq.coeffs().to_vec());
+
+        assert!(local_is_pe(&wp, &place));
+        let form = Char2QuadForm::from_blocks(vec![(r2(&[1], &[1]), wp)]);
+        let d = springer_decompose_local_char2(&form, &place);
+        assert_eq!((d.phi0, d.phi1), (0, 0));
+        assert!(d.psi.is_empty());
+        assert_eq!(local_anisotropic_dim_char2(&form, &place), Some(0));
+        assert_eq!(local_is_isotropic_char2(&form, &place), Some(true));
     }
 
     // ── global isotropy over F_q(t) (Hasse–Minkowski), source-pinned oracles ──

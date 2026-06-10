@@ -181,7 +181,7 @@ fn ps_inv<S: FiniteChar2Field>(a: &[Poly<S>], prec: usize, p: &Poly<S>) -> Vec<P
 
 /// Evaluate the `S`-polynomial `poly` at the κ-series `t` (Horner), truncated at
 /// `u^prec`.
-fn ps_eval_poly<S: Scalar>(
+pub(crate) fn ps_eval_poly<S: Scalar>(
     poly: &Poly<S>,
     t: &[Poly<S>],
     prec: usize,
@@ -207,7 +207,7 @@ fn kappa_inv<S: FiniteChar2Field>(z: &Poly<S>, p: &Poly<S>) -> Poly<S> {
 
 /// The Hensel series `T(u) ∈ κ[[u]]` with `T(0) = t mod P`, `P(T(u)) = u`, truncated
 /// at `u^prec`. Solved by linear lifting: `[u^k] P(T) = [k=1]` determines `t_k`.
-fn hensel_series<S: FiniteChar2Field>(p: &Poly<S>, prec: usize) -> Vec<Poly<S>> {
+pub(crate) fn hensel_series<S: FiniteChar2Field>(p: &Poly<S>, prec: usize) -> Vec<Poly<S>> {
     let alpha = Poly::monomial(1, S::one()).rem(p); // t mod P
     let mut t = vec![Poly::<S>::zero(); prec];
     if prec == 0 {
