@@ -13,6 +13,12 @@
 //!   [`bw_class_finite_odd`] (order-4, `≅ W(F_q)`), and [`bw_class_nimber`] (the
 //!   char-2 Arf/Witt class `ℤ/2`, nonsingular metrics only). The law is the
 //!   graded tensor product.
+//! * `brauer_rational` — the **ungraded** rational 2-torsion Brauer class
+//!   ([`Brauer2Class`]) as a set of ramified places: the Hasse–Witt invariant
+//!   ([`hasse_brauer_class`]) and the Clifford invariant ([`clifford_brauer_class`])
+//!   of a `ℚ`-form, which differ by the explicit `n mod 8` / discriminant correction
+//!   (Lam). The char-0/odd mirror of the char-2 Bridge B; kept strictly distinct
+//!   from the graded `brauer_wall` class.
 //!
 //! The mod-8 spine lives here: `BW(ℝ) ≅ ℤ/8` is the same periodicity as the char-0
 //! 8-fold Clifford table, Bott periodicity, and `E₈` as the rank-8 even unimodular
@@ -23,10 +29,12 @@
 //! numeric field invariants (level, u-invariant) the ring *implies* live separately
 //! in [`field_invariants`](crate::forms::field_invariants).
 
+mod brauer_rational;
 mod brauer_wall;
 mod class;
 mod ring;
 
+pub use brauer_rational::*;
 pub use brauer_wall::*;
 pub use class::*;
 pub use ring::*;

@@ -23,7 +23,12 @@ use std::collections::BTreeSet;
 use crate::scalar::{is_prime_u128, mul_mod_u128};
 
 /// A place of `Q`: the real place `ℝ`, or the `p`-adic place `Q_p`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// `Ord` (derived) sorts `Real` before every `Prime(p)` (declaration order), and
+/// `Prime` by the prime — so a `BTreeSet<Place>`/`BTreeMap<Place, _>` of ramified
+/// places enumerates `ℝ, Q_2, Q_3, …`, which the rational Brauer class
+/// ([`Brauer2Class`](crate::forms::Brauer2Class)) relies on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Place {
     Real,
     Prime(u128),

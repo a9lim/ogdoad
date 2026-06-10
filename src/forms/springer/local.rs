@@ -135,7 +135,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::{Fp, Laurent, Qp, Qq, Scalar};
+    use crate::scalar::{Fp, Laurent, NewtonPolygon, Poly, Qp, Qq, Scalar};
 
     /// The engine is genuinely generic: the same call decomposes a `Q_p` form and
     /// an `F_q((t))` form, reading each one's residue field through the trait.
@@ -191,5 +191,100 @@ mod tests {
         assert_eq!(d.graded[0].valuation, 1);
         assert!(!d.graded[0].disc_is_square, "ns is a nonsquare in F_9");
         assert!(d.graded[1].disc_is_square, "ns² is a square in F_9");
+    }
+
+    // --- Bridge J: every Newton slope IS a Springer residue layer (Prop. J.12) ---
+
+    /// `∏ (x − aᵢ)` over a [`Scalar`] base — the polynomial whose root valuations
+    /// are the entry valuations of the diagonal form `⟨aᵢ⟩`.
+    fn prod_x_minus<K: Scalar>(roots: &[K]) -> Poly<K> {
+        roots.iter().fold(Poly::one(), |f, a| {
+            f.mul(&Poly::new(vec![a.neg(), K::one()]))
+        })
+    }
+
+    /// The polygon shadow of `f_q = ∏(x − aᵢ)` equals the Springer bucket multiset
+    /// `{(valuation, dim)}`, and grouping the slopes by valuation parity reproduces
+    /// the `parity_layer` cardinalities (J.12(i), (iii)).
+    fn assert_polygon_is_springer_shadow<K>(roots: Vec<K>)
+    where
+        K: ResidueField,
+        K::Residue: FiniteOddField,
+    {
+        let sp = springer_decompose_local(&Metric::diagonal(roots.clone())).unwrap();
+        let f = prod_x_minus(&roots);
+        let np = NewtonPolygon::of(f.coeffs()).unwrap();
+
+        // The diagonal entries are units, so there are no zero roots and every root
+        // valuation is an integer (the entry valuations).
+        assert_eq!(np.zero_root_multiplicity(), 0);
+        let mut poly_side: Vec<(i128, usize)> = np
+            .root_valuations()
+            .into_iter()
+            .map(|(lam, mult)| {
+                assert!(lam.is_integer(), "entry valuations are integers");
+                (lam.numer(), mult as usize)
+            })
+            .collect();
+        let mut spr_side: Vec<(i128, usize)> =
+            sp.graded.iter().map(|g| (g.valuation, g.dim)).collect();
+        poly_side.sort();
+        spr_side.sort();
+        assert_eq!(poly_side, spr_side, "Newton shadow ≠ Springer buckets");
+
+        // J.12(iii): the two parity layers, by total dimension.
+        for parity in [0u128, 1] {
+            let spr: usize = sp.parity_layer(parity).iter().map(|g| g.dim).sum();
+            let poly: usize = np
+                .root_valuations()
+                .into_iter()
+                .filter(|(lam, _)| (lam.numer().rem_euclid(2) as u128) == parity)
+                .map(|(_, m)| m as usize)
+                .sum();
+            assert_eq!(spr, poly, "parity-{parity} layer cardinality");
+        }
+    }
+
+    #[test]
+    fn polygon_is_the_springer_shadow() {
+        // Q_5: valuations [0, 1, 0, 2, 1] across the entries.
+        assert_polygon_is_springer_shadow(vec![
+            Qp::<5, 8>::from_i128(1),
+            Qp::<5, 8>::from_i128(5),
+            Qp::<5, 8>::from_i128(7),
+            Qp::<5, 8>::from_i128(25),
+            Qp::<5, 8>::from_i128(10),
+        ]);
+        // F_7((t)): the equal-characteristic mirror, mixed valuations.
+        let l = |c: i128, val: usize| {
+            Laurent::<Fp<7>, 8>::from_coeffs(vec![Fp::<7>::new(c)], val as i128)
+        };
+        assert_polygon_is_springer_shadow(vec![l(1, 0), l(3, 1), l(2, 0), l(5, 2)]);
+        // Q_9 (unramified, residue F_9): a genuine extension residue.
+        type Q9 = Qq<3, 3, 2>;
+        assert_polygon_is_springer_shadow(vec![
+            Q9::from_int(1),
+            Q9::from_int(1).mul(&Q9::from_int(3)), // valuation 1
+            Q9::from_int(2),
+        ]);
+    }
+
+    /// J.12(i)–(ii) need no Witt theory, so the polygon outlives the Springer
+    /// decomposition: over residue characteristic 2, `NewtonPolygon::of` succeeds
+    /// while `springer_decompose_local` returns `None`.
+    #[test]
+    fn polygon_outlives_springer() {
+        // x² − 2 over Q_2: root valuation 1/2, but residue char 2 ⇒ no Springer.
+        let coeffs = vec![
+            Qp::<2, 8>::from_i128(-2),
+            Qp::<2, 8>::zero(),
+            Qp::<2, 8>::one(),
+        ];
+        assert!(NewtonPolygon::of(&coeffs).is_some());
+        assert!(springer_decompose_local(&Metric::diagonal(vec![
+            Qp::<2, 8>::from_i128(2),
+            Qp::<2, 8>::one()
+        ]))
+        .is_none());
     }
 }

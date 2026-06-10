@@ -10,9 +10,9 @@ or shortly after the first public release. It is deliberately distinct from
   transfinite Arf/Witt question for ordinal-nimber coefficients).
 - **`ROADMAP.md`** (this file) holds *buildable bridges* — connections between the
   four mature pillars whose mathematics is largely standard. It now has a
-  **built first wave** (Bridges A–D), a **partly built second wave** (Bridges
-  E/H/I implemented, Bridge F still proposed), the deferred Bridge G note, and a
-  **proposed third wave** (Bridges J/K/L) selected to *close threads already
+  **built first wave** (Bridges A–D), a **built second wave** (Bridges E/F/H/I
+  implemented), the deferred Bridge G note, and a **third wave** (Bridge J
+  implemented; K/L proposed) selected to *close threads already
   half-drawn* rather than to add a new cell to the table. This document keeps the
   mathematical contract, the implemented or proposed surfaces, and the remaining
   honest boundaries in one place. Where a bridge brushes against an open question,
@@ -316,10 +316,10 @@ All four bridges are independently implemented and tested in the Rust core:
 - **D:** `Ordinal` as a checked/panic-on-escape `Scalar`, `CliffordAlgebra<Ordinal>`
   engine tests, and finite-window ordinal Arf classification.
 
-The second-wave bridges **E, H, and I** are now implemented and tested in the Rust
-core: theta/modular forms, code↔lattice Construction A, and the discriminant-form
-Weil representation. Bridge F (the rational Brauer/Clifford invariant correction)
-remains a proposed build target.
+The second-wave bridges **E, F, H, and I** are now implemented and tested in the
+Rust core: theta/modular forms, code↔lattice Construction A, the discriminant-form
+Weil representation, and the rational Brauer/Clifford invariant correction
+(`forms/witt/brauer_rational.rs`).
 
 Remaining open edges are not implementation TODOs inside this roadmap: the natural
 Gold-quadric game rule, game-native quadratic deformation of `GameExterior`, and
@@ -327,13 +327,13 @@ the genuinely transfinite Arf/Witt classifier all stay in `OPEN.md`.
 
 ---
 
-# Second wave — E/H/I implemented, F proposed
+# Second wave — E/F/H/I implemented
 
 The first wave (A–D) closed the *pillar graph*: every pair of pillars that can talk
 now does. The second wave **deepens the spine** — it strengthens the mod-8 / `E₈` /
 local↔global thread the project is already built around, rather than reaching for a
-new pillar. Bridges **H, E, and I** below are now standard math made computational
-in the core; Bridge **F** remains design-only.
+new pillar. Bridges **E, F, H, and I** below are now standard math made
+computational in the core.
 
 Claim-level discipline still applies: each proposed bridge is **standard math made
 computational**, the same status A–D shipped at — *not* a new theorem. Where the
@@ -343,13 +343,13 @@ Clifford algebra).
 
 **Build order: H → E → I → F.** `codes.rs` (H) is the substrate and yields the
 `D₁₆⁺` lattice that the Bridge E headline needs; E is the visible punchline; I
-connects E back to the already-built Bridge A. Those three are built. F is the
-most careful remaining work and is independent of the other three. Bridge **G**
-(spinor genus) is noted at the end as a *deferred* bridge — classical but not
-buildable from the current surface.
+connects E back to the already-built Bridge A. F is the most careful piece (the
+`n mod 8`/disc correction) and is independent of the other three. All four are now
+built. Bridge **G** (spinor genus) is noted at the end as a *deferred* bridge —
+classical but not buildable from the current surface.
 
 ```
-            (built A–E, H, I; F still proposed)
+            (built A–I: A–D, then E, F, H, I)
    codes ──Construction A── integral/lattice ──θ series── modular forms   (E, H)
      │  MacWilliams              │   │                          ▲
    weight enum ↔ theta          │   └── discriminant form ──Weil rep──┘   (I)
@@ -596,13 +596,14 @@ Even lattices (so `q_L` is well-defined), matching Bridge A's boundary; matrices
 ## Bridge F — the rational Brauer class: Hasse invariant vs Clifford invariant
 
 **Pillars:** `clifford/` (even subalgebra) ↔ `forms/local_global/` (Hilbert symbols)
-↔ a new rational Brauer class in `forms/witt/`.
-**Claim level:** PROPOSED — standard math (Lam, *Introduction to Quadratic Forms
-over Fields*, Ch. V; Serre). The char-0/odd mirror of Bridge B (which classified
-the **char-2** Clifford algebra by its Arf/Brauer–Wall bit). **Read the corrected
-statement below** — the naive "Hasse invariant = Brauer class of the Clifford
-algebra" is *false*, and the codebase already declines to claim it
-(`forms/char0.rs` notes rational classification is not a full Brauer/BW class).
+↔ a rational Brauer class in `forms/witt/brauer_rational.rs`.
+**Claim level:** IMPLEMENTED AND TESTED — standard math (Lam, *Introduction to
+Quadratic Forms over Fields*, GSM 67, pp. 117–119; Serre). The char-0/odd mirror of
+Bridge B (which classified the **char-2** Clifford algebra by its Arf/Brauer–Wall
+bit). The naive "Hasse invariant = Brauer class of the Clifford algebra" is *false*,
+and the codebase already declined to claim it (`forms/char0.rs` notes rational
+classification is not a full Brauer/BW class); F adds the **corrected** ungraded
+rational class.
 
 ### The mathematics (corrected)
 
@@ -612,43 +613,61 @@ ramified places of even cardinality (`∏_v = +1`, Hilbert reciprocity, already 
 oracle in `local_global/`). Two **distinct** invariants of `⟨a₁,…,aₙ⟩`:
 
 ```text
-Hasse–Witt   s(q) = ∏_{i<j} (aᵢ, aⱼ)_v          (Serre; the per-place pieces are
+Hasse–Witt   s(q) = Σ_{i<j} (aᵢ, aⱼ)            (Serre; the per-place pieces are
                                                   already in hasse_at_place / hilbert_product)
-Clifford     c(q) = [ Cl⁰(q) ] ∈ Br[2]          (the class of the even Clifford algebra)
+Clifford     c(q) = [ C(q) ]   (n even)         (the Brauer class of the Clifford algebra;
+             c(q) = [ C₀(q) ]  (n odd)            the even part in odd rank)
 ```
 
-They are **not equal**. They differ by an explicit factor built from `(−1,−1)`,
-`(−1, d)`, `(d, d)` (`d = disc q`) determined by `n mod 8` — **Lam, Prop. V.3.20**
-(table). The honest bridge therefore verifies the *correction*, not an identity:
+They are **not equal**. They differ by an explicit `n mod 8` / discriminant term
+`δ` built from `(−1,−1)` and `(−1, d)` (`d = a₁·…·aₙ`, the **unsigned** disc) —
+Lam, GSM 67, pp. 117–119 (the same table SageMath's `clifford_invariant`
+implements). Additively in `Br(ℚ)[2]`:
+
+```text
+c(q) = s(q) + δ(n mod 8, d),   δ =  0                  for n ≡ 1, 2
+                                    (−1,−1) + (−1, d)   for n ≡ 3, 4
+                                    (−1,−1)             for n ≡ 5, 6
+                                    (−1, d)             for n ≡ 7, 0
+```
+
+The honest bridge verifies the *correction*, not an identity:
 
 1. forms side: `s(q)` from Hilbert products, then apply the `n mod 8`/`disc`
-   correction to obtain `c(q)`;
-2. clifford side: read the Brauer class of `Cl⁰(q)` directly for small forms (e.g.
-   identify the quaternion factor `(a, b)` of a ternary/quaternary form) as an
-   independent oracle.
+   correction `δ` to obtain `c(q)`;
+2. clifford side: read the Brauer class of the Clifford algebra directly for small
+   forms — `C(⟨a,b⟩) ≅ (a,b)` (n=2) and `C₀(⟨a,b,c⟩) ≅ (−ab, −ac)` (n=3, the
+   quaternion factor of the even subalgebra) — as the **independent** oracle.
 
 This is precisely the char-0 analogue of Bridge B: the algebra the `clifford` pillar
 builds, classified by the symbols the `forms` pillar computes — done correctly.
 
-### Proposed surface
+### Implemented surface
 
 - `forms/witt/brauer_rational.rs`
-  - `Brauer2Class { ramified: BTreeSet<Place> }` with XOR (symmetric-difference)
-    addition — the rational 2-torsion Brauer class as its ramification set.
-  - `hasse_brauer_class(entries: &[i128]) -> Brauer2Class` (Hilbert-symbol product
-    over all places of ℚ).
-  - `clifford_brauer_class(entries: &[i128]) -> Brauer2Class` (`hasse` + the
-    `n mod 8`/`disc` correction table).
-- A `clifford`-side reader for small forms (via `even_subalgebra` / quaternion
-  identification) as the independent oracle.
+  - `Brauer2Class { ramified: BTreeSet<Place> }` (private field) with `add` =
+    symmetric difference (XOR), `split`/`is_split`, `local_invariant`,
+    `satisfies_reciprocity`, and the `quaternion(a, b)` constructor (the class of
+    `(a,b)` over ℚ). The rational 2-torsion Brauer class as its ramification set.
+  - `hasse_brauer_class(entries: &[i128]) -> Option<Brauer2Class>` — the per-place
+    Hasse invariant collected into a ramification set.
+  - `clifford_brauer_class(entries: &[i128]) -> Option<Brauer2Class>` — `hasse` +
+    the `n mod 8`/`disc` correction `δ`. `None` on a zero entry (radical) or
+    bounded-arithmetic overflow.
+- `Place` (in `local_global/padic.rs`) gained `Ord`/`PartialOrd` so the
+  ramification set is a `BTreeSet` (ℝ before `Q_2`, `Q_3`, …).
 
-### Oracles / proposed tests
+### Oracles / implemented tests
 
-- Reciprocity: every `Brauer2Class` has `|ramified|` even.
-- Known algebras: `⟨1,−1⟩` split (∅ ramified); `⟨−1,−1,−1⟩` → Hamilton quaternions,
-  ramified `{2, ∞}`; a spread of ternary/quaternary forms across each `n mod 8`.
-- The correction table itself: `c(q)` vs `s(q)` per dimension class.
-- Agreement with `bw_class_real` / Witt `e₂` where the surfaces overlap.
+- Reciprocity: every class has `|ramified|` even (`satisfies_reciprocity`), over a
+  sweep of rank-2…6 forms.
+- Known algebras: `⟨1,−1⟩` split (∅ ramified); `⟨−1,−1,−1⟩` and `⟨1,1,1⟩` →
+  Hamilton quaternions, ramified `{ℝ, Q_2}` — with `⟨1,1,1⟩` showing `s = 0` while
+  `c = (−1,−1)`, the sharpest demonstration that `c ≠ s`.
+- The **independent** clifford-side oracle, over sweeps: `clifford(⟨a,b⟩) = (a,b)`
+  (n=2) and `clifford(⟨a,b,c⟩) = (−ab,−ac)` (n=3); rank-1 always split.
+- The correction table itself: `c(q) = s(q) + δ` checked across `n = 1…8`, with `δ`
+  recomputed independently in the test from `Brauer2Class::quaternion`.
 
 ### Scope / caveats
 
@@ -675,7 +694,7 @@ stays out of the second wave, adjacent to `OPEN.md` rather than scheduled here.
 
 ---
 
-# Third wave — proposed (J/K/L)
+# Third wave — J implemented; K/L proposed
 
 These three came out of a deliberate "deepen, don't sprawl" review. The project is
 near-saturated on the **place axis** — the cells are filled, the (field, ring-of-
@@ -697,11 +716,12 @@ computational**, the same status A–I shipped at — not a new theorem.
 
 ## Bridge J — the valuation as tropicalization; Newton polygons as tropical curves
 
-**Pillars:** `scalar/tropical` ↔ `scalar/valued` ↔ the local-field backends
-(`small/`, `functor/`, `global/`) ↔ `forms/springer` ↔ `forms/poly_factor`.
-**Claim level:** PROPOSED — standard math (tropical geometry; Newton–Puiseux; valuation
-theory) made computational. The on-thesis **twin of the already-shipped "thermography
-= tropical arithmetic" identity**, applied to the *place axis* instead of the game axis.
+**Pillars:** `scalar/tropical` ↔ `scalar/valued` ↔ `scalar/newton` ↔ the local-field
+backends (`small/`, `functor/`, `global/`) ↔ `forms/springer`.
+**Claim level:** IMPLEMENTED AND TESTED — standard math (tropical geometry;
+Newton–Puiseux; valuation theory) made computational. The on-thesis **twin of the
+already-shipped "thermography = tropical arithmetic" identity**, applied to the
+*place axis* instead of the game axis.
 
 ### The mathematics
 
@@ -734,33 +754,41 @@ filtration**: each Newton slope *is* a residue layer. This closes a real asymmet
 thermography names its option-fold `⊕` and cooling `⊗`; the valuation does the
 identical algebra on the scalar side and currently says so nowhere.
 
-### Proposed surface
+### Implemented surface
 
-- `scalar/valued.rs` — document `Valued::valuation` as the (lax) tropicalization morphism
-  into `Tropical<MinPlus>`; optionally a thin `fn tropicalize(&self) -> Tropical<MinPlus>`
-  adaptor (no new math — it names the existing map; its proptest is truncation-safe).
-- a new `NewtonPolygon::of(coeffs: &[K]) -> NewtonPolygon` over any `K: Valued`.
-  **Orientation trap (caught in the formalization pass):** with points `(i, v(aᵢ))`, a
-  side of slope `−λ` carries roots of valuation `+λ`, so expose
-  `root_valuations() -> Vec<(Rational, u128)>` (negated slopes + horizontal lengths =
-  multiplicities) rather than make callers negate; slopes are `Rational`, since root
-  valuations can be fractional even though `Γ = ℤ` (the `Ramified` `xᴱ − ϖ` case). The
-  slope theorem needs `K` complete/henselian (Koblitz; Neukirch); Dumas gives additivity.
-  Exact over `Qp`/`Qq`/`Laurent`/`Ramified`, exact-outright over `F_q(t)`.
-- a slope ↔ Springer-residue-layer cross-check: the Newton polygon **is** the Springer
-  decomposition under tropicalization — it sees `(valuation, dim)` per layer and forgets
-  the residue square class, giving the forgetful hierarchy `NP(f_q) ≺ {in_λ(f_q)} ≺ q`.
+- `scalar/valued.rs` — the `Valued` trait docs name `valuation` as the (lax)
+  tropicalization morphism into `Tropical<MinPlus>`, plus the free adaptor
+  `tropicalize<K: Valued>(x: &K) -> Tropical<MinPlus>` (no new math — it names the
+  existing map; its tests are truncation-safe).
+- `scalar/newton.rs` — `NewtonPolygon::of(coeffs: &[K]) -> Option<NewtonPolygon>`
+  over any `K: Valued` (the lower convex hull of `(i, v(aᵢ))`; `None` for the zero
+  polynomial). **Orientation trap (caught in the formalization pass):** with points
+  `(i, v(aᵢ))`, a side of slope `−λ` carries roots of valuation `+λ`, so
+  `root_valuations() -> Vec<(Rational, u128)>` returns the **negated** slopes (with
+  horizontal lengths = multiplicities) while `slopes()` is the literal hull view;
+  slopes are `Rational`, since root valuations can be fractional even though `Γ = ℤ`
+  (the `Ramified` `xᴱ − ϖ` case). Also `zero_root_multiplicity()` (roots at `0`,
+  valuation `+∞`) and `degree()`. Exact over `Qp`/`Qq`/`Laurent`/`Ramified`,
+  exact-outright over the `F_q(t)` completion (the `Laurent` leg).
+- a slope ↔ Springer-residue-layer cross-check (in `forms/springer/local.rs` tests):
+  the Newton polygon **is** the Springer decomposition under tropicalization — it
+  sees `(valuation, dim)` per layer and forgets the residue square class, the
+  forgetful hierarchy `NP(f_q) ≺ {in_λ(f_q)} ≺ q`.
 
-### Oracles / proposed tests
+### Oracles / implemented tests
 
-- Eisenstein polynomials: a single slope `1/n` ⟹ totally ramified/irreducible (ties to
-  `Ramified`).
-- `x² − p` over `Q_p`: slope `1/2`, agreeing with `newton_sqrt`/ramification.
-- a product of distinct-slope factors reconstructs the polygon (additivity of horizontal
-  lengths).
-- an integral polynomial has all-zero slopes ⟺ every root is a unit (nonzero residue
-  reduction).
-- slope count agrees with the Springer residue-layer count on the discretely-valued legs.
+- The tropicalization laws (J.1): multiplicativity, the `⊕`-internal subadditivity,
+  and equality off the vanishing locus — over `Qp`/`Qq`/`Laurent`, truncation-safe.
+- Eisenstein `xᴱ − p`: a single slope, every root valuation `1/E`, cross-checked
+  against the `Ramified` renormalization `Ramified::<…, E>::pi().valuation() = 1`.
+- `x² − p` over `Q_p`: root valuation `1/2`, agreeing with `Qp::is_square = false`.
+- Dumas additivity: a product of distinct-slope factors reconstructs the polygon.
+- a monic integral polynomial has an all-flat polygon ⟺ `a₀` a unit ⟺ unit roots;
+  zero roots (`+∞`) tracked separately; negative-valuation (pole) roots.
+- `polygon_is_the_springer_shadow`: the side multiset `{(valuation, mult)}` equals
+  the Springer buckets `{(valuation, dim)}` over `Q_5`/`Q_9`/`F_7((t))`, and the
+  parity grouping reproduces `parity_layer`; `polygon_outlives_springer`: over
+  residue char 2 the polygon succeeds while Springer returns `None`.
 
 ### Scope / caveats
 
@@ -899,18 +927,18 @@ roadmap, not inside its build order.
 
 ## Third-wave status snapshot
 
-All three are **proposed**, none implemented:
+**J is implemented and tested; K and L remain proposed:**
 
-- **J:** the highest thesis-per-line item and the most self-contained — names the
-  valuation as the tropicalization `scalar/tropical.rs` already defines, and adds Newton
-  polygons (tropical curves) over the valued legs. Recommended first build.
+- **J (built):** names the valuation as the tropicalization `scalar/tropical.rs`
+  already defines (the `tropicalize` adaptor), and adds Newton polygons (tropical
+  curves) over the valued legs in `scalar/newton.rs`, with the slope ⟺ Springer
+  residue-layer cross-check.
 - **K:** lifts the existing 2-torsion Brauer surface to the full `ℚ/ℤ` invariant via
-  cyclic algebras built from the Galois data Bridge C already exposes; shares a class type
-  with the still-proposed Bridge F.
+  cyclic algebras built from the Galois data Bridge C already exposes; shares a class
+  type with the now-built Bridge F (`Brauer2Class` is its 2-torsion `½`-slice).
 - **L:** the deferred large wing — the char-`p` Drinfeld/Carlitz mirror of `integral/`,
   noted for completeness like Bridge G.
 
-Recommended order overall: **finish F → build J → build K → (optionally) L.** F is
-already de-risked (its corrected `n mod 8`/disc statement is written out in its section);
-J is the cleanest standalone; K extends the Brauer thread F opens; L is a project-scope
-decision, not a task.
+Recommended order overall: **F → J done; build K → (optionally) L.** K extends the
+Brauer thread F opened (generalizing `Brauer2Class` to a full-`ℚ/ℤ` `BrauerClass`);
+L is a project-scope decision, not a task.
