@@ -11,10 +11,12 @@ or shortly after the first public release. It is deliberately distinct from
 - **`ROADMAP.md`** (this file) holds *buildable bridges* — connections between the
   four mature pillars whose mathematics is largely standard. It now has a
   **built first wave** (Bridges A–D), a **partly built second wave** (Bridges
-  E/H/I implemented, Bridge F still proposed), and the deferred Bridge G note.
-  This document keeps the mathematical contract, the implemented or proposed
-  surfaces, and the remaining honest boundaries in one place. Where a bridge
-  brushes against an open question, it says so and points back to `OPEN.md`.
+  E/H/I implemented, Bridge F still proposed), the deferred Bridge G note, and a
+  **proposed third wave** (Bridges J/K/L) selected to *close threads already
+  half-drawn* rather than to add a new cell to the table. This document keeps the
+  mathematical contract, the implemented or proposed surfaces, and the remaining
+  honest boundaries in one place. Where a bridge brushes against an open question,
+  it says so and points back to `OPEN.md`.
 
 Use the project's claim-level discipline (`AGENTS.md` → "Claim levels and
 non-claims") when these land: label each piece **standard math** / **implemented
@@ -670,3 +672,245 @@ is **Eichler's theorem** as a documented predicate — *indefinite, rank ≥ 3* 
 genus = isometry class — which would let `Genus` upgrade to a class statement in
 exactly that regime. The full definite-lattice computation is a larger build; it
 stays out of the second wave, adjacent to `OPEN.md` rather than scheduled here.
+
+---
+
+# Third wave — proposed (J/K/L)
+
+These three came out of a deliberate "deepen, don't sprawl" review. The project is
+near-saturated on the **place axis** — the cells are filled, the (field, ring-of-
+integers) pairings are structural, the 2×2 functor table has all four corners — so
+the high-leverage moves are no longer *new number systems*. They are (i) connecting
+a thread that is currently marooned on one pillar, (ii) lifting an invariant that is
+already present in a degenerate shadow to full strength, and (iii) the one *new
+wing* that earns its place by completing a whole-pillar symmetry rather than diluting
+the thesis. Each closes something already half-drawn.
+
+Claim-level discipline still applies: every piece below is **standard math made
+computational**, the same status A–I shipped at — not a new theorem.
+
+```
+   scalar/tropical ──valuation = tropicalization── scalar/valued ──Newton polygon── poly_factor / springer   (J)
+   CyclicGaloisExt ──cyclic algebra (χ,a)── brauer (full ℚ/ℤ) ──norm form── trace_form                       (K)
+   F_q[t] ⊂ F_q(t) ──Carlitz / Drinfeld── (char-p mirror of) integral/{theta,modular,codes}                  (L, deferred)
+```
+
+## Bridge J — the valuation as tropicalization; Newton polygons as tropical curves
+
+**Pillars:** `scalar/tropical` ↔ `scalar/valued` ↔ the local-field backends
+(`small/`, `functor/`, `global/`) ↔ `forms/springer` ↔ `forms/poly_factor`.
+**Claim level:** PROPOSED — standard math (tropical geometry; Newton–Puiseux; valuation
+theory) made computational. The on-thesis **twin of the already-shipped "thermography
+= tropical arithmetic" identity**, applied to the *place axis* instead of the game axis.
+
+### The mathematics
+
+`scalar/tropical.rs` (the `Semiring`, min-plus / max-plus) is currently consumed
+**only** by `games/tropical_thermography` — it is marooned on the games side. Yet the
+valuation `v : K* → Γ` on every discretely-valued backend tropicalizes `K`: it is a
+**homomorphism of multiplicative monoids** into `(Γ ∪ {∞}, min, +)`, **lax (subadditive)
+for addition**, strict off the tropical vanishing locus:
+
+```text
+v(x·y)  = v(x) + v(y)                       (the tropical ⊗ — strict)
+v(x + y) ≥ min(v(x), v(y))                  (the tropical ⊕ — lax)
+v(x + y) = min(v(x), v(y))   if v(x) ≠ v(y) (strict off the vanishing locus)
+```
+
+So the whole `Valued` stack already **is** the tropicalization map; the project computes
+it everywhere and names it as such nowhere. (**Honest correction from the formalization
+pass:** "*is* the tropicalization" is meant **laxly** — no discretely-valued field admits
+a *strict* additive homomorphism onto `ℤ_trop`; strictness is restored only by the
+tropical **hyperfield** [Viro 2010], or by taking the three lines above as the
+*definition* of a valuation [Maclagan–Sturmfels Ch. 2]. The slogan must not claim
+strictness.) The payoff object is the **Newton
+polygon**: for `f = Σ aᵢ xⁱ ∈ K[x]`, the lower convex hull of `(i, v(aᵢ))` is a
+tropical curve whose **slopes are exactly the valuations of the roots** (horizontal
+length = multiplicity), and whose break structure controls factorization into pieces
+of distinct root-valuation — the discrete-valuation refinement `poly_factor` / Hensel
+already half-use. The Springer decomposition's "two residue layers survive because the
+value group is `ℤ`" is precisely the **graded pieces of the valuation/tropical
+filtration**: each Newton slope *is* a residue layer. This closes a real asymmetry —
+thermography names its option-fold `⊕` and cooling `⊗`; the valuation does the
+identical algebra on the scalar side and currently says so nowhere.
+
+### Proposed surface
+
+- `scalar/valued.rs` — document `Valued::valuation` as the (lax) tropicalization morphism
+  into `Tropical<MinPlus>`; optionally a thin `fn tropicalize(&self) -> Tropical<MinPlus>`
+  adaptor (no new math — it names the existing map; its proptest is truncation-safe).
+- a new `NewtonPolygon::of(coeffs: &[K]) -> NewtonPolygon` over any `K: Valued`.
+  **Orientation trap (caught in the formalization pass):** with points `(i, v(aᵢ))`, a
+  side of slope `−λ` carries roots of valuation `+λ`, so expose
+  `root_valuations() -> Vec<(Rational, u128)>` (negated slopes + horizontal lengths =
+  multiplicities) rather than make callers negate; slopes are `Rational`, since root
+  valuations can be fractional even though `Γ = ℤ` (the `Ramified` `xᴱ − ϖ` case). The
+  slope theorem needs `K` complete/henselian (Koblitz; Neukirch); Dumas gives additivity.
+  Exact over `Qp`/`Qq`/`Laurent`/`Ramified`, exact-outright over `F_q(t)`.
+- a slope ↔ Springer-residue-layer cross-check: the Newton polygon **is** the Springer
+  decomposition under tropicalization — it sees `(valuation, dim)` per layer and forgets
+  the residue square class, giving the forgetful hierarchy `NP(f_q) ≺ {in_λ(f_q)} ≺ q`.
+
+### Oracles / proposed tests
+
+- Eisenstein polynomials: a single slope `1/n` ⟹ totally ramified/irreducible (ties to
+  `Ramified`).
+- `x² − p` over `Q_p`: slope `1/2`, agreeing with `newton_sqrt`/ramification.
+- a product of distinct-slope factors reconstructs the polygon (additivity of horizontal
+  lengths).
+- an integral polynomial has all-zero slopes ⟺ every root is a unit (nonzero residue
+  reduction).
+- slope count agrees with the Springer residue-layer count on the discretely-valued legs.
+
+### Scope / caveats
+
+- Discretely-valued legs only. The **divisible**-value-group surreal leg has no integer
+  Newton lattice — the same boundary `springer/surreal.rs` already documents, and itself
+  an instance of the local↔global symmetry, not a gap.
+- The capped-precision models give Newton data valid to their precision horizon; flag the
+  truncation as those backends already do.
+- Tropical here is `MinPlus` (valuations); the `MaxPlus` dual is the thermography
+  convention. Note the sign mirror rather than duplicating the semiring.
+
+### Formalized
+
+The full lemmas — J.1 (valuation↔tropical dictionary, with the lax/strict subtlety),
+J.3 (graded ring `gr_v K ≅ k[u,u⁻¹]`), J.5 (slope theorem, with proof), J.6 (Dumas
+additivity), J.7 (Eisenstein ↔ the `Ramified` renormalization), J.12 (each Newton slope
+**is** a Springer residue layer) — with proofs, the witness tests, and references
+(Springer; Lam; Koblitz; Neukirch; Dumas; Serre; Maclagan–Sturmfels; Viro; Stichtenoth)
+are drafted in `BRIDGES-DRAFT.md`.
+
+## Bridge K — cyclic algebras: the full `ℚ/ℤ` Brauer invariant from the Galois data
+
+**Pillars:** `scalar/…CyclicGaloisExtension` ↔ a new rational/cyclic Brauer class in
+`forms/witt/` ↔ `forms/local_global/adelic` (the exact sequence) ↔ `forms/trace_form`
+(the norm form).
+**Claim level:** PROPOSED — standard math (local class field theory; the cyclic-algebra
+invariant map; Serre, *Local Fields*). Lifts the **2-torsion** Brauer surface already in
+`adelic.rs` to the full **`Br(K_v) = ℚ/ℤ`** image. The natural completion of the
+Brauer thread (and the home Bridge F's rational Clifford invariant sits inside).
+
+### Context: what already exists, and the cap
+
+`local_global/adelic.rs` already builds `brauer_local_invariants` (`inv_v ∈ {0, ½}`),
+`brauer_invariant_sum`, and documents the fundamental exact sequence
+`0 → Br(ℚ) → ⊕_v Br(ℚ_v) → ℚ/ℤ → 0`. But the local invariant only sees **quaternion**
+(degree-2, 2-torsion) classes, so the sequence is realized only in its `½ℤ/ℤ` shadow.
+
+### The mathematics
+
+A cyclic extension `E/K` of degree `n` with a distinguished generator `σ` and an element
+`a ∈ K*` defines the **cyclic algebra** `(χ_σ, a) = ⊕_{i<n} E·uⁱ`, with `uⁿ = a` and
+`u·x = σ(x)·u`. Its class generates `Br(E/K)`, and when `E/K_v` is **unramified** with `σ`
+the arithmetic Frobenius, the local **invariant map** sends `(χ_σ, a) ↦ v(a)/n ∈
+(1/n)ℤ/ℤ ⊂ ℚ/ℤ` — the *full* local Brauer group, not just its 2-torsion. So the project
+already owns every input — the cyclic Galois data (`σ`, the basis), the local valuations,
+the reciprocity sum — and is one constructor away from the full invariant.
+
+Three corrections the formalization pass pinned (full statements in `BRIDGES-DRAFT.md`):
+
+- **Ramified caveat (load-bearing).** `v(a)/n` is the invariant *only* when `E/K_v` is
+  **unramified**; the ramified case needs the general local symbol. Scope the surface to
+  unramified-at-`v` data — it suffices for everything below.
+- **Where full-strength reciprocity lives.** Over `ℚ`, Minkowski forces every cyclic
+  `E/ℚ` of degree `>1` to ramify somewhere, so an `n>2` reciprocity test over `ℚ` needs
+  ramified symbols. The clean route is `F_q(t)`: the **constant extension** `F_{qⁿ}(t)`
+  is unramified at *every* place, `Frob_v = σ^{deg v}`, and `Σ_v inv_v = (1/n)·deg(div a)
+  = 0` — full `ℚ/ℤ` reciprocity reduces to "principal divisors have degree 0", the
+  product formula the function-field layer already embodies.
+- **The `trace_form` tie is loose as a one-liner.** `Nrd` is degree-`n`, not quadratic;
+  the quadratic companion is the algebra trace form `T_A(z) = Trd(z²)`, which
+  `assemble_twisted_form` already builds block-by-block. Honest cases: `n=2` char≠2 gives
+  `Nrd ≅ ½Q₁ ⟂ (−a/2)Q₁`; `n=2` char 2 *is* the Artin–Schreier symbol Pfister form
+  already shipped in `function_field_char2.rs`. So `cyclic_algebra_trace_form` is a
+  composition, not new math.
+
+### Proposed surface
+
+- generalize the (proposed Bridge F) `Brauer2Class` to
+  `BrauerClass { local: BTreeMap<Place, Rational /* in ℚ/ℤ */> }` with additive
+  (mod-`ℤ`) law; the quaternion case is the `½` slice. (`Place` needs an `Ord` derive.)
+- `cyclic_algebra_invariant(E, a) -> Rational` `= v(a)/n (mod 1)` for the **unramified**
+  local class; `None` on the capped-precision boundary (never a wrong value).
+- `constant_extension_invariants(n, a)` over `F_q(t)` — `inv_v = deg(v)·v(a)/n`, the exact
+  full-`ℚ/ℤ` reciprocity oracle (everywhere unramified, no ramified symbols needed).
+- tie `(χ_σ, a)`'s **trace form** `T_A(z) = Trd(z²)` to `trace_form` as the independent
+  oracle (the degree-2 norm-form identity is the cleanest instance).
+
+### Oracles / proposed tests
+
+- Reciprocity at full strength: `Σ_v inv_v ≡ 0 (mod ℤ)` for degree-`n` cyclic classes,
+  not only for `½`.
+- the degree-2 cyclic class reproduces the existing quaternion `brauer_local_invariants`.
+- an unramified cyclic class has `inv_v = 0` at the good places.
+- Bridge F's rational Clifford invariant embeds as the 2-torsion part — the two proposed
+  bridges share one class type, F supplying the char-0 Clifford correction and K the full
+  `ℚ/ℤ` lift.
+
+### Scope / caveats
+
+- **Unramified-at-`v` only** for the `v(a)/n` formula (ramified local symbols are out of
+  scope; the `F_q(t)` route delivers full `ℚ/ℤ` strength without them). Reads only `v(a)`,
+  `n`, `deg(v)`, so the invariant is **exact** even over the capped-precision local models.
+- **Finite legs carry no Brauer content.** Over `Nimber`/`Fpn` every central simple algebra
+  splits (Wedderburn), so the Gold forms have no `inv`; their classifier is Arf/Brauer–Wall
+  (Bridge B). Bridge K lives only on the local/global legs (`Qq`, `Adele` places, `F_q(t)`, `ℝ`).
+- This is the **ungraded** Brauer group; keep it distinct from the graded `BrauerWallClass`
+  exactly as the Bridge F section insists. Full lemmas, the convention fix (arithmetic
+  Frobenius, `χ_σ(σ)=+1/n`), and the proposed tests are drafted in `BRIDGES-DRAFT.md`.
+
+## Bridge L — the char-`p` mirror of the integral pillar (deferred, large)
+
+**Pillars:** `scalar/global/function_field` (`F_q(t)`, `F_q[t]`) ↔ a large new
+Drinfeld/Carlitz layer ↔ `forms/integral/{theta,modular,codes}`.
+**Claim level:** PROPOSED but **large** — standard math (Goss, *Basic Structures of
+Function Field Arithmetic*; Gekeler, Drinfeld modular forms; Goppa / AG codes). Noted
+like Bridge G: real and on-thesis, **not** scheduled into a build order.
+
+### The mirror
+
+The entire `integral/` wing — even-unimodular `ℤ`-lattices, `θ`-series,
+`M_*(SL₂ℤ) = ℂ[E₄, E₆]`, Construction-A codes, Leech — is char-0. The project already
+ships **exact** `F_q[t] ⊂ F_q(t)`, the char-`p` global field, and its arithmetic carries
+a complete mirror of the integral pillar:
+
+- the **Carlitz module** `C_t(x) = t·x + x^q` is the char-`p` analogue of `exp` / the
+  lattice exponential; the mirror of `E₄, E₆` are **Drinfeld modular forms** for
+  `GL₂(F_q[t])`, with Goss `ζ`-values mirroring the Eisenstein constants.
+- rank-`r` `F_q[t]`-lattices mirror even-unimodular `ℤ`-lattices and their reduction
+  theory.
+- **Goppa / algebraic-geometry codes** from function fields would tie *straight back into
+  the existing `codes.rs`* Construction-A machinery — the same code↔lattice seam, read in
+  characteristic `p`.
+
+This is the `No ↔ On₂` / char-0 ↔ char-2 move applied to the richest pillar — the most
+*on-thesis* possible "new structure," which is exactly why it earns a mention while
+smaller additions do not.
+
+### Why deferred
+
+A genuine new wing (Drinfeld modules, the Carlitz exponential, rank-`r` reduction
+theory): weeks of work, specialized, and worth starting only if the goal is a *second
+headline pillar* rather than finishing the first. Like G, it sits adjacent to the
+roadmap, not inside its build order.
+
+---
+
+## Third-wave status snapshot
+
+All three are **proposed**, none implemented:
+
+- **J:** the highest thesis-per-line item and the most self-contained — names the
+  valuation as the tropicalization `scalar/tropical.rs` already defines, and adds Newton
+  polygons (tropical curves) over the valued legs. Recommended first build.
+- **K:** lifts the existing 2-torsion Brauer surface to the full `ℚ/ℤ` invariant via
+  cyclic algebras built from the Galois data Bridge C already exposes; shares a class type
+  with the still-proposed Bridge F.
+- **L:** the deferred large wing — the char-`p` Drinfeld/Carlitz mirror of `integral/`,
+  noted for completeness like Bridge G.
+
+Recommended order overall: **finish F → build J → build K → (optionally) L.** F is
+already de-risked (its corrected `n mod 8`/disc statement is written out in its section);
+J is the cleanest standalone; K extends the Brauer thread F opens; L is a project-scope
+decision, not a task.

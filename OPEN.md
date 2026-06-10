@@ -104,6 +104,44 @@ The naturality dichotomy:
   the nim product, Frobenius, or coordinate-frame data if a naturality criterion
   justifies them, but it must not simply evaluate `Q_a(x)`.
 
+The extraspecial-group reframing (interpretation; explains the misère obstruction):
+
+A characteristic-2 quadratic form `Q` on `V = F_2^n` with polar form `B` is **the same
+data as an extraspecial-type central extension**
+
+```text
+1 -> Z/2 -> E -> V -> 0,
+```
+
+whose commutator pairing is `B` and whose **squaring map** `x -> x^2` (landing in the
+center `Z/2`) **is** `Q`, because `(xy)^2 = x^2 y^2 (-1)^{B(x,y)}` gives
+`Q(x+y) = Q(x) + Q(y) + B(x,y)` for free. The Arf invariant is exactly what classifies
+the two extraspecial 2-groups of order `2^{1+2n}` (the `D_8`-central-product "+" type
+versus the `Q_8`-central-product "-" type). This is standard math — the Heisenberg /
+Weil-representation picture, adjacent to the already-built Bridge I (`weil_s`/`weil_t`).
+
+It bites on the misère probe. `experiments/misere_kernel.py` found that on `R8` the
+kernel `K = (Z/2)^2` and `P cap K` is **linear** — the genuine misère P-element lies
+outside the group where a vector-space quadric framing applies. The reframing **predicts
+that obstruction**: a misère quotient is a *commutative* monoid, so its unit group is
+abelian, hence its intrinsic commutator pairing is trivial, hence its squaring map can
+realize only the **split** refinement (`B = 0`, `Q = 0` on that part). A *nondegenerate*
+`B` — which a Gold form has on its nonsingular core — is the commutator pairing of a
+**nonabelian** extraspecial group and therefore **cannot** arise from any abelian
+structure's own multiplication. So the linear obstruction is forced, not unlucky, and the
+quadratic datum `q_i = Q(e_i)` must enter from a genuinely **noncommutative** source —
+which, in game terms, is the one structural noncommutativity normal/partizan play has and
+the symmetric polar form `B` discards: the **first-/second-player asymmetry** (the
+directedness of the move relation).
+
+This yields a candidate **Tier-2 naturality criterion** strictly between the two solved
+tiers: require the rule to realize the *extraspecial squaring map* of `B` — equivariant
+under the extension `E`, **not** merely under `Sp(B)`. That sits properly between
+frame-blind `Sp(B)` (Tier 1, the no-go) and direct `Q_a`-evaluation (Tier 3,
+tautological), because `E` is a proper central extension of `V`: it carries the `q_i`
+data structurally without being a `Q`-evaluator. Status: **interpretation/open** — it
+explains a documented obstruction and sharpens the target; it does not exhibit a game.
+
 Concrete progress targets:
 - Formalize a naturality criterion: equivariance, locality, encoding complexity,
   basis/framing access, or a combination of these.
@@ -114,6 +152,14 @@ Concrete progress targets:
   whose P-set, Loss-set, Draw-set, or canonical kernel set is a Gold quadric.
 - Explain whether the diagonal refinement `q_i = Q(e_i)` has a game-native source,
   or prove that every acceptable source collapses to a split/incorrect refinement.
+- Test the extraspecial criterion directly: for each existing route (`kernel`,
+  `loopy` Draw-set, misère quotient), decide whether its symmetry group is the full
+  extraspecial `E` or only `Sp(B)`/an abelian quotient. The reframing predicts the
+  abelian ones cannot host a nondegenerate Gold form; an `E`-equivariant route would
+  be the first Tier-2 candidate.
+- Prove (or refute) the abelian-obstruction claim in general: that no commutative
+  game monoid's intrinsic squaring map realizes a nondegenerate characteristic-2
+  polar form, so the `q_i` data must come from the first/second-player asymmetry.
 
 Relevant surfaces:
 - `writeups/goldarf.tex`

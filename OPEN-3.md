@@ -225,6 +225,27 @@ E / f = 3504820
 
 Frobenius conjugates without materializing the giant term algebra.
 
+## Shared Norm Primitive (cross-reference)
+
+The structural norm the `p=719` wall needs —
+`Norm_{F_{2^E}/F_{2^f}}(beta) = prod_{i} Frob^i(beta)` computed *structurally* over the
+Frobenius orbit rather than by materializing the orbit — is the **same primitive** the
+proposed `ROADMAP.md` Bridge K (cyclic-algebra Brauer invariants) is built on: a cyclic
+algebra `(chi_sigma, a)` has reduced norm `Norm_{E/K}` over a Frobenius-generated cyclic
+extension, exactly the relative norm the `trace_form`/`FieldExtension` layer already
+exposes for the bounded finite fields.
+
+The settings differ — here the component field is a huge / transfinite term algebra, not
+a bounded `Fpn` backend, so the existing `FieldExtension::relative_norm` does **not**
+apply as-is. But the *shape* is identical (a relative norm as a product over a Frobenius
+orbit, evaluated by a recurrence rather than by listing conjugates). The honest
+engineering note: whichever of these is built first should factor out a reusable
+`relative_norm_over_frobenius_orbit` abstraction over a `FieldExtension`-like interface,
+so the ordinal tower and the cyclic-algebra bridge share one structural-norm routine
+instead of two ad-hoc ones. This is an abstraction opportunity, **not** a claim that the
+bounded primitive certifies `m_719`; the term-algebra norm still needs its own
+recurrence (the "Next Concrete Steps" item 1 below).
+
 ## Files Updated
 
 Core:
