@@ -1,5 +1,11 @@
 # ogdoad
 
+[![CI](https://github.com/a9lim/ogdoad/actions/workflows/ci.yml/badge.svg)](https://github.com/a9lim/ogdoad/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/ogdoad)](https://crates.io/crates/ogdoad)
+[![PyPI](https://img.shields.io/pypi/v/ogdoad)](https://pypi.org/project/ogdoad/)
+[![docs.rs](https://img.shields.io/docsrs/ogdoad)](https://docs.rs/ogdoad)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 `ogdoad` is a Rust research playground for Clifford algebras, quadratic forms,
 and combinatorial-game arithmetic, with optional Python bindings. It is built
 around one observation: the exotic number systems it implements — surreals,

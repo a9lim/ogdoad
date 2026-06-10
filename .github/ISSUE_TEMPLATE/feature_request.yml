@@ -1,0 +1,59 @@
+name: Feature request
+description: Suggest a new backend, invariant, bridge, or ergonomic improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A few scope boundaries this project deliberately keeps (see AGENTS.md and
+        the "Claim levels and non-claims" section):
+
+        - It is **not** a Clifford algebra over arbitrary partizan games — a
+          Clifford algebra needs a commutative scalar *ring*, and the full game
+          group is only an abelian group. New scalar worlds must be commutative
+          rings.
+        - The genuine open problems (a natural Gold-quadric play rule, a
+          game-native quadratic deformation of `GameExterior`, transfinite nim
+          past the verified Kummer boundary) live in `OPEN.md`. Those are research
+          questions, not feature requests — open a discussion instead.
+
+        New backends, invariants, cross-pillar bridges, and binding/docs
+        ergonomics are all in scope and welcome.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that ogdoad doesn't support today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would it work? A type sketch, an API shape, or the math being implemented is welcome.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface does this touch?
+      options:
+        - New scalar backend (must be a commutative ring)
+        - Clifford engine / GA layer
+        - Forms layer (a new invariant or classification)
+        - Games layer
+        - A cross-pillar bridge (ROADMAP.md)
+        - Python bindings / ergonomics
+        - docs only
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: prior-art
+    attributes:
+      label: Reference / prior art
+      description: A theorem, paper, or standard construction this implements. Helps pin the claim level (standard math vs. interpretation vs. open).

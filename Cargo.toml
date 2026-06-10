@@ -1,9 +1,21 @@
 [package]
 name = "ogdoad"
-version = "0.0.0"
+version = "1.0.0"
 edition = "2021"
 description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games: nimbers, surreals, surcomplex."
 license = "AGPL-3.0-or-later"
+authors = ["a9lim <mx@a9l.im>"]
+repository = "https://github.com/a9lim/ogdoad"
+homepage = "https://github.com/a9lim/ogdoad"
+documentation = "https://docs.rs/ogdoad"
+readme = "README.md"
+keywords = ["clifford-algebra", "surreal-numbers", "nimbers", "quadratic-forms", "game-theory"]
+categories = ["mathematics", "science"]
+
+# docs.rs builds the default, pure-Rust feature set. The `python` feature pulls
+# in PyO3's extension-module linkage, which a docs build neither needs nor wants.
+[package.metadata.docs.rs]
+no-default-features = false
 
 [lib]
 name = "ogdoad"

@@ -4,11 +4,40 @@ build-backend = "maturin"
 
 [project]
 name = "ogdoad"
-version = "0.0.0"
+version = "1.0.0"
 description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games"
+readme = "README.md"
 requires-python = ">=3.9"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
+authors = [{ name = "a9lim", email = "mx@a9l.im" }]
+keywords = [
+    "clifford-algebra",
+    "geometric-algebra",
+    "quadratic-forms",
+    "surreal-numbers",
+    "nimbers",
+    "combinatorial-game-theory",
+    "p-adic",
+    "witt-vectors",
+    "number-theory",
+    "abstract-algebra",
+    "mathematics",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+Homepage = "https://github.com/a9lim/ogdoad"
+Repository = "https://github.com/a9lim/ogdoad"
+Documentation = "https://docs.rs/ogdoad"
+Issues = "https://github.com/a9lim/ogdoad/issues"
 
 [tool.maturin]
 features = ["python"]

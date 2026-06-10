@@ -1,0 +1,81 @@
+name: Bug report
+description: A computation is wrong, a build breaks, or something panics where it shouldn't
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing:
+        - `cargo test` is the source of truth. If you can reproduce with a failing
+          test (or a short `#[test]`), that's the strongest possible report.
+        - A *wrong number* is a bug. An *unimplemented theorem* usually isn't —
+          check `OPEN.md` and the per-pillar `AGENTS.md` for documented scope
+          boundaries first (e.g. `Ordinal` nim-multiplication panics by design
+          past the verified Kummer boundary; `Nimber` is `F_{2^128}`, not
+          algebraically closed).
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface?
+      options:
+        - Rust core (cargo)
+        - Python bindings (the abi3 extension)
+        - examples/ or demo.py
+        - docs (rustdoc / README / AGENTS.md)
+        - not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: Which pillar (if known)?
+      options:
+        - "scalar/ (coefficient worlds: Nimber, Surreal, Fp/Fpn, Zp/Qp/..., Ordinal, ...)"
+        - "clifford/ (the multivector engine + GA layer)"
+        - "forms/ (quadratic forms, Arf/Brauer-Wall, local-global, integral)"
+        - "games/ (combinatorial game theory)"
+        - "py/ (PyO3 bindings)"
+        - "linalg/ (shared linear algebra)"
+        - not sure
+
+  - type: input
+    id: backend
+    attributes:
+      label: Scalar backend
+      description: If the bug is backend-specific, which one? (e.g. `Nimber`, `Surreal`, `Fpn<2,8>`, `Qp`, `Ordinal`)
+      placeholder: Nimber
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you compute, what did you expect, and what did you get? Cite the math fact you're checking against if there is one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: The shortest Rust snippet / `cargo test` / Python call that reproduces it.
+      render: rust
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: ogdoad version
+      description: "`cargo pkgid` (Rust) or `pip show ogdoad` (Python), or the commit SHA."
+      placeholder: 1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: toolchain
+    attributes:
+      label: Toolchain
+      description: Output of `rustc --version` (and `python --version` if it's the bindings).
+      placeholder: rustc 1.85.0

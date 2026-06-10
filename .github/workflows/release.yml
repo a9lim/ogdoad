@@ -1,0 +1,198 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+# Single in-flight release at a time. If two version bumps land back to back the
+# second waits rather than racing to the same tag / version.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # The gate. Reads the version from Cargo.toml (the source of truth — pyproject
+  # and the maturin build inherit it) and decides whether there is anything to
+  # ship. The pipeline is DORMANT while the version is the 0.0.0 placeholder;
+  # bumping the version is what arms it. Each publish target is also probed
+  # independently so a partial-failure run resumes cleanly: a step is skipped
+  # only when its own artifact already exists, never gated on a sibling.
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      should_release: ${{ steps.state.outputs.should_release }}
+      crates_published: ${{ steps.state.outputs.crates_published }}
+      pypi_published: ${{ steps.state.outputs.pypi_published }}
+      released: ${{ steps.state.outputs.released }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Read version from Cargo.toml
+        id: v
+        run: |
+          VERSION="$(grep -m1 '^version = ' Cargo.toml | sed -E 's/^version = "([^"]+)".*/\1/')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Resolve release state
+        id: state
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Dormant until the version is bumped off the 0.0.0 placeholder; after
+          # that, the git tag is the completion marker — an existing tag means a
+          # version was fully shipped and there is nothing to do.
+          if [ "$VERSION" = "0.0.0" ]; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          elif git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          fi
+          # crates.io / PyPI / GH release each checked independently for resume.
+          crates_code="$(curl -s -o /dev/null -w '%{http_code}' -A 'ogdoad-release-ci' "https://crates.io/api/v1/crates/ogdoad/$VERSION")"
+          if [ "$crates_code" = "200" ]; then
+            echo "crates_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "crates_published=false" >> "$GITHUB_OUTPUT"
+          fi
+          pypi_code="$(curl -s -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/ogdoad/$VERSION/json")"
+          if [ "$pypi_code" = "200" ]; then
+            echo "pypi_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pypi_published=false" >> "$GITHUB_OUTPUT"
+          fi
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # crates.io via trusted publishing: rust-lang/crates-io-auth-action exchanges
+  # the workflow's OIDC identity for a short-lived registry token, so there is no
+  # CARGO_REGISTRY_TOKEN secret to manage. cargo publish verifies a default-
+  # feature (pure-Rust, no PyO3) build before upload.
+  crates-io:
+    needs: guard
+    if: needs.guard.outputs.should_release == 'true' && needs.guard.outputs.crates_published == 'false'
+    runs-on: ubuntu-latest
+    environment: crates-io
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Mint a short-lived crates.io token (OIDC)
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+      - name: cargo publish
+        run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+  # Cross-platform abi3 wheels. abi3-py39 means one wheel per platform covers
+  # every CPython >= 3.9, so there is no Python-version axis — just the platform
+  # axis. Mainstream targets only (glibc + musl x86_64/aarch64, win x64, macOS
+  # intel + arm); the exotic Linux arches maturin can emit (x86, armv7, s390x,
+  # ppc64le) are intentionally omitted to keep releases fast and non-flaky.
+  wheels:
+    needs: guard
+    if: needs.guard.outputs.should_release == 'true' && needs.guard.outputs.pypi_published == 'false'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-latest, target: x86_64, manylinux: auto }
+          - { runner: ubuntu-latest, target: aarch64, manylinux: auto }
+          - { runner: ubuntu-latest, target: x86_64, manylinux: musllinux_1_2 }
+          - { runner: ubuntu-latest, target: aarch64, manylinux: musllinux_1_2 }
+          - { runner: windows-latest, target: x64, manylinux: auto }
+          - { runner: macos-15-intel, target: x86_64, manylinux: auto }
+          - { runner: macos-latest, target: aarch64, manylinux: auto }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.9"
+      - name: Build the abi3 wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+          manylinux: ${{ matrix.manylinux }}
+          sccache: true
+      - uses: actions/upload-artifact@v6
+        with:
+          name: dist-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.manylinux }}
+          path: dist
+
+  sdist:
+    needs: guard
+    if: needs.guard.outputs.should_release == 'true' && needs.guard.outputs.pypi_published == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build the sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+      - uses: actions/upload-artifact@v6
+        with:
+          name: dist-sdist
+          path: dist
+
+  # PyPI via trusted publishing (OIDC) — no API token. Gathers every wheel +
+  # the sdist into one dist/ and uploads them as a set; if any wheel target
+  # failed the default success-gate on `needs` blocks a partial upload.
+  pypi:
+    needs: [guard, wheels, sdist]
+    if: needs.guard.outputs.should_release == 'true' && needs.guard.outputs.pypi_published == 'false'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: Publish to PyPI (trusted publishing / OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+
+  # Tag + GitHub release with auto-generated notes. `!cancelled() && !failure()`
+  # lifts the implicit success-gate so this still runs when crates-io / pypi were
+  # SKIPPED (already published on a prior attempt) — but not when either FAILED.
+  # No artifacts are attached here: the wheels live on PyPI, the crate on
+  # crates.io, so this job stays decoupled from the wheel build and can finish a
+  # resume on its own.
+  github-release:
+    needs: [guard, crates-io, pypi]
+    if: ${{ !cancelled() && !failure() && needs.guard.outputs.should_release == 'true' && needs.guard.outputs.released == 'false' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Tag and create the GitHub release
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
+          gh release create "v$VERSION" --generate-notes --verify-tag
