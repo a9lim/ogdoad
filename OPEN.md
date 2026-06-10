@@ -6,7 +6,7 @@ implementation of known formulas, standard algorithms, or already-source-pinned
 theory. Implemented mathematical facts and maintenance context live in
 `README.md` and `AGENTS.md`.
 
-## Natural Gold-quadric game rule
+## 1. Natural Gold-quadric game rule
 
 Find, or rule out under a precise naturality condition, a non-tautological game
 rule whose P-positions are the zero set `{Q = 0}` of a game-built Gold quadratic
@@ -173,7 +173,7 @@ Relevant surfaces:
 - `src/forms/quadric_fit.rs`
 - `src/games/kernel.rs`, `src/games/misere.rs`, `src/games/loopy.rs`
 
-## Quadratic deformation of the game exterior algebra
+## 2. Quadratic deformation of the game exterior algebra
 
 Decide whether the current `GameExterior` construction admits a genuinely
 game-native quadratic deformation on torsion-carrying game subgroups, rather than
@@ -221,7 +221,7 @@ Relevant surfaces:
 - `examples/tour.rs`
 - `demo.py`
 
-## Ordinal nim multiplication beyond the verified excess table
+## 3. Ordinal nim multiplication beyond the verified excess table
 
 Push transfinite nim multiplication beyond the source-verified Lenstra-DiMuro
 excess table. Historically the first missing carry in this checkout was
@@ -321,7 +321,7 @@ Relevant surfaces:
 - `src/scalar/AGENTS.md`
 - `examples/tour.rs`
 
-## Transfinite Arf/Witt classification for ordinal-nimber coefficients
+## 4. Transfinite Arf/Witt classification for ordinal-nimber coefficients
 
 Decide what, if anything, should replace the finite-field Arf/Brauer-Wall bit for
 `CliffordAlgebra<Ordinal>` metrics whose coefficients do not all lie in one finite
