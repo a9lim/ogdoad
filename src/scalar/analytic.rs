@@ -22,7 +22,9 @@
 //!   * [`SeriesRoots`] — `sqrt_to_terms` / `nth_root_to_terms` / `inv_to_terms`,
 //!     taking a **caller-chosen** term count `n`. This is the lazy-field interface
 //!     of [`Surreal`] (the one world with unbounded, not type-fixed, precision),
-//!     whose exact inverse / root would have infinite Hahn support.
+//!     whose exact inverse / root may have infinite Hahn support. `None` also
+//!     marks represented-window exhaustion: the finite-support/i128 backend
+//!     refuses rather than returning guessed leading terms.
 //!
 //! `Surreal` implements **both**: its `SeriesRoots` methods are the primitive
 //! (truncated) operations, and its [`ExactRoots::sqrt`] is the exact value
@@ -77,16 +79,19 @@ pub trait ExactRoots: Scalar {
 /// Lazy / truncated analytic operations carrying a caller-chosen term count `n`,
 /// for worlds whose exact result has infinite support (the Hahn-series surreals).
 pub trait SeriesRoots: Scalar {
-    /// The `n` leading terms of a real square root, or `None`. See
+    /// The `n` leading terms of a real square root, or `None` if no represented
+    /// root/window can be certified. See
     /// [`Surreal::sqrt_to_terms`](crate::scalar::Surreal::sqrt_to_terms).
     fn sqrt_to_terms(&self, n: usize) -> Option<Self>;
 
-    /// The `n` leading terms of a real `k`-th root, or `None`. See
+    /// The `n` leading terms of a real `k`-th root, or `None` if no represented
+    /// root/window can be certified. See
     /// [`Surreal::nth_root_to_terms`](crate::scalar::Surreal::nth_root_to_terms).
     fn nth_root_to_terms(&self, k: u128, n: usize) -> Option<Self>;
 
     /// The `n` leading terms of the multiplicative inverse (a Neumann series for a
-    /// non-monomial). See [`Surreal::inv_to_terms`](crate::scalar::Surreal::inv_to_terms).
+    /// non-monomial), or `None` if no represented window can be certified. See
+    /// [`Surreal::inv_to_terms`](crate::scalar::Surreal::inv_to_terms).
     fn inv_to_terms(&self, n: usize) -> Option<Self>;
 }
 
@@ -311,7 +316,10 @@ impl ExactRoots for Surreal {
     /// The **exact** real square root on the represented subdomain: square back the
     /// truncated [`SeriesRoots`] roots at growing precision until one squares to
     /// `self`. `None` for negatives, and for radicands outside the
-    /// finite-CNF-with-ℚ-coefficients subclass (e.g. `√2`).
+    /// finite-CNF-with-ℚ-coefficients subclass (e.g. `√2`). The square-back
+    /// search is intentionally bounded below the i128 coefficient-growth cliff
+    /// of long binomial truncations; outside that represented window, return
+    /// `None` instead of treating an overflow as a mathematical answer.
     fn sqrt(&self) -> Option<Self> {
         if self.is_zero() {
             return Some(Surreal::zero());
@@ -320,7 +328,8 @@ impl ExactRoots for Surreal {
             return None;
         }
         let base = self.terms().len().max(1);
-        for n in 1..=(8 * base + 32) {
+        let max_terms = (8 * base + 32).min(12);
+        for n in 1..=max_terms {
             let root = self.sqrt_to_terms(n)?;
             if root.mul(&root) == *self {
                 return Some(root);

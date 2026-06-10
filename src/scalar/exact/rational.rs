@@ -188,11 +188,15 @@ impl Scalar for Rational {
         Rational { num: 1, den: 1 }
     }
     fn add(&self, rhs: &Self) -> Self {
+        let g = gcd_u128(self.den as u128, rhs.den as u128).max(1);
+        let g = i128::try_from(g).expect("Rational denominator gcd overflowed i128");
+        let lhs_scale = rhs.den / g;
+        let rhs_scale = self.den / g;
         let lhs = self
             .num
-            .checked_mul(rhs.den)
-            .and_then(|x| x.checked_add(rhs.num.checked_mul(self.den)?));
-        let den = self.den.checked_mul(rhs.den);
+            .checked_mul(lhs_scale)
+            .and_then(|x| x.checked_add(rhs.num.checked_mul(rhs_scale)?));
+        let den = self.den.checked_mul(lhs_scale);
         Rational::try_new(
             lhs.expect("Rational addition overflowed i128"),
             den.expect("Rational addition denominator overflowed i128"),
@@ -209,12 +213,30 @@ impl Scalar for Rational {
         }
     }
     fn mul(&self, rhs: &Self) -> Self {
+        let mut lhs_num = self.num;
+        let mut lhs_den = self.den;
+        let mut rhs_num = rhs.num;
+        let mut rhs_den = rhs.den;
+
+        let g1 = gcd_u128(lhs_num.unsigned_abs(), rhs_den as u128);
+        if g1 > 1 {
+            let g1 = i128::try_from(g1).expect("Rational multiplication gcd overflowed i128");
+            lhs_num /= g1;
+            rhs_den /= g1;
+        }
+        let g2 = gcd_u128(rhs_num.unsigned_abs(), lhs_den as u128);
+        if g2 > 1 {
+            let g2 = i128::try_from(g2).expect("Rational multiplication gcd overflowed i128");
+            rhs_num /= g2;
+            lhs_den /= g2;
+        }
+
         Rational::try_new(
-            self.num
-                .checked_mul(rhs.num)
+            lhs_num
+                .checked_mul(rhs_num)
                 .expect("Rational multiplication numerator overflowed i128"),
-            self.den
-                .checked_mul(rhs.den)
+            lhs_den
+                .checked_mul(rhs_den)
                 .expect("Rational multiplication denominator overflowed i128"),
         )
         .expect("Rational multiplication normalization overflowed i128")
@@ -245,5 +267,12 @@ mod tests {
         assert_eq!(half.sub(&half), Rational::zero());
         assert_eq!(half.add(&half), Rational::one());
         assert_eq!(Rational::new(2, 4), Rational::new(1, 2)); // reduction
+    }
+
+    #[test]
+    fn rational_adds_before_denominator_product_overflows() {
+        let huge_den = 1i128 << 100;
+        let x = Rational::new(1, huge_den);
+        assert_eq!(x.add(&x), Rational::new(1, 1i128 << 99));
     }
 }

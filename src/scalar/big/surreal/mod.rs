@@ -256,7 +256,7 @@ impl fmt::Debug for Surreal {
 mod tests {
     use super::*;
     use crate::clifford::{CliffordAlgebra, Metric};
-    use crate::scalar::Ordinal;
+    use crate::scalar::{ExactRoots, Ordinal};
 
     fn int(n: i128) -> Surreal {
         Surreal::from_int(n)
@@ -565,6 +565,19 @@ mod tests {
     }
 
     #[test]
+    fn truncated_inverse_survives_deep_cancellation() {
+        let mut x = Surreal::one();
+        for e in 1..=20 {
+            x = x.add(&Surreal::monomial(int(-e), Rational::one()));
+        }
+
+        let expected = Surreal::one()
+            .sub(&Surreal::monomial(int(-1), Rational::one()))
+            .add(&Surreal::monomial(int(-21), Rational::one()));
+        assert_eq!(x.inv_to_terms(3).unwrap(), expected);
+    }
+
+    #[test]
     fn surreal_square_roots() {
         let w = Surreal::omega();
         // √ω = ω^{1/2}, exact (monomial radicand), and squares back to ω.
@@ -589,6 +602,31 @@ mod tests {
             .is_none());
         assert!(w.neg().sqrt_to_terms(4).is_none());
         assert_eq!(Surreal::zero().sqrt_to_terms(4).unwrap(), Surreal::zero());
+    }
+
+    #[test]
+    fn surreal_roots_survive_deep_cancellation() {
+        let y = Surreal::one()
+            .sub(&Surreal::monomial(int(-1), Rational::one()))
+            .add(&Surreal::monomial(int(-25), Rational::one()));
+        let square = y.mul(&y);
+        assert_eq!(square.sqrt_to_terms(3).unwrap(), y);
+        assert_eq!(ExactRoots::sqrt(&square), Some(y.clone()));
+
+        let cube = square.mul(&y);
+        let cube_root = cube.nth_root_to_terms(3, 3);
+        assert!(cube_root.is_none() || cube_root == Some(y));
+    }
+
+    #[test]
+    fn surreal_exact_square_declines_nonrepresented_roots_without_panic() {
+        let omega_plus_one = Surreal::omega().add(&Surreal::one());
+        assert!(!ExactRoots::is_square(&omega_plus_one));
+        assert_eq!(ExactRoots::sqrt(&omega_plus_one), None);
+
+        let one_plus_epsilon = Surreal::one().add(&Surreal::epsilon());
+        assert!(!ExactRoots::is_square(&one_plus_epsilon));
+        assert_eq!(ExactRoots::sqrt(&one_plus_epsilon), None);
     }
 
     #[test]
