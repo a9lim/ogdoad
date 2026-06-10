@@ -192,10 +192,7 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
         let shifted = if d >= K {
             0 // below precision — the higher-valuation term vanishes
         } else {
-            p_pow::<P>(d)
-                .checked_mul(hi.unit)
-                .expect("Qp addition mantissa product exceeds u128")
-                % m
+            crate::scalar::mul_mod_u128(p_pow::<P>(d), hi.unit, m)
         };
         let b = lo
             .unit
@@ -227,11 +224,10 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
         // Product of units is a unit: no renormalization needed.
         let m = Self::modulus();
         Qp {
-            unit: self
-                .unit
-                .checked_mul(rhs.unit)
-                .expect("Qp multiplication mantissa product exceeds u128")
-                % m,
+            // mul_mod_u128, not checked_mul: for large precision K the modulus
+            // p^k approaches i128::MAX, so a schoolbook unit×unit product
+            // overflows u128 even though both factors are validator-sanctioned.
+            unit: crate::scalar::mul_mod_u128(self.unit, rhs.unit, m),
             val: self
                 .val
                 .checked_add(rhs.val)
@@ -278,6 +274,18 @@ mod tests {
         assert_eq!(pinv.valuation(), Some(-1));
         // Zero is the only non-invertible element.
         assert_eq!(Q5::zero().inv(), None);
+    }
+
+    #[test]
+    fn h2_large_precision_mul_does_not_overflow() {
+        // Regression (audit H-2): Qp<3,80> has modulus 3^80 ≈ 2^126.8, so a
+        // schoolbook unit×unit product (≈ 2^253) overflows u128. Routed through
+        // mul_mod_u128 the product stays exact instead of panicking.
+        type Q3Big = Qp<3, 80>; // K=80 is near the i128-fit ceiling (3^81 > i128::MAX)
+        let x = Q3Big::from_i128(-1); // -1 ≡ 3^80 - 1, a full-width mantissa
+        assert_eq!(x.mul(&x), Q3Big::one()); // (-1)² = 1, previously panicked
+        let _ = x.mul(&Q3Big::from_i128(7)); // a generic large product must not panic
+        let _ = x.add(&x); // the addition mantissa-shift path is overflow-safe too
     }
 
     #[test]

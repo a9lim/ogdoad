@@ -120,11 +120,9 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
     fn mul(&self, rhs: &Self) -> Self {
         Self::assert_supported_ring();
         let m = Self::modulus();
-        Zp(self
-            .0
-            .checked_mul(rhs.0)
-            .expect("Zp multiplication exceeds u128")
-            % m)
+        // mul_mod_u128, not checked_mul: the modulus p^k can approach i128::MAX,
+        // so a schoolbook product of two in-range residues overflows u128.
+        Zp(crate::scalar::mul_mod_u128(self.0, rhs.0, m))
     }
 
     fn characteristic() -> u128 {

@@ -216,10 +216,7 @@ impl LocalQp {
         let shifted = if d >= self.k {
             0
         } else {
-            p_pow(self.p, d)
-                .checked_mul(hi.unit)
-                .expect("LocalQp addition mantissa product exceeds u128")
-                % m
+            crate::scalar::mul_mod_u128(p_pow(self.p, d), hi.unit, m)
         };
         let b = lo
             .unit
@@ -265,11 +262,9 @@ impl LocalQp {
         LocalQp {
             p: self.p,
             k: self.k,
-            unit: self
-                .unit
-                .checked_mul(rhs.unit)
-                .expect("LocalQp multiplication mantissa product exceeds u128")
-                % m,
+            // mul_mod_u128, not checked_mul: p^k can approach i128::MAX, so a
+            // schoolbook unit×unit product overflows u128 on in-range inputs.
+            unit: crate::scalar::mul_mod_u128(self.unit, rhs.unit, m),
             val: self
                 .val
                 .checked_add(rhs.val)
