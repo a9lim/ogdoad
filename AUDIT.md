@@ -24,6 +24,7 @@ writeups are retained below as the defect record and repro context.
 | Batch | Status | Findings | Current evidence |
 |---|---|---|---|
 | 1 | fixed and validated | L-1, C-2, F-3, F-1, G-1, G-2, G-3, G-5, P-5 | Unit-pivot nullspace now returns `None` on nonunit pivots and callers propagate it; Hermitian off-diagonal pivot uses the conjugate partner; loopy stopper sums/order and misere-Nim zero heaps are corrected. Validation: `cargo test`, `cargo check --all-targets`, `cargo check --features python --all-targets`, `cargo check --examples`, both clippy `-D warnings` gates, `maturin develop`, a targeted Python probe, and `git diff --check`. |
+| 2 | fixed and validated | F-7, F-8 | 2-adic Jordan splitting now prefers an odd block when a diagonal entry ties the minimal valuation, and 2-adic trains now continue across one empty scale between type-I constituents. Added the audit's `[[2,1],[1,1]] ~ Z^2` and `diag(1,20) ~ diag(5,4)` counterexamples. Validation: `cargo test`, `cargo check --all-targets`, `cargo check --features python --all-targets`, `cargo check --examples`, both clippy `-D warnings` gates, and `git diff --check`. |
 
 ---
 

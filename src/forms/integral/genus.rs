@@ -160,7 +160,7 @@ fn min_val_entry(a: &RMat, active: &[usize], p: i128) -> Option<(usize, usize)> 
         for &j in &active[ii..] {
             if !a[i][j].is_zero() {
                 let v = rat_val(&a[i][j], p);
-                if best.is_none_or(|(bv, _, _)| v < bv) {
+                if best.is_none_or(|(bv, bi, bj)| v < bv || (v == bv && i == j && bi != bj)) {
                     best = Some((v, i, j));
                 }
             }
@@ -434,9 +434,11 @@ fn two_adic_trains(syms: &[ScaleSymbol]) -> Vec<Vec<usize>> {
     let mut out = Vec::new();
     let mut cur = vec![0usize];
     for i in 1..syms.len() {
-        let adjacent = syms[i].scale == syms[i - 1].scale + 1;
+        let scale_gap = syms[i].scale - syms[i - 1].scale;
         let connected_by_type_i = !syms[i].type_ii || !syms[i - 1].type_ii;
-        if adjacent && connected_by_type_i {
+        let connected_across_empty_type_ii =
+            scale_gap == 2 && !syms[i].type_ii && !syms[i - 1].type_ii;
+        if (scale_gap == 1 && connected_by_type_i) || connected_across_empty_type_ii {
             cur.push(i);
         } else {
             out.push(cur);
@@ -621,6 +623,16 @@ mod tests {
     }
 
     #[test]
+    fn two_adic_jordan_prefers_odd_block_on_valuation_tie() {
+        let g = IntegralForm::new(vec![vec![2, 1], vec![1, 1]]).unwrap();
+        assert!(are_in_same_genus(&zn(2), &g));
+
+        let s2_g = Genus::of(&g).unwrap().symbol_at(2).to_vec();
+        assert_eq!(s2_g.len(), 1);
+        assert_eq!((s2_g[0].scale, s2_g[0].dim, s2_g[0].type_ii), (0, 2, false));
+    }
+
+    #[test]
     fn two_adic_compartments_and_trains_follow_the_corrected_rules() {
         let syms = vec![
             s2(0, 1, 1, false, 1),
@@ -632,7 +644,17 @@ mod tests {
             two_adic_compartments(&syms),
             vec![vec![0], vec![2], vec![3]]
         );
-        assert_eq!(two_adic_trains(&syms), vec![vec![0, 1, 2], vec![3]]);
+        assert_eq!(two_adic_trains(&syms), vec![vec![0, 1, 2, 3]]);
+
+        let gap_bridge = vec![s2(0, 1, 1, false, 1), s2(2, 1, 1, false, 1)];
+        assert_eq!(two_adic_trains(&gap_bridge), vec![vec![0, 1]]);
+    }
+
+    #[test]
+    fn two_adic_trains_continue_across_one_empty_scale() {
+        let a = IntegralForm::diagonal(&[1, 20]);
+        let b = IntegralForm::diagonal(&[5, 4]);
+        assert!(are_in_same_genus(&a, &b));
     }
 
     #[test]
