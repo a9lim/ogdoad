@@ -81,8 +81,8 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   `Genus`/`ScaleSymbol`, mass/automorphism constants, `BinaryCode`/Construction A,
   theta + modular q-expansion helpers `eisenstein_e4`/`eisenstein_e6`/`delta`/`as_modular_form`,
   `DiscriminantForm`/Milgram/Weil `S`/`T`).
-- **`games.rs`** — `Game`/`NumberGame`/`NimberGame`/`GameExterior`/`Hackenbush` +
-  typed `Color`; the `GameExterior` relation surface (`GameRelation`,
+- **`games.rs`** — `Game`/`NumberGame`/`NimberGame`/`GameExterior`/`GameClifford`/
+  `Hackenbush` + typed `Color`; the game-relation surface (`GameRelation`,
   `GameRelationCertificate`, `RelationSearchCertificate`); `nim_mul_mex` + the
   coin-turning/Tartan probes; `grundy_graph`/`grundy`/`mex`; the kernel surface
   (`outcomes`/`p_positions`/`scoring_values`, typed `Outcome`, `ScoreInterval`); the

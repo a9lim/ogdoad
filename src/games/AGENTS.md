@@ -42,7 +42,11 @@ indices, and collection lengths.
   `with_relation_search(bound)` — quotients the free Grassmann engine by integer game
   relations such as 2⋆=0. Carries `GameRelation` + the `GameRelationCertificate` /
   `RelationSearchCertificate` evidence records; lattice normalization in
-  `linalg/integer.rs`.
+  `linalg/integer.rs`. `GameClifford` is the checked integer-valued deformation
+  surface: hand-supplied `q`/polar tables are accepted only when every game relation
+  is null and polar-radical, so torsion-free targets force the documented vanishings
+  (for example, `2⋆=0` kills `Q(⋆)` and all pairings with ⋆). This is not a
+  game-native quadratic-data theorem; that remains in `OPEN.md`.
 
 ## Temperature theory
 

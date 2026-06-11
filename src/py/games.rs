@@ -1,6 +1,6 @@
 //! Python bindings for combinatorial game theory: partizan games, the exterior
-//! algebra of the game group (over the `Integer` backend), and nim-mult via the
-//! Turning-Corners game recurrence.
+//! algebra and checked integer Clifford deformation of the game group generators,
+//! and nim-mult via the Turning-Corners game recurrence.
 
 use super::engine::{IntegerAlgebra, IntegerMV};
 use super::forms::{wrap_binary_code, wrap_quadric_fit, PyBinaryCode, PyQuadricFit};
@@ -9,15 +9,16 @@ use super::scalars::{
 };
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
-    thermography, AbstractGame, Color, Game, GameExterior, GameRelation, Hackenbush, LoopyGraph,
-    LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph, LoopyPartizanOutcome, LoopyValue,
-    LoopyWinner, NimLexicode, NimberGame, NumberGame, Outcome, PartizanOutcome, Quotient,
+    thermography, AbstractGame, Color, Game, GameClifford, GameExterior, GameRelation, Hackenbush,
+    LoopyGraph, LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph, LoopyPartizanOutcome,
+    LoopyValue, LoopyWinner, NimLexicode, NimberGame, NumberGame, Outcome, PartizanOutcome,
+    Quotient,
 };
 use crate::scalar::{Integer, Rational, SignExpansion, Surreal};
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
 /// Validate an adjacency list: every successor index must be `< n = succ.len()`.
@@ -1648,6 +1649,206 @@ impl PyGameExterior {
     }
 }
 
+#[pyclass(name = "GameClifford", module = "ogdoad")]
+struct PyGameClifford {
+    inner: GameClifford,
+    alg: Arc<CliffordAlgebra<Integer>>,
+}
+
+#[pymethods]
+impl PyGameClifford {
+    #[new]
+    #[pyo3(signature = (gens, q, b=None))]
+    fn new(
+        gens: Vec<PyGame>,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::new(games, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, q, b=None))]
+    fn free(
+        gens: Vec<PyGame>,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::free(games, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, bound, q, b=None))]
+    fn with_relation_bound(
+        gens: Vec<PyGame>,
+        bound: i128,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::with_relation_search(games, bound, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, bound, q, b=None))]
+    fn with_relation_search(
+        gens: Vec<PyGame>,
+        bound: i128,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        Self::with_relation_bound(gens, bound, q, b)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, relations, q, b=None))]
+    fn with_quadratic_data(
+        gens: Vec<PyGame>,
+        relations: Vec<PyGameRelation>,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let relations = relations.into_iter().map(|rel| rel.inner).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::with_quadratic_data(games, relations, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[getter]
+    fn dim(&self) -> usize {
+        self.inner.algebra().dim
+    }
+    /// The underlying free integer Clifford algebra before quotienting by
+    /// checked game-group relations.
+    fn algebra(&self) -> IntegerAlgebra {
+        IntegerAlgebra {
+            inner: self.alg.clone(),
+        }
+    }
+    fn relations(&self) -> Vec<PyGameRelation> {
+        self.inner
+            .relations()
+            .iter()
+            .cloned()
+            .map(wrap_game_relation)
+            .collect()
+    }
+    /// Whether the automatic bounded relation search exhausted its coefficient
+    /// box. Explicit relations always report true.
+    fn relation_search_complete(&self) -> bool {
+        self.inner.relation_search_complete()
+    }
+    /// Full relation-search certificate as a named record.
+    fn relation_search_certificate(&self) -> PyRelationSearchCertificate {
+        wrap_relation_search_certificate(self.inner.relation_search_certificate().clone())
+    }
+    /// The grade-1 generator e_i (an `IntegerMV`) standing for game g_i.
+    fn generator(&self, i: usize) -> IntegerMV {
+        IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.generator(i),
+        }
+    }
+    /// The game g_i a generator stands for.
+    fn game(&self, i: usize) -> PyGame {
+        PyGame {
+            inner: self.inner.game(i).clone(),
+        }
+    }
+    fn reduce(&self, mv: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(mv)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.reduce(&mv.mv),
+        })
+    }
+    fn add(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.add(&a.mv, &b.mv),
+        })
+    }
+    fn scalar_mul(&self, s: i128, mv: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(mv)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.scalar_mul(s, &mv.mv),
+        })
+    }
+    fn mul(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.mul(&a.mv, &b.mv),
+        })
+    }
+    fn wedge(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.wedge(&a.mv, &b.mv),
+        })
+    }
+    fn is_zero(&self, mv: &IntegerMV) -> PyResult<bool> {
+        self.ensure_mv(mv)?;
+        Ok(self.inner.is_zero(&mv.mv))
+    }
+    /// Map a grade-1 element Σ c_i e_i back to the game Σ c_i·g_i. Errors if
+    /// the reduced multivector is not purely grade 1.
+    fn value_of_grade1(&self, mv: &IntegerMV) -> PyResult<PyGame> {
+        self.ensure_mv(mv)?;
+        let reduced = self.inner.reduce(&mv.mv);
+        if reduced.terms.keys().any(|blade| blade.count_ones() != 1) {
+            return Err(PyValueError::new_err("expected a grade-1 element"));
+        }
+        Ok(PyGame {
+            inner: self.inner.value_of_grade1(&reduced),
+        })
+    }
+}
+
+impl PyGameClifford {
+    fn from_inner(inner: GameClifford) -> Self {
+        let alg = Arc::new(inner.algebra().clone());
+        PyGameClifford { inner, alg }
+    }
+
+    fn ensure_mv(&self, mv: &IntegerMV) -> PyResult<()> {
+        if self.alg.as_ref() == mv.alg.as_ref() {
+            Ok(())
+        } else {
+            Err(PyValueError::new_err(
+                "multivector belongs to a different GameClifford algebra",
+            ))
+        }
+    }
+}
+
+fn parse_game_clifford_bilinear(
+    b: Option<Vec<(usize, usize, i128)>>,
+) -> BTreeMap<(usize, usize), i128> {
+    b.unwrap_or_default()
+        .into_iter()
+        .map(|(i, j, value)| ((i, j), value))
+        .collect()
+}
+
+fn game_clifford_error(err: crate::games::GameCliffordError) -> PyErr {
+    PyValueError::new_err(err.to_string())
+}
+
 /// A transfinite **number-valued** game, carried by its surreal value (e.g. the
 /// game `ω = {0,1,2,…|}`). The numbers-only honoring of transfinite birthdays —
 /// value/birthday/sum/order all delegate to the surreal.
@@ -2268,6 +2469,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyNumberGame>()?;
     m.add_class::<PyNimberGame>()?;
     m.add_class::<PyGameExterior>()?;
+    m.add_class::<PyGameClifford>()?;
     m.add_class::<PyGameRelation>()?;
     m.add_class::<PyGameRelationCertificate>()?;
     m.add_class::<PyRelationSearchCertificate>()?;

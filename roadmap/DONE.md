@@ -48,6 +48,23 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
   between the two square-root branches; the full FQM normal-form item remains open in
   `roadmap/TODO.md`.
 
+## `game-clifford-checked` — quotient-compatible integer Clifford data on game generators   (2026-06-11)
+**Pillars:** clifford ↔ games ↔ Python    **Claim level:** implemented and tested
+- surface: `GameClifford::{new,free,with_relation_search,with_quadratic_data}` wraps
+  the integer Clifford engine on a chosen game-generator tuple; explicit or discovered
+  `GameRelation` rows are accepted only after the game-group relation evaluates to
+  zero and the supplied integer `q`/polar data makes that relation null and
+  polar-radical. Quotient-aware `reduce`, `add`, `scalar_mul`, `mul`, `wedge`,
+  `is_zero`, and `value_of_grade1` mirror `GameExterior`; PyO3 exposes
+  `GameClifford` with the same checked constructors.
+- oracles: tests pin free Clifford anticommutators, rejection of `Q(*) != 0` and
+  nonzero pairings under `2* = 0`, accepted torsion vanishings with `2*(e_* e_up)=0`,
+  duplicate-generator compatibility, and bounded relation search. The Rust tour and
+  `demo.py` include the accepted/rejected `2* = 0` examples.
+- boundaries: this is an integer-valued checked deformation engine, not a Clifford
+  algebra over arbitrary games and not a proof that the quadratic data is game-native.
+  The natural-source and torsion-target questions remain in `OPEN.md` §2.
+
 ## `loopy-partizan` — finite Left/Right loopy outcome engine   (2026-06-11)
 **Pillars:** games ↔ Python    **Claim level:** implemented and tested
 - surface: `LoopyPartizanGraph`, `LoopyPartizanOutcome`, `LoopyWinner`;

@@ -234,7 +234,8 @@ breakdown:
   `D16+`, and Leech.
 - `src/games/` — normal-, misère-, and loopy-play impartial games, finite
   loopy-partizan graphs, short partizan games, thermography/atomic weight,
-  Hackenbush, and the exterior algebra of the game group.
+  Hackenbush, the exterior algebra of the game group, and the checked integer
+  Clifford deformation surface on game generators.
 - `src/py/` — the optional PyO3 bindings behind the `python` feature.
 - `src/linalg/` — crate-private shared linear algebra (exact integer HNF/Smith,
   F₂/nim-field rank, generic field solves), consumed by the pillars above.
@@ -249,7 +250,7 @@ bridges, and `writeups/goldarf.tex` for the draft note on the Gold/Arf game thre
 The construction era left the pillars joined by named bridges (full record with
 contracts, oracles, and proofs: `roadmap/CODA.md`). Five islands: **S**calar,
 **C**lifford, **F**orms (the classifier core), the **I**ntegral wing, **G**ames.
-Sixteen crossings — Bridge N is four footbridges — each listed with its banks. A
+Seventeen crossings — Bridge N is four footbridges — each listed with its banks. A
 bridge with both feet on one island is a loop; crossing it counts like any other.
 
 | bridge | banks | what it carries |
@@ -270,39 +271,32 @@ bridge with both feet on one island is a loop; crossing it counts like any other
 | N.3 | I–I | Nikulin: genus ⟺ (signature, discriminant form) |
 | N.4 | I–I | one Bernoulli source for the Eisenstein constants and the mass formula |
 | O | G–I | lexicodes: greedy = mex; the `[24,12,8]` lexicode is Golay |
+| `game-clifford-checked` | C–G | checked integer Clifford data on game generators; quotient-compatible, not game-native |
 
 (G and L were never built under those letters — they became the deferred stars
-`*1` and `*2` in `roadmap/TODO.md`. The alphabet itself has two pontoons missing.)
+`*1` and `*2` in `roadmap/TODO.md`. The alphabet itself still has two pontoons
+missing; `game-clifford-checked` is the later unlettered C–G span.)
 
 **The traveller's question** (Euler, 1736): can you cross every bridge exactly
 once and end where you began? Count the bridge-ends per island:
 
 | island | S | C | F | I | G |
 |---|---|---|---|---|---|
-| degree | 5 | 5 | **8** | 13 | 1 |
+| degree | 5 | 6 | **8** | 13 | 2 |
 
 An Euler circuit needs every island even. **Forms — the island the mod-8 spine
-runs through — is the only balanced one, with degree exactly 8**: the ogdoad
-keeps its own books. Four islands are odd, the same failure as Königsberg's four
-banks, so today the grand tour does not exist — nor even an open stroll, which
-would need exactly two odd islands. The integral wing, with its four loops
-(E, H, N.3, N.4), is the one place a traveller may wander in circles.
+runs through — remains balanced, with degree exactly 8**, and the new checked
+C–G span also balances Clifford and Games. Only Scalar and the Integral wing are
+odd now, so an open Euler stroll exists, but the closed grand tour still does not.
+The integral wing, with its four loops (E, H, N.3, N.4), remains the one place a
+traveller may wander in circles.
 
-Two new bridges pairing up the odd islands would open the circuit, and the
-roadmap already names both ways to do it:
-
-- **`*2` (S–I) + `game-clifford-checked` (C–G)** — the Drinfeld/Carlitz mirror
-  plus the checked game-Clifford deformation engine: pure building, no research;
-- **`*1` (C–I) + `under` (S–G)** — the spinor genus plus a *constructive*
-  resolution of the thermography ↔ Newton-polygon problem: one star, one open
-  problem.
-
-(The third pairing, S–C + I–G, now has its I–G half built (`nim-lexicodes`) but no
-scalar–clifford candidate on the books; and `*4` alone is no help: it would
-balance scalar only by unbalancing forms.) Either pair makes every island even.
-The grand tour is exactly two bridges away, and which two is a choice between
-elbow grease and research — the roadmap is, quite literally, the obstruction to
-the round trip.
+The remaining pure-building closure is now singular: **`*2` (S–I)**, the
+Drinfeld/Carlitz mirror, would make every island even. The other open/deferred
+threads still matter on their own terms — `*1` for the spinor genus, `under` for a
+constructive thermography ↔ Newton-polygon bridge, and `*4` for the wild local
+symbol — but after `game-clifford-checked`, they are no longer parity-paired
+solutions to the current round-trip obstruction.
 
 ## Research thread
 

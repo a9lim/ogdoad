@@ -5,7 +5,7 @@ use ogdoad::clifford::{CliffordAlgebra, Metric};
 use ogdoad::forms::classify_surreal;
 use ogdoad::forms::WittClass;
 use ogdoad::forms::{dickson_matrix, dickson_of_versor};
-use ogdoad::games::{Game, GameExterior};
+use ogdoad::games::{Game, GameClifford, GameExterior, GameRelation};
 use ogdoad::scalar::Surcomplex;
 use ogdoad::scalar::Surreal;
 use ogdoad::scalar::{nim_solve_artin_schreier, nim_sqrt, nim_trace, Nimber};
@@ -179,6 +179,22 @@ fn main() {
     println!(
         "  value(2·g0) = ⋆+⋆ = 0 ? {}",
         ext.value_of_grade1(&two_g0).eq(&Game::zero())
+    );
+
+    let checked = GameClifford::with_quadratic_data(
+        vec![Game::star(), Game::up()],
+        vec![GameRelation::new(vec![2, 0])],
+        vec![0, 5],
+        BTreeMap::new(),
+    )
+    .expect("2⋆=0 is compatible only after Q(⋆) and pairings with ⋆ vanish");
+    let c0c1 = checked.mul(&checked.generator(0), &checked.generator(1));
+    println!(
+        "  checked Clifford: ↑² = {}, 2·(⋆↑)=0 ? {}",
+        checked
+            .mul(&checked.generator(1), &checked.generator(1))
+            .display(),
+        checked.is_zero(&checked.scalar_mul(2, &c0c1))
     );
 }
 

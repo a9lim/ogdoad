@@ -149,14 +149,6 @@ checked certificate, turning `octal_hunt`-style sweeps into proofs-of-periodicit
 rather than bounded observations. The *conjecture* that every finite octal game is
 ultimately periodic is famous, external, and not ours to claim — the checker is.
 
-### `game-clifford-checked` — 2·(e_g∧e_c)
-**The checked deformation engine** OPEN §2 separates from its research claim: a
-`GameClifford::with_quadratic_data` that accepts hand-supplied bilinear/quadratic
-tables over a game subgroup and *verifies* quotient-compatibility (torsion relations
-like `2* = 0` force the documented vanishings over torsion-free targets; torsion
-targets may carry more). The engine ships; whether any such data is game-*native*
-stays exactly where it is — `OPEN.md` §2.
-
 ## numbers — engine & bindings
 
 ### `spinor-gauge` — 2·e_c

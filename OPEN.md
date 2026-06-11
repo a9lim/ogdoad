@@ -299,8 +299,13 @@ What is implemented:
 - Relation propagation is quotient-aware. If the game group imposes a relation,
   the exterior ideal respects it; for example, torsion in grade 1 propagates to
   torsion constraints in higher grades.
+- `GameClifford::with_quadratic_data` is the checked engineering artifact: it
+  accepts hand-supplied integer quadratic/polar tables on a chosen game subgroup
+  only after verifying that every imposed game relation is null and polar-radical
+  for the supplied data. The Python bindings expose the same checked surface.
 - This does not pretend that arbitrary games form a scalar ring. The construction
-  is an exterior algebra over an abelian group, not a Clifford algebra over games.
+  is an exterior algebra over an abelian group plus a checked integer-valued
+  deformation, not a Clifford algebra over games.
 
 Why this is research:
 - A Clifford deformation would require extra quadratic data compatible with the
@@ -324,9 +329,8 @@ Concrete progress targets:
   and decide whether those targets are game-native or merely chosen by hand.
 - Exhibit a nonzero deformation on a restricted class of games, or prove that every
   natural relation-respecting deformation collapses to the Grassmann one.
-- Separate any useful engineering artifact, such as a checked
-  `GameClifford::with_quadratic_data`, from the stronger mathematical claim that
-  the data is game-native.
+- Extend beyond the shipped integer-valued checker only with a stated coefficient
+  target and a proof that the data is natural rather than merely chosen by hand.
 
 Relevant surfaces:
 - `src/games/game_exterior.rs`

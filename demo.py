@@ -156,6 +156,14 @@ rel = pl.GameRelation([2, 0])
 ext_explicit = pl.GameExterior.with_relations([pl.Game.star(), pl.Game.up()], [rel])
 print("  explicit relation 2⋆=0   :", ext_explicit.is_zero(2 * ext_explicit.generator(0)),
       ext_explicit.relations()[0].coeffs, cert.bound)
+checked = pl.GameClifford.with_quadratic_data([pl.Game.star(), pl.Game.up()], [rel], [0, 5])
+c0, c1 = checked.generator(0), checked.generator(1)
+print("  checked Clifford ↑²       :", checked.mul(c1, c1),
+      "  2·(⋆↑)=0:", checked.is_zero(checked.scalar_mul(2, checked.mul(c0, c1))))
+try:
+    pl.GameClifford.with_quadratic_data([pl.Game.star(), pl.Game.up()], [rel], [1, 0])
+except ValueError as exc:
+    print("  rejects Q(⋆)=1 under 2⋆=0:", "polar pairing" in str(exc))
 
 
 # ===========================================================================

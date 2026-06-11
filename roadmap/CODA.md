@@ -16,8 +16,8 @@ wave), **M/N/O** (fourth wave), **K** (fifth wave). Companion documents:
   switches, ups) plus the **deferred** stars: `*1` (spinor genus), `*2` (the char-`p`
   Drinfeld/Carlitz mirror), `*4` (the wild local symbol) — real and on-thesis, not
   scheduled.
-- **`roadmap/DONE.md`** — the **go-forward ledger** for newly completed work (currently
-  empty; the construction-era record migrated here).
+- **`roadmap/DONE.md`** — the **go-forward ledger** for newly completed work after the
+  construction-era record migrated here.
 - **`OPEN.md`** — *genuine research problems* with no known answer (the natural
   Gold-quadric game rule, a game-native quadratic deformation of `GameExterior`,
   transfinite nim excesses past the verified table, and the transfinite Arf/Witt
@@ -334,8 +334,9 @@ Weil representation, and the rational Brauer/Clifford invariant correction
 (`forms/witt/brauer_rational.rs`).
 
 Remaining open edges are not implementation TODOs inside this roadmap: the natural
-Gold-quadric game rule, game-native quadratic deformation of `GameExterior`, and
-the genuinely transfinite Arf/Witt classifier all stay in `OPEN.md`.
+Gold-quadric game rule, a game-native source for quadratic data beyond the checked
+integer `GameClifford` surface, and the genuinely transfinite Arf/Witt classifier
+all stay in `OPEN.md`.
 
 ---
 

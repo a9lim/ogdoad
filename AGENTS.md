@@ -159,6 +159,14 @@ unramified local cyclic class over the `Qq` leg) with full-strength reciprocity 
 `F_q(t)` (`constant_extension_invariants`, `Σ_v deg(v)·v(a)/n = 0`); it lifts the
 2-torsion `Brauer2Class` (which embeds as its `½`-slice) to the full local Brauer group.
 
+The checked game-Clifford deformation surface is implemented as an engineering
+bridge, not as a game-native scalar claim. `GameClifford::with_quadratic_data` accepts
+integer `q`/polar data on a chosen game-generator tuple only after verifying every
+game relation in the quotient is null and polar-radical for that data; over the
+torsion-free target `ℤ`, relations such as `2* = 0` force `Q(*)` and all pairings
+with `*` to vanish. The stronger question of a natural game-native source for such
+quadratic data remains open in `OPEN.md`.
+
 The game-built Gold-form bridge is implemented, but the play rule is not. The
 standard chain is:
 
