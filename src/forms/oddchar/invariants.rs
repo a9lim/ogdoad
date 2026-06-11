@@ -48,9 +48,6 @@ impl fmt::Display for OddCharInvariants {
     }
 }
 
-/// Type alias for backward-compatibility.
-pub type OddCharType = OddCharInvariants;
-
 /// The Hasse invariant `∏_{i<j} (q_i, q_j)` over a finite odd field. Finite
 /// fields have trivial Brauer group, so every nonzero Hilbert symbol is `+1`;
 /// the prime-field [`super::hilbert_symbol`] wrapper still keeps the brute-force

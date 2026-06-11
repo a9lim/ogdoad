@@ -5,12 +5,12 @@
 //! the research instrument the game probes feed their P-positions into. Given a
 //! subset `S ⊆ F₂^k`, [`fit_f2_quadratic`] decides whether `S` is the zero set of
 //! *some* quadratic form and, if so, returns that form together with its
-//! [Arf](crate::forms::ArfResult) — distinguishing a genuine quadric (nonzero
+//! [Arf](crate::forms::ArfInvariants) — distinguishing a genuine quadric (nonzero
 //! polar rank) from a mere affine flat (the XOR-linear case normal play already
 //! produces). It is the bench behind the `misere_quotient` and `octal_hunt`
 //! examples and the open-question probes; see root `OPEN.md`.
 
-use crate::forms::{arf_f2, ArfResult};
+use crate::forms::{arf_f2, ArfInvariants};
 
 /// The result of fitting a quadratic form to a subset of F₂^k.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,7 +23,7 @@ pub struct QuadricFit {
     /// Polar form bmat (the `x_i x_j` coefficients), as adjacency rows.
     pub bmat: Vec<u128>,
     /// Arf classification of the homogeneous quadratic part.
-    pub arf: ArfResult,
+    pub arf: ArfInvariants,
 }
 
 impl QuadricFit {

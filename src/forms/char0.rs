@@ -124,9 +124,6 @@ impl std::fmt::Display for CliffordInvariants {
     }
 }
 
-/// Type alias for backward-compatibility.
-pub type CliffordType = CliffordInvariants;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RationalPlaceInvariant {
     pub place: Place,
@@ -190,9 +187,6 @@ impl std::fmt::Display for RationalCliffordInvariants {
         )
     }
 }
-
-/// Type alias for backward-compatibility.
-pub type RationalCliffordType = RationalCliffordInvariants;
 
 /// `2^k`.
 fn p2(k: usize) -> u128 {

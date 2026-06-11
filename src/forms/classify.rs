@@ -38,9 +38,6 @@ pub enum FiniteFieldInvariants {
     Char2(ArfInvariants),
 }
 
-/// Type alias for backward-compatibility.
-pub type FiniteFieldClass = FiniteFieldInvariants;
-
 /// Witt-decomposition data for the finite-field tower `Fpn<P,N>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FiniteFieldWittDecomp {

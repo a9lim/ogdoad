@@ -703,7 +703,7 @@ impl DiscriminantForm {
     /// floating point (the [`GaussSum`] route is `f64`). `None` unless `A_L` is
     /// 2-elementary (read off the invariant factors); the discriminant bilinear
     /// form is nondegenerate on `A_L`, so this slice has no radical.
-    pub fn brown_invariant(&self) -> Option<crate::forms::BrownResult> {
+    pub fn brown_invariant(&self) -> Option<crate::forms::BrownInvariants> {
         use crate::forms::char2::beta_from_gauss;
         // 2-elementary ⇔ every nontrivial invariant factor is 2 (the unimodular
         // A_L = 0 case is vacuously 2-elementary, β = 0).
@@ -722,7 +722,7 @@ impl DiscriminantForm {
         }
         let re = counts[0] - counts[2];
         let im = counts[1] - counts[3];
-        Some(crate::forms::BrownResult {
+        Some(crate::forms::BrownInvariants {
             beta: beta_from_gauss(re, im)?,
             rank: self.group.len(),
             radical_dim: 0,

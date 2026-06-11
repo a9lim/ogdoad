@@ -126,8 +126,8 @@ fn lcm(a: u128, b: u128) -> Option<u128> {
 }
 
 fn same_char2_isometry_invariant(
-    a1: &crate::forms::ArfResult,
-    a2: &crate::forms::ArfResult,
+    a1: &crate::forms::ArfInvariants,
+    a2: &crate::forms::ArfInvariants,
 ) -> bool {
     a1.rank == a2.rank
         && a1.radical_dim == a2.radical_dim

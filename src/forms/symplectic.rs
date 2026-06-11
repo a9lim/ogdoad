@@ -44,9 +44,6 @@ impl SymplecticInvariants {
     }
 }
 
-/// Type alias for backward-compatibility.
-pub type SymplecticClass = SymplecticInvariants;
-
 impl<S: Scalar> SymplecticForm<S> {
     /// Build from a Gram matrix, checking it is square and **alternating**: zero
     /// diagonal and `A[i][j] = −A[j][i]`. Returns `None` otherwise. (In char 2 the

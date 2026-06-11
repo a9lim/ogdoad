@@ -65,7 +65,7 @@
 //! On the nonsingular core, the algorithm repeatedly splits off either an odd
 //! line (`q(v) = 1` or `3`) or an even symplectic plane; the known block phases
 //! (`1`, `7`, `0`, or `4`) add in `ℤ/8`. So `β` is reduced block-by-block and
-//! reported alongside the radical data exactly as [`ArfResult`](crate::forms::ArfResult)
+//! reported alongside the radical data exactly as [`ArfInvariants`](crate::forms::ArfInvariants)
 //! reports its radical. The old direct enumeration route remains only as a test
 //! oracle. The lattice tie ([`DiscriminantForm::brown_invariant`]) and the third
 //! identification (`β ≡ sign(L) mod 8` on 2-elementary discriminant forms) live in
@@ -113,9 +113,6 @@ impl std::fmt::Display for BrownInvariants {
         write!(f, "β={} rank={}{}", self.beta, self.rank, rad)
     }
 }
-
-/// Type alias for backward-compatibility.
-pub type BrownResult = BrownInvariants;
 
 /// Bits of a mask strictly above position `i`.
 fn above(i: usize) -> u128 {

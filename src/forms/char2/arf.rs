@@ -93,9 +93,6 @@ impl fmt::Display for ArfInvariants {
     }
 }
 
-/// Type alias kept for backward-compatibility in case downstream code uses it.
-pub type ArfResult = ArfInvariants;
-
 /// Bits of `mask` strictly above position `i`.
 fn above(i: usize) -> u128 {
     if i >= 127 {
@@ -140,7 +137,7 @@ fn b_of(u: u128, v: u128, bmat: &[u128]) -> bool {
 
 /// Arf invariant of an F₂ quadratic form given by diagonal `qd` (the squares)
 /// and symmetric adjacency `bmat` (the polar form; `bmat[i]` bit j ⇔ b_{ij}=1).
-pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfResult {
+pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfInvariants {
     let mut vectors: Vec<u128> = (0..n).map(|i| 1u128 << i).collect();
     let mut arf = false;
     let mut pairs = 0usize;
@@ -268,7 +265,7 @@ fn bf_field<F: Scalar>(u: &[F], v: &[F], bmat: &[Vec<F>]) -> F {
 fn arf_char2_core<F>(
     metric: &Metric<F>,
     trace_to_f2: impl Fn(&F) -> Option<u128>,
-) -> Option<ArfResult>
+) -> Option<ArfInvariants>
 where
     F: Scalar,
 {
@@ -352,7 +349,7 @@ pub(crate) fn nimber_metric_max_val(metric: &Metric<Nimber>) -> u128 {
 /// smallest nim-subfield containing all entries), reduced to F₂ via the trace.
 /// Works for any nimber metric — F₂ is the special case where the trace is the
 /// identity. Symplectic reduction normalises each pair with `nim_inv`.
-pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
+pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfInvariants> {
     let maxv = nimber_metric_max_val(metric);
     arf_nimber_at_degree(metric, min_field_degree(maxv))
 }
@@ -361,7 +358,7 @@ pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
 /// of 2 up to 128) for the F_{2^m} → F₂ trace.  Callers that need to compare
 /// two forms isometrically must pass the same `m` to both — typically
 /// `min_field_degree(max(maxv1, maxv2))`.  General-bilinear metrics return `None`.
-pub(crate) fn arf_nimber_at_degree(metric: &Metric<Nimber>, m: u128) -> Option<ArfResult> {
+pub(crate) fn arf_nimber_at_degree(metric: &Metric<Nimber>, m: u128) -> Option<ArfInvariants> {
     if !metric.a.is_empty() {
         return None;
     }
@@ -427,7 +424,7 @@ pub(crate) fn arf_nimber_at_degree(metric: &Metric<Nimber>, m: u128) -> Option<A
 /// Arf invariant of a quadratic Clifford metric over a supported finite field of
 /// characteristic 2 (`F₂` or `F_{2^N}`), reduced through the absolute trace
 /// `Tr_{F/F₂}`. This is the `Fpn<2,N>` mirror of [`arf_nimber`].
-pub fn arf_char2<F: FiniteChar2Field>(metric: &Metric<F>) -> Option<ArfResult> {
+pub fn arf_char2<F: FiniteChar2Field>(metric: &Metric<F>) -> Option<ArfInvariants> {
     F::ensure_supported()?;
     arf_char2_core(metric, |x| Some(F::artin_schreier_class(*x)))
 }
@@ -437,7 +434,7 @@ pub fn arf_char2<F: FiniteChar2Field>(metric: &Metric<F>) -> Option<ArfResult> {
 /// `Fpn<P,N>` monomorphisation without pretending odd fields are char-2 fields.
 pub fn arf_fpn_char2<const P: u128, const N: usize>(
     metric: &Metric<Fpn<P, N>>,
-) -> Option<ArfResult> {
+) -> Option<ArfInvariants> {
     if P != 2 || !Fpn::<P, N>::is_supported_field() {
         return None;
     }
@@ -446,7 +443,7 @@ pub fn arf_fpn_char2<const P: u128, const N: usize>(
 }
 
 /// Arf invariant of a nimber Clifford metric (the char-2 Clifford classifier).
-pub fn arf_invariant(metric: &Metric<Nimber>) -> Option<ArfResult> {
+pub fn arf_invariant(metric: &Metric<Nimber>) -> Option<ArfInvariants> {
     arf_nimber(metric)
 }
 
@@ -498,7 +495,10 @@ pub fn ordinal_metric_finite_subfield_degree(metric: &Metric<Ordinal>) -> Option
 /// Arf invariant for a finite ordinal-nimber metric using an explicit containing
 /// field degree for the absolute trace. The caller is responsible for choosing a
 /// common degree when comparing multiple forms.
-pub(crate) fn arf_ordinal_at_degree(metric: &Metric<Ordinal>, degree: u128) -> Option<ArfResult> {
+pub(crate) fn arf_ordinal_at_degree(
+    metric: &Metric<Ordinal>,
+    degree: u128,
+) -> Option<ArfInvariants> {
     if !metric.a.is_empty() {
         return None;
     }
@@ -514,7 +514,7 @@ pub(crate) fn arf_ordinal_at_degree(metric: &Metric<Ordinal>, degree: u128) -> O
 /// finite subfields use the same generic symplectic reduction plus the absolute
 /// trace from their minimal common `F_{2^m}`. Genuinely transfinite coefficients
 /// return `None`; choosing a classifier there remains open.
-pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfResult> {
+pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfInvariants> {
     if !metric.a.is_empty() {
         return None;
     }
