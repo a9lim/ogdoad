@@ -64,14 +64,14 @@ impl PyArfResult {
         self.inner.radical_anisotropic
     }
     #[getter]
-    fn o_type(&self) -> &'static str {
-        self.inner.o_type
+    fn o_type(&self) -> String {
+        self.inner.o_type().to_string()
     }
     fn __repr__(&self) -> String {
         format!(
             "ArfResult(arf={}, type={}, rank={}, radical_dim={}, radical_anisotropic={})",
             self.inner.arf,
-            self.inner.o_type,
+            self.inner.o_type(),
             self.inner.rank,
             self.inner.radical_dim,
             self.inner.radical_anisotropic,
@@ -990,7 +990,7 @@ impl PyWittClass {
     #[staticmethod]
     fn zero() -> PyWittClass {
         PyWittClass {
-            inner: WittClass::zero(),
+            inner: WittClass::zero_f2(),
         }
     }
     #[staticmethod]
@@ -1017,7 +1017,7 @@ impl PyWittClass {
         self.inner
             .try_add(&other.inner)
             .map(|inner| PyWittClass { inner })
-            .map_err(PyValueError::new_err)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
     fn __neg__(&self) -> PyWittClass {
         PyWittClass {
@@ -2147,7 +2147,7 @@ impl PyChar2FiniteFieldForm {
 
     fn witt_class(&self) -> PyResult<PyWittClassG> {
         let res = with_finite_char2_metric!(self.degree, &self.q, &self.b, |m| {
-            crate::forms::WittClassify::witt_class(&m)
+            crate::forms::ClassifyWitt::witt_class(&m)
         });
         res.map(|inner| PyWittClassG { inner }).ok_or_else(|| {
             PyValueError::new_err("finite char-2 Witt class needs a nonsingular metric")
@@ -2156,7 +2156,7 @@ impl PyChar2FiniteFieldForm {
 
     fn bw_class(&self) -> PyResult<PyBrauerWallClass> {
         let res = with_finite_char2_metric!(self.degree, &self.q, &self.b, |m| {
-            crate::forms::BrauerWallClassify::bw_class(&m)
+            crate::forms::ClassifyBrauerWall::bw_class(&m)
         });
         res.map(|inner| PyBrauerWallClass { inner }).ok_or_else(|| {
             PyValueError::new_err("finite char-2 Brauer-Wall class needs a nonsingular metric")
@@ -2176,7 +2176,7 @@ impl PyChar2FiniteFieldForm {
             &other.q,
             &other.b,
             |m1, m2| {
-                crate::forms::IsometryClassify::isometric(&m1, &m2).ok_or_else(|| {
+                crate::forms::ClassifyIsometry::isometric(&m1, &m2).ok_or_else(|| {
                     PyValueError::new_err("metric is outside finite char-2 isometry scope")
                 })
             }
@@ -3053,7 +3053,7 @@ impl PyWittClassG {
         self.inner
             .try_add(&other.inner)
             .map(|inner| PyWittClassG { inner })
-            .map_err(PyValueError::new_err)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
     /// The Witt-**ring** product (tensor of forms). Defined on the char-0 and
     /// odd-char legs; panics on a char-2 operand (`W_q` is a module, not a ring).
@@ -3061,7 +3061,7 @@ impl PyWittClassG {
         self.inner
             .try_mul(&other.inner)
             .map(|inner| PyWittClassG { inner })
-            .map_err(PyValueError::new_err)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
     fn __eq__(&self, other: &PyWittClassG) -> bool {
         self.inner == other.inner
@@ -3324,7 +3324,7 @@ fn hilbert_symbol(p: u128, a: i128, b: i128) -> PyResult<i128> {
 /// Are two ordinal-nimber metrics isometric on the detected finite ordinal windows?
 #[pyfunction]
 fn isometric_ordinal_finite(a: &OrdinalAlgebra, b: &OrdinalAlgebra) -> PyResult<bool> {
-    <Ordinal as crate::forms::IsometryClassify>::isometric(&a.inner.metric, &b.inner.metric)
+    <Ordinal as crate::forms::ClassifyIsometry>::isometric(&a.inner.metric, &b.inner.metric)
         .ok_or_else(|| {
             PyValueError::new_err(
                 "ordinal isometry is only implemented on detected finite ordinal-nimber windows",
@@ -3336,7 +3336,7 @@ fn isometric_ordinal_finite(a: &OrdinalAlgebra, b: &OrdinalAlgebra) -> PyResult<
 /// finite ordinal windows.
 #[pyfunction]
 fn ordinal_witt(alg: &OrdinalAlgebra) -> PyResult<PyWittClassG> {
-    <Ordinal as crate::forms::WittClassify>::witt_class(&alg.inner.metric)
+    <Ordinal as crate::forms::ClassifyWitt>::witt_class(&alg.inner.metric)
         .map(|inner| PyWittClassG { inner })
         .ok_or_else(|| {
             PyValueError::new_err(
@@ -5204,7 +5204,7 @@ impl PyBrauerWallClass {
         self.inner
             .try_add(&other.inner)
             .map(|inner| PyBrauerWallClass { inner })
-            .map_err(PyValueError::new_err)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
     fn __eq__(&self, other: &PyBrauerWallClass) -> bool {
         self.inner == other.inner
@@ -5271,7 +5271,7 @@ fn bw_class_nimber(alg: &NimberAlgebra) -> PyResult<PyBrauerWallClass> {
 /// detected finite ordinal windows.
 #[pyfunction]
 fn bw_class_ordinal(alg: &OrdinalAlgebra) -> PyResult<PyBrauerWallClass> {
-    <Ordinal as crate::forms::BrauerWallClassify>::bw_class(&alg.inner.metric)
+    <Ordinal as crate::forms::ClassifyBrauerWall>::bw_class(&alg.inner.metric)
         .map(|inner| PyBrauerWallClass { inner })
         .ok_or_else(|| {
             PyValueError::new_err(

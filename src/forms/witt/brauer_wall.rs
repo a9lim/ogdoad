@@ -31,8 +31,33 @@
 use crate::clifford::Metric;
 use crate::forms::{
     classify_surcomplex, classify_surreal, finite_odd_witt, FiniteOddField, WittClassG,
+    WittClassGError,
 };
 use crate::scalar::{Nimber, Surcomplex, Surreal};
+
+/// Reason a [`BrauerWallClass::try_add`] call returned `Err`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum BrauerWallError {
+    /// The two operands live over different finite fields of the same characteristic.
+    DifferentFields,
+    /// The operands are from different characteristic regimes (real, complex,
+    /// odd-char, char-2); they cannot be directly combined.
+    DifferentGroundFields,
+}
+
+impl std::fmt::Display for BrauerWallError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BrauerWallError::DifferentFields => {
+                f.write_str("Brauer-Wall classes are from different finite fields")
+            }
+            BrauerWallError::DifferentGroundFields => {
+                f.write_str("cannot add Brauer-Wall classes across different ground fields")
+            }
+        }
+    }
+}
 
 /// A class in the Brauer–Wall group, by characteristic leg. Each leg's
 /// [`try_add`](Self::try_add) is the group law induced by the graded tensor product
@@ -60,7 +85,7 @@ pub enum BrauerWallClass {
 
 impl BrauerWallClass {
     /// The group operation induced by the graded tensor product `⊗̂`.
-    pub fn try_add(&self, other: &BrauerWallClass) -> Result<BrauerWallClass, &'static str> {
+    pub fn try_add(&self, other: &BrauerWallClass) -> Result<BrauerWallClass, BrauerWallError> {
         match (*self, *other) {
             (BrauerWallClass::Real(a), BrauerWallClass::Real(b)) => {
                 Ok(BrauerWallClass::Real((a + b) % 8))
@@ -94,6 +119,10 @@ impl BrauerWallClass {
                     kappa: kb,
                     e0: e0b,
                     sclass: sb,
+                })
+                .map_err(|e| match e {
+                    WittClassGError::DifferentFields => BrauerWallError::DifferentFields,
+                    _ => BrauerWallError::DifferentGroundFields,
                 })?;
                 match w {
                     WittClassG::OddChar {
@@ -121,14 +150,14 @@ impl BrauerWallClass {
                 },
             ) => {
                 if ma != mb {
-                    return Err("char-2 Brauer-Wall classes are from different finite fields");
+                    return Err(BrauerWallError::DifferentFields);
                 }
                 Ok(BrauerWallClass::Char2 {
                     field_degree: ma,
                     arf: a ^ b,
                 })
             }
-            _ => Err("cannot add Brauer-Wall classes across different ground fields"),
+            _ => Err(BrauerWallError::DifferentGroundFields),
         }
     }
 
