@@ -98,8 +98,11 @@ tested} (backed by tests, examples, or experiments in this checkout),
 of the 2026-06-10 parallel research run are machine-verified only at stated
 small parameters; each such result carries its verification scope inline.
 One construction claim (\textsc{echo}-\textsc{fifo}+dummy,
-Section~\ref{sec:constructions}) is explicitly \emph{unverified} and is not
-relied on anywhere.
+Section~\ref{sec:constructions}), recorded as unverified in earlier drafts,
+has since passed its pre-registered adversarial review (2026-06-10): a fresh
+direct stateful solver (\path{experiments/echo_solver.py}) re-derives the
+full $391{,}680$-check $m=8$ exactness sweep with zero misses. The
+verification record is in Section~\ref{sec:constructions}.
 
 \section{Scope}\label{sec:scope}
 
@@ -1278,8 +1281,12 @@ $\sigma\mathrel{\oplus{=}}c(\text{open-set},e_i)$, where $c$ is the
 triangular cocycle of the extraspecial extension
 ($c(v,v)=Q_a(v)$, $c(u,v)\oplus c(v,u)=B(u,v)$,
 cf.\ Lemma~\ref{lem:extdict}(ii)); a one-move ko forbids immediately
-re-touching; the player completing the board wins iff the terminal charge
-is $\sigma=1$.
+re-touching, a player with no legal touch passes (the pass clears the ko),
+and play ends when every coin is closed. The two players are the two
+central characters: the complete play word lies over $0\in V$, hence equals
+$1$ or $z$ in $E_Q$; one player plays for terminal charge $\sigma=1$ (word
+$=z$), the other for $\sigma=0$, and the \emph{value} of the position is
+the forced terminal charge.
 \end{quote}
 
 The rule is center-reading (not center-blind), noncommutative via move
@@ -1304,30 +1311,79 @@ $(8,1)$, bent $\lambda=2$ & rank $8$ & $212/256$ & yes \\
 \bottomrule
 \end{tabular}
 \end{center}
-Agreement grades by polar rank. A bounded-memory blocker conjecture (for
-fixed ko-window $w$, adversarial unlinking wins on supports $k\geq w+2$ at
-rank $\geq6$) was formulated on the \emph{invalid} round-1 data and has not
-been re-examined against the corrected solver; it is recorded as a
-hypothesis to re-test, not a finding.
+Agreement grades by polar rank. The table reports the $\sigma{=}1$-stance
+face (first player plays for $z$) of a stance-asymmetric rule: with the
+first player playing for $\sigma=0$ the same instances degrade ($15/16$ at
+the bent $m=4$ instances, $250/256$ at $(8,2,1)$). An independent
+$\sigma$-explicit full-state direct solver, validated against tree
+enumeration (\path{experiments/echo_solver.py}, stage \texttt{ko2};
+2026-06-10), reproduces the table exactly, including the unique $(8,2)$
+miss $x=224$ -- so the corrected round-1 numbers now have an independent
+re-derivation. The \textsc{fifo}+dummy variant below is, by contrast, exact
+at \emph{both} stances. A bounded-memory blocker conjecture (for fixed
+ko-window $w$, adversarial unlinking wins on supports $k\geq w+2$ at rank
+$\geq6$) was formulated on the \emph{invalid} round-1 data and has not been
+re-examined against the corrected solver; it is recorded as a hypothesis to
+re-test, not a finding.
 
-\subsection{\textsc{echo}-\textsc{fifo}+dummy: an unverified exactness claim}
+\subsection{\textsc{echo}-\textsc{fifo}+dummy: the verified exact $m=8$
+realizer}\label{sec:fifodummy}
 
-A second-round variant replaces the one-move ko with a \textsc{fifo}
-close-discipline (only the longest-open coin may be closed) and adjoins one
-neutral tempo coin. The run claims full $m=8$ exactness
-($391{,}680$ checks across all $765$ scaled Gold forms, including rank $6$
-and rank $8$) via a decomposition-plus-isomorphism-caching solver that was
-validated only at $m=4$, not directly at $m=8$.
+A second-round variant imposes a \textsc{fifo} close-discipline on top of
+the rule above -- only the longest-open coin may be closed, while the
+one-move ko and the forced pass are \emph{retained} -- and adjoins one
+neutral tempo coin ($q=0$, zero polar row) to every board, fully queued and
+ko-able. The readout is $\sigma$-valued as in \textsc{echo}-ko, at both
+stances $t\in\{0,1\}$; ``exact'' means the forced terminal charge equals
+$Q(x)$ for every position and both stances ($765$ scaled forms
+$\times\,256$ positions $\times\,2$ stances $=391{,}680$ checks). The
+original run established this via a decomposition-plus-isomorphism-caching
+solver validated only at $m=4$, and earlier drafts recorded the claim as
+unverified.
 
-\textbf{This claim is unverified pending adversarial review and is not
-treated as established anywhere in this note.} A fresh direct stateful
-solver -- no decomposition extrapolation, full state in the memo key
-including $\sigma$, validated against explicit tree enumeration -- has not
-been run at $m=8$. It is the single most load-bearing unverified result of
-the program, and re-deriving it (or refuting it) is the top-ranked next
-move.
+\paragraph{Adversarial review (2026-06-10; implemented and tested).}
+The pre-registered experiment of Section~\ref{sec:decisive} was executed
+with a fresh direct stateful solver (\path{experiments/echo_solver.py}):
+no decomposition, no isomorphism caching, full state -- untouched set,
+open queue in order, ko memory, mover, and the accumulated charge $\sigma$
+-- in the memoization key. Validation: explicit no-memo tree enumeration
+($m=4$ exhaustive, $m=8$ small supports); the original direct $m\leq4$
+solver executed verbatim as a cross-oracle ($1{,}920$ solves agree); nim
+arithmetic against the independent Turning-Corners mex recurrence; and a
+second reviewer model re-ran every stage and re-checked the nim product
+against the original probe's implementation on all $65{,}536$ pairs.
+Results:
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item $m=4$ family: exact at all $15$ scaled forms, both stances, with the
+dummy ($30/30$; only $15/30$ without it -- the tempo coin is load-bearing).
+\item $m=8$ benchmarks $(8,2,1)$ rank $4$, $(8,1,1)$ rank $6$, $(8,1,2)$
+and $(8,1,3)$ rank $8$: $256/256$ at both stances.
+\item Rank-stratified sample ($21$ $(a,\lambda)$ pairs across ranks
+$\{4,6,8\}$): exact, both stances.
+\item The full claimed sweep, re-derived end to end:
+$\mathbf{391{,}680/391{,}680}$, zero misses.
+\item Decision-liveness: $1.46$--$4.37$ million decision states per
+benchmark instance ($128$--$210$ of $256$ positions decision-live) -- not
+a clock.
+\item Torsor sweep: $20$ refinements of each benchmark polar form (Gold,
+zero, all-ones, seeded-random diagonals), exact throughout. Honest note:
+each $q_i$ fires exactly once, at the close of coin $i$, so the diagonal
+contribution to $\sigma$ is play-invariant; both-stance exactness at one
+refinement of $B$ therefore \emph{implies} it for all refinements, and the
+sweep is a consistency check of that argument, not independent evidence.
+\end{itemize}
 
-\subsection{The decisive experiment}
+The exactness claim is hereby \textsc{confirm}ed. Two boundary notes.
+First, the verified realizer is $\sigma$-valued: it realizes $Q$ as a
+forced terminal charge (the central character of the play word), not yet
+as the $P$-set of a normal-, misère-, or loopy-play game; the recasting
+is now the load-bearing open step (Section~\ref{sec:status}). Second, the
+bounded-memory blocker conjecture is untouched: the \textsc{fifo} queue is
+unbounded memory, so the bounded-window regime remains open -- what the
+verdict shows is that unbounded queue discipline plus one tempo coin
+suffices.
+
+\subsection{The decisive experiment}\label{sec:decisive}
 
 The pre-registered experiment for the primary candidate: a corrected-solver
 sweep over the finite \textsc{echo} rule family at $m=8$, validated by a
@@ -1349,8 +1405,15 @@ A \textsc{confirm} outcome would be the first genuine Tier-2 witness
 and the even-$a$ diagonal lemma). A \textsc{kill} outcome -- rank-graded
 decay persisting across every family member -- would put the
 bounded-memory blocker conjecture on valid data and close the line for
-bounded-memory architectures. Either outcome is informative, and the sweep
-is feasible in minutes per candidate on the existing infrastructure.
+bounded-memory architectures.
+
+\emph{Executed 2026-06-10} (Section~\ref{sec:fifodummy}): outcome
+\textsc{confirm} on every leg -- zero misses, decision-nondegenerate
+throughout, torsor-uniform. The remaining family axes (ko-memory window
+$w\in\{1,2,3\}$, pass semantics, pair touches) are no longer decisive for
+existence; they map the boundary of the mechanism -- which disciplines
+besides \textsc{fifo}+dummy are exact, and why -- and feed the
+reconciliation item of Section~\ref{sec:status}.
 
 \section{Status and next moves}\label{sec:status}
 
@@ -1358,28 +1421,35 @@ is feasible in minutes per candidate on the existing infrastructure.
 Tier 1 ($\Sp(B)$-blind) is dead by Proposition~\ref{prop:nogo} and
 Theorems~\ref{thm:D}--\ref{thm:G}. Tier 3 (evaluation) is live and even
 decision-nondegenerate, but tautological. Tier 2 under the bounded-framing
-quarantine is inhabited \emph{only by clocks}
-(Theorems~\ref{thm:rigidity}, \ref{thm:clock}): N1+N2 are satisfiable, and
-every known in-class normal-play realizer violates N3. The live question is
-whether a decision-nondegenerate Tier-2 rule -- N1, N2, and N3
-simultaneously -- exists. \textsc{echo}-ko is the leading candidate; the
-\textsc{echo}-\textsc{fifo}+dummy exactness claim is the most important
-unverified result in the program.
+quarantine is inhabited \emph{only by clocks} among normal-play realizers
+(Theorems~\ref{thm:rigidity}, \ref{thm:clock}). In $\sigma$-valued
+(forced-charge) semantics the picture changed on 2026-06-10: the
+\textsc{echo}-\textsc{fifo}+dummy realizer is \emph{verified} exact on all
+$765$ scaled $m=8$ Gold forms at both stances
+(Section~\ref{sec:fifodummy}), decision-nondegenerate in bulk, with
+bounded per-move access (open-set row sums plus the local $q_i$ at closes)
+-- an N1+N2-satisfying non-clock, in a readout the rigidity theorems do
+not cover. The live question is no longer existence but \emph{semantics}:
+recast the charge readout into normal/misère/loopy outcome classes (or
+prove the recasting impossible), and settle the even-$a$ diagonal lemma.
 
 \paragraph{Ranked next moves.}
+(Move 1 of the previous ranking -- the adversarial review -- was executed
+2026-06-10 with outcome \textsc{confirm}; Section~\ref{sec:fifodummy}.)
 \begin{enumerate}[leftmargin=*]
-\item \emph{Adversarial review of \textsc{echo}-\textsc{fifo}+dummy}
-(highest leverage): build a fresh direct stateful solver and run it on the
-$m=8$ benchmarks plus $\geq20$ stratified $\lambda$ from the claimed sweep;
-cross-validate the decomposition lemma directly at $m=8$; measure
-N3-conjunction and bulk-liveness.
-\item \emph{Pre-registered \textsc{echo}-ko family sweep}
-(Section~\ref{sec:constructions}): \textsc{confirm} resolves the problem
-constructively pending minor lemmas; \textsc{kill} grounds the
-bounded-memory blocker on valid data.
-\item \emph{Mechanism reconciliation}: derive the \textsc{fifo}+dummy
-reduced-game facts and re-run the extraspecial support-counting argument
-under \textsc{fifo} discipline; feeds both items above.
+\item \emph{Recasting and mechanism reconciliation} (highest leverage):
+recast the $\sigma$-valued charge readout into normal/misère/loopy
+outcome semantics -- or prove the recasting impossible; derive the
+\textsc{fifo}+dummy reduced-game facts and re-run the extraspecial
+support-counting argument under \textsc{fifo} discipline to explain
+\emph{why} the queue-plus-tempo discipline defeats adversarial unlinking.
+\item \emph{Family-boundary sweep} (the remaining pre-registered axes):
+ko-memory window $w\in\{1,2,3\}$, pass semantics, pair touches, no-dummy
+controls -- map which disciplines are exact; this also puts the
+bounded-window blocker conjecture on valid data at last.
+\item \emph{The even-$a$ diagonal lemma}: prove or refute the even-$a$
+$\wp$-preimage family (Section~\ref{sec:framing}) -- the second condition
+on the Tier-2-witness reading of the verified realizer.
 \item \emph{Frobenius-aware access enumeration}: finite enumeration of
 Frobenius-equivariant legality predicates at $m=4,8$ -- the one access
 window (escape hatch 3 of Remark~\ref{rem:hatches}) where both the symmetry
@@ -1388,9 +1458,8 @@ and oracle methods are provably silent.
 \cite[Thm.~6.4]{PS} against the published paper (load-bearing for
 Theorem~\ref{thm:C}); (b) enumerate conjugation-move rules on $E$ (the
 involution locus is conjugacy-invariant, so Theorem~\ref{thm:H}'s
-left-translation kill does not apply); (c) prove or refute the even-$a$
-$\wp$-preimage family (Section~\ref{sec:framing}); (d) exhaust the board-8
-case of the \textsc{fifo} parity-pinning conjecture.
+left-translation kill does not apply); (c) exhaust the board-8 case of the
+\textsc{fifo} parity-pinning conjecture.
 \end{enumerate}
 
 \section{Validation}\label{sec:validation}
@@ -1423,6 +1492,13 @@ the extraspecial and \textsc{echo} solvers, and the criterion calibration.
 These are machine-generated research probes, run under the project
 virtualenv, and are \emph{not} CI-maintained; each result cited from them
 states its verification scope inline above.
+\item \path{experiments/echo_solver.py} is the adversarial-review harness
+of the 2026-06-10 verification pass (stages \texttt{selftest},
+\texttt{ko2}, \texttt{fifo2-validate} through \texttt{fifo2-all}): direct
+full-state solvers for the \textsc{echo} family, self-tested against the
+Turning-Corners mex recurrence, explicit tree enumeration, and the
+original direct solver run verbatim. Unlike \path{experiments/gold/} it
+is dependency-free (stdlib Python) and written to stay reproducible.
 \end{itemize}
 
 Two probe-hygiene caveats from the run remain open in the repository and
@@ -1442,14 +1518,18 @@ a noncommutative central extension (Lemmas~\ref{lem:extdict}--\ref{lem:abelian})
 and a no-go program (Theorems~\ref{thm:B}--\ref{thm:H},
 \ref{thm:rigidity}--\ref{thm:nolivemiddle}) that empties every symmetric,
 commutative, and oracle-bounded architecture of bulk strategic content. At
-the boundary: exact realizers exist in every tested quarantine class but
-are forced clocks; one construction (\textsc{echo}-ko) is exact on the
-$m=4$ bent instances, degrades gracefully with polar rank, and stays
-decision-live; and a formalized criterion (N1--N3) reduces
-``natural'' to one load-bearing, still-attackable axiom. The draft does not
-solve the game-semantics problem. It narrows it to a named question:
-\emph{does any fixed uniform rule satisfy N1, N2, and N3 simultaneously on
-a Gold quadric of core rank $\geq6$?}
+the boundary: exact normal-play realizers exist in every tested quarantine
+class but are forced clocks; \textsc{echo}-ko is exact on the $m=4$ bent
+instances at one stance, degrades gracefully with polar rank, and stays
+decision-live; and the \textsc{echo}-\textsc{fifo}+dummy realizer is now
+\emph{verified} exact on all $765$ scaled $m=8$ Gold forms at both stances
+-- decision-nondegenerate, bounded-access, and $\sigma$-valued
+(Section~\ref{sec:fifodummy}). A formalized criterion (N1--N3) reduces
+``natural'' to one load-bearing, still-attackable axiom. The draft does
+not solve the game-semantics problem; the verified realizer narrows it to
+a named question: \emph{can the forced-charge readout be recast into
+normal, misère, or loopy outcome semantics on a Gold quadric of core
+rank $\geq6$ -- or is the two-class outcome layer itself the obstruction?}
 
 \section*{Acknowledgements}
 The \texttt{ogdoad} library, the experiments, and this draft were developed

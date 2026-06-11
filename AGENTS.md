@@ -175,7 +175,11 @@ reconstruction on small fields, frame-obstruction experiments, misère-kernel
 obstruction examples, loopy Draw/Loss-set experiments, and bent Gold-component route
 probes. The conditional statement: if a game has P-positions `{Q = 0}`, Arf gives
 the sign and size of the second-player win-bias. The existence of a non-tautological
-natural rule is open (`OPEN.md`).
+natural rule with P-set `{Q = 0}` is open (`OPEN.md`), but the σ-valued
+echo-fifo+dummy realizer is **verified** (2026-06-10, adversarial review:
+`experiments/echo_solver.py`, 391,680/391,680 m=8 checks, zero misses — record in
+`roadmap/DONE.md`); the open step is recasting its forced-charge readout into
+normal/misère/loopy outcome semantics.
 
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
 tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`), the
@@ -201,6 +205,7 @@ VIRTUAL_ENV=.venv .venv/bin/maturin develop   # build + install the abi3 extensi
 .venv/bin/python experiments/framing_obstruction.py
 .venv/bin/python experiments/gold_family_survey.py
 .venv/bin/python experiments/misere_kernel.py
+python3 experiments/echo_solver.py selftest   # echo adversarial-review harness (stdlib, no venv)
 ```
 
 `maturin develop` needs `VIRTUAL_ENV` set (or a `.venv` in cwd) and `cargo` on PATH

@@ -27,21 +27,22 @@ cross-cutting the item is). Blades: `e_s` scalar, `e_c` clifford, `e_f` forms,
 | `*n` (stars) | confused with `0` | deferred not-yet-numbers: real, on-thesis, unscheduled |
 
 Reference items by **slug**. The ledger's total value is the disjunctive sum; play it
-in any order, though `echo-solver` is the hottest cold item on the board.
+in any order. (`echo-solver`, the formerly hottest cold item, was played 2026-06-10
+with outcome **CONFIRM** — see `roadmap/DONE.md`; its successor move is the
+σ-recasting target in `OPEN.md` tis (§1), which is loopy-valued, not a number.)
 
 ---
 
 ## numbers — forms & Witt (the classifier spine)
 
-### `echo-solver` — 2·(e_g∧e_f)
-**The decisive-experiment harness** (`writeups/goldarf.tex` §§8–9, ranked moves 1–2).
-Build the fresh direct stateful solver — no decomposition extrapolation, full state in
-the memo key including `σ`, validated against explicit tree enumeration at `m = 4` —
-and run (a) the echo-fifo+dummy `m = 8` benchmarks plus ≥ 20 stratified `λ`, then (b)
-the pre-registered echo-ko family sweep. The echo-fifo+dummy exactness claim is the
-single most load-bearing **unverified** result in the Gold/Arf program; either CONFIRM
-or KILL is informative, and the sweep is minutes per candidate on existing
-infrastructure. The harness is tractable engineering; the *outcome* feeds `OPEN.md` §1.
+### `echo-family-sweep` — 1·(e_g∧e_f)
+**The remaining pre-registered family axes** (`writeups/goldarf.tex` §§8–9, ranked
+move 2), on the shipped harness `experiments/echo_solver.py`: ko-memory window
+`w ∈ {1,2,3}`, pass semantics (clears-ko / forbidden / loses), single-coin plus pair
+touches (the tartan-companion axis), and no-dummy controls — mapping which disciplines
+besides fifo+dummy are exact. No longer decisive for existence (the fifo+dummy verdict
+is in); it bounds the *mechanism* and finally puts the bounded-window blocker
+conjecture on valid data.
 
 ### `milnor-d2` — 1·e_f
 **The `p = 2` cell of Milnor's exact sequence** (the CODA N.1 boundary). Implement the

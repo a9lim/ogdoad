@@ -1,6 +1,6 @@
 # Cross-pillar bridges — DONE (the go-forward ledger)
 
-The running ledger of cross-pillar work **completed from here on**. Currently empty.
+The running ledger of cross-pillar work **completed from here on**.
 
 The cross-pillar bridge-building era (bridges **A–O** plus **K** — lattice/Clifford/
 Brauer–Wall, the char-2 Arf classifier, Frobenius outermorphisms, the transfinite
@@ -30,3 +30,26 @@ When a new piece of cross-pillar work lands, add a short entry here:
 
 Promote anything proof-heavy or too long for working notes into `roadmap/CODA.md`, and
 fold the one-line structural fact into the relevant `AGENTS.md`.
+
+## `echo-solver` — the echo-fifo+dummy adversarial review: CONFIRM (2026-06-10)
+**Pillars:** games ↔ forms    **Claim level:** implemented and tested
+- surface: `experiments/echo_solver.py` (stdlib-only, maintained) — direct full-state
+  σ-explicit solvers for the echo family (`fifo_value`, `ko_value`), the parameterized
+  prose-reading sweep that *failed* (all 80+ readings of the old §8.3 prose die at
+  m=8 — the prose misdescribed the rule), nim/mex self-test, torsor and
+  decision-liveness instrumentation, and the full-sweep stage.
+- verdict: the formerly **unverified** echo-fifo+dummy `m = 8` exactness claim is
+  **CONFIRMED** — 391,680/391,680 checks (765 scaled Gold forms × 256 positions ×
+  both stances), zero misses, re-derived with no decomposition and no isomorphism
+  caching. The m=4 family is 30/30 with the dummy and only 15/30 without it; the
+  §8.2 echo-ko table was independently reproduced (σ-explicit, miss x=224 included)
+  and shown to be the σ=1-stance face of a stance-asymmetric rule.
+- oracles: explicit no-memo tree enumeration (m=4 exhaustive + m=8 small supports);
+  the original `direct_fifo_value` executed verbatim (1,920 agreeing solves); the
+  Turning-Corners mex recurrence for the nim product; a Codex cross-run of every
+  stage including nim_mul vs the original probe on all 65,536 pairs.
+- boundaries: the verified realizer is **σ-valued** (forced terminal charge, not a
+  P-set); normal/misère/loopy recasting and the even-`a` diagonal lemma remain open
+  (`OPEN.md` tis (§1)); the bounded-*window* blocker conjecture is untouched (FIFO
+  memory is unbounded); goldarf §8.3's old prose rule description was corrected in
+  the same pass.

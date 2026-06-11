@@ -147,13 +147,22 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
 - The abelian obstruction conjectured here is now Lemma `abelian` in the draft:
   no commutative game monoid's intrinsic squaring realizes a nondegenerate polar
   form, so the quadratic datum must come from the move relation's directedness.
-- The leading Tier-2 candidate is the `echo`-ko charge-counting family on the
-  extraspecial cocycle. An `echo`-`fifo`+dummy variant claims full `m = 8`
-  exactness across all 765 scaled Gold forms — **unverified**, the single most
-  load-bearing unverified result of the program. The pre-registered decisive
-  experiment and the ranked next moves live in goldarf §§8–9; the buildable
-  harness is `roadmap/TODO.md` slug `echo-solver`, and the Plambeck–Siegel
-  Thm 6.4 regularity gate is slug `ps-regularity`.
+- The leading Tier-2 candidate was the `echo`-ko charge-counting family on the
+  extraspecial cocycle, and its `echo`-`fifo`+dummy variant is now **verified**
+  (2026-06-10, pre-registered adversarial review, `experiments/echo_solver.py`):
+  full `m = 8` exactness across all 765 scaled Gold forms, both stances,
+  391,680/391,680 checks re-derived by a fresh direct full-state solver — no
+  decomposition, σ in the memo key, validated against tree enumeration and the
+  original direct solver, with a second-model cross-run. Decision-live in bulk
+  (1.5–4.4M decision states per benchmark instance), torsor-uniform across
+  refinements of each `B`. Three honest boundaries: the realizer is
+  **σ-valued** (it realizes `Q` as a forced terminal charge — the central
+  character of the play word — not yet as a P-set in normal/misère/loopy
+  semantics); the `echo`-ko table is stance-asymmetric (its exactness face is
+  the σ=1 stance only, where `fifo`+dummy is exact at both); and the
+  bounded-window blocker conjecture is untouched (the FIFO queue is unbounded
+  memory). The recasting is now the load-bearing open step; the
+  Plambeck–Siegel Thm 6.4 regularity gate is still slug `ps-regularity`.
 
 The naturality dichotomy:
 
@@ -215,11 +224,14 @@ screen and no-go ladder of `writeups/goldarf.tex` §§5–6 (see the program-sta
 above); it does not yet exhibit a game.
 
 Concrete progress targets (aligned with the goldarf §9 ranked moves):
-- Adversarially verify or refute the `echo`-`fifo`+dummy `m = 8` exactness claim
-  with a fresh direct stateful solver, then run the pre-registered `echo`-ko family
-  sweep (the harness is `roadmap/TODO.md` slug `echo-solver`; CONFIRM would be the
-  first genuine Tier-2 witness, KILL grounds the bounded-memory blocker on valid
-  data).
+- ~~Adversarially verify or refute the `echo`-`fifo`+dummy `m = 8` exactness
+  claim~~ — **done, CONFIRM** (2026-06-10; `experiments/echo_solver.py`, record
+  in goldarf §8 and `roadmap/DONE.md`). The successor target: **recast the
+  σ-valued charge readout into normal/misère/loopy outcome semantics**, or
+  prove the recasting impossible — the step that converts the verified
+  realizer into a Tier-2 witness in the original P-set sense. Alongside it:
+  the family-boundary sweep (ko-window `w`, pass semantics, pair touches,
+  no-dummy controls), which also puts the bounded-window blocker on valid data.
 - Repair or replace N3, the anti-clock axiom — the open definitional problem: the
   escape-edge construction passes N1–N3 while being morally a clock, and two-game
   criticality is unsatisfiable in two-class outcome semantics.
