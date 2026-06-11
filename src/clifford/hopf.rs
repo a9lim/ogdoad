@@ -186,11 +186,11 @@ mod tests {
         let alg = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(3));
         let elts = [
             alg.scalar(r(1)),
-            alg.gen(0),
-            alg.gen(1),
-            alg.wedge(&alg.gen(0), &alg.gen(1)),
-            alg.wedge(&alg.wedge(&alg.gen(0), &alg.gen(1)), &alg.gen(2)),
-            alg.add(&alg.gen(0), &alg.wedge(&alg.gen(1), &alg.gen(2))),
+            alg.e(0),
+            alg.e(1),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
+            alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2))),
         ];
         run_axioms(&alg, &elts);
     }
@@ -201,9 +201,9 @@ mod tests {
         let alg = CliffordAlgebra::new(3, Metric::<Nimber>::grassmann(3));
         let elts = [
             alg.scalar(Nimber(1)),
-            alg.gen(0),
-            alg.wedge(&alg.gen(0), &alg.gen(1)),
-            alg.wedge(&alg.wedge(&alg.gen(0), &alg.gen(1)), &alg.gen(2)),
+            alg.e(0),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
         ];
         run_axioms(&alg, &elts);
     }

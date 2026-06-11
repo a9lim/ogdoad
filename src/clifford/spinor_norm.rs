@@ -104,17 +104,17 @@ mod tests {
     fn spinor_norm_of_a_reflection_is_q_of_the_vector() {
         let alg = cl3();
         // a unit reflection vector e0: N = q0 = 1.
-        assert_eq!(alg.spinor_norm(&alg.gen(0)), Some(Rational::one()));
+        assert_eq!(alg.spinor_norm(&alg.e(0)), Some(Rational::one()));
         // a non-unit vector v = e0 + e1: N = q0 + q1 = 2 (a nonsquare class in ℚ).
-        let v = alg.add(&alg.gen(0), &alg.gen(1));
+        let v = alg.add(&alg.e(0), &alg.e(1));
         assert_eq!(alg.spinor_norm(&v), Some(Rational::from_int(2)));
     }
 
     #[test]
     fn spinor_norm_is_multiplicative_on_versors() {
         let alg = cl3();
-        let v = alg.add(&alg.gen(0), &alg.gen(1)); // N = 2
-        let w = alg.gen(2); // N = 1
+        let v = alg.add(&alg.e(0), &alg.e(1)); // N = 2
+        let w = alg.e(2); // N = 1
         let vw = alg.mul(&v, &w);
         let nv = alg.spinor_norm(&v).unwrap();
         let nw = alg.spinor_norm(&w).unwrap();
@@ -126,9 +126,9 @@ mod tests {
     fn dickson_parity_counts_reflections_mod_two() {
         let alg = cl3();
         let scalar_one = alg.scalar(Rational::one());
-        let e0 = alg.gen(0);
-        let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
-        let e0e1e2 = alg.mul(&e0e1, &alg.gen(2));
+        let e0 = alg.e(0);
+        let e0e1 = alg.mul(&alg.e(0), &alg.e(1));
+        let e0e1e2 = alg.mul(&e0e1, &alg.e(2));
         assert_eq!(versor_grade_parity(&scalar_one), Some(0)); // identity rotor
         assert_eq!(versor_grade_parity(&e0), Some(1)); // 1 reflection
         assert_eq!(versor_grade_parity(&e0e1), Some(0)); // 2 reflections (rotor)
@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn classify_versor_bundles_both() {
         let alg = cl3();
-        let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
+        let e0e1 = alg.mul(&alg.e(0), &alg.e(1));
         let c = alg.classify_versor(&e0e1).unwrap();
         assert_eq!(c.dickson, 0); // a rotor
         assert_eq!(c.spinor_norm, Rational::one()); // q0·q1 = 1
@@ -151,7 +151,7 @@ mod tests {
     #[test]
     fn null_homogeneous_elements_are_not_versors() {
         let alg = CliffordAlgebra::<Rational>::new(1, Metric::grassmann(1));
-        let e0 = alg.gen(0);
+        let e0 = alg.e(0);
         assert_eq!(versor_grade_parity(&e0), Some(1));
         assert_eq!(alg.spinor_norm(&e0), None);
         assert_eq!(alg.classify_versor(&e0), None);
@@ -162,8 +162,8 @@ mod tests {
         // The generic versor_grade_parity reproduces forms::dickson_of_versor on the
         // Nimber backend — the char-2 Dickson is this same grade parity.
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Nimber(1), Nimber(1)]));
-        let e0 = alg.gen(0);
-        let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
+        let e0 = alg.e(0);
+        let e0e1 = alg.mul(&alg.e(0), &alg.e(1));
         assert_eq!(
             versor_grade_parity(&e0),
             crate::forms::dickson_of_versor(&alg, &e0)

@@ -228,7 +228,7 @@ mod tests {
             2,
             Metric::diagonal(vec![Fp::<3>::from_u128(1), Fp::<3>::from_u128(2)]),
         );
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         assert_eq!(alg.mul(&e0, &e0), alg.scalar(Fp::<3>::from_u128(1)));
         assert_eq!(alg.mul(&e1, &e1), alg.scalar(Fp::<3>::from_u128(2)));
         // e0 e1 = −(e1 e0), and −1 = 2 in F_3

@@ -97,8 +97,10 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
-    /// The basis vector e_i.
-    pub fn gen(&self, i: usize) -> Multivector<S> {
+    /// The basis vector `e_i` — named for the `e0e1` display language (and to
+    /// stay clear of the `gen` keyword reserved in Rust 2024). Python keeps
+    /// exposing this as `gen(i)`.
+    pub fn e(&self, i: usize) -> Multivector<S> {
         assert!(i < self.dim(), "generator index {i} out of range");
         assert!(i < MAX_BASIS_DIM, "generator index {i} exceeds blade mask");
         let mut terms = BTreeMap::new();
@@ -180,7 +182,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
             let mut gens = bits(blade);
             gens.reverse();
             for g in gens {
-                rev_blade = self.mul(&rev_blade, &self.gen(g));
+                rev_blade = self.mul(&rev_blade, &self.e(g));
             }
             out = self.add(&out, &self.scalar_mul(coeff, &rev_blade));
         }

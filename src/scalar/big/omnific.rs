@@ -213,7 +213,7 @@ mod tests {
         // Λ over the transfinite ring Oz: nilpotent generators, antisymmetry,
         // and ω-scale coefficients flow through the wedge.
         let alg = CliffordAlgebra::new(3, Metric::<Omnific>::grassmann(3));
-        let (e0, e1, e2) = (alg.gen(0), alg.gen(1), alg.gen(2));
+        let (e0, e1, e2) = (alg.e(0), alg.e(1), alg.e(2));
         // e_i² = 0
         assert!(alg.mul(&e0, &e0).is_zero());
         // antisymmetry: e0 e1 + e1 e0 = 0 (b = 0)
@@ -236,18 +236,18 @@ mod tests {
         // coefficients are ordinary integers: 2 e0 ∧ 3 e1 = 6 e0e1.
         let oz = CliffordAlgebra::new(2, Metric::<Omnific>::grassmann(2));
         let oz_prod = oz.wedge(
-            &oz.scalar_mul(&Omnific::from_int(2), &oz.gen(0)),
-            &oz.scalar_mul(&Omnific::from_int(3), &oz.gen(1)),
+            &oz.scalar_mul(&Omnific::from_int(2), &oz.e(0)),
+            &oz.scalar_mul(&Omnific::from_int(3), &oz.e(1)),
         );
         assert_eq!(
             oz_prod,
-            oz.scalar_mul(&Omnific::from_int(6), &oz.wedge(&oz.gen(0), &oz.gen(1)))
+            oz.scalar_mul(&Omnific::from_int(6), &oz.wedge(&oz.e(0), &oz.e(1)))
         );
 
         let zz = CliffordAlgebra::new(2, Metric::<Integer>::grassmann(2));
         let zz_prod = zz.wedge(
-            &zz.scalar_mul(&Integer(2), &zz.gen(0)),
-            &zz.scalar_mul(&Integer(3), &zz.gen(1)),
+            &zz.scalar_mul(&Integer(2), &zz.e(0)),
+            &zz.scalar_mul(&Integer(3), &zz.e(1)),
         );
         // same blade, coefficient 6 in each backend's own ring
         assert_eq!(*zz_prod.terms.get(&0b11).unwrap(), Integer(6));

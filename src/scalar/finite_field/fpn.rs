@@ -891,7 +891,7 @@ mod tests {
         let x = Fpn::<3, 2>::generator();
         let one = Fpn::<3, 2>::one();
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![x, one]));
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         assert_eq!(alg.mul(&e0, &e0), alg.scalar(x));
         assert_eq!(alg.mul(&e1, &e1), alg.scalar(one));
         // e0 e1 = −(e1 e0)

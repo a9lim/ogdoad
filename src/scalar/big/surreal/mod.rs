@@ -398,7 +398,7 @@ mod tests {
             2,
             Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon()]),
         );
-        let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
+        let e0e1 = alg.mul(&alg.e(0), &alg.e(1));
         let sq = alg.mul(&e0e1, &e0e1);
         assert_eq!(sq, alg.scalar(int(-1)));
     }

@@ -22,7 +22,7 @@ fn main() {
     let mut b = BTreeMap::new();
     b.insert((0usize, 1usize), Nimber(1));
     let alg = CliffordAlgebra::new(2, Metric::new(vec![Nimber(2), Nimber(3)], b));
-    let (e0, e1) = (alg.gen(0), alg.gen(1));
+    let (e0, e1) = (alg.e(0), alg.e(1));
     println!("  e0 e1      = {}", alg.mul(&e0, &e1).display());
     println!("  e1 e0      = {}", alg.mul(&e1, &e0).display());
     println!(
@@ -36,11 +36,11 @@ fn main() {
 
     rule("Grassmann — fully null metric, nilpotent generators");
     let g = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(3));
-    println!("  e0²        = {}", g.mul(&g.gen(0), &g.gen(0)).display());
-    println!("  e0 e1      = {}", g.mul(&g.gen(0), &g.gen(1)).display());
+    println!("  e0²        = {}", g.mul(&g.e(0), &g.e(0)).display());
+    println!("  e0 e1      = {}", g.mul(&g.e(0), &g.e(1)).display());
     println!(
         "  e1 e0      = {}   (antisymmetric)",
-        g.mul(&g.gen(1), &g.gen(0)).display()
+        g.mul(&g.e(1), &g.e(0)).display()
     );
 
     rule("surreals — a Clifford metric with NO finite entries");
@@ -49,9 +49,9 @@ fn main() {
         2,
         Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon()]),
     );
-    let e0e1 = s.mul(&s.gen(0), &s.gen(1));
-    println!("  e0²        = {}", s.mul(&s.gen(0), &s.gen(0)).display());
-    println!("  e1²        = {}", s.mul(&s.gen(1), &s.gen(1)).display());
+    let e0e1 = s.mul(&s.e(0), &s.e(1));
+    println!("  e0²        = {}", s.mul(&s.e(0), &s.e(0)).display());
+    println!("  e1²        = {}", s.mul(&s.e(1), &s.e(1)).display());
     println!(
         "  (e0 e1)²   = {}   (= -(ω·ε) = -1, a unit bivector)",
         s.mul(&e0e1, &e0e1).display()
@@ -121,7 +121,7 @@ fn main() {
         2,
         Metric::general(vec![Surreal::from_int(1); 2], BTreeMap::new(), a),
     );
-    let e0e1 = d.mul(&d.gen(0), &d.gen(1));
+    let e0e1 = d.mul(&d.e(0), &d.e(1));
     println!("  e0 e1 = {}   (= e0∧e1 + 5)", e0e1.display());
 
     rule("Artin–Schreier ↔ Arf — one field trace, two roles");
@@ -153,7 +153,7 @@ fn main() {
         dickson_matrix(&[vec![0, 1], vec![1, 0]])
     );
     let nb = CliffordAlgebra::new(2, aplane);
-    let rotor = nb.mul(&nb.gen(0), &nb.gen(1));
+    let rotor = nb.mul(&nb.e(0), &nb.e(1));
     println!(
         "  Dickson(versor e0e1) = {:?}   (a rotor ⇒ SO)",
         dickson_of_versor(&nb, &rotor)

@@ -180,7 +180,7 @@ impl DividedPowerAlgebra {
     }
 
     /// The generator `γ_i = γ_i^{[1]}` (primitive).
-    pub fn gen<S: Scalar>(&self, i: usize) -> DpVector<S> {
+    pub fn gamma1<S: Scalar>(&self, i: usize) -> DpVector<S> {
         self.divided_power(i, 1)
     }
 
@@ -384,11 +384,11 @@ mod tests {
     fn sample<S: Scalar>(g: &DividedPowerAlgebra) -> Vec<DpVector<S>> {
         vec![
             g.one(),
-            g.gen(0),
+            g.gamma1(0),
             g.divided_power(0, 2),
             g.divided_power(1, 3),
-            g.mul(&g.gen(0), &g.divided_power(1, 2)),
-            g.add(&g.gen(0), &g.divided_power(1, 2)),
+            g.mul(&g.gamma1(0), &g.divided_power(1, 2)),
+            g.add(&g.gamma1(0), &g.divided_power(1, 2)),
         ]
     }
 
@@ -409,7 +409,7 @@ mod tests {
     fn generators_are_primitive() {
         // Δ(γ_i^{[1]}) = γ_i^{[1]} ⊗ 1 + 1 ⊗ γ_i^{[1]}.
         let g = DividedPowerAlgebra::new(2);
-        let cop = g.coproduct(&g.gen::<Rational>(0));
+        let cop = g.coproduct(&g.gamma1::<Rational>(0));
         assert_eq!(cop.len(), 2);
         assert_eq!(cop.get(&(vec![1, 0], vec![0, 0])), Some(&r(1)));
         assert_eq!(cop.get(&(vec![0, 0], vec![1, 0])), Some(&r(1)));
@@ -419,10 +419,10 @@ mod tests {
     fn binomial_product_over_rationals() {
         // γ_0^{[1]} · γ_0^{[2]} = C(3,1) γ_0^{[3]} = 3 γ_0^{[3]}.
         let g = DividedPowerAlgebra::new(1);
-        let prod = g.mul(&g.gen::<Rational>(0), &g.divided_power(0, 2));
+        let prod = g.mul(&g.gamma1::<Rational>(0), &g.divided_power(0, 2));
         assert_eq!(prod.terms.get(&vec![3]), Some(&r(3)));
         // (γ_0^{[1]})² = C(2,1) γ_0^{[2]} = 2 γ_0^{[2]} ≠ 0 in char 0.
-        let sq = g.mul(&g.gen::<Rational>(0), &g.gen(0));
+        let sq = g.mul(&g.gamma1::<Rational>(0), &g.gamma1(0));
         assert_eq!(sq.terms.get(&vec![2]), Some(&r(2)));
     }
 
@@ -431,7 +431,7 @@ mod tests {
         // THE char-faithful signature, mirroring exterior e_i² = 0:
         // (γ_0^{[1]})² = 2·γ_0^{[2]} = 0 over a char-2 scalar...
         let g = DividedPowerAlgebra::new(1);
-        let sq = g.mul(&g.gen::<Nimber>(0), &g.gen(0));
+        let sq = g.mul(&g.gamma1::<Nimber>(0), &g.gamma1(0));
         assert!(sq.terms.is_empty(), "(γ^[1])² must vanish in char 2");
         // ...yet γ_0^{[2]} itself is a nonzero element — so Γ ≠ Sym in char 2.
         let dp2 = g.divided_power::<Nimber>(0, 2);

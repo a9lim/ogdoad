@@ -45,39 +45,18 @@ impl<S: Scalar> Multivector<S> {
         self.terms.is_empty()
     }
 
-    /// Human-readable form, e.g. `3 + 2*e0 + 1*e0e1` (uses `Debug` rendering for
-    /// coefficients; works for any `S: Scalar`). The Python binding calls this.
+    /// Human-readable form, e.g. `3 + 2*e0 + 1*e0e1`. A thin alias for the
+    /// [`fmt::Display`] impl (kept because the Python binding calls it).
     pub fn display(&self) -> String {
-        if self.terms.is_empty() {
-            return "0".to_string();
-        }
-        let one = S::one();
-        let neg_one = S::one().neg();
-        let mut parts = Vec::new();
-        for (&blade, coeff) in &self.terms {
-            if blade == 0 {
-                parts.push(format!("{:?}", coeff));
-                continue;
-            }
-            let label: String = bits(blade).iter().map(|i| format!("e{}", i)).collect();
-            if *coeff == one {
-                parts.push(label);
-            } else if *coeff == neg_one {
-                parts.push(format!("-{}", label));
-            } else {
-                parts.push(format!("{:?}*{}", coeff, label));
-            }
-        }
-        parts.join(" + ")
+        self.to_string()
     }
 }
 
-/// `fmt::Display` for `Multivector<S>` when `S: fmt::Display` — uses `{}`
-/// (Display) for coefficients rather than `{:?}`. Scalars that implement
-/// `Display` (e.g. `Fp`, `Fpn`, `Rational` if it did) get clean output.
-/// The Python `__repr__` and `display()` method both call the Display-independent
-/// path above; this impl is for Rust code that explicitly formats with `{}`.
-impl<S: Scalar + fmt::Display> fmt::Display for Multivector<S> {
+/// `fmt::Display` for any `Multivector<S>` — `Display` is part of the `Scalar`
+/// contract, so coefficients render in their canonical human form (`*n`
+/// nimbers, CNF surreals, …). `Debug` on every scalar delegates here-compatible
+/// output, so `{}` and `{:?}` agree crate-wide.
+impl<S: Scalar> fmt::Display for Multivector<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.terms.is_empty() {
             return write!(f, "0");

@@ -237,7 +237,7 @@ mod tests {
         // zero divisor (2·2 = 0 in Z/4), so this is a genuinely non-semisimple
         // Clifford algebra — the nilpotent path exercised at the scalar level.
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Zp::<2, 2>(1), Zp::<2, 2>(2)]));
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         assert_eq!(alg.mul(&e0, &e0), alg.scalar(Zp::<2, 2>(1)));
         assert_eq!(alg.mul(&e1, &e1), alg.scalar(Zp::<2, 2>(2)));
         // (e1)⁴ = q1² = 2² = 0 in Z/4: a nilpotent generator.

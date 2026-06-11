@@ -56,7 +56,7 @@ impl<S: Scalar> LinearMap<S> {
         let mut out = alg.zero();
         for (j, c) in self.cols[i].iter().enumerate() {
             if !c.is_zero() {
-                out = alg.add(&out, &alg.scalar_mul(c, &alg.gen(j)));
+                out = alg.add(&out, &alg.scalar_mul(c, &alg.e(j)));
             }
         }
         out
@@ -304,7 +304,7 @@ mod tests {
             vec![r(0), r(1), r(3)],
             vec![r(2), r(0), r(1)],
         ]);
-        let e0e1 = alg.wedge(&alg.gen(0), &alg.gen(1));
+        let e0e1 = alg.wedge(&alg.e(0), &alg.e(1));
         let lhs = apply_outermorphism(&alg, &f, &e0e1);
         let rhs = alg.wedge(&f.image(&alg, 0), &f.image(&alg, 1));
         assert_eq!(lhs, rhs);
@@ -324,7 +324,7 @@ mod tests {
             vec![r(0), r(1), r(2)],
         ]);
         let fg = f.compose(&g);
-        let mv = alg.add(&alg.gen(0), &alg.wedge(&alg.gen(1), &alg.gen(2)));
+        let mv = alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2)));
         let lhs = apply_outermorphism(&alg, &fg, &mv);
         let rhs = apply_outermorphism(&alg, &f, &apply_outermorphism(&alg, &g, &mv));
         assert_eq!(lhs, rhs);

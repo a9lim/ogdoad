@@ -220,7 +220,7 @@ impl GameClifford {
     /// The grade-1 generator `e_i` (corresponding to the game `g_i`), reduced in
     /// the checked Clifford quotient.
     pub fn generator(&self, i: usize) -> Multivector<Integer> {
-        self.reduce(&self.alg.gen(i))
+        self.reduce(&self.alg.e(i))
     }
 
     /// The game `g_i` a generator stands for.

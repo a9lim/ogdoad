@@ -86,10 +86,10 @@ impl<S: Scalar> Cga<S> {
     }
 
     pub fn n_o(&self) -> Multivector<S> {
-        self.alg.gen(self.no)
+        self.alg.e(self.no)
     }
     pub fn n_inf(&self) -> Multivector<S> {
-        self.alg.gen(self.ninf)
+        self.alg.e(self.ninf)
     }
 
     /// The conformal (symmetric) inner product `x · y = ½⟨xy + yx⟩₀`. Note the
@@ -109,9 +109,7 @@ impl<S: Scalar> Cga<S> {
         let mut acc = self.n_o();
         let mut s = S::zero();
         for (i, pi) in p.iter().enumerate() {
-            acc = self
-                .alg
-                .add(&acc, &self.alg.scalar_mul(pi, &self.alg.gen(i)));
+            acc = self.alg.add(&acc, &self.alg.scalar_mul(pi, &self.alg.e(i)));
             s = s.add(&pi.mul(pi));
         }
         let coeff = self.half().mul(&s);
@@ -150,9 +148,7 @@ impl<S: Scalar> Cga<S> {
         assert_eq!(normal.len(), self.n, "normal dimension mismatch");
         let mut acc = self.alg.scalar_mul(d, &self.n_inf());
         for (i, ni) in normal.iter().enumerate() {
-            acc = self
-                .alg
-                .add(&acc, &self.alg.scalar_mul(ni, &self.alg.gen(i)));
+            acc = self.alg.add(&acc, &self.alg.scalar_mul(ni, &self.alg.e(i)));
         }
         acc
     }
@@ -313,7 +309,7 @@ mod tests {
     fn pga_nilpotent_exp_is_exact() {
         // In Cl(2,0,1), B = e0∧e1 is nilpotent (e0²=0), so exp(B) = 1 + B exactly.
         let alg = pga::<Rational>(2);
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         let b = alg.wedge(&e0, &e1);
         assert!(alg.mul(&b, &b).is_zero());
         assert_eq!(
@@ -333,7 +329,7 @@ mod tests {
         // The motor M = 1 + B (B = e0e1) is a versor; its sandwich translates
         // e1 ↦ e1 + 2 e0 exactly (a translation along the ideal direction).
         let alg = pga::<Rational>(2);
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         let b = alg.wedge(&e0, &e1);
         let motor = exp_nilpotent(&alg, &b).unwrap(); // 1 + B
         let moved = alg.sandwich(&motor, &e1).unwrap();
@@ -346,7 +342,7 @@ mod tests {
         // A Euclidean rotation bivector squares to −1 (not nilpotent) ⇒ the
         // series never terminates ⇒ None (would need transcendental cos/sin).
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
-        let b = alg.wedge(&alg.gen(0), &alg.gen(1));
+        let b = alg.wedge(&alg.e(0), &alg.e(1));
         assert!(alg.mul(&b, &b) == alg.scalar(r(-1)));
         assert!(exp_nilpotent(&alg, &b).is_none());
     }

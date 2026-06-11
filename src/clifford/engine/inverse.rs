@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn inverse_refuses_huge_non_scalar_without_shift_overflow() {
         let alg: CliffordAlgebra<Rational> = CliffordAlgebra::new(64, Metric::grassmann(64));
-        assert_eq!(alg.multivector_inverse(&alg.gen(0)), None);
+        assert_eq!(alg.multivector_inverse(&alg.e(0)), None);
     }
 
     #[test]

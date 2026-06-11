@@ -74,7 +74,7 @@ impl<S: Scalar> LazySpinorRep<S> {
         if i >= self.algebra.dim() {
             return None;
         }
-        Some(self.algebra.mul(&self.algebra.gen(i), v))
+        Some(self.algebra.mul(&self.algebra.e(i), v))
     }
 
     /// Apply a sparse linear combination `Σ coeffs[i] e_i` by left multiplication.
@@ -87,7 +87,7 @@ impl<S: Scalar> LazySpinorRep<S> {
             if c.is_zero() {
                 continue;
             }
-            let term = self.algebra.mul(&self.algebra.gen(i), v);
+            let term = self.algebra.mul(&self.algebra.e(i), v);
             out = self.algebra.add(&out, &self.algebra.scalar_mul(c, &term));
         }
         Some(out)
@@ -315,7 +315,7 @@ fn spinor_rep_from_idempotent<S: Scalar>(
     let mut gen_matrices = vec![vec![vec![S::zero(); k]; k]; alg.dim()];
     for i in 0..alg.dim() {
         for (col, (_, bvec)) in basis.iter().enumerate() {
-            let target = alg.mul(&alg.gen(i), bvec);
+            let target = alg.mul(&alg.e(i), bvec);
             let cs = coords(alg, &basis, &target)?;
             for (row, c) in cs.into_iter().enumerate() {
                 gen_matrices[i][row][col] = c;
@@ -871,11 +871,11 @@ mod tests {
         let lazy = lazy_spinor_rep(&alg).unwrap();
         let one = alg.scalar(Nimber(1));
         let e0 = lazy.apply_generator(0, &one).unwrap();
-        assert_eq!(e0, alg.gen(0));
+        assert_eq!(e0, alg.e(0));
         let e0_sq = lazy.apply_generator(0, &e0).unwrap();
         assert_eq!(e0_sq, alg.zero());
-        let e1e0 = lazy.apply_generator(1, &alg.gen(0)).unwrap();
-        let anti = alg.add(&alg.mul(&alg.gen(0), &alg.gen(1)), &e1e0);
+        let e1e0 = lazy.apply_generator(1, &alg.e(0)).unwrap();
+        let anti = alg.add(&alg.mul(&alg.e(0), &alg.e(1)), &e1e0);
         assert_eq!(anti, one);
     }
 
@@ -889,7 +889,7 @@ mod tests {
         let lazy = lazy_spinor_rep(&large).unwrap();
         let one = large.scalar(r(1));
         let e0 = lazy.apply_generator(0, &one).unwrap();
-        assert_eq!(e0, large.gen(0));
+        assert_eq!(e0, large.e(0));
         let e0_sq = lazy.apply_generator(0, &e0).unwrap();
         assert_eq!(e0_sq, one);
         assert!(lazy.apply_generator(large.dim(), &one).is_none());

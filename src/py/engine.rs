@@ -743,13 +743,14 @@ macro_rules! backend_algebra {
                         )
                     })
             }
-            fn gen(&self, i: usize) -> PyResult<$mv> {
+            #[pyo3(name = "gen")]
+            fn generator(&self, i: usize) -> PyResult<$mv> {
                 if i >= self.inner.dim() {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }
                 Ok($mv {
                     alg: self.inner.clone(),
-                    mv: self.inner.gen(i),
+                    mv: self.inner.e(i),
                 })
             }
             fn blade(&self, gens: Vec<usize>) -> PyResult<$mv> {
@@ -1581,7 +1582,8 @@ macro_rules! divided_power_backend {
                 }
                 Ok(self.wrap(self.inner.divided_power::<$scalar>(i, k)))
             }
-            fn gen(&self, i: usize) -> PyResult<$vec> {
+            #[pyo3(name = "gen")]
+            fn generator(&self, i: usize) -> PyResult<$vec> {
                 if i >= self.inner.dim {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }

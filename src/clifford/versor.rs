@@ -279,8 +279,8 @@ mod tests {
         // (−1)^{k(k+1)/2}: scalar +, vector −, bivector −, trivector +.
         let alg = euclid(3);
         let s = alg.scalar(r(1));
-        let e0 = alg.gen(0);
-        let e01 = alg.wedge(&alg.gen(0), &alg.gen(1));
+        let e0 = alg.e(0);
+        let e01 = alg.wedge(&alg.e(0), &alg.e(1));
         let e012 = alg.pseudoscalar();
         assert_eq!(alg.clifford_conjugate(&s), s);
         assert_eq!(alg.clifford_conjugate(&e0), alg.scalar_mul(&r(-1), &e0));
@@ -291,7 +291,7 @@ mod tests {
     #[test]
     fn scalar_and_commutator_products() {
         let alg = euclid(3);
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         // ⟨e0 e0⟩₀ = q0 = 1; ⟨e0 e1⟩₀ = 0 (orthogonal).
         assert_eq!(alg.scalar_product(&e0, &e0), r(1));
         assert_eq!(alg.scalar_product(&e0, &e1), r(0));
@@ -306,8 +306,8 @@ mod tests {
         // In Cl(3,0): the planes e0∧e1 and e1∧e2 meet in the line e1. The result
         // must be a nonzero grade-1 vector contained in both planes.
         let alg = euclid(3);
-        let p1 = alg.wedge(&alg.gen(0), &alg.gen(1));
-        let p2 = alg.wedge(&alg.gen(1), &alg.gen(2));
+        let p1 = alg.wedge(&alg.e(0), &alg.e(1));
+        let p2 = alg.wedge(&alg.e(1), &alg.e(2));
         let line = alg.meet(&p1, &p2).unwrap();
         assert!(!line.is_zero());
         assert_eq!(alg.grade_part(&line, 1), line); // pure grade 1
@@ -319,7 +319,7 @@ mod tests {
     #[test]
     fn dual_undual_round_trip() {
         let alg = euclid(3);
-        let v = alg.add(&alg.gen(0), &alg.wedge(&alg.gen(1), &alg.gen(2)));
+        let v = alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2)));
         let back = alg.undual(&alg.dual(&v).unwrap());
         assert_eq!(back, v);
     }
@@ -328,13 +328,13 @@ mod tests {
     fn general_multivector_inverse() {
         let alg = euclid(3);
         // A vector: the general inverse matches versor_inverse and v·v⁻¹ = 1.
-        let v = alg.add(&alg.gen(0), &alg.scalar_mul(&r(2), &alg.gen(1)));
+        let v = alg.add(&alg.e(0), &alg.scalar_mul(&r(2), &alg.e(1)));
         let inv = alg.multivector_inverse(&v).unwrap();
         assert_eq!(inv, alg.versor_inverse(&v).unwrap());
         assert_eq!(alg.mul(&v, &inv), alg.scalar(r(1)));
         // 1 + e0 + e1 : NOT a simple versor (v·ṽ = 3 + 2e0 + 2e1 is not scalar),
         // so versor_inverse declines — but the general inverse succeeds two-sided.
-        let x = alg.add(&alg.add(&alg.scalar(r(1)), &alg.gen(0)), &alg.gen(1));
+        let x = alg.add(&alg.add(&alg.scalar(r(1)), &alg.e(0)), &alg.e(1));
         assert!(alg.versor_inverse(&x).is_none());
         let xi = alg.multivector_inverse(&x).unwrap();
         assert_eq!(alg.mul(&x, &xi), alg.scalar(r(1)));
@@ -348,8 +348,8 @@ mod tests {
         let mut b = std::collections::BTreeMap::new();
         b.insert((0usize, 1usize), r(1));
         let alg = CliffordAlgebra::new(2, Metric::new(vec![r(1), r(1)], b));
-        let e0 = alg.gen(0);
-        let e1 = alg.gen(1);
+        let e0 = alg.e(0);
+        let e1 = alg.e(1);
         let rotor = alg.mul(&e0, &alg.add(&e0, &e1));
 
         assert_eq!(alg.spinor_norm(&rotor), Some(r(3)));
@@ -367,9 +367,9 @@ mod tests {
         // odd augmentation, so it inverts in this commutative char-2 algebra).
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Nimber(1), Nimber(1)]));
         assert!(alg
-            .multivector_inverse(&alg.add(&alg.scalar(Nimber(1)), &alg.gen(0)))
+            .multivector_inverse(&alg.add(&alg.scalar(Nimber(1)), &alg.e(0)))
             .is_none()); // 1 + e0 is nilpotent ⇒ no inverse
-        let x = alg.add(&alg.add(&alg.scalar(Nimber(1)), &alg.gen(0)), &alg.gen(1));
+        let x = alg.add(&alg.add(&alg.scalar(Nimber(1)), &alg.e(0)), &alg.e(1));
         let xi = alg.multivector_inverse(&x).unwrap();
         assert_eq!(alg.mul(&x, &xi), alg.scalar(Nimber(1)));
         assert_eq!(alg.mul(&xi, &x), alg.scalar(Nimber(1)));
@@ -388,7 +388,7 @@ mod tests {
             Metric::general(vec![r(1), r(1)], std::collections::BTreeMap::new(), a),
         );
         // This should panic: reverse(xy) ≠ reverse(y)*reverse(x) for a≠0 metrics.
-        let xy = alg.mul(&alg.gen(0), &alg.gen(1));
+        let xy = alg.mul(&alg.e(0), &alg.e(1));
         let _ = alg.reverse(&xy);
     }
 
@@ -399,8 +399,8 @@ mod tests {
         let mut b = std::collections::BTreeMap::new();
         b.insert((0usize, 1usize), r(1));
         let alg = CliffordAlgebra::new(2, Metric::new(vec![r(1), r(1)], b));
-        let e0 = alg.gen(0);
-        let e1 = alg.gen(1);
+        let e0 = alg.e(0);
+        let e1 = alg.e(1);
         // Check reverse(e0 * e1) == reverse(e1) * reverse(e0)
         let xy = alg.mul(&e0, &e1);
         let rev_xy = alg.reverse(&xy);
@@ -422,7 +422,7 @@ mod tests {
     #[test]
     fn cayley_bivector_to_rotor() {
         let alg = euclid(3);
-        let b = alg.wedge(&alg.gen(0), &alg.gen(1)); // a bivector generator
+        let b = alg.wedge(&alg.e(0), &alg.e(1)); // a bivector generator
         let rotor = alg.cayley(&b).unwrap();
         // The rotor is even and unit spinor norm (R ~R = 1).
         assert_eq!(alg.even_part(&rotor), rotor);
@@ -430,7 +430,7 @@ mod tests {
         // Involution: cayley back to the bivector.
         assert_eq!(alg.cayley_inverse(&rotor).unwrap(), b);
         // The rotor's sandwich preserves length.
-        let x = alg.gen(0);
+        let x = alg.e(0);
         let rx = alg.sandwich(&rotor, &x).unwrap();
         assert_eq!(alg.norm2(&rx), alg.norm2(&x));
     }
