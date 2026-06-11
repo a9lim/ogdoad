@@ -12,8 +12,10 @@ The bridges recorded here: **A–D** (first wave), **E/F/H/I** (second wave), **
 wave), **M/N/O** (fourth wave), **K** (fifth wave). Companion documents:
 
 - **`roadmap/CODA.md`** (this file) — the built-bridge record + formal appendices.
-- **`roadmap/TODO.md`** — the two **deferred** bridges, nimbered `*1` (spinor genus) and
-  `*2` (the char-`p` Drinfeld/Carlitz mirror): real and on-thesis, not scheduled.
+- **`roadmap/TODO.md`** — the game-valued ledger of **buildable** work (numbers,
+  switches, ups) plus the **deferred** stars: `*1` (spinor genus), `*2` (the char-`p`
+  Drinfeld/Carlitz mirror), `*4` (the wild local symbol) — real and on-thesis, not
+  scheduled.
 - **`roadmap/DONE.md`** — the **go-forward ledger** for newly completed work (currently
   empty; the construction-era record migrated here).
 - **`OPEN.md`** — *genuine research problems* with no known answer (the natural
@@ -1430,6 +1432,8 @@ Implemented and tested in the Rust core:
   leg, `constant_extension_invariants` (full-strength reciprocity over `F_q(t)`), and
   the degree-2 norm-form oracle; Bridge F embeds as the `½`-slice.
 
-Deferred bridges live in `roadmap/TODO.md` (`*1` spinor genus, `*2` Drinfeld/Carlitz);
-newly completed work goes in the now-empty `roadmap/DONE.md` ledger; the genuine open
-problems stay in `OPEN.md`.
+Buildable work and the deferred stars (`*1` spinor genus, `*2` Drinfeld/Carlitz,
+`*4` the wild local symbol) live in `roadmap/TODO.md` — the game-valued ledger;
+newly completed work goes in the `roadmap/DONE.md` ledger; the genuine open
+problems stay in `OPEN.md`, loopy-valued: `tis`/`tisn`, `on`/`off`, `over`/`under`
+(the old numerals §1–§4 survive as aliases).

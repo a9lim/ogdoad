@@ -37,8 +37,9 @@ Beyond the library: `examples/` (Rust demos `tour`/`tropical` + the open-questio
 probes `interactive_kernel`, `octal_hunt`, `loopy_quadric`, `misere_quotient`,
 `bent_route`), `experiments/` (Python research probes on top of the shipped
 lib), `demo.py` (the Python tour), `OPEN.md` (the genuine research problems),
-`roadmap/` (CODA.md — the built-bridge record + formal proofs; TODO.md — the two deferred
-bridges `*1`/`*2`; DONE.md — the go-forward ledger for new work),
+`roadmap/` (CODA.md — the built-bridge record + formal proofs; TODO.md — the game-valued
+ledger of buildable items plus the deferred stars `*1`/`*2`/`*4`; DONE.md — the
+go-forward ledger for new work),
 `TABLES.md` (the inventory of curated hardcoded tables), and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the

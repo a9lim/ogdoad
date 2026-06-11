@@ -1,12 +1,35 @@
-# TODO: Genuine Research Problems
+# OPEN: Genuine Research Problems
 
 This file is intentionally narrow. It lists directions from repo audits, roadmap
-splits, and the Gold/Arf draft that look like genuine new research rather than
+splits, and the draft notes that look like genuine new research rather than
 implementation of known formulas, standard algorithms, or already-source-pinned
 theory. Implemented mathematical facts and maintenance context live in
-`README.md` and `AGENTS.md`.
+`README.md` and `AGENTS.md`; buildable work lives in `roadmap/TODO.md` (the
+game-valued ledger — items there are referenced by slug from here).
 
-## 1. Natural Gold-quadric game rule
+Numbering: an open problem is a loopy game, played without a termination
+guarantee, so every entry wears a value from the loopy-stopper lexicon — the
+shipped catalogue (`games/loopy.rs`: `on`, `off`, `over`, `under`, `dud`) plus
+Conway's swinging pair `tis`/`tisn`, whose arithmetic is itself still unbuilt
+here (`roadmap/TODO.md` slug `loopy-partizan`); fittingly, the flagship problems
+wear values the codebase cannot yet compute. The values come in dual pairs, and
+so do the problems:
+
+- **`tis`/`tisn`** (`{0|tisn}`/`{tis|0}` — "this is / this isn't") — the two
+  game-native-quadratic-data questions: the outcome side (§1, where every round
+  of constructions and no-gos swings the apparent answer) and the coefficient
+  side (§2, where the obstructions lean *isn't*).
+- **`on`/`off`** — the two transfinite-On₂ questions: the tower that climbs past
+  every verified rung (§3), and the classifier that switches off beyond the
+  finite windows (§4).
+- **`over`/`under`** — the two mirror questions: the mod-8 spine above the Arf
+  bit, and the MinPlus shadow beneath MaxPlus thermography.
+
+The original numerals survive as aliases — the rest of the repo cites them.
+`dud` stays unassigned: `dud + G = dud` for every `G`, and no problem has yet
+earned absorbing the whole roadmap. May none ever.
+
+## tis (§1) — natural Gold-quadric game rule
 
 Find, or rule out under a precise naturality condition, a non-tautological game
 rule whose P-positions are the zero set `{Q = 0}` of a game-built Gold quadratic
@@ -106,6 +129,32 @@ Current probe map:
   rule reaches a bent quadric of the correct Arf class but not the specific Gold
   zero set; adding the naive per-coin Ising field leaves the quadric variety.
 
+The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by the
+`experiments/gold/` probes):
+
+- The naturality criterion asked for below now has a draft formalization — N1
+  (decision-nondegeneracy), N2 (bounded framing access), N3 (strategic
+  relevance / anti-clock). N3's exact formulation is itself an open definitional
+  problem: the escape-edge construction passes N1–N3 while being morally a clock,
+  and the natural repairs run into two-game criticality being unsatisfiable in
+  two-class outcome semantics.
+- A no-go ladder (Theorems B–H) kills Tier 1 outright and shows every known
+  in-quarantine Tier-2 normal-play realizer is a clock. Five named escape hatches
+  remain: loopy-Draw semantics, `t ≥ 2r−2` with anisotropic complement,
+  Frobenius-aware access (where both the symmetry and oracle methods are provably
+  silent), non-quarantined rules using the game-native `℘` diagonal source, and
+  rank-1 / radical-anisotropic degenerate layers.
+- The abelian obstruction conjectured here is now Lemma `abelian` in the draft:
+  no commutative game monoid's intrinsic squaring realizes a nondegenerate polar
+  form, so the quadratic datum must come from the move relation's directedness.
+- The leading Tier-2 candidate is the `echo`-ko charge-counting family on the
+  extraspecial cocycle. An `echo`-`fifo`+dummy variant claims full `m = 8`
+  exactness across all 765 scaled Gold forms — **unverified**, the single most
+  load-bearing unverified result of the program. The pre-registered decisive
+  experiment and the ranked next moves live in goldarf §§8–9; the buildable
+  harness is `roadmap/TODO.md` slug `echo-solver`, and the Plambeck–Siegel
+  Thm 6.4 regularity gate is slug `ps-regularity`.
+
 The naturality dichotomy:
 
 - **Tier 1: frame-blind, `G >= Sp(B)`: no.** If the move relation is invariant
@@ -161,27 +210,33 @@ tiers: require the rule to realize the *extraspecial squaring map* of `B` — eq
 under the extension `E`, **not** merely under `Sp(B)`. That sits properly between
 frame-blind `Sp(B)` (Tier 1, the no-go) and direct `Q_a`-evaluation (Tier 3,
 tautological), because `E` is a proper central extension of `V`: it carries the `q_i`
-data structurally without being a `Q`-evaluator. Status: **interpretation/open** — it
-explains a documented obstruction and sharpens the target; it does not exhibit a game.
+data structurally without being a `Q`-evaluator. Status: developed into the Tier-2
+screen and no-go ladder of `writeups/goldarf.tex` §§5–6 (see the program-state block
+above); it does not yet exhibit a game.
 
-Concrete progress targets:
-- Formalize a naturality criterion: equivariance, locality, encoding complexity,
-  basis/framing access, or a combination of these.
-- Prove no-go theorems for larger classes than the current frame-blind `Sp(B)`
-  obstruction, especially for polar-form-only and low-complexity frame-dependent
-  rules.
-- Exhibit a fixed uniform rule, more constrained than an arbitrary lookup game,
-  whose P-set, Loss-set, Draw-set, or canonical kernel set is a Gold quadric.
-- Explain whether the diagonal refinement `q_i = Q(e_i)` has a game-native source,
-  or prove that every acceptable source collapses to a split/incorrect refinement.
-- Test the extraspecial criterion directly: for each existing route (`kernel`,
-  `loopy` Draw-set, misère quotient), decide whether its symmetry group is the full
-  extraspecial `E` or only `Sp(B)`/an abelian quotient. The reframing predicts the
-  abelian ones cannot host a nondegenerate Gold form; an `E`-equivariant route would
-  be the first Tier-2 candidate.
-- Prove (or refute) the abelian-obstruction claim in general: that no commutative
-  game monoid's intrinsic squaring map realizes a nondegenerate characteristic-2
-  polar form, so the `q_i` data must come from the first/second-player asymmetry.
+Concrete progress targets (aligned with the goldarf §9 ranked moves):
+- Adversarially verify or refute the `echo`-`fifo`+dummy `m = 8` exactness claim
+  with a fresh direct stateful solver, then run the pre-registered `echo`-ko family
+  sweep (the harness is `roadmap/TODO.md` slug `echo-solver`; CONFIRM would be the
+  first genuine Tier-2 witness, KILL grounds the bounded-memory blocker on valid
+  data).
+- Repair or replace N3, the anti-clock axiom — the open definitional problem: the
+  escape-edge construction passes N1–N3 while being morally a clock, and two-game
+  criticality is unsatisfiable in two-class outcome semantics.
+- Exhibit a fixed uniform rule satisfying N1, N2, and N3 simultaneously on a Gold
+  quadric of core rank ≥ 6 — or close the remaining escape hatches (loopy-Draw,
+  `t ≥ 2r−2` anisotropic, Frobenius-aware access, `℘`-sourced diagonals,
+  rank-1/radical-anisotropic layers) with no-gos of their own.
+- Enumerate the Frobenius-aware access window at `m = 4, 8` — the one hatch where
+  both the symmetry-killing and oracle methods are provably silent.
+- Decide whether the diagonal refinement `q_i = Q(e_i)` is game-native for all `a`:
+  the `a = 1` case is answered affirmatively by the `℘`-construction
+  (`Wp(w) = w·w + w`, verified at `m = 4..32`); the even-`a` analogue (the drifting
+  dual `λ_a^{(m)}` tower) has no named preimage family beyond `m = 8`.
+- Cheap gates: verify the Plambeck–Siegel Thm 6.4 regularity hypothesis (slug
+  `ps-regularity`); enumerate conjugation-move rules on `E` (the left-translation
+  kill of Theorem H does not apply to conjugation); exhaust the board-8 case of the
+  `fifo` parity-pinning conjecture.
 
 Relevant surfaces:
 - `writeups/goldarf.tex`
@@ -195,7 +250,7 @@ Relevant surfaces:
 - `src/forms/quadric_fit.rs`
 - `src/games/kernel.rs`, `src/games/misere.rs`, `src/games/loopy.rs`
 
-## 2. Quadratic deformation of the game exterior algebra
+## tisn (§2) — quadratic deformation of the game exterior algebra
 
 Decide whether the current `GameExterior` construction admits a genuinely
 game-native quadratic deformation on torsion-carrying game subgroups, rather than
@@ -243,7 +298,7 @@ Relevant surfaces:
 - `examples/tour.rs`
 - `demo.py`
 
-## 3. Ordinal nim multiplication beyond the verified excess table
+## on (§3) — ordinal nim multiplication beyond the verified excess table
 
 Push transfinite nim multiplication beyond the source-verified Lenstra-DiMuro
 excess table. Historically the first missing carry in this checkout was
@@ -294,6 +349,33 @@ Current external state:
   lower verified rows. Since `f(47) = 23` and `Q(23) = {23}`, this gives the newly
   shipped carry `alpha_47 = omega^(omega^7)+1`.
 
+Since the 2026-06 research pass (`writeups/excess.tex`, `experiments/excess/`,
+`experiments/cyclotomic_3k_family.py`):
+
+- The 3-power column is now structural: `C_k` — the exact formula
+  `ord(kappa_{3^k} + 1) = 3^(k+1) * (2^(3^k) - 1)` with `gamma_k` primitive — is
+  certified for `k <= 6` and consistent-but-uncertified for `k = 7, 8`, blocked
+  only by the unfactored cofactors of `Phi_{3^7}(2)` and `Phi_{3^8}(2)` (FactorDB
+  CF). Whether ECM/GNFS reaches those on a realistic budget is open.
+- The `f(p) = 2*3^k` exception column is proved unconditionally to have
+  `m_p >= 4` (including the new example `p = 87211`); whether `m_p = 4` *exactly*
+  is open — the `kappa + 4` translate lives in the degree-`4*3^k` compositum, one
+  level above the half-angle toolkit, and a failure of the splitting there is
+  where any `m >= 5` counterexample would hide.
+- Wieferich caveat: the order criterion `m_p = min m : p | ord(kappa_{f(p)} + m)`
+  is valid only when `v_p(2^(f(p)) - 1) = 1`. The two known base-2 Wieferich
+  primes `1093` and `3511` sit inside the extended range and need the full power
+  criterion.
+- Newly certified `m_r = 1` rows (`262657` at `f = 27`; `71119` and `97685839` at
+  `f = 81`; representatives at `f = 243, 729, 2187, 6561`) keep the candidate
+  `0/1/4` rule unbroken. Still no proof; boundedness outside the 3-power and
+  `2*3^k` columns (the 11-chain, the 23/29/47 components) has no structural
+  theory, and no `m_p >= 5` example is known.
+- `p = 719` feasibility: the direct test needs ~3.5 million Frobenius steps in
+  `F_{2^1258230380}`; tower-aware Frobenius arithmetic (De Feo–Randriam–Rousseau
+  standard lattices) is the conjectured 10–100x lever — a cost model, not a
+  theorem.
+
 Why this is research:
 - Rewriting the current table-driven code to compute the known shape
   `f(u)`, `Q(f(u))`, and the `chi`-sum, while hardcoding only the finite excess
@@ -321,7 +403,8 @@ Why this is research:
 Concrete progress targets:
 - Implement the principled same-coverage route: compute `f(u) = ord_u(2)`,
   compute `Q(f(u))`, construct the `chi`-sum, and hardcode only the finite excess
-  integer. This should independently cross-check the published rows.
+  integer. This should independently cross-check the published rows. (Filed as
+  `roadmap/TODO.md` slug `ordinal-principled` — implementation, not research.)
 - Decide whether to import more known OEIS/calculator values through `p <= 709` as
   cited data, or keep requiring a local finite-field oracle for each shipped row.
 - Derive or certify finite excess terms beyond the published table.
@@ -343,7 +426,7 @@ Relevant surfaces:
 - `src/scalar/AGENTS.md`
 - `examples/tour.rs`
 
-## 4. Transfinite Arf/Witt classification for ordinal-nimber coefficients
+## off (§4) — transfinite Arf/Witt classification for ordinal-nimber coefficients
 
 Decide what, if anything, should replace the finite-field Arf/Brauer-Wall bit for
 `CliffordAlgebra<Ordinal>` metrics whose coefficients do not all lie in one finite
@@ -376,7 +459,8 @@ Concrete progress targets:
 - Define the classification domain exactly: common finite subfields, the
   source-verified transfinite tower, or the ideal full `On_2` nimber field.
 - Implement and test common finite-subfield detection so Bridge D can honestly
-  delegate those metrics to Bridge B.
+  delegate those metrics to Bridge B. (Filed as `roadmap/TODO.md` slug
+  `subfield-detect` — implementation, not research.)
 - Decide whether genuinely transfinite metrics should expose no classifier, a
   coefficient-field Arf class, a direct-limit finite-subfield invariant, or some
   other replacement for the finite trace bit.
@@ -393,6 +477,113 @@ Relevant surfaces:
 - `src/forms/witt/brauer_wall.rs`
 - `src/clifford/`
 
+## over — the mod-8 spine in game semantics
+
+Decide whether the Brown invariant — the char-2 cell of the mod-8 spine, shipped as
+Bridge M — has a game-theoretic reading the way the Arf bit does, i.e. whether the
+conditional win-bias interpretation of `tis` (§1) lifts from `ℤ/2` to `ℤ/8`.
+
+What is implemented (Bridge M, `forms/char2/brown.rs`): a `ℤ/4`-valued quadratic
+refinement `q : V -> Z/4` has Gauss sum
+
+```text
+Sum_{x in V} i^(q(x)) = 2^(n/2) * zeta_8^beta,
+```
+
+read off the integer value-census Gaussian integer `(n0 - n2) + i*(n1 - n3)`, where
+`n_k = #{x : q(x) = k}`. Doubling a classical char-2 form gives `beta = 4*Arf` — the
+shipped win-bias bit embeds as the 2-torsion `{0, 4}` of `ℤ/8`.
+
+Why this is research:
+- The Arf reading is a **two**-class census: P-positions versus N-positions, bias
+  `2^(r-1)` with sign `(-1)^Arf`. The Brown phase is a **four**-class census with a
+  complex bias. No shipped outcome semantics has four classes: normal play has two,
+  loopy play three (W/L/D). The question is whether any natural four-way outcome
+  partition — loopy outcomes crossed with a parity, normal/misère outcome pairs, a
+  mod-4 scoring residue, or something not yet named — produces the `zeta_8` phase of
+  a game-built `ℤ/4`-form as its census.
+- Game-built doubled forms only ever reach `beta in {0, 4}`. A genuinely odd `beta`
+  needs `b` symmetric-but-not-alternating with `b_ii = q_i mod 2` — diagonal data
+  again, one level up: this is the diagonal-framing problem of `tis` (§1) with the
+  diagonal now *forced* by `q mod 2` rather than vanishing. The two problems are
+  entangled, not parallel.
+- The extraspecial picture of `tis` (§1) lifts: `ℤ/4`-valued forms correspond to
+  central extensions by `ℤ/4` (the Pauli/complex-extraspecial family) exactly as
+  `F₂`-forms correspond to extensions by `ℤ/2`. If the abelian obstruction
+  (Lemma `abelian`) survives the lift, the four-class census also cannot come from
+  any commutative game structure's own multiplication — which would make the
+  first-/second-player asymmetry carry *three* extra bits instead of one.
+
+Conditional claim, same shape as `tis` (§1): if a game's positions admitted a natural
+four-class outcome census matching `i^q` for a game-built `q`, then `beta` would be
+the phase and magnitude of its outcome imbalance — `sign mod 8` as a win-bias octant.
+That interpretation is meaningful but conditional; it does not exhibit the game.
+
+Concrete progress targets:
+- Census probe: tabulate `(n0, n1, n2, n3)` for `ℤ/4`-refinements of game-built
+  polar forms (doubled Gold forms first) and check which Gaussian integers actually
+  arise on the game-reachable slice.
+- Decide whether any existing three-class route (loopy W/L/D, `examples/loopy_quadric.rs`)
+  extends by one natural axis to a four-class census with nonvanishing phase.
+- Formulate the `ℤ/4` analogue of the abelian obstruction and prove or refute it.
+- Connect to the lattice side: on 2-elementary discriminant forms `beta ≡ sign mod 8`
+  (shipped); a game realizing `beta` would be a game computing a lattice signature.
+
+Relevant surfaces:
+- `src/forms/char2/brown.rs`, `src/forms/integral/discriminant.rs` (Bridge M)
+- `src/games/loopy.rs`, `src/games/misere.rs`
+- `writeups/goldarf.tex` §5 (the extraspecial reframing this lifts)
+- `tis` (§1) — the `ℤ/2` floor of this question
+
+## under — thermography ↔ Newton polygons: one tropical object or two?
+
+Decide whether the project's two tropical consumers — thermography (`MaxPlus`, the
+games axis) and the valuation/Newton-polygon stack (`MinPlus`, the place axis,
+Bridge J) — are connected by a substantive transport, or whether the mirror is
+purely notational. Either answer is the contribution; today the duality is named
+(`scalar/tropical.rs` enforces the two-type separation) but carries no theorem.
+
+Why this is research:
+- On the place axis, the valuation axiom `v(x+y) >= min(v(x), v(y))` makes Newton
+  polygons additive under multiplication (Dumas), and passing to the graded ring
+  `gr_v` (Lemma J.3) is what "freezes" leading terms. On the game axis, the
+  candidate analogue fails in the most interesting way: **thermographs of
+  disjunctive sums do not compose** — that failure is precisely why temperature
+  theory needs sidling and why `t(G+H)` is only bounded by `max(t(G), t(H))`, not
+  determined. The open question is to make the failure structural: exhibit the
+  exact lax/hyperfield law that thermographs *do* satisfy under `+` (a Viro-style
+  repair, as Remark J.2 does for the valuation's own laxness), or prove no such
+  law with nontrivial content exists.
+- Sharper sub-question: is cooling a residue map? Cooling by `t` and "freezing" to
+  the mast value is formally a leading-term extraction; does
+  `(mast value, temperature)` behave like `(ac(x), v(x))` — i.e. is there a graded
+  object `gr_t(Games)` whose pieces are the frozen values, with a multiplicative
+  (Norton/overheating?) structure making the analogy a homomorphism rather than a
+  pun? Berlekamp's economist's dictionary is the informal version; the question is
+  whether it survives being made exact.
+- The sign mirror is suggestive but not content: `MinPlus ↔ MaxPlus` is a convention
+  flip. Content would be a single statement instantiating to Theorem J.5 (slopes =
+  root valuations) on one axis and to a thermographic fact (masts/temperatures of a
+  one-parameter family) on the other.
+
+Concrete progress targets:
+- Formulate and test the lax law for `t(G+H)` as a hyperfield statement; locate
+  exactly where sidling violates strictness (the game-side "vanishing locus").
+- Build the one-object probe: a polynomial family of games (e.g. switches with
+  parameterized stakes) whose thermograph IS a Newton polygon under an explicit
+  change of axes; determine whether the dictionary extends beyond the family or is
+  an artifact of one-parameter linearity.
+- Decide the graded-ring question for cooling: does Norton multiplication /
+  overheating give `gr_t` a product compatible with freezing, in any restricted
+  class of games?
+- If every transport trivializes, write the no-go: the precise sense in which
+  temperature is not a valuation (which axiom fails, on which games, measured how).
+
+Relevant surfaces:
+- `src/scalar/tropical.rs`, `src/games/` thermography, `src/scalar/newton.rs`
+- `roadmap/CODA.md` Bridge J (the formal appendix, esp. J.1–J.3, J.5–J.6)
+- `examples/tropical.rs` (the shipped thermography = tropical identity)
+
 ## References For The Open Threads
 
 - Conway, *On Numbers and Games*: surreal numbers and nimbers.
@@ -407,3 +598,16 @@ Relevant surfaces:
 - Lidl-Niederreiter, *Finite Fields*: finite-field trace/Frobenius background and
   Gold-rank checks.
 - DiMuro, *On Onp*: source table and theorem for transfinite nim Kummer excesses.
+- Brown, *Generalizations of the Kervaire invariant*, Ann. of Math. 95 (1972):
+  `ℤ/4`-valued quadratic refinements and the `ℤ/8` invariant (for `over`).
+- Wall, *Quadratic forms on finite groups*, Topology 2 (1963): the Witt group of
+  finite quadratic forms (for `over`).
+- Plambeck-Siegel, *Misere quotients for impartial games*, JCTA 115 (2008): the
+  quotient/kernel theory behind the misère obstruction (for `tis`, §1).
+- Berlekamp, *The economist's view of combinatorial games*, in Games of No Chance
+  (1996): the informal cooling dictionary (for `under`).
+- Maclagan-Sturmfels, *Introduction to Tropical Geometry*; Viro, *Hyperfields for
+  tropical geometry I*: valuations as (lax) tropicalization and the strictness
+  repair (for `under`).
+- De Feo-Randriam-Rousseau, standard lattices of compatibly embedded finite
+  fields: the conjectured tower-aware Frobenius lever (for `on`, §3).

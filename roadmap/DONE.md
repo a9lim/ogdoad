@@ -11,8 +11,10 @@ record — mathematical contracts, surfaces, oracles, boundaries, and the formal
 lives in [`roadmap/CODA.md`](CODA.md); the terse working-notes summary is in the
 `AGENTS.md` files (root + per-pillar).
 
-What remains unbuilt is **deferred**, tracked as `*1`/`*2` in
-[`roadmap/TODO.md`](TODO.md); genuine open problems stay in [`OPEN.md`](../OPEN.md).
+What remains unbuilt is tracked in [`roadmap/TODO.md`](TODO.md) — the game-valued
+ledger of buildable items plus the deferred stars `*1`/`*2`/`*4`; genuine open
+problems stay in [`OPEN.md`](../OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`,
+`over`/`under` (the old numerals §1–§4 survive as aliases).
 
 ## How to use this ledger
 

@@ -237,8 +237,68 @@ breakdown:
 
 See `AGENTS.md` for the working-notes summary, `OPEN.md` for the genuine research
 problems, `roadmap/` (CODA.md for the built-bridge record and formal proofs, TODO.md for
-the two deferred bridges) for the cross-pillar bridges, and
-`writeups/goldarf.tex` for the draft note on the Gold/Arf game thread.
+the game-valued ledger of buildable work and the deferred stars) for the cross-pillar
+bridges, and `writeups/goldarf.tex` for the draft note on the Gold/Arf game thread.
+
+## The bridges — a traveller's catalog
+
+The construction era left the pillars joined by named bridges (full record with
+contracts, oracles, and proofs: `roadmap/CODA.md`). Five islands: **S**calar,
+**C**lifford, **F**orms (the classifier core), the **I**ntegral wing, **G**ames.
+Sixteen crossings — Bridge N is four footbridges — each listed with its banks. A
+bridge with both feet on one island is a loop; crossing it counts like any other.
+
+| bridge | banks | what it carries |
+|---|---|---|
+| A | I–C | even lattice → Clifford metric; Milgram's Gauss-sum phase = signature mod 8 |
+| B | C–F | char-2 Arf/Brauer–Wall classification over the `Fpn<2,N>` coefficient fields |
+| C | S–C | Frobenius/Galois maps as outermorphisms, with flat exterior spectrum |
+| D | S–C | `Ordinal` as a checked Clifford scalar — genuinely transfinite char-2 squares |
+| E | I–I | theta series identified in `ℂ[E₄,E₆]`; the Milnor isospectral pair, executable |
+| F | C–F | the rational Clifford invariant `c(q) = s(q) + δ(n mod 8, disc)`, corrected |
+| H | I–I | Construction A: codes ↔ lattices; MacWilliams ↔ the theta transformation |
+| I | I–F | the Weil representation of the discriminant form; a third route to σ mod 8 |
+| J | S–F | the valuation as (lax) tropicalization; Newton slopes **are** Springer layers |
+| K | S–F | the full `ℚ/ℤ` cyclic-algebra Brauer invariant; reciprocity over `F_q(t)` |
+| M | F–I | the Brown `ℤ/8` invariant — the char-2 cell of the mod-8 spine, float-free |
+| N.1 | F–I | Milnor's exact sequence: the Springer residues go global (odd `p`) |
+| N.2 | S–F | the Scharlau transfer, named and tested |
+| N.3 | I–I | Nikulin: genus ⟺ (signature, discriminant form) |
+| N.4 | I–I | one Bernoulli source for the Eisenstein constants and the mass formula |
+| O | G–I | lexicodes: greedy = mex; the `[24,12,8]` lexicode is Golay |
+
+(G and L were never built under those letters — they became the deferred stars
+`*1` and `*2` in `roadmap/TODO.md`. The alphabet itself has two pontoons missing.)
+
+**The traveller's question** (Euler, 1736): can you cross every bridge exactly
+once and end where you began? Count the bridge-ends per island:
+
+| island | S | C | F | I | G |
+|---|---|---|---|---|---|
+| degree | 5 | 5 | **8** | 13 | 1 |
+
+An Euler circuit needs every island even. **Forms — the island the mod-8 spine
+runs through — is the only balanced one, with degree exactly 8**: the ogdoad
+keeps its own books. Four islands are odd, the same failure as Königsberg's four
+banks, so today the grand tour does not exist — nor even an open stroll, which
+would need exactly two odd islands. The integral wing, with its four loops
+(E, H, N.3, N.4), is the one place a traveller may wander in circles.
+
+Two new bridges pairing up the odd islands would open the circuit, and the
+roadmap already names both ways to do it:
+
+- **`*2` (S–I) + `game-clifford-checked` (C–G)** — the Drinfeld/Carlitz mirror
+  plus the checked game-Clifford deformation engine: pure building, no research;
+- **`*1` (C–I) + `under` (S–G)** — the spinor genus plus a *constructive*
+  resolution of the thermography ↔ Newton-polygon problem: one star, one open
+  problem.
+
+(The third pairing, S–C + I–G, has a named half — `nim-lexicodes` — but no
+scalar–clifford candidate on the books; and `*4` alone is no help: it would
+balance scalar only by unbalancing forms.) Either pair makes every island even.
+The grand tour is exactly two bridges away, and which two is a choice between
+elbow grease and research — the roadmap is, quite literally, the obstruction to
+the round trip.
 
 ## Research thread
 
