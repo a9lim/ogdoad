@@ -9,11 +9,10 @@ game-valued ledger — items there are referenced by slug from here).
 
 Numbering: an open problem is a loopy game, played without a termination
 guarantee, so every entry wears a value from the loopy-stopper lexicon — the
-shipped catalogue (`games/loopy.rs`: `on`, `off`, `over`, `under`, `dud`) plus
-Conway's swinging pair `tis`/`tisn`, whose arithmetic is itself still unbuilt
-here (`roadmap/TODO.md` slug `loopy-partizan`); fittingly, the flagship problems
-wear values the codebase cannot yet compute. The values come in dual pairs, and
-so do the problems:
+shipped catalogue (`games/loopy.rs`: `on`, `off`, `over`, `under`, `dud`, `±`,
+`tis`, `tisn`, and integer `s&t` tags). The code can now compute their finite
+starter-pair outcomes; the open part is the game-semantic recasting problem, not
+the vocabulary. The values come in dual pairs, and so do the problems:
 
 - **`tis`/`tisn`** (`{0|tisn}`/`{tis|0}` — "this is / this isn't") — the two
   game-native-quadratic-data questions: the outcome side (§1, where every round

@@ -433,7 +433,8 @@ for f in ([1, 1, 1], [1, 1, -1], [1, 1, -3], [1, 1, 1, 1, -1]):
 
 section("loopy impartial games — Side values with a certificate")
 values, cert = pl.loopy_nim_values_certified([[1], [0], []])
-print("  2-cycle plus terminal:", values, cert, "outcomes", cert.outcomes)
+print("  2-cycle plus terminal:", values, cert, "outcomes", cert.outcomes,
+      "recovery:", cert.recovery_condition_holds)
 
 section("Brauer–Wall group — BW(ℝ)=ℤ/8 is the Bott clock")
 # walk ⟨−1⟩⊗̂…⊗̂⟨−1⟩: the Bott index cycles mod 8.
@@ -662,6 +663,12 @@ print("  loopy values on+off, over+under:",
       pl.LoopyValue.on() + pl.LoopyValue.off(), pl.LoopyValue.over() + pl.LoopyValue.under())
 print("  loopy value dud is stopper?  :", pl.LoopyValue.dud().is_stopper(),
       " outcome:", pl.LoopyValue.dud().outcome())
+tis_graph = pl.LoopyPartizanGraph(
+    [[2], [0], []],        # tis -> 0, tisn -> tis, 0 terminal
+    [[1], [2], []],        # tis -> tisn, tisn -> 0, 0 terminal
+)
+print("  partizan tis/tisn outcomes   :", tis_graph.outcomes(), " classical:", tis_graph.partizan_outcomes())
+print("  tis sides / class            :", pl.LoopyValue.tis().sides(), pl.LoopyValue.tis().partizan_outcome())
 loopy_rule = lambda v: [[1], [0], [3], []][v]
 print("  LoopyGraph.from_rule         :", pl.LoopyGraph.from_rule(4, loopy_rule).succ())
 print("  callback loss/draw sets      :", pl.loopy_decision_sets(4, loopy_rule))

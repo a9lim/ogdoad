@@ -6,20 +6,27 @@
 //! a win — and the Draw-set is a genuinely new degree of freedom to test against
 //! the Gold quadric `{Q=0}` (see `OPEN.md`, the Tier-2 open question).
 //!
-//! Three layers, in weight order:
+//! Four layers, in weight order:
 //!
 //!   1. [`LoopyGraph`] — the graph-level engine. A thin, fully-computable wrapper
 //!      over [`kernel::outcomes`](crate::games::outcomes), which already performs
 //!      retrograde Win/Loss/**Draw** analysis on cyclic graphs. This is the
 //!      load-bearing part.
-//!   2. [`loopy_nim_values`] — the impartial loopy nim-values: Draw positions are
+//!   2. [`LoopyPartizanGraph`] — the two-sided Left/Right engine. This keeps the
+//!      two starting-player questions separate, so values such as `tis`/`tisn` do
+//!      not get flattened into the five classical partizan outcome classes.
+//!   3. [`loopy_nim_values`] — the impartial loopy nim-values: Draw positions are
 //!      `Side` (the loopy `∞`), the rest carry an ordinary nimber. Acyclic
 //!      non-Draw regions use the usual DAG recursion; small cyclic non-Draw
-//!      regions use a bounded sidling solver for the finite mex equations.
-//!   3. [`LoopyValue`] — a small catalogue of the canonical stoppers (`on`, `off`,
-//!      `over`, `under`, `dud`, `∗`) with their outcomes, negation, partial order,
-//!      and the partial sum-monoid. A finite tag carrying an infinite object — the
-//!      same discipline as [`NumberGame`](crate::games::NumberGame).
+//!      regions use a bounded sidling solver for the finite mex equations, and
+//!      the certificate records the checked recovery condition used for additive
+//!      claims.
+//!   4. [`LoopyValue`] — a small catalogue of canonical named loopy values
+//!      (`on`, `off`, `over`, `under`, `dud`, `±`, `tis`, `tisn`, `∗`) plus
+//!      integer onside/offside `s&t` tags, with exact two-sided outcomes,
+//!      negation, conservative partial order, and the partial sum-monoid. A finite
+//!      tag carrying an infinite object — the same discipline as
+//!      [`NumberGame`](crate::games::NumberGame).
 //!
 //! And the payoff for this project, [`loopy_decision_sets`] / [`loopy_quadric_probe`]:
 //! take an arbitrary cyclic move rule on positions `F₂^k` and read off **both** its
@@ -31,11 +38,13 @@
 //! Deliberately **out of scope** here: [`Game`](crate::games::Game) stays an acyclic
 //! `Arc` tree (it cannot represent cycles, by construction), and
 //! [`thermography`](crate::games::thermography) stays finite-game-only — loopy games
-//! never freeze to a number, so classical temperature does not apply. Partizan
-//! loopy outcomes (a two-sided Left/Right retrograde solver), unbounded sidling,
-//! and the `±`/`tis`/`tisn` stopper arithmetic are honestly deferred.
+//! never freeze to a number, so classical temperature does not apply. The sidling
+//! support below is still finite and certified: over-budget or non-canonical
+//! fixed-point systems return `None` rather than pretending to be full loopy-game
+//! equality.
 
 use std::cmp::Ordering;
+use std::collections::VecDeque;
 
 use crate::forms::{fit_f2_quadratic, QuadricFit};
 use crate::games::grundy::mex;
@@ -46,6 +55,59 @@ const MAX_SIDLING_ASSIGNMENTS: usize = 200_000;
 // ---------------------------------------------------------------------------
 // 1. The canonical-stopper catalogue.
 // ---------------------------------------------------------------------------
+
+/// The winner of one of the two starter questions in a finite loopy partizan
+/// graph.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum LoopyWinner {
+    /// Left can force a win from this starter state.
+    Left,
+    /// Right can force a win from this starter state.
+    Right,
+    /// Neither player can force a win; optimal play can be drawn forever.
+    Draw,
+}
+
+/// The exact two-sided outcome of a partizan loopy position: one result when Left
+/// is to move, and one result when Right is to move.
+///
+/// The classical five outcome classes embed as the cases where the pair is
+/// `(Right, Left)` (`P`), `(Left, Right)` (`N`), `(Left, Left)` (`L`),
+/// `(Right, Right)` (`R`), or `(Draw, Draw)` (`Draw`). Mixed cases such as
+/// `tis = (Left, Draw)` are real loopy-partizan values and deliberately do not
+/// collapse to a [`PartizanOutcome`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct LoopyPartizanOutcome {
+    pub left_to_move: LoopyWinner,
+    pub right_to_move: LoopyWinner,
+}
+
+impl LoopyPartizanOutcome {
+    pub fn new(left_to_move: LoopyWinner, right_to_move: LoopyWinner) -> Self {
+        Self {
+            left_to_move,
+            right_to_move,
+        }
+    }
+
+    /// The classical partizan outcome class, when this two-sided result lies in
+    /// the classical five-class image.
+    pub fn partizan_class(&self) -> Option<PartizanOutcome> {
+        use LoopyWinner::*;
+        match (self.left_to_move, self.right_to_move) {
+            (Right, Left) => Some(PartizanOutcome::P),
+            (Left, Right) => Some(PartizanOutcome::N),
+            (Left, Left) => Some(PartizanOutcome::L),
+            (Right, Right) => Some(PartizanOutcome::R),
+            (Draw, Draw) => Some(PartizanOutcome::Draw),
+            _ => None,
+        }
+    }
+
+    pub fn has_draw(&self) -> bool {
+        self.left_to_move == LoopyWinner::Draw || self.right_to_move == LoopyWinner::Draw
+    }
+}
 
 /// The outcome class of a (partizan, possibly loopy) game value: who wins under
 /// optimal play. Unlike the impartial [`Outcome`] (which is keyed on the player to
@@ -66,9 +128,10 @@ pub enum PartizanOutcome {
     Draw,
 }
 
-/// A catalogue of the canonical loopy stoppers (plus `dud`, the canonical
-/// non-stopper draw). These are the values with finite names; general loopy values
-/// need the onside/offside (`s&t`) machinery, which is out of scope here.
+/// A catalogue of named loopy values, plus integer onside/offside (`s&t`) tags.
+/// This is not a complete equality theory for loopy games; arithmetic returns
+/// `None` whenever a sum leaves the represented catalogue or would require a
+/// non-local sidling/equality proof.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LoopyValue {
     /// `0 = {|}` — the second player (previous mover) wins.
@@ -85,51 +148,109 @@ pub enum LoopyValue {
     Over,
     /// `under = {under|0} = −over` — a negative infinitesimal. Right wins.
     Under,
+    /// `± = {on|off}` — the hot next-player loopy switch.
+    PlusMinus,
+    /// `tis` (`this is`), the left-swinging non-stopper. In this repo's finite
+    /// tag convention it records the two-sided result `(Left, Draw)` and the
+    /// sidled sides `1&0`.
+    Tis,
+    /// `tisn` (`this isn't`), the right-swinging dual of [`Tis`](Self::Tis).
+    /// It records `(Draw, Right)` and sidled sides `0&-1`.
+    Tisn,
+    /// A finite onside/offside tag `s&t`. Addition and negation are carried on the
+    /// pair itself; equality with arbitrary loopy games is not decided here.
+    OnsideOffside { onside: i128, offside: i128 },
     /// `dud = {dud|dud}` — the "deathless universal draw": both players loop
     /// forever, neither wins. Absorbing under sum; confused with every value.
     Dud,
 }
 
 impl LoopyValue {
+    /// Build an onside/offside value `s&t`, normalizing `0&0` to `0`.
+    pub fn onside_offside(onside: i128, offside: i128) -> LoopyValue {
+        if onside == 0 && offside == 0 {
+            LoopyValue::Zero
+        } else {
+            LoopyValue::OnsideOffside { onside, offside }
+        }
+    }
+
     /// The `{Left | Right}` form, for display.
-    pub fn form(&self) -> &'static str {
+    pub fn form(&self) -> String {
         match self {
-            LoopyValue::Zero => "{|}",
-            LoopyValue::Star => "{0|0}",
-            LoopyValue::On => "{on|}",
-            LoopyValue::Off => "{|off}",
-            LoopyValue::Over => "{0|over}",
-            LoopyValue::Under => "{under|0}",
-            LoopyValue::Dud => "{dud|dud}",
+            LoopyValue::Zero => "{|}".to_string(),
+            LoopyValue::Star => "{0|0}".to_string(),
+            LoopyValue::On => "{on|}".to_string(),
+            LoopyValue::Off => "{|off}".to_string(),
+            LoopyValue::Over => "{0|over}".to_string(),
+            LoopyValue::Under => "{under|0}".to_string(),
+            LoopyValue::PlusMinus => "{on|off}".to_string(),
+            LoopyValue::Tis => "{0|tisn}".to_string(),
+            LoopyValue::Tisn => "{tis|0}".to_string(),
+            LoopyValue::OnsideOffside { onside, offside } => {
+                format!("{onside}&{offside}")
+            }
+            LoopyValue::Dud => "{dud|dud}".to_string(),
         }
     }
 
     /// The conventional name.
-    pub fn name(&self) -> &'static str {
+    pub fn name(&self) -> String {
         match self {
-            LoopyValue::Zero => "0",
-            LoopyValue::Star => "*",
-            LoopyValue::On => "on",
-            LoopyValue::Off => "off",
-            LoopyValue::Over => "over",
-            LoopyValue::Under => "under",
-            LoopyValue::Dud => "dud",
+            LoopyValue::Zero => "0".to_string(),
+            LoopyValue::Star => "*".to_string(),
+            LoopyValue::On => "on".to_string(),
+            LoopyValue::Off => "off".to_string(),
+            LoopyValue::Over => "over".to_string(),
+            LoopyValue::Under => "under".to_string(),
+            LoopyValue::PlusMinus => "±".to_string(),
+            LoopyValue::Tis => "tis".to_string(),
+            LoopyValue::Tisn => "tisn".to_string(),
+            LoopyValue::OnsideOffside { onside, offside } => {
+                format!("{onside}&{offside}")
+            }
+            LoopyValue::Dud => "dud".to_string(),
         }
     }
 
-    /// Who wins under optimal play.
-    pub fn outcome(&self) -> PartizanOutcome {
+    /// Who wins under optimal play for each starter. Use
+    /// [`partizan_outcome`](Self::partizan_outcome) when you need the classical
+    /// five-class projection.
+    pub fn outcome(&self) -> LoopyPartizanOutcome {
+        use LoopyWinner::*;
         match self {
-            LoopyValue::Zero => PartizanOutcome::P,
-            LoopyValue::Star => PartizanOutcome::N,
-            LoopyValue::On | LoopyValue::Over => PartizanOutcome::L,
-            LoopyValue::Off | LoopyValue::Under => PartizanOutcome::R,
-            LoopyValue::Dud => PartizanOutcome::Draw,
+            LoopyValue::Zero => LoopyPartizanOutcome::new(Right, Left),
+            LoopyValue::Star | LoopyValue::PlusMinus => LoopyPartizanOutcome::new(Left, Right),
+            LoopyValue::On | LoopyValue::Over => LoopyPartizanOutcome::new(Left, Left),
+            LoopyValue::Off | LoopyValue::Under => LoopyPartizanOutcome::new(Right, Right),
+            LoopyValue::Tis => LoopyPartizanOutcome::new(Left, Draw),
+            LoopyValue::Tisn => LoopyPartizanOutcome::new(Draw, Right),
+            LoopyValue::OnsideOffside { onside, offside } => {
+                LoopyPartizanOutcome::new(winner_from_sign(*onside), winner_from_sign(*offside))
+            }
+            LoopyValue::Dud => LoopyPartizanOutcome::new(Draw, Draw),
+        }
+    }
+
+    /// The classical partizan outcome class, when this value has one. Values such
+    /// as `tis` and `tisn` have a mixed draw/win starter pair, so they return
+    /// `None` rather than being flattened into a false five-class answer.
+    pub fn partizan_outcome(&self) -> Option<PartizanOutcome> {
+        self.outcome().partizan_class()
+    }
+
+    /// The sidled onside/offside pair when this finite tag carries one.
+    pub fn sides(&self) -> Option<(i128, i128)> {
+        match *self {
+            LoopyValue::Tis => Some((1, 0)),
+            LoopyValue::Tisn => Some((0, -1)),
+            LoopyValue::OnsideOffside { onside, offside } => Some((onside, offside)),
+            _ => None,
         }
     }
 
     /// Negation (swap the Left/Right roles): `−on = off`, `−over = under`, and the
-    /// self-negating `0`, `∗`, `dud`.
+    /// self-negating `0`, `∗`, `±`, `dud`.
     pub fn neg(&self) -> LoopyValue {
         match self {
             LoopyValue::Zero => LoopyValue::Zero,
@@ -138,14 +259,20 @@ impl LoopyValue {
             LoopyValue::Off => LoopyValue::On,
             LoopyValue::Over => LoopyValue::Under,
             LoopyValue::Under => LoopyValue::Over,
+            LoopyValue::PlusMinus => LoopyValue::PlusMinus,
+            LoopyValue::Tis => LoopyValue::Tisn,
+            LoopyValue::Tisn => LoopyValue::Tis,
+            LoopyValue::OnsideOffside { onside, offside } => {
+                LoopyValue::onside_offside(-*offside, -*onside)
+            }
             LoopyValue::Dud => LoopyValue::Dud,
         }
     }
 
     /// Whether this value is a **stopper** (guaranteed to end when played in
-    /// isolation). Everything here is a stopper except `dud`.
+    /// isolation). The named non-stoppers here are `dud`, `tis`, and `tisn`.
     pub fn is_stopper(&self) -> bool {
-        !matches!(self, LoopyValue::Dud)
+        !matches!(self, LoopyValue::Dud | LoopyValue::Tis | LoopyValue::Tisn)
     }
 
     /// The disjunctive sum, where it is defined on this catalogue. Returns `None`
@@ -153,9 +280,10 @@ impl LoopyValue {
     /// refuses a drawn value not represented by its named tags.
     ///
     /// The closed cases: `dud` absorbs everything (`dud + G = dud`); `on + off =
-    /// dud`; `on`/`off` absorb every other stopper (`on` is `>` every stopper);
-    /// `∗ + ∗ = 0`; `over + over = over`, `under + under = under`,
-    /// `∗ + over = over`, `∗ + under = under`; and `0` is the identity.
+    /// dud`; `on`/`off` absorb every other represented stopper (`on` is `>` every
+    /// stopper); `∗ + ∗ = 0`; `over + over = over`, `under + under = under`,
+    /// `∗ + over = over`, `∗ + under = under`; `s&t + u&v = (s+u)&(t+v)`;
+    /// and `0` is the identity.
     pub fn add(&self, other: &LoopyValue) -> Option<LoopyValue> {
         use LoopyValue::*;
         let r = match (*self, *other) {
@@ -164,16 +292,61 @@ impl LoopyValue {
             (On, On) => On,
             (Off, Off) => Off,
             (On, Off) | (Off, On) => Dud,
-            (On, Star) | (Star, On) | (On, Over) | (Over, On) | (On, Under) | (Under, On) => On,
-            (Off, Star) | (Star, Off) | (Off, Over) | (Over, Off) | (Off, Under) | (Under, Off) => {
-                Off
-            }
+            (On, Star)
+            | (Star, On)
+            | (On, Over)
+            | (Over, On)
+            | (On, Under)
+            | (Under, On)
+            | (On, PlusMinus)
+            | (PlusMinus, On) => On,
+            (Off, Star)
+            | (Star, Off)
+            | (Off, Over)
+            | (Over, Off)
+            | (Off, Under)
+            | (Under, Off)
+            | (Off, PlusMinus)
+            | (PlusMinus, Off) => Off,
             (Star, Star) => Zero,
             (Over, Over) | (Star, Over) | (Over, Star) => Over,
             (Under, Under) | (Star, Under) | (Under, Star) => Under,
+            (
+                OnsideOffside {
+                    onside: a,
+                    offside: b,
+                },
+                OnsideOffside {
+                    onside: c,
+                    offside: d,
+                },
+            ) => LoopyValue::onside_offside(a + c, b + d),
             (Over, Under) | (Under, Over) => return None,
+            (PlusMinus, PlusMinus)
+            | (PlusMinus, Star)
+            | (Star, PlusMinus)
+            | (PlusMinus, Over)
+            | (Over, PlusMinus)
+            | (PlusMinus, Under)
+            | (Under, PlusMinus)
+            | (Tis, _)
+            | (_, Tis)
+            | (Tisn, _)
+            | (_, Tisn)
+            | (OnsideOffside { .. }, _)
+            | (_, OnsideOffside { .. }) => return None,
         };
         Some(r)
+    }
+}
+
+fn winner_from_sign(x: i128) -> LoopyWinner {
+    if x > 0 {
+        LoopyWinner::Left
+    } else if x < 0 {
+        LoopyWinner::Right
+    } else {
+        LoopyWinner::Draw
     }
 }
 
@@ -191,6 +364,16 @@ impl PartialOrd for LoopyValue {
         match (*self, *other) {
             // dud is confused with every other value.
             (Dud, _) | (_, Dud) => None,
+            // The extended tags need a genuine comparison proof; equality was
+            // handled above, so keep the catalogue order conservative.
+            (PlusMinus, _)
+            | (_, PlusMinus)
+            | (Tis, _)
+            | (_, Tis)
+            | (Tisn, _)
+            | (_, Tisn)
+            | (OnsideOffside { .. }, _)
+            | (_, OnsideOffside { .. }) => None,
             // on is the top, off the bottom (over all non-dud values).
             (On, _) => Some(Ordering::Greater),
             (_, On) => Some(Ordering::Less),
@@ -290,7 +473,191 @@ impl LoopyGraph {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Impartial loopy nim-values (partial sidling).
+// 3. The two-sided partizan graph engine.
+// ---------------------------------------------------------------------------
+
+/// A finite loopy partizan game graph. `left[v]` are Left's legal moves from
+/// position `v`; `right[v]` are Right's legal moves. Cycles are allowed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LoopyPartizanGraph {
+    left: Vec<Vec<usize>>,
+    right: Vec<Vec<usize>>,
+}
+
+impl LoopyPartizanGraph {
+    /// Build from explicit Left and Right adjacency lists.
+    pub fn new(left: Vec<Vec<usize>>, right: Vec<Vec<usize>>) -> LoopyPartizanGraph {
+        assert_eq!(
+            left.len(),
+            right.len(),
+            "left/right move tables must have the same number of positions"
+        );
+        LoopyPartizanGraph { left, right }
+    }
+
+    /// Build from move rules on positions `0..n`.
+    pub fn from_rules<L, R>(n: usize, left_moves: L, right_moves: R) -> LoopyPartizanGraph
+    where
+        L: Fn(usize) -> Vec<usize>,
+        R: Fn(usize) -> Vec<usize>,
+    {
+        LoopyPartizanGraph {
+            left: (0..n).map(left_moves).collect(),
+            right: (0..n).map(right_moves).collect(),
+        }
+    }
+
+    /// Left's adjacency lists.
+    pub fn left(&self) -> &[Vec<usize>] {
+        &self.left
+    }
+
+    /// Right's adjacency lists.
+    pub fn right(&self) -> &[Vec<usize>] {
+        &self.right
+    }
+
+    /// Exact two-sided loopy-partizan outcome of every position.
+    pub fn outcomes(&self) -> Vec<LoopyPartizanOutcome> {
+        solve_partizan_outcomes(&self.left, &self.right)
+    }
+
+    /// Classical partizan outcome classes where the exact two-sided outcome lies
+    /// in the five-class image. Mixed loopy starter pairs (`tis`, `tisn`, …)
+    /// return `None`.
+    pub fn partizan_outcomes(&self) -> Vec<Option<PartizanOutcome>> {
+        self.outcomes()
+            .into_iter()
+            .map(|o| o.partizan_class())
+            .collect()
+    }
+
+    /// The classical class of position `v`, if it has one.
+    pub fn classify(&self, v: usize) -> Option<PartizanOutcome> {
+        self.outcomes().get(v).and_then(|o| o.partizan_class())
+    }
+
+    /// Positions whose exact starter pair contains a draw for at least one player
+    /// to move.
+    pub fn draw_set(&self) -> Vec<usize> {
+        self.outcomes()
+            .into_iter()
+            .enumerate()
+            .filter_map(|(i, o)| o.has_draw().then_some(i))
+            .collect()
+    }
+
+    /// Positions whose exact outcome is outside the classical five classes.
+    pub fn nonclassical_set(&self) -> Vec<usize> {
+        self.outcomes()
+            .into_iter()
+            .enumerate()
+            .filter_map(|(i, o)| o.partizan_class().is_none().then_some(i))
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Turn {
+    Left,
+    Right,
+}
+
+fn state(v: usize, turn: Turn) -> usize {
+    2 * v
+        + match turn {
+            Turn::Left => 0,
+            Turn::Right => 1,
+        }
+}
+
+fn state_parts(s: usize) -> (usize, Turn) {
+    (s / 2, if s & 1 == 0 { Turn::Left } else { Turn::Right })
+}
+
+fn owner_winner(turn: Turn) -> LoopyWinner {
+    match turn {
+        Turn::Left => LoopyWinner::Left,
+        Turn::Right => LoopyWinner::Right,
+    }
+}
+
+fn opponent_winner(turn: Turn) -> LoopyWinner {
+    match turn {
+        Turn::Left => LoopyWinner::Right,
+        Turn::Right => LoopyWinner::Left,
+    }
+}
+
+fn solve_partizan_outcomes(left: &[Vec<usize>], right: &[Vec<usize>]) -> Vec<LoopyPartizanOutcome> {
+    assert_eq!(
+        left.len(),
+        right.len(),
+        "left/right move tables must have the same number of positions"
+    );
+    let n = left.len();
+    let states = 2 * n;
+    let mut succ = vec![Vec::new(); states];
+    let mut pred = vec![Vec::new(); states];
+    for v in 0..n {
+        for &w in &left[v] {
+            let s = state(v, Turn::Left);
+            let t = state(w, Turn::Right);
+            succ[s].push(t);
+            pred[t].push(s);
+        }
+        for &w in &right[v] {
+            let s = state(v, Turn::Right);
+            let t = state(w, Turn::Left);
+            succ[s].push(t);
+            pred[t].push(s);
+        }
+    }
+
+    let mut remaining: Vec<usize> = succ.iter().map(Vec::len).collect();
+    let mut label: Vec<Option<LoopyWinner>> = vec![None; states];
+    let mut queue = VecDeque::new();
+
+    for s in 0..states {
+        if succ[s].is_empty() {
+            let (_, turn) = state_parts(s);
+            label[s] = Some(opponent_winner(turn));
+            queue.push_back(s);
+        }
+    }
+
+    while let Some(s) = queue.pop_front() {
+        let winner = label[s].unwrap();
+        for &p in &pred[s] {
+            if label[p].is_some() {
+                continue;
+            }
+            let (_, turn) = state_parts(p);
+            if winner == owner_winner(turn) {
+                label[p] = Some(winner);
+                queue.push_back(p);
+            } else {
+                remaining[p] -= 1;
+                if remaining[p] == 0 {
+                    label[p] = Some(winner);
+                    queue.push_back(p);
+                }
+            }
+        }
+    }
+
+    (0..n)
+        .map(|v| {
+            LoopyPartizanOutcome::new(
+                label[state(v, Turn::Left)].unwrap_or(LoopyWinner::Draw),
+                label[state(v, Turn::Right)].unwrap_or(LoopyWinner::Draw),
+            )
+        })
+        .collect()
+}
+
+// ---------------------------------------------------------------------------
+// 4. Impartial loopy nim-values (partial sidling).
 // ---------------------------------------------------------------------------
 
 /// A loopy nim-value: an ordinary nimber, or `Side` (the loopy `∞`) for a drawn
@@ -305,13 +672,22 @@ pub enum LoopyNimber {
 }
 
 /// Certificate for [`loopy_nim_values_certified`]: the outcome split, the positions
-/// promoted to `Side`, and whether the bounded sidling solver was needed.
+/// promoted to `Side`, whether the bounded sidling solver was needed, and the
+/// checked recovery condition for additive finite-nimber claims.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LoopyNimCertificate {
     pub outcomes: Vec<Outcome>,
     pub side_positions: Vec<usize>,
     pub used_sidling_solver: bool,
     pub sidling_assignments_examined: usize,
+    /// True when every finite-valued position has only finite-valued options.
+    /// Under this checked condition the emitted finite nimbers are ordinary
+    /// Sprague-Grundy labels on a closed subgame, so additivity claims are local
+    /// checked facts instead of prose caveats.
+    pub recovery_condition_holds: bool,
+    /// Finite-valued positions with at least one `Side` option. These are exactly
+    /// the blockers for the checked recovery condition above.
+    pub recovery_blockers: Vec<usize>,
 }
 
 /// Loopy nim-values of an impartial game graph. Draw positions (per
@@ -324,14 +700,13 @@ pub struct LoopyNimCertificate {
 /// finite mex equations have a **unique** solution; ambiguous or over-budget
 /// cyclic systems return `None` rather than choosing an order-dependent value.
 ///
-/// **Additivity caveat**: when a position has Draw (Side) options the emitted
+/// **Recovery check**: when a position has Draw (Side) options the emitted
 /// `Value(k)` is the Grundy value of the Draw-deleted subgraph at that vertex.
-/// It is **not** guaranteed to be additive over disjunctive sums in the presence
-/// of Draw options — the full Smith/Conway recovery condition (that the fixed-point
-/// equations on the Draw-eligible non-Side positions have a canonical solution)
-/// is not checked here. For unconditional additivity use only positions where
-/// `Draw` options are absent (all positions are `Side` or have only non-`Side`
-/// successors). The `Side` values themselves have no additive nimber arithmetic.
+/// The certificate records a checked finite recovery condition:
+/// `recovery_condition_holds` iff all finite-valued positions have only
+/// finite-valued successors. Only under that condition should additivity-over-sums
+/// be cited for the finite nimbers. The `Side` values themselves have no additive
+/// nimber arithmetic.
 pub fn loopy_nim_values(succ: &[Vec<usize>]) -> Option<Vec<LoopyNimber>> {
     loopy_nim_values_certified(succ).map(|(values, _)| values)
 }
@@ -398,6 +773,9 @@ pub fn loopy_nim_values_certified(
             }
         })
         .collect();
+    let recovery_blockers: Vec<usize> = (0..n)
+        .filter(|&v| !is_side[v] && succ[v].iter().any(|&w| is_side[w]))
+        .collect();
     let cert = LoopyNimCertificate {
         outcomes: out,
         side_positions: is_side
@@ -407,6 +785,8 @@ pub fn loopy_nim_values_certified(
             .collect(),
         used_sidling_solver: needs_sidling,
         sidling_assignments_examined: assignments,
+        recovery_condition_holds: recovery_blockers.is_empty(),
+        recovery_blockers,
     };
     Some((values, cert))
 }
@@ -523,7 +903,7 @@ fn mex_value(succ: &[Vec<usize>], is_side: &[bool], values: &[u128], v: usize) -
 }
 
 // ---------------------------------------------------------------------------
-// 4. The research instrument: Loss-set AND Draw-set of a cyclic rule.
+// 5. The research instrument: Loss-set AND Draw-set of a cyclic rule.
 // ---------------------------------------------------------------------------
 
 /// Given a move rule on positions `0..n` (cycles allowed), return its
@@ -567,25 +947,55 @@ mod tests {
     #[test]
     fn negation_is_an_involution_and_swaps_sides() {
         use LoopyValue::*;
-        for v in [Zero, Star, On, Off, Over, Under, Dud] {
+        for v in [
+            Zero,
+            Star,
+            On,
+            Off,
+            Over,
+            Under,
+            PlusMinus,
+            Tis,
+            Tisn,
+            LoopyValue::onside_offside(3, -2),
+            Dud,
+        ] {
             assert_eq!(v.neg().neg(), v);
         }
         assert_eq!(On.neg(), Off);
         assert_eq!(Over.neg(), Under);
+        assert_eq!(Tis.neg(), Tisn);
+        assert_eq!(
+            LoopyValue::onside_offside(3, -2).neg(),
+            LoopyValue::onside_offside(2, -3)
+        );
         assert_eq!(Dud.neg(), Dud);
     }
 
     #[test]
     fn outcomes_of_the_stoppers() {
         use LoopyValue::*;
-        assert_eq!(Zero.outcome(), PartizanOutcome::P);
-        assert_eq!(Star.outcome(), PartizanOutcome::N);
-        assert_eq!(On.outcome(), PartizanOutcome::L);
-        assert_eq!(Off.outcome(), PartizanOutcome::R);
-        assert_eq!(Over.outcome(), PartizanOutcome::L);
-        assert_eq!(Under.outcome(), PartizanOutcome::R);
-        assert_eq!(Dud.outcome(), PartizanOutcome::Draw);
+        assert_eq!(Zero.partizan_outcome(), Some(PartizanOutcome::P));
+        assert_eq!(Star.partizan_outcome(), Some(PartizanOutcome::N));
+        assert_eq!(PlusMinus.partizan_outcome(), Some(PartizanOutcome::N));
+        assert_eq!(On.partizan_outcome(), Some(PartizanOutcome::L));
+        assert_eq!(Off.partizan_outcome(), Some(PartizanOutcome::R));
+        assert_eq!(Over.partizan_outcome(), Some(PartizanOutcome::L));
+        assert_eq!(Under.partizan_outcome(), Some(PartizanOutcome::R));
+        assert_eq!(Dud.partizan_outcome(), Some(PartizanOutcome::Draw));
+        assert_eq!(
+            Tis.outcome(),
+            LoopyPartizanOutcome::new(LoopyWinner::Left, LoopyWinner::Draw)
+        );
+        assert_eq!(
+            Tisn.outcome(),
+            LoopyPartizanOutcome::new(LoopyWinner::Draw, LoopyWinner::Right)
+        );
+        assert_eq!(Tis.partizan_outcome(), None);
+        assert_eq!(Tis.sides(), Some((1, 0)));
+        assert_eq!(Tisn.sides(), Some((0, -1)));
         assert!(!Dud.is_stopper());
+        assert!(!Tis.is_stopper());
         assert!(On.is_stopper());
     }
 
@@ -593,11 +1003,11 @@ mod tests {
     fn the_closed_sums() {
         use LoopyValue::*;
         // 0 is the identity.
-        for v in [Zero, Star, On, Off, Over, Under, Dud] {
+        for v in [Zero, Star, On, Off, Over, Under, PlusMinus, Tis, Tisn, Dud] {
             assert_eq!(Zero.add(&v), Some(v));
         }
         // dud absorbs everything.
-        for v in [Zero, Star, On, Off, Over, Under, Dud] {
+        for v in [Zero, Star, On, Off, Over, Under, PlusMinus, Tis, Tisn, Dud] {
             assert_eq!(Dud.add(&v), Some(Dud));
             assert_eq!(v.add(&Dud), Some(Dud));
         }
@@ -614,6 +1024,11 @@ mod tests {
         assert_eq!(Star.add(&Under), Some(Under));
         // over+under is a draw-class value outside these named tags.
         assert_eq!(Under.add(&Over), None);
+        assert_eq!(
+            LoopyValue::onside_offside(1, 0).add(&LoopyValue::onside_offside(0, -1)),
+            Some(LoopyValue::onside_offside(1, -1))
+        );
+        assert_eq!(Tis.add(&Tisn), None);
     }
 
     #[test]
@@ -651,6 +1066,57 @@ mod tests {
         assert_eq!(g.loss_set(), vec![0]);
         assert!(g.draw_set().is_empty());
         assert_eq!(g.classify(0), Some(LoopyValue::Zero));
+    }
+
+    // --- the partizan graph engine ---
+
+    #[test]
+    fn partizan_graph_recovers_classical_short_outcomes() {
+        // position 0 is terminal; 1 = *; 2 = {0|}; 3 = {|0}.
+        let left = vec![vec![], vec![0], vec![0], vec![]];
+        let right = vec![vec![], vec![0], vec![], vec![0]];
+        let g = LoopyPartizanGraph::new(left, right);
+        assert_eq!(
+            g.partizan_outcomes(),
+            vec![
+                Some(PartizanOutcome::P),
+                Some(PartizanOutcome::N),
+                Some(PartizanOutcome::L),
+                Some(PartizanOutcome::R),
+            ]
+        );
+        assert!(g.draw_set().is_empty());
+    }
+
+    #[test]
+    fn partizan_graph_keeps_tis_as_mixed_draw_class() {
+        // Repo convention: tis = {0|tisn}, tisn = {tis|0}, with 0 terminal.
+        let left = vec![vec![2], vec![0], vec![]];
+        let right = vec![vec![1], vec![2], vec![]];
+        let g = LoopyPartizanGraph::new(left, right);
+        let out = g.outcomes();
+        assert_eq!(out[0], LoopyValue::Tis.outcome());
+        assert_eq!(out[1], LoopyValue::Tisn.outcome());
+        assert_eq!(g.classify(0), None);
+        assert_eq!(g.nonclassical_set(), vec![0, 1]);
+        assert_eq!(g.draw_set(), vec![0, 1]);
+    }
+
+    #[test]
+    fn impartial_partizan_graph_matches_kernel_outcomes() {
+        let succ = vec![vec![1], vec![2, 0], vec![]];
+        let g = LoopyPartizanGraph::new(succ.clone(), succ.clone());
+        assert_eq!(
+            g.partizan_outcomes(),
+            kernel::outcomes(&succ)
+                .into_iter()
+                .map(|o| match o {
+                    Outcome::Loss => Some(PartizanOutcome::P),
+                    Outcome::Win => Some(PartizanOutcome::N),
+                    Outcome::Draw => Some(PartizanOutcome::Draw),
+                })
+                .collect::<Vec<_>>()
+        );
     }
 
     // --- loopy nim-values ---
@@ -694,6 +1160,8 @@ mod tests {
         );
         assert!(cert.used_sidling_solver);
         assert!(cert.sidling_assignments_examined > 0);
+        assert!(cert.recovery_condition_holds);
+        assert!(cert.recovery_blockers.is_empty());
         // but the outcome analysis is still exact.
         let g = LoopyGraph::new(succ);
         assert_eq!(
@@ -716,6 +1184,18 @@ mod tests {
             g.outcomes(),
             vec![Outcome::Win, Outcome::Win, Outcome::Loss, Outcome::Loss]
         );
+    }
+
+    #[test]
+    fn recovery_certificate_flags_finite_positions_with_side_options() {
+        // 0↔1 is Side; 2 also has a move to terminal 3, so 2 is finite-valued but
+        // points at a Side option. Its local mex value is computed, while the
+        // recovery/additivity condition is explicitly false.
+        let succ = vec![vec![1], vec![0], vec![0, 3], vec![]];
+        let (_values, cert) = loopy_nim_values_certified(&succ).unwrap();
+        assert_eq!(cert.side_positions, vec![0, 1]);
+        assert!(!cert.recovery_condition_holds);
+        assert_eq!(cert.recovery_blockers, vec![2]);
     }
 
     // --- the research instrument ---

@@ -10,8 +10,8 @@ use super::scalars::{
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
     thermography, AbstractGame, Color, Game, GameExterior, GameRelation, Hackenbush, LoopyGraph,
-    LoopyNimCertificate, LoopyNimber, LoopyValue, NimLexicode, NimberGame, NumberGame, Outcome,
-    PartizanOutcome, Quotient,
+    LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph, LoopyPartizanOutcome, LoopyValue,
+    LoopyWinner, NimLexicode, NimberGame, NumberGame, Outcome, PartizanOutcome, Quotient,
 };
 use crate::scalar::{Integer, Rational, SignExpansion, Surreal};
 use pyo3::basic::CompareOp;
@@ -38,6 +38,18 @@ fn check_succ_bounds(succ: &[Vec<usize>]) -> PyResult<()> {
         }
     }
     Ok(())
+}
+
+fn check_partizan_succ_bounds(left: &[Vec<usize>], right: &[Vec<usize>]) -> PyResult<()> {
+    if left.len() != right.len() {
+        return Err(PyValueError::new_err(format!(
+            "left/right move tables must have the same number of positions: left has {}, right has {}",
+            left.len(),
+            right.len()
+        )));
+    }
+    check_succ_bounds(left)?;
+    check_succ_bounds(right)
 }
 
 /// Wrap a dyadic `Rational` (a thermograph coordinate) as a `Surreal` for Python.
@@ -697,6 +709,133 @@ impl PyPartizanOutcome {
     }
 }
 
+fn loopy_winner_name(w: LoopyWinner) -> String {
+    match w {
+        LoopyWinner::Left => "Left",
+        LoopyWinner::Right => "Right",
+        LoopyWinner::Draw => "Draw",
+    }
+    .to_string()
+}
+
+#[pyclass(name = "LoopyWinner", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyLoopyWinner {
+    inner: LoopyWinner,
+}
+
+fn wrap_loopy_winner(inner: LoopyWinner) -> PyLoopyWinner {
+    PyLoopyWinner { inner }
+}
+
+fn parse_loopy_winner(obj: &Bound<'_, PyAny>) -> PyResult<LoopyWinner> {
+    if let Ok(winner) = obj.cast::<PyLoopyWinner>() {
+        return Ok(winner.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected LoopyWinner"))
+}
+
+#[pymethods]
+impl PyLoopyWinner {
+    #[staticmethod]
+    fn left() -> Self {
+        wrap_loopy_winner(LoopyWinner::Left)
+    }
+    #[staticmethod]
+    fn right() -> Self {
+        wrap_loopy_winner(LoopyWinner::Right)
+    }
+    #[staticmethod]
+    fn draw() -> Self {
+        wrap_loopy_winner(LoopyWinner::Draw)
+    }
+    fn name(&self) -> String {
+        loopy_winner_name(self.inner)
+    }
+    fn is_left(&self) -> bool {
+        self.inner == LoopyWinner::Left
+    }
+    fn is_right(&self) -> bool {
+        self.inner == LoopyWinner::Right
+    }
+    fn is_draw(&self) -> bool {
+        self.inner == LoopyWinner::Draw
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_loopy_winner(other).is_ok_and(|w| w == self.inner)),
+            CompareOp::Ne => Ok(parse_loopy_winner(other).is_ok_and(|w| w != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("LoopyWinner only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __str__(&self) -> String {
+        self.name()
+    }
+    fn __repr__(&self) -> String {
+        format!("LoopyWinner.{}", loopy_winner_name(self.inner))
+    }
+}
+
+#[pyclass(name = "LoopyPartizanOutcome", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyLoopyPartizanOutcome {
+    inner: LoopyPartizanOutcome,
+}
+
+fn wrap_loopy_partizan_outcome(inner: LoopyPartizanOutcome) -> PyLoopyPartizanOutcome {
+    PyLoopyPartizanOutcome { inner }
+}
+
+fn parse_loopy_partizan_outcome(obj: &Bound<'_, PyAny>) -> PyResult<LoopyPartizanOutcome> {
+    if let Ok(outcome) = obj.cast::<PyLoopyPartizanOutcome>() {
+        return Ok(outcome.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected LoopyPartizanOutcome"))
+}
+
+#[pymethods]
+impl PyLoopyPartizanOutcome {
+    #[new]
+    fn new(left_to_move: &Bound<'_, PyAny>, right_to_move: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(wrap_loopy_partizan_outcome(LoopyPartizanOutcome::new(
+            parse_loopy_winner(left_to_move)?,
+            parse_loopy_winner(right_to_move)?,
+        )))
+    }
+    #[getter]
+    fn left_to_move(&self) -> PyLoopyWinner {
+        wrap_loopy_winner(self.inner.left_to_move)
+    }
+    #[getter]
+    fn right_to_move(&self) -> PyLoopyWinner {
+        wrap_loopy_winner(self.inner.right_to_move)
+    }
+    fn partizan_class(&self) -> Option<PyPartizanOutcome> {
+        self.inner.partizan_class().map(wrap_partizan_outcome)
+    }
+    fn has_draw(&self) -> bool {
+        self.inner.has_draw()
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_loopy_partizan_outcome(other).is_ok_and(|o| o == self.inner)),
+            CompareOp::Ne => Ok(parse_loopy_partizan_outcome(other).is_ok_and(|o| o != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("LoopyPartizanOutcome only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "LoopyPartizanOutcome(left_to_move={}, right_to_move={})",
+            loopy_winner_name(self.inner.left_to_move),
+            loopy_winner_name(self.inner.right_to_move)
+        )
+    }
+}
+
 #[pyclass(name = "LoopyNimber", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyLoopyNimber {
@@ -957,18 +1096,28 @@ impl PyLoopyNimCertificate {
     fn sidling_assignments_examined(&self) -> usize {
         self.inner.sidling_assignments_examined
     }
+    #[getter]
+    fn recovery_condition_holds(&self) -> bool {
+        self.inner.recovery_condition_holds
+    }
+    #[getter]
+    fn recovery_blockers(&self) -> Vec<usize> {
+        self.inner.recovery_blockers.clone()
+    }
     fn __repr__(&self) -> String {
         format!(
-            "LoopyNimCertificate(side_positions={:?}, used_sidling_solver={}, sidling_assignments_examined={})",
+            "LoopyNimCertificate(side_positions={:?}, used_sidling_solver={}, sidling_assignments_examined={}, recovery_condition_holds={}, recovery_blockers={:?})",
             self.inner.side_positions,
             self.inner.used_sidling_solver,
-            self.inner.sidling_assignments_examined
+            self.inner.sidling_assignments_examined,
+            self.inner.recovery_condition_holds,
+            self.inner.recovery_blockers
         )
     }
 }
 
 /// Loopy nim-values plus a certificate explaining Draw/Side promotion and
-/// whether the bounded sidling solver was needed.
+/// whether the bounded sidling solver and finite recovery condition were needed.
 /// Raises `ValueError` if any successor index is out of range.
 #[pyfunction]
 fn loopy_nim_values_certified(
@@ -1782,9 +1931,8 @@ fn misere_quotient(
     }
 }
 
-/// A loopy game as a finite move graph (`succ[v]` = positions reachable from `v`);
-/// the graph may be cyclic. Outcomes come from the retrograde kernel analysis
-/// (Win / Loss / Draw, where Loss = P-position and Draw is the loopy escape).
+/// A named loopy value tag (`on`, `off`, `over`, `under`, `dud`, `tis`, `tisn`,
+/// `±`, or an integer `s&t` onside/offside pair).
 #[pyclass(name = "LoopyValue", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyLoopyValue {
@@ -1830,19 +1978,49 @@ impl PyLoopyValue {
         }
     }
     #[staticmethod]
+    fn plus_minus() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::PlusMinus,
+        }
+    }
+    #[staticmethod]
+    fn tis() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Tis,
+        }
+    }
+    #[staticmethod]
+    fn tisn() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Tisn,
+        }
+    }
+    #[staticmethod]
+    fn onside_offside(onside: i128, offside: i128) -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::onside_offside(onside, offside),
+        }
+    }
+    #[staticmethod]
     fn dud() -> Self {
         PyLoopyValue {
             inner: LoopyValue::Dud,
         }
     }
-    fn name(&self) -> &'static str {
+    fn name(&self) -> String {
         self.inner.name()
     }
-    fn form(&self) -> &'static str {
+    fn form(&self) -> String {
         self.inner.form()
     }
-    fn outcome(&self) -> PyPartizanOutcome {
-        wrap_partizan_outcome(self.inner.outcome())
+    fn outcome(&self) -> PyLoopyPartizanOutcome {
+        wrap_loopy_partizan_outcome(self.inner.outcome())
+    }
+    fn partizan_outcome(&self) -> Option<PyPartizanOutcome> {
+        self.inner.partizan_outcome().map(wrap_partizan_outcome)
+    }
+    fn sides(&self) -> Option<(i128, i128)> {
+        self.inner.sides()
     }
     fn __neg__(&self) -> PyLoopyValue {
         PyLoopyValue {
@@ -1921,6 +2099,70 @@ impl PyLoopyGraph {
     /// nimber — use `loopy_nim_values`).
     fn classify(&self, v: usize) -> Option<PyLoopyValue> {
         self.inner.classify(v).map(|inner| PyLoopyValue { inner })
+    }
+}
+
+#[pyclass(name = "LoopyPartizanGraph", module = "ogdoad")]
+struct PyLoopyPartizanGraph {
+    inner: LoopyPartizanGraph,
+}
+
+#[pymethods]
+impl PyLoopyPartizanGraph {
+    #[new]
+    fn new(left: Vec<Vec<usize>>, right: Vec<Vec<usize>>) -> PyResult<Self> {
+        check_partizan_succ_bounds(&left, &right)?;
+        Ok(PyLoopyPartizanGraph {
+            inner: LoopyPartizanGraph::new(left, right),
+        })
+    }
+    #[staticmethod]
+    fn from_rules(
+        n: usize,
+        left_moves: Bound<'_, PyAny>,
+        right_moves: Bound<'_, PyAny>,
+    ) -> PyResult<Self> {
+        let left = loopy_succ_from_callback(n, &left_moves)?;
+        let right = loopy_succ_from_callback(n, &right_moves)?;
+        Ok(PyLoopyPartizanGraph {
+            inner: LoopyPartizanGraph::new(left, right),
+        })
+    }
+    /// Left's adjacency lists.
+    fn left(&self) -> Vec<Vec<usize>> {
+        self.inner.left().to_vec()
+    }
+    /// Right's adjacency lists.
+    fn right(&self) -> Vec<Vec<usize>> {
+        self.inner.right().to_vec()
+    }
+    /// Exact two-sided outcomes of every position.
+    fn outcomes(&self) -> Vec<PyLoopyPartizanOutcome> {
+        self.inner
+            .outcomes()
+            .into_iter()
+            .map(wrap_loopy_partizan_outcome)
+            .collect()
+    }
+    /// Classical partizan classes where available; mixed draw/win cases are `None`.
+    fn partizan_outcomes(&self) -> Vec<Option<PyPartizanOutcome>> {
+        self.inner
+            .partizan_outcomes()
+            .into_iter()
+            .map(|o| o.map(wrap_partizan_outcome))
+            .collect()
+    }
+    /// The classical class of position `v`, if it has one.
+    fn classify(&self, v: usize) -> Option<PyPartizanOutcome> {
+        self.inner.classify(v).map(wrap_partizan_outcome)
+    }
+    /// Positions whose exact starter pair contains a draw.
+    fn draw_set(&self) -> Vec<usize> {
+        self.inner.draw_set()
+    }
+    /// Positions outside the classical five outcome classes.
+    fn nonclassical_set(&self) -> Vec<usize> {
+        self.inner.nonclassical_set()
     }
 }
 
@@ -2017,6 +2259,8 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
     m.add_class::<PyOutcome>()?;
     m.add_class::<PyPartizanOutcome>()?;
+    m.add_class::<PyLoopyWinner>()?;
+    m.add_class::<PyLoopyPartizanOutcome>()?;
     m.add_class::<PyLoopyNimber>()?;
     m.add_class::<PyColor>()?;
     m.add_class::<PyPl>()?;
@@ -2033,6 +2277,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAbstractGame>()?;
     m.add_class::<PyLoopyValue>()?;
     m.add_class::<PyLoopyGraph>()?;
+    m.add_class::<PyLoopyPartizanGraph>()?;
     m.add_class::<PyLoopyNimCertificate>()?;
     m.add_class::<PyNimLexicode>()?;
     m.add("LEXICODE_NODE_BUDGET", crate::games::LEXICODE_NODE_BUDGET)?;

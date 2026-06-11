@@ -231,9 +231,9 @@ breakdown:
   Hasse–Minkowski and Hilbert symbols, and `integral/` for lattices, genus,
   discriminant forms, Weil matrices, codes/Construction A, theta/modular forms,
   `D16+`, and Leech.
-- `src/games/` — normal-, misère-, and loopy-play impartial games, short partizan
-  games, thermography/atomic weight, Hackenbush, and the exterior algebra of the
-  game group.
+- `src/games/` — normal-, misère-, and loopy-play impartial games, finite
+  loopy-partizan graphs, short partizan games, thermography/atomic weight,
+  Hackenbush, and the exterior algebra of the game group.
 - `src/py/` — the optional PyO3 bindings behind the `python` feature.
 - `src/linalg/` — crate-private shared linear algebra (exact integer HNF/Smith,
   F₂/nim-field rank, generic field solves), consumed by the pillars above.

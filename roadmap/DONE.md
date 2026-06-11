@@ -31,6 +31,23 @@ When a new piece of cross-pillar work lands, add a short entry here:
 Promote anything proof-heavy or too long for working notes into `roadmap/CODA.md`, and
 fold the one-line structural fact into the relevant `AGENTS.md`.
 
+## `loopy-partizan` — finite Left/Right loopy outcome engine   (2026-06-11)
+**Pillars:** games ↔ Python    **Claim level:** implemented and tested
+- surface: `LoopyPartizanGraph`, `LoopyPartizanOutcome`, `LoopyWinner`;
+  `LoopyValue::{PlusMinus,Tis,Tisn,OnsideOffside}` plus exact starter-pair
+  `outcome`, classical `partizan_outcome`, `sides`, negation, conservative
+  comparison, and partial sums; `LoopyNimCertificate::{recovery_condition_holds,
+  recovery_blockers}` for the checked finite recovery condition behind additive
+  finite-nimber claims.
+- oracles: loopy unit tests pin the classical `P/N/L/R` embedding, the repo
+  `tis={0|tisn}` / `tisn={tis|0}` mixed draw classes, impartial agreement with
+  `kernel::outcomes`, and recovery blockers for finite positions with `Side`
+  options; Python feature build exposes the new classes.
+- boundaries: this is finite retrograde analysis and finite/certified sidling,
+  not full loopy-game equality; mixed classes are kept as starter pairs instead
+  of being forced into `P/N/L/R/Draw`; sums outside the represented catalogue
+  return `None`.
+
 ## `py-waves` — Python parity for waves J/K/M/N/O (2026-06-11)
 **Pillars:** scalar/forms/games ↔ Python    **Claim level:** implemented and tested
 - surface: Python now exposes `lexicode`/`lexicode_naive`/`lexicode_bounded`,

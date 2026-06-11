@@ -80,15 +80,18 @@ indices, and collection lengths.
   question. Plus `scoring_values`: the Milnor minimax `ScoreInterval { left, right }`
   (`i128`) on a DAG — the integer-valued scoring knob.
 - **`loopy.rs`** — loopy (cyclic) games, the third escape from XOR-linear P-sets: a
-  cyclic rule admits a **Draw** outcome (a genuinely new degree of freedom). Three
+  cyclic rule admits a **Draw** outcome (a genuinely new degree of freedom). Four
   layers: `LoopyGraph` (a thin computable wrapper over `kernel::outcomes` —
-  loss/win/draw sets), `loopy_nim_values`/`loopy_nim_values_certified`
-  (+ `LoopyNimCertificate`: Draw ⇒ `Side`/∞, else a nimber; exact on an acyclic
-  non-Draw subgraph; **not additive over sums when Draw options are present** —
-  values are Grundy values of the Draw-deleted subgraph, not Smith/Conway loopy
-  nim-values), and the `LoopyValue` stopper catalogue
-  (`Zero`/`Star`/`On`/`Off`/`Over`/`Under`/`Dud`, with `outcome` → `PartizanOutcome
-  {P,N,L,R,Draw}`, neg/partial order/partial sum). The payoff is
+  loss/win/draw sets), `LoopyPartizanGraph` (finite two-sided Left/Right retrograde
+  analysis, returning exact starter pairs via `LoopyPartizanOutcome` and only
+  projecting to `PartizanOutcome {P,N,L,R,Draw}` when that projection is honest),
+  `loopy_nim_values`/`loopy_nim_values_certified` (+ `LoopyNimCertificate`: Draw ⇒
+  `Side`/∞, else a nimber; exact on an acyclic non-Draw subgraph; bounded sidling
+  only when the mex fixed point is unique; additive finite-nimber claims require the
+  checked `recovery_condition_holds` flag), and the `LoopyValue` catalogue
+  (`Zero`/`Star`/`On`/`Off`/`Over`/`Under`/`PlusMinus`/`Tis`/`Tisn`/`Dud` plus
+  integer `s&t` tags, with exact starter-pair `outcome`, `partizan_outcome`,
+  `sides`, neg/partial order/partial sum). The payoff is
   `loopy_decision_sets`/`loopy_quadric_probe`: read a cyclic rule's Loss-set AND
   Draw-set, each fit by `fit_f2_quadratic`.
 - **`misere.rs`** — checked misère-play outcomes (`try_misere_is_n`/`misere_is_p`)
@@ -137,8 +140,8 @@ indices, and collection lengths.
   with `P = Vec<u128>` in `misere_is_p`/`grundy`, where a `fn(&[u128])` pointer would
   not unify.
 - **`Game` stays an acyclic `Arc` tree by construction** (it cannot represent cycles).
-  Loopy games are a separate `LoopyGraph` engine; `thermography` is
-  finite-game-only (loopy games never freeze to a number).
+  Loopy games are separate `LoopyGraph` / `LoopyPartizanGraph` engines;
+  `thermography` is finite-game-only (loopy games never freeze to a number).
 - **`Pl` does NOT implement `Semiring`.** A `Pl` wall has no representable ∞-wall
   (the tropical `⊕`-identity), so the semiring law-checking lives on `Tropical<C>`
   (which has `Infinity`), not on `Pl`; `Pl` only gets the named wrappers

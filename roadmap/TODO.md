@@ -144,13 +144,6 @@ checked certificate, turning `octal_hunt`-style sweeps into proofs-of-periodicit
 rather than bounded observations. The *conjecture* that every finite octal game is
 ultimately periodic is famous, external, and not ours to claim — the checker is.
 
-### `loopy-partizan` — 3·e_g
-**The partizan loopy engine** — `games/loopy.rs` explicitly defers: two-sided
-Left/Right retrograde outcomes, unbounded sidling, the `±`/`tis`/`tisn` stopper
-arithmetic, and onside/offside (`s & t`) values (Siegel CGT Ch. VI). Include the
-Smith/Conway recovery-condition check that `loopy_nim_values` currently documents but
-does not verify, so additivity-over-sums claims become checked instead of caveated.
-
 ### `game-clifford-checked` — 2·(e_g∧e_c)
 **The checked deformation engine** OPEN §2 separates from its research claim: a
 `GameClifford::with_quadratic_data` that accepts hand-supplied bilinear/quadratic

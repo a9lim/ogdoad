@@ -87,9 +87,10 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   coin-turning/Tartan probes; `grundy_graph`/`grundy`/`mex`; the kernel surface
   (`outcomes`/`p_positions`/`scoring_values`, typed `Outcome`, `ScoreInterval`); the
   misère/octal surface (`misere_quotient`, `Quotient`, `AbstractGame`, octal helpers);
-  and the loopy engine (`LoopyGraph`, `LoopyNimber`,
-  `loopy_nim_values_certified`/`LoopyNimCertificate`, `loopy_decision_sets`/
-  `loopy_quadric_probe`, the `LoopyValue` stopper catalogue + typed `PartizanOutcome`).
+  and the loopy engine (`LoopyGraph`, `LoopyPartizanGraph`, `LoopyWinner`,
+  `LoopyPartizanOutcome`, `LoopyNimber`, `loopy_nim_values_certified`/
+  `LoopyNimCertificate`, `loopy_decision_sets`/`loopy_quadric_probe`, the
+  `LoopyValue` catalogue + typed `PartizanOutcome` projection).
   The games carry Python arithmetic/order operators, the thermograph + tropical-mirror
   + atomic-weight calculus, and the exact `Pl`/`Thermograph` wall API. Callback-backed
   Rust-name variants (`grundy`/`try_misere_is_n`/`loopy_quadric_probe`/…) accept a

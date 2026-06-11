@@ -7,9 +7,10 @@
 //!   normal-play impartial center; P-position ⟺ g = 0).
 //! * [`kernel`] — normal-play Win/Loss/Draw outcomes of a finite game graph
 //!   (retrograde analysis); P-positions = Loss.
-//! * [`loopy`] — loopy (cyclic) games: the canonical stoppers
-//!   (on/off/over/under/dud), impartial loopy nim-values, and the
-//!   Loss-set/Draw-set quadric research instrument.
+//! * [`loopy`] — loopy (cyclic) games: impartial and finite partizan
+//!   retrograde solvers, the canonical value catalogue
+//!   (on/off/over/under/dud/±/tis/tisn plus `s&t` tags), loopy nim-values, and
+//!   the Loss-set/Draw-set quadric research instrument.
 //! * [`misere`] — misère-play outcomes, indistinguishability quotients, and
 //!   octal games.
 //! * [`partizan`] — short partizan games (sum, order, canonical form, the
