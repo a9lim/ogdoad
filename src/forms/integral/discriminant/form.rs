@@ -131,34 +131,6 @@ fn is_antisquare_2(u: i128) -> bool {
     matches!(u.rem_euclid(8), 3 | 5)
 }
 
-fn mod_pow_u128(mut base: u128, mut exp: u128, modulus: u128) -> u128 {
-    let mut acc = 1u128;
-    base %= modulus;
-    while exp > 0 {
-        if exp & 1 == 1 {
-            acc = (acc * base) % modulus;
-        }
-        base = (base * base) % modulus;
-        exp >>= 1;
-    }
-    acc
-}
-
-fn is_square_mod_odd_p(unit: i128, p: i128) -> bool {
-    let u = unit.rem_euclid(p) as u128;
-    if u == 0 {
-        return true;
-    }
-    mod_pow_u128(u, ((p as u128) - 1) / 2, p as u128) == 1
-}
-
-fn unit_is_antisquare_odd(r: &Rational, p: i128) -> bool {
-    let a = unit_part_i128(r.numer(), p);
-    let b = unit_part_i128(r.denom(), p);
-    let unit = (a.rem_euclid(p) * b.rem_euclid(p)).rem_euclid(p);
-    !is_square_mod_odd_p(unit, p)
-}
-
 fn diagonal_entries(lattice: &IntegralForm) -> Option<Vec<Rational>> {
     if lattice.determinant() == 0 {
         return None;
@@ -167,28 +139,6 @@ fn diagonal_entries(lattice: &IntegralForm) -> Option<Vec<Rational>> {
         lattice.gram(),
         DegenerateBehavior::RequireNonsingular,
     ))
-}
-
-fn relevant_odd_primes(det: i128) -> Vec<u128> {
-    let mut n = det.unsigned_abs();
-    while n.is_multiple_of(2) {
-        n /= 2;
-    }
-    let mut ps = Vec::new();
-    let mut d = 3u128;
-    while d <= n / d {
-        if n.is_multiple_of(d) {
-            ps.push(d);
-            while n.is_multiple_of(d) {
-                n /= d;
-            }
-        }
-        d += 2;
-    }
-    if n > 1 {
-        ps.push(n);
-    }
-    ps
 }
 
 fn two_adic_oddity(diag: &[Rational]) -> i128 {

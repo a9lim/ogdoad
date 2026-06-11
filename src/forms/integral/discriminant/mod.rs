@@ -26,9 +26,9 @@ mod phases;
 
 pub use complex::Complex64;
 pub use form::{genus_signature_mod8, verify_milgram, DiscriminantForm};
+pub(crate) use form::{phase_mod8_from_q_values, IsoTables};
 pub use gauss_sum::GaussSum;
 pub use phases::{FqmGaussPhase, FqmPrimaryPhase};
-pub(crate) use form::{phase_mod8_from_q_values, IsoTables};
 
 #[cfg(test)]
 mod tests {
