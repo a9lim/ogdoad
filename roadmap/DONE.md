@@ -60,6 +60,19 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
 - boundaries: this is not the reduced norm for general `n` (nor equal to it for
   quaternions); it is the quadratic trace companion named in CODA K §6(c).
 
+## `milnor-d2` — dyadic cell of Milnor's exact sequence (2026-06-11)
+**Pillars:** forms    **Claim level:** standard math made computational + implemented and tested
+- surface: `forms/witt/milnor.rs::global_residues` now includes the `p=2` component
+  of Milnor's residue map. The dyadic residue uses Milnor's hand convention, not the
+  odd-prime Springer residue: a diagonal line contributes iff its `2`-adic valuation
+  is odd, landing in the `W(F_2) ≅ Z/2` carrier
+  `WittClassG::Char2 { field_degree: 1, arf }`.
+- oracles: tests pin `⟨2⟩`, `⟨1,2⟩`, and `⟨-2⟩` as nonzero dyadic residue classes,
+  verify `⟨2,-2⟩` cancels, check mixed support such as `⟨6⟩`, and cross-check
+  reconstruction against `try_is_isotropic_q` for `⟨2⟩` vs `⟨8⟩` and `⟨2⟩` vs `⟨1⟩`.
+- boundaries: the equal-characteristic `F_q(t)` split-exact twin remains the
+  separate `milnor-ff` TODO item.
+
 ## `echo-solver` — the echo-fifo+dummy adversarial review: CONFIRM (2026-06-10)
 **Pillars:** games ↔ forms    **Claim level:** implemented and tested
 - surface: `experiments/echo_solver.py` (stdlib-only, maintained) — direct full-state

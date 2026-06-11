@@ -145,9 +145,10 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
   degree-2 norm-form oracle ties `inv` to the Hasse–Minkowski layer. Ungraded, distinct
   from `BrauerWallClass`; finite legs carry no Brauer content (Wedderburn).
 - **`witt/milnor.rs`** — Milnor's map `W(ℚ) → ℤ ⊕ ⊕_p W(F_p)` as a computational
-  complete invariant: `global_residues` returns the signature plus the nonzero odd-`p`
-  second Springer residues (the `∂₂` boundary is the documented odd-support gap).
-  Cross-checked against `springer_decompose_qp`.
+  complete invariant: `global_residues` returns the signature plus all nonzero
+  residues. Odd `p` uses the second Springer residue; `p=2` uses Milnor's hand
+  boundary, represented as the `W(F_2) ≅ Z/2` `Char2` carrier. Cross-checked against
+  `springer_decompose_qp` and Hasse–Minkowski reconstruction tests.
 
 (The *numeric* field invariants the ring implies — level, u-invariant — live in
 `field_invariants.rs`, not here.)

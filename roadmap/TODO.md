@@ -49,14 +49,6 @@ level — the Bad census — and the fifo+dummy mechanism is identified
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
 `OPEN.md` tis (§1), not a number here.)
 
-### `milnor-d2` — 1·e_f
-**The `p = 2` cell of Milnor's exact sequence** (the CODA N.1 boundary). Implement the
-dyadic residue `∂₂ : W(ℚ) → W(F₂)` by Milnor's hand-defined convention
-(Milnor–Husemoller Ch. IV; it is *not* Springer's residue — that's why N.1 omitted it)
-and extend `witt/milnor.rs::global_residues` to full support. Oracles: exactness on
-2-support forms (`⟨2⟩`, `⟨1,2⟩`, `⟨−2⟩`…), reconstruction of the Witt class from
-`(signature, all residues)`, cross-check against the shipped Hasse–Minkowski layer.
-
 ### `milnor-ff` — 1·e_f
 **The `F_q(t)` split-exact twin** of N.1 (the "noted follow-on" in CODA):
 `0 → W(F_q) → W(F_q(t)) → ⊕_v W(F_{q^{deg v}}) → 0` (Milnor–Husemoller; Harder). The

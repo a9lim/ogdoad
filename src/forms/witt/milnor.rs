@@ -11,10 +11,13 @@
 //!
 //! The kernel `W(ℤ) ≅ ℤ` is detected by the **signature**; for odd `p`, the boundary
 //! `∂_p` is the **second Springer residue** lifted from `LocalResidueForm` buckets to
-//! Witt classes. So `(signature, (∂_p)_p)` is a *complete* invariant of `W(ℚ)`: two
-//! rational diagonal forms are Witt-equivalent over `ℚ` iff they share a signature and
-//! all residues — the sequence ties three pillar surfaces together (the Springer
-//! residues, the global field layer, and the integral pillar's signature).
+//! Witt classes. For `p = 2`, Milnor's hand-defined boundary lands in
+//! `W(F₂) ≅ ℤ/2`: a diagonal line contributes exactly when its `2`-adic valuation is
+//! odd (the residue unit is then the unique nonzero element of `F₂`). So
+//! `(signature, (∂_p)_p)` is a *complete* invariant of `W(ℚ)`: two rational diagonal
+//! forms are Witt-equivalent over `ℚ` iff they share a signature and all residues —
+//! the sequence ties three pillar surfaces together (the Springer residues, the
+//! global field layer, and the integral pillar's signature).
 //!
 //! **Claim level:** standard math (Milnor; Lam GSM 67, Ch. IX) made computational.
 //! The residue is computed directly from the `i128` entries (`v_p`, the Legendre
@@ -23,11 +26,11 @@
 //! `springer_decompose_qp` on the capped `Q_p` model is the cross-check oracle.
 //!
 //! **The `∂₂` boundary (load-bearing).** `∂₂` (residue characteristic 2) is **not**
-//! Springer's second residue — Milnor defines it by hand in Ch. IV. This module ships
-//! the **odd-`p`** sequence only and treats `p = 2` as a documented boundary (the
-//! `p = 2` component is omitted from the residue map; reconstruction is exact only on
-//! odd-support forms). The convention is not guessed here. The char-2 constant fields
-//! of `F_q(t)` are a separate matter (the Aravire–Jacob layer in `springer/char2.rs`).
+//! Springer's second residue — Milnor defines it by hand in Ch. IV. This module uses
+//! the crate's existing char-2 [`WittClassG`] carrier as the `W(F₂) ≅ ℤ/2` target:
+//! `Char2 { field_degree: 1, arf }`, with `arf` the parity of odd dyadic valuation
+//! lines. The char-2 constant fields of `F_q(t)` are a separate matter (the
+//! Aravire–Jacob layer in `springer/char2.rs`).
 
 use crate::forms::local_global::padic::{legendre, relevant_primes, unit_part, val_p};
 use crate::forms::WittClassG;
@@ -62,6 +65,17 @@ fn second_residue_at(entries: &[i128], p: u128) -> WittClassG {
     }
 }
 
+/// Milnor's hand-defined dyadic residue `∂₂ : W(ℚ) → W(F₂) ≅ ℤ/2`.
+/// Since every odd unit reduces to `1 ∈ F₂`, only the parity of entries with odd
+/// `2`-adic valuation survives.
+fn dyadic_residue_at(entries: &[i128]) -> WittClassG {
+    let arf = entries.iter().filter(|&&a| val_p(a, 2) % 2 == 1).count() as u128 & 1;
+    WittClassG::Char2 {
+        field_degree: 1,
+        arf,
+    }
+}
+
 /// Whether a Witt class over `F_p` is the zero class (even dimension and square signed
 /// discriminant ⇒ hyperbolic).
 fn is_zero_residue(w: &WittClassG) -> bool {
@@ -71,20 +85,18 @@ fn is_zero_residue(w: &WittClassG) -> bool {
             e0: 0,
             sclass: 0,
             ..
-        }
+        } | WittClassG::Char2 { arf: 0, .. }
     )
 }
 
 /// The image of the rational diagonal form `⟨a_1,…,a_n⟩` (nonzero `i128` entries)
 /// under the Milnor map `W(ℚ) → ℤ ⊕ ⊕_p W(F_p)`: the **signature** `(#positive −
-/// #negative)` and the nonzero **odd-`p` residues** `∂_p`, keyed by prime. Zero
-/// residues (and `p = 2`, the documented boundary) are omitted, so the map of an
-/// everywhere-good form is empty.
+/// #negative)` and the nonzero residues `∂_p`, keyed by prime. Zero residues are
+/// omitted, so the map of an everywhere-good integral form is empty.
 ///
 /// `None` if any entry is zero (a radical — the form is degenerate). Two forms with
-/// equal `global_residues` are Witt-equivalent over `ℚ` (complete invariant on
-/// odd-support forms); a difference at any prime, or in the signature, witnesses
-/// inequivalence.
+/// equal `global_residues` are Witt-equivalent over `ℚ`; a difference at any prime,
+/// or in the signature, witnesses inequivalence.
 pub fn global_residues(entries: &[i128]) -> Option<(i128, BTreeMap<u128, WittClassG>)> {
     if entries.contains(&0) {
         return None;
@@ -92,10 +104,11 @@ pub fn global_residues(entries: &[i128]) -> Option<(i128, BTreeMap<u128, WittCla
     let signature: i128 = entries.iter().map(|&a| a.signum()).sum();
     let mut residues = BTreeMap::new();
     for p in relevant_primes(entries) {
-        if p == 2 {
-            continue; // ∂₂ is Milnor's hand-defined boundary; see the module doc.
-        }
-        let w = second_residue_at(entries, p);
+        let w = if p == 2 {
+            dyadic_residue_at(entries)
+        } else {
+            second_residue_at(entries, p)
+        };
         if !is_zero_residue(&w) {
             residues.insert(p, w);
         }
@@ -137,6 +150,13 @@ mod tests {
         }
     }
 
+    fn f2_class(arf: u128) -> WittClassG {
+        WittClassG::Char2 {
+            field_degree: 1,
+            arf,
+        }
+    }
+
     #[test]
     fn second_residue_matches_springer_over_q5() {
         // The exact i128 residue and the capped-Q₅ Springer residue agree on forms
@@ -154,6 +174,40 @@ mod tests {
                 "∂₅ mismatch on {entries:?}"
             );
         }
+    }
+
+    #[test]
+    fn dyadic_residue_is_milnors_hand_boundary() {
+        // Over F_2 every odd unit reduces to 1, so ∂_2 only sees the parity of
+        // odd 2-adic valuation lines.
+        assert_eq!(dyadic_residue_at(&[1]), f2_class(0));
+        assert_eq!(dyadic_residue_at(&[2]), f2_class(1));
+        assert_eq!(dyadic_residue_at(&[-2]), f2_class(1));
+        assert_eq!(dyadic_residue_at(&[1, 2]), f2_class(1));
+        assert_eq!(dyadic_residue_at(&[2, -2]), f2_class(0));
+    }
+
+    #[test]
+    fn global_residues_include_the_dyadic_cell() {
+        for (entries, signature) in [(&[2i128][..], 1), (&[1, 2], 2), (&[-2], -1)] {
+            let (sig, res) = global_residues(entries).unwrap();
+            assert_eq!(sig, signature);
+            assert_eq!(res.get(&2), Some(&f2_class(1)), "entries={entries:?}");
+        }
+
+        let (sig, res) = global_residues(&[2, -2]).unwrap();
+        assert_eq!(sig, 0);
+        assert!(
+            res.is_empty(),
+            "the hyperbolic pair <2,-2> has zero residues"
+        );
+
+        let (_, mixed) = global_residues(&[6]).unwrap();
+        assert_eq!(
+            mixed.keys().copied().collect::<Vec<_>>(),
+            vec![2, 3],
+            "<6> has both dyadic and odd-prime residues"
+        );
     }
 
     #[test]
@@ -180,6 +234,10 @@ mod tests {
         let base = global_residues(&[3]).unwrap();
         assert_eq!(global_residues(&[12]).unwrap(), base);
         assert_eq!(global_residues(&[3, 1, -1]).unwrap(), base);
+        // Same at the dyadic prime: ⟨2⟩ ≅ ⟨8⟩, and ⟨1,-1⟩ is still hyperbolic.
+        let dyadic = global_residues(&[2]).unwrap();
+        assert_eq!(global_residues(&[8]).unwrap(), dyadic);
+        assert_eq!(global_residues(&[2, 1, -1]).unwrap(), dyadic);
     }
 
     #[test]
@@ -192,6 +250,12 @@ mod tests {
         // Cross-check with Hasse–Minkowski: ⟨1,−3⟩ is anisotropic over ℚ (3 is not a
         // square), so ⟨1⟩ ⊥ ⟨−3⟩ is not hyperbolic — they are genuinely inequivalent.
         assert_eq!(try_is_isotropic_q(&[1, -3]), Some(false));
+
+        // Same signature, dyadic residue differs: ⟨1⟩ and ⟨2⟩ are not equivalent.
+        let two = global_residues(&[2]).unwrap();
+        assert_eq!(one.0, two.0, "same signature");
+        assert_ne!(one.1, two.1, "different dyadic residue");
+        assert_eq!(try_is_isotropic_q(&[1, -2]), Some(false));
     }
 
     #[test]
@@ -211,5 +275,18 @@ mod tests {
             global_residues(&[12, 45]).unwrap()
         );
         assert_eq!(try_is_isotropic_q(&[3, 5, -12, -45]), Some(true));
+
+        // Dyadic reconstruction: ⟨2⟩ vs ⟨8⟩ differ by a square multiple, so the
+        // difference form is isotropic; ⟨2⟩ vs ⟨1⟩ has a dyadic-residue mismatch.
+        assert_eq!(
+            global_residues(&[2]).unwrap(),
+            global_residues(&[8]).unwrap()
+        );
+        assert_eq!(try_is_isotropic_q(&[2, -8]), Some(true));
+        assert_ne!(
+            global_residues(&[2]).unwrap(),
+            global_residues(&[1]).unwrap()
+        );
+        assert_eq!(try_is_isotropic_q(&[2, -1]), Some(false));
     }
 }

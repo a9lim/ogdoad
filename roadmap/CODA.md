@@ -1093,18 +1093,20 @@ The Witt-group-level statement of the local residue engine:
 
 `forms/witt/milnor.rs::global_residues(entries: &[i128]) -> Option<(i128,
 BTreeMap<u128, WittClassG>)>` returns the **signature** (`W(ℤ) ≅ ℤ`, the kernel) and
-the nonzero **odd-`p` second residues** `∂_p`, computed exactly from the `i128`
-entries (`v_p` + Legendre + the signed-discriminant square class, matching the
-`finite_odd_witt` convention) so `p` stays runtime while `Fp<P>` is const-generic.
+the nonzero residues `∂_p`. For odd `p`, these are the second Springer residues,
+computed exactly from the `i128` entries (`v_p` + Legendre + the signed-discriminant
+square class, matching the `finite_odd_witt` convention) so `p` stays runtime while
+`Fp<P>` is const-generic. For `p=2`, Milnor's hand-defined boundary contributes the
+parity of diagonal lines with odd dyadic valuation, represented in the existing
+`W(F_2) ≅ Z/2` carrier `WittClassG::Char2 { field_degree: 1, arf }`.
 
-- **Oracles:** finite support (`∂_p = 0` for `p ∤ ∏aᵢ`); square/hyperbolic invariance
-  of `(signature, residues)`; residues distinguish `⟨1⟩` from `⟨3⟩`, cross-checked
-  against the shipped Hasse–Minkowski `try_is_isotropic_q`; and `∂₅` matches an
-  independent computation through `springer_decompose_qp` on the capped `Q₅` model.
-- **Boundary (load-bearing):** `∂₂` (residue char 2) is **not** Springer's residue —
-  Milnor defines it by hand. The odd-`p` sequence ships; `p = 2` is a documented
-  boundary (omitted from the map; reconstruction exact on odd-support forms). The
-  convention is not guessed. (The `F_q(t)` split-exact twin is a noted follow-on.)
+- **Oracles:** finite support (`∂_p = 0` for `p ∤ ∏aᵢ`, plus zero dyadic parity);
+  square/hyperbolic invariance of `(signature, residues)`; residues distinguish
+  `⟨1⟩` from `⟨3⟩` and `⟨1⟩` from `⟨2⟩`, cross-checked against the shipped
+  Hasse–Minkowski `try_is_isotropic_q`; `∂₅` matches an independent computation
+  through `springer_decompose_qp` on the capped `Q₅` model; and `⟨2⟩`/`⟨1,2⟩`/`⟨−2⟩`
+  pin the dyadic cell.
+- **Boundary:** The `F_q(t)` split-exact twin is a noted follow-on (`milnor-ff`).
 
 ### N.2 — the Scharlau transfer, named
 
