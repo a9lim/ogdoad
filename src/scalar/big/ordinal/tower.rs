@@ -73,7 +73,7 @@ type GenKey = BTreeMap<u128, Vec<u128>>;
 /// The prime governing exponent-place `ω^m`: `p(m)` = the `(m+2)`-th prime
 /// (`p(0)=3`, `p(1)=5`, `p(2)=7`, …). Prime 2 is excluded — the prime-2 (Fermat)
 /// tower is the finite nimber field, handled by [`crate::scalar::nim_mul`].
-fn place_prime(m: u128) -> u128 {
+pub(super) fn place_prime(m: u128) -> u128 {
     let mut count = 0u128;
     let mut n = 2u128; // skip the prime 2
     loop {
@@ -94,7 +94,7 @@ fn place_prime(m: u128) -> u128 {
 /// DiMuro Table 1; value `47`: local fixed-base finite-field oracle (see `OPEN.md`);
 /// square brackets in the source table are ordinary ordinal exponentiation, already
 /// resolved (`[2^ω]=ω`, `[2^{ω²}]=ω^ω`, …).
-fn alpha_ordinal(u: u128) -> Option<Ordinal> {
+pub(super) fn alpha_ordinal(u: u128) -> Option<Ordinal> {
     let fin = Ordinal::from_u128;
     let wpow = Ordinal::omega_pow;
     let w = Ordinal::omega;

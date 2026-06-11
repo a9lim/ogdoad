@@ -143,12 +143,6 @@ compute `f(u) = ord_u(2)` and `Q(f(u))` and assemble the `χ`-sum in-code, hardc
 the table currently transcribes, and makes shipping a future certified `m_u` a
 one-integer diff instead of an ordinal-expression transcription.
 
-### `subfield-detect` — ½·(e_s∧e_f)
-**The finite nim-subfield detector** (OPEN §4's implementation-grade target): given a
-`Metric<Ordinal>`, find the minimal finite nim-subfield containing every entry, so
-Bridge D delegates *all* finite-window metrics to Bridge B honestly — not just the
-hardcoded `F₆₄` window. Returns the subfield degree or `None` past the staged segment.
-
 ### `hyperfield` — ½·e_s
 **Viro's tropical hyperfield**, making Bridge J's lax tropicalization strict (Remark
 J.2 names this exact repair): a small multivalued-addition type

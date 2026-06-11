@@ -16,10 +16,11 @@
 
 use crate::clifford::Metric;
 use crate::forms::char2::{
-    arf_nimber_at_degree, min_field_degree, nimber_metric_max_val, ordinal_to_nimber_metric,
+    arf_nimber_at_degree, arf_ordinal_at_degree, min_field_degree, nimber_metric_max_val,
 };
 use crate::forms::{
-    arf_char2, arf_fpn_char2, arf_ordinal_finite, as_diagonal, classify_finite_odd,
+    arf_char2, arf_fpn_char2, as_diagonal, classify_finite_odd,
+    ordinal_metric_finite_subfield_degree,
 };
 use crate::forms::{FiniteChar2Field, FiniteOddField};
 use crate::scalar::{Fpn, Nimber, Ordinal, Rational, Surcomplex, Surreal};
@@ -99,24 +100,29 @@ pub fn isometric_fpn_char2<const P: u128, const N: usize>(
 /// Are two supported finite-window ordinal-nimber forms isometric? Returns
 /// `None` for ordinal coefficients outside the detected finite subfields.
 ///
-/// For forms whose entries are purely finite ordinals (the inner nimber case),
-/// both Arf invariants are computed using the same field degree — the smallest
-/// nim-subfield containing entries of *both* metrics — mirroring the
-/// `isometric_nimber` consistency guarantee.  The F_64 ordinal-transfinite
-/// case uses a fixed six-term trace for both and is unaffected.
+/// Both Arf invariants are computed using the smallest finite subfield
+/// containing entries of *both* metrics, mirroring the `isometric_nimber`
+/// consistency guarantee.
 pub fn isometric_ordinal_finite(m1: &Metric<Ordinal>, m2: &Metric<Ordinal>) -> Option<bool> {
-    // Try the pure-finite (inner Nimber) path: compute both using a common m.
-    if let (Some(n1), Some(n2)) = (ordinal_to_nimber_metric(m1), ordinal_to_nimber_metric(m2)) {
-        let maxv = nimber_metric_max_val(&n1).max(nimber_metric_max_val(&n2));
-        let m = min_field_degree(maxv);
-        let a1 = arf_nimber_at_degree(&n1, m)?;
-        let a2 = arf_nimber_at_degree(&n2, m)?;
-        return Some(same_char2_isometry_invariant(&a1, &a2));
-    }
-    // Fall back to the independent-trace path (F_64 or cross-case).
-    let a1 = arf_ordinal_finite(m1)?;
-    let a2 = arf_ordinal_finite(m2)?;
+    let d1 = ordinal_metric_finite_subfield_degree(m1)?;
+    let d2 = ordinal_metric_finite_subfield_degree(m2)?;
+    let common = lcm(d1, d2)?;
+    let a1 = arf_ordinal_at_degree(m1, common)?;
+    let a2 = arf_ordinal_at_degree(m2, common)?;
     Some(same_char2_isometry_invariant(&a1, &a2))
+}
+
+fn gcd(mut a: u128, mut b: u128) -> u128 {
+    while b != 0 {
+        let r = a % b;
+        a = b;
+        b = r;
+    }
+    a
+}
+
+fn lcm(a: u128, b: u128) -> Option<u128> {
+    (a / gcd(a, b)).checked_mul(b)
 }
 
 fn same_char2_isometry_invariant(
@@ -417,6 +423,31 @@ mod tests {
             Some(true),
             "F_4 anisotropic plane is isometric to the F_16 hyperbolic plane (joint m=4 \
              makes the obstruction vanish)"
+        );
+    }
+
+    #[test]
+    fn ordinal_isometry_uses_common_finite_subfield_degree() {
+        use crate::scalar::nim_mul;
+
+        let plane_f4 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Ordinal::from_u128(1));
+            Metric::new(vec![Ordinal::from_u128(2), Ordinal::from_u128(2)], b)
+        };
+
+        let alpha: u128 = 4;
+        let q_b0 = nim_mul(nim_mul(alpha, alpha), 2);
+        let plane_f16 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Ordinal::from_u128(alpha));
+            Metric::new(vec![Ordinal::from_u128(q_b0), Ordinal::from_u128(2)], b)
+        };
+
+        assert_eq!(
+            isometric_ordinal_finite(&plane_f4, &plane_f16),
+            Some(true),
+            "finite ordinal entries need the same joint trace degree as the nimber path"
         );
     }
 

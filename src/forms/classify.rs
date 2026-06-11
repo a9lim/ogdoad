@@ -21,10 +21,11 @@ use crate::forms::{
     bw_class_nimber, bw_class_real, classify_finite_odd, classify_rational, classify_surcomplex,
     classify_surreal, finite_odd_witt, isometric_finite_odd, isometric_fpn_char2, isometric_nimber,
     isometric_ordinal_finite, isometric_rational, isometric_real, isometric_surcomplex,
-    witt_decompose_finite_odd, witt_decompose_real, ArfResult, BrauerWallClass, CliffordType,
-    OddCharType, OddWittDecomp, RationalCliffordType, RealWittDecomp, WittClassG,
+    ordinal_metric_finite_subfield_degree, witt_decompose_finite_odd, witt_decompose_real,
+    ArfResult, BrauerWallClass, CliffordType, OddCharType, OddWittDecomp, RationalCliffordType,
+    RealWittDecomp, WittClassG,
 };
-use crate::scalar::{nim_degree, Fp, Fpn, Nimber, Ordinal, Rational, Scalar, Surcomplex, Surreal};
+use crate::scalar::{Fp, Fpn, Nimber, Ordinal, Rational, Scalar, Surcomplex, Surreal};
 
 /// Classification data for the `Fpn<P,N>` finite-field tower. Odd-characteristic
 /// extension fields land in the usual finite-odd invariant; characteristic-2
@@ -409,26 +410,7 @@ impl BrauerWallClassify for Ordinal {
 }
 
 fn ordinal_char2_field_degree(metric: &Metric<Ordinal>) -> Option<u128> {
-    if metric.q.iter().all(|x| x.as_finite().is_some())
-        && metric.b.values().all(|x| x.as_finite().is_some())
-    {
-        return metric
-            .q
-            .iter()
-            .map(|x| x.as_finite().map(nim_degree))
-            .chain(metric.b.values().map(|x| x.as_finite().map(nim_degree)))
-            .collect::<Option<Vec<_>>>()
-            .map(|degrees| degrees.into_iter().max().unwrap_or(1));
-    }
-
-    if metric.q.iter().chain(metric.b.values()).all(|x| {
-        x.as_below_omega3()
-            .is_some_and(|cs| cs.iter().all(|&c| c < 4))
-    }) {
-        return Some(6);
-    }
-
-    None
+    ordinal_metric_finite_subfield_degree(metric)
 }
 
 /// Ergonomic methods so callers can write `metric.classify()` /
@@ -545,8 +527,8 @@ mod tests {
         );
         assert!(matches!(f8.classify(), Some(FiniteFieldClass::Char2(_))));
 
-        // ordinal-nimber coefficients classify only inside detected finite
-        // windows; the first transfinite one is F_4(ω) = F_64.
+        // ordinal-nimber coefficients classify inside detected finite windows;
+        // the first transfinite one here is F_4(ω) = F_64.
         let mut b = std::collections::BTreeMap::new();
         b.insert((0usize, 1usize), Ordinal::one());
         let omega = Ordinal::omega();
@@ -569,8 +551,14 @@ mod tests {
         );
 
         let outside_window = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega())]);
-        assert_eq!(outside_window.classify(), None);
-        assert_eq!(outside_window.bw_class(), None);
+        assert!(outside_window.classify().is_some());
+        assert_eq!(ordinal_char2_field_degree(&outside_window), Some(20));
+
+        let outside_segment = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega_pow(
+            Ordinal::omega(),
+        ))]);
+        assert_eq!(outside_segment.classify(), None);
+        assert_eq!(outside_segment.bw_class(), None);
     }
 
     #[test]

@@ -58,6 +58,7 @@
 
 mod cantor;
 mod nim;
+mod subfield;
 mod tower;
 
 use crate::scalar::{nim_inv, Scalar};
@@ -148,10 +149,9 @@ impl Ordinal {
         }
     }
 
-    /// Checked multiplicative inverse on the represented exact subdomains. Finite
-    /// nimbers use the `u128` backend; the first transfinite field
-    /// `F_4(ω) = F_64` is found by exhaustive search. Larger transfinite
-    /// inverses are left as `None` rather than guessed.
+    /// Checked multiplicative inverse on represented finite subfields. Finite
+    /// nimbers use the `u128` backend; detected finite ordinal-nimber fields use
+    /// the Frobenius formula `x^(2^m-2)` inside their minimal `F_{2^m}`.
     pub fn checked_inv(&self) -> Option<Ordinal> {
         if self.is_zero() {
             return None;
@@ -159,16 +159,19 @@ impl Ordinal {
         if let Some(x) = self.as_finite() {
             return nim_inv(x).map(Ordinal::from_u128);
         }
-        let coeffs = self.as_below_omega3()?;
-        if coeffs.iter().any(|&c| c >= 4) {
-            return None;
-        }
+        let degree = self.finite_subfield_degree()?;
         let one = Ordinal::from_u128(1);
-        (1..64u128)
-            .map(|i| Ordinal::from_omega3_coeffs([i & 3, (i >> 2) & 3, (i >> 4) & 3]))
-            .find(|cand| self.nim_mul(cand).as_ref() == Some(&one))
+        let mut acc = one.clone();
+        let mut power = self.clone();
+        for _ in 1..degree {
+            power = power.nim_mul(&power)?;
+            acc = acc.nim_mul(&power)?;
+        }
+        (self.nim_mul(&acc).as_ref() == Some(&one)).then_some(acc)
     }
 }
+
+pub use subfield::{ordinal_common_finite_subfield_degree, ordinal_finite_subfield_degree};
 
 impl Scalar for Ordinal {
     fn zero() -> Self {

@@ -87,7 +87,7 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
 - **`char2/`** — characteristic-2 invariants (re-exported flat): `arf.rs` (the Arf
   invariant: `arf_f2` F₂ bitmask, `arf_nimber` for the represented nimber field,
   `arf_char2`/`arf_fpn_char2` for supported finite char-2 fields, `arf_ordinal_finite`
-  for the documented finite ordinal windows; all use symplectic reduction + trace and
+  for detected finite ordinal-nimber subfields; all use symplectic reduction + trace and
   return `ArfResult { arf: u128, ... }`), `dickson.rs` (`dickson_matrix = rank(g−I)
   mod 2`, ker = SO; `dickson_of_versor` validates the input is a versor then delegates
   to the generic versor grade parity), `field.rs` (`FiniteChar2Field` — the

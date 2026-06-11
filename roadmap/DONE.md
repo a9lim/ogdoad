@@ -31,6 +31,23 @@ When a new piece of cross-pillar work lands, add a short entry here:
 Promote anything proof-heavy or too long for working notes into `roadmap/CODA.md`, and
 fold the one-line structural fact into the relevant `AGENTS.md`.
 
+## `subfield-detect` — finite ordinal-nimber subfield detection (2026-06-11)
+**Pillars:** scalar ↔ forms    **Claim level:** standard math made computational + implemented and tested
+- surface: `Ordinal::finite_subfield_degree`, `scalar::ordinal_finite_subfield_degree`,
+  and `scalar::ordinal_common_finite_subfield_degree` detect the minimal represented
+  finite field `F_{2^m}` by generator support plus Frobenius minimization. The forms
+  side exposes `forms::ordinal_metric_finite_subfield_degree` and routes
+  `arf_ordinal_finite`, ordinal Witt classes, ordinal Brauer-Wall classes, and
+  ordinal isometry through the detected/common degree.
+- oracles: tests pin finite-nimber degrees, `ω` as degree 6, `ω^3` as degree 18,
+  `ω^ω` as degree 20, `ω^(ω^2)` as degree 42, common-degree lcm behavior, inversion
+  in a detected non-`F_64` field, ordinal Arf classification past the old `F_64`
+  window, and rejection at `ω^(ω^ω)`.
+- boundaries: detection is limited to the source-verified staged tower and the
+  shipped Kummer excess table (`α_u` through `47`); genuinely transfinite
+  ordinal-nimber metrics still return `None` for finite Arf/Witt/Brauer-Wall
+  classification.
+
 ## `brown-reduce` — Brown invariant by reduction, not enumeration (2026-06-11)
 **Pillars:** forms    **Claim level:** standard math made computational + implemented and tested
 - surface: `forms/char2/brown.rs::brown_f2` now splits off the polar radical and

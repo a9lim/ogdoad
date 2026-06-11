@@ -256,7 +256,10 @@ mod tests {
             (Place::Real, q(-1, 3)),
         ]);
         assert_eq!(c.local_invariant(Place::Prime(2)), third());
-        assert!(c.local().get(&Place::Prime(3)).is_none(), "integer ⇒ dropped");
+        assert!(
+            c.local().get(&Place::Prime(3)).is_none(),
+            "integer ⇒ dropped"
+        );
         assert_eq!(c.local_invariant(Place::Real), two_thirds());
         assert_eq!(c.local_invariant(Place::Prime(11)), Rational::zero());
     }
@@ -343,7 +346,10 @@ mod tests {
             assert_eq!(inv, expected, "inv of v={v}");
         }
         // a = 0 has no invariant (not in K*).
-        assert_eq!(cyclic_algebra_invariant::<Qq<5, 4, 2>>(&Qp::from_int(0)), None);
+        assert_eq!(
+            cyclic_algebra_invariant::<Qq<5, 4, 2>>(&Qp::from_int(0)),
+            None
+        );
     }
 
     #[test]

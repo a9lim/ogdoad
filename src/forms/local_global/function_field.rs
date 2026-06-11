@@ -700,7 +700,10 @@ mod tests {
     #[test]
     fn constant_extension_image_is_full_and_good_places_split() {
         // a unit (nonzero constant) is unramified everywhere ⇒ empty invariant map.
-        assert_eq!(constant_extension_invariants(3, &rf(&[2], &[1])), Some(vec![]));
+        assert_eq!(
+            constant_extension_invariants(3, &rf(&[2], &[1])),
+            Some(vec![])
+        );
         // the image hits the full (1/n)ℤ/ℤ: at π = t (v=1, deg=1), inv = 1/3 for n=3.
         let invs = constant_extension_invariants(3, &rf(&[0, 1], &[1])).unwrap();
         let at_t = invs
@@ -717,7 +720,10 @@ mod tests {
             .map(|(_, r)| r.clone());
         assert_eq!(at_b, Some(Rational::try_new(2, 3).unwrap()));
         // n=1 (trivial extension, split Brauer): everything splits.
-        assert_eq!(constant_extension_invariants(1, &rf(&[0, 1], &[1])), Some(vec![]));
+        assert_eq!(
+            constant_extension_invariants(1, &rf(&[0, 1], &[1])),
+            Some(vec![])
+        );
         // degenerate inputs rejected.
         assert_eq!(constant_extension_invariants(0, &rf(&[0, 1], &[1])), None);
         assert_eq!(constant_extension_invariants(3, &rf(&[0], &[1])), None);

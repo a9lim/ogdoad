@@ -18,7 +18,10 @@
 
 use crate::clifford::Metric;
 use crate::forms::FiniteChar2Field;
-use crate::scalar::{nim_add, nim_inv, nim_mul, nim_trace, Fpn, Nimber, Ordinal, Scalar};
+use crate::scalar::{
+    nim_add, nim_inv, nim_mul, nim_trace, ordinal_common_finite_subfield_degree, Fpn, Nimber,
+    Ordinal, Scalar,
+};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -394,24 +397,13 @@ pub fn arf_invariant(metric: &Metric<Nimber>) -> Option<ArfResult> {
     arf_nimber(metric)
 }
 
-fn ordinal_f64_element(x: &Ordinal) -> bool {
-    x.as_below_omega3()
-        .is_some_and(|cs| cs.iter().all(|&c| c < 4))
-}
-
-fn ordinal_f64_trace_to_f2(x: &Ordinal) -> Option<u128> {
-    if !ordinal_f64_element(x) {
-        return None;
-    }
+fn ordinal_trace_to_f2_at_degree(x: &Ordinal, degree: u128) -> Option<u128> {
     let mut acc = Ordinal::zero();
     let mut y = x.clone();
-    for i in 0..6 {
+    for i in 0..degree {
         acc = acc.add(&y);
-        if i != 5 {
+        if i + 1 != degree {
             y = y.nim_mul(&y)?;
-            if !ordinal_f64_element(&y) {
-                return None;
-            }
         }
     }
     match acc.as_finite()? {
@@ -440,12 +432,35 @@ pub(crate) fn ordinal_to_nimber_metric(metric: &Metric<Ordinal>) -> Option<Metri
     Some(Metric::new(q, b))
 }
 
+/// Minimal finite subfield degree containing every scalar in an ordinal metric.
+/// Returns `None` for general-bilinear metrics or entries outside the staged
+/// finite-subfield detector.
+pub fn ordinal_metric_finite_subfield_degree(metric: &Metric<Ordinal>) -> Option<u128> {
+    if !metric.a.is_empty() {
+        return None;
+    }
+    ordinal_common_finite_subfield_degree(metric.q.iter().chain(metric.b.values()))
+}
+
+/// Arf invariant for a finite ordinal-nimber metric using an explicit containing
+/// field degree for the absolute trace. The caller is responsible for choosing a
+/// common degree when comparing multiple forms.
+pub(crate) fn arf_ordinal_at_degree(metric: &Metric<Ordinal>, degree: u128) -> Option<ArfResult> {
+    if !metric.a.is_empty() {
+        return None;
+    }
+    let metric_degree = ordinal_metric_finite_subfield_degree(metric)?;
+    if !degree.is_multiple_of(metric_degree) {
+        return None;
+    }
+    arf_char2_core(metric, |x| ordinal_trace_to_f2_at_degree(x, degree))
+}
+
 /// Arf invariant for finite ordinal-nimber windows represented by the `Ordinal`
-/// backend. Purely finite entries delegate to [`arf_nimber`]. Entries in the first
-/// transfinite finite field `F_4(ω) = F_64` use the same generic symplectic
-/// reduction plus the six-term absolute trace. Larger staged finite fields and
-/// genuinely transfinite coefficients return `None`; the general detector and
-/// transfinite classifier remain open.
+/// backend. Purely finite entries delegate to [`arf_nimber`]. All other detected
+/// finite subfields use the same generic symplectic reduction plus the absolute
+/// trace from their minimal common `F_{2^m}`. Genuinely transfinite coefficients
+/// return `None`; choosing a classifier there remains open.
 pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfResult> {
     if !metric.a.is_empty() {
         return None;
@@ -455,11 +470,8 @@ pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfResult> {
         return arf_nimber(&nim);
     }
 
-    if metric.q.iter().all(ordinal_f64_element) && metric.b.values().all(ordinal_f64_element) {
-        return arf_char2_core(metric, ordinal_f64_trace_to_f2);
-    }
-
-    None
+    let degree = ordinal_metric_finite_subfield_degree(metric)?;
+    arf_ordinal_at_degree(metric, degree)
 }
 
 #[cfg(test)]
@@ -637,10 +649,32 @@ mod tests {
         let r = arf_ordinal_finite(&m).unwrap();
         assert_eq!(r.rank, 2);
         assert_eq!(r.radical_dim, 0);
-        assert_eq!(r.arf, ordinal_f64_trace_to_f2(&w.mul(&w)).unwrap());
+        assert_eq!(ordinal_metric_finite_subfield_degree(&m), Some(6));
+        assert_eq!(r.arf, ordinal_trace_to_f2_at_degree(&w.mul(&w), 6).unwrap());
 
         let higher = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega())]);
-        assert_eq!(arf_ordinal_finite(&higher), None);
+        assert_eq!(ordinal_metric_finite_subfield_degree(&higher), Some(20));
+        assert!(arf_ordinal_finite(&higher).is_some());
+    }
+
+    #[test]
+    fn ordinal_detector_extends_past_f64_window() {
+        let chi5 = Ordinal::omega_pow(Ordinal::omega());
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), chi5.clone());
+        let m = Metric::new(vec![Ordinal::zero(), Ordinal::zero()], b);
+        let r = arf_ordinal_finite(&m).unwrap();
+        assert_eq!(ordinal_metric_finite_subfield_degree(&m), Some(20));
+        assert_eq!((r.arf, r.rank, r.radical_dim), (0, 2, 0));
+    }
+
+    #[test]
+    fn ordinal_detector_rejects_past_the_staged_segment() {
+        let outside = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega_pow(
+            Ordinal::omega(),
+        ))]);
+        assert_eq!(ordinal_metric_finite_subfield_degree(&outside), None);
+        assert_eq!(arf_ordinal_finite(&outside), None);
     }
 
     #[test]

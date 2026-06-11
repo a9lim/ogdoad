@@ -25,7 +25,7 @@ mod field;
 
 pub use arf::*;
 pub(crate) use arf::{
-    arf_nimber_at_degree, min_field_degree, nimber_metric_max_val, ordinal_to_nimber_metric,
+    arf_nimber_at_degree, arf_ordinal_at_degree, min_field_degree, nimber_metric_max_val,
 };
 pub(crate) use brown::beta_from_gauss;
 pub use brown::*;

@@ -333,6 +333,9 @@ Scope boundaries worth stating plainly:
   Nim-multiplication is implemented below `ω^(ω^ω)` when every carry uses the
   verified excess table: DiMuro through `α_u` for `u ≤ 43`, plus the locally
   certified `α_47`; a carry needing a prime past that table returns `None`.
+  Finite ordinal-nimber metrics expose their minimal detected `F_{2^m}` and use
+  that degree for Arf/Witt/Brauer-Wall classification; genuinely transfinite
+  metrics remain outside the classifier.
 - `Surreal` uses finite support and rational coefficients — the honest truncation
   of true CNF. Non-monomial inverses are infinite Hahn series and are not
   represented.

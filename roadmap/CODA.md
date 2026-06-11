@@ -291,19 +291,23 @@ computational capability over the finite case.
 This bridge does not try to classify every `Metric<Ordinal>`.
 
 - Purely finite ordinal entries delegate to the existing `Nimber` Arf route.
-- Entries in the first transfinite finite window `F_4(ω) = F_64` use the same
-  generic symplectic reduction and the six-term absolute trace.
-- Larger staged finite fields and genuinely transfinite coefficients return `None`
-  for Arf/Witt/Brauer-Wall. The general finite-subfield detector and the
-  transfinite classifier are separate work; the latter remains an open problem.
+- Otherwise the finite-subfield detector computes the minimal represented
+  `F_{2^m}` by generator support plus the Frobenius fixed-field test, and the
+  ordinal Arf route uses the `m`-term absolute trace. This includes the old
+  `F_4(ω) = F_64` window and later staged finite fields such as the `ω^ω`
+  degree-20 cell.
+- Coefficients outside the source-verified staged segment still return `None` for
+  Arf/Witt/Brauer-Wall. The genuinely transfinite classifier remains an open
+  problem.
 
 ### Implemented surface
 
 - `scalar/big/ordinal/` — `impl Scalar for Ordinal` (panic-on-escape `mul`,
-  `neg = id`, `characteristic() = 2`, `nim_mul`, and `checked_inv`).
+  `neg = id`, `characteristic() = 2`, `nim_mul`, finite-subfield detection, and
+  `checked_inv`).
 - `clifford` tests build `CliffordAlgebra<Ordinal>` over `q = [ω, ω+1]`, check the
   Clifford relations, and exercise associativity over the transfinite metric.
-- `forms/char2/arf.rs` and the classifier façade expose finite-window
+- `forms/char2/arf.rs` and the classifier façade expose finite-subfield
   `Metric<Ordinal>` classification and deliberately return `None` outside it.
 
 ---

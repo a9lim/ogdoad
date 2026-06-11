@@ -165,6 +165,10 @@ and const-generic sizes that are inherently indices.
     mathematical boundary use `nim_mul`.
   - `nim.rs` — char-2 NIM arithmetic: `nim_add` (coeff XOR) COMPLETE; `nim_mul`
     dispatches zero / finite×finite / the generator tower.
+  - `subfield.rs` — finite-subfield detection for represented ordinal nimbers:
+    minimal `F_{2^m}` by generator support plus Frobenius minimization, with
+    common-degree helper for the forms façade. `checked_inv` uses this finite-field
+    route beyond the old `F_64` window.
   - `tower.rs` — the prime-power generator tower (Conway/Lenstra/DiMuro): a monomial
     `ω^E` keyed by `place m ↦ base-p(m) digit vector`; `⊗` adds digit vectors and
     reduces with the Kummer carries `χ_u^u = α_u`. Non-scalar `α_u` (`α_7=ω+1`, …)

@@ -493,9 +493,9 @@ Why this is research:
 Concrete progress targets:
 - Define the classification domain exactly: common finite subfields, the
   source-verified transfinite tower, or the ideal full `On_2` nimber field.
-- Implement and test common finite-subfield detection so Bridge D can honestly
-  delegate those metrics to Bridge B. (Filed as `roadmap/TODO.md` slug
-  `subfield-detect` — implementation, not research.)
+- ~~Implement and test common finite-subfield detection so Bridge D can honestly
+  delegate those metrics to Bridge B.~~ Done 2026-06-11 as `subfield-detect`
+  (`roadmap/DONE.md`) — implementation, not research.
 - Decide whether genuinely transfinite metrics should expose no classifier, a
   coefficient-field Arf class, a direct-limit finite-subfield invariant, or some
   other replacement for the finite trace bit.
