@@ -4,9 +4,9 @@
 //!
 //!   * [`fp`] — `F_p`, the prime fields (odd characteristic): the residue field of
 //!     `Z_p`, and the base of every extension here.
-//!   * [`fpn`] — `F_{p^n}`, finite extension fields via shipped `(p,n)`-keyed
-//!     reduction polynomials. Completes the odd-char tower *and* the supported
-//!     char-2 odd-degree fields the nimbers cannot reach (currently `F_8`).
+//!   * [`fpn`] — `F_{p^n}`, finite extension fields via generated irreducible
+//!     reduction polynomials. Completes the odd-char tower *and* the char-2
+//!     odd-degree fields the nimbers cannot reach.
 //!   * [`nimber`] — `On₂` truncated to `F_{2^128}`: the char-2 nim-field where
 //!     `add = XOR` and `mul` is the coin-turning game product. The main char-2
 //!     backend; the only finite field that is also a game-value field.

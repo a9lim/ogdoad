@@ -120,14 +120,6 @@ computation stays `*1`.
 
 ## numbers — scalar worlds
 
-### `fpn-gen` — 1·e_s
-**Open the `Fpn` field table.** The supported-pair set is seven `(P,N)` pairs behind a
-panic wall, and `TABLES.md` itself flags the `N = 1` row. Ship either a build-time
-irreducible-polynomial generator (deterministic search + Rabin irreducibility test,
-recording provenance) or a wider curated Conway-polynomial table. Unblocks Bridge B
-coverage (`F₃₂`, `F₆₄`, `F₁₂₈` …), the AS-layer beyond `N ≤ 4`, and the odd-`q`
-function-field legs at more constant fields.
-
 ### `ordinal-principled` — 1·e_s
 **The principled tower route** (OPEN §3 names it "implementation, not research"):
 compute `f(u) = ord_u(2)` and `Q(f(u))` and assemble the `χ`-sum in-code, hardcoding

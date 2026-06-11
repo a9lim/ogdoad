@@ -57,7 +57,7 @@ component and Teichmüller section (`ResidueField`) — so the whole package
 `char F`. Over a real-closed field it is the 8-fold periodic Cl(p,q) table
 (`M_n(ℝ/ℂ/ℍ)`); in characteristic 2 the quadratic and polar forms part ways and
 the same role is played by the Arf invariant and the Brauer–Wall group. On the
-finite char-2 legs (`Nimber`, supported `Fpn<2,N>`, the documented finite ordinal
+finite char-2 legs (`Nimber`, generated `Fpn<2,N>`, the documented finite ordinal
 windows) a nonsingular form carries both the Arf classifier and the
 `BW(F_{2^m}) ≅ ℤ/2` class, under the same XOR law. The classifier façade picks
 the leg from the scalar type at compile time, so `metric.classify()` /

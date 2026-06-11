@@ -1055,6 +1055,7 @@ fn reduction_polynomial_kind_name(kind: ReductionPolynomialKind) -> &'static str
         ReductionPolynomialKind::PrimeField => "PrimeField",
         ReductionPolynomialKind::Conway => "Conway",
         ReductionPolynomialKind::Irreducible => "Irreducible",
+        ReductionPolynomialKind::GeneratedIrreducible => "GeneratedIrreducible",
     }
 }
 
@@ -1086,6 +1087,11 @@ impl PyReductionPolynomialKind {
         wrap_reduction_polynomial_kind(ReductionPolynomialKind::Irreducible)
     }
 
+    #[staticmethod]
+    fn generated_irreducible() -> Self {
+        wrap_reduction_polynomial_kind(ReductionPolynomialKind::GeneratedIrreducible)
+    }
+
     #[getter]
     fn name(&self) -> &'static str {
         reduction_polynomial_kind_name(self.inner)
@@ -1103,7 +1109,15 @@ impl PyReductionPolynomialKind {
 
     #[getter]
     fn is_irreducible(&self) -> bool {
-        self.inner == ReductionPolynomialKind::Irreducible
+        matches!(
+            self.inner,
+            ReductionPolynomialKind::Irreducible | ReductionPolynomialKind::GeneratedIrreducible
+        )
+    }
+
+    #[getter]
+    fn is_generated_irreducible(&self) -> bool {
+        self.inner == ReductionPolynomialKind::GeneratedIrreducible
     }
 
     fn __str__(&self) -> &'static str {

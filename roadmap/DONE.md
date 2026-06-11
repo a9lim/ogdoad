@@ -31,6 +31,21 @@ When a new piece of cross-pillar work lands, add a short entry here:
 Promote anything proof-heavy or too long for working notes into `roadmap/CODA.md`, and
 fold the one-line structural fact into the relevant `AGENTS.md`.
 
+## `fpn-gen` — generated finite-field reduction polynomials (2026-06-11)
+**Pillars:** scalar    **Claim level:** standard math made computational + implemented and tested
+- surface: `Fpn<P,N>` now supports every prime `P` and positive `N` whose field order
+  `P^N` fits in `u128`; every extension field uses a cached deterministic search for
+  the first monic irreducible reduction polynomial certified by Rabin's irreducibility
+  test. The public `ReductionPolynomialKind::GeneratedIrreducible` tag records
+  generated provenance, including through the Python enum wrapper.
+- oracles: tests keep the curated `F_4/F_8/F_16/F_9/F_25/F_27` field-law sweeps, add
+  the old small Conway/irreducible rows as test-only scan-order oracles, add a
+  generated `F_32` field-law sweep, verify generated `F_32` irreducibility metadata,
+  and check a primitive element in generated `F_128`.
+- boundaries: this does not claim Conway-compatible embeddings for generated rows,
+  and the `u128` payload model still rejects fields whose order overflows `u128`
+  (for example `Fpn<2,128>`).
+
 ## `subfield-detect` — finite ordinal-nimber subfield detection (2026-06-11)
 **Pillars:** scalar ↔ forms    **Claim level:** standard math made computational + implemented and tested
 - surface: `Ordinal::finite_subfield_degree`, `scalar::ordinal_finite_subfield_degree`,
