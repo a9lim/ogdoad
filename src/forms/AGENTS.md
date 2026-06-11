@@ -94,7 +94,14 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   **additive** mirror of `FiniteOddField`: carries `artin_schreier_class =
   Tr_{F_q/F₂}` instead of `is_square_value`, since in char 2 the multiplicative square
   class is trivial and the working datum is `F/℘(F) ≅ F₂`; impl for `Fp<2>`/`Fpn<2,N>`,
-  NOT `Nimber` — same boundary as `FiniteOddField`).
+  NOT `Nimber` — same boundary as `FiniteOddField`), `brown.rs` (the **Brown
+  invariant** `β ∈ ℤ/8` of a `ℤ/4`-valued quadratic refinement — the char-2 cell of
+  the mod-8 spine, Bridge M: `brown_f2`/`double_f2` + `BrownResult`, an enumeration
+  route with exact-integer phase recovery. `β(2q′) = 4·Arf(q′)` lands the Arf bit as
+  the 2-torsion, and `DiscriminantForm::brown_invariant` gives `β ≡ sign(L) mod 8` on
+  2-elementary discriminant forms — a fifth, float-free route to `σ mod 8`. Category
+  trap: Brown's `b` is symmetric-not-alternating with `b_ii = q_i mod 2`, NOT the
+  engine's alternating polar — `double_f2` is the only bridge between the categories).
 
 The char0↔char2 classifier **symmetry** (the real 8-fold table mirrored by the
 char-2 Arf/Brauer–Wall story) is one of the project's central threads.

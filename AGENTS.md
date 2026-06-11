@@ -140,8 +140,11 @@ and `verify_weil_relations` checking the honest metaplectic relations (not the
 oversimplified `S^4 = I`). The fourth-wave joins are shipped too: Milnor's exact
 sequence `W(ℤ)→W(ℚ)→⊕_p W(F_p)` (`witt/milnor.rs::global_residues`, odd `p`), the named
 Scharlau transfer (`trace_form::transfer_diagonal`), Nikulin's genus criterion
-(`DiscriminantForm::is_isomorphic`), and the games↔integral lexicode edge
-(`games/lexicode.rs`: greedy = mex, so the `[24,12,8]` lexicode is Golay).
+(`DiscriminantForm::is_isomorphic`), the games↔integral lexicode edge
+(`games/lexicode.rs`: greedy = mex, so the `[24,12,8]` lexicode is Golay), and the
+Brown `ℤ/8` invariant — the char-2 cell of the mod-8 spine (`char2/brown.rs`:
+`brown_f2`/`double_f2`, with `β = 4·Arf`, plus `DiscriminantForm::brown_invariant`
+giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms).
 
 The game-built Gold-form bridge is implemented, but the play rule is not. The
 standard chain is:

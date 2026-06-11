@@ -8,12 +8,12 @@ slated into the current order). It is one of three companion documents:
 - **`roadmap/DONE.md`** — the bridges already built and tested (first wave A–D, second
   wave E/F/H/I, third-wave J), each with its formal appendix.
 - **`roadmap/TODO.md`** (this file) — the deferred bridge **G** (spinor genus), the
-  proposed bridge **K** (the full `ℚ/ℤ` cyclic-algebra Brauer invariant), the
+  proposed bridge **K** (the full `ℚ/ℤ` cyclic-algebra Brauer invariant), and the
   deferred bridge **L** (the char-`p` Drinfeld/Carlitz mirror of the integral
-  pillar), and the proposed fourth-wave bridge **M** (the Brown `ℤ/8` invariant —
-  the char-2 cell of the mod-8 spine). The fourth wave's **N** (unification pass)
-  and **O** (lexicodes) are now **built and tested** — see `roadmap/DONE.md`. The
-  formalization-pass draft for Bridge K is appended after its entry.
+  pillar). The fourth-wave bridges **M** (the Brown `ℤ/8` invariant — the char-2
+  cell of the mod-8 spine), **N** (unification pass), and **O** (lexicodes) are now
+  **built and tested** — see `roadmap/DONE.md`. The formalization-pass draft for
+  Bridge K is appended after its entry.
 - **`OPEN.md`** — genuine research problems with no known answer.
 
 Claim-level discipline (`AGENTS.md` → "Claim levels and non-claims") still applies:
@@ -102,7 +102,9 @@ Three corrections the formalization pass pinned (full statements in the appendix
 
 - generalize the (proposed Bridge F) `Brauer2Class` to
   `BrauerClass { local: BTreeMap<Place, Rational /* in ℚ/ℤ */> }` with additive
-  (mod-`ℤ`) law; the quaternion case is the `½` slice. (`Place` needs an `Ord` derive.)
+  (mod-`ℤ`) law; the quaternion case is the `½` slice. (`Place` already derives `Ord`
+  — Bridge F shipped it; the `F_q(t)` leg returns a `Vec<(FFPlace, Rational)>` since
+  `FFPlace` is not `Ord`, mirroring the shipped `brauer_local_invariants`.)
 - `cyclic_algebra_invariant(E, a) -> Rational` `= v(a)/n (mod 1)` for the **unramified**
   local class; `None` on the capped-precision boundary (never a wrong value).
 - `constant_extension_invariants(n, a)` over `F_q(t)` — `inv_v = deg(v)·v(a)/n`, the exact
@@ -265,7 +267,7 @@ pub fn constant_extension_invariants<S: FiniteOddField>(
 ) -> Option<Vec<(FFPlace<S>, Rational)>>;
 ```
 
-Implementation notes: `Place` (in `padic.rs`) currently derives only `PartialEq, Eq` — keying a `BTreeMap` needs `Ord` (derive it; document that `Real` sorts per declaration order). All invariants are tiny exact `Rational`s ($i128$-backed); the construction reads only $v(a)$, $n$, $\deg v$, so it is **exact even over the capped-precision local models**, with `None` (never a wrong value) when precision loss hides $v(a)$.
+Implementation notes: `Place` (in `padic.rs`) **already derives `Ord`** — Bridge F shipped it (`Real` sorts before every `Prime(p)` per declaration order), so the `BTreeMap` keying is ready. `FFPlace` is *not* `Ord` (its `Poly` payload has no order), so the `F_q(t)` constant-extension leg returns a `Vec<(FFPlace, Rational)>`, mirroring the shipped `brauer_local_invariants` shape. All invariants are tiny exact `Rational`s ($i128$-backed); the construction reads only $v(a)$, $n$, $\deg v$, so it is **exact even over the capped-precision local models**, with `None` (never a wrong value) when precision loss hides $v(a)$.
 
 ## 8. Proposed tests / oracles
 
@@ -325,164 +327,37 @@ roadmap, not inside its build order.
 
 ---
 
-# Fourth wave — M proposed (N and O built)
+# Fourth wave — all built (M, N, O)
 
 The fourth-wave review asked where the **symmetry table** itself (README → "The
-symmetries") is still uneven, rather than where a new number system could go. Three
-answers were proposed; **N** (the unification pass) and **O** (lexicodes) are now
-**built and tested** (`roadmap/DONE.md`). The remaining proposal is **M**:
+symmetries") is still uneven, rather than where a new number system could go. All
+three answers are now **built and tested**; their entries, surfaces, and oracles
+live in `roadmap/DONE.md`:
 
-- the mod-8 spine has **four char-0 routes and no char-2 cell** — Bridge **M** (the
-  Brown invariant).
+- **M** — the **Brown `ℤ/8` invariant** of a `ℤ/4`-valued quadratic refinement,
+  the char-2 cell of the mod-8 spine. `forms/char2/brown.rs` (`brown_f2`/`double_f2`
+  + `BrownResult`, the enumeration route with exact-integer phase recovery) plus
+  `DiscriminantForm::brown_invariant`. Contains the shipped Arf bit as its 2-torsion
+  (`β = 4·Arf`) and gives `β ≡ sign(L) mod 8` exactly (no `f64`) on 2-elementary
+  discriminant forms — a fifth, float-free route to `σ mod 8`.
+- **N** — the unification pass (Milnor global residues, the Scharlau transfer,
+  Nikulin's genus criterion, one Bernoulli source).
+- **O** — lexicodes (greedy = mex, so the `[24,12,8]` lexicode is Golay).
 
 ```
   char2/arf ──β = 4·Arf── Brown β ∈ ℤ/8 ──β ≡ σ (mod 8)── integral/discriminant      (M)
 ```
 
-Claim-level discipline still applies: every item below is **standard math made
-computational**, the same status the built bridges shipped at — not a new theorem.
-Where a statement must be transcribed from a source rather than reconstructed, the
-entry says so.
-
-## Bridge M — the Brown invariant: the char-2 cell of the mod-8 spine
-
-**Pillars:** `forms/char2/` (Arf) ↔ `forms/integral/discriminant.rs` (Milgram,
-Bridge A) ↔ `forms/witt/brauer_wall.rs` (the mod-8 cycle).
-**Claim level:** PROPOSED — standard math (E. H. Brown, *Generalizations of the
-Kervaire invariant*, Ann. of Math. 95 (1972); C. T. C. Wall, *Quadratic forms on
-finite groups, and related topics*, Topology 2 (1963); Nikulin) made computational.
-
-### The asymmetry it repairs
-
-The mod-8 spine currently lives entirely on the char-0 side: the exact rational
-signature, the genus oddity (`genus_signature_mod8`), the Milgram Gauss-sum phase
-(`milgram_signature_mod8`, Bridge A), and the Weil `S` prefactor (Bridge I) are four
-routes to `σ mod 8`. The char-2 side carries only the `ℤ/2` Arf/BW bit. The
-classical object filling the char-2 mod-8 cell is the **Brown invariant** of
-`ℤ/4`-valued quadratic refinements.
-
-### The mathematics
-
-A **`ℤ/4`-quadratic form** on a finite-dimensional `F₂`-space `V` is `q : V → ℤ/4`
-with
-
-```text
-q(x+y) = q(x) + q(y) + 2·b(x,y),
-```
-
-where `b : V×V → F₂` is bilinear and `2· : F₂ ↪ ℤ/4`. Setting `y = x` forces
-`b(x,x) = q(x) mod 2` — so `b` is symmetric **but not alternating**.
-
-**Category trap (load-bearing).** This `b` is *not* the engine's polar form: the
-crate's char-2 `Metric` carries an alternating `b` (`b_ii = 0`) with `q` valued in
-the field, while Brown's category has `ℤ/4`-valued `q` with `b_ii = q_i mod 2`.
-Hard rule 2 (don't collapse `q` and `b`) has a cousin here: don't identify the two
-categories. The doubling map below is the only bridge between them.
-
-For `b` nondegenerate, the Gauss sum is a `ℤ[i]`-integer of absolute value `2^{n/2}`:
-
-```text
-Σ_{x ∈ V} i^{q(x)} = 2^{n/2} · ζ₈^β,    ζ₈ = e^{2πi/8},
-```
-
-and **`β(q) ∈ ℤ/8` is the Brown invariant**: additive under `⊥`, and a complete
-invariant up to adding split planes, making the Witt group of the category cyclic of
-order 8, generated by `⟨1⟩` (the 1-dimensional form with `q(x) = 1`). **[Pin the
-exact stable-equivalence statement from Brown 1972 / Wall 1963 during the
-formalization pass; do not paraphrase it into the prose before then.]**
-
-Three identifications make this the missing cell rather than a fifth pillar:
-
-1. **Arf is the 2-torsion.** For a classical nonsingular char-2 form
-   `q′ : V → F₂` (alternating polar), the **doubled** form `2q′ : V → ℤ/4` has
-   Gauss sum `Σ (−1)^{q′(x)} = (−1)^{Arf} · 2^{n/2}`, so
-
-   ```text
-   β(2q′) = 4 · Arf(q′).
-   ```
-
-   The shipped Arf bit embeds as `{0, 4} ⊂ ℤ/8` — the char-2 classifier becomes
-   the 2-torsion of a `ℤ/8` invariant, mirroring "the real Witt class is the
-   2-torsion shadow of the signature".
-2. **Milgram on the 2-elementary slice is Brown.** For an even lattice `L` with
-   2-elementary `A_L ≅ (ℤ/2)^k`, the discriminant form `q_L` takes values in
-   `½ℤ/2ℤ`, and `t ↦ 2t` identifies `(A_L, 2q_L)` with a `ℤ/4`-quadratic form
-   whose Brown sum *is* the Milgram Gauss sum. Milgram/van der Blij then reads
-
-   ```text
-   β(2·q_L) ≡ sign(L)   (mod 8)
-   ```
-
-   — computed from the **integer value-counts** `(n₀ − n₂) + i(n₁ − n₃)`, i.e.
-   exact `ℤ/8` arithmetic. That is a **fifth independent route to `σ mod 8`**, and
-   the first with no floating point (the `GaussSum` route is `f64`).
-3. **The generators are shipped lattices.** `a_n(1)` (= `A₁ = ⟨2⟩`): `A = ℤ/2`,
-   `q = ½`, `β = 1 ≡ σ`. `e_7()`: `q = 3/2`, `β = 7 ≡ σ`. `d_n(4)`: three nonzero
-   elements of `q`-value 1, sum `1 + 3i² = −2`, `β = 4 ≡ σ`. The `ℤ/8` generator
-   `⟨1⟩` is literally the discriminant form of `A₁`.
-
-### Proposed surface
-
-- `forms/char2/brown.rs`
-  - input in the `arf_f2` idiom: `brown_f2(n: usize, q4: &[u128] /* mod 4 */,
-    bmat: &[u128]) -> BrownResult`, with the constructor-level check
-    `b_ii = q_i mod 2`.
-  - `BrownResult { beta: u128 /* of the nonsingular core, mod 8 */, rank: usize,
-    radical_dim: usize, radical_anisotropic: bool }` — mirroring `ArfResult`
-    field-for-field. On the radical of `b`, `q` takes values in `{0, 2}`; `q ≡ 0`
-    there ⇒ `beta` is the core invariant with `radical_dim` reported; any radical
-    value `2` ⇒ the full Gauss sum vanishes (`radical_anisotropic`), and `beta`
-    still reports the core. Data, not a panic.
-  - primary route: reduction to `⟨±1⟩` / split summands (the `arf_char2`-style
-    reduction); oracle route: direct `2^n` enumeration of the value distribution
-    with exact integer phase recovery — the same enumeration budget
-    `DiscriminantForm` already pays.
-  - `double_f2(...)` — the embedding from `arf_f2` input data;
-    `from_discriminant_form(&DiscriminantForm) -> Option<...>` — `Some` only for
-    2-elementary groups (read off the invariant factors).
-
-### Oracles / proposed tests
-
-- `β` additivity under `⊥`: reduction route vs enumeration route, fuzzed.
-- `brown_f2(double_f2(q′)).beta == 4 * arf_f2(q′).arf` across nonsingular metrics.
-- the split objects: the hyperbolic plane `[q(e)=0, q(f)=0, b(e,f)=1]` and
-  `⟨1⟩ ⊥ ⟨−1⟩` both have `β = 0`; `β(⟨1⟩^{⊥8}) = 0` (the order-8 relation).
-- the lattice slice: `from_discriminant_form` of `a_n(1)`, `e_7()`, `d_n(4)`,
-  `d_n(8)` gives `β ≡ signature mod 8`, cross-checked against
-  `milgram_signature_mod8`, `genus_signature_mod8`, and the f64 `GaussSum` phase;
-  `e_8()` collapses to the empty form, `β = 0 ≡ 8`.
-
-### Scope / caveats
-
-- The lattice tie is **2-elementary discriminant groups only**. Higher 2-power
-  torsion needs `ℤ/2^{k+1}`-valued refinements and odd torsion has its own odd
-  Gauss sums — both stay with the shipped f64 `GaussSum`. A full
-  finite-quadratic-module Witt group (Nikulin's generators and relations) is a
-  further rung, not this bridge.
-- No new theorem: Brown 1972 is the source; the bridge is the wiring to Arf
-  (shipped) and Milgram (Bridge A).
-
-> Bridges **N** (the unification pass — Milnor global residues, the Scharlau
-> transfer, Nikulin's genus criterion, one Bernoulli source) and **O** (lexicodes —
-> greedy = mex, the `[24,12,8]` lexicode is Golay) are **built and tested**; their
-> entries, surfaces, and oracles now live in `roadmap/DONE.md` (fourth wave).
-
 ---
 
 ## TODO — status snapshot
 
-**K and M are proposed; G and L are deferred. (N and O are built — `roadmap/DONE.md`.)**
+**K is proposed; G and L are deferred. (M, N, O are built — `roadmap/DONE.md`.)**
 
 - **K (proposed):** lifts the shipped 2-torsion Brauer surface (`adelic.rs`) to the
   full `ℚ/ℤ` invariant via cyclic algebras built from the Galois data Bridge C
   exposes; shares a class type with the now-built Bridge F (`roadmap/DONE.md`) —
   `Brauer2Class` is its 2-torsion ½-slice. Full formal draft appended above.
-- **M (proposed):** the Brown `ℤ/8` invariant of `ℤ/4`-valued quadratic
-  refinements — the char-2 cell of the mod-8 spine. Contains the shipped Arf bit
-  as its 2-torsion (`β = 4·Arf`) and computes the Milgram phase exactly (no `f64`)
-  on 2-elementary discriminant forms. Now that **N.3** has shipped a
-  finite-quadratic-module isomorphism test (`DiscriminantForm::is_isomorphic`), M's
-  `from_discriminant_form` route has a sibling to lean on.
 - **G (deferred):** the spinor-genus refinement `genus → spinor genus → isometry
   class`; classical but not buildable from the current surface. The cheap honest
   piece is Eichler's theorem as a documented predicate (indefinite, rank ≥ 3 ⇒
@@ -490,13 +365,13 @@ Three identifications make this the missing cell rather than a fifth pillar:
 - **L (deferred, large):** the char-`p` Drinfeld/Carlitz mirror of the whole
   `integral/` pillar — a genuine second-headline-pillar build, not a task.
 
-Built in the fourth wave (`roadmap/DONE.md`): **N** (Milnor global residues over `ℚ`
-with the documented `∂₂` boundary; the Scharlau transfer + Frobenius reciprocity +
-Springer's odd-degree theorem; Nikulin's genus criterion; one Bernoulli source) and
-**O** (lexicodes — greedy = mex, the `[24,12,8]` lexicode is Golay).
+Built in the fourth wave (`roadmap/DONE.md`): **M** (the Brown `ℤ/8` invariant — the
+char-2 cell of the mod-8 spine, `β = 4·Arf` and `β ≡ sign mod 8` on 2-elementary
+discriminant forms), **N** (Milnor global residues over `ℚ` with the documented `∂₂`
+boundary; the Scharlau transfer + Frobenius reciprocity + Springer's odd-degree
+theorem; Nikulin's genus criterion; one Bernoulli source), and **O** (lexicodes —
+greedy = mex, the `[24,12,8]` lexicode is Golay).
 
-Recommended order for the rest: **M** is the highest mathematical payoff per line of
-code (one new file, three shipped identifications) and now has N.3's isomorphism test
-as a sibling; **K** remains the natural completion of the Brauer thread; **L** is a
-project-scope decision. The built bridges are in `roadmap/DONE.md`; the genuine open
-problems stay in `OPEN.md`.
+Recommended order for the rest: **K** remains the natural completion of the Brauer
+thread (the only unbuilt non-deferred bridge); **L** is a project-scope decision. The
+built bridges are in `roadmap/DONE.md`; the genuine open problems stay in `OPEN.md`.

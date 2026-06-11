@@ -420,6 +420,47 @@ impl DiscriminantForm {
         self.gauss_sum().phase_mod8(1e-8)
     }
 
+    /// The **Brown invariant** `β ∈ ℤ/8` of the discriminant form, on the
+    /// **2-elementary** slice (Bridge M). For `A_L ≅ (ℤ/2)^k`, `q_L` takes values
+    /// in `½ℤ/2ℤ`, and `t ↦ 2t` identifies `(A_L, 2q_L)` with a `ℤ/4`-quadratic
+    /// form whose Brown sum *is* the Milgram Gauss sum — so
+    ///
+    /// ```text
+    /// β(2·q_L) ≡ sign(L)   (mod 8)
+    /// ```
+    ///
+    /// (Milgram / van der Blij), computed from the **integer value-counts**
+    /// `(n₀ − n₂) + i(n₁ − n₃)` — a fifth route to `σ mod 8`, and the first with no
+    /// floating point (the [`GaussSum`] route is `f64`). `None` unless `A_L` is
+    /// 2-elementary (read off the invariant factors); the discriminant bilinear
+    /// form is nondegenerate on `A_L`, so this slice has no radical.
+    pub fn brown_invariant(&self) -> Option<crate::forms::BrownResult> {
+        use crate::forms::char2::beta_from_gauss;
+        // 2-elementary ⇔ every nontrivial invariant factor is 2 (the unimodular
+        // A_L = 0 case is vacuously 2-elementary, β = 0).
+        if !self.group.iter().all(|&d| d == 2) {
+            return None;
+        }
+        // q4(γ) = 2·q_L(γ) ∈ {0,1,2,3}; enumerate the whole (nondegenerate) group.
+        let mut counts = [0i128; 4];
+        for gamma in &self.reps {
+            let two_q = self.quadratic_value_mod2(gamma);
+            let two_q = two_q.add(&two_q);
+            if !two_q.is_integer() {
+                return None; // not actually 2-elementary at this element (defensive)
+            }
+            counts[two_q.numer().rem_euclid(4) as usize] += 1;
+        }
+        let re = counts[0] - counts[2];
+        let im = counts[1] - counts[3];
+        Some(crate::forms::BrownResult {
+            beta: beta_from_gauss(re, im)?,
+            rank: self.group.len(),
+            radical_dim: 0,
+            radical_anisotropic: false,
+        })
+    }
+
     /// The `reps` index of the coset containing the raw integer vector `v`.
     fn element_index(&self, v: &[i128]) -> Option<usize> {
         self.reps
@@ -864,6 +905,53 @@ mod tests {
             Some(0)
         );
         assert_eq!(verify_milgram(&e8e8), Some(true));
+    }
+
+    #[test]
+    fn brown_invariant_recovers_signature_mod8_on_2_elementary_forms() {
+        // β ≡ sign(L) mod 8 — the fifth route to σ mod 8, exact-integer (Bridge M).
+        // 2-elementary generators: A_1 (ℤ/2, β=1), E_7 (ℤ/2, β=7), D_4 ((ℤ/2)², β=4),
+        // D_8 ((ℤ/2)², β=0), and the unimodular E_8 (β=0).
+        for (l, want) in [
+            (a_n(1), 1u128),
+            (e_7(), 7),
+            (d_n(4), 4),
+            (d_n(8), 0),
+            (e_8(), 0),
+        ] {
+            let disc = DiscriminantForm::from_lattice(&l).unwrap();
+            let brown = disc.brown_invariant().expect("2-elementary");
+            assert_eq!(brown.beta, want, "β mismatch");
+            assert_eq!(brown.radical_dim, 0, "discriminant b is nondegenerate");
+            // cross-check against the shipped f64 Milgram phase.
+            let milgram = disc.milgram_signature_mod8().unwrap().rem_euclid(8) as u128;
+            assert_eq!(brown.beta, milgram, "β ≢ Milgram phase");
+        }
+    }
+
+    #[test]
+    fn brown_invariant_is_none_off_the_2_elementary_slice() {
+        // A_2 has discriminant group ℤ/3 (odd torsion); A_3 has ℤ/4 (exponent 4).
+        // Neither is 2-elementary — the Brown slice declines, honestly.
+        assert_eq!(
+            DiscriminantForm::from_lattice(&a_n(2))
+                .unwrap()
+                .brown_invariant(),
+            None
+        );
+        assert_eq!(
+            DiscriminantForm::from_lattice(&a_n(3))
+                .unwrap()
+                .brown_invariant(),
+            None
+        );
+        // E_6 has discriminant group ℤ/3 as well.
+        assert_eq!(
+            DiscriminantForm::from_lattice(&e_6())
+                .unwrap()
+                .brown_invariant(),
+            None
+        );
     }
 
     #[test]
