@@ -17,8 +17,8 @@ use super::engine::{
     SurrealAlgebra,
 };
 use super::scalars::{
-    parse_rational, parse_surcomplex, parse_surreal, wrap_rational, wrap_surreal, PyRational,
-    PySurreal,
+    parse_qp2_4, parse_qp3_4, parse_qp5_4, parse_rational, parse_surcomplex, parse_surreal,
+    wrap_rational, wrap_surreal, PyRational, PySurreal,
 };
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
@@ -31,9 +31,9 @@ use crate::scalar::{
 };
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyTuple};
 use pyo3::IntoPyObjectExt;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 fn parse_rational_vec(items: Vec<Bound<'_, PyAny>>) -> PyResult<Vec<Rational>> {
@@ -77,6 +77,45 @@ impl PyArfResult {
             self.inner.radical_anisotropic,
         )
     }
+}
+
+#[pyclass(name = "BrownResult", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyBrownResult {
+    inner: crate::forms::BrownResult,
+}
+
+#[pymethods]
+impl PyBrownResult {
+    #[getter]
+    fn beta(&self) -> u128 {
+        self.inner.beta
+    }
+    #[getter]
+    fn rank(&self) -> usize {
+        self.inner.rank
+    }
+    #[getter]
+    fn radical_dim(&self) -> usize {
+        self.inner.radical_dim
+    }
+    #[getter]
+    fn radical_anisotropic(&self) -> bool {
+        self.inner.radical_anisotropic
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "BrownResult(beta={}, rank={}, radical_dim={}, radical_anisotropic={})",
+            self.inner.beta,
+            self.inner.rank,
+            self.inner.radical_dim,
+            self.inner.radical_anisotropic
+        )
+    }
+}
+
+fn wrap_brown_result(inner: crate::forms::BrownResult) -> PyBrownResult {
+    PyBrownResult { inner }
 }
 
 #[pyclass(name = "QuadricFit", module = "ogdoad")]
@@ -187,6 +226,51 @@ fn arf_f2(n: usize, qd: Vec<bool>, bmat: Vec<u128>) -> PyResult<PyArfResult> {
     })
 }
 
+fn f2_domain_mask(n: usize, name: &str) -> PyResult<u128> {
+    if n > u128::BITS as usize {
+        return Err(PyValueError::new_err(format!("{name} supports n <= 128")));
+    }
+    Ok(if n == 0 {
+        0
+    } else if n >= u128::BITS as usize {
+        u128::MAX
+    } else {
+        (1u128 << n) - 1
+    })
+}
+
+fn validate_f2_rows(name: &str, n: usize, rows: &[u128]) -> PyResult<()> {
+    let domain_mask = f2_domain_mask(n, name)?;
+    if rows.iter().any(|&row| row & !domain_mask != 0) {
+        return Err(PyValueError::new_err(format!(
+            "{name} polar rows contain bits outside the n-dimensional domain"
+        )));
+    }
+    Ok(())
+}
+
+#[pyfunction]
+fn brown_f2(n: usize, q4: Vec<u128>, bmat: Vec<u128>) -> PyResult<PyBrownResult> {
+    if q4.len() != n || bmat.len() != n {
+        return Err(PyValueError::new_err(
+            "brown_f2 needs q4 and bmat lengths equal to n",
+        ));
+    }
+    validate_f2_rows("brown_f2", n, &bmat)?;
+    Ok(wrap_brown_result(crate::forms::brown_f2(n, &q4, &bmat)))
+}
+
+#[pyfunction]
+fn double_f2(qd: Vec<bool>, bmat: Vec<u128>) -> PyResult<PyBrownResult> {
+    if qd.len() != bmat.len() {
+        return Err(PyValueError::new_err(
+            "double_f2 needs qd and bmat lengths to match",
+        ));
+    }
+    validate_f2_rows("double_f2", qd.len(), &bmat)?;
+    Ok(wrap_brown_result(crate::forms::double_f2(&qd, &bmat)))
+}
+
 fn validate_gold_args(m: usize) -> PyResult<()> {
     if !m.is_power_of_two() || m > 128 {
         return Err(PyValueError::new_err(
@@ -265,6 +349,69 @@ fn trace_twisted_form(py: Python<'_>, p: u128, degree: usize, power: usize) -> P
         (5, 2) => trace_twisted_alg!(py, power, Fp5Algebra, Fpn<5, 2>),
         _ => Err(PyValueError::new_err(
             "unsupported finite field; expected one of F_p, F4, F8, F16, F9, F25, F27",
+        )),
+    }
+}
+
+fn finite_values_from_indices<F: FiniteOddField>(entries: &[u128], name: &str) -> PyResult<Vec<F>> {
+    F::ensure_supported().ok_or_else(unsupported_finite_field_err)?;
+    let order = F::field_order();
+    entries
+        .iter()
+        .enumerate()
+        .map(|(i, &x)| {
+            if x < order {
+                Ok(F::from_index(x))
+            } else {
+                Err(PyValueError::new_err(format!(
+                    "{name}[{i}]={x} is outside F_{order}"
+                )))
+            }
+        })
+        .collect()
+}
+
+macro_rules! transfer_base_alg {
+    ($py:ident, $entries:ident, $alg:ident, $field:ty) => {{
+        let entries = finite_values_from_indices::<$field>(&$entries, "entries")?;
+        let metric = Metric::diagonal(entries);
+        $alg {
+            inner: Arc::new(CliffordAlgebra::new(metric.q.len(), metric)),
+        }
+        .into_py_any($py)
+    }};
+}
+
+macro_rules! transfer_ext_alg {
+    ($py:ident, $entries:ident, $alg:ident, $ext:ty) => {{
+        let entries = finite_values_from_indices::<$ext>(&$entries, "entries")?;
+        let metric = crate::forms::transfer_diagonal::<$ext>(&entries);
+        $alg {
+            inner: Arc::new(CliffordAlgebra::new(metric.q.len(), metric)),
+        }
+        .into_py_any($py)
+    }};
+}
+
+#[pyfunction]
+#[pyo3(signature = (p, degree, entries))]
+fn transfer_diagonal(
+    py: Python<'_>,
+    p: u128,
+    degree: usize,
+    entries: Vec<u128>,
+) -> PyResult<Py<PyAny>> {
+    match (p, degree) {
+        (3, 1) => transfer_base_alg!(py, entries, Fp3Algebra, Fp<3>),
+        (5, 1) => transfer_base_alg!(py, entries, Fp5Algebra, Fp<5>),
+        (7, 1) => transfer_base_alg!(py, entries, Fp7Algebra, Fp<7>),
+        (11, 1) => transfer_base_alg!(py, entries, Fp11Algebra, Fp<11>),
+        (13, 1) => transfer_base_alg!(py, entries, Fp13Algebra, Fp<13>),
+        (3, 2) => transfer_ext_alg!(py, entries, Fp3Algebra, Fpn<3, 2>),
+        (3, 3) => transfer_ext_alg!(py, entries, Fp3Algebra, Fpn<3, 3>),
+        (5, 2) => transfer_ext_alg!(py, entries, Fp5Algebra, Fpn<5, 2>),
+        _ => Err(PyValueError::new_err(
+            "transfer_diagonal supports odd finite fields F_3, F_5, F_7, F_11, F_13, F_9, F_25, F_27",
         )),
     }
 }
@@ -2361,6 +2508,40 @@ fn try_isotropy_over_ff_adeles(
     })
 }
 
+#[pyfunction]
+#[pyo3(signature = (p, n, a, degree=1))]
+fn constant_extension_invariants(
+    p: u128,
+    n: u128,
+    a: PyFFRationalFunction,
+    degree: usize,
+) -> PyResult<Option<Vec<(PyFunctionFieldPlace, PyRational)>>> {
+    with_finite_odd_field!(p, degree, |F| {
+        let a = parse_ff_rational_function::<F>(&a, "a")?;
+        Ok(
+            crate::forms::constant_extension_invariants(n, &a).map(|invs| {
+                invs.into_iter()
+                    .map(|(place, inv)| (wrap_ff_place::<F>(place), wrap_rational(inv)))
+                    .collect()
+            }),
+        )
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (p, n, a, degree=1))]
+fn constant_extension_invariant_sum(
+    p: u128,
+    n: u128,
+    a: PyFFRationalFunction,
+    degree: usize,
+) -> PyResult<Option<PyRational>> {
+    with_finite_odd_field!(p, degree, |F| {
+        let a = parse_ff_rational_function::<F>(&a, "a")?;
+        Ok(crate::forms::constant_extension_invariant_sum(n, &a).map(wrap_rational))
+    })
+}
+
 /// Distinct monic irreducible factors over `F_{2^degree}`. Coefficients are
 /// finite-field element indices, low degree first.
 #[pyfunction]
@@ -3837,6 +4018,255 @@ fn brauer_invariant_sum(a: (i128, i128), b: (i128, i128)) -> PyResult<PyRational
         })
 }
 
+#[pyclass(name = "Brauer2Class", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyBrauer2Class {
+    inner: crate::forms::Brauer2Class,
+}
+
+#[pymethods]
+impl PyBrauer2Class {
+    #[staticmethod]
+    fn split() -> PyBrauer2Class {
+        PyBrauer2Class {
+            inner: crate::forms::Brauer2Class::split(),
+        }
+    }
+    #[staticmethod]
+    fn quaternion(a: i128, b: i128) -> PyResult<PyBrauer2Class> {
+        crate::forms::Brauer2Class::quaternion(a, b)
+            .map(|inner| PyBrauer2Class { inner })
+            .ok_or_else(|| PyValueError::new_err("quaternion class needs nonzero i128 entries"))
+    }
+    fn is_split(&self) -> bool {
+        self.inner.is_split()
+    }
+    fn ramified_places(&self) -> Vec<PyRationalPlace> {
+        self.inner
+            .ramified_places()
+            .iter()
+            .copied()
+            .map(wrap_rational_place)
+            .collect()
+    }
+    fn local_invariant(&self, place: &Bound<'_, PyAny>) -> PyResult<PyRational> {
+        Ok(wrap_rational(
+            self.inner.local_invariant(parse_rational_place(place)?),
+        ))
+    }
+    fn satisfies_reciprocity(&self) -> bool {
+        self.inner.satisfies_reciprocity()
+    }
+    fn __add__(&self, other: &PyBrauer2Class) -> PyBrauer2Class {
+        PyBrauer2Class {
+            inner: self.inner.add(&other.inner),
+        }
+    }
+    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
+        matches!(other.cast::<PyBrauer2Class>(), Ok(c) if c.borrow().inner == self.inner)
+    }
+    fn __repr__(&self) -> String {
+        let places = self
+            .inner
+            .ramified_places()
+            .iter()
+            .copied()
+            .map(place_name)
+            .collect::<Vec<_>>();
+        format!("Brauer2Class(ramified={places:?})")
+    }
+}
+
+#[pyfunction]
+fn hasse_brauer_class(entries: Vec<i128>) -> PyResult<PyBrauer2Class> {
+    crate::forms::hasse_brauer_class(&entries)
+        .map(|inner| PyBrauer2Class { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err("hasse_brauer_class needs nonzero i128 diagonal entries")
+        })
+}
+
+#[pyfunction]
+fn clifford_brauer_class(entries: Vec<i128>) -> PyResult<PyBrauer2Class> {
+    crate::forms::clifford_brauer_class(&entries)
+        .map(|inner| PyBrauer2Class { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err("clifford_brauer_class needs nonzero i128 diagonal entries")
+        })
+}
+
+#[pyclass(name = "BrauerClass", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyBrauerClass {
+    inner: crate::forms::BrauerClass,
+}
+
+fn parse_brauer_local_entries(
+    entries: Vec<Bound<'_, PyAny>>,
+) -> PyResult<Vec<(crate::forms::Place, Rational)>> {
+    entries
+        .into_iter()
+        .enumerate()
+        .map(|(i, item)| {
+            let tuple = item.cast::<PyTuple>().map_err(|_| {
+                PyTypeError::new_err(format!(
+                    "BrauerClass.from_local entry {i} must be a (RationalPlace, Rational) tuple"
+                ))
+            })?;
+            if tuple.len() != 2 {
+                return Err(PyValueError::new_err(format!(
+                    "BrauerClass.from_local entry {i} must have length 2"
+                )));
+            }
+            let place = parse_rational_place(&tuple.get_item(0)?)?;
+            let inv = parse_rational(&tuple.get_item(1)?)?;
+            Ok((place, inv))
+        })
+        .collect()
+}
+
+#[pymethods]
+impl PyBrauerClass {
+    #[staticmethod]
+    fn split() -> PyBrauerClass {
+        PyBrauerClass {
+            inner: crate::forms::BrauerClass::split(),
+        }
+    }
+    #[staticmethod]
+    fn from_local(entries: Vec<Bound<'_, PyAny>>) -> PyResult<PyBrauerClass> {
+        Ok(PyBrauerClass {
+            inner: crate::forms::BrauerClass::from_local(parse_brauer_local_entries(entries)?),
+        })
+    }
+    #[staticmethod]
+    fn from_two_torsion(class: &PyBrauer2Class) -> PyBrauerClass {
+        PyBrauerClass {
+            inner: crate::forms::BrauerClass::from_two_torsion(&class.inner),
+        }
+    }
+    fn is_split(&self) -> bool {
+        self.inner.is_split()
+    }
+    fn local(&self) -> Vec<(PyRationalPlace, PyRational)> {
+        self.inner
+            .local()
+            .iter()
+            .map(|(&place, inv)| (wrap_rational_place(place), wrap_rational(inv.clone())))
+            .collect()
+    }
+    fn local_invariant(&self, place: &Bound<'_, PyAny>) -> PyResult<PyRational> {
+        Ok(wrap_rational(
+            self.inner.local_invariant(parse_rational_place(place)?),
+        ))
+    }
+    fn invariant_sum(&self) -> PyRational {
+        wrap_rational(self.inner.invariant_sum())
+    }
+    fn two_torsion_places(&self) -> Option<Vec<PyRationalPlace>> {
+        self.inner.two_torsion().map(|places: BTreeSet<_>| {
+            places
+                .into_iter()
+                .map(wrap_rational_place)
+                .collect::<Vec<_>>()
+        })
+    }
+    fn __add__(&self, other: &PyBrauerClass) -> PyBrauerClass {
+        PyBrauerClass {
+            inner: self.inner.add(&other.inner),
+        }
+    }
+    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
+        matches!(other.cast::<PyBrauerClass>(), Ok(c) if c.borrow().inner == self.inner)
+    }
+    fn __repr__(&self) -> String {
+        let local = self
+            .inner
+            .local()
+            .iter()
+            .map(|(&place, inv)| (place_name(place), inv.clone()))
+            .collect::<Vec<_>>();
+        format!("BrauerClass(local={local:?})")
+    }
+}
+
+fn qp_to_qq_base_for_cyclic<const P: u128, const N: usize, const K: u128>(
+    x: Qp<P, K>,
+) -> Qq<P, N, 1> {
+    debug_assert_eq!(N as u128, K, "Python fixed Qq/Qp precisions must match");
+    match x.valuation() {
+        None => Qq::<P, N, 1>::zero(),
+        Some(v) => {
+            Qq::<P, N, 1>::from_p_power(v).mul(&Qq::from_witt(WittVec::<P, N, 1>([x.unit()])))
+        }
+    }
+}
+
+#[pyfunction]
+fn cyclic_algebra_invariant(
+    p: u128,
+    degree: usize,
+    a: &Bound<'_, PyAny>,
+) -> PyResult<Option<PyRational>> {
+    macro_rules! dispatch {
+        ($parse:ident, $p:literal, $f:literal) => {{
+            let base = qp_to_qq_base_for_cyclic::<$p, 4, 4>($parse(a)?);
+            Ok(crate::forms::cyclic_algebra_invariant::<Qq<$p, 4, $f>>(&base).map(wrap_rational))
+        }};
+    }
+
+    match (p, degree) {
+        (2, 2) => dispatch!(parse_qp2_4, 2, 2),
+        (2, 3) => dispatch!(parse_qp2_4, 2, 3),
+        (2, 4) => dispatch!(parse_qp2_4, 2, 4),
+        (3, 2) => dispatch!(parse_qp3_4, 3, 2),
+        (3, 3) => dispatch!(parse_qp3_4, 3, 3),
+        (5, 2) => dispatch!(parse_qp5_4, 5, 2),
+        _ => Err(PyValueError::new_err(
+            "supported cyclic Qq legs: Qq2_4_2, Qq2_4_3, Qq2_4_4, Qq3_4_2, Qq3_4_3, Qq5_4_2",
+        )),
+    }
+}
+
+type PyGlobalResidues = (i128, Vec<(u128, PyWittClassG)>);
+type PyFunctionFieldMilnorResidues = (PyWittClassG, Vec<(PyFunctionFieldPlace, PyWittClassG)>);
+
+#[pyfunction]
+fn global_residues(entries: Vec<i128>) -> Option<PyGlobalResidues> {
+    crate::forms::global_residues(&entries).map(|(signature, residues)| {
+        (
+            signature,
+            residues
+                .into_iter()
+                .map(|(p, inner)| (p, PyWittClassG { inner }))
+                .collect(),
+        )
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (p, entries, degree=1))]
+fn global_residues_ff(
+    p: u128,
+    entries: Vec<PyFFRationalFunction>,
+    degree: usize,
+) -> PyResult<Option<PyFunctionFieldMilnorResidues>> {
+    with_finite_odd_field!(p, degree, |F| {
+        let entries = parse_ff_rational_functions::<F>(&entries)?;
+        Ok(
+            crate::forms::global_residues_ff(&entries).map(|(constant, residues)| {
+                (
+                    PyWittClassG { inner: constant },
+                    residues
+                        .into_iter()
+                        .map(|(place, inner)| (wrap_ff_place::<F>(place), PyWittClassG { inner }))
+                        .collect(),
+                )
+            }),
+        )
+    })
+}
+
 /// The per-place isotropy breakdown of a `ℚ`-form (rank ≥ 3): isotropy at `ℝ` and
 /// at each relevant prime. `is_global()` (isotropic everywhere) equals
 /// `is_isotropic_q` (Hasse–Minkowski).
@@ -4008,8 +4438,12 @@ impl PyGaussSum {
 
 #[pyclass(name = "BinaryCode", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
-struct PyBinaryCode {
+pub(crate) struct PyBinaryCode {
     inner: crate::forms::BinaryCode,
+}
+
+pub(crate) fn wrap_binary_code(inner: crate::forms::BinaryCode) -> PyBinaryCode {
+    PyBinaryCode { inner }
 }
 
 #[pymethods]
@@ -4440,6 +4874,15 @@ impl PyDiscriminantForm {
     fn milgram_signature_mod8(&self) -> Option<i128> {
         self.inner.milgram_signature_mod8()
     }
+    fn brown_invariant(&self) -> Option<PyBrownResult> {
+        self.inner.brown_invariant().map(wrap_brown_result)
+    }
+    fn is_isomorphic(&self, other: &PyDiscriminantForm) -> Option<bool> {
+        self.inner.is_isomorphic(&other.inner)
+    }
+    fn is_isomorphic_bounded(&self, other: &PyDiscriminantForm, node_budget: u128) -> Option<bool> {
+        self.inner.is_isomorphic_bounded(&other.inner, node_budget)
+    }
     fn weil_t(&self) -> Vec<PyComplex64> {
         self.inner
             .weil_t()
@@ -4839,6 +5282,7 @@ fn bw_class_ordinal(alg: &OrdinalAlgebra) -> PyResult<PyBrauerWallClass> {
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyArfResult>()?;
+    m.add_class::<PyBrownResult>()?;
     m.add_class::<PyQuadricFit>()?;
     m.add_class::<PyBaseField>()?;
     m.add_class::<PyRationalPlace>()?;
@@ -4866,6 +5310,8 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySpringerDecomp>()?;
     m.add_class::<PyLocalResidueForm>()?;
     m.add_class::<PyLocalSpringerDecomp>()?;
+    m.add_class::<PyBrauer2Class>()?;
+    m.add_class::<PyBrauerClass>()?;
     m.add_class::<PyBrauerWallClass>()?;
     m.add_class::<PyRealWittDecomp>()?;
     m.add_class::<PyOddWittDecomp>()?;
@@ -4886,9 +5332,12 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(arf_ordinal_finite, m)?)?;
     m.add_function(wrap_pyfunction!(fit_f2_quadratic, m)?)?;
     m.add_function(wrap_pyfunction!(arf_f2, m)?)?;
+    m.add_function(wrap_pyfunction!(brown_f2, m)?)?;
+    m.add_function(wrap_pyfunction!(double_f2, m)?)?;
     m.add_function(wrap_pyfunction!(gold_form_arf, m)?)?;
     m.add_function(wrap_pyfunction!(gold_form, m)?)?;
     m.add_function(wrap_pyfunction!(trace_twisted_form, m)?)?;
+    m.add_function(wrap_pyfunction!(transfer_diagonal, m)?)?;
     m.add_function(wrap_pyfunction!(trace_form_arf, m)?)?;
     m.add_function(wrap_pyfunction!(classify_surreal, m)?)?;
     m.add_function(wrap_pyfunction!(classify_surcomplex, m)?)?;
@@ -4916,6 +5365,8 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(try_is_isotropic_at_place_ff, m)?)?;
     m.add_function(wrap_pyfunction!(try_is_isotropic_ff, m)?)?;
     m.add_function(wrap_pyfunction!(try_isotropy_over_ff_adeles, m)?)?;
+    m.add_function(wrap_pyfunction!(constant_extension_invariants, m)?)?;
+    m.add_function(wrap_pyfunction!(constant_extension_invariant_sum, m)?)?;
     m.add_function(wrap_pyfunction!(char2_monic_irreducible_factors, m)?)?;
     m.add_function(wrap_pyfunction!(as_symbol_at, m)?)?;
     m.add_function(wrap_pyfunction!(as_symbol_places, m)?)?;
@@ -4935,6 +5386,11 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hilbert_reciprocity_product, m)?)?;
     m.add_function(wrap_pyfunction!(brauer_local_invariants, m)?)?;
     m.add_function(wrap_pyfunction!(brauer_invariant_sum, m)?)?;
+    m.add_function(wrap_pyfunction!(hasse_brauer_class, m)?)?;
+    m.add_function(wrap_pyfunction!(clifford_brauer_class, m)?)?;
+    m.add_function(wrap_pyfunction!(cyclic_algebra_invariant, m)?)?;
+    m.add_function(wrap_pyfunction!(global_residues, m)?)?;
+    m.add_function(wrap_pyfunction!(global_residues_ff, m)?)?;
     m.add_function(wrap_pyfunction!(isotropy_over_adeles, m)?)?;
     m.add_function(wrap_pyfunction!(hamming_code, m)?)?;
     m.add_function(wrap_pyfunction!(extended_hamming_code, m)?)?;

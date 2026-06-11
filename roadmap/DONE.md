@@ -31,6 +31,23 @@ When a new piece of cross-pillar work lands, add a short entry here:
 Promote anything proof-heavy or too long for working notes into `roadmap/CODA.md`, and
 fold the one-line structural fact into the relevant `AGENTS.md`.
 
+## `py-waves` — Python parity for waves J/K/M/N/O (2026-06-11)
+**Pillars:** scalar/forms/games ↔ Python    **Claim level:** implemented and tested
+- surface: Python now exposes `lexicode`/`lexicode_naive`/`lexicode_bounded`,
+  `NimLexicode`, Brown invariants (`BrownResult`, `brown_f2`, `double_f2`,
+  `DiscriminantForm.brown_invariant`), discriminant-form isomorphism checks,
+  `NewtonPolygon`/`newton_polygon`/`tropicalize`, Scharlau `transfer_diagonal`,
+  rational and full `Q/Z` Brauer classes (`Brauer2Class`, `BrauerClass`,
+  `cyclic_algebra_invariant`), Milnor residues (`global_residues`,
+  `global_residues_ff`), and function-field constant-extension invariants.
+- oracles: the Rust math oracles remain the source of truth; `demo.py` now includes a
+  py-waves parity rung covering each newly bound surface, and the Python feature check
+  compiles the wrappers.
+- boundaries: bindings follow the existing fixed-dispatch policy. Const-generic
+  open families remain Rust-only unless represented by an existing Python slice; the
+  char-2 transfer story still belongs to the Artin-Schreier layer, not
+  `transfer_diagonal`.
+
 ## `fpn-gen` — generated finite-field reduction polynomials (2026-06-11)
 **Pillars:** scalar    **Claim level:** standard math made computational + implemented and tested
 - surface: `Fpn<P,N>` now supports every prime `P` and positive `N` whose field order

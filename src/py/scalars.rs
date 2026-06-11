@@ -8,9 +8,9 @@
 use crate::scalar::{
     is_prime_u128, Adele, AdelePlace, CyclicGaloisExtension, ExactRoots, FieldExtension,
     FiniteField, Fp, Fpn, Gauss, HasFractionField, HasRingOfIntegers, Integer, Laurent, LocalQp,
-    MaxPlus, MinPlus, Nimber, Omnific, Ordinal, Poly, Qp, Qq, Ramified, Rational, RationalFunction,
-    ReductionPolynomialKind, ResidueField, Scalar, SignExpansion, Surcomplex, Surreal, Tropical,
-    Valued, WittVec, Zp,
+    MaxPlus, MinPlus, NewtonPolygon, Nimber, Omnific, Ordinal, Poly, Qp, Qq, Ramified, Rational,
+    RationalFunction, ReductionPolynomialKind, ResidueField, Scalar, SignExpansion, Surcomplex,
+    Surreal, Tropical, Valued, WittVec, Zp,
 };
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyTypeError, PyValueError};
@@ -3585,6 +3585,184 @@ fn min_coeff_valuation(coeffs: Vec<Bound<'_, PyAny>>) -> PyResult<Option<i128>> 
     ))
 }
 
+#[pyclass(name = "NewtonPolygon", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyNewtonPolygon {
+    inner: NewtonPolygon,
+}
+
+#[pymethods]
+impl PyNewtonPolygon {
+    fn vertices(&self) -> Vec<(usize, i128)> {
+        self.inner.vertices().to_vec()
+    }
+    fn degree(&self) -> usize {
+        self.inner.degree()
+    }
+    fn zero_root_multiplicity(&self) -> usize {
+        self.inner.zero_root_multiplicity()
+    }
+    fn slopes(&self) -> Vec<(PyRational, u128)> {
+        self.inner
+            .slopes()
+            .into_iter()
+            .map(|(s, len)| (wrap_rational(s), len))
+            .collect()
+    }
+    fn root_valuations(&self) -> Vec<(PyRational, u128)> {
+        self.inner
+            .root_valuations()
+            .into_iter()
+            .map(|(s, len)| (wrap_rational(s), len))
+            .collect()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "NewtonPolygon(vertices={:?}, zero_root_multiplicity={})",
+            self.inner.vertices(),
+            self.inner.zero_root_multiplicity()
+        )
+    }
+}
+
+fn newton_polygon_of<K: Valued>(coeffs: Vec<K>) -> Option<PyNewtonPolygon> {
+    NewtonPolygon::of(&coeffs).map(|inner| PyNewtonPolygon { inner })
+}
+
+#[pyfunction]
+fn newton_polygon(coeffs: Vec<Bound<'_, PyAny>>) -> PyResult<Option<PyNewtonPolygon>> {
+    if coeffs.is_empty() {
+        return Ok(None);
+    }
+
+    macro_rules! try_valued_coeffs {
+        ($py:ty) => {{
+            let mut parsed = Vec::with_capacity(coeffs.len());
+            let mut all_match = true;
+            for coeff in &coeffs {
+                if let Ok(value) = coeff.cast::<$py>() {
+                    parsed.push(value.borrow().inner.clone());
+                } else {
+                    all_match = false;
+                    break;
+                }
+            }
+            if all_match {
+                return Ok(newton_polygon_of(parsed));
+            }
+        }};
+    }
+
+    try_valued_coeffs!(PyQp2_4);
+    try_valued_coeffs!(PyQp3_4);
+    try_valued_coeffs!(PyQp5_4);
+    try_valued_coeffs!(PyQp7_4);
+    try_valued_coeffs!(PyQp11_4);
+    try_valued_coeffs!(PyQp13_4);
+
+    try_valued_coeffs!(PyQq2_4_2);
+    try_valued_coeffs!(PyQq2_4_3);
+    try_valued_coeffs!(PyQq2_4_4);
+    try_valued_coeffs!(PyQq3_4_2);
+    try_valued_coeffs!(PyQq5_4_2);
+    try_valued_coeffs!(PyQq3_4_3);
+
+    try_valued_coeffs!(PyLaurentRational6);
+    try_valued_coeffs!(PyLaurentFp3_6);
+    try_valued_coeffs!(PyLaurentFp5_6);
+    try_valued_coeffs!(PyLaurentFp7_6);
+    try_valued_coeffs!(PyLaurentFp11_6);
+    try_valued_coeffs!(PyLaurentFp13_6);
+    try_valued_coeffs!(PyLaurentF9_6);
+    try_valued_coeffs!(PyLaurentF25_6);
+    try_valued_coeffs!(PyLaurentF27_6);
+
+    try_valued_coeffs!(PyRamifiedQp2_4E2);
+    try_valued_coeffs!(PyRamifiedQp3_4E2);
+    try_valued_coeffs!(PyRamifiedQp5_4E2);
+    try_valued_coeffs!(PyRamifiedQp7_4E2);
+    try_valued_coeffs!(PyRamifiedQp11_4E2);
+    try_valued_coeffs!(PyRamifiedQp13_4E2);
+    try_valued_coeffs!(PyRamifiedQp2_4E3);
+    try_valued_coeffs!(PyRamifiedQp3_4E3);
+    try_valued_coeffs!(PyRamifiedQp5_4E3);
+    try_valued_coeffs!(PyRamifiedQp7_4E3);
+    try_valued_coeffs!(PyRamifiedQp11_4E3);
+    try_valued_coeffs!(PyRamifiedQp13_4E3);
+
+    try_valued_coeffs!(PyGaussQp2_4);
+    try_valued_coeffs!(PyGaussQp3_4);
+    try_valued_coeffs!(PyGaussQp5_4);
+    try_valued_coeffs!(PyGaussQp7_4);
+    try_valued_coeffs!(PyGaussQp11_4);
+    try_valued_coeffs!(PyGaussQp13_4);
+
+    Err(PyTypeError::new_err(
+        "newton_polygon expects a homogeneous list of typed Qp/Qq/Laurent/Ramified/Gauss coefficients",
+    ))
+}
+
+#[pyfunction]
+fn tropicalize(x: &Bound<'_, PyAny>) -> PyResult<PyMinPlusTropical> {
+    macro_rules! try_valued_scalar {
+        ($py:ty) => {
+            if let Ok(value) = x.cast::<$py>() {
+                return Ok(PyMinPlusTropical {
+                    inner: crate::scalar::tropicalize(&value.borrow().inner),
+                });
+            }
+        };
+    }
+
+    try_valued_scalar!(PyQp2_4);
+    try_valued_scalar!(PyQp3_4);
+    try_valued_scalar!(PyQp5_4);
+    try_valued_scalar!(PyQp7_4);
+    try_valued_scalar!(PyQp11_4);
+    try_valued_scalar!(PyQp13_4);
+
+    try_valued_scalar!(PyQq2_4_2);
+    try_valued_scalar!(PyQq2_4_3);
+    try_valued_scalar!(PyQq2_4_4);
+    try_valued_scalar!(PyQq3_4_2);
+    try_valued_scalar!(PyQq5_4_2);
+    try_valued_scalar!(PyQq3_4_3);
+
+    try_valued_scalar!(PyLaurentRational6);
+    try_valued_scalar!(PyLaurentFp3_6);
+    try_valued_scalar!(PyLaurentFp5_6);
+    try_valued_scalar!(PyLaurentFp7_6);
+    try_valued_scalar!(PyLaurentFp11_6);
+    try_valued_scalar!(PyLaurentFp13_6);
+    try_valued_scalar!(PyLaurentF9_6);
+    try_valued_scalar!(PyLaurentF25_6);
+    try_valued_scalar!(PyLaurentF27_6);
+
+    try_valued_scalar!(PyRamifiedQp2_4E2);
+    try_valued_scalar!(PyRamifiedQp3_4E2);
+    try_valued_scalar!(PyRamifiedQp5_4E2);
+    try_valued_scalar!(PyRamifiedQp7_4E2);
+    try_valued_scalar!(PyRamifiedQp11_4E2);
+    try_valued_scalar!(PyRamifiedQp13_4E2);
+    try_valued_scalar!(PyRamifiedQp2_4E3);
+    try_valued_scalar!(PyRamifiedQp3_4E3);
+    try_valued_scalar!(PyRamifiedQp5_4E3);
+    try_valued_scalar!(PyRamifiedQp7_4E3);
+    try_valued_scalar!(PyRamifiedQp11_4E3);
+    try_valued_scalar!(PyRamifiedQp13_4E3);
+
+    try_valued_scalar!(PyGaussQp2_4);
+    try_valued_scalar!(PyGaussQp3_4);
+    try_valued_scalar!(PyGaussQp5_4);
+    try_valued_scalar!(PyGaussQp7_4);
+    try_valued_scalar!(PyGaussQp11_4);
+    try_valued_scalar!(PyGaussQp13_4);
+
+    Err(PyTypeError::new_err(
+        "tropicalize expects a typed Qp/Qq/Laurent/Ramified/Gauss scalar",
+    ))
+}
+
 #[pyclass(name = "Rational", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyRational {
@@ -5608,6 +5786,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAdele>()?;
     m.add_class::<PyMaxPlusTropical>()?;
     m.add_class::<PyMinPlusTropical>()?;
+    m.add_class::<PyNewtonPolygon>()?;
     m.add_class::<PyOrdinal>()?;
     m.add_class::<PySignExpansion>()?;
     m.add_function(wrap_pyfunction!(omnific, m)?)?;
@@ -5638,5 +5817,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(nim_discrete_log, m)?)?;
     m.add_function(wrap_pyfunction!(adele_prec, m)?)?;
     m.add_function(wrap_pyfunction!(min_coeff_valuation, m)?)?;
+    m.add_function(wrap_pyfunction!(newton_polygon, m)?)?;
+    m.add_function(wrap_pyfunction!(tropicalize, m)?)?;
     Ok(())
 }

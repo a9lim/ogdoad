@@ -955,3 +955,35 @@ section("nimber Galois — Frobenius x↦x² and its inverse, the nim √")
 n = pl.Nimber(5)
 print("  *5² (Frobenius)              :", n.frobenius(), " == *5**2:", n ** 2)
 print("  √*5  (inverse Frobenius)     :", n.sqrt(), " squares back:", n.sqrt() ** 2)
+
+section("py-waves parity — Bridge J/K/M/N/O from Python")
+lex = pl.lexicode(7, 3)
+nimlex = pl.nim_lexicode_naive(2, 2, 2)
+print("  lexicode L(7,3)              :",
+      (lex.len(), lex.dim(), lex.minimum_distance(), lex.weight_enumerator()))
+print("  nim lexicode base 4          :",
+      nimlex.words(), nimlex.is_closed_under_nim_scalars())
+print("  Brown β and doubled Arf      :",
+      pl.brown_f2(1, [1], [0]).beta,
+      pl.double_f2([True, True], [2, 1]).beta)
+a1_disc = pl.DiscriminantForm.from_lattice(pl.IntegralForm.a(1))
+print("  discriminant form iso/Brown  :",
+      a1_disc.is_isomorphic(a1_disc),
+      a1_disc.brown_invariant())
+np = pl.newton_polygon([pl.Qp5_4.from_i128(-5), pl.Qp5_4.zero(), pl.Qp5_4.one()])
+print("  Newton roots of x²-5 over Q₅ :", np.root_valuations(),
+      " τ(5²)=", pl.tropicalize(pl.Qp5_4.from_p_power(2)))
+transfer = pl.transfer_diagonal(3, 2, [1])
+print("  Scharlau transfer F₉/F₃ <1> :", transfer.dim, pl.classify_finite_algebra(transfer))
+quat = pl.Brauer2Class.quaternion(-1, -1)
+full = pl.BrauerClass.from_two_torsion(quat)
+print("  Brauer 2-torsion → Q/Z      :", quat.ramified_places(), full.local(), full.invariant_sum())
+print("  unramified cyclic invariant  :",
+      pl.cyclic_algebra_invariant(5, 2, pl.Qp5_4.from_p_power(1)))
+ff_t = ([0, 1], [1])
+print("  Milnor residues over Q/F₅(t):",
+      pl.global_residues([3, 5]),
+      pl.global_residues_ff(5, [ff_t]))
+print("  constant-extension reciprocity:",
+      pl.constant_extension_invariants(5, 3, ff_t),
+      pl.constant_extension_invariant_sum(5, 3, ff_t))

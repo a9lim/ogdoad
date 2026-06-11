@@ -3,15 +3,15 @@
 //! Turning-Corners game recurrence.
 
 use super::engine::{IntegerAlgebra, IntegerMV};
-use super::forms::{wrap_quadric_fit, PyQuadricFit};
+use super::forms::{wrap_binary_code, wrap_quadric_fit, PyBinaryCode, PyQuadricFit};
 use super::scalars::{
     parse_rational, parse_surreal, wrap_rational, PyOrdinal, PyRational, PySurreal,
 };
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
     thermography, AbstractGame, Color, Game, GameExterior, GameRelation, Hackenbush, LoopyGraph,
-    LoopyNimCertificate, LoopyNimber, LoopyValue, NimberGame, NumberGame, Outcome, PartizanOutcome,
-    Quotient,
+    LoopyNimCertificate, LoopyNimber, LoopyValue, NimLexicode, NimberGame, NumberGame, Outcome,
+    PartizanOutcome, Quotient,
 };
 use crate::scalar::{Integer, Rational, SignExpansion, Surreal};
 use pyo3::basic::CompareOp;
@@ -1924,6 +1924,95 @@ impl PyLoopyGraph {
     }
 }
 
+#[pyclass(name = "NimLexicode", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyNimLexicode {
+    inner: NimLexicode,
+}
+
+#[pymethods]
+impl PyNimLexicode {
+    #[getter]
+    fn base_exp(&self) -> usize {
+        self.inner.base_exp()
+    }
+    #[getter]
+    fn base(&self) -> u128 {
+        self.inner.base()
+    }
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+    fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+    #[getter]
+    fn min_distance(&self) -> usize {
+        self.inner.min_distance()
+    }
+    fn word_count(&self) -> usize {
+        self.inner.word_count()
+    }
+    fn packed_words(&self) -> Vec<u128> {
+        self.inner.packed_words().to_vec()
+    }
+    fn words(&self) -> Vec<Vec<u128>> {
+        self.inner.words()
+    }
+    fn f2_dimension(&self) -> Option<usize> {
+        self.inner.f2_dimension()
+    }
+    fn is_closed_under_nim_add(&self) -> bool {
+        self.inner.is_closed_under_nim_add()
+    }
+    fn is_closed_under_nim_scalars(&self) -> bool {
+        self.inner.is_closed_under_nim_scalars()
+    }
+    fn has_nim_field_base(&self) -> bool {
+        self.inner.has_nim_field_base()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "NimLexicode(base_exp={}, len={}, min_distance={}, word_count={})",
+            self.inner.base_exp(),
+            self.inner.len(),
+            self.inner.min_distance(),
+            self.inner.word_count()
+        )
+    }
+}
+
+#[pyfunction]
+fn lexicode(n: usize, d: usize) -> Option<PyBinaryCode> {
+    crate::games::lexicode(n, d).map(wrap_binary_code)
+}
+
+#[pyfunction]
+fn lexicode_naive(n: usize, d: usize) -> Option<PyBinaryCode> {
+    crate::games::lexicode_naive(n, d).map(wrap_binary_code)
+}
+
+#[pyfunction]
+fn lexicode_bounded(n: usize, d: usize, node_budget: u128) -> Option<PyBinaryCode> {
+    crate::games::lexicode_bounded(n, d, node_budget).map(wrap_binary_code)
+}
+
+#[pyfunction]
+fn nim_lexicode_naive(base_exp: usize, n: usize, d: usize) -> Option<PyNimLexicode> {
+    crate::games::nim_lexicode_naive(base_exp, n, d).map(|inner| PyNimLexicode { inner })
+}
+
+#[pyfunction]
+fn nim_lexicode_naive_bounded(
+    base_exp: usize,
+    n: usize,
+    d: usize,
+    node_budget: u128,
+) -> Option<PyNimLexicode> {
+    crate::games::nim_lexicode_naive_bounded(base_exp, n, d, node_budget)
+        .map(|inner| PyNimLexicode { inner })
+}
+
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
     m.add_class::<PyOutcome>()?;
@@ -1945,7 +2034,18 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLoopyValue>()?;
     m.add_class::<PyLoopyGraph>()?;
     m.add_class::<PyLoopyNimCertificate>()?;
+    m.add_class::<PyNimLexicode>()?;
+    m.add("LEXICODE_NODE_BUDGET", crate::games::LEXICODE_NODE_BUDGET)?;
+    m.add(
+        "NIM_LEXICODE_NODE_BUDGET",
+        crate::games::NIM_LEXICODE_NODE_BUDGET,
+    )?;
     m.add_function(wrap_pyfunction!(nim_mul_mex, m)?)?;
+    m.add_function(wrap_pyfunction!(lexicode, m)?)?;
+    m.add_function(wrap_pyfunction!(lexicode_naive, m)?)?;
+    m.add_function(wrap_pyfunction!(lexicode_bounded, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_lexicode_naive, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_lexicode_naive_bounded, m)?)?;
     m.add_function(wrap_pyfunction!(coin_companions, m)?)?;
     m.add_function(wrap_pyfunction!(singleton_companions, m)?)?;
     m.add_function(wrap_pyfunction!(turtles_companions, m)?)?;

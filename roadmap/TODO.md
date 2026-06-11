@@ -170,16 +170,6 @@ shipped `reduce_word` oracle on this engine's conventions, then transport the sp
 construction and the reversal anti-automorphism through it. Char 2 keeps its own
 boundary.
 
-### `py-waves` — 1·e_y
-**Python exposure for waves J/K/M/N/O.** Verified absent from `src/py/`: `lexicode`,
-`brown_f2`/`brown_invariant`, `global_residues`/`global_residues_ff`,
-`transfer_diagonal`, `is_isomorphic`, `NewtonPolygon`/`tropicalize`,
-`BrauerClass`/`cyclic_algebra_invariant`/
-`constant_extension_invariants` — while waves A/E/H/I (theta, Weil, Construction A,
-discriminant forms) are bound. Bind per the `catalog.rs` policy (these are
-fixed-monomorph-friendly, mostly `i128`/`u128` payloads), and add the matching
-`demo.py` rungs.
-
 ---
 
 ## switches (a9's move first)
