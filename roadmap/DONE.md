@@ -60,6 +60,21 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
   still returns `None`; computing or certifying new finite excess integers remains the
   open/research step.
 
+## `nim-lexicodes` — lexicodes over nim alphabets (2026-06-11)
+**Pillars:** games ↔ integral    **Claim level:** standard math made computational + implemented and tested
+- surface: `games::nim_lexicode_naive` / `nim_lexicode_naive_bounded` build literal
+  greedy lexicodes over the alphabet `{0, ..., 2^k-1}` and return a `NimLexicode`
+  record with packed/decoded codewords, nim-add closure verification, F2-dimension,
+  Fermat-base detection, and coordinatewise nim-scalar closure checks.
+- oracles: tests verify the base-`2^k` repetition lexicodes are closed under
+  coordinatewise nim-addition; base `4` and `16` are closed under nim-scalar
+  multiplication, while base `8` fails exactly because the alphabet is not a finite
+  nim-field.
+- boundaries: the binary optimized `lexicode`/`BinaryCode` route is unchanged. The
+  q-ary path is intentionally literal/budgeted and does not implement the deeper
+  Conway-Sloane turning-game realization, which remains the separate `lexicode-game`
+  TODO.
+
 ## `subfield-detect` — finite ordinal-nimber subfield detection (2026-06-11)
 **Pillars:** scalar ↔ forms    **Claim level:** standard math made computational + implemented and tested
 - surface: `Ordinal::finite_subfield_degree`, `scalar::ordinal_finite_subfield_degree`,

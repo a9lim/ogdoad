@@ -83,11 +83,13 @@ lexicographic rule, which is the mex rule: the codewords are the Grundy-value-0
 positions of an associated turning-game move structure, binary lexicodes are
 linear *because of* Sprague-Grundy theory (XOR-closure is a game theorem, not a
 coding theorem), and the length-24, d = 8 lexicode is the extended binary Golay
-code. More generally, lexicodes over base `2^k` are closed under nim-addition
-and are linear when the base is a Fermat power `2^(2^k)` — exactly the sizes at
-which nim-multiplication makes the ordinals below the base a field. So natural,
-fixed, non-tautological rules demonstrably realize rich *linear* codes as
-P-sets; and the matching no-go (`writeups/goldarf.tex`, Theorem A:
+code. More generally, the shipped `NimLexicode` route verifies that lexicodes over
+base `2^k` are closed under nim-addition and witnesses the stronger linearity
+boundary: bases 4 and 16 are closed under finite-nim scalar multiplication, while
+base 8 is not — exactly the Fermat-power distinction where nim-multiplication makes
+the ordinals below the base a field. So natural, fixed, non-tautological rules
+demonstrably realize rich *linear* codes as P-sets; and the matching no-go
+(`writeups/goldarf.tex`, Theorem A:
 every Winning Ways coin-turning P-set is the kernel of an `F_2`-linear map)
 says linearity is also the ceiling for that architecture. Floor and ceiling
 coincide at linear. Problem 1 is exactly whether the lexicode phenomenon admits

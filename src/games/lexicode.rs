@@ -32,23 +32,184 @@
 //! supplies that degree-1 case as executable context; it does **not** touch the open
 //! Gold-quadric question and must not be cited as progress on it.
 //!
-//! **Convention.** The lexicographic order is the standard bit order with
-//! **coordinate 0 the most significant bit**, so scanning integers `0,1,2,…` upward
-//! *is* the lexicographic scan. A permuted coordinate order gives a different
-//! (equivalent) code. Binary only; the nim-field `2^{2^k}` linearity statement is
-//! documented context, not a shipped surface.
+//! **Convention.** The lexicographic order is the standard digit order with
+//! **coordinate 0 the most significant digit**, so scanning integers `0,1,2,…`
+//! upward *is* the lexicographic scan. A permuted coordinate order gives a different
+//! (equivalent) code. The binary production path returns [`BinaryCode`]; the
+//! base-`2^k` nim-alphabet path returns [`NimLexicode`] and keeps the field-linearity
+//! question executable without pretending every base is a field.
 
 use crate::forms::BinaryCode;
+use crate::scalar::nim_mul;
+use std::collections::HashSet;
 
 /// Backstop on the incremental search (codeword comparisons), mirroring
 /// [`crate::forms::AUTO_NODE_BUDGET`]: past it, [`lexicode`] reports `None` rather
 /// than running unbounded — an honest budget, not a silent cap.
 pub const LEXICODE_NODE_BUDGET: u128 = 50_000_000_000;
 
+/// Backstop for the literal base-`2^k` greedy scan.
+pub const NIM_LEXICODE_NODE_BUDGET: u128 = 5_000_000_000;
+
+/// A greedy lexicode over the nim alphabet `{0, …, 2^k-1}`.
+///
+/// Codewords are stored as packed base-`2^k` integers in lexicographic order. The
+/// constructor [`nim_lexicode_naive`] discovers and verifies closure under
+/// coordinatewise nim-addition (XOR). [`NimLexicode::is_closed_under_nim_scalars`]
+/// then asks the stronger question: whether scalar multiplication by every alphabet
+/// symbol, using finite nim multiplication coordinatewise, stays inside the alphabet
+/// and the code. That is the executable Conway-Sloane Fermat-base linearity witness.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NimLexicode {
+    base_exp: usize,
+    word_len: usize,
+    min_distance: usize,
+    words: Vec<u128>,
+}
+
+impl NimLexicode {
+    /// The exponent `k` in the alphabet size `2^k`.
+    pub fn base_exp(&self) -> usize {
+        self.base_exp
+    }
+
+    /// The alphabet size `2^k`.
+    pub fn base(&self) -> u128 {
+        1u128 << self.base_exp
+    }
+
+    /// The block length.
+    pub fn len(&self) -> usize {
+        self.word_len
+    }
+
+    /// Whether the block length is zero.
+    pub fn is_empty(&self) -> bool {
+        self.word_len == 0
+    }
+
+    /// The minimum-distance parameter used by the greedy construction.
+    pub fn min_distance(&self) -> usize {
+        self.min_distance
+    }
+
+    /// Number of codewords.
+    pub fn word_count(&self) -> usize {
+        self.words.len()
+    }
+
+    /// Packed base-`2^k` codewords in lexicographic order.
+    pub fn packed_words(&self) -> &[u128] {
+        &self.words
+    }
+
+    /// Decoded codewords, coordinate 0 first.
+    pub fn words(&self) -> Vec<Vec<u128>> {
+        self.words
+            .iter()
+            .map(|&w| decode_word(w, self.base(), self.word_len))
+            .collect()
+    }
+
+    /// The F2-dimension forced by nim-additive closure, when the size is a power of 2.
+    pub fn f2_dimension(&self) -> Option<usize> {
+        self.words
+            .len()
+            .is_power_of_two()
+            .then(|| self.words.len().trailing_zeros() as usize)
+    }
+
+    /// Verify closure under coordinatewise nim-addition (XOR).
+    pub fn is_closed_under_nim_add(&self) -> bool {
+        let set: HashSet<u128> = self.words.iter().copied().collect();
+        let base = self.base();
+        self.words.iter().all(|&a| {
+            self.words
+                .iter()
+                .all(|&b| set.contains(&nim_add_packed(a, b, base, self.word_len)))
+        })
+    }
+
+    /// Verify closure under coordinatewise scalar multiplication by every alphabet
+    /// symbol, using finite nim multiplication.
+    pub fn is_closed_under_nim_scalars(&self) -> bool {
+        let set: HashSet<u128> = self.words.iter().copied().collect();
+        let base = self.base();
+        (0..base).all(|s| {
+            self.words.iter().all(|&w| {
+                nim_scalar_mul_packed(s, w, base, self.word_len).is_some_and(|sw| set.contains(&sw))
+            })
+        })
+    }
+
+    /// Whether the alphabet size is a Fermat power `2^(2^r)`, i.e. the represented
+    /// finite nimbers below `base` form a field under nim multiplication.
+    pub fn has_nim_field_base(&self) -> bool {
+        self.base_exp.is_power_of_two()
+    }
+}
+
 /// Decode the integer `mask` into a length-`n` codeword row (coordinate 0 = MSB), the
 /// `Vec<u8>` form [`BinaryCode::new`] expects.
 fn mask_to_row(mask: u32, n: usize) -> Vec<u8> {
     (0..n).map(|i| ((mask >> (n - 1 - i)) & 1) as u8).collect()
+}
+
+fn checked_pow_u128(base: u128, exp: usize) -> Option<u128> {
+    let mut acc = 1u128;
+    for _ in 0..exp {
+        acc = acc.checked_mul(base)?;
+    }
+    Some(acc)
+}
+
+fn decode_word(mut code: u128, base: u128, n: usize) -> Vec<u128> {
+    let mut out = vec![0u128; n];
+    for slot in out.iter_mut().rev() {
+        *slot = code % base;
+        code /= base;
+    }
+    out
+}
+
+fn hamming_distance_packed(mut a: u128, mut b: u128, base: u128, n: usize) -> usize {
+    let mut dist = 0usize;
+    for _ in 0..n {
+        if a % base != b % base {
+            dist += 1;
+        }
+        a /= base;
+        b /= base;
+    }
+    dist
+}
+
+fn nim_add_packed(mut a: u128, mut b: u128, base: u128, n: usize) -> u128 {
+    let mut out = 0u128;
+    let mut place = 1u128;
+    for _ in 0..n {
+        let digit = (a % base) ^ (b % base);
+        out += digit * place;
+        place *= base;
+        a /= base;
+        b /= base;
+    }
+    out
+}
+
+fn nim_scalar_mul_packed(scalar: u128, mut word: u128, base: u128, n: usize) -> Option<u128> {
+    let mut out = 0u128;
+    let mut place = 1u128;
+    for _ in 0..n {
+        let digit = nim_mul(scalar, word % base);
+        if digit >= base {
+            return None;
+        }
+        out += digit * place;
+        place *= base;
+        word /= base;
+    }
+    Some(out)
 }
 
 /// A GF(2) basis of the span of `vectors` (integers as bit-vectors), by XOR
@@ -159,6 +320,56 @@ pub fn lexicode_bounded(n: usize, d: usize, node_budget: u128) -> Option<BinaryC
     BinaryCode::new(n, basis.iter().map(|&g| mask_to_row(g, n)).collect())
 }
 
+/// Literal greedy lexicode over the nim alphabet `{0, …, 2^k-1}`.
+///
+/// This is the base-`2^k` analogue of [`lexicode_naive`]: scan all length-`n` words
+/// in lexicographic order, keep a word iff it is Hamming distance at least `d` from
+/// every kept word, then verify closure under coordinatewise nim-addition. A closure
+/// failure returns `None` rather than being papered over. The stronger field-linearity
+/// check is exposed by [`NimLexicode::is_closed_under_nim_scalars`].
+pub fn nim_lexicode_naive(base_exp: usize, n: usize, d: usize) -> Option<NimLexicode> {
+    nim_lexicode_naive_bounded(base_exp, n, d, NIM_LEXICODE_NODE_BUDGET)
+}
+
+/// [`nim_lexicode_naive`] with an explicit comparison budget.
+pub fn nim_lexicode_naive_bounded(
+    base_exp: usize,
+    n: usize,
+    d: usize,
+    node_budget: u128,
+) -> Option<NimLexicode> {
+    if base_exp == 0 || base_exp >= u128::BITS as usize || n == 0 {
+        return None;
+    }
+    let base = 1u128 << base_exp;
+    let size = checked_pow_u128(base, n)?;
+    let mut budget = node_budget;
+    let mut kept = Vec::new();
+    for word in 0..size {
+        let mut keep = true;
+        for &c in &kept {
+            if budget == 0 {
+                return None;
+            }
+            budget -= 1;
+            if hamming_distance_packed(word, c, base, n) < d {
+                keep = false;
+                break;
+            }
+        }
+        if keep {
+            kept.push(word);
+        }
+    }
+    let code = NimLexicode {
+        base_exp,
+        word_len: n,
+        min_distance: d,
+        words: kept,
+    };
+    code.is_closed_under_nim_add().then_some(code)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -225,6 +436,36 @@ mod tests {
         let even = lexicode(5, 2).unwrap();
         assert_eq!((even.len(), even.dim()), (5, 4));
         assert_eq!(even.minimum_distance(), Some(2));
+    }
+
+    #[test]
+    fn nim_lexicode_repetition_codes_are_nim_add_closed() {
+        for base_exp in 1..=4 {
+            let code = nim_lexicode_naive(base_exp, 2, 2).unwrap();
+            let base = 1usize << base_exp;
+            assert_eq!(code.word_count(), base);
+            assert_eq!(code.f2_dimension(), Some(base_exp));
+            assert!(code.is_closed_under_nim_add());
+            assert_eq!(
+                code.words(),
+                (0..base as u128).map(|a| vec![a, a]).collect::<Vec<_>>()
+            );
+        }
+    }
+
+    #[test]
+    fn nim_lexicode_scalar_linearity_detects_fermat_bases() {
+        let base4 = nim_lexicode_naive(2, 2, 2).unwrap();
+        assert!(base4.has_nim_field_base());
+        assert!(base4.is_closed_under_nim_scalars());
+
+        let base16 = nim_lexicode_naive(4, 2, 2).unwrap();
+        assert!(base16.has_nim_field_base());
+        assert!(base16.is_closed_under_nim_scalars());
+
+        let base8 = nim_lexicode_naive(3, 2, 2).unwrap();
+        assert!(!base8.has_nim_field_base());
+        assert!(!base8.is_closed_under_nim_scalars());
     }
 
     #[test]

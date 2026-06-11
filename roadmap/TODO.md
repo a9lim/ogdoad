@@ -129,14 +129,6 @@ laws as tests and `tropicalize` factoring through it. A leaf, but it converts th
 
 ## numbers — games
 
-### `nim-lexicodes` — 1·(e_g∧e_i)
-**Lexicodes over nim-field bases** — Bridge O's documented-context-not-shipped
-statement made executable: greedy lexicodes over base `2^k` are closed under
-nim-addition, and are *linear* exactly when the base is a Fermat power `2^(2^k)`
-(Conway–Sloane 1986, the sizes where nim-multiplication makes a field). Implement the
-base-`2^k` greedy with nim-addition closure checks; witness linearity at base 4/16 and
-its failure at base 8. Discover-don't-assert, like `lexicode_naive`.
-
 ### `lexicode-game` — 1·e_g
 **The turning-game realization of lexicodes** — Bridge O cites the Conway–Sloane
 game construction "for transcription in a formalization pass". Build the actual

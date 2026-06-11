@@ -103,6 +103,9 @@ indices, and collection lengths.
   balls (`grundy::mex`); linearity is the Sprague–Grundy theorem, *discovered* not
   assumed. Ships the `[7,4,3]` Hamming, `[8,4,4]` extended Hamming, and `[24,12,8]`
   Golay codes as lexicodes, chaining `mex → lexicode → Golay → Construction A → theta`.
+  Also ships `nim_lexicode_naive`/`NimLexicode`, the literal base-`2^k` greedy over
+  nim alphabets: closure under coordinatewise nim-addition is verified, and scalar
+  closure witnesses the Fermat-base line (base 4/16 pass, base 8 fails).
   **Claim level:** the degree-1 (solved, linear) side of `OPEN.md` §1 — explicitly does
   NOT touch the open Gold-quadric question; do not cite as progress on it.
 

@@ -133,9 +133,11 @@ reaches the lattice world: a greedy binary **lexicode** is built by the **mex** 
 so the Conway–Sloane codes (the `[7,4,3]` Hamming, the `[24,12,8]` Golay) are
 Sprague–Grundy P-sets that feed straight into the Construction A lattices of the
 integral leg — `mex → lexicode → Golay → Construction A → theta`, one chain crossing
-three pillars. And thermography itself **is** tropical arithmetic: the option folds
-are the tropical `⊕` and cooling is the tropical `⊗`, with the two scaffold walls
-living in the dual `(max,+)`/`(min,+)` semirings — named in `scalar/tropical.rs` (a
+three pillars. The same file also ships base-`2^k` nim-alphabet lexicodes, verifying
+nim-additive closure and witnessing scalar-linearity at Fermat bases (4/16) but not
+base 8. And thermography itself **is** tropical arithmetic: the option folds are the
+tropical `⊕` and cooling is the tropical `⊗`, with the two scaffold walls living in
+the dual `(max,+)`/`(min,+)` semirings — named in `scalar/tropical.rs` (a
 `Semiring`, not a `Scalar`: an idempotent `⊕` has no inverse) and machine-checked
 equal to the golden thermograph.
 
@@ -294,7 +296,7 @@ roadmap already names both ways to do it:
   resolution of the thermography ↔ Newton-polygon problem: one star, one open
   problem.
 
-(The third pairing, S–C + I–G, has a named half — `nim-lexicodes` — but no
+(The third pairing, S–C + I–G, now has its I–G half built (`nim-lexicodes`) but no
 scalar–clifford candidate on the books; and `*4` alone is no help: it would
 balance scalar only by unbalancing forms.) Either pair makes every island even.
 The grand tour is exactly two bridges away, and which two is a choice between

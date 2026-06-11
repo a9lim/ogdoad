@@ -1201,6 +1201,11 @@ kept so far; Conway–Sloane prove the result is **linear** by Sprague–Grundy 
   `dist[v] = d(v,C)` and updating it in one `O(2ⁿ)` pass per generator via the coset
   recurrence `d(v, C ∪ (g⊕C)) = min(d(v,C), d(v⊕g,C))` with a monotone cursor (so the
   `n=24` build is fast), budgeted by `LEXICODE_NODE_BUDGET`.
+- `nim_lexicode_naive(2^k,n,d)` (spelled by exponent `k`) — the literal greedy scan
+  over the nim alphabet `{0,...,2^k-1}`, returning `NimLexicode` after verifying
+  coordinatewise nim-addition closure. `NimLexicode::is_closed_under_nim_scalars`
+  asks the stronger field-linearity question by multiplying coordinates with finite
+  nim multiplication.
 
 The greedy step is shown to be `mex(Forbidden)` (the union of radius-`(d−1)` balls)
 via [`grundy::mex`] and a toy-`n` witness; the deeper Conway–Sloane turning-game
@@ -1212,10 +1217,14 @@ realization is cited for transcription in a formalization pass, **subordinate to
   `lexicode(24,8)` is `[24,12,8]` doubly-even self-dual with the **Golay** weight
   enumerator (uniqueness of the Type II `[24,12,8]` code closes "is Golay"); and the
   chain rung `lexicode(24,8).construction_a()` is even unimodular rank 24 **with**
-  roots — re-pinning Bridge H's Golay ≠ Leech boundary from the games side.
-- **Scope:** binary only; the nim-field `2^{2^k}` linearity statement is documented
-  context, not a shipped surface. Lexicographic order = standard bit order (coordinate
-  0 the MSB); a permuted order gives an equivalent code.
+  roots — re-pinning Bridge H's Golay ≠ Leech boundary from the games side. The
+  q-ary/nim route checks repetition lexicodes over bases `4`, `8`, and `16`: all are
+  nim-additive, bases `4` and `16` are nim-scalar closed, and base `8` is not.
+- **Scope:** the optimized production route remains binary. The base-`2^k` route is
+  literal and budgeted, with lexicographic order = standard digit order (coordinate 0
+  the most significant digit); a permuted coordinate order gives an equivalent code.
+  The deeper Conway-Sloane turning-game realization is still cited for transcription
+  in a formalization pass.
 
 ---
 
