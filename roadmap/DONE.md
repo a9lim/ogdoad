@@ -46,6 +46,20 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
   and the `u128` payload model still rejects fields whose order overflows `u128`
   (for example `Fpn<2,128>`).
 
+## `ordinal-principled` — Kummer carries from `m_u` only (2026-06-11)
+**Pillars:** scalar    **Claim level:** standard math made computational + implemented and tested
+- surface: `scalar/big/ordinal/tower.rs::alpha_ordinal` now reconstructs each shipped
+  Kummer carry by computing `f(u)=ord_u(2)`, recursively computing DiMuro's `Q(f(u))`,
+  assembling the corresponding `χ`-sum, and nim-adding the finite excess integer
+  `m_u`. The only production row data left for the staged tower is
+  `finite_excess(u)` through `u=47`.
+- oracles: tests separately pin every shipped row's `f(u)`, `Q(f(u))`, finite `m_u`,
+  and resulting `α_u`; the existing cube/quintic/septic/`α_47` landmarks and field-law
+  sweeps remain green.
+- boundaries: the operational boundary is unchanged. A carry needing `m_53` or beyond
+  still returns `None`; computing or certifying new finite excess integers remains the
+  open/research step.
+
 ## `subfield-detect` — finite ordinal-nimber subfield detection (2026-06-11)
 **Pillars:** scalar ↔ forms    **Claim level:** standard math made computational + implemented and tested
 - surface: `Ordinal::finite_subfield_degree`, `scalar::ordinal_finite_subfield_degree`,
@@ -59,7 +73,7 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
   in a detected non-`F_64` field, ordinal Arf classification past the old `F_64`
   window, and rejection at `ω^(ω^ω)`.
 - boundaries: detection is limited to the source-verified staged tower and the
-  shipped Kummer excess table (`α_u` through `47`); genuinely transfinite
+  shipped finite Kummer excess table (`m_u` through `47`); genuinely transfinite
   ordinal-nimber metrics still return `None` for finite Arf/Witt/Brauer-Wall
   classification.
 

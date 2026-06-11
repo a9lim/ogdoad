@@ -47,11 +47,12 @@
 //!   the monomial and the reduced monomial is nim-multiplied back by `α_u`. This recurses
 //!   **strictly downward by place** (every `α_{p(m)}` is built from generators at places
 //!   `< m`), bottoming out at `α_3 = 2` in the finite field. We carry the
-//!   DiMuro Table 1 `α_u` values through `u ≤ 43` plus the locally verified
-//!   `α_47=ω^(ω^7)+1`, so a product is exact whenever its Kummer carries stay at
-//!   primes `≤ 47`; a carry needing `α_53` or beyond returns `None`, as does anything
-//!   `≥ ω^(ω^ω)` (an infinite exponent place). (The Artin–Schreier `x²+x+1` relation
-//!   is the separate `u = 2` Fermat-tower
+//!   DiMuro Table 1 finite excess integers `m_u` through `u ≤ 43` plus the locally
+//!   verified `m_47=1`; `α_u` itself is assembled from `ord_u(2)`, `Q(f(u))`, and
+//!   `m_u`. A product is exact whenever its Kummer carries stay at primes `≤ 47`; a
+//!   carry needing `m_53` or beyond returns `None`, as does anything `≥ ω^(ω^ω)` (an
+//!   infinite exponent place). (The Artin–Schreier `x²+x+1` relation is the separate
+//!   `u = 2` Fermat-tower
 //!   case — DiMuro Thm 3.1.7 / Cor 3.11 — handled inside the finite nimber field
 //!   [`finite_field::nimber`](crate::scalar::finite_field).) See root `OPEN.md` for
 //!   the table provenance and current open boundary.

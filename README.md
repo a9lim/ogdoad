@@ -331,9 +331,10 @@ Scope boundaries worth stating plainly:
   dividing 128; it is not the proper-class field of all nimbers.
 - `Ordinal` nim-addition is general on the represented CNF terms, and it implements
   `Scalar` for Clifford experiments inside the checked Kummer boundary.
-  Nim-multiplication is implemented below `ω^(ω^ω)` when every carry uses the
-  verified excess table: DiMuro through `α_u` for `u ≤ 43`, plus the locally
-  certified `α_47`; a carry needing a prime past that table returns `None`.
+  Nim-multiplication is implemented below `ω^(ω^ω)` when every carry uses a
+  verified finite Lenstra excess row: DiMuro through `m_u` for `u ≤ 43`, plus the
+  locally certified `m_47=1`; a carry needing a prime past that table returns
+  `None`.
   Finite ordinal-nimber metrics expose their minimal detected `F_{2^m}` and use
   that degree for Arf/Witt/Brauer-Wall classification; genuinely transfinite
   metrics remain outside the classifier.

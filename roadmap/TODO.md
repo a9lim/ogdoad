@@ -120,13 +120,6 @@ computation stays `*1`.
 
 ## numbers — scalar worlds
 
-### `ordinal-principled` — 1·e_s
-**The principled tower route** (OPEN §3 names it "implementation, not research"):
-compute `f(u) = ord_u(2)` and `Q(f(u))` and assemble the `χ`-sum in-code, hardcoding
-*only* the finite excess integer `m_u`. Independently cross-checks every DiMuro row
-the table currently transcribes, and makes shipping a future certified `m_u` a
-one-integer diff instead of an ordinal-expression transcription.
-
 ### `hyperfield` — ½·e_s
 **Viro's tropical hyperfield**, making Bridge J's lax tropicalization strict (Remark
 J.2 names this exact repair): a small multivalued-addition type

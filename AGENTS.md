@@ -103,7 +103,7 @@ The scalar landscape is broad, but not all backends have the same exactness clai
 | `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss` | local-field-style backends/functors, mostly capped-relative precision models |
 | `Adele`, `LocalQp` | runtime-prime adelic precision model over `Q` |
 | `RationalFunction` | exact global function field `F_q(t)` over `Poly = F_q[t]` |
-| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through the source-verified Kummer carries `α_u` (DiMuro `u ≤ 43`, plus the certified `α_47`) below `ω^(ω^ω)` |
+| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through Kummer carries `α_u` assembled from `ord_u(2)`, `Q(f(u))`, and the source-verified finite `m_u` rows (DiMuro `u ≤ 43`, plus certified `m_47=1`) below `ω^(ω^ω)` |
 
 The char-2 Clifford point is load-bearing. In characteristic 2, `q` and `b` are
 independent:

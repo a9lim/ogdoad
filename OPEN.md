@@ -344,17 +344,20 @@ What is implemented:
 - The algebraic closure of `F_2` is represented by ordinals `< omega^(omega^omega)`
   under nim-arithmetic.
 - The prime-power generator tower is implemented in `src/scalar/big/ordinal/tower.rs`.
-  Products are exact when every Kummer carry uses a verified excess `alpha_u` for
-  an odd prime `u <= 47`: DiMuro Table 1 through `43`, plus the local
-  `ordinal_excess_probe.py` verification for `47`.
+  Products are exact when every Kummer carry uses a verified finite Lenstra excess
+  `m_u` for an odd prime `u <= 47`: DiMuro Table 1 through `43`, plus the local
+  `ordinal_excess_probe.py` verification for `m_47 = 1`. The ordinal carry
+  `alpha_u` is assembled in code from `f(u)=ord_u(2)`, DiMuro's recursive
+  `Q(f(u))`, and the finite `m_u`.
 - Stage 1 handles scalar excesses such as `alpha_3 = 2`, `alpha_5 = 4`, and
   `alpha_17 = 16`; Stage 2 handles nonscalar excesses such as `alpha_7 = omega+1`
   by branching the monomial and recursing to lower places.
-- Rows through `43` are from DiMuro's source table; `47` is from the independent
-  local fixed-base probe. Field-axiom sweeps test engine consistency, not the
-  truth of the table values.
+- Finite excess rows through `43` are from DiMuro's source table; `47` is from the
+  independent local fixed-base probe. Field-axiom sweeps test engine consistency,
+  not the truth of the finite `m_u` values.
 
-The verified rows currently used are:
+The verified rows currently used are shown below for readability; production stores
+only the finite `m_u` entries and reconstructs the displayed `alpha_u` values:
 
 | u | alpha_u | u | alpha_u | u | alpha_u |
 |---|---|---|---|---|---|
@@ -412,10 +415,10 @@ Since the 2026-06 research pass (`writeups/excess.tex`, `experiments/excess/`,
   theorem.
 
 Why this is research:
-- Rewriting the current table-driven code to compute the known shape
+- The same-coverage implementation improvement is now done: the shipped code computes
   `f(u)`, `Q(f(u))`, and the `chi`-sum, while hardcoding only the finite excess
-  integer, is a useful implementation improvement but not new reach.
-- Extending past the verified table is different. DiMuro's theorem proves that the
+  integer. That changes provenance hygiene, not reach.
+- Extending past the verified finite-excess table is different. DiMuro's theorem proves that the
   excess has a formulaic transfinite shape plus a finite correction, but the finite
   correction has no closed form in the cited theorem.
 - Weaker "closed forms" already fail: `Q(f(p))` alone does not determine the
@@ -436,10 +439,6 @@ Why this is research:
   pleasant API.
 
 Concrete progress targets:
-- Implement the principled same-coverage route: compute `f(u) = ord_u(2)`,
-  compute `Q(f(u))`, construct the `chi`-sum, and hardcode only the finite excess
-  integer. This should independently cross-check the published rows. (Filed as
-  `roadmap/TODO.md` slug `ordinal-principled` — implementation, not research.)
 - Decide whether to import more known OEIS/calculator values through `p <= 709` as
   cited data, or keep requiring a local finite-field oracle for each shipped row.
 - Derive or certify finite excess terms beyond the published table.

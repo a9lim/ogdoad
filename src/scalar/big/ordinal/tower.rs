@@ -52,13 +52,15 @@
 //!
 //! ## Staging (honest scope)
 //!
-//! We carry the DiMuro Table 1 excesses through `α_43` plus the locally verified
-//! `α_47 = ω^(ω^7)+1` from `experiments/ordinal_excess_probe.py` (see `OPEN.md`).
-//! The product of any two ordinals `< ω^(ω^ω)` is therefore exact whenever every
-//! Kummer carry it triggers is at a prime `≤ 47`; a carry needing `α_53` or beyond
-//! returns `None` — the honest operational boundary, moved up from the earlier
-//! "any non-scalar `α_u`" cut. (Anything `≥ ω^(ω^ω)`, an infinite exponent place,
-//! is out of range outright.)
+//! We carry only the finite Lenstra excess integers `m_u` through DiMuro Table 1
+//! (`u ≤ 43`) plus the locally verified `m_47 = 1` from
+//! `experiments/ordinal_excess_probe.py` (see `OPEN.md`). The ordinal expression is
+//! assembled in code: compute `f(u)=ord_u(2)`, compute DiMuro's `Q(f(u))`, form the
+//! `χ`-sum, then nim-add `m_u`. The product of any two ordinals `< ω^(ω^ω)` is
+//! therefore exact whenever every Kummer carry it triggers is at a prime `≤ 47`; a
+//! carry needing `m_53` or beyond returns `None` — the honest operational boundary,
+//! moved up from the earlier "any non-scalar `α_u`" cut. (Anything
+//! `≥ ω^(ω^ω)`, an infinite exponent place, is out of range outright.)
 
 use super::Ordinal;
 use crate::scalar::{is_prime_u128, nim_mul};
@@ -88,34 +90,147 @@ pub(super) fn place_prime(m: u128) -> u128 {
 }
 
 /// The excess `α_u` (`χ_u^u = α_u`, the Kummer relation) as an ordinal, or `None` for
-/// primes beyond the verified table (`u > 47` — the staged boundary). Every
-/// `α_u` is built from generators at strictly-lower places than `χ_u`'s own, which is
-/// what makes the branching reduction descend and terminate. Values through `43`:
-/// DiMuro Table 1; value `47`: local fixed-base finite-field oracle (see `OPEN.md`);
-/// square brackets in the source table are ordinary ordinal exponentiation, already
-/// resolved (`[2^ω]=ω`, `[2^{ω²}]=ω^ω`, …).
+/// primes beyond the verified table (`u > 47` — the staged boundary). The only
+/// hardcoded row datum is the finite excess integer `m_u`; the ordinal expression is
+/// reconstructed from `f(u)=ord_u(2)` and DiMuro's recursive `Q(f(u))`. Every `α_u`
+/// is built from generators at strictly-lower places than `χ_u`'s own, which is what
+/// makes the branching reduction descend and terminate. Values through `43`: DiMuro
+/// Table 1; value `47`: local fixed-base finite-field oracle (see `OPEN.md`).
 pub(super) fn alpha_ordinal(u: u128) -> Option<Ordinal> {
-    let fin = Ordinal::from_u128;
-    let wpow = Ordinal::omega_pow;
-    let w = Ordinal::omega;
-    let val = match u {
-        3 => fin(2),
-        5 => fin(4),
-        7 => w().nim_add(&fin(1)),        // ω + 1
-        11 => wpow(w()).nim_add(&fin(1)), // ω^ω + 1
-        13 => w().nim_add(&fin(4)),       // ω + 4
-        17 => fin(16),
-        19 => wpow(fin(3)).nim_add(&fin(4)),       // ω³ + 4
-        23 => wpow(wpow(fin(3))).nim_add(&fin(1)), // ω^(ω³) + 1
-        29 => wpow(wpow(fin(2))).nim_add(&fin(4)), // ω^(ω²) + 4
-        31 => wpow(w()).nim_add(&fin(1)),          // ω^ω + 1
-        37 => wpow(fin(3)).nim_add(&fin(4)),       // ω³ + 4
-        41 => wpow(w()).nim_add(&fin(1)),          // ω^ω + 1
-        43 => wpow(wpow(fin(2))).nim_add(&fin(1)), // ω^(ω²) + 1
-        47 => wpow(wpow(fin(7))).nim_add(&fin(1)), // ω^(ω⁷) + 1
-        _ => return None,
-    };
+    let f = multiplicative_order_two_mod_prime(u)?;
+    let mut val = chi_sum(&q_set(f)?)?;
+    val = val.nim_add(&Ordinal::from_u128(finite_excess(u)?));
     Some(val)
+}
+
+fn finite_excess(u: u128) -> Option<u128> {
+    match u {
+        3 | 5 | 13 | 17 | 29 | 37 => Some(0),
+        7 | 11 | 23 | 31 | 41 | 43 | 47 => Some(1),
+        19 => Some(4),
+        _ => None,
+    }
+}
+
+fn multiplicative_order_two_mod_prime(u: u128) -> Option<u128> {
+    if u <= 2 || !is_prime_u128(u) {
+        return None;
+    }
+    let mut x = 2 % u;
+    let mut k = 1u128;
+    while x != 1 {
+        x = x.checked_mul(2)? % u;
+        k = k.checked_add(1)?;
+        if k > u - 1 {
+            return None;
+        }
+    }
+    Some(k)
+}
+
+fn q_set(h: u128) -> Option<Vec<u128>> {
+    if h == 1 {
+        return Some(Vec::new());
+    }
+    let (r, g) = smallest_prime_power_factor(h)?;
+    let mut qs = q_set(g)?;
+    let chi_g = chi_sum(&qs)?;
+    let degree = chi_g.finite_subfield_degree()?;
+    if !degree.is_multiple_of(r) {
+        qs.push(r);
+        qs.sort_unstable();
+    }
+    Some(qs)
+}
+
+fn smallest_prime_power_factor(h: u128) -> Option<(u128, u128)> {
+    if h <= 1 {
+        return None;
+    }
+    let u = smallest_prime_factor(h)?;
+    let mut r = 1u128;
+    let mut g = h;
+    while g.is_multiple_of(u) {
+        r = r.checked_mul(u)?;
+        g /= u;
+    }
+    Some((r, g))
+}
+
+fn smallest_prime_factor(n: u128) -> Option<u128> {
+    if n < 2 {
+        return None;
+    }
+    if n.is_multiple_of(2) {
+        return Some(2);
+    }
+    let mut d = 3u128;
+    while d <= n / d {
+        if n.is_multiple_of(d) {
+            return Some(d);
+        }
+        d += 2;
+    }
+    Some(n)
+}
+
+fn chi_sum(qs: &[u128]) -> Option<Ordinal> {
+    qs.iter()
+        .try_fold(Ordinal::zero(), |acc, &q| Some(acc.nim_add(&chi(q)?)))
+}
+
+fn chi(q: u128) -> Option<Ordinal> {
+    let (p, n) = prime_power(q)?;
+    if p == 2 {
+        let shift = q / 2;
+        if shift >= u128::BITS as u128 {
+            return None;
+        }
+        return Some(Ordinal::from_u128(1u128 << shift));
+    }
+    let place = odd_prime_place(p)?;
+    let coeff = checked_pow(p, n - 1)?;
+    let exp = Ordinal::monomial(Ordinal::from_u128(place), coeff);
+    Some(Ordinal::omega_pow(exp))
+}
+
+fn prime_power(q: u128) -> Option<(u128, u128)> {
+    if q < 2 {
+        return None;
+    }
+    let p = smallest_prime_factor(q)?;
+    let mut n = 0u128;
+    let mut rest = q;
+    while rest.is_multiple_of(p) {
+        n += 1;
+        rest /= p;
+    }
+    (rest == 1).then_some((p, n))
+}
+
+fn odd_prime_place(p: u128) -> Option<u128> {
+    if p == 2 || !is_prime_u128(p) {
+        return None;
+    }
+    let mut place = 0u128;
+    loop {
+        let q = place_prime(place);
+        if q == p {
+            return Some(place);
+        }
+        if q > p {
+            return None;
+        }
+        place += 1;
+    }
+}
+
+fn checked_pow(base: u128, exp: u128) -> Option<u128> {
+    let mut acc = 1u128;
+    for _ in 0..exp {
+        acc = acc.checked_mul(base)?;
+    }
+    Some(acc)
 }
 
 /// Base-`base` digit vector of `v` (least-significant first, no trailing zeros).
@@ -287,6 +402,26 @@ mod tests {
         p
     }
 
+    fn expected_alpha(u: u128) -> Ordinal {
+        match u {
+            3 => fin(2),
+            5 => fin(4),
+            7 => w().nim_add(&fin(1)),
+            11 => Ordinal::omega_pow(w()).nim_add(&fin(1)),
+            13 => w().nim_add(&fin(4)),
+            17 => fin(16),
+            19 => Ordinal::omega_pow(fin(3)).nim_add(&fin(4)),
+            23 => Ordinal::omega_pow(Ordinal::omega_pow(fin(3))).nim_add(&fin(1)),
+            29 => Ordinal::omega_pow(Ordinal::omega_pow(fin(2))).nim_add(&fin(4)),
+            31 => Ordinal::omega_pow(w()).nim_add(&fin(1)),
+            37 => Ordinal::omega_pow(fin(3)).nim_add(&fin(4)),
+            41 => Ordinal::omega_pow(w()).nim_add(&fin(1)),
+            43 => Ordinal::omega_pow(Ordinal::omega_pow(fin(2))).nim_add(&fin(1)),
+            47 => Ordinal::omega_pow(Ordinal::omega_pow(fin(7))).nim_add(&fin(1)),
+            _ => panic!("unexpected test row"),
+        }
+    }
+
     #[test]
     fn place_primes_are_the_odd_primes() {
         for (m, p) in [
@@ -307,6 +442,34 @@ mod tests {
             (14, 53),
         ] {
             assert_eq!(place_prime(m), p);
+        }
+    }
+
+    #[test]
+    fn dimuro_rows_are_assembled_from_order_qset_and_finite_excess() {
+        // Test-only transcription of DiMuro Table 1 plus the locally verified 47 row.
+        // The production code above hardcodes only `m_u`; these checks pin the
+        // computed `f(u)`, recursive Q-set, and final χ-sum separately.
+        for (u, f, qs, m) in [
+            (3, 2, &[2][..], 0),
+            (5, 4, &[4][..], 0),
+            (7, 3, &[3][..], 1),
+            (11, 10, &[5][..], 1),
+            (13, 12, &[3, 4][..], 0),
+            (17, 8, &[8][..], 0),
+            (19, 18, &[9][..], 4),
+            (23, 11, &[11][..], 1),
+            (29, 28, &[4, 7][..], 0),
+            (31, 5, &[5][..], 1),
+            (37, 36, &[4, 9][..], 0),
+            (41, 20, &[5][..], 1),
+            (43, 14, &[7][..], 1),
+            (47, 23, &[23][..], 1),
+        ] {
+            assert_eq!(multiplicative_order_two_mod_prime(u), Some(f));
+            assert_eq!(q_set(f).as_deref(), Some(qs));
+            assert_eq!(finite_excess(u), Some(m));
+            assert_eq!(alpha_ordinal(u), Some(expected_alpha(u)));
         }
     }
 
