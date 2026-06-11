@@ -451,7 +451,7 @@ mod tests {
     #[test]
     fn a_nonprincipal_idele_and_its_inverse() {
         // Perturb at p = 7: a genuine deviation that keeps the element a unit there.
-        let dev = LocalQp::from_i128(7, adele_prec(7), 1); // small unit deviation
+        let dev = LocalQp::from_int(7, adele_prec(7), 1); // small unit deviation
         let x = Adele::from_rational(&q(2, 3)).with_correction(7, dev);
         assert!(!x.is_principal());
         assert!(x.is_idele());

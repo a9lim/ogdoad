@@ -21,9 +21,6 @@ pub trait FiniteOddField: ExactFieldScalar + Copy {
     /// Whether this type is a supported finite field of odd characteristic.
     fn is_supported_odd_field() -> bool;
 
-    /// Embed an ordinary integer through the prime subfield.
-    fn from_i128(n: i128) -> Self;
-
     /// Enumerate the field: index `i ∈ [0, field_order())` ↦ a distinct element,
     /// covering all of `F_q` exactly once. Used by deterministic finite-field
     /// polynomial factorization in the function-field place layer.
@@ -50,10 +47,6 @@ impl<const P: u128> FiniteOddField for Fp<P> {
         Fp::<P>::modulus_is_prime() && P != 2
     }
 
-    fn from_i128(n: i128) -> Self {
-        Fp::<P>::from_int(n)
-    }
-
     fn from_index(i: u128) -> Self {
         Fp::<P>::from_u128(i)
     }
@@ -74,12 +67,6 @@ impl<const P: u128, const N: usize> FiniteOddField for Fpn<P, N> {
 
     fn is_supported_odd_field() -> bool {
         Fpn::<P, N>::is_supported_field() && P != 2
-    }
-
-    fn from_i128(n: i128) -> Self {
-        let m = P as i128;
-        let v = ((n % m) + m) % m;
-        Fpn::<P, N>::constant(v as u128)
     }
 
     fn from_index(i: u128) -> Self {

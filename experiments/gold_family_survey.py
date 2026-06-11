@@ -77,7 +77,7 @@ def qform(x, coeffs, m):
 
 
 def arf_of(coeffs, m):
-    """ArfResult of Q_c in the bit-basis e_i = 2^i (q diagonal + b polar)."""
+    """ArfInvariants of Q_c in the bit-basis e_i = 2^i (q diagonal + b polar)."""
     q = [pl.Nimber(qform(1 << i, coeffs, m)) for i in range(m)]
     b = {}
     for i in range(m):

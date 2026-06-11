@@ -1587,7 +1587,7 @@ macro_rules! divided_power_backend {
                 if i >= self.inner.dim {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }
-                Ok(self.wrap(self.inner.gen::<$scalar>(i)))
+                Ok(self.wrap(self.inner.gamma1::<$scalar>(i)))
             }
             fn monomial(&self, alpha: Vec<u128>, coeff: &Bound<'_, PyAny>) -> PyResult<$vec> {
                 if alpha.len() > self.inner.dim {

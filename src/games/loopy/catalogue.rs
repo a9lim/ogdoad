@@ -287,7 +287,7 @@ impl LoopyValue {
     }
 }
 
-pub(super) fn winner_from_sign(x: i128) -> LoopyWinner {
+fn winner_from_sign(x: i128) -> LoopyWinner {
     if x > 0 {
         LoopyWinner::Left
     } else if x < 0 {

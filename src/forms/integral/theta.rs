@@ -42,7 +42,7 @@ mod tests {
     use super::*;
     use crate::forms::{
         as_modular_form, delta, e_8, eisenstein_e4, leech, mass_even_unimodular, modular_qexp_mul,
-        modular_qexp_scale, modular_qexp_sub, qexp_from_i128, type_ii_e8_sum_code,
+        modular_qexp_scale, modular_qexp_sub, qexp_from_int, type_ii_e8_sum_code,
         type_ii_len16_code, D16_PLUS_AUT_ORDER, E8_WEYL_GROUP_ORDER,
     };
     use crate::scalar::{Rational, Scalar};
@@ -75,7 +75,7 @@ mod tests {
     fn theta_series_identifies_the_full_modular_forms() {
         let terms = 3;
         let e4 = eisenstein_e4(terms);
-        let e8_theta = qexp_from_i128(&e_8().theta_series(terms).unwrap());
+        let e8_theta = qexp_from_int(&e_8().theta_series(terms).unwrap());
         assert_eq!(e8_theta, e4);
         assert_eq!(
             as_modular_form(&e8_theta, 4, terms),
@@ -83,12 +83,12 @@ mod tests {
         );
 
         let e4_squared = modular_qexp_mul(&e4, &e4, 3);
-        let split = qexp_from_i128(
+        let split = qexp_from_int(
             &type_ii_e8_sum_code()
                 .theta_series_via_weight_enumerator(3)
                 .unwrap(),
         );
-        let d16 = qexp_from_i128(
+        let d16 = qexp_from_int(
             &type_ii_len16_code()
                 .theta_series_via_weight_enumerator(3)
                 .unwrap(),
@@ -147,7 +147,7 @@ mod tests {
             &modular_qexp_scale(&delta(terms), Rational::from_int(720), terms),
             terms,
         );
-        let leech_theta = qexp_from_i128(&leech().theta_series(terms).unwrap());
+        let leech_theta = qexp_from_int(&leech().theta_series(terms).unwrap());
         assert_eq!(leech_theta, leech_form);
         assert_eq!(
             as_modular_form(&leech_theta, 12, terms),

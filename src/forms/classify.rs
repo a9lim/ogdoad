@@ -198,12 +198,78 @@ impl std::fmt::Display for ClassifyError {
 ///
 /// `Err` means the metric is outside the classifier's domain (e.g. a non-diagonal
 /// char-2 form, or a metric the diagonalizer can't reduce); see [`ClassifyError`].
+impl From<crate::forms::WittClassError> for ClassifyError {
+    fn from(e: crate::forms::WittClassError) -> Self {
+        match e {
+            crate::forms::WittClassError::GeneralBilinearMetric => {
+                ClassifyError::GeneralBilinearMetric
+            }
+            crate::forms::WittClassError::Singular {
+                radical_dim,
+                radical_anisotropic,
+            } => ClassifyError::SingularForm {
+                radical_dim,
+                radical_anisotropic,
+            },
+        }
+    }
+}
+
+/// Failure diagnosis for the char-0 / odd legs: general-bilinear data first,
+/// then a diagonalizer probe, then the honest out-of-domain default.
+fn char0_failure<S: crate::scalar::Scalar>(metric: &Metric<S>) -> ClassifyError {
+    if metric.a().values().any(|v| !v.is_zero()) {
+        return ClassifyError::GeneralBilinearMetric;
+    }
+    if crate::forms::as_diagonal(metric).is_none() {
+        return ClassifyError::DiagonalizerFailure;
+    }
+    ClassifyError::UnsupportedFieldOrWindow
+}
+
+/// Failure diagnosis for the char-2 legs over `Nimber`: general-bilinear data,
+/// then a polar-radical (singular form) probe, then the out-of-domain default.
+fn char2_nimber_failure(metric: &Metric<Nimber>) -> ClassifyError {
+    if metric.a().values().any(|v| !v.is_zero()) {
+        return ClassifyError::GeneralBilinearMetric;
+    }
+    if let Some(arf) = arf_invariant(metric) {
+        if arf.radical_dim != 0 {
+            return ClassifyError::SingularForm {
+                radical_dim: arf.radical_dim,
+                radical_anisotropic: arf.radical_anisotropic,
+            };
+        }
+    }
+    ClassifyError::UnsupportedFieldOrWindow
+}
+
+/// Generic metric-shape diagnosis where no leg-specific probe applies.
+fn generic_failure<S: crate::scalar::Scalar>(metric: &Metric<S>) -> ClassifyError {
+    if metric.a().values().any(|v| !v.is_zero()) {
+        return ClassifyError::GeneralBilinearMetric;
+    }
+    ClassifyError::UnsupportedFieldOrWindow
+}
+
+/// Diagnose a two-metric failure: blame `m1` if it is out of domain, else `m2`.
+fn two_metric_failure<S: crate::scalar::Scalar>(
+    m1: &Metric<S>,
+    m2: &Metric<S>,
+    diagnose: impl Fn(&Metric<S>) -> ClassifyError,
+) -> ClassifyError {
+    match diagnose(m1) {
+        ClassifyError::UnsupportedFieldOrWindow => diagnose(m2),
+        e => e,
+    }
+}
+
 pub trait ClassifyForm: Scalar {
     /// The classification datum produced for this field's characteristic leg.
     type Class;
 
     /// Classify the form carried by `metric`.
-    fn classify(metric: &Metric<Self>) -> Option<Self::Class>;
+    fn classify(metric: &Metric<Self>) -> Result<Self::Class, ClassifyError>;
 }
 
 /// The unified Witt class [`WittClassG`] of a form, for the three legs where a
@@ -211,20 +277,14 @@ pub trait ClassifyForm: Scalar {
 /// implement this — see the module docs.)
 pub trait ClassifyWitt: Scalar {
     /// The Witt class of the form carried by `metric`.
-    fn witt_class(metric: &Metric<Self>) -> Option<WittClassG>;
+    fn witt_class(metric: &Metric<Self>) -> Result<WittClassG, ClassifyError>;
 }
-
-/// Backward-compatible alias for [`ClassifyWitt`].
-pub use ClassifyWitt as WittClassify;
 
 /// Isometry comparison for scalar worlds with a complete invariant available.
 pub trait ClassifyIsometry: Scalar {
     /// Whether two forms over the same scalar world are isometric.
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool>;
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError>;
 }
-
-/// Backward-compatible alias for [`ClassifyIsometry`].
-pub use ClassifyIsometry as IsometryClassify;
 
 /// Constructive Witt decomposition where the crate has a concrete decomposition
 /// datum for that scalar world.
@@ -233,246 +293,261 @@ pub trait DecomposeWitt: Scalar {
     type Decomp;
 
     /// Split a form into hyperbolic planes plus anisotropic kernel data.
-    fn witt_decompose(metric: &Metric<Self>) -> Option<Self::Decomp>;
+    fn witt_decompose(metric: &Metric<Self>) -> Result<Self::Decomp, ClassifyError>;
 }
-
-/// Backward-compatible alias for [`DecomposeWitt`].
-pub use DecomposeWitt as WittDecompose;
 
 /// Brauer-Wall class of the Clifford algebra attached to a form.
 pub trait ClassifyBrauerWall: Scalar {
     /// The Brauer-Wall class of `Cl(metric)`.
-    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass>;
+    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError>;
 }
-
-/// Backward-compatible alias for [`ClassifyBrauerWall`].
-pub use ClassifyBrauerWall as BrauerWallClassify;
 
 impl ClassifyForm for Surreal {
     type Class = CliffordInvariants;
-    fn classify(metric: &Metric<Self>) -> Option<CliffordInvariants> {
-        classify_surreal(metric)
+    fn classify(metric: &Metric<Self>) -> Result<CliffordInvariants, ClassifyError> {
+        classify_surreal(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl ClassifyForm for Surcomplex<Surreal> {
     type Class = CliffordInvariants;
-    fn classify(metric: &Metric<Self>) -> Option<CliffordInvariants> {
-        classify_surcomplex(metric)
+    fn classify(metric: &Metric<Self>) -> Result<CliffordInvariants, ClassifyError> {
+        classify_surcomplex(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl ClassifyForm for Rational {
     type Class = RationalCliffordInvariants;
-    fn classify(metric: &Metric<Self>) -> Option<RationalCliffordInvariants> {
-        classify_rational(metric)
+    fn classify(metric: &Metric<Self>) -> Result<RationalCliffordInvariants, ClassifyError> {
+        classify_rational(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128> ClassifyForm for Fp<P> {
     type Class = OddCharInvariants;
-    fn classify(metric: &Metric<Self>) -> Option<OddCharInvariants> {
-        classify_finite_odd(metric)
+    fn classify(metric: &Metric<Self>) -> Result<OddCharInvariants, ClassifyError> {
+        classify_finite_odd(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128, const N: usize> ClassifyForm for Fpn<P, N> {
     type Class = FiniteFieldInvariants;
-    fn classify(metric: &Metric<Self>) -> Option<FiniteFieldInvariants> {
+    fn classify(metric: &Metric<Self>) -> Result<FiniteFieldInvariants, ClassifyError> {
         if P == 2 {
-            arf_fpn_char2(metric).map(FiniteFieldInvariants::Char2)
+            arf_fpn_char2(metric)
+                .map(FiniteFieldInvariants::Char2)
+                .ok_or_else(|| generic_failure(metric))
         } else {
-            classify_finite_odd(metric).map(FiniteFieldInvariants::Odd)
+            classify_finite_odd(metric)
+                .map(FiniteFieldInvariants::Odd)
+                .ok_or_else(|| char0_failure(metric))
         }
     }
 }
 
 impl ClassifyForm for Nimber {
     type Class = ArfInvariants;
-    fn classify(metric: &Metric<Self>) -> Option<ArfInvariants> {
-        arf_invariant(metric)
+    fn classify(metric: &Metric<Self>) -> Result<ArfInvariants, ClassifyError> {
+        arf_invariant(metric).ok_or_else(|| generic_failure(metric))
     }
 }
 
 impl ClassifyForm for Ordinal {
     type Class = ArfInvariants;
-    fn classify(metric: &Metric<Self>) -> Option<ArfInvariants> {
-        arf_ordinal_finite(metric)
+    fn classify(metric: &Metric<Self>) -> Result<ArfInvariants, ClassifyError> {
+        arf_ordinal_finite(metric).ok_or_else(|| generic_failure(metric))
     }
 }
 
 impl ClassifyWitt for Surreal {
-    fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
-        let (p, q, _r) = crate::forms::char0::surreal_signature(metric)?;
-        Some(WittClassG::char0(p, q))
+    fn witt_class(metric: &Metric<Self>) -> Result<WittClassG, ClassifyError> {
+        let (p, q, _r) =
+            crate::forms::char0::surreal_signature(metric).ok_or_else(|| char0_failure(metric))?;
+        Ok(WittClassG::char0(p, q))
     }
 }
 
 impl<const P: u128> ClassifyWitt for Fp<P> {
-    fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
-        finite_odd_witt(metric)
+    fn witt_class(metric: &Metric<Self>) -> Result<WittClassG, ClassifyError> {
+        finite_odd_witt(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128, const N: usize> ClassifyWitt for Fpn<P, N> {
-    fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
+    fn witt_class(metric: &Metric<Self>) -> Result<WittClassG, ClassifyError> {
         if P == 2 {
-            let arf = arf_fpn_char2(metric)?;
+            let arf = arf_fpn_char2(metric).ok_or_else(|| generic_failure(metric))?;
             if arf.radical_dim != 0 {
-                return None;
+                return Err(ClassifyError::SingularForm {
+                    radical_dim: arf.radical_dim,
+                    radical_anisotropic: arf.radical_anisotropic,
+                });
             }
-            Some(WittClassG::Char2 {
+            Ok(WittClassG::Char2 {
                 field_degree: N as u128,
                 arf: arf.arf,
             })
         } else {
-            finite_odd_witt(metric)
+            finite_odd_witt(metric).ok_or_else(|| char0_failure(metric))
         }
     }
 }
 
 impl ClassifyWitt for Nimber {
-    fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
-        WittClassG::try_char2_from_metric(metric).ok()
+    fn witt_class(metric: &Metric<Self>) -> Result<WittClassG, ClassifyError> {
+        WittClassG::try_char2_from_metric(metric).map_err(ClassifyError::from)
     }
 }
 
 impl ClassifyWitt for Ordinal {
-    fn witt_class(metric: &Metric<Self>) -> Option<WittClassG> {
-        let arf = arf_ordinal_finite(metric)?;
+    fn witt_class(metric: &Metric<Self>) -> Result<WittClassG, ClassifyError> {
+        let arf = arf_ordinal_finite(metric).ok_or_else(|| generic_failure(metric))?;
         if arf.radical_dim != 0 {
-            return None;
+            return Err(ClassifyError::SingularForm {
+                radical_dim: arf.radical_dim,
+                radical_anisotropic: arf.radical_anisotropic,
+            });
         }
-        Some(WittClassG::Char2 {
-            field_degree: ordinal_char2_field_degree(metric)?,
+        Ok(WittClassG::Char2 {
+            field_degree: ordinal_char2_field_degree(metric)
+                .ok_or(ClassifyError::UnsupportedFieldOrWindow)?,
             arf: arf.arf,
         })
     }
 }
 
 impl ClassifyIsometry for Surreal {
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
-        isometric_real(m1, m2)
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError> {
+        isometric_real(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, char0_failure))
     }
 }
 
 impl ClassifyIsometry for Surcomplex<Surreal> {
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
-        isometric_surcomplex(m1, m2)
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError> {
+        isometric_surcomplex(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, char0_failure))
     }
 }
 
 impl ClassifyIsometry for Rational {
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
-        isometric_rational(m1, m2)
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError> {
+        isometric_rational(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, char0_failure))
     }
 }
 
 impl<const P: u128> ClassifyIsometry for Fp<P> {
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
-        isometric_finite_odd(m1, m2)
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError> {
+        isometric_finite_odd(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, char0_failure))
     }
 }
 
 impl<const P: u128, const N: usize> ClassifyIsometry for Fpn<P, N> {
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError> {
         if P == 2 {
-            isometric_fpn_char2(m1, m2)
+            isometric_fpn_char2(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, generic_failure))
         } else {
-            isometric_finite_odd(m1, m2)
+            isometric_finite_odd(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, char0_failure))
         }
     }
 }
 
 impl ClassifyIsometry for Nimber {
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
-        isometric_nimber(m1, m2)
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError> {
+        isometric_nimber(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, generic_failure))
     }
 }
 
 impl ClassifyIsometry for Ordinal {
-    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Option<bool> {
-        isometric_ordinal_finite(m1, m2)
+    fn isometric(m1: &Metric<Self>, m2: &Metric<Self>) -> Result<bool, ClassifyError> {
+        isometric_ordinal_finite(m1, m2).ok_or_else(|| two_metric_failure(m1, m2, generic_failure))
     }
 }
 
 impl DecomposeWitt for Surreal {
     type Decomp = RealWittDecomp;
-    fn witt_decompose(metric: &Metric<Self>) -> Option<Self::Decomp> {
-        witt_decompose_real(metric)
+    fn witt_decompose(metric: &Metric<Self>) -> Result<Self::Decomp, ClassifyError> {
+        witt_decompose_real(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128> DecomposeWitt for Fp<P> {
     type Decomp = OddWittDecomp;
-    fn witt_decompose(metric: &Metric<Self>) -> Option<Self::Decomp> {
-        witt_decompose_finite_odd(metric)
+    fn witt_decompose(metric: &Metric<Self>) -> Result<Self::Decomp, ClassifyError> {
+        witt_decompose_finite_odd(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128, const N: usize> DecomposeWitt for Fpn<P, N> {
     type Decomp = FiniteFieldWittDecomp;
-    fn witt_decompose(metric: &Metric<Self>) -> Option<Self::Decomp> {
+    fn witt_decompose(metric: &Metric<Self>) -> Result<Self::Decomp, ClassifyError> {
         if P == 2 {
-            let arf = arf_fpn_char2(metric)?;
-            Some(FiniteFieldWittDecomp::Char2(Char2WittDecomp::from_arf(
+            let arf = arf_fpn_char2(metric).ok_or_else(|| generic_failure(metric))?;
+            Ok(FiniteFieldWittDecomp::Char2(Char2WittDecomp::from_arf(
                 N as u128, &arf,
             )))
         } else {
-            witt_decompose_finite_odd(metric).map(FiniteFieldWittDecomp::Odd)
+            witt_decompose_finite_odd(metric)
+                .map(FiniteFieldWittDecomp::Odd)
+                .ok_or_else(|| char0_failure(metric))
         }
     }
 }
 
 impl ClassifyBrauerWall for Surreal {
-    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
-        bw_class_real(metric)
+    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
+        bw_class_real(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl ClassifyBrauerWall for Surcomplex<Surreal> {
-    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
-        bw_class_complex(metric)
+    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
+        bw_class_complex(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128> ClassifyBrauerWall for Fp<P> {
-    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
-        bw_class_finite_odd(metric)
+    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
+        bw_class_finite_odd(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128, const N: usize> ClassifyBrauerWall for Fpn<P, N> {
-    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
+    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
         if P == 2 {
-            let arf = arf_fpn_char2(metric)?;
+            let arf = arf_fpn_char2(metric).ok_or_else(|| generic_failure(metric))?;
             if arf.radical_dim != 0 {
-                return None;
+                return Err(ClassifyError::SingularForm {
+                    radical_dim: arf.radical_dim,
+                    radical_anisotropic: arf.radical_anisotropic,
+                });
             }
-            Some(BrauerWallClass::Char2 {
+            Ok(BrauerWallClass::Char2 {
                 field_degree: N as u128,
                 arf: arf.arf,
             })
         } else {
-            bw_class_finite_odd(metric)
+            bw_class_finite_odd(metric).ok_or_else(|| char0_failure(metric))
         }
     }
 }
 
 impl ClassifyBrauerWall for Nimber {
-    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
-        bw_class_nimber(metric)
+    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
+        bw_class_nimber(metric).ok_or_else(|| char2_nimber_failure(metric))
     }
 }
 
 impl ClassifyBrauerWall for Ordinal {
-    fn bw_class(metric: &Metric<Self>) -> Option<BrauerWallClass> {
-        let arf = arf_ordinal_finite(metric)?;
+    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
+        let arf = arf_ordinal_finite(metric).ok_or_else(|| generic_failure(metric))?;
         if arf.radical_dim != 0 {
-            return None;
+            return Err(ClassifyError::SingularForm {
+                radical_dim: arf.radical_dim,
+                radical_anisotropic: arf.radical_anisotropic,
+            });
         }
-        Some(BrauerWallClass::Char2 {
-            field_degree: ordinal_char2_field_degree(metric)?,
+        Ok(BrauerWallClass::Char2 {
+            field_degree: ordinal_char2_field_degree(metric)
+                .ok_or(ClassifyError::UnsupportedFieldOrWindow)?,
             arf: arf.arf,
         })
     }
@@ -492,70 +567,70 @@ fn ordinal_char2_field_degree(metric: &Metric<Ordinal>) -> Option<u128> {
 impl<S: ClassifyForm> Metric<S> {
     /// Classify the form (see [`ClassifyForm`]).
     pub fn classify(&self) -> Result<S::Class, ClassifyError> {
-        S::classify(self).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::classify(self)
     }
 }
 
 impl<S: ClassifyWitt> Metric<S> {
     /// The unified Witt class (see [`ClassifyWitt`]).
     pub fn witt_class(&self) -> Result<WittClassG, ClassifyError> {
-        S::witt_class(self).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::witt_class(self)
     }
 }
 
 impl<S: ClassifyIsometry> Metric<S> {
     /// Test isometry against another form over the same scalar world.
     pub fn isometric_to(&self, other: &Self) -> Result<bool, ClassifyError> {
-        S::isometric(self, other).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::isometric(self, other)
     }
 }
 
 impl<S: DecomposeWitt> Metric<S> {
     /// Split the form into hyperbolic planes plus anisotropic kernel data.
     pub fn witt_decompose(&self) -> Result<S::Decomp, ClassifyError> {
-        S::witt_decompose(self).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::witt_decompose(self)
     }
 }
 
 impl<S: ClassifyBrauerWall> Metric<S> {
     /// The Brauer-Wall class of the attached Clifford algebra.
     pub fn bw_class(&self) -> Result<BrauerWallClass, ClassifyError> {
-        S::bw_class(self).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::bw_class(self)
     }
 }
 
 impl<S: ClassifyForm> CliffordAlgebra<S> {
     /// Classify the algebra's underlying form (see [`ClassifyForm`]).
     pub fn classify(&self) -> Result<S::Class, ClassifyError> {
-        S::classify(&self.metric).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::classify(&self.metric)
     }
 }
 
 impl<S: ClassifyWitt> CliffordAlgebra<S> {
     /// The unified Witt class of the algebra's form (see [`ClassifyWitt`]).
     pub fn witt_class(&self) -> Result<WittClassG, ClassifyError> {
-        S::witt_class(&self.metric).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::witt_class(&self.metric)
     }
 }
 
 impl<S: ClassifyIsometry> CliffordAlgebra<S> {
     /// Test isometry of the underlying forms.
     pub fn isometric_to(&self, other: &Self) -> Result<bool, ClassifyError> {
-        S::isometric(&self.metric, &other.metric).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::isometric(&self.metric, &other.metric)
     }
 }
 
 impl<S: DecomposeWitt> CliffordAlgebra<S> {
     /// Witt decomposition of the algebra's underlying form.
     pub fn witt_decompose(&self) -> Result<S::Decomp, ClassifyError> {
-        S::witt_decompose(&self.metric).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::witt_decompose(&self.metric)
     }
 }
 
 impl<S: ClassifyBrauerWall> CliffordAlgebra<S> {
     /// Brauer-Wall class of the algebra.
     pub fn bw_class(&self) -> Result<BrauerWallClass, ClassifyError> {
-        S::bw_class(&self.metric).ok_or(ClassifyError::UnsupportedFieldOrWindow)
+        S::bw_class(&self.metric)
     }
 }
 
@@ -698,5 +773,42 @@ mod tests {
         b.insert((0usize, 1usize), Ordinal::one());
         let ord = Metric::new(vec![Ordinal::omega(), Ordinal::omega()], b);
         assert_eq!(ord.isometric_to(&ord).ok(), Some(true));
+    }
+
+    #[test]
+    fn classify_error_distinguishes_general_bilinear_from_window() {
+        let mut a = std::collections::BTreeMap::new();
+        a.insert((0usize, 1usize), Nimber(1));
+        let metric = Metric::general(
+            vec![Nimber(1), Nimber(1)],
+            std::collections::BTreeMap::<(usize, usize), Nimber>::new(),
+            a,
+        );
+        assert!(matches!(
+            metric.witt_class(),
+            Err(ClassifyError::GeneralBilinearMetric)
+        ));
+        assert!(matches!(
+            metric.classify(),
+            Err(ClassifyError::GeneralBilinearMetric)
+        ));
+    }
+
+    #[test]
+    fn classify_error_reports_singular_form_with_radical_data() {
+        // Empty polar form in char 2: the whole space is the polar radical, and
+        // q is nonzero on it, so the Witt/BW classes must refuse with the
+        // radical data rather than a catch-all.
+        let metric = Metric::diagonal(vec![Nimber(1), Nimber(0)]);
+        match metric.witt_class() {
+            Err(ClassifyError::SingularForm {
+                radical_dim,
+                radical_anisotropic,
+            }) => {
+                assert_eq!(radical_dim, 2);
+                assert!(radical_anisotropic);
+            }
+            other => panic!("expected SingularForm, got {other:?}"),
+        }
     }
 }

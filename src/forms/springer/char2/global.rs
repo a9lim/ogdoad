@@ -14,7 +14,7 @@ use crate::scalar::{Poly, RationalFunction, Scalar};
 /// square iff `N·D ∈ F_q[t]²`, and a char-2 polynomial over a perfect field is a
 /// square iff every **odd-degree** coefficient vanishes (the even ones are squares
 /// automatically). The additive `℘`-analogue of this is [`global_is_pe`].
-pub fn ff_is_square<S: FiniteChar2Field>(f: &RationalFunction<S>) -> bool {
+fn ff_is_square<S: FiniteChar2Field>(f: &RationalFunction<S>) -> bool {
     if f.is_zero() {
         return true;
     }

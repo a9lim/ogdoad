@@ -1395,7 +1395,7 @@ macro_rules! with_finite_odd_metrics {
 macro_rules! with_finite_odd_value {
     ($p:expr, $degree:expr, $x:expr, |$value:ident| $body:expr) => {{
         with_finite_odd_field!($p, $degree, |Field| {
-            let $value = <Field as FiniteOddField>::from_int($x);
+            let $value = <Field as crate::scalar::Scalar>::from_int($x);
             $body
         })
     }};
@@ -2151,18 +2151,16 @@ impl PyChar2FiniteFieldForm {
         let res = with_finite_char2_metric!(self.degree, &self.q, &self.b, |m| {
             crate::forms::ClassifyWitt::witt_class(&m)
         });
-        res.map(|inner| PyWittClassG { inner }).ok_or_else(|| {
-            PyValueError::new_err("finite char-2 Witt class needs a nonsingular metric")
-        })
+        res.map(|inner| PyWittClassG { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     fn bw_class(&self) -> PyResult<PyBrauerWallClass> {
         let res = with_finite_char2_metric!(self.degree, &self.q, &self.b, |m| {
             crate::forms::ClassifyBrauerWall::bw_class(&m)
         });
-        res.map(|inner| PyBrauerWallClass { inner }).ok_or_else(|| {
-            PyValueError::new_err("finite char-2 Brauer-Wall class needs a nonsingular metric")
-        })
+        res.map(|inner| PyBrauerWallClass { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     fn is_isometric(&self, other: &PyChar2FiniteFieldForm) -> PyResult<bool> {
@@ -2178,9 +2176,8 @@ impl PyChar2FiniteFieldForm {
             &other.q,
             &other.b,
             |m1, m2| {
-                crate::forms::ClassifyIsometry::isometric(&m1, &m2).ok_or_else(|| {
-                    PyValueError::new_err("metric is outside finite char-2 isometry scope")
-                })
+                crate::forms::ClassifyIsometry::isometric(&m1, &m2)
+                    .map_err(|e| PyValueError::new_err(e.to_string()))
             }
         )
     }
@@ -3330,11 +3327,7 @@ fn hilbert_symbol(p: u128, a: i128, b: i128) -> PyResult<i128> {
 #[pyfunction]
 fn isometric_ordinal_finite(a: &OrdinalAlgebra, b: &OrdinalAlgebra) -> PyResult<bool> {
     <Ordinal as crate::forms::ClassifyIsometry>::isometric(&a.inner.metric, &b.inner.metric)
-        .ok_or_else(|| {
-            PyValueError::new_err(
-                "ordinal isometry is only implemented on detected finite ordinal-nimber windows",
-            )
-        })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 /// The unified Witt class of a nonsingular ordinal-nimber metric on the detected
@@ -3343,11 +3336,7 @@ fn isometric_ordinal_finite(a: &OrdinalAlgebra, b: &OrdinalAlgebra) -> PyResult<
 fn ordinal_witt(alg: &OrdinalAlgebra) -> PyResult<PyWittClassG> {
     <Ordinal as crate::forms::ClassifyWitt>::witt_class(&alg.inner.metric)
         .map(|inner| PyWittClassG { inner })
-        .ok_or_else(|| {
-            PyValueError::new_err(
-                "ordinal Witt class needs a nonsingular metric in a detected finite ordinal-nimber window",
-            )
-        })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 /// Witt decomposition of a surreal form on the exact-square real-table subdomain.
@@ -3631,7 +3620,7 @@ fn ramified_qp4_e_metric<const P: u128, const E: usize>(
             )));
         }
         q.push(Ramified::<Qp<P, 4>, E>::new(
-            components.into_iter().map(Qp::<P, 4>::from_i128).collect(),
+            components.into_iter().map(Qp::<P, 4>::from_int).collect(),
         ));
     }
     Ok(Metric::diagonal(q))
@@ -4985,8 +4974,8 @@ fn leech_aut_order() -> u128 {
 }
 
 #[pyfunction]
-fn qexp_from_i128(coeffs: Vec<i128>) -> Vec<PyRational> {
-    crate::forms::qexp_from_i128(&coeffs)
+fn qexp_from_int(coeffs: Vec<i128>) -> Vec<PyRational> {
+    crate::forms::qexp_from_int(&coeffs)
         .into_iter()
         .map(wrap_rational)
         .collect()
@@ -5278,11 +5267,7 @@ fn bw_class_nimber(alg: &NimberAlgebra) -> PyResult<PyBrauerWallClass> {
 fn bw_class_ordinal(alg: &OrdinalAlgebra) -> PyResult<PyBrauerWallClass> {
     <Ordinal as crate::forms::ClassifyBrauerWall>::bw_class(&alg.inner.metric)
         .map(|inner| PyBrauerWallClass { inner })
-        .ok_or_else(|| {
-            PyValueError::new_err(
-                "ordinal Brauer-Wall class needs a nonsingular metric in a detected finite ordinal-nimber window",
-            )
-        })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -5417,7 +5402,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(leech_aut_order, m)?)?;
     m.add_function(wrap_pyfunction!(verify_milgram, m)?)?;
     m.add_function(wrap_pyfunction!(genus_signature_mod8, m)?)?;
-    m.add_function(wrap_pyfunction!(qexp_from_i128, m)?)?;
+    m.add_function(wrap_pyfunction!(qexp_from_int, m)?)?;
     m.add_function(wrap_pyfunction!(eisenstein_e4, m)?)?;
     m.add_function(wrap_pyfunction!(eisenstein_e6, m)?)?;
     m.add_function(wrap_pyfunction!(delta, m)?)?;

@@ -22,7 +22,7 @@ fn rational_mod_int(x: Rational, modulus: i128) -> Rational {
     Rational::new(x.numer().rem_euclid(mden), den)
 }
 
-pub(super) fn rational_to_f64(x: &Rational) -> f64 {
+fn rational_to_f64(x: &Rational) -> f64 {
     (x.numer() as f64) / (x.denom() as f64)
 }
 
@@ -432,7 +432,7 @@ impl Cyclo {
 /// Largest discriminant group for the p-primary Gauss/Brown phase projection. The
 /// path enumerates the finite module exactly, so it declines rather than silently
 /// truncating.
-pub(super) const FQM_GAUSS_GROUP_CAP: usize = 4096;
+const FQM_GAUSS_GROUP_CAP: usize = 4096;
 
 /// Largest cyclotomic order used by the exact algebraic Gauss-sum shape check.
 const FQM_CYCLOTOMIC_ORDER_CAP: usize = 4096;
@@ -508,7 +508,7 @@ fn prime_factors_i128(n: i128) -> Vec<u128> {
     out
 }
 
-pub(super) fn is_prime_power_order(order: usize, p: u128) -> bool {
+fn is_prime_power_order(order: usize, p: u128) -> bool {
     if order == 1 {
         return true;
     }
@@ -897,7 +897,7 @@ impl DiscriminantForm {
         search_iso(&lt, &mt, &gens, &mut img, &mut budget)
     }
 
-    pub(super) fn equivalent_mod_lattice(&self, a: &[i128], b: &[i128]) -> bool {
+    fn equivalent_mod_lattice(&self, a: &[i128], b: &[i128]) -> bool {
         let n = self.gram_inv.len();
         if a.len() != n || b.len() != n {
             return false;

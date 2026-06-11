@@ -1751,7 +1751,7 @@ macro_rules! qp_pyclass {
         #[pymethods]
         impl $py {
             #[staticmethod]
-            fn from_i128(value: i128) -> Self {
+            fn from_int(value: i128) -> Self {
                 $wrap(Qp::<$p, $k>::from_int(value))
             }
             #[staticmethod]
@@ -4769,7 +4769,7 @@ fn parse_local_qp_in_world(obj: &Bound<'_, PyAny>, p: u128, k: u128) -> PyResult
         return Ok(x);
     }
     if let Ok(v) = obj.extract::<i128>() {
-        return Ok(LocalQp::from_i128(p, k, v));
+        return Ok(LocalQp::from_int(p, k, v));
     }
     Err(PyTypeError::new_err(
         "expected LocalQp from the same (p,k) world or int",
@@ -4779,10 +4779,10 @@ fn parse_local_qp_in_world(obj: &Bound<'_, PyAny>, p: u128, k: u128) -> PyResult
 #[pymethods]
 impl PyLocalQp {
     #[staticmethod]
-    fn from_i128(p: u128, k: u128, value: i128) -> PyResult<Self> {
+    fn from_int(p: u128, k: u128, value: i128) -> PyResult<Self> {
         validate_local_qp_world(p, k)?;
         Ok(PyLocalQp {
-            inner: LocalQp::from_i128(p, k, value),
+            inner: LocalQp::from_int(p, k, value),
         })
     }
     #[staticmethod]

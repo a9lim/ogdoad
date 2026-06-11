@@ -55,7 +55,7 @@
 //! ingredients beyond the per-place symbol, all source-pinned: the global
 //! `℘`-membership test [`global_is_pe`] (`f ∈ ℘(F_q(t))` ⟺ `f ∈ ℘(K_v)` everywhere,
 //! a finite sweep of the poles of `f` plus `∞`) settles **rank 2** (`[a,b]` iso ⟺
-//! `ab ∈ ℘`); the elementary `[K : K²] = 2` square test [`ff_is_square`] settles the
+//! `ab ∈ ℘`); the elementary `[K : K²] = 2` square test `ff_is_square` settles the
 //! **totally-singular** part; and **Hasse–Minkowski** over the finite
 //! [`relevant_places_char2`] set settles **rank 3/4** (good places are isotropic by
 //! Chevalley–Warning). `u(F_q(t)) = 4` (`C₂`, Tsen–Lang) caps it: every `rank ≥ 5`
@@ -70,7 +70,7 @@
 //!
 //! - `asnf` — κ-local arithmetic helpers and the Artin–Schreier normal form
 //!   (the private crate layer that feeds the decomposition).
-//! - `global` — global isotropy over `F_q(t)` ([`global_is_pe`], [`ff_is_square`],
+//! - `global` — global isotropy over `F_q(t)` ([`global_is_pe`], `ff_is_square`,
 //!   [`relevant_places_char2`], [`is_isotropic_global_char2`]).
 //! - This hub — `Char2QuadForm`, `Char2LocalDecomp`, the Aravire–Jacob decomposition
 //!   ([`springer_decompose_local_char2`]), and local isotropy
@@ -79,7 +79,7 @@
 pub(super) mod asnf;
 mod global;
 
-pub use global::{ff_is_square, global_is_pe, is_isotropic_global_char2, relevant_places_char2};
+pub use global::{global_is_pe, is_isotropic_global_char2, relevant_places_char2};
 
 use crate::forms::{as_symbol_at, Char2Place, FiniteChar2Field};
 use crate::scalar::{Poly, RationalFunction, Scalar};

@@ -25,7 +25,7 @@
 //! place layer needs. Its absolute trace is still available through
 //! [`FieldExtension::trace`](crate::scalar::FieldExtension).
 
-use crate::scalar::{ExactFieldScalar, Fp, Fpn, Scalar};
+use crate::scalar::{ExactFieldScalar, Fp, Fpn};
 
 /// Finite fields of characteristic 2, with the operations char-2 form theory needs:
 /// field-order metadata, an enumeration, and the **Artin–Schreier class** (the
@@ -43,9 +43,6 @@ pub trait FiniteChar2Field: ExactFieldScalar + Copy {
 
     /// Whether this type is a supported finite field of characteristic 2.
     fn is_supported_char2_field() -> bool;
-
-    /// Embed an ordinary integer through the prime subfield `F₂` (so `n ↦ n mod 2`).
-    fn from_i128(n: i128) -> Self;
 
     /// Enumerate the field: index `i ∈ [0, field_order())` ↦ a distinct element,
     /// covering all of `F_q` exactly once (base-2 digits of `i` are the
@@ -75,10 +72,6 @@ impl FiniteChar2Field for Fp<2> {
         Fp::<2>::modulus_is_prime()
     }
 
-    fn from_i128(n: i128) -> Self {
-        Fp::<2>::from_int(n)
-    }
-
     fn from_index(i: u128) -> Self {
         Fp::<2>::from_u128(i)
     }
@@ -96,10 +89,6 @@ impl<const N: usize> FiniteChar2Field for Fpn<2, N> {
 
     fn is_supported_char2_field() -> bool {
         Fpn::<2, N>::is_supported_field()
-    }
-
-    fn from_i128(n: i128) -> Self {
-        Fpn::<2, N>::constant(n.rem_euclid(2) as u128)
     }
 
     fn from_index(i: u128) -> Self {

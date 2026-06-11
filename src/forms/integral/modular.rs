@@ -81,7 +81,7 @@ fn qexp_pow(base: &[Rational], exp: usize, terms: usize) -> Vec<Rational> {
 }
 
 /// Convert exact integer q-expansion coefficients to rational coefficients.
-pub fn qexp_from_i128(coeffs: &[i128]) -> Vec<Rational> {
+pub fn qexp_from_int(coeffs: &[i128]) -> Vec<Rational> {
     coeffs.iter().map(|&x| Rational::from_int(x)).collect()
 }
 
@@ -229,13 +229,10 @@ mod tests {
     fn eisenstein_series_start_with_standard_coefficients() {
         assert_eq!(
             eisenstein_e4(5),
-            qexp_from_i128(&[1, 240, 2160, 6720, 17520])
+            qexp_from_int(&[1, 240, 2160, 6720, 17520])
         );
-        assert_eq!(
-            eisenstein_e6(4),
-            qexp_from_i128(&[1, -504, -16632, -122976])
-        );
-        assert_eq!(delta(4), qexp_from_i128(&[0, 1, -24, 252]));
+        assert_eq!(eisenstein_e6(4), qexp_from_int(&[1, -504, -16632, -122976]));
+        assert_eq!(delta(4), qexp_from_int(&[0, 1, -24, 252]));
     }
 
     #[test]
