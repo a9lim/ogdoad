@@ -25,7 +25,7 @@
 //! place layer needs. Its absolute trace is still available through
 //! [`FieldExtension::trace`](crate::scalar::FieldExtension).
 
-use crate::scalar::{ExactFieldScalar, Fp, Fpn};
+use crate::scalar::{ExactFieldScalar, Fp, Fpn, Scalar};
 
 /// Finite fields of characteristic 2, with the operations char-2 form theory needs:
 /// field-order metadata, an enumeration, and the **Artin–Schreier class** (the
@@ -76,7 +76,7 @@ impl FiniteChar2Field for Fp<2> {
     }
 
     fn from_i128(n: i128) -> Self {
-        Fp::<2>::new(n)
+        Fp::<2>::from_int(n)
     }
 
     fn from_index(i: u128) -> Self {
@@ -140,8 +140,8 @@ mod tests {
     #[test]
     fn f2_class_is_the_identity() {
         // Tr_{F₂/F₂} = id, and ℘(F₂) = {0} (℘(0)=0, ℘(1)=1²+1=0 ⇒ only 0 has class 0).
-        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::new(0)), 0);
-        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::new(1)), 1);
+        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::from_int(0)), 0);
+        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::from_int(1)), 1);
         assert_eq!(Fp::<2>::field_order(), 2);
         assert!(Fp::<2>::is_supported_char2_field());
     }

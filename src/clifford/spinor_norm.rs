@@ -107,7 +107,7 @@ mod tests {
         assert_eq!(alg.spinor_norm(&alg.gen(0)), Some(Rational::one()));
         // a non-unit vector v = e0 + e1: N = q0 + q1 = 2 (a nonsquare class in ℚ).
         let v = alg.add(&alg.gen(0), &alg.gen(1));
-        assert_eq!(alg.spinor_norm(&v), Some(Rational::int(2)));
+        assert_eq!(alg.spinor_norm(&v), Some(Rational::from_int(2)));
     }
 
     #[test]

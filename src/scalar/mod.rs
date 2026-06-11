@@ -309,7 +309,7 @@ pub trait Scalar: Clone + PartialEq + Debug + Display {
     /// automatically — do NOT override for `Nimber`/`Ordinal` with a bit-cast of
     /// `n as u128`, which would produce a REPRESENTATION constructor (which nimber)
     /// rather than the ℤ-embedding. Override only where a direct construction is
-    /// faster AND semantically identical (e.g. `Rational::int(n)`, `Integer(n)`).
+    /// faster AND semantically identical (e.g. `Rational::from_int(n)`, `Integer(n)`).
     fn from_int(n: i128) -> Self {
         if n == 0 {
             return Self::zero();

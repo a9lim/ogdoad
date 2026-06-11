@@ -362,7 +362,8 @@ mod tests {
             // Bridge K (Qq leg): v(a)/2 mod ℤ.
             let k = cyclic_algebra_invariant::<Qq<5, 4, 2>>(&Qp::from_int(a)).unwrap();
             // Bridge F (shipped): the inv at Prime(5) of the quaternion (d, a)_ℚ.
-            let invs = brauer_local_invariants(&Rational::int(d), &Rational::int(a)).unwrap();
+            let invs =
+                brauer_local_invariants(&Rational::from_int(d), &Rational::from_int(a)).unwrap();
             let f = invs
                 .iter()
                 .find(|(pl, _)| *pl == Place::Prime(5))
@@ -429,7 +430,7 @@ mod tests {
 
         // the trace-form half of the tie: Q₁ = ⟨2,2⟩.
         let q1 = trace_twisted_form::<Surcomplex<Rational>>(1);
-        assert_eq!(q1.q, vec![Rational::int(2), Rational::int(2)]);
+        assert_eq!(q1.q, vec![Rational::from_int(2), Rational::from_int(2)]);
         assert!(q1.b.is_empty());
 
         for a in [-7i128, -3, -2, -1, 2, 3, 5, 6, 7] {

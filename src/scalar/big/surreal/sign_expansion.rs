@@ -96,7 +96,7 @@ impl Surreal {
             let exp_s = Surreal::from_ordinal(exp); // strictly-simpler exponent
             let c_i128 =
                 i128::try_from(*c).expect("ordinal coefficient exceeds surreal i128 range");
-            acc = acc.add(&Surreal::monomial(exp_s, Rational::int(c_i128)));
+            acc = acc.add(&Surreal::monomial(exp_s, Rational::from_int(c_i128)));
         }
         acc
     }
@@ -274,11 +274,11 @@ mod tests {
         let cases = [
             Surreal::from_int(0),
             Surreal::from_int(5),
-            Surreal::omega(),                                          // ω
-            Surreal::omega().add(&Surreal::from_int(1)),               // ω+1
-            Surreal::monomial(Surreal::from_int(1), Rational::int(3)), // ω·3
-            Surreal::omega_pow(Surreal::from_int(2)),                  // ω²
-            Surreal::omega_pow(Surreal::omega()),                      // ω^ω
+            Surreal::omega(),                                               // ω
+            Surreal::omega().add(&Surreal::from_int(1)),                    // ω+1
+            Surreal::monomial(Surreal::from_int(1), Rational::from_int(3)), // ω·3
+            Surreal::omega_pow(Surreal::from_int(2)),                       // ω²
+            Surreal::omega_pow(Surreal::omega()),                           // ω^ω
         ];
         for s in &cases {
             let o = s.as_ordinal().expect("ordinal-valued");
@@ -332,13 +332,13 @@ mod tests {
             rat(1, 2).neg(),
             rat(3, 4),
             rat(3, 4).neg(),
-            Surreal::omega(),                                          // ω
-            Surreal::omega().add(&Surreal::from_int(1)),               // ω+1
-            Surreal::monomial(Surreal::from_int(1), Rational::int(3)), // ω·3
-            Surreal::omega_pow(Surreal::from_int(2)),                  // ω²
-            Surreal::omega_pow(Surreal::omega()),                      // ω^ω
-            Surreal::omega().neg(),                                    // −ω
-            Surreal::epsilon(),                                        // ε
+            Surreal::omega(),                                               // ω
+            Surreal::omega().add(&Surreal::from_int(1)),                    // ω+1
+            Surreal::monomial(Surreal::from_int(1), Rational::from_int(3)), // ω·3
+            Surreal::omega_pow(Surreal::from_int(2)),                       // ω²
+            Surreal::omega_pow(Surreal::omega()),                           // ω^ω
+            Surreal::omega().neg(),                                         // −ω
+            Surreal::epsilon(),                                             // ε
         ];
         for s in &cases {
             let se = s.transfinite_sign_expansion().expect("representable");

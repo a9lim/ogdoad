@@ -123,7 +123,7 @@ mod tests {
     type Gauss = Surcomplex<Rational>;
 
     fn g(re: i128, im: i128) -> Gauss {
-        Surcomplex::new(Rational::int(re), Rational::int(im))
+        Surcomplex::new(Rational::from_int(re), Rational::from_int(im))
     }
 
     #[test]

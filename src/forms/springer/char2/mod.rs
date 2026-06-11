@@ -376,6 +376,7 @@ pub fn local_is_isotropic_char2<S: FiniteChar2Field>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scalar::Scalar;
     use crate::scalar::{Fp, Fpn};
 
     type F2 = Fp<2>;
@@ -383,12 +384,12 @@ mod tests {
 
     fn r2(num: &[i128], den: &[i128]) -> R2 {
         RationalFunction::new(
-            num.iter().map(|&n| F2::new(n)).collect(),
-            den.iter().map(|&n| F2::new(n)).collect(),
+            num.iter().map(|&n| F2::from_int(n)).collect(),
+            den.iter().map(|&n| F2::from_int(n)).collect(),
         )
     }
     fn p2(c: &[i128]) -> Poly<F2> {
-        Poly::new(c.iter().map(|&n| F2::new(n)).collect())
+        Poly::new(c.iter().map(|&n| F2::from_int(n)).collect())
     }
     // The place P = t over F₂: κ = F₂, π = t. Codex's oracles are stated over the
     // local field F_q((π)); identifying π = t realises each as a form over F_q(t).
@@ -397,7 +398,7 @@ mod tests {
     }
     // A constant-coefficient κ entry (κ = F₂ at place t) for the R_π map.
     fn k2(n: i128) -> Poly<F2> {
-        Poly::constant(F2::new(n))
+        Poly::constant(F2::from_int(n))
     }
     fn decomp(blocks: &[(R2, R2)]) -> Char2LocalDecomp<F2> {
         springer_decompose_local_char2(&Char2QuadForm::from_blocks(blocks.to_vec()), &place_t())

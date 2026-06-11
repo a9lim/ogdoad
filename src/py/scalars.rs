@@ -62,7 +62,7 @@ fn qq_base_to_qp<const P: u128, const N: usize, const K: u128>(x: Qq<P, N, 1>) -
         None => Qp::<P, K>::zero(),
         Some(v) => {
             let unit = i128::try_from(x.unit().0[0]).expect("Python fixed Qq unit fits i128");
-            Qp::<P, K>::from_i128(unit).mul(&Qp::<P, K>::from_p_power(v))
+            Qp::<P, K>::from_int(unit).mul(&Qp::<P, K>::from_p_power(v))
         }
     }
 }
@@ -659,7 +659,7 @@ macro_rules! prime_field_pyclass {
         impl $py {
             #[new]
             fn new(value: i128) -> Self {
-                $wrap(Fp::<$p>::new(value))
+                $wrap(Fp::<$p>::from_int(value))
             }
             #[staticmethod]
             fn modulus() -> u128 {
@@ -773,7 +773,7 @@ macro_rules! prime_field_pyclass {
                 return Ok(x.borrow().inner);
             }
             if let Ok(v) = obj.extract::<i128>() {
-                return Ok(Fp::<$p>::new(v));
+                return Ok(Fp::<$p>::from_int(v));
             }
             Err(PyTypeError::new_err(concat!(
                 "expected ",
@@ -1607,7 +1607,7 @@ macro_rules! zp_pyclass {
         impl $py {
             #[new]
             fn new(value: i128) -> Self {
-                $wrap(Zp::<$p, $k>::new(value))
+                $wrap(Zp::<$p, $k>::from_int(value))
             }
             #[staticmethod]
             fn zero() -> Self {
@@ -1725,7 +1725,7 @@ macro_rules! zp_pyclass {
                 return Ok(x.borrow().inner);
             }
             if let Ok(v) = obj.extract::<i128>() {
-                return Ok(Zp::<$p, $k>::new(v));
+                return Ok(Zp::<$p, $k>::from_int(v));
             }
             Err(PyTypeError::new_err(concat!("expected ", $name, " or int")))
         }
@@ -1752,7 +1752,7 @@ macro_rules! qp_pyclass {
         impl $py {
             #[staticmethod]
             fn from_i128(value: i128) -> Self {
-                $wrap(Qp::<$p, $k>::from_i128(value))
+                $wrap(Qp::<$p, $k>::from_int(value))
             }
             #[staticmethod]
             fn zero() -> Self {
@@ -1898,7 +1898,7 @@ macro_rules! qp_pyclass {
                 return Ok(x.borrow().inner);
             }
             if let Ok(v) = obj.extract::<i128>() {
-                return Ok(Qp::<$p, $k>::from_i128(v));
+                return Ok(Qp::<$p, $k>::from_int(v));
             }
             Err(PyTypeError::new_err(concat!("expected ", $name, " or int")))
         }
@@ -3797,7 +3797,7 @@ impl PyRational {
     }
     #[staticmethod]
     fn integer(n: i128) -> Self {
-        wrap_rational(Rational::int(n))
+        wrap_rational(Rational::from_int(n))
     }
     #[staticmethod]
     fn characteristic() -> u128 {
@@ -3910,7 +3910,7 @@ pub(crate) fn parse_rational(obj: &Bound<'_, PyAny>) -> PyResult<Rational> {
         return Ok(q.borrow().inner.clone());
     }
     if let Ok(i) = obj.cast::<PyInteger>() {
-        return Ok(Rational::int(i.borrow().inner.0));
+        return Ok(Rational::from_int(i.borrow().inner.0));
     }
     if let Ok((num, den)) = obj.extract::<(i128, i128)>() {
         return Rational::try_new(num, den).ok_or_else(|| {
@@ -3918,7 +3918,7 @@ pub(crate) fn parse_rational(obj: &Bound<'_, PyAny>) -> PyResult<Rational> {
         });
     }
     if let Ok(v) = obj.extract::<i128>() {
-        return Ok(Rational::int(v));
+        return Ok(Rational::from_int(v));
     }
     Err(PyTypeError::new_err(
         "expected Rational, Integer, int, or (num, den) tuple",
@@ -4908,7 +4908,7 @@ pub(crate) fn parse_adele(obj: &Bound<'_, PyAny>) -> PyResult<Adele> {
         return Ok(a.borrow().inner.clone());
     }
     if let Ok(v) = obj.extract::<i128>() {
-        return Ok(Adele::from_rational(&Rational::int(v)));
+        return Ok(Adele::from_rational(&Rational::from_int(v)));
     }
     Err(PyTypeError::new_err("expected Adele or int"))
 }

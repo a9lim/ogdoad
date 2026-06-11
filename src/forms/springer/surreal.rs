@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn single_valuation_bucket() {
         // [ω, 2ω, −ω]: all valuation 1, residue signs +,+,− ⇒ one bucket (2,1).
-        let two_omega = Surreal::monomial(Surreal::one(), Rational::int(2));
+        let two_omega = Surreal::monomial(Surreal::one(), Rational::from_int(2));
         let m = Metric::diagonal(vec![Surreal::omega(), two_omega, Surreal::omega().neg()]);
         let d = springer_decompose(&m).unwrap();
         assert_eq!(d.graded.len(), 1);

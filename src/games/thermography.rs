@@ -36,7 +36,7 @@ use std::cmp::Ordering;
 /// Here `E = left_raw − right_raw`, so this is the temperature at which the
 /// scaffolds meet.
 pub(crate) fn meeting_temperature(e: &Pl) -> Rational {
-    let two = Rational::int(2);
+    let two = Rational::from_int(2);
     let d_at = |t: &Rational| e.value_at(t).sub(&two.mul(t));
 
     let t0 = Rational::zero();
@@ -121,7 +121,7 @@ where
     if g.is_number() {
         let v = g.number_value()?.as_rational()?; // dyadic ⇒ rational
         let c = Pl::constant(v.clone());
-        return Some((c.clone(), c, v, Rational::int(-1)));
+        return Some((c.clone(), c, v, Rational::from_int(-1)));
     }
     if g.left().is_empty() || g.right().is_empty() {
         return None;
@@ -198,7 +198,7 @@ mod tests {
         Rational::new(n, d)
     }
     fn int(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     #[test]

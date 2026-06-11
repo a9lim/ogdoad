@@ -305,7 +305,7 @@ mod tests {
     type E3 = Ramified<Qp<2, 8>, 3>;
 
     fn q3(n: i128) -> Qp<3, 6> {
-        Qp::from_i128(n)
+        Qp::from_int(n)
     }
 
     #[test]
@@ -358,7 +358,7 @@ mod tests {
     #[test]
     fn e3_inverse_round_trips_via_matrix_solve() {
         fn q2(n: i128) -> Qp<2, 8> {
-            Qp::from_i128(n)
+            Qp::from_int(n)
         }
         // π³ = 2 (the mul reduction, exact).
         let pi = E3::pi();
@@ -442,8 +442,8 @@ mod tests {
                 }
                 // a + t  in the first slot (a unit when a = 1, else valuation 1),
                 // b in the second.
-                let c0 = Laurent::from_scalar(Fp::<2>::new(a as i128)).add(&t);
-                let c1 = Laurent::from_scalar(Fp::<2>::new(b as i128));
+                let c0 = Laurent::from_scalar(Fp::<2>::from_int(a as i128)).add(&t);
+                let c1 = Laurent::from_scalar(Fp::<2>::from_int(b as i128));
                 let x = EW::new(vec![c0, c1]);
                 let xi = x.inv().expect("nonzero inverts: wild extension is a field");
                 assert_eq!(x.mul(&xi), EW::one(), "x·x⁻¹ ≠ 1 for {x:?}");

@@ -62,15 +62,6 @@ impl<const P: u128> Fp<P> {
         assert!(Self::modulus_is_prime(), "Fp<P> needs prime P, got {P}");
     }
 
-    /// Reduce an integer (possibly negative) into `F_P`. This is the ℤ-embedding
-    /// for `Fp`, the unique unital ring homomorphism ℤ → F_P.
-    ///
-    /// Kept as a doc'd alias for `Fp::from_int(n)` — a future sweep retires this
-    /// spelling once all call sites migrate.
-    pub fn new(n: i128) -> Self {
-        Fp::<P>::from_int(n)
-    }
-
     /// Reduce an unsigned integer into `F_P`.
     pub fn from_u128(n: u128) -> Self {
         Self::assert_prime_modulus();
@@ -225,7 +216,7 @@ mod tests {
         let one = Fp::<5>::one();
         assert_eq!(one.neg(), Fp::<5>::from_u128(4));
         assert_ne!(one.neg(), one);
-        assert_eq!(Fp::<5>::new(-1), Fp::<5>::from_u128(4));
+        assert_eq!(Fp::<5>::from_int(-1), Fp::<5>::from_u128(4));
         assert_eq!(Fp::<5>::characteristic(), 5);
     }
 
@@ -243,7 +234,7 @@ mod tests {
         // e0 e1 = −(e1 e0), and −1 = 2 in F_3
         assert_eq!(
             alg.mul(&e0, &e1),
-            alg.scalar_mul(&Fp::<3>::new(-1), &alg.mul(&e1, &e0))
+            alg.scalar_mul(&Fp::<3>::from_int(-1), &alg.mul(&e1, &e0))
         );
         // (e0e1)² = 1
         let e0e1 = alg.mul(&e0, &e1);
@@ -253,6 +244,6 @@ mod tests {
     #[test]
     fn composite_modulus_is_rejected() {
         assert!(std::panic::catch_unwind(Fp::<4>::one).is_err());
-        assert!(std::panic::catch_unwind(|| Fp::<9>::new(2)).is_err());
+        assert!(std::panic::catch_unwind(|| Fp::<9>::from_int(2)).is_err());
     }
 }

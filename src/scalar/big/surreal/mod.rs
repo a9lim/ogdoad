@@ -75,7 +75,7 @@ impl Surreal {
     /// ℤ-embedding `Scalar::from_int`. Kept as a distinct inherent method for
     /// code clarity; the `Scalar` impl delegates here.
     pub fn from_int(n: i128) -> Self {
-        Surreal::from_rational(Rational::int(n))
+        Surreal::from_rational(Rational::from_int(n))
     }
 
     /// A single monomial coeff · ω^exp.
@@ -593,7 +593,7 @@ mod tests {
                                 // 1/(ω+1) = ω⁻¹ − ω⁻² + ω⁻³ − … : the three leading terms.
         let inv3 = x.inv_to_terms(3).unwrap();
         let expected = Surreal::monomial(int(-1), Rational::one())
-            .add(&Surreal::monomial(int(-2), Rational::int(-1)))
+            .add(&Surreal::monomial(int(-2), Rational::from_int(-1)))
             .add(&Surreal::monomial(int(-3), Rational::one()));
         assert_eq!(inv3, expected);
         // x · (1/x) = 1 in the leading term (truncation error below it).
@@ -632,13 +632,13 @@ mod tests {
         assert_eq!(int(4).sqrt_to_terms(4).unwrap(), int(2));
         // √(ω²+2ω+1) = ω+1 in the two leading terms (perfect square, square lead).
         let perfect = Surreal::omega_pow(int(2))
-            .add(&Surreal::monomial(int(1), Rational::int(2)))
+            .add(&Surreal::monomial(int(1), Rational::from_int(2)))
             .add(&int(1)); // ω² + 2ω + 1
         assert_eq!(perfect.sqrt_to_terms(2).unwrap(), w.add(&int(1)));
         // The honest ℚ-coefficient boundary: leading coeff not a perfect square
         // ⇒ None (√2, √(2ω)); negative ⇒ None (√−ω). √0 = 0.
         assert!(int(2).sqrt_to_terms(4).is_none());
-        assert!(Surreal::monomial(int(1), Rational::int(2))
+        assert!(Surreal::monomial(int(1), Rational::from_int(2))
             .sqrt_to_terms(4)
             .is_none());
         assert!(w.neg().sqrt_to_terms(4).is_none());

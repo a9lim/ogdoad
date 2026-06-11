@@ -11,7 +11,7 @@ use crate::forms::integral::diagonal::{
 };
 use crate::linalg::field::inverse_matrix;
 use crate::linalg::integer::smith_normal_form;
-use crate::scalar::{Nimber, Rational};
+use crate::scalar::{Nimber, Rational, Scalar};
 use std::collections::BTreeMap;
 
 // ── small arithmetic helpers ──
@@ -217,7 +217,7 @@ impl IntegralForm {
         let mat: Vec<Vec<Rational>> = self
             .gram
             .iter()
-            .map(|row| row.iter().map(|&x| Rational::int(x)).collect())
+            .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
             .collect();
         let inv = inverse_matrix(mat)?;
         let mut level = 1i128;
@@ -242,7 +242,9 @@ impl IntegralForm {
     /// `e_i^2 = G_ii` and `{e_i,e_j} = 2G_ij`.
     pub fn clifford_metric(&self) -> crate::clifford::Metric<Rational> {
         let n = self.dim();
-        let q = (0..n).map(|i| Rational::int(self.gram[i][i])).collect();
+        let q = (0..n)
+            .map(|i| Rational::from_int(self.gram[i][i]))
+            .collect();
         let mut b = BTreeMap::new();
         for i in 0..n {
             for j in (i + 1)..n {
@@ -250,7 +252,7 @@ impl IntegralForm {
                     .checked_mul(2)
                     .expect("lattice Clifford metric exceeds i128");
                 if v != 0 {
-                    b.insert((i, j), Rational::int(v));
+                    b.insert((i, j), Rational::from_int(v));
                 }
             }
         }

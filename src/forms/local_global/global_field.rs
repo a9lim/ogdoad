@@ -271,7 +271,7 @@ mod tests {
     fn reciprocity_over_q() {
         let samples: Vec<Rational> = [-3, -1, 1, 2, 3, 5, 6]
             .iter()
-            .map(|&n| Rational::int(n))
+            .map(|&n| Rational::from_int(n))
             .collect();
         reciprocity_and_even_ramification(&samples);
     }
@@ -281,8 +281,8 @@ mod tests {
         type F = RationalFunction<Fp<5>>;
         let rf = |num: &[i128], den: &[i128]| -> F {
             RationalFunction::new(
-                num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-                den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+                num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+                den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
             )
         };
         let samples = [
@@ -316,7 +316,7 @@ mod tests {
             &[1, -2],
         ];
         for f in forms {
-            let rats: Vec<Rational> = f.iter().map(|&n| Rational::int(n)).collect();
+            let rats: Vec<Rational> = f.iter().map(|&n| Rational::from_int(n)).collect();
             assert_eq!(
                 Rational::try_is_isotropic_global(&rats),
                 try_is_isotropic_q(f),
@@ -331,8 +331,8 @@ mod tests {
         type F = RationalFunction<Fp<5>>;
         let rf = |num: &[i128], den: &[i128]| -> F {
             RationalFunction::new(
-                num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-                den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+                num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+                den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
             )
         };
         let forms: Vec<Vec<F>> = vec![

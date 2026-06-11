@@ -143,7 +143,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     fn rat(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     #[test]
@@ -192,11 +192,14 @@ mod tests {
         // The same hyperbolic plane, over F_5: classify it without pre-diagonalizing.
         const P: u128 = 5;
         let mut b = BTreeMap::new();
-        b.insert((0, 1), Fp::<P>::new(2));
-        let m = Metric::new(vec![Fp::<P>::new(0), Fp::<P>::new(0)], b);
+        b.insert((0, 1), Fp::<P>::from_int(2));
+        let m = Metric::new(vec![Fp::<P>::from_int(0), Fp::<P>::from_int(0)], b);
         let got = classify_finite_odd(&m).unwrap();
-        let want = classify_finite_odd(&Metric::diagonal(vec![Fp::<P>::new(1), Fp::<P>::new(-1)]))
-            .unwrap();
+        let want = classify_finite_odd(&Metric::diagonal(vec![
+            Fp::<P>::from_int(1),
+            Fp::<P>::from_int(-1),
+        ]))
+        .unwrap();
         assert_eq!(got.dim, want.dim);
         assert_eq!(got.disc_is_square, want.disc_is_square);
     }
@@ -213,7 +216,7 @@ mod tests {
 
     #[test]
     fn nonfield_nonunit_pivot_returns_none() {
-        let m = Metric::diagonal(vec![Zp::<3, 2>::new(3)]);
+        let m = Metric::diagonal(vec![Zp::<3, 2>::from_int(3)]);
         assert!(diagonalize(&m).is_none());
     }
 }

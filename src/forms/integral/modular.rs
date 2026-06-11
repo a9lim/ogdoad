@@ -82,7 +82,7 @@ fn qexp_pow(base: &[Rational], exp: usize, terms: usize) -> Vec<Rational> {
 
 /// Convert exact integer q-expansion coefficients to rational coefficients.
 pub fn qexp_from_i128(coeffs: &[i128]) -> Vec<Rational> {
-    coeffs.iter().map(|&x| Rational::int(x)).collect()
+    coeffs.iter().map(|&x| Rational::from_int(x)).collect()
 }
 
 /// `E4 = 1 + 240 * sum sigma_3(n) q^n`.
@@ -94,7 +94,7 @@ pub fn eisenstein_e4(terms: usize) -> Vec<Rational> {
     out[0] = Rational::one();
     let c4 = eisenstein_constant(2); // −8/B₄ = 240
     for (n, coeff) in out.iter_mut().enumerate().skip(1) {
-        *coeff = Rational::int(
+        *coeff = Rational::from_int(
             c4.checked_mul(sigma_power(n, 3))
                 .expect("E4 coefficient exceeds i128"),
         );
@@ -111,7 +111,7 @@ pub fn eisenstein_e6(terms: usize) -> Vec<Rational> {
     out[0] = Rational::one();
     let c6 = eisenstein_constant(3); // −12/B₆ = −504
     for (n, coeff) in out.iter_mut().enumerate().skip(1) {
-        *coeff = Rational::int(
+        *coeff = Rational::from_int(
             c6.checked_mul(sigma_power(n, 5))
                 .expect("E6 coefficient exceeds i128"),
         );
@@ -267,7 +267,7 @@ mod tests {
         let e4_cubed = modular_qexp_mul(&e4_squared, &e4, 3);
         let leech_form = modular_qexp_sub(
             &e4_cubed,
-            &modular_qexp_scale(&delta(3), Rational::int(720), 3),
+            &modular_qexp_scale(&delta(3), Rational::from_int(720), 3),
             3,
         );
         assert_eq!(

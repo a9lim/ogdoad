@@ -328,19 +328,22 @@ mod tests {
     #[test]
     fn gaussian_trace_and_norm() {
         type G = Surcomplex<Rational>;
-        let z = Surcomplex::new(Rational::int(2), Rational::int(1)); // 2+i
+        let z = Surcomplex::new(Rational::from_int(2), Rational::from_int(1)); // 2+i
         assert_eq!(<G as FieldExtension>::extension_degree(), 2);
-        assert_eq!(z.trace(), Rational::int(4)); // 2·2
-        assert_eq!(z.norm(), Rational::int(5)); // 4+1
-                                                // norm = z·z̄ real part; trace = z+z̄ real part — agree with conj directly.
+        assert_eq!(z.trace(), Rational::from_int(4)); // 2·2
+        assert_eq!(z.norm(), Rational::from_int(5)); // 4+1
+                                                     // norm = z·z̄ real part; trace = z+z̄ real part — agree with conj directly.
         assert_eq!(z.mul(&z.conj()).re, z.norm());
         assert_eq!(z.add(&z.conj()).re, z.trace());
         // embedding a base element: trace = 2·a, norm = a².
-        let e = <G as FieldExtension>::embed(&Rational::int(3));
-        assert_eq!(e, Surcomplex::new(Rational::int(3), Rational::int(0)));
-        assert_eq!(e.norm(), Rational::int(9));
+        let e = <G as FieldExtension>::embed(&Rational::from_int(3));
+        assert_eq!(
+            e,
+            Surcomplex::new(Rational::from_int(3), Rational::from_int(0))
+        );
+        assert_eq!(e.norm(), Rational::from_int(9));
         // multiplicativity of the norm (it is a group hom on E*).
-        let w = Surcomplex::new(Rational::int(1), Rational::int(-2));
+        let w = Surcomplex::new(Rational::from_int(1), Rational::from_int(-2));
         assert_eq!(z.mul(&w).norm(), z.norm().mul(&w.norm()));
     }
 
@@ -446,8 +449,8 @@ mod tests {
             assert_eq!(a.mul(b).norm(), a.norm().mul(&b.norm()));
         }
         norm_is_multiplicative(
-            &Surcomplex::new(Rational::int(2), Rational::int(1)),
-            &Surcomplex::new(Rational::int(1), Rational::int(3)),
+            &Surcomplex::new(Rational::from_int(2), Rational::from_int(1)),
+            &Surcomplex::new(Rational::from_int(1), Rational::from_int(3)),
         );
         norm_is_multiplicative(
             &Fpn::<3, 2>::from_coeffs(&[1, 2]),
@@ -501,11 +504,11 @@ mod tests {
         assert_eq!(
             basis,
             vec![
-                Surcomplex::new(Rational::int(1), Rational::int(0)),
-                Surcomplex::new(Rational::int(0), Rational::int(1)),
+                Surcomplex::new(Rational::from_int(1), Rational::from_int(0)),
+                Surcomplex::new(Rational::from_int(0), Rational::from_int(1)),
             ]
         );
-        let z = Surcomplex::new(Rational::int(2), Rational::int(3));
+        let z = Surcomplex::new(Rational::from_int(2), Rational::from_int(3));
         assert_eq!(z.sigma(), z.conj()); // σ = conjugation
         assert_eq!(z.sigma_power(2), z); // order 2
     }

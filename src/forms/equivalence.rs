@@ -203,7 +203,7 @@ pub fn witt_decompose_finite_odd<F: FiniteOddField>(m: &Metric<F>) -> Option<Odd
         // even dim 2k: hyperbolic iff (−1)^k · det is a square.
         let k = dim / 2;
         let sign = if k % 2 == 1 {
-            F::from_i128(-1)
+            F::from_int(-1)
         } else {
             F::one()
         };
@@ -216,7 +216,7 @@ pub fn witt_decompose_finite_odd<F: FiniteOddField>(m: &Metric<F>) -> Option<Odd
     let witt_index = (dim - anisotropic_dim) / 2;
     // anisotropic kernel disc = det · (−1)^{witt_index} (mod squares).
     let twist = if witt_index % 2 == 1 {
-        F::from_i128(-1)
+        F::from_int(-1)
     } else {
         F::one()
     };
@@ -235,13 +235,14 @@ mod tests {
     use super::*;
     use crate::forms::arf_invariant;
     use crate::scalar::Fp;
+    use crate::scalar::Scalar;
     use std::collections::BTreeMap;
 
     fn rsur(xs: &[i128]) -> Metric<Surreal> {
         Metric::diagonal(xs.iter().map(|&x| Surreal::from_int(x)).collect())
     }
     fn ofp<const P: u128>(xs: &[i128]) -> Metric<Fp<P>> {
-        Metric::diagonal(xs.iter().map(|&x| Fp::<P>::new(x)).collect())
+        Metric::diagonal(xs.iter().map(|&x| Fp::<P>::from_int(x)).collect())
     }
 
     #[test]
@@ -260,8 +261,8 @@ mod tests {
 
     #[test]
     fn rational_isometry_sees_square_classes() {
-        let q1 = Metric::diagonal(vec![Rational::int(1)]);
-        let q2 = Metric::diagonal(vec![Rational::int(2)]);
+        let q1 = Metric::diagonal(vec![Rational::from_int(1)]);
+        let q2 = Metric::diagonal(vec![Rational::from_int(2)]);
         assert_eq!(isometric_rational(&q1, &q1), Some(true));
         assert_eq!(isometric_rational(&q1, &q2), Some(false));
     }

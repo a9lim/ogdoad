@@ -393,18 +393,19 @@ pub fn as_symbol_ramified_places<S: FiniteChar2Field>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scalar::Scalar;
     use crate::scalar::{Fp, Fpn};
 
     type F2 = Fp<2>;
     type R2 = RationalFunction<F2>;
 
     fn p2(c: &[i128]) -> Poly<F2> {
-        Poly::new(c.iter().map(|&n| F2::new(n)).collect())
+        Poly::new(c.iter().map(|&n| F2::from_int(n)).collect())
     }
     fn r2(num: &[i128], den: &[i128]) -> R2 {
         RationalFunction::new(
-            num.iter().map(|&n| F2::new(n)).collect(),
-            den.iter().map(|&n| F2::new(n)).collect(),
+            num.iter().map(|&n| F2::from_int(n)).collect(),
+            den.iter().map(|&n| F2::from_int(n)).collect(),
         )
     }
 

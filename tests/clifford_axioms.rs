@@ -118,9 +118,9 @@ proptest! {
         cb in prop::array::uniform::<_, BLADES>(rational_mv_coeff()),
         cc in prop::array::uniform::<_, BLADES>(rational_mv_coeff()),
     ) {
-        let metric = Metric::diagonal(q.iter().map(|&x| Rational::int(x)).collect());
+        let metric = Metric::diagonal(q.iter().map(|&x| Rational::from_int(x)).collect());
         let alg = CliffordAlgebra::new(DIM, metric);
-        let mk = |c: [i128; BLADES]| build_mv(&alg, &c.map(Rational::int));
+        let mk = |c: [i128; BLADES]| build_mv(&alg, &c.map(Rational::from_int));
         check_associative_distributive(&alg, &mk(ca), &mk(cb), &mk(cc));
     }
 }

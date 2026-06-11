@@ -214,7 +214,7 @@ mod tests {
     use crate::scalar::Surreal;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
     fn rs(num: i128, den: i128) -> Rational {
         Rational::new(num, den)

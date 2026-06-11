@@ -442,7 +442,7 @@ pub fn constant_extension_invariant_sum<S: FiniteOddField>(
     let invs = constant_extension_invariants(n, a)?;
     let sum = invs
         .into_iter()
-        .fold(Rational::int(0), |acc, (_, inv)| acc.add(&inv));
+        .fold(Rational::from_int(0), |acc, (_, inv)| acc.add(&inv));
     frac_mod_one_ratio(sum.numer(), sum.denom())
 }
 
@@ -456,12 +456,12 @@ mod tests {
 
     fn rf(num: &[i128], den: &[i128]) -> F {
         RationalFunction::new(
-            num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-            den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+            num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+            den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
         )
     }
     fn poly(c: &[i128]) -> PolyF {
-        Poly::new(c.iter().map(|&n| Fp::<5>::new(n)).collect())
+        Poly::new(c.iter().map(|&n| Fp::<5>::from_int(n)).collect())
     }
 
     #[test]
@@ -529,7 +529,7 @@ mod tests {
                     );
                 }
                 // Steinberg: (a, −a)_v = 1.
-                let neg_a = a.mul(&F::from_base(Fp::<5>::new(-1)));
+                let neg_a = a.mul(&F::from_base(Fp::<5>::from_int(-1)));
                 for pl in &places {
                     assert_eq!(
                         try_hilbert_symbol_ff(a, &neg_a, pl),
@@ -629,7 +629,7 @@ mod tests {
         use crate::scalar::Laurent;
         type L5 = Laurent<Fp<5>, 4>;
         let lc = |cs: &[i128], v: i128| {
-            L5::from_coeffs(cs.iter().map(|&n| Fp::<5>::new(n)).collect(), v)
+            L5::from_coeffs(cs.iter().map(|&n| Fp::<5>::from_int(n)).collect(), v)
         };
 
         let pi = poly(&[4, 1]); // t − 1 over F_5
@@ -679,7 +679,7 @@ mod tests {
             for a in &samples {
                 assert_eq!(
                     constant_extension_invariant_sum(n, a),
-                    Some(Rational::int(0)),
+                    Some(Rational::from_int(0)),
                     "reciprocity n={n} a={a:?}"
                 );
                 // independent oracle: the divisor degree Σ deg(v)·v(a) = 0.

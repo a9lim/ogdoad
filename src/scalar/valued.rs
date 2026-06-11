@@ -117,7 +117,7 @@ mod tests {
 
     #[test]
     fn trait_valuation_matches_inherent() {
-        let x = Qp::<5, 4>::from_i128(50); // 2·5²  ⇒ valuation 2
+        let x = Qp::<5, 4>::from_int(50); // 2·5²  ⇒ valuation 2
         assert_eq!(<Qp<5, 4> as Valued>::valuation(&x), x.valuation());
         assert_eq!(<Qp<5, 4> as Valued>::valuation(&x), Some(2));
     }
@@ -129,10 +129,10 @@ mod tests {
     fn tropicalize_is_multiplicative() {
         type Q = Qp<5, 8>;
         let samples = [
-            Q::from_i128(1),
-            Q::from_i128(5),     // val 1
-            Q::from_i128(50),    // val 2
-            Q::from_i128(7),     // val 0 unit
+            Q::from_int(1),
+            Q::from_int(5),      // val 1
+            Q::from_int(50),     // val 2
+            Q::from_int(7),      // val 0 unit
             Q::from_p_power(-1), // val −1
             Q::zero(),           // val ∞
         ];
@@ -154,11 +154,11 @@ mod tests {
     fn tropicalize_is_subadditive() {
         type Q = Qp<5, 8>;
         let samples = [
-            Q::from_i128(1),
-            Q::from_i128(5),
-            Q::from_i128(6), // 1 + 5, val 0
-            Q::from_i128(25),
-            Q::from_i128(-1),
+            Q::from_int(1),
+            Q::from_int(5),
+            Q::from_int(6), // 1 + 5, val 0
+            Q::from_int(25),
+            Q::from_int(-1),
             Q::zero(),
         ];
         for x in &samples {
@@ -175,10 +175,10 @@ mod tests {
     fn tropicalize_equality_off_vanishing_locus() {
         type Q = Qp<5, 8>;
         let samples = [
-            Q::from_i128(1),
-            Q::from_i128(5),
-            Q::from_i128(25),
-            Q::from_i128(7),
+            Q::from_int(1),
+            Q::from_int(5),
+            Q::from_int(25),
+            Q::from_int(7),
             Q::from_p_power(-1),
         ];
         for x in &samples {

@@ -51,7 +51,7 @@ impl<const P: u128> FiniteOddField for Fp<P> {
     }
 
     fn from_i128(n: i128) -> Self {
-        Fp::<P>::new(n)
+        Fp::<P>::from_int(n)
     }
 
     fn from_index(i: u128) -> Self {

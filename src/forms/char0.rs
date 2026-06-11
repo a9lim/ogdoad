@@ -350,7 +350,7 @@ mod tests {
     use crate::scalar::Scalar;
 
     fn rat(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
     fn surreal_diag(qs: &[i128]) -> Metric<Surreal> {
         Metric::diagonal(qs.iter().map(|&x| Surreal::from_int(x)).collect())

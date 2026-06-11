@@ -161,7 +161,7 @@ mod tests {
 
     /// Build `Σ cᵢ xⁱ` over `Q_5` from integer coefficients.
     fn qpoly(coeffs: &[i128]) -> Vec<Q5> {
-        coeffs.iter().map(|&n| Q5::from_i128(n)).collect()
+        coeffs.iter().map(|&n| Q5::from_int(n)).collect()
     }
 
     /// Eisenstein `xᴱ − p`: a single side of slope `−1/E`, every root valuation
@@ -183,7 +183,7 @@ mod tests {
         let np = NewtonPolygon::of(&qpoly(&[-5, 0, 1])).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(1, 2), 2)]);
         // odd valuation ⇒ 5 is not a square in Q_5 (the analytic cross-check).
-        assert_eq!(Q5::from_i128(5).is_square(), Some(false));
+        assert_eq!(Q5::from_int(5).is_square(), Some(false));
     }
 
     /// Distinct-slope factors concatenate; per-slope lengths add (Dumas, J.6).
@@ -209,7 +209,7 @@ mod tests {
     fn flat_polygon_iff_unit_roots() {
         let np = NewtonPolygon::of(&qpoly(&[2, 3, 1])).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(0, 1), 2)]);
-        assert_eq!(Q5::from_i128(2).valuation(), Some(0)); // a₀ a unit
+        assert_eq!(Q5::from_int(2).valuation(), Some(0)); // a₀ a unit
         assert!(np.slopes().iter().all(|(s, _)| *s == Rational::zero()));
 
         // break it: x² + 3x + 5 has a₀ = 5 (valuation 1) ⇒ no longer all-flat.

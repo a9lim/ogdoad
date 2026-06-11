@@ -235,7 +235,7 @@ mod tests {
         for u in (1..16u128).filter(|u| u % 2 != 0) {
             for v in -2i128..=2 {
                 let a = Qq::<2, 4, 1>::normalized(WittVec::from_int(u as i128), v);
-                let b = Qp::<2, 4>::from_i128(u as i128).mul(&Qp::<2, 4>::from_p_power(v));
+                let b = Qp::<2, 4>::from_int(u as i128).mul(&Qp::<2, 4>::from_p_power(v));
                 // compare via the field invariants both expose
                 assert_eq!(a.valuation(), b.valuation());
                 let ai = a.inv().unwrap();

@@ -190,8 +190,8 @@ mod tests {
 
     fn rf(num: &[i128], den: &[i128]) -> F {
         RationalFunction::new(
-            num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-            den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+            num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+            den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
         )
     }
 
@@ -199,7 +199,7 @@ mod tests {
     fn is_an_exact_field() {
         let samples = [
             F::t(),
-            F::from_base(Fp::<5>::new(2)),
+            F::from_base(Fp::<5>::from_int(2)),
             rf(&[1, 1], &[1]),       // 1 + t
             rf(&[1], &[0, 1]),       // 1/t
             rf(&[2, 0, 1], &[1, 1]), // (2 + t²)/(1 + t)
@@ -225,7 +225,10 @@ mod tests {
         // (t + 1)(t + 2) / (2(t + 1)) = (t + 2) / 2 = 1 + 3t over F_5.
         let x = rf(&[2, 3, 1], &[2, 2]);
         assert_eq!(x.den(), &Poly::one());
-        assert_eq!(x.num(), &Poly::new(vec![Fp::<5>::new(1), Fp::<5>::new(3)]));
+        assert_eq!(
+            x.num(),
+            &Poly::new(vec![Fp::<5>::from_int(1), Fp::<5>::from_int(3)])
+        );
     }
 
     #[test]
@@ -234,7 +237,7 @@ mod tests {
             F::zero(),
             F::one(),
             F::t(),
-            F::from_base(Fp::<5>::new(3)),
+            F::from_base(Fp::<5>::from_int(3)),
             rf(&[1, 1], &[1]), // 1 + t
             rf(&[1], &[0, 1]), // 1/t
         ];
@@ -257,7 +260,13 @@ mod tests {
     #[test]
     fn num_den_accessors_expose_polys_for_the_forms_layer() {
         let x = rf(&[0, 1], &[1, 1]); // t / (1 + t)
-        assert_eq!(x.num(), &Poly::new(vec![Fp::<5>::new(0), Fp::<5>::new(1)]));
-        assert_eq!(x.den(), &Poly::new(vec![Fp::<5>::new(1), Fp::<5>::new(1)]));
+        assert_eq!(
+            x.num(),
+            &Poly::new(vec![Fp::<5>::from_int(0), Fp::<5>::from_int(1)])
+        );
+        assert_eq!(
+            x.den(),
+            &Poly::new(vec![Fp::<5>::from_int(1), Fp::<5>::from_int(1)])
+        );
     }
 }

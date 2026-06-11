@@ -37,7 +37,11 @@ fn dot_inv(v: &[i128], inv: &[Vec<Rational>], w: &[i128]) -> Rational {
             if wj == 0 {
                 continue;
             }
-            acc = acc.add(&Rational::int(v[i]).mul(&inv[i][j]).mul(&Rational::int(wj)));
+            acc = acc.add(
+                &Rational::from_int(v[i])
+                    .mul(&inv[i][j])
+                    .mul(&Rational::from_int(wj)),
+            );
         }
     }
     acc
@@ -636,7 +640,7 @@ impl DiscriminantForm {
         let mat: Vec<Vec<Rational>> = lattice
             .gram()
             .iter()
-            .map(|row| row.iter().map(|&x| Rational::int(x)).collect())
+            .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
             .collect();
         let gram_inv = inverse_matrix(mat)?;
         let hnf = normalize_relation_rows(lattice.gram().to_vec());
@@ -903,7 +907,7 @@ impl DiscriminantForm {
             let mut coord = Rational::zero();
             for (r, &d) in row.iter().zip(&diff) {
                 if d != 0 {
-                    coord = coord.add(&r.mul(&Rational::int(d)));
+                    coord = coord.add(&r.mul(&Rational::from_int(d)));
                 }
             }
             if !coord.is_integer() {

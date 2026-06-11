@@ -108,7 +108,7 @@ pub fn finite_odd_witt<F: FiniteOddField>(metric: &Metric<F>) -> Option<WittClas
     } else {
         det
     };
-    let kappa = if F::is_square_value(F::from_i128(-1)) {
+    let kappa = if F::is_square_value(F::from_int(-1)) {
         0
     } else {
         1

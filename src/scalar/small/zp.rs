@@ -55,15 +55,6 @@ impl<const P: u128, const K: u128> Zp<P, K> {
         acc
     }
 
-    /// Reduce an integer (possibly negative) into `Z/p^k`. This is the ℤ-embedding
-    /// for `Zp`, the unique unital ring homomorphism ℤ → Z/p^k.
-    ///
-    /// Kept as a doc'd alias for `Zp::from_int(n)` — a future sweep retires this
-    /// spelling once all call sites migrate.
-    pub fn new(n: i128) -> Self {
-        Zp::<P, K>::from_int(n)
-    }
-
     /// The `p`-adic valuation of this element, capped at the precision `k`
     /// (`v_p(0)` reads as `k`, the precision floor).
     pub fn valuation(&self) -> u128 {

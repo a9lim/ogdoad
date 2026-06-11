@@ -128,7 +128,7 @@ mod tests {
     use crate::scalar::{Nimber, Rational};
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     #[test]

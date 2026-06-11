@@ -76,7 +76,7 @@ fn rationals() -> impl Strategy<Value = Rational> {
 }
 
 fn fp7() -> impl Strategy<Value = Fp<7>> {
-    any::<i128>().prop_map(Fp::<7>::new)
+    any::<i128>().prop_map(Fp::<7>::from_int)
 }
 
 /// Small surreals: a handful of monomials `ω^e · (p/q)` with `e ∈ [−2,2]`.
@@ -99,10 +99,10 @@ fn surcomplexes() -> impl Strategy<Value = Surcomplex<Surreal>> {
 /// the denominator forced nonzero. `F_q(t)` is exact, so — unlike the local
 /// precision models — it belongs in this exact-ring fuzz.
 fn rational_functions() -> impl Strategy<Value = RationalFunction<Fp<7>>> {
-    let coeffs = || prop::collection::vec((0i128..7).prop_map(Fp::<7>::new), 0..3);
+    let coeffs = || prop::collection::vec((0i128..7).prop_map(Fp::<7>::from_int), 0..3);
     (coeffs(), coeffs()).prop_map(|(num, den)| {
         let den = if Poly::new(den.clone()).is_zero() {
-            vec![Fp::<7>::new(1)]
+            vec![Fp::<7>::from_int(1)]
         } else {
             den
         };

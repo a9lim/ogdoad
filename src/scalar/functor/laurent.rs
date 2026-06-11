@@ -335,7 +335,7 @@ mod tests {
     type L = Laurent<Rational, 6>; // ℚ((t)) to 6 significant terms
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     fn lc(coeffs: &[i128], val: i128) -> L {

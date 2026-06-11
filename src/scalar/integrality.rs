@@ -81,7 +81,7 @@ pub trait HasRingOfIntegers: Scalar {
 impl HasFractionField for Integer {
     type Frac = Rational;
     fn to_fraction(&self) -> Rational {
-        Rational::int(self.0)
+        Rational::from_int(self.0)
     }
 }
 
@@ -127,7 +127,7 @@ impl HasRingOfIntegers for Surreal {
 impl<const P: u128, const K: u128> HasFractionField for Zp<P, K> {
     type Frac = Qp<P, K>;
     fn to_fraction(&self) -> Qp<P, K> {
-        Qp::from_i128((self.0 % Zp::<P, K>::modulus()) as i128)
+        Qp::from_int((self.0 % Zp::<P, K>::modulus()) as i128)
     }
 }
 
@@ -277,8 +277,8 @@ mod tests {
         assert!(!half.is_integral());
         assert_eq!(half.to_integer(), None);
         // an integer-valued rational is
-        assert!(Rational::int(4).is_integral());
-        assert_eq!(Rational::int(4).to_integer(), Some(Integer(4)));
+        assert!(Rational::from_int(4).is_integral());
+        assert_eq!(Rational::from_int(4).to_integer(), Some(Integer(4)));
     }
 
     #[test]
@@ -302,7 +302,7 @@ mod tests {
         assert!(!inv_p.is_integral());
         assert_eq!(inv_p.to_integer(), None);
         // p itself IS integral and lands on Zp(p).
-        let p = Qp::<3, 3>::from_i128(3);
+        let p = Qp::<3, 3>::from_int(3);
         assert!(p.is_integral());
         assert_eq!(p.to_integer(), Some(Zp::<3, 3>(3)));
     }
@@ -310,7 +310,7 @@ mod tests {
     #[test]
     fn qp_to_integer_uses_modular_multiplication_at_the_boundary() {
         type Q = Qp<3, 80>;
-        let x = Q::from_i128(-1).mul(&Q::from_i128(3));
+        let x = Q::from_int(-1).mul(&Q::from_int(3));
         assert_eq!(x.valuation(), Some(1));
         assert_eq!(x.to_integer(), Some(Zp::<3, 80>(Q::modulus() - 3)));
     }
@@ -337,9 +337,13 @@ mod tests {
         type P = Poly<Fp<5>>;
         // every polynomial round-trips through F_5(t) = Frac(F_5[t]).
         let samples = [
-            P::constant(Fp::<5>::new(3)),
+            P::constant(Fp::<5>::from_int(3)),
             P::x(),
-            Poly::new(vec![Fp::<5>::new(1), Fp::<5>::new(0), Fp::<5>::new(2)]), // 2t² + 1
+            Poly::new(vec![
+                Fp::<5>::from_int(1),
+                Fp::<5>::from_int(0),
+                Fp::<5>::from_int(2),
+            ]), // 2t² + 1
         ];
         for p in &samples {
             assert_pairs(p);
@@ -351,8 +355,12 @@ mod tests {
         // t²/t IS integral and recovers the polynomial t (gcd-reduced on construction
         // by `RationalFunction::from_polys`, so the stored form is already t/1).
         let t2_over_t = RationalFunction::new(
-            vec![Fp::<5>::new(0), Fp::<5>::new(0), Fp::<5>::new(1)],
-            vec![Fp::<5>::new(0), Fp::<5>::new(1)],
+            vec![
+                Fp::<5>::from_int(0),
+                Fp::<5>::from_int(0),
+                Fp::<5>::from_int(1),
+            ],
+            vec![Fp::<5>::from_int(0), Fp::<5>::from_int(1)],
         );
         assert!(t2_over_t.is_integral());
         assert_eq!(t2_over_t.to_integer(), Some(P::x()));
@@ -368,11 +376,11 @@ mod tests {
             }
         }
         // a genuine Gaussian fraction (½i) is not integral.
-        let half_i = Surcomplex::new(Rational::int(0), Rational::new(1, 2));
+        let half_i = Surcomplex::new(Rational::from_int(0), Rational::new(1, 2));
         assert!(!half_i.is_integral());
         assert_eq!(half_i.to_integer(), None);
         // an integer-valued surcomplex recovers itself.
-        let g = Surcomplex::new(Rational::int(3), Rational::int(-2));
+        let g = Surcomplex::new(Rational::from_int(3), Rational::from_int(-2));
         assert!(g.is_integral());
         assert_eq!(
             g.to_integer(),

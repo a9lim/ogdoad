@@ -10,6 +10,7 @@
 //!      golden `thermograph`.
 
 use ogdoad::games::{thermograph, thermograph_via_tropical, Game};
+use ogdoad::scalar::Scalar;
 use ogdoad::scalar::{MaxPlus, MinPlus, Rational, Tropical};
 
 fn rule(title: &str) {
@@ -67,7 +68,9 @@ fn main() {
     for (a, b) in [(5i128, 1i128), (2, -2)] {
         let th = thermograph_via_tropical(&Game::switch(a, b)).unwrap();
         // LS = a comes from the (max,+) left fold; RS = b from the (min,+) right fold.
-        assert!(th.left_stop() == Rational::int(a) && th.right_stop() == Rational::int(b));
+        assert!(
+            th.left_stop() == Rational::from_int(a) && th.right_stop() == Rational::from_int(b)
+        );
         println!(
             "  {{{a}|{b}}}: LS = {:?} (max-plus),  RS = {:?} (min-plus),  mean {:?}",
             th.left_stop(),

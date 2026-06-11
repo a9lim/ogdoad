@@ -59,6 +59,7 @@ use geometry::SHORT_VECTOR_EXACT_ENUM_LIMIT;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scalar::Scalar;
 
     fn a_n(n: usize) -> IntegralForm {
         // A_n Cartan matrix: 2 on the diagonal, -1 on the off-diagonals.
@@ -171,8 +172,8 @@ mod tests {
         use crate::scalar::{Nimber, Rational};
         let a2 = a_n(2);
         let rat = a2.clifford_metric();
-        assert_eq!(rat.q, vec![Rational::int(2), Rational::int(2)]);
-        assert_eq!(rat.b[&(0, 1)], Rational::int(-2));
+        assert_eq!(rat.q, vec![Rational::from_int(2), Rational::from_int(2)]);
+        assert_eq!(rat.b[&(0, 1)], Rational::from_int(-2));
 
         let f2 = a2.clifford_metric_f2().unwrap();
         assert_eq!(f2.q, vec![Nimber(1), Nimber(1)]);

@@ -156,18 +156,18 @@ mod tests {
     fn qp_residue_and_angular_component() {
         type Q5 = Qp<5, 4>;
         // a unit (val 0): residue = angular component = the residue digit.
-        let u = Q5::from_i128(7); // 7 ≡ 2 mod 5
-        assert_eq!(u.residue(), Some(Fp::<5>::new(2)));
-        assert_eq!(u.residue_unit(), Some(Fp::<5>::new(2)));
+        let u = Q5::from_int(7); // 7 ≡ 2 mod 5
+        assert_eq!(u.residue(), Some(Fp::<5>::from_int(2)));
+        assert_eq!(u.residue_unit(), Some(Fp::<5>::from_int(2)));
         // a uniformizer multiple (val 1): residue 0, but angular component 1.
-        let p = Q5::from_i128(5); // 5 = 5¹·1
+        let p = Q5::from_int(5); // 5 = 5¹·1
         assert_eq!(p.valuation(), Some(1));
         assert_eq!(p.residue(), Some(Fp::<5>::zero()));
-        assert_eq!(p.residue_unit(), Some(Fp::<5>::new(1)));
+        assert_eq!(p.residue_unit(), Some(Fp::<5>::from_int(1)));
         // 1/p (val −1): not integral ⇒ no residue, but still an angular component.
         let inv_p = Q5::from_p_power(-1);
         assert_eq!(inv_p.residue(), None);
-        assert_eq!(inv_p.residue_unit(), Some(Fp::<5>::new(1)));
+        assert_eq!(inv_p.residue_unit(), Some(Fp::<5>::from_int(1)));
         // zero: residue 0, no angular component.
         assert_eq!(Q5::zero().residue(), Some(Fp::<5>::zero()));
         assert_eq!(Q5::zero().residue_unit(), None);
@@ -191,7 +191,7 @@ mod tests {
     #[test]
     fn laurent_residue_is_evaluation_at_zero() {
         type L = Laurent<Rational, 6>;
-        let r = |n: i128| Rational::int(n);
+        let r = |n: i128| Rational::from_int(n);
         // 3 + 2t (val 0): residue = constant term 3 = angular component.
         let a = Laurent::<Rational, 6>::from_coeffs(vec![r(3), r(2)], 0);
         assert_eq!(a.residue(), Some(r(3)));
@@ -215,7 +215,7 @@ mod tests {
                 assert!(x.residue_unit().is_some());
             }
         }
-        angular_is_some_for_nonzero(&Qp::<7, 3>::from_i128(14));
+        angular_is_some_for_nonzero(&Qp::<7, 3>::from_int(14));
         angular_is_some_for_nonzero(&Laurent::<Rational, 6>::t());
     }
 

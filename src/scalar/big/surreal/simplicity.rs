@@ -57,7 +57,7 @@ impl Surreal {
         let v = if q.sign() == Ordering::Less {
             Rational::zero() // 0 is the simplest number above any negative
         } else {
-            Rational::int(q.floor() + 1) // the least integer strictly above q ≥ 0
+            Rational::from_int(q.floor() + 1) // the least integer strictly above q ≥ 0
         };
         Some(Surreal::from_rational(v))
     }
@@ -110,7 +110,7 @@ impl Surreal {
             f -= 1;
         }
         if f != 0 {
-            terms.push((Surreal::zero(), Rational::int(f)));
+            terms.push((Surreal::zero(), Rational::from_int(f)));
         }
         // terms stay strictly descending (a subset of self's, same order)
         Surreal { terms }
@@ -129,10 +129,10 @@ fn simplest_below_rat(h: &Rational) -> Rational {
         Rational::zero() // 0 is the simplest number below any positive
     } else {
         let f = h.floor();
-        if Rational::int(f).cmp(h) == Ordering::Less {
-            Rational::int(f) // h non-integer: ⌊h⌋ is the closest-to-0 integer below it
+        if Rational::from_int(f).cmp(h) == Ordering::Less {
+            Rational::from_int(f) // h non-integer: ⌊h⌋ is the closest-to-0 integer below it
         } else {
-            Rational::int(f - 1) // h an integer: the next integer down
+            Rational::from_int(f - 1) // h an integer: the next integer down
         }
     }
 }
@@ -187,12 +187,12 @@ fn simplest_rational_between(a: Rational, b: Rational) -> Rational {
     }
     // 0 ≤ a < b. The least integer strictly above a:
     let c = a.floor() + 1;
-    if Rational::int(c).cmp(&b) == Ordering::Less {
-        return Rational::int(c); // an integer lives in (a,b); c is closest to 0
+    if Rational::from_int(c).cmp(&b) == Ordering::Less {
+        return Rational::from_int(c); // an integer lives in (a,b); c is closest to 0
     }
     // a and b lie inside one open unit interval (m, m+1).
     let m = a.floor();
-    let off = Rational::int(m);
+    let off = Rational::from_int(m);
     off.add(&simplest_in_unit(a.sub(&off), b.sub(&off)))
 }
 

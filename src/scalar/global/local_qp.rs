@@ -322,14 +322,14 @@ mod tests {
             let p: u128 = $P;
             let k: u128 = $K;
             for n in -40i128..=40 {
-                let q = Qp::<$P, $K>::from_i128(n);
+                let q = Qp::<$P, $K>::from_int(n);
                 let l = LocalQp::from_i128(p, k, n);
                 assert_eq!(q.valuation(), l.valuation(), "val from_i128 {n}");
                 assert_eq!(q.unit(), l.unit(), "unit from_i128 {n}");
             }
             for a in -20i128..=20 {
                 for b in -20i128..=20 {
-                    let (qa, qb) = (Qp::<$P, $K>::from_i128(a), Qp::<$P, $K>::from_i128(b));
+                    let (qa, qb) = (Qp::<$P, $K>::from_int(a), Qp::<$P, $K>::from_int(b));
                     let (la, lb) = (LocalQp::from_i128(p, k, a), LocalQp::from_i128(p, k, b));
                     let qs = qa.add(&qb);
                     let ls = la.add(&lb);

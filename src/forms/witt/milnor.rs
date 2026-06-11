@@ -230,7 +230,7 @@ mod tests {
     /// (parity-1) residue layer, built independently of the `i128` route.
     fn springer_residue_q5(entries: &[i128]) -> WittClassG {
         type Q5 = Qp<5, 6>;
-        let metric = Metric::diagonal(entries.iter().map(|&a| Q5::from_i128(a)).collect());
+        let metric = Metric::diagonal(entries.iter().map(|&a| Q5::from_int(a)).collect());
         let decomp = springer_decompose_qp(&metric).unwrap();
         let mut dim = 0usize;
         let mut disc_sq = true; // running square class of the residue discriminant
@@ -265,13 +265,13 @@ mod tests {
 
     fn rf(num: &[i128], den: &[i128]) -> F5 {
         RationalFunction::new(
-            num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-            den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+            num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+            den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
         )
     }
 
     fn poly(c: &[i128]) -> Poly5 {
-        Poly::new(c.iter().map(|&n| Fp::<5>::new(n)).collect())
+        Poly::new(c.iter().map(|&n| Fp::<5>::from_int(n)).collect())
     }
 
     fn odd_class(field_order: u128, e0: u128, sclass: u128) -> WittClassG {

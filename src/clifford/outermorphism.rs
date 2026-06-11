@@ -222,7 +222,7 @@ mod tests {
     use crate::scalar::Rational;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     fn euclid(n: usize) -> CliffordAlgebra<Rational> {

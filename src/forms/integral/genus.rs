@@ -67,7 +67,7 @@ pub struct Genus {
 // --- exact rational helpers (p-adic valuations, unit residues) ---
 
 fn r_int(n: i128) -> Rational {
-    Rational::int(n)
+    Rational::from_int(n)
 }
 
 fn v_p_i128(mut x: i128, p: i128) -> u128 {

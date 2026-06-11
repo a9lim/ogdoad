@@ -264,7 +264,7 @@ mod tests {
     use crate::scalar::{Fp, Fpn, Qq, Rational, Surcomplex};
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     fn gcd(a: usize, b: usize) -> usize {
@@ -293,7 +293,7 @@ mod tests {
         // E = ℚ(i)/ℚ, σ = conjugation, k = 1: Q(x) = Tr(x·x̄) = 2(a²+b²), the binary
         // norm form ⟨2, 2⟩ (diagonal, no polar term).
         let m = trace_twisted_form::<Surcomplex<Rational>>(1);
-        assert_eq!(m.q, vec![Rational::int(2), Rational::int(2)]);
+        assert_eq!(m.q, vec![Rational::from_int(2), Rational::from_int(2)]);
         assert!(m.b.is_empty());
     }
 
@@ -420,7 +420,7 @@ mod tests {
     fn frobenius_reciprocity_projection_formula() {
         // s_*(r*(⟨c⟩) · ⟨λ⟩) = ⟨c⟩ · s_*(⟨λ⟩):  c ∈ F factors out of the F-linear
         // trace, so the transfer of (c·λ) equals the c-scaling of the transfer of λ.
-        let c = Fp::<3>::new(2); // a unit of F_3
+        let c = Fp::<3>::from_int(2); // a unit of F_3
         let lam = Fpn::<3, 2>::from_coeffs(&[1, 1]); // 1 + x ∈ F_9
         let lhs = transfer_diagonal::<Fpn<3, 2>>(&[Fpn::<3, 2>::embed(&c).mul(&lam)]);
         let base = transfer_diagonal::<Fpn<3, 2>>(&[lam]);

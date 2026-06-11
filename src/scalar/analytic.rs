@@ -466,10 +466,10 @@ mod tests {
 
     #[test]
     fn rational_exact_roots() {
-        assert!(ExactRoots::is_square(&Rational::int(4)));
-        assert_eq!(Rational::int(4).sqrt(), Some(Rational::int(2)));
-        assert!(!ExactRoots::is_square(&Rational::int(2)));
-        assert_eq!(ExactRoots::sqrt(&Rational::int(2)), None);
+        assert!(ExactRoots::is_square(&Rational::from_int(4)));
+        assert_eq!(Rational::from_int(4).sqrt(), Some(Rational::from_int(2)));
+        assert!(!ExactRoots::is_square(&Rational::from_int(2)));
+        assert_eq!(ExactRoots::sqrt(&Rational::from_int(2)), None);
         assert_eq!(Rational::new(9, 16).sqrt(), Some(Rational::new(3, 4)));
     }
 
@@ -487,12 +487,15 @@ mod tests {
     #[test]
     fn fp_fpn_exact_roots() {
         // F_7: 2 is a square (3²=2), 3 is not.
-        assert!(ExactRoots::is_square(&Fp::<7>::new(2)));
-        let r = ExactRoots::sqrt(&Fp::<7>::new(2)).unwrap();
-        assert_eq!(r.mul(&r), Fp::<7>::new(2));
-        assert!(!ExactRoots::is_square(&Fp::<7>::new(3)));
+        assert!(ExactRoots::is_square(&Fp::<7>::from_int(2)));
+        let r = ExactRoots::sqrt(&Fp::<7>::from_int(2)).unwrap();
+        assert_eq!(r.mul(&r), Fp::<7>::from_int(2));
+        assert!(!ExactRoots::is_square(&Fp::<7>::from_int(3)));
         // F_2 (char 2): every element is a square, sqrt(x) = x.
-        assert_eq!(ExactRoots::sqrt(&Fp::<2>::new(1)), Some(Fp::<2>::new(1)));
+        assert_eq!(
+            ExactRoots::sqrt(&Fp::<2>::from_int(1)),
+            Some(Fp::<2>::from_int(1))
+        );
         // F_8 (char 2): a generator is a square (inverse Frobenius), roots back.
         let g = Fpn::<2, 3>::generator();
         assert!(ExactRoots::is_square(&g));
@@ -544,7 +547,8 @@ mod tests {
     #[test]
     fn gaussian_sqrt() {
         type G = Surcomplex<Rational>;
-        let g = |re: i128, im: i128| Surcomplex::new(Rational::int(re), Rational::int(im));
+        let g =
+            |re: i128, im: i128| Surcomplex::new(Rational::from_int(re), Rational::from_int(im));
         // (2+i)² = 3+4i, so √(3+4i) = 2+i (im > 0 branch).
         let r = ExactRoots::sqrt(&g(3, 4)).unwrap();
         assert_eq!(r.mul(&r), g(3, 4));
@@ -587,7 +591,7 @@ mod tests {
     #[test]
     fn laurent_sqrt_char0() {
         type L = Laurent<Rational, 8>;
-        let r = |n: i128| Rational::int(n);
+        let r = |n: i128| Rational::from_int(n);
         // (1 + t)² = 1 + 2t + t²; its sqrt recovers 1 + t to precision.
         let base = Laurent::<Rational, 8>::from_coeffs(vec![r(1), r(1)], 0);
         let sq = base.mul(&base);
@@ -636,8 +640,8 @@ mod tests {
                 }
             }
         }
-        round_trips(&[Rational::int(9), Rational::int(2)]);
+        round_trips(&[Rational::from_int(9), Rational::from_int(2)]);
         round_trips(&[Nimber(7), Nimber(255)]);
-        round_trips(&[Fp::<11>::new(3), Fp::<11>::new(5)]);
+        round_trips(&[Fp::<11>::from_int(3), Fp::<11>::from_int(5)]);
     }
 }

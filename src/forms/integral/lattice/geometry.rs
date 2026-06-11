@@ -387,13 +387,13 @@ impl IntegralForm {
         let mat: Vec<Vec<Rational>> = self
             .gram
             .iter()
-            .map(|row| row.iter().map(|&x| Rational::int(x)).collect())
+            .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
             .collect();
         let inv = inverse_matrix(mat)?;
         let mut ranges = Vec::with_capacity(n);
         let mut count = 1u128;
         for i in 0..n {
-            let radius2 = Rational::int(bound).mul(&inv[i][i]);
+            let radius2 = Rational::from_int(bound).mul(&inv[i][i]);
             let r = ceil_sqrt_rational(&radius2)?;
             let ru = u128::try_from(r).ok()?;
             let width = ru.checked_mul(2)?.checked_add(1)?;

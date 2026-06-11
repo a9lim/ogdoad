@@ -120,7 +120,7 @@ impl FiniteQuadraticModule {
         let mut q_values = Vec::with_capacity(usize::try_from(order).ok()?);
         for k in 0..order {
             let kk = i128::try_from(k.checked_mul(k)?).ok()?;
-            q_values.push(rational_mod_int(Rational::int(kk).mul(&qg), 2));
+            q_values.push(rational_mod_int(Rational::from_int(kk).mul(&qg), 2));
         }
         Self::new(vec![order], q_values)
     }

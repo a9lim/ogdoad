@@ -251,6 +251,7 @@ pub(crate) fn monic_irreducible_factor_support<S: Scalar + Copy>(
 mod tests {
     use super::*;
     use crate::forms::{FiniteChar2Field, FiniteOddField};
+    use crate::scalar::Scalar;
     use crate::scalar::{Fp, Fpn};
 
     fn factor_odd<S: FiniteOddField>(f: &Poly<S>) -> Vec<Poly<S>> {
@@ -274,10 +275,10 @@ mod tests {
     #[test]
     fn odd_factorization_splits_equal_degree_products() {
         type F = Fp<5>;
-        let x2_minus_1 = Poly::new(vec![F::new(-1), F::zero(), F::one()]);
+        let x2_minus_1 = Poly::new(vec![F::from_int(-1), F::zero(), F::one()]);
         let fs = factor_odd(&x2_minus_1);
         assert_eq!(fs.len(), 2);
-        assert!(fs.contains(&Poly::new(vec![F::new(-1), F::one()])));
+        assert!(fs.contains(&Poly::new(vec![F::from_int(-1), F::one()])));
         assert!(fs.contains(&Poly::new(vec![F::one(), F::one()])));
     }
 

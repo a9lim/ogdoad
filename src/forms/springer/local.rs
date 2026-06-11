@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn one_engine_decomposes_every_discrete_leg() {
         // ⟨1, 5⟩ over Q_5: two valuation layers, both residue-square.
-        let qp = Metric::diagonal(vec![Qp::<5, 4>::from_i128(1), Qp::<5, 4>::from_i128(5)]);
+        let qp = Metric::diagonal(vec![Qp::<5, 4>::from_int(1), Qp::<5, 4>::from_int(5)]);
         let dp = springer_decompose_local(&qp).unwrap();
         assert_eq!(dp.graded.len(), 2);
         assert_eq!(dp.parity_layer(0).len(), 1);
@@ -150,8 +150,8 @@ mod tests {
 
         // ⟨1, t⟩ over F_5((t)): the mirror, equal characteristic.
         let lt = Metric::diagonal(vec![
-            Laurent::<Fp<5>, 4>::from_coeffs(vec![Fp::<5>::new(1)], 0),
-            Laurent::<Fp<5>, 4>::from_coeffs(vec![Fp::<5>::new(1)], 1),
+            Laurent::<Fp<5>, 4>::from_coeffs(vec![Fp::<5>::from_int(1)], 0),
+            Laurent::<Fp<5>, 4>::from_coeffs(vec![Fp::<5>::from_int(1)], 1),
         ]);
         let dl = springer_decompose_local(&lt).unwrap();
         assert_eq!(dl.graded.len(), 2);
@@ -249,15 +249,15 @@ mod tests {
     fn polygon_is_the_springer_shadow() {
         // Q_5: valuations [0, 1, 0, 2, 1] across the entries.
         assert_polygon_is_springer_shadow(vec![
-            Qp::<5, 8>::from_i128(1),
-            Qp::<5, 8>::from_i128(5),
-            Qp::<5, 8>::from_i128(7),
-            Qp::<5, 8>::from_i128(25),
-            Qp::<5, 8>::from_i128(10),
+            Qp::<5, 8>::from_int(1),
+            Qp::<5, 8>::from_int(5),
+            Qp::<5, 8>::from_int(7),
+            Qp::<5, 8>::from_int(25),
+            Qp::<5, 8>::from_int(10),
         ]);
         // F_7((t)): the equal-characteristic mirror, mixed valuations.
         let l = |c: i128, val: usize| {
-            Laurent::<Fp<7>, 8>::from_coeffs(vec![Fp::<7>::new(c)], val as i128)
+            Laurent::<Fp<7>, 8>::from_coeffs(vec![Fp::<7>::from_int(c)], val as i128)
         };
         assert_polygon_is_springer_shadow(vec![l(1, 0), l(3, 1), l(2, 0), l(5, 2)]);
         // Q_9 (unramified, residue F_9): a genuine extension residue.
@@ -276,13 +276,13 @@ mod tests {
     fn polygon_outlives_springer() {
         // x² − 2 over Q_2: root valuation 1/2, but residue char 2 ⇒ no Springer.
         let coeffs = vec![
-            Qp::<2, 8>::from_i128(-2),
+            Qp::<2, 8>::from_int(-2),
             Qp::<2, 8>::zero(),
             Qp::<2, 8>::one(),
         ];
         assert!(NewtonPolygon::of(&coeffs).is_some());
         assert!(springer_decompose_local(&Metric::diagonal(vec![
-            Qp::<2, 8>::from_i128(2),
+            Qp::<2, 8>::from_int(2),
             Qp::<2, 8>::one()
         ]))
         .is_none());

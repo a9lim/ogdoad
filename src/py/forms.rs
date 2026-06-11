@@ -1107,7 +1107,7 @@ impl PySymplecticInvariants {
 
 fn rational_gram(gram: Vec<Vec<i128>>) -> Vec<Vec<Rational>> {
     gram.into_iter()
-        .map(|row| row.into_iter().map(Rational::int).collect())
+        .map(|row| row.into_iter().map(Rational::from_int).collect())
         .collect()
 }
 
@@ -1281,7 +1281,7 @@ impl PyHermitianForm {
 // ---------------------------------------------------------------------------
 
 fn finite_diag<F: FiniteOddField>(q: &[i128]) -> Metric<F> {
-    Metric::diagonal(q.iter().map(|&x| F::from_i128(x)).collect())
+    Metric::diagonal(q.iter().map(|&x| F::from_int(x)).collect())
 }
 
 fn unsupported_finite_field_err() -> PyErr {
@@ -1395,7 +1395,7 @@ macro_rules! with_finite_odd_metrics {
 macro_rules! with_finite_odd_value {
     ($p:expr, $degree:expr, $x:expr, |$value:ident| $body:expr) => {{
         with_finite_odd_field!($p, $degree, |Field| {
-            let $value = <Field as FiniteOddField>::from_i128($x);
+            let $value = <Field as FiniteOddField>::from_int($x);
             $body
         })
     }};
@@ -3262,13 +3262,16 @@ fn u_invariant_for_prime<const P: u128>() -> PyResult<Option<usize>> {
 }
 
 fn sum_of_squares_for_prime<const P: u128>(x: i128, n: usize) -> PyResult<bool> {
-    Ok(crate::forms::is_sum_of_n_squares::<P>(Fp::<P>::new(x), n))
+    Ok(crate::forms::is_sum_of_n_squares::<P>(
+        Fp::<P>::from_int(x),
+        n,
+    ))
 }
 
 fn hilbert_symbol_prime<const P: u128>(a: i128, b: i128) -> PyResult<i128> {
     Ok(crate::forms::hilbert_symbol::<P>(
-        Fp::<P>::new(a),
-        Fp::<P>::new(b),
+        Fp::<P>::from_int(a),
+        Fp::<P>::from_int(b),
     ))
 }
 

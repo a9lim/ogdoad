@@ -192,15 +192,15 @@ mod tests {
     fn pfister_shapes() {
         // ⟨⟨a⟩⟩ = ⟨1,−a⟩; ⟨⟨a,b⟩⟩ = ⟨1,−a,−b,ab⟩.
         let p1 = pfister(&[Fp::<7>::from_u128(3)]);
-        assert_eq!(p1.q, vec![Fp::<7>::one(), Fp::<7>::new(-3)]);
+        assert_eq!(p1.q, vec![Fp::<7>::one(), Fp::<7>::from_int(-3)]);
         let p2 = pfister(&[Fp::<7>::from_u128(3), Fp::<7>::from_u128(5)]);
         // ⟨1, −3⟩ ⊗ ⟨1, −5⟩ = ⟨1, −5, −3, 15⟩
         assert_eq!(
             p2.q,
             vec![
                 Fp::<7>::one(),
-                Fp::<7>::new(-5),
-                Fp::<7>::new(-3),
+                Fp::<7>::from_int(-5),
+                Fp::<7>::from_int(-3),
                 Fp::<7>::from_u128(15 % 7),
             ]
         );

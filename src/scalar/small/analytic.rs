@@ -155,12 +155,12 @@ impl<const P: u128, const K: u128> Zp<P, K> {
         let seed_res = fp_sqrt(unit_val % P, P)?;
         let two_inv = Self::two_inv().expect("odd p ⇒ 2 is a unit");
         let root_unit = newton_sqrt(
-            &Zp::new(unit_val as i128),
-            Zp::new(seed_res as i128),
+            &Zp::from_int(unit_val as i128),
+            Zp::from_int(seed_res as i128),
             &two_inv,
         );
         // reattach p^{v/2}
-        Some(Zp::new(ipow(P, v / 2) as i128).mul(&root_unit))
+        Some(Zp::from_int(ipow(P, v / 2) as i128).mul(&root_unit))
     }
 
     /// Checked square predicate. For odd `p`, this is the exact Hensel predicate.
@@ -195,7 +195,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
     /// is `W_k(F_p)`, so this is the prime-field instance of
     /// [`WittVec::teichmuller`](crate::scalar::WittVec::teichmuller).)
     pub fn teichmuller(a: Fp<P>) -> Self {
-        let mut t = Zp::new(a.value() as i128);
+        let mut t = Zp::from_int(a.value() as i128);
         for _ in 0..K {
             t = spow(&t, P);
         }
@@ -224,9 +224,9 @@ impl<const P: u128, const K: u128> Qp<P, K> {
             return None;
         }
         let seed_res = fp_sqrt(self.unit() % P, P)?;
-        let two_inv = Qp::from_i128(2).inv().expect("odd p ⇒ 2 invertible");
-        let unit = Qp::from_i128(self.unit() as i128); // the val-0 unit part
-        let root_unit = newton_sqrt(&unit, Qp::from_i128(seed_res as i128), &two_inv);
+        let two_inv = Qp::from_int(2).inv().expect("odd p ⇒ 2 invertible");
+        let unit = Qp::from_int(self.unit() as i128); // the val-0 unit part
+        let root_unit = newton_sqrt(&unit, Qp::from_int(seed_res as i128), &two_inv);
         Some(Qp::from_p_power(v / 2).mul(&root_unit))
     }
 
@@ -266,7 +266,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
     /// The **Teichmüller representative** `τ(a) ∈ Q_p` of a residue `a ∈ F_p`
     /// (a unit of valuation 0), via `t ← t^p`.
     pub fn teichmuller(a: Fp<P>) -> Self {
-        let mut t = Qp::from_i128(a.value() as i128);
+        let mut t = Qp::from_int(a.value() as i128);
         for _ in 0..K {
             t = spow(&t, P);
         }
@@ -460,7 +460,7 @@ mod tests {
     fn qp_sqrt_handles_valuations() {
         type Q = Qp<5, 5>;
         // a unit square
-        let four = Q::from_i128(4);
+        let four = Q::from_int(4);
         let r = four
             .sqrt()
             .expect("odd p root construction is implemented")
@@ -475,10 +475,10 @@ mod tests {
         assert_eq!(rx.mul(&rx), x);
         assert_eq!(rx.valuation(), Some(1));
         // odd valuation ⇒ never a square
-        assert_eq!(Q::from_i128(5).is_square(), Some(false));
-        assert_eq!(Q::from_i128(5).sqrt(), Some(None));
+        assert_eq!(Q::from_int(5).is_square(), Some(false));
+        assert_eq!(Q::from_int(5).sqrt(), Some(None));
         // 2 is a non-residue mod 5 ⇒ not a square in Q_5
-        assert_eq!(Q::from_i128(2).is_square(), Some(false));
+        assert_eq!(Q::from_int(2).is_square(), Some(false));
         assert_eq!(Q::zero().sqrt(), Some(Some(Q::zero())));
     }
 
@@ -579,13 +579,13 @@ mod tests {
 
         type Q = Qp<2, 5>;
         assert_eq!(Q::zero().is_square(), Some(true));
-        assert_eq!(Q::from_i128(1).is_square(), Some(true));
-        assert_eq!(Q::from_i128(2).is_square(), Some(false)); // odd valuation
-        assert_eq!(Q::from_i128(3).is_square(), Some(false)); // unit 3 mod 8
-        assert_eq!(Qp::<2, 2>::from_i128(1).is_square(), None); // not enough unit digits
+        assert_eq!(Q::from_int(1).is_square(), Some(true));
+        assert_eq!(Q::from_int(2).is_square(), Some(false)); // odd valuation
+        assert_eq!(Q::from_int(3).is_square(), Some(false)); // unit 3 mod 8
+        assert_eq!(Qp::<2, 2>::from_int(1).is_square(), None); // not enough unit digits
         assert_eq!(Q::zero().sqrt(), Some(Some(Q::zero())));
-        assert_eq!(Q::from_i128(3).sqrt(), Some(None));
-        assert_eq!(Q::from_i128(1).sqrt(), None);
+        assert_eq!(Q::from_int(3).sqrt(), Some(None));
+        assert_eq!(Q::from_int(1).sqrt(), None);
 
         type W = WittVec<2, 4, 2>;
         assert_eq!(W::zero().is_square(), Some(true));

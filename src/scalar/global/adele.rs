@@ -95,7 +95,7 @@ fn p_pow_rational(p: u128, e: i128) -> Rational {
         acc = acc.checked_mul(p as i128).expect("p-power exceeds i128");
     }
     if e >= 0 {
-        Rational::int(acc)
+        Rational::from_int(acc)
     } else {
         Rational::new(1, acc)
     }
@@ -440,7 +440,10 @@ mod tests {
         assert_eq!(x.absolute_value_at(AdelePlace::Real), q(12, 5));
         assert_eq!(x.absolute_value_at(AdelePlace::Prime(2)), q(1, 4));
         assert_eq!(x.absolute_value_at(AdelePlace::Prime(3)), q(1, 3));
-        assert_eq!(x.absolute_value_at(AdelePlace::Prime(5)), Rational::int(5));
+        assert_eq!(
+            x.absolute_value_at(AdelePlace::Prime(5)),
+            Rational::from_int(5)
+        );
         assert_eq!(x.absolute_value_at(AdelePlace::Prime(7)), Rational::one());
         assert_eq!(x.idele_norm(), Rational::one());
     }

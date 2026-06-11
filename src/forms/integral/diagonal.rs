@@ -30,7 +30,7 @@ pub(crate) fn rational_congruence_diagonal(
     let n = gram.len();
     let mut a: Vec<Vec<Rational>> = gram
         .iter()
-        .map(|row| row.iter().map(|&x| Rational::int(x)).collect())
+        .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
         .collect();
     let mut active: Vec<usize> = (0..n).collect();
     let mut out = Vec::with_capacity(n);

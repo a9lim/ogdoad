@@ -581,7 +581,7 @@ mod tests {
         assert_eq!(n.bw_class().ok(), bw_class_nimber(&n));
 
         // odd char: F_5 dispatch produces the odd-char datum.
-        let f = Metric::diagonal(vec![Fp::<5>::new(1), Fp::<5>::new(2)]);
+        let f = Metric::diagonal(vec![Fp::<5>::from_int(1), Fp::<5>::from_int(2)]);
         assert_eq!(f.classify().ok(), classify_finite_odd(&f));
         assert_eq!(f.witt_class().ok(), finite_odd_witt(&f));
 
@@ -652,8 +652,8 @@ mod tests {
 
     #[test]
     fn structural_facades_dispatch() {
-        let f = Metric::diagonal(vec![Fp::<5>::new(1), Fp::<5>::new(1)]);
-        let g = Metric::diagonal(vec![Fp::<5>::new(2), Fp::<5>::new(3)]);
+        let f = Metric::diagonal(vec![Fp::<5>::from_int(1), Fp::<5>::from_int(1)]);
+        let g = Metric::diagonal(vec![Fp::<5>::from_int(2), Fp::<5>::from_int(3)]);
         assert_eq!(f.isometric_to(&g).ok(), isometric_finite_odd(&f, &g));
         assert_eq!(f.witt_decompose().ok(), witt_decompose_finite_odd(&f));
         assert_eq!(f.bw_class().ok(), bw_class_finite_odd(&f));

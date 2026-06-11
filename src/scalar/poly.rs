@@ -305,7 +305,7 @@ mod tests {
     type P5 = Poly<Fp<5>>;
 
     fn p(coeffs: &[i128]) -> P5 {
-        Poly::new(coeffs.iter().map(|&n| Fp::<5>::new(n)).collect())
+        Poly::new(coeffs.iter().map(|&n| Fp::<5>::from_int(n)).collect())
     }
 
     #[test]
@@ -316,8 +316,11 @@ mod tests {
         // (1 + x) + (4 + 4x) = 5 + 5x ≡ 0 in F_5
         assert_eq!(p(&[1, 1]).add(&p(&[4, 4])), P5::zero());
         assert_eq!(p(&[1, 1]).neg(), p(&[4, 4]));
-        assert_eq!(P5::x().eval(&Fp::<5>::new(3)), Fp::<5>::new(3));
-        assert_eq!(p(&[1, 1, 1]).eval(&Fp::<5>::new(2)), Fp::<5>::new(7)); // 1+2+4=7
+        assert_eq!(P5::x().eval(&Fp::<5>::from_int(3)), Fp::<5>::from_int(3));
+        assert_eq!(
+            p(&[1, 1, 1]).eval(&Fp::<5>::from_int(2)),
+            Fp::<5>::from_int(7)
+        ); // 1+2+4=7
     }
 
     #[test]

@@ -226,7 +226,7 @@ mod tests {
     type GC = Surcomplex<Rational>;
 
     fn gc(re: i128, im: i128) -> GC {
-        Surcomplex::new(Rational::int(re), Rational::int(im))
+        Surcomplex::new(Rational::from_int(re), Rational::from_int(im))
     }
     fn rsign(x: &Rational) -> Ordering {
         x.sign()
@@ -236,9 +236,9 @@ mod tests {
     fn diagonal_real_form_has_sylvester_signature() {
         // ⟨1,1,−1⟩ → (2,1,0); a real-entry Hermitian form is just the symmetric one.
         let h = HermitianForm::<Rational>::diagonal(vec![
-            Rational::int(1),
-            Rational::int(1),
-            Rational::int(-1),
+            Rational::from_int(1),
+            Rational::from_int(1),
+            Rational::from_int(-1),
         ]);
         assert_eq!(
             h.signature(rsign),
@@ -257,7 +257,10 @@ mod tests {
         let h = HermitianForm::from_gram(vec![vec![gc(2, 0), gc(0, 1)], vec![gc(0, -1), gc(2, 0)]])
             .unwrap();
         // diagonalizes to [2, 3/2]; both positive.
-        assert_eq!(h.diagonalize(), vec![Rational::int(2), Rational::new(3, 2)]);
+        assert_eq!(
+            h.diagonalize(),
+            vec![Rational::from_int(2), Rational::new(3, 2)]
+        );
         assert_eq!(
             h.signature(rsign),
             HermitianSignature {
@@ -280,7 +283,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             h.diagonalize(),
-            vec![Rational::int(4), Rational::new(-1, 2)]
+            vec![Rational::from_int(4), Rational::new(-1, 2)]
         );
         assert_eq!(
             h.signature(rsign),
@@ -299,7 +302,8 @@ mod tests {
             .unwrap();
         assert_eq!(h.signature(rsign).pos, 1);
         assert_eq!(h.signature(rsign).neg, 1);
-        let rad = HermitianForm::<Rational>::diagonal(vec![Rational::int(0), Rational::int(5)]);
+        let rad =
+            HermitianForm::<Rational>::diagonal(vec![Rational::from_int(0), Rational::from_int(5)]);
         assert_eq!(h.direct_sum(&h).signature(rsign).pos, 2); // additive
         assert_eq!(rad.signature(rsign).radical, 1);
     }

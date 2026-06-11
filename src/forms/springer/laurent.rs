@@ -55,7 +55,7 @@ mod tests {
     type L9 = Laurent<Fpn<3, 2>, 4>; // F_9((t)) — genuine extension residue
 
     fn l5(coeffs: &[i128], val: i128) -> L5 {
-        Laurent::from_coeffs(coeffs.iter().map(|&n| Fp::<5>::new(n)).collect(), val)
+        Laurent::from_coeffs(coeffs.iter().map(|&n| Fp::<5>::from_int(n)).collect(), val)
     }
 
     #[test]

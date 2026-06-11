@@ -268,7 +268,7 @@ mod tests {
     use crate::scalar::Rational;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
     fn euclid(n: usize) -> CliffordAlgebra<Rational> {
         CliffordAlgebra::new(n, Metric::diagonal(vec![r(1); n]))

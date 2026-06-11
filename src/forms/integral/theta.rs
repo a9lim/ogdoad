@@ -144,7 +144,7 @@ mod tests {
         let e4_cubed = modular_qexp_mul(&modular_qexp_mul(&e4, &e4, terms), &e4, terms);
         let leech_form = modular_qexp_sub(
             &e4_cubed,
-            &modular_qexp_scale(&delta(terms), Rational::int(720), terms),
+            &modular_qexp_scale(&delta(terms), Rational::from_int(720), terms),
             terms,
         );
         let leech_theta = qexp_from_i128(&leech().theta_series(terms).unwrap());

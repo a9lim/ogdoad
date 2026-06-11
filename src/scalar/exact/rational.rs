@@ -103,14 +103,6 @@ impl Rational {
         Self::try_new(num, den).expect("Rational::new received zero denominator or overflowed i128")
     }
 
-    /// The integer `n` as an exact rational. This is the ℤ-embedding for `Rational`.
-    ///
-    /// Kept as a doc'd alias for `Rational::from_int(n)` — a future sweep retires
-    /// this spelling once all call sites migrate.
-    pub fn int(n: i128) -> Self {
-        Rational::from_int(n)
-    }
-
     /// Sign as an Ordering relative to zero (den is always > 0).
     pub fn sign(&self) -> Ordering {
         self.num.cmp(&0)

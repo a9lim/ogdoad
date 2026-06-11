@@ -51,7 +51,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     #[test]

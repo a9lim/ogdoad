@@ -96,7 +96,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
     }
 
     /// Embed a (signed) integer, extracting its p-adic valuation.
-    pub fn from_i128(n: i128) -> Self {
+    pub fn from_int(n: i128) -> Self {
         Self::assert_supported_field();
         if n == 0 {
             return Qp { unit: 0, val: 0 };
@@ -122,10 +122,10 @@ impl<const P: u128, const K: u128> Qp<P, K> {
         }
     }
 
-    /// Embed a rational number into `Q_p`: `from_i128(num) · from_i128(den)^{-1}`.
+    /// Embed a rational number into `Q_p`: `from_int(num) · from_int(den)^{-1}`.
     pub fn from_rational(q: &Rational) -> Self {
-        let num = Self::from_i128(q.numer());
-        let den = Self::from_i128(q.denom());
+        let num = Self::from_int(q.numer());
+        let den = Self::from_int(q.denom());
         num.mul(&den.inv().expect("Qp::from_rational: nonzero denominator"))
     }
 
@@ -261,13 +261,14 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
     }
     /// Faster direct construction; semantically identical to the default double-and-add.
     fn from_int(n: i128) -> Self {
-        Qp::<P, K>::from_i128(n)
+        Qp::<P, K>::from_int(n)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scalar::Scalar;
 
     type Q5 = Qp<5, 4>; // Q_5 to 4 digits
     type Q2 = Qp<2, 6>; // Q_2 to 6 digits
@@ -276,7 +277,7 @@ mod tests {
     #[test]
     fn one_over_p_exists_and_is_a_field() {
         // The defining win over Zp: p is a unit here, 1/p = p^{-1}.
-        let p = Q5::from_i128(5);
+        let p = Q5::from_int(5);
         let pinv = p.inv().unwrap();
         assert_eq!(pinv, Q5::from_p_power(-1));
         assert_eq!(p.mul(&pinv), Q5::one());
@@ -292,16 +293,16 @@ mod tests {
         // schoolbook unit×unit product (≈ 2^253) overflows u128. Routed through
         // mul_mod_u128 the product stays exact instead of panicking.
         type Q3Big = Qp<3, 80>; // K=80 is near the i128-fit ceiling (3^81 > i128::MAX)
-        let x = Q3Big::from_i128(-1); // -1 ≡ 3^80 - 1, a full-width mantissa
+        let x = Q3Big::from_int(-1); // -1 ≡ 3^80 - 1, a full-width mantissa
         assert_eq!(x.mul(&x), Q3Big::one()); // (-1)² = 1, previously panicked
-        let _ = x.mul(&Q3Big::from_i128(7)); // a generic large product must not panic
+        let _ = x.mul(&Q3Big::from_int(7)); // a generic large product must not panic
         let _ = x.add(&x); // the addition mantissa-shift path is overflow-safe too
     }
 
     #[test]
     fn from_rational_matches_integer_embedding_and_denominator_inverse() {
         let x = Q5::from_rational(&Rational::new(50, 3));
-        let expected = Q5::from_i128(50).mul(&Q5::from_i128(3).inv().unwrap());
+        let expected = Q5::from_int(50).mul(&Q5::from_int(3).inv().unwrap());
         assert_eq!(x, expected);
         assert_eq!(x.valuation(), Some(2));
 
@@ -327,8 +328,8 @@ mod tests {
 
     #[test]
     fn valuation_is_additive_under_multiplication() {
-        let a = Q2::from_i128(12); // 2^2 · 3 ⇒ val 2
-        let b = Q2::from_i128(20); // 2^2 · 5 ⇒ val 2
+        let a = Q2::from_int(12); // 2^2 · 3 ⇒ val 2
+        let b = Q2::from_int(20); // 2^2 · 5 ⇒ val 2
         assert_eq!(a.valuation(), Some(2));
         assert_eq!(b.valuation(), Some(2));
         assert_eq!(a.mul(&b).valuation(), Some(4));
@@ -382,7 +383,7 @@ mod tests {
         // hold exactly for every element; only cross-precision associativity is
         // sacrificed (documented below).
         let es: Vec<Q3> = (0..Q3::modulus() as i128)
-            .map(Qp::<3, 3>::from_i128)
+            .map(Qp::<3, 3>::from_int)
             .collect();
         let zero = Q3::zero();
         for a in &es {
@@ -400,16 +401,16 @@ mod tests {
         // k digits, lands at valuation k = outside the retained window, and so
         // reads as 0 — the capped-relative contract (cf. floating point).
         let one = Q3::one();
-        let almost = Qp::<3, 3>::from_i128(Q3::modulus() as i128 - 1); // p^k − 1, a unit
+        let almost = Qp::<3, 3>::from_int(Q3::modulus() as i128 - 1); // p^k − 1, a unit
         assert_eq!(one.add(&almost), Q3::zero());
         // Whereas 1 + p (a precision-safe sum) is exact and nonzero.
-        assert_eq!(one.add(&Qp::<3, 3>::from_i128(3)), Qp::<3, 3>::from_i128(4));
+        assert_eq!(one.add(&Qp::<3, 3>::from_int(3)), Qp::<3, 3>::from_int(4));
     }
 
     #[test]
     fn p_times_one_over_p_is_one_each_prime() {
-        assert_eq!(Q2::from_i128(2).mul(&Q2::from_p_power(-1)), Q2::one());
-        assert_eq!(Q3::from_i128(3).mul(&Q3::from_p_power(-1)), Q3::one());
-        assert_eq!(Q5::from_i128(5).mul(&Q5::from_p_power(-1)), Q5::one());
+        assert_eq!(Q2::from_int(2).mul(&Q2::from_p_power(-1)), Q2::one());
+        assert_eq!(Q3::from_int(3).mul(&Q3::from_p_power(-1)), Q3::one());
+        assert_eq!(Q5::from_int(5).mul(&Q5::from_p_power(-1)), Q5::one());
     }
 }

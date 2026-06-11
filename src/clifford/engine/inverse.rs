@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn scalar_inverse_still_works_at_huge_dimension() {
         let alg = CliffordAlgebra::new(64, Metric::grassmann(64));
-        let two = alg.scalar(Rational::int(2));
+        let two = alg.scalar(Rational::from_int(2));
         assert_eq!(
             alg.multivector_inverse(&two),
             Some(alg.scalar(Rational::new(1, 2)))

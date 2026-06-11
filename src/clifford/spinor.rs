@@ -571,7 +571,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     fn cl(qs: &[i128]) -> CliffordAlgebra<Rational> {
