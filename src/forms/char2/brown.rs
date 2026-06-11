@@ -75,9 +75,9 @@
 //! bridge is the wiring to Arf (shipped) and Milgram (Bridge A), no new theorem.
 
 /// The Brown invariant of a `ℤ/4`-quadratic form, mirroring
-/// [`ArfResult`](crate::forms::ArfResult) field-for-field.
+/// [`ArfInvariants`](crate::forms::ArfInvariants) field-for-field.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BrownResult {
+pub struct BrownInvariants {
     /// Brown invariant `β ∈ ℤ/8` of the **nonsingular core** (the part where the
     /// symmetric polar `b` is nondegenerate).
     pub beta: u128,
@@ -87,9 +87,35 @@ pub struct BrownResult {
     pub radical_dim: usize,
     /// Whether `q` takes the value `2` somewhere on the radical (a "defective"
     /// direction). When true the *full* Gauss sum vanishes; `beta` still reports
-    /// the core. Data, not a panic — exactly as `ArfResult::radical_anisotropic`.
+    /// the core. Data, not a panic — exactly as `ArfInvariants::radical_anisotropic`.
     pub radical_anisotropic: bool,
 }
+
+impl BrownInvariants {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for BrownInvariants {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let rad = if self.radical_dim > 0 {
+            let aniso = if self.radical_anisotropic {
+                " aniso"
+            } else {
+                ""
+            };
+            format!(" ⊗̂ Λ({}^{}{})", "F", self.radical_dim, aniso)
+        } else {
+            String::new()
+        };
+        write!(f, "β={} rank={}{}", self.beta, self.rank, rad)
+    }
+}
+
+/// Type alias for backward-compatibility.
+pub type BrownResult = BrownInvariants;
 
 /// Bits of a mask strictly above position `i`.
 fn above(i: usize) -> u128 {
@@ -272,7 +298,7 @@ pub(crate) fn beta_from_gauss(re: i128, im: i128) -> Option<u128> {
 ///
 /// Reduction route: split off `rad(b)`, then reduce the nonsingular core into odd
 /// lines and even planes, adding their known Brown phases in `ℤ/8`.
-pub fn brown_f2(n: usize, q4: &[u128], bmat: &[u128]) -> BrownResult {
+pub fn brown_f2(n: usize, q4: &[u128], bmat: &[u128]) -> BrownInvariants {
     assert!(
         n <= 128,
         "brown_f2 uses u128 bitmasks, so n must be at most 128"
@@ -298,7 +324,7 @@ pub fn brown_f2(n: usize, q4: &[u128], bmat: &[u128]) -> BrownResult {
     let core = core_complement_basis(&radical, n);
     let rank = core.len(); // = n − radical_dim
     let beta = reduce_brown_core(core, q4, bmat, &full_b);
-    BrownResult {
+    BrownInvariants {
         beta,
         rank,
         radical_dim,
@@ -310,7 +336,7 @@ pub fn brown_f2(n: usize, q4: &[u128], bmat: &[u128]) -> BrownResult {
 /// (alternating polar, given as `arf_f2` data) maps to `2q' : V → ℤ/4`, whose Brown
 /// invariant is `β(2q') = 4·Arf(q')`. Builds `q4 = 2·q'` (values in `{0,2}`, so the
 /// derived `ℤ/4` polar is the original alternating `bmat`) and runs [`brown_f2`].
-pub fn double_f2(qd: &[bool], bmat: &[u128]) -> BrownResult {
+pub fn double_f2(qd: &[bool], bmat: &[u128]) -> BrownInvariants {
     let q4: Vec<u128> = qd.iter().map(|&b| if b { 2 } else { 0 }).collect();
     brown_f2(qd.len(), &q4, bmat)
 }
@@ -321,7 +347,7 @@ mod tests {
     use crate::forms::arf_f2;
 
     /// The old exact Gauss-sum route, retained as an oracle for the reduction path.
-    fn brown_f2_by_enumeration(n: usize, q4: &[u128], bmat: &[u128]) -> BrownResult {
+    fn brown_f2_by_enumeration(n: usize, q4: &[u128], bmat: &[u128]) -> BrownInvariants {
         let full_b: Vec<u128> = (0..n)
             .map(|i| {
                 let off = bmat[i] & !(1u128 << i);
@@ -352,7 +378,7 @@ mod tests {
 
         let re = counts[0] - counts[2];
         let im = counts[1] - counts[3];
-        BrownResult {
+        BrownInvariants {
             beta: beta_from_gauss(re, im).expect("a nonsingular core has an eighth-root Gauss sum"),
             rank,
             radical_dim,

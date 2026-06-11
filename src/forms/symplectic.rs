@@ -30,19 +30,22 @@ pub struct SymplecticForm<S: Scalar> {
 /// The complete invariant of an alternating form: its rank (always even, twice the
 /// number of hyperbolic planes) and the dimension of its radical.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct SymplecticClass {
+pub struct SymplecticInvariants {
     /// `2 × (number of hyperbolic planes)` — always even.
     pub rank: usize,
     /// Dimension of the radical (the kernel of the form).
     pub radical_dim: usize,
 }
 
-impl SymplecticClass {
+impl SymplecticInvariants {
     /// The number of hyperbolic planes in the canonical decomposition.
     pub fn planes(&self) -> usize {
         self.rank / 2
     }
 }
+
+/// Type alias for backward-compatibility.
+pub type SymplecticClass = SymplecticInvariants;
 
 impl<S: Scalar> SymplecticForm<S> {
     /// Build from a Gram matrix, checking it is square and **alternating**: zero
@@ -106,10 +109,10 @@ impl<S: Scalar> SymplecticForm<S> {
     /// fields. The radical is the nullspace of the Gram; the rank is
     /// `dim − radical_dim` and is always even. Returns `None` when unit-pivot
     /// elimination cannot decide the kernel over a non-field scalar ring.
-    pub fn classify(&self) -> Option<SymplecticClass> {
+    pub fn classify(&self) -> Option<SymplecticInvariants> {
         let n = self.dim();
         let radical_dim = crate::linalg::field::unit_pivot_nullspace(self.gram.clone(), n)?.len();
-        Some(SymplecticClass {
+        Some(SymplecticInvariants {
             rank: n - radical_dim,
             radical_dim,
         })
@@ -118,7 +121,7 @@ impl<S: Scalar> SymplecticForm<S> {
 
 /// Classify an alternating Gram matrix directly, or `None` if it is not square and
 /// alternating. Convenience over [`SymplecticForm::from_gram`] + `classify`.
-pub fn classify_symplectic<S: Scalar>(gram: Vec<Vec<S>>) -> Option<SymplecticClass> {
+pub fn classify_symplectic<S: Scalar>(gram: Vec<Vec<S>>) -> Option<SymplecticInvariants> {
     SymplecticForm::from_gram(gram)?.classify()
 }
 
@@ -136,7 +139,7 @@ mod tests {
         let h = SymplecticForm::<Rational>::hyperbolic(1);
         assert_eq!(
             h.classify().unwrap(),
-            SymplecticClass {
+            SymplecticInvariants {
                 rank: 2,
                 radical_dim: 0
             }
@@ -172,7 +175,7 @@ mod tests {
                 .unwrap();
         assert_eq!(
             h.classify().unwrap(),
-            SymplecticClass {
+            SymplecticInvariants {
                 rank: 2,
                 radical_dim: 0
             }
@@ -191,7 +194,7 @@ mod tests {
         let z = SymplecticForm::<Rational>::from_gram(vec![vec![r(0); 3]; 3]).unwrap();
         assert_eq!(
             z.classify().unwrap(),
-            SymplecticClass {
+            SymplecticInvariants {
                 rank: 0,
                 radical_dim: 3
             }

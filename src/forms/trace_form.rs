@@ -28,7 +28,7 @@
 //! `MAX_BASIS_DIM = 128` — exactly the degree of the full nim-field `F_{2^128}`.
 
 use crate::clifford::{Metric, MAX_BASIS_DIM};
-use crate::forms::ArfResult;
+use crate::forms::ArfInvariants;
 use crate::scalar::{
     nim_square, nim_trace, CyclicGaloisExtension, FieldExtension, Fp, Nimber, Scalar,
 };
@@ -214,22 +214,23 @@ where
 
 /// The Arf invariant of the **char-2** twisted trace form of `E/F_2` — the typed
 /// bridge for the finite-field tower. Builds `Q_k` over `F_2`, lifts the
-/// coefficients `F_2 ↪ Nimber` (so the char-2 [`ArfResult`] classifier can read the
+/// coefficients `F_2 ↪ Nimber` (so the char-2 [`ArfInvariants`] classifier can read the
 /// form), and returns its Arf data. For `E = Fpn<2,m>` with `k = a` this is the Gold
 /// form `Tr(x^{1+2^a})`; see [`gold_form`] for the nim-native construction that
 /// reaches the larger power-of-two fields.
-pub fn trace_form_arf<E>(k: usize) -> Option<ArfResult>
+pub fn trace_form_arf<E>(k: usize) -> Option<ArfInvariants>
 where
     E: CyclicGaloisExtension + FieldExtension<Base = Fp<2>>,
 {
     trace_twisted_form::<E>(k)
         .map(|x| Nimber(x.value()))
         .classify()
+        .ok()
 }
 
 /// The **Gold form** `Q_a(x) = Tr_{F_{2^m}/F_2}(x^{1+2^a})` over the nim subfield
 /// `F_{2^m} ⊂ Nimber`, as a [`Metric`]`<Nimber>` (already `F_2`-valued, ready for
-/// `.classify()` → [`ArfResult`]). This is the central object of the game-built
+/// `.classify()` → [`ArfInvariants`]). This is the central object of the game-built
 /// quadratic-form thread (mirrors `experiments/gold_form_from_games.py`): the bit
 /// basis `{1, 2, …, 2^{m-1}}` is an `F_2`-basis of `F_{2^m}`, the twist `σ^a` is the
 /// `a`-fold nim-Frobenius `x ↦ x^{2^a}`, and the trace is `nim_trace(·, m)`.

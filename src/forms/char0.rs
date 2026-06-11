@@ -74,7 +74,7 @@ impl BaseField {
 /// direct sum of two of them) over ℝ/ℂ/ℍ, optionally tensored with the exterior
 /// algebra of the metric's radical.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CliffordType {
+pub struct CliffordInvariants {
     /// The division ring underlying the matrix algebra.
     pub base: BaseField,
     /// `m` such that the (semisimple) core is `M_m(base)` (or two copies of it).
@@ -91,9 +91,16 @@ pub struct CliffordType {
     pub signature: (usize, usize),
 }
 
-impl CliffordType {
+impl CliffordInvariants {
     /// Human-readable name, e.g. `M_2(H)`, `M_4(R) ⊕ M_4(R)`, `C ⊗̂ Λ(R^1)`.
+    /// `display()` alias kept for Python callers.
     pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for CliffordInvariants {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let unit = if self.matrix_dim == 1 {
             self.base.symbol().to_string()
         } else {
@@ -105,12 +112,20 @@ impl CliffordType {
             unit
         };
         if self.radical_dim > 0 {
-            format!("{core} ⊗̂ Λ({}^{})", self.ground.symbol(), self.radical_dim)
+            write!(
+                f,
+                "{core} ⊗̂ Λ({}^{})",
+                self.ground.symbol(),
+                self.radical_dim
+            )
         } else {
-            core
+            f.write_str(&core)
         }
     }
 }
+
+/// Type alias for backward-compatibility.
+pub type CliffordType = CliffordInvariants;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RationalPlaceInvariant {
@@ -129,18 +144,25 @@ pub struct RationalPlaceInvariant {
 /// to `R`, but it is not used as a substitute for the rational invariant. This
 /// is not a full rational Brauer/Brauer-Wall class of the Clifford algebra.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RationalCliffordType {
+pub struct RationalCliffordInvariants {
     pub dim: usize,
     pub radical_dim: usize,
     /// Canonical representative of the discriminant in `Q*/Q*²`.
     pub discriminant: i128,
     pub signature: (usize, usize),
     pub local_hasse: Vec<RationalPlaceInvariant>,
-    pub real_closure: CliffordType,
+    pub real_closure: CliffordInvariants,
 }
 
-impl RationalCliffordType {
+impl RationalCliffordInvariants {
+    /// `display()` alias kept for Python callers.
     pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for RationalCliffordInvariants {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let locals = self
             .local_hasse
             .iter()
@@ -155,7 +177,8 @@ impl RationalCliffordType {
         } else {
             String::new()
         };
-        format!(
+        write!(
+            f,
             "Q: dim {} disc {} sig ({},{}) hasse [{}]{}; over R: {}",
             self.dim,
             self.discriminant,
@@ -163,10 +186,13 @@ impl RationalCliffordType {
             self.signature.1,
             locals,
             rad,
-            self.real_closure.display()
+            self.real_closure
         )
     }
 }
+
+/// Type alias for backward-compatibility.
+pub type RationalCliffordType = RationalCliffordInvariants;
 
 /// `2^k`.
 fn p2(k: usize) -> u128 {
@@ -192,9 +218,9 @@ fn real_core(p: usize, q: usize) -> (BaseField, u128, bool) {
 }
 
 /// Classify a real Clifford algebra from its signature `(p, q, r)`.
-pub fn classify_real(p: usize, q: usize, r: usize) -> CliffordType {
+pub fn classify_real(p: usize, q: usize, r: usize) -> CliffordInvariants {
     let (base, matrix_dim, doubled) = real_core(p, q);
-    CliffordType {
+    CliffordInvariants {
         base,
         matrix_dim,
         doubled,
@@ -205,10 +231,10 @@ pub fn classify_real(p: usize, q: usize, r: usize) -> CliffordType {
 }
 
 /// Classify a complex Clifford algebra from `(n, r)` (nondegenerate dim, radical).
-pub fn classify_complex(n: usize, r: usize) -> CliffordType {
+pub fn classify_complex(n: usize, r: usize) -> CliffordInvariants {
     let doubled = !n.is_multiple_of(2);
     let matrix_dim = p2((n - usize::from(doubled)) / 2);
-    CliffordType {
+    CliffordInvariants {
         base: BaseField::C,
         matrix_dim,
         doubled,
@@ -266,7 +292,7 @@ fn rational_square_class(x: &Rational) -> Option<i128> {
 /// Classify a rational-scalar quadratic form by the genuine rational invariants:
 /// nondegenerate dimension, radical, discriminant square-class, real signature,
 /// and the Hasse invariant at every relevant place.
-pub fn classify_rational(metric: &Metric<Rational>) -> Option<RationalCliffordType> {
+pub fn classify_rational(metric: &Metric<Rational>) -> Option<RationalCliffordInvariants> {
     let diag = crate::forms::as_diagonal(metric)?;
     let mut entries = Vec::new();
     let mut radical_dim = 0usize;
@@ -298,7 +324,7 @@ pub fn classify_rational(metric: &Metric<Rational>) -> Option<RationalCliffordTy
             hasse: try_hasse_at_place(&entries, Place::Prime(p))?,
         });
     }
-    Some(RationalCliffordType {
+    Some(RationalCliffordInvariants {
         dim: entries.len(),
         radical_dim,
         discriminant,
@@ -311,14 +337,14 @@ pub fn classify_rational(metric: &Metric<Rational>) -> Option<RationalCliffordTy
 /// Classify a surreal-scalar Clifford algebra when the represented coefficients
 /// can be exactly rescaled to ±1. Returns `None` for forms such as `⟨2⟩`, which
 /// would need `√2` outside the finite-support rational-coefficient backend.
-pub fn classify_surreal(metric: &Metric<Surreal>) -> Option<CliffordType> {
+pub fn classify_surreal(metric: &Metric<Surreal>) -> Option<CliffordInvariants> {
     let (p, q, r) = surreal_signature(metric)?;
     Some(classify_real(p, q, r))
 }
 
 /// Classify a surcomplex-scalar Clifford algebra on the exact-square subdomain.
 /// Returns `None` when a diagonal entry has no represented square root.
-pub fn classify_surcomplex(metric: &Metric<Surcomplex<Surreal>>) -> Option<CliffordType> {
+pub fn classify_surcomplex(metric: &Metric<Surcomplex<Surreal>>) -> Option<CliffordInvariants> {
     let (nonzero, r) = surcomplex_rank(metric)?;
     Some(classify_complex(nonzero, r))
 }
@@ -335,7 +361,7 @@ mod tests {
     fn surreal_diag(qs: &[i128]) -> Metric<Surreal> {
         Metric::diagonal(qs.iter().map(|&x| Surreal::from_int(x)).collect())
     }
-    fn cl_real(qs: &[i128]) -> Option<CliffordType> {
+    fn cl_real(qs: &[i128]) -> Option<CliffordInvariants> {
         classify_surreal(&surreal_diag(qs))
     }
     fn name(qs: &[i128]) -> String {

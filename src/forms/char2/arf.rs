@@ -23,9 +23,33 @@ use crate::scalar::{
     Ordinal, Scalar,
 };
 use std::collections::BTreeMap;
+use std::fmt;
 
+/// The orthogonal type of a symplectic complement: `O+` (split, Arf = 0) or
+/// `O-` (non-split, Arf = 1). When [`ArfInvariants::radical_anisotropic`] is
+/// true, this complement type is not an isometry invariant of the whole
+/// singular form.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OrthogonalType {
+    /// Split type (Arf = 0, hyperbolic complement).
+    OPlus,
+    /// Non-split type (Arf = 1, anisotropic complement).
+    OMinus,
+}
+
+impl fmt::Display for OrthogonalType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OrthogonalType::OPlus => f.write_str("O+"),
+            OrthogonalType::OMinus => f.write_str("O-"),
+        }
+    }
+}
+
+/// Classification invariants for a characteristic-2 quadratic form over any
+/// nim-subfield or supported finite char-2 field.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ArfResult {
+pub struct ArfInvariants {
     /// Arf invariant of the nonsingular core (0 or 1).
     pub arf: u128,
     /// Rank of the polar form B = 2 × (number of hyperbolic pairs).
@@ -34,11 +58,43 @@ pub struct ArfResult {
     pub radical_dim: usize,
     /// Whether Q is nonzero somewhere on the radical (a "defective" direction).
     pub radical_anisotropic: bool,
-    /// Orthogonal type of the chosen symplectic complement: "O+" (split) iff
-    /// Arf=0. When `radical_anisotropic` is true, this complement type is not an
-    /// isometry invariant of the whole singular form.
-    pub o_type: &'static str,
 }
+
+impl ArfInvariants {
+    /// Orthogonal type of the chosen symplectic complement: `O+` (split) iff
+    /// `arf == 0`. When [`radical_anisotropic`](Self::radical_anisotropic) is
+    /// true, this complement type is not an isometry invariant of the whole
+    /// singular form.
+    pub fn o_type(&self) -> OrthogonalType {
+        if self.arf == 0 {
+            OrthogonalType::OPlus
+        } else {
+            OrthogonalType::OMinus
+        }
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for ArfInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "ArfInvariants(arf={}, {}, rank={}, radical_dim={}, radical_anisotropic={})",
+            self.arf,
+            self.o_type(),
+            self.rank,
+            self.radical_dim,
+            self.radical_anisotropic,
+        )
+    }
+}
+
+/// Type alias kept for backward-compatibility in case downstream code uses it.
+pub type ArfResult = ArfInvariants;
 
 /// Bits of `mask` strictly above position `i`.
 fn above(i: usize) -> u128 {
@@ -114,12 +170,11 @@ pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfResult {
     }
 
     let radical_anisotropic = radical.iter().any(|&v| q_of(v, qd, bmat));
-    ArfResult {
+    ArfInvariants {
         arf: arf as u128,
         rank: 2 * pairs,
         radical_dim: radical.len(),
         radical_anisotropic,
-        o_type: if arf { "O-" } else { "O+" },
     }
 }
 
@@ -275,12 +330,11 @@ where
     }
 
     let arf = trace_to_f2(&s)?;
-    Some(ArfResult {
+    Some(ArfInvariants {
         arf,
         rank: 2 * pairs,
         radical_dim,
         radical_anisotropic,
-        o_type: if arf == 1 { "O-" } else { "O+" },
     })
 }
 
@@ -362,12 +416,11 @@ pub(crate) fn arf_nimber_at_degree(metric: &Metric<Nimber>, m: u128) -> Option<A
     }
 
     let arf = nim_trace(s, m);
-    Some(ArfResult {
+    Some(ArfInvariants {
         arf,
         rank: 2 * pairs,
         radical_dim,
         radical_anisotropic,
-        o_type: if arf == 1 { "O-" } else { "O+" },
     })
 }
 
@@ -503,14 +556,17 @@ mod tests {
     fn hyperbolic_plane_is_o_plus() {
         // Q = x0 x1: a single hyperbolic pair, Arf 0.
         let r = arf_invariant(&metric(&[0, 0], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r.arf, r.rank, r.radical_dim, r.o_type), (0, 2, 0, "O+"));
+        assert_eq!(
+            (r.arf, r.rank, r.radical_dim, r.o_type()),
+            (0, 2, 0, OrthogonalType::OPlus)
+        );
     }
 
     #[test]
     fn anisotropic_plane_is_o_minus() {
         // Q = x0² + x0 x1 + x1²: Arf 1.
         let r = arf_invariant(&metric(&[1, 1], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r.arf, r.rank, r.o_type), (1, 2, "O-"));
+        assert_eq!((r.arf, r.rank, r.o_type()), (1, 2, OrthogonalType::OMinus));
     }
 
     #[test]
@@ -561,10 +617,16 @@ mod tests {
         // Genuine F₄ forms (entries up to *3), hand-computed via the trace:
         //   q=[*2,*3], b01=*1:  S = *2⊗*3 = *1,  Tr_{F₄/F₂}(*1) = *1+*1 = 0  ⇒ O+
         let r1 = arf_invariant(&metric(&[2, 3], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r1.arf, r1.o_type, r1.rank), (0, "O+", 2));
+        assert_eq!(
+            (r1.arf, r1.o_type(), r1.rank),
+            (0, OrthogonalType::OPlus, 2)
+        );
         //   q=[*2,*2], b01=*1:  S = *2⊗*2 = *3,  Tr(*3) = *3+*2 = *1       ⇒ O-
         let r2 = arf_invariant(&metric(&[2, 2], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r2.arf, r2.o_type, r2.rank), (1, "O-", 2));
+        assert_eq!(
+            (r2.arf, r2.o_type(), r2.rank),
+            (1, OrthogonalType::OMinus, 2)
+        );
     }
 
     #[test]
