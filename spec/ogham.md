@@ -1,6 +1,6 @@
 # ogham — the ogdoad expression language
 
-Status: **DRAFT v0.4** (2026-06-11). This document is the implementation contract: every
+Status: **v1 implemented / v1.1 draft** (2026-06-12). This document is the implementation contract: every
 decision below either cashes out as a vector in [`spec/conformance.txt`](conformance.txt)
 or it is not really decided. Implementing agents work until the corpus is green;
 judgment calls not covered here go back to the spec, not into the code.
@@ -498,31 +498,30 @@ Two flags, decided here:
 
 Blocks separated by blank lines; `@world` persists until the next `@world`.
 The harness is `tests/ogham_conformance.rs` (pure Rust, reads the file,
-no_python), mirrored by a pytest that drives the Python `eval` hook over the
-same file — one corpus, two frontends. The corpus ships with hand-verified
-vectors (small nim arithmetic, char-2 wedges, dyadic surreals, Conway's
-`(*ω)↑3 = *2`); after WP3 lands, the harness gains a `--bless` mode to
-*extend* (never overwrite) the corpus with engine-generated vectors — the
-engine is the value-oracle for values, the spec is the oracle for syntax,
-sorts, and errors.
+no Python). The Python `ogham_eval` hook is validated through `demo.py` and
+focused smoke probes; a pytest mirror can reuse the same corpus later if the
+Python package grows a dedicated test tree. The corpus ships with
+hand-verified vectors (small nim arithmetic, char-2 wedges, dyadic surreals,
+Conway's `(*ω)↑3 = *2`). Corpus expansion/blessing remains an operator
+workflow: the engine can suggest values, but the spec stays the oracle for
+syntax, sorts, and errors.
 
 ## 15. Work packages
 
-WP1 (Display v2, §9), WP7 (host operators, §13), and the backend helper
-surface (§7.6/§7.7) are shipped — ledger: `roadmap/DONE.md` →
-`ogham-foundations` and `ogham-backend`. The rest is one task,
-`roadmap/TODO.md` → `ogham-v1`. Sequencing: WP2 → WP3 → (WP4 ∥ WP5 ∥ WP6).
-Every agent gets an explicit `model:` pin. Acceptance for all: `cargo test`, `cargo clippy
---all-targets`, cold `cargo doc --no-deps` warning-clean; WP6 adds
-`cargo check --features python` + `clippy --features python --all-targets`.
+WP1 (Display v2, §9), WP7 (host operators, §13), the backend helper
+surface (§7.6/§7.7), and WP2–WP6 are shipped — ledger:
+`roadmap/DONE.md` → `ogham-foundations`, `ogham-backend`, and `ogham-v1`.
+The table below is the historical build decomposition and the maintenance map.
+Acceptance for the language is the committed conformance corpus plus the normal
+Rust/Python validation stack.
 
 | WP | scope | model |
 |---|---|---|
-| **WP2 Lexer / parser / AST / unparser** | `src/ogham/{lex,ast,parse,unparse}.rs`, pure Rust, zero deps, world-independent (literal *forms* parse everywhere; world legality is WP3's). §3–§5, §10. Unit tests: golden token streams, precedence cases from §5, unparse∘parse = id on the corpus's `~` lines. | sonnet |
-| **WP3 Worlds + evaluator** | `src/ogham/{world,eval,error}.rs`: the §6.1 dispatch enum, per-world literal mapping (§6.2–6.8), §7 desugaring (incl. §§7.6–7.7), §7.5 partiality, §8 stdlib, §11 errors. The judgment-heavy package. | opus |
+| **WP2 Lexer / parser / AST / unparser** | `src/ogham/{lex,ast,parse,unparse}.rs`, pure Rust, zero deps, world-independent (literal *forms* parse everywhere; world legality is WP3's). §3–§5, §10. The conformance corpus covers sugar, precedence, and unparse expectations through its `~` lines. | sonnet |
+| **WP3 Worlds + evaluator** | `src/ogham/{eval,error}.rs`: the §6.1 dispatch enum, per-world literal mapping (§6.2–6.8), §7 desugaring (incl. §§7.6–7.7), §7.5 partiality, §8 stdlib, §11 errors. The judgment-heavy package. | opus |
 | **WP4 REPL** | `examples/ogham_repl.rs` + colon commands (§12). | sonnet |
-| **WP5 Conformance harness** | `tests/ogham_conformance.rs` + corpus format parser + `--bless` extension mode (§14). | sonnet |
-| **WP6 Python eval** | `ogham_eval(world: &str, src: &str)` pyfunction + per-class operator alignment (§13, incl. `__mod__`/`__matmul__`); pytest mirror of the corpus. | sonnet |
+| **WP5 Conformance harness** | `tests/ogham_conformance.rs` + corpus format parser over the committed hand vectors (§14). | sonnet |
+| **WP6 Python eval** | `ogham_eval(world: &str, src: &str)` pyfunction + the v1 operator alignment that keeps multivector `&` as wedge and makes `^` raise the Ogham `E_ExpSort` hint (§13). | sonnet |
 
 ## 16. v1.1 — the function-shaped worlds (sketch)
 

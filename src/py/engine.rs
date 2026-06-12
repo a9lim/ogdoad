@@ -63,7 +63,7 @@ use crate::scalar::{
     Adele, Fp, Fpn, Gauss, Integer, Laurent, Nimber, Omnific, Ordinal, Poly, Qp, Qq, Ramified,
     Rational, RationalFunction, Scalar, Surcomplex, Surreal, WittVec, Zp,
 };
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
@@ -1153,9 +1153,8 @@ macro_rules! backend_multivector {
             /// Exterior (wedge) product — ogham `∧`.
             ///
             /// Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-            /// operator on `Multivector`. `__xor__` also delegates here during a
-            /// deprecation window (changing Python dunders is WP6; see
-            /// `spec/ogham.md` §13).
+            /// operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+            /// so `__xor__` raises with the parser hint.
             ///
             /// **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
             /// `∧` is tighter than `⋅`. Parenthesize when mixing.
@@ -1169,8 +1168,10 @@ macro_rules! backend_multivector {
             fn __and__(&self, other: &$mv) -> PyResult<$mv> {
                 self.wedge(other)
             }
-            fn __xor__(&self, other: &$mv) -> PyResult<$mv> {
-                self.wedge(other)
+            fn __xor__(&self, _other: &$mv) -> PyResult<$mv> {
+                Err(PyTypeError::new_err(
+                    "E_ExpSort: `^` is power; the wedge product is `∧`/`&`",
+                ))
             }
             fn reverse(&self) -> PyResult<$mv> {
                 Ok($mv {

@@ -30,6 +30,7 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/clifford/` | the multivector engine + the GA layer | [`src/clifford/AGENTS.md`](src/clifford/AGENTS.md) |
 | `src/forms/`    | quadratic forms & invariants, by the char trichotomy plus local-global and integral layers | [`src/forms/AGENTS.md`](src/forms/AGENTS.md) (+ [`integral/`](src/forms/integral/AGENTS.md)) |
 | `src/games/`    | combinatorial game theory | [`src/games/AGENTS.md`](src/games/AGENTS.md) |
+| `src/ogham/`    | the Ogham expression-language core (parser, fixed-world evaluator, errors, conformance support) | root rules |
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
@@ -41,8 +42,8 @@ lib), `demo.py` (the Python tour), `OPEN.md` (the genuine research problems),
 ledger of buildable items plus the deferred stars `*1`/`*2`/`*4`; DONE.md — the
 go-forward ledger for new work),
 `spec/` (ogham.md — the expression-language spec, the shipped Display-v2 +
-host-operator contract, the shipped backend-helper surface, and the WP2–6
-build plan; conformance.txt — the hand-verified corpus the language must pass),
+host-operator contract, backend-helper surface, and v1 parser/evaluator contract;
+conformance.txt — the hand-verified corpus the language must pass),
 `TABLES.md` (the inventory of curated hardcoded tables), and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the

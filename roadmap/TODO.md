@@ -126,17 +126,6 @@ laws as tests and `tropicalize` factoring through it. A leaf, but it converts th
 
 ## numbers — ogham
 
-### 3·(e_s∧e_c∧e_y): `ogham-v1`
-**The language itself** — WP2–WP6 per `spec/ogham.md` §15: the
-lexer/parser/AST/unparser (`src/ogham/`), the world-dispatch evaluator (the
-judgment-heavy package), the REPL, the conformance harness + `--bless`, and
-the Python `eval` hook with the §13 dunder alignment. The spec and
-`spec/conformance.txt` are the whole contract — parse ∘ display = id, corpus
-green on both frontends; judgment calls go back to the spec, not into the
-code. WP1/WP7 (Display v2, host operators) shipped as `ogham-foundations`;
-`ogham-backend` shipped the evaluator helper surface; this is the remainder.
-WP3 consumes that surface.
-
 ### 1·(e_s∧e_y): `ogham-v1.1`
 **The function-shaped worlds** — `spec/ogham.md` §16, the sketch promoted to
 contract: the `poly*`/`polyint`/`ratfunc*` menu rows, the `t` atom, the §7.6
@@ -145,7 +134,7 @@ and the corpus blocks that make it all contractual (pole errors, monic-divisor
 errors, `t`-literal round-trips). Two §16 pending decisions to settle at
 play time: final world names and `deg` of the zero polynomial. The py poly
 classes (`Fp*Poly`/`Fp*RationalFunction`) already exist; `polyint` needs a
-`Poly<Integer>` binding. Plays after `ogham-v1`.
+`Poly<Integer>` binding. Plays after the shipped `ogham-v1` core.
 
 ## numbers — games
 

@@ -236,6 +236,8 @@ breakdown:
   loopy-partizan graphs, short partizan games, thermography/atomic weight,
   Hackenbush, the exterior algebra of the game group, and the checked integer
   Clifford deformation surface on game generators.
+- `src/ogham/` — the Ogham expression-language core: lexer/parser/AST/unparser,
+  fixed-world evaluator, error taxonomy, and conformance runner support.
 - `src/py/` — the optional PyO3 bindings behind the `python` feature.
 - `src/linalg/` — crate-private shared linear algebra (exact integer HNF/Smith,
   F₂/nim-field rank, generic field solves), consumed by the pillars above.
@@ -243,7 +245,8 @@ breakdown:
 See `AGENTS.md` for the working-notes summary, `OPEN.md` for the genuine research
 problems, `roadmap/` (CODA.md for the built-bridge record and formal proofs, TODO.md for
 the game-valued ledger of buildable work and the deferred stars) for the cross-pillar
-bridges, and `writeups/goldarf.tex` for the draft note on the Gold/Arf game thread.
+bridges, `spec/` for the Ogham language contract and hand-verified corpus, and
+`writeups/goldarf.tex` for the draft note on the Gold/Arf game thread.
 
 ## The bridges — a traveller's catalog
 

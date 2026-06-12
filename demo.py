@@ -18,6 +18,10 @@ def raises_value_error(fn):
     return False
 
 
+section("ogham — the expression language over fixed worlds")
+print(pl.ogham_eval("nimber 2 q=[*1,*1]", "e0 & e0\n[*1,*2] & [*1,*3]\ne0 . e0"))
+print("  bare int rejected in nimber world:", raises_value_error(lambda: pl.ogham_eval("nimber 0", "3")))
+
 section("nimbers On₂ — char 2, the non-commutative Clifford case")
 # b[(0,1)] = *1  ⇒  e0 e1 + e1 e0 = *1 ≠ 0  ⇒  non-commutative.
 A = pl.NimberAlgebra(q=[pl.Nimber(2), pl.Nimber(3)], b={(0, 1): 1})
@@ -31,8 +35,8 @@ section("Grassmann — fully null metric, nilpotent generators")
 G = pl.SurrealAlgebra(q=[0, 0, 0])
 g0, g1 = G.gen(0), G.gen(1)
 print("  g0²          =", g0 ** 2)
-print("  g0 ∧ g1      =", g0 ^ g1, "  (^ is the wedge)")
-print("  g0∧g1 == g0 g1:", (g0 ^ g1) == (g0 * g1))
+print("  g0 ∧ g1      =", g0 & g1)
+print("  g0∧g1 == g0 g1:", (g0 & g1) == (g0 * g1))
 
 section("surreals — a Clifford metric with NO finite entries")
 # e0² = ω (infinite), e1² = ε = ω⁻¹ (infinitesimal), orthogonal.
@@ -79,7 +83,7 @@ print("  spinor norm/parity    =", R.spinor_norm(), R.versor_grade_parity(),
       " named:", (vc.spinor_norm, vc.dickson))
 print("  norm² preserved       =", x.norm2(), "->", R.sandwich(x).norm2())
 print("  ~(e0 e1)  (reversion) =", ~R)
-print("  e0 ⌟ (e0∧e1)          =", e0 << (e0 ^ e1))
+print("  e0 ⌟ (e0∧e1)          =", e0 << (e0 & e1))
 print("  dual(e0) in 3D        =", e0.dual(), "  (a bivector)")
 
 section("Arf invariant — the char-2 Clifford classifier (see README.md)")
@@ -238,7 +242,7 @@ Oz = pl.OmnificAlgebra(q=[0, 0, 0])  # Grassmann over Oz
 e0, e1, e2 = Oz.gen(0), Oz.gen(1), Oz.gen(2)
 w = pl.omnific_omega()
 print("  e0² = 0 (nilpotent):", (e0 * e0).is_zero())
-print("  (ω·e0) ∧ e1 ∧ e2   :", (w * e0) ^ e1 ^ e2, "  (ω-scale coefficient)")
+print("  (ω·e0) ∧ e1 ∧ e2   :", (w * e0) & e1 & e2, "  (ω-scale coefficient)")
 print("  Oz validator ω / ε :", pl.is_omnific_integer(pl.omega()), "/", pl.is_omnific_integer(pl.epsilon()))
 print("  ω is not a unit (1/ω=ε ∉ Oz):", end=" ")
 try:
@@ -334,7 +338,7 @@ print("  tensor embeddings e0/e1      :", TT.embed_first(R.gen(0)), TT.embed_sec
 
 section("exterior Hopf algebra — antipode = grade involution (not reversion-twist)")
 H = pl.SurrealAlgebra(q=[0, 0])  # exterior algebra
-b = H.gen(0) ^ H.gen(1)
+b = H.gen(0) & H.gen(1)
 print("  Δ(e0) primitive (lives in Cl⊗̂Cl):", H.gen(0).coproduct())
 print("  S(e0) = −e0          :", H.gen(0).antipode() == -H.gen(0))
 print("  S(e0∧e1) = +e0∧e1    :", b.antipode() == b, " (grade 2: (−1)²=+1)")
@@ -383,8 +387,8 @@ print("  ε-sphere: ε-point on, 2ε-point off:",
 
 section("projective GA — exact nilpotent motor (no transcendentals)")
 P = pl.SurrealAlgebra.pga(2)                # Cl(2,0,1), e0 the ideal direction
-motor = (P.gen(0) ^ P.gen(1)).exp_nilpotent()  # B² = 0 ⇒ exp(B) = 1 + B
-print("  exp(e0∧e1) = 1 + B:", motor == P.scalar(1) + (P.gen(0) ^ P.gen(1)))
+motor = (P.gen(0) & P.gen(1)).exp_nilpotent()  # B² = 0 ⇒ exp(B) = 1 + B
+print("  exp(e0∧e1) = 1 + B:", motor == P.scalar(1) + (P.gen(0) & P.gen(1)))
 print("  it translates e1 ↦ e1 + 2e0:", motor.sandwich(P.gen(1)) == P.gen(1) + 2 * P.gen(0))
 
 section("non-Archimedean Springer decomposition (surreal)")
@@ -523,15 +527,15 @@ print("  trace =", R.trace(lin_map), " det =", R.determinant(lin_map))
 section("GA depth — conjugate, scalar/commutator products, meet, blade factoring")
 E = pl.SurrealAlgebra(q=[1, 1, 1])
 e0, e1, e2 = E.gen(0), E.gen(1), E.gen(2)
-print("  Clifford conjugate of e0∧e1   :", (e0 ^ e1).clifford_conjugate(), " (sign (−1)^{k(k+1)/2})")
+print("  Clifford conjugate of e0∧e1   :", (e0 & e1).clifford_conjugate(), " (sign (−1)^{k(k+1)/2})")
 print("  scalar product ⟨e0 e0⟩₀       :", e0.scalar_product(e0))
 print("  commutator [e0,e1] = 2 e0e1   :", e0.commutator(e1))
-blade = (e0 + e1) ^ e2
+blade = (e0 + e1) & e2
 print("  blade subspace dimension       :", len(blade.blade_subspace()), blade.blade_subspace())
 print("  factor the blade (e0+e1)∧e2   :", blade.factor_blade())
 print("  raw blade term/bits/grade     :",
       blade.terms, pl.bits(blade.terms[0][0]), pl.grade(blade.terms[0][0]))
-print("  e0∧e1 + e1∧e2 ... meet(planes):", (e0 ^ e1).meet(e1 ^ e2), " (their common line, ±e1)")
+print("  e0∧e1 + e1∧e2 ... meet(planes):", (e0 & e1).meet(e1 & e2), " (their common line, ±e1)")
 
 section("nimber field toolkit — degree, minimal polynomial, order, discrete log")
 print("  *2 over F₂: degree", pl.nim_degree(2), " min_poly", pl.nim_min_poly(2), " (x²+x+1)")
@@ -639,7 +643,7 @@ print("  ⋆ω ⊗ ⋆ω ⊗ ⋆ω = ⋆2 (Conway ω³=2):",
 
 section("Cayley transform — bivector (Lie algebra) ↔ rotor (Spin group)")
 G = pl.SurrealAlgebra(q=[1, 1, 1])
-B = G.gen(0) ^ G.gen(1)
+B = G.gen(0) & G.gen(1)
 R = B.cayley()
 print("  cayley(e0∧e1) = rotor        :", R, "  norm² =", R.norm2())
 print("  cayley_inverse(rotor) = B    :", R.cayley_inverse())

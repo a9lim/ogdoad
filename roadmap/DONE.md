@@ -36,6 +36,31 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
 
 ## completed items
 
+### 2026-06-12: `ogham-v1`
+**Summary:** the v1 Ogham expression language
+**Pillars:** scalar ↔ clifford ↔ Python    **Claim level:** engineering — implemented and tested calculator surface
+- surface: `src/ogham/` now ships the zero-dependency lexer/parser/AST/unparser,
+  typed `OghamError` taxonomy, monomorphised world dispatch over the v1 menu
+  (`nimber`, `ordinal`, `surreal`, `omnific`, `integer`, `fp2`/`fp3`/`fp5`/`fp7`,
+  `f4`/`f8`/`f16`/`f9`/`f25`/`f27`), metric declarations (`q=`, `b=`, `a=`,
+  `grassmann`, and `nimber gold(m,a)`), Element/Index evaluation, bindings,
+  relations, `%`, exact integer `/`, factorial, `rev`/`grade`/`even`/`dual`,
+  `frob`/`tr`, and checked ordinal Kummer-boundary errors. `examples/ogham_repl.rs`
+  provides the colon-command REPL, and the Python module exposes
+  `ogham_eval(world, src)`.
+- oracles: `tests/ogham_conformance.rs` runs the hand-verified
+  `spec/conformance.txt` corpus, including sugar canonicalization, char-2
+  Clifford products with independent `q`/`b`, surreal CNF arithmetic, ordinal
+  star-literals and Kummer escape, finite-field Frobenius/Wilson checks, exact
+  integer division, and relation cells. The Python engine dunder alignment now
+  makes multivector `^` raise the Ogham `E_ExpSort` hint instead of delegating
+  to wedge.
+- boundaries: v1 is a calculator over the fixed world menu; function-shaped
+  `poly*`/`ratfunc*` worlds, `t`, live `@`, polynomial `%`, `deg`/`gcd`, and
+  user functions remain `ogham-v1.1` / `ogham 2.0` work. The Rust corpus harness
+  checks the committed hand vectors; corpus expansion/blessing is still an
+  operator workflow rather than a rich generated-vector system.
+
 ### 2026-06-12: `ogham-backend`
 **Summary:** evaluator helper surface for ogham `%`, exact `/`, `@`, `!`, and relations
 **Pillars:** scalar (+py bindings)    **Claim level:** engineering — implemented and tested support surface
@@ -56,9 +81,8 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
   with `-D warnings`; `cargo check --features python`; cold rustdoc with
   `RUSTDOCFLAGS="-D warnings"`; `maturin develop`; `demo.py`; focused Python
   probe over the new methods.
-- boundaries: the language remains unbuilt (`ogham-v1` still owns parser,
-  world dispatch, evaluator errors, REPL, conformance harness, and Python
-  `ogham_eval`). Surreal/omnific `%` deliberately rejects non-monic and
+- boundaries: superseded by the `ogham-v1` language entry above. Surreal/omnific
+  `%` deliberately rejects non-monic and
   non-omega-power moduli; exact division is not generalized to surreal/omnific
   long division; nim worlds remain unordered (no `PartialOrd`, no `BitOr`
   shorthand).
@@ -85,11 +109,8 @@ fold the one-line structural fact into the relevant `AGENTS.md`.
   (Conway's cube root) + escape-returns-`None`; operator-forwarding tests
   migrated to `&`; full gate green (cargo test 813+16, clippy, cold rustdoc,
   `--features python` check+clippy, demo.py tour end-to-end).
-- boundaries: the language itself is **unbuilt** — WP2–6 (lexer/parser/
-  unparser, worlds + evaluator, REPL, conformance harness, Python `eval` +
-  the `__xor__`→error flip) are spec'd in §15 and next; Python `__xor__`
-  stays wedge during the deprecation window; poly/ratfunc, precision worlds,
-  and `{L|R}` game forms are reserved syntax, not shipped.
+- boundaries: superseded by the `ogham-v1` language entry above. Poly/ratfunc,
+  precision worlds, and `{L|R}` game forms are reserved syntax, not shipped.
 
 ### 2026-06-11: `taste-sweep`
 **Summary:** the taste-audit ledger, played
