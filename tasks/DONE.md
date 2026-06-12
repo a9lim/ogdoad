@@ -238,7 +238,7 @@ A380496-type rows; no new shippable `alpha_u` carries — the Rust boundary at
 **Pillars:** scalar ↔ clifford ↔ forms ↔ integral ↔ games (+py touchpoints)
 **Claim level:** engineering — behavior-preserving refactor, adversarially reviewed
 
-Thirteen of the fifteen items in [`tasks/TASTE.md`](TASTE.md) (2026-06-11 audit)
+Thirteen of the fifteen items in the taste audit (2026-06-11)
 played in one session, on a9's switch decisions: full suffix glossary, outright
 Option→Result façade conversion, `e(i)`, IntoIterator-only metric ctors.
 

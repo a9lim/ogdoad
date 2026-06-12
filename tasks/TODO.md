@@ -209,7 +209,7 @@ and have `p_set_as_f2` check its labeling is a monoid homomorphism.
 ### ↑: `docs-experiments`
 Root `AGENTS.md` and `README.md` don't mention the `experiments/{gold,excess,audit}`
 subdirectories (the rescued 2026-06-10 research-run probes backing `goldarf.tex`,
-`excess.tex`, and `AUDIT.md`) or their not-CI-tested status. One layout-table line
+`excess.tex`, and `AUDIT-ARCHIVE.md`) or their not-CI-tested status. One layout-table line
 plus a sentence each.
 
 ---

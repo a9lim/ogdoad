@@ -40,8 +40,9 @@ probes `interactive_kernel`, `octal_hunt`, `loopy_quadric`, `misere_quotient`,
 lib), `demo.py` (the Python tour),
 `tasks/` (OPEN.md — the genuine research problems; TODO.md — the game-valued
 ledger of buildable items plus the deferred stars `*1`/`*2`/`*4`; DONE.md — the
-go-forward ledger for new work; AUDIT.md — the mathematical-correctness audit
-snapshot; TABLES.md — the inventory of curated hardcoded tables),
+go-forward ledger for new work; AUDIT-ARCHIVE.md — the archived
+mathematical-correctness audit snapshot; TABLES.md — the inventory of curated
+hardcoded tables),
 `spec/` (ogham.md — the expression-language spec, the shipped Display-v2 +
 host-operator contract, backend-helper surface, v1 parser/evaluator contract,
 v1.1 polynomial/ratfunc function-world contract, the shipped v2.0 abstraction

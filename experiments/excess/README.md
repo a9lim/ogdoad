@@ -5,7 +5,7 @@ Reproducibility scaffold for the parallel research run of 2026-06-10, rescued fr
 
 - **gold** backs `writeups/goldarf.tex` (the Gold-quadric Tier-2 assault, consolidated
   into the draft note).
-- **audit** backs `tasks/AUDIT.md` (the correctness sweep; folded from the former AUDIT-FABLE.md).
+- **audit** backs `tasks/AUDIT-ARCHIVE.md` (the correctness sweep; folded from the former AUDIT-FABLE.md).
 - **excess** backs `writeups/excess.tex` (transfinite nim excess; see also the
   committed `experiments/cyclotomic_3k_family.py`).
 

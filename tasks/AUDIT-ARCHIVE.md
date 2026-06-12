@@ -1,4 +1,4 @@
-# AUDIT.md — mathematical correctness audit
+# AUDIT-ARCHIVE.md — mathematical correctness audit
 
 **Date:** 2026-06-09 · **Tree:** `main` @ `0bbaec6` (clean) · **Baseline:** `cargo test` fully green
 
