@@ -4,7 +4,7 @@ This file is intentionally narrow. It lists directions from repo audits, roadmap
 splits, and the draft notes that look like genuine new research rather than
 implementation of known formulas, standard algorithms, or already-source-pinned
 theory. Implemented mathematical facts and maintenance context live in
-`README.md` and `AGENTS.md`; buildable work lives in `roadmap/TODO.md` (the
+`README.md` and `AGENTS.md`; buildable work lives in `tasks/TODO.md` (the
 game-valued ledger — items there are referenced by slug from here).
 
 Numbering: an open problem is a loopy game, played without a termination
@@ -95,7 +95,7 @@ every Winning Ways coin-turning P-set is the kernel of an `F_2`-linear map)
 says linearity is also the ceiling for that architecture. Floor and ceiling
 coincide at linear. Problem 1 is exactly whether the lexicode phenomenon admits
 a quadratic refinement — a rule producing the XOR-closure failure that the
-polar form `B` measures. Bridge O (built; see `roadmap/CODA.md`) makes the
+polar form `B` measures. Bridge O (built) makes the
 lexicode chain executable (greedy = mex -> Golay -> Construction A -> theta);
 that is context for this problem, not progress on it.
 
@@ -245,7 +245,7 @@ above); it does not yet exhibit a game.
 Concrete progress targets (aligned with the goldarf §9 ranked moves):
 - ~~Adversarially verify or refute the `echo`-`fifo`+dummy `m = 8` exactness
   claim~~ — **done, CONFIRM** (2026-06-10; `experiments/echo_solver.py`, record
-  in goldarf §8 and `roadmap/DONE.md`). The successor target: **recast the
+  in goldarf §8 and `tasks/DONE.md`). The successor target: **recast the
   σ-valued charge readout into normal/misère/loopy outcome semantics**, or
   prove the recasting impossible — the step that converts the verified
   realizer into a Tier-2 witness in the original P-set sense. Alongside it:
@@ -491,7 +491,7 @@ Decide what, if anything, should replace the finite-field Arf/Brauer-Wall bit fo
 nim-subfield.
 
 What is implementation, not research:
-- `roadmap/CODA.md` Bridge D is the tractable engine bridge: make `Ordinal` usable as a
+- Bridge D is the tractable engine bridge: make `Ordinal` usable as a
   checked Clifford coefficient domain on the source-verified tower, and test the
   Clifford relations for genuinely transfinite squares such as `omega`.
 - If all metric entries lie in a common finite nim-subfield `F_{2^d} ⊂ On₂`,
@@ -518,7 +518,7 @@ Concrete progress targets:
   source-verified transfinite tower, or the ideal full `On_2` nimber field.
 - ~~Implement and test common finite-subfield detection so Bridge D can honestly
   delegate those metrics to Bridge B.~~ Done 2026-06-11 as `subfield-detect`
-  (`roadmap/DONE.md`) — implementation, not research.
+  (`tasks/DONE.md`) — implementation, not research.
 - Decide whether genuinely transfinite metrics should expose no classifier, a
   coefficient-field Arf class, a direct-limit finite-subfield invariant, or some
   other replacement for the finite trace bit.
@@ -529,7 +529,6 @@ Concrete progress targets:
   whether it agrees with any proposed Arf-like invariant.
 
 Relevant surfaces:
-- `roadmap/CODA.md` Bridge D
 - `src/scalar/big/ordinal/`
 - `src/forms/char2/`
 - `src/forms/witt/brauer_wall.rs`
@@ -639,7 +638,6 @@ Concrete progress targets:
 
 Relevant surfaces:
 - `src/scalar/tropical.rs`, `src/games/` thermography, `src/scalar/newton.rs`
-- `roadmap/CODA.md` Bridge J (the formal appendix, esp. J.1–J.3, J.5–J.6)
 - `examples/tropical.rs` (the shipped thermography = tropical identity)
 
 ## references for the open threads

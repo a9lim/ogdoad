@@ -35,7 +35,7 @@ its classes independently, so most of this churn never reaches a user.
 | `py-dunder-pyramid` | **unplayed** — deferred to a9's Python pass |
 | `experiments-as-essays` | **unplayed by design** — the star stays a star |
 
-Process record: `roadmap/DONE.md` → `taste-sweep` (incl. the fleet-failure
+Process record: `tasks/DONE.md` → `taste-sweep` (incl. the fleet-failure
 archaeology). The audit prose below is left as written — findings text describes
 the pre-sweep tree.
 

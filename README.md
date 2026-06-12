@@ -243,16 +243,16 @@ breakdown:
 - `src/linalg/` — crate-private shared linear algebra (exact integer HNF/Smith,
   F₂/nim-field rank, generic field solves), consumed by the pillars above.
 
-See `AGENTS.md` for the working-notes summary, `OPEN.md` for the genuine research
-problems, `roadmap/` (CODA.md for the built-bridge record and formal proofs, TODO.md for
-the game-valued ledger of buildable work and the deferred stars) for the cross-pillar
-bridges, `spec/` for the Ogham language contract and hand-verified corpus, and
-`writeups/goldarf.tex` for the draft note on the Gold/Arf game thread.
+See `AGENTS.md` for the working-notes summary, `tasks/OPEN.md` for the genuine research
+problems, `tasks/` (TODO.md for the game-valued ledger of buildable work and the
+deferred stars, DONE.md for the go-forward ledger) for the cross-pillar work, `spec/`
+for the Ogham language contract and hand-verified corpus, and `writeups/goldarf.tex`
+for the draft note on the Gold/Arf game thread.
 
 ## The bridges — a traveller's catalog
 
-The construction era left the pillars joined by named bridges (full record with
-contracts, oracles, and proofs: `roadmap/CODA.md`). Five islands: **S**calar,
+The construction era left the pillars joined by named bridges (summarized in the
+`AGENTS.md` files; the catalog below walks them). Five islands: **S**calar,
 **C**lifford, **F**orms (the classifier core), the **I**ntegral wing, **G**ames.
 Seventeen crossings — Bridge N is four footbridges — each listed with its banks. A
 bridge with both feet on one island is a loop; crossing it counts like any other.
@@ -278,7 +278,7 @@ bridge with both feet on one island is a loop; crossing it counts like any other
 | `game-clifford-checked` | C–G | checked integer Clifford data on game generators; quotient-compatible, not game-native |
 
 (G and L were never built under those letters — they became the deferred stars
-`*1` and `*2` in `roadmap/TODO.md`. The alphabet itself still has two pontoons
+`*1` and `*2` in `tasks/TODO.md`. The alphabet itself still has two pontoons
 missing; `game-clifford-checked` is the later unlettered C–G span.)
 
 **The traveller's question** (Euler, 1736): can you cross every bridge exactly
@@ -304,7 +304,7 @@ solutions to the current round-trip obstruction.
 
 ## Research thread
 
-The narrow mathematical thread in `OPEN.md` and `writeups/goldarf.tex` is *not* a
+The narrow mathematical thread in `tasks/OPEN.md` and `writeups/goldarf.tex` is *not* a
 claim of a new Clifford classification theorem. It is an investigation of
 game-built quadratic forms in the nimber backend:
 

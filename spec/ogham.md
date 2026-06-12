@@ -455,7 +455,7 @@ substring):
 | `E_BareOrdinal` | bare `ω` in ordinal world | "values are starred here: `*ω`" |
 | `E_WrongWorld` | literal **or operator** form foreign to the session world (`*3` in surreal; `%` in a field world; `@` outside poly/ratfunc) | "`*3` is a nimber; this is the `surreal` world" |
 | `E_CnfOrder` | star-literal exponents not strictly descending | "CNF indices are structural: write `*(ω + 1)`, not `*(1 + ω)`" |
-| `E_KummerEscape` | ordinal mul/inv past the verified tower | "below ω^(ω^ω), primes ≤ 47 — see OPEN.md" |
+| `E_KummerEscape` | ordinal mul/inv past the verified tower | "below ω^(ω^ω), primes ≤ 47 — see tasks/OPEN.md" |
 | `E_NotInvertible` | failed `inv`/`multivector_inverse`/`dual` | per-world math in message (§7.5) |
 | `E_DivisionByZero` | `/0` | |
 | `E_BladeIndex` | `e‹i›` with i ≥ dim | |
@@ -537,7 +537,7 @@ kept as provenance for those blessed vectors.
 WP1 (Display v2, §9), WP7 (host operators, §13), the backend helper
 surface (§7.6/§7.7), WP2–WP6, the v2.0 abstraction layer (§17), and the v2.1
 program layer (§18) are shipped — ledger:
-`roadmap/DONE.md` → `ogham-foundations`, `ogham-backend`, `ogham-v1`, and
+`tasks/DONE.md` → `ogham-foundations`, `ogham-backend`, `ogham-v1`, and
 `ogham-v1.1`, `ogham-2.0`, `ogham-2.1`.
 The table below is the historical build decomposition and the maintenance map.
 Acceptance for the language is the committed conformance corpus plus the normal
@@ -553,7 +553,7 @@ Rust/Python validation stack.
 
 ## 16. v1.1 — the function-shaped worlds
 
-**Implemented and tested** (ledger: `roadmap/DONE.md` → `ogham-v1.1`).
+**Implemented and tested** (ledger: `tasks/DONE.md` → `ogham-v1.1`).
 
 - **Worlds** (fixed dispatch, §6.1 discipline): `poly2 poly3 poly5 poly7` =
   `Poly<Fp<p>>` (F_p[t]); `polyint` = `Poly<Integer>` (ℤ[t]); `ratfunc2
@@ -578,7 +578,7 @@ Rust/Python validation stack.
 
 ## 17. v2.0 — abstraction
 
-**Implemented and tested** (ledger: `roadmap/DONE.md` → `ogham-2.0`). The
+**Implemented and tested** (ledger: `tasks/DONE.md` → `ogham-2.0`). The
 v2.0 conformance vectors are merged into
 [`spec/conformance.txt`](conformance.txt), replacing the four superseded
 v1.1 reserved-syntax vectors listed in the staging header. Judgment calls go
@@ -767,7 +767,7 @@ factorial (§13): ogham spelling only.
 
 ## 18. v2.1 — programs
 
-**Implemented and tested** (ledger: `roadmap/DONE.md` → `ogham-2.1`). The
+**Implemented and tested** (ledger: `tasks/DONE.md` → `ogham-2.1`). The
 v2.1 conformance vectors, including the `>>` continuation-line format, are
 merged into [`spec/conformance.txt`](conformance.txt); the original blessed
 staging block remains in [`spec/conformance_v2.txt`](conformance_v2.txt) as

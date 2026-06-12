@@ -208,7 +208,7 @@ and const-generic sizes that are inherently indices.
     branch a carry into a *sum*, recursed in by descending place. Carries are assembled
     from `ord_u(2)`, DiMuro's `Q(f(u))`, and the finite `m_u` rows verified through
     DiMuro Table 1 (`u ≤ 43`) plus the locally certified `m_47=1`; a carry needing
-    `m_53`+ returns `None`, as does anything `≥ ω^(ω^ω)` (see `OPEN.md`).
+    `m_53`+ returns `None`, as does anything `≥ ω^(ω^ω)` (see `tasks/OPEN.md`).
   - `cantor.rs` — ORDINARY (Cantor) `ord_add`/`ord_mul` (ω+ω=ω·2, 1+ω=ω) — the
     surreal birthday's run-length arithmetic. A distinct algebra, sharing only CNF.
 

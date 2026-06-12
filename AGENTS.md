@@ -37,16 +37,17 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 Beyond the library: `examples/` (Rust demos `tour`/`tropical` + the open-question
 probes `interactive_kernel`, `octal_hunt`, `loopy_quadric`, `misere_quotient`,
 `bent_route`), `experiments/` (Python research probes on top of the shipped
-lib), `demo.py` (the Python tour), `OPEN.md` (the genuine research problems),
-`roadmap/` (CODA.md — the built-bridge record + formal proofs; TODO.md — the game-valued
+lib), `demo.py` (the Python tour),
+`tasks/` (OPEN.md — the genuine research problems; TODO.md — the game-valued
 ledger of buildable items plus the deferred stars `*1`/`*2`/`*4`; DONE.md — the
-go-forward ledger for new work),
+go-forward ledger for new work; AUDIT.md — the mathematical-correctness audit
+snapshot; TABLES.md — the inventory of curated hardcoded tables),
 `spec/` (ogham.md — the expression-language spec, the shipped Display-v2 +
 host-operator contract, backend-helper surface, v1 parser/evaluator contract,
 v1.1 polynomial/ratfunc function-world contract, the shipped v2.0 abstraction
 layer, the shipped v2.1 program layer, and the pre-contract v3.0 stub, §§17–19;
 conformance.txt — the hand-verified corpus the language must pass),
-`TABLES.md` (the inventory of curated hardcoded tables), and `writeups/`
+and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the
 consolidated note on the transfinite nim excess problem).
@@ -65,7 +66,7 @@ Use these labels when changing prose, papers, examples, or comments:
   game whose P-set is the corresponding quadratic zero set.
 - **Open**: the natural Gold-quadric game rule, a genuine game-native quadratic
   deformation of `GameExterior`, and transfinite nim multiplication beyond the
-  source-verified excess table. These live in `OPEN.md`.
+  source-verified excess table. These live in `tasks/OPEN.md`.
 
 Scope boundaries to preserve:
 
@@ -133,8 +134,7 @@ such as `e_i e_j` when they shrink a left ideal, and otherwise the full
 regular/lazy left action. Singular polar forms and general-bilinear `a` metrics are
 rejected.
 
-The cross-pillar bridges live in the Rust core (full record + formal proofs in
-`roadmap/CODA.md`). `IntegralForm` exports rational and even-mod-2 Clifford metrics plus
+The cross-pillar bridges live in the Rust core. `IntegralForm` exports rational and even-mod-2 Clifford metrics plus
 discriminant Gauss-sum/Milgram checks; finite char-2 `Fpn<2,N>` classification runs
 through the façade; cyclic Galois/Frobenius maps have Clifford linear-map constructors;
 the **rational 2-torsion Brauer class** `Brauer2Class` (`witt/brauer_rational.rs`:
@@ -173,7 +173,7 @@ integer `q`/polar data on a chosen game-generator tuple only after verifying eve
 game relation in the quotient is null and polar-radical for that data; over the
 torsion-free target `ℤ`, relations such as `2* = 0` force `Q(*)` and all pairings
 with `*` to vanish. The stronger question of a natural game-native source for such
-quadratic data remains open in `OPEN.md`.
+quadratic data remains open in `tasks/OPEN.md`.
 
 The game-built Gold-form bridge is implemented, but the play rule is not. The
 standard chain is:
@@ -191,10 +191,10 @@ reconstruction on small fields, frame-obstruction experiments, misère-kernel
 obstruction examples, loopy Draw/Loss-set experiments, and bent Gold-component route
 probes. The conditional statement: if a game has P-positions `{Q = 0}`, Arf gives
 the sign and size of the second-player win-bias. The existence of a non-tautological
-natural rule with P-set `{Q = 0}` is open (`OPEN.md`), but the σ-valued
+natural rule with P-set `{Q = 0}` is open (`tasks/OPEN.md`), but the σ-valued
 echo-fifo+dummy realizer is **verified** (2026-06-10, adversarial review:
 `experiments/echo_solver.py`, 391,680/391,680 m=8 checks, zero misses — record in
-`roadmap/DONE.md`); the open steps are recasting its forced-charge readout into
+`tasks/DONE.md`); the open steps are recasting its forced-charge readout into
 normal/misère/loopy outcome semantics and the general-n linking proof. The
 realizer's *mechanism* is reduced (2026-06-10 second pass,
 `experiments/linking_game.py`, goldarf §8 `sec:linking`): the σ-game is the
@@ -318,9 +318,9 @@ mark that boundary without becoming `Scalar` supertraits. (serde is intentionall
 shipped — the invariant-carrying types need custom deserialization, not a naive
 derive.)
 
-The narrow Gold/Arf game thread and the genuine open problems live in `OPEN.md`; the
+The narrow Gold/Arf game thread and the genuine open problems live in `tasks/OPEN.md`; the
 draft notes are `writeups/goldarf.tex` (Gold/Arf) and `writeups/excess.tex`
-(transfinite excess). Read `OPEN.md` before touching `forms/char2/`,
+(transfinite excess). Read `tasks/OPEN.md` before touching `forms/char2/`,
 `forms/quadric_fit.rs`, `forms/char0.rs`, `games/coin_turning.rs`, `games/kernel.rs`,
 `games/misere.rs`, `games/loopy/`, `forms/witt/`, `experiments/`, or the
 open-question example probes.

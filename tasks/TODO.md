@@ -1,11 +1,10 @@
 # Cross-pillar work — TODO (the game-valued ledger)
 
-Every bridge that was *explicitly on the build order* is done — the full record is in
-[`roadmap/CODA.md`](CODA.md), and newly completed work goes in the
-[`roadmap/DONE.md`](DONE.md) ledger. This file is the ledger of what is **buildable
+Every bridge that was *explicitly on the build order* is done, and newly completed
+work goes in the [`tasks/DONE.md`](DONE.md) ledger. This file is the ledger of what is **buildable
 but not built**: standard math made computational, verification harnesses, and elbow
 grease. Nothing here is a genuine research question — those live in
-[`OPEN.md`](../OPEN.md) (which carries the loopy-valued entries; open problems give
+[`OPEN.md`](OPEN.md) (which carries the loopy-valued entries; open problems give
 no termination guarantee).
 
 Claim-level discipline (`AGENTS.md` → "Claim levels and non-claims") applies to every
@@ -13,7 +12,7 @@ item: each is **standard math** or **engineering** when built — not a new theo
 
 ## How items are valued
 
-Natural numbers don't do roadmap items justice, so the ledger is a **game-valued
+Natural numbers don't do ledger items justice, so the ledger is a **game-valued
 multivector**: each item is a term `g·e_B` — a game value `g` (its size and temper)
 on a pillar blade `e_B` (which pillars it joins; the blade's grade is how
 cross-cutting the item is). Blades: `e_s` scalar, `e_c` clifford, `e_f` forms,
@@ -29,7 +28,7 @@ scalar-grade (no blade).
 
 Reference items by **slug**. The ledger's total value is the disjunctive sum; play it
 in any order. (`echo-solver`, the formerly hottest cold item, was played 2026-06-10
-with outcome **CONFIRM** — see `roadmap/DONE.md`; its successor move is the
+with outcome **CONFIRM** — see `tasks/DONE.md`; its successor move is the
 σ-recasting target in `OPEN.md` tis (§1), which is loopy-valued, not a number.)
 
 ---
@@ -44,7 +43,7 @@ touches (the tartan-companion axis), and no-dummy controls — mapping which dis
 besides fifo+dummy are exact. No longer decisive for existence (the fifo+dummy verdict
 is in); it bounds the *mechanism* and finally puts the bounded-window blocker
 conjecture on valid data. (Partially advanced by the 2026-06-10 `linking-reduction`
-pass, `roadmap/DONE.md`: the no-dummy controls are fully mapped at the abstract-graph
+pass, `tasks/DONE.md`: the no-dummy controls are fully mapped at the abstract-graph
 level — the Bad census — and the fifo+dummy mechanism is identified
 (`experiments/linking_game.py`, goldarf §8 `sec:linking`); the `w ≥ 2` ko-window and
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
@@ -176,7 +175,7 @@ series, and divisible-Γ Newton polygons, completing the (exact global, capped l
 pattern every other leg has. The decision: whether No gets an inexact leg at all —
 Surreal is currently the *exact* char-0 home, and the precedent (`Rational` as an
 engine-validation scalar) cuts both ways. Divisible-Γ polygons are the research-edged
-corner (CODA J: "definable but not claimed or scheduled").
+corner — definable but not claimed or scheduled.
 
 ### ±3·e_i: `theta-level`
 **Level-`N` theta identification** — `θ_L ∈ M_{n/2}(Γ₀(N), χ)` for non-unimodular
@@ -229,7 +228,7 @@ The one cheap, honest piece is **Eichler's theorem** as a documented predicate �
 *indefinite, rank ≥ 3* ⇒ spinor genus = isometry class — which would let `Genus` upgrade
 to a class statement in exactly that regime (now filed as the buildable `eichler` above).
 The full definite-lattice computation is the larger build; it sits adjacent to the
-roadmap, not inside it.
+ledger, not inside it.
 
 ### *2: `the char-p Drinfeld/Carlitz mirror of the integral pillar` (large)
 

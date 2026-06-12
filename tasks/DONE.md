@@ -6,14 +6,12 @@ The cross-pillar bridge-building era (bridges **A–O** plus **K** — lattice/C
 Brauer–Wall, the char-2 Arf classifier, Frobenius outermorphisms, the transfinite
 Clifford engine, theta/modular forms, Construction-A codes, the Weil representation, the
 rational and full-`ℚ/ℤ` Brauer invariants, Newton polygons, the Brown invariant, the
-unification pass, lexicodes) closed with every non-deferred bridge shipped. Its full
-record — mathematical contracts, surfaces, oracles, boundaries, and the formal proofs —
-lives in [`roadmap/CODA.md`](CODA.md); the terse working-notes summary is in the
-`AGENTS.md` files (root + per-pillar).
+unification pass, lexicodes) closed with every non-deferred bridge shipped. The working-notes summary of the built bridges is in the `AGENTS.md`
+files (root + per-pillar).
 
-What remains unbuilt is tracked in [`roadmap/TODO.md`](TODO.md) — the game-valued
+What remains unbuilt is tracked in [`tasks/TODO.md`](TODO.md) — the game-valued
 ledger of buildable items plus the deferred stars `*1`/`*2`/`*4`; genuine open
-problems stay in [`OPEN.md`](../OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`,
+problems stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`,
 `over`/`under` (the old numerals §1–§4 survive as aliases).
 
 ## How to use this ledger
@@ -31,8 +29,8 @@ When a new piece of cross-pillar work lands, add a short entry here:
 - boundaries: the honest non-claims
 ```
 
-Promote anything proof-heavy or too long for working notes into `roadmap/CODA.md`, and
-fold the one-line structural fact into the relevant `AGENTS.md`.
+Fold the one-line structural fact into the relevant `AGENTS.md`; keep any longer
+derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
@@ -240,7 +238,7 @@ A380496-type rows; no new shippable `alpha_u` carries — the Rust boundary at
 **Pillars:** scalar ↔ clifford ↔ forms ↔ integral ↔ games (+py touchpoints)
 **Claim level:** engineering — behavior-preserving refactor, adversarially reviewed
 
-Thirteen of the fifteen items in [`roadmap/TASTE.md`](TASTE.md) (2026-06-11 audit)
+Thirteen of the fifteen items in [`tasks/TASTE.md`](TASTE.md) (2026-06-11 audit)
 played in one session, on a9's switch decisions: full suffix glossary, outright
 Option→Result façade conversion, `e(i)`, IntoIterator-only metric ctors.
 
@@ -459,7 +457,7 @@ Option→Result façade conversion, `e(i)`, IntoIterator-only metric ctors.
   `Trd(z²)=Trd(z)^2-2·Nrd(z)` against the shipped `⟨1,1,-a,-a⟩` norm form. Over
   `F_27/F_3`, the `u`/`u^2` cross block is checked to be Witt-hyperbolic.
 - boundaries: this is not the reduced norm for general `n` (nor equal to it for
-  quaternions); it is the quadratic trace companion named in CODA K §6(c).
+  quaternions); it is the quadratic trace companion.
 
 ### 2026-06-11: `milnor-d2`
 **Summary:** dyadic cell of Milnor's exact sequence
