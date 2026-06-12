@@ -10,7 +10,11 @@ judgment calls not covered here go back to the spec, not into the code.
 ogham is a small calculator language over the ogdoad core: one world per
 session, either a scalar backend + Clifford metric or a function-shaped
 polynomial/rational-function world, bindings, and nothing else. No control
-flow, no user functions, no floats.
+flow, no user functions, no floats. (That sentence describes the shipped
+v1.1 surface. §§17–19 stage its deliberate growth — functions, booleans,
+programs, recursion, game forms — into a **lisp-for-games**; what never
+changes: no floats, no juxtaposition, no coercions, errors as mathematical
+content.)
 File extension `.og`. The name: og(doad) + the ancient stroke-script — fitting
 a language whose operators are strokes and ticks (`*`, `↑`, `∧`, `⋅`, `/`).
 
@@ -808,7 +812,8 @@ definition-time completeness, and the closed-AST Function model all survive
 foreclose them; growing this into a sketch is its own pass, after 2.1 ships.
 This is the one genuine semantic break: **totality is traded for
 attributable partiality** — a program either terminates or errors honestly
-(`E_Depth`), never a silent hang.
+(`E_Depth`), never a silent hang — and, exactly where CGT's loopy theory
+licenses it, non-termination itself becomes a *value* (§19.4).
 
 ### 19.1 `=:` — the fixpoint binding
 
@@ -845,6 +850,8 @@ point:
   and may reference the enclosing μ-name and binders. This is what lets a
   single μ cover most mutual-recursion shapes. True mutual recursion
   (`=:` groups) is **deferred, owed**.
+- `=:` is not function-only: an Element-sorted RHS is §19.4's coinductive
+  case. The equation reading is uniform — only the licensing theory differs.
 
 ### 19.2 Fuel
 
@@ -903,7 +910,50 @@ guards both the index range and the recursive calls; mex is "the first `n`
 not hit". Greedy = mex is Bridge O's seam (`games/lexicode.rs`) — with 3.0
 the language can finally *say* the games pillar.
 
-### 19.4 Non-goals, recorded
+### 19.4 Element-`=:` — loopy games are fixpoint equations
+
+The μ-binder is not function-only. `=:` with an Element-sorted RHS is a
+fixpoint equation on *values*, and CGT is the theory that licenses it: a
+**guarded** self-reference — every occurrence of the name inside at least
+one `{…|…}` constructor — defines a cyclic game graph, i.e. a loopy game,
+whose outcome theory the games pillar already carries (`games/loopy/`):
+
+```text
+:world game
+on   =: {on |}
+off  =: {| off}
+dud  =: {dud | dud}        # the deathless universal draw
+over =: {0 | over}
+```
+
+The construct and the math object coincide: `=:` was designed for recursive
+functions, and applied to game data it *is* coinductive definition —
+Siegel's loopy values are fixpoint equations on game forms, told in the
+language's own notation. (Folded into 3.0 at a9's call, 2026-06-12.)
+
+- Legal **exactly in the game world**. Everywhere else an Element-sorted
+  `=:` is an error with the math in the message: `x =: x + 1` names nothing
+  in ℤ — no fixpoint theory, no fixpoint syntax.
+- **Unguarded equations are rejected** (provisional kind `E_Unfounded`):
+  `g =: g` never reaches a constructor and is an unfounded alias, not a
+  game. Guardedness is the honesty boundary of this whole section.
+- **Fuel is untouched.** Function recursion descends and is metered
+  (§19.2); Element-`=:` builds a finite graph and runs the loopy fixpoint
+  algorithms — coinduction, not unbounded descent. "Didn't terminate"
+  becomes a value exactly where the theory assigns one, and `E_Depth`
+  remains the verdict everywhere else.
+- Display: the equation form, the same μ carve-out as §19.1.
+- Owed to the real sketch: the supported RHS envelope beyond pure forms
+  (sums with loopy summands — the stopper boundary, per Siegel and the
+  engine's verified surface), loopy comparison/outcome semantics including
+  Draw (engine-backed), and mutual loopy groups (deferred alongside
+  function groups).
+- Staging: ships **with 3.0** by default — refusing it would take *extra*
+  code, an occurs-check built solely to reject meaning the math already
+  assigns. Slipping to 3.1 is recorded as acceptable if the loopy-engine
+  seam fights the build.
+
+### 19.5 Non-goals, recorded
 
 **Quote/macros: never.** Code-as-data would blur the structural-vs-
 arithmetic line (star-literals, `{L|R}` interiors) that the grammar fights

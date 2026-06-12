@@ -156,6 +156,24 @@ the closed-AST Function model survive intact. **Vectors blessed 2026-06-12**
 (same staging file, incl. the `>>` continuation-line format extension).
 Plays after `ogham-2.0`.
 
+### 2·e_o: `ogham-reflect`
+**The consolidation pass before release** (a9, 2026-06-12: "consolidate it
+into the best version of itself before release") — plays after `ogham 3.0`
+(star `*8`), before any 4.0 design. Scope: (1) rewrite the spec §1 identity:
+the principles describe a v1 calculator, and by 3.0 the honest description
+is the **lisp-for-games** — the value-rich/computation-thin inversion,
+Conway's ontology as the data model, the construct↔math coincidences on
+record (four-way relations = outcome classes, `=:` = loopy definition, the
+lazy trio = play-one-branch); (2) fold the §17–§19 delta sections into the
+main spec body so the language reads as one contract, and merge/reorganize
+the conformance corpus; (3) a TASTE.md-style audit of `src/ogham/` after
+three builds of growth — naming, error taxonomy, dispatch-enum shape, REPL
+UX; (4) release scoping, **a9's call**: ogham as ogdoad's front door vs an
+`ogham` crate re-exporting the core, README/writeup, the public name. Also
+worth an hour inside this pass: a CGScript/CGSuite comparison read, for
+ideas and for honest differentiation. The refactor is licensed; the
+identity questions are the point.
+
 ## numbers — engine & bindings
 
 ### 2·e_c: `spinor-gauge`
@@ -276,8 +294,12 @@ satisfies; a9's notation), local `=:` in bodies, and the `game` world —
 `{L|R}` as ogham's cons cell: game forms as the recursive data constructor,
 CGT's full four-way order live, `⋅` rejected (group-not-ring made an
 evaluator fact), Index-based option access, `grundy` via `=:` as the
-acceptance example. Owed to the real sketch: mutual-recursion groups, fuel
-default, up/down naming (the `↑` glyph collision), game-form display, and
+acceptance example — and **Element-`=:` as loopy games** (§19.4, folded in
+at a9's call 2026-06-12: guarded fixpoint equations on game forms *are*
+coinductive definitions — `dud =: {dud | dud}` — with outcomes from
+`games/loopy/`; the construct and the math object coincide again). Owed to
+the real sketch: mutual-recursion groups, fuel default, up/down naming (the
+`↑` glyph collision), the loopy stopper/sum envelope, game-form display, and
 the sequence-sort/HOF gate. Held as a star until 2.1 ships and §19 grows
 into a sketch. Nimbered `*8`: every smaller name is a nim-sum of the shipped
 stars (`*3 = *1 + *2`, …, `*7 = *1 + *2 + *4`).
