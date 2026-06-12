@@ -17,7 +17,8 @@ Natural numbers don't do roadmap items justice, so the ledger is a **game-valued
 multivector**: each item is a term `g·e_B` — a game value `g` (its size and temper)
 on a pillar blade `e_B` (which pillars it joins; the blade's grade is how
 cross-cutting the item is). Blades: `e_s` scalar, `e_c` clifford, `e_f` forms,
-`e_i` integral, `e_g` games, `e_y` py; pure-prose chores are scalar-grade (no blade).
+`e_i` integral, `e_g` games, `e_o` ogham, `e_y` py; pure-prose chores are
+scalar-grade (no blade).
 
 | value | temper | meaning |
 |---|---|---|
@@ -133,6 +134,28 @@ checked certificate, turning `octal_hunt`-style sweeps into proofs-of-periodicit
 rather than bounded observations. The *conjecture* that every finite octal game is
 ultimately periodic is famous, external, and not ours to claim — the checker is.
 
+## numbers — ogham (the language)
+
+### 4·e_o: `ogham-2.0`
+**Abstraction** — the `spec/ogham.md` §17 sketch (2026-06-12, switches called
+by a9): `↦` lambdas with capture-by-substitution and definition-time beta
+(Function values are closed ASTs; `parse ∘ display = id` extends), tuple
+application + composition via `@`, per-binder sort inference (Element/Index/
+Bool — the Gold family in one definition), booleans as the fourth sort
+(`and or not`, lazy, words because the glyphs are spent), the ternary,
+relations extended to Index pairs, `t` released outside poly/ratfunc.
+**Vectors blessed 2026-06-12** → `spec/conformance_v2.txt` (staging; inert
+until the build merges it — its header lists the four superseded v1.1
+reserved-syntax vectors). Build = merge, then work until green.
+
+### 2·e_o: `ogham-2.1`
+**Programs** — the §18 sketch: `;` sequencing everywhere (top level included;
+bindings-then-expression, `E_SeqValue` for dead intermediate values),
+let-bodies (`:=` *is* the let), open-paren line continuation. Totality and
+the closed-AST Function model survive intact. **Vectors blessed 2026-06-12**
+(same staging file, incl. the `>>` continuation-line format extension).
+Plays after `ogham-2.0`.
+
 ## numbers — engine & bindings
 
 ### 2·e_c: `spinor-gauge`
@@ -242,19 +265,19 @@ real (wild symbols read deep unit structure, not just `v(a)`). Deferred, not rej
 Nimbered `*4` rather than `*3`, since `*3 = *1 + *2` is already spoken for as the sum
 of the other two stars.
 
-### *8: `ogham 2.0 — functions`
+### *8: `ogham 3.0 — recursion + games`
 
-The `spec/ogham.md` §17 stub, held as a star until it can be a number:
-user-defined functions at the REPL — infix `↦` maps-to lambdas
-(`abs := t ↦ (t < 0 ? -t : t)`), the `? :` ternary as the one position where
-a §7.7 verdict is consumed rather than printed, application staying §7.6's
-`@` (in poly worlds `5⋅t + 1` already *is* `t ↦ 5⋅t + 1`). The committed
-design points: **totality** (capture-at-definition closures — self-reference
-is `E_Unbound` at definition, recursion does not exist, every program
-terminates; ogham stays a calculator), Function as a **first-order third
-sort** (no functions in vectors, arithmetic, or argument positions),
-two-param binders from the start (polar forms `b(x,y)` are the project's
-binary function), `;` reserved for sequencing. Plays after `ogham-v1.1`
-turns §16 into contract; the first move is the real §17 sketch, not code.
-Nimbered `*8`: every smaller name is a nim-sum of the shipped stars
-(`*3 = *1 + *2`, …, `*7 = *1 + *2 + *4`).
+The `spec/ogham.md` §19 stub (2026-06-12; the predecessor `*8` — ogham 2.0
+functions — was converted to the numbered `ogham-2.0`/`ogham-2.1` above when
+its sketch landed). The semantic break and the telos: **totality traded for
+attributable partiality** (fuel + `E_Depth`, `:depth`), `=:` fixpoint
+bindings (μ — `:=` captures the past, `=:` is an equation the name
+satisfies; a9's notation), local `=:` in bodies, and the `game` world —
+`{L|R}` as ogham's cons cell: game forms as the recursive data constructor,
+CGT's full four-way order live, `⋅` rejected (group-not-ring made an
+evaluator fact), Index-based option access, `grundy` via `=:` as the
+acceptance example. Owed to the real sketch: mutual-recursion groups, fuel
+default, up/down naming (the `↑` glyph collision), game-form display, and
+the sequence-sort/HOF gate. Held as a star until 2.1 ships and §19 grows
+into a sketch. Nimbered `*8`: every smaller name is a nim-sum of the shipped
+stars (`*3 = *1 + *2`, …, `*7 = *1 + *2 + *4`).

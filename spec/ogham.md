@@ -1,7 +1,9 @@
 # ogham — the ogdoad expression language
 
-Status: **v1 + v1.1 implemented** (2026-06-12). This document is the implementation contract: every
-decision below either cashes out as a vector in [`spec/conformance.txt`](conformance.txt)
+Status: **v1 + v1.1 implemented** (2026-06-12); **v2.0/v2.1 sketched, v3.0
+stubbed** (§§17–19, same date — sketches are pre-contract). For the shipped
+language this document is the implementation contract: every decision below
+either cashes out as a vector in [`spec/conformance.txt`](conformance.txt)
 or it is not really decided. Implementing agents work until the corpus is green;
 judgment calls not covered here go back to the spec, not into the code.
 
@@ -515,6 +517,12 @@ Conway's `(*ω)↑3 = *2`). Corpus expansion/blessing remains an operator
 workflow: the engine can suggest values, but the spec stays the oracle for
 syntax, sorts, and errors.
 
+Pre-build staging: vectors for spec'd-but-unbuilt versions are blessed into
+sibling staging files the harness does not read —
+[`conformance_v2.txt`](conformance_v2.txt) for v2.0/v2.1 (blessed
+2026-06-12) — and the version's build merges them in, retiring any
+superseded vectors per the staging file's header, as its first move.
+
 ## 15. Work packages
 
 WP1 (Display v2, §9), WP7 (host operators, §13), the backend helper
@@ -558,33 +566,350 @@ Rust/Python validation stack.
 - **Still out**: precision worlds (`O(p^k)` literals are their own
   iteration); games mode (`{L|R}`); invariant colon-commands (§12).
 
-## 17. v2.0 — functions (stub)
+## 17. v2.0 — abstraction (sketch)
 
-**Stub, not sketch.** To be designed properly after v1.1 lands; recorded so
-the §2 reservations have a stated purpose (ledger: `roadmap/TODO.md` star
-`*8`). The vision: user-defined functions at the REPL —
+**Contract — vectors blessed, build pending** (2026-06-12; the design
+switches are called: Index binders **in**, composition **in**, `t` released
+**in**, booleans as a fourth sort **in**). The conformance vectors are
+blessed in [`spec/conformance_v2.txt`](conformance_v2.txt) — a staging file
+the harness does not yet read (§14). The build merges it into
+`conformance.txt` (replacing the four superseded v1.1 reserved-syntax
+vectors listed in its header) and works until green; judgment calls go back
+to this section and the corpus, not into the code. Ledger:
+`roadmap/TODO.md` → `ogham-2.0`. The 2.0/2.1/3.0 staging is deliberate:
+each version is independently shippable and leaves a language worth stopping
+at.
 
-```text
-square := t ↦ t⋅t          (t ↦ t⋅t)@10 = 100
-abs := t ↦ (t < 0 ? -t : t)        abs@(-5) = 5
+### 17.1 Sorts
+
+Four sorts: **Element**, **Index**, **Function**, **Bool**. Position
+determines sort; there are no coercions (unchanged from §6).
+
+- **Function** = a binder-AST, closed over its own binders (§17.3). The
+  entire first-order discipline is one rule: *a Function-sorted term may
+  appear only as (a) the RHS of `:=`, (b) an operand of `@`, (c) a whole
+  statement.* Everything else — nested lambdas, functions in vectors,
+  arithmetic, exponents, stdlib arguments — is `E_FnSort`.
+- **Bool** = the verdicts, promoted to values. Relations become
+  Bool-*valued* expressions (§7.7's "verdicts, not values; top level only"
+  is amended by this section); `true`/`false` become literals;
+  `p := a < b` binds a Bool. Bool positions: ternary conditions,
+  `and`/`or`/`not` operands, `:=` RHS, statement position, lambda bodies
+  (predicates), arguments to Bool-sorted binders. Banned in vectors,
+  arithmetic, and exponents: `E_BoolSort`.
+- **Binder sorts are inferred per binder** from occurrence positions:
+  Element by default, Index when occurrences sit at Index positions, Bool
+  likewise; conflicting occurrences are `E_IndexSort`/`E_BoolSort` *at
+  definition*. The flagship case is the Gold family —
+  `gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))` infers `a : Index`, `u : Element` —
+  one definition for the whole parameterized family.
+- Bindings bind any sort (`d := deg(f)` binds an Index; `p := a < b` a
+  Bool); a bare statement of any sort evaluates and prints.
+
+### 17.2 Grammar deltas
+
+Replaces §4's `statement`/`binding`/`expression` and §5's loose end:
+
+```ebnf
+statement   = binding | expression | lambda ;
+binding     = IDENT ":=" ( lambda | expression ) ;
+lambda      = binders "↦" expression ;        (* ↦ grabs maximally rightward *)
+binders     = IDENT | "(" IDENT { "," IDENT } ")" ;
+expression  = orexpr [ "?" additive ":" additive ] ;
+orexpr      = andexpr { "or" andexpr } ;
+andexpr     = notexpr { "and" notexpr } ;
+notexpr     = { "not" } relexpr ;
+relexpr     = additive [ relop additive ] ;
+appl        = atom { "@" applarg } ;
+applarg     = atom
+            | "(" expression { "," expression } ")" ;   (* a comma makes a tuple *)
+atom        = …v1 atoms… | "true" | "false" | "(" lambda ")" ;
 ```
 
-- **`↦` (infix maps-to, sugar `~`)**: `binder ↦ body`. Application is §7.6's
-  `@`, unchanged — in poly worlds `5⋅t + 1` already *is* `t ↦ 5⋅t + 1`, so
-  v1.1's functions-as-data lift to functions-as-abstractions with no new
-  application operator. A literal `↦`-expression takes parens to be applied
-  (`@` takes atoms; `↦` grabs maximally rightward).
-- **`cond ? a : b` (ternary)**: the one position where a §7.7 verdict is
-  consumed rather than printed. It inherits the four-way partition per
-  world: in nim-worlds `t < 0` is identically false, so `abs` is the
-  identity there — which is honest CGT, not a bug.
-- **Totality is a design principle.** Bodies capture the environment at
-  definition (closures); self-reference is `E_Unbound` at definition time,
-  so recursion does not exist and every program terminates. ogham stays a
-  calculator.
-- **Functions are a third sort** (Element / Index / Function), first-order
-  only: no functions inside vectors, arithmetic, or argument positions.
-  Binders are IDENTs; two-param `(u,v) ↦ …` is wanted from the start (polar
-  forms `b(x,y) = q@(x+y) + q@x + q@y`). Shadowing rules against the
-  reserved per-world names are owed by the real sketch.
-- **`;`** is reserved for statement sequencing.
+- `↦` (sugar `~`), `?`, and bare `:` leave the reserved set and become real;
+  `and or not` join the reserved words (a breaking change in principle —
+  they were legal identifiers in v1.1).
+- Precedence, loose end of the table (tight → loose): relations, `not`,
+  `and`, `or`, `? :`, `↦`. Relations stay non-chaining (`a < b < c` is
+  `E_Parse`); a parenthesized relation is a Bool atom
+  (`(a < b) and (c = d)` works, and so does the unparenthesized form, since
+  the word operators bind looser than relops).
+- **Multi-param application is a tuple**: `b@(u, v)`, arity checked
+  (`E_Arity`). One-param keeps the v1.1 atom rule: `f@7`, `f@(u + 1)`. No
+  currying, no partial application — partial application manufactures
+  function-valued intermediates, which is higher-orderness through the side
+  door.
+- **Ternary**: condition is any Bool-sorted expression; branches are
+  `additive`, must agree in sort (Element, Index, or Bool), and nest only
+  via parens: `u < 0 ? -1 : (u = 0 ? 0 : 1)`.
+- **Relations extend to Index operands**: `=`, `<`, `>` are sort-homogeneous
+  over Element, Index, or Bool pairs (`<`/`>`: Element/Index only; `|`:
+  Element only). Index relations are the meta-integer total order — in nim
+  worlds Element `<` stays identically false while Index `<` is real;
+  position disambiguates, as always. (Needed for Index-recursion base cases,
+  §19.) `f = g` on Functions is `E_FnSort` — function equality is
+  extensional and not ogham's to decide.
+- **`t` is released**: an ordinary IDENT outside the poly/ratfunc worlds
+  (the global reservation was a placeholder for exactly this section). The
+  `E_Unbound` hint for the exact name `t` still mentions the poly worlds.
+  Inside poly/ratfunc worlds `t` remains the indeterminate and cannot be a
+  binder (`E_Shadow`, §17.4).
+
+### 17.3 Semantics — capture by substitution
+
+The load-bearing decision: **a Function value is a closed AST over its own
+binders, produced by substitution at definition time.** No runtime
+environments, ever.
+
+- Captured Element/Index/Bool bindings substitute in as *values* at
+  definition (`c := 5` then `f := u ↦ c⋅u` makes `f` literally `u ↦ 5⋅u`,
+  and that is its display — capture-at-definition is visible, and rebinding
+  `c` later observably cannot touch `f`). Captured Functions
+  **beta-reduce** (inline) at definition, so a Function value never
+  references another function. Binder occurrences are never substituted.
+- Consequently `parse ∘ display = id` extends to the Function sort at
+  statement level, and **definition-time checking is complete**: sorts,
+  arities, shadowing, unbound names (self-reference included — the hint
+  changes in §19), and world-legality of every operator (an ordered
+  comparison in `fp5` fails *at definition* with `E_WrongWorld`). The only
+  application-time failures are the §7.5 partiality table.
+- Application substitutes argument values for binders (sort-checked against
+  the inferred binder sorts), then evaluates strictly — except the **lazy
+  trio**: ternary branches and the right operands of `and`/`or` evaluate
+  only as needed. Both branches are still fully checked at definition. These
+  are the language's only non-strict positions and the list is exhaustive.
+  (§19's recursion is why the trio must be lazy from day one: the guard
+  protects the recursive call.)
+- **Composition**: `f@g` with `g` a Function — or, in poly/ratfunc worlds,
+  an Element, the v1.1 coherence — yields a Function by inlining, when `f`
+  is unary (`E_Arity` otherwise; an n-ary `g` gives an n-ary composite).
+  `f@g@x = (f@g)@x = f@(g@x)`, associative exactly as in §7.6.
+- **Four-way honesty**: `not (a < b)` in a partial order means "greater,
+  equal, *or fuzzy*" — correct CGT, stated loudly. In nim-worlds `u < 0` is
+  identically `false`, so `abs` is the identity there; not a bug.
+
+### 17.4 Shadowing (the debt the old stub named)
+
+Binders may not shadow reserved words, stdlib names, or the world's
+generator (`t` in poly/ratfunc, `x` in `f*` worlds): `E_Shadow`, with the
+poly-world hint being the good one — "`t` is the indeterminate here;
+`5⋅t + 1` is already a function." Duplicate binders (`(u,u) ↦ …`) are
+`E_Shadow`. Binders **may** shadow ordinary bindings — substitution only
+touches free occurrences. (`w` is unreachable as a binder: it lexes to `ω`.)
+
+### 17.5 Display
+
+Functions print as `binders ↦ body` with the unparser's minimal-parens rule;
+single spaces around `↦`, `?`, `:`, and the word operators; Bools print
+`true`/`false`. Inlining means a function built from other functions
+displays *expanded* — define a quadratic form, then its polar form, and the
+echo shows you the polar form (the REPL is the tutor). The honest cost: deep
+composition chains blow up the display; accepted.
+
+### 17.6 Errors
+
+New kinds: `E_FnSort`, `E_BoolSort`, `E_Shadow`. Reused: `E_Arity` (tuple
+arity), `E_IndexSort` (binder sort conflicts), `E_Unbound`
+(definition-time, including self-reference), `E_WrongWorld` (world-illegal
+operators inside bodies, caught at definition).
+
+### 17.7 Host alignment
+
+None. `↦`, `? :`, and `and/or/not` get **no host operators** — Python has
+native lambdas, conditionals, and booleans; Rust likewise. Documented like
+factorial (§13): ogham spelling only.
+
+### 17.8 Examples (illustrative; the corpus is the oracle)
+
+```text
+@world integer 0
+> p := 3 < 5
+= true
+> not p or 1 = 0
+= false
+> abs := u ~ (u < 0 ? -u : u)
+~ abs := u ↦ u < 0 ? -u : u
+> abs@(-5)
+= 5
+> c := 5
+> f := u ~ c.u
+> f
+= u ↦ 5⋅u                  # capture made visible
+> c := 7
+> f@1
+= 5
+
+@world nimber 0
+> pn := g ↦ (g | *0 ? *1 : *0)
+> pn@(*3 + *2)               # *3 + *2 = *1, fuzzy with *0: an N-position
+= *1
+
+@world f4 0
+> q1 := s ↦ tr(s⋅s)
+> b := (u, v) ↦ q1@(u + v) + q1@u + q1@v
+> b
+= (u, v) ↦ tr((u + v)⋅(u + v)) + tr(u⋅u) + tr(v⋅v)
+> gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))    # a : Index — the Gold chain, one definition
+> gold@(1, x)                          # Tr(x³) = Tr(1) = 0 over F₄/F₂
+= 0
+
+@world fp5 0
+> h := u ↦ (u < 0 ? 0 : 1)
+! E_WrongWorld: no order on fp5        # at definition, not application
+```
+
+## 18. v2.1 — programs (sketch)
+
+**Contract — vectors blessed, build pending** (2026-06-12; vectors in
+[`spec/conformance_v2.txt`](conformance_v2.txt), including the `>>`
+continuation-line format extension defined in its header). Ledger:
+`roadmap/TODO.md` → `ogham-2.1`. Plays after 2.0. Totality,
+definition-time completeness, and the closed-AST Function model all survive
+2.1 untouched — sequences are definitional structure, not new semantics.
+
+- **`;` becomes real** (leaves the reserved set). A statement sequence is
+  `{ binding ";" } statement`. Intermediate statements must be bindings:
+  with no effects, a discarded value is necessarily dead code —
+  `E_SeqValue`, the one new error kind.
+- **Top level**: sequences are legal on a REPL/`.og` line; bindings persist
+  into the session environment; only a final expression prints
+  (`a := 5; a + 1` prints `6`, and `a` stays bound). The session is a
+  program too — "a function body is any ogham program" reads both
+  directions.
+- **Bodies**: a parenthesized sequence is an expression form, usable
+  anywhere `( expression )` is — `f := n ↦ (d := n⋅n; d + 1)`. There is no
+  `let` keyword: `:=` *is* the let. Locals are lexically scoped, may shadow
+  (§17.4 rules apply), are invisible outside, and the final statement of a
+  body sequence must be an expression. Capture-substitution maps through
+  sequences; display preserves the user's let-structure (sequences are not
+  inlined away in the canonical form — closedness, not flatness, is the
+  invariant).
+- **Continuation**: the lexer consumes lines while `(`/`[` are unbalanced —
+  the REPL shows a continuation prompt; `.og` files wrap freely;
+  one-statement-per-line remains the rule at depth 0. Comments still run to
+  end of line.
+
+```text
+@world integer 0
+> a := 5; a + 1
+= 6
+> norm1 := (u, v) ↦ (
+    s := u + v;
+    d := u - v;
+    s⋅s + d⋅d
+  )
+> norm1@(2, 1)
+= 10
+```
+
+## 19. v3.0 — recursion + games (stub)
+
+**Stub** — commitments and owed decisions recorded now so 2.x does not
+foreclose them; growing this into a sketch is its own pass, after 2.1 ships.
+This is the one genuine semantic break: **totality is traded for
+attributable partiality** — a program either terminates or errors honestly
+(`E_Depth`), never a silent hang.
+
+### 19.1 `=:` — the fixpoint binding
+
+`name =: lambda` defines recursively: the name is in scope in its own body
+as a symbolic self-reference (a μ-binder, honestly). The mirror notation
+*is* the semantics — `:=` is assignment, the value flows in from the past
+(capture); `=:` is an **equation the name satisfies**, the least fixed
+point:
+
+```text
+@world integer 0
+> fact =: n ↦ (n = 0 ? 1 : n⋅fact@(n-1))
+> fact@5
+= 120
+```
+
+- `=:` with no self-mention degenerates to `:=` exactly.
+- `:=` with a self-mention stays `E_Unbound`; the hint becomes "recursive
+  definition? `=:`".
+- The recorded footgun: the rebind idiom `f := u ↦ f@u + 1` ("new f from
+  old f", which eager substitution makes work) and the recursive
+  `f =: u ↦ f@u + 1` differ by a character transposition. The loud
+  direction is covered by the hint; the silent direction needs a
+  previously bound name *and* a self-mention *and* the wrong operator —
+  narrow, documented, accepted.
+- Lexing: `=:` munches before `=` (the token sequence `=` `:` is never
+  grammatical, so this is safe — the same class as `:=` vs bare `:`).
+- A **top-level** Function value carries at most one free name — its own μ.
+  Statement-level round-trip holds (`fact =: …` re-parses to the same
+  function); the bare `> fact` echo prints the equation form. Everything
+  non-recursive keeps full inlining: 2.x semantics are unchanged, not
+  grandfathered.
+- **Local `=:`** is allowed in body sequences; a local helper may recurse
+  and may reference the enclosing μ-name and binders. This is what lets a
+  single μ cover most mutual-recursion shapes. True mutual recursion
+  (`=:` groups) is **deferred, owed**.
+
+### 19.2 Fuel
+
+Evaluation carries a depth budget; exceeding it is `E_Depth`, naming the
+function and the budget. `:depth n` is the knob (default owed to the
+sketch). The conformance harness grows timeouts — "every vector terminates"
+stops being a theorem and becomes a budget.
+
+### 19.3 The game world — `{L|R}` as ogham's cons cell
+
+A lisp's power is a recursive data constructor plus recursion over it;
+ogham's native pair is the **game form** and recursion over options. Not a
+lisp with weird numbers — the lisp whose fundamental data structure is the
+Conway game, where mex/Grundy sit where car/cdr folds sit in Scheme. CGT is
+the recursive subject; this is where the language and the repo's thesis
+converge.
+
+`:world game` — Elements are game forms over the games pillar; the first
+non-scalar world (the dispatch enum grows a non-Clifford arm, exactly as
+v1.1's function worlds did). No metric, no blades.
+
+- **`{L|R}` becomes real**: `{|}` (zero), `{0|}`, `{0 | 0}`,
+  `{ {0|} | {|0} }` — inside braces, `|` and `,` are structural separators
+  (the §2 reservation cashes out, like `+ ⋅ ↑` inside star-literals). Bare
+  `INT` is the integer game — the canonical CGT embedding, the one world
+  where `from_int` on bare literals is honest; `*n` is the nimber game.
+- **Relations are the full CGT partial order** — the world `|` was born
+  for; all four cells of §7.7 are live.
+- `+` is disjunctive sum, `-` is game negation; **`⋅` is `E_WrongWorld`** —
+  games are a group, not a ring (the repo's founding scope boundary,
+  AGENTS.md "Claim levels", now enforced by the evaluator rather than
+  assumed by it).
+- The CGT glyph collision is recorded: ogham's `↑` is power, so up/down are
+  stdlib calls (`up()`, `down()` — names provisional), not glyphs.
+- **Option access, day one, without a new sort**: `nleft(E) → I`,
+  `left(E, I) → E` (right-siblings likewise; names provisional) — recursion
+  over options is Index recursion. A sequence sort with map/fold — and with
+  it higher-order functions — is the recorded **post-3.0 gate**, decided
+  when the Index-recursion pain has been measured, not before.
+
+The acceptance example — the cons-cell payoff (provisional stdlib names;
+sorts check under §17.1 inference; `grundy` returns an Index):
+
+```text
+:world game
+grundy =: g ↦ (
+  has =: (n, i) ↦ not i = nleft(g) and
+                  (grundy@(left(g, i)) = n or has@(n, i+1));
+  mexfrom =: n ↦ (has@(n, 0) ? mexfrom@(n+1) : n);
+  mexfrom@0
+)
+```
+
+`has` captures the outer binder `g` and the outer μ-name; the lazy trio
+guards both the index range and the recursive calls; mex is "the first `n`
+not hit". Greedy = mex is Bridge O's seam (`games/lexicode.rs`) — with 3.0
+the language can finally *say* the games pillar.
+
+### 19.4 Non-goals, recorded
+
+**Quote/macros: never.** Code-as-data would blur the structural-vs-
+arithmetic line (star-literals, `{L|R}` interiors) that the grammar fights
+hardest to keep crisp; recursion, sequencing, let-bodies, and booleans all
+compose with ogham's honesty axioms — quote does not. Mutation, I/O,
+strings: out — rebinding is the only state, the REPL the only effect.
+Higher-order functions: gated on §19.3's sequence-sort decision, not a 3.0
+item. Mutual-recursion groups, fuel default, up/down naming, and game-form
+display canonicalization: owed to the real 3.0 sketch.

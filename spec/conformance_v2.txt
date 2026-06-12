@@ -1,0 +1,439 @@
+# ogham conformance corpus — v2.0/v2.1 STAGING (hand-verified, blessed 2026-06-12)
+#
+# Operator-blessed by a9 for `ogham-2.0` and `ogham-2.1` (roadmap/TODO.md); spec
+# contract: spec/ogham.md §17–§18. This file is INERT until the build:
+# tests/ogham_conformance.rs include_str!'s conformance.txt only, so cargo test
+# stays green on the v1.1 contract until the build session merges this file in
+# (or adds a second include). Do not merge before the build.
+#
+# Verification provenance: every `=` value that is v1.1-expressible was checked
+# against the shipped engine via the ogham REPL in the blessing session (nim
+# sums, f4 traces, poly2/poly5 arithmetic, the dim-2 sandwich products); Function
+# displays and new-syntax behavior follow the §10/§17 unparse and semantics
+# rules; the remaining arithmetic (integer ternary/factorial-free vectors) is
+# hand-checked.
+#
+# Format: spec/ogham.md §14, plus one extension for §18 continuation:
+#   >> ‹line›   continues the preceding > input; the harness joins > and >>
+#               lines with newlines before lexing (legal only while ( or [ is
+#               unbalanced, per §18).
+#
+# SUPERSEDED v1.1 VECTORS — the build must replace these in conformance.txt
+# (their tokens become real syntax; replacements are in the "reserved syntax,
+# revisited" block below):
+#   > *2 ~ *3   ! E_Reserved:     →  ! E_Parse:      (↦ real; binder must be IDENT)
+#   > ?         ! E_Reserved:     →  ! E_Parse:      (? real, ternary-only)
+#   > *3 : *5   ! E_Reserved:     →  ! E_Parse:      (: real, ternary-only)
+#   > *2 ; *3   ! E_Reserved:     →  ! E_SeqValue:   (; real; non-binding intermediate)
+# All other v1.1 vectors stand, including polyint `t := 3` → E_Reserved (t stays
+# the reserved indeterminate in poly/ratfunc worlds).
+
+# ============================================================ v2.0 — booleans
+@world integer 0
+
+> 3 < 5
+= true
+
+> p := 3 < 5
+
+> p
+= true
+
+> not p
+= false
+
+> not 1 = 0 and 0 = 0
+= true
+
+# control vector: the pole is real when evaluated…
+> 1/0
+! E_DivisionByZero:
+
+# …and the lazy trio never evaluates it
+> 1 = 0 and 1/0 = 1
+= false
+
+> 0 = 0 or 1/0 = 1
+= true
+
+> true
+= true
+
+> (3 < 5) = (1 = 0)
+= false
+
+> true + 1
+! E_BoolSort:
+
+> 3 < true
+! E_BoolSort:
+
+> true and 2
+! E_BoolSort:
+
+> 1 < 2 < 3
+! E_Parse:
+
+# ------------------------------------------------------------ v2.0 — ternary
+> 0 = 0 ? 1 : 1/0
+= 1
+
+> 1 = 0 ? 1/0 : 7
+= 7
+
+> 3 == 3 ? 1 : 2
+~ 3 = 3 ? 1 : 2
+= 1
+
+> 1 = 1 ? 2 : (2 < 3)
+! E_BoolSort:
+
+> 1 = 1 ? 1 : 1 = 0 ? 2 : 3
+! E_Parse:
+
+# ===================================== v2.0 — lambdas, capture, application
+@world integer 0
+
+> abs := u ~ (u < 0 ? -u : u)
+~ abs := u ↦ u < 0 ? -u : u
+
+> abs@(-5)
+= 5
+
+> abs@7
+= 7
+
+> abs
+= u ↦ u < 0 ? -u : u
+
+> (u ↦ u⋅u)@10
+= 100
+
+> u ↦ u + 1
+= u ↦ u + 1
+
+# capture at definition is substitution — visible, and rebind-proof
+> c := 5
+
+> f := u ↦ c⋅u
+
+> f
+= u ↦ 5⋅u
+
+> c := 7
+
+> f@1
+= 5
+
+# a binder may shadow an ordinary binding (c is 7 here; the binder wins)
+> g := c ↦ c + 1
+
+> g
+= c ↦ c + 1
+
+> g@1
+= 2
+
+> sign := u ↦ (u < 0 ? -1 : (u = 0 ? 0 : 1))
+~ sign := u ↦ u < 0 ? -1 : (u = 0 ? 0 : 1)
+
+> sign@(-7)
+= -1
+
+> sign@0
+= 0
+
+> sign@4
+= 1
+
+> even2 := u ↦ u % 2 = 0
+~ even2 := u ↦ u%2 = 0
+
+> even2@4
+= true
+
+> even2@7
+= false
+
+# self-reference is unbound at definition (until §19's =:)
+> fct := n ↦ (n = 0 ? 1 : n⋅fct@(n-1))
+! E_Unbound:
+
+# ------------------------------------------- v2.0 — composition, tuples, arity
+> inc := a ↦ a + 1
+
+> sqr := b ↦ b⋅b
+
+# the composite inherits the right operand's binder
+> cmp := inc@sqr
+
+> cmp
+= b ↦ b⋅b + 1
+
+> cmp@3
+= 10
+
+> inc@sqr@3
+= 10
+
+> b2 := (u, v) ↦ u + 2⋅v
+
+> b2@(1, 2)
+= 5
+
+> b2@(1, 2)↑2
+= 25
+
+> b2@(1, 2, 3)
+! E_Arity:
+
+> b2@7
+! E_Arity:
+
+# composition needs a unary head
+> b2@inc
+! E_Arity:
+
+> mux := (p, u, v) ↦ (p ? u : v)
+~ mux := (p, u, v) ↦ p ? u : v
+
+> mux@(3 < 5, 10, 20)
+= 10
+
+> mux@(5 < 3, 10, 20)
+= 20
+
+# ------------------------------------------------------- v2.0 — sort errors
+@world integer 0
+
+> f := u ↦ u + 1
+
+> g := u ↦ u⋅u
+
+> f + 1
+! E_FnSort:
+
+> f = g
+! E_FnSort:
+
+> h := u ↦ (v ↦ v)
+! E_FnSort:
+
+> bad := (u, u) ↦ u
+! E_Shadow: duplicate
+
+> bad := tr ↦ tr
+! E_Shadow:
+
+# w lexes to ω, which is not an IDENT — never a binder
+> bad := w ↦ w
+! E_Parse:
+
+# binder at both Element position (left of +) and Index position (exponent)
+> bad := a ↦ a + 2↑a
+! E_IndexSort:
+
+# ------------------------------------------------------- v2.0 — t released
+@world integer 0
+
+> t
+! E_Unbound: poly
+
+> t := 3
+
+> t + 1
+= 4
+
+# ====================================== v2.0 — Index binders, the Gold chain
+@world f4 0
+
+> gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))
+~ gold := (a, u) ↦ tr(u⋅u↑(2↑a))
+
+> gold@(1, x)
+= 0
+
+> gold@(1, x + 1)
+= 0
+
+# the polar form, inlined at definition (beta at :=)
+> q1 := s ↦ tr(s⋅s)
+
+> b := (u, v) ↦ q1@(u + v) + q1@u + q1@v
+
+> b
+= (u, v) ↦ tr((u + v)⋅(u + v)) + tr(u⋅u) + tr(v⋅v)
+
+> b@(x, x + 1)
+= 0
+
+# ====================================== v2.0 — poly worlds: t is the binder
+@world poly2
+
+> f := t ↦ t
+! E_Shadow: indeterminate
+
+> f := s ↦ s⋅s + t
+
+> f
+= s ↦ s⋅s + t
+
+> f@t
+= 1⋅t + 1⋅t↑2
+
+# Element ∘ Function and Function @ Element (v1.1 coherence, §17.3)
+> inc := u ↦ u + 1
+
+> (t↑2)@inc
+= u ↦ (u + 1)↑2
+
+> ((t↑2)@inc)@1
+= 0
+
+> inc@(t↑2)
+= 1 + 1⋅t↑2
+
+# ------------------------------------------- v2.0 — Index bindings/relations
+@world poly5
+
+> n := deg(t↑2 + 1)
+
+> pw := u ↦ u↑n
+
+> pw
+= u ↦ u↑2
+
+> pw@(t + 1)
+= 1 + 2⋅t + 1⋅t↑2
+
+> deg(t↑2) > deg(t)
+= true
+
+# ================================================= v2.0 — nim-world honesty
+@world nimber 0
+
+# < is identically false here and -u = u: abs is the identity, twice over
+> abs := u ↦ (u < 0 ? -u : u)
+~ abs := u ↦ u < 0 ? -u : u
+
+> abs@(*5)
+= *5
+
+# the N/P indicator: fuzzy with *0 is an N-position
+> pn := g ↦ (g | *0 ? *1 : *0)
+~ pn := g ↦ g | *0 ? *1 : *0
+
+> pn@(*3 + *2)
+= *1
+
+> pn@(*3 + *3)
+= *0
+
+# definition-time completeness: the bare INT fails at :=, not at application
+> bad := u ↦ u + 3
+! E_BareInt: did you mean
+
+# ------------------------------------------- v2.0 — multivector-valued binders
+@world nimber 2 q=[*1,*1]
+
+> refl := v ↦ e0⋅v⋅e0
+
+> refl@e1
+= e1
+
+> refl@[*1, *2]
+= e0 + *2⋅e1
+
+> refl@(e0 + e1)
+= e0 + e1
+
+# ---------------------------------------- v2.0 — definition-time world checks
+@world fp5 0
+
+> h := u ↦ (u < 0 ? 0 : 1)
+! E_WrongWorld: order
+
+# ------------------------------------------- v2.0 — reserved syntax, revisited
+@world nimber 0
+
+> *2 ~ *3
+! E_Parse:
+
+> ?
+! E_Parse:
+
+> *3 : *5
+! E_Parse:
+
+> *2 ; *3
+! E_SeqValue:
+
+# and/or/not join the reserved words
+@world integer 0
+
+> and := 5
+! E_Reserved:
+
+# ====================================================== v2.1 — sequences
+@world integer 0
+
+> a := 5; a + 1
+= 6
+
+> a
+= 5
+
+> z := 4; z.z
+~ z := 4; z⋅z
+= 16
+
+> x9 := 1; y9 := 2
+
+> x9 + y9
+= 3
+
+# intermediate statements must bind — a discarded value is dead code
+> 1 + 1; 2
+! E_SeqValue:
+
+# ------------------------------------------------------- v2.1 — let-bodies
+> f1 := u ↦ (d := u + 1; d⋅d)
+
+> f1@2
+= 9
+
+> f1
+= u ↦ (d := u + 1; d⋅d)
+
+# locals are invisible outside
+> d
+! E_Unbound:
+
+# locals shadow; the outer binding is untouched
+> d0 := 100
+
+> f2 := u ↦ (d0 := u; d0 + 1)
+
+> f2@5
+= 6
+
+> d0
+= 100
+
+# a body sequence must end in an expression
+> f3 := u ↦ (d := u)
+! E_SeqValue:
+
+# ------------------------------------------------- v2.1 — line continuation
+> norm1 := (u, v) ↦ (
+>>   s := u + v;
+>>   d := u - v;
+>>   s⋅s + d⋅d
+>> )
+
+> norm1@(2, 1)
+= 10
+
+# canonical display is single-line regardless of input layout
+> norm1
+= (u, v) ↦ (s := u + v; d := u - v; s⋅s + d⋅d)
