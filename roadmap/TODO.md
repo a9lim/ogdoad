@@ -124,6 +124,63 @@ J.2 names this exact repair): a small multivalued-addition type
 laws as tests and `tropicalize` factoring through it. A leaf, but it converts the one
 "lax" asterisk in the J appendix into a theorem about a shipped type.
 
+## numbers — ogham
+
+### 1·e_s: `ogham-backend`
+**The pure-Rust prerequisites for the ogham evaluator** (spec §7.6), playable
+before any parser exists, plus the `rem` harmonization:
+- `Integer::divrem`/`rem` (Euclidean, `0 ≤ r < |b|`) and `Integer::div_exact`
+  (the §7.6 exact-division extension of `/`; the failure carries the
+  remainder);
+- `Surreal::rem`/`Omnific::rem` by a monic ω-power modulus — a CNF filter
+  keeping terms with exponent strictly below the modulus's. NOT the existing
+  `Surreal::truncate(n)`, which cuts to `n` *terms*; this is a new method.
+  Non-ω-power moduli rejected honestly;
+- `Poly::compose` (substitution `t := Poly` — the `eval` Horner loop over
+  `Poly` arithmetic);
+- `factorial`: a checked i128 path (`!33` is the roof, `!34` → `None`) feeding
+  the integer/omnific/surreal landings, plus the generic in-world running
+  product over `from_int` for `fp*`/`f*` (no overflow possible; Wilson's
+  `!6 = -1` in F_7 as the test);
+- **`rem` harmonization**: remainder-returning methods are uniformly
+  `rem`/`divrem` — `Poly` already is, and the new methods above conform from
+  birth (audit: nothing else in `src/` returns a remainder under another
+  name). Two scoped exclusions, a9's call to overturn:
+  `Poly::{mul_mod,pow_mod}` are quotient-ring *context* arithmetic rather
+  than remainder queries (standard naming, and renaming churns the py
+  bindings); `floor`/`frac` stay the standard pair;
+- **order alignment** (spec §7.7/§13): `impl Ord`/`PartialOrd` for the
+  totally ordered scalars (`Integer`, `Rational`, `Surreal`, `Omnific` —
+  delegating to the inherent `cmp`s, the established shadow pattern) and
+  `fuzzy()` on `Nimber`/`Ordinal` (`a ≠ b`, the game-value confusion).
+  Deliberately NO `PartialOrd` on the nim types (`partial_cmp = None` beside
+  `Ordinal`'s total address `cmp` would be incoherent) and NO
+  `BitOr`-as-fuzzy (bitwise expectations — the `Nimber ^ Nimber` footgun
+  class). Py: rich comparisons on the ordered classes where missing,
+  `fuzzy()` on the nim classes; the shipped `Ordinal.__richcmp__` keeps
+  speaking address order (host dialect, documented in spec §13).
+
+### 3·(e_s∧e_c∧e_y): `ogham-v1`
+**The language itself** — WP2–WP6 per `spec/ogham.md` §15: the
+lexer/parser/AST/unparser (`src/ogham/`), the world-dispatch evaluator (the
+judgment-heavy package), the REPL, the conformance harness + `--bless`, and
+the Python `eval` hook with the §13 dunder alignment. The spec and
+`spec/conformance.txt` are the whole contract — parse ∘ display = id, corpus
+green on both frontends; judgment calls go back to the spec, not into the
+code. WP1/WP7 (Display v2, host operators) shipped as `ogham-foundations`;
+this is the remainder. Plays after `ogham-backend` (WP3 consumes its
+surface).
+
+### 1·(e_s∧e_y): `ogham-v1.1`
+**The function-shaped worlds** — `spec/ogham.md` §16, the sketch promoted to
+contract: the `poly*`/`polyint`/`ratfunc*` menu rows, the `t` atom, the §7.6
+activations (`@` eval/compose, `%`, exact `/`), the `deg`/`gcd` stdlib pair,
+and the corpus blocks that make it all contractual (pole errors, monic-divisor
+errors, `t`-literal round-trips). Two §16 pending decisions to settle at
+play time: final world names and `deg` of the zero polynomial. The py poly
+classes (`Fp*Poly`/`Fp*RationalFunction`) already exist; `polyint` needs a
+`Poly<Integer>` binding. Plays after `ogham-v1`.
+
 ## numbers — games
 
 ### 1·e_g: `lexicode-game`
@@ -249,3 +306,20 @@ machinery over the capped local models, and the precision-model honesty question
 real (wild symbols read deep unit structure, not just `v(a)`). Deferred, not rejected.
 Nimbered `*4` rather than `*3`, since `*3 = *1 + *2` is already spoken for as the sum
 of the other two stars.
+
+### *8: `ogham 2.0 — functions`
+
+The `spec/ogham.md` §17 stub, held as a star until it can be a number:
+user-defined functions at the REPL — infix `↦` maps-to lambdas
+(`abs := t ↦ (t < 0 ? -t : t)`), the `? :` ternary as the one position where
+a §7.7 verdict is consumed rather than printed, application staying §7.6's
+`@` (in poly worlds `5⋅t + 1` already *is* `t ↦ 5⋅t + 1`). The committed
+design points: **totality** (capture-at-definition closures — self-reference
+is `E_Unbound` at definition, recursion does not exist, every program
+terminates; ogham stays a calculator), Function as a **first-order third
+sort** (no functions in vectors, arithmetic, or argument positions),
+two-param binders from the start (polar forms `b(x,y)` are the project's
+binary function), `;` reserved for sequencing. Plays after `ogham-v1.1`
+turns §16 into contract; the first move is the real §17 sketch, not code.
+Nimbered `*8`: every smaller name is a nim-sum of the shipped stars
+(`*3 = *1 + *2`, …, `*7 = *1 + *2 + *4`).

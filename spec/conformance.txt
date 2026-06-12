@@ -1,4 +1,4 @@
-# ogham conformance corpus — v0.1 (hand-verified, 2026-06-11)
+# ogham conformance corpus — v0.4 (hand-verified, 2026-06-11)
 # Format: spec/ogham.md §14.
 #   @world ‹args as after ":world"›   resets bindings
 #   > input        ~ canonical echo (optional)        = value display
@@ -85,7 +85,7 @@
 > rev(e0 ∧ e1)
 = e0∧e1
 
-> e0 ⋅ e1 == e0 ∧ e1
+> e0 ⋅ e1 = e0 ∧ e1
 = true
 
 > e0 ⋅ e1 + e1 ⋅ e0
@@ -123,7 +123,7 @@
 > *ω ↑ 3
 = *2
 
-> *(ω↑2) ⋅ *ω == *2
+> *(ω↑2) ⋅ *ω = *2
 = true
 
 > *(1 + ω)
@@ -138,8 +138,8 @@
 # ------------------------------------------------------------- ordinal, the hero
 @world ordinal 3 q=[*1,*1,*1]
 
-> v = [*3, *1, *4]
-> u = [*w, *0, *w]
+> v := [*3, *1, *4]
+> u := [*w, *0, *w]
 > v & u
 ~ v ∧ u
 = *ω⋅e0∧e1 + *(ω⋅7)⋅e0∧e2 + *ω⋅e1∧e2
@@ -188,7 +188,7 @@
 > [1,1] ⋅ [1,1]
 = 0
 
-> e0 ∧ e1 == e0 ⋅ e1
+> e0 ∧ e1 = e0 ⋅ e1
 = true
 
 # ---------------------------------------------------------- integer, grassmann
@@ -243,3 +243,169 @@
 
 > *2 ↑↑ 3
 ! E_Reserved:
+
+> *2 ~ *3
+! E_Reserved:
+
+> ?
+! E_Reserved:
+
+> *3 : *5
+! E_Reserved:
+
+> *2 ; *3
+! E_Reserved:
+
+# ------------------------------------- integer, Euclid + factorial (§7.6)
+@world integer 0
+
+> 7 % 3
+~ 7%3
+= 1
+
+> -7 % 3
+= 2
+
+> 6 / 3
+= 2
+
+> 7 / 3
+! E_NotInvertible: remainder
+
+> 7 % 0
+! E_DivisionByZero:
+
+> (7 - 7 % 3) / 3
+= 2
+
+> !5
+= 120
+
+> !0
+= 1
+
+> !33
+= 8683317618811886495518194401280000000
+
+> !34
+! E_Overflow:
+
+> !(2⋅3)
+= 720
+
+> !(0-2)
+! E_Domain:
+
+# ------------------------------------------- surreal, CNF truncation (§7.6)
+@world surreal 0
+
+> u := 3.w^2 - w + 5
+~ u := 3⋅ω↑2 - ω + 5
+
+> u % w
+~ u%ω
+= 5
+
+> u % w^2
+~ u%ω↑2
+= -ω + 5
+
+> (w + 5 + w^-1) % 1
+= ω↑-1
+
+> u % (3.w)
+! E_Modulus:
+
+> !4
+= 24
+
+# ------------------------------------------- fp, Wilson's theorem (§7.6)
+@world fp7 0
+
+> !6
+= 6
+
+> !6 = -1
+= true
+
+> !7
+= 0
+
+> 7 % 3
+! E_WrongWorld: field
+
+@world fp5 0
+
+> !4 = -1
+= true
+
+# ----------------------------------- nim-worlds reject the grab bag (§7.6)
+@world nimber 0
+
+> *5 % *3
+! E_WrongWorld: field
+
+> !3
+! E_BareInt:
+
+> *2 @ *3
+! E_WrongWorld: function-shaped
+
+# --------------------------------------------- relations, the four-way (§7.7)
+@world integer 0
+
+> 3 < 5
+= true
+
+> 3 > 5
+= false
+
+> 3 | 5
+= false
+
+> -7 = -7
+= true
+
+> 3 == 3
+~ 3 = 3
+= true
+
+> q = 5
+! E_Unbound: :=
+
+@world nimber 0
+
+> *2 | *3
+= true
+
+> *2 < *3
+= false
+
+> *2 | *2
+= false
+
+> *2 + *3 = *1
+= true
+
+@world surreal 0
+
+> w > 5
+~ ω > 5
+= true
+
+> 1/2 < 1
+= true
+
+> w | 1
+~ ω | 1
+= false
+
+@world fp5 0
+
+> 2 < 3
+! E_WrongWorld: order
+
+@world nimber 2 q=[*1,*1]
+
+> e0 | e1
+! E_Grade0:
