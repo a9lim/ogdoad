@@ -38,6 +38,22 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2026-06-12: `niemeier`
+**Summary:** the rank-24 even-unimodular genus now has the Niemeier catalogue and the
+non-degenerate Siegel-Weil identity against `E12`.
+**Pillars:** integral    **Claim level:** standard math, implemented and tested
+- surface: `NiemeierComponentKind`, `NiemeierRootComponent`, `NiemeierClass`,
+  `NIEMEIER_CLASSES`, `niemeier_classes`, `niemeier_mass_sum`,
+  `niemeier_weighted_theta_average`, and `eisenstein_e12`.
+- oracles: the 24 class labels are unique; rooted classes have rank 24 and equal
+  Coxeter-number components; `glue^2 = det(root lattice)`; root-lattice constructors
+  match the catalogue determinants; anchor automorphism orders pin Leech, `A_1^24`,
+  and `E_8^3`; `Σ 1/|Aut(N)| = mass_even_unimodular(24)`; and
+  `(Σ θ_N/|Aut(N)|)/mass(24) = E12` exactly through the q-expansion check.
+- boundaries: the 23 rooted classes are represented by the standard root/glue/Aut
+  catalogue and Venkov weight-12 theta formula, not by 23 explicit glued Gram
+  constructors; `leech()` remains the explicit rank-24 Gram constructor.
+
 ### 2026-06-12: `padic-symbols`
 **Summary:** Conway-Sloane `p`-adic genus symbols now give exact integral-lattice
 genus comparison, with the canonical 2-adic train/compartment/oddity reduction

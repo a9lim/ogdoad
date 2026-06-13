@@ -13,6 +13,7 @@ pub mod genus;
 pub mod lattice;
 pub mod mass_formula;
 pub mod modular;
+pub mod niemeier;
 pub mod root_lattices;
 pub mod theta;
 
@@ -23,4 +24,5 @@ pub use genus::*;
 pub use lattice::*;
 pub use mass_formula::*;
 pub use modular::*;
+pub use niemeier::*;
 pub use root_lattices::*;

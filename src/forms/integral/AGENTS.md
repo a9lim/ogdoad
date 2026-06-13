@@ -97,13 +97,22 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   reduced `(num, den)` `i128` fraction (Bernoulli by exact recurrence; hard cap `n > 24`
   ⇒ `None`, the i128 model reaching exactly to 24). `mass_even_unimodular(8) =
   (1, 696729600) = 1/|W(E_8)|` — the formula *recovers* the `E_8` automorphism order the
-  brute-force counter refuses; `n = 16, 24` match the published Niemeier values. Plus the
+  brute-force counter refuses; `n = 16` matches the two-class genus and `n = 24` is
+  checked against the Niemeier catalogue. Plus the
   **Leech lattice** `leech()`: a `√8·Λ₂₄ ⊂ ℤ²⁴` spanning set (the crate-private Golay
   `[24,12,8]` generator rows `[I₁₂|A]`, the `4(e₀+eᵢ)` glue vectors, and the odd
   `(−3, 1²³)` vector) → HNF basis `B` → `Gram = B·Bᵀ/8`. **Validated, not trusted:** rank-24 even unimodular with
   no roots *is* Leech (Niemeier), so the test checks `det=1`, even, `short_vectors(2)`
   empty (cheap; the full kissing 196560 is not enumerated). `|Aut(Λ₂₄)| = |Co₀|` is the
   factorized constant `LEECH_AUT_ORDER`.
+- **`niemeier.rs`** — the 24-class Niemeier catalogue: root-system components,
+  finite glue-code indices `[N:R]`, and the quotient `Aut(N)/W(R)` from the
+  Conway-Sloane table. It constructs the root sublattice `R` for each rooted class
+  and uses Venkov's weight-12 formula `theta_N = E4^3 + (#roots - 720) Delta`; it
+  deliberately does **not** ship 23 explicit glued Gram matrices. Oracles:
+  `glue^2 = det(R)`, anchor automorphism orders (Leech, `A_1^24`, `E_8^3`),
+  `Σ 1/|Aut(N)| = mass_even_unimodular(24)`, and the exact weighted identity
+  `(Σ theta_N/|Aut(N)|)/mass(24) = E12`.
 - **`codes.rs`** — binary linear codes and Construction A: `BinaryCode` stores a checked
   row-reduced F₂ generator matrix; `dual`, `is_self_dual`, `is_self_orthogonal`,
   `is_doubly_even`, `minimum_distance`, `weight_enumerator`, `macwilliams_transform` are
@@ -117,10 +126,12 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   bare Golay Construction A is even unimodular rank 24 **with roots**; it is not Leech.
 - **`theta.rs` / `modular.rs`** — exact theta and modular-form bridge.
   `IntegralForm::theta_series(terms)` buckets short vectors by `Q/2`, `None` outside the
-  positive-definite even-lattice boundary. `eisenstein_e4`, `eisenstein_e6`, `delta`,
+  positive-definite even-lattice boundary. `eisenstein_e4`, `eisenstein_e6`,
+  `eisenstein_e12`, `delta`,
   `mk_basis`, `as_modular_form` identify q-expansions exactly in `ℂ[E4,E6]`. Oracles pin
   `theta_E8 = E4`, `theta_{E8+E8} = theta_{D16+} = E4²`, Leech's rootless `q^1`
   coefficient in `E4³ - 720·Δ`, and the rank-16 Siegel–Weil identity
   `1/|Aut(E8⊕E8)| + 1/|Aut(D16+)| = mass_even_unimodular(16)` with
   `|Aut(E8⊕E8)| = 2·|W(E8)|²` (the factor 2 from the swap automorphism),
-  verified by exact cross-multiplication in `siegel_weil_rank16_mass_identity_is_exact`.
+  verified by exact cross-multiplication in `siegel_weil_rank16_mass_identity_is_exact`;
+  rank 24 is checked in `niemeier.rs` against `E12 = 1 + (65520/691)Σσ11(n)q^n`.

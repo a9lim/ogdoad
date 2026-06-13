@@ -124,9 +124,10 @@ symbols, including the corrected 2-adic train/compartment/oddity calculus, give 
 integral genus comparison without discriminant-form search budgets. The same leg crosses
 the code/theta boundary — binary codes feed Construction A lattices, exact theta
 series are identified inside `ℂ[E4, E6]`, `D16+` and `E8 ⊕ E8` share the `E4²`
-theta series, Leech is pinned by rootlessness in weight 12, and discriminant forms
-expose Weil `S`/`T` matrices with the Milgram phase recovered from the standard
-conjugate `S` prefactor.
+theta series, Leech is pinned by rootlessness in weight 12, and the Niemeier catalogue
+checks the rank-24 mass and weighted theta average against `E12` with the 691
+coefficient. Discriminant forms expose Weil `S`/`T` matrices with the Milgram phase
+recovered from the standard conjugate `S` prefactor.
 
 **the games bridge.** Red/blue/green Hackenbush is the one object that reads out
 as a surreal (blue − red), a nimber (all-green = Nim), or a general partizan game
@@ -233,7 +234,7 @@ breakdown:
   trichotomy, plus Witt/Brauer–Wall, the Springer trio, `local_global/` for
   Hasse–Minkowski and Hilbert symbols, and `integral/` for lattices, genus,
   discriminant forms, Weil matrices, codes/Construction A, theta/modular forms,
-  `D16+`, and Leech.
+  `D16+`, Leech, and the Niemeier catalogue.
 - `src/games/` — normal-, misère-, and loopy-play impartial games, finite
   loopy-partizan graphs, short partizan games, thermography/atomic weight,
   Hackenbush, the exterior algebra of the game group, and the checked integer

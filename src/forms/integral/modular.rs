@@ -8,20 +8,25 @@ use crate::linalg::field::inverse_matrix;
 use crate::scalar::{Rational, Scalar};
 
 /// The Eisenstein normalizing constant `c_{2k} = −4k / B_{2k}`, derived from the
-/// shared Bernoulli source so `240` and `−504` are one computation with the mass
-/// formula (docs/TABLES.md discipline: the derived value is pinned equal to the curated
-/// literal in tests). From `E_{2k} = 1 − (4k/B_{2k}) Σ σ_{2k−1}(n) qⁿ`: `c₄ = −8/B₄
-/// = 240`, `c₆ = −12/B₆ = −504`. Both are integers (`B_{2k}` has the right
-/// denominator), so the division is exact.
-fn eisenstein_constant(k: i128) -> i128 {
+/// shared Bernoulli source so the mass formula and Eisenstein series read the
+/// same `zeta(1-2k)` data.
+fn eisenstein_constant_rational(k: i128) -> Rational {
     let n = usize::try_from(2 * k).expect("2k fits usize");
     let (num, den) = crate::forms::integral::mass_formula::bernoulli(n)
         .expect("Bernoulli B_{2k} within the i128 model");
     let numerator = (-4 * k)
         .checked_mul(den)
         .expect("Eisenstein constant numerator exceeds i128");
-    debug_assert_eq!(numerator % num, 0, "−4k/B_{{2k}} is an integer");
-    numerator / num
+    Rational::new(numerator, num)
+}
+
+/// Integral special cases of [`eisenstein_constant_rational`]. From
+/// `E_{2k} = 1 − (4k/B_{2k}) sum sigma_{2k-1}(n) q^n`: `c4 = -8/B4 = 240`,
+/// `c6 = -12/B6 = -504`.
+fn eisenstein_constant(k: i128) -> i128 {
+    let c = eisenstein_constant_rational(k);
+    assert!(c.is_integer(), "Eisenstein constant is integral here");
+    c.numer()
 }
 
 fn sigma_power(n: usize, power: u32) -> i128 {
@@ -115,6 +120,20 @@ pub fn eisenstein_e6(terms: usize) -> Vec<Rational> {
             c6.checked_mul(sigma_power(n, 5))
                 .expect("E6 coefficient exceeds i128"),
         );
+    }
+    out
+}
+
+/// `E12 = 1 + (65520/691) * sum sigma_11(n) q^n`.
+pub fn eisenstein_e12(terms: usize) -> Vec<Rational> {
+    let mut out = vec![Rational::zero(); terms];
+    if terms == 0 {
+        return out;
+    }
+    out[0] = Rational::one();
+    let c12 = eisenstein_constant_rational(6);
+    for (n, coeff) in out.iter_mut().enumerate().skip(1) {
+        *coeff = c12.mul(&Rational::from_int(sigma_power(n, 11)));
     }
     out
 }
@@ -232,6 +251,14 @@ mod tests {
             qexp_from_int(&[1, 240, 2160, 6720, 17520])
         );
         assert_eq!(eisenstein_e6(4), qexp_from_int(&[1, -504, -16632, -122976]));
+        assert_eq!(
+            eisenstein_e12(3),
+            vec![
+                Rational::one(),
+                Rational::new(65_520, 691),
+                Rational::new(134_250_480, 691),
+            ]
+        );
         assert_eq!(delta(4), qexp_from_int(&[0, 1, -24, 252]));
     }
 
@@ -241,6 +268,11 @@ mod tests {
         // to the values derived from the single Bernoulli source the mass formula uses.
         assert_eq!(eisenstein_constant(2), 240, "c₄ = −8/B₄");
         assert_eq!(eisenstein_constant(3), -504, "c₆ = −12/B₆");
+        assert_eq!(
+            eisenstein_constant_rational(6),
+            Rational::new(65_520, 691),
+            "c₁₂ = −24/B₁₂"
+        );
 
         // Free cross-check: von Staudt–Clausen denominators of B₂…B₈.
         use crate::forms::integral::mass_formula::bernoulli;

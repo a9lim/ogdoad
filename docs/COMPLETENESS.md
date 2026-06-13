@@ -71,17 +71,6 @@ on the `Qq`/`F_q(t)` legs. The **wild** symbol stays out — that is star `*4` b
 
 ## numbers — the integral wing
 
-### 3·e_i: `niemeier`
-**The Niemeier zoo and the non-degenerate Siegel–Weil.** Bridge E's Siegel–Weil check
-is degenerate at `n = 16` (both classes share `θ = E₄²`). Build the 24 Niemeier
-lattices (root systems + glue codes, Conway–Sloane Ch. 16/18 — curated tables per
-`TABLES.md` discipline; Kneser 2-neighbors from Leech is the principled alternative)
-with their `|Aut|` orders, then verify the genuine statement at weight 12:
-`(Σ_L θ_L/|Aut L|) / mass(24) = E₁₂ = 1 + (65520/691)Σσ₁₁(m)qᵐ` — the Eisenstein
-congruence prime **691** appearing in the codebase, and the first Siegel–Weil instance
-where the classes genuinely differ. Free cross-checks: `Σ 1/|Aut| = mass_even_unimodular(24)`,
-rootless-class uniqueness (Leech), and 24 new Nikulin/N.3 test points.
-
 ### 2·e_i: `odd-lattices`
 **Type I (odd) lattices for the discriminant chain.** `DiscriminantForm::from_lattice`,
 Milgram, Brown, and `theta_series` are all even-only. Ship the odd-lattice discriminant
