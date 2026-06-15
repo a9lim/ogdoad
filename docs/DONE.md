@@ -45,6 +45,24 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2·e_f: `bw-rational`
+**Completed:** 2026-06-15
+**Summary:** the rational Clifford invariant now lifts to the graded
+Brauer-Wall class `BW(ℚ)` through Wall's exact-sequence coordinates.
+**Pillars:** forms    **Claim level:** standard math, implemented and tested
+- surface: `RationalBrauerWallClass`, `bw_class_rational`,
+  `rational_signed_discriminant_class`, plus Python
+  `RationalBrauerWallClass` / `bw_class_rational`.
+- oracles: the class projects to Bridge F's ungraded `c(q)`, carries the
+  `Z/2 × ℚ*/ℚ*²` quotient as dimension parity plus signed discriminant, obeys
+  Wall's twisted product under direct sum, and extends along `ℚ -> ℝ` to the
+  existing Bott index `bw_class_real`; the rational `<-1>` generator walks the
+  order-eight real clock.
+- boundaries: this is the graded rational BW class, not a replacement for the
+  ungraded `Brauer2Class` / full `BrauerClass` surfaces; singular rational
+  metrics are projected to `Q/rad`; tame and wild cyclic symbols remain on their
+  separate Bridge K docket items.
+
 ### 1·e_g: `lexicode-game`
 **Completed:** 2026-06-15
 **Summary:** Bridge O now has the explicit Conway-Sloane turning-game witness whose

@@ -143,7 +143,10 @@ even discriminant Gauss-sum/Milgram checks and odd-lattice `Q/Z` discriminant /
 oddity-corrected Milgram reports; finite char-2 `Fpn<2,N>` classification runs
 through the façade; cyclic Galois/Frobenius maps have Clifford linear-map constructors;
 the **rational 2-torsion Brauer class** `Brauer2Class` (`witt/brauer_rational.rs`:
-Hasse–Witt `s(q)` vs the Clifford invariant `c(q) = s(q) + δ(n mod 8, disc)`) and its
+Hasse–Witt `s(q)` vs the Clifford invariant `c(q) = s(q) + δ(n mod 8, disc)`), the
+graded rational Brauer-Wall wrapper `RationalBrauerWallClass`
+(`witt/brauer_wall.rs`: Wall exact-sequence coordinates = dimension parity, signed
+discriminant, and Bridge-F `c(q)`, with `ℚ→ℝ` recovering the Bott index), and its
 **full `ℚ/ℤ` lift** `BrauerClass` (`witt/cyclic.rs`: `cyclic_algebra_invariant = v(a)/n`,
 with full-strength reciprocity over `F_q(t)`); the **valuation as (lax) tropicalization**
 with `NewtonPolygon` over the valued legs (`scalar/newton.rs`, slope = root valuation =

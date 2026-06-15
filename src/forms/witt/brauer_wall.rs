@@ -14,6 +14,10 @@
 //!     and `⊗̂` adds it mod 8. The 8-fold periodicity table and `BW(ℝ)` are the same
 //!     object; here it becomes a *group*.
 //!   * **`BW(ℂ) ≅ ℤ/2`** — the class is the dimension parity `n mod 2`.
+//!   * **`BW(ℚ)`** — Wall's exact sequence records the graded class by an
+//!     ungraded Brauer component, dimension parity, and signed discriminant. The
+//!     Brauer component is Bridge F's Clifford invariant `c(q)`, while the
+//!     quotient law is the twisted product on `Z/2 x Q*/Q*²`.
 //!   * **`BW(F_q)`, odd `q`** — finite fields have trivial Brauer group, so
 //!     `BW(F_q)` is the order-4 graded part, *isomorphic to* `W(F_q)`: `ℤ/4` when
 //!     `−1` is a nonsquare (`q ≡ 3 mod 4`) and `ℤ/2 × ℤ/2` when it is a square
@@ -30,10 +34,11 @@
 
 use crate::clifford::Metric;
 use crate::forms::{
-    classify_surcomplex, classify_surreal, finite_odd_witt, FiniteOddField, WittClassG,
+    as_diagonal, classify_surcomplex, classify_surreal, clifford_brauer_class, finite_odd_witt,
+    try_disc_class, try_square_free, Brauer2Class, FiniteOddField, Place, WittClassG,
     WittClassGError,
 };
-use crate::scalar::{Nimber, Surcomplex, Surreal};
+use crate::scalar::{Nimber, Rational, Scalar, Surcomplex, Surreal};
 
 /// Reason a [`BrauerWallClass::try_add`] call returned `Err`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -81,6 +86,160 @@ pub enum BrauerWallClass {
         field_degree: u128,
         arf: u128,
     },
+}
+
+/// A class in the rational Brauer-Wall group `BW(Q)`.
+///
+/// Wall's exact sequence
+///
+/// ```text
+/// 0 -> Br(Q) -> BW(Q) -> Z/2 x Q*/Q*^2 -> 0
+/// ```
+///
+/// is represented here by three projections:
+///
+/// * `dimension_parity`: the `Z/2` degree of the Clifford algebra;
+/// * `signed_discriminant`: `(-1)^(n(n-1)/2) det(q)` in `Q*/Q*^2`, stored as a
+///   square-free `i128` representative;
+/// * `clifford_brauer_class`: Bridge F's ungraded Clifford invariant `c(q)`.
+///
+/// The group law is Wall's twisted product on the quotient:
+/// `(p,D)*(q,E) = (p+q, D E (-1)^(pq))`, with Brauer cocycle
+/// `(D,E)`, plus `(-1,D)` in the even/odd case and `(-1,E)` in the odd/even
+/// case. This is exactly the law induced by orthogonal direct sum / graded
+/// tensor product of rational Clifford algebras.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RationalBrauerWallClass {
+    dimension_parity: u128,
+    signed_discriminant: i128,
+    clifford_brauer_class: Brauer2Class,
+}
+
+impl RationalBrauerWallClass {
+    /// The split rational Brauer-Wall class.
+    pub fn split() -> Self {
+        RationalBrauerWallClass {
+            dimension_parity: 0,
+            signed_discriminant: 1,
+            clifford_brauer_class: Brauer2Class::split(),
+        }
+    }
+
+    /// Build a rational Brauer-Wall class from its three projections. The
+    /// discriminant representative is square-free-reduced.
+    pub fn from_parts(
+        dimension_parity: u128,
+        signed_discriminant: i128,
+        clifford_brauer_class: Brauer2Class,
+    ) -> Option<Self> {
+        if dimension_parity > 1 || signed_discriminant == 0 {
+            return None;
+        }
+        Some(RationalBrauerWallClass {
+            dimension_parity,
+            signed_discriminant: try_square_free(signed_discriminant)?,
+            clifford_brauer_class,
+        })
+    }
+
+    /// Whether this is the split class.
+    pub fn is_split(&self) -> bool {
+        self.dimension_parity == 0
+            && self.signed_discriminant == 1
+            && self.clifford_brauer_class.is_split()
+    }
+
+    /// The `Z/2` quotient coordinate: dimension parity.
+    pub fn dimension_parity(&self) -> u128 {
+        self.dimension_parity
+    }
+
+    /// The signed discriminant square class `(-1)^(n(n-1)/2) det(q)`.
+    pub fn signed_discriminant(&self) -> i128 {
+        self.signed_discriminant
+    }
+
+    /// Bridge F's ungraded Clifford invariant `c(q)`.
+    pub fn clifford_brauer_class(&self) -> &Brauer2Class {
+        &self.clifford_brauer_class
+    }
+
+    /// The identity element in this ground field.
+    pub fn zero_like(&self) -> Self {
+        RationalBrauerWallClass::split()
+    }
+
+    /// The rational Brauer-Wall group operation, induced by graded tensor product.
+    ///
+    /// Returns `None` only if bounded `i128` square-class arithmetic overflows.
+    pub fn try_add(&self, other: &Self) -> Option<Self> {
+        let p = self.dimension_parity;
+        let q = other.dimension_parity;
+        let mut signed_disc = self
+            .signed_discriminant
+            .checked_mul(other.signed_discriminant)?;
+        if p == 1 && q == 1 {
+            signed_disc = signed_disc.checked_neg()?;
+        }
+        let signed_disc = try_square_free(signed_disc)?;
+
+        let mut brauer = self.clifford_brauer_class.add(&other.clifford_brauer_class);
+        brauer = brauer.add(&Brauer2Class::quaternion(
+            self.signed_discriminant,
+            other.signed_discriminant,
+        )?);
+        if p == 0 && q == 1 {
+            brauer = brauer.add(&Brauer2Class::quaternion(-1, self.signed_discriminant)?);
+        }
+        if p == 1 && q == 0 {
+            brauer = brauer.add(&Brauer2Class::quaternion(-1, other.signed_discriminant)?);
+        }
+
+        Some(RationalBrauerWallClass {
+            dimension_parity: (p + q) % 2,
+            signed_discriminant: signed_disc,
+            clifford_brauer_class: brauer,
+        })
+    }
+
+    /// The image under extension of scalars `Q -> R`, as the Bott index in
+    /// `BW(R) = Z/8`.
+    pub fn real_bott_index(&self) -> u128 {
+        let disc_negative = self.signed_discriminant < 0;
+        let real_brauer = self
+            .clifford_brauer_class
+            .ramified_places()
+            .contains(&Place::Real);
+        match (self.dimension_parity, disc_negative, real_brauer) {
+            (0, false, false) => 0,
+            (1, true, false) => 1,
+            (0, true, true) => 2,
+            (1, false, true) => 3,
+            (0, false, true) => 4,
+            (1, true, true) => 5,
+            (0, true, false) => 6,
+            (1, false, false) => 7,
+            _ => unreachable!("dimension_parity is always a bit"),
+        }
+    }
+
+    /// The image under extension of scalars `Q -> R`, as the existing real
+    /// Brauer-Wall class.
+    pub fn real_class(&self) -> BrauerWallClass {
+        BrauerWallClass::Real(self.real_bott_index())
+    }
+}
+
+impl std::fmt::Display for RationalBrauerWallClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "BW(Q): parity {} signed_disc {} c(q) ramified {:?}",
+            self.dimension_parity,
+            self.signed_discriminant,
+            self.clifford_brauer_class.ramified_places()
+        )
+    }
 }
 
 impl BrauerWallClass {
@@ -182,6 +341,30 @@ impl BrauerWallClass {
     }
 }
 
+fn rational_square_class(x: &Rational) -> Option<i128> {
+    try_square_free(x.numer().checked_mul(x.denom())?)
+}
+
+/// The signed discriminant square class
+/// `(-1)^(n(n-1)/2) * product(entries)`, square-free-reduced. The entries are
+/// nonzero integer square-class representatives of a nondegenerate diagonal
+/// rational form.
+pub fn rational_signed_discriminant_class(entries: &[i128]) -> Option<i128> {
+    if entries.contains(&0) {
+        return None;
+    }
+    let disc = if entries.is_empty() {
+        1
+    } else {
+        try_disc_class(entries)?
+    };
+    if matches!(entries.len() % 4, 0 | 1) {
+        Some(disc)
+    } else {
+        try_square_free(disc.checked_neg()?)
+    }
+}
+
 /// The Brauer–Wall class of `Cl(Q/rad)` — the Clifford algebra of the
 /// **nondegenerate core** — over the real-table surreal subdomain:
 /// `s = (q − p) mod 8`, the Bott index.  For nonsingular metrics this equals
@@ -238,6 +421,29 @@ pub fn bw_class_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<Brau
     }
 }
 
+/// The rational Brauer-Wall class of `Cl(Q/rad)` over `Q`, modeled through
+/// Wall's exact sequence. For nonsingular metrics this is the class of `Cl(Q)`.
+/// For singular metrics the radical is projected away, mirroring the char-0
+/// real/complex Brauer-Wall surfaces.
+///
+/// The antisymmetric `a` gauge is ignored, as in the other char-0 form
+/// classifiers. Returns `None` if the symmetric form cannot be diagonalized or
+/// bounded `i128` square-class arithmetic overflows.
+pub fn bw_class_rational(metric: &Metric<Rational>) -> Option<RationalBrauerWallClass> {
+    let diag = as_diagonal(metric)?;
+    let mut entries = Vec::new();
+    for x in &diag.q {
+        if !x.is_zero() {
+            entries.push(rational_square_class(x)?);
+        }
+    }
+    Some(RationalBrauerWallClass {
+        dimension_parity: (entries.len() % 2) as u128,
+        signed_discriminant: rational_signed_discriminant_class(&entries)?,
+        clifford_brauer_class: clifford_brauer_class(&entries)?,
+    })
+}
+
 /// The Brauer-Wall class of `Cl(Q)` over the nimber characteristic-2 leg, carried
 /// as the nonsingular Arf/Witt class (`BW(F_{2^m}) ≅ W_q(F_{2^m}) ≅ Z/2` on this
 /// finite-field backend). `None` for general-bilinear or singular metrics.
@@ -255,7 +461,7 @@ mod tests {
     use super::*;
     use crate::clifford::CliffordAlgebra;
     use crate::forms::classify_real;
-    use crate::scalar::{Fp, Nimber, Scalar, Surcomplex};
+    use crate::scalar::{Fp, Nimber, Rational, Scalar, Surcomplex};
     use std::collections::BTreeSet;
 
     fn real_diag(signs: &[i128]) -> Metric<Surreal> {
@@ -273,6 +479,10 @@ mod tests {
         )
     }
 
+    fn rational_diag(entries: &[i128]) -> Metric<Rational> {
+        Metric::diagonal(entries.iter().map(|&x| Rational::from_int(x)).collect())
+    }
+
     /// The order of the cyclic subgroup generated by `g` under `add` (walk to identity).
     fn subgroup_order(g: BrauerWallClass) -> usize {
         let id = g.zero_like();
@@ -282,6 +492,20 @@ mod tests {
             cur = cur
                 .try_add(&g)
                 .expect("subgroup walk stays inside one Brauer-Wall leg");
+            n += 1;
+            assert!(n <= 64, "subgroup walk did not close — bug in add");
+        }
+        n
+    }
+
+    fn rational_subgroup_order(g: RationalBrauerWallClass) -> usize {
+        let id = g.zero_like();
+        let mut cur = g.clone();
+        let mut n = 1;
+        while cur != id {
+            cur = cur
+                .try_add(&g)
+                .expect("subgroup walk stays inside rational BW");
             n += 1;
             assert!(n <= 64, "subgroup walk did not close — bug in add");
         }
@@ -352,6 +576,84 @@ mod tests {
         assert_eq!(bw_class_complex(&m1), Some(BrauerWallClass::Complex(1)));
         assert_eq!(bw_class_complex(&m2), Some(BrauerWallClass::Complex(0)));
         assert_eq!(subgroup_order(BrauerWallClass::Complex(1)), 2);
+    }
+
+    #[test]
+    fn bw_rational_projects_to_clifford_and_signed_discriminant() {
+        let m = rational_diag(&[1, 1, 1]);
+        let c = bw_class_rational(&m).unwrap();
+        assert_eq!(c.dimension_parity(), 1);
+        assert_eq!(c.signed_discriminant(), -1);
+        assert_eq!(
+            c.clifford_brauer_class(),
+            &clifford_brauer_class(&[1, 1, 1]).unwrap()
+        );
+        assert_eq!(
+            *c.clifford_brauer_class().ramified_places(),
+            [Place::Real, Place::Prime(2)].into_iter().collect()
+        );
+
+        let h = rational_diag(&[1, -1, 0]);
+        let hc = bw_class_rational(&h).unwrap();
+        assert!(
+            hc.is_split(),
+            "the radical is projected away and <1,-1> is hyperbolic"
+        );
+    }
+
+    #[test]
+    fn bw_rational_uses_the_wall_twisted_group_law() {
+        let forms: &[&[i128]] = &[
+            &[1],
+            &[-1],
+            &[1, -1],
+            &[1, 1],
+            &[-1, -1],
+            &[2, 3],
+            &[1, 2, 3],
+            &[1, -2, 5],
+            &[2, 3, 5, 7],
+        ];
+        for a in forms {
+            for b in forms {
+                let ma = rational_diag(a);
+                let mb = rational_diag(b);
+                let direct = ma.direct_sum(&mb);
+                assert_eq!(
+                    bw_class_rational(&direct),
+                    bw_class_rational(&ma)
+                        .unwrap()
+                        .try_add(&bw_class_rational(&mb).unwrap()),
+                    "Wall law failed for {a:?} ⊥ {b:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn bw_rational_extends_to_the_real_bott_clock() {
+        for p in 0..5usize {
+            for q in 0..5usize {
+                if p + q == 0 {
+                    continue;
+                }
+                let signs: Vec<i128> = std::iter::repeat_n(1, p)
+                    .chain(std::iter::repeat_n(-1, q))
+                    .collect();
+                let rational = bw_class_rational(&rational_diag(&signs)).unwrap();
+                assert_eq!(
+                    rational.real_class(),
+                    bw_class_real(&real_diag(&signs)).unwrap(),
+                    "Q -> R extension failed for signature ({p},{q})"
+                );
+            }
+        }
+
+        // <−1> maps to the positive real Bott generator, and the rational group
+        // law walks the same order-eight clock after extension to R.
+        let g = bw_class_rational(&rational_diag(&[-1])).unwrap();
+        assert_eq!(g.real_bott_index(), 1);
+        assert_eq!(rational_subgroup_order(g), 8);
     }
 
     fn oddchar_diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {

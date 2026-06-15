@@ -4184,6 +4184,106 @@ impl PyBrauerClass {
     }
 }
 
+#[pyclass(name = "RationalBrauerWallClass", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyRationalBrauerWallClass {
+    inner: crate::forms::RationalBrauerWallClass,
+}
+
+#[pymethods]
+impl PyRationalBrauerWallClass {
+    #[staticmethod]
+    fn split() -> PyRationalBrauerWallClass {
+        PyRationalBrauerWallClass {
+            inner: crate::forms::RationalBrauerWallClass::split(),
+        }
+    }
+
+    #[staticmethod]
+    fn from_parts(
+        dimension_parity: u128,
+        signed_discriminant: i128,
+        clifford_brauer_class: &PyBrauer2Class,
+    ) -> PyResult<PyRationalBrauerWallClass> {
+        crate::forms::RationalBrauerWallClass::from_parts(
+            dimension_parity,
+            signed_discriminant,
+            clifford_brauer_class.inner.clone(),
+        )
+        .map(|inner| PyRationalBrauerWallClass { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err(
+                "RationalBrauerWallClass needs parity 0/1 and nonzero i128 discriminant",
+            )
+        })
+    }
+
+    fn is_split(&self) -> bool {
+        self.inner.is_split()
+    }
+
+    #[getter]
+    fn dimension_parity(&self) -> u128 {
+        self.inner.dimension_parity()
+    }
+
+    #[getter]
+    fn signed_discriminant(&self) -> i128 {
+        self.inner.signed_discriminant()
+    }
+
+    #[getter]
+    fn clifford_brauer_class(&self) -> PyBrauer2Class {
+        PyBrauer2Class {
+            inner: self.inner.clifford_brauer_class().clone(),
+        }
+    }
+
+    fn real_bott_index(&self) -> u128 {
+        self.inner.real_bott_index()
+    }
+
+    fn real_class(&self) -> PyBrauerWallClass {
+        PyBrauerWallClass {
+            inner: self.inner.real_class(),
+        }
+    }
+
+    fn zero_like(&self) -> PyRationalBrauerWallClass {
+        PyRationalBrauerWallClass {
+            inner: self.inner.zero_like(),
+        }
+    }
+
+    fn __add__(&self, other: &PyRationalBrauerWallClass) -> PyResult<PyRationalBrauerWallClass> {
+        self.inner
+            .try_add(&other.inner)
+            .map(|inner| PyRationalBrauerWallClass { inner })
+            .ok_or_else(|| PyValueError::new_err("rational Brauer-Wall addition overflowed"))
+    }
+
+    fn __eq__(&self, other: &PyRationalBrauerWallClass) -> bool {
+        self.inner == other.inner
+    }
+
+    fn __repr__(&self) -> String {
+        let places = self
+            .inner
+            .clifford_brauer_class()
+            .ramified_places()
+            .iter()
+            .copied()
+            .map(place_name)
+            .collect::<Vec<_>>();
+        format!(
+            "RationalBrauerWallClass(parity={}, signed_discriminant={}, clifford_ramified={places:?}, real_bott_index={})",
+            self.inner.dimension_parity(),
+            self.inner.signed_discriminant(),
+            self.inner.real_bott_index()
+        )
+    }
+}
+
 fn qp_to_qq_base_for_cyclic<const P: u128, const N: usize, const K: u128>(
     x: Qp<P, K>,
 ) -> Qq<P, N, 1> {
@@ -5421,6 +5521,19 @@ fn bw_class_complex(alg: &SurcomplexAlgebra) -> PyResult<PyBrauerWallClass> {
         .ok_or_else(|| PyValueError::new_err("Brauer–Wall class needs a diagonal metric"))
 }
 
+/// The rational Brauer-Wall class of a rational Clifford algebra, projected to
+/// dimension parity, signed discriminant, and the ungraded Clifford Brauer class.
+#[pyfunction]
+fn bw_class_rational(alg: &RationalAlgebra) -> PyResult<PyRationalBrauerWallClass> {
+    crate::forms::bw_class_rational(&alg.inner.metric)
+        .map(|inner| PyRationalBrauerWallClass { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err(
+                "rational Brauer-Wall class needs a diagonalizable metric with bounded i128 square classes",
+            )
+        })
+}
+
 /// The Brauer-Wall class of a nonsingular nimber Clifford algebra in
 /// `BW(F_{2^m}) ≅ W_q(F_{2^m}) ≅ Z/2` (the Arf/Witt class).
 #[pyfunction]
@@ -5475,6 +5588,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLocalSpringerDecomp>()?;
     m.add_class::<PyBrauer2Class>()?;
     m.add_class::<PyBrauerClass>()?;
+    m.add_class::<PyRationalBrauerWallClass>()?;
     m.add_class::<PyBrauerWallClass>()?;
     m.add_class::<PyRealWittDecomp>()?;
     m.add_class::<PyOddWittDecomp>()?;
@@ -5622,6 +5736,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(is_isotropic_q, m)?)?;
     m.add_function(wrap_pyfunction!(bw_class_real, m)?)?;
     m.add_function(wrap_pyfunction!(bw_class_complex, m)?)?;
+    m.add_function(wrap_pyfunction!(bw_class_rational, m)?)?;
     m.add_function(wrap_pyfunction!(bw_class_nimber, m)?)?;
     m.add_function(wrap_pyfunction!(bw_class_ordinal, m)?)?;
     Ok(())

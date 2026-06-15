@@ -61,7 +61,11 @@ finite char-2 legs (`Nimber`, generated `Fpn<2,N>`, the documented finite ordina
 windows) a nonsingular form carries both the Arf classifier and the
 `BW(F_{2^m}) ≅ ℤ/2` class, under the same XOR law. The classifier façade picks
 the leg from the scalar type at compile time, so `metric.classify()` /
-`.bw_class()` are one call across every implemented leg.
+`.bw_class()` are one call across every implemented leg. Over `ℚ`, the graded
+Brauer-Wall surface is separate and exact-sequence-shaped:
+`bw_class_rational` records dimension parity, signed discriminant, and the
+ungraded Clifford Brauer class `c(q)`, with scalar extension to `ℝ` recovering
+the same Bott clock.
 
 **surreal No ↔ ordinal On₂.** The surreals (a char-0 field) and the ordinal
 nimbers (a char-2 non-field) are mirror images: both are Cantor-normal-form towers
@@ -272,7 +276,7 @@ bridge with both feet on one island is a loop; crossing it counts like any other
 | C | S–C | Frobenius/Galois maps as outermorphisms, with flat exterior spectrum |
 | D | S–C | `Ordinal` as a checked Clifford scalar — genuinely transfinite char-2 squares |
 | E | I–I | theta series identified in `ℂ[E₄,E₆]`; the Milnor isospectral pair, executable |
-| F | C–F | the rational Clifford invariant `c(q) = s(q) + δ(n mod 8, disc)`, corrected |
+| F | C–F | the rational Clifford invariant `c(q) = s(q) + δ(n mod 8, disc)`, corrected, and its graded `BW(ℚ)` lift via dimension parity + signed discriminant |
 | H | I–I | Construction A: codes ↔ lattices; MacWilliams ↔ the theta transformation |
 | I | I–F | the Weil representation of the discriminant form; a third route to σ mod 8 |
 | J | S–F | the valuation as (lax) tropicalization; Newton slopes **are** Springer layers |

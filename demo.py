@@ -460,6 +460,8 @@ for _ in range(8):
 print("  [Cl⟨−1⟩]ⁿ for n=1..8:", " ".join(w.replace("Real(", "").rstrip(")") for w in walk))
 print("  BW constructors/zero_like:", pl.BrauerWallClass.real(9), g.zero_like(),
       pl.BrauerWallClass.char2(1) + pl.BrauerWallClass.char2(1))
+rq = pl.bw_class_rational(pl.RationalAlgebra(q=[-1]))
+print("  BW(Q) of ⟨−1⟩:", rq, "real", rq.real_class(), "square", rq + rq)
 print("  BW(F_3) of ⟨1⟩:", pl.OddFiniteFieldForm(3, [1]).bw_class(), "(order-4 graded part ≅ W(F_3))")
 A2 = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})
 print("  BW(F_2^m) anisotropic nimber plane:", pl.bw_class_nimber(A2), "(Z/2 Arf class)")

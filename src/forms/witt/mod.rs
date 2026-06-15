@@ -10,15 +10,16 @@
 //!   with per-field stabilisation (`I² = 0` over `F_q`; the infinite ℝ tower).
 //! * `brauer_wall` — the Brauer–Wall group `BW(F)`: [`bw_class_real`] (the Bott
 //!   index `(q−p) mod 8`, so `BW(ℝ) ≅ ℤ/8`), [`bw_class_complex`] (`ℤ/2`),
-//!   [`bw_class_finite_odd`] (order-4, `≅ W(F_q)`), and [`bw_class_nimber`] (the
-//!   char-2 Arf/Witt class `ℤ/2`, nonsingular metrics only). The law is the
-//!   graded tensor product.
+//!   [`bw_class_rational`] ([`RationalBrauerWallClass`], Wall's exact-sequence
+//!   coordinates over `ℚ`), [`bw_class_finite_odd`] (order-4, `≅ W(F_q)`), and
+//!   [`bw_class_nimber`] (the char-2 Arf/Witt class `ℤ/2`, nonsingular metrics
+//!   only). The law is the graded tensor product.
 //! * `brauer_rational` — the **ungraded** rational 2-torsion Brauer class
 //!   ([`Brauer2Class`]) as a set of ramified places: the Hasse–Witt invariant
 //!   ([`hasse_brauer_class`]) and the Clifford invariant ([`clifford_brauer_class`])
 //!   of a `ℚ`-form, which differ by the explicit `n mod 8` / discriminant correction
-//!   (Lam). The char-0/odd mirror of the char-2 Bridge B; kept strictly distinct
-//!   from the graded `brauer_wall` class.
+//!   (Lam). The char-0/odd mirror of the char-2 Bridge B; it is the ungraded
+//!   `c(q)` projection of [`RationalBrauerWallClass`], not the whole graded class.
 //! * `cyclic` — Bridge K: the **full `ℚ/ℤ`** ungraded Brauer class ([`BrauerClass`])
 //!   and the cyclic-algebra local invariant [`cyclic_algebra_invariant`]
 //!   (`inv = v(a)/n mod ℤ`, the unramified class). Lifts `brauer_rational`'s 2-torsion

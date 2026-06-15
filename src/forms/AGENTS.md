@@ -143,16 +143,18 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
   F_q; infinite ℝ tower via `e_real`). DON'T claim Arf=e2 (char-2 indexing is Kato's,
   pinned).
 - **`witt/brauer_wall.rs`** — the Brauer–Wall group BW(F): `bw_class_real` (Bott index
-  (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_finite_odd` (order-4 ≅
+  (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_rational`
+  (`RationalBrauerWallClass` over ℚ: dimension parity + signed discriminant +
+  Bridge-F `c(q)` with Wall's twisted law), `bw_class_finite_odd` (order-4 ≅
   W(F_q)), `bw_class_nimber`, and façade dispatch for supported finite char-2
   fields/windows (char-2 Arf/Witt class `ℤ/2`, nonsingular metrics only). Law =
-  graded_tensor.
+  graded_tensor/direct sum.
 - **`witt/brauer_rational.rs`** — the **ungraded** rational 2-torsion Brauer class
   `Brauer2Class` (a set of ramified `Place`s, `add`/`local_invariant`/
   `satisfies_reciprocity`/`quaternion`): `hasse_brauer_class` (the Hasse–Witt
   invariant `s(q)`) and `clifford_brauer_class` (the *actual* Clifford-algebra class
   `c(q) = s(q) + δ(n mod 8, disc)`, corrected by Lam GSM 67 pp. 117–119). Kept strictly
-  distinct from the graded `BrauerWallClass`.
+  distinct from the graded rational `RationalBrauerWallClass` it projects out of.
 - **`witt/cyclic.rs`** — Bridge K: the **full `ℚ/ℤ`** ungraded Brauer class
   `BrauerClass` (a `BTreeMap<Place, Rational>` of `inv_v ∈ [0,1)`, `add`/`invariant_sum`/
   `local_invariant`/`from_local`, plus the Bridge F embedding `from_two_torsion`/

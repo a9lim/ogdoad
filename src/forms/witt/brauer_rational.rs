@@ -43,12 +43,12 @@
 //! ## Scope (honest boundaries)
 //!
 //! `ℚ` (and `ℚ_v`) only; **2-torsion only** (quadratic-form Brauer classes are
-//! 2-torsion). This is the **ungraded** Brauer class — kept strictly distinct from
-//! the graded [`BrauerWallClass`](crate::forms::bw_class_real); conflating them is
-//! exactly what `char0.rs` declines to do, and the rational ungraded class is what
-//! Bridge F adds. The full `ℚ/ℤ` lift via cyclic algebras (Bridge K) is built as
-//! [`BrauerClass`](crate::forms::BrauerClass), which embeds this 2-torsion class as its
-//! `½`-slice via [`from_two_torsion`](crate::forms::BrauerClass::from_two_torsion).
+//! 2-torsion). This is the **ungraded** Brauer class — the `c(q)` projection of
+//! the graded rational [`RationalBrauerWallClass`](crate::forms::RationalBrauerWallClass),
+//! not the whole Brauer-Wall class. The full `ℚ/ℤ` lift via cyclic algebras
+//! (Bridge K) is built as [`BrauerClass`](crate::forms::BrauerClass), which embeds
+//! this 2-torsion class as its `½`-slice via
+//! [`from_two_torsion`](crate::forms::BrauerClass::from_two_torsion).
 
 use std::collections::BTreeSet;
 

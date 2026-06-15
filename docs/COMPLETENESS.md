@@ -53,15 +53,6 @@ level — the Bad census — and the fifo+dummy mechanism is identified
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
 `OPEN.md` tis (§1), not a number here.)
 
-### 2·e_f: `bw-rational`
-**The graded rational Brauer–Wall class** — the lift Bridge F deliberately stopped
-short of ("do not conflate `Brauer2Class` with the graded `BrauerWallClass` *until a
-rational Brauer–Wall story is separately modeled*"). Model `BW(ℚ)` by Wall's exact
-sequence `0 → Br(ℚ) → BW(ℚ) → Q(ℚ) → 0`, `Q(k) = ℤ/2 × k*/k*²` with the twisted
-cocycle multiplication (Wall 1964; Lam GSM 67). Oracles: `BW(ℝ) ≅ ℤ/8` recovers the
-Bott index `bw_class_real`; the graded class of `Cl(q)` over ℚ projects to Bridge F's
-`c(q)` and to disc/dimension data.
-
 ### 2·e_f: `tame-symbols`
 **Tamely ramified cyclic symbols for Bridge K.** K's local invariant is scoped
 unramified-at-`v` (`inv = v(a)/n`). For tame ramification (`n | q−1`) the norm-residue
