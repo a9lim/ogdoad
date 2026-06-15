@@ -13,6 +13,8 @@
 //!   the Loss-set/Draw-set quadric research instrument.
 //! * [`misere`] — misère-play outcomes, indistinguishability quotients, and
 //!   octal games.
+//! * [`lexicode`](mod@lexicode) — the Conway-Sloane turning-game witness for binary lexicodes,
+//!   plus the optimized `mex → Golay → Construction A` bridge.
 //! * [`partizan`] — short partizan games (sum, order, canonical form, the
 //!   surreal-value bridge).
 //! * [`number_game`] — transfinite number-valued games carried by their surreal

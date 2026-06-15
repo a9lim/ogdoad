@@ -87,7 +87,7 @@ The degree-1 version of the question is classically solved, and it is rich.
 Conway-Sloane lexicodes ("Lexicographic codes: error-correcting codes from game
 theory", IEEE Trans. Inform. Theory 32 (1986) 337-348) are built by the greedy
 lexicographic rule, which is the mex rule: the codewords are the Grundy-value-0
-positions of an associated turning-game move structure, binary lexicodes are
+positions of the shipped `LexicodeTurningGame` move structure, binary lexicodes are
 linear *because of* Sprague-Grundy theory (XOR-closure is a game theorem, not a
 coding theorem), and the length-24, d = 8 lexicode is the extended binary Golay
 code. More generally, the shipped `NimLexicode` route verifies that lexicodes over
@@ -102,8 +102,8 @@ says linearity is also the ceiling for that architecture. Floor and ceiling
 coincide at linear. Problem 1 is exactly whether the lexicode phenomenon admits
 a quadratic refinement — a rule producing the XOR-closure failure that the
 polar form `B` measures. Bridge O (built) makes the
-lexicode chain executable (greedy = mex -> Golay -> Construction A -> theta);
-that is context for this problem, not progress on it.
+lexicode chain executable (`LexicodeTurningGame` -> greedy = mex -> Golay ->
+Construction A -> theta); that is context for this problem, not progress on it.
 
 Current probe map:
 

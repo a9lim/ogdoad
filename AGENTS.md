@@ -169,7 +169,8 @@ Scharlau transfer (`trace_form::transfer_diagonal`), Nikulin's genus criterion
 (`nikulin_existence_report` / `nikulin_even_lattice_exists`), exact Conway-Sloane
 `p`-adic genus symbols (`Genus::canonical_symbol_at`, with the corrected 2-adic
 train/compartment/oddity reduction), the games↔integral lexicode edge
-(`games/lexicode.rs`: greedy = mex, so the `[24,12,8]` lexicode is Golay), and the
+(`games/lexicode.rs`: `LexicodeTurningGame` has P-set `L(n,d)`, greedy = mex, so the
+`[24,12,8]` lexicode is Golay), and the
 Brown `ℤ/8` invariant — the char-2 cell of the mod-8 spine (`char2/brown.rs`:
 `brown_f2`/`double_f2`, with `β = 4·Arf`, plus `DiscriminantForm::brown_invariant`
 giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms). The

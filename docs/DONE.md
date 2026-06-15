@@ -45,6 +45,23 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·e_g: `lexicode-game`
+**Completed:** 2026-06-15
+**Summary:** Bridge O now has the explicit Conway-Sloane turning-game witness whose
+zero-Grundy positions are the binary lexicode `L(n,d)`.
+**Pillars:** games    **Claim level:** standard math, implemented and tested
+- surface: `LexicodeTurningGame`, `lexicode_turning_game`,
+  `LEXICODE_TURNING_GAME_NODE_BUDGET`, plus bounded turning-mask, move-graph,
+  Grundy-value, and P-position methods.
+- oracles: legal moves are checked as lower lexicographic Hamming turns; the
+  explicit successor graph agrees with the generic `grundy_graph`; zero-Grundy
+  positions reproduce the greedy scan across small `(n,d)` windows and pin the
+  `[7,4,3]` / `[8,4,4]` Hamming examples.
+- boundaries: the explicit SG route is a bounded witness and inspection surface,
+  not the production constructor for large codes; `lexicode(24,8)` remains the
+  optimized Golay path, and this solved degree-1 bridge is not progress on the
+  open Gold-quadric play-rule question.
+
 ### 2·e_i: `odd-lattices`
 **Completed:** 2026-06-15
 **Summary:** Type I lattices now have the odd discriminant `Q/Z` surface, the

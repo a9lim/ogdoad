@@ -119,10 +119,14 @@ indices, and collection lengths.
 - **`lexicode.rs`** — **Bridge O**, the games ↔ integral edge: greedy binary
   lexicodes `L(n,d)` (Conway–Sloane 1986). `lexicode`/`lexicode_naive`/
   `lexicode_bounded` (+ `LEXICODE_NODE_BUDGET`, an honest backstop → `None`, not a
-  silent cap). The greedy step is exactly `mex(Forbidden)` over radius-`(d−1)` Hamming
-  balls (`grundy::mex`); linearity is the Sprague–Grundy theorem, *discovered* not
+  silent cap). `LexicodeTurningGame` is the bounded Conway-Sloane move structure:
+  positions are packed binary words, legal moves go to smaller words whose changed
+  coordinate set has size `< d`, and the zero-Grundy positions are `L(n,d)`. The
+  greedy step is exactly `mex(Forbidden)` over radius-`(d−1)` Hamming balls
+  (`grundy::mex`); linearity is the Sprague–Grundy theorem, *discovered* not
   assumed. Ships the `[7,4,3]` Hamming, `[8,4,4]` extended Hamming, and `[24,12,8]`
-  Golay codes as lexicodes, chaining `mex → lexicode → Golay → Construction A → theta`.
+  Golay codes as lexicodes, chaining `turning game → mex → lexicode → Golay →
+  Construction A → theta`.
   Also ships `nim_lexicode_naive`/`NimLexicode`, the literal base-`2^k` greedy over
   nim alphabets: closure under coordinatewise nim-addition is verified, and scalar
   closure witnesses the Fermat-base line (base 4/16 pass, base 8 fails).

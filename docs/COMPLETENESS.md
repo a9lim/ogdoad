@@ -95,13 +95,6 @@ laws as tests and `tropicalize` factoring through it. A leaf, but it converts th
 
 ## numbers — games
 
-### 1·e_g: `lexicode-game`
-**The turning-game realization of lexicodes** — Bridge O cites the Conway–Sloane
-game construction "for transcription in a formalization pass". Build the actual
-turning-game move structure whose Grundy-0 positions are `L(n,d)`, so greedy = mex is
-a `Game`-level theorem witnessed in code, not a comment. Subordinate to `OPEN.md` §1
-(the solved degree-1 shadow), exactly as Bridge O says.
-
 ### 1·e_g: `guy-smith`
 **Octal periodicity certificates.** Implement the Guy–Smith periodicity theorem (if
 the Grundy sequence of an octal game repeats with period `p` over a window long enough

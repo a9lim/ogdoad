@@ -21,9 +21,10 @@
 //! **The mex step (executable, self-contained).** After keeping a code `C`, let
 //! `Forbidden = ⋃_{c∈C} { m : d(m,c) < d }` be the union of radius-`(d−1)` Hamming
 //! balls. The next greedy codeword is exactly `mex(Forbidden)` — the least vector not
-//! excluded ([`crate::games::grundy::mex`]). The deeper Conway–Sloane turning-game
-//! realization (the Grundy-value theorem) is cited, not reconstructed here: it is to
-//! be transcribed from the 1986 paper in the formalization pass.
+//! excluded ([`crate::games::grundy::mex`]). The Conway–Sloane turning-game
+//! realization is executable too: [`LexicodeTurningGame`] has positions the binary
+//! words, legal moves to smaller words differing in a turning set of size `< d`, and
+//! bounded Sprague–Grundy computation whose `g = 0` positions are the lexicode.
 //!
 //! **Relation to `docs/OPEN.md` §1 (interpretation level).** `docs/OPEN.md` §1 records that
 //! normal-play P-sets are *linear* in Grundy coordinates. Lexicodes are the classical
@@ -50,6 +51,194 @@ pub const LEXICODE_NODE_BUDGET: u128 = 50_000_000_000;
 
 /// Backstop for the literal base-`2^k` greedy scan.
 pub const NIM_LEXICODE_NODE_BUDGET: u128 = 5_000_000_000;
+
+/// Backstop for the explicit Conway-Sloane turning-game witness.
+///
+/// This is intentionally much lower than [`LEXICODE_NODE_BUDGET`]: the turning-game
+/// graph is the formalization/witness path, while [`lexicode`] remains the optimized
+/// production code constructor.
+pub const LEXICODE_TURNING_GAME_NODE_BUDGET: u128 = 200_000_000;
+
+const LEXICODE_TURNING_GAME_MAX_GRUNDY_LEN: usize = 20;
+const LEXICODE_TURNING_GAME_MAX_EXPLICIT_GRAPH_LEN: usize = 14;
+
+/// The Conway-Sloane turning game whose P-positions are the binary lexicode
+/// `L(n,d)`.
+///
+/// A position is a binary word, packed in the same lexicographic order used by
+/// [`lexicode_naive`] (coordinate 0 is the most significant bit). A legal move from
+/// `from` to `to` is allowed exactly when `to < from` and the changed coordinate set
+/// has cardinality `1, …, d-1`. Equivalently, the turning sets are all coordinate
+/// subsets with size `< d`. The bounded Grundy methods below make Conway-Sloane's
+/// theorem executable for finite witnesses without replacing the optimized
+/// [`lexicode`] constructor.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LexicodeTurningGame {
+    word_len: usize,
+    min_distance: usize,
+}
+
+impl LexicodeTurningGame {
+    /// Build the binary turning game for `L(n,d)`.
+    ///
+    /// Returns `None` for zero length or lengths that no longer fit in the crate's
+    /// packed `u32` binary-code witness representation.
+    pub fn new(word_len: usize, min_distance: usize) -> Option<Self> {
+        if word_len == 0 || word_len >= u32::BITS as usize {
+            return None;
+        }
+        Some(Self {
+            word_len,
+            min_distance,
+        })
+    }
+
+    /// The binary block length.
+    pub fn len(&self) -> usize {
+        self.word_len
+    }
+
+    /// Whether the block length is zero. Always false for values built by [`Self::new`].
+    pub fn is_empty(&self) -> bool {
+        self.word_len == 0
+    }
+
+    /// The minimum-distance parameter `d`.
+    pub fn min_distance(&self) -> usize {
+        self.min_distance
+    }
+
+    /// Number of packed binary positions in the finite length-`n` truncation.
+    pub fn position_count(&self) -> u128 {
+        1u128 << self.word_len
+    }
+
+    /// Whether `position` is a valid packed word for this game.
+    pub fn is_position(&self, position: u32) -> bool {
+        position < (1u32 << self.word_len)
+    }
+
+    /// Check the Conway-Sloane legal move relation.
+    pub fn is_legal_move(&self, from: u32, to: u32) -> bool {
+        if !self.is_position(from) || !self.is_position(to) || to >= from {
+            return false;
+        }
+        let changed = (from ^ to).count_ones() as usize;
+        changed > 0 && changed < self.min_distance
+    }
+
+    /// Turning masks, i.e. nonempty changed-coordinate sets of size `< d`.
+    ///
+    /// The returned masks are packed in the same bit order as positions. `None`
+    /// means the explicit witness exceeded `node_budget`.
+    pub fn turning_masks_bounded(&self, node_budget: u128) -> Option<Vec<u32>> {
+        let mut budget = node_budget;
+        self.turning_masks_with_budget(&mut budget)
+    }
+
+    /// Legal moves from one packed position.
+    ///
+    /// `None` means `from` is outside the finite truncation or the explicit witness
+    /// exceeded `node_budget`.
+    pub fn moves_bounded(&self, from: u32, node_budget: u128) -> Option<Vec<u32>> {
+        if !self.is_position(from) {
+            return None;
+        }
+        let mut out: Vec<u32> = self
+            .turning_masks_bounded(node_budget)?
+            .into_iter()
+            .filter_map(|turn| {
+                let to = from ^ turn;
+                (to < from).then_some(to)
+            })
+            .collect();
+        out.sort_unstable();
+        Some(out)
+    }
+
+    /// The explicit acyclic game graph (`succ[v]` are legal moves from `v`) for
+    /// small witnesses.
+    ///
+    /// This is deliberately narrower than [`Self::grundy_values_bounded`], because
+    /// materializing all edges is only useful for tests and inspection.
+    pub fn successors_bounded(&self, node_budget: u128) -> Option<Vec<Vec<usize>>> {
+        if self.word_len > LEXICODE_TURNING_GAME_MAX_EXPLICIT_GRAPH_LEN {
+            return None;
+        }
+        let size = 1usize << self.word_len;
+        let mut budget = node_budget;
+        let turn_masks = self.turning_masks_with_budget(&mut budget)?;
+        let ops = (size as u128).checked_mul(turn_masks.len() as u128)?;
+        if ops > budget {
+            return None;
+        }
+        let mut succ = vec![Vec::new(); size];
+        for (from, moves) in succ.iter_mut().enumerate() {
+            let from = from as u32;
+            for &turn in &turn_masks {
+                let to = from ^ turn;
+                if to < from {
+                    moves.push(to as usize);
+                }
+            }
+            moves.sort_unstable();
+        }
+        Some(succ)
+    }
+
+    /// Grundy values for the explicit Conway-Sloane game, computed directly from
+    /// the acyclic move relation.
+    ///
+    /// `None` means the finite witness is too large for this explicit SG route or
+    /// exceeds `node_budget`.
+    pub fn grundy_values_bounded(&self, node_budget: u128) -> Option<Vec<u128>> {
+        if self.word_len > LEXICODE_TURNING_GAME_MAX_GRUNDY_LEN {
+            return None;
+        }
+        let size = 1usize << self.word_len;
+        let mut budget = node_budget;
+        let turn_masks = self.turning_masks_with_budget(&mut budget)?;
+        let ops = (size as u128).checked_mul(turn_masks.len() as u128)?;
+        if ops > budget {
+            return None;
+        }
+        let mut values = Vec::with_capacity(size);
+        for from in 0..size {
+            let from = from as u32;
+            let option_values = turn_masks.iter().filter_map(|&turn| {
+                let to = from ^ turn;
+                (to < from).then(|| values[to as usize])
+            });
+            values.push(crate::games::grundy::mex(option_values));
+        }
+        Some(values)
+    }
+
+    /// Packed P-positions (`g = 0`) of the explicit turning game.
+    pub fn p_positions_bounded(&self, node_budget: u128) -> Option<Vec<u32>> {
+        Some(
+            self.grundy_values_bounded(node_budget)?
+                .into_iter()
+                .enumerate()
+                .filter_map(|(position, g)| (g == 0).then_some(position as u32))
+                .collect(),
+        )
+    }
+
+    fn turning_masks_with_budget(&self, budget: &mut u128) -> Option<Vec<u32>> {
+        let max_weight = self.min_distance.saturating_sub(1).min(self.word_len);
+        let mut masks = Vec::new();
+        for weight in 1..=max_weight {
+            collect_turn_masks(self.word_len, weight, 0, 0, &mut masks, budget)?;
+        }
+        Some(masks)
+    }
+}
+
+/// Build the Conway-Sloane turning-game witness for the binary lexicode `L(n,d)`.
+pub fn lexicode_turning_game(n: usize, d: usize) -> Option<LexicodeTurningGame> {
+    LexicodeTurningGame::new(n, d)
+}
 
 /// A greedy lexicode over the nim alphabet `{0, …, 2^k-1}`.
 ///
@@ -161,6 +350,31 @@ fn checked_pow_u128(base: u128, exp: usize) -> Option<u128> {
         acc = acc.checked_mul(base)?;
     }
     Some(acc)
+}
+
+fn collect_turn_masks(
+    n: usize,
+    weight: usize,
+    start: usize,
+    mask: u32,
+    out: &mut Vec<u32>,
+    budget: &mut u128,
+) -> Option<()> {
+    if weight == 0 {
+        if *budget == 0 {
+            return None;
+        }
+        *budget -= 1;
+        out.push(mask);
+        return Some(());
+    }
+    if n - start < weight {
+        return Some(());
+    }
+    for bit in start..=n - weight {
+        collect_turn_masks(n, weight - 1, bit + 1, mask | (1u32 << bit), out, budget)?;
+    }
+    Some(())
 }
 
 fn decode_word(mut code: u128, base: u128, n: usize) -> Vec<u128> {
@@ -374,7 +588,7 @@ pub fn nim_lexicode_naive_bounded(
 mod tests {
     use super::*;
     use crate::forms::{extended_hamming_code, golay_code, hamming_code};
-    use crate::games::grundy::mex;
+    use crate::games::grundy::{grundy_graph, mex};
 
     /// Brute-force greedy kept-set as raw masks (for the mex witness).
     fn greedy_masks(n: usize, d: usize) -> Vec<u32> {
@@ -412,6 +626,77 @@ mod tests {
             kept, direct,
             "mex reconstruction must equal the greedy scan"
         );
+    }
+
+    #[test]
+    fn turning_game_moves_are_lower_hamming_turns() {
+        let game = lexicode_turning_game(4, 3).unwrap();
+        assert_eq!(game.len(), 4);
+        assert_eq!(game.min_distance(), 3);
+        assert_eq!(game.position_count(), 16);
+
+        assert!(game.is_legal_move(0b1011, 0b1001)); // change one coordinate
+        assert!(game.is_legal_move(0b1011, 0b0001)); // change two coordinates
+        assert!(!game.is_legal_move(0b1011, 0b1111)); // not lexicographically lower
+        assert!(!game.is_legal_move(0b1011, 0b0000)); // distance 3 is not a turn
+        assert!(!game.is_legal_move(0b1011, 0b1011)); // no pass move
+
+        assert_eq!(
+            game.moves_bounded(0b1011, LEXICODE_TURNING_GAME_NODE_BUDGET)
+                .unwrap(),
+            vec![0b0001, 0b0010, 0b0011, 0b0111, 0b1000, 0b1001, 0b1010]
+        );
+    }
+
+    #[test]
+    fn turning_game_successors_match_generic_grundy_graph() {
+        let game = lexicode_turning_game(5, 3).unwrap();
+        let succ = game
+            .successors_bounded(LEXICODE_TURNING_GAME_NODE_BUDGET)
+            .unwrap();
+        let direct = game
+            .grundy_values_bounded(LEXICODE_TURNING_GAME_NODE_BUDGET)
+            .unwrap();
+        assert_eq!(grundy_graph(&succ).unwrap(), direct);
+    }
+
+    #[test]
+    fn turning_game_p_positions_are_the_lexicode() {
+        for n in 1..=9 {
+            for d in 1..=4 {
+                let game = lexicode_turning_game(n, d).unwrap();
+                let p_positions = game
+                    .p_positions_bounded(LEXICODE_TURNING_GAME_NODE_BUDGET)
+                    .unwrap();
+                assert_eq!(
+                    p_positions,
+                    greedy_masks(n, d),
+                    "turning-game P-positions vs greedy scan at (n={n}, d={d})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn turning_game_code_witnesses_hamming_examples() {
+        let h = lexicode_turning_game(7, 3)
+            .unwrap()
+            .p_positions_bounded(LEXICODE_TURNING_GAME_NODE_BUDGET)
+            .unwrap();
+        assert_eq!(h, greedy_masks(7, 3));
+
+        let eh = lexicode_turning_game(8, 4)
+            .unwrap()
+            .p_positions_bounded(LEXICODE_TURNING_GAME_NODE_BUDGET)
+            .unwrap();
+        assert_eq!(eh, greedy_masks(8, 4));
+    }
+
+    #[test]
+    fn turning_game_budget_is_honest() {
+        let game = lexicode_turning_game(8, 4).unwrap();
+        assert!(game.turning_masks_bounded(1).is_none());
+        assert!(game.grundy_values_bounded(1).is_none());
     }
 
     #[test]

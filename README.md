@@ -138,9 +138,10 @@ as a surreal (blue − red), a nimber (all-green = Nim), or a general partizan g
 This is the seam where the game pillar meets the scalar pillar. The game pillar even
 reaches the lattice world: a greedy binary **lexicode** is built by the **mex** rule,
 so the Conway–Sloane codes (the `[7,4,3]` Hamming, the `[24,12,8]` Golay) are
-Sprague–Grundy P-sets that feed straight into the Construction A lattices of the
-integral leg — `mex → lexicode → Golay → Construction A → theta`, one chain crossing
-three pillars. The same file also ships base-`2^k` nim-alphabet lexicodes, verifying
+Sprague–Grundy P-sets of the explicit `LexicodeTurningGame`, feeding straight into
+the Construction A lattices of the integral leg — `turning game → mex → lexicode →
+Golay → Construction A → theta`, one chain crossing three pillars. The same file
+also ships base-`2^k` nim-alphabet lexicodes, verifying
 nim-additive closure and witnessing scalar-linearity at Fermat bases (4/16) but not
 base 8. And thermography itself **is** tropical arithmetic: the option folds are the
 tropical `⊕` and cooling is the tropical `⊗`, with the two scaffold walls living in
@@ -281,7 +282,7 @@ bridge with both feet on one island is a loop; crossing it counts like any other
 | N.2 | S–F | the Scharlau transfer, named and tested |
 | N.3 | I–I | Nikulin: genus and existence via signature + discriminant form |
 | N.4 | I–I | one Bernoulli source for the Eisenstein constants and the mass formula |
-| O | G–I | lexicodes: greedy = mex; the `[24,12,8]` lexicode is Golay |
+| O | G–I | lexicodes: the turning-game P-set is greedy = mex; the `[24,12,8]` lexicode is Golay |
 | `game-clifford-checked` | C–G | checked integer Clifford data on game generators; quotient-compatible, not game-native |
 
 (G and L were never built under those letters — they became the deferred stars
