@@ -45,6 +45,24 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·e_i: `constructions-bd`
+**Completed:** 2026-06-16
+**Summary:** the code-to-lattice bridge now includes classical Constructions B
+and scaled D beside Construction A.
+**Pillars:** integral    **Claim level:** standard math, implemented and tested
+- surface: `BinaryCode::contains`, `BinaryCode::construction_b`, and
+  `construction_d`, plus Python `BinaryCode.contains`,
+  `BinaryCode.construction_b`, `BinaryCode.construction_d`, and module-level
+  `construction_d`.
+- oracles: `B(Golay)` is even rank 24 with determinant 4, no norm-2 roots, and
+  an exhibited norm-4 vector; one-level Construction D reproduces
+  `construction_a`; non-nested towers reject; and `0 <= H_8` gives the expected
+  two-level even lattice with determinant 256 and minimum 4.
+- boundaries: Construction B is the classical doubly-even sublattice of
+  Construction A, not the glued full Leech lattice; Construction D is the scaled
+  increasing equal-length binary-code tower and keeps the same `None` boundary
+  for invalid or non-integral Grams as the existing Construction A surface.
+
 ### 2·e_c: `spinor-gauge`
 **Completed:** 2026-06-16
 **Summary:** characteristic-0 spinor reps and reversion now pass through the

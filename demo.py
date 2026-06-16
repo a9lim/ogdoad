@@ -894,6 +894,11 @@ print("  A₂ mod-2 Clifford Arf        :", pl.arf_nimber(A2_f2) if A2_f2 else N
 code = pl.BinaryCode.extended_hamming()
 print("  [8,4,4] code weight/theta    :", code.weight_enumerator(), code.theta_series_via_weight_enumerator(3))
 print("  Construction A kissing       :", code.construction_a().kissing_number())
+b_golay = pl.BinaryCode.golay().construction_b()
+d_hamming = pl.construction_d([pl.BinaryCode(8, []), code])
+print("  Constructions B/D            :",
+      b_golay.determinant(), len(b_golay.short_vectors(2)),
+      d_hamming.determinant(), d_hamming.is_even())
 type_i = pl.BinaryCode.type_i_z2()
 z2 = type_i.construction_a()
 odd_disc = pl.OddDiscriminantForm.from_lattice(pl.IntegralForm.diagonal([3]))

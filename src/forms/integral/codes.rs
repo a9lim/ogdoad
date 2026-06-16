@@ -4,15 +4,15 @@
 //! `C <= F_2^n` has three compatible readings here:
 //!
 //! * as a checked F2 row space, with duals and exact weight enumerators;
-//! * as a source of integral lattices through Construction A,
-//!   `(1/sqrt(2)){x in Z^n : x mod 2 in C}`;
+//! * as a source of integral lattices through Constructions A, B, and D;
 //! * as an exact theta-series oracle through the Hamming weight enumerator.
 //!
 //! The `1/sqrt(2)` scale is part of the construction. Since [`IntegralForm`]
 //! stores an integer Gram matrix, [`BinaryCode::construction_a`] returns `None`
 //! unless the resulting Gram is integral; self-orthogonal codes satisfy that
 //! boundary. Type I self-dual codes give odd unimodular lattices, while Type II
-//! self-dual codes give even unimodular lattices.
+//! self-dual codes give even unimodular lattices. The same explicit integer-Gram
+//! boundary is used for Construction B and the scaled nested-code Construction D.
 
 use super::lattice::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
@@ -33,6 +33,14 @@ fn row_weight(row: &[u8]) -> usize {
 
 fn dot_mod2(a: &[u8], b: &[u8]) -> u8 {
     a.iter().zip(b).fold(0u8, |acc, (&x, &y)| acc ^ (x & y))
+}
+
+fn pow2_i128(exp: usize) -> Option<i128> {
+    if exp >= 127 {
+        None
+    } else {
+        Some(1i128 << exp)
+    }
 }
 
 fn normalize_generators(mut rows: Vec<Vec<u8>>, n: usize) -> Option<Vec<Vec<u8>>> {
@@ -150,6 +158,38 @@ fn odd_residue_theta_without_quarter(terms: usize) -> Vec<i128> {
     out
 }
 
+fn divided_lattice_from_rows(
+    rows: Vec<Vec<i128>>,
+    n: usize,
+    divisor: i128,
+) -> Option<IntegralForm> {
+    debug_assert!(divisor > 0);
+    let basis = normalize_relation_rows(rows);
+    if basis.len() != n {
+        return None;
+    }
+    let mut gram = vec![vec![0i128; n]; n];
+    for i in 0..n {
+        for j in 0..n {
+            let mut dot = 0i128;
+            for k in 0..n {
+                dot = dot
+                    .checked_add(
+                        basis[i][k]
+                            .checked_mul(basis[j][k])
+                            .expect("code-lattice Gram entry exceeds i128"),
+                    )
+                    .expect("code-lattice Gram entry exceeds i128");
+            }
+            if dot % divisor != 0 {
+                return None;
+            }
+            gram[i][j] = dot / divisor;
+        }
+    }
+    IntegralForm::new(gram)
+}
+
 impl BinaryCode {
     /// Build a binary code from generator rows. The stored basis is row-reduced
     /// over F2, so equivalent generator matrices compare equal.
@@ -252,6 +292,20 @@ impl BinaryCode {
         BinaryCode::new(self.n + other.n, rows).expect("direct-sum rows are binary")
     }
 
+    fn contains_word(&self, word: &[u8]) -> bool {
+        if word.len() != self.n || word.iter().any(|&x| x > 1) {
+            return false;
+        }
+        let mut rows = self.generators.clone();
+        rows.push(word.to_vec());
+        normalize_generators(rows, self.n).is_some_and(|basis| basis.len() == self.dim())
+    }
+
+    /// Whether `other <= self` as a binary row space.
+    pub fn contains(&self, other: &BinaryCode) -> bool {
+        self.n == other.n && other.generators.iter().all(|row| self.contains_word(row))
+    }
+
     /// `C = C^perp`.
     pub fn is_self_dual(&self) -> bool {
         self.dim() * 2 == self.n && self.generators == self.dual().generators
@@ -344,21 +398,42 @@ impl BinaryCode {
             row[i] = 2;
             rows.push(row);
         }
-        let basis = normalize_relation_rows(rows);
-        if basis.len() != self.n {
+        divided_lattice_from_rows(rows, self.n, 2)
+    }
+
+    /// Construction B:
+    ///
+    /// `B(C) = (1/sqrt(2)){x in Z^n : x mod 2 in C, sum_i x_i = 0 mod 4}`.
+    ///
+    /// The input code must be doubly even; the result is still returned through
+    /// the same `Option` boundary as [`BinaryCode::construction_a`], so a
+    /// non-integral scaled Gram is reported as `None`.
+    pub fn construction_b(&self) -> Option<IntegralForm> {
+        if !self.is_doubly_even() {
             return None;
         }
-        let mut gram = vec![vec![0i128; self.n]; self.n];
-        for i in 0..self.n {
-            for j in 0..self.n {
-                let dot: i128 = basis[i].iter().zip(&basis[j]).map(|(&x, &y)| x * y).sum();
-                if dot % 2 != 0 {
-                    return None;
+        let mut rows: Vec<Vec<i128>> = self
+            .generators
+            .iter()
+            .map(|row| row.iter().map(|&x| x as i128).collect())
+            .collect();
+        match self.n {
+            0 => {}
+            1 => rows.push(vec![4]),
+            n => {
+                for i in 0..(n - 1) {
+                    let mut row = vec![0i128; n];
+                    row[i] = 2;
+                    row[i + 1] = -2;
+                    rows.push(row);
                 }
-                gram[i][j] = dot / 2;
+                let mut row = vec![0i128; n];
+                row[n - 2] = 2;
+                row[n - 1] = 2;
+                rows.push(row);
             }
         }
-        IntegralForm::new(gram)
+        divided_lattice_from_rows(rows, self.n, 2)
     }
 
     /// Compute the Construction A theta series from the Hamming weight
@@ -402,6 +477,39 @@ impl BinaryCode {
         }
         Some(out)
     }
+}
+
+/// The scaled Construction D lattice for an increasing binary-code tower
+/// `C0 <= C1 <= ... <= C_{a-1}`:
+///
+/// `(1/sqrt(2^a)) (C0 + 2 C1 + ... + 2^(a-1) C_{a-1} + 2^a Z^n)`.
+///
+/// The one-level tower is exactly [`BinaryCode::construction_a`]. The function
+/// returns `None` for an empty, unequal-length, non-nested, too-deep, or
+/// non-integral tower.
+pub fn construction_d(codes: &[BinaryCode]) -> Option<IntegralForm> {
+    let first = codes.first()?;
+    let n = first.n;
+    if codes.iter().any(|code| code.n != n) {
+        return None;
+    }
+    if codes.windows(2).any(|pair| !pair[1].contains(&pair[0])) {
+        return None;
+    }
+    let divisor = pow2_i128(codes.len())?;
+    let mut rows = Vec::new();
+    for (level, code) in codes.iter().enumerate() {
+        let scale = pow2_i128(level)?;
+        for row in &code.generators {
+            rows.push(row.iter().map(|&x| scale * x as i128).collect());
+        }
+    }
+    for i in 0..n {
+        let mut row = vec![0i128; n];
+        row[i] = divisor;
+        rows.push(row);
+    }
+    divided_lattice_from_rows(rows, n, divisor)
 }
 
 /// The binary Hamming `[7,4,3]` code.
@@ -609,6 +717,39 @@ mod tests {
             D16_PLUS_AUT_ORDER,
             (1u128 << 15) * (1..=16u128).product::<u128>()
         );
+    }
+
+    #[test]
+    fn construction_b_cuts_out_the_golay_half_leech_lattice() {
+        assert!(hamming_code().construction_b().is_none());
+        let g = golay_code();
+        let b = g.construction_b().expect("Golay is doubly even");
+        assert_eq!(b.dim(), 24);
+        assert!(b.is_even());
+        assert_eq!(b.determinant(), 4);
+        assert!(b.short_vectors(2).unwrap().is_empty());
+        assert!((0..b.dim()).any(|i| b.gram()[i][i] == 4));
+    }
+
+    #[test]
+    fn construction_d_recovers_a_and_builds_nested_towers() {
+        let e8_code = extended_hamming_code();
+        assert_eq!(
+            construction_d(std::slice::from_ref(&e8_code))
+                .unwrap()
+                .gram(),
+            e8_code.construction_a().unwrap().gram()
+        );
+
+        let zero = BinaryCode::new(8, Vec::new()).unwrap();
+        assert!(construction_d(&[e8_code.clone(), zero.clone()]).is_none());
+
+        let tower = construction_d(&[zero, e8_code]).expect("0 <= H_8 is nested");
+        assert_eq!(tower.dim(), 8);
+        assert!(tower.is_even());
+        assert_eq!(tower.determinant(), 256);
+        assert!(tower.short_vectors(2).unwrap().is_empty());
+        assert!((0..tower.dim()).any(|i| tower.gram()[i][i] == 4));
     }
 
     #[test]

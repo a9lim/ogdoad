@@ -62,12 +62,6 @@ on the `Qq`/`F_q(t)` legs. The **wild** symbol stays out — that is star `*4` b
 
 ## numbers — the integral wing
 
-### 1·e_i: `constructions-bd`
-**Constructions B and D** (Conway–Sloane Ch. 5/8), extending Bridge H's code↔lattice
-seam: B from doubly-even subcode data (oracle: `B(golay)` has the right det/min), D
-from nested code towers. Keeps the same `Option`-on-non-integral-Gram boundary as
-`construction_a`.
-
 ### ½·(e_i∧e_c): `eichler`
 **Eichler's theorem as a documented predicate** — the one cheap honest piece of star
 `*1`: *indefinite, rank ≥ 3 ⇒ spinor genus = isometry class*, letting `Genus` upgrade

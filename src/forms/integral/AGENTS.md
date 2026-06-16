@@ -116,11 +116,17 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   `glue^2 = det(R)`, anchor automorphism orders (Leech, `A_1^24`, `E_8^3`),
   `Σ 1/|Aut(N)| = mass_even_unimodular(24)`, and the exact weighted identity
   `(Σ theta_N/|Aut(N)|)/mass(24) = E12`.
-- **`codes.rs`** — binary linear codes and Construction A: `BinaryCode` stores a checked
+- **`codes.rs`** — binary linear codes and Constructions A/B/D: `BinaryCode` stores a checked
   row-reduced F₂ generator matrix; `dual`, `is_self_dual`, `is_self_orthogonal`,
-  `is_doubly_even`, `minimum_distance`, `weight_enumerator`, `macwilliams_transform` are
+  `is_doubly_even`, `contains`, `minimum_distance`, `weight_enumerator`, `macwilliams_transform` are
   exact. `construction_a` uses the `1/sqrt(2)` scaling (HNF basis of `{x ∈ Z^n : x mod 2
   ∈ C}`, dot products /2); returns `None` when the scaled Gram is not integral.
+  `construction_b` is the classical doubly-even sublattice
+  `(1/sqrt(2)){x : x mod 2 in C, Σx_i ≡ 0 mod 4}`; `B(Golay)` is pinned as the
+  determinant-4 rootless half-Leech lattice with minimum 4. `construction_d` is the
+  scaled increasing tower `(C0 + 2C1 + ... + 2^(a-1)C_{a-1} + 2^a Z^n)/sqrt(2^a)`;
+  one level recovers Construction A, non-nested towers return `None`, and the
+  `0 <= H_8` two-level tower is pinned by determinant/minimum.
   `theta_series_via_weight_enumerator` builds the Construction A theta series straight
   from the Hamming weight enumerator (`None` outside the doubly-even boundary). Type I
   witnesses are `repetition_code(2)` / `type_i_z2_code` (Construction A gives an odd

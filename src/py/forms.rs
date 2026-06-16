@@ -4623,6 +4623,9 @@ impl PyBinaryCode {
             inner: self.inner.direct_sum(&other.inner),
         }
     }
+    fn contains(&self, other: &PyBinaryCode) -> bool {
+        self.inner.contains(&other.inner)
+    }
     fn is_self_dual(&self) -> bool {
         self.inner.is_self_dual()
     }
@@ -4645,6 +4648,16 @@ impl PyBinaryCode {
         self.inner
             .construction_a()
             .map(|inner| PyIntegralForm { inner })
+    }
+    fn construction_b(&self) -> Option<PyIntegralForm> {
+        self.inner
+            .construction_b()
+            .map(|inner| PyIntegralForm { inner })
+    }
+    #[staticmethod]
+    fn construction_d(codes: Vec<PyBinaryCode>) -> Option<PyIntegralForm> {
+        let codes: Vec<_> = codes.into_iter().map(|code| code.inner).collect();
+        crate::forms::construction_d(&codes).map(|inner| PyIntegralForm { inner })
     }
     fn theta_series_via_weight_enumerator(&self, terms: usize) -> Option<Vec<i128>> {
         self.inner.theta_series_via_weight_enumerator(terms)
@@ -4702,6 +4715,11 @@ fn golay_code() -> PyBinaryCode {
 #[pyfunction]
 fn extended_golay_generator_rows() -> Vec<Vec<u8>> {
     crate::forms::extended_golay_generator_rows()
+}
+
+#[pyfunction]
+fn construction_d(codes: Vec<PyBinaryCode>) -> Option<PyIntegralForm> {
+    PyBinaryCode::construction_d(codes)
 }
 
 #[pyfunction]
@@ -5680,6 +5698,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(type_ii_len16_code, m)?)?;
     m.add_function(wrap_pyfunction!(golay_code, m)?)?;
     m.add_function(wrap_pyfunction!(extended_golay_generator_rows, m)?)?;
+    m.add_function(wrap_pyfunction!(construction_d, m)?)?;
     m.add_function(wrap_pyfunction!(d16_plus, m)?)?;
     m.add_function(wrap_pyfunction!(a_n, m)?)?;
     m.add_function(wrap_pyfunction!(d_n, m)?)?;
