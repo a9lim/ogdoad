@@ -94,17 +94,6 @@ checked certificate, turning `octal_hunt`-style sweeps into proofs-of-periodicit
 rather than bounded observations. The *conjecture* that every finite octal game is
 ultimately periodic is famous, external, and not ours to claim — the checker is.
 
-## numbers — engine & bindings
-
-### 2·e_c: `spinor-gauge`
-**Spinor reps and reversal through the antisymmetric gauge.** `spinor_rep` and
-`reverse()` reject general-bilinear (`a ≠ 0`) metrics; in char ≠ 2 the general engine
-is gauge-equivalent to the orthogonal one (the antisymmetric part is a "gauge", the
-symmetric part fixes the iso class). First pin the gauge isomorphism against the
-shipped `reduce_word` oracle on this engine's conventions, then transport the spinor
-construction and the reversal anti-automorphism through it. Char 2 keeps its own
-boundary.
-
 ---
 
 ## switches (a9's move first)

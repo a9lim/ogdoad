@@ -890,13 +890,15 @@ macro_rules! backend_algebra {
 
             /// Full concrete spinor data as a named `SpinorRep` record.
             /// Supports nondegenerate characteristic-0 metrics and nonsingular
-            /// characteristic-2 nimber metrics; rejects general-bilinear metrics.
+            /// characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+            /// metrics are transported through the antisymmetric `a` gauge;
+            /// characteristic 2 keeps the no-`a` boundary.
             /// `diagonalized_metric` is returned as `(q, b_terms)` when present,
             /// where `b_terms` contains `(i, j, value)` entries.
             fn spinor_rep(&self, py: Python<'_>) -> PyResult<PySpinorRep> {
                 let rep = scalar_boundary(|| crate::clifford::spinor_rep(&self.inner))?.ok_or_else(|| {
 	                    PyValueError::new_err(
-	                        "spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+	                        "spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
 	                    )
                 })?;
                 let is_left_regular = rep.is_left_regular;
@@ -963,7 +965,7 @@ macro_rules! backend_algebra {
                 let rep = scalar_boundary(|| crate::clifford::lazy_spinor_rep(&self.inner))?
                     .ok_or_else(|| {
                         PyValueError::new_err(
-                            "lazy_spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+                            "lazy_spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
                         )
                     })?;
                 let mv = scalar_boundary(|| rep.apply_generator(i, &v.mv))?
@@ -979,7 +981,7 @@ macro_rules! backend_algebra {
                 scalar_boundary(|| crate::clifford::lazy_spinor_rep(&self.inner))?
                     .ok_or_else(|| {
                         PyValueError::new_err(
-                            "lazy_spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+                            "lazy_spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
                         )
                     })?;
                 Ok(PyLazySpinorRep {
@@ -1002,7 +1004,7 @@ macro_rules! backend_algebra {
                 let rep = scalar_boundary(|| crate::clifford::lazy_spinor_rep(&self.inner))?
                     .ok_or_else(|| {
                         PyValueError::new_err(
-                            "lazy_spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+                            "lazy_spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
                         )
                     })?;
                 let mv = scalar_boundary(|| rep.apply_vector(&parsed, &v.mv))?

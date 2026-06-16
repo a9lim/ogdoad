@@ -18,15 +18,18 @@
 //! ## Scope
 //!
 //! Nondegenerate characteristic-0 metrics, and nonsingular characteristic-2
-//! metrics over field-like scalar backends such as `Nimber`, with no
-//! antisymmetric `a` part. In characteristic 0, an orthogonal metric is
-//! represented directly; a symmetric nonorthogonal metric is first diagonalized
-//! by a tracked congruence, the spinor ideal is built in that orthogonal basis,
-//! and the generator matrices are pulled back to the original generators. In
-//! characteristic 2, nonsingularity means the polar form `b` has full rank, so
-//! null-square hyperbolic generators are allowed. Degenerate, odd-positive-
-//! characteristic, non-field-pivot, general-bilinear, or non-enumerable explicit
-//! dimensions return `None`.
+//! metrics over field-like scalar backends such as `Nimber`. In characteristic
+//! 0, an orthogonal metric is represented directly; a symmetric nonorthogonal
+//! metric is first diagonalized by a tracked congruence, the spinor ideal is
+//! built in that orthogonal basis, and the generator matrices are pulled back to
+//! the original generators. A general-bilinear characteristic-0 metric is first
+//! transported through the antisymmetric `a`-gauge to the ordinary `(q, b)`
+//! metric, then its idempotent and basis are transported back to the original
+//! wedge coordinates. In characteristic 2, nonsingularity means the polar form
+//! `b` has full rank, so null-square hyperbolic generators are allowed; the
+//! general-bilinear `a` boundary remains explicit. Degenerate, odd-positive-
+//! characteristic, non-field-pivot, unsupported characteristic-2 `a`, or
+//! non-enumerable explicit dimensions return `None`.
 
 use crate::clifford::MAX_BASIS_DIM;
 use crate::clifford::{bits, CliffordAlgebra, Metric, Multivector};
@@ -42,8 +45,10 @@ const MAX_EXPLICIT_SPINOR_DIM: usize = 10;
 pub struct SpinorRep<S: Scalar> {
     /// The idempotent `f` (`f² = f`) generating the represented left ideal.
     pub idempotent: Multivector<S>,
-    /// A basis of the left ideal `Cl·f` (in reduced echelon form). If
-    /// `is_left_regular` is true, this is the whole algebra.
+    /// A basis of the left ideal `Cl·f`. Direct constructors store a reduced
+    /// echelon basis; characteristic-0 general-bilinear reps store the
+    /// gauge-transported basis in the same order, which need not remain echelon.
+    /// If `is_left_regular` is true, this is the whole algebra.
     pub basis: Vec<Multivector<S>>,
     /// `gen_matrices[i]` is the matrix of left multiplication by `eᵢ` on `basis`
     /// (indexed `[row][col]`; column `j` is the action on `basis[j]`).
@@ -52,11 +57,15 @@ pub struct SpinorRep<S: Scalar> {
     /// left-regular representation.
     pub is_left_regular: bool,
     /// The diagonal metric used internally when the input metric was
-    /// nonorthogonal. `None` means the input was already orthogonal.
+    /// nonorthogonal. For characteristic-0 general-bilinear metrics, this
+    /// describes the ordinary `(q,b,a=0)` gauge before the idempotent and basis
+    /// were transported back. `None` means the input was already orthogonal.
     pub diagonalized_metric: Option<Metric<S>>,
     /// Columns give the orthogonal basis vectors in the original generator basis:
     /// `h_j = Σ_i orthogonal_basis_in_original[i][j] e_i`. Present exactly when
-    /// [`diagonalized_metric`](Self::diagonalized_metric) is present.
+    /// [`diagonalized_metric`](Self::diagonalized_metric) is present; the
+    /// characteristic-0 `a`-gauge transport fixes the generators, so these
+    /// coordinates still refer to the original generator basis.
     pub orthogonal_basis_in_original: Option<Vec<Vec<S>>>,
 }
 
@@ -246,7 +255,7 @@ fn ensure_pivot<S: Scalar>(g: &mut [Vec<S>], t: &mut [Vec<S>], k: usize) -> bool
 /// original basis. `a` is not accepted: this is the ordinary Clifford form, not a
 /// general bilinear-gauge representation.
 fn diagonalize_with_transform<S: Scalar>(m: &Metric<S>) -> Option<(Metric<S>, Vec<Vec<S>>)> {
-    if !m.a.is_empty() {
+    if m.has_upper() {
         return None;
     }
     let two = S::one().add(&S::one());
@@ -357,7 +366,7 @@ fn scale_vec<S: Scalar>(c: &S, v: &[S]) -> Vec<S> {
 }
 
 fn char2_polar_rank<S: Scalar>(metric: &Metric<S>) -> Option<usize> {
-    if S::characteristic() != 2 || !metric.a.is_empty() {
+    if S::characteristic() != 2 || metric.has_upper() {
         return None;
     }
     let n = metric.q.len();
@@ -421,7 +430,7 @@ fn char2_shrinking_blade_idempotent<S: Scalar>(
 }
 
 fn spinor_rep_char2<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
-    if S::characteristic() != 2 || !alg.metric.a.is_empty() {
+    if S::characteristic() != 2 || alg.metric.has_upper() {
         return None;
     }
     blade_count(alg.dim())?;
@@ -493,10 +502,24 @@ fn spinor_rep_orthogonal<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRe
 /// Build a concrete spinor representation. For symmetric nonorthogonal metrics,
 /// the returned matrices represent the original generators; the idempotent and
 /// basis are recorded in the orthogonalized basis named by
-/// [`SpinorRep::orthogonal_basis_in_original`].
+/// [`SpinorRep::orthogonal_basis_in_original`]. For characteristic-0
+/// general-bilinear metrics, the matrices are built after dropping the
+/// antisymmetric `a` gauge and the idempotent/basis are transported back to the
+/// original wedge coordinates.
 pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
-    if !alg.metric.a.is_empty() {
-        return None;
+    if alg.metric.has_upper() {
+        if S::characteristic() == 2 {
+            return None;
+        }
+        let ordinary = alg.ordinary_gauge_algebra();
+        let mut rep = spinor_rep(&ordinary)?;
+        rep.idempotent = ordinary.transport_gauge_to(alg, &rep.idempotent)?;
+        let mut basis = Vec::with_capacity(rep.basis.len());
+        for v in &rep.basis {
+            basis.push(ordinary.transport_gauge_to(alg, v)?);
+        }
+        rep.basis = basis;
+        return Some(rep);
     }
     if S::characteristic() == 2 {
         return spinor_rep_char2(alg);
@@ -529,28 +552,29 @@ pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
 }
 
 /// Build the sparse/lazy left-regular spinor action. This keeps the same
-/// mathematical restrictions as [`spinor_rep`] (nondegenerate, no general-bilinear
-/// `a` part, characteristic 0 or characteristic 2) but does not require
-/// enumerating all blades or materializing matrices.
+/// mathematical restrictions as [`spinor_rep`] (nondegenerate characteristic 0
+/// or nonsingular characteristic 2, with the characteristic-2 `a` boundary kept)
+/// but does not require enumerating all blades or materializing matrices.
 pub fn lazy_spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<LazySpinorRep<S>> {
-    if !alg.metric.a.is_empty() {
-        return None;
-    }
     match S::characteristic() {
         0 => {
             if alg.dim() >= MAX_BASIS_DIM {
                 return None;
             }
-            let metric = if alg.metric.b.is_empty() {
-                alg.metric.clone()
+            let ordinary = alg.ordinary_gauge_algebra();
+            let metric = if ordinary.metric.b.is_empty() {
+                ordinary.metric.clone()
             } else {
-                diagonalize_with_transform(&alg.metric)?.0
+                diagonalize_with_transform(&ordinary.metric)?.0
             };
             if metric.q.iter().any(|x| x.is_zero()) {
                 return None;
             }
         }
         2 => {
+            if alg.metric.has_upper() {
+                return None;
+            }
             if !char2_metric_is_nonsingular(&alg.metric) {
                 return None;
             }
@@ -717,6 +741,27 @@ mod tests {
         }
     }
 
+    fn check_spinor_action_in_basis(metric: Metric<Rational>) -> SpinorRep<Rational> {
+        let alg = CliffordAlgebra::new(metric.q.len(), metric);
+        let rep = spinor_rep(&alg).unwrap();
+        assert!(is_idempotent(&alg, &rep.idempotent), "f² ≠ f");
+        for i in 0..alg.dim() {
+            for (col, bvec) in rep.basis.iter().enumerate() {
+                let target = alg.mul(&alg.e(i), bvec);
+                let mut recon = alg.zero();
+                for (row, basis_vec) in rep.basis.iter().enumerate() {
+                    let coeff = &rep.gen_matrices[i][row][col];
+                    recon = alg.add(&recon, &alg.scalar_mul(coeff, basis_vec));
+                }
+                assert_eq!(
+                    recon, target,
+                    "M{i} column {col} does not reconstruct e{i}·basis[{col}]"
+                );
+            }
+        }
+        rep
+    }
+
     fn check_nimber_metric_relations(metric: Metric<Nimber>) -> SpinorRep<Nimber> {
         let alg = CliffordAlgebra::new(metric.q.len(), metric.clone());
         let rep = spinor_rep(&alg).unwrap();
@@ -780,17 +825,17 @@ mod tests {
     }
 
     #[test]
-    fn degenerate_and_general_bilinear_metrics_are_rejected() {
+    fn degenerate_metrics_are_rejected_and_general_bilinear_gauge_is_supported() {
         // null generator
         assert!(spinor_rep(&cl(&[1, 0])).is_none());
-        // the antisymmetric/general bilinear gauge is still out of scope
+
         let mut a = std::collections::BTreeMap::new();
-        a.insert((0usize, 1usize), r(1));
-        let alg = CliffordAlgebra::new(
-            2,
-            Metric::general(vec![r(1), r(1)], std::collections::BTreeMap::new(), a),
-        );
-        assert!(spinor_rep(&alg).is_none());
+        a.insert((0usize, 1usize), r(5));
+        let metric = Metric::general(vec![r(1), r(1)], std::collections::BTreeMap::new(), a);
+        let alg = CliffordAlgebra::new(2, metric.clone());
+        let rep = check_spinor_action_in_basis(metric);
+        assert_eq!(rep.basis.len(), 2);
+        assert!(lazy_spinor_rep(&alg).is_some());
     }
 
     #[test]

@@ -121,6 +121,8 @@ D = pl.SurrealAlgebra(q=[1, 1], b=None, a={(0, 1): pl.surreal(5)})
 d0, d1 = D.gen(0), D.gen(1)
 print("  e0 e1            =", d0 * d1, "  (= e0∧e1 + 5)")
 print("  {e0,e1} = b = 0  :", d0 * d1 + d1 * d0)
+print("  reverse(e0 e1)   =", (d0 * d1).reverse(), "  (= e1 e0 through the gauge)")
+print("  spinor basis dim through a-gauge:", len(D.spinor_rep().basis))
 
 section("twisted adjoint (Pin) — the correct versor action")
 P = pl.SurrealAlgebra(q=[1, 1])

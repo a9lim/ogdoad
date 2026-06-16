@@ -375,21 +375,41 @@ mod tests {
         assert_eq!(alg.mul(&xi, &x), alg.scalar(Nimber(1)));
     }
 
-    /// M-3 regression: `reverse` is gated on `!has_upper()` — calling it on a
-    /// general-bilinear (`a ≠ 0`) metric must panic because the blade-by-blade word
-    /// reversal is not an anti-automorphism when the bilinear form is asymmetric.
+    /// `reverse` is transported through the antisymmetric gauge in characteristic
+    /// 0, so it remains an anti-automorphism on general-bilinear metrics.
     #[test]
-    #[should_panic(expected = "reverse() is not an anti-automorphism on general-bilinear")]
-    fn reverse_panics_on_general_bilinear_metric() {
+    fn reverse_is_anti_automorphism_on_general_bilinear_char0_metric() {
         let mut a = std::collections::BTreeMap::new();
         a.insert((0usize, 1usize), r(1));
         let alg = CliffordAlgebra::new(
             2,
             Metric::general(vec![r(1), r(1)], std::collections::BTreeMap::new(), a),
         );
-        // This should panic: reverse(xy) ≠ reverse(y)*reverse(x) for a≠0 metrics.
         let xy = alg.mul(&alg.e(0), &alg.e(1));
-        let _ = alg.reverse(&xy);
+        assert_eq!(
+            alg.reverse(&xy),
+            alg.mul(&alg.reverse(&alg.e(1)), &alg.reverse(&alg.e(0)))
+        );
+    }
+
+    /// Characteristic 2 keeps the explicit boundary: the antisymmetric-gauge
+    /// transport used in characteristic 0 is not available there.
+    #[test]
+    #[should_panic(expected = "reverse() on general-bilinear")]
+    fn reverse_panics_on_general_bilinear_char2_metric() {
+        use crate::scalar::Nimber;
+
+        let mut a = std::collections::BTreeMap::new();
+        a.insert((0usize, 1usize), Nimber(1));
+        let alg = CliffordAlgebra::new(
+            2,
+            Metric::general(
+                vec![Nimber(1), Nimber(1)],
+                std::collections::BTreeMap::new(),
+                a,
+            ),
+        );
+        let _ = alg.reverse(&alg.mul(&alg.e(0), &alg.e(1)));
     }
 
     /// M-3 check: on a symmetric (b-only, a=0) non-orthogonal metric the

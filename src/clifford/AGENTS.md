@@ -31,10 +31,10 @@ backends). The associative-algebra core is split by concept under `engine/`:
 - **`algebra.rs`** — `CliffordAlgebra<S>`: blade arithmetic, grade projection,
   wedge/reverse/graded_tensor/embeddings. `dim()` is a method delegating to
   `metric.dim()` (no stored field). `embed_second(v, left)` takes a left-algebra
-  reference (not a bare `usize`) to derive its shift. `reverse` panics on
-  general-bilinear (`a ≠ 0`) metrics — blade-word reversal is only an
-  anti-automorphism when `B` is symmetric (pinned by
-  `reverse_panics_on_general_bilinear_metric`).
+  reference (not a bare `usize`) to derive its shift. In characteristic not 2,
+  `reverse` on general-bilinear (`a ≠ 0`) metrics is transported through the
+  antisymmetric gauge to the matching ordinary `(q,b)` algebra; characteristic 2
+  still panics on nonzero `a`.
 - **`multivector.rs`** — `Multivector<S>`: term store, zero/display helpers.
   `terms` field is `pub(crate)`; use the `terms()` accessor for external reads.
   `impl fmt::Display` renders with `{}` — same as `display()` — in canonical
@@ -93,10 +93,13 @@ backends). The associative-algebra core is split by concept under `engine/`:
   reaches a minimal ideal; char-0 *nonorthogonal* (`b ≠ 0`) first diagonalizes by
   congruence (tracking the transform), builds the ideal in the orthogonal basis, then
   pulls generator matrices back — recording `SpinorRep::diagonalized_metric` and
-  `::orthogonal_basis_in_original`; char-2 (rejects general-bilinear `a ≠ 0` and
-  singular `b`, so any nonsingular char-2 metric, Nimber the main one) a separate
-  no-half path takes blade idempotents like `e_i e_j` when they shrink the ideal and
-  otherwise keeps the complete left-regular action. `SpinorRep` carries
+  `::orthogonal_basis_in_original`; char-0 general-bilinear metrics first drop the
+  antisymmetric `a` gauge, build the ordinary `(q,b)` representation, then transport
+  the idempotent and basis back to the original wedge coordinates; char-2 (rejects
+  general-bilinear `a ≠ 0` and singular `b`, so any nonsingular char-2 metric,
+  Nimber the main one) a separate no-half path takes blade idempotents like
+  `e_i e_j` when they shrink the ideal and otherwise keeps the complete
+  left-regular action. `SpinorRep` carries
   `idempotent`/`basis`/`gen_matrices`/`is_left_regular` plus the two diagonalization
   fields. `spinor_rep`/`SpinorRep` build the explicit matrix up to
   `MAX_EXPLICIT_SPINOR_DIM`; `lazy_spinor_rep`/`LazySpinorRep` give the sparse,

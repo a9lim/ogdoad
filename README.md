@@ -176,7 +176,9 @@ The spinor module has a separate characteristic-2 representation path: it never 
 the char-0 `½(1+w)` idempotent, accepts nonsingular polar forms such as the
 hyperbolic plane with null-square generators, takes blade idempotents like `e_i e_j`
 when they shrink a left ideal, and otherwise falls back honestly to the complete
-left-regular action.
+left-regular action. Characteristic-0 general-bilinear metrics are handled by
+transporting through the antisymmetric `a` gauge to the matching ordinary `(q,b)`
+metric; characteristic 2 keeps the nonzero-`a` boundary.
 
 ## Quickstart
 

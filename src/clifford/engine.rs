@@ -443,6 +443,71 @@ mod tests {
     }
 
     #[test]
+    fn general_bilinear_gauge_transport_matches_reduce_word_oracle() {
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), r(1));
+        b.insert((1usize, 2usize), r(-2));
+        let mut a = BTreeMap::new();
+        a.insert((0usize, 1usize), r(3));
+        a.insert((0usize, 2usize), r(-1));
+        a.insert((1usize, 2usize), r(4));
+        let alg = CliffordAlgebra::new(3, Metric::general(vec![r(2), r(-1), r(5)], b, a));
+        let ordinary = alg.ordinary_gauge_algebra();
+
+        for ba in 0u128..8 {
+            for bb in 0u128..8 {
+                let a_blade = alg.blade(&bits(ba));
+                let b_blade = alg.blade(&bits(bb));
+                let lhs = alg.mul(&a_blade, &b_blade);
+                assert_eq!(
+                    alg.transport_gauge_to(&ordinary, &lhs).unwrap(),
+                    ordinary.mul(
+                        &alg.transport_gauge_to(&ordinary, &a_blade).unwrap(),
+                        &alg.transport_gauge_to(&ordinary, &b_blade).unwrap()
+                    ),
+                    "gauge transport is not multiplicative on blades {ba:#b}·{bb:#b}"
+                );
+
+                let word: Vec<usize> = bits(ba).into_iter().chain(bits(bb)).collect();
+                let mut source_word = alg.scalar(r(1));
+                for &g in &word {
+                    source_word = alg.mul(&source_word, &alg.e(g));
+                }
+                let in_ordinary = alg.transport_gauge_to(&ordinary, &source_word).unwrap();
+                let expect = Multivector {
+                    terms: ordinary.metric.reduce_word(&word),
+                };
+                assert_eq!(
+                    in_ordinary, expect,
+                    "gauge transport mismatch on blades {ba:#b}·{bb:#b}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn reverse_is_gauge_transported_on_general_bilinear_metric() {
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 2usize), r(1));
+        let mut a = BTreeMap::new();
+        a.insert((0usize, 1usize), r(3));
+        a.insert((1usize, 2usize), r(-2));
+        let alg = CliffordAlgebra::new(3, Metric::general(vec![r(1), r(-1), r(2)], b, a));
+        let x = alg.add(&alg.e(0), &alg.mul(&alg.e(1), &alg.e(2)));
+        let y = alg.add(&alg.scalar(r(2)), &alg.mul(&alg.e(0), &alg.e(1)));
+
+        assert_eq!(
+            alg.reverse(&alg.mul(&x, &y)),
+            alg.mul(&alg.reverse(&y), &alg.reverse(&x))
+        );
+        assert_eq!(
+            alg.reverse(&alg.reverse(&x)),
+            x,
+            "transported reverse should be involutive"
+        );
+    }
+
+    #[test]
     fn associativity_general_bilinear_form() {
         let mut b = BTreeMap::new();
         b.insert((0usize, 1usize), r(1));

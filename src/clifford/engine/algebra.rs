@@ -161,25 +161,107 @@ impl<S: Scalar> CliffordAlgebra<S> {
         }
     }
 
-    /// Reversion: the anti-automorphism `ẽᵢ₁⋯ẽᵢₖ = eᵢₖ⋯eᵢ₁`. Implemented by
-    /// reversing the generator list of each wedge-basis blade and reducing through
-    /// the Clifford product.
+    pub(crate) fn ordinary_gauge_algebra(&self) -> CliffordAlgebra<S> {
+        CliffordAlgebra::new(
+            self.dim(),
+            Metric::new(self.metric.q.clone(), self.metric.b.clone()),
+        )
+    }
+
+    fn sorted_generator_product(&self, blade: u128) -> Multivector<S> {
+        let mut out = self.scalar(S::one());
+        for g in bits(blade) {
+            out = self.mul(&out, &self.e(g));
+        }
+        out
+    }
+
+    fn assert_same_gauge_class(&self, target: &CliffordAlgebra<S>) {
+        assert_eq!(
+            self.dim(),
+            target.dim(),
+            "gauge transport requires equal dimensions"
+        );
+        assert!(
+            self.metric.q == target.metric.q && self.metric.b == target.metric.b,
+            "gauge transport requires matching q and b"
+        );
+    }
+
+    fn gauge_basis_image_to(
+        &self,
+        target: &CliffordAlgebra<S>,
+        blade: u128,
+        memo: &mut BTreeMap<u128, Multivector<S>>,
+    ) -> Option<Multivector<S>> {
+        if let Some(image) = memo.get(&blade) {
+            return Some(image.clone());
+        }
+
+        let source_word = self.sorted_generator_product(blade);
+        let target_word = target.sorted_generator_product(blade);
+        let lead = source_word
+            .terms
+            .get(&blade)
+            .cloned()
+            .unwrap_or_else(S::zero);
+        let lead_inv = lead.inv()?;
+
+        let mut image = target_word;
+        for (&lower_blade, coeff) in &source_word.terms {
+            if lower_blade == blade {
+                continue;
+            }
+            let lower_image = self.gauge_basis_image_to(target, lower_blade, memo)?;
+            image = target.add(&image, &target.scalar_mul(&coeff.neg(), &lower_image));
+        }
+        image = target.scalar_mul(&lead_inv, &image);
+        memo.insert(blade, image.clone());
+        Some(image)
+    }
+
+    pub(crate) fn transport_gauge_to(
+        &self,
+        target: &CliffordAlgebra<S>,
+        v: &Multivector<S>,
+    ) -> Option<Multivector<S>> {
+        self.assert_same_gauge_class(target);
+        let mut memo = BTreeMap::new();
+        let mut out = target.zero();
+        for (&blade, coeff) in &v.terms {
+            let image = self.gauge_basis_image_to(target, blade, &mut memo)?;
+            out = target.add(&out, &target.scalar_mul(coeff, &image));
+        }
+        Some(out)
+    }
+
+    /// Reversion: the anti-automorphism `ẽᵢ₁⋯ẽᵢₖ = eᵢₖ⋯eᵢ₁`. For ordinary
+    /// `(q, b)` metrics this is implemented by reversing each wedge-basis blade
+    /// and reducing through the Clifford product. In characteristic not equal to
+    /// 2, a non-zero `a` is only an antisymmetric gauge; reversion is transported
+    /// through the matching ordinary `(q, b, a=0)` algebra and then pulled back.
     ///
     /// # Panics
     ///
-    /// Panics if the metric has a non-zero `a` (in-order / general-bilinear)
-    /// component. In a general-bilinear metric the algebra relations are
-    /// asymmetric (`e_i e_j ≠ e_j e_i + symmetric-part`), so blade-by-blade
-    /// word reversal is **not** an anti-automorphism of the algebra —
-    /// `reverse(xy) ≠ reverse(y)*reverse(x)` in general. Use a symmetric
-    /// metric (`Metric::new`/`::diagonal`/`::grassmann`) for operations
-    /// that depend on reversion.
+    /// Panics in characteristic 2 when the metric has a non-zero `a`
+    /// (in-order / general-bilinear) component. There the antisymmetric-gauge
+    /// argument is not available, so the explicit boundary remains.
     pub fn reverse(&self, a: &Multivector<S>) -> Multivector<S> {
-        assert!(
-            !self.metric.has_upper(),
-            "reverse() is not an anti-automorphism on general-bilinear (a≠0) metrics; \
-             use a symmetric metric (Metric::new/diagonal/grassmann)"
-        );
+        if self.metric.has_upper() {
+            assert!(
+                S::characteristic() != 2,
+                "reverse() on general-bilinear (a != 0) metrics is transported through \
+                 the antisymmetric gauge only in characteristic != 2"
+            );
+            let ordinary = self.ordinary_gauge_algebra();
+            let in_ordinary = self
+                .transport_gauge_to(&ordinary, a)
+                .expect("gauge transport has unit leading terms");
+            let reversed = ordinary.reverse(&in_ordinary);
+            return ordinary
+                .transport_gauge_to(self, &reversed)
+                .expect("gauge transport has unit leading terms");
+        }
         let mut out = self.zero();
         for (&blade, coeff) in &a.terms {
             let mut rev_blade = self.scalar(S::one());

@@ -57,7 +57,8 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   `<World>LinearMap` pyclass, fixed-dispatch Frobenius/Galois map constructors
   (`frobenius_linear_map`, `galois_linear_map`,
   `nimber_subfield_frobenius_linear_map`), `spinor_rep`/`SpinorRep` (incl. the
-  nonsingular nimber char-2 path), the lazy `lazy_spinor_rep`/`LazySpinorRep` (with
+  nonsingular nimber char-2 path and the char-0 general-bilinear `a` gauge
+  transport), the lazy `lazy_spinor_rep`/`LazySpinorRep` (with
   `apply_generator`/`apply_vector` beyond the explicit matrix cap), the metric
   constructors/helpers (`general`/`grassmann`/`q`/`b_terms`/`a_terms`/`map`/`q_val`/…),
   the `pga(n)` constructor, the `gram`/`diagonalize`/`as_diagonal` façade, tensor-square

@@ -45,6 +45,23 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2·e_c: `spinor-gauge`
+**Completed:** 2026-06-16
+**Summary:** characteristic-0 spinor reps and reversion now pass through the
+antisymmetric general-bilinear gauge.
+**Pillars:** clifford    **Claim level:** standard math, implemented and tested
+- surface: `CliffordAlgebra::reverse`, `spinor_rep`, and `lazy_spinor_rep` now
+  accept characteristic-0 `Metric::general(q, b, a)` by transporting through the
+  matching ordinary `(q, b, a=0)` gauge; Python inherits the same behavior.
+- oracles: the internal gauge transport is pinned against the shipped
+  `reduce_word` oracle on ordered generator words, checked as a multiplicative
+  transport on blade products, and exercised by transported reversion and
+  spinor-action reconstruction tests.
+- boundaries: characteristic-2 metrics still reject nonzero `a`; the gauge
+  transport remains an internal engine bridge, not a new public classification
+  API; spinor representations keep the existing nondegenerate / nonsingular and
+  explicit-matrix dimension caps.
+
 ### 2·e_f: `bw-rational`
 **Completed:** 2026-06-15
 **Summary:** the rational Clifford invariant now lifts to the graded

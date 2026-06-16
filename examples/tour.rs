@@ -1,7 +1,7 @@
 //! A quick tour of ogdoad's verified core. Run with:
 //!   cargo run --example tour
 
-use ogdoad::clifford::{CliffordAlgebra, Metric};
+use ogdoad::clifford::{spinor_rep, CliffordAlgebra, Metric};
 use ogdoad::forms::classify_surreal;
 use ogdoad::forms::WittClass;
 use ogdoad::forms::{dickson_matrix, dickson_of_versor};
@@ -122,7 +122,17 @@ fn main() {
         Metric::general(vec![Surreal::from_int(1); 2], BTreeMap::new(), a),
     );
     let e0e1 = d.mul(&d.e(0), &d.e(1));
+    let e1e0 = d.mul(&d.e(1), &d.e(0));
     println!("  e0 e1 = {}   (= e0∧e1 + 5)", e0e1.display());
+    println!(
+        "  reverse(e0 e1) = {}   (= e1 e0 through the gauge: {})",
+        d.reverse(&e0e1).display(),
+        e1e0.display()
+    );
+    println!(
+        "  spinor basis dim through the a-gauge = {}",
+        spinor_rep(&d).unwrap().basis.len()
+    );
 
     rule("Artin–Schreier ↔ Arf — one field trace, two roles");
     println!(

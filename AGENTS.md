@@ -135,8 +135,9 @@ the Brauer-Wall class `BW(F_{2^m}) ≅ Z/2`; hyperbolic planes are `0`, the
 anisotropic plane is `1`, and direct sum / graded tensor adds by XOR.
 `clifford::spinor` has a separate char-2 route: no `1/2(1+w)`, blade idempotents
 such as `e_i e_j` when they shrink a left ideal, and otherwise the full
-regular/lazy left action. Singular polar forms and general-bilinear `a` metrics are
-rejected.
+regular/lazy left action. In characteristic 0, general-bilinear `a` metrics are
+handled by transporting through the antisymmetric gauge to the matching ordinary
+`(q,b)` metric; characteristic 2 keeps the explicit nonzero-`a` rejection.
 
 The cross-pillar bridges live in the Rust core. `IntegralForm` exports rational and even-mod-2 Clifford metrics plus
 even discriminant Gauss-sum/Milgram checks and odd-lattice `Q/Z` discriminant /
