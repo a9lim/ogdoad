@@ -53,13 +53,6 @@ level — the Bad census — and the fifo+dummy mechanism is identified
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
 `OPEN.md` tis (§1), not a number here.)
 
-### 2·e_f: `tame-symbols`
-**Tamely ramified cyclic symbols for Bridge K.** K's local invariant is scoped
-unramified-at-`v` (`inv = v(a)/n`). For tame ramification (`n | q−1`) the norm-residue
-symbol is explicit (the tame symbol `(a,b)_v = (−1)^{v(a)v(b)} a^{v(b)}/b^{v(a)} mod 𝔪`
-in `μ_n`); shipping it widens `BrauerClass` to ramified cyclic classes at tame places
-on the `Qq`/`F_q(t)` legs. The **wild** symbol stays out — that is star `*4` below.
-
 ## numbers — the integral wing
 
 ### ½·(e_i∧e_c): `eichler`
@@ -160,8 +153,8 @@ ledger, not inside it.
 
 ### *4: `the wild local symbol` (full local class field theory)
 
-Bridge K's invariant is unramified-only; `tame-symbols` (above) would add the tame
-slice. The remainder — norm-residue symbols for **wildly ramified** cyclic extensions
+Bridge K's invariant now carries the unramified and tame Kummer slices. The remainder
+— norm-residue symbols for **wildly ramified** cyclic extensions
 (degree divisible by the residue characteristic: Lubin–Tate formal groups, or Dwork's
 explicit formula; the dyadic Hilbert symbol's big siblings) — is a genuine wing of
 machinery over the capped local models, and the precision-model honesty questions are

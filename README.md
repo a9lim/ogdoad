@@ -112,8 +112,9 @@ sequence `0 → W(ℤ) → W(ℚ) → ⊕_p W(F_p) → 0` — the global Witt gr
 Springer residue as its boundary map and the signature as its kernel. The same
 package recurs in **equal characteristic** over the
 global function field `F_q(t)`: the tame Hilbert symbol at each monic-irreducible
-place plus the degree place `∞`, reciprocity, Hasse–Minkowski, and the split Milnor
-map `W(F_q(t)) ≅ W(F_q) ⊕ ⊕_π W(F_q[t]/π)` — and here it is **exact** (no precision
+place plus the degree place `∞`, tame Kummer symbols for Bridge K when `μ_n ⊂ F_q`,
+reciprocity, Hasse–Minkowski, and the split Milnor map
+`W(F_q(t)) ≅ W(F_q) ⊕ ⊕_π W(F_q[t]/π)` — and here it is **exact** (no precision
 model), the char-`p` mirror of the ℚ stack. Both global
 fields answer **one** interface: the `GlobalField` trait states the places, the
 local Hilbert symbol, reciprocity, and Hasse–Minkowski once, with `ℚ` and `F_q(t)`
@@ -282,7 +283,7 @@ bridge with both feet on one island is a loop; crossing it counts like any other
 | H | I–I | Construction A: codes ↔ lattices; MacWilliams ↔ the theta transformation |
 | I | I–F | the Weil representation of the discriminant form; a third route to σ mod 8 |
 | J | S–F | the valuation as (lax) tropicalization; Newton slopes **are** Springer layers |
-| K | S–F | the full `ℚ/ℤ` cyclic-algebra Brauer invariant; reciprocity over `F_q(t)` |
+| K | S–F | the full `ℚ/ℤ` cyclic-algebra Brauer invariant, unramified plus tame Kummer; reciprocity over `F_q(t)` |
 | M | F–I | the Brown `ℤ/8` invariant — the char-2 cell of the mod-8 spine, float-free |
 | N.1 | F–I | Milnor's exact sequence: the Springer residues go global over `ℚ` and `F_q(t)` |
 | N.2 | S–F | the Scharlau transfer, named and tested |

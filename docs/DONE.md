@@ -45,6 +45,25 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2·e_f: `tame-symbols`
+**Completed:** 2026-06-16
+**Summary:** Bridge K now has the tamely ramified Kummer symbol beside the
+unramified cyclic invariant.
+**Pillars:** forms    **Claim level:** standard math, implemented and tested
+- surface: local `tame_symbol_exponent` / `tame_symbol_invariant` over
+  `ResidueField` legs with finite residue fields, plus the `F_q(t)` helpers
+  `try_tame_symbol_exponent_ff`, `try_tame_symbol_invariant_ff`,
+  `tame_symbol_invariants_ff`, and `tame_symbol_invariant_sum_ff`, with Python
+  parity for the local and `*_ff` surfaces.
+- oracles: the `n = 2` slice matches the existing `Q_p` / `F_q(t)` Hilbert
+  symbols, the `a^v(b)/b^v(a)` convention is pinned by inverse swap tests,
+  `Q_9` reads the extension residue field `F_9` and its `μ_8`, and the
+  `F_5(t)` `μ_4` symbol satisfies reciprocity using one constant-field root
+  convention across finite places and infinity.
+- boundaries: this is the tame Kummer case `μ_n` in the residue/constant field;
+  wild norm-residue symbols remain the deferred `*4`, and the function-field
+  helpers stay on the existing odd-characteristic `F_q(t)` place layer.
+
 ### 1·e_i: `constructions-bd`
 **Completed:** 2026-06-16
 **Summary:** the code-to-lattice bridge now includes classical Constructions B

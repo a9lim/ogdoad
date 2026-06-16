@@ -21,10 +21,11 @@
 //!   (Lam). The char-0/odd mirror of the char-2 Bridge B; it is the ungraded
 //!   `c(q)` projection of [`RationalBrauerWallClass`], not the whole graded class.
 //! * `cyclic` — Bridge K: the **full `ℚ/ℤ`** ungraded Brauer class ([`BrauerClass`])
-//!   and the cyclic-algebra local invariant [`cyclic_algebra_invariant`]
-//!   (`inv = v(a)/n mod ℤ`, the unramified class). Lifts `brauer_rational`'s 2-torsion
-//!   surface to the full local Brauer group, with [`Brauer2Class`] embedding as the
-//!   `½`-slice ([`BrauerClass::from_two_torsion`]).
+//!   and cyclic-symbol local invariants: [`cyclic_algebra_invariant`]
+//!   (`inv = v(a)/n mod ℤ`, the unramified class) plus
+//!   [`tame_symbol_invariant`] for the tame Kummer slice. Lifts
+//!   `brauer_rational`'s 2-torsion surface to the full local Brauer group, with
+//!   [`Brauer2Class`] embedding as the `½`-slice ([`BrauerClass::from_two_torsion`]).
 //! * `milnor` — Bridge N.1: Milnor residue maps as global Witt invariants.
 //!   [`global_residues`] returns the signature plus the nonzero residues of
 //!   `W(ℚ) → ℤ ⊕ ⊕_p W(F_p)`, including Milnor's hand-defined dyadic cell, and

@@ -17,8 +17,9 @@ use super::engine::{
     SurrealAlgebra,
 };
 use super::scalars::{
-    parse_qp2_4, parse_qp3_4, parse_qp5_4, parse_rational, parse_surcomplex, parse_surreal,
-    wrap_rational, wrap_surreal, PyRational, PySurreal,
+    parse_qp11_4, parse_qp13_4, parse_qp2_4, parse_qp3_4, parse_qp5_4, parse_qp7_4, parse_qq2_4_2,
+    parse_qq2_4_3, parse_qq2_4_4, parse_qq3_4_2, parse_qq3_4_3, parse_qq5_4_2, parse_rational,
+    parse_surcomplex, parse_surreal, wrap_rational, wrap_surreal, PyRational, PySurreal,
 };
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
@@ -2508,6 +2509,80 @@ fn try_isotropy_over_ff_adeles(
 }
 
 #[pyfunction]
+#[pyo3(signature = (p, n, a, b, place=None, degree=1))]
+fn try_tame_symbol_exponent_ff(
+    p: u128,
+    n: u128,
+    a: PyFFRationalFunction,
+    b: PyFFRationalFunction,
+    place: Option<PyFFPoly>,
+    degree: usize,
+) -> PyResult<Option<u128>> {
+    with_finite_odd_field!(p, degree, |F| {
+        let a = parse_ff_rational_function::<F>(&a, "a")?;
+        let b = parse_ff_rational_function::<F>(&b, "b")?;
+        let place = parse_ff_place::<F>(place)?;
+        Ok(crate::forms::try_tame_symbol_exponent_ff(n, &a, &b, &place))
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (p, n, a, b, place=None, degree=1))]
+fn try_tame_symbol_invariant_ff(
+    p: u128,
+    n: u128,
+    a: PyFFRationalFunction,
+    b: PyFFRationalFunction,
+    place: Option<PyFFPoly>,
+    degree: usize,
+) -> PyResult<Option<PyRational>> {
+    with_finite_odd_field!(p, degree, |F| {
+        let a = parse_ff_rational_function::<F>(&a, "a")?;
+        let b = parse_ff_rational_function::<F>(&b, "b")?;
+        let place = parse_ff_place::<F>(place)?;
+        Ok(crate::forms::try_tame_symbol_invariant_ff(n, &a, &b, &place).map(wrap_rational))
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (p, n, a, b, degree=1))]
+fn tame_symbol_invariants_ff(
+    p: u128,
+    n: u128,
+    a: PyFFRationalFunction,
+    b: PyFFRationalFunction,
+    degree: usize,
+) -> PyResult<Option<Vec<(PyFunctionFieldPlace, PyRational)>>> {
+    with_finite_odd_field!(p, degree, |F| {
+        let a = parse_ff_rational_function::<F>(&a, "a")?;
+        let b = parse_ff_rational_function::<F>(&b, "b")?;
+        Ok(
+            crate::forms::tame_symbol_invariants_ff(n, &a, &b).map(|invs| {
+                invs.into_iter()
+                    .map(|(place, inv)| (wrap_ff_place::<F>(place), wrap_rational(inv)))
+                    .collect()
+            }),
+        )
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (p, n, a, b, degree=1))]
+fn tame_symbol_invariant_sum_ff(
+    p: u128,
+    n: u128,
+    a: PyFFRationalFunction,
+    b: PyFFRationalFunction,
+    degree: usize,
+) -> PyResult<Option<PyRational>> {
+    with_finite_odd_field!(p, degree, |F| {
+        let a = parse_ff_rational_function::<F>(&a, "a")?;
+        let b = parse_ff_rational_function::<F>(&b, "b")?;
+        Ok(crate::forms::tame_symbol_invariant_sum_ff(n, &a, &b).map(wrap_rational))
+    })
+}
+
+#[pyfunction]
 #[pyo3(signature = (p, n, a, degree=1))]
 fn constant_extension_invariants(
     p: u128,
@@ -4322,6 +4397,78 @@ fn cyclic_algebra_invariant(
     }
 }
 
+#[pyfunction]
+#[pyo3(signature = (p, n, a, b, degree=1))]
+fn tame_symbol_exponent(
+    p: u128,
+    n: u128,
+    a: &Bound<'_, PyAny>,
+    b: &Bound<'_, PyAny>,
+    degree: usize,
+) -> PyResult<Option<u128>> {
+    macro_rules! dispatch {
+        ($parse:ident) => {{
+            let a = $parse(a)?;
+            let b = $parse(b)?;
+            Ok(crate::forms::tame_symbol_exponent(n, &a, &b))
+        }};
+    }
+
+    match (p, degree) {
+        (2, 1) => dispatch!(parse_qp2_4),
+        (3, 1) => dispatch!(parse_qp3_4),
+        (5, 1) => dispatch!(parse_qp5_4),
+        (7, 1) => dispatch!(parse_qp7_4),
+        (11, 1) => dispatch!(parse_qp11_4),
+        (13, 1) => dispatch!(parse_qp13_4),
+        (2, 2) => dispatch!(parse_qq2_4_2),
+        (2, 3) => dispatch!(parse_qq2_4_3),
+        (2, 4) => dispatch!(parse_qq2_4_4),
+        (3, 2) => dispatch!(parse_qq3_4_2),
+        (3, 3) => dispatch!(parse_qq3_4_3),
+        (5, 2) => dispatch!(parse_qq5_4_2),
+        _ => Err(PyValueError::new_err(
+            "supported tame-symbol local fields: Qp*_4 for p in {2,3,5,7,11,13}, plus Qq2_4_{2,3,4}, Qq3_4_{2,3}, Qq5_4_2",
+        )),
+    }
+}
+
+#[pyfunction]
+#[pyo3(signature = (p, n, a, b, degree=1))]
+fn tame_symbol_invariant(
+    p: u128,
+    n: u128,
+    a: &Bound<'_, PyAny>,
+    b: &Bound<'_, PyAny>,
+    degree: usize,
+) -> PyResult<Option<PyRational>> {
+    macro_rules! dispatch {
+        ($parse:ident) => {{
+            let a = $parse(a)?;
+            let b = $parse(b)?;
+            Ok(crate::forms::tame_symbol_invariant(n, &a, &b).map(wrap_rational))
+        }};
+    }
+
+    match (p, degree) {
+        (2, 1) => dispatch!(parse_qp2_4),
+        (3, 1) => dispatch!(parse_qp3_4),
+        (5, 1) => dispatch!(parse_qp5_4),
+        (7, 1) => dispatch!(parse_qp7_4),
+        (11, 1) => dispatch!(parse_qp11_4),
+        (13, 1) => dispatch!(parse_qp13_4),
+        (2, 2) => dispatch!(parse_qq2_4_2),
+        (2, 3) => dispatch!(parse_qq2_4_3),
+        (2, 4) => dispatch!(parse_qq2_4_4),
+        (3, 2) => dispatch!(parse_qq3_4_2),
+        (3, 3) => dispatch!(parse_qq3_4_3),
+        (5, 2) => dispatch!(parse_qq5_4_2),
+        _ => Err(PyValueError::new_err(
+            "supported tame-symbol local fields: Qp*_4 for p in {2,3,5,7,11,13}, plus Qq2_4_{2,3,4}, Qq3_4_{2,3}, Qq5_4_2",
+        )),
+    }
+}
+
 type PyGlobalResidues = (i128, Vec<(u128, PyWittClassG)>);
 type PyFunctionFieldMilnorResidues = (PyWittClassG, Vec<(PyFunctionFieldPlace, PyWittClassG)>);
 
@@ -5662,6 +5809,10 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(try_is_isotropic_at_place_ff, m)?)?;
     m.add_function(wrap_pyfunction!(try_is_isotropic_ff, m)?)?;
     m.add_function(wrap_pyfunction!(try_isotropy_over_ff_adeles, m)?)?;
+    m.add_function(wrap_pyfunction!(try_tame_symbol_exponent_ff, m)?)?;
+    m.add_function(wrap_pyfunction!(try_tame_symbol_invariant_ff, m)?)?;
+    m.add_function(wrap_pyfunction!(tame_symbol_invariants_ff, m)?)?;
+    m.add_function(wrap_pyfunction!(tame_symbol_invariant_sum_ff, m)?)?;
     m.add_function(wrap_pyfunction!(constant_extension_invariants, m)?)?;
     m.add_function(wrap_pyfunction!(constant_extension_invariant_sum, m)?)?;
     m.add_function(wrap_pyfunction!(char2_monic_irreducible_factors, m)?)?;
@@ -5686,6 +5837,8 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hasse_brauer_class, m)?)?;
     m.add_function(wrap_pyfunction!(clifford_brauer_class, m)?)?;
     m.add_function(wrap_pyfunction!(cyclic_algebra_invariant, m)?)?;
+    m.add_function(wrap_pyfunction!(tame_symbol_exponent, m)?)?;
+    m.add_function(wrap_pyfunction!(tame_symbol_invariant, m)?)?;
     m.add_function(wrap_pyfunction!(global_residues, m)?)?;
     m.add_function(wrap_pyfunction!(global_residues_ff, m)?)?;
     m.add_function(wrap_pyfunction!(isotropy_over_adeles, m)?)?;

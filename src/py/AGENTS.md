@@ -75,7 +75,9 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   `_qq`/`_laurent`/`_ramified_qp4_e{2,3}` + the generic `springer_decompose_local` and
   `springer_decompose_local_char2` dispatchers), the
   rational/p-adic local-global helpers (`hilbert_*`, `hasse_at_place`,
-  `is_isotropic_q`, …), the odd `F_q(t)` layer (`try_*_ff`, `FunctionFieldLocalIsotropy`)
+  `is_isotropic_q`, …), the odd `F_q(t)` layer (`try_*_ff`,
+  `tame_symbol_invariants_ff`, `FunctionFieldLocalIsotropy`), Bridge-K local
+  cyclic-symbol helpers (`cyclic_algebra_invariant`, `tame_symbol_invariant`)
   and the char-2 Artin-Schreier layer (`as_symbol_*`, `Char2FunctionFieldForm`/
   `Char2LocalDecomp` with `Char2PsiTerm`, local/global char-2 isotropy), the
   symplectic/hermitian constructors, the field numeric invariants

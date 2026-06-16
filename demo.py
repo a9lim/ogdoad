@@ -968,6 +968,10 @@ print("  F₅(t) helper checks         :",
       pl.try_hilbert_symbol_ff(5, t, two, [0, 1]),
       pl.try_hilbert_reciprocity_product_ff(5, t, two),
       pl.try_is_isotropic_ff(5, norm_form))
+print("  F₅(t) tame μ₄ symbol        :",
+      pl.try_tame_symbol_invariant_ff(5, 4, t, two, [0, 1]),
+      pl.tame_symbol_invariants_ff(5, 4, t, two),
+      pl.tame_symbol_invariant_sum_ff(5, 4, t, two))
 f2_one = ([1], [1])
 f2_t = ([0, 1], [1])
 print("  F₂(t) factors t²+t+1       :", pl.char2_monic_irreducible_factors([1, 1, 1]))
@@ -1027,6 +1031,8 @@ full = pl.BrauerClass.from_two_torsion(quat)
 print("  Brauer 2-torsion → Q/Z      :", quat.ramified_places(), full.local(), full.invariant_sum())
 print("  unramified cyclic invariant  :",
       pl.cyclic_algebra_invariant(5, 2, pl.Qp5_4.from_p_power(1)))
+print("  tame cyclic symbol over Q₅   :",
+      pl.tame_symbol_invariant(5, 4, pl.Qp5_4.from_int(2), pl.Qp5_4.from_p_power(1)))
 ff_t = ([0, 1], [1])
 print("  Milnor residues over Q/F₅(t):",
       pl.global_residues([3, 5]),
@@ -1034,3 +1040,6 @@ print("  Milnor residues over Q/F₅(t):",
 print("  constant-extension reciprocity:",
       pl.constant_extension_invariants(5, 3, ff_t),
       pl.constant_extension_invariant_sum(5, 3, ff_t))
+print("  tame-symbol reciprocity      :",
+      pl.tame_symbol_invariants_ff(5, 4, ff_t, ([2], [1])),
+      pl.tame_symbol_invariant_sum_ff(5, 4, ff_t, ([2], [1])))

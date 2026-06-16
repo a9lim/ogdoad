@@ -37,10 +37,10 @@
 //!
 //! ## Scope (honest boundaries)
 //!
-//! - **Unramified-at-`v` only** for the `v(a)/n` formula; the ramified local symbol is
-//!   out of scope (the function-field route in
-//!   [`constant_extension_invariants`](crate::forms::constant_extension_invariants)
-//!   delivers full `ℚ/ℤ`-strength reciprocity without it).
+//! - [`cyclic_algebra_invariant`] is **unramified-at-`v` only**: the `v(a)/n`
+//!   formula applies to the unramified cyclic character. The tame Kummer slice is
+//!   separate: [`tame_symbol_exponent`] / [`tame_symbol_invariant`] implement the
+//!   explicit residue tame symbol when `n | |κ*|`. Wild symbols remain out of scope.
 //! - **Ungraded** Brauer group — kept strictly distinct from the graded
 //!   [`BrauerWallClass`](crate::forms::bw_class_real), exactly as Bridge F insists.
 //! - The archimedean place (`Br(ℝ) = ½ℤ/ℤ`) and the finite legs carry no `v(a)/n`
@@ -51,7 +51,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::forms::{Brauer2Class, Place};
-use crate::scalar::{CyclicGaloisExtension, Rational, Scalar, Valued};
+use crate::scalar::{
+    CyclicGaloisExtension, ExactFieldScalar, Fp, Fpn, Rational, ResidueField, Scalar, Valued,
+};
 
 /// The canonical representative in `[0, 1)` of a rational's class mod `ℤ`:
 /// `(num mod den)/den` (the denominator is always `> 0`). Tiny exact arithmetic —
@@ -59,6 +61,143 @@ use crate::scalar::{CyclicGaloisExtension, Rational, Scalar, Valued};
 fn frac_mod_one(r: &Rational) -> Rational {
     Rational::try_new(r.numer().rem_euclid(r.denom()), r.denom())
         .expect("a positive denominator stays valid under rem_euclid")
+}
+
+/// Finite residue fields whose multiplicative group can be enumerated to evaluate
+/// the tame Kummer symbol. This is a form-theory capability, not a new scalar
+/// supertrait: callers use it only when the local field contains the relevant
+/// `n`th roots of unity (`n | |κ*|`).
+pub trait TameSymbolResidueField: ExactFieldScalar + Copy {
+    /// The residue-field order `|κ|`.
+    fn tame_field_order() -> Option<u128>;
+
+    /// Enumerate the field: `i in [0, |κ|)` maps to a distinct element.
+    fn tame_from_index(i: u128) -> Self;
+}
+
+impl<const P: u128> TameSymbolResidueField for Fp<P> {
+    fn tame_field_order() -> Option<u128> {
+        Fp::<P>::modulus_is_prime().then_some(P)
+    }
+
+    fn tame_from_index(i: u128) -> Self {
+        Fp::<P>::from_u128(i)
+    }
+}
+
+impl<const P: u128, const N: usize> TameSymbolResidueField for Fpn<P, N> {
+    fn tame_field_order() -> Option<u128> {
+        Fpn::<P, N>::field_order_checked()
+    }
+
+    fn tame_from_index(mut i: u128) -> Self {
+        let mut coeffs = [0u128; N];
+        for c in &mut coeffs {
+            *c = i % P;
+            i /= P;
+        }
+        Fpn::<P, N>::from_coeffs(&coeffs)
+    }
+}
+
+fn residue_pow<F: TameSymbolResidueField>(mut base: F, mut e: u128) -> F {
+    let mut acc = F::one();
+    while e > 0 {
+        if e & 1 == 1 {
+            acc = acc.mul(&base);
+        }
+        e >>= 1;
+        if e > 0 {
+            base = base.mul(&base);
+        }
+    }
+    acc
+}
+
+fn residue_pow_signed<F: TameSymbolResidueField>(base: F, e: i128) -> Option<F> {
+    if e >= 0 {
+        Some(residue_pow(base, e as u128))
+    } else {
+        Some(residue_pow(base.inv()?, e.unsigned_abs()))
+    }
+}
+
+fn residue_order<F: TameSymbolResidueField>(x: F) -> Option<u128> {
+    if x.is_zero() {
+        return None;
+    }
+    let group = F::tame_field_order()?.checked_sub(1)?;
+    let mut cur = F::one();
+    for k in 1..=group {
+        cur = cur.mul(&x);
+        if cur == F::one() {
+            return Some(k);
+        }
+    }
+    None
+}
+
+fn residue_primitive<F: TameSymbolResidueField>() -> Option<F> {
+    let group = F::tame_field_order()?.checked_sub(1)?;
+    for i in 1..F::tame_field_order()? {
+        let g = F::tame_from_index(i);
+        if residue_order(g) == Some(group) {
+            return Some(g);
+        }
+    }
+    None
+}
+
+fn residue_discrete_log<F: TameSymbolResidueField>(base: F, x: F) -> Option<u128> {
+    if base.is_zero() || x.is_zero() {
+        return None;
+    }
+    let order = residue_order(base)?;
+    let mut cur = F::one();
+    for e in 0..order {
+        if cur == x {
+            return Some(e);
+        }
+        cur = cur.mul(&base);
+    }
+    None
+}
+
+fn residue_tame_raw<F: TameSymbolResidueField>(
+    alpha: i128,
+    beta: i128,
+    a_unit: F,
+    b_unit: F,
+) -> Option<F> {
+    let mut raw = F::one();
+    if alpha.rem_euclid(2) == 1 && beta.rem_euclid(2) == 1 {
+        raw = raw.neg();
+    }
+    raw = raw.mul(&residue_pow_signed(a_unit, beta)?);
+    raw = raw.mul(&residue_pow_signed(b_unit, -alpha)?);
+    Some(raw)
+}
+
+fn residue_tame_symbol_exponent<F: TameSymbolResidueField>(
+    n: u128,
+    alpha: i128,
+    beta: i128,
+    a_unit: F,
+    b_unit: F,
+) -> Option<u128> {
+    if n == 0 {
+        return None;
+    }
+    let group = F::tame_field_order()?.checked_sub(1)?;
+    if group % n != 0 {
+        return None;
+    }
+    if n == 1 {
+        return Some(0);
+    }
+    let raw = residue_tame_raw(alpha, beta, a_unit, b_unit)?;
+    let primitive = residue_primitive::<F>()?;
+    Some(residue_discrete_log(primitive, raw)? % n)
 }
 
 /// The **ungraded** Brauer class with values in `ℚ/ℤ`: the map `v ↦ inv_v` over the
@@ -212,11 +351,48 @@ where
     Some(frac_mod_one(&Rational::try_new(v, n)?))
 }
 
+/// The exponent `e ∈ {0, …, n−1}` of the tame Kummer norm-residue symbol
+/// `(a,b)_v ∈ μ_n`, using the explicit tame formula
+///
+/// ```text
+/// (-1)^{v(a)v(b)} · ac(a)^{v(b)} / ac(b)^{v(a)}  in κ*
+/// ```
+///
+/// projected to `μ_n` by the deterministic primitive-residue generator convention.
+/// The returned exponent means `(a,b)_v = ζ_n^e`, where `ζ_n` is the first primitive
+/// residue-field generator raised to `(|κ*|/n)`.
+///
+/// Returns `None` when `a` or `b` is zero, when `n = 0`, when `n ∤ |κ*|`, or when
+/// the capped local model cannot supply the valuation/angular component. This is
+/// the tame slice only; wild norm-residue symbols stay out of scope.
+pub fn tame_symbol_exponent<K>(n: u128, a: &K, b: &K) -> Option<u128>
+where
+    K: ResidueField,
+    K::Residue: TameSymbolResidueField,
+{
+    let alpha = a.valuation()?;
+    let beta = b.valuation()?;
+    residue_tame_symbol_exponent(n, alpha, beta, a.residue_unit()?, b.residue_unit()?)
+}
+
+/// The local invariant `e/n ∈ ℚ/ℤ` associated to [`tame_symbol_exponent`], reduced
+/// to the canonical representative in `[0,1)`. This is the tamely ramified
+/// counterpart to the unramified [`cyclic_algebra_invariant`] formula.
+pub fn tame_symbol_invariant<K>(n: u128, a: &K, b: &K) -> Option<Rational>
+where
+    K: ResidueField,
+    K::Residue: TameSymbolResidueField,
+{
+    let e = i128::try_from(tame_symbol_exponent(n, a, b)?).ok()?;
+    let ni = i128::try_from(n).ok()?;
+    Some(frac_mod_one(&Rational::try_new(e, ni)?))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::{brauer_local_invariants, try_is_isotropic_at_p};
-    use crate::scalar::{FieldExtension, Qq, Rational, Surcomplex, WittVec};
+    use crate::forms::{brauer_local_invariants, try_hilbert_symbol_qp, try_is_isotropic_at_p};
+    use crate::scalar::{FieldExtension, Fpn, Qq, Rational, Surcomplex, WittVec};
 
     fn half() -> Rational {
         Rational::try_new(1, 2).unwrap()
@@ -415,6 +591,59 @@ mod tests {
         let px = Q9::from_int(3).mul(&x);
         let npx = FieldExtension::norm(&px);
         assert_eq!(cyclic_algebra_invariant::<Q9>(&npx), Some(Rational::zero()));
+    }
+
+    // ───────────────── tame ramified local symbols ─────────────────
+
+    #[test]
+    fn tame_quadratic_symbol_matches_hilbert_symbol_qp() {
+        type Q5 = crate::scalar::Qp<5, 4>;
+        for (a, b) in [(2i128, 5i128), (5, 2), (10, 25), (3, 50), (-5, 2)] {
+            let exp = tame_symbol_exponent(2, &Q5::from_int(a), &Q5::from_int(b)).unwrap();
+            let hilb = try_hilbert_symbol_qp(a, b, 5).unwrap();
+            assert_eq!(exp, if hilb == 1 { 0 } else { 1 }, "a={a}, b={b}");
+            assert_eq!(
+                tame_symbol_invariant(2, &Q5::from_int(a), &Q5::from_int(b)).unwrap(),
+                if hilb == 1 { Rational::zero() } else { half() },
+                "invariant a={a}, b={b}"
+            );
+        }
+    }
+
+    #[test]
+    fn tame_symbol_pins_kummer_sign_convention() {
+        type Q5 = crate::scalar::Qp<5, 4>;
+        let pi = Q5::from_p_power(1);
+        let two = Q5::from_int(2); // first primitive residue generator in F_5*
+        assert_eq!(tame_symbol_exponent(4, &two, &pi), Some(1));
+        assert_eq!(tame_symbol_invariant(4, &two, &pi), Some(q(1, 4)));
+        assert_eq!(
+            tame_symbol_exponent(4, &pi, &two),
+            Some(3),
+            "the requested a^v(b)/b^v(a) convention gives the inverse"
+        );
+        assert_eq!(tame_symbol_invariant(4, &pi, &two), Some(q(3, 4)));
+        assert_eq!(tame_symbol_exponent(3, &two, &pi), None, "3 ∤ |F_5*|");
+        assert_eq!(
+            tame_symbol_exponent(4, &Q5::zero(), &two),
+            None,
+            "0 is outside K*"
+        );
+    }
+
+    #[test]
+    fn tame_symbol_reads_extension_residue_field() {
+        type Q9 = Qq<3, 3, 2>;
+        let pi = Q9::from_p_power(1);
+        let g = Q9::teichmuller(Fpn::<3, 2>::primitive_element());
+        assert_eq!(
+            tame_symbol_exponent(8, &g, &pi),
+            Some(1),
+            "residue field is F_9, so μ_8 is visible"
+        );
+        assert_eq!(tame_symbol_invariant(8, &g, &pi), Some(q(1, 8)));
+        assert_eq!(tame_symbol_exponent(8, &pi, &g), Some(7));
+        assert_eq!(tame_symbol_invariant(8, &pi, &g), Some(q(7, 8)));
     }
 
     // ───────────────── §6 trace-form tie: the degree-2 norm-form oracle ─────────────────

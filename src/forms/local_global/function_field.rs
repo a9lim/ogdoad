@@ -23,7 +23,9 @@
 //!
 //! Entries are elements of [`RationalFunction`] `= F_q(t)`; everything reduces to
 //! [`Poly`] arithmetic over `F_q`, with the residue quadratic character computed by
-//! Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)`.
+//! Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)`. Bridge K's tame Kummer helpers
+//! use the same place data, replacing the quadratic character by the full tame symbol
+//! when `μ_n` already lives in the constant field.
 
 use crate::forms::{is_square_finite, FiniteOddField};
 use crate::scalar::{Poly, Rational, RationalFunction, Scalar};
@@ -391,6 +393,213 @@ fn frac_mod_one_ratio(m: i128, n: i128) -> Option<Rational> {
     Rational::try_new(m.rem_euclid(n), n)
 }
 
+fn finite_pow<S: FiniteOddField>(mut base: S, mut e: u128) -> S {
+    let mut acc = S::one();
+    while e > 0 {
+        if e & 1 == 1 {
+            acc = acc.mul(&base);
+        }
+        e >>= 1;
+        if e > 0 {
+            base = base.mul(&base);
+        }
+    }
+    acc
+}
+
+fn finite_order<S: FiniteOddField>(x: S) -> Option<u128> {
+    if x.is_zero() {
+        return None;
+    }
+    let group = S::field_order().checked_sub(1)?;
+    let mut cur = S::one();
+    for k in 1..=group {
+        cur = cur.mul(&x);
+        if cur == S::one() {
+            return Some(k);
+        }
+    }
+    None
+}
+
+fn constant_field_primitive<S: FiniteOddField>() -> Option<S> {
+    let group = S::field_order().checked_sub(1)?;
+    for i in 1..S::field_order() {
+        let g = S::from_index(i);
+        if finite_order(g) == Some(group) {
+            return Some(g);
+        }
+    }
+    None
+}
+
+fn kappa_mul<S: FiniteOddField>(a: &Poly<S>, b: &Poly<S>, place: &FFPlace<S>) -> Poly<S> {
+    match place {
+        FFPlace::Finite(pi) => a.mul_mod(b, pi),
+        FFPlace::Infinite => Poly::constant(a.coeff(0).mul(&b.coeff(0))),
+    }
+}
+
+fn kappa_pow<S: FiniteOddField>(base: &Poly<S>, mut e: u128, place: &FFPlace<S>) -> Poly<S> {
+    let mut acc = Poly::one();
+    let mut b = base.clone();
+    while e > 0 {
+        if e & 1 == 1 {
+            acc = kappa_mul(&acc, &b, place);
+        }
+        e >>= 1;
+        if e > 0 {
+            b = kappa_mul(&b, &b, place);
+        }
+    }
+    acc
+}
+
+fn kappa_pow_signed<S: FiniteOddField>(
+    base: &Poly<S>,
+    e: i128,
+    place: &FFPlace<S>,
+) -> Option<Poly<S>> {
+    if e >= 0 {
+        Some(kappa_pow(base, e as u128, place))
+    } else {
+        let inv = kappa_pow(base, try_kappa_order(place)?.checked_sub(2)?, place);
+        Some(kappa_pow(&inv, e.unsigned_abs(), place))
+    }
+}
+
+fn tame_symbol_raw_ff<S: FiniteOddField>(
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+    place: &FFPlace<S>,
+) -> Option<Poly<S>> {
+    if a.is_zero() || b.is_zero() {
+        return None;
+    }
+    let alpha = try_valuation_at_ff(a, place)?;
+    let beta = try_valuation_at_ff(b, place)?;
+    let mut raw = if alpha.rem_euclid(2) == 1 && beta.rem_euclid(2) == 1 {
+        Poly::constant(S::one().neg())
+    } else {
+        Poly::one()
+    };
+    raw = kappa_mul(
+        &raw,
+        &kappa_pow_signed(&try_residue_unit_at(a, place)?, beta, place)?,
+        place,
+    );
+    raw = kappa_mul(
+        &raw,
+        &kappa_pow_signed(&try_residue_unit_at(b, place)?, -alpha, place)?,
+        place,
+    );
+    Some(raw)
+}
+
+fn kappa_log_with_order<S: FiniteOddField>(
+    base: &Poly<S>,
+    x: &Poly<S>,
+    order: u128,
+    place: &FFPlace<S>,
+) -> Option<u128> {
+    let mut cur = Poly::one();
+    for e in 0..order {
+        if cur == *x {
+            return Some(e);
+        }
+        cur = kappa_mul(&cur, base, place);
+    }
+    None
+}
+
+/// The exponent `e ∈ {0, …, n−1}` of the tame Kummer symbol `(a,b)_v = ζ_n^e`
+/// over the completion of `F_q(t)` at `place`. The primitive root `ζ_n` is chosen
+/// in the **constant field** `F_q` (the first primitive generator of `F_q*`, raised
+/// to `(q−1)/n`) and then embedded into each residue field, so exponents at
+/// different places share one reciprocity convention.
+///
+/// Returns `None` when `a` or `b` is zero, `n = 0`, or `n ∤ q−1`; the last condition
+/// is the tame Kummer boundary `μ_n ⊂ F_q`.
+pub fn try_tame_symbol_exponent_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+    place: &FFPlace<S>,
+) -> Option<u128> {
+    if n == 0 {
+        return None;
+    }
+    let constant_group = S::field_order().checked_sub(1)?;
+    if constant_group % n != 0 {
+        return None;
+    }
+    if n == 1 {
+        return Some(0);
+    }
+    let raw = tame_symbol_raw_ff(a, b, place)?;
+    let residue_group = try_kappa_order(place)?.checked_sub(1)?;
+    let value = kappa_pow(&raw, residue_group.checked_div(n)?, place);
+    let zeta = finite_pow(
+        constant_field_primitive::<S>()?,
+        constant_group.checked_div(n)?,
+    );
+    kappa_log_with_order(&Poly::constant(zeta), &value, n, place)
+}
+
+/// The local invariant `e/n ∈ ℚ/ℤ` attached to
+/// [`try_tame_symbol_exponent_ff`], reduced to `[0,1)`.
+pub fn try_tame_symbol_invariant_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+    place: &FFPlace<S>,
+) -> Option<Rational> {
+    let e = i128::try_from(try_tame_symbol_exponent_ff(n, a, b, place)?).ok()?;
+    let ni = i128::try_from(n).ok()?;
+    frac_mod_one_ratio(e, ni)
+}
+
+/// The nonzero tame-symbol local invariants of the Kummer cyclic class over
+/// `F_q(t)`, for `μ_n ⊂ F_q`. This is the ramified tame counterpart to
+/// [`constant_extension_invariants`]: it uses the tame symbol at zeros and poles of
+/// `a` and `b`, and leaves the wild case out.
+pub fn tame_symbol_invariants_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+) -> Option<Vec<(FFPlace<S>, Rational)>> {
+    if a.is_zero() || b.is_zero() || n == 0 {
+        return None;
+    }
+    if S::field_order().checked_sub(1)? % n != 0 {
+        return None;
+    }
+    let mut out = Vec::new();
+    for place in try_relevant_places_ff(&[a.clone(), b.clone()])? {
+        let inv = try_tame_symbol_invariant_ff(n, a, b, &place)?;
+        if !inv.is_zero() {
+            out.push((place, inv));
+        }
+    }
+    Some(out)
+}
+
+/// The reciprocity sum `∑_v inv_v` mod `ℤ` of the tame Kummer symbol over
+/// `F_q(t)`. With the constant-field `ζ_n` convention used by
+/// [`try_tame_symbol_exponent_ff`], this is `0` for nonzero `a,b` whenever
+/// `μ_n ⊂ F_q`.
+pub fn tame_symbol_invariant_sum_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+) -> Option<Rational> {
+    let invs = tame_symbol_invariants_ff(n, a, b)?;
+    let sum = invs
+        .into_iter()
+        .fold(Rational::from_int(0), |acc, (_, inv)| acc.add(&inv));
+    frac_mod_one_ratio(sum.numer(), sum.denom())
+}
+
 /// The local invariants `inv_v = deg(v)·v(a)/n (mod ℤ)` of the **constant-extension**
 /// cyclic algebra `(χ_σ, a)` over `K = F_q(t)`, where `E = F_{qⁿ}(t)` is the degree-`n`
 /// constant extension and `σ` is the `q`-power Frobenius. This is Bridge K at full
@@ -661,6 +870,75 @@ mod tests {
                 layer.valuation
             );
         }
+    }
+
+    #[test]
+    fn tame_symbol_quadratic_slice_matches_hilbert_symbol() {
+        let samples = [
+            rf(&[0, 1], &[1]),    // t
+            rf(&[2], &[1]),       // nonsquare constant
+            rf(&[1, 1], &[1]),    // t+1
+            rf(&[0, 1], &[1, 1]), // t/(t+1)
+        ];
+        let places = [
+            FFPlace::Infinite,
+            FFPlace::Finite(poly(&[0, 1])),
+            FFPlace::Finite(poly(&[1, 1])),
+            FFPlace::Finite(poly(&[2, 0, 1])),
+        ];
+        for a in &samples {
+            for b in &samples {
+                for place in &places {
+                    let exp = try_tame_symbol_exponent_ff(2, a, b, place).unwrap();
+                    let hilb = try_hilbert_symbol_ff(a, b, place).unwrap();
+                    assert_eq!(
+                        exp,
+                        if hilb == 1 { 0 } else { 1 },
+                        "quadratic tame slice at {place:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn tame_symbol_degree_four_convention_and_reciprocity() {
+        let t = rf(&[0, 1], &[1]);
+        let two = rf(&[2], &[1]); // first primitive generator of F_5*
+        let at_t = FFPlace::Finite(poly(&[0, 1]));
+
+        assert_eq!(try_tame_symbol_exponent_ff(4, &two, &t, &at_t), Some(1));
+        assert_eq!(
+            try_tame_symbol_invariant_ff(4, &two, &t, &at_t),
+            Some(Rational::try_new(1, 4).unwrap())
+        );
+        assert_eq!(
+            try_tame_symbol_exponent_ff(4, &t, &two, &at_t),
+            Some(3),
+            "a^v(b)/b^v(a) makes the swapped symbol inverse"
+        );
+        assert_eq!(
+            try_tame_symbol_invariant_ff(4, &t, &two, &at_t),
+            Some(Rational::try_new(3, 4).unwrap())
+        );
+
+        let invs = tame_symbol_invariants_ff(4, &t, &two).unwrap();
+        assert_eq!(invs.len(), 2, "finite t-place plus infinity");
+        assert!(invs.contains(&(
+            FFPlace::Finite(poly(&[0, 1])),
+            Rational::try_new(3, 4).unwrap()
+        )));
+        assert!(invs.contains(&(FFPlace::Infinite, Rational::try_new(1, 4).unwrap())));
+        assert_eq!(
+            tame_symbol_invariant_sum_ff(4, &t, &two),
+            Some(Rational::zero())
+        );
+        assert_eq!(
+            tame_symbol_invariants_ff(3, &t, &two),
+            None,
+            "3 is tame at some residue extensions but μ_3 is not in F_5"
+        );
+        assert_eq!(tame_symbol_invariants_ff(4, &F::zero(), &two), None);
     }
 
     #[test]

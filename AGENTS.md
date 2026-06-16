@@ -181,9 +181,12 @@ Brown `ℤ/8` invariant — the char-2 cell of the mod-8 spine (`char2/brown.rs`
 giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms). The
 fifth-wave Bridge K is shipped too: the full `ℚ/ℤ` ungraded Brauer invariant
 (`witt/cyclic.rs`: `BrauerClass` + `cyclic_algebra_invariant` = `v(a)/n` for the
-unramified local cyclic class over the `Qq` leg) with full-strength reciprocity over
-`F_q(t)` (`constant_extension_invariants`, `Σ_v deg(v)·v(a)/n = 0`); it lifts the
-2-torsion `Brauer2Class` (which embeds as its `½`-slice) to the full local Brauer group.
+unramified local cyclic class over the `Qq` leg, plus `tame_symbol_exponent` /
+`tame_symbol_invariant` for the tame Kummer slice) with full-strength reciprocity over
+`F_q(t)` (`constant_extension_invariants`, `Σ_v deg(v)·v(a)/n = 0`, and
+`tame_symbol_invariants_ff` / `tame_symbol_invariant_sum_ff` for `μ_n ⊂ F_q`); it
+lifts the 2-torsion `Brauer2Class` (which embeds as its `½`-slice) to the full local
+Brauer group. Wild norm-residue symbols remain deferred.
 
 The checked game-Clifford deformation surface is implemented as an engineering
 bridge, not as a game-native scalar claim. `GameClifford::with_quadratic_data` accepts

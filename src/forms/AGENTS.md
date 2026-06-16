@@ -160,11 +160,14 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
   `local_invariant`/`from_local`, plus the Bridge F embedding `from_two_torsion`/
   `two_torsion`) and `cyclic_algebra_invariant::<E: CyclicGaloisExtension>(a)` where
   `E::Base: Valued` = `v(a)/n mod ℤ` for the unramified local cyclic class (monomorphized
-  at `Qq`; reads only the valuation, so exact even on the capped model). The 2-torsion
-  `Brauer2Class` is the `½`-slice. The full-strength `F_q(t)` reciprocity leg
-  (`constant_extension_invariants`) lives in `local_global/function_field.rs`; the
-  degree-2 norm-form oracle ties `inv` to the Hasse–Minkowski layer. Ungraded, distinct
-  from `BrauerWallClass`; finite legs carry no Brauer content (Wedderburn).
+  at `Qq`; reads only the valuation, so exact even on the capped model). The tame Kummer
+  slice is separate: `tame_symbol_exponent` / `tame_symbol_invariant` use valuation +
+  angular component over `ResidueField` legs when `n | |κ*|`; wild symbols stay deferred.
+  The 2-torsion `Brauer2Class` is the `½`-slice. The full-strength `F_q(t)` reciprocity
+  legs (`constant_extension_invariants`, `tame_symbol_invariants_ff`) live in
+  `local_global/function_field.rs`; the degree-2 norm-form oracle ties `inv` to the
+  Hasse–Minkowski layer. Ungraded, distinct from `BrauerWallClass`; finite legs carry no
+  Brauer content (Wedderburn).
 - **`witt/milnor.rs`** — Milnor's map `W(ℚ) → ℤ ⊕ ⊕_p W(F_p)` as a computational
   complete invariant: `global_residues` returns the signature plus all nonzero
   residues. Odd `p` uses the second Springer residue; `p=2` uses Milnor's hand
@@ -236,13 +239,15 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   `p=2` branch since `q` is odd), reciprocity `try_hilbert_reciprocity_product_ff`,
   `try_is_isotropic_ff`/`try_is_isotropic_at_place_ff`/`try_isotropy_over_ff_adeles`
   (Hasse–Minkowski, u-invariant 4 like `Q_p`, but **no archimedean place** ⇒ no
-  definiteness condition), `try_ramified_places_ff` (even count). Names carry `_ff`
-  where `padic.rs` collides. Exact (the product formula is `deg`-counting); odd
+  definiteness condition), `try_ramified_places_ff` (even count), and the tame Kummer
+  surface `try_tame_symbol_exponent_ff` / `try_tame_symbol_invariant_ff`. Names carry
+  `_ff` where `padic.rs` collides. Exact (the product formula is `deg`-counting); odd
   residue char only. Cross-checked against `springer_decompose_laurent`. Also carries
-  Bridge K's full-`ℚ/ℤ` reciprocity leg `constant_extension_invariants(n, a)`
+  Bridge K's full-`ℚ/ℤ` reciprocity legs: `constant_extension_invariants(n, a)`
   (`inv_v = deg(v)·v(a)/n`, the constant extension `F_{qⁿ}(t)` — unramified at every
-  place, so `Σ_v inv_v = deg(div a)/n = 0` with no ramified symbol) +
-  `constant_extension_invariant_sum`; returns a `Vec` since `FFPlace` is not `Ord`.
+  place, so `Σ_v inv_v = deg(div a)/n = 0`) and
+  `tame_symbol_invariants_ff(n, a, b)` when `μ_n ⊂ F_q`; both return a `Vec` since
+  `FFPlace` is not `Ord`.
 - **`local_global/function_field_char2.rs`** — the **equal-characteristic-2** mirror:
   the **asymmetric Artin–Schreier symbol** `[a,b)` over `F_{2^m}(t)` (`a` additive mod
   `℘`, `b` multiplicative), NOT the tame symbol. Local invariant = the **Schmid
