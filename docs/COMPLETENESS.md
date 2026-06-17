@@ -62,15 +62,6 @@ to a class statement in exactly that regime. No adelic machinery; just the predi
 its citation (Eichler; Cassels), and tests on indefinite Grams. The full definite
 computation stays `*1`.
 
-### ½·e_i: `reed-muller`
-**Reed–Muller codes + `BW₁₆` via the shipped Construction D** — the Construction-D surface
-currently ships only the toy `0 ≤ H_8` two-level tower; the Reed–Muller chain
-`RM(0,m) ⊂ RM(1,m) ⊂ … ⊂ RM(m,m)` is the classical nested family Construction D was built
-for, and `RM(1,4) ⊂ RM(2,4)` gives the **Barnes–Wall lattice `BW₁₆`** with its catalogued
-det/minimum/kissing. A small, pure-`integral/` completion that turns the demo into a named
-lattice — and supplies the code-side route into the `clifford-lattices` bridge
-(`CONTINUATIONS.md`), where `BW₁₆` reappears as a Clifford-group invariant.
-
 ## numbers — scalar worlds
 
 ### ½·e_s: `hyperfield`

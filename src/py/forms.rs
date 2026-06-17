@@ -4913,6 +4913,16 @@ impl PyBinaryCode {
             .ok_or_else(|| PyValueError::new_err("repetition code requires n > 0"))
     }
     #[staticmethod]
+    fn reed_muller(order: usize, variables: usize) -> PyResult<Self> {
+        crate::forms::reed_muller_code(order, variables)
+            .map(|inner| PyBinaryCode { inner })
+            .ok_or_else(|| {
+                PyValueError::new_err(
+                    "Reed-Muller code requires order <= variables and an allocatable generator matrix",
+                )
+            })
+    }
+    #[staticmethod]
     fn type_i_z2() -> Self {
         PyBinaryCode {
             inner: crate::forms::type_i_z2_code(),
@@ -5034,6 +5044,11 @@ fn repetition_code(n: usize) -> PyResult<PyBinaryCode> {
 }
 
 #[pyfunction]
+fn reed_muller_code(order: usize, variables: usize) -> PyResult<PyBinaryCode> {
+    PyBinaryCode::reed_muller(order, variables)
+}
+
+#[pyfunction]
 fn type_i_z2_code() -> PyBinaryCode {
     PyBinaryCode::type_i_z2()
 }
@@ -5076,6 +5091,13 @@ fn extended_golay_generator_rows() -> Vec<Vec<u8>> {
 #[pyfunction]
 fn construction_d(codes: Vec<PyBinaryCode>) -> Option<PyIntegralForm> {
     PyBinaryCode::construction_d(codes)
+}
+
+#[pyfunction]
+fn barnes_wall_16() -> PyIntegralForm {
+    PyIntegralForm {
+        inner: crate::forms::barnes_wall_16(),
+    }
 }
 
 fn prime_code_from_rows<const P: u128>(
@@ -6283,6 +6305,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(global_residues_ff, m)?)?;
     m.add_function(wrap_pyfunction!(isotropy_over_adeles, m)?)?;
     m.add_function(wrap_pyfunction!(repetition_code, m)?)?;
+    m.add_function(wrap_pyfunction!(reed_muller_code, m)?)?;
     m.add_function(wrap_pyfunction!(type_i_z2_code, m)?)?;
     m.add_function(wrap_pyfunction!(type_i_z2_plus_e8_code, m)?)?;
     m.add_function(wrap_pyfunction!(hamming_code, m)?)?;
@@ -6292,6 +6315,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(golay_code, m)?)?;
     m.add_function(wrap_pyfunction!(extended_golay_generator_rows, m)?)?;
     m.add_function(wrap_pyfunction!(construction_d, m)?)?;
+    m.add_function(wrap_pyfunction!(barnes_wall_16, m)?)?;
     m.add_function(wrap_pyfunction!(ternary_golay_code, m)?)?;
     m.add_function(wrap_pyfunction!(d16_plus, m)?)?;
     m.add_function(wrap_pyfunction!(a_n, m)?)?;

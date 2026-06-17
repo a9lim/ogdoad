@@ -902,6 +902,12 @@ d_hamming = pl.construction_d([pl.BinaryCode(8, []), code])
 print("  Constructions B/D            :",
       b_golay.determinant(), len(b_golay.short_vectors(2)),
       d_hamming.determinant(), d_hamming.is_even())
+rm1 = pl.BinaryCode.reed_muller(1, 4)
+rm2 = pl.reed_muller_code(2, 4)
+bw16 = pl.barnes_wall_16()
+print("  Reed-Muller/BW16             :",
+      rm1.dim(), rm2.dim(), rm2.contains(rm1),
+      bw16.determinant(), bw16.minimum(), bw16.kissing_number())
 ternary = pl.PrimeCode.ternary_golay()
 ternary_lattice = ternary.construction_a()
 print("  ternary Golay Construction A :",

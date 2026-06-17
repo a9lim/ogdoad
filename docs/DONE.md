@@ -158,6 +158,28 @@ and scaled D beside Construction A.
   increasing equal-length binary-code tower and keeps the same `None` boundary
   for invalid or non-integral Grams as the existing Construction A surface.
 
+### ½·e_i: `reed-muller`
+**Completed:** 2026-06-17
+**Summary:** Reed-Muller codes now give the named Construction-D route to
+the Barnes-Wall lattice `BW16`.
+**Pillars:** integral    **Claim level:** standard math, implemented and tested
+- surface: `reed_muller_code(order, variables)` builds `RM(order, variables)`
+  from squarefree monomial evaluations over `F_2^m`, and `barnes_wall_16()`
+  returns the Construction-D lattice from the Reed-Muller tower; Python mirrors
+  both as `BinaryCode.reed_muller`, module-level `reed_muller_code`, and
+  `barnes_wall_16`.
+- oracles: `RM(r,4)` has dimensions `1,5,11,15,16`, minimum distances
+  `16,8,4,2,1`, and the expected nesting chain. In the crate's scaled
+  Construction-D convention the determinant-256 Barnes-Wall normalization is
+  `RM(0,4) <= RM(2,4)`, with minimum 4 and kissing number 4320; the adjacent
+  `RM(1,4) <= RM(2,4)` tower is separately pinned as the even unimodular
+  rank-16 normalization with determinant 1, minimum 2, and kissing number 480.
+- boundaries: the Reed-Muller generator matrix is generated, not a curated
+  runtime table; invalid orders or unallocatable explicit matrices return
+  `None` / `ValueError`. This is the code/lattice route into the future
+  `clifford-lattices` continuation, not the Clifford-group invariant proof
+  itself.
+
 ### 2·e_c: `spinor-gauge`
 **Completed:** 2026-06-16
 **Summary:** characteristic-0 spinor reps and reversion now pass through the

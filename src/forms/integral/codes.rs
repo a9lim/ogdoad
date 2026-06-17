@@ -13,6 +13,9 @@
 //! boundary. Type I self-dual codes give odd unimodular lattices, while Type II
 //! self-dual codes give even unimodular lattices. The same explicit integer-Gram
 //! boundary is used for Construction B and the scaled nested-code Construction D.
+//! The generated Reed-Muller family supplies the classical nested towers; in
+//! the scaled Construction-D convention used here, `RM(0,4) <= RM(2,4)` gives
+//! the determinant-256 Barnes-Wall lattice `BW16`.
 //!
 //! Odd-prime codes use [`PrimeCode`]. Their Construction A is the direct
 //! `p`-ary analogue `(1/sqrt(p)){x in Z^n : x mod p in C}`; it is an
@@ -187,6 +190,18 @@ fn binomial(n: usize, k: usize) -> i128 {
             / i as i128;
     }
     out
+}
+
+fn binomial_usize_checked(n: usize, k: usize) -> Option<usize> {
+    if k > n {
+        return Some(0);
+    }
+    let k = k.min(n - k);
+    let mut out = 1usize;
+    for i in 1..=k {
+        out = out.checked_mul(n - k + i)? / i;
+    }
+    Some(out)
 }
 
 fn convolve_i128(a: &[i128], b: &[i128], terms: usize) -> Vec<i128> {
@@ -865,6 +880,52 @@ pub fn construction_d(codes: &[BinaryCode]) -> Option<IntegralForm> {
     divided_lattice_from_rows(rows, n, divisor)
 }
 
+/// The binary Reed-Muller code `RM(order, variables)`.
+///
+/// Generator rows are evaluations of all squarefree monomials of degree at
+/// most `order` on `F_2^variables`. Returns `None` when `order > variables` or
+/// the explicit generator matrix cannot be allocated.
+pub fn reed_muller_code(order: usize, variables: usize) -> Option<BinaryCode> {
+    if order > variables {
+        return None;
+    }
+    let shift = u32::try_from(variables).ok()?;
+    let n = 1usize.checked_shl(shift)?;
+    let mut rows = Vec::new();
+    rows.try_reserve_exact(
+        (0..=order)
+            .map(|degree| binomial_usize_checked(variables, degree))
+            .try_fold(0usize, |acc, x| acc.checked_add(x?))?,
+    )
+    .ok()?;
+    for degree in 0..=order {
+        for monomial in 0..n {
+            if monomial.count_ones() as usize != degree {
+                continue;
+            }
+            let mut row = Vec::new();
+            row.try_reserve_exact(n).ok()?;
+            for point in 0..n {
+                row.push(u8::from(point & monomial == monomial));
+            }
+            rows.push(row);
+        }
+    }
+    BinaryCode::new(n, rows)
+}
+
+/// The Barnes-Wall lattice `BW16`, built as Construction D from
+/// `RM(0,4) <= RM(2,4)`.
+///
+/// With this crate's scaled Construction-D convention the adjacent tower
+/// `RM(1,4) <= RM(2,4)` gives the even unimodular rank-16 normalization
+/// instead.
+pub fn barnes_wall_16() -> IntegralForm {
+    let rm0 = reed_muller_code(0, 4).expect("RM(0,4) exists");
+    let rm2 = reed_muller_code(2, 4).expect("RM(2,4) exists");
+    construction_d(&[rm0, rm2]).expect("RM(0,4) <= RM(2,4) gives an integral lattice")
+}
+
 /// The binary Hamming `[7,4,3]` code.
 pub fn hamming_code() -> BinaryCode {
     BinaryCode::new(
@@ -1119,6 +1180,48 @@ mod tests {
         assert_eq!(tower.determinant(), 256);
         assert!(tower.short_vectors(2).unwrap().is_empty());
         assert!((0..tower.dim()).any(|i| tower.gram()[i][i] == 4));
+    }
+
+    #[test]
+    fn reed_muller_codes_have_classical_parameters_and_nesting() {
+        let expected = [
+            (0, 1, Some(16)),
+            (1, 5, Some(8)),
+            (2, 11, Some(4)),
+            (3, 15, Some(2)),
+            (4, 16, Some(1)),
+        ];
+        let mut previous = None;
+        for (order, dim, distance) in expected {
+            let code = reed_muller_code(order, 4).expect("RM(order,4) exists");
+            assert_eq!(code.len(), 16);
+            assert_eq!(code.dim(), dim);
+            assert_eq!(code.minimum_distance(), distance);
+            if let Some(prev) = &previous {
+                assert!(code.contains(prev));
+            }
+            previous = Some(code);
+        }
+        assert!(reed_muller_code(5, 4).is_none());
+    }
+
+    #[test]
+    fn reed_muller_construction_d_gives_barnes_wall_16() {
+        let rm0 = reed_muller_code(0, 4).unwrap();
+        let rm2 = reed_muller_code(2, 4).unwrap();
+        let bw = barnes_wall_16();
+        assert_eq!(construction_d(&[rm0, rm2]).unwrap().gram(), bw.gram());
+        assert_eq!(bw.dim(), 16);
+        assert!(bw.is_even());
+        assert_eq!(bw.determinant(), 256);
+        assert_eq!(bw.minimum(), Some(4));
+        assert_eq!(bw.kissing_number(), Some(4320));
+
+        let rm1 = reed_muller_code(1, 4).unwrap();
+        let unimodular = construction_d(&[rm1, reed_muller_code(2, 4).unwrap()]).unwrap();
+        assert_eq!(unimodular.determinant(), 1);
+        assert_eq!(unimodular.minimum(), Some(2));
+        assert_eq!(unimodular.kissing_number(), Some(480));
     }
 
     #[test]

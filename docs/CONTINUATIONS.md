@@ -49,13 +49,14 @@ it is exactly the Barnes–Wall story. `BW_{2^m}` is the ℤ-lattice stabilized 
 Clifford group** (the normalizer of the extraspecial `2^{1+2m}` inside `O(2^m)`), and its
 automorphism group *is* that Clifford group (Nebe–Rains–Sloane, *The invariants of the
 Clifford groups*, IEEE-IT 2001). The concrete buildable path reuses shipped machinery end
-to end: `RM(1,m) ⊂ RM(2,m)` (the `reed-muller` codes in `COMPLETENESS.md`) → Construction D
-→ `BW_{2^m}`, then verify the lattice is the ℤ-span of the Clifford/Pin module's weight
-vectors and that `|Aut|` matches the Clifford-group order. This closes the one missing
-bridge *direction* in the README's traveller's catalog (A is I→C; this is C→I) and ties the
-mod-8/`E₈`/Bott spine — already shared by both pillars — to an explicit lattice on the
-Clifford side. On-thesis, standard math; the work is the spinor-module-to-lattice
-identification, not new theory. Sits beside `extraspecial` (`COMPLETENESS.md`): that builds
+to end: the generated Reed-Muller codes and `barnes_wall_16` route from `DONE.md` →
+Construction-D Barnes-Wall lattices → verify the lattice is the ℤ-span of the
+Clifford/Pin module's weight vectors and that `|Aut|` matches the Clifford-group order.
+This closes the one missing bridge *direction* in the README's traveller's catalog (A is
+I→C; this is C→I) and ties the mod-8/`E₈`/Bott spine — already shared by both pillars —
+to an explicit lattice on the Clifford side. On-thesis, standard math; the work is the
+spinor-module-to-lattice identification, not new theory. Sits beside `extraspecial`
+(`COMPLETENESS.md`): that builds
 the group, this builds the lattice it stabilizes.
 
 ### 2·(e_f∧e_i): `z4-codes`

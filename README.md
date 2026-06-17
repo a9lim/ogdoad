@@ -131,12 +131,13 @@ Clifford classifier directly comparable in the core. Odd lattices carry the para
 Blij report. Conway-Sloane `p`-adic genus symbols, including the corrected 2-adic
 train/compartment/oddity calculus, give the integral genus comparison without
 discriminant-form search budgets. The same leg crosses the code/theta boundary —
-binary and odd-prime codes feed Construction A lattices, exact even theta series
-are identified inside `ℂ[E4, E6]`, odd theta gets the norm-indexed level-4 head,
-`D16+` and `E8 ⊕ E8` share the `E4²` theta series, ternary Golay pins an odd
-unimodular rank-12 p-ary Construction-A lattice, Leech is pinned by rootlessness
-in weight 12, and the Niemeier catalogue checks the rank-24 mass and weighted
-theta average against `E12` with the 691 coefficient. Discriminant forms
+binary and odd-prime codes feed Construction A lattices, Reed-Muller codes feed
+Construction D and the named `BW16` lattice, exact even theta series are identified
+inside `ℂ[E4, E6]`, odd theta gets the norm-indexed level-4 head, `D16+` and
+`E8 ⊕ E8` share the `E4²` theta series, ternary Golay pins an odd unimodular
+rank-12 p-ary Construction-A lattice, Leech is pinned by rootlessness in weight
+12, and the Niemeier catalogue checks the rank-24 mass and weighted theta average
+against `E12` with the 691 coefficient. Discriminant forms
 expose Weil `S`/`T` matrices with the Milgram phase recovered from the standard
 conjugate `S` prefactor.
 
@@ -247,8 +248,8 @@ breakdown:
 - `src/forms/` — the quadratic-form classifiers across the characteristic
   trichotomy, plus Witt/Brauer–Wall, the Springer trio, `local_global/` for
   Hasse–Minkowski and Hilbert symbols, and `integral/` for lattices, genus,
-  discriminant forms, Weil matrices, codes/Construction A, theta/modular forms,
-  `D16+`, Leech, and the Niemeier catalogue.
+  discriminant forms, Weil matrices, codes/Construction A/D, theta/modular forms,
+  Reed-Muller `BW16`, `D16+`, Leech, and the Niemeier catalogue.
 - `src/games/` — normal-, misère-, and loopy-play impartial games, finite
   loopy-partizan graphs, short partizan games, thermography/atomic weight,
   Hackenbush, the exterior algebra of the game group, and the checked integer

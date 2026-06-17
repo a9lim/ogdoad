@@ -42,6 +42,10 @@ Recorded so a future sweep does not re-flag them as gaps:
 - **Local Hilbert-symbol factors** `eps(u) = (u-1)/2 mod 2` and `omega(u) = (u^2-1)/8 mod 2`
   (`forms/local_global/padic.rs::{eps2, omega2}`) are closed-form number-theoretic
   functions, not curated data.
+- **Reed-Muller generator matrices** (`forms/integral/codes.rs::reed_muller_code`)
+  are generated from squarefree monomial evaluations over `F_2^m`; the shipped
+  `BW16` constructor consumes that generated family rather than adding a new
+  curated code table.
 - **The ogham language surface** — the world catalogue, builtin-function names, and reserved
   keywords (`src/ogham/{eval,parse,lex}.rs`) — is public API vocabulary but is owned by the
   language spec `docs/ogham/ogham.md`, not this inventory.

@@ -130,7 +130,11 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   determinant-4 rootless half-Leech lattice with minimum 4. `construction_d` is the
   scaled increasing tower `(C0 + 2C1 + ... + 2^(a-1)C_{a-1} + 2^a Z^n)/sqrt(2^a)`;
   one level recovers Construction A, non-nested towers return `None`, and the
-  `0 <= H_8` two-level tower is pinned by determinant/minimum.
+  `0 <= H_8` two-level tower is pinned by determinant/minimum. `reed_muller_code`
+  generates `RM(r,m)` from squarefree monomial evaluations; under this scaled
+  convention `barnes_wall_16()` uses `RM(0,4) <= RM(2,4)` and is pinned by
+  determinant 256, minimum 4, and kissing number 4320, while
+  `RM(1,4) <= RM(2,4)` is the even unimodular rank-16 normalization.
   `theta_series_via_weight_enumerator` builds the Construction A theta series straight
   from the Hamming weight enumerator (`None` outside the doubly-even boundary). Type I
   witnesses are `repetition_code(2)` / `type_i_z2_code` (Construction A gives an odd
