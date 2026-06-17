@@ -18,6 +18,10 @@
 //!     ungraded Brauer component, dimension parity, and signed discriminant. The
 //!     Brauer component is Bridge F's Clifford invariant `c(q)`, while the
 //!     quotient law is the twisted product on `Z/2 x Q*/Q*²`.
+//!   * **`BW(F_q(t))`, odd `q`** — the exact equal-characteristic global-field
+//!     mirror of the rational surface: the same Wall coordinates, with the
+//!     ungraded Brauer component represented by the ramified places of the
+//!     function-field Hilbert-symbol layer.
 //!   * **`BW(F_q)`, odd `q`** — finite fields have trivial Brauer group, so
 //!     `BW(F_q)` is the order-4 graded part, *isomorphic to* `W(F_q)`: `ℤ/4` when
 //!     `−1` is a nonsquare (`q ≡ 3 mod 4`) and `ℤ/2 × ℤ/2` when it is a square
@@ -35,10 +39,10 @@
 use crate::clifford::Metric;
 use crate::forms::{
     as_diagonal, classify_surcomplex, classify_surreal, clifford_brauer_class, finite_odd_witt,
-    try_disc_class, try_square_free, Brauer2Class, FiniteOddField, Place, WittClassG,
-    WittClassGError,
+    try_disc_class, try_hasse_at_place_ff, try_ramified_places_ff, try_relevant_places_ff,
+    try_square_free, Brauer2Class, FFPlace, FiniteOddField, Place, WittClassG, WittClassGError,
 };
-use crate::scalar::{Nimber, Rational, Scalar, Surcomplex, Surreal};
+use crate::scalar::{Nimber, Rational, RationalFunction, Scalar, Surcomplex, Surreal};
 
 /// Reason a [`BrauerWallClass::try_add`] call returned `Err`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -113,6 +117,200 @@ pub struct RationalBrauerWallClass {
     dimension_parity: u128,
     signed_discriminant: i128,
     clifford_brauer_class: Brauer2Class,
+}
+
+/// The ungraded 2-torsion Brauer class over `F_q(t)`, represented by the finite
+/// set of ramified places where the local invariant is `1/2`.
+#[derive(Debug, Clone)]
+pub struct FunctionFieldBrauer2Class<S: FiniteOddField> {
+    ramified: Vec<FFPlace<S>>,
+}
+
+impl<S: FiniteOddField> PartialEq for FunctionFieldBrauer2Class<S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.ramified.len() == other.ramified.len()
+            && self.ramified.iter().all(|p| other.ramified.contains(p))
+    }
+}
+
+impl<S: FiniteOddField> Eq for FunctionFieldBrauer2Class<S> {}
+
+impl<S: FiniteOddField> FunctionFieldBrauer2Class<S> {
+    /// The split class, ramified nowhere.
+    pub fn split() -> Self {
+        FunctionFieldBrauer2Class {
+            ramified: Vec::new(),
+        }
+    }
+
+    /// Build a class from ramified places, deduplicating by place equality.
+    pub fn from_ramified_places(places: Vec<FFPlace<S>>) -> Self {
+        let mut ramified = Vec::new();
+        for place in places {
+            if !ramified.contains(&place) {
+                ramified.push(place);
+            }
+        }
+        FunctionFieldBrauer2Class { ramified }
+    }
+
+    /// Whether this is the split class.
+    pub fn is_split(&self) -> bool {
+        self.ramified.is_empty()
+    }
+
+    /// The ramified places.
+    pub fn ramified_places(&self) -> &[FFPlace<S>] {
+        &self.ramified
+    }
+
+    /// Brauer-group addition: symmetric difference of ramification sets.
+    pub fn add(&self, other: &Self) -> Self {
+        let mut ramified = self.ramified.clone();
+        for place in &other.ramified {
+            if let Some(pos) = ramified.iter().position(|p| p == place) {
+                ramified.remove(pos);
+            } else {
+                ramified.push(place.clone());
+            }
+        }
+        FunctionFieldBrauer2Class { ramified }
+    }
+
+    /// Local invariant at a place, in `{0, 1/2} ⊂ Q/Z`.
+    pub fn local_invariant(&self, place: &FFPlace<S>) -> Rational {
+        if self.ramified.contains(place) {
+            Rational::try_new(1, 2).expect("1/2 is a valid rational")
+        } else {
+            Rational::zero()
+        }
+    }
+
+    /// Additive Hilbert reciprocity for 2-torsion classes: an even number of
+    /// ramified places.
+    pub fn satisfies_reciprocity(&self) -> bool {
+        self.ramified.len().is_multiple_of(2)
+    }
+
+    /// The quaternion class `(a,b)` over `F_q(t)`.
+    pub fn quaternion(a: &RationalFunction<S>, b: &RationalFunction<S>) -> Option<Self> {
+        Some(FunctionFieldBrauer2Class::from_ramified_places(
+            try_ramified_places_ff(a, b)?,
+        ))
+    }
+}
+
+/// A class in the Brauer-Wall group `BW(F_q(t))`.
+///
+/// This is the equal-characteristic global-field mirror of
+/// [`RationalBrauerWallClass`]: Wall's exact-sequence coordinates are dimension
+/// parity, signed discriminant in `F_q(t)^*/F_q(t)^{*2}`, and the ungraded
+/// Clifford Brauer component represented by its ramified function-field places.
+#[derive(Debug, Clone)]
+pub struct FunctionFieldBrauerWallClass<S: FiniteOddField> {
+    dimension_parity: u128,
+    signed_discriminant: RationalFunction<S>,
+    clifford_brauer_class: FunctionFieldBrauer2Class<S>,
+}
+
+impl<S: FiniteOddField> PartialEq for FunctionFieldBrauerWallClass<S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.dimension_parity == other.dimension_parity
+            && self.clifford_brauer_class == other.clifford_brauer_class
+            && same_global_square_class_ff(&self.signed_discriminant, &other.signed_discriminant)
+    }
+}
+
+impl<S: FiniteOddField> Eq for FunctionFieldBrauerWallClass<S> {}
+
+impl<S: FiniteOddField> FunctionFieldBrauerWallClass<S> {
+    /// The split function-field Brauer-Wall class.
+    pub fn split() -> Self {
+        FunctionFieldBrauerWallClass {
+            dimension_parity: 0,
+            signed_discriminant: RationalFunction::one(),
+            clifford_brauer_class: FunctionFieldBrauer2Class::split(),
+        }
+    }
+
+    /// Build from Wall coordinates. The signed discriminant is stored as a
+    /// representative; equality compares its square class.
+    pub fn from_parts(
+        dimension_parity: u128,
+        signed_discriminant: RationalFunction<S>,
+        clifford_brauer_class: FunctionFieldBrauer2Class<S>,
+    ) -> Option<Self> {
+        if dimension_parity > 1 || signed_discriminant.is_zero() {
+            return None;
+        }
+        Some(FunctionFieldBrauerWallClass {
+            dimension_parity,
+            signed_discriminant,
+            clifford_brauer_class,
+        })
+    }
+
+    /// Whether this is the split class.
+    pub fn is_split(&self) -> bool {
+        self.dimension_parity == 0
+            && crate::forms::function_field::is_global_square_ff(&self.signed_discriminant)
+            && self.clifford_brauer_class.is_split()
+    }
+
+    /// The `Z/2` quotient coordinate: dimension parity.
+    pub fn dimension_parity(&self) -> u128 {
+        self.dimension_parity
+    }
+
+    /// A representative of `(-1)^(n(n-1)/2) det(q)` in `F_q(t)^*/F_q(t)^{*2}`.
+    pub fn signed_discriminant(&self) -> &RationalFunction<S> {
+        &self.signed_discriminant
+    }
+
+    /// The ungraded Clifford Brauer component `c(q)`.
+    pub fn clifford_brauer_class(&self) -> &FunctionFieldBrauer2Class<S> {
+        &self.clifford_brauer_class
+    }
+
+    /// The identity element in this ground field.
+    pub fn zero_like(&self) -> Self {
+        FunctionFieldBrauerWallClass::split()
+    }
+
+    /// Wall's group operation, induced by orthogonal direct sum / graded tensor.
+    pub fn try_add(&self, other: &Self) -> Option<Self> {
+        let p = self.dimension_parity;
+        let q = other.dimension_parity;
+        let mut signed_disc = self.signed_discriminant.mul(&other.signed_discriminant);
+        if p == 1 && q == 1 {
+            signed_disc = signed_disc.neg();
+        }
+
+        let mut brauer = self.clifford_brauer_class.add(&other.clifford_brauer_class);
+        brauer = brauer.add(&FunctionFieldBrauer2Class::quaternion(
+            &self.signed_discriminant,
+            &other.signed_discriminant,
+        )?);
+        let neg_one = ff_neg_one::<S>();
+        if p == 0 && q == 1 {
+            brauer = brauer.add(&FunctionFieldBrauer2Class::quaternion(
+                &neg_one,
+                &self.signed_discriminant,
+            )?);
+        }
+        if p == 1 && q == 0 {
+            brauer = brauer.add(&FunctionFieldBrauer2Class::quaternion(
+                &neg_one,
+                &other.signed_discriminant,
+            )?);
+        }
+
+        Some(FunctionFieldBrauerWallClass {
+            dimension_parity: (p + q) % 2,
+            signed_discriminant: signed_disc,
+            clifford_brauer_class: brauer,
+        })
+    }
 }
 
 impl RationalBrauerWallClass {
@@ -365,6 +563,94 @@ pub fn rational_signed_discriminant_class(entries: &[i128]) -> Option<i128> {
     }
 }
 
+fn ff_neg_one<S: FiniteOddField>() -> RationalFunction<S> {
+    RationalFunction::from_base(S::one().neg())
+}
+
+fn ff_discriminant<S: FiniteOddField>(
+    entries: &[RationalFunction<S>],
+) -> Option<RationalFunction<S>> {
+    if entries.iter().any(|x| x.is_zero()) {
+        return None;
+    }
+    let mut disc = RationalFunction::one();
+    for x in entries {
+        disc = disc.mul(x);
+    }
+    Some(disc)
+}
+
+fn same_global_square_class_ff<S: FiniteOddField>(
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+) -> bool {
+    if a.is_zero() || b.is_zero() {
+        return false;
+    }
+    b.inv()
+        .map(|binv| crate::forms::function_field::is_global_square_ff(&a.mul(&binv)))
+        .unwrap_or(false)
+}
+
+/// The signed discriminant square class
+/// `(-1)^(n(n-1)/2) * product(entries)` over `F_q(t)`.
+pub fn function_field_signed_discriminant_class<S: FiniteOddField>(
+    entries: &[RationalFunction<S>],
+) -> Option<RationalFunction<S>> {
+    let disc = ff_discriminant(entries)?;
+    if matches!(entries.len() % 4, 0 | 1) {
+        Some(disc)
+    } else {
+        Some(disc.neg())
+    }
+}
+
+/// The Hasse-Witt invariant of a diagonal `F_q(t)` form as a 2-torsion Brauer
+/// class: ramified where the per-place Hasse invariant is `-1`.
+pub fn hasse_brauer_class_ff<S: FiniteOddField>(
+    entries: &[RationalFunction<S>],
+) -> Option<FunctionFieldBrauer2Class<S>> {
+    if entries.iter().any(|x| x.is_zero()) {
+        return None;
+    }
+    let mut ramified = Vec::new();
+    for place in try_relevant_places_ff(entries)? {
+        if try_hasse_at_place_ff(entries, &place)? == -1 {
+            ramified.push(place);
+        }
+    }
+    Some(FunctionFieldBrauer2Class::from_ramified_places(ramified))
+}
+
+fn clifford_correction_ff<S: FiniteOddField>(
+    n: usize,
+    d: &RationalFunction<S>,
+) -> Option<FunctionFieldBrauer2Class<S>> {
+    let r = n % 8;
+    let neg_one = ff_neg_one::<S>();
+    let mut delta = FunctionFieldBrauer2Class::split();
+    if matches!(r, 0 | 3 | 4 | 7) {
+        delta = delta.add(&FunctionFieldBrauer2Class::quaternion(&neg_one, d)?);
+    }
+    if matches!(r, 3..=6) {
+        delta = delta.add(&FunctionFieldBrauer2Class::quaternion(&neg_one, &neg_one)?);
+    }
+    Some(delta)
+}
+
+/// The ungraded Clifford Brauer invariant `c(q)` of a diagonal `F_q(t)` form,
+/// using the same `n mod 8` / discriminant correction as the rational surface.
+pub fn clifford_brauer_class_ff<S: FiniteOddField>(
+    entries: &[RationalFunction<S>],
+) -> Option<FunctionFieldBrauer2Class<S>> {
+    if entries.iter().any(|x| x.is_zero()) {
+        return None;
+    }
+    let s = hasse_brauer_class_ff(entries)?;
+    let d = ff_discriminant(entries)?;
+    Some(s.add(&clifford_correction_ff(entries.len(), &d)?))
+}
+
 /// The Brauer–Wall class of `Cl(Q/rad)` — the Clifford algebra of the
 /// **nondegenerate core** — over the real-table surreal subdomain:
 /// `s = (q − p) mod 8`, the Bott index.  For nonsingular metrics this equals
@@ -444,6 +730,31 @@ pub fn bw_class_rational(metric: &Metric<Rational>) -> Option<RationalBrauerWall
     })
 }
 
+/// The function-field Brauer-Wall class of `Cl(Q/rad)` over `F_q(t)`, modeled
+/// through Wall's exact-sequence coordinates. For nonsingular metrics this is
+/// the class of `Cl(Q)`; for singular metrics the radical is projected away,
+/// mirroring the rational and odd-characteristic surfaces.
+///
+/// Returns `None` if diagonalization fails or a function-field place/Hilbert
+/// symbol computation is out of domain. Characteristic `2` function fields stay
+/// on the separate char-2 local-global layer.
+pub fn bw_class_function_field<S: FiniteOddField>(
+    metric: &Metric<RationalFunction<S>>,
+) -> Option<FunctionFieldBrauerWallClass<S>> {
+    let diag = as_diagonal(metric)?;
+    let mut entries = Vec::new();
+    for x in &diag.q {
+        if !x.is_zero() {
+            entries.push(x.clone());
+        }
+    }
+    Some(FunctionFieldBrauerWallClass {
+        dimension_parity: (entries.len() % 2) as u128,
+        signed_discriminant: function_field_signed_discriminant_class(&entries)?,
+        clifford_brauer_class: clifford_brauer_class_ff(&entries)?,
+    })
+}
+
 /// The Brauer-Wall class of `Cl(Q)` over the nimber characteristic-2 leg, carried
 /// as the nonsingular Arf/Witt class (`BW(F_{2^m}) ≅ W_q(F_{2^m}) ≅ Z/2` on this
 /// finite-field backend). `None` for general-bilinear or singular metrics.
@@ -461,7 +772,7 @@ mod tests {
     use super::*;
     use crate::clifford::CliffordAlgebra;
     use crate::forms::classify_real;
-    use crate::scalar::{Fp, Nimber, Rational, Scalar, Surcomplex};
+    use crate::scalar::{Fp, Nimber, Poly, Rational, RationalFunction, Scalar, Surcomplex};
     use std::collections::BTreeSet;
 
     fn real_diag(signs: &[i128]) -> Metric<Surreal> {
@@ -481,6 +792,24 @@ mod tests {
 
     fn rational_diag(entries: &[i128]) -> Metric<Rational> {
         Metric::diagonal(entries.iter().map(|&x| Rational::from_int(x)).collect())
+    }
+
+    type F5 = RationalFunction<Fp<5>>;
+    type Poly5 = Poly<Fp<5>>;
+
+    fn rf(num: &[i128], den: &[i128]) -> F5 {
+        RationalFunction::new(
+            num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+            den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+        )
+    }
+
+    fn poly(c: &[i128]) -> Poly5 {
+        Poly::new(c.iter().map(|&n| Fp::<5>::from_int(n)).collect())
+    }
+
+    fn ff_diag(entries: &[F5]) -> Metric<F5> {
+        Metric::diagonal(entries.to_vec())
     }
 
     /// The order of the cyclic subgroup generated by `g` under `add` (walk to identity).
@@ -654,6 +983,78 @@ mod tests {
         let g = bw_class_rational(&rational_diag(&[-1])).unwrap();
         assert_eq!(g.real_bott_index(), 1);
         assert_eq!(rational_subgroup_order(g), 8);
+    }
+
+    #[test]
+    fn bw_function_field_projects_to_clifford_and_signed_discriminant() {
+        let t = rf(&[0, 1], &[1]);
+        let two = rf(&[2], &[1]);
+        let m = ff_diag(&[t.clone(), two.clone()]);
+        let c = bw_class_function_field(&m).unwrap();
+
+        assert_eq!(c.dimension_parity(), 0);
+        assert_eq!(c.signed_discriminant(), &rf(&[0, 3], &[1])); // -2t in F_5(t)
+        let quat = FunctionFieldBrauer2Class::quaternion(&t, &two).unwrap();
+        assert_eq!(c.clifford_brauer_class(), &quat);
+        assert!(quat.satisfies_reciprocity());
+        assert_eq!(quat.ramified_places().len(), 2);
+        assert!(quat
+            .ramified_places()
+            .contains(&FFPlace::Finite(poly(&[0, 1]))));
+        assert!(quat.ramified_places().contains(&FFPlace::Infinite));
+    }
+
+    #[test]
+    fn bw_function_field_uses_wall_law_and_metric_facade() {
+        let forms: Vec<Vec<F5>> = vec![
+            vec![rf(&[0, 1], &[1])], // t
+            vec![rf(&[2], &[1])],    // nonsquare constant
+            vec![rf(&[1, 1], &[1])], // t+1
+            vec![rf(&[0, 1], &[1]), rf(&[2], &[1])],
+            vec![rf(&[1], &[1]), rf(&[0, 4], &[1])],
+        ];
+        for a in &forms {
+            for b in &forms {
+                let ma = ff_diag(a);
+                let mb = ff_diag(b);
+                let direct = ma.direct_sum(&mb);
+                assert_eq!(
+                    bw_class_function_field(&direct),
+                    bw_class_function_field(&ma)
+                        .unwrap()
+                        .try_add(&bw_class_function_field(&mb).unwrap()),
+                    "Wall law failed over F_5(t) for {a:?} ⊥ {b:?}"
+                );
+                assert_eq!(ma.bw_class().ok(), bw_class_function_field(&ma));
+            }
+        }
+    }
+
+    #[test]
+    fn bw_function_field_projects_radicals_and_compares_square_classes() {
+        let t = rf(&[0, 1], &[1]);
+        let two = rf(&[2], &[1]);
+        let singular = ff_diag(&[t.clone(), F5::zero(), two.clone()]);
+        let nonsingular = ff_diag(&[t.clone(), two.clone()]);
+        assert_eq!(
+            bw_class_function_field(&singular),
+            bw_class_function_field(&nonsingular)
+        );
+
+        let square = rf(&[1, 2, 1], &[1]); // (t+1)^2
+        let c1 = FunctionFieldBrauerWallClass::from_parts(
+            0,
+            t.clone(),
+            FunctionFieldBrauer2Class::split(),
+        )
+        .unwrap();
+        let c2 = FunctionFieldBrauerWallClass::from_parts(
+            0,
+            t.mul(&square),
+            FunctionFieldBrauer2Class::split(),
+        )
+        .unwrap();
+        assert_eq!(c1, c2, "signed discriminants are compared modulo squares");
     }
 
     fn oddchar_diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {

@@ -18,14 +18,18 @@
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
     arf_fpn_char2, arf_invariant, arf_ordinal_finite, bw_class_complex, bw_class_finite_odd,
-    bw_class_nimber, bw_class_real, classify_finite_odd, classify_rational, classify_surcomplex,
-    classify_surreal, finite_odd_witt, isometric_finite_odd, isometric_fpn_char2, isometric_nimber,
-    isometric_ordinal_finite, isometric_rational, isometric_real, isometric_surcomplex,
+    bw_class_function_field, bw_class_nimber, bw_class_rational, bw_class_real,
+    classify_finite_odd, classify_rational, classify_surcomplex, classify_surreal, finite_odd_witt,
+    isometric_finite_odd, isometric_fpn_char2, isometric_nimber, isometric_ordinal_finite,
+    isometric_rational, isometric_real, isometric_surcomplex,
     ordinal_metric_finite_subfield_degree, witt_decompose_finite_odd, witt_decompose_real,
-    ArfInvariants, BrauerWallClass, CliffordInvariants, OddCharInvariants, OddWittDecomp,
+    ArfInvariants, BrauerWallClass, CliffordInvariants, FiniteOddField,
+    FunctionFieldBrauerWallClass, OddCharInvariants, OddWittDecomp, RationalBrauerWallClass,
     RationalCliffordInvariants, RealWittDecomp, WittClassG,
 };
-use crate::scalar::{Fp, Fpn, Nimber, Ordinal, Rational, Scalar, Surcomplex, Surreal};
+use crate::scalar::{
+    Fp, Fpn, Nimber, Ordinal, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
+};
 
 /// Classification invariants for the `Fpn<P,N>` finite-field tower. Odd-characteristic
 /// extension fields land in the usual finite-odd invariant; characteristic-2
@@ -298,8 +302,11 @@ pub trait DecomposeWitt: Scalar {
 
 /// Brauer-Wall class of the Clifford algebra attached to a form.
 pub trait ClassifyBrauerWall: Scalar {
+    /// The Brauer-Wall class datum for this scalar world.
+    type BrauerWallClass;
+
     /// The Brauer-Wall class of `Cl(metric)`.
-    fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError>;
+    fn bw_class(metric: &Metric<Self>) -> Result<Self::BrauerWallClass, ClassifyError>;
 }
 
 impl ClassifyForm for Surreal {
@@ -493,24 +500,40 @@ impl<const P: u128, const N: usize> DecomposeWitt for Fpn<P, N> {
 }
 
 impl ClassifyBrauerWall for Surreal {
+    type BrauerWallClass = BrauerWallClass;
+
     fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
         bw_class_real(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl ClassifyBrauerWall for Surcomplex<Surreal> {
+    type BrauerWallClass = BrauerWallClass;
+
     fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
         bw_class_complex(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
+impl ClassifyBrauerWall for Rational {
+    type BrauerWallClass = RationalBrauerWallClass;
+
+    fn bw_class(metric: &Metric<Self>) -> Result<RationalBrauerWallClass, ClassifyError> {
+        bw_class_rational(metric).ok_or_else(|| char0_failure(metric))
+    }
+}
+
 impl<const P: u128> ClassifyBrauerWall for Fp<P> {
+    type BrauerWallClass = BrauerWallClass;
+
     fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
         bw_class_finite_odd(metric).ok_or_else(|| char0_failure(metric))
     }
 }
 
 impl<const P: u128, const N: usize> ClassifyBrauerWall for Fpn<P, N> {
+    type BrauerWallClass = BrauerWallClass;
+
     fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
         if P == 2 {
             let arf = arf_fpn_char2(metric).ok_or_else(|| generic_failure(metric))?;
@@ -530,13 +553,25 @@ impl<const P: u128, const N: usize> ClassifyBrauerWall for Fpn<P, N> {
     }
 }
 
+impl<S: FiniteOddField> ClassifyBrauerWall for RationalFunction<S> {
+    type BrauerWallClass = FunctionFieldBrauerWallClass<S>;
+
+    fn bw_class(metric: &Metric<Self>) -> Result<FunctionFieldBrauerWallClass<S>, ClassifyError> {
+        bw_class_function_field(metric).ok_or_else(|| char0_failure(metric))
+    }
+}
+
 impl ClassifyBrauerWall for Nimber {
+    type BrauerWallClass = BrauerWallClass;
+
     fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
         bw_class_nimber(metric).ok_or_else(|| char2_nimber_failure(metric))
     }
 }
 
 impl ClassifyBrauerWall for Ordinal {
+    type BrauerWallClass = BrauerWallClass;
+
     fn bw_class(metric: &Metric<Self>) -> Result<BrauerWallClass, ClassifyError> {
         let arf = arf_ordinal_finite(metric).ok_or_else(|| generic_failure(metric))?;
         if arf.radical_dim != 0 {
@@ -594,7 +629,7 @@ impl<S: DecomposeWitt> Metric<S> {
 
 impl<S: ClassifyBrauerWall> Metric<S> {
     /// The Brauer-Wall class of the attached Clifford algebra.
-    pub fn bw_class(&self) -> Result<BrauerWallClass, ClassifyError> {
+    pub fn bw_class(&self) -> Result<S::BrauerWallClass, ClassifyError> {
         S::bw_class(self)
     }
 }
@@ -629,7 +664,7 @@ impl<S: DecomposeWitt> CliffordAlgebra<S> {
 
 impl<S: ClassifyBrauerWall> CliffordAlgebra<S> {
     /// Brauer-Wall class of the algebra.
-    pub fn bw_class(&self) -> Result<BrauerWallClass, ClassifyError> {
+    pub fn bw_class(&self) -> Result<S::BrauerWallClass, ClassifyError> {
         S::bw_class(&self.metric)
     }
 }

@@ -45,6 +45,27 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·e_f: `bw-function-field`
+**Completed:** 2026-06-17
+**Summary:** the graded Brauer-Wall class now has the exact odd-characteristic
+function-field mirror of the rational Wall-coordinate surface.
+**Pillars:** forms    **Claim level:** standard math, implemented and tested
+- surface: `FunctionFieldBrauerWallClass`, `FunctionFieldBrauer2Class`,
+  `function_field_signed_discriminant_class`, `hasse_brauer_class_ff`,
+  `clifford_brauer_class_ff`, and `bw_class_function_field`, with
+  `ClassifyBrauerWall` generalized to an associated return type so
+  `Metric<Rational>` and `Metric<RationalFunction<F_q>>` expose their richer
+  global-field BW classes through `.bw_class()`.
+- oracles: the rank-2 form `⟨t,2⟩` over `F_5(t)` has Clifford Brauer component
+  the quaternion `(t,2)`, ramified exactly at the `t`-place and infinity;
+  Wall's twisted group law is checked against `Metric::direct_sum`; radical
+  projection matches the nonsingular core; and signed discriminants are compared
+  modulo global squares.
+- boundaries: this is the exact odd-characteristic `F_q(t)` surface using the
+  shipped tame Hilbert-symbol place layer; characteristic-2 function fields stay
+  on the separate Artin-Schreier/local-global path, and wild norm-residue
+  symbols remain the deferred `*4` work.
+
 ### 1·(e_c∧e_f∧e_i): `extraspecial`
 **Completed:** 2026-06-17
 **Summary:** characteristic-2 Arf data now has the executable extraspecial

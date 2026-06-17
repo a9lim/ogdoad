@@ -32,7 +32,9 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
 - **`classify.rs`** — the classifier FAÇADE: `ClassifyForm` + `ClassifyWitt` +
   `ClassifyIsometry` + `DecomposeWitt` + `ClassifyBrauerWall`, keyed on the scalar so
   `metric.classify()` / `.witt_class()` / `.isometric_to()` / `.witt_decompose()` /
-  `.bw_class()` pick the right leg **at compile time**. The façade methods return
+  `.bw_class()` pick the right leg **at compile time**. `ClassifyBrauerWall` has an
+  associated return type because global fields carry richer Wall-coordinate records
+  than the finite/real enum. The façade methods return
   `Result<_, ClassifyError>` (`#[non_exhaustive]`: `GeneralBilinearMetric` /
   `SingularForm` / `UnsupportedFieldOrWindow` / `DiagonalizerFailure`) so callers
   see *why* a metric is out of domain; the underlying leg functions keep their
@@ -64,18 +66,20 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   (`Nimber`/`Ordinal` do not impl it). Caveat: when `Char2WittDecomp.radical_anisotropic`
   is true, its `witt_index`/`core_anisotropic_dim`/`arf` are invariants of the chosen
   symplectic complement, **not** isometry invariants of the whole form. `ClassifyBrauerWall`
-  covers Surreal, Surcomplex, odd finite fields, nonsingular Nimber metrics,
-  supported `Fpn<2,N>` metrics, and the documented finite ordinal windows. Rational &
+  covers Surreal, Surcomplex, Rational, odd finite fields, odd-characteristic
+  `RationalFunction<F_q>` function fields, nonsingular Nimber metrics, supported
+  `Fpn<2,N>` metrics, and the documented finite ordinal windows. Rational &
   Surcomplex impl `ClassifyForm` but not `ClassifyWitt` (their Witt data isn't a
   single `WittClassG` — honest, not a gap).
 
   **Cross-leg asymmetry in `ClassifyBrauerWall` for singular metrics.** The
   char-2 legs (`bw_class_nimber`, `ClassifyBrauerWall for Fpn<2,N>`) return `None`
-  for singular (non-nonsingular-polar) metrics.  The char-0 legs (`bw_class_real`,
-  `bw_class_complex`) and the odd-char leg (`bw_class_finite_odd`) silently project
-  the radical away and return the Brauer-Wall class of the nondegenerate core
-  `Cl(Q/rad)`. The rustdocs on those three functions state this projection
-  explicitly.
+  for singular (non-nonsingular-polar) metrics.  The char-0/global legs
+  (`bw_class_real`, `bw_class_complex`, `bw_class_rational`,
+  `bw_class_function_field`) and the odd-char finite leg (`bw_class_finite_odd`)
+  silently project the radical away and return the Brauer-Wall class of the
+  nondegenerate core `Cl(Q/rad)`. The rustdocs on those functions state this
+  projection explicitly.
 - **`diagonalize.rs`** — congruence diagonalization (char ≠ 2): `gram`,
   `diagonalize`, `as_diagonal`. Returns `None` in char 2 (nonsingular char-2 forms
   have an alternating polar form and are NOT diagonalizable — use the char-2
@@ -148,10 +152,12 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
 - **`witt/brauer_wall.rs`** — the Brauer–Wall group BW(F): `bw_class_real` (Bott index
   (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_rational`
   (`RationalBrauerWallClass` over ℚ: dimension parity + signed discriminant +
-  Bridge-F `c(q)` with Wall's twisted law), `bw_class_finite_odd` (order-4 ≅
-  W(F_q)), `bw_class_nimber`, and façade dispatch for supported finite char-2
-  fields/windows (char-2 Arf/Witt class `ℤ/2`, nonsingular metrics only). Law =
-  graded_tensor/direct sum.
+  Bridge-F `c(q)` with Wall's twisted law), `bw_class_function_field`
+  (`FunctionFieldBrauerWallClass` over odd `F_q(t)`: the same Wall coordinates, with
+  the ungraded Clifford component represented by ramified `FFPlace`s),
+  `bw_class_finite_odd` (order-4 ≅ W(F_q)), `bw_class_nimber`, and façade dispatch
+  for supported finite char-2 fields/windows (char-2 Arf/Witt class `ℤ/2`,
+  nonsingular metrics only). Law = graded_tensor/direct sum.
 - **`witt/brauer_rational.rs`** — the **ungraded** rational 2-torsion Brauer class
   `Brauer2Class` (a set of ramified `Place`s, `add`/`local_invariant`/
   `satisfies_reciprocity`/`quaternion`): `hasse_brauer_class` (the Hasse–Witt

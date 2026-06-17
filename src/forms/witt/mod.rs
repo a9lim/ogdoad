@@ -11,7 +11,9 @@
 //! * `brauer_wall` — the Brauer–Wall group `BW(F)`: [`bw_class_real`] (the Bott
 //!   index `(q−p) mod 8`, so `BW(ℝ) ≅ ℤ/8`), [`bw_class_complex`] (`ℤ/2`),
 //!   [`bw_class_rational`] ([`RationalBrauerWallClass`], Wall's exact-sequence
-//!   coordinates over `ℚ`), [`bw_class_finite_odd`] (order-4, `≅ W(F_q)`), and
+//!   coordinates over `ℚ`), [`bw_class_function_field`]
+//!   ([`FunctionFieldBrauerWallClass`], the same Wall coordinates over odd
+//!   `F_q(t)`), [`bw_class_finite_odd`] (order-4, `≅ W(F_q)`), and
 //!   [`bw_class_nimber`] (the char-2 Arf/Witt class `ℤ/2`, nonsingular metrics
 //!   only). The law is the graded tensor product.
 //! * `brauer_rational` — the **ungraded** rational 2-torsion Brauer class

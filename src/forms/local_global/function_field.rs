@@ -40,6 +40,8 @@ pub enum FFPlace<S: FiniteOddField> {
     Finite(Poly<S>),
 }
 
+impl<S: FiniteOddField> Eq for FFPlace<S> {}
+
 // ───────────────────────── factorization over F_q ─────────────────────────
 
 /// The distinct monic irreducible factors of `f` over `F_q` (the square-free
