@@ -45,6 +45,26 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·(e_c∧e_f∧e_i): `extraspecial`
+**Completed:** 2026-06-17
+**Summary:** characteristic-2 Arf data now has the executable extraspecial
+2-group central extension whose commutator is the polar form and whose squaring
+map is the quadratic form.
+**Pillars:** clifford ↔ forms ↔ integral    **Claim level:** standard math,
+implemented and tested
+- surface: `Extraspecial2Group`, `ExtraspecialElement`, `ExtraspecialType`,
+  `ExtraspecialError`, `extraspecial_group_f2`, and
+  `extraspecial_group_nimber`.
+- oracles: the hyperbolic plane gives the plus/D8 cell, the anisotropic plane
+  gives the minus/Q8 cell, group multiplication is checked for associativity and
+  inverses on the order-8 cells, `[x,y] = B(x,y)` and `x^2 = Q(x)` are verified
+  directly, and the nimber-metric route agrees with `arf_nimber`.
+- boundaries: this is the standard group-extension side of the Gold/Arf
+  reframing over `F_2`-valued metrics; the game realization of `Q` as a P-set
+  remains the loopy-valued `tis` open problem, and higher finite char-2 fields
+  still route through the existing Arf classifiers rather than this bitmask
+  extraspecial object.
+
 ### 2·e_f: `tame-symbols`
 **Completed:** 2026-06-16
 **Summary:** Bridge K now has the tamely ramified Kummer symbol beside the

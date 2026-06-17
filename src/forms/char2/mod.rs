@@ -9,6 +9,9 @@
 //! * `brown` lifts the `ℤ/2` Arf bit to the `ℤ/8` Brown invariant of a
 //!   `ℤ/4`-valued quadratic refinement — the char-2 cell of the mod-8 spine
 //!   (Bridge M), with `β(2q′) = 4·Arf(q′)`.
+//! * `extraspecial` turns a nonsingular `F_2` quadratic form into the
+//!   extraspecial 2-group whose commutator is the polar form and whose squaring
+//!   map is the quadratic form.
 //!
 //! plus `field`, the [`FiniteChar2Field`] capability trait — the additive
 //! (Artin–Schreier) mirror of [`FiniteOddField`](crate::forms::FiniteOddField)
@@ -21,6 +24,7 @@
 mod arf;
 mod brown;
 mod dickson;
+mod extraspecial;
 mod field;
 
 pub use arf::*;
@@ -30,4 +34,5 @@ pub(crate) use arf::{
 pub(crate) use brown::beta_from_gauss;
 pub use brown::*;
 pub use dickson::*;
+pub use extraspecial::*;
 pub use field::*;

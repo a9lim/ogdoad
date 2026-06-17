@@ -109,8 +109,11 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   **additive** mirror of `FiniteOddField`: carries `artin_schreier_class =
   Tr_{F_q/F₂}` instead of `is_square_value`, since in char 2 the multiplicative square
   class is trivial and the working datum is `F/℘(F) ≅ F₂`; impl for `Fp<2>`/`Fpn<2,N>`,
-  NOT `Nimber` — same boundary as `FiniteOddField`), `brown.rs` (the **Brown
-  invariant** `β ∈ ℤ/8` of a `ℤ/4`-valued quadratic refinement — the char-2 cell of
+  NOT `Nimber` — same boundary as `FiniteOddField`), `extraspecial.rs` (the
+  extraspecial 2-group `1→F₂→E→V→0` attached to a nonsingular `F₂` quadratic form,
+  with commutator `B`, squaring map `Q`, and plus/minus type classified by the Arf
+  bit), `brown.rs` (the **Brown invariant** `β ∈ ℤ/8` of a `ℤ/4`-valued quadratic
+  refinement — the char-2 cell of
   the mod-8 spine, Bridge M: `brown_f2`/`double_f2` + `BrownInvariants`, computed by
   radical splitting plus line/plane reduction with exact-integer enumeration retained
   as a test oracle. `β(2q′) = 4·Arf(q′)` lands the Arf bit as the 2-torsion, and
