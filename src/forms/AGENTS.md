@@ -298,10 +298,15 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   `direct_sum`, `classify` (rank + radical_dim — the complete invariant,
   char-uniform). `classify_symplectic(gram)` convenience. The char-2 polar form of a
   nonsingular quadratic form lives here.
-- **`hermitian.rs`** — Hermitian forms over Surcomplex (the involution `conj()` the
-  symmetric leg never used): `HermitianForm` (conj-symmetric Gram), unitary congruence
-  diagonalize → real diagonal, signature (Sylvester, the complete invariant = U(p,q)).
-  `from_skew` handles the skew-Hermitian case via mult by i.
+- **`hermitian.rs`** — Hermitian forms, the involution sibling the symmetric leg never
+  used. `HermitianForm` covers Surcomplex via `conj()`: conjugate-symmetric Gram,
+  unitary congruence diagonalize → real diagonal, signature (Sylvester, complete
+  invariant = U(p,q)); `from_skew` handles the skew-Hermitian case via mult by i.
+  `FiniteHermitianForm<F>` covers finite fields of even prime-field degree using the
+  middle Frobenius `x -> x^{p^k}` for `F_{p^{2k}}/F_{p^k}`; its complete invariant is
+  `FiniteHermitianInvariants { rank, radical_dim, ... }`. This intentionally models
+  intermediate fixed fields directly, rather than pretending the existing
+  `FieldExtension` associated base can name every `F_{p^{2k}}/F_{p^k}` subextension.
 
 ## Field invariants, the trace-form bridge, and the game bench
 

@@ -1,6 +1,6 @@
-//! **Hermitian forms** over the surcomplex field — the natural quadratic-form
-//! structure over a field carrying an involution, which the rest of the forms
-//! pillar (symmetric/bilinear) never used.
+//! **Hermitian forms** — the natural quadratic-form structure over a field
+//! carrying an involution, which the rest of the forms pillar
+//! (symmetric/bilinear) never used.
 //!
 //! [`Surcomplex`] carries the conjugation `i ↦ −i` ([`Surcomplex::conj`]); a
 //! Hermitian form has a conjugate-symmetric Gram matrix `H* = H` (so the diagonal
@@ -12,8 +12,15 @@
 //! `forms::char0`. We reduce by **unitary (conjugate) congruence**
 //! `H ↦ M* H M`, which keeps the form Hermitian and drives it to a real diagonal,
 //! then read the signs.
+//!
+//! Over a finite field `F_{p^{2k}}`, the matching involution is the middle
+//! Frobenius `x ↦ x^{p^k}`. Nondegenerate Hermitian forms over
+//! `F_{p^{2k}}/F_{p^k}` are all equivalent in a fixed rank because the norm map
+//! onto the fixed field is surjective; degenerate forms split off their radical.
+//! The finite classifier therefore records exactly `(rank, radical_dim)`, plus
+//! finite-field metadata identifying the quadratic extension.
 
-use crate::scalar::{Scalar, Surcomplex};
+use crate::scalar::{FiniteField, Scalar, Surcomplex};
 use std::cmp::Ordering;
 
 /// A Hermitian form, carried by its conjugate-symmetric Gram matrix over
@@ -31,6 +38,174 @@ pub struct HermitianSignature {
     pub pos: usize,
     pub neg: usize,
     pub radical: usize,
+}
+
+/// A finite-field Hermitian form over `F_{p^{2k}}/F_{p^k}`, represented inside a
+/// finite cyclic field `F` whose extension degree over the prime field is even.
+///
+/// The involution is the middle Frobenius `x ↦ x^{p^k}`. The Gram matrix must be
+/// conjugate-symmetric for that involution, and diagonal entries must lie in the
+/// fixed field.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FiniteHermitianForm<F: FiniteField> {
+    gram: Vec<Vec<F>>,
+}
+
+/// The complete finite-field Hermitian invariant: rank plus radical dimension.
+///
+/// `extension_degree` is `[F_{p^{2k}} : F_p]`; `base_degree` is `k`, so the
+/// fixed field is `F_{p^k}`. The order fields are `None` exactly when the order
+/// does not fit the crate's fixed-width `u128` metadata model (for example
+/// `|F_{2^128}| = 2^128`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FiniteHermitianInvariants {
+    pub rank: usize,
+    pub radical_dim: usize,
+    pub characteristic: u128,
+    pub base_degree: usize,
+    pub extension_degree: usize,
+    pub base_field_order: Option<u128>,
+    pub extension_field_order: Option<u128>,
+}
+
+fn checked_pow_u128(base: u128, exp: usize) -> Option<u128> {
+    let mut out = 1u128;
+    for _ in 0..exp {
+        out = out.checked_mul(base)?;
+    }
+    Some(out)
+}
+
+fn finite_hermitian_in_domain<F: FiniteField>() -> bool {
+    F::ext_degree() > 0 && F::ext_degree().is_multiple_of(2)
+}
+
+fn finite_hermitian_conj<F: FiniteField>(x: F) -> F {
+    x.frobenius_iter(F::ext_degree() / 2)
+}
+
+fn matrix_rank<F: Scalar>(mut rows: Vec<Vec<F>>) -> usize {
+    if rows.is_empty() {
+        return 0;
+    }
+    let m = rows.len();
+    let n = rows[0].len();
+    let mut rank = 0usize;
+    for col in 0..n {
+        let Some(pivot) = (rank..m).find(|&r| !rows[r][col].is_zero()) else {
+            continue;
+        };
+        rows.swap(rank, pivot);
+        let inv = rows[rank][col]
+            .inv()
+            .expect("nonzero finite-field pivot is invertible");
+        for c in col..n {
+            rows[rank][c] = rows[rank][c].mul(&inv);
+        }
+        let pivot_row = rows[rank].clone();
+        for r in 0..m {
+            if r == rank || rows[r][col].is_zero() {
+                continue;
+            }
+            let factor = rows[r][col].clone().neg();
+            for (c, value) in pivot_row.iter().enumerate().skip(col) {
+                rows[r][c] = rows[r][c].add(&factor.mul(value));
+            }
+        }
+        rank += 1;
+        if rank == m {
+            break;
+        }
+    }
+    rank
+}
+
+impl<F: FiniteField> FiniteHermitianForm<F> {
+    /// Build from a Gram matrix over a finite cyclic field with even extension
+    /// degree, checking `H[i,j] = conj(H[j,i])` for the middle Frobenius
+    /// involution.
+    pub fn from_gram(gram: Vec<Vec<F>>) -> Option<Self> {
+        if !finite_hermitian_in_domain::<F>() {
+            return None;
+        }
+        let n = gram.len();
+        for row in &gram {
+            if row.len() != n {
+                return None;
+            }
+        }
+        for i in 0..n {
+            if finite_hermitian_conj(gram[i][i]) != gram[i][i] {
+                return None;
+            }
+            for j in 0..n {
+                if gram[i][j] != finite_hermitian_conj(gram[j][i]) {
+                    return None;
+                }
+            }
+        }
+        Some(FiniteHermitianForm { gram })
+    }
+
+    /// A diagonal Hermitian form from entries fixed by the middle Frobenius.
+    pub fn diagonal(entries: Vec<F>) -> Option<Self> {
+        if entries.iter().any(|&x| finite_hermitian_conj(x) != x) {
+            return None;
+        }
+        let n = entries.len();
+        let mut gram = vec![vec![F::zero(); n]; n];
+        for (i, x) in entries.into_iter().enumerate() {
+            gram[i][i] = x;
+        }
+        Self::from_gram(gram)
+    }
+
+    pub fn dim(&self) -> usize {
+        self.gram.len()
+    }
+
+    pub fn gram(&self) -> &[Vec<F>] {
+        &self.gram
+    }
+
+    /// The orthogonal direct sum (block-diagonal Gram).
+    pub fn direct_sum(&self, other: &FiniteHermitianForm<F>) -> FiniteHermitianForm<F> {
+        let (n, m) = (self.dim(), other.dim());
+        let mut gram = vec![vec![F::zero(); n + m]; n + m];
+        for i in 0..n {
+            for j in 0..n {
+                gram[i][j] = self.gram[i][j];
+            }
+        }
+        for i in 0..m {
+            for j in 0..m {
+                gram[n + i][n + j] = other.gram[i][j];
+            }
+        }
+        FiniteHermitianForm { gram }
+    }
+
+    /// Rank over the extension field. For finite Hermitian forms, this is the
+    /// rank of the nondegenerate Hermitian summand.
+    pub fn rank(&self) -> usize {
+        matrix_rank(self.gram.clone())
+    }
+
+    /// The complete finite-field Hermitian invariant.
+    pub fn classify(&self) -> FiniteHermitianInvariants {
+        let rank = self.rank();
+        let extension_degree = F::ext_degree();
+        let base_degree = extension_degree / 2;
+        FiniteHermitianInvariants {
+            rank,
+            radical_dim: self.dim() - rank,
+            characteristic: F::characteristic(),
+            base_degree,
+            extension_degree,
+            base_field_order: checked_pow_u128(F::characteristic(), base_degree),
+            extension_field_order: checked_pow_u128(F::characteristic(), extension_degree),
+        }
+    }
 }
 
 /// Congruence by the elementary unit `E = I + λ·E_{source,target}`: `H ↦ E* H E`,
@@ -221,7 +396,7 @@ impl<S: Scalar> HermitianForm<S> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::{Rational, Surreal};
+    use crate::scalar::{Fpn, Nimber, Rational, Surreal};
 
     type GC = Surcomplex<Rational>;
 
@@ -230,6 +405,83 @@ mod tests {
     }
     fn rsign(x: &Rational) -> Ordering {
         x.sign()
+    }
+
+    #[test]
+    fn finite_hermitian_forms_over_f9_are_rank_classified() {
+        type F9 = Fpn<3, 2>;
+        let one = F9::one();
+        let two = F9::from_int(2);
+        let x = F9::from_coeffs(&[0, 1]);
+        let xbar = x.frobenius_iter(1);
+
+        let h = FiniteHermitianForm::<F9>::from_gram(vec![vec![one, x], vec![xbar, two]])
+            .expect("H* = H for the middle Frobenius involution");
+        let inv = h.classify();
+        assert_eq!(inv.rank, 2);
+        assert_eq!(inv.radical_dim, 0);
+        assert_eq!(inv.characteristic, 3);
+        assert_eq!(inv.base_degree, 1);
+        assert_eq!(inv.extension_degree, 2);
+        assert_eq!(inv.base_field_order, Some(3));
+        assert_eq!(inv.extension_field_order, Some(9));
+
+        let split = FiniteHermitianForm::<F9>::diagonal(vec![one, one]).unwrap();
+        let hyperbolic = FiniteHermitianForm::<F9>::from_gram(vec![
+            vec![F9::zero(), one],
+            vec![one, F9::zero()],
+        ])
+        .unwrap();
+        assert_eq!(split.classify(), hyperbolic.classify());
+
+        assert!(
+            FiniteHermitianForm::<F9>::from_gram(vec![vec![one, x], vec![x, two]]).is_none(),
+            "lower off-diagonal entry must be conjugated"
+        );
+        assert!(
+            FiniteHermitianForm::<F9>::diagonal(vec![x]).is_none(),
+            "diagonal entries must be fixed by conjugation"
+        );
+    }
+
+    #[test]
+    fn finite_hermitian_forms_include_char2_even_degree_fields() {
+        type F16 = Fpn<2, 4>;
+        let one = F16::one();
+        let x = F16::from_coeffs(&[0, 1, 0, 0]);
+        let xbar = x.frobenius_iter(2);
+        let h = FiniteHermitianForm::<F16>::from_gram(vec![
+            vec![one, x, F16::zero()],
+            vec![xbar, one, F16::zero()],
+            vec![F16::zero(), F16::zero(), F16::zero()],
+        ])
+        .unwrap();
+        let inv = h.classify();
+        assert_eq!(inv.rank, 2);
+        assert_eq!(inv.radical_dim, 1);
+        assert_eq!(inv.characteristic, 2);
+        assert_eq!(inv.base_degree, 2);
+        assert_eq!(inv.base_field_order, Some(4));
+        assert_eq!(inv.extension_field_order, Some(16));
+    }
+
+    #[test]
+    fn finite_hermitian_forms_reject_odd_degree_fields() {
+        type F27 = Fpn<3, 3>;
+        assert!(FiniteHermitianForm::<F27>::from_gram(vec![vec![F27::one()]]).is_none());
+    }
+
+    #[test]
+    fn nimber_quadratic_middle_frobenius_reports_width_boundary() {
+        let h = FiniteHermitianForm::<Nimber>::diagonal(vec![Nimber(1), Nimber(0)]).unwrap();
+        let inv = h.classify();
+        assert_eq!(inv.rank, 1);
+        assert_eq!(inv.radical_dim, 1);
+        assert_eq!(inv.characteristic, 2);
+        assert_eq!(inv.base_degree, 64);
+        assert_eq!(inv.extension_degree, 128);
+        assert_eq!(inv.base_field_order, Some(1u128 << 64));
+        assert_eq!(inv.extension_field_order, None);
     }
 
     #[test]

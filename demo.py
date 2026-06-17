@@ -430,6 +430,9 @@ H = pl.HermitianForm.from_gram([[pl.Surcomplex(2, 0), pl.Surcomplex(0, 1)],
                                 [pl.Surcomplex(0, -1), pl.Surcomplex(2, 0)]])
 print("  Hermitian [[2,i],[-i,2]]:", H.signature(), "diagonal", H.diagonalize())
 print("  diagonal Hermitian ⟨1,-1,0⟩:", pl.HermitianForm.diagonal([1, -1, 0]).signature())
+finite_H = pl.FiniteHermitianForm.diagonal(3, 2, [1, 1, 0]).classify()
+print("  finite Hermitian F9/F3       :", (finite_H.rank, finite_H.radical_dim,
+                                           finite_H.base_field_order, finite_H.extension_field_order))
 print("  form Rust constructors       :",
       pl.SymplecticForm.from_gram([[0, 1], [-1, 0]]).classify().planes(),
       (lambda sig: (sig.pos, sig.neg, sig.radical))(

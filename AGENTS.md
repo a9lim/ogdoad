@@ -142,7 +142,9 @@ handled by transporting through the antisymmetric gauge to the matching ordinary
 The cross-pillar bridges live in the Rust core. `IntegralForm` exports rational and even-mod-2 Clifford metrics plus
 even discriminant Gauss-sum/Milgram checks and odd-lattice `Q/Z` discriminant /
 oddity-corrected Milgram reports; finite char-2 `Fpn<2,N>` classification runs
-through the façade; cyclic Galois/Frobenius maps have Clifford linear-map constructors;
+through the façade; finite Hermitian forms over `F_{p^{2k}}/F_{p^k}` use the middle
+Frobenius and are classified by rank plus radical dimension; cyclic Galois/Frobenius
+maps have Clifford linear-map constructors;
 the **rational 2-torsion Brauer class** `Brauer2Class` (`witt/brauer_rational.rs`:
 Hasse–Witt `s(q)` vs the Clifford invariant `c(q) = s(q) + δ(n mod 8, disc)`), the
 graded rational Brauer-Wall wrapper `RationalBrauerWallClass`

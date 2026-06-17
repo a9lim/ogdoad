@@ -23,8 +23,9 @@ use super::scalars::{
 };
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
-    Char2LocalDecomp, Char2Place, Char2QuadForm, FFPlace, FiniteChar2Field, FiniteOddField,
-    HermitianForm, IntegralForm, SymplecticForm, WittClass, WittClassError, WittClassG,
+    Char2LocalDecomp, Char2Place, Char2QuadForm, FFPlace, FiniteChar2Field, FiniteHermitianForm,
+    FiniteOddField, HermitianForm, IntegralForm, SymplecticForm, WittClass, WittClassError,
+    WittClassG,
 };
 use crate::scalar::{
     ExactFieldScalar, Fp, Fpn, Laurent, Nimber, Ordinal, Poly, Qp, Qq, Ramified, Rational,
@@ -1274,6 +1275,214 @@ impl PyHermitianForm {
     }
     fn __repr__(&self) -> String {
         format!("HermitianForm(dim={})", self.inner.dim())
+    }
+}
+
+#[pyclass(name = "FiniteHermitianInvariants", module = "ogdoad")]
+struct PyFiniteHermitianInvariants {
+    inner: crate::forms::FiniteHermitianInvariants,
+}
+
+#[pymethods]
+impl PyFiniteHermitianInvariants {
+    #[getter]
+    fn rank(&self) -> usize {
+        self.inner.rank
+    }
+    #[getter]
+    fn radical_dim(&self) -> usize {
+        self.inner.radical_dim
+    }
+    #[getter]
+    fn characteristic(&self) -> u128 {
+        self.inner.characteristic
+    }
+    #[getter]
+    fn base_degree(&self) -> usize {
+        self.inner.base_degree
+    }
+    #[getter]
+    fn extension_degree(&self) -> usize {
+        self.inner.extension_degree
+    }
+    #[getter]
+    fn base_field_order(&self) -> Option<u128> {
+        self.inner.base_field_order
+    }
+    #[getter]
+    fn extension_field_order(&self) -> Option<u128> {
+        self.inner.extension_field_order
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "FiniteHermitianInvariants(rank={}, radical_dim={}, field=F_{} over F_{})",
+            self.inner.rank,
+            self.inner.radical_dim,
+            self.inner.extension_field_order.map_or_else(
+                || format!(
+                    "{}^{}",
+                    self.inner.characteristic, self.inner.extension_degree
+                ),
+                |q| q.to_string()
+            ),
+            self.inner.base_field_order.map_or_else(
+                || format!("{}^{}", self.inner.characteristic, self.inner.base_degree),
+                |q| q.to_string()
+            ),
+        )
+    }
+}
+
+fn unsupported_finite_hermitian_field_err() -> PyErr {
+    PyValueError::new_err("supported finite Hermitian fields: F_4/F_2, F_16/F_4, F_9/F_3, F_25/F_5")
+}
+
+fn parse_fpn_index<const P: u128, const N: usize>(x: u128, name: &str) -> PyResult<Fpn<P, N>> {
+    if !Fpn::<P, N>::is_supported_field() {
+        return Err(unsupported_finite_hermitian_field_err());
+    }
+    let order = Fpn::<P, N>::field_order();
+    if x >= order {
+        return Err(PyValueError::new_err(format!(
+            "{name}={x} is outside F_{order}"
+        )));
+    }
+    let mut digits = [0u128; N];
+    let mut y = x;
+    for d in digits.iter_mut() {
+        *d = y % P;
+        y /= P;
+    }
+    Ok(Fpn::<P, N>::from_coeffs(&digits))
+}
+
+fn parse_fpn_gram<const P: u128, const N: usize>(
+    gram: &[Vec<u128>],
+) -> PyResult<Vec<Vec<Fpn<P, N>>>> {
+    let n = gram.len();
+    let mut out = Vec::with_capacity(n);
+    for (i, row) in gram.iter().enumerate() {
+        if row.len() != n {
+            return Err(PyValueError::new_err("Gram matrix must be square"));
+        }
+        let mut parsed = Vec::with_capacity(n);
+        for (j, &x) in row.iter().enumerate() {
+            parsed.push(parse_fpn_index::<P, N>(x, &format!("gram[{i}][{j}]"))?);
+        }
+        out.push(parsed);
+    }
+    Ok(out)
+}
+
+fn finite_hermitian_form_fpn<const P: u128, const N: usize>(
+    gram: &[Vec<u128>],
+) -> PyResult<FiniteHermitianForm<Fpn<P, N>>> {
+    FiniteHermitianForm::from_gram(parse_fpn_gram::<P, N>(gram)?).ok_or_else(|| {
+        PyValueError::new_err("Gram matrix must be Hermitian for F_{p^(2k)}/F_{p^k}")
+    })
+}
+
+macro_rules! with_finite_hermitian_form {
+    ($p:expr, $degree:expr, $gram:expr, |$form:ident| $body:expr) => {{
+        match ($p, $degree) {
+            (2, 2) => {
+                let $form = finite_hermitian_form_fpn::<2, 2>($gram)?;
+                $body
+            }
+            (2, 4) => {
+                let $form = finite_hermitian_form_fpn::<2, 4>($gram)?;
+                $body
+            }
+            (3, 2) => {
+                let $form = finite_hermitian_form_fpn::<3, 2>($gram)?;
+                $body
+            }
+            (5, 2) => {
+                let $form = finite_hermitian_form_fpn::<5, 2>($gram)?;
+                $body
+            }
+            _ => return Err(unsupported_finite_hermitian_field_err()),
+        }
+    }};
+}
+
+#[pyclass(name = "FiniteHermitianForm", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyFiniteHermitianForm {
+    p: u128,
+    degree: usize,
+    gram: Vec<Vec<u128>>,
+}
+
+#[pymethods]
+impl PyFiniteHermitianForm {
+    #[new]
+    fn new(p: u128, degree: usize, gram: Vec<Vec<u128>>) -> PyResult<Self> {
+        with_finite_hermitian_form!(p, degree, &gram, |form| {
+            let _ = form;
+            Ok(PyFiniteHermitianForm { p, degree, gram })
+        })
+    }
+    #[staticmethod]
+    fn diagonal(p: u128, degree: usize, entries: Vec<u128>) -> PyResult<Self> {
+        let n = entries.len();
+        let mut gram = vec![vec![0u128; n]; n];
+        for (i, x) in entries.into_iter().enumerate() {
+            gram[i][i] = x;
+        }
+        PyFiniteHermitianForm::new(p, degree, gram)
+    }
+    #[getter]
+    fn p(&self) -> u128 {
+        self.p
+    }
+    #[getter]
+    fn degree(&self) -> usize {
+        self.degree
+    }
+    #[getter]
+    fn gram(&self) -> Vec<Vec<u128>> {
+        self.gram.clone()
+    }
+    #[getter]
+    fn dim(&self) -> usize {
+        self.gram.len()
+    }
+    fn direct_sum(&self, other: &PyFiniteHermitianForm) -> PyResult<PyFiniteHermitianForm> {
+        if self.p != other.p || self.degree != other.degree {
+            return Err(PyTypeError::new_err(
+                "finite Hermitian forms must live over the same field",
+            ));
+        }
+        let n = self.dim();
+        let m = other.dim();
+        let mut gram = vec![vec![0u128; n + m]; n + m];
+        for i in 0..n {
+            for j in 0..n {
+                gram[i][j] = self.gram[i][j];
+            }
+        }
+        for i in 0..m {
+            for j in 0..m {
+                gram[n + i][n + j] = other.gram[i][j];
+            }
+        }
+        PyFiniteHermitianForm::new(self.p, self.degree, gram)
+    }
+    fn classify(&self) -> PyResult<PyFiniteHermitianInvariants> {
+        with_finite_hermitian_form!(self.p, self.degree, &self.gram, |form| {
+            Ok(PyFiniteHermitianInvariants {
+                inner: form.classify(),
+            })
+        })
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "FiniteHermitianForm(F_{}^{}, dim={})",
+            self.p,
+            self.degree,
+            self.dim()
+        )
     }
 }
 
@@ -5747,6 +5956,8 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySymplecticForm>()?;
     m.add_class::<PyHermitianSignature>()?;
     m.add_class::<PyHermitianForm>()?;
+    m.add_class::<PyFiniteHermitianInvariants>()?;
+    m.add_class::<PyFiniteHermitianForm>()?;
     m.add_class::<PyResidueForm>()?;
     m.add_class::<PySpringerDecomp>()?;
     m.add_class::<PyLocalResidueForm>()?;

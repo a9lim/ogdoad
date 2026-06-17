@@ -45,6 +45,22 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·(e_f∧e_s): `hermitian-finite`
+**Completed:** 2026-06-17
+**Summary:** the form-with-involution sibling now has the finite-field rank
+classifier beside the Surcomplex signature classifier.
+**Pillars:** forms ↔ scalar    **Claim level:** standard math, implemented and tested
+- surface: `FiniteHermitianForm<F>` and `FiniteHermitianInvariants`, with Python
+  `FiniteHermitianForm` / `FiniteHermitianInvariants` over the fixed even-degree
+  finite fields `F_4/F_2`, `F_16/F_4`, `F_9/F_3`, and `F_25/F_5`.
+- oracles: odd finite `F_9/F_3`, char-2 `F_16/F_4`, odd-degree rejection, and the
+  nimber middle-Frobenius metadata boundary are pinned in Rust tests; the Python
+  demo exercises the `F_9/F_3` runtime dispatcher.
+- boundaries: the finite classifier uses the middle Frobenius on finite fields of
+  even prime-field degree, so it honestly represents `F_{p^{2k}}/F_{p^k}` without
+  pretending the existing `FieldExtension` trait has an intermediate-base associated
+  type; Surcomplex Hermitian forms keep their separate signature classifier.
+
 ### 1·e_f: `bw-function-field`
 **Completed:** 2026-06-17
 **Summary:** the graded Brauer-Wall class now has the exact odd-characteristic

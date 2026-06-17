@@ -91,7 +91,9 @@ extensions among these carry a uniform relative trace/norm (`FieldExtension`):
 the algebraic-closure functor `Surcomplex`, the finite tower `Fpn/Fp`, the
 unramified `Qq/Qp`, and the nim-field `Nimber/F_2` (= `F_{2^128}`) — one interface
 for the norm map that feeds Hilbert symbols, the Brauer–Wall group, and Hermitian
-forms. The cyclic-Galois refinement (`CyclicGaloisExtension`, adding a basis and
+forms; finite Hermitian forms over `F_{p^{2k}}/F_{p^k}` use the middle Frobenius
+and are classified by rank plus radical dimension. The cyclic-Galois refinement
+(`CyclicGaloisExtension`, adding a basis and
 the generator `σ`) feeds the **twisted trace form** `Tr_{E/F}(x·σ^k(x))`, which
 lands back in the classifiers — the binary norm form over `Surcomplex`, trace
 forms over `Qq` and `Fpn`, and the **Gold form** `Tr(x^{1+2^a})` over the

@@ -53,21 +53,6 @@ level — the Bad census — and the fifo+dummy mechanism is identified
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
 `OPEN.md` tis (§1), not a number here.)
 
-### 1·(e_f∧e_s): `hermitian-finite`
-**Hermitian forms over the finite legs** — the involution sibling the classifier is
-missing. `forms/hermitian.rs` classifies Hermitian forms only over `Surcomplex`
-(signature, via the `conj()` involution); the same theory over a degree-2
-`CyclicGaloisExtension` `F_{q²}/F_q` (involution = the relative Frobenius `σ`, already
-shipped for `Fpn` and the `Nimber` subfields) is **rank-complete** — every nondegenerate
-Hermitian form of a given rank is equivalent, because the norm `N: F_{q²}* → F_q*` is
-onto, so the discriminant in `F_q*/N` is trivial. A classifier generic over
-`CyclicGaloisExtension`-of-degree-2 mirrors the quadratic-form trichotomy's char-0↔finite
-span onto the "form + involution" siblings (`forms/AGENTS.md` → "form + involution"), with
-`U(n, F_{q²}/F_q)` as the matching complete-invariant group. The char-2 finite case
-(`Fpn<2,2k>/Fpn<2,k>`, `Nimber` subfields) falls out of the **same** rank statement, so
-one build spans the odd and char-2 finite legs at once. Standard math (Grove, *Classical
-Groups and Geometric Algebra*).
-
 ## numbers — the integral wing
 
 ### ½·(e_i∧e_c): `eichler`
