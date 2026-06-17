@@ -902,6 +902,11 @@ d_hamming = pl.construction_d([pl.BinaryCode(8, []), code])
 print("  Constructions B/D            :",
       b_golay.determinant(), len(b_golay.short_vectors(2)),
       d_hamming.determinant(), d_hamming.is_even())
+ternary = pl.PrimeCode.ternary_golay()
+ternary_lattice = ternary.construction_a()
+print("  ternary Golay Construction A :",
+      ternary.weight_enumerator(), ternary_lattice.determinant(),
+      ternary_lattice.minimum(), ternary_lattice.is_even())
 type_i = pl.BinaryCode.type_i_z2()
 z2 = type_i.construction_a()
 odd_disc = pl.OddDiscriminantForm.from_lattice(pl.IntegralForm.diagonal([3]))

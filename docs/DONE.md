@@ -45,6 +45,25 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2·(e_i∧e_s): `construction-a-p`
+**Completed:** 2026-06-17
+**Summary:** odd-prime codes now feed the same exact integer-coordinate
+Construction-A lattice bridge as the binary code surface.
+**Pillars:** integral ↔ scalar    **Claim level:** standard math, implemented and tested
+- surface: `PrimeCode<P>` / `TernaryCode`, `PrimeCode::construction_a`,
+  `complete_weight_enumerator`, the q-ary Hamming `macwilliams_transform`, and
+  `ternary_golay_code`, plus Python `PrimeCode` and `ternary_golay_code`.
+- oracles: generic `F_5` code duality and q-ary MacWilliams are checked; invalid
+  `P = 2` / composite `P = 9` reject; non-self-orthogonal ternary codes keep the
+  `None` Gram-integrality boundary; the extended ternary Golay `[12,6,6]` has weight
+  enumerator `1 + 264 y^6 + 440 y^9 + 24 y^12`, and its plain `Z` Construction A
+  lattice is odd unimodular rank 12 with minimum 2 and kissing number 264.
+- boundaries: the complete weight enumerator is exposed as integer composition
+  counts, while the exact MacWilliams transform exposed here is the Hamming/
+  Krawtchouk specialization; the Coxeter-Todd `K12` lattice is not the plain
+  over-`Z` p-ary Construction A lattice and remains part of the Eisenstein/CM
+  lattice continuation.
+
 ### 1·(e_f∧e_s): `hermitian-finite`
 **Completed:** 2026-06-17
 **Summary:** the form-with-involution sibling now has the finite-field rank

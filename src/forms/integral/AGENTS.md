@@ -116,11 +116,15 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   `glue^2 = det(R)`, anchor automorphism orders (Leech, `A_1^24`, `E_8^3`),
   `Σ 1/|Aut(N)| = mass_even_unimodular(24)`, and the exact weighted identity
   `(Σ theta_N/|Aut(N)|)/mass(24) = E12`.
-- **`codes.rs`** — binary linear codes and Constructions A/B/D: `BinaryCode` stores a checked
-  row-reduced F₂ generator matrix; `dual`, `is_self_dual`, `is_self_orthogonal`,
-  `is_doubly_even`, `contains`, `minimum_distance`, `weight_enumerator`, `macwilliams_transform` are
-  exact. `construction_a` uses the `1/sqrt(2)` scaling (HNF basis of `{x ∈ Z^n : x mod 2
-  ∈ C}`, dot products /2); returns `None` when the scaled Gram is not integral.
+- **`codes.rs`** — finite linear codes and Constructions A/B/D: `BinaryCode` stores a checked
+  row-reduced F₂ generator matrix; `PrimeCode<P>` stores a checked row-reduced odd
+  prime-field generator matrix. `dual`, `is_self_dual`, `is_self_orthogonal`,
+  `contains`, `minimum_distance`, `weight_enumerator`, and the Hamming/Krawtchouk
+  `macwilliams_transform` are exact; `PrimeCode::complete_weight_enumerator` exposes
+  raw integer composition counts (the full complete-WE transform is cyclotomic, not an
+  `i128` table). `construction_a` uses the `1/sqrt(p)` scaling (HNF basis of
+  `{x ∈ Z^n : x mod p ∈ C}`, dot products /p); returns `None` when the scaled Gram is
+  not integral.
   `construction_b` is the classical doubly-even sublattice
   `(1/sqrt(2)){x : x mod 2 in C, Σx_i ≡ 0 mod 4}`; `B(Golay)` is pinned as the
   determinant-4 rootless half-Leech lattice with minimum 4. `construction_d` is the
@@ -133,9 +137,13 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   unimodular rank-2 lattice isometric to `Z^2`) and `type_i_z2_plus_e8_code`; `direct_sum`
   composes code blocks. Shipped Type II constructors: `hamming_code`,
   `extended_hamming_code`, `golay_code`, `type_ii_e8_sum_code`, `type_ii_len16_code`,
-  `d16_plus` (the factorized `D16_PLUS_AUT_ORDER` pins its automorphism count).
+  `d16_plus` (the factorized `D16_PLUS_AUT_ORDER` pins its automorphism count). Shipped
+  odd-prime constructor: `ternary_golay_code`; plain `Z` Construction A gives an odd
+  unimodular rank-12 lattice with minimum 2 and kissing number 264.
   **Looks like a bug, isn't:**
-  bare Golay Construction A is even unimodular rank 24 **with roots**; it is not Leech.
+  bare binary Golay Construction A is even unimodular rank 24 **with roots**; it is not
+  Leech. Plain ternary Golay Construction A is **not** Coxeter-Todd `K12`; `K12` needs
+  the Eisenstein/CM-lattice lift.
 - **`theta.rs` / `modular.rs`** — exact theta and modular-form bridge.
   `IntegralForm::theta_series(terms)` buckets short vectors by `Q/2`, `None` outside the
   positive-definite even-lattice boundary. `theta_series_level4(terms)` buckets by `Q`

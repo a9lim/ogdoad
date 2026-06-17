@@ -1,4 +1,4 @@
-//! Binary linear codes and Construction A lattices.
+//! Finite linear codes and Construction A lattices.
 //!
 //! This is the finite-code side of the integral lattice story. A binary code
 //! `C <= F_2^n` has three compatible readings here:
@@ -13,9 +13,18 @@
 //! boundary. Type I self-dual codes give odd unimodular lattices, while Type II
 //! self-dual codes give even unimodular lattices. The same explicit integer-Gram
 //! boundary is used for Construction B and the scaled nested-code Construction D.
+//!
+//! Odd-prime codes use [`PrimeCode`]. Their Construction A is the direct
+//! `p`-ary analogue `(1/sqrt(p)){x in Z^n : x mod p in C}`; it is an
+//! integer lattice exactly on the Euclidean self-orthogonal boundary. The
+//! ternary Golay code gives the honest odd unimodular rank-12 `Z`-lattice
+//! attached to this construction. The Coxeter-Todd `K12` lattice needs the
+//! Eisenstein-integer Construction A and stays with the CM-lattice continuation.
 
 use super::lattice::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
+use crate::scalar::{Fp, Scalar};
+use std::collections::BTreeMap;
 
 /// `|Aut(D16+)| = 2^15 * 16!`.
 pub const D16_PLUS_AUT_ORDER: u128 = 685_597_979_049_984_000;
@@ -43,6 +52,39 @@ fn pow2_i128(exp: usize) -> Option<i128> {
     }
 }
 
+fn pow_i128_checked(mut base: i128, mut exp: usize) -> Option<i128> {
+    let mut acc = 1i128;
+    while exp > 0 {
+        if exp & 1 == 1 {
+            acc = acc.checked_mul(base)?;
+        }
+        exp >>= 1;
+        if exp > 0 {
+            base = base.checked_mul(base)?;
+        }
+    }
+    Some(acc)
+}
+
+fn fp_add<const P: u128>(a: u128, b: u128) -> u128 {
+    Fp::<P>::from_u128(a).add(&Fp::<P>::from_u128(b)).value()
+}
+
+fn fp_mul<const P: u128>(a: u128, b: u128) -> u128 {
+    Fp::<P>::from_u128(a).mul(&Fp::<P>::from_u128(b)).value()
+}
+
+fn fp_neg<const P: u128>(a: u128) -> u128 {
+    Fp::<P>::from_u128(a).neg().value()
+}
+
+fn fp_inv<const P: u128>(a: u128) -> u128 {
+    Fp::<P>::from_u128(a)
+        .inv()
+        .expect("nonzero prime-field element is invertible")
+        .value()
+}
+
 fn normalize_generators(mut rows: Vec<Vec<u8>>, n: usize) -> Option<Vec<Vec<u8>>> {
     if rows
         .iter()
@@ -64,6 +106,49 @@ fn normalize_generators(mut rows: Vec<Vec<u8>>, n: usize) -> Option<Vec<Vec<u8>>
             }
             for c in col..n {
                 rows[r][c] ^= pivot_row[c];
+            }
+        }
+        rank += 1;
+        if rank == rows.len() {
+            break;
+        }
+    }
+    rows.truncate(rank);
+    Some(rows)
+}
+
+fn normalize_generators_mod_p<const P: u128>(
+    mut rows: Vec<Vec<u128>>,
+    n: usize,
+) -> Option<Vec<Vec<u128>>> {
+    if P == 2 || !Fp::<P>::modulus_is_prime() {
+        return None;
+    }
+    if rows
+        .iter()
+        .any(|row| row.len() != n || row.iter().any(|&x| x >= P))
+    {
+        return None;
+    }
+    rows.retain(|row| row.iter().any(|&x| x != 0));
+    let mut rank = 0usize;
+    for col in 0..n {
+        let Some(pivot) = (rank..rows.len()).find(|&r| rows[r][col] != 0) else {
+            continue;
+        };
+        rows.swap(rank, pivot);
+        let inv = fp_inv::<P>(rows[rank][col]);
+        for c in col..n {
+            rows[rank][c] = fp_mul::<P>(rows[rank][c], inv);
+        }
+        let pivot_row = rows[rank].clone();
+        for r in 0..rows.len() {
+            if r == rank || rows[r][col] == 0 {
+                continue;
+            }
+            let factor = fp_neg::<P>(rows[r][col]);
+            for c in col..n {
+                rows[r][c] = fp_add::<P>(rows[r][c], fp_mul::<P>(factor, pivot_row[c]));
             }
         }
         rank += 1;
@@ -479,6 +564,274 @@ impl BinaryCode {
     }
 }
 
+/// A linear code over the odd prime field `F_P`, stored as a row-reduced
+/// generator matrix with entries in `[0, P)`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PrimeCode<const P: u128> {
+    n: usize,
+    generators: Vec<Vec<u128>>,
+}
+
+/// The ternary specialization, used by the Golay witness.
+pub type TernaryCode = PrimeCode<3>;
+
+fn dot_mod_p<const P: u128>(a: &[u128], b: &[u128]) -> u128 {
+    a.iter()
+        .zip(b)
+        .fold(0u128, |acc, (&x, &y)| fp_add::<P>(acc, fp_mul::<P>(x, y)))
+}
+
+fn row_weight_p(row: &[u128]) -> usize {
+    row.iter().filter(|&&x| x != 0).count()
+}
+
+fn binomial_checked(n: usize, k: usize) -> Option<i128> {
+    if k > n {
+        return Some(0);
+    }
+    let k = k.min(n - k);
+    let mut out = 1i128;
+    for i in 1..=k {
+        out = out.checked_mul((n - k + i) as i128)? / i as i128;
+    }
+    Some(out)
+}
+
+fn qary_krawtchouk(q: i128, n: usize, i: usize, j: usize) -> Option<i128> {
+    let mut out = 0i128;
+    for s in 0..=j.min(i) {
+        if j - s > n - i {
+            continue;
+        }
+        let sign = if s % 2 == 0 { 1 } else { -1 };
+        let term = binomial_checked(i, s)?
+            .checked_mul(binomial_checked(n - i, j - s)?)?
+            .checked_mul(pow_i128_checked(q - 1, j - s)?)?;
+        out = out.checked_add(sign * term)?;
+    }
+    Some(out)
+}
+
+impl<const P: u128> PrimeCode<P> {
+    /// Build an odd-prime-field code from generator rows. The stored basis is
+    /// row-reduced over `F_P`, so equivalent generator matrices compare equal.
+    pub fn new(n: usize, generators: Vec<Vec<u128>>) -> Option<Self> {
+        Some(PrimeCode {
+            n,
+            generators: normalize_generators_mod_p::<P>(generators, n)?,
+        })
+    }
+
+    /// The block length `n`.
+    pub fn len(&self) -> usize {
+        self.n
+    }
+
+    /// Whether the code has block length zero.
+    pub fn is_empty(&self) -> bool {
+        self.n == 0
+    }
+
+    /// The dimension `k`.
+    pub fn dim(&self) -> usize {
+        self.generators.len()
+    }
+
+    /// Row-reduced generator rows.
+    pub fn generators(&self) -> &[Vec<u128>] {
+        &self.generators
+    }
+
+    /// The number of codewords, `P^k`, when it fits the crate's `u128` payload.
+    pub fn size(&self) -> Option<u128> {
+        let mut out = 1u128;
+        for _ in 0..self.dim() {
+            out = out.checked_mul(P)?;
+        }
+        Some(out)
+    }
+
+    fn codewords(&self) -> Vec<Vec<u128>> {
+        let total = self
+            .size()
+            .and_then(|s| usize::try_from(s).ok())
+            .expect("codeword enumeration exceeds usize masks");
+        let mut out = Vec::with_capacity(total);
+        for mask in 0..total {
+            let mut coeffs = vec![0u128; self.dim()];
+            let mut x = mask as u128;
+            for coeff in &mut coeffs {
+                *coeff = x % P;
+                x /= P;
+            }
+            let mut word = vec![0u128; self.n];
+            for (coeff, row) in coeffs.iter().zip(&self.generators) {
+                if *coeff == 0 {
+                    continue;
+                }
+                for j in 0..self.n {
+                    word[j] = fp_add::<P>(word[j], fp_mul::<P>(*coeff, row[j]));
+                }
+            }
+            out.push(word);
+        }
+        out
+    }
+
+    fn contains_word(&self, word: &[u128]) -> bool {
+        if word.len() != self.n || word.iter().any(|&x| x >= P) {
+            return false;
+        }
+        let mut rows = self.generators.clone();
+        rows.push(word.to_vec());
+        normalize_generators_mod_p::<P>(rows, self.n).is_some_and(|basis| basis.len() == self.dim())
+    }
+
+    /// Whether `other <= self` as an `F_P` row space.
+    pub fn contains(&self, other: &PrimeCode<P>) -> bool {
+        self.n == other.n && other.generators.iter().all(|row| self.contains_word(row))
+    }
+
+    /// The dual code `C^perp = {x : x dot c = 0 for all c in C}`.
+    pub fn dual(&self) -> PrimeCode<P> {
+        let mut pivot_for_row = Vec::new();
+        let mut is_pivot = vec![false; self.n];
+        for row in &self.generators {
+            if let Some(p) = row.iter().position(|&x| x != 0) {
+                pivot_for_row.push(p);
+                is_pivot[p] = true;
+            }
+        }
+
+        let mut dual_rows = Vec::new();
+        for free in 0..self.n {
+            if is_pivot[free] {
+                continue;
+            }
+            let mut v = vec![0u128; self.n];
+            v[free] = 1;
+            for (r, &pivot) in pivot_for_row.iter().enumerate() {
+                v[pivot] = fp_neg::<P>(self.generators[r][free]);
+            }
+            dual_rows.push(v);
+        }
+        PrimeCode::new(self.n, dual_rows).expect("dual rows have the same length")
+    }
+
+    /// The block direct sum `C ⊕ D`.
+    pub fn direct_sum(&self, other: &PrimeCode<P>) -> PrimeCode<P> {
+        let mut rows = Vec::with_capacity(self.dim() + other.dim());
+        for row in &self.generators {
+            let mut out = vec![0u128; self.n + other.n];
+            out[..self.n].copy_from_slice(row);
+            rows.push(out);
+        }
+        for row in &other.generators {
+            let mut out = vec![0u128; self.n + other.n];
+            out[self.n..].copy_from_slice(row);
+            rows.push(out);
+        }
+        PrimeCode::new(self.n + other.n, rows).expect("direct-sum rows are p-ary")
+    }
+
+    /// `C = C^perp`.
+    pub fn is_self_dual(&self) -> bool {
+        self.dim() * 2 == self.n && self.generators == self.dual().generators
+    }
+
+    /// `C <= C^perp` under the Euclidean dot product over `F_P`.
+    pub fn is_self_orthogonal(&self) -> bool {
+        (0..self.dim()).all(|i| {
+            (i..self.dim()).all(|j| dot_mod_p::<P>(&self.generators[i], &self.generators[j]) == 0)
+        })
+    }
+
+    /// The minimum nonzero Hamming weight, or `None` for the zero code.
+    pub fn minimum_distance(&self) -> Option<usize> {
+        self.codewords()
+            .into_iter()
+            .map(|word| row_weight_p(&word))
+            .filter(|&w| w > 0)
+            .min()
+    }
+
+    /// The Hamming weight enumerator coefficients:
+    /// `out[w] = #{c in C : wt(c) = w}`.
+    pub fn weight_enumerator(&self) -> Vec<i128> {
+        let mut out = vec![0i128; self.n + 1];
+        for word in self.codewords() {
+            out[row_weight_p(&word)] += 1;
+        }
+        out
+    }
+
+    /// The complete weight enumerator as composition counts.
+    ///
+    /// A key `[m_0, ..., m_{P-1}]` records how often each field symbol occurs in
+    /// a codeword. This is the raw integer-count object; the complete MacWilliams
+    /// transform itself lives over cyclotomic coefficients, so the integer
+    /// transform exposed here is the Hamming/Krawtchouk specialization.
+    pub fn complete_weight_enumerator(&self) -> Option<BTreeMap<Vec<usize>, i128>> {
+        let p = usize::try_from(P).ok()?;
+        let mut out = BTreeMap::new();
+        for word in self.codewords() {
+            let mut counts = vec![0usize; p];
+            for x in word {
+                counts[usize::try_from(x).ok()?] += 1;
+            }
+            *out.entry(counts).or_insert(0) += 1;
+        }
+        Some(out)
+    }
+
+    /// The q-ary MacWilliams transform of the Hamming weight enumerator. The
+    /// result is the weight enumerator of `C^perp`.
+    pub fn macwilliams_transform(&self) -> Option<Vec<i128>> {
+        let q = i128::try_from(P).ok()?;
+        let a = self.weight_enumerator();
+        let size = i128::try_from(self.size()?).ok()?;
+        let mut out = vec![0i128; self.n + 1];
+        for (j, out_j) in out.iter_mut().enumerate() {
+            let mut acc = 0i128;
+            for (i, &ai) in a.iter().enumerate() {
+                if ai == 0 {
+                    continue;
+                }
+                acc = acc.checked_add(ai.checked_mul(qary_krawtchouk(q, self.n, i, j)?)?)?;
+            }
+            if acc % size != 0 {
+                return None;
+            }
+            *out_j = acc / size;
+        }
+        Some(out)
+    }
+
+    /// Construction A with the standard `1/sqrt(P)` scaling:
+    ///
+    /// `A_P(C) = (1/sqrt(P)){x in Z^n : x mod P in C}`.
+    ///
+    /// Returns `None` exactly when the scaled Gram matrix is not integral.
+    pub fn construction_a(&self) -> Option<IntegralForm> {
+        let divisor = i128::try_from(P).ok()?;
+        let mut rows: Vec<Vec<i128>> = self
+            .generators
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .map(|&x| i128::try_from(x).expect("field symbol exceeds i128"))
+                    .collect()
+            })
+            .collect();
+        for i in 0..self.n {
+            let mut row = vec![0i128; self.n];
+            row[i] = divisor;
+            rows.push(row);
+        }
+        divided_lattice_from_rows(rows, self.n, divisor)
+    }
+}
+
 /// The scaled Construction D lattice for an increasing binary-code tower
 /// `C0 <= C1 <= ... <= C_{a-1}`:
 ///
@@ -593,6 +946,22 @@ pub fn d16_plus() -> IntegralForm {
     type_ii_len16_code()
         .construction_a()
         .expect("Type II Construction A is integral")
+}
+
+/// The extended ternary Golay `[12,6,6]` code.
+pub fn ternary_golay_code() -> TernaryCode {
+    TernaryCode::new(
+        12,
+        vec![
+            vec![1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+            vec![0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 2, 1],
+            vec![0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 2, 2],
+            vec![0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 1, 2],
+            vec![0, 0, 0, 0, 1, 0, 1, 2, 2, 1, 0, 1],
+            vec![0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 1, 0],
+        ],
+    )
+    .expect("ternary Golay generator has entries in F_3")
 }
 
 /// The extended binary Golay `[24,12,8]` code.
@@ -750,6 +1119,60 @@ mod tests {
         assert_eq!(tower.determinant(), 256);
         assert!(tower.short_vectors(2).unwrap().is_empty());
         assert!((0..tower.dim()).any(|i| tower.gram()[i][i] == 4));
+    }
+
+    #[test]
+    fn prime_code_dual_and_macwilliams_are_exact() {
+        let code = PrimeCode::<5>::new(3, vec![vec![1, 2, 0], vec![0, 1, 1]]).unwrap();
+        assert_eq!(code.len(), 3);
+        assert_eq!(code.dim(), 2);
+        assert_eq!(code.size(), Some(25));
+        assert!(code.contains(&code));
+        assert_eq!(
+            code.macwilliams_transform(),
+            Some(code.dual().weight_enumerator())
+        );
+
+        let complete = code.complete_weight_enumerator().unwrap();
+        assert_eq!(complete.values().sum::<i128>(), 25);
+        assert!(PrimeCode::<2>::new(1, vec![vec![1]]).is_none());
+        assert!(PrimeCode::<9>::new(1, vec![vec![1]]).is_none());
+    }
+
+    #[test]
+    fn non_self_orthogonal_prime_code_has_no_integral_construction_a() {
+        let code = PrimeCode::<3>::new(2, vec![vec![1, 0]]).unwrap();
+        assert!(!code.is_self_orthogonal());
+        assert!(code.construction_a().is_none());
+    }
+
+    #[test]
+    fn ternary_golay_gives_the_honest_odd_construction_a_lattice() {
+        let code = ternary_golay_code();
+        assert_eq!(code.len(), 12);
+        assert_eq!(code.dim(), 6);
+        assert_eq!(code.size(), Some(729));
+        assert_eq!(code.minimum_distance(), Some(6));
+        assert!(code.is_self_dual());
+        assert!(code.is_self_orthogonal());
+        assert_eq!(code.macwilliams_transform(), Some(code.weight_enumerator()));
+        assert_eq!(
+            code.weight_enumerator(),
+            vec![1, 0, 0, 0, 0, 0, 264, 0, 0, 440, 0, 0, 24]
+        );
+
+        let complete = code.complete_weight_enumerator().unwrap();
+        assert_eq!(complete.values().sum::<i128>(), 729);
+
+        let lattice = code.construction_a().unwrap();
+        assert_eq!(lattice.dim(), 12);
+        assert_eq!(lattice.determinant(), 1);
+        assert!(
+            !lattice.is_even(),
+            "plain Z Construction A is odd; Coxeter-Todd needs the Eisenstein lift"
+        );
+        assert_eq!(lattice.minimum(), Some(2));
+        assert_eq!(lattice.kissing_number(), Some(264));
     }
 
     #[test]

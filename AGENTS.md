@@ -155,11 +155,12 @@ with full-strength reciprocity over `F_q(t)`); the **valuation as (lax) tropical
 with `NewtonPolygon` over the valued legs (`scalar/newton.rs`, slope = root valuation =
 Springer residue layer); `Ordinal` serves as a Clifford scalar inside the verified Kummer
 boundary;
-`forms/integral/codes.rs` carries binary codes, MacWilliams, and Constructions A/B/D
-(with scaled integer-coordinate Gram constructors and an `Option` boundary when the
-scaled Gram is not integral), including Type I witnesses (`Z^2`, `Z^2⊕E8`), the Type
-II length-16 code whose Construction-A lattice is `D16+`, the `B(Golay)` half-Leech
-oracle, and scaled nested-code Construction D;
+`forms/integral/codes.rs` carries binary and odd-prime codes, MacWilliams, and
+Constructions A/B/D (with scaled integer-coordinate Gram constructors and an `Option`
+boundary when the scaled Gram is not integral), including Type I witnesses (`Z^2`,
+`Z^2⊕E8`), the Type II length-16 code whose Construction-A lattice is `D16+`, the
+`B(Golay)` half-Leech oracle, scaled nested-code Construction D, and the ternary
+Golay `[12,6,6]` odd unimodular rank-12 p-ary Construction-A witness;
 `forms/integral/{theta,modular}.rs` give exact theta coefficients and `E4`/`E6`/`E12`
 identification (`theta_E8 = E4`, `theta_{E8+E8} = theta_{D16+} = E4^2`, the rootless
 Leech `q^1` oracle), plus the norm-indexed level-4 theta head for odd lattices,

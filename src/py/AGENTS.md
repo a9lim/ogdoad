@@ -86,6 +86,7 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   `trace_form_arf`, `gold_form_arf`, `gold_form`), and the integral-lattice layer
   (`IntegralForm`, the ADE constructors `a_n`/`d_n`/`e_6`/`e_7`/`e_8`/`d16_plus`,
   `Genus`/`ScaleSymbol`, mass/automorphism constants, `BinaryCode`/Constructions A/B/D,
+  odd-prime `PrimeCode`/ternary Golay Construction A,
   theta + modular q-expansion helpers `eisenstein_e4`/`eisenstein_e6`/`delta`/`as_modular_form`,
   `DiscriminantForm`/Milgram/Weil `S`/`T`, and the odd-lattice
   `OddDiscriminantForm` / `OddMilgramReport` surface).

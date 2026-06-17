@@ -62,19 +62,6 @@ to a class statement in exactly that regime. No adelic machinery; just the predi
 its citation (Eichler; Cassels), and tests on indefinite Grams. The full definite
 computation stays `*1`.
 
-### 2·(e_i∧e_s): `construction-a-p`
-**Construction A over odd `F_p`** — Bridge H is binary-only; the `p`-ary completion is the
-same code↔lattice seam over the shipped `Fp` backend (`A_p(C) = {x ∈ ℤⁿ : x mod p ∈ C}`,
-inner products scaled by `p`), with the matching `p`-ary / complete-weight-enumerator
-MacWilliams identity beside the binary one in `codes.rs`. The headline oracle is the
-**ternary Golay** `[12,6,6]` → the **Coxeter–Todd lattice K₁₂** (the `F_3` analogue of
-binary-Golay→half-Leech), a rank-12 even lattice with its catalogued
-det/minimum/kissing/|Aut| — the first time the integral wing exercises an odd prime, and
-the natural rung between `construction_a` and the deferred CM-lattice wing (`cm-lattices`,
-`CONTINUATIONS.md`). Standard math (Conway–Sloane SPLAG ch. 7); the theta side stays the
-existing even-`ℂ[E4,E6]` boundary, since a ternary-Construction-A theta is a level-3 form
-(deferred with `theta-level`).
-
 ### ½·e_i: `reed-muller`
 **Reed–Muller codes + `BW₁₆` via the shipped Construction D** — the Construction-D surface
 currently ships only the toy `0 ≤ H_8` two-level tower; the Reed–Muller chain

@@ -5078,6 +5078,234 @@ fn construction_d(codes: Vec<PyBinaryCode>) -> Option<PyIntegralForm> {
     PyBinaryCode::construction_d(codes)
 }
 
+fn prime_code_from_rows<const P: u128>(
+    n: usize,
+    generators: Vec<Vec<u128>>,
+) -> PyResult<crate::forms::PrimeCode<P>> {
+    crate::forms::PrimeCode::<P>::new(n, generators).ok_or_else(|| {
+        PyValueError::new_err(format!(
+            "prime code generators must have length n and entries in F_{P}; P must be an odd prime"
+        ))
+    })
+}
+
+macro_rules! with_prime_code {
+    ($p:expr, $n:expr, $generators:expr, |$code:ident| $body:expr) => {{
+        match $p {
+            3 => {
+                let $code = prime_code_from_rows::<3>($n, $generators)?;
+                $body
+            }
+            5 => {
+                let $code = prime_code_from_rows::<5>($n, $generators)?;
+                $body
+            }
+            7 => {
+                let $code = prime_code_from_rows::<7>($n, $generators)?;
+                $body
+            }
+            11 => {
+                let $code = prime_code_from_rows::<11>($n, $generators)?;
+                $body
+            }
+            13 => {
+                let $code = prime_code_from_rows::<13>($n, $generators)?;
+                $body
+            }
+            _ => {
+                return Err(PyValueError::new_err(
+                    "supported odd prime code fields: F_3, F_5, F_7, F_11, F_13",
+                ))
+            }
+        }
+    }};
+}
+
+fn wrap_prime_code<const P: u128>(inner: crate::forms::PrimeCode<P>) -> PyPrimeCode {
+    PyPrimeCode {
+        p: P,
+        n: inner.len(),
+        generators: inner.generators().to_vec(),
+    }
+}
+
+type PyCompleteWeightEnumerator = Vec<(Vec<usize>, i128)>;
+
+#[pyclass(name = "PrimeCode", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyPrimeCode {
+    p: u128,
+    n: usize,
+    generators: Vec<Vec<u128>>,
+}
+
+#[pymethods]
+impl PyPrimeCode {
+    #[new]
+    fn new(p: u128, n: usize, generators: Vec<Vec<u128>>) -> PyResult<Self> {
+        with_prime_code!(p, n, generators, |code| {
+            Ok(PyPrimeCode {
+                p,
+                n: code.len(),
+                generators: code.generators().to_vec(),
+            })
+        })
+    }
+    #[staticmethod]
+    fn ternary_golay() -> Self {
+        wrap_prime_code(crate::forms::ternary_golay_code())
+    }
+    #[getter]
+    fn p(&self) -> u128 {
+        self.p
+    }
+    fn len(&self) -> usize {
+        self.n
+    }
+    fn is_empty(&self) -> bool {
+        self.n == 0
+    }
+    fn dim(&self) -> PyResult<usize> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.dim())
+        })
+    }
+    fn generators(&self) -> Vec<Vec<u128>> {
+        self.generators.clone()
+    }
+    fn size(&self) -> PyResult<Option<u128>> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.size())
+        })
+    }
+    fn dual(&self) -> PyResult<PyPrimeCode> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(wrap_prime_code(code.dual()))
+        })
+    }
+    fn direct_sum(&self, other: &PyPrimeCode) -> PyResult<PyPrimeCode> {
+        if self.p != other.p {
+            return Err(PyTypeError::new_err(
+                "prime codes must live over the same F_p",
+            ));
+        }
+        match self.p {
+            3 => {
+                let a = prime_code_from_rows::<3>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<3>(other.n, other.generators.clone())?;
+                Ok(wrap_prime_code(a.direct_sum(&b)))
+            }
+            5 => {
+                let a = prime_code_from_rows::<5>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<5>(other.n, other.generators.clone())?;
+                Ok(wrap_prime_code(a.direct_sum(&b)))
+            }
+            7 => {
+                let a = prime_code_from_rows::<7>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<7>(other.n, other.generators.clone())?;
+                Ok(wrap_prime_code(a.direct_sum(&b)))
+            }
+            11 => {
+                let a = prime_code_from_rows::<11>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<11>(other.n, other.generators.clone())?;
+                Ok(wrap_prime_code(a.direct_sum(&b)))
+            }
+            13 => {
+                let a = prime_code_from_rows::<13>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<13>(other.n, other.generators.clone())?;
+                Ok(wrap_prime_code(a.direct_sum(&b)))
+            }
+            _ => Err(PyValueError::new_err(
+                "supported odd prime code fields: F_3, F_5, F_7, F_11, F_13",
+            )),
+        }
+    }
+    fn contains(&self, other: &PyPrimeCode) -> PyResult<bool> {
+        if self.p != other.p {
+            return Ok(false);
+        }
+        match self.p {
+            3 => {
+                let a = prime_code_from_rows::<3>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<3>(other.n, other.generators.clone())?;
+                Ok(a.contains(&b))
+            }
+            5 => {
+                let a = prime_code_from_rows::<5>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<5>(other.n, other.generators.clone())?;
+                Ok(a.contains(&b))
+            }
+            7 => {
+                let a = prime_code_from_rows::<7>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<7>(other.n, other.generators.clone())?;
+                Ok(a.contains(&b))
+            }
+            11 => {
+                let a = prime_code_from_rows::<11>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<11>(other.n, other.generators.clone())?;
+                Ok(a.contains(&b))
+            }
+            13 => {
+                let a = prime_code_from_rows::<13>(self.n, self.generators.clone())?;
+                let b = prime_code_from_rows::<13>(other.n, other.generators.clone())?;
+                Ok(a.contains(&b))
+            }
+            _ => Ok(false),
+        }
+    }
+    fn is_self_dual(&self) -> PyResult<bool> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.is_self_dual())
+        })
+    }
+    fn is_self_orthogonal(&self) -> PyResult<bool> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.is_self_orthogonal())
+        })
+    }
+    fn minimum_distance(&self) -> PyResult<Option<usize>> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.minimum_distance())
+        })
+    }
+    fn weight_enumerator(&self) -> PyResult<Vec<i128>> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.weight_enumerator())
+        })
+    }
+    fn complete_weight_enumerator(&self) -> PyResult<Option<PyCompleteWeightEnumerator>> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code
+                .complete_weight_enumerator()
+                .map(|map| map.into_iter().collect()))
+        })
+    }
+    fn macwilliams_transform(&self) -> PyResult<Option<Vec<i128>>> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.macwilliams_transform())
+        })
+    }
+    fn construction_a(&self) -> PyResult<Option<PyIntegralForm>> {
+        with_prime_code!(self.p, self.n, self.generators.clone(), |code| {
+            Ok(code.construction_a().map(|inner| PyIntegralForm { inner }))
+        })
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "PrimeCode(p={}, n={}, dim={}, generators={:?})",
+            self.p,
+            self.n,
+            self.generators.len(),
+            self.generators
+        )
+    }
+}
+
+#[pyfunction]
+fn ternary_golay_code() -> PyPrimeCode {
+    PyPrimeCode::ternary_golay()
+}
+
 #[pyfunction]
 fn d16_plus() -> PyIntegralForm {
     PyIntegralForm {
@@ -5973,6 +6201,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyComplex64>()?;
     m.add_class::<PyGaussSum>()?;
     m.add_class::<PyBinaryCode>()?;
+    m.add_class::<PyPrimeCode>()?;
     m.add_class::<PyIntegralForm>()?;
     m.add_class::<PyScaleSymbol>()?;
     m.add_class::<PyGenus>()?;
@@ -6063,6 +6292,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(golay_code, m)?)?;
     m.add_function(wrap_pyfunction!(extended_golay_generator_rows, m)?)?;
     m.add_function(wrap_pyfunction!(construction_d, m)?)?;
+    m.add_function(wrap_pyfunction!(ternary_golay_code, m)?)?;
     m.add_function(wrap_pyfunction!(d16_plus, m)?)?;
     m.add_function(wrap_pyfunction!(a_n, m)?)?;
     m.add_function(wrap_pyfunction!(d_n, m)?)?;

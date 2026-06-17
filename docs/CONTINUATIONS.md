@@ -83,14 +83,15 @@ integral wing is all `ℤ`-lattices; the on-thesis enrichment is the "(field, ri
 integers)" axis — the project's spine — applied to the complex/quaternionic worlds:
 Hermitian Gram matrices over an imaginary-quadratic or quaternion order, with the
 underlying real lattice recovered by restriction of scalars. The payoffs are canonical —
-the **Coxeter–Todd `K₁₂`** as a rank-6 `ℤ[ω]`-lattice (the `construction-a-p` real lattice
-re-viewed with its Eisenstein structure), the **complex Leech** as rank-12 over `ℤ[ω]`, and
-the **quaternionic Leech** as rank-6 over the Hurwitz order, each with its automorphism
-group as a unitary/symplectic group. The decision is a9's: how much complex/quaternionic
-lattice arithmetic the integral wing wants to own (a Hermitian-Gram type, a
-`complex_construction_a`, CM theta as Hilbert/Jacobi forms) versus keeping `ℤ`-lattices as
-the deliberate boundary, with CM lattices appearing only through restriction of scalars.
-Pairs with `hermitian-finite` (the finite mirror) and `construction-a-p` (the real shadow).
+the **Coxeter–Todd `K₁₂`** as a rank-6 `ℤ[ω]`-lattice from the Eisenstein Construction A
+lift adjacent to the ternary-Golay real shadow, the **complex Leech** as rank-12 over
+`ℤ[ω]`, and the **quaternionic Leech** as rank-6 over the Hurwitz order, each with its
+automorphism group as a unitary/symplectic group. The decision is a9's: how much
+complex/quaternionic lattice arithmetic the integral wing wants to own (a Hermitian-Gram
+type, a `complex_construction_a`, CM theta as Hilbert/Jacobi forms) versus keeping
+`ℤ`-lattices as the deliberate boundary, with CM lattices appearing only through
+restriction of scalars. Pairs with `hermitian-finite` (the finite mirror) and
+`construction-a-p` (the plain `ℤ` p-ary shadow).
 References: Conway–Sloane SPLAG ch. 7 & 10; Nebe's Hermitian-lattice catalogue.
 
 ---
