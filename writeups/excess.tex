@@ -240,8 +240,82 @@ the $p=719$ norm path are locally certified by
 \path{experiments/ordinal_excess_probe.py}: $m_{89}=1$ in the
 $E=220$ component field, and $m_{179}=1$ in the $E=19{,}580$ component
 field via the fixed-base power path (\texttt{--deep}, about one minute
-locally). The remaining dependency row is $m_{359}=1$, with
-$E=3{,}504{,}820$.
+locally). The remaining local rehearsal row is $m_{359}=1$, with
+$E=3{,}504{,}820$. This row is already source-pinned by the imported
+A380496 table ($359\leq709$); what remains open here is an independent
+certificate on the same code path needed for the genuinely unknown
+$p=719$ row.
+
+\subsection{\texorpdfstring{The $m_{359}$ rehearsal obstruction}{The m359 rehearsal obstruction}}
+\label{sec:m359-obstruction}
+
+Set
+\[
+  d=19{,}580,\qquad E=179d=3{,}504{,}820,\qquad
+  B=\F_{2^d},\qquad F=\F_{2^E},\qquad L=\F_{2^{179}}.
+\]
+For the $m_{359}=1$ rehearsal, $f(359)=179$,
+$\Qset(f(359))=\Qset(179)=\{179\}$, and the candidate element is
+$\beta=\kappa_{179}+1$. To represent $\kappa_{179}$, the tower uses the
+lower prime row $f(179)=178$, $\Qset(178)=\{89\}$, $m_{179}=1$.
+Thus in the tower model $F=B(x)$ with $x=\kappa_{179}$ and
+\[
+  x^{179}=\kappa_{89}+1\in B,
+\]
+because the lower row $m_{179}=1$ has already been certified.
+
+\PROVED{} The cheap Kummer norm down the top tower step is not the
+$359$-test norm. Indeed,
+\[
+  \Norm_{F/B}(x+1)=1+(\kappa_{89}+1)=\kappa_{89}
+\]
+(evaluate the monic polynomial $T^{179}+(\kappa_{89}+1)$ at $T=1$, in
+characteristic $2$). But $359\nmid |B^\times|=2^{19580}-1$, since
+$\ord_{359}(2)=179$ and $179\nmid19580$. Thus the structurally cheap
+norm lands in exactly the field where the $359$-primary obstruction is
+invisible.
+
+\PROVED{} The norm forced by Proposition~\ref{prop:norm} is the
+transverse one
+\[
+  \Norm_{F/L}(\beta)=\prod_{i=0}^{19579}\Frob^{179i}(\beta)\in L.
+\]
+Here $\gcd(179,19580)=1$, so $B\cap L=\F_2$ and
+$F=BL$. The Frobenius $\Frob^{179}$ preserves $B$ as a set but acts
+nontrivially on it; it is not the relative Kummer action
+$x\mapsto \zeta x$ over $B$. Consequently the known lower certificates
+for $m_{89}$ and $m_{179}$ do not propagate to $m_{359}$ by taking the
+easy top-step norm.
+
+\PROVED{} The Wieferich caveat is absent at the next two pressure
+points: direct modular checks give
+$2^{179}\not\equiv1\pmod{359^2}$ and
+$2^{359}\not\equiv1\pmod{719^2}$. The order form of
+Corollary~\ref{cor:order} is therefore equivalent to the full power
+criterion for the $m_{359}$ rehearsal and the proposed $m_{719}$ test.
+
+\CONSISTENT{} (2026-06-16 diagnostic.) Re-running the maintained probe
+confirmed the quick certificate table and the \texttt{--deep}
+$m_{179}=1$ certificate. A side norm experiment then computed the
+correct transverse norm in the current term basis for the feasible
+analogues: for $p=89$ the norm to $\F_{2^{11}}$ has support
+$111/220$, and for $p=179$ the norm to $\F_{2^{178}}$ has support
+$9691/19580$. Thus the target-subfield element is essentially half-dense
+in this representation; using it as the new fixed base makes the final
+root-test exponent slower than the direct fixed-base certificate. This
+is a representation-level diagnostic, not a theorem that no sparse
+description exists.
+
+\OPEN{} The current pure-Python term algebra has no feasible route to a
+local $m_{359}$ certificate. The direct fixed-base path would have to
+precompute multiplication by $\beta$ for $E=3{,}504{,}820$ basis terms
+and then run an $E$-bit exponent. The norm path lowers the mathematical
+problem to a degree-$179$ target field, but computing that norm still
+requires the $19580$-term transverse Frobenius orbit through
+$F_{2^{3504820}}$. A practical certificate now appears to require either
+(i) dense/sliced GF(2) arithmetic such as \texttt{gf2x}/NTL, or
+(ii) a tower-aware Frobenius representation that makes the transverse
+orbit cheap. This is the obstruction hit in the present pass.
 
 \begin{remark}[shared abstraction]\label{rem:bridgek}
 The structural primitive needed here --
@@ -629,15 +703,19 @@ argument outside the $3$-adic columns.
 dependency rows are now locally certified: $m_{89}=1$ at $E=220$ and
 $m_{179}=1$ at $E=19{,}580$
 (\path{experiments/ordinal_excess_probe.py}, \texttt{--deep} for the
-latter). The remaining calculator row on which an $m_{719}$ certificate
-depends is $m_{359}=1$, whose component field has degree
-$E=3{,}504{,}820$ -- a stretch, plausibly hours to a day with
-\texttt{gf2x}-style arithmetic. Certifying it calibrates the cost model
-for the next move on the same code path and settles the provenance
-question (``what evidence is acceptable'') before any new $\alpha$ ships.
-Confirm $m_{359}=1$ first; the norm recurrence for $p=719$ shifts if not.
-\emph{Feasible only with a faster tower/Frobenius implementation; blocks
-the next move.}
+latter). The remaining independent rehearsal row on which an $m_{719}$
+certificate depends is $m_{359}=1$, whose component field has degree
+$E=3{,}504{,}820$. The value is already source-pinned by A380496; the
+research value is a local certificate and a calibrated cost model for
+the first unknown row. The 2026-06-16 pass found the precise obstruction:
+the cheap top-step norm lands in $\F_{2^{19580}}$, where $359$ is
+invisible, while the correct norm is the transverse
+$\F_{2^{3504820}}/\F_{2^{179}}$ norm and is dense in the current term
+basis (Subsection~\ref{sec:m359-obstruction}). Certifying it remains a stretch,
+plausibly hours to a day with \texttt{gf2x}-style arithmetic, and is not
+reachable with the present pure-Python oracle. Confirm $m_{359}=1$ first;
+the norm recurrence for $p=719$ shifts if not. \emph{Feasible only with a
+faster tower/Frobenius implementation; blocks the next move.}
 \item \emph{Certify $m_{719}$ via the Kummer-tower Frobenius norm.}
 Implement the binary-splitting norm $N_{2k}=N_k\cdot\Frob^{359k}(N_k)$ in
 the tower-sparse representation; measure the cost model on the calibrated
