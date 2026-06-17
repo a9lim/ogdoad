@@ -53,6 +53,21 @@ level — the Bad census — and the fifo+dummy mechanism is identified
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
 `OPEN.md` tis (§1), not a number here.)
 
+### 1·(e_f∧e_s): `hermitian-finite`
+**Hermitian forms over the finite legs** — the involution sibling the classifier is
+missing. `forms/hermitian.rs` classifies Hermitian forms only over `Surcomplex`
+(signature, via the `conj()` involution); the same theory over a degree-2
+`CyclicGaloisExtension` `F_{q²}/F_q` (involution = the relative Frobenius `σ`, already
+shipped for `Fpn` and the `Nimber` subfields) is **rank-complete** — every nondegenerate
+Hermitian form of a given rank is equivalent, because the norm `N: F_{q²}* → F_q*` is
+onto, so the discriminant in `F_q*/N` is trivial. A classifier generic over
+`CyclicGaloisExtension`-of-degree-2 mirrors the quadratic-form trichotomy's char-0↔finite
+span onto the "form + involution" siblings (`forms/AGENTS.md` → "form + involution"), with
+`U(n, F_{q²}/F_q)` as the matching complete-invariant group. The char-2 finite case
+(`Fpn<2,2k>/Fpn<2,k>`, `Nimber` subfields) falls out of the **same** rank statement, so
+one build spans the odd and char-2 finite legs at once. Standard math (Grove, *Classical
+Groups and Geometric Algebra*).
+
 ## numbers — the integral wing
 
 ### ½·(e_i∧e_c): `eichler`
@@ -61,6 +76,28 @@ pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued
 to a class statement in exactly that regime. No adelic machinery; just the predicate,
 its citation (Eichler; Cassels), and tests on indefinite Grams. The full definite
 computation stays `*1`.
+
+### 2·(e_i∧e_s): `construction-a-p`
+**Construction A over odd `F_p`** — Bridge H is binary-only; the `p`-ary completion is the
+same code↔lattice seam over the shipped `Fp` backend (`A_p(C) = {x ∈ ℤⁿ : x mod p ∈ C}`,
+inner products scaled by `p`), with the matching `p`-ary / complete-weight-enumerator
+MacWilliams identity beside the binary one in `codes.rs`. The headline oracle is the
+**ternary Golay** `[12,6,6]` → the **Coxeter–Todd lattice K₁₂** (the `F_3` analogue of
+binary-Golay→half-Leech), a rank-12 even lattice with its catalogued
+det/minimum/kissing/|Aut| — the first time the integral wing exercises an odd prime, and
+the natural rung between `construction_a` and the deferred CM-lattice wing (`cm-lattices`,
+`CONTINUATIONS.md`). Standard math (Conway–Sloane SPLAG ch. 7); the theta side stays the
+existing even-`ℂ[E4,E6]` boundary, since a ternary-Construction-A theta is a level-3 form
+(deferred with `theta-level`).
+
+### ½·e_i: `reed-muller`
+**Reed–Muller codes + `BW₁₆` via the shipped Construction D** — the Construction-D surface
+currently ships only the toy `0 ≤ H_8` two-level tower; the Reed–Muller chain
+`RM(0,m) ⊂ RM(1,m) ⊂ … ⊂ RM(m,m)` is the classical nested family Construction D was built
+for, and `RM(1,4) ⊂ RM(2,4)` gives the **Barnes–Wall lattice `BW₁₆`** with its catalogued
+det/minimum/kissing. A small, pure-`integral/` completion that turns the demo into a named
+lattice — and supplies the code-side route into the `clifford-lattices` bridge
+(`CONTINUATIONS.md`), where `BW₁₆` reappears as a Clifford-group invariant.
 
 ## numbers — scalar worlds
 
@@ -116,6 +153,15 @@ keep the cap as the honest model boundary.
 Verify the regularity hypothesis of Plambeck–Siegel Thm 6.4 against the published
 JCTA 2008 paper — load-bearing for goldarf Theorem C, flagged there as the cheap gate
 (ranked move 5a). Literature work, no code.
+
+### ↑: `functor-compose`
+The 2×2 functor table (`Surcomplex`/`Ramified`/`Gauss`/`Laurent`) is "all four corners
+filled," but each functor is generic over its input and the *compositions* are untested:
+`Surcomplex<Qp>` should be `Q_p(i)` (the unramified quadratic extension for `p ≡ 3 mod 4`,
+split for `p ≡ 1`), `Ramified<Qq>` a ramified-over-unramified local field, `Gauss<Laurent>`
+a two-step valuation. A handful of tests pinning that stacked functors realize the expected
+`(K, 𝒪, 𝔪, k, Γ, ϖ)` package — no new types, just confirming the corners compose the way
+the place table claims they do.
 
 ### ↑: `octal-hunt-reframe`
 `examples/octal_hunt.rs` hunts `(ℤ/2)^k` misère quotients with `k ≥ 2` — a target

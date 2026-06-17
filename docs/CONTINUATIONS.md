@@ -40,6 +40,61 @@ identity questions are the point.
 
 ---
 
+## numbers — cross-pillar (new bridges)
+
+### 2·(e_c∧e_i): `clifford-lattices`
+**The C→I bridge — Barnes–Wall lattices as Clifford-group invariants.** Bridge A runs
+integral→Clifford (even lattice → Clifford metric); the reverse direction is unbuilt, and
+it is exactly the Barnes–Wall story. `BW_{2^m}` is the ℤ-lattice stabilized by the **real
+Clifford group** (the normalizer of the extraspecial `2^{1+2m}` inside `O(2^m)`), and its
+automorphism group *is* that Clifford group (Nebe–Rains–Sloane, *The invariants of the
+Clifford groups*, IEEE-IT 2001). The concrete buildable path reuses shipped machinery end
+to end: `RM(1,m) ⊂ RM(2,m)` (the `reed-muller` codes in `COMPLETENESS.md`) → Construction D
+→ `BW_{2^m}`, then verify the lattice is the ℤ-span of the Clifford/Pin module's weight
+vectors and that `|Aut|` matches the Clifford-group order. This closes the one missing
+bridge *direction* in the README's traveller's catalog (A is I→C; this is C→I) and ties the
+mod-8/`E₈`/Bott spine — already shared by both pillars — to an explicit lattice on the
+Clifford side. On-thesis, standard math; the work is the spinor-module-to-lattice
+identification, not new theory. Sits beside `extraspecial` (`COMPLETENESS.md`): that builds
+the group, this builds the lattice it stabilizes.
+
+### 2·(e_f∧e_i): `z4-codes`
+**`ℤ/4`-linear codes and the Gray map — making Brown's Bridge-M cell load-bearing.**
+Bridge M ships the `ℤ/4`-valued quadratic refinement and its Brown `ℤ/8` invariant
+(`forms/char2/brown.rs`), but nothing in the code/lattice wing consumes the `ℤ/4`
+structure. `ℤ/4`-linear codes are the join: a `ℤ/4`-code carries exactly a Brown-type
+`ℤ/4` quadratic form, its **Gray map** sends it to a (usually nonlinear) binary code, and
+the **Kerdock/Preparata** pair — formal duals under the `ℤ/4` MacWilliams identity, the
+classical resolution of their long-mysterious binary "duality" — head the family
+(Hammons–Kumar–Calderbank–Sloane–Solé, IEEE-IT 1994). The same `ℤ/4` data feeds
+Construction-A-style lattices (the `ℤ/4`-Construction-A route to `BW` lattices, tying back
+to `clifford-lattices`). This makes the Brown cell a **hub instead of a leaf**: `over`
+(`OPEN.md`) asks whether the `ℤ/4` census has a *game* reading; this asks the parallel
+*code/lattice* question, which is standard math and fully buildable. New `ℤ/4`-code type,
+the Gray map, `ℤ/4` MacWilliams, and Kerdock/Preparata witnesses.
+
+---
+
+## switches (a9's move first)
+
+### ±3·(e_i∧e_f): `cm-lattices`
+**Hermitian lattices over the CM rings `ℤ[i]`, `ℤ[ω]`, and the Hurwitz quaternions.** The
+integral wing is all `ℤ`-lattices; the on-thesis enrichment is the "(field, ring of
+integers)" axis — the project's spine — applied to the complex/quaternionic worlds:
+Hermitian Gram matrices over an imaginary-quadratic or quaternion order, with the
+underlying real lattice recovered by restriction of scalars. The payoffs are canonical —
+the **Coxeter–Todd `K₁₂`** as a rank-6 `ℤ[ω]`-lattice (the `construction-a-p` real lattice
+re-viewed with its Eisenstein structure), the **complex Leech** as rank-12 over `ℤ[ω]`, and
+the **quaternionic Leech** as rank-6 over the Hurwitz order, each with its automorphism
+group as a unitary/symplectic group. The decision is a9's: how much complex/quaternionic
+lattice arithmetic the integral wing wants to own (a Hermitian-Gram type, a
+`complex_construction_a`, CM theta as Hilbert/Jacobi forms) versus keeping `ℤ`-lattices as
+the deliberate boundary, with CM lattices appearing only through restriction of scalars.
+Pairs with `hermitian-finite` (the finite mirror) and `construction-a-p` (the real shadow).
+References: Conway–Sloane SPLAG ch. 7 & 10; Nebe's Hermitian-lattice catalogue.
+
+---
+
 ## stars (deferred — the not-yet-numbers, confused with zero)
 
 The star numbers are one shared nim-sum scheme across both buildable ledgers; the
