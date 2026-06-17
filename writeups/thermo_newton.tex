@@ -1,0 +1,353 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array,booktabs}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{conjecture}{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\Th}{\operatorname{Th}}
+\newcommand{\temp}{\operatorname{temp}}
+\newcommand{\mean}{\operatorname{mean}}
+\newcommand{\NP}{\operatorname{NP}}
+\newcommand{\gr}{\operatorname{gr}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Trop}{\mathbb{T}}
+\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
+\newcommand{\PROVED}{\taglabel{PROVED}}
+\newcommand{\TESTED}{\taglabel{TESTED}}
+\newcommand{\STANDARD}{\taglabel{STANDARD MATH}}
+\newcommand{\CONJECTURAL}{\taglabel{CONJECTURAL}}
+\newcommand{\OPEN}{\taglabel{OPEN}}
+
+\title{Draft: thermographs, Newton polygons, and the missing residue}
+\author{a9lim}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note pursues \texttt{docs/OPEN.md} problem
+\texttt{under*(e\_g\string^e\_s)}: whether the two tropical consumers in
+\path{ogdoad}---game thermography and valuation/Newton polygons---are one
+tropical object or merely a convention mirror. The result of this pass is a
+negative theorem at the thermograph level and a more precise positive target.
+
+The negative theorem is small but decisive: the thermograph is not a congruence
+for disjunctive sum. There is no binary operation, single- or multi-step, that
+takes only $\Th(G)$ and $\Th(H)$ and returns $\Th(G+H)$ for all short games.
+The witness is already in the temperature-zero layer:
+$\Th(*)=\Th(\uparrow)$, but $*+*=0$ while $\uparrow+*$ is still a non-number of
+temperature $0$.
+
+The useful replacement is not ``no tropical structure''. Temperature itself has
+exactly the expected tropical-valuation shape: $\temp(G+H)\leq
+\max(\temp G,\temp H)$, with equal-temperature pairs forming the game-side
+vanishing locus. What fails is the proposed angular component
+$(\mean(G),\temp(G))$: it forgets the leading thermic residue. A single object,
+if it exists, should be an associated graded object of the game group by
+temperature, enriched at least by the all-small residue data (atomic weight plus
+its kernel), not the ordinary thermograph alone. I hit the wall at making that
+graded object multiplicative: the repo has no Norton/overheating product, and
+the game group itself is not a ring.
+\end{abstract}
+
+\paragraph{Claim levels.}
+\PROVED{} -- proof from standard short-game identities plus the live
+implementation's definitions; \TESTED{} -- verified by the commands in
+Appendix~\ref{sec:checks}; \STANDARD{} -- standard thermography/Newton-polygon
+math used by the repo; \CONJECTURAL{} -- plausible but not proved here;
+\OPEN{} -- this pass did not solve it.
+
+\section{The two tropical objects currently in the code}
+
+\STANDARD{} The place axis is the usual non-Archimedean tropicalization. In
+\path{src/scalar/valued.rs}, a valued scalar satisfies
+\[
+  v(xy)=v(x)+v(y),\qquad
+  v(x+y)\geq \min(v(x),v(y)),
+\]
+with equality when $v(x)\neq v(y)$. The adaptor
+\path{tropicalize} lands in the min-plus semiring. In
+\path{src/scalar/newton.rs}, $\NP(f)$ is the lower convex hull of the points
+$(i,v(a_i))$, and its side slopes are the negatives of root valuations. The
+Springer tests in \texttt{src/forms/springer/local.rs} check that the Newton
+polygon forgets only the residue square-class data: its slopes are exactly the
+valuation layers.
+
+\STANDARD{} The game axis is also tropical, but internally. A short game's
+thermograph consists of a left wall $L_G(t)$, a right wall $R_G(t)$, the mast
+$\mean(G)$, and the temperature $\temp(G)$; the implementation lives in
+\path{src/games/thermography.rs}. The tropical naming layer makes the left wall
+the max-plus fold over Left options' right walls, the right wall the min-plus
+fold over Right options' left walls, and cooling ordinary addition of the
+temperature parameter, i.e. tropical multiplication. The test
+\texttt{via\_tropical\_matches\_thermograph} pins this naming equal to the
+ordinary thermograph.
+
+\begin{remark}
+This is already enough to justify the slogan ``thermography is tropical
+arithmetic''. It is not enough to make thermographs compose under disjunctive
+sum. Newton polygons have Dumas additivity under polynomial multiplication.
+Thermographs do not have an analogous strict additivity under game sum.
+\end{remark}
+
+\section{The thermograph is not a sum invariant}
+
+\begin{definition}
+For a short game $G$, write
+\[
+  \Th(G)=(L_G,R_G,\mean(G),\temp(G))
+\]
+for the exact thermograph computed by \texttt{thermograph}. A thermograph-level
+sum law would be any operation $\Phi$ such that
+\[
+  \Th(G+H)=\Phi(\Th(G),\Th(H))
+\]
+for all games in the domain of ordinary thermography.
+\end{definition}
+
+\begin{proposition}[No thermograph-level composition law]\label{prop:no-congruence}
+\PROVED{} The map $G\mapsto\Th(G)$ is not a congruence for disjunctive sum.
+Consequently, no operation whose inputs are only $\Th(G)$ and $\Th(H)$ can
+determine $\Th(G+H)$ for all short games.
+\end{proposition}
+
+\begin{proof}
+Use the standard games $*=\{0\mid0\}$ and
+$\uparrow=\{0\mid *\}$. The live thermography engine, and standard temperature
+theory, give
+\[
+  \Th(*)=\Th(\uparrow)
+  =
+  \bigl(0,0,\mean=0,\temp=0\bigr),
+\]
+where both walls are the constant zero wall.
+
+Now add the same partner $*$. Since $*$ is the nimber of order two,
+\[
+  *+*=0,
+\]
+so the result is a number and the repo reports temperature $-1$ for the cold
+numeric case. But $\uparrow+*$ is still all-small and non-numeric; its
+thermograph has temperature $0$ and constant zero walls. Thus the two input
+pairs
+\[
+  (\Th(*),\Th(*))\quad\text{and}\quad(\Th(\uparrow),\Th(*))
+\]
+are identical, while the output thermographs differ. This contradicts the
+existence of $\Phi$.
+\end{proof}
+
+\begin{corollary}\leavevmode
+\PROVED{} The pair $(\mean(G),\temp(G))$ cannot be the game-side analogue of
+$(\operatorname{ac}(x),v(x))$ for a valued field element. It forgets the
+leading thermic residue that decides cancellation.
+\end{corollary}
+
+\begin{remark}
+The witness is deliberately low-tech. It lives at temperature zero, before any
+subtle sidling or nested hot-game pathology appears. The obstruction is not an
+implementation artifact of complicated thermographs; it is present in the
+first infinitesimal layer.
+\end{remark}
+
+\section{What survives: temperature as a tropical valuation}
+
+\STANDARD{} Temperature does satisfy the valuation-shaped inequality
+\[
+  \temp(G+H)\leq \max(\temp(G),\temp(H)),
+\]
+with numbers treated as colder than all infinitesimal/hot games. Reversing the
+order by $v_T(G)=-\temp(G)$ gives the familiar valuation form
+\[
+  v_T(G+H)\geq \min(v_T(G),v_T(H)).
+\]
+The equal-temperature case is the game-side vanishing locus. It can cancel
+downward, or it can retain the same leading temperature.
+
+\TESTED{} In this checkout I probed a small catalogue consisting of integers,
+$*$, $\uparrow$, $\downarrow$, $*2$, switches $\{a\mid b\}$ for small integer
+$a,b$, and one-option nested hot games. Across $324$ pairwise sums there were
+no violations of $\temp(G+H)\leq\max(\temp G,\temp H)$. Every unequal-temperature
+pair hit equality. Equal-temperature pairs produced the expected downward
+spread:
+\[
+\begin{array}{ccl}
+  \temp(*)=\temp(*)=0,      &\quad& \temp(*+*)=-1,\\
+  \temp(*)=\temp(\uparrow)=0,&& \temp(*+\uparrow)=0,\\
+  \temp(\{1\mid-1\})=\temp(\{2\mid0\})=1,&&
+      \temp(\{1\mid-1\}+\{2\mid0\})=-1.
+\end{array}
+\]
+Other equal-temperature probes at input temperature $2$ produced output
+temperatures $-1,0,1,$ and $2$.
+
+\begin{remark}
+This is exactly the tropical-hyperfield shape if one keeps only the scalar
+temperature: unequal leading values add strictly by max-plus; equal leading
+values may cancel to any lower layer. The problem is that this scalar law is
+too coarse to recover walls, masts below the leading layer, or the resulting
+game value.
+\end{remark}
+
+\section{The one-object probe: switches versus one-side Newton polygons}
+
+\TESTED{} There is a clean but shallow dictionary for switches. For
+$m\in\Q$ and $\tau>0$, the switch
+\[
+  S_{m,\tau}=\{m+\tau\mid m-\tau\}
+\]
+has
+\[
+  L_{S}(t)=m+\tau-t,\qquad
+  R_{S}(t)=m-\tau+t
+  \quad(0\leq t\leq\tau),
+\]
+and both walls freeze to $m$ at $t=\tau$.
+
+The Newton polygon of a binomial $x^n-\pi^k$ has one side from $(0,k)$ to
+$(n,0)$, hence one slope and one root-valuation layer. After an affine change
+of axes, one wall of $S_{m,\tau}$ is exactly such a one-side polygon; the other
+wall is its dual reflection. This realizes the requested ``one-object probe''
+only in the trivial one-parameter family.
+
+\begin{proposition}
+\PROVED{} The switch/binomial dictionary does not extend to a thermograph-level
+sum theorem.
+\end{proposition}
+
+\begin{proof}
+The dictionary sends one switch to one linear Newton side. Polynomial
+multiplication concatenates Newton slope data by Dumas additivity. But
+Proposition~\ref{prop:no-congruence} shows that disjunctive sum cannot be read
+from thermographs alone, even before leaving the zero-temperature layer. Any
+extension would need extra residue data not present in the switch wall.
+\end{proof}
+
+\section{The actual candidate bridge: an associated graded game object}
+
+\CONJECTURAL{} The positive object should be a temperature filtration of the
+game group. Let
+\[
+  F_{\leq \tau}=\{G:\temp(G)\leq \tau\}
+\]
+for $\tau\geq0$, with the numeric games placed in the cold bottom layer. The
+standard temperature inequality says these are additive subgroups. The
+associated graded candidate is
+\[
+  \gr_T(\mathrm{Games})
+  =
+  \bigoplus_{\tau} F_{\leq\tau}/F_{<\tau}.
+\]
+The leading thermic residue of $G$ would be the class of $G$ in the quotient at
+$\tau=\temp(G)$, not the pair $(\mean(G),\temp(G))$.
+
+\TESTED{} At $\tau=0$, this is already visible. The thermograph collapses
+$*$, $\uparrow$, $\downarrow$, and $*2$ to the same constant-zero object.
+Atomic weight, implemented in \path{src/games/atomic_weight.rs}, recovers
+one additive residue on all-small games:
+\[
+  aw(\uparrow)=1,\qquad aw(\downarrow)=-1,\qquad aw(*)=0.
+\]
+But atomic weight still has a kernel containing nimber-like residues such as
+$*$, and $*+*=0$ shows that this kernel matters. So even the first graded piece
+is not ``the mast''. It is a genuine residual game object.
+
+\begin{remark}
+This is the closest analogue to the valued-field picture. The Newton polygon
+records valuations and forgets residues; the initial forms in $\gr_v(K[x])$
+restore them. The thermograph records temperatures and walls but forgets
+thermic residues; a graded game object would restore them. The difference is
+that $\gr_v(K)$ is a graded ring, while short games under disjunctive sum are
+only an abelian group.
+\end{remark}
+
+\section{Where this pass hit the wall}
+
+\OPEN{} I do not currently have a product on $\gr_T(\mathrm{Games})$ that would
+make it the literal peer of the graded ring of a valued field. The obvious
+ambient product is absent: full short games do not form a ring, and the repo
+correctly refuses to pretend otherwise. Norton multiplication or overheating
+might supply a product on restricted classes, but neither structure is present
+in the codebase, and this pass did not derive a canonical one from the
+thermograph recursion.
+
+\OPEN{} I also do not have a nontrivial thermograph hyperoperation. The scalar
+temperature hyperoperation is clear and useful:
+\[
+  a\boxplus b =
+  \begin{cases}
+    \max(a,b), & a\neq b,\\
+    \{\text{temperatures }\leq a\}, & a=b,
+  \end{cases}
+\]
+with the usual convention that colder numbers lie below $0$. But lifting this
+from scalar temperatures to full thermographs without adding residues becomes
+either false (Proposition~\ref{prop:no-congruence}) or tautological (return
+``all thermographs of all sums of representatives'').
+
+\OPEN{} The next solvable formulation is therefore not ``find a binary
+operation on thermographs''. It is:
+\begin{quote}
+Define the temperature filtration quotient
+$F_{\leq\tau}/F_{<\tau}$ for a manageable class of games, compute its first
+pieces, and decide whether Norton multiplication/overheating gives those
+pieces a product compatible with cooling.
+\end{quote}
+If yes, the answer to the open problem is ``one tropical object, but only after
+passing to a residue-enriched associated graded''. If no, the answer is ``two
+tropical objects sharing only the scalar hyperfield shadow''.
+
+\appendix
+\section{Checks run in this pass}\label{sec:checks}
+
+The code-level facts used above were checked against the live repo with:
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item \texttt{cargo test tropical -- --nocapture}: 15 relevant tests passed,
+  including tropical semiring laws and \texttt{thermograph\_via\_tropical}.
+\item \texttt{cargo test newton -- --nocapture}: 8 Newton-polygon tests passed,
+  including Eisenstein slopes and Dumas additivity.
+\item \texttt{cargo test springer -- --nocapture}: 50 Springer/local-global tests
+  passed, including the Newton-polygon/Springer-shadow check.
+\item A Python probe through the installed \texttt{.venv} binding checked 324
+  small-game sums for the temperature inequality and the off-diagonal equality
+  pattern, and printed the witnesses in Proposition~\ref{prop:no-congruence}.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{BCG}
+Berlekamp, Conway, and Guy.
+\emph{Winning Ways for your Mathematical Plays}.
+
+\bibitem{Siegel}
+Aaron Siegel.
+\emph{Combinatorial Game Theory}.
+
+\bibitem{BerlekampEconomist}
+Elwyn Berlekamp.
+The economist's view of combinatorial games.
+In \emph{Games of No Chance}, 1996.
+
+\bibitem{Viro}
+Oleg Viro.
+Hyperfields for tropical geometry I.
+
+\bibitem{MaclaganSturmfels}
+Diane Maclagan and Bernd Sturmfels.
+\emph{Introduction to Tropical Geometry}.
+
+\end{thebibliography}
+
+\end{document}
