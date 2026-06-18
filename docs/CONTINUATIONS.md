@@ -57,6 +57,53 @@ to `clifford-lattices`). This makes the Brown cell a **hub instead of a leaf**: 
 *code/lattice* question, which is standard math and fully buildable. New `ℤ/4`-code type,
 the Gray map, `ℤ/4` MacWilliams, and Kerdock/Preparata witnesses.
 
+### 2·(e_c∧e_i): `barnes-wall-tower`
+**The whole `BW_{2^n}` family, generalizing the `BW16` certificate.**
+`clifford-lattices` + `reed-muller` (DONE) build `BW₁₆` two ways — Construction D
+from `RM(0,4) ⊆ RM(2,4)`, and the reverse Clifford certificate from the real spinor
+weight basis indexed by `F₂⁴` with quadratic-phase rows — both hard-coded to `n = 4`.
+The Barnes–Wall lattices `BW_{2^n}` are an infinite tower
+(`BW₂ = ℤ², BW₄ = D₄, BW₈ = E₈, BW₁₆, BW₃₂, …`) built from the same data at every
+scale: the Reed–Muller tower `RM(k,n)` for Construction D, and the real spinor module
+of `Cl(2n)` with degree-`≤ 2` quadratic phases for the Clifford side, with
+automorphism group the **real Clifford / Bolt–Room–Wall group** `2^{1+2n}.O⁺(2n,2)`
+(its index-2 subgroup is `Aut(BW_{2^n})` for `n ≥ 3`). The shipped BW16 constants
+(`BW16_REAL_CLIFFORD_GROUP_ORDER`, the index-2 relation) are the `n = 4` row of a
+closed formula. Build `barnes_wall(n)` — Gram + Clifford certificate + the
+general-`n` group order — for the whole tower; the determinant and certificate stay
+exact at any `n`, while the geometry oracles (`minimum` / `kissing_number`) verify
+only the small rungs before the short-vector search explodes (note that ceiling
+honestly, no silent cap). Makes the C–I Clifford-lattice span a *family* rather than
+a single witness. References: Barnes–Wall; Nebe–Rains–Sloane, *The invariants of the
+Clifford groups*.
+
+### 2·e_c: `weyl-algebra`
+**The CCR mirror of the Clifford engine — the missing corner of the deformation
+square.** The repo ships the exterior algebra `Λ` (the blade engine / game-exterior)
+and its char-faithful symmetric dual `Γ(V)` (`divided_power.rs`, the deconcatenation
+co-side of `Sym`). The Clifford algebra is the **CAR** (anticommutator) deformation
+of `Λ`: `eᵢeⱼ + eⱼeᵢ = bᵢⱼ`. Its mirror across the square is the **Weyl algebra** —
+the **CCR** (commutator) deformation of `Sym`: `∂x − x∂ = 1` — and char-faithfully
+the **divided-power / Hasse-derivative** Weyl algebra (the hyperalgebra
+`⟨x^{(i)}, ∂^{(j)}⟩`, `∂^{(j)}x^{(i)} = binom · x^{(i−j)}`, where the char-`p`
+binomial collapses make `∂^{(p)} ≠ 0` survive exactly as `γ^{(2)} ≠ 0` does in char
+2). Completes:
+
+```text
+            antisymmetric        symmetric
+deformed    Clifford (CAR) ✓     Weyl (CCR)  ← new
+free        exterior  Λ    ✓     divided Γ   ✓
+```
+
+A standalone engine paralleling `divided_power.rs` (own monomials, Python
+`<World>WeylAlgebra`), char-faithful via Hasse derivatives so it runs over
+nimbers / `Fp` / surreals like the rest. The payoff is the one the Clifford engine
+already has — a representation theory (Weyl-algebra modules = `D`-modules; the
+Fock/oscillator rep mirrors the spinor module) — now on the symmetric side. Standard
+math (Weyl algebra; divided-power/hyperalgebra in char `p`: Berthelot–Ogus, Gros).
+A genuinely new fourth algebra engine, the one the `hopf` / `divided_power` mirror
+has been pointing at — not a completion of an existing bridge.
+
 ---
 
 ## switches (a9's move first)
