@@ -132,8 +132,10 @@ Blij report. Conway-Sloane `p`-adic genus symbols, including the corrected 2-adi
 train/compartment/oddity calculus, give the integral genus comparison without
 discriminant-form search budgets. The same leg crosses the code/theta boundary —
 binary and odd-prime codes feed Construction A lattices, Reed-Muller codes feed
-Construction D and the named `BW16` lattice, exact even theta series are identified
-inside `ℂ[E4, E6]`, odd theta gets the norm-indexed level-4 head, `D16+` and
+Construction D and the named `BW16` lattice, and the Clifford-side certificate
+recovers the same `BW16` from spinor weight/quadratic-phase rows with the
+index-2 real Clifford automorphism subgroup recorded. Exact even theta series
+are identified inside `ℂ[E4, E6]`, odd theta gets the norm-indexed level-4 head, `D16+` and
 `E8 ⊕ E8` share the `E4²` theta series, ternary Golay pins an odd unimodular
 rank-12 p-ary Construction-A lattice, Leech is pinned by rootlessness in weight
 12, and the Niemeier catalogue checks the rank-24 mass and weighted theta average
@@ -273,12 +275,13 @@ for the draft note on the Gold/Arf game thread.
 The construction era left the pillars joined by named bridges (summarized in the
 `AGENTS.md` files; the catalog below walks them). Five islands: **S**calar,
 **C**lifford, **F**orms (the classifier core), the **I**ntegral wing, **G**ames.
-Seventeen crossings — Bridge N is four footbridges — each listed with its banks. A
+Eighteen crossings — Bridge N is four footbridges — each listed with its banks. A
 bridge with both feet on one island is a loop; crossing it counts like any other.
 
 | bridge | banks | what it carries |
 |---|---|---|
 | A | I–C | even lattice → Clifford metric; bounded FQM Witt class and Milgram phase = signature mod 8 |
+| `clifford-lattices` | C–I | `BW16` from Clifford/spinor module rows; `Aut(BW16)` as the index-2 real Clifford subgroup |
 | B | C–F | char-2 Arf/Brauer–Wall classification over the `Fpn<2,N>` coefficient fields |
 | C | S–C | Frobenius/Galois maps as outermorphisms, with flat exterior spectrum |
 | D | S–C | `Ordinal` as a checked Clifford scalar — genuinely transfinite char-2 squares |
@@ -299,7 +302,8 @@ bridge with both feet on one island is a loop; crossing it counts like any other
 (G and L were never built under those letters — they became the deferred stars
 `*1` (spinor genus, `docs/COMPLETENESS.md`) and `*2` (the char-`p` Drinfeld mirror,
 `docs/CONTINUATIONS.md`). The alphabet itself still has two pontoons
-missing; `game-clifford-checked` is the later unlettered C–G span.)
+missing; `game-clifford-checked` is the later unlettered C–G span and
+`clifford-lattices` is the later unlettered C–I return span.)
 
 **The traveller's question** (Euler, 1736): can you cross every bridge exactly
 once and end where you began? Count the bridge-ends per island:

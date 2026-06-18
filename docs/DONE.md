@@ -176,9 +176,30 @@ the Barnes-Wall lattice `BW16`.
   rank-16 normalization with determinant 1, minimum 2, and kissing number 480.
 - boundaries: the Reed-Muller generator matrix is generated, not a curated
   runtime table; invalid orders or unallocatable explicit matrices return
-  `None` / `ValueError`. This is the code/lattice route into the future
-  `clifford-lattices` continuation, not the Clifford-group invariant proof
-  itself.
+  `None` / `ValueError`. This is the code/lattice route that the later
+  `clifford-lattices` certificate consumes, not by itself the Clifford-group
+  invariant proof.
+
+### 2·(e_c∧e_i): `clifford-lattices`
+**Completed:** 2026-06-18
+**Summary:** the Clifford-to-integral direction now has an explicit BW16
+certificate.
+**Pillars:** clifford, integral    **Claim level:** standard math, implemented and tested
+- surface: `clifford_barnes_wall_16_numerator_rows`,
+  `clifford_barnes_wall_16`, `clifford_barnes_wall_16_report`,
+  `CliffordBarnesWall16Report`, and the constants
+  `BW16_AUTOMORPHISM_GROUP_ORDER`, `BW16_REAL_CLIFFORD_GROUP_ORDER`, and
+  `BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP`; Python mirrors the lattice,
+  rows, report, and constants.
+- oracles: the numerator rows use the real spinor weight basis indexed by
+  `F_2^4`, quadratic-phase sign rows from a basis of `RM(2,4)`, and the
+  coordinate weight rows `4e_x`; after the divisor `4`, their Gram is exactly
+  the existing `RM(0,4) <= RM(2,4)` Construction-D `barnes_wall_16()` Gram,
+  with determinant `256`, minimum `4`, and kissing number `4320`.
+- boundaries: the report records `|Aut(BW16)| = 89,181,388,800` and the full
+  real Clifford group order `|C_4| = 178,362,777,600` separately; for the usual
+  BW16 lattice, the automorphism group is the index-2 Clifford/BRW subgroup,
+  not the full `2_+^(1+8).O^+(8,2)` group.
 
 ### 2·e_c: `spinor-gauge`
 **Completed:** 2026-06-16

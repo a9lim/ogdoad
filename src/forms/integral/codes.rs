@@ -258,7 +258,7 @@ fn odd_residue_theta_without_quarter(terms: usize) -> Vec<i128> {
     out
 }
 
-fn divided_lattice_from_rows(
+pub(super) fn divided_lattice_from_rows(
     rows: Vec<Vec<i128>>,
     n: usize,
     divisor: i128,

@@ -5,6 +5,7 @@
 //! genus computation, and mass/Leech layer together while the parent
 //! `forms` module re-exports both the modules and their public items flat.
 
+pub mod clifford_lattices;
 pub mod codes;
 pub(crate) mod diagonal;
 pub mod discriminant;
@@ -17,6 +18,7 @@ pub mod niemeier;
 pub mod root_lattices;
 pub mod theta;
 
+pub use clifford_lattices::*;
 pub use codes::*;
 pub use discriminant::*;
 pub use fqm_witt::*;

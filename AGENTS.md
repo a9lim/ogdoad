@@ -162,7 +162,11 @@ boundary when the scaled Gram is not integral), including Type I witnesses (`Z^2
 `B(Golay)` half-Leech oracle, scaled nested-code Construction D, generated
 Reed-Muller codes with `BW16` (`RM(0,4) <= RM(2,4)`, determinant 256, minimum 4,
 kissing 4320), and the ternary Golay `[12,6,6]` odd unimodular rank-12 p-ary
-Construction-A witness;
+Construction-A witness; `forms/integral/clifford_lattices.rs` gives the reverse
+Clifford→integral certificate for `BW16` from the real spinor weight basis,
+quadratic-phase `RM(2,4)` rows, and `4e_x` coordinate weights, recording
+`|Aut(BW16)| = 2^21·3^5·5^2·7` as the index-2 real Clifford/BRW subgroup and the
+full `C_4` order separately;
 `forms/integral/{theta,modular}.rs` give exact theta coefficients and `E4`/`E6`/`E12`
 identification (`theta_E8 = E4`, `theta_{E8+E8} = theta_{D16+} = E4^2`, the rootless
 Leech `q^1` oracle), plus the norm-indexed level-4 theta head for odd lattices,

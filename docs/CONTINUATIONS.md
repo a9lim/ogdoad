@@ -42,23 +42,6 @@ identity questions are the point.
 
 ## numbers — cross-pillar (new bridges)
 
-### 2·(e_c∧e_i): `clifford-lattices`
-**The C→I bridge — Barnes–Wall lattices as Clifford-group invariants.** Bridge A runs
-integral→Clifford (even lattice → Clifford metric); the reverse direction is unbuilt, and
-it is exactly the Barnes–Wall story. `BW_{2^m}` is the ℤ-lattice stabilized by the **real
-Clifford group** (the normalizer of the extraspecial `2^{1+2m}` inside `O(2^m)`), and its
-automorphism group *is* that Clifford group (Nebe–Rains–Sloane, *The invariants of the
-Clifford groups*, IEEE-IT 2001). The concrete buildable path reuses shipped machinery end
-to end: the generated Reed-Muller codes and `barnes_wall_16` route from `DONE.md` →
-Construction-D Barnes-Wall lattices → verify the lattice is the ℤ-span of the
-Clifford/Pin module's weight vectors and that `|Aut|` matches the Clifford-group order.
-This closes the one missing bridge *direction* in the README's traveller's catalog (A is
-I→C; this is C→I) and ties the mod-8/`E₈`/Bott spine — already shared by both pillars —
-to an explicit lattice on the Clifford side. On-thesis, standard math; the work is the
-spinor-module-to-lattice identification, not new theory. Sits beside `extraspecial`
-(`COMPLETENESS.md`): that builds
-the group, this builds the lattice it stabilizes.
-
 ### 2·(e_f∧e_i): `z4-codes`
 **`ℤ/4`-linear codes and the Gray map — making Brown's Bridge-M cell load-bearing.**
 Bridge M ships the `ℤ/4`-valued quadratic refinement and its Brown `ℤ/8` invariant

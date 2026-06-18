@@ -908,6 +908,11 @@ bw16 = pl.barnes_wall_16()
 print("  Reed-Muller/BW16             :",
       rm1.dim(), rm2.dim(), rm2.contains(rm1),
       bw16.determinant(), bw16.minimum(), bw16.kissing_number())
+cl_bw = pl.clifford_barnes_wall_16_report()
+print("  Clifford/BW16 certificate    :",
+      cl_bw.matches_construction_d, cl_bw.determinant(), cl_bw.minimum(),
+      cl_bw.kissing_number(), cl_bw.automorphism_group_order,
+      "index in C4:", cl_bw.automorphism_index_in_clifford_group)
 ternary = pl.PrimeCode.ternary_golay()
 ternary_lattice = ternary.construction_a()
 print("  ternary Golay Construction A :",

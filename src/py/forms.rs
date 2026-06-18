@@ -5100,6 +5100,106 @@ fn barnes_wall_16() -> PyIntegralForm {
     }
 }
 
+#[pyclass(
+    name = "CliffordBarnesWall16Report",
+    module = "ogdoad",
+    skip_from_py_object
+)]
+#[derive(Clone)]
+struct PyCliffordBarnesWall16Report {
+    inner: crate::forms::CliffordBarnesWall16Report,
+}
+
+#[pymethods]
+impl PyCliffordBarnesWall16Report {
+    #[getter]
+    fn lattice(&self) -> PyIntegralForm {
+        PyIntegralForm {
+            inner: self.inner.lattice.clone(),
+        }
+    }
+    #[getter]
+    fn construction_d_lattice(&self) -> PyIntegralForm {
+        PyIntegralForm {
+            inner: self.inner.construction_d_lattice.clone(),
+        }
+    }
+    #[getter]
+    fn spinor_dimension(&self) -> usize {
+        self.inner.spinor_dimension
+    }
+    #[getter]
+    fn row_divisor(&self) -> i128 {
+        self.inner.row_divisor
+    }
+    #[getter]
+    fn quadratic_phase_row_count(&self) -> usize {
+        self.inner.quadratic_phase_row_count
+    }
+    #[getter]
+    fn coordinate_weight_row_count(&self) -> usize {
+        self.inner.coordinate_weight_row_count
+    }
+    #[getter]
+    fn matches_construction_d(&self) -> bool {
+        self.inner.matches_construction_d
+    }
+    #[getter]
+    fn automorphism_group_order(&self) -> u128 {
+        self.inner.automorphism_group_order
+    }
+    #[getter]
+    fn full_clifford_group_order(&self) -> u128 {
+        self.inner.full_clifford_group_order
+    }
+    #[getter]
+    fn automorphism_index_in_clifford_group(&self) -> u128 {
+        self.inner.automorphism_index_in_clifford_group
+    }
+    fn determinant(&self) -> i128 {
+        self.inner.determinant()
+    }
+    fn minimum(&self) -> Option<i128> {
+        self.inner.minimum()
+    }
+    fn kissing_number(&self) -> Option<usize> {
+        self.inner.kissing_number()
+    }
+    fn recorded_group_orders_are_consistent(&self) -> bool {
+        self.inner.recorded_group_orders_are_consistent()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "CliffordBarnesWall16Report(dim={}, det={}, matches_construction_d={}, aut_order={}, full_clifford_order={}, index={})",
+            self.inner.spinor_dimension,
+            self.inner.determinant(),
+            self.inner.matches_construction_d,
+            self.inner.automorphism_group_order,
+            self.inner.full_clifford_group_order,
+            self.inner.automorphism_index_in_clifford_group,
+        )
+    }
+}
+
+#[pyfunction]
+fn clifford_barnes_wall_16_numerator_rows() -> Vec<Vec<i128>> {
+    crate::forms::clifford_barnes_wall_16_numerator_rows()
+}
+
+#[pyfunction]
+fn clifford_barnes_wall_16() -> PyIntegralForm {
+    PyIntegralForm {
+        inner: crate::forms::clifford_barnes_wall_16(),
+    }
+}
+
+#[pyfunction]
+fn clifford_barnes_wall_16_report() -> PyCliffordBarnesWall16Report {
+    PyCliffordBarnesWall16Report {
+        inner: crate::forms::clifford_barnes_wall_16_report(),
+    }
+}
+
 fn prime_code_from_rows<const P: u128>(
     n: usize,
     generators: Vec<Vec<u128>>,
@@ -6223,6 +6323,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyComplex64>()?;
     m.add_class::<PyGaussSum>()?;
     m.add_class::<PyBinaryCode>()?;
+    m.add_class::<PyCliffordBarnesWall16Report>()?;
     m.add_class::<PyPrimeCode>()?;
     m.add_class::<PyIntegralForm>()?;
     m.add_class::<PyScaleSymbol>()?;
@@ -6233,6 +6334,18 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("AUTO_NODE_BUDGET", crate::forms::AUTO_NODE_BUDGET)?;
     m.add("E8_WEYL_GROUP_ORDER", crate::forms::E8_WEYL_GROUP_ORDER)?;
     m.add("D16_PLUS_AUT_ORDER", crate::forms::D16_PLUS_AUT_ORDER)?;
+    m.add(
+        "BW16_AUTOMORPHISM_GROUP_ORDER",
+        crate::forms::BW16_AUTOMORPHISM_GROUP_ORDER,
+    )?;
+    m.add(
+        "BW16_REAL_CLIFFORD_GROUP_ORDER",
+        crate::forms::BW16_REAL_CLIFFORD_GROUP_ORDER,
+    )?;
+    m.add(
+        "BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP",
+        crate::forms::BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP,
+    )?;
     m.add("LEECH_AUT_ORDER", crate::forms::LEECH_AUT_ORDER)?;
     m.add_function(wrap_pyfunction!(arf_nimber, m)?)?;
     m.add_function(wrap_pyfunction!(arf_ordinal_finite, m)?)?;
@@ -6316,6 +6429,9 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(extended_golay_generator_rows, m)?)?;
     m.add_function(wrap_pyfunction!(construction_d, m)?)?;
     m.add_function(wrap_pyfunction!(barnes_wall_16, m)?)?;
+    m.add_function(wrap_pyfunction!(clifford_barnes_wall_16_numerator_rows, m)?)?;
+    m.add_function(wrap_pyfunction!(clifford_barnes_wall_16, m)?)?;
+    m.add_function(wrap_pyfunction!(clifford_barnes_wall_16_report, m)?)?;
     m.add_function(wrap_pyfunction!(ternary_golay_code, m)?)?;
     m.add_function(wrap_pyfunction!(d16_plus, m)?)?;
     m.add_function(wrap_pyfunction!(a_n, m)?)?;

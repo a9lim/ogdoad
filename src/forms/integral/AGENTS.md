@@ -148,6 +148,14 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   bare binary Golay Construction A is even unimodular rank 24 **with roots**; it is not
   Leech. Plain ternary Golay Construction A is **not** Coxeter-Todd `K12`; `K12` needs
   the Eisenstein/CM-lattice lift.
+- **`clifford_lattices.rs`** — the Clifford→integral `BW16` certificate. It builds
+  integer numerator rows from the real spinor weight basis indexed by `F_2^4`: the
+  zero phase, sign rows `1 - 2q` for an `RM(2,4)` row basis, and the `4e_x`
+  coordinate weight rows, then divides the Gram by 4. The resulting lattice is pinned
+  equal to `barnes_wall_16()` from Construction D (determinant 256, minimum 4, kissing
+  4320). It records `|Aut(BW16)| = 89,181,388,800` and the full real Clifford group
+  order `178,362,777,600` separately because the usual BW16 automorphism group is the
+  index-2 Clifford/BRW subgroup, not the full `2_+^(1+8).O^+(8,2)` group.
 - **`theta.rs` / `modular.rs`** — exact theta and modular-form bridge.
   `IntegralForm::theta_series(terms)` buckets short vectors by `Q/2`, `None` outside the
   positive-definite even-lattice boundary. `theta_series_level4(terms)` buckets by `Q`
