@@ -21,22 +21,22 @@ starter-pair outcomes; the open part is the game-semantic recasting problem, not
 the vocabulary. The values come in dual pairs, and so do the problems:
 
 - **`tis`/`tisn`** (`{0|tisn}`/`{tis|0}` — "this is / this isn't") — the two
-  game-native-quadratic-data questions: the outcome side (§1, where every round
-  of constructions and no-gos swings the apparent answer) and the coefficient
-  side (§2, where the obstructions lean *isn't*).
+  game-native-quadratic-data questions: the outcome side (`tis`, where every
+  round of constructions and no-gos swings the apparent answer) and the
+  coefficient side (`tisn`, where the obstructions lean *isn't*).
 - **`on`/`off`** — the two transfinite-On₂ questions: the tower that climbs past
-  every verified rung (§3), and the classifier that switches off beyond the
-  finite windows (§4).
+  every verified rung (`on`), and the classifier that switches off beyond the
+  finite windows (`off`).
 - **`over`/`under`** — the two mirror questions: the mod-8 spine above the Arf
-  bit, and the MinPlus shadow beneath MaxPlus thermography.
+  bit (`over`), and the MinPlus shadow beneath MaxPlus thermography (`under`).
 
-The original numerals survive as aliases — the rest of the repo cites them.
-`dud` stays unassigned: `dud + G = dud` for every `G`, and no problem has yet
-earned absorbing the whole roadmap. May none ever.
+The games are the names: refer to a problem by its loopy value. `dud` stays
+unassigned: `dud + G = dud` for every `G`, and no problem has yet earned
+absorbing the whole roadmap. May none ever.
 
 ## open problems
 
-### tis·(e_g∧e_f) (§1): `natural Gold-quadric game rule`
+### tis·(e_g∧e_f): `natural Gold-quadric game rule`
 
 Find, or rule out under a precise naturality condition, a non-tautological game
 rule whose P-positions are the zero set `{Q = 0}` of a game-built Gold quadratic
@@ -99,7 +99,7 @@ demonstrably realize rich *linear* codes as P-sets; and the matching no-go
 (`writeups/goldarf.tex`, Theorem A:
 every Winning Ways coin-turning P-set is the kernel of an `F_2`-linear map)
 says linearity is also the ceiling for that architecture. Floor and ceiling
-coincide at linear. Problem 1 is exactly whether the lexicode phenomenon admits
+coincide at linear. `tis` is exactly whether the lexicode phenomenon admits
 a quadratic refinement — a rule producing the XOR-closure failure that the
 polar form `B` measures. Bridge O (built) makes the
 lexicode chain executable (`LexicodeTurningGame` -> greedy = mex -> Golay ->
@@ -294,7 +294,7 @@ Relevant surfaces:
 - `src/forms/quadric_fit.rs`
 - `src/games/kernel.rs`, `src/games/misere.rs`, `src/games/loopy/`
 
-### tisn·(e_g∧e_c∧e_f) (§2): `quadratic deformation of the game exterior algebra`
+### tisn·(e_g∧e_c∧e_f): `quadratic deformation of the game exterior algebra`
 
 Decide whether the current `GameExterior` construction admits a genuinely
 game-native quadratic deformation on torsion-carrying game subgroups, rather than
@@ -327,26 +327,86 @@ Why this is research:
   the coefficient target, polarization identity, and relation compatibility all
   matter.
 
+The program state (2026-06-17 — `writeups/game_exterior_deformation.tex`):
+
+- **Two descent gates, not one.** A quadratic datum must descend through the game
+  relations — `Q(r) = 0` and `B(r, e_j) = 0` for every relation row `r`, which are
+  exactly the null and polar-radical checks the integer checker already runs. A
+  Clifford quotient over a coefficient ring `R` must *also* keep the coefficient map
+  `R -> Cl` injective: the relation vector `n·e_t` sits in a two-sided ideal, and
+  `(n·e_t)·e_t = n·Q(t)` is a scalar the ideal can silently kill. Over `Z` both gates
+  give the same visible answer; over torsion coefficient rings the faithfulness gate
+  is strictly sharper.
+- **The torsion obstruction is now proved, both gates.** For a torsion-free target
+  and a torsion element `t` (`nt = 0`), `n·B(t,x) = 0` and `n²·Q(t) = 0` force
+  `B(t,x) = 0` and `Q(t) = 0`. Hence every integer-valued deformation of a mixed
+  subgroup `M = T ⊕ F` is **blind to `T`**: torsion generators stay
+  exterior/nilpotent and polar-orthogonal to the free part, and all nonzero integer
+  quadratic data factors through the free quotient `M/T`. This settles the
+  torsion-free / `Z`-valued progress target below as a no-go, not a gap.
+- **The `ℤ/4` Brown lift is not a faithful square quotient.** Trying `M = ⟨*⟩ ≅
+  ℤ/2`, `R = ℤ/4`, `Q(*) = 1` passes the bare quadratic check (`Q(2*) = 4 = 0`), but
+  `(2e_*)·e_* = 2` puts the scalar `2` in the relation ideal, silently collapsing
+  `ℤ/4` toward characteristic 2. So the `over` Brown category (`forms/char2/brown.rs`)
+  is a genuine quadratic-*module* target — but it does not by itself deform
+  `GameExterior`'s algebra without changing the coefficient ring the quotient sees.
+  The two problems touch here without coinciding.
+- **The escapes that survive are tautological or off-core.** Over `F_2` the
+  one-generator square `Q(*) = 1` survives (`2 = 0` already), and the canonical
+  `R = Sym_{F_2}(M/2M)`, `Q(x) = x̄`, `B = 0` is relation-compatible and
+  coefficient-faithful — but it has zero polar form and merely *records* the mod-2
+  game class instead of explaining torsion. The additive-invariant family
+  `Q_φ(x) = φ(x)²`, `B_φ(x,y) = 2·φ(x)·φ(y)` for a game-native additive `φ`
+  (thermographic mean value, atomic weight — both re-confirmed additive this pass) is
+  genuinely game-native on the **free** directions (`aw(↑) = 1`, `aw(*) = 0`,
+  reproducing the mixed-subgroup split) but sends every torsion element to zero. The
+  nimber Gold forms `Q_a(x) = Tr(x·x^(2^a))` are the one non-tautological torsion
+  source, but they live on the field-like impartial core where the scalar story
+  already applies — they do not extend over general partizan games.
+- **The sharpened question.** A solving construction needs a game-built coefficient
+  target and a square operation that (i) survives the coefficient-faithfulness test,
+  (ii) is not the tautological polynomial ring on `M/2M`, (iii) does not factor
+  through an additive invariant into a torsion-free ring, and (iv) reaches beyond the
+  nimber core. The likely missing ingredient is not another commutative value
+  invariant but a game-native **directed / noncommutative** structure whose square
+  remembers first-/second-player asymmetry — the same obstruction recorded for `tis`
+  (commutative game-value monoids make squaring additive, hence polar-zero).
+
 Concrete progress targets:
-- Formalize the algebraic object: a quadratic map on a game subgroup, its
+- ~~Formalize the algebraic object: a quadratic map on a game subgroup, its
   coefficient ring or module, its polar pairing, and the exact compatibility
-  condition with integer game relations.
-- Prove obstruction results for torsion generators and mixed torsion/free subgroups
-  under `Z`-valued or torsion-free coefficient targets.
-- Identify coefficient targets where torsion can support nonzero quadratic data,
-  and decide whether those targets are game-native or merely chosen by hand.
-- Exhibit a nonzero deformation on a restricted class of games, or prove that every
-  natural relation-respecting deformation collapses to the Grassmann one.
-- Extend beyond the shipped integer-valued checker only with a stated coefficient
-  target and a proof that the data is natural rather than merely chosen by hand.
+  condition with integer game relations.~~ **Done** (the two-gate descent above):
+  quadratic descent plus the coefficient-faithfulness intersection of the relation
+  ideal.
+- ~~Prove obstruction results for torsion generators and mixed torsion/free subgroups
+  under `Z`-valued or torsion-free coefficient targets.~~ **Done**: torsion is forced
+  into the radical, and integer deformations are blind to `T`.
+- Identify coefficient targets where torsion can support nonzero quadratic data, and
+  decide whether those targets are game-native or merely chosen by hand. (Bounded
+  from two sides now: char-2 targets keep nonzero torsion squares but the canonical
+  one is tautological; `ℤ/4` is not faithful as a square quotient. A *non-tautological*
+  char-2 or torsion target is still open.)
+- Exhibit a nonzero deformation on a restricted class of games beyond the nimber
+  core, or prove that every natural relation-respecting deformation collapses to
+  Grassmann / the additive-invariant family / the tautological `Sym(M/2M)`.
+- Build the directed/noncommutative coefficient source whose square encodes the
+  first-/second-player asymmetry — shared with `tis`; no construction yet.
+- Implementation guard: a future `GameClifford` over torsion coefficient rings must
+  also check the scalar intersection of the two-sided relation ideal (the necessary
+  conditions `nQ(t) = 0`, `nB(t,x) = 0` for every visible torsion relation `nt = 0`),
+  not only the integer null/polar-radical checks; otherwise a datum can look
+  quadratic while the quotient silently changes the coefficient ring.
 
 Relevant surfaces:
-- `src/games/game_exterior/`
+- `writeups/game_exterior_deformation.tex`
+- `src/games/game_exterior/` (`lambda.rs`, `clifford.rs`)
+- `src/games/thermography.rs`, `src/games/atomic_weight.rs` (the additive sources)
+- `src/forms/char2/brown.rs` (the `ℤ/4` module target; shared with `over`)
 - `src/games/AGENTS.md`
 - `examples/tour.rs`
 - `demo.py`
 
-### on·e_s (§3): `ordinal nim multiplication beyond the verified excess table`
+### on·e_s: `ordinal nim multiplication beyond the verified excess table`
 
 Push transfinite nim multiplication beyond the source-verified Lenstra-DiMuro
 excess table. Historically the first missing carry in this checkout was
@@ -443,12 +503,36 @@ Since the 2026-06 research pass (`writeups/excess.tex`, `experiments/excess/`,
   `0/1/4` rule unbroken. Still no proof; boundedness outside the 3-power and
   `2*3^k` columns (the 11-chain, the 23/29/47 components) has no structural
   theory, and no `m_p >= 5` example is known.
-- The `p = 719` dependency rehearsal has advanced one rung: the local
-  fixed-base oracle now certifies `m_89 = 1` in the `E = 220` component field
-  and `m_179 = 1` in the `E = 19,580` component field (`python3
-  experiments/ordinal_excess_probe.py --deep`, about one minute locally).
-  `m_359 = 1` is still the remaining large dependency before attacking
-  `m_719` itself.
+- The `p = 719` dependency rehearsal advanced one rung and then hit a wall. The
+  local fixed-base oracle certifies `m_89 = 1` (`E = 220`) and `m_179 = 1`
+  (`E = 19,580`) via the fixed-base power path (`python3
+  experiments/ordinal_excess_probe.py --deep`, ~1 min). `m_359 = 1` is the
+  remaining rehearsal row before `m_719` — already source-pinned by A380496, but
+  with no *independent* local certificate, and the 2026-06-16 pass diagnosed
+  precisely why it is blocked (`writeups/excess.tex`, "the m359 rehearsal
+  obstruction"):
+  - The structurally cheap **top-step Kummer norm** is the wrong norm. With
+    `f(359) = 179`, the tower has `F = F_{2^E}` over `B = F_{2^19580}`, and
+    `Norm_{F/B}(κ_179 + 1) = κ_89 ∈ B` — but `359 ∤ 2^19580 − 1` (since
+    `ord_359(2) = 179 ∤ 19580`), so `359` is *invisible* in `B`. The certified
+    `m_89` / `m_179` rows do not propagate up through the easy norm.
+  - The norm actually forced by the order criterion is the **transverse**
+    `Norm_{F/L}(β)`, `L = F_{2^179}` (`gcd(179, 19580) = 1`, so `F = B·L`): the
+    `F_{2^3504820} / F_{2^179}` norm is the genuinely required object.
+  - In the current pure-Python term basis that target-subfield element is
+    essentially **half-dense** (support `111/220` for the `p = 89` analogue,
+    `9691/19580` for `p = 179`), so the direct fixed-base root-test exponent is
+    slower than the cheap certificate — a representation diagnostic, not a no-go.
+  - The Wieferich caveat is *absent* at the live pressure points: `2^179 ≢ 1
+    (mod 359²)` and `2^359 ≢ 1 (mod 719²)`, so the order form equals the full
+    power criterion for both `m_359` and the proposed `m_719` test.
+  A practical `m_359` certificate now needs either dense/sliced GF(2) arithmetic
+  (`gf2x` / NTL) or a tower-aware Frobenius representation that makes the
+  transverse orbit cheap; the pure-Python oracle cannot reach it. The same
+  `Norm_{E/K}(β) = ∏_i Frob^i(β)` orbit primitive is what Bridge K's
+  cyclic-algebra reduced norm needs — a reusable
+  `relative_norm_over_frobenius_orbit` is the shared engineering lever (not a
+  claim that the bounded `Fpn` norm certifies `m_719`).
 - `p = 719` feasibility: the direct test needs ~3.5 million Frobenius steps in
   `F_{2^1258230380}`; tower-aware Frobenius arithmetic (De Feo–Randriam–Rousseau
   standard lattices) is the conjectured 10–100x lever — a cost model, not a
@@ -494,7 +578,9 @@ Concrete progress targets:
 - Prove or find a counterexample to the candidate `0/1/4` rule. The smallest
   pressure point is `p = 719`, where the rule predicts `m_719 = 1` but the direct
   calculator path is too large for ordinary local verification; the next
-  dependency to certify locally is `m_359 = 1`.
+  dependency to certify locally is `m_359 = 1`, now shown obstructed in the
+  pure-Python oracle (the required transverse norm is half-dense — see above),
+  pending faster GF(2) / tower-Frobenius arithmetic.
 - Turn the order-divisibility criterion into an actual theorem about the prime
   divisors of `ord(kappa_q + m)`, especially for singleton odd `Q = {q}` and for
   the exceptional tower `q = 3^k`.
@@ -516,7 +602,7 @@ Relevant surfaces:
 - `src/scalar/AGENTS.md`
 - `examples/tour.rs`
 
-### off·(e_f∧e_s∧e_c) (§4): `transfinite Arf/Witt classification for ordinal-nimber coefficients`
+### off·(e_f∧e_s∧e_c): `transfinite Arf/Witt classification for ordinal-nimber coefficients`
 
 Decide what, if anything, should replace the finite-field Arf/Brauer-Wall bit for
 `CliffordAlgebra<Ordinal>` metrics whose coefficients do not all lie in one finite
@@ -570,7 +656,7 @@ Relevant surfaces:
 
 Decide whether the Brown invariant — the char-2 cell of the mod-8 spine, shipped as
 Bridge M — has a game-theoretic reading the way the Arf bit does, i.e. whether the
-conditional win-bias interpretation of `tis` (§1) lifts from `ℤ/2` to `ℤ/8`.
+conditional win-bias interpretation of `tis` lifts from `ℤ/2` to `ℤ/8`.
 
 What is implemented (Bridge M, `forms/char2/brown.rs`): a `ℤ/4`-valued quadratic
 refinement `q : V -> Z/4` has Gauss sum
@@ -593,17 +679,17 @@ Why this is research:
   a game-built `ℤ/4`-form as its census.
 - Game-built doubled forms only ever reach `beta in {0, 4}`. A genuinely odd `beta`
   needs `b` symmetric-but-not-alternating with `b_ii = q_i mod 2` — diagonal data
-  again, one level up: this is the diagonal-framing problem of `tis` (§1) with the
+  again, one level up: this is the diagonal-framing problem of `tis` with the
   diagonal now *forced* by `q mod 2` rather than vanishing. The two problems are
   entangled, not parallel.
-- The extraspecial picture of `tis` (§1) lifts: `ℤ/4`-valued forms correspond to
+- The extraspecial picture of `tis` lifts: `ℤ/4`-valued forms correspond to
   central extensions by `ℤ/4` (the Pauli/complex-extraspecial family) exactly as
   `F₂`-forms correspond to extensions by `ℤ/2`. If the abelian obstruction
   (Lemma `abelian`) survives the lift, the four-class census also cannot come from
   any commutative game structure's own multiplication — which would make the
   first-/second-player asymmetry carry *three* extra bits instead of one.
 
-Conditional claim, same shape as `tis` (§1): if a game's positions admitted a natural
+Conditional claim, same shape as `tis`: if a game's positions admitted a natural
 four-class outcome census matching `i^q` for a game-built `q`, then `beta` would be
 the phase and magnitude of its outcome imbalance — `sign mod 8` as a win-bias octant.
 That interpretation is meaningful but conditional; it does not exhibit the game.
@@ -622,54 +708,94 @@ Relevant surfaces:
 - `src/forms/char2/brown.rs`, `src/forms/integral/discriminant/` (Bridge M)
 - `src/games/loopy/`, `src/games/misere.rs`
 - `writeups/goldarf.tex` §5 (the extraspecial reframing this lifts)
-- `tis` (§1) — the `ℤ/2` floor of this question
+- `tis` — the `ℤ/2` floor of this question
 
 ### under·(e_g∧e_s): `thermography ↔ Newton polygons: one tropical object or two?`
 
 Decide whether the project's two tropical consumers — thermography (`MaxPlus`, the
 games axis) and the valuation/Newton-polygon stack (`MinPlus`, the place axis,
 Bridge J) — are connected by a substantive transport, or whether the mirror is
-purely notational. Either answer is the contribution; today the duality is named
-(`scalar/tropical.rs` enforces the two-type separation) but carries no theorem.
+purely notational. Either answer is the contribution; as of this pass the
+thermograph-level mirror has a *negative* theorem and the positive question has a
+sharper form (below). The duality is named (`scalar/tropical.rs` enforces the
+two-type separation), and the place axis is fully standard.
 
 Why this is research:
-- On the place axis, the valuation axiom `v(x+y) >= min(v(x), v(y))` makes Newton
+- On the place axis the valuation axiom `v(x+y) >= min(v(x), v(y))` makes Newton
   polygons additive under multiplication (Dumas), and passing to the graded ring
-  `gr_v` (Lemma J.3) is what "freezes" leading terms. On the game axis, the
-  candidate analogue fails in the most interesting way: **thermographs of
-  disjunctive sums do not compose** — that failure is precisely why temperature
-  theory needs sidling and why `t(G+H)` is only bounded by `max(t(G), t(H))`, not
-  determined. The open question is to make the failure structural: exhibit the
-  exact lax/hyperfield law that thermographs *do* satisfy under `+` (a Viro-style
-  repair, as Remark J.2 does for the valuation's own laxness), or prove no such
-  law with nontrivial content exists.
-- Sharper sub-question: is cooling a residue map? Cooling by `t` and "freezing" to
-  the mast value is formally a leading-term extraction; does
-  `(mast value, temperature)` behave like `(ac(x), v(x))` — i.e. is there a graded
-  object `gr_t(Games)` whose pieces are the frozen values, with a multiplicative
-  (Norton/overheating?) structure making the analogy a homomorphism rather than a
-  pun? Berlekamp's economist's dictionary is the informal version; the question is
-  whether it survives being made exact.
-- The sign mirror is suggestive but not content: `MinPlus ↔ MaxPlus` is a convention
-  flip. Content would be a single statement instantiating to Theorem J.5 (slopes =
-  root valuations) on one axis and to a thermographic fact (masts/temperatures of a
-  one-parameter family) on the other.
+  `gr_v` "freezes" leading terms; `scalar/newton.rs` plus the Springer tests pin
+  the slopes to the valuation layers. The question is whether the game axis has a
+  genuine peer of that structure or only the scalar shadow of it.
+- The sign mirror `MinPlus ↔ MaxPlus` is a convention flip, not content. Content
+  would be a single statement instantiating to "slopes = root valuations" on the
+  place axis and to a thermographic fact (masts/temperatures of a one-parameter
+  family) on the game axis. This pass found that the obvious candidate — the
+  thermograph as a sum-compatible tropical object — provably fails, and replaced
+  it with a sharper target.
+
+The program state (2026-06-17 — `writeups/thermo_newton.tex`): a negative theorem
+at the thermograph level, plus a sharper positive target.
+
+- **The thermograph is not a sum invariant (proved).** `G ↦ Th(G)` is not a
+  congruence for disjunctive sum: no operation taking only `Th(G)` and `Th(H)` can
+  return `Th(G+H)` for all short games. The witness sits in the temperature-zero
+  layer — `Th(*) = Th(↑)` (both constant-zero walls, mean `0`, temp `0`), yet
+  `* + * = 0` is a cold number while `↑ + *` stays a non-number of temperature `0`.
+  So `(mean(G), temp(G))` **cannot** be the game-side analogue of `(ac(x), v(x))`:
+  it forgets the leading thermic residue that decides cancellation. The Dumas
+  additivity of Newton polygons has no thermograph-level mirror, and this is not a
+  pathology of nested hot games — it is already present in the first infinitesimal
+  layer.
+- **Temperature alone *is* a tropical valuation (standard + tested).**
+  `temp(G+H) ≤ max(temp G, temp H)` (numbers colder than all hot/infinitesimal
+  games), so `v_T(G) = −temp(G)` satisfies `v_T(G+H) ≥ min(v_T G, v_T H)`;
+  equal-temperature pairs are the game-side vanishing locus and can cancel to any
+  lower layer. Probed over 324 small-game sums with no violations and every
+  unequal-temperature pair at equality. This is exactly the tropical-hyperfield
+  shape — but the *scalar* temperature law is too coarse to recover walls,
+  sub-leading masts, or the resulting value.
+- **The switch/binomial dictionary is real but one-parameter.** A switch
+  `S_{m,τ} = {m+τ | m−τ}` has one wall equal to a one-side Newton polygon of a
+  binomial `xⁿ − πᵏ` after an affine change of axes; it does **not** extend to a
+  thermograph-level sum theorem (the no-congruence result blocks it).
+- **The candidate single object is a residue-enriched associated graded.** Filter
+  the game group by temperature, `F_{≤τ} = {G : temp(G) ≤ τ}` (additive subgroups,
+  numbers in the cold bottom), and take `gr_T(Games) = ⊕_τ F_{≤τ}/F_{<τ}`. The
+  leading thermic residue is the class of `G` at `τ = temp(G)`, *not* the pair
+  `(mean, temp)`. At `τ = 0` this is already visible: the thermograph collapses
+  `*, ↑, ↓, *2`; atomic weight (`atomic_weight.rs`) recovers one additive residue
+  on all-small games (`aw(↑) = 1`, `aw(↓) = −1`, `aw(*) = 0`), but its kernel still
+  contains nimber-like residues (`* + * = 0` shows the kernel matters) — so even the
+  first graded piece is a genuine residual game object, not the mast.
+- **Where it stalls (open).** There is no product on `gr_T(Games)`: short games are
+  not a ring, and the repo carries no Norton-multiplication / overheating product to
+  borrow. The scalar temperature hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else
+  "all temperatures `≤ a`") is clean and useful, but lifting it to full thermographs
+  without adding residues is either false (no-congruence) or tautological.
 
 Concrete progress targets:
-- Formulate and test the lax law for `t(G+H)` as a hyperfield statement; locate
-  exactly where sidling violates strictness (the game-side "vanishing locus").
-- Build the one-object probe: a polynomial family of games (e.g. switches with
-  parameterized stakes) whose thermograph IS a Newton polygon under an explicit
-  change of axes; determine whether the dictionary extends beyond the family or is
-  an artifact of one-parameter linearity.
-- Decide the graded-ring question for cooling: does Norton multiplication /
-  overheating give `gr_t` a product compatible with freezing, in any restricted
-  class of games?
-- If every transport trivializes, write the no-go: the precise sense in which
-  temperature is not a valuation (which axiom fails, on which games, measured how).
+- ~~Formulate and test the lax law for `t(G+H)` as a hyperfield statement; locate
+  the game-side vanishing locus.~~ **Done**: `temp(G+H) ≤ max(temp G, temp H)`
+  holds with equal-temperature pairs as the vanishing locus, but it is provably too
+  coarse to be the whole story (the thermograph itself is not a congruence).
+- ~~Build the one-object switch/Newton-polygon probe.~~ **Done and bounded**: the
+  dictionary works only in the trivial one-parameter switch family and does not
+  extend to a sum theorem.
+- The reframed central target: define the temperature-filtration quotient
+  `F_{≤τ}/F_{<τ}` for a manageable class of games, compute its first pieces (the
+  `τ = 0` all-small layer with atomic weight + its kernel is the entry point), and
+  decide whether Norton multiplication / overheating gives those pieces a product
+  compatible with cooling. **Yes** ⇒ one tropical object, after passing to the
+  residue-enriched associated graded; **no** ⇒ two tropical objects sharing only the
+  scalar hyperfield shadow.
+- If every transport trivializes, write the no-go in the now-precise form: the
+  thermograph is not a sum congruence (done), and no residue enrichment recovers a
+  cooling-compatible product.
 
 Relevant surfaces:
-- `src/scalar/tropical.rs`, `src/games/` thermography, `src/scalar/newton.rs`
+- `writeups/thermo_newton.tex`
+- `src/scalar/tropical.rs`, `src/games/thermography.rs`, `src/games/atomic_weight.rs`
+- `src/scalar/newton.rs`, `src/forms/springer/local.rs`
 - `examples/tropical.rs` (the shipped thermography = tropical identity)
 
 ## references for the open threads
@@ -691,11 +817,11 @@ Relevant surfaces:
 - Wall, *Quadratic forms on finite groups*, Topology 2 (1963): the Witt group of
   finite quadratic forms (for `over`).
 - Plambeck-Siegel, *Misere quotients for impartial games*, JCTA 115 (2008): the
-  quotient/kernel theory behind the misère obstruction (for `tis`, §1).
+  quotient/kernel theory behind the misère obstruction (for `tis`).
 - Berlekamp, *The economist's view of combinatorial games*, in Games of No Chance
   (1996): the informal cooling dictionary (for `under`).
 - Maclagan-Sturmfels, *Introduction to Tropical Geometry*; Viro, *Hyperfields for
   tropical geometry I*: valuations as (lax) tropicalization and the strictness
   repair (for `under`).
 - De Feo-Randriam-Rousseau, standard lattices of compatibly embedded finite
-  fields: the conjectured tower-aware Frobenius lever (for `on`, §3).
+  fields: the conjectured tower-aware Frobenius lever (for `on`).

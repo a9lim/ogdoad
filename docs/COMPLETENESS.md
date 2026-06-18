@@ -33,7 +33,7 @@ scalar-grade (no blade).
 Reference items by **slug**. The ledger's total value is the disjunctive sum; play it
 in any order. (`echo-solver`, the formerly hottest cold item, was played 2026-06-10
 with outcome **CONFIRM** — see `writeups/goldarf.tex` §8; its successor move is the
-σ-recasting target in `OPEN.md` tis (§1), which is loopy-valued, not a number.)
+σ-recasting target in `OPEN.md` tis, which is loopy-valued, not a number.)
 
 ---
 
@@ -51,7 +51,7 @@ pass: the no-dummy controls are fully mapped at the abstract-graph
 level — the Bad census — and the fifo+dummy mechanism is identified
 (`experiments/linking_game.py`, goldarf §8 `sec:linking`); the `w ≥ 2` ko-window and
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
-`OPEN.md` tis (§1), not a number here.)
+`OPEN.md` tis, not a number here.)
 
 ### 1·(e_c∧e_f∧e_i): `heisenberg-weil`
 **The finite Heisenberg/metaplectic layer the Weil pieces already imply.** Three

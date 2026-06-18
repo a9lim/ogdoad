@@ -15,8 +15,7 @@ What remains unbuilt is tracked in the two buildable ledgers —
 [`COMPLETENESS.md`](COMPLETENESS.md) (completing symmetries and connections already in
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4`/`*8`; genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, `over`/`under`
-(the old numerals §1–§4 survive as aliases).
+stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, `over`/`under`.
 
 ## How to use this ledger
 
