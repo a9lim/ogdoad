@@ -580,6 +580,10 @@ print("  exact Pl wall at t=1       :", th.left_wall.value_at(pl.Rational(1)),
 print("  module temp/mean/stops      :", pl.temperature(hot), pl.mean_value(hot),
       pl.left_stop(hot), pl.right_stop(hot))
 print("  Pl tropical ⊗ sample       :", th.left_wall.otimes(pl.Pl.constant(1)).value_at(1))
+heated = hot.heat(2)
+norton = hot.norton_multiply(pl.Game.integer(2))
+print("  heat by 2 / Norton by 2    :", heated.temperature(), heated.mean_value(),
+      norton.mean_value(), norton.canonical_string())
 
 section("surreal sign-expansion & floor (the omnific bridge)")
 print("  sign expansion of 3/4    :", pl.Surreal.from_rational(3, 4).sign_expansion(), " (+ − +)")

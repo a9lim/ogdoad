@@ -1158,6 +1158,24 @@ fn mean_value(game: &PyGame) -> Option<PySurreal> {
 }
 
 #[pyfunction]
+#[pyo3(signature = (game, num, den=1))]
+fn heat(game: &PyGame, num: i128, den: i128) -> PyResult<Option<PyGame>> {
+    let t = Rational::try_new(num, den)
+        .ok_or_else(|| PyValueError::new_err("zero denominator or bounded i128 overflow"))?;
+    Ok(crate::games::heat(&game.inner, &t).map(|inner| PyGame { inner }))
+}
+
+#[pyfunction]
+fn norton_multiply(game: &PyGame, unit: &PyGame) -> Option<PyGame> {
+    crate::games::norton_multiply(&game.inner, &unit.inner).map(|inner| PyGame { inner })
+}
+
+#[pyfunction]
+fn overheat(game: &PyGame, s: &PyGame, t: &PyGame) -> Option<PyGame> {
+    crate::games::overheat(&game.inner, &s.inner, &t.inner).map(|inner| PyGame { inner })
+}
+
+#[pyfunction]
 fn left_stop(game: &PyGame) -> Option<PySurreal> {
     crate::games::left_stop(&game.inner).map(rat_to_py)
 }
@@ -1364,6 +1382,22 @@ impl PyGame {
     /// Mean (mast) value as a surreal.
     fn mean_value(&self) -> Option<PySurreal> {
         thermography::mean_value(&self.inner).map(rat_to_py)
+    }
+    /// Heat this game by the dyadic rational `num/den`; `None` if non-dyadic.
+    #[pyo3(signature = (num, den=1))]
+    fn heat(&self, num: i128, den: i128) -> PyResult<Option<PyGame>> {
+        let t = Rational::try_new(num, den)
+            .ok_or_else(|| PyValueError::new_err("zero denominator or bounded i128 overflow"))?;
+        Ok(crate::games::heat(&self.inner, &t).map(|inner| PyGame { inner }))
+    }
+    /// Norton multiplication by a positive unit game; `None` if the unit is not
+    /// strictly positive.
+    fn norton_multiply(&self, unit: &PyGame) -> Option<PyGame> {
+        crate::games::norton_multiply(&self.inner, &unit.inner).map(|inner| PyGame { inner })
+    }
+    /// Berlekamp overheating `int_s^t G`; `None` if `s` is not positive.
+    fn overheat(&self, s: &PyGame, t: &PyGame) -> Option<PyGame> {
+        crate::games::overheat(&self.inner, &s.inner, &t.inner).map(|inner| PyGame { inner })
     }
     /// Left stop `LS(G)` (left wall at temperature 0).
     fn left_stop(&self) -> Option<PySurreal> {
@@ -2523,6 +2557,9 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(thermograph_via_tropical, m)?)?;
     m.add_function(wrap_pyfunction!(temperature, m)?)?;
     m.add_function(wrap_pyfunction!(mean_value, m)?)?;
+    m.add_function(wrap_pyfunction!(heat, m)?)?;
+    m.add_function(wrap_pyfunction!(norton_multiply, m)?)?;
+    m.add_function(wrap_pyfunction!(overheat, m)?)?;
     m.add_function(wrap_pyfunction!(left_stop, m)?)?;
     m.add_function(wrap_pyfunction!(right_stop, m)?)?;
     m.add_function(wrap_pyfunction!(atomic_weight, m)?)?;

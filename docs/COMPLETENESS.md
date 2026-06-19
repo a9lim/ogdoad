@@ -140,21 +140,6 @@ checked certificate, turning `octal_hunt`-style sweeps into proofs-of-periodicit
 rather than bounded observations. The *conjecture* that every finite octal game is
 ultimately periodic is famous, external, and not ours to claim — the checker is.
 
-### 1·e_g: `overheating`
-**Cooling's named inverse: heating, overheating `∫`, and Norton multiplication.**
-`thermography.rs` ships cooling (the tropical `⊗`), stops, temperature, and mean —
-but the inverse transforms are absent. Heating and **overheating** `∫_s^t G` (the
-formal inverse of cooling that recovers a hot game from its cooled form) and
-**Norton multiplication** `G.U` (overheating against a unit game `U`) are standard
-CGT operators on the existing `Pl` piecewise-linear machinery; the cooling↔heating
-round-trip and `mean(G.U) = mean(G)·mean(U)` are the oracles. Completes the
-temperature surface (cooling ↔ its inverse). **Boundary (flagged independently by
-Codex):** build these as Games infrastructure *only* — the claim that
-Norton/overheating gives cooling an associated-graded *product* (a homomorphism
-`gr_t`) is exactly the `under` open problem (`OPEN.md`) and stays research. This is
-to `under` what `lexicode-game` is to `tis`: the executable tool the open question
-needs, not progress on it. Standard math (Conway ONAG; Siegel CGT ch. on temperature).
-
 ---
 
 ## switches (a9's move first)

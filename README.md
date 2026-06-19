@@ -159,7 +159,9 @@ base 8. And thermography itself **is** tropical arithmetic: the option folds are
 tropical `⊕` and cooling is the tropical `⊗`, with the two scaffold walls living in
 the dual `(max,+)`/`(min,+)` semirings — named in `scalar/tropical.rs` (a
 `Semiring`, not a `Scalar`: an idempotent `⊕` has no inverse) and machine-checked
-equal to the golden thermograph.
+equal to the golden thermograph. The inverse direction now has game-valued heating,
+Berlekamp overheating, and Norton multiplication as infrastructure; whether those
+operators descend to a temperature-graded product remains the `under` open problem.
 
 ## The char-2 point
 

@@ -236,8 +236,10 @@ graph class k ≤ 7 with a strictly-verified two-mode defender strategy; only th
 general-n induction is open.
 
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
-tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`), the
-source-pinned (OEIS A380496) ordinal nim Kummer tower below `ω^(ω^ω)`, the characteristic-2
+tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`) plus
+game-valued heating/overheating/Norton operators (infrastructure for `under`, not
+the associated-graded product theorem), the source-pinned (OEIS A380496) ordinal
+nim Kummer tower below `ω^(ω^ω)`, the characteristic-2
 Artin-Schreier local-global layer over `F_{2^m}(t)` including the Aravire-Jacob wild
 summand, and the integral lattice/genus/mass/Leech/Niemeier/theta/code/Weil chain. These are
 standard-math implementations and useful infrastructure; cite them as such.

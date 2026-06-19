@@ -24,6 +24,8 @@
 //!   the games layer).
 //! * [`thermography`] — temperature theory: stops, cooling, and the thermograph
 //!   (mean value + temperature) of a short game.
+//! * [`heating`] — game-valued heating, Berlekamp overheating, and Norton
+//!   multiplication by a positive unit game.
 //! * [`piecewise`] — the piecewise-linear rational scaffold machinery used by
 //!   thermography.
 //! * [`hackenbush`] — red/blue/green Hackenbush: the one structure whose value
@@ -35,6 +37,7 @@ pub mod coin_turning;
 pub mod game_exterior;
 pub mod grundy;
 pub mod hackenbush;
+pub mod heating;
 pub mod kernel;
 pub mod lexicode;
 pub mod loopy;
@@ -51,6 +54,7 @@ pub use coin_turning::*;
 pub use game_exterior::*;
 pub use grundy::*;
 pub use hackenbush::*;
+pub use heating::*;
 pub use kernel::*;
 pub use lexicode::*;
 pub use loopy::*;

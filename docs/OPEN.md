@@ -767,10 +767,12 @@ at the thermograph level, plus a sharper positive target.
   on all-small games (`aw(↑) = 1`, `aw(↓) = −1`, `aw(*) = 0`), but its kernel still
   contains nimber-like residues (`* + * = 0` shows the kernel matters) — so even the
   first graded piece is a genuine residual game object, not the mast.
-- **Where it stalls (open).** There is no product on `gr_T(Games)`: short games are
-  not a ring, and the repo carries no Norton-multiplication / overheating product to
-  borrow. The scalar temperature hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else
-  "all temperatures `≤ a`") is clean and useful, but lifting it to full thermographs
+- **Where it stalls (open).** Short games are not a ring. The repo now carries
+  game-valued Norton multiplication / overheating operators as infrastructure, so
+  the question is sharper: do they descend to a product on `gr_T(Games)`
+  compatible with cooling, or does residue dependence break that descent? The
+  scalar temperature hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else "all
+  temperatures `≤ a`") is clean and useful, but lifting it to full thermographs
   without adding residues is either false (no-congruence) or tautological.
 
 Concrete progress targets:
@@ -784,17 +786,18 @@ Concrete progress targets:
 - The reframed central target: define the temperature-filtration quotient
   `F_{≤τ}/F_{<τ}` for a manageable class of games, compute its first pieces (the
   `τ = 0` all-small layer with atomic weight + its kernel is the entry point), and
-  decide whether Norton multiplication / overheating gives those pieces a product
-  compatible with cooling. **Yes** ⇒ one tropical object, after passing to the
-  residue-enriched associated graded; **no** ⇒ two tropical objects sharing only the
-  scalar hyperfield shadow.
+  decide whether the now-shipped Norton multiplication / overheating operators give
+  those pieces a product compatible with cooling. **Yes** ⇒ one tropical object,
+  after passing to the residue-enriched associated graded; **no** ⇒ two tropical
+  objects sharing only the scalar hyperfield shadow.
 - If every transport trivializes, write the no-go in the now-precise form: the
   thermograph is not a sum congruence (done), and no residue enrichment recovers a
   cooling-compatible product.
 
 Relevant surfaces:
 - `writeups/thermo_newton.tex`
-- `src/scalar/tropical.rs`, `src/games/thermography.rs`, `src/games/atomic_weight.rs`
+- `src/scalar/tropical.rs`, `src/games/thermography.rs`, `src/games/heating.rs`,
+  `src/games/atomic_weight.rs`
 - `src/scalar/newton.rs`, `src/forms/springer/local.rs`
 - `examples/tropical.rs` (the shipped thermography = tropical identity)
 

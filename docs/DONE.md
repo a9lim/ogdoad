@@ -44,6 +44,23 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·e_g: `overheating`
+**Completed:** 2026-06-19
+**Summary:** the games pillar now has game-valued heating, Berlekamp
+overheating, and Norton multiplication beside the thermograph/cooling surface.
+**Pillars:** games    **Claim level:** standard math, implemented and tested
+- surface: `heat`, `norton_multiply`, `overheat`, `is_positive_game`, and
+  `integer_game_value`, plus Python module functions and `Game` methods for
+  `heat`, `norton_multiply`, and `overheat`.
+- oracles: heating fixes numbers and sends `{1|-1}` heated by `2` to `{3|-3}`;
+  non-dyadic heating temperatures reject honestly; Norton multiplication by unit
+  `1` is the identity, nonpositive units reject, integer-unit Norton products
+  have the expected mean, and Berlekamp overheating uses Norton multiplication
+  on integer leaves.
+- boundaries: this is finite short-game infrastructure only. It does not claim
+  that Norton multiplication descends to a product on the temperature
+  associated graded; that compatibility remains the `under` open problem.
+
 ### 1·(e_c∧e_f∧e_i): `heisenberg-weil`
 **Completed:** 2026-06-19
 **Summary:** the extraspecial char-2 group surface now has its finite
