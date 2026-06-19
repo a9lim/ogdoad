@@ -163,3 +163,12 @@ runtime type is bound. What stays Rust-only is structural, not a backlog:
   method. **Rust `&` binds looser than `+`/`*` in both Python and Rust — parenthesize.**
 - The smoke test is `demo.py` (rebuild via `maturin develop` first); add a section
   there when you bind something new, and a backend to `catalog.rs` when you add one.
+- **Regenerate the type stubs after any binding change.** `ogdoad.pyi` (repo root,
+  shipped + `py.typed` by maturin for a pure-Rust project) is `@generated` from the
+  built module by `scripts/generate_stubs.py` — rebuild (`maturin develop`) then run
+  `python scripts/generate_stubs.py` and commit the diff. PyO3's abi3 build drops
+  argument signatures, so the generator types the headline/README surface from a
+  curated, source-verified override table and falls back to `(*args, **kwargs)` +
+  the preserved `///` docstrings elsewhere; precise signatures for a newly bound
+  public entry point go in that table. CI runs `generate_stubs.py --check` (in the
+  `python` job) and fails on a stale stub.

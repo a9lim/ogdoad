@@ -92,3 +92,9 @@ jobs:
         run: |
           pip install --find-links dist --no-index ogdoad
           python demo.py
+      - name: Check the committed type stubs are up to date
+        # ogdoad.pyi is @generated from the built module by scripts/generate_stubs.py.
+        # If a binding was added/renamed without regenerating, the committed stub is
+        # stale — fail here rather than ship a wrong .pyi. The generator output is
+        # fully sorted, so it is byte-stable across Python versions.
+        run: python scripts/generate_stubs.py --check
