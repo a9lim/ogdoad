@@ -44,6 +44,28 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·(e_c∧e_f∧e_i): `heisenberg-weil`
+**Completed:** 2026-06-19
+**Summary:** the extraspecial char-2 group surface now has its finite
+Heisenberg/Pauli representation and projective symplectic-transvection
+intertwiners.
+**Pillars:** clifford ↔ forms ↔ integral    **Claim level:** standard math,
+implemented and tested
+- surface: `HeisenbergWeilRepresentation`,
+  `HEISENBERG_WEIL_MATRIX_RANK_CAP`,
+  `Extraspecial2Group::heisenberg_weil_representation`,
+  `heisenberg_weil_representation_f2`, and
+  `heisenberg_weil_representation_nimber`.
+- oracles: the Pauli action is checked against full multiplication tables on
+  the plus/D8 and minus/Q8 cells and a rank-two nonsingular example; the center
+  acts by `-I`, generator squares recover `Q`, commutators recover `B`, and
+  transvection intertwiners are verified projectively on quotient generators.
+- boundaries: this is the finite Stone-von Neumann / Pauli representation layer
+  over `F_2`-valued extraspecial data, with dense matrices honestly capped by
+  `HEISENBERG_WEIL_MATRIX_RANK_CAP`; it is adjacent to the Gold/Arf `tis`
+  program but does not realize a game P-set or solve the loopy-valued open
+  problem.
+
 ### 2·(e_i∧e_s): `construction-a-p`
 **Completed:** 2026-06-17
 **Summary:** odd-prime codes now feed the same exact integer-coordinate

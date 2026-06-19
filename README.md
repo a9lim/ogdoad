@@ -141,7 +141,8 @@ rank-12 p-ary Construction-A lattice, Leech is pinned by rootlessness in weight
 12, and the Niemeier catalogue checks the rank-24 mass and weighted theta average
 against `E12` with the 691 coefficient. Discriminant forms
 expose Weil `S`/`T` matrices with the Milgram phase recovered from the standard
-conjugate `S` prefactor.
+conjugate `S` prefactor, and the char-2 extraspecial surface supplies the finite
+Heisenberg/Pauli representation with projective transvection intertwiners.
 
 **the games bridge.** Red/blue/green Hackenbush is the one object that reads out
 as a surreal (blue − red), a nimber (all-green = Nim), or a general partizan game

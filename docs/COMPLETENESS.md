@@ -53,22 +53,6 @@ level — the Bad census — and the fifo+dummy mechanism is identified
 pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
 `OPEN.md` tis, not a number here.)
 
-### 1·(e_c∧e_f∧e_i): `heisenberg-weil`
-**The finite Heisenberg/metaplectic layer the Weil pieces already imply.** Three
-shipped objects are one picture seen three ways: the **extraspecial 2-group**
-`1→F₂→E→V→0` (`extraspecial`, DONE) whose commutator is `B` and squaring is `Q`;
-the **Weil `S`/`T` matrices** of a discriminant form (Bridge I); and the
-**symplectic** classifier (`symplectic.rs`). The missing hub is the **finite
-Heisenberg-group representation** — the unique irreducible of `E` (Stone–von
-Neumann over `F₂`, the Pauli/Clifford rep), on which `Sp(B)` acts projectively by
-the **metaplectic/Weil representation**. Building it (the `2ⁿ`-dim Pauli action of
-`E`, the `Sp`-intertwiners) ties extraspecial↔Weil↔symplectic into one layer and
-makes the goldarf §5 extraspecial reframing executable on the representation side,
-not just the group side; the discriminant-form `weil_s`/`weil_t` are then the
-`SL₂` specialization of the same construction. Standard math (Weil; the finite
-Heisenberg / Pauli-group story). Adjacent to `tis` (`OPEN.md`) but *not* progress
-on it — rep-theory infrastructure, not a game.
-
 ### 1·(e_s∧e_f): `brauer-algebras`
 **Explicit algebra representatives for the Brauer invariants.** Bridges F/K
 compute Brauer *invariants* — `Brauer2Class` (a ramified-place set), `BrauerClass`
