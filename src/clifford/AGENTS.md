@@ -122,8 +122,8 @@ Use `alg.pow(&v, k)` for repeated geometric multiplication — `^` is reserved f
 scalar power (`x ^ k: u128`), not multivector power.
 This mirrors the scalar layer: operators on the concrete type carry no extra context;
 everything that needs context threads through the algebra value. (Python bindings:
-`&` / `__and__` is wedge; `**` / `__pow__` is MV power; `__xor__` stays as wedge
-during a deprecation window — WP6 will align the Python dunder set.)
+`&` / `__and__` is wedge; `**` / `__pow__` is MV power; `^` / `__xor__` now raises the
+Ogham `E_ExpSort` hint — `^` is power, the wedge is `∧`/`&`.)
 
 ## Hard rules (clifford-specific)
 

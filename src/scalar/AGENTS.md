@@ -246,8 +246,9 @@ the project's central symmetries.
 - **`fp.rs`** — `Fp<const P>`: the prime field F_P (any prime P — the odd-char
   comparison backend, and `F_2 = Base` for `Nimber`); the `Qp → Fp` residue field.
 - **`fpn.rs`** — `Fpn<const P, const N>`: F_{p^N} via a (P,N)-keyed irreducible
-  reduction poly (`reduction`, `reduction_kind` → the public `ReductionPolynomialKind`
-  metadata, `is_supported_field`). Completes the odd-char tower AND the char-2
+  reduction poly (public `reduction_rule`/`reduction_polynomial_kind` →
+  `ReductionPolynomialKind` metadata, `is_supported_field`; the bare `reduction`/
+  `reduction_kind` free fns are `pub(crate)` helpers). Completes the odd-char tower AND the char-2
   odd-degree fields nimbers can't reach (F_8); supported `Fpn<2,N>` metrics classify
   through the char-2 Arf façade. (NB the static `field_order()` = field order p^N, ≠
   `multiplicative_order(&self)`.)

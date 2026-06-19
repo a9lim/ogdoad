@@ -34,9 +34,9 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
-Beyond the library: `examples/` (Rust demos `tour`/`tropical` + the open-question
-probes `interactive_kernel`, `octal_hunt`, `loopy_quadric`, `misere_quotient`,
-`bent_route`), `experiments/` (Python research probes on top of the shipped
+Beyond the library: `examples/` (Rust demos `tour`/`tropical`, the Ogham REPL
+`ogham_repl`, and the open-question probes `interactive_kernel`, `octal_hunt`,
+`loopy_quadric`, `misere_quotient`, `bent_route`), `experiments/` (Python research probes on top of the shipped
 lib), `demo.py` (the Python tour),
 `docs/` (OPEN.md — the genuine research problems; COMPLETENESS.md — the game-valued
 ledger of buildable items completing symmetries/connections already in the code;
@@ -50,11 +50,13 @@ the inventory of curated hardcoded tables),
 host-operator contract, backend-helper surface, v1 parser/evaluator contract,
 v1.1 polynomial/ratfunc function-world contract, the shipped v2.0 abstraction
 layer, the shipped v2.1 program layer, and the pre-contract v3.0 stub, §§17–19;
-conformance.txt — the hand-verified corpus the language must pass),
+conformance.txt + conformance_v2.txt — the hand-verified corpora the language must pass),
 and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the
-consolidated note on the transfinite nim excess problem).
+consolidated note on the transfinite nim excess problem;
+`game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
+`thermo_newton.tex` — the thermography ↔ Newton-polygon tropical bridge).
 
 ## Claim levels and non-claims
 
@@ -259,8 +261,11 @@ cargo clippy --all-targets                    # lint (kept warning-clean)
 cargo doc --no-deps                           # rustdoc (intra-doc links warning-clean)
 cargo run --example tour                      # Rust demo
 cargo run --example tropical                  # tropical-semiring / thermography demo
+cargo run --example ogham_repl                # Ogham expression-language REPL
 cargo run --example interactive_kernel        # open-problem probe
+cargo run --example octal_hunt                # open-problem probe
 cargo run --example loopy_quadric             # open-problem probe
+cargo run --example misere_quotient           # open-problem probe
 cargo run --example bent_route                # open-problem probe
 python3 -m venv .venv && .venv/bin/pip install maturin
 VIRTUAL_ENV=.venv .venv/bin/maturin develop   # build + install the abi3 extension

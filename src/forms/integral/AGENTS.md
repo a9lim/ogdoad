@@ -12,7 +12,7 @@ spine (`BW(ℝ)=ℤ/8`, Bott, the 8-fold table) and the lattice world — `E₈`
 unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
 "norm-2 root" has `Q=2`).
 
-- **`lattice/`** (split from `lattice.rs`) — two-file subdirectory:
+- **`lattice/`** (split from `lattice.rs`) — three-file subdirectory:
   - **`lattice/core.rs`** — `IntegralForm { gram: Vec<Vec<i128>> }` (private Gram, built
     via `new` (square+symmetric-checked) / `diagonal`, never a struct literal).
     `determinant` (fraction-free **Bareiss**, exact), `is_even`/`is_unimodular`,
@@ -49,7 +49,7 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   roots generate `L`, index off the HNF pivots). Det/kissing/Coxeter oracles protect
   every construction; |Aut| oracles include `A_n`→`2(n+1)!` (n≥2; `A_1`→2), `D_4`→1152,
   `D_5`→3840, and the named constant `E8_WEYL_GROUP_ORDER = 696729600`.
-- **`discriminant/`** (split from `discriminant.rs`) — four-file subdirectory:
+- **`discriminant/`** (split from `discriminant.rs`) — five-file subdirectory:
   - **`discriminant/complex.rs`** — hand-rolled `Complex64` (dependency-free;
     deliberately shadows `num_complex::Complex64`).
   - **`discriminant/gauss_sum.rs`** — `GaussSum` and matrix helpers (`mat_identity`,

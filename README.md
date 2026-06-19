@@ -6,34 +6,41 @@
 [![docs.rs](https://img.shields.io/docsrs/ogdoad)](https://docs.rs/ogdoad)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-`ogdoad` is a Rust research playground for Clifford algebras, quadratic forms,
-and combinatorial-game arithmetic, with optional Python bindings. It is built
-around one observation: the exotic number systems it implements — surreals,
-nimbers, p-adics, Witt vectors, Laurent series — are not a grab bag. They are
-cells of *one table*, and the same structures recur from cell to cell with the
-characteristic and the place swapped. The code is organized to make those
-symmetries visible.
+The **Ogdoad** were eight Egyptian gods of the primordial waters, arranged in four
+pairs — the world before there was a world. This `ogdoad` keeps a smaller pantheon:
+eight number-systems, also in four pairs, also a little primordial. Surreals and
+omnific integers; p-adics and Witt vectors; rational functions and polynomials; and
+the plain old rationals and integers. Each pair is a **field beside its ring of
+integers**. Off to one side sit the finite fields and the nimbers, who are their own
+rings of integers and answer to no one. Eight, plus the loners.
 
-The central constraint is mathematical, not architectural. Conway games under
-disjunctive sum form an abelian group, **not a scalar ring** — Conway
-multiplication is defined only on the number/nimber subclasses. A Clifford
-algebra needs a commutative scalar ring, so this project does **not** build
-Clifford algebras over all games. It builds a generic Clifford engine over the
-commutative scalar worlds *adjacent* to game theory, and a forms layer that
-classifies the result.
+The conceit is that these exotic worlds are not a curiosity cabinet. They are **cells
+of one table**, and the number eight is not an accident: read the table one way and
+you get Clifford algebras, read it the other way and you get the classification of
+quadratic forms, and the *same* structures keep surfacing cell after cell with the
+characteristic and the place politely swapped. The eightfold periodicity of the real
+Clifford table, `BW(ℝ) ≅ ℤ/8`, Bott, `E₈` — it is all one spine, and the code is laid
+out to make the rhyming visible.
 
-## Two views of one table of numbers
+One honest caveat up front, because it shaped everything. Conway's games, under
+disjunctive sum, form an abelian **group but not a ring**: you can add games freely,
+but multiplication only makes sense on the numbers and nimbers hiding *inside* them. A
+Clifford algebra demands a commutative *ring* of scalars. So this is emphatically
+**not** "Clifford algebras over all games." It is a generic Clifford engine over the
+commutative worlds that live next door to game theory, plus a forms layer to classify
+whatever it builds.
+
+## Two readings of one table
 
 Every backend is a cell in a table with two axes:
 
-- **place** — *where* the number lives (Archimedean, p-adic, finite,
-  transfinite), and whether it is a field or its ring of integers. This is how
-  `src/scalar/` is organized.
-- **characteristic** — *which* classification theory applies (char 0 / odd / 2).
-  This is how `src/forms/` is organized.
+- **place** — *where* a number lives (Archimedean, p-adic, finite, transfinite), and
+  whether it is a field or a ring of integers. This is how `src/scalar/` is grouped.
+- **characteristic** — *which* classification theory applies (char 0 / odd / 2). This
+  is how `src/forms/` is grouped.
 
-The axes are independent; the two pillars are complementary readings of the same
-objects. The place axis pairs each **field** with its **ring of integers**:
+The axes are independent. The place axis is what pairs each **field** with its **ring
+of integers** — the four pairs of the Ogdoad:
 
 | | field | ring of integers |
 | --- | --- | --- |
@@ -41,159 +48,116 @@ objects. The place axis pairs each **field** with its **ring of integers**:
 | transfinite | `Surreal` (No) | `Omnific` (Oz) |
 | p-adic (char 0) | `Qp`, `Qq` | `Zp`, `WittVec` |
 | function field (char p) | `RationalFunction` F_q(t) | `Poly` F_q[t] |
-| finite | `Fp`, `Fpn`, `Nimber` | — |
+| finite | `Fp`, `Fpn`, `Nimber` | — (already their own) |
 
-The pairing is structural, not decorative: the `HasFractionField` /
-`HasRingOfIntegers` trait pair makes ℤ⊂ℚ, Oz⊂No, Zp⊂Qp, W_N⊂Qq, and F_q[t]⊂F_q(t)
-explicit in the type system (with ℤ[i]⊂ℚ[i] following for free via the surcomplex
-transport). The rest of the local-field data is structural too — the valuation
-and uniformizer (`Valued`), and the residue field `k = 𝒪/𝔪` with angular
-component and Teichmüller section (`ResidueField`) — so the whole package
-`(K, 𝒪, 𝔪, k, Γ, ϖ)` lives in the type system rather than the comments.
+The pairing is structural, not decorative. The `HasFractionField` / `HasRingOfIntegers`
+trait pair makes ℤ⊂ℚ, Oz⊂No, Zp⊂Qp, W_N⊂Qq, and F_q[t]⊂F_q(t) explicit *in the type
+system* (with ℤ[i]⊂ℚ[i] following for free via the surcomplex transport). The rest of
+the local-field furniture is type-level too — the valuation and uniformizer (`Valued`),
+and the residue field `k = 𝒪/𝔪` with its angular component and Teichmüller section
+(`ResidueField`) — so the whole package `(K, 𝒪, 𝔪, k, Γ, ϖ)` lives in the types rather
+than the comments.
 
 ## The symmetries
 
-**char 0 ↔ char 2.** Classifying a quadratic form is one theory split by
-`char F`. Over a real-closed field it is the 8-fold periodic Cl(p,q) table
-(`M_n(ℝ/ℂ/ℍ)`); in characteristic 2 the quadratic and polar forms part ways and
-the same role is played by the Arf invariant and the Brauer–Wall group. On the
-finite char-2 legs (`Nimber`, generated `Fpn<2,N>`, the documented finite ordinal
-windows) a nonsingular form carries both the Arf classifier and the
-`BW(F_{2^m}) ≅ ℤ/2` class, under the same XOR law. The classifier façade picks
-the leg from the scalar type at compile time, so `metric.classify()` /
-`.bw_class()` are one call across every implemented leg. Over `ℚ`, the graded
-Brauer-Wall surface is separate and exact-sequence-shaped:
-`bw_class_rational` records dimension parity, signed discriminant, and the
-ungraded Clifford Brauer class `c(q)`, with scalar extension to `ℝ` recovering
-the same Bott clock.
+The project is built around a handful of these rhymes. Each is the same theorem seen
+twice, once on each side of a mirror.
 
-**surreal No ↔ ordinal On₂.** The surreals (a char-0 field) and the ordinal
-nimbers (a char-2 non-field) are mirror images: both are Cantor-normal-form towers
-over recursive exponents, sharing one canonicalizer. They differ in exactly three
-places — the exponent order, the coefficient merge (`+` vs `XOR`), and the zero
-test — which is why the shared code is a *function*, not a type. No is where
-infinite and infinitesimal Clifford metrics live; On₂ is the proper-class char-2
-field. The mirror reads out again at the games layer: `NumberGame` (a transfinite
-surreal-valued game) and `NimberGame` (a transfinite Nim heap `⋆α` carried by its
-ordinal Grundy value) are the two views, one per characteristic.
+**char 0 ↔ char 2.** Classifying a quadratic form is one theorem wearing three hats,
+sorted by `char F`. Over a real-closed field it is the famous 8-fold periodic Cl(p,q)
+table, `M_n(ℝ/ℂ/ℍ)` marching around the Bott clock. Drop to characteristic 2 and the
+quadratic form and its polar form file for divorce; the **Arf invariant** and the
+**Brauer–Wall group** take over custody. On the finite char-2 legs (`Nimber`, generated
+`Fpn<2,N>`, the documented finite ordinal windows) a nonsingular form carries both the
+Arf bit and the `BW(F_{2^m}) ≅ ℤ/2` class, under the same XOR law. `metric.classify()` /
+`.bw_class()` pick the right leg from the scalar type at compile time. Over ℚ, the graded
+Brauer–Wall story is separate and exact-sequence-shaped: `bw_class_rational` records
+dimension parity, signed discriminant, and the ungraded Clifford class `c(q)`, with
+scalar extension to ℝ recovering the same Bott clock.
 
-**the 2×2 functor table.** Orthogonal to the place table, there are four ways to
-grow a field, and all four corners are filled:
+**No ↔ On₂.** The surreals (a char-0 field) and the ordinal nimbers (a char-2
+non-field) are the same Cantor-normal-form tower seen in two mirrors — both are
+finite-support towers over recursive exponents, sharing one canonicalizer. They differ
+in *exactly three places*: how exponents order, whether coefficients add or XOR, and
+what counts as zero. That is why the shared machinery is a **function, not a type** —
+forcing No and On₂ into one type would assert a field equals a non-field. The mirror
+reads out again at the games layer: `NumberGame` (a surreal-valued game) and
+`NimberGame` (a transfinite Nim heap `⋆α`) are the two views, one per characteristic.
+
+**four ways to grow a field.** A 2×2 of (algebraic | transcendental) ×
+(residue-extending | value-extending), and all four corners are filled:
 
 | | residue-extending | value-extending |
 | --- | --- | --- |
 | **algebraic** | `Surcomplex` (adjoin `i`) | `Ramified` (adjoin `π = ϖ^{1/e}`) |
 | **transcendental** | `Gauss` (adjoin a unit `t`) | `Laurent` (adjoin a uniformizer `t`) |
 
-`Laurent` over a finite field is the equal-characteristic mirror of `Qp`;
-`Ramified` is the ramified twin of the unramified `Qq`. The finite *separable*
-extensions among these carry a uniform relative trace/norm (`FieldExtension`):
-the algebraic-closure functor `Surcomplex`, the finite tower `Fpn/Fp`, the
-unramified `Qq/Qp`, and the nim-field `Nimber/F_2` (= `F_{2^128}`) — one interface
-for the norm map that feeds Hilbert symbols, the Brauer–Wall group, and Hermitian
-forms; finite Hermitian forms over `F_{p^{2k}}/F_{p^k}` use the middle Frobenius
-and are classified by rank plus radical dimension. The cyclic-Galois refinement
-(`CyclicGaloisExtension`, adding a basis and
-the generator `σ`) feeds the **twisted trace form** `Tr_{E/F}(x·σ^k(x))`, which
-lands back in the classifiers — the binary norm form over `Surcomplex`, trace
-forms over `Qq` and `Fpn`, and the **Gold form** `Tr(x^{1+2^a})` over the
-nim-fields, Arf-classified. The same Galois data also builds Frobenius linear maps
-in `clifford::frobenius`, so the scalar trace maps and the Clifford outermorphism
-spectra share one basis-level computation.
+`Laurent` over a finite field is the equal-characteristic twin of `Qp`; `Ramified` is
+the ramified twin of the unramified `Qq`. The separable extensions among these share one
+relative trace/norm (`FieldExtension`) feeding Hilbert symbols, the Brauer–Wall group,
+and Hermitian forms; the cyclic-Galois refinement (`CyclicGaloisExtension`) feeds the
+**twisted trace form** `Tr(x·σ^k(x))`, which lands back in the classifiers — and over
+the nim-fields becomes the Arf-classified **Gold form** `Tr(x^{1+2^a})`. The same Galois
+data builds Frobenius linear maps in `clifford::frobenius`, so scalar trace maps and
+Clifford outermorphism spectra share one computation.
 
-**local ↔ global.** The Springer decomposition appears across the complete valued
-fields, and the value group controls the answer: over the surreals the value group
-is 2-divisible (`W(No) = W(ℝ) = ℤ`), but over `Q_p`, the unramified `Q_q`, and
-`F_q((t))` it is `ℤ`, so two residue layers survive (`W(Q_p) = W(F_p)²`). The
-discretely-valued legs share **one** generic engine keyed on the `ResidueField`
-trait; the surreal leg keeps its own, exactly because its value group is divisible
-— that mismatch *is* the symmetry, not a gap. The adelic layer then glues the
-local data: Hasse–Minkowski isotropy over ℚ and Hilbert reciprocity
-`∏_v (a,b)_v = +1`. Those per-prime residues also assemble into Milnor's exact
-sequence `0 → W(ℤ) → W(ℚ) → ⊕_p W(F_p) → 0` — the global Witt group with the
-Springer residue as its boundary map and the signature as its kernel. The same
-package recurs in **equal characteristic** over the
-global function field `F_q(t)`: the tame Hilbert symbol at each monic-irreducible
-place plus the degree place `∞`, tame Kummer symbols for Bridge K when `μ_n ⊂ F_q`,
-reciprocity, Hasse–Minkowski, and the split Milnor map
-`W(F_q(t)) ≅ W(F_q) ⊕ ⊕_π W(F_q[t]/π)` — and here it is **exact** (no precision
-model), the char-`p` mirror of the ℚ stack. Both global
-fields answer **one** interface: the `GlobalField` trait states the places, the
-local Hilbert symbol, reciprocity, and Hasse–Minkowski once, with `ℚ` and `F_q(t)`
-as its two implementors.
+**local ↔ global.** Springer's decomposition appears over every complete valued field,
+and the value group decides how much survives: over the surreals it is 2-divisible, so
+`W(No) = W(ℝ) = ℤ`, but over `Q_p`, `Q_q`, and `F_q((t))` it is ℤ, so two residue layers
+live (`W(Q_p) = W(F_p)²`). The discretely-valued legs share **one** generic engine keyed
+on `ResidueField`; the surreal leg keeps its own, *precisely because* its value group is
+divisible — that mismatch **is** the symmetry, not a gap. Glue the local data and you get
+Hasse–Minkowski over ℚ and Hilbert reciprocity `∏_v (a,b)_v = +1`; the per-prime residues
+also assemble into Milnor's exact sequence `0 → W(ℤ) → W(ℚ) → ⊕_p W(F_p) → 0`. The whole
+package re-runs in **equal characteristic** over `F_q(t)` — tame Hilbert symbols at every
+place, reciprocity, Hasse–Minkowski, the split Milnor map — and there it is **exact**, no
+precision model, the char-`p` mirror of the ℚ stack. Both global fields answer **one**
+interface: the `GlobalField` trait, with ℚ and `F_q(t)` as its two implementors.
 
-The integral leg carries its own local/global echo: even lattices produce
-discriminant quadratic modules, p-primary Milgram/Brown phase projections, bounded
-exact finite-quadratic-module Witt normal forms, and rational or mod-2 Clifford
-metrics, making the lattice signature, the real Brauer–Wall mod-8 cycle, and the
-Clifford classifier directly comparable in the core. Odd lattices carry the parallel
-`Q/Z` discriminant surface and the Conway-Sloane oddity-corrected Milgram/van der
-Blij report. Conway-Sloane `p`-adic genus symbols, including the corrected 2-adic
-train/compartment/oddity calculus, give the integral genus comparison without
-discriminant-form search budgets, and explicit Kneser `p`-neighbors give
-denominator-checked neighbor lattices plus mass-closed rank-8/rank-16
-even-unimodular reports (`E8`, `E8+E8`, `D16+`). The same leg crosses the
-code/theta boundary —
-binary and odd-prime codes feed Construction A lattices, Reed-Muller codes feed
-Construction D and the named `BW16` lattice, and the Clifford-side certificate
-recovers the same `BW16` from spinor weight/quadratic-phase rows with the
-index-2 real Clifford automorphism subgroup recorded; ADE simple roots also act
-as Clifford Pin versors whose twisted adjoint action recovers the Weyl
-reflections and Coxeter elements. Exact even theta series
-are identified inside `ℂ[E4, E6]`, odd theta gets the norm-indexed level-4 head, `D16+` and
-`E8 ⊕ E8` share the `E4²` theta series, ternary Golay pins an odd unimodular
-rank-12 p-ary Construction-A lattice, Leech is pinned by rootlessness in weight
-12, and the Niemeier catalogue checks the rank-24 mass and weighted theta average
-against `E12` with the 691 coefficient. Discriminant forms
-expose Weil `S`/`T` matrices with the Milgram phase recovered from the standard
-conjugate `S` prefactor, and the char-2 extraspecial surface supplies the finite
-Heisenberg/Pauli representation with projective transvection intertwiners.
+**the games bridge.** Red/blue/green Hackenbush is the showpiece: the same picture reads
+out as a surreal (blue − red), a nimber (all-green is Nim), or a general partizan game —
+and nim-multiplication itself is realized by Conway's Turning-Corners coin game. The game
+pillar even reaches the lattice world: a greedy binary **lexicode** is built by the
+**mex** rule, so the Conway–Sloane codes are Sprague–Grundy P-sets, feeding straight into
+the integral lattices — `turning game → mex → lexicode → Golay → Construction A → theta`,
+one chain across three pillars. And thermography turns out to **be** tropical arithmetic
+in disguise: the option-folds are the tropical `⊕`, cooling is the tropical `⊗`, and the
+two scaffold walls live in the dual `(max,+)`/`(min,+)` semirings — named in
+`scalar/tropical.rs` and machine-checked equal to the golden thermograph.
 
-**the games bridge.** Red/blue/green Hackenbush is the one object that reads out
-as a surreal (blue − red), a nimber (all-green = Nim), or a general partizan game
-— and nim-multiplication itself is realized by Conway's Turning-Corners coin game.
-This is the seam where the game pillar meets the scalar pillar. The game pillar even
-reaches the lattice world: a greedy binary **lexicode** is built by the **mex** rule,
-so the Conway–Sloane codes (the `[7,4,3]` Hamming, the `[24,12,8]` Golay) are
-Sprague–Grundy P-sets of the explicit `LexicodeTurningGame`, feeding straight into
-the Construction A lattices of the integral leg — `turning game → mex → lexicode →
-Golay → Construction A → theta`, one chain crossing three pillars. The same file
-also ships base-`2^k` nim-alphabet lexicodes, verifying
-nim-additive closure and witnessing scalar-linearity at Fermat bases (4/16) but not
-base 8. And thermography itself **is** tropical arithmetic: the option folds are the
-tropical `⊕` and cooling is the tropical `⊗`, with the two scaffold walls living in
-the dual `(max,+)`/`(min,+)` semirings — named in `scalar/tropical.rs` (a
-`Semiring`, not a `Scalar`: an idempotent `⊕` has no inverse) and machine-checked
-equal to the golden thermograph. The inverse direction now has game-valued heating,
-Berlekamp overheating, and Norton multiplication as infrastructure; whether those
-operators descend to a temperature-graded product remains the `under` open problem.
+**the lattice wing.** The mod-8 spine surfaces one more place: integral lattices. `E₈` is
+the unique rank-8 even unimodular lattice, and from it the wing fans out — discriminant
+forms with their Weil `S`/`T` matrices and the Brown `ℤ/8` invariant; Conway–Sloane
+`p`-adic genus symbols and explicit Kneser neighbors with mass-closed reports; codes
+feeding Construction A/D up to `BW16` and `D16+`; ADE roots acting as Clifford Pin
+versors and replaying the Weyl reflections; exact theta series identified inside
+`ℂ[E₄, E₆]`; Leech pinned by rootlessness in weight 12; and the 24-class Niemeier
+catalogue checking the rank-24 mass against `E₁₂` and the 691. Lattice signature, real
+Brauer–Wall mod-8 cycle, and Clifford classifier all become directly comparable in the
+core.
 
 ## The char-2 point
 
-In characteristic 2 the quadratic form and its polar form carry different data.
-The engine stores them separately:
+This is the load-bearing technical detail, so it gets its own heading. In characteristic
+2 the quadratic form and its polar form carry **different data**, and the engine stores
+them separately:
 
 ```text
 e_i^2             = q_i      # the quadratic form
 e_i e_j + e_j e_i = b_ij     # the polar / anticommutator (alternating: b_ii = 0)
 ```
 
-For nimbers `-1 = 1`, so an orthogonal basis with `b = 0` gives a *commutative*
-Clifford product; a nonzero off-diagonal `b[(i,j)]` is what makes a
-characteristic-2 example noncommutative. Collapsing `q` and `b` into one symmetric
-form would silently throw away the entire point of the nimber backend. (An optional
-third field `a` lifts the engine to a general, non-symmetric bilinear form.)
+For nimbers `−1 = 1`, so an orthogonal basis (`b = 0`) gives a *commutative* Clifford
+product; a nonzero off-diagonal `b[(i,j)]` is what makes a characteristic-2 example
+noncommutative. Collapse `q` and `b` into one symmetric form and you have silently thrown
+away the entire point of the nimber backend. (An optional third field `a` lifts the
+engine to a general, non-symmetric bilinear form.)
 
-On nonsingular metrics over the finite char-2 legs, the form layer also exposes the
-Brauer–Wall class as the same Arf/Witt `ℤ/2` datum: hyperbolic planes are zero, the
-anisotropic plane has class one, and orthogonal sum / graded tensor adds by XOR.
-The spinor module has a separate characteristic-2 representation path: it never uses
-the char-0 `½(1+w)` idempotent, accepts nonsingular polar forms such as the
-hyperbolic plane with null-square generators, takes blade idempotents like `e_i e_j`
-when they shrink a left ideal, and otherwise falls back honestly to the complete
-left-regular action. Characteristic-0 general-bilinear metrics are handled by
-transporting through the antisymmetric `a` gauge to the matching ordinary `(q,b)`
-metric; characteristic 2 keeps the nonzero-`a` boundary.
+The spinor module has its own characteristic-2 route — no `½(1+w)` idempotent, blade
+idempotents like `e_i e_j` when they shrink a left ideal, otherwise an honest fallback to
+the full left-regular action. In characteristic 0, general-bilinear metrics are handled
+by transporting through the antisymmetric `a` gauge to the matching ordinary `(q,b)`
+metric; characteristic 2 keeps the explicit nonzero-`a` boundary.
 
 ## Quickstart
 
@@ -233,13 +197,12 @@ pl.is_isotropic_q([1, 1, 1])       # False (anisotropic over Q)
 pl.hilbert_product((-1, 1), (-1, 1))  # +1  (reciprocity)
 ```
 
-The Python surface is **runtime-friendly parity**: every backend that is a plain
-runtime type is bound, while open-ended const-generic families (arbitrary
-`Qp<P,K>`, `Qq<P,N,F>`, …) stay Rust-only unless they get an explicit fixed
-dispatch slice. See [`src/py/AGENTS.md`](src/py/AGENTS.md) for the full bound
-surface and the binding-scope policy.
+The Python surface is **runtime-friendly parity**: every backend that is a plain runtime
+type is bound, while open-ended const-generic families (arbitrary `Qp<P,K>`, `Qq<P,N,F>`,
+…) stay Rust-only unless they get an explicit fixed dispatch slice. See
+[`src/py/AGENTS.md`](src/py/AGENTS.md) for the full bound surface and the policy.
 
-Run the Rust tour without Python:
+Prefer no Python? The Rust tour needs none:
 
 ```sh
 cargo run --example tour
@@ -247,45 +210,39 @@ cargo run --example tour
 
 ## Layout
 
-A pure Rust math core, generic over a `Scalar` trait, with PyO3 per-backend
-bindings on top. Each `src/` pillar has its own `AGENTS.md` with the file-by-file
-breakdown:
+A pure Rust math core, generic over a `Scalar` trait, with PyO3 per-backend bindings on
+top. Each `src/` pillar has its own `AGENTS.md` with the file-by-file breakdown:
 
 - `src/scalar/` — the `Scalar` trait and every coefficient world, grouped by place.
 - `src/clifford/` — the multivector engine, geometric product, and the GA layer
   (versors, outermorphisms, Hopf/divided-power structures, conformal/projective GA,
-  spinors, Frobenius linear maps, including the characteristic-2 nimber spinors).
-- `src/forms/` — the quadratic-form classifiers across the characteristic
-  trichotomy, plus Witt/Brauer–Wall, the Springer trio, `local_global/` for
-  Hasse–Minkowski and Hilbert symbols, and `integral/` for lattices, genus,
-  Kneser neighbors, Weyl-versor reports, discriminant forms, Weil matrices,
-  codes/Construction A/D, theta/modular forms, Reed-Muller `BW16`, `D16+`,
-  Leech, and the Niemeier catalogue.
-- `src/games/` — normal-, misère-, and loopy-play impartial games, finite
-  loopy-partizan graphs, short partizan games, thermography/atomic weight,
-  Hackenbush, the exterior algebra of the game group, and the checked integer
-  Clifford deformation surface on game generators.
+  spinors, Frobenius maps, including the characteristic-2 nimber spinors).
+- `src/forms/` — the quadratic-form classifiers across the characteristic trichotomy,
+  plus Witt/Brauer–Wall, the Springer trio, `local_global/` for Hasse–Minkowski and
+  Hilbert symbols, and `integral/` for lattices, genus, Kneser neighbors, Weyl-versor
+  reports, discriminant forms and Weil matrices, codes, theta/modular forms, `BW16`,
+  `D16+`, Leech, and the Niemeier catalogue.
+- `src/games/` — normal-, misère-, and loopy-play impartial games, finite loopy-partizan
+  graphs, short partizan games, thermography/atomic weight, Hackenbush, the exterior
+  algebra of the game group, and the checked integer Clifford deformation surface.
 - `src/ogham/` — the Ogham expression-language core: lexer/parser/AST/unparser,
-  fixed-world evaluator (Clifford worlds plus polynomial/ratfunc function worlds),
-  error taxonomy, and conformance runner support.
+  fixed-world evaluator (Clifford worlds plus polynomial/ratfunc function worlds), error
+  taxonomy, and conformance support.
 - `src/py/` — the optional PyO3 bindings behind the `python` feature.
-- `src/linalg/` — crate-private shared linear algebra (exact integer HNF/Smith,
-  F₂/nim-field rank, generic field solves), consumed by the pillars above.
+- `src/linalg/` — crate-private shared linear algebra (exact integer HNF/Smith, F₂/nim
+  rank, generic field solves).
 
-See `AGENTS.md` for the working-notes summary, `docs/OPEN.md` for the genuine research
-problems, `docs/` (COMPLETENESS.md and CONTINUATIONS.md for the game-valued ledgers of
-buildable work and the deferred stars, DONE.md for the go-forward ledger) for the
-cross-pillar work, `docs/ogham/`
-for the Ogham language contract and hand-verified corpus, and `writeups/goldarf.tex`
-for the draft note on the Gold/Arf game thread.
+See `AGENTS.md` for the working-notes summary, `docs/OPEN.md` for the genuine open
+problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `docs/ogham/` for
+the language contract, and `writeups/` for the draft notes.
 
 ## The bridges — a traveller's catalog
 
-The construction era left the pillars joined by named bridges (summarized in the
-`AGENTS.md` files; the catalog below walks them). Five islands: **S**calar,
-**C**lifford, **F**orms (the classifier core), the **I**ntegral wing, **G**ames.
-Eighteen crossings — Bridge N is four footbridges — each listed with its banks. A
-bridge with both feet on one island is a loop; crossing it counts like any other.
+The pillars are joined by named **bridges** (summarized in the `AGENTS.md` files; the
+catalog below walks them). Five islands: **S**calar, **C**lifford, **F**orms (the
+classifier core), the **I**ntegral wing, **G**ames. Eighteen crossings — Bridge N is four
+footbridges — each listed with its banks. A bridge with both feet on one island is a
+loop; crossing it counts like any other.
 
 | bridge | banks | what it carries |
 |---|---|---|
@@ -308,83 +265,84 @@ bridge with both feet on one island is a loop; crossing it counts like any other
 | O | G–I | lexicodes: the turning-game P-set is greedy = mex; the `[24,12,8]` lexicode is Golay |
 | `game-clifford-checked` | C–G | checked integer Clifford data on game generators; quotient-compatible, not game-native |
 
-(G and L were never built under those letters — they became the deferred stars
-`*1` (spinor genus, `docs/COMPLETENESS.md`) and `*2` (the char-`p` Drinfeld mirror,
-`docs/CONTINUATIONS.md`). The alphabet itself still has two pontoons
-missing; `game-clifford-checked` is the later unlettered C–G span and
-`clifford-lattices` is the later unlettered C–I return span.)
+(G and L were never built under those letters — they became the deferred stars `*1`
+(spinor genus, `docs/COMPLETENESS.md`) and `*2` (the char-`p` Drinfeld mirror,
+`docs/CONTINUATIONS.md`). The alphabet still has two pontoons missing;
+`game-clifford-checked` is the later unlettered C–G span and `clifford-lattices` is the
+later unlettered C–I return span.)
 
-**The traveller's question** (Euler, 1736): can you cross every bridge exactly
-once and end where you began? Count the bridge-ends per island:
+**The traveller's question** (Euler, 1736): can you cross every bridge exactly once and
+end where you began? Count the bridge-ends per island:
 
 | island | S | C | F | I | G |
 |---|---|---|---|---|---|
-| degree | 5 | 6 | **8** | 13 | 2 |
+| degree | 5 | **7** | **8** | 14 | 2 |
 
-An Euler circuit needs every island even. **Forms — the island the mod-8 spine
-runs through — remains balanced, with degree exactly 8**, and the new checked
-C–G span also balances Clifford and Games. Only Scalar and the Integral wing are
-odd now, so an open Euler stroll exists, but the closed grand tour still does not.
-The integral wing, with its four loops (E, H, N.3, N.4), remains the one place a
-traveller may wander in circles.
+An Euler circuit needs every island even. **Forms — the island the mod-8 spine runs
+through — stays balanced, at degree exactly 8.** The Integral wing, long the lone odd
+island, is even now too: the `clifford-lattices` return span (C–I) is the bridge that
+balanced it (13 → 14). But the very same span tipped **Clifford** odd (6 → 7), so the
+obstruction did not vanish — it *moved*. Today the odd islands are **Scalar and
+Clifford**, so an open Euler *stroll* exists (Scalar → Clifford), but the closed grand
+tour still does not. The integral wing, with its four loops (E, H, N.3, N.4), remains the
+one place a traveller may wander in circles.
 
-The remaining pure-building closure is now singular: **`*2` (S–I)**, the
-Drinfeld/Carlitz mirror, would make every island even. The other open/deferred
-threads still matter on their own terms — `*1` for the spinor genus, `under` for a
-constructive thermography ↔ Newton-polygon bridge, and `*4` for the wild local
-symbol — but after `game-clifford-checked`, they are no longer parity-paired
-solutions to the current round-trip obstruction.
+Closing the tour now wants a *third* Scalar–Clifford span — bridges C and D are the two
+it already has. None of the pending threads supplies one: **`*2` (S–I)**, the
+Drinfeld/Carlitz mirror, would even Scalar but tip the Integral wing odd in turn; `*1`
+(the spinor genus), `*4` (the wild local symbol), and `under` (a constructive
+thermography ↔ Newton-polygon bridge) each matter on their own terms but land elsewhere
+on the map. The round trip stays open — and the obstruction has simply walked from the
+Integral shore to the Clifford one.
 
-## Research thread
+## The research thread
 
 The narrow mathematical thread in `docs/OPEN.md` and `writeups/goldarf.tex` is *not* a
-claim of a new Clifford classification theorem. It is an investigation of
-game-built quadratic forms in the nimber backend:
+claim of a new Clifford classification theorem. It is an investigation of game-built
+quadratic forms in the nimber backend:
 
 1. Turning-Corners games realize nim multiplication.
 2. Frobenius squaring and traces are built from nim multiplication and XOR.
-3. Gold-style trace forms `Tr(λ · x^{1+2^a})` are therefore expressible from
-   game-value operations.
+3. Gold-style trace forms `Tr(λ · x^{1+2^a})` are therefore expressible from game-value
+   operations.
 4. The Arf invariant gives the standard zero-count bias for a quadratic zero set.
-5. The open question is whether a natural, non-tautological game rule has such a
-   zero set as its P-positions. Current probes span normal play, misère quotient,
-   interactive (`kernel`), loopy (Draw-set), and bent-form searches; they narrow
-   the target but do not solve it.
+5. **The open question:** is there a natural, non-tautological game rule whose
+   P-positions are exactly such a zero set? Current probes span normal play, misère
+   quotient, interactive (`kernel`), loopy (Draw-set), and bent-form searches; they
+   narrow the target but do not hit it.
+
+If you want to play along, the open-problem examples (`interactive_kernel`, `octal_hunt`,
+`loopy_quadric`, `misere_quotient`, `bent_route`) are the doors in.
 
 ## Status and limits
 
-This is active research code with tests, examples, and experiments. Treat green
-tests as regression evidence, not as a proof of the mathematical program. CI runs
-`cargo fmt --check`, `cargo clippy --all-targets` (warning-clean), `cargo test`,
-`cargo check --features python`, `cargo check --examples`, and `cargo doc --no-deps`
-(intra-doc links kept warning-clean).
+Active research code with tests, examples, and experiments. Treat green tests as
+regression evidence, not as proof of the mathematical program. CI runs `cargo fmt
+--check`, `cargo clippy --all-targets` (warning-clean), `cargo test`, `cargo check
+--features python`, `cargo check --examples`, and `cargo doc --no-deps`.
 
-Scope boundaries worth stating plainly:
+Scope boundaries, stated plainly:
 
-- `Nimber(u128)` is exactly `F_{2^128}`. It contains the nim subfields of degree
-  dividing 128; it is not the proper-class field of all nimbers.
+- `Nimber(u128)` is exactly `F_{2^128}`. It holds the nim subfields of degree dividing
+  128; it is not the proper-class field of all nimbers.
 - `Ordinal` nim-addition is general on the represented CNF terms, and it implements
   `Scalar` for Clifford experiments inside the checked Kummer boundary.
-  Nim-multiplication is implemented below `ω^(ω^ω)` when every carry uses a
-  verified finite Lenstra excess row: the OEIS A380496 b-file (126 rows, odd primes
-  `3..=709`); a carry needing a prime past that table (the first unknown is `719`)
-  returns `None`.
-  Finite ordinal-nimber metrics expose their minimal detected `F_{2^m}` and use
-  that degree for Arf/Witt/Brauer-Wall classification; genuinely transfinite
-  metrics remain outside the classifier.
-- `Surreal` uses finite support and rational coefficients — the honest truncation
-  of true CNF. Non-monomial inverses are infinite Hahn series and are not
-  represented.
+  Nim-multiplication works below `ω^(ω^ω)` whenever every carry uses a verified finite
+  Lenstra excess row (OEIS A380496 b-file, 126 rows, odd primes `3..=709`); a carry
+  needing a prime past that table (the first unknown is `719`) returns `None`. Finite
+  ordinal-nimber metrics classify through their detected `F_{2^m}`; genuinely transfinite
+  metrics stay outside the classifier.
+- `Surreal` uses finite support and rational coefficients — the honest truncation of true
+  CNF. Non-monomial inverses are infinite Hahn series and are not represented.
 - `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss`, and `Adele` are finite-precision
-  (capped-relative) models, not exact infinite-memory local fields. They are useful
-  for local/global form experiments and excluded from the exact-ring fuzz.
-- `ExactScalar` / `ExactFieldScalar` / `PrecisionScalar` name that exact-vs-capped
-  boundary explicitly. They are opt-in markers, not `Scalar` supertraits.
-- Fixed-width integer payloads are consistently `u128`/`i128` for arithmetic
-  carriers, residues, invariants, counts, and budgets. `usize` is used for indices,
-  dimensions, and platform ABI hooks.
-- The Gold/Arf game thread is conditional: *if* a game has P-set `{Q = 0}`, Arf
-  predicts the win-bias. No non-tautological natural game with that P-set has been
-  found.
+  (capped-relative) models, not exact infinite-memory local fields. They are useful for
+  local/global form experiments and excluded from the exact-ring fuzz.
+  `ExactScalar` / `ExactFieldScalar` / `PrecisionScalar` name that boundary explicitly —
+  opt-in markers, not `Scalar` supertraits.
+- Fixed-width integer payloads are consistently `u128`/`i128` for arithmetic carriers,
+  residues, invariants, counts, and budgets. `usize` is for indices, dimensions, and ABI
+  hooks.
+- The Gold/Arf game thread is conditional: *if* a game has P-set `{Q = 0}`, Arf predicts
+  the win-bias. No non-tautological natural game with that P-set has been found.
 
 License: AGPL-3.0-or-later (see `LICENSE`).
