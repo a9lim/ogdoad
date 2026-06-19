@@ -44,6 +44,26 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 1·(e_c∧e_i): `weyl-versors`
+**Completed:** 2026-06-19
+**Summary:** ADE simple roots now act as Clifford Pin versors whose twisted
+adjoint action is the Weyl reflection.
+**Pillars:** clifford ↔ integral    **Claim level:** standard math,
+implemented and tested
+- surface: `weyl_simple_root_versors`, `weyl_simple_reflection_map`,
+  `weyl_simple_reflection_maps`, `weyl_versor_action_map`,
+  `weyl_coxeter_versor`, `weyl_coxeter_action_order`,
+  `WeylVersorReport`, and `weyl_versor_report`, plus Python
+  `WeylVersorReport` and `weyl_versor_report(family, rank)`.
+- oracles: `A2` simple-root versors act by the Cartan reflection matrices and
+  have Coxeter order 3; `D4` reports Weyl order 192 rather than the full diagram
+  automorphism order 1152 and has Coxeter order 6; `E8` reports
+  `E8_WEYL_GROUP_ORDER` and Coxeter order 30. Every simple reflection determinant
+  is checked as `-1` via the Clifford outermorphism determinant.
+- boundaries: this realizes the Weyl group through its simple Pin generators and
+  Coxeter element action; it does not enumerate all elements of large Weyl
+  groups such as `E8`.
+
 ### 2·e_i: `kneser-neighbors`
 **Completed:** 2026-06-19
 **Summary:** explicit Kneser `p`-neighbor construction now sits beside the

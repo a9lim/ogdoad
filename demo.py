@@ -877,6 +877,10 @@ print("  A₂ det/min/kissing/Coxeter   :",
       A2.determinant(), A2.minimum(), A2.kissing_number(), pl.coxeter_number(A2),
       pl.is_root_lattice(A2))
 print("  E₈ even unimodular aut order :", E8.is_even(), E8.is_unimodular(), E8.automorphism_group_order())
+wv = pl.weyl_versor_report("E", 8)
+print("  E₈ Weyl versors in Pin       :",
+      wv.weyl_group_order, wv.coxeter_versor_order,
+      wv.simple_reflections_match_cartan)
 gen = A2.genus()
 print("  genus(A₂) primes/symbols     :",
       gen.primes(), gen.symbol_at(3), gen.canonical_symbol_at(2))

@@ -102,6 +102,12 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   rank-8/rank-16 representatives (`E8`, `E8+E8`, `D16+`) and verifies the mass sum;
   rank 24 remains with the Niemeier catalogue because the 23 rooted glued Gram
   representatives are not shipped.
+- **`weyl_versors.rs`** — the ADE roots-as-Pin bridge: simple roots in the rational
+  Clifford algebra act by `twisted_sandwich` as the Cartan simple reflections,
+  each determinant is checked as `-1` through the outermorphism determinant, and
+  `weyl_coxeter_versor` has the expected Coxeter order for the supported
+  `A_n`/`D_n`/`E_{6,7,8}` components. It reports the Weyl-group order from the
+  root-system formulas; it does not enumerate large Weyl groups element-by-element.
 - **`mass_formula.rs`** — the **Minkowski–Siegel mass** of the even-unimodular genus,
   `mass_even_unimodular(n)` = `|B_{n/2}|/n · ∏_{j<n/2} |B_{2j}|/(4j)`, returned as a
   reduced `(num, den)` `i128` fraction (Bernoulli by exact recurrence; hard cap `n > 24`

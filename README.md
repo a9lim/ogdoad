@@ -137,7 +137,9 @@ code/theta boundary —
 binary and odd-prime codes feed Construction A lattices, Reed-Muller codes feed
 Construction D and the named `BW16` lattice, and the Clifford-side certificate
 recovers the same `BW16` from spinor weight/quadratic-phase rows with the
-index-2 real Clifford automorphism subgroup recorded. Exact even theta series
+index-2 real Clifford automorphism subgroup recorded; ADE simple roots also act
+as Clifford Pin versors whose twisted adjoint action recovers the Weyl
+reflections and Coxeter elements. Exact even theta series
 are identified inside `ℂ[E4, E6]`, odd theta gets the norm-indexed level-4 head, `D16+` and
 `E8 ⊕ E8` share the `E4²` theta series, ternary Golay pins an odd unimodular
 rank-12 p-ary Construction-A lattice, Leech is pinned by rootlessness in weight
@@ -256,9 +258,9 @@ breakdown:
 - `src/forms/` — the quadratic-form classifiers across the characteristic
   trichotomy, plus Witt/Brauer–Wall, the Springer trio, `local_global/` for
   Hasse–Minkowski and Hilbert symbols, and `integral/` for lattices, genus,
-  Kneser neighbors, discriminant forms, Weil matrices, codes/Construction A/D,
-  theta/modular forms, Reed-Muller `BW16`, `D16+`, Leech, and the Niemeier
-  catalogue.
+  Kneser neighbors, Weyl-versor reports, discriminant forms, Weil matrices,
+  codes/Construction A/D, theta/modular forms, Reed-Muller `BW16`, `D16+`,
+  Leech, and the Niemeier catalogue.
 - `src/games/` — normal-, misère-, and loopy-play impartial games, finite
   loopy-partizan graphs, short partizan games, thermography/atomic weight,
   Hackenbush, the exterior algebra of the game group, and the checked integer

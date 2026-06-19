@@ -18,6 +18,7 @@ pub mod modular;
 pub mod niemeier;
 pub mod root_lattices;
 pub mod theta;
+pub mod weyl_versors;
 
 pub use clifford_lattices::*;
 pub use codes::*;
@@ -30,3 +31,4 @@ pub use mass_formula::*;
 pub use modular::*;
 pub use niemeier::*;
 pub use root_lattices::*;
+pub use weyl_versors::*;

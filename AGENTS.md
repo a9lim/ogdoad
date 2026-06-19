@@ -176,6 +176,9 @@ Siegel-Weil identity against `E12` and the 691 coefficient;
 `forms/integral/kneser.rs` carries explicit denominator-checked Kneser
 `p`-neighbors plus mass-closed reports for the explicit rank-8/rank-16
 even-unimodular genera (`E8`, `E8+E8`, `D16+`; rank 24 stays catalogue-backed);
+`forms/integral/weyl_versors.rs` realizes ADE simple roots as Clifford Pin
+versors, checking Cartan reflection actions, determinant `-1`, and Coxeter
+orders through the Clifford outermorphism/twisted-adjoint surface;
 and
 `DiscriminantForm` exposes dependency-free `Complex64` Weil
 `S`/`T` matrices, with the `S` prefactor the conjugate of the positive Milgram phase

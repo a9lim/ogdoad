@@ -5637,6 +5637,72 @@ impl PyKneserMassReport {
     }
 }
 
+#[pyclass(name = "WeylVersorReport", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyWeylVersorReport {
+    inner: crate::forms::WeylVersorReport,
+}
+
+fn weyl_kind_label(kind: crate::forms::NiemeierComponentKind) -> String {
+    match kind {
+        crate::forms::NiemeierComponentKind::A(n) => format!("A_{n}"),
+        crate::forms::NiemeierComponentKind::D(n) => format!("D_{n}"),
+        crate::forms::NiemeierComponentKind::E(n) => format!("E_{n}"),
+    }
+}
+
+#[pymethods]
+impl PyWeylVersorReport {
+    #[getter]
+    fn kind(&self) -> String {
+        weyl_kind_label(self.inner.kind)
+    }
+    #[getter]
+    fn rank(&self) -> usize {
+        self.inner.rank
+    }
+    #[getter]
+    fn simple_reflection_count(&self) -> usize {
+        self.inner.simple_reflection_count
+    }
+    #[getter]
+    fn weyl_group_order(&self) -> u128 {
+        self.inner.weyl_group_order
+    }
+    #[getter]
+    fn coxeter_number(&self) -> u128 {
+        self.inner.coxeter_number
+    }
+    #[getter]
+    fn simple_reflections_match_cartan(&self) -> bool {
+        self.inner.simple_reflections_match_cartan
+    }
+    #[getter]
+    fn simple_reflection_determinants_are_minus_one(&self) -> bool {
+        self.inner.simple_reflection_determinants_are_minus_one
+    }
+    #[getter]
+    fn coxeter_versor_order(&self) -> Option<u128> {
+        self.inner.coxeter_versor_order
+    }
+    #[getter]
+    fn coxeter_order_matches(&self) -> bool {
+        self.inner.coxeter_order_matches
+    }
+    #[getter]
+    fn coxeter_versor_grade_parity(&self) -> Option<u128> {
+        self.inner.coxeter_versor_grade_parity
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "WeylVersorReport(kind={}, weyl_group_order={}, coxeter_order={:?})",
+            weyl_kind_label(self.inner.kind),
+            self.inner.weyl_group_order,
+            self.inner.coxeter_versor_order
+        )
+    }
+}
+
 #[pyclass(name = "IntegralForm", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyIntegralForm {
@@ -6126,6 +6192,38 @@ fn even_unimodular_kneser_report(rank: usize) -> Option<PyKneserMassReport> {
 }
 
 #[pyfunction]
+fn weyl_versor_report(family: &str, rank: usize) -> PyResult<Option<PyWeylVersorReport>> {
+    let kind = match family {
+        "A" | "a" => {
+            if rank < 1 {
+                return Err(PyValueError::new_err("A_n requires rank >= 1"));
+            }
+            crate::forms::NiemeierComponentKind::A(rank)
+        }
+        "D" | "d" => {
+            if rank < 2 {
+                return Err(PyValueError::new_err("D_n requires rank >= 2"));
+            }
+            crate::forms::NiemeierComponentKind::D(rank)
+        }
+        "E" | "e" => match rank {
+            6..=8 => crate::forms::NiemeierComponentKind::E(rank),
+            _ => {
+                return Err(PyValueError::new_err(
+                    "E_n is supported only for n = 6, 7, 8",
+                ))
+            }
+        },
+        _ => {
+            return Err(PyValueError::new_err(
+                "family must be one of 'A', 'D', or 'E'",
+            ))
+        }
+    };
+    Ok(crate::forms::weyl_versor_report(kind).map(|inner| PyWeylVersorReport { inner }))
+}
+
+#[pyfunction]
 fn leech_aut_order() -> u128 {
     crate::forms::LEECH_AUT_ORDER
 }
@@ -6491,6 +6589,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyKneserNeighbor>()?;
     m.add_class::<PyKneserMassClass>()?;
     m.add_class::<PyKneserMassReport>()?;
+    m.add_class::<PyWeylVersorReport>()?;
     m.add_class::<PyDiscriminantForm>()?;
     m.add_class::<PyOddDiscriminantForm>()?;
     m.add_class::<PyOddMilgramReport>()?;
@@ -6611,6 +6710,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(kneser_neighbor, m)?)?;
     m.add_function(wrap_pyfunction!(kneser_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(even_unimodular_kneser_report, m)?)?;
+    m.add_function(wrap_pyfunction!(weyl_versor_report, m)?)?;
     m.add_function(wrap_pyfunction!(leech_aut_order, m)?)?;
     m.add_function(wrap_pyfunction!(verify_milgram, m)?)?;
     m.add_function(wrap_pyfunction!(odd_milgram_report, m)?)?;
