@@ -733,8 +733,10 @@ Why this is research:
   thermograph as a sum-compatible tropical object — provably fails, and replaced
   it with a sharper target.
 
-The program state (2026-06-17 — `writeups/thermo_newton.tex`): a negative theorem
-at the thermograph level, plus a sharper positive target.
+The program state (2026-06-19 — `writeups/thermo_newton.tex` +
+`experiments/under_descent.py`): a negative theorem at the thermograph level,
+plus a sharper associated-graded obstruction after the Norton/overheating
+infrastructure landed.
 
 - **The thermograph is not a sum invariant (proved).** `G ↦ Th(G)` is not a
   congruence for disjunctive sum: no operation taking only `Th(G)` and `Th(H)` can
@@ -769,11 +771,19 @@ at the thermograph level, plus a sharper positive target.
   first graded piece is a genuine residual game object, not the mast.
 - **Where it stalls (open).** Short games are not a ring. The repo now carries
   game-valued Norton multiplication / overheating operators as infrastructure, so
-  the question is sharper: do they descend to a product on `gr_T(Games)`
-  compatible with cooling, or does residue dependence break that descent? The
-  scalar temperature hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else "all
-  temperatures `≤ a`") is clean and useful, but lifting it to full thermographs
-  without adding residues is either false (no-congruence) or tautological.
+  the question is sharper, and the unrestricted answer is now negative. In the
+  `τ = 0` quotient, `*` and `* + 1` differ by the cold number `-1`, but Norton
+  multiplication by the positive infinitesimal unit `↑` sends that hidden integer
+  residue to a leading temperature-0 difference (`aw = -1`); the degenerate
+  overheating operator `∫_↑^0` gives the same obstruction (`aw = -2`). Thus
+  nonnumeric units do **not** descend to the naive `gr_T(Games)` quotient. The
+  bounded sanity scan found no failures for numeric units `1` and `2` on a
+  21-game catalogue (126 representative-pair checks for Norton and for
+  `∫_s^0`), so the remaining live target is a restricted/normalized product or a
+  refined quotient that retains cold-number coefficients. The scalar temperature
+  hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else "all temperatures `≤ a`")
+  is clean and useful, but lifting it to full thermographs without adding
+  residues is either false (no-congruence) or tautological.
 
 Concrete progress targets:
 - ~~Formulate and test the lax law for `t(G+H)` as a hyperfield statement; locate
@@ -783,19 +793,24 @@ Concrete progress targets:
 - ~~Build the one-object switch/Newton-polygon probe.~~ **Done and bounded**: the
   dictionary works only in the trivial one-parameter switch family and does not
   extend to a sum theorem.
-- The reframed central target: define the temperature-filtration quotient
-  `F_{≤τ}/F_{<τ}` for a manageable class of games, compute its first pieces (the
-  `τ = 0` all-small layer with atomic weight + its kernel is the entry point), and
-  decide whether the now-shipped Norton multiplication / overheating operators give
-  those pieces a product compatible with cooling. **Yes** ⇒ one tropical object,
-  after passing to the residue-enriched associated graded; **no** ⇒ two tropical
-  objects sharing only the scalar hyperfield shadow.
+- ~~Test whether unrestricted Norton multiplication / overheating descends to
+  the first temperature-filtration quotient.~~ **Done, negative for nonnumeric
+  units:** `* ≡ * + 1 (mod F_<0)`, but multiplying/overheating by `↑` leaves a
+  non-lower temperature-0 residue. This rules out the naive full Berlekamp/Norton
+  product on `gr_T(Games)`.
+- The reframed central target: decide whether any restricted product survives:
+  numeric Norton units, mean-normalized positive units with the cold coefficient
+  retained separately, or a quotient refined by atomic-weight/nimber-kernel data.
+  **Yes** ⇒ one tropical object, but only after a stricter residue enrichment than
+  the naive associated graded; **no** ⇒ two tropical objects sharing only the
+  scalar hyperfield shadow.
 - If every transport trivializes, write the no-go in the now-precise form: the
   thermograph is not a sum congruence (done), and no residue enrichment recovers a
   cooling-compatible product.
 
 Relevant surfaces:
 - `writeups/thermo_newton.tex`
+- `experiments/under_descent.py`
 - `src/scalar/tropical.rs`, `src/games/thermography.rs`, `src/games/heating.rs`,
   `src/games/atomic_weight.rs`
 - `src/scalar/newton.rs`, `src/forms/springer/local.rs`

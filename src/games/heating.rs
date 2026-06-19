@@ -144,6 +144,7 @@ fn overheat_unchecked(g: &Game, s: &Game, t: &Game) -> Game {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::games::atomic_weight_int;
     use crate::games::piecewise::req;
     use crate::games::thermography::{mean_value, temperature};
 
@@ -206,5 +207,32 @@ mod tests {
             integer_game_value(&Game::new(vec![Game::integer(0)], vec![Game::integer(1)])),
             None
         );
+    }
+
+    #[test]
+    fn hot_units_do_not_descend_mod_cold_numbers() {
+        // In the tau=0 associated-graded candidate, G and G+1 differ by a cold
+        // number. Multiplication by the positive infinitesimal unit ↑ sees that
+        // hidden integer leaf, so the output difference remains leading-temp 0.
+        let g = Game::star();
+        let h = g.add(&Game::integer(1));
+        assert!(req(&temperature(&g.add(&h.neg())).unwrap(), &int(-1)));
+
+        let unit = Game::up();
+        let p = norton_multiply(&g, &unit).unwrap();
+        let q = norton_multiply(&h, &unit).unwrap();
+        let delta = p.add(&q.neg());
+        assert!(req(&temperature(&p).unwrap(), &int(0)));
+        assert!(req(&temperature(&q).unwrap(), &int(0)));
+        assert!(req(&temperature(&delta).unwrap(), &int(0)));
+        assert_eq!(atomic_weight_int(&delta), Some(-1));
+
+        let p = overheat(&g, &unit, &Game::zero()).unwrap();
+        let q = overheat(&h, &unit, &Game::zero()).unwrap();
+        let delta = p.add(&q.neg());
+        assert!(req(&temperature(&p).unwrap(), &int(0)));
+        assert!(req(&temperature(&q).unwrap(), &int(0)));
+        assert!(req(&temperature(&delta).unwrap(), &int(0)));
+        assert_eq!(atomic_weight_int(&delta), Some(-2));
     }
 }

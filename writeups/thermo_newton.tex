@@ -41,8 +41,9 @@
 This note pursues \texttt{docs/OPEN.md} problem
 \texttt{under*(e\_g\string^e\_s)}: whether the two tropical consumers in
 \path{ogdoad}---game thermography and valuation/Newton polygons---are one
-tropical object or merely a convention mirror. The result of this pass is a
-negative theorem at the thermograph level and a more precise positive target.
+tropical object or merely a convention mirror. The result of the first pass was
+a negative theorem at the thermograph level and a more precise positive target:
+a temperature associated graded with residues.
 
 The negative theorem is small but decisive: the thermograph is not a congruence
 for disjunctive sum. There is no binary operation, single- or multi-step, that
@@ -58,9 +59,18 @@ vanishing locus. What fails is the proposed angular component
 $(\mean(G),\temp(G))$: it forgets the leading thermic residue. A single object,
 if it exists, should be an associated graded object of the game group by
 temperature, enriched at least by the all-small residue data (atomic weight plus
-its kernel), not the ordinary thermograph alone. I hit the wall at making that
-graded object multiplicative: the repo has no Norton/overheating product, and
-the game group itself is not a ring.
+its kernel), not the ordinary thermograph alone.
+
+The second pass, after \path{src/games/heating.rs} shipped game-valued heating,
+Berlekamp overheating, and Norton multiplication, tests the multiplicative
+hope directly. The unrestricted answer is negative. In the $\tau=0$ quotient,
+$*$ and $*+1$ differ by a cold number, but Norton multiplication by the
+positive infinitesimal unit $\uparrow$ converts that hidden integer into a
+leading temperature-zero residue. The same obstruction appears for the
+degenerate overheating operator $\int_{\uparrow}^{0}$. Thus the full
+Berlekamp/Norton operator does not descend to the naive associated graded. The
+remaining live question is narrower: numeric units, mean-normalized units with
+the cold coefficient retained, or a refined quotient carrying more residue data.
 \end{abstract}
 
 \paragraph{Claim levels.}
@@ -274,15 +284,83 @@ that $\gr_v(K)$ is a graded ring, while short games under disjunctive sum are
 only an abelian group.
 \end{remark}
 
-\section{Where this pass hit the wall}
+\section{The Norton/overheating descent test}
+
+\TESTED{} After the first pass, the repo gained
+\path{src/games/heating.rs}: game-valued heating, Norton multiplication $G.U$
+by a positive unit $U$, and Berlekamp overheating $\int_s^t G$. This removes
+the old infrastructure excuse. We can ask directly whether these operators are
+well-defined on the associated-graded quotient.
+
+For a fixed layer $\tau\geq0$, write
+\[
+  G\equiv_\tau H
+  \quad\Longleftrightarrow\quad
+  \temp(G-H)<\tau.
+\]
+At $\tau=0$, the lower subgroup $F_{<0}$ is the cold numeric subgroup. Thus
+$*$ and $*+1$ have the same residue in $F_{\leq0}/F_{<0}$, since
+\[
+  *-(*+1)=-1,\qquad \temp(-1)=-1<0.
+\]
+
+\begin{proposition}[Unrestricted Norton descent fails]\label{prop:norton-fails}
+\TESTED{} Norton multiplication by a positive nonnumeric unit does not descend
+to the naive temperature associated graded.
+\end{proposition}
+
+\begin{proof}
+Let $U=\uparrow$, which is strictly positive and has temperature $0$. The live
+implementation reports
+\[
+  \temp(*.U)=0,\qquad
+  \temp((*+1).U)=0,
+\]
+but
+\[
+  \temp\bigl((*.U)-((*+1).U)\bigr)=0,
+  \qquad
+  aw\bigl((*.U)-((*+1).U)\bigr)=-1.
+\]
+The output difference is therefore not in the lower subgroup $F_{<0}$; it is a
+leading temperature-zero residue. So two equivalent representatives in the
+$\tau=0$ quotient produce inequivalent outputs.
+
+The mechanism is exactly the danger one would expect from the definition:
+Norton multiplication uses $U$ on integer leaves. The hidden cold integer
+$+1$, invisible before passing to the quotient, becomes the visible
+temperature-zero game $\uparrow$ after applying the operator.
+\end{proof}
+
+\TESTED{} The same obstruction appears for overheating. With lower unit
+$s=\uparrow$ and upper shift $t=0$,
+\[
+  \temp\left(\int_{\uparrow}^{0} * -
+             \int_{\uparrow}^{0} (*+1)\right)=0,
+  \qquad
+  aw\left(\int_{\uparrow}^{0} * -
+          \int_{\uparrow}^{0} (*+1)\right)=-2.
+\]
+Thus $\int_s^t$ also fails to descend when the lower unit is allowed to be a
+nonnumeric positive game.
+
+\TESTED{} The bounded probe \path{experiments/under_descent.py} records this
+explicit witness and also runs a small sanity scan for ordinary numeric units.
+On a 21-game catalogue it checked 126 representative pairs for Norton
+multiplication by units $1$ and $2$, and the same 126 pairs for
+$\int_s^0$ with $s=1,2$. It found no numeric-unit failures. This is not a
+theorem; it is a useful pointer that the obstruction is not ``Norton exists, so
+everything fails'', but specifically that nonnumeric units can see cold
+coefficients erased by the naive quotient.
+
+\section{Where the second pass hit the wall}
 
 \OPEN{} I do not currently have a product on $\gr_T(\mathrm{Games})$ that would
-make it the literal peer of the graded ring of a valued field. The obvious
-ambient product is absent: full short games do not form a ring, and the repo
-correctly refuses to pretend otherwise. Norton multiplication or overheating
-might supply a product on restricted classes, but neither structure is present
-in the codebase, and this pass did not derive a canonical one from the
-thermograph recursion.
+make it the literal peer of the graded ring of a valued field. The old candidate
+``use Norton multiplication / overheating'' is now too broad:
+Proposition~\ref{prop:norton-fails} rules out unrestricted nonnumeric units on
+the naive quotient. Full short games still do not form a ring, and the repo
+correctly refuses to pretend otherwise.
 
 \OPEN{} I also do not have a nontrivial thermograph hyperoperation. The scalar
 temperature hyperoperation is clear and useful:
@@ -299,16 +377,17 @@ either false (Proposition~\ref{prop:no-congruence}) or tautological (return
 ``all thermographs of all sums of representatives'').
 
 \OPEN{} The next solvable formulation is therefore not ``find a binary
-operation on thermographs''. It is:
+operation on thermographs'', and not ``use the full Berlekamp/Norton surface''.
+It is:
 \begin{quote}
-Define the temperature filtration quotient
-$F_{\leq\tau}/F_{<\tau}$ for a manageable class of games, compute its first
-pieces, and decide whether Norton multiplication/overheating gives those
-pieces a product compatible with cooling.
+Define a residue-enriched temperature quotient for a manageable class of games
+and decide whether a restricted Norton/overheating product survives: numeric
+units, mean-normalized units with cold coefficients retained separately, or an
+all-small quotient refined by atomic weight plus its nimber-like kernel.
 \end{quote}
 If yes, the answer to the open problem is ``one tropical object, but only after
-passing to a residue-enriched associated graded''. If no, the answer is ``two
-tropical objects sharing only the scalar hyperfield shadow''.
+passing to a stricter residue-enriched associated graded''. If no, the answer is
+``two tropical objects sharing only the scalar hyperfield shadow''.
 
 \appendix
 \section{Checks run in this pass}\label{sec:checks}
@@ -324,6 +403,12 @@ The code-level facts used above were checked against the live repo with:
 \item A Python probe through the installed \texttt{.venv} binding checked 324
   small-game sums for the temperature inequality and the off-diagonal equality
   pattern, and printed the witnesses in Proposition~\ref{prop:no-congruence}.
+\item \texttt{cargo test heating}: 7 heating/Norton/overheating tests passed,
+  including the explicit non-descent witness
+  \texttt{hot\_units\_do\_not\_descend\_mod\_cold\_numbers}.
+\item \texttt{.venv/bin/python experiments/under\_descent.py}: recorded the
+  $*$ versus $*+1$ obstruction for unit $\uparrow$, and found no failures for
+  numeric units $1,2$ on the bounded 21-game / 126-pair sanity scan.
 \end{itemize}
 
 \begin{thebibliography}{9}
