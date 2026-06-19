@@ -130,7 +130,10 @@ Clifford classifier directly comparable in the core. Odd lattices carry the para
 `Q/Z` discriminant surface and the Conway-Sloane oddity-corrected Milgram/van der
 Blij report. Conway-Sloane `p`-adic genus symbols, including the corrected 2-adic
 train/compartment/oddity calculus, give the integral genus comparison without
-discriminant-form search budgets. The same leg crosses the code/theta boundary —
+discriminant-form search budgets, and explicit Kneser `p`-neighbors give
+denominator-checked neighbor lattices plus mass-closed rank-8/rank-16
+even-unimodular reports (`E8`, `E8+E8`, `D16+`). The same leg crosses the
+code/theta boundary —
 binary and odd-prime codes feed Construction A lattices, Reed-Muller codes feed
 Construction D and the named `BW16` lattice, and the Clifford-side certificate
 recovers the same `BW16` from spinor weight/quadratic-phase rows with the
@@ -253,8 +256,9 @@ breakdown:
 - `src/forms/` — the quadratic-form classifiers across the characteristic
   trichotomy, plus Witt/Brauer–Wall, the Springer trio, `local_global/` for
   Hasse–Minkowski and Hilbert symbols, and `integral/` for lattices, genus,
-  discriminant forms, Weil matrices, codes/Construction A/D, theta/modular forms,
-  Reed-Muller `BW16`, `D16+`, Leech, and the Niemeier catalogue.
+  Kneser neighbors, discriminant forms, Weil matrices, codes/Construction A/D,
+  theta/modular forms, Reed-Muller `BW16`, `D16+`, Leech, and the Niemeier
+  catalogue.
 - `src/games/` — normal-, misère-, and loopy-play impartial games, finite
   loopy-partizan graphs, short partizan games, thermography/atomic weight,
   Hackenbush, the exterior algebra of the game group, and the checked integer

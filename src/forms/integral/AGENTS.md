@@ -95,6 +95,13 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   trains adding `4` to crossed compartment oddities). The `Z⁸` (`1₀^{+8}`, type I) vs
   `E_8` (`1_{II}^{+8}`, type II), Sage canonical-symbol examples, and randomised `Uᵀ G U`
   isometry invariance pin the engine.
+- **`kneser.rs`** — explicit Kneser `p`-neighbors for integral lattices:
+  `isotropic_lines_mod_p`, `kneser_neighbor`, and `kneser_neighbors` build
+  `pM + Zv` in integer coordinates and divide the Gram by `p^2`, so integrality is
+  checked rather than assumed. The even-unimodular report is bounded to the explicit
+  rank-8/rank-16 representatives (`E8`, `E8+E8`, `D16+`) and verifies the mass sum;
+  rank 24 remains with the Niemeier catalogue because the 23 rooted glued Gram
+  representatives are not shipped.
 - **`mass_formula.rs`** — the **Minkowski–Siegel mass** of the even-unimodular genus,
   `mass_even_unimodular(n)` = `|B_{n/2}|/n · ∏_{j<n/2} |B_{2j}|/(4j)`, returned as a
   reduced `(num, den)` `i128` fraction (Bernoulli by exact recurrence; hard cap `n > 24`

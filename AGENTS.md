@@ -172,7 +172,11 @@ identification (`theta_E8 = E4`, `theta_{E8+E8} = theta_{D16+} = E4^2`, the root
 Leech `q^1` oracle), plus the norm-indexed level-4 theta head for odd lattices,
 while `forms/integral/niemeier.rs` carries the 24-class
 Niemeier root/glue/Aut catalogue and verifies the rank-24 mass plus weighted
-Siegel-Weil identity against `E12` and the 691 coefficient; and
+Siegel-Weil identity against `E12` and the 691 coefficient;
+`forms/integral/kneser.rs` carries explicit denominator-checked Kneser
+`p`-neighbors plus mass-closed reports for the explicit rank-8/rank-16
+even-unimodular genera (`E8`, `E8+E8`, `D16+`; rank 24 stays catalogue-backed);
+and
 `DiscriminantForm` exposes dependency-free `Complex64` Weil
 `S`/`T` matrices, with the `S` prefactor the conjugate of the positive Milgram phase
 and `verify_weil_relations` checking the honest metaplectic relations (not the

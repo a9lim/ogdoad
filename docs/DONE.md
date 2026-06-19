@@ -44,6 +44,25 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2·e_i: `kneser-neighbors`
+**Completed:** 2026-06-19
+**Summary:** explicit Kneser `p`-neighbor construction now sits beside the
+integral genus and mass surfaces.
+**Pillars:** integral    **Claim level:** standard math, implemented and tested
+- surface: `kneser_neighbor`, `kneser_neighbors`, `isotropic_lines_mod_p`,
+  `KneserNeighbor`, `KneserMassClass`, `KneserMassReport`, and
+  `even_unimodular_kneser_report`, plus Python `IntegralForm.kneser_neighbor`,
+  `IntegralForm.kneser_neighbors`, and matching module functions/classes.
+- oracles: `E8` 2-neighbors stay even, unimodular, and in the same genus; bad
+  non-isotropic/composite-prime/odd-lattice lines reject; the rank-8 report
+  closes on the single `E8` mass term; and the rank-16 report finds both
+  `E8+E8` and `D16+` from Kneser 2-neighbors and verifies
+  `1/|Aut(E8+E8)| + 1/|Aut(D16+)| = mass_even_unimodular(16)`.
+- boundaries: the constructor is explicit-lattice and denominator-checked. Rank
+  24 remains represented by the shipped Niemeier root/glue/Aut catalogue and
+  its mass/Siegel-Weil checks, not by generated glued Gram representatives for
+  all 23 rooted Niemeier classes.
+
 ### 1·e_g: `overheating`
 **Completed:** 2026-06-19
 **Summary:** the games pillar now has game-valued heating, Berlekamp

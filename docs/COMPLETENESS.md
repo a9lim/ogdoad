@@ -76,25 +76,6 @@ to a class statement in exactly that regime. No adelic machinery; just the predi
 its citation (Eichler; Cassels), and tests on indefinite Grams. The full definite
 computation stays `*1`.
 
-### 2·e_i: `kneser-neighbors`
-**Genus enumeration by `p`-neighbors, with mass as the stopping certificate.** The
-genus surface today can *compare* (`Genus::of` / `are_in_same_genus`), *weigh*
-(`mass_even_unimodular`), and *decide existence* (`nikulin_even_lattice_exists`) —
-but it cannot *list* the isometry classes in a genus. Kneser's `p`-neighbor method
-is the standard closure: from one lattice, form its `p`-neighbors (re-glue along an
-isotropic line mod `p`), dedup by `IntegralForm` isometry, and walk the neighbor
-graph until `Σ 1/|Aut| = mass` — the **already-shipped mass *is* the completeness
-certificate**. This makes the rank-8/16/24 even-unimodular genera (1, 2, 24 classes,
-all already mass-anchored) enumerable end-to-end, turning the Niemeier catalogue
-from a curated table into a *generated-and-mass-closed* list. A second I–I loop
-joining E/H/N.3/N.4. **Modular deepening (Codex):** the neighbor adjacency matrix is
-the genus's **Brandt/Hecke operator** on the span of the class theta series;
-checking that the mass-weighted theta average is its Eisenstein eigenvector — and
-that the spectrum is Hecke eigenvalues — turns enumeration into another route into
-`ℂ[E₄,E₆]` (Bridges E/H). Boundary: `|Aut|` past the node budget returns `None`, so
-the certificate closes cleanly only where `automorphism_group_order` does (≤ rank
-24). Standard math (Kneser; Conway–Sloane SPLAG ch. 15; Eichler/Brandt).
-
 ### 1·(e_c∧e_i): `weyl-versors`
 **ADE roots as Clifford versors; the Weyl group inside Pin.** `root_lattices.rs`
 carries the ADE roots and `clifford/versor.rs` carries `reflect` / `sandwich` /

@@ -882,6 +882,10 @@ print("  genus(A₂) primes/symbols     :",
       gen.primes(), gen.symbol_at(3), gen.canonical_symbol_at(2))
 print("  mass rank 8 even unimodular  :", pl.mass_even_unimodular(8),
       " Leech |Aut|:", pl.leech_aut_order())
+kn = pl.even_unimodular_kneser_report(8)
+print("  Kneser rank-8 mass closure   :",
+      kn.generated_class_labels, kn.mass_closed,
+      E8.kneser_neighbors(2, 1)[0].lattice.is_even())
 print("  pinned automorphism constants:", pl.E8_WEYL_GROUP_ORDER, pl.D16_PLUS_AUT_ORDER,
       pl.AUTO_NODE_BUDGET)
 d16p = pl.d16_plus()

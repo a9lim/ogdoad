@@ -5521,6 +5521,122 @@ impl PyGenus {
     }
 }
 
+#[pyclass(name = "KneserNeighbor", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyKneserNeighbor {
+    inner: crate::forms::KneserNeighbor,
+}
+
+#[pymethods]
+impl PyKneserNeighbor {
+    #[getter]
+    fn prime(&self) -> u128 {
+        self.inner.prime
+    }
+    #[getter]
+    fn line(&self) -> Vec<u128> {
+        self.inner.line.clone()
+    }
+    #[getter]
+    fn lattice(&self) -> PyIntegralForm {
+        PyIntegralForm {
+            inner: self.inner.lattice.clone(),
+        }
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "KneserNeighbor(p={}, line={:?}, dim={})",
+            self.inner.prime,
+            self.inner.line,
+            self.inner.lattice.dim()
+        )
+    }
+}
+
+#[pyclass(name = "KneserMassClass", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyKneserMassClass {
+    inner: crate::forms::KneserMassClass,
+}
+
+#[pymethods]
+impl PyKneserMassClass {
+    #[getter]
+    fn label(&self) -> &'static str {
+        self.inner.label
+    }
+    #[getter]
+    fn automorphism_group_order(&self) -> u128 {
+        self.inner.automorphism_group_order
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "KneserMassClass(label={:?}, automorphism_group_order={})",
+            self.inner.label, self.inner.automorphism_group_order
+        )
+    }
+}
+
+#[pyclass(name = "KneserMassReport", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyKneserMassReport {
+    inner: crate::forms::KneserMassReport,
+}
+
+#[pymethods]
+impl PyKneserMassReport {
+    #[getter]
+    fn rank(&self) -> usize {
+        self.inner.rank
+    }
+    #[getter]
+    fn prime(&self) -> u128 {
+        self.inner.prime
+    }
+    #[getter]
+    fn seed_label(&self) -> &'static str {
+        self.inner.seed_label
+    }
+    #[getter]
+    fn generated_neighbor_count(&self) -> usize {
+        self.inner.generated_neighbor_count
+    }
+    #[getter]
+    fn generated_class_labels(&self) -> Vec<&'static str> {
+        self.inner.generated_class_labels.clone()
+    }
+    #[getter]
+    fn classes(&self) -> Vec<PyKneserMassClass> {
+        self.inner
+            .classes
+            .iter()
+            .cloned()
+            .map(|inner| PyKneserMassClass { inner })
+            .collect()
+    }
+    #[getter]
+    fn mass(&self) -> (i128, i128) {
+        self.inner.mass
+    }
+    #[getter]
+    fn mass_sum(&self) -> (i128, i128) {
+        self.inner.mass_sum
+    }
+    #[getter]
+    fn mass_closed(&self) -> bool {
+        self.inner.mass_closed
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "KneserMassReport(rank={}, p={}, classes={:?}, mass_closed={})",
+            self.inner.rank,
+            self.inner.prime,
+            self.inner.generated_class_labels,
+            self.inner.mass_closed
+        )
+    }
+}
+
 #[pyclass(name = "IntegralForm", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyIntegralForm {
@@ -5675,6 +5791,17 @@ impl PyIntegralForm {
     }
     fn genus(&self) -> Option<PyGenus> {
         crate::forms::Genus::of(&self.inner).map(|inner| PyGenus { inner })
+    }
+    fn kneser_neighbor(&self, p: u128, line: Vec<u128>) -> Option<PyIntegralForm> {
+        crate::forms::kneser_neighbor(&self.inner, p, &line).map(|inner| PyIntegralForm { inner })
+    }
+    fn kneser_neighbors(&self, p: u128, max_lines: u128) -> Option<Vec<PyKneserNeighbor>> {
+        crate::forms::kneser_neighbors(&self.inner, p, max_lines).map(|neighbors| {
+            neighbors
+                .into_iter()
+                .map(|inner| PyKneserNeighbor { inner })
+                .collect()
+        })
     }
     fn __repr__(&self) -> String {
         format!("IntegralForm(gram={:?})", self.inner.gram())
@@ -5963,6 +6090,39 @@ fn are_in_same_genus(a: &PyIntegralForm, b: &PyIntegralForm) -> bool {
 #[pyfunction]
 fn mass_even_unimodular(n: u128) -> Option<(i128, i128)> {
     crate::forms::mass_even_unimodular(n)
+}
+
+#[pyfunction]
+fn isotropic_lines_mod_p(
+    lattice: &PyIntegralForm,
+    p: u128,
+    max_lines: u128,
+) -> Option<Vec<Vec<u128>>> {
+    crate::forms::isotropic_lines_mod_p(&lattice.inner, p, max_lines)
+}
+
+#[pyfunction]
+fn kneser_neighbor(lattice: &PyIntegralForm, p: u128, line: Vec<u128>) -> Option<PyIntegralForm> {
+    crate::forms::kneser_neighbor(&lattice.inner, p, &line).map(|inner| PyIntegralForm { inner })
+}
+
+#[pyfunction]
+fn kneser_neighbors(
+    lattice: &PyIntegralForm,
+    p: u128,
+    max_lines: u128,
+) -> Option<Vec<PyKneserNeighbor>> {
+    crate::forms::kneser_neighbors(&lattice.inner, p, max_lines).map(|neighbors| {
+        neighbors
+            .into_iter()
+            .map(|inner| PyKneserNeighbor { inner })
+            .collect()
+    })
+}
+
+#[pyfunction]
+fn even_unimodular_kneser_report(rank: usize) -> Option<PyKneserMassReport> {
+    crate::forms::even_unimodular_kneser_report(rank).map(|inner| PyKneserMassReport { inner })
 }
 
 #[pyfunction]
@@ -6328,6 +6488,9 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyIntegralForm>()?;
     m.add_class::<PyScaleSymbol>()?;
     m.add_class::<PyGenus>()?;
+    m.add_class::<PyKneserNeighbor>()?;
+    m.add_class::<PyKneserMassClass>()?;
+    m.add_class::<PyKneserMassReport>()?;
     m.add_class::<PyDiscriminantForm>()?;
     m.add_class::<PyOddDiscriminantForm>()?;
     m.add_class::<PyOddMilgramReport>()?;
@@ -6444,6 +6607,10 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(is_root_lattice, m)?)?;
     m.add_function(wrap_pyfunction!(are_in_same_genus, m)?)?;
     m.add_function(wrap_pyfunction!(mass_even_unimodular, m)?)?;
+    m.add_function(wrap_pyfunction!(isotropic_lines_mod_p, m)?)?;
+    m.add_function(wrap_pyfunction!(kneser_neighbor, m)?)?;
+    m.add_function(wrap_pyfunction!(kneser_neighbors, m)?)?;
+    m.add_function(wrap_pyfunction!(even_unimodular_kneser_report, m)?)?;
     m.add_function(wrap_pyfunction!(leech_aut_order, m)?)?;
     m.add_function(wrap_pyfunction!(verify_milgram, m)?)?;
     m.add_function(wrap_pyfunction!(odd_milgram_report, m)?)?;
