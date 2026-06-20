@@ -122,8 +122,8 @@ impl<S: Scalar> Poly<S> {
         Poly::new(vec![s])
     }
 
-    /// The indeterminate `x`.
-    pub fn x() -> Self {
+    /// The indeterminate `t`.
+    pub fn t() -> Self {
         Poly::new(vec![S::zero(), S::one()])
     }
 
@@ -364,7 +364,7 @@ mod tests {
         // (1 + x) + (4 + 4x) = 5 + 5x ≡ 0 in F_5
         assert_eq!(p(&[1, 1]).add(&p(&[4, 4])), P5::zero());
         assert_eq!(p(&[1, 1]).neg(), p(&[4, 4]));
-        assert_eq!(P5::x().eval(&Fp::<5>::from_int(3)), Fp::<5>::from_int(3));
+        assert_eq!(P5::t().eval(&Fp::<5>::from_int(3)), Fp::<5>::from_int(3));
         assert_eq!(
             p(&[1, 1, 1]).eval(&Fp::<5>::from_int(2)),
             Fp::<5>::from_int(7)
@@ -390,7 +390,7 @@ mod tests {
         let f = p(&[1, 0, 1]); // 1 + t²
         let g = p(&[1, 1]); // 1 + t
         assert_eq!(f.compose(&g), p(&[2, 2, 1])); // 1 + (1+t)²
-        assert_eq!(P5::x().compose(&g), g);
+        assert_eq!(P5::t().compose(&g), g);
         assert_eq!(f.compose(&P5::zero()), p(&[1]));
     }
 
@@ -439,7 +439,7 @@ mod tests {
         // In F_5[x]/(x² + 2) (x² ≡ −2 ≡ 3), the residue field is F_25.
         let modulus = p(&[2, 0, 1]); // x² + 2, irreducible over F_5 (−2=3 is a nonsquare)
                                      // x^(25−1) ≡ 1 (Fermat in F_25*), and x is a nonsquare ⇒ x^((25−1)/2) ≡ −1.
-        assert_eq!(P5::x().pow_mod(24, &modulus), P5::one());
-        assert_eq!(P5::x().pow_mod(12, &modulus), p(&[4])); // −1 ≡ 4
+        assert_eq!(P5::t().pow_mod(24, &modulus), P5::one());
+        assert_eq!(P5::t().pow_mod(12, &modulus), p(&[4])); // −1 ≡ 4
     }
 }

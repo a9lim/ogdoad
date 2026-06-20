@@ -143,7 +143,7 @@ impl<S: ExactFieldScalar, const K: usize> ResidueField for Laurent<S, K> {
         self.leading_coeff()
     }
     fn teichmuller(residue: S) -> Self {
-        Laurent::from_scalar(residue)
+        Laurent::from_base(residue)
     }
 }
 

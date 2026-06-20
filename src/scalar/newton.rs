@@ -90,7 +90,7 @@ impl NewtonPolygon {
     /// `None` for the zero polynomial (no nonzero coefficient). Coefficients reading
     /// as `0` — genuine zeros, or values below the precision horizon — are simply
     /// absent from the point set, matching the convex-hull definition.
-    pub fn of<K: Valued>(coeffs: &[K]) -> Option<NewtonPolygon> {
+    pub fn from_coeffs<K: Valued>(coeffs: &[K]) -> Option<NewtonPolygon> {
         let points: Vec<(usize, i128)> = coeffs
             .iter()
             .enumerate()
@@ -169,7 +169,7 @@ mod tests {
     #[test]
     fn eisenstein_single_slope() {
         // x³ − 5 over Q_5: coeffs [−5, 0, 0, 1].
-        let np = NewtonPolygon::of(&qpoly(&[-5, 0, 0, 1])).unwrap();
+        let np = NewtonPolygon::from_coeffs(&qpoly(&[-5, 0, 0, 1])).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(1, 3), 3)]);
         assert_eq!(np.degree(), 3);
         assert_eq!(np.zero_root_multiplicity(), 0);
@@ -180,7 +180,7 @@ mod tests {
     /// `x² − p`: root valuation `1/2 ∉ ℤ`; p is a nonsquare (odd valuation).
     #[test]
     fn sqrt_p_slope_half() {
-        let np = NewtonPolygon::of(&qpoly(&[-5, 0, 1])).unwrap();
+        let np = NewtonPolygon::from_coeffs(&qpoly(&[-5, 0, 1])).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(1, 2), 2)]);
         // odd valuation ⇒ 5 is not a square in Q_5 (the analytic cross-check).
         assert_eq!(Q5::from_int(5).is_square(), Some(false));
@@ -193,13 +193,13 @@ mod tests {
         let f = Poly::new(qpoly(&[-5, 1])); // x − 5  (root valuation 1)
         let g = Poly::new(qpoly(&[-1, 1])); // x − 1  (root valuation 0)
         let fg = f.mul(&g);
-        let np = NewtonPolygon::of(fg.coeffs()).unwrap();
+        let np = NewtonPolygon::from_coeffs(fg.coeffs()).unwrap();
         // sorted by decreasing λ: (1, 1) then (0, 1).
         assert_eq!(np.root_valuations(), vec![(rat(1, 1), 1), (rat(0, 1), 1)]);
 
         // a higher-multiplicity check: (x²−5)(x−1) — two val-½ roots, one val-0 root.
         let h = Poly::new(qpoly(&[-5, 0, 1])).mul(&g);
-        let nph = NewtonPolygon::of(h.coeffs()).unwrap();
+        let nph = NewtonPolygon::from_coeffs(h.coeffs()).unwrap();
         assert_eq!(nph.root_valuations(), vec![(rat(1, 2), 2), (rat(0, 1), 1)]);
     }
 
@@ -207,13 +207,13 @@ mod tests {
     /// is a unit (J.8). `x² + 3x + 2` over Q_5: all coeffs units ⇒ one flat side.
     #[test]
     fn flat_polygon_iff_unit_roots() {
-        let np = NewtonPolygon::of(&qpoly(&[2, 3, 1])).unwrap();
+        let np = NewtonPolygon::from_coeffs(&qpoly(&[2, 3, 1])).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(0, 1), 2)]);
         assert_eq!(Q5::from_int(2).valuation(), Some(0)); // a₀ a unit
         assert!(np.slopes().iter().all(|(s, _)| *s == Rational::zero()));
 
         // break it: x² + 3x + 5 has a₀ = 5 (valuation 1) ⇒ no longer all-flat.
-        let np2 = NewtonPolygon::of(&qpoly(&[5, 3, 1])).unwrap();
+        let np2 = NewtonPolygon::from_coeffs(&qpoly(&[5, 3, 1])).unwrap();
         assert_ne!(np2.root_valuations(), vec![(rat(0, 1), 2)]);
         assert_eq!(np2.root_valuations(), vec![(rat(1, 1), 1), (rat(0, 1), 1)]);
     }
@@ -222,7 +222,7 @@ mod tests {
     #[test]
     fn negative_slope_for_pole_root() {
         let coeffs = vec![Q5::from_p_power(-1).neg(), Q5::one()]; // x − p⁻¹
-        let np = NewtonPolygon::of(&coeffs).unwrap();
+        let np = NewtonPolygon::from_coeffs(&coeffs).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(-1, 1), 1)]);
     }
 
@@ -231,7 +231,7 @@ mod tests {
     #[test]
     fn zero_roots_are_tracked() {
         // x³ − x²  = coeffs [0, 0, −1, 1].
-        let np = NewtonPolygon::of(&qpoly(&[0, 0, -1, 1])).unwrap();
+        let np = NewtonPolygon::from_coeffs(&qpoly(&[0, 0, -1, 1])).unwrap();
         assert_eq!(np.zero_root_multiplicity(), 2);
         assert_eq!(np.root_valuations(), vec![(rat(0, 1), 1)]);
     }
@@ -244,14 +244,14 @@ mod tests {
         let t = L::t();
         let minus_t = t.neg();
         let coeffs = vec![minus_t, L::zero(), L::one()]; // x² − t
-        let np = NewtonPolygon::of(&coeffs).unwrap();
+        let np = NewtonPolygon::from_coeffs(&coeffs).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(1, 2), 2)]);
     }
 
     /// The zero polynomial has no Newton polygon.
     #[test]
     fn zero_polynomial_is_none() {
-        assert!(NewtonPolygon::of::<Q5>(&[]).is_none());
-        assert!(NewtonPolygon::of(&qpoly(&[0, 0, 0])).is_none());
+        assert!(NewtonPolygon::from_coeffs::<Q5>(&[]).is_none());
+        assert!(NewtonPolygon::from_coeffs(&qpoly(&[0, 0, 0])).is_none());
     }
 }

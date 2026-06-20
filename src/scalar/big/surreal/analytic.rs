@@ -9,6 +9,7 @@
 //!     the finite-support/i128-coefficient representation.
 
 use super::Surreal;
+use crate::linalg::integer::gcd_u128;
 use crate::scalar::{Rational, Scalar};
 use std::cmp::Ordering;
 
@@ -155,15 +156,6 @@ fn leading_below_known_window(series: &Surreal, n: usize, next_power: &Surreal) 
             .terms
             .get(n - 1)
             .is_some_and(|(nth_exp, _)| next_power.terms[0].0.cmp(nth_exp) == Ordering::Less)
-}
-
-fn gcd_u128(mut a: u128, mut b: u128) -> u128 {
-    while b != 0 {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    a
 }
 
 fn checked_rational_mul(a: &Rational, b: &Rational) -> Option<Rational> {

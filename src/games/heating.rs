@@ -12,6 +12,7 @@
 //! the temperature filtration an associated-graded product. That remains the
 //! `under` open problem.
 
+use crate::games::partizan::integer_value;
 use crate::games::Game;
 use crate::scalar::{Rational, Surreal};
 
@@ -23,8 +24,7 @@ pub fn is_positive_game(g: &Game) -> bool {
 
 /// The exact integer value of a short game, if it is an integer-valued number.
 pub fn integer_game_value(g: &Game) -> Option<i128> {
-    let q = g.number_value()?.as_rational()?;
-    q.is_integer().then_some(q.numer())
+    integer_value(g)
 }
 
 /// Heat a game by a dyadic rational temperature.

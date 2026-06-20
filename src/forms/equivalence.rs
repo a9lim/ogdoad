@@ -112,17 +112,8 @@ pub fn isometric_ordinal_finite(m1: &Metric<Ordinal>, m2: &Metric<Ordinal>) -> O
     Some(same_char2_isometry_invariant(&a1, &a2))
 }
 
-fn gcd(mut a: u128, mut b: u128) -> u128 {
-    while b != 0 {
-        let r = a % b;
-        a = b;
-        b = r;
-    }
-    a
-}
-
 fn lcm(a: u128, b: u128) -> Option<u128> {
-    (a / gcd(a, b)).checked_mul(b)
+    (a / crate::linalg::integer::gcd_u128(a, b)).checked_mul(b)
 }
 
 fn same_char2_isometry_invariant(

@@ -58,13 +58,13 @@ impl<const P: u128> Fp<P> {
         is_prime_u128(P)
     }
 
-    pub fn assert_prime_modulus() {
+    pub fn assert_supported_params() {
         assert!(Self::modulus_is_prime(), "Fp<P> needs prime P, got {P}");
     }
 
     /// Reduce an unsigned integer into `F_P`.
     pub fn from_u128(n: u128) -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         Fp(n % P)
     }
 
@@ -88,19 +88,19 @@ impl<const P: u128> fmt::Debug for Fp<P> {
 
 impl<const P: u128> Scalar for Fp<P> {
     fn zero() -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         Fp(0)
     }
     fn one() -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         Fp(1 % P)
     }
     fn add(&self, rhs: &Self) -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         Fp(add_mod::<P>(self.0, rhs.0))
     }
     fn neg(&self) -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         if self.0 == 0 {
             Fp(0)
         } else {
@@ -108,15 +108,15 @@ impl<const P: u128> Scalar for Fp<P> {
         }
     }
     fn mul(&self, rhs: &Self) -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         Fp(mul_mod::<P>(self.0, rhs.0))
     }
     fn characteristic() -> u128 {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         P
     }
     fn inv(&self) -> Option<Self> {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         if self.0 == 0 {
             return None;
         }
@@ -124,7 +124,7 @@ impl<const P: u128> Scalar for Fp<P> {
     }
     /// Faster direct construction; semantically identical to the default double-and-add.
     fn from_int(n: i128) -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         let v = if n >= 0 {
             (n as u128) % P
         } else {
@@ -141,7 +141,7 @@ impl<const P: u128> Scalar for Fp<P> {
 
 impl<const P: u128> Fp<P> {
     pub fn pow(&self, mut e: u128) -> Self {
-        Self::assert_prime_modulus();
+        Self::assert_supported_params();
         let mut base = *self;
         let mut acc = Self::one();
         while e > 0 {

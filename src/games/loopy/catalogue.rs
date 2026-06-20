@@ -2,6 +2,7 @@
 //! [`PartizanOutcome`], and [`LoopyValue`].
 
 use std::cmp::Ordering;
+use std::fmt;
 
 /// The winner of one of the two starter questions in a finite loopy partizan
 /// graph.
@@ -284,6 +285,14 @@ impl LoopyValue {
             | (_, OnsideOffside { .. }) => return None,
         };
         Some(r)
+    }
+}
+
+impl fmt::Display for LoopyValue {
+    /// The conventional symbol — the same string [`name()`](LoopyValue::name) returns.
+    /// Kept [`name()`](LoopyValue::name) as an alias for Python compatibility.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
 

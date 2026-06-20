@@ -213,7 +213,7 @@ mod tests {
     {
         let sp = springer_decompose_local(&Metric::diagonal(roots.clone())).unwrap();
         let f = prod_x_minus(&roots);
-        let np = NewtonPolygon::of(f.coeffs()).unwrap();
+        let np = NewtonPolygon::from_coeffs(f.coeffs()).unwrap();
 
         // The diagonal entries are units, so there are no zero roots and every root
         // valuation is an integer (the entry valuations).
@@ -270,7 +270,7 @@ mod tests {
     }
 
     /// J.12(i)–(ii) need no Witt theory, so the polygon outlives the Springer
-    /// decomposition: over residue characteristic 2, `NewtonPolygon::of` succeeds
+    /// decomposition: over residue characteristic 2, `NewtonPolygon::from_coeffs` succeeds
     /// while `springer_decompose_local` returns `None`.
     #[test]
     fn polygon_outlives_springer() {
@@ -280,7 +280,7 @@ mod tests {
             Qp::<2, 8>::zero(),
             Qp::<2, 8>::one(),
         ];
-        assert!(NewtonPolygon::of(&coeffs).is_some());
+        assert!(NewtonPolygon::from_coeffs(&coeffs).is_some());
         assert!(springer_decompose_local(&Metric::diagonal(vec![
             Qp::<2, 8>::from_int(2),
             Qp::<2, 8>::one()

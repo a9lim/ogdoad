@@ -22,6 +22,8 @@ solver data on the repo-wide width contract.
     reduced mod the pivot) + `reduce_integer_vector`. `normalize_relation_rows` is
     consumed by the integral-lattice layer (`forms/integral/`); `reduce_integer_vector`
     by the game exterior algebra's lattice quotient (`games/game_exterior/`).
+  - `gcd`/`gcd_u128` — the crate's one integer gcd, exported here beside `ext_gcd`
+    (the integral/Niemeier layers consume these rather than carrying per-file copies).
   - `ext_gcd` (Bézout `a·x + b·y = gcd`) and `smith_normal_form` (invariant factors
     `d₀ | d₁ | …` via unimodular `ext_gcd`-based row/column combines; `∏ dᵢ = |det|`,
     cokernel `ℤⁿ/Mℤⁿ ≅ ⨁ ℤ/dᵢ`). Used by the integral-lattice layer:

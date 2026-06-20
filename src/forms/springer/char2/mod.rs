@@ -44,7 +44,7 @@
 //! # Isotropy (rank-by-rank, `u(K_v) = 4`)
 //!
 //! `[a,b]` is isotropic iff `ab ∈ ℘(K_v)`; the Pfister/norm criterion routes ranks 3
-//! and 4 through the Part-A Artin–Schreier symbol [`as_symbol_at`]
+//! and 4 through the Part-A Artin–Schreier symbol [`artin_schreier_symbol_at`]
 //! (`s_v(d, λ) = 0` ⟺ `[d, λ)` splits); `u(K_v) = 4` makes every rank `≥ 5` form
 //! isotropic. (Source-pinned to Aravire–Jacob and Elman–Karpenko–Merkurjev §§7, 13;
 //! oracles cross-checked via Codex — see the tests.)
@@ -57,7 +57,7 @@
 //! a finite sweep of the poles of `f` plus `∞`) settles **rank 2** (`[a,b]` iso ⟺
 //! `ab ∈ ℘`); the elementary `[K : K²] = 2` square test `ff_is_square` settles the
 //! **totally-singular** part; and **Hasse–Minkowski** over the finite
-//! [`relevant_places_char2`] set settles **rank 3/4** (good places are isotropic by
+//! [`artin_schreier_form_places`] set settles **rank 3/4** (good places are isotropic by
 //! Chevalley–Warning). `u(F_q(t)) = 4` (`C₂`, Tsen–Lang) caps it: every `rank ≥ 5`
 //! form is isotropic. (Local isotropy itself is reported for the ranks the sources
 //! pin exactly — `≤ 4` in the standard block shapes, pure totally-singular tails
@@ -71,7 +71,7 @@
 //! - `asnf` — κ-local arithmetic helpers and the Artin–Schreier normal form
 //!   (the private crate layer that feeds the decomposition).
 //! - `global` — global isotropy over `F_q(t)` ([`global_is_pe`], `ff_is_square`,
-//!   [`relevant_places_char2`], [`is_isotropic_global_char2`]).
+//!   [`artin_schreier_form_places`], [`is_isotropic_global_char2`]).
 //! - This hub — `Char2QuadForm`, `Char2LocalDecomp`, the Aravire–Jacob decomposition
 //!   ([`springer_decompose_local_char2`]), and local isotropy
 //!   ([`local_anisotropic_dim_char2`], [`local_is_isotropic_char2`]).
@@ -79,9 +79,9 @@
 pub(super) mod asnf;
 mod global;
 
-pub use global::{global_is_pe, is_isotropic_global_char2, relevant_places_char2};
+pub use global::{artin_schreier_form_places, global_is_pe, is_isotropic_global_char2};
 
-use crate::forms::{as_symbol_at, Char2Place, FiniteChar2Field};
+use crate::forms::{artin_schreier_symbol_at, FiniteChar2Field, FunctionFieldPlace};
 use crate::scalar::{Poly, RationalFunction, Scalar};
 use std::collections::BTreeMap;
 
@@ -143,7 +143,7 @@ pub struct Char2LocalDecomp<S: FiniteChar2Field> {
 fn block_contribution<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> (u128, u128, BTreeMap<usize, Poly<S>>) {
     let va = valuation(a, place).expect("a ≠ 0");
     let vb = valuation(b, place).expect("b ≠ 0");
@@ -200,7 +200,7 @@ fn block_contribution<S: FiniteChar2Field>(
 /// totally-singular part is *not* part of this Witt-group invariant.
 pub fn springer_decompose_local_char2<S: FiniteChar2Field>(
     form: &Char2QuadForm<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Char2LocalDecomp<S> {
     let mut phi0 = 0u128;
     let mut phi1 = 0u128;
@@ -226,7 +226,7 @@ pub fn springer_decompose_local_char2<S: FiniteChar2Field>(
 fn binary_is_hyperbolic<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> bool {
     if a.is_zero() || b.is_zero() {
         return true;
@@ -236,7 +236,7 @@ fn binary_is_hyperbolic<S: FiniteChar2Field>(
 
 fn nonsingular_anisotropic_dim<S: FiniteChar2Field>(
     blocks: &[(RationalFunction<S>, RationalFunction<S>)],
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> usize {
     let form = Char2QuadForm::from_blocks(blocks.to_vec());
     let d = springer_decompose_local_char2(&form, place);
@@ -251,14 +251,14 @@ fn nonsingular_anisotropic_dim<S: FiniteChar2Field>(
 
 fn singular_anisotropic_dim<S: FiniteChar2Field>(
     singular: &[RationalFunction<S>],
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> usize {
     singular_square_representatives(singular, place).len()
 }
 
 fn singular_square_representatives<S: FiniteChar2Field>(
     singular: &[RationalFunction<S>],
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Vec<RationalFunction<S>> {
     let mut reps = Vec::new();
     for c in singular.iter().filter(|c| !c.is_zero()) {
@@ -283,7 +283,7 @@ fn singular_square_representatives<S: FiniteChar2Field>(
 fn semisingular_clifford_at<S: FiniteChar2Field>(
     blocks: &[(RationalFunction<S>, RationalFunction<S>)],
     c: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> u128 {
     let mut inv = 0u128;
     for (a, b) in blocks {
@@ -295,7 +295,7 @@ fn semisingular_clifford_at<S: FiniteChar2Field>(
             continue;
         }
         let lambda = c.mul(&a.inv().expect("a ≠ 0"));
-        inv ^= as_symbol_at(&d, &lambda, place);
+        inv ^= artin_schreier_symbol_at(&d, &lambda, place);
     }
     inv
 }
@@ -303,7 +303,7 @@ fn semisingular_clifford_at<S: FiniteChar2Field>(
 fn semisingular_anisotropic_dim<S: FiniteChar2Field>(
     blocks: &[(RationalFunction<S>, RationalFunction<S>)],
     c: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> usize {
     if semisingular_clifford_at(blocks, c, place) == 0 {
         1
@@ -320,7 +320,7 @@ fn semisingular_anisotropic_dim<S: FiniteChar2Field>(
 /// two-dimensional singular tail. `u(K_v) = 4`.
 pub fn local_anisotropic_dim_char2<S: FiniteChar2Field>(
     form: &Char2QuadForm<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<usize> {
     let bl = &form.blocks;
     let nb = bl.len();
@@ -361,7 +361,7 @@ pub fn local_anisotropic_dim_char2<S: FiniteChar2Field>(
 /// for every rank `≥ 5` (`u(K_v) = 4`); otherwise `anisotropic_dim < rank`.
 pub fn local_is_isotropic_char2<S: FiniteChar2Field>(
     form: &Char2QuadForm<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<bool> {
     let rank = form.rank();
     if rank == 0 {
@@ -393,8 +393,8 @@ mod tests {
     }
     // The place P = t over F₂: κ = F₂, π = t. Codex's oracles are stated over the
     // local field F_q((π)); identifying π = t realises each as a form over F_q(t).
-    fn place_t() -> Char2Place<F2> {
-        Char2Place::Finite(p2(&[0, 1]))
+    fn place_t() -> FunctionFieldPlace<F2> {
+        FunctionFieldPlace::Finite(p2(&[0, 1]))
     }
     // A constant-coefficient κ entry (κ = F₂ at place t) for the R_π map.
     fn k2(n: i128) -> Poly<F2> {
@@ -807,7 +807,8 @@ mod tests {
                 den.into_iter().map(c).collect(),
             )
         };
-        let place = Char2Place::Finite(Poly::new(vec![F4::from_index(0), F4::from_index(1)])); // P = t
+        let place =
+            FunctionFieldPlace::Finite(Poly::new(vec![F4::from_index(0), F4::from_index(1)])); // P = t
                                                                                                // [1, α] ⊥ [π, α/π] ↦ (1,0,1): Tr_{F₄/F₂}(α) = 1, the u = 4 anisotropic class.
         let alpha = rf(vec![2], vec![1]); // α (index 2 = the F₄ generator)
         let blocks = vec![
@@ -837,7 +838,7 @@ mod tests {
         // P = t²+t+1 (irreducible over F₂, κ = F₄, π = P). [1, 1/P] has a simple wild
         // pole: the P-adic digit at P⁻¹ is the κ-element 1, so ψ = {1: 1}, and the
         // block is anisotropic (rank-2, ab = 1/P ∉ ℘(K_P)).
-        let p = Char2Place::Finite(p2(&[1, 1, 1])); // t²+t+1
+        let p = FunctionFieldPlace::Finite(p2(&[1, 1, 1])); // t²+t+1
         let blocks = vec![(r2(&[1], &[1]), r2(&[1], &[1, 1, 1]))]; // [1, 1/(t²+t+1)]
         let d = springer_decompose_local_char2(&Char2QuadForm::from_blocks(blocks.clone()), &p);
         assert_eq!(d.phi0, 0);
@@ -856,7 +857,7 @@ mod tests {
         // Treating polynomial P-adic digits as κ[[P]] coefficients drops the
         // Hensel carries and leaves a false wild obstruction here.
         let p_poly = p2(&[1, 1, 1]);
-        let place = Char2Place::Finite(p_poly.clone());
+        let place = FunctionFieldPlace::Finite(p_poly.clone());
         let p_sq = p_poly.mul(&p_poly);
         let wp = R2::new(p2(&[0, 1, 0, 1]).coeffs().to_vec(), p_sq.coeffs().to_vec());
 

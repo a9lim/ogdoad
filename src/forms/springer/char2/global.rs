@@ -6,7 +6,7 @@
 
 use super::{local_is_isotropic_char2, Char2QuadForm};
 use crate::forms::function_field_char2::char2_monic_irreducible_factors;
-use crate::forms::{Char2Place, FiniteChar2Field};
+use crate::forms::{FiniteChar2Field, FunctionFieldPlace};
 use crate::scalar::{Poly, RationalFunction, Scalar};
 
 /// Whether `f ∈ F_q(t)` is a **square**, i.e. lies in `K² = F_q(t²)`. Since
@@ -37,12 +37,12 @@ pub fn global_is_pe<S: FiniteChar2Field>(f: &RationalFunction<S>) -> bool {
     if f.is_zero() {
         return true;
     }
-    if !local_is_pe(f, &Char2Place::Infinite) {
+    if !local_is_pe(f, &FunctionFieldPlace::Infinite) {
         return false;
     }
     char2_monic_irreducible_factors(f.den())
         .into_iter()
-        .all(|p| local_is_pe(f, &Char2Place::Finite(p)))
+        .all(|p| local_is_pe(f, &FunctionFieldPlace::Finite(p)))
 }
 
 /// The finite set of places of `F_q(t)` that can make `form` anisotropic: `∞` plus
@@ -50,7 +50,14 @@ pub fn global_is_pe<S: FiniteChar2Field>(f: &RationalFunction<S>) -> bool {
 /// At every **other** place all coefficients are units, so a rank-`≥ 3` form reduces
 /// to a `> 2`-variable form over the finite residue field `κ` — isotropic by
 /// Chevalley–Warning and liftable by Hensel — and need not be checked.
-pub fn relevant_places_char2<S: FiniteChar2Field>(form: &Char2QuadForm<S>) -> Vec<Char2Place<S>> {
+///
+/// The char-2 form-level analogue of
+/// [`artin_schreier_symbol_places`](crate::forms::function_field_char2::artin_schreier_symbol_places)
+/// (which finds the relevant places of a single symbol `[a, b)`); this collects the
+/// relevant places across an entire quadratic form's coefficients.
+pub fn artin_schreier_form_places<S: FiniteChar2Field>(
+    form: &Char2QuadForm<S>,
+) -> Vec<FunctionFieldPlace<S>> {
     let mut primes: Vec<Poly<S>> = Vec::new();
     let mut push = |g: &Poly<S>| {
         for p in char2_monic_irreducible_factors(g) {
@@ -69,8 +76,8 @@ pub fn relevant_places_char2<S: FiniteChar2Field>(form: &Char2QuadForm<S>) -> Ve
         push(c.num());
         push(c.den());
     }
-    let mut places = vec![Char2Place::Infinite];
-    places.extend(primes.into_iter().map(Char2Place::Finite));
+    let mut places = vec![FunctionFieldPlace::Infinite];
+    places.extend(primes.into_iter().map(FunctionFieldPlace::Finite));
     places
 }
 
@@ -88,7 +95,7 @@ pub fn relevant_places_char2<S: FiniteChar2Field>(form: &Char2QuadForm<S>) -> Ve
 ///   finite bad-place sweep, since the constant-trace obstruction lives at infinitely
 ///   many odd-degree places (caught by the global `℘` test);
 /// * **rank 3/4 non-degenerate**: Hasse–Minkowski — isotropic iff isotropic over
-///   `K_v` at every [`relevant_places_char2`] (a finite set).
+///   `K_v` at every [`artin_schreier_form_places`] (a finite set).
 ///
 /// The return type stays optional for API symmetry with the local routines; the
 /// current local engine covers every shape routed here.
@@ -133,7 +140,7 @@ pub fn is_isotropic_global_char2<S: FiniteChar2Field>(form: &Char2QuadForm<S>) -
         // rank 3 ([a,b]⊥⟨c⟩) and rank 4 ([a,b]⊥[a,b]): Hasse–Minkowski.
         _ => {
             let mut all_iso = true;
-            for place in relevant_places_char2(form) {
+            for place in artin_schreier_form_places(form) {
                 match local_is_isotropic_char2(form, &place) {
                     Some(true) => {}
                     Some(false) => return Some(false),

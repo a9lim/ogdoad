@@ -196,8 +196,7 @@ impl<C: TropicalConvention> Tropical<C> {
     fn fmt_inner(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
             TropVal::Infinity => f.write_str(C::ZERO_GLYPH),
-            // `Rational` is `Debug`-only (no `Display`).
-            TropVal::Finite(r) => write!(f, "{r:?}"),
+            TropVal::Finite(r) => write!(f, "{r}"),
         }
     }
 }

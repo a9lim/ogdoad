@@ -153,17 +153,20 @@ impl<S: Scalar> Cga<S> {
         acc
     }
 
-    /// The point pair / oriented join `a ∧ b`.
-    pub fn point_pair(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
+    /// The IPNS outer join (wedge) of two objects `a ∧ b`.
+    ///
+    /// In the inner-product-null-space convention (a point is *on* `X` iff
+    /// `up(p) · X = 0`), the outer join is the intersection operation; it needs
+    /// no pseudoscalar inverse and works over every char-0 backend including the
+    /// surreals.
+    pub fn outer_join(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         self.alg.wedge(a, b)
     }
 
-    /// The meet (intersection) of two IPNS objects — the outer product `x ∧ y`.
-    /// In the inner-product-null-space convention used here (a point is *on* `X`
-    /// iff `up(p) · X = 0`), intersection is the wedge; this needs no pseudoscalar
-    /// inverse, so it works over every char-0 backend including the surreals.
-    pub fn meet(&self, x: &Multivector<S>, y: &Multivector<S>) -> Multivector<S> {
-        self.alg.wedge(x, y)
+    /// The point pair (oriented join) `a ∧ b` — a pedagogical alias for
+    /// [`outer_join`](Self::outer_join) naming the specific geometric object.
+    pub fn point_pair(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
+        self.outer_join(a, b)
     }
 }
 
@@ -277,7 +280,7 @@ mod tests {
         let cga = Cga::<Rational>::new(3);
         let a = cga.plane(&[r(1), r(0), r(0)], &r(0));
         let b = cga.plane(&[r(0), r(1), r(0)], &r(0));
-        let m = cga.meet(&a, &b);
+        let m = cga.outer_join(&a, &b);
         assert!(!m.is_zero());
         assert_eq!(cga.alg.grade_part(&m, 2), m); // a line is a grade-2 IPNS blade
     }

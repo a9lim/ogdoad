@@ -3,7 +3,7 @@
 use crate::scalar::{ExactFieldScalar, Fp, Fpn, Scalar};
 
 pub(super) fn assert_odd_prime<const P: u128>() {
-    Fp::<P>::assert_prime_modulus();
+    Fp::<P>::assert_supported_params();
     assert!(P != 2, "odd-characteristic form theory needs P odd");
 }
 

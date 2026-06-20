@@ -42,7 +42,7 @@
 
 use crate::forms::integral::codes::extended_golay_generator_rows;
 use crate::forms::lattice::IntegralForm;
-use crate::linalg::integer::normalize_relation_rows;
+use crate::linalg::integer::{gcd, normalize_relation_rows};
 
 const fn const_pow(mut base: u128, mut exp: u32) -> u128 {
     let mut acc = 1u128;
@@ -61,16 +61,6 @@ const fn const_pow(mut base: u128, mut exp: u32) -> u128 {
 /// `|Aut(Λ₂₄)| = |Co₀| = 2·|Co₁| = 2²² · 3⁹ · 5⁴ · 7² · 11 · 13 · 23`.
 pub const LEECH_AUT_ORDER: u128 =
     const_pow(2, 22) * const_pow(3, 9) * const_pow(5, 4) * const_pow(7, 2) * 11 * 13 * 23;
-
-fn gcd(a: i128, b: i128) -> i128 {
-    let (mut a, mut b) = (a.abs(), b.abs());
-    while b != 0 {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    a
-}
 
 fn checked_rat_reduce(num: i128, den: i128) -> Option<(i128, i128)> {
     if den == 0 {

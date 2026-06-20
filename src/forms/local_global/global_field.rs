@@ -31,6 +31,24 @@
 //! deliberately **not** a [`Valued`](crate::scalar::Valued) abstraction: a global
 //! field carries *all* its places at once (the same reason `RationalFunction` and
 //! `Adele` are not `Valued`), so per-place residue data stays here in `forms/`.
+//!
+//! # The characteristic-2 asymmetry
+//!
+//! Both characteristic regimes of `F_q(t)` share the **same** place type
+//! [`FunctionFieldPlace`](crate::forms::function_field::FunctionFieldPlace) — the
+//! structural payload (a finite uniformizer or the degree place) does not depend on
+//! the residue characteristic. What does *not* unify is the symbol. In odd
+//! characteristic the quaternion/quadratic symbol is the **multiplicative**, symmetric
+//! tame Hilbert symbol `(a,b)_v ∈ {±1}` with reciprocity `∏_v (a,b)_v = +1`, and that
+//! is exactly the [`try_hilbert_symbol_at`](GlobalField::try_hilbert_symbol_at)
+//! primitive this trait abstracts. In characteristic 2 the working object is the
+//! **additive**, asymmetric Artin–Schreier symbol `s_v(a,b) ∈ F₂` (the Schmid residue)
+//! with reciprocity `Σ_v s_v(a,b) = 0` — a different group (`F₂` under XOR, not `{±1}`
+//! under product) and a different functional shape (`a` additive mod `℘`, `b`
+//! multiplicative). It therefore cannot implement the multiplicative `GlobalField`
+//! trait and lives as its own surface in
+//! [`function_field_char2`](crate::forms::function_field_char2). That asymmetry — like
+//! the missing real place in equal characteristic — is the content, not a gap.
 
 use crate::forms::FiniteOddField;
 use crate::scalar::{Rational, RationalFunction, Scalar};
@@ -218,7 +236,7 @@ impl GlobalField for Rational {
 // ───────────────────────── F_q(t) (function field) ─────────────────────────
 
 impl<S: FiniteOddField> GlobalField for RationalFunction<S> {
-    type Place = crate::forms::function_field::FFPlace<S>;
+    type Place = crate::forms::function_field::FunctionFieldPlace<S>;
 
     fn try_relevant_places(entries: &[Self]) -> Option<Vec<Self::Place>> {
         crate::forms::function_field::try_relevant_places_ff(entries)

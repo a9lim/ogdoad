@@ -23,7 +23,8 @@ use super::{
     are_in_same_genus, e_8, is_root_lattice, mass_even_unimodular,
     root_lattices::E8_WEYL_GROUP_ORDER, IntegralForm, D16_PLUS_AUT_ORDER,
 };
-use crate::linalg::integer::normalize_relation_rows;
+use crate::linalg::integer::{gcd, normalize_relation_rows};
+use crate::scalar::is_prime_u128;
 use std::collections::BTreeSet;
 
 /// One explicit Kneser neighbor, recording the projective line that generated it.
@@ -36,47 +37,36 @@ pub struct KneserNeighbor {
 
 /// One class used in a bounded mass-closure report.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct KneserMassClass {
+pub struct KneserMassRecord {
     pub label: &'static str,
     pub automorphism_group_order: u128,
 }
 
 /// A bounded Kneser/mass certificate for an explicit even-unimodular genus.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct KneserMassReport {
+pub struct KneserMassInvariants {
     pub rank: usize,
     pub prime: u128,
     pub seed_label: &'static str,
     pub generated_neighbor_count: usize,
-    pub generated_class_labels: Vec<&'static str>,
-    pub classes: Vec<KneserMassClass>,
+    pub classes: Vec<KneserMassRecord>,
     pub mass: (i128, i128),
     pub mass_sum: (i128, i128),
     pub mass_closed: bool,
 }
 
-fn mod_i128(x: i128, p: i128) -> i128 {
-    x.rem_euclid(p)
+impl KneserMassInvariants {
+    /// The sorted, de-duplicated class labels in this certificate, derived from
+    /// [`classes`](Self::classes). (Formerly a stored field; the labels are the
+    /// `classes[].label` set in canonical order.)
+    pub fn generated_class_labels(&self) -> Vec<&'static str> {
+        let labels: BTreeSet<&'static str> = self.classes.iter().map(|c| c.label).collect();
+        labels.into_iter().collect()
+    }
 }
 
-fn is_prime(p: u128) -> bool {
-    if p < 2 {
-        return false;
-    }
-    if p == 2 {
-        return true;
-    }
-    if p.is_multiple_of(2) {
-        return false;
-    }
-    let mut d = 3u128;
-    while d <= p / d {
-        if p.is_multiple_of(d) {
-            return false;
-        }
-        d += 2;
-    }
-    true
+fn mod_i128(x: i128, p: i128) -> i128 {
+    x.rem_euclid(p)
 }
 
 fn inv_mod(a: i128, p: i128) -> Option<i128> {
@@ -195,7 +185,7 @@ fn even_two_lift(lattice: &IntegralForm, lift: &mut [i128]) -> Option<()> {
 /// even lattice. For odd `p`, the bilinear isotropy condition is `Q(x)=0 mod p`,
 /// and the lift is adjusted so `Q(v)` is divisible by `p^2`.
 pub fn kneser_neighbor(lattice: &IntegralForm, p: u128, line: &[u128]) -> Option<IntegralForm> {
-    if !is_prime(p) || p > i128::MAX as u128 || line.len() != lattice.dim() {
+    if !is_prime_u128(p) || p > i128::MAX as u128 || line.len() != lattice.dim() {
         return None;
     }
     if p == 2 && !lattice.is_even() {
@@ -294,7 +284,8 @@ pub fn isotropic_lines_mod_p(
     p: u128,
     max_lines: u128,
 ) -> Option<Vec<Vec<u128>>> {
-    if !is_prime(p) || p > i128::MAX as u128 || lattice.determinant().rem_euclid(p as i128) == 0 {
+    if !is_prime_u128(p) || p > i128::MAX as u128 || lattice.determinant().rem_euclid(p as i128) == 0
+    {
         return None;
     }
     if p == 2 && !lattice.is_even() {
@@ -334,16 +325,6 @@ pub fn kneser_neighbors(
     Some(out)
 }
 
-fn gcd(a: i128, b: i128) -> i128 {
-    let (mut a, mut b) = (a.abs(), b.abs());
-    while b != 0 {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    a
-}
-
 fn add_frac((a, b): (i128, i128), (c, d): (i128, i128)) -> Option<(i128, i128)> {
     let g = gcd(b, d);
     let bd = b / g;
@@ -358,7 +339,7 @@ fn reciprocal_u128(x: u128) -> Option<(i128, i128)> {
     Some((1, i128::try_from(x).ok()?))
 }
 
-fn mass_sum(classes: &[KneserMassClass]) -> Option<(i128, i128)> {
+fn mass_sum(classes: &[KneserMassRecord]) -> Option<(i128, i128)> {
     let mut out = (0i128, 1i128);
     for class in classes {
         out = add_frac(out, reciprocal_u128(class.automorphism_group_order)?)?;
@@ -428,13 +409,13 @@ fn generated_rank_labels(
 /// Rank 24 is intentionally not included here: the crate carries the Niemeier
 /// catalogue and the Leech Gram, not explicit glued Gram representatives for the
 /// other 23 classes.
-pub fn even_unimodular_kneser_report(rank: usize) -> Option<KneserMassReport> {
+pub fn even_unimodular_kneser_report(rank: usize) -> Option<KneserMassInvariants> {
     let prime = 2;
     let (seed_label, seed, classes) = match rank {
         8 => (
             "E8",
             e_8(),
-            vec![KneserMassClass {
+            vec![KneserMassRecord {
                 label: "E8",
                 automorphism_group_order: E8_WEYL_GROUP_ORDER,
             }],
@@ -443,11 +424,11 @@ pub fn even_unimodular_kneser_report(rank: usize) -> Option<KneserMassReport> {
             "E8+E8",
             e_8().direct_sum(&e_8()),
             vec![
-                KneserMassClass {
+                KneserMassRecord {
                     label: "E8+E8",
                     automorphism_group_order: aut_e8_e8()?,
                 },
-                KneserMassClass {
+                KneserMassRecord {
                     label: "D16+",
                     automorphism_group_order: D16_PLUS_AUT_ORDER,
                 },
@@ -456,16 +437,18 @@ pub fn even_unimodular_kneser_report(rank: usize) -> Option<KneserMassReport> {
         _ => return None,
     };
     let max_lines = if rank == 8 { 1_000 } else { 100_000 };
-    let (generated_neighbor_count, generated_class_labels) =
+    // The neighbor generation is a load-bearing verification step (it classifies
+    // every generated neighbor and bails with `None` if one falls outside the
+    // genus); the derived label set now lives on `generated_class_labels()`.
+    let (generated_neighbor_count, _generated_class_labels) =
         generated_rank_labels(&seed, rank, prime, max_lines)?;
     let mass = mass_even_unimodular(rank as u128)?;
     let mass_sum = mass_sum(&classes)?;
-    Some(KneserMassReport {
+    Some(KneserMassInvariants {
         rank,
         prime,
         seed_label,
         generated_neighbor_count,
-        generated_class_labels,
         classes,
         mass,
         mass_sum,
@@ -502,7 +485,7 @@ mod tests {
         let report = even_unimodular_kneser_report(16).unwrap();
         assert_eq!(report.prime, 2);
         assert!(report.generated_neighbor_count > 0);
-        assert_eq!(report.generated_class_labels, vec!["D16+", "E8+E8"]);
+        assert_eq!(report.generated_class_labels(), vec!["D16+", "E8+E8"]);
         assert_eq!(report.classes.len(), 2);
         assert_eq!(report.mass, mass_even_unimodular(16).unwrap());
         assert_eq!(report.mass, report.mass_sum);
@@ -513,7 +496,7 @@ mod tests {
     #[test]
     fn rank8_report_is_the_unique_mass_class() {
         let report = even_unimodular_kneser_report(8).unwrap();
-        assert_eq!(report.generated_class_labels, vec!["E8"]);
+        assert_eq!(report.generated_class_labels(), vec!["E8"]);
         assert_eq!(
             report.classes[0].automorphism_group_order,
             E8_WEYL_GROUP_ORDER

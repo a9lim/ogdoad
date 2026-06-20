@@ -19,6 +19,7 @@
 //! algebra suffices; monomial blades and vectors are factored without division.
 
 use crate::clifford::{bits, grade, CliffordAlgebra, Multivector};
+use crate::clifford::engine::grade_k_masks;
 use crate::linalg::field;
 use crate::scalar::Scalar;
 use std::collections::BTreeSet;
@@ -36,24 +37,6 @@ fn homogeneous_grade<S: Scalar>(a: &Multivector<S>) -> Option<usize> {
         }
     }
     g // None ⇔ zero (no terms)
-}
-
-fn combinations(n: usize, k: usize) -> Vec<u128> {
-    fn rec(out: &mut Vec<u128>, n: usize, k: usize, start: usize, mask: u128) {
-        if k == 0 {
-            out.push(mask);
-            return;
-        }
-        for i in start..=n - k {
-            rec(out, n, k - 1, i + 1, mask | (1u128 << i));
-        }
-    }
-    if k > n {
-        return Vec::new();
-    }
-    let mut out = Vec::new();
-    rec(&mut out, n, k, 0, 0);
-    out
 }
 
 fn coeff<S: Scalar>(a: &Multivector<S>, mask: u128) -> S {
@@ -79,8 +62,8 @@ fn plucker_relations_hold<S: Scalar>(
     if k == 0 || k == 1 || k == n {
         return true;
     }
-    for i_mask in combinations(n, k - 1) {
-        for j_mask in combinations(n, k + 1) {
+    for i_mask in grade_k_masks(n, k - 1) {
+        for j_mask in grade_k_masks(n, k + 1) {
             let mut acc = S::zero();
             let mut jj = j_mask;
             let mut pos = 0usize;

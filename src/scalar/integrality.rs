@@ -338,7 +338,7 @@ mod tests {
         // every polynomial round-trips through F_5(t) = Frac(F_5[t]).
         let samples = [
             P::constant(Fp::<5>::from_int(3)),
-            P::x(),
+            P::t(),
             Poly::new(vec![
                 Fp::<5>::from_int(1),
                 Fp::<5>::from_int(0),
@@ -363,7 +363,7 @@ mod tests {
             vec![Fp::<5>::from_int(0), Fp::<5>::from_int(1)],
         );
         assert!(t2_over_t.is_integral());
-        assert_eq!(t2_over_t.to_integer(), Some(P::x()));
+        assert_eq!(t2_over_t.to_integer(), Some(P::t()));
     }
 
     #[test]

@@ -202,7 +202,7 @@ fn distinct_degree_factors<S: Scalar + Copy>(
 ) -> Vec<Poly<S>> {
     let mut out = Vec::new();
     let mut g = f.make_monic();
-    let x = Poly::<S>::x();
+    let x = Poly::<S>::t();
     let mut h = x.clone();
     let mut d = 1usize;
     while g.degree().unwrap_or(0) >= 2 * d {

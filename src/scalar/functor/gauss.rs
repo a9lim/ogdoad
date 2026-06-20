@@ -91,7 +91,7 @@ impl<S: Valued> Gauss<S> {
 
     /// The indeterminate `t` (a unit of valuation 0 with transcendental residue).
     pub fn t() -> Self {
-        Gauss::from_polys(Poly::x(), Poly::one())
+        Gauss::from_polys(Poly::t(), Poly::one())
     }
 
     /// The numerator / denominator coefficient slices (low-degree first).

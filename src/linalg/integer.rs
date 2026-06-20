@@ -150,6 +150,25 @@ pub(crate) fn ext_gcd(a: i128, b: i128) -> (i128, i128, i128) {
     }
 }
 
+/// The non-negative gcd of two `i128`s — the Bézout-free slice of [`ext_gcd`],
+/// the crate's one integer gcd. Callers who need only the gcd use this; the few
+/// who need the cofactors call [`ext_gcd`] directly.
+pub(crate) fn gcd(a: i128, b: i128) -> i128 {
+    ext_gcd(a, b).0
+}
+
+/// The gcd of two `u128`s (the unsigned companion of [`gcd`], for the
+/// fixed-width-`u128` payload sites that never go negative).
+pub(crate) fn gcd_u128(a: u128, b: u128) -> u128 {
+    let (mut a, mut b) = (a, b);
+    while b != 0 {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    a
+}
+
 fn swap_cols(m: &mut [Vec<i128>], a: usize, b: usize) {
     if a == b {
         return;

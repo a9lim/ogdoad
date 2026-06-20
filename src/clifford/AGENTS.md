@@ -20,7 +20,8 @@ divided-power exponents, spinor/Dickson parities, and Frobenius subfield data.
 construction, the GA ops, Cayley, even subalgebra, exercised over the Ordinal/Surreal
 backends). The associative-algebra core is split by concept under `engine/`:
 
-- **`basis.rs`** — `bits` / `grade` / `MAX_BASIS_DIM` / `wedge_sign`.
+- **`basis.rs`** — `bits` / `grade` / `MAX_BASIS_DIM` / `wedge_sign` / `grade_k_masks`
+  (the one grade-k blade-mask enumerator, shared by `blade.rs` and `outermorphism.rs`).
 - **`metric.rs`** — `Metric {q, b, a}`, constructors, `direct_sum`, `q_val`/
   `has_upper`, `map` (coefficient base-change `Metric<S>→Metric<T>`, e.g. lifting an
   `F_2` trace form into `Metric<Nimber>` for the Arf classifier, or consuming
@@ -65,7 +66,9 @@ backends). The associative-algebra core is split by concept under `engine/`:
   (`f(a∧b)=f(a)∧f(b)`); determinant as the pseudoscalar action `f(I)=det·I`; compose,
   `inverse_outermorphism`. Plus the char poly via exterior powers
   (`exterior_power_trace`, `trace`, `char_poly`). Char-faithful (the char-2
-  determinant/permanent too).
+  determinant/permanent too). The lift enumerates each grade's blade masks through the
+  shared `grade_k_masks` enumerator (the one grade-k blade-mask source, shared with
+  `basis.rs`). `LinearMap`'s dimension is the `n()` accessor (a method, not a field).
 - **`frobenius.rs`** — the scalar-Galois ↔ Clifford bridge: turns a
   `CoordinateCyclicGaloisExtension` (a coordinate-aware narrowing of
   `CyclicGaloisExtension`, defined here, that adds `coordinates()`) into
@@ -81,12 +84,16 @@ backends). The associative-algebra core is split by concept under `engine/`:
   DECONCATENATION coproduct. Binomials reduce mod char: `(γᵢ⁽¹⁾)²=2γᵢ⁽²⁾=0` in char 2
   while `γᵢ⁽²⁾≠0` — the honest Γ≠Sym (mirror of exterior `eᵢ²=0`). Standalone (own
   monomials, not the blade engine); Python exposes it via the
-  `<World>DividedPowerAlgebra` / `<World>DpVector` backend family.
+  `<World>DividedPowerAlgebra` / `<World>DpVector` backend family. State is
+  encapsulated like the engine: read `DividedPowerAlgebra` dimension through the
+  `.dim()` accessor and `DpVector`'s terms through `.terms()`, not bare fields.
 - **`cga.rs`** — conformal (Cl(n+1,1) null basis: `up`/`down`/`inner`/`sphere`/
-  `plane`/`point_pair`/`meet`, with the `no`/`ninf` generator indices and `n_o()`/
+  `plane`/`point_pair`/`outer_join`, with the `no`/`ninf` generator indices and `n_o()`/
   `n_inf()` null-basis accessors) + projective GA (`pga(n)` = `Cl(n,0,1)`, with the
   terminating `exp_nilpotent` motor exp). Char-0 (needs ½); surreal ∞/ε radii are
-  exact.
+  exact. `Cga::outer_join` is the CGA IPNS wedge join (infallible) — NOT to be
+  confused with `CliffordAlgebra::meet`, the fallible regressive product (see
+  "things that look like bugs").
 - **`spinor.rs`** — concrete left-ideal spinor matrices. Three paths, keyed on
   `characteristic()` and whether the polar form `b` is diagonal: char-0 *orthogonal*
   uses the `∏½(1+w)` idempotent search and matches the real-table classifier when it

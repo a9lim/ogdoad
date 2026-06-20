@@ -43,13 +43,14 @@ and const-generic sizes that are inherently indices.
   layer (`forms/function_field.rs`) uses its `divrem`/`gcd`/`pow_mod`. As `S[t]` it
   is the **ring of integers** of `S(t)`, so it impls `Scalar` + `HasFractionField`
   (Frac = `RationalFunction<S>`); its units are the nonzero constants, so `inv` is
-  partial. Display is canonical ogham (Display v2, `docs/ogham/ogham.md` §9): variable
+  partial. `Poly::t()` is the indeterminate constructor (matching the `t` it Displays
+  as). Display is canonical ogham (Display v2, `docs/ogham/ogham.md` §9): variable
   `t`, explicit `⋅`, coefficient parens only when non-atomic — and it owns the
   shared `pub(crate)` `atomic`/`attach_coeff` helpers the `Multivector` display
   also uses (atomic = no spaces and no `⋅ ∧ ↑ / + -` outside balanced parens; a
   single leading `-` is a unary sign, carried bare).
 - **`newton.rs`** — `NewtonPolygon`: the lower convex hull of `{(i, v(aᵢ))}` for
-  `f = Σ aᵢtⁱ` over a `Valued` field (`of`/`vertices`/`degree`/`slopes`/
+  `f = Σ aᵢtⁱ` over a `Valued` field (`from_coeffs`/`vertices`/`degree`/`slopes`/
   `root_valuations`/`zero_root_multiplicity`). The tropicalization of the Springer
   residue filtration — the Newton slope theorem (root valuations = negated hull
   slopes) is the `Valued`-side oracle, tested over `Qp`/`Laurent`/`Ramified`.
@@ -123,7 +124,10 @@ and const-generic sizes that are inherently indices.
 - **`extension.rs`** — the `FieldExtension: Scalar` trait: a finite separable
   extension `E/F` with `extension_degree`/`embed`/`trace`/`norm` to a distinguished
   `Base`. The orthogonal view of `FiniteField`'s relative trace/norm (one fixed base
-  vs. any subfield). Impl'd for:
+  vs. any subfield). `FieldExtension::extension_degree` (relative, over the chosen
+  `Base`) and `FiniteField::ext_degree` (absolute, over the prime field) are
+  deliberately distinct names for distinct invariants — they coincide only when `Base`
+  is the prime field. Impl'd for:
   - `Surcomplex<S: Ordered>` (deg 2);
   - `Fpn<P,N>` over `Fp<P>` (deg N, delegating to the tested `FiniteField` relative
     trace/norm);
@@ -243,6 +247,10 @@ the project's central symmetries.
   discrete_log) as default methods. An impl supplies only `frobenius`, integer `pow`,
   `ext_degree`, `group_order`, `group_order_factors`. nimber + fpn both impl it — one
   verified algorithm, two backends.
+  The per-backend const-generic validators (formerly the separate
+  `assert_prime_modulus`/`assert_supported_field`/`assert_supported_ring`/
+  `assert_supported_precision` guards across `Fp`/`Fpn`/`WittVec`/`Zp`/`Qp`/…) are
+  unified to one name, `assert_supported_params`.
 - **`fp.rs`** — `Fp<const P>`: the prime field F_P (any prime P — the odd-char
   comparison backend, and `F_2 = Base` for `Nimber`); the `Qp → Fp` residue field.
 - **`fpn.rs`** — `Fpn<const P, const N>`: F_{p^N} via a (P,N)-keyed irreducible
@@ -277,7 +285,8 @@ Orthogonal to the place table: a 2×2 of (algebraic|transcendental) ×
   `conj()`). Only meaningful over char-0 worlds (over nimbers i²=1, degenerate).
 - **`laurent.rs`** — `Laurent<S, const K>` = S((t)) to relative precision K. Over a
   finite field, the EQUAL-characteristic local cell F_q((t)) (the char-p mirror of
-  Qp); ring of integers F_q[[t]] = the val≥0 subring. Capped-relative; EXCLUDED.
+  Qp); ring of integers F_q[[t]] = the val≥0 subring. Capped-relative; EXCLUDED. The
+  base-coefficient embedding is `Laurent::from_base` (was `from_scalar`).
 - **`ramified.rs`** — `Ramified<S: Valued, const E>` = adjoin a root of xᴱ−ϖ. The
   RAMIFIED local cell Q_p(p^{1/E}), the ramified twin of Qq. Always a field
   (Eisenstein), incl. wild/inseparable p|E. `Valued` with uniformizer π and

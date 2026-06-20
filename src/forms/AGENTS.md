@@ -46,8 +46,12 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   a decomposition; `…Invariants` is a classifier's report record
   (`ArfInvariants`, `BrownInvariants`, `CliffordInvariants`, `OddCharInvariants`,
   `FiniteFieldInvariants`, `NikulinExistenceInvariants`, `SymplecticInvariants`);
-  `…Signature` stays for the literal mathematical signature. Façade traits are
-  verb-first (`ClassifyForm`,
+  `…Record` is a static catalogue record carrying no group law (`NiemeierRecord`,
+  `KneserMassRecord`) — distinct from `…Class`, which is a group element with a
+  law; `…Signature` stays for the literal mathematical signature. The `…Report`
+  suffix is retired: every report record now ends `…Invariants` (e.g.
+  `OddMilgramInvariants`, `WeylVersorInvariants`, `KneserMassInvariants`,
+  `CliffordBarnesWall16Invariants`). Façade traits are verb-first (`ClassifyForm`,
   `ClassifyWitt`, `ClassifyIsometry`, `ClassifyBrauerWall`, `DecomposeWitt`).
   New types follow this glossary. Leg dispatch:
   - `Surreal` → `CliffordInvariants`
@@ -156,7 +160,7 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
   (`RationalBrauerWallClass` over ℚ: dimension parity + signed discriminant +
   Bridge-F `c(q)` with Wall's twisted law), `bw_class_function_field`
   (`FunctionFieldBrauerWallClass` over odd `F_q(t)`: the same Wall coordinates, with
-  the ungraded Clifford component represented by ramified `FFPlace`s),
+  the ungraded Clifford component represented by ramified `FunctionFieldPlace`s),
   `bw_class_finite_odd` (order-4 ≅ W(F_q)), `bw_class_nimber`, and façade dispatch
   for supported finite char-2 fields/windows (char-2 Arf/Witt class `ℤ/2`,
   nonsingular metrics only). Law = graded_tensor/direct sum.
@@ -244,8 +248,10 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   (`isotropy_over_adeles`/`AdelicIsotropy`), Brauer local invariant sums. Reuses
   `local_global/padic.rs`.
 - **`local_global/function_field.rs`** — the **equal-characteristic mirror** of
-  `padic.rs` + `adelic.rs` over `F_q(t)`. Places `FFPlace{Infinite, Finite(π)}`
-  (monic irreducibles + the degree place), the **tame** Hilbert symbol
+  `padic.rs` + `adelic.rs` over `F_q(t)`. Places `FunctionFieldPlace<S>{Infinite,
+  Finite(Poly<S>)}` (monic irreducibles + the degree place) — the single place type,
+  shared with the char-2 Artin–Schreier layer (below) and the `GlobalField::Place`
+  associated type for `RationalFunction`. The **tame** Hilbert symbol
   `try_hilbert_symbol_ff` (the odd-`p` branch with the residue Legendre → `χ_κ`; no
   `p=2` branch since `q` is odd), reciprocity `try_hilbert_reciprocity_product_ff`,
   `try_is_isotropic_ff`/`try_is_isotropic_at_place_ff`/`try_isotropy_over_ff_adeles`
@@ -258,19 +264,24 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   (`inv_v = deg(v)·v(a)/n`, the constant extension `F_{qⁿ}(t)` — unramified at every
   place, so `Σ_v inv_v = deg(div a)/n = 0`) and
   `tame_symbol_invariants_ff(n, a, b)` when `μ_n ⊂ F_q`; both return a `Vec` since
-  `FFPlace` is not `Ord`.
+  `FunctionFieldPlace` is not `Ord`.
 - **`local_global/function_field_char2.rs`** — the **equal-characteristic-2** mirror:
   the **asymmetric Artin–Schreier symbol** `[a,b)` over `F_{2^m}(t)` (`a` additive mod
   `℘`, `b` multiplicative), NOT the tame symbol. Local invariant = the **Schmid
-  formula** `s_v(a,b) = Tr_{κ/F₂}(Res_v(a·dlog b))` (`as_symbol_at`), via a
+  formula** `s_v(a,b) = Tr_{κ/F₂}(Res_v(a·dlog b))` (`artin_schreier_symbol_at`), via a
   from-scratch residue-of-differentials engine (Hensel series `T(u)`, `P(T)=u`; the
-  `∞` place by `u=1/t`). Reciprocity `∑_v s_v = 0` (`as_symbol_reciprocity_sum`, the
-  gold oracle) + even ramification (`as_symbol_ramified_places`). Generic over
-  `FiniteChar2Field` (so `F₂(t)`, `F₄(t)`, `F₈(t)` share one engine). Names carry
-  `as_symbol_*` / `Char2Place`. The crate-private helpers (`strip_factor`/
-  `inverse_mod`/`trace_kappa_to_f2`, and `char2_monic_irreducible_factors` — a thin
-  wrapper over the shared `poly_factor` finite-field factorizer) are `pub(crate)` so
-  `springer/char2/` reuses them.
+  `∞` place by `u=1/t`). Reciprocity `∑_v s_v = 0` (`artin_schreier_reciprocity_sum`, the
+  gold oracle) + even ramification (`artin_schreier_ramified_places`). Generic over
+  `FiniteChar2Field` (so `F₂(t)`, `F₄(t)`, `F₈(t)` share one engine). The symbol
+  surface carries the `artin_schreier_*` prefix and reuses the SAME
+  `FunctionFieldPlace` as the odd layer — but it stays a **separate, additive** layer
+  that cannot implement the multiplicative `GlobalField` trait. That asymmetry is the
+  content: an additive Artin–Schreier symbol with XOR reciprocity here, the
+  multiplicative Hilbert symbol with product reciprocity over there — the same kind of
+  honest gap as the missing real place over `F_q(t)`. The crate-private helpers
+  (`strip_factor`/ `inverse_mod`/`trace_kappa_to_f2`, and
+  `char2_monic_irreducible_factors` — a thin wrapper over the shared `poly_factor`
+  finite-field factorizer) are `pub(crate)` so `springer/char2/` reuses them.
 - **`springer/char2/`** (detail) — the equal-char-2 mirror of `springer/local.rs`
   (but NOT the odd story at `p=2`: the wild `R_π` summand the `W=W(k)²` grading
   misses). `springer_decompose_local_char2(form, place)` gives the **Aravire–Jacob**
@@ -288,7 +299,7 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   `global_is_pe(f)` (`f ∈ ℘(F_q(t))`? — finite sweep of `f`'s poles + `∞`, settles
   rank 2: `[a,b]` iso ⟺ `ab ∈ ℘`), `ff_is_square(f)` (`f ∈ K²`? — all odd-degree
   coeffs of `num·den` vanish, settles the totally-singular part via `[K:K²]=2`), and a
-  bad-place sweep over `relevant_places_char2(form)` for rank 3/4 (good places
+  bad-place sweep over `artin_schreier_form_places(form)` for rank 3/4 (good places
   isotropic by Chevalley–Warning). `u(F_q(t))=4` (`C₂`) ⇒ rank ≥ 5 isotropic.
   **Looks like a bug, isn't:** rank 2 is NOT a finite bad-place scan — the
   constant-trace `℘`-obstruction (`[1,1]/F₂(t)`) lives at infinitely many odd-degree

@@ -3,6 +3,7 @@
 use crate::games::Game;
 use crate::scalar::{Ordinal, Scalar, SignExpansion, Surreal};
 use std::cmp::Ordering;
+use std::fmt;
 
 /// A transfinite **number-valued** game, carried by its surreal value rather than
 /// a (necessarily infinite) option tree. Numbers are a transfinite class needing no
@@ -83,6 +84,13 @@ impl NumberGame {
     /// [`Game::from_surreal`]/[`Game::number_value`].
     pub fn to_finite_game(&self) -> Option<Game> {
         Game::from_surreal(&self.value)
+    }
+}
+
+impl fmt::Display for NumberGame {
+    /// Renders as the surreal value's display (e.g. `ω`, `3/4`, `-1`).
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 

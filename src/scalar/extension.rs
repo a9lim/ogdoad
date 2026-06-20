@@ -49,7 +49,10 @@ pub trait FieldExtension: Scalar {
     /// The base field `F` (`Self = E`).
     type Base: Scalar;
 
-    /// The degree `[E : F]`.
+    /// The **relative** degree `[E : F]` over the chosen `Base` field `F`.
+    /// Distinct from [`FiniteField::ext_degree`](crate::scalar::FiniteField::ext_degree),
+    /// which is the *absolute* degree over the prime field; the two coincide only when
+    /// `Base` is the prime field.
     fn extension_degree() -> usize;
 
     /// The canonical embedding `F ↪ E`.

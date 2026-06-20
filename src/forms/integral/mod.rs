@@ -20,6 +20,19 @@ pub mod root_lattices;
 pub mod theta;
 pub mod weyl_versors;
 
+/// Whether `order` is a power of `p` (with `order == 1` = `p⁰` accepted). Shared by
+/// the discriminant-form and finite-quadratic-module primary-component sweeps.
+pub(crate) fn is_prime_power(order: u128, p: u128) -> bool {
+    if order == 1 {
+        return true;
+    }
+    let mut m = order;
+    while m.is_multiple_of(p) {
+        m /= p;
+    }
+    m == 1
+}
+
 pub use clifford_lattices::*;
 pub use codes::*;
 pub use discriminant::*;

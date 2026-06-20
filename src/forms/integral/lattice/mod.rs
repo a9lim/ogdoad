@@ -51,6 +51,8 @@ mod geometry;
 
 pub use core::IntegralForm;
 pub use geometry::AUTO_NODE_BUDGET;
+// Small combinatorial helpers shared with the Niemeier Weyl-order catalogue.
+pub(crate) use geometry::{checked_factorial, checked_pow2};
 
 // Re-export the test-visible exact-bounded helper used by lattice tests.
 #[cfg(test)]

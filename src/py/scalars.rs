@@ -362,7 +362,7 @@ impl PyNimberPoly {
     }
     #[staticmethod]
     fn x() -> Self {
-        wrap_nimber_poly(Poly::x())
+        wrap_nimber_poly(Poly::t())
     }
     #[staticmethod]
     fn constant(s: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -724,7 +724,7 @@ macro_rules! prime_field_pyclass {
             }
             #[staticmethod]
             fn assert_prime_modulus() {
-                Fp::<$p>::assert_prime_modulus()
+                Fp::<$p>::assert_supported_params()
             }
             #[staticmethod]
             fn from_u128(value: u128) -> Self {
@@ -896,7 +896,7 @@ macro_rules! extension_field_pyclass {
             }
             #[staticmethod]
             fn assert_supported_field() {
-                Fpn::<$p, $n>::assert_supported_field()
+                Fpn::<$p, $n>::assert_supported_params()
             }
             #[staticmethod]
             fn from_index(code: u128) -> PyResult<Self> {
@@ -1263,7 +1263,7 @@ macro_rules! function_field_pyclasses {
             }
             #[staticmethod]
             fn x() -> Self {
-                $wrap_poly(Poly::x())
+                $wrap_poly(Poly::t())
             }
             #[staticmethod]
             fn constant(s: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -1813,7 +1813,7 @@ impl PyIntegerPoly {
     }
     #[staticmethod]
     fn x() -> Self {
-        wrap_integer_poly(Poly::x())
+        wrap_integer_poly(Poly::t())
     }
     #[staticmethod]
     fn constant(s: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -1980,7 +1980,7 @@ macro_rules! zp_pyclass {
             }
             #[staticmethod]
             fn assert_supported_ring() {
-                Zp::<$p, $k>::assert_supported_ring()
+                Zp::<$p, $k>::assert_supported_params()
             }
             #[staticmethod]
             fn characteristic() -> u128 {
@@ -2144,7 +2144,7 @@ macro_rules! qp_pyclass {
             }
             #[staticmethod]
             fn assert_supported_field() {
-                Qp::<$p, $k>::assert_supported_field()
+                Qp::<$p, $k>::assert_supported_params()
             }
             #[staticmethod]
             fn characteristic() -> u128 {
@@ -2979,7 +2979,7 @@ macro_rules! laurent_pyclass {
                 return Ok(x.borrow().inner.clone());
             }
             if let Ok(s) = $base_parse(obj) {
-                return Ok(Laurent::<$base, $k>::from_scalar(s));
+                return Ok(Laurent::<$base, $k>::from_base(s));
             }
             if let Ok(items) = obj.extract::<Vec<Bound<'_, PyAny>>>() {
                 let mut coeffs = Vec::with_capacity(items.len());
@@ -3016,7 +3016,7 @@ macro_rules! laurent_pyclass {
             }
             #[staticmethod]
             fn from_scalar(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-                Ok($wrap(Laurent::<$base, $k>::from_scalar($base_parse(s)?)))
+                Ok($wrap(Laurent::<$base, $k>::from_base($base_parse(s)?)))
             }
             #[staticmethod]
             fn teichmuller(residue: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -3975,7 +3975,7 @@ impl PyNewtonPolygon {
 }
 
 fn newton_polygon_of<K: Valued>(coeffs: Vec<K>) -> Option<PyNewtonPolygon> {
-    NewtonPolygon::of(&coeffs).map(|inner| PyNewtonPolygon { inner })
+    NewtonPolygon::from_coeffs(&coeffs).map(|inner| PyNewtonPolygon { inner })
 }
 
 #[pyfunction]

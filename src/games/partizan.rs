@@ -21,6 +21,7 @@
 
 use crate::scalar::{Scalar, Surreal};
 use std::cmp::Ordering;
+use std::fmt;
 use std::sync::Arc;
 
 /// A short partizan game `{ left | right }`. Reference-counted (atomically, so the
@@ -179,13 +180,9 @@ impl Game {
     }
 
     /// A readable structural form: `0` for `{|}`, else `{L|R}` recursively.
+    /// Alias for [`to_string`](std::fmt::Display) — kept for Python compatibility.
     pub fn display(&self) -> String {
-        if self.left().is_empty() && self.right().is_empty() {
-            return "0".to_string();
-        }
-        let l: Vec<String> = self.left().iter().map(|g| g.display()).collect();
-        let r: Vec<String> = self.right().iter().map(|g| g.display()).collect();
-        format!("{{{}|{}}}", l.join(","), r.join(","))
+        self.to_string()
     }
 
     /// Whether `G` is a (surreal) *number*: all options are numbers and every left
@@ -364,6 +361,25 @@ impl std::ops::Neg for Game {
     fn neg(self) -> Game {
         Game::neg(&self)
     }
+}
+
+impl fmt::Display for Game {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.left().is_empty() && self.right().is_empty() {
+            return write!(f, "0");
+        }
+        let l: Vec<String> = self.left().iter().map(|g| g.to_string()).collect();
+        let r: Vec<String> = self.right().iter().map(|g| g.to_string()).collect();
+        write!(f, "{{{}|{}}}", l.join(","), r.join(","))
+    }
+}
+
+/// The exact integer value of a short game, if it is an integer-valued number.
+/// Used by `atomic_weight` and `heating`; the canonical extraction is
+/// `number_value()?.as_dyadic()?` then `k == 0`.
+pub(crate) fn integer_value(g: &Game) -> Option<i128> {
+    let (num, k) = g.number_value()?.as_dyadic()?;
+    (k == 0).then_some(num)
 }
 
 /// Keep only the order-maximal games (Left options of a canonical form): drop any

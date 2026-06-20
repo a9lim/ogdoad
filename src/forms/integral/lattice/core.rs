@@ -10,27 +10,17 @@ use crate::forms::integral::diagonal::{
     rational_congruence_diagonal, signature_from_diagonal, DegenerateBehavior,
 };
 use crate::linalg::field::inverse_matrix;
-use crate::linalg::integer::smith_normal_form;
+use crate::linalg::integer::{gcd, smith_normal_form};
 use crate::scalar::{Nimber, Rational, Scalar};
 use std::collections::BTreeMap;
 
 // ── small arithmetic helpers ──
 
-pub(super) fn gcd_i128(a: i128, b: i128) -> i128 {
-    let (mut a, mut b) = (a.abs(), b.abs());
-    while b != 0 {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    a
-}
-
 pub(super) fn lcm_i128(a: i128, b: i128) -> i128 {
     if a == 0 || b == 0 {
         return 0;
     }
-    let g = gcd_i128(a, b);
+    let g = gcd(a, b);
     (a / g)
         .checked_mul(b)
         .expect("lattice level exceeds i128")

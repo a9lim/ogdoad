@@ -63,7 +63,7 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
     `weil_s_recovers_milgram_phase_mod8`, and `verify_weil_relations`.
     `is_isomorphic`/`is_isomorphic_bounded` (Nikulin's criterion). The odd-lattice
     sibling is `OddDiscriminantForm`, with `q_L(y)=y^T G^{-1}y mod Z`,
-    `OddMilgramReport`, and `verify_odd_milgram` for the Conway-Sloane
+    `OddMilgramInvariants`, and `verify_odd_milgram` for the Conway-Sloane
     oddity-corrected congruence `signature ≡ oddity - p_excess (mod 8)`.
     `pub(crate)` surface: `IsoTables`, `phase_mod8_from_q_values` (used by
     `fqm_witt.rs`). **Looks like a bug, isn't:** the standard Weil `S` prefactor is the
@@ -88,7 +88,7 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   Engine: the p-adic Jordan decomposition (`jordan_blocks`, exact over `Rational`):
   odd `p` diagonalizes (valuation-ordered Gram–Schmidt); `p=2` peels 1-dim type-I lines
   and 2-dim even type-II planes by Schur complement. Per scale: `(dim, det mod 8, type,
-  oddity = trace mod 8)` at `p=2`; odd `p` uses `(dim, det square class)`. `Genus::of` /
+  oddity = trace mod 8)` at `p=2`; odd `p` uses `(dim, det square class)`. `Genus::from_lattice` /
   `are_in_same_genus`. **Looks like a bug, isn't:** the comparison is **exact for odd
   `p`** (no sign-walking) and uses the full Conway–Sloane/Allcock fine-symbol reduction
   at `p=2` (normalize det residues, fuse compartment oddities, sign-walk left along
@@ -98,16 +98,20 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
 - **`kneser.rs`** — explicit Kneser `p`-neighbors for integral lattices:
   `isotropic_lines_mod_p`, `kneser_neighbor`, and `kneser_neighbors` build
   `pM + Zv` in integer coordinates and divide the Gram by `p^2`, so integrality is
-  checked rather than assumed. The even-unimodular report is bounded to the explicit
-  rank-8/rank-16 representatives (`E8`, `E8+E8`, `D16+`) and verifies the mass sum;
-  rank 24 remains with the Niemeier catalogue because the 23 rooted glued Gram
-  representatives are not shipped.
+  checked rather than assumed. The even-unimodular mass report `KneserMassInvariants`
+  (each enumerated genus member a `KneserMassRecord`, a static catalogue record with no
+  group law) is bounded to the explicit rank-8/rank-16 representatives (`E8`, `E8+E8`,
+  `D16+`) and verifies the mass sum; it exposes the discovered representatives through
+  `generated_class_labels()` (a method, not a field). Rank 24 remains with the Niemeier
+  catalogue because the 23 rooted glued Gram representatives are not shipped.
 - **`weyl_versors.rs`** — the ADE roots-as-Pin bridge: simple roots in the rational
   Clifford algebra act by `twisted_sandwich` as the Cartan simple reflections,
   each determinant is checked as `-1` through the outermorphism determinant, and
   `weyl_coxeter_versor` has the expected Coxeter order for the supported
-  `A_n`/`D_n`/`E_{6,7,8}` components. It reports the Weyl-group order from the
-  root-system formulas; it does not enumerate large Weyl groups element-by-element.
+  `A_n`/`D_n`/`E_{6,7,8}` components. The `WeylVersorInvariants` record reports the
+  Weyl-group order from the root-system formulas (it dropped its tautological
+  `simple_reflection_count` field — that count is just the rank); it does not enumerate
+  large Weyl groups element-by-element.
 - **`mass_formula.rs`** — the **Minkowski–Siegel mass** of the even-unimodular genus,
   `mass_even_unimodular(n)` = `|B_{n/2}|/n · ∏_{j<n/2} |B_{2j}|/(4j)`, returned as a
   reduced `(num, den)` `i128` fraction (Bernoulli by exact recurrence; hard cap `n > 24`
@@ -121,11 +125,20 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   no roots *is* Leech (Niemeier), so the test checks `det=1`, even, `short_vectors(2)`
   empty (cheap; the full kissing 196560 is not enumerated). `|Aut(Λ₂₄)| = |Co₀|` is the
   factorized constant `LEECH_AUT_ORDER`.
-- **`niemeier.rs`** — the 24-class Niemeier catalogue: root-system components,
+- **`niemeier.rs`** — the 24-class Niemeier catalogue (each class a `NiemeierRecord`,
+  a static catalogue record carrying no group law): root-system components,
   finite glue-code indices `[N:R]`, and the quotient `Aut(N)/W(R)` from the
   Conway-Sloane table. It constructs the root sublattice `R` for each rooted class
   and uses Venkov's weight-12 formula `theta_N = E4^3 + (#roots - 720) Delta`; it
-  deliberately does **not** ship 23 explicit glued Gram matrices. Oracles:
+  deliberately does **not** ship 23 explicit glued Gram matrices. The component type
+  `NiemeierComponentKind` names the exceptional roots explicitly (`E6`/`E7`/`E8`
+  variants, not a single `E(usize)`), and `coxeter_number`/`determinant`/
+  `root_lattice`/`root_count` all return `Option` uniformly — matching
+  `weyl_group_order` — instead of panicking out of domain. Substrate sharing keeps
+  the arithmetic deduplicated: integer gcd is `linalg::integer::gcd`/`gcd_u128`,
+  primality is `scalar::is_prime_u128`, prime-power-order detection is a shared
+  `is_prime_power`, and `checked_factorial`/`checked_pow2` are shared from the lattice
+  module (no per-file copies). Oracles:
   `glue^2 = det(R)`, anchor automorphism orders (Leech, `A_1^24`, `E_8^3`),
   `Σ 1/|Aut(N)| = mass_even_unimodular(24)`, and the exact weighted identity
   `(Σ theta_N/|Aut(N)|)/mass(24) = E12`.

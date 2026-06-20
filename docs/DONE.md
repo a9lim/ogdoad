@@ -44,6 +44,34 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### ~3·(e_s∧e_c∧e_f∧e_i∧e_g): `consistency-sweep`
+**Completed:** 2026-06-20
+**Summary:** played the 2026-06-20 [`CONSISTENCY.md`](CONSISTENCY.md) taste audit — a
+crate-wide hygiene pass that made the newest wing reach back for the substrate the rest of
+the crate already established, and unified the local–global place surface.
+**Pillars:** scalar ↔ clifford ↔ forms ↔ integral ↔ games    **Claim level:**
+interpretation (taste), implemented-and-tested (no mathematical content changed)
+- surface: `linalg::integer::gcd`/`gcd_u128` (the one integer gcd; killed 8 copies);
+  `is_prime`/`is_prime_power`/`checked_factorial`/`checked_pow2`/`matrix_rank`/`mex`/
+  integer-value-of-game all routed to their single canonical home; `engine/basis::grade_k_masks`
+  (one blade-mask enumerator); `NiemeierComponentKind::{E6,E7,E8}` + uniform `Option` returns;
+  the merged `FunctionFieldPlace<S>` (= `GlobalField::Place`) replacing `FFPlace`/`Char2Place`,
+  with char-2 `artin_schreier_*` core names; the `…Record`/`…Invariants` glossary fold
+  (`NiemeierRecord`, `KneserMassRecord`, `WeylVersorInvariants`, `OddMilgramInvariants`, …);
+  `Display` for the game value types; `Cga::outer_join`; accessor encapsulation
+  (`DividedPowerAlgebra::dim()`, `DpVector::terms()`, `LinearMap::n()`); `from_base`,
+  `Poly::t`, `assert_supported_params`, `Genus::from_lattice`, `NewtonPolygon::from_coeffs`.
+- oracles: the full gate — 913 Rust tests, `clippy --all-targets` (both feature sets),
+  cold `cargo doc -D warnings`, `cargo check/clippy --features python`, `maturin develop` +
+  `demo.py`, regenerated `ogdoad.pyi`.
+- boundaries: Python-facing names kept stable (every rename is internal; bindings track it).
+  `WittClassG` and `ext_degree`/`extension_degree` were doc-clarified, not renamed (a rename
+  would create trait-method-resolution ambiguity, and they name genuinely distinct invariants).
+  The Artin–Schreier symbol stayed mathematically distinct from the Hilbert symbol (additive
+  vs multiplicative — it cannot join the multiplicative `GlobalField` trait). One item,
+  `precision-K`, was consciously deferred: unifying the `Qp`/`Laurent` precision-param width
+  cascades across the whole p-adic const-generic surface, disproportionate to the nit.
+
 ### 1·(e_c∧e_i): `weyl-versors`
 **Completed:** 2026-06-19
 **Summary:** ADE simple roots now act as Clifford Pin versors whose twisted

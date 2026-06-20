@@ -32,6 +32,7 @@
 use crate::games::Game;
 use crate::scalar::Ordinal;
 use std::cmp::Ordering;
+use std::fmt;
 
 /// A transfinite **nimber-valued** (impartial) game — the Nim heap `⋆α` — carried
 /// by its ordinal Grundy value rather than a (necessarily infinite) option set. The
@@ -116,6 +117,14 @@ impl NimberGame {
     /// (`Some` iff dyadic). On finite heaps the finite game's value agrees.
     pub fn to_finite_game(&self) -> Option<Game> {
         self.grundy.as_finite().map(Game::nim_heap)
+    }
+}
+
+impl fmt::Display for NimberGame {
+    /// Renders as the Ordinal's star-wrapped display (e.g. `*5`, `*(ω + 1)`).
+    /// Delegates to [`Ordinal`]'s Display which already star-wraps ordinals.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.grundy)
     }
 }
 

@@ -30,7 +30,7 @@ pub const BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP: u128 = 2;
 
 /// Verification record for the Clifford-side construction of `BW16`.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CliffordBarnesWall16Report {
+pub struct CliffordBarnesWall16Invariants {
     pub lattice: IntegralForm,
     pub construction_d_lattice: IntegralForm,
     pub spinor_dimension: usize,
@@ -43,7 +43,7 @@ pub struct CliffordBarnesWall16Report {
     pub automorphism_index_in_clifford_group: u128,
 }
 
-impl CliffordBarnesWall16Report {
+impl CliffordBarnesWall16Invariants {
     /// The determinant of the Clifford-side lattice.
     pub fn determinant(&self) -> i128 {
         self.lattice.determinant()
@@ -109,15 +109,20 @@ pub fn clifford_barnes_wall_16() -> IntegralForm {
 
 /// Build the Clifford-side `BW16` and compare it with the Reed-Muller
 /// Construction-D route.
-pub fn clifford_barnes_wall_16_report() -> CliffordBarnesWall16Report {
-    let lattice = clifford_barnes_wall_16();
-    let construction_d_lattice = barnes_wall_16();
+pub fn clifford_barnes_wall_16_report() -> CliffordBarnesWall16Invariants {
     let rows = clifford_barnes_wall_16_numerator_rows();
+    let lattice = divided_lattice_from_rows(
+        rows.clone(),
+        BW16_CLIFFORD_SPINOR_DIMENSION,
+        BW16_CLIFFORD_ROW_DIVISOR,
+    )
+    .expect("Clifford BW16 rows give an integral full-rank lattice");
+    let construction_d_lattice = barnes_wall_16();
     let coordinate_weight_row_count = BW16_CLIFFORD_SPINOR_DIMENSION;
     let quadratic_phase_row_count = rows.len() - coordinate_weight_row_count;
     let matches_construction_d = lattice.gram() == construction_d_lattice.gram();
 
-    CliffordBarnesWall16Report {
+    CliffordBarnesWall16Invariants {
         lattice,
         construction_d_lattice,
         spinor_dimension: BW16_CLIFFORD_SPINOR_DIMENSION,

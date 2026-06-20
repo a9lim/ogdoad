@@ -28,7 +28,7 @@
 //! [`global_residues_ff`] returns the `W(F_q)` summand from the even-valuation layer
 //! at the degree place `∞`, plus the nonzero second residues at finite monic
 //! irreducible places. This is exact on the shipped `RationalFunction`/`Poly`
-//! backend and uses the same `FFPlace` arithmetic as the function-field Hilbert and
+//! backend and uses the same `FunctionFieldPlace` arithmetic as the function-field Hilbert and
 //! Hasse–Minkowski layers.
 //!
 //! **Claim level:** standard math (Milnor; Lam GSM 67, Ch. IX) made computational.
@@ -48,7 +48,7 @@
 use crate::forms::local_global::padic::{legendre, relevant_primes, unit_part, val_p};
 use crate::forms::{
     try_chi_kappa, try_kappa_order, try_relevant_places_ff, try_residue_unit_at,
-    try_valuation_at_ff, FFPlace, FiniteOddField, WittClassG,
+    try_valuation_at_ff, FiniteOddField, FunctionFieldPlace, WittClassG,
 };
 use crate::scalar::{Poly, RationalFunction, Scalar};
 use std::collections::BTreeMap;
@@ -57,7 +57,7 @@ use std::collections::BTreeMap;
 ///
 /// The first component is the constant-field class selected at `∞`; the vector is
 /// the finite-place support of nonzero second residues.
-pub type FunctionFieldMilnorResidues<S> = (WittClassG, Vec<(FFPlace<S>, WittClassG)>);
+pub type FunctionFieldMilnorResidues<S> = (WittClassG, Vec<(FunctionFieldPlace<S>, WittClassG)>);
 
 /// The second residue `∂_p⟨a_1,…,a_n⟩` at an **odd** prime `p`, as a Witt class over
 /// `F_p`. It collects the residue units of the entries of **odd** `p`-valuation and
@@ -141,7 +141,7 @@ pub fn global_residues(entries: &[i128]) -> Option<(i128, BTreeMap<u128, WittCla
 
 fn oddchar_witt_from_residue_units<S: FiniteOddField>(
     units: &[Poly<S>],
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<WittClassG> {
     let mut chi_prod: i128 = 1;
     for unit in units {
@@ -165,7 +165,7 @@ fn oddchar_witt_from_residue_units<S: FiniteOddField>(
 
 fn second_residue_at_ff<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<WittClassG> {
     let mut units = Vec::new();
     for entry in entries {
@@ -179,7 +179,7 @@ fn second_residue_at_ff<S: FiniteOddField>(
 fn constant_class_at_infinity_ff<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
 ) -> Option<WittClassG> {
-    let place = FFPlace::Infinite;
+    let place = FunctionFieldPlace::Infinite;
     let mut units = Vec::new();
     for entry in entries {
         if try_valuation_at_ff(entry, &place)?.rem_euclid(2) == 0 {
@@ -208,7 +208,7 @@ pub fn global_residues_ff<S: FiniteOddField>(
     let constant = constant_class_at_infinity_ff(entries)?;
     let mut residues = Vec::new();
     for place in try_relevant_places_ff(entries)? {
-        if matches!(place, FFPlace::Infinite) {
+        if matches!(place, FunctionFieldPlace::Infinite) {
             continue;
         }
         let w = second_residue_at_ff(entries, &place)?;
@@ -284,8 +284,8 @@ mod tests {
     }
 
     fn residue_at<'a>(
-        residues: &'a [(FFPlace<Fp<5>>, WittClassG)],
-        place: &FFPlace<Fp<5>>,
+        residues: &'a [(FunctionFieldPlace<Fp<5>>, WittClassG)],
+        place: &FunctionFieldPlace<Fp<5>>,
     ) -> Option<&'a WittClassG> {
         residues.iter().find(|(pl, _)| pl == place).map(|(_, w)| w)
     }
@@ -372,14 +372,14 @@ mod tests {
         let (constant, residues) = global_residues_ff(&[rf(&[0, 1], &[1])]).unwrap();
         assert_eq!(constant, odd_class(5, 0, 0));
         assert_eq!(
-            residue_at(&residues, &FFPlace::Finite(poly(&[0, 1]))),
+            residue_at(&residues, &FunctionFieldPlace::Finite(poly(&[0, 1]))),
             Some(&odd_class(5, 1, 0))
         );
 
         let (constant, residues) = global_residues_ff(&[rf(&[1], &[0, 1])]).unwrap();
         assert_eq!(constant, odd_class(5, 0, 0));
         assert_eq!(
-            residue_at(&residues, &FFPlace::Finite(poly(&[0, 1]))),
+            residue_at(&residues, &FunctionFieldPlace::Finite(poly(&[0, 1]))),
             Some(&odd_class(5, 1, 0))
         );
 
@@ -390,7 +390,7 @@ mod tests {
 
     #[test]
     fn function_field_residues_see_degree_two_places() {
-        let place = FFPlace::Finite(poly(&[2, 0, 1])); // t^2 + 2 irreducible over F_5
+        let place = FunctionFieldPlace::Finite(poly(&[2, 0, 1])); // t^2 + 2 irreducible over F_5
         let (constant, residues) = global_residues_ff(&[rf(&[2, 0, 1], &[1])]).unwrap();
         assert_eq!(constant, odd_class(5, 1, 0));
         assert_eq!(residue_at(&residues, &place), Some(&odd_class(25, 1, 0)));

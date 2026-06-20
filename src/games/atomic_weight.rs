@@ -28,12 +28,12 @@
 //! `aw(G+H) = aw(G) + aw(H)` and `aw(−G) = −aw(G)` (Larsson–Nowakowski Thm 1,
 //! restating Siegel) — see `atomic_weight_is_additive`.
 
+use crate::games::partizan::integer_value;
 use crate::games::Game;
 
 /// `G` as an integer value, if it is an integer-valued game; else `None`.
 fn game_as_int(g: &Game) -> Option<i128> {
-    let (num, k) = g.number_value()?.as_dyadic()?;
-    (k == 0).then_some(num)
+    integer_value(g)
 }
 
 /// The **atomic weight** of an all-small game, as a `Game` value (usually an

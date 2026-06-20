@@ -22,6 +22,8 @@ indices, and collection lengths.
   `canonical_string` — the latter canonicalizes, a value key) + the game↔surreal
   bridge (`number_value`/`from_surreal`, numbers only). Also `Game::ordinal_sum`
   (G:H — Hackenbush strings are these), `Game::nim_heap` (⋆n), `Game::is_all_small`.
+  The integer-value-of-a-game logic lives once in `partizan::integer_value` (callers
+  route through it, no duplicate inline copies).
 - **`number_game.rs`** — transfinite NUMBER games (ω, ε) carried by their Surreal
   value — value/birthday/sum/cmp delegate to surreal, no infinite option tree. Plus
   the FULL transfinite round trip via sign_expansion/from_sign_expansion (the
@@ -84,7 +86,9 @@ indices, and collection lengths.
   recurrence (a different *definition* from the algebraic `nim_mul`, proven equal).
   Plus general 1-D coin-turning (`grundy_1d`) and the 2-D Tartan product
   (`tartan_grundy`), with the Tartan/Product theorem verified.
-- **`grundy.rs`** — general Sprague–Grundy (normal-play impartial center): `mex`,
+- **`grundy.rs`** — general Sprague–Grundy (normal-play impartial center): `mex`
+  (the crate's one minimal-excludant — `lexicode.rs` and every other caller route
+  through `grundy::mex`, no re-implementations),
   `grundy_graph` (DAG; None on a cycle), closure-based `grundy`. P-position ⟺ g=0;
   SG theorem `g(G+H)=g(G)⊕g(H)` pinned vs Bouton.
 - **`kernel.rs`** — normal-play Win/Loss/Draw outcomes of any finite game graph
@@ -146,6 +150,10 @@ indices, and collection lengths.
 
 ## Things that look like bugs but are not (games layer)
 
+- **`Game`, `LoopyValue`, `NumberGame`, and `NimberGame` `impl Display`** — that is
+  the canonical render now. The old `display()`/`name()` inherent methods are retained
+  as thin aliases over `Display`, so existing callers keep working; new code can just
+  `{}`-format.
 - **`Game::canonical_string` canonicalizes; `structural_string` does not.**
   `structural_string` is an order-independent fingerprint of the tree *as given* (so
   `(↑−↑).structural_string() ≠ 0`); `canonical_string` reduces first, so it *is* a

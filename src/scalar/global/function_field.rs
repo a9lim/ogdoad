@@ -91,7 +91,7 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
 
     /// The indeterminate `t`.
     pub fn t() -> Self {
-        RationalFunction::from_poly(Poly::x())
+        RationalFunction::from_poly(Poly::t())
     }
 
     /// The numerator polynomial.

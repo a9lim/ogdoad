@@ -46,6 +46,7 @@ impl std::fmt::Display for WittClassError {
 }
 
 /// Reason a [`WittClassG::try_add`] or [`WittClassG::try_mul`] call returned `Err`.
+/// Shared as the error type for both [`WittClass`] and [`WittClassG`] operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum WittClassGError {
@@ -198,9 +199,13 @@ impl std::ops::Neg for WittClass {
     }
 }
 
-/// The Witt class across **all three characteristics** — the group-theoretic
+/// The *generic* Witt class across **all three characteristics** — the group-theoretic
 /// home of the classifier trichotomy (char-0 signature / odd-char
 /// discriminant / char-2 Arf), mirroring the Artin–Schreier↔Arf unification.
+///
+/// The `G` suffix denotes **generic** (spanning the full characteristic trichotomy),
+/// as distinct from the nimber-specific [`WittClass`] in this file which is fixed to
+/// the char-2 field `F_{2^m}`.
 ///
 /// * `Char0`: over the exact-square surreal subdomain, the real-table Witt class
 ///   is classified by the signature `p − q`; forms outside that subdomain are

@@ -49,20 +49,15 @@
 //! The full char-2 Witt/Springer decomposition of an arbitrary form (the wild
 //! `R_π` term) is a separate, larger build tracked in root AGENTS.md.
 
+use crate::forms::function_field::FunctionFieldPlace;
 use crate::forms::{artin_schreier_class_finite, FiniteChar2Field};
 use crate::scalar::{Poly, RationalFunction, Scalar};
 
-/// A place of `F_q(t)` in characteristic 2: the degree place `∞` (residue field
-/// `F_q`), or a finite place given by a monic irreducible `π(t)` (residue field
-/// `F_q[t]/(π)`). The char-2 mirror of
-/// [`FFPlace`](crate::forms::function_field::FFPlace).
-#[derive(Debug, Clone, PartialEq)]
-pub enum Char2Place<S: FiniteChar2Field> {
-    /// The degree place `∞` (uniformizer `1/t`, residue field `F_q`).
-    Infinite,
-    /// A finite place: a monic irreducible `π(t)` (residue field `F_q[t]/(π)`).
-    Finite(Poly<S>),
-}
+// The places of `F_q(t)` are characteristic-independent: this char-2 layer reuses the
+// shared [`FunctionFieldPlace`](crate::forms::function_field::FunctionFieldPlace)
+// rather than carrying a parallel enum. Only the *symbol* differs (additive
+// Artin–Schreier here vs. the multiplicative tame Hilbert symbol in the odd layer);
+// see the [`GlobalField`](crate::forms::GlobalField) module doc for that boundary.
 
 // ───────────────────────── polynomial helpers ─────────────────────────
 
@@ -333,33 +328,39 @@ fn dlog_differential<S: FiniteChar2Field>(
 
 /// The Artin–Schreier symbol `s_v(a, b) ∈ {0, 1}` at `place`, for `b ≠ 0`. `0` iff
 /// the cyclic algebra `[a, b)` splits over the completion at `place`. The char-2
-/// mirror of
-/// [`try_hilbert_symbol_ff`](crate::forms::function_field::try_hilbert_symbol_ff).
-pub fn as_symbol_at<S: FiniteChar2Field>(
+/// **additive** mirror of
+/// [`try_hilbert_symbol_ff`](crate::forms::function_field::try_hilbert_symbol_ff):
+/// where the odd-`q` symbol is multiplicative (`{±1}`, reciprocity a product), this
+/// one is additive (`F₂` under XOR, reciprocity a sum) — so the `_ff` family's `try_`
+/// prefix is absent (this symbol is total, never `None`), and it stays a standalone
+/// function, never a `GlobalField` primitive.
+pub fn artin_schreier_symbol_at<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> u128 {
     let Some((gnum, gden)) = dlog_differential(a, b) else {
         return 0; // a ∈ ℘(K) (in particular a = 0): the symbol vanishes
     };
     match place {
-        Char2Place::Finite(pi) => trace_kappa_to_f2(&residue_finite(&gnum, &gden, pi), pi),
-        Char2Place::Infinite => artin_schreier_class_finite(residue_infinity(&gnum, &gden)),
+        FunctionFieldPlace::Finite(pi) => trace_kappa_to_f2(&residue_finite(&gnum, &gden, pi), pi),
+        FunctionFieldPlace::Infinite => artin_schreier_class_finite(residue_infinity(&gnum, &gden)),
     }
 }
 
 /// The places that can carry a nontrivial symbol for `[a, b)` (`b ≠ 0`): the poles
 /// of `a·dlog b` (monic irreducible factors of its reduced denominator) plus the
 /// degree place `∞`. Every other place sees a regular differential, residue `0`.
-pub fn as_symbol_places<S: FiniteChar2Field>(
+/// The additive char-2 mirror of
+/// [`try_relevant_places_ff`](crate::forms::function_field::try_relevant_places_ff).
+pub fn artin_schreier_symbol_places<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-) -> Vec<Char2Place<S>> {
-    let mut places = vec![Char2Place::Infinite];
+) -> Vec<FunctionFieldPlace<S>> {
+    let mut places = vec![FunctionFieldPlace::Infinite];
     if let Some((_, gden)) = dlog_differential(a, b) {
         for pi in char2_monic_irreducible_factors(&gden) {
-            places.push(Char2Place::Finite(pi));
+            places.push(FunctionFieldPlace::Finite(pi));
         }
     }
     places
@@ -367,26 +368,28 @@ pub fn as_symbol_places<S: FiniteChar2Field>(
 
 /// The **Weil reciprocity sum** `Σ_v s_v(a, b) ∈ F₂` over all places — identically
 /// `0` for every `a` and `b ≠ 0` (the residue theorem on `P¹`). The char-2 additive
-/// analogue of the odd-char product formula `∏_v (a,b)_v = +1`, the gold oracle.
-pub fn as_symbol_reciprocity_sum<S: FiniteChar2Field>(
+/// analogue of the odd-char product formula `∏_v (a,b)_v = +1`
+/// ([`try_hilbert_reciprocity_product_ff`](crate::forms::function_field::try_hilbert_reciprocity_product_ff)),
+/// the gold oracle: the reciprocity here is an XOR sum, not a product.
+pub fn artin_schreier_reciprocity_sum<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
 ) -> u128 {
-    as_symbol_places(a, b)
+    artin_schreier_symbol_places(a, b)
         .iter()
-        .fold(0u128, |acc, pl| acc ^ as_symbol_at(a, b, pl))
+        .fold(0u128, |acc, pl| acc ^ artin_schreier_symbol_at(a, b, pl))
 }
 
 /// The places where the cyclic algebra `[a, b)` **ramifies** (symbol `1`), `b ≠ 0`.
 /// The count is always **even** (additive reciprocity), mirroring
 /// [`try_ramified_places_ff`](crate::forms::function_field::try_ramified_places_ff).
-pub fn as_symbol_ramified_places<S: FiniteChar2Field>(
+pub fn artin_schreier_ramified_places<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-) -> Vec<Char2Place<S>> {
-    as_symbol_places(a, b)
+) -> Vec<FunctionFieldPlace<S>> {
+    artin_schreier_symbol_places(a, b)
         .into_iter()
-        .filter(|pl| as_symbol_at(a, b, pl) == 1)
+        .filter(|pl| artin_schreier_symbol_at(a, b, pl) == 1)
         .collect()
 }
 
@@ -442,21 +445,21 @@ mod tests {
     fn symbol_oracle_a1_b_t() {
         // a = 1, b = t:  ω = dt/t.  s = 1 at t=0 and at ∞, 0 elsewhere; Σ = 0.
         let (a, b) = (r2(&[1], &[1]), r2(&[0, 1], &[1]));
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Finite(p2(&[0, 1]))), 1); // t=0
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Infinite), 1); // ∞
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Finite(p2(&[1, 1]))), 0); // t+1: regular
-        assert_eq!(as_symbol_reciprocity_sum(&a, &b), 0);
-        assert_eq!(as_symbol_ramified_places(&a, &b).len(), 2);
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))), 1); // t=0
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 1); // ∞
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1]))), 0); // t+1: regular
+        assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
+        assert_eq!(artin_schreier_ramified_places(&a, &b).len(), 2);
     }
 
     #[test]
     fn symbol_oracle_a_recip_tp1_b_t() {
         // a = 1/(t+1), b = t:  ω = dt/(t(t+1)).  s = 1 at t=0 and t+1=0, 0 at ∞; Σ = 0.
         let (a, b) = (r2(&[1], &[1, 1]), r2(&[0, 1], &[1]));
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Finite(p2(&[0, 1]))), 1); // t
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Finite(p2(&[1, 1]))), 1); // t+1
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Infinite), 0); // ∞
-        assert_eq!(as_symbol_reciprocity_sum(&a, &b), 0);
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))), 1); // t
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1]))), 1); // t+1
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 0); // ∞
+        assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
     }
 
     #[test]
@@ -464,10 +467,13 @@ mod tests {
         // a = 1/(t²+t+1), b = t:  ω = dt/(t·P), P=t²+t+1.  s = 1 at t=0 and at the
         // degree-2 place P (Tr_{F₄/F₂}(t+1)=1), 0 at ∞; Σ = 0.
         let (a, b) = (r2(&[1], &[1, 1, 1]), r2(&[0, 1], &[1]));
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Finite(p2(&[0, 1]))), 1); // t=0
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Finite(p2(&[1, 1, 1]))), 1); // P (deg 2)
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Infinite), 0); // ∞
-        assert_eq!(as_symbol_reciprocity_sum(&a, &b), 0);
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))), 1); // t=0
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1, 1]))),
+            1
+        ); // P (deg 2)
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 0); // ∞
+        assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
     }
 
     #[test]
@@ -483,19 +489,19 @@ mod tests {
             vec![F4::constant(1)],
         ); // t
         assert_eq!(
-            as_symbol_at(
+            artin_schreier_symbol_at(
                 &a,
                 &b,
-                &Char2Place::Finite(Poly::new(vec![F4::constant(0), F4::constant(1)]))
+                &FunctionFieldPlace::Finite(Poly::new(vec![F4::constant(0), F4::constant(1)]))
             ),
             1
         );
-        assert_eq!(as_symbol_at(&a, &b, &Char2Place::Infinite), 1);
-        assert_eq!(as_symbol_reciprocity_sum(&a, &b), 0);
+        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 1);
+        assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
         // [1, t): a = 1 has trace 0 over F₄, so the symbol is 0 at every place.
         let one = R4::from_base(F4::constant(1));
-        assert_eq!(as_symbol_reciprocity_sum(&one, &b), 0);
-        assert!(as_symbol_ramified_places(&one, &b).is_empty());
+        assert_eq!(artin_schreier_reciprocity_sum(&one, &b), 0);
+        assert!(artin_schreier_ramified_places(&one, &b).is_empty());
     }
 
     // ── reciprocity sweep: the gold oracle, Σ_v s_v = 0 for every (a, b≠0) ──
@@ -513,12 +519,12 @@ mod tests {
         for a in &samples {
             for b in &samples {
                 assert_eq!(
-                    as_symbol_reciprocity_sum(a, b),
+                    artin_schreier_reciprocity_sum(a, b),
                     0,
                     "reciprocity Σ_v s_v(a,b) = 0 failed at a={a:?} b={b:?}"
                 );
                 assert_eq!(
-                    as_symbol_ramified_places(a, b).len() % 2,
+                    artin_schreier_ramified_places(a, b).len() % 2,
                     0,
                     "ramified-place count must be even at a={a:?} b={b:?}"
                 );
@@ -547,7 +553,7 @@ mod tests {
         for a in &samples {
             for b in &samples {
                 assert_eq!(
-                    as_symbol_reciprocity_sum(a, b),
+                    artin_schreier_reciprocity_sum(a, b),
                     0,
                     "reciprocity at a={a:?} b={b:?}"
                 );
@@ -560,10 +566,10 @@ mod tests {
     #[test]
     fn symbol_relations() {
         let places = [
-            Char2Place::Infinite,
-            Char2Place::Finite(p2(&[0, 1])),    // t
-            Char2Place::Finite(p2(&[1, 1])),    // t+1
-            Char2Place::Finite(p2(&[1, 1, 1])), // t²+t+1
+            FunctionFieldPlace::Infinite,
+            FunctionFieldPlace::Finite(p2(&[0, 1])),    // t
+            FunctionFieldPlace::Finite(p2(&[1, 1])),    // t+1
+            FunctionFieldPlace::Finite(p2(&[1, 1, 1])), // t²+t+1
         ];
         let samples = [r2(&[0, 1], &[1]), r2(&[1, 1], &[1]), r2(&[1], &[0, 1])];
         for a in &samples {
@@ -571,17 +577,18 @@ mod tests {
                 for pl in &places {
                     // s(a, b²) = 0: dlog(b²) = 0 in char 2.
                     let b2 = b.mul(b);
-                    assert_eq!(as_symbol_at(a, &b2, pl), 0, "s(a, b²) = 0");
+                    assert_eq!(artin_schreier_symbol_at(a, &b2, pl), 0, "s(a, b²) = 0");
                     // s(a, a) = 0 (a ≠ 0): a·dlog a = da is exact.
-                    assert_eq!(as_symbol_at(a, a, pl), 0, "s(a, a) = 0");
+                    assert_eq!(artin_schreier_symbol_at(a, a, pl), 0, "s(a, a) = 0");
                     // s(℘(x), b) = 0: ℘(x) = x²+x ∈ ℘(K).
                     let wp = a.mul(a).add(a); // x²+x
-                    assert_eq!(as_symbol_at(&wp, b, pl), 0, "s(℘(x), b) = 0");
+                    assert_eq!(artin_schreier_symbol_at(&wp, b, pl), 0, "s(℘(x), b) = 0");
                 }
                 // additive in the first slot: s(a₁+a₂, b) = s(a₁,b) ⊕ s(a₂,b).
                 for pl in &places {
-                    let lhs = as_symbol_at(&samples[0].add(&samples[1]), b, pl);
-                    let rhs = as_symbol_at(&samples[0], b, pl) ^ as_symbol_at(&samples[1], b, pl);
+                    let lhs = artin_schreier_symbol_at(&samples[0].add(&samples[1]), b, pl);
+                    let rhs = artin_schreier_symbol_at(&samples[0], b, pl)
+                        ^ artin_schreier_symbol_at(&samples[1], b, pl);
                     assert_eq!(lhs, rhs, "additive in a");
                 }
             }

@@ -209,8 +209,8 @@ fn residue_tame_symbol_exponent<F: TameSymbolResidueField>(
 /// [`Brauer2Class`] is the `½`-slice (see
 /// [`from_two_torsion`](Self::from_two_torsion) / [`two_torsion`](Self::two_torsion)).
 /// Keyed by [`Place`] (`ℝ` before `Prime(p)`, the order `Place` derives); the
-/// function-field leg returns a `Vec<(FFPlace, _)>` instead, since
-/// [`FFPlace`](crate::forms::FFPlace) is not `Ord`.
+/// function-field leg returns a `Vec<(FunctionFieldPlace, _)>` instead, since
+/// [`FunctionFieldPlace`](crate::forms::FunctionFieldPlace) is not `Ord`.
 ///
 /// (`PartialEq` only — [`Rational`] is `PartialEq` but not `Eq`.)
 #[derive(Debug, Clone, PartialEq)]

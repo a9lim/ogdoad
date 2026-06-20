@@ -84,40 +84,11 @@ fn finite_hermitian_conj<F: FiniteField>(x: F) -> F {
     x.frobenius_iter(F::ext_degree() / 2)
 }
 
-fn matrix_rank<F: Scalar>(mut rows: Vec<Vec<F>>) -> usize {
-    if rows.is_empty() {
-        return 0;
-    }
-    let m = rows.len();
-    let n = rows[0].len();
-    let mut rank = 0usize;
-    for col in 0..n {
-        let Some(pivot) = (rank..m).find(|&r| !rows[r][col].is_zero()) else {
-            continue;
-        };
-        rows.swap(rank, pivot);
-        let inv = rows[rank][col]
-            .inv()
-            .expect("nonzero finite-field pivot is invertible");
-        for c in col..n {
-            rows[rank][c] = rows[rank][c].mul(&inv);
-        }
-        let pivot_row = rows[rank].clone();
-        for r in 0..m {
-            if r == rank || rows[r][col].is_zero() {
-                continue;
-            }
-            let factor = rows[r][col].clone().neg();
-            for (c, value) in pivot_row.iter().enumerate().skip(col) {
-                rows[r][c] = rows[r][c].add(&factor.mul(value));
-            }
-        }
-        rank += 1;
-        if rank == m {
-            break;
-        }
-    }
-    rank
+fn matrix_rank<F: Scalar>(rows: Vec<Vec<F>>) -> usize {
+    let ncols = rows.first().map_or(0, |r| r.len());
+    let nullspace = crate::linalg::field::unit_pivot_nullspace(rows, ncols)
+        .expect("finite-field pivot is always invertible; unit_pivot_nullspace returned None");
+    ncols - nullspace.len()
 }
 
 impl<F: FiniteField> FiniteHermitianForm<F> {

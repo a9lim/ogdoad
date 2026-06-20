@@ -169,7 +169,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
         if P != 2 {
             return Some(self.is_square_odd());
         }
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         Some(is_square_mod_two_power(self.0, K))
     }
 
@@ -180,7 +180,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
         if P != 2 {
             return Some(self.sqrt_odd());
         }
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         if self.0 == 0 {
             return Some(Some(Zp(0)));
         }
@@ -238,7 +238,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
         if P != 2 {
             return Some(self.is_square_odd());
         }
-        Self::assert_supported_field();
+        Self::assert_supported_params();
         match self.valuation() {
             None => Some(true),
             Some(v) if v % 2 != 0 => Some(false),
@@ -253,7 +253,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
         if P != 2 {
             return Some(self.sqrt_odd());
         }
-        Self::assert_supported_field();
+        Self::assert_supported_params();
         if self.is_zero() {
             return Some(Some(Qp::zero()));
         }

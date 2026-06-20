@@ -23,8 +23,8 @@ use super::scalars::{
 };
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
-    Char2LocalDecomp, Char2Place, Char2QuadForm, FFPlace, FiniteChar2Field, FiniteHermitianForm,
-    FiniteOddField, HermitianForm, IntegralForm, SymplecticForm, WittClass, WittClassError,
+    Char2LocalDecomp, Char2QuadForm, FiniteChar2Field, FiniteHermitianForm, FiniteOddField,
+    FunctionFieldPlace, HermitianForm, IntegralForm, SymplecticForm, WittClass, WittClassError,
     WittClassG,
 };
 use crate::scalar::{
@@ -1845,9 +1845,9 @@ fn ensure_ff_nonzero<F: ExactFieldScalar>(x: &RationalFunction<F>, name: &str) -
     }
 }
 
-fn parse_ff_place<F: FiniteOddField>(poly: Option<PyFFPoly>) -> PyResult<FFPlace<F>> {
+fn parse_ff_place<F: FiniteOddField>(poly: Option<PyFFPoly>) -> PyResult<FunctionFieldPlace<F>> {
     match poly {
-        None => Ok(FFPlace::Infinite),
+        None => Ok(FunctionFieldPlace::Infinite),
         Some(coeffs) => {
             let place = parse_ff_poly::<F>(&coeffs, "place")?;
             if place.degree().is_none_or(|d| d == 0) {
@@ -1865,17 +1865,17 @@ fn parse_ff_place<F: FiniteOddField>(poly: Option<PyFFPoly>) -> PyResult<FFPlace
                     "finite function-field place must be irreducible",
                 ));
             }
-            Ok(FFPlace::Finite(place))
+            Ok(FunctionFieldPlace::Finite(place))
         }
     }
 }
 
-fn wrap_ff_place<F: FiniteOddField>(place: FFPlace<F>) -> PyFunctionFieldPlace {
+fn wrap_ff_place<F: FiniteOddField>(place: FunctionFieldPlace<F>) -> PyFunctionFieldPlace {
     PyFunctionFieldPlace {
         field_order: F::field_order(),
         polynomial: match place {
-            FFPlace::Infinite => None,
-            FFPlace::Finite(poly) => Some(ff_poly_indices(&poly)),
+            FunctionFieldPlace::Infinite => None,
+            FunctionFieldPlace::Finite(poly) => Some(ff_poly_indices(&poly)),
         },
     }
 }
@@ -1981,9 +1981,11 @@ fn parse_char2_ff_form<F: FiniteChar2Field>(
     ))
 }
 
-fn parse_char2_ff_place<F: FiniteChar2Field>(poly: Option<PyFFPoly>) -> PyResult<Char2Place<F>> {
+fn parse_char2_ff_place<F: FiniteChar2Field>(
+    poly: Option<PyFFPoly>,
+) -> PyResult<FunctionFieldPlace<F>> {
     match poly {
-        None => Ok(Char2Place::Infinite),
+        None => Ok(FunctionFieldPlace::Infinite),
         Some(coeffs) => {
             let place = parse_char2_ff_poly::<F>(&coeffs, "place")?;
             if place.degree().is_none_or(|d| d == 0) {
@@ -2001,17 +2003,17 @@ fn parse_char2_ff_place<F: FiniteChar2Field>(poly: Option<PyFFPoly>) -> PyResult
                     "finite function-field place must be irreducible",
                 ));
             }
-            Ok(Char2Place::Finite(place))
+            Ok(FunctionFieldPlace::Finite(place))
         }
     }
 }
 
-fn wrap_char2_ff_place<F: FiniteChar2Field>(place: Char2Place<F>) -> PyFunctionFieldPlace {
+fn wrap_char2_ff_place<F: FiniteChar2Field>(place: FunctionFieldPlace<F>) -> PyFunctionFieldPlace {
     PyFunctionFieldPlace {
         field_order: F::field_order(),
         polynomial: match place {
-            Char2Place::Infinite => None,
-            Char2Place::Finite(poly) => Some(char2_ff_poly_indices(&poly)),
+            FunctionFieldPlace::Infinite => None,
+            FunctionFieldPlace::Finite(poly) => Some(char2_ff_poly_indices(&poly)),
         },
     }
 }
@@ -2469,7 +2471,7 @@ impl PyChar2FunctionFieldForm {
     fn relevant_places(&self) -> PyResult<Vec<PyFunctionFieldPlace>> {
         with_finite_char2_field!(self.degree, |F| {
             let form = parse_char2_ff_form::<F>(&self.blocks, &self.singular)?;
-            Ok(crate::forms::relevant_places_char2(&form)
+            Ok(crate::forms::artin_schreier_form_places(&form)
                 .into_iter()
                 .map(wrap_char2_ff_place::<F>)
                 .collect())
@@ -2854,7 +2856,7 @@ fn as_symbol_at(
         let b = parse_char2_ff_rational_function::<F>(&b, "b")?;
         ensure_ff_nonzero(&b, "b")?;
         let place = parse_char2_ff_place::<F>(place)?;
-        Ok(crate::forms::as_symbol_at(&a, &b, &place))
+        Ok(crate::forms::artin_schreier_symbol_at(&a, &b, &place))
     })
 }
 
@@ -2870,7 +2872,7 @@ fn as_symbol_places(
         let a = parse_char2_ff_rational_function::<F>(&a, "a")?;
         let b = parse_char2_ff_rational_function::<F>(&b, "b")?;
         ensure_ff_nonzero(&b, "b")?;
-        Ok(crate::forms::as_symbol_places(&a, &b)
+        Ok(crate::forms::artin_schreier_symbol_places(&a, &b)
             .into_iter()
             .map(wrap_char2_ff_place::<F>)
             .collect())
@@ -2889,7 +2891,7 @@ fn as_symbol_reciprocity_sum(
         let a = parse_char2_ff_rational_function::<F>(&a, "a")?;
         let b = parse_char2_ff_rational_function::<F>(&b, "b")?;
         ensure_ff_nonzero(&b, "b")?;
-        Ok(crate::forms::as_symbol_reciprocity_sum(&a, &b))
+        Ok(crate::forms::artin_schreier_reciprocity_sum(&a, &b))
     })
 }
 
@@ -2905,7 +2907,7 @@ fn as_symbol_ramified_places(
         let a = parse_char2_ff_rational_function::<F>(&a, "a")?;
         let b = parse_char2_ff_rational_function::<F>(&b, "b")?;
         ensure_ff_nonzero(&b, "b")?;
-        Ok(crate::forms::as_symbol_ramified_places(&a, &b)
+        Ok(crate::forms::artin_schreier_ramified_places(&a, &b)
             .into_iter()
             .map(wrap_char2_ff_place::<F>)
             .collect())
@@ -5107,7 +5109,7 @@ fn barnes_wall_16() -> PyIntegralForm {
 )]
 #[derive(Clone)]
 struct PyCliffordBarnesWall16Report {
-    inner: crate::forms::CliffordBarnesWall16Report,
+    inner: crate::forms::CliffordBarnesWall16Invariants,
 }
 
 #[pymethods]
@@ -5556,7 +5558,7 @@ impl PyKneserNeighbor {
 #[pyclass(name = "KneserMassClass", module = "ogdoad", skip_from_py_object)]
 #[derive(Clone)]
 struct PyKneserMassClass {
-    inner: crate::forms::KneserMassClass,
+    inner: crate::forms::KneserMassRecord,
 }
 
 #[pymethods]
@@ -5580,7 +5582,7 @@ impl PyKneserMassClass {
 #[pyclass(name = "KneserMassReport", module = "ogdoad", skip_from_py_object)]
 #[derive(Clone)]
 struct PyKneserMassReport {
-    inner: crate::forms::KneserMassReport,
+    inner: crate::forms::KneserMassInvariants,
 }
 
 #[pymethods]
@@ -5603,7 +5605,7 @@ impl PyKneserMassReport {
     }
     #[getter]
     fn generated_class_labels(&self) -> Vec<&'static str> {
-        self.inner.generated_class_labels.clone()
+        self.inner.generated_class_labels()
     }
     #[getter]
     fn classes(&self) -> Vec<PyKneserMassClass> {
@@ -5631,7 +5633,7 @@ impl PyKneserMassReport {
             "KneserMassReport(rank={}, p={}, classes={:?}, mass_closed={})",
             self.inner.rank,
             self.inner.prime,
-            self.inner.generated_class_labels,
+            self.inner.generated_class_labels(),
             self.inner.mass_closed
         )
     }
@@ -5640,14 +5642,16 @@ impl PyKneserMassReport {
 #[pyclass(name = "WeylVersorReport", module = "ogdoad", skip_from_py_object)]
 #[derive(Clone)]
 struct PyWeylVersorReport {
-    inner: crate::forms::WeylVersorReport,
+    inner: crate::forms::WeylVersorInvariants,
 }
 
 fn weyl_kind_label(kind: crate::forms::NiemeierComponentKind) -> String {
     match kind {
         crate::forms::NiemeierComponentKind::A(n) => format!("A_{n}"),
         crate::forms::NiemeierComponentKind::D(n) => format!("D_{n}"),
-        crate::forms::NiemeierComponentKind::E(n) => format!("E_{n}"),
+        crate::forms::NiemeierComponentKind::E6 => "E_6".to_string(),
+        crate::forms::NiemeierComponentKind::E7 => "E_7".to_string(),
+        crate::forms::NiemeierComponentKind::E8 => "E_8".to_string(),
     }
 }
 
@@ -5660,10 +5664,6 @@ impl PyWeylVersorReport {
     #[getter]
     fn rank(&self) -> usize {
         self.inner.rank
-    }
-    #[getter]
-    fn simple_reflection_count(&self) -> usize {
-        self.inner.simple_reflection_count
     }
     #[getter]
     fn weyl_group_order(&self) -> u128 {
@@ -5856,7 +5856,7 @@ impl PyIntegralForm {
         self.inner.automorphism_group_order_bounded(node_budget)
     }
     fn genus(&self) -> Option<PyGenus> {
-        crate::forms::Genus::of(&self.inner).map(|inner| PyGenus { inner })
+        crate::forms::Genus::from_lattice(&self.inner).map(|inner| PyGenus { inner })
     }
     fn kneser_neighbor(&self, p: u128, line: Vec<u128>) -> Option<PyIntegralForm> {
         crate::forms::kneser_neighbor(&self.inner, p, &line).map(|inner| PyIntegralForm { inner })
@@ -6047,7 +6047,7 @@ impl PyOddDiscriminantForm {
 #[pyclass(name = "OddMilgramReport", module = "ogdoad", skip_from_py_object)]
 #[derive(Clone)]
 struct PyOddMilgramReport {
-    inner: crate::forms::OddMilgramReport,
+    inner: crate::forms::OddMilgramInvariants,
 }
 
 #[pymethods]
@@ -6207,7 +6207,9 @@ fn weyl_versor_report(family: &str, rank: usize) -> PyResult<Option<PyWeylVersor
             crate::forms::NiemeierComponentKind::D(rank)
         }
         "E" | "e" => match rank {
-            6..=8 => crate::forms::NiemeierComponentKind::E(rank),
+            6 => crate::forms::NiemeierComponentKind::E6,
+            7 => crate::forms::NiemeierComponentKind::E7,
+            8 => crate::forms::NiemeierComponentKind::E8,
             _ => {
                 return Err(PyValueError::new_err(
                     "E_n is supported only for n = 6, 7, 8",

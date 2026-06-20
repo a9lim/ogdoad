@@ -4,7 +4,7 @@
 //! in [`super`]. Nothing here is part of the public API.
 
 use crate::forms::function_field_char2::{hensel_series, inverse_mod, ps_eval_poly, strip_factor};
-use crate::forms::{artin_schreier_class_finite, Char2Place, FiniteChar2Field};
+use crate::forms::{artin_schreier_class_finite, FiniteChar2Field, FunctionFieldPlace};
 use crate::scalar::{Poly, RationalFunction, Scalar};
 use std::collections::BTreeMap;
 
@@ -29,19 +29,22 @@ pub(super) fn s_pow<S: Scalar>(x: &S, mut e: u128) -> S {
 pub(super) fn kmul<S: FiniteChar2Field>(
     a: &Poly<S>,
     b: &Poly<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Poly<S> {
     match place {
-        Char2Place::Finite(p) => a.mul_mod(b, p),
-        Char2Place::Infinite => Poly::constant(a.coeff(0).mul(&b.coeff(0))),
+        FunctionFieldPlace::Finite(p) => a.mul_mod(b, p),
+        FunctionFieldPlace::Infinite => Poly::constant(a.coeff(0).mul(&b.coeff(0))),
     }
 }
 
 /// `√z` in `κ` at `place`: `z^{|κ|/2}` (Frobenius inverse; `κ` is a perfect finite
 /// field of char 2, so the square root is unique).
-pub(super) fn kappa_sqrt<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>) -> Poly<S> {
+pub(super) fn kappa_sqrt<S: FiniteChar2Field>(
+    z: &Poly<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Poly<S> {
     match place {
-        Char2Place::Finite(p) => {
+        FunctionFieldPlace::Finite(p) => {
             let d = p.degree().expect("a place modulus has degree ≥ 1") as u128;
             let order = S::field_order().pow(
                 d.try_into()
@@ -49,16 +52,16 @@ pub(super) fn kappa_sqrt<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>
             ); // |κ| = q^{deg P}
             z.pow_mod(order / 2, p)
         }
-        Char2Place::Infinite => Poly::constant(s_pow(&z.coeff(0), S::field_order() / 2)),
+        FunctionFieldPlace::Infinite => Poly::constant(s_pow(&z.coeff(0), S::field_order() / 2)),
     }
 }
 
 /// `Tr_{κ/F₂}(z) ∈ {0,1}` at `place` (the `W_q(κ) ≅ F₂` Arf class of `[1, z]`).
-pub(super) fn trace_at<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>) -> u128 {
+pub(super) fn trace_at<S: FiniteChar2Field>(z: &Poly<S>, place: &FunctionFieldPlace<S>) -> u128 {
     use crate::forms::function_field_char2::trace_kappa_to_f2;
     match place {
-        Char2Place::Finite(p) => trace_kappa_to_f2(z, p),
-        Char2Place::Infinite => artin_schreier_class_finite(z.coeff(0)),
+        FunctionFieldPlace::Finite(p) => trace_kappa_to_f2(z, p),
+        FunctionFieldPlace::Infinite => artin_schreier_class_finite(z.coeff(0)),
     }
 }
 
@@ -67,18 +70,18 @@ pub(super) fn trace_at<S: FiniteChar2Field>(z: &Poly<S>, place: &Char2Place<S>) 
 /// `v(a)` (the `π`-adic valuation) at `place`; `None` iff `a = 0`.
 pub(super) fn valuation<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<i128> {
     if a.is_zero() {
         return None;
     }
     match place {
-        Char2Place::Finite(p) => {
+        FunctionFieldPlace::Finite(p) => {
             let (mn, _) = strip_factor(a.num().clone(), p);
             let (md, _) = strip_factor(a.den().clone(), p);
             Some(mn as i128 - md as i128)
         }
-        Char2Place::Infinite => Some(
+        FunctionFieldPlace::Infinite => Some(
             a.den().degree().expect("nonzero den") as i128
                 - a.num().degree().expect("nonzero num") as i128,
         ),
@@ -186,13 +189,13 @@ fn laurent_infinite<S: FiniteChar2Field>(
 /// Laurent coefficients of `a` at `place`, inclusive range `[n_lo, n_hi]`.
 pub(super) fn laurent<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
     n_lo: i128,
     n_hi: i128,
 ) -> Vec<Poly<S>> {
     match place {
-        Char2Place::Finite(p) => laurent_finite(a.num(), a.den(), p, n_lo, n_hi),
-        Char2Place::Infinite => laurent_infinite(a.num(), a.den(), n_lo, n_hi),
+        FunctionFieldPlace::Finite(p) => laurent_finite(a.num(), a.den(), p, n_lo, n_hi),
+        FunctionFieldPlace::Infinite => laurent_infinite(a.num(), a.den(), n_lo, n_hi),
     }
 }
 
@@ -204,7 +207,7 @@ pub(super) fn laurent<S: FiniteChar2Field>(
 pub(super) fn asnf<S: FiniteChar2Field>(
     coeffs: &BTreeMap<i128, Poly<S>>,
     lo: i128,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> (u128, BTreeMap<usize, Poly<S>>) {
     let mut m = coeffs.clone();
     let mut n = lo;
@@ -252,7 +255,7 @@ pub(super) fn merge_psi<S: FiniteChar2Field>(
 /// `c ∈ ℘(K_v)` iff this is `(0, ∅)`.
 pub(super) fn local_as_class<S: FiniteChar2Field>(
     c: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> (u128, BTreeMap<usize, Poly<S>>) {
     match valuation(c, place) {
         None => (0, BTreeMap::new()), // c = 0 ∈ ℘(K_v)
@@ -274,7 +277,7 @@ pub(super) fn local_as_class<S: FiniteChar2Field>(
 /// Whether `c ∈ ℘(K_v)` at `place` (the local Artin–Schreier triviality test).
 pub(super) fn local_is_pe<S: FiniteChar2Field>(
     c: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> bool {
     let (e, r) = local_as_class(c, place);
     e == 0 && r.is_empty()
@@ -304,7 +307,7 @@ pub(super) fn rational_derivative_is_zero<S: FiniteChar2Field>(f: &RationalFunct
 /// Whether `f ∈ K_v²` in the completion at `place`.
 pub(super) fn local_is_square<S: FiniteChar2Field>(
     f: &RationalFunction<S>,
-    place: &Char2Place<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> bool {
     let Some(v) = valuation(f, place) else {
         return true;

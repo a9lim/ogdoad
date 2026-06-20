@@ -339,7 +339,7 @@ fn relevant_primes(det: i128) -> Vec<u128> {
 
 impl Genus {
     /// The genus of a nondegenerate integral lattice, or `None` if `det = 0`.
-    pub fn of(lattice: &IntegralForm) -> Option<Genus> {
+    pub fn from_lattice(lattice: &IntegralForm) -> Option<Genus> {
         let det = lattice.determinant();
         if det == 0 {
             return None;
@@ -511,7 +511,7 @@ fn canonical_2adic_symbol(syms: &[ScaleSymbol]) -> Vec<ScaleSymbol> {
 /// the comparison uses oddity fusion plus train sign-walking before matching the
 /// carried Conway–Sloane symbols.
 pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
-    let (Some(ga), Some(gb)) = (Genus::of(a), Genus::of(b)) else {
+    let (Some(ga), Some(gb)) = (Genus::from_lattice(a), Genus::from_lattice(b)) else {
         return false;
     };
     if ga.dim != gb.dim || ga.signature != gb.signature || ga.det != gb.det {
@@ -592,8 +592,8 @@ mod tests {
 
     #[test]
     fn z8_and_e8_differ_only_at_two() {
-        let z8 = Genus::of(&zn(8)).unwrap();
-        let e8 = Genus::of(&e_8()).unwrap();
+        let z8 = Genus::from_lattice(&zn(8)).unwrap();
+        let e8 = Genus::from_lattice(&e_8()).unwrap();
         // Same rank, signature, determinant.
         assert_eq!(z8.dim, e8.dim);
         assert_eq!(z8.signature, e8.signature);
@@ -613,7 +613,7 @@ mod tests {
     #[test]
     fn jordan_symbols_match_known_oracles() {
         // A_2: det 3. p=2 single type-II dim-2; p=3 has a scale-1 constituent.
-        let a2 = Genus::of(&a_n(2)).unwrap();
+        let a2 = Genus::from_lattice(&a_n(2)).unwrap();
         let s2 = a2.symbol_at(2);
         assert_eq!(s2.len(), 1);
         assert!(s2[0].type_ii && s2[0].dim == 2 && s2[0].scale == 0);
@@ -621,14 +621,14 @@ mod tests {
         assert_eq!(a2.det, 3);
 
         // D_4: p=2 symbol is two type-II scales (0 and 1), each dim 2.
-        let d4 = Genus::of(&d_n(4)).unwrap();
+        let d4 = Genus::from_lattice(&d_n(4)).unwrap();
         let s2 = d4.symbol_at(2);
         assert_eq!(s2.len(), 2);
         assert_eq!((s2[0].scale, s2[0].dim, s2[0].type_ii), (0, 2, true));
         assert_eq!((s2[1].scale, s2[1].dim, s2[1].type_ii), (1, 2, true));
 
         // A_1 = ⟨2⟩: p=2 single type-I scale-1 dim-1, oddity 1.
-        let a1 = Genus::of(&IntegralForm::diagonal(&[2])).unwrap();
+        let a1 = Genus::from_lattice(&IntegralForm::diagonal(&[2])).unwrap();
         let s2 = a1.symbol_at(2);
         assert_eq!(s2.len(), 1);
         assert_eq!(
@@ -642,7 +642,7 @@ mod tests {
         let g = IntegralForm::new(vec![vec![2, 1], vec![1, 1]]).unwrap();
         assert!(are_in_same_genus(&zn(2), &g));
 
-        let s2_g = Genus::of(&g).unwrap().symbol_at(2).to_vec();
+        let s2_g = Genus::from_lattice(&g).unwrap().symbol_at(2).to_vec();
         assert_eq!(s2_g.len(), 1);
         assert_eq!((s2_g[0].scale, s2_g[0].dim, s2_g[0].type_ii), (0, 2, false));
     }
@@ -687,7 +687,7 @@ mod tests {
 
     #[test]
     fn canonical_symbol_at_exposes_the_compared_two_adic_symbol() {
-        let g = Genus::of(&IntegralForm::diagonal(&[1, 6])).unwrap();
+        let g = Genus::from_lattice(&IntegralForm::diagonal(&[1, 6])).unwrap();
         let raw = g.symbol_at(2);
         let canonical = g.canonical_symbol_at(2);
         assert_ne!(raw, canonical.as_slice());
@@ -830,7 +830,7 @@ mod tests {
         assert!(are_in_same_genus(&e8e8, &d16));
         assert!(is_root_lattice(&e8e8));
         assert!(!is_root_lattice(&d16));
-        let g = Genus::of(&e8e8).unwrap();
+        let g = Genus::from_lattice(&e8e8).unwrap();
         assert_eq!(g.signature, (16, 0));
         // single type-II scale-0 constituent of dim 16
         let s2 = g.symbol_at(2);

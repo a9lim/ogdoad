@@ -78,7 +78,8 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   `is_isotropic_q`, …), the odd `F_q(t)` layer (`try_*_ff`,
   `tame_symbol_invariants_ff`, `FunctionFieldLocalIsotropy`), Bridge-K local
   cyclic-symbol helpers (`cyclic_algebra_invariant`, `tame_symbol_invariant`)
-  and the char-2 Artin-Schreier layer (`as_symbol_*`, `Char2FunctionFieldForm`/
+  and the char-2 Artin-Schreier layer (`as_symbol_*`, `relevant_places_char2`,
+  `Char2FunctionFieldForm`/
   `Char2LocalDecomp` with `Char2PsiTerm`, local/global char-2 isotropy), the
   symplectic/hermitian constructors, the field numeric invariants
   (`level`/`pythagoras_number`/`u_invariant`/sum-of-squares), the quadric bench

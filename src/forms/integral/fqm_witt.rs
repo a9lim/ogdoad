@@ -7,6 +7,7 @@
 //! not just the Milgram/Brown phase.
 
 use crate::forms::integral::discriminant::{phase_mod8_from_q_values, DiscriminantForm, IsoTables};
+use crate::forms::integral::is_prime_power;
 use crate::forms::padic::try_is_square_qp;
 use crate::scalar::{Rational, Scalar};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -495,7 +496,7 @@ impl FqmTable {
             .order
             .iter()
             .enumerate()
-            .filter_map(|(i, &ord)| is_prime_power_order(ord as u128, p).then_some(i))
+            .filter_map(|(i, &ord)| is_prime_power(ord as u128, p).then_some(i))
             .collect::<Vec<_>>();
         self.induced_subtable(&indices)
     }
@@ -1064,17 +1065,6 @@ fn prime_factors_u128(n: u128) -> Vec<u128> {
         out.push(m);
     }
     out
-}
-
-fn is_prime_power_order(order: u128, p: u128) -> bool {
-    if order == 1 {
-        return true;
-    }
-    let mut m = order;
-    while m.is_multiple_of(p) {
-        m /= p;
-    }
-    m == 1
 }
 
 fn exact_prime_power_exponent(mut n: u128, p: u128) -> Option<u128> {

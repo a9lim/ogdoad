@@ -17,7 +17,7 @@ pub(super) const SHORT_VECTOR_EXACT_ENUM_LIMIT: u128 = 2_000_000;
 
 // ── small combinatorial helpers ──
 
-pub(super) fn checked_factorial(n: usize) -> Option<u128> {
+pub(crate) fn checked_factorial(n: usize) -> Option<u128> {
     let mut acc = 1u128;
     for k in 2..=n {
         acc = acc.checked_mul(k as u128)?;
@@ -25,7 +25,7 @@ pub(super) fn checked_factorial(n: usize) -> Option<u128> {
     Some(acc)
 }
 
-pub(super) fn checked_pow2(n: usize) -> Option<u128> {
+pub(crate) fn checked_pow2(n: usize) -> Option<u128> {
     if n >= 128 {
         None
     } else {

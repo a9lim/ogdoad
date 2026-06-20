@@ -20,10 +20,9 @@ use crate::scalar::{Rational, Scalar};
 
 /// The Clifford/Weyl report for one irreducible ADE component.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct WeylVersorReport {
+pub struct WeylVersorInvariants {
     pub kind: NiemeierComponentKind,
     pub rank: usize,
-    pub simple_reflection_count: usize,
     pub weyl_group_order: u128,
     pub coxeter_number: u128,
     pub simple_reflections_match_cartan: bool,
@@ -151,7 +150,7 @@ pub fn weyl_coxeter_versor(lattice: &IntegralForm) -> Option<Multivector<Rationa
 }
 
 fn linear_map_order(map: &LinearMap<Rational>, max_order: u128) -> Option<u128> {
-    let id = LinearMap::identity(map.n);
+    let id = LinearMap::identity(map.n());
     let mut cur = id.clone();
     for k in 1..=max_order {
         cur = map.compose(&cur);
@@ -170,15 +169,14 @@ pub fn weyl_coxeter_action_order(lattice: &IntegralForm, max_order: u128) -> Opt
 }
 
 /// Clifford-versor report for the irreducible ADE root component `kind`.
-pub fn weyl_versor_report(kind: NiemeierComponentKind) -> Option<WeylVersorReport> {
-    let lattice = kind.root_lattice();
-    let coxeter_number = kind.coxeter_number();
+pub fn weyl_versor_report(kind: NiemeierComponentKind) -> Option<WeylVersorInvariants> {
+    let lattice = kind.root_lattice()?;
+    let coxeter_number = kind.coxeter_number()?;
     let coxeter_versor = weyl_coxeter_versor(&lattice)?;
     let coxeter_order = weyl_coxeter_action_order(&lattice, coxeter_number)?;
-    Some(WeylVersorReport {
+    Some(WeylVersorInvariants {
         kind,
         rank: kind.rank(),
-        simple_reflection_count: kind.rank(),
         weyl_group_order: kind.weyl_group_order()?,
         coxeter_number,
         simple_reflections_match_cartan: simple_reflections_match_cartan(&lattice),
@@ -220,7 +218,7 @@ mod tests {
 
     #[test]
     fn e8_coxeter_versor_has_order_30() {
-        let report = weyl_versor_report(NiemeierComponentKind::E(8)).unwrap();
+        let report = weyl_versor_report(NiemeierComponentKind::E8).unwrap();
         assert_eq!(report.weyl_group_order, E8_WEYL_GROUP_ORDER);
         assert_eq!(report.coxeter_number, 30);
         assert_eq!(report.coxeter_versor_order, Some(30));

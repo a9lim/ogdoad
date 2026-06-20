@@ -361,7 +361,7 @@ macro_rules! backend_linear_map {
 
             #[getter]
             fn n(&self) -> usize {
-                self.inner.n
+                self.inner.n()
             }
 
             #[getter]
@@ -384,7 +384,7 @@ macro_rules! backend_linear_map {
 
             /// Rust-name `LinearMap::compose`: `self ∘ inner`.
             fn compose(&self, inner: &$lm) -> PyResult<$lm> {
-                if self.inner.n != inner.inner.n {
+                if self.inner.n() != inner.inner.n() {
                     return Err(PyValueError::new_err("dimension mismatch in compose"));
                 }
                 Ok($lm {
@@ -401,7 +401,7 @@ macro_rules! backend_linear_map {
             }
 
             fn __repr__(&self) -> String {
-                format!("{}(n={})", $lm_name, self.inner.n)
+                format!("{}(n={})", $lm_name, self.inner.n())
             }
         }
 
@@ -1032,10 +1032,10 @@ macro_rules! backend_algebra {
             }
 
             fn ensure_linear_map(&self, lm: &LinearMap<$scalar>) -> PyResult<()> {
-                if lm.n != self.inner.dim() {
+                if lm.n() != self.inner.dim() {
                     return Err(PyValueError::new_err(format!(
                         "linear-map dimension {} does not match algebra dimension {}",
-                        lm.n,
+                        lm.n(),
                         self.inner.dim()
                     )));
                 }
@@ -1579,7 +1579,7 @@ macro_rules! divided_power_backend {
             }
             #[getter]
             fn dim(&self) -> usize {
-                self.inner.dim
+                self.inner.dim()
             }
             fn zero(&self) -> $vec {
                 self.wrap(self.inner.zero::<$scalar>())
@@ -1591,20 +1591,20 @@ macro_rules! divided_power_backend {
                 Ok(self.wrap(self.inner.scalar::<$scalar>($parse(s)?)))
             }
             fn divided_power(&self, i: usize, k: u128) -> PyResult<$vec> {
-                if i >= self.inner.dim {
+                if i >= self.inner.dim() {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }
                 Ok(self.wrap(self.inner.divided_power::<$scalar>(i, k)))
             }
             #[pyo3(name = "gen")]
             fn generator(&self, i: usize) -> PyResult<$vec> {
-                if i >= self.inner.dim {
+                if i >= self.inner.dim() {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }
                 Ok(self.wrap(self.inner.gamma1::<$scalar>(i)))
             }
             fn monomial(&self, alpha: Vec<u128>, coeff: &Bound<'_, PyAny>) -> PyResult<$vec> {
-                if alpha.len() > self.inner.dim {
+                if alpha.len() > self.inner.dim() {
                     return Err(PyValueError::new_err("multidegree longer than dim"));
                 }
                 Ok(self.wrap(self.inner.monomial::<$scalar>(&alpha, $parse(coeff)?)))
@@ -1642,7 +1642,7 @@ macro_rules! divided_power_backend {
                 Ok(self.wrap(scalar_boundary(|| self.inner.antipode(&x.vec))?))
             }
             fn __repr__(&self) -> String {
-                format!("{}(dim={})", $alg_name, self.inner.dim)
+                format!("{}(dim={})", $alg_name, self.inner.dim())
             }
         }
 
@@ -1670,13 +1670,13 @@ macro_rules! divided_power_backend {
             #[getter]
             fn terms(&self) -> Vec<(Vec<u128>, $scalar_py)> {
                 self.vec
-                    .terms
+                    .terms()
                     .iter()
                     .map(|(degree, coeff)| (degree.clone(), $wrap(coeff.clone())))
                     .collect()
             }
             fn is_zero(&self) -> bool {
-                self.vec.terms.is_empty()
+                self.vec.terms().is_empty()
             }
             fn __add__(&self, other: &$vec) -> PyResult<$vec> {
                 self.ensure_same_algebra(other)?;
@@ -1815,7 +1815,7 @@ macro_rules! cga_backend {
             }
             /// The IPNS meet (intersection) `x ∧ y`.
             fn meet(&self, x: &$mv, y: &$mv) -> $mv {
-                self.wrap(self.inner.meet(&x.mv, &y.mv))
+                self.wrap(self.inner.outer_join(&x.mv, &y.mv))
             }
         }
     };

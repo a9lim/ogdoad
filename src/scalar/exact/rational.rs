@@ -3,6 +3,7 @@
 //! classification before trusting the exotic backends. (The surreal backend is
 //! the real char-0 home.)
 
+use crate::linalg::integer::gcd_u128;
 use crate::scalar::Scalar;
 use std::cmp::Ordering;
 use std::fmt;
@@ -14,15 +15,6 @@ use std::fmt;
 pub struct Rational {
     num: i128,
     den: i128, // always > 0, gcd(num, den) == 1
-}
-
-fn gcd_u128(mut a: u128, mut b: u128) -> u128 {
-    while b != 0 {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    a
 }
 
 /// Exact integer square root of `n ≥ 0`, or `None` if `n` is not a perfect

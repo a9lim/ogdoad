@@ -31,6 +31,37 @@ useful kind of finding — the baseline is high enough that every item is the co
 
 ---
 
+## Status — played 2026-06-20 (same day as the audit; process record in [`DONE.md`](DONE.md) → `consistency-sweep`)
+
+Implemented as a phased parallel sweep; full gate green (913 tests, clippy clean on both
+feature sets, cold rustdoc clean, `demo.py` + stubs). Python-facing names kept stable
+throughout — every rename is internal, with the `py/` bindings updated to track it.
+
+| item | outcome |
+|---|---|
+| `substrate-bypass` | **played full** — integer gcd → `linalg::integer::gcd`/`gcd_u128`; `is_prime` → `scalar::is_prime_u128`; `is_prime_power` shared; `checked_factorial`/`checked_pow2` shared from the lattice module; `matrix_rank` → `linalg::field`; `mex` → `grundy::mex`; integer-value-of-game → one `partizan::integer_value`; the two grade-k mask enumerators → one `engine/basis::grade_k_masks` |
+| `niemeier-partiality` | **played both** (a9's call) — `E(usize)` → explicit `E6`/`E7`/`E8` variants, and `coxeter_number`/`determinant`/`root_lattice`/`root_count` return `Option` uniformly (matching `weyl_group_order`) |
+| `local-global-parallelism` | **played** (a9's "unify maximally") — `FFPlace` + `Char2Place` merged into one `FunctionFieldPlace<S>` = the `GlobalField::Place`; char-2 names parallelized (`as_symbol_*` core → `artin_schreier_*`); the additive-vs-multiplicative boundary documented. Symbol math kept distinct (AS ≠ Hilbert) — a correctness boundary, not a stylistic one |
+| `glossary-fray` | **played full** (a9's "fold to Invariants/Record") — `NiemeierClass`/`KneserMassClass` → `…Record`; `*Report` → `*Invariants`; `…Record` added to the glossary |
+| `games-display-gap` | **played** — `Display` for `Game`/`LoopyValue`/`NumberGame`/`NimberGame`; `display()`/`name()` kept as aliases |
+| `cga-meet-shadow` | **played** — `Cga::outer_join` (the duplicate `point_pair` kept as a thin alias); the `meet`-name collision with the GA regressive product is gone |
+| `divided-power-encapsulation` | **played** — `dim()`/`terms()` accessors; `LinearMap::n()` is a method |
+| `report-dead-weight` | **played** — dropped `simple_reflection_count`; deduped the double `numerator_rows` compute; `generated_class_labels()` is a method |
+| `micro-naming` | **played except `precision-K`** — `from_scalar`→`from_base`, `Poly::x`→`Poly::t`, guard names unified to `assert_supported_params`, `Genus::of`→`from_lattice`, `NewtonPolygon::of`→`from_coeffs` all played. **`WittClassG` and `ext_degree`/`extension_degree`: doc-clarified, NOT renamed** — renaming would create `FiniteField`/`FieldExtension` trait-method-resolution ambiguity, and `ext_degree` (absolute, over the prime field) vs `extension_degree` (relative, over `Base`) are genuinely *different* invariants, so the honest fix is the doc, not a merge |
+| `stale-debug-comment` | **played** — `tropical.rs` comment removed, `{r:?}`→`{r}` |
+
+**Deferred (one item, with reason):** `precision-K` (the `Qp<…,K: u128>` vs `Laurent<…,K: usize>`
+width disagreement). Either unification direction cascades across the whole p-adic
+const-generic surface — `Qp`'s `K` is tied to `Zp` via `Qp::Int = Zp<P,K>`, plus the
+`impl_scalar_ops!` macro, `Valued`/`PrecisionScalar`/`HasRingOfIntegers`, `springer_decompose_qp`,
+and the `small/analytic` impls. That blast radius is disproportionate to an `↑`-valued
+cosmetic nit; consciously left as the two functors' honest difference. Reopen as a focused
+standalone pass if it ever bothers more than this sentence does.
+
+The audit prose below is left as written — it describes the pre-sweep tree.
+
+---
+
 ## What still holds (0 — listed so a cleanup pass doesn't destroy it)
 
 - **The substrate floor is real and mostly used.** `linalg::field::unit_pivot_nullspace`

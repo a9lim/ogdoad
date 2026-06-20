@@ -8,6 +8,7 @@
 //! represented by the uniqueness of the Niemeier class with that root system. The
 //! Leech lattice remains the explicit Gram-constructor supplied by [`super::leech`].
 
+use super::lattice::{checked_factorial, checked_pow2};
 use super::{
     delta, eisenstein_e4, mass_even_unimodular, modular_qexp_add, modular_qexp_mul,
     modular_qexp_scale, root_lattices, IntegralForm,
@@ -15,74 +16,81 @@ use super::{
 use crate::scalar::{Rational, Scalar};
 
 /// An irreducible simply-laced root-system component.
+///
+/// The `A`/`D` ranks carry a `usize`; the exceptional family is the three explicit
+/// variants `E6`/`E7`/`E8`, so an unsupported exceptional rank cannot be
+/// constructed. All the catalogue-data methods ([`coxeter_number`](Self::coxeter_number),
+/// [`determinant`](Self::determinant), [`weyl_group_order`](Self::weyl_group_order),
+/// [`root_count`](Self::root_count), [`root_lattice`](Self::root_lattice)) share one
+/// partiality contract: they return `None` for an out-of-domain `A`/`D` rank
+/// (`A(0)`, `D(0)`, `D(1)`) rather than panicking, since the public type accepts any
+/// `usize`. [`rank`](Self::rank) is total.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NiemeierComponentKind {
     A(usize),
     D(usize),
-    E(usize),
+    E6,
+    E7,
+    E8,
 }
 
 impl NiemeierComponentKind {
     pub fn rank(self) -> usize {
         match self {
-            NiemeierComponentKind::A(n)
-            | NiemeierComponentKind::D(n)
-            | NiemeierComponentKind::E(n) => n,
+            NiemeierComponentKind::A(n) | NiemeierComponentKind::D(n) => n,
+            NiemeierComponentKind::E6 => 6,
+            NiemeierComponentKind::E7 => 7,
+            NiemeierComponentKind::E8 => 8,
         }
     }
 
-    pub fn coxeter_number(self) -> u128 {
+    pub fn coxeter_number(self) -> Option<u128> {
         match self {
-            NiemeierComponentKind::A(n) => (n + 1) as u128,
-            NiemeierComponentKind::D(n) => (2 * n - 2) as u128,
-            NiemeierComponentKind::E(6) => 12,
-            NiemeierComponentKind::E(7) => 18,
-            NiemeierComponentKind::E(8) => 30,
-            NiemeierComponentKind::E(_) => panic!("unsupported exceptional root rank"),
+            NiemeierComponentKind::A(n) if n >= 1 => Some((n + 1) as u128),
+            NiemeierComponentKind::D(n) if n >= 2 => Some((2 * n - 2) as u128),
+            NiemeierComponentKind::E6 => Some(12),
+            NiemeierComponentKind::E7 => Some(18),
+            NiemeierComponentKind::E8 => Some(30),
+            _ => None,
         }
     }
 
-    pub fn root_count(self) -> u128 {
-        (self.rank() as u128)
-            .checked_mul(self.coxeter_number())
-            .expect("root count exceeds u128")
+    pub fn root_count(self) -> Option<u128> {
+        (self.rank() as u128).checked_mul(self.coxeter_number()?)
     }
 
-    pub fn determinant(self) -> u128 {
+    pub fn determinant(self) -> Option<u128> {
         match self {
-            NiemeierComponentKind::A(n) => (n + 1) as u128,
-            NiemeierComponentKind::D(_) => 4,
-            NiemeierComponentKind::E(6) => 3,
-            NiemeierComponentKind::E(7) => 2,
-            NiemeierComponentKind::E(8) => 1,
-            NiemeierComponentKind::E(_) => panic!("unsupported exceptional root rank"),
+            NiemeierComponentKind::A(n) if n >= 1 => Some((n + 1) as u128),
+            NiemeierComponentKind::D(n) if n >= 2 => Some(4),
+            NiemeierComponentKind::E6 => Some(3),
+            NiemeierComponentKind::E7 => Some(2),
+            NiemeierComponentKind::E8 => Some(1),
+            _ => None,
         }
     }
 
     pub fn weyl_group_order(self) -> Option<u128> {
         match self {
-            NiemeierComponentKind::A(n) => checked_factorial(n + 1),
-            NiemeierComponentKind::D(n) => match n {
-                0 | 1 => None,
-                2 => checked_pow2(2),
-                3 => checked_factorial(4),
-                _ => checked_pow2(n - 1)?.checked_mul(checked_factorial(n)?),
-            },
-            NiemeierComponentKind::E(6) => Some(51_840),
-            NiemeierComponentKind::E(7) => Some(2_903_040),
-            NiemeierComponentKind::E(8) => Some(root_lattices::E8_WEYL_GROUP_ORDER),
-            NiemeierComponentKind::E(_) => None,
+            NiemeierComponentKind::A(n) if n >= 1 => checked_factorial(n + 1),
+            NiemeierComponentKind::D(n) if n >= 2 => {
+                checked_pow2(n - 1)?.checked_mul(checked_factorial(n)?)
+            }
+            NiemeierComponentKind::E6 => Some(51_840),
+            NiemeierComponentKind::E7 => Some(2_903_040),
+            NiemeierComponentKind::E8 => Some(root_lattices::E8_WEYL_GROUP_ORDER),
+            _ => None,
         }
     }
 
-    pub fn root_lattice(self) -> IntegralForm {
+    pub fn root_lattice(self) -> Option<IntegralForm> {
         match self {
-            NiemeierComponentKind::A(n) => root_lattices::a_n(n),
-            NiemeierComponentKind::D(n) => root_lattices::d_n(n),
-            NiemeierComponentKind::E(6) => root_lattices::e_6(),
-            NiemeierComponentKind::E(7) => root_lattices::e_7(),
-            NiemeierComponentKind::E(8) => root_lattices::e_8(),
-            NiemeierComponentKind::E(_) => panic!("unsupported exceptional root rank"),
+            NiemeierComponentKind::A(n) if n >= 1 => Some(root_lattices::a_n(n)),
+            NiemeierComponentKind::D(n) if n >= 2 => Some(root_lattices::d_n(n)),
+            NiemeierComponentKind::E6 => Some(root_lattices::e_6()),
+            NiemeierComponentKind::E7 => Some(root_lattices::e_7()),
+            NiemeierComponentKind::E8 => Some(root_lattices::e_8()),
+            _ => None,
         }
     }
 }
@@ -96,7 +104,7 @@ pub struct NiemeierRootComponent {
 
 /// One class in the Niemeier genus.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct NiemeierClass {
+pub struct NiemeierRecord {
     label: &'static str,
     components: &'static [NiemeierRootComponent],
     coxeter_number: u128,
@@ -104,7 +112,7 @@ pub struct NiemeierClass {
     automorphism_quotient_order: u128,
 }
 
-impl NiemeierClass {
+impl NiemeierRecord {
     pub fn label(&self) -> &'static str {
         self.label
     }
@@ -143,6 +151,7 @@ impl NiemeierClass {
             let term = component
                 .kind
                 .root_count()
+                .expect("catalogue components have in-domain rank")
                 .checked_mul(component.multiplicity as u128)
                 .expect("root count exceeds u128");
             out = out.checked_add(term).expect("root count exceeds u128");
@@ -157,7 +166,7 @@ impl NiemeierClass {
         let mut out = 1u128;
         for component in self.components {
             for _ in 0..component.multiplicity {
-                out = out.checked_mul(component.kind.determinant())?;
+                out = out.checked_mul(component.kind.determinant()?)?;
             }
         }
         Some(out)
@@ -186,7 +195,7 @@ impl NiemeierClass {
         let mut out: Option<IntegralForm> = None;
         for component in self.components {
             for _ in 0..component.multiplicity {
-                let lattice = component.kind.root_lattice();
+                let lattice = component.kind.root_lattice()?;
                 out = Some(match out {
                     Some(acc) => acc.direct_sum(&lattice),
                     None => lattice,
@@ -238,11 +247,11 @@ const A9_2_D6: [NiemeierRootComponent; 2] = [
     c(NiemeierComponentKind::D(6), 1),
 ];
 const D6_4: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::D(6), 4)];
-const E6_4: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::E(6), 4)];
+const E6_4: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::E6, 4)];
 const A11_D7_E6: [NiemeierRootComponent; 3] = [
     c(NiemeierComponentKind::A(11), 1),
     c(NiemeierComponentKind::D(7), 1),
-    c(NiemeierComponentKind::E(6), 1),
+    c(NiemeierComponentKind::E6, 1),
 ];
 const A12_2: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::A(12), 2)];
 const D8_3: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::D(8), 3)];
@@ -252,185 +261,185 @@ const A15_D9: [NiemeierRootComponent; 2] = [
 ];
 const A17_E7: [NiemeierRootComponent; 2] = [
     c(NiemeierComponentKind::A(17), 1),
-    c(NiemeierComponentKind::E(7), 1),
+    c(NiemeierComponentKind::E7, 1),
 ];
 const D10_E7_2: [NiemeierRootComponent; 2] = [
     c(NiemeierComponentKind::D(10), 1),
-    c(NiemeierComponentKind::E(7), 2),
+    c(NiemeierComponentKind::E7, 2),
 ];
 const D12_2: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::D(12), 2)];
 const A24: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::A(24), 1)];
 const D16_E8: [NiemeierRootComponent; 2] = [
     c(NiemeierComponentKind::D(16), 1),
-    c(NiemeierComponentKind::E(8), 1),
+    c(NiemeierComponentKind::E8, 1),
 ];
-const E8_3: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::E(8), 3)];
+const E8_3: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::E8, 3)];
 const D24: [NiemeierRootComponent; 1] = [c(NiemeierComponentKind::D(24), 1)];
 
 /// The 24 Niemeier classes in Conway-Sloane table order.
-pub const NIEMEIER_CLASSES: [NiemeierClass; 24] = [
-    NiemeierClass {
+pub const NIEMEIER_CLASSES: [NiemeierRecord; 24] = [
+    NiemeierRecord {
         label: "Leech",
         components: &LEECH,
         coxeter_number: 0,
         glue_code_order: None,
         automorphism_quotient_order: 1,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_1^24",
         components: &A1_24,
         coxeter_number: 2,
         glue_code_order: Some(4_096),
         automorphism_quotient_order: 244_823_040,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_2^12",
         components: &A2_12,
         coxeter_number: 3,
         glue_code_order: Some(729),
         automorphism_quotient_order: 190_080,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_3^8",
         components: &A3_8,
         coxeter_number: 4,
         glue_code_order: Some(256),
         automorphism_quotient_order: 2_688,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_4^6",
         components: &A4_6,
         coxeter_number: 5,
         glue_code_order: Some(125),
         automorphism_quotient_order: 240,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_5^4 D_4",
         components: &A5_4_D4,
         coxeter_number: 6,
         glue_code_order: Some(72),
         automorphism_quotient_order: 48,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "D_4^6",
         components: &D4_6,
         coxeter_number: 6,
         glue_code_order: Some(64),
         automorphism_quotient_order: 2_160,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_6^4",
         components: &A6_4,
         coxeter_number: 7,
         glue_code_order: Some(49),
         automorphism_quotient_order: 24,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_7^2 D_5^2",
         components: &A7_2_D5_2,
         coxeter_number: 8,
         glue_code_order: Some(32),
         automorphism_quotient_order: 8,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_8^3",
         components: &A8_3,
         coxeter_number: 9,
         glue_code_order: Some(27),
         automorphism_quotient_order: 12,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_9^2 D_6",
         components: &A9_2_D6,
         coxeter_number: 10,
         glue_code_order: Some(20),
         automorphism_quotient_order: 4,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "D_6^4",
         components: &D6_4,
         coxeter_number: 10,
         glue_code_order: Some(16),
         automorphism_quotient_order: 24,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "E_6^4",
         components: &E6_4,
         coxeter_number: 12,
         glue_code_order: Some(9),
         automorphism_quotient_order: 48,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_11 D_7 E_6",
         components: &A11_D7_E6,
         coxeter_number: 12,
         glue_code_order: Some(12),
         automorphism_quotient_order: 2,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_12^2",
         components: &A12_2,
         coxeter_number: 13,
         glue_code_order: Some(13),
         automorphism_quotient_order: 4,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "D_8^3",
         components: &D8_3,
         coxeter_number: 14,
         glue_code_order: Some(8),
         automorphism_quotient_order: 6,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_15 D_9",
         components: &A15_D9,
         coxeter_number: 16,
         glue_code_order: Some(8),
         automorphism_quotient_order: 2,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_17 E_7",
         components: &A17_E7,
         coxeter_number: 18,
         glue_code_order: Some(6),
         automorphism_quotient_order: 2,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "D_10 E_7^2",
         components: &D10_E7_2,
         coxeter_number: 18,
         glue_code_order: Some(4),
         automorphism_quotient_order: 2,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "D_12^2",
         components: &D12_2,
         coxeter_number: 22,
         glue_code_order: Some(4),
         automorphism_quotient_order: 2,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "A_24",
         components: &A24,
         coxeter_number: 25,
         glue_code_order: Some(5),
         automorphism_quotient_order: 2,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "D_16 E_8",
         components: &D16_E8,
         coxeter_number: 30,
         glue_code_order: Some(2),
         automorphism_quotient_order: 1,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "E_8^3",
         components: &E8_3,
         coxeter_number: 30,
         glue_code_order: Some(1),
         automorphism_quotient_order: 6,
     },
-    NiemeierClass {
+    NiemeierRecord {
         label: "D_24",
         components: &D24,
         coxeter_number: 46,
@@ -439,7 +448,7 @@ pub const NIEMEIER_CLASSES: [NiemeierClass; 24] = [
     },
 ];
 
-pub fn niemeier_classes() -> &'static [NiemeierClass] {
+pub fn niemeier_classes() -> &'static [NiemeierRecord] {
     &NIEMEIER_CLASSES
 }
 
@@ -467,22 +476,6 @@ pub fn niemeier_weighted_theta_average(terms: usize) -> Option<Vec<Rational>> {
     }
     for coeff in &mut out {
         *coeff = coeff.mul(&mass_inv);
-    }
-    Some(out)
-}
-
-fn checked_pow2(n: usize) -> Option<u128> {
-    if n >= 128 {
-        None
-    } else {
-        Some(1u128 << n)
-    }
-}
-
-fn checked_factorial(n: usize) -> Option<u128> {
-    let mut out = 1u128;
-    for k in 2..=n {
-        out = out.checked_mul(k as u128)?;
     }
     Some(out)
 }
@@ -521,7 +514,7 @@ mod tests {
                 for component in class.components() {
                     assert_eq!(
                         component.kind.coxeter_number(),
-                        class.coxeter_number(),
+                        Some(class.coxeter_number()),
                         "{}",
                         class.label()
                     );

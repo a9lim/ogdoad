@@ -425,7 +425,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 .map(Value::Function),
             Expr::Ident(name) => {
                 if name == "t" {
-                    Ok(Value::Element(Poly::x()))
+                    Ok(Value::Element(Poly::t()))
                 } else if let Some(value) = self.env.get(name) {
                     Ok(value.clone())
                 } else {
@@ -767,7 +767,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             )),
             Expr::Ident(name) => {
                 if name == "t" {
-                    Ok(Poly::x())
+                    Ok(Poly::t())
                 } else if let Some(value) = self.env.get(name) {
                     match value {
                         Value::Element(value) => Ok(value.clone()),

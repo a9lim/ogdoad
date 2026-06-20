@@ -47,14 +47,21 @@ pub type DpTensorKey = (Multidegree, Multidegree);
 /// (mirroring [`CliffordAlgebra`](crate::clifford::CliffordAlgebra)).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DividedPowerAlgebra {
-    pub dim: usize,
+    pub(crate) dim: usize,
 }
 
 /// An element of `Γ(V)`: a finite linear combination of divided-power monomials.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DpVector<S: Scalar> {
     /// multidegree → coefficient (no zero coefficients, no off-length keys).
-    pub terms: BTreeMap<Multidegree, S>,
+    pub(crate) terms: BTreeMap<Multidegree, S>,
+}
+
+impl<S: Scalar> DpVector<S> {
+    /// The term map: multidegree → coefficient (no zero entries).
+    pub fn terms(&self) -> &BTreeMap<Multidegree, S> {
+        &self.terms
+    }
 }
 
 /// Integer binomial coefficient `\binom{n}{k}` (exact, small arguments, char-0
@@ -139,6 +146,11 @@ fn embed_binom<S: Scalar>(n: u128, k: u128) -> S {
 impl DividedPowerAlgebra {
     pub fn new(dim: usize) -> Self {
         DividedPowerAlgebra { dim }
+    }
+
+    /// The number of generators of this divided power algebra.
+    pub fn dim(&self) -> usize {
+        self.dim
     }
 
     fn empty_degree(&self) -> Multidegree {

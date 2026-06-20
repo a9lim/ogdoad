@@ -50,7 +50,10 @@ pub trait FiniteField: Scalar + Copy {
     /// Exponentiation `self^e` by an ordinary integer exponent.
     fn pow(&self, e: u128) -> Self;
 
-    /// The extension degree `[F : F_p]`, so `|F| = p^{ext_degree}`.
+    /// The **absolute** degree `[F : F_p]` over the prime field, so `|F| = p^{ext_degree}`.
+    /// Distinct from [`FieldExtension::extension_degree`](crate::scalar::FieldExtension::extension_degree),
+    /// which is the *relative* degree over a chosen `Base` and coincides with this only
+    /// when `Base` is the prime field.
     fn ext_degree() -> usize;
 
     /// The order of the multiplicative group `F* = |F| − 1`.

@@ -40,7 +40,8 @@ use crate::clifford::Metric;
 use crate::forms::{
     as_diagonal, classify_surcomplex, classify_surreal, clifford_brauer_class, finite_odd_witt,
     try_disc_class, try_hasse_at_place_ff, try_ramified_places_ff, try_relevant_places_ff,
-    try_square_free, Brauer2Class, FFPlace, FiniteOddField, Place, WittClassG, WittClassGError,
+    try_square_free, Brauer2Class, FiniteOddField, FunctionFieldPlace, Place, WittClassG,
+    WittClassGError,
 };
 use crate::scalar::{Nimber, Rational, RationalFunction, Scalar, Surcomplex, Surreal};
 
@@ -123,7 +124,7 @@ pub struct RationalBrauerWallClass {
 /// set of ramified places where the local invariant is `1/2`.
 #[derive(Debug, Clone)]
 pub struct FunctionFieldBrauer2Class<S: FiniteOddField> {
-    ramified: Vec<FFPlace<S>>,
+    ramified: Vec<FunctionFieldPlace<S>>,
 }
 
 impl<S: FiniteOddField> PartialEq for FunctionFieldBrauer2Class<S> {
@@ -144,7 +145,7 @@ impl<S: FiniteOddField> FunctionFieldBrauer2Class<S> {
     }
 
     /// Build a class from ramified places, deduplicating by place equality.
-    pub fn from_ramified_places(places: Vec<FFPlace<S>>) -> Self {
+    pub fn from_ramified_places(places: Vec<FunctionFieldPlace<S>>) -> Self {
         let mut ramified = Vec::new();
         for place in places {
             if !ramified.contains(&place) {
@@ -160,7 +161,7 @@ impl<S: FiniteOddField> FunctionFieldBrauer2Class<S> {
     }
 
     /// The ramified places.
-    pub fn ramified_places(&self) -> &[FFPlace<S>] {
+    pub fn ramified_places(&self) -> &[FunctionFieldPlace<S>] {
         &self.ramified
     }
 
@@ -178,7 +179,7 @@ impl<S: FiniteOddField> FunctionFieldBrauer2Class<S> {
     }
 
     /// Local invariant at a place, in `{0, 1/2} ⊂ Q/Z`.
-    pub fn local_invariant(&self, place: &FFPlace<S>) -> Rational {
+    pub fn local_invariant(&self, place: &FunctionFieldPlace<S>) -> Rational {
         if self.ramified.contains(place) {
             Rational::try_new(1, 2).expect("1/2 is a valid rational")
         } else {
@@ -1000,8 +1001,8 @@ mod tests {
         assert_eq!(quat.ramified_places().len(), 2);
         assert!(quat
             .ramified_places()
-            .contains(&FFPlace::Finite(poly(&[0, 1]))));
-        assert!(quat.ramified_places().contains(&FFPlace::Infinite));
+            .contains(&FunctionFieldPlace::Finite(poly(&[0, 1]))));
+        assert!(quat.ramified_places().contains(&FunctionFieldPlace::Infinite));
     }
 
     #[test]

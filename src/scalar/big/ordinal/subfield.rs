@@ -6,6 +6,7 @@
 //! Frobenius fixed-field test `x^(2^d) = x`.
 
 use super::Ordinal;
+use crate::linalg::integer::gcd_u128;
 use crate::scalar::nim_degree;
 
 impl Ordinal {
@@ -105,20 +106,11 @@ fn checked_pow(base: u128, exp: u128) -> Option<u128> {
     Some(acc)
 }
 
-fn gcd(mut a: u128, mut b: u128) -> u128 {
-    while b != 0 {
-        let r = a % b;
-        a = b;
-        b = r;
-    }
-    a
-}
-
 fn lcm(a: u128, b: u128) -> Option<u128> {
     if a == 0 || b == 0 {
         return Some(0);
     }
-    (a / gcd(a, b)).checked_mul(b)
+    (a / gcd_u128(a, b)).checked_mul(b)
 }
 
 fn prime_factors(mut n: u128) -> Vec<u128> {

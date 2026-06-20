@@ -345,11 +345,11 @@ impl<S: ExactRoots, const K: usize> ExactRoots for Laurent<S, K> {
             // Newton over the unit series: y ← (y + U·y⁻¹)·½, doubling correct
             // terms each step, seeded by the leading-coefficient root.
             let two_inv = S::one().add(&S::one()).inv()?; // 1/2 (a unit in odd/0 char)
-            let half = Laurent::<S, K>::from_scalar(two_inv);
+            let half = Laurent::<S, K>::from_base(two_inv);
             let u0 = unit[0].clone();
             let seed = u0.sqrt()?; // leading coeff must be a square in S
             let unit_series = Laurent::<S, K>::from_coeffs(unit.to_vec(), 0);
-            let mut y = Laurent::<S, K>::from_scalar(seed);
+            let mut y = Laurent::<S, K>::from_base(seed);
             for _ in 0..64 {
                 let yi = y.inv()?;
                 let next = unit_series.mul(&yi).add(&y).mul(&half);
@@ -606,7 +606,7 @@ mod tests {
         assert_eq!(ExactRoots::sqrt(&L::t()), None);
         // a non-square leading coefficient (2) declines.
         assert_eq!(
-            ExactRoots::sqrt(&Laurent::<Rational, 8>::from_scalar(r(2))),
+            ExactRoots::sqrt(&Laurent::<Rational, 8>::from_base(r(2))),
             None
         );
     }
