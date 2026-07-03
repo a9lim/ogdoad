@@ -44,6 +44,27 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### ~6·(e_s∧e_c∧e_f∧e_i∧e_g): `py-sweep-2026-07-03` (the Python face)
+**Completed:** 2026-07-03
+**Summary:** played [`PY.md`](PY.md) §9 items 1–8 + 10 — the Python-side audit's
+truth repairs, path-fossil sweep, guards, common.py consolidation, extraspecial/
+demo/stub cleanups, and the archive STATUS-TABLE manifests — in two waves of
+file-fenced sonnet agents with lead gates (commits `589ef72`, `3a5d32f`).
+**Pillars:** the Python surface of all five    **Claim level:** implemented-and-tested
+- surface: `ruff` 571→0 under the new `[tool.ruff]` floor; `common.py` grew
+  `nim_mul`/`gold_lam`/`polar_lam`/`gold_table`/`report` and delegates to the
+  bound engine; STATUS TABLEs (pinned/oracle/superseded-by/scratch) cover all
+  78 archive files; `ogdoad.pyi` gained 30 real signatures.
+- oracles: `echo_solver.py selftest` PASS end-to-end; maintained-tier and
+  common-importer outputs byte-identical vs baselines; demo output diff =
+  exactly the 3 intended lines; `synth_verify`'s closed-form check now asserts
+  (and passes) at m=8/16/32.
+- boundaries: PY.md §9.9 (the bindings wave) not played; three deliberate
+  non-applications recorded in PY.md's header block; three audit findings
+  corrected during play (goldarf DOES cite echo_charge_probe — TeX-escaped
+  underscores beat the triage grep; the cyclo assert was false-as-written, not
+  redundant; skeptic_nogo's /tmp was prose-only).
+
 ### ~12·(e_s∧e_c∧e_f∧e_i∧e_g): `revision-sweep-2026-07-02`
 **Completed:** 2026-07-02
 **Summary:** played both 2026-07-02 revision ledgers — [`CORRECTNESS.md`](CORRECTNESS.md)

@@ -13,6 +13,19 @@ Severity vocabulary: **serious** = wrong output or a lying verifier; **issue** =
 real problem worth fixing; **wart** = should fix; **nit** = taste. Fix-order
 recommendations are in §9.
 
+**Played 2026-07-03** (commits `589ef72` + `3a5d32f`): §9 items 1–8 and 10 are
+done — two waves of file-fenced fix agents with lead gates; `ruff` went 571 → 0;
+`echo_solver.py selftest` PASS throughout; demo/maintained-tier outputs verified
+byte-identical modulo intended lines. Item 9 (the bindings wave) remains open.
+Three findings were **corrected during play** and are annotated inline below
+(§1.2 goldarf citation, §1.5 the cyclo assert, §2 the skeptic_nogo count); three
+fixes were deliberately **not** applied — `exception_column_m4.py`'s Q_SET
+monkey-patch (the sibling reads the module global internally; a parameterized fix
+is semantic surgery on a pinned harness), `weil_gold_probe.py`'s `dsum` →
+`direct_sum` swap (archival), and `asym2_fifo_bench.py`'s `direct_fifo_value2`
+deletion — that "dead alias" carries the `# fix call shape` comment
+`echo_solver.py` uses as its extraction end-marker, so it is load-bearing.
+
 ## 0. The shape of the problem
 
 The Python side is **two codebases sharing a namespace**, and they deserve
@@ -70,6 +83,16 @@ These are the findings that gate citing the archive's printed output.
    `echo_solver.py`'s independent corrected harness. Action: mark all three
    files superseded in the manifest, and check whether `writeups/goldarf.tex`
    cites any number produced by the buggy lineage.
+   **Correction (2026-07-03, found during play):** the original triage grep
+   reported goldarf.tex clean — wrong, because TeX escapes underscores
+   (`echo\_charge\_probe`). goldarf **does** cite the file, in the
+   corrected-results provenance paragraph. The record stands regardless: that
+   table is independently re-derived by `echo_solver.py` stage `ko2` (validated
+   against tree enumeration, reproducing the unique `(8,2)` miss `x=224`), and
+   goldarf itself already quarantines the round-1-data blocker conjecture as
+   "hypothesis to re-test". Fixed: goldarf's parenthetical now notes the rescued
+   snapshot predates the memo-key fix, and the file's SUPERSEDED header says the
+   same. Lesson for future greps: match TeX-escaped names.
 
 3. **`experiments/audit/fp_full.py:3` — cannot run, at all, as checked in.**
    `exec(open('/tmp/fp_emulate.py').read().split('# scan')[0])` — an `exec` of
@@ -98,6 +121,12 @@ These are the findings that gate citing the archive's printed output.
    for the factor sizes actually used, but the "deterministic below this"
    comment asserts a guarantee the code doesn't provide. Add 41 or lower the
    limit to the 12-base bound.
+   **Correction (2026-07-03, found during play):** "the next line does the real
+   check redundantly" was wrong — the drafted identity is *false as written*
+   (`β^(2^h+1) == γ·β`, one side multiplied by β), which is presumably why it
+   was neutered rather than fixed. Enlivening it would have failed. Resolution:
+   the dead assert was deleted with an explanatory comment; the live norm check
+   below it is the verified one. The base list got its 41.
 
 6. **`experiments/gold/ogdoad_misere_subgroup_sweep.py:28-147` — ~120 lines
    reimplementing a shipped binding, in a file named after the package it never
@@ -115,9 +144,10 @@ These are the findings that gate citing the archive's printed output.
 17 files reference `/tmp`; 5 hardcode `/Users/a9lim/Work/ogdoad/...`. Getting
 the severity right matters because the first fleet pass overclaimed it:
 
-- **`sys.path.insert(0, "/tmp")` (11 files: 10 in `gold/asym2_*`/`gold/echo_*`/
-  `gold/skeptic_{indep,nogo_check}`, plus `excess/cyclo_family2.py`) does NOT
-  break the scripts.** CPython puts the running script's own directory at
+- **`sys.path.insert(0, "/tmp")` (11 files — corrected during play: 10 in
+  `gold/asym2_*`/`gold/echo_*`/`gold/skeptic_indep`, plus
+  `excess/cyclo_family2.py`; `skeptic_nogo_check.py`'s `/tmp` was a docstring
+  mention only, no code) does NOT break the scripts.** CPython puts the running script's own directory at
   `sys.path[0]`, and every imported sibling lives in that same directory, so
   the `/tmp` entry never matches anything (verified by running one). What it
   *is*: a silent-shadowing hazard — any stale `asym2_probe.py`/
@@ -458,6 +488,10 @@ fossil or not, is applied consistently. The Python side is rough, but its
 roughness is almost entirely *archival sediment*, not live rot.
 
 ## 9. Recommended fix order
+
+*(Played state, 2026-07-03: items 1–8 and 10 ✔ done in commits `589ef72` +
+`3a5d32f`, with the three deliberate non-applications listed in the header
+block. Item 9, the bindings wave, is the open remainder.)*
 
 1. **Truth repairs** (small, gates citation): `synth_verify` loop bound +
    assert; `cyclo_family` neutered assert + MR base list; delete
