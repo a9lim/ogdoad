@@ -104,9 +104,83 @@ math (Weyl algebra; divided-power/hyperalgebra in char `p`: Berthelot–Ogus, Gr
 A genuinely new fourth algebra engine, the one the `hopf` / `divided_power` mirror
 has been pointing at — not a completion of an existing bridge.
 
+### 1·(e_f∧e_i): `pointed-mtc`
+**The pointed modular tensor category `C(A,q)` — reading `DiscriminantForm` as an
+anyon theory.** The data is already shipped: the finite quadratic module *is* the
+fusion group + twists (`θ_x = e^{2πi q(x)}`), the Weil `S`/`T` matrices *are* the
+modular data, and Gauss–Milgram *is* the central charge `c ≡ sign(L) mod 8`. The
+continuation is the thin categorical layer that makes it official: fusion ring
+(group algebra), Verlinde check (`S` diagonalizes fusion), twist/braiding
+consistency, and the central-charge identity — all exact or `Complex64`-bounded on
+the existing surface. Cheapest item on this list relative to what it reframes:
+Bridges I/M become an executable abelian-anyon engine, and Nikulin's
+discriminant-form theory gets its modern physics reading. References: Rowell–Stong–
+Wang; Bakalov–Kirillov; Nikulin.
+
+### 1·(e_f∧e_g): `polar-spaces`
+**Finite polar spaces and generalized quadrangles from the char-2 form surface.**
+The symplectic/quadratic `F₂` layer, the extraspecial group, and the Pauli
+commutation relations all describe the same finite incidence geometry — and the
+crate never exposes it *as* geometry. Build the polar space: points = projective
+points, collinearity = polar-form orthogonality, totally-isotropic subspaces,
+`W(3,2)` (the doily) from `Sp(4,2)`, ovoids/spreads censuses, quadric point-sets as
+the geometric face of the Arf zero-count. Consumers on both sides: the extraspecial/
+Pauli layer (commutation graphs) and the quadric P-set bench (incidence data for the
+probes) — with no claim on the open Gold rule (`OPEN.md` tis stays untouched; this
+is the geometry, not the game). References: Payne–Thas; Taylor.
+
+### 1·(e_i∧e_g): `matroid-tutte`
+**Matroids, deletion/contraction, and Greene's theorem.** Represented matroids from
+the shipped generator matrices (`BinaryCode`/`PrimeCode`), rank/nullity and Tutte
+polynomial via deletion–contraction, and **Greene's theorem** — the weight enumerator
+as a Tutte-polynomial evaluation — pinned against the MacWilliams/WE surface already
+in `codes.rs`. Joins the games→lexicode→Golay→Construction-A chain with a genuinely
+new combinatorial invariant layer (and graphic-matroid examples from the ADE
+diagrams fall out for free). More mechanical than deep, but every oracle is already
+shipped. References: Greene 1976; Oxley; Brylawski–Oxley.
+
+### 2·(e_c∧e_i∧e_s): `octonions`
+**Composition algebras — the Cayley–Dickson tower over any `Scalar`.** Quaternions,
+octonions, and their split forms as a new (nonassociative!) algebra engine beside
+Clifford/exterior/divided-power: Moufang laws and norm multiplicativity proptested
+over the scalar worlds, char-2 behavior honest (the norm form degenerates the same
+way the rest of the char-2 story does), and the **integral octonions** whose norm
+form is `E₈` — with the shipped `e_8()` lattice as the oracle (Coxeter's order,
+240 units). Triality adjacency to the spinor layer is the long-game payoff. A real
+new engine (nonassociativity means the blade machinery doesn't carry over), which
+is what the `2` prices in. References: Conway–Smith; Springer–Veldkamp; Baez.
+
+### 2·(e_i∧e_c): `lorentzian`
+**`II_{25,1}` — the Lorentzian mirror of the Niemeier wing.** The integral wing is
+positive-definite; the Conway-est extension is the even unimodular Lorentzian
+lattice: exact indefinite Gram, Leech roots (`r² = 2`, `r·w = −1`), the Weyl vector
+`w = (0,1,…,24 | 70)` (the sum-of-squares coincidence made load-bearing),
+reflections through the shipped Weyl-versor machinery, and Conway's identification
+of the reflection group with the Leech affine structure — with the 24-class Niemeier
+catalogue as the *verification oracle* (deep holes ↔ the 23 rooted classes, the holy
+constructions recovering their root systems). Honest boundaries stated up front:
+geometry oracles (`minimum`/`kissing_number`) stay `None` for indefinite forms, and
+the first build is named checks (Weyl-vector identities, root recognition, per-class
+hole data) — the full deep-hole classification machinery is the follow-on, not the
+item. References: Conway–Sloane SPLAG chs. 26–27; Conway 1983; Borcherds.
+
 ---
 
 ## switches (a9's move first)
+
+### ±3·e_s: `surreal-exp`
+**Gonshor's exp/log on No.** The exact surreal backend growing genuine analytic
+structure: `exp(ω) = ω^ω`-flavored normal forms (Ressayre), `log` on positive
+surreals, the induced ordered-exponential-field structure — all exact on represented
+CNF windows, `None` beyond, matching the house precision honesty. Conceptually the
+strongest scalar-world extension available (No becomes an exponential field, which
+is what it *is* in the literature), but the scope risk is the highest on this list:
+Gonshor's recursion is subtle, the interaction with the finite-support Hahn
+representation needs real design, and the value is `±3` only if sharply bounded to
+exp/log on monomial-representable arguments first — otherwise it drifts starward.
+a9's call on whether the exact leg wants analysis at all (the same conversation
+`surreal-completion` opens from the capped side). References: Gonshor ch. 10;
+Berarducci–Mantova; van den Dries–Ehrlich.
 
 ### ±3·(e_i∧e_f): `cm-lattices`
 **Hermitian lattices over the CM rings `ℤ[i]`, `ℤ[ω]`, and the Hurwitz quaternions.** The

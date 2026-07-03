@@ -39,6 +39,70 @@ with outcome **CONFIRM** — see `writeups/goldarf.tex` §8; its successor move 
 
 ## numbers — forms & Witt (the classifier spine)
 
+### 1·(e_c∧e_f∧e_s): `clifford-center`
+**The center of the Clifford algebra as an actual object — the third Scalar–Clifford
+span.** Materialize `Z(Cl(V,q))` / `Z(Cl⁰(V,q))` as the discriminant étale algebra
+`F[x]/(x² − δ)` (parity-dependent), with split/field detection per scalar leg
+(`Rational`, `Surreal`, odd finite fields, odd `F_q(t)`), cross-checked against the
+Brauer–Wall dimension-parity and signed-discriminant coordinates the crate already
+computes. Standard math (Lam; Knus–Merkurjev–Rost–Tignol). This is the span the
+README's Königsberg section says is missing — Scalar and Clifford are the two odd
+islands, and this bridge is what closes the crate's Euler tour. Distinct from
+`brauer-algebras` (which materializes CSA representatives for Brauer *invariants*;
+this materializes the scalar center the Clifford algebra itself generates).
+
+### 1·(e_f∧e_s): `milnor-k`
+**Mod-2 Milnor K-theory symbols behind the shipped `eₙ` staircase — degrees ≤ 2.**
+`witt/ring.rs` names the `Iⁿ/Iⁿ⁺¹` staircase and computes `e₀/e₁/e₂`;
+`witt/milnor.rs` ships the residue exact sequences. The missing sibling is the object
+those invariants land in: symbols `{a₁,…,aₙ}` with the Steinberg relation, addition/
+product, residue maps, and the classical comparison `k^M_n(F)/2 ≅ Iⁿ/Iⁿ⁺¹` verified
+where it is classical — finite fields (trivial fast), ℚ (Tate), odd `F_q(t)` (Milnor)
+— against the Pfister/eₙ and Hilbert/Springer surfaces already shipped. Bounded to
+degrees ≤ 2 at this value; degree 3 (`e₃`, needing the full Merkurjev-level story)
+would make it a `2` — don't scope-creep it. References: Milnor 1970; Gille–Szamuely.
+
+### 1·(e_f∧e_s): `hermitian-restriction`
+**Restriction of scalars for Hermitian forms — back into the trichotomy.**
+`hermitian.rs` classifies Hermitian forms; `trace_form.rs` builds Scharlau transfers —
+but the two never compose. Build `trace_metric`: send `h` over `E/F` to the `F`-valued
+quadratic form `x ↦ Tr_{E/F}(h(x,x))`, then compare classifier outputs — Surcomplex
+`U(p,q)` ↔ the real signature table, `FiniteHermitianInvariants` ↔ the odd/char-2
+finite classifiers through the façade. (Two independent audit takes converged on
+exactly this gap.) Standard math (Scharlau; Lam's transfer chapter). Not
+`cm-lattices` — that is integral Hermitian lattice arithmetic; this is the field-level
+forms bridge.
+
+### 1·(e_f∧e_s): `springer-ramified`
+**The ramified leg of the Springer engine.** `springer_decompose_local` requires only
+`K::Residue: FiniteOddField`, and `Ramified<S,E>` satisfies it through its base
+residue field — but no named wrapper or test exercises it, and the mathematics is not
+a freebie: the value group is `(1/E)ℤ` relative to the base, so the valuation-parity
+grading needs honest re-derivation (the ramified story is genuinely different from
+the unramified one). A `springer_decompose_ramified` entry point with worked oracles
+fills the one discretely-valued leg the trio skips. (`Gauss` is correctly excluded —
+transcendental residue field.)
+
+### ½·(e_s∧e_f): `finite-field-invariants`
+**`level`/`pythagoras_number`/`u_invariant` for every shipped finite-field leg, not
+just `Fp`.** `field_invariants.rs` is prime-fields-only and `u_invariant` hard-rejects
+`P = 2` — but `u(F_q) = 2` for *every* finite field including characteristic 2
+(Chevalley–Warning), the level of a char-2 field is trivially 1, and `Fpn<P,N>` is
+first-class everywhere else in the classifier machinery. Generalize the three
+invariants over `FiniteOddField`/`FiniteChar2Field` with formula-backed tests. (The
+audit's original finding was the char-2 gap; the honest completion is all finite
+legs.)
+
+### ½·e_c: `char2-spinor-norm`
+**The honest additive char-2 spinor norm.** The correctness audit
+([`CORRECTNESS.md`](CORRECTNESS.md) → `spinor-norm-char2-claim`) established that
+reducing the raw norm `∏q(vᵢ)` mod `℘` is *not* the char-2 invariant (it isn't
+well-defined under versor rescaling). The completion is the real one: compute
+`Σ Q(vᵢ) mod ℘(F)` from a factorization of the versor into vector symmetries (Wall/
+Dye), pair it with the shipped Dickson parity, and test on nimber-backed versors —
+finishing the char-2 half of `classify_versor` that the doc repair leaves honestly
+open.
+
 ### 1·(e_g∧e_f): `echo-family-sweep`
 **The remaining pre-registered family axes** (`writeups/goldarf.tex` §§8–9, ranked
 move 2), on the shipped harness `experiments/echo_solver.py`: ko-memory window
@@ -69,6 +133,37 @@ completes Bridge K from invariants to algebras.
 
 ## numbers — the integral wing
 
+### 1·(e_i∧e_c∧e_f): `spine-closure`
+**Wire the lattice→Clifford metrics into the classifiers — make the "visible meeting
+point" claim a test.** `IntegralForm::clifford_metric` feeds only Pin-versor geometry
+(never `.classify()`/`bw_class_rational`), and `clifford_metric_f2` has *no* Rust
+consumer at all — so the mod-8 spine's lattice leg is asserted, not verified. Build
+the closure: `E₈`/`D16+`/`Zⁿ` → `clifford_metric` → `classify_real`/
+`bw_class_rational`, Bott index ↔ `signature() mod 8`; even 2-elementary lattice →
+`clifford_metric_f2` → Arf → `4·Arf` ↔ `DiscriminantForm::brown_invariant` ↔ the
+Milgram routes — extending `verify_milgram`'s three-way cross-check to the
+Clifford/BW leg it never got. A convention drift in either endpoint currently cannot
+fail a test; after this it can.
+
+### 1·(e_c∧e_f∧e_i): `weil-coherence`
+**One finite Weil representation, two shipped incarnations, never compared.** The
+integral side has `DiscriminantForm`'s Weil `S`/`T` and metaplectic relation checks;
+the char-2 side has the extraspecial Heisenberg/Pauli representation with projective
+transvection intertwiners. Build the adapter from a nonsingular `F₂` quadratic form
+to its 2-elementary discriminant module and assert the two packages agree
+projectively on shared generators (Brown/Milgram phases, `S`/`T` vs the intertwiner
+matrices). Only the cross-adapter and coherence checks are new — the transvection
+work itself is DONE (`heisenberg-weil`). References: Scheithauer; Gurevich–Hadani.
+
+### ½·(e_i∧e_f): `genus-hasse-crosscheck`
+**Two complete local invariants of the same object, never run against each other.**
+`genus.rs`'s Conway–Sloane symbols and `local_global/padic.rs`'s Hasse/Hilbert
+invariant classify the same local data by genuinely different algorithms, each
+oracled externally, with zero cross-references. Add agreement tests on shared Grams
+(genus-implied local isotropy at odd `p` ↔ `try_is_isotropic_at_place` on the same
+diagonal). A sign/normalization drift in either engine is currently invisible to
+`cargo test`.
+
 ### ½·(e_i∧e_c): `eichler`
 **Eichler's theorem as a documented predicate** — the one cheap honest piece of star
 `*1`: *indefinite, rank ≥ 3 ⇒ spinor genus = isometry class*, letting `Genus` upgrade
@@ -89,9 +184,22 @@ SPLAG ch. 7). Closes Bridge H over the leg `construction-a-p` opened.
 
 ## numbers — scalar worlds
 
+### 1·e_s: `laurent-galois`
+**The Galois leg of the equal-characteristic local pair.** `(Qp, Qq)` carries
+`FieldExtension`/`CyclicGaloisExtension` (Frobenius, relative trace/norm); `Laurent`
+— the documented "char-p mirror of Qp" — has no unramified-extension twin at all,
+and no boundary text excludes it the way Ramified ("non-Galois") and Gauss
+("transcendental") are excluded. The extension is available by coefficient-field
+substitution (`Laurent<Fpn<P,NF>>` over `Laurent<Fpn<P,N>>`, coefficientwise
+Frobenius, valuation-preserving) — the const-generic plumbing (no `N·F` arithmetic
+in stable generics, so concrete monomorphized impls) is what makes this a `1` rather
+than a `½`. Feeds the same trace-form/cyclic-algebra consumers `Qq` already has.
+
 ### ½·e_s: `hyperfield`
-**Viro's tropical hyperfield**, making Bridge J's lax tropicalization strict (Remark
-J.2 names this exact repair): a small multivalued-addition type
+**Viro's tropical hyperfield**, making Bridge J's lax tropicalization strict (the
+`Valued` trait doc names this exact repair — `valued.rs`, the "strictness is restored
+only by the tropical hyperfield [Viro 2010]" sentence beside Lemma J.1): a small
+multivalued-addition type
 (`x ⊞ y = {min}` off the vanishing locus, the interval/set on it) with the hyperfield
 laws as tests and `tropicalize` factoring through it. A leaf, but it converts the one
 "lax" asterisk in the J appendix into a theorem about a shipped type.
@@ -126,6 +234,26 @@ even lattices. The decision: how much modular-forms machinery this crate wants t
 full-level `SL₂(ℤ)` story as the deliberate boundary tied to `level()`. Worth a
 design conversation before any code.
 
+### ±3·e_i: `general-mass`
+**The Smith–Minkowski–Siegel mass formula for arbitrary genera.** `mass_even_unimodular`
+is the clean closed Bernoulli case; the general formula (odd, non-unimodular, any
+genus) needs local densities at every prime — real machinery, and it is what would let
+`KneserMassInvariants` close masses outside the even-unimodular world (the neighbor
+*constructor* is already general; only the mass-closure reporting is capped by the
+formula's scope). The decision is how much local-density machinery the crate wants to
+own — same conversation as `theta-level`, one shelf over. Conway–Sloane SPLAG ch. 15;
+Kitaoka.
+
+### ±2·e_i: `kneser-24`
+**Explicit rank-24 genus representatives by neighbor walk.** `kneser-neighbors` (DONE)
+deliberately stopped at rank 16; the 23 rooted Niemeier classes still have no shipped
+Gram matrices (the catalogue is root/glue/Aut data plus the explicit Leech). Walking
+the rank-24 `p`-neighbor graph from Leech until all 24 classes are hit — with the
+catalogue as the identification oracle — would upgrade the catalogue-backed boundary
+to constructed witnesses. Scope call first: the walk plus per-class identification is
+genuinely bigger than the rank-16 version (hence a switch, not a number), and it
+half-overlaps what a definite-lattice `*1` spinor-genus build would need anyway.
+
 ### ±1·e_i: `mass-32`
 **Mass past rank 24.** `mass_even_unimodular` caps at 24 because the `i128` rational
 model overflows. Serre's "more than 80 million classes" at rank 32 is one
@@ -159,18 +287,41 @@ JCTA 2008 paper — load-bearing for goldarf Theorem C, flagged there as the che
 
 ### ↑: `functor-compose`
 The 2×2 functor table (`Surcomplex`/`Ramified`/`Gauss`/`Laurent`) is "all four corners
-filled," but each functor is generic over its input and the *compositions* are untested:
-`Surcomplex<Qp>` should be `Q_p(i)` (the unramified quadratic extension for `p ≡ 3 mod 4`,
-split for `p ≡ 1`), `Ramified<Qq>` a ramified-over-unramified local field, `Gauss<Laurent>`
-a two-step valuation. A handful of tests pinning that stacked functors realize the expected
-`(K, 𝒪, 𝔪, k, Γ, ϖ)` package — no new types, just confirming the corners compose the way
-the place table claims they do.
+filled," but each functor is generic over its input and two of the three named
+*compositions* are untested: `Surcomplex<Qp>` should be `Q_p(i)` (the unramified
+quadratic extension for `p ≡ 3 mod 4`, split for `p ≡ 1`) and `Ramified<Qq>` a
+ramified-over-unramified local field. A handful of tests pinning that stacked functors
+realize the expected `(K, 𝒪, 𝔪, k, Γ, ϖ)` package — no new types. (Narrowed
+2026-07-02: the `Gauss<Laurent>` corner is already tested —
+`composes_over_a_laurent_base`, `gauss.rs` — and `Surcomplex<Nimber>` is a
+mathematically degenerate cell (`i² = 1`), so the sweep should skip it as n.a., not
+test it as a field.)
 
 ### ↑: `octal-hunt-reframe`
 `examples/octal_hunt.rs` hunts `(ℤ/2)^k` misère quotients with `k ≥ 2` — a target
 goldarf Theorem C proves **empty** (group misère quotients have order ≤ 2). Retarget
 the probe at non-group monoids / kernels where the quadric framing can still apply,
 and have `p_set_as_f2` check its labeling is a monoid homomorphism.
+
+### ↑·(e_s∧e_f∧e_i∧e_g): `verification-roster`
+Small missing cells and agreement harnesses from the 2026-07-02 audit, grouped (the
+*oracle-for-shipped-claims* siblings live in [`CORRECTNESS.md`](CORRECTNESS.md); these
+are missing legs, not unpinned claims): `NewtonPolygon` over `Qq` (compiles against
+the `Valued` bound today, zero tests — the unramified-extension polygon is textbook);
+`Ordinal::nim_sqrt` (Frobenius inverse inside the verified Kummer window — `Nimber`
+has it, `Ordinal` doesn't, and no boundary text says why); the `gold_form` ↔
+`trace_form_arf` agreement test at their one overlap point (`m = 2` — both are only
+pinned to the external rank formula, never to each other); the trace–Frobenius square
+(build `σ^a` once, assert the polar matrix of `Tr(x·σ^a x)` matches the
+Clifford/Frobenius linear map's, and `trace_form_arf` ↔ `gold_form` ↔ zero-count —
+"same data, two machines" made executable); add `Omnific`/`Fpn`/`Zp`/`WittVec`/`Poly`
+to the `scalar_axioms.rs` proptest roster (all `ExactScalar`-marked, none fuzzed —
+the root AGENTS "every backend" claim currently overstates); either impl
+`ClassifyWitt` for `RationalFunction` via the shipped `global_residues_ff` or
+document the boundary the way Rational/Surcomplex's is documented (currently
+`RationalFunction` silently lacks even `ClassifyForm`); an explicit
+`lexicode(24,8) ≅ golay_code()` equivalence certificate (the permutation, not just
+the uniqueness-theorem citation), making Bridge O's endpoint inspectable.
 
 ### ↑: `docs-experiments`
 Root `AGENTS.md` and `README.md` don't mention the `experiments/{gold,excess,audit}`
@@ -181,7 +332,8 @@ layout-table line plus a sentence each.
 ### ↑: `res-cores`
 Restriction/corestriction (transfer) functoriality for the invariant groups under
 `E/F`: `res` is base change (`Metric::map` / scalar extension), `cores` is the
-**Scharlau transfer** already shipped (`transfer_diagonal`, N.2). State and test the
+**Scharlau transfer** already shipped (`trace_form::transfer_diagonal` — unlettered;
+it sits beside Bridge N.1 in the fourth-wave joins). State and test the
 standard relations across the Witt, Brauer–Wall, and Clifford-invariant surfaces —
 the projection formula `cores(res(x)·y) = x·cores(y)`, `cores∘res = ·[E:F]`, and
 naturality of `c(q)` / `bw_class` / the Milnor residue under both. Mostly a
