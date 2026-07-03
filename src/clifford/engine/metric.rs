@@ -1,3 +1,14 @@
+//! The `Metric` type: the three independent pieces of bilinear-form data that
+//! define a Clifford algebra — `q` (the quadratic form, `e_i^2`), `b` (the
+//! symmetric polar/anticommutator form, `i<j`), and the optional `a` (the
+//! strictly-upper in-order contraction that lifts the engine to a general,
+//! non-symmetric bilinear form). Carries the checked constructors
+//! (`new`/`diagonal`/`grassmann`/`general`), `direct_sum` for the graded-tensor
+//! product, and `map` for coefficient base-change (e.g. lifting an `F_2` trace
+//! form into `Nimber` for the Arf classifier). `q` and `b` are independent —
+//! see the crate's hard rules — so this type never collapses them into one
+//! symmetric form.
+
 use super::basis::MAX_BASIS_DIM;
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;

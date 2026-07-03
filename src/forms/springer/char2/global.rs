@@ -82,8 +82,9 @@ pub fn artin_schreier_form_places<S: FiniteChar2Field>(
 }
 
 /// Whether `form` is **isotropic over `F_q(t)`** (the global Hasse–Minkowski verdict
-/// in characteristic 2). The dispatch, all source-pinned (Aravire–Jacob;
-/// Elman–Karpenko–Merkurjev; Csahók–Kutas–Montessinos–Zábrádi; Tsen–Lang `C₂`):
+/// in characteristic 2). The dispatch, each step a paper-derived worked example
+/// (Aravire–Jacob; Elman–Karpenko–Merkurjev; Csahók–Kutas–Montessinos–Zábrádi;
+/// Tsen–Lang `C₂`):
 ///
 /// * a null coefficient (`⟨0⟩`) or a hyperbolic block (`[0,b]`/`[a,0]`) ⇒ isotropic;
 /// * `rank ≥ 5` ⇒ isotropic — `u(F_q(t)) = 4` (`F_q(t)` is a `C₂` field);

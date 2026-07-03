@@ -324,8 +324,9 @@ impl BrauerClass {
 /// `v(a)` enter the value (the unramified hypothesis collapses the general local
 /// symbol to `v(a)/n`); `σ` fixes the sign convention `χ_σ(σ) = +1/n`. In practice
 /// `E = Qq<P,N,F>` over `Q_p = Qq<P,N,1>` — the only [`CyclicGaloisExtension`] whose
-/// base is [`Valued`]. The image over a fixed `E` is exactly `(1/n)ℤ/ℤ`, the full
-/// local Brauer group; the splitting law is `inv = 0 ⇔ n ∣ v(a)`.
+/// base is [`Valued`]. The image over a fixed `E` is exactly `(1/n)ℤ/ℤ`, the
+/// `n`-torsion `Br(K)[n]` (a fixed degree-`n` unramified class generates that cyclic
+/// subgroup, not all of `ℚ/ℤ`); the splitting law is `inv = 0 ⇔ n ∣ v(a)`.
 ///
 /// `None` when `v(a)` is unreadable (`a = 0`, i.e. not in `K*`, or precision loss in
 /// a capped model) — never a wrong value. Exact even over the capped-precision local

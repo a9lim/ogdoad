@@ -1,3 +1,12 @@
+//! `CliffordAlgebra<S>`: a metric plus the operations that build and combine
+//! multivectors over it — construction, the graded-tensor product and its
+//! `embed_first`/`embed_second` factor embeddings, the geometric product
+//! (`mul`), grade projection, reversion (including the antisymmetric-gauge
+//! transport that extends `reverse` to general-bilinear metrics in
+//! characteristic ≠ 2), and `pow` (repeated geometric multiplication via
+//! square-and-multiply). `dim()` is always derived from the metric, never
+//! stored separately.
+
 use super::basis::{bits, grade, MAX_BASIS_DIM};
 use super::metric::Metric;
 use super::multivector::Multivector;

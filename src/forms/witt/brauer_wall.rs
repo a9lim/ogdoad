@@ -312,6 +312,23 @@ impl<S: FiniteOddField> FunctionFieldBrauerWallClass<S> {
             clifford_brauer_class: brauer,
         })
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl<S: FiniteOddField> std::fmt::Display for FunctionFieldBrauerWallClass<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "BW(F_q(t)): parity {} signed_disc {} c(q) ramified {:?}",
+            self.dimension_parity,
+            self.signed_discriminant,
+            self.clifford_brauer_class.ramified_places()
+        )
+    }
 }
 
 impl RationalBrauerWallClass {
@@ -1058,6 +1075,160 @@ mod tests {
         )
         .unwrap();
         assert_eq!(c1, c2, "signed discriminants are compared modulo squares");
+    }
+
+    // ── clifford_correction_ff: the function-field mirror of
+    // brauer_rational::tests's correction-table sweep (CORRECTNESS.md `bw-ff-sweep`).
+    // `clifford_correction_ff` was previously only ever exercised at n ∈ {2,3,4} by
+    // the tests above; the `n mod 8 ∈ {0,5,6,7}` match arms had zero coverage.
+
+    /// The independently-tabulated correction (Lam GSM 67 pp. 117–119), recomputed
+    /// from `FunctionFieldBrauer2Class::quaternion` rather than by calling
+    /// `clifford_correction_ff` — the function-field twin of
+    /// `brauer_rational::tests::expected_correction`. Like that oracle, this pins the
+    /// **branch selection** per `n mod 8` (a mis-encoded `matches!` arm is caught);
+    /// it is *not* an independent derivation of the Hilbert-symbol arithmetic inside
+    /// `quaternion` itself, which both this function and the production code call.
+    fn expected_correction_ff<S: FiniteOddField>(
+        n: usize,
+        d: &RationalFunction<S>,
+    ) -> FunctionFieldBrauer2Class<S> {
+        let neg_one = ff_neg_one::<S>();
+        let mut delta = FunctionFieldBrauer2Class::split();
+        if matches!(n % 8, 3..=6) {
+            delta = delta.add(&FunctionFieldBrauer2Class::quaternion(&neg_one, &neg_one).unwrap());
+        }
+        if matches!(n % 8, 0 | 3 | 4 | 7) {
+            delta = delta.add(&FunctionFieldBrauer2Class::quaternion(&neg_one, d).unwrap());
+        }
+        delta
+    }
+
+    #[test]
+    fn ff_clifford_is_hasse_plus_the_documented_correction_all_residues() {
+        // n = 1..=8 sweeps every n mod 8 residue exactly once (0 via n=8), mirroring
+        // brauer_rational::tests::clifford_is_hasse_plus_the_documented_correction.
+        // This is the re-derived-table half of the sweep: it pins clifford_correction_ff
+        // against expected_correction_ff for ALL eight residues, including the four
+        // (0,5,6,7) that had no test at all before. It does not independently re-derive
+        // the underlying Hilbert-symbol/quaternion arithmetic — see the two oracle tests
+        // below for the residues (2, 3) where an independent Clifford-side check exists;
+        // no analogous independent oracle is available here for 0,5,6,7, exactly as for
+        // the rational leg (Lam's table is itself the source for those arms).
+        let t = rf(&[0, 1], &[1]);
+        let tp1 = rf(&[1, 1], &[1]);
+        let tp2 = rf(&[2, 1], &[1]);
+        let tp3 = rf(&[3, 1], &[1]);
+        let two = rf(&[2], &[1]);
+        let three = rf(&[3], &[1]);
+        let four = rf(&[4], &[1]);
+        let one = rf(&[1], &[1]);
+        let forms: Vec<Vec<F5>> = vec![
+            vec![t.clone()],                                          // n=1
+            vec![t.clone(), two.clone()],                             // n=2
+            vec![t.clone(), two.clone(), tp1.clone()],                // n=3
+            vec![t.clone(), two.clone(), tp1.clone(), three.clone()], // n=4
+            vec![
+                t.clone(),
+                two.clone(),
+                tp1.clone(),
+                three.clone(),
+                tp2.clone(),
+            ], // n=5
+            vec![
+                t.clone(),
+                two.clone(),
+                tp1.clone(),
+                three.clone(),
+                tp2.clone(),
+                four.clone(),
+            ], // n=6
+            vec![
+                t.clone(),
+                two.clone(),
+                tp1.clone(),
+                three.clone(),
+                tp2.clone(),
+                four.clone(),
+                tp3.clone(),
+            ], // n=7
+            vec![
+                t.clone(),
+                two.clone(),
+                tp1.clone(),
+                three.clone(),
+                tp2.clone(),
+                four.clone(),
+                tp3.clone(),
+                one.clone(),
+            ], // n=8 ≡ 0
+        ];
+        for f in &forms {
+            let d = ff_discriminant(f).expect("no zero entries");
+            let expected = hasse_brauer_class_ff(f)
+                .unwrap()
+                .add(&expected_correction_ff(f.len(), &d));
+            assert_eq!(
+                clifford_brauer_class_ff(f).unwrap(),
+                expected,
+                "correction mismatch for n={} (n mod 8 = {})",
+                f.len(),
+                f.len() % 8
+            );
+        }
+    }
+
+    #[test]
+    fn ff_rank_two_clifford_is_the_quaternion_algebra() {
+        // Independent Clifford-side oracle for n≡2: C(⟨a,b⟩) ≅ (a,b) as an actual
+        // quaternion class, never routing through hasse + correction at all. The
+        // function-field mirror of brauer_rational::tests::
+        // rank_two_clifford_is_the_quaternion_algebra.
+        let a_vals = [
+            rf(&[0, 1], &[1]),
+            rf(&[2], &[1]),
+            rf(&[1, 1], &[1]),
+            rf(&[3], &[1]),
+        ];
+        let b_vals = [
+            rf(&[1, 1], &[1]),
+            rf(&[3], &[1]),
+            rf(&[0, 1], &[1]),
+            rf(&[2], &[1]),
+        ];
+        for a in &a_vals {
+            for b in &b_vals {
+                if a.is_zero() || b.is_zero() {
+                    continue;
+                }
+                assert_eq!(
+                    clifford_brauer_class_ff(&[a.clone(), b.clone()]).unwrap(),
+                    FunctionFieldBrauer2Class::quaternion(a, b).unwrap(),
+                    "C(<{a:?},{b:?}>) != (a,b)"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ff_rank_three_even_clifford_is_minus_ab_minus_ac() {
+        // Independent Clifford-side oracle for n≡3: C0(⟨a,b,c⟩) ≅ (−ab,−ac), the even
+        // subalgebra's quaternion factor. The function-field mirror of
+        // brauer_rational::tests::rank_three_even_clifford_is_minus_ab_minus_ac.
+        let vals = [rf(&[0, 1], &[1]), rf(&[2], &[1]), rf(&[1, 1], &[1])];
+        for a in &vals {
+            for b in &vals {
+                for c in &vals {
+                    let neg_ab = a.neg().mul(b);
+                    let neg_ac = a.neg().mul(c);
+                    assert_eq!(
+                        clifford_brauer_class_ff(&[a.clone(), b.clone(), c.clone()]).unwrap(),
+                        FunctionFieldBrauer2Class::quaternion(&neg_ab, &neg_ac).unwrap(),
+                        "C0(<{a:?},{b:?},{c:?}>) != (-ab,-ac)"
+                    );
+                }
+            }
+        }
     }
 
     fn oddchar_diag<const P: u128>(qs: &[u128]) -> Metric<Fp<P>> {

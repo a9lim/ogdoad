@@ -46,14 +46,15 @@
 //! `[a,b]` is isotropic iff `ab ∈ ℘(K_v)`; the Pfister/norm criterion routes ranks 3
 //! and 4 through the Part-A Artin–Schreier symbol [`artin_schreier_symbol_at`]
 //! (`s_v(d, λ) = 0` ⟺ `[d, λ)` splits); `u(K_v) = 4` makes every rank `≥ 5` form
-//! isotropic. (Source-pinned to Aravire–Jacob and Elman–Karpenko–Merkurjev §§7, 13;
-//! oracles cross-checked via Codex — see the tests.)
+//! isotropic. (A paper-derived worked example, from Aravire–Jacob and
+//! Elman–Karpenko–Merkurjev §§7, 13; oracles cross-checked via Codex — see the
+//! tests.)
 //!
 //! # Global isotropy over `F_q(t)` (Hasse–Minkowski)
 //!
 //! [`is_isotropic_global_char2`] decides isotropy over `F_q(t)` itself. Three
-//! ingredients beyond the per-place symbol, all source-pinned: the global
-//! `℘`-membership test [`global_is_pe`] (`f ∈ ℘(F_q(t))` ⟺ `f ∈ ℘(K_v)` everywhere,
+//! ingredients beyond the per-place symbol, each a paper-derived worked example: the
+//! global `℘`-membership test [`global_is_pe`] (`f ∈ ℘(F_q(t))` ⟺ `f ∈ ℘(K_v)` everywhere,
 //! a finite sweep of the poles of `f` plus `∞`) settles **rank 2** (`[a,b]` iso ⟺
 //! `ab ∈ ℘`); the elementary `[K : K²] = 2` square test `ff_is_square` settles the
 //! **totally-singular** part; and **Hasse–Minkowski** over the finite
@@ -404,7 +405,7 @@ mod tests {
         springer_decompose_local_char2(&Char2QuadForm::from_blocks(blocks.to_vec()), &place_t())
     }
 
-    // ── the Aravire–Jacob decomposition, against Codex's source-pinned oracles ──
+    // ── the Aravire–Jacob decomposition, against Codex's paper-derived worked-example oracles ──
     // (π = t; "π⁻¹" ↦ R_π map {1: 1}, "1" in φ₀/φ₁ ↦ the bit 1.)
 
     #[test]
@@ -870,7 +871,7 @@ mod tests {
         assert_eq!(local_is_isotropic_char2(&form, &place), Some(true));
     }
 
-    // ── global isotropy over F_q(t) (Hasse–Minkowski), source-pinned oracles ──
+    // ── global isotropy over F_q(t) (Hasse–Minkowski), paper-derived worked-example oracles ──
     // (verified independently, then cross-checked via Codex; oracle 7 below is the
     // corrected one — [1,1]⊥[t,t] is ISOTROPIC, vector (1,0,1,1).)
 

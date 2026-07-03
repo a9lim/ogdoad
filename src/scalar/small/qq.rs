@@ -45,10 +45,18 @@ pub struct Qq<const P: u128, const N: usize, const F: usize> {
 }
 
 impl<const P: u128, const N: usize, const F: usize> Qq<P, N, F> {
+    /// Delegates to [`WittVec::assert_supported_params`]: `Q_q = Frac(W_N(F_q))`
+    /// is supported exactly when its ring of integers is (prime `P`, supported
+    /// residue field `F_{p^F}`, positive precision `N` whose modulus fits `u128`).
+    pub fn assert_supported_params() {
+        WittVec::<P, N, F>::assert_supported_params();
+    }
+
     /// Canonicalize `p^{val} · w`: peel every factor of `p` from `w` into the
     /// valuation (capped-relative — the retained window slides up), landing on a
     /// Witt unit or the field zero.
     fn normalized(mut unit: WittVec<P, N, F>, mut val: i128) -> Self {
+        Self::assert_supported_params();
         loop {
             if unit.is_zero() {
                 return Qq {
@@ -68,16 +76,19 @@ impl<const P: u128, const N: usize, const F: usize> Qq<P, N, F> {
 
     /// Embed a (signed) integer, extracting its `p`-adic valuation.
     pub fn from_int(n: i128) -> Self {
+        Self::assert_supported_params();
         Self::normalized(WittVec::from_int(n), 0)
     }
 
     /// Embed a Witt vector (a `W_N(F_q)` element) into its field of fractions.
     pub fn from_witt(w: WittVec<P, N, F>) -> Self {
+        Self::assert_supported_params();
         Self::normalized(w, 0)
     }
 
     /// `p^v` — the pure power, unit mantissa `1`. `from_p_power(-1)` is `1/p`.
     pub fn from_p_power(v: i128) -> Self {
+        Self::assert_supported_params();
         Qq {
             unit: WittVec::one(),
             val: v,
@@ -86,6 +97,7 @@ impl<const P: u128, const N: usize, const F: usize> Qq<P, N, F> {
 
     /// The `p`-adic valuation, or `None` for zero (whose valuation is `+∞`).
     pub fn valuation(&self) -> Option<i128> {
+        Self::assert_supported_params();
         if self.unit.is_zero() {
             None
         } else {
@@ -96,6 +108,7 @@ impl<const P: u128, const N: usize, const F: usize> Qq<P, N, F> {
     /// The residue of the unit mantissa in `F_q` (the residue square-class carrier),
     /// or `None` for zero.
     pub fn unit_residue(&self) -> Option<Fpn<P, F>> {
+        Self::assert_supported_params();
         if self.unit.is_zero() {
             None
         } else {
@@ -105,6 +118,7 @@ impl<const P: u128, const N: usize, const F: usize> Qq<P, N, F> {
 
     /// The unit mantissa (a Witt unit, or the zero vector for the field zero).
     pub fn unit(&self) -> WittVec<P, N, F> {
+        Self::assert_supported_params();
         self.unit
     }
 }
@@ -130,6 +144,7 @@ impl<const P: u128, const N: usize, const F: usize> fmt::Debug for Qq<P, N, F> {
 
 impl<const P: u128, const N: usize, const F: usize> Scalar for Qq<P, N, F> {
     fn zero() -> Self {
+        Self::assert_supported_params();
         Qq {
             unit: WittVec::zero(),
             val: 0,
@@ -137,6 +152,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for Qq<P, N, F> {
     }
 
     fn one() -> Self {
+        Self::assert_supported_params();
         Qq {
             unit: WittVec::one(),
             val: 0,
@@ -144,6 +160,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for Qq<P, N, F> {
     }
 
     fn add(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
         if self.unit.is_zero() {
             return *rhs;
         }
@@ -177,6 +194,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for Qq<P, N, F> {
     }
 
     fn neg(&self) -> Self {
+        Self::assert_supported_params();
         Qq {
             unit: self.unit.neg(),
             val: self.val,
@@ -184,22 +202,30 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for Qq<P, N, F> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
         if self.unit.is_zero() || rhs.unit.is_zero() {
             return Self::zero();
         }
         // The product of two Witt units is a Witt unit (residue = product of
         // residues ≠ 0), so no renormalization is needed; valuations add.
+        // checked_add, not `+`: mirrors Qp's deliberate overflow guard
+        // (qp.rs's multiplication valuation check) instead of silently wrapping.
         Qq {
             unit: self.unit.mul(&rhs.unit),
-            val: self.val + rhs.val,
+            val: self
+                .val
+                .checked_add(rhs.val)
+                .expect("Qq multiplication valuation exceeds i128"),
         }
     }
 
     fn characteristic() -> u128 {
+        Self::assert_supported_params();
         0 // a genuine char-0 field, unlike WittVec's precision modulus p^N
     }
 
     fn inv(&self) -> Option<Self> {
+        Self::assert_supported_params();
         // Total on nonzero: (p^v·u)^{-1} = p^{-v}·u^{-1}, and the Witt unit u
         // always inverts in W_N(F_q) (residue ≠ 0). THE field property.
         if self.unit.is_zero() {
@@ -207,11 +233,16 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for Qq<P, N, F> {
         }
         Some(Qq {
             unit: self.unit.inv().expect("a Witt unit must invert"),
-            val: -self.val,
+            // checked_neg, not unary `-`: `val` at `i128::MIN` has no negation.
+            val: self
+                .val
+                .checked_neg()
+                .expect("Qq inversion valuation negation exceeds i128"),
         })
     }
 
     fn is_zero(&self) -> bool {
+        Self::assert_supported_params();
         self.unit.is_zero()
     }
     /// Faster direct construction; semantically identical to the default double-and-add.
@@ -309,5 +340,12 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn invalid_parameters_are_rejected() {
+        assert!(std::panic::catch_unwind(Qq::<4, 3, 1>::one).is_err()); // P not prime
+        assert!(std::panic::catch_unwind(Qq::<2, 0, 1>::one).is_err()); // N = 0
+        assert!(std::panic::catch_unwind(Qq::<2, 3, 0>::one).is_err()); // F = 0
     }
 }

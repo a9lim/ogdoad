@@ -4,7 +4,8 @@
 //! * `class` — the Witt **group** `W_q(F)`: [`WittClass`] (the order-2 group of
 //!   a finite nim-field, Arf-classified) and [`WittClassG`], the Char0/OddChar/Char2
 //!   trichotomy enum that the classifier façade returns. (The Char2 leg is a
-//!   *module*, not a ring — its `mul` panics; see `ring` for why.)
+//!   *module*, not a ring — its `mul` returns `Err(WittClassGError::Char2NotARing)`;
+//!   see `ring` for why.)
 //! * `ring` — the Witt **ring**: [`tensor_form`], Pfister forms, the fundamental
 //!   ideal `Iⁿ`, and the `eₙ` staircase (`e0 = dim`, `e1 = disc`, `e2 = Hasse`),
 //!   with per-field stabilisation (`I² = 0` over `F_q`; the infinite ℝ tower).

@@ -41,32 +41,94 @@ use crate::scalar::Scalar;
 /// a 128-generator representation is materializable.
 const MAX_EXPLICIT_SPINOR_DIM: usize = 10;
 
+/// Owned [`SpinorRep`] storage, returned by [`SpinorRep::into_parts`] — mirrors
+/// the `Metric`/`MetricParts` pattern.
+pub type SpinorRepParts<S> = (
+    Multivector<S>,
+    Vec<Multivector<S>>,
+    Vec<Vec<Vec<S>>>,
+    bool,
+    Option<Metric<S>>,
+    Option<Vec<Vec<S>>>,
+);
+
 /// A concrete spinor representation of a Clifford algebra.
 pub struct SpinorRep<S: Scalar> {
+    idempotent: Multivector<S>,
+    basis: Vec<Multivector<S>>,
+    gen_matrices: Vec<Vec<Vec<S>>>,
+    is_left_regular: bool,
+    diagonalized_metric: Option<Metric<S>>,
+    orthogonal_basis_in_original: Option<Vec<Vec<S>>>,
+}
+
+impl<S: Scalar> SpinorRep<S> {
     /// The idempotent `f` (`f² = f`) generating the represented left ideal.
-    pub idempotent: Multivector<S>,
+    pub fn idempotent(&self) -> &Multivector<S> {
+        &self.idempotent
+    }
+
     /// A basis of the left ideal `Cl·f`. Direct constructors store a reduced
     /// echelon basis; characteristic-0 general-bilinear reps store the
     /// gauge-transported basis in the same order, which need not remain echelon.
-    /// If `is_left_regular` is true, this is the whole algebra.
-    pub basis: Vec<Multivector<S>>,
-    /// `gen_matrices[i]` is the matrix of left multiplication by `eᵢ` on `basis`
-    /// (indexed `[row][col]`; column `j` is the action on `basis[j]`).
-    pub gen_matrices: Vec<Vec<Vec<S>>>,
+    /// If [`is_left_regular`](Self::is_left_regular) is true, this is the whole
+    /// algebra.
+    pub fn basis(&self) -> &[Multivector<S>] {
+        &self.basis
+    }
+
+    /// `gen_matrices()[i]` is the matrix of left multiplication by `eᵢ` on
+    /// [`basis`](Self::basis) (indexed `[row][col]`; column `j` is the action
+    /// on `basis[j]`).
+    pub fn gen_matrices(&self) -> &[Vec<Vec<S>>] {
+        &self.gen_matrices
+    }
+
     /// True when the constructor fell back to `f = 1`, i.e. the complete
     /// left-regular representation.
-    pub is_left_regular: bool,
+    pub fn is_left_regular(&self) -> bool {
+        self.is_left_regular
+    }
+
     /// The diagonal metric used internally when the input metric was
     /// nonorthogonal. For characteristic-0 general-bilinear metrics, this
     /// describes the ordinary `(q,b,a=0)` gauge before the idempotent and basis
     /// were transported back. `None` means the input was already orthogonal.
-    pub diagonalized_metric: Option<Metric<S>>,
+    pub fn diagonalized_metric(&self) -> Option<&Metric<S>> {
+        self.diagonalized_metric.as_ref()
+    }
+
     /// Columns give the orthogonal basis vectors in the original generator basis:
-    /// `h_j = Σ_i orthogonal_basis_in_original[i][j] e_i`. Present exactly when
+    /// `h_j = Σ_i orthogonal_basis_in_original()[i][j] e_i`. Present exactly when
     /// [`diagonalized_metric`](Self::diagonalized_metric) is present; the
     /// characteristic-0 `a`-gauge transport fixes the generators, so these
     /// coordinates still refer to the original generator basis.
-    pub orthogonal_basis_in_original: Option<Vec<Vec<S>>>,
+    pub fn orthogonal_basis_in_original(&self) -> Option<&[Vec<S>]> {
+        self.orthogonal_basis_in_original.as_deref()
+    }
+
+    /// Consume into the raw parts (e.g. for the Python bindings, which move
+    /// every field out rather than clone through the accessors above).
+    pub fn into_parts(self) -> SpinorRepParts<S> {
+        (
+            self.idempotent,
+            self.basis,
+            self.gen_matrices,
+            self.is_left_regular,
+            self.diagonalized_metric,
+            self.orthogonal_basis_in_original,
+        )
+    }
+
+    /// Attach diagonalization data, keeping the `diagonalized_metric` ⇔
+    /// `orthogonal_basis_in_original` pairing enforced by construction: both
+    /// fields become `Some` together (the `None`/`None` case is the default
+    /// from [`spinor_rep_from_idempotent`]).
+    fn with_diagonalization(mut self, metric: Metric<S>, basis: Vec<Vec<S>>) -> Self {
+        self.diagonalized_metric = Some(metric);
+        self.orthogonal_basis_in_original = Some(basis);
+        self
+    }
 }
 
 /// A sparse/lazy left-regular spinor action. It stores the algebra and computes
@@ -74,10 +136,15 @@ pub struct SpinorRep<S: Scalar> {
 /// [`SpinorRep`]. This is not a minimal left ideal; it is the complete regular
 /// module, but it scales to dimensions where explicit matrices are not sensible.
 pub struct LazySpinorRep<S: Scalar> {
-    pub algebra: CliffordAlgebra<S>,
+    algebra: CliffordAlgebra<S>,
 }
 
 impl<S: Scalar> LazySpinorRep<S> {
+    /// Read-only access to the algebra this lazy action runs over.
+    pub fn algebra(&self) -> &CliffordAlgebra<S> {
+        &self.algebra
+    }
+
     /// Apply left multiplication by generator `e_i` to a sparse multivector.
     pub fn apply_generator(&self, i: usize, v: &Multivector<S>) -> Option<Multivector<S>> {
         if i >= self.algebra.dim() {
@@ -546,9 +613,7 @@ pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
         pulled.push(matrix_linear_combination(&coeffs, &rep.gen_matrices));
     }
     rep.gen_matrices = pulled;
-    rep.diagonalized_metric = Some(diag_metric);
-    rep.orthogonal_basis_in_original = Some(transform);
-    Some(rep)
+    Some(rep.with_diagonalization(diag_metric, transform))
 }
 
 /// Build the sparse/lazy left-regular spinor action. This keeps the same

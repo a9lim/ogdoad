@@ -1011,17 +1011,21 @@ fn octal_moves(code: Vec<u128>, pos: Vec<u128>) -> Vec<Vec<u128>> {
 
 /// The bounded misère indistinguishability quotient of an octal game, over single
 /// heaps `1..=max_heap` as atoms (elements are sums up to `elem_bound`, separated
-/// by tests up to `test_bound`).
+/// by tests up to `test_bound`). Raises `ValueError` if the bounded search reaches
+/// a cyclic position (not reachable through `octal_moves` in practice, but the
+/// binding stays honest about the partial primitive underneath).
 #[pyfunction]
 fn octal_misere_quotient(
     code: Vec<u128>,
     max_heap: usize,
     elem_bound: usize,
     test_bound: usize,
-) -> PyQuotient {
-    PyQuotient {
-        inner: crate::games::octal_misere_quotient(&code, max_heap, elem_bound, test_bound),
-    }
+) -> PyResult<PyQuotient> {
+    crate::games::octal_misere_quotient(&code, max_heap, elem_bound, test_bound)
+        .map(|inner| PyQuotient { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err("octal_misere_quotient requires an acyclic bounded move graph")
+        })
 }
 
 /// Loopy impartial nim-values of a (possibly cyclic) game graph: each position is
@@ -2061,7 +2065,7 @@ impl PyQuotient {
     /// The number of distinct classes (the order of the bounded quotient monoid).
     #[getter]
     fn num_classes(&self) -> usize {
-        self.inner.num_classes
+        self.inner.num_classes()
     }
     /// A representative multiset for each class.
     #[getter]
@@ -2106,7 +2110,7 @@ impl PyQuotient {
     fn __repr__(&self) -> String {
         format!(
             "Quotient(num_classes={}, elements={})",
-            self.inner.num_classes,
+            self.inner.num_classes(),
             self.inner.elements.len()
         )
     }
@@ -2140,30 +2144,37 @@ impl PyAbstractGame {
     }
     /// The bounded misère indistinguishability quotient over the generating
     /// `atoms` (elements are sums up to `elem_bound`, tests up to `test_bound`).
+    /// Raises `ValueError` if the bounded search reaches a position whose move
+    /// graph has a directed cycle.
     fn misere_quotient(
         &self,
         atoms: Vec<usize>,
         elem_bound: usize,
         test_bound: usize,
-    ) -> PyQuotient {
-        PyQuotient {
-            inner: crate::games::misere_quotient(&self.inner, &atoms, elem_bound, test_bound),
-        }
+    ) -> PyResult<PyQuotient> {
+        crate::games::misere_quotient(&self.inner, &atoms, elem_bound, test_bound)
+            .map(|inner| PyQuotient { inner })
+            .ok_or_else(|| {
+                PyValueError::new_err("misere_quotient requires an acyclic bounded move graph")
+            })
     }
 }
 
 /// Rust-name module-level wrapper for `games::misere_quotient`; Python passes
-/// the `AbstractGame` value explicitly.
+/// the `AbstractGame` value explicitly. Raises `ValueError` if the bounded
+/// search reaches a position whose move graph has a directed cycle.
 #[pyfunction]
 fn misere_quotient(
     game: &PyAbstractGame,
     atoms: Vec<usize>,
     elem_bound: usize,
     test_bound: usize,
-) -> PyQuotient {
-    PyQuotient {
-        inner: crate::games::misere_quotient(&game.inner, &atoms, elem_bound, test_bound),
-    }
+) -> PyResult<PyQuotient> {
+    crate::games::misere_quotient(&game.inner, &atoms, elem_bound, test_bound)
+        .map(|inner| PyQuotient { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err("misere_quotient requires an acyclic bounded move graph")
+        })
 }
 
 /// A named loopy value tag (`on`, `off`, `over`, `under`, `dud`, `tis`, `tisn`,

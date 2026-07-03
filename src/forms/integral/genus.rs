@@ -30,10 +30,12 @@
 //! integral quadratic forms* (the corrected 2-adic sign-walking calculus).
 
 use crate::forms::integral::diagonal::{
-    rational_congruence_diagonal, signature_from_diagonal, DegenerateBehavior,
+    odd_unit_residue, rat_val, rational_congruence_diagonal, rdiv, signature_from_diagonal,
+    unit_mod8, DegenerateBehavior,
 };
 use crate::forms::lattice::IntegralForm;
 use crate::forms::padic::try_is_square_qp;
+use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::BTreeMap;
 
@@ -70,49 +72,15 @@ fn r_int(n: i128) -> Rational {
     Rational::from_int(n)
 }
 
-fn v_p_i128(mut x: i128, p: i128) -> u128 {
-    debug_assert!(x != 0);
-    let mut k = 0;
-    // (i128 has no stable `is_multiple_of` yet — the lint only applies to u128.)
-    while x % p == 0 {
-        x /= p;
-        k += 1;
-    }
-    k
-}
-
-fn unit_part_i128(mut x: i128, p: i128) -> i128 {
-    while x % p == 0 {
-        x /= p;
-    }
-    x
-}
-
-/// The p-adic valuation of a nonzero rational `num/den`.
-fn rat_val(r: &Rational, p: i128) -> i128 {
-    debug_assert!(!r.is_zero());
-    v_p_i128(r.numer(), p) as i128 - v_p_i128(r.denom(), p) as i128
-}
-
 /// The determinant square class (`±1`) of a rational unit `r` over `ℚ_p` (odd `p`).
 fn unit_sign_odd(r: &Rational, p: i128) -> i128 {
-    let a = unit_part_i128(r.numer(), p).rem_euclid(p);
-    let b = unit_part_i128(r.denom(), p).rem_euclid(p);
-    let m = (a * b).rem_euclid(p);
-    if try_is_square_qp(m, p as u128).expect("odd genus prime must be supported") {
+    if try_is_square_qp(odd_unit_residue(r, p), p as u128)
+        .expect("odd genus prime must be supported")
+    {
         1
     } else {
         -1
     }
-}
-
-/// The 2-adic unit residue `u mod 8` of a nonzero rational `r = num/den` whose
-/// 2-adic valuation is `scale` (so `r / 2^scale` is a unit). Uses `odd⁻¹ ≡ odd
-/// (mod 8)`.
-fn unit_mod8(r: &Rational) -> i128 {
-    let a = unit_part_i128(r.numer(), 2).rem_euclid(8);
-    let b = unit_part_i128(r.denom(), 2).rem_euclid(8);
-    (a * b).rem_euclid(8)
 }
 
 fn sign_from_mod8(u: i128) -> i128 {
@@ -131,13 +99,6 @@ fn to_rational(gram: &[Vec<i128>]) -> RMat {
     gram.iter()
         .map(|row| row.iter().map(|&x| r_int(x)).collect())
         .collect()
-}
-
-fn rdiv(a: &Rational, b: &Rational) -> Rational {
-    a.mul(
-        &b.inv()
-            .expect("division by zero rational in Jordan splitting"),
-    )
 }
 
 // --- the p-adic Jordan decomposition ---
@@ -312,28 +273,14 @@ fn signature(gram: &[Vec<i128>]) -> (usize, usize) {
 }
 
 /// The primes that can carry a nontrivial local invariant: `2` and every odd prime
-/// dividing the determinant.
+/// dividing the determinant. `2` is always included, even for odd determinant,
+/// since it always carries a local invariant at the genus level.
 fn relevant_primes(det: i128) -> Vec<u128> {
-    let mut ps = vec![2u128];
-    let mut n = det.unsigned_abs();
-    while n.is_multiple_of(2) {
-        n /= 2; // 2 is already included; strip its powers before odd factoring
+    let mut ps = prime_factors(det.unsigned_abs());
+    if !ps.contains(&2) {
+        ps.push(2);
+        ps.sort_unstable();
     }
-    let mut d = 3u128;
-    while d <= n / d {
-        if n.is_multiple_of(d) {
-            ps.push(d);
-            while n.is_multiple_of(d) {
-                n /= d;
-            }
-        }
-        d += 2;
-    }
-    if n > 1 {
-        ps.push(n);
-    }
-    ps.sort_unstable();
-    ps.dedup();
     ps
 }
 

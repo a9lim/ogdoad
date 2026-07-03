@@ -2,6 +2,13 @@
 
 use crate::scalar::{ExactFieldScalar, Fp, Fpn, Scalar};
 
+/// Panics (rather than returning `Option`) because this guards internal
+/// helpers (`is_square`, `hilbert_symbol`) that are only ever reached after a
+/// `FiniteOddField` bound or `ensure_supported()` call has already validated
+/// `P` — a failed check here is a programming-error invariant, not caller
+/// input. Contrast `field_invariants.rs`'s `Option`-returning entry points,
+/// which take an arbitrary `P` straight from the public API and must fail
+/// gracefully (CONSISTENCY.md `idiom-splits`).
 pub(super) fn assert_odd_prime<const P: u128>() {
     Fp::<P>::assert_supported_params();
     assert!(P != 2, "odd-characteristic form theory needs P odd");

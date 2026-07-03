@@ -1,3 +1,11 @@
+//! `Multivector<S>`: the term-map representation (blade mask → coefficient,
+//! zeros never stored) plus the metric-free operators (`+`, `-`, unary `-`,
+//! and `&` for the exterior/wedge product) that need no algebra context — see
+//! the type's own docs for the full operator-vs-context-method policy. Also
+//! carries the canonical `fmt::Display` implementation (ogham Display v2,
+//! `docs/ogham/ogham.md` §9): wedge-blade labels, coefficient attachment,
+//! `1`/`-1` elision, the leading-`-` join rule, and the zero-render rule.
+
 use super::basis::bits;
 use super::terms::{merge, wedge_terms};
 use crate::scalar::Scalar;

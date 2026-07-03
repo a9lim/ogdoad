@@ -6,9 +6,11 @@
 //! is canonicalised as a finite table, so the output is a full Witt normal form,
 //! not just the Milgram/Brown phase.
 
+use crate::forms::integral::diagonal::{odd_unit_residue, rat_val, rational_mod_int, unit_mod8};
 use crate::forms::integral::discriminant::{phase_mod8_from_q_values, DiscriminantForm, IsoTables};
 use crate::forms::integral::is_prime_power;
 use crate::forms::padic::try_is_square_qp;
+use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
@@ -362,7 +364,7 @@ impl FqmTable {
         }
         let mut primes = BTreeSet::new();
         for &ord in &self.order {
-            for p in prime_factors_u128(ord as u128) {
+            for p in prime_factors(ord as u128) {
                 primes.insert(p);
             }
         }
@@ -420,7 +422,7 @@ impl FqmTable {
 
         let mut primes = BTreeSet::new();
         for &ord in &self.order {
-            for p in prime_factors_u128(ord as u128) {
+            for p in prime_factors(ord as u128) {
                 primes.insert(p);
             }
         }
@@ -931,15 +933,6 @@ fn index_from_coords(coords: &[u128], factors: &[u128]) -> Option<usize> {
     Some(out)
 }
 
-fn rational_mod_int(x: Rational, modulus: i128) -> Rational {
-    debug_assert!(modulus > 0);
-    let den = x.denom();
-    let mden = den
-        .checked_mul(modulus)
-        .expect("rational modulus exceeds i128");
-    Rational::new(x.numer().rem_euclid(mden), den)
-}
-
 fn rational_half_mod1(x: Rational) -> Rational {
     let den = x
         .denom()
@@ -959,41 +952,6 @@ fn signed_order_for_odd_prime(order: u128, t_minus: usize) -> Option<i128> {
     } else {
         order.checked_neg()?
     })
-}
-
-fn v_p_i128(mut x: i128, p: i128) -> i128 {
-    debug_assert!(x != 0);
-    let mut k = 0i128;
-    while x % p == 0 {
-        x /= p;
-        k += 1;
-    }
-    k
-}
-
-fn unit_part_i128(mut x: i128, p: i128) -> i128 {
-    while x % p == 0 {
-        x /= p;
-    }
-    x
-}
-
-fn rat_val(r: &Rational, p: i128) -> i128 {
-    v_p_i128(r.numer(), p) - v_p_i128(r.denom(), p)
-}
-
-fn odd_unit_residue(r: &Rational, p: i128) -> i128 {
-    let a = unit_part_i128(r.numer(), p).rem_euclid(p);
-    let b = unit_part_i128(r.denom(), p).rem_euclid(p);
-    // For square-class purposes b and b^{-1} have the same Legendre symbol.
-    (a * b).rem_euclid(p)
-}
-
-fn unit_mod8(r: &Rational) -> i128 {
-    let a = unit_part_i128(r.numer(), 2).rem_euclid(8);
-    let b = unit_part_i128(r.denom(), 2).rem_euclid(8);
-    // Odd units are self-inverse modulo 8.
-    (a * b).rem_euclid(8)
 }
 
 fn same_square_class_odd(a: &Rational, b: &Rational, p: u128) -> Option<bool> {
@@ -1046,25 +1004,6 @@ fn rational_det(mut a: Vec<Vec<Rational>>) -> Option<Rational> {
         }
     }
     Some(det)
-}
-
-fn prime_factors_u128(n: u128) -> Vec<u128> {
-    let mut m = n;
-    let mut out = Vec::new();
-    let mut p = 2u128;
-    while p <= m / p {
-        if m.is_multiple_of(p) {
-            out.push(p);
-            while m.is_multiple_of(p) {
-                m /= p;
-            }
-        }
-        p += if p == 2 { 1 } else { 2 };
-    }
-    if m > 1 {
-        out.push(m);
-    }
-    out
 }
 
 fn exact_prime_power_exponent(mut n: u128, p: u128) -> Option<u128> {

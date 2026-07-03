@@ -31,11 +31,13 @@ fn nim_game(max: usize) -> AbstractGame {
 
 fn report(name: &str, game: &AbstractGame, atoms: &[usize], elem: usize, test: usize) {
     println!("\n── {name} ──");
-    let q = misere_quotient(game, atoms, elem, test);
+    let q = misere_quotient(game, atoms, elem, test)
+        .expect("bounded quotient search over a finite Nim-derived game is acyclic");
     let p_classes = q.class_is_p.iter().filter(|&&p| p).count();
     println!(
         "  quotient order = {}   P-classes = {}   (bounds: elem≤{elem}, test≤{test})",
-        q.num_classes, p_classes
+        q.num_classes(),
+        p_classes
     );
     // is every atom an involution?  a²  ≈  identity (the empty class)?
     let id_class = q.class_of[q.elements.iter().position(|e| e.is_empty()).unwrap()];

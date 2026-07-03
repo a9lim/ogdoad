@@ -987,9 +987,9 @@ impl PyWittClass {
             return Err(PyValueError::new_err("WittClass arf must be 0 or 1"));
         }
         check_positive_field_degree(field_degree)?;
-        Ok(PyWittClass {
-            inner: WittClass { field_degree, arf },
-        })
+        let inner = WittClass::new(field_degree, arf)
+            .ok_or_else(|| PyValueError::new_err("WittClass parameters out of domain"))?;
+        Ok(PyWittClass { inner })
     }
     #[staticmethod]
     fn zero() -> PyWittClass {
@@ -1011,11 +1011,11 @@ impl PyWittClass {
     }
     #[getter]
     fn arf(&self) -> u128 {
-        self.inner.arf
+        self.inner.arf()
     }
     #[getter]
     fn field_degree(&self) -> u128 {
-        self.inner.field_degree
+        self.inner.field_degree()
     }
     fn __add__(&self, other: &PyWittClass) -> PyResult<PyWittClass> {
         self.inner

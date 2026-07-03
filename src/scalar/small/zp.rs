@@ -109,10 +109,16 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
 
     fn neg(&self) -> Self {
         Self::assert_supported_params();
-        if self.0 == 0 {
+        // Reduce first: `Zp(pub u128)` does not enforce the reduced-into-
+        // `[0, modulus)` invariant structurally (unlike e.g. `Nimber`, where every
+        // representation is legal), so an out-of-range `self.0` must not be
+        // trusted bare here — `Zp::<3, 2>(20).neg()` would otherwise underflow.
+        let m = Self::modulus();
+        let r = self.0 % m;
+        if r == 0 {
             Zp(0)
         } else {
-            Zp(Self::modulus() - self.0)
+            Zp(m - r)
         }
     }
 
@@ -219,6 +225,16 @@ mod tests {
         assert!(std::panic::catch_unwind(Zp::<4, 3>::one).is_err());
         assert!(std::panic::catch_unwind(Zp::<5, 0>::one).is_err());
         assert!(std::panic::catch_unwind(Zp::<5, 55>::one).is_err());
+    }
+
+    #[test]
+    fn neg_reduces_out_of_range_representations_first() {
+        // Zp(pub u128) doesn't structurally enforce the reduced-into-[0,modulus)
+        // invariant; neg() must reduce before negating, or an out-of-range
+        // representation like Zp::<3,2>(20) (modulus 3² = 9) underflows.
+        assert_eq!(Zp::<3, 2>(20).0, 20); // the raw (unreduced) representation
+        assert_eq!(Zp::<3, 2>(20).neg().0, 7); // 20 mod 9 = 2, 9 - 2 = 7
+        assert_eq!(Zp::<3, 2>(9).neg(), Zp::<3, 2>(0)); // an exact-modulus multiple negates to 0
     }
 
     #[test]

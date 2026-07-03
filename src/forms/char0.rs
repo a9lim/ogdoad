@@ -38,7 +38,7 @@
 //! discriminant square-class, real signature, and the local Hasse invariants at
 //! the real place and the finitely many relevant `Q_p` places.
 
-use crate::clifford::Metric;
+use crate::clifford::{Metric, MAX_BASIS_DIM};
 use crate::forms::{relevant_primes, try_disc_class, try_hasse_at_place, try_square_free, Place};
 use crate::scalar::Surcomplex;
 use crate::scalar::Surreal;
@@ -213,6 +213,11 @@ fn real_core(p: usize, q: usize) -> (BaseField, u128, bool) {
 
 /// Classify a real Clifford algebra from its signature `(p, q, r)`.
 pub fn classify_real(p: usize, q: usize, r: usize) -> CliffordInvariants {
+    assert!(
+        p + q <= MAX_BASIS_DIM,
+        "classify_real: signature dimension p+q={} exceeds MAX_BASIS_DIM={MAX_BASIS_DIM}",
+        p + q
+    );
     let (base, matrix_dim, doubled) = real_core(p, q);
     CliffordInvariants {
         base,
@@ -226,6 +231,10 @@ pub fn classify_real(p: usize, q: usize, r: usize) -> CliffordInvariants {
 
 /// Classify a complex Clifford algebra from `(n, r)` (nondegenerate dim, radical).
 pub fn classify_complex(n: usize, r: usize) -> CliffordInvariants {
+    assert!(
+        n <= MAX_BASIS_DIM,
+        "classify_complex: dimension n={n} exceeds MAX_BASIS_DIM={MAX_BASIS_DIM}"
+    );
     let doubled = !n.is_multiple_of(2);
     let matrix_dim = p2((n - usize::from(doubled)) / 2);
     CliffordInvariants {
@@ -415,6 +424,23 @@ mod tests {
     fn matrix_dimension_reaches_dim_128_boundary() {
         assert_eq!(classify_real(128, 0, 0).matrix_dim, 1u128 << 64);
         assert_eq!(classify_complex(128, 0).matrix_dim, 1u128 << 64);
+    }
+
+    // CONSISTENCY.md `partiality-outliers`: `classify_real`/`classify_complex`
+    // used to be unbounded `pub fn`s whose `p2()` panicked past dimension 127
+    // with an incidental `checked_shl` overflow message. They now assert the
+    // crate's named `MAX_BASIS_DIM` boundary (matching `CliffordAlgebra::new`'s
+    // `metric.rs` convention) instead of failing incidentally one layer down.
+    #[test]
+    #[should_panic(expected = "MAX_BASIS_DIM")]
+    fn classify_real_rejects_dimension_past_max_basis_dim() {
+        classify_real(129, 0, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "MAX_BASIS_DIM")]
+    fn classify_complex_rejects_dimension_past_max_basis_dim() {
+        classify_complex(129, 0);
     }
 
     #[test]

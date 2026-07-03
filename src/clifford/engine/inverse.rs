@@ -1,3 +1,11 @@
+//! The GENERAL multivector inverse: `multivector_inverse` solves for a
+//! two-sided inverse of any element (not just versors) by building the
+//! left-multiplication matrix of `v` over the full `2^dim`-blade basis and
+//! solving `v x = 1` with the shared `linalg::field` solver. This is the
+//! fallback used when an element is invertible but not a versor — e.g. `1+B`
+//! in the Cayley transform — where `versor_inverse`'s `v ṽ`-is-scalar shortcut
+//! does not apply.
+
 use super::algebra::CliffordAlgebra;
 use super::multivector::Multivector;
 use crate::linalg::field;

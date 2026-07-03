@@ -253,6 +253,37 @@ mod tests {
         }
     }
 
+    /// `∂₃` via the capped `Q₃` Springer engine — the `p ≡ 3 (mod 4)` companion to
+    /// `springer_residue_q5` (`p ≡ 1 (mod 4)`, `kappa = 0`). At `p = 5` the
+    /// `leg_neg1` factor in `second_residue_at`'s signed-discriminant twist is `+1`,
+    /// so multiplying by it is a no-op — a mis-encoded twist would go undetected.
+    /// `p = 3` has `leg_neg1 = -1` (`kappa = 1`), so this is the first Springer
+    /// cross-check that actually exercises the twist (CORRECTNESS.md `one-line-pins`).
+    fn springer_residue_q3(entries: &[i128]) -> WittClassG {
+        type Q3 = Qp<3, 6>;
+        let metric = Metric::diagonal(entries.iter().map(|&a| Q3::from_int(a)).collect());
+        let decomp = springer_decompose_qp(&metric).unwrap();
+        let mut dim = 0usize;
+        let mut disc_sq = true; // running square class of the residue discriminant
+        for form in decomp.parity_layer(1) {
+            dim += form.dim;
+            disc_sq = disc_sq == form.disc_is_square; // XNOR of square classes
+        }
+        let m = dim as i128;
+        let leg_neg1 = legendre(-1, 3); // -1 (3 ≡ 3 mod 4)
+        let signed_sq = if ((m * (m - 1) / 2) & 1) == 1 && leg_neg1 != 1 {
+            !disc_sq
+        } else {
+            disc_sq
+        };
+        WittClassG::OddChar {
+            field_order: 3,
+            kappa: if leg_neg1 == 1 { 0 } else { 1 },
+            e0: (dim & 1) as u128,
+            sclass: if signed_sq { 0 } else { 1 },
+        }
+    }
+
     fn f2_class(arf: u128) -> WittClassG {
         WittClassG::Char2 {
             field_degree: 1,
@@ -305,6 +336,26 @@ mod tests {
                 second_residue_at(&entries, 5),
                 springer_residue_q5(&entries),
                 "∂₅ mismatch on {entries:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn second_residue_matches_springer_over_q3() {
+        // The p=3 companion to second_residue_matches_springer_over_q5: p ≡ 3 (mod 4)
+        // gives kappa=1, so entries with an even number (2 or 3 mod 4) of odd-valuation
+        // lines genuinely exercise the sign-twist branch that p=5 (kappa=0) cannot.
+        for entries in [
+            vec![1, 3],       // m=1: no twist regardless of kappa
+            vec![3, 6],       // m=2: twist flips the sign
+            vec![1, 1, 3, 3], // m=2, different residue units
+            vec![3, 6, 12],   // m=3: twist triggers again
+            vec![2, 4],       // m=0: both entries even valuation, zero residue
+        ] {
+            assert_eq!(
+                second_residue_at(&entries, 3),
+                springer_residue_q3(&entries),
+                "∂₃ mismatch on {entries:?}"
             );
         }
     }

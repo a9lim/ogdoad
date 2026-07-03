@@ -39,7 +39,10 @@ use crate::scalar::{LocalQp, Rational, Scalar};
 pub(crate) const ADELE_PREC_NOMINAL: u128 = 16;
 
 /// The effective relative precision at prime `p`: the nominal precision, capped so
-/// the schoolbook mantissa product `(p^k)²` never overflows `u128`. A deterministic
+/// the mantissa modulus `p^k` fits `i128::MAX` — the "i128-backed embeddings"
+/// contract [`LocalQp`]'s own guard enforces (mirroring `Zp`/`Qp`), not a
+/// `(p^k)²`-fits-`u128` bound: `LocalQp::mul` routes the mantissa product through
+/// `mul_mod_u128`, which never needs the squared modulus to fit. A deterministic
 /// function of `p`, so all cells at a given prime share one precision (and
 /// [`LocalQp`] arithmetic never mixes precisions). Large primes get less precision —
 /// the same `i128`-scale limitation as [`Rational`].
@@ -47,11 +50,10 @@ pub(crate) fn adele_prec(p: u128) -> u128 {
     let mut k = ADELE_PREC_NOMINAL;
     while k > 1
         && p.checked_pow(
-            (2 * k)
-                .try_into()
+            k.try_into()
                 .expect("adele precision exponent fits the platform exponent type"),
         )
-        .is_none()
+        .is_none_or(|pk| pk > i128::MAX as u128)
     {
         k -= 1;
     }

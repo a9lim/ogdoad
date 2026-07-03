@@ -77,9 +77,13 @@ fn dpoly<S: Scalar>(p: &Poly<S>) -> Poly<S> {
     Poly::new(out)
 }
 
-/// The multiplicity of `pi` in `p` and the cofactor `p / pi^mult`.
-pub(crate) fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (usize, Poly<S>) {
-    let mut mult = 0usize;
+/// The multiplicity of `pi` in `p` and the cofactor `p / pi^mult`. Returns `i128`
+/// (width rule 7: fixed-width, matching the [`function_field`](crate::forms::function_field)
+/// odd-char twin of this helper) even though the value is never negative; callers
+/// that need it as a power-series precision/index convert once, at their own entry
+/// point, rather than the multiplicity being pre-narrowed here.
+pub(crate) fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (i128, Poly<S>) {
+    let mut mult = 0i128;
     if p.is_zero() {
         return (0, p);
     }
@@ -230,6 +234,9 @@ fn residue_finite<S: FiniteChar2Field>(num: &Poly<S>, den: &Poly<S>, p: &Poly<S>
     if m == 0 {
         return Poly::zero(); // g is regular at P — no residue
     }
+    // m is a pole order here, used below as a power-series precision/index — the one
+    // usize conversion this function needs, done once rather than threaded in.
+    let m = usize::try_from(m).expect("pole order fits usize (indexes a power-series precision)");
     let mut pm = Poly::one();
     for _ in 0..m {
         pm = pm.mul(p);

@@ -138,6 +138,14 @@ fn b_of(u: u128, v: u128, bmat: &[u128]) -> bool {
 /// Arf invariant of an F₂ quadratic form given by diagonal `qd` (the squares)
 /// and symmetric adjacency `bmat` (the polar form; `bmat[i]` bit j ⇔ b_{ij}=1).
 pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfInvariants {
+    assert!(
+        n <= 128,
+        "arf_f2 uses u128 bitmasks, so n must be at most 128"
+    );
+    assert!(
+        qd.len() >= n && bmat.len() >= n,
+        "arf_f2 needs qd and bmat entries for every basis vector"
+    );
     let mut vectors: Vec<u128> = (0..n).map(|i| 1u128 << i).collect();
     let mut arf = false;
     let mut pairs = 0usize;
@@ -389,7 +397,7 @@ pub(crate) fn arf_nimber_at_degree(metric: &Metric<Nimber>, m: u128) -> Option<A
         if let Some(pos) = vectors.iter().position(|w| bf(&a, w, &bmat) != 0) {
             let braw = vectors.swap_remove(pos);
             let c = bf(&a, &braw, &bmat);
-            let b = vscale(nim_inv(c).unwrap(), &braw); // rescale so B(a,b) = 1
+            let b = vscale(nim_inv(c)?, &braw); // rescale so B(a,b) = 1
             for w in vectors.iter_mut() {
                 let wb = bf(w, &b, &bmat);
                 let wa = bf(w, &a, &bmat);
@@ -770,5 +778,20 @@ mod tests {
             }
             assert_eq!(general, arf_f2(n, &qd, &bmat), "mismatch on q={:?}", qs);
         }
+    }
+
+    // `arf_f2` and `brown_f2` are declared to mirror each other field-for-field
+    // (CONSISTENCY.md `micro-naming-2`); `brown_f2` already asserts these input
+    // shapes (`forms/char2/brown.rs`), so `arf_f2` must too.
+    #[test]
+    #[should_panic(expected = "at most 128")]
+    fn arf_f2_rejects_dimension_past_u128_bitmask() {
+        arf_f2(129, &[false; 129], &[0u128; 129]);
+    }
+
+    #[test]
+    #[should_panic(expected = "entries for every basis vector")]
+    fn arf_f2_rejects_mismatched_lengths() {
+        arf_f2(3, &[false, false], &[0u128, 0u128, 0u128]);
     }
 }

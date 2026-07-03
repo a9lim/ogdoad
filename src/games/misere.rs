@@ -216,8 +216,6 @@ pub struct Quotient {
     pub signatures: Vec<Vec<bool>>,
     /// Class id of each element (parallel to `elements`).
     pub class_of: Vec<usize>,
-    /// Number of distinct classes found.
-    pub num_classes: usize,
     /// A representative multiset for each class.
     pub class_rep: Vec<Vec<usize>>,
     /// P-status of each class (`true` = a misère P-position / second-player win).
@@ -238,6 +236,12 @@ pub struct Quotient {
 }
 
 impl Quotient {
+    /// The number of distinct classes found — derived from `class_rep.len()`
+    /// (one representative multiset per class) rather than stored separately.
+    pub fn num_classes(&self) -> usize {
+        self.class_rep.len()
+    }
+
     pub fn class_product(&self, a: usize, b: usize) -> Option<usize> {
         self.multiplication
             .as_ref()
@@ -260,26 +264,25 @@ impl Quotient {
 }
 
 /// Build a quotient from `elements` and a `tests` set, given an `outcome`
-/// function (`true` = N) on atom-multisets. `outcome` carries its own memo. Two
-/// elements share a class iff `outcome(G+T)` agrees for every test `T`.
+/// function (`Some(true)` = N) on atom-multisets. `outcome` carries its own
+/// memo and returns `None` when the underlying move graph has a cycle, which
+/// propagates out as `None` here rather than panicking. Two elements share a
+/// class iff `outcome(G+T)` agrees for every test `T`.
 fn build_quotient(
     elements: Vec<Vec<usize>>,
     tests: &[Vec<usize>],
-    mut outcome: impl FnMut(&[usize]) -> bool,
-) -> Quotient {
-    let signatures: Vec<Vec<bool>> = elements
-        .iter()
-        .map(|g| {
-            tests
-                .iter()
-                .map(|t| {
-                    let mut gt = g.clone();
-                    gt.extend_from_slice(t);
-                    outcome(&gt)
-                })
-                .collect()
-        })
-        .collect();
+    mut outcome: impl FnMut(&[usize]) -> Option<bool>,
+) -> Option<Quotient> {
+    let mut signatures: Vec<Vec<bool>> = Vec::with_capacity(elements.len());
+    for g in &elements {
+        let mut sig = Vec::with_capacity(tests.len());
+        for t in tests {
+            let mut gt = g.clone();
+            gt.extend_from_slice(t);
+            sig.push(outcome(&gt)?);
+        }
+        signatures.push(sig);
+    }
 
     let mut class_of = vec![0usize; elements.len()];
     let mut uniq: Vec<Vec<bool>> = Vec::new();
@@ -294,12 +297,14 @@ fn build_quotient(
             }
         }
     }
-    let class_is_p: Vec<bool> = class_rep.iter().map(|r| !outcome(r)).collect();
+    let mut class_is_p: Vec<bool> = Vec::with_capacity(class_rep.len());
+    for r in &class_rep {
+        class_is_p.push(!outcome(r)?);
+    }
     let (multiplication, multiplication_consistent, elements_closed_under_sum) =
         build_multiplication(&elements, &class_of, &class_rep, uniq.len());
 
-    Quotient {
-        num_classes: uniq.len(),
+    Some(Quotient {
         elements,
         test_positions: tests.to_vec(),
         signatures,
@@ -309,7 +314,7 @@ fn build_quotient(
         multiplication,
         multiplication_consistent,
         elements_closed_under_sum,
-    }
+    })
 }
 
 fn sum_multiset(a: &[usize], b: &[usize]) -> Vec<usize> {
@@ -382,22 +387,22 @@ fn build_multiplication(
 
 /// Compute the bounded misère quotient of `game` over the generating `atoms`,
 /// distinguishing elements (sums up to `elem_bound`) by their outcomes against
-/// tests (sums up to `test_bound`).
+/// tests (sums up to `test_bound`). Returns `None` if any bounded element or
+/// test sum reaches a position whose move graph has a directed cycle (see
+/// [`AbstractGame::misere_outcome`]) — this is the same partial primitive
+/// `try_misere_is_n` guards, just threaded through the quotient builder.
 pub fn misere_quotient(
     game: &AbstractGame,
     atoms: &[usize],
     elem_bound: usize,
     test_bound: usize,
-) -> Quotient {
+) -> Option<Quotient> {
     let mut atoms_sorted = atoms.to_vec();
     atoms_sorted.sort_unstable();
     let elements = multisets(&atoms_sorted, elem_bound);
     let tests = multisets(&atoms_sorted, test_bound);
     let mut memo: HashMap<Vec<usize>, bool> = HashMap::new();
-    build_quotient(elements, &tests, |g| {
-        game.misere_outcome(g, &mut memo)
-            .expect("misere_quotient: bounded element sums should be acyclic")
-    })
+    build_quotient(elements, &tests, |g| game.misere_outcome(g, &mut memo))
 }
 
 // ---------------------------------------------------------------------------
@@ -407,7 +412,8 @@ pub fn misere_quotient(
 /// Moves of an octal game `0.d₁d₂…` (`code[k-1] = dₖ`) on a heap-multiset. From a
 /// heap of size n, remove k tokens (1 ≤ k ≤ n): leaving the heap empty needs
 /// `dₖ & 1`; leaving one nonempty heap `n−k` needs `dₖ & 2`; splitting `n−k` into
-/// two nonempty heaps needs `dₖ & 4`. (Nim is `0.333…`, Dawson's chess `0.137`.)
+/// two nonempty heaps needs `dₖ & 4`. (Nim is `0.333…`; Dawson's chess is the
+/// octal game `0.137` — Berlekamp-Conway-Guy, *Winning Ways*.)
 pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
     let mut out = Vec::new();
     for idx in 0..pos.len() {
@@ -452,12 +458,16 @@ pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
 /// The bounded misère quotient of an octal game, over single heaps of size
 /// `1..=max_heap` as atoms (a heap-multiset is a sum). Splitting moves are handled
 /// (a heap can become two), so the position type is the heap-multiset itself.
+/// Returns `None` if the bounded search reaches a cyclic position — in practice
+/// this cannot happen for `octal_moves` (every move strictly decreases the total
+/// token count, so the induced graph is always acyclic), but the builder stays
+/// honest about the partial primitive it calls rather than asserting on it.
 pub fn octal_misere_quotient(
     code: &[u128],
     max_heap: usize,
     elem_bound: usize,
     test_bound: usize,
-) -> Quotient {
+) -> Option<Quotient> {
     let atoms: Vec<usize> = (1..=max_heap).collect();
     let elements = multisets(&atoms, elem_bound);
     let tests = multisets(&atoms, test_bound);
@@ -467,7 +477,6 @@ pub fn octal_misere_quotient(
         let mut pos: Vec<u128> = g.iter().map(|&x| x as u128).collect();
         pos.sort_unstable();
         try_misere_is_n(&pos, &moves, &mut memo)
-            .expect("octal quotient search expects an acyclic bounded graph")
     })
 }
 
@@ -527,8 +536,8 @@ mod tests {
         let star = AbstractGame {
             moves: vec![vec![], vec![0]],
         };
-        let q = misere_quotient(&star, &[1], 5, 3);
-        assert_eq!(q.num_classes, 2, "⋆ quotient should be order 2 (ℤ/2)");
+        let q = misere_quotient(&star, &[1], 5, 3).expect("star quotient search is acyclic");
+        assert_eq!(q.num_classes(), 2, "⋆ quotient should be order 2 (ℤ/2)");
         assert_eq!(
             q.test_positions,
             vec![vec![], vec![1], vec![1, 1], vec![1, 1, 1]]
@@ -582,8 +591,9 @@ mod tests {
     #[test]
     fn octal_star_quotient_is_z2() {
         // Nim restricted to heaps of size 1 (just ⋆) ⇒ the ℤ/2 quotient again.
-        let q = octal_misere_quotient(&[3, 3, 3], 1, 5, 3);
-        assert_eq!(q.num_classes, 2);
+        let q = octal_misere_quotient(&[3, 3, 3], 1, 5, 3)
+            .expect("octal_moves is always acyclic, so this quotient search is too");
+        assert_eq!(q.num_classes(), 2);
     }
 
     #[test]
@@ -622,6 +632,21 @@ mod tests {
             game.misere_outcome(&[1], &mut memo),
             None,
             "cyclic AbstractGame must return None, not panic"
+        );
+    }
+
+    #[test]
+    fn cyclic_abstract_game_quotient_builder_returns_none_not_panic() {
+        // Same cyclic AbstractGame as `cyclic_abstract_game_returns_none_not_panic`,
+        // but threaded through the *quotient builder* rather than `misere_outcome`
+        // directly. Before the fix `misere_quotient` called `.expect()` on this same
+        // partial primitive and panicked; now it returns None.
+        let game = AbstractGame {
+            moves: vec![vec![], vec![1]], // pos 1 self-loops — cyclic
+        };
+        assert!(
+            misere_quotient(&game, &[1], 3, 2).is_none(),
+            "cyclic AbstractGame through misere_quotient must return None, not panic"
         );
     }
 }

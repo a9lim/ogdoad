@@ -64,7 +64,7 @@ pub(super) fn valuation<S: FiniteChar2Field>(
         FunctionFieldPlace::Finite(p) => {
             let (mn, _) = strip_factor(a.num().clone(), p);
             let (md, _) = strip_factor(a.den().clone(), p);
-            Some(mn as i128 - md as i128)
+            Some(mn - md)
         }
         FunctionFieldPlace::Infinite => Some(
             a.den().degree().expect("nonzero den") as i128
@@ -88,7 +88,7 @@ fn laurent_finite<S: FiniteChar2Field>(
     }
     let (mn, ncof) = strip_factor(num.clone(), p);
     let (md, e) = strip_factor(den.clone(), p);
-    let val = mn as i128 - md as i128;
+    let val = mn - md;
     let hi_i = n_hi - val; // need power-series digits g_0 .. g_{hi_i}
     if hi_i < 0 {
         return vec![Poly::zero(); len];

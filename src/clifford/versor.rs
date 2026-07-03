@@ -78,19 +78,29 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
-    /// Inverse of a versor (a product of invertible vectors): v⁻¹ = ṽ / (v ṽ),
-    /// valid exactly when `v * reverse(v)` is a nonzero invertible scalar.
-    /// Returns `None` otherwise (null vector, non-versor, or scalar norm not
-    /// invertible in the backend).
-    pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
+    /// The shared invertibility gate underlying both [`versor_inverse`](Self::versor_inverse)
+    /// and [`spinor_norm`](Self::spinor_norm): `Some(v ṽ)` iff `v * reverse(v)` is
+    /// a pure, invertible scalar; `None` if `v ṽ` carries any non-scalar grade or
+    /// its scalar part is not invertible in the backend.
+    pub(super) fn pure_scalar_norm(&self, v: &Multivector<S>) -> Option<S> {
         let rev = self.reverse(v);
         let vrev = self.mul(v, &rev);
         let n = self.scalar_part(&vrev);
         if self.scalar(n.clone()) != vrev {
             return None; // v ṽ is not a pure scalar ⇒ not a simple versor
         }
+        n.inv()?;
+        Some(n)
+    }
+
+    /// Inverse of a versor (a product of invertible vectors): v⁻¹ = ṽ / (v ṽ),
+    /// valid exactly when `v * reverse(v)` is a nonzero invertible scalar.
+    /// Returns `None` otherwise (null vector, non-versor, or scalar norm not
+    /// invertible in the backend).
+    pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
+        let n = self.pure_scalar_norm(v)?;
         let ninv = n.inv()?;
-        Some(self.scalar_mul(&ninv, &rev))
+        Some(self.scalar_mul(&ninv, &self.reverse(v)))
     }
 
     /// The (untwisted) sandwich product v x v⁻¹ — the rotor action. Correct for

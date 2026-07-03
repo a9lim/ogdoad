@@ -131,7 +131,7 @@ fn main() {
     );
     println!(
         "  spinor basis dim through the a-gauge = {}",
-        spinor_rep(&d).unwrap().basis.len()
+        spinor_rep(&d).unwrap().basis().len()
     );
 
     rule("Artin–Schreier ↔ Arf — one field trace, two roles");

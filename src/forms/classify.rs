@@ -200,8 +200,11 @@ impl std::fmt::Display for ClassifyError {
 /// | [`Nimber`] | [`ArfInvariants`] | characteristic 2 (Arf) |
 /// | [`Ordinal`] | [`ArfInvariants`] | detected finite ordinal-nimber windows only |
 ///
-/// `Err` means the metric is outside the classifier's domain (e.g. a non-diagonal
-/// char-2 form, or a metric the diagonalizer can't reduce); see [`ClassifyError`].
+/// `Err` means the metric is outside the classifier's domain (e.g. an `Ordinal`
+/// metric with coefficients outside the detected finite-subfield windows, or a
+/// metric the diagonalizer can't reduce); see [`ClassifyError`]. A non-diagonal
+/// char-2 form is *not* such an example — the char-2 legs classify directly off
+/// the full `(q, b)` metric via Arf reduction, with no diagonalization step.
 impl From<crate::forms::WittClassError> for ClassifyError {
     fn from(e: crate::forms::WittClassError) -> Self {
         match e {
@@ -845,5 +848,57 @@ mod tests {
             }
             other => panic!("expected SingularForm, got {other:?}"),
         }
+    }
+
+    // CORRECTNESS.md `char2-decomp-coverage`: `Char2WittDecomp`'s documented
+    // `radical_anisotropic: true` caveat — that `witt_index`/`core_anisotropic_dim`/
+    // `arf` describe the *chosen* symplectic complement, not an isometry
+    // invariant of the whole form — was never constructed by any test. Build the
+    // same defective-radical pair `equivalence.rs`'s
+    // `defective_radical_ignores_complement_arf` uses for `Nimber` (a hyperbolic
+    // vs. anisotropic complement, plus a shared defective radical direction `r`
+    // with `Q(r)=1`), but over `Fpn<2,3>` so the `Fpn<2,N>` `DecomposeWitt` path
+    // actually produces a `Char2WittDecomp`, and check the caveat both ways: the
+    // radical data agrees (an isometry invariant) while the complement data does
+    // not, yet `isometric_finite_char2` still reports the two forms isometric.
+    #[test]
+    fn char2_witt_decomp_defective_radical_matches_documented_caveat() {
+        let mut b = std::collections::BTreeMap::new();
+        b.insert((0usize, 1usize), Fpn::<2, 3>::one());
+        let zero = Fpn::<2, 3>::zero();
+        let one = Fpn::<2, 3>::one();
+
+        // split complement (Q=0 on e0,e1) ⊥ defective radical r (Q(r)=1).
+        let split_complement = Metric::new(vec![zero, zero, one], b.clone());
+        // anisotropic complement (Q=1 on e0,e1) ⊥ the same defective radical.
+        let anisotropic_complement = Metric::new(vec![one, one, one], b);
+
+        let d1 = match split_complement.witt_decompose() {
+            Ok(FiniteFieldWittDecomp::Char2(d)) => d,
+            other => panic!("expected a Char2 decomp, got {other:?}"),
+        };
+        let d2 = match anisotropic_complement.witt_decompose() {
+            Ok(FiniteFieldWittDecomp::Char2(d)) => d,
+            other => panic!("expected a Char2 decomp, got {other:?}"),
+        };
+
+        // the radical data is an honest isometry invariant: both forms agree.
+        assert!(d1.radical_anisotropic && d2.radical_anisotropic);
+        assert_eq!(d1.radical_dim, 1);
+        assert_eq!(d2.radical_dim, 1);
+
+        // the *complement* data is exactly where the caveat bites: split vs.
+        // anisotropic complements disagree on arf/witt_index/core_anisotropic_dim...
+        assert_ne!(d1.arf, d2.arf);
+        assert_ne!(
+            (d1.witt_index, d1.core_anisotropic_dim),
+            (d2.witt_index, d2.core_anisotropic_dim)
+        );
+        // ...even though the two metrics describe isometric forms (the complement
+        // choice doesn't change the isometry class when the radical is defective).
+        assert_eq!(
+            crate::forms::isometric_finite_char2(&split_complement, &anisotropic_complement),
+            Some(true)
+        );
     }
 }

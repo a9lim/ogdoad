@@ -426,7 +426,7 @@ macro_rules! backend_linear_map {
 
             fn columns_py(&self) -> Vec<Vec<$scalar_py>> {
                 self.inner
-                    .cols
+                    .cols()
                     .iter()
                     .map(|col| col.iter().cloned().map($wrap).collect())
                     .collect()
@@ -901,11 +901,18 @@ macro_rules! backend_algebra {
 	                        "spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
 	                    )
                 })?;
-                let is_left_regular = rep.is_left_regular;
+                let (
+                    rep_idempotent,
+                    rep_basis,
+                    rep_gen_matrices,
+                    is_left_regular,
+                    rep_diagonalized_metric,
+                    rep_orthogonal_basis,
+                ) = rep.into_parts();
                 let diagonalized_metric: Option<(
                     Vec<$scalar_py>,
                     Vec<(usize, usize, $scalar_py)>,
-                )> = rep.diagonalized_metric.map(|metric| {
+                )> = rep_diagonalized_metric.map(|metric| {
                     (
                         metric.q.into_iter().map($wrap).collect(),
                         metric
@@ -916,7 +923,7 @@ macro_rules! backend_algebra {
                     )
                 });
                 let orthogonal_basis_in_original: Option<Vec<Vec<$scalar_py>>> =
-                    rep.orthogonal_basis_in_original.map(|matrix| {
+                    rep_orthogonal_basis.map(|matrix| {
                         matrix
                             .into_iter()
                             .map(|row| row.into_iter().map($wrap).collect())
@@ -924,18 +931,16 @@ macro_rules! backend_algebra {
                     });
                 let idempotent = $mv {
                     alg: self.inner.clone(),
-                    mv: rep.idempotent,
+                    mv: rep_idempotent,
                 };
-                let basis: Vec<$mv> = rep
-                    .basis
+                let basis: Vec<$mv> = rep_basis
                     .into_iter()
                     .map(|mv| $mv {
                         alg: self.inner.clone(),
                         mv,
                     })
                     .collect();
-                let gen_matrices: Vec<Vec<Vec<$scalar_py>>> = rep
-                    .gen_matrices
+                let gen_matrices: Vec<Vec<Vec<$scalar_py>>> = rep_gen_matrices
                     .into_iter()
                     .map(|m| {
                         m.into_iter()
@@ -1749,7 +1754,7 @@ macro_rules! cga_backend {
         impl $py {
             fn wrap(&self, mv: Multivector<$scalar>) -> $mv {
                 $mv {
-                    alg: Arc::new(self.inner.alg.clone()),
+                    alg: Arc::new(self.inner.alg().clone()),
                     mv,
                 }
             }
@@ -1763,11 +1768,11 @@ macro_rules! cga_backend {
             }
             #[getter]
             fn n(&self) -> usize {
-                self.inner.n
+                self.inner.n()
             }
             #[getter]
             fn dim(&self) -> usize {
-                self.inner.alg.dim()
+                self.inner.alg().dim()
             }
             fn n_o(&self) -> $mv {
                 self.wrap(self.inner.n_o())

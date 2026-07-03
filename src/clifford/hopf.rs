@@ -26,6 +26,7 @@
 //! `T | (U << dim)` of `tensor_square(alg)` (the low block is the left factor,
 //! the high block the right) — matching `embed_first` / `embed_second(·, &alg)`.
 
+use crate::clifford::engine::add_term;
 use crate::clifford::{bits, CliffordAlgebra, Multivector, MAX_BASIS_DIM};
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
@@ -62,11 +63,7 @@ pub fn coproduct<S: Scalar>(alg: &CliffordAlgebra<S>, mv: &Multivector<S>) -> Mu
             let sign = w.terms.get(&mask_s).cloned().unwrap_or_else(S::zero);
             if !sign.is_zero() {
                 let tens = t | (u << dim);
-                let e = out.entry(tens).or_insert_with(S::zero);
-                *e = e.add(&coeff.mul(&sign));
-                if e.is_zero() {
-                    out.remove(&tens);
-                }
+                add_term(&mut out, tens, coeff.mul(&sign));
             }
             if t == 0 {
                 break;

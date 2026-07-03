@@ -81,13 +81,33 @@ impl std::fmt::Display for WittClassGError {
 /// invariant of a form's anisotropic core (hyperbolic planes are the identity).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WittClass {
-    /// Degree `m` of the finite char-2 field `F_{2^m}` this class lives over.
-    pub field_degree: u128,
-    /// The class, 0 or 1 — equivalently the Arf invariant of the nonsingular core.
-    pub arf: u128,
+    field_degree: u128,
+    arf: u128,
 }
 
 impl WittClass {
+    /// Build a Witt class from its field degree and Arf bit, checking the
+    /// invariants every constructor in this file maintains: `field_degree` positive,
+    /// `arf` a bit (`0` or `1`). Mirrors the checked-constructor discipline of the
+    /// other Brauer/Witt siblings in this shelf (`RationalBrauerWallClass::from_parts`,
+    /// `FunctionFieldBrauerWallClass::from_parts`).
+    pub fn new(field_degree: u128, arf: u128) -> Option<Self> {
+        if field_degree == 0 || arf > 1 {
+            return None;
+        }
+        Some(WittClass { field_degree, arf })
+    }
+
+    /// Degree `m` of the finite char-2 field `F_{2^m}` this class lives over.
+    pub fn field_degree(&self) -> u128 {
+        self.field_degree
+    }
+
+    /// The class, 0 or 1 — equivalently the Arf invariant of the nonsingular core.
+    pub fn arf(&self) -> u128 {
+        self.arf
+    }
+
     /// The identity over `F₂`: the class of the hyperbolic plane (and of the
     /// zero form). Use [`zero_over`](Self::zero_over) when the ground field is
     /// a larger finite char-2 field.
@@ -399,6 +419,31 @@ impl WittClassG {
             kappa,
             e0: 1,
             sclass: 0,
+        }
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for WittClassG {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WittClassG::Char0 { signature } => write!(f, "W(R): signature {signature}"),
+            WittClassG::OddChar {
+                field_order,
+                kappa,
+                e0,
+                sclass,
+            } => write!(
+                f,
+                "W(F_{field_order}): e0 {e0} sclass {sclass} (kappa {kappa})"
+            ),
+            WittClassG::Char2 { field_degree, arf } => {
+                write!(f, "W_q(F_2^{field_degree}): arf {arf}")
+            }
         }
     }
 }

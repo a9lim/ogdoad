@@ -44,6 +44,7 @@ pub(crate) use basis::grade_k_masks;
 pub use basis::{bits, grade, MAX_BASIS_DIM};
 pub use metric::Metric;
 pub use multivector::Multivector;
+pub(crate) use terms::add_term;
 
 #[cfg(test)]
 mod tests {

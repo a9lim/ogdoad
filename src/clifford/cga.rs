@@ -41,17 +41,20 @@ fn s_int<S: Scalar>(k: usize) -> S {
 /// The conformal geometric algebra of Euclidean `ℝⁿ`: `Cl(n+1, 1)` in a null
 /// basis, with helpers for the conformal embedding and round/flat primitives.
 pub struct Cga<S: Scalar> {
-    pub alg: CliffordAlgebra<S>,
-    pub n: usize,
+    alg: CliffordAlgebra<S>,
+    n: usize,
     /// generator index of `n_o` (origin).
-    pub no: usize,
+    no: usize,
     /// generator index of `n_∞` (infinity).
-    pub ninf: usize,
+    ninf: usize,
 }
 
 impl<S: Scalar> Cga<S> {
     /// Build the CGA of `ℝⁿ`. Panics unless the backend has characteristic 0
-    /// and `2` is invertible (CGA needs `½`).
+    /// and `2` is invertible (CGA needs `½`). The sole constructor: `no`/`ninf`
+    /// are always `n`/`n+1` by this construction, so there is no unchecked path
+    /// to bypass — private fields close the struct-literal escape hatch the
+    /// panics above used to leave open.
     pub fn new(n: usize) -> Self {
         assert_eq!(
             S::characteristic(),
@@ -76,6 +79,16 @@ impl<S: Scalar> Cga<S> {
             no: n,
             ninf: n + 1,
         }
+    }
+
+    /// Read-only access to the underlying `Cl(n+1,1)` algebra.
+    pub fn alg(&self) -> &CliffordAlgebra<S> {
+        &self.alg
+    }
+
+    /// The Euclidean dimension `n` this CGA embeds.
+    pub fn n(&self) -> usize {
+        self.n
     }
 
     fn half(&self) -> S {

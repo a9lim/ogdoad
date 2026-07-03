@@ -1,28 +1,43 @@
 //! The spinor norm `N: O(Q) → F*/F*²` and the Dickson grade parity — the two
-//! invariants that, together, pin down a versor's place in the Pin/Spin tower.
+//! invariants that, together, pin down a versor's place in the Pin/Spin tower,
+//! **in characteristic ≠ 2**.
 //!
 //! `forms::char2` already classifies isometries in characteristic 2 by the
 //! **Dickson invariant** (`SO(Q) = ker D`). The companion across the *other*
 //! characteristics is the **spinor norm**: the Pin map sends a versor
 //! `v = v₁⋯v_k` (a product of vectors) to the composite of the reflections in the
 //! `v_i`; the cokernel over a general field is measured by the spinor norm map
-//! `O(Q) → F*/F*²`. Concretely `N(v) = ∏ q(v_i) = ⟨v ṽ⟩₀`, read modulo squares.
-//! The pair
-//! `(Dickson parity, spinor norm)` is what separates the four cosets
-//! `Pin/Spin × ±` of `O(Q)`.
+//! `O(Q) → F*/F*²`. Concretely, in characteristic ≠ 2, `N(v) = ∏ q(v_i) = ⟨v ṽ⟩₀`
+//! read modulo squares IS that invariant, and the pair `(Dickson parity, spinor
+//! norm)` is what separates the four cosets `Pin/Spin × ±` of `O(Q)` there.
 //!
 //! ## The characteristic-2 caveat (pinned)
 //!
 //! In characteristic 2 the codomain is **not** `F*/F*²`. There `x ↦ x²` is the
 //! Frobenius (a bijection on a perfect field), so every element is a square and
 //! `F*/F*²` is trivial — the multiplicative spinor norm collapses. The correct
-//! char-2 spinor norm is **additive**, valued in `F/℘(F)` (the Artin–Schreier
-//! group, `℘(x) = x² + x`) — the very group the Arf invariant is pushed into by the
-//! field trace (`scalar::nim_trace`). So in char 2 the right companion
-//! to Dickson is that additive invariant, not this multiplicative one; we expose
-//! the **raw** norm `⟨v ṽ⟩₀` generically (correct as an element of `F`) and leave
-//! the "mod squares" / "mod ℘" reduction to the caller's field, where the square /
-//! Artin–Schreier test lives.
+//! char-2 spinor norm (Wall/Dye) is **additive**, valued in `F/℘(F)` (the
+//! Artin–Schreier group, `℘(x) = x² + x`) — the very group the Arf invariant is
+//! pushed into by the field trace (`scalar::nim_trace`) — and it is defined as
+//! `Σ Q(vᵢ) mod ℘` over a *vector* factorization `v = v₁⋯v_k`: an ADDITIVE
+//! combination of the individual `Q(vᵢ)`, not a function of the raw product `N(v)`.
+//!
+//! **`N(v)` cannot be reduced into that additive invariant.** `N` is a product
+//! (`∏ q(vᵢ)`), and there is no map from `(F*, ·)` to the additive group `F/℘(F)`
+//! that recovers `Σ Q(vᵢ) mod ℘` from it — so "reduce `N(v)` mod ℘" is not a
+//! meaningful operation, let alone the classifying one. Concretely: the versor
+//! `w = v·v = Q(v)·1` represents the identity map (a double reflection), so its
+//! honest invariant must be the zero coset for *every* choice of `v`. But
+//! `N(w) = Q(v)²`, and `x² ≡ x mod ℘` for every `x` (since `℘(x) = x² + x ∈ ℘(F)`)
+//! — so naively reading `N(w)`'s class mod ℘ gives the class of `Q(v)`, which
+//! varies with `v` and is generically nonzero. The recipe is not even
+//! well-defined on `O(Q)`, let alone equal to the Wall/Dye invariant.
+//!
+//! So in characteristic 2 this module exposes only the **raw** norm `⟨v ṽ⟩₀`
+//! (correct as a bare element of `F`, with no invariant meaning attached) and
+//! [`versor_grade_parity`] (Dickson). The honest additive char-2 spinor-norm
+//! invariant is **not implemented** here — computing it needs a witnessed vector
+//! factorization of `v`, which this module does not track.
 
 use crate::clifford::{CliffordAlgebra, Multivector};
 use crate::scalar::Scalar;
@@ -49,8 +64,11 @@ pub fn versor_grade_parity<S: Scalar>(v: &Multivector<S>) -> Option<u128> {
 /// its Dickson grade parity.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VersorInvariants<S: Scalar> {
-    /// The raw spinor norm `N(v) = ⟨v ṽ⟩₀ = ∏ q(vᵢ)`. Its class in `F*/F*²`
-    /// (char ≠ 2) or `F/℘(F)` (char 2) is the spinor-norm invariant.
+    /// The raw spinor norm `N(v) = ⟨v ṽ⟩₀ = ∏ q(vᵢ)`. In characteristic ≠ 2 its
+    /// class in `F*/F*²` is the honest spinor-norm invariant. In characteristic
+    /// 2 this raw (multiplicative) value is NOT the classifying invariant — see
+    /// the module docs — and no reduction of it is; treat it as a bare element
+    /// of `F` with no invariant meaning attached there.
     pub spinor_norm: S,
     /// The Dickson invariant (grade parity): `0` in `SO`, `1` an odd reflection.
     pub dickson: u128,
@@ -58,20 +76,17 @@ pub struct VersorInvariants<S: Scalar> {
 
 impl<S: Scalar> CliffordAlgebra<S> {
     /// The **raw spinor norm** `N(v) = ⟨v ṽ⟩₀` of a versor `v`, returned as a field
-    /// element. `Some(N)` iff `v ṽ` is a pure invertible scalar (the same
-    /// invertibility gate as [`versor_inverse`](CliffordAlgebra::versor_inverse));
-    /// `None` if `v` is not a simple invertible versor. For `v = v₁⋯v_k` this
-    /// equals `∏ q(vᵢ)`; reduce it modulo squares (char ≠ 2) or modulo `℘` (char 2)
-    /// to get the invariant in the appropriate quotient.
+    /// element: `Some(N)` iff `v ṽ` is a pure invertible scalar (the same
+    /// invertibility gate as [`versor_inverse`](CliffordAlgebra::versor_inverse) —
+    /// literally shared, via `pure_scalar_norm`); `None` if `v` is not a simple
+    /// invertible versor. For `v = v₁⋯v_k` this equals `∏ q(vᵢ)`. In
+    /// characteristic ≠ 2, reduce it modulo squares to get the classifying
+    /// spinor-norm invariant. In characteristic 2 this raw value is **not** the
+    /// classifying invariant and has no valid "modulo ℘" reduction — see the
+    /// module docs for why, and [`versor_grade_parity`] for the char-2 invariant
+    /// that IS trustworthy (Dickson).
     pub fn spinor_norm(&self, v: &Multivector<S>) -> Option<S> {
-        let rev = self.reverse(v);
-        let vrev = self.mul(v, &rev);
-        let n = self.scalar_part(&vrev);
-        if self.scalar(n.clone()) != vrev {
-            return None; // v ṽ is not a pure scalar ⇒ not a simple versor
-        }
-        n.inv()?;
-        Some(n)
+        self.pure_scalar_norm(v)
     }
 
     /// Classify a versor by `(spinor norm, Dickson parity)`. `None` if `v` is not a
@@ -172,5 +187,33 @@ mod tests {
             versor_grade_parity(&e0e1),
             crate::forms::dickson_of_versor(&alg, &e0e1)
         );
+    }
+
+    /// Pins the CURRENT (honest, non-classifying-in-char-2) behavior of
+    /// `spinor_norm`/`classify_versor` over `Nimber`: the method returns the raw
+    /// `⟨v ṽ⟩₀`, not the Wall/Dye additive invariant (see the module docs for why
+    /// no such reduction exists). No claim here that these values classify
+    /// anything — only that this is what the code returns today.
+    #[test]
+    fn char2_spinor_norm_and_classify_versor_pin_current_behavior() {
+        // A lone reflection generator: N(e0) = q0, Dickson = 1 (odd).
+        let alg1 = CliffordAlgebra::new(1, Metric::diagonal(vec![Nimber(1)]));
+        let e0 = alg1.e(0);
+        assert_eq!(alg1.spinor_norm(&e0), Some(Nimber(1)));
+        let c1 = alg1.classify_versor(&e0).unwrap();
+        assert_eq!(c1.dickson, 1);
+        assert_eq!(c1.spinor_norm, Nimber(1));
+
+        // A rotor e0*e1 on a nonorthogonal char-2 metric ({e0,e1} = 1): even
+        // Dickson parity, raw norm N(rotor) = 1 (computed from the same
+        // v * reverse(v) gate `pure_scalar_norm` shares with `versor_inverse`).
+        let mut b = std::collections::BTreeMap::new();
+        b.insert((0usize, 1usize), Nimber(1));
+        let alg2 = CliffordAlgebra::new(2, Metric::new(vec![Nimber(1), Nimber(1)], b));
+        let rotor = alg2.mul(&alg2.e(0), &alg2.e(1));
+        assert_eq!(alg2.spinor_norm(&rotor), Some(Nimber(1)));
+        let c2 = alg2.classify_versor(&rotor).unwrap();
+        assert_eq!(c2.dickson, 0);
+        assert_eq!(c2.spinor_norm, Nimber(1));
     }
 }

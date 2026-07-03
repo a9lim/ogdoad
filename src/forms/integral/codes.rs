@@ -177,31 +177,26 @@ fn rows_from_strings(rows: &[&str]) -> Vec<Vec<u8>> {
         .collect()
 }
 
-fn binomial(n: usize, k: usize) -> i128 {
-    if k > n {
-        return 0;
-    }
-    let k = k.min(n - k);
-    let mut out = 1i128;
-    for i in 1..=k {
-        out = out
-            .checked_mul((n - k + i) as i128)
-            .expect("binomial coefficient exceeds i128")
-            / i as i128;
-    }
-    out
-}
-
-fn binomial_usize_checked(n: usize, k: usize) -> Option<usize> {
+/// `binomial(n, k)`, `None` on `i128` overflow. The crate's one binomial-coefficient
+/// recurrence; [`binomial`] and [`binomial_usize_checked`] are thin wrappers over it.
+fn binomial_checked(n: usize, k: usize) -> Option<i128> {
     if k > n {
         return Some(0);
     }
     let k = k.min(n - k);
-    let mut out = 1usize;
+    let mut out = 1i128;
     for i in 1..=k {
-        out = out.checked_mul(n - k + i)? / i;
+        out = out.checked_mul((n - k + i) as i128)? / i as i128;
     }
     Some(out)
+}
+
+fn binomial(n: usize, k: usize) -> i128 {
+    binomial_checked(n, k).expect("binomial coefficient exceeds i128")
+}
+
+fn binomial_usize_checked(n: usize, k: usize) -> Option<usize> {
+    usize::try_from(binomial_checked(n, k)?).ok()
 }
 
 fn convolve_i128(a: &[i128], b: &[i128], terms: usize) -> Vec<i128> {
@@ -598,18 +593,6 @@ fn dot_mod_p<const P: u128>(a: &[u128], b: &[u128]) -> u128 {
 
 fn row_weight_p(row: &[u128]) -> usize {
     row.iter().filter(|&&x| x != 0).count()
-}
-
-fn binomial_checked(n: usize, k: usize) -> Option<i128> {
-    if k > n {
-        return Some(0);
-    }
-    let k = k.min(n - k);
-    let mut out = 1i128;
-    for i in 1..=k {
-        out = out.checked_mul((n - k + i) as i128)? / i as i128;
-    }
-    Some(out)
 }
 
 fn qary_krawtchouk(q: i128, n: usize, i: usize, j: usize) -> Option<i128> {

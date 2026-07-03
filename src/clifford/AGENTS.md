@@ -18,41 +18,37 @@ divided-power exponents, spinor/Dickson parities, and Frobenius subfield data.
 
 `engine.rs` is a thin hub (+ the engine's integration test suite: algebra
 construction, the GA ops, Cayley, even subalgebra, exercised over the Ordinal/Surreal
-backends). The associative-algebra core is split by concept under `engine/`:
+backends). The associative-algebra core is split by concept under `engine/`; every
+file there now carries its own `//!` module doc — read those for the full
+breakdown. The load-bearing facts worth knowing before opening a file:
 
-- **`basis.rs`** — `bits` / `grade` / `MAX_BASIS_DIM` / `wedge_sign` / `grade_k_masks`
-  (the one grade-k blade-mask enumerator, shared by `blade.rs` and `outermorphism.rs`).
-- **`metric.rs`** — `Metric {q, b, a}`, constructors, `direct_sum`, `q_val`/
-  `has_upper`, `map` (coefficient base-change `Metric<S>→Metric<T>`, e.g. lifting an
-  `F_2` trace form into `Metric<Nimber>` for the Arf classifier, or consuming
-  `IntegralForm::clifford_metric*` from the integral-lattice bridge). **The metric
-  carries `q` and `b` independently — see the rules.**
-- **`product.rs`** — `geom_product_blades` (the general-bilinear Chevalley product)
-  plus the `cfg(test)` `reduce_word` oracle it is cross-validated against.
-- **`algebra.rs`** — `CliffordAlgebra<S>`: blade arithmetic, grade projection,
-  wedge/reverse/graded_tensor/embeddings. `dim()` is a method delegating to
-  `metric.dim()` (no stored field). `embed_second(v, left)` takes a left-algebra
-  reference (not a bare `usize`) to derive its shift. In characteristic not 2,
-  `reverse` on general-bilinear (`a ≠ 0`) metrics is transported through the
-  antisymmetric gauge to the matching ordinary `(q,b)` algebra; characteristic 2
-  still panics on nonzero `a`.
-- **`multivector.rs`** — `Multivector<S>`: term store, zero/display helpers.
-  `terms` field is `pub(crate)`; use the `terms()` accessor for external reads.
-  `impl fmt::Display` renders with `{}` — same as `display()` — in canonical
-  ogham (Display v2, `docs/ogham/ogham.md` §9): wedge blades `e0∧e1`, coefficient
-  attachment `coeff⋅label` (parens iff non-atomic, via `scalar::poly::attach_coeff`),
-  `1`/`-1` elision, the leading-`-` ` - ` join rule, and the zero rule (empty MV →
-  `S::zero()`'s display, `*0` in nim-worlds). Signs still flow through
-  `S::one().neg()`, never a literal.
-- **`inverse.rs`** — GENERAL `multivector_inverse` via the shared `linalg::field`
-  solver (used when `1+B` is not a versor, e.g. in the Cayley transform).
-- **`terms.rs`** — term-map helpers: `add_term` (canonical insert-and-remove-if-zero),
-  `wedge_terms` (metric-free exterior product of two term maps), `scale`, `merge`.
+- **`metric.rs`** (`Metric {q, b, a}`) — **carries `q` and `b` independently, see
+  the hard rules.** `map` does coefficient base-change `Metric<S>→Metric<T>` (e.g.
+  lifting an `F_2` trace form into `Metric<Nimber>` for the Arf classifier, or
+  consuming `IntegralForm::clifford_metric*` from the integral-lattice bridge).
+- **`algebra.rs`** (`CliffordAlgebra<S>`) — `dim()` delegates to `metric.dim()`
+  (no stored field). `embed_second(v, left)` takes a left-algebra reference (not
+  a bare `usize`) to derive its shift. `reverse` on general-bilinear (`a ≠ 0`)
+  metrics is antisymmetric-gauge-transported in characteristic ≠ 2; characteristic
+  2 still panics on nonzero `a`.
+- **`multivector.rs`** (`Multivector<S>`) — `terms` field is `pub(crate)`; use the
+  `terms()` accessor for external reads. `impl fmt::Display` is the canonical
+  ogham renderer (Display v2, `docs/ogham/ogham.md` §9).
+- **`basis.rs`** — `grade_k_masks` is the one grade-k blade-mask enumerator,
+  shared by `blade.rs` and `outermorphism.rs`.
+- **`terms.rs`** — `add_term`/`merge` are `pub(crate)` (shared beyond this engine,
+  e.g. `hopf::coproduct` reuses `add_term` instead of hand-rolling the
+  insert-and-drop-zero pattern); `scale`/`wedge_terms` stay `pub(super)`.
+- **`product.rs`**, **`inverse.rs`** — see their module docs; nothing here they
+  don't already say.
 
 ## The GA layer
 
-- **`versor.rs`** — the layer on top of the associative core: `versor_inverse`,
-  `sandwich`, `twisted_sandwich` (Pin action), `reflect`, left/right_contract,
+- **`versor.rs`** — the layer on top of the associative core: `versor_inverse`
+  (built on the private `pure_scalar_norm` gate — `Some(v ṽ)` iff it's a pure
+  invertible scalar — also reused by `spinor_norm.rs::spinor_norm`, so the two no
+  longer carry duplicate copies of that check), `sandwich`, `twisted_sandwich`
+  (Pin action), `reflect`, left/right_contract,
   dual/undual, grade_involution, norm2, even_part / even_subalgebra. Plus the
   product/involution suite: `clifford_conjugate`, `scalar_product ⟨ab⟩₀`,
   commutator/anticommutator (½-free, char-faithful), the regressive meet `a∨b`. Plus
@@ -68,7 +64,10 @@ backends). The associative-algebra core is split by concept under `engine/`:
   (`exterior_power_trace`, `trace`, `char_poly`). Char-faithful (the char-2
   determinant/permanent too). The lift enumerates each grade's blade masks through the
   shared `grade_k_masks` enumerator (the one grade-k blade-mask source, shared with
-  `basis.rs`). `LinearMap`'s dimension is the `n()` accessor (a method, not a field).
+  `basis.rs`). `LinearMap`'s dimension and matrix data are the `n()`/`cols()`
+  accessors (methods, not fields); `from_columns` is the sole constructor — even
+  `identity`/`compose`/`inverse_outermorphism` route through it, so the squareness
+  check is never bypassable.
 - **`frobenius.rs`** — the scalar-Galois ↔ Clifford bridge: turns a
   `CoordinateCyclicGaloisExtension` (a coordinate-aware narrowing of
   `CyclicGaloisExtension`, defined here, that adds `coordinates()`) into
@@ -88,8 +87,9 @@ backends). The associative-algebra core is split by concept under `engine/`:
   encapsulated like the engine: read `DividedPowerAlgebra` dimension through the
   `.dim()` accessor and `DpVector`'s terms through `.terms()`, not bare fields.
 - **`cga.rs`** — conformal (Cl(n+1,1) null basis: `up`/`down`/`inner`/`sphere`/
-  `plane`/`point_pair`/`outer_join`, with the `no`/`ninf` generator indices and `n_o()`/
-  `n_inf()` null-basis accessors) + projective GA (`pga(n)` = `Cl(n,0,1)`, with the
+  `plane`/`point_pair`/`outer_join`, with `n_o()`/`n_inf()` null-basis accessors —
+  the underlying `no`/`ninf` generator indices are private; `alg()`/`n()` expose
+  the underlying algebra/dimension) + projective GA (`pga(n)` = `Cl(n,0,1)`, with the
   terminating `exp_nilpotent` motor exp). Char-0 (needs ½); surreal ∞/ε radii are
   exact. `Cga::outer_join` is the CGA IPNS wedge join (infallible) — NOT to be
   confused with `CliffordAlgebra::meet`, the fallible regressive product (see
@@ -106,16 +106,25 @@ backends). The associative-algebra core is split by concept under `engine/`:
   general-bilinear `a ≠ 0` and singular `b`, so any nonsingular char-2 metric,
   Nimber the main one) a separate no-half path takes blade idempotents like
   `e_i e_j` when they shrink the ideal and otherwise keeps the complete
-  left-regular action. `SpinorRep` carries
-  `idempotent`/`basis`/`gen_matrices`/`is_left_regular` plus the two diagonalization
-  fields. `spinor_rep`/`SpinorRep` build the explicit matrix up to
-  `MAX_EXPLICIT_SPINOR_DIM`; `lazy_spinor_rep`/`LazySpinorRep` give the sparse,
-  unbounded-dimension left-regular action beyond that cap. Clifford relations hold.
-- **`spinor_norm.rs`** — the spinor norm `N : O(Q)→F*/F*²` (= norm2 mod squares) +
-  the generic `versor_grade_parity` (Dickson; `forms::dickson_of_versor` delegates
-  here) + `classify_versor` → `VersorInvariants<S>` (the spinor-norm + Dickson-parity
-  record; Python exposes the Python class under the legacy name `VersorClass`).
-  Char-2 codomain is `F/℘(F)`.
+  left-regular action. `SpinorRep` carries private fields behind
+  `idempotent()`/`basis()`/`gen_matrices()`/`is_left_regular()` accessors plus the
+  paired `diagonalized_metric()`/`orthogonal_basis_in_original()` (kept `Some`
+  together by construction via a private `with_diagonalization` helper, never set
+  independently), and `into_parts()` for callers that need to consume it (e.g. the
+  Python bindings). `spinor_rep`/`SpinorRep` build the explicit matrix up to
+  `MAX_EXPLICIT_SPINOR_DIM`; `lazy_spinor_rep`/`LazySpinorRep` (its `algebra` field
+  likewise private, behind `algebra()`) give the sparse, unbounded-dimension
+  left-regular action beyond that cap. Clifford relations hold.
+- **`spinor_norm.rs`** — the RAW spinor norm `⟨v ṽ⟩₀ = ∏q(vᵢ)` (`pure_scalar_norm`,
+  shared with `versor.rs::versor_inverse` as the same invertibility gate) + the
+  generic `versor_grade_parity` (Dickson; `forms::dickson_of_versor` delegates
+  here) + `classify_versor` → `VersorInvariants<S>` (the raw-norm + Dickson-parity
+  record; Python exposes the Python class under the legacy name `VersorClass`). In
+  char ≠ 2 the raw norm mod squares IS the classifying spinor-norm invariant
+  (`F*/F*²`); in char 2 it is NOT — `F/℘(F)` is an additive quotient, the raw norm
+  is a product, and there is no valid reduction from one to the other (see the
+  module's own doc for the counterexample). The honest char-2 invariant (Wall/Dye,
+  `Σ Q(vᵢ) mod ℘` over a witnessed vector factorization) is not implemented here.
 
 ## Operator vs context-method policy
 

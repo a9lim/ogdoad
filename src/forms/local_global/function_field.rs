@@ -41,6 +41,23 @@ use crate::scalar::{Poly, Rational, RationalFunction, Scalar};
 /// not depend on the residue characteristic. The type is generic over `S: Scalar`;
 /// the residue-arithmetic bounds (`FiniteOddField` / `FiniteChar2Field`) stay on the
 /// functions and impls that read the residue field, not on the place itself.
+///
+/// **Precondition on `Finite`:** the payload must be a monic irreducible polynomial
+/// over `F_q` — that is what makes `κ = F_q[t]/(π)` a field, so that `q^{deg π}` is a
+/// genuine field order (the assumption every `try_kappa_order`-rooted symbol function
+/// below makes). The type does not check this at construction: a full irreducibility
+/// test costs a factorization, which every place-*producing* function here
+/// ([`try_relevant_places_ff`], [`monic_irreducible_factors`]) already pays once, so
+/// paying it again on every symbol call would be a needless per-call cost on the hot
+/// path. Passing a reducible or non-monic `Finite` payload to a symbol/valuation
+/// function (`try_kappa_order`, [`try_valuation_at_ff`], `try_residue_unit_at`,
+/// `try_chi_kappa`, [`try_hilbert_symbol_ff`], …) is silently accepted and produces
+/// a **meaningless**, not erroneous, result; `try_kappa_order` and
+/// [`try_valuation_at_ff`] — the two base entry points every other function in this
+/// module routes through — `debug_assert!` the precondition, so violations panic in
+/// debug/test builds and are free in release. The one uncontrolled input boundary,
+/// `py::forms::parse_ff_place`, checks irreducibility unconditionally instead, since
+/// it cannot rely on the caller having produced the place via factorization.
 #[derive(Debug, Clone, PartialEq)]
 pub enum FunctionFieldPlace<S: Scalar> {
     /// The degree place `∞` (uniformizer `1/t`, residue field `F_q`).
@@ -85,6 +102,13 @@ fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (i128, Poly<S>) {
 // ───────────────────────── per-place local data ─────────────────────────
 
 /// The residue field order `|κ| = q^{deg π}` (or `q` at the degree place).
+///
+/// One of the two base entry points that `debug_assert!` the [`FunctionFieldPlace::Finite`]
+/// irreducibility precondition (release builds skip the check; the assumption is
+/// still silently made, just unverified). The check runs only once a genuine `Some`
+/// order is about to be returned — not before the `checked_pow` overflow guard —
+/// since an overflow returns `None` regardless of whether `pi` is irreducible, and
+/// that `None` is not a "meaningless success" the precondition needs to catch.
 pub(crate) fn try_kappa_order<S: FiniteOddField>(place: &FunctionFieldPlace<S>) -> Option<u128> {
     let q = S::field_order();
     match place {
@@ -94,13 +118,23 @@ pub(crate) fn try_kappa_order<S: FiniteOddField>(place: &FunctionFieldPlace<S>) 
                 .expect("an irreducible has degree ≥ 1")
                 .try_into()
                 .ok()?;
-            q.checked_pow(deg)
+            let order = q.checked_pow(deg)?;
+            debug_assert!(
+                monic_irreducible_factors(pi) == vec![pi.clone()],
+                "FunctionFieldPlace::Finite must carry a monic irreducible polynomial \
+                 (q^deg(π) is a field order only when π is prime in F_q[t])"
+            );
+            Some(order)
         }
         FunctionFieldPlace::Infinite => Some(q),
     }
 }
 
 /// The valuation `v_place(a)` of a **nonzero** `a ∈ F_q(t)`.
+///
+/// The other base entry point (with `try_kappa_order`) that `debug_assert!`s the
+/// [`FunctionFieldPlace::Finite`] irreducibility precondition: the `π`-adic
+/// multiplicity below is only a discrete valuation when `π` is prime in `F_q[t]`.
 pub fn try_valuation_at_ff<S: FiniteOddField>(
     a: &RationalFunction<S>,
     place: &FunctionFieldPlace<S>,
@@ -110,6 +144,11 @@ pub fn try_valuation_at_ff<S: FiniteOddField>(
     }
     Some(match place {
         FunctionFieldPlace::Finite(pi) => {
+            debug_assert!(
+                monic_irreducible_factors(pi) == vec![pi.clone()],
+                "FunctionFieldPlace::Finite must carry a monic irreducible polynomial \
+                 (the π-adic multiplicity is a discrete valuation only when π is prime in F_q[t])"
+            );
             let (mn, _) = strip_factor(a.num().clone(), pi);
             let (md, _) = strip_factor(a.den().clone(), pi);
             mn - md
@@ -692,6 +731,16 @@ mod tests {
         // a repeated factor is reported once (square-free support).
         let sq = monic_irreducible_factors(&poly(&[1, 2, 1])); // (x+1)²
         assert_eq!(sq, vec![poly(&[1, 1])]);
+    }
+
+    #[test]
+    #[should_panic(expected = "monic irreducible polynomial")]
+    fn finite_place_precondition_rejects_reducible_polynomial() {
+        // x² − 1 = (x−1)(x+1) over F_5 is reducible: the FunctionFieldPlace::Finite
+        // precondition is violated, and try_kappa_order's debug_assert catches it
+        // (this test only exercises the debug/test build path, by design).
+        let reducible = FunctionFieldPlace::<Fp<5>>::Finite(poly(&[4, 0, 1]));
+        let _ = try_kappa_order(&reducible);
     }
 
     #[test]

@@ -78,12 +78,17 @@ impl AdelicIsotropy {
 /// Rank ≤ 2 is excluded: there isotropy is a *global square* condition (`−ab ∈
 /// (ℚ^*)²`), which is not detected by checking only the finitely many relevant
 /// primes — use [`try_is_isotropic_q`](crate::forms::try_is_isotropic_q) directly.
+///
+/// Returns `None` in two cases, matching the rest of this file's convention that
+/// `None` means "out of domain / could not be computed," never "computed and
+/// anisotropic" (that verdict is `Some(_)` with `is_global() == false`): rank `< 3`
+/// (out of domain, see above — not a claim about isotropy), or a relevant prime's
+/// local computation itself returning `None` (bounded `i128` square-class
+/// overflow in `square_class` / [`try_is_isotropic_at_p`](crate::forms::padic)).
 pub fn isotropy_over_adeles(entries: &[i128]) -> Option<AdelicIsotropy> {
-    assert!(
-        entries.len() >= 3,
-        "adelic isotropy decomposition needs rank ≥ 3 (rank ≤ 2 is a global-square \
-         condition; use try_is_isotropic_q)"
-    );
+    if entries.len() < 3 {
+        return None;
+    }
     // Real place: a diagonal form is isotropic over ℝ iff it has a zero entry or is
     // indefinite (entries of both signs).
     let has_zero = entries.contains(&0);
@@ -171,6 +176,16 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn rank_below_three_is_out_of_domain_not_a_verdict() {
+        // None here means "out of domain" (a rank ≤ 2 global-square condition this
+        // decomposition doesn't detect), not "computed and anisotropic" — that verdict
+        // would be Some(_) with is_global() == false. No panic either way.
+        assert_eq!(isotropy_over_adeles(&[]), None);
+        assert_eq!(isotropy_over_adeles(&[1]), None);
+        assert_eq!(isotropy_over_adeles(&[1, -1]), None);
     }
 
     #[test]

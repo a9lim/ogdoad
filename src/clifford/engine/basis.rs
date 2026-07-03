@@ -1,3 +1,12 @@
+//! Blade-mask primitives shared by the whole engine and by the
+//! structured-algebra layer above it: `bits`/`grade` decode a `u128` blade
+//! mask, `MAX_BASIS_DIM` caps the basis at 128 generators, `grade_k_masks` is
+//! the one grade-`k` blade-mask enumerator (Gosper's hack, ascending order)
+//! shared by `blade.rs` and `outermorphism.rs`, and `wedge_sign` reads off the
+//! antisymmetric reordering sign of two disjoint ascending blades through the
+//! scalar's own `neg()` — never a literal `-1`, so char-2 sign-vanishing falls
+//! out for free.
+
 use crate::scalar::Scalar;
 
 /// Blade masks are `u128`, so the basis has at most 128 named generators.

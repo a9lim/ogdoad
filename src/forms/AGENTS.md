@@ -48,7 +48,11 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   `FiniteFieldInvariants`, `NikulinExistenceInvariants`, `SymplecticInvariants`);
   `…Record` is a static catalogue record carrying no group law (`NiemeierRecord`,
   `KneserMassRecord`) — distinct from `…Class`, which is a group element with a
-  law; `…Signature` stays for the literal mathematical signature. The `…Report`
+  law; `…Signature` stays for the literal mathematical signature; `…Isotropy` is a
+  blessed pattern for a per-place isotropy breakdown (`AdelicIsotropy`,
+  `FFAdelicIsotropy`) — the local-global sibling of `…Invariants`, kept as its own
+  suffix because these types carry a `local` place-by-place map/vec plus a derived
+  `is_global()` verdict rather than a single invariant value. The `…Report`
   suffix is retired: every report record now ends `…Invariants` (e.g.
   `OddMilgramInvariants`, `WeylVersorInvariants`, `KneserMassInvariants`,
   `CliffordBarnesWall16Invariants`). Façade traits are verb-first (`ClassifyForm`,

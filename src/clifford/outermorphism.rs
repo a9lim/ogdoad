@@ -19,22 +19,30 @@ use crate::clifford::{bits, CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
 
-/// A linear map `V → V` on grade 1, stored column-major: `cols[i]` is the image
-/// `f(e_i)` as a length-`n` coefficient vector over `e_0..e_{n-1}` (so
-/// `cols[i][j]` is the coefficient of `e_j` in `f(e_i)`, i.e. the matrix entry
-/// `M[j][i]`).
+/// A linear map `V → V` on grade 1, stored column-major: `cols()[i]` is the
+/// image `f(e_i)` as a length-`n` coefficient vector over `e_0..e_{n-1}` (so
+/// `cols()[i][j]` is the coefficient of `e_j` in `f(e_i)`, i.e. the matrix
+/// entry `M[j][i]`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinearMap<S: Scalar> {
-    pub cols: Vec<Vec<S>>,
+    cols: Vec<Vec<S>>,
 }
 
 impl<S: Scalar> LinearMap<S> {
-    /// The dimension `n` of this linear map — always equal to `cols.len()`.
+    /// The dimension `n` of this linear map — always equal to `cols().len()`.
     pub fn n(&self) -> usize {
         self.cols.len()
     }
 
-    /// Build from columns `cols[i] = f(e_i)`; panics if not square `n×n`.
+    /// Read-only access to the column-major matrix data (`cols()[i]` = `f(e_i)`).
+    pub fn cols(&self) -> &[Vec<S>] {
+        &self.cols
+    }
+
+    /// Build from columns `cols[i] = f(e_i)`; panics if not square `n×n`. The
+    /// sole constructor — every internal builder (`identity`, `compose`,
+    /// `inverse_outermorphism`) routes through this too, so the squareness
+    /// check is never bypassable even from within this module.
     pub fn from_columns(cols: Vec<Vec<S>>) -> Self {
         let n = cols.len();
         assert!(
@@ -53,7 +61,7 @@ impl<S: Scalar> LinearMap<S> {
                     .collect()
             })
             .collect();
-        LinearMap { cols }
+        LinearMap::from_columns(cols)
     }
 
     /// `f(e_i)` as a grade-1 multivector in `alg`.
@@ -86,7 +94,7 @@ impl<S: Scalar> LinearMap<S> {
                     .collect()
             })
             .collect();
-        LinearMap { cols }
+        LinearMap::from_columns(cols)
     }
 }
 
@@ -182,14 +190,14 @@ pub fn inverse_outermorphism<S: Scalar>(f: &LinearMap<S>) -> Option<LinearMap<S>
     let n = f.n();
     // Row-major working matrix `m[r][c] = M[r][c] = cols[c][r]`.
     let m: Vec<Vec<S>> = (0..n)
-        .map(|r| (0..n).map(|c| f.cols[c][r].clone()).collect())
+        .map(|r| (0..n).map(|c| f.cols()[c][r].clone()).collect())
         .collect();
     let inv = field::inverse_matrix(m)?;
     // inv is now M⁻¹ in row-major form; convert back to columns.
     let cols = (0..n)
         .map(|i| (0..n).map(|j| inv[j][i].clone()).collect())
         .collect();
-    Some(LinearMap { cols })
+    Some(LinearMap::from_columns(cols))
 }
 
 #[cfg(test)]

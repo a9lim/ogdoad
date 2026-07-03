@@ -33,6 +33,7 @@
 
 use super::fp::{add_mod, mul_mod};
 use super::FiniteField;
+use crate::linalg::integer::prime_factors;
 use crate::scalar::{add_mod_u128, is_prime_u128, mod_inverse_u128, sub_mod_u128, Fp, Scalar};
 use std::collections::BTreeMap;
 use std::fmt;
@@ -499,27 +500,8 @@ impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
 
     fn group_order_factors() -> Vec<u128> {
         Self::assert_supported_params();
-        distinct_primes(Self::field_order() - 1)
+        prime_factors(Self::field_order() - 1)
     }
-}
-
-/// The distinct prime factors of `n` by trial division (small `n = p^N − 1`).
-fn distinct_primes(mut n: u128) -> Vec<u128> {
-    let mut out = Vec::new();
-    let mut d = 2u128;
-    while d <= n / d {
-        if n.is_multiple_of(d) {
-            out.push(d);
-            while n.is_multiple_of(d) {
-                n /= d;
-            }
-        }
-        d += 1;
-    }
-    if n > 1 {
-        out.push(n);
-    }
-    out
 }
 
 impl<const P: u128, const N: usize> fmt::Display for Fpn<P, N> {
