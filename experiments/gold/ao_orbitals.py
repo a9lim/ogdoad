@@ -11,7 +11,6 @@ Lemma 2 (Inn(E)/conjugation vacuity): conjugation orbits on E x E leave the
 full V x V data free; every pullback of every V-rule is conjugation-equivariant,
 including the evaluator.  Predicted orbit count on E x E for m=4: 304.
 """
-import itertools
 
 # coordinate quadratic forms on F_2^4 (no nim arithmetic -- independent route)
 def Q_arf0(x):  # x1x2 + x3x4
@@ -88,7 +87,6 @@ for name, Qf in (("Arf0", Q_arf0), ("Arf1", Q_arf1)):
           f"{len(fibers)}; partitions match: {match}")
     # evaluator rule invariance: R = {(u,w): (Q[u],Q[w]) == (1,0)}
     R = {(u, w) for u in range(16) for w in range(16) if (Q[u], Q[w]) == (1, 0)}
-    inv = all((img[u] ^ 0, ) for _ in ()) or True
     ok = True
     for M, c in AO:
         img = [mat_apply(M, x) ^ c for x in range(16)]

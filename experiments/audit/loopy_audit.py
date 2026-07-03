@@ -15,9 +15,6 @@ Moves return either a replacement letter or None (component removed -> 0).
   1 = {0 |}                : L -> 0,    R: none
   M = -1 = {| 0}           : L: none,   R -> 0
 """
-from functools import lru_cache
-import itertools
-
 LMOVES = {'O': [None], 'U': ['U'], 'S': [None], 'N': ['N'], 'F': [],
           'P': [None], 'D': ['S'], '1': [None], 'M': []}
 RMOVES = {'O': ['O'], 'U': [None], 'S': [None], 'N': [], 'F': ['F'],

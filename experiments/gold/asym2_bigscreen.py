@@ -1,5 +1,4 @@
 import sys, time, random
-sys.path.insert(0, "/tmp")
 from asym2_fifo import abstract_value
 sys.setrecursionlimit(2000000)
 rng = random.Random(31337)

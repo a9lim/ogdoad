@@ -1,5 +1,7 @@
+"""Pure-Python nim arithmetic / Arf invariant stack: a deliberate independent
+port of the Rust engine, kept separate as a cross-check oracle (declared
+independent-oracle note, per docs/PY.md §5)."""
 import itertools, random, functools
-random.seed(7)
 
 # ---------------- nim arithmetic ----------------
 @functools.lru_cache(maxsize=None)
@@ -118,79 +120,82 @@ def expected_zeros(qsize, npairs, arf):
     corr = (qsize - 1) * qsize ** (npairs - 1)
     return base + corr if arf == 0 else base - corr
 
-# ---- check 1: exhaustive F2 nonsingular forms n=2 and n=4 (subset of polar configs)
-print("== F2 exhaustive checks ==")
-fails = 0
-for n, bconfigs in [(2, [ {(0,1):1} ]),
-                    (4, [ {(0,1):1,(2,3):1}, {(0,1):1,(1,2):1,(2,3):1},
-                          {(0,1):1,(0,2):1,(0,3):1,(1,2):1,(1,3):1,(2,3):1},
-                          {(0,2):1,(1,3):1}, {(0,3):1,(1,2):1,(0,1):1} ])]:
-    for bp in bconfigs:
-        for qv in itertools.product([0,1], repeat=n):
-            r = arf_nimber(list(qv), bp)
-            if r['radical_dim'] != 0:   # need nonsingular for the count formula
-                continue
-            zc = zero_count(list(qv), bp, 1)
-            exp = expected_zeros(2, r['rank']//2, r['arf'])
-            if zc != exp:
-                fails += 1
-                print("FAIL F2", qv, bp, r, "zeros", zc, "expected", exp)
-print("F2 nonsingular check fails:", fails)
+if __name__ == "__main__":
+    random.seed(7)
 
-# ---- check 2: random F4 forms, 2 and 4 vars
-print("== F4 random checks ==")
-fails = 0
-for trial in range(200):
-    n = random.choice([2, 4])
-    q = [random.randrange(4) for _ in range(n)]
-    bp = {}
-    for i in range(n):
-        for j in range(i+1, n):
-            v = random.randrange(4)
-            if v: bp[(i,j)] = v
-    # force at least the field to be F4 (else field-of-def shrinks; that's fine too)
-    r = arf_nimber(q, bp)
-    if r['radical_dim'] != 0: continue
-    m = r['m']
-    zc = zero_count(q, bp, m)
-    exp = expected_zeros(1 << m, r['rank']//2, r['arf'])
-    if zc != exp:
-        fails += 1
-        print("FAIL F4", q, bp, r, "zeros", zc, "expected", exp)
-print("F4 random check fails:", fails)
+    # ---- check 1: exhaustive F2 nonsingular forms n=2 and n=4 (subset of polar configs)
+    print("== F2 exhaustive checks ==")
+    fails = 0
+    for n, bconfigs in [(2, [ {(0,1):1} ]),
+                        (4, [ {(0,1):1,(2,3):1}, {(0,1):1,(1,2):1,(2,3):1},
+                              {(0,1):1,(0,2):1,(0,3):1,(1,2):1,(1,3):1,(2,3):1},
+                              {(0,2):1,(1,3):1}, {(0,3):1,(1,2):1,(0,1):1} ])]:
+        for bp in bconfigs:
+            for qv in itertools.product([0,1], repeat=n):
+                r = arf_nimber(list(qv), bp)
+                if r['radical_dim'] != 0:   # need nonsingular for the count formula
+                    continue
+                zc = zero_count(list(qv), bp, 1)
+                exp = expected_zeros(2, r['rank']//2, r['arf'])
+                if zc != exp:
+                    fails += 1
+                    print("FAIL F2", qv, bp, r, "zeros", zc, "expected", exp)
+    print("F2 nonsingular check fails:", fails)
 
-# ---- check 3: F16 planes (2 vars)
-print("== F16 random planes ==")
-fails = 0
-for trial in range(60):
-    q = [random.randrange(16) for _ in range(2)]
-    bp = {(0,1): random.randrange(1,16)}
-    r = arf_nimber(q, bp)
-    if r['radical_dim'] != 0: continue
-    m = r['m']
-    zc = zero_count(q, bp, m)
-    exp = expected_zeros(1 << m, 1, r['arf'])
-    if zc != exp:
-        fails += 1
-        print("FAIL F16", q, bp, r, "zeros", zc, "expected", exp)
-print("F16 plane check fails:", fails)
+    # ---- check 2: random F4 forms, 2 and 4 vars
+    print("== F4 random checks ==")
+    fails = 0
+    for trial in range(200):
+        n = random.choice([2, 4])
+        q = [random.randrange(4) for _ in range(n)]
+        bp = {}
+        for i in range(n):
+            for j in range(i+1, n):
+                v = random.randrange(4)
+                if v: bp[(i,j)] = v
+        # force at least the field to be F4 (else field-of-def shrinks; that's fine too)
+        r = arf_nimber(q, bp)
+        if r['radical_dim'] != 0: continue
+        m = r['m']
+        zc = zero_count(q, bp, m)
+        exp = expected_zeros(1 << m, r['rank']//2, r['arf'])
+        if zc != exp:
+            fails += 1
+            print("FAIL F4", q, bp, r, "zeros", zc, "expected", exp)
+    print("F4 random check fails:", fails)
 
-# ---- check 4: the documented F4 test values
-r1 = arf_nimber([2,3], {(0,1):1}); r2 = arf_nimber([2,2], {(0,1):1})
-print("F4 [2,3] arf:", r1['arf'], " (test says 0)   F4 [2,2] arf:", r2['arf'], " (test says 1)")
+    # ---- check 3: F16 planes (2 vars)
+    print("== F16 random planes ==")
+    fails = 0
+    for trial in range(60):
+        q = [random.randrange(16) for _ in range(2)]
+        bp = {(0,1): random.randrange(1,16)}
+        r = arf_nimber(q, bp)
+        if r['radical_dim'] != 0: continue
+        m = r['m']
+        zc = zero_count(q, bp, m)
+        exp = expected_zeros(1 << m, 1, r['arf'])
+        if zc != exp:
+            fails += 1
+            print("FAIL F16", q, bp, r, "zeros", zc, "expected", exp)
+    print("F16 plane check fails:", fails)
 
-# ---- check 5: cross-subfield Witt-class addition
-print("== cross-subfield Witt/BW additivity ==")
-A = ([1,1], {(0,1):1})          # F2 anisotropic plane: arf over F2
-B = ([2,2], {(0,1):1})          # F4 anisotropic plane: arf over F4
-ra = arf_nimber(*A); rb = arf_nimber(*B)
-# direct sum
-qs = A[0] + B[0]
-bp = dict(A[1]); bp[(2,3)] = B[1][(0,1)]
-rsum = arf_nimber(qs, bp)
-print("arf(A) =", ra['arf'], "(field deg", ra['m'], ")  arf(B) =", rb['arf'], "(field deg", rb['m'], ")")
-print("arf(A perp B) =", rsum['arf'], "(field deg", rsum['m'], ")   XOR law predicts", ra['arf'] ^ rb['arf'])
-# ground truth via zero count of the rank-4 form over F4
-zc = zero_count(qs, bp, 2)
-print("zero count of A perp B over F4:", zc,
-      " Arf0 ->", expected_zeros(4,2,0), " Arf1 ->", expected_zeros(4,2,1))
+    # ---- check 4: the documented F4 test values
+    r1 = arf_nimber([2,3], {(0,1):1}); r2 = arf_nimber([2,2], {(0,1):1})
+    print("F4 [2,3] arf:", r1['arf'], " (test says 0)   F4 [2,2] arf:", r2['arf'], " (test says 1)")
+
+    # ---- check 5: cross-subfield Witt-class addition
+    print("== cross-subfield Witt/BW additivity ==")
+    A = ([1,1], {(0,1):1})          # F2 anisotropic plane: arf over F2
+    B = ([2,2], {(0,1):1})          # F4 anisotropic plane: arf over F4
+    ra = arf_nimber(*A); rb = arf_nimber(*B)
+    # direct sum
+    qs = A[0] + B[0]
+    bp = dict(A[1]); bp[(2,3)] = B[1][(0,1)]
+    rsum = arf_nimber(qs, bp)
+    print("arf(A) =", ra['arf'], "(field deg", ra['m'], ")  arf(B) =", rb['arf'], "(field deg", rb['m'], ")")
+    print("arf(A perp B) =", rsum['arf'], "(field deg", rsum['m'], ")   XOR law predicts", ra['arf'] ^ rb['arf'])
+    # ground truth via zero count of the rank-4 form over F4
+    zc = zero_count(qs, bp, 2)
+    print("zero count of A perp B over F4:", zc,
+          " Arf0 ->", expected_zeros(4,2,0), " Arf1 ->", expected_zeros(4,2,1))

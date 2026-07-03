@@ -225,8 +225,8 @@ ANCHOR_ROWS = {19, 163, 1459}
 
 
 def phi_2x3k(k: int) -> int:
-    hp = 3 ** (k - 1)
-    return (1 << (2 * hp)) - (1 << hp) + 1
+    h_prev = 3 ** (k - 1)
+    return (1 << (2 * h_prev)) - (1 << h_prev) + 1
 
 
 def sieve_column_factors(k: int, t_max: int) -> list[int]:
@@ -289,7 +289,8 @@ def audit() -> None:
     print("audits OK: products exact (k<=6), every factor prime + order-verified,")
     print("  squarefree at its level, v_3(Phi)=1; cofactors composite (k=7,8);")
     print("  sieve re-derives 17497, 5419387, 6049243 (k=7) and 52489 (k=8);")
-    print(f"  PRP-only (no local deterministic proof): {[len(str(p)) for p in prp_only]}-digit primes\n")
+    digits = ", ".join(f"{len(str(p))}-digit" for p in prp_only)
+    print(f"  PRP-only (no local deterministic proof): {digits} primes\n")
 
 
 # ---------------------------------------------------------------------------

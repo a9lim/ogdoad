@@ -46,23 +46,9 @@ from math import gcd
 
 import ogdoad as pl
 
+from common import frob, nim_trace
 
 # ----------------------------------------------------------------------------- form
-
-
-def _frob(x, i):
-    for _ in range(i):
-        x = x * x
-    return x
-
-
-def _trace(y, m):
-    """Tr_1^m(y) ∈ {0,1}, y a Nimber."""
-    acc, t = y, y
-    for _ in range(m - 1):
-        t = t * t
-        acc = acc + t
-    return acc.value
 
 
 def qform(x, coeffs, m):
@@ -71,8 +57,8 @@ def qform(x, coeffs, m):
     X = pl.Nimber(x)
     acc = pl.Nimber(0)
     for i, c in coeffs.items():
-        term = pl.Nimber(c) * X * _frob(X, i)
-        acc = acc + pl.Nimber(_trace(term, m))
+        term = pl.Nimber(c) * X * frob(X, i)
+        acc = acc + pl.Nimber(nim_trace(term.value, m))
     return acc.value
 
 
@@ -96,7 +82,7 @@ def part1_components_go_bent(m):
     print("=" * 72)
     print("PART 1 — scaled Gold components Tr(λ·x^{1+2^a}): bent counts by exponent")
     print("=" * 72)
-    print(f"  in this scan, unscaled Gold (λ=1) has rank m - gcd(2a,m) < m, so it is not bent.")
+    print("  in this scan, unscaled Gold (λ=1) has rank m - gcd(2a,m) < m, so it is not bent.")
     print(f"  scanning all λ ∈ F_{{2^{m}}}* :\n")
     print(f"  {'a':>2} {'gcd(a,m)':>8} {'APN?':>5} | rank distribution over λ        bent count   (2(2^m-1)/3)")
     print("  " + "-" * 86)

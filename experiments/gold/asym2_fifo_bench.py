@@ -1,7 +1,5 @@
 """ECHO-FIFO real Gold-form bench via decomposition, validated directly on m=4."""
 import sys, time
-from itertools import permutations
-sys.path.insert(0, "/tmp")
 from asym2_probe import make_form
 from asym2_fifo import abstract_value, canon
 
@@ -88,53 +86,54 @@ def direct_fifo_value2(x, m, qd, B, t):
     return direct_fifo_value(x, m, qd, B, t)
 
 
-# validate decomposition against direct solver on all m=4 forms
-print("validating decomposition vs direct real-state solver on m=4 ...")
-for lam in range(1, 16):
-    Q, qd, B = make_form(4, 1, lam)
-    for t in (0, 1):
-        for x in range(16):
-            S = tuple(i for i in range(4) if (x >> i) & 1)
-            assert support_value(S, qd, B, t) == direct_fifo_value(x, 4, qd, B, t), \
-                (lam, t, x)
-print("decomposition == direct solver (all 15 forms x 2 t x 16 x): OK")
+if __name__ == "__main__":
+    # validate decomposition against direct solver on all m=4 forms
+    print("validating decomposition vs direct real-state solver on m=4 ...")
+    for lam in range(1, 16):
+        Q, qd, B = make_form(4, 1, lam)
+        for t in (0, 1):
+            for x in range(16):
+                S = tuple(i for i in range(4) if (x >> i) & 1)
+                assert support_value(S, qd, B, t) == direct_fifo_value(x, 4, qd, B, t), \
+                    (lam, t, x)
+    print("decomposition == direct solver (all 15 forms x 2 t x 16 x): OK")
 
-print()
-print("=" * 70)
-print("ECHO-FIFO m=4, a=1: exactness sweep (t=0: P1 wants 0; t=1: P1 wants 1)")
-print("=" * 70)
-hits = {}
-for lam in range(1, 16):
-    Q, qd, B = make_form(4, 1, lam)
-    row = []
-    for t in (1, 0):
-        agree = sum(1 for x in range(16)
-                    if support_value(tuple(i for i in range(4) if (x >> i) & 1),
-                                     qd, B, t) == Q[x])
-        row.append(f"t={t}:{agree}{'*' if agree == 16 else ''}")
-        if agree == 16:
-            hits.setdefault(lam, []).append(t)
-    print(f"lam={lam:2d} |Q=0|={sum(1 for v in Q if v==0):2d}  " + "  ".join(row))
-print("EXACT hits m=4:", sorted(hits.items()))
+    print()
+    print("=" * 70)
+    print("ECHO-FIFO m=4, a=1: exactness sweep (t=0: P1 wants 0; t=1: P1 wants 1)")
+    print("=" * 70)
+    hits = {}
+    for lam in range(1, 16):
+        Q, qd, B = make_form(4, 1, lam)
+        row = []
+        for t in (1, 0):
+            agree = sum(1 for x in range(16)
+                        if support_value(tuple(i for i in range(4) if (x >> i) & 1),
+                                         qd, B, t) == Q[x])
+            row.append(f"t={t}:{agree}{'*' if agree == 16 else ''}")
+            if agree == 16:
+                hits.setdefault(lam, []).append(t)
+        print(f"lam={lam:2d} |Q=0|={sum(1 for v in Q if v==0):2d}  " + "  ".join(row))
+    print("EXACT hits m=4:", sorted(hits.items()))
 
-print()
-print("=" * 70)
-print("ECHO-FIFO m=8 forms")
-print("=" * 70)
-for (m, a, lam) in [(8, 1, 1), (8, 2, 1), (8, 1, 2), (8, 1, 3)]:
-    Q, qd, B = make_form(m, a, lam)
-    for t in (1, 0):
-        t0 = time.time()
-        misses = []
-        for x in range(256):
-            S = tuple(i for i in range(m) if (x >> i) & 1)
-            v = support_value(S, qd, B, t)
-            if v != Q[x]:
-                misses.append(x)
-        agree = 256 - len(misses)
-        mtxt = ""
-        if 0 < len(misses) <= 10:
-            mtxt = " misses=" + ",".join(
-                f"{x}(pc{bin(x).count('1')})" for x in misses)
-        print(f"(m={m},a={a},lam={lam}) t={t}: {agree}/256"
-              f"{' EXACT' if agree == 256 else ''}{mtxt} [{time.time()-t0:.0f}s]")
+    print()
+    print("=" * 70)
+    print("ECHO-FIFO m=8 forms")
+    print("=" * 70)
+    for (m, a, lam) in [(8, 1, 1), (8, 2, 1), (8, 1, 2), (8, 1, 3)]:
+        Q, qd, B = make_form(m, a, lam)
+        for t in (1, 0):
+            t0 = time.time()
+            misses = []
+            for x in range(256):
+                S = tuple(i for i in range(m) if (x >> i) & 1)
+                v = support_value(S, qd, B, t)
+                if v != Q[x]:
+                    misses.append(x)
+            agree = 256 - len(misses)
+            mtxt = ""
+            if 0 < len(misses) <= 10:
+                mtxt = " misses=" + ",".join(
+                    f"{x}(pc{bin(x).count('1')})" for x in misses)
+            print(f"(m={m},a={a},lam={lam}) t={t}: {agree}/256"
+                  f"{' EXACT' if agree == 256 else ''}{mtxt} [{time.time()-t0:.0f}s]")

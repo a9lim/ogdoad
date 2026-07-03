@@ -25,9 +25,9 @@ def sum_game(g1, g2):
         pos[(p1,p2)] = (l, r)
     return pos
 
+# sum_game/left_survives_second are shared verbatim with loopy_check2.py.
 def left_survives_second(g, start):
     # attractor for Right to states (p, 'L') where Left has no move
-    states = [(p,t) for p in g for t in 'LR']
     A = set((p,'L') for p in g if not g[p][0])
     changed = True
     while changed:

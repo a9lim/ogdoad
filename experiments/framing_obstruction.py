@@ -39,7 +39,7 @@ from math import gcd
 
 import ogdoad as pl
 
-from common import gold
+from common import gold, polar
 
 # ----------------------------------------------------------------------------- helpers
 
@@ -47,7 +47,7 @@ from common import gold
 def gold_pairs(a, m):
     """The nonzero pairs (i<j) of the Gold polar form B on the bit basis."""
     return [(i, j) for i in range(m) for j in range(i + 1, m)
-            if (gold((1 << i) ^ (1 << j), a, m) ^ gold(1 << i, a, m) ^ gold(1 << j, a, m)) == 1]
+            if polar(1 << i, 1 << j, a, m) == 1]
 
 
 def Bform(pairs):
@@ -66,27 +66,6 @@ def arf(qd, pairs, m):
     q = [pl.Nimber(1 if qd[i] else 0) for i in range(m)]
     b = {(i, j): pl.Nimber(1) for (i, j) in pairs}
     return pl.arf_nimber(pl.NimberAlgebra(q=q, b=b))
-
-
-def kernel(succ):
-    """P-positions (Loss) of a finite DAG game (normal play). Loss = the kernel."""
-    label = [""] * len(succ)  # "" = unvisited, else "Win"/"Loss"
-
-    def solve(v):
-        if label[v]:
-            return label[v]
-        label[v] = "Win"  # guard against revisits (graph is a DAG: w<v)
-        res = "Loss"
-        for w in succ[v]:
-            if solve(w) == "Loss":
-                res = "Win"
-                break
-        label[v] = res
-        return res
-
-    for v in range(len(succ)):
-        solve(v)
-    return set(v for v in range(len(succ)) if label[v] == "Loss")
 
 
 def invertible(cols, m):
@@ -180,7 +159,7 @@ def part2_frame_quadric():
                 return acc
             zeros = set(v for v in range(1 << m) if Qf(v) == 0)
             succ = [[w for w in range(v) if Qf(w) != Qf(v)] for v in range(1 << m)]
-            ker = kernel(succ)
+            ker = set(pl.LoopyGraph(succ).loss_set())
             tot += 1
             ok += (ker == zeros)
             if arf([0] * m, pairs, m).rank >= 2:

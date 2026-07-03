@@ -1,6 +1,5 @@
 """Capstone: full lambda sweeps at m=8 (a=1,2,3), all positions incl. full board."""
 import sys, time
-sys.path.insert(0, "/tmp")
 from asym2_probe import make_form
 from asym2_dummy import support_value_dummy
 

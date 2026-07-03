@@ -1,6 +1,6 @@
-import sys, time
-sys.path.insert(0, "/tmp")
-from cyclo_family import (gf2_mul, tri_reduce, fmul, fpow, certify_irreducible,
+"""cyclotomic_3k_family.py at experiments/ top level supersedes this thread through k=8."""
+import time
+from cyclo_family import (fmul, fpow, certify_irreducible,
                           is_prime, verify_level)
 
 # Levels 5 and 6: factordb (FF) factorizations of Phi_243(2) and Phi_729(2),
@@ -55,10 +55,10 @@ beta = x ^ 1
 gamma = x ^ xinv
 assert fpow(beta, N, h) == xinv, "k=7 circle identity FAILS"
 assert fmul(beta, fpow(beta, 1 << h, h), h) == gamma, "k=7 norm identity FAILS"
-print(f"k=7: trinomial irreducible, circle + norm identities verified in F_2^4374")
+print("k=7: trinomial irreducible, circle + norm identities verified in F_2^4374")
 t0 = time.time()
 for r in known_new:
     t = fpow(gamma, N // r, h)
     print(f"k=7:   gamma^((2^2187-1)/{r}) {'==' if t==1 else '!='} 1   -> {'FAILS' if t==1 else 'ok'}")
-print(f"k=7: all known new primes ok -> C_7 consistent so far; certification blocked by the")
+print("k=7: all known new primes ok -> C_7 consistent so far; certification blocked by the")
 print(f"     unfactored 400-digit cofactor of Phi_2187(2) (factordb status CF). [{time.time()-t0:.1f}s]")

@@ -7,10 +7,7 @@ genuinely adversarial -- do positions exist with both winning and losing moves?
 Counts, per starting x: reachable states under the game tree where the mover's
 legal options have DIFFERING minimax outcomes (i.e. mistakes are possible).
 """
-import sys
-sys.path.insert(0, "/tmp")
 from asym2_probe import make_form, make_charge, solve_position
-from functools import lru_cache
 
 def analyse(m, a, lam, side, tgt):
     Q, qd, B = make_form(m, a, lam)

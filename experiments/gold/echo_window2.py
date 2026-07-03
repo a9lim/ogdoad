@@ -6,8 +6,6 @@ Variants:
                      canonical completion (close open coins ascending).
 Sweep (8,2) and (8,1) lower side, orientation A (P1 wants 1), w in {1,2}.
 """
-import sys
-sys.path.insert(0, "/tmp")
 from asym2_probe import make_form, make_charge
 
 def solve(x, m, ch, tgt, w, pass_clears):
@@ -18,8 +16,6 @@ def solve(x, m, ch, tgt, w, pass_clears):
 
     def forced_finish(u, o, sigma):
         # double-pass: close open coins ascending, then open+close untouched ones
-        for i in sorted(i for i in range(len(bits)) if False):
-            pass
         oo = o
         s = sigma
         for i in bits:

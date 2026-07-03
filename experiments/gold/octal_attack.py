@@ -14,7 +14,6 @@ Self-contained (no repo imports) so results are independent cross-checks:
   5. Structured rules at m=8 (F_256) + Turning Corners misere on 3x3 and 4x4.
   6. The B-phase extension game (extraspecial-motivated candidate) on F_16.
 """
-import sys
 from functools import lru_cache
 
 # ---------------------------------------------------------------- nim arithmetic
@@ -157,7 +156,6 @@ def fit_quadratic(pset, k):
 print("\n== [2] Theorem A: normal-play coin-turning is XOR-additive (exhaustive m=4) ==")
 def all_rules(n):
     """All companion-family choices per coin: families over subsets of lower coins."""
-    import itertools
     per_coin = []
     for r in range(n):
         masks = list(range(1 << r))

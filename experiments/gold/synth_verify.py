@@ -207,9 +207,10 @@ for m in (8, 16, 32):
     Pw = nim_mul(w, w) ^ w
     lam_closed = 0
     t = 1
-    while (1 << ((1 << t) - 1)) < (1 << m):
+    while (1 << (1 << t)) < (1 << m):
         lam_closed ^= 1 << ((1 << t) - 1)
         t += 1
+    assert Pw == lam_closed, f"closed-form lam mismatch at m={m}"
     ok = all(trace(nim_mul(nim_mul(1 << i, frob(1 << i, 1)), 1), m) ==
              trace(nim_mul(Pw, 1 << i), m) for i in range(m))
     print(f"   m={m}: w={w}, P(w)={Pw}, closed-form lam={lam_closed}, "

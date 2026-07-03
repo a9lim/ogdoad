@@ -4,7 +4,7 @@ double-touch of a fresh coin (t 0->2 in one move, charge q_i + B-parity twice
 Tests: reduced (p,s) game, k=3/k=4 full pattern tables, m=4 sweep.
 """
 import itertools
-from extraspecial_core import nim_mul, frob, tr, gold_q, polar, validate
+from extraspecial_core import gold_q, polar, validate
 
 class EchoDbl:
     def __init__(self, qbits, Bhigh, allow_dbl=True):

@@ -1,11 +1,8 @@
 """Final checks: k=9 full boards, board-8 class sample, m=16 spot checks,
 decision-nondegeneracy + explicit position graph for the dummy game."""
 import sys, time, random
-from itertools import product
-sys.path.insert(0, "/tmp")
 from asym2_probe import make_form
-from asym2_fifo import abstract_value, canon
-from asym2_fifo_bench import direct_fifo_value
+from asym2_fifo import abstract_value
 from asym2_dummy import support_value_dummy
 
 sys.setrecursionlimit(1000000)

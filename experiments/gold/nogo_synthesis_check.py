@@ -1,7 +1,7 @@
 # Verification of the two NEW components of the synthesized no-go theorem.
 # Self-contained F_2 linear algebra; no nim arithmetic needed (claims are about
 # arbitrary char-2 quadratic forms / arbitrary alternating B).
-import itertools, random
+import random
 random.seed(0)
 
 m = 6
@@ -105,7 +105,6 @@ def normal_P(succ):
 def misere_P(succ):
     # misere: terminal = N (mover wins); P iff nonterminal and all options N
     n = len(succ); label = [None]*n
-    import functools
     import sys
     sys.setrecursionlimit(100000)
     def solve(v):

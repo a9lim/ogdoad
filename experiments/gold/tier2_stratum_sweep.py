@@ -17,8 +17,6 @@ polar evaluations B(.,.). The minimal stratum is:
 For every bent lambda and every gate: does the P-set (or Loss/Draw set)
 equal {Q=0}?  Also: is it a quadric at all (ANF fit), and with which Arf?
 """
-import sys
-sys.path.insert(0, "/Users/a9lim/Work/ogdoad/experiments")
 import ogdoad as pl
 
 M, A = 8, 1
@@ -155,10 +153,6 @@ for lam, tab in bent_lams:
         key = (g, "quadric" if fit and fit[1] else
                ("affine" if fit else "non-quadric"))
         s1_quadric_stats[key] = s1_quadric_stats.get(key, 0) + 1
-        # q-blind gates: f(q,b) independent of q  <=>  gate rows equal
-        if gate(g, 0, 0) == gate(g, 1, 0) and gate(g, 0, 1) == gate(g, 1, 1) \
-           and g == 0b0100_0100 & 0xF or False:
-            pass
         # S2: loopy single-bit (either direction)
         succ2 = [[v ^ (1 << i) for i in range(M)
                   if gate(g, qd[i], Btab[v][i])] for v in range(N)]

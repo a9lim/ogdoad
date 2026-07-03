@@ -1,5 +1,4 @@
 import random
-from math import gcd
 
 def div_euclid(a, b):
     q, r = divmod(a, b)

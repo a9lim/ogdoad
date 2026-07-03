@@ -18,21 +18,10 @@ Optional central move Z: (a,v) -> (a^1, v) (multiply by z; introduces 2-cycles).
 """
 
 import sys
-sys.path.insert(0, "/Users/a9lim/Work/ogdoad/experiments")
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import ogdoad as pl
-from common import gold as gold_u, polar as polar_u
-
-def frob(x, a):
-    for _ in range(a):
-        x = x * x
-    return x
-
-def nim_trace(x, m):
-    acc = pl.Nimber(x); t = pl.Nimber(x)
-    for _ in range(m - 1):
-        t = t * t
-        acc = acc + t
-    return acc.value
+from common import frob, gold as gold_u, nim_trace
 
 def bent_gold(v, lam, a, m):
     x = pl.Nimber(v)

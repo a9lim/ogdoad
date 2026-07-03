@@ -1,5 +1,5 @@
 """Validate solver against an independent no-memo tree solver, then sweep m=4."""
-import itertools, random
+import random
 from extraspecial_core import *
 
 validate()

@@ -1,3 +1,5 @@
+"""Finer overflow detector than root_sim2's, but only run for sqrt here — the
+cbrt case remains covered only by root_sim2's cruder detector."""
 from fractions import Fraction
 I128 = 2**127
 

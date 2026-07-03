@@ -1,11 +1,15 @@
-"""Frame-order robustness: does the m=4 exact hit survive permuting the
+"""SUPERSEDED: this file's solver omits the accumulated XOR prefix (sigma) from its
+memo key — the 'round-1' bug documented and fixed in asym2_probe.py and
+echo_window2.py (sigma-in-key). Sweep results printed by this file are suspect.
+Not cited in writeups/goldarf.tex (checked 2026-07-03). See docs/PY.md §1.2.
+
+Frame-order robustness: does the m=4 exact hit survive permuting the
 triangular order of the cocycle? Also: which orientation wins, per order."""
 
 import itertools
 import sys
 
 sys.setrecursionlimit(10000)
-sys.path.insert(0, "/tmp")
 
 from echo_charge_probe import make_form  # noqa: E402
 

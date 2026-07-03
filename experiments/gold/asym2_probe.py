@@ -44,9 +44,6 @@ def nim_mul(a, b):
     return ((t1 ^ t2) << sh) ^ nim_mul(t1, F >> 1) ^ t3
 
 
-assert nim_mul(2, 2) == 3 and nim_mul(2, 4) == 8 and nim_mul(16, 16) == 24
-
-
 def frob(x, a):
     for _ in range(a):
         x = nim_mul(x, x)
@@ -69,13 +66,6 @@ def make_form(m, a, lam):
     B = [[Q[(1 << i) ^ (1 << j)] ^ Q[1 << i] ^ Q[1 << j] if i != j else 0
           for j in range(m)] for i in range(m)]
     return Q, qd, B
-
-
-# pinned zero counts (goldarf.tex tables / round-1 cross-checks)
-for (m, a, lam, zc) in [(4, 1, 1, 4), (8, 1, 1, 112), (8, 2, 1, 96), (8, 1, 2, 136)]:
-    Q, _, _ = make_form(m, a, lam)
-    assert sum(1 for v in Q if v == 0) == zc, (m, a, lam, sum(1 for v in Q if v == 0))
-print("nim arithmetic + Gold zero counts: OK")
 
 
 # ---------------------------------------------------------------- cocycle/charge
@@ -109,56 +99,6 @@ def make_charge(qd, B, m, lower=True):
         return acc
 
     return charge
-
-
-# identities
-import random
-rng = random.Random(2026)
-for (m, a, lam) in [(4, 1, 1), (4, 1, 2), (8, 1, 1)]:
-    Q, qd, B = make_form(m, a, lam)
-    n = 1 << m
-    pairs = [(u, v) for u in range(n) for v in range(n)] if m <= 4 else \
-        [(rng.randrange(n), rng.randrange(n)) for _ in range(500)]
-    for side in (True, False):
-        for (u, v) in pairs:
-            assert cocycle(v, v, qd, B, m, side) == Q[v]
-            assert cocycle(u, v, qd, B, m, side) ^ cocycle(v, u, qd, B, m, side) == \
-                (Q[u ^ v] ^ Q[u] ^ Q[v])
-        ch = make_charge(qd, B, m, side)
-        for _ in range(300):
-            o, i = rng.randrange(n), rng.randrange(m)
-            assert ch(o, i) == cocycle(o, 1 << i, qd, B, m, side)
-print("cocycle identities (both sides): OK")
-
-# chord-linking formula on random complete plays (no ko): sigma = l_diag + sum B_ij*linked
-for (m, a, lam) in [(4, 1, 2), (8, 1, 1)]:
-    Q, qd, B = make_form(m, a, lam)
-    ch = make_charge(qd, B, m, True)
-    for _ in range(300):
-        x = rng.randrange(1, 1 << m)
-        bits = [i for i in range(m) if (x >> i) & 1]
-        seq = bits * 2
-        rng.shuffle(seq)
-        o, sig = 0, 0
-        for i in seq:
-            sig ^= ch(o, i)
-            o ^= 1 << i
-        pos = {}
-        for t, i in enumerate(seq):
-            pos.setdefault(i, []).append(t)
-        pred = 0
-        for i in bits:
-            pred ^= qd[i]
-        for ii in range(len(bits)):
-            for jj in range(ii + 1, len(bits)):
-                i, j = bits[ii], bits[jj]
-                a1, a2 = pos[i]
-                b1, b2 = pos[j]
-                linked = (a1 < b1 < a2 < b2) or (b1 < a1 < b2 < a2)
-                if linked:
-                    pred ^= B[i][j]
-        assert sig == pred, (x, seq)
-print("chord-linking formula: OK")
 
 
 # ---------------------------------------------------------------- CORRECT solver
@@ -230,20 +170,78 @@ def solve_explicit(x, m, charge, p1_target):
     return rec(x, 0, -1, 0, 0)
 
 
-# validate solver: all 16 positions of two m=4 forms, both orientations, both sides
-for (m, a, lam) in [(4, 1, 1), (4, 1, 2), (4, 1, 7)]:
-    Q, qd, B = make_form(m, a, lam)
-    for side in (True, False):
-        ch = make_charge(qd, B, m, side)
-        for tgt in (1, 0):
-            for x in range(1 << m):
-                assert solve_position(x, m, ch, tgt) == solve_explicit(x, m, ch, tgt)
-# random m=8 popcount<=4 spot checks
-Q, qd, B = make_form(8, 2, 1)
-ch = make_charge(qd, B, 8, True)
-cnt = 0
-for x in range(256):
-    if bin(x).count("1") <= 3:
-        assert solve_position(x, 8, ch, 1) == solve_explicit(x, 8, ch, 1)
-        cnt += 1
-print(f"solver == explicit tree enumeration: OK ({cnt} m=8 spot checks + full m=4)")
+if __name__ == "__main__":
+    assert nim_mul(2, 2) == 3 and nim_mul(2, 4) == 8 and nim_mul(16, 16) == 24
+
+    # pinned zero counts (goldarf.tex tables / round-1 cross-checks)
+    for (m, a, lam, zc) in [(4, 1, 1, 4), (8, 1, 1, 112), (8, 2, 1, 96), (8, 1, 2, 136)]:
+        Q, _, _ = make_form(m, a, lam)
+        assert sum(1 for v in Q if v == 0) == zc, (m, a, lam, sum(1 for v in Q if v == 0))
+    print("nim arithmetic + Gold zero counts: OK")
+
+    # identities
+    import random
+    rng = random.Random(2026)
+    for (m, a, lam) in [(4, 1, 1), (4, 1, 2), (8, 1, 1)]:
+        Q, qd, B = make_form(m, a, lam)
+        n = 1 << m
+        pairs = [(u, v) for u in range(n) for v in range(n)] if m <= 4 else \
+            [(rng.randrange(n), rng.randrange(n)) for _ in range(500)]
+        for side in (True, False):
+            for (u, v) in pairs:
+                assert cocycle(v, v, qd, B, m, side) == Q[v]
+                assert cocycle(u, v, qd, B, m, side) ^ cocycle(v, u, qd, B, m, side) == \
+                    (Q[u ^ v] ^ Q[u] ^ Q[v])
+            ch = make_charge(qd, B, m, side)
+            for _ in range(300):
+                o, i = rng.randrange(n), rng.randrange(m)
+                assert ch(o, i) == cocycle(o, 1 << i, qd, B, m, side)
+    print("cocycle identities (both sides): OK")
+
+    # chord-linking formula on random complete plays (no ko): sigma = l_diag + sum B_ij*linked
+    for (m, a, lam) in [(4, 1, 2), (8, 1, 1)]:
+        Q, qd, B = make_form(m, a, lam)
+        ch = make_charge(qd, B, m, True)
+        for _ in range(300):
+            x = rng.randrange(1, 1 << m)
+            bits = [i for i in range(m) if (x >> i) & 1]
+            seq = bits * 2
+            rng.shuffle(seq)
+            o, sig = 0, 0
+            for i in seq:
+                sig ^= ch(o, i)
+                o ^= 1 << i
+            pos = {}
+            for t, i in enumerate(seq):
+                pos.setdefault(i, []).append(t)
+            pred = 0
+            for i in bits:
+                pred ^= qd[i]
+            for ii in range(len(bits)):
+                for jj in range(ii + 1, len(bits)):
+                    i, j = bits[ii], bits[jj]
+                    a1, a2 = pos[i]
+                    b1, b2 = pos[j]
+                    linked = (a1 < b1 < a2 < b2) or (b1 < a1 < b2 < a2)
+                    if linked:
+                        pred ^= B[i][j]
+            assert sig == pred, (x, seq)
+    print("chord-linking formula: OK")
+
+    # validate solver: all 16 positions of two m=4 forms, both orientations, both sides
+    for (m, a, lam) in [(4, 1, 1), (4, 1, 2), (4, 1, 7)]:
+        Q, qd, B = make_form(m, a, lam)
+        for side in (True, False):
+            ch = make_charge(qd, B, m, side)
+            for tgt in (1, 0):
+                for x in range(1 << m):
+                    assert solve_position(x, m, ch, tgt) == solve_explicit(x, m, ch, tgt)
+    # random m=8 popcount<=4 spot checks
+    Q, qd, B = make_form(8, 2, 1)
+    ch = make_charge(qd, B, 8, True)
+    cnt = 0
+    for x in range(256):
+        if bin(x).count("1") <= 3:
+            assert solve_position(x, 8, ch, 1) == solve_explicit(x, 8, ch, 1)
+            cnt += 1
+    print(f"solver == explicit tree enumeration: OK ({cnt} m=8 spot checks + full m=4)")

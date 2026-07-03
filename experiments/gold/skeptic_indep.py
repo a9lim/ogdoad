@@ -8,15 +8,16 @@ Differences from extraspecial_core.Echo on purpose:
 - plain dict memo keyed on (counts, last, mover, sigma).
 Compares against the original engine on the (8,2) adapted frame, all 256 supports,
 and against the true Gold Q.
+
+Note: re-litigates the echo-ko reading documented non-exact at m=8 and superseded
+by echo-fifo+dummy (see skeptic2_independent.py, echo_solver.py); kept for
+archival completeness.
 """
-import sys
-sys.path.insert(0, '/tmp')
 from extraspecial_core import gold_q, echo_value
 from extraspecial_adapted import build_adapted_frame
 
 def solve_indep(qb, Bfull, k):
     # Bfull[i] = set of j with B(i,j)=1 (local indices)
-    from functools import lru_cache
     memo = {}
     def val(counts, last, mover, sigma):
         if all(c == 2 for c in counts):

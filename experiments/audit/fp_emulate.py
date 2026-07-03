@@ -81,20 +81,21 @@ def test_K(K, M):
     true_radius = math.sqrt(bound/float(fd2))
     return d[2], float(fd2), hi, true_radius
 
-# scan K for d2_float overestimating enough that hi < M
-M = 70
-found = []
-for K in [10**12 + t for t in range(0, 200)]:
-    d2f, d2t, hi, tr = test_K(K, M)
-    if hi < M:
-        found.append((K, d2f, d2t, hi))
-print("M =", M, "bound =", 6*M*M)
-print("hits:", len(found))
-for K, d2f, d2t, hi in found[:5]:
-    print(f"K={K}: d2_float={d2f!r} d2_true={d2t!r} hi={hi}")
+if __name__ == "__main__":
+    # scan K for d2_float overestimating enough that hi < M
+    M = 70
+    found = []
+    for K in [10**12 + t for t in range(0, 200)]:
+        d2f, d2t, hi, tr = test_K(K, M)
+        if hi < M:
+            found.append((K, d2f, d2t, hi))
+    print("M =", M, "bound =", 6*M*M)
+    print("hits:", len(found))
+    for K, d2f, d2t, hi in found[:5]:
+        print(f"K={K}: d2_float={d2f!r} d2_true={d2t!r} hi={hi}")
 
-# diagnostics
-for K in [10**12, 10**13, 10**14, 4*10**14, 9*10**14, 2*10**15]:
-    d2f, d2t, hi, tr = test_K(K, M)
-    eps = 1e-9*6*M*M + 1e-9
-    print(f"K={K:.2e} d2_float={d2f:.12f} d2_true={d2t:.12f} err={d2f-d2t:+.3e} hi={hi} true_radius={tr:.9f} eps={eps:.3e}")
+    # diagnostics
+    for K in [10**12, 10**13, 10**14, 4*10**14, 9*10**14, 2*10**15]:
+        d2f, d2t, hi, tr = test_K(K, M)
+        eps = 1e-9*6*M*M + 1e-9
+        print(f"K={K:.2e} d2_float={d2f:.12f} d2_true={d2t:.12f} err={d2f-d2t:+.3e} hi={hi} true_radius={tr:.9f} eps={eps:.3e}")

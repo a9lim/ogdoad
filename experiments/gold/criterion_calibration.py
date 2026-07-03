@@ -88,7 +88,10 @@ def solve(succ):
     out = {}
     def rec(p):
         if p in out: return out[p]
-        out[p] = False           # acyclic games only; placeholder for cycle guard
+        out[p] = False           # acyclic games only; placeholder for cycle guard.
+                                  # Correct only by caller discipline (no rigorous
+                                  # cycle detection); see center_reading_probe.py's
+                                  # loopy_solve for the rigorous retrograde solver.
         out[p] = any(not rec(s) for s in succ(p))
         return out[p]
     return rec

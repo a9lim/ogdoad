@@ -21,24 +21,13 @@ P4 (center inertness). The E-lift (standard cocycle) of a center-blind rule
     (bent_route Rule B) has outcomes o(a,v) = o(v): the extension is outcome-inert.
 """
 
-import sys, itertools, cmath
-sys.path.insert(0, "/Users/a9lim/Work/ogdoad/experiments")
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import ogdoad as pl
+from common import gold as gold_unscaled, polar as polar_unscaled, frob, nim_trace
 
 # ---------------------------------------------------------------- nim/gold helpers
-def frob(x, a):
-    for _ in range(a):
-        x = x * x
-    return x
-
-def nim_trace(x, m):
-    acc = pl.Nimber(x); t = pl.Nimber(x)
-    for _ in range(m - 1):
-        t = t * t
-        acc = acc + t
-    assert acc.value in (0, 1)
-    return acc.value
-
 def bent_gold(v, lam, a, m):
     x = pl.Nimber(v)
     return nim_trace((pl.Nimber(lam) * x * frob(x, a)).value, m)
@@ -137,9 +126,8 @@ for label, L, want_arf, r in [
     ("U(2)              ", U2, 0, 1),
     ("D4                 ", D4, 1, 1),
     ("U(2) (+) D4        ", dsum([[0, 2], [2, 0]], gram_of(D4)), 1, 2),
-    ("U(2)^2 (+) D4      ", dsum([[0, 2], [2, 0]], dsum([[0, 2], [2, 0]], gram_of(D4)).gram()
-                                if hasattr(dsum([[0,2],[2,0]], gram_of(D4)), 'gram') else None), 1, 3)
-        if False else ("U(2) (+) U(2)      ", dsum([[0, 2], [2, 0]], [[0, 2], [2, 0]]), 0, 2),
+    # (a rank-3 U(2)^2 (+) D4 case was drafted and abandoned here)
+    ("U(2) (+) U(2)      ", dsum([[0, 2], [2, 0]], [[0, 2], [2, 0]]), 0, 2),
 ]:
     disc, reps, Q, B = module_data(L)
     res, coord, span = arf_of_module(reps, Q, B)
@@ -157,7 +145,6 @@ for label, L, want_arf, r in [
 # Gold side: m=8, a=2 has rank 4 Arf 1 (goldarf.tex Table 1) -> same module as U(2)(+)D4.
 g_res = None
 qvec = [pl.Nimber(0)] * 8
-from common import gold as gold_unscaled, polar as polar_unscaled
 qv = [pl.Nimber(gold_unscaled(1 << i, 2, 8)) for i in range(8)]
 bm = {}
 for i in range(8):

@@ -1,4 +1,4 @@
-import itertools, collections
+import collections
 
 # component games: name -> (Left options, Right options)
 G = {

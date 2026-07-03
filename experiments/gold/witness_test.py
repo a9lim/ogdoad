@@ -22,7 +22,6 @@ This script measures the minimal witness radius k:
   4. m=16, a=1: first bent lambdas, Gold framing + random refinements.
 """
 import random
-import sys
 import ogdoad as pl
 
 
@@ -151,8 +150,8 @@ cand16 = candidates(M2, 3)
 half, off = 1 << (M2 - 1), 1 << (M2 // 2 - 1)
 rng = random.Random(0xA9)
 checked = 0
-print(f"\nm=16, a=1 spot checks (bent components, Gold framing + 4 random "
-      f"refinements each):")
+print("\nm=16, a=1 spot checks (bent components, Gold framing + 4 random "
+      "refinements each):")
 lam = 1
 while checked < 3:
     tab = make_qtab(M2, A, lam)

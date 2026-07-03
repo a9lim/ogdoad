@@ -1,6 +1,9 @@
-"""Decision-degeneracy analysis + miss dissection + m=8 lambda landscape."""
-import sys, time
-sys.path.insert(0, "/tmp")
+"""Decision-degeneracy analysis + miss dissection + m=8 lambda landscape.
+
+Superseded: explores the base ECHO-ko rule, abandoned for FIFO+ko1 — see
+asym2_variants.py's screen and echo_solver.py.
+"""
+import time
 from asym2_probe import make_form, make_charge, solve_position
 
 def analyze(x, m, charge, p1_target):

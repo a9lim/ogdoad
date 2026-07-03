@@ -1,11 +1,6 @@
 import itertools
 from arf_audit import nim_mul, nim_inv
 
-def mat_mul(A, B):
-    n = len(A)
-    return [[__import__('functools').reduce(lambda a, k: a ^ nim_mul(A[i][k_]
-            , B[k_][j]), [], 0) for j in range(n)] for i in range(n)]
-
 def mmul(A, B):
     n = len(A)
     C = [[0]*n for _ in range(n)]

@@ -64,12 +64,14 @@ Cross-validated against experiments/echo_solver.py (the adversarially
 reviewed solver) through the SynthForm bridge in stage `validate`.
 """
 
+import argparse
 import random
 import sys
 import time
 from itertools import permutations
+from typing import Any
 
-sys.setrecursionlimit(1000000)
+sys.setrecursionlimit(10_000)  # matches echo_solver.py; state-space recursion is shallow
 
 
 # ---------------------------------------------------------------- solvers
@@ -313,8 +315,6 @@ def stage_validate() -> None:
     print(f"   {cnt} agree")
 
     print("== sigma-explicit vs the verified echo_solver.fifo_value ==")
-    import pathlib
-    sys.path.insert(0, str(pathlib.Path(__file__).parent))
     from echo_solver import fifo_value, SynthForm
     rng = random.Random(2026)
     cnt = 0
@@ -325,7 +325,6 @@ def stage_validate() -> None:
         B = [[0] * k for _ in range(k)]
         for (i, j) in edges:
             B[i][j] = B[j][i] = 1
-        from typing import Any
         f: Any = SynthForm(k, [0] * k, B)  # duck-types Form for fifo_value
         for dummy in (True, False):
             for t in (0, 1):
@@ -417,14 +416,17 @@ def stage_strategy(kmax: int) -> None:
 
 
 def main() -> None:
-    stage = sys.argv[1] if len(sys.argv) > 1 else "all"
-    kmax = int(sys.argv[2]) if len(sys.argv) > 2 else 5
-    if stage in ("validate", "all"):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("stage", nargs="?", default="all",
+                         choices=("validate", "screen", "strategy", "all"))
+    parser.add_argument("kmax", nargs="?", type=int, default=5)
+    args = parser.parse_args()
+    if args.stage in ("validate", "all"):
         stage_validate()
-    if stage in ("screen", "all"):
-        stage_screen(kmax)
-    if stage in ("strategy", "all"):
-        stage_strategy(kmax)
+    if args.stage in ("screen", "all"):
+        stage_screen(args.kmax)
+    if args.stage in ("strategy", "all"):
+        stage_strategy(args.kmax)
 
 
 if __name__ == "__main__":

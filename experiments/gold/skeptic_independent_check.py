@@ -134,7 +134,7 @@ for name, q in forms.items():
         Ns.setdefault(sum(1 for x in V if Q(x)==0 and Q(x^v)==0), []).append(v)
     arf = 0 if len(Z) == 10 else 1
     formula = (1 << (2*2-2)) + ((-1)**arf) * (1 << (2-1))
-    print(f"  S4: N(v) value -> #v:",
+    print("  S4: N(v) value -> #v:",
           {n: len(vlist) for n, vlist in sorted(Ns.items())},
           f"formula_claim={formula} min>0: {min(Ns) > 0}")
 

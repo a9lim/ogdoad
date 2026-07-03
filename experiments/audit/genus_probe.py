@@ -1,6 +1,5 @@
 # Is diag(1,20) ~ diag(5,4) over Z/64 (hence Z_2 by lifting)?
 M = 64
-import itertools
 A = [[1,0],[0,20]]
 B = [[5,0],[0,4]]
 found = None

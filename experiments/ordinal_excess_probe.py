@@ -49,7 +49,6 @@ Q_SET: dict[int, tuple[int, ...]] = {
     # The p=89 row is fast; p=179 is re-certified by the --deep path below.
     89: (11,),
     179: (89,),
-    359: (179,),
 }
 
 EXCESS: dict[int, int] = {

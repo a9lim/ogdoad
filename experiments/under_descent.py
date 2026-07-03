@@ -45,7 +45,10 @@ def temp(g: pl.Game) -> Fraction:
     value = g.temperature()
     if value is None:
         raise ValueError(f"temperature undefined for {g.display()}")
-    return Fraction(str(value))
+    rational = value.as_rational()
+    if rational is None:
+        raise ValueError(f"temperature not rational for {g.display()}")
+    return Fraction(rational.numerator, rational.denominator)
 
 
 def dedupe(games: list[NamedGame]) -> list[NamedGame]:
@@ -108,16 +111,16 @@ def explicit_non_numeric_failures() -> list[Failure]:
         assert not ok
         out.append(
             Failure(
-                operator,
-                unit.name,
-                Fraction(0),
-                g.name,
-                h.name,
-                temp(g.game - h.game),
-                tp,
-                tq,
-                td,
-                aw,
+                operator=operator,
+                unit=unit.name,
+                tau=Fraction(0),
+                g_name=g.name,
+                h_name=h.name,
+                delta_temp=temp(g.game - h.game),
+                left_temp=tp,
+                right_temp=tq,
+                output_delta_temp=td,
+                output_delta_aw=aw,
             )
         )
     return out
@@ -167,16 +170,16 @@ def bounded_numeric_unit_scan() -> tuple[list[Failure], dict[str, int], int, int
                         if not ok:
                             failures.append(
                                 Failure(
-                                    "norton",
-                                    unit.name,
-                                    tau,
-                                    g.name,
-                                    h.name,
-                                    delta_temp,
-                                    tp,
-                                    tq,
-                                    td,
-                                    aw,
+                                    operator="norton",
+                                    unit=unit.name,
+                                    tau=tau,
+                                    g_name=g.name,
+                                    h_name=h.name,
+                                    delta_temp=delta_temp,
+                                    left_temp=tp,
+                                    right_temp=tq,
+                                    output_delta_temp=td,
+                                    output_delta_aw=aw,
                                 )
                             )
 
@@ -188,16 +191,16 @@ def bounded_numeric_unit_scan() -> tuple[list[Failure], dict[str, int], int, int
                         if not ok:
                             failures.append(
                                 Failure(
-                                    "overheat_s_unit_t_0",
-                                    unit.name,
-                                    tau,
-                                    g.name,
-                                    h.name,
-                                    delta_temp,
-                                    tp,
-                                    tq,
-                                    td,
-                                    aw,
+                                    operator="overheat_s_unit_t_0",
+                                    unit=unit.name,
+                                    tau=tau,
+                                    g_name=g.name,
+                                    h_name=h.name,
+                                    delta_temp=delta_temp,
+                                    left_temp=tp,
+                                    right_temp=tq,
+                                    output_delta_temp=td,
+                                    output_delta_aw=aw,
                                 )
                             )
 

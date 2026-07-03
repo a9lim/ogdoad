@@ -5,7 +5,6 @@ Exactness for all matching patterns <=> the 'even-unlinked' player always forces
 unlinked-parity 0 in the reduced game v(p, s).
 """
 from extraspecial_core import Echo
-import itertools
 
 def mk_Bh(k, Bedges):
     Bh = []

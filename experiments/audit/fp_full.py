@@ -1,6 +1,6 @@
 import math
 from fractions import Fraction
-exec(open('/tmp/fp_emulate.py').read().split('# scan')[0])  # reuse ldl, fp_search, norm
+from fp_emulate import ldl, fp_search, norm
 
 K, a, b, c = 286203218045748, 7, 7, 10
 M = 70
@@ -21,7 +21,6 @@ m3 = (g[0][0]*(g[1][1]*g[2][2]-g[1][2]*g[2][1])
 print("minors:", m1>0, m2>0, m3>0, "det =", m3)
 
 # 2. exact box count (mimic short_vectors_exact_bounded): r_i = ceil(sqrt(bound*inv_ii))
-import itertools
 def cof(i):
     idx = [k for k in range(3) if k != i]
     return g[idx[0]][idx[0]]*g[idx[1]][idx[1]] - g[idx[0]][idx[1]]*g[idx[1]][idx[0]]

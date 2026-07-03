@@ -12,7 +12,7 @@ Identities proved in the writeup, verified here:
   => ord(kappa_{3^k}+1) = 3^{k+1} * ord(gamma_k),  ord(gamma_k) | 2^h - 1.
 Conjecture C_k <=> gamma_k primitive in F_{2^h}.
 """
-import sys, random
+import random
 
 # ---------------- GF(2)[x] arithmetic, ints as bit-vectors ----------------
 
@@ -74,7 +74,7 @@ def certify_irreducible(h: int) -> None:
 
 # ---------------- primality (Miller-Rabin) ----------------
 
-SMALL_DET_BASES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]
+SMALL_DET_BASES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
 DET_LIMIT = 3317044064679887385961981  # deterministic below this with bases above
 
 def is_prime(n: int, rounds: int = 64) -> tuple[bool, str]:
@@ -134,7 +134,9 @@ def verify_level(k: int, factors: dict[int, int], check_irred=True) -> None:
     assert fpow(beta, N, h) == xinv, "circle identity FAILS"
     # (norm)  beta^(2^h+1) == gamma = zeta + zeta^{-1}
     gamma = x ^ xinv
-    assert fmul(fpow(beta, N, h), fmul(beta, beta, h), h) == fmul(gamma, beta, h) or True
+    # (a draft `beta^N*beta^2 == gamma*beta` check sat here, neutered with `or True`;
+    #  the identity as written is false — one side multiplied by beta — and the live
+    #  check below is the verified norm identity. See docs/PY.md §1.5.)
     assert fmul(beta, fpow(beta, 1 << h, h), h) == gamma, "norm identity FAILS"
     # (half-angle) beta = zeta^{1/2} * (zeta^{1/2} + zeta^{-1/2})
     half = pow(2, -1, 3 ** (k + 1))
@@ -158,7 +160,6 @@ def verify_level(k: int, factors: dict[int, int], check_irred=True) -> None:
         status = "FAILS (r-th power!)" if t == 1 else "ok"
         if t == 1:
             failures.append(r)
-        fr = "3^?" 
         print(f"k={k}:   gamma^((2^{h}-1)/{r}) {'==' if t==1 else '!='} 1   -> {status}")
     if failures:
         print(f"k={k}: *** C_{k} FAILS at primes {failures} ***")

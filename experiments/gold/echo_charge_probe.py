@@ -1,4 +1,9 @@
-"""Echo-charge probe: does alternating play on the extraspecial group E realize Q?
+"""SUPERSEDED: this file's solver omits the accumulated XOR prefix (sigma) from its
+memo key — the 'round-1' bug documented and fixed in asym2_probe.py and
+echo_window2.py (sigma-in-key). Sweep results printed by this file are suspect.
+Not cited in writeups/goldarf.tex (checked 2026-07-03). See docs/PY.md §1.2.
+
+Echo-charge probe: does alternating play on the extraspecial group E realize Q?
 
 Model (the [asymmetry] angle made precise):
   V = F_2^m, Q = (scaled) Gold form, B its polar. Fix the bit frame and the
@@ -30,10 +35,10 @@ Theory cross-checks asserted below:
 
 import random
 import sys
-from functools import lru_cache
+from pathlib import Path
 
 sys.setrecursionlimit(10000)
-sys.path.insert(0, "/Users/a9lim/Work/ogdoad/experiments")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import ogdoad as pl  # noqa: E402
 
@@ -257,7 +262,7 @@ def run_checks(m, a, lam):
         for i in bits:
             ell ^= qd[i]
         assert sigma == ell ^ link, "chord-linking formula failed"
-    print(f"  [checks pass: cocycle identities, echo identity, linking formula]")
+    print("  [checks pass: cocycle identities, echo identity, linking formula]")
     return Qf, Bf, qd, Bm
 
 

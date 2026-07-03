@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent cross-check (different algorithm from /tmp/loopy_audit.py):
+"""Independent cross-check (different algorithm from loopy_audit.py):
 standard retrograde W/L/D labeling on the (position, mover) graph.
 Position = sorted tuple of component names; moving a component to 0 deletes it.
 """

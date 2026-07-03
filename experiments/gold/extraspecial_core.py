@@ -6,7 +6,6 @@ Validated against ogdoad's pinned values:
 Solver: state includes accumulated sigma (the round-1 bug was omitting it).
 """
 import sys
-from functools import lru_cache
 
 sys.setrecursionlimit(100000)
 

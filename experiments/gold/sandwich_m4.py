@@ -1,4 +1,4 @@
-"""Verify the 'equivariance sandwich' at m=4 (dim-4 nondegenerate case).
+r"""Verify the 'equivariance sandwich' at m=4 (dim-4 nondegenerate case).
 
 Claims checked exhaustively over V = F_2^4, B = the standard symplectic form
 (pairs (0,1),(2,3)), for BOTH Arf classes of quadratic refinement Q:

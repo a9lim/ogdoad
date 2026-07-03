@@ -6,6 +6,7 @@ def sum_game(g1, g2):
         r = [(q,p2) for q in g1[p1][1]] + [(p1,q) for q in g2[p2][1]]
         pos[(p1,p2)] = (l, r)
     return pos
+# sum_game/left_survives_second are shared verbatim with loopy_ge.py.
 def left_survives_second(g, start):
     A = set((p,'L') for p in g if not g[p][0])
     changed = True

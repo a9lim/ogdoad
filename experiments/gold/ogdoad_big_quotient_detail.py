@@ -1,5 +1,4 @@
 """Detail pass: the order >= 10 bounded quotients, with backtracking Aut."""
-import sys
 import ogdoad_misere_subgroup_sweep as s
 
 

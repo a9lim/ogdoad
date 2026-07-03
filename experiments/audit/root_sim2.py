@@ -1,3 +1,4 @@
+"""Subsumes the retired root_sim.py (same series helpers; adds i128-overflow tracking)."""
 from fractions import Fraction
 I128 = 2**127
 
