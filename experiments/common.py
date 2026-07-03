@@ -10,7 +10,11 @@ def frob(x: pl.Nimber, a: int) -> pl.Nimber:
 
 def nim_trace(x: int, m: int) -> int:
     """Trace from F_{2^m} to F_2, returned as 0 or 1."""
-    return pl.nim_trace(x, m)
+    value = pl.nim_trace(x, m)
+    # precondition guard, not redundancy: for x outside F_{2^m} the bound
+    # trace is garbage-in-garbage-out (e.g. nim_trace(2, 1) == 2)
+    assert value in (0, 1), f"trace not in F2: {value}"
+    return value
 
 
 def nim_mul(a: int, b: int) -> int:
