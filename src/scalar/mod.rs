@@ -297,28 +297,15 @@ macro_rules! impl_scalar_ops {
         }
         impl<$($gen)*> BitXor<u128> for $ty {
             type Output = $ty;
-            /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::mul`].
+            /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::pow`].
             ///
             /// `^` is power (ogham `↑`). The RHS is `u128` so element-element `^`
             /// does not compile — no [`BitXor<Self>`] impl exists on any backend.
             /// **Precedence caveat:** Rust's `^` binds looser than `*`; parenthesize
             /// when mixing with product.
             #[inline]
-            fn bitxor(self, mut k: u128) -> $ty {
-                if k == 0 {
-                    return <$ty as $crate::scalar::Scalar>::one();
-                }
-                let mut acc = <$ty as $crate::scalar::Scalar>::one();
-                let mut base = self;
-                loop {
-                    if k & 1 == 1 {
-                        acc = <$ty as $crate::scalar::Scalar>::mul(&acc, &base);
-                    }
-                    k >>= 1;
-                    if k == 0 { break; }
-                    base = <$ty as $crate::scalar::Scalar>::mul(&base, &base);
-                }
-                acc
+            fn bitxor(self, k: u128) -> $ty {
+                <$ty as $crate::scalar::Scalar>::pow(&self, k)
             }
         }
     };
@@ -345,28 +332,15 @@ macro_rules! impl_scalar_ops {
         }
         impl BitXor<u128> for $ty {
             type Output = $ty;
-            /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::mul`].
+            /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::pow`].
             ///
             /// `^` is power (ogham `↑`). The RHS is `u128` so element-element `^`
             /// does not compile — no [`BitXor<Self>`] impl exists on any backend.
             /// **Precedence caveat:** Rust's `^` binds looser than `*`; parenthesize
             /// when mixing with product.
             #[inline]
-            fn bitxor(self, mut k: u128) -> $ty {
-                if k == 0 {
-                    return <$ty as $crate::scalar::Scalar>::one();
-                }
-                let mut acc = <$ty as $crate::scalar::Scalar>::one();
-                let mut base = self;
-                loop {
-                    if k & 1 == 1 {
-                        acc = <$ty as $crate::scalar::Scalar>::mul(&acc, &base);
-                    }
-                    k >>= 1;
-                    if k == 0 { break; }
-                    base = <$ty as $crate::scalar::Scalar>::mul(&base, &base);
-                }
-                acc
+            fn bitxor(self, k: u128) -> $ty {
+                <$ty as $crate::scalar::Scalar>::pow(&self, k)
             }
         }
     };
@@ -432,6 +406,38 @@ pub trait Scalar: Clone + PartialEq + Debug + Display {
         } else {
             acc
         }
+    }
+
+    /// `self^exp` by square-and-multiply over [`Scalar::mul`]/[`Scalar::one`];
+    /// `x.pow(0) == one()`. The same default-method precedent as
+    /// [`Scalar::from_int`]: one correct implementation for every backend whose
+    /// `mul` is total, with per-backend overrides only where a genuinely sharper
+    /// algorithm exists (e.g. [`Nimber`]'s Fermat-tower `nim_pow`, reached through
+    /// [`FiniteField::pow`]).
+    ///
+    /// `Ordinal` implements `Scalar` with a panic-on-escape `mul` (the represented
+    /// Kummer tower's honest boundary), so it inherits this default `pow` as a
+    /// checked/panicking path — consistent with its `Scalar` impl, but the
+    /// concrete-type `^` operator (the `impl_scalar_ops!` macro) stays
+    /// deliberately absent on `Ordinal`. This method is the generic entry point
+    /// every other backend's `^` forwards to.
+    fn pow(&self, exp: u128) -> Self {
+        if exp == 0 {
+            return Self::one();
+        }
+        let mut acc = Self::one();
+        let mut base = self.clone();
+        let mut e = exp;
+        while e > 0 {
+            if e & 1 == 1 {
+                acc = acc.mul(&base);
+            }
+            e >>= 1;
+            if e > 0 {
+                base = base.mul(&base);
+            }
+        }
+        acc
     }
 }
 
@@ -517,6 +523,44 @@ mod ops_tests {
         let r2 = Rational::from_int(2);
         let r8 = Rational::from_int(8);
         assert_eq!(r2 ^ 3u128, r8);
+    }
+
+    /// Reaches [`Scalar::pow`] through the trait bound alone — no `impl_scalar_ops!`
+    /// `^` operator is reachable inside a function generic only over `S: Scalar`,
+    /// so this pins the default method itself, independent of any concrete-type
+    /// operator convenience.
+    fn generic_pow_via_trait<S: Scalar>(x: &S, n: u128) -> S {
+        x.pow(n)
+    }
+
+    #[test]
+    fn scalar_pow_default_matches_repeated_mul_generically() {
+        let r = Rational::new(2, 3);
+        let mut expected = Rational::one();
+        for _ in 0..4 {
+            expected = Scalar::mul(&expected, &r);
+        }
+        assert_eq!(generic_pow_via_trait(&r, 4), expected);
+        assert_eq!(generic_pow_via_trait(&r, 0), Rational::one());
+
+        let x = Nimber(5);
+        let mut expected_n = Nimber::one();
+        for _ in 0..3 {
+            expected_n = Scalar::mul(&expected_n, &x);
+        }
+        assert_eq!(generic_pow_via_trait(&x, 3), expected_n);
+    }
+
+    #[test]
+    fn ordinal_pow_default_method_has_no_operator_to_fall_back_on() {
+        // `Ordinal` deliberately carries no `^` operator (multiplication is
+        // checked/partial at the Kummer boundary — see `impl_scalar_ops!`'s
+        // doc), so `.pow` here can only be the `Scalar` trait default, not an
+        // operator-forwarding convenience. Stick to 0/1 so the checked `mul`
+        // never has a chance to escape the verified boundary.
+        assert_eq!(Ordinal::zero().pow(0), Ordinal::one());
+        assert_eq!(Ordinal::zero().pow(3), Ordinal::zero());
+        assert_eq!(Ordinal::one().pow(5), Ordinal::one());
     }
 
     #[test]

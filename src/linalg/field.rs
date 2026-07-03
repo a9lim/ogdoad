@@ -10,9 +10,13 @@ use crate::scalar::Scalar;
 /// Solve `A x = b` by Gauss-Jordan elimination.
 pub(crate) fn solve<S: Scalar>(mut a: Vec<Vec<S>>, mut b: Vec<S>) -> Option<Vec<S>> {
     let n = b.len();
-    debug_assert_eq!(a.len(), n, "solve expects a square matrix");
+    // Always-on, not debug-only (matches `linalg/integer.rs`): the O(n) shape
+    // check is dwarfed by the O(n^3) elimination below at every call site, so
+    // gating it on `debug_assertions` buys no real performance and costs a
+    // release-build safety check.
+    assert_eq!(a.len(), n, "solve expects a square matrix");
     for row in &a {
-        debug_assert_eq!(row.len(), n, "solve expects a square matrix");
+        assert_eq!(row.len(), n, "solve expects a square matrix");
     }
     for col in 0..n {
         let piv = (col..n).find(|&r| a[r][col].inv().is_some())?;
@@ -43,8 +47,9 @@ pub(crate) fn solve<S: Scalar>(mut a: Vec<Vec<S>>, mut b: Vec<S>) -> Option<Vec<
 /// Invert a square row-major matrix by Gauss-Jordan elimination.
 pub(crate) fn inverse_matrix<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<Vec<Vec<S>>> {
     let n = m.len();
+    // Always-on; see the same-cost note in `solve` above.
     for row in &m {
-        debug_assert_eq!(row.len(), n, "inverse_matrix expects a square matrix");
+        assert_eq!(row.len(), n, "inverse_matrix expects a square matrix");
     }
     let mut inv: Vec<Vec<S>> = (0..n)
         .map(|r| {
@@ -80,9 +85,19 @@ pub(crate) fn inverse_matrix<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<Vec<Vec<S>
 }
 
 /// A basis of the right nullspace `{ x : M x = 0 }` of a row-major matrix with
-/// `ncols` columns. Returns `None` when a nonzero remaining column has no unit
-/// pivot, which is the point where field Gaussian elimination would have to
-/// divide by a nonunit.
+/// `ncols` columns. A column with no unit-invertible entry among the rows not
+/// yet claimed by an earlier pivot is left unpivoted rather than failing right
+/// away: over a ring, that column may still clear for free once a later
+/// column supplies a pivot (`[[2, 1]]` over `Integer` has kernel `(1, -2)` via
+/// column 1's unit pivot, without ever dividing by the nonunit `2` in column
+/// 0). Elimination sweeps every column, not just the ones from the current
+/// pivot onward, so an unpivoted column's entries stay correct across later
+/// pivots instead of going stale. Returns `None` only when elimination is
+/// genuinely stuck: some row past the last pivot found is still nonzero, and
+/// since every pivoted column is already zero there, that nonzero entry can
+/// only sit in a column that never found a unit to pivot on. Over a field
+/// this never triggers early skipping (nonzero always has an inverse), so the
+/// field-backend contract is unchanged.
 pub(crate) fn unit_pivot_nullspace<S: Scalar>(
     mut m: Vec<Vec<S>>,
     ncols: usize,
@@ -92,9 +107,9 @@ pub(crate) fn unit_pivot_nullspace<S: Scalar>(
     let mut row = 0;
     for col in 0..ncols {
         let Some(piv) = (row..nrows).find(|&r| m[r][col].inv().is_some()) else {
-            if (row..nrows).any(|r| !m[r][col].is_zero()) {
-                return None;
-            }
+            // No unit pivot here yet; leave the column alone and let a later
+            // column try. Whether that was actually safe is checked once,
+            // after the loop, against the leftover (never-pivoted) rows.
             continue;
         };
         m.swap(row, piv);
@@ -120,6 +135,9 @@ pub(crate) fn unit_pivot_nullspace<S: Scalar>(
         if row == nrows {
             break;
         }
+    }
+    if (row..nrows).any(|r| (0..ncols).any(|c| !m[r][c].is_zero())) {
+        return None;
     }
     let mut basis = Vec::new();
     for fc in (0..ncols).filter(|c| !pivot_cols.contains(c)) {
@@ -155,5 +173,81 @@ mod tests {
     fn nullspace_returns_none_on_required_nonunit_pivot() {
         let m = vec![vec![Integer(0), Integer(2), Integer(-2)]];
         assert!(unit_pivot_nullspace(m, 3).is_none());
+    }
+
+    // CORRECTNESS.md `nullspace-skip`: column 0 has no unit pivot (2 is not a
+    // unit in `Integer`), but skipping it and pivoting on column 1's unit `1`
+    // finds the kernel without ever dividing by the nonunit.
+    #[test]
+    fn nullspace_skips_a_nonunit_column_when_a_later_column_pivots() {
+        let m = vec![vec![Integer(2), Integer(1)]];
+        let basis = unit_pivot_nullspace(m, 2).unwrap();
+        assert_eq!(basis, vec![vec![Integer(1), Integer(-2)]]);
+    }
+
+    fn dot<S: Scalar>(row: &[S], x: &[S]) -> S {
+        row.iter()
+            .zip(x)
+            .fold(S::zero(), |acc, (a, b)| acc.add(&a.mul(b)))
+    }
+
+    // A two-row regression for the same bug: column 0 is skipped (4 and 6 are
+    // both nonunits in `Integer`), and clearing it correctly depends on later
+    // pivots sweeping the *whole* row, not just columns from the pivot
+    // onward — an elimination that only updated columns >= the pivot column
+    // would leave column 0 stale in row 1 and hand back a vector that isn't
+    // actually in the kernel. Multiplying the returned basis through the
+    // source matrix is the check that would have caught that.
+    #[test]
+    fn nullspace_basis_vectors_are_verified_against_the_source_matrix() {
+        let m = vec![
+            vec![Integer(4), Integer(1), Integer(0)],
+            vec![Integer(6), Integer(1), Integer(1)],
+        ];
+        let basis = unit_pivot_nullspace(m.clone(), 3).unwrap();
+        assert!(!basis.is_empty());
+        for x in &basis {
+            for row in &m {
+                assert!(
+                    dot(row, x).is_zero(),
+                    "basis vector {x:?} is not in the kernel of row {row:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn solve_round_trip_recovers_the_solution() {
+        let a = vec![vec![r(2), r(1)], vec![r(1), r(3)]];
+        let b = vec![r(5), r(10)];
+        let x = solve(a.clone(), b.clone()).unwrap();
+        for (row, bi) in a.iter().zip(&b) {
+            assert_eq!(&dot(row, &x), bi);
+        }
+    }
+
+    #[test]
+    fn solve_returns_none_for_a_singular_matrix() {
+        let a = vec![vec![r(1), r(2)], vec![r(2), r(4)]];
+        let b = vec![r(1), r(2)];
+        assert!(solve(a, b).is_none());
+    }
+
+    #[test]
+    fn inverse_matrix_round_trip_recovers_the_identity() {
+        let m = vec![vec![r(2), r(1)], vec![r(1), r(3)]];
+        let inv = inverse_matrix(m.clone()).unwrap();
+        for i in 0..m.len() {
+            for j in 0..m.len() {
+                let entry = (0..m.len()).fold(r(0), |acc, k| acc.add(&m[i][k].mul(&inv[k][j])));
+                assert_eq!(entry, if i == j { r(1) } else { r(0) });
+            }
+        }
+    }
+
+    #[test]
+    fn inverse_matrix_returns_none_for_a_singular_matrix() {
+        let m = vec![vec![r(1), r(2)], vec![r(2), r(4)]];
+        assert!(inverse_matrix(m).is_none());
     }
 }

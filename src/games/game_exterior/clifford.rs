@@ -8,7 +8,9 @@ use crate::scalar::Integer;
 use std::collections::BTreeMap;
 use std::fmt;
 
-use super::lambda::{discover_relations, grade_masks, relation_multivector};
+use super::lambda::{
+    discover_relations, grade_masks, relation_multivector, DEFAULT_RELATION_BOUND,
+};
 use super::relations::{
     eval_relation, relation_search_certificate, GameRelation, RelationSearchCertificate,
 };
@@ -134,7 +136,7 @@ impl GameClifford {
         q: Vec<i128>,
         b: BTreeMap<(usize, usize), i128>,
     ) -> Result<GameClifford, GameCliffordError> {
-        GameClifford::with_relation_search(gens, 3, q, b)
+        GameClifford::with_relation_search(gens, DEFAULT_RELATION_BOUND, q, b)
     }
 
     /// The free integer Clifford algebra on the chosen generators, with no

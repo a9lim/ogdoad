@@ -110,8 +110,10 @@ impl Omnific {
 
     /// The **floor** of a surreal as an omnific integer — the greatest omnific
     /// integer `≤ s` (see [`Surreal::floor`]). Always succeeds, since a surreal
-    /// floor is by construction an omnific integer.
-    pub fn floor(s: &Surreal) -> Omnific {
+    /// floor is by construction an omnific integer. (Named `from_floor`, matching
+    /// this file's `from_*` constructor convention — `floor` collides with the
+    /// unrelated instance method [`Surreal::floor`].)
+    pub fn from_floor(s: &Surreal) -> Omnific {
         Omnific::from_surreal(s.floor()).expect("a surreal floor is always omnific")
     }
 }

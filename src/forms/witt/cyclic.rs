@@ -100,25 +100,14 @@ impl<const P: u128, const N: usize> TameSymbolResidueField for Fpn<P, N> {
     }
 }
 
-fn residue_pow<F: TameSymbolResidueField>(mut base: F, mut e: u128) -> F {
-    let mut acc = F::one();
-    while e > 0 {
-        if e & 1 == 1 {
-            acc = acc.mul(&base);
-        }
-        e >>= 1;
-        if e > 0 {
-            base = base.mul(&base);
-        }
-    }
-    acc
-}
-
+/// The tame-symbol exponent's signed power in the residue field: `base^e` for
+/// `e ≥ 0`, `base⁻¹^|e|` for `e < 0`. Thin wrapper over [`Scalar::pow`] (the
+/// unsigned case) — the signed extension is what earns this its own name.
 fn residue_pow_signed<F: TameSymbolResidueField>(base: F, e: i128) -> Option<F> {
     if e >= 0 {
-        Some(residue_pow(base, e as u128))
+        Some(base.pow(e as u128))
     } else {
-        Some(residue_pow(base.inv()?, e.unsigned_abs()))
+        Some(base.inv()?.pow(e.unsigned_abs()))
     }
 }
 

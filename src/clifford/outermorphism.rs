@@ -98,7 +98,11 @@ pub fn apply_outermorphism<S: Scalar>(
     f: &LinearMap<S>,
     mv: &Multivector<S>,
 ) -> Multivector<S> {
-    debug_assert_eq!(f.n(), alg.dim(), "LinearMap dimension must match the algebra");
+    debug_assert_eq!(
+        f.n(),
+        alg.dim(),
+        "LinearMap dimension must match the algebra"
+    );
     let mut out = alg.zero();
     for (&mask, coeff) in &mv.terms {
         // Fold f(e_i) over the set bits in ascending order, starting at 1.
@@ -127,7 +131,11 @@ pub fn determinant<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
 /// `Λⁿf` is the [`determinant`]. Computed straight from the outermorphism:
 /// `tr Λᵏf = Σ_{|S|=k} ⟨e_S , f(e_S)⟩`, so it is character-faithful for free.
 pub fn exterior_power_trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>, k: usize) -> S {
-    debug_assert_eq!(f.n(), alg.dim(), "LinearMap dimension must match the algebra");
+    debug_assert_eq!(
+        f.n(),
+        alg.dim(),
+        "LinearMap dimension must match the algebra"
+    );
     let mut acc = S::zero();
     for mask in grade_k_masks(alg.dim(), k) {
         let blade = alg.blade(&bits(mask));

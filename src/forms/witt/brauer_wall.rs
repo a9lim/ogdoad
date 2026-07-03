@@ -1002,7 +1002,9 @@ mod tests {
         assert!(quat
             .ramified_places()
             .contains(&FunctionFieldPlace::Finite(poly(&[0, 1]))));
-        assert!(quat.ramified_places().contains(&FunctionFieldPlace::Infinite));
+        assert!(quat
+            .ramified_places()
+            .contains(&FunctionFieldPlace::Infinite));
     }
 
     #[test]

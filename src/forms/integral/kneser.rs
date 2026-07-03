@@ -23,8 +23,8 @@ use super::{
     are_in_same_genus, e_8, is_root_lattice, mass_even_unimodular,
     root_lattices::E8_WEYL_GROUP_ORDER, IntegralForm, D16_PLUS_AUT_ORDER,
 };
-use crate::linalg::integer::{gcd, normalize_relation_rows};
-use crate::scalar::is_prime_u128;
+use crate::linalg::integer::normalize_relation_rows;
+use crate::scalar::{is_prime_u128, Rational};
 use std::collections::BTreeSet;
 
 /// One explicit Kneser neighbor, recording the projective line that generated it.
@@ -284,7 +284,9 @@ pub fn isotropic_lines_mod_p(
     p: u128,
     max_lines: u128,
 ) -> Option<Vec<Vec<u128>>> {
-    if !is_prime_u128(p) || p > i128::MAX as u128 || lattice.determinant().rem_euclid(p as i128) == 0
+    if !is_prime_u128(p)
+        || p > i128::MAX as u128
+        || lattice.determinant().rem_euclid(p as i128) == 0
     {
         return None;
     }
@@ -326,13 +328,8 @@ pub fn kneser_neighbors(
 }
 
 fn add_frac((a, b): (i128, i128), (c, d): (i128, i128)) -> Option<(i128, i128)> {
-    let g = gcd(b, d);
-    let bd = b / g;
-    let da = d / g;
-    let num = a.checked_mul(da)?.checked_add(c.checked_mul(bd)?)?;
-    let den = bd.checked_mul(d)?;
-    let g = gcd(num, den);
-    Some((num / g, den / g))
+    let r = Rational::try_new(a, b)?.checked_add(&Rational::try_new(c, d)?)?;
+    Some((r.numer(), r.denom()))
 }
 
 fn reciprocal_u128(x: u128) -> Option<(i128, i128)> {

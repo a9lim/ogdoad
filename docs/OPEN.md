@@ -426,14 +426,30 @@ What is implemented:
 - Stage 1 handles scalar excesses such as `alpha_3 = 2`, `alpha_5 = 4`, and
   `alpha_17 = 16`; Stage 2 handles nonscalar excesses such as `alpha_7 = omega+1`
   by branching the monomial and recursing to lower places.
-- The 126 finite excess rows are source-pinned to OEIS A380496 (the values themselves
-  verified upstream by CGSuite's Lenstra-excess calculator); the row table is pinned in
-  `excess_table_matches_oeis_a380496`, and field-axiom sweeps test engine consistency,
-  not the truth of the finite `m_u` values. Caveat: the table extends *reach*, not
+- The 126 finite excess rows (the *integers* `m_u`) are source-pinned to OEIS A380496 in
+  full — the vendored b-file is diffed against the table row-for-row by
+  `excess_table_matches_vendored_b380496_in_full` (`src/scalar/big/ordinal/
+  b380496.txt`, fetched 2026-07-02). Caveat: the table extends *reach*, not
   *feasibility* — for large primes `alpha_u` is in the table but its `Q(f(u))`/finite-
   subfield reconstruction over the degree-`e_u` component field (`e_u` in the millions
   for `u` near 709) is too costly to materialize in practice, so only the smaller-`e_u`
   rows are usable end-to-end today.
+- "Exact for `u <= 709`" means the construction is *defined* there (`alpha_ordinal(u)`
+  returns `Some`, since every input it needs — `f(u)`, `Q(f(u))`, and `m_u` — resolves).
+  It is a separate, narrower claim that the resulting *ordinal value* has been checked
+  against an oracle outside the construction itself: that per-row value pin currently
+  covers `u` in `{3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 73, 89}`
+  (DiMuro Table 1 for the first 14; `73`/`89` cross-checked against `experiments/
+  ordinal_excess_probe.py`'s independently curated `Q_SET`/order-based excess
+  certification; `47` additionally re-derived by raw repeated multiplication in
+  `locally_verified_alpha_47_landmark`). The remaining rows up to `709` are defined and
+  internally consistent (the field-axiom sweeps exercise engine consistency) but do not
+  yet have an independent value oracle. The "large primes near 709" cost caveat above
+  actually bites much earlier than 709: `alpha_ordinal(179)` (`f=178=2*89`,
+  `Q(f)={89}`) already recurses into a `finite_subfield_degree` Frobenius minimization
+  on `chi(89)=omega^(omega^22)` that does not finish in a unit-test budget, confirmed
+  by hand while extending this table — so `179` is a genuine gap in the "cheap today"
+  set, not merely an oversight.
 
 The first fourteen rows (odd primes `3..=47`) are shown below for readability — the
 historic DiMuro Table 1 + `m_47` landmarks, now also OEIS A380496 `a(1)..a(14)`;

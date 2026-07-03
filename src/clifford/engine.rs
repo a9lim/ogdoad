@@ -40,8 +40,8 @@ mod product;
 mod terms;
 
 pub use algebra::CliffordAlgebra;
-pub use basis::{bits, grade, MAX_BASIS_DIM};
 pub(crate) use basis::grade_k_masks;
+pub use basis::{bits, grade, MAX_BASIS_DIM};
 pub use metric::Metric;
 pub use multivector::Multivector;
 

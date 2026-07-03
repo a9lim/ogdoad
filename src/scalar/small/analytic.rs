@@ -40,20 +40,6 @@ use crate::scalar::{Fp, Fpn, Qp, Qq, Scalar, WittVec, Zp};
 
 // ───────────────────────── generic lift helpers ─────────────────────────
 
-/// `base^e` in any [`Scalar`] ring, by square-and-multiply.
-fn spow<R: Scalar>(base: &R, mut e: u128) -> R {
-    let mut acc = R::one();
-    let mut b = base.clone();
-    while e > 0 {
-        if e & 1 == 1 {
-            acc = acc.mul(&b);
-        }
-        b = b.mul(&b);
-        e >>= 1;
-    }
-    acc
-}
-
 /// Hensel/Newton square-root lift in a local ring or field `R`: from a `seed`
 /// congruent to `√u` modulo the maximal ideal, iterate `y ← (y + u·y⁻¹)·two_inv`
 /// (which doubles the correct precision each step) to a fixed point. `u` must be a
@@ -197,7 +183,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
     pub fn teichmuller(a: Fp<P>) -> Self {
         let mut t = Zp::from_int(a.value() as i128);
         for _ in 0..K {
-            t = spow(&t, P);
+            t = t.pow(P);
         }
         t
     }
@@ -268,7 +254,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
     pub fn teichmuller(a: Fp<P>) -> Self {
         let mut t = Qp::from_int(a.value() as i128);
         for _ in 0..K {
-            t = spow(&t, P);
+            t = t.pow(P);
         }
         t
     }
@@ -490,9 +476,9 @@ mod tests {
         for a in 1..7u128 {
             let t = Z::teichmuller(Fp::<7>::from_u128(a));
             assert_eq!(t.0 % 7, a, "τ lifts the residue");
-            assert_eq!(spow(&t, 7), t, "τ is Frobenius-fixed (τ^p = τ)");
+            assert_eq!(t.pow(7), t, "τ is Frobenius-fixed (τ^p = τ)");
             // a (p−1)-th root of unity
-            assert_eq!(spow(&t, 6), Z::one(), "τ^{{p-1}} = 1");
+            assert_eq!(t.pow(6), Z::one(), "τ^{{p-1}} = 1");
         }
         // Qp agrees with Zp on the lift.
         for a in 1..7u128 {

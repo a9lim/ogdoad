@@ -445,9 +445,18 @@ mod tests {
     fn symbol_oracle_a1_b_t() {
         // a = 1, b = t:  ω = dt/t.  s = 1 at t=0 and at ∞, 0 elsewhere; Σ = 0.
         let (a, b) = (r2(&[1], &[1]), r2(&[0, 1], &[1]));
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))), 1); // t=0
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 1); // ∞
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1]))), 0); // t+1: regular
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))),
+            1
+        ); // t=0
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite),
+            1
+        ); // ∞
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1]))),
+            0
+        ); // t+1: regular
         assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
         assert_eq!(artin_schreier_ramified_places(&a, &b).len(), 2);
     }
@@ -456,9 +465,18 @@ mod tests {
     fn symbol_oracle_a_recip_tp1_b_t() {
         // a = 1/(t+1), b = t:  ω = dt/(t(t+1)).  s = 1 at t=0 and t+1=0, 0 at ∞; Σ = 0.
         let (a, b) = (r2(&[1], &[1, 1]), r2(&[0, 1], &[1]));
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))), 1); // t
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1]))), 1); // t+1
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 0); // ∞
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))),
+            1
+        ); // t
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1]))),
+            1
+        ); // t+1
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite),
+            0
+        ); // ∞
         assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
     }
 
@@ -467,12 +485,18 @@ mod tests {
         // a = 1/(t²+t+1), b = t:  ω = dt/(t·P), P=t²+t+1.  s = 1 at t=0 and at the
         // degree-2 place P (Tr_{F₄/F₂}(t+1)=1), 0 at ∞; Σ = 0.
         let (a, b) = (r2(&[1], &[1, 1, 1]), r2(&[0, 1], &[1]));
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))), 1); // t=0
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[0, 1]))),
+            1
+        ); // t=0
         assert_eq!(
             artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Finite(p2(&[1, 1, 1]))),
             1
         ); // P (deg 2)
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 0); // ∞
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite),
+            0
+        ); // ∞
         assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
     }
 
@@ -496,7 +520,10 @@ mod tests {
             ),
             1
         );
-        assert_eq!(artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite), 1);
+        assert_eq!(
+            artin_schreier_symbol_at(&a, &b, &FunctionFieldPlace::Infinite),
+            1
+        );
         assert_eq!(artin_schreier_reciprocity_sum(&a, &b), 0);
         // [1, t): a = 1 has trace 0 over F₄, so the symbol is 0 at every place.
         let one = R4::from_base(F4::constant(1));

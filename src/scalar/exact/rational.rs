@@ -149,6 +149,47 @@ impl Rational {
         let rd = inth_root_exact(self.den, k)?; // den > 0
         Some(Rational::new(rn, rd))
     }
+
+    /// Checked addition: `None` on i128 overflow instead of panicking. The
+    /// [`Scalar::add`] impl is a thin `.expect()` wrapper over this.
+    pub fn checked_add(&self, rhs: &Self) -> Option<Self> {
+        let g = gcd_u128(self.den as u128, rhs.den as u128).max(1);
+        let g = i128::try_from(g).ok()?;
+        let lhs_scale = rhs.den / g;
+        let rhs_scale = self.den / g;
+        let num = self
+            .num
+            .checked_mul(lhs_scale)?
+            .checked_add(rhs.num.checked_mul(rhs_scale)?)?;
+        let den = self.den.checked_mul(lhs_scale)?;
+        Rational::try_new(num, den)
+    }
+
+    /// Checked multiplication: `None` on i128 overflow instead of panicking.
+    /// Cross-reduces first (`gcd(a,d)`, `gcd(c,b)`) to keep intermediates small,
+    /// the same cross-gcd-reduction the [`Scalar::mul`] impl (a thin `.expect()`
+    /// wrapper over this) exposes.
+    pub fn checked_mul(&self, rhs: &Self) -> Option<Self> {
+        let mut lhs_num = self.num;
+        let mut lhs_den = self.den;
+        let mut rhs_num = rhs.num;
+        let mut rhs_den = rhs.den;
+
+        let g1 = gcd_u128(lhs_num.unsigned_abs(), rhs_den as u128);
+        if g1 > 1 {
+            let g1 = i128::try_from(g1).ok()?;
+            lhs_num /= g1;
+            rhs_den /= g1;
+        }
+        let g2 = gcd_u128(rhs_num.unsigned_abs(), lhs_den as u128);
+        if g2 > 1 {
+            let g2 = i128::try_from(g2).ok()?;
+            rhs_num /= g2;
+            lhs_den /= g2;
+        }
+
+        Rational::try_new(lhs_num.checked_mul(rhs_num)?, lhs_den.checked_mul(rhs_den)?)
+    }
 }
 
 impl fmt::Display for Rational {
@@ -208,20 +249,8 @@ impl Scalar for Rational {
         Rational { num: n, den: 1 }
     }
     fn add(&self, rhs: &Self) -> Self {
-        let g = gcd_u128(self.den as u128, rhs.den as u128).max(1);
-        let g = i128::try_from(g).expect("Rational denominator gcd overflowed i128");
-        let lhs_scale = rhs.den / g;
-        let rhs_scale = self.den / g;
-        let lhs = self
-            .num
-            .checked_mul(lhs_scale)
-            .and_then(|x| x.checked_add(rhs.num.checked_mul(rhs_scale)?));
-        let den = self.den.checked_mul(lhs_scale);
-        Rational::try_new(
-            lhs.expect("Rational addition overflowed i128"),
-            den.expect("Rational addition denominator overflowed i128"),
-        )
-        .expect("Rational addition normalization overflowed i128")
+        self.checked_add(rhs)
+            .expect("Rational addition overflowed i128")
     }
     fn neg(&self) -> Self {
         Rational {
@@ -233,33 +262,8 @@ impl Scalar for Rational {
         }
     }
     fn mul(&self, rhs: &Self) -> Self {
-        let mut lhs_num = self.num;
-        let mut lhs_den = self.den;
-        let mut rhs_num = rhs.num;
-        let mut rhs_den = rhs.den;
-
-        let g1 = gcd_u128(lhs_num.unsigned_abs(), rhs_den as u128);
-        if g1 > 1 {
-            let g1 = i128::try_from(g1).expect("Rational multiplication gcd overflowed i128");
-            lhs_num /= g1;
-            rhs_den /= g1;
-        }
-        let g2 = gcd_u128(rhs_num.unsigned_abs(), lhs_den as u128);
-        if g2 > 1 {
-            let g2 = i128::try_from(g2).expect("Rational multiplication gcd overflowed i128");
-            rhs_num /= g2;
-            lhs_den /= g2;
-        }
-
-        Rational::try_new(
-            lhs_num
-                .checked_mul(rhs_num)
-                .expect("Rational multiplication numerator overflowed i128"),
-            lhs_den
-                .checked_mul(rhs_den)
-                .expect("Rational multiplication denominator overflowed i128"),
-        )
-        .expect("Rational multiplication normalization overflowed i128")
+        self.checked_mul(rhs)
+            .expect("Rational multiplication overflowed i128")
     }
     fn characteristic() -> u128 {
         0
@@ -303,5 +307,31 @@ mod tests {
         let huge_den = 1i128 << 100;
         let x = Rational::new(1, huge_den);
         assert_eq!(x.add(&x), Rational::new(1, 1i128 << 99));
+    }
+
+    #[test]
+    fn checked_add_returns_none_on_overflow() {
+        let huge = Rational::new(i128::MAX, 1);
+        assert_eq!(huge.checked_add(&Rational::new(1, 1)), None);
+    }
+
+    #[test]
+    fn checked_mul_returns_none_on_overflow() {
+        let huge = Rational::new(i128::MAX, 1);
+        assert_eq!(huge.checked_mul(&Rational::new(2, 1)), None);
+    }
+
+    #[test]
+    #[should_panic(expected = "Rational addition overflowed i128")]
+    fn add_panics_where_checked_add_returns_none() {
+        let huge = Rational::new(i128::MAX, 1);
+        let _ = huge.add(&Rational::new(1, 1));
+    }
+
+    #[test]
+    #[should_panic(expected = "Rational multiplication overflowed i128")]
+    fn mul_panics_where_checked_mul_returns_none() {
+        let huge = Rational::new(i128::MAX, 1);
+        let _ = huge.mul(&Rational::new(2, 1));
     }
 }

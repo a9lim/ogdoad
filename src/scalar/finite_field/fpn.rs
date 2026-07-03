@@ -406,17 +406,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
             return true; // Frobenius is onto in char 2
         }
         // a^{(q−1)/2} == 1
-        let mut e = (Self::field_order() - 1) / 2;
-        let mut base = *self;
-        let mut acc = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                acc = acc.mul(&base);
-            }
-            base = base.mul(&base);
-            e >>= 1;
-        }
-        acc == Self::one()
+        Scalar::pow(self, (Self::field_order() - 1) / 2) == Self::one()
     }
 
     /// The generator `x` (the class of the indeterminate), i.e. `[0, 1, 0, …]`.
@@ -494,21 +484,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn frobenius(&self) -> Self {
         Self::assert_supported_params();
-        self.pow(P)
-    }
-
-    fn pow(&self, mut e: u128) -> Self {
-        Self::assert_supported_params();
-        let mut base = *self;
-        let mut acc = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                acc = acc.mul(&base);
-            }
-            base = base.mul(&base);
-            e >>= 1;
-        }
-        acc
+        FiniteField::pow(self, P)
     }
 
     fn ext_degree() -> usize {
@@ -653,18 +629,8 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
         if self.is_zero() {
             return None;
         }
-        // Fermat: a^{p^N − 2} = a^{−1} in F_{p^N}. Square-and-multiply with `mul`.
-        let mut e = Self::field_order() - 2;
-        let mut base = *self;
-        let mut result = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                result = result.mul(&base);
-            }
-            base = base.mul(&base);
-            e >>= 1;
-        }
-        Some(result)
+        // Fermat: a^{p^N − 2} = a^{−1} in F_{p^N}.
+        Some(Scalar::pow(self, Self::field_order() - 2))
     }
     /// Faster direct construction via the constant coefficient; semantically
     /// identical to the default double-and-add (reduction mod p in degree-0).
@@ -875,7 +841,7 @@ mod tests {
         let g = Fpn::<2, 3>::primitive_element();
         assert_eq!(g.multiplicative_order(), Some(7));
         for e in 0..7u128 {
-            assert_eq!(g.discrete_log(g.pow(e)), Some(e % 7));
+            assert_eq!(g.discrete_log(FiniteField::pow(&g, e)), Some(e % 7));
         }
         // F_16's Conway generator has order 15 for x^4+x+1.
         let c = Fpn::<2, 4>::generator();

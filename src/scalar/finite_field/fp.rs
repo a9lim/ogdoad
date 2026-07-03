@@ -139,24 +139,6 @@ impl<const P: u128> Scalar for Fp<P> {
     }
 }
 
-impl<const P: u128> Fp<P> {
-    pub fn pow(&self, mut e: u128) -> Self {
-        Self::assert_supported_params();
-        let mut base = *self;
-        let mut acc = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                acc = acc.mul(&base);
-            }
-            e >>= 1;
-            if e > 0 {
-                base = base.mul(&base);
-            }
-        }
-        acc
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

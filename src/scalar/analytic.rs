@@ -187,7 +187,6 @@ pub(crate) fn fp_sqrt(a: u128, p: u128) -> Option<u128> {
 /// square and `q − 1` is odd (`s = 0`), so the loop returns `a^{q/2}` (the inverse
 /// Frobenius) on the first step.
 pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn<P, N>> {
-    use crate::scalar::FiniteField;
     if a.is_zero() {
         return Some(Fpn::zero());
     }
@@ -203,9 +202,9 @@ pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn
     }
     let z = Fpn::<P, N>::primitive_element(); // a generator ⇒ a non-residue
     let mut m = s;
-    let mut c = z.pow(qodd);
-    let mut t = a.pow(qodd);
-    let mut r = a.pow(qodd.div_ceil(2));
+    let mut c = z ^ qodd;
+    let mut t = a ^ qodd;
+    let mut r = a ^ qodd.div_ceil(2);
     loop {
         if t == one {
             return Some(r);
@@ -216,7 +215,7 @@ pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn
             t2 = t2.mul(&t2);
             i += 1;
         }
-        let b = c.pow(1u128 << (m - i - 1));
+        let b = c ^ (1u128 << (m - i - 1));
         m = i;
         c = b.mul(&b);
         t = t.mul(&c);

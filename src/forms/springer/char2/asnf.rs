@@ -10,21 +10,6 @@ use std::collections::BTreeMap;
 
 // ───────────────────────── κ-local arithmetic at a place ─────────────────────────
 
-/// `x^e` in any `Scalar` field by square-and-multiply (used for `F_q` square roots
-/// at `∞`, where `√z = z^{q/2}` since Frobenius is the squaring map).
-pub(super) fn s_pow<S: Scalar>(x: &S, mut e: u128) -> S {
-    let mut base = x.clone();
-    let mut acc = S::one();
-    while e > 0 {
-        if e & 1 == 1 {
-            acc = acc.mul(&base);
-        }
-        base = base.mul(&base);
-        e >>= 1;
-    }
-    acc
-}
-
 /// `a · b` in the residue field `κ` at `place`.
 pub(super) fn kmul<S: FiniteChar2Field>(
     a: &Poly<S>,
@@ -52,7 +37,7 @@ pub(super) fn kappa_sqrt<S: FiniteChar2Field>(
             ); // |κ| = q^{deg P}
             z.pow_mod(order / 2, p)
         }
-        FunctionFieldPlace::Infinite => Poly::constant(s_pow(&z.coeff(0), S::field_order() / 2)),
+        FunctionFieldPlace::Infinite => Poly::constant(z.coeff(0).pow(S::field_order() / 2)),
     }
 }
 

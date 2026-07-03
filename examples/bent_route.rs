@@ -49,7 +49,16 @@ fn describe(label: &str, p: &[u128], zero: &[u128], draws: usize, m: u128) {
                 } else {
                     ""
                 };
-                println!("   quadric (Arf={}, rank={}{bent})", f.arf.arf, f.arf.rank)
+                // `f.arf.arf` is the Arf of the homogeneous part only; the printed
+                // win-bias is `f.bias()` (arf ⊕ constant — see `QuadricFit::bias`),
+                // since these rule-derived sets are not guaranteed to pass through 0.
+                println!(
+                    "   quadric (Arf(Q)={}, rank={}, constant={} → win-bias={}{bent})",
+                    f.arf.arf,
+                    f.arf.rank,
+                    f.constant,
+                    f.bias()
+                )
             }
             Some(_) => println!("   affine/linear (a subspace coset)"),
             None => println!("   not a quadric"),

@@ -166,12 +166,6 @@ mod tests {
         Hackenbush::string(colors)
     }
 
-    /// The canonical Nim-heap game `*n`.
-    fn nim_heap(n: u128) -> Game {
-        let opts: Vec<Game> = (0..n).map(nim_heap).collect();
-        Game::new(opts.clone(), opts)
-    }
-
     #[test]
     fn blue_and_red_strings_are_integers() {
         use Color::*;
@@ -191,7 +185,14 @@ mod tests {
         for n in 0u128..6 {
             let g = Hackenbush::string(&vec![Green; n as usize]);
             assert_eq!(g.grundy(), Some(n)); // mex recursion = Nim heap n
-            assert!(g.to_game().eq(&nim_heap(n))); // and the game value agrees
+
+            // `to_game()`'s edge-removal recursion agrees with the game engine's
+            // own canonical Nim-heap constructor (not an independent cross-check —
+            // `Game::nim_heap` is the same recursion the deleted local copy of this
+            // test used to duplicate; it just confirms Hackenbush's evaluator lands
+            // on that value, using the one nim_heap definition instead of a second
+            // copy of it).
+            assert!(g.to_game().eq(&Game::nim_heap(n)));
             if n >= 1 {
                 assert_eq!(g.value(), None); // *n (n≥1) is not a number
             }
@@ -253,6 +254,52 @@ mod tests {
         let mixed = Hackenbush::new(vec![(0, 1, Green), (1, 2, Blue)]);
         assert_eq!(mixed.value(), None);
         assert!(mixed.grundy().is_none()); // has a coloured edge
+    }
+
+    #[test]
+    fn branched_blue_red_position_matches_an_independent_ordinal_sum_reconstruction() {
+        use Color::*;
+        // A genuinely BRANCHED (non-string) blue/red position: a single base edge
+        // ground--Blue-->1, then two independent branches fork off vertex 1:
+        // 1--Red-->2 and 1--Blue-->3. All existing blue/red oracle tests are single
+        // *strings* (`blue_and_red_strings_are_integers`,
+        // `blue_red_strings_are_their_sign_expansion`); this is the one branched
+        // case, with a value derivable *without going through `to_game()`/`value()`
+        // at all*.
+        //
+        // Ground truth: while the base edge survives, the two branches never
+        // interact (an edge deletion in one cannot affect the other or the base),
+        // so together they are the DISJUNCTIVE SUM of two lone edges evaluated as
+        // if vertex 1 were its own ground: value(1--Red-->2 alone) +
+        // value(1--Blue-->3 alone) = (-1) + 1 = 0. The instant the base edge is cut,
+        // both branches fall off together — exactly the ORDINAL SUM `base : branches`
+        // (the module doc's "Hackenbush strings are ordinal sums of single edges"
+        // generalizes to any grounded branch point, not just a bare string). So the
+        // predicted value is `Game::integer(1).ordinal_sum(&(branch_a + branch_b))`,
+        // built entirely from `Game::integer`/`ordinal_sum`/`add`, never touching
+        // `Hackenbush::to_game()`.
+        let branched = Hackenbush::new(vec![(0, 1, Blue), (1, 2, Red), (1, 3, Blue)]);
+        let branch_a = Hackenbush::string(&[Red]).to_game(); // 1--Red-->2, evaluated alone
+        let branch_b = Hackenbush::string(&[Blue]).to_game(); // 1--Blue-->3, evaluated alone
+        let predicted = Game::integer(1).ordinal_sum(&branch_a.add(&branch_b));
+
+        assert!(
+            branched.to_game().eq(&predicted),
+            "branched Hackenbush value {} should match the independent ordinal-sum \
+             reconstruction {}",
+            branched.to_game().display(),
+            predicted.display()
+        );
+
+        // Asserted via the surreal round-trip: value() -> Surreal -> from_surreal
+        // should land back on (a value equal to) the same independently derived
+        // canonical game.
+        let value = branched
+            .value()
+            .expect("blue/red-only position is a number");
+        assert_eq!(value, Surreal::from_int(1));
+        let rebuilt = Game::from_surreal(&value).expect("integer values are dyadic");
+        assert!(rebuilt.canonical().structural_eq(&predicted.canonical()));
     }
 
     #[test]

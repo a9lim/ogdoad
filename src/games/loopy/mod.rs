@@ -322,19 +322,37 @@ mod tests {
 
     #[test]
     fn quadric_probe_reads_both_sets() {
-        // A cyclic rule on F₂² that makes {0} a Loss and pairs the rest into a draw
-        // cycle — exercising both fit slots. Here we just check the plumbing: the
-        // loss-set fits (a point) and the call returns without panicking.
-        let (loss_fit, _draw_fit) = loopy_quadric_probe(2, |v| {
-            if v == 0 {
-                vec![] // terminal ⇒ Loss
-            } else {
-                vec![0] // everyone moves to 0 ⇒ Win, no draws
-            }
+        // A genuinely cyclic rule on F₂²: 0 -> 1 -> 2 -> 0 is a 3-cycle with no
+        // exit, so (per `kernel::outcomes`'s convention, the same shape as
+        // `two_cycle_is_all_draws` above, one node longer) retrograde analysis
+        // never reaches a terminal from any of the three and leaves all three
+        // Draws. Position 3 is terminal, hence a Loss. So Loss-set = {3} and
+        // Draw-set = {0,1,2} — both nonempty, so this actually exercises the
+        // Draw-set fit slot (the empty-Draw-set plumbing check the old version of
+        // this test did is already covered by `decision_sets_recover_an_acyclic_
+        // loss_set_with_no_draws`).
+        let (loss_fit, draw_fit) = loopy_quadric_probe(2, |v| match v {
+            0 => vec![1],
+            1 => vec![2],
+            2 => vec![0],
+            _ => vec![],
         });
-        // {0} as a P-set over F₂² is the anisotropic quadric (Arf 1).
-        let f = loss_fit.expect("{0} is a quadric");
-        assert!(f.is_genuinely_quadratic());
-        assert_eq!(f.arf.arf, 1);
+
+        // Draw-set {0,1,2} is exactly the hyperbolic quadric Q = x0 x1 (the same
+        // zero set as `fit_recovers_known_quadrics`'s `h` case in
+        // `forms::quadric_fit`): genuinely quadratic, Arf 0, through the origin
+        // (constant = false).
+        let d = draw_fit.expect("{0,1,2} is a quadric");
+        assert!(d.is_genuinely_quadratic());
+        assert_eq!((d.arf.arf, d.arf.rank, d.constant), (0, 2, false));
+        assert_eq!(d.bias(), 0); // |{0,1,2}| = 3 = 2^1 + 2^0
+
+        // Loss-set {3} is the complement of that same hyperbolic quadric: the
+        // same homogeneous Q = x0 x1 (Arf 0), but with the affine offset flipped
+        // on, so the fitted set is {Q = 1} rather than {Q = 0}.
+        let l = loss_fit.expect("{3} is a quadric");
+        assert!(l.is_genuinely_quadratic());
+        assert_eq!((l.arf.arf, l.arf.rank, l.constant), (0, 2, true));
+        assert_eq!(l.bias(), 1); // |{3}| = 1 = 2^1 - 2^0
     }
 }

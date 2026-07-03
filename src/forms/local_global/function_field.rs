@@ -408,20 +408,6 @@ fn frac_mod_one_ratio(m: i128, n: i128) -> Option<Rational> {
     Rational::try_new(m.rem_euclid(n), n)
 }
 
-fn finite_pow<S: FiniteOddField>(mut base: S, mut e: u128) -> S {
-    let mut acc = S::one();
-    while e > 0 {
-        if e & 1 == 1 {
-            acc = acc.mul(&base);
-        }
-        e >>= 1;
-        if e > 0 {
-            base = base.mul(&base);
-        }
-    }
-    acc
-}
-
 fn finite_order<S: FiniteOddField>(x: S) -> Option<u128> {
     if x.is_zero() {
         return None;
@@ -562,10 +548,7 @@ pub fn try_tame_symbol_exponent_ff<S: FiniteOddField>(
     let raw = tame_symbol_raw_ff(a, b, place)?;
     let residue_group = try_kappa_order(place)?.checked_sub(1)?;
     let value = kappa_pow(&raw, residue_group.checked_div(n)?, place);
-    let zeta = finite_pow(
-        constant_field_primitive::<S>()?,
-        constant_group.checked_div(n)?,
-    );
+    let zeta = constant_field_primitive::<S>()?.pow(constant_group.checked_div(n)?);
     kappa_log_with_order(&Poly::constant(zeta), &value, n, place)
 }
 
@@ -723,8 +706,11 @@ mod tests {
             try_valuation_at_ff(&a, &FunctionFieldPlace::Finite(poly(&[1, 1]))),
             Some(-1)
         ); // at π = t+1
-        assert_eq!(try_valuation_at_ff(&a, &FunctionFieldPlace::Infinite), Some(0)); // deg den − deg num = 0
-                                                                          // 1/t² has a double pole at ∞? no: v_∞(1/t²) = deg(t²) − deg(1) = 2.
+        assert_eq!(
+            try_valuation_at_ff(&a, &FunctionFieldPlace::Infinite),
+            Some(0)
+        ); // deg den − deg num = 0
+           // 1/t² has a double pole at ∞? no: v_∞(1/t²) = deg(t²) − deg(1) = 2.
         assert_eq!(
             try_valuation_at_ff(&rf(&[1], &[0, 0, 1]), &FunctionFieldPlace::Infinite),
             Some(2)
@@ -747,8 +733,8 @@ mod tests {
         ];
         let places = [
             FunctionFieldPlace::Infinite,
-            FunctionFieldPlace::Finite(poly(&[0, 1])),    // t
-            FunctionFieldPlace::Finite(poly(&[1, 1])),    // t+1
+            FunctionFieldPlace::Finite(poly(&[0, 1])), // t
+            FunctionFieldPlace::Finite(poly(&[1, 1])), // t+1
             FunctionFieldPlace::Finite(poly(&[2, 0, 1])), // t²+2 (degree-2 place, residue F_25)
         ];
         for a in &samples {
@@ -806,7 +792,7 @@ mod tests {
         assert_eq!(ram.len(), 2, "even number of ramified places");
         assert!(ram.contains(&FunctionFieldPlace::Finite(poly(&[0, 1])))); // π = t
         assert!(ram.contains(&FunctionFieldPlace::Infinite)); // ∞
-                                                   // a split quaternion (a square second slot) ramifies nowhere.
+                                                              // a split quaternion (a square second slot) ramifies nowhere.
         assert!(try_ramified_places_ff(&a, &rf(&[4], &[1]))
             .unwrap()
             .is_empty()); // 4 = 2² is a square
@@ -951,7 +937,10 @@ mod tests {
             FunctionFieldPlace::Finite(poly(&[0, 1])),
             Rational::try_new(3, 4).unwrap()
         )));
-        assert!(invs.contains(&(FunctionFieldPlace::Infinite, Rational::try_new(1, 4).unwrap())));
+        assert!(invs.contains(&(
+            FunctionFieldPlace::Infinite,
+            Rational::try_new(1, 4).unwrap()
+        )));
         assert_eq!(
             tame_symbol_invariant_sum_ff(4, &t, &two),
             Some(Rational::zero())

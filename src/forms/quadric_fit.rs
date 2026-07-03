@@ -33,13 +33,39 @@ impl QuadricFit {
     pub fn is_genuinely_quadratic(&self) -> bool {
         self.arf.rank > 0
     }
+
+    /// The win-bias bit of the **fitted set itself** — `arf.arf` XOR `constant`.
+    ///
+    /// [`arf`](Self::arf)`.arf` is the Arf invariant of the *homogeneous* quadratic
+    /// part `Q₀` alone; it is not by itself the bias of `set`, because the fit may
+    /// carry a nonzero [`constant`](Self::constant) (`set = {Q₀ = 1}` rather than
+    /// `{Q₀ = 0}`), and the zero-count bias flips with that offset (e.g. `Q₀ = x₀x₁`
+    /// has zero set `{00,01,10}`, 3 points, while `1 + Q₀` has zero set `{11}`, 1
+    /// point — same homogeneous Arf, opposite bias). `bias()` is the corrected bit:
+    /// on a **nonsingular** fit ([`arf`](Self::arf)`.radical_dim == 0`, which forces
+    /// the ambient dimension `k` even),
+    ///
+    /// ```text
+    /// |set| = 2^(k-1) + (-1)^bias * 2^(k/2 - 1)
+    /// ```
+    ///
+    /// so `bias() == 0` means `set` is larger than the half-size baseline
+    /// `2^(k-1)`, `bias() == 1` means smaller. Degenerate fits
+    /// (`radical_dim != 0`) have no such closed-form count; `bias()` still
+    /// computes the XOR, but callers relying on the count formula must check
+    /// [`is_genuinely_quadratic`](Self::is_genuinely_quadratic) / `radical_dim`
+    /// first.
+    pub fn bias(&self) -> u128 {
+        self.arf.arf ^ (self.constant as u128)
+    }
 }
 
 /// Try to fit a quadratic form `Q(x) = c ⊕ Σ q_i x_i ⊕ Σ_{i<j} b_ij x_i x_j` over
 /// F₂ on `k` variables whose zero set is exactly `set` (a list of bitmask points
-/// of F₂^k). Returns `None` if no quadratic form has that zero set. The unique
-/// Boolean algebraic normal form is computed by a fast Mobius transform on the
-/// truth table; fitting succeeds exactly when every coefficient of degree `> 2`
+/// of F₂^k). Returns `None` if no quadratic form has that zero set, or if `set`
+/// contains a point outside `F₂^k` (i.e. with a bit set at position `>= k`). The
+/// unique Boolean algebraic normal form is computed by a fast Mobius transform on
+/// the truth table; fitting succeeds exactly when every coefficient of degree `> 2`
 /// vanishes.
 ///
 /// This is the instrument both game probes feed their P-positions into: it answers
@@ -54,10 +80,9 @@ pub fn fit_f2_quadratic(set: &[u128], k: usize) -> Option<QuadricFit> {
     );
     let n = 1usize << k;
     let domain_mask = if k == 0 { 0 } else { (1u128 << k) - 1 };
-    assert!(
-        set.iter().all(|&v| v & !domain_mask == 0),
-        "fit_f2_quadratic received a point outside F_2^{k}"
-    );
+    if set.iter().any(|&v| v & !domain_mask != 0) {
+        return None;
+    }
 
     // Truth table for the target function Q(v): zero on `set`, one off it.
     let mut coeffs = vec![true; n];
@@ -173,5 +198,74 @@ mod tests {
         // Q(v) = x0 x1 x2 has zero set all points except 111; it is not quadratic.
         let set: Vec<u128> = (0..8u128).filter(|&v| v != 7).collect();
         assert!(fit_f2_quadratic(&set, 3).is_none());
+    }
+
+    #[test]
+    fn point_outside_domain_returns_none_not_panic() {
+        // k=2 ⇒ domain is {00,01,10,11}; bit 2 set is out of F_2^2.
+        assert_eq!(fit_f2_quadratic(&[0, 1, 4], 2), None);
+    }
+
+    #[test]
+    fn bias_matches_brute_force_zero_count_on_nonsingular_forms_up_to_k4() {
+        // For every nonsingular F₂ quadratic form Q on F₂^k (k ≤ 4 — odd k never
+        // has a nonsingular alternating polar form, so those iterations just find
+        // nothing to check), fit both Q's own zero set (constant=false) and its
+        // complement (constant=true, same homogeneous Q) and check bias() = arf ⊕
+        // constant against a brute-forced zero count via the closed form pinned in
+        // `QuadricFit::bias`'s doc: |set| = 2^(k-1) + (-1)^bias * 2^(k/2-1).
+        for k in 1usize..=4 {
+            let pair_count = k * (k - 1) / 2;
+            for qd_bits in 0u128..(1 << k) {
+                let qd: Vec<bool> = (0..k).map(|i| qd_bits & (1 << i) != 0).collect();
+                for bmat_bits in 0u128..(1u128 << pair_count) {
+                    let mut bmat = vec![0u128; k];
+                    let mut idx = 0;
+                    for i in 0..k {
+                        for j in (i + 1)..k {
+                            if bmat_bits & (1 << idx) != 0 {
+                                bmat[i] |= 1 << j;
+                                bmat[j] |= 1 << i;
+                            }
+                            idx += 1;
+                        }
+                    }
+                    let arf = arf_f2(k, &qd, &bmat);
+                    if arf.radical_dim != 0 {
+                        continue; // the count formula only holds when nonsingular
+                    }
+
+                    let probe = QuadricFit {
+                        constant: false,
+                        qd: qd.clone(),
+                        bmat: bmat.clone(),
+                        arf: arf.clone(),
+                    };
+                    let expected = |bias: u128| -> i128 {
+                        let base = 1i128 << (k - 1);
+                        let swing = 1i128 << (k / 2 - 1);
+                        if bias == 0 {
+                            base + swing
+                        } else {
+                            base - swing
+                        }
+                    };
+
+                    let zero_set: Vec<u128> = (0..(1u128 << k))
+                        .filter(|&v| !eval_fit(&probe, v))
+                        .collect();
+                    let fit0 = fit_f2_quadratic(&zero_set, k).unwrap();
+                    assert!(!fit0.constant);
+                    assert_eq!(zero_set.len() as i128, expected(fit0.bias()));
+
+                    let complement: Vec<u128> = (0..(1u128 << k))
+                        .filter(|v| !zero_set.contains(v))
+                        .collect();
+                    let fit1 = fit_f2_quadratic(&complement, k).unwrap();
+                    assert!(fit1.constant);
+                    assert_eq!(complement.len() as i128, expected(fit1.bias()));
+                }
+            }
+        }
     }
 }

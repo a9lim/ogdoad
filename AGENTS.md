@@ -116,7 +116,7 @@ The scalar landscape is broad, but not all backends have the same exactness clai
 | `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss` | local-field-style backends/functors, mostly capped-relative precision models |
 | `Adele`, `LocalQp` | runtime-prime adelic precision model over `Q` |
 | `RationalFunction` | exact global function field `F_q(t)` over `Poly = F_q[t]` |
-| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through Kummer carries `α_u` assembled from `ord_u(2)`, `Q(f(u))`, and the source-pinned finite `m_u` rows (OEIS A380496 b-file, odd primes `3..=709`) below `ω^(ω^ω)` |
+| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through Kummer carries `α_u` assembled from `ord_u(2)`, `Q(f(u))`, and the source-pinned finite `m_u` rows (OEIS A380496 b-file, odd primes `3..=709`, diffed in full against a vendored copy) below `ω^(ω^ω)` — the *integer* table is pinned for all 126 rows, but the resulting `α_u` *ordinal* is independently value-checked only at a named subset (`docs/OPEN.md`) |
 
 The char-2 Clifford point is load-bearing. In characteristic 2, `q` and `b` are
 independent:

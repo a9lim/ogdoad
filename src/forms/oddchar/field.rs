@@ -85,26 +85,13 @@ impl<const P: u128, const N: usize> FiniteOddField for Fpn<P, N> {
     }
 }
 
-/// `base^e` in `F_P` by square-and-multiply.
-fn fp_pow<const P: u128>(mut base: Fp<P>, mut e: u128) -> Fp<P> {
-    let mut acc = Fp::<P>::one();
-    while e > 0 {
-        if e & 1 == 1 {
-            acc = acc.mul(&base);
-        }
-        base = base.mul(&base);
-        e >>= 1;
-    }
-    acc
-}
-
 /// Euler's criterion: is `x` a square in `F_P`? (`0` counts as a square.)
 pub fn is_square<const P: u128>(x: Fp<P>) -> bool {
     assert_odd_prime::<P>();
     if x.is_zero() {
         return true;
     }
-    fp_pow(x, (P - 1) / 2) == Fp::<P>::one()
+    x.pow((P - 1) / 2) == Fp::<P>::one()
 }
 
 /// Square-class predicate over any supported finite field of odd characteristic.

@@ -57,9 +57,13 @@ fn report(name: &str, game: &AbstractGame, atoms: &[usize], elem: usize, test: u
             match fit_f2_quadratic(&pset, atoms.len()) {
                 Some(fit) => {
                     if fit.is_genuinely_quadratic() {
+                        // `fit.arf.arf` is the Arf of the *homogeneous* part only;
+                        // the P-set's actual win-bias also depends on `fit.constant`
+                        // (the fit may be `{Q=1}`, not `{Q=0}`) — `fit.bias()` is the
+                        // honest arf⊕constant bit (see `QuadricFit::bias`).
                         println!(
-                            "    P-set IS a genuine quadric:  Arf={}, rank={}  ← a quadratic refinement!",
-                            fit.arf.arf, fit.arf.rank
+                            "    P-set IS a genuine quadric:  Arf(Q)={}, rank={}, constant={} → win-bias={}  ← a quadratic refinement!",
+                            fit.arf.arf, fit.arf.rank, fit.constant, fit.bias()
                         );
                     } else {
                         println!(

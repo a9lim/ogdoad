@@ -50,7 +50,7 @@ fn degree_bound_for_exponent(exp: &Ordinal) -> Option<u128> {
     exp.terms().iter().try_fold(1u128, |acc, (place, coeff)| {
         let m = place.as_finite()?;
         let p = super::tower::place_prime(m);
-        base_digits(*coeff, p)
+        super::tower::base_digits(*coeff, p)
             .into_iter()
             .enumerate()
             .filter(|&(_, digit)| digit != 0)
@@ -63,7 +63,7 @@ fn degree_bound_for_exponent(exp: &Ordinal) -> Option<u128> {
 fn generator_degree(p: u128, level: u128) -> Option<u128> {
     let alpha = super::tower::alpha_ordinal(p)?;
     let alpha_degree = ordinal_finite_subfield_degree(&alpha)?;
-    alpha_degree.checked_mul(checked_pow(p, level + 1)?)
+    alpha_degree.checked_mul(super::tower::checked_pow(p, level + 1)?)
 }
 
 fn minimize_degree_by_frobenius(x: &Ordinal, bound: u128) -> Option<u128> {
@@ -87,23 +87,6 @@ fn frobenius_fixed(x: &Ordinal, degree: u128) -> Option<bool> {
         y = y.nim_mul(&y)?;
     }
     Some(&y == x)
-}
-
-fn base_digits(mut value: u128, base: u128) -> Vec<u128> {
-    let mut digits = Vec::new();
-    while value > 0 {
-        digits.push(value % base);
-        value /= base;
-    }
-    digits
-}
-
-fn checked_pow(base: u128, exp: u128) -> Option<u128> {
-    let mut acc = 1u128;
-    for _ in 0..exp {
-        acc = acc.checked_mul(base)?;
-    }
-    Some(acc)
 }
 
 fn lcm(a: u128, b: u128) -> Option<u128> {

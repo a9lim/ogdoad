@@ -86,7 +86,7 @@ impl Surreal {
     /// term (`ω`-exponent `< 0`). If the finite constant is already an integer,
     /// a negative infinitesimal tail borrows one from that integer part. The
     /// result is always an omnific integer ([`crate::scalar::Omnific`]);
-    /// `Omnific::floor` wraps it as one. Satisfies `⌊x⌋ ≤ x < ⌊x⌋ + 1`.
+    /// `Omnific::from_floor` wraps it as one. Satisfies `⌊x⌋ ≤ x < ⌊x⌋ + 1`.
     pub fn floor(&self) -> Surreal {
         let mut terms: Vec<(Surreal, Rational)> = Vec::new();
         let mut constant = Rational::zero();

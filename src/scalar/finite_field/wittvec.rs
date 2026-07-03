@@ -122,20 +122,6 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
         out
     }
 
-    /// `self^e` in the ring, by square-and-multiply.
-    fn pow(&self, mut e: u128) -> Self {
-        let mut base = *self;
-        let mut acc = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                acc = acc.mul(&base);
-            }
-            base = base.mul(&base);
-            e >>= 1;
-        }
-        acc
-    }
-
     /// The **Teichmüller representative** `τ(x) ∈ W_N(F_q)` of `x ∈ F_q`: the unique
     /// multiplicative lift with `τ(x) ≡ x mod p`. Computed as `x̃^{q^{N-1}}` for any
     /// lift `x̃` (the power iteration stabilises modulo `p^N`).

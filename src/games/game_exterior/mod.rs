@@ -95,6 +95,28 @@ mod tests {
     }
 
     #[test]
+    fn game_exterior_new_default_bound_is_incomplete_at_three_generators() {
+        // `GameExterior::new` routes through `DEFAULT_RELATION_BOUND` (3). At three
+        // generators the exhaustive candidate box `(2*3+1)^3 - 1 = 342` already
+        // exceeds `MAX_AUTO_RELATION_CANDIDATES` (100), so `discover_relations`
+        // falls back to the singleton-only search and honestly reports
+        // incompleteness — this holds for ANY three generators, independent of
+        // what relations they actually satisfy, since the completeness check is a
+        // function of `(n, bound)` alone. No prior test exercised this
+        // default-incomplete path: every other `GameExterior` test either uses
+        // `≤2` generators (small enough to be exhaustive at the default bound) or
+        // calls `with_relation_search` directly with an explicit smaller bound.
+        // Surfaces the caller obligation named in AGENTS.md: code that needs a
+        // complete relation set cannot just call `GameExterior::new` and trust it —
+        // `relation_search_complete()` must be checked.
+        let ext = GameExterior::new(vec![Game::star(), Game::up(), Game::switch(1, -1)]);
+        assert!(!ext.relation_search_complete());
+        let cert = ext.relation_search_certificate();
+        assert!(!cert.exhaustive);
+        assert_eq!(cert.candidate_count, Some(342)); // (2*3+1)^3 - 1
+    }
+
+    #[test]
     fn relation_search_finds_three_generator_cross_relations() {
         let star = Game::star();
         let up = Game::up();

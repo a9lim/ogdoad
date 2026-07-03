@@ -18,8 +18,8 @@
 //! factorization path still return a free basis only when unit-pivot linear
 //! algebra suffices; monomial blades and vectors are factored without division.
 
-use crate::clifford::{bits, grade, CliffordAlgebra, Multivector};
 use crate::clifford::engine::grade_k_masks;
+use crate::clifford::{bits, grade, CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
 use std::collections::BTreeSet;

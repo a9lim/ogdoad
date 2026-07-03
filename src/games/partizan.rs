@@ -542,6 +542,131 @@ mod tests {
         assert!(c.canonical().structural_eq(&c)); // idempotent
     }
 
+    // ---- Day-≤3 canonical-string-as-value-key oracle ----
+    //
+    // Standard math: the number of DISTINCT game VALUES born by day ≤3 is 1474
+    // (Conway, ONAG; also quoted in Siegel's CGT book) — the well-known cumulative
+    // sequence 1, 4, 22, 1474 for days 0..=3. This test does not attempt that full
+    // generative census: doing so needs pairing every antichain of the day-≤2
+    // 22-value poset against every other antichain, which is not bounded by a
+    // small constant (the day-≤2 poset alone has enough incomparable pairs that
+    // full antichain enumeration is not a quick sweep). Instead:
+    //
+    //  - Day ≤2 is swept EXHAUSTIVELY: every one of the 16×16 = 256 combinations of
+    //    subsets of the exact 4-element day-≤1 pool `{0, 1, -1, ⋆}` is built,
+    //    canonicalized, and checked. This recovers the known 22-value day-≤2
+    //    census exactly (asserted below), so this part of the sweep is a complete,
+    //    rigorous day-≤2 check, not an approximation.
+    //  - Day 3 is swept with L/R option sets BOUNDED to size ≤2, drawn from that
+    //    exact 22-element day-≤2 pool (254×254 = 64,516 raw candidates, since
+    //    C(22,0)+C(22,1)+C(22,2) = 254). This is an honest, tractable SUBSET of the
+    //    day-≤3 universe — not the complete 1474-value census — but it reaches many
+    //    genuinely day-3 values (e.g. `⇑` = up-second, `±2`, `*3`, ...) alongside
+    //    every day-≤2 value, and it is large enough (order 10^5 raw candidates) to
+    //    be a real stress test of "canonical_string is a value key," not a token
+    //    check.
+    //
+    // For every candidate, canonical_string equality is checked BOTH ways against
+    // value equality (`Game::eq`, i.e. `le` both ways): same string implies equal
+    // value, and (on first seeing a new string) that string's representative is
+    // checked as not-equal to every previously accepted representative.
+
+    /// All subsets of `pool` of size `0..=max_size` (each subset produced exactly
+    /// once, via the standard increasing-index combination recursion).
+    fn subsets_up_to(pool: &[Game], max_size: usize) -> Vec<Vec<Game>> {
+        fn rec(
+            pool: &[Game],
+            start: usize,
+            max_size: usize,
+            current: &mut Vec<Game>,
+            out: &mut Vec<Vec<Game>>,
+        ) {
+            out.push(current.clone());
+            if current.len() == max_size {
+                return;
+            }
+            for i in start..pool.len() {
+                current.push(pool[i].clone());
+                rec(pool, i + 1, max_size, current, out);
+                current.pop();
+            }
+        }
+        let mut out = Vec::new();
+        let mut current = Vec::new();
+        rec(pool, 0, max_size.min(pool.len()), &mut current, &mut out);
+        out
+    }
+
+    /// Every `Game::new(L, R)` with `L`, `R` each a subset of `pool` of size
+    /// `≤ max_opts`.
+    fn sweep_games(pool: &[Game], max_opts: usize) -> Vec<Game> {
+        let subsets = subsets_up_to(pool, max_opts);
+        let mut out = Vec::with_capacity(subsets.len() * subsets.len());
+        for l in &subsets {
+            for r in &subsets {
+                out.push(Game::new(l.clone(), r.clone()));
+            }
+        }
+        out
+    }
+
+    /// Fold `candidates` into a canonical_string -> representative map, asserting
+    /// the value-key biconditional against every representative seen so far.
+    fn assert_canonical_string_is_a_value_key(
+        candidates: &[Game],
+        reps: &mut std::collections::BTreeMap<String, Game>,
+    ) {
+        for g in candidates {
+            let key = g.canonical_string();
+            if let Some(existing) = reps.get(&key) {
+                assert!(
+                    g.eq(existing),
+                    "same canonical_string {key} but different value: {} vs {}",
+                    g.display(),
+                    existing.display()
+                );
+            } else {
+                for (other_key, other) in reps.iter() {
+                    assert!(
+                        !g.eq(other),
+                        "different canonical_string ({key} vs {other_key}) but equal value: \
+                         {} vs {}",
+                        g.display(),
+                        other.display()
+                    );
+                }
+                reps.insert(key, g.clone());
+            }
+        }
+    }
+
+    #[test]
+    fn canonical_string_is_a_value_key_on_a_bounded_day_le_3_sweep() {
+        let day1_pool = vec![
+            Game::zero(),
+            Game::integer(1),
+            Game::integer(-1),
+            Game::star(),
+        ];
+        let mut reps = std::collections::BTreeMap::new();
+
+        // Day ≤2: exhaustive (every subset of the exact day-≤1 pool, both sides).
+        let day2_candidates = sweep_games(&day1_pool, day1_pool.len());
+        assert_canonical_string_is_a_value_key(&day2_candidates, &mut reps);
+        assert_eq!(
+            reps.len(),
+            22,
+            "day-≤2 census should match the known 22 canonical values (Conway/ONAG)"
+        );
+
+        let day2_pool: Vec<Game> = reps.values().cloned().collect();
+
+        // Day 3: bounded to ≤2 options per side, drawn from the exact day-≤2 pool
+        // (see the module comment above for why this is bounded, not exhaustive).
+        let day3_candidates = sweep_games(&day2_pool, 2);
+        assert_canonical_string_is_a_value_key(&day3_candidates, &mut reps);
+    }
+
     #[test]
     fn number_value_round_trips_through_games() {
         use crate::scalar::{Rational, Surreal};

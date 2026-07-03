@@ -284,7 +284,9 @@ impl PyNimber {
     /// `self` raised to the power `e` in `F_{2^128}` (fast exponentiation).
     fn pow(&self, e: u128) -> PyNimber {
         PyNimber {
-            inner: self.inner.pow(e),
+            // Qualified: `Scalar::pow` and `FiniteField::pow` are both in scope;
+            // the FiniteField path keeps Nimber's Fermat-tower `nim_pow`.
+            inner: FiniteField::pow(&self.inner, e),
         }
     }
     fn __pow__(&self, e: u128, modulo: Option<u128>) -> PyResult<PyNimber> {
@@ -1021,7 +1023,9 @@ macro_rules! extension_field_pyclass {
                 Ok(self.inner.discrete_log($parse(x)?))
             }
             fn pow(&self, e: u128) -> Self {
-                $wrap(self.inner.pow(e))
+                // Qualified: `Scalar::pow` and `FiniteField::pow` are both in
+                // scope for these extension-field backends.
+                $wrap(FiniteField::pow(&self.inner, e))
             }
             fn __pow__(&self, e: u128, modulo: Option<u128>) -> PyResult<Self> {
                 if modulo.is_some() {
@@ -4466,7 +4470,7 @@ impl PySurreal {
     }
     /// The floor ⌊x⌋ as an `Omnific` integer.
     fn omnific_floor(&self) -> PyOmnific {
-        wrap_omnific(Omnific::floor(&self.inner))
+        wrap_omnific(Omnific::from_floor(&self.inner))
     }
     /// The fractional part `x − ⌊x⌋`, in `[0, 1)`.
     fn frac(&self) -> PySurreal {
@@ -4506,12 +4510,13 @@ impl PySurreal {
     fn as_ordinal(&self) -> Option<PyOrdinal> {
         self.inner.as_ordinal().map(PyOrdinal::from_inner)
     }
-    /// Embed an ordinal as the corresponding surreal ordinal.
+    /// Embed an ordinal as the corresponding surreal ordinal. Errors if a
+    /// coefficient exceeds the surreal's i128 range.
     #[staticmethod]
-    fn from_ordinal(o: &PyOrdinal) -> PySurreal {
-        PySurreal {
-            inner: Surreal::from_ordinal(o.as_ordinal()),
-        }
+    fn from_ordinal(o: &PyOrdinal) -> PyResult<PySurreal> {
+        Surreal::from_ordinal(o.as_ordinal())
+            .map(|inner| PySurreal { inner })
+            .ok_or_else(|| PyValueError::new_err("ordinal coefficient exceeds surreal i128 range"))
     }
     /// The **truncated inverse** `1/x` to `n` leading terms (Neumann series) —
     /// works for non-monomials too, unlike [`inv`](Self::inv). Errors on `0`.
@@ -4967,7 +4972,7 @@ impl PyOmnific {
     }
     #[staticmethod]
     fn floor(s: &PySurreal) -> Self {
-        wrap_omnific(Omnific::floor(&s.inner))
+        wrap_omnific(Omnific::from_floor(&s.inner))
     }
     #[staticmethod]
     fn characteristic() -> u128 {

@@ -181,6 +181,79 @@ mod tests {
         assert!(norton_multiply(&g, &Game::integer(-1)).is_none());
     }
 
+    /// A second, independently written transcription of Norton multiplication's
+    /// recursive definition (Winning Ways / Siegel's CGT, "Norton's product") —
+    /// deliberately NOT calling `norton_multiply`/`norton_multiply_unchecked`/
+    /// `norton_increments` — used below as the oracle for the non-integer-`G` /
+    /// non-integer-`U` recursive branch. No citable page-pinned Winning Ways
+    /// worked example for this exact case was found on hand, so per AGENTS.md this
+    /// pins a cross-check computed two ways instead. The one deliberate structural
+    /// difference from the production code: the right-option increment is grouped
+    /// as `(U+U)+(-u)` here versus production's `U+(U+(-u))` — equal by
+    /// associativity of game addition, but a different raw game tree before
+    /// canonicalization, so a transcription bug (wrong sign, wrong shift, wrong
+    /// slot) in either implementation is likely to surface as a disagreement.
+    /// Residual risk this does NOT cover: both implementations sharing the same
+    /// *misunderstanding* of the definition.
+    fn norton_oracle(g: &Game, unit: &Game) -> Game {
+        let g = g.canonical();
+        if let Some(n) = integer_value(&g) {
+            return if n >= 0 {
+                unit.times_int(n)
+            } else {
+                unit.neg().times_int(-n)
+            };
+        }
+        let u = unit.canonical();
+        let mut incs = Vec::new();
+        for ul in u.left() {
+            incs.push(ul.clone());
+        }
+        for ur in u.right() {
+            incs.push(u.add(&u).add(&ur.neg())); // (U+U) + (-u), cf. production's U+(U-u)
+        }
+        let mut left = Vec::new();
+        for gl in g.left() {
+            let base = norton_oracle(gl, unit);
+            for inc in &incs {
+                left.push(base.add(inc));
+            }
+        }
+        let mut right = Vec::new();
+        for gr in g.right() {
+            let base = norton_oracle(gr, unit);
+            for inc in &incs {
+                right.push(base.add(&inc.neg()));
+            }
+        }
+        Game::new(left, right)
+    }
+
+    #[test]
+    fn norton_multiply_matches_an_independently_written_oracle_for_a_nontrivial_unit() {
+        // Every *existing* Norton test has G integer (hits the trivial
+        // `unit.times_int` leaf, skipping `norton_increments` entirely) or U integer
+        // (whose canonical form `{k-1|}` has no Right options, so the "U+(U-u)" half
+        // of `norton_increments` never runs). This is the first case with both G and
+        // U genuinely non-integer, so `norton_increments` runs on both its Left and
+        // Right branches.
+        for (g, unit) in [
+            (Game::switch(1, -1), Game::up()),
+            (Game::star(), Game::up()),
+        ] {
+            let expected = norton_oracle(&g, &unit);
+            let actual = norton_multiply(&g, &unit).unwrap();
+            assert!(
+                actual.eq(&expected),
+                "norton_multiply({}, {}) = {} but the independent oracle gives {}",
+                g.display(),
+                unit.display(),
+                actual.display(),
+                expected.display()
+            );
+        }
+    }
+
     #[test]
     fn norton_multiplication_has_product_mean_for_integer_unit() {
         let g = Game::switch(3, -1); // mean 1

@@ -243,7 +243,8 @@ fn odd_prime_place(p: u128) -> Option<u128> {
     }
 }
 
-fn checked_pow(base: u128, exp: u128) -> Option<u128> {
+/// Shared with [`subfield`](super::subfield) (`pub(super)`, not duplicated there).
+pub(super) fn checked_pow(base: u128, exp: u128) -> Option<u128> {
     let mut acc = 1u128;
     for _ in 0..exp {
         acc = acc.checked_mul(base)?;
@@ -252,7 +253,8 @@ fn checked_pow(base: u128, exp: u128) -> Option<u128> {
 }
 
 /// Base-`base` digit vector of `v` (least-significant first, no trailing zeros).
-fn base_digits(mut v: u128, base: u128) -> Vec<u128> {
+/// Shared with [`subfield`](super::subfield) (`pub(super)`, not duplicated there).
+pub(super) fn base_digits(mut v: u128, base: u128) -> Vec<u128> {
     let mut d = Vec::new();
     while v > 0 {
         d.push(v % base);
@@ -492,6 +494,49 @@ mod tests {
     }
 
     #[test]
+    fn beyond_dimuro_table_rows_are_assembled_from_order_qset_and_finite_excess() {
+        // Rows past DiMuro Table 1 (u=47 already lives above): `f(u)` here is computed
+        // independently (plain modular-order arithmetic, not run through this module),
+        // `qs` is cross-checked against `experiments/ordinal_excess_probe.py`'s
+        // hand-curated `Q_SET` (itself sourced from DiMuro/CGSuite, not from this file),
+        // and `m` against the vendored OEIS A380496 b-file. `expected_alpha` is then a
+        // literal CNF built from `chi_sum(qs) + m` by hand, cross-checked against
+        // structurally related rows already pinned above:
+        //   - u=73: same q_set {9} as the already-pinned u=19, but excess 1 not 4 — the
+        //     `Q={9}` exception-column contrast OPEN.md documents (`m_19=4`, `m_73=1`).
+        //   - u=89: f(89)=11 and q_set(11)=[11] happen to coincide exactly with u=23's
+        //     row, so alpha_89 == alpha_23 by construction (same chi_sum, same excess) —
+        //     an internal-consistency cross-check, not a coincidence bug.
+        // u=179 (f=178=2·89, q_set={89}, m=1, probe-certified) is deliberately NOT pinned
+        // here: `alpha_ordinal(179)` recurses into `finite_subfield_degree` on
+        // `chi(89)=ω^(ω^22)`, whose Frobenius minimization is exactly the "huge component
+        // field" cost this module's docs already warn about (confirmed by hand — it does
+        // not finish in a unit-test budget). `finite_excess(179)` alone (the OEIS integer,
+        // not the ordinal reconstruction) is still exercised by the full b-file diff above.
+        for (u, f, qs, m, expected) in [
+            (
+                73,
+                9,
+                &[9][..],
+                1,
+                Ordinal::omega_pow(fin(3)).nim_add(&fin(1)),
+            ),
+            (
+                89,
+                11,
+                &[11][..],
+                1,
+                Ordinal::omega_pow(Ordinal::omega_pow(fin(3))).nim_add(&fin(1)),
+            ),
+        ] {
+            assert_eq!(multiplicative_order_two_mod_prime(u), Some(f), "f({u})");
+            assert_eq!(q_set(f).as_deref(), Some(qs), "q_set(f({u}))");
+            assert_eq!(finite_excess(u), Some(m), "m_{u}");
+            assert_eq!(alpha_ordinal(u), Some(expected), "alpha_{u}");
+        }
+    }
+
+    #[test]
     fn alpha_excesses_descend_in_place() {
         // The termination invariant: every verified α_u is built from generators at
         // places strictly below χ_u's own place (the (u)-index in the odd primes). This
@@ -659,9 +704,10 @@ mod tests {
 
     #[test]
     fn excess_table_matches_oeis_a380496() {
-        // Pin the 126-row excess table against OEIS A380496 (diff the array against
-        // b380496.txt). The first 14 rows are DiMuro Table 1 + m_47 — a cross-check that
-        // the OEIS import agrees with the old hardcoded values — then higher landmarks.
+        // Spot-check named landmark rows against OEIS A380496. The first 14 rows are
+        // DiMuro Table 1 + m_47 — a cross-check that the OEIS import agrees with the old
+        // hardcoded values — then higher landmarks. The full 126-row diff against the
+        // vendored b-file lives in `excess_table_matches_vendored_b380496_in_full` below.
         for (u, m) in [
             (3, 0),
             (5, 0),
@@ -699,6 +745,40 @@ mod tests {
                 "m_{u} = {m} is outside the A380496 value set"
             );
         }
+    }
+
+    #[test]
+    fn excess_table_matches_vendored_b380496_in_full() {
+        // OEIS A380496 b-file (a380496.txt / "Lenstra excess of the n-th odd prime"),
+        // fetched 2026-07-02 and vendored at `b380496.txt` beside this module. Each line
+        // is `n a(n)`, 1-indexed (`a(1)` = the excess at the odd-prime place 0, i.e.
+        // prime 3). Diffs all 126 rows against `EXCESS`, closing the gap the old
+        // landmark-only test left (it never actually read the file).
+        let b_file = include_str!("b380496.txt");
+        let mut rows = 0u128;
+        for line in b_file.lines() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+            let mut parts = line.split_whitespace();
+            let n: u128 = parts
+                .next()
+                .expect("row has an index")
+                .parse()
+                .expect("n is u128");
+            let a_n: u128 = parts
+                .next()
+                .expect("row has a value")
+                .parse()
+                .expect("a(n) is u128");
+            assert!(parts.next().is_none(), "unexpected extra column in row {n}");
+            let place = n - 1;
+            let u = place_prime(place);
+            assert_eq!(finite_excess(u), Some(a_n), "OEIS A380496 a({n}), u={u}");
+            rows += 1;
+        }
+        assert_eq!(rows, 126, "expected all 126 known A380496 b-file rows");
     }
 
     #[test]

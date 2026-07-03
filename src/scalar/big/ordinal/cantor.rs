@@ -3,7 +3,7 @@
 //! (`1 + ω = ω`, `2·ω = ω`), with coefficients combining as **natural numbers**
 //! (`ω + ω = ω·2`), where the [nim](super::nim) operations would XOR them to `0`.
 //!
-//! This is the operation the surreal birthday needs (`Omnific::floor` and the
+//! This is the operation the surreal birthday needs (`Omnific::from_floor` and the
 //! sign-expansion length): the length of a concatenated sign expansion is the
 //! ordinary ordinal sum of the run lengths. Kept apart from the nim arithmetic
 //! because the two share only the CNF representation, not the algebra.
@@ -39,7 +39,10 @@ impl Ordinal {
                 Ordering::Less => break, // descending ⇒ all remaining are smaller
             }
         }
-        // Merge at β₀: ordinary natural-number coefficient addition.
+        // Merge at β₀: ordinary natural-number coefficient addition. Panics on
+        // overflow rather than returning `Option`, the same precedent as
+        // `Rational::add`'s `Scalar` impl (`scalar/exact/rational.rs`) — a checked
+        // path isn't warranted here either; nim `ord_*` siblings keep `Option`.
         let coeff = self_coeff_at_beta0
             .checked_add(b0)
             .expect("ordinary ordinal addition coefficient exceeds u128");
@@ -64,7 +67,8 @@ impl Ordinal {
         let mut result = Ordinal::zero();
         for (beta, b) in &other.terms {
             let contribution = if beta.is_zero() {
-                // Finite factor n = b:  a·n = ω^{α₀}·(a₀·n) ⊕ (rest of a).
+                // Finite factor n = b:  a·n = ω^{α₀}·(a₀·n) ⊕ (rest of a). Panics on
+                // overflow — see the `Rational::add`-precedent note on `ord_add` above.
                 let mut terms = Vec::with_capacity(self.terms.len());
                 terms.push((
                     alpha0.clone(),

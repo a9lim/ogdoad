@@ -161,8 +161,12 @@ fn nimber_ring_axioms_on_representation_sentinels() {
 // defined, with full commutative-ring laws on the `< ω^ω` segment and
 // opportunistic associativity past it.
 
-/// True iff every CNF exponent is finite — i.e. the ordinal is `< ω^ω`, the region
-/// where nim-multiplication is implemented (the degree-3 cube-root tower).
+/// True iff every CNF exponent is finite — i.e. the ordinal is `< ω^ω`. Nim-
+/// multiplication is actually implemented far past this (the source-verified
+/// prime-power generator tower reaches every ordinal `< ω^(ω^ω)`, `src/scalar/
+/// big/ordinal/tower.rs`); `< ω^ω` is just the sub-region this fuzzer picks
+/// because it is unconditionally closed under `⊗`, so full ring-axiom coverage
+/// applies below it and only opportunistic associativity above.
 fn below_omega_omega(o: &Ordinal) -> bool {
     o.terms().iter().all(|(e, _)| e.as_finite().is_some())
 }
