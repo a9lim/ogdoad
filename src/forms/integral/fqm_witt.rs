@@ -9,7 +9,7 @@
 use crate::forms::integral::diagonal::{odd_unit_residue, rat_val, rational_mod_int, unit_mod8};
 use crate::forms::integral::discriminant::{phase_mod8_from_q_values, DiscriminantForm, IsoTables};
 use crate::forms::integral::is_prime_power;
-use crate::forms::padic::try_is_square_qp;
+use crate::forms::try_is_square_qp;
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -1031,11 +1031,14 @@ mod tests {
     use super::*;
     use crate::forms::{e_6, e_7, DiscriminantForm, IntegralForm};
 
-    // `root_lattices::a_n` is `Option`-checked on out-of-domain rank; every call
-    // site below passes an in-domain rank, so this thin local wrapper keeps the
-    // test bodies unchanged.
+    // `root_lattices::a_n`/`d_n` are `Option`-checked on out-of-domain rank; every
+    // call site below passes an in-domain rank, so these thin local wrappers keep
+    // the test bodies unchanged.
     fn a_n(n: usize) -> IntegralForm {
-        crate::forms::root_lattices::a_n(n).unwrap()
+        crate::forms::a_n(n).unwrap()
+    }
+    fn d_n(n: usize) -> IntegralForm {
+        crate::forms::d_n(n).unwrap()
     }
 
     #[test]
@@ -1093,6 +1096,159 @@ mod tests {
         assert_eq!(class.primary[0].phase_mod8, phase.primary[0].phase_mod8);
         assert_eq!(class.primary[0].core_group, vec![2]);
         assert_eq!(class.primary[0].q_value_counts.len(), 2);
+    }
+
+    #[test]
+    fn fqm_witt_class_can_leave_a_noncyclic_anisotropic_core() {
+        // Every case above (A_1, the A_1(+)E_7/A_2(+)E_6 hyperbolic pairs) reduces
+        // to a CYCLIC core (`core_group` of length <= 1), because a single isotropic
+        // generator is always enough to Witt-cancel a rank-2 hyperbolic summand. A_1
+        // (+) A_1 has discriminant group (Z/2)^2 with q-values {0, 1/2, 1/2, 1} on
+        // its four elements (q(x,y) = q_{A1}(x) + q_{A1}(y), q_{A1}(1) = 1/2): the
+        // only element with q = 0 is the identity itself, so `anisotropic_core` can
+        // never find a nonzero isotropic generator to quotient by, and the ENTIRE
+        // rank-2 group survives as the core, unreduced.
+        let a1a1 = a_n(1).direct_sum(&a_n(1));
+        let disc = DiscriminantForm::from_lattice(&a1a1).unwrap();
+        assert_eq!(disc.group(), vec![2, 2]);
+        let class = disc.fqm_witt_class().unwrap();
+        assert_eq!(class.primary.len(), 1);
+        let p2 = &class.primary[0];
+        assert_eq!(p2.prime, 2);
+        assert_eq!(p2.order, 4, "no reduction: the core is the whole group");
+        assert_eq!(p2.core_order, 4);
+        assert_eq!(
+            p2.core_group,
+            vec![2, 2],
+            "noncyclic: two invariant factors"
+        );
+        assert_eq!(p2.core_exponent, 2);
+        assert_eq!(p2.phase_mod8, 2, "1/2+1/2 doubled A_1 phase (1+1 mod 8)");
+        assert!(!class.is_trivial());
+    }
+
+    #[test]
+    fn fqm_witt_class_reduces_an_exponent_eight_two_primary_block() {
+        // Every prior 2-primary case tops out at exponent 4 (A_3's Z/4). A_7 has
+        // discriminant group Z/8 (A_n always has Z/(n+1)) — genuinely exponent 8,
+        // exercising the `k=3` rung of the reduction the smaller cases never reach.
+        //
+        // Hand derivation, independent of this file (cross-checked with an exact
+        // `Fraction` Python port of the same reduction algorithm before writing
+        // this assertion): A_n's canonical discriminant generator has q(1) = n/(n+1)
+        // mod 2Z, so A_7 has q(1) = 7/8. On the cyclic group Z/8 this is
+        // `q(k) = k^2 * 7/8 mod 2`, giving q = [0, 7/8, 3/2, 15/8, 0, 15/8, 3/2,
+        // 7/8]. Every element x of EXACT order 8 in ANY nonsingular finite
+        // quadratic module has q(4x) = 16*q(x) mod 2 = 4*(4*q(x)) mod 2 (an integer
+        // multiple of 4, since evenness forces q(x) to have denominator dividing 4
+        // when x has order 8), hence q(4x) = 0 always — so the order-4 element
+        // (index 4 here) is ALWAYS isotropic. This is why no anisotropic 2-adic
+        // block can have exponent 8: the order-4 subtree always Witt-cancels first.
+        //
+        // Quotienting by the isotropic subgroup {0, 4} restricted to its own
+        // orthogonal complement {0, 2, 4, 6} (b(k,4) = 0 only for even k) leaves the
+        // 2-element quotient {[0,4], [2,6]}, represented by q(2) = 3/2: a Z/2
+        // anisotropic core (3/2 != 0), NOT the trivial module.
+        let a7 = a_n(7);
+        let disc = DiscriminantForm::from_lattice(&a7).unwrap();
+        assert_eq!(disc.group(), vec![8], "exponent 8 going in");
+        assert_eq!(disc.quadratic_value_mod2(&[1]), Rational::new(7, 8));
+        let class = disc.fqm_witt_class().unwrap();
+        assert_eq!(class.primary.len(), 1);
+        let p2 = &class.primary[0];
+        assert_eq!(p2.prime, 2);
+        assert_eq!(p2.order, 8, "the input 2-primary block is exponent 8");
+        assert_eq!(
+            p2.core_order, 2,
+            "reduces away, as the theorem above forces"
+        );
+        assert_eq!(p2.core_group, vec![2]);
+        assert_eq!(
+            p2.core_exponent, 2,
+            "the surviving core is exponent 2, not 8"
+        );
+        assert_eq!(
+            p2.q_value_counts,
+            vec![
+                FqmValueCount {
+                    numer: 0,
+                    denom: 1,
+                    count: 1
+                },
+                FqmValueCount {
+                    numer: 3,
+                    denom: 2,
+                    count: 1
+                },
+            ],
+            "the surviving generator carries q = 3/2, matching the hand trace"
+        );
+        assert_eq!(p2.phase_mod8, 7);
+        assert_eq!(disc.milgram_signature_mod8_fqm(), Some(7));
+    }
+
+    #[test]
+    fn fqm_witt_class_of_d4_matches_the_independently_shipped_brown_invariant() {
+        // D_4's discriminant form is a standard textbook example (Conway-Sloane
+        // SPLAG, and the `forms::char2` extraspecial-group literature this crate
+        // already cites): the "Arf invariant 1" quadratic form on (Z/2)^2, whose
+        // three nonzero vectors ALL carry q = 1 (no isotropic vector at all, unlike
+        // a hyperbolic plane's single nonzero isotropic vector). Rather than lean on
+        // an external citation I can't source-pin precisely, this pins the D_4 Witt
+        // class two independent ways within this crate:
+        //
+        // (1) direct hand trace of the reduction algorithm: since every nonzero
+        //     element has q = 1 != 0, `anisotropic_core` can never find an isotropic
+        //     generator, so the FULL (Z/2)^2 group survives unreduced as the core —
+        //     same shape argument as the A_1 (+) A_1 test above, but with D_4's
+        //     different q-value multiset ({0: 1, 1: 3} instead of {0: 1, 1/2: 2,
+        //     1: 1}), giving a genuinely different p-primary Witt class.
+        // (2) cross-check against `DiscriminantForm::brown_invariant`
+        //     (`forms/integral/discriminant/form.rs`), a COMPLETELY separate
+        //     exact-integer code path (radical splitting + line/plane reduction,
+        //     no cyclotomic arithmetic) already pinned elsewhere
+        //     (`brown_invariant_recovers_signature_mod8_on_2_elementary_forms`) to
+        //     beta(D_4) = 4. The shipped Milgram/Brown identity beta = sign(L) mod 8
+        //     forces the FQM phase to equal that same 4 — an independently-derived
+        //     pin on `class.phase_mod8`, not just a self-consistency check of this
+        //     file's own cyclotomic machinery.
+        let d4 = d_n(4);
+        let disc = DiscriminantForm::from_lattice(&d4).unwrap();
+        assert_eq!(disc.group(), vec![2, 2]);
+        let brown = disc.brown_invariant().expect("D_4 is 2-elementary");
+        assert_eq!(brown.beta, 4, "independently pinned elsewhere in the suite");
+
+        let class = disc.fqm_witt_class().unwrap();
+        assert_eq!(class.primary.len(), 1);
+        let p2 = &class.primary[0];
+        assert_eq!(p2.prime, 2);
+        assert_eq!(p2.order, 4);
+        assert_eq!(
+            p2.core_order, 4,
+            "anisotropic: no isotropic vector to cancel"
+        );
+        assert_eq!(p2.core_group, vec![2, 2]);
+        assert_eq!(
+            p2.q_value_counts,
+            vec![
+                FqmValueCount {
+                    numer: 0,
+                    denom: 1,
+                    count: 1
+                },
+                FqmValueCount {
+                    numer: 1,
+                    denom: 1,
+                    count: 3
+                },
+            ]
+        );
+        assert_eq!(
+            p2.phase_mod8, brown.beta as i128,
+            "FQM phase must match the independently-shipped Brown invariant"
+        );
+        assert_eq!(class.phase_mod8, brown.beta as i128);
+        assert!(!class.is_trivial());
     }
 
     #[test]
@@ -1169,5 +1325,114 @@ mod tests {
         assert!(report.primary[0].equality_case);
         assert!(report.primary[0].even_two_primary);
         assert_eq!(report.primary[0].determinant_condition_holds, Some(true));
+    }
+
+    #[test]
+    fn nikulin_existence_forces_odd_prime_determinant_obstruction() {
+        // Hand derivation (cross-checked independently with an exact-`Fraction`
+        // Python port of this file's algorithm, not by reading this code's output):
+        // build the 3-primary module A_3 = Z/3 x Z/9 as the orthogonal sum of two
+        // cyclic pieces. Evenness (q(-x) = q(x)) forces an odd-order cyclic
+        // generator_q = c/order to have c an EVEN multiple of 1/order — i.e.
+        // generator_q = 2j/order for an integer j — so cyclic(3, 2/3) (j=1) and
+        // cyclic(9, 4/9) (j=2) are the smallest nontrivial even choices on each
+        // factor. Both are individually nonsingular, and the constructor confirms
+        // the orthogonal sum stays nonsingular.
+        //
+        // A_3 = Z/3 x Z/9 is not cyclic (gcd(3,9) = 3), so l(A_3) = 2: a rank-2
+        // signature puts Nikulin's equality case in play. The greedy generator
+        // search picks the two natural cyclic generators; their pairing matrix is
+        // diagonal, `b(order-9 gen) = (q(2)-2q(1))/2 mod 1 = (16/9 - 8/9)/2 = 4/9`
+        // and `b(order-3 gen) = (2/3-4/3)/2 mod 1 = 2/3`, so
+        // `discr K(q_3) = 1/det = 1/(4/9 * 2/3) = 27/8`.
+        //
+        // The module's total Milgram phase is 2 mod 8 (an exact quadratic Gauss sum
+        // over 27 elements), which matches `t+ - t- = 2` at signature (2,0) — so the
+        // *signature* congruence holds and the equality-case determinant condition
+        // is the one Nikulin's theorem tests. `(-1)^{t-}|A_3| = 27` (t- = 0, even),
+        // and `27 / (27/8) = 8`, a 3-adic unit (val_3(8) = 0) with residue `8 mod 3 =
+        // 2` — a non-residue mod 3 (the only nonzero square mod 3 is 1, since
+        // `(Z/3)^* = {1,2}` squares to `{1,1}`). So `(-1)^{t-}|A_3|` and
+        // `discr K(q_3)` land in different square classes of `Q_3^*/Q_3^{*2}`: the
+        // theorem's equality-case necessary condition genuinely fails, and no even
+        // lattice of signature (2,0) can realize this discriminant form.
+        let a3 = FiniteQuadraticModule::cyclic(3, Rational::new(2, 3)).unwrap();
+        let a9 = FiniteQuadraticModule::cyclic(9, Rational::new(4, 9)).unwrap();
+        let module = a3.direct_sum(&a9).unwrap();
+        assert_eq!(module.order(), 27);
+
+        let report = module.nikulin_existence_report((2, 0)).unwrap();
+        assert_eq!(report.module_phase_mod8, 2);
+        assert!(!report.exists());
+        assert_eq!(report.primary.len(), 1);
+        assert_eq!(report.primary[0].prime, 3);
+        assert_eq!(report.primary[0].length, 2);
+        assert!(report.primary[0].equality_case);
+        assert_eq!(
+            report.primary[0].p_adic_discriminant,
+            Some(Rational::new(27, 8))
+        );
+        assert_eq!(report.primary[0].determinant_condition_holds, Some(false));
+        assert_eq!(
+            report.obstruction,
+            Some(NikulinExistenceObstruction::OddPrimeDeterminant {
+                prime: 3,
+                signed_order: 27,
+                p_adic_discriminant: Rational::new(27, 8),
+            })
+        );
+        assert_eq!(module.nikulin_even_lattice_exists((2, 0)), Some(false));
+    }
+
+    #[test]
+    fn nikulin_existence_forces_two_adic_determinant_obstruction() {
+        // Hand derivation (same independent Python cross-check as the odd-prime
+        // witness above): build A_2 = Z/4 x Z/4 as cyclic(4, 1/4) (+) cyclic(4,
+        // 7/4). Every order-2 element (the three nonzero elements of the
+        // `{0,2}x{0,2}` subgroup) carries an INTEGER q-value (1, 1, and 0
+        // respectively, denominator 1) rather than an odd multiple of 1/2 — so this
+        // is Nikulin's "even" 2-primary type (`even_two_primary`), not the "odd"
+        // type the (existing) `nikulin_existence_checks_even_two_primary_borderline`
+        // hyperbolic-plane test also covers.
+        //
+        // Z/4 x Z/4 is not cyclic, so l(A_2) = 2: rank-2 puts the equality case in
+        // play. The pairing matrix on the two natural generators is diagonal:
+        // `b(gen of cyclic(4,1/4)) = (q(2)-2q(1))/2 mod 1 = (1 - 1/2)/2 = 3/4` and
+        // `b(gen of cyclic(4,7/4)) = (1 - 7/2)/2 mod 1 = 1/4`, so
+        // `discr K(q_2) = 1/det = 1/(3/4 * 1/4) = 16/3`.
+        //
+        // The module's total Milgram phase is 0 mod 8, matching `t+ - t- = 0` at
+        // signature (1,1) — so signature congruence holds and the equality-case
+        // determinant condition is live. `|A_2| = 16`, and `16 / (16/3) = 3`: a
+        // 2-adic unit (val_2(3) = 0) with `3 mod 8 = 3`, which is neither 1 nor 7 —
+        // not a 2-adic square up to sign. So `|A_2|` and `discr K(q_2)` fail
+        // Nikulin's 2-adic equality-case condition, and no even lattice of
+        // signature (1,1) can realize this discriminant form.
+        let g1 = FiniteQuadraticModule::cyclic(4, Rational::new(1, 4)).unwrap();
+        let g2 = FiniteQuadraticModule::cyclic(4, Rational::new(7, 4)).unwrap();
+        let module = g1.direct_sum(&g2).unwrap();
+        assert_eq!(module.order(), 16);
+
+        let report = module.nikulin_existence_report((1, 1)).unwrap();
+        assert_eq!(report.module_phase_mod8, 0);
+        assert!(!report.exists());
+        assert_eq!(report.primary.len(), 1);
+        assert_eq!(report.primary[0].prime, 2);
+        assert_eq!(report.primary[0].length, 2);
+        assert!(report.primary[0].equality_case);
+        assert!(report.primary[0].even_two_primary);
+        assert_eq!(
+            report.primary[0].p_adic_discriminant,
+            Some(Rational::new(16, 3))
+        );
+        assert_eq!(report.primary[0].determinant_condition_holds, Some(false));
+        assert_eq!(
+            report.obstruction,
+            Some(NikulinExistenceObstruction::TwoAdicDeterminant {
+                order: 16,
+                p_adic_discriminant: Rational::new(16, 3),
+            })
+        );
+        assert_eq!(module.nikulin_even_lattice_exists((1, 1)), Some(false));
     }
 }

@@ -1,5 +1,5 @@
 //! The **local–global** layer over the adele ring — where the reciprocity facts
-//! scattered through [`padic`](crate::forms::padic) become structural statements
+//! scattered through [`padic`](crate::forms) become structural statements
 //! about [`A_Q`](crate::scalar::Adele).
 //!
 //! Three theorems, one carrier (the adele/idele):
@@ -25,7 +25,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::forms::padic::{
+use super::padic::{
     relevant_primes, try_hilbert_reciprocity_product, try_hilbert_symbol_at, try_is_isotropic_at_p,
     Place,
 };
@@ -84,7 +84,7 @@ impl AdelicIsotropy {
 /// anisotropic" (that verdict is `Some(_)` with `is_global() == false`): rank `< 3`
 /// (out of domain, see above — not a claim about isotropy), or a relevant prime's
 /// local computation itself returning `None` (bounded `i128` square-class
-/// overflow in `square_class` / [`try_is_isotropic_at_p`](crate::forms::padic)).
+/// overflow in `square_class` / [`try_is_isotropic_at_p`](crate::forms)).
 pub fn isotropy_over_adeles(entries: &[i128]) -> Option<AdelicIsotropy> {
     if entries.len() < 3 {
         return None;

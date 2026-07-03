@@ -358,6 +358,9 @@ untouched modules.
 Two property suites (dev-dep `proptest`, in `tests/`): `scalar_axioms.rs` fuzzes the
 commutative-ring axioms across every backend, `clifford_axioms.rs` fuzzes geometric-
 product associativity/distributivity over random metrics in char 0 and char 2. The
+default depth is smoke-sized (`FAST_CASES = 2`, `HEAVY_CASES = 1` — the sentinel tests
+carry the regression weight); before trusting changes to core arithmetic, run with
+`OGDOAD_PROPTEST_CASES=N` for real fuzzing depth. The
 capped-relative precision models (Qp/Qq/Laurent/Ramified/Gauss/Adele) are excluded
 from the exact-ring fuzz by design; `ExactScalar`/`ExactFieldScalar`/`PrecisionScalar`
 mark that boundary without becoming `Scalar` supertraits. (serde is intentionally NOT

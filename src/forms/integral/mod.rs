@@ -2,23 +2,24 @@
 //!
 //! This submodule is the forms pillar's integral complement to field-valued
 //! quadratic-form classification. It keeps the lattice object, ADE catalogue,
-//! genus computation, and mass/Leech layer together while the parent
-//! `forms` module re-exports both the modules and their public items flat.
+//! genus computation, and mass/Leech layer together. Children stay private
+//! behind the flat re-export, like every other shelf; the parent `forms`
+//! module re-exports the public items flat.
 
-pub mod clifford_lattices;
-pub mod codes;
+mod clifford_lattices;
+mod codes;
 pub(crate) mod diagonal;
-pub mod discriminant;
-pub mod fqm_witt;
-pub mod genus;
-pub mod kneser;
-pub mod lattice;
-pub mod mass_formula;
-pub mod modular;
-pub mod niemeier;
-pub mod root_lattices;
-pub mod theta;
-pub mod weyl_versors;
+mod discriminant;
+mod fqm_witt;
+mod genus;
+mod kneser;
+mod lattice;
+mod mass_formula;
+mod modular;
+mod niemeier;
+mod root_lattices;
+mod theta;
+mod weyl_versors;
 
 /// Whether `order` is a power of `p` (with `order == 1` = `p⁰` accepted). Shared by
 /// the discriminant-form and finite-quadratic-module primary-component sweeps.

@@ -52,7 +52,7 @@ pub fn global_is_pe<S: FiniteChar2Field>(f: &RationalFunction<S>) -> bool {
 /// Chevalley–Warning and liftable by Hensel — and need not be checked.
 ///
 /// The char-2 form-level analogue of
-/// [`artin_schreier_symbol_places`](crate::forms::function_field_char2::artin_schreier_symbol_places)
+/// [`artin_schreier_symbol_places`](crate::forms::artin_schreier_symbol_places)
 /// (which finds the relevant places of a single symbol `[a, b)`); this collects the
 /// relevant places across an entire quadratic form's coefficients.
 pub fn artin_schreier_form_places<S: FiniteChar2Field>(

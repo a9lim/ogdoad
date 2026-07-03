@@ -45,10 +45,10 @@
 //! Aravire–Jacob layer in `springer/char2.rs`), and tame/wild norm-residue symbols
 //! stay with the cyclic-Brauer follow-ons rather than this Witt-residue map.
 
-use crate::forms::local_global::padic::{legendre, relevant_primes, unit_part, val_p};
 use crate::forms::{
-    try_chi_kappa, try_kappa_order, try_relevant_places_ff, try_residue_unit_at,
-    try_valuation_at_ff, FiniteOddField, FunctionFieldPlace, WittClassG,
+    legendre, relevant_primes, try_chi_kappa, try_kappa_order, try_relevant_places_ff,
+    try_residue_unit_at, try_valuation_at_ff, unit_part, val_p, FiniteOddField, FunctionFieldPlace,
+    WittClassG,
 };
 use crate::scalar::{Poly, RationalFunction, Scalar};
 use std::collections::BTreeMap;

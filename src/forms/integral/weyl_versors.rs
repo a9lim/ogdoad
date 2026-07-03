@@ -192,7 +192,7 @@ pub fn weyl_versor_report(kind: NiemeierComponentKind) -> Option<WeylVersorInvar
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::root_lattices::E8_WEYL_GROUP_ORDER;
+    use crate::forms::E8_WEYL_GROUP_ORDER;
 
     #[test]
     fn a2_simple_roots_act_as_cartan_reflections() {

@@ -43,7 +43,7 @@
 //! The [`global`] family is the place-organized table's local-global row: every
 //! other row picks *one* place, while `Adele` is a finite-precision model of the
 //! restricted product over all rational places (product formula, Hilbert
-//! reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms::adelic)).
+//! reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms)).
 //! Its runtime-prime cell [`LocalQp`] fills the const-generic gap the table
 //! otherwise cannot represent.
 //!

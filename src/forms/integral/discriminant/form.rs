@@ -572,15 +572,64 @@ fn search_iso(
     Some(false)
 }
 
+/// The shared private core behind [`DiscriminantForm`] and [`OddDiscriminantForm`]:
+/// the finite abelian group `A_L = L#/L`, presented as canonical coset
+/// representatives for `Z^n / GZ^n` plus the exact inverse Gram matrix, and the
+/// bilinear pairing `b_L(y,z) = y^T G^{-1} z mod Z` both siblings share verbatim.
+/// The two public types differ only in their *quadratic* value convention
+/// (`mod 2Z` vs `mod Z`) and in which parity of lattice their constructor accepts.
+#[derive(Clone, Debug, PartialEq)]
+struct DiscriminantCore {
+    /// Nontrivial invariant factors of `A_L`.
+    group: Vec<i128>,
+    /// Canonical representatives `y` for `Z^n / GZ^n`.
+    reps: Vec<Vec<i128>>,
+    /// The exact inverse Gram matrix.
+    gram_inv: Vec<Vec<Rational>>,
+}
+
+impl DiscriminantCore {
+    /// Build `A_L = L#/L` for a nonsingular integral lattice. Even/odd is the
+    /// caller's concern: each public wrapper checks its own parity boundary before
+    /// calling this.
+    fn from_lattice(lattice: &IntegralForm) -> Option<Self> {
+        if lattice.determinant() == 0 {
+            return None;
+        }
+        let mat: Vec<Vec<Rational>> = lattice
+            .gram()
+            .iter()
+            .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
+            .collect();
+        let gram_inv = inverse_matrix(mat)?;
+        let hnf = normalize_relation_rows(lattice.gram().to_vec());
+        let reps = enumerate_hnf_reps(&hnf)?;
+        let det = lattice.determinant().unsigned_abs() as usize;
+        if reps.len() != det {
+            return None;
+        }
+        let group = lattice
+            .invariant_factors()
+            .into_iter()
+            .filter(|&d| d > 1)
+            .collect();
+        Some(DiscriminantCore {
+            group,
+            reps,
+            gram_inv,
+        })
+    }
+
+    /// `b_L(y,z) = y^T G^{-1} z mod Z`, represented in `[0, 1)`.
+    fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
+        rational_mod_int(dot_inv(y, &self.gram_inv, z), 1)
+    }
+}
+
 /// The finite discriminant quadratic module of an even lattice.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DiscriminantForm {
-    /// Nontrivial invariant factors of `A_L`.
-    pub group: Vec<i128>,
-    /// Canonical representatives `y` for `Z^n / GZ^n`.
-    pub reps: Vec<Vec<i128>>,
-    /// The exact inverse Gram matrix.
-    pub gram_inv: Vec<Vec<Rational>>,
+    core: DiscriminantCore,
 }
 
 /// The finite discriminant quadratic object attached to an odd integral lattice.
@@ -590,12 +639,7 @@ pub struct DiscriminantForm {
 /// `q_L(y) = y^T G^{-1} y mod Z` on `Z^n / GZ^n`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct OddDiscriminantForm {
-    /// Nontrivial invariant factors of `A_L`.
-    pub group: Vec<i128>,
-    /// Canonical representatives `y` for `Z^n / GZ^n`.
-    pub reps: Vec<Vec<i128>>,
-    /// The exact inverse Gram matrix.
-    pub gram_inv: Vec<Vec<Rational>>,
+    core: DiscriminantCore,
 }
 
 /// The odd-lattice Milgram/van der Blij congruence data.
@@ -624,41 +668,37 @@ impl DiscriminantForm {
     /// Build `q_L` for a nonsingular even lattice. Odd lattices return `None`
     /// because `x^T G x mod 2Z` is not well-defined on `L#/L`.
     pub fn from_lattice(lattice: &IntegralForm) -> Option<Self> {
-        if !lattice.is_even() || lattice.determinant() == 0 {
+        if !lattice.is_even() {
             return None;
         }
-        let mat: Vec<Vec<Rational>> = lattice
-            .gram()
-            .iter()
-            .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
-            .collect();
-        let gram_inv = inverse_matrix(mat)?;
-        let hnf = normalize_relation_rows(lattice.gram().to_vec());
-        let reps = enumerate_hnf_reps(&hnf)?;
-        let det = lattice.determinant().unsigned_abs() as usize;
-        if reps.len() != det {
-            return None;
-        }
-        let group = lattice
-            .invariant_factors()
-            .into_iter()
-            .filter(|&d| d > 1)
-            .collect();
         Some(DiscriminantForm {
-            group,
-            reps,
-            gram_inv,
+            core: DiscriminantCore::from_lattice(lattice)?,
         })
+    }
+
+    /// Nontrivial invariant factors of `A_L`.
+    pub fn group(&self) -> &[i128] {
+        &self.core.group
+    }
+
+    /// Canonical representatives `y` for `Z^n / GZ^n`.
+    pub fn reps(&self) -> &[Vec<i128>] {
+        &self.core.reps
+    }
+
+    /// The exact inverse Gram matrix.
+    pub fn gram_inv(&self) -> &[Vec<Rational>] {
+        &self.core.gram_inv
     }
 
     /// `q_L(y) = y^T G^{-1} y mod 2Z`, represented in `[0, 2)`.
     pub fn quadratic_value_mod2(&self, y: &[i128]) -> Rational {
-        rational_mod_int(dot_inv(y, &self.gram_inv, y), 2)
+        rational_mod_int(dot_inv(y, &self.core.gram_inv, y), 2)
     }
 
     /// `b_L(y,z) = y^T G^{-1} z mod Z`, represented in `[0, 1)`.
     pub fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
-        rational_mod_int(dot_inv(y, &self.gram_inv, z), 1)
+        self.core.bilinear_value_mod1(y, z)
     }
 
     /// The normalized Gauss sum
@@ -666,12 +706,12 @@ impl DiscriminantForm {
     pub fn gauss_sum(&self) -> GaussSum {
         let mut re = 0.0f64;
         let mut im = 0.0f64;
-        for y in &self.reps {
+        for y in &self.core.reps {
             let theta = std::f64::consts::PI * rational_to_f64(&self.quadratic_value_mod2(y));
             re += theta.cos();
             im += theta.sin();
         }
-        let scale = 1.0 / (self.reps.len() as f64).sqrt();
+        let scale = 1.0 / (self.core.reps.len() as f64).sqrt();
         GaussSum {
             re: re * scale,
             im: im * scale,
@@ -701,12 +741,12 @@ impl DiscriminantForm {
         use crate::forms::char2::beta_from_gauss;
         // 2-elementary ⇔ every nontrivial invariant factor is 2 (the unimodular
         // A_L = 0 case is vacuously 2-elementary, β = 0).
-        if !self.group.iter().all(|&d| d == 2) {
+        if !self.core.group.iter().all(|&d| d == 2) {
             return None;
         }
         // q4(γ) = 2·q_L(γ) ∈ {0,1,2,3}; enumerate the whole (nondegenerate) group.
         let mut counts = [0i128; 4];
-        for gamma in &self.reps {
+        for gamma in &self.core.reps {
             let two_q = self.quadratic_value_mod2(gamma);
             let two_q = two_q.add(&two_q);
             if !two_q.is_integer() {
@@ -718,7 +758,7 @@ impl DiscriminantForm {
         let im = counts[1] - counts[3];
         Some(crate::forms::BrownInvariants {
             beta: beta_from_gauss(re, im)?,
-            rank: self.group.len(),
+            rank: self.core.group.len(),
             radical_dim: 0,
             radical_anisotropic: false,
         })
@@ -726,7 +766,8 @@ impl DiscriminantForm {
 
     /// The `reps` index of the coset containing the raw integer vector `v`.
     fn element_index(&self, v: &[i128]) -> Option<usize> {
-        self.reps
+        self.core
+            .reps
             .iter()
             .position(|r| self.equivalent_mod_lattice(r, v))
     }
@@ -734,12 +775,17 @@ impl DiscriminantForm {
     /// Tabulate the finite abelian group `(A_L, +)` with each element's `q_L` value
     /// and order, plus the full addition table. `None` past `group_cap`.
     pub(crate) fn tables_bounded(&self, group_cap: usize) -> Option<IsoTables> {
-        let n = self.reps.len();
+        let n = self.core.reps.len();
         if n > group_cap {
             return None;
         }
-        let zero = self.reps.iter().position(|r| r.iter().all(|&x| x == 0))?;
+        let zero = self
+            .core
+            .reps
+            .iter()
+            .position(|r| r.iter().all(|&x| x == 0))?;
         let q: Vec<Rational> = self
+            .core
             .reps
             .iter()
             .map(|r| self.quadratic_value_mod2(r))
@@ -747,9 +793,9 @@ impl DiscriminantForm {
         let mut add = vec![vec![0usize; n]; n];
         for i in 0..n {
             for j in 0..n {
-                let s: Vec<i128> = self.reps[i]
+                let s: Vec<i128> = self.core.reps[i]
                     .iter()
-                    .zip(&self.reps[j])
+                    .zip(&self.core.reps[j])
                     .map(|(&a, &b)| a + b)
                     .collect();
                 add[i][j] = self.element_index(&s)?;
@@ -786,10 +832,10 @@ impl DiscriminantForm {
     pub fn fqm_gauss_phase(&self) -> Option<super::phases::FqmGaussPhase> {
         use super::phases::FqmPrimaryPhase;
         let tables = self.tables_bounded(FQM_GAUSS_GROUP_CAP)?;
-        let order = self.reps.len();
+        let order = self.core.reps.len();
         let total = phase_mod8_from_q_values(tables.q.iter(), order)?;
         let mut primes = BTreeSet::new();
-        for &d in &self.group {
+        for &d in &self.core.group {
             for p in prime_factors(d.unsigned_abs()) {
                 primes.insert(p);
             }
@@ -861,11 +907,11 @@ impl DiscriminantForm {
 
     /// [`is_isomorphic`](Self::is_isomorphic) with an explicit node budget.
     pub fn is_isomorphic_bounded(&self, other: &Self, node_budget: u128) -> Option<bool> {
-        if self.reps.len() != other.reps.len() {
+        if self.core.reps.len() != other.core.reps.len() {
             return Some(false);
         }
-        let mut g1 = self.group.clone();
-        let mut g2 = other.group.clone();
+        let mut g1 = self.core.group.clone();
+        let mut g2 = other.core.group.clone();
         g1.sort_unstable();
         g2.sort_unstable();
         if g1 != g2 {
@@ -888,12 +934,12 @@ impl DiscriminantForm {
     }
 
     fn equivalent_mod_lattice(&self, a: &[i128], b: &[i128]) -> bool {
-        let n = self.gram_inv.len();
+        let n = self.core.gram_inv.len();
         if a.len() != n || b.len() != n {
             return false;
         }
         let diff: Vec<i128> = a.iter().zip(b).map(|(&x, &y)| x - y).collect();
-        for row in &self.gram_inv {
+        for row in &self.core.gram_inv {
             let mut coord = Rational::zero();
             for (r, &d) in row.iter().zip(&diff) {
                 if d != 0 {
@@ -908,11 +954,12 @@ impl DiscriminantForm {
     }
 
     fn negation_matrix(&self) -> Option<Vec<Vec<Complex64>>> {
-        let n = self.reps.len();
+        let n = self.core.reps.len();
         let mut out = vec![vec![Complex64::zero(); n]; n];
-        for (col, gamma) in self.reps.iter().enumerate() {
+        for (col, gamma) in self.core.reps.iter().enumerate() {
             let neg_gamma: Vec<i128> = gamma.iter().map(|&x| -x).collect();
             let row = self
+                .core
                 .reps
                 .iter()
                 .position(|delta| self.equivalent_mod_lattice(delta, &neg_gamma))?;
@@ -932,7 +979,8 @@ impl DiscriminantForm {
 
     /// The diagonal Weil `T` multipliers `exp(pi*i*q_L(gamma))`.
     pub fn weil_t(&self) -> Vec<Complex64> {
-        self.reps
+        self.core
+            .reps
             .iter()
             .map(|gamma| {
                 let theta =
@@ -957,15 +1005,15 @@ impl DiscriminantForm {
     /// The Weil `S` matrix in the basis of discriminant representatives:
     /// `(sigma/sqrt(|A|)) * exp(-2*pi*i*b_L(gamma,delta))`.
     pub fn weil_s(&self) -> Option<Vec<Vec<Complex64>>> {
-        let n = self.reps.len();
+        let n = self.core.reps.len();
         if n == 0 {
             return None;
         }
         let sigma = Complex64::eighth_root(self.weil_s_prefactor_phase_mod8()?);
         let scale = 1.0 / (n as f64).sqrt();
         let mut out = vec![vec![Complex64::zero(); n]; n];
-        for (col, gamma) in self.reps.iter().enumerate() {
-            for (row, delta) in self.reps.iter().enumerate() {
+        for (col, gamma) in self.core.reps.iter().enumerate() {
+            for (row, delta) in self.core.reps.iter().enumerate() {
                 let theta = -2.0
                     * std::f64::consts::PI
                     * rational_to_f64(&self.bilinear_value_mod1(gamma, delta));
@@ -1003,7 +1051,7 @@ impl DiscriminantForm {
         let st3 = mat_pow(&mat_mul(&s, &t), 3);
         let s2_target = mat_scale(&neg, Complex64::eighth_root(2 * s_phase));
         let s4_target = mat_scale(
-            &mat_identity(self.reps.len()),
+            &mat_identity(self.core.reps.len()),
             Complex64::eighth_root(4 * s_phase),
         );
         mat_approx_eq(&s2, &s2_target, tol)
@@ -1018,41 +1066,37 @@ impl OddDiscriminantForm {
     /// Even lattices stay on [`DiscriminantForm`], whose `Q/2Z` values carry the
     /// nondegenerate Weil/Milgram finite quadratic module.
     pub fn from_lattice(lattice: &IntegralForm) -> Option<Self> {
-        if lattice.is_even() || lattice.determinant() == 0 {
+        if lattice.is_even() {
             return None;
         }
-        let mat: Vec<Vec<Rational>> = lattice
-            .gram()
-            .iter()
-            .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
-            .collect();
-        let gram_inv = inverse_matrix(mat)?;
-        let hnf = normalize_relation_rows(lattice.gram().to_vec());
-        let reps = enumerate_hnf_reps(&hnf)?;
-        let det = lattice.determinant().unsigned_abs() as usize;
-        if reps.len() != det {
-            return None;
-        }
-        let group = lattice
-            .invariant_factors()
-            .into_iter()
-            .filter(|&d| d > 1)
-            .collect();
         Some(OddDiscriminantForm {
-            group,
-            reps,
-            gram_inv,
+            core: DiscriminantCore::from_lattice(lattice)?,
         })
+    }
+
+    /// Nontrivial invariant factors of `A_L`.
+    pub fn group(&self) -> &[i128] {
+        &self.core.group
+    }
+
+    /// Canonical representatives `y` for `Z^n / GZ^n`.
+    pub fn reps(&self) -> &[Vec<i128>] {
+        &self.core.reps
+    }
+
+    /// The exact inverse Gram matrix.
+    pub fn gram_inv(&self) -> &[Vec<Rational>] {
+        &self.core.gram_inv
     }
 
     /// `q_L(y) = y^T G^{-1} y mod Z`, represented in `[0, 1)`.
     pub fn quadratic_value_mod1(&self, y: &[i128]) -> Rational {
-        rational_mod_int(dot_inv(y, &self.gram_inv, y), 1)
+        rational_mod_int(dot_inv(y, &self.core.gram_inv, y), 1)
     }
 
     /// The discriminant bilinear pairing `b_L(y,z) = y^T G^{-1} z mod Z`.
     pub fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
-        rational_mod_int(dot_inv(y, &self.gram_inv, z), 1)
+        self.core.bilinear_value_mod1(y, z)
     }
 
     /// The normalized Gauss sum of the `Q/Z` odd-lattice discriminant values.
@@ -1063,12 +1107,12 @@ impl OddDiscriminantForm {
     pub fn gauss_sum(&self) -> GaussSum {
         let mut re = 0.0f64;
         let mut im = 0.0f64;
-        for y in &self.reps {
+        for y in &self.core.reps {
             let theta = std::f64::consts::TAU * rational_to_f64(&self.quadratic_value_mod1(y));
             re += theta.cos();
             im += theta.sin();
         }
-        let scale = 1.0 / (self.reps.len() as f64).sqrt();
+        let scale = 1.0 / (self.core.reps.len() as f64).sqrt();
         GaussSum {
             re: re * scale,
             im: im * scale,

@@ -1,6 +1,6 @@
 //! Places, the Hilbert symbol, and Hilbert reciprocity over the **global function
 //! field** `F_q(t)` — the equal-characteristic (char `p`) mirror of
-//! [`forms::padic`](crate::forms::padic) over `ℚ`.
+//! [`forms::padic`](crate::forms) over `ℚ`.
 //!
 //! `F_q(t)` is a global field exactly like `ℚ`, with one structural simplification
 //! and one structural difference:
@@ -36,7 +36,7 @@ use crate::scalar::{Poly, Rational, RationalFunction, Scalar};
 ///
 /// One type for **both** characteristic regimes: the odd-`q` tame-symbol layer here
 /// and the characteristic-2 Artin–Schreier layer in
-/// [`function_field_char2`](crate::forms::function_field_char2) share the *same*
+/// [`function_field_char2`](crate::forms) share the *same*
 /// places — the structural payload (a uniformizer, finite or the degree place) does
 /// not depend on the residue characteristic. The type is generic over `S: Scalar`;
 /// the residue-arithmetic bounds (`FiniteOddField` / `FiniteChar2Field`) stay on the
@@ -259,9 +259,7 @@ pub fn try_hilbert_symbol_ff<S: FiniteOddField>(
     };
     // Exactly the shared tame symbol — the same machine as the odd-`p` Q_p branch,
     // with the residue character `χ_κ` in place of the Legendre symbol.
-    Some(crate::forms::padic::tame_hilbert_symbol(
-        al, be, ca, cb, chi_neg1,
-    ))
+    Some(crate::forms::tame_hilbert_symbol(al, be, ca, cb, chi_neg1))
 }
 
 // ───────────────────────── Hasse invariant + reciprocity ─────────────────────────
@@ -270,7 +268,7 @@ pub fn try_hilbert_symbol_ff<S: FiniteOddField>(
 /// some entry has nonzero valuation (the monic irreducible factors of all
 /// numerators and denominators), plus the degree place `∞`. At every other place
 /// all entries are units, so every symbol is `+1`. Mirror of
-/// [`relevant_primes`](crate::forms::padic).
+/// [`relevant_primes`](crate::forms).
 pub fn try_relevant_places_ff<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
 ) -> Option<Vec<FunctionFieldPlace<S>>> {
@@ -361,7 +359,7 @@ pub(crate) fn is_global_square_ff<S: FiniteOddField>(x: &RationalFunction<S>) ->
 
 /// Local isotropy of a nondegenerate diagonal form `⟨a_1,…,a_n⟩` over the
 /// completion of `F_q(t)` at `place`, by rank — the exact mirror of
-/// [`try_is_isotropic_at_p`](crate::forms::padic) (`F_q(t)` and `Q_p` share the
+/// [`try_is_isotropic_at_p`](crate::forms) (`F_q(t)` and `Q_p` share the
 /// u-invariant `4`, so the thresholds match): `n≤1` never, `n=2` iff `−a_1a_2` is a
 /// local square, `n=3`/`4` the Hilbert conditions, `n≥5` always. Entries nonzero.
 pub fn try_is_isotropic_at_place_ff<S: FiniteOddField>(

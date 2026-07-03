@@ -41,7 +41,7 @@
 //! an independent Codex pass.
 
 use crate::forms::integral::codes::extended_golay_generator_rows;
-use crate::forms::lattice::IntegralForm;
+use crate::forms::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
 use crate::scalar::Rational;
 
@@ -179,7 +179,7 @@ pub fn leech() -> IntegralForm {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::root_lattices::e_8;
+    use crate::forms::e_8;
 
     #[test]
     fn mass_recovers_e8_weyl_group_order() {

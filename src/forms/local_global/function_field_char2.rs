@@ -1,7 +1,7 @@
 //! The **characteristic-2** local–global symbol over the global function field
 //! `F_{2^m}(t)` — the equal-characteristic-2 mirror of
-//! [`forms::function_field`](crate::forms::function_field) (which is the odd-`q`
-//! mirror of [`forms::padic`](crate::forms::padic)).
+//! [`forms::function_field`](crate::forms) (which is the odd-`q`
+//! mirror of [`forms::padic`](crate::forms)).
 //!
 //! In odd characteristic the quaternion/quadratic-form symbol is the **symmetric**
 //! tame Hilbert symbol `(a,b)_v` built from the multiplicative square class. In
@@ -49,12 +49,12 @@
 //! The full char-2 Witt/Springer decomposition of an arbitrary form (the wild
 //! `R_π` term) is a separate, larger build tracked in root AGENTS.md.
 
-use crate::forms::function_field::FunctionFieldPlace;
+use super::function_field::FunctionFieldPlace;
 use crate::forms::{artin_schreier_class_finite, FiniteChar2Field};
 use crate::scalar::{Poly, RationalFunction, Scalar};
 
 // The places of `F_q(t)` are characteristic-independent: this char-2 layer reuses the
-// shared [`FunctionFieldPlace`](crate::forms::function_field::FunctionFieldPlace)
+// shared [`FunctionFieldPlace`](crate::forms::FunctionFieldPlace)
 // rather than carrying a parallel enum. Only the *symbol* differs (additive
 // Artin–Schreier here vs. the multiplicative tame Hilbert symbol in the odd layer);
 // see the [`GlobalField`](crate::forms::GlobalField) module doc for that boundary.
@@ -78,7 +78,7 @@ fn dpoly<S: Scalar>(p: &Poly<S>) -> Poly<S> {
 }
 
 /// The multiplicity of `pi` in `p` and the cofactor `p / pi^mult`. Returns `i128`
-/// (width rule 7: fixed-width, matching the [`function_field`](crate::forms::function_field)
+/// (width rule 7: fixed-width, matching the [`function_field`](crate::forms)
 /// odd-char twin of this helper) even though the value is never negative; callers
 /// that need it as a power-series precision/index convert once, at their own entry
 /// point, rather than the multiplicity being pre-narrowed here.
@@ -336,7 +336,7 @@ fn dlog_differential<S: FiniteChar2Field>(
 /// The Artin–Schreier symbol `s_v(a, b) ∈ {0, 1}` at `place`, for `b ≠ 0`. `0` iff
 /// the cyclic algebra `[a, b)` splits over the completion at `place`. The char-2
 /// **additive** mirror of
-/// [`try_hilbert_symbol_ff`](crate::forms::function_field::try_hilbert_symbol_ff):
+/// [`try_hilbert_symbol_ff`](crate::forms::try_hilbert_symbol_ff):
 /// where the odd-`q` symbol is multiplicative (`{±1}`, reciprocity a product), this
 /// one is additive (`F₂` under XOR, reciprocity a sum) — so the `_ff` family's `try_`
 /// prefix is absent (this symbol is total, never `None`), and it stays a standalone
@@ -359,7 +359,7 @@ pub fn artin_schreier_symbol_at<S: FiniteChar2Field>(
 /// of `a·dlog b` (monic irreducible factors of its reduced denominator) plus the
 /// degree place `∞`. Every other place sees a regular differential, residue `0`.
 /// The additive char-2 mirror of
-/// [`try_relevant_places_ff`](crate::forms::function_field::try_relevant_places_ff).
+/// [`try_relevant_places_ff`](crate::forms::try_relevant_places_ff).
 pub fn artin_schreier_symbol_places<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
@@ -376,7 +376,7 @@ pub fn artin_schreier_symbol_places<S: FiniteChar2Field>(
 /// The **Weil reciprocity sum** `Σ_v s_v(a, b) ∈ F₂` over all places — identically
 /// `0` for every `a` and `b ≠ 0` (the residue theorem on `P¹`). The char-2 additive
 /// analogue of the odd-char product formula `∏_v (a,b)_v = +1`
-/// ([`try_hilbert_reciprocity_product_ff`](crate::forms::function_field::try_hilbert_reciprocity_product_ff)),
+/// ([`try_hilbert_reciprocity_product_ff`](crate::forms::try_hilbert_reciprocity_product_ff)),
 /// the gold oracle: the reciprocity here is an XOR sum, not a product.
 pub fn artin_schreier_reciprocity_sum<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
@@ -389,7 +389,7 @@ pub fn artin_schreier_reciprocity_sum<S: FiniteChar2Field>(
 
 /// The places where the cyclic algebra `[a, b)` **ramifies** (symbol `1`), `b ≠ 0`.
 /// The count is always **even** (additive reciprocity), mirroring
-/// [`try_ramified_places_ff`](crate::forms::function_field::try_ramified_places_ff).
+/// [`try_ramified_places_ff`](crate::forms::try_ramified_places_ff).
 pub fn artin_schreier_ramified_places<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,

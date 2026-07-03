@@ -50,10 +50,10 @@ mod tests {
     // call site below passes an in-domain rank, so these thin local wrappers keep
     // the test bodies unchanged.
     fn a_n(n: usize) -> IntegralForm {
-        crate::forms::root_lattices::a_n(n).unwrap()
+        crate::forms::a_n(n).unwrap()
     }
     fn d_n(n: usize) -> IntegralForm {
-        crate::forms::root_lattices::d_n(n).unwrap()
+        crate::forms::d_n(n).unwrap()
     }
 
     /// Nikulin's right-hand side: equal signature pairs and isomorphic discriminant
@@ -77,12 +77,65 @@ mod tests {
         // isomorphic forms. The search must see q, not just the group.
         let a1 = DiscriminantForm::from_lattice(&a_n(1)).unwrap();
         let e7 = DiscriminantForm::from_lattice(&e_7()).unwrap();
-        assert_eq!(a1.group, e7.group, "same invariant factors ℤ/2");
+        assert_eq!(a1.group(), e7.group(), "same invariant factors ℤ/2");
         assert_eq!(a1.is_isomorphic(&e7), Some(false), "q distinguishes them");
         // Different groups: ℤ/3 (A_2) vs (ℤ/2)² (A_1 ⊕ A_1).
         let a2 = DiscriminantForm::from_lattice(&a_n(2)).unwrap();
         let a1a1 = DiscriminantForm::from_lattice(&a_n(1).direct_sum(&a_n(1))).unwrap();
         assert_eq!(a2.is_isomorphic(&a1a1), Some(false));
+    }
+
+    #[test]
+    fn is_isomorphic_finds_a_nontrivial_generator_image_across_different_presentations() {
+        // `discriminant_iso_is_reflexive_and_q_sensitive` above only ever compares a
+        // form to itself or to a literally different lattice — the reflexive case
+        // never forces the generator-image DFS in `search_iso` to do real work,
+        // since matching `self` to `self` succeeds on the identity map trivially.
+        // This test instead builds two GENUINELY DIFFERENT Gram presentations of the
+        // same isometry class, so the two `DiscriminantForm`s carry a different
+        // `gram_inv` and `is_isomorphic` must actually search for a nontrivial
+        // `q`-preserving isomorphism between them (see below: the HNF-reduced
+        // coset labels happen to coincide, but the `q` values attached to those
+        // labels do not, so the identity map on labels is not itself an isomorphism).
+        //
+        // A_1 (+) A_1 has Gram diag(2,2) and discriminant group (Z/2)^2 — 4 elements,
+        // 2 minimal generators (not cyclic), so `min_generators` picks two
+        // independent order-2 generators and the DFS tries real candidate images,
+        // not a single-generator lookup.
+        //
+        // U = [[1,1],[0,1]] is unimodular (det U = 1), so G' = U^T G U is an
+        // isometry of the SAME lattice: by hand,
+        //   G*U = [[2,0],[0,2]] * [[1,1],[0,1]] = [[2,2],[0,2]]
+        //   U^T*(G*U) = [[1,0],[1,1]] * [[2,2],[0,2]] = [[2,2],[2,4]].
+        // G' = [[2,2],[2,4]] is a different Gram matrix (different off-diagonal and
+        // second diagonal entry) with the same determinant (4) and both diagonal
+        // entries even, so it is again an even lattice isometric to A_1 (+) A_1.
+        let base = a_n(1).direct_sum(&a_n(1));
+        let sheared = IntegralForm::new(vec![vec![2, 2], vec![2, 4]]).unwrap();
+        assert_ne!(
+            base.gram(),
+            sheared.gram(),
+            "genuinely different presentations"
+        );
+        assert_eq!(base.determinant(), sheared.determinant());
+        assert!(sheared.is_even());
+
+        let q_base = DiscriminantForm::from_lattice(&base).unwrap();
+        let q_sheared = DiscriminantForm::from_lattice(&sheared).unwrap();
+        assert_eq!(q_base.group(), vec![2, 2]);
+        assert_eq!(q_sheared.group(), vec![2, 2]);
+        // The HNF-reduced coset labels happen to coincide as bare integer vectors
+        // ({[0,0],[0,1],[1,0],[1,1]} for both), but `gram_inv` — by hand,
+        // `G^-1 = diag(1/2, 1/2)` vs `G'^-1 = [[1,-1/2],[-1/2,1/2]]` — genuinely
+        // differs, so the SAME label carries a DIFFERENT `q` value in each
+        // presentation and `is_isomorphic` cannot shortcut through identical data.
+        assert_ne!(
+            q_base.gram_inv(),
+            q_sheared.gram_inv(),
+            "the two presentations must not carry an identical inverse Gram"
+        );
+        assert_eq!(q_base.is_isomorphic(&q_sheared), Some(true));
+        assert_eq!(q_sheared.is_isomorphic(&q_base), Some(true), "symmetric");
     }
 
     #[test]
@@ -121,8 +174,8 @@ mod tests {
     fn a1_discriminant_form_has_quarter_turn_phase() {
         let a1 = a_n(1);
         let disc = DiscriminantForm::from_lattice(&a1).unwrap();
-        assert_eq!(disc.group, vec![2]);
-        assert_eq!(disc.reps.len(), 2);
+        assert_eq!(disc.group(), vec![2]);
+        assert_eq!(disc.reps().len(), 2);
         assert_eq!(disc.quadratic_value_mod2(&[1]), Rational::new(1, 2));
         assert_eq!(disc.milgram_signature_mod8(), Some(1));
         assert_eq!(disc.weil_s_prefactor_phase_mod8(), Some(7));
@@ -136,7 +189,7 @@ mod tests {
         for n in 1..=5 {
             let a = a_n(n);
             let disc = DiscriminantForm::from_lattice(&a).unwrap();
-            assert_eq!(disc.group, vec![n as i128 + 1]);
+            assert_eq!(disc.group(), vec![n as i128 + 1]);
             assert_eq!(disc.milgram_signature_mod8_fqm(), Some(n as i128 % 8));
             assert_eq!(disc.milgram_signature_mod8(), Some(n as i128 % 8));
             assert!(disc.verify_weil_relations(), "Weil relations A_{n}");
@@ -145,7 +198,7 @@ mod tests {
 
         let d4 = d_n(4);
         let disc = DiscriminantForm::from_lattice(&d4).unwrap();
-        assert_eq!(disc.group, vec![2, 2]);
+        assert_eq!(disc.group(), vec![2, 2]);
         assert_eq!(disc.milgram_signature_mod8_fqm(), Some(4));
         assert_eq!(disc.milgram_signature_mod8(), Some(4));
         let gs = disc.gauss_sum();
@@ -159,8 +212,8 @@ mod tests {
     fn e8_is_unimodular_and_milgram_trivial() {
         let e8 = e_8();
         let disc = DiscriminantForm::from_lattice(&e8).unwrap();
-        assert!(disc.group.is_empty());
-        assert_eq!(disc.reps, vec![vec![0; 8]]);
+        assert!(disc.group().is_empty());
+        assert_eq!(disc.reps(), vec![vec![0; 8]]);
         assert_eq!(disc.milgram_signature_mod8(), Some(0));
         assert_eq!(disc.weil_t(), vec![Complex64::one()]);
         assert_eq!(disc.weil_s().unwrap(), vec![vec![Complex64::one()]]);
@@ -214,7 +267,7 @@ mod tests {
         // A_3 has discriminant group Z/4, so the old 2-elementary Brown bridge
         // declines. The p-primary FQM phase still sees the Milgram signature.
         let a3 = DiscriminantForm::from_lattice(&a_n(3)).unwrap();
-        assert_eq!(a3.group, vec![4]);
+        assert_eq!(a3.group(), vec![4]);
         assert_eq!(a3.brown_invariant(), None);
         assert_eq!(a3.milgram_signature_mod8_fqm(), Some(3));
         assert_eq!(a3.fqm_gauss_phase().unwrap().primary[0].prime, 2);
@@ -222,7 +275,7 @@ mod tests {
         // E_6 is odd torsion (Z/3): outside Brown's char-2 slice, inside the FQM
         // Gauss phase projection.
         let e6 = DiscriminantForm::from_lattice(&e_6()).unwrap();
-        assert_eq!(e6.group, vec![3]);
+        assert_eq!(e6.group(), vec![3]);
         assert_eq!(e6.brown_invariant(), None);
         assert_eq!(e6.milgram_signature_mod8_fqm(), Some(6));
         assert_eq!(e6.fqm_gauss_phase().unwrap().primary[0].prime, 3);
@@ -249,11 +302,12 @@ mod tests {
             let float = disc.milgram_signature_mod8().unwrap();
             let (pos, neg) = l.signature();
             let sig = (pos as i128 - neg as i128).rem_euclid(8);
-            assert_eq!(fqm, sig, "FQM phase mismatch for group {:?}", disc.group);
+            assert_eq!(fqm, sig, "FQM phase mismatch for group {:?}", disc.group());
             assert_eq!(
-                float, sig,
+                float,
+                sig,
                 "float phase mismatch for group {:?}",
-                disc.group
+                disc.group()
             );
             assert_eq!(genus_signature_mod8(&l), Some(sig), "genus route mismatch");
             assert_eq!(verify_milgram(&l), Some(true), "Milgram verifier mismatch");
@@ -316,15 +370,15 @@ mod tests {
     fn odd_discriminant_form_uses_q_mod_one() {
         let z = IntegralForm::diagonal(&[1]);
         let zd = OddDiscriminantForm::from_lattice(&z).unwrap();
-        assert!(zd.group.is_empty());
-        assert_eq!(zd.reps, vec![vec![0]]);
+        assert!(zd.group().is_empty());
+        assert_eq!(zd.reps(), vec![vec![0]]);
         assert_eq!(zd.quadratic_value_mod1(&[0]), Rational::zero());
         assert_eq!(zd.gauss_phase_mod8(), Some(0));
         assert!(DiscriminantForm::from_lattice(&z).is_none());
 
         let three = IntegralForm::diagonal(&[3]);
         let od = OddDiscriminantForm::from_lattice(&three).unwrap();
-        assert_eq!(od.group, vec![3]);
+        assert_eq!(od.group(), vec![3]);
         assert_eq!(od.quadratic_value_mod1(&[1]), Rational::new(1, 3));
         assert_eq!(od.quadratic_value_mod1(&[2]), Rational::new(1, 3));
         assert_eq!(od.bilinear_value_mod1(&[1], &[1]), Rational::new(1, 3));

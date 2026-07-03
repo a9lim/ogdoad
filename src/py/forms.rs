@@ -5849,7 +5849,7 @@ struct PyDiscriminantForm {
 }
 
 fn check_disc_vec(d: &crate::forms::DiscriminantForm, v: &[i128], name: &str) -> PyResult<()> {
-    let dim = d.gram_inv.len();
+    let dim = d.gram_inv().len();
     if v.len() != dim {
         Err(PyValueError::new_err(format!(
             "{name} has length {}, expected {}",
@@ -5870,16 +5870,16 @@ impl PyDiscriminantForm {
     }
     #[getter]
     fn group(&self) -> Vec<i128> {
-        self.inner.group.clone()
+        self.inner.group().to_vec()
     }
     #[getter]
     fn reps(&self) -> Vec<Vec<i128>> {
-        self.inner.reps.clone()
+        self.inner.reps().to_vec()
     }
     #[getter]
     fn gram_inv(&self) -> Vec<Vec<PyRational>> {
         self.inner
-            .gram_inv
+            .gram_inv()
             .iter()
             .map(|row| row.iter().cloned().map(wrap_rational).collect())
             .collect()
@@ -5936,7 +5936,8 @@ impl PyDiscriminantForm {
     fn __repr__(&self) -> String {
         format!(
             "DiscriminantForm(group={:?}, reps={:?})",
-            self.inner.group, self.inner.reps
+            self.inner.group(),
+            self.inner.reps()
         )
     }
 }
@@ -5952,7 +5953,7 @@ fn check_odd_disc_vec(
     v: &[i128],
     name: &str,
 ) -> PyResult<()> {
-    let dim = d.gram_inv.len();
+    let dim = d.gram_inv().len();
     if v.len() != dim {
         Err(PyValueError::new_err(format!(
             "{name} has length {}, expected {}",
@@ -5973,16 +5974,16 @@ impl PyOddDiscriminantForm {
     }
     #[getter]
     fn group(&self) -> Vec<i128> {
-        self.inner.group.clone()
+        self.inner.group().to_vec()
     }
     #[getter]
     fn reps(&self) -> Vec<Vec<i128>> {
-        self.inner.reps.clone()
+        self.inner.reps().to_vec()
     }
     #[getter]
     fn gram_inv(&self) -> Vec<Vec<PyRational>> {
         self.inner
-            .gram_inv
+            .gram_inv()
             .iter()
             .map(|row| row.iter().cloned().map(wrap_rational).collect())
             .collect()
@@ -6007,7 +6008,8 @@ impl PyOddDiscriminantForm {
     fn __repr__(&self) -> String {
         format!(
             "OddDiscriminantForm(group={:?}, reps={:?})",
-            self.inner.group, self.inner.reps
+            self.inner.group(),
+            self.inner.reps()
         )
     }
 }

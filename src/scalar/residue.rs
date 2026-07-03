@@ -42,7 +42,7 @@
 //!     [`RationalFunction`](crate::scalar::RationalFunction) carry *all* their
 //!     places at once, so they have a residue field *per place*, not one — their
 //!     residues live at the forms layer
-//!     ([`forms::function_field`](crate::forms::function_field)), per place.
+//!     ([`forms::function_field`](crate::forms)), per place.
 //!   * The impls delegate to inherent methods of the same name (inherent shadows
 //!     trait in method-call position, so the delegation does not recurse), the same
 //!     discipline as [`valued`](crate::scalar::valued).

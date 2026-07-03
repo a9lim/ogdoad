@@ -33,8 +33,8 @@ use crate::forms::integral::diagonal::{
     odd_unit_residue, rat_val, rational_congruence_diagonal, rdiv, signature_from_diagonal,
     unit_mod8, DegenerateBehavior,
 };
-use crate::forms::lattice::IntegralForm;
-use crate::forms::padic::try_is_square_qp;
+use crate::forms::try_is_square_qp;
+use crate::forms::IntegralForm;
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::BTreeMap;
@@ -483,17 +483,17 @@ pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::root_lattices::{e_6, e_7, e_8};
     use crate::forms::{d16_plus, is_root_lattice};
+    use crate::forms::{e_6, e_7, e_8};
 
     // `root_lattices::a_n`/`d_n` are `Option`-checked on out-of-domain rank; every
     // call site below passes an in-domain rank, so these thin local wrappers keep
     // the test bodies unchanged.
     fn a_n(n: usize) -> IntegralForm {
-        crate::forms::root_lattices::a_n(n).unwrap()
+        crate::forms::a_n(n).unwrap()
     }
     fn d_n(n: usize) -> IntegralForm {
-        crate::forms::root_lattices::d_n(n).unwrap()
+        crate::forms::d_n(n).unwrap()
     }
 
     fn zn(n: usize) -> IntegralForm {

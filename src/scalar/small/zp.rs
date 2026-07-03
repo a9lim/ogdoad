@@ -9,7 +9,7 @@
 //! Clifford algebra over `Z/p^k` is a genuine zero-divisor / non-semisimple object —
 //! the engine's nilpotent path exercised at the *scalar* level.
 //!
-//! Where the companion [`forms::padic`](crate::forms::padic) module supplies the
+//! Where the companion [`forms::padic`](crate::forms) module supplies the
 //! quadratic-form payoff over `Q_p` (the Hilbert symbol, Hasse–Minkowski) at the
 //! forms layer, this is "the integers underneath" as an actual `Scalar` backend.
 //!

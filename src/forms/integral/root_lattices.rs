@@ -22,7 +22,7 @@
 //! [`IntegralForm::automorphism_group_order`] from the standard Cartan basis or
 //! from the basis-independent norm-2 root-system recognizer.
 
-use crate::forms::lattice::IntegralForm;
+use crate::forms::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
 
 /// `|W(E8)|`, the automorphism group order of the `E8` root lattice.

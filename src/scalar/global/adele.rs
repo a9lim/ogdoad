@@ -22,7 +22,7 @@
 //! therefore a *precision model*, **excluded from the exact-ring fuzz suite**.
 //! The tested facts are the diagonal embedding, the finite-place bookkeeping, the
 //! multiplicative idele behavior in represented cases, and the local–global
-//! routines in [`forms::adelic`](crate::forms::adelic).
+//! routines in [`forms::adelic`](crate::forms).
 //!
 //! Deliberately **not** [`Valued`](crate::scalar::Valued) (an adele has a whole
 //! family of valuations, no single canonical one — use [`Adele::local_at`] and

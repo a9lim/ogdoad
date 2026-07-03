@@ -254,7 +254,7 @@ impl<S: FiniteOddField> FunctionFieldBrauerWallClass<S> {
     /// Whether this is the split class.
     pub fn is_split(&self) -> bool {
         self.dimension_parity == 0
-            && crate::forms::function_field::is_global_square_ff(&self.signed_discriminant)
+            && crate::forms::is_global_square_ff(&self.signed_discriminant)
             && self.clifford_brauer_class.is_split()
     }
 
@@ -606,7 +606,7 @@ fn same_global_square_class_ff<S: FiniteOddField>(
         return false;
     }
     b.inv()
-        .map(|binv| crate::forms::function_field::is_global_square_ff(&a.mul(&binv)))
+        .map(|binv| crate::forms::is_global_square_ff(&a.mul(&binv)))
         .unwrap_or(false)
 }
 

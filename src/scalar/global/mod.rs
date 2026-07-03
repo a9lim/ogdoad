@@ -16,7 +16,7 @@
 //!
 //! The local–global *theorems* it carries (Hilbert reciprocity, adelic
 //! Hasse–Minkowski, the Brauer fundamental exact sequence) live one layer up in
-//! [`forms::adelic`](crate::forms::adelic), where the `forms::padic` Hilbert-symbol
+//! [`forms::adelic`](crate::forms), where the `forms::padic` Hilbert-symbol
 //! machinery is.
 //!
 //! Its equal-characteristic mirror also lives here: [`RationalFunction`] is the
@@ -24,7 +24,7 @@
 //! carrying *all* its place valuations at once (so, like [`Adele`], it is not
 //! [`Valued`](crate::scalar::Valued)). It is the exact char-`p` mirror of the
 //! `ℚ`-adele, and feeds [`forms::function_field`](crate::forms) the way the adele
-//! feeds [`forms::adelic`](crate::forms::adelic).
+//! feeds [`forms::adelic`](crate::forms).
 //!
 //! [`exact`]: crate::scalar::exact
 //! [`small`]: crate::scalar::small
