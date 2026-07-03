@@ -207,8 +207,22 @@ impl PyVersorClass {
     fn dickson(&self) -> u128 {
         self.dickson
     }
-    fn __repr__(&self) -> String {
-        format!("VersorClass(dickson={})", self.dickson)
+    // Mirrors the core `VersorInvariants` Display (`spinor_norm` rendered as a
+    // bare field element, no reduction — see the module docs on why no such
+    // reduction is valid in characteristic 2), under the pyclass's own name
+    // ("VersorClass"); `spinor_norm` is stored as an already-wrapped Python
+    // scalar object here, so its rendering goes through Python `str()`, which
+    // falls back to `__repr__` (== the wrapped scalar's own Display) since none
+    // of the scalar wrappers override `__str__`.
+    fn display(&self, py: Python<'_>) -> String {
+        format!(
+            "VersorClass(spinor_norm={}, dickson={})",
+            self.spinor_norm.bind(py),
+            self.dickson
+        )
+    }
+    fn __repr__(&self, py: Python<'_>) -> String {
+        self.display(py)
     }
 }
 

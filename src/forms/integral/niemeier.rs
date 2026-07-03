@@ -14,6 +14,7 @@ use super::{
     modular_qexp_scale, root_lattices, IntegralForm,
 };
 use crate::scalar::{Rational, Scalar};
+use std::fmt;
 
 /// An irreducible simply-laced root-system component.
 ///
@@ -205,6 +206,11 @@ impl NiemeierRecord {
         out
     }
 
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+
     /// The scalar theta series of the rank-24 Niemeier lattice, using Venkov's
     /// weight-12 formula `theta_N = E4^3 + (#roots - 720) Delta`.
     pub fn theta_series(&self, terms: usize) -> Vec<Rational> {
@@ -218,6 +224,25 @@ impl NiemeierRecord {
                 terms,
             ),
             terms,
+        )
+    }
+}
+
+impl fmt::Display for NiemeierRecord {
+    /// The catalogue label (already the root-system string, e.g. `E_8^3`) plus
+    /// the glue index `[N:R]` and `|Aut(N)|`, `none` where those are structurally
+    /// absent (Leech's rank-zero root system) or exceed the `u128` model.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let glue = self
+            .glue_code_order
+            .map_or_else(|| "none".to_string(), |n| n.to_string());
+        let aut = self
+            .automorphism_group_order()
+            .map_or_else(|| "none".to_string(), |n| n.to_string());
+        write!(
+            f,
+            "NiemeierRecord({}, glue=[N:R]={}, |Aut(N)|={})",
+            self.label, glue, aut
         )
     }
 }
@@ -585,6 +610,26 @@ mod tests {
         assert_eq!(
             niemeier_weighted_theta_average(terms),
             Some(eisenstein_e12(terms))
+        );
+    }
+
+    #[test]
+    fn niemeier_record_display_renders_label_glue_and_aut_order() {
+        let leech = niemeier_classes()[0];
+        assert_eq!(leech.label(), "Leech");
+        assert_eq!(
+            leech.to_string(),
+            "NiemeierRecord(Leech, glue=[N:R]=none, |Aut(N)|=8315553613086720000)"
+        );
+        assert_eq!(leech.display(), leech.to_string());
+
+        let e8_3 = niemeier_classes()
+            .iter()
+            .find(|c| c.label() == "E_8^3")
+            .unwrap();
+        assert_eq!(
+            e8_3.to_string(),
+            "NiemeierRecord(E_8^3, glue=[N:R]=1, |Aut(N)|=2029289625631919702016000000)"
         );
     }
 }

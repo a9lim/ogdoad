@@ -144,6 +144,23 @@ pub struct RealWittDecomp {
     pub radical_dim: usize,
 }
 
+impl RealWittDecomp {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for RealWittDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "RealWittDecomp(witt_index={}, anisotropic_pos={}, anisotropic_neg={}, radical_dim={})",
+            self.witt_index, self.anisotropic_pos, self.anisotropic_neg, self.radical_dim,
+        )
+    }
+}
+
 /// Witt decomposition over the exact-square surreal subdomain:
 /// `form ≅ k·H ⊥ ⟨±1⟩^{|p−q|}` plus the radical. `k = min(p, q)`.
 pub fn witt_decompose_real(m: &Metric<Surreal>) -> Option<RealWittDecomp> {
@@ -174,6 +191,28 @@ pub struct OddWittDecomp {
     pub anisotropic_disc_is_square: bool,
     /// Dimension of the radical.
     pub radical_dim: usize,
+}
+
+impl OddWittDecomp {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for OddWittDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "OddWittDecomp(p={}, field_order={}, witt_index={}, anisotropic_dim={}, anisotropic_disc_is_square={}, radical_dim={})",
+            self.p,
+            self.field_order,
+            self.witt_index,
+            self.anisotropic_dim,
+            self.anisotropic_disc_is_square,
+            self.radical_dim,
+        )
+    }
 }
 
 /// Witt decomposition over any finite field `F_q` of odd characteristic: every
@@ -279,6 +318,22 @@ mod tests {
     }
 
     #[test]
+    fn real_witt_decomp_display_matches_bound_python_repr() {
+        // Byte-matches the hand-rolled PyRealWittDecomp::__repr__ in src/py/forms.rs.
+        let d = RealWittDecomp {
+            witt_index: 2,
+            anisotropic_pos: 1,
+            anisotropic_neg: 0,
+            radical_dim: 0,
+        };
+        assert_eq!(
+            d.to_string(),
+            "RealWittDecomp(witt_index=2, anisotropic_pos=1, anisotropic_neg=0, radical_dim=0)"
+        );
+        assert_eq!(d.display(), d.to_string());
+    }
+
+    #[test]
     fn oddchar_isometry_and_witt() {
         const P: u128 = 5;
         // ⟨1,1⟩ ≅ H over F_5 (−1 is a square), so it is hyperbolic, witt index 1.
@@ -307,6 +362,24 @@ mod tests {
         let d = witt_decompose_finite_odd(&ofp::<P>(&[1, 1])).unwrap();
         assert_eq!(d.anisotropic_dim, 2);
         assert_eq!(d.witt_index, 0);
+    }
+
+    #[test]
+    fn odd_witt_decomp_display_matches_bound_python_repr() {
+        // Byte-matches the hand-rolled PyOddWittDecomp::__repr__ in src/py/forms.rs.
+        let d = OddWittDecomp {
+            p: 5,
+            field_order: 25,
+            witt_index: 1,
+            anisotropic_dim: 2,
+            anisotropic_disc_is_square: false,
+            radical_dim: 0,
+        };
+        assert_eq!(
+            d.to_string(),
+            "OddWittDecomp(p=5, field_order=25, witt_index=1, anisotropic_dim=2, anisotropic_disc_is_square=false, radical_dim=0)"
+        );
+        assert_eq!(d.display(), d.to_string());
     }
 
     #[test]

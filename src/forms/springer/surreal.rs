@@ -111,6 +111,28 @@ pub fn springer_decompose(metric: &Metric<Surreal>) -> Option<SpringerDecomp> {
     })
 }
 
+impl SpringerDecomp {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for SpringerDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let graded: Vec<(String, (usize, usize))> = self
+            .graded
+            .iter()
+            .map(|g| (g.valuation.to_string(), g.signature))
+            .collect();
+        write!(
+            f,
+            "SpringerDecomp(graded={graded:?}, radical_dim={}, total_signature={:?})",
+            self.radical_dim, self.total_signature
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,6 +141,17 @@ mod tests {
 
     fn w(n: i128) -> Surreal {
         Surreal::from_int(n)
+    }
+
+    #[test]
+    fn display_render_pin() {
+        let m = Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon(), w(1), w(-1)]);
+        let d = springer_decompose(&m).unwrap();
+        assert_eq!(
+            d.to_string(),
+            "SpringerDecomp(graded=[(\"1\", (1, 0)), (\"0\", (1, 1)), (\"-1\", (1, 0))], radical_dim=0, total_signature=(3, 1))"
+        );
+        assert_eq!(d.display(), d.to_string());
     }
 
     #[test]

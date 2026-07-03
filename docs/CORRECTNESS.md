@@ -123,16 +123,16 @@ the four `Play wave …` commit messages and `DONE.md`. What each left behind:
   citation (none was certain enough to pin).
 - `one-line-pins` + `proptest-depth-note` (↑): all bullets played.
 
-## switches (a9's move, still)
+## switches — closed
 
-### ±1·e_f: `aj-second-engine`
-Unchanged in substance: the char-2 Aravire–Jacob leg still has no independent oracle
-— by structure (the odd-residue engine rejects residue char 2; there is no second
-implementation in the repo). The owed wording pass **is done** ("paper-derived worked
-example" everywhere; `source-pinned` reserved). The open decision: build an
-independent naive verifier (brute-force isotropy over truncated power series, or a
-from-scratch second ASNF) as a test-only oracle, or accept hand-worked oracles as the
-documented boundary.
+### ±1·e_f: `aj-second-engine` — CLOSED 2026-07-02 (accepted)
+a9's call: **accept paper-derived worked examples as the documented boundary** — no
+second engine. The decision is recorded at the source
+(`springer/char2/mod.rs` module doc, "Oracle boundary (accepted, 2026-07-02)"): the
+odd-residue engine rejects residue char 2 by structure, the hand-worked
+Aravire–Jacob oracles are the contract, and a test-only brute-force verifier stays
+welcome-if-ever-wanted rather than owed. "source-pinned" remains reserved for
+external data pins.
 
 ### recorded boundaries (not gaps, decisions)
 - `weight_enumerator` (both code types) keeps an infallible signature with a

@@ -15,6 +15,7 @@
 //! that stays open; this gives the tooling to test candidates.
 
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::hash::Hash;
 
 fn misere_is_n_inner<P, F>(
@@ -260,6 +261,33 @@ impl Quotient {
     /// The exact test signature used to classify an enumerated element.
     pub fn signature_of_element(&self, element_index: usize) -> Option<&[bool]> {
         self.signatures.get(element_index).map(Vec::as_slice)
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for Quotient {
+    /// One line: quotient order, P-class count, and whether the bounded class
+    /// multiplication table is a complete monoid — mirrors the summary
+    /// `examples/misere_quotient.rs` prints for a computed quotient (order,
+    /// P-classes), plus the monoid-completeness flavor
+    /// ([`has_complete_bounded_monoid`](Self::has_complete_bounded_monoid)),
+    /// which is cheap to read off already-stored fields.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let p_classes = self.class_is_p.iter().filter(|&&p| p).count();
+        let monoid = if self.has_complete_bounded_monoid() {
+            "complete monoid"
+        } else {
+            "partial monoid"
+        };
+        write!(
+            f,
+            "Quotient(order={}, P-classes={p_classes}, {monoid})",
+            self.num_classes(),
+        )
     }
 }
 
@@ -560,6 +588,12 @@ mod tests {
         assert!(!q.elements_closed_under_sum);
         // exactly one P-class (the win-bias is a single coset)
         assert_eq!(q.class_is_p.iter().filter(|&&p| p).count(), 1);
+        // render pin: order, P-class count, and the complete-monoid flavor.
+        assert_eq!(
+            q.to_string(),
+            "Quotient(order=2, P-classes=1, complete monoid)"
+        );
+        assert_eq!(q.display(), q.to_string());
     }
 
     #[test]

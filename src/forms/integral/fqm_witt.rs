@@ -13,6 +13,7 @@ use crate::forms::try_is_square_qp;
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::fmt;
 
 const FQM_WITT_GROUP_CAP: usize = 512;
 const FQM_WITT_TUPLE_CAP: u128 = 2_000_000;
@@ -52,6 +53,23 @@ pub struct FqmPrimaryWittClass {
     pub normal_form: Vec<i128>,
 }
 
+impl FqmPrimaryWittClass {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for FqmPrimaryWittClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "FqmPrimaryWittClass(prime={}, order={}, core_order={}, core_group={:?}, core_exponent={}, phase_mod8={})",
+            self.prime, self.order, self.core_order, self.core_group, self.core_exponent, self.phase_mod8,
+        )
+    }
+}
+
 /// The Witt class of a nonsingular finite quadratic module.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FqmWittClass {
@@ -68,6 +86,28 @@ impl FqmWittClass {
     /// the zero module.
     pub fn is_trivial(&self) -> bool {
         self.primary.iter().all(|p| p.core_order == 1)
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for FqmWittClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "FqmWittClass(order={}, phase_mod8={}, primary=[",
+            self.order, self.phase_mod8
+        )?;
+        for (i, p) in self.primary.iter().enumerate() {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{p}")?;
+        }
+        write!(f, "])")
     }
 }
 
@@ -92,6 +132,30 @@ pub struct NikulinPrimaryExistenceInvariants {
     pub p_adic_discriminant: Option<Rational>,
     /// Result of the equality-case determinant check, when one is required.
     pub determinant_condition_holds: Option<bool>,
+}
+
+impl NikulinPrimaryExistenceInvariants {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for NikulinPrimaryExistenceInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let discr = self
+            .p_adic_discriminant
+            .as_ref()
+            .map_or_else(|| "none".to_string(), |r| r.to_string());
+        let holds = self
+            .determinant_condition_holds
+            .map_or_else(|| "none".to_string(), |b| b.to_string());
+        write!(
+            f,
+            "NikulinPrimaryExistenceInvariants(prime={}, order={}, length={}, equality_case={}, even_two_primary={}, p_adic_discriminant={}, determinant_condition_holds={})",
+            self.prime, self.order, self.length, self.equality_case, self.even_two_primary, discr, holds,
+        )
+    }
 }
 
 /// The first failed condition in Nikulin's theorem 1.10.1.
@@ -123,6 +187,47 @@ pub enum NikulinExistenceObstruction {
     },
 }
 
+impl NikulinExistenceObstruction {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for NikulinExistenceObstruction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            NikulinExistenceObstruction::SignatureCongruence {
+                required_mod8,
+                module_phase_mod8,
+            } => write!(
+                f,
+                "SignatureCongruence(required_mod8={required_mod8}, module_phase_mod8={module_phase_mod8})"
+            ),
+            NikulinExistenceObstruction::RankTooSmall {
+                prime,
+                rank,
+                length,
+            } => write!(f, "RankTooSmall(prime={prime}, rank={rank}, length={length})"),
+            NikulinExistenceObstruction::OddPrimeDeterminant {
+                prime,
+                signed_order,
+                p_adic_discriminant,
+            } => write!(
+                f,
+                "OddPrimeDeterminant(prime={prime}, signed_order={signed_order}, p_adic_discriminant={p_adic_discriminant})"
+            ),
+            NikulinExistenceObstruction::TwoAdicDeterminant {
+                order,
+                p_adic_discriminant,
+            } => write!(
+                f,
+                "TwoAdicDeterminant(order={order}, p_adic_discriminant={p_adic_discriminant})"
+            ),
+        }
+    }
+}
+
 /// Full bounded report for Nikulin's even-lattice existence criterion.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NikulinExistenceInvariants {
@@ -143,6 +248,25 @@ impl NikulinExistenceInvariants {
     /// signature and discriminant form exists.
     pub fn exists(&self) -> bool {
         self.obstruction.is_none()
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for NikulinExistenceInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let obstruction = self
+            .obstruction
+            .as_ref()
+            .map_or_else(|| "none".to_string(), |o| o.to_string());
+        write!(
+            f,
+            "NikulinExistenceInvariants(signature={:?}, rank={}, module_phase_mod8={}, exists={}, obstruction={})",
+            self.signature, self.rank, self.module_phase_mod8, self.exists(), obstruction,
+        )
     }
 }
 
@@ -1434,5 +1558,86 @@ mod tests {
             })
         );
         assert_eq!(module.nikulin_even_lattice_exists((1, 1)), Some(false));
+    }
+
+    #[test]
+    fn fqm_witt_class_display_renders_order_phase_and_primary_summands() {
+        let a1 = DiscriminantForm::from_lattice(&a_n(1)).unwrap();
+        let class = a1.fqm_witt_class().unwrap();
+        assert_eq!(
+            class.primary[0].to_string(),
+            "FqmPrimaryWittClass(prime=2, order=2, core_order=2, core_group=[2], core_exponent=2, phase_mod8=1)"
+        );
+        assert_eq!(class.primary[0].display(), class.primary[0].to_string());
+        assert_eq!(
+            class.to_string(),
+            "FqmWittClass(order=2, phase_mod8=1, primary=[FqmPrimaryWittClass(prime=2, order=2, core_order=2, core_group=[2], core_exponent=2, phase_mod8=1)])"
+        );
+        assert_eq!(class.display(), class.to_string());
+    }
+
+    #[test]
+    fn nikulin_existence_obstruction_display_covers_every_variant() {
+        let sig = NikulinExistenceObstruction::SignatureCongruence {
+            required_mod8: 7,
+            module_phase_mod8: 1,
+        };
+        assert_eq!(
+            sig.to_string(),
+            "SignatureCongruence(required_mod8=7, module_phase_mod8=1)"
+        );
+        assert_eq!(sig.display(), sig.to_string());
+
+        let rank = NikulinExistenceObstruction::RankTooSmall {
+            prime: 3,
+            rank: 0,
+            length: 2,
+        };
+        assert_eq!(rank.to_string(), "RankTooSmall(prime=3, rank=0, length=2)");
+
+        let odd = NikulinExistenceObstruction::OddPrimeDeterminant {
+            prime: 3,
+            signed_order: 27,
+            p_adic_discriminant: Rational::new(27, 8),
+        };
+        assert_eq!(
+            odd.to_string(),
+            "OddPrimeDeterminant(prime=3, signed_order=27, p_adic_discriminant=27/8)"
+        );
+
+        let two_adic = NikulinExistenceObstruction::TwoAdicDeterminant {
+            order: 16,
+            p_adic_discriminant: Rational::new(16, 3),
+        };
+        assert_eq!(
+            two_adic.to_string(),
+            "TwoAdicDeterminant(order=16, p_adic_discriminant=16/3)"
+        );
+    }
+
+    #[test]
+    fn nikulin_existence_invariants_display_renders_the_verdict() {
+        let a3 = FiniteQuadraticModule::cyclic(3, Rational::new(2, 3)).unwrap();
+        let a9 = FiniteQuadraticModule::cyclic(9, Rational::new(4, 9)).unwrap();
+        let module = a3.direct_sum(&a9).unwrap();
+        let report = module.nikulin_existence_report((2, 0)).unwrap();
+        assert_eq!(
+            report.primary[0].to_string(),
+            "NikulinPrimaryExistenceInvariants(prime=3, order=27, length=2, equality_case=true, even_two_primary=false, p_adic_discriminant=27/8, determinant_condition_holds=false)"
+        );
+        assert_eq!(report.primary[0].display(), report.primary[0].to_string());
+        assert_eq!(
+            report.to_string(),
+            "NikulinExistenceInvariants(signature=(2, 0), rank=2, module_phase_mod8=2, exists=false, obstruction=OddPrimeDeterminant(prime=3, signed_order=27, p_adic_discriminant=27/8))"
+        );
+        assert_eq!(report.display(), report.to_string());
+
+        let d4 = d_n(4);
+        let disc = DiscriminantForm::from_lattice(&d4).unwrap();
+        let clean = disc.nikulin_existence_report((4, 0)).unwrap();
+        assert_eq!(
+            clean.to_string(),
+            "NikulinExistenceInvariants(signature=(4, 0), rank=4, module_phase_mod8=4, exists=true, obstruction=none)"
+        );
     }
 }

@@ -3,6 +3,7 @@
 
 use crate::games::partizan::Game;
 use crate::linalg::integer::reduce_integer_vector;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GameRelation {
@@ -31,6 +32,26 @@ pub struct GameRelationCertificate {
     pub independent: bool,
 }
 
+impl GameRelationCertificate {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for GameRelationCertificate {
+    /// Byte-matches the hand-rolled `__repr__` in `src/py/games.rs`
+    /// (`PyGameRelationCertificate`), so a future delegation there is
+    /// behavior-preserving.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "GameRelationCertificate(coeffs={:?}, value_key={:?}, independent={})",
+            self.coeffs, self.value_key, self.independent
+        )
+    }
+}
+
 /// Audit trail for bounded automatic relation discovery.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RelationSearchCertificate {
@@ -43,6 +64,54 @@ pub struct RelationSearchCertificate {
     pub candidate_count: Option<usize>,
     /// Accepted relation rows, in the order they were imposed.
     pub relations: Vec<GameRelationCertificate>,
+}
+
+impl RelationSearchCertificate {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for RelationSearchCertificate {
+    /// One line, leading with the completeness verdict: an incomplete search
+    /// says so up front rather than burying `exhaustive` in a field dump.
+    /// `exhaustive = false` means only singleton-coefficient candidates were
+    /// tried and the full cross-generator coefficient box (`candidate_count`,
+    /// when its size is known) went unexplored — the case
+    /// `game_exterior_new_default_bound_is_incomplete_at_three_generators`
+    /// (`game_exterior/mod.rs`) pins for `GameExterior::new`'s default bound.
+    /// This intentionally does NOT byte-match the current hand-rolled
+    /// `src/py/games.rs` `__repr__` (a bare field dump): the completeness
+    /// verdict needs to be visually unmissable, not merely present.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let n = self.relations.len();
+        match (self.exhaustive, self.candidate_count) {
+            (true, Some(c)) => write!(
+                f,
+                "RelationSearchCertificate(exhaustive, bound={}, {c} candidate(s) searched, \
+                 {n} relation(s) accepted)",
+                self.bound
+            ),
+            (true, None) => write!(
+                f,
+                "RelationSearchCertificate(exhaustive, bound={}, {n} relation(s) accepted)",
+                self.bound
+            ),
+            (false, Some(c)) => write!(
+                f,
+                "RelationSearchCertificate(INCOMPLETE — singleton-only search, bound={}, \
+                 {c} candidate(s) unexplored, {n} relation(s) accepted)",
+                self.bound
+            ),
+            (false, None) => write!(
+                f,
+                "RelationSearchCertificate(INCOMPLETE — box too large to count, bound={}, \
+                 {n} relation(s) accepted)",
+                self.bound
+            ),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -93,4 +162,65 @@ pub(super) fn eval_relation(gens: &[Game], coeffs: &[i128]) -> Game {
         acc = acc.add(&g.times_int(c));
     }
     acc
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn game_relation_certificate_render_byte_matches_py_repr() {
+        // Pinned against the hand-rolled `PyGameRelationCertificate::__repr__`
+        // in src/py/games.rs so a future delegation there is a no-op.
+        let cert = GameRelationCertificate {
+            coeffs: vec![1, -1],
+            value_key: "0".to_string(),
+            independent: true,
+        };
+        assert_eq!(
+            cert.to_string(),
+            "GameRelationCertificate(coeffs=[1, -1], value_key=\"0\", independent=true)"
+        );
+        assert_eq!(cert.display(), cert.to_string());
+    }
+
+    #[test]
+    fn relation_search_certificate_incomplete_render_is_visibly_incomplete() {
+        // Mirrors the shape of `game_exterior_new_default_bound_is_incomplete_at_three_generators`
+        // (game_exterior/mod.rs): `GameExterior::new` on 3 generators falls back
+        // to a singleton-only search at bound 3, candidate_count = 342.
+        let cert = RelationSearchCertificate {
+            bound: 3,
+            exhaustive: false,
+            candidate_count: Some(342),
+            relations: vec![],
+        };
+        assert_eq!(
+            cert.to_string(),
+            "RelationSearchCertificate(INCOMPLETE — singleton-only search, bound=3, \
+             342 candidate(s) unexplored, 0 relation(s) accepted)"
+        );
+        assert!(cert.to_string().contains("INCOMPLETE"));
+        assert_eq!(cert.display(), cert.to_string());
+    }
+
+    #[test]
+    fn relation_search_certificate_exhaustive_render_says_exhaustive() {
+        let rel = GameRelationCertificate {
+            coeffs: vec![1, 1, -1],
+            value_key: "0".to_string(),
+            independent: true,
+        };
+        let cert = RelationSearchCertificate {
+            bound: 1,
+            exhaustive: true,
+            candidate_count: Some(8),
+            relations: vec![rel],
+        };
+        assert_eq!(
+            cert.to_string(),
+            "RelationSearchCertificate(exhaustive, bound=1, 8 candidate(s) searched, \
+             1 relation(s) accepted)"
+        );
+    }
 }

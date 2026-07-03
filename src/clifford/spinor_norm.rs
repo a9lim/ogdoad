@@ -74,6 +74,26 @@ pub struct VersorInvariants<S: Scalar> {
     pub dickson: u128,
 }
 
+impl<S: Scalar> VersorInvariants<S> {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl<S: Scalar> std::fmt::Display for VersorInvariants<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // The spinor norm is rendered as a bare field element (its own Display),
+        // not reduced mod squares or mod ℘ — see the module docs for why no such
+        // reduction is valid in characteristic 2.
+        write!(
+            f,
+            "VersorInvariants(spinor_norm={}, dickson={})",
+            self.spinor_norm, self.dickson
+        )
+    }
+}
+
 impl<S: Scalar> CliffordAlgebra<S> {
     /// The **raw spinor norm** `N(v) = ⟨v ṽ⟩₀` of a versor `v`, returned as a field
     /// element: `Some(N)` iff `v ṽ` is a pure invertible scalar (the same
@@ -161,6 +181,8 @@ mod tests {
         let c = alg.classify_versor(&e0e1).unwrap();
         assert_eq!(c.dickson, 0); // a rotor
         assert_eq!(c.spinor_norm, Rational::one()); // q0·q1 = 1
+        assert_eq!(c.to_string(), "VersorInvariants(spinor_norm=1, dickson=0)");
+        assert_eq!(c.display(), c.to_string());
     }
 
     #[test]
@@ -203,6 +225,12 @@ mod tests {
         let c1 = alg1.classify_versor(&e0).unwrap();
         assert_eq!(c1.dickson, 1);
         assert_eq!(c1.spinor_norm, Nimber(1));
+        // the raw norm renders plainly (via Nimber's own Display, "*1") — no
+        // implied reduction mod ℘, since none exists (see the module docs).
+        assert_eq!(
+            c1.to_string(),
+            "VersorInvariants(spinor_norm=*1, dickson=1)"
+        );
 
         // A rotor e0*e1 on a nonorthogonal char-2 metric ({e0,e1} = 1): even
         // Dickson parity, raw norm N(rotor) = 1 (computed from the same

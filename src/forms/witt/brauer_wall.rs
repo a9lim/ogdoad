@@ -199,6 +199,18 @@ impl<S: FiniteOddField> FunctionFieldBrauer2Class<S> {
             try_ramified_places_ff(a, b)?,
         ))
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl<S: FiniteOddField> std::fmt::Display for FunctionFieldBrauer2Class<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let places: Vec<String> = self.ramified.iter().map(|p| p.to_string()).collect();
+        write!(f, "FunctionFieldBrauer2Class(ramified={places:?})")
+    }
 }
 
 /// A class in the Brauer-Wall group `BW(F_q(t))`.
@@ -555,6 +567,32 @@ impl BrauerWallClass {
             },
         }
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for BrauerWallClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BrauerWallClass::Real(s) => write!(f, "BrauerWallClass::Real({s})"),
+            BrauerWallClass::Complex(p) => write!(f, "BrauerWallClass::Complex({p})"),
+            BrauerWallClass::OddChar {
+                field_order,
+                kappa,
+                e0,
+                sclass,
+            } => write!(
+                f,
+                "BrauerWallClass::OddChar(field_order={field_order}, kappa={kappa}, e0={e0}, sclass={sclass})"
+            ),
+            BrauerWallClass::Char2 { field_degree, arf } => {
+                write!(f, "BrauerWallClass::Char2(field_degree={field_degree}, arf={arf})")
+            }
+        }
+    }
 }
 
 fn rational_square_class(x: &Rational) -> Option<i128> {
@@ -792,6 +830,56 @@ mod tests {
     use crate::forms::classify_real;
     use crate::scalar::{Fp, Nimber, Poly, Rational, RationalFunction, Scalar, Surcomplex};
     use std::collections::BTreeSet;
+
+    // --- Display: exact-string render pins ---
+
+    #[test]
+    fn brauer_wall_class_display_render_pin() {
+        assert_eq!(
+            BrauerWallClass::Real(7).to_string(),
+            "BrauerWallClass::Real(7)"
+        );
+        assert_eq!(
+            BrauerWallClass::Complex(1).to_string(),
+            "BrauerWallClass::Complex(1)"
+        );
+        assert_eq!(
+            BrauerWallClass::OddChar {
+                field_order: 5,
+                kappa: 0,
+                e0: 1,
+                sclass: 0
+            }
+            .to_string(),
+            "BrauerWallClass::OddChar(field_order=5, kappa=0, e0=1, sclass=0)"
+        );
+        let c2 = BrauerWallClass::Char2 {
+            field_degree: 1,
+            arf: 1,
+        };
+        assert_eq!(
+            c2.to_string(),
+            "BrauerWallClass::Char2(field_degree=1, arf=1)"
+        );
+        assert_eq!(c2.display(), c2.to_string());
+    }
+
+    #[test]
+    fn function_field_brauer2_class_display_render_pin() {
+        assert_eq!(
+            FunctionFieldBrauer2Class::<Fp<5>>::split().to_string(),
+            "FunctionFieldBrauer2Class(ramified=[])"
+        );
+        let t = rf(&[0, 1], &[1]);
+        let two = rf(&[2], &[1]);
+        let quat = FunctionFieldBrauer2Class::quaternion(&t, &two)
+            .expect("test square classes are defined");
+        assert_eq!(
+            quat.to_string(),
+            "FunctionFieldBrauer2Class(ramified=[\"1⋅t\", \"∞\"])"
+        );
+        assert_eq!(quat.display(), quat.to_string());
+    }
 
     fn real_diag(signs: &[i128]) -> Metric<Surreal> {
         Metric::diagonal(

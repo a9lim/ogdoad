@@ -151,11 +151,11 @@ impl PyQuadricFit {
     fn is_genuinely_quadratic(&self) -> bool {
         self.inner.is_genuinely_quadratic()
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "QuadricFit(constant={}, diagonal={:?}, polar_rows={:?}, arf={:?})",
-            self.inner.constant, self.inner.qd, self.inner.bmat, self.inner.arf
-        )
+        self.inner.display()
     }
 }
 
@@ -577,7 +577,15 @@ impl PyRationalPlace {
     }
 
     fn __str__(&self) -> String {
-        place_name(self.inner)
+        self.inner.to_string()
+    }
+
+    // `__repr__` keeps the enum-style `RationalPlace.Real`/`RationalPlace.Prime(p)`
+    // framing on purpose (mirrors `BaseField`'s repr convention) — the core
+    // Display ("R"/"Q_p", exposed via `display()`) is the terse form meant for
+    // embedding inside other records' renders, and already matches `__str__`.
+    fn display(&self) -> String {
+        self.inner.to_string()
     }
 
     fn __repr__(&self) -> String {
@@ -1669,6 +1677,12 @@ type PyFFRationalFunction = (PyFFPoly, PyFFPoly);
 struct PyFunctionFieldPlace {
     field_order: u128,
     polynomial: Option<PyFFPoly>,
+    // Rendered from the core `FunctionFieldPlace` at construction time (`∞` or
+    // the place polynomial's own Display), since this struct is a per-field
+    // erasure of the generic core value. `__repr__` keeps its fuller
+    // `FunctionFieldPlace(F_q, ...)` framing on purpose — the core Display is
+    // the terse form meant for embedding inside other records' renders.
+    rendered: String,
 }
 
 #[pymethods]
@@ -1696,6 +1710,9 @@ impl PyFunctionFieldPlace {
     fn is_infinite(&self) -> bool {
         self.polynomial.is_none()
     }
+    fn display(&self) -> String {
+        self.rendered.clone()
+    }
     fn __repr__(&self) -> String {
         match &self.polynomial {
             Some(poly) => format!(
@@ -1710,6 +1727,11 @@ impl PyFunctionFieldPlace {
 #[pyclass(name = "FunctionFieldAdelicIsotropy", module = "ogdoad")]
 struct PyFunctionFieldAdelicIsotropy {
     local: Vec<PyFunctionFieldLocalIsotropy>,
+    // Rendered from the core `FFAdelicIsotropy` at construction time, since
+    // this struct is a per-field erasure of the generic core value. The core
+    // type's own name is `FFAdelicIsotropy`; swap in the pyclass name so
+    // Python users see the name they imported.
+    rendered: String,
 }
 
 #[pyclass(
@@ -1751,15 +1773,12 @@ impl PyFunctionFieldAdelicIsotropy {
     fn is_global(&self) -> bool {
         self.local.iter().all(|row| row.is_isotropic)
     }
+    fn display(&self) -> String {
+        self.rendered
+            .replacen("FFAdelicIsotropy", "FunctionFieldAdelicIsotropy", 1)
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "FunctionFieldAdelicIsotropy(local={:?}, is_global={})",
-            self.local
-                .iter()
-                .map(|row| row.__repr__())
-                .collect::<Vec<_>>(),
-            self.is_global()
-        )
+        self.display()
     }
 }
 
@@ -1857,18 +1876,21 @@ fn parse_ff_place<F: FiniteOddField>(poly: Option<PyFFPoly>) -> PyResult<Functio
 }
 
 fn wrap_ff_place<F: FiniteOddField>(place: FunctionFieldPlace<F>) -> PyFunctionFieldPlace {
+    let rendered = place.to_string();
     PyFunctionFieldPlace {
         field_order: F::field_order(),
         polynomial: match place {
             FunctionFieldPlace::Infinite => None,
             FunctionFieldPlace::Finite(poly) => Some(ff_poly_indices(&poly)),
         },
+        rendered,
     }
 }
 
 fn wrap_ff_adeles<F: FiniteOddField>(
     inner: crate::forms::FFAdelicIsotropy<F>,
 ) -> PyFunctionFieldAdelicIsotropy {
+    let rendered = inner.to_string();
     PyFunctionFieldAdelicIsotropy {
         local: inner
             .local
@@ -1878,6 +1900,7 @@ fn wrap_ff_adeles<F: FiniteOddField>(
                 is_isotropic,
             })
             .collect(),
+        rendered,
     }
 }
 
@@ -1995,12 +2018,14 @@ fn parse_char2_ff_place<F: FiniteChar2Field>(
 }
 
 fn wrap_char2_ff_place<F: FiniteChar2Field>(place: FunctionFieldPlace<F>) -> PyFunctionFieldPlace {
+    let rendered = place.to_string();
     PyFunctionFieldPlace {
         field_order: F::field_order(),
         polynomial: match place {
             FunctionFieldPlace::Infinite => None,
             FunctionFieldPlace::Finite(poly) => Some(char2_ff_poly_indices(&poly)),
         },
+        rendered,
     }
 }
 
@@ -2010,6 +2035,10 @@ struct PyChar2LocalDecomp {
     phi0: u128,
     psi: Vec<PyChar2PsiTerm>,
     phi1: u128,
+    // Rendered from the core `Char2LocalDecomp` at construction time, since
+    // this struct is a per-field erasure of the generic core value (renders
+    // ψ coefficients via `Poly`'s own Display, not an index dump).
+    rendered: String,
 }
 
 #[pyclass(name = "Char2PsiTerm", module = "ogdoad", skip_from_py_object)]
@@ -2060,21 +2089,16 @@ impl PyChar2LocalDecomp {
     fn phi1(&self) -> u128 {
         self.phi1
     }
+    fn display(&self) -> String {
+        self.rendered.clone()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "Char2LocalDecomp(F_{}, phi0={}, psi={:?}, phi1={})",
-            self.field_order,
-            self.phi0,
-            self.psi
-                .iter()
-                .map(|term| (term.pole_order, term.coefficient.clone()))
-                .collect::<Vec<_>>(),
-            self.phi1
-        )
+        self.rendered.clone()
     }
 }
 
 fn wrap_char2_local_decomp<F: FiniteChar2Field>(inner: Char2LocalDecomp<F>) -> PyChar2LocalDecomp {
+    let rendered = inner.to_string();
     PyChar2LocalDecomp {
         field_order: F::field_order(),
         phi0: inner.phi0,
@@ -2088,6 +2112,7 @@ fn wrap_char2_local_decomp<F: FiniteChar2Field>(inner: Char2LocalDecomp<F>) -> P
             })
             .collect(),
         phi1: inner.phi1,
+        rendered,
     }
 }
 
@@ -3368,14 +3393,11 @@ impl PyRealWittDecomp {
     fn radical_dim(&self) -> usize {
         self.inner.radical_dim
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "RealWittDecomp(witt_index={}, anisotropic_pos={}, anisotropic_neg={}, radical_dim={})",
-            self.inner.witt_index,
-            self.inner.anisotropic_pos,
-            self.inner.anisotropic_neg,
-            self.inner.radical_dim,
-        )
+        self.inner.display()
     }
 }
 
@@ -3414,16 +3436,11 @@ impl PyOddWittDecomp {
     fn radical_dim(&self) -> usize {
         self.inner.radical_dim
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "OddWittDecomp(p={}, field_order={}, witt_index={}, anisotropic_dim={}, anisotropic_disc_is_square={}, radical_dim={})",
-            self.inner.p,
-            self.inner.field_order,
-            self.inner.witt_index,
-            self.inner.anisotropic_dim,
-            self.inner.anisotropic_disc_is_square,
-            self.inner.radical_dim,
-        )
+        self.inner.display()
     }
 }
 
@@ -3655,6 +3672,10 @@ struct PySpringerDecomp {
     radical_dim: usize,
     #[pyo3(get)]
     total_signature: (usize, usize),
+    // Rendered from the core `SpringerDecomp` at construction time, since this
+    // struct is a per-field erasure of the generic core value (no `inner` to
+    // delegate to directly).
+    rendered: String,
 }
 
 #[pymethods]
@@ -3665,13 +3686,11 @@ impl PySpringerDecomp {
             .map(|g| (g.valuation_repr.clone(), g.signature))
             .collect()
     }
+    fn display(&self) -> String {
+        self.rendered.clone()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "SpringerDecomp(graded={:?}, radical_dim={}, total_signature={:?})",
-            self.display_layers(),
-            self.radical_dim,
-            self.total_signature
-        )
+        self.rendered.clone()
     }
 }
 
@@ -3719,6 +3738,9 @@ struct PyLocalSpringerDecomp {
     graded: Vec<PyLocalResidueForm>,
     #[pyo3(get)]
     radical_dim: usize,
+    // Rendered from the core `LocalSpringerDecomp` at construction time, since
+    // this struct is a per-field erasure of the generic core value.
+    rendered: String,
 }
 
 #[pymethods]
@@ -3732,23 +3754,20 @@ impl PyLocalSpringerDecomp {
             .collect()
     }
 
+    fn display(&self) -> String {
+        self.rendered.clone()
+    }
     fn __repr__(&self) -> String {
-        let layers: Vec<_> = self
-            .graded
-            .iter()
-            .map(|g| (g.valuation, g.dim, g.disc_is_square))
-            .collect();
-        format!(
-            "LocalSpringerDecomp(graded={:?}, radical_dim={})",
-            layers, self.radical_dim
-        )
+        self.rendered.clone()
     }
 }
 
 fn wrap_local_springer_decomp(d: crate::forms::LocalSpringerDecomp) -> PyLocalSpringerDecomp {
+    let rendered = d.to_string();
     PyLocalSpringerDecomp {
         graded: d.graded.into_iter().map(wrap_local_residue_form).collect(),
         radical_dim: d.radical_dim,
+        rendered,
     }
 }
 
@@ -3759,10 +3778,12 @@ fn springer_decompose(alg: &SurrealAlgebra) -> PyResult<PySpringerDecomp> {
     let d = crate::forms::springer_decompose(&alg.inner.metric).ok_or_else(|| {
         PyValueError::new_err("Springer decomposition could not diagonalize this metric")
     })?;
+    let rendered = d.to_string();
     Ok(PySpringerDecomp {
         graded: d.graded.into_iter().map(wrap_residue_form).collect(),
         radical_dim: d.radical_dim,
         total_signature: d.total_signature,
+        rendered,
     })
 }
 
@@ -4319,15 +4340,11 @@ impl PyBrauer2Class {
     fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
         matches!(other.cast::<PyBrauer2Class>(), Ok(c) if c.borrow().inner == self.inner)
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        let places = self
-            .inner
-            .ramified_places()
-            .iter()
-            .copied()
-            .map(place_name)
-            .collect::<Vec<_>>();
-        format!("Brauer2Class(ramified={places:?})")
+        self.inner.display()
     }
 }
 
@@ -4433,14 +4450,11 @@ impl PyBrauerClass {
     fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
         matches!(other.cast::<PyBrauerClass>(), Ok(c) if c.borrow().inner == self.inner)
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        let local = self
-            .inner
-            .local()
-            .iter()
-            .map(|(&place, inv)| (place_name(place), inv.clone()))
-            .collect::<Vec<_>>();
-        format!("BrauerClass(local={local:?})")
+        self.inner.display()
     }
 }
 
@@ -4717,13 +4731,11 @@ impl PyAdelicIsotropy {
     fn is_global(&self) -> bool {
         self.inner.is_global()
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "AdelicIsotropy(real={}, local={:?}, is_global={})",
-            self.inner.real,
-            self.inner.local,
-            self.inner.is_global()
-        )
+        self.inner.display()
     }
 }
 
@@ -5144,16 +5156,18 @@ impl PyCliffordBarnesWall16Report {
     fn recorded_group_orders_are_consistent(&self) -> bool {
         self.inner.recorded_group_orders_are_consistent()
     }
-    fn __repr__(&self) -> String {
-        format!(
-            "CliffordBarnesWall16Report(dim={}, det={}, matches_construction_d={}, aut_order={}, full_clifford_order={}, index={})",
-            self.inner.spinor_dimension,
-            self.inner.determinant(),
-            self.inner.matches_construction_d,
-            self.inner.automorphism_group_order,
-            self.inner.full_clifford_group_order,
-            self.inner.automorphism_index_in_clifford_group,
+    // The pyclass name is "CliffordBarnesWall16Report"; the core type is
+    // `CliffordBarnesWall16Invariants` — swap the leading name so Python users
+    // see the name they imported.
+    fn display(&self) -> String {
+        self.inner.display().replacen(
+            "CliffordBarnesWall16Invariants",
+            "CliffordBarnesWall16Report",
+            1,
         )
+    }
+    fn __repr__(&self) -> String {
+        self.display()
     }
 }
 
@@ -5443,8 +5457,11 @@ impl PyScaleSymbol {
     fn oddity(&self) -> i128 {
         self.inner.oddity
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        self.inner.display()
     }
 }
 
@@ -5486,14 +5503,11 @@ impl PyGenus {
             .map(|inner| PyScaleSymbol { inner })
             .collect()
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "Genus(dim={}, signature={:?}, det={}, primes={:?})",
-            self.inner.dim,
-            self.inner.signature,
-            self.inner.det,
-            self.inner.primes()
-        )
+        self.inner.display()
     }
 }
 
@@ -5545,11 +5559,16 @@ impl PyKneserMassClass {
     fn automorphism_group_order(&self) -> u128 {
         self.inner.automorphism_group_order
     }
+    // The pyclass name is "KneserMassClass"; the core type is
+    // `KneserMassRecord` — swap the leading name so Python users see the name
+    // they imported.
+    fn display(&self) -> String {
+        self.inner
+            .display()
+            .replacen("KneserMassRecord", "KneserMassClass", 1)
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "KneserMassClass(label={:?}, automorphism_group_order={})",
-            self.inner.label, self.inner.automorphism_group_order
-        )
+        self.display()
     }
 }
 
@@ -5602,14 +5621,16 @@ impl PyKneserMassReport {
     fn mass_closed(&self) -> bool {
         self.inner.mass_closed
     }
+    // The pyclass name is "KneserMassReport"; the core type is
+    // `KneserMassInvariants` — swap the leading name so Python users see the
+    // name they imported.
+    fn display(&self) -> String {
+        self.inner
+            .display()
+            .replacen("KneserMassInvariants", "KneserMassReport", 1)
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "KneserMassReport(rank={}, p={}, classes={:?}, mass_closed={})",
-            self.inner.rank,
-            self.inner.prime,
-            self.inner.generated_class_labels(),
-            self.inner.mass_closed
-        )
+        self.display()
     }
 }
 
@@ -6045,16 +6066,16 @@ impl PyOddMilgramReport {
     fn verified(&self) -> bool {
         self.inner.verified()
     }
+    // The pyclass name is "OddMilgramReport"; the core type is
+    // `OddMilgramInvariants` — swap the leading name so Python users see the
+    // name they imported.
+    fn display(&self) -> String {
+        self.inner
+            .display()
+            .replacen("OddMilgramInvariants", "OddMilgramReport", 1)
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "OddMilgramReport(signature_mod8={}, oddity_mod8={}, p_excess_mod8={}, corrected_signature_mod8={}, genus_signature_mod8={}, verified={})",
-            self.inner.signature_mod8,
-            self.inner.oddity_mod8,
-            self.inner.p_excess_mod8,
-            self.inner.corrected_signature_mod8,
-            self.inner.genus_signature_mod8,
-            self.inner.verified()
-        )
+        self.display()
     }
 }
 
@@ -6430,28 +6451,11 @@ impl PyBrauerWallClass {
     fn __eq__(&self, other: &PyBrauerWallClass) -> bool {
         self.inner == other.inner
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        match self.inner {
-            crate::forms::BrauerWallClass::Real(s) => {
-                format!("BrauerWallClass::Real({s})")
-            }
-            crate::forms::BrauerWallClass::Complex(p) => {
-                format!("BrauerWallClass::Complex({p})")
-            }
-            crate::forms::BrauerWallClass::OddChar {
-                field_order,
-                kappa,
-                e0,
-                sclass,
-            } => {
-                format!(
-                    "BrauerWallClass::OddChar(field_order={field_order}, kappa={kappa}, e0={e0}, sclass={sclass})"
-                )
-            }
-            crate::forms::BrauerWallClass::Char2 { field_degree, arf } => {
-                format!("BrauerWallClass::Char2(field_degree={field_degree}, arf={arf})")
-            }
-        }
+        self.inner.display()
     }
 }
 

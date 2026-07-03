@@ -68,6 +68,15 @@ pub enum FunctionFieldPlace<S: Scalar> {
 
 impl<S: Scalar> Eq for FunctionFieldPlace<S> {}
 
+impl<S: Scalar> std::fmt::Display for FunctionFieldPlace<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FunctionFieldPlace::Infinite => f.write_str("∞"),
+            FunctionFieldPlace::Finite(pi) => write!(f, "{pi}"),
+        }
+    }
+}
+
 // ───────────────────────── factorization over F_q ─────────────────────────
 
 /// The distinct monic irreducible factors of `f` over `F_q` (the square-free
@@ -410,6 +419,24 @@ impl<S: FiniteOddField> FFAdelicIsotropy<S> {
     pub fn is_global(&self) -> bool {
         self.local.iter().all(|(_, iso)| *iso)
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl<S: FiniteOddField> std::fmt::Display for FFAdelicIsotropy<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FFAdelicIsotropy(local=[")?;
+        for (i, (place, iso)) in self.local.iter().enumerate() {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{place}={iso}")?;
+        }
+        write!(f, "], is_global={})", self.is_global())
+    }
 }
 
 /// The adelic Hasse–Minkowski breakdown of a rank-`≥3` form over `F_q(t)`.
@@ -714,6 +741,36 @@ mod tests {
     }
     fn poly(c: &[i128]) -> PolyF {
         Poly::new(c.iter().map(|&n| Fp::<5>::from_int(n)).collect())
+    }
+
+    // --- Display: exact-string render pins ---
+
+    #[test]
+    fn function_field_place_display_render_pin() {
+        assert_eq!(
+            FunctionFieldPlace::<Fp<5>>::Finite(poly(&[0, 1])).to_string(),
+            "1⋅t"
+        );
+        assert_eq!(
+            FunctionFieldPlace::<Fp<5>>::Finite(poly(&[1, 1])).to_string(),
+            "1 + 1⋅t"
+        );
+        assert_eq!(FunctionFieldPlace::<Fp<5>>::Infinite.to_string(), "∞");
+    }
+
+    #[test]
+    fn ff_adelic_isotropy_display_render_pin() {
+        let iso = FFAdelicIsotropy::<Fp<5>> {
+            local: vec![
+                (FunctionFieldPlace::Finite(poly(&[0, 1])), true),
+                (FunctionFieldPlace::Infinite, false),
+            ],
+        };
+        assert_eq!(
+            iso.to_string(),
+            "FFAdelicIsotropy(local=[1⋅t=true, ∞=false], is_global=false)"
+        );
+        assert_eq!(iso.display(), iso.to_string());
     }
 
     #[test]

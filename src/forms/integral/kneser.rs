@@ -26,6 +26,7 @@ use super::{
 use crate::linalg::integer::normalize_relation_rows;
 use crate::scalar::{is_prime_u128, Rational};
 use std::collections::BTreeSet;
+use std::fmt;
 
 /// One explicit Kneser neighbor, recording the projective line that generated it.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -40,6 +41,23 @@ pub struct KneserNeighbor {
 pub struct KneserMassRecord {
     pub label: &'static str,
     pub automorphism_group_order: u128,
+}
+
+impl KneserMassRecord {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for KneserMassRecord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "KneserMassRecord(label={:?}, automorphism_group_order={})",
+            self.label, self.automorphism_group_order
+        )
+    }
 }
 
 /// A bounded Kneser/mass certificate for an explicit even-unimodular genus.
@@ -69,6 +87,27 @@ impl KneserMassInvariants {
     /// backward-compatible call sites (incl. the Python binding).
     pub fn generated_class_labels(&self) -> Vec<&'static str> {
         self.generated_labels.clone()
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for KneserMassInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "KneserMassInvariants(rank={}, prime={}, seed={:?}, mass={}/{}, mass_closed={}, classes={:?})",
+            self.rank,
+            self.prime,
+            self.seed_label,
+            self.mass.0,
+            self.mass.1,
+            self.mass_closed,
+            self.generated_class_labels(),
+        )
     }
 }
 
@@ -532,5 +571,20 @@ mod tests {
         assert_eq!(report.mass, (1, E8_WEYL_GROUP_ORDER as i128));
         assert!(report.mass_closed);
         assert!(even_unimodular_kneser_report(24).is_none());
+    }
+
+    #[test]
+    fn kneser_mass_record_and_invariants_display_render_the_mass_report() {
+        let report = even_unimodular_kneser_report(8).unwrap();
+        assert_eq!(
+            report.classes[0].to_string(),
+            "KneserMassRecord(label=\"E8\", automorphism_group_order=696729600)"
+        );
+        assert_eq!(report.classes[0].display(), report.classes[0].to_string());
+        assert_eq!(
+            report.to_string(),
+            "KneserMassInvariants(rank=8, prime=2, seed=\"E8\", mass=1/696729600, mass_closed=true, classes=[\"E8\"])"
+        );
+        assert_eq!(report.display(), report.to_string());
     }
 }

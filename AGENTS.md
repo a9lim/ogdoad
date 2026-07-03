@@ -325,7 +325,10 @@ python3 experiments/exception_column_m4.py    # 2·3^k excess column m=4 certifi
   `ω↑-1`, `ω↑(1/2)` — exponent bare iff a signed integer); `Fpn` `3⋅x↑2 + 2⋅x + 1`;
   `Poly` uses variable `t` (`1 + 2⋅t`, parens on a non-atomic coefficient);
   `RationalFunction` `(num)/(den)`. Atomic = no spaces and no `⋅ ∧ ↑ / + -`
-  outside balanced parens.
+  outside balanced parens. **Scope note:** coefficient-`1` elision is the
+  *Multivector-blade* rule only — the polynomial family keeps the explicit
+  coefficient (`1⋅t`, `1⋅t↑2`), conformance-pinned in `docs/ogham/conformance*.txt`;
+  don't "fix" it.
 - Rust scalar operators: total-product backends have `+ - *` and unary `-`
   (concrete-only, via `impl_scalar_ops!`), plus `^ u128` for power (`x ^ 3` =
   square-and-multiply via `Scalar::mul`; `x ^ 0 == one()`). The `u128` RHS

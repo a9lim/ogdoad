@@ -14,6 +14,7 @@ use crate::linalg::integer::{gcd, normalize_relation_rows, prime_factors, reduce
 use crate::scalar::{Rational, Scalar};
 use std::collections::BTreeSet;
 use std::collections::HashSet;
+use std::fmt;
 
 // ── rational / integer helpers ──
 
@@ -661,6 +662,26 @@ impl OddMilgramInvariants {
     pub fn verified(&self) -> bool {
         self.corrected_signature_mod8 == self.signature_mod8
             && self.genus_signature_mod8 == self.signature_mod8
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for OddMilgramInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "OddMilgramInvariants(signature_mod8={}, oddity_mod8={}, p_excess_mod8={}, corrected_signature_mod8={}, genus_signature_mod8={}, verified={})",
+            self.signature_mod8,
+            self.oddity_mod8,
+            self.p_excess_mod8,
+            self.corrected_signature_mod8,
+            self.genus_signature_mod8,
+            self.verified(),
+        )
     }
 }
 

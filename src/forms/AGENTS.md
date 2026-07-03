@@ -57,6 +57,14 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   `OddMilgramInvariants`, `WeylVersorInvariants`, `KneserMassInvariants`,
   `CliffordBarnesWall16Invariants`). Façade traits are verb-first (`ClassifyForm`,
   `ClassifyWitt`, `ClassifyIsometry`, `ClassifyBrauerWall`, `DecomposeWitt`).
+  **Rendering policy (a9, 2026-07-02): every classifier report renders.** Every
+  glossary record type (`…Invariants`/`…Decomp`/`…Class`/`…Record`/`…Signature`/
+  `…Isotropy`/certificates, crate-wide — games and clifford included) carries
+  `impl Display` + the inherent `display()` alias, render-pinned by at least one
+  exact-string test, with py `__repr__`s delegating to the core Display. Honesty
+  markers ride in the rendering (`Char2WittDecomp`'s complement-dependent flag, an
+  incomplete `RelationSearchCertificate` says INCOMPLETE up front, `QuadricFit`
+  renders `bias=n/a (degenerate)` when the count formula doesn't apply).
   New types follow this glossary. Leg dispatch:
   - `Surreal` → `CliffordInvariants`
   - `Fp<P>` (odd primes only) → `OddCharInvariants`. `Fp<2>` is OUTSIDE the façade:

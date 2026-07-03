@@ -50,6 +50,14 @@
 //! Elman–Karpenko–Merkurjev §§7, 13; oracles cross-checked via Codex — see the
 //! tests.)
 //!
+//! **Oracle boundary (accepted, 2026-07-02):** this leg has no independent second
+//! engine by structure — the odd-residue Springer engine rejects residue
+//! characteristic 2, so the expected values here are paper-derived worked examples
+//! rather than a cross-implementation check. That is the *accepted* documented
+//! boundary (a9's call, closing the `aj-second-engine` switch in
+//! `docs/CORRECTNESS.md`), not a TODO: a test-only brute-force verifier would be
+//! welcome if one is ever wanted, but the hand-worked oracles are the contract.
+//!
 //! # Global isotropy over `F_q(t)` (Hasse–Minkowski)
 //!
 //! [`is_isotropic_global_char2`] decides isotropy over `F_q(t)` itself. Three
@@ -153,6 +161,31 @@ pub struct Char2LocalDecomp<S: FiniteChar2Field> {
     pub psi: BTreeMap<usize, Poly<S>>,
     /// The `W_q(κ) ≅ F₂` Arf bit of the `⟨π⟩`-scaled part `φ₁`.
     pub phi1: u128,
+}
+
+impl<S: FiniteChar2Field> Char2LocalDecomp<S> {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl<S: FiniteChar2Field> std::fmt::Display for Char2LocalDecomp<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Char2LocalDecomp(F_{}): phi0={}, psi={{",
+            S::field_order(),
+            self.phi0
+        )?;
+        for (i, (pole, poly)) in self.psi.iter().enumerate() {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{pole}: {poly}")?;
+        }
+        write!(f, "}}, phi1={}", self.phi1)
+    }
 }
 
 // ───────────────────────── the decomposition ─────────────────────────
@@ -425,6 +458,27 @@ mod tests {
 
     // ── the Aravire–Jacob decomposition, against Codex's paper-derived worked-example oracles ──
     // (π = t; "π⁻¹" ↦ R_π map {1: 1}, "1" in φ₀/φ₁ ↦ the bit 1.)
+
+    #[test]
+    fn display_render_pin() {
+        // [1, π⁻²] ↦ (0, π⁻¹, 0): the wild-pole oracle case, with a nonempty ψ.
+        let d = decomp(&[(r2(&[1], &[1]), r2(&[1], &[0, 0, 1]))]);
+        assert_eq!(
+            d.to_string(),
+            "Char2LocalDecomp(F_2): phi0=0, psi={1: 1}, phi1=0"
+        );
+        assert_eq!(d.display(), d.to_string());
+        // the trivial (hyperbolic-everywhere) decomposition.
+        let trivial: Char2LocalDecomp<F2> = Char2LocalDecomp {
+            phi0: 0,
+            psi: BTreeMap::new(),
+            phi1: 0,
+        };
+        assert_eq!(
+            trivial.to_string(),
+            "Char2LocalDecomp(F_2): phi0=0, psi={}, phi1=0"
+        );
+    }
 
     #[test]
     fn aj_oracle_perp_killed_by_p() {

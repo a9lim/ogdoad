@@ -432,4 +432,30 @@ mod tests {
         assert_eq!(z2_e8.kissing_number(), Some(4));
         assert_eq!(verify_odd_milgram(&z2_e8), Some(true));
     }
+
+    #[test]
+    fn odd_milgram_invariants_display_renders_the_congruence_data() {
+        let z = odd_milgram_report(&IntegralForm::diagonal(&[1])).unwrap();
+        assert_eq!(
+            z.to_string(),
+            "OddMilgramInvariants(signature_mod8=1, oddity_mod8=1, p_excess_mod8=0, corrected_signature_mod8=1, genus_signature_mod8=1, verified=true)"
+        );
+        assert_eq!(z.display(), z.to_string());
+    }
+
+    #[test]
+    fn fqm_gauss_phase_display_renders_order_phase_and_primary_factors() {
+        let a1 = DiscriminantForm::from_lattice(&crate::forms::a_n(1).unwrap()).unwrap();
+        let phase = a1.fqm_gauss_phase().unwrap();
+        assert_eq!(
+            phase.primary[0].to_string(),
+            "FqmPrimaryPhase(prime=2, order=2, exponent=2, phase_mod8=1)"
+        );
+        assert_eq!(phase.primary[0].display(), phase.primary[0].to_string());
+        assert_eq!(
+            phase.to_string(),
+            "FqmGaussPhase(order=2, phase_mod8=1, primary=[FqmPrimaryPhase(prime=2, order=2, exponent=2, phase_mod8=1)])"
+        );
+        assert_eq!(phase.display(), phase.to_string());
+    }
 }

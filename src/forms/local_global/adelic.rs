@@ -69,6 +69,23 @@ impl AdelicIsotropy {
     pub fn is_global(&self) -> bool {
         self.real && self.local.values().all(|&b| b)
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for AdelicIsotropy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "AdelicIsotropy(real={}, local={:?}, is_global={})",
+            self.real,
+            self.local,
+            self.is_global()
+        )
+    }
 }
 
 /// The adelic Hasse–Minkowski decomposition of a diagonal integer form of **rank
@@ -154,6 +171,21 @@ mod tests {
 
     fn q(n: i128, d: i128) -> Rational {
         Rational::try_new(n, d).expect("test rational is valid")
+    }
+
+    #[test]
+    fn adelic_isotropy_display_render_pin() {
+        // Fields are public, so the pin is fully self-determined — no dependency on
+        // the Hasse/Hilbert-symbol arithmetic that builds a real AdelicIsotropy.
+        let iso = AdelicIsotropy {
+            real: true,
+            local: BTreeMap::from([(2, true), (3, false)]),
+        };
+        assert_eq!(
+            iso.to_string(),
+            "AdelicIsotropy(real=true, local={2: true, 3: false}, is_global=false)"
+        );
+        assert_eq!(iso.display(), iso.to_string());
     }
 
     #[test]

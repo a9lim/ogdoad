@@ -3,6 +3,7 @@
 
 use crate::games::grundy::mex;
 use crate::games::kernel::{self, Outcome};
+use std::fmt;
 
 const MAX_SIDLING_ASSIGNMENTS: usize = 200_000;
 
@@ -34,6 +35,38 @@ pub struct LoopyNimCertificate {
     /// Finite-valued positions with at least one `Side` option. These are exactly
     /// the blockers for the checked recovery condition above.
     pub recovery_blockers: Vec<usize>,
+}
+
+impl LoopyNimCertificate {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for LoopyNimCertificate {
+    /// One line: the Draw(`Side`)/finite-valued split — this module's own
+    /// framing, "Draw ⇒ Side/∞, else a nimber" — plus the certified/uncertified
+    /// additivity verdict from [`recovery_condition_holds`](Self::recovery_condition_holds).
+    /// Does not enumerate `outcomes`/`side_positions`/`recovery_blockers`
+    /// themselves; those stay index-keyed data for callers who need them.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let side = self.side_positions.len();
+        let finite = self.outcomes.len() - side;
+        let status = if self.recovery_condition_holds {
+            "certified additive".to_string()
+        } else {
+            let n = self.recovery_blockers.len();
+            format!(
+                "uncertified ({n} recovery blocker{})",
+                if n == 1 { "" } else { "s" }
+            )
+        };
+        write!(
+            f,
+            "LoopyNimCertificate({finite} finite-valued / {side} Side(∞), {status})"
+        )
+    }
 }
 
 /// Loopy nim-values of an impartial game graph. Draw positions (per
@@ -246,4 +279,48 @@ fn mex_value(succ: &[Vec<usize>], is_side: &[bool], values: &[u128], v: usize) -
     mex(succ[v]
         .iter()
         .filter_map(|&w| (!is_side[w]).then_some(values[w])))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn loopy_nim_certificate_render_fully_certified() {
+        // 0: terminal (Loss, finite value 0); 1: moves to 0 (Win, finite value 1).
+        // No Draw positions, so recovery_blockers is vacuously empty.
+        let succ = vec![vec![], vec![0]];
+        let (_values, cert) =
+            loopy_nim_values_certified(&succ).expect("acyclic graph solves without sidling");
+        assert!(cert.recovery_condition_holds);
+        assert!(cert.recovery_blockers.is_empty());
+        assert_eq!(cert.side_positions.len(), 0);
+        assert_eq!(
+            cert.to_string(),
+            "LoopyNimCertificate(2 finite-valued / 0 Side(∞), certified additive)"
+        );
+        assert_eq!(cert.display(), cert.to_string());
+    }
+
+    #[test]
+    fn loopy_nim_certificate_render_uncertified_with_blocker() {
+        // 0: terminal (Loss). 1<->2: a mutual 2-cycle with no other exit, so both
+        // are Draw (Side). 3: moves to {0, 1} — reaches the Loss position 0, so
+        // it is a genuine finite Win, but it also has a Side option (1), making
+        // it a recovery blocker.
+        let succ = vec![vec![], vec![2], vec![1], vec![0, 1]];
+        let (values, cert) =
+            loopy_nim_values_certified(&succ).expect("the finite half solves without sidling");
+        assert!(!cert.used_sidling_solver);
+        assert_eq!(cert.side_positions, vec![1, 2]);
+        assert_eq!(cert.recovery_blockers, vec![3]);
+        assert!(!cert.recovery_condition_holds);
+        assert_eq!(values[1], LoopyNimber::Side);
+        assert_eq!(values[3], LoopyNimber::Value(1));
+        assert_eq!(
+            cert.to_string(),
+            "LoopyNimCertificate(2 finite-valued / 2 Side(∞), uncertified (1 recovery blocker))"
+        );
+        assert_eq!(cert.display(), cert.to_string());
+    }
 }

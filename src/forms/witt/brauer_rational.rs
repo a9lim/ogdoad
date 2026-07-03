@@ -131,6 +131,18 @@ impl Brauer2Class {
         }
         Some(Brauer2Class { ramified })
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for Brauer2Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let places: Vec<String> = self.ramified.iter().map(|p| p.to_string()).collect();
+        write!(f, "Brauer2Class(ramified={places:?})")
+    }
 }
 
 /// The **Hasse–Witt invariant** `s(q) = Σ_{i<j} (aᵢ, aⱼ)` as a Brauer class: the
@@ -207,6 +219,21 @@ mod tests {
 
     fn quat(a: i128, b: i128) -> Brauer2Class {
         Brauer2Class::quaternion(a, b).expect("test quaternion is defined")
+    }
+
+    // --- Display: exact-string render pin ---
+
+    #[test]
+    fn display_render_pin() {
+        assert_eq!(
+            Brauer2Class::split().to_string(),
+            "Brauer2Class(ramified=[])"
+        );
+        assert_eq!(
+            quat(-1, -1).to_string(),
+            "Brauer2Class(ramified=[\"R\", \"Q_2\"])"
+        );
+        assert_eq!(quat(-1, -1).display(), quat(-1, -1).to_string());
     }
 
     // --- the XOR group law ---

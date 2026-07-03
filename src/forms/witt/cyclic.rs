@@ -312,6 +312,22 @@ impl BrauerClass {
         }
         Some(set)
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for BrauerClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let local: Vec<(String, Rational)> = self
+            .local
+            .iter()
+            .map(|(&place, inv)| (place.to_string(), inv.clone()))
+            .collect();
+        write!(f, "BrauerClass(local={local:?})")
+    }
 }
 
 /// The local invariant `inv_K[(χ_σ, a)] = v(a)/n (mod ℤ)` of the **unramified**
@@ -398,6 +414,17 @@ mod tests {
     }
 
     // ───────────────────── BrauerClass: the ℚ/ℤ group law ─────────────────────
+
+    #[test]
+    fn display_render_pin() {
+        assert_eq!(BrauerClass::split().to_string(), "BrauerClass(local=[])");
+        let c = BrauerClass::from_local([(Place::Prime(7), third()), (Place::Real, half())]);
+        assert_eq!(
+            c.to_string(),
+            "BrauerClass(local=[(\"R\", 1/2), (\"Q_7\", 1/3)])"
+        );
+        assert_eq!(c.display(), c.to_string());
+    }
 
     #[test]
     fn add_is_modular_and_drops_cancellations() {

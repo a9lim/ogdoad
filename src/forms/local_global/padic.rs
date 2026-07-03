@@ -34,6 +34,15 @@ pub enum Place {
     Prime(u128),
 }
 
+impl std::fmt::Display for Place {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Place::Real => f.write_str("R"),
+            Place::Prime(p) => write!(f, "Q_{p}"),
+        }
+    }
+}
+
 // --- elementary number theory (i128 internals; square-free keeps values tiny) ---
 
 fn signed_u128(sign: i128, n: u128) -> Option<i128> {
@@ -386,6 +395,13 @@ pub fn try_is_isotropic_q(entries: &[i128]) -> Option<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn place_display_render_pin() {
+        assert_eq!(Place::Real.to_string(), "R");
+        assert_eq!(Place::Prime(2).to_string(), "Q_2");
+        assert_eq!(Place::Prime(691).to_string(), "Q_691");
+    }
 
     fn sq(n: i128, p: u128) -> bool {
         try_is_square_qp(n, p).expect("test prime is supported")

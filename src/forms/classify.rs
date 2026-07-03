@@ -102,6 +102,47 @@ impl Char2WittDecomp {
             arf: arf.arf,
         }
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for Char2WittDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Char2WittDecomp(field_degree={}, witt_index={}, core_anisotropic_dim={}, radical_dim={}, radical_anisotropic={}, arf={}{})",
+            self.field_degree,
+            self.witt_index,
+            self.core_anisotropic_dim,
+            self.radical_dim,
+            self.radical_anisotropic,
+            self.arf,
+            if self.radical_anisotropic {
+                " (complement-dependent)"
+            } else {
+                ""
+            },
+        )
+    }
+}
+
+impl FiniteFieldWittDecomp {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for FiniteFieldWittDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FiniteFieldWittDecomp::Odd(d) => write!(f, "{d}"),
+            FiniteFieldWittDecomp::Char2(d) => write!(f, "{d}"),
+        }
+    }
 }
 
 impl FiniteFieldInvariants {
@@ -899,6 +940,50 @@ mod tests {
         assert_eq!(
             crate::forms::isometric_finite_char2(&split_complement, &anisotropic_complement),
             Some(true)
+        );
+    }
+
+    #[test]
+    fn char2_witt_decomp_display_marks_complement_dependence() {
+        // radical_anisotropic: true ⇒ the render must carry the visible caveat
+        // marker, since witt_index/core_anisotropic_dim/arf are the *chosen*
+        // symplectic complement's data here, not an isometry invariant.
+        let defective = Char2WittDecomp {
+            field_degree: 3,
+            witt_index: 1,
+            core_anisotropic_dim: 0,
+            radical_dim: 1,
+            radical_anisotropic: true,
+            arf: 0,
+        };
+        assert_eq!(
+            defective.to_string(),
+            "Char2WittDecomp(field_degree=3, witt_index=1, core_anisotropic_dim=0, radical_dim=1, radical_anisotropic=true, arf=0 (complement-dependent))"
+        );
+        assert_eq!(defective.display(), defective.to_string());
+
+        // radical_anisotropic: false ⇒ no marker; this is an isometry invariant.
+        let nonsingular = Char2WittDecomp {
+            field_degree: 3,
+            witt_index: 1,
+            core_anisotropic_dim: 0,
+            radical_dim: 0,
+            radical_anisotropic: false,
+            arf: 0,
+        };
+        assert_eq!(
+            nonsingular.to_string(),
+            "Char2WittDecomp(field_degree=3, witt_index=1, core_anisotropic_dim=0, radical_dim=0, radical_anisotropic=false, arf=0)"
+        );
+
+        // FiniteFieldWittDecomp delegates verbatim to the wrapped decomp's Display.
+        assert_eq!(
+            FiniteFieldWittDecomp::Char2(nonsingular).to_string(),
+            nonsingular.to_string()
+        );
+        assert_eq!(
+            FiniteFieldWittDecomp::Char2(nonsingular).display(),
+            nonsingular.to_string()
         );
     }
 }

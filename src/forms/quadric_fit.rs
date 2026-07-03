@@ -58,6 +58,30 @@ impl QuadricFit {
     pub fn bias(&self) -> u128 {
         self.arf.arf ^ (self.constant as u128)
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for QuadricFit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "QuadricFit(quadratic={}, constant={}, rank={}, arf={}, radical_dim={}, bias={})",
+            self.is_genuinely_quadratic(),
+            self.constant,
+            self.arf.rank,
+            self.arf.arf,
+            self.arf.radical_dim,
+            if self.arf.radical_dim == 0 {
+                self.bias().to_string()
+            } else {
+                "n/a (degenerate)".to_string()
+            },
+        )
+    }
 }
 
 /// Try to fit a quadratic form `Q(x) = c ⊕ Σ q_i x_i ⊕ Σ_{i<j} b_ij x_i x_j` over
@@ -166,6 +190,36 @@ mod tests {
         let lin = fit_f2_quadratic(&[0, 3], 2).unwrap();
         assert!(!lin.is_genuinely_quadratic());
         assert_eq!(lin.arf.rank, 0);
+    }
+
+    #[test]
+    fn display_shows_bias_only_for_nonsingular_fits() {
+        // hyperbolic Q = x0 x1: nonsingular (radical_dim 0) ⇒ bias is honest.
+        let h = fit_f2_quadratic(&[0, 1, 2], 2).unwrap();
+        assert_eq!(h.arf.radical_dim, 0);
+        assert_eq!(
+            h.to_string(),
+            "QuadricFit(quadratic=true, constant=false, rank=2, arf=0, radical_dim=0, bias=0)"
+        );
+        assert_eq!(h.display(), h.to_string());
+
+        // anisotropic Q = x0²+x0x1+x1²: also nonsingular, Arf 1.
+        let a = fit_f2_quadratic(&[0], 2).unwrap();
+        assert_eq!(a.arf.radical_dim, 0);
+        assert_eq!(
+            a.to_string(),
+            "QuadricFit(quadratic=true, constant=false, rank=2, arf=1, radical_dim=0, bias=1)"
+        );
+
+        // the LINEAR condition x0⊕x1=0 is a degenerate fit (rank 0, full radical):
+        // the closed-form bias count doesn't apply, so the render must say so
+        // rather than print a bare (misleading) bit.
+        let lin = fit_f2_quadratic(&[0, 3], 2).unwrap();
+        assert_eq!(lin.arf.radical_dim, 2);
+        assert_eq!(
+            lin.to_string(),
+            "QuadricFit(quadratic=false, constant=false, rank=0, arf=0, radical_dim=2, bias=n/a (degenerate))"
+        );
     }
 
     #[test]

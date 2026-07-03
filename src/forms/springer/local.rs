@@ -78,6 +78,26 @@ impl LocalSpringerDecomp {
             .filter(|g| (g.valuation.rem_euclid(2) as u128) == parity)
             .collect()
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for LocalSpringerDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let layers: Vec<(i128, usize, bool)> = self
+            .graded
+            .iter()
+            .map(|g| (g.valuation, g.dim, g.disc_is_square))
+            .collect();
+        write!(
+            f,
+            "LocalSpringerDecomp(graded={layers:?}, radical_dim={})",
+            self.radical_dim
+        )
+    }
 }
 
 /// Decompose a diagonal quadratic form over any [`ResidueField`] by its valuation
@@ -136,6 +156,17 @@ where
 mod tests {
     use super::*;
     use crate::scalar::{Fp, Laurent, NewtonPolygon, Poly, Qp, Qq, Scalar};
+
+    #[test]
+    fn display_render_pin() {
+        let qp = Metric::diagonal(vec![Qp::<5, 4>::from_int(1), Qp::<5, 4>::from_int(5)]);
+        let d = springer_decompose_local(&qp).unwrap();
+        assert_eq!(
+            d.to_string(),
+            "LocalSpringerDecomp(graded=[(1, 1, true), (0, 1, true)], radical_dim=0)"
+        );
+        assert_eq!(d.display(), d.to_string());
+    }
 
     /// The engine is genuinely generic: the same call decomposes a `Q_p` form and
     /// an `F_q((t))` form, reading each one's residue field through the trait.

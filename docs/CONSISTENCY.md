@@ -78,13 +78,20 @@ Recorded so the next auditor inherits the truth, not the first read:
 ## ups — still open (worth less than any number, strictly positive)
 
 - **↑·(e_s∧e_i): `ordinal-factor-fold`** — the two ordinal-local helpers above.
-- **↑·e_f: `display-policy`** — the five *local-norm* Display mirrors are done; the
-  cross-sweep inventory of ~20 more glossary types with no `Display` stands, and
-  whether "every classifier report renders" becomes policy is still a9's call.
-- **↑·e_y: `py-repr-audit`** — the sweep collapsed four hand-rolled py `__repr__`s
-  into core `Display` calls; a systematic pass over `src/py/` for the same pattern
-  (plus the `…Isotropy`/`…Invariants` reprs) belongs to the standing
-  ogham/py audit ([`CONTINUATIONS.md`](CONTINUATIONS.md) → `ogham-reflect` part (3)).
+- **`display-policy` — PLAYED 2026-07-02.** a9 made it policy: **every classifier
+  report renders.** All 34 remaining glossary record types (the suffix net over
+  `…Invariants`/`…Decomp`/`…Class`/`…Record`/`…Isotropy`/certificates plus
+  `Genus`/`ScaleSymbol`/`QuadricFit`/`Quotient`) got core `Display` + `display()`
+  with exact-string render pins; py `__repr__`s delegate to core (byte-preserving
+  where the old repr was already honest, deliberately richer where it was a
+  `{:?}` dump — Genus now renders its per-prime Conway–Sloane symbols). The policy
+  line lives in `src/forms/AGENTS.md`'s glossary. Discovered en route and
+  documented in root `AGENTS.md`: coefficient-`1` elision is the Multivector-blade
+  rule only — the polynomial family's `1⋅t` is conformance-pinned, don't "fix" it.
+- **↑·e_y: `py-repr-audit`** — the Display-policy pass collapsed every glossary-type
+  repr onto core `Display`; what remains for the standing ogham/py audit
+  ([`CONTINUATIONS.md`](CONTINUATIONS.md) → `ogham-reflect` part (3)) is the
+  non-glossary py surface (game values, scalars, engine types).
 
 ---
 

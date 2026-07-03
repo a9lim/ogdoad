@@ -8,6 +8,7 @@
 
 use super::codes::{barnes_wall_16, divided_lattice_from_rows, reed_muller_code};
 use super::lattice::IntegralForm;
+use std::fmt;
 
 /// The spinor dimension in the shipped Barnes-Wall/Clifford certificate.
 pub const BW16_CLIFFORD_SPINOR_DIMENSION: usize = 16;
@@ -65,6 +66,26 @@ impl CliffordBarnesWall16Invariants {
         self.automorphism_group_order
             .checked_mul(self.automorphism_index_in_clifford_group)
             == Some(self.full_clifford_group_order)
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for CliffordBarnesWall16Invariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "CliffordBarnesWall16Invariants(dim={}, det={}, matches_construction_d={}, aut_order={}, full_clifford_order={}, index={})",
+            self.spinor_dimension,
+            self.determinant(),
+            self.matches_construction_d,
+            self.automorphism_group_order,
+            self.full_clifford_group_order,
+            self.automorphism_index_in_clifford_group,
+        )
     }
 }
 
@@ -196,5 +217,15 @@ mod tests {
             report.automorphism_group_order * report.automorphism_index_in_clifford_group,
             report.full_clifford_group_order
         );
+    }
+
+    #[test]
+    fn clifford_barnes_wall_16_invariants_display_renders_the_certificate() {
+        let report = clifford_barnes_wall_16_report();
+        assert_eq!(
+            report.to_string(),
+            "CliffordBarnesWall16Invariants(dim=16, det=256, matches_construction_d=true, aut_order=89181388800, full_clifford_order=178362777600, index=2)"
+        );
+        assert_eq!(report.display(), report.to_string());
     }
 }

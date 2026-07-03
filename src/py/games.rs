@@ -124,11 +124,11 @@ impl PyGameRelationCertificate {
     fn independent(&self) -> bool {
         self.inner.independent
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "GameRelationCertificate(coeffs={:?}, value_key={:?}, independent={})",
-            self.inner.coeffs, self.inner.value_key, self.inner.independent
-        )
+        self.inner.display()
     }
 }
 
@@ -166,25 +166,11 @@ impl PyRelationSearchCertificate {
             .map(wrap_game_relation_certificate)
             .collect()
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        let relations: Vec<_> = self
-            .inner
-            .relations
-            .iter()
-            .map(|r| {
-                format!(
-                    "GameRelationCertificate(coeffs={:?}, value_key={:?}, independent={})",
-                    r.coeffs, r.value_key, r.independent
-                )
-            })
-            .collect();
-        format!(
-            "RelationSearchCertificate(bound={}, exhaustive={}, candidate_count={:?}, relations={:?})",
-            self.inner.bound,
-            self.inner.exhaustive,
-            self.inner.candidate_count,
-            relations,
-        )
+        self.inner.display()
     }
 }
 
@@ -1109,15 +1095,11 @@ impl PyLoopyNimCertificate {
     fn recovery_blockers(&self) -> Vec<usize> {
         self.inner.recovery_blockers.clone()
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "LoopyNimCertificate(side_positions={:?}, used_sidling_solver={}, sidling_assignments_examined={}, recovery_condition_holds={}, recovery_blockers={:?})",
-            self.inner.side_positions,
-            self.inner.used_sidling_solver,
-            self.inner.sidling_assignments_examined,
-            self.inner.recovery_condition_holds,
-            self.inner.recovery_blockers
-        )
+        self.inner.display()
     }
 }
 
@@ -2107,12 +2089,11 @@ impl PyQuotient {
             .signature_of_element(element_index)
             .map(<[bool]>::to_vec)
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "Quotient(num_classes={}, elements={})",
-            self.inner.num_classes(),
-            self.inner.elements.len()
-        )
+        self.inner.display()
     }
 }
 

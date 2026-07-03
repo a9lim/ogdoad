@@ -38,6 +38,7 @@ use crate::forms::IntegralForm;
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::BTreeMap;
+use std::fmt;
 
 /// One scale of a p-adic Jordan symbol: the constituent `p^scale · (unimodular of
 /// dimension `dim`)`. `sign` is the determinant square class of the unimodular part
@@ -53,6 +54,33 @@ pub struct ScaleSymbol {
     pub det_mod8: i128,
     pub type_ii: bool,
     pub oddity: i128,
+}
+
+/// Render one Conway-Sloane scale constituent as `q^{±n}_t` (type I, `t` = oddity)
+/// or `q_{II}^{±n}` (type II), with `base` standing in for `q = p^scale`.
+fn render_scale_symbol(base: impl fmt::Display, s: &ScaleSymbol) -> String {
+    let sign = if s.sign >= 0 { "+" } else { "-" };
+    if s.type_ii {
+        format!("{base}_II^{sign}{}", s.dim)
+    } else {
+        format!("{base}_{}^{sign}{}", s.oddity, s.dim)
+    }
+}
+
+impl ScaleSymbol {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for ScaleSymbol {
+    /// A bare `ScaleSymbol` does not carry the prime it was computed at (that
+    /// context lives on [`Genus`]), so the standalone rendering uses the
+    /// placeholder base `p`; [`Genus`]'s Display resolves the actual `p^scale`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", render_scale_symbol("p", self))
+    }
 }
 
 /// The genus of a nondegenerate integral lattice: signature, determinant, and the
@@ -329,6 +357,39 @@ impl Genus {
     /// The primes carrying a recorded local symbol.
     pub fn primes(&self) -> Vec<u128> {
         self.symbols.keys().copied().collect()
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for Genus {
+    /// One line: dimension, signature, determinant, and the canonical
+    /// Conway-Sloane symbol at every prime carrying a local invariant.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Genus(dim={}, signature=({}, {}), det={}",
+            self.dim, self.signature.0, self.signature.1, self.det
+        )?;
+        for p in self.primes() {
+            let rendered = self
+                .canonical_symbol_at(p)
+                .iter()
+                .map(|s| {
+                    let q = u32::try_from(s.scale)
+                        .ok()
+                        .and_then(|e| p.checked_pow(e))
+                        .unwrap_or(p);
+                    render_scale_symbol(q, s)
+                })
+                .collect::<Vec<_>>()
+                .join(" ");
+            write!(f, ", {p}: [{rendered}]")?;
+        }
+        write!(f, ")")
     }
 }
 
@@ -793,5 +854,39 @@ mod tests {
         let s2 = g.symbol_at(2);
         assert_eq!(s2.len(), 1);
         assert_eq!((s2[0].dim, s2[0].type_ii), (16, true));
+    }
+
+    #[test]
+    fn scale_symbol_display_renders_the_conway_sloane_notation() {
+        let e8 = Genus::from_lattice(&e_8()).unwrap();
+        let s2 = &e8.canonical_symbol_at(2)[0];
+        assert_eq!(s2.to_string(), "p_II^+8");
+        assert_eq!(s2.display(), s2.to_string());
+
+        let a2 = Genus::from_lattice(&a_n(2)).unwrap();
+        let s3 = &a2.canonical_symbol_at(3)[0];
+        assert_eq!(s3.to_string(), "p_0^-1");
+    }
+
+    #[test]
+    fn genus_display_renders_signature_det_and_canonical_symbols() {
+        let z1 = Genus::from_lattice(&IntegralForm::diagonal(&[1])).unwrap();
+        assert_eq!(
+            z1.to_string(),
+            "Genus(dim=1, signature=(1, 0), det=1, 2: [1_1^+1])"
+        );
+        assert_eq!(z1.display(), z1.to_string());
+
+        let e8 = Genus::from_lattice(&e_8()).unwrap();
+        assert_eq!(
+            e8.to_string(),
+            "Genus(dim=8, signature=(8, 0), det=1, 2: [1_II^+8])"
+        );
+
+        let a2 = Genus::from_lattice(&a_n(2)).unwrap();
+        assert_eq!(
+            a2.to_string(),
+            "Genus(dim=2, signature=(2, 0), det=3, 2: [1_II^-2], 3: [1_0^-1 3_0^-1])"
+        );
     }
 }
