@@ -85,8 +85,8 @@ impl NiemeierComponentKind {
 
     pub fn root_lattice(self) -> Option<IntegralForm> {
         match self {
-            NiemeierComponentKind::A(n) if n >= 1 => Some(root_lattices::a_n(n)),
-            NiemeierComponentKind::D(n) if n >= 2 => Some(root_lattices::d_n(n)),
+            NiemeierComponentKind::A(n) if n >= 1 => root_lattices::a_n(n),
+            NiemeierComponentKind::D(n) if n >= 2 => root_lattices::d_n(n),
             NiemeierComponentKind::E6 => Some(root_lattices::e_6()),
             NiemeierComponentKind::E7 => Some(root_lattices::e_7()),
             NiemeierComponentKind::E8 => Some(root_lattices::e_8()),

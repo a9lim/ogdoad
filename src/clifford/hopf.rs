@@ -225,6 +225,72 @@ mod tests {
         }
     }
 
+    /// Bialgebra compatibility: `Δ(a∧b) = Δ(a)∧Δ(b)`, with the wedge on the
+    /// right taken in the graded-tensor codomain `tensor_square(alg)` (the
+    /// Koszul/super sign convention `graded_tensor`/`Metric::direct_sum` bakes
+    /// in via plain Clifford anticommutation between the two blocks — see
+    /// `Metric::direct_sum`'s doc). Neither `Δ` being an algebra map nor
+    /// coassociativity alone pins this: coassociativity checks `Δ` against
+    /// itself, this checks `Δ` against the wedge product on both sides.
+    fn check_bialgebra_compatibility<S: Scalar>(alg: &CliffordAlgebra<S>, elts: &[Multivector<S>]) {
+        let tensor_alg = tensor_square(alg);
+        for a in elts {
+            for b in elts {
+                let lhs = coproduct(alg, &alg.wedge(a, b));
+                let rhs = tensor_alg.wedge(&coproduct(alg, a), &coproduct(alg, b));
+                assert_eq!(lhs, rhs, "Δ(a∧b) != Δ(a)∧Δ(b)");
+            }
+        }
+    }
+
+    #[test]
+    fn coproduct_is_algebra_map_for_wedge_rational() {
+        let alg = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(3));
+        let elts = [
+            alg.scalar(r(1)),
+            alg.e(0),
+            alg.e(1),
+            alg.e(2),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
+            alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2))),
+        ];
+        check_bialgebra_compatibility(&alg, &elts);
+    }
+
+    #[test]
+    fn coproduct_is_algebra_map_for_wedge_small_dim() {
+        // Smallest nontrivial case: dim 2, so a∧b covers the full grade range
+        // (0..=2) with no room for the check to trivially degenerate.
+        let alg = CliffordAlgebra::new(2, Metric::<Rational>::grassmann(2));
+        let elts = [
+            alg.scalar(r(1)),
+            alg.e(0),
+            alg.e(1),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.add(&alg.e(0), &alg.e(1)),
+        ];
+        check_bialgebra_compatibility(&alg, &elts);
+    }
+
+    #[test]
+    fn coproduct_is_algebra_map_for_wedge_nimber() {
+        // char 2: every sign collapses to +. Good cross-check that the graded
+        // sign convention on both Δ and the tensor-square wedge routes through
+        // Scalar::neg (where it vanishes) rather than a literal -1 anywhere.
+        let alg = CliffordAlgebra::new(3, Metric::<Nimber>::grassmann(3));
+        let elts = [
+            alg.scalar(Nimber(1)),
+            alg.e(0),
+            alg.e(1),
+            alg.e(2),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
+            alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2))),
+        ];
+        check_bialgebra_compatibility(&alg, &elts);
+    }
+
     #[test]
     fn antipode_is_identity_over_nimber() {
         let alg = CliffordAlgebra::new(3, Metric::<Nimber>::grassmann(3));

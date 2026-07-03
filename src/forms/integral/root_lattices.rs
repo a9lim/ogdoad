@@ -56,18 +56,26 @@ fn gram_from_basis(b: &[Vec<i128>]) -> IntegralForm {
 
 /// The root lattice `A_n` (`n ≥ 1`): the Cartan matrix `2I − (adjacency of a path)`.
 /// `det = n+1`, kissing number `n(n+1)`, Coxeter number `n+1`,
-/// `|Aut| = 2` for `n = 1` and `2·(n+1)!` for `n ≥ 2`.
-pub fn a_n(n: usize) -> IntegralForm {
-    assert!(n >= 1, "A_n requires n ≥ 1");
+/// `|Aut| = 2` for `n = 1` and `2·(n+1)!` for `n ≥ 2`. Returns `None` for `n = 0`
+/// (out of domain) — matching `niemeier.rs`'s `Option` contract for the same shape
+/// of input, rather than panicking.
+pub fn a_n(n: usize) -> Option<IntegralForm> {
+    if n < 1 {
+        return None;
+    }
     let edges: Vec<(usize, usize)> = (0..n.saturating_sub(1)).map(|i| (i, i + 1)).collect();
-    cartan(n, &edges)
+    Some(cartan(n, &edges))
 }
 
 /// The root lattice `D_n` (`n ≥ 2`): `{x ∈ ℤⁿ : Σxᵢ even}`, built from the basis
 /// `eᵢ − e_{i+1}` (`i = 0..n−1`) together with `e_{n-2} + e_{n-1}`. `det = 4`,
-/// kissing number `2n(n−1)`, Coxeter number `2n−2`.
-pub fn d_n(n: usize) -> IntegralForm {
-    assert!(n >= 2, "D_n requires n ≥ 2");
+/// kissing number `2n(n−1)`, Coxeter number `2n−2`. Returns `None` for `n < 2`
+/// (out of domain) — matching `niemeier.rs`'s `Option` contract for the same shape
+/// of input, rather than panicking.
+pub fn d_n(n: usize) -> Option<IntegralForm> {
+    if n < 2 {
+        return None;
+    }
     let mut b = vec![vec![0i128; n]; n];
     for i in 0..n - 1 {
         b[i][i] = 1;
@@ -75,7 +83,7 @@ pub fn d_n(n: usize) -> IntegralForm {
     }
     b[n - 1][n - 2] = 1;
     b[n - 1][n - 1] = 1;
-    gram_from_basis(&b)
+    Some(gram_from_basis(&b))
 }
 
 /// The root lattice `E_6`: `det = 3`, kissing number 72, Coxeter number 12.
@@ -152,7 +160,7 @@ mod tests {
     #[test]
     fn a_n_invariants() {
         for n in 1..=5 {
-            let l = a_n(n);
+            let l = a_n(n).unwrap();
             assert_eq!(l.determinant(), n as i128 + 1, "det A_{n}");
             assert_eq!(l.minimum(), Some(2));
             assert_eq!(l.kissing_number(), Some(n * (n + 1)), "kissing A_{n}");
@@ -160,16 +168,18 @@ mod tests {
             assert!(is_root_lattice(&l));
         }
         // |Aut(A_1)| = 2; |Aut(A_n)| = 2·(n+1)! for n ≥ 2.
-        assert_eq!(a_n(1).automorphism_group_order(), Some(2));
-        assert_eq!(a_n(2).automorphism_group_order(), Some(12)); // 2·3!
-        assert_eq!(a_n(3).automorphism_group_order(), Some(48)); // 2·4!
-        assert_eq!(a_n(4).automorphism_group_order(), Some(240)); // 2·5!
+        assert_eq!(a_n(1).unwrap().automorphism_group_order(), Some(2));
+        assert_eq!(a_n(2).unwrap().automorphism_group_order(), Some(12)); // 2·3!
+        assert_eq!(a_n(3).unwrap().automorphism_group_order(), Some(48)); // 2·4!
+        assert_eq!(a_n(4).unwrap().automorphism_group_order(), Some(240)); // 2·5!
+                                                                           // n = 0 is out of domain.
+        assert_eq!(a_n(0), None);
     }
 
     #[test]
     fn d_n_invariants() {
         for n in 2..=6 {
-            let l = d_n(n);
+            let l = d_n(n).unwrap();
             assert_eq!(l.determinant(), 4, "det D_{n}");
             if n >= 3 {
                 assert_eq!(l.minimum(), Some(2));
@@ -179,10 +189,16 @@ mod tests {
             }
         }
         // D_2 = A_1 ⊕ A_1 = ⟨2⟩ ⊕ ⟨2⟩.
-        assert_eq!(d_n(2).gram(), IntegralForm::diagonal(&[2, 2]).gram());
+        assert_eq!(
+            d_n(2).unwrap().gram(),
+            IntegralForm::diagonal(&[2, 2]).gram()
+        );
         // |Aut(D_4)| = 1152 (triality), |Aut(D_5)| = 2^5·5! = 3840.
-        assert_eq!(d_n(4).automorphism_group_order(), Some(1152));
-        assert_eq!(d_n(5).automorphism_group_order(), Some(3840));
+        assert_eq!(d_n(4).unwrap().automorphism_group_order(), Some(1152));
+        assert_eq!(d_n(5).unwrap().automorphism_group_order(), Some(3840));
+        // n < 2 is out of domain.
+        assert_eq!(d_n(0), None);
+        assert_eq!(d_n(1), None);
     }
 
     #[test]

@@ -184,3 +184,80 @@ impl<S: Scalar> Metric<S> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::clifford::CliffordAlgebra;
+    use crate::scalar::Rational;
+
+    fn r(n: i128) -> Rational {
+        Rational::from_int(n)
+    }
+
+    /// `direct_sum`'s doc promises a block-diagonal metric: the right summand's
+    /// `b`/`a` keys shift by `left.dim()`, the left summand's are untouched, and
+    /// no cross-block entries appear. Exercise this with nonzero off-diagonal
+    /// `b` AND `a` on both summands — the existing coverage never sets a
+    /// nonzero off-diagonal entry on either side.
+    #[test]
+    fn direct_sum_shifts_right_bs_and_as_by_left_dim() {
+        let mut bl = BTreeMap::new();
+        bl.insert((0usize, 1usize), r(5));
+        let mut al = BTreeMap::new();
+        al.insert((0usize, 1usize), r(7));
+        let left = Metric::general(vec![r(1), r(2)], bl, al);
+
+        let mut br = BTreeMap::new();
+        br.insert((0usize, 2usize), r(11));
+        let mut ar = BTreeMap::new();
+        ar.insert((1usize, 2usize), r(13));
+        let right = Metric::general(vec![r(3), r(4), r(5)], br, ar);
+
+        let sum = left.direct_sum(&right);
+
+        assert_eq!(sum.dim(), 5);
+        assert_eq!(sum.q(), &[r(1), r(2), r(3), r(4), r(5)]);
+        // Left's entries land unshifted.
+        assert_eq!(sum.b().get(&(0, 1)), Some(&r(5)));
+        assert_eq!(sum.a().get(&(0, 1)), Some(&r(7)));
+        // Right's entries shift by left.dim() = 2: (0,2)->(2,4), (1,2)->(3,4).
+        assert_eq!(sum.b().get(&(2, 4)), Some(&r(11)));
+        assert_eq!(sum.a().get(&(3, 4)), Some(&r(13)));
+        // No accidental cross-block entries and nothing extra was inserted.
+        assert_eq!(sum.b().len(), 2);
+        assert_eq!(sum.a().len(), 2);
+    }
+
+    /// Same shift, probed through the algebra's actual products rather than
+    /// the metric accessors: within-block generators keep their documented
+    /// `b`, while cross-block generators (no `b`/`a` between blocks by
+    /// construction) purely anticommute — this is what makes `direct_sum` the
+    /// graded tensor product, not just a naive concatenation.
+    #[test]
+    fn direct_sum_shift_takes_effect_in_the_joined_algebras_products() {
+        let mut bl = BTreeMap::new();
+        bl.insert((0usize, 1usize), r(1));
+        let left = Metric::new(vec![r(2), r(3)], bl);
+
+        let mut br = BTreeMap::new();
+        br.insert((0usize, 1usize), r(1));
+        let right = Metric::new(vec![r(5), r(7)], br);
+
+        let left_alg = CliffordAlgebra::new(2, left);
+        let right_alg = CliffordAlgebra::new(2, right);
+        let joined = left_alg.graded_tensor(&right_alg);
+
+        // e2,e3 are the shifted right block: {e2,e3} = 1, per right's b(0,1)=1.
+        let e2 = joined.e(2);
+        let e3 = joined.e(3);
+        let anti23 = joined.add(&joined.mul(&e2, &e3), &joined.mul(&e3, &e2));
+        assert_eq!(anti23, joined.scalar(r(1)));
+
+        // e0 (left block) and e2 (right block) purely anticommute: {e0,e2}=0,
+        // since direct_sum puts nothing in the cross-block (0,2) key.
+        let e0 = joined.e(0);
+        let anti02 = joined.add(&joined.mul(&e0, &e2), &joined.mul(&e2, &e0));
+        assert!(anti02.is_zero());
+    }
+}

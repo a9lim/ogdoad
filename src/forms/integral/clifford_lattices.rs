@@ -140,6 +140,33 @@ pub fn clifford_barnes_wall_16_report() -> CliffordBarnesWall16Invariants {
 mod tests {
     use super::*;
 
+    /// The standard closed form for the order of the split orthogonal group
+    /// `O^+(2m, q)`: `2 q^{m(m-1)} (q^m - 1) prod_{i=1}^{m-1} (q^{2i} - 1)`.
+    /// Standard math (Grove, *Classical Groups and Geometric Algebra*, GSM 39;
+    /// this is also the convention Nebe-Rains-Sloane use for the real Clifford
+    /// group attached to `BW16`). Test-local: `m`/`q` are small hardcoded
+    /// arguments here, not a general-purpose payload path.
+    fn order_o_plus(m: u32, q: u128) -> u128 {
+        let mut order = 2 * q.pow(m * (m - 1)) * (q.pow(m) - 1);
+        for i in 1..m {
+            order *= q.pow(2 * i) - 1;
+        }
+        order
+    }
+
+    #[test]
+    fn real_clifford_group_order_matches_the_orthogonal_group_closed_form() {
+        // #O^+(8,2), independently derived from the closed form rather than
+        // hand-entered.
+        let o_plus_8_2 = order_o_plus(4, 2);
+        assert_eq!(o_plus_8_2, 348_364_800);
+        // 2^{1+8} * #O^+(8,2) = |C_4| (the full real Clifford group order); the
+        // index-2 subgroup relation then gives Aut(BW16).
+        let real_clifford = (1u128 << 9) * o_plus_8_2;
+        assert_eq!(real_clifford, BW16_REAL_CLIFFORD_GROUP_ORDER);
+        assert_eq!(real_clifford / 2, BW16_AUTOMORPHISM_GROUP_ORDER);
+    }
+
     #[test]
     fn clifford_rows_recover_construction_d_barnes_wall_16() {
         let rows = clifford_barnes_wall_16_numerator_rows();

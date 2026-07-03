@@ -40,6 +40,23 @@ pub struct HermitianSignature {
     pub radical: usize,
 }
 
+impl HermitianSignature {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for HermitianSignature {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "HermitianSignature(pos={}, neg={}, radical={})",
+            self.pos, self.neg, self.radical
+        )
+    }
+}
+
 /// A finite-field Hermitian form over `F_{p^{2k}}/F_{p^k}`, represented inside a
 /// finite cyclic field `F` whose extension degree over the prime field is even.
 ///
@@ -68,6 +85,31 @@ pub struct FiniteHermitianInvariants {
     pub extension_field_order: Option<u128>,
 }
 
+impl FiniteHermitianInvariants {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for FiniteHermitianInvariants {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ext = self.extension_field_order.map_or_else(
+            || format!("{}^{}", self.characteristic, self.extension_degree),
+            |q| q.to_string(),
+        );
+        let base = self.base_field_order.map_or_else(
+            || format!("{}^{}", self.characteristic, self.base_degree),
+            |q| q.to_string(),
+        );
+        write!(
+            f,
+            "FiniteHermitianInvariants(rank={}, radical_dim={}, field=F_{ext} over F_{base})",
+            self.rank, self.radical_dim,
+        )
+    }
+}
+
 fn checked_pow_u128(base: u128, exp: usize) -> Option<u128> {
     let mut out = 1u128;
     for _ in 0..exp {
@@ -76,7 +118,7 @@ fn checked_pow_u128(base: u128, exp: usize) -> Option<u128> {
     Some(out)
 }
 
-fn finite_hermitian_in_domain<F: FiniteField>() -> bool {
+fn ensure_supported_finite_hermitian<F: FiniteField>() -> bool {
     F::ext_degree() > 0 && F::ext_degree().is_multiple_of(2)
 }
 
@@ -96,7 +138,7 @@ impl<F: FiniteField> FiniteHermitianForm<F> {
     /// degree, checking `H[i,j] = conj(H[j,i])` for the middle Frobenius
     /// involution.
     pub fn from_gram(gram: Vec<Vec<F>>) -> Option<Self> {
-        if !finite_hermitian_in_domain::<F>() {
+        if !ensure_supported_finite_hermitian::<F>() {
             return None;
         }
         let n = gram.len();
@@ -303,6 +345,10 @@ impl<S: Scalar> HermitianForm<S> {
 
     pub fn dim(&self) -> usize {
         self.gram.len()
+    }
+
+    pub fn gram(&self) -> &[Vec<Surcomplex<S>>] {
+        &self.gram
     }
 
     /// The orthogonal direct sum (block-diagonal Gram).

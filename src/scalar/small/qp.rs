@@ -256,7 +256,11 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
         let uinv = mod_inverse_u128(self.unit, Self::modulus())?;
         Some(Qp {
             unit: uinv,
-            val: -self.val,
+            // checked_neg, not unary `-`: `val` at `i128::MIN` has no negation.
+            val: self
+                .val
+                .checked_neg()
+                .expect("Qp inversion valuation negation exceeds i128"),
         })
     }
     /// Faster direct construction; semantically identical to the default double-and-add.

@@ -483,8 +483,18 @@ pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::root_lattices::{a_n, d_n, e_6, e_7, e_8};
+    use crate::forms::root_lattices::{e_6, e_7, e_8};
     use crate::forms::{d16_plus, is_root_lattice};
+
+    // `root_lattices::a_n`/`d_n` are `Option`-checked on out-of-domain rank; every
+    // call site below passes an in-domain rank, so these thin local wrappers keep
+    // the test bodies unchanged.
+    fn a_n(n: usize) -> IntegralForm {
+        crate::forms::root_lattices::a_n(n).unwrap()
+    }
+    fn d_n(n: usize) -> IntegralForm {
+        crate::forms::root_lattices::d_n(n).unwrap()
+    }
 
     fn zn(n: usize) -> IntegralForm {
         IntegralForm::diagonal(&vec![1i128; n])

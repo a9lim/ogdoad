@@ -934,6 +934,26 @@ mod tests {
         assert!(rep.verify_transvection_intertwines(y.vector()));
     }
 
+    /// The `x`/`y` generators above both have `Q = 0`, so every prior
+    /// `verify_transvection_intertwines` call only ever exercised
+    /// `transvection_intertwiner_with_sign`'s `λ = i` branch
+    /// (`q_value_unchecked(a) == false`). The hyperbolic-plane sum `x + y` is
+    /// anisotropic (`Q(x+y) = Q(x) + Q(y) + B(x,y) = 0 + 0 + 1 = 1`), so this
+    /// exercises the `λ = 1` branch instead.
+    #[test]
+    fn transvection_intertwiner_verifies_on_the_q_equals_one_branch() {
+        let g = Extraspecial2Group::from_f2(vec![false, false], bmat(2, &[(0, 1)])).unwrap();
+        let x = g.generator(0).unwrap();
+        let y = g.generator(1).unwrap();
+        let a = x.vector() ^ y.vector();
+
+        // By construction, `a` lands on the `λ = 1` branch: `Q(a) = 1`.
+        assert_eq!(g.q_value(a), Some(true));
+
+        let rep = g.heisenberg_weil_representation().unwrap();
+        assert!(rep.verify_transvection_intertwines(a));
+    }
+
     #[test]
     fn anisotropic_plane_is_minus_type_q8_cell() {
         let g = Extraspecial2Group::from_f2(vec![true, true], bmat(2, &[(0, 1)])).unwrap();

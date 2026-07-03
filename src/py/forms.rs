@@ -1097,13 +1097,11 @@ impl PySymplecticInvariants {
     fn planes(&self) -> usize {
         self.inner.planes()
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "SymplecticInvariants(rank={}, radical_dim={}, planes={})",
-            self.inner.rank,
-            self.inner.radical_dim,
-            self.inner.planes()
-        )
+        self.inner.display()
     }
 }
 
@@ -1196,11 +1194,11 @@ impl PyHermitianSignature {
     fn radical(&self) -> usize {
         self.inner.radical
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "HermitianSignature(pos={}, neg={}, radical={})",
-            self.inner.pos, self.inner.neg, self.inner.radical
-        )
+        self.inner.display()
     }
 }
 
@@ -1313,23 +1311,11 @@ impl PyFiniteHermitianInvariants {
     fn extension_field_order(&self) -> Option<u128> {
         self.inner.extension_field_order
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "FiniteHermitianInvariants(rank={}, radical_dim={}, field=F_{} over F_{})",
-            self.inner.rank,
-            self.inner.radical_dim,
-            self.inner.extension_field_order.map_or_else(
-                || format!(
-                    "{}^{}",
-                    self.inner.characteristic, self.inner.extension_degree
-                ),
-                |q| q.to_string()
-            ),
-            self.inner.base_field_order.map_or_else(
-                || format!("{}^{}", self.inner.characteristic, self.inner.base_degree),
-                |q| q.to_string()
-            ),
-        )
+        self.inner.display()
     }
 }
 
@@ -3351,23 +3337,11 @@ impl PyWittClassG {
     fn __eq__(&self, other: &PyWittClassG) -> bool {
         self.inner == other.inner
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        match self.inner {
-            WittClassG::Char0 { signature } => format!("WittClassG::Char0(signature={signature})"),
-            WittClassG::OddChar {
-                field_order,
-                kappa,
-                e0,
-                sclass,
-            } => {
-                format!(
-                    "WittClassG::OddChar(field_order={field_order}, kappa={kappa}, e0={e0}, sclass={sclass})"
-                )
-            }
-            WittClassG::Char2 { field_degree, arf } => {
-                format!("WittClassG::Char2(field_degree={field_degree}, arf={arf})")
-            }
-        }
+        format!("WittClassG::{}", self.inner.display())
     }
 }
 
@@ -5682,7 +5656,7 @@ impl PyWeylVersorReport {
         self.inner.simple_reflection_determinants_are_minus_one
     }
     #[getter]
-    fn coxeter_versor_order(&self) -> Option<u128> {
+    fn coxeter_versor_order(&self) -> u128 {
         self.inner.coxeter_versor_order
     }
     #[getter]
@@ -5737,21 +5711,15 @@ impl PyIntegralForm {
     }
     #[staticmethod]
     fn a(n: usize) -> PyResult<PyIntegralForm> {
-        if n < 1 {
-            return Err(PyValueError::new_err("A_n requires n >= 1"));
-        }
-        Ok(PyIntegralForm {
-            inner: crate::forms::a_n(n),
-        })
+        crate::forms::a_n(n)
+            .map(|inner| PyIntegralForm { inner })
+            .ok_or_else(|| PyValueError::new_err("A_n requires n >= 1"))
     }
     #[staticmethod]
     fn d(n: usize) -> PyResult<PyIntegralForm> {
-        if n < 2 {
-            return Err(PyValueError::new_err("D_n requires n >= 2"));
-        }
-        Ok(PyIntegralForm {
-            inner: crate::forms::d_n(n),
-        })
+        crate::forms::d_n(n)
+            .map(|inner| PyIntegralForm { inner })
+            .ok_or_else(|| PyValueError::new_err("D_n requires n >= 2"))
     }
     #[staticmethod]
     fn e6() -> PyIntegralForm {

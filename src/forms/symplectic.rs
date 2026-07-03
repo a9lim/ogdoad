@@ -42,6 +42,23 @@ impl SymplecticInvariants {
     pub fn planes(&self) -> usize {
         self.rank / 2
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for SymplecticInvariants {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "SymplecticInvariants(rank={}, radical_dim={}, planes={})",
+            self.rank,
+            self.radical_dim,
+            self.planes()
+        )
+    }
 }
 
 impl<S: Scalar> SymplecticForm<S> {
@@ -83,6 +100,10 @@ impl<S: Scalar> SymplecticForm<S> {
 
     pub fn dim(&self) -> usize {
         self.gram.len()
+    }
+
+    pub fn gram(&self) -> &[Vec<S>] {
+        &self.gram
     }
 
     /// The orthogonal direct sum (block-diagonal Gram).
@@ -201,7 +222,7 @@ mod tests {
     #[test]
     fn free_function_matches_method() {
         let g = SymplecticForm::<Rational>::hyperbolic(3);
-        assert_eq!(classify_symplectic(vec_gram(&g)), g.classify());
+        assert_eq!(classify_symplectic(g.gram().to_vec()), g.classify());
     }
 
     #[test]
@@ -211,11 +232,5 @@ mod tests {
         let gram = vec![vec![Integer(0), Integer(2)], vec![Integer(-2), Integer(0)]];
         let f = SymplecticForm::from_gram(gram).unwrap();
         assert_eq!(f.classify(), None);
-    }
-
-    fn vec_gram(f: &SymplecticForm<Rational>) -> Vec<Vec<Rational>> {
-        (0..f.dim())
-            .map(|i| (0..f.dim()).map(|j| f.gram[i][j].clone()).collect())
-            .collect()
     }
 }

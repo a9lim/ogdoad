@@ -1029,7 +1029,14 @@ fn pow_u128(base: u128, exp: u128) -> Option<u128> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::{a_n, e_6, e_7, DiscriminantForm, IntegralForm};
+    use crate::forms::{e_6, e_7, DiscriminantForm, IntegralForm};
+
+    // `root_lattices::a_n` is `Option`-checked on out-of-domain rank; every call
+    // site below passes an in-domain rank, so this thin local wrapper keeps the
+    // test bodies unchanged.
+    fn a_n(n: usize) -> IntegralForm {
+        crate::forms::root_lattices::a_n(n).unwrap()
+    }
 
     #[test]
     fn native_cyclic_module_matches_lattice_a1() {

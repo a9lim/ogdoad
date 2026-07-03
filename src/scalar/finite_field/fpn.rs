@@ -303,8 +303,11 @@ fn checked_pow_u128(base: u128, exp: usize) -> Option<u128> {
 
 impl<const P: u128, const N: usize> Fpn<P, N> {
     /// Whether this const-generic pair has a prime base field, positive degree, and
-    /// field order fitting the crate's `u128` payload model. Extension polynomials
-    /// beyond the curated rows are generated deterministically on first use.
+    /// field order fitting the crate's `u128` payload model. When `N > 1`, the
+    /// extension (reduction) polynomial is generated deterministically and cached on
+    /// first use — production `Fpn` no longer reads from curated rows; those survive
+    /// only as test oracles (see [`ReductionPolynomialKind::Conway`]/
+    /// [`ReductionPolynomialKind::Irreducible`]).
     pub fn is_supported_field() -> bool {
         Fp::<P>::modulus_is_prime() && field_order_for(P, N).is_some()
     }
@@ -411,15 +414,18 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
     }
 
     /// The generator `x` (the class of the indeterminate), i.e. `[0, 1, 0, …]`.
+    /// Panics for `N = 1`: `Fpn<P,1>` is the prime field `F_p` itself, with no
+    /// adjoined indeterminate to be the class of — unlike `constant`/`zero`/`one`,
+    /// which are meaningful at every `N`, matching the "unreachable for a field"
+    /// panic style of [`Self::primitive_element`].
     pub fn generator() -> Self {
         Self::assert_supported_params();
+        assert!(
+            N > 1,
+            "Fpn::<{P},1>::generator(): N=1 is the prime field F_{P}, which has no indeterminate x"
+        );
         let mut out = [0u128; N];
-        if N > 1 {
-            out[1] = 1 % P;
-        } else if N == 1 {
-            // degree-1: the "field" is F_p and x = 0 in it; this is a degenerate case.
-            out[0] = 0;
-        }
+        out[1] = 1 % P;
         Fpn(out)
     }
 
@@ -745,6 +751,14 @@ mod tests {
         assert!(std::panic::catch_unwind(Fpn::<4, 2>::one).is_err());
         assert!(std::panic::catch_unwind(Fpn::<3, 0>::zero).is_err());
         assert!(std::panic::catch_unwind(Fpn::<2, 128>::one).is_err());
+    }
+
+    #[test]
+    fn generator_panics_at_n_1_instead_of_returning_zero() {
+        // Fpn<P,1> = F_p has no indeterminate x; generator() must not silently
+        // hand back a value (zero) that is definitely not a generator.
+        assert!(std::panic::catch_unwind(Fpn::<7, 1>::generator).is_err());
+        assert!(std::panic::catch_unwind(Fpn::<2, 1>::generator).is_err());
     }
 
     #[test]

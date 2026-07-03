@@ -32,6 +32,13 @@ use std::collections::BTreeMap;
 /// `|Aut(D16+)| = 2^15 * 16!`.
 pub const D16_PLUS_AUT_ORDER: u128 = 685_597_979_049_984_000;
 
+/// Codeword enumeration is exponential in the code dimension `k` (`2^k` binary
+/// words, `P^k` over [`PrimeCode`]). Enumeration is capped at this many codewords
+/// rather than silently overflowing a `usize` mask or running unbounded — the
+/// same budget-`None` shape as the lattice wing's `AUTO_NODE_BUDGET`. Every code
+/// shipped in this module sits far under the cap.
+pub const CODEWORD_ENUMERATION_BUDGET: usize = 2_000_000;
+
 /// A binary linear code, stored as a row-reduced F2 generator matrix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BinaryCode {
@@ -324,13 +331,14 @@ impl BinaryCode {
         }
     }
 
-    fn codewords(&self) -> Vec<Vec<u8>> {
-        assert!(
-            self.dim() < usize::BITS as usize,
-            "codeword enumeration is exponential and exceeds usize masks"
-        );
-        let mut out = Vec::with_capacity(1usize << self.dim());
-        for mask in 0usize..(1usize << self.dim()) {
+    /// `None` past [`CODEWORD_ENUMERATION_BUDGET`] rather than overflowing a
+    /// `usize` mask or running unbounded.
+    fn codewords(&self) -> Option<Vec<Vec<u8>>> {
+        let size = 1usize
+            .checked_shl(self.dim() as u32)
+            .filter(|&s| s <= CODEWORD_ENUMERATION_BUDGET)?;
+        let mut out = Vec::with_capacity(size);
+        for mask in 0usize..size {
             let mut word = vec![0u8; self.n];
             for (i, row) in self.generators.iter().enumerate() {
                 if (mask >> i) & 1 == 0 {
@@ -342,7 +350,7 @@ impl BinaryCode {
             }
             out.push(word);
         }
-        out
+        Some(out)
     }
 
     /// The dual code `C^perp = {x : x dot c = 0 for all c in C}`.
@@ -427,9 +435,10 @@ impl BinaryCode {
         })
     }
 
-    /// The minimum nonzero Hamming weight, or `None` for the zero code.
+    /// The minimum nonzero Hamming weight, or `None` for the zero code (or past
+    /// [`CODEWORD_ENUMERATION_BUDGET`]).
     pub fn minimum_distance(&self) -> Option<usize> {
-        self.codewords()
+        self.codewords()?
             .into_iter()
             .map(|word| row_weight(&word))
             .filter(|&w| w > 0)
@@ -438,9 +447,16 @@ impl BinaryCode {
 
     /// The Hamming weight enumerator coefficients:
     /// `out[w] = #{c in C : wt(c) = w}`.
+    ///
+    /// Every code shipped in this module sits far under
+    /// [`CODEWORD_ENUMERATION_BUDGET`]; a code dimension past the budget panics
+    /// rather than silently truncating the enumerator.
     pub fn weight_enumerator(&self) -> Vec<i128> {
         let mut out = vec![0i128; self.n + 1];
-        for word in self.codewords() {
+        for word in self
+            .codewords()
+            .expect("code dimension exceeds CODEWORD_ENUMERATION_BUDGET")
+        {
             out[row_weight(&word)] += 1;
         }
         out
@@ -649,11 +665,13 @@ impl<const P: u128> PrimeCode<P> {
         Some(out)
     }
 
-    fn codewords(&self) -> Vec<Vec<u128>> {
+    /// `None` past [`CODEWORD_ENUMERATION_BUDGET`] rather than overflowing a
+    /// `usize` mask or running unbounded.
+    fn codewords(&self) -> Option<Vec<Vec<u128>>> {
         let total = self
             .size()
             .and_then(|s| usize::try_from(s).ok())
-            .expect("codeword enumeration exceeds usize masks");
+            .filter(|&s| s <= CODEWORD_ENUMERATION_BUDGET)?;
         let mut out = Vec::with_capacity(total);
         for mask in 0..total {
             let mut coeffs = vec![0u128; self.dim()];
@@ -673,7 +691,7 @@ impl<const P: u128> PrimeCode<P> {
             }
             out.push(word);
         }
-        out
+        Some(out)
     }
 
     fn contains_word(&self, word: &[u128]) -> bool {
@@ -744,9 +762,10 @@ impl<const P: u128> PrimeCode<P> {
         })
     }
 
-    /// The minimum nonzero Hamming weight, or `None` for the zero code.
+    /// The minimum nonzero Hamming weight, or `None` for the zero code (or past
+    /// [`CODEWORD_ENUMERATION_BUDGET`]).
     pub fn minimum_distance(&self) -> Option<usize> {
-        self.codewords()
+        self.codewords()?
             .into_iter()
             .map(|word| row_weight_p(&word))
             .filter(|&w| w > 0)
@@ -755,9 +774,16 @@ impl<const P: u128> PrimeCode<P> {
 
     /// The Hamming weight enumerator coefficients:
     /// `out[w] = #{c in C : wt(c) = w}`.
+    ///
+    /// Every code shipped in this module sits far under
+    /// [`CODEWORD_ENUMERATION_BUDGET`]; a code dimension past the budget panics
+    /// rather than silently truncating the enumerator.
     pub fn weight_enumerator(&self) -> Vec<i128> {
         let mut out = vec![0i128; self.n + 1];
-        for word in self.codewords() {
+        for word in self
+            .codewords()
+            .expect("code dimension exceeds CODEWORD_ENUMERATION_BUDGET")
+        {
             out[row_weight_p(&word)] += 1;
         }
         out
@@ -772,7 +798,7 @@ impl<const P: u128> PrimeCode<P> {
     pub fn complete_weight_enumerator(&self) -> Option<BTreeMap<Vec<usize>, i128>> {
         let p = usize::try_from(P).ok()?;
         let mut out = BTreeMap::new();
-        for word in self.codewords() {
+        for word in self.codewords()? {
             let mut counts = vec![0usize; p];
             for x in word {
                 counts[usize::try_from(x).ok()?] += 1;
@@ -1126,6 +1152,12 @@ mod tests {
             type_ii_len16_code().theta_series_via_weight_enumerator(2),
             Some(vec![1, 480])
         );
+        // Formula-transcription check only: this re-evaluates the defining formula
+        // `2^15 * 16!` and so cannot catch a wrong constant, only a copy/arithmetic
+        // slip in `D16_PLUS_AUT_ORDER` itself. The real oracle for this number is
+        // `theta::siegel_weil_rank16_mass_identity_is_exact`, which cross-checks
+        // `|Aut(D16+)|` against the Minkowski-Siegel mass formula via the exact
+        // rank-16 Siegel-Weil identity.
         assert_eq!(
             D16_PLUS_AUT_ORDER,
             (1u128 << 15) * (1..=16u128).product::<u128>()

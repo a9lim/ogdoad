@@ -275,7 +275,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::Rational;
+    use crate::scalar::{Rational, Surreal};
 
     fn r(n: i128) -> Rational {
         Rational::from_int(n)
@@ -447,6 +447,28 @@ mod tests {
             alg.mul(&alg.reverse(&biv), &alg.reverse(&e0)),
             "reverse(e0*(e0^e1)) != reverse(e0^e1)*reverse(e0)"
         );
+    }
+
+    /// The documented "looks like a bug" contract: `versor_inverse` succeeds
+    /// iff `v ṽ` is a scalar AND a monomial (over surreals). `1/(ω+1)` is an
+    /// infinite Hahn series with no finite representation, so a vector whose
+    /// spinor norm is a genuine sum (not a single term) has no representable
+    /// inverse — `Surreal::inv` returns `None` on any non-monomial. Regression
+    /// for that `None`, with a monomial-norm case alongside as the contrast.
+    #[test]
+    fn versor_inverse_none_on_nonmonomial_surreal_norm() {
+        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Surreal::omega(), Surreal::one()]));
+        let v = alg.add(&alg.e(0), &alg.e(1));
+        // v is a single vector, so reverse(v) = v and v*rev(v) = v^2 = q0 + q1
+        // = ω + 1 — a genuine two-term sum, not a monomial.
+        let norm = alg.norm2(&v);
+        assert_eq!(norm, Surreal::omega().add(&Surreal::one()));
+        assert!(norm.inv().is_none(), "ω+1 should have no exact inverse");
+        assert!(alg.versor_inverse(&v).is_none());
+
+        // Contrast: a single generator's norm (q0 = ω alone) IS a monomial,
+        // so it inverts exactly.
+        assert!(alg.versor_inverse(&alg.e(0)).is_some());
     }
 
     #[test]

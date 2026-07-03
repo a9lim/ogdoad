@@ -91,12 +91,14 @@ use asnf::{asnf, kmul, laurent, local_is_pe, local_is_square, merge_psi, valuati
 /// A characteristic-2 quadratic form over `F_q(t)`: a sum of nonsingular binary
 /// blocks `[a_i, b_i] = a_i x² + xy + b_i y²` and a totally-singular part
 /// `⟨c_j⟩ = Σ c_j x_j²` (the radical of the polar form). Rank `= 2·blocks + singular`.
+///
+/// Fields are private: build via [`Self::from_blocks`]/[`Self::new`] so the `c_j ≠ 0`
+/// invariant documented on [`Self::singular`] can't be bypassed by a struct literal
+/// or post-construction field mutation.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Char2QuadForm<S: FiniteChar2Field> {
-    /// The nonsingular binary blocks `[a_i, b_i]`.
-    pub blocks: Vec<(RationalFunction<S>, RationalFunction<S>)>,
-    /// The totally-singular diagonal entries `⟨c_j⟩` (each `c_j ≠ 0`).
-    pub singular: Vec<RationalFunction<S>>,
+    blocks: Vec<(RationalFunction<S>, RationalFunction<S>)>,
+    singular: Vec<RationalFunction<S>>,
 }
 
 impl<S: FiniteChar2Field> Char2QuadForm<S> {
@@ -108,12 +110,28 @@ impl<S: FiniteChar2Field> Char2QuadForm<S> {
         }
     }
 
-    /// A form from binary blocks plus a totally-singular tail.
+    /// A form from binary blocks plus a totally-singular tail. `singular` entries
+    /// must be nonzero (debug-checked: a zero entry contributes no dimension and
+    /// signals a caller bug, not a valid degenerate form).
     pub fn new(
         blocks: Vec<(RationalFunction<S>, RationalFunction<S>)>,
         singular: Vec<RationalFunction<S>>,
     ) -> Self {
+        debug_assert!(
+            singular.iter().all(|c| !c.is_zero()),
+            "Char2QuadForm::new: singular entries must be nonzero (c_j ≠ 0)"
+        );
         Self { blocks, singular }
+    }
+
+    /// The nonsingular binary blocks `[a_i, b_i]`.
+    pub fn blocks(&self) -> &[(RationalFunction<S>, RationalFunction<S>)] {
+        &self.blocks
+    }
+
+    /// The totally-singular diagonal entries `⟨c_j⟩` (each `c_j ≠ 0`).
+    pub fn singular(&self) -> &[RationalFunction<S>] {
+        &self.singular
     }
 
     /// The dimension (rank) of the form.

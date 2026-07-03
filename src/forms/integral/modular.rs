@@ -29,13 +29,22 @@ fn eisenstein_constant(k: i128) -> i128 {
     c.numer()
 }
 
+/// The sum of `d^power` over divisors `d` of `n`.
+///
+/// Documented cap: every step runs through `checked_pow`/`checked_add`, so an
+/// out-of-range call panics deterministically (in debug *and* release) instead
+/// of silently wrapping past `i128`. For `power = 11` (the exponent
+/// [`eisenstein_e12`] needs), the boundary is `n = 2989`: `2989^11` fits `i128`,
+/// `2990^11` does not — and since `n` always divides itself, `n >= 2990` is
+/// exactly where this starts panicking.
 fn sigma_power(n: usize, power: u32) -> i128 {
     let mut out = 0i128;
     for d in 1..=n {
         if n.is_multiple_of(d) {
-            out = out
-                .checked_add((d as i128).pow(power))
-                .expect("divisor-power sum exceeds i128");
+            let dp = (d as i128)
+                .checked_pow(power)
+                .expect("divisor power exceeds i128 (see sigma_power's documented n cap)");
+            out = out.checked_add(dp).expect("divisor-power sum exceeds i128");
         }
     }
     out
@@ -280,6 +289,25 @@ mod tests {
         assert_eq!(bernoulli(4), Some((-1, 30)));
         assert_eq!(bernoulli(6), Some((1, 42)));
         assert_eq!(bernoulli(8), Some((-1, 30)));
+    }
+
+    #[test]
+    fn sigma_power_stays_exact_up_to_the_documented_cap() {
+        // n = 2989 is the last n below the power=11 boundary: 2989^11 fits i128
+        // (2989's divisors are 1, 7, 49, 61, 427, 2989 — none of the smaller
+        // divisor powers push the sum out of range either).
+        assert_eq!(
+            sigma_power(2989, 11),
+            170_131_631_069_539_054_464_162_161_472_679_926_966
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "divisor power exceeds i128")]
+    fn sigma_power_panics_past_the_documented_cap_instead_of_wrapping() {
+        // n divides itself, so n = 2990 forces the term 2990^11, which overflows
+        // i128. This must panic deterministically, not silently wrap.
+        let _ = sigma_power(2990, 11);
     }
 
     #[test]

@@ -941,6 +941,87 @@ mod tests {
         assert!(spinor_rep(&large).is_none());
     }
 
+    /// Independent oracle for `char2_polar_rank`: brute-force the radical
+    /// dimension by enumerating every `{0,1}`-coefficient vector and counting
+    /// which ones pair to zero with every basis generator (checking against
+    /// the basis suffices by bilinearity). This is a different algorithm from
+    /// the pop-and-pair elimination under test — plain enumeration, not a
+    /// symplectic-basis reduction. Valid whenever the metric's `b`-entries are
+    /// themselves `{0,1}` (as in the tests below): the radical is then
+    /// F_2-rational, and matrix rank does not change under field extension for
+    /// a matrix whose entries already live in the base field, so the count
+    /// taken over `{0,1}^n` gives the true rank over the ambient scalar field.
+    fn brute_force_char2_radical_dim<S: Scalar>(metric: &Metric<S>) -> usize {
+        let n = metric.q.len();
+        assert!(n <= 20, "brute force is exponential in n");
+        let basis: Vec<Vec<S>> = (0..n)
+            .map(|i| {
+                let mut e = vec![S::zero(); n];
+                e[i] = S::one();
+                e
+            })
+            .collect();
+        let mut radical_count: u64 = 0;
+        'outer: for mask in 0u64..(1u64 << n) {
+            let v: Vec<S> = (0..n)
+                .map(|i| {
+                    if mask & (1 << i) != 0 {
+                        S::one()
+                    } else {
+                        S::zero()
+                    }
+                })
+                .collect();
+            for e in &basis {
+                if !polar_value(metric, &v, e).is_zero() {
+                    continue 'outer;
+                }
+            }
+            radical_count += 1;
+        }
+        // radical_count is exactly 2^d for the radical's F_2-dimension d.
+        radical_count.trailing_zeros() as usize
+    }
+
+    /// `char2_metric_is_nonsingular`/`char2_polar_rank` are otherwise only
+    /// exercised at dim 2 in this file — the pop-and-pair elimination's
+    /// dim->=4 behavior (finding a partner, eliminating it from every other
+    /// remaining vector, and recursing) is untested elsewhere. This pattern
+    /// (path 0-1-2-3 plus a chord 0-2) is not block-diagonal, so the
+    /// elimination must actually interact across generators, not just peel
+    /// off disjoint pairs. Cross-checked against the brute-force radical count.
+    #[test]
+    fn char2_polar_rank_dim4_nontrivial_pairing_is_full_rank() {
+        let metric = nimber_metric(&[1, 1, 1, 1], &[(0, 1), (1, 2), (2, 3), (0, 2)]);
+        let rank = char2_polar_rank(&metric).unwrap();
+        let expected = metric.q.len() - brute_force_char2_radical_dim(&metric);
+        assert_eq!(
+            rank, expected,
+            "elimination disagrees with brute-force rank"
+        );
+        assert_eq!(rank, 4, "this coupled pairing pattern is nonsingular");
+        assert!(char2_metric_is_nonsingular(&metric));
+    }
+
+    /// A singular dim-4 case (rank < dim): the 4-cycle pairing 0-1-2-3-0 has
+    /// coincident rows (generators 0/2 and 1/3 pair identically with the
+    /// rest), so it is rank-deficient. This exercises the branch where
+    /// `vectors.pop()` finds no partner for some popped vector (it is
+    /// silently dropped into the radical rather than paired).
+    #[test]
+    fn char2_polar_rank_dim4_singular_pairing_is_rank_deficient() {
+        let metric = nimber_metric(&[1, 1, 1, 1], &[(0, 1), (1, 2), (2, 3), (0, 3)]);
+        let rank = char2_polar_rank(&metric).unwrap();
+        let expected = metric.q.len() - brute_force_char2_radical_dim(&metric);
+        assert_eq!(
+            rank, expected,
+            "elimination disagrees with brute-force rank"
+        );
+        assert_eq!(rank, 2, "the 4-cycle pairing has a 2-dim radical");
+        assert!(rank < metric.q.len());
+        assert!(!char2_metric_is_nonsingular(&metric));
+    }
+
     #[test]
     fn char2_hyperbolic_plane_has_blade_idempotent_spinors() {
         let metric = nimber_metric(&[0, 0], &[(0, 1)]);

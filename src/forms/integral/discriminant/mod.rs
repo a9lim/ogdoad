@@ -41,10 +41,20 @@ pub use phases::{FqmGaussPhase, FqmPrimaryPhase};
 mod tests {
     use super::*;
     use crate::forms::{
-        a_n, are_in_same_genus, d16_plus, d_n, e_6, e_7, e_8, repetition_code,
-        type_i_z2_plus_e8_code, IntegralForm,
+        are_in_same_genus, d16_plus, e_6, e_7, e_8, repetition_code, type_i_z2_plus_e8_code,
+        IntegralForm,
     };
     use crate::scalar::{Rational, Scalar};
+
+    // `root_lattices::a_n`/`d_n` are `Option`-checked on out-of-domain rank; every
+    // call site below passes an in-domain rank, so these thin local wrappers keep
+    // the test bodies unchanged.
+    fn a_n(n: usize) -> IntegralForm {
+        crate::forms::root_lattices::a_n(n).unwrap()
+    }
+    fn d_n(n: usize) -> IntegralForm {
+        crate::forms::root_lattices::d_n(n).unwrap()
+    }
 
     /// Nikulin's right-hand side: equal signature pairs and isomorphic discriminant
     /// quadratic forms. Both lattices must be even (the `from_lattice` boundary).

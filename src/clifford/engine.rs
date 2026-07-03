@@ -49,7 +49,7 @@ pub(crate) use terms::add_term;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::{Nimber, Ordinal, Rational, Scalar, Surreal};
+    use crate::scalar::{Integer, Nimber, Ordinal, Rational, Scalar, Surreal};
     use std::collections::BTreeMap;
 
     fn r(n: i128) -> Rational {
@@ -364,6 +364,50 @@ mod tests {
             even.mul(&f0, &f1),
             even.scalar_mul(&r(-1), &even.mul(&f1, &f0))
         );
+    }
+
+    /// `even_subalgebra_of_cl30_is_quaternions` uses the all-ones metric, which
+    /// cannot distinguish the documented `f_i^2 = -q_i q_p` law from a hardcoded
+    /// `-1` (both give the same answer when every `q` is 1). Pin the real law
+    /// with a non-unit metric where they diverge.
+    #[test]
+    fn even_subalgebra_generator_squares_follow_the_pivot_law_not_hardcoded_minus_one() {
+        let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![r(2), r(3), r(5)]));
+        let even = alg.even_subalgebra().unwrap();
+        assert_eq!(even.dim(), 2);
+        let (f0, f1) = (even.e(0), even.e(1));
+        // Pivot is q_p at the highest-index invertible generator: p=2, q_p=5.
+        // f_0 = e_0 e_2 ⇒ f_0^2 = -q_0 q_2 = -10; f_1 = e_1 e_2 ⇒ f_1^2 = -q_1 q_2 = -15.
+        assert_eq!(even.mul(&f0, &f0), even.scalar(r(-10)), "f0^2 != -q0*q_p");
+        assert_eq!(even.mul(&f1, &f1), even.scalar(r(-15)), "f1^2 != -q1*q_p");
+        // A hardcoded -1 would pass the old all-ones test but fails here.
+        assert_ne!(even.mul(&f0, &f0), even.scalar(r(-1)));
+        assert_ne!(even.mul(&f1, &f1), even.scalar(r(-1)));
+    }
+
+    /// First documented `None`: a non-orthogonal metric (`b` or `a` nonempty)
+    /// has no clean `Cl(Q)⁰ ≅ Cl(Q′)` presentation.
+    #[test]
+    fn even_subalgebra_none_on_nonorthogonal_metric() {
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), r(1));
+        let alg_b = CliffordAlgebra::new(2, Metric::new(vec![r(1), r(1)], b));
+        assert!(alg_b.even_subalgebra().is_none(), "nonzero b should reject");
+
+        let mut a = BTreeMap::new();
+        a.insert((0usize, 1usize), r(1));
+        let alg_a = CliffordAlgebra::new(2, Metric::general(vec![r(1), r(1)], BTreeMap::new(), a));
+        assert!(alg_a.even_subalgebra().is_none(), "nonzero a should reject");
+    }
+
+    /// Second documented `None`: no `q_i` is a unit in the scalar ring, so there
+    /// is no invertible pivot. Over `Integer`, `2` and `4` are nonzero but not
+    /// units (only `±1` invert), unlike over a field where every nonzero value
+    /// would serve as a pivot.
+    #[test]
+    fn even_subalgebra_none_when_no_generator_is_a_unit() {
+        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Integer(2), Integer(4)]));
+        assert!(alg.even_subalgebra().is_none());
     }
 
     #[test]

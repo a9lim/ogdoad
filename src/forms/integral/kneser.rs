@@ -49,6 +49,14 @@ pub struct KneserMassInvariants {
     pub prime: u128,
     pub seed_label: &'static str,
     pub generated_neighbor_count: usize,
+    /// The sorted, de-duplicated set of class labels the Kneser neighbor search
+    /// actually classified (via `generated_rank_labels`), independent of
+    /// [`classes`](Self::classes) (the static catalogue). If neighbor generation
+    /// ever stopped finding one of the classes, this set would shrink even
+    /// though `classes` would not — that asymmetry is the point: it is what lets
+    /// a test cross-check "generation actually found it" against "the catalogue
+    /// says it exists" instead of comparing the catalogue to itself.
+    pub generated_labels: Vec<&'static str>,
     pub classes: Vec<KneserMassRecord>,
     pub mass: (i128, i128),
     pub mass_sum: (i128, i128),
@@ -56,12 +64,11 @@ pub struct KneserMassInvariants {
 }
 
 impl KneserMassInvariants {
-    /// The sorted, de-duplicated class labels in this certificate, derived from
-    /// [`classes`](Self::classes). (Formerly a stored field; the labels are the
-    /// `classes[].label` set in canonical order.)
+    /// The class labels the neighbor search actually generated. Equal to
+    /// [`generated_labels`](Self::generated_labels); kept as a method for
+    /// backward-compatible call sites (incl. the Python binding).
     pub fn generated_class_labels(&self) -> Vec<&'static str> {
-        let labels: BTreeSet<&'static str> = self.classes.iter().map(|c| c.label).collect();
-        labels.into_iter().collect()
+        self.generated_labels.clone()
     }
 }
 
@@ -436,8 +443,10 @@ pub fn even_unimodular_kneser_report(rank: usize) -> Option<KneserMassInvariants
     let max_lines = if rank == 8 { 1_000 } else { 100_000 };
     // The neighbor generation is a load-bearing verification step (it classifies
     // every generated neighbor and bails with `None` if one falls outside the
-    // genus); the derived label set now lives on `generated_class_labels()`.
-    let (generated_neighbor_count, _generated_class_labels) =
+    // genus); `generated_labels` is the actual set it found, kept distinct from
+    // `classes` (the static catalogue) so tests can cross-check one against the
+    // other instead of the catalogue against itself.
+    let (generated_neighbor_count, generated_labels) =
         generated_rank_labels(&seed, rank, prime, max_lines)?;
     let mass = mass_even_unimodular(rank as u128)?;
     let mass_sum = mass_sum(&classes)?;
@@ -446,6 +455,7 @@ pub fn even_unimodular_kneser_report(rank: usize) -> Option<KneserMassInvariants
         prime,
         seed_label,
         generated_neighbor_count,
+        generated_labels,
         classes,
         mass,
         mass_sum,
@@ -477,12 +487,29 @@ mod tests {
         assert!(kneser_neighbor(&IntegralForm::diagonal(&[1, 1]), 2, &[1, 1]).is_none());
     }
 
+    /// The static catalogue's label set, independent of anything neighbor
+    /// generation found — the thing [`KneserMassInvariants::generated_labels`]
+    /// must be cross-checked against so a broken generator (that silently found
+    /// nothing, or found the wrong classes) cannot hide behind the catalogue.
+    fn static_class_labels(report: &KneserMassInvariants) -> Vec<&'static str> {
+        let labels: BTreeSet<&'static str> = report.classes.iter().map(|c| c.label).collect();
+        labels.into_iter().collect()
+    }
+
     #[test]
     fn rank16_report_finds_both_neighbor_classes_and_closes_mass() {
         let report = even_unimodular_kneser_report(16).unwrap();
         assert_eq!(report.prime, 2);
         assert!(report.generated_neighbor_count > 0);
         assert_eq!(report.generated_class_labels(), vec!["D16+", "E8+E8"]);
+        // Cross-check the *generated* set against the static catalogue, not the
+        // catalogue against itself: this is the assertion that would fail if
+        // neighbor generation stopped finding D16+ (or E8+E8) even though the
+        // hand-entered `classes` list still names it.
+        assert_eq!(
+            report.generated_class_labels(),
+            static_class_labels(&report)
+        );
         assert_eq!(report.classes.len(), 2);
         assert_eq!(report.mass, mass_even_unimodular(16).unwrap());
         assert_eq!(report.mass, report.mass_sum);
@@ -494,6 +521,10 @@ mod tests {
     fn rank8_report_is_the_unique_mass_class() {
         let report = even_unimodular_kneser_report(8).unwrap();
         assert_eq!(report.generated_class_labels(), vec!["E8"]);
+        assert_eq!(
+            report.generated_class_labels(),
+            static_class_labels(&report)
+        );
         assert_eq!(
             report.classes[0].automorphism_group_order,
             E8_WEYL_GROUP_ORDER
