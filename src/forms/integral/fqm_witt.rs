@@ -1397,9 +1397,9 @@ mod tests {
         //
         // Z/4 x Z/4 is not cyclic, so l(A_2) = 2: rank-2 puts the equality case in
         // play. The pairing matrix on the two natural generators is diagonal:
-        // `b(gen of cyclic(4,1/4)) = (q(2)-2q(1))/2 mod 1 = (1 - 1/2)/2 = 3/4` and
-        // `b(gen of cyclic(4,7/4)) = (1 - 7/2)/2 mod 1 = 1/4`, so
-        // `discr K(q_2) = 1/det = 1/(3/4 * 1/4) = 16/3`.
+        // `b(gen of cyclic(4,1/4)) = (q(2)-2q(1))/2 mod 1 = (1 - 1/2)/2 = 1/4` and
+        // `b(gen of cyclic(4,7/4)) = (1 - 7/2)/2 mod 1 = 3/4`, so
+        // `discr K(q_2) = 1/det = 1/(1/4 * 3/4) = 16/3`.
         //
         // The module's total Milgram phase is 0 mod 8, matching `t+ - t- = 0` at
         // signature (1,1) — so signature congruence holds and the equality-case

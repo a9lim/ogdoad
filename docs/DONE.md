@@ -44,6 +44,48 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### ~12·(e_s∧e_c∧e_f∧e_i∧e_g): `revision-sweep-2026-07-02`
+**Completed:** 2026-07-02
+**Summary:** played both 2026-07-02 revision ledgers — [`CORRECTNESS.md`](CORRECTNESS.md)
+(twelve numbered verification items + the one-line-pins/proptest ups) and
+[`CONSISTENCY.md`](CONSISTENCY.md) (seven numbered taste items + three up-rosters) — in
+four waves of ~19 file-fenced sonnet agents with lead gates between waves and an
+independent codex review of the full diff (PASS on every math-load-bearing area; one
+comment-only transcription swap found and fixed).
+**Pillars:** scalar ↔ clifford ↔ forms ↔ integral ↔ games    **Claim level:**
+interpretation (status calls) + implemented-and-tested (no shipped computed value changed;
+one conservative-direction algorithm improvement in `unit_pivot_nullspace`)
+- surface: default `Scalar::pow` (killed 8 hand-rolled loops; `FiniteField::pow` defaults
+  onto it, `Nimber::nim_pow` stays the one override); `Rational::checked_add/mul`;
+  `linalg::integer::prime_factors`; the valuation quartet + `rdiv` + `rational_mod_int`
+  in `diagonal.rs`; one `binomial_checked`; `Option`-honest `misere_quotient`/
+  `octal_misere_quotient`/`isotropy_over_adeles`/`fit_f2_quadratic`/`from_ordinal`/
+  `a_n`/`d_n`/`codewords` (+ `CODEWORD_ENUMERATION_BUDGET`); `assert_supported_params`
+  for WittVec/Qq/Ramified; encapsulated `DiscriminantCore`/`SpinorRep`/`Cga`/
+  `LinearMap.cols`/`WittClass`/`Char2QuadForm` + `Zp`/`WittVec` reduce-in-neg;
+  `QuadricFit::bias()`; Display for `WittClassG`/`FunctionFieldBrauerWallClass`/
+  `SymplecticInvariants`/`HermitianSignature`/`FiniteHermitianInvariants` (py reprs
+  collapsed onto core); `pure_scalar_norm`; engine `//!` headers; flattened
+  `local_global/`+`integral/` shelves; `Omnific::from_floor`;
+  `ensure_supported_finite_hermitian`; vendored `b380496.txt`.
+- oracles: 968 lib tests (was 895 — +73), incl. the vendored-b-file full diff, alpha
+  value pins at u∈{73,89}, both Nikulin obstruction branches + a positive
+  differently-presented DFS witness, the all-eight-residue ff Brauer–Wall sweep, the
+  day-≤2 exhaustive canonical census (22 values), the verified-to-fire char-2
+  equal-degree splitter, dim-4 `char2_polar_rank` vs brute force, hopf bialgebra
+  compatibility, BW16 orders from Grove's closed form, Kneser generated-labels
+  assertion, `bias()` vs exhaustive zero counts, Weyl E6/E7 Coxeter sweep, the
+  extraspecial λ-branch, and the full gate (fmt, clippy ×2, cold doc -D warnings,
+  `--features python` check+clippy, `maturin develop` + `demo.py`, regenerated
+  `ogdoad.pyi`).
+- boundaries: `aj-second-engine` stays a9's switch (wording pass done; "source-pinned"
+  reserved for external data pins); alpha rows 97..709 remain ordinal-value-unpinned
+  behind the newly-discovered u=179 compute cliff ([`OPEN.md`](OPEN.md));
+  `weight_enumerator` keeps an infallible signature over a documented budget panic;
+  the ~20-type Display policy call and two ordinal-local factor helpers stay open ↑s;
+  audit-finding corrections (unit_sign_odd ≠ odd_unit_residue; splitter branch
+  selection) are recorded in [`CONSISTENCY.md`](CONSISTENCY.md).
+
 ### ~3·(e_s∧e_c∧e_f∧e_i∧e_g): `consistency-sweep`
 **Completed:** 2026-06-20
 **Summary:** played the 2026-06-20 [`CONSISTENCY.md`](CONSISTENCY.md) taste audit — a
