@@ -1,6 +1,6 @@
 """Validate solver against an independent no-memo tree solver, then sweep m=4."""
 import random
-from extraspecial_core import *
+from extraspecial_core import Echo, echo_value, gold_q, polar, validate
 
 validate()
 

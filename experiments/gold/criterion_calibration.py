@@ -102,7 +102,6 @@ def t2_check(m, a, qvec, B):
     def succ(v):
         if v in moves_cache: return moves_cache[v]
         res = []
-        top = v.bit_length()-1 if v else -1
         for i in range(m):
             if not (v>>i)&1: continue
             # width 1

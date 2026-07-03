@@ -1,5 +1,8 @@
 """Core: standalone nim arithmetic + Gold forms + correct ECHO-ko solver.
 
+Deliberate ogdoad-independent oracle: the family's shared reimplementation,
+not reuse debt (see docs/PY.md §5).
+
 Validated against ogdoad's pinned values:
   nim products 2*2=3, 2*4=8, 16*16=24
   Gold zero counts: (4,1):4  (8,1):112  (8,2):96  bent (8,1,lam=2):136

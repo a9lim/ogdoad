@@ -12,6 +12,10 @@ repo's published tables):
       HALF FIELD F_{2^{m/2}}; drift lambda^{(2M)} != lambda^{(M)} (odd a forced)
   A   Arf classes of the canonical-source refinements
       {frame, frame+Tr, frame+ones, frame+ones+Tr} vs gold
+
+Note: the nim arithmetic below is a deliberate ogdoad-independent
+implementation kept for adversarial-oracle provenance (fuzz-verified against
+the Rust engine per docs/PY.md §5) — not an accidental duplicate of common.py.
 """
 from functools import lru_cache
 
@@ -193,7 +197,6 @@ def classify(m, a, dvec):
         Brow.append(bi)
     # nullspace basis of Brow (vectors v with B(v, e_j)=0 for all j)
     # solve Brow^T v = 0 -> since B symmetric, Brow v = 0 rowwise
-    basis = []
     rows = Brow[:]
     # gaussian elim to find nullspace of the m x m matrix over F2
     pivots = {}

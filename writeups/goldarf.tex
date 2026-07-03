@@ -1297,8 +1297,11 @@ Proposition~\ref{prop:wp}, with no per-instance $Q$-evaluation.
 \paragraph{Provenance and results (implemented and tested).}
 A first-round solver had a bug (the memoization key omitted the accumulated
 charge parity); the corrected solver was validated against explicit tree
-enumeration. Corrected results
-(\texttt{experiments/gold/echo\_charge\_probe.py} and companions):
+enumeration. Corrected results (round-1 apparatus:
+\texttt{experiments/gold/echo\_charge\_probe.py} and companions — the rescued
+snapshot of that file predates the memo-key fix, so cite
+\path{experiments/echo_solver.py} stage \texttt{ko2} below, which reproduces
+this table exactly):
 \begin{center}
 \begin{tabular}{llcc}
 \toprule

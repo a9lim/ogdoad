@@ -37,7 +37,12 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 Beyond the library: `examples/` (Rust demos `tour`/`tropical`, the Ogham REPL
 `ogham_repl`, and the open-question probes `interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`), `experiments/` (Python research probes on top of the shipped
-lib), `demo.py` (the Python tour),
+lib, two-tier by maintenance bar: top-level `experiments/*.py` + `scripts/` are
+maintained — guards, type hints, docstrings, held to the Rust side's own bar —
+while `experiments/{gold,audit,excess}/` is a rescued archive from the 2026-06-10
+fable-fleet run, judged file-by-file in the STATUS TABLE each of those three
+directories' `README.md` carries (`pinned`/`oracle`/`superseded-by`/`scratch`);
+`docs/PY.md` is the audit ledger tracking both tiers), `demo.py` (the Python tour),
 `docs/` (OPEN.md — the genuine research problems; COMPLETENESS.md — the game-valued
 ledger of buildable items completing symmetries/connections already in the code;
 CONTINUATIONS.md — the game-valued ledger of buildable items that are genuinely new
@@ -342,6 +347,8 @@ python3 experiments/exception_column_m4.py    # 2·3^k excess column m=4 certifi
   nim-multiplication is partial at the verified Kummer boundary; use `nim_mul` and
   `nim_pow` for the checked paths. Generic engine code over `S: Scalar` still calls
   `.add(&x)`/`.mul(&x)` — operators are NOT a supertrait (see `src/scalar/AGENTS.md`).
+- Python: `import ogdoad as pl` is the house alias (`pl` = *pleroma*, the crate's
+  pre-rename name — kept deliberately).
 
 ## Testing
 

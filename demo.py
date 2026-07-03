@@ -207,13 +207,16 @@ print("  W(F₅) is ℤ/2×ℤ/2 :", g5 + g5 == zero5 and h5 + h5 == zero5)
 f2a = pl.Char2FiniteFieldForm([1, 1], {(0, 1): 1})
 f8h = pl.Char2FiniteFieldForm([0, 0], {(0, 1): 3}, degree=3)
 print("  F₂ char-2 anisotropic plane :", f2a.classify(), f2a.classify_unified().kind, f2a.bw_class())
-print("  F₈ char-2 hyperbolic plane  :", f8h.classify(), f8h.is_isometric(
+f8h_class = f8h.classify()
+print("  F₈ char-2 hyperbolic plane  :", f8h_class, f8h.is_isometric(
       pl.Char2FiniteFieldForm([0, 0], {(0, 1): 1}, degree=3)))
 n2a = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})
 print("  char-2 form methods          :", pl.arf_nimber(n2a).arf,
-      f8h.classify().arf,
+      f8h_class.arf,
+      "iso to another hyperbolic plane:",
       f8h.isometric_to(pl.Char2FiniteFieldForm([0, 0], {(0, 1): 1}, degree=3)),
-      f8h.isometric_to(pl.Char2FiniteFieldForm([0, 0], {(0, 1): 1}, degree=3)))
+      "iso to the anisotropic plane:",
+      f8h.isometric_to(pl.Char2FiniteFieldForm([1, 1], {(0, 1): 1}, degree=3)))
 fp = pl.Fp5(2) * pl.Fp5(3)
 f8x = pl.F8.generator()
 print("  F₅ scalar 2·3 and inverse   :", fp, fp.inv())
@@ -249,18 +252,15 @@ w = pl.omnific_omega()
 print("  e0² = 0 (nilpotent):", (e0 * e0).is_zero())
 print("  (ω·e0) ∧ e1 ∧ e2   :", (w * e0) & e1 & e2, "  (ω-scale coefficient)")
 print("  Oz validator ω / ε :", pl.is_omnific_integer(pl.omega()), "/", pl.is_omnific_integer(pl.epsilon()))
-print("  ω is not a unit (1/ω=ε ∉ Oz):", end=" ")
-try:
-    w.inv(); print("?!")
-except ValueError:
-    print("correctly rejected")
+print("  ω is not a unit (1/ω=ε ∉ Oz):",
+      "correctly rejected" if raises_value_error(lambda: w.inv()) else "?!")
 
 section("ordinal nimbers On₂ — the char-2 mirror of the surreals")
 omega = pl.Ordinal.omega()
 print("  ω ⊕ ω        =", omega.nim_add(omega), "   (self-inverse)")
 print("  ω·2 ⊕ ω      =", pl.Ordinal.monomial(pl.Ordinal(1), 2).nim_add(omega))
 print("  ω < ω²       :", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
-print("  ordinal order ω < ω²:", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
+print("  ω fuzzy ω² (as nimbers):", omega.fuzzy(pl.Ordinal.omega_pow(pl.Ordinal(2))))
 print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
 # nim-multiplication: implemented below ω^ω via the current DiMuro/Conway
 # degree-3 tower. The old φ_{ω+1} (<ω³) case is the first layer.
@@ -277,8 +277,8 @@ print("  ω³ ⊗ ω       :", pl.Ordinal.omega_pow(pl.Ordinal(3)).nim_mul(omega
 print("  ω^ω staged   :", pl.Ordinal.omega_pow(omega).nim_mul(omega))
 print("  scalar ops/inv in On₂         :", omega + pl.Ordinal(1), pl.Ordinal(2) * pl.Ordinal(3),
       pl.Ordinal(3).inv())
-O = pl.OrdinalAlgebra([omega, omega.nim_mul(omega)])
-print("  Cl_On₂ e0²/e1²:", O.gen(0) * O.gen(0), O.gen(1) * O.gen(1))
+O_ord = pl.OrdinalAlgebra([omega, omega.nim_mul(omega)])
+print("  Cl_On₂ e0²/e1²:", O_ord.gen(0) * O_ord.gen(0), O_ord.gen(1) * O_ord.gen(1))
 OH = pl.OrdinalAlgebra([0, 0], b={(0, 1): 1})
 print("  finite ordinal Arf/Witt/BW:", pl.arf_ordinal_finite(OH), pl.ordinal_witt(OH),
       pl.bw_class_ordinal(OH))
@@ -418,7 +418,8 @@ print("  WittClassG constructors:",
       pl.WittClassG.char0(3, 1), pl.WittClassG.oddchar_one(5, 0) * pl.WittClassG.oddchar_zero(5, 0),
       pl.WittClassG.char2(1).arf())
 print("  WittClassG operators:",
-      pl.WittClassG.try_char2_from_metric(A).arf(),
+      pl.WittClassG.try_char2_from_metric(
+          pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})).arf(),
       (pl.WittClassG.char0(2, 0) + pl.WittClassG.char0(1, 0)).signature(),
       (pl.WittClassG.oddchar_one(5, 0) * pl.WittClassG.oddchar_one(5, 0)).kind())
 print("  2 is a sum of two squares in F3:", pl.is_sum_of_n_squares(3, 2, 2))
@@ -468,12 +469,12 @@ print("  BW constructors/zero_like:", pl.BrauerWallClass.real(9), g.zero_like(),
 rq = pl.bw_class_rational(pl.RationalAlgebra(q=[-1]))
 print("  BW(Q) of ⟨−1⟩:", rq, "real", rq.real_class(), "square", rq + rq)
 print("  BW(F_3) of ⟨1⟩:", pl.OddFiniteFieldForm(3, [1]).bw_class(), "(order-4 graded part ≅ W(F_3))")
-A2 = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})
-print("  BW(F_2^m) anisotropic nimber plane:", pl.bw_class_nimber(A2), "(Z/2 Arf class)")
+A2_nim = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})
+print("  BW(F_2^m) anisotropic nimber plane:", pl.bw_class_nimber(A2_nim), "(Z/2 Arf class)")
 
 
 # ===========================================================================
-# Arc IV: the CGT/surreal core, forms foundations, and GA depth
+# The CGT/surreal core, forms foundations, and GA depth
 # ===========================================================================
 
 section("partizan canonical form — Conway's simplicity theorem")
@@ -862,13 +863,16 @@ print("  fit zero-set {00,01,10}     :", fit, " genuine:", fit.is_genuinely_quad
 gold = pl.gold_form_arf(8, 1)
 print("  Gold Q₁ over F₂⁸             :", gold, " rank/rad:", (gold.rank, gold.radical_dim))
 gold_alg = pl.gold_form(4, 1)
-print("  same Gold form as Cl metric  :", pl.arf_nimber(gold_alg))
-print("  Gold/trace helpers           :", pl.arf_nimber(pl.gold_form(4, 1)).arf,
-      pl.trace_form_arf(3).arf,
-      pl.classify_finite_algebra(pl.trace_twisted_form(3, 2)))
+gold_alg_arf = pl.arf_nimber(gold_alg)
+print("  same Gold form as Cl metric  :", gold_alg_arf)
+tf_arf3 = pl.trace_form_arf(3)
+tf_twisted_class = pl.classify_finite_algebra(pl.trace_twisted_form(3, 2))
+print("  Gold/trace helpers           :", gold_alg_arf.arf,
+      tf_arf3.arf,
+      tf_twisted_class)
 print("  typed trace forms F₈/F₉      :",
-      pl.trace_form_arf(3),
-      pl.classify_finite_algebra(pl.trace_twisted_form(3, 2)))
+      tf_arf3,
+      tf_twisted_class)
 
 section("integral lattices — ADE, genus, mass, Leech constants")
 A2 = pl.a_n(2)
@@ -937,8 +941,8 @@ print("  Type I Construction A        :",
       type_i.weight_enumerator(), z2.is_even(), z2.theta_series_level4(5))
 print("  odd discr/Milgram report     :",
       odd_disc.group, odd_disc.quadratic_value_mod1([1]), pl.odd_milgram_report(pl.IntegralForm.diagonal([3])))
-print("  Golay raw generator rows     :", len(pl.extended_golay_generator_rows()),
-      len(pl.extended_golay_generator_rows()[0]))
+golay_rows = pl.extended_golay_generator_rows()
+print("  Golay raw generator rows     :", len(golay_rows), len(golay_rows[0]))
 disc = pl.DiscriminantForm.from_lattice(A2)
 print("  discr(A₂) group/Milgram/Weil :", disc.group, disc.milgram_signature_mod8(),
       pl.genus_signature_mod8(A2), disc.verify_weil_relations())
@@ -984,21 +988,21 @@ t = ([0, 1], [1])          # t in F_5(t)
 two = ([2], [1])           # nonsquare constant 2 in F_5
 norm_form = [([1], [1]), ([0, 4], [1]), ([3], [1]), ([0, 2], [1])]
 print("  F₅(t) factors t²+2          :", pl.monic_irreducible_factors(5, [2, 0, 1]))
+reciprocity_ff = pl.try_hilbert_reciprocity_product_ff(5, t, two)
 print("  F₅(t) (t,2) ramifies        :", pl.try_ramified_places_ff(5, t, two),
-      " reciprocity:", pl.try_hilbert_reciprocity_product_ff(5, t, two))
+      " reciprocity:", reciprocity_ff)
 ff_adeles = pl.try_isotropy_over_ff_adeles(5, norm_form)
 ff_local0 = ff_adeles.local[0] if ff_adeles is not None else None
-print("  F₅(t) norm form isotropic?  :", pl.try_is_isotropic_ff(5, norm_form),
+isotropic_ff = pl.try_is_isotropic_ff(5, norm_form)
+print("  F₅(t) norm form isotropic?  :", isotropic_ff,
       ff_adeles.is_global() if ff_adeles is not None else None,
-      ff_local0.place if ff_local0 is not None else None,
-      ff_local0.is_isotropic if ff_local0 is not None else None,
       (ff_local0.place, ff_local0.is_isotropic) if ff_local0 is not None else None)
 print("  F₅(t) helper checks         :",
       pl.try_valuation_at_ff(5, t, [0, 1]),
       pl.is_global_square_ff(5, ([1, 2, 1], [1])),
       pl.try_hilbert_symbol_ff(5, t, two, [0, 1]),
-      pl.try_hilbert_reciprocity_product_ff(5, t, two),
-      pl.try_is_isotropic_ff(5, norm_form))
+      reciprocity_ff,
+      isotropic_ff)
 print("  F₅(t) tame μ₄ symbol        :",
       pl.try_tame_symbol_invariant_ff(5, 4, t, two, [0, 1]),
       pl.tame_symbol_invariants_ff(5, 4, t, two),
@@ -1021,8 +1025,9 @@ print("  F₂(t) [1,t]⊥<1> local/global:",
       char2_form.is_isotropic_at_place([0, 1]),
       char2_form.is_isotropic())
 aj = char2_form.decompose_at()
-print("  F₂(t) AJ decomp at ∞        :", aj, [(term.pole_order, term.coefficient) for term in aj.psi],
-      (aj.phi0, [(term.pole_order, term.coefficient) for term in aj.psi], aj.phi1))
+aj_psi = [(term.pole_order, term.coefficient) for term in aj.psi]
+print("  F₂(t) AJ decomp at ∞        :", aj, aj_psi,
+      (aj.phi0, aj_psi, aj.phi1))
 print("  F₂(t) helper checks         :",
       pl.as_symbol_places(f2_one, f2_t),
       pl.as_symbol_at(f2_one, f2_t, [0, 1]),
@@ -1052,8 +1057,8 @@ a1_disc = pl.DiscriminantForm.from_lattice(pl.IntegralForm.a(1))
 print("  discriminant form iso/Brown  :",
       a1_disc.is_isomorphic(a1_disc),
       a1_disc.brown_invariant())
-np = pl.newton_polygon([pl.Qp5_4.from_int(-5), pl.Qp5_4.zero(), pl.Qp5_4.one()])
-print("  Newton roots of x²-5 over Q₅ :", np.root_valuations(),
+npoly = pl.newton_polygon([pl.Qp5_4.from_int(-5), pl.Qp5_4.zero(), pl.Qp5_4.one()])
+print("  Newton roots of x²-5 over Q₅ :", npoly.root_valuations(),
       " τ(5²)=", pl.tropicalize(pl.Qp5_4.from_p_power(2)))
 transfer = pl.transfer_diagonal(3, 2, [1])
 print("  Scharlau transfer F₉/F₃ <1> :", transfer.dim, pl.classify_finite_algebra(transfer))

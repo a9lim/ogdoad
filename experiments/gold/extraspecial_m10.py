@@ -1,4 +1,4 @@
-"""Scale check: synthetic rank-4 Arf-0/1 forms on F_2^10, adapted frame,
+"""Scale check: synthetic rank-4 Arf-0/1 forms on F_2^10, bit frame,
 full 1024-position sweep."""
 import time
 from extraspecial_core import echo_value

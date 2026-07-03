@@ -15,6 +15,10 @@ central character. Orientation A: P1 wants sigma=1. Orientation B: P1 wants 0.
 CORRECT solver: memo key includes accumulated sigma (the round-1 probe's bug
 was omitting it: XOR payoff => odd prefix flips downstream objective).
 Validated below against explicit no-memo tree enumeration.
+
+Note: the nim arithmetic below is a deliberate ogdoad-independent
+implementation kept for adversarial-oracle provenance (fuzz-verified against
+the Rust engine per docs/PY.md §5) — not an accidental duplicate of common.py.
 """
 import sys
 from functools import lru_cache

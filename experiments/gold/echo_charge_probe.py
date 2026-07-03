@@ -1,7 +1,10 @@
 """SUPERSEDED: this file's solver omits the accumulated XOR prefix (sigma) from its
 memo key — the 'round-1' bug documented and fixed in asym2_probe.py and
 echo_window2.py (sigma-in-key). Sweep results printed by this file are suspect.
-Not cited in writeups/goldarf.tex (checked 2026-07-03). See docs/PY.md §1.2.
+goldarf.tex's corrected-results table cites this family for provenance, but this
+rescued snapshot PREDATES the memo-key fix; the table's numbers are independently
+re-derived by echo_solver.py stage ko2 (which validates against tree enumeration
+and reproduces the unique (8,2) miss x=224). See docs/PY.md §1.2.
 
 Echo-charge probe: does alternating play on the extraspecial group E realize Q?
 

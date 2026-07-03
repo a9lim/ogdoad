@@ -80,7 +80,7 @@ def run_world(name, m, Q):
                 acc ^= Bbit[i][j]
         return acc
 
-    I = set(v for v in zeros) # projection target; I itself = both lifts
+    # projection target I = the zero set; I itself = both lifts
     gates = {
         "G0 always":        lambda a, v, i: True,
         "G1 a==0":          lambda a, v, i: a == 0,

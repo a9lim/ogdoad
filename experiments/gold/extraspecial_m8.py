@@ -1,6 +1,6 @@
 """m=8 sweep with the correct solver + decision-nondegeneracy counts."""
 import time
-from extraspecial_core import *
+from extraspecial_core import echo_value, gold_q, polar, validate
 
 validate()
 

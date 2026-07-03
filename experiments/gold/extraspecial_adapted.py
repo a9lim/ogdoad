@@ -1,15 +1,12 @@
 """Adapted (Arf-normal symplectic) frame: build for each m=8 Gold form,
 predict misses from the pattern theory, verify by full sweep.
 Also (6,1) rank-4 full sweep and m=4 family in adapted frames."""
-from extraspecial_core import *
-
-validate()
+from extraspecial_core import echo_value, gold_q, validate
 
 def build_adapted_frame(Q, m):
     """Arf-normal frame: hyperbolic pairs (u_i, v_i) with q-values
     (1,1) on at most one pair (if Arf 1), (0,0) elsewhere, plus radical basis.
     Returns list of frame vectors [u1, v1, u2, v2, ..., r1, r2, ...]."""
-    V = list(range(1, 1 << m))
     def Bf(u, v): return Q[u ^ v] ^ Q[u] ^ Q[v]
     # radical = {v : B(v, .) == 0}
     rad = [v for v in range(1 << m) if all(Bf(v, 1 << i) == 0 for i in range(m))]
@@ -21,50 +18,16 @@ def build_adapted_frame(Q, m):
             radbasis.append(v)
             span = {s ^ v2 for s in span for v2 in (0, v)}
     # core: symplectic Gram-Schmidt on a complement of the radical
-    pairs = []
-    used_span = set(span)
-    remaining = [v for v in range(1, 1 << m) if v not in used_span]
-    cur_span = set(span)
     def spanof(vecs):
         s = {0}
         for v in vecs:
             s |= {x ^ v for x in s}
         return s
-    chosen = []
-    while True:
-        # pick u not in current span, with some partner w: B(u,w)=1, w not in span
-        cand_u = [v for v in range(1, 1 << m) if v not in cur_span]
-        if not cand_u: break
-        found = False
-        for u in cand_u:
-            for w in cand_u:
-                if Bf(u, w) == 1:
-                    # orthogonalize: keep (u,w); reduce later pairs against them
-                    pairs.append((u, w))
-                    chosen += [u, w]
-                    cur_span = spanof(radbasis + chosen)
-                    found = True
-                    break
-            if found: break
-        if not found: break
-        # project remaining space orthogonal to (u,w): handled implicitly by
-        # re-selecting candidates orthogonal to all chosen pairs:
-        # (simple approach: filter cand by orthogonality at next iteration)
-        # -- implement properly below
-        u, w = pairs[-1]
-        # replace the complement: vectors orthogonal to u and w modulo span
-        # we'll just continue; correctness enforced by final checks
-        # re-pick: restrict future candidates to x' = x + B(x,w)u + B(x,u)w
-        # Do an explicit symplectic reduction instead:
-        break
-    # cleaner: full symplectic reduction
     pairs = []
     basis_done = list(radbasis)
     def in_span(v, vecs):
         s = spanof(vecs)
         return v in s
-    avail = [v for v in range(1, 1 << m)]
-    comp = []   # current complement vectors to process
     # iterative reduction over the whole space
     work = [v for v in range(1, 1 << m) if not in_span(v, basis_done)]
     while work:
@@ -153,8 +116,6 @@ def predict_misses(qover, Bover, mm):
         # in a matching frame, edges == p
         if edges >= 2 and t == 1:
             bad.append(cm)
-        elif edges == 1 and False:
-            pass
     return bad
 
 def coord_form(m, hyp_pairs, q1pairs=0, aniso_rad=0):
@@ -172,32 +133,35 @@ def coord_form(m, hyp_pairs, q1pairs=0, aniso_rad=0):
         Q.append(t)
     return Q
 
-forms = [
-    ("(8,1)l1 rank6", gold_q(8, 1, 1), 8),
-    ("(8,2)l1 rank4", gold_q(8, 2, 1), 8),
-    ("(8,1)l2 bent.rank8", gold_q(8, 1, 2), 8),
-    ("synth r4 Arf0 rad4iso  m=8", coord_form(8, 2), 8),
-    ("synth r4 Arf1 rad4iso  m=8", coord_form(8, 2, 1), 8),
-    ("synth r4 Arf1 rad2aniso m=8", coord_form(8, 2, 1, 2), 8),
-    ("synth r2 Arf0 rad6iso  m=8", coord_form(8, 1), 8),
-]
-for name, Q, m in forms:
-    frame, pairs, radb, arf1 = build_adapted_frame(Q, m)
-    qover = [Q[v] for v in frame]
-    print(f"\n{name}: pairs={len(pairs)} radical_dim={len(radb)} "
-          f"aniso_pairs={arf1} q-on-frame={qover} "
-          f"Q|radical={[Q[v] for v in radb]}")
-    mm = len(frame)
-    Bover = []
-    for i in range(mm):
-        row = 0
-        for j in range(mm):
-            if i == j: continue
-            row |= (Q[frame[i] ^ frame[j]] ^ Q[frame[i]] ^ Q[frame[j]]) << j
-        Bover.append(row)
-    pred = predict_misses(qover, Bover, mm)
-    misses, _, _, ndg = frame_sweep_detail(Q, frame, m, True)
-    print(f"  predicted misses: {len(pred)}  actual misses: {len(misses)} "
-          f"  match: {sorted(pred) == sorted(misses)}  choice-states={ndg}")
-    if misses and len(misses) <= 12:
-        print(f"  miss supports: {[bin(c) for c in misses]}")
+if __name__ == '__main__':
+    validate()
+
+    forms = [
+        ("(8,1)l1 rank6", gold_q(8, 1, 1), 8),
+        ("(8,2)l1 rank4", gold_q(8, 2, 1), 8),
+        ("(8,1)l2 bent.rank8", gold_q(8, 1, 2), 8),
+        ("synth r4 Arf0 rad4iso  m=8", coord_form(8, 2), 8),
+        ("synth r4 Arf1 rad4iso  m=8", coord_form(8, 2, 1), 8),
+        ("synth r4 Arf1 rad2aniso m=8", coord_form(8, 2, 1, 2), 8),
+        ("synth r2 Arf0 rad6iso  m=8", coord_form(8, 1), 8),
+    ]
+    for name, Q, m in forms:
+        frame, pairs, radb, arf1 = build_adapted_frame(Q, m)
+        qover = [Q[v] for v in frame]
+        print(f"\n{name}: pairs={len(pairs)} radical_dim={len(radb)} "
+              f"aniso_pairs={arf1} q-on-frame={qover} "
+              f"Q|radical={[Q[v] for v in radb]}")
+        mm = len(frame)
+        Bover = []
+        for i in range(mm):
+            row = 0
+            for j in range(mm):
+                if i == j: continue
+                row |= (Q[frame[i] ^ frame[j]] ^ Q[frame[i]] ^ Q[frame[j]]) << j
+            Bover.append(row)
+        pred = predict_misses(qover, Bover, mm)
+        misses, _, _, ndg = frame_sweep_detail(Q, frame, m, True)
+        print(f"  predicted misses: {len(pred)}  actual misses: {len(misses)} "
+              f"  match: {sorted(pred) == sorted(misses)}  choice-states={ndg}")
+        if misses and len(misses) <= 12:
+            print(f"  miss supports: {[bin(c) for c in misses]}")

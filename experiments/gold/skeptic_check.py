@@ -6,6 +6,10 @@
    using my own nim multiplication (independent of the ogdoad crate and of the
    attacker's scripts). Includes unscaled degenerate (8,1),(8,2).
 3. Spot-check the lambda=43 zero-diagonal claim.
+
+Note: the nim/Gold arithmetic below is a deliberate ogdoad-independent
+implementation kept for adversarial-oracle provenance (fuzz-verified against
+the Rust engine per docs/PY.md §5) — not an accidental duplicate of common.py.
 """
 import random
 from functools import lru_cache

@@ -15,6 +15,10 @@ PART 1 — primary construct T2-weierstrass at (8,1) and (16,1):
 PART 2 — loopy width-2 sweep (residue B): add local-gated move families to T2,
   compute loopy Win/Loss/Draw (kernel::outcomes semantics: terminal = Loss),
   hunt for Loss / Draw / Loss-union-Draw = {Q=0} with decision-nondegeneracy.
+
+Note: the nim arithmetic below is a deliberate ogdoad-independent
+implementation kept for adversarial-oracle provenance (fuzz-verified against
+the Rust engine per docs/PY.md §5) — not an accidental duplicate of common.py.
 """
 import sys
 from functools import lru_cache

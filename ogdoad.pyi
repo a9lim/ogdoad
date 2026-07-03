@@ -34704,7 +34704,7 @@ def adele_prec(*args: Any, **kwargs: Any) -> Any:
 
 def are_in_same_genus(*args: Any, **kwargs: Any) -> Any: ...
 
-def arf_f2(*args: Any, **kwargs: Any) -> Any:
+def arf_f2(n: builtins.int, qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> ArfInvariants:
     """Raw Arf reduction over `F_2`: `qd` is the diagonal bit vector and `bmat`
     packs the alternating polar rows as bitmasks.
     """
@@ -34759,7 +34759,7 @@ def brauer_local_invariants(*args: Any, **kwargs: Any) -> Any:
     `(a,b)` over `Q`, returned as typed `(RationalPlace, invariant)` pairs.
     """
 
-def brown_f2(*args: Any, **kwargs: Any) -> Any: ...
+def brown_f2(n: builtins.int, q4: Sequence[builtins.int], bmat: Sequence[builtins.int]) -> BrownInvariants: ...
 
 def bw_class_complex(*args: Any, **kwargs: Any) -> Any:
     """The Brauer–Wall class of a surcomplex (complex) Clifford algebra in
@@ -34880,7 +34880,7 @@ def dickson_matrix(*args: Any, **kwargs: Any) -> Any:
 def dickson_of_versor(*args: Any, **kwargs: Any) -> Any:
     """The Dickson invariant of a nimber Clifford versor (= its grade parity)."""
 
-def double_f2(*args: Any, **kwargs: Any) -> Any: ...
+def double_f2(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> BrownInvariants: ...
 
 def e_6(*args: Any, **kwargs: Any) -> Any: ...
 
@@ -34928,14 +34928,14 @@ def global_residues_ff(*args: Any, **kwargs: Any) -> Any: ...
 
 def golay_code(*args: Any, **kwargs: Any) -> Any: ...
 
-def gold_form(*args: Any, **kwargs: Any) -> Any:
+def gold_form(m: builtins.int, a: builtins.int) -> NimberAlgebra:
     """The Gold form as a `NimberAlgebra`, so Python can inspect the underlying
     Clifford product as well as its Arf invariant. Python exposes the Rust
     `Metric<Nimber>` as the corresponding Clifford algebra because `Metric<T>`
     is not a Python value type on its own.
     """
 
-def gold_form_arf(*args: Any, **kwargs: Any) -> Any:
+def gold_form_arf(m: builtins.int, a: builtins.int) -> ArfInvariants:
     """The Arf data of the Gold form `Q_a(x)=Tr(x^(1+2^a))` on the nim subfield
     `F_{2^m}`.
     """
@@ -35156,76 +35156,76 @@ def monic_irreducible_factors(*args: Any, **kwargs: Any) -> Any:
 
 def newton_polygon(*args: Any, **kwargs: Any) -> Any: ...
 
-def nim_add(*args: Any, **kwargs: Any) -> Any:
+def nim_add(a: builtins.int, b: builtins.int) -> builtins.int:
     """Nim addition, i.e. xor on the represented finite nimbers."""
 
-def nim_canonical(*args: Any, **kwargs: Any) -> Any:
+def nim_canonical(heaps: Sequence[builtins.int]) -> list[builtins.int]:
     """Normalize a Nim heap-multiset: drop empty heaps and sort ascending."""
 
-def nim_conjugates(*args: Any, **kwargs: Any) -> Any:
+def nim_conjugates(x: builtins.int) -> list[builtins.int]:
     """The Galois conjugates `x, x², x⁴, …` over F₂."""
 
-def nim_degree(*args: Any, **kwargs: Any) -> Any:
+def nim_degree(x: builtins.int) -> builtins.int:
     """Degree of `x` over F₂ (the smallest nim-subfield F_{2^d} containing it)."""
 
-def nim_discrete_log(*args: Any, **kwargs: Any) -> Any:
+def nim_discrete_log(base: builtins.int, x: builtins.int) -> builtins.int | None:
     """Discrete log in F_{2^128}*: least `e` with `base**e == x`, else `None`."""
 
-def nim_frobenius_iter(*args: Any, **kwargs: Any) -> Any:
+def nim_frobenius_iter(x: builtins.int, k: builtins.int) -> builtins.int:
     """Iterate Frobenius `k` times: `x -> x^(2^k)`."""
 
-def nim_inv(*args: Any, **kwargs: Any) -> Any:
+def nim_inv(x: builtins.int) -> builtins.int | None:
     """Multiplicative inverse in the nim field (`None` for `*0`)."""
 
-def nim_is_artin_schreier_solvable(*args: Any, **kwargs: Any) -> Any:
+def nim_is_artin_schreier_solvable(c: builtins.int, m: builtins.int) -> builtins.bool:
     """Whether `y²+y=c` is solvable in F_{2^m} — i.e. `Tr(c)=0`."""
 
-def nim_is_primitive(*args: Any, **kwargs: Any) -> Any:
+def nim_is_primitive(x: builtins.int) -> builtins.bool:
     """Whether `x` generates the full group F_{2^128}*."""
 
-def nim_lexicode_naive(*args: Any, **kwargs: Any) -> Any: ...
+def nim_lexicode_naive(base_exp: builtins.int, n: builtins.int, d: builtins.int) -> NimLexicode | None: ...
 
-def nim_lexicode_naive_bounded(*args: Any, **kwargs: Any) -> Any: ...
+def nim_lexicode_naive_bounded(base_exp: builtins.int, n: builtins.int, d: builtins.int, node_budget: builtins.int) -> NimLexicode | None: ...
 
-def nim_min_poly(*args: Any, **kwargs: Any) -> Any:
+def nim_min_poly(x: builtins.int) -> list[builtins.int]:
     """Minimal polynomial of `x` over F₂: coefficients `{0,1}` from the constant up."""
 
-def nim_moves(*args: Any, **kwargs: Any) -> Any:
+def nim_moves(pos: Sequence[builtins.int]) -> list[list[builtins.int]]:
     """The moves of Nim: reduce any one heap to any strictly smaller size."""
 
-def nim_mul(*args: Any, **kwargs: Any) -> Any:
+def nim_mul(a: builtins.int, b: builtins.int) -> builtins.int:
     """Conway nim multiplication on the represented `F_{2^128}` backend."""
 
-def nim_mul_mex(*args: Any, **kwargs: Any) -> Any:
+def nim_mul_mex(x: builtins.int, y: builtins.int) -> builtins.int:
     """Nim-multiplication via Conway's Turning-Corners game recurrence (the
     game-theoretic definition; equals the algebraic nim-product).
     """
 
-def nim_multiplicative_order(*args: Any, **kwargs: Any) -> Any:
+def nim_multiplicative_order(x: builtins.int) -> builtins.int | None:
     """Multiplicative order of `x` in F_{2^128}* (`None` for `*0`)."""
 
-def nim_pow(*args: Any, **kwargs: Any) -> Any:
+def nim_pow(base: builtins.int, exp: builtins.int) -> builtins.int:
     """Exponentiation by repeated nim multiplication."""
 
-def nim_primitive_element(*args: Any, **kwargs: Any) -> Any:
+def nim_primitive_element() -> builtins.int:
     """A primitive element (generator) of F_{2^128}*."""
 
-def nim_relative_norm(*args: Any, **kwargs: Any) -> Any:
+def nim_relative_norm(x: builtins.int, m: builtins.int, e: builtins.int) -> builtins.int:
     """Relative norm `N_{F_{2^m}/F_{2^e}}(x)` (norm to the prime field is trivial)."""
 
-def nim_relative_trace(*args: Any, **kwargs: Any) -> Any:
+def nim_relative_trace(x: builtins.int, m: builtins.int, e: builtins.int) -> builtins.int:
     """Relative trace `Tr_{F_{2^m}/F_{2^e}}(x)` (the `e=1` case is `nim_trace`)."""
 
-def nim_solve_artin_schreier(*args: Any, **kwargs: Any) -> Any:
+def nim_solve_artin_schreier(c: builtins.int, m: builtins.int) -> builtins.int | None:
     """Solve the Artin–Schreier equation `y²+y=c` in F_{2^m} (`None` iff Tr(c)≠0)."""
 
-def nim_sqrt(*args: Any, **kwargs: Any) -> Any:
+def nim_sqrt(x: builtins.int) -> builtins.int:
     """Nim square root (inverse Frobenius); always defined in char 2."""
 
-def nim_square(*args: Any, **kwargs: Any) -> Any:
+def nim_square(x: builtins.int) -> builtins.int:
     """Frobenius square `x -> x^2` in the nim field."""
 
-def nim_trace(*args: Any, **kwargs: Any) -> Any:
+def nim_trace(x: builtins.int, m: builtins.int) -> builtins.int:
     """Field trace F_{2^m} → F₂ — the map the Arf invariant is read through and the
     obstruction to solving `y²+y=c`.
     """
@@ -35392,7 +35392,7 @@ def thermograph(*args: Any, **kwargs: Any) -> Any:
 def thermograph_via_tropical(*args: Any, **kwargs: Any) -> Any:
     """The same exact thermograph, computed through the named tropical wall folds."""
 
-def trace_form_arf(*args: Any, **kwargs: Any) -> Any:
+def trace_form_arf(degree: builtins.int, power: builtins.int = 1) -> ArfInvariants:
     """The Arf invariant of the characteristic-2 twisted trace form over the fixed
     Python-exposed finite fields `F_2`, `F_4`, `F_8`, and `F_16`.
     """

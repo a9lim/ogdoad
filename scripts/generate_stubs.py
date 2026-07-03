@@ -26,7 +26,9 @@ maturin ship it (and a ``py.typed`` marker) inside the wheel automatically.
 
 from __future__ import annotations
 
+import argparse
 import inspect
+import re
 import sys
 from pathlib import Path
 
@@ -54,6 +56,39 @@ FUNCTION_OVERRIDES: dict[str, str] = {
     "is_isotropic_q": "(entries: Sequence[builtins.int]) -> builtins.bool",
     "hilbert_product": "(a: tuple[builtins.int, builtins.int], b: tuple[builtins.int, builtins.int]) -> builtins.int",
     "hilbert_symbol": "(p: builtins.int, a: builtins.int, b: builtins.int) -> builtins.int",
+    # nim field / finite-field toolkit (src/py/scalars.rs, all u128-based)
+    "nim_add": "(a: builtins.int, b: builtins.int) -> builtins.int",
+    "nim_mul": "(a: builtins.int, b: builtins.int) -> builtins.int",
+    "nim_pow": "(base: builtins.int, exp: builtins.int) -> builtins.int",
+    "nim_square": "(x: builtins.int) -> builtins.int",
+    "nim_frobenius_iter": "(x: builtins.int, k: builtins.int) -> builtins.int",
+    "nim_inv": "(x: builtins.int) -> builtins.int | None",
+    "nim_sqrt": "(x: builtins.int) -> builtins.int",
+    "nim_trace": "(x: builtins.int, m: builtins.int) -> builtins.int",
+    "nim_solve_artin_schreier": "(c: builtins.int, m: builtins.int) -> builtins.int | None",
+    "nim_is_artin_schreier_solvable": "(c: builtins.int, m: builtins.int) -> builtins.bool",
+    "nim_degree": "(x: builtins.int) -> builtins.int",
+    "nim_conjugates": "(x: builtins.int) -> list[builtins.int]",
+    "nim_min_poly": "(x: builtins.int) -> list[builtins.int]",
+    "nim_relative_trace": "(x: builtins.int, m: builtins.int, e: builtins.int) -> builtins.int",
+    "nim_relative_norm": "(x: builtins.int, m: builtins.int, e: builtins.int) -> builtins.int",
+    "nim_multiplicative_order": "(x: builtins.int) -> builtins.int | None",
+    "nim_is_primitive": "(x: builtins.int) -> builtins.bool",
+    "nim_primitive_element": "() -> builtins.int",
+    "nim_discrete_log": "(base: builtins.int, x: builtins.int) -> builtins.int | None",
+    # nim field / lexicode helpers (src/py/games.rs, all u128-based)
+    "nim_mul_mex": "(x: builtins.int, y: builtins.int) -> builtins.int",
+    "nim_canonical": "(heaps: Sequence[builtins.int]) -> list[builtins.int]",
+    "nim_moves": "(pos: Sequence[builtins.int]) -> list[list[builtins.int]]",
+    "nim_lexicode_naive": "(base_exp: builtins.int, n: builtins.int, d: builtins.int) -> NimLexicode | None",
+    "nim_lexicode_naive_bounded": "(base_exp: builtins.int, n: builtins.int, d: builtins.int, node_budget: builtins.int) -> NimLexicode | None",
+    # Gold/Arf headline surface (src/py/forms.rs; demo.py + docs/PY.md name these)
+    "arf_f2": "(n: builtins.int, qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> ArfInvariants",
+    "brown_f2": "(n: builtins.int, q4: Sequence[builtins.int], bmat: Sequence[builtins.int]) -> BrownInvariants",
+    "double_f2": "(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> BrownInvariants",
+    "gold_form": "(m: builtins.int, a: builtins.int) -> NimberAlgebra",
+    "gold_form_arf": "(m: builtins.int, a: builtins.int) -> ArfInvariants",
+    "trace_form_arf": "(degree: builtins.int, power: builtins.int = 1) -> ArfInvariants",
 }
 
 # "Class.method" -> signature. A leading "@staticmethod " marks a staticmethod
@@ -119,13 +154,33 @@ from typing import Any
 """
 
 
+# Wording verified against pyo3 0.28.3 (pinned in Cargo.lock; Cargo.toml selects
+# "0.28"). A class without `#[new]` raises `TypeError: cannot create '<name>'
+# instances`; a class *with* `#[new]` called with too few args raises the usual
+# CPython `__new__() missing N required positional argument(s): ...` wording. If
+# a future PyO3 bump changes either wording, `_is_constructible` would silently
+# misclassify — the `_MISSING_ARGS_RE` fallback below turns that into a visible
+# warning instead of a silent one.
+_MISSING_ARGS_RE = re.compile(r"missing \d+ required positional argument")
+
+
 def _is_constructible(cls: type) -> bool:
     """A PyO3 class without `#[new]` reports `cannot create ... instances`."""
     try:
         cls()
         return True
     except TypeError as exc:
-        return "cannot create" not in str(exc)
+        msg = str(exc)
+        if "cannot create" in msg:
+            return False
+        if _MISSING_ARGS_RE.search(msg):
+            return True
+        print(
+            f"generate_stubs: unrecognized TypeError wording for {cls.__name__!r} "
+            f"in _is_constructible, defaulting to constructible: {msg!r}",
+            file=sys.stderr,
+        )
+        return True
     except Exception:
         return True
 
@@ -300,12 +355,23 @@ def build() -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="scripts/generate_stubs.py",
+        description="Generate (or check) ogdoad.pyi from the built extension module.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="exit 1 if the committed ogdoad.pyi is stale, instead of writing it",
+    )
+    args = parser.parse_args()
+
     target = Path(__file__).resolve().parent.parent / "ogdoad.pyi"
     text = build()
-    if "--check" in sys.argv:
+    if args.check:
         if not target.exists() or target.read_text() != text:
             print(
-                f"ogdoad.pyi is stale — run `python {Path(__file__).name}` and commit.",
+                "ogdoad.pyi is stale — run `python scripts/generate_stubs.py` and commit.",
                 file=sys.stderr,
             )
             return 1

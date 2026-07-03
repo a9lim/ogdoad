@@ -1,7 +1,7 @@
 """Normal-frame sweep at m=8 for the four Gold forms, ko=self, both orients.
 Also: confirm the (8,2) bit-frame miss x=224 is a bad k=3 pattern."""
 import time
-from extraspecial_core import *
+from extraspecial_core import echo_value, gold_q, nim_mul, polar, validate
 
 validate()
 
