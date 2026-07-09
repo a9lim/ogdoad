@@ -4,6 +4,7 @@ use super::lex::needs_continuation;
 use super::parse::parse_statement;
 use super::unparse::unparse_statement;
 use crate::clifford::{CliffordAlgebra, Metric, Multivector};
+use crate::games::Game;
 use crate::scalar::{
     checked_factorial_i128, factorial_in_scalar, nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn,
     Integer, IntegerDivExactError, Nimber, Omnific, Ordinal, Poly, Rational, RationalFunction,
@@ -174,6 +175,7 @@ impl OghamSession {
 }
 
 enum World {
+    Game(GameRuntime),
     Nimber(Runtime<Nimber>),
     Ordinal(Runtime<Ordinal>),
     Surreal(Runtime<Surreal>),
@@ -221,6 +223,10 @@ impl World {
             }};
         }
         match name {
+            "game" => {
+                ensure_function_world_decl(name, &tail)?;
+                return Ok(World::Game(GameRuntime::new()));
+            }
             "polyint" => build_poly!(PolyInt, Integer, "polyint"),
             "poly2" => build_poly!(Poly2, Fp<2>, "poly2"),
             "poly3" => build_poly!(Poly3, Fp<3>, "poly3"),
@@ -280,6 +286,7 @@ impl World {
             };
         }
         match self {
+            World::Game(rt) => dispatch!(rt),
             World::Nimber(rt) => dispatch!(rt),
             World::Ordinal(rt) => dispatch!(rt),
             World::Surreal(rt) => dispatch!(rt),
@@ -314,6 +321,7 @@ impl World {
             };
         }
         match self {
+            World::Game(rt) => dispatch!(rt),
             World::Nimber(rt) => dispatch!(rt),
             World::Ordinal(rt) => dispatch!(rt),
             World::Surreal(rt) => dispatch!(rt),
@@ -348,6 +356,7 @@ impl World {
             };
         }
         match self {
+            World::Game(rt) => dispatch!(rt),
             World::Nimber(rt) => dispatch!(rt),
             World::Ordinal(rt) => dispatch!(rt),
             World::Surreal(rt) => dispatch!(rt),
@@ -382,6 +391,7 @@ impl World {
             };
         }
         match self {
+            World::Game(rt) => dispatch!(rt),
             World::Nimber(rt) => dispatch!(rt),
             World::Ordinal(rt) => dispatch!(rt),
             World::Surreal(rt) => dispatch!(rt),
@@ -416,6 +426,7 @@ impl World {
             };
         }
         match self {
+            World::Game(rt) => dispatch!(rt),
             World::Nimber(rt) => dispatch!(rt),
             World::Ordinal(rt) => dispatch!(rt),
             World::Surreal(rt) => dispatch!(rt),
@@ -450,6 +461,7 @@ impl World {
             };
         }
         match self {
+            World::Game(rt) => dispatch!(rt),
             World::Nimber(rt) => dispatch!(rt),
             World::Ordinal(rt) => dispatch!(rt),
             World::Surreal(rt) => dispatch!(rt),
@@ -485,6 +497,1158 @@ fn ensure_function_world_decl(name: &str, tail: &[&str]) -> OghamResult<()> {
         Err(parse_error(format!(
             "`{name}` is a function-shaped scalar world; it takes no metric declaration"
         )))
+    }
+}
+
+struct GameRuntime {
+    env: BTreeMap<String, Value<Game>>,
+    fuel_budget: u128,
+    fuel_remaining: u128,
+}
+
+impl GameRuntime {
+    fn new() -> Self {
+        GameRuntime {
+            env: BTreeMap::new(),
+            fuel_budget: DEFAULT_FUEL,
+            fuel_remaining: DEFAULT_FUEL,
+        }
+    }
+
+    fn reset_fuel(&mut self) {
+        self.fuel_remaining = self.fuel_budget;
+    }
+
+    fn set_fuel_budget(&mut self, budget: u128) {
+        self.fuel_budget = budget;
+        self.reset_fuel();
+    }
+
+    fn eval_statement(&mut self, stmt: &Statement) -> OghamResult<Option<String>> {
+        match stmt {
+            Statement::Binding {
+                name,
+                expr,
+                recursive,
+            } => {
+                self.bind_name(name, expr, *recursive)?;
+                Ok(None)
+            }
+            Statement::Expr(expr) => Ok(Some(display_game_value(&self.eval_value(expr)?))),
+            Statement::Seq { bindings, tail } => {
+                for binding in bindings {
+                    self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                }
+                self.eval_statement(tail)
+            }
+        }
+    }
+
+    fn bind_name(&mut self, name: &str, expr: &Expr, recursive: bool) -> OghamResult<()> {
+        if reserved_function_binder(name) {
+            return Err(OghamError::new(
+                OghamErrorKind::Reserved,
+                Span::point(0),
+                format!("`{name}` is reserved in the `game` world"),
+            ));
+        }
+        if recursive && contains_free_name(expr, name) {
+            let Expr::Lambda { binders, body } = expr else {
+                return Err(OghamError::new(
+                    OghamErrorKind::Parse,
+                    Span::point(0),
+                    "Element `=:` fixpoints require stage D guarded loopy-game semantics",
+                ));
+            };
+            let function = self.close_function(
+                binders.clone(),
+                body.as_ref().clone(),
+                Some(name.to_string()),
+            )?;
+            self.env.insert(name.to_string(), Value::Function(function));
+            return Ok(());
+        }
+        let value = self.eval_value(expr)?;
+        self.env.insert(name.to_string(), value);
+        Ok(())
+    }
+
+    fn eval_block(&mut self, bindings: &[Binding], body: &Expr) -> OghamResult<Value<Game>> {
+        let saved = self.env.clone();
+        let result = (|| {
+            for binding in bindings {
+                self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+            }
+            self.eval_value(body)
+        })();
+        self.env = saved;
+        result
+    }
+
+    fn summary(&self) -> String {
+        "game".to_string()
+    }
+
+    fn env_summary(&self) -> Vec<String> {
+        self.env
+            .iter()
+            .map(|(name, value)| format!("{name} := {}", display_game_value(value)))
+            .collect()
+    }
+
+    fn eval_value(&mut self, expr: &Expr) -> OghamResult<Value<Game>> {
+        match expr {
+            Expr::Bool(value) => Ok(Value::Bool(*value)),
+            Expr::Tuple(_) => Err(fn_sort_error()),
+            Expr::Block { bindings, body } => self.eval_block(bindings, body),
+            Expr::Lambda { binders, body } => self
+                .close_function(binders.clone(), body.as_ref().clone(), None)
+                .map(Value::Function),
+            Expr::Ident(name) => self
+                .env
+                .get(name)
+                .cloned()
+                .ok_or_else(|| unbound_error(name)),
+            Expr::Relation { op, lhs, rhs } => Ok(Value::Bool(self.eval_relation(*op, lhs, rhs)?)),
+            Expr::Unary {
+                op: UnaryOp::Not,
+                expr,
+            } => Ok(Value::Bool(!self.eval_bool(expr)?)),
+            Expr::Binary {
+                op: BinaryOp::And,
+                lhs,
+                rhs,
+            } => {
+                let lhs = self.eval_bool(lhs)?;
+                if self.static_sort(rhs)? != Sort::Bool {
+                    return Err(bool_sort_error());
+                }
+                if !lhs {
+                    return Ok(Value::Bool(false));
+                }
+                Ok(Value::Bool(self.eval_bool(rhs)?))
+            }
+            Expr::Binary {
+                op: BinaryOp::Or,
+                lhs,
+                rhs,
+            } => {
+                let lhs = self.eval_bool(lhs)?;
+                if self.static_sort(rhs)? != Sort::Bool {
+                    return Err(bool_sort_error());
+                }
+                if lhs {
+                    return Ok(Value::Bool(true));
+                }
+                Ok(Value::Bool(self.eval_bool(rhs)?))
+            }
+            Expr::Ternary {
+                cond,
+                then_expr,
+                else_expr,
+            } => {
+                let then_sort = self.static_sort(then_expr)?;
+                let else_sort = self.static_sort(else_expr)?;
+                if then_sort != else_sort {
+                    return Err(sort_mismatch(then_sort, else_sort));
+                }
+                if self.eval_bool(cond)? {
+                    self.eval_value(then_expr)
+                } else {
+                    self.eval_value(else_expr)
+                }
+            }
+            Expr::Binary {
+                op: BinaryOp::At,
+                lhs,
+                rhs,
+            } => self.eval_at(lhs, rhs),
+            _ if expression_is_index(expr) => Ok(Value::Index(self.eval_index(expr)?)),
+            _ => match self.eval_element(expr) {
+                Ok(value) => Ok(Value::Element(value)),
+                Err(err) if err.kind == OghamErrorKind::IndexSort => {
+                    Ok(Value::Index(self.eval_index(expr)?))
+                }
+                Err(err) => Err(err),
+            },
+        }
+    }
+
+    fn eval_bool(&mut self, expr: &Expr) -> OghamResult<bool> {
+        match self.eval_value(expr)? {
+            Value::Bool(value) => Ok(value),
+            Value::Element(_) | Value::Index(_) => Err(bool_sort_error()),
+            Value::Function(_) => Err(fn_sort_error()),
+        }
+    }
+
+    fn eval_at(&mut self, lhs: &Expr, rhs: &Expr) -> OghamResult<Value<Game>> {
+        let lhs_v = self.eval_value(lhs)?;
+        let Value::Function(function) = lhs_v else {
+            return Err(game_wrong_world(
+                "Element application with `@` is not defined for games",
+            ));
+        };
+        if let Expr::Tuple(items) = rhs {
+            return self.apply_function_exprs(&function, items);
+        }
+        match self.eval_value(rhs)? {
+            Value::Function(rhs_fn) => self
+                .compose_functions(&function, &rhs_fn)
+                .map(Value::Function),
+            _ => self.apply_function_exprs(&function, std::slice::from_ref(rhs)),
+        }
+    }
+
+    fn apply_function(
+        &mut self,
+        function: &FunctionValue,
+        args: Vec<Value<Game>>,
+    ) -> OghamResult<Value<Game>> {
+        if args.len() != function.binders.len() {
+            return Err(OghamError::new(
+                OghamErrorKind::Arity,
+                Span::point(0),
+                format!(
+                    "function expects {} argument(s), got {}",
+                    function.binders.len(),
+                    args.len()
+                ),
+            ));
+        }
+        consume_fuel(function, &mut self.fuel_remaining, self.fuel_budget)?;
+        let mut replacements = BTreeMap::new();
+        for (binder, arg) in function.binders.iter().zip(args.iter()) {
+            ensure_value_sort(arg, binder.sort)?;
+            replacements.insert(binder.name.clone(), value_to_expr(arg)?);
+        }
+        let body = substitute_names(&function.body, &replacements);
+        let previous = function.mu_name.as_ref().map(|name| {
+            self.env
+                .insert(name.clone(), Value::Function(function.clone()))
+        });
+        let result = match function.ret {
+            Sort::Element => self.eval_element(&body).map(Value::Element),
+            Sort::Index => self.eval_index(&body).map(Value::Index),
+            Sort::Bool => self.eval_bool(&body).map(Value::Bool),
+        };
+        if let Some(name) = &function.mu_name {
+            if let Some(previous) = previous.flatten() {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+        }
+        result
+    }
+
+    fn apply_function_exprs(
+        &mut self,
+        function: &FunctionValue,
+        args: &[Expr],
+    ) -> OghamResult<Value<Game>> {
+        if args.len() != function.binders.len() {
+            return Err(OghamError::new(
+                OghamErrorKind::Arity,
+                Span::point(0),
+                format!(
+                    "function expects {} argument(s), got {}",
+                    function.binders.len(),
+                    args.len()
+                ),
+            ));
+        }
+        let values = function
+            .binders
+            .iter()
+            .zip(args)
+            .map(|(binder, arg)| self.eval_arg_for_sort(arg, binder.sort))
+            .collect::<OghamResult<Vec<_>>>()?;
+        self.apply_function(function, values)
+    }
+
+    fn eval_arg_for_sort(&mut self, expr: &Expr, sort: Sort) -> OghamResult<Value<Game>> {
+        match sort {
+            Sort::Element => self.eval_element(expr).map(Value::Element),
+            Sort::Index => self.eval_index(expr).map(Value::Index),
+            Sort::Bool => self.eval_bool(expr).map(Value::Bool),
+        }
+    }
+
+    fn compose_functions(
+        &mut self,
+        lhs: &FunctionValue,
+        rhs: &FunctionValue,
+    ) -> OghamResult<FunctionValue> {
+        if lhs.binders.len() != 1 {
+            return Err(OghamError::new(
+                OghamErrorKind::Arity,
+                Span::point(0),
+                "function composition needs a unary head",
+            ));
+        }
+        if lhs.binders[0].sort != rhs.ret {
+            return Err(sort_mismatch(lhs.binders[0].sort, rhs.ret));
+        }
+        let mut replacements = BTreeMap::new();
+        replacements.insert(lhs.binders[0].name.clone(), rhs.body.clone());
+        let body = beta_normalize(substitute_names(&lhs.body, &replacements))?;
+        let function = FunctionValue {
+            binders: rhs.binders.clone(),
+            body,
+            ret: lhs.ret,
+            mu_name: None,
+        };
+        self.validate_function_body(&function)?;
+        Ok(function)
+    }
+
+    fn close_function(
+        &mut self,
+        binders: Vec<String>,
+        body: Expr,
+        mu_name: Option<String>,
+    ) -> OghamResult<FunctionValue> {
+        check_binders(&binders, reserved_function_binder)?;
+        let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
+        bound.extend(mu_name.iter().cloned());
+        let substituted = substitute_env(&body, &bound, &self.env)?;
+        let body = beta_normalize(substituted)?;
+        let (mut binder_sorts, mut ret) = infer_function_signature(&body, &binders)?;
+        refine_game_binder_sorts(&body, &binders, &mut binder_sorts, &self.env);
+        if let Some(hint) = game_return_sort_hint(&body, &self.env, mu_name.as_deref()) {
+            ret = hint;
+        }
+        if let Some(name) = mu_name.as_deref() {
+            if is_game_index_counter(name, &body) {
+                for (binder, sort) in binders.iter().zip(&mut binder_sorts) {
+                    if contains_game_binder_unit_step(binder, &body) {
+                        *sort = Sort::Index;
+                    }
+                }
+            }
+        }
+        let function = FunctionValue {
+            binders: binders
+                .into_iter()
+                .zip(binder_sorts)
+                .map(|(name, sort)| Binder { name, sort })
+                .collect(),
+            body,
+            ret,
+            mu_name,
+        };
+        if function.mu_name.is_none() {
+            self.validate_function_body(&function)?;
+        }
+        Ok(function)
+    }
+
+    fn validate_function_body(&mut self, function: &FunctionValue) -> OghamResult<()> {
+        let mut replacements = BTreeMap::new();
+        for binder in &function.binders {
+            replacements.insert(binder.name.clone(), self.sample_expr(binder.sort)?);
+        }
+        let sampled = substitute_names(&function.body, &replacements);
+        self.validate_all(&sampled)
+    }
+
+    fn validate_all(&mut self, expr: &Expr) -> OghamResult<()> {
+        match expr {
+            Expr::Lambda { .. } => return Err(fn_sort_error()),
+            Expr::Block { bindings, body } => {
+                let saved = self.env.clone();
+                let result = (|| {
+                    for binding in bindings {
+                        if !matches!(binding.expr, Expr::Lambda { .. }) {
+                            self.validate_all(&binding.expr)?;
+                        }
+                        self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                    }
+                    self.validate_all(body)
+                })();
+                self.env = saved;
+                result?;
+            }
+            Expr::Ternary {
+                cond,
+                then_expr,
+                else_expr,
+            } => {
+                self.validate_all(cond)?;
+                self.validate_all(then_expr)?;
+                self.validate_all(else_expr)?;
+            }
+            Expr::Binary {
+                op: BinaryOp::And | BinaryOp::Or,
+                lhs,
+                rhs,
+            } => {
+                self.validate_all(lhs)?;
+                self.validate_all(rhs)?;
+            }
+            _ => {}
+        }
+        ignore_static_partiality(self.eval_value(expr))
+    }
+
+    fn sample_expr(&self, sort: Sort) -> OghamResult<Expr> {
+        match sort {
+            Sort::Element => Ok(Expr::Int(0)),
+            Sort::Index => Ok(Expr::Int(1)),
+            Sort::Bool => Ok(Expr::Bool(true)),
+        }
+    }
+
+    fn static_sort(&self, expr: &Expr) -> OghamResult<Sort> {
+        static_sort(expr, &self.env, false)
+    }
+
+    fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+        if !bool_shaped(lhs)
+            && !bool_shaped(rhs)
+            && (expression_is_index(lhs)
+                || expression_is_index(rhs)
+                || game_known_sort(lhs, &self.env) == Some(Sort::Index)
+                || game_known_sort(rhs, &self.env) == Some(Sort::Index)
+                || self.static_sort(lhs) == Ok(Sort::Index)
+                || self.static_sort(rhs) == Ok(Sort::Index))
+        {
+            let lhs = self.eval_index(lhs)?;
+            let rhs = self.eval_index(rhs)?;
+            return ordered_relation(op, lhs.cmp(&rhs));
+        }
+        let lhs_v = self.eval_value(lhs)?;
+        let rhs_v = self.eval_value(rhs)?;
+        match (lhs_v, rhs_v) {
+            (Value::Function(_), _) | (_, Value::Function(_)) => Err(fn_sort_error()),
+            (Value::Bool(lhs), Value::Bool(rhs)) => {
+                if op == RelOp::Eq {
+                    Ok(lhs == rhs)
+                } else {
+                    Err(bool_sort_error())
+                }
+            }
+            (Value::Bool(_), _) | (_, Value::Bool(_)) => Err(bool_sort_error()),
+            (Value::Index(lhs), Value::Index(rhs)) => ordered_relation(op, lhs.cmp(&rhs)),
+            (Value::Index(_), _) | (_, Value::Index(_)) => Err(index_sort_error()),
+            (Value::Element(lhs), Value::Element(rhs)) => match op {
+                RelOp::Eq => Ok(lhs.eq(&rhs)),
+                RelOp::Equiv => Ok(game_structural_eq_ordered(&lhs, &rhs)),
+                RelOp::Lt => Ok(lhs.le(&rhs) && !rhs.le(&lhs)),
+                RelOp::Gt => Ok(rhs.le(&lhs) && !lhs.le(&rhs)),
+                RelOp::Fuzzy => Ok(lhs.fuzzy(&rhs)),
+            },
+        }
+    }
+
+    fn eval_element(&mut self, expr: &Expr) -> OghamResult<Game> {
+        match expr {
+            Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::Int(n) => {
+                let n = i128::try_from(*n).map_err(|_| overflow("game integer exceeds i128"))?;
+                Ok(Game::integer(n))
+            }
+            Expr::Star(StarLiteral::Finite(n)) => Ok(Game::nim_heap(*n)),
+            Expr::Star(StarLiteral::Cnf(_)) => Err(game_wrong_world(
+                "transfinite nimber games are outside the finite `game` world",
+            )),
+            Expr::Omega => Err(game_wrong_world(
+                "`ω` is not a finite short game; use finite game forms",
+            )),
+            Expr::Blade(_) => Err(game_wrong_world("the game world has no Clifford blades")),
+            Expr::Vector(_) => Err(game_wrong_world(
+                "the game world has no fixed arrays; lists are braces here: `{1, 2, 3}`",
+            )),
+            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
+            Expr::GameForm { left, right } => Ok(Game::new(
+                left.iter()
+                    .map(|item| self.eval_element(item))
+                    .collect::<OghamResult<Vec<_>>>()?,
+                right
+                    .iter()
+                    .map(|item| self.eval_element(item))
+                    .collect::<OghamResult<Vec<_>>>()?,
+            )),
+            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
+                Value::Element(value) => Ok(value),
+                Value::Index(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
+            Expr::Ident(name) => match self.env.get(name) {
+                Some(Value::Element(value)) => Ok(value.clone()),
+                Some(Value::Index(_)) => Err(index_sort_error()),
+                Some(Value::Bool(_)) => Err(bool_sort_error()),
+                Some(Value::Function(_)) => Err(fn_sort_error()),
+                None => Err(unbound_error(name)),
+            },
+            Expr::Call { name, args } => self.eval_element_call(name, args),
+            Expr::Factorial(expr) => {
+                let n = self.eval_index(expr)?;
+                let value = checked_factorial_i128(n)
+                    .ok_or_else(|| overflow("factorial exceeds the i128 game-integer range"))?;
+                Ok(Game::integer(value))
+            }
+            Expr::Unary { op, expr } => match op {
+                UnaryOp::Neg => Ok(self.eval_element(expr)?.neg()),
+                UnaryOp::Inv => Err(game_wrong_world(
+                    "games form an additive group, not a field; `/` is undefined",
+                )),
+                UnaryOp::Not => Err(bool_sort_error()),
+            },
+            Expr::Binary {
+                op: BinaryOp::At, ..
+            } => match self.eval_value(expr)? {
+                Value::Element(value) => Ok(value),
+                Value::Index(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
+            Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
+            Expr::Ternary { .. } => match self.eval_value(expr)? {
+                Value::Element(value) => Ok(value),
+                Value::Index(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
+            Expr::Relation { .. } => Err(bool_sort_error()),
+        }
+    }
+
+    fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<Game> {
+        match op {
+            BinaryOp::Add => Ok(self.eval_element(lhs)?.add(&self.eval_element(rhs)?)),
+            BinaryOp::Sub => Ok(self.eval_element(lhs)?.add(&self.eval_element(rhs)?.neg())),
+            BinaryOp::Append => {
+                let lhs = self.eval_element(lhs)?;
+                let rhs = self.eval_element(rhs)?;
+                append_game_spine(&lhs, &rhs)
+            }
+            BinaryOp::Mul => Err(game_wrong_world(
+                "games are an additive group, not a ring; `⋅` is undefined",
+            )),
+            BinaryOp::Wedge => Err(game_wrong_world(
+                "the game world has no wedge product; list append is `⧺`",
+            )),
+            BinaryOp::Div => Err(game_wrong_world(
+                "games are an additive group, not a field; `/` is undefined",
+            )),
+            BinaryOp::Rem => Err(game_wrong_world("remainder `%` is undefined for games")),
+            BinaryOp::Pow => Err(game_wrong_world("power `↑` is undefined for games")),
+            BinaryOp::At => Err(game_wrong_world(
+                "Element application with `@` is not defined for games",
+            )),
+            BinaryOp::And | BinaryOp::Or => Err(bool_sort_error()),
+        }
+    }
+
+    fn eval_element_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<Game> {
+        match name {
+            "canon" => {
+                expect_arity(name, args, 1)?;
+                Ok(self.eval_element(&args[0])?.canonical())
+            }
+            "left" | "right" => {
+                expect_arity(name, args, 2)?;
+                let game = self.eval_element(&args[0])?;
+                let index = game_option_index(name, self.eval_index(&args[1])?)?;
+                let options = if name == "left" {
+                    game.left()
+                } else {
+                    game.right()
+                };
+                options.get(index).cloned().ok_or_else(|| {
+                    domain(format!(
+                        "{name} option index {index} is outside option count {}",
+                        options.len()
+                    ))
+                })
+            }
+            "up" => {
+                expect_arity(name, args, 0)?;
+                Ok(Game::up())
+            }
+            "down" => {
+                expect_arity(name, args, 0)?;
+                Ok(Game::up().neg())
+            }
+            "nleft" | "nright" => {
+                Err(index_sort_error().with_hint(format!("`{name}` returns an Index")))
+            }
+            "coef" | "dim" => Err(array_world_error(name)),
+            "rev" | "grade" | "even" | "dual" | "frob" | "tr" => Err(game_wrong_world(&format!(
+                "`{name}` is a Clifford-world operation, not a game operation"
+            ))),
+            "deg" | "gcd" => Err(game_wrong_world(&format!(
+                "`{name}` is a function-world operation, not a game operation"
+            ))),
+            "drawn" => Err(game_wrong_world(
+                "`drawn` requires stage D loopy-game semantics",
+            )),
+            _ => Err(OghamError::new(
+                OghamErrorKind::UnknownFn,
+                Span::point(0),
+                format!("unknown function `{name}`"),
+            )),
+        }
+    }
+
+    fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
+        match expr {
+            Expr::Int(n) => u128_to_i128(*n),
+            Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
+            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
+                Value::Index(value) => Ok(value),
+                Value::Element(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
+            Expr::Ident(name) => match self.env.get(name) {
+                Some(Value::Index(value)) => Ok(*value),
+                Some(Value::Element(_)) => Err(index_sort_error()),
+                Some(Value::Bool(_)) => Err(bool_sort_error()),
+                Some(Value::Function(_)) => Err(fn_sort_error()),
+                None => Err(unbound_error(name)),
+            },
+            Expr::Call { name, args } if matches!(name.as_str(), "nleft" | "nright") => {
+                expect_arity(name, args, 1)?;
+                let game = self.eval_element(&args[0])?;
+                let len = if name == "nleft" {
+                    game.left().len()
+                } else {
+                    game.right().len()
+                };
+                i128::try_from(len).map_err(|_| overflow("game option count exceeds i128"))
+            }
+            Expr::Call { name, .. } if name == "dim" => Err(array_world_error(name)),
+            Expr::Unary {
+                op: UnaryOp::Neg,
+                expr,
+            } => self
+                .eval_index(expr)?
+                .checked_neg()
+                .ok_or_else(|| overflow("index negation overflowed i128")),
+            Expr::Unary {
+                op: UnaryOp::Inv, ..
+            } => Err(index_sort_error()),
+            Expr::Unary {
+                op: UnaryOp::Not, ..
+            } => Err(bool_sort_error()),
+            Expr::Binary {
+                op: BinaryOp::At, ..
+            } => match self.eval_value(expr)? {
+                Value::Index(value) => Ok(value),
+                Value::Element(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
+            Expr::Binary { op, lhs, rhs } => {
+                let lhs = self.eval_index(lhs)?;
+                let rhs = self.eval_index(rhs)?;
+                eval_index_binary(*op, lhs, rhs)
+            }
+            Expr::Ternary {
+                cond,
+                then_expr,
+                else_expr,
+            } => {
+                if self.eval_bool(cond)? {
+                    self.eval_index(then_expr)
+                } else {
+                    self.eval_index(else_expr)
+                }
+            }
+            Expr::Relation { .. } => Err(bool_sort_error()),
+            Expr::Star(_)
+            | Expr::Omega
+            | Expr::Blade(_)
+            | Expr::Vector(_)
+            | Expr::GameForm { .. }
+            | Expr::Call { .. }
+            | Expr::Factorial(_) => Err(index_sort_error()),
+        }
+    }
+}
+
+fn display_game_value(value: &Value<Game>) -> String {
+    match value {
+        Value::Element(game) => display_game(game),
+        Value::Index(value) => value.to_string(),
+        Value::Bool(value) => value.to_string(),
+        Value::Function(function) => {
+            let lambda = super::unparse::unparse_expr(&function.lambda_expr());
+            function
+                .mu_name
+                .as_ref()
+                .map_or(lambda.clone(), |name| format!("{name} =: {lambda}"))
+        }
+    }
+}
+
+fn display_game(game: &Game) -> String {
+    if let Some(integer) = structural_game_integer(game) {
+        return integer.to_string();
+    }
+    if let Some(nimber) = structural_game_nimber(game) {
+        return format!("*{nimber}");
+    }
+    let left = game
+        .left()
+        .iter()
+        .map(display_game)
+        .collect::<Vec<_>>()
+        .join(", ");
+    let right = game
+        .right()
+        .iter()
+        .map(display_game)
+        .collect::<Vec<_>>()
+        .join(", ");
+    match (left.is_empty(), right.is_empty()) {
+        (true, true) => "0".to_string(),
+        (false, true) => format!("{{{left} |}}"),
+        (true, false) => format!("{{| {right}}}"),
+        (false, false) => format!("{{{left} | {right}}}"),
+    }
+}
+
+fn structural_game_integer(game: &Game) -> Option<i128> {
+    if game.left().is_empty() && game.right().is_empty() {
+        return Some(0);
+    }
+    if game.left().len() == 1 && game.right().is_empty() {
+        let value = structural_game_integer(&game.left()[0])?;
+        return (value >= 0).then(|| value.checked_add(1)).flatten();
+    }
+    if game.left().is_empty() && game.right().len() == 1 {
+        let value = structural_game_integer(&game.right()[0])?;
+        return (value <= 0).then(|| value.checked_sub(1)).flatten();
+    }
+    None
+}
+
+fn structural_game_nimber(game: &Game) -> Option<u128> {
+    if game.left().is_empty() && game.right().is_empty() {
+        return Some(0);
+    }
+    if game.left().len() != game.right().len() {
+        return None;
+    }
+    for (index, (left, right)) in game.left().iter().zip(game.right()).enumerate() {
+        let expected = u128::try_from(index).ok()?;
+        if structural_game_nimber(left)? != expected
+            || structural_game_nimber(right)? != expected
+            || !game_structural_eq_ordered(left, right)
+        {
+            return None;
+        }
+    }
+    u128::try_from(game.left().len()).ok()
+}
+
+fn game_structural_eq_ordered(lhs: &Game, rhs: &Game) -> bool {
+    lhs.left().len() == rhs.left().len()
+        && lhs.right().len() == rhs.right().len()
+        && lhs
+            .left()
+            .iter()
+            .zip(rhs.left())
+            .all(|(lhs, rhs)| game_structural_eq_ordered(lhs, rhs))
+        && lhs
+            .right()
+            .iter()
+            .zip(rhs.right())
+            .all(|(lhs, rhs)| game_structural_eq_ordered(lhs, rhs))
+}
+
+fn append_game_spine(spine: &Game, tail: &Game) -> OghamResult<Game> {
+    if spine.left().is_empty() && spine.right().is_empty() {
+        return Ok(tail.clone());
+    }
+    if spine.left().len() == 1 && spine.right().len() == 1 {
+        return Ok(Game::new(
+            vec![spine.left()[0].clone()],
+            vec![append_game_spine(&spine.right()[0], tail)?],
+        ));
+    }
+    Err(OghamError::new(
+        OghamErrorKind::Improper,
+        Span::point(0),
+        "left operand of `⧺` must be a finite proper spine",
+    ))
+}
+
+fn game_option_index(name: &str, index: i128) -> OghamResult<usize> {
+    usize::try_from(index).map_err(|_| domain(format!("{name} option index must be non-negative")))
+}
+
+fn game_wrong_world(message: &str) -> OghamError {
+    OghamError::new(OghamErrorKind::WrongWorld, Span::point(0), message)
+}
+
+fn refine_game_binder_sorts(
+    expr: &Expr,
+    binders: &[String],
+    sorts: &mut [Sort],
+    env: &BTreeMap<String, Value<Game>>,
+) {
+    match expr {
+        Expr::Relation { lhs, rhs, .. } => {
+            if game_known_sort(lhs, env) == Some(Sort::Index) {
+                mark_game_expr_sort(rhs, Sort::Index, binders, sorts);
+            }
+            if game_known_sort(rhs, env) == Some(Sort::Index) {
+                mark_game_expr_sort(lhs, Sort::Index, binders, sorts);
+            }
+            refine_game_binder_sorts(lhs, binders, sorts, env);
+            refine_game_binder_sorts(rhs, binders, sorts, env);
+        }
+        Expr::Binary {
+            op: BinaryOp::At,
+            lhs,
+            rhs,
+        } => {
+            if let Expr::Ident(name) = &**lhs {
+                if let Some(Value::Function(function)) = env.get(name) {
+                    let args: Vec<&Expr> = match &**rhs {
+                        Expr::Tuple(items) => items.iter().collect(),
+                        item => vec![item],
+                    };
+                    for (arg, binder) in args.into_iter().zip(&function.binders) {
+                        mark_game_expr_sort(arg, binder.sort, binders, sorts);
+                    }
+                }
+            }
+            refine_game_binder_sorts(lhs, binders, sorts, env);
+            refine_game_binder_sorts(rhs, binders, sorts, env);
+        }
+        Expr::Block { bindings, body } => {
+            for binding in bindings {
+                refine_game_binder_sorts(&binding.expr, binders, sorts, env);
+            }
+            refine_game_binder_sorts(body, binders, sorts, env);
+        }
+        Expr::Vector(items) | Expr::Tuple(items) => {
+            for item in items {
+                refine_game_binder_sorts(item, binders, sorts, env);
+            }
+        }
+        Expr::GameForm { left, right } => {
+            for item in left.iter().chain(right) {
+                refine_game_binder_sorts(item, binders, sorts, env);
+            }
+        }
+        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+            refine_game_binder_sorts(body, binders, sorts, env);
+        }
+        Expr::Call { args, .. } => {
+            for arg in args {
+                refine_game_binder_sorts(arg, binders, sorts, env);
+            }
+        }
+        Expr::Binary { lhs, rhs, .. } => {
+            refine_game_binder_sorts(lhs, binders, sorts, env);
+            refine_game_binder_sorts(rhs, binders, sorts, env);
+        }
+        Expr::Ternary {
+            cond,
+            then_expr,
+            else_expr,
+        } => {
+            refine_game_binder_sorts(cond, binders, sorts, env);
+            refine_game_binder_sorts(then_expr, binders, sorts, env);
+            refine_game_binder_sorts(else_expr, binders, sorts, env);
+        }
+        Expr::Int(_)
+        | Expr::Bool(_)
+        | Expr::Star(_)
+        | Expr::Omega
+        | Expr::Blade(_)
+        | Expr::Ident(_) => {}
+    }
+}
+
+fn mark_game_expr_sort(expr: &Expr, sort: Sort, binders: &[String], sorts: &mut [Sort]) {
+    match expr {
+        Expr::Ident(name) => {
+            if let Some(index) = binders.iter().position(|binder| binder == name) {
+                sorts[index] = sort;
+            }
+        }
+        Expr::Unary { expr, .. } => mark_game_expr_sort(expr, sort, binders, sorts),
+        Expr::Binary {
+            op: BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Pow,
+            lhs,
+            rhs,
+        } => {
+            mark_game_expr_sort(lhs, sort, binders, sorts);
+            mark_game_expr_sort(rhs, sort, binders, sorts);
+        }
+        _ => {}
+    }
+}
+
+fn game_known_sort(expr: &Expr, env: &BTreeMap<String, Value<Game>>) -> Option<Sort> {
+    match expr {
+        Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
+            Some(Sort::Index)
+        }
+        Expr::Call { name, .. } if name == "drawn" => Some(Sort::Bool),
+        Expr::Binary {
+            op: BinaryOp::At,
+            lhs,
+            ..
+        } => game_function_expr_return_sort(lhs, env),
+        Expr::Bool(_)
+        | Expr::Relation { .. }
+        | Expr::Unary {
+            op: UnaryOp::Not, ..
+        }
+        | Expr::Binary {
+            op: BinaryOp::And | BinaryOp::Or,
+            ..
+        } => Some(Sort::Bool),
+        _ => None,
+    }
+}
+
+fn game_function_expr_return_sort(
+    expr: &Expr,
+    env: &BTreeMap<String, Value<Game>>,
+) -> Option<Sort> {
+    match expr {
+        Expr::Ident(name) => match env.get(name) {
+            Some(Value::Function(function)) => Some(function.ret),
+            _ => None,
+        },
+        Expr::Block { bindings, body } => {
+            let Expr::Ident(name) = &**body else {
+                return None;
+            };
+            let binding = bindings
+                .iter()
+                .rev()
+                .find(|binding| &binding.name == name)?;
+            let Expr::Lambda { body, .. } = &binding.expr else {
+                return None;
+            };
+            game_return_sort_hint(
+                body,
+                env,
+                binding.recursive.then_some(binding.name.as_str()),
+            )
+        }
+        _ => None,
+    }
+}
+
+fn game_return_sort_hint(
+    body: &Expr,
+    env: &BTreeMap<String, Value<Game>>,
+    mu_name: Option<&str>,
+) -> Option<Sort> {
+    if bool_shaped(body) {
+        return Some(Sort::Bool);
+    }
+    if let Some(name) = mu_name {
+        if is_game_index_counter(name, body) {
+            return Some(Sort::Index);
+        }
+    }
+    match body {
+        Expr::Binary {
+            op: BinaryOp::At,
+            lhs,
+            ..
+        } => game_function_expr_return_sort(lhs, env),
+        Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
+            Some(Sort::Index)
+        }
+        Expr::Block { bindings, body } => {
+            let mut local_returns = BTreeMap::new();
+            for binding in bindings {
+                if let Expr::Lambda { body, .. } = &binding.expr {
+                    let hint = if bool_shaped(body) {
+                        Some(Sort::Bool)
+                    } else if binding.recursive && is_game_index_counter(&binding.name, body) {
+                        Some(Sort::Index)
+                    } else {
+                        game_return_sort_hint(body, env, None)
+                    };
+                    if let Some(sort) = hint {
+                        local_returns.insert(binding.name.as_str(), sort);
+                    }
+                }
+            }
+            if let Expr::Binary {
+                op: BinaryOp::At,
+                lhs,
+                ..
+            } = &**body
+            {
+                if let Expr::Ident(name) = &**lhs {
+                    return local_returns.get(name.as_str()).copied();
+                }
+            }
+            game_return_sort_hint(body, env, None)
+        }
+        Expr::Ternary {
+            then_expr,
+            else_expr,
+            ..
+        } => {
+            let lhs = game_return_sort_hint(then_expr, env, mu_name);
+            let rhs = game_return_sort_hint(else_expr, env, mu_name);
+            (lhs == rhs).then_some(lhs).flatten()
+        }
+        _ => game_known_sort(body, env),
+    }
+}
+
+fn is_game_index_counter(name: &str, expr: &Expr) -> bool {
+    contains_game_self_call(name, expr) && contains_game_unit_step(expr)
+}
+
+fn contains_game_self_call(name: &str, expr: &Expr) -> bool {
+    match expr {
+        Expr::Binary {
+            op: BinaryOp::At,
+            lhs,
+            rhs,
+        } => {
+            matches!(&**lhs, Expr::Ident(callee) if callee == name)
+                || contains_game_self_call(name, lhs)
+                || contains_game_self_call(name, rhs)
+        }
+        Expr::Block { bindings, body } => {
+            bindings
+                .iter()
+                .any(|binding| contains_game_self_call(name, &binding.expr))
+                || contains_game_self_call(name, body)
+        }
+        Expr::Vector(items) | Expr::Tuple(items) => {
+            items.iter().any(|item| contains_game_self_call(name, item))
+        }
+        Expr::GameForm { left, right } => left
+            .iter()
+            .chain(right)
+            .any(|item| contains_game_self_call(name, item)),
+        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+            contains_game_self_call(name, body)
+        }
+        Expr::Call { args, .. } => args.iter().any(|arg| contains_game_self_call(name, arg)),
+        Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
+            contains_game_self_call(name, lhs) || contains_game_self_call(name, rhs)
+        }
+        Expr::Ternary {
+            cond,
+            then_expr,
+            else_expr,
+        } => {
+            contains_game_self_call(name, cond)
+                || contains_game_self_call(name, then_expr)
+                || contains_game_self_call(name, else_expr)
+        }
+        Expr::Int(_)
+        | Expr::Bool(_)
+        | Expr::Star(_)
+        | Expr::Omega
+        | Expr::Blade(_)
+        | Expr::Ident(_) => false,
+    }
+}
+
+fn contains_game_unit_step(expr: &Expr) -> bool {
+    match expr {
+        Expr::Binary {
+            op: BinaryOp::Add | BinaryOp::Sub,
+            lhs,
+            rhs,
+        } if matches!(&**lhs, Expr::Ident(_)) && matches!(&**rhs, Expr::Int(1)) => true,
+        Expr::Block { bindings, body } => {
+            bindings
+                .iter()
+                .any(|binding| contains_game_unit_step(&binding.expr))
+                || contains_game_unit_step(body)
+        }
+        Expr::Vector(items) | Expr::Tuple(items) => items.iter().any(contains_game_unit_step),
+        Expr::GameForm { left, right } => left.iter().chain(right).any(contains_game_unit_step),
+        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+            contains_game_unit_step(body)
+        }
+        Expr::Call { args, .. } => args.iter().any(contains_game_unit_step),
+        Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
+            contains_game_unit_step(lhs) || contains_game_unit_step(rhs)
+        }
+        Expr::Ternary {
+            cond,
+            then_expr,
+            else_expr,
+        } => {
+            contains_game_unit_step(cond)
+                || contains_game_unit_step(then_expr)
+                || contains_game_unit_step(else_expr)
+        }
+        Expr::Int(_)
+        | Expr::Bool(_)
+        | Expr::Star(_)
+        | Expr::Omega
+        | Expr::Blade(_)
+        | Expr::Ident(_) => false,
+    }
+}
+
+fn contains_game_binder_unit_step(binder: &str, expr: &Expr) -> bool {
+    match expr {
+        Expr::Binary {
+            op: BinaryOp::Add | BinaryOp::Sub,
+            lhs,
+            rhs,
+        } if matches!(&**lhs, Expr::Ident(name) if name == binder)
+            && matches!(&**rhs, Expr::Int(1)) =>
+        {
+            true
+        }
+        Expr::Block { bindings, body } => {
+            bindings
+                .iter()
+                .any(|binding| contains_game_binder_unit_step(binder, &binding.expr))
+                || contains_game_binder_unit_step(binder, body)
+        }
+        Expr::Vector(items) | Expr::Tuple(items) => items
+            .iter()
+            .any(|item| contains_game_binder_unit_step(binder, item)),
+        Expr::GameForm { left, right } => left
+            .iter()
+            .chain(right)
+            .any(|item| contains_game_binder_unit_step(binder, item)),
+        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+            contains_game_binder_unit_step(binder, body)
+        }
+        Expr::Call { args, .. } => args
+            .iter()
+            .any(|arg| contains_game_binder_unit_step(binder, arg)),
+        Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
+            contains_game_binder_unit_step(binder, lhs)
+                || contains_game_binder_unit_step(binder, rhs)
+        }
+        Expr::Ternary {
+            cond,
+            then_expr,
+            else_expr,
+        } => {
+            contains_game_binder_unit_step(binder, cond)
+                || contains_game_binder_unit_step(binder, then_expr)
+                || contains_game_binder_unit_step(binder, else_expr)
+        }
+        Expr::Int(_)
+        | Expr::Bool(_)
+        | Expr::Star(_)
+        | Expr::Omega
+        | Expr::Blade(_)
+        | Expr::Ident(_) => false,
     }
 }
 
@@ -3423,6 +4587,31 @@ fn infer_expr_sort(
             }
         }
         Expr::Call { name, args } => match name.as_str() {
+            "nleft" | "nright" => {
+                expect_arity(name, args, 1)?;
+                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
+                expect_sort(Sort::Index, expected)
+            }
+            "left" | "right" => {
+                expect_arity(name, args, 2)?;
+                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
+                infer_expr_sort(&args[1], ExpectedSort::Known(Sort::Index), binders)?;
+                expect_sort(Sort::Element, expected)
+            }
+            "canon" => {
+                expect_arity(name, args, 1)?;
+                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
+                expect_sort(Sort::Element, expected)
+            }
+            "up" | "down" => {
+                expect_arity(name, args, 0)?;
+                expect_sort(Sort::Element, expected)
+            }
+            "drawn" => {
+                expect_arity(name, args, 1)?;
+                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
+                expect_sort(Sort::Bool, expected)
+            }
             "dim" => {
                 expect_arity(name, args, 0)?;
                 expect_sort(Sort::Index, expected)
@@ -3520,7 +4709,7 @@ fn infer_expr_sort(
                 infer_expr_sort(rhs, ExpectedSort::Known(Sort::Element), binders)?;
                 expect_sort(Sort::Element, expected)
             }
-            BinaryOp::At => expect_sort(Sort::Element, expected),
+            BinaryOp::At => expect_sort(default_sort(expected), expected),
         },
         Expr::Ternary {
             cond,
@@ -3627,7 +4816,9 @@ fn mark_binder_sort(
 
 fn index_shaped(expr: &Expr) -> bool {
     match expr {
-        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim") => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
+            true
+        }
         Expr::Block { body, .. } => index_shaped(body),
         Expr::Unary {
             op: UnaryOp::Neg,
@@ -3653,6 +4844,7 @@ fn bool_shaped(expr: &Expr) -> bool {
             op: BinaryOp::And | BinaryOp::Or,
             ..
         } => true,
+        Expr::Call { name, .. } if name == "drawn" => true,
         Expr::Block { body, .. } => bool_shaped(body),
         _ => false,
     }
@@ -3684,13 +4876,28 @@ fn static_sort<E>(
             Some(Value::Function(_)) => Err(fn_sort_error()),
             None => Ok(Sort::Element),
         },
-        Expr::Call { name, .. } if name == "dim" || (deg_is_index && name == "deg") => {
+        Expr::Call { name, .. }
+            if matches!(name.as_str(), "dim" | "nleft" | "nright")
+                || (deg_is_index && name == "deg") =>
+        {
             Ok(Sort::Index)
         }
+        Expr::Call { name, .. } if name == "drawn" => Ok(Sort::Bool),
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
         Expr::Unary { expr, .. } => static_sort(expr, env, deg_is_index),
+        Expr::Binary {
+            op: BinaryOp::At,
+            lhs,
+            ..
+        } => match &**lhs {
+            Expr::Ident(name) => match env.get(name) {
+                Some(Value::Function(function)) => Ok(function.ret),
+                _ => Ok(Sort::Element),
+            },
+            _ => Ok(Sort::Element),
+        },
         Expr::Binary {
             op: BinaryOp::And | BinaryOp::Or,
             ..
@@ -3744,9 +4951,13 @@ fn static_sort_with_sorts(
             static_sort_with_sorts(body, &local, deg_is_index)
         }
         Expr::Ident(name) => Ok(env.get(name).copied().unwrap_or(Sort::Element)),
-        Expr::Call { name, .. } if name == "dim" || (deg_is_index && name == "deg") => {
+        Expr::Call { name, .. }
+            if matches!(name.as_str(), "dim" | "nleft" | "nright")
+                || (deg_is_index && name == "deg") =>
+        {
             Ok(Sort::Index)
         }
+        Expr::Call { name, .. } if name == "drawn" => Ok(Sort::Bool),
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
@@ -3841,7 +5052,9 @@ fn is_runtime_partiality(kind: OghamErrorKind) -> bool {
 
 fn expression_is_index(expr: &Expr) -> bool {
     match expr {
-        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim") => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
+            true
+        }
         Expr::Unary { expr, .. } => expression_is_index(expr),
         Expr::Binary {
             op: BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul,
@@ -3860,7 +5073,9 @@ fn expression_is_index(expr: &Expr) -> bool {
 fn plain_index_expr(expr: &Expr) -> bool {
     match expr {
         Expr::Int(_) => true,
-        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim") => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
+            true
+        }
         Expr::Unary {
             op: UnaryOp::Neg,
             expr,

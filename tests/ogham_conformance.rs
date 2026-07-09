@@ -15,7 +15,7 @@ fn ogham_conformance_corpus() {
 }
 
 #[test]
-fn ogham_v3_stages_a_b() {
+fn ogham_v3_stages_a_c() {
     let corpus = include_str!("../docs/ogham/conformance_v3.txt");
     run_corpus(corpus, true);
 }
@@ -60,7 +60,7 @@ fn ogham_v3_syntax_and_echoes() {
     }
 }
 
-fn run_corpus(corpus: &str, stop_before_game: bool) {
+fn run_corpus(corpus: &str, stop_before_loopy: bool) {
     let mut session: Option<OghamSession> = None;
     let mut pending: Option<(usize, String, Outcome)> = None;
     let lines = corpus.lines().collect::<Vec<_>>();
@@ -70,14 +70,15 @@ fn run_corpus(corpus: &str, stop_before_game: bool) {
         let line_no = idx + 1;
         let line = raw.trim();
         idx += 1;
+        if stop_before_loopy && line.contains("19.5 — loopy") {
+            finish_pending(&mut pending);
+            break;
+        }
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
         if let Some(decl) = line.strip_prefix("@world ") {
             finish_pending(&mut pending);
-            if stop_before_game && decl.trim() == "game" {
-                break;
-            }
             session = Some(
                 OghamSession::new(decl)
                     .unwrap_or_else(|err| panic!("line {line_no}: world failed: {err}")),
@@ -203,6 +204,7 @@ fn error_kind_codes_are_stable() {
     assert_eq!(OghamErrorKind::BareInt.code(), "E_BareInt");
     assert_eq!(OghamErrorKind::KummerEscape.code(), "E_KummerEscape");
     assert_eq!(OghamErrorKind::Fuel.code(), "E_Fuel");
+    assert_eq!(OghamErrorKind::Improper.code(), "E_Improper");
 }
 
 #[test]
@@ -219,4 +221,22 @@ fn captured_recursive_function_survives_rebinding() {
         .expect("rebind original name");
     let result = session.eval_line("captured@5").expect("call capture");
     assert_eq!(result.value.as_deref(), Some("120"));
+}
+
+#[test]
+fn ogham_game_stage_c_boundaries() {
+    let mut session = OghamSession::new("game").expect("game world");
+    let ordered = session
+        .eval_line("{0, 1 |} ≡ {1, 0 |}")
+        .expect("ordered structural comparison");
+    assert_eq!(ordered.value.as_deref(), Some("false"));
+
+    let factorial = session.eval_line("!5").expect("integer-game factorial");
+    assert_eq!(factorial.value.as_deref(), Some("120"));
+
+    let stage_d = session
+        .eval_line("loop =: {loop |}")
+        .expect_err("loopy Element fixpoint is not a stage-C value");
+    assert_eq!(stage_d.kind, OghamErrorKind::Parse);
+    assert!(stage_d.message.contains("stage D"));
 }

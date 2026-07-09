@@ -47,6 +47,7 @@ pub enum OghamErrorKind {
     Overflow,
     Domain,
     Fuel,
+    Improper,
 }
 
 impl OghamErrorKind {
@@ -78,6 +79,7 @@ impl OghamErrorKind {
             OghamErrorKind::Overflow => "E_Overflow",
             OghamErrorKind::Domain => "E_Domain",
             OghamErrorKind::Fuel => "E_Fuel",
+            OghamErrorKind::Improper => "E_Improper",
         }
     }
 }
