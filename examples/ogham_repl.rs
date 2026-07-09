@@ -26,6 +26,7 @@ fn main() {
                 ":quit" | ":q" => break,
                 ":help" => {
                     println!(":world <decl>  change world");
+                    println!(":fuel [n]      show or set recursive fuel");
                     println!(":env           show bindings");
                     println!(":quit          exit");
                     continue;
@@ -37,7 +38,23 @@ fn main() {
                     }
                     continue;
                 }
+                ":fuel" => {
+                    println!("{}", session.fuel_budget());
+                    continue;
+                }
                 _ => {}
+            }
+        }
+        if pending.is_empty() {
+            if let Some(rest) = line.strip_prefix(":fuel ") {
+                match rest.trim().parse::<u128>() {
+                    Ok(budget) => {
+                        session.set_fuel_budget(budget);
+                        println!("{budget}");
+                    }
+                    Err(_) => eprintln!("E_Parse: fuel budget must be a u128"),
+                }
+                continue;
             }
         }
         if pending.is_empty() {

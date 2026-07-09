@@ -46,6 +46,7 @@ pub enum OghamErrorKind {
     Modulus,
     Overflow,
     Domain,
+    Fuel,
 }
 
 impl OghamErrorKind {
@@ -76,6 +77,7 @@ impl OghamErrorKind {
             OghamErrorKind::Modulus => "E_Modulus",
             OghamErrorKind::Overflow => "E_Overflow",
             OghamErrorKind::Domain => "E_Domain",
+            OghamErrorKind::Fuel => "E_Fuel",
         }
     }
 }

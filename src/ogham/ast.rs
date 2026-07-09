@@ -5,12 +5,20 @@ pub enum Statement {
     Binding {
         name: String,
         expr: Expr,
+        recursive: bool,
     },
     Expr(Expr),
     Seq {
-        bindings: Vec<(String, Expr)>,
+        bindings: Vec<Binding>,
         tail: Box<Statement>,
     },
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Binding {
+    pub name: String,
+    pub expr: Expr,
+    pub recursive: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -28,8 +36,12 @@ pub enum Expr {
         body: Box<Expr>,
     },
     Block {
-        bindings: Vec<(String, Expr)>,
+        bindings: Vec<Binding>,
         body: Box<Expr>,
+    },
+    GameForm {
+        left: Vec<Expr>,
+        right: Vec<Expr>,
     },
     Call {
         name: String,
@@ -88,6 +100,7 @@ pub enum BinaryOp {
     At,
     And,
     Or,
+    Append,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -96,6 +109,7 @@ pub enum RelOp {
     Lt,
     Gt,
     Fuzzy,
+    Equiv,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

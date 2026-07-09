@@ -1085,10 +1085,15 @@ isnil := l ↦ nleft(l) = 0 and nright(l) = 0     # structural — l = 0 is NOT 
 ```
 
 - **List sugar**: barless braces are list literals — `{a, b, c}` desugars
-  at parse to the right-nested spine `{a | {b | {c | {|}}}}`, `{}` to
-  `{|}`; items are expressions; nesting gives trees (`{{1, 2}, 3}`).
-  Input-only sugar (§1.3): canonical display stays the bar form, the echo
-  teaches, and the switch-player who wrote `{5 | 0}` is never shown `{5}`.
+  at parse to the right-nested spine `{a | {b | {c | 0}}}`; items are
+  expressions; nesting gives trees (`{{1, 2}, 3}`). The nonempty spine's
+  terminal is the *integer-game literal* `0`, not the braceform `{|}` —
+  the two build the identical form, and the `0` spelling keeps the AST
+  echo and the value display coincident (`{|}` displays as `0`, §19.4.2).
+  Bare `{}` desugars to `{|}`. (Resolved at build time, 2026-07-09 —
+  the corpus echoes were authoritative.) Input-only sugar (§1.3):
+  canonical display stays the bar form, the echo teaches, and the
+  switch-player who wrote `{5 | 0}` is never shown `{5}`.
 - The **missing-bar footgun**, recorded (the §19.1 transposition's class):
   `{1, 2 |}` (left options only) and `{1, 2}` (spine) differ by one
   character; today the barless form is a loud parse error, post-sugar it is

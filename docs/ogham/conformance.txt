@@ -240,7 +240,7 @@
 @world nimber 0
 
 > {0|0}
-! E_Reserved:
+! E_WrongWorld:
 
 > *2 ↑↑ 3
 ! E_Reserved:

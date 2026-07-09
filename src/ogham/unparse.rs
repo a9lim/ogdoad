@@ -1,14 +1,19 @@
-use super::ast::{BinaryOp, Expr, RelOp, StarLiteral, Statement, UnaryOp};
+use super::ast::{BinaryOp, Binding, Expr, RelOp, StarLiteral, Statement, UnaryOp};
 
 pub fn unparse_statement(stmt: &Statement) -> String {
     match stmt {
-        Statement::Binding { name, expr } => format!("{name} := {}", unparse_expr(expr)),
+        Statement::Binding {
+            name,
+            expr,
+            recursive,
+        } => format!(
+            "{name} {} {}",
+            binding_sigil(*recursive),
+            unparse_expr(expr)
+        ),
         Statement::Expr(expr) => unparse_expr(expr),
         Statement::Seq { bindings, tail } => {
-            let mut parts = bindings
-                .iter()
-                .map(|(name, expr)| format!("{name} := {}", unparse_expr(expr)))
-                .collect::<Vec<_>>();
+            let mut parts = bindings.iter().map(unparse_binding).collect::<Vec<_>>();
             parts.push(unparse_statement(tail));
             parts.join("; ")
         }
@@ -44,6 +49,20 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 .collect::<Vec<_>>()
                 .join(", ")
         ),
+        Expr::GameForm { left, right } => {
+            let left = left.iter().map(unparse_expr).collect::<Vec<_>>().join(", ");
+            let right = right
+                .iter()
+                .map(unparse_expr)
+                .collect::<Vec<_>>()
+                .join(", ");
+            match (left.is_empty(), right.is_empty()) {
+                (true, true) => "{|}".to_string(),
+                (false, true) => format!("{{{left} |}}"),
+                (true, false) => format!("{{| {right}}}"),
+                (false, false) => format!("{{{left} | {right}}}"),
+            }
+        }
         Expr::Ident(name) => name.clone(),
         Expr::Lambda { binders, body } => {
             let binders = if binders.len() == 1 {
@@ -54,10 +73,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
             format!("{binders} ↦ {}", unparse_prec(body, prec, false))
         }
         Expr::Block { bindings, body } => {
-            let mut parts = bindings
-                .iter()
-                .map(|(name, expr)| format!("{name} := {}", unparse_expr(expr)))
-                .collect::<Vec<_>>();
+            let mut parts = bindings.iter().map(unparse_binding).collect::<Vec<_>>();
             parts.push(unparse_expr(body));
             format!("({})", parts.join("; "))
         }
@@ -78,7 +94,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 UnaryOp::Inv => "/",
                 UnaryOp::Not => "not ",
             };
-            let parent = if matches!(op, UnaryOp::Not) { prec } else { 9 };
+            let parent = if matches!(op, UnaryOp::Not) { prec } else { 10 };
             format!("{sigil}{}", unparse_prec(expr, parent, false))
         }
         Expr::Binary { op, lhs, rhs } => match op {
@@ -125,7 +141,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                         op: UnaryOp::Neg,
                         expr,
                     } if matches!(**expr, Expr::Int(_)) => {
-                        format!("-{}", unparse_prec(expr, 8, true))
+                        format!("-{}", unparse_prec(expr, 10, true))
                     }
                     _ => format!("({})", unparse_expr(rhs)),
                 };
@@ -146,6 +162,11 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 unparse_prec(lhs, prec, false),
                 unparse_prec(rhs, prec, true)
             ),
+            BinaryOp::Append => format!(
+                "{} ⧺ {}",
+                unparse_prec(lhs, prec + 1, false),
+                unparse_prec(rhs, prec, false)
+            ),
         },
         Expr::Ternary {
             cond,
@@ -155,8 +176,8 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
             format!(
                 "{} ? {} : {}",
                 unparse_prec(cond, prec, false),
-                unparse_prec(then_expr, prec, false),
-                unparse_prec(else_expr, prec, true)
+                unparse_prec(then_expr, 7, false),
+                unparse_prec(else_expr, 7, true)
             )
         }
         Expr::Relation { op, lhs, rhs } => {
@@ -165,6 +186,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 RelOp::Lt => "<",
                 RelOp::Gt => ">",
                 RelOp::Fuzzy => "|",
+                RelOp::Equiv => "≡",
             };
             format!(
                 "{} {sigil} {}",
@@ -193,10 +215,27 @@ fn is_blade_chain(expr: &Expr) -> bool {
     }
 }
 
+fn binding_sigil(recursive: bool) -> &'static str {
+    if recursive {
+        "=:"
+    } else {
+        ":="
+    }
+}
+
+fn unparse_binding(binding: &Binding) -> String {
+    format!(
+        "{} {} {}",
+        binding.name,
+        binding_sigil(binding.recursive),
+        unparse_expr(&binding.expr)
+    )
+}
+
 fn precedence(expr: &Expr) -> u8 {
     match expr {
         Expr::Lambda { .. } => 0,
-        Expr::Block { .. } => 12,
+        Expr::Block { .. } => 13,
         Expr::Ternary { .. } => 1,
         Expr::Binary {
             op: BinaryOp::Or, ..
@@ -209,24 +248,28 @@ fn precedence(expr: &Expr) -> u8 {
         } => 4,
         Expr::Relation { .. } => 5,
         Expr::Binary {
-            op: BinaryOp::Add | BinaryOp::Sub,
+            op: BinaryOp::Append,
             ..
         } => 6,
         Expr::Binary {
-            op: BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
+            op: BinaryOp::Add | BinaryOp::Sub,
             ..
         } => 7,
         Expr::Binary {
-            op: BinaryOp::Wedge,
+            op: BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
             ..
         } => 8,
-        Expr::Unary { .. } => 9,
+        Expr::Binary {
+            op: BinaryOp::Wedge,
+            ..
+        } => 9,
+        Expr::Unary { .. } => 10,
         Expr::Binary {
             op: BinaryOp::Pow, ..
-        } => 10,
+        } => 11,
         Expr::Binary {
             op: BinaryOp::At, ..
-        } => 11,
-        _ => 12,
+        } => 12,
+        _ => 13,
     }
 }

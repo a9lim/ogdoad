@@ -1,4 +1,4 @@
-use super::ast::{BinaryOp, Expr, RelOp, Sort, StarLiteral, Statement, UnaryOp};
+use super::ast::{BinaryOp, Binding, Expr, RelOp, Sort, StarLiteral, Statement, UnaryOp};
 use super::error::{OghamError, OghamErrorKind, OghamResult, Span};
 use super::lex::needs_continuation;
 use super::parse::parse_statement;
@@ -13,6 +13,8 @@ use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Display;
 use std::panic::{catch_unwind, AssertUnwindSafe};
+
+const DEFAULT_FUEL: u128 = 1 << 16;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EvalLine {
@@ -33,6 +35,7 @@ struct FunctionValue {
     binders: Vec<Binder>,
     body: Expr,
     ret: Sort,
+    mu_name: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -49,11 +52,25 @@ impl FunctionValue {
             .collect()
     }
 
-    fn to_expr(&self) -> Expr {
+    fn lambda_expr(&self) -> Expr {
         Expr::Lambda {
             binders: self.binder_names(),
             body: Box::new(self.body.clone()),
         }
+    }
+
+    fn to_expr(&self) -> Expr {
+        self.mu_name.as_ref().map_or_else(
+            || self.lambda_expr(),
+            |name| Expr::Block {
+                bindings: vec![Binding {
+                    name: name.clone(),
+                    expr: self.lambda_expr(),
+                    recursive: true,
+                }],
+                body: Box::new(Expr::Ident(name.clone())),
+            },
+        )
     }
 }
 
@@ -62,7 +79,13 @@ fn display_value<E: Display>(value: &Value<E>) -> String {
         Value::Element(value) => value.to_string(),
         Value::Index(value) => value.to_string(),
         Value::Bool(value) => value.to_string(),
-        Value::Function(function) => super::unparse::unparse_expr(&function.to_expr()),
+        Value::Function(function) => {
+            let lambda = super::unparse::unparse_expr(&function.lambda_expr());
+            function
+                .mu_name
+                .as_ref()
+                .map_or(lambda.clone(), |name| format!("{name} =: {lambda}"))
+        }
     }
 }
 
@@ -78,6 +101,14 @@ pub fn eval_to_string(world: &str, src: &str) -> OghamResult<String> {
         if pending.is_empty() {
             if let Some(rest) = trimmed.strip_prefix(":world ") {
                 session.set_world(rest)?;
+                continue;
+            }
+            if let Some(rest) = trimmed.strip_prefix(":fuel ") {
+                let budget = rest
+                    .trim()
+                    .parse::<u128>()
+                    .map_err(|_| parse_error("fuel budget must be a u128"))?;
+                session.set_fuel_budget(budget);
                 continue;
             }
         }
@@ -120,8 +151,17 @@ impl OghamSession {
     pub fn eval_line(&mut self, src: &str) -> OghamResult<EvalLine> {
         let stmt = parse_statement(src)?;
         let canonical = unparse_statement(&stmt);
+        self.world.reset_fuel();
         let value = self.world.eval_statement(&stmt)?;
         Ok(EvalLine { canonical, value })
+    }
+
+    pub fn set_fuel_budget(&mut self, budget: u128) {
+        self.world.set_fuel_budget(budget);
+    }
+
+    pub fn fuel_budget(&self) -> u128 {
+        self.world.fuel_budget()
     }
 
     pub fn world_summary(&self) -> String {
@@ -267,6 +307,108 @@ impl World {
         }
     }
 
+    fn reset_fuel(&mut self) {
+        macro_rules! dispatch {
+            ($rt:expr) => {
+                $rt.reset_fuel()
+            };
+        }
+        match self {
+            World::Nimber(rt) => dispatch!(rt),
+            World::Ordinal(rt) => dispatch!(rt),
+            World::Surreal(rt) => dispatch!(rt),
+            World::Omnific(rt) => dispatch!(rt),
+            World::Integer(rt) => dispatch!(rt),
+            World::Fp2(rt) => dispatch!(rt),
+            World::Fp3(rt) => dispatch!(rt),
+            World::Fp5(rt) => dispatch!(rt),
+            World::Fp7(rt) => dispatch!(rt),
+            World::F4(rt) => dispatch!(rt),
+            World::F8(rt) => dispatch!(rt),
+            World::F16(rt) => dispatch!(rt),
+            World::F9(rt) => dispatch!(rt),
+            World::F27(rt) => dispatch!(rt),
+            World::F25(rt) => dispatch!(rt),
+            World::PolyInt(rt) => dispatch!(rt),
+            World::Poly2(rt) => dispatch!(rt),
+            World::Poly3(rt) => dispatch!(rt),
+            World::Poly5(rt) => dispatch!(rt),
+            World::Poly7(rt) => dispatch!(rt),
+            World::RatFunc2(rt) => dispatch!(rt),
+            World::RatFunc3(rt) => dispatch!(rt),
+            World::RatFunc5(rt) => dispatch!(rt),
+            World::RatFunc7(rt) => dispatch!(rt),
+        }
+    }
+
+    fn set_fuel_budget(&mut self, budget: u128) {
+        macro_rules! dispatch {
+            ($rt:expr) => {
+                $rt.set_fuel_budget(budget)
+            };
+        }
+        match self {
+            World::Nimber(rt) => dispatch!(rt),
+            World::Ordinal(rt) => dispatch!(rt),
+            World::Surreal(rt) => dispatch!(rt),
+            World::Omnific(rt) => dispatch!(rt),
+            World::Integer(rt) => dispatch!(rt),
+            World::Fp2(rt) => dispatch!(rt),
+            World::Fp3(rt) => dispatch!(rt),
+            World::Fp5(rt) => dispatch!(rt),
+            World::Fp7(rt) => dispatch!(rt),
+            World::F4(rt) => dispatch!(rt),
+            World::F8(rt) => dispatch!(rt),
+            World::F16(rt) => dispatch!(rt),
+            World::F9(rt) => dispatch!(rt),
+            World::F27(rt) => dispatch!(rt),
+            World::F25(rt) => dispatch!(rt),
+            World::PolyInt(rt) => dispatch!(rt),
+            World::Poly2(rt) => dispatch!(rt),
+            World::Poly3(rt) => dispatch!(rt),
+            World::Poly5(rt) => dispatch!(rt),
+            World::Poly7(rt) => dispatch!(rt),
+            World::RatFunc2(rt) => dispatch!(rt),
+            World::RatFunc3(rt) => dispatch!(rt),
+            World::RatFunc5(rt) => dispatch!(rt),
+            World::RatFunc7(rt) => dispatch!(rt),
+        }
+    }
+
+    fn fuel_budget(&self) -> u128 {
+        macro_rules! dispatch {
+            ($rt:expr) => {
+                $rt.fuel_budget
+            };
+        }
+        match self {
+            World::Nimber(rt) => dispatch!(rt),
+            World::Ordinal(rt) => dispatch!(rt),
+            World::Surreal(rt) => dispatch!(rt),
+            World::Omnific(rt) => dispatch!(rt),
+            World::Integer(rt) => dispatch!(rt),
+            World::Fp2(rt) => dispatch!(rt),
+            World::Fp3(rt) => dispatch!(rt),
+            World::Fp5(rt) => dispatch!(rt),
+            World::Fp7(rt) => dispatch!(rt),
+            World::F4(rt) => dispatch!(rt),
+            World::F8(rt) => dispatch!(rt),
+            World::F16(rt) => dispatch!(rt),
+            World::F9(rt) => dispatch!(rt),
+            World::F27(rt) => dispatch!(rt),
+            World::F25(rt) => dispatch!(rt),
+            World::PolyInt(rt) => dispatch!(rt),
+            World::Poly2(rt) => dispatch!(rt),
+            World::Poly3(rt) => dispatch!(rt),
+            World::Poly5(rt) => dispatch!(rt),
+            World::Poly7(rt) => dispatch!(rt),
+            World::RatFunc2(rt) => dispatch!(rt),
+            World::RatFunc3(rt) => dispatch!(rt),
+            World::RatFunc5(rt) => dispatch!(rt),
+            World::RatFunc7(rt) => dispatch!(rt),
+        }
+    }
+
     fn summary(&self) -> String {
         macro_rules! dispatch {
             ($rt:expr) => {
@@ -349,6 +491,8 @@ fn ensure_function_world_decl(name: &str, tail: &[&str]) -> OghamResult<()> {
 struct PolyRuntime<S: PolyWorldCoeff> {
     name: &'static str,
     env: BTreeMap<String, Value<Poly<S>>>,
+    fuel_budget: u128,
+    fuel_remaining: u128,
 }
 
 impl<S: PolyWorldCoeff> PolyRuntime<S> {
@@ -356,47 +500,70 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
         PolyRuntime {
             name,
             env: BTreeMap::new(),
+            fuel_budget: DEFAULT_FUEL,
+            fuel_remaining: DEFAULT_FUEL,
         }
+    }
+
+    fn reset_fuel(&mut self) {
+        self.fuel_remaining = self.fuel_budget;
+    }
+
+    fn set_fuel_budget(&mut self, budget: u128) {
+        self.fuel_budget = budget;
+        self.reset_fuel();
     }
 
     fn eval_statement(&mut self, stmt: &Statement) -> OghamResult<Option<String>> {
         match stmt {
-            Statement::Binding { name, expr } => {
-                self.bind_name(name, expr)?;
+            Statement::Binding {
+                name,
+                expr,
+                recursive,
+            } => {
+                self.bind_name(name, expr, *recursive)?;
                 Ok(None)
             }
             Statement::Expr(expr) => Ok(Some(display_value(&self.eval_value(expr)?))),
             Statement::Seq { bindings, tail } => {
-                for (name, expr) in bindings {
-                    self.bind_name(name, expr)?;
+                for binding in bindings {
+                    self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
                 }
                 self.eval_statement(tail)
             }
         }
     }
 
-    fn bind_name(&mut self, name: &str, expr: &Expr) -> OghamResult<()> {
-        if name == "t" {
+    fn bind_name(&mut self, name: &str, expr: &Expr, recursive: bool) -> OghamResult<()> {
+        if name == "t" || reserved_function_binder(name) {
             return Err(OghamError::new(
                 OghamErrorKind::Reserved,
                 Span::point(0),
-                format!("`t` is reserved in the `{}` world", self.name),
+                format!("`{name}` is reserved in the `{}` world", self.name),
             ));
+        }
+        if recursive && contains_free_name(expr, name) {
+            let Expr::Lambda { binders, body } = expr else {
+                return Err(element_fixpoint_error(name));
+            };
+            let function = self.close_function(
+                binders.clone(),
+                body.as_ref().clone(),
+                Some(name.to_string()),
+            )?;
+            self.env.insert(name.to_string(), Value::Function(function));
+            return Ok(());
         }
         let value = self.eval_value(expr)?;
         self.env.insert(name.to_string(), value);
         Ok(())
     }
 
-    fn eval_block(
-        &mut self,
-        bindings: &[(String, Expr)],
-        body: &Expr,
-    ) -> OghamResult<Value<Poly<S>>> {
+    fn eval_block(&mut self, bindings: &[Binding], body: &Expr) -> OghamResult<Value<Poly<S>>> {
         let saved = self.env.clone();
         let result = (|| {
-            for (name, expr) in bindings {
-                self.bind_name(name, expr)?;
+            for binding in bindings {
+                self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
             }
             self.eval_value(body)
         })();
@@ -421,7 +588,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             Expr::Tuple(_) => Err(fn_sort_error()),
             Expr::Block { bindings, body } => self.eval_block(bindings, body),
             Expr::Lambda { binders, body } => self
-                .close_function(binders.clone(), body.as_ref().clone())
+                .close_function(binders.clone(), body.as_ref().clone(), None)
                 .map(Value::Function),
             Expr::Ident(name) => {
                 if name == "t" {
@@ -544,6 +711,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             binders: rhs.binders.clone(),
             body,
             ret: Sort::Element,
+            mu_name: None,
         };
         self.validate_function_body(&function)?;
         Ok(function)
@@ -565,13 +733,26 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 ),
             ));
         }
+        consume_fuel(function, &mut self.fuel_remaining, self.fuel_budget)?;
         let mut replacements = BTreeMap::new();
         for (binder, arg) in function.binders.iter().zip(args.iter()) {
             ensure_value_sort(arg, binder.sort)?;
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
         let body = substitute_names(&function.body, &replacements);
-        self.eval_value(&body)
+        let previous = function.mu_name.as_ref().map(|name| {
+            self.env
+                .insert(name.clone(), Value::Function(function.clone()))
+        });
+        let result = self.eval_value(&body);
+        if let Some(name) = &function.mu_name {
+            if let Some(previous) = previous.flatten() {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+        }
+        result
     }
 
     fn apply_function_exprs(
@@ -629,12 +810,18 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             binders: rhs.binders.clone(),
             body,
             ret: lhs.ret,
+            mu_name: None,
         };
         self.validate_function_body(&function)?;
         Ok(function)
     }
 
-    fn close_function(&mut self, binders: Vec<String>, body: Expr) -> OghamResult<FunctionValue> {
+    fn close_function(
+        &mut self,
+        binders: Vec<String>,
+        body: Expr,
+        mu_name: Option<String>,
+    ) -> OghamResult<FunctionValue> {
         check_binders(&binders, |name| {
             name == "t" || reserved_function_binder(name)
         })
@@ -645,7 +832,8 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 err
             }
         })?;
-        let bound: BTreeSet<String> = binders.iter().cloned().collect();
+        let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
+        bound.extend(mu_name.iter().cloned());
         let substituted = substitute_env(&body, &bound, &self.env)?;
         let body = beta_normalize(substituted)?;
         let (binder_sorts, ret) = infer_function_signature(&body, &binders)?;
@@ -657,8 +845,11 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 .collect(),
             body,
             ret,
+            mu_name,
         };
-        self.validate_function_body(&function)?;
+        if function.mu_name.is_none() {
+            self.validate_function_body(&function)?;
+        }
         Ok(function)
     }
 
@@ -677,11 +868,11 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             Expr::Block { bindings, body } => {
                 let saved = self.env.clone();
                 let result = (|| {
-                    for (name, rhs) in bindings {
-                        if !matches!(rhs, Expr::Lambda { .. }) {
-                            self.validate_all(rhs)?;
+                    for binding in bindings {
+                        if !matches!(binding.expr, Expr::Lambda { .. }) {
+                            self.validate_all(&binding.expr)?;
                         }
-                        self.bind_name(name, rhs)?;
+                        self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
                     }
                     self.validate_all(body)
                 })();
@@ -722,6 +913,9 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
     }
 
     fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+        if op == RelOp::Equiv {
+            return Err(game_only_error("`≡`"));
+        }
         if !bool_shaped(lhs)
             && !bool_shaped(rhs)
             && (expression_is_index(lhs) || expression_is_index(rhs))
@@ -757,6 +951,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
     fn eval_element(&mut self, expr: &Expr) -> OghamResult<Poly<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::GameForm { .. } => Err(game_only_error("game forms")),
             Expr::Int(n) => Ok(Poly::constant(S::bare_int(*n, Span::point(0))?)),
             Expr::Star(star) => Ok(Poly::constant(S::star(star, Span::point(0))?)),
             Expr::Omega => Ok(Poly::constant(S::omega(Span::point(0))?)),
@@ -823,6 +1018,9 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
     }
 
     fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<Poly<S>> {
+        if op == BinaryOp::Append {
+            return Err(game_only_error("`⧺`"));
+        }
         if op == BinaryOp::Pow {
             return self.eval_power(lhs, rhs);
         }
@@ -843,7 +1041,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 Span::point(0),
                 "wedge product belongs to Clifford worlds",
             )),
-            BinaryOp::Pow | BinaryOp::And | BinaryOp::Or => unreachable!(),
+            BinaryOp::Pow | BinaryOp::And | BinaryOp::Or | BinaryOp::Append => unreachable!(),
         }
     }
 
@@ -871,6 +1069,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
 
     fn eval_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<Poly<S>> {
         match name {
+            "coef" | "dim" => Err(array_world_error(name)),
             "deg" => Err(index_sort_error().with_hint("`deg` returns an Index")),
             "gcd" => {
                 expect_arity(name, args, 2)?;
@@ -904,6 +1103,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 Some(Value::Function(_)) => Err(fn_sort_error()),
                 None => Err(unbound_error(name)),
             },
+            Expr::Call { name, .. } if name == "dim" => Err(array_world_error(name)),
             Expr::Call { name, args } if name == "deg" => {
                 expect_arity(name, args, 1)?;
                 let value = self.eval_element(&args[0])?;
@@ -947,6 +1147,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             | Expr::Vector(_)
             | Expr::Call { .. }
             | Expr::Factorial(_) => Err(index_sort_error()),
+            Expr::GameForm { .. } => Err(game_only_error("game forms")),
         }
     }
 
@@ -971,6 +1172,8 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
 struct RatFuncRuntime<S: OghamScalar + ExactFieldScalar> {
     name: &'static str,
     env: BTreeMap<String, Value<RationalFunction<S>>>,
+    fuel_budget: u128,
+    fuel_remaining: u128,
 }
 
 impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
@@ -978,32 +1181,59 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         RatFuncRuntime {
             name,
             env: BTreeMap::new(),
+            fuel_budget: DEFAULT_FUEL,
+            fuel_remaining: DEFAULT_FUEL,
         }
+    }
+
+    fn reset_fuel(&mut self) {
+        self.fuel_remaining = self.fuel_budget;
+    }
+
+    fn set_fuel_budget(&mut self, budget: u128) {
+        self.fuel_budget = budget;
+        self.reset_fuel();
     }
 
     fn eval_statement(&mut self, stmt: &Statement) -> OghamResult<Option<String>> {
         match stmt {
-            Statement::Binding { name, expr } => {
-                self.bind_name(name, expr)?;
+            Statement::Binding {
+                name,
+                expr,
+                recursive,
+            } => {
+                self.bind_name(name, expr, *recursive)?;
                 Ok(None)
             }
             Statement::Expr(expr) => Ok(Some(display_value(&self.eval_value(expr)?))),
             Statement::Seq { bindings, tail } => {
-                for (name, expr) in bindings {
-                    self.bind_name(name, expr)?;
+                for binding in bindings {
+                    self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
                 }
                 self.eval_statement(tail)
             }
         }
     }
 
-    fn bind_name(&mut self, name: &str, expr: &Expr) -> OghamResult<()> {
-        if name == "t" {
+    fn bind_name(&mut self, name: &str, expr: &Expr, recursive: bool) -> OghamResult<()> {
+        if name == "t" || reserved_function_binder(name) {
             return Err(OghamError::new(
                 OghamErrorKind::Reserved,
                 Span::point(0),
-                format!("`t` is reserved in the `{}` world", self.name),
+                format!("`{name}` is reserved in the `{}` world", self.name),
             ));
+        }
+        if recursive && contains_free_name(expr, name) {
+            let Expr::Lambda { binders, body } = expr else {
+                return Err(element_fixpoint_error(name));
+            };
+            let function = self.close_function(
+                binders.clone(),
+                body.as_ref().clone(),
+                Some(name.to_string()),
+            )?;
+            self.env.insert(name.to_string(), Value::Function(function));
+            return Ok(());
         }
         let value = self.eval_value(expr)?;
         self.env.insert(name.to_string(), value);
@@ -1012,13 +1242,13 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
 
     fn eval_block(
         &mut self,
-        bindings: &[(String, Expr)],
+        bindings: &[Binding],
         body: &Expr,
     ) -> OghamResult<Value<RationalFunction<S>>> {
         let saved = self.env.clone();
         let result = (|| {
-            for (name, expr) in bindings {
-                self.bind_name(name, expr)?;
+            for binding in bindings {
+                self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
             }
             self.eval_value(body)
         })();
@@ -1043,7 +1273,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             Expr::Tuple(_) => Err(fn_sort_error()),
             Expr::Block { bindings, body } => self.eval_block(bindings, body),
             Expr::Lambda { binders, body } => self
-                .close_function(binders.clone(), body.as_ref().clone())
+                .close_function(binders.clone(), body.as_ref().clone(), None)
                 .map(Value::Function),
             Expr::Ident(name) => {
                 if name == "t" {
@@ -1167,6 +1397,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             binders: rhs.binders.clone(),
             body,
             ret: Sort::Element,
+            mu_name: None,
         };
         self.validate_function_body(&function)?;
         Ok(function)
@@ -1188,13 +1419,26 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 ),
             ));
         }
+        consume_fuel(function, &mut self.fuel_remaining, self.fuel_budget)?;
         let mut replacements = BTreeMap::new();
         for (binder, arg) in function.binders.iter().zip(args.iter()) {
             ensure_value_sort(arg, binder.sort)?;
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
         let body = substitute_names(&function.body, &replacements);
-        self.eval_value(&body)
+        let previous = function.mu_name.as_ref().map(|name| {
+            self.env
+                .insert(name.clone(), Value::Function(function.clone()))
+        });
+        let result = self.eval_value(&body);
+        if let Some(name) = &function.mu_name {
+            if let Some(previous) = previous.flatten() {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+        }
+        result
     }
 
     fn apply_function_exprs(
@@ -1256,12 +1500,18 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             binders: rhs.binders.clone(),
             body,
             ret: lhs.ret,
+            mu_name: None,
         };
         self.validate_function_body(&function)?;
         Ok(function)
     }
 
-    fn close_function(&mut self, binders: Vec<String>, body: Expr) -> OghamResult<FunctionValue> {
+    fn close_function(
+        &mut self,
+        binders: Vec<String>,
+        body: Expr,
+        mu_name: Option<String>,
+    ) -> OghamResult<FunctionValue> {
         check_binders(&binders, |name| {
             name == "t" || reserved_function_binder(name)
         })
@@ -1272,7 +1522,8 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 err
             }
         })?;
-        let bound: BTreeSet<String> = binders.iter().cloned().collect();
+        let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
+        bound.extend(mu_name.iter().cloned());
         let substituted = substitute_env(&body, &bound, &self.env)?;
         let body = beta_normalize(substituted)?;
         let (binder_sorts, ret) = infer_function_signature(&body, &binders)?;
@@ -1284,8 +1535,11 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 .collect(),
             body,
             ret,
+            mu_name,
         };
-        self.validate_function_body(&function)?;
+        if function.mu_name.is_none() {
+            self.validate_function_body(&function)?;
+        }
         Ok(function)
     }
 
@@ -1304,11 +1558,11 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             Expr::Block { bindings, body } => {
                 let saved = self.env.clone();
                 let result = (|| {
-                    for (name, rhs) in bindings {
-                        if !matches!(rhs, Expr::Lambda { .. }) {
-                            self.validate_all(rhs)?;
+                    for binding in bindings {
+                        if !matches!(binding.expr, Expr::Lambda { .. }) {
+                            self.validate_all(&binding.expr)?;
                         }
-                        self.bind_name(name, rhs)?;
+                        self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
                     }
                     self.validate_all(body)
                 })();
@@ -1350,6 +1604,17 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
     }
 
     fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+        if op == RelOp::Equiv {
+            return Err(game_only_error("`≡`"));
+        }
+        if !bool_shaped(lhs)
+            && !bool_shaped(rhs)
+            && (expression_is_index(lhs) || expression_is_index(rhs))
+        {
+            let lhs = self.eval_index(lhs)?;
+            let rhs = self.eval_index(rhs)?;
+            return ordered_relation(op, lhs.cmp(&rhs));
+        }
         let lhs_v = self.eval_value(lhs)?;
         let rhs_v = self.eval_value(rhs)?;
         match (lhs_v, rhs_v) {
@@ -1377,6 +1642,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
     fn eval_element(&mut self, expr: &Expr) -> OghamResult<RationalFunction<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::GameForm { .. } => Err(game_only_error("game forms")),
             Expr::Int(n) => Ok(RationalFunction::from_base(S::bare_int(
                 *n,
                 Span::point(0),
@@ -1454,6 +1720,9 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         lhs: &Expr,
         rhs: &Expr,
     ) -> OghamResult<RationalFunction<S>> {
+        if op == BinaryOp::Append {
+            return Err(game_only_error("`⧺`"));
+        }
         if op == BinaryOp::Pow {
             return self.eval_power(lhs, rhs);
         }
@@ -1488,7 +1757,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Span::point(0),
                 "wedge product belongs to Clifford worlds",
             )),
-            BinaryOp::Pow | BinaryOp::And | BinaryOp::Or => unreachable!(),
+            BinaryOp::Pow | BinaryOp::And | BinaryOp::Or | BinaryOp::Append => unreachable!(),
         }
     }
 
@@ -1516,6 +1785,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
 
     fn eval_call(&mut self, name: &str, _args: &[Expr]) -> OghamResult<RationalFunction<S>> {
         match name {
+            "coef" | "dim" => Err(array_world_error(name)),
             "deg" | "gcd" => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
@@ -1552,6 +1822,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Span::point(0),
                 "`deg` is a polynomial-world function, not a ratfunc function",
             )),
+            Expr::Call { name, .. } if name == "dim" => Err(array_world_error(name)),
             Expr::Unary {
                 op: UnaryOp::Neg,
                 expr,
@@ -1583,6 +1854,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             | Expr::Vector(_)
             | Expr::Call { .. }
             | Expr::Factorial(_) => Err(index_sort_error()),
+            Expr::GameForm { .. } => Err(game_only_error("game forms")),
         }
     }
 
@@ -1602,6 +1874,8 @@ struct Runtime<S: OghamScalar> {
     name: &'static str,
     alg: CliffordAlgebra<S>,
     env: BTreeMap<String, Value<Multivector<S>>>,
+    fuel_budget: u128,
+    fuel_remaining: u128,
 }
 
 impl<S: OghamScalar> Runtime<S> {
@@ -1610,32 +1884,59 @@ impl<S: OghamScalar> Runtime<S> {
             name,
             alg: CliffordAlgebra::new(metric.dim(), metric),
             env: BTreeMap::new(),
+            fuel_budget: DEFAULT_FUEL,
+            fuel_remaining: DEFAULT_FUEL,
         }
+    }
+
+    fn reset_fuel(&mut self) {
+        self.fuel_remaining = self.fuel_budget;
+    }
+
+    fn set_fuel_budget(&mut self, budget: u128) {
+        self.fuel_budget = budget;
+        self.reset_fuel();
     }
 
     fn eval_statement(&mut self, stmt: &Statement) -> OghamResult<Option<String>> {
         match stmt {
-            Statement::Binding { name, expr } => {
-                self.bind_name(name, expr)?;
+            Statement::Binding {
+                name,
+                expr,
+                recursive,
+            } => {
+                self.bind_name(name, expr, *recursive)?;
                 Ok(None)
             }
             Statement::Expr(expr) => Ok(Some(display_value(&self.eval_value(expr)?))),
             Statement::Seq { bindings, tail } => {
-                for (name, expr) in bindings {
-                    self.bind_name(name, expr)?;
+                for binding in bindings {
+                    self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
                 }
                 self.eval_statement(tail)
             }
         }
     }
 
-    fn bind_name(&mut self, name: &str, expr: &Expr) -> OghamResult<()> {
-        if S::reserved_ident(name) {
+    fn bind_name(&mut self, name: &str, expr: &Expr, recursive: bool) -> OghamResult<()> {
+        if S::reserved_ident(name) || reserved_function_binder(name) {
             return Err(OghamError::new(
                 OghamErrorKind::Reserved,
                 Span::point(0),
                 format!("`{name}` is reserved in the `{}` world", self.name),
             ));
+        }
+        if recursive && contains_free_name(expr, name) {
+            let Expr::Lambda { binders, body } = expr else {
+                return Err(element_fixpoint_error(name));
+            };
+            let function = self.close_function(
+                binders.clone(),
+                body.as_ref().clone(),
+                Some(name.to_string()),
+            )?;
+            self.env.insert(name.to_string(), Value::Function(function));
+            return Ok(());
         }
         let value = self.eval_value(expr)?;
         self.env.insert(name.to_string(), value);
@@ -1644,13 +1945,13 @@ impl<S: OghamScalar> Runtime<S> {
 
     fn eval_block(
         &mut self,
-        bindings: &[(String, Expr)],
+        bindings: &[Binding],
         body: &Expr,
     ) -> OghamResult<Value<Multivector<S>>> {
         let saved = self.env.clone();
         let result = (|| {
-            for (name, expr) in bindings {
-                self.bind_name(name, expr)?;
+            for binding in bindings {
+                self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
             }
             self.eval_value(body)
         })();
@@ -1675,7 +1976,7 @@ impl<S: OghamScalar> Runtime<S> {
             Expr::Tuple(_) => Err(fn_sort_error()),
             Expr::Block { bindings, body } => self.eval_block(bindings, body),
             Expr::Lambda { binders, body } => self
-                .close_function(binders.clone(), body.as_ref().clone())
+                .close_function(binders.clone(), body.as_ref().clone(), None)
                 .map(Value::Function),
             Expr::Ident(name) => {
                 if let Some(value) = self.env.get(name) {
@@ -1797,13 +2098,26 @@ impl<S: OghamScalar> Runtime<S> {
                 ),
             ));
         }
+        consume_fuel(function, &mut self.fuel_remaining, self.fuel_budget)?;
         let mut replacements = BTreeMap::new();
         for (binder, arg) in function.binders.iter().zip(args.iter()) {
             ensure_value_sort(arg, binder.sort)?;
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
         let body = substitute_names(&function.body, &replacements);
-        self.eval_value(&body)
+        let previous = function.mu_name.as_ref().map(|name| {
+            self.env
+                .insert(name.clone(), Value::Function(function.clone()))
+        });
+        let result = self.eval_value(&body);
+        if let Some(name) = &function.mu_name {
+            if let Some(previous) = previous.flatten() {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+        }
+        result
     }
 
     fn apply_function_exprs(
@@ -1861,16 +2175,23 @@ impl<S: OghamScalar> Runtime<S> {
             binders: rhs.binders.clone(),
             body,
             ret: lhs.ret,
+            mu_name: None,
         };
         self.validate_function_body(&function)?;
         Ok(function)
     }
 
-    fn close_function(&mut self, binders: Vec<String>, body: Expr) -> OghamResult<FunctionValue> {
+    fn close_function(
+        &mut self,
+        binders: Vec<String>,
+        body: Expr,
+        mu_name: Option<String>,
+    ) -> OghamResult<FunctionValue> {
         check_binders(&binders, |name| {
             S::reserved_ident(name) || reserved_function_binder(name)
         })?;
-        let bound: BTreeSet<String> = binders.iter().cloned().collect();
+        let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
+        bound.extend(mu_name.iter().cloned());
         let substituted = substitute_env(&body, &bound, &self.env)?;
         let body = beta_normalize(substituted)?;
         let (binder_sorts, ret) = infer_function_signature(&body, &binders)?;
@@ -1882,8 +2203,11 @@ impl<S: OghamScalar> Runtime<S> {
                 .collect(),
             body,
             ret,
+            mu_name,
         };
-        self.validate_function_body(&function)?;
+        if function.mu_name.is_none() {
+            self.validate_function_body(&function)?;
+        }
         Ok(function)
     }
 
@@ -1902,11 +2226,11 @@ impl<S: OghamScalar> Runtime<S> {
             Expr::Block { bindings, body } => {
                 let saved = self.env.clone();
                 let result = (|| {
-                    for (name, rhs) in bindings {
-                        if !matches!(rhs, Expr::Lambda { .. }) {
-                            self.validate_all(rhs)?;
+                    for binding in bindings {
+                        if !matches!(binding.expr, Expr::Lambda { .. }) {
+                            self.validate_all(&binding.expr)?;
                         }
-                        self.bind_name(name, rhs)?;
+                        self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
                     }
                     self.validate_all(body)
                 })();
@@ -1948,6 +2272,17 @@ impl<S: OghamScalar> Runtime<S> {
     }
 
     fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+        if op == RelOp::Equiv {
+            return Err(game_only_error("`≡`"));
+        }
+        if !bool_shaped(lhs)
+            && !bool_shaped(rhs)
+            && (expression_is_index(lhs) || expression_is_index(rhs))
+        {
+            let lhs = self.eval_index(lhs)?;
+            let rhs = self.eval_index(rhs)?;
+            return ordered_relation(op, lhs.cmp(&rhs));
+        }
         let lhs_v = self.eval_value(lhs)?;
         let rhs_v = self.eval_value(rhs)?;
         match (lhs_v, rhs_v) {
@@ -1980,6 +2315,7 @@ impl<S: OghamScalar> Runtime<S> {
     fn eval_expr(&mut self, expr: &Expr) -> OghamResult<Multivector<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::GameForm { .. } => Err(game_only_error("game forms")),
             Expr::Int(n) => Ok(self.alg.scalar(S::bare_int(*n, Span::point(0))?)),
             Expr::Star(star) => Ok(self.alg.scalar(S::star(star, Span::point(0))?)),
             Expr::Omega => Ok(self.alg.scalar(S::omega(Span::point(0))?)),
@@ -2053,6 +2389,9 @@ impl<S: OghamScalar> Runtime<S> {
     }
 
     fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<Multivector<S>> {
+        if op == BinaryOp::Append {
+            return Err(game_only_error("`⧺`"));
+        }
         if op == BinaryOp::Pow {
             return self.eval_power(lhs, rhs);
         }
@@ -2083,7 +2422,9 @@ impl<S: OghamScalar> Runtime<S> {
                 Ok(self.alg.scalar(S::rem(&lhs_s, &rhs_s, Span::point(0))?))
             }
             BinaryOp::Wedge => Ok(self.alg.wedge(&lhs_v, &rhs_v)),
-            BinaryOp::Pow | BinaryOp::At | BinaryOp::And | BinaryOp::Or => unreachable!(),
+            BinaryOp::Pow | BinaryOp::At | BinaryOp::And | BinaryOp::Or | BinaryOp::Append => {
+                unreachable!()
+            }
         }
     }
 
@@ -2148,6 +2489,41 @@ impl<S: OghamScalar> Runtime<S> {
 
     fn eval_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<Multivector<S>> {
         match name {
+            "coef" => {
+                expect_arity(name, args, 2)?;
+                let value = self.eval_expr(&args[0])?;
+                let index = self.eval_index(&args[1])?;
+                let index = usize::try_from(index).map_err(|_| {
+                    OghamError::new(
+                        OghamErrorKind::BladeIndex,
+                        Span::point(0),
+                        format!(
+                            "coefficient index {index} is outside dimension {}",
+                            self.alg.dim()
+                        ),
+                    )
+                })?;
+                if index >= self.alg.dim() {
+                    return Err(OghamError::new(
+                        OghamErrorKind::BladeIndex,
+                        Span::point(0),
+                        format!(
+                            "coefficient index {index} is outside dimension {}",
+                            self.alg.dim()
+                        ),
+                    ));
+                }
+                let mask = 1u128.checked_shl(index as u32).ok_or_else(|| {
+                    OghamError::new(
+                        OghamErrorKind::BladeIndex,
+                        Span::point(0),
+                        format!("coefficient index {index} exceeds the u128 blade mask"),
+                    )
+                })?;
+                let coefficient = value.terms().get(&mask).cloned().unwrap_or_else(S::zero);
+                Ok(self.alg.scalar(coefficient))
+            }
+            "dim" => Err(index_sort_error().with_hint("`dim()` returns an Index")),
             "rev" => {
                 expect_arity(name, args, 1)?;
                 if self.alg.metric().has_upper() {
@@ -2248,6 +2624,10 @@ impl<S: OghamScalar> Runtime<S> {
                 Some(Value::Function(_)) => Err(fn_sort_error()),
                 None => Err(unbound_error(name)),
             },
+            Expr::Call { name, args } if name == "dim" => {
+                expect_arity(name, args, 0)?;
+                i128::try_from(self.alg.dim()).map_err(|_| overflow("world dimension exceeds i128"))
+            }
             Expr::Unary {
                 op: UnaryOp::Neg,
                 expr,
@@ -2289,7 +2669,8 @@ impl<S: OghamScalar> Runtime<S> {
                     | BinaryOp::Wedge
                     | BinaryOp::At
                     | BinaryOp::And
-                    | BinaryOp::Or => Err(index_sort_error()),
+                    | BinaryOp::Or
+                    | BinaryOp::Append => Err(index_sort_error()),
                 }
             }
             Expr::Ternary { .. } => match self.eval_value(expr)? {
@@ -2305,6 +2686,7 @@ impl<S: OghamScalar> Runtime<S> {
             | Expr::Vector(_)
             | Expr::Call { .. }
             | Expr::Factorial(_) => Err(index_sort_error()),
+            Expr::GameForm { .. } => Err(game_only_error("game forms")),
         }
     }
 
@@ -2527,6 +2909,72 @@ fn value_to_expr<E: Display>(value: &Value<E>) -> OghamResult<Expr> {
     }
 }
 
+fn contains_free_name(expr: &Expr, target: &str) -> bool {
+    fn visit(expr: &Expr, target: &str, bound: &BTreeSet<String>) -> bool {
+        match expr {
+            Expr::Ident(name) => name == target && !bound.contains(name),
+            Expr::Lambda { binders, body } => {
+                let mut nested = bound.clone();
+                nested.extend(binders.iter().cloned());
+                visit(body, target, &nested)
+            }
+            Expr::Block { bindings, body } => {
+                let mut nested = bound.clone();
+                for binding in bindings {
+                    if binding.recursive {
+                        nested.insert(binding.name.clone());
+                    }
+                    if visit(&binding.expr, target, &nested) {
+                        return true;
+                    }
+                    nested.insert(binding.name.clone());
+                }
+                visit(body, target, &nested)
+            }
+            Expr::Vector(items) | Expr::Tuple(items) => {
+                items.iter().any(|item| visit(item, target, bound))
+            }
+            Expr::GameForm { left, right } => left
+                .iter()
+                .chain(right)
+                .any(|item| visit(item, target, bound)),
+            Expr::Call { args, .. } => args.iter().any(|arg| visit(arg, target, bound)),
+            Expr::Factorial(inner) => visit(inner, target, bound),
+            Expr::Unary { expr, .. } => visit(expr, target, bound),
+            Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
+                visit(lhs, target, bound) || visit(rhs, target, bound)
+            }
+            Expr::Ternary {
+                cond,
+                then_expr,
+                else_expr,
+            } => {
+                visit(cond, target, bound)
+                    || visit(then_expr, target, bound)
+                    || visit(else_expr, target, bound)
+            }
+            Expr::Int(_) | Expr::Bool(_) | Expr::Star(_) | Expr::Omega | Expr::Blade(_) => false,
+        }
+    }
+
+    visit(expr, target, &BTreeSet::new())
+}
+
+fn consume_fuel(function: &FunctionValue, remaining: &mut u128, budget: u128) -> OghamResult<()> {
+    let Some(name) = &function.mu_name else {
+        return Ok(());
+    };
+    if *remaining == 0 {
+        return Err(OghamError::new(
+            OghamErrorKind::Fuel,
+            Span::point(0),
+            format!("recursive definition `{name}` exhausted its fuel budget of {budget}"),
+        ));
+    }
+    *remaining -= 1;
+    Ok(())
+}
+
 fn parse_display_expr(src: &str) -> OghamResult<Expr> {
     match parse_statement(src)? {
         Statement::Expr(expr) => Ok(expr),
@@ -2599,9 +3047,16 @@ fn substitute_env<E: Display>(
         Expr::Block { bindings, body } => {
             let mut nested_bound = bound.clone();
             let mut out = Vec::with_capacity(bindings.len());
-            for (name, rhs) in bindings {
-                out.push((name.clone(), substitute_env(rhs, &nested_bound, env)?));
-                nested_bound.insert(name.clone());
+            for binding in bindings {
+                if binding.recursive {
+                    nested_bound.insert(binding.name.clone());
+                }
+                out.push(Binding {
+                    name: binding.name.clone(),
+                    expr: substitute_env(&binding.expr, &nested_bound, env)?,
+                    recursive: binding.recursive,
+                });
+                nested_bound.insert(binding.name.clone());
             }
             Ok(Expr::Block {
                 bindings: out,
@@ -2620,6 +3075,16 @@ fn substitute_env<E: Display>(
                 .map(|item| substitute_env(item, bound, env))
                 .collect::<OghamResult<Vec<_>>>()?,
         )),
+        Expr::GameForm { left, right } => Ok(Expr::GameForm {
+            left: left
+                .iter()
+                .map(|item| substitute_env(item, bound, env))
+                .collect::<OghamResult<Vec<_>>>()?,
+            right: right
+                .iter()
+                .map(|item| substitute_env(item, bound, env))
+                .collect::<OghamResult<Vec<_>>>()?,
+        }),
         Expr::Call { name, args } => Ok(Expr::Call {
             name: name.clone(),
             args: args
@@ -2676,9 +3141,16 @@ fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr>) -> Expr 
         Expr::Block { bindings, body } => {
             let mut nested = replacements.clone();
             let mut out = Vec::with_capacity(bindings.len());
-            for (name, rhs) in bindings {
-                out.push((name.clone(), substitute_names(rhs, &nested)));
-                nested.remove(name);
+            for binding in bindings {
+                if binding.recursive {
+                    nested.remove(&binding.name);
+                }
+                out.push(Binding {
+                    name: binding.name.clone(),
+                    expr: substitute_names(&binding.expr, &nested),
+                    recursive: binding.recursive,
+                });
+                nested.remove(&binding.name);
             }
             Expr::Block {
                 bindings: out,
@@ -2697,6 +3169,16 @@ fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr>) -> Expr 
                 .map(|item| substitute_names(item, replacements))
                 .collect(),
         ),
+        Expr::GameForm { left, right } => Expr::GameForm {
+            left: left
+                .iter()
+                .map(|item| substitute_names(item, replacements))
+                .collect(),
+            right: right
+                .iter()
+                .map(|item| substitute_names(item, replacements))
+                .collect(),
+        },
         Expr::Call { name, args } => Expr::Call {
             name: name.clone(),
             args: args
@@ -2746,6 +3228,16 @@ fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                 .map(beta_normalize)
                 .collect::<OghamResult<Vec<_>>>()?,
         )),
+        Expr::GameForm { left, right } => Ok(Expr::GameForm {
+            left: left
+                .into_iter()
+                .map(beta_normalize)
+                .collect::<OghamResult<Vec<_>>>()?,
+            right: right
+                .into_iter()
+                .map(beta_normalize)
+                .collect::<OghamResult<Vec<_>>>()?,
+        }),
         Expr::Lambda { binders, body } => Ok(Expr::Lambda {
             binders,
             body: Box::new(beta_normalize(*body)?),
@@ -2753,7 +3245,13 @@ fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
         Expr::Block { bindings, body } => Ok(Expr::Block {
             bindings: bindings
                 .into_iter()
-                .map(|(name, expr)| beta_normalize(expr).map(|expr| (name, expr)))
+                .map(|binding| {
+                    beta_normalize(binding.expr).map(|expr| Binding {
+                        name: binding.name,
+                        expr,
+                        recursive: binding.recursive,
+                    })
+                })
                 .collect::<OghamResult<Vec<_>>>()?,
             body: Box::new(beta_normalize(*body)?),
         }),
@@ -2902,9 +3400,15 @@ fn infer_expr_sort(
             }
             expect_sort(Sort::Element, expected)
         }
+        Expr::GameForm { left, right } => {
+            for item in left.iter().chain(right) {
+                infer_expr_sort(item, ExpectedSort::Known(Sort::Element), binders)?;
+            }
+            expect_sort(Sort::Element, expected)
+        }
         Expr::Block { bindings, body } => {
-            for (_, rhs) in bindings {
-                infer_block_binding_rhs(rhs, binders)?;
+            for binding in bindings {
+                infer_block_binding_rhs(&binding.expr, binders)?;
             }
             infer_expr_sort(body, expected, binders)
         }
@@ -2919,6 +3423,16 @@ fn infer_expr_sort(
             }
         }
         Expr::Call { name, args } => match name.as_str() {
+            "dim" => {
+                expect_arity(name, args, 0)?;
+                expect_sort(Sort::Index, expected)
+            }
+            "coef" => {
+                expect_arity(name, args, 2)?;
+                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
+                infer_expr_sort(&args[1], ExpectedSort::Known(Sort::Index), binders)?;
+                expect_sort(Sort::Element, expected)
+            }
             "deg" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
@@ -3001,7 +3515,7 @@ fn infer_expr_sort(
                 infer_expr_sort(rhs, ExpectedSort::Known(sort), binders)?;
                 expect_sort(sort, expected)
             }
-            BinaryOp::Div | BinaryOp::Rem | BinaryOp::Wedge => {
+            BinaryOp::Div | BinaryOp::Rem | BinaryOp::Wedge | BinaryOp::Append => {
                 infer_expr_sort(lhs, ExpectedSort::Known(Sort::Element), binders)?;
                 infer_expr_sort(rhs, ExpectedSort::Known(Sort::Element), binders)?;
                 expect_sort(Sort::Element, expected)
@@ -3113,7 +3627,7 @@ fn mark_binder_sort(
 
 fn index_shaped(expr: &Expr) -> bool {
     match expr {
-        Expr::Call { name, .. } if name == "deg" => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim") => true,
         Expr::Block { body, .. } => index_shaped(body),
         Expr::Unary {
             op: UnaryOp::Neg,
@@ -3157,9 +3671,9 @@ fn static_sort<E>(
                 .iter()
                 .map(|(name, value)| env_sort(value).map(|sort| (name.clone(), sort)))
                 .collect::<OghamResult<BTreeMap<_, _>>>()?;
-            for (name, rhs) in bindings {
-                let sort = static_sort_with_sorts(rhs, &local_sorts, deg_is_index)?;
-                local_sorts.insert(name.clone(), sort);
+            for binding in bindings {
+                let sort = static_sort_with_sorts(&binding.expr, &local_sorts, deg_is_index)?;
+                local_sorts.insert(binding.name.clone(), sort);
             }
             static_sort_with_sorts(body, &local_sorts, deg_is_index)
         }
@@ -3170,7 +3684,9 @@ fn static_sort<E>(
             Some(Value::Function(_)) => Err(fn_sort_error()),
             None => Ok(Sort::Element),
         },
-        Expr::Call { name, .. } if deg_is_index && name == "deg" => Ok(Sort::Index),
+        Expr::Call { name, .. } if name == "dim" || (deg_is_index && name == "deg") => {
+            Ok(Sort::Index)
+        }
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
@@ -3221,14 +3737,16 @@ fn static_sort_with_sorts(
         Expr::Lambda { .. } | Expr::Tuple(_) => Err(fn_sort_error()),
         Expr::Block { bindings, body } => {
             let mut local = env.clone();
-            for (name, rhs) in bindings {
-                let sort = static_sort_with_sorts(rhs, &local, deg_is_index)?;
-                local.insert(name.clone(), sort);
+            for binding in bindings {
+                let sort = static_sort_with_sorts(&binding.expr, &local, deg_is_index)?;
+                local.insert(binding.name.clone(), sort);
             }
             static_sort_with_sorts(body, &local, deg_is_index)
         }
         Expr::Ident(name) => Ok(env.get(name).copied().unwrap_or(Sort::Element)),
-        Expr::Call { name, .. } if deg_is_index && name == "deg" => Ok(Sort::Index),
+        Expr::Call { name, .. } if name == "dim" || (deg_is_index && name == "deg") => {
+            Ok(Sort::Index)
+        }
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
@@ -3272,7 +3790,24 @@ fn static_sort_with_sorts(
 fn reserved_function_binder(name: &str) -> bool {
     matches!(
         name,
-        "rev" | "grade" | "even" | "dual" | "frob" | "tr" | "deg" | "gcd"
+        "rev"
+            | "grade"
+            | "even"
+            | "dual"
+            | "frob"
+            | "tr"
+            | "deg"
+            | "gcd"
+            | "coef"
+            | "dim"
+            | "canon"
+            | "nleft"
+            | "nright"
+            | "left"
+            | "right"
+            | "up"
+            | "down"
+            | "drawn"
     )
 }
 
@@ -3306,7 +3841,7 @@ fn is_runtime_partiality(kind: OghamErrorKind) -> bool {
 
 fn expression_is_index(expr: &Expr) -> bool {
     match expr {
-        Expr::Call { name, .. } if name == "deg" => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim") => true,
         Expr::Unary { expr, .. } => expression_is_index(expr),
         Expr::Binary {
             op: BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul,
@@ -3325,7 +3860,7 @@ fn expression_is_index(expr: &Expr) -> bool {
 fn plain_index_expr(expr: &Expr) -> bool {
     match expr {
         Expr::Int(_) => true,
-        Expr::Call { name, .. } if name == "deg" => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim") => true,
         Expr::Unary {
             op: UnaryOp::Neg,
             expr,
@@ -3598,6 +4133,7 @@ impl OghamScalar for Nimber {
             RelOp::Lt | RelOp::Gt => false,
             RelOp::Fuzzy => lhs.fuzzy(rhs),
             RelOp::Eq => lhs == rhs,
+            RelOp::Equiv => return Err(game_only_error("`≡`")),
         })
     }
 
@@ -3677,6 +4213,7 @@ impl OghamScalar for Ordinal {
             RelOp::Lt | RelOp::Gt => false,
             RelOp::Fuzzy => lhs.fuzzy(rhs),
             RelOp::Eq => lhs == rhs,
+            RelOp::Equiv => return Err(game_only_error("`≡`")),
         })
     }
 
@@ -4181,6 +4718,7 @@ fn ordered_relation(op: RelOp, cmp: Ordering) -> OghamResult<bool> {
         RelOp::Lt => cmp == Ordering::Less,
         RelOp::Gt => cmp == Ordering::Greater,
         RelOp::Fuzzy => false,
+        RelOp::Equiv => return Err(game_only_error("`≡`")),
     })
 }
 
@@ -4257,8 +4795,18 @@ fn unbound_error(name: &str) -> OghamError {
     if name == "t" {
         err.with_hint("`t` is the indeterminate in poly/ratfunc worlds")
     } else {
-        err.with_hint(format!("did you mean `{name} := ...`?"))
+        err.with_hint(format!(
+            "did you mean `{name} := ...`? recursive definition? `{name} =: ...`"
+        ))
     }
+}
+
+fn element_fixpoint_error(name: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        format!("element fixpoint `{name} =: ...` has no fixpoint theory outside the `game` world"),
+    )
 }
 
 fn grade0_error(span: Span) -> OghamError {
@@ -4292,4 +4840,21 @@ fn overflow(message: impl Into<String>) -> OghamError {
 
 fn domain(message: impl Into<String>) -> OghamError {
     OghamError::new(OghamErrorKind::Domain, Span::point(0), message)
+}
+
+fn game_only_error(feature: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        format!("{feature} is only defined in the `game` world"),
+    )
+}
+
+fn array_world_error(feature: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        format!("`{feature}` is only defined in fixed-dimension Clifford worlds"),
+    )
+    .with_hint("arrays are world-fixed length; the free-shape container lives in the game world")
 }

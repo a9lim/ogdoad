@@ -34,12 +34,17 @@ pub enum TokenKind {
     Greater,
     Pipe,
     Assign,
+    RecursiveAssign,
+    Append,
+    Equiv,
     Plus,
     Minus,
     LParen,
     RParen,
     LBracket,
     RBracket,
+    LBrace,
+    RBrace,
     Comma,
 }
 
@@ -177,6 +182,24 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
             '!' => TokenKind::Bang,
             '?' => TokenKind::Question,
             '=' => {
+                if i + 1 < chars.len() && chars[i + 1].1 == ':' {
+                    i += 1;
+                    out.push(Token {
+                        kind: TokenKind::RecursiveAssign,
+                        span: Span::new(pos, chars[i].0 + 1),
+                    });
+                    i += 1;
+                    continue;
+                }
+                if i + 2 < chars.len() && chars[i + 1].1 == '=' && chars[i + 2].1 == '=' {
+                    i += 2;
+                    out.push(Token {
+                        kind: TokenKind::Equiv,
+                        span: Span::new(pos, chars[i].0 + 1),
+                    });
+                    i += 1;
+                    continue;
+                }
                 if i + 1 < chars.len() && chars[i + 1].1 == '=' {
                     i += 1;
                     out.push(Token {
@@ -203,16 +226,30 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
                 }
                 TokenKind::Colon
             }
-            '+' => TokenKind::Plus,
+            '+' => {
+                if i + 1 < chars.len() && chars[i + 1].1 == '+' {
+                    i += 1;
+                    out.push(Token {
+                        kind: TokenKind::Append,
+                        span: Span::new(pos, chars[i].0 + 1),
+                    });
+                    i += 1;
+                    continue;
+                }
+                TokenKind::Plus
+            }
+            '⧺' => TokenKind::Append,
+            '≡' => TokenKind::Equiv,
             '-' => TokenKind::Minus,
             ';' => TokenKind::Semicolon,
             '(' => TokenKind::LParen,
             ')' => TokenKind::RParen,
             '[' => TokenKind::LBracket,
             ']' => TokenKind::RBracket,
+            '{' => TokenKind::LBrace,
+            '}' => TokenKind::RBrace,
             ',' => TokenKind::Comma,
             '↦' | '~' => TokenKind::Arrow,
-            '{' | '}' => return Err(reserved(span)),
             _ => {
                 return Err(OghamError::new(
                     OghamErrorKind::Parse,
@@ -230,6 +267,7 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
 pub fn needs_continuation(src: &str) -> OghamResult<bool> {
     let mut paren_depth = 0usize;
     let mut bracket_depth = 0usize;
+    let mut brace_depth = 0usize;
     for token in lex(src)? {
         match token.kind {
             TokenKind::LParen => paren_depth += 1,
@@ -246,10 +284,17 @@ pub fn needs_continuation(src: &str) -> OghamResult<bool> {
                 };
                 bracket_depth = depth;
             }
+            TokenKind::LBrace => brace_depth += 1,
+            TokenKind::RBrace => {
+                let Some(depth) = brace_depth.checked_sub(1) else {
+                    return Ok(false);
+                };
+                brace_depth = depth;
+            }
             _ => {}
         }
     }
-    Ok(paren_depth > 0 || bracket_depth > 0)
+    Ok(paren_depth > 0 || bracket_depth > 0 || brace_depth > 0)
 }
 
 fn strip_line_comments(src: &str) -> String {

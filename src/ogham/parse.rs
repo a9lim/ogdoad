@@ -1,4 +1,4 @@
-use super::ast::{BinaryOp, Expr, RelOp, StarLiteral, Statement, UnaryOp};
+use super::ast::{BinaryOp, Binding, Expr, RelOp, StarLiteral, Statement, UnaryOp};
 use super::error::{OghamError, OghamErrorKind, OghamResult, Span};
 use super::lex::{lex, Token, TokenKind};
 use crate::scalar::Ordinal;
@@ -48,7 +48,7 @@ fn statement_to_block_expr(stmt: Statement) -> OghamResult<Expr> {
     }
 }
 
-fn seq_from_parts(bindings: Vec<(String, Expr)>, tail: Statement) -> Statement {
+fn seq_from_parts(bindings: Vec<Binding>, tail: Statement) -> Statement {
     if bindings.is_empty() {
         tail
     } else {
@@ -57,6 +57,16 @@ fn seq_from_parts(bindings: Vec<(String, Expr)>, tail: Statement) -> Statement {
             tail: Box::new(tail),
         }
     }
+}
+
+fn list_spine(items: Vec<Expr>) -> Expr {
+    items
+        .into_iter()
+        .rev()
+        .fold(Expr::Int(0), |tail, head| Expr::GameForm {
+            left: vec![head],
+            right: vec![tail],
+        })
 }
 
 impl Parser {
@@ -69,7 +79,15 @@ impl Parser {
             }
             self.bump();
             match stmt {
-                Statement::Binding { name, expr } => bindings.push((name, expr)),
+                Statement::Binding {
+                    name,
+                    expr,
+                    recursive,
+                } => bindings.push(Binding {
+                    name,
+                    expr,
+                    recursive,
+                }),
                 Statement::Expr(_) | Statement::Seq { .. } => return Err(seq_value_error()),
             }
         }
@@ -83,14 +101,22 @@ impl Parser {
                 "reserved word cannot be rebound",
             ));
         }
-        if let (Some(TokenKind::Ident(name)), Some(TokenKind::Assign)) =
+        if let (Some(TokenKind::Ident(name)), Some(assign)) =
             (self.peek_kind(), self.peek_kind_at(1))
         {
+            if !matches!(assign, TokenKind::Assign | TokenKind::RecursiveAssign) {
+                return Ok(Statement::Expr(self.parse_lambda_or_expression()?));
+            }
             let name = name.clone();
+            let recursive = matches!(assign, TokenKind::RecursiveAssign);
             self.bump();
             self.bump();
             let expr = self.parse_lambda_or_expression()?;
-            Ok(Statement::Binding { name, expr })
+            Ok(Statement::Binding {
+                name,
+                expr,
+                recursive,
+            })
         } else {
             Ok(Statement::Expr(self.parse_lambda_or_expression()?))
         }
@@ -167,7 +193,10 @@ impl Parser {
                     | TokenKind::True
                     | TokenKind::False
             )
-        ) && matches!(self.peek_kind_at(1), Some(TokenKind::Assign))
+        ) && matches!(
+            self.peek_kind_at(1),
+            Some(TokenKind::Assign | TokenKind::RecursiveAssign)
+        )
     }
 
     fn parse_lambda_or_expression(&mut self) -> OghamResult<Expr> {
@@ -288,11 +317,11 @@ impl Parser {
     }
 
     fn parse_relation(&mut self) -> OghamResult<Expr> {
-        let lhs = self.parse_additive()?;
+        let lhs = self.parse_append()?;
         let Some(op) = self.parse_relop() else {
             return Ok(lhs);
         };
-        let rhs = self.parse_additive()?;
+        let rhs = self.parse_append()?;
         if self.parse_relop().is_some() {
             return Err(OghamError::new(
                 OghamErrorKind::Parse,
@@ -325,8 +354,26 @@ impl Parser {
                 self.bump();
                 Some(RelOp::Fuzzy)
             }
+            TokenKind::Equiv => {
+                self.bump();
+                Some(RelOp::Equiv)
+            }
             _ => None,
         }
+    }
+
+    fn parse_append(&mut self) -> OghamResult<Expr> {
+        let lhs = self.parse_additive()?;
+        if !matches!(self.peek_kind(), Some(TokenKind::Append)) {
+            return Ok(lhs);
+        }
+        self.bump();
+        let rhs = self.parse_append()?;
+        Ok(Expr::Binary {
+            op: BinaryOp::Append,
+            lhs: Box::new(lhs),
+            rhs: Box::new(rhs),
+        })
     }
 
     fn parse_additive(&mut self) -> OghamResult<Expr> {
@@ -528,12 +575,82 @@ impl Parser {
                 self.expect(|k| matches!(k, TokenKind::RBracket), "`]`")?;
                 Ok(Expr::Vector(items))
             }
+            TokenKind::LBrace => self.parse_braceform(),
             _ => Err(OghamError::new(
                 OghamErrorKind::Parse,
                 tok.span,
                 "expected atom",
             )),
         }
+    }
+
+    fn parse_braceform(&mut self) -> OghamResult<Expr> {
+        if matches!(self.peek_kind(), Some(TokenKind::RBrace)) {
+            self.bump();
+            return Ok(Expr::GameForm {
+                left: Vec::new(),
+                right: Vec::new(),
+            });
+        }
+
+        let mut first = Vec::new();
+        if !matches!(self.peek_kind(), Some(TokenKind::Pipe)) {
+            first = self.parse_brace_items()?;
+        }
+        if matches!(self.peek_kind(), Some(TokenKind::Pipe)) {
+            self.bump();
+            let right = if matches!(self.peek_kind(), Some(TokenKind::RBrace)) {
+                Vec::new()
+            } else {
+                self.parse_brace_items()?
+            };
+            self.expect(|k| matches!(k, TokenKind::RBrace), "`}`")?;
+            return Ok(Expr::GameForm { left: first, right });
+        }
+
+        self.expect(|k| matches!(k, TokenKind::RBrace), "`}`")?;
+        Ok(list_spine(first))
+    }
+
+    fn parse_brace_items(&mut self) -> OghamResult<Vec<Expr>> {
+        let mut items = vec![self.parse_brace_item()?];
+        while matches!(self.peek_kind(), Some(TokenKind::Comma)) {
+            self.bump();
+            items.push(self.parse_brace_item()?);
+        }
+        Ok(items)
+    }
+
+    fn parse_brace_item(&mut self) -> OghamResult<Expr> {
+        let start = self.pos;
+        let mut depth = 0usize;
+        let mut end = start;
+        while let Some(token) = self.tokens.get(end) {
+            match token.kind {
+                TokenKind::LParen | TokenKind::LBracket | TokenKind::LBrace => depth += 1,
+                TokenKind::RParen | TokenKind::RBracket | TokenKind::RBrace if depth > 0 => {
+                    depth -= 1
+                }
+                TokenKind::Comma | TokenKind::Pipe | TokenKind::RBrace if depth == 0 => break,
+                _ => {}
+            }
+            end += 1;
+        }
+        if end == start {
+            return Err(OghamError::new(
+                OghamErrorKind::Parse,
+                self.span(),
+                "expected expression in braces",
+            ));
+        }
+        let mut nested = Parser {
+            tokens: self.tokens[start..end].to_vec(),
+            pos: 0,
+        };
+        let expr = nested.parse_lambda_or_expression()?;
+        nested.expect_end()?;
+        self.pos = end;
+        Ok(expr)
     }
 
     fn parse_star(&mut self) -> OghamResult<Expr> {
