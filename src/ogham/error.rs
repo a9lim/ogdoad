@@ -48,6 +48,8 @@ pub enum OghamErrorKind {
     Domain,
     Fuel,
     Improper,
+    Unfounded,
+    Loopy,
 }
 
 impl OghamErrorKind {
@@ -80,6 +82,8 @@ impl OghamErrorKind {
             OghamErrorKind::Domain => "E_Domain",
             OghamErrorKind::Fuel => "E_Fuel",
             OghamErrorKind::Improper => "E_Improper",
+            OghamErrorKind::Unfounded => "E_Unfounded",
+            OghamErrorKind::Loopy => "E_Loopy",
         }
     }
 }

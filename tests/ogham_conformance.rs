@@ -15,9 +15,9 @@ fn ogham_conformance_corpus() {
 }
 
 #[test]
-fn ogham_v3_stages_a_c() {
+fn ogham_v3_stages_a_d() {
     let corpus = include_str!("../docs/ogham/conformance_v3.txt");
-    run_corpus(corpus, true);
+    run_corpus(corpus, false);
 }
 
 #[test]
@@ -205,6 +205,8 @@ fn error_kind_codes_are_stable() {
     assert_eq!(OghamErrorKind::KummerEscape.code(), "E_KummerEscape");
     assert_eq!(OghamErrorKind::Fuel.code(), "E_Fuel");
     assert_eq!(OghamErrorKind::Improper.code(), "E_Improper");
+    assert_eq!(OghamErrorKind::Unfounded.code(), "E_Unfounded");
+    assert_eq!(OghamErrorKind::Loopy.code(), "E_Loopy");
 }
 
 #[test]
@@ -224,7 +226,16 @@ fn captured_recursive_function_survives_rebinding() {
 }
 
 #[test]
-fn ogham_game_stage_c_boundaries() {
+fn recursive_function_restores_definition_time_world_validation() {
+    let mut session = OghamSession::new("fp5 0").expect("fp5 world");
+    let err = session
+        .eval_line("bad =: x ↦ x < 1 ? bad@x : x")
+        .expect_err("ordered comparison must fail while defining the recursive function");
+    assert_eq!(err.kind, OghamErrorKind::WrongWorld);
+}
+
+#[test]
+fn ogham_game_stage_d_boundaries() {
     let mut session = OghamSession::new("game").expect("game world");
     let ordered = session
         .eval_line("{0, 1 |} ≡ {1, 0 |}")
@@ -234,9 +245,9 @@ fn ogham_game_stage_c_boundaries() {
     let factorial = session.eval_line("!5").expect("integer-game factorial");
     assert_eq!(factorial.value.as_deref(), Some("120"));
 
-    let stage_d = session
+    session
         .eval_line("loop =: {loop |}")
-        .expect_err("loopy Element fixpoint is not a stage-C value");
-    assert_eq!(stage_d.kind, OghamErrorKind::Parse);
-    assert!(stage_d.message.contains("stage D"));
+        .expect("guarded loopy Element fixpoint");
+    let loop_value = session.eval_line("loop").expect("display loopy value");
+    assert_eq!(loop_value.value.as_deref(), Some("loop =: {loop |}"));
 }

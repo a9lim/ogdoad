@@ -4,16 +4,17 @@ use super::lex::needs_continuation;
 use super::parse::parse_statement;
 use super::unparse::unparse_statement;
 use crate::clifford::{CliffordAlgebra, Metric, Multivector};
-use crate::games::Game;
+use crate::games::{Game, LoopyPartizanGraph};
 use crate::scalar::{
     checked_factorial_i128, factorial_in_scalar, nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn,
     Integer, IntegerDivExactError, Nimber, Omnific, Ordinal, Poly, Rational, RationalFunction,
     Scalar, Surreal,
 };
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Display;
 use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::sync::Arc;
 
 const DEFAULT_FUEL: u128 = 1 << 16;
 
@@ -72,6 +73,15 @@ impl FunctionValue {
                 body: Box::new(Expr::Ident(name.clone())),
             },
         )
+    }
+}
+
+fn validation_stub(function: &FunctionValue, body: Expr) -> FunctionValue {
+    FunctionValue {
+        binders: function.binders.clone(),
+        body,
+        ret: function.ret,
+        mu_name: None,
     }
 }
 
@@ -500,10 +510,62 @@ fn ensure_function_world_decl(name: &str, tail: &[&str]) -> OghamResult<()> {
     }
 }
 
+#[derive(Clone)]
+enum GameElement {
+    Finite(Game),
+    Graph(GraphRef),
+}
+
+#[derive(Clone)]
+struct GraphRef {
+    graph: Arc<RegularGameGraph>,
+    node: usize,
+}
+
+struct RegularGameGraph {
+    name: String,
+    nodes: Vec<RegularGameNode>,
+    drawn: Vec<bool>,
+}
+
+type GraphKey = (usize, usize);
+type GraphPair = (GraphKey, GraphKey);
+
+#[derive(Clone)]
+struct RegularGameNode {
+    left: Vec<RegularGameEdge>,
+    right: Vec<RegularGameEdge>,
+}
+
+#[derive(Clone)]
+enum RegularGameEdge {
+    Finite(Game),
+    Local(usize),
+    External(GraphRef),
+}
+
+#[derive(Clone)]
+enum SymbolicGame {
+    Value(GameElement),
+    Form {
+        left: Vec<SymbolicGame>,
+        right: Vec<SymbolicGame>,
+    },
+    SelfRef,
+}
+
+impl std::fmt::Display for GameElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", display_game_element(self))
+    }
+}
+
 struct GameRuntime {
-    env: BTreeMap<String, Value<Game>>,
+    env: BTreeMap<String, Value<GameElement>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    active_mu_calls: HashSet<String>,
+    validation_stub_names: BTreeSet<String>,
 }
 
 impl GameRuntime {
@@ -512,11 +574,14 @@ impl GameRuntime {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            active_mu_calls: HashSet::new(),
+            validation_stub_names: BTreeSet::new(),
         }
     }
 
     fn reset_fuel(&mut self) {
         self.fuel_remaining = self.fuel_budget;
+        self.active_mu_calls.clear();
     }
 
     fn set_fuel_budget(&mut self, budget: u128) {
@@ -553,19 +618,18 @@ impl GameRuntime {
             ));
         }
         if recursive && contains_free_name(expr, name) {
-            let Expr::Lambda { binders, body } = expr else {
-                return Err(OghamError::new(
-                    OghamErrorKind::Parse,
-                    Span::point(0),
-                    "Element `=:` fixpoints require stage D guarded loopy-game semantics",
-                ));
-            };
-            let function = self.close_function(
-                binders.clone(),
-                body.as_ref().clone(),
-                Some(name.to_string()),
-            )?;
-            self.env.insert(name.to_string(), Value::Function(function));
+            if let Expr::Lambda { binders, body } = expr {
+                let function = self.close_function(
+                    binders.clone(),
+                    body.as_ref().clone(),
+                    Some(name.to_string()),
+                )?;
+                self.env.insert(name.to_string(), Value::Function(function));
+                return Ok(());
+            }
+            let reduced = self.reduce_element_fixpoint(name, expr, false)?;
+            let value = materialize_regular_game(name, reduced)?;
+            self.env.insert(name.to_string(), Value::Element(value));
             return Ok(());
         }
         let value = self.eval_value(expr)?;
@@ -573,7 +637,7 @@ impl GameRuntime {
         Ok(())
     }
 
-    fn eval_block(&mut self, bindings: &[Binding], body: &Expr) -> OghamResult<Value<Game>> {
+    fn eval_block(&mut self, bindings: &[Binding], body: &Expr) -> OghamResult<Value<GameElement>> {
         let saved = self.env.clone();
         let result = (|| {
             for binding in bindings {
@@ -596,7 +660,7 @@ impl GameRuntime {
             .collect()
     }
 
-    fn eval_value(&mut self, expr: &Expr) -> OghamResult<Value<Game>> {
+    fn eval_value(&mut self, expr: &Expr) -> OghamResult<Value<GameElement>> {
         match expr {
             Expr::Bool(value) => Ok(Value::Bool(*value)),
             Expr::Tuple(_) => Err(fn_sort_error()),
@@ -609,6 +673,12 @@ impl GameRuntime {
                 .get(name)
                 .cloned()
                 .ok_or_else(|| unbound_error(name)),
+            Expr::Call { name, args } if name == "drawn" => {
+                expect_arity(name, args, 1)?;
+                Ok(Value::Bool(game_element_drawn(
+                    &self.eval_element(&args[0])?,
+                )))
+            }
             Expr::Relation { op, lhs, rhs } => Ok(Value::Bool(self.eval_relation(*op, lhs, rhs)?)),
             Expr::Unary {
                 op: UnaryOp::Not,
@@ -682,7 +752,7 @@ impl GameRuntime {
         }
     }
 
-    fn eval_at(&mut self, lhs: &Expr, rhs: &Expr) -> OghamResult<Value<Game>> {
+    fn eval_at(&mut self, lhs: &Expr, rhs: &Expr) -> OghamResult<Value<GameElement>> {
         let lhs_v = self.eval_value(lhs)?;
         let Value::Function(function) = lhs_v else {
             return Err(game_wrong_world(
@@ -703,8 +773,8 @@ impl GameRuntime {
     fn apply_function(
         &mut self,
         function: &FunctionValue,
-        args: Vec<Value<Game>>,
-    ) -> OghamResult<Value<Game>> {
+        args: Vec<Value<GameElement>>,
+    ) -> OghamResult<Value<GameElement>> {
         if args.len() != function.binders.len() {
             return Err(OghamError::new(
                 OghamErrorKind::Arity,
@@ -717,20 +787,43 @@ impl GameRuntime {
             ));
         }
         consume_fuel(function, &mut self.fuel_remaining, self.fuel_budget)?;
-        let mut replacements = BTreeMap::new();
-        for (binder, arg) in function.binders.iter().zip(args.iter()) {
+        for (binder, arg) in function.binders.iter().zip(&args) {
             ensure_value_sort(arg, binder.sort)?;
-            replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
-        let body = substitute_names(&function.body, &replacements);
+        let call_key = function
+            .mu_name
+            .as_ref()
+            .map(|name| game_mu_call_key(name, &function.body, &args));
+        if call_key
+            .as_ref()
+            .is_some_and(|key| !self.active_mu_calls.insert(key.clone()))
+        {
+            self.fuel_remaining = 0;
+            return Err(OghamError::new(
+                OghamErrorKind::Fuel,
+                Span::point(0),
+                format!(
+                    "recursive definition `{}` exhausted its fuel budget of {}",
+                    function.mu_name.as_deref().unwrap_or("μ"),
+                    self.fuel_budget
+                ),
+            ));
+        }
+        let mut previous_args = Vec::new();
+        for (binder, arg) in function.binders.iter().zip(args.iter()) {
+            previous_args.push((
+                binder.name.clone(),
+                self.env.insert(binder.name.clone(), arg.clone()),
+            ));
+        }
         let previous = function.mu_name.as_ref().map(|name| {
             self.env
                 .insert(name.clone(), Value::Function(function.clone()))
         });
         let result = match function.ret {
-            Sort::Element => self.eval_element(&body).map(Value::Element),
-            Sort::Index => self.eval_index(&body).map(Value::Index),
-            Sort::Bool => self.eval_bool(&body).map(Value::Bool),
+            Sort::Element => self.eval_element(&function.body).map(Value::Element),
+            Sort::Index => self.eval_index(&function.body).map(Value::Index),
+            Sort::Bool => self.eval_bool(&function.body).map(Value::Bool),
         };
         if let Some(name) = &function.mu_name {
             if let Some(previous) = previous.flatten() {
@@ -739,6 +832,16 @@ impl GameRuntime {
                 self.env.remove(name);
             }
         }
+        for (name, previous) in previous_args.into_iter().rev() {
+            if let Some(previous) = previous {
+                self.env.insert(name, previous);
+            } else {
+                self.env.remove(&name);
+            }
+        }
+        if let Some(key) = call_key {
+            self.active_mu_calls.remove(&key);
+        }
         result
     }
 
@@ -746,7 +849,7 @@ impl GameRuntime {
         &mut self,
         function: &FunctionValue,
         args: &[Expr],
-    ) -> OghamResult<Value<Game>> {
+    ) -> OghamResult<Value<GameElement>> {
         if args.len() != function.binders.len() {
             return Err(OghamError::new(
                 OghamErrorKind::Arity,
@@ -767,7 +870,7 @@ impl GameRuntime {
         self.apply_function(function, values)
     }
 
-    fn eval_arg_for_sort(&mut self, expr: &Expr, sort: Sort) -> OghamResult<Value<Game>> {
+    fn eval_arg_for_sort(&mut self, expr: &Expr, sort: Sort) -> OghamResult<Value<GameElement>> {
         match sort {
             Sort::Element => self.eval_element(expr).map(Value::Element),
             Sort::Index => self.eval_index(expr).map(Value::Index),
@@ -812,6 +915,7 @@ impl GameRuntime {
         check_binders(&binders, reserved_function_binder)?;
         let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
         bound.extend(mu_name.iter().cloned());
+        bound.extend(self.validation_stub_names.iter().cloned());
         let substituted = substitute_env(&body, &bound, &self.env)?;
         let body = beta_normalize(substituted)?;
         let (mut binder_sorts, mut ret) = infer_function_signature(&body, &binders)?;
@@ -838,7 +942,19 @@ impl GameRuntime {
             ret,
             mu_name,
         };
-        if function.mu_name.is_none() {
+        if let Some(name) = &function.mu_name {
+            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+            let previous = self.env.insert(name.clone(), Value::Function(stub));
+            self.validation_stub_names.insert(name.clone());
+            let validation = self.validate_function_body(&function);
+            self.validation_stub_names.remove(name);
+            if let Some(previous) = previous {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+            validation?;
+        } else {
             self.validate_function_body(&function)?;
         }
         Ok(function)
@@ -858,16 +974,25 @@ impl GameRuntime {
             Expr::Lambda { .. } => return Err(fn_sort_error()),
             Expr::Block { bindings, body } => {
                 let saved = self.env.clone();
+                let saved_validation_stubs = self.validation_stub_names.clone();
                 let result = (|| {
                     for binding in bindings {
                         if !matches!(binding.expr, Expr::Lambda { .. }) {
                             self.validate_all(&binding.expr)?;
                         }
                         self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                        if let Some(Value::Function(function)) =
+                            self.env.get(&binding.name).cloned()
+                        {
+                            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+                            self.env.insert(binding.name.clone(), Value::Function(stub));
+                            self.validation_stub_names.insert(binding.name.clone());
+                        }
                     }
                     self.validate_all(body)
                 })();
                 self.env = saved;
+                self.validation_stub_names = saved_validation_stubs;
                 result?;
             }
             Expr::Ternary {
@@ -878,6 +1003,7 @@ impl GameRuntime {
                 self.validate_all(cond)?;
                 self.validate_all(then_expr)?;
                 self.validate_all(else_expr)?;
+                return Ok(());
             }
             Expr::Binary {
                 op: BinaryOp::And | BinaryOp::Or,
@@ -932,24 +1058,34 @@ impl GameRuntime {
             (Value::Bool(_), _) | (_, Value::Bool(_)) => Err(bool_sort_error()),
             (Value::Index(lhs), Value::Index(rhs)) => ordered_relation(op, lhs.cmp(&rhs)),
             (Value::Index(_), _) | (_, Value::Index(_)) => Err(index_sort_error()),
-            (Value::Element(lhs), Value::Element(rhs)) => match op {
-                RelOp::Eq => Ok(lhs.eq(&rhs)),
-                RelOp::Equiv => Ok(game_structural_eq_ordered(&lhs, &rhs)),
-                RelOp::Lt => Ok(lhs.le(&rhs) && !rhs.le(&lhs)),
-                RelOp::Gt => Ok(rhs.le(&lhs) && !lhs.le(&rhs)),
-                RelOp::Fuzzy => Ok(lhs.fuzzy(&rhs)),
-            },
+            (Value::Element(lhs), Value::Element(rhs)) => {
+                if op == RelOp::Equiv {
+                    return Ok(game_element_regular_eq(&lhs, &rhs));
+                }
+                let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (lhs, rhs) else {
+                    return Err(loopy_error(
+                        "value relations are not defined on loopy games in the 3.0 envelope",
+                    ));
+                };
+                match op {
+                    RelOp::Eq => Ok(lhs.eq(&rhs)),
+                    RelOp::Lt => Ok(lhs.le(&rhs) && !rhs.le(&lhs)),
+                    RelOp::Gt => Ok(rhs.le(&lhs) && !lhs.le(&rhs)),
+                    RelOp::Fuzzy => Ok(lhs.fuzzy(&rhs)),
+                    RelOp::Equiv => unreachable!("handled above"),
+                }
+            }
         }
     }
 
-    fn eval_element(&mut self, expr: &Expr) -> OghamResult<Game> {
+    fn eval_element(&mut self, expr: &Expr) -> OghamResult<GameElement> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Int(n) => {
                 let n = i128::try_from(*n).map_err(|_| overflow("game integer exceeds i128"))?;
-                Ok(Game::integer(n))
+                Ok(GameElement::Finite(Game::integer(n)))
             }
-            Expr::Star(StarLiteral::Finite(n)) => Ok(Game::nim_heap(*n)),
+            Expr::Star(StarLiteral::Finite(n)) => Ok(GameElement::Finite(Game::nim_heap(*n))),
             Expr::Star(StarLiteral::Cnf(_)) => Err(game_wrong_world(
                 "transfinite nimber games are outside the finite `game` world",
             )),
@@ -961,7 +1097,7 @@ impl GameRuntime {
                 "the game world has no fixed arrays; lists are braces here: `{1, 2, 3}`",
             )),
             Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
-            Expr::GameForm { left, right } => Ok(Game::new(
+            Expr::GameForm { left, right } => build_game_form(
                 left.iter()
                     .map(|item| self.eval_element(item))
                     .collect::<OghamResult<Vec<_>>>()?,
@@ -969,7 +1105,7 @@ impl GameRuntime {
                     .iter()
                     .map(|item| self.eval_element(item))
                     .collect::<OghamResult<Vec<_>>>()?,
-            )),
+            ),
             Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
@@ -988,10 +1124,15 @@ impl GameRuntime {
                 let n = self.eval_index(expr)?;
                 let value = checked_factorial_i128(n)
                     .ok_or_else(|| overflow("factorial exceeds the i128 game-integer range"))?;
-                Ok(Game::integer(value))
+                Ok(GameElement::Finite(Game::integer(value)))
             }
             Expr::Unary { op, expr } => match op {
-                UnaryOp::Neg => Ok(self.eval_element(expr)?.neg()),
+                UnaryOp::Neg => match self.eval_element(expr)? {
+                    GameElement::Finite(game) => Ok(GameElement::Finite(game.neg())),
+                    GameElement::Graph(_) => Err(loopy_error(
+                        "unary `-` is not defined on loopy games in the 3.0 envelope",
+                    )),
+                },
                 UnaryOp::Inv => Err(game_wrong_world(
                     "games form an additive group, not a field; `/` is undefined",
                 )),
@@ -1016,14 +1157,26 @@ impl GameRuntime {
         }
     }
 
-    fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<Game> {
+    fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<GameElement> {
         match op {
-            BinaryOp::Add => Ok(self.eval_element(lhs)?.add(&self.eval_element(rhs)?)),
-            BinaryOp::Sub => Ok(self.eval_element(lhs)?.add(&self.eval_element(rhs)?.neg())),
+            BinaryOp::Add | BinaryOp::Sub => {
+                let lhs = self.eval_element(lhs)?;
+                let rhs = self.eval_element(rhs)?;
+                let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (lhs, rhs) else {
+                    return Err(loopy_error(
+                        "additive operations are not defined on loopy games in the 3.0 envelope",
+                    ));
+                };
+                Ok(GameElement::Finite(if op == BinaryOp::Add {
+                    lhs.add(&rhs)
+                } else {
+                    lhs.add(&rhs.neg())
+                }))
+            }
             BinaryOp::Append => {
                 let lhs = self.eval_element(lhs)?;
                 let rhs = self.eval_element(rhs)?;
-                append_game_spine(&lhs, &rhs)
+                append_game_element(&lhs, &rhs)
             }
             BinaryOp::Mul => Err(game_wrong_world(
                 "games are an additive group, not a ring; `⋅` is undefined",
@@ -1043,21 +1196,22 @@ impl GameRuntime {
         }
     }
 
-    fn eval_element_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<Game> {
+    fn eval_element_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<GameElement> {
         match name {
             "canon" => {
                 expect_arity(name, args, 1)?;
-                Ok(self.eval_element(&args[0])?.canonical())
+                match self.eval_element(&args[0])? {
+                    GameElement::Finite(game) => Ok(GameElement::Finite(game.canonical())),
+                    GameElement::Graph(_) => Err(loopy_error(
+                        "`canon` is not defined on loopy games in the 3.0 envelope",
+                    )),
+                }
             }
             "left" | "right" => {
                 expect_arity(name, args, 2)?;
                 let game = self.eval_element(&args[0])?;
                 let index = game_option_index(name, self.eval_index(&args[1])?)?;
-                let options = if name == "left" {
-                    game.left()
-                } else {
-                    game.right()
-                };
+                let options = game_options(&game, name == "left");
                 options.get(index).cloned().ok_or_else(|| {
                     domain(format!(
                         "{name} option index {index} is outside option count {}",
@@ -1067,11 +1221,11 @@ impl GameRuntime {
             }
             "up" => {
                 expect_arity(name, args, 0)?;
-                Ok(Game::up())
+                Ok(GameElement::Finite(Game::up()))
             }
             "down" => {
                 expect_arity(name, args, 0)?;
-                Ok(Game::up().neg())
+                Ok(GameElement::Finite(Game::up().neg()))
             }
             "nleft" | "nright" => {
                 Err(index_sort_error().with_hint(format!("`{name}` returns an Index")))
@@ -1083,14 +1237,47 @@ impl GameRuntime {
             "deg" | "gcd" => Err(game_wrong_world(&format!(
                 "`{name}` is a function-world operation, not a game operation"
             ))),
-            "drawn" => Err(game_wrong_world(
-                "`drawn` requires stage D loopy-game semantics",
-            )),
+            "drawn" => Err(bool_sort_error()),
             _ => Err(OghamError::new(
                 OghamErrorKind::UnknownFn,
                 Span::point(0),
                 format!("unknown function `{name}`"),
             )),
+        }
+    }
+
+    fn reduce_element_fixpoint(
+        &mut self,
+        name: &str,
+        expr: &Expr,
+        _inside_form: bool,
+    ) -> OghamResult<SymbolicGame> {
+        match expr {
+            Expr::Ident(found) if found == name => Ok(SymbolicGame::SelfRef),
+            Expr::GameForm { left, right } => Ok(SymbolicGame::Form {
+                left: left
+                    .iter()
+                    .map(|item| self.reduce_element_fixpoint(name, item, true))
+                    .collect::<OghamResult<_>>()?,
+                right: right
+                    .iter()
+                    .map(|item| self.reduce_element_fixpoint(name, item, true))
+                    .collect::<OghamResult<_>>()?,
+            }),
+            Expr::Binary {
+                op: BinaryOp::Append,
+                lhs,
+                rhs,
+            } => {
+                if contains_free_name(lhs, name) {
+                    return Err(unfounded_error(name));
+                }
+                let left = self.eval_element(lhs)?;
+                let right = self.reduce_element_fixpoint(name, rhs, false)?;
+                append_symbolic_spine(&left, right)
+            }
+            _ if contains_free_name(expr, name) => Err(unfounded_error(name)),
+            _ => self.eval_element(expr).map(SymbolicGame::Value),
         }
     }
 
@@ -1115,11 +1302,7 @@ impl GameRuntime {
             Expr::Call { name, args } if matches!(name.as_str(), "nleft" | "nright") => {
                 expect_arity(name, args, 1)?;
                 let game = self.eval_element(&args[0])?;
-                let len = if name == "nleft" {
-                    game.left().len()
-                } else {
-                    game.right().len()
-                };
+                let len = game_options(&game, name == "nleft").len();
                 i128::try_from(len).map_err(|_| overflow("game option count exceeds i128"))
             }
             Expr::Call { name, .. } if name == "dim" => Err(array_world_error(name)),
@@ -1172,9 +1355,9 @@ impl GameRuntime {
     }
 }
 
-fn display_game_value(value: &Value<Game>) -> String {
+fn display_game_value(value: &Value<GameElement>) -> String {
     match value {
-        Value::Element(game) => display_game(game),
+        Value::Element(game) => display_game_element(game),
         Value::Index(value) => value.to_string(),
         Value::Bool(value) => value.to_string(),
         Value::Function(function) => {
@@ -1184,6 +1367,154 @@ fn display_game_value(value: &Value<Game>) -> String {
                 .as_ref()
                 .map_or(lambda.clone(), |name| format!("{name} =: {lambda}"))
         }
+    }
+}
+
+fn display_game_element(element: &GameElement) -> String {
+    match element {
+        GameElement::Finite(game) => display_game(game),
+        GameElement::Graph(reference) if !reference.graph.name.is_empty() => {
+            let mut anchors = HashMap::new();
+            anchors.insert(graph_key(reference), reference.graph.name.clone());
+            format!(
+                "{} =: {}",
+                reference.graph.name,
+                display_graph_node(reference, &anchors, true, &mut HashSet::new())
+            )
+        }
+        GameElement::Graph(reference) => display_composite_graph(reference),
+    }
+}
+
+fn display_composite_graph(reference: &GraphRef) -> String {
+    let mut external = Vec::new();
+    collect_external_cycles(reference, &mut HashSet::new(), &mut external);
+    if external.is_empty() {
+        return display_graph_node(reference, &HashMap::new(), true, &mut HashSet::new());
+    }
+    let mut anchors = HashMap::new();
+    for cycle in &external {
+        anchors
+            .entry(graph_key(cycle))
+            .or_insert_with(|| cycle.graph.name.clone());
+    }
+    let mut parts = external
+        .iter()
+        .map(|cycle| {
+            format!(
+                "{} =: {}",
+                cycle.graph.name,
+                display_graph_node(cycle, &anchors, true, &mut HashSet::new())
+            )
+        })
+        .collect::<Vec<_>>();
+    parts.push(display_graph_node(
+        reference,
+        &anchors,
+        true,
+        &mut HashSet::new(),
+    ));
+    format!("({})", parts.join("; "))
+}
+
+fn collect_external_cycles(
+    reference: &GraphRef,
+    visited: &mut HashSet<(usize, usize)>,
+    out: &mut Vec<GraphRef>,
+) {
+    if !visited.insert(graph_key(reference)) {
+        return;
+    }
+    let node = &reference.graph.nodes[reference.node];
+    for edge in node.left.iter().chain(&node.right) {
+        match edge {
+            RegularGameEdge::Local(node) => collect_external_cycles(
+                &GraphRef {
+                    graph: reference.graph.clone(),
+                    node: *node,
+                },
+                visited,
+                out,
+            ),
+            RegularGameEdge::External(external) => {
+                if external.graph.name.is_empty() {
+                    collect_external_cycles(external, visited, out);
+                } else if !out
+                    .iter()
+                    .any(|found| graph_key(found) == graph_key(external))
+                {
+                    out.push(external.clone());
+                }
+            }
+            RegularGameEdge::Finite(_) => {}
+        }
+    }
+}
+
+fn display_graph_node(
+    reference: &GraphRef,
+    anchors: &HashMap<GraphKey, String>,
+    expand_root: bool,
+    active: &mut HashSet<GraphKey>,
+) -> String {
+    let key = graph_key(reference);
+    if !expand_root {
+        if let Some(name) = anchors.get(&key) {
+            return name.clone();
+        }
+    }
+    if !active.insert(key) {
+        return anchors
+            .get(&key)
+            .cloned()
+            .unwrap_or_else(|| reference.graph.name.clone());
+    }
+    let node = &reference.graph.nodes[reference.node];
+    let left = node
+        .left
+        .iter()
+        .map(|edge| display_regular_edge(reference, edge, anchors, active))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let right = node
+        .right
+        .iter()
+        .map(|edge| display_regular_edge(reference, edge, anchors, active))
+        .collect::<Vec<_>>()
+        .join(", ");
+    active.remove(&key);
+    display_raw_game_form(&left, &right)
+}
+
+fn display_regular_edge(
+    owner: &GraphRef,
+    edge: &RegularGameEdge,
+    anchors: &HashMap<GraphKey, String>,
+    active: &mut HashSet<GraphKey>,
+) -> String {
+    match edge {
+        RegularGameEdge::Finite(game) => display_game(game),
+        RegularGameEdge::Local(node) => display_graph_node(
+            &GraphRef {
+                graph: owner.graph.clone(),
+                node: *node,
+            },
+            anchors,
+            false,
+            active,
+        ),
+        RegularGameEdge::External(reference) => {
+            display_graph_node(reference, anchors, false, active)
+        }
+    }
+}
+
+fn display_raw_game_form(left: &str, right: &str) -> String {
+    match (left.is_empty(), right.is_empty()) {
+        (true, true) => "{|}".to_string(),
+        (false, true) => format!("{{{left} |}}"),
+        (true, false) => format!("{{| {right}}}"),
+        (false, false) => format!("{{{left} | {right}}}"),
     }
 }
 
@@ -1280,6 +1611,372 @@ fn append_game_spine(spine: &Game, tail: &Game) -> OghamResult<Game> {
     ))
 }
 
+fn build_game_form(left: Vec<GameElement>, right: Vec<GameElement>) -> OghamResult<GameElement> {
+    if left
+        .iter()
+        .chain(&right)
+        .all(|value| matches!(value, GameElement::Finite(_)))
+    {
+        let finite = |values: Vec<GameElement>| {
+            values
+                .into_iter()
+                .map(|value| match value {
+                    GameElement::Finite(game) => game,
+                    GameElement::Graph(_) => unreachable!("checked above"),
+                })
+                .collect()
+        };
+        return Ok(GameElement::Finite(Game::new(finite(left), finite(right))));
+    }
+    materialize_regular_game(
+        "",
+        SymbolicGame::Form {
+            left: left.into_iter().map(SymbolicGame::Value).collect(),
+            right: right.into_iter().map(SymbolicGame::Value).collect(),
+        },
+    )
+}
+
+fn append_game_element(spine: &GameElement, tail: &GameElement) -> OghamResult<GameElement> {
+    let GameElement::Finite(spine) = spine else {
+        return Err(OghamError::new(
+            OghamErrorKind::Improper,
+            Span::point(0),
+            "left operand of `⧺` is cyclic; the coinductive candidate is the left operand itself",
+        ));
+    };
+    if let GameElement::Finite(tail) = tail {
+        return append_game_spine(spine, tail).map(GameElement::Finite);
+    }
+    append_symbolic_spine(&spine_as_element(spine), SymbolicGame::Value(tail.clone()))
+        .and_then(|value| materialize_regular_game("", value))
+}
+
+fn spine_as_element(game: &Game) -> GameElement {
+    GameElement::Finite(game.clone())
+}
+
+fn append_symbolic_spine(spine: &GameElement, tail: SymbolicGame) -> OghamResult<SymbolicGame> {
+    let GameElement::Finite(spine) = spine else {
+        return Err(OghamError::new(
+            OghamErrorKind::Improper,
+            Span::point(0),
+            "left operand of `⧺` must be a finite proper spine",
+        ));
+    };
+    if spine.left().is_empty() && spine.right().is_empty() {
+        return Ok(tail);
+    }
+    if spine.left().len() == 1 && spine.right().len() == 1 {
+        return Ok(SymbolicGame::Form {
+            left: vec![SymbolicGame::Value(GameElement::Finite(
+                spine.left()[0].clone(),
+            ))],
+            right: vec![append_symbolic_spine(
+                &GameElement::Finite(spine.right()[0].clone()),
+                tail,
+            )?],
+        });
+    }
+    Err(OghamError::new(
+        OghamErrorKind::Improper,
+        Span::point(0),
+        "left operand of `⧺` must be a finite proper spine",
+    ))
+}
+
+fn materialize_regular_game(name: &str, root: SymbolicGame) -> OghamResult<GameElement> {
+    if matches!(root, SymbolicGame::SelfRef) {
+        return Err(unfounded_error(name));
+    }
+    if let SymbolicGame::Value(value) = root {
+        return Ok(value);
+    }
+    let mut nodes = Vec::new();
+    materialize_symbolic_node(&root, &mut nodes)?;
+    let drawn = classify_regular_nodes(&nodes);
+    Ok(GameElement::Graph(GraphRef {
+        graph: Arc::new(RegularGameGraph {
+            name: name.to_string(),
+            nodes,
+            drawn,
+        }),
+        node: 0,
+    }))
+}
+
+fn materialize_symbolic_node(
+    value: &SymbolicGame,
+    nodes: &mut Vec<RegularGameNode>,
+) -> OghamResult<usize> {
+    let SymbolicGame::Form { left, right } = value else {
+        return Err(OghamError::new(
+            OghamErrorKind::Unfounded,
+            Span::point(0),
+            "an Element fixpoint must reduce to a brace constructor",
+        ));
+    };
+    let index = nodes.len();
+    nodes.push(RegularGameNode {
+        left: Vec::new(),
+        right: Vec::new(),
+    });
+    let left = left
+        .iter()
+        .map(|item| materialize_symbolic_edge(item, nodes))
+        .collect::<OghamResult<_>>()?;
+    let right = right
+        .iter()
+        .map(|item| materialize_symbolic_edge(item, nodes))
+        .collect::<OghamResult<_>>()?;
+    nodes[index] = RegularGameNode { left, right };
+    Ok(index)
+}
+
+fn materialize_symbolic_edge(
+    value: &SymbolicGame,
+    nodes: &mut Vec<RegularGameNode>,
+) -> OghamResult<RegularGameEdge> {
+    match value {
+        SymbolicGame::SelfRef => Ok(RegularGameEdge::Local(0)),
+        SymbolicGame::Value(GameElement::Finite(game)) => Ok(RegularGameEdge::Finite(game.clone())),
+        SymbolicGame::Value(GameElement::Graph(reference)) => {
+            Ok(RegularGameEdge::External(reference.clone()))
+        }
+        SymbolicGame::Form { .. } => {
+            materialize_symbolic_node(value, nodes).map(RegularGameEdge::Local)
+        }
+    }
+}
+
+#[derive(Clone)]
+enum ClassificationPosition {
+    Current(usize),
+    External(GraphRef),
+    Finite(Game),
+}
+
+fn classify_regular_nodes(nodes: &[RegularGameNode]) -> Vec<bool> {
+    let mut positions = (0..nodes.len())
+        .map(ClassificationPosition::Current)
+        .collect::<Vec<_>>();
+    let mut external = HashMap::new();
+    let mut left = vec![Vec::new(); positions.len()];
+    let mut right = vec![Vec::new(); positions.len()];
+    let mut cursor = 0;
+    while cursor < positions.len() {
+        let (left_edges, right_edges) = match positions[cursor].clone() {
+            ClassificationPosition::Current(node) => {
+                (nodes[node].left.clone(), nodes[node].right.clone())
+            }
+            ClassificationPosition::External(reference) => {
+                let node = &reference.graph.nodes[reference.node];
+                let adapt = |edge: &RegularGameEdge| match edge {
+                    RegularGameEdge::Local(node) => RegularGameEdge::External(GraphRef {
+                        graph: reference.graph.clone(),
+                        node: *node,
+                    }),
+                    edge => edge.clone(),
+                };
+                (
+                    node.left.iter().map(adapt).collect(),
+                    node.right.iter().map(adapt).collect(),
+                )
+            }
+            ClassificationPosition::Finite(game) => (
+                game.left()
+                    .iter()
+                    .cloned()
+                    .map(RegularGameEdge::Finite)
+                    .collect(),
+                game.right()
+                    .iter()
+                    .cloned()
+                    .map(RegularGameEdge::Finite)
+                    .collect(),
+            ),
+        };
+        left[cursor] = classification_edges(
+            left_edges,
+            &mut positions,
+            &mut left,
+            &mut right,
+            &mut external,
+        );
+        right[cursor] = classification_edges(
+            right_edges,
+            &mut positions,
+            &mut left,
+            &mut right,
+            &mut external,
+        );
+        cursor += 1;
+    }
+    let draw_set = LoopyPartizanGraph::new(left, right)
+        .draw_set()
+        .into_iter()
+        .collect::<HashSet<_>>();
+    (0..nodes.len())
+        .map(|node| draw_set.contains(&node))
+        .collect()
+}
+
+fn classification_edges(
+    edges: Vec<RegularGameEdge>,
+    positions: &mut Vec<ClassificationPosition>,
+    left: &mut Vec<Vec<usize>>,
+    right: &mut Vec<Vec<usize>>,
+    external: &mut HashMap<GraphKey, usize>,
+) -> Vec<usize> {
+    edges
+        .into_iter()
+        .map(|edge| match edge {
+            RegularGameEdge::Local(node) => node,
+            RegularGameEdge::Finite(game) => {
+                let index = positions.len();
+                positions.push(ClassificationPosition::Finite(game));
+                left.push(Vec::new());
+                right.push(Vec::new());
+                index
+            }
+            RegularGameEdge::External(reference) => {
+                let key = graph_key(&reference);
+                *external.entry(key).or_insert_with(|| {
+                    let index = positions.len();
+                    positions.push(ClassificationPosition::External(reference));
+                    left.push(Vec::new());
+                    right.push(Vec::new());
+                    index
+                })
+            }
+        })
+        .collect()
+}
+
+fn game_options(element: &GameElement, left: bool) -> Vec<GameElement> {
+    match element {
+        GameElement::Finite(game) => {
+            let options = if left { game.left() } else { game.right() };
+            options.iter().cloned().map(GameElement::Finite).collect()
+        }
+        GameElement::Graph(reference) => {
+            let node = &reference.graph.nodes[reference.node];
+            let edges = if left { &node.left } else { &node.right };
+            edges
+                .iter()
+                .map(|edge| match edge {
+                    RegularGameEdge::Finite(game) => GameElement::Finite(game.clone()),
+                    RegularGameEdge::Local(node) => GameElement::Graph(GraphRef {
+                        graph: reference.graph.clone(),
+                        node: *node,
+                    }),
+                    RegularGameEdge::External(reference) => GameElement::Graph(reference.clone()),
+                })
+                .collect()
+        }
+    }
+}
+
+fn game_element_drawn(element: &GameElement) -> bool {
+    match element {
+        GameElement::Finite(_) => false,
+        GameElement::Graph(reference) => reference.graph.drawn[reference.node],
+    }
+}
+
+fn game_element_regular_eq(lhs: &GameElement, rhs: &GameElement) -> bool {
+    regular_eq_inner(lhs, rhs, &mut HashSet::new(), &mut HashSet::new())
+}
+
+fn regular_eq_inner(
+    lhs: &GameElement,
+    rhs: &GameElement,
+    visited: &mut HashSet<GraphPair>,
+    mixed: &mut HashSet<GraphKey>,
+) -> bool {
+    match (lhs, rhs) {
+        (GameElement::Finite(lhs), GameElement::Finite(rhs)) => {
+            game_structural_eq_ordered(lhs, rhs)
+        }
+        (GameElement::Graph(lhs), GameElement::Graph(rhs)) => {
+            if !visited.insert((graph_key(lhs), graph_key(rhs))) {
+                return true;
+            }
+            regular_options_eq(lhs, rhs, true, visited, mixed)
+                && regular_options_eq(lhs, rhs, false, visited, mixed)
+        }
+        (GameElement::Graph(graph), GameElement::Finite(finite))
+        | (GameElement::Finite(finite), GameElement::Graph(graph)) => {
+            if !mixed.insert(graph_key(graph)) {
+                return false;
+            }
+            let graph_value = GameElement::Graph(graph.clone());
+            let finite_value = GameElement::Finite(finite.clone());
+            let result = [true, false].into_iter().all(|left| {
+                let graph_options = game_options(&graph_value, left);
+                let finite_options = game_options(&finite_value, left);
+                graph_options.len() == finite_options.len()
+                    && graph_options
+                        .iter()
+                        .zip(&finite_options)
+                        .all(|(lhs, rhs)| regular_eq_inner(lhs, rhs, visited, mixed))
+            });
+            mixed.remove(&graph_key(graph));
+            result
+        }
+    }
+}
+
+fn regular_options_eq(
+    lhs: &GraphRef,
+    rhs: &GraphRef,
+    left: bool,
+    visited: &mut HashSet<GraphPair>,
+    mixed: &mut HashSet<GraphKey>,
+) -> bool {
+    let lhs = game_options(&GameElement::Graph(lhs.clone()), left);
+    let rhs = game_options(&GameElement::Graph(rhs.clone()), left);
+    lhs.len() == rhs.len()
+        && lhs
+            .iter()
+            .zip(&rhs)
+            .all(|(lhs, rhs)| regular_eq_inner(lhs, rhs, visited, mixed))
+}
+
+fn graph_key(reference: &GraphRef) -> GraphKey {
+    (Arc::as_ptr(&reference.graph) as usize, reference.node)
+}
+
+fn game_mu_call_key(name: &str, body: &Expr, args: &[Value<GameElement>]) -> String {
+    let args = args
+        .iter()
+        .map(|arg| match arg {
+            Value::Element(GameElement::Finite(game)) => format!("e:{}", display_game(game)),
+            Value::Element(GameElement::Graph(reference)) => {
+                let (graph, node) = graph_key(reference);
+                format!("g:{graph}:{node}")
+            }
+            Value::Index(value) => format!("i:{value}"),
+            Value::Bool(value) => format!("b:{value}"),
+            Value::Function(_) => "f".to_string(),
+        })
+        .collect::<Vec<_>>()
+        .join("|");
+    format!("{name}:{}@{args}", super::unparse::unparse_expr(body))
+}
+
+fn unfounded_error(name: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::Unfounded,
+        Span::point(0),
+        format!("Element fixpoint `{name}` is not guarded by a brace constructor"),
+    )
+}
+
+fn loopy_error(message: &str) -> OghamError {
+    OghamError::new(OghamErrorKind::Loopy, Span::point(0), message)
+}
+
 fn game_option_index(name: &str, index: i128) -> OghamResult<usize> {
     usize::try_from(index).map_err(|_| domain(format!("{name} option index must be non-negative")))
 }
@@ -1292,7 +1989,7 @@ fn refine_game_binder_sorts(
     expr: &Expr,
     binders: &[String],
     sorts: &mut [Sort],
-    env: &BTreeMap<String, Value<Game>>,
+    env: &BTreeMap<String, Value<GameElement>>,
 ) {
     match expr {
         Expr::Relation { lhs, rhs, .. } => {
@@ -1390,7 +2087,7 @@ fn mark_game_expr_sort(expr: &Expr, sort: Sort, binders: &[String], sorts: &mut 
     }
 }
 
-fn game_known_sort(expr: &Expr, env: &BTreeMap<String, Value<Game>>) -> Option<Sort> {
+fn game_known_sort(expr: &Expr, env: &BTreeMap<String, Value<GameElement>>) -> Option<Sort> {
     match expr {
         Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
             Some(Sort::Index)
@@ -1416,7 +2113,7 @@ fn game_known_sort(expr: &Expr, env: &BTreeMap<String, Value<Game>>) -> Option<S
 
 fn game_function_expr_return_sort(
     expr: &Expr,
-    env: &BTreeMap<String, Value<Game>>,
+    env: &BTreeMap<String, Value<GameElement>>,
 ) -> Option<Sort> {
     match expr {
         Expr::Ident(name) => match env.get(name) {
@@ -1446,7 +2143,7 @@ fn game_function_expr_return_sort(
 
 fn game_return_sort_hint(
     body: &Expr,
-    env: &BTreeMap<String, Value<Game>>,
+    env: &BTreeMap<String, Value<GameElement>>,
     mu_name: Option<&str>,
 ) -> Option<Sort> {
     if bool_shaped(body) {
@@ -1566,7 +2263,11 @@ fn contains_game_unit_step(expr: &Expr) -> bool {
             op: BinaryOp::Add | BinaryOp::Sub,
             lhs,
             rhs,
-        } if matches!(&**lhs, Expr::Ident(_)) && matches!(&**rhs, Expr::Int(1)) => true,
+        } if (matches!(&**lhs, Expr::Ident(_)) && matches!(&**rhs, Expr::Int(1)))
+            || matches!(&**lhs, Expr::Int(1)) =>
+        {
+            true
+        }
         Expr::Block { bindings, body } => {
             bindings
                 .iter()
@@ -1657,6 +2358,7 @@ struct PolyRuntime<S: PolyWorldCoeff> {
     env: BTreeMap<String, Value<Poly<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    validation_stub_names: BTreeSet<String>,
 }
 
 impl<S: PolyWorldCoeff> PolyRuntime<S> {
@@ -1666,6 +2368,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            validation_stub_names: BTreeSet::new(),
         }
     }
 
@@ -1998,6 +2701,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
         })?;
         let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
         bound.extend(mu_name.iter().cloned());
+        bound.extend(self.validation_stub_names.iter().cloned());
         let substituted = substitute_env(&body, &bound, &self.env)?;
         let body = beta_normalize(substituted)?;
         let (binder_sorts, ret) = infer_function_signature(&body, &binders)?;
@@ -2011,7 +2715,19 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             ret,
             mu_name,
         };
-        if function.mu_name.is_none() {
+        if let Some(name) = &function.mu_name {
+            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+            let previous = self.env.insert(name.clone(), Value::Function(stub));
+            self.validation_stub_names.insert(name.clone());
+            let validation = self.validate_function_body(&function);
+            self.validation_stub_names.remove(name);
+            if let Some(previous) = previous {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+            validation?;
+        } else {
             self.validate_function_body(&function)?;
         }
         Ok(function)
@@ -2031,16 +2747,25 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             Expr::Lambda { .. } => return Err(fn_sort_error()),
             Expr::Block { bindings, body } => {
                 let saved = self.env.clone();
+                let saved_validation_stubs = self.validation_stub_names.clone();
                 let result = (|| {
                     for binding in bindings {
                         if !matches!(binding.expr, Expr::Lambda { .. }) {
                             self.validate_all(&binding.expr)?;
                         }
                         self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                        if let Some(Value::Function(function)) =
+                            self.env.get(&binding.name).cloned()
+                        {
+                            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+                            self.env.insert(binding.name.clone(), Value::Function(stub));
+                            self.validation_stub_names.insert(binding.name.clone());
+                        }
                     }
                     self.validate_all(body)
                 })();
                 self.env = saved;
+                self.validation_stub_names = saved_validation_stubs;
                 result?;
             }
             Expr::Ternary {
@@ -2338,6 +3063,7 @@ struct RatFuncRuntime<S: OghamScalar + ExactFieldScalar> {
     env: BTreeMap<String, Value<RationalFunction<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    validation_stub_names: BTreeSet<String>,
 }
 
 impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
@@ -2347,6 +3073,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            validation_stub_names: BTreeSet::new(),
         }
     }
 
@@ -2688,6 +3415,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         })?;
         let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
         bound.extend(mu_name.iter().cloned());
+        bound.extend(self.validation_stub_names.iter().cloned());
         let substituted = substitute_env(&body, &bound, &self.env)?;
         let body = beta_normalize(substituted)?;
         let (binder_sorts, ret) = infer_function_signature(&body, &binders)?;
@@ -2701,7 +3429,19 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             ret,
             mu_name,
         };
-        if function.mu_name.is_none() {
+        if let Some(name) = &function.mu_name {
+            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+            let previous = self.env.insert(name.clone(), Value::Function(stub));
+            self.validation_stub_names.insert(name.clone());
+            let validation = self.validate_function_body(&function);
+            self.validation_stub_names.remove(name);
+            if let Some(previous) = previous {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+            validation?;
+        } else {
             self.validate_function_body(&function)?;
         }
         Ok(function)
@@ -2721,16 +3461,25 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             Expr::Lambda { .. } => return Err(fn_sort_error()),
             Expr::Block { bindings, body } => {
                 let saved = self.env.clone();
+                let saved_validation_stubs = self.validation_stub_names.clone();
                 let result = (|| {
                     for binding in bindings {
                         if !matches!(binding.expr, Expr::Lambda { .. }) {
                             self.validate_all(&binding.expr)?;
                         }
                         self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                        if let Some(Value::Function(function)) =
+                            self.env.get(&binding.name).cloned()
+                        {
+                            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+                            self.env.insert(binding.name.clone(), Value::Function(stub));
+                            self.validation_stub_names.insert(binding.name.clone());
+                        }
                     }
                     self.validate_all(body)
                 })();
                 self.env = saved;
+                self.validation_stub_names = saved_validation_stubs;
                 result?;
             }
             Expr::Ternary {
@@ -3040,6 +3789,7 @@ struct Runtime<S: OghamScalar> {
     env: BTreeMap<String, Value<Multivector<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    validation_stub_names: BTreeSet<String>,
 }
 
 impl<S: OghamScalar> Runtime<S> {
@@ -3050,6 +3800,7 @@ impl<S: OghamScalar> Runtime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            validation_stub_names: BTreeSet::new(),
         }
     }
 
@@ -3356,6 +4107,7 @@ impl<S: OghamScalar> Runtime<S> {
         })?;
         let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
         bound.extend(mu_name.iter().cloned());
+        bound.extend(self.validation_stub_names.iter().cloned());
         let substituted = substitute_env(&body, &bound, &self.env)?;
         let body = beta_normalize(substituted)?;
         let (binder_sorts, ret) = infer_function_signature(&body, &binders)?;
@@ -3369,7 +4121,19 @@ impl<S: OghamScalar> Runtime<S> {
             ret,
             mu_name,
         };
-        if function.mu_name.is_none() {
+        if let Some(name) = &function.mu_name {
+            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+            let previous = self.env.insert(name.clone(), Value::Function(stub));
+            self.validation_stub_names.insert(name.clone());
+            let validation = self.validate_function_body(&function);
+            self.validation_stub_names.remove(name);
+            if let Some(previous) = previous {
+                self.env.insert(name.clone(), previous);
+            } else {
+                self.env.remove(name);
+            }
+            validation?;
+        } else {
             self.validate_function_body(&function)?;
         }
         Ok(function)
@@ -3389,16 +4153,25 @@ impl<S: OghamScalar> Runtime<S> {
             Expr::Lambda { .. } => return Err(fn_sort_error()),
             Expr::Block { bindings, body } => {
                 let saved = self.env.clone();
+                let saved_validation_stubs = self.validation_stub_names.clone();
                 let result = (|| {
                     for binding in bindings {
                         if !matches!(binding.expr, Expr::Lambda { .. }) {
                             self.validate_all(&binding.expr)?;
                         }
                         self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                        if let Some(Value::Function(function)) =
+                            self.env.get(&binding.name).cloned()
+                        {
+                            let stub = validation_stub(&function, self.sample_expr(function.ret)?);
+                            self.env.insert(binding.name.clone(), Value::Function(stub));
+                            self.validation_stub_names.insert(binding.name.clone());
+                        }
                     }
                     self.validate_all(body)
                 })();
                 self.env = saved;
+                self.validation_stub_names = saved_validation_stubs;
                 result?;
             }
             Expr::Ternary {
