@@ -1,12 +1,13 @@
-# ogham conformance corpus — v2.1 (hand-verified, 2026-06-12)
+# ogham conformance corpus — v3.0 (hand-verified, shipped 2026-07-09)
 # Format: docs/ogham/ogham.md §14, plus `>>` continuation lines for joined
-# open-paren/open-bracket inputs.
+# open-paren/open-bracket/open-brace inputs.
 #   @world ‹args as after ":world"›   resets bindings
+#   @fuel ‹u128›                      sets the per-statement μ-step budget
 #   > input        ~ canonical echo (optional)        = value display
 #   ! E_Kind: message-substring
-# Every vector below is hand-verified against standard nim/surreal arithmetic
-# and the Display v2 rules. The --bless harness mode may APPEND engine-generated
-# vectors; it must never modify this hand-verified prefix.
+# Every vector below was hand-verified against its governing spec and standard
+# mathematics, then run against the shipped engine. The --bless harness mode may
+# APPEND engine-generated vectors; it must never modify this hand-verified prefix.
 
 # ---------------------------------------------------------------- nimber, scalars
 @world nimber 0
@@ -914,3 +915,464 @@
 # canonical display is single-line regardless of input layout
 > norm1
 = (u, v) ↦ (s := u + v; d := u - v; s⋅s + d⋅d)
+
+# ============================================================ 19.1/19.2 — =: and fuel
+@world integer 0
+
+> fact =: n ~ (n = 0 ? 1 : n.fact@(n - 1))
+~ fact =: n ↦ n = 0 ? 1 : n⋅fact@(n - 1)
+
+> fact@5
+= 120
+
+> fact@0
+= 1
+
+# fact is a closed μ-value: the equation form round-trips
+> fact
+= fact =: n ↦ n = 0 ? 1 : n⋅fact@(n - 1)
+
+> fib =: n ↦ n < 2 ? n : fib@(n - 1) + fib@(n - 2)
+
+> fib@10
+= 55
+
+# fuel meters STEPS, not depth: fib@25 has depth ~25 but ~240k unfoldings.
+# A depth budget would sail past this; a step budget catches the hang.
+@fuel 5000
+> fib@25
+! E_Fuel:
+
+@fuel 65536
+
+# =: with no self-mention degenerates to := exactly (any sort, any world)
+> c =: 5
+
+> c
+= 5
+
+# the rebind idiom still works and capture stays visible (§17.3)
+> f := n ↦ n + 1
+
+> f := n ↦ f@n + 1
+
+> f
+= n ↦ n + 1 + 1
+
+> f@1
+= 3
+
+# := with a self-mention: unbound, hint points at =:
+> g := n ↦ g@n
+! E_Unbound:
+
+# Element-sorted =: with a self-mention outside the game world: no fixpoint
+# theory, no fixpoint syntax
+> x =: x + 1
+! E_WrongWorld:
+
+# local =: in a body sequence (§18 + §19.1)
+> tri := (h =: k ↦ k = 0 ? 0 : k + h@(k - 1); h@4)
+
+> tri
+= 10
+
+# game-world-only operators parse everywhere, fail world-legality here
+> 1 ≡ 1
+! E_WrongWorld:
+
+> 1 ⧺ 2
+! E_WrongWorld:
+
+> {1 | 0}
+! E_WrongWorld:
+
+# ============================================================ 19.3 — the array container
+@world fp7 3 q=[1,1,1]
+
+> dim()
+= 3
+
+> coef([1, 2, 3], 1)
+= 2
+
+# + is zip-with-add on arrays, and coef reads it back
+> coef([1, 2, 3] + [1, 1, 1], 0)
+= 2
+
+# coef is total in the Element: no e0 term in a bivector
+> coef(e0∧e1, 0)
+= 0
+
+> coef([1, 2, 3], 5)
+! E_BladeIndex:
+
+# the array acceptance example: dot by Index recursion (32 ≡ 4 mod 7)
+> dot =: (u, v, i) ↦ i = dim() ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+
+> dot@([1, 2, 3], [4, 5, 6], 0)
+= 4
+
+@world poly2
+
+> dim()
+! E_WrongWorld:
+
+# ============================================================ 19.4 — game world: literals, display
+@world game
+
+> {|}
+= 0
+
+> 2
+= 2
+
+# structural recognition: {1 |} IS the form the literal 2 builds
+> {1 |}
+= 2
+
+> {| 0}
+= -1
+
+> -2
+= -2
+
+> *2
+= *2
+
+> *
+~ *1
+= *1
+
+# a switch stays structural — display never canonicalizes values
+> {5 | 0}
+= {5 | 0}
+
+> {0 | 1}
+= {0 | 1}
+
+# + materializes the SUM FORM; value identity is said with = or canon
+> 1 + 1
+= {1, 1 |}
+
+> canon(1 + 1)
+= 2
+
+> 1 + 1 = 2
+= true
+
+# relations are the full CGT partial order ({0 |} is the integer 1)
+> {0 |} > 0
+= true
+
+# standard: ∗ ∥ 0
+> *1 | 0
+= true
+
+# standard: nim sum *2 + *3 = *1 (value-level; the sum form is not the
+# nimber form, so display recognition does not fire on *2 + *3 bare)
+> *2 + *3 = *1
+= true
+
+> canon(*2 + *3)
+= *1
+
+# up() = {0 | *1}, down() = {*1 | 0}; standard: ↑ > 0, ↑ ∥ ∗, ⇑ > ∗
+> up()
+= {0 | *1}
+
+> up() > 0
+= true
+
+> up() | *1
+= true
+
+> up() + up() > *1
+= true
+
+> down() < 0
+= true
+
+# the founding scope boundary, enforced: games are a group, not a ring
+> *2 ⋅ *3
+! E_WrongWorld:
+
+# no metric, no blades — the wedge hint points at ⧺
+> {1 | 0} ∧ {2 | 0}
+! E_WrongWorld:
+
+> [1, 2]
+! E_WrongWorld:
+
+> ω
+! E_WrongWorld:
+
+# ============================================================ 19.4.3 — the second equality
+# standard: {-1 | 1} = 0 by the simplicity rule; structurally it is a cons
+> {-1 | 1} = 0
+= true
+
+> {-1 | 1} ≡ 0
+= false
+
+> {-1 | 1} === {-1 | 1}
+~ {-1 | 1} ≡ {-1 | 1}
+= true
+
+> canon({-1 | 1})
+= 0
+
+# the two equalities, related in the language: a = b ⟺ canon(a) ≡ canon(b)
+> canon({-1 | 1}) ≡ canon({|})
+= true
+
+> canon({0 |}) ≡ canon({|})
+= false
+
+# ============================================================ 19.4.5 — lists
+# barless braces are list literals (input-only sugar; the echo teaches)
+> {1, 2, 3}
+~ {1 | {2 | {3 | 0}}}
+= {1 | {2 | {3 | 0}}}
+
+> {}
+~ {|}
+= 0
+
+# nesting gives trees
+> {{1, 2}, 3}
+~ {{1 | {2 | 0}} | {3 | 0}}
+= {{1 | {2 | 0}} | {3 | 0}}
+
+# the missing-bar footgun, made visible: {1, 2 |} is NOT the list {1, 2}
+> {1, 2 |}
+= {1, 2 |}
+
+# option access
+> nleft({1, 2 | 0, 3})
+= 2
+
+> right({1, 2 | 0, 3}, 1)
+= 3
+
+> left({1, 2 | 0, 3}, 5)
+! E_Domain:
+
+# the list prelude is definable in-language — no new stdlib
+> hd := l ↦ left(l, 0)
+
+> tl := l ↦ right(l, 0)
+
+> isnil := l ↦ nleft(l) = 0 and nright(l) = 0
+
+> hd@{7, 8}
+~ hd@{7 | {8 | 0}}
+= 7
+
+> tl@{7, 8}
+~ tl@{7 | {8 | 0}}
+= {8 | 0}
+
+> hd@(tl@{7, 8})
+~ hd@(tl@{7 | {8 | 0}})
+= 8
+
+> isnil@{}
+~ isnil@{|}
+= true
+
+# isnil is structural; = 0 is NOT a nil test ({-1 | 1} = 0 above)
+> isnil@{-1 | 1}
+= false
+
+# ---- ⧺ append (right-assoc; unit {|}; form-level, not a =-congruence)
+> {1, 2} ++ {3}
+~ {1 | {2 | 0}} ⧺ {3 | 0}
+= {1 | {2 | {3 | 0}}}
+
+> {|} ⧺ {5 | 0}
+= {5 | 0}
+
+> {5 | 0} ⧺ {|}
+= {5 | 0}
+
+# right operand unrestricted: Lisp's dotted-pair freedom
+> {1 | 0} ⧺ *2
+= {1 | *2}
+
+# right-assoc chain needs no parens
+> {1 | 0} ⧺ {2 | 0} ⧺ {3 | 0}
+= {1 | {2 | {3 | 0}}}
+
+# left operand must be a finite proper spine
+> {0 |} ⧺ {|}
+! E_Improper:
+
+# the congruence failure, concrete: {-1 | 1} = 0, yet 0 appends and this errors
+> {-1 | 1} ⧺ {|}
+! E_Improper:
+
+# + is game sum, not append (sum of nils is nil; see the {1, 1 |} vector)
+> {|} + {|}
+= 0
+
+# ============================================================ 19.4.5 — grundy (the acceptance example)
+> grundy =: g ↦ (
+>>   has =: (n, i) ↦ not i = nleft(g) and
+>>                   (grundy@(left(g, i)) = n or has@(n, i + 1));
+>>   mexfrom =: n ↦ has@(n, 0) ? mexfrom@(n + 1) : n;
+>>   mexfrom@0
+>> )
+
+> grundy@{|}
+= 0
+
+> grundy@{0 | 0}
+= 1
+
+> grundy@*2
+= 2
+
+# mex over left-option grundies {0, 1} = 2
+> grundy@{0, {0 | 0} | 0}
+= 2
+
+# ============================================================ 19.5 — loopy: Element-=:
+> on =: {on |}
+
+> on
+= on =: {on |}
+
+> off =: {| off}
+
+> dud =: {dud | dud}
+
+> over =: {0 | over}
+
+# =: with no self-mention degenerates to := in this world too
+> z =: {1 | 0}
+
+> z
+= {1 | 0}
+
+# standard: dud draws for both movers; on and over are Left wins, no draw
+> drawn(dud)
+= true
+
+> drawn(on)
+= false
+
+> drawn(over)
+= false
+
+# drawn is total on finite forms
+> drawn({1, 2})
+~ drawn({1 | {2 | 0}})
+= false
+
+# ---- streams are loopy games
+> ones =: {1 | ones}
+
+# alternation: the mover who faces ones wins by walking into 1 — no draw
+> drawn(ones)
+= false
+
+> hd@ones
+= 1
+
+# tl of the constant stream is the root itself: equation display
+> tl@ones
+= ones =: {1 | ones}
+
+> ones ≡ tl@ones
+= true
+
+# purely periodic via ⧺: guardedness-transparent from the left (§19.5)
+> l =: {1, 2} ++ l
+~ l =: {1 | {2 | 0}} ⧺ l
+
+> l
+= l =: {1 | {2 | l}}
+
+> hd@l
+= 1
+
+> hd@(tl@l)
+= 2
+
+> hd@(tl@(tl@l))
+= 1
+
+# regular-tree ≡: the period-2 cycle re-entered
+> l ≡ tl@(tl@l)
+= true
+
+# interior node: re-rooted equation, α-bound defining name
+> tl@l
+= l =: {2 | {1 | l}}
+
+> drawn(l)
+= false
+
+# eventually periodic: local =: in a body; composite display is a §18 body
+> p := (q =: {1, 2} ⧺ q; {9} ⧺ q)
+~ p := (q =: {1 | {2 | 0}} ⧺ q; {9 | 0} ⧺ q)
+
+> p
+= (q =: {1 | {2 | q}}; {9 | q})
+
+> hd@p
+= 9
+
+> hd@(tl@p)
+= 1
+
+# the self-ELEMENT circular list (sugar nil-terminates; self-tail needs ⧺)
+> se =: {1, se}
+~ se =: {1 | {se | 0}}
+
+> se
+= se =: {1 | {se | 0}}
+
+# ---- guardedness edges (checked after definition-time reduction)
+> g =: g
+! E_Unfounded:
+
+# nil is append's unit: unfolds to h =: h
+> h =: {|} ⧺ h
+! E_Unfounded:
+
+# ⧺ is transparent from the LEFT only
+> k =: k ⧺ {1 | 0}
+! E_Unfounded:
+
+# sums stay behind the stopper boundary
+> m =: m + 1
+! E_Unfounded:
+
+# ---- the 3.0 loopy envelope (conservative; loosening owed, never breaking)
+> ones = ones
+! E_Loopy:
+
+> ones + {1 | 0}
+! E_Loopy:
+
+> canon(ones)
+! E_Loopy:
+
+> -ones
+! E_Loopy:
+
+# cyclic left operand of ⧺: the coinductive value is recorded, not shipped
+> ones ⧺ {5 | 0}
+! E_Improper:
+
+# ---- fuel stays the verdict for μ-descent along infinite data
+> len =: m ↦ nleft(m) = 0 ? 0 : 1 + len@(right(m, 0))
+
+> len@{7, 8, 9}
+~ len@{7 | {8 | {9 | 0}}}
+= 3
+
+> len@ones
+! E_Fuel:

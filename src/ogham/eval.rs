@@ -13,10 +13,13 @@ use crate::scalar::{
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Display;
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 use std::sync::Arc;
 
 const DEFAULT_FUEL: u128 = 1 << 16;
+const RECURSION_DEPTH_GUARD: u128 = 1 << 10;
+const AST_DEPTH_GUARD: u128 = 3 << 9;
+const EVAL_STACK_BYTES: usize = 64 * 1024 * 1024;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EvalLine {
@@ -160,7 +163,31 @@ impl OghamSession {
     }
 
     pub fn eval_line(&mut self, src: &str) -> OghamResult<EvalLine> {
+        std::thread::scope(|scope| {
+            let worker = std::thread::Builder::new()
+                .name("ogham-eval".to_string())
+                .stack_size(EVAL_STACK_BYTES)
+                .spawn_scoped(scope, || self.eval_line_on_worker(src))
+                .map_err(|err| {
+                    OghamError::new(
+                        OghamErrorKind::Overflow,
+                        Span::point(0),
+                        format!(
+                            "unable to allocate the {EVAL_STACK_BYTES}-byte evaluation stack: {err}"
+                        ),
+                    )
+                })?;
+            match worker.join() {
+                Ok(result) => result,
+                Err(payload) => resume_unwind(payload),
+            }
+        })
+    }
+
+    fn eval_line_on_worker(&mut self, src: &str) -> OghamResult<EvalLine> {
+        ensure_source_nesting_depth(src)?;
         let stmt = parse_statement(src)?;
+        ensure_statement_depth(&stmt)?;
         let canonical = unparse_statement(&stmt);
         self.world.reset_fuel();
         let value = self.world.eval_statement(&stmt)?;
@@ -565,6 +592,7 @@ struct GameRuntime {
     fuel_budget: u128,
     fuel_remaining: u128,
     active_mu_calls: HashSet<String>,
+    recursion_depth: u128,
     validation_stub_names: BTreeSet<String>,
 }
 
@@ -575,6 +603,7 @@ impl GameRuntime {
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
             active_mu_calls: HashSet::new(),
+            recursion_depth: 0,
             validation_stub_names: BTreeSet::new(),
         }
     }
@@ -582,6 +611,7 @@ impl GameRuntime {
     fn reset_fuel(&mut self) {
         self.fuel_remaining = self.fuel_budget;
         self.active_mu_calls.clear();
+        self.recursion_depth = 0;
     }
 
     fn set_fuel_budget(&mut self, budget: u128) {
@@ -796,7 +826,7 @@ impl GameRuntime {
             .map(|name| game_mu_call_key(name, &function.body, &args));
         if call_key
             .as_ref()
-            .is_some_and(|key| !self.active_mu_calls.insert(key.clone()))
+            .is_some_and(|key| self.active_mu_calls.contains(key))
         {
             self.fuel_remaining = 0;
             return Err(OghamError::new(
@@ -808,6 +838,15 @@ impl GameRuntime {
                     self.fuel_budget
                 ),
             ));
+        }
+        let recursive_frame = enter_recursion_frame(
+            function,
+            &mut self.recursion_depth,
+            self.fuel_remaining,
+            self.fuel_budget,
+        )?;
+        if let Some(key) = &call_key {
+            self.active_mu_calls.insert(key.clone());
         }
         let mut previous_args = Vec::new();
         for (binder, arg) in function.binders.iter().zip(args.iter()) {
@@ -842,6 +881,7 @@ impl GameRuntime {
         if let Some(key) = call_key {
             self.active_mu_calls.remove(&key);
         }
+        leave_recursion_frame(recursive_frame, &mut self.recursion_depth);
         result
     }
 
@@ -2358,6 +2398,7 @@ struct PolyRuntime<S: PolyWorldCoeff> {
     env: BTreeMap<String, Value<Poly<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    recursion_depth: u128,
     validation_stub_names: BTreeSet<String>,
 }
 
@@ -2368,12 +2409,14 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            recursion_depth: 0,
             validation_stub_names: BTreeSet::new(),
         }
     }
 
     fn reset_fuel(&mut self) {
         self.fuel_remaining = self.fuel_budget;
+        self.recursion_depth = 0;
     }
 
     fn set_fuel_budget(&mut self, budget: u128) {
@@ -2607,6 +2650,12 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
         let body = substitute_names(&function.body, &replacements);
+        let recursive_frame = enter_recursion_frame(
+            function,
+            &mut self.recursion_depth,
+            self.fuel_remaining,
+            self.fuel_budget,
+        )?;
         let previous = function.mu_name.as_ref().map(|name| {
             self.env
                 .insert(name.clone(), Value::Function(function.clone()))
@@ -2619,6 +2668,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 self.env.remove(name);
             }
         }
+        leave_recursion_frame(recursive_frame, &mut self.recursion_depth);
         result
     }
 
@@ -3063,6 +3113,7 @@ struct RatFuncRuntime<S: OghamScalar + ExactFieldScalar> {
     env: BTreeMap<String, Value<RationalFunction<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    recursion_depth: u128,
     validation_stub_names: BTreeSet<String>,
 }
 
@@ -3073,12 +3124,14 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            recursion_depth: 0,
             validation_stub_names: BTreeSet::new(),
         }
     }
 
     fn reset_fuel(&mut self) {
         self.fuel_remaining = self.fuel_budget;
+        self.recursion_depth = 0;
     }
 
     fn set_fuel_budget(&mut self, budget: u128) {
@@ -3317,6 +3370,12 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
         let body = substitute_names(&function.body, &replacements);
+        let recursive_frame = enter_recursion_frame(
+            function,
+            &mut self.recursion_depth,
+            self.fuel_remaining,
+            self.fuel_budget,
+        )?;
         let previous = function.mu_name.as_ref().map(|name| {
             self.env
                 .insert(name.clone(), Value::Function(function.clone()))
@@ -3329,6 +3388,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 self.env.remove(name);
             }
         }
+        leave_recursion_frame(recursive_frame, &mut self.recursion_depth);
         result
     }
 
@@ -3789,6 +3849,7 @@ struct Runtime<S: OghamScalar> {
     env: BTreeMap<String, Value<Multivector<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    recursion_depth: u128,
     validation_stub_names: BTreeSet<String>,
 }
 
@@ -3800,12 +3861,14 @@ impl<S: OghamScalar> Runtime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            recursion_depth: 0,
             validation_stub_names: BTreeSet::new(),
         }
     }
 
     fn reset_fuel(&mut self) {
         self.fuel_remaining = self.fuel_budget;
+        self.recursion_depth = 0;
     }
 
     fn set_fuel_budget(&mut self, budget: u128) {
@@ -4020,6 +4083,12 @@ impl<S: OghamScalar> Runtime<S> {
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
         let body = substitute_names(&function.body, &replacements);
+        let recursive_frame = enter_recursion_frame(
+            function,
+            &mut self.recursion_depth,
+            self.fuel_remaining,
+            self.fuel_budget,
+        )?;
         let previous = function.mu_name.as_ref().map(|name| {
             self.env
                 .insert(name.clone(), Value::Function(function.clone()))
@@ -4032,6 +4101,7 @@ impl<S: OghamScalar> Runtime<S> {
                 self.env.remove(name);
             }
         }
+        leave_recursion_frame(recursive_frame, &mut self.recursion_depth);
         result
     }
 
@@ -4897,6 +4967,120 @@ fn contains_free_name(expr: &Expr, target: &str) -> bool {
     visit(expr, target, &BTreeSet::new())
 }
 
+fn ensure_source_nesting_depth(src: &str) -> OghamResult<()> {
+    let mut depth = 0_u128;
+    for line in src.lines() {
+        for ch in line.chars().take_while(|ch| *ch != '#') {
+            match ch {
+                '(' | '[' | '{' => {
+                    depth += 1;
+                    if depth > AST_DEPTH_GUARD {
+                        return Err(OghamError::new(
+                            OghamErrorKind::Parse,
+                            Span::point(0),
+                            format!(
+                                "source nesting exceeds the depth safety guard of {AST_DEPTH_GUARD} delimiters; the parser stack is bounded"
+                            ),
+                        ));
+                    }
+                }
+                ')' | ']' | '}' => depth = depth.saturating_sub(1),
+                _ => {}
+            }
+        }
+    }
+    Ok(())
+}
+
+fn ensure_statement_depth(statement: &Statement) -> OghamResult<()> {
+    enum SyntaxNode<'a> {
+        Statement(&'a Statement),
+        Expr(&'a Expr),
+    }
+
+    let mut pending = vec![(SyntaxNode::Statement(statement), 1_u128)];
+    while let Some((node, depth)) = pending.pop() {
+        if depth > AST_DEPTH_GUARD {
+            return Err(OghamError::new(
+                OghamErrorKind::Parse,
+                Span::point(0),
+                format!(
+                    "statement syntax tree exceeds the depth safety guard of {AST_DEPTH_GUARD} nodes; recursive AST consumers require bounded input depth"
+                ),
+            ));
+        }
+        let child_depth = depth + 1;
+        match node {
+            SyntaxNode::Statement(Statement::Binding { expr, .. })
+            | SyntaxNode::Statement(Statement::Expr(expr)) => {
+                pending.push((SyntaxNode::Expr(expr), child_depth));
+            }
+            SyntaxNode::Statement(Statement::Seq { bindings, tail }) => {
+                pending.push((SyntaxNode::Statement(tail), child_depth));
+                pending.extend(
+                    bindings
+                        .iter()
+                        .map(|binding| (SyntaxNode::Expr(&binding.expr), child_depth)),
+                );
+            }
+            SyntaxNode::Expr(
+                Expr::Int(_)
+                | Expr::Bool(_)
+                | Expr::Star(_)
+                | Expr::Omega
+                | Expr::Blade(_)
+                | Expr::Ident(_),
+            ) => {}
+            SyntaxNode::Expr(Expr::Vector(items) | Expr::Tuple(items)) => {
+                pending.extend(
+                    items
+                        .iter()
+                        .map(|item| (SyntaxNode::Expr(item), child_depth)),
+                );
+            }
+            SyntaxNode::Expr(Expr::Lambda { body, .. } | Expr::Factorial(body)) => {
+                pending.push((SyntaxNode::Expr(body), child_depth));
+            }
+            SyntaxNode::Expr(Expr::Block { bindings, body }) => {
+                pending.push((SyntaxNode::Expr(body), child_depth));
+                pending.extend(
+                    bindings
+                        .iter()
+                        .map(|binding| (SyntaxNode::Expr(&binding.expr), child_depth)),
+                );
+            }
+            SyntaxNode::Expr(Expr::GameForm { left, right }) => {
+                pending.extend(
+                    left.iter()
+                        .chain(right)
+                        .map(|item| (SyntaxNode::Expr(item), child_depth)),
+                );
+            }
+            SyntaxNode::Expr(Expr::Call { args, .. }) => {
+                pending.extend(args.iter().map(|arg| (SyntaxNode::Expr(arg), child_depth)));
+            }
+            SyntaxNode::Expr(Expr::Unary { expr, .. }) => {
+                pending.push((SyntaxNode::Expr(expr), child_depth));
+            }
+            SyntaxNode::Expr(Expr::Binary { lhs, rhs, .. })
+            | SyntaxNode::Expr(Expr::Relation { lhs, rhs, .. }) => {
+                pending.push((SyntaxNode::Expr(lhs), child_depth));
+                pending.push((SyntaxNode::Expr(rhs), child_depth));
+            }
+            SyntaxNode::Expr(Expr::Ternary {
+                cond,
+                then_expr,
+                else_expr,
+            }) => {
+                pending.push((SyntaxNode::Expr(cond), child_depth));
+                pending.push((SyntaxNode::Expr(then_expr), child_depth));
+                pending.push((SyntaxNode::Expr(else_expr), child_depth));
+            }
+        }
+    }
+    Ok(())
+}
+
 fn consume_fuel(function: &FunctionValue, remaining: &mut u128, budget: u128) -> OghamResult<()> {
     let Some(name) = &function.mu_name else {
         return Ok(());
@@ -4910,6 +5094,34 @@ fn consume_fuel(function: &FunctionValue, remaining: &mut u128, budget: u128) ->
     }
     *remaining -= 1;
     Ok(())
+}
+
+fn enter_recursion_frame(
+    function: &FunctionValue,
+    depth: &mut u128,
+    remaining: u128,
+    budget: u128,
+) -> OghamResult<bool> {
+    let Some(name) = &function.mu_name else {
+        return Ok(false);
+    };
+    if *depth >= RECURSION_DEPTH_GUARD {
+        return Err(OghamError::new(
+            OghamErrorKind::Fuel,
+            Span::point(0),
+            format!(
+                "recursive definition `{name}` reached the recursion depth safety guard ({RECURSION_DEPTH_GUARD} frames); fuel budget {budget} has {remaining} step(s) remaining, but the host stack is not unbounded"
+            ),
+        ));
+    }
+    *depth += 1;
+    Ok(true)
+}
+
+fn leave_recursion_frame(entered: bool, depth: &mut u128) {
+    if entered {
+        *depth -= 1;
+    }
 }
 
 fn parse_display_expr(src: &str) -> OghamResult<Expr> {

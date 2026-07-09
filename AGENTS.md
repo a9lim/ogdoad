@@ -30,7 +30,7 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/clifford/` | the multivector engine + the GA layer | [`src/clifford/AGENTS.md`](src/clifford/AGENTS.md) |
 | `src/forms/`    | quadratic forms & invariants, by the char trichotomy plus local-global and integral layers | [`src/forms/AGENTS.md`](src/forms/AGENTS.md) (+ [`integral/`](src/forms/integral/AGENTS.md)) |
 | `src/games/`    | combinatorial game theory | [`src/games/AGENTS.md`](src/games/AGENTS.md) |
-| `src/ogham/`    | the Ogham expression-language core (parser, fixed-world evaluator, polynomial/ratfunc function worlds, errors, conformance support) | root rules |
+| `src/ogham/`    | the Ogham expression-language core (parser, fixed-world evaluator, polynomial/ratfunc function worlds, v3 recursion/fuel + the `game` world with loopy Element-`=:`, errors, conformance support) | root rules |
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
@@ -47,19 +47,19 @@ directories' `README.md` carries (`pinned`/`oracle`/`superseded-by`/`scratch`);
 ledger of buildable items completing symmetries/connections already in the code;
 CONTINUATIONS.md — the game-valued ledger of buildable items that are genuinely new
 features (the ogham language work, the char-`p` Drinfeld mirror); the deferred stars
-`*1`/`*2`/`*4` split across those two (`*8` — ogham 3.0 — converted to the
-numbered `ogham-3.0` when its sketch landed, 2026-07-09); DONE.md — the go-forward ledger for new
+`*1`/`*2`/`*4` split across those two (`*8` — ogham 3.0 — converted when its
+sketch landed and **shipped** the same day, 2026-07-09; see DONE.md); DONE.md — the go-forward ledger for new
 work; CONSISTENCY.md — the aesthetic/structural ledger; CORRECTNESS.md — the
 verification-status ledger (machine-verified / source-pinned / asserted); TABLES.md —
 the inventory of curated hardcoded tables),
 `docs/ogham/` (ogham.md — the expression-language spec, the shipped Display-v2 +
 host-operator contract, backend-helper surface, v1 parser/evaluator contract,
 v1.1 polynomial/ratfunc function-world contract, the shipped v2.0 abstraction
-layer, the shipped v2.1 program layer, and the v3.0 sketch — recursion/fuel, the
-two containers (array `coef`/`dim`, game-world lists with `⧺`/`≡`/`canon`), and
-loopy Element-`=:` — §§17–19;
-conformance.txt + conformance_v2.txt + the v3.0 staging corpus
-conformance_v3.txt — the hand-verified corpora the language must pass),
+layer, the shipped v2.1 program layer, and the shipped v3.0 recursion + games
+layer — `=:`/fuel, the two containers (array `coef`/`dim`, game-world lists
+with `⧺`/`≡`/`canon`), and loopy Element-`=:` streams — §§17–19;
+conformance.txt — the hand-verified corpus the language must pass, with
+conformance_v2.txt + conformance_v3.txt as merged blessing/provenance),
 and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the

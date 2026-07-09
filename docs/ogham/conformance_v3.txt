@@ -1,15 +1,16 @@
-# ogham conformance corpus — v3.0 staging (hand-verified, blessed 2026-07-09)
+# ogham conformance corpus — v3.0 staging archive (hand-verified, blessed 2026-07-09)
 #
 # Spec contract: docs/ogham/ogham.md §19 (the 3.0 sketch, a9 + fable design
-# session 2026-07-09). Staging per §14: the harness does NOT read this file;
-# the 3.0 build merges it into conformance.txt stage by stage (§19.6 table).
+# session 2026-07-09). The v3.0 vectors were merged into conformance.txt on
+# 2026-07-09; this file is retained as blessing/provenance, not as an inert
+# pending corpus.
 #
-# Verification provenance: no engine can run these yet — every vector is
-# hand-checked against the §19 semantics plus standard CGT. Vectors resting
-# on standard-math results are commented at the point of use ({-1|1} = 0 by
-# the simplicity rule; ↑ ∥ ∗ and ⇑ > ∗; nim sum *2 + *3 = *1; dud draws).
-# Fuel-count vectors match on kind only — exact unfolding counts are spec'd
-# (§19.2: one per μ-body substitution) but the vectors leave margin.
+# Verification provenance: initially hand-checked against the §19 semantics
+# plus standard CGT, then run in full against the shipped engine before merge.
+# Vectors resting on standard-math results are commented at the point of use
+# ({-1|1} = 0 by the simplicity rule; ↑ ∥ ∗ and ⇑ > ∗; nim sum *2 + *3 = *1;
+# dud draws). Fuel-count vectors match on kind only — exact unfolding counts
+# are spec'd (§19.2: one per μ-body substitution) but the vectors leave margin.
 #
 # Format: docs/ogham/ogham.md §14, plus the §18 `>>` continuation extension
 # (which v3 extends to unbalanced `{`), plus the v3 directive:

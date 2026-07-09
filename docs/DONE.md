@@ -45,6 +45,32 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 4·e_o: `ogham-3.0`
+**Completed:** 2026-07-09
+**Summary:** the recursion + games layer — `=:` μ-bindings, fuel-as-steps, the
+two containers (Clifford arrays via `coef`/`dim`; game-world lists — cons
+`{h | t}`, nil `{|} = 0`, `{1, 2, 3}` sugar, `⧺`/`++` append, `≡`/`===`
+structural beside `=` value equality, `canon`), the `game` world over
+`games::Game`, and loopy Element-`=:` streams with `drawn()` — designed
+(a9 + fable) and built (sol implementing over gaslamp thread `ogham-v3`,
+fable gating) in one day.
+**Pillars:** ogham ↔ games (+ clifford for the array face)    **Claim level:** implemented-and-tested
+- surface: `docs/ogham/ogham.md` §19 (the contract, status **shipped**);
+  `src/ogham/{lex,ast,parse,unparse,eval}.rs` + `:fuel`/`@fuel`;
+  `GameElement` = finite `Game` ⊕ `Arc`-shared regular graphs flattened into
+  `LoopyPartizanGraph` at definition; μ-validation restored to definition
+  time via sampled stubs; recursion-depth + data-depth guards keep every
+  input an honest error, never an abort.
+- oracles: the 129-vector v3 slice of `docs/ogham/conformance.txt`
+  (hand-verified pre-build, engine-run at merge; `conformance_v3.txt` kept
+  as blessing/provenance), incl. the grundy acceptance example, the
+  `a = b ⟺ canon(a) ≡ canon(b)` coherence, `drawn(dud)`/`drawn(ones)`,
+  and the fp5 definition-time regression pin.
+- boundaries: §19.6's owed list (coinductive append = a9's call, loopy
+  negation/comparison/sum envelope, mutual groups, per-mover outcomes,
+  display prettification, trampoline evaluator to retire the conservative
+  depth guards); `⋅` stays `E_WrongWorld` — games are a group, not a ring.
+
 ### ~6·(e_s∧e_c∧e_f∧e_i∧e_g): `py-sweep-2026-07-03` (the Python face)
 **Completed:** 2026-07-03
 **Summary:** played [`PY.md`](PY.md) §9 items 1–8 + 10 — the Python-side audit's

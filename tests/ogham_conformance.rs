@@ -11,17 +11,11 @@ enum Outcome {
 #[test]
 fn ogham_conformance_corpus() {
     let corpus = include_str!("../docs/ogham/conformance.txt");
-    run_corpus(corpus, false);
+    run_corpus(corpus);
 }
 
 #[test]
-fn ogham_v3_stages_a_d() {
-    let corpus = include_str!("../docs/ogham/conformance_v3.txt");
-    run_corpus(corpus, false);
-}
-
-#[test]
-fn ogham_v3_syntax_and_echoes() {
+fn ogham_v3_archive_syntax_and_echoes() {
     let lines = include_str!("../docs/ogham/conformance_v3.txt")
         .lines()
         .collect::<Vec<_>>();
@@ -60,7 +54,7 @@ fn ogham_v3_syntax_and_echoes() {
     }
 }
 
-fn run_corpus(corpus: &str, stop_before_loopy: bool) {
+fn run_corpus(corpus: &str) {
     let mut session: Option<OghamSession> = None;
     let mut pending: Option<(usize, String, Outcome)> = None;
     let lines = corpus.lines().collect::<Vec<_>>();
@@ -70,10 +64,6 @@ fn run_corpus(corpus: &str, stop_before_loopy: bool) {
         let line_no = idx + 1;
         let line = raw.trim();
         idx += 1;
-        if stop_before_loopy && line.contains("19.5 — loopy") {
-            finish_pending(&mut pending);
-            break;
-        }
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
@@ -223,6 +213,83 @@ fn captured_recursive_function_survives_rebinding() {
         .expect("rebind original name");
     let result = session.eval_line("captured@5").expect("call capture");
     assert_eq!(result.value.as_deref(), Some("120"));
+}
+
+#[test]
+fn recursion_depth_guard_preempts_the_host_stack() {
+    let mut session = OghamSession::new("integer 0").expect("integer world");
+    session
+        .eval_line("f =: n ↦ n = 0 ? 0 : f@(n - 1)")
+        .expect("recursive definition");
+    let err = session
+        .eval_line("f@60000")
+        .expect_err("deep descent must stop before overflowing the host stack");
+    assert_eq!(err.kind, OghamErrorKind::Fuel);
+    assert!(err.message.contains("recursion depth safety guard"));
+    assert!(err.message.contains("1024 frames"));
+    assert!(err.message.contains("step(s) remaining"));
+}
+
+#[test]
+fn recursive_list_folds_have_realistic_worker_stack_headroom() {
+    let mut session = OghamSession::new("game").expect("game world");
+    session
+        .eval_line("len =: m ↦ nleft(m) = 0 ? 0 : 1 + len@(right(m, 0))")
+        .expect("recursive list length");
+
+    for length in [80_u128, 1000] {
+        let items = (0..length)
+            .map(|value| value.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        let result = session
+            .eval_line(&format!("len@{{{items}}}"))
+            .unwrap_or_else(|err| panic!("length-{length} list fold failed: {err}"));
+        let expected = length.to_string();
+        assert_eq!(result.value.as_deref(), Some(expected.as_str()));
+    }
+}
+
+#[test]
+fn flat_list_sugar_depth_errors_before_recursive_ast_consumers() {
+    let mut session = OghamSession::new("game").expect("game world");
+    let items = (0_u128..2000)
+        .map(|value| value.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+    let err = session
+        .eval_line(&format!("{{{items}}}"))
+        .expect_err("deep list sugar must stop before recursive AST consumers");
+    assert_eq!(err.kind, OghamErrorKind::Parse);
+    assert!(err.message.contains("syntax tree"));
+    assert!(err.message.contains("1536 nodes"));
+}
+
+#[test]
+fn delimiter_depth_errors_before_the_recursive_parser() {
+    let mut session = OghamSession::new("integer 0").expect("integer world");
+    let input = format!("{}0{}", "(".repeat(2000), ")".repeat(2000));
+    let err = session
+        .eval_line(&input)
+        .expect_err("deep delimiters must stop before the recursive parser");
+    assert_eq!(err.kind, OghamErrorKind::Parse);
+    assert!(err.message.contains("source nesting"));
+    assert!(err.message.contains("1536 delimiters"));
+}
+
+#[test]
+fn step_fuel_message_remains_distinct_from_depth_guard() {
+    let mut session = OghamSession::new("integer 0").expect("integer world");
+    session
+        .eval_line("fib =: n ↦ n < 2 ? n : fib@(n - 1) + fib@(n - 2)")
+        .expect("recursive definition");
+    session.set_fuel_budget(5000);
+    let err = session
+        .eval_line("fib@25")
+        .expect_err("step fuel must catch broad recursion");
+    assert_eq!(err.kind, OghamErrorKind::Fuel);
+    assert!(err.message.contains("exhausted its fuel budget of 5000"));
+    assert!(!err.message.contains("recursion depth safety guard"));
 }
 
 #[test]

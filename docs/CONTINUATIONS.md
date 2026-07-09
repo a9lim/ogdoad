@@ -20,29 +20,14 @@ are cold/buildable, `±n` switches are a9's scope call first, `↑` ups are infi
 
 ## numbers — ogham (the language)
 
-### 4·e_o: `ogham-3.0`
-**The recursion + games build.** Converted from star `*8` on 2026-07-09 —
-the sketch landed (a9 + fable design session), the same conversion the 2.x
-predecessor star got when its sketches landed. The contract is
-`docs/ogham/ogham.md` §19; the staged corpus is
-`docs/ogham/conformance_v3.txt`; the build decomposition is §19.6's stages
-A–E, each independently shippable. Headline content beyond the old stub:
-fuel meters **steps, not depth** (`E_Fuel`, `:fuel`, default 2¹⁶ — the
-depth version failed the no-silent-hang claim); the **two containers**
-(*APL over the Clifford worlds, Lisp over the game world, one grammar* —
-array `coef`/`dim`; game-world cons `{h | t}` with nil `{|} = 0`, list
-sugar `{1, 2, 3}`, append `⧺`/`++` right-assoc, structural `≡`/`===`
-beside value `=` with `canon` relating them: `a = b ⟺ canon(a) ≡ canon(b)`);
-and Element-`=:` streams (`ones =: {1 | ones}`; `⧺` is the one
-guardedness-transparent operator, so `l =: {1, 2} ⧺ l` is the periodic
-stream; `drawn()`; a conservative `E_Loopy` envelope whose loosenings are
-owed, never breaking). The APL+Lisp identity line feeds `ogham-reflect`'s
-§1 rewrite below.
+(`ogham-3.0` — the recursion + games build, converted from star `*8` when
+its sketch landed — shipped on 2026-07-09, the same day; its entry moved to
+[`DONE.md`](DONE.md).)
 
 ### 2·e_o: `ogham-reflect`
 **The consolidation pass before release** (a9, 2026-06-12: "consolidate it
 into the best version of itself before release") — plays after `ogham-3.0`
-(above), before any 4.0 design. Scope: (1) rewrite the spec §1 identity:
+(shipped 2026-07-09, `DONE.md`), before any 4.0 design. Scope: (1) rewrite the spec §1 identity:
 the principles describe a v1 calculator, and by 3.0 the honest description
 is the **lisp-for-games** — the value-rich/computation-thin inversion,
 Conway's ontology as the data model, the construct↔math coincidences on

@@ -38,6 +38,11 @@ a language whose operators are strokes and ticks (`*`, `↑`, `∧`, `⋅`, `/`)
 7. **Pure Rust, zero deps, no pyo3 outside `src/py/`** (core rule 1). The
    parser/evaluator is a new `src/ogham/` area; the Python `eval` hook lives in
    `src/py/` behind the `python` feature.
+8. **Two containers, one per pillar** (v3, §19). *APL over the Clifford
+   worlds, Lisp over the game world, one grammar*: arrays are grade-1
+   multivectors — world-fixed shape, bulk algebra, `coef`/`dim`; lists are
+   game forms — cons `{h | t}`, nil `{|} = 0`, free shape, μ-recursion and
+   coinduction. The ring/group divide is the fixed/free divide.
 
 ## 2. Symbols and codepoints
 
@@ -57,16 +62,21 @@ a language whose operators are strokes and ticks (`*`, `↑`, `∧`, `⋅`, `/`)
 | factorial | `!` | — | — | prefix, Index operand (§7.6) |
 | equality | `=` | — | `==` | Bool-valued relation (§7.7, §17) |
 | less / greater | `<` `>` | — | — | Bool-valued strict order relations (§7.7, §17) |
-| fuzzy | `\|` | — | — | incomparable, CGT ∥ (§7.7); structural separator inside future `{L\|R}` forms, like `+ ⋅ ↑` inside star-literals |
+| fuzzy | `\|` | — | — | incomparable, CGT ∥ (§7.7); structural separator inside `{L\|R}` forms (§19.4), like `+ ⋅ ↑` inside star-literals |
 | binding | `:=` | — | — | `name := expr` |
 | lambda | `↦` | U+21A6 | `~` | first-order Function value (§17) |
 | ternary | `? :` | — | — | lazy condition, branches sort-homogeneous (§17) |
 | bool words | `and or not` | — | — | lazy word operators; reserved as identifiers (§17) |
+| fixpoint binding | `=:` | — | — | `name =: expr`, the μ-equation; munches before `=` (§19.1) |
+| append | `⧺` | U+29FA | `++` | right-assoc, looser than `+ -`, tighter than relations; game world only (§19.4) |
+| structural equality | `≡` | U+2261 | `===` | relop tier, non-chaining; game world only (§19.4.3) |
+| game form | `{L\|R}` | — | — | braces are real (§19.4); `\|` and `,` structural inside; barless braces are list sugar (§19.4.5) |
 | vector | `[a,b,c]` | — | — | `Σ aᵢ⋅eᵢ`; length must equal world dim |
 | comment | `#` | — | — | to end of line |
 
-Reserved, must lex but reject with `E_Reserved`: `↑↑`, `{` `}` (game forms
-`{L|R}`, contractions), and `O(` (precision tails). `;` is program syntax
+Reserved, must lex but reject with `E_Reserved`: `↑↑` and `O(` (precision
+tails). `{` `}` are real game-form syntax since §19 (world-checked at
+evaluation, like `@`). `;` is program syntax
 since §18 and raises `E_SeqValue` only for a discarded intermediate value.
 The name `t` is reserved
 only inside poly/ratfunc worlds, where it is the indeterminate; outside them
@@ -93,8 +103,10 @@ Index operands, §7.6, not a unary form of any binary operator.)
 - `*` followed by anything lexes as the STAR prefix token; `*` is never an
   infix operator.
 - Sugar substitution happens in the lexer: `w→ω`, `^→↑`, `&→∧`, `.→⋅`, `·→⋅`,
-  `==→=`, `~→↦` (into the reserved token, §2). After the lexer, only
-  canonical tokens exist.
+  `==→=`, `~→↦`, `++→⧺`, `===→≡` (into the reserved token, §2). Multi-char
+  tokens munch longest-first (`=:` before `=`, `===` before `==`, `++`
+  before `+`) and require adjacency — `a + + b` stays `E_Parse`. After the
+  lexer, only canonical tokens exist.
 
 ## 4. Grammar (EBNF)
 
@@ -214,12 +226,13 @@ Const-generic backends require a compiled-in menu; v1 ships:
 | `poly2 poly3 poly5 poly7` | `Poly<Fp<2|3|5|7>>` | no | `F_p[t]`, function-shaped, no metric |
 | `polyint` | `Poly<Integer>` | no | `ℤ[t]`, monic division boundary |
 | `ratfunc2 ratfunc3 ratfunc5 ratfunc7` | `RationalFunction<Fp<2|3|5|7>>` | yes | `F_p(t)`, function-shaped, no metric |
+| `game` | `games::Game` forms + loopy graphs | no (group) | v3 (§19.4): the first non-scalar world; no metric, no blades |
 
 (The six `f*` names match the Python binding classes `F4…F27`,
 src/py/scalars.rs. Extending the menu = adding one arm to the dispatch enum.)
 
 Further out: precision worlds (`Qp/Qq/Laurent/Ramified/Gauss/Adele` —
-`O(p^k)` literal design is its own iteration); games mode (`{L|R}`).
+`O(p^k)` literal design is its own iteration).
 
 ### 6.2 Integer literals per world (the `from_int` trap)
 
@@ -448,7 +461,7 @@ substring):
 | kind | trigger | hint example |
 |---|---|---|
 | `E_Parse` | token/grammar violation | |
-| `E_Reserved` | `↑↑ { } O( ↦ ? ; :` (bare) | "reserved for future games/precision/function syntax" |
+| `E_Reserved` | `↑↑ O(` (bare; `{ }` real since §19, `↦ ? ; :` since §§17–18) | "reserved for future precision syntax" |
 | `E_ExpSort` | non-integer exponent, e.g. `e0^e1` | "`↑`/`^` is power; the wedge product is `∧`/`&`" |
 | `E_IndexSort` | Element where Index expected, and vice versa | |
 | `E_BareInt` | bare integer at Element position in nim-worlds | "did you mean `*3`?" |
@@ -474,7 +487,8 @@ substring):
 `src/ogham/`). The REPL layer owns a dispatch enum over the §6.1 menu — one
 arm per monomorphised `CliffordAlgebra<S>` — which is exactly how rule 5 is
 preserved. Colon-commands (REPL only, not in the grammar): `:world …` (§6),
-`:env` (bindings + world summary), `:help`, `:quit`. Echo behavior per §7.
+`:fuel [n]` (§19.2), `:env` (bindings + world summary), `:help`, `:quit`.
+Echo behavior per §7.
 Invariant queries (`:arf` etc.) deferred — the colon-command namespace is
 where they will land, not the function namespace.
 
@@ -530,15 +544,17 @@ Pre-build staging: vectors for spec'd-but-unbuilt versions are blessed into
 sibling staging files the harness does not read. The v2.0 and v2.1 slices of
 [`conformance_v2.txt`](conformance_v2.txt) were merged into
 [`conformance.txt`](conformance.txt) on 2026-06-12; the staging file is now
-kept as provenance for those blessed vectors. The v3.0 staging corpus is
-[`conformance_v3.txt`](conformance_v3.txt) (adds the `@fuel n` directive,
-§19.2), awaiting the 3.0 build.
+kept as provenance for those blessed vectors. The v3.0 slice of
+[`conformance_v3.txt`](conformance_v3.txt) (which added the `@fuel n`
+directive, §19.2) was merged on 2026-07-09 when the 3.0 build shipped; that
+staging file is likewise retained as blessing/provenance.
 
 ## 15. Work packages
 
 WP1 (Display v2, §9), WP7 (host operators, §13), the backend helper
-surface (§7.6/§7.7), WP2–WP6, the v2.0 abstraction layer (§17), and the v2.1
-program layer (§18) are shipped.
+surface (§7.6/§7.7), WP2–WP6, the v2.0 abstraction layer (§17), the v2.1
+program layer (§18), and the v3.0 recursion/games layer (§19, built in the
+§19.6 stages) are shipped.
 The table below is the historical build decomposition and the maintenance map.
 Acceptance for the language is the committed conformance corpus plus the normal
 Rust/Python validation stack.
@@ -810,17 +826,16 @@ structure, not new semantics.
 = 10
 ```
 
-## 19. v3.0 — recursion + games (sketch)
+## 19. v3.0 — recursion + games
 
-**Sketch — the build contract for 3.0**, grown from the 2026-06 stub in the
-2026-07-09 design session (a9 + fable). The staged corpus is
-[`conformance_v3.txt`](conformance_v3.txt) (§14 staging discipline: the
-harness does not read it until the build merges it into `conformance.txt`).
-Judgment calls go back to this section and the corpus, not into the code.
-The layering inside 3.0 is itself staged — §§19.1–19.2 are world-independent,
-§§19.3–19.4 add the containers and the game world, §19.5 adds the loopy
-layer — and each stage leaves a language worth stopping at (§19.5 may slip
-to 3.1 if the loopy seam fights the build).
+**Implemented and tested.** Grown from the 2026-06 stub in the 2026-07-09
+design session (a9 + fable) and built the same day (sol implementing over
+the gaslamp `ogham-v3` thread, fable gating, the §19.6 stages in order).
+The v3.0 conformance vectors are merged into
+[`conformance.txt`](conformance.txt);
+[`conformance_v3.txt`](conformance_v3.txt) is retained as
+blessing/provenance, the §14 discipline. Judgment calls go back to this
+section and the corpus, not into the code.
 
 This is the one genuine semantic break: **totality is traded for
 attributable partiality** — a program either terminates or errors honestly
@@ -921,6 +936,18 @@ terminates on finite forms by construction.)
 - "Every vector terminates" stops being a theorem and becomes a budget.
   The stub's `E_Depth`/`:depth` are renamed with the semantics change —
   honesty in names.
+- **Host-resource guards** (implementation; ship-time constants,
+  2026-07-09). The fuel model is abstract but the host stack is not, so no
+  input may reach an abort: statement evaluation runs on a dedicated
+  **64 MiB** worker stack (REPL, `ogham_eval`, and the conformance harness
+  get identical headroom); μ-descent carries a **1024**-active-frame safety
+  guard firing `E_Fuel` with a message that names the *depth* guard and the
+  remaining step budget (never pretending the steps ran out); and source
+  delimiters plus constructed ASTs — the list sugar builds deep trees from
+  flat text — are audited iteratively against a **1536**-node depth ceiling
+  before any recursive consumer runs, firing honest `E_Parse`. These guards
+  are deliberately stricter than the abstract model; §19.6's trampoline
+  item retires them.
 
 ### 19.3 The array container — `coef` and `dim`
 
@@ -1259,4 +1286,6 @@ mutual-recursion groups (function and loopy), the loopy comparison/sum
 envelope and onside/offside `canon`, coinductive append (error → value),
 loopy negation (anonymous-cycle display naming), the per-mover outcome
 readout, composite-display prettification, blade-bitmask and poly-world
-`coef`.
+`coef`, and a continuation-stack/trampoline evaluator — which would retire
+the conservative host-stack depth guards (§19.2) and make the μ-step budget
+the sole practical recursion limit.
