@@ -20,10 +20,29 @@ are cold/buildable, `±n` switches are a9's scope call first, `↑` ups are infi
 
 ## numbers — ogham (the language)
 
+### 4·e_o: `ogham-3.0`
+**The recursion + games build.** Converted from star `*8` on 2026-07-09 —
+the sketch landed (a9 + fable design session), the same conversion the 2.x
+predecessor star got when its sketches landed. The contract is
+`docs/ogham/ogham.md` §19; the staged corpus is
+`docs/ogham/conformance_v3.txt`; the build decomposition is §19.6's stages
+A–E, each independently shippable. Headline content beyond the old stub:
+fuel meters **steps, not depth** (`E_Fuel`, `:fuel`, default 2¹⁶ — the
+depth version failed the no-silent-hang claim); the **two containers**
+(*APL over the Clifford worlds, Lisp over the game world, one grammar* —
+array `coef`/`dim`; game-world cons `{h | t}` with nil `{|} = 0`, list
+sugar `{1, 2, 3}`, append `⧺`/`++` right-assoc, structural `≡`/`===`
+beside value `=` with `canon` relating them: `a = b ⟺ canon(a) ≡ canon(b)`);
+and Element-`=:` streams (`ones =: {1 | ones}`; `⧺` is the one
+guardedness-transparent operator, so `l =: {1, 2} ⧺ l` is the periodic
+stream; `drawn()`; a conservative `E_Loopy` envelope whose loosenings are
+owed, never breaking). The APL+Lisp identity line feeds `ogham-reflect`'s
+§1 rewrite below.
+
 ### 2·e_o: `ogham-reflect`
 **The consolidation pass before release** (a9, 2026-06-12: "consolidate it
-into the best version of itself before release") — plays after `ogham 3.0`
-(star `*8` below), before any 4.0 design. Scope: (1) rewrite the spec §1 identity:
+into the best version of itself before release") — plays after `ogham-3.0`
+(above), before any 4.0 design. Scope: (1) rewrite the spec §1 identity:
 the principles describe a v1 calculator, and by 3.0 the honest description
 is the **lisp-for-games** — the value-rich/computation-thin inversion,
 Conway's ontology as the data model, the construct↔math coincidences on
@@ -228,24 +247,7 @@ Carlitz exponential, rank-`r` reduction theory): weeks of specialized work, wort
 only as a *second headline pillar* rather than a task. References: Goss, *Basic Structures
 of Function Field Arithmetic*; Gekeler, Drinfeld modular forms; Goppa / AG codes.
 
-### *8: `ogham 3.0 — recursion + games`
-
-The `docs/ogham/ogham.md` §19 stub (2026-06-12; the predecessor `*8` — ogham 2.x
-functions/programs — was converted to the numbered `ogham-2.0`/`ogham-2.1`
-entries, recorded in the DONE ledger now in git history when their sketches landed). The semantic
-break and the telos: **totality traded for
-attributable partiality** (fuel + `E_Depth`, `:depth`), `=:` fixpoint
-bindings (μ — `:=` captures the past, `=:` is an equation the name
-satisfies; a9's notation), local `=:` in bodies, and the `game` world —
-`{L|R}` as ogham's cons cell: game forms as the recursive data constructor,
-CGT's full four-way order live, `⋅` rejected (group-not-ring made an
-evaluator fact), Index-based option access, `grundy` via `=:` as the
-acceptance example — and **Element-`=:` as loopy games** (§19.4, folded in
-at a9's call 2026-06-12: guarded fixpoint equations on game forms *are*
-coinductive definitions — `dud =: {dud | dud}` — with outcomes from
-`games/loopy/`; the construct and the math object coincide again). Owed to
-the real sketch: mutual-recursion groups, fuel default, up/down naming (the
-`↑` glyph collision), the loopy stopper/sum envelope, game-form display, and
-the sequence-sort/HOF gate. Held as a star until §19 grows into a real sketch.
-Nimbered `*8`: every smaller name is a nim-sum of the shipped
-stars (`*3 = *1 + *2`, …, `*7 = *1 + *2 + *4`).
+(The former `*8` — ogham 3.0 — converted to the numbered `4·e_o: ogham-3.0`
+entry above when its sketch landed, 2026-07-09. Star naming remains
+nim-sum-honest over the ever-shipped set: every smaller name is a nim-sum
+of stars that have existed — `*3 = *1 + *2`, …, `*7 = *1 + *2 + *4`.)

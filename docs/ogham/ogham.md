@@ -530,7 +530,9 @@ Pre-build staging: vectors for spec'd-but-unbuilt versions are blessed into
 sibling staging files the harness does not read. The v2.0 and v2.1 slices of
 [`conformance_v2.txt`](conformance_v2.txt) were merged into
 [`conformance.txt`](conformance.txt) on 2026-06-12; the staging file is now
-kept as provenance for those blessed vectors.
+kept as provenance for those blessed vectors. The v3.0 staging corpus is
+[`conformance_v3.txt`](conformance_v3.txt) (adds the `@fuel n` directive,
+§19.2), awaiting the 3.0 build.
 
 ## 15. Work packages
 
@@ -808,14 +810,52 @@ structure, not new semantics.
 = 10
 ```
 
-## 19. v3.0 — recursion + games (stub)
+## 19. v3.0 — recursion + games (sketch)
 
-**Stub** — commitments and owed decisions recorded now so 2.x does not
-foreclose them; growing this into a sketch is its own pass, after 2.1 ships.
+**Sketch — the build contract for 3.0**, grown from the 2026-06 stub in the
+2026-07-09 design session (a9 + fable). The staged corpus is
+[`conformance_v3.txt`](conformance_v3.txt) (§14 staging discipline: the
+harness does not read it until the build merges it into `conformance.txt`).
+Judgment calls go back to this section and the corpus, not into the code.
+The layering inside 3.0 is itself staged — §§19.1–19.2 are world-independent,
+§§19.3–19.4 add the containers and the game world, §19.5 adds the loopy
+layer — and each stage leaves a language worth stopping at (§19.5 may slip
+to 3.1 if the loopy seam fights the build).
+
 This is the one genuine semantic break: **totality is traded for
 attributable partiality** — a program either terminates or errors honestly
-(`E_Depth`), never a silent hang — and, exactly where CGT's loopy theory
-licenses it, non-termination itself becomes a *value* (§19.4).
+(`E_Fuel`), never a silent hang — and, exactly where CGT's loopy theory
+licenses it, non-termination itself becomes a *value* (§19.5).
+
+**The thesis, sharpened.** A lisp's power is a recursive data constructor
+plus recursion over it; an APL's power is a fixed-shape bulk container whose
+operators act on the whole. ogham has both, one per pillar, and they were
+already in the mathematics — the two containers are the pillars' native
+shapes:
+
+| | array (Clifford worlds) | list (game world) |
+|---|---|---|
+| constructor | `[a0,…,a(n-1)]` (grade-1) | `{h \| t}` cons, `{\|}` nil |
+| shape | static — the world's `dim` | dynamic, even infinite (§19.5) |
+| access | random: `coef(v, i)` | sequential: option descent |
+| contains | the world's scalars | the world's Elements (games) |
+| iteration | Index recursion, bounded | μ-recursion / coinduction |
+| algebra | `+` is zip-with-add; `⋅` exists (ring) | `+` is game sum, **not** append; `⋅` is `E_WrongWorld` (group) |
+| equality | `=` is structural *and* semantic | `=` semantic, `≡` structural (§19.4) |
+| append | none — shape belongs to the world | `⧺` (§19.4) |
+
+*APL over the Clifford worlds, Lisp over the game world, one grammar.* The
+ring/group divide — the repo's founding scope boundary — reappears as
+fixed-shape-with-algebra vs free-shape-with-recursion: the world with
+multiplication has the rigid container, the world that is only a group has
+the free one. Not a lisp with weird numbers: the lisp whose cons cell is the
+Conway game, where mex and Grundy sit where car/cdr folds sit in Scheme.
+(On ship, a compact form of this graduates to a §1 design principle.)
+
+This split settles the stub's recorded sequence-sort question: the *data*
+half was never missing — each pillar already carries its native container —
+and only the *functions-as-values* half stays gated post-3.0, decided when
+the Index-recursion pain has been measured (§19.6).
 
 ### 19.1 `=:` — the fixpoint binding
 
@@ -832,7 +872,8 @@ point:
 = 120
 ```
 
-- `=:` with no self-mention degenerates to `:=` exactly.
+- `=:` with no self-mention degenerates to `:=` exactly — any sort, any
+  world (`c =: 5` is `c := 5`).
 - `:=` with a self-mention stays `E_Unbound`; the hint becomes "recursive
   definition? `=:`".
 - The recorded footgun: the rebind idiom `f := u ↦ f@u + 1` ("new f from
@@ -848,76 +889,248 @@ point:
   function); the bare `> fact` echo prints the equation form. Everything
   non-recursive keeps full inlining: 2.x semantics are unchanged, not
   grandfathered.
-- **Local `=:`** is allowed in body sequences; a local helper may recurse
-  and may reference the enclosing μ-name and binders. This is what lets a
-  single μ cover most mutual-recursion shapes. True mutual recursion
-  (`=:` groups) is **deferred, owed**.
-- `=:` is not function-only: an Element-sorted RHS is §19.4's coinductive
-  case. The equation reading is uniform — only the licensing theory differs.
+- **Local `=:`** is allowed in body sequences, for both sorts; a local
+  helper may recurse and may reference the enclosing μ-name and binders.
+  This is what lets a single μ cover most mutual-recursion shapes. True
+  mutual recursion (`=:` groups) is **deferred, owed**.
+- `=:` with an Element-sorted RHS **and** a self-mention is §19.5's
+  coinductive case, legal exactly in the game world. Everywhere else it is
+  an error with the math in the message: `x =: x + 1` names nothing in ℤ —
+  no fixpoint theory, no fixpoint syntax (`E_WrongWorld`). The equation
+  reading is uniform — only the licensing theory differs.
 
-### 19.2 Fuel
+### 19.2 Fuel — steps, not depth
 
-Evaluation carries a depth budget; exceeding it is `E_Depth`, naming the
-function and the budget. `:depth n` is the knob (default owed to the
-sketch). The conformance harness grows timeouts — "every vector terminates"
-stops being a theorem and becomes a budget.
+The stub metered recursion *depth*; that does not deliver the honesty
+claim. `fib =: n ↦ (n < 2 ? n : fib@(n-1) + fib@(n-2))` at `fib@100` has
+depth ~100 — no depth budget trips — but performs ~φ¹⁰⁰ ≈ 10²⁰ unfoldings:
+a silent hang with a clean conscience. Fuel therefore meters **total
+μ-unfoldings**: every substitution of a μ-bound body into its call site
+counts one, all μs (top-level, local, nested) draining one shared budget,
+reset per top-level statement. Exceeding it is **`E_Fuel`**, naming the
+μ that struck zero and the budget. (Non-recursive applications are not
+metered: §17.3 inlining means they cannot loop. Engine-internal recursion —
+canonicalization, spine walks, loopy fixpoints — is not metered: it
+terminates on finite forms by construction.)
 
-### 19.3 The game world — `{L|R}` as ogham's cons cell
+- Default budget: **2¹⁶ = 65536** unfoldings — interactive scale;
+  substitution-based evaluation is not cheap, and the knob exists.
+- `:fuel n` is the REPL knob (`:fuel` alone prints the current budget).
+  The conformance format grows a matching `@fuel n` directive line
+  (persists until the next `@fuel`/`@world`; `@world` resets to default).
+- "Every vector terminates" stops being a theorem and becomes a budget.
+  The stub's `E_Depth`/`:depth` are renamed with the semantics change —
+  honesty in names.
 
-A lisp's power is a recursive data constructor plus recursion over it;
-ogham's native pair is the **game form** and recursion over options. Not a
-lisp with weird numbers — the lisp whose fundamental data structure is the
-Conway game, where mex/Grundy sit where car/cdr folds sit in Scheme. CGT is
-the recursive subject; this is where the language and the repo's thesis
-converge.
+### 19.3 The array container — `coef` and `dim`
 
-`:world game` — Elements are game forms over the games pillar; the first
-non-scalar world (the dispatch enum grows a non-Clifford arm, exactly as
-v1.1's function worlds did). No metric, no blades.
+The array half costs exactly two stdlib entries; the constructor (`[…]`,
+§7) has existed since v1 and the language could never read a component back
+out. Clifford worlds only (`E_WrongWorld` in game and function worlds — the
+hint teaches the container table: *arrays are world-fixed length; the
+free-shape container lives in the game world*).
 
-- **`{L|R}` becomes real**: `{|}` (zero), `{0|}`, `{0 | 0}`,
-  `{ {0|} | {|0} }` — inside braces, `|` and `,` are structural separators
-  (the §2 reservation cashes out, like `+ ⋅ ↑` inside star-literals). Bare
-  `INT` is the integer game — the canonical CGT embedding, the one world
-  where `from_int` on bare literals is honest; `*n` is the nimber game.
+| call | signature | semantics |
+|---|---|---|
+| `coef(E, I)` | Element × Index → Element | the coefficient of the basis 1-blade `e_i` in the multivector (grade-0 result; `0` if absent; total in the Element — `coef(e0∧e1, 0) = 0`). `i ≥ dim` → `E_BladeIndex`. Engine: `Multivector::terms()` at mask `1 << i` |
+| `dim()` | → Index | the world's dimension (`0` in dim-0 worlds) |
+
+With `coef` + `dim` + `=:`, array folds are Index recursion — bounded by
+`n`, fuel-friendly. The array-side acceptance example, sibling to §19.4's
+`grundy`:
+
+```text
+:world fp7 3 q=[1,1,1]
+dot =: (u, v, i) ↦ i = dim() ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+dot@([1, 2, 3], [4, 5, 6], 0)     # 32 ≡ 4 mod 7
+```
+
+Recorded extensions, gated on measured pain, not built now: a blade-bitmask
+accessor for the full 2ⁿ coefficient array; `coef` on the poly worlds
+(coefficient of `t↑i`, mirroring `deg`).
+
+### 19.4 The game world — forms, lists, and the second equality
+
+`:world game` — Elements are **game forms** over the games pillar
+(`games/partizan.rs::Game`: ordered option vectors, `Arc`-shared,
+canonicalization only on demand); the first non-scalar world (the dispatch
+enum grows a non-Clifford arm, exactly as v1.1's function worlds did). No
+metric, no blades. CGT is the recursive subject; this is where the language
+and the repo's thesis converge.
+
+**Two strata, stated up front.** The world carries *form-land* (the free
+constructors: lists, option access, `≡`, `⧺`) and *value-land* (the CGT
+quotient: `=`, `<`, `>`, `|`, `+`, `-`, outcomes). Form-level operations
+are **not congruences for `=`** — `{-1 | 1} = 0` is `true` (simplicity
+rule), yet `{-1 | 1}` is a cons cell and `0` is nil, so `≡` says `false`,
+`isnil` differs, and `⧺` treats them differently. This is not a bug; it is
+the form/value distinction CGT itself is careful about, and it is
+load-bearing beyond lists: a future misère mode *needs* the form stratum
+(misère play does not quotient by normal-play equality — `games/misere.rs`).
+
+#### 19.4.1 Grammar and symbol deltas
+
+```ebnf
+relexpr     = catexpr [ relop catexpr ] ;
+relop       = "=" | "≡" | "<" | ">" | "|" ;
+catexpr     = additive [ "⧺" catexpr ] ;      (* right-assoc via recursion *)
+atom        = …v2 atoms… | braceform ;
+braceform   = "{" [ optlist ] "|" [ optlist ] "}"
+            | "{" [ expression { "," expression } ] "}" ;   (* list sugar *)
+optlist     = expression { "," expression } ;
+```
+
+| meaning | canonical | codepoint | ASCII sugar | notes |
+|---|---|---|---|---|
+| append | `⧺` | U+29FA | `++` | right-assoc, own tier looser than `+ -`, tighter than relations; game world only |
+| structural equality | `≡` | U+2261 | `===` | relop tier, non-chaining; game world only |
+| game form | `{L\|R}` | — | — | leaves the §2 reserved set; inside braces `\|` and `,` are structural separators |
+
+- `{` `}` and their interiors parse in **every** world (the grammar stays
+  world-independent, as with `@`); worlds other than `game` reject the
+  form at evaluation with `E_WrongWorld`.
+- `++` munches before `+` (safe: `+` has no unary form, §2 unary-fill, so
+  `+ +` is never grammatical); `===` munches before `==`. Adjacency
+  required, as for all multi-char tokens — `a + + b` stays `E_Parse`.
+- `⧺` precedence, tight → loose, amending §5/§17.2: … `+ -`, **`⧺`**,
+  relations, `not`, `and`, `or`, `? :`, `↦`. Right-assoc is both the shape
+  of the spine it builds and the linear-cost association for chains
+  (left-assoc re-copies the accumulated prefix: O(n²)). Ternary branches
+  stay `additive` — an append inside a branch takes parens.
+- New reserved stdlib names (§3 discipline; a breaking change in principle,
+  as `and/or/not` were for v2): `coef dim canon nleft nright left right
+  up down drawn`.
+- §18 continuation extends to unbalanced `{` — multi-line game forms wrap
+  like vectors and sequences.
+
+#### 19.4.2 Literals and display
+
+- Bare `INT` is the integer game — the canonical CGT embedding, the one
+  world where `from_int` on bare literals is honest (`!n` lands likewise).
+  `*n` is the nimber game in its standard form (options `*0 … *(n-1)` on
+  both sides, in that order); bare `*` is `*1`. `ω`, blades, `[…]` vector
+  literals: `E_WrongWorld` (the `[…]` hint: "lists are braces here:
+  `{1, 2, 3}`").
+- **Form display is structural and canonical**: `{` + left options joined
+  `, ` + `|` + right options joined `, ` + `}`, single spaces separating
+  the bar from each *nonempty* side: `{|}`, `{0 |}`, `{| 0}`, `{0 | 0}`,
+  `{1, 2 | 0}`. One carve-out: a form that is **structurally** identical to
+  what a literal builds displays as that literal — integer chains print
+  `2`, `-3`; standard nimber forms print `*n`; `{|}` prints `0` (bare INT
+  is honest here, and `*0` parses to the same form). Recognition is
+  structural, never value-level: `{5 | 0}` and `{0 | 1}` display as
+  themselves, and `1 + 1` — which materializes the *sum form* — displays
+  `{1, 1 |}`, not `2`. Value identity is said with `=` or `canon`:
+  `1 + 1 = 2` is `true`, `canon(1 + 1)` displays `2`. Display v2's scope
+  note ("game displays out of scope") is amended by this clause.
+- Operators: `+` disjunctive sum (form-level materialization), unary and
+  binary `-` game negation. `⋅` is **`E_WrongWorld`** — games are a group,
+  not a ring (the repo's founding scope boundary, now enforced by the
+  evaluator rather than assumed by it). `∧`/`&`, `/`, `%`, Element-`@`:
+  `E_WrongWorld` (the `∧` hint points at `⧺`).
 - **Relations are the full CGT partial order** — the world `|` was born
-  for; all four cells of §7.7 are live.
-- `+` is disjunctive sum, `-` is game negation; **`⋅` is `E_WrongWorld`** —
-  games are a group, not a ring (the repo's founding scope boundary,
-  AGENTS.md "Claim levels", now enforced by the evaluator rather than
-  assumed by it).
-- The CGT glyph collision is recorded: ogham's `↑` is power, so up/down are
-  stdlib calls (`up()`, `down()` — names provisional), not glyphs.
-- **Option access, day one, without a new sort**: `nleft(E) → I`,
-  `left(E, I) → E` (right-siblings likewise; names provisional) — recursion
-  over options is Index recursion. A sequence sort with map/fold — and with
-  it higher-order functions — is the recorded **post-3.0 gate**, decided
-  when the Index-recursion pain has been measured, not before.
+  for; all four §7.7 cells are live. `=` is game-*value* equality
+  (canonicalize-and-compare; engine `Game` comparison).
+- The CGT glyph collision is recorded: ogham's `↑` is power, so up/down
+  are the nullary stdlib calls `up()`, `down()` (names settled).
 
-The acceptance example — the cons-cell payoff (provisional stdlib names;
-sorts check under §17.1 inference; `grundy` returns an Index):
+#### 19.4.3 The second equality and `canon`
+
+- **`a ≡ b`** — structural (form) equality: same tree, options compared
+  in order. On §19.5's cyclic values it is regular-tree equality (equality
+  of infinite unfoldings; α-invariant, decidable by synchronized descent
+  with a visited pair-set). Bool-valued, relop tier, non-chaining.
+- **`canon(E) → E`** — the engine's canonical form (`Game::canonical`:
+  options canonicalized, dominated options deleted, reversible options
+  bypassed). Finite forms only at 3.0 (`E_Loopy` on loopy values —
+  onside/offside canonicalization is owed post-3.0).
+- The two equalities are related *in the language*:
+  `a = b  ⟺  canon(a) ≡ canon(b)` — a conformance vector, not just prose.
+- `≡` outside the game world is `E_WrongWorld`, not an alias for `=`: in
+  every other world forms *are* values and a silently-coinciding second
+  equality would mislead more than help (the `%`-in-fields precedent,
+  §7.6). Hint: "`=` is already structural here."
+- Cost inversion, noted: structural `≡` is the cheap linear walk; semantic
+  `=` is the expensive one (canonicalization). The default glyph is the
+  costly one because the math owns `=`.
+
+#### 19.4.4 Option access
+
+Form-level, all Index-sorted where shown (0-indexed; out of range →
+`E_Domain`):
+
+| call | signature |
+|---|---|
+| `nleft(E)` / `nright(E)` | Element → Index — option counts |
+| `left(E, I)` / `right(E, I)` | Element × Index → Element — the i-th option |
+
+Recursion over options is Index recursion; no sequence sort is needed
+(§19.6 keeps the gate).
+
+#### 19.4.5 Lists — the cons-cell discipline
+
+The game form is ogham's cons cell, literally: **cons is `{h | t}`**
+(sides are ordered — the bar distinguishes head from tail — and each side
+is a singleton, so set-vs-sequence never arises), **nil is `{|} = 0`** —
+the empty list is the zero game; list exhausted = ending position. A
+**proper spine** is nil, or a cons whose tail is a proper spine. Everything
+else is Lisp's dotted/improper case, legal as data. The accessors are
+definable in-language — the list library is a prelude, not stdlib:
+
+```text
+:world game
+hd := l ↦ left(l, 0)
+tl := l ↦ right(l, 0)
+isnil := l ↦ nleft(l) = 0 and nright(l) = 0     # structural — l = 0 is NOT a nil test ({-1|1} = 0)
+```
+
+- **List sugar**: barless braces are list literals — `{a, b, c}` desugars
+  at parse to the right-nested spine `{a | {b | {c | {|}}}}`, `{}` to
+  `{|}`; items are expressions; nesting gives trees (`{{1, 2}, 3}`).
+  Input-only sugar (§1.3): canonical display stays the bar form, the echo
+  teaches, and the switch-player who wrote `{5 | 0}` is never shown `{5}`.
+- The **missing-bar footgun**, recorded (the §19.1 transposition's class):
+  `{1, 2 |}` (left options only) and `{1, 2}` (spine) differ by one
+  character; today the barless form is a loud parse error, post-sugar it is
+  a silently different game. The echo makes it visible immediately —
+  `{1 | {2 | 0}}` looks nothing like `{1, 2 |}`. Narrow, echo-visible,
+  documented, accepted.
+- **`l ⧺ g` — naive append.** Walks the left operand's spine and grafts
+  the right operand at the nil terminal. The left operand must be a
+  *finite proper spine*, else **`E_Improper`** (this includes §19.5's
+  cyclic spines at 3.0 — see the owed decision there). The right operand
+  is **unrestricted**: grafting a non-list gives an improper list, exactly
+  Lisp's `(append '(1 2) 3) = (1 2 . 3)` last-argument freedom. Units:
+  `{} ⧺ l = l` and `l ⧺ {} = l`. Form-level, hence not a `=`-congruence:
+  `0 ⧺ l = l` while `{-1 | 1} ⧺ l` is `E_Improper`, despite
+  `{-1 | 1} = 0`. `+` is **not** append and no operator concatenates
+  arrays — the containers give construct/access/recurse, never a borrowed
+  algebra.
+
+The acceptance example — the cons-cell payoff (sorts check under §17.1
+inference; `grundy` returns an Index; `has` captures the outer binder `g`
+and the outer μ; the lazy trio guards both the index range and the
+recursive calls; mex is "the first `n` not hit"):
 
 ```text
 :world game
 grundy =: g ↦ (
   has =: (n, i) ↦ not i = nleft(g) and
-                  (grundy@(left(g, i)) = n or has@(n, i+1));
-  mexfrom =: n ↦ (has@(n, 0) ? mexfrom@(n+1) : n);
+                  (grundy@(left(g, i)) = n or has@(n, i + 1));
+  mexfrom =: n ↦ has@(n, 0) ? mexfrom@(n + 1) : n;
   mexfrom@0
 )
+grundy@(*2)        # = 2
 ```
 
-`has` captures the outer binder `g` and the outer μ-name; the lazy trio
-guards both the index range and the recursive calls; mex is "the first `n`
-not hit". Greedy = mex is Bridge O's seam (`games/lexicode.rs`) — with 3.0
-the language can finally *say* the games pillar.
+Greedy = mex is Bridge O's seam (`games/lexicode.rs`) — with 3.0 the
+language can finally *say* the games pillar.
 
-### 19.4 Element-`=:` — loopy games are fixpoint equations
+### 19.5 Element-`=:` — loopy games are fixpoint equations
 
 The μ-binder is not function-only. `=:` with an Element-sorted RHS is a
 fixpoint equation on *values*, and CGT is the theory that licenses it: a
-**guarded** self-reference — every occurrence of the name inside at least
-one `{…|…}` constructor — defines a cyclic game graph, i.e. a loopy game,
+**guarded** self-reference defines a cyclic game graph, i.e. a loopy game,
 whose outcome theory the games pillar already carries (`games/loopy/`):
 
 ```text
@@ -926,42 +1139,119 @@ on   =: {on |}
 off  =: {| off}
 dud  =: {dud | dud}        # the deathless universal draw
 over =: {0 | over}
+ones =: {1 | ones}         # the constant stream — coinductive lists for free
 ```
 
 The construct and the math object coincide: `=:` was designed for recursive
 functions, and applied to game data it *is* coinductive definition —
 Siegel's loopy values are fixpoint equations on game forms, told in the
-language's own notation. (Folded into 3.0 at a9's call, 2026-06-12.)
+language's own notation. Under the §19.4.5 list reading, guarded
+Element-`=:` *is* the infinite/circular list: streams are loopy games.
+(Folded into 3.0 at a9's call, 2026-06-12.)
 
-- Legal **exactly in the game world**. Everywhere else an Element-sorted
-  `=:` is an error with the math in the message: `x =: x + 1` names nothing
-  in ℤ — no fixpoint theory, no fixpoint syntax.
-- **Unguarded equations are rejected** (provisional kind `E_Unfounded`):
-  `g =: g` never reaches a constructor and is an unfounded alias, not a
-  game. Guardedness is the honesty boundary of this whole section.
-- **Fuel is untouched.** Function recursion descends and is metered
-  (§19.2); Element-`=:` builds a finite graph and runs the loopy fixpoint
-  algorithms — coinduction, not unbounded descent. "Didn't terminate"
-  becomes a value exactly where the theory assigns one, and `E_Depth`
-  remains the verdict everywhere else.
-- Display: the equation form, the same μ carve-out as §19.1.
-- Owed to the real sketch: the supported RHS envelope beyond pure forms
-  (sums with loopy summands — the stopper boundary, per Siegel and the
-  engine's verified surface), loopy comparison/outcome semantics including
-  Draw (engine-backed), and mutual loopy groups (deferred alongside
-  function groups).
+- **Guardedness, checked after definition-time reduction.** The RHS is
+  evaluated at definition with the μ-name symbolic: brace constructors may
+  enclose symbolic occurrences; **`⧺` reduces structurally** — its
+  recursion walks only its *left* operand and never inspects its right, so
+  `s ⧺ X` with `s` a closed proper spine unfolds into nested constructors
+  with `X` grafted at the terminal (`{a, b} ⧺ l` becomes `{a | {b | l}}`).
+  Every other operator is strict in its operands' options and cannot
+  reduce past a symbolic occurrence — applying one to a μ-containing
+  operand is **`E_Unfounded`**. After reduction, every remaining μ-occurrence
+  must sit strictly inside at least one brace constructor; a bare-root
+  occurrence (`g =: g`) is `E_Unfounded`. **`⧺` is the one
+  guardedness-transparent operator at 3.0**, transparent from the left
+  only. The edges fall out with no extra code: `h =: {|} ⧺ h` unfolds to
+  `h =: h` → `E_Unfounded` (nil is append's unit); `k =: k ⧺ {1 | 0}`
+  cannot reduce → `E_Unfounded`; `m =: m + 1` → `E_Unfounded` (sums with
+  loopy summands stay behind the stopper boundary, deferred as before).
+- **The stream idioms.** Purely periodic: `l =: {1, 2} ⧺ l` — the period-2
+  stream, a 2-cycle graph. Eventually periodic: local `=:` in a body —
+  `p := (q =: {1, 2} ⧺ q; {9} ⧺ q)` is the stream 9,1,2,1,2,… The sugar
+  always nil-terminates, so a self-*tail* needs `⧺` or the raw bar form;
+  the sugared `l =: {1, l}` is legal but different — a self-*element* list,
+  Lisp's circular `#1=(1 #1#)`.
+- **The graph is materialized and classified at definition** (definition-
+  time completeness, §17.3 spirit): the cyclic form becomes a
+  `LoopyPartizanGraph`; outcomes with draws come from
+  `classify`/`draw_set`. **Fuel is untouched**: Element-`=:` runs graph
+  fixpoints, not descent — "didn't terminate" becomes a value exactly where
+  the theory assigns one, and `E_Fuel` remains the verdict everywhere else
+  (a μ-*function* recursing along an infinite spine — `len@ones` — is
+  honestly `E_Fuel`).
+- **The 3.0 envelope for loopy values** (conservative; loosening is owed,
+  never breaking): allowed — binding, display, option access
+  (`left`/`right`/`nleft`/`nright` walk graph nodes; `hd`/`tl` work on
+  streams), `≡` (regular-tree), `drawn`, and the *right* operand of `⧺`
+  (`{9} ⧺ ones` is a finite graft).
+  Rejected with **`E_Loopy`** — relations (`= < > |`), `+`, `-` (unary
+  negation is mathematically trivial — an L/R swap through the graph — but
+  it manufactures an *anonymous* cycle, and the display rule below names
+  cycles by their defining `=:`; negation joins the owed loosening),
+  `canon`. Rejected with `E_Improper` — the *left* operand of `⧺`; the
+  message records the coinductive candidate meaning (`l ⧺ g = l` when `l`
+  never reaches nil — appending to an infinite list is the identity), and
+  upgrading error → value is the recorded owed decision (a9's call).
+- **`drawn(E) → Bool`** — true iff some mover faces a draw
+  (`LoopyPartizanOutcome::has_draw`); identically `false` on finite forms;
+  `E_WrongWorld` outside the game world. `drawn(dud)` is `true`;
+  `drawn(on)`, `drawn(over)`, and `drawn(ones)` are `false` (alternation:
+  the opponent's forced returns still hand the mover a win). The richer
+  per-mover 3×3 readout wants either an outcome sort or a relation
+  extension — **owed post-3.0**; Bool stays two-valued, and Index-coding
+  outcomes is rejected. For finite forms nothing is lost: relations
+  against `0` already read out all four outcome cells.
+- **Display.** A loopy *root* echoes as its equation, μ carve-out as
+  §19.1: `> on` prints `on =: {on |}`. An interior node re-roots the
+  equation at itself, reusing the cycle's defining name α-bound —
+  `tl@l` for the period-2 `l` prints `l =: {2 | {1 | l}}` (the name is a
+  bound variable of the equation, not an environment reference; statement-
+  level round-trip holds). A *composite* value containing cycles it does
+  not root displays as a §18 body — one local `=:` per distinct cycle in
+  first-reach order, final expression the structural form:
+  `(q =: {1 | {2 | q}}; {9 | q})`. Round-trips by construction (it is a
+  program computing the value); verbose-canonical accepted, prettification
+  owed post-3.0.
 - Staging: ships **with 3.0** by default — refusing it would take *extra*
   code, an occurs-check built solely to reject meaning the math already
   assigns. Slipping to 3.1 is recorded as acceptable if the loopy-engine
   seam fights the build.
 
-### 19.5 Non-goals, recorded
+### 19.6 Errors, host alignment, build staging, non-goals
 
-**Quote/macros: never.** Code-as-data would blur the structural-vs-
-arithmetic line (star-literals, `{L|R}` interiors) that the grammar fights
-hardest to keep crisp; recursion, sequencing, let-bodies, and booleans all
-compose with ogham's honesty axioms — quote does not. Mutation, I/O,
-strings: out — rebinding is the only state, the REPL the only effect.
-Higher-order functions: gated on §19.3's sequence-sort decision, not a 3.0
-item. Mutual-recursion groups, fuel default, up/down naming, and game-form
-display canonicalization: owed to the real 3.0 sketch.
+**New error kinds**: `E_Fuel` (§19.2 — renames the stub's `E_Depth` with
+the step semantics), `E_Unfounded`, `E_Improper`, `E_Loopy`. Reused:
+`E_WrongWorld` (game forms / `⧺` / `≡` / `coef` / `dim` / `drawn` outside
+their worlds; Element-`=:` with self-mention outside the game world),
+`E_Domain` (option index out of range), `E_BladeIndex` (`coef` past `dim`),
+`E_Unbound` (hint gains "recursive definition? `=:`"), `E_Parse`,
+`E_Shadow`, `E_Arity`, `E_IndexSort`, `E_BoolSort` (all as in v2).
+
+**Host alignment: none.** `⧺`, `≡`, `{L|R}`, `=:`, and fuel get no host
+operators (the §13 factorial clause); game-world exposure to Python is a
+binding-scope-policy decision (`src/py/AGENTS.md`), not part of 3.0.
+
+**Build staging** (each stage independently shippable, conformance-gated):
+
+| stage | scope |
+|---|---|
+| **A** | lexer/parser/AST/unparser deltas: `=:`, `⧺`/`++`, `≡`/`===`, braceforms + list sugar, precedence row, `~`-vector coverage (world-independent) |
+| **B** | evaluator: `=:` capture/μ semantics + fuel + `E_Fuel` + hints, `coef`/`dim`, all existing worlds |
+| **C** | the game world: dispatch arm over `games::Game`, literals + structural-recognition display, relations, `canon`/`≡`, option stdlib, `⧺`, `up`/`down` |
+| **D** | Element-`=:`: definition-time reduction + guardedness, graph tie to `games/loopy/`, `drawn`, loopy display carve-outs, the `E_Loopy` envelope |
+| **E** | REPL `:fuel`, harness `@fuel`, corpus merge into `conformance.txt` |
+
+**Non-goals, recorded.** **Quote/macros: never.** Code-as-data would blur
+the structural-vs-arithmetic line (star-literals, `{L|R}` interiors) that
+the grammar fights hardest to keep crisp; recursion, sequencing, let-bodies,
+booleans, and the two containers all compose with ogham's honesty axioms —
+quote does not. Mutation, I/O, strings: out — rebinding is the only state,
+the REPL the only effect. Higher-order functions (map/fold as values):
+still gated post-3.0, now *only* on functions-as-values — the container
+question is settled by §19.3/§19.4.5. Transfinite/ω-length games: out —
+the game world is the finite-graph pillar. Owed post-3.0, collected:
+mutual-recursion groups (function and loopy), the loopy comparison/sum
+envelope and onside/offside `canon`, coinductive append (error → value),
+loopy negation (anonymous-cycle display naming), the per-mover outcome
+readout, composite-display prettification, blade-bitmask and poly-world
+`coef`.
