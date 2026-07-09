@@ -55,9 +55,10 @@ the inventory of curated hardcoded tables),
 `docs/ogham/` (ogham.md — the expression-language spec, the shipped Display-v2 +
 host-operator contract, backend-helper surface, v1 parser/evaluator contract,
 v1.1 polynomial/ratfunc function-world contract, the shipped v2.0 abstraction
-layer, the shipped v2.1 program layer, and the shipped v3.0 recursion + games
+layer, the shipped v2.1 program layer, the shipped v3.0 recursion + games
 layer — `=:`/fuel, the two containers (array `coef`/`dim`, game-world lists
-with `⧺`/`≡`/`canon`), and loopy Element-`=:` streams — §§17–19;
+with `⧺`/`≡`/`canon`, coinductive append), and loopy Element-`=:` streams —
+and the v3.1 envelope-release stub, §§17–20;
 conformance.txt — the hand-verified corpus the language must pass, with
 conformance_v2.txt + conformance_v3.txt as merged blessing/provenance),
 and `writeups/`

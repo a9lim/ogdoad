@@ -66,10 +66,12 @@ fable gating) in one day.
   as blessing/provenance), incl. the grundy acceptance example, the
   `a = b ⟺ canon(a) ≡ canon(b)` coherence, `drawn(dud)`/`drawn(ones)`,
   and the fp5 definition-time regression pin.
-- boundaries: §19.6's owed list (coinductive append = a9's call, loopy
+- boundaries: §19.6's owed list, staged as the §20 v3.1 stub (loopy
   negation/comparison/sum envelope, mutual groups, per-mover outcomes,
   display prettification, trampoline evaluator to retire the conservative
-  depth guards); `⋅` stays `E_WrongWorld` — games are a group, not a ring.
+  depth guards); coinductive append was decided and shipped same-day at
+  a9's call (`ones ⧺ l = ones`, §19.4.5); `⋅` stays `E_WrongWorld` —
+  games are a group, not a ring.
 
 ### ~6·(e_s∧e_c∧e_f∧e_i∧e_g): `py-sweep-2026-07-03` (the Python face)
 **Completed:** 2026-07-03

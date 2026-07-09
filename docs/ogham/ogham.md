@@ -1127,12 +1127,19 @@ isnil := l ↦ nleft(l) = 0 and nright(l) = 0     # structural — l = 0 is NOT 
   a silently different game. The echo makes it visible immediately —
   `{1 | {2 | 0}}` looks nothing like `{1, 2 |}`. Narrow, echo-visible,
   documented, accepted.
-- **`l ⧺ g` — naive append.** Walks the left operand's spine and grafts
-  the right operand at the nil terminal. The left operand must be a
-  *finite proper spine*, else **`E_Improper`** (this includes §19.5's
-  cyclic spines at 3.0 — see the owed decision there). The right operand
-  is **unrestricted**: grafting a non-list gives an improper list, exactly
-  Lisp's `(append '(1 2) 3) = (1 2 . 3)` last-argument freedom. Units:
+- **`l ⧺ g` — append, coinductively total on the left.** Walks the left
+  operand's right-spine; three outcomes, exhaustive. (1) The walk reaches
+  nil: `g` is grafted at the terminal — the finite case. (2) The walk
+  *cycles* — a loopy spine that never reaches nil: the append **is the
+  left operand**, `l ⧺ g = l`, because the unfolding of an append never
+  consults `g` until nil is reached, and an infinite list never reaches
+  it — appending to an infinite list is the identity (bisimilarity made
+  operational; standard coinduction). Shipped error → value at a9's call,
+  2026-07-09, resolving the decision §19.5 had parked. (3) The walk hits a
+  node that is neither cons nor nil: **`E_Improper`** — improperness is
+  orthogonal to cyclicity. The right operand is **unrestricted**: grafting
+  a non-list gives an improper list, exactly Lisp's
+  `(append '(1 2) 3) = (1 2 . 3)` last-argument freedom. Units:
   `{} ⧺ l = l` and `l ⧺ {} = l`. Form-level, hence not a `=`-congruence:
   `0 ⧺ l = l` while `{-1 | 1} ⧺ l` is `E_Improper`, despite
   `{-1 | 1} = 0`. `+` is **not** append and no operator concatenates
@@ -1186,7 +1193,12 @@ Element-`=:` *is* the infinite/circular list: streams are loopy games.
   enclose symbolic occurrences; **`⧺` reduces structurally** — its
   recursion walks only its *left* operand and never inspects its right, so
   `s ⧺ X` with `s` a closed proper spine unfolds into nested constructors
-  with `X` grafted at the terminal (`{a, b} ⧺ l` becomes `{a | {b | l}}`).
+  with `X` grafted at the terminal (`{a, b} ⧺ l` becomes `{a | {b | l}}`),
+  and with `s` a closed *cyclic* spine it reduces to `s` outright
+  (§19.4.5's coinductive identity, applied at reduction time) — the
+  discarded right operand takes its μ-occurrences with it, and an RHS left
+  with no self-mention degenerates to `:=` as always
+  (`l =: ones ⧺ {5 | l}` is just `l := ones`).
   Every other operator is strict in its operands' options and cannot
   reduce past a symbolic occurrence — applying one to a μ-containing
   operand is **`E_Unfounded`**. After reduction, every remaining μ-occurrence
@@ -1214,16 +1226,16 @@ Element-`=:` *is* the infinite/circular list: streams are loopy games.
 - **The 3.0 envelope for loopy values** (conservative; loosening is owed,
   never breaking): allowed — binding, display, option access
   (`left`/`right`/`nleft`/`nright` walk graph nodes; `hd`/`tl` work on
-  streams), `≡` (regular-tree), `drawn`, and the *right* operand of `⧺`
-  (`{9} ⧺ ones` is a finite graft).
+  streams), `≡` (regular-tree), `drawn`, the *right* operand of `⧺`
+  (`{9} ⧺ ones` is a finite graft), and — since 2026-07-09, a9's call —
+  the *left* operand of `⧺` (a cyclic spine returns the operand itself,
+  §19.4.5's coinductive identity; a non-spine loopy node stays
+  `E_Improper`).
   Rejected with **`E_Loopy`** — relations (`= < > |`), `+`, `-` (unary
   negation is mathematically trivial — an L/R swap through the graph — but
   it manufactures an *anonymous* cycle, and the display rule below names
   cycles by their defining `=:`; negation joins the owed loosening),
-  `canon`. Rejected with `E_Improper` — the *left* operand of `⧺`; the
-  message records the coinductive candidate meaning (`l ⧺ g = l` when `l`
-  never reaches nil — appending to an infinite list is the identity), and
-  upgrading error → value is the recorded owed decision (a9's call).
+  `canon`.
 - **`drawn(E) → Bool`** — true iff some mover faces a draw
   (`LoopyPartizanOutcome::has_draw`); identically `false` on finite forms;
   `E_WrongWorld` outside the game world. `drawn(dud)` is `true`;
@@ -1283,9 +1295,73 @@ still gated post-3.0, now *only* on functions-as-values — the container
 question is settled by §19.3/§19.4.5. Transfinite/ω-length games: out —
 the game world is the finite-graph pillar. Owed post-3.0, collected:
 mutual-recursion groups (function and loopy), the loopy comparison/sum
-envelope and onside/offside `canon`, coinductive append (error → value),
+envelope and onside/offside `canon`,
 loopy negation (anonymous-cycle display naming), the per-mover outcome
 readout, composite-display prettification, blade-bitmask and poly-world
 `coef`, and a continuation-stack/trampoline evaluator — which would retire
 the conservative host-stack depth guards (§19.2) and make the μ-step budget
-the sole practical recursion limit.
+the sole practical recursion limit. (Coinductive append, originally in this
+list, shipped on 2026-07-09 at a9's call — §19.4.5.) These items are
+collected and staged as the §20 v3.1 stub; higher-order functions remain
+4.0's, after the reflection pass (§20.5).
+
+## 20. v3.1 — the envelope release (stub)
+
+**Stub** — commitments and owed decisions recorded 2026-07-09, at the 3.0
+ship, so post-ship work does not foreclose them; growing this into a sketch
+is its own pass. Staging (a9's call, 2026-07-09): **3.1 is pre-reflect** —
+every item is an envelope loosening, error → value or verdict, with no new
+syntax and no new sorts, so it composes with `ogham-reflect` in either
+order; **4.0 runs after the reflection pass** and is deliberately
+unsketched (§20.5). The 3.1 identity in one line: 3.0 drew every boundary
+conservatively and honestly; 3.1 moves each boundary out to the engine's
+verified surface and no further.
+
+### 20.1 The loopy envelope
+
+- **Comparison**: relations on stopper operands through the engine's
+  onside/offside surface (`games/loopy/catalogue.rs`); verdicts exactly
+  where the theory determines them, `E_Loopy` for the rest — the boundary
+  is the engine's verified surface, not optimism.
+- **Sums**: `+` with loopy summands inside the stopper boundary
+  (`LoopyValue::add` is already `Option`-honest); beyond it, `E_Loopy`
+  stays.
+- **`canon` on stoppers**: onside/offside canonical forms.
+- **Outcome readout**: the per-mover 3×3 (win/lose/draw for each mover) as
+  Bool predicates per mover — names owed; an outcome *sort* stays
+  rejected, as does Index-coding (§19.5's reasoning stands).
+- **Negation**: unary `-` (an L/R swap through the graph) gated on the one
+  gap in §19.5's display rules — anonymous-cycle naming. Owed decision:
+  synthesized α-bound names vs sequence-form-only display for
+  operation-produced cycles.
+
+### 20.2 Mutual `=:` groups
+
+Function and loopy together — the μ machinery is shared. The local-`=:`
+trick covers nested shapes; true groups need forward reference. Owed: the
+grammar (adjacent `=:` bindings in one statement vs an explicit group
+form — undecided), guardedness across a group, and group display.
+
+### 20.3 The array-side envelope
+
+Blade-bitmask `coef` (the full 2ⁿ coefficient array) and poly-world `coef`
+(coefficient of `t↑i`, mirroring `deg`) — measured-pain gated, recorded in
+§19.3 since the sketch. Loosenings of the same never-breaking kind.
+
+### 20.4 The implementation floor
+
+The continuation-stack/trampoline evaluator retires the §19.2 host-resource
+guards and makes the μ-step budget the sole practical recursion limit; a
+persistent evaluation worker removes per-statement thread overhead. No
+semantic content — tracked here because deep loopy work reaches the guards
+before it reaches the budget.
+
+### 20.5 4.0, deliberately unsketched
+
+4.0 runs after `ogham-reflect` (a9's staging call, 2026-07-09). Its one
+standing agenda item is the **functions-as-values gate** — a sequence sort,
+map/fold, higher-order functions — decided against the Index-recursion pain
+that 3.x makes measurable, and informed by the reflection pass's §1
+identity rewrite (the lisp-for-games). Nothing else is committed. The §19.6
+non-goals are not reopened by 4.0: quote/macros never; mutation, I/O,
+strings out; rebinding the only state, the REPL the only effect.

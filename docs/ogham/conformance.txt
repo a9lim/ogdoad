@@ -1363,9 +1363,17 @@
 > -ones
 ! E_Loopy:
 
-# cyclic left operand of ⧺: the coinductive value is recorded, not shipped
+# cyclic left operand of ⧺: appending never reaches the right operand
 > ones ⧺ {5 | 0}
-! E_Improper:
+= ones =: {1 | ones}
+
+> (ones ⧺ {5 | 0}) ≡ ones
+= true
+
+# a finite prefix into a cycle is likewise unchanged as a whole
+> ({9} ⧺ ones) ⧺ {5 | 0}
+~ ({9 | 0} ⧺ ones) ⧺ {5 | 0}
+= (ones =: {1 | ones}; {9 | ones})
 
 # ---- fuel stays the verdict for μ-descent along infinite data
 > len =: m ↦ nleft(m) = 0 ? 0 : 1 + len@(right(m, 0))

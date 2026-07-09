@@ -16,6 +16,15 @@
 # (which v3 extends to unbalanced `{`), plus the v3 directive:
 #   @fuel n     set the fuel budget (persists until next @fuel/@world;
 #               @world resets to the 2^16 default)
+#
+# SUPERSEDED v3.0 VECTOR — replaced in conformance.txt when coinductive
+# append shipped (a9's call, 2026-07-09, later the same day as the 3.0
+# ship; spec §19.4.5 outcome (2) — appending to an infinite list is the
+# identity):
+#   > ones ⧺ {5 | 0}
+#   ! E_Improper:          →   = ones =: {1 | ones}
+# The non-spine E_Improper vectors stand unchanged; improperness is
+# orthogonal to cyclicity.
 
 # ============================================================ 19.1/19.2 — =: and fuel
 @world integer 0

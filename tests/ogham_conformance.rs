@@ -318,3 +318,43 @@ fn ogham_game_stage_d_boundaries() {
     let loop_value = session.eval_line("loop").expect("display loopy value");
     assert_eq!(loop_value.value.as_deref(), Some("loop =: {loop |}"));
 }
+
+#[test]
+fn ogham_coinductive_append_walk_outcomes_and_fixpoint_reduction() {
+    let mut session = OghamSession::new("game").expect("game world");
+    session
+        .eval_line("ones =: {1 | ones}")
+        .expect("constant stream");
+
+    let graft = session
+        .eval_line("{1, 2} ⧺ {3}")
+        .expect("finite spine reaches nil");
+    assert_eq!(graft.value.as_deref(), Some("{1 | {2 | {3 | 0}}}"));
+
+    let cycle = session
+        .eval_line("ones ⧺ {5 | 0}")
+        .expect("cyclic spine is the append result");
+    assert_eq!(cycle.value.as_deref(), Some("ones =: {1 | ones}"));
+
+    let prefixed_cycle = session
+        .eval_line("({9} ⧺ ones) ⧺ {5 | 0}")
+        .expect("finite prefix into a cycle is unchanged");
+    assert_eq!(
+        prefixed_cycle.value.as_deref(),
+        Some("(ones =: {1 | ones}; {9 | ones})")
+    );
+
+    let improper = session
+        .eval_line("{0 |} ⧺ {5 | 0}")
+        .expect_err("non-cons non-nil right-spine node stays improper");
+    assert_eq!(improper.kind, OghamErrorKind::Improper);
+    assert!(improper.message.contains("neither cons nor nil"));
+
+    session
+        .eval_line("l =: ones ⧺ {5 | l}")
+        .expect("cyclic-left reduction discards the recursive right operand");
+    let degenerates = session
+        .eval_line("l ≡ ones")
+        .expect("discarded self-reference degenerates to ordinary binding");
+    assert_eq!(degenerates.value.as_deref(), Some("true"));
+}

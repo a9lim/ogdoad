@@ -32,7 +32,9 @@ the principles describe a v1 calculator, and by 3.0 the honest description
 is the **lisp-for-games** — the value-rich/computation-thin inversion,
 Conway's ontology as the data model, the construct↔math coincidences on
 record (four-way relations = outcome classes, `=:` = loopy definition, the
-lazy trio = play-one-branch); (2) fold the §17–§19 delta sections into the
+lazy trio = play-one-branch, `⧺`-to-infinity = the coinductive identity);
+(2) fold the shipped delta sections (§§17–19, plus whatever of the §20
+items has shipped by then) into the
 main spec body so the language reads as one contract, and merge/reorganize
 the conformance corpus; (3) a CONSISTENCY.md-style audit of `src/ogham/` after
 three builds of growth — naming, error taxonomy, dispatch-enum shape, REPL
@@ -232,7 +234,23 @@ Carlitz exponential, rank-`r` reduction theory): weeks of specialized work, wort
 only as a *second headline pillar* rather than a task. References: Goss, *Basic Structures
 of Function Field Arithmetic*; Gekeler, Drinfeld modular forms; Goppa / AG codes.
 
+### *16: `ogham 3.1 — the envelope release`
+
+The `docs/ogham/ogham.md` §20 stub (2026-07-09, blessed at the 3.0 ship).
+The identity in one line: 3.0 drew every boundary conservatively and
+honestly; 3.1 moves each boundary out to the engine's verified surface and
+no further — error → value/verdict, no new syntax, no new sorts. Contents:
+the loopy envelope (stopper comparison/sums via onside/offside, `canon` on
+stoppers, per-mover outcome predicates, unary negation behind the
+anonymous-cycle display decision), mutual `=:` groups (function + loopy;
+grammar owed), the array-side `coef` extensions, and the
+trampoline/persistent-worker implementation floor that retires the §19.2
+host guards. **Pre-reflect by design** — composes with `ogham-reflect` in
+either order; 4.0 (the functions-as-values gate) runs after the reflection
+pass and stays unsketched (§20.5, a9's staging call). Held as a star until
+§20 grows into a sketch. Nim-sum naming stays honest: `*9`–`*15` are sums
+of stars that have existed (1, 2, 4, 8).
+
 (The former `*8` — ogham 3.0 — converted to the numbered `4·e_o: ogham-3.0`
-entry above when its sketch landed, 2026-07-09. Star naming remains
-nim-sum-honest over the ever-shipped set: every smaller name is a nim-sum
-of stars that have existed — `*3 = *1 + *2`, …, `*7 = *1 + *2 + *4`.)
+entry when its sketch landed, 2026-07-09, and shipped the same day; see
+`DONE.md`.)

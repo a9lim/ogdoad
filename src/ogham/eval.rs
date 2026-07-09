@@ -1313,8 +1313,13 @@ impl GameRuntime {
                     return Err(unfounded_error(name));
                 }
                 let left = self.eval_element(lhs)?;
-                let right = self.reduce_element_fixpoint(name, rhs, false)?;
-                append_symbolic_spine(&left, right)
+                match walk_game_spine(&left)? {
+                    SpineWalk::Cycles => Ok(SymbolicGame::Value(left)),
+                    SpineWalk::ReachesNil(heads) => {
+                        let right = self.reduce_element_fixpoint(name, rhs, false)?;
+                        Ok(symbolic_spine(heads, right))
+                    }
+                }
             }
             _ if contains_free_name(expr, name) => Err(unfounded_error(name)),
             _ => self.eval_element(expr).map(SymbolicGame::Value),
@@ -1634,21 +1639,40 @@ fn game_structural_eq_ordered(lhs: &Game, rhs: &Game) -> bool {
             .all(|(lhs, rhs)| game_structural_eq_ordered(lhs, rhs))
 }
 
-fn append_game_spine(spine: &Game, tail: &Game) -> OghamResult<Game> {
-    if spine.left().is_empty() && spine.right().is_empty() {
-        return Ok(tail.clone());
+enum SpineWalk {
+    ReachesNil(Vec<GameElement>),
+    Cycles,
+}
+
+fn walk_game_spine(spine: &GameElement) -> OghamResult<SpineWalk> {
+    let mut current = spine.clone();
+    let mut heads = Vec::new();
+    let mut visited = HashSet::new();
+    loop {
+        if let GameElement::Graph(reference) = &current {
+            if !visited.insert(graph_key(reference)) {
+                return Ok(SpineWalk::Cycles);
+            }
+        }
+        let left = game_options(&current, true);
+        let right = game_options(&current, false);
+        match (left.len(), right.len()) {
+            (0, 0) => return Ok(SpineWalk::ReachesNil(heads)),
+            (1, 1) => {
+                heads.push(left.into_iter().next().expect("singleton left option"));
+                current = right.into_iter().next().expect("singleton right option");
+            }
+            _ => return Err(improper_spine_error()),
+        }
     }
-    if spine.left().len() == 1 && spine.right().len() == 1 {
-        return Ok(Game::new(
-            vec![spine.left()[0].clone()],
-            vec![append_game_spine(&spine.right()[0], tail)?],
-        ));
-    }
-    Err(OghamError::new(
+}
+
+fn improper_spine_error() -> OghamError {
+    OghamError::new(
         OghamErrorKind::Improper,
         Span::point(0),
-        "left operand of `⧺` must be a finite proper spine",
-    ))
+        "left operand of `⧺` is improper: its right-spine reaches a node that is neither cons nor nil",
+    )
 }
 
 fn build_game_form(left: Vec<GameElement>, right: Vec<GameElement>) -> OghamResult<GameElement> {
@@ -1678,51 +1702,40 @@ fn build_game_form(left: Vec<GameElement>, right: Vec<GameElement>) -> OghamResu
 }
 
 fn append_game_element(spine: &GameElement, tail: &GameElement) -> OghamResult<GameElement> {
-    let GameElement::Finite(spine) = spine else {
-        return Err(OghamError::new(
-            OghamErrorKind::Improper,
-            Span::point(0),
-            "left operand of `⧺` is cyclic; the coinductive candidate is the left operand itself",
-        ));
-    };
-    if let GameElement::Finite(tail) = tail {
-        return append_game_spine(spine, tail).map(GameElement::Finite);
+    match walk_game_spine(spine)? {
+        SpineWalk::Cycles => Ok(spine.clone()),
+        SpineWalk::ReachesNil(heads) => graft_game_spine(heads, tail.clone()),
     }
-    append_symbolic_spine(&spine_as_element(spine), SymbolicGame::Value(tail.clone()))
-        .and_then(|value| materialize_regular_game("", value))
 }
 
-fn spine_as_element(game: &Game) -> GameElement {
-    GameElement::Finite(game.clone())
+fn graft_game_spine(heads: Vec<GameElement>, tail: GameElement) -> OghamResult<GameElement> {
+    if heads
+        .iter()
+        .chain(std::iter::once(&tail))
+        .all(|value| matches!(value, GameElement::Finite(_)))
+    {
+        let GameElement::Finite(mut result) = tail else {
+            unreachable!("checked above")
+        };
+        for head in heads.into_iter().rev() {
+            let GameElement::Finite(head) = head else {
+                unreachable!("checked above")
+            };
+            result = Game::new(vec![head], vec![result]);
+        }
+        return Ok(GameElement::Finite(result));
+    }
+    materialize_regular_game("", symbolic_spine(heads, SymbolicGame::Value(tail)))
 }
 
-fn append_symbolic_spine(spine: &GameElement, tail: SymbolicGame) -> OghamResult<SymbolicGame> {
-    let GameElement::Finite(spine) = spine else {
-        return Err(OghamError::new(
-            OghamErrorKind::Improper,
-            Span::point(0),
-            "left operand of `⧺` must be a finite proper spine",
-        ));
-    };
-    if spine.left().is_empty() && spine.right().is_empty() {
-        return Ok(tail);
-    }
-    if spine.left().len() == 1 && spine.right().len() == 1 {
-        return Ok(SymbolicGame::Form {
-            left: vec![SymbolicGame::Value(GameElement::Finite(
-                spine.left()[0].clone(),
-            ))],
-            right: vec![append_symbolic_spine(
-                &GameElement::Finite(spine.right()[0].clone()),
-                tail,
-            )?],
-        });
-    }
-    Err(OghamError::new(
-        OghamErrorKind::Improper,
-        Span::point(0),
-        "left operand of `⧺` must be a finite proper spine",
-    ))
+fn symbolic_spine(heads: Vec<GameElement>, tail: SymbolicGame) -> SymbolicGame {
+    heads
+        .into_iter()
+        .rev()
+        .fold(tail, |tail, head| SymbolicGame::Form {
+            left: vec![SymbolicGame::Value(head)],
+            right: vec![tail],
+        })
 }
 
 fn materialize_regular_game(name: &str, root: SymbolicGame) -> OghamResult<GameElement> {
