@@ -129,3 +129,78 @@
 
 > g30 ≡ h30
 = false
+
+// Stage D: adjacent Element equations are simultaneous and display is self-contained.
+@world game
+
+> a =: {b |}; b =: {| a}
+> a
+= a =: {b |}; b =: {| a}
+
+> (c =: {d |}; d =: {| c}; d)
+= d =: {| c}; c =: {d |}
+
+@world game
+
+> twos =: {2 | woes}; woes =: {2 | twos}
+> twos
+= twos =: {2 | woes}; woes =: {2 | twos}
+
+// A non-recursive binding ends the equation system; the forward reference is unbound.
+@world game
+
+> a =: {b |}; cut := 0; b =: {| a}
+! E_Unbound: `b`
+
+@world game
+
+> a =: {b |}; f =: x ↦ x; b =: {| a}
+! E_Unbound: `b`
+
+// Unguardedness names both the offending equation and the symbolic system name.
+@world game
+
+> a =: b; b =: {| a}
+! E_Unfounded: equation `a` has unguarded system name `b`
+
+// Multi-SCC sums emit dependencies first and mutual SCCs as adjacent runs.
+@world game
+
+> on =: {on |}
+> l =: [1, 2] ⧺ l
+> l + on
+= (g3 =: {g3 |}; g2 =: {g3, g2 |}; g7 =: {g7 |}; g6 =: {g7, g6 |}; g5 =: {g6, g5 |}; g1 =: {g2, g1 | g4}; g4 =: {g5, g4 | g1}; g1)
+
+// Rebinding history never aliases two distinct cycles through stale provenance.
+@world game
+
+> a =: {a |}
+> old := a
+> a =: {| a}
+> {old | a}
+= (old =: {old |}; a =: {| a}; {old | a})
+
+// Named roots include every external cyclic dependency and end in their own name.
+@world game
+
+> a =: {0 | a}
+> g =: {a | g}
+> g
+= (a =: {0 | a}; g =: {a | g}; g)
+
+@world game
+
+> on =: {on |}
+> x := -on
+> g =: {x | g}
+> g
+= (x =: {| x}; g =: {x | g}; g)
+
+// Synthesized anchors avoid current environment names and user-rooted anchors.
+@world game
+
+> on =: {on |}
+> g1 =: {1 | g1}
+> a := -on
+> {a | g1}
+= (a =: {| a}; g1 =: {1 | g1}; {a | g1})

@@ -112,7 +112,7 @@ pub(crate) fn materialize_regular_game(
     root: SymbolicGame,
     node_budget: u128,
 ) -> OghamResult<GameElement> {
-    if matches!(root, SymbolicGame::SelfRef) {
+    if matches!(root, SymbolicGame::SystemRef(_)) {
         return Err(unfounded_error(name));
     }
     if let SymbolicGame::Value(value) = root {
@@ -124,6 +124,11 @@ pub(crate) fn materialize_regular_game(
     Ok(GameElement::Graph(GraphRef {
         graph: Arc::new(RegularGameGraph {
             name: name.to_string(),
+            equation_names: if name.is_empty() {
+                BTreeMap::new()
+            } else {
+                BTreeMap::from([(0, name.to_string())])
+            },
             nodes,
             has_draw,
         }),
@@ -169,7 +174,7 @@ pub(crate) fn materialize_symbolic_edge(
     node_budget: u128,
 ) -> OghamResult<RegularGameEdge> {
     match value {
-        SymbolicGame::SelfRef => Ok(RegularGameEdge::Local(0)),
+        SymbolicGame::SystemRef(node) => Ok(RegularGameEdge::Local(*node)),
         SymbolicGame::Value(GameElement::Finite(game)) => Ok(RegularGameEdge::Finite(game.clone())),
         SymbolicGame::Value(GameElement::Graph(reference)) => {
             Ok(RegularGameEdge::External(reference.clone()))
@@ -178,6 +183,202 @@ pub(crate) fn materialize_symbolic_edge(
             materialize_symbolic_node(value, nodes, node_budget).map(RegularGameEdge::Local)
         }
     }
+}
+
+pub(crate) fn materialize_regular_system(
+    names: &[String],
+    roots: Vec<SymbolicGame>,
+    node_budget: u128,
+) -> OghamResult<Vec<GameElement>> {
+    let mut nodes = Vec::new();
+    let mut root_nodes = vec![None; roots.len()];
+    for (equation, root) in roots.iter().enumerate() {
+        match root {
+            SymbolicGame::Form { .. } => {
+                if nodes.len() as u128 >= node_budget {
+                    return Err(graph_budget_error(node_budget));
+                }
+                root_nodes[equation] = Some(nodes.len());
+                nodes.push(RegularGameNode {
+                    left: Vec::new(),
+                    right: Vec::new(),
+                });
+            }
+            SymbolicGame::SystemRef(target) => {
+                return Err(unfounded_system_error(&names[equation], &names[*target]));
+            }
+            SymbolicGame::Value(_) => {}
+        }
+    }
+
+    for (equation, root) in roots.iter().enumerate() {
+        let Some(node) = root_nodes[equation] else {
+            continue;
+        };
+        let SymbolicGame::Form { left, right } = root else {
+            unreachable!("root node was reserved only for a symbolic form")
+        };
+        let left = left
+            .iter()
+            .map(|item| materialize_system_edge(item, &roots, &root_nodes, &mut nodes, node_budget))
+            .collect::<OghamResult<_>>()?;
+        let right = right
+            .iter()
+            .map(|item| materialize_system_edge(item, &roots, &root_nodes, &mut nodes, node_budget))
+            .collect::<OghamResult<_>>()?;
+        nodes[node] = RegularGameNode { left, right };
+    }
+
+    if nodes.is_empty() {
+        return Ok(roots
+            .into_iter()
+            .map(|root| match root {
+                SymbolicGame::Value(value) => value,
+                _ => unreachable!("node-bearing roots handled above"),
+            })
+            .collect());
+    }
+
+    let has_draw = classify_regular_nodes(&nodes, node_budget)?;
+    let finite = finite_regular_nodes(&nodes);
+    for node in &mut nodes {
+        for edge in node.left.iter_mut().chain(&mut node.right) {
+            if let RegularGameEdge::Local(target) = edge {
+                if let Some(game) = &finite[*target] {
+                    *edge = RegularGameEdge::Finite(game.clone());
+                }
+            }
+        }
+    }
+    let equation_names = root_nodes
+        .iter()
+        .enumerate()
+        .filter_map(|(equation, node)| node.map(|node| (node, names[equation].clone())))
+        .collect();
+    let graph = Arc::new(RegularGameGraph {
+        name: names.first().cloned().unwrap_or_default(),
+        equation_names,
+        nodes,
+        has_draw,
+    });
+    Ok(roots
+        .into_iter()
+        .enumerate()
+        .map(|(equation, root)| match root {
+            SymbolicGame::Value(value) => value,
+            SymbolicGame::Form { .. } => {
+                let node = root_nodes[equation].expect("form root node");
+                finite[node].clone().map_or_else(
+                    || {
+                        GameElement::Graph(GraphRef {
+                            graph: graph.clone(),
+                            node,
+                        })
+                    },
+                    GameElement::Finite,
+                )
+            }
+            SymbolicGame::SystemRef(_) => unreachable!("rejected above"),
+        })
+        .collect())
+}
+
+fn materialize_system_edge(
+    value: &SymbolicGame,
+    roots: &[SymbolicGame],
+    root_nodes: &[Option<usize>],
+    nodes: &mut Vec<RegularGameNode>,
+    node_budget: u128,
+) -> OghamResult<RegularGameEdge> {
+    match value {
+        SymbolicGame::SystemRef(equation) => match &roots[*equation] {
+            SymbolicGame::Value(GameElement::Finite(game)) => {
+                Ok(RegularGameEdge::Finite(game.clone()))
+            }
+            SymbolicGame::Value(GameElement::Graph(reference)) => {
+                Ok(RegularGameEdge::External(reference.clone()))
+            }
+            SymbolicGame::Form { .. } => Ok(RegularGameEdge::Local(
+                root_nodes[*equation].expect("form equation root"),
+            )),
+            SymbolicGame::SystemRef(_) => unreachable!("bare equation rejected above"),
+        },
+        SymbolicGame::Value(GameElement::Finite(game)) => Ok(RegularGameEdge::Finite(game.clone())),
+        SymbolicGame::Value(GameElement::Graph(reference)) => {
+            Ok(RegularGameEdge::External(reference.clone()))
+        }
+        SymbolicGame::Form { left, right } => {
+            if nodes.len() as u128 >= node_budget {
+                return Err(graph_budget_error(node_budget));
+            }
+            let node = nodes.len();
+            nodes.push(RegularGameNode {
+                left: Vec::new(),
+                right: Vec::new(),
+            });
+            let left = left
+                .iter()
+                .map(|item| materialize_system_edge(item, roots, root_nodes, nodes, node_budget))
+                .collect::<OghamResult<_>>()?;
+            let right = right
+                .iter()
+                .map(|item| materialize_system_edge(item, roots, root_nodes, nodes, node_budget))
+                .collect::<OghamResult<_>>()?;
+            nodes[node] = RegularGameNode { left, right };
+            Ok(RegularGameEdge::Local(node))
+        }
+    }
+}
+
+fn finite_regular_nodes(nodes: &[RegularGameNode]) -> Vec<Option<Game>> {
+    let mut finite = vec![None; nodes.len()];
+    let mut remaining = vec![0_usize; nodes.len()];
+    let mut predecessors = vec![Vec::new(); nodes.len()];
+    for (node, value) in nodes.iter().enumerate() {
+        remaining[node] = value
+            .left
+            .iter()
+            .chain(&value.right)
+            .filter(|edge| matches!(edge, RegularGameEdge::Local(_)))
+            .count();
+        for target in value
+            .left
+            .iter()
+            .chain(&value.right)
+            .filter_map(|edge| match edge {
+                RegularGameEdge::Local(target) => Some(*target),
+                _ => None,
+            })
+        {
+            predecessors[target].push(node);
+        }
+    }
+    let mut ready = (0..nodes.len())
+        .filter(|node| remaining[*node] == 0)
+        .collect::<VecDeque<_>>();
+    while let Some(node) = ready.pop_front() {
+        let convert = |edges: &[RegularGameEdge]| {
+            edges
+                .iter()
+                .map(|edge| match edge {
+                    RegularGameEdge::Finite(game) => Some(game.clone()),
+                    RegularGameEdge::Local(target) => finite[*target].clone(),
+                    RegularGameEdge::External(_) => None,
+                })
+                .collect::<Option<Vec<_>>>()
+        };
+        if let (Some(left), Some(right)) = (convert(&nodes[node].left), convert(&nodes[node].right))
+        {
+            finite[node] = Some(Game::new(left, right));
+        }
+        for &source in &predecessors[node] {
+            remaining[source] -= 1;
+            if remaining[source] == 0 {
+                ready.push_back(source);
+            }
+        }
+    }
+    finite
 }
 
 #[derive(Clone)]
@@ -506,6 +707,7 @@ pub(crate) fn partizan_game_element(graph: LoopyPartizanGraph) -> GameElement {
     GameElement::Graph(GraphRef {
         graph: Arc::new(RegularGameGraph {
             name: String::new(),
+            equation_names: BTreeMap::new(),
             nodes,
             has_draw,
         }),
@@ -669,6 +871,16 @@ pub(crate) fn unfounded_error(name: &str) -> OghamError {
         OghamErrorKind::Unfounded,
         Span::point(0),
         format!("Element fixpoint `{name}` is not guarded by a brace constructor"),
+    )
+}
+
+pub(crate) fn unfounded_system_error(equation: &str, name: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::Unfounded,
+        Span::point(0),
+        format!(
+            "Element equation `{equation}` has unguarded system name `{name}` outside a brace constructor"
+        ),
     )
 }
 

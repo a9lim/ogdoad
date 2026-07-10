@@ -64,6 +64,10 @@ pub(crate) trait WorldOps: Sized {
         Err(element_fixpoint_error(name))
     }
 
+    fn bind_recursive_system(&mut self, _bindings: &[Binding]) -> OghamResult<usize> {
+        Ok(0)
+    }
+
     fn refine_function_signature(
         &self,
         _body: &Expr,
@@ -229,12 +233,44 @@ pub(crate) trait SharedRuntime: WorldOps {
                 Ok(Some(self.world_display_value(&value)))
             }
             Statement::Seq { bindings, tail } => {
-                for binding in bindings {
-                    self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                if let Statement::Binding {
+                    name,
+                    expr,
+                    recursive,
+                } = tail.as_ref()
+                {
+                    let mut system = bindings.clone();
+                    system.push(Binding {
+                        name: name.clone(),
+                        expr: expr.clone(),
+                        recursive: *recursive,
+                    });
+                    self.bind_bindings(&system)?;
+                    return Ok(None);
                 }
+                self.bind_bindings(bindings)?;
                 self.eval_statement(tail)
             }
         }
+    }
+
+    fn bind_bindings(&mut self, bindings: &[Binding]) -> OghamResult<()> {
+        let mut index = 0;
+        while index < bindings.len() {
+            let consumed = if bindings[index].recursive {
+                self.bind_recursive_system(&bindings[index..])?
+            } else {
+                0
+            };
+            if consumed == 0 {
+                let binding = &bindings[index];
+                self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
+                index += 1;
+            } else {
+                index += consumed;
+            }
+        }
+        Ok(())
     }
 
     fn bind_name(&mut self, name: &str, expr: &Expr, recursive: bool) -> OghamResult<()> {
@@ -270,9 +306,7 @@ pub(crate) trait SharedRuntime: WorldOps {
     ) -> OghamResult<Value<Self::Element>> {
         let saved = self.env().clone();
         let result = (|| {
-            for binding in bindings {
-                self.bind_name(&binding.name, &binding.expr, binding.recursive)?;
-            }
+            self.bind_bindings(bindings)?;
             self.eval_value(body)
         })();
         *self.env_mut() = saved;
@@ -630,7 +664,21 @@ pub(crate) trait SharedRuntime: WorldOps {
                 let saved = self.env().clone();
                 let saved_samples = self.validation_sample_function_names().clone();
                 let result = (|| {
-                    for binding in bindings {
+                    let mut index = 0;
+                    while index < bindings.len() {
+                        let consumed = if bindings[index].recursive {
+                            self.bind_recursive_system(&bindings[index..])?
+                        } else {
+                            0
+                        };
+                        if consumed > 0 {
+                            for binding in &bindings[index..index + consumed] {
+                                self.validate_all(&binding.expr)?;
+                            }
+                            index += consumed;
+                            continue;
+                        }
+                        let binding = &bindings[index];
                         if !matches!(binding.expr, Expr::Lambda { .. }) {
                             self.validate_all(&binding.expr)?;
                         }
@@ -647,6 +695,7 @@ pub(crate) trait SharedRuntime: WorldOps {
                             self.validation_sample_function_names_mut()
                                 .insert(binding.name.clone());
                         }
+                        index += 1;
                     }
                     self.validate_all(body)
                 })();

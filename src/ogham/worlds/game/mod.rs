@@ -24,6 +24,7 @@ pub(crate) struct GraphRef {
 
 pub(crate) struct RegularGameGraph {
     name: String,
+    equation_names: BTreeMap<usize, String>,
     nodes: Vec<RegularGameNode>,
     has_draw: Vec<bool>,
 }
@@ -51,7 +52,7 @@ pub(crate) enum SymbolicGame {
         left: Vec<SymbolicGame>,
         right: Vec<SymbolicGame>,
     },
-    SelfRef,
+    SystemRef(usize),
 }
 
 impl std::fmt::Display for GameElement {
@@ -84,7 +85,7 @@ impl WorldOps for GameRuntime {
     }
 
     fn world_display_value(&self, value: &Value<Self::Element>) -> String {
-        display_game_value(value)
+        display_game_value(value, &self.state.env)
     }
 
     fn world_eval_element(&mut self, expr: &Expr) -> OghamResult<Self::Element> {
@@ -143,6 +144,46 @@ impl WorldOps for GameRuntime {
             .env
             .insert(name.to_string(), Value::Element(value));
         Ok(())
+    }
+
+    fn bind_recursive_system(&mut self, bindings: &[Binding]) -> OghamResult<usize> {
+        let mut count = 0;
+        while let Some(binding) = bindings.get(count) {
+            if !binding.recursive
+                || matches!(binding.expr, Expr::Lambda { .. })
+                || matches!(
+                    game_known_sort(&binding.expr, &self.state.env),
+                    Some(DataSort::Index | DataSort::Bool)
+                )
+            {
+                break;
+            }
+            count += 1;
+        }
+        if count == 0 {
+            return Ok(0);
+        }
+        let names = bindings[..count]
+            .iter()
+            .map(|binding| binding.name.clone())
+            .collect::<Vec<_>>();
+        let has_system_reference = bindings[..count].iter().any(|binding| {
+            names
+                .iter()
+                .any(|name| contains_free_name(&binding.expr, name))
+        });
+        if count == 1 || !has_system_reference {
+            return Ok(0);
+        }
+        let roots = bindings[..count]
+            .iter()
+            .map(|binding| self.reduce_element_system(&binding.name, &names, &binding.expr, false))
+            .collect::<OghamResult<Vec<_>>>()?;
+        let values = materialize_regular_system(&names, roots, self.state.graph_budget)?;
+        for (name, value) in names.into_iter().zip(values) {
+            self.state.env.insert(name, Value::Element(value));
+        }
+        Ok(count)
     }
 
     fn refine_function_signature(
@@ -476,7 +517,7 @@ impl GameRuntime {
     ) -> OghamResult<SymbolicGame> {
         match expr {
             Expr::Index(_) => Err(index_sort_error()),
-            Expr::Ident(found) if found == name => Ok(SymbolicGame::SelfRef),
+            Expr::Ident(found) if found == name => Ok(SymbolicGame::SystemRef(0)),
             Expr::Container(items) => {
                 let mut tail = SymbolicGame::Value(GameElement::Finite(Game::integer(0)));
                 for item in items.iter().rev() {
@@ -516,6 +557,66 @@ impl GameRuntime {
             }
             _ if contains_free_name(expr, name) => Err(unfounded_error(name)),
             _ => self.eval_element(expr).map(SymbolicGame::Value),
+        }
+    }
+
+    fn reduce_element_system(
+        &mut self,
+        equation: &str,
+        names: &[String],
+        expr: &Expr,
+        _inside_form: bool,
+    ) -> OghamResult<SymbolicGame> {
+        match expr {
+            Expr::Index(_) => Err(index_sort_error()),
+            Expr::Ident(found) => names
+                .iter()
+                .position(|name| name == found)
+                .map(SymbolicGame::SystemRef)
+                .map_or_else(|| self.eval_element(expr).map(SymbolicGame::Value), Ok),
+            Expr::Container(items) => {
+                let mut tail = SymbolicGame::Value(GameElement::Finite(Game::integer(0)));
+                for item in items.iter().rev() {
+                    tail = SymbolicGame::Form {
+                        left: vec![self.reduce_element_system(equation, names, item, true)?],
+                        right: vec![tail],
+                    };
+                }
+                Ok(tail)
+            }
+            Expr::GameForm { left, right } => Ok(SymbolicGame::Form {
+                left: left
+                    .iter()
+                    .map(|item| self.reduce_element_system(equation, names, item, true))
+                    .collect::<OghamResult<_>>()?,
+                right: right
+                    .iter()
+                    .map(|item| self.reduce_element_system(equation, names, item, true))
+                    .collect::<OghamResult<_>>()?,
+            }),
+            Expr::Binary {
+                op: BinaryOp::Append,
+                lhs,
+                rhs,
+            } => {
+                if let Some(name) = names.iter().find(|name| contains_free_name(lhs, name)) {
+                    return Err(unfounded_system_error(equation, name));
+                }
+                let left = self.eval_element(lhs)?;
+                match walk_game_spine(&left)? {
+                    SpineWalk::Cycles => Ok(SymbolicGame::Value(left)),
+                    SpineWalk::ReachesNil(heads) => {
+                        let right = self.reduce_element_system(equation, names, rhs, false)?;
+                        Ok(symbolic_spine(heads, right))
+                    }
+                }
+            }
+            _ => {
+                if let Some(name) = names.iter().find(|name| contains_free_name(expr, name)) {
+                    return Err(unfounded_system_error(equation, name));
+                }
+                self.eval_element(expr).map(SymbolicGame::Value)
+            }
         }
     }
 }

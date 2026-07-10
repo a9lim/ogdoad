@@ -2,9 +2,18 @@
 
 use super::*;
 
-pub(crate) fn display_game_value(value: &Value<GameElement>) -> String {
+type DisplayReachability = (
+    Vec<GraphKey>,
+    HashMap<GraphKey, Vec<GraphKey>>,
+    HashMap<GraphKey, GraphRef>,
+);
+
+pub(crate) fn display_game_value(
+    value: &Value<GameElement>,
+    env: &BTreeMap<String, Value<GameElement>>,
+) -> String {
     match value {
-        Value::Element(game) => display_game_element(game),
+        Value::Element(game) => display_game_element_in_env(game, env),
         Value::Index(value) => display_index(*value),
         Value::Bool(value) => value.to_string(),
         Value::Function(function) => {
@@ -18,44 +27,105 @@ pub(crate) fn display_game_value(value: &Value<GameElement>) -> String {
 }
 
 pub(crate) fn display_game_element(element: &GameElement) -> String {
+    display_game_element_in_env(element, &BTreeMap::new())
+}
+
+pub(crate) fn display_game_element_in_env(
+    element: &GameElement,
+    env: &BTreeMap<String, Value<GameElement>>,
+) -> String {
     match element {
         GameElement::Finite(game) => display_game(game),
-        GameElement::Graph(reference) if !reference.graph.name.is_empty() => {
-            let mut anchors = HashMap::new();
-            anchors.insert(graph_key(reference), reference.graph.name.clone());
-            format!(
-                "{} =: {}",
-                reference.graph.name,
-                display_graph_node(reference, &anchors, true, &mut HashSet::new())
-            )
-        }
-        GameElement::Graph(reference) => display_composite_graph(reference),
+        GameElement::Graph(reference) => display_composite_graph(reference, env),
     }
 }
 
-pub(crate) fn display_composite_graph(reference: &GraphRef) -> String {
-    let anchored = collect_display_anchors(reference);
+pub(crate) fn display_composite_graph(
+    reference: &GraphRef,
+    env: &BTreeMap<String, Value<GameElement>>,
+) -> String {
+    let (discovery, successors, references) = reachable_display_graph(reference);
+    let (components, component_of) = display_components(&discovery, &successors);
+    let cyclic_components = components
+        .iter()
+        .enumerate()
+        .filter_map(|(component, nodes)| {
+            (nodes.len() > 1
+                || successors
+                    .get(&nodes[0])
+                    .is_some_and(|targets| targets.contains(&nodes[0])))
+            .then_some(component)
+        })
+        .collect::<HashSet<_>>();
+    let anchor_keys = collect_display_anchor_keys(reference);
+    let anchored = discovery
+        .iter()
+        .filter(|key| anchor_keys.contains(key))
+        .filter(|key| cyclic_components.contains(&component_of[key]))
+        .map(|key| references[key].clone())
+        .collect::<Vec<_>>();
     if anchored.is_empty() {
         return display_graph_node(reference, &HashMap::new(), true, &mut HashSet::new());
     }
+
+    let mut collision = env.keys().cloned().collect::<HashSet<_>>();
+    let mut preferred = vec![None; anchored.len()];
+    let mut exact = HashMap::new();
+    for (name, value) in env {
+        if let Value::Element(GameElement::Graph(bound)) = value {
+            exact
+                .entry(graph_key(bound))
+                .or_insert_with(|| name.clone());
+        }
+    }
+    for (index, anchor) in anchored.iter().enumerate() {
+        if let Some(name) = exact.get(&graph_key(anchor)) {
+            preferred[index] = Some(name.clone());
+        } else {
+            preferred[index] = validated_anchor_name(anchor, env, false);
+        }
+    }
+    if let Some(index) = anchored
+        .iter()
+        .position(|anchor| graph_key(anchor) == graph_key(reference))
+    {
+        if preferred[index].is_none() {
+            preferred[index] = validated_anchor_name(reference, env, true);
+        }
+    }
+    for name in preferred.iter().flatten() {
+        collision.insert(name.clone());
+    }
+
     let mut anchors = HashMap::new();
     let mut generated = 1_u128;
-    for anchor in &anchored {
-        let name = if anchor.graph.name.is_empty() {
-            let name = format!("g{generated}");
+    for (index, anchor) in anchored.iter().enumerate() {
+        let name = preferred[index].clone().unwrap_or_else(|| loop {
+            let candidate = format!("g{generated}");
             generated += 1;
-            name
-        } else {
-            anchor.graph.name.clone()
-        };
+            if collision.insert(candidate.clone()) {
+                break candidate;
+            }
+        });
         anchors.insert(graph_key(anchor), name);
     }
-    // Inner first-reach cycles are definitions used by their enclosing cycle,
-    // so emit the flat block from inner to outer while retaining g1, g2, ... in
-    // first-reach naming order.
-    let mut parts = anchored
+
+    let component_order =
+        display_component_order(&discovery, &successors, &component_of, &cyclic_components);
+    let groups = component_order
         .iter()
-        .rev()
+        .map(|component| {
+            anchored
+                .iter()
+                .filter(|anchor| component_of[&graph_key(anchor)] == *component)
+                .cloned()
+                .collect::<Vec<_>>()
+        })
+        .filter(|group| !group.is_empty())
+        .collect::<Vec<_>>();
+    let parts = groups
+        .iter()
+        .flat_map(|group| group.iter())
         .map(|anchor| {
             format!(
                 "{} =: {}",
@@ -67,23 +137,84 @@ pub(crate) fn display_composite_graph(reference: &GraphRef) -> String {
     let root_key = graph_key(reference);
     let root_name = anchors.get(&root_key).cloned();
     if parts.len() == 1 && root_name.is_some() {
-        return parts.pop().expect("single synthesized root equation");
+        return parts[0].clone();
     }
-    parts.push(
-        root_name
-            .unwrap_or_else(|| display_graph_node(reference, &anchors, true, &mut HashSet::new())),
-    );
-    format!("({})", parts.join("; "))
+    if let Some(root_name) = root_name {
+        let root_component = component_of[&root_key];
+        if groups.len() == 1
+            && groups[0]
+                .iter()
+                .all(|anchor| component_of[&graph_key(anchor)] == root_component)
+        {
+            return parts.join("; ");
+        }
+        let mut body = parts;
+        body.push(root_name);
+        return format!("({})", body.join("; "));
+    }
+    let mut body = parts;
+    body.push(display_graph_node(
+        reference,
+        &anchors,
+        true,
+        &mut HashSet::new(),
+    ));
+    format!("({})", body.join("; "))
 }
 
-pub(crate) fn collect_display_anchors(root: &GraphRef) -> Vec<GraphRef> {
+fn validated_anchor_name(
+    root: &GraphRef,
+    env: &BTreeMap<String, Value<GameElement>>,
+    allow_graph_name: bool,
+) -> Option<String> {
+    let provenance = root
+        .graph
+        .equation_names
+        .get(&root.node)
+        .filter(|name| !name.is_empty())
+        .or_else(|| {
+            (allow_graph_name && !root.graph.name.is_empty()).then_some(&root.graph.name)
+        })?;
+    match env.get(provenance) {
+        None => Some(provenance.clone()),
+        Some(Value::Element(GameElement::Graph(bound)))
+            if Arc::ptr_eq(&bound.graph, &root.graph) =>
+        {
+            Some(provenance.clone())
+        }
+        _ => None,
+    }
+}
+
+fn reachable_display_graph(root: &GraphRef) -> DisplayReachability {
+    let mut discovery = Vec::new();
+    let mut successors = HashMap::new();
+    let mut references = HashMap::new();
+    let mut seen = HashSet::new();
+    let mut stack = vec![root.clone()];
+    while let Some(reference) = stack.pop() {
+        let key = graph_key(&reference);
+        if !seen.insert(key) {
+            continue;
+        }
+        discovery.push(key);
+        references.insert(key, reference.clone());
+        let targets = graph_reference_successors(&reference);
+        successors.insert(key, targets.iter().map(graph_key).collect());
+        stack.extend(targets.into_iter().rev());
+    }
+    (discovery, successors, references)
+}
+
+fn collect_display_anchor_keys(root: &GraphRef) -> HashSet<GraphKey> {
     let root_key = graph_key(root);
     let mut colors = HashMap::from([(root_key, 1_u8)]);
-    let mut discovery = vec![root.clone()];
-    let mut back_targets = HashSet::new();
-    let mut named_entries = HashSet::new();
-    let mut stack = vec![(root.clone(), graph_reference_successors(root), 0_usize)];
-
+    let mut anchors = HashSet::new();
+    let mut stack = vec![(
+        root.clone(),
+        graph_reference_successors_marked(root),
+        0_usize,
+    )];
     while !stack.is_empty() {
         let top = stack.len() - 1;
         if stack[top].2 == stack[top].1.len() {
@@ -91,36 +222,173 @@ pub(crate) fn collect_display_anchors(root: &GraphRef) -> Vec<GraphRef> {
             stack.pop();
             continue;
         }
-        let (target, named_entry) = stack[top].1[stack[top].2].clone();
+        let (target, external) = stack[top].1[stack[top].2].clone();
         stack[top].2 += 1;
         let key = graph_key(&target);
-        if named_entry {
-            named_entries.insert(key);
+        if external {
+            anchors.insert(key);
         }
         match colors.get(&key).copied().unwrap_or(0) {
             0 => {
                 colors.insert(key, 1);
-                discovery.push(target.clone());
-                let successors = graph_reference_successors(&target);
+                let successors = graph_reference_successors_marked(&target);
                 stack.push((target, successors, 0));
             }
             1 => {
-                back_targets.insert(key);
+                anchors.insert(key);
             }
             _ => {}
         }
     }
 
-    discovery
+    let mut seen = HashSet::new();
+    let mut stack = vec![root.clone()];
+    while let Some(reference) = stack.pop() {
+        let key = graph_key(&reference);
+        if !seen.insert(key) {
+            continue;
+        }
+        if reference.graph.equation_names.len() > 1
+            && reference.graph.equation_names.contains_key(&reference.node)
+        {
+            anchors.insert(key);
+        }
+        stack.extend(graph_reference_successors(&reference).into_iter().rev());
+    }
+    anchors
+}
+
+fn display_components(
+    discovery: &[GraphKey],
+    successors: &HashMap<GraphKey, Vec<GraphKey>>,
+) -> (Vec<Vec<GraphKey>>, HashMap<GraphKey, usize>) {
+    let mut seen = HashSet::new();
+    let mut finish = Vec::new();
+    for &start in discovery {
+        if !seen.insert(start) {
+            continue;
+        }
+        let mut stack = vec![(start, 0_usize)];
+        while let Some((node, next)) = stack.last_mut() {
+            let targets = &successors[node];
+            if *next == targets.len() {
+                finish.push(*node);
+                stack.pop();
+            } else {
+                let target = targets[*next];
+                *next += 1;
+                if seen.insert(target) {
+                    stack.push((target, 0));
+                }
+            }
+        }
+    }
+    let mut reverse = HashMap::<GraphKey, Vec<GraphKey>>::new();
+    for (&source, targets) in successors {
+        reverse.entry(source).or_default();
+        for &target in targets {
+            reverse.entry(target).or_default().push(source);
+        }
+    }
+    let mut component_of = HashMap::new();
+    let mut components = Vec::new();
+    for start in finish.into_iter().rev() {
+        if component_of.contains_key(&start) {
+            continue;
+        }
+        let component = components.len();
+        let mut nodes = Vec::new();
+        let mut stack = vec![start];
+        component_of.insert(start, component);
+        while let Some(node) = stack.pop() {
+            nodes.push(node);
+            for &target in &reverse[&node] {
+                if let std::collections::hash_map::Entry::Vacant(entry) = component_of.entry(target)
+                {
+                    entry.insert(component);
+                    stack.push(target);
+                }
+            }
+        }
+        components.push(nodes);
+    }
+    (components, component_of)
+}
+
+fn display_component_order(
+    discovery: &[GraphKey],
+    successors: &HashMap<GraphKey, Vec<GraphKey>>,
+    component_of: &HashMap<GraphKey, usize>,
+    cyclic: &HashSet<usize>,
+) -> Vec<usize> {
+    let mut dependencies = cyclic
+        .iter()
+        .map(|component| (*component, HashSet::new()))
+        .collect::<HashMap<_, _>>();
+    for &source in discovery {
+        let source_component = component_of[&source];
+        if !cyclic.contains(&source_component) {
+            continue;
+        }
+        let mut seen = HashSet::new();
+        let mut stack = successors[&source].clone();
+        while let Some(target) = stack.pop() {
+            let target_component = component_of[&target];
+            if cyclic.contains(&target_component) {
+                if target_component != source_component {
+                    dependencies
+                        .get_mut(&source_component)
+                        .expect("cyclic source component")
+                        .insert(target_component);
+                }
+            } else if seen.insert(target) {
+                stack.extend(successors[&target].iter().copied());
+            }
+        }
+    }
+    let mut consumers = HashMap::<usize, Vec<usize>>::new();
+    for (&consumer, deps) in &dependencies {
+        for &dependency in deps {
+            consumers.entry(dependency).or_default().push(consumer);
+        }
+    }
+    let rank = discovery
+        .iter()
+        .enumerate()
+        .fold(HashMap::new(), |mut rank, (index, node)| {
+            rank.entry(component_of[node]).or_insert(index);
+            rank
+        });
+    let mut remaining = dependencies
+        .iter()
+        .map(|(&component, deps)| (component, deps.len()))
+        .collect::<HashMap<_, _>>();
+    let mut order = Vec::new();
+    while order.len() < cyclic.len() {
+        let next = remaining
+            .iter()
+            .filter(|(component, count)| **count == 0 && !order.contains(*component))
+            .min_by_key(|(component, _)| rank[*component])
+            .map(|(component, _)| *component);
+        let Some(component) = next else {
+            break;
+        };
+        order.push(component);
+        for &consumer in consumers.get(&component).into_iter().flatten() {
+            remaining.entry(consumer).and_modify(|count| *count -= 1);
+        }
+    }
+    order
+}
+
+pub(crate) fn graph_reference_successors(reference: &GraphRef) -> Vec<GraphRef> {
+    graph_reference_successors_marked(reference)
         .into_iter()
-        .filter(|reference| {
-            let key = graph_key(reference);
-            named_entries.contains(&key) || back_targets.contains(&key)
-        })
+        .map(|(target, _)| target)
         .collect()
 }
 
-pub(crate) fn graph_reference_successors(reference: &GraphRef) -> Vec<(GraphRef, bool)> {
+fn graph_reference_successors_marked(reference: &GraphRef) -> Vec<(GraphRef, bool)> {
     let node = &reference.graph.nodes[reference.node];
     node.left
         .iter()
@@ -134,9 +402,7 @@ pub(crate) fn graph_reference_successors(reference: &GraphRef) -> Vec<(GraphRef,
                 },
                 false,
             )),
-            RegularGameEdge::External(reference) => {
-                Some((reference.clone(), !reference.graph.name.is_empty()))
-            }
+            RegularGameEdge::External(reference) => Some((reference.clone(), true)),
         })
         .collect()
 }
@@ -157,7 +423,7 @@ pub(crate) fn display_graph_node(
         return anchors
             .get(&key)
             .cloned()
-            .unwrap_or_else(|| reference.graph.name.clone());
+            .unwrap_or_else(|| format!("g{}", reference.node + 1));
     }
     let node = &reference.graph.nodes[reference.node];
     let left = node

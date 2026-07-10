@@ -140,6 +140,186 @@ fn seeded_fresh_pairs_obey_negation_rotation_and_operand_swap() {
     }
 }
 
+#[test]
+fn seeded_loopy_displays_rebuild_equivalent_values_in_fresh_sessions() {
+    let named = vec![
+        DisplayCase::new(
+            "multi-SCC sum",
+            ["on =: {on |}", "l =: [1, 2] ⧺ l"],
+            "l + on",
+        ),
+        DisplayCase::new(
+            "shared subgraph",
+            ["a =: {a |}", "b =: {a | b}"],
+            "{b, b | a}",
+        ),
+        DisplayCase::new(
+            "duplicate mutual edges",
+            ["a =: {b, b | a}; b =: {| a, a}"],
+            "a",
+        ),
+        DisplayCase::new(
+            "ambient generated-name collisions",
+            ["g1 := 0", "g2 := 1", "g3 := -1", "on =: {on |}"],
+            "-on",
+        ),
+        DisplayCase::new(
+            "rebinding history",
+            ["a =: {a |}", "old := a", "a =: {| a}"],
+            "{old | a}",
+        ),
+        DisplayCase::new(
+            "named root with external cycle",
+            ["a =: {0 | a}", "g =: {a | g}"],
+            "g",
+        ),
+        DisplayCase::new(
+            "named root with anonymous negated cycle",
+            ["on =: {on |}", "x := -on", "g =: {x | g}"],
+            "g",
+        ),
+        DisplayCase::new(
+            "user anchor and generated-name collision",
+            ["on =: {on |}", "g1 =: {1 | g1}", "a := -on"],
+            "{a | g1}",
+        ),
+        DisplayCase::new(
+            "nested negated sums",
+            ["on =: {on |}", "off =: {| off}"],
+            "-((on + -off) + -(off + on))",
+        ),
+        DisplayCase::new(
+            "sum-product graph of mutual systems",
+            ["a =: {b |}; b =: {| a}", "c =: {1, d |}; d =: {| c, -1}"],
+            "a + c",
+        ),
+    ];
+    for case in &named {
+        assert_display_roundtrip(case);
+    }
+
+    let mut rng = Lcg(SEED ^ 0xd15c_1a7e_5cc0_0004);
+    for case_index in 0..32 {
+        let case = randomized_display_case(&mut rng, case_index);
+        assert_display_roundtrip(&case);
+    }
+}
+
+struct DisplayCase {
+    label: String,
+    setup: Vec<String>,
+    expression: String,
+}
+
+impl DisplayCase {
+    fn new<const N: usize>(label: &str, setup: [&str; N], expression: &str) -> Self {
+        Self {
+            label: label.to_string(),
+            setup: setup.into_iter().map(str::to_string).collect(),
+            expression: expression.to_string(),
+        }
+    }
+}
+
+fn randomized_display_case(rng: &mut Lcg, case_index: usize) -> DisplayCase {
+    let count = 2 + rng.index(3);
+    let names = (0..count)
+        .map(|node| format!("r{case_index}_{node}"))
+        .collect::<Vec<_>>();
+    let equations = (0..count)
+        .map(|node| {
+            let next = (node + 1) % count;
+            let mut left = Vec::new();
+            let mut right = Vec::new();
+            if rng.bit() {
+                left.push(names[next].clone());
+            } else {
+                right.push(names[next].clone());
+            }
+            if rng.bit() {
+                left.push(names[next].clone());
+            }
+            if rng.bit() {
+                left.push((rng.index(4) as i128 - 1).to_string());
+            }
+            if rng.bit() {
+                right.push((rng.index(4) as i128 - 1).to_string());
+            }
+            format!(
+                "{} =: {{{} | {}}}",
+                names[node],
+                left.join(", "),
+                right.join(", ")
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("; ");
+    let mut setup = (1..=rng.index(4))
+        .map(|index| format!("g{index} := {index}"))
+        .collect::<Vec<_>>();
+    setup.push(equations);
+    let expression = match rng.index(4) {
+        0 => names[0].clone(),
+        1 => format!("{{9 | {}}}", names[0]),
+        2 => format!("-{}", names[0]),
+        _ => format!("{{{0}, {0} | {1}}}", names[0], names[count - 1]),
+    };
+    DisplayCase {
+        label: format!("seeded random system {case_index}"),
+        setup,
+        expression,
+    }
+}
+
+fn assert_display_roundtrip(case: &DisplayCase) {
+    let mut source = OghamSession::new("game").expect("source game world");
+    for statement in &case.setup {
+        source.eval_line(statement).unwrap_or_else(|err| {
+            panic!("{} source setup `{statement}` failed: {err}", case.label)
+        });
+    }
+    let display = source
+        .eval_line(&case.expression)
+        .unwrap_or_else(|err| panic!("{} source expression failed: {err}", case.label))
+        .value
+        .unwrap_or_else(|| panic!("{} source expression returned no value", case.label));
+    let executable = executable_display(&display);
+
+    let mut fresh = OghamSession::new("game").expect("fresh game world");
+    fresh
+        .eval_line(&format!("rebuilt := {executable}"))
+        .unwrap_or_else(|err| {
+            panic!(
+                "{} display did not evaluate in a fresh session: `{display}`: {err}",
+                case.label
+            )
+        });
+    for statement in &case.setup {
+        fresh.eval_line(statement).unwrap_or_else(|err| {
+            panic!(
+                "{} comparison setup `{statement}` failed: {err}",
+                case.label
+            )
+        });
+    }
+    assert!(
+        eval_bool(&mut fresh, &format!("rebuilt ≡ ({})", case.expression)),
+        "{} rebuilt a structurally different value from `{display}`",
+        case.label
+    );
+}
+
+fn executable_display(display: &str) -> String {
+    if display.starts_with('(') {
+        return display.to_string();
+    }
+    let root = display
+        .split_once(" =:")
+        .map(|(name, _)| name)
+        .expect("loopy display equation root");
+    format!("({display}; {root})")
+}
+
 fn stopper_definition(
     name: &str,
     cycle_len: usize,
