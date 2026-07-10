@@ -1,4 +1,6 @@
-use super::ast::{BinaryOp, Binding, Expr, RelOp, StarLiteral, Statement, UnaryOp};
+use super::ast::{
+    BinaryOp, Binding, DataSort, Expr, LambdaBinder, RelOp, StarLiteral, Statement, UnaryOp,
+};
 use super::error::{OghamError, OghamErrorKind, OghamResult, Span};
 use super::lex::{lex, Token, TokenKind};
 use crate::scalar::Ordinal;
@@ -32,6 +34,15 @@ fn block_tail_error() -> OghamError {
         Span::point(0),
         "a parenthesized body sequence must end in an expression",
     )
+}
+
+fn conditional_words_error(span: Span) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::Parse,
+        span,
+        "`?` and `:` are not conditional-expression syntax",
+    )
+    .with_hint("conditionals are words now: `if a then b else c`")
 }
 
 fn statement_to_block_expr(stmt: Statement) -> OghamResult<Expr> {
@@ -160,6 +171,9 @@ impl Parser {
 
     fn expect_end(&self) -> OghamResult<()> {
         if let Some(tok) = self.peek() {
+            if matches!(tok.kind, TokenKind::Question | TokenKind::Colon) {
+                return Err(conditional_words_error(tok.span));
+            }
             let err = OghamError::new(OghamErrorKind::Parse, tok.span, "unexpected trailing token");
             Err(match tok.kind {
                 TokenKind::Pipe => {
@@ -211,6 +225,9 @@ impl Parser {
                 TokenKind::And
                     | TokenKind::Or
                     | TokenKind::Not
+                    | TokenKind::If
+                    | TokenKind::Then
+                    | TokenKind::Else
                     | TokenKind::True
                     | TokenKind::False
                     | TokenKind::Up
@@ -235,30 +252,29 @@ impl Parser {
         self.parse_expression()
     }
 
-    fn try_parse_binders(&mut self) -> OghamResult<Option<Vec<String>>> {
+    fn try_parse_binders(&mut self) -> OghamResult<Option<Vec<LambdaBinder>>> {
         let save = self.pos;
         let out = match self.peek_kind() {
-            Some(TokenKind::Ident(name))
-                if matches!(self.peek_kind_at(1), Some(TokenKind::Arrow)) =>
+            Some(TokenKind::Ident(_)) if matches!(self.peek_kind_at(1), Some(TokenKind::Arrow)) => {
+                Some(vec![self.parse_lambda_binder().expect("peeked binder")])
+            }
+            Some(TokenKind::Index | TokenKind::Question)
+                if matches!(self.peek_kind_at(1), Some(TokenKind::Ident(_)))
+                    && matches!(self.peek_kind_at(2), Some(TokenKind::Arrow)) =>
             {
-                let name = name.clone();
-                self.bump();
-                Some(vec![name])
+                Some(vec![self
+                    .parse_lambda_binder()
+                    .expect("peeked marked binder")])
             }
             Some(TokenKind::LParen) => {
                 self.bump();
                 let mut binders = Vec::new();
                 loop {
-                    match self.bump() {
-                        Some(Token {
-                            kind: TokenKind::Ident(name),
-                            ..
-                        }) => binders.push(name),
-                        _ => {
-                            self.pos = save;
-                            return Ok(None);
-                        }
-                    }
+                    let Some(binder) = self.parse_lambda_binder() else {
+                        self.pos = save;
+                        return Ok(None);
+                    };
+                    binders.push(binder);
                     if !matches!(self.peek_kind(), Some(TokenKind::Comma)) {
                         break;
                     }
@@ -284,20 +300,59 @@ impl Parser {
         Ok(out)
     }
 
-    fn parse_expression(&mut self) -> OghamResult<Expr> {
-        let expr = self.parse_or()?;
-        if !matches!(self.peek_kind(), Some(TokenKind::Question)) {
-            return Ok(expr);
-        }
-        self.bump();
-        let then_expr = self.parse_expression()?;
-        self.expect(|k| matches!(k, TokenKind::Colon), "`:`")?;
-        let else_expr = self.parse_expression()?;
-        Ok(Expr::Ternary {
-            cond: Box::new(expr),
-            then_expr: Box::new(then_expr),
-            else_expr: Box::new(else_expr),
+    fn parse_lambda_binder(&mut self) -> Option<LambdaBinder> {
+        let declared_sort = match self.peek_kind() {
+            Some(TokenKind::Index) => {
+                self.bump();
+                Some(DataSort::Index)
+            }
+            Some(TokenKind::Question) => {
+                self.bump();
+                Some(DataSort::Bool)
+            }
+            _ => None,
+        };
+        let Some(Token {
+            kind: TokenKind::Ident(name),
+            ..
+        }) = self.bump()
+        else {
+            return None;
+        };
+        Some(LambdaBinder {
+            name,
+            declared_sort,
         })
+    }
+
+    fn parse_expression(&mut self) -> OghamResult<Expr> {
+        if matches!(
+            self.peek_kind(),
+            Some(TokenKind::Question | TokenKind::Colon)
+        ) {
+            return Err(conditional_words_error(self.span()));
+        }
+        if matches!(self.peek_kind(), Some(TokenKind::If)) {
+            self.bump();
+            let cond = self.parse_expression()?;
+            self.expect(|kind| matches!(kind, TokenKind::Then), "`then`")?;
+            let then_expr = self.parse_expression()?;
+            self.expect(|kind| matches!(kind, TokenKind::Else), "`else`")?;
+            let else_expr = self.parse_expression()?;
+            return Ok(Expr::Ternary {
+                cond: Box::new(cond),
+                then_expr: Box::new(then_expr),
+                else_expr: Box::new(else_expr),
+            });
+        }
+        let expr = self.parse_or()?;
+        if matches!(
+            self.peek_kind(),
+            Some(TokenKind::Question | TokenKind::Colon)
+        ) {
+            return Err(conditional_words_error(self.span()));
+        }
+        Ok(expr)
     }
 
     fn parse_or(&mut self) -> OghamResult<Expr> {
@@ -642,6 +697,7 @@ impl Parser {
                 Ok(Expr::Container(items))
             }
             TokenKind::LBrace => self.parse_braceform(),
+            TokenKind::Question | TokenKind::Colon => Err(conditional_words_error(tok.span)),
             _ => Err(OghamError::new(
                 OghamErrorKind::Parse,
                 tok.span,

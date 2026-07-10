@@ -17,7 +17,7 @@ pub(crate) fn contains_free_name(expr: &Expr, target: &str) -> bool {
             Expr::Ident(name) => name == target && !bound.contains(name),
             Expr::Lambda { binders, body } => {
                 let mut nested = bound.clone();
-                nested.extend(binders.iter().cloned());
+                nested.extend(binders.iter().map(|binder| binder.name.clone()));
                 visit(body, target, &nested)
             }
             Expr::Block { bindings, body } => {
@@ -85,7 +85,7 @@ pub(crate) fn substitute_env<E: Display>(
         }
         Expr::Lambda { binders, body } => {
             let mut nested_bound = bound.clone();
-            nested_bound.extend(binders.iter().cloned());
+            nested_bound.extend(binders.iter().map(|binder| binder.name.clone()));
             Ok(Expr::Lambda {
                 binders: binders.clone(),
                 body: Box::new(substitute_env(body, &nested_bound, env)?),
@@ -177,7 +177,7 @@ pub(crate) fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr
         Expr::Lambda { binders, body } => {
             let mut nested = replacements.clone();
             for binder in binders {
-                nested.remove(binder);
+                nested.remove(&binder.name);
             }
             Expr::Lambda {
                 binders: binders.clone(),
@@ -332,7 +332,7 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                         ));
                     }
                     let mut replacements = BTreeMap::new();
-                    replacements.insert(binders[0].clone(), *rhs_body.clone());
+                    replacements.insert(binders[0].name.clone(), *rhs_body.clone());
                     return Ok(Expr::Lambda {
                         binders: rhs_binders.clone(),
                         body: Box::new(beta_normalize(substitute_names(&lhs_body, &replacements))?),
@@ -349,7 +349,11 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                         ),
                     ));
                 }
-                let replacements = binders.into_iter().zip(args).collect();
+                let replacements = binders
+                    .into_iter()
+                    .map(|binder| binder.name)
+                    .zip(args)
+                    .collect();
                 return beta_normalize(substitute_names(&lhs_body, &replacements));
             }
             Ok(Expr::Apply {

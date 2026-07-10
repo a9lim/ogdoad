@@ -7,7 +7,7 @@ const TUTOR_TASKS: &str = concat!(
     "try (:world, then expression):\n",
     "  :world nimber 0    | *3 ⋅ *5\n",
     "  :world game        | {1, 2 | 0} > 0        up ∥ *1\n",
-    "  :world integer 0   | fact =: n ↦ (n = 0 ? 1 : n⋅fact@(n-1)); fact@5\n",
+    "  :world integer 0   | fact =: n ↦ (if n = 0 then 1 else n⋅fact@(n-1)); fact@5\n",
     "  :world game        | ones =: {1 | ones}; ones ‿‿ ones\n",
     "  :world surreal 0   | ω↑(1/2) + 1/2",
 );

@@ -512,27 +512,27 @@
 ! E_Parse:
 
 // ------------------------------------------------------------ v0.2.0 — ternary
-> 0 = 0 ? 1 : 1/0
+> if 0 = 0 then 1 else 1/0
 = 1
 
-> 1 = 0 ? 1/0 : 7
+> if 1 = 0 then 1/0 else 7
 = 7
 
-> 3 == 3 ? 1 : 2
-~ 3 = 3 ? 1 : 2
+> if 3 == 3 then 1 else 2
+~ if 3 = 3 then 1 else 2
 = 1
 
-> 1 = 1 ? 2 : (2 < 3)
+> if 1 = 1 then 2 else (2 < 3)
 ! E_BoolSort:
 
-> 1 = 1 ? 1 : 1 = 0 ? 2 : 3
+> if 1 = 1 then 1 else if 1 = 0 then 2 else 3
 = 1
 
 // ===================================== v0.2.0 — lambdas, capture, application
 @world integer 0
 
-> abs := u ~ (u < 0 ? -u : u)
-~ abs := u ↦ u < 0 ? -u : u
+> abs := u ~ (if u < 0 then -u else u)
+~ abs := u ↦ if u < 0 then -u else u
 
 > abs@(-5)
 = 5
@@ -541,7 +541,7 @@
 = 7
 
 > abs
-= u ↦ u < 0 ? -u : u
+= u ↦ if u < 0 then -u else u
 
 > (u ↦ u⋅u)@10
 = 100
@@ -571,8 +571,8 @@
 > g@1
 = 2
 
-> sign := u ↦ (u < 0 ? -1 : (u = 0 ? 0 : 1))
-~ sign := u ↦ u < 0 ? -1 : u = 0 ? 0 : 1
+> sign := u ↦ (if u < 0 then -1 else (if u = 0 then 0 else 1))
+~ sign := u ↦ if u < 0 then -1 else if u = 0 then 0 else 1
 
 > sign@(-7)
 = -1
@@ -593,7 +593,7 @@
 = false
 
 // self-reference is unbound at definition (until §19's =:)
-> fct := n ↦ (n = 0 ? 1 : n⋅fct@(n-1))
+> fct := n ↦ (if n = 0 then 1 else n⋅fct@(n-1))
 ! E_Unbound:
 
 // ------------------------------------------- v0.2.0 — composition, tuples, arity
@@ -631,8 +631,8 @@
 > b2@inc
 ! E_Arity:
 
-> mux := (p, u, v) ↦ (p ? u : v)
-~ mux := (p, u, v) ↦ p ? u : v
+> mux := (p, u, v) ↦ (if p then u else v)
+~ mux := (p, u, v) ↦ if p then u else v
 
 > mux@(3 < 5, 10, 20)
 = 10
@@ -750,15 +750,15 @@
 @world nimber 0
 
 // < is identically false here and -u = u: abs is the identity, twice over
-> abs := u ↦ (u < 0 ? -u : u)
-~ abs := u ↦ u < 0 ? -u : u
+> abs := u ↦ (if u < 0 then -u else u)
+~ abs := u ↦ if u < 0 then -u else u
 
 > abs@(*5)
 = *5
 
 // the N/P indicator: fuzzy with *0 is an N-position
-> pn := g ↦ (g ! *0 ? *1 : *0)
-~ pn := g ↦ g ∥ *0 ? *1 : *0
+> pn := g ↦ (if g ! *0 then *1 else *0)
+~ pn := g ↦ if g ∥ *0 then *1 else *0
 
 > pn@(*3 + *2)
 = *1
@@ -787,7 +787,7 @@
 // ---------------------------------------- v0.2.0 — definition-time world checks
 @world fp5 0
 
-> h := u ↦ (u < 0 ? 0 : 1)
+> h := u ↦ (if u < 0 then 0 else 1)
 ! E_WrongWorld: order
 
 // ------------------------------------------- v0.2.0 — reserved syntax, revisited
@@ -887,8 +887,8 @@
 // ============================================================ 19.1/19.2 — =: and fuel
 @world integer 0
 
-> fact =: n ~ (n = 0 ? 1 : n.fact@(n - 1))
-~ fact =: n ↦ n = 0 ? 1 : n⋅fact@(n - 1)
+> fact =: n ~ (if n = 0 then 1 else n.fact@(n - 1))
+~ fact =: n ↦ if n = 0 then 1 else n⋅fact@(n - 1)
 
 > fact@5
 = 120
@@ -898,9 +898,9 @@
 
 // fact is a closed μ-value: the equation form round-trips
 > fact
-= fact =: n ↦ n = 0 ? 1 : n⋅fact@(n - 1)
+= fact =: n ↦ if n = 0 then 1 else n⋅fact@(n - 1)
 
-> fib =: n ↦ n < 2 ? n : fib@(n - 1) + fib@(n - 2)
+> fib =: n ↦ if n < 2 then n else fib@(n - 1) + fib@(n - 2)
 
 > fib@10
 = 55
@@ -940,7 +940,7 @@
 ! E_WrongWorld:
 
 // local =: in a body sequence (§18 + §19.1)
-> tri := (h =: k ↦ k = 0 ? 0 : k + h@(k - 1); h@4)
+> tri := (h =: k ↦ if k = 0 then 0 else k + h@(k - 1); h@4)
 
 > tri
 = 10
@@ -976,7 +976,7 @@
 ! E_BladeIndex:
 
 // the array acceptance example: dot by Index recursion (32 ≡ 4 mod 7)
-> dot =: (u, v, i) ↦ i = dim ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+> dot =: (u, v, i) ↦ if i = dim then 0 else coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
 
 > dot@([1, 2, 3], [4, 5, 6], 0)
 = 4
@@ -1181,7 +1181,7 @@
 > grundy =: g ↦ (
 >>   has =: (n, i) ↦ not i = nleft(g) and
 >>                   (grundy@(left(g, i)) = n or has@(n, i + 1));
->>   mexfrom =: n ↦ has@(n, 0) ? mexfrom@(n + 1) : n;
+>>   mexfrom =: n ↦ if has@(n, 0) then mexfrom@(n + 1) else n;
 >>   mexfrom@0
 >> )
 
@@ -1330,7 +1330,7 @@
 = (ones =: {1 | ones}; {9 | ones})
 
 // ---- fuel stays the verdict for μ-descent along infinite data
-> len =: m ↦ nleft(m) = 0 ? 0 : 1 + len@(right(m, 0))
+> len =: m ↦ if nleft(m) = 0 then 0 else 1 + len@(right(m, 0))
 
 > len@[7, 8, 9]
 = #3
@@ -1396,7 +1396,7 @@
 // ============================================================ migrated 0.3.5-B — full-expression ternary
 @world integer 0
 
-> sign := u ↦ u < 0 ? -1 : u = 0 ? 0 : 1
+> sign := u ↦ if u < 0 then -1 else if u = 0 then 0 else 1
 
 > sign@(-5)
 = -1
@@ -1419,7 +1419,7 @@
 > coef([1, 2, 3], 1)
 = 2
 
-> dot =: (u, v, i) ↦ i = dim ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+> dot =: (u, v, i) ↦ if i = dim then 0 else coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
 
 > dot@([1, 2, 3], [4, 5, 6], #0)
 = 4

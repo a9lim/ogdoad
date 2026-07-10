@@ -22,19 +22,21 @@ pub(crate) struct FunctionValue {
 pub(crate) struct Binder {
     pub(crate) name: String,
     pub(crate) sort: DataSort,
+    pub(crate) declared_sort: Option<DataSort>,
+    pub(crate) display_mark: Option<DataSort>,
 }
 
 impl FunctionValue {
-    pub(crate) fn binder_names(&self) -> Vec<String> {
-        self.binders
-            .iter()
-            .map(|binder| binder.name.clone())
-            .collect()
-    }
-
     pub(crate) fn lambda_expr(&self) -> Expr {
         Expr::Lambda {
-            binders: self.binder_names(),
+            binders: self
+                .binders
+                .iter()
+                .map(|binder| LambdaBinder {
+                    name: binder.name.clone(),
+                    declared_sort: binder.display_mark,
+                })
+                .collect(),
             body: Box::new(self.body.clone()),
         }
     }

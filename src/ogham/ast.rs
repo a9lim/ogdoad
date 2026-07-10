@@ -21,6 +21,12 @@ pub struct Binding {
     pub recursive: bool,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LambdaBinder {
+    pub name: String,
+    pub declared_sort: Option<DataSort>,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     Int(u128),
@@ -35,7 +41,7 @@ pub enum Expr {
     Dim,
     Ident(String),
     Lambda {
-        binders: Vec<String>,
+        binders: Vec<LambdaBinder>,
         body: Box<Expr>,
     },
     Block {

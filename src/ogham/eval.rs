@@ -1,5 +1,6 @@
 use super::ast::{
-    BinaryOp, Binding, DataSort, Expr, OutcomeCell, RelOp, StarLiteral, Statement, UnaryOp,
+    BinaryOp, Binding, DataSort, Expr, LambdaBinder, OutcomeCell, RelOp, StarLiteral, Statement,
+    UnaryOp,
 };
 use super::error::*;
 use super::lex::{needs_continuation, strip_comments};

@@ -1,6 +1,6 @@
 use ogdoad::ogham::{
-    ast::OutcomeCell, parse_statement, unparse_statement, EvalLine, OghamError, OghamErrorKind,
-    OghamSession, WORLD_MENU,
+    ast::OutcomeCell, eval_to_string, parse_statement, unparse_statement, EvalLine, OghamError,
+    OghamErrorKind, OghamSession, WORLD_MENU,
 };
 
 #[derive(Debug)]
@@ -30,7 +30,7 @@ fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {
         "down",
         "dim",
         "[up, down, #3]",
-        "true ? #1 : false ? #2 : #3",
+        "if true then #1 else if false then #2 else #3",
         "t↑#(1 + 1)",
         "ω↑#2",
         "ω↑#(1 + 1)",
@@ -45,6 +45,76 @@ fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {
             .unwrap_or_else(|err| panic!("canonical syntax `{canonical}` failed: {err}"));
         assert_eq!(parsed, reparsed, "parse/unparse identity for `{input}`");
     }
+}
+
+#[test]
+fn word_conditionals_have_minimal_unambiguous_parentheses() {
+    for (input, canonical) in [
+        (
+            "if a then if b then c else d else q",
+            "if a then if b then c else d else q",
+        ),
+        (
+            "if a then b else if c then d else q",
+            "if a then b else if c then d else q",
+        ),
+        ("(if a then b else c) + d", "(if a then b else c) + d"),
+        (
+            "if if a then b else c then d else q",
+            "if if a then b else c then d else q",
+        ),
+    ] {
+        let parsed = parse_statement(input).unwrap_or_else(|err| panic!("`{input}`: {err}"));
+        assert_eq!(unparse_statement(&parsed), canonical, "`{input}`");
+        assert_eq!(
+            parse_statement(canonical).expect("canonical conditional"),
+            parsed,
+            "`{input}`"
+        );
+    }
+
+    for input in ["1 ? 2 : 3", ":", "1 + ?", "1 + :"] {
+        let err = parse_statement(input).expect_err("punctuation ternary is retired");
+        assert_eq!(err.kind, OghamErrorKind::Parse);
+        assert_eq!(
+            err.hint.as_deref(),
+            Some("conditionals are words now: `if a then b else c`")
+        );
+    }
+}
+
+#[test]
+fn trailing_nonterminal_tokens_drive_file_continuation() {
+    let integer = eval_to_string(
+        "integer 0",
+        "inc := x ↦\n\
+         x + 1\n\
+         inc@2\n\
+         if\n\
+         true then\n\
+         4 else\n\
+         5\n\
+         1 +\n\
+         2\n\
+         x :=\n\
+         9\n\
+         x",
+    )
+    .expect("continued integer program");
+    assert_eq!(integer, "3\n4\n3\n9");
+
+    let mutual = eval_to_string(
+        "game",
+        "a =: {b |};\n\
+         b =: {| a}\n\
+         a ≡ a",
+    )
+    .expect("continued mutual system");
+    assert_eq!(mutual, "true");
+
+    let eof = eval_to_string("integer 0", "x :=")
+        .expect_err("EOF flushes an incomplete continuation as a parse error");
+    assert_eq!(eof.kind, OghamErrorKind::Parse);
 }
 
 #[test]
@@ -592,7 +662,7 @@ fn stage_f_world_menu_and_literal_guidance_are_actionable() {
 fn captured_recursive_function_survives_rebinding() {
     let mut session = OghamSession::new("integer 0").expect("integer world");
     session
-        .eval_line("fact =: n ↦ n = 0 ? 1 : n⋅fact@(n - 1)")
+        .eval_line("fact =: n ↦ if n = 0 then 1 else n⋅fact@(n - 1)")
         .expect("recursive definition");
     session
         .eval_line("captured := n ↦ fact@n")
@@ -608,7 +678,7 @@ fn captured_recursive_function_survives_rebinding() {
 fn recursion_depth_guard_preempts_the_host_stack() {
     let mut session = OghamSession::new("integer 0").expect("integer world");
     session
-        .eval_line("f =: n ↦ n = 0 ? 0 : f@(n - 1)")
+        .eval_line("f =: n ↦ if n = 0 then 0 else f@(n - 1)")
         .expect("recursive definition");
     let err = session
         .eval_line("f@60000")
@@ -623,7 +693,7 @@ fn recursion_depth_guard_preempts_the_host_stack() {
 fn recursive_list_folds_have_realistic_worker_stack_headroom() {
     let mut session = OghamSession::new("game").expect("game world");
     session
-        .eval_line("len =: m ↦ nleft(m) = 0 ? 0 : 1 + len@(right(m, 0))")
+        .eval_line("len =: m ↦ if nleft(m) = 0 then 0 else 1 + len@(right(m, 0))")
         .expect("recursive list length");
 
     for length in [80_u128, 1000] {
@@ -712,7 +782,7 @@ fn centralized_guidance_uses_the_hint_field() {
 fn step_fuel_message_remains_distinct_from_depth_guard() {
     let mut session = OghamSession::new("integer 0").expect("integer world");
     session
-        .eval_line("fib =: n ↦ n < 2 ? n : fib@(n - 1) + fib@(n - 2)")
+        .eval_line("fib =: n ↦ if n < 2 then n else fib@(n - 1) + fib@(n - 2)")
         .expect("recursive definition");
     session.set_fuel_budget(100);
     let err = session
@@ -727,7 +797,7 @@ fn step_fuel_message_remains_distinct_from_depth_guard() {
 fn recursive_function_restores_definition_time_world_validation() {
     let mut session = OghamSession::new("fp5 0").expect("fp5 world");
     let err = session
-        .eval_line("bad =: x ↦ x < 1 ? bad@x : x")
+        .eval_line("bad =: x ↦ if x < 1 then bad@x else x")
         .expect_err("ordered comparison must fail while defining the recursive function");
     assert_eq!(err.kind, OghamErrorKind::WrongWorld);
 }

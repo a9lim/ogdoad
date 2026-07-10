@@ -24,6 +24,9 @@ pub enum TokenKind {
     Question,
     Colon,
     Arrow,
+    If,
+    Then,
+    Else,
     And,
     Or,
     Not,
@@ -157,6 +160,12 @@ fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
             }
             let kind = if s == "w" {
                 TokenKind::Omega
+            } else if s == "if" {
+                TokenKind::If
+            } else if s == "then" {
+                TokenKind::Then
+            } else if s == "else" {
+                TokenKind::Else
             } else if s == "and" {
                 TokenKind::And
             } else if s == "or" {
@@ -327,7 +336,8 @@ pub fn needs_continuation(src: &str) -> OghamResult<bool> {
     let mut paren_depth = 0usize;
     let mut bracket_depth = 0usize;
     let mut brace_depth = 0usize;
-    for token in lex_masked(&masked)? {
+    let tokens = lex_masked(&masked)?;
+    for token in &tokens {
         match token.kind {
             TokenKind::LParen => paren_depth += 1,
             TokenKind::RParen => {
@@ -353,7 +363,47 @@ pub fn needs_continuation(src: &str) -> OghamResult<bool> {
             _ => {}
         }
     }
-    Ok(paren_depth > 0 || bracket_depth > 0 || brace_depth > 0)
+    if paren_depth > 0 || bracket_depth > 0 || brace_depth > 0 {
+        return Ok(true);
+    }
+    Ok(tokens
+        .last()
+        .is_some_and(|token| token_requires_continuation(&token.kind)))
+}
+
+fn token_requires_continuation(kind: &TokenKind) -> bool {
+    matches!(
+        kind,
+        TokenKind::Arrow
+            | TokenKind::Assign
+            | TokenKind::RecursiveAssign
+            | TokenKind::Semicolon
+            | TokenKind::Comma
+            | TokenKind::If
+            | TokenKind::Then
+            | TokenKind::Else
+            | TokenKind::And
+            | TokenKind::Or
+            | TokenKind::Not
+            | TokenKind::Power
+            | TokenKind::Wedge
+            | TokenKind::Dot
+            | TokenKind::Slash
+            | TokenKind::Percent
+            | TokenKind::At
+            | TokenKind::Append
+            | TokenKind::Plus
+            | TokenKind::Minus
+            | TokenKind::Eq
+            | TokenKind::Less
+            | TokenKind::Greater
+            | TokenKind::Parallel
+            | TokenKind::Equiv
+            | TokenKind::Outcome(_)
+            | TokenKind::Pipe
+            | TokenKind::Star
+            | TokenKind::Index
+    )
 }
 
 pub(crate) fn strip_comments(src: &str) -> OghamResult<String> {

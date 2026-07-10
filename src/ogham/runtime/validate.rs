@@ -34,18 +34,18 @@ pub(crate) fn check_binders(
 
 pub(crate) fn infer_function_signature(
     body: &Expr,
-    binders: &[String],
+    binders: &[LambdaBinder],
 ) -> OghamResult<(Vec<DataSort>, DataSort)> {
     let mut slots = binders
         .iter()
-        .map(|name| (name.clone(), None))
+        .map(|binder| (binder.name.clone(), binder.declared_sort))
         .collect::<BTreeMap<String, Option<DataSort>>>();
     let ret = infer_expr_sort(body, ExpectedSort::Any, &mut slots)?;
     let sorts = binders
         .iter()
-        .map(|name| {
+        .map(|binder| {
             slots
-                .get(name)
+                .get(&binder.name)
                 .and_then(|sort| *sort)
                 .unwrap_or(DataSort::Element)
         })
@@ -227,7 +227,28 @@ pub(crate) fn infer_expr_sort(
             expect_sort(then_sort, expected)
         }
         Expr::Relation { op, lhs, rhs } => {
-            let sort = relation_operand_sort(*op, lhs, rhs);
+            let declared = |expr: &Expr| match expr {
+                Expr::Ident(name) => binders.get(name).and_then(|sort| *sort),
+                _ => None,
+            };
+            let lhs_declared = declared(lhs);
+            let rhs_declared = declared(rhs);
+            let sort = if *op == RelOp::Eq
+                && matches!(
+                    (lhs_declared, rhs_declared),
+                    (Some(DataSort::Bool), _) | (_, Some(DataSort::Bool))
+                ) {
+                DataSort::Bool
+            } else if *op != RelOp::Fuzzy
+                && matches!(
+                    (lhs_declared, rhs_declared),
+                    (Some(DataSort::Index), _) | (_, Some(DataSort::Index))
+                )
+            {
+                DataSort::Index
+            } else {
+                relation_operand_sort(*op, lhs, rhs)
+            };
             infer_expr_sort(lhs, ExpectedSort::Known(sort), binders)?;
             infer_expr_sort(rhs, ExpectedSort::Known(sort), binders)?;
             expect_sort(DataSort::Bool, expected)
@@ -249,14 +270,17 @@ pub(crate) fn infer_block_binding_rhs(
 }
 
 pub(crate) fn infer_nested_lambda_body(
-    local_binders: &[String],
+    local_binders: &[LambdaBinder],
     body: &Expr,
     binders: &mut BTreeMap<String, Option<DataSort>>,
 ) -> OghamResult<()> {
-    let local = local_binders.iter().cloned().collect::<BTreeSet<_>>();
+    let local = local_binders
+        .iter()
+        .map(|binder| binder.name.clone())
+        .collect::<BTreeSet<_>>();
     let mut nested = binders.clone();
-    for name in local_binders {
-        nested.insert(name.clone(), None);
+    for binder in local_binders {
+        nested.insert(binder.name.clone(), binder.declared_sort);
     }
     infer_expr_sort(body, ExpectedSort::Any, &mut nested)?;
     for name in binders.keys().cloned().collect::<Vec<_>>() {

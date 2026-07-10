@@ -537,7 +537,7 @@ pub(crate) trait SharedRuntime: WorldOps {
             .binders
             .iter()
             .zip(args)
-            .map(|(binder, arg)| self.eval_arg_for_sort(arg, binder.sort))
+            .map(|(binder, arg)| self.eval_arg_for_sort(arg, binder))
             .collect::<OghamResult<Vec<_>>>()?;
         self.apply_function(function, values)
     }
@@ -545,13 +545,20 @@ pub(crate) trait SharedRuntime: WorldOps {
     fn eval_arg_for_sort(
         &mut self,
         expr: &Expr,
-        sort: DataSort,
+        binder: &Binder,
     ) -> OghamResult<Value<Self::Element>> {
-        match sort {
+        let value = match binder.sort {
             DataSort::Element => self.world_eval_element(expr).map(Value::Element),
             DataSort::Index => self.eval_index(expr).map(Value::Index),
             DataSort::Bool => self.eval_bool(expr).map(Value::Bool),
-        }
+        };
+        value.map_err(|err| {
+            if binder.declared_sort.is_none() && err.kind == OghamErrorKind::IndexSort {
+                err.with_hint("declare the binder: `(#i, #j) ↦ …`")
+            } else {
+                err
+            }
+        })
     }
 
     fn compose_element_with_function(
@@ -602,15 +609,19 @@ pub(crate) trait SharedRuntime: WorldOps {
 
     fn close_function(
         &mut self,
-        binders: Vec<String>,
+        binders: Vec<LambdaBinder>,
         body: Expr,
         mu_name: Option<String>,
     ) -> OghamResult<FunctionValue> {
-        check_binders(&binders, |name| {
+        let binder_names = binders
+            .iter()
+            .map(|binder| binder.name.clone())
+            .collect::<Vec<_>>();
+        check_binders(&binder_names, |name| {
             self.reserved_ident(name) || reserved_function_binder(name)
         })
         .map_err(|err| self.adjust_binder_error(err))?;
-        let mut bound: BTreeSet<String> = binders.iter().cloned().collect();
+        let mut bound: BTreeSet<String> = binder_names.iter().cloned().collect();
         bound.extend(mu_name.iter().cloned());
         bound.extend(self.validation_sample_function_names().iter().cloned());
         let substituted = substitute_env(&body, &bound, self.env())?;
@@ -618,16 +629,45 @@ pub(crate) trait SharedRuntime: WorldOps {
         let (mut binder_sorts, mut ret) = infer_function_signature(&body, &binders)?;
         self.refine_function_signature(
             &body,
-            &binders,
+            &binder_names,
             &mut binder_sorts,
             &mut ret,
             mu_name.as_deref(),
+        );
+        let natural_binders = binders
+            .iter()
+            .map(|binder| LambdaBinder {
+                name: binder.name.clone(),
+                declared_sort: None,
+            })
+            .collect::<Vec<_>>();
+        let natural_sorts = infer_function_signature(&body, &natural_binders).ok().map(
+            |(mut sorts, mut natural_ret)| {
+                self.refine_function_signature(
+                    &body,
+                    &binder_names,
+                    &mut sorts,
+                    &mut natural_ret,
+                    mu_name.as_deref(),
+                );
+                sorts
+            },
         );
         let function = FunctionValue {
             binders: binders
                 .into_iter()
                 .zip(binder_sorts)
-                .map(|(name, sort)| Binder { name, sort })
+                .enumerate()
+                .map(|(index, (binder, sort))| Binder {
+                    name: binder.name,
+                    sort,
+                    declared_sort: binder.declared_sort,
+                    display_mark: binder.declared_sort.filter(|_| {
+                        natural_sorts
+                            .as_ref()
+                            .is_none_or(|sorts| sorts[index] != sort)
+                    }),
+                })
                 .collect(),
             body,
             ret,

@@ -1,4 +1,6 @@
-use super::ast::{BinaryOp, Binding, Expr, RelOp, StarLiteral, Statement, UnaryOp};
+use super::ast::{
+    BinaryOp, Binding, DataSort, Expr, LambdaBinder, RelOp, StarLiteral, Statement, UnaryOp,
+};
 
 pub fn unparse_statement(stmt: &Statement) -> String {
     match stmt {
@@ -65,9 +67,16 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
         Expr::Ident(name) => name.clone(),
         Expr::Lambda { binders, body } => {
             let binders = if binders.len() == 1 {
-                binders[0].clone()
+                unparse_lambda_binder(&binders[0])
             } else {
-                format!("({})", binders.join(", "))
+                format!(
+                    "({})",
+                    binders
+                        .iter()
+                        .map(unparse_lambda_binder)
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )
             };
             format!("{binders} ↦ {}", unparse_prec(body, prec, false))
         }
@@ -179,8 +188,8 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
             else_expr,
         } => {
             format!(
-                "{} ? {} : {}",
-                unparse_prec(cond, prec + 1, false),
+                "if {} then {} else {}",
+                unparse_prec(cond, 0, false),
                 unparse_prec(then_expr, 0, false),
                 unparse_prec(else_expr, 0, false)
             )
@@ -207,6 +216,15 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
         out = format!("({out})");
     }
     out
+}
+
+fn unparse_lambda_binder(binder: &LambdaBinder) -> String {
+    let mark = match binder.declared_sort {
+        Some(DataSort::Index) => "#",
+        Some(DataSort::Bool) => "?",
+        Some(DataSort::Element) | None => "",
+    };
+    format!("{mark}{}", binder.name)
 }
 
 fn unparse_exponent(expr: &Expr, precedence: u8) -> String {
