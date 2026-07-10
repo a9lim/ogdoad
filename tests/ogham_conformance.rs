@@ -16,6 +16,12 @@ fn ogham_conformance_corpus() {
 }
 
 #[test]
+fn ogham_v036_staging_corpus() {
+    let corpus = include_str!("../docs/ogham/conformance_v0.3.6.txt");
+    run_corpus(corpus);
+}
+
+#[test]
 fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {
     for input in [
         "#2",
@@ -656,6 +662,67 @@ fn ogham_game_form_equality_is_multiset_structural() {
         .expect("guarded loopy Element fixpoint");
     let loop_value = session.eval_line("loop").expect("display loopy value");
     assert_eq!(loop_value.value.as_deref(), Some("loop =: {loop |}"));
+}
+
+#[test]
+fn finite_shared_dags_hit_every_graph_materialization_budget_without_hanging() {
+    let mut session = OghamSession::new("game").expect("game world");
+    session.eval_line("on =: {on |}").expect("loopy witness");
+    session.eval_line("g0 := {0 | 0}").expect("DAG leaf");
+    for depth in 1..=26 {
+        session
+            .eval_line(&format!("g{depth} := {{g{} | g{}}}", depth - 1, depth - 1))
+            .unwrap_or_else(|err| panic!("shared DAG level {depth} failed: {err}"));
+    }
+    session.set_graph_budget(8);
+
+    for expression in ["g26 >> on", "g26 = 0", "g26 + on", "-g26"] {
+        let err = session
+            .eval_line(expression)
+            .expect_err("shared DAG operation must hit the graph budget");
+        assert_eq!(
+            err.kind,
+            OghamErrorKind::GraphBudget,
+            "resource kind for `{expression}`"
+        );
+    }
+}
+
+#[test]
+fn finite_shared_dag_equivalence_is_linear_in_shared_structure() {
+    let mut session = OghamSession::new("game").expect("game world");
+    session.eval_line("g0 := {0 | 0}").expect("first DAG leaf");
+    session
+        .eval_line("h0 := {0 | 1}")
+        .expect("mutated DAG leaf");
+    for depth in 1..=30 {
+        for name in ['g', 'h'] {
+            session
+                .eval_line(&format!(
+                    "{name}{depth} := {{{name}{} | {name}{}}}",
+                    depth - 1,
+                    depth - 1
+                ))
+                .unwrap_or_else(|err| panic!("shared DAG {name}{depth} failed: {err}"));
+        }
+    }
+
+    assert_eq!(
+        session
+            .eval_line("g30 ≡ g30")
+            .expect("pointer-identical DAG comparison")
+            .value
+            .as_deref(),
+        Some("true")
+    );
+    assert_eq!(
+        session
+            .eval_line("g30 ≡ h30")
+            .expect("deep mutated DAG comparison")
+            .value
+            .as_deref(),
+        Some("false")
+    );
 }
 
 #[test]

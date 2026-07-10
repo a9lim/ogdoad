@@ -47,6 +47,19 @@ impl Game {
         &self.0.right
     }
 
+    /// Whether two handles name the same shared finite-game node.
+    ///
+    /// This is crate-visible for memoized structural walks. It is not game-value
+    /// equality: pointer identity is only a sound positive short-circuit.
+    pub(crate) fn ptr_eq(&self, other: &Game) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Process-local identity of this shared finite-game node.
+    pub(crate) fn ptr_id(&self) -> usize {
+        Arc::as_ptr(&self.0) as usize
+    }
+
     /// `0 = { | }` — the empty game (second player wins).
     pub fn zero() -> Game {
         Game::new(vec![], vec![])

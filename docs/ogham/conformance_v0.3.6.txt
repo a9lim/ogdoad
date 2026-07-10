@@ -1,0 +1,131 @@
+// ogham conformance staging corpus — v0.3.6
+// Stage A: law seams and shared-DAG resource regressions.
+
+// The stopper gate passes for both operands; only the difference product is over budget.
+@world game
+
+> over =: {0 | over}
+> under =: {under | 0}
+
+@graph 2
+
+> over = under
+! E_GraphBudget:
+
+// Finite shared DAGs are budgeted during every graph-materializing operation.
+@world game
+
+> on =: {on |}
+> g0 := {0 | 0}
+> g1 := {g0 | g0}
+> g2 := {g1 | g1}
+> g3 := {g2 | g2}
+> g4 := {g3 | g3}
+> g5 := {g4 | g4}
+> g6 := {g5 | g5}
+> g7 := {g6 | g6}
+> g8 := {g7 | g7}
+> g9 := {g8 | g8}
+> g10 := {g9 | g9}
+> g11 := {g10 | g10}
+> g12 := {g11 | g11}
+> g13 := {g12 | g12}
+> g14 := {g13 | g13}
+> g15 := {g14 | g14}
+> g16 := {g15 | g15}
+> g17 := {g16 | g16}
+> g18 := {g17 | g17}
+> g19 := {g18 | g18}
+> g20 := {g19 | g19}
+> g21 := {g20 | g20}
+> g22 := {g21 | g21}
+> g23 := {g22 | g22}
+> g24 := {g23 | g23}
+> g25 := {g24 | g24}
+> g26 := {g25 | g25}
+
+@graph 8
+
+> g26 >> on
+! E_GraphBudget:
+
+> g26 = 0
+! E_GraphBudget:
+
+> g26 + on
+! E_GraphBudget:
+
+> -g26
+! E_GraphBudget:
+
+// Structural equality follows sharing rather than the exponential tree unfolding.
+@world game
+
+> g0 := {0 | 0}
+> h0 := {0 | 1}
+> g1 := {g0 | g0}
+> h1 := {h0 | h0}
+> g2 := {g1 | g1}
+> h2 := {h1 | h1}
+> g3 := {g2 | g2}
+> h3 := {h2 | h2}
+> g4 := {g3 | g3}
+> h4 := {h3 | h3}
+> g5 := {g4 | g4}
+> h5 := {h4 | h4}
+> g6 := {g5 | g5}
+> h6 := {h5 | h5}
+> g7 := {g6 | g6}
+> h7 := {h6 | h6}
+> g8 := {g7 | g7}
+> h8 := {h7 | h7}
+> g9 := {g8 | g8}
+> h9 := {h8 | h8}
+> g10 := {g9 | g9}
+> h10 := {h9 | h9}
+> g11 := {g10 | g10}
+> h11 := {h10 | h10}
+> g12 := {g11 | g11}
+> h12 := {h11 | h11}
+> g13 := {g12 | g12}
+> h13 := {h12 | h12}
+> g14 := {g13 | g13}
+> h14 := {h13 | h13}
+> g15 := {g14 | g14}
+> h15 := {h14 | h14}
+> g16 := {g15 | g15}
+> h16 := {h15 | h15}
+> g17 := {g16 | g16}
+> h17 := {h16 | h16}
+> g18 := {g17 | g17}
+> h18 := {h17 | h17}
+> g19 := {g18 | g18}
+> h19 := {h18 | h18}
+> g20 := {g19 | g19}
+> h20 := {h19 | h19}
+> g21 := {g20 | g20}
+> h21 := {h20 | h20}
+> g22 := {g21 | g21}
+> h22 := {h21 | h21}
+> g23 := {g22 | g22}
+> h23 := {h22 | h22}
+> g24 := {g23 | g23}
+> h24 := {h23 | h23}
+> g25 := {g24 | g24}
+> h25 := {h24 | h24}
+> g26 := {g25 | g25}
+> h26 := {h25 | h25}
+> g27 := {g26 | g26}
+> h27 := {h26 | h26}
+> g28 := {g27 | g27}
+> h28 := {h27 | h27}
+> g29 := {g28 | g28}
+> h29 := {h28 | h28}
+> g30 := {g29 | g29}
+> h30 := {h29 | h29}
+
+> g30 ≡ g30
+= true
+
+> g30 ≡ h30
+= false

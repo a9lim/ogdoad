@@ -1570,6 +1570,10 @@ impl GameRuntime {
                     return Ok(game_element_regular_eq(&lhs, &rhs));
                 }
                 if let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (&lhs, &rhs) {
+                    LoopyPartizanGraph::from_game(lhs, self.graph_budget)
+                        .map_err(partizan_graph_error)?;
+                    LoopyPartizanGraph::from_game(rhs, self.graph_budget)
+                        .map_err(partizan_graph_error)?;
                     return match op {
                         RelOp::Eq => Ok(lhs.eq(rhs)),
                         RelOp::Lt => Ok(lhs.le(rhs) && !rhs.le(lhs)),
@@ -2175,14 +2179,32 @@ fn structural_game_nimber(game: &Game) -> Option<u128> {
 }
 
 fn game_structural_eq_multiset(lhs: &Game, rhs: &Game) -> bool {
-    lhs.left().len() == rhs.left().len()
+    game_structural_eq_multiset_inner(lhs, rhs, &mut HashMap::new())
+}
+
+fn game_structural_eq_multiset_inner(
+    lhs: &Game,
+    rhs: &Game,
+    memo: &mut HashMap<(usize, usize), bool>,
+) -> bool {
+    if lhs.ptr_eq(rhs) {
+        return true;
+    }
+    let key = (lhs.ptr_id(), rhs.ptr_id());
+    if let Some(&equal) = memo.get(&key) {
+        return equal;
+    }
+    let equal = lhs.left().len() == rhs.left().len()
         && lhs.right().len() == rhs.right().len()
         && perfect_matching(lhs.left().len(), |left, right| {
-            game_structural_eq_multiset(&lhs.left()[left], &rhs.left()[right])
+            game_structural_eq_multiset_inner(&lhs.left()[left], &rhs.left()[right], memo)
         })
         && perfect_matching(lhs.right().len(), |left, right| {
-            game_structural_eq_multiset(&lhs.right()[left], &rhs.right()[right])
-        })
+            game_structural_eq_multiset_inner(&lhs.right()[left], &rhs.right()[right], memo)
+        });
+    memo.insert(key, equal);
+    memo.insert((key.1, key.0), equal);
+    equal
 }
 
 fn perfect_matching(size: usize, mut compatible: impl FnMut(usize, usize) -> bool) -> bool {
@@ -2520,11 +2542,7 @@ fn operational_partizan_graph(
     node_budget: u128,
 ) -> OghamResult<LoopyPartizanGraph> {
     if let GameElement::Finite(game) = element {
-        let graph = LoopyPartizanGraph::from_game(game);
-        if graph.node_count() as u128 > node_budget {
-            return Err(graph_budget_error(node_budget));
-        }
-        return Ok(graph);
+        return LoopyPartizanGraph::from_game(game, node_budget).map_err(partizan_graph_error);
     }
     let GameElement::Graph(root) = element else {
         unreachable!()
@@ -2735,7 +2753,10 @@ fn partizan_game_element(graph: LoopyPartizanGraph) -> GameElement {
 
 fn negate_game_element(element: GameElement, node_budget: u128) -> OghamResult<GameElement> {
     match element {
-        GameElement::Finite(game) => Ok(GameElement::Finite(game.neg())),
+        GameElement::Finite(game) => {
+            LoopyPartizanGraph::from_game(&game, node_budget).map_err(partizan_graph_error)?;
+            Ok(GameElement::Finite(game.neg()))
+        }
         graph @ GameElement::Graph(_) => Ok(partizan_game_element(
             operational_partizan_graph(&graph, node_budget)?.neg(),
         )),

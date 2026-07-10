@@ -94,7 +94,7 @@ impl fmt::Display for LoopyPartizanGraphError {
             ),
             Self::NodeBudgetExceeded { budget } => write!(
                 f,
-                "reachable product graph exceeds its {budget}-node budget"
+                "reachable graph exceeds its {budget}-node budget"
             ),
         }
     }
@@ -151,13 +151,29 @@ impl LoopyPartizanGraph {
     ///
     /// The embedding preserves every option occurrence. Shared `Arc` subtrees may
     /// therefore appear more than once in the graph, which does not change play.
-    pub fn from_game(game: &Game) -> LoopyPartizanGraph {
+    /// The root is the first budgeted node, and each option occurrence is counted
+    /// when it is discovered. Exactly `node_budget` nodes are allowed; failure
+    /// exposes no partial graph.
+    pub fn from_game(
+        game: &Game,
+        node_budget: u128,
+    ) -> Result<LoopyPartizanGraph, LoopyPartizanGraphError> {
+        if node_budget == 0 {
+            return Err(LoopyPartizanGraphError::NodeBudgetExceeded {
+                budget: node_budget,
+            });
+        }
         let mut left = vec![Vec::new()];
         let mut right = vec![Vec::new()];
         let mut queue = VecDeque::from([(0, game.clone())]);
 
         while let Some((node, position)) = queue.pop_front() {
             for option in position.left() {
+                if left.len() as u128 >= node_budget {
+                    return Err(LoopyPartizanGraphError::NodeBudgetExceeded {
+                        budget: node_budget,
+                    });
+                }
                 let target = left.len();
                 left.push(Vec::new());
                 right.push(Vec::new());
@@ -165,6 +181,11 @@ impl LoopyPartizanGraph {
                 queue.push_back((target, option.clone()));
             }
             for option in position.right() {
+                if left.len() as u128 >= node_budget {
+                    return Err(LoopyPartizanGraphError::NodeBudgetExceeded {
+                        budget: node_budget,
+                    });
+                }
                 let target = left.len();
                 left.push(Vec::new());
                 right.push(Vec::new());
@@ -173,7 +194,7 @@ impl LoopyPartizanGraph {
             }
         }
 
-        LoopyPartizanGraph { left, right }
+        Ok(LoopyPartizanGraph { left, right })
     }
 
     /// Number of graph nodes.
@@ -688,7 +709,7 @@ mod tests {
 
     #[test]
     fn product_budget_counts_distinct_pairs_at_discovery() {
-        let zero = LoopyPartizanGraph::from_game(&Game::zero());
+        let zero = LoopyPartizanGraph::from_game(&Game::zero(), 1).expect("one-node zero");
         assert_eq!(
             over().sum(0, &zero, 0, 0),
             Err(LoopyPartizanGraphError::NodeBudgetExceeded { budget: 0 })
@@ -702,13 +723,26 @@ mod tests {
 
     #[test]
     fn finite_embedding_supports_mixed_sums() {
-        let finite_star = LoopyPartizanGraph::from_game(&Game::star());
+        let finite_star =
+            LoopyPartizanGraph::from_game(&Game::star(), 3).expect("three-node star unfolding");
         assert_eq!(
             finite_star.outcome_pair(0).unwrap(),
             LoopyValue::Star.outcome()
         );
         let mixed = over().sum(0, &finite_star, 0, 16).unwrap();
         assert_eq!(mixed.outcome_pair(0).unwrap(), LoopyValue::Over.outcome());
+    }
+
+    #[test]
+    fn finite_embedding_stops_during_shared_dag_unfolding() {
+        let mut dag = Game::star();
+        for _ in 0..26 {
+            dag = Game::new(vec![dag.clone()], vec![dag.clone()]);
+        }
+        assert_eq!(
+            LoopyPartizanGraph::from_game(&dag, 8),
+            Err(LoopyPartizanGraphError::NodeBudgetExceeded { budget: 8 })
+        );
     }
 
     #[test]
