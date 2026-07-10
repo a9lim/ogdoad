@@ -1,5 +1,6 @@
 use ogdoad::ogham::{
-    parse_statement, unparse_statement, EvalLine, OghamError, OghamErrorKind, OghamSession,
+    ast::OutcomeCell, parse_statement, unparse_statement, EvalLine, OghamError, OghamErrorKind,
+    OghamSession,
 };
 
 #[derive(Debug)]
@@ -37,6 +38,198 @@ fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {
         let reparsed = parse_statement(&canonical)
             .unwrap_or_else(|err| panic!("canonical syntax `{canonical}` failed: {err}"));
         assert_eq!(parsed, reparsed, "parse/unparse identity for `{input}`");
+    }
+}
+
+#[test]
+fn stage_e_outcome_syntax_round_trips_and_underscore_stays_contextual() {
+    for (input, canonical) in [
+        ("1 >> 0", "1 >> 0"),
+        ("1 >_ 0", "1 >‿ 0"),
+        ("1 >< 0", "1 >< 0"),
+        ("1 _> 0", "1 ‿> 0"),
+        ("1 __ 0", "1 ‿‿ 0"),
+        ("1 _< 0", "1 ‿< 0"),
+        ("1 <> 0", "1 <> 0"),
+        ("1 <_ 0", "1 <‿ 0"),
+        ("1 << 0", "1 << 0"),
+        ("foo_bar := 1", "foo_bar := 1"),
+        ("foo__bar := 2", "foo__bar := 2"),
+    ] {
+        let parsed = parse_statement(input)
+            .unwrap_or_else(|err| panic!("syntax failed for `{input}`: {err}"));
+        assert_eq!(unparse_statement(&parsed), canonical);
+        let reparsed = parse_statement(canonical)
+            .unwrap_or_else(|err| panic!("canonical syntax `{canonical}` failed: {err}"));
+        assert_eq!(parsed, reparsed, "parse/unparse identity for `{input}`");
+    }
+
+    for atom in ["_", "‿"] {
+        let lone = parse_statement(&format!("1 {atom} 2"))
+            .expect_err("a lone mover atom must be rejected");
+        assert_eq!(lone.kind, OghamErrorKind::Parse);
+        assert_eq!(
+            lone.hint.as_deref(),
+            Some("mover-result atoms come in pairs")
+        );
+    }
+}
+
+#[test]
+fn stage_e_nine_cells_are_exact_and_obey_rotation_swap_and_hasdraw_union() {
+    let mut session = OghamSession::new("game").expect("game world");
+    for definition in [
+        "on =: {on |}",
+        "off =: {| off}",
+        "dud =: {dud | dud}",
+        "ll := on",
+        "ld := {0 | dud}",
+        "lr := *1",
+        "dl := {dud |}",
+        "dd := dud",
+        "dr := {dud | 0}",
+        "rl := 0",
+        "rd := {| dud}",
+        "rr := off",
+    ] {
+        session
+            .eval_line(definition)
+            .unwrap_or_else(|err| panic!("definition `{definition}` failed: {err}"));
+    }
+
+    let witnesses = [
+        ("ll", OutcomeCell::LeftLeft),
+        ("ld", OutcomeCell::LeftDraw),
+        ("lr", OutcomeCell::LeftRight),
+        ("dl", OutcomeCell::DrawLeft),
+        ("dd", OutcomeCell::DrawDraw),
+        ("dr", OutcomeCell::DrawRight),
+        ("rl", OutcomeCell::RightLeft),
+        ("rd", OutcomeCell::RightDraw),
+        ("rr", OutcomeCell::RightRight),
+    ];
+
+    for (value, expected) in witnesses {
+        assert_eq!(language_outcome_cell(&mut session, value, "0"), expected);
+        assert_eq!(
+            language_outcome_cell(&mut session, &format!("-({value})"), "0"),
+            expected.rotate(),
+            "negation rotation for {value}"
+        );
+        assert_eq!(
+            language_outcome_cell(&mut session, "0", value),
+            expected.rotate(),
+            "operand swap rotation for {value}"
+        );
+
+        let hasdraw = eval_language_bool(&mut session, &format!("hasdraw({value})"));
+        let union = eval_language_bool(
+            &mut session,
+            &format!(
+                "{value} >‿ 0 or {value} ‿> 0 or {value} ‿‿ 0 or {value} ‿< 0 or {value} <‿ 0"
+            ),
+        );
+        assert_eq!(hasdraw, union, "hasdraw union for {value}");
+    }
+
+    for (lhs, rhs) in [("1", "0"), ("*1", "0"), ("on", "dud"), ("ld", "rd")] {
+        let _ = language_outcome_cell(&mut session, lhs, rhs);
+    }
+
+    for lhs in ["-1", "0", "1", "*1", "*2"] {
+        for rhs in ["-1", "0", "1", "*1", "*2"] {
+            assert!(matches!(
+                language_outcome_cell(&mut session, lhs, rhs),
+                OutcomeCell::LeftLeft
+                    | OutcomeCell::LeftRight
+                    | OutcomeCell::RightLeft
+                    | OutcomeCell::RightRight
+            ));
+        }
+    }
+}
+
+#[test]
+fn stage_e_budget_witness_and_wrong_world_errors_are_distinct() {
+    let mut materialization = OghamSession::new("game").expect("game world");
+    materialization.set_graph_budget(0);
+    let definition_budget = materialization
+        .eval_line("on =: {on |}")
+        .expect_err("a recursive graph root consumes one node");
+    assert_eq!(definition_budget.kind, OghamErrorKind::GraphBudget);
+
+    let mut game = OghamSession::new("game").expect("game world");
+    game.eval_line("dud =: {dud | dud}")
+        .expect("dud definition");
+    let loopy = game
+        .eval_line("dud = 0")
+        .expect_err("non-stopper single must be refused");
+    assert_eq!(loopy.kind, OghamErrorKind::Loopy);
+    assert!(loopy.message.contains("alternating cycle 0:L→0:R→0:L"));
+    let right_loopy = game
+        .eval_line("0 = dud")
+        .expect_err("the right presented operand must also pass the stopper gate");
+    assert_eq!(right_loopy.kind, OghamErrorKind::Loopy);
+    assert!(right_loopy
+        .message
+        .contains("right operand has alternating cycle"));
+
+    game.eval_line("over =: {0 | over}")
+        .expect("over definition");
+    game.eval_line("under =: {under | 0}")
+        .expect("under definition");
+    game.set_graph_budget(2);
+    let budget = game
+        .eval_line("over + under")
+        .expect_err("product must exceed the tiny graph budget");
+    assert_eq!(budget.kind, OghamErrorKind::GraphBudget);
+    assert_ne!(budget.kind, loopy.kind);
+    game.set_world("game").expect("world reset");
+    assert_eq!(game.graph_budget(), 1 << 16);
+
+    let mut integer = OghamSession::new("integer 0").expect("integer world");
+    let double = integer
+        .eval_line("1 >> 0")
+        .expect_err("outcome doubles are game-only");
+    assert_eq!(double.kind, OghamErrorKind::WrongWorld);
+    let stopper = integer
+        .eval_line("stopper(0)")
+        .expect_err("stopper is game-only");
+    assert_eq!(stopper.kind, OghamErrorKind::WrongWorld);
+
+    let outcome = integer
+        .eval_line("outcome(0)")
+        .expect_err("outcome is taught as relations");
+    assert_eq!(outcome.kind, OghamErrorKind::Unbound);
+    assert!(outcome
+        .hint
+        .as_deref()
+        .is_some_and(|hint| hint.contains("relations against 0")));
+}
+
+fn language_outcome_cell(session: &mut OghamSession, lhs: &str, rhs: &str) -> OutcomeCell {
+    let true_cells = OutcomeCell::ALL
+        .into_iter()
+        .filter(|cell| eval_language_bool(session, &format!("({lhs}) {} ({rhs})", cell.glyph())))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        true_cells.len(),
+        1,
+        "exactly one outcome cell for `{lhs}` and `{rhs}`: {true_cells:?}"
+    );
+    true_cells[0]
+}
+
+fn eval_language_bool(session: &mut OghamSession, input: &str) -> bool {
+    let value = session
+        .eval_line(input)
+        .unwrap_or_else(|err| panic!("Bool expression `{input}` failed: {err}"))
+        .value
+        .unwrap_or_else(|| panic!("Bool expression `{input}` returned no value"));
+    match value.as_str() {
+        "true" => true,
+        "false" => false,
+        _ => panic!("Bool expression `{input}` returned `{value}`"),
     }
 }
 
@@ -137,6 +330,18 @@ fn run_corpus(corpus: &str) {
                 .as_mut()
                 .unwrap_or_else(|| panic!("line {line_no}: @fuel before @world"))
                 .set_fuel_budget(budget);
+            continue;
+        }
+        if let Some(raw_budget) = line.strip_prefix("@graph ") {
+            finish_pending(&mut pending);
+            let budget = raw_budget
+                .trim()
+                .parse::<u128>()
+                .unwrap_or_else(|_| panic!("line {line_no}: graph budget must be a u128"));
+            session
+                .as_mut()
+                .unwrap_or_else(|| panic!("line {line_no}: @graph before @world"))
+                .set_graph_budget(budget);
             continue;
         }
         if let Some(input) = line.strip_prefix("> ") {
@@ -249,6 +454,7 @@ fn error_kind_codes_are_stable() {
     assert_eq!(OghamErrorKind::Improper.code(), "E_Improper");
     assert_eq!(OghamErrorKind::Unfounded.code(), "E_Unfounded");
     assert_eq!(OghamErrorKind::Loopy.code(), "E_Loopy");
+    assert_eq!(OghamErrorKind::GraphBudget.code(), "E_GraphBudget");
 }
 
 #[test]

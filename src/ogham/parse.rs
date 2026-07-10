@@ -342,7 +342,7 @@ impl Parser {
 
     fn parse_relation(&mut self) -> OghamResult<Expr> {
         let lhs = self.parse_append()?;
-        let Some(op) = self.parse_relop() else {
+        let Some(op) = self.parse_relop()? else {
             return Ok(lhs);
         };
         if op == RelOp::Fuzzy && matches!(self.peek_kind(), Some(TokenKind::Eq)) {
@@ -354,7 +354,7 @@ impl Parser {
             .with_hint("not-equal is `not (a = b)`; `!` is fuzzy `∥`"));
         }
         let rhs = self.parse_append()?;
-        if self.parse_relop().is_some() {
+        if self.parse_relop()?.is_some() {
             return Err(OghamError::new(
                 OghamErrorKind::Parse,
                 self.span(),
@@ -368,8 +368,11 @@ impl Parser {
         })
     }
 
-    fn parse_relop(&mut self) -> Option<RelOp> {
-        match self.peek_kind()? {
+    fn parse_relop(&mut self) -> OghamResult<Option<RelOp>> {
+        let Some(kind) = self.peek_kind() else {
+            return Ok(None);
+        };
+        Ok(match kind {
             TokenKind::Eq => {
                 self.bump();
                 Some(RelOp::Eq)
@@ -390,8 +393,21 @@ impl Parser {
                 self.bump();
                 Some(RelOp::Equiv)
             }
+            TokenKind::Outcome(cell) => {
+                let cell = *cell;
+                self.bump();
+                Some(RelOp::Outcome(cell))
+            }
+            TokenKind::DrawAtom => {
+                return Err(OghamError::new(
+                    OghamErrorKind::Parse,
+                    self.span(),
+                    "mover-result atoms come in pairs",
+                )
+                .with_hint("mover-result atoms come in pairs"));
+            }
             _ => None,
-        }
+        })
     }
 
     fn parse_append(&mut self) -> OghamResult<Expr> {

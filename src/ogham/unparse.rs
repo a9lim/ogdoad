@@ -194,6 +194,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 RelOp::Gt => ">",
                 RelOp::Fuzzy => "∥",
                 RelOp::Equiv => "≡",
+                RelOp::Outcome(cell) => cell.glyph(),
             };
             format!(
                 "{} {sigil} {}",

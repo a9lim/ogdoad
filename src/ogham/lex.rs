@@ -1,3 +1,4 @@
+use super::ast::OutcomeCell;
 use super::error::{OghamError, OghamErrorKind, OghamResult, Span};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -44,6 +45,8 @@ pub enum TokenKind {
     RecursiveAssign,
     Append,
     Equiv,
+    Outcome(OutcomeCell),
+    DrawAtom,
     Plus,
     Minus,
     LParen,
@@ -236,8 +239,27 @@ fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
                 }
                 TokenKind::Eq
             }
-            '<' => TokenKind::Less,
-            '>' => TokenKind::Greater,
+            '<' | '>' | '‿' | '_' => {
+                if i + 1 < chars.len() {
+                    if let (Some(first), Some(second)) =
+                        (mover_atom(ch), mover_atom(chars[i + 1].1))
+                    {
+                        i += 1;
+                        out.push(Token {
+                            kind: TokenKind::Outcome(OutcomeCell::from_atoms(first, second)),
+                            span: Span::new(pos, chars[i].0 + chars[i].1.len_utf8()),
+                        });
+                        i += 1;
+                        continue;
+                    }
+                }
+                match ch {
+                    '<' => TokenKind::Less,
+                    '>' => TokenKind::Greater,
+                    '‿' | '_' => TokenKind::DrawAtom,
+                    _ => unreachable!(),
+                }
+            }
             '|' => TokenKind::Pipe,
             ':' => {
                 if i + 1 < chars.len() && chars[i + 1].1 == '=' {
@@ -287,6 +309,14 @@ fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
         i += 1;
     }
     Ok(out)
+}
+
+fn mover_atom(ch: char) -> Option<char> {
+    match ch {
+        '<' | '>' => Some(ch),
+        '‿' | '_' => Some('‿'),
+        _ => None,
+    }
 }
 
 pub fn needs_continuation(src: &str) -> OghamResult<bool> {

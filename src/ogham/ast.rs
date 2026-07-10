@@ -113,6 +113,79 @@ pub enum RelOp {
     Gt,
     Fuzzy,
     Equiv,
+    Outcome(OutcomeCell),
+}
+
+/// One cell of the loopy-game outcome grid. The first coordinate is the result
+/// with Left starting; the second is the result with Right starting.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum OutcomeCell {
+    LeftLeft,
+    LeftDraw,
+    LeftRight,
+    DrawLeft,
+    DrawDraw,
+    DrawRight,
+    RightLeft,
+    RightDraw,
+    RightRight,
+}
+
+impl OutcomeCell {
+    pub const ALL: [Self; 9] = [
+        Self::LeftLeft,
+        Self::LeftDraw,
+        Self::LeftRight,
+        Self::DrawLeft,
+        Self::DrawDraw,
+        Self::DrawRight,
+        Self::RightLeft,
+        Self::RightDraw,
+        Self::RightRight,
+    ];
+
+    pub fn glyph(self) -> &'static str {
+        match self {
+            Self::LeftLeft => ">>",
+            Self::LeftDraw => ">‿",
+            Self::LeftRight => "><",
+            Self::DrawLeft => "‿>",
+            Self::DrawDraw => "‿‿",
+            Self::DrawRight => "‿<",
+            Self::RightLeft => "<>",
+            Self::RightDraw => "<‿",
+            Self::RightRight => "<<",
+        }
+    }
+
+    pub fn rotate(self) -> Self {
+        match self {
+            Self::LeftLeft => Self::RightRight,
+            Self::LeftDraw => Self::DrawRight,
+            Self::LeftRight => Self::LeftRight,
+            Self::DrawLeft => Self::RightDraw,
+            Self::DrawDraw => Self::DrawDraw,
+            Self::DrawRight => Self::LeftDraw,
+            Self::RightLeft => Self::RightLeft,
+            Self::RightDraw => Self::DrawLeft,
+            Self::RightRight => Self::LeftLeft,
+        }
+    }
+
+    pub(crate) fn from_atoms(first: char, second: char) -> Self {
+        match (first, second) {
+            ('>', '>') => Self::LeftLeft,
+            ('>', '‿') => Self::LeftDraw,
+            ('>', '<') => Self::LeftRight,
+            ('‿', '>') => Self::DrawLeft,
+            ('‿', '‿') => Self::DrawDraw,
+            ('‿', '<') => Self::DrawRight,
+            ('<', '>') => Self::RightLeft,
+            ('<', '‿') => Self::RightDraw,
+            ('<', '<') => Self::RightRight,
+            _ => unreachable!("lexer normalizes mover-result atoms"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

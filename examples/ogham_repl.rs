@@ -27,6 +27,7 @@ fn main() {
                 ":help" => {
                     println!(":world <decl>  change world");
                     println!(":fuel [n]      show or set recursive fuel");
+                    println!(":graph [n]     show or set graph node budget");
                     println!(":env           show bindings");
                     println!(":quit          exit");
                     continue;
@@ -42,6 +43,10 @@ fn main() {
                     println!("{}", session.fuel_budget());
                     continue;
                 }
+                ":graph" => {
+                    println!("{}", session.graph_budget());
+                    continue;
+                }
                 _ => {}
             }
         }
@@ -53,6 +58,18 @@ fn main() {
                         println!("{budget}");
                     }
                     Err(_) => eprintln!("E_Parse: fuel budget must be a u128"),
+                }
+                continue;
+            }
+        }
+        if pending.is_empty() {
+            if let Some(rest) = line.strip_prefix(":graph ") {
+                match rest.trim().parse::<u128>() {
+                    Ok(budget) => {
+                        session.set_graph_budget(budget);
+                        println!("{budget}");
+                    }
+                    Err(_) => eprintln!("E_Parse: graph budget must be a u128"),
                 }
                 continue;
             }

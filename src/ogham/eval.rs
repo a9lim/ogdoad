@@ -1,22 +1,28 @@
-use super::ast::{BinaryOp, Binding, Expr, RelOp, Sort, StarLiteral, Statement, UnaryOp};
+use super::ast::{
+    BinaryOp, Binding, Expr, OutcomeCell, RelOp, Sort, StarLiteral, Statement, UnaryOp,
+};
 use super::error::*;
 use super::lex::{needs_continuation, strip_comments};
 use super::parse::parse_statement;
 use super::unparse::unparse_statement;
 use crate::clifford::{CliffordAlgebra, Metric, Multivector};
-use crate::games::{Game, LoopyPartizanGraph};
+use crate::games::{
+    Game, LoopyMover, LoopyPartizanGraph, LoopyPartizanGraphError, LoopyPartizanOutcome,
+    LoopyStopperStatus, LoopyWinner,
+};
 use crate::scalar::{
     nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn, Integer, IntegerDivExactError, Nimber,
     Omnific, Ordinal, Poly, Rational, RationalFunction, Scalar, Surreal,
 };
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 use std::fmt::Display;
 use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 use std::sync::{mpsc, Arc};
 use std::thread::JoinHandle;
 
 const DEFAULT_FUEL: u128 = 1 << 16;
+const DEFAULT_GRAPH_BUDGET: u128 = 1 << 16;
 const RECURSION_DEPTH_GUARD: u128 = 1 << 10;
 const AST_DEPTH_GUARD: u128 = 3 << 9;
 const EVAL_STACK_BYTES: usize = 64 * 1024 * 1024;
@@ -115,6 +121,8 @@ trait WorldOps: Sized {
     fn env_mut(&mut self) -> &mut BTreeMap<String, Value<Self::Element>>;
     fn fuel_budget(&self) -> u128;
     fn fuel_budget_mut(&mut self) -> &mut u128;
+    fn graph_budget(&self) -> u128;
+    fn graph_budget_mut(&mut self) -> &mut u128;
     fn fuel_remaining_mut(&mut self) -> &mut u128;
     fn recursion_depth_mut(&mut self) -> &mut u128;
     fn validation_sample_function_names(&self) -> &BTreeSet<String>;
@@ -250,6 +258,10 @@ trait SharedRuntime: WorldOps {
         self.reset_fuel();
     }
 
+    fn set_graph_budget(&mut self, budget: u128) {
+        *self.graph_budget_mut() = budget;
+    }
+
     fn eval_statement(&mut self, stmt: &Statement) -> OghamResult<Option<String>> {
         match stmt {
             Statement::Binding {
@@ -347,6 +359,12 @@ trait SharedRuntime: WorldOps {
                 if name == "drawn" {
                     return Err(renamed_function_error("drawn", "hasdraw"));
                 }
+                if matches!(name.as_str(), "outcome" | "winner" | "who") {
+                    return Err(outcome_name_error(name));
+                }
+                if name == "stopper" && self.world_name() != "game" {
+                    return Err(game_only_error("`stopper`"));
+                }
                 if let Some(result) = self.special_value_call(name, args) {
                     result
                 } else {
@@ -354,6 +372,9 @@ trait SharedRuntime: WorldOps {
                 }
             }
             Expr::Relation { op, lhs, rhs } => {
+                if matches!(op, RelOp::Outcome(_)) && self.world_name() != "game" {
+                    return Err(game_only_error("outcome doubles"));
+                }
                 Ok(Value::Bool(self.world_eval_relation(*op, lhs, rhs)?))
             }
             Expr::Unary {
@@ -751,6 +772,14 @@ pub fn eval_to_string(world: &str, src: &str) -> OghamResult<String> {
                 session.set_fuel_budget(budget);
                 continue;
             }
+            if let Some(rest) = trimmed.strip_prefix(":graph ") {
+                let budget = rest
+                    .trim()
+                    .parse::<u128>()
+                    .map_err(|_| parse_error("graph budget must be a u128"))?;
+                session.set_graph_budget(budget);
+                continue;
+            }
         }
         if !pending.is_empty() {
             pending.push('\n');
@@ -791,6 +820,13 @@ enum WorkerCommand {
         reply: mpsc::Sender<WorkerReply<()>>,
     },
     FuelBudget {
+        reply: mpsc::Sender<WorkerReply<u128>>,
+    },
+    SetGraphBudget {
+        budget: u128,
+        reply: mpsc::Sender<WorkerReply<()>>,
+    },
+    GraphBudget {
         reply: mpsc::Sender<WorkerReply<u128>>,
     },
     WorldSummary {
@@ -875,6 +911,14 @@ impl OghamSession {
         self.call_worker(|reply| WorkerCommand::FuelBudget { reply })
     }
 
+    pub fn set_graph_budget(&mut self, budget: u128) {
+        self.call_worker(|reply| WorkerCommand::SetGraphBudget { budget, reply });
+    }
+
+    pub fn graph_budget(&self) -> u128 {
+        self.call_worker(|reply| WorkerCommand::GraphBudget { reply })
+    }
+
     pub fn world_summary(&self) -> String {
         self.call_worker(|reply| WorkerCommand::WorldSummary { reply })
     }
@@ -927,6 +971,12 @@ fn run_evaluation_worker(world: &mut World, commands: mpsc::Receiver<WorkerComma
             }
             WorkerCommand::FuelBudget { reply } => {
                 send_worker_reply(reply, || world.fuel_budget());
+            }
+            WorkerCommand::SetGraphBudget { budget, reply } => {
+                send_worker_reply(reply, || world.set_graph_budget(budget));
+            }
+            WorkerCommand::GraphBudget { reply } => {
+                send_worker_reply(reply, || world.graph_budget());
             }
             WorkerCommand::WorldSummary { reply } => {
                 send_worker_reply(reply, || world.summary());
@@ -1126,6 +1176,14 @@ impl World {
         with_world_runtime!(self, |runtime| runtime.fuel_budget)
     }
 
+    fn set_graph_budget(&mut self, budget: u128) {
+        with_world_runtime!(self, |runtime| runtime.set_graph_budget(budget))
+    }
+
+    fn graph_budget(&self) -> u128 {
+        with_world_runtime!(self, |runtime| runtime.graph_budget())
+    }
+
     fn summary(&self) -> String {
         with_world_runtime!(self, |runtime| runtime.summary())
     }
@@ -1199,6 +1257,7 @@ struct GameRuntime {
     env: BTreeMap<String, Value<GameElement>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    graph_budget: u128,
     active_mu_calls: HashSet<String>,
     recursion_depth: u128,
     validation_sample_function_names: BTreeSet<String>,
@@ -1221,6 +1280,14 @@ impl WorldOps for GameRuntime {
 
     fn fuel_budget_mut(&mut self) -> &mut u128 {
         &mut self.fuel_budget
+    }
+
+    fn graph_budget(&self) -> u128 {
+        self.graph_budget
+    }
+
+    fn graph_budget_mut(&mut self) -> &mut u128 {
+        &mut self.graph_budget
     }
 
     fn fuel_remaining_mut(&mut self) -> &mut u128 {
@@ -1272,17 +1339,21 @@ impl WorldOps for GameRuntime {
         name: &str,
         args: &[Expr],
     ) -> Option<OghamResult<Value<Self::Element>>> {
-        (name == "hasdraw").then(|| {
+        matches!(name, "hasdraw" | "stopper").then(|| {
             expect_arity(name, args, 1)?;
-            Ok(Value::Bool(game_element_has_draw(
-                &self.eval_element(&args[0])?,
-            )))
+            let element = self.eval_element(&args[0])?;
+            let result = if name == "hasdraw" {
+                game_element_has_draw(&element)
+            } else {
+                game_element_is_stopper(&element, self.graph_budget)?
+            };
+            Ok(Value::Bool(result))
         })
     }
 
     fn bind_recursive_element(&mut self, name: &str, expr: &Expr) -> OghamResult<()> {
         let reduced = self.reduce_element_fixpoint(name, expr, false)?;
-        let value = materialize_regular_game(name, reduced)?;
+        let value = materialize_regular_game(name, reduced, self.graph_budget)?;
         self.env.insert(name.to_string(), Value::Element(value));
         Ok(())
     }
@@ -1399,6 +1470,7 @@ impl GameRuntime {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            graph_budget: DEFAULT_GRAPH_BUDGET,
             active_mu_calls: HashSet::new(),
             recursion_depth: 0,
             validation_sample_function_names: BTreeSet::new(),
@@ -1406,6 +1478,13 @@ impl GameRuntime {
     }
 
     fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+        if let RelOp::Outcome(cell) = op {
+            let lhs = self.eval_element(lhs)?;
+            let rhs = self.eval_element(rhs)?;
+            return Ok(
+                outcome_cell(game_difference_outcome(&lhs, &rhs, self.graph_budget)?) == cell,
+            );
+        }
         if !bool_shaped(lhs)
             && !bool_shaped(rhs)
             && (expression_is_index(lhs)
@@ -1437,18 +1516,23 @@ impl GameRuntime {
                 if op == RelOp::Equiv {
                     return Ok(game_element_regular_eq(&lhs, &rhs));
                 }
-                let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (lhs, rhs) else {
-                    return Err(loopy_error(
-                        "value relations are not defined on loopy games in the 0.3.0 envelope",
-                    ));
-                };
-                match op {
-                    RelOp::Eq => Ok(lhs.eq(&rhs)),
-                    RelOp::Lt => Ok(lhs.le(&rhs) && !rhs.le(&lhs)),
-                    RelOp::Gt => Ok(rhs.le(&lhs) && !lhs.le(&rhs)),
-                    RelOp::Fuzzy => Ok(lhs.fuzzy(&rhs)),
-                    RelOp::Equiv => unreachable!("handled above"),
+                if let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (&lhs, &rhs) {
+                    return match op {
+                        RelOp::Eq => Ok(lhs.eq(rhs)),
+                        RelOp::Lt => Ok(lhs.le(rhs) && !rhs.le(lhs)),
+                        RelOp::Gt => Ok(rhs.le(lhs) && !lhs.le(rhs)),
+                        RelOp::Fuzzy => Ok(lhs.fuzzy(rhs)),
+                        RelOp::Equiv | RelOp::Outcome(_) => unreachable!("handled above"),
+                    };
                 }
+                ensure_game_stopper("left", &lhs, self.graph_budget)?;
+                ensure_game_stopper("right", &rhs, self.graph_budget)?;
+                let projected = project_stopper_outcome(game_difference_outcome(
+                    &lhs,
+                    &rhs,
+                    self.graph_budget,
+                )?);
+                Ok(op == projected)
             }
         }
     }
@@ -1472,7 +1556,11 @@ impl GameRuntime {
             Expr::Container(items) => {
                 let mut tail = GameElement::Finite(Game::integer(0));
                 for item in items.iter().rev() {
-                    tail = build_game_form(vec![self.eval_element(item)?], vec![tail])?;
+                    tail = build_game_form(
+                        vec![self.eval_element(item)?],
+                        vec![tail],
+                        self.graph_budget,
+                    )?;
                 }
                 Ok(tail)
             }
@@ -1490,6 +1578,7 @@ impl GameRuntime {
                     .iter()
                     .map(|item| self.eval_element(item))
                     .collect::<OghamResult<Vec<_>>>()?,
+                self.graph_budget,
             ),
             Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
                 Value::Element(value) => Ok(value),
@@ -1506,12 +1595,7 @@ impl GameRuntime {
             },
             Expr::Call { name, args } => self.eval_element_call(name, args),
             Expr::Unary { op, expr } => match op {
-                UnaryOp::Neg => match self.eval_element(expr)? {
-                    GameElement::Finite(game) => Ok(GameElement::Finite(game.neg())),
-                    GameElement::Graph(_) => Err(loopy_error(
-                        "unary `-` is not defined on loopy games in the 0.3.0 envelope",
-                    )),
-                },
+                UnaryOp::Neg => negate_game_element(self.eval_element(expr)?, self.graph_budget),
                 UnaryOp::Inv => Err(game_wrong_world(
                     "games form an additive group, not a field; `/` is undefined",
                 )),
@@ -1541,16 +1625,7 @@ impl GameRuntime {
             BinaryOp::Add | BinaryOp::Sub => {
                 let lhs = self.eval_element(lhs)?;
                 let rhs = self.eval_element(rhs)?;
-                let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (lhs, rhs) else {
-                    return Err(loopy_error(
-                        "additive operations are not defined on loopy games in the 0.3.0 envelope",
-                    ));
-                };
-                Ok(GameElement::Finite(if op == BinaryOp::Add {
-                    lhs.add(&rhs)
-                } else {
-                    lhs.add(&rhs.neg())
-                }))
+                add_game_elements(lhs, rhs, op == BinaryOp::Sub, self.graph_budget)
             }
             BinaryOp::Append => {
                 let lhs = self.eval_element(lhs)?;
@@ -1558,7 +1633,7 @@ impl GameRuntime {
                     SpineWalk::Cycles => Ok(lhs),
                     SpineWalk::ReachesNil(heads) => {
                         let rhs = self.eval_element(rhs)?;
-                        graft_game_spine(heads, rhs)
+                        graft_game_spine(heads, rhs, self.graph_budget)
                     }
                 }
             }
@@ -1614,8 +1689,9 @@ impl GameRuntime {
             "deg" | "gcd" => Err(game_wrong_world(&format!(
                 "`{name}` is a function-world operation, not a game operation"
             ))),
-            "hasdraw" => Err(bool_sort_error()),
+            "hasdraw" | "stopper" => Err(bool_sort_error()),
             "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
+            "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
             _ => Err(OghamError::new(
                 OghamErrorKind::UnknownFn,
                 Span::point(0),
@@ -1786,68 +1862,111 @@ fn display_game_element(element: &GameElement) -> String {
 }
 
 fn display_composite_graph(reference: &GraphRef) -> String {
-    let mut external = Vec::new();
-    collect_external_cycles(reference, &mut HashSet::new(), &mut external);
-    if external.is_empty() {
+    let anchored = collect_display_anchors(reference);
+    if anchored.is_empty() {
         return display_graph_node(reference, &HashMap::new(), true, &mut HashSet::new());
     }
     let mut anchors = HashMap::new();
-    for cycle in &external {
-        anchors
-            .entry(graph_key(cycle))
-            .or_insert_with(|| cycle.graph.name.clone());
+    let mut generated = 1_u128;
+    for anchor in &anchored {
+        let name = if anchor.graph.name.is_empty() {
+            let name = format!("g{generated}");
+            generated += 1;
+            name
+        } else {
+            anchor.graph.name.clone()
+        };
+        anchors.insert(graph_key(anchor), name);
     }
-    let mut parts = external
+    // Inner first-reach cycles are definitions used by their enclosing cycle,
+    // so emit the flat block from inner to outer while retaining g1, g2, ... in
+    // first-reach naming order.
+    let mut parts = anchored
         .iter()
-        .map(|cycle| {
+        .rev()
+        .map(|anchor| {
             format!(
                 "{} =: {}",
-                cycle.graph.name,
-                display_graph_node(cycle, &anchors, true, &mut HashSet::new())
+                anchors[&graph_key(anchor)],
+                display_graph_node(anchor, &anchors, true, &mut HashSet::new())
             )
         })
         .collect::<Vec<_>>();
-    parts.push(display_graph_node(
-        reference,
-        &anchors,
-        true,
-        &mut HashSet::new(),
-    ));
+    let root_key = graph_key(reference);
+    let root_name = anchors.get(&root_key).cloned();
+    if parts.len() == 1 && root_name.is_some() {
+        return parts.pop().expect("single synthesized root equation");
+    }
+    parts.push(
+        root_name
+            .unwrap_or_else(|| display_graph_node(reference, &anchors, true, &mut HashSet::new())),
+    );
     format!("({})", parts.join("; "))
 }
 
-fn collect_external_cycles(
-    reference: &GraphRef,
-    visited: &mut HashSet<(usize, usize)>,
-    out: &mut Vec<GraphRef>,
-) {
-    if !visited.insert(graph_key(reference)) {
-        return;
+fn collect_display_anchors(root: &GraphRef) -> Vec<GraphRef> {
+    let root_key = graph_key(root);
+    let mut colors = HashMap::from([(root_key, 1_u8)]);
+    let mut discovery = vec![root.clone()];
+    let mut back_targets = HashSet::new();
+    let mut named_entries = HashSet::new();
+    let mut stack = vec![(root.clone(), graph_reference_successors(root), 0_usize)];
+
+    while !stack.is_empty() {
+        let top = stack.len() - 1;
+        if stack[top].2 == stack[top].1.len() {
+            colors.insert(graph_key(&stack[top].0), 2);
+            stack.pop();
+            continue;
+        }
+        let (target, named_entry) = stack[top].1[stack[top].2].clone();
+        stack[top].2 += 1;
+        let key = graph_key(&target);
+        if named_entry {
+            named_entries.insert(key);
+        }
+        match colors.get(&key).copied().unwrap_or(0) {
+            0 => {
+                colors.insert(key, 1);
+                discovery.push(target.clone());
+                let successors = graph_reference_successors(&target);
+                stack.push((target, successors, 0));
+            }
+            1 => {
+                back_targets.insert(key);
+            }
+            _ => {}
+        }
     }
+
+    discovery
+        .into_iter()
+        .filter(|reference| {
+            let key = graph_key(reference);
+            named_entries.contains(&key) || back_targets.contains(&key)
+        })
+        .collect()
+}
+
+fn graph_reference_successors(reference: &GraphRef) -> Vec<(GraphRef, bool)> {
     let node = &reference.graph.nodes[reference.node];
-    for edge in node.left.iter().chain(&node.right) {
-        match edge {
-            RegularGameEdge::Local(node) => collect_external_cycles(
-                &GraphRef {
+    node.left
+        .iter()
+        .chain(&node.right)
+        .filter_map(|edge| match edge {
+            RegularGameEdge::Finite(_) => None,
+            RegularGameEdge::Local(node) => Some((
+                GraphRef {
                     graph: reference.graph.clone(),
                     node: *node,
                 },
-                visited,
-                out,
-            ),
-            RegularGameEdge::External(external) => {
-                if external.graph.name.is_empty() {
-                    collect_external_cycles(external, visited, out);
-                } else if !out
-                    .iter()
-                    .any(|found| graph_key(found) == graph_key(external))
-                {
-                    out.push(external.clone());
-                }
+                false,
+            )),
+            RegularGameEdge::External(reference) => {
+                Some((reference.clone(), !reference.graph.name.is_empty()))
             }
-            RegularGameEdge::Finite(_) => {}
-        }
-    }
+        })
+        .collect()
 }
 
 fn display_graph_node(
@@ -2085,7 +2204,11 @@ fn improper_spine_error() -> OghamError {
     )
 }
 
-fn build_game_form(left: Vec<GameElement>, right: Vec<GameElement>) -> OghamResult<GameElement> {
+fn build_game_form(
+    left: Vec<GameElement>,
+    right: Vec<GameElement>,
+    node_budget: u128,
+) -> OghamResult<GameElement> {
     if left
         .iter()
         .chain(&right)
@@ -2108,10 +2231,15 @@ fn build_game_form(left: Vec<GameElement>, right: Vec<GameElement>) -> OghamResu
             left: left.into_iter().map(SymbolicGame::Value).collect(),
             right: right.into_iter().map(SymbolicGame::Value).collect(),
         },
+        node_budget,
     )
 }
 
-fn graft_game_spine(heads: Vec<GameElement>, tail: GameElement) -> OghamResult<GameElement> {
+fn graft_game_spine(
+    heads: Vec<GameElement>,
+    tail: GameElement,
+    node_budget: u128,
+) -> OghamResult<GameElement> {
     if heads
         .iter()
         .chain(std::iter::once(&tail))
@@ -2128,7 +2256,11 @@ fn graft_game_spine(heads: Vec<GameElement>, tail: GameElement) -> OghamResult<G
         }
         return Ok(GameElement::Finite(result));
     }
-    materialize_regular_game("", symbolic_spine(heads, SymbolicGame::Value(tail)))
+    materialize_regular_game(
+        "",
+        symbolic_spine(heads, SymbolicGame::Value(tail)),
+        node_budget,
+    )
 }
 
 fn symbolic_spine(heads: Vec<GameElement>, tail: SymbolicGame) -> SymbolicGame {
@@ -2141,7 +2273,11 @@ fn symbolic_spine(heads: Vec<GameElement>, tail: SymbolicGame) -> SymbolicGame {
         })
 }
 
-fn materialize_regular_game(name: &str, root: SymbolicGame) -> OghamResult<GameElement> {
+fn materialize_regular_game(
+    name: &str,
+    root: SymbolicGame,
+    node_budget: u128,
+) -> OghamResult<GameElement> {
     if matches!(root, SymbolicGame::SelfRef) {
         return Err(unfounded_error(name));
     }
@@ -2149,8 +2285,8 @@ fn materialize_regular_game(name: &str, root: SymbolicGame) -> OghamResult<GameE
         return Ok(value);
     }
     let mut nodes = Vec::new();
-    materialize_symbolic_node(&root, &mut nodes)?;
-    let has_draw = classify_regular_nodes(&nodes);
+    materialize_symbolic_node(&root, &mut nodes, node_budget)?;
+    let has_draw = classify_regular_nodes(&nodes, node_budget)?;
     Ok(GameElement::Graph(GraphRef {
         graph: Arc::new(RegularGameGraph {
             name: name.to_string(),
@@ -2164,6 +2300,7 @@ fn materialize_regular_game(name: &str, root: SymbolicGame) -> OghamResult<GameE
 fn materialize_symbolic_node(
     value: &SymbolicGame,
     nodes: &mut Vec<RegularGameNode>,
+    node_budget: u128,
 ) -> OghamResult<usize> {
     let SymbolicGame::Form { left, right } = value else {
         return Err(OghamError::new(
@@ -2172,6 +2309,9 @@ fn materialize_symbolic_node(
             "an Element fixpoint must reduce to a brace constructor",
         ));
     };
+    if nodes.len() as u128 >= node_budget {
+        return Err(graph_budget_error(node_budget));
+    }
     let index = nodes.len();
     nodes.push(RegularGameNode {
         left: Vec::new(),
@@ -2179,11 +2319,11 @@ fn materialize_symbolic_node(
     });
     let left = left
         .iter()
-        .map(|item| materialize_symbolic_edge(item, nodes))
+        .map(|item| materialize_symbolic_edge(item, nodes, node_budget))
         .collect::<OghamResult<_>>()?;
     let right = right
         .iter()
-        .map(|item| materialize_symbolic_edge(item, nodes))
+        .map(|item| materialize_symbolic_edge(item, nodes, node_budget))
         .collect::<OghamResult<_>>()?;
     nodes[index] = RegularGameNode { left, right };
     Ok(index)
@@ -2192,6 +2332,7 @@ fn materialize_symbolic_node(
 fn materialize_symbolic_edge(
     value: &SymbolicGame,
     nodes: &mut Vec<RegularGameNode>,
+    node_budget: u128,
 ) -> OghamResult<RegularGameEdge> {
     match value {
         SymbolicGame::SelfRef => Ok(RegularGameEdge::Local(0)),
@@ -2200,7 +2341,7 @@ fn materialize_symbolic_edge(
             Ok(RegularGameEdge::External(reference.clone()))
         }
         SymbolicGame::Form { .. } => {
-            materialize_symbolic_node(value, nodes).map(RegularGameEdge::Local)
+            materialize_symbolic_node(value, nodes, node_budget).map(RegularGameEdge::Local)
         }
     }
 }
@@ -2212,7 +2353,7 @@ enum ClassificationPosition {
     Finite(Game),
 }
 
-fn classify_regular_nodes(nodes: &[RegularGameNode]) -> Vec<bool> {
+fn classify_regular_nodes(nodes: &[RegularGameNode], node_budget: u128) -> OghamResult<Vec<bool>> {
     let mut positions = (0..nodes.len())
         .map(ClassificationPosition::Current)
         .collect::<Vec<_>>();
@@ -2254,60 +2395,403 @@ fn classify_regular_nodes(nodes: &[RegularGameNode]) -> Vec<bool> {
         };
         left[cursor] = classification_edges(
             left_edges,
+            node_budget,
             &mut positions,
             &mut left,
             &mut right,
             &mut external,
-        );
+        )?;
         right[cursor] = classification_edges(
             right_edges,
+            node_budget,
             &mut positions,
             &mut left,
             &mut right,
             &mut external,
-        );
+        )?;
         cursor += 1;
     }
     let draw_set = LoopyPartizanGraph::new(left, right)
-        .expect("regular-game classification builds in-range parallel adjacency tables")
+        .map_err(partizan_graph_error)?
         .draw_set()
         .into_iter()
         .collect::<HashSet<_>>();
-    (0..nodes.len())
+    Ok((0..nodes.len())
         .map(|node| draw_set.contains(&node))
-        .collect()
+        .collect())
 }
 
 fn classification_edges(
     edges: Vec<RegularGameEdge>,
+    node_budget: u128,
     positions: &mut Vec<ClassificationPosition>,
     left: &mut Vec<Vec<usize>>,
     right: &mut Vec<Vec<usize>>,
     external: &mut HashMap<GraphKey, usize>,
-) -> Vec<usize> {
+) -> OghamResult<Vec<usize>> {
     edges
         .into_iter()
         .map(|edge| match edge {
-            RegularGameEdge::Local(node) => node,
+            RegularGameEdge::Local(node) => Ok(node),
             RegularGameEdge::Finite(game) => {
+                if positions.len() as u128 >= node_budget {
+                    return Err(graph_budget_error(node_budget));
+                }
                 let index = positions.len();
                 positions.push(ClassificationPosition::Finite(game));
                 left.push(Vec::new());
                 right.push(Vec::new());
-                index
+                Ok(index)
             }
             RegularGameEdge::External(reference) => {
                 let key = graph_key(&reference);
-                *external.entry(key).or_insert_with(|| {
-                    let index = positions.len();
-                    positions.push(ClassificationPosition::External(reference));
-                    left.push(Vec::new());
-                    right.push(Vec::new());
-                    index
-                })
+                if let Some(&index) = external.get(&key) {
+                    return Ok(index);
+                }
+                if positions.len() as u128 >= node_budget {
+                    return Err(graph_budget_error(node_budget));
+                }
+                let index = positions.len();
+                external.insert(key, index);
+                positions.push(ClassificationPosition::External(reference));
+                left.push(Vec::new());
+                right.push(Vec::new());
+                Ok(index)
             }
         })
         .collect()
+}
+
+fn operational_partizan_graph(
+    element: &GameElement,
+    node_budget: u128,
+) -> OghamResult<LoopyPartizanGraph> {
+    if let GameElement::Finite(game) = element {
+        let graph = LoopyPartizanGraph::from_game(game);
+        if graph.node_count() as u128 > node_budget {
+            return Err(graph_budget_error(node_budget));
+        }
+        return Ok(graph);
+    }
+    let GameElement::Graph(root) = element else {
+        unreachable!()
+    };
+    if node_budget == 0 {
+        return Err(graph_budget_error(node_budget));
+    }
+
+    let mut positions = vec![ClassificationPosition::External(root.clone())];
+    let mut external = HashMap::from([(graph_key(root), 0_usize)]);
+    let mut left = vec![Vec::new()];
+    let mut right = vec![Vec::new()];
+    let mut cursor = 0;
+    while cursor < positions.len() {
+        let (left_edges, right_edges) = match positions[cursor].clone() {
+            ClassificationPosition::Current(_) => {
+                unreachable!("operational flattening starts from an external graph reference")
+            }
+            ClassificationPosition::External(reference) => {
+                let node = &reference.graph.nodes[reference.node];
+                let adapt = |edge: &RegularGameEdge| match edge {
+                    RegularGameEdge::Local(node) => RegularGameEdge::External(GraphRef {
+                        graph: reference.graph.clone(),
+                        node: *node,
+                    }),
+                    edge => edge.clone(),
+                };
+                (
+                    node.left.iter().map(adapt).collect(),
+                    node.right.iter().map(adapt).collect(),
+                )
+            }
+            ClassificationPosition::Finite(game) => (
+                game.left()
+                    .iter()
+                    .cloned()
+                    .map(RegularGameEdge::Finite)
+                    .collect(),
+                game.right()
+                    .iter()
+                    .cloned()
+                    .map(RegularGameEdge::Finite)
+                    .collect(),
+            ),
+        };
+        left[cursor] = operational_classification_edges(
+            left_edges,
+            node_budget,
+            &mut positions,
+            &mut left,
+            &mut right,
+            &mut external,
+        )?;
+        right[cursor] = operational_classification_edges(
+            right_edges,
+            node_budget,
+            &mut positions,
+            &mut left,
+            &mut right,
+            &mut external,
+        )?;
+        cursor += 1;
+    }
+    LoopyPartizanGraph::new(left, right).map_err(partizan_graph_error)
+}
+
+fn operational_classification_edges(
+    edges: Vec<RegularGameEdge>,
+    node_budget: u128,
+    positions: &mut Vec<ClassificationPosition>,
+    left: &mut Vec<Vec<usize>>,
+    right: &mut Vec<Vec<usize>>,
+    external: &mut HashMap<GraphKey, usize>,
+) -> OghamResult<Vec<usize>> {
+    edges
+        .into_iter()
+        .map(|edge| match edge {
+            RegularGameEdge::Local(_) => {
+                unreachable!("external graph edges are adapted before flattening")
+            }
+            RegularGameEdge::Finite(game) => push_operational_position(
+                ClassificationPosition::Finite(game),
+                node_budget,
+                positions,
+                left,
+                right,
+            ),
+            RegularGameEdge::External(reference) => {
+                let key = graph_key(&reference);
+                if let Some(&index) = external.get(&key) {
+                    Ok(index)
+                } else {
+                    let index = push_operational_position(
+                        ClassificationPosition::External(reference),
+                        node_budget,
+                        positions,
+                        left,
+                        right,
+                    )?;
+                    external.insert(key, index);
+                    Ok(index)
+                }
+            }
+        })
+        .collect()
+}
+
+fn push_operational_position(
+    position: ClassificationPosition,
+    node_budget: u128,
+    positions: &mut Vec<ClassificationPosition>,
+    left: &mut Vec<Vec<usize>>,
+    right: &mut Vec<Vec<usize>>,
+) -> OghamResult<usize> {
+    if positions.len() as u128 >= node_budget {
+        return Err(graph_budget_error(node_budget));
+    }
+    let index = positions.len();
+    positions.push(position);
+    left.push(Vec::new());
+    right.push(Vec::new());
+    Ok(index)
+}
+
+fn partizan_game_element(graph: LoopyPartizanGraph) -> GameElement {
+    // Recover every well-founded subgraph as a finite `Game`. Besides keeping
+    // finite results finite, this preserves literal recognition at exits from a
+    // cyclic component (`-ones` should contain `-1`, not its expanded node DAG).
+    let mut finite = vec![None; graph.node_count()];
+    let mut remaining = vec![0_usize; graph.node_count()];
+    let mut predecessors = vec![Vec::new(); graph.node_count()];
+    for node in 0..graph.node_count() {
+        remaining[node] = graph.left()[node].len() + graph.right()[node].len();
+        for &target in graph.left()[node].iter().chain(&graph.right()[node]) {
+            predecessors[target].push(node);
+        }
+    }
+    let mut ready = (0..graph.node_count())
+        .filter(|node| remaining[*node] == 0)
+        .collect::<VecDeque<_>>();
+    while let Some(node) = ready.pop_front() {
+        finite[node] = Some(Game::new(
+            graph.left()[node]
+                .iter()
+                .map(|target| {
+                    finite[*target]
+                        .clone()
+                        .expect("retrograde finite left target")
+                })
+                .collect(),
+            graph.right()[node]
+                .iter()
+                .map(|target| {
+                    finite[*target]
+                        .clone()
+                        .expect("retrograde finite right target")
+                })
+                .collect(),
+        ));
+        for &source in &predecessors[node] {
+            remaining[source] -= 1;
+            if remaining[source] == 0 {
+                ready.push_back(source);
+            }
+        }
+    }
+    if let Some(root) = finite[0].clone() {
+        return GameElement::Finite(root);
+    }
+
+    let has_draw = graph
+        .outcomes()
+        .into_iter()
+        .map(|outcome| outcome.has_draw())
+        .collect();
+    let nodes = graph
+        .left()
+        .iter()
+        .zip(graph.right())
+        .map(|(left, right)| RegularGameNode {
+            left: left
+                .iter()
+                .map(|target| {
+                    finite[*target]
+                        .clone()
+                        .map_or_else(|| RegularGameEdge::Local(*target), RegularGameEdge::Finite)
+                })
+                .collect(),
+            right: right
+                .iter()
+                .map(|target| {
+                    finite[*target]
+                        .clone()
+                        .map_or_else(|| RegularGameEdge::Local(*target), RegularGameEdge::Finite)
+                })
+                .collect(),
+        })
+        .collect();
+    GameElement::Graph(GraphRef {
+        graph: Arc::new(RegularGameGraph {
+            name: String::new(),
+            nodes,
+            has_draw,
+        }),
+        node: 0,
+    })
+}
+
+fn negate_game_element(element: GameElement, node_budget: u128) -> OghamResult<GameElement> {
+    match element {
+        GameElement::Finite(game) => Ok(GameElement::Finite(game.neg())),
+        graph @ GameElement::Graph(_) => Ok(partizan_game_element(
+            operational_partizan_graph(&graph, node_budget)?.neg(),
+        )),
+    }
+}
+
+fn add_game_elements(
+    lhs: GameElement,
+    rhs: GameElement,
+    subtract: bool,
+    node_budget: u128,
+) -> OghamResult<GameElement> {
+    if let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (&lhs, &rhs) {
+        return Ok(GameElement::Finite(if subtract {
+            lhs.add(&rhs.neg())
+        } else {
+            lhs.add(rhs)
+        }));
+    }
+    let lhs = operational_partizan_graph(&lhs, node_budget)?;
+    let mut rhs = operational_partizan_graph(&rhs, node_budget)?;
+    if subtract {
+        rhs = rhs.neg();
+    }
+    lhs.sum(0, &rhs, 0, node_budget)
+        .map(partizan_game_element)
+        .map_err(partizan_graph_error)
+}
+
+fn game_difference_outcome(
+    lhs: &GameElement,
+    rhs: &GameElement,
+    node_budget: u128,
+) -> OghamResult<LoopyPartizanOutcome> {
+    let lhs = operational_partizan_graph(lhs, node_budget)?;
+    let rhs = operational_partizan_graph(rhs, node_budget)?.neg();
+    lhs.sum(0, &rhs, 0, node_budget)
+        .and_then(|difference| difference.outcome_pair(0))
+        .map_err(partizan_graph_error)
+}
+
+fn outcome_cell(outcome: LoopyPartizanOutcome) -> OutcomeCell {
+    match (outcome.left_to_move, outcome.right_to_move) {
+        (LoopyWinner::Left, LoopyWinner::Left) => OutcomeCell::LeftLeft,
+        (LoopyWinner::Left, LoopyWinner::Draw) => OutcomeCell::LeftDraw,
+        (LoopyWinner::Left, LoopyWinner::Right) => OutcomeCell::LeftRight,
+        (LoopyWinner::Draw, LoopyWinner::Left) => OutcomeCell::DrawLeft,
+        (LoopyWinner::Draw, LoopyWinner::Draw) => OutcomeCell::DrawDraw,
+        (LoopyWinner::Draw, LoopyWinner::Right) => OutcomeCell::DrawRight,
+        (LoopyWinner::Right, LoopyWinner::Left) => OutcomeCell::RightLeft,
+        (LoopyWinner::Right, LoopyWinner::Draw) => OutcomeCell::RightDraw,
+        (LoopyWinner::Right, LoopyWinner::Right) => OutcomeCell::RightRight,
+    }
+}
+
+fn project_stopper_outcome(outcome: LoopyPartizanOutcome) -> RelOp {
+    // Standard stopper-order projection: Siegel, Combinatorial Game Theory,
+    // GSM 146, Def. VI.1.8 p. 284 (survival) and Thm. VI.2.1 p. 290.
+    match outcome_cell(outcome) {
+        OutcomeCell::LeftLeft | OutcomeCell::LeftDraw => RelOp::Gt,
+        OutcomeCell::LeftRight => RelOp::Fuzzy,
+        OutcomeCell::RightLeft
+        | OutcomeCell::RightDraw
+        | OutcomeCell::DrawLeft
+        | OutcomeCell::DrawDraw => RelOp::Eq,
+        OutcomeCell::DrawRight | OutcomeCell::RightRight => RelOp::Lt,
+    }
+}
+
+fn ensure_game_stopper(operand: &str, element: &GameElement, node_budget: u128) -> OghamResult<()> {
+    let graph = operational_partizan_graph(element, node_budget)?;
+    match graph.stopper_status(0).map_err(partizan_graph_error)? {
+        LoopyStopperStatus::Stopper => Ok(()),
+        LoopyStopperStatus::NonStopper { witness } => Err(loopy_error(&format!(
+            "value relation requires stopper operands; {operand} operand has alternating cycle {}",
+            render_stopper_witness(&witness.cycle)
+        ))),
+    }
+}
+
+fn game_element_is_stopper(element: &GameElement, node_budget: u128) -> OghamResult<bool> {
+    operational_partizan_graph(element, node_budget)?
+        .is_stopper(0)
+        .map_err(partizan_graph_error)
+}
+
+fn render_stopper_witness(cycle: &[crate::games::LoopyTurnState]) -> String {
+    cycle
+        .iter()
+        .map(|state| {
+            let mover = match state.mover {
+                LoopyMover::Left => 'L',
+                LoopyMover::Right => 'R',
+            };
+            format!("{}:{mover}", state.node)
+        })
+        .collect::<Vec<_>>()
+        .join("→")
+}
+
+fn partizan_graph_error(error: LoopyPartizanGraphError) -> OghamError {
+    match error {
+        LoopyPartizanGraphError::NodeBudgetExceeded { budget } => graph_budget_error(budget),
+        other => OghamError::new(
+            OghamErrorKind::Domain,
+            Span::point(0),
+            format!("invalid materialized game graph: {other}"),
+        ),
+    }
 }
 
 fn game_options(element: &GameElement, left: bool) -> Vec<GameElement> {
@@ -2566,7 +3050,9 @@ fn game_known_sort(expr: &Expr, env: &BTreeMap<String, Value<GameElement>>) -> O
         Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
             Some(Sort::Index)
         }
-        Expr::Call { name, .. } if name == "hasdraw" => Some(Sort::Bool),
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => {
+            Some(Sort::Bool)
+        }
         Expr::Binary {
             op: BinaryOp::At,
             lhs,
@@ -2841,6 +3327,7 @@ struct PolyRuntime<S: PolyWorldCoeff> {
     env: BTreeMap<String, Value<Poly<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    graph_budget: u128,
     recursion_depth: u128,
     validation_sample_function_names: BTreeSet<String>,
 }
@@ -2862,6 +3349,14 @@ impl<S: PolyWorldCoeff> WorldOps for PolyRuntime<S> {
 
     fn fuel_budget_mut(&mut self) -> &mut u128 {
         &mut self.fuel_budget
+    }
+
+    fn graph_budget(&self) -> u128 {
+        self.graph_budget
+    }
+
+    fn graph_budget_mut(&mut self) -> &mut u128 {
+        &mut self.graph_budget
     }
 
     fn fuel_remaining_mut(&mut self) -> &mut u128 {
@@ -2952,6 +3447,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            graph_budget: DEFAULT_GRAPH_BUDGET,
             recursion_depth: 0,
             validation_sample_function_names: BTreeSet::new(),
         }
@@ -3231,6 +3727,7 @@ struct RatFuncRuntime<S: OghamScalar + ExactFieldScalar> {
     env: BTreeMap<String, Value<RationalFunction<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    graph_budget: u128,
     recursion_depth: u128,
     validation_sample_function_names: BTreeSet<String>,
 }
@@ -3252,6 +3749,14 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
 
     fn fuel_budget_mut(&mut self) -> &mut u128 {
         &mut self.fuel_budget
+    }
+
+    fn graph_budget(&self) -> u128 {
+        self.graph_budget
+    }
+
+    fn graph_budget_mut(&mut self) -> &mut u128 {
+        &mut self.graph_budget
     }
 
     fn fuel_remaining_mut(&mut self) -> &mut u128 {
@@ -3336,6 +3841,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            graph_budget: DEFAULT_GRAPH_BUDGET,
             recursion_depth: 0,
             validation_sample_function_names: BTreeSet::new(),
         }
@@ -3623,6 +4129,7 @@ struct Runtime<S: OghamScalar> {
     env: BTreeMap<String, Value<Multivector<S>>>,
     fuel_budget: u128,
     fuel_remaining: u128,
+    graph_budget: u128,
     recursion_depth: u128,
     validation_sample_function_names: BTreeSet<String>,
 }
@@ -3644,6 +4151,14 @@ impl<S: OghamScalar> WorldOps for Runtime<S> {
 
     fn fuel_budget_mut(&mut self) -> &mut u128 {
         &mut self.fuel_budget
+    }
+
+    fn graph_budget(&self) -> u128 {
+        self.graph_budget
+    }
+
+    fn graph_budget_mut(&mut self) -> &mut u128 {
+        &mut self.graph_budget
     }
 
     fn fuel_remaining_mut(&mut self) -> &mut u128 {
@@ -3711,6 +4226,7 @@ impl<S: OghamScalar> Runtime<S> {
             env: BTreeMap::new(),
             fuel_budget: DEFAULT_FUEL,
             fuel_remaining: DEFAULT_FUEL,
+            graph_budget: DEFAULT_GRAPH_BUDGET,
             recursion_depth: 0,
             validation_sample_function_names: BTreeSet::new(),
         }
@@ -5063,12 +5579,13 @@ fn infer_expr_sort(
                 expect_sort(Sort::Element, expected)
             }
             "up" | "down" | "dim" => Err(literal_call_error(name)),
-            "hasdraw" => {
+            "hasdraw" | "stopper" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
                 expect_sort(Sort::Bool, expected)
             }
             "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
+            "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
             "coef" => {
                 expect_arity(name, args, 2)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
@@ -5298,7 +5815,7 @@ fn bool_shaped(expr: &Expr) -> bool {
             op: BinaryOp::And | BinaryOp::Or,
             ..
         } => true,
-        Expr::Call { name, .. } if name == "hasdraw" => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => true,
         Expr::Block { body, .. } => bool_shaped(body),
         _ => false,
     }
@@ -5337,7 +5854,7 @@ fn static_sort<E>(
         {
             Ok(Sort::Index)
         }
-        Expr::Call { name, .. } if name == "hasdraw" => Ok(Sort::Bool),
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => Ok(Sort::Bool),
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
@@ -5413,7 +5930,7 @@ fn static_sort_with_sorts(
         {
             Ok(Sort::Index)
         }
-        Expr::Call { name, .. } if name == "hasdraw" => Ok(Sort::Bool),
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => Ok(Sort::Bool),
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
@@ -5475,6 +5992,7 @@ fn reserved_function_binder(name: &str) -> bool {
             | "up"
             | "down"
             | "hasdraw"
+            | "stopper"
     )
 }
 
@@ -5495,6 +6013,7 @@ fn is_runtime_partiality(kind: OghamErrorKind) -> bool {
             | OghamErrorKind::Overflow
             | OghamErrorKind::KummerEscape
             | OghamErrorKind::Modulus
+            | OghamErrorKind::GraphBudget
     )
 }
 
@@ -5781,6 +6300,7 @@ impl OghamScalar for Nimber {
             RelOp::Fuzzy => lhs.fuzzy(rhs),
             RelOp::Eq => lhs == rhs,
             RelOp::Equiv => return Err(game_only_error("`≡`")),
+            RelOp::Outcome(_) => return Err(game_only_error("outcome doubles")),
         })
     }
 
@@ -5853,6 +6373,7 @@ impl OghamScalar for Ordinal {
             RelOp::Fuzzy => lhs.fuzzy(rhs),
             RelOp::Eq => lhs == rhs,
             RelOp::Equiv => return Err(game_only_error("`≡`")),
+            RelOp::Outcome(_) => return Err(game_only_error("outcome doubles")),
         })
     }
 
@@ -6330,6 +6851,7 @@ fn ordered_relation(op: RelOp, cmp: Ordering) -> OghamResult<bool> {
         RelOp::Gt => cmp == Ordering::Greater,
         RelOp::Fuzzy => false,
         RelOp::Equiv => return Err(game_only_error("`≡`")),
+        RelOp::Outcome(_) => return Err(game_only_error("outcome doubles")),
     })
 }
 
@@ -6400,6 +6922,25 @@ mod tests {
                     "language walk diverged from engine fingerprint on {lhs} and {rhs}"
                 );
             }
+        }
+    }
+
+    #[test]
+    fn stopper_projection_table_covers_all_nine_cells() {
+        use LoopyWinner::{Draw, Left, Right};
+
+        for (outcome, expected) in [
+            (LoopyPartizanOutcome::new(Left, Left), RelOp::Gt),
+            (LoopyPartizanOutcome::new(Left, Draw), RelOp::Gt),
+            (LoopyPartizanOutcome::new(Left, Right), RelOp::Fuzzy),
+            (LoopyPartizanOutcome::new(Draw, Left), RelOp::Eq),
+            (LoopyPartizanOutcome::new(Draw, Draw), RelOp::Eq),
+            (LoopyPartizanOutcome::new(Draw, Right), RelOp::Lt),
+            (LoopyPartizanOutcome::new(Right, Left), RelOp::Eq),
+            (LoopyPartizanOutcome::new(Right, Draw), RelOp::Eq),
+            (LoopyPartizanOutcome::new(Right, Right), RelOp::Lt),
+        ] {
+            assert_eq!(project_stopper_outcome(outcome), expected);
         }
     }
 }

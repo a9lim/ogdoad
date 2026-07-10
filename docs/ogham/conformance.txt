@@ -1,8 +1,9 @@
-// ogham conformance corpus — v0.3.5 (hand-verified prefix through stage B)
+// ogham conformance corpus — v0.3.5 (hand-verified and fully merged)
 // Format: docs/ogham/ogham.md §14, plus `>>` continuation lines for joined
 // open-paren/open-bracket/open-brace inputs.
 //   @world ‹args as after ":world"›   resets bindings
 //   @fuel ‹u128›                      sets the per-statement μ-step budget
+//   @graph ‹u128›                     sets the materialized-graph node budget
 //   > input        ~ canonical echo (optional)        = value display
 //   ! E_Kind: message-substring
 // Every vector below was hand-verified against its governing spec and standard
@@ -1303,22 +1304,19 @@
 > k =: k ⧺ {1 | 0}
 ! E_Unfounded:
 
-// sums stay behind the stopper boundary
+// totality of + on values does not make an unguarded recursive RHS founded
 > m =: m + 1
 ! E_Unfounded:
 
-// ---- the 0.3.0 loopy envelope (conservative; loosening owed, never breaking)
+// ---- the 0.3.5 loopy envelope
 > ones = ones
-! E_Loopy:
-
-> ones + {1 | 0}
-! E_Loopy:
+= true
 
 > canon(ones)
 ! E_Loopy:
 
 > -ones
-! E_Loopy:
+= g1 =: {g1 | -1}
 
 // cyclic left operand of ⧺: appending never reaches the right operand
 > ones ⧺ {5 | 0}
@@ -1611,3 +1609,276 @@
 
 > k =: k ⧺ [1]
 ! E_Unfounded:
+
+// ============================================================ migrated 0.3.5-E — outcome doubles and finite corners
+@world game
+
+// finite forms occupy only the four no-draw corners
+> 1 >> 0
+= true
+
+> 1 > 0
+= true
+
+> *1 >< 0
+= true
+
+> *1 ∥ 0
+= true
+
+> 0 <> 0
+= true
+
+> 0 = 0
+= true
+
+> -1 << 0
+= true
+
+> -1 < 0
+= true
+
+> 1 >_ 0
+~ 1 >‿ 0
+= false
+
+> 1 _> 0
+~ 1 ‿> 0
+= false
+
+> 1 __ 0
+~ 1 ‿‿ 0
+= false
+
+> 1 _< 0
+~ 1 ‿< 0
+= false
+
+> 1 <_ 0
+~ 1 <‿ 0
+= false
+
+// one concrete witness for every outcome cell
+> on =: {on |}
+
+> off =: {| off}
+
+> dud =: {dud | dud}
+
+> ll := on
+
+> ld := {0 | dud}
+
+> lr := *1
+
+> dl := {dud |}
+
+> dd := dud
+
+> dr := {dud | 0}
+
+> rl := 0
+
+> rd := {| dud}
+
+> rr := off
+
+> ll >> 0
+= true
+
+> ld >‿ 0
+= true
+
+> lr >< 0
+= true
+
+> dl ‿> 0
+= true
+
+> dd ‿‿ 0
+= true
+
+> dr ‿< 0
+= true
+
+> rl <> 0
+= true
+
+> rd <‿ 0
+= true
+
+> rr << 0
+= true
+
+// negation rotation and operand swap use the same 180-degree cell map
+> -ll << 0
+= true
+
+> 0 << ll
+= true
+
+> -ld ‿< 0
+= true
+
+> 0 ‿< ld
+= true
+
+> -lr >< 0
+= true
+
+> 0 >< lr
+= true
+
+> -dl <‿ 0
+= true
+
+> 0 <‿ dl
+= true
+
+> -dd ‿‿ 0
+= true
+
+> 0 ‿‿ dd
+= true
+
+> -dr >‿ 0
+= true
+
+> 0 >‿ dr
+= true
+
+> -rl <> 0
+= true
+
+> 0 <> rl
+= true
+
+> -rd ‿> 0
+= true
+
+> 0 ‿> rd
+= true
+
+> -rr >> 0
+= true
+
+> 0 >> rr
+= true
+
+// ============================================================ migrated 0.3.5-E — stoppers and projected singles
+> over =: {0 | over}
+
+> under =: {under | 0}
+
+> ones =: {1 | ones}
+
+> stopper(over)
+= true
+
+> stopper(under)
+= true
+
+> stopper(ones)
+= true
+
+> stopper(dud)
+= false
+
+// the value/outcome teaching triple
+> over = over
+= true
+
+> over ‿‿ over
+= true
+
+> over <> over
+= false
+
+// the gate is on the presented operands, never their difference
+> over > under
+= true
+
+> over >> 0
+= true
+
+> stopper(over + under)
+= false
+
+> on > off
+= true
+
+> on >> off
+= true
+
+> on ‿‿ off
+= false
+
+// non-stopper singles carry a compact closed turn-state cycle
+> dud = 0
+! E_Loopy: alternating cycle 0:L→0:R→0:L
+
+> dud = dud
+! E_Loopy: alternating cycle 0:L→0:R→0:L
+
+> 0 = dud
+! E_Loopy: right operand has alternating cycle 0:L→0:R→0:L
+
+// doubles remain total beyond the stopper boundary
+> dud ‿‿ 0
+= true
+
+// ============================================================ migrated 0.3.5-E — total loopy arithmetic and display
+> -on
+= g1 =: {| g1}
+
+> on + off
+= g1 =: {g1 | g1}
+
+> stopper(on + off)
+= false
+
+> hasdraw(on + off)
+= true
+
+> hasdraw(over - over)
+= true
+
+> [9] ⧺ ones
+= (ones =: {1 | ones}; {9 | ones})
+
+// hasdraw is exactly the union of the five draw cells against zero
+> hasdraw(dud) = (dud >‿ 0 or dud ‿> 0 or dud ‿‿ 0 or dud ‿< 0 or dud <‿ 0)
+= true
+
+> hasdraw(on) = (on >‿ 0 or on ‿> 0 or on ‿‿ 0 or on ‿< 0 or on <‿ 0)
+= true
+
+// product overflow is a resource error, distinct from E_Loopy
+@graph 2
+
+> over + under
+! E_GraphBudget: node budget of 2
+
+@graph 65536
+
+// total + on values does not loosen recursive guardedness
+> m =: m + 1
+! E_Unfounded:
+
+// ============================================================ migrated 0.3.5-E — relation teaching sites
+> outcome(0)
+! E_Unbound: relations against 0
+
+> winner(0)
+! E_Unbound: relations against 0
+
+> 1 _ 2
+! E_Parse: mover-result atoms come in pairs
+
+@world integer 0
+
+> 1 >> 0
+! E_WrongWorld: game
+
+> stopper(0)
+! E_WrongWorld: game

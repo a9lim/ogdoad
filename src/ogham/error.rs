@@ -52,6 +52,7 @@ pub enum OghamErrorKind {
     Improper,
     Unfounded,
     Loopy,
+    GraphBudget,
 }
 
 impl OghamErrorKind {
@@ -86,6 +87,7 @@ impl OghamErrorKind {
             OghamErrorKind::Improper => "E_Improper",
             OghamErrorKind::Unfounded => "E_Unfounded",
             OghamErrorKind::Loopy => "E_Loopy",
+            OghamErrorKind::GraphBudget => "E_GraphBudget",
         }
     }
 }
@@ -188,6 +190,18 @@ pub(crate) fn unbound_error(name: &str) -> OghamError {
     }
 }
 
+pub(crate) fn outcome_name_error(name: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::Unbound,
+        Span::point(0),
+        format!("unbound outcome name `{name}`"),
+    )
+    .with_hint(
+        "outcomes are relations against 0: `g > 0` Left wins, `g < 0` Right wins, \
+         `g = 0` second player wins, `g ∥ 0` first player wins; draws use the `‿` doubles",
+    )
+}
+
 pub(crate) fn literal_call_error(name: &str) -> OghamError {
     OghamError::new(
         OghamErrorKind::UnknownFn,
@@ -255,6 +269,14 @@ pub(crate) fn overflow(message: impl Into<String>) -> OghamError {
 
 pub(crate) fn domain(message: impl Into<String>) -> OghamError {
     OghamError::new(OghamErrorKind::Domain, Span::point(0), message)
+}
+
+pub(crate) fn graph_budget_error(budget: u128) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::GraphBudget,
+        Span::point(0),
+        format!("materialized graph exceeded its node budget of {budget}"),
+    )
 }
 
 pub(crate) fn game_only_error(feature: &str) -> OghamError {
