@@ -2505,3 +2505,32 @@
 
 > integral := 0
 ! E_Reserved:
+
+// Stage E addendum: Element equations sort-check before non-strict reduction skips.
+@world game
+
+> dead =: if true then {dead |} else true
+! E_BoolSort:
+
+> c =: {if false and 1 then c else 0 |}
+! E_BoolSort:
+
+> ones =: [1] ⧺ ones
+
+> x =: {x | ones ⧺ true}
+! E_BoolSort:
+
+// Symbolic skipped operands classify as Elements without being evaluated.
+> kept =: {if true then 0 else kept |}
+> kept
+= 1
+
+> kept_and =: {if false and (kept_and = 0) then kept_and else 0 |}
+> kept_and
+= 1
+
+> kept_or =: {if true or (kept_or = 0) then 0 else kept_or |}
+> kept_or
+= 1
+
+> kept_tail =: {kept_tail | ones ⧺ kept_tail}

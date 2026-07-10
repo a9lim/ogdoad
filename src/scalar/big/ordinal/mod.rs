@@ -271,7 +271,7 @@ fn fmt_exp(e: &Ordinal) -> String {
 ///
 /// Deliberately `base⋅coeff` (`ω⋅3`, the base first), the reverse of the
 /// crate-wide `coeff⋅label` rule (`Multivector`/`Poly`, `docs/ogham/spec.md`
-/// §9). Not a drift to fix: CNF is conventionally written `ω^β·n`, and ordinal
+/// §12). Not a drift to fix: CNF is conventionally written `ω^β·n`, and ordinal
 /// multiplication is non-commutative, so `base⋅coeff` (not `coeff⋅base`)
 /// carries real meaning here.
 fn fmt_cnf(x: &Ordinal) -> String {

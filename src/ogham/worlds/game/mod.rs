@@ -597,6 +597,11 @@ impl GameRuntime {
                 then_expr,
                 else_expr,
             } => {
+                let then_sort = self.static_sort(then_expr)?;
+                let else_sort = self.static_sort(else_expr)?;
+                if then_sort != else_sort {
+                    return Err(sort_mismatch(then_sort, else_sort));
+                }
                 if self.reduce_fixpoint_bool(equation, names, cond)? {
                     self.reduce_element_system(equation, names, then_expr, _inside_form)
                 } else {
@@ -619,6 +624,11 @@ impl GameRuntime {
         lhs: &Expr,
         rhs: &Expr,
     ) -> OghamResult<SymbolicGame> {
+        match self.static_sort(rhs)? {
+            DataSort::Element => {}
+            DataSort::Index => return Err(index_sort_error()),
+            DataSort::Bool => return Err(bool_sort_error()),
+        }
         let left = self.reduce_element_system(equation, names, lhs, false)?;
         let mut heads = Vec::new();
         let mut current = left;
@@ -671,6 +681,9 @@ impl GameRuntime {
                 lhs,
                 rhs,
             } => {
+                if self.static_sort(rhs)? != DataSort::Bool {
+                    return Err(bool_sort_error());
+                }
                 if !self.reduce_fixpoint_bool(equation, names, lhs)? {
                     Ok(false)
                 } else {
@@ -682,6 +695,9 @@ impl GameRuntime {
                 lhs,
                 rhs,
             } => {
+                if self.static_sort(rhs)? != DataSort::Bool {
+                    return Err(bool_sort_error());
+                }
                 if self.reduce_fixpoint_bool(equation, names, lhs)? {
                     Ok(true)
                 } else {
@@ -693,6 +709,11 @@ impl GameRuntime {
                 then_expr,
                 else_expr,
             } => {
+                let then_sort = self.static_sort(then_expr)?;
+                let else_sort = self.static_sort(else_expr)?;
+                if then_sort != else_sort {
+                    return Err(sort_mismatch(then_sort, else_sort));
+                }
                 if self.reduce_fixpoint_bool(equation, names, cond)? {
                     self.reduce_fixpoint_bool(equation, names, then_expr)
                 } else {

@@ -771,9 +771,9 @@ mod tests {
     }
 
     #[test]
-    fn display_v2_canonical_ogham() {
+    fn display_v4_canonical_ogham() {
         // Display v4 (spec.md §12): explicit `⋅` and `↑`, coefficient-1 suppressed.
-        // The §9 example `3⋅x↑2 + 2⋅x + 1` needs coefficient 3, so it is only
+        // The §12.1 example `3⋅x↑2 + 2⋅x + 1` needs coefficient 3, so it is only
         // realizable in a field whose characteristic exceeds 3 (in F_27 the
         // coefficient 3 reduces to 0). Pin it in F_125.
         let f125 = Fpn::<5, 3>::from_coeffs(&[1, 2, 3]);

@@ -56,8 +56,8 @@ with ogham as front door, crates.io `ogham` being taken; `if/then/else`
 replacing the ternary — a9's move; the A+ binder triad; the poly-display
 pin reversed; birthday presented-stratum; the docs split), the spec
 rewritten as `docs/ogham/spec.md` + `implementation.md` + `README.md`, and
-the build in eight gated stages (sol over gaslamp `ogham-v36`, fable
-gating and committing per stage, 8237a86…).
+the build in eight gated stages (A–G sol over gaslamp `ogham-v36`, H the
+lead close-out; fable gating and committing per stage, 8237a86…).
 **Pillars:** ogham ↔ games    **Claim level:** implemented-and-tested
 - verdicts: the nine-cell core survived adversarial review (projection
   re-derived from Siegel cell-for-cell; singles project the same difference
@@ -81,9 +81,13 @@ gating and committing per stage, 8237a86…).
   Display v4 (Poly joins the monomial family); `E_StackDepth`,
   `E_FixpointSort`; budgeted finite→loopy embedding and memoized `≡`
   (shared-DAG hangs → honest errors/fast values); the hint-field sweep.
-- oracles: corpus 545 → 785 vectors (the 240-vector 0.3.6 staging slice
-  merged; `conformance_v0.3.6.txt` retained as provenance; 19 blessed
-  vectors migrated under five itemized operator-authorized classes);
+- oracles: corpus 545 → 796 vectors (the 240-vector 0.3.6 staging slice
+  merged plus the 11-vector final-review addendum;
+  `conformance_v0.3.6.txt` retained as provenance; 19 blessed vectors
+  migrated under five itemized operator-authorized classes; sol's
+  end-of-build full-diff review caught one real semantic defect — the
+  Element-`=:` reduction path skipped sort-checking, fixed test-first —
+  and the stage-H merge/docs nits, all closed same-day);
   `tests/ogham_laws.rs` — seeded stopper-pair projection oracle vs an
   independent survival path, rotation/swap laws on fresh pairs, and the
   42-family display law (display → fresh session → `≡`); 1057 tests.

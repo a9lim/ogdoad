@@ -1026,3 +1026,54 @@ fn ogham_coinductive_append_walk_outcomes_and_fixpoint_reduction() {
         .expect("discarded self-reference degenerates to ordinary binding");
     assert_eq!(degenerates.value.as_deref(), Some("true"));
 }
+
+#[test]
+fn element_fixpoints_sort_check_every_non_strict_operand_before_skipping() {
+    let mut session = OghamSession::new("game").expect("game world");
+
+    for input in [
+        "dead =: if true then {dead |} else true",
+        "c =: {if false and 1 then c else 0 |}",
+    ] {
+        let err = session
+            .eval_line(input)
+            .expect_err("a skipped ill-sorted conditional operand must still fail");
+        assert_eq!(err.kind, OghamErrorKind::BoolSort, "{input}");
+    }
+
+    session
+        .eval_line("ones =: [1] ⧺ ones")
+        .expect("cyclic list witness");
+    let append_err = session
+        .eval_line("x =: {x | ones ⧺ true}")
+        .expect_err("a skipped ill-sorted append tail must still fail");
+    assert_eq!(append_err.kind, OghamErrorKind::BoolSort);
+
+    for (definition, name) in [
+        ("kept =: {if true then 0 else kept |}", "kept"),
+        (
+            "kept_and =: {if false and (kept_and = 0) then kept_and else 0 |}",
+            "kept_and",
+        ),
+        (
+            "kept_or =: {if true or (kept_or = 0) then 0 else kept_or |}",
+            "kept_or",
+        ),
+    ] {
+        session
+            .eval_line(definition)
+            .unwrap_or_else(|err| panic!("symbolic skipped operand `{definition}` failed: {err}"));
+        assert_eq!(
+            session
+                .eval_line(name)
+                .unwrap_or_else(|err| panic!("bound value `{name}` failed: {err}"))
+                .value
+                .as_deref(),
+            Some("1")
+        );
+    }
+
+    session
+        .eval_line("kept_tail =: {kept_tail | ones ⧺ kept_tail}")
+        .expect("a skipped symbolic append tail is still an Element");
+}
