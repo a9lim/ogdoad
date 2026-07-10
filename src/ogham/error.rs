@@ -181,7 +181,9 @@ pub(crate) fn unbound_error(name: &str) -> OghamError {
         Span::point(0),
         format!("unbound identifier `{name}`"),
     );
-    if name == "t" {
+    if name == "omega" {
+        err.with_hint("`ω` (sugar `w`) is the omega literal")
+    } else if name == "t" {
         err.with_hint("`t` is the indeterminate in poly/ratfunc worlds")
     } else {
         err.with_hint(format!(

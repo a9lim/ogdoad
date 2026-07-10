@@ -45,6 +45,51 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2·e_o: `ogham-0.3.5` (the reflection release; ex-`ogham-reflect`)
+**Completed:** 2026-07-10
+**Summary:** the pre-release consolidation grown into a full release —
+four-perspective reflection (sol adversarial-design + CGT-native reads;
+terra implementation audit + cold-user playtest; every claim re-verified
+live before acting) found **five real defects in conformance-green
+0.3.0** (order-sensitive `≡`/recognition/`canon` falsifying the spec's own
+retraction theorem; Index capture lowering to Element; eager `⧺` right
+operand against the coinductive claim; a host abort through `:world`
+metric parsing; hint-field drift) and produced the unified spec, the
+nine-cell outcome relations, and the runtime unification. Designed
+(a9 + fable), verified against Siegel by the codex seat, built in six
+gated stages (sol over gaslamp thread `ogham-v35`, fable gating),
+commits `dca5aba…` onward.
+**Pillars:** ogham ↔ games (loopy)    **Claim level:** implemented-and-tested
+- surface: `docs/ogham/ogham.md` rewritten as one 19-section contract
+  (lisp-for-games identity; presentation<form<value<outcome strata; `=:`
+  two-polarity honesty); `#` Index literals + `//`,`/* */` comments;
+  `[…]` the two-face container, braces always barred; factorial cut, `!`
+  = fuzzy sugar; `up`/`down`/`dim` literal atoms; full-expression ternary
+  branches; multiset `≡` (cyclic: unordered bisimulation) + recognition
+  chain (`[0]`≡`*1`, `[0,0]`≡`up`, `[*1]`≡`down`); right-lazy `⧺`; the
+  nine outcome doubles over `G + neg(H)` product graphs (total on loopy)
+  with value singles projected on stopper pairs ({>>,>‿}→>, {><}→∥,
+  {<>,<‿,‿>,‿‿}→=, {‿<,<<}→<; Siegel GSM 146 Thm VI.2.1 p. 290, Def
+  VI.1.8 p. 284, pinned); total loopy `+`/`-` with synthesized α-bound
+  display names; `hasdraw`/`stopper`; witness-carrying `E_Loopy`;
+  `E_GraphBudget` (default 2¹⁶, `:graph`/`@graph`); `LoopyPartizanGraph`
+  `neg`/budgeted `sum`/turn-expanded stopper detection/outcome pairs;
+  one shared `SharedRuntime` over a world-ops trait + persistent guarded
+  worker (the world-decl abort killed).
+- oracles: the conformance corpus grown ~390 → 550+ statements across
+  the migrated 0.3.5-B/C/E families (per-cell witnesses for all nine
+  cells, negation-rotation and operand-swap sweeps, the nine-to-four
+  projection table, the `over` teaching triple, retraction laws,
+  `⧺`-laziness, `#`-capture round-trips); the pillar's 256-graph
+  retrograde-vs-independent-strategy-oracle suite; the catalogue pins
+  (`on+off` and `over+under` draw/draw; `neg(over)` structurally
+  `under`); `ones = ones` and `-ones` as error→value graduations.
+- boundaries: `canon` on loopy stays `E_Loopy` (fusion is 0.4.0's item);
+  one-stopper biased comparison and sidling stay future work; quote/
+  macros/mutation/strings/floats stay never; **release stays gated on
+  `ogham-0.3.6`** (CONTINUATIONS) — the second comprehensive adversarial
+  pass, plus release scoping (front door vs crate, public name).
+
 ### 4·e_o: `ogham-0.3.0`
 **Completed:** 2026-07-09
 **Summary:** the recursion + games layer — `=:` μ-bindings, fuel-as-steps, the

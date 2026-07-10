@@ -1,6 +1,6 @@
 use ogdoad::ogham::{
     ast::OutcomeCell, parse_statement, unparse_statement, EvalLine, OghamError, OghamErrorKind,
-    OghamSession,
+    OghamSession, WORLD_MENU,
 };
 
 #[derive(Debug)]
@@ -455,6 +455,38 @@ fn error_kind_codes_are_stable() {
     assert_eq!(OghamErrorKind::Unfounded.code(), "E_Unfounded");
     assert_eq!(OghamErrorKind::Loopy.code(), "E_Loopy");
     assert_eq!(OghamErrorKind::GraphBudget.code(), "E_GraphBudget");
+}
+
+#[test]
+fn stage_f_world_menu_and_literal_guidance_are_actionable() {
+    let mut session = OghamSession::new("integer 0").expect("integer world");
+    let close = session
+        .set_world("gme")
+        .expect_err("a misspelled world must be rejected");
+    assert_eq!(close.kind, OghamErrorKind::WrongWorld);
+    assert!(close.hint.as_deref().is_some_and(|hint| {
+        hint.contains(WORLD_MENU) && hint.contains("did you mean `game`?")
+    }));
+
+    let distant = session
+        .set_world("banana")
+        .expect_err("an unknown world must be rejected");
+    assert_eq!(distant.kind, OghamErrorKind::WrongWorld);
+    assert_eq!(distant.hint.as_deref(), Some(WORLD_MENU));
+
+    let omega = session
+        .eval_line("omega")
+        .expect_err("the spelled-out name is not the omega literal");
+    assert_eq!(omega.kind, OghamErrorKind::Unbound);
+    assert_eq!(
+        omega.hint.as_deref(),
+        Some("`ω` (sugar `w`) is the omega literal")
+    );
+
+    let still_alive = session
+        .eval_line("7")
+        .expect("failed world switches must preserve the worker and world");
+    assert_eq!(still_alive.value.as_deref(), Some("7"));
 }
 
 #[test]

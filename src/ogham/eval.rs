@@ -750,6 +750,25 @@ fn function_arity_error(expected: usize, actual: usize) -> OghamError {
     )
 }
 
+/// The language release implemented by this evaluator.
+pub const OGHAM_VERSION: &str = "0.3.5";
+
+/// Compact grouping of every fixed-dispatch Ogham world.
+pub const WORLD_MENU: &str = concat!(
+    "worlds:\n",
+    "  scalar   nimber ordinal surreal omnific integer\n",
+    "  finite   fp2 fp3 fp5 fp7 f4 f8 f16 f9 f27 f25\n",
+    "  poly     polyint poly2 poly3 poly5 poly7\n",
+    "  ratfunc  ratfunc2 ratfunc3 ratfunc5 ratfunc7\n",
+    "  game     game",
+);
+
+const WORLD_NAMES: [&str; 25] = [
+    "nimber", "ordinal", "surreal", "omnific", "integer", "fp2", "fp3", "fp5", "fp7", "f4", "f8",
+    "f16", "f9", "f27", "f25", "polyint", "poly2", "poly3", "poly5", "poly7", "ratfunc2",
+    "ratfunc3", "ratfunc5", "ratfunc7", "game",
+];
+
 pub fn eval_to_string(world: &str, src: &str) -> OghamResult<String> {
     let mut session = OghamSession::new(world)?;
     let mut out = Vec::new();
@@ -1091,6 +1110,9 @@ impl World {
             .next()
             .ok_or_else(|| parse_error("missing world name"))?;
         let tail: Vec<&str> = parts.collect();
+        if !WORLD_NAMES.contains(&name) {
+            return Err(unknown_world_error(name));
+        }
         macro_rules! build_poly {
             ($variant:ident, $ty:ty, $label:expr) => {{
                 ensure_function_world_decl(name, &tail)?;
@@ -1152,11 +1174,7 @@ impl World {
             "f9" => build!(F9, Fpn<3, 2>, "f9"),
             "f27" => build!(F27, Fpn<3, 3>, "f27"),
             "f25" => build!(F25, Fpn<5, 2>, "f25"),
-            _ => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
-                Span::point(0),
-                format!("unknown world `{name}`"),
-            )),
+            _ => unreachable!("world name was checked against the fixed menu"),
         }
     }
 
@@ -1191,6 +1209,41 @@ impl World {
     fn env_summary(&self) -> Vec<String> {
         with_world_runtime!(self, |runtime| runtime.env_summary())
     }
+}
+
+fn unknown_world_error(name: &str) -> OghamError {
+    let nearest = WORLD_NAMES
+        .iter()
+        .map(|candidate| (*candidate, edit_distance(name, candidate)))
+        .min_by_key(|(_, distance)| *distance)
+        .filter(|(_, distance)| *distance <= 2)
+        .map(|(candidate, _)| candidate);
+    let hint = match nearest {
+        Some(candidate) => format!("{WORLD_MENU}\ndid you mean `{candidate}`?"),
+        None => WORLD_MENU.to_string(),
+    };
+    OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        format!("unknown world `{name}`"),
+    )
+    .with_hint(hint)
+}
+
+fn edit_distance(lhs: &str, rhs: &str) -> usize {
+    let mut previous: Vec<usize> = (0..=rhs.chars().count()).collect();
+    let mut current = vec![0; previous.len()];
+    for (lhs_index, lhs_char) in lhs.chars().enumerate() {
+        current[0] = lhs_index + 1;
+        for (rhs_index, rhs_char) in rhs.chars().enumerate() {
+            let deletion = previous[rhs_index + 1] + 1;
+            let insertion = current[rhs_index] + 1;
+            let substitution = previous[rhs_index] + usize::from(lhs_char != rhs_char);
+            current[rhs_index + 1] = deletion.min(insertion).min(substitution);
+        }
+        std::mem::swap(&mut previous, &mut current);
+    }
+    previous[rhs.chars().count()]
 }
 
 fn ensure_function_world_decl(name: &str, tail: &[&str]) -> OghamResult<()> {

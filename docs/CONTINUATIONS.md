@@ -24,29 +24,9 @@ are cold/buildable, `±n` switches are a9's scope call first, `↑` ups are infi
 its sketch landed — shipped on 2026-07-09, the same day; its entry moved to
 [`DONE.md`](DONE.md).)
 
-### 2·e_o: `ogham-reflect` → **ogham 0.3.5** (spec landed 2026-07-09; build in flight)
-**The consolidation pass before release** (a9, 2026-06-12: "consolidate it
-into the best version of itself before release"). The reflection session ran
-2026-07-09 (a9 + fable; four codex-seat perspectives — adversarial design,
-CGT-native, implementation audit, cold-user playtest — plus a sol
-adversarial verification of the nine-cell relation design, Siegel GSM 146
-pins). It found **five verified defects** in the shipped conformance-green
-0.3.0 (order-sensitive `≡`/recognition/`canon` falsifying the spec's own
-retraction theorem; Index capture lowering to Element; eager `⧺` right
-operand contradicting the coinductive claim; a host-abort via `:world`
-metric parsing; hint-field drift), and grew the charter into the **0.3.5
-reflection release**: unified spec + identity rewrite (lisp-for-games,
-`=:` two-polarity honesty, presentation<form<value<outcome strata), `#`
-Index literals + `//`,`/* */` comments, `[…]` as the two-face container,
-`!` fuzzy sugar (factorial cut), `up`/`down`/`dim` atoms, right-lazy `⧺`,
-multiset form equality, the **nine-cell outcome relations** (mover-result
-atoms `> < ‿`; doubles = outcome of the conjugate sum, total on loopy;
-singles = value stratum projected on stopper pairs), total loopy `+`/`-`,
-`hasdraw`/`stopper`, full runtime unification + persistent guarded worker,
-tutor REPL + hint package. The authoritative spec is
-`docs/ogham/ogham.md` (v0.3.5, deltas marked); staging corpus seed
-`docs/ogham/conformance_v0.3.5.txt`; build with the codex seat (sol) —
-moves to `DONE.md` when gated and shipped.
+(`ogham-reflect` — the consolidation pass, grown into the **0.3.5
+reflection release** — shipped 2026-07-10; its entry moved to
+[`DONE.md`](DONE.md) as `ogham-0.3.5`.)
 
 ### 2·e_o: `ogham-0.3.6`
 **The second comprehensive adversarial pass — REQUIRED before release**
@@ -62,6 +42,19 @@ call**: ogham as ogdoad's front door vs an `ogham` crate re-exporting the
 core, README/writeup (the CGSuite comparison lives there, not in the
 spec), and the public name. Nothing releases before this pass. (Value
 provisional; a9 to re-value.)
+
+Seed punch-list from the 0.3.5 build's own gate (sol, 2026-07-10, plus
+fable's gate finds): consolidate the four `eval_index` copies (keep the
+`@`-inside-Index regression); re-attack the singles' seam — tight-budget
+error precedence when the stopper gate passes but the difference build
+exceeds `E_GraphBudget`, and randomized stopper-pair agreement between
+projected singles and the nine cells (a bounded graph-level projection
+oracle); synthesized display names `g1, g2, …` allocate without a
+collision set against user-rooted names — mixed named/anonymous
+composites may read as capture; pin multi-SCC / shared-subgraph /
+duplicate-edge / nested-negated-sum displays and first-reach stability
+under equivalent presentations; add parse/display round-trips for
+synthesized multi-equation bodies beyond the blessed representatives.
 
 ### 4·e_o: `ogham-0.4.0`
 **The higher-order release** — slimmed at the reflection pass
