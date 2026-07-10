@@ -197,6 +197,15 @@ pub(crate) fn literal_call_error(name: &str) -> OghamError {
     .with_hint(format!("`{name}` is a literal now"))
 }
 
+pub(crate) fn renamed_function_error(old: &str, new: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::UnknownFn,
+        Span::point(0),
+        format!("unknown function `{old}`"),
+    )
+    .with_hint(format!("`{old}` was renamed to `{new}`"))
+}
+
 pub(crate) fn element_fixpoint_error(name: &str) -> OghamError {
     OghamError::new(
         OghamErrorKind::WrongWorld,

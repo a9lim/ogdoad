@@ -1045,8 +1045,8 @@
 = *1
 
 // up = {0 | *1}, down = {*1 | 0}; standard: ↑ > 0, ↑ ∥ ∗, ⇑ > ∗
-> up // C: recognition
-= {0 | *1}
+> up
+= up
 
 > up > 0
 = true
@@ -1216,24 +1216,24 @@
 = [1]
 
 // standard: dud draws for both movers; on and over are Left wins, no draw
-> drawn(dud)
+> hasdraw(dud)
 = true
 
-> drawn(on)
+> hasdraw(on)
 = false
 
-> drawn(over)
+> hasdraw(over)
 = false
 
-// drawn is total on finite forms
-> drawn([1, 2])
+// hasdraw is total on finite forms
+> hasdraw([1, 2])
 = false
 
 // ---- streams are loopy games
 > ones =: {1 | ones}
 
 // alternation: the mover who faces ones wins by walking into 1 — no draw
-> drawn(ones)
+> hasdraw(ones)
 = false
 
 > hd@ones
@@ -1270,7 +1270,7 @@
 > tl@l
 = l =: {2 | {1 | l}}
 
-> drawn(l)
+> hasdraw(l)
 = false
 
 // eventually periodic: local =: in a body; composite display is a §18 body
@@ -1447,11 +1447,11 @@
 
 @world game
 
-> up // C: recognition
-= {0 | *1}
+> up
+= up
 
-> down // C: recognition
-= {*1 | 0}
+> down
+= down
 
 > up()
 ! E_UnknownFn:
@@ -1494,3 +1494,120 @@
 
 > id(x) := x
 ! E_Parse:
+
+// ============================================================ migrated 0.3.5-C — recognition and delights
+@world game
+
+> [0]
+= *1
+
+> [0] ≡ *1
+= true
+
+> [0, 0]
+= up
+
+> [0, 0] ≡ up
+= true
+
+> [*1]
+= down
+
+> [*1] ≡ down
+= true
+
+> up
+= up
+
+> {0 | *1}
+= up
+
+> {*1, 0 | *1, 0}
+= *2
+
+> -up ≡ down
+= true
+
+> up > 0
+= true
+
+> up ∥ *1
+= true
+
+> 1 + 1
+= {1, 1 |}
+
+> canon(1 + 1)
+= 2
+
+// ============================================================ migrated 0.3.5-C — multiset form equality and canon
+> {1, 2 | 0} ≡ {2, 1 | 0}
+= true
+
+> {0, 0 |} ≡ {0 |}
+= false
+
+> {0, *1 | 0, *1} = {*1, 0 | *1, 0}
+= true
+
+> canon({0, *1 | 0, *1})
+= *2
+
+> canon({*1, 0 | *1, 0})
+= *2
+
+> canon({0, *1 | 0, *1}) ≡ canon({*1, 0 | *1, 0})
+= true
+
+> canon(canon({5 | 0})) ≡ canon({5 | 0})
+= true
+
+> canon({-1 | 1}) = {-1 | 1}
+= true
+
+// ============================================================ migrated 0.3.5-C — right-lazy append
+> ones =: {1 | ones}
+
+> ones ⧺ canon(ones)
+= ones =: {1 | ones}
+
+> [] ⧺ [5]
+= [5]
+
+> [5] ⧺ []
+= [5]
+
+> {0 |} ⧺ canon(ones)
+! E_Improper:
+
+// ============================================================ migrated 0.3.5-C — hasdraw surface
+> hasdraw([1, 2])
+= false
+
+> drawn([1, 2])
+! E_UnknownFn: hasdraw
+
+> dud =: {dud | dud}
+
+> on =: {on |}
+
+> over =: {0 | over}
+
+> hasdraw(dud)
+= true
+
+> hasdraw(on)
+= false
+
+> hasdraw(over)
+= false
+
+> hasdraw(ones)
+= false
+
+// ============================================================ migrated 0.3.5-C — guardedness respellings
+> h =: [] ⧺ h
+! E_Unfounded:
+
+> k =: k ⧺ [1]
+! E_Unfounded:

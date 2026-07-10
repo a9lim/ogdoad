@@ -396,12 +396,17 @@ fn recursive_function_restores_definition_time_world_validation() {
 }
 
 #[test]
-fn ogham_game_stage_d_boundaries() {
+fn ogham_game_form_equality_is_multiset_structural() {
     let mut session = OghamSession::new("game").expect("game world");
-    let ordered = session
+    let reordered = session
         .eval_line("{0, 1 |} ≡ {1, 0 |}")
-        .expect("ordered structural comparison");
-    assert_eq!(ordered.value.as_deref(), Some("false"));
+        .expect("multiset structural comparison");
+    assert_eq!(reordered.value.as_deref(), Some("true"));
+
+    let multiplicity = session
+        .eval_line("{0, 0 |} ≡ {0 |}")
+        .expect("multiplicity-sensitive structural comparison");
+    assert_eq!(multiplicity.value.as_deref(), Some("false"));
 
     let factorial = session
         .eval_line("!5")
@@ -413,6 +418,68 @@ fn ogham_game_stage_d_boundaries() {
         .expect("guarded loopy Element fixpoint");
     let loop_value = session.eval_line("loop").expect("display loopy value");
     assert_eq!(loop_value.value.as_deref(), Some("loop =: {loop |}"));
+}
+
+#[test]
+fn cyclic_form_equality_uses_unordered_bisimulation() {
+    let mut session = OghamSession::new("game").expect("game world");
+    session
+        .eval_line("a =: {0, a | *1}")
+        .expect("first regular tree");
+    session
+        .eval_line("b =: {b, 0 | *1}")
+        .expect("alpha-renamed reordered regular tree");
+    let reordered = session
+        .eval_line("a ≡ b")
+        .expect("unordered cyclic bisimilarity");
+    assert_eq!(reordered.value.as_deref(), Some("true"));
+
+    session
+        .eval_line("c =: {c, c |}")
+        .expect("multiplicity-two cycle");
+    session
+        .eval_line("d =: {d |}")
+        .expect("multiplicity-one cycle");
+    let multiplicity = session
+        .eval_line("c ≡ d")
+        .expect("cyclic multiplicity check");
+    assert_eq!(multiplicity.value.as_deref(), Some("false"));
+
+    session
+        .eval_line("aa =: {0 | aa}")
+        .expect("zero-headed cycle");
+    session
+        .eval_line("bb =: {*1 | bb}")
+        .expect("star-headed cycle");
+    let unequal = session
+        .eval_line("aa ≡ bb")
+        .expect("different cyclic unfoldings");
+    assert_eq!(unequal.value.as_deref(), Some("false"));
+
+    session
+        .eval_line("p1 =: {0 | p1}")
+        .expect("period-one presentation");
+    session
+        .eval_line("p2 =: {0 | {0 | p2}}")
+        .expect("period-two presentation of the same unfolding");
+    let periods = session
+        .eval_line("p1 ≡ p2")
+        .expect("finite presentations of one regular tree");
+    assert_eq!(periods.value.as_deref(), Some("true"));
+}
+
+#[test]
+fn drawn_rename_guidance_uses_the_hint_field() {
+    let mut session = OghamSession::new("game").expect("game world");
+    let err = session
+        .eval_line("drawn(0)")
+        .expect_err("the old draw predicate name was removed");
+    assert_eq!(err.kind, OghamErrorKind::UnknownFn);
+    assert_eq!(
+        err.hint.as_deref(),
+        Some("`drawn` was renamed to `hasdraw`")
+    );
+    assert!(!err.message.contains("hasdraw"));
 }
 
 #[test]
@@ -428,7 +495,7 @@ fn ogham_coinductive_append_walk_outcomes_and_fixpoint_reduction() {
     assert_eq!(graft.value.as_deref(), Some("[1, 2, 3]"));
 
     let cycle = session
-        .eval_line("ones ⧺ {5 | 0}")
+        .eval_line("ones ⧺ canon(ones)")
         .expect("cyclic spine is the append result");
     assert_eq!(cycle.value.as_deref(), Some("ones =: {1 | ones}"));
 
@@ -441,10 +508,15 @@ fn ogham_coinductive_append_walk_outcomes_and_fixpoint_reduction() {
     );
 
     let improper = session
-        .eval_line("{0 |} ⧺ {5 | 0}")
+        .eval_line("{0 |} ⧺ canon(ones)")
         .expect_err("non-cons non-nil right-spine node stays improper");
     assert_eq!(improper.kind, OghamErrorKind::Improper);
     assert!(improper.message.contains("neither cons nor nil"));
+
+    let invalid_definition = session
+        .eval_line("bad := u ↦ [u] ⧺ coef(u, 0)")
+        .expect_err("lazy operands still receive definition-time world validation");
+    assert_eq!(invalid_definition.kind, OghamErrorKind::WrongWorld);
 
     session
         .eval_line("l =: ones ⧺ {5 | l}")

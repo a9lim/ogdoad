@@ -344,6 +344,9 @@ trait SharedRuntime: WorldOps {
                 }
             }
             Expr::Call { name, args } => {
+                if name == "drawn" {
+                    return Err(renamed_function_error("drawn", "hasdraw"));
+                }
                 if let Some(result) = self.special_value_call(name, args) {
                     result
                 } else {
@@ -689,10 +692,12 @@ trait SharedRuntime: WorldOps {
                 }
             }
             Expr::Binary {
-                op: BinaryOp::And | BinaryOp::Or,
+                op: BinaryOp::And | BinaryOp::Or | BinaryOp::Append,
                 lhs,
                 rhs,
             } => {
+                // These are exactly the non-strict binary positions. Validate
+                // both sides now; runtime evaluation may skip the right side.
                 self.validate_all(lhs)?;
                 self.validate_all(rhs)?;
             }
@@ -1155,7 +1160,7 @@ struct GraphRef {
 struct RegularGameGraph {
     name: String,
     nodes: Vec<RegularGameNode>,
-    drawn: Vec<bool>,
+    has_draw: Vec<bool>,
 }
 
 type GraphKey = (usize, usize);
@@ -1267,9 +1272,9 @@ impl WorldOps for GameRuntime {
         name: &str,
         args: &[Expr],
     ) -> Option<OghamResult<Value<Self::Element>>> {
-        (name == "drawn").then(|| {
+        (name == "hasdraw").then(|| {
             expect_arity(name, args, 1)?;
-            Ok(Value::Bool(game_element_drawn(
+            Ok(Value::Bool(game_element_has_draw(
                 &self.eval_element(&args[0])?,
             )))
         })
@@ -1549,8 +1554,13 @@ impl GameRuntime {
             }
             BinaryOp::Append => {
                 let lhs = self.eval_element(lhs)?;
-                let rhs = self.eval_element(rhs)?;
-                append_game_element(&lhs, &rhs)
+                match walk_game_spine(&lhs)? {
+                    SpineWalk::Cycles => Ok(lhs),
+                    SpineWalk::ReachesNil(heads) => {
+                        let rhs = self.eval_element(rhs)?;
+                        graft_game_spine(heads, rhs)
+                    }
+                }
             }
             BinaryOp::Mul => Err(game_wrong_world(
                 "games are an additive group, not a ring; `⋅` is undefined",
@@ -1604,7 +1614,8 @@ impl GameRuntime {
             "deg" | "gcd" => Err(game_wrong_world(&format!(
                 "`{name}` is a function-world operation, not a game operation"
             ))),
-            "drawn" => Err(bool_sort_error()),
+            "hasdraw" => Err(bool_sort_error()),
+            "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
             _ => Err(OghamError::new(
                 OghamErrorKind::UnknownFn,
                 Span::point(0),
@@ -1914,12 +1925,12 @@ fn display_game(game: &Game) -> String {
         return format!("*{nimber}");
     }
     let up = Game::up();
-    if game_structural_eq_ordered(game, &up) {
-        return "{0 | *1}".to_string();
+    if game_structural_eq_multiset(game, &up) {
+        return "up".to_string();
     }
     let down = up.neg();
-    if game_structural_eq_ordered(game, &down) {
-        return "{*1 | 0}".to_string();
+    if game_structural_eq_multiset(game, &down) {
+        return "down".to_string();
     }
     if let Some(items) = structural_game_list(game) {
         return format!(
@@ -1987,31 +1998,55 @@ fn structural_game_nimber(game: &Game) -> Option<u128> {
     if game.left().len() != game.right().len() {
         return None;
     }
-    for (index, (left, right)) in game.left().iter().zip(game.right()).enumerate() {
-        let expected = u128::try_from(index).ok()?;
-        if structural_game_nimber(left)? != expected
-            || structural_game_nimber(right)? != expected
-            || !game_structural_eq_ordered(left, right)
-        {
-            return None;
-        }
-    }
-    u128::try_from(game.left().len()).ok()
+    let nimber = u128::try_from(game.left().len()).ok()?;
+    game_structural_eq_multiset(game, &Game::nim_heap(nimber)).then_some(nimber)
 }
 
-fn game_structural_eq_ordered(lhs: &Game, rhs: &Game) -> bool {
+fn game_structural_eq_multiset(lhs: &Game, rhs: &Game) -> bool {
     lhs.left().len() == rhs.left().len()
         && lhs.right().len() == rhs.right().len()
-        && lhs
-            .left()
-            .iter()
-            .zip(rhs.left())
-            .all(|(lhs, rhs)| game_structural_eq_ordered(lhs, rhs))
-        && lhs
-            .right()
-            .iter()
-            .zip(rhs.right())
-            .all(|(lhs, rhs)| game_structural_eq_ordered(lhs, rhs))
+        && perfect_matching(lhs.left().len(), |left, right| {
+            game_structural_eq_multiset(&lhs.left()[left], &rhs.left()[right])
+        })
+        && perfect_matching(lhs.right().len(), |left, right| {
+            game_structural_eq_multiset(&lhs.right()[left], &rhs.right()[right])
+        })
+}
+
+fn perfect_matching(size: usize, mut compatible: impl FnMut(usize, usize) -> bool) -> bool {
+    // Sides are multisets: equality is an existential bijection, not a sorted
+    // presentation walk. The compatibility matrix preserves multiplicity, and
+    // the augmenting-path matcher finds a bijection without canonicalizing.
+    let edges = (0..size)
+        .map(|left| {
+            (0..size)
+                .map(|right| compatible(left, right))
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let mut matched_right = vec![None; size];
+    (0..size).all(|left| augment_matching(left, &edges, &mut vec![false; size], &mut matched_right))
+}
+
+fn augment_matching(
+    left: usize,
+    edges: &[Vec<bool>],
+    seen_right: &mut [bool],
+    matched_right: &mut [Option<usize>],
+) -> bool {
+    for right in 0..edges.len() {
+        if !edges[left][right] || seen_right[right] {
+            continue;
+        }
+        seen_right[right] = true;
+        if matched_right[right]
+            .is_none_or(|previous| augment_matching(previous, edges, seen_right, matched_right))
+        {
+            matched_right[right] = Some(left);
+            return true;
+        }
+    }
+    false
 }
 
 enum SpineWalk {
@@ -2076,13 +2111,6 @@ fn build_game_form(left: Vec<GameElement>, right: Vec<GameElement>) -> OghamResu
     )
 }
 
-fn append_game_element(spine: &GameElement, tail: &GameElement) -> OghamResult<GameElement> {
-    match walk_game_spine(spine)? {
-        SpineWalk::Cycles => Ok(spine.clone()),
-        SpineWalk::ReachesNil(heads) => graft_game_spine(heads, tail.clone()),
-    }
-}
-
 fn graft_game_spine(heads: Vec<GameElement>, tail: GameElement) -> OghamResult<GameElement> {
     if heads
         .iter()
@@ -2122,12 +2150,12 @@ fn materialize_regular_game(name: &str, root: SymbolicGame) -> OghamResult<GameE
     }
     let mut nodes = Vec::new();
     materialize_symbolic_node(&root, &mut nodes)?;
-    let drawn = classify_regular_nodes(&nodes);
+    let has_draw = classify_regular_nodes(&nodes);
     Ok(GameElement::Graph(GraphRef {
         graph: Arc::new(RegularGameGraph {
             name: name.to_string(),
             nodes,
-            drawn,
+            has_draw,
         }),
         node: 0,
     }))
@@ -2305,37 +2333,41 @@ fn game_options(element: &GameElement, left: bool) -> Vec<GameElement> {
     }
 }
 
-fn game_element_drawn(element: &GameElement) -> bool {
+fn game_element_has_draw(element: &GameElement) -> bool {
     match element {
         GameElement::Finite(_) => false,
-        GameElement::Graph(reference) => reference.graph.drawn[reference.node],
+        GameElement::Graph(reference) => reference.graph.has_draw[reference.node],
     }
 }
 
-fn game_element_regular_eq(lhs: &GameElement, rhs: &GameElement) -> bool {
-    regular_eq_inner(lhs, rhs, &mut HashSet::new(), &mut HashSet::new())
+#[derive(Clone, Default)]
+struct RegularEqState {
+    // Graph pairs are coinductive assumptions. A repeated pair closes one
+    // synchronized descent path; the finite product of node sets bounds all
+    // paths. Mixed graph/tree paths instead reject a repeated graph node,
+    // because a genuinely cyclic unfolding cannot equal a finite tree.
+    visited_pairs: HashSet<GraphPair>,
+    mixed_path: HashSet<GraphKey>,
 }
 
-fn regular_eq_inner(
-    lhs: &GameElement,
-    rhs: &GameElement,
-    visited: &mut HashSet<GraphPair>,
-    mixed: &mut HashSet<GraphKey>,
-) -> bool {
+fn game_element_regular_eq(lhs: &GameElement, rhs: &GameElement) -> bool {
+    regular_eq_inner(lhs, rhs, &mut RegularEqState::default())
+}
+
+fn regular_eq_inner(lhs: &GameElement, rhs: &GameElement, state: &mut RegularEqState) -> bool {
     match (lhs, rhs) {
         (GameElement::Finite(lhs), GameElement::Finite(rhs)) => {
-            game_structural_eq_ordered(lhs, rhs)
+            game_structural_eq_multiset(lhs, rhs)
         }
         (GameElement::Graph(lhs), GameElement::Graph(rhs)) => {
-            if !visited.insert((graph_key(lhs), graph_key(rhs))) {
+            if !state.visited_pairs.insert((graph_key(lhs), graph_key(rhs))) {
                 return true;
             }
-            regular_options_eq(lhs, rhs, true, visited, mixed)
-                && regular_options_eq(lhs, rhs, false, visited, mixed)
+            regular_options_eq(lhs, rhs, true, state) && regular_options_eq(lhs, rhs, false, state)
         }
         (GameElement::Graph(graph), GameElement::Finite(finite))
         | (GameElement::Finite(finite), GameElement::Graph(graph)) => {
-            if !mixed.insert(graph_key(graph)) {
+            if !state.mixed_path.insert(graph_key(graph)) {
                 return false;
             }
             let graph_value = GameElement::Graph(graph.clone());
@@ -2344,31 +2376,31 @@ fn regular_eq_inner(
                 let graph_options = game_options(&graph_value, left);
                 let finite_options = game_options(&finite_value, left);
                 graph_options.len() == finite_options.len()
-                    && graph_options
-                        .iter()
-                        .zip(&finite_options)
-                        .all(|(lhs, rhs)| regular_eq_inner(lhs, rhs, visited, mixed))
+                    && regular_element_options_eq(&graph_options, &finite_options, state)
             });
-            mixed.remove(&graph_key(graph));
+            state.mixed_path.remove(&graph_key(graph));
             result
         }
     }
 }
 
-fn regular_options_eq(
-    lhs: &GraphRef,
-    rhs: &GraphRef,
-    left: bool,
-    visited: &mut HashSet<GraphPair>,
-    mixed: &mut HashSet<GraphKey>,
-) -> bool {
+fn regular_options_eq(lhs: &GraphRef, rhs: &GraphRef, left: bool, state: &RegularEqState) -> bool {
     let lhs = game_options(&GameElement::Graph(lhs.clone()), left);
     let rhs = game_options(&GameElement::Graph(rhs.clone()), left);
-    lhs.len() == rhs.len()
-        && lhs
-            .iter()
-            .zip(&rhs)
-            .all(|(lhs, rhs)| regular_eq_inner(lhs, rhs, visited, mixed))
+    lhs.len() == rhs.len() && regular_element_options_eq(&lhs, &rhs, state)
+}
+
+fn regular_element_options_eq(
+    lhs: &[GameElement],
+    rhs: &[GameElement],
+    state: &RegularEqState,
+) -> bool {
+    // Every matrix edge gets branch-local assumptions. A failed candidate
+    // cannot leak an optimistic cycle into another candidate's matching proof.
+    perfect_matching(lhs.len(), |left, right| {
+        let mut branch = state.clone();
+        regular_eq_inner(&lhs[left], &rhs[right], &mut branch)
+    })
 }
 
 fn graph_key(reference: &GraphRef) -> GraphKey {
@@ -2379,7 +2411,7 @@ fn game_mu_call_key(name: &str, body: &Expr, args: &[Value<GameElement>]) -> Str
     let args = args
         .iter()
         .map(|arg| match arg {
-            Value::Element(GameElement::Finite(game)) => format!("e:{}", display_game(game)),
+            Value::Element(GameElement::Finite(game)) => format!("e:{}", game_form_key(game)),
             Value::Element(GameElement::Graph(reference)) => {
                 let (graph, node) = graph_key(reference);
                 format!("g:{graph}:{node}")
@@ -2391,6 +2423,15 @@ fn game_mu_call_key(name: &str, body: &Expr, args: &[Value<GameElement>]) -> Str
         .collect::<Vec<_>>()
         .join("|");
     format!("{name}:{}@{args}", super::unparse::unparse_expr(body))
+}
+
+fn game_form_key(game: &Game) -> String {
+    let recognized = display_game(game);
+    if recognized.starts_with('{') {
+        game.structural_string()
+    } else {
+        recognized
+    }
 }
 
 fn unfounded_error(name: &str) -> OghamError {
@@ -2524,7 +2565,7 @@ fn game_known_sort(expr: &Expr, env: &BTreeMap<String, Value<GameElement>>) -> O
         Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
             Some(Sort::Index)
         }
-        Expr::Call { name, .. } if name == "drawn" => Some(Sort::Bool),
+        Expr::Call { name, .. } if name == "hasdraw" => Some(Sort::Bool),
         Expr::Binary {
             op: BinaryOp::At,
             lhs,
@@ -5021,11 +5062,12 @@ fn infer_expr_sort(
                 expect_sort(Sort::Element, expected)
             }
             "up" | "down" | "dim" => Err(literal_call_error(name)),
-            "drawn" => {
+            "hasdraw" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
                 expect_sort(Sort::Bool, expected)
             }
+            "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
             "coef" => {
                 expect_arity(name, args, 2)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
@@ -5255,7 +5297,7 @@ fn bool_shaped(expr: &Expr) -> bool {
             op: BinaryOp::And | BinaryOp::Or,
             ..
         } => true,
-        Expr::Call { name, .. } if name == "drawn" => true,
+        Expr::Call { name, .. } if name == "hasdraw" => true,
         Expr::Block { body, .. } => bool_shaped(body),
         _ => false,
     }
@@ -5294,7 +5336,7 @@ fn static_sort<E>(
         {
             Ok(Sort::Index)
         }
-        Expr::Call { name, .. } if name == "drawn" => Ok(Sort::Bool),
+        Expr::Call { name, .. } if name == "hasdraw" => Ok(Sort::Bool),
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
@@ -5370,7 +5412,7 @@ fn static_sort_with_sorts(
         {
             Ok(Sort::Index)
         }
-        Expr::Call { name, .. } if name == "drawn" => Ok(Sort::Bool),
+        Expr::Call { name, .. } if name == "hasdraw" => Ok(Sort::Bool),
         Expr::Unary {
             op: UnaryOp::Not, ..
         } => Ok(Sort::Bool),
@@ -5431,7 +5473,7 @@ fn reserved_function_binder(name: &str) -> bool {
             | "right"
             | "up"
             | "down"
-            | "drawn"
+            | "hasdraw"
     )
 }
 
@@ -6315,4 +6357,48 @@ fn checked_i128_pow(base: i128, mut exp: u128) -> OghamResult<i128> {
 
 fn u128_to_i128(n: u128) -> OghamResult<i128> {
     i128::try_from(n).map_err(|_| overflow("integer literal exceeds i128 in this world"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn multiset_walk_matches_the_engine_structural_fingerprint() {
+        let zero = Game::integer(0);
+        let one = Game::integer(1);
+        let star = Game::nim_heap(1);
+        let up = Game::up();
+        let reordered_a = Game::new(
+            vec![zero.clone(), one.clone()],
+            vec![star.clone(), zero.clone()],
+        );
+        let reordered_b = Game::new(
+            vec![one.clone(), zero.clone()],
+            vec![zero.clone(), star.clone()],
+        );
+        let duplicate = Game::new(vec![zero.clone(), zero.clone()], Vec::new());
+        let singleton = Game::new(vec![zero.clone()], Vec::new());
+        let games = [
+            zero,
+            one,
+            star,
+            up.clone(),
+            up.neg(),
+            reordered_a,
+            reordered_b,
+            duplicate,
+            singleton,
+        ];
+
+        for lhs in &games {
+            for rhs in &games {
+                assert_eq!(
+                    game_structural_eq_multiset(lhs, rhs),
+                    lhs.structural_eq(rhs),
+                    "language walk diverged from engine fingerprint on {lhs} and {rhs}"
+                );
+            }
+        }
+    }
 }

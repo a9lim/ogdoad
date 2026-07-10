@@ -1,90 +1,13 @@
-// ogham conformance staging — v0.3.5 (spec'd 2026-07-09, post-stage-B)
+// ogham conformance staging — v0.3.5 (spec'd 2026-07-09, post-stage-C)
 // Discipline per ogham.md §16: the harness does NOT read this file until the
 // later stages merge it into conformance.txt. Every vector below is
 // hand-verified against ogham.md (the 0.3.5 contract) and standard
 // mathematics (Siegel GSM 146 for the loopy/outcome families). The build
 // expands this seed — display shapes marked BUILD are blessed at build time.
-// Stage B's comments, Index marks/capture, fuzzy `!`, ternary, containers,
-// literal atoms, and parse-side hint vectors now live in conformance.txt.
+// Stages B/C now live in conformance.txt: syntax and hints; multiset form
+// equality/recognition/canon; right-lazy append; hasdraw; guarded respellings.
 
-// ============================================================ recognition chain + the delights (§10.2)
 @world game
-// [0] is star; [0,0] is up; down is [*1] — structural identities
-> [0]
-= *1
-
-> [0, 0]
-= up
-
-> [*1]
-= down
-
-> up
-= up
-
-> {0 | *1}
-= up
-
-> -up ≡ down
-= true
-
-> up > 0
-= true
-
-> up ∥ *1
-= true
-
-// display never canonicalizes: the sum form stays a sum form
-> 1 + 1
-= {1, 1 |}
-
-> canon(1 + 1)
-= 2
-
-// ============================================================ multiset form equality (§10.1) — the 0.3.0 P0 repaired
-> {1, 2 | 0} ≡ {2, 1 | 0}
-= true
-
-// multiplicity is form data
-> {0, 0 |} ≡ {0 |}
-= false
-
-> {0, *1 | 0, *1} = {*1, 0 | *1, 0}
-= true
-
-> canon({0, *1 | 0, *1})
-= *2
-
-> canon({*1, 0 | *1, 0})
-= *2
-
-// the retraction laws (§10.5)
-> canon({0, *1 | 0, *1}) ≡ canon({*1, 0 | *1, 0})
-= true
-
-> canon(canon({5 | 0})) ≡ canon({5 | 0})
-= true
-
-> canon({-1 | 1}) = {-1 | 1}
-= true
-
-// ============================================================ ⧺ — right-lazy append (§10.4)
-> ones =: {1 | ones}
-
-// the right operand is never consulted on a cyclic left spine —
-// canon(ones) is E_Loopy when evaluated, but evaluation never happens
-// (world/sort checks still run; evaluation is what's deferred)
-> ones ⧺ canon(ones)
-= ones =: {1 | ones}
-
-> [] ⧺ [5]
-= [5]
-
-> [5] ⧺ []
-= [5]
-
-> {0 |} ⧺ []
-! E_Improper:
 
 // ============================================================ outcome doubles — finite corners (§10.6)
 > 1 >> 0
@@ -114,12 +37,6 @@
 ~ 1 ‿‿ 0
 = false
 
-> hasdraw([1, 2])
-= false
-
-> drawn([1, 2])
-! E_UnknownFn: hasdraw
-
 // ============================================================ loopy values — stoppers, outcomes, the projection (§10.6–10.7)
 > over =: {0 | over}
 
@@ -130,6 +47,8 @@
 > off =: {| off}
 
 > dud =: {dud | dud}
+
+> ones =: {1 | ones}
 
 > stopper(over)
 = true
@@ -183,18 +102,6 @@
 > dud ‿‿ 0
 = true
 
-> hasdraw(dud)
-= true
-
-> hasdraw(on)
-= false
-
-> hasdraw(over)
-= false
-
-> hasdraw(ones)
-= false
-
 // ============================================================ loopy sums and negation are values now (§10.7)
 > stopper(on + off)
 = false
@@ -205,33 +112,6 @@
 // BUILD: exact composite/synthesized-name display shapes for `-on`,
 // `on + off`, and interior re-rootings are blessed at build time against
 // §10.8 (deterministic g1, g2, … first-reach scheme).
-
-// ============================================================ guardedness (§10.7, unchanged semantics, new spellings)
-> g =: g
-! E_Unfounded:
-
-> h =: [] ⧺ h
-! E_Unfounded:
-
-> k =: k ⧺ [1]
-! E_Unfounded:
-
-> m =: m + 1
-! E_Unfounded:
-
-// ============================================================ grundy — the acceptance example, Index result now audible
-> grundy =: g ↦ (
->>   has =: (n, i) ↦ not i = nleft(g) and
->>                   (grundy@(left(g, i)) = n or has@(n, i + 1));
->>   mexfrom =: n ↦ has@(n, 0) ? mexfrom@(n + 1) : n;
->>   mexfrom@0
->> )
-
-> grundy@*2
-= #2
-
-> grundy@{0, {0 | 0} | 0}
-= #2
 
 // ============================================================ remaining E hint sites (§13) — tutor package
 @world game
