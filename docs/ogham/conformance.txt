@@ -467,7 +467,7 @@
 = 1 + 1⋅t
 
 > (t↑2 - 1) % (2⋅t + 2)
-! E_Modulus: monic
+! E_Modulus: exact-division domain
 
 > gcd(2⋅t + 2, 4⋅t + 4)
 = 1 + 1⋅t

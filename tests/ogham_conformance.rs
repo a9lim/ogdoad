@@ -278,6 +278,51 @@ fn delimiter_depth_errors_before_the_recursive_parser() {
 }
 
 #[test]
+fn world_metric_depth_is_guarded_on_the_persistent_worker() {
+    let mut session = OghamSession::new("integer 0").expect("integer world");
+    let decl = format!(
+        ":world integer 1 q=[{}1{}]",
+        "(".repeat(1600),
+        ")".repeat(1600)
+    );
+    let err = session
+        .set_world(&decl)
+        .expect_err("deep metric syntax must be rejected without aborting the host");
+    assert_eq!(err.kind, OghamErrorKind::Parse);
+    assert!(err.message.contains("source nesting"));
+    assert!(err.message.contains("1536 delimiters"));
+
+    let result = session
+        .eval_line("7")
+        .expect("the persistent worker and prior world remain usable");
+    assert_eq!(result.value.as_deref(), Some("7"));
+}
+
+#[test]
+fn centralized_guidance_uses_the_hint_field() {
+    let mut poly = OghamSession::new("polyint").expect("polyint world");
+    let modulus = poly
+        .eval_line("(t↑2 - 1) % (2⋅t + 2)")
+        .expect_err("non-monic divisor");
+    assert_eq!(modulus.kind, OghamErrorKind::Modulus);
+    assert!(!modulus.message.contains("monic"));
+    assert!(modulus
+        .hint
+        .as_deref()
+        .is_some_and(|hint| hint.contains("must be monic")));
+
+    let mut integer = OghamSession::new("integer 0").expect("integer world");
+    let equiv = integer
+        .eval_line("1 ≡ 1")
+        .expect_err("form equality is game-only");
+    assert_eq!(equiv.kind, OghamErrorKind::WrongWorld);
+    assert_eq!(
+        equiv.hint.as_deref(),
+        Some("`=` is already structural here")
+    );
+}
+
+#[test]
 fn step_fuel_message_remains_distinct_from_depth_guard() {
     let mut session = OghamSession::new("integer 0").expect("integer world");
     session

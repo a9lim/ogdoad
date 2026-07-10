@@ -1,5 +1,7 @@
 use std::fmt;
 
+use super::ast::Sort;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Span {
     pub start: usize,
@@ -125,3 +127,144 @@ impl fmt::Display for OghamError {
 impl std::error::Error for OghamError {}
 
 pub type OghamResult<T> = Result<T, OghamError>;
+
+pub(crate) fn parse_error(message: impl Into<String>) -> OghamError {
+    OghamError::new(OghamErrorKind::Parse, Span::point(0), message)
+}
+
+pub(crate) fn index_sort_error() -> OghamError {
+    OghamError::new(
+        OghamErrorKind::IndexSort,
+        Span::point(0),
+        "expected an Index expression",
+    )
+}
+
+pub(crate) fn bool_sort_error() -> OghamError {
+    OghamError::new(
+        OghamErrorKind::BoolSort,
+        Span::point(0),
+        "expected a Bool expression",
+    )
+}
+
+pub(crate) fn fn_sort_error() -> OghamError {
+    OghamError::new(
+        OghamErrorKind::FnSort,
+        Span::point(0),
+        "Function values are first-order and cannot appear here",
+    )
+}
+
+pub(crate) fn exp_sort_error() -> OghamError {
+    OghamError::new(
+        OghamErrorKind::ExpSort,
+        Span::point(0),
+        "exponent must be an Index",
+    )
+    .with_hint("`↑`/`^` is power; the wedge product is `∧`/`&`")
+}
+
+pub(crate) fn sort_mismatch(expected: Sort, actual: Sort) -> OghamError {
+    if expected == Sort::Bool || actual == Sort::Bool {
+        bool_sort_error()
+    } else {
+        index_sort_error()
+    }
+}
+
+pub(crate) fn unbound_error(name: &str) -> OghamError {
+    let err = OghamError::new(
+        OghamErrorKind::Unbound,
+        Span::point(0),
+        format!("unbound identifier `{name}`"),
+    );
+    if name == "t" {
+        err.with_hint("`t` is the indeterminate in poly/ratfunc worlds")
+    } else {
+        err.with_hint(format!(
+            "did you mean `{name} := ...`? recursive definition? `{name} =: ...`"
+        ))
+    }
+}
+
+pub(crate) fn element_fixpoint_error(name: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        format!("element fixpoint `{name} =: ...` has no fixpoint theory outside the `game` world"),
+    )
+}
+
+pub(crate) fn grade0_error(span: Span) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::Grade0,
+        span,
+        "operation requires a grade-0 element",
+    )
+}
+
+pub(crate) fn modulus_error(span: Span) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::Modulus,
+        span,
+        "remainder modulus is outside this world's supported scope",
+    )
+    .with_hint("moduli here are monic omega-powers: `% ω↑2` truncates the CNF below it")
+}
+
+pub(crate) fn polyint_modulus_error(span: Span) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::Modulus,
+        span,
+        "polyint divisor is outside the exact-division domain",
+    )
+    .with_hint("polyint divisors must be monic")
+}
+
+pub(crate) fn kummer_escape(span: Span) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::KummerEscape,
+        span,
+        "ordinal nim-product escaped beyond the source-verified tower below ω^(ω^ω)",
+    )
+    .with_hint("below ω^(ω^ω), primes <= 709 — see docs/OPEN.md")
+}
+
+pub(crate) fn overflow(message: impl Into<String>) -> OghamError {
+    OghamError::new(OghamErrorKind::Overflow, Span::point(0), message)
+}
+
+pub(crate) fn domain(message: impl Into<String>) -> OghamError {
+    OghamError::new(OghamErrorKind::Domain, Span::point(0), message)
+}
+
+pub(crate) fn game_only_error(feature: &str) -> OghamError {
+    let err = OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        format!("{feature} is only defined in the `game` world"),
+    );
+    if feature == "`≡`" {
+        err.with_hint("`=` is already structural here")
+    } else {
+        err
+    }
+}
+
+pub(crate) fn array_world_error(feature: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        format!("`{feature}` is only defined in fixed-dimension Clifford worlds"),
+    )
+    .with_hint("arrays are world-fixed length; the free-shape container lives in the game world")
+}
+
+pub(crate) fn no_order_error() -> OghamError {
+    OghamError::new(
+        OghamErrorKind::WrongWorld,
+        Span::point(0),
+        "this world has no canonical order",
+    )
+}
