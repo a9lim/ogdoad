@@ -1,5 +1,5 @@
 use super::ast::{
-    BinaryOp, Binding, Expr, OutcomeCell, RelOp, Sort, StarLiteral, Statement, UnaryOp,
+    BinaryOp, Binding, DataSort, Expr, OutcomeCell, RelOp, StarLiteral, Statement, UnaryOp,
 };
 use super::error::*;
 use super::lex::{needs_continuation, strip_comments};
@@ -60,21 +60,21 @@ const WORLD_NAMES: [&str; 25] = [
 
 enum World {
     Game(GameRuntime),
-    Nimber(Runtime<Nimber>),
-    Ordinal(Runtime<Ordinal>),
-    Surreal(Runtime<Surreal>),
-    Omnific(Runtime<Omnific>),
-    Integer(Runtime<Integer>),
-    Fp2(Runtime<Fp<2>>),
-    Fp3(Runtime<Fp<3>>),
-    Fp5(Runtime<Fp<5>>),
-    Fp7(Runtime<Fp<7>>),
-    F4(Runtime<Fpn<2, 2>>),
-    F8(Runtime<Fpn<2, 3>>),
-    F16(Runtime<Fpn<2, 4>>),
-    F9(Runtime<Fpn<3, 2>>),
-    F27(Runtime<Fpn<3, 3>>),
-    F25(Runtime<Fpn<5, 2>>),
+    Nimber(CliffordRuntime<Nimber>),
+    Ordinal(CliffordRuntime<Ordinal>),
+    Surreal(CliffordRuntime<Surreal>),
+    Omnific(CliffordRuntime<Omnific>),
+    Integer(CliffordRuntime<Integer>),
+    Fp2(CliffordRuntime<Fp<2>>),
+    Fp3(CliffordRuntime<Fp<3>>),
+    Fp5(CliffordRuntime<Fp<5>>),
+    Fp7(CliffordRuntime<Fp<7>>),
+    F4(CliffordRuntime<Fpn<2, 2>>),
+    F8(CliffordRuntime<Fpn<2, 3>>),
+    F16(CliffordRuntime<Fpn<2, 4>>),
+    F9(CliffordRuntime<Fpn<3, 2>>),
+    F27(CliffordRuntime<Fpn<3, 3>>),
+    F25(CliffordRuntime<Fpn<5, 2>>),
     PolyInt(PolyRuntime<Integer>),
     Poly2(PolyRuntime<Fp<2>>),
     Poly3(PolyRuntime<Fp<3>>),
@@ -165,7 +165,9 @@ impl World {
             .ok_or_else(|| parse_error("missing world dimension or constructor"))?;
         if name == "nimber" && second.starts_with("gold(") {
             let metric = parse_gold_metric(second)?;
-            return Ok(World::Nimber(Runtime::from_metric("nimber", metric)));
+            return Ok(World::Nimber(CliffordRuntime::from_metric(
+                "nimber", metric,
+            )));
         }
         let dim = second
             .parse::<usize>()
@@ -209,7 +211,7 @@ impl World {
     }
 
     fn fuel_budget(&self) -> u128 {
-        with_world_runtime!(self, |runtime| runtime.fuel_budget)
+        with_world_runtime!(self, |runtime| runtime.fuel_budget())
     }
 
     fn set_graph_budget(&mut self, budget: u128) {

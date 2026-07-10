@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::ast::Sort;
+use super::ast::DataSort;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Span {
@@ -167,8 +167,8 @@ pub(crate) fn exp_sort_error() -> OghamError {
     .with_hint("`↑`/`^` is power; the wedge product is `∧`/`&`")
 }
 
-pub(crate) fn sort_mismatch(expected: Sort, actual: Sort) -> OghamError {
-    if expected == Sort::Bool || actual == Sort::Bool {
+pub(crate) fn sort_mismatch(expected: DataSort, actual: DataSort) -> OghamError {
+    if expected == DataSort::Bool || actual == DataSort::Bool {
         bool_sort_error()
     } else {
         index_sort_error()

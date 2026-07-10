@@ -33,7 +33,6 @@ pub enum Expr {
     Up,
     Down,
     Dim,
-    Tuple(Vec<Expr>),
     Ident(String),
     Lambda {
         binders: Vec<String>,
@@ -49,6 +48,10 @@ pub enum Expr {
     },
     Call {
         name: String,
+        args: Vec<Expr>,
+    },
+    Apply {
+        callee: Box<Expr>,
         args: Vec<Expr>,
     },
     Unary {
@@ -100,7 +103,6 @@ pub enum BinaryOp {
     Rem,
     Wedge,
     Pow,
-    At,
     And,
     Or,
     Append,
@@ -189,7 +191,7 @@ impl OutcomeCell {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Sort {
+pub enum DataSort {
     Element,
     Index,
     Bool,

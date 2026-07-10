@@ -2,58 +2,21 @@
 
 use super::super::*;
 
-pub(crate) struct Runtime<S: OghamScalar> {
+pub(crate) struct CliffordRuntime<S: OghamScalar> {
     pub(crate) name: &'static str,
     pub(crate) alg: CliffordAlgebra<S>,
-    pub(crate) env: BTreeMap<String, Value<Multivector<S>>>,
-    pub(crate) fuel_budget: u128,
-    pub(crate) fuel_remaining: u128,
-    pub(crate) graph_budget: u128,
-    pub(crate) recursion_depth: u128,
-    pub(crate) validation_sample_function_names: BTreeSet<String>,
+    pub(crate) state: RuntimeState<Multivector<S>>,
 }
 
-impl<S: OghamScalar> WorldOps for Runtime<S> {
+impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
     type Element = Multivector<S>;
 
-    fn env(&self) -> &BTreeMap<String, Value<Self::Element>> {
-        &self.env
+    fn state(&self) -> &RuntimeState<Self::Element> {
+        &self.state
     }
 
-    fn env_mut(&mut self) -> &mut BTreeMap<String, Value<Self::Element>> {
-        &mut self.env
-    }
-
-    fn fuel_budget(&self) -> u128 {
-        self.fuel_budget
-    }
-
-    fn fuel_budget_mut(&mut self) -> &mut u128 {
-        &mut self.fuel_budget
-    }
-
-    fn graph_budget(&self) -> u128 {
-        self.graph_budget
-    }
-
-    fn graph_budget_mut(&mut self) -> &mut u128 {
-        &mut self.graph_budget
-    }
-
-    fn fuel_remaining_mut(&mut self) -> &mut u128 {
-        &mut self.fuel_remaining
-    }
-
-    fn recursion_depth_mut(&mut self) -> &mut u128 {
-        &mut self.recursion_depth
-    }
-
-    fn validation_sample_function_names(&self) -> &BTreeSet<String> {
-        &self.validation_sample_function_names
-    }
-
-    fn validation_sample_function_names_mut(&mut self) -> &mut BTreeSet<String> {
-        &mut self.validation_sample_function_names
+    fn state_mut(&mut self) -> &mut RuntimeState<Self::Element> {
+        &mut self.state
     }
 
     fn world_name(&self) -> &'static str {
@@ -65,15 +28,25 @@ impl<S: OghamScalar> WorldOps for Runtime<S> {
     }
 
     fn world_eval_element(&mut self, expr: &Expr) -> OghamResult<Self::Element> {
-        Runtime::eval_expr(self, expr)
+        CliffordRuntime::eval_expr(self, expr)
     }
 
-    fn world_eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
-        Runtime::eval_index(self, expr)
+    fn index_primitive(&mut self, expr: &Expr) -> IndexPrimitive {
+        match expr {
+            Expr::Call { name, .. } if name == "dim" => {
+                IndexPrimitive::Error(literal_call_error(name))
+            }
+            Expr::Dim => IndexPrimitive::from_result(
+                i128::try_from(self.alg.dim())
+                    .map_err(|_| overflow("world dimension exceeds i128")),
+            ),
+            Expr::GameForm { .. } => IndexPrimitive::Error(game_only_error("game forms")),
+            _ => IndexPrimitive::NotHandled,
+        }
     }
 
     fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
-        Runtime::eval_relation(self, op, lhs, rhs)
+        CliffordRuntime::eval_relation(self, op, lhs, rhs)
     }
 
     fn sample_element_expr(&self) -> OghamResult<Expr> {
@@ -97,17 +70,12 @@ impl<S: OghamScalar> WorldOps for Runtime<S> {
     }
 }
 
-impl<S: OghamScalar> Runtime<S> {
+impl<S: OghamScalar> CliffordRuntime<S> {
     pub(crate) fn from_metric(name: &'static str, metric: Metric<S>) -> Self {
-        Runtime {
+        CliffordRuntime {
             name,
             alg: CliffordAlgebra::new(metric.dim(), metric),
-            env: BTreeMap::new(),
-            fuel_budget: DEFAULT_FUEL,
-            fuel_remaining: DEFAULT_FUEL,
-            graph_budget: DEFAULT_GRAPH_BUDGET,
-            recursion_depth: 0,
-            validation_sample_function_names: BTreeSet::new(),
+            state: RuntimeState::new(),
         }
     }
 
@@ -175,7 +143,7 @@ impl<S: OghamScalar> Runtime<S> {
             Expr::Up => Err(game_only_error("`up`")),
             Expr::Down => Err(game_only_error("`down`")),
             Expr::Dim => Err(index_sort_error()),
-            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
+            Expr::Lambda { .. } => Err(fn_sort_error()),
             Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
@@ -183,7 +151,7 @@ impl<S: OghamScalar> Runtime<S> {
                 Value::Function(_) => Err(fn_sort_error()),
             },
             Expr::Ident(name) => {
-                if let Some(value) = self.env.get(name) {
+                if let Some(value) = self.state.env.get(name) {
                     match value {
                         Value::Element(value) => Ok(value.clone()),
                         Value::Index(_) => Err(index_sort_error()),
@@ -205,9 +173,7 @@ impl<S: OghamScalar> Runtime<S> {
                     UnaryOp::Not => Err(bool_sort_error()),
                 }
             }
-            Expr::Binary {
-                op: BinaryOp::At, ..
-            } => match self.eval_value(expr)? {
+            Expr::Apply { .. } => match self.eval_value(expr)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
                 Value::Bool(_) => Err(bool_sort_error()),
@@ -235,13 +201,6 @@ impl<S: OghamScalar> Runtime<S> {
         if op == BinaryOp::Pow {
             return self.eval_power(lhs, rhs);
         }
-        if op == BinaryOp::At {
-            return Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
-                Span::point(0),
-                "element composition lives in the function-shaped worlds — poly/ratfunc",
-            ));
-        }
         if matches!(op, BinaryOp::And | BinaryOp::Or) {
             return Err(bool_sort_error());
         }
@@ -262,7 +221,7 @@ impl<S: OghamScalar> Runtime<S> {
                 Ok(self.alg.scalar(S::rem(&lhs_s, &rhs_s, Span::point(0))?))
             }
             BinaryOp::Wedge => Ok(self.alg.wedge(&lhs_v, &rhs_v)),
-            BinaryOp::Pow | BinaryOp::At | BinaryOp::And | BinaryOp::Or | BinaryOp::Append => {
+            BinaryOp::Pow | BinaryOp::And | BinaryOp::Or | BinaryOp::Append => {
                 unreachable!()
             }
         }
@@ -447,100 +406,6 @@ impl<S: OghamScalar> Runtime<S> {
     fn eval_grade0(&mut self, expr: &Expr) -> OghamResult<S> {
         let value = self.eval_expr(expr)?;
         scalar_part(&value).ok_or_else(|| grade0_error(Span::point(0)))
-    }
-
-    fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
-        match expr {
-            Expr::Index(expr) => self.eval_index(expr),
-            Expr::Int(n) => u128_to_i128(*n),
-            Expr::Bool(_) => Err(bool_sort_error()),
-            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
-            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Ident(name) => match self.env.get(name) {
-                Some(Value::Index(value)) => Ok(*value),
-                Some(Value::Element(_)) => Err(index_sort_error()),
-                Some(Value::Bool(_)) => Err(bool_sort_error()),
-                Some(Value::Function(_)) => Err(fn_sort_error()),
-                None => Err(unbound_error(name)),
-            },
-            Expr::Call { name, .. } if name == "dim" => Err(literal_call_error(name)),
-            Expr::Dim => {
-                i128::try_from(self.alg.dim()).map_err(|_| overflow("world dimension exceeds i128"))
-            }
-            Expr::Unary {
-                op: UnaryOp::Neg,
-                expr,
-            } => self
-                .eval_index(expr)?
-                .checked_neg()
-                .ok_or_else(|| overflow("index negation overflowed i128")),
-            Expr::Unary {
-                op: UnaryOp::Inv, ..
-            } => Err(index_sort_error()),
-            Expr::Unary {
-                op: UnaryOp::Not, ..
-            } => Err(bool_sort_error()),
-            Expr::Binary {
-                op: BinaryOp::At, ..
-            } => match self.eval_value(expr)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Binary { op, lhs, rhs } => {
-                let lhs = self.eval_index(lhs)?;
-                let rhs = self.eval_index(rhs)?;
-                match op {
-                    BinaryOp::Add => lhs
-                        .checked_add(rhs)
-                        .ok_or_else(|| overflow("index addition overflowed i128")),
-                    BinaryOp::Sub => lhs
-                        .checked_sub(rhs)
-                        .ok_or_else(|| overflow("index subtraction overflowed i128")),
-                    BinaryOp::Mul => lhs
-                        .checked_mul(rhs)
-                        .ok_or_else(|| overflow("index multiplication overflowed i128")),
-                    BinaryOp::Pow => {
-                        if rhs < 0 {
-                            return Err(OghamError::new(
-                                OghamErrorKind::Domain,
-                                Span::point(0),
-                                "index exponent must be non-negative",
-                            ));
-                        }
-                        checked_i128_pow(lhs, rhs as u128)
-                    }
-                    BinaryOp::Div
-                    | BinaryOp::Rem
-                    | BinaryOp::Wedge
-                    | BinaryOp::At
-                    | BinaryOp::And
-                    | BinaryOp::Or
-                    | BinaryOp::Append => Err(index_sort_error()),
-                }
-            }
-            Expr::Ternary { .. } => match self.eval_value(expr)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Relation { .. } => Err(bool_sort_error()),
-            Expr::Star(_)
-            | Expr::Omega
-            | Expr::Blade(_)
-            | Expr::Container(_)
-            | Expr::Up
-            | Expr::Down
-            | Expr::Call { .. } => Err(index_sort_error()),
-            Expr::GameForm { .. } => Err(game_only_error("game forms")),
-        }
     }
 
     fn inverse_mv(&self, value: &Multivector<S>) -> OghamResult<Multivector<S>> {
@@ -1079,7 +944,7 @@ pub(crate) fn build_runtime<S: OghamScalar>(
     name: &'static str,
     dim: usize,
     rest: &str,
-) -> OghamResult<Runtime<S>> {
+) -> OghamResult<CliffordRuntime<S>> {
     let metric = if rest.trim().is_empty() {
         if dim == 0 {
             Metric::diagonal(Vec::new())
@@ -1112,7 +977,7 @@ pub(crate) fn build_runtime<S: OghamScalar>(
         };
         Metric::general(q, b, a)
     };
-    Ok(Runtime::from_metric(name, metric))
+    Ok(CliffordRuntime::from_metric(name, metric))
 }
 
 pub(crate) fn parse_gold_metric(src: &str) -> OghamResult<Metric<Nimber>> {
@@ -1182,7 +1047,7 @@ pub(crate) fn parse_sparse_pairs<S: OghamScalar>(
 }
 
 pub(crate) fn parse_metric_scalar<S: OghamScalar>(src: &str) -> OghamResult<S> {
-    let mut rt = Runtime::<S>::from_metric("metric", Metric::diagonal(Vec::new()));
+    let mut rt = CliffordRuntime::<S>::from_metric("metric", Metric::diagonal(Vec::new()));
     ensure_source_nesting_depth(src)?;
     let stmt = parse_statement(src)?;
     ensure_statement_depth(&stmt)?;

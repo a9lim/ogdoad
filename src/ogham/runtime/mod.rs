@@ -11,6 +11,7 @@ mod value;
 
 pub(crate) use function::*;
 pub(crate) use index::*;
+pub(crate) use state::*;
 pub(crate) use transform::*;
 pub(crate) use validate::*;
 pub(crate) use value::*;
@@ -23,22 +24,17 @@ pub(crate) use value::*;
 pub(crate) trait WorldOps: Sized {
     type Element: Clone + Display;
 
-    fn env(&self) -> &BTreeMap<String, Value<Self::Element>>;
-    fn env_mut(&mut self) -> &mut BTreeMap<String, Value<Self::Element>>;
-    fn fuel_budget(&self) -> u128;
-    fn fuel_budget_mut(&mut self) -> &mut u128;
-    fn graph_budget(&self) -> u128;
-    fn graph_budget_mut(&mut self) -> &mut u128;
-    fn fuel_remaining_mut(&mut self) -> &mut u128;
-    fn recursion_depth_mut(&mut self) -> &mut u128;
-    fn validation_sample_function_names(&self) -> &BTreeSet<String>;
-    fn validation_sample_function_names_mut(&mut self) -> &mut BTreeSet<String>;
+    fn state(&self) -> &RuntimeState<Self::Element>;
+    fn state_mut(&mut self) -> &mut RuntimeState<Self::Element>;
     fn world_name(&self) -> &'static str;
     fn world_summary(&self) -> String;
     fn world_eval_element(&mut self, expr: &Expr) -> OghamResult<Self::Element>;
-    fn world_eval_index(&mut self, expr: &Expr) -> OghamResult<i128>;
     fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool>;
     fn sample_element_expr(&self) -> OghamResult<Expr>;
+
+    fn index_primitive(&mut self, _expr: &Expr) -> IndexPrimitive {
+        IndexPrimitive::NotHandled
+    }
 
     fn world_display_value(&self, value: &Value<Self::Element>) -> String {
         display_value(value)
@@ -72,8 +68,8 @@ pub(crate) trait WorldOps: Sized {
         &self,
         _body: &Expr,
         _binders: &[String],
-        _binder_sorts: &mut [Sort],
-        _ret: &mut Sort,
+        _binder_sorts: &mut [DataSort],
+        _ret: &mut DataSort,
         _mu_name: Option<&str>,
     ) {
     }
@@ -90,7 +86,9 @@ pub(crate) trait WorldOps: Sized {
         false
     }
 
-    fn reset_world_call_state(&mut self) {}
+    fn reset_world_call_state(&mut self) {
+        self.state_mut().active_call_keys.clear();
+    }
 
     fn element_at(
         &mut self,
@@ -117,13 +115,17 @@ pub(crate) trait WorldOps: Sized {
         None
     }
 
-    fn call_key_is_active(&self, _key: &str) -> bool {
-        false
+    fn call_key_is_active(&self, key: &str) -> bool {
+        self.state().active_call_keys.contains(key)
     }
 
-    fn activate_call_key(&mut self, _key: String) {}
+    fn activate_call_key(&mut self, key: String) {
+        self.state_mut().active_call_keys.insert(key);
+    }
 
-    fn deactivate_call_key(&mut self, _key: &str) {}
+    fn deactivate_call_key(&mut self, key: &str) {
+        self.state_mut().active_call_keys.remove(key);
+    }
 
     fn install_call_arguments(
         &mut self,
@@ -144,14 +146,58 @@ pub(crate) trait WorldOps: Sized {
         }
         let body = substitute_names(&function.body, &replacements);
         match function.ret {
-            Sort::Element => self.world_eval_element(&body).map(Value::Element),
-            Sort::Index => self.world_eval_index(&body).map(Value::Index),
-            Sort::Bool => SharedRuntime::eval_bool(self, &body).map(Value::Bool),
+            DataSort::Element => self.world_eval_element(&body).map(Value::Element),
+            DataSort::Index => SharedRuntime::eval_index(self, &body).map(Value::Index),
+            DataSort::Bool => SharedRuntime::eval_bool(self, &body).map(Value::Bool),
         }
     }
 }
 
 pub(crate) trait SharedRuntime: WorldOps {
+    fn env(&self) -> &BTreeMap<String, Value<Self::Element>> {
+        &self.state().env
+    }
+
+    fn env_mut(&mut self) -> &mut BTreeMap<String, Value<Self::Element>> {
+        &mut self.state_mut().env
+    }
+
+    fn fuel_budget(&self) -> u128 {
+        self.state().fuel_budget
+    }
+
+    fn fuel_budget_mut(&mut self) -> &mut u128 {
+        &mut self.state_mut().fuel_budget
+    }
+
+    fn graph_budget(&self) -> u128 {
+        self.state().graph_budget
+    }
+
+    fn graph_budget_mut(&mut self) -> &mut u128 {
+        &mut self.state_mut().graph_budget
+    }
+
+    fn fuel_remaining_mut(&mut self) -> &mut u128 {
+        &mut self.state_mut().fuel_remaining
+    }
+
+    fn recursion_depth_mut(&mut self) -> &mut u128 {
+        &mut self.state_mut().recursion_depth
+    }
+
+    fn validation_sample_function_names(&self) -> &BTreeSet<String> {
+        &self.state().validation_sample_function_names
+    }
+
+    fn validation_sample_function_names_mut(&mut self) -> &mut BTreeSet<String> {
+        &mut self.state_mut().validation_sample_function_names
+    }
+
+    fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
+        index::eval_index(self, expr)
+    }
+
     fn reset_fuel(&mut self) {
         let budget = self.fuel_budget();
         *self.fuel_remaining_mut() = budget;
@@ -247,7 +293,6 @@ pub(crate) trait SharedRuntime: WorldOps {
     fn eval_value(&mut self, expr: &Expr) -> OghamResult<Value<Self::Element>> {
         match expr {
             Expr::Bool(value) => Ok(Value::Bool(*value)),
-            Expr::Tuple(_) => Err(fn_sort_error()),
             Expr::Block { bindings, body } => self.eval_block(bindings, body),
             Expr::Lambda { binders, body } => self
                 .close_function(binders.clone(), body.as_ref().clone(), None)
@@ -293,7 +338,7 @@ pub(crate) trait SharedRuntime: WorldOps {
                 rhs,
             } => {
                 let lhs = self.eval_bool(lhs)?;
-                if self.static_sort(rhs)? != Sort::Bool {
+                if self.static_sort(rhs)? != DataSort::Bool {
                     return Err(bool_sort_error());
                 }
                 if !lhs {
@@ -307,7 +352,7 @@ pub(crate) trait SharedRuntime: WorldOps {
                 rhs,
             } => {
                 let lhs = self.eval_bool(lhs)?;
-                if self.static_sort(rhs)? != Sort::Bool {
+                if self.static_sort(rhs)? != DataSort::Bool {
                     return Err(bool_sort_error());
                 }
                 if lhs {
@@ -331,23 +376,19 @@ pub(crate) trait SharedRuntime: WorldOps {
                     self.eval_value(else_expr)
                 }
             }
-            Expr::Binary {
-                op: BinaryOp::At,
-                lhs,
-                rhs,
-            } => self.eval_at(lhs, rhs),
+            Expr::Apply { callee, args } => self.eval_apply(callee, args),
             _ => self.eval_element_or_index(expr),
         }
     }
 
     fn eval_element_or_index(&mut self, expr: &Expr) -> OghamResult<Value<Self::Element>> {
         if self.prefer_index_expression() && expression_is_index(expr) {
-            return self.world_eval_index(expr).map(Value::Index);
+            return self.eval_index(expr).map(Value::Index);
         }
         match self.world_eval_element(expr) {
             Ok(value) => Ok(Value::Element(value)),
             Err(err) if err.kind == OghamErrorKind::IndexSort => {
-                self.world_eval_index(expr).map(Value::Index)
+                self.eval_index(expr).map(Value::Index)
             }
             Err(err) => Err(err),
         }
@@ -361,20 +402,23 @@ pub(crate) trait SharedRuntime: WorldOps {
         }
     }
 
-    fn eval_at(&mut self, lhs: &Expr, rhs: &Expr) -> OghamResult<Value<Self::Element>> {
-        match self.eval_value(lhs)? {
+    fn eval_apply(&mut self, callee: &Expr, args: &[Expr]) -> OghamResult<Value<Self::Element>> {
+        match self.eval_value(callee)? {
             Value::Function(function) => {
-                if let Expr::Tuple(items) = rhs {
-                    return self.apply_function_exprs(&function, items);
+                if args.len() != 1 {
+                    return self.apply_function_exprs(&function, args);
                 }
-                match self.eval_value(rhs)? {
+                match self.eval_value(&args[0])? {
                     Value::Function(rhs_function) => self
                         .compose_functions(&function, &rhs_function)
                         .map(Value::Function),
-                    _ => self.apply_function_exprs(&function, std::slice::from_ref(rhs)),
+                    _ => self.apply_function_exprs(&function, args),
                 }
             }
-            Value::Element(lhs_value) => self.element_at(lhs, lhs_value, rhs),
+            Value::Element(lhs_value) if args.len() == 1 => {
+                self.element_at(callee, lhs_value, &args[0])
+            }
+            Value::Element(_) => Err(fn_sort_error()),
             Value::Index(_) => Err(self
                 .non_function_at_error()
                 .unwrap_or_else(index_sort_error)),
@@ -460,11 +504,15 @@ pub(crate) trait SharedRuntime: WorldOps {
         self.apply_function(function, values)
     }
 
-    fn eval_arg_for_sort(&mut self, expr: &Expr, sort: Sort) -> OghamResult<Value<Self::Element>> {
+    fn eval_arg_for_sort(
+        &mut self,
+        expr: &Expr,
+        sort: DataSort,
+    ) -> OghamResult<Value<Self::Element>> {
         match sort {
-            Sort::Element => self.world_eval_element(expr).map(Value::Element),
-            Sort::Index => self.world_eval_index(expr).map(Value::Index),
-            Sort::Bool => self.eval_bool(expr).map(Value::Bool),
+            DataSort::Element => self.world_eval_element(expr).map(Value::Element),
+            DataSort::Index => self.eval_index(expr).map(Value::Index),
+            DataSort::Bool => self.eval_bool(expr).map(Value::Bool),
         }
     }
 
@@ -479,7 +527,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         let function = FunctionValue {
             binders: rhs.binders.clone(),
             body,
-            ret: Sort::Element,
+            ret: DataSort::Element,
             mu_name: None,
         };
         self.validate_function_body(&function)?;
@@ -633,15 +681,15 @@ pub(crate) trait SharedRuntime: WorldOps {
         ignore_static_partiality(self.eval_value(expr))
     }
 
-    fn sample_expr(&self, sort: Sort) -> OghamResult<Expr> {
+    fn sample_expr(&self, sort: DataSort) -> OghamResult<Expr> {
         match sort {
-            Sort::Element => self.sample_element_expr(),
-            Sort::Index => Ok(Expr::Int(1)),
-            Sort::Bool => Ok(Expr::Bool(true)),
+            DataSort::Element => self.sample_element_expr(),
+            DataSort::Index => Ok(Expr::Int(1)),
+            DataSort::Bool => Ok(Expr::Bool(true)),
         }
     }
 
-    fn static_sort(&self, expr: &Expr) -> OghamResult<Sort> {
+    fn static_sort(&self, expr: &Expr) -> OghamResult<DataSort> {
         static_sort(expr, self.env(), self.deg_is_index())
     }
 }

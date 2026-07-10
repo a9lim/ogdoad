@@ -687,38 +687,32 @@ pub(crate) fn game_wrong_world(message: &str) -> OghamError {
 pub(crate) fn refine_game_binder_sorts(
     expr: &Expr,
     binders: &[String],
-    sorts: &mut [Sort],
+    sorts: &mut [DataSort],
     env: &BTreeMap<String, Value<GameElement>>,
 ) {
     match expr {
         Expr::Relation { lhs, rhs, .. } => {
-            if game_known_sort(lhs, env) == Some(Sort::Index) {
-                mark_game_expr_sort(rhs, Sort::Index, binders, sorts);
+            if game_known_sort(lhs, env) == Some(DataSort::Index) {
+                mark_game_expr_sort(rhs, DataSort::Index, binders, sorts);
             }
-            if game_known_sort(rhs, env) == Some(Sort::Index) {
-                mark_game_expr_sort(lhs, Sort::Index, binders, sorts);
+            if game_known_sort(rhs, env) == Some(DataSort::Index) {
+                mark_game_expr_sort(lhs, DataSort::Index, binders, sorts);
             }
             refine_game_binder_sorts(lhs, binders, sorts, env);
             refine_game_binder_sorts(rhs, binders, sorts, env);
         }
-        Expr::Binary {
-            op: BinaryOp::At,
-            lhs,
-            rhs,
-        } => {
-            if let Expr::Ident(name) = &**lhs {
+        Expr::Apply { callee, args } => {
+            if let Expr::Ident(name) = &**callee {
                 if let Some(Value::Function(function)) = env.get(name) {
-                    let args: Vec<&Expr> = match &**rhs {
-                        Expr::Tuple(items) => items.iter().collect(),
-                        item => vec![item],
-                    };
-                    for (arg, binder) in args.into_iter().zip(&function.binders) {
+                    for (arg, binder) in args.iter().zip(&function.binders) {
                         mark_game_expr_sort(arg, binder.sort, binders, sorts);
                     }
                 }
             }
-            refine_game_binder_sorts(lhs, binders, sorts, env);
-            refine_game_binder_sorts(rhs, binders, sorts, env);
+            refine_game_binder_sorts(callee, binders, sorts, env);
+            for arg in args {
+                refine_game_binder_sorts(arg, binders, sorts, env);
+            }
         }
         Expr::Block { bindings, body } => {
             for binding in bindings {
@@ -726,7 +720,7 @@ pub(crate) fn refine_game_binder_sorts(
             }
             refine_game_binder_sorts(body, binders, sorts, env);
         }
-        Expr::Container(items) | Expr::Tuple(items) => {
+        Expr::Container(items) => {
             for item in items {
                 refine_game_binder_sorts(item, binders, sorts, env);
             }
@@ -769,7 +763,12 @@ pub(crate) fn refine_game_binder_sorts(
     }
 }
 
-pub(crate) fn mark_game_expr_sort(expr: &Expr, sort: Sort, binders: &[String], sorts: &mut [Sort]) {
+pub(crate) fn mark_game_expr_sort(
+    expr: &Expr,
+    sort: DataSort,
+    binders: &[String],
+    sorts: &mut [DataSort],
+) {
     match expr {
         Expr::Ident(name) => {
             if let Some(index) = binders.iter().position(|binder| binder == name) {
@@ -792,20 +791,16 @@ pub(crate) fn mark_game_expr_sort(expr: &Expr, sort: Sort, binders: &[String], s
 pub(crate) fn game_known_sort(
     expr: &Expr,
     env: &BTreeMap<String, Value<GameElement>>,
-) -> Option<Sort> {
+) -> Option<DataSort> {
     match expr {
-        Expr::Index(_) | Expr::Dim => Some(Sort::Index),
+        Expr::Index(_) | Expr::Dim => Some(DataSort::Index),
         Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
-            Some(Sort::Index)
+            Some(DataSort::Index)
         }
         Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => {
-            Some(Sort::Bool)
+            Some(DataSort::Bool)
         }
-        Expr::Binary {
-            op: BinaryOp::At,
-            lhs,
-            ..
-        } => game_function_expr_return_sort(lhs, env),
+        Expr::Apply { callee, .. } => game_function_expr_return_sort(callee, env),
         Expr::Bool(_)
         | Expr::Relation { .. }
         | Expr::Unary {
@@ -814,7 +809,7 @@ pub(crate) fn game_known_sort(
         | Expr::Binary {
             op: BinaryOp::And | BinaryOp::Or,
             ..
-        } => Some(Sort::Bool),
+        } => Some(DataSort::Bool),
         _ => None,
     }
 }
@@ -822,7 +817,7 @@ pub(crate) fn game_known_sort(
 pub(crate) fn game_function_expr_return_sort(
     expr: &Expr,
     env: &BTreeMap<String, Value<GameElement>>,
-) -> Option<Sort> {
+) -> Option<DataSort> {
     match expr {
         Expr::Ident(name) => match env.get(name) {
             Some(Value::Function(function)) => Some(function.ret),
@@ -853,32 +848,28 @@ pub(crate) fn game_return_sort_hint(
     body: &Expr,
     env: &BTreeMap<String, Value<GameElement>>,
     mu_name: Option<&str>,
-) -> Option<Sort> {
+) -> Option<DataSort> {
     if bool_shaped(body) {
-        return Some(Sort::Bool);
+        return Some(DataSort::Bool);
     }
     if let Some(name) = mu_name {
         if is_game_index_counter(name, body) {
-            return Some(Sort::Index);
+            return Some(DataSort::Index);
         }
     }
     match body {
-        Expr::Binary {
-            op: BinaryOp::At,
-            lhs,
-            ..
-        } => game_function_expr_return_sort(lhs, env),
+        Expr::Apply { callee, .. } => game_function_expr_return_sort(callee, env),
         Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
-            Some(Sort::Index)
+            Some(DataSort::Index)
         }
         Expr::Block { bindings, body } => {
             let mut local_returns = BTreeMap::new();
             for binding in bindings {
                 if let Expr::Lambda { body, .. } = &binding.expr {
                     let hint = if bool_shaped(body) {
-                        Some(Sort::Bool)
+                        Some(DataSort::Bool)
                     } else if binding.recursive && is_game_index_counter(&binding.name, body) {
-                        Some(Sort::Index)
+                        Some(DataSort::Index)
                     } else {
                         game_return_sort_hint(body, env, None)
                     };
@@ -887,13 +878,8 @@ pub(crate) fn game_return_sort_hint(
                     }
                 }
             }
-            if let Expr::Binary {
-                op: BinaryOp::At,
-                lhs,
-                ..
-            } = &**body
-            {
-                if let Expr::Ident(name) = &**lhs {
+            if let Expr::Apply { callee, .. } = &**body {
+                if let Expr::Ident(name) = &**callee {
                     return local_returns.get(name.as_str()).copied();
                 }
             }
@@ -918,14 +904,10 @@ pub(crate) fn is_game_index_counter(name: &str, expr: &Expr) -> bool {
 
 pub(crate) fn contains_game_self_call(name: &str, expr: &Expr) -> bool {
     match expr {
-        Expr::Binary {
-            op: BinaryOp::At,
-            lhs,
-            rhs,
-        } => {
-            matches!(&**lhs, Expr::Ident(callee) if callee == name)
-                || contains_game_self_call(name, lhs)
-                || contains_game_self_call(name, rhs)
+        Expr::Apply { callee, args } => {
+            matches!(&**callee, Expr::Ident(candidate) if candidate == name)
+                || contains_game_self_call(name, callee)
+                || args.iter().any(|arg| contains_game_self_call(name, arg))
         }
         Expr::Block { bindings, body } => {
             bindings
@@ -933,9 +915,7 @@ pub(crate) fn contains_game_self_call(name: &str, expr: &Expr) -> bool {
                 .any(|binding| contains_game_self_call(name, &binding.expr))
                 || contains_game_self_call(name, body)
         }
-        Expr::Container(items) | Expr::Tuple(items) => {
-            items.iter().any(|item| contains_game_self_call(name, item))
-        }
+        Expr::Container(items) => items.iter().any(|item| contains_game_self_call(name, item)),
         Expr::GameForm { left, right } => left
             .iter()
             .chain(right)
@@ -985,7 +965,10 @@ pub(crate) fn contains_game_unit_step(expr: &Expr) -> bool {
                 .any(|binding| contains_game_unit_step(&binding.expr))
                 || contains_game_unit_step(body)
         }
-        Expr::Container(items) | Expr::Tuple(items) => items.iter().any(contains_game_unit_step),
+        Expr::Container(items) => items.iter().any(contains_game_unit_step),
+        Expr::Apply { callee, args } => {
+            contains_game_unit_step(callee) || args.iter().any(contains_game_unit_step)
+        }
         Expr::GameForm { left, right } => left.iter().chain(right).any(contains_game_unit_step),
         Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
             contains_game_unit_step(body)
@@ -1032,9 +1015,15 @@ pub(crate) fn contains_game_binder_unit_step(binder: &str, expr: &Expr) -> bool 
                 .any(|binding| contains_game_binder_unit_step(binder, &binding.expr))
                 || contains_game_binder_unit_step(binder, body)
         }
-        Expr::Container(items) | Expr::Tuple(items) => items
+        Expr::Container(items) => items
             .iter()
             .any(|item| contains_game_binder_unit_step(binder, item)),
+        Expr::Apply { callee, args } => {
+            contains_game_binder_unit_step(binder, callee)
+                || args
+                    .iter()
+                    .any(|arg| contains_game_binder_unit_step(binder, arg))
+        }
         Expr::GameForm { left, right } => left
             .iter()
             .chain(right)

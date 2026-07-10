@@ -538,25 +538,24 @@ impl Parser {
         let mut expr = self.parse_atom()?;
         while matches!(self.peek_kind(), Some(TokenKind::At)) {
             self.bump();
-            let rhs = self.parse_appl_arg()?;
-            expr = Expr::Binary {
-                op: BinaryOp::At,
-                lhs: Box::new(expr),
-                rhs: Box::new(rhs),
+            let args = self.parse_appl_args()?;
+            expr = Expr::Apply {
+                callee: Box::new(expr),
+                args,
             };
         }
         Ok(expr)
     }
 
-    fn parse_appl_arg(&mut self) -> OghamResult<Expr> {
+    fn parse_appl_args(&mut self) -> OghamResult<Vec<Expr>> {
         if !matches!(self.peek_kind(), Some(TokenKind::LParen)) {
-            return self.parse_atom();
+            return self.parse_atom().map(|expr| vec![expr]);
         }
         self.bump();
         let first = statement_to_block_expr(self.parse_statement_seq()?)?;
         if !matches!(self.peek_kind(), Some(TokenKind::Comma)) {
             self.expect(|k| matches!(k, TokenKind::RParen), "`)`")?;
-            return Ok(first);
+            return Ok(vec![first]);
         }
         let mut items = vec![first];
         while matches!(self.peek_kind(), Some(TokenKind::Comma)) {
@@ -564,7 +563,7 @@ impl Parser {
             items.push(statement_to_block_expr(self.parse_statement_seq()?)?);
         }
         self.expect(|k| matches!(k, TokenKind::RParen), "`)`")?;
-        Ok(Expr::Tuple(items))
+        Ok(items)
     }
 
     fn parse_call_args(&mut self, name: &str) -> OghamResult<Vec<Expr>> {

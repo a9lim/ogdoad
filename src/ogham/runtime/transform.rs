@@ -33,8 +33,9 @@ pub(crate) fn contains_free_name(expr: &Expr, target: &str) -> bool {
                 }
                 visit(body, target, &nested)
             }
-            Expr::Container(items) | Expr::Tuple(items) => {
-                items.iter().any(|item| visit(item, target, bound))
+            Expr::Container(items) => items.iter().any(|item| visit(item, target, bound)),
+            Expr::Apply { callee, args } => {
+                visit(callee, target, bound) || args.iter().any(|arg| visit(arg, target, bound))
             }
             Expr::GameForm { left, right } => left
                 .iter()
@@ -115,12 +116,13 @@ pub(crate) fn substitute_env<E: Display>(
                 .map(|item| substitute_env(item, bound, env))
                 .collect::<OghamResult<Vec<_>>>()?,
         )),
-        Expr::Tuple(items) => Ok(Expr::Tuple(
-            items
+        Expr::Apply { callee, args } => Ok(Expr::Apply {
+            callee: Box::new(substitute_env(callee, bound, env)?),
+            args: args
                 .iter()
-                .map(|item| substitute_env(item, bound, env))
+                .map(|arg| substitute_env(arg, bound, env))
                 .collect::<OghamResult<Vec<_>>>()?,
-        )),
+        }),
         Expr::GameForm { left, right } => Ok(Expr::GameForm {
             left: left
                 .iter()
@@ -207,12 +209,13 @@ pub(crate) fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr
                 .map(|item| substitute_names(item, replacements))
                 .collect(),
         ),
-        Expr::Tuple(items) => Expr::Tuple(
-            items
+        Expr::Apply { callee, args } => Expr::Apply {
+            callee: Box::new(substitute_names(callee, replacements)),
+            args: args
                 .iter()
-                .map(|item| substitute_names(item, replacements))
+                .map(|arg| substitute_names(arg, replacements))
                 .collect(),
-        ),
+        },
         Expr::GameForm { left, right } => Expr::GameForm {
             left: left
                 .iter()
@@ -266,12 +269,6 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                 .map(beta_normalize)
                 .collect::<OghamResult<Vec<_>>>()?,
         )),
-        Expr::Tuple(items) => Ok(Expr::Tuple(
-            items
-                .into_iter()
-                .map(beta_normalize)
-                .collect::<OghamResult<Vec<_>>>()?,
-        )),
         Expr::GameForm { left, right } => Ok(Expr::GameForm {
             left: left
                 .into_iter()
@@ -311,22 +308,21 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
             op,
             expr: Box::new(beta_normalize(*expr)?),
         }),
-        Expr::Binary {
-            op: BinaryOp::At,
-            lhs,
-            rhs,
-        } => {
-            let lhs = beta_normalize(*lhs)?;
-            let rhs = beta_normalize(*rhs)?;
+        Expr::Apply { callee, args } => {
+            let callee = beta_normalize(*callee)?;
+            let args = args
+                .into_iter()
+                .map(beta_normalize)
+                .collect::<OghamResult<Vec<_>>>()?;
             if let Expr::Lambda {
                 binders,
                 body: lhs_body,
-            } = lhs
+            } = callee
             {
-                if let Expr::Lambda {
+                if let [Expr::Lambda {
                     binders: rhs_binders,
                     body: rhs_body,
-                } = rhs
+                }] = args.as_slice()
                 {
                     if binders.len() != 1 {
                         return Err(OghamError::new(
@@ -336,16 +332,12 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                         ));
                     }
                     let mut replacements = BTreeMap::new();
-                    replacements.insert(binders[0].clone(), *rhs_body);
+                    replacements.insert(binders[0].clone(), *rhs_body.clone());
                     return Ok(Expr::Lambda {
-                        binders: rhs_binders,
+                        binders: rhs_binders.clone(),
                         body: Box::new(beta_normalize(substitute_names(&lhs_body, &replacements))?),
                     });
                 }
-                let args = match rhs {
-                    Expr::Tuple(items) => items,
-                    value => vec![value],
-                };
                 if args.len() != binders.len() {
                     return Err(OghamError::new(
                         OghamErrorKind::Arity,
@@ -360,10 +352,9 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                 let replacements = binders.into_iter().zip(args).collect();
                 return beta_normalize(substitute_names(&lhs_body, &replacements));
             }
-            Ok(Expr::Binary {
-                op: BinaryOp::At,
-                lhs: Box::new(lhs),
-                rhs: Box::new(rhs),
+            Ok(Expr::Apply {
+                callee: Box::new(callee),
+                args,
             })
         }
         Expr::Binary { op, lhs, rhs } => Ok(Expr::Binary {

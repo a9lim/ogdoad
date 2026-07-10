@@ -347,12 +347,16 @@ pub(crate) fn ensure_statement_depth(statement: &Statement) -> OghamResult<()> {
                 | Expr::Dim
                 | Expr::Ident(_),
             ) => {}
-            SyntaxNode::Expr(Expr::Container(items) | Expr::Tuple(items)) => {
+            SyntaxNode::Expr(Expr::Container(items)) => {
                 pending.extend(
                     items
                         .iter()
                         .map(|item| (SyntaxNode::Expr(item), child_depth)),
                 );
+            }
+            SyntaxNode::Expr(Expr::Apply { callee, args }) => {
+                pending.push((SyntaxNode::Expr(callee), child_depth));
+                pending.extend(args.iter().map(|arg| (SyntaxNode::Expr(arg), child_depth)));
             }
             SyntaxNode::Expr(Expr::Lambda { body, .. } | Expr::Index(body)) => {
                 pending.push((SyntaxNode::Expr(body), child_depth));

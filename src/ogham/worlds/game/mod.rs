@@ -61,56 +61,18 @@ impl std::fmt::Display for GameElement {
 }
 
 pub(crate) struct GameRuntime {
-    pub(crate) env: BTreeMap<String, Value<GameElement>>,
-    pub(crate) fuel_budget: u128,
-    pub(crate) fuel_remaining: u128,
-    pub(crate) graph_budget: u128,
-    pub(crate) active_mu_calls: HashSet<String>,
-    pub(crate) recursion_depth: u128,
-    pub(crate) validation_sample_function_names: BTreeSet<String>,
+    pub(crate) state: RuntimeState<GameElement>,
 }
 
 impl WorldOps for GameRuntime {
     type Element = GameElement;
 
-    fn env(&self) -> &BTreeMap<String, Value<Self::Element>> {
-        &self.env
+    fn state(&self) -> &RuntimeState<Self::Element> {
+        &self.state
     }
 
-    fn env_mut(&mut self) -> &mut BTreeMap<String, Value<Self::Element>> {
-        &mut self.env
-    }
-
-    fn fuel_budget(&self) -> u128 {
-        self.fuel_budget
-    }
-
-    fn fuel_budget_mut(&mut self) -> &mut u128 {
-        &mut self.fuel_budget
-    }
-
-    fn graph_budget(&self) -> u128 {
-        self.graph_budget
-    }
-
-    fn graph_budget_mut(&mut self) -> &mut u128 {
-        &mut self.graph_budget
-    }
-
-    fn fuel_remaining_mut(&mut self) -> &mut u128 {
-        &mut self.fuel_remaining
-    }
-
-    fn recursion_depth_mut(&mut self) -> &mut u128 {
-        &mut self.recursion_depth
-    }
-
-    fn validation_sample_function_names(&self) -> &BTreeSet<String> {
-        &self.validation_sample_function_names
-    }
-
-    fn validation_sample_function_names_mut(&mut self) -> &mut BTreeSet<String> {
-        &mut self.validation_sample_function_names
+    fn state_mut(&mut self) -> &mut RuntimeState<Self::Element> {
+        &mut self.state
     }
 
     fn world_name(&self) -> &'static str {
@@ -129,8 +91,24 @@ impl WorldOps for GameRuntime {
         GameRuntime::eval_element(self, expr)
     }
 
-    fn world_eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
-        GameRuntime::eval_index(self, expr)
+    fn index_primitive(&mut self, expr: &Expr) -> IndexPrimitive {
+        match expr {
+            Expr::Call { name, args } if matches!(name.as_str(), "nleft" | "nright") => {
+                IndexPrimitive::from_result((|| {
+                    expect_arity(name, args, 1)?;
+                    let game = self.eval_element(&args[0])?;
+                    let len = game_options(&game, name == "nleft").len();
+                    i128::try_from(len).map_err(|_| overflow("game option count exceeds i128"))
+                })())
+            }
+            Expr::Call { name, .. } if name == "dim" => {
+                IndexPrimitive::Error(literal_call_error(name))
+            }
+            Expr::Dim => IndexPrimitive::Error(game_wrong_world(
+                "`dim` is a fixed-shape Clifford literal; the game container is free-shape",
+            )),
+            _ => IndexPrimitive::NotHandled,
+        }
     }
 
     fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
@@ -152,7 +130,7 @@ impl WorldOps for GameRuntime {
             let result = if name == "hasdraw" {
                 game_element_has_draw(&element)
             } else {
-                game_element_is_stopper(&element, self.graph_budget)?
+                game_element_is_stopper(&element, self.state.graph_budget)?
             };
             Ok(Value::Bool(result))
         })
@@ -160,8 +138,10 @@ impl WorldOps for GameRuntime {
 
     fn bind_recursive_element(&mut self, name: &str, expr: &Expr) -> OghamResult<()> {
         let reduced = self.reduce_element_fixpoint(name, expr, false)?;
-        let value = materialize_regular_game(name, reduced, self.graph_budget)?;
-        self.env.insert(name.to_string(), Value::Element(value));
+        let value = materialize_regular_game(name, reduced, self.state.graph_budget)?;
+        self.state
+            .env
+            .insert(name.to_string(), Value::Element(value));
         Ok(())
     }
 
@@ -169,19 +149,19 @@ impl WorldOps for GameRuntime {
         &self,
         body: &Expr,
         binders: &[String],
-        binder_sorts: &mut [Sort],
-        ret: &mut Sort,
+        binder_sorts: &mut [DataSort],
+        ret: &mut DataSort,
         mu_name: Option<&str>,
     ) {
-        refine_game_binder_sorts(body, binders, binder_sorts, &self.env);
-        if let Some(hint) = game_return_sort_hint(body, &self.env, mu_name) {
+        refine_game_binder_sorts(body, binders, binder_sorts, &self.state.env);
+        if let Some(hint) = game_return_sort_hint(body, &self.state.env, mu_name) {
             *ret = hint;
         }
         if let Some(name) = mu_name {
             if is_game_index_counter(name, body) {
                 for (binder, sort) in binders.iter().zip(binder_sorts) {
                     if contains_game_binder_unit_step(binder, body) {
-                        *sort = Sort::Index;
+                        *sort = DataSort::Index;
                     }
                 }
             }
@@ -194,10 +174,6 @@ impl WorldOps for GameRuntime {
 
     fn skip_ternary_eval_after_validation(&self) -> bool {
         true
-    }
-
-    fn reset_world_call_state(&mut self) {
-        self.active_mu_calls.clear();
     }
 
     fn element_at(
@@ -228,18 +204,6 @@ impl WorldOps for GameRuntime {
             .map(|name| game_mu_call_key(name, &function.body, args))
     }
 
-    fn call_key_is_active(&self, key: &str) -> bool {
-        self.active_mu_calls.contains(key)
-    }
-
-    fn activate_call_key(&mut self, key: String) {
-        self.active_mu_calls.insert(key);
-    }
-
-    fn deactivate_call_key(&mut self, key: &str) {
-        self.active_mu_calls.remove(key);
-    }
-
     fn install_call_arguments(
         &mut self,
         function: &FunctionValue,
@@ -252,7 +216,7 @@ impl WorldOps for GameRuntime {
             .map(|(binder, arg)| {
                 (
                     binder.name.clone(),
-                    self.env.insert(binder.name.clone(), arg.clone()),
+                    self.state.env.insert(binder.name.clone(), arg.clone()),
                 )
             })
             .collect()
@@ -264,9 +228,9 @@ impl WorldOps for GameRuntime {
         _args: &[Value<Self::Element>],
     ) -> OghamResult<Value<Self::Element>> {
         match function.ret {
-            Sort::Element => self.eval_element(&function.body).map(Value::Element),
-            Sort::Index => self.eval_index(&function.body).map(Value::Index),
-            Sort::Bool => self.eval_bool(&function.body).map(Value::Bool),
+            DataSort::Element => self.eval_element(&function.body).map(Value::Element),
+            DataSort::Index => self.eval_index(&function.body).map(Value::Index),
+            DataSort::Bool => self.eval_bool(&function.body).map(Value::Bool),
         }
     }
 }
@@ -274,13 +238,7 @@ impl WorldOps for GameRuntime {
 impl GameRuntime {
     pub(crate) fn new() -> Self {
         GameRuntime {
-            env: BTreeMap::new(),
-            fuel_budget: DEFAULT_FUEL,
-            fuel_remaining: DEFAULT_FUEL,
-            graph_budget: DEFAULT_GRAPH_BUDGET,
-            active_mu_calls: HashSet::new(),
-            recursion_depth: 0,
-            validation_sample_function_names: BTreeSet::new(),
+            state: RuntimeState::new(),
         }
     }
 
@@ -288,18 +246,20 @@ impl GameRuntime {
         if let RelOp::Outcome(cell) = op {
             let lhs = self.eval_element(lhs)?;
             let rhs = self.eval_element(rhs)?;
-            return Ok(
-                outcome_cell(game_difference_outcome(&lhs, &rhs, self.graph_budget)?) == cell,
-            );
+            return Ok(outcome_cell(game_difference_outcome(
+                &lhs,
+                &rhs,
+                self.state.graph_budget,
+            )?) == cell);
         }
         if !bool_shaped(lhs)
             && !bool_shaped(rhs)
             && (expression_is_index(lhs)
                 || expression_is_index(rhs)
-                || game_known_sort(lhs, &self.env) == Some(Sort::Index)
-                || game_known_sort(rhs, &self.env) == Some(Sort::Index)
-                || self.static_sort(lhs) == Ok(Sort::Index)
-                || self.static_sort(rhs) == Ok(Sort::Index))
+                || game_known_sort(lhs, &self.state.env) == Some(DataSort::Index)
+                || game_known_sort(rhs, &self.state.env) == Some(DataSort::Index)
+                || self.static_sort(lhs) == Ok(DataSort::Index)
+                || self.static_sort(rhs) == Ok(DataSort::Index))
         {
             let lhs = self.eval_index(lhs)?;
             let rhs = self.eval_index(rhs)?;
@@ -324,9 +284,9 @@ impl GameRuntime {
                     return Ok(game_element_regular_eq(&lhs, &rhs));
                 }
                 if let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (&lhs, &rhs) {
-                    LoopyPartizanGraph::from_game(lhs, self.graph_budget)
+                    LoopyPartizanGraph::from_game(lhs, self.state.graph_budget)
                         .map_err(partizan_graph_error)?;
-                    LoopyPartizanGraph::from_game(rhs, self.graph_budget)
+                    LoopyPartizanGraph::from_game(rhs, self.state.graph_budget)
                         .map_err(partizan_graph_error)?;
                     return match op {
                         RelOp::Eq => Ok(lhs.eq(rhs)),
@@ -336,12 +296,12 @@ impl GameRuntime {
                         RelOp::Equiv | RelOp::Outcome(_) => unreachable!("handled above"),
                     };
                 }
-                ensure_game_stopper("left", &lhs, self.graph_budget)?;
-                ensure_game_stopper("right", &rhs, self.graph_budget)?;
+                ensure_game_stopper("left", &lhs, self.state.graph_budget)?;
+                ensure_game_stopper("right", &rhs, self.state.graph_budget)?;
                 let projected = project_stopper_outcome(game_difference_outcome(
                     &lhs,
                     &rhs,
-                    self.graph_budget,
+                    self.state.graph_budget,
                 )?);
                 Ok(op == projected)
             }
@@ -370,7 +330,7 @@ impl GameRuntime {
                     tail = build_game_form(
                         vec![self.eval_element(item)?],
                         vec![tail],
-                        self.graph_budget,
+                        self.state.graph_budget,
                     )?;
                 }
                 Ok(tail)
@@ -380,7 +340,7 @@ impl GameRuntime {
             Expr::Dim => Err(game_wrong_world(
                 "`dim` is a fixed-shape Clifford literal; the game container is free-shape",
             )),
-            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
+            Expr::Lambda { .. } => Err(fn_sort_error()),
             Expr::GameForm { left, right } => build_game_form(
                 left.iter()
                     .map(|item| self.eval_element(item))
@@ -389,7 +349,7 @@ impl GameRuntime {
                     .iter()
                     .map(|item| self.eval_element(item))
                     .collect::<OghamResult<Vec<_>>>()?,
-                self.graph_budget,
+                self.state.graph_budget,
             ),
             Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
                 Value::Element(value) => Ok(value),
@@ -397,7 +357,7 @@ impl GameRuntime {
                 Value::Bool(_) => Err(bool_sort_error()),
                 Value::Function(_) => Err(fn_sort_error()),
             },
-            Expr::Ident(name) => match self.env.get(name) {
+            Expr::Ident(name) => match self.state.env.get(name) {
                 Some(Value::Element(value)) => Ok(value.clone()),
                 Some(Value::Index(_)) => Err(index_sort_error()),
                 Some(Value::Bool(_)) => Err(bool_sort_error()),
@@ -406,15 +366,15 @@ impl GameRuntime {
             },
             Expr::Call { name, args } => self.eval_element_call(name, args),
             Expr::Unary { op, expr } => match op {
-                UnaryOp::Neg => negate_game_element(self.eval_element(expr)?, self.graph_budget),
+                UnaryOp::Neg => {
+                    negate_game_element(self.eval_element(expr)?, self.state.graph_budget)
+                }
                 UnaryOp::Inv => Err(game_wrong_world(
                     "games form an additive group, not a field; `/` is undefined",
                 )),
                 UnaryOp::Not => Err(bool_sort_error()),
             },
-            Expr::Binary {
-                op: BinaryOp::At, ..
-            } => match self.eval_value(expr)? {
+            Expr::Apply { .. } => match self.eval_value(expr)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
                 Value::Bool(_) => Err(bool_sort_error()),
@@ -436,7 +396,7 @@ impl GameRuntime {
             BinaryOp::Add | BinaryOp::Sub => {
                 let lhs = self.eval_element(lhs)?;
                 let rhs = self.eval_element(rhs)?;
-                add_game_elements(lhs, rhs, op == BinaryOp::Sub, self.graph_budget)
+                add_game_elements(lhs, rhs, op == BinaryOp::Sub, self.state.graph_budget)
             }
             BinaryOp::Append => {
                 let lhs = self.eval_element(lhs)?;
@@ -444,7 +404,7 @@ impl GameRuntime {
                     SpineWalk::Cycles => Ok(lhs),
                     SpineWalk::ReachesNil(heads) => {
                         let rhs = self.eval_element(rhs)?;
-                        graft_game_spine(heads, rhs, self.graph_budget)
+                        graft_game_spine(heads, rhs, self.state.graph_budget)
                     }
                 }
             }
@@ -459,9 +419,6 @@ impl GameRuntime {
             )),
             BinaryOp::Rem => Err(game_wrong_world("remainder `%` is undefined for games")),
             BinaryOp::Pow => Err(game_wrong_world("power `↑` is undefined for games")),
-            BinaryOp::At => Err(game_wrong_world(
-                "Element application with `@` is not defined for games",
-            )),
             BinaryOp::And | BinaryOp::Or => Err(bool_sort_error()),
         }
     }
@@ -559,84 +516,6 @@ impl GameRuntime {
             }
             _ if contains_free_name(expr, name) => Err(unfounded_error(name)),
             _ => self.eval_element(expr).map(SymbolicGame::Value),
-        }
-    }
-
-    fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
-        match expr {
-            Expr::Index(expr) => self.eval_index(expr),
-            Expr::Int(n) => u128_to_i128(*n),
-            Expr::Bool(_) => Err(bool_sort_error()),
-            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
-            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Ident(name) => match self.env.get(name) {
-                Some(Value::Index(value)) => Ok(*value),
-                Some(Value::Element(_)) => Err(index_sort_error()),
-                Some(Value::Bool(_)) => Err(bool_sort_error()),
-                Some(Value::Function(_)) => Err(fn_sort_error()),
-                None => Err(unbound_error(name)),
-            },
-            Expr::Call { name, args } if matches!(name.as_str(), "nleft" | "nright") => {
-                expect_arity(name, args, 1)?;
-                let game = self.eval_element(&args[0])?;
-                let len = game_options(&game, name == "nleft").len();
-                i128::try_from(len).map_err(|_| overflow("game option count exceeds i128"))
-            }
-            Expr::Call { name, .. } if name == "dim" => Err(literal_call_error(name)),
-            Expr::Dim => Err(game_wrong_world(
-                "`dim` is a fixed-shape Clifford literal; the game container is free-shape",
-            )),
-            Expr::Unary {
-                op: UnaryOp::Neg,
-                expr,
-            } => self
-                .eval_index(expr)?
-                .checked_neg()
-                .ok_or_else(|| overflow("index negation overflowed i128")),
-            Expr::Unary {
-                op: UnaryOp::Inv, ..
-            } => Err(index_sort_error()),
-            Expr::Unary {
-                op: UnaryOp::Not, ..
-            } => Err(bool_sort_error()),
-            Expr::Binary {
-                op: BinaryOp::At, ..
-            } => match self.eval_value(expr)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Binary { op, lhs, rhs } => {
-                let lhs = self.eval_index(lhs)?;
-                let rhs = self.eval_index(rhs)?;
-                eval_index_binary(*op, lhs, rhs)
-            }
-            Expr::Ternary {
-                cond,
-                then_expr,
-                else_expr,
-            } => {
-                if self.eval_bool(cond)? {
-                    self.eval_index(then_expr)
-                } else {
-                    self.eval_index(else_expr)
-                }
-            }
-            Expr::Relation { .. } => Err(bool_sort_error()),
-            Expr::Star(_)
-            | Expr::Omega
-            | Expr::Blade(_)
-            | Expr::Container(_)
-            | Expr::Up
-            | Expr::Down
-            | Expr::GameForm { .. }
-            | Expr::Call { .. } => Err(index_sort_error()),
         }
     }
 }

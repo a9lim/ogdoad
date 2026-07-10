@@ -48,14 +48,6 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 .collect::<Vec<_>>()
                 .join(", ")
         ),
-        Expr::Tuple(items) => format!(
-            "({})",
-            items
-                .iter()
-                .map(unparse_expr)
-                .collect::<Vec<_>>()
-                .join(", ")
-        ),
         Expr::GameForm { left, right } => {
             let left = left.iter().map(unparse_expr).collect::<Vec<_>>().join(", ");
             let right = right
@@ -92,6 +84,17 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 .collect::<Vec<_>>()
                 .join(", ")
         ),
+        Expr::Apply { callee, args } => {
+            let args = if args.len() == 1 {
+                unparse_prec(&args[0], prec, true)
+            } else {
+                format!(
+                    "({})",
+                    args.iter().map(unparse_expr).collect::<Vec<_>>().join(", ")
+                )
+            };
+            format!("{}@{args}", unparse_prec(callee, prec, false))
+        }
         Expr::Unary { op, expr } => {
             let sigil = match op {
                 UnaryOp::Neg => "-",
@@ -154,11 +157,6 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 };
                 format!("{lhs}↑{rhs}")
             }
-            BinaryOp::At => format!(
-                "{}@{}",
-                unparse_prec(lhs, prec, false),
-                unparse_prec(rhs, prec, true)
-            ),
             BinaryOp::And => format!(
                 "{} and {}",
                 unparse_prec(lhs, prec, false),
@@ -309,9 +307,7 @@ fn precedence(expr: &Expr) -> u8 {
         Expr::Binary {
             op: BinaryOp::Pow, ..
         } => 11,
-        Expr::Binary {
-            op: BinaryOp::At, ..
-        } => 12,
+        Expr::Apply { .. } => 12,
         _ => 13,
     }
 }

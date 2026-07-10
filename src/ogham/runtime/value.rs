@@ -14,14 +14,14 @@ pub(crate) enum Value<E> {
 pub(crate) struct FunctionValue {
     pub(crate) binders: Vec<Binder>,
     pub(crate) body: Expr,
-    pub(crate) ret: Sort,
+    pub(crate) ret: DataSort,
     pub(crate) mu_name: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Binder {
     pub(crate) name: String,
-    pub(crate) sort: Sort,
+    pub(crate) sort: DataSort,
 }
 
 impl FunctionValue {

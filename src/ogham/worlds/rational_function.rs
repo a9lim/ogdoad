@@ -4,55 +4,18 @@ use super::super::*;
 
 pub(crate) struct RatFuncRuntime<S: OghamScalar + ExactFieldScalar> {
     pub(crate) name: &'static str,
-    pub(crate) env: BTreeMap<String, Value<RationalFunction<S>>>,
-    pub(crate) fuel_budget: u128,
-    pub(crate) fuel_remaining: u128,
-    pub(crate) graph_budget: u128,
-    pub(crate) recursion_depth: u128,
-    pub(crate) validation_sample_function_names: BTreeSet<String>,
+    pub(crate) state: RuntimeState<RationalFunction<S>>,
 }
 
 impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
     type Element = RationalFunction<S>;
 
-    fn env(&self) -> &BTreeMap<String, Value<Self::Element>> {
-        &self.env
+    fn state(&self) -> &RuntimeState<Self::Element> {
+        &self.state
     }
 
-    fn env_mut(&mut self) -> &mut BTreeMap<String, Value<Self::Element>> {
-        &mut self.env
-    }
-
-    fn fuel_budget(&self) -> u128 {
-        self.fuel_budget
-    }
-
-    fn fuel_budget_mut(&mut self) -> &mut u128 {
-        &mut self.fuel_budget
-    }
-
-    fn graph_budget(&self) -> u128 {
-        self.graph_budget
-    }
-
-    fn graph_budget_mut(&mut self) -> &mut u128 {
-        &mut self.graph_budget
-    }
-
-    fn fuel_remaining_mut(&mut self) -> &mut u128 {
-        &mut self.fuel_remaining
-    }
-
-    fn recursion_depth_mut(&mut self) -> &mut u128 {
-        &mut self.recursion_depth
-    }
-
-    fn validation_sample_function_names(&self) -> &BTreeSet<String> {
-        &self.validation_sample_function_names
-    }
-
-    fn validation_sample_function_names_mut(&mut self) -> &mut BTreeSet<String> {
-        &mut self.validation_sample_function_names
+    fn state_mut(&mut self) -> &mut RuntimeState<Self::Element> {
+        &mut self.state
     }
 
     fn world_name(&self) -> &'static str {
@@ -67,8 +30,20 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
         RatFuncRuntime::eval_element(self, expr)
     }
 
-    fn world_eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
-        RatFuncRuntime::eval_index(self, expr)
+    fn index_primitive(&mut self, expr: &Expr) -> IndexPrimitive {
+        match expr {
+            Expr::Call { name, .. } if name == "deg" => IndexPrimitive::Error(OghamError::new(
+                OghamErrorKind::WrongWorld,
+                Span::point(0),
+                "`deg` is a polynomial-world function, not a ratfunc function",
+            )),
+            Expr::Call { name, .. } if name == "dim" => {
+                IndexPrimitive::Error(literal_call_error(name))
+            }
+            Expr::Dim => IndexPrimitive::Error(array_world_error("dim")),
+            Expr::GameForm { .. } => IndexPrimitive::Error(game_only_error("game forms")),
+            _ => IndexPrimitive::NotHandled,
+        }
     }
 
     fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
@@ -118,12 +93,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
     pub(crate) fn new(name: &'static str) -> Self {
         RatFuncRuntime {
             name,
-            env: BTreeMap::new(),
-            fuel_budget: DEFAULT_FUEL,
-            fuel_remaining: DEFAULT_FUEL,
-            graph_budget: DEFAULT_GRAPH_BUDGET,
-            recursion_depth: 0,
-            validation_sample_function_names: BTreeSet::new(),
+            state: RuntimeState::new(),
         }
     }
 
@@ -185,7 +155,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             Expr::Ident(name) => {
                 if name == "t" {
                     Ok(RationalFunction::t())
-                } else if let Some(value) = self.env.get(name) {
+                } else if let Some(value) = self.state.env.get(name) {
                     match value {
                         Value::Element(value) => Ok(value.clone()),
                         Value::Index(_) => Err(index_sort_error()),
@@ -196,7 +166,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                     Err(unbound_error(name))
                 }
             }
-            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
+            Expr::Lambda { .. } => Err(fn_sort_error()),
             Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
@@ -212,9 +182,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                     UnaryOp::Not => Err(bool_sort_error()),
                 }
             }
-            Expr::Binary {
-                op: BinaryOp::At, ..
-            } => match self.eval_value(expr)? {
+            Expr::Apply { .. } => match self.eval_value(expr)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
                 Value::Bool(_) => Err(bool_sort_error()),
@@ -272,7 +240,6 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Span::point(0),
                 "function-field worlds are fields; `%` is only active in polynomial worlds",
             )),
-            BinaryOp::At => substitute_rational_function(&lhs_v, &rhs_v, Span::point(0)),
             BinaryOp::Wedge => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
@@ -318,76 +285,6 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Span::point(0),
                 format!("unknown function `{name}`"),
             )),
-        }
-    }
-
-    fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
-        match expr {
-            Expr::Index(expr) => self.eval_index(expr),
-            Expr::Int(n) => u128_to_i128(*n),
-            Expr::Bool(_) => Err(bool_sort_error()),
-            Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
-            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Ident(name) => match self.env.get(name) {
-                Some(Value::Index(value)) => Ok(*value),
-                Some(Value::Element(_)) => Err(index_sort_error()),
-                Some(Value::Bool(_)) => Err(bool_sort_error()),
-                Some(Value::Function(_)) => Err(fn_sort_error()),
-                None => Err(unbound_error(name)),
-            },
-            Expr::Call { name, .. } if name == "deg" => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
-                Span::point(0),
-                "`deg` is a polynomial-world function, not a ratfunc function",
-            )),
-            Expr::Call { name, .. } if name == "dim" => Err(literal_call_error(name)),
-            Expr::Dim => Err(array_world_error("dim")),
-            Expr::Unary {
-                op: UnaryOp::Neg,
-                expr,
-            } => self
-                .eval_index(expr)?
-                .checked_neg()
-                .ok_or_else(|| overflow("index negation overflowed i128")),
-            Expr::Unary {
-                op: UnaryOp::Inv, ..
-            } => Err(index_sort_error()),
-            Expr::Unary {
-                op: UnaryOp::Not, ..
-            } => Err(bool_sort_error()),
-            Expr::Binary {
-                op: BinaryOp::At, ..
-            } => match self.eval_value(expr)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Binary { op, lhs, rhs } => {
-                let lhs = self.eval_index(lhs)?;
-                let rhs = self.eval_index(rhs)?;
-                eval_index_binary(*op, lhs, rhs)
-            }
-            Expr::Ternary { .. } => match self.eval_value(expr)? {
-                Value::Index(value) => Ok(value),
-                Value::Element(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Relation { .. } => Err(bool_sort_error()),
-            Expr::Star(_)
-            | Expr::Omega
-            | Expr::Blade(_)
-            | Expr::Container(_)
-            | Expr::Up
-            | Expr::Down
-            | Expr::Call { .. } => Err(index_sort_error()),
-            Expr::GameForm { .. } => Err(game_only_error("game forms")),
         }
     }
 

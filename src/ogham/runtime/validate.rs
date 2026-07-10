@@ -5,7 +5,7 @@ use super::*;
 #[derive(Clone, Copy)]
 pub(crate) enum ExpectedSort {
     Any,
-    Known(Sort),
+    Known(DataSort),
 }
 
 pub(crate) fn check_binders(
@@ -35,11 +35,11 @@ pub(crate) fn check_binders(
 pub(crate) fn infer_function_signature(
     body: &Expr,
     binders: &[String],
-) -> OghamResult<(Vec<Sort>, Sort)> {
+) -> OghamResult<(Vec<DataSort>, DataSort)> {
     let mut slots = binders
         .iter()
         .map(|name| (name.clone(), None))
-        .collect::<BTreeMap<String, Option<Sort>>>();
+        .collect::<BTreeMap<String, Option<DataSort>>>();
     let ret = infer_expr_sort(body, ExpectedSort::Any, &mut slots)?;
     let sorts = binders
         .iter()
@@ -47,7 +47,7 @@ pub(crate) fn infer_function_signature(
             slots
                 .get(name)
                 .and_then(|sort| *sort)
-                .unwrap_or(Sort::Element)
+                .unwrap_or(DataSort::Element)
         })
         .collect();
     Ok((sorts, ret))
@@ -56,25 +56,25 @@ pub(crate) fn infer_function_signature(
 pub(crate) fn infer_expr_sort(
     expr: &Expr,
     expected: ExpectedSort,
-    binders: &mut BTreeMap<String, Option<Sort>>,
-) -> OghamResult<Sort> {
+    binders: &mut BTreeMap<String, Option<DataSort>>,
+) -> OghamResult<DataSort> {
     match expr {
-        Expr::Bool(_) => expect_sort(Sort::Bool, expected),
+        Expr::Bool(_) => expect_sort(DataSort::Bool, expected),
         Expr::Int(_) | Expr::Star(_) | Expr::Omega | Expr::Blade(_) | Expr::Up | Expr::Down => {
             expect_sort(default_sort(expected), expected)
         }
-        Expr::Dim => expect_sort(Sort::Index, expected),
+        Expr::Dim => expect_sort(DataSort::Index, expected),
         Expr::Container(items) => {
             for item in items {
-                infer_expr_sort(item, ExpectedSort::Known(Sort::Element), binders)?;
+                infer_expr_sort(item, ExpectedSort::Known(DataSort::Element), binders)?;
             }
-            expect_sort(Sort::Element, expected)
+            expect_sort(DataSort::Element, expected)
         }
         Expr::GameForm { left, right } => {
             for item in left.iter().chain(right) {
-                infer_expr_sort(item, ExpectedSort::Known(Sort::Element), binders)?;
+                infer_expr_sort(item, ExpectedSort::Known(DataSort::Element), binders)?;
             }
-            expect_sort(Sort::Element, expected)
+            expect_sort(DataSort::Element, expected)
         }
         Expr::Block { bindings, body } => {
             for binding in bindings {
@@ -82,7 +82,7 @@ pub(crate) fn infer_expr_sort(
             }
             infer_expr_sort(body, expected, binders)
         }
-        Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
+        Expr::Lambda { .. } => Err(fn_sort_error()),
         Expr::Ident(name) => {
             if binders.contains_key(name) {
                 let sort = default_sort(expected);
@@ -95,49 +95,49 @@ pub(crate) fn infer_expr_sort(
         Expr::Call { name, args } => match name.as_str() {
             "nleft" | "nright" => {
                 expect_arity(name, args, 1)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Index, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Index, expected)
             }
             "left" | "right" => {
                 expect_arity(name, args, 2)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                infer_expr_sort(&args[1], ExpectedSort::Known(Sort::Index), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Index), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
             "canon" => {
                 expect_arity(name, args, 1)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
             "up" | "down" | "dim" => Err(literal_call_error(name)),
             "hasdraw" | "stopper" => {
                 expect_arity(name, args, 1)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Bool, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Bool, expected)
             }
             "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
             "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
             "coef" => {
                 expect_arity(name, args, 2)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                infer_expr_sort(&args[1], ExpectedSort::Known(Sort::Index), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Index), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
             "deg" => {
                 expect_arity(name, args, 1)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Index, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Index, expected)
             }
             "grade" => {
                 expect_arity(name, args, 2)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                infer_expr_sort(&args[1], ExpectedSort::Known(Sort::Index), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Index), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
             "rev" | "even" | "dual" | "frob" => {
                 expect_arity(name, args, 1)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
             "tr" => {
                 if args.is_empty() || args.len() > 2 {
@@ -147,17 +147,17 @@ pub(crate) fn infer_expr_sort(
                         "`tr` expects one or two arguments",
                     ));
                 }
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 if args.len() == 2 {
-                    infer_expr_sort(&args[1], ExpectedSort::Known(Sort::Index), binders)?;
+                    infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Index), binders)?;
                 }
-                expect_sort(Sort::Element, expected)
+                expect_sort(DataSort::Element, expected)
             }
             "gcd" => {
                 expect_arity(name, args, 2)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
-                infer_expr_sort(&args[1], ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
+                infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
             _ => Err(OghamError::new(
                 OghamErrorKind::UnknownFn,
@@ -165,14 +165,15 @@ pub(crate) fn infer_expr_sort(
                 format!("unknown function `{name}`"),
             )),
         },
+        Expr::Apply { .. } => expect_sort(default_sort(expected), expected),
         Expr::Index(inner) => {
-            infer_expr_sort(inner, ExpectedSort::Known(Sort::Index), binders)?;
-            expect_sort(Sort::Index, expected)
+            infer_expr_sort(inner, ExpectedSort::Known(DataSort::Index), binders)?;
+            expect_sort(DataSort::Index, expected)
         }
         Expr::Unary { op, expr } => match op {
             UnaryOp::Not => {
-                infer_expr_sort(expr, ExpectedSort::Known(Sort::Bool), binders)?;
-                expect_sort(Sort::Bool, expected)
+                infer_expr_sort(expr, ExpectedSort::Known(DataSort::Bool), binders)?;
+                expect_sort(DataSort::Bool, expected)
             }
             UnaryOp::Neg => {
                 let sort = default_sort(expected);
@@ -180,23 +181,23 @@ pub(crate) fn infer_expr_sort(
                 expect_sort(sort, expected)
             }
             UnaryOp::Inv => {
-                infer_expr_sort(expr, ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(expr, ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
         },
         Expr::Binary { op, lhs, rhs } => match op {
             BinaryOp::And | BinaryOp::Or => {
-                infer_expr_sort(lhs, ExpectedSort::Known(Sort::Bool), binders)?;
-                infer_expr_sort(rhs, ExpectedSort::Known(Sort::Bool), binders)?;
-                expect_sort(Sort::Bool, expected)
+                infer_expr_sort(lhs, ExpectedSort::Known(DataSort::Bool), binders)?;
+                infer_expr_sort(rhs, ExpectedSort::Known(DataSort::Bool), binders)?;
+                expect_sort(DataSort::Bool, expected)
             }
             BinaryOp::Pow => {
                 let sort = match expected {
-                    ExpectedSort::Known(Sort::Index) => Sort::Index,
-                    _ => Sort::Element,
+                    ExpectedSort::Known(DataSort::Index) => DataSort::Index,
+                    _ => DataSort::Element,
                 };
                 infer_expr_sort(lhs, ExpectedSort::Known(sort), binders)?;
-                infer_expr_sort(rhs, ExpectedSort::Known(Sort::Index), binders)?;
+                infer_expr_sort(rhs, ExpectedSort::Known(DataSort::Index), binders)?;
                 expect_sort(sort, expected)
             }
             BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul => {
@@ -206,18 +207,17 @@ pub(crate) fn infer_expr_sort(
                 expect_sort(sort, expected)
             }
             BinaryOp::Div | BinaryOp::Rem | BinaryOp::Wedge | BinaryOp::Append => {
-                infer_expr_sort(lhs, ExpectedSort::Known(Sort::Element), binders)?;
-                infer_expr_sort(rhs, ExpectedSort::Known(Sort::Element), binders)?;
-                expect_sort(Sort::Element, expected)
+                infer_expr_sort(lhs, ExpectedSort::Known(DataSort::Element), binders)?;
+                infer_expr_sort(rhs, ExpectedSort::Known(DataSort::Element), binders)?;
+                expect_sort(DataSort::Element, expected)
             }
-            BinaryOp::At => expect_sort(default_sort(expected), expected),
         },
         Expr::Ternary {
             cond,
             then_expr,
             else_expr,
         } => {
-            infer_expr_sort(cond, ExpectedSort::Known(Sort::Bool), binders)?;
+            infer_expr_sort(cond, ExpectedSort::Known(DataSort::Bool), binders)?;
             let branch_expected = expected;
             let then_sort = infer_expr_sort(then_expr, branch_expected, binders)?;
             let else_sort = infer_expr_sort(else_expr, ExpectedSort::Known(then_sort), binders)?;
@@ -230,14 +230,14 @@ pub(crate) fn infer_expr_sort(
             let sort = relation_operand_sort(*op, lhs, rhs);
             infer_expr_sort(lhs, ExpectedSort::Known(sort), binders)?;
             infer_expr_sort(rhs, ExpectedSort::Known(sort), binders)?;
-            expect_sort(Sort::Bool, expected)
+            expect_sort(DataSort::Bool, expected)
         }
     }
 }
 
 pub(crate) fn infer_block_binding_rhs(
     rhs: &Expr,
-    binders: &mut BTreeMap<String, Option<Sort>>,
+    binders: &mut BTreeMap<String, Option<DataSort>>,
 ) -> OghamResult<()> {
     match rhs {
         Expr::Lambda {
@@ -251,7 +251,7 @@ pub(crate) fn infer_block_binding_rhs(
 pub(crate) fn infer_nested_lambda_body(
     local_binders: &[String],
     body: &Expr,
-    binders: &mut BTreeMap<String, Option<Sort>>,
+    binders: &mut BTreeMap<String, Option<DataSort>>,
 ) -> OghamResult<()> {
     let local = local_binders.iter().cloned().collect::<BTreeSet<_>>();
     let mut nested = binders.clone();
@@ -270,26 +270,26 @@ pub(crate) fn infer_nested_lambda_body(
     Ok(())
 }
 
-pub(crate) fn relation_operand_sort(op: RelOp, lhs: &Expr, rhs: &Expr) -> Sort {
+pub(crate) fn relation_operand_sort(op: RelOp, lhs: &Expr, rhs: &Expr) -> DataSort {
     if op == RelOp::Fuzzy {
-        Sort::Element
+        DataSort::Element
     } else if op == RelOp::Eq && (bool_shaped(lhs) || bool_shaped(rhs)) {
-        Sort::Bool
+        DataSort::Bool
     } else if index_shaped(lhs) || index_shaped(rhs) {
-        Sort::Index
+        DataSort::Index
     } else {
-        Sort::Element
+        DataSort::Element
     }
 }
 
-pub(crate) fn default_sort(expected: ExpectedSort) -> Sort {
+pub(crate) fn default_sort(expected: ExpectedSort) -> DataSort {
     match expected {
         ExpectedSort::Known(sort) => sort,
-        ExpectedSort::Any => Sort::Element,
+        ExpectedSort::Any => DataSort::Element,
     }
 }
 
-pub(crate) fn expect_sort(actual: Sort, expected: ExpectedSort) -> OghamResult<Sort> {
+pub(crate) fn expect_sort(actual: DataSort, expected: ExpectedSort) -> OghamResult<DataSort> {
     match expected {
         ExpectedSort::Any => Ok(actual),
         ExpectedSort::Known(expected) if expected == actual => Ok(actual),
@@ -298,9 +298,9 @@ pub(crate) fn expect_sort(actual: Sort, expected: ExpectedSort) -> OghamResult<S
 }
 
 pub(crate) fn mark_binder_sort(
-    binders: &mut BTreeMap<String, Option<Sort>>,
+    binders: &mut BTreeMap<String, Option<DataSort>>,
     name: &str,
-    sort: Sort,
+    sort: DataSort,
 ) -> OghamResult<()> {
     let slot = binders
         .get_mut(name)
@@ -356,11 +356,11 @@ pub(crate) fn static_sort<E>(
     expr: &Expr,
     env: &BTreeMap<String, Value<E>>,
     deg_is_index: bool,
-) -> OghamResult<Sort> {
+) -> OghamResult<DataSort> {
     match expr {
-        Expr::Bool(_) | Expr::Relation { .. } => Ok(Sort::Bool),
-        Expr::Index(_) | Expr::Dim => Ok(Sort::Index),
-        Expr::Lambda { .. } | Expr::Tuple(_) => Err(fn_sort_error()),
+        Expr::Bool(_) | Expr::Relation { .. } => Ok(DataSort::Bool),
+        Expr::Index(_) | Expr::Dim => Ok(DataSort::Index),
+        Expr::Lambda { .. } => Err(fn_sort_error()),
         Expr::Block { bindings, body } => {
             let mut local_sorts = env
                 .iter()
@@ -373,51 +373,49 @@ pub(crate) fn static_sort<E>(
             static_sort_with_sorts(body, &local_sorts, deg_is_index)
         }
         Expr::Ident(name) => match env.get(name) {
-            Some(Value::Element(_)) => Ok(Sort::Element),
-            Some(Value::Index(_)) => Ok(Sort::Index),
-            Some(Value::Bool(_)) => Ok(Sort::Bool),
+            Some(Value::Element(_)) => Ok(DataSort::Element),
+            Some(Value::Index(_)) => Ok(DataSort::Index),
+            Some(Value::Bool(_)) => Ok(DataSort::Bool),
             Some(Value::Function(_)) => Err(fn_sort_error()),
-            None => Ok(Sort::Element),
+            None => Ok(DataSort::Element),
         },
         Expr::Call { name, .. }
             if matches!(name.as_str(), "dim" | "nleft" | "nright")
                 || (deg_is_index && name == "deg") =>
         {
-            Ok(Sort::Index)
+            Ok(DataSort::Index)
         }
-        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => Ok(Sort::Bool),
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => {
+            Ok(DataSort::Bool)
+        }
         Expr::Unary {
             op: UnaryOp::Not, ..
-        } => Ok(Sort::Bool),
+        } => Ok(DataSort::Bool),
         Expr::Unary { expr, .. } => static_sort(expr, env, deg_is_index),
-        Expr::Binary {
-            op: BinaryOp::At,
-            lhs,
-            ..
-        } => match &**lhs {
+        Expr::Apply { callee, .. } => match &**callee {
             Expr::Ident(name) => match env.get(name) {
                 Some(Value::Function(function)) => Ok(function.ret),
-                _ => Ok(Sort::Element),
+                _ => Ok(DataSort::Element),
             },
-            _ => Ok(Sort::Element),
+            _ => Ok(DataSort::Element),
         },
         Expr::Binary {
             op: BinaryOp::And | BinaryOp::Or,
             ..
-        } => Ok(Sort::Bool),
+        } => Ok(DataSort::Bool),
         Expr::Binary {
             op: BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Pow,
             lhs,
             rhs,
         } => {
-            let lhs = static_sort(lhs, env, deg_is_index).unwrap_or(Sort::Element);
-            let rhs = static_sort(rhs, env, deg_is_index).unwrap_or(Sort::Element);
-            if lhs == Sort::Bool || rhs == Sort::Bool {
-                Ok(Sort::Bool)
-            } else if lhs == Sort::Index || rhs == Sort::Index {
-                Ok(Sort::Index)
+            let lhs = static_sort(lhs, env, deg_is_index).unwrap_or(DataSort::Element);
+            let rhs = static_sort(rhs, env, deg_is_index).unwrap_or(DataSort::Element);
+            if lhs == DataSort::Bool || rhs == DataSort::Bool {
+                Ok(DataSort::Bool)
+            } else if lhs == DataSort::Index || rhs == DataSort::Index {
+                Ok(DataSort::Index)
             } else {
-                Ok(Sort::Element)
+                Ok(DataSort::Element)
             }
         }
         Expr::Ternary {
@@ -433,19 +431,19 @@ pub(crate) fn static_sort<E>(
                 Err(sort_mismatch(then_sort, else_sort))
             }
         }
-        _ => Ok(Sort::Element),
+        _ => Ok(DataSort::Element),
     }
 }
 
 pub(crate) fn static_sort_with_sorts(
     expr: &Expr,
-    env: &BTreeMap<String, Sort>,
+    env: &BTreeMap<String, DataSort>,
     deg_is_index: bool,
-) -> OghamResult<Sort> {
+) -> OghamResult<DataSort> {
     match expr {
-        Expr::Bool(_) | Expr::Relation { .. } => Ok(Sort::Bool),
-        Expr::Index(_) | Expr::Dim => Ok(Sort::Index),
-        Expr::Lambda { .. } | Expr::Tuple(_) => Err(fn_sort_error()),
+        Expr::Bool(_) | Expr::Relation { .. } => Ok(DataSort::Bool),
+        Expr::Index(_) | Expr::Dim => Ok(DataSort::Index),
+        Expr::Lambda { .. } => Err(fn_sort_error()),
         Expr::Block { bindings, body } => {
             let mut local = env.clone();
             for binding in bindings {
@@ -454,35 +452,37 @@ pub(crate) fn static_sort_with_sorts(
             }
             static_sort_with_sorts(body, &local, deg_is_index)
         }
-        Expr::Ident(name) => Ok(env.get(name).copied().unwrap_or(Sort::Element)),
+        Expr::Ident(name) => Ok(env.get(name).copied().unwrap_or(DataSort::Element)),
         Expr::Call { name, .. }
             if matches!(name.as_str(), "dim" | "nleft" | "nright")
                 || (deg_is_index && name == "deg") =>
         {
-            Ok(Sort::Index)
+            Ok(DataSort::Index)
         }
-        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => Ok(Sort::Bool),
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => {
+            Ok(DataSort::Bool)
+        }
         Expr::Unary {
             op: UnaryOp::Not, ..
-        } => Ok(Sort::Bool),
+        } => Ok(DataSort::Bool),
         Expr::Unary { expr, .. } => static_sort_with_sorts(expr, env, deg_is_index),
         Expr::Binary {
             op: BinaryOp::And | BinaryOp::Or,
             ..
-        } => Ok(Sort::Bool),
+        } => Ok(DataSort::Bool),
         Expr::Binary {
             op: BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Pow,
             lhs,
             rhs,
         } => {
-            let lhs = static_sort_with_sorts(lhs, env, deg_is_index).unwrap_or(Sort::Element);
-            let rhs = static_sort_with_sorts(rhs, env, deg_is_index).unwrap_or(Sort::Element);
-            if lhs == Sort::Bool || rhs == Sort::Bool {
-                Ok(Sort::Bool)
-            } else if lhs == Sort::Index || rhs == Sort::Index {
-                Ok(Sort::Index)
+            let lhs = static_sort_with_sorts(lhs, env, deg_is_index).unwrap_or(DataSort::Element);
+            let rhs = static_sort_with_sorts(rhs, env, deg_is_index).unwrap_or(DataSort::Element);
+            if lhs == DataSort::Bool || rhs == DataSort::Bool {
+                Ok(DataSort::Bool)
+            } else if lhs == DataSort::Index || rhs == DataSort::Index {
+                Ok(DataSort::Index)
             } else {
-                Ok(Sort::Element)
+                Ok(DataSort::Element)
             }
         }
         Expr::Ternary {
@@ -498,7 +498,7 @@ pub(crate) fn static_sort_with_sorts(
                 Err(sort_mismatch(then_sort, else_sort))
             }
         }
-        _ => Ok(Sort::Element),
+        _ => Ok(DataSort::Element),
     }
 }
 
