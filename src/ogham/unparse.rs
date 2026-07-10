@@ -185,7 +185,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 RelOp::Eq => "=",
                 RelOp::Lt => "<",
                 RelOp::Gt => ">",
-                RelOp::Fuzzy => "|",
+                RelOp::Fuzzy => "∥",
                 RelOp::Equiv => "≡",
             };
             format!(

@@ -1,7 +1,7 @@
 # ogham — the ogdoad expression language
 
-Status: **v1 + v1.1 + v2.0 + v2.1 implemented** (2026-06-12);
-**v3.0 stubbed** (§19, same date — the stub is pre-contract). For the shipped
+Status: **v0.1 + v0.1.1 + v0.2.0 + v0.2.1 implemented** (2026-06-12);
+**v0.3.0 stubbed** (§19, same date — the stub is pre-contract). For the shipped
 language this document is the implementation contract: every decision below
 either cashes out as a vector in [`docs/ogham/conformance.txt`](conformance.txt)
 or it is not really decided. Implementing agents work until the corpus is green;
@@ -26,9 +26,10 @@ a language whose operators are strokes and ticks (`*`, `↑`, `∧`, `⋅`, `/`)
 2. **parse ∘ display = id.** Display (v2, §9) emits canonical ogham; the
    parser's input language is a superset of Display's output language.
 3. **Two layers: canonical and sugar.** Canonical uses the unicode math glyphs
-   where ASCII is contested (`ω ↑ ∧ ⋅`); ASCII stays canonical where it is
-   uncontested (`* e + - / = := < > | [ ] ( )`). Sugar is input-only; the REPL echoes
-   canonical (the REPL is the tutor).
+   where ASCII is contested (`ω ↑ ∧ ⋅ ∥`); ASCII stays canonical where it is
+   uncontested (`* e + - / = := < > [ ] ( )`, plus `|` as the structural
+   braceform bar — its only role; fuzzy's ASCII sugar is `\`, §3). Sugar is
+   input-only; the REPL echoes canonical (the REPL is the tutor).
 4. **Unambiguous to the end.** No juxtaposition anywhere — not even as sugar.
    No inference of worlds from literals. No context-sensitive operators.
 5. **One world per session** (core rule 5). Mixing is a parse/eval-time error,
@@ -38,7 +39,7 @@ a language whose operators are strokes and ticks (`*`, `↑`, `∧`, `⋅`, `/`)
 7. **Pure Rust, zero deps, no pyo3 outside `src/py/`** (core rule 1). The
    parser/evaluator is a new `src/ogham/` area; the Python `eval` hook lives in
    `src/py/` behind the `python` feature.
-8. **Two containers, one per pillar** (v3, §19). *APL over the Clifford
+8. **Two containers, one per pillar** (v0.3, §19). *APL over the Clifford
    worlds, Lisp over the game world, one grammar*: arrays are grade-1
    multivectors — world-fixed shape, bulk algebra, `coef`/`dim`; lists are
    game forms — cons `{h | t}`, nil `{|} = 0`, free shape, μ-recursion and
@@ -58,11 +59,11 @@ a language whose operators are strokes and ticks (`*`, `↑`, `∧`, `⋅`, `/`)
 | recip / div | `/` | — | — | unary and binary (§7.4) |
 | add | `+` | — | — | |
 | remainder | `%` | — | — | Euclidean / CNF-truncation remainder (§7.6) |
-| evaluate | `@` | — | — | substitution `t := v`, binds tightest (§7.6; v1.1 worlds) |
+| evaluate | `@` | — | — | substitution `t := v`, binds tightest (§7.6; v0.1.1 worlds) |
 | factorial | `!` | — | — | prefix, Index operand (§7.6) |
 | equality | `=` | — | `==` | Bool-valued relation (§7.7, §17) |
 | less / greater | `<` `>` | — | — | Bool-valued strict order relations (§7.7, §17) |
-| fuzzy | `\|` | — | — | incomparable, CGT ∥ (§7.7); structural separator inside `{L\|R}` forms (§19.4), like `+ ⋅ ↑` inside star-literals |
+| fuzzy | `∥` | U+2225 | `\` | incomparable, CGT ∥ (§7.7; canonical since 2026-07-09, a9's call — sugar `\`, the TeX reflex); `\|` is the structural braceform bar only, never the relation (§19.4), like `+ ⋅ ↑` inside star-literals — a relop-tier `\|` earns the §11 hint |
 | binding | `:=` | — | — | `name := expr` |
 | lambda | `↦` | U+21A6 | `~` | first-order Function value (§17) |
 | ternary | `? :` | — | — | lazy condition, branches sort-homogeneous (§17) |
@@ -103,10 +104,16 @@ Index operands, §7.6, not a unary form of any binary operator.)
 - `*` followed by anything lexes as the STAR prefix token; `*` is never an
   infix operator.
 - Sugar substitution happens in the lexer: `w→ω`, `^→↑`, `&→∧`, `.→⋅`, `·→⋅`,
-  `==→=`, `~→↦`, `++→⧺`, `===→≡` (into the reserved token, §2). Multi-char
-  tokens munch longest-first (`=:` before `=`, `===` before `==`, `++`
-  before `+`) and require adjacency — `a + + b` stays `E_Parse`. After the
-  lexer, only canonical tokens exist.
+  `\→∥`, `==→=`, `~→↦`, `++→⧺`, `===→≡` (into the reserved token, §2).
+  Multi-char tokens munch longest-first (`=:` before `=`, `===` before `==`,
+  `++` before `+`) and require adjacency — `a + + b` stays `E_Parse`. After
+  the lexer, only canonical tokens exist. The braceform bar is not the fuzzy
+  relop: `|` is canonical as the structural separator and has no relop
+  reading (a relop-tier `|` earns the §11 hint), and `∥` is refused as the
+  bar in turn — a `∥` inside braces is just a relation expression in an
+  option slot, sort-checked as such. Fuzzy's `\` sugar is the TeX reflex
+  (`\parallel`), affordable exactly because strings and escapes are
+  permanent non-goals (§19.6).
 
 ## 4. Grammar (EBNF)
 
@@ -117,7 +124,7 @@ statement   = binding | expression ;
 binding     = IDENT ":=" additive ;           (* rebinding allowed; binds values, not verdicts *)
 
 expression  = additive [ relop additive ] ;   (* relations not nestable *)
-relop       = "=" | "<" | ">" | "|" ;
+relop       = "=" | "<" | ">" | "∥" ;
 additive    = mulexpr { ("+" | "-") mulexpr } ;
 mulexpr     = wedge   { ("⋅" | "/" | "%") wedge } ;
 wedge       = unary   { "∧" unary } ;
@@ -182,7 +189,7 @@ precedence above is ogham's, full stop; host code uses parens.
 
 A session holds exactly one world plus environment. The Clifford-capable worlds
 monomorphise a scalar backend into a `CliffordAlgebra<S>`. The function-shaped
-v1.1 worlds are scalar polynomial/rational-function evaluators with no Clifford
+v0.1.1 worlds are scalar polynomial/rational-function evaluators with no Clifford
 metric. Worlds are declared by colon-command (REPL) or a leading directive line
 (`.og` files use the same syntax without the colon prompt):
 
@@ -191,7 +198,7 @@ metric. Worlds are declared by colon-command (REPL) or a leading directive line
 :world ‹name› ‹dim› grassmann
 :world nimber gold(m,a)            # dim = m, metric = forms::trace_form::gold_form(m,a)
 :world ‹name› 0                    # pure scalar work, no metric
-:world ‹poly/ratfunc name›          # function-shaped v1.1 world
+:world ‹poly/ratfunc name›          # function-shaped v0.1.1 world
 ```
 
 `q`/`b`/`a` mirror `Metric::diagonal` / `::new` / `::general`
@@ -208,9 +215,9 @@ grades, blade indices, stdlib integer args; Index expressions allow
 `+ - ⋅ ↑` and parens, nothing else. Position determines sort; there are no
 coercions between sorts.
 
-### 6.1 v1/v1.1 world menu (fixed dispatch table)
+### 6.1 v0.1/v0.1.1 world menu (fixed dispatch table)
 
-Const-generic backends require a compiled-in menu; v1 ships:
+Const-generic backends require a compiled-in menu; v0.1 ships:
 
 | world name(s) | backend | field? | notes |
 |---|---|---|---|
@@ -226,7 +233,7 @@ Const-generic backends require a compiled-in menu; v1 ships:
 | `poly2 poly3 poly5 poly7` | `Poly<Fp<2|3|5|7>>` | no | `F_p[t]`, function-shaped, no metric |
 | `polyint` | `Poly<Integer>` | no | `ℤ[t]`, monic division boundary |
 | `ratfunc2 ratfunc3 ratfunc5 ratfunc7` | `RationalFunction<Fp<2|3|5|7>>` | yes | `F_p(t)`, function-shaped, no metric |
-| `game` | `games::Game` forms + loopy graphs | no (group) | v3 (§19.4): the first non-scalar world; no metric, no blades |
+| `game` | `games::Game` forms + loopy graphs | no (group) | v0.3 (§19.4): the first non-scalar world; no metric, no blades |
 
 (The six `f*` names match the Python binding classes `F4…F27`,
 src/py/scalars.rs. Extending the menu = adding one arm to the dispatch enum.)
@@ -287,15 +294,15 @@ All file:line references are to this checkout.
 | `a ∧ b` | `alg.wedge(&a, &b)` (algebra.rs:153) |
 | `a / b` | `a ⋅ inv(b)` — **right division**; noncommutative worlds beware, documented not hidden. At grade 0 in non-field worlds, falls back to **exact division** — the unique `x` with `x ⋅ b = a` (§7.6): `6 / 3 = 2` in ℤ, `7 / 3` still `E_NotInvertible` |
 | `/a` | grade-0: `Scalar::inv` else `alg.multivector_inverse(&a)` (inverse.rs:9); `None → E_NotInvertible` |
-| `a % b` | per-world remainder — Euclidean in ℤ, CNF truncation in the surreal family, `divrem` in v1.1 poly worlds, rejected in fields (§7.6) |
-| `f @ v` | substitution `t := v` in the function-shaped v1.1 worlds; `E_WrongWorld` in every v1 world (§7.6) |
+| `a % b` | per-world remainder — Euclidean in ℤ, CNF truncation in the surreal family, `divrem` in v0.1.1 poly worlds, rejected in fields (§7.6) |
+| `f @ v` | substitution `t := v` in the function-shaped v0.1.1 worlds; `E_WrongWorld` in every v0.1 world (§7.6) |
 | `!n` | factorial of an Index, landing as the bare integer literal `n!` would per §6.2 (§7.6) |
 | `a ↑ k` (k ≥ 0) | iterated `alg.mul`, left fold; `a↑0 = 1` |
 | `a ↑ -k` | `(/a) ↑ k` |
 | `ω ↑ s` (surreal world, s an Element) | `Surreal::omega_pow(s)` — Hahn monomial constructor; any other base with Element exponent is `E_ExpSort` |
 | `[a0,…,a(n-1)]` | `Σ alg.scalar_mul(&ai, &alg.e(i))`; length ≠ dim → `E_DimMismatch` |
 | `a = b` | `PartialEq`, prints `true`/`false` (§7.7) |
-| `a < b`, `a > b`, `a \| b` | the world's canonical partial order, grade-0 only (§7.7) |
+| `a < b`, `a > b`, `a ∥ b` | the world's canonical partial order, grade-0 only (§7.7) |
 
 Evaluation is strict, left-to-right; bindings live in a per-world environment
 (cleared on `:world`). A bare expression statement evaluates and prints the
@@ -354,7 +361,7 @@ pole is the honest error). `@` binds tightest of all operators
 and there is no tight signed form (`f@(-3)` — the `↑-1` exception exists
 for Display, which never emits `@`). Non-function worlds reject `@` with
 `E_WrongWorld` ("evaluation lives in the function-shaped worlds —
-poly/ratfunc, v1.1"); the grammar is world-independent.
+poly/ratfunc, v0.1.1"); the grammar is world-independent.
 
 **`!n` — factorial.** Prefix, operand an **Index** (meta-integer): `!5`,
 `!(2⋅3)`. One rule: `!n` computes the factorial at the Index level and
@@ -387,7 +394,7 @@ values — they appear only at top level (§4), and a binding binds a value
 | world | order | consequence |
 |---|---|---|
 | `integer`, `surreal`, `omnific` | the ring's total order | `a \| b` is identically `false` |
-| `nimber`, `ordinal` | the CGT game-value order restricted to nimbers — an antichain plus equality: for `m ≠ n`, `*m + *n = *(m⊕n)` is nonzero and fuzzy with `0` | `<`/`>` identically `false`; `a \| b ⟺ a ≠ b`. The `ordinal` world's CNF *address* order is not the value order and is not exposed here |
+| `nimber`, `ordinal` | the CGT game-value order restricted to nimbers — an antichain plus equality: for `m ≠ n`, `*m + *n = *(m⊕n)` is nonzero and fuzzy with `0` | `<`/`>` identically `false`; `a ∥ b ⟺ a ≠ b`. The `ordinal` world's CNF *address* order is not the value order and is not exposed here |
 | `fp*`, `f*` | none — no order is compatible with a finite field, and no canonical game reading exists | `<` `>` `\|` are `E_WrongWorld` |
 
 Binding is `name := expr` (rebinding allowed; per-world environment, cleared
@@ -395,7 +402,7 @@ on `:world`). An unbound bare identifier on the left of a top-level `=`
 earns the `E_Unbound` hint `did you mean name := …?` (§11) — the
 muscle-memory catch for the `=`/`:=` split, alongside the `==→=` sugar (§3).
 
-## 8. Stdlib v1/v1.1
+## 8. Stdlib v0.1/v0.1.1
 
 Eight functions, all thin wrappers; signatures are sorted (E = Element,
 I = Index):
@@ -412,7 +419,7 @@ I = Index):
 | `gcd(E,E)` | `Poly::gcd` / primitive integer polynomial gcd | polynomial worlds only; finite-field results are monic, `polyint` returns the positive-leading primitive integer factor |
 
 Everything else (versors, sandwiches, contractions, meet, spinor norms) is
-deliberately out of v1/v1.1 — reach those from Rust/Python. The Gold chain
+deliberately out of v0.1/v0.1.1 — reach those from Rust/Python. The Gold chain
 works day one: `tr(x ⋅ x↑(2↑a), m)`.
 
 ## 9. Display v2 (canonical form)
@@ -449,7 +456,7 @@ A canonical pretty-printer over the AST, used for (a) the REPL echo of
 non-canonical input and (b) conformance `~` vectors. Rules: canonical glyphs;
 minimal parens per §5 precedence (re-parsing the output must yield the same
 AST); spacing exactly as Display v2 emits: single spaces around
-`+ - = < > | :=` and after `,`; `⋅ / % @ ∧ ↑`, unary operators, and prefix
+`+ - = < > ∥ | :=` and after `,`; `⋅ / % @ ∧ ↑`, unary operators, and prefix
 `!` tight (`3⋅ω↑2 - ω + 5`, `*ω⋅e0∧e1`, `7%3`, `f@7`, `!5`).
 
 ## 11. Error taxonomy
@@ -460,7 +467,7 @@ substring):
 
 | kind | trigger | hint example |
 |---|---|---|
-| `E_Parse` | token/grammar violation | |
+| `E_Parse` | token/grammar violation | relop-tier `\|`: "fuzzy is `∥` (sugar `\`); `\|` is the braceform bar" |
 | `E_Reserved` | `↑↑ O(` (bare; `{ }` real since §19, `↦ ? ; :` since §§17–18) | "reserved for future precision syntax" |
 | `E_ExpSort` | non-integer exponent, e.g. `e0^e1` | "`↑`/`^` is power; the wedge product is `∧`/`&`" |
 | `E_IndexSort` | Element where Index expected, and vice versa | |
@@ -502,7 +509,7 @@ The host-language overloads speak the same dialect as the display.
 | power | scalars: `impl BitXor<u128>` for total-product backends (`x ^ 3`, square-and-multiply via `mul`); RHS is the meta-integer type, so no clash with any element-element op. **Multivectors get no power operator** — the geometric product needs the metric, so power is `CliffordAlgebra::pow(&self, v: &Multivector<S>, k: u128)` (ogham's `↑` desugars to it; negative exponents stay in the evaluator via `multivector_inverse`) | **`**` (`__pow__`)** — Python has a native power operator and the Py multivector classes are algebra-bound, so this works where the Rust operator can't; do not bend `__xor__` into power |
 | ordinal power | **no operator.** `Ordinal` omits owned `*` because nim-mul is partial; an `^` that panics through iterated partial mul would contradict that deliberate omission. `Ordinal::nim_pow(&self, k: u128) -> Option<Ordinal>` sits beside `nim_mul` | same: `pow()` method returning/raising honestly |
 | product | `*` stays `Mul` (Rust has no native power operator to displace it; `⋅` isn't typeable as an operator) | `*` stays |
-| remainder | **no `Rem` impl.** Rust's native `%` truncates toward zero while ogham's is Euclidean (`-7 % 3 = 2`); an `impl Rem for Integer` disagreeing with `i128 %` on negatives is the `Nimber ^ Nimber` class of footgun. Methods only (`Integer` is transparent i128; `Poly::rem`) | **`__mod__`** on `Integer` and the v1.1 poly classes — Python's native `%` is already Euclidean for positive moduli (`-7 % 3 == 2`), so the dialects agree |
+| remainder | **no `Rem` impl.** Rust's native `%` truncates toward zero while ogham's is Euclidean (`-7 % 3 = 2`); an `impl Rem for Integer` disagreeing with `i128 %` on negatives is the `Nimber ^ Nimber` class of footgun. Methods only (`Integer` is transparent i128; `Poly::rem`) | **`__mod__`** on `Integer` and the v0.1.1 poly classes — Python's native `%` is already Euclidean for positive moduli (`-7 % 3 == 2`), so the dialects agree |
 | evaluation | Rust has no `@` operator; inherent `Poly::eval`/`Poly::compose` | **`__matmul__`** — Python's `@` lands on the poly/ratfunc classes with exactly ogham's meaning; Python binds `@` at the multiplicative level, far looser than ogham's tightest-binding `@` (the flag below applies) |
 | factorial | none — deliberately; `!` is ogham spelling only | none (`!` isn't overloadable; a `factorial` free function would be scope creep on a literal-level operator) |
 | relations | `Ord`/`PartialOrd` on the totally ordered scalars (`Integer`, `Rational`, `Surreal`, `Omnific` — delegating to the inherent `cmp`s, the established shadow pattern); `fuzzy()` on `Nimber`/`Ordinal` (= `a ≠ b`, the game-value confusion). Deliberately **no** `PartialOrd` on the nim types — `partial_cmp = None` beside `Ordinal`'s total address `cmp` would be incoherent — and **no** `BitOr`-as-fuzzy: bitwise expectations are the `Nimber ^ Nimber` footgun class | rich comparisons on the ordered classes; `fuzzy()` on the nim classes. **Dialect note**: the shipped `Ordinal.__richcmp__` compares CNF *addresses* (the ordinal order); ogham's `ordinal` world compares *game values* (§7.7). Hosts speak address, the language speaks value — documented, not unified |
@@ -541,19 +548,19 @@ workflow: the engine can suggest values, but the spec stays the oracle for
 syntax, sorts, and errors.
 
 Pre-build staging: vectors for spec'd-but-unbuilt versions are blessed into
-sibling staging files the harness does not read. The v2.0 and v2.1 slices of
-[`conformance_v2.txt`](conformance_v2.txt) were merged into
+sibling staging files the harness does not read. The v0.2.0 and v0.2.1 slices of
+[`conformance_v0.2.txt`](conformance_v0.2.txt) were merged into
 [`conformance.txt`](conformance.txt) on 2026-06-12; the staging file is now
-kept as provenance for those blessed vectors. The v3.0 slice of
-[`conformance_v3.txt`](conformance_v3.txt) (which added the `@fuel n`
-directive, §19.2) was merged on 2026-07-09 when the 3.0 build shipped; that
+kept as provenance for those blessed vectors. The v0.3.0 slice of
+[`conformance_v0.3.txt`](conformance_v0.3.txt) (which added the `@fuel n`
+directive, §19.2) was merged on 2026-07-09 when the 0.3.0 build shipped; that
 staging file is likewise retained as blessing/provenance.
 
 ## 15. Work packages
 
 WP1 (Display v2, §9), WP7 (host operators, §13), the backend helper
-surface (§7.6/§7.7), WP2–WP6, the v2.0 abstraction layer (§17), the v2.1
-program layer (§18), and the v3.0 recursion/games layer (§19, built in the
+surface (§7.6/§7.7), WP2–WP6, the v0.2.0 abstraction layer (§17), the v0.2.1
+program layer (§18), and the v0.3.0 recursion/games layer (§19, built in the
 §19.6 stages) are shipped.
 The table below is the historical build decomposition and the maintenance map.
 Acceptance for the language is the committed conformance corpus plus the normal
@@ -565,9 +572,9 @@ Rust/Python validation stack.
 | **WP3 Worlds + evaluator** | `src/ogham/{eval,error}.rs`: the §6.1 dispatch enum, per-world literal mapping (§6.2–6.8), §7 desugaring (incl. §§7.6–7.7), §7.5 partiality, §8 stdlib, §11 errors. The judgment-heavy package. | opus |
 | **WP4 REPL** | `examples/ogham_repl.rs` + colon commands (§12). | sonnet |
 | **WP5 Conformance harness** | `tests/ogham_conformance.rs` + corpus format parser over the committed hand vectors (§14). | sonnet |
-| **WP6 Python eval** | `ogham_eval(world: &str, src: &str)` pyfunction + the v1 operator alignment that keeps multivector `&` as wedge and makes `^` raise the Ogham `E_ExpSort` hint (§13). | sonnet |
+| **WP6 Python eval** | `ogham_eval(world: &str, src: &str)` pyfunction + the v0.1 operator alignment that keeps multivector `&` as wedge and makes `^` raise the Ogham `E_ExpSort` hint (§13). | sonnet |
 
-## 16. v1.1 — the function-shaped worlds
+## 16. v0.1.1 — the function-shaped worlds
 
 **Implemented and tested.**
 
@@ -588,17 +595,17 @@ Rust/Python validation stack.
   monic; `polyint` returns the positive-leading primitive integer factor.
 - **Python parity** (§13): `IntegerPoly` is bound alongside the existing
   `Fp*Poly`/`Fp*RationalFunction` rows; `%` maps to polynomial remainder and
-  `@` maps to eval/compose on the v1.1 Python classes.
+  `@` maps to eval/compose on the v0.1.1 Python classes.
 - **Still out**: precision worlds (`O(p^k)` literals are their own
   iteration); games mode (`{L|R}`); invariant colon-commands (§12).
 
-## 17. v2.0 — abstraction
+## 17. v0.2.0 — abstraction
 
 **Implemented and tested.** The
-v2.0 conformance vectors are merged into
+v0.2.0 conformance vectors are merged into
 [`docs/ogham/conformance.txt`](conformance.txt), replacing the four superseded
-v1.1 reserved-syntax vectors listed in the staging header. Judgment calls go
-back to this section and the corpus, not into the code. The 2.x/3.0 staging
+v0.1.1 reserved-syntax vectors listed in the staging header. Judgment calls go
+back to this section and the corpus, not into the code. The 0.2.x/0.3.0 staging
 remains deliberate: each version is independently shippable and leaves a
 language worth stopping at.
 
@@ -645,19 +652,19 @@ relexpr     = additive [ relop additive ] ;
 appl        = atom { "@" applarg } ;
 applarg     = atom
             | "(" expression { "," expression } ")" ;   (* a comma makes a tuple *)
-atom        = …v1 atoms… | "true" | "false" | "(" lambda ")" ;
+atom        = …v0.1 atoms… | "true" | "false" | "(" lambda ")" ;
 ```
 
 - `↦` (sugar `~`), `?`, and bare `:` leave the reserved set and become real;
   `and or not` join the reserved words (a breaking change in principle —
-  they were legal identifiers in v1.1).
+  they were legal identifiers in v0.1.1).
 - Precedence, loose end of the table (tight → loose): relations, `not`,
   `and`, `or`, `? :`, `↦`. Relations stay non-chaining (`a < b < c` is
   `E_Parse`); a parenthesized relation is a Bool atom
   (`(a < b) and (c = d)` works, and so does the unparenthesized form, since
   the word operators bind looser than relops).
 - **Multi-param application is a tuple**: `b@(u, v)`, arity checked
-  (`E_Arity`). One-param keeps the v1.1 atom rule: `f@7`, `f@(u + 1)`. No
+  (`E_Arity`). One-param keeps the v0.1.1 atom rule: `f@7`, `f@(u + 1)`. No
   currying, no partial application — partial application manufactures
   function-valued intermediates, which is higher-orderness through the side
   door.
@@ -703,7 +710,7 @@ environments, ever.
   (§19's recursion is why the trio must be lazy from day one: the guard
   protects the recursive call.)
 - **Composition**: `f@g` with `g` a Function — or, in poly/ratfunc worlds,
-  an Element, the v1.1 coherence — yields a Function by inlining, when `f`
+  an Element, the v0.1.1 coherence — yields a Function by inlining, when `f`
   is unary (`E_Arity` otherwise; an n-ary `g` gives an n-ary composite).
   `f@g@x = (f@g)@x = f@(g@x)`, associative exactly as in §7.6.
 - **Four-way honesty**: `not (a < b)` in a partial order means "greater,
@@ -763,7 +770,7 @@ factorial (§13): ogham spelling only.
 = 5
 
 @world nimber 0
-> pn := g ↦ (g | *0 ? *1 : *0)
+> pn := g ↦ (g \ *0 ? *1 : *0)
 > pn@(*3 + *2)               # *3 + *2 = *1, fuzzy with *0: an N-position
 = *1
 
@@ -781,14 +788,14 @@ factorial (§13): ogham spelling only.
 ! E_WrongWorld: no order on fp5        # at definition, not application
 ```
 
-## 18. v2.1 — programs
+## 18. v0.2.1 — programs
 
 **Implemented and tested.** The
-v2.1 conformance vectors, including the `>>` continuation-line format, are
+v0.2.1 conformance vectors, including the `>>` continuation-line format, are
 merged into [`docs/ogham/conformance.txt`](conformance.txt); the original blessed
-staging block remains in [`docs/ogham/conformance_v2.txt`](conformance_v2.txt) as
+staging block remains in [`docs/ogham/conformance_v0.2.txt`](conformance_v0.2.txt) as
 provenance. Totality, definition-time completeness, and the closed-AST
-Function model all survive 2.1 untouched — sequences are definitional
+Function model all survive 0.2.1 untouched — sequences are definitional
 structure, not new semantics.
 
 - **`;` becomes real** (leaves the reserved set). A statement sequence is
@@ -826,14 +833,14 @@ structure, not new semantics.
 = 10
 ```
 
-## 19. v3.0 — recursion + games
+## 19. v0.3.0 — recursion + games
 
 **Implemented and tested.** Grown from the 2026-06 stub in the 2026-07-09
 design session (a9 + fable) and built the same day (sol implementing over
 the gaslamp `ogham-v3` thread, fable gating, the §19.6 stages in order).
-The v3.0 conformance vectors are merged into
+The v0.3.0 conformance vectors are merged into
 [`conformance.txt`](conformance.txt);
-[`conformance_v3.txt`](conformance_v3.txt) is retained as
+[`conformance_v0.3.txt`](conformance_v0.3.txt) is retained as
 blessing/provenance, the §14 discipline. Judgment calls go back to this
 section and the corpus, not into the code.
 
@@ -869,7 +876,7 @@ Conway game, where mex and Grundy sit where car/cdr folds sit in Scheme.
 
 This split settles the stub's recorded sequence-sort question: the *data*
 half was never missing — each pillar already carries its native container —
-and only the *functions-as-values* half stays gated post-3.0, decided when
+and only the *functions-as-values* half stays gated post-0.3.0, decided when
 the Index-recursion pain has been measured (§19.6).
 
 ### 19.1 `=:` — the fixpoint binding
@@ -902,7 +909,7 @@ point:
 - A **top-level** Function value carries at most one free name — its own μ.
   Statement-level round-trip holds (`fact =: …` re-parses to the same
   function); the bare `> fact` echo prints the equation form. Everything
-  non-recursive keeps full inlining: 2.x semantics are unchanged, not
+  non-recursive keeps full inlining: 0.2.x semantics are unchanged, not
   grandfathered.
 - **Local `=:`** is allowed in body sequences, for both sorts; a local
   helper may recurse and may reference the enclosing μ-name and binders.
@@ -952,7 +959,7 @@ terminates on finite forms by construction.)
 ### 19.3 The array container — `coef` and `dim`
 
 The array half costs exactly two stdlib entries; the constructor (`[…]`,
-§7) has existed since v1 and the language could never read a component back
+§7) has existed since v0.1 and the language could never read a component back
 out. Clifford worlds only (`E_WrongWorld` in game and function worlds — the
 hint teaches the container table: *arrays are world-fixed length; the
 free-shape container lives in the game world*).
@@ -981,7 +988,7 @@ accessor for the full 2ⁿ coefficient array; `coef` on the poly worlds
 `:world game` — Elements are **game forms** over the games pillar
 (`games/partizan.rs::Game`: ordered option vectors, `Arc`-shared,
 canonicalization only on demand); the first non-scalar world (the dispatch
-enum grows a non-Clifford arm, exactly as v1.1's function worlds did). No
+enum grows a non-Clifford arm, exactly as v0.1.1's function worlds did). No
 metric, no blades. CGT is the recursive subject; this is where the language
 and the repo's thesis converge.
 
@@ -999,9 +1006,9 @@ load-bearing beyond lists: a future misère mode *needs* the form stratum
 
 ```ebnf
 relexpr     = catexpr [ relop catexpr ] ;
-relop       = "=" | "≡" | "<" | ">" | "|" ;
+relop       = "=" | "≡" | "<" | ">" | "∥" ;
 catexpr     = additive [ "⧺" catexpr ] ;      (* right-assoc via recursion *)
-atom        = …v2 atoms… | braceform ;
+atom        = …v0.2 atoms… | braceform ;
 braceform   = "{" [ optlist ] "|" [ optlist ] "}"
             | "{" [ expression { "," expression } ] "}" ;   (* list sugar *)
 optlist     = expression { "," expression } ;
@@ -1025,7 +1032,7 @@ optlist     = expression { "," expression } ;
   (left-assoc re-copies the accumulated prefix: O(n²)). Ternary branches
   stay `additive` — an append inside a branch takes parens.
 - New reserved stdlib names (§3 discipline; a breaking change in principle,
-  as `and/or/not` were for v2): `coef dim canon nleft nright left right
+  as `and/or/not` were for v0.2): `coef dim canon nleft nright left right
   up down drawn`.
 - §18 continuation extends to unbalanced `{` — multi-line game forms wrap
   like vectors and sequences.
@@ -1069,8 +1076,8 @@ optlist     = expression { "," expression } ;
   with a visited pair-set). Bool-valued, relop tier, non-chaining.
 - **`canon(E) → E`** — the engine's canonical form (`Game::canonical`:
   options canonicalized, dominated options deleted, reversible options
-  bypassed). Finite forms only at 3.0 (`E_Loopy` on loopy values —
-  onside/offside canonicalization is owed post-3.0).
+  bypassed). Finite forms only at 0.3.0 (`E_Loopy` on loopy values —
+  onside/offside canonicalization is owed post-0.3.0).
 - The two equalities are related *in the language*:
   `a = b  ⟺  canon(a) ≡ canon(b)` — a conformance vector, not just prose.
 - `≡` outside the game world is `E_WrongWorld`, not an alias for `=`: in
@@ -1162,7 +1169,7 @@ grundy =: g ↦ (
 grundy@(*2)        # = 2
 ```
 
-Greedy = mex is Bridge O's seam (`games/lexicode.rs`) — with 3.0 the
+Greedy = mex is Bridge O's seam (`games/lexicode.rs`) — with 0.3.0 the
 language can finally *say* the games pillar.
 
 ### 19.5 Element-`=:` — loopy games are fixpoint equations
@@ -1186,7 +1193,7 @@ functions, and applied to game data it *is* coinductive definition —
 Siegel's loopy values are fixpoint equations on game forms, told in the
 language's own notation. Under the §19.4.5 list reading, guarded
 Element-`=:` *is* the infinite/circular list: streams are loopy games.
-(Folded into 3.0 at a9's call, 2026-06-12.)
+(Folded into 0.3.0 at a9's call, 2026-06-12.)
 
 - **Guardedness, checked after definition-time reduction.** The RHS is
   evaluated at definition with the μ-name symbolic: brace constructors may
@@ -1204,7 +1211,7 @@ Element-`=:` *is* the infinite/circular list: streams are loopy games.
   operand is **`E_Unfounded`**. After reduction, every remaining μ-occurrence
   must sit strictly inside at least one brace constructor; a bare-root
   occurrence (`g =: g`) is `E_Unfounded`. **`⧺` is the one
-  guardedness-transparent operator at 3.0**, transparent from the left
+  guardedness-transparent operator at 0.3.0**, transparent from the left
   only. The edges fall out with no extra code: `h =: {|} ⧺ h` unfolds to
   `h =: h` → `E_Unfounded` (nil is append's unit); `k =: k ⧺ {1 | 0}`
   cannot reduce → `E_Unfounded`; `m =: m + 1` → `E_Unfounded` (sums with
@@ -1223,7 +1230,7 @@ Element-`=:` *is* the infinite/circular list: streams are loopy games.
   the theory assigns one, and `E_Fuel` remains the verdict everywhere else
   (a μ-*function* recursing along an infinite spine — `len@ones` — is
   honestly `E_Fuel`).
-- **The 3.0 envelope for loopy values** (conservative; loosening is owed,
+- **The 0.3.0 envelope for loopy values** (conservative; loosening is owed,
   never breaking): allowed — binding, display, option access
   (`left`/`right`/`nleft`/`nright` walk graph nodes; `hd`/`tl` work on
   streams), `≡` (regular-tree), `drawn`, the *right* operand of `⧺`
@@ -1231,7 +1238,7 @@ Element-`=:` *is* the infinite/circular list: streams are loopy games.
   the *left* operand of `⧺` (a cyclic spine returns the operand itself,
   §19.4.5's coinductive identity; a non-spine loopy node stays
   `E_Improper`).
-  Rejected with **`E_Loopy`** — relations (`= < > |`), `+`, `-` (unary
+  Rejected with **`E_Loopy`** — relations (`= < > ∥`), `+`, `-` (unary
   negation is mathematically trivial — an L/R swap through the graph — but
   it manufactures an *anonymous* cycle, and the display rule below names
   cycles by their defining `=:`; negation joins the owed loosening),
@@ -1242,7 +1249,7 @@ Element-`=:` *is* the infinite/circular list: streams are loopy games.
   `drawn(on)`, `drawn(over)`, and `drawn(ones)` are `false` (alternation:
   the opponent's forced returns still hand the mover a win). The richer
   per-mover 3×3 readout wants either an outcome sort or a relation
-  extension — **owed post-3.0**; Bool stays two-valued, and Index-coding
+  extension — **owed post-0.3.0**; Bool stays two-valued, and Index-coding
   outcomes is rejected. For finite forms nothing is lost: relations
   against `0` already read out all four outcome cells.
 - **Display.** A loopy *root* echoes as its equation, μ carve-out as
@@ -1256,9 +1263,9 @@ Element-`=:` *is* the infinite/circular list: streams are loopy games.
   `(q =: {1 | {2 | q}}; {9 | q})`. Round-trips by construction (it is a
   program computing the value); verbose-canonical accepted, prettification
   owed post-3.0.
-- Staging: ships **with 3.0** by default — refusing it would take *extra*
+- Staging: ships **with 0.3.0** by default — refusing it would take *extra*
   code, an occurs-check built solely to reject meaning the math already
-  assigns. Slipping to 3.1 is recorded as acceptable if the loopy-engine
+  assigns. Slipping to 0.3.1 is recorded as acceptable if the loopy-engine
   seam fights the build.
 
 ### 19.6 Errors, host alignment, build staging, non-goals
@@ -1269,7 +1276,7 @@ the step semantics), `E_Unfounded`, `E_Improper`, `E_Loopy`. Reused:
 their worlds; Element-`=:` with self-mention outside the game world),
 `E_Domain` (option index out of range), `E_BladeIndex` (`coef` past `dim`),
 `E_Unbound` (hint gains "recursive definition? `=:`"), `E_Parse`,
-`E_Shadow`, `E_Arity`, `E_IndexSort`, `E_BoolSort` (all as in v2).
+`E_Shadow`, `E_Arity`, `E_IndexSort`, `E_BoolSort` (all as in v0.2).
 
 **Host alignment: none.** `⧺`, `≡`, `{L|R}`, `=:`, and fuel get no host
 operators (the §13 factorial clause); game-world exposure to Python is a
@@ -1291,9 +1298,9 @@ the grammar fights hardest to keep crisp; recursion, sequencing, let-bodies,
 booleans, and the two containers all compose with ogham's honesty axioms —
 quote does not. Mutation, I/O, strings: out — rebinding is the only state,
 the REPL the only effect. Higher-order functions (map/fold as values):
-still gated post-3.0, now *only* on functions-as-values — the container
+still gated post-0.3.0, now *only* on functions-as-values — the container
 question is settled by §19.3/§19.4.5. Transfinite/ω-length games: out —
-the game world is the finite-graph pillar. Owed post-3.0, collected:
+the game world is the finite-graph pillar. Owed post-0.3.0, collected:
 mutual-recursion groups (function and loopy), the loopy comparison/sum
 envelope and onside/offside `canon`,
 loopy negation (anonymous-cycle display naming), the per-mover outcome
@@ -1302,66 +1309,180 @@ readout, composite-display prettification, blade-bitmask and poly-world
 the conservative host-stack depth guards (§19.2) and make the μ-step budget
 the sole practical recursion limit. (Coinductive append, originally in this
 list, shipped on 2026-07-09 at a9's call — §19.4.5.) These items are
-collected and staged as the §20 v3.1 stub; higher-order functions remain
-4.0's, after the reflection pass (§20.5).
+collected and staged in §20 — drafted as the v0.3.1 stub, grown and
+relabeled the 0.4.0 sketch the same day (a9's call: the honest loosening
+program augments the base program, §20 preamble); higher-order functions
+remain 0.4.0's opening gate, after the reflection pass (§20.1).
 
-## 20. v3.1 — the envelope release (stub)
+## 20. v0.4.0 — the envelope release (sketch)
 
-**Stub** — commitments and owed decisions recorded 2026-07-09, at the 3.0
-ship, so post-ship work does not foreclose them; growing this into a sketch
-is its own pass. Staging (a9's call, 2026-07-09): **3.1 is pre-reflect** —
-every item is an envelope loosening, error → value or verdict, with no new
-syntax and no new sorts, so it composes with `ogham-reflect` in either
-order; **4.0 runs after the reflection pass** and is deliberately
-unsketched (§20.5). The 3.1 identity in one line: 3.0 drew every boundary
-conservatively and honestly; 3.1 moves each boundary out to the engine's
-verified surface and no further.
+**Sketch** — drafted 2026-07-09 as the v0.3.1 stub at the 0.3.0 ship; grown
+into this sketch and **relabeled 0.4.0** the same day (fable's sketch, a9's
+call). The relabel reason, on record: the stub's charter was pre-reflect
+envelope-loosening — error → value or verdict, no new syntax, no new
+sorts, the engine's *existing* verified surface as the fixed boundary.
+Sketching the items honestly kept crossing that charter: the right
+comparison boundary is not the catalogue but a **grown** games-pillar
+surface (§20.2), sums want totality through a new graph construction
+(§20.3), and the floor work may rewrite the evaluator's spine (§20.6).
+Augmenting the base program is major-version work, not a point release,
+so the whole program moves behind the gate: **`ogham-reflect` plays
+next; nothing ships between 0.3.0 and the reflection pass; 0.4.0 opens with
+the functions-as-values gate (§20.1) and carries the envelope program
+behind it.** The identity in one line survives the relabel: 0.3.0 drew
+every boundary conservatively and honestly; 0.4.0 moves each boundary out
+to the engine's verified surface — growing that surface where standard
+theory licenses it — and no further.
 
-### 20.1 The loopy envelope
+### 20.1 The gate (functions-as-values)
 
-- **Comparison**: relations on stopper operands through the engine's
-  onside/offside surface (`games/loopy/catalogue.rs`); verdicts exactly
-  where the theory determines them, `E_Loopy` for the rest — the boundary
-  is the engine's verified surface, not optimism.
-- **Sums**: `+` with loopy summands inside the stopper boundary
-  (`LoopyValue::add` is already `Option`-honest); beyond it, `E_Loopy`
-  stays.
-- **`canon` on stoppers**: onside/offside canonical forms.
-- **Outcome readout**: the per-mover 3×3 (win/lose/draw for each mover) as
-  Bool predicates per mover — names owed; an outcome *sort* stays
-  rejected, as does Index-coding (§19.5's reasoning stands).
-- **Negation**: unary `-` (an L/R swap through the graph) gated on the one
-  gap in §19.5's display rules — anonymous-cycle naming. Owed decision:
-  synthesized α-bound names vs sequence-form-only display for
-  operation-produced cycles.
-
-### 20.2 Mutual `=:` groups
-
-Function and loopy together — the μ machinery is shared. The local-`=:`
-trick covers nested shapes; true groups need forward reference. Owed: the
-grammar (adjacent `=:` bindings in one statement vs an explicit group
-form — undecided), guardedness across a group, and group display.
-
-### 20.3 The array-side envelope
-
-Blade-bitmask `coef` (the full 2ⁿ coefficient array) and poly-world `coef`
-(coefficient of `t↑i`, mirroring `deg`) — measured-pain gated, recorded in
-§19.3 since the sketch. Loosenings of the same never-breaking kind.
-
-### 20.4 The implementation floor
-
-The continuation-stack/trampoline evaluator retires the §19.2 host-resource
-guards and makes the μ-step budget the sole practical recursion limit; a
-persistent evaluation worker removes per-statement thread overhead. No
-semantic content — tracked here because deep loopy work reaches the guards
-before it reaches the budget.
-
-### 20.5 4.0, deliberately unsketched
-
-4.0 runs after `ogham-reflect` (a9's staging call, 2026-07-09). Its one
-standing agenda item is the **functions-as-values gate** — a sequence sort,
-map/fold, higher-order functions — decided against the Index-recursion pain
-that 3.x makes measurable, and informed by the reflection pass's §1
-identity rewrite (the lisp-for-games). Nothing else is committed. The §19.6
-non-goals are not reopened by 4.0: quote/macros never; mutation, I/O,
+0.4.0's opening decision, unchanged in content from the old staging: a
+sequence sort, map/fold, higher-order functions — decided against the
+Index-recursion pain that 0.3.x makes measurable, and informed by the
+reflection pass's §1 identity rewrite (the lisp-for-games). It goes
+first because it is the one item that can add a *sort* and reshape
+display-as-program; deciding it first keeps the envelope work from
+building grammar and display it would immediately rework. The §19.6
+non-goals are not reopened by 0.4.0: quote/macros never; mutation, I/O,
 strings out; rebinding the only state, the REPL the only effect.
+
+### 20.2 The pillar stage — grow the verified surface first
+
+The stub pointed relations at the catalogue
+(`games/loopy/catalogue.rs`); the sketch replaces that. The catalogue is
+a recognition table — ten named values plus integer `s&t` tags — and the
+first user-defined stopper escapes it immediately; a language where
+`over > 0` answers but the user's own guarded definition throws
+`E_Loopy` is arbitrary, not honest. The engine's *provable* surface for
+stopper comparison is the **survival test** — for stoppers `G`, `H`:
+`G ≥ H` iff Left, moving second, survives (wins or draws) `G + (−H)`.
+Standard math (Siegel, *Combinatorial Game Theory*, GSM 146, ch. VI);
+build obligation: source-pin the exact statement before relying on it,
+and hand the application to the codex seat for adversarial review. Every
+ingredient is a finite-graph computation, so 0.4.0's first build stage is
+games-pillar API, not language:
+
+- `LoopyPartizanGraph::neg` — the L/R swap on the graph;
+- `LoopyPartizanGraph::sum` — the disjunctive-sum product graph (the one
+  genuinely missing construction);
+- stopper detection — no alternating L/R play cycle through the node, a
+  finite check;
+- the survival order — a Left-survives readout over the existing
+  retrograde `outcomes()` machinery (draw detection is already the
+  greatest-fixpoint half that survival needs).
+
+Oracle: the catalogue itself — the named values pin the identities for
+free (`on` ≥ every stopper, `over > 0`, `∗ ∥ 0`, `on + off = dud`, and
+`over + under`, the classic non-stopper sum the catalogue refuses and
+the graph carries). `LoopyValue` demotes from semantic boundary to
+prettifier: recognition for display, never the gate on an operation.
+
+### 20.3 The loopy envelope (language stage)
+
+- **Relations**: stopper operands route through §20.2's survival order;
+  verdicts exactly where the theory determines them, `E_Loopy` beyond
+  stoppers (the onside/offside sidling theory of non-stoppers stays
+  future work). The boundary becomes *every* user-definable stopper, not
+  catalogue membership.
+- **Sums**: `+` **total** on loopy operands via the product graph
+  (accepted with the sketch, 2026-07-09 — the stub's stopper-bounded
+  sums were the halfway version and cost more, since comparison needs
+  the product graph anyway). The result is the sum graph, displayed as a
+  §18 body per §19.5's composite rule — a program computing the value;
+  the catalogue `add` becomes prettification (`on + off` prints `dud`).
+  Product graphs multiply node counts, so an honest node-count guard on
+  materialized graphs joins the §19.2 host-guard family — graph size
+  becomes a first-class resource axis beside fuel (§20.6).
+- **Negation**: unary `-` total — the L/R swap through the graph. The
+  owed display decision is closed by the language's own axiom: **parse ∘
+  display = id** (§1, principle 2) requires the display to be parseable
+  ogham, so sequence-form-only display was never a legal option;
+  **synthesized α-bound names** win by construction. The mechanism
+  already shipped — §19.5's composite display emits one local `=:` per
+  distinct cycle in first-reach order, names bound variables of the
+  displayed program. Synthesis fires only for values not rooted at a
+  user binding (a bound `x := -on` re-roots as `x =: {| x}`); the
+  deterministic fresh-name scheme is a small build-time choice.
+  Displaying `-on` as `-on` (an environment reference) stays rejected —
+  §19.5 made display names bound, not environment references, and
+  rebinding `on` must not change the meaning of an old echo.
+- **`canon` on stoppers**: the simplest-form/fusion algorithm — the
+  largest genuinely-new math-engineering item in the program; nothing
+  else depends on it; explicitly last, independently slippable.
+- **Outcome readout**: a division of labor — once relations ship,
+  relations against `0` read every outcome cell *on stoppers*, exactly
+  as finite forms do (§19.5); the Bool predicates carry the draw side,
+  where relations are `E_Loopy`. Candidate names (naming stays owed —
+  a9's taste): `winsl`/`winsr` (does the *starter* win, Left/Right
+  moving first) and `drawnl`/`drawnr` (draw with Left/Right to move);
+  `drawn` stays, `= drawnl or drawnr`. Four names, Bool-only, the full
+  per-mover 3×3 recoverable (a starter that neither wins nor draws
+  loses). An outcome *sort* stays rejected, as does Index-coding
+  (§19.5's reasoning stands).
+- **`stopper(E) → Bool`**: the gate predicate itself — with relations
+  gated on stopper-hood, the user must be able to ask the gate question;
+  same spirit and cost as `drawn`.
+- **Witness-carrying `E_Loopy`**: a relation refused on a non-stopper
+  names the alternating cycle found, in the house style of
+  `E_NotInvertible` naming the remainder.
+
+### 20.4 Mutual `=:` groups
+
+Function and loopy together — the μ machinery is shared; the local-`=:`
+trick covers nested shapes; true groups need forward reference. The
+grammar fork leans **adjacent `=:` bindings**: today a forward reference
+among adjacent bindings is `E_Unbound`, so giving it meaning is pure
+error → value, perfectly backward-compatible; an explicit group form is
+*available* to 0.4.0 (the no-new-syntax charter died with the relabel) but
+starts unjustified. Guardedness generalizes cleanly: reduce every RHS
+with the whole group name-set symbolic, require every surviving
+group-name occurrence strictly inside a brace, materialize one shared
+graph. Display needs less than the stub feared:
+
+- **Elements**: nothing new. A mutual system is one graph; per-node
+  display re-roots and α-binds a *single* name —
+  `a =: {1 | b}; b =: {2 | a}` echoes `a =: {1 | {2 | a}}`, with `b`
+  just an interior node.
+- **Functions**: a group member echoes as a §18 body — the group's
+  equations, final expression the queried name — the same
+  minimal-program principle §19.5 already uses for composites;
+  statement-level round-trip holds by construction.
+
+### 20.5 The array-side envelope
+
+Unchanged from the stub: blade-bitmask `coef` (the full 2ⁿ coefficient
+array) and poly-world `coef` (coefficient of `t↑i`, mirroring `deg`) —
+measured-pain gated, recorded in §19.3 since the sketch. Loosenings of
+the same never-breaking kind.
+
+### 20.6 The implementation floor
+
+The stub committed to a continuation-stack/trampoline evaluator; the
+sketch downgrades that to one of three routes and adds a measurement
+gate — first find *which* §19.2 guard actually fires under deep loopy
+work, then choose:
+
+1. the full continuation-stack rewrite — cleanest end state, biggest
+   diff against a conformance-pinned evaluator;
+2. segmented stacks (`stacker::maybe_grow` at the recursive entry
+   points — rustc's own approach): keeps the recursive spine, honestly
+   retires the depth guard, the μ-budget becomes the sole limit; cost:
+   the core's first non-optional runtime dependencies (`stacker` +
+   `psm`) in a deliberately dependency-light crate — a9's call, flagged
+   not defaulted;
+3. a targeted explicit work-stack on the hot paths only (μ-unfold,
+   brace-walk) — zero dependencies, middle-sized diff.
+
+The persistent evaluation worker (retiring per-statement thread spawn)
+is orthogonal and uncontroversial — take it whenever. §20.3's
+product-graph sums add the node-count axis: the floor treats graph size
+as a first-class resource beside the μ-step budget, with its own honest
+guard.
+
+### 20.7 Staging
+
+`ogham-reflect` → 4.0. Inside 0.4.0: the gate (§20.1) → the pillar stage
+(§20.2, catalogue-pinned, codex-reviewed) → the language stage (§20.3) →
+mutual groups (§20.4) → `canon` on stoppers last; the floor (§20.6) as
+measured pain dictates, the array side (§20.5) likewise. Beyond 0.4.0
+nothing is committed.

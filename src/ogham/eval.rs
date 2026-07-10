@@ -1104,7 +1104,7 @@ impl GameRuntime {
                 }
                 let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (lhs, rhs) else {
                     return Err(loopy_error(
-                        "value relations are not defined on loopy games in the 3.0 envelope",
+                        "value relations are not defined on loopy games in the 0.3.0 envelope",
                     ));
                 };
                 match op {
@@ -1170,7 +1170,7 @@ impl GameRuntime {
                 UnaryOp::Neg => match self.eval_element(expr)? {
                     GameElement::Finite(game) => Ok(GameElement::Finite(game.neg())),
                     GameElement::Graph(_) => Err(loopy_error(
-                        "unary `-` is not defined on loopy games in the 3.0 envelope",
+                        "unary `-` is not defined on loopy games in the 0.3.0 envelope",
                     )),
                 },
                 UnaryOp::Inv => Err(game_wrong_world(
@@ -1204,7 +1204,7 @@ impl GameRuntime {
                 let rhs = self.eval_element(rhs)?;
                 let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (lhs, rhs) else {
                     return Err(loopy_error(
-                        "additive operations are not defined on loopy games in the 3.0 envelope",
+                        "additive operations are not defined on loopy games in the 0.3.0 envelope",
                     ));
                 };
                 Ok(GameElement::Finite(if op == BinaryOp::Add {
@@ -1243,7 +1243,7 @@ impl GameRuntime {
                 match self.eval_element(&args[0])? {
                     GameElement::Finite(game) => Ok(GameElement::Finite(game.canonical())),
                     GameElement::Graph(_) => Err(loopy_error(
-                        "`canon` is not defined on loopy games in the 3.0 envelope",
+                        "`canon` is not defined on loopy games in the 0.3.0 envelope",
                     )),
                 }
             }

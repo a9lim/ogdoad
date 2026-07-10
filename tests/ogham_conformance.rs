@@ -15,8 +15,8 @@ fn ogham_conformance_corpus() {
 }
 
 #[test]
-fn ogham_v3_archive_syntax_and_echoes() {
-    let lines = include_str!("../docs/ogham/conformance_v3.txt")
+fn ogham_v0_3_archive_syntax_and_echoes() {
+    let lines = include_str!("../docs/ogham/conformance_v0.3.txt")
         .lines()
         .collect::<Vec<_>>();
     let mut idx = 0usize;

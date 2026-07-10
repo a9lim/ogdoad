@@ -33,6 +33,10 @@ pub enum TokenKind {
     Less,
     Greater,
     Pipe,
+    // U+2225, the canonical fuzzy relop; `\` is its lexer sugar. `Pipe` is
+    // the structural braceform bar only — no relop reading (a relop-tier `|`
+    // gets the expect_end hint) — and `Parallel` is refused as the bar in turn.
+    Parallel,
     Assign,
     RecursiveAssign,
     Append,
@@ -240,6 +244,7 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
             }
             '⧺' => TokenKind::Append,
             '≡' => TokenKind::Equiv,
+            '∥' | '\\' => TokenKind::Parallel,
             '-' => TokenKind::Minus,
             ';' => TokenKind::Semicolon,
             '(' => TokenKind::LParen,

@@ -20,21 +20,23 @@ are cold/buildable, `±n` switches are a9's scope call first, `↑` ups are infi
 
 ## numbers — ogham (the language)
 
-(`ogham-3.0` — the recursion + games build, converted from star `*8` when
+(`ogham-0.3.0` — the recursion + games build, converted from star `*8` when
 its sketch landed — shipped on 2026-07-09, the same day; its entry moved to
 [`DONE.md`](DONE.md).)
 
 ### 2·e_o: `ogham-reflect`
 **The consolidation pass before release** (a9, 2026-06-12: "consolidate it
-into the best version of itself before release") — plays after `ogham-3.0`
-(shipped 2026-07-09, `DONE.md`), before any 4.0 design. Scope: (1) rewrite the spec §1 identity:
-the principles describe a v1 calculator, and by 3.0 the honest description
+into the best version of itself before release") — plays after `ogham-0.3.0`
+(shipped 2026-07-09, `DONE.md`), before 0.4.0 plays (`ogham-0.4.0` below —
+sketched 2026-07-09, builds only after this pass). Scope: (1) rewrite the spec §1 identity:
+the principles describe a v0.1 calculator, and by 0.3.0 the honest description
 is the **lisp-for-games** — the value-rich/computation-thin inversion,
 Conway's ontology as the data model, the construct↔math coincidences on
 record (four-way relations = outcome classes, `=:` = loopy definition, the
 lazy trio = play-one-branch, `⧺`-to-infinity = the coinductive identity);
-(2) fold the shipped delta sections (§§17–19, plus whatever of the §20
-items has shipped by then) into the
+(2) fold the shipped delta sections (§§17–19; §20 is the standing 0.4.0
+sketch and plays after this pass — nothing ships between 0.3.0 and
+reflect) into the
 main spec body so the language reads as one contract, and merge/reorganize
 the conformance corpus; (3) a CONSISTENCY.md-style audit of `src/ogham/` after
 three builds of growth — naming, error taxonomy, dispatch-enum shape, REPL
@@ -43,6 +45,29 @@ UX; (4) release scoping, **a9's call**: ogham as ogdoad's front door vs an
 worth an hour inside this pass: a CGScript/CGSuite comparison read, for
 ideas and for honest differentiation. The refactor is licensed; the
 identity questions are the point.
+
+### 4·e_o: `ogham-0.4.0`
+**The envelope release, behind the gate** — the former star `*16`
+(`ogham 0.3.1`), relabeled and converted when the sketch was folded into
+`docs/ogham/ogham.md` §20 (fable's sketch, a9's relabel call,
+2026-07-09): the honest loosening program augments the base program —
+new games-pillar API, a total loopy sum, possibly the evaluator's
+spine — so it is major-version work, not a point release. Plays after
+`ogham-reflect`; nothing ships between 0.3.0 and the reflection pass.
+Shape (§20): opens with the **functions-as-values gate** (sequence
+sort, map/fold, higher-order — informed by reflect's §1 rewrite), then
+the pillar stage (survival-order stopper comparison — standard math,
+Siegel GSM 146 ch. VI, source-pin at build; `neg`/`sum`/stopper
+detection on `LoopyPartizanGraph`; the catalogue demoted to
+prettifier), then the language stage (stopper relations, total `+` via
+the product graph, unary `-` with synthesized α-bound display names —
+decided by §1 principle 2 — per-mover outcome predicates, `stopper()`,
+witness-carrying `E_Loopy`), mutual `=:` groups (adjacent-binding
+grammar), `canon` on stoppers last (fusion/simplest form — the largest
+new item, independently slippable), and the measured implementation
+floor (trampoline vs `stacker` vs targeted work-stack — the dependency
+question is a9's; persistent worker whenever). Value proposed at
+`4·e_o` mirroring `ogham-0.3.0`; a9 to re-value.
 
 ---
 
@@ -234,23 +259,14 @@ Carlitz exponential, rank-`r` reduction theory): weeks of specialized work, wort
 only as a *second headline pillar* rather than a task. References: Goss, *Basic Structures
 of Function Field Arithmetic*; Gekeler, Drinfeld modular forms; Goppa / AG codes.
 
-### *16: `ogham 3.1 — the envelope release`
+(The former `*16` — `ogham 0.3.1 — the envelope release` — relabeled
+**ogham 0.4.0** and converted to the numbered `4·e_o: ogham-0.4.0` entry when
+its sketch landed in `docs/ogham/ogham.md` §20, 2026-07-09, per this
+section's own hold-until-sketch rule; the envelope program grew into
+base-program work and moved behind the functions-as-values gate. Nim-sum
+naming stays honest: `*9`–`*15` were sums of stars that have existed
+(1, 2, 4, 8).)
 
-The `docs/ogham/ogham.md` §20 stub (2026-07-09, blessed at the 3.0 ship).
-The identity in one line: 3.0 drew every boundary conservatively and
-honestly; 3.1 moves each boundary out to the engine's verified surface and
-no further — error → value/verdict, no new syntax, no new sorts. Contents:
-the loopy envelope (stopper comparison/sums via onside/offside, `canon` on
-stoppers, per-mover outcome predicates, unary negation behind the
-anonymous-cycle display decision), mutual `=:` groups (function + loopy;
-grammar owed), the array-side `coef` extensions, and the
-trampoline/persistent-worker implementation floor that retires the §19.2
-host guards. **Pre-reflect by design** — composes with `ogham-reflect` in
-either order; 4.0 (the functions-as-values gate) runs after the reflection
-pass and stays unsketched (§20.5, a9's staging call). Held as a star until
-§20 grows into a sketch. Nim-sum naming stays honest: `*9`–`*15` are sums
-of stars that have existed (1, 2, 4, 8).
-
-(The former `*8` — ogham 3.0 — converted to the numbered `4·e_o: ogham-3.0`
+(The former `*8` — ogham 0.3.0 — converted to the numbered `4·e_o: ogham-0.3.0`
 entry when its sketch landed, 2026-07-09, and shipped the same day; see
 `DONE.md`.)

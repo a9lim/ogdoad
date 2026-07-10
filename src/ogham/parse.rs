@@ -155,11 +155,12 @@ impl Parser {
 
     fn expect_end(&self) -> OghamResult<()> {
         if let Some(tok) = self.peek() {
-            Err(OghamError::new(
-                OghamErrorKind::Parse,
-                tok.span,
-                "unexpected trailing token",
-            ))
+            let err = OghamError::new(OghamErrorKind::Parse, tok.span, "unexpected trailing token");
+            Err(if matches!(tok.kind, TokenKind::Pipe) {
+                err.with_hint("fuzzy is `∥` (sugar `\\`); `|` is the braceform bar")
+            } else {
+                err
+            })
         } else {
             Ok(())
         }
@@ -350,7 +351,7 @@ impl Parser {
                 self.bump();
                 Some(RelOp::Gt)
             }
-            TokenKind::Pipe => {
+            TokenKind::Parallel => {
                 self.bump();
                 Some(RelOp::Fuzzy)
             }

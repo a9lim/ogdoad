@@ -1,4 +1,4 @@
-# ogham conformance corpus — v3.0 (hand-verified, shipped 2026-07-09)
+# ogham conformance corpus — v0.3.0 (hand-verified, shipped 2026-07-09)
 # Format: docs/ogham/ogham.md §14, plus `>>` continuation lines for joined
 # open-paren/open-bracket/open-brace inputs.
 #   @world ‹args as after ":world"›   resets bindings
@@ -362,8 +362,13 @@
 > 3 > 5
 = false
 
-> 3 | 5
+> 3 \ 5
+~ 3 ∥ 5
 = false
+
+# the bar is structural only; a relop-tier `|` earns the hint
+> 3 | 5
+! E_Parse: fuzzy is `∥`
 
 > -7 = -7
 = true
@@ -377,13 +382,13 @@
 
 @world nimber 0
 
-> *2 | *3
+> *2 ∥ *3
 = true
 
 > *2 < *3
 = false
 
-> *2 | *2
+> *2 ∥ *2
 = false
 
 > *2 + *3 = *1
@@ -398,8 +403,8 @@
 > 1/2 < 1
 = true
 
-> w | 1
-~ ω | 1
+> w \ 1
+~ ω ∥ 1
 = false
 
 @world fp5 0
@@ -409,7 +414,7 @@
 
 @world nimber 2 q=[*1,*1]
 
-> e0 | e1
+> e0 ∥ e1
 ! E_Grade0:
 
 # ------------------------------------- poly5, function-shaped world (§16)
@@ -497,7 +502,7 @@
 > deg(t)
 ! E_WrongWorld: ratfunc
 
-# ============================================================ v2.0 — booleans
+# ============================================================ v0.2.0 — booleans
 @world integer 0
 
 > 3 < 5
@@ -543,7 +548,7 @@
 > 1 < 2 < 3
 ! E_Parse:
 
-# ------------------------------------------------------------ v2.0 — ternary
+# ------------------------------------------------------------ v0.2.0 — ternary
 > 0 = 0 ? 1 : 1/0
 = 1
 
@@ -560,7 +565,7 @@
 > 1 = 1 ? 1 : 1 = 0 ? 2 : 3
 ! E_Parse:
 
-# ===================================== v2.0 — lambdas, capture, application
+# ===================================== v0.2.0 — lambdas, capture, application
 @world integer 0
 
 > abs := u ~ (u < 0 ? -u : u)
@@ -628,7 +633,7 @@
 > fct := n ↦ (n = 0 ? 1 : n⋅fct@(n-1))
 ! E_Unbound:
 
-# ------------------------------------------- v2.0 — composition, tuples, arity
+# ------------------------------------------- v0.2.0 — composition, tuples, arity
 > inc := a ↦ a + 1
 
 > sqr := b ↦ b⋅b
@@ -672,7 +677,7 @@
 > mux@(5 < 3, 10, 20)
 = 20
 
-# ------------------------------------------------------- v2.0 — sort errors
+# ------------------------------------------------------- v0.2.0 — sort errors
 @world integer 0
 
 > f := u ↦ u + 1
@@ -702,7 +707,7 @@
 > bad := a ↦ a + 2↑a
 ! E_IndexSort:
 
-# ------------------------------------------------------- v2.0 — t released
+# ------------------------------------------------------- v0.2.0 — t released
 @world integer 0
 
 > t
@@ -713,7 +718,7 @@
 > t + 1
 = 4
 
-# ====================================== v2.0 — Index binders, the Gold chain
+# ====================================== v0.2.0 — Index binders, the Gold chain
 @world f4 0
 
 > gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))
@@ -736,7 +741,7 @@
 > b@(x, x + 1)
 = 0
 
-# ====================================== v2.0 — poly worlds: t is the binder
+# ====================================== v0.2.0 — poly worlds: t is the binder
 @world poly2
 
 > f := t ↦ t
@@ -750,7 +755,7 @@
 > f@t
 = 1⋅t + 1⋅t↑2
 
-# Element ∘ Function and Function @ Element (v1.1 coherence, §17.3)
+# Element ∘ Function and Function @ Element (v0.1.1 coherence, §17.3)
 > inc := u ↦ u + 1
 
 > (t↑2)@inc
@@ -762,7 +767,7 @@
 > inc@(t↑2)
 = 1 + 1⋅t↑2
 
-# ------------------------------------------- v2.0 — Index bindings/relations
+# ------------------------------------------- v0.2.0 — Index bindings/relations
 @world poly5
 
 > n := deg(t↑2 + 1)
@@ -778,7 +783,7 @@
 > deg(t↑2) > deg(t)
 = true
 
-# ================================================= v2.0 — nim-world honesty
+# ================================================= v0.2.0 — nim-world honesty
 @world nimber 0
 
 # < is identically false here and -u = u: abs is the identity, twice over
@@ -789,8 +794,8 @@
 = *5
 
 # the N/P indicator: fuzzy with *0 is an N-position
-> pn := g ↦ (g | *0 ? *1 : *0)
-~ pn := g ↦ g | *0 ? *1 : *0
+> pn := g ↦ (g \ *0 ? *1 : *0)
+~ pn := g ↦ g ∥ *0 ? *1 : *0
 
 > pn@(*3 + *2)
 = *1
@@ -802,7 +807,7 @@
 > bad := u ↦ u + 3
 ! E_BareInt: did you mean
 
-# ------------------------------------------- v2.0 — multivector-valued binders
+# ------------------------------------------- v0.2.0 — multivector-valued binders
 @world nimber 2 q=[*1,*1]
 
 > refl := v ↦ e0⋅v⋅e0
@@ -816,13 +821,13 @@
 > refl@(e0 + e1)
 = e0 + e1
 
-# ---------------------------------------- v2.0 — definition-time world checks
+# ---------------------------------------- v0.2.0 — definition-time world checks
 @world fp5 0
 
 > h := u ↦ (u < 0 ? 0 : 1)
 ! E_WrongWorld: order
 
-# ------------------------------------------- v2.0 — reserved syntax, revisited
+# ------------------------------------------- v0.2.0 — reserved syntax, revisited
 @world nimber 0
 
 > *2 ~ *3
@@ -843,7 +848,7 @@
 > and := 5
 ! E_Reserved:
 
-# ====================================================== v2.1 — sequences
+# ====================================================== v0.2.1 — sequences
 @world integer 0
 
 > a := 5; a + 1
@@ -865,7 +870,7 @@
 > 1 + 1; 2
 ! E_SeqValue:
 
-# ------------------------------------------------------- v2.1 — let-bodies
+# ------------------------------------------------------- v0.2.1 — let-bodies
 > f1 := u ↦ (d := u + 1; d⋅d)
 
 > f1@2
@@ -902,7 +907,7 @@
 > f3 := u ↦ (d := u)
 ! E_SeqValue:
 
-# ------------------------------------------------- v2.1 — line continuation
+# ------------------------------------------------- v0.2.1 — line continuation
 > norm1 := (u, v) ↦ (
 >>   s := u + v;
 >>   d := u - v;
@@ -1066,7 +1071,7 @@
 = true
 
 # standard: ∗ ∥ 0
-> *1 | 0
+> *1 ∥ 0
 = true
 
 # standard: nim sum *2 + *3 = *1 (value-level; the sum form is not the
@@ -1084,7 +1089,7 @@
 > up() > 0
 = true
 
-> up() | *1
+> up() ∥ *1
 = true
 
 > up() + up() > *1
@@ -1350,7 +1355,7 @@
 > m =: m + 1
 ! E_Unfounded:
 
-# ---- the 3.0 loopy envelope (conservative; loosening owed, never breaking)
+# ---- the 0.3.0 loopy envelope (conservative; loosening owed, never breaking)
 > ones = ones
 ! E_Loopy:
 

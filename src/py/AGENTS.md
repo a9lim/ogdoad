@@ -158,8 +158,8 @@ runtime type is bound. What stays Rust-only is structural, not a backlog:
   Ogham `E_ExpSort` hint), `<<`/`>>` left/right
   contraction, `~` reverse, `/` divide (scalar or versor; `Integer` uses exact
   Euclidean division), `**` power, `+`/`-`, `==`, `Integer.__mod__` for
-  Euclidean remainder, `%` on the v1.1 polynomial classes, and `@` on the
-  v1.1 polynomial/ratfunc classes for eval/compose.
+  Euclidean remainder, `%` on the v0.1.1 polynomial classes, and `@` on the
+  v0.1.1 polynomial/ratfunc classes for eval/compose.
   Scalar power: `x ^ k` (integer RHS) on total-product backends; Ordinal: `nim_pow`
   method. **Rust `&` binds looser than `+`/`*` in both Python and Rust — parenthesize.**
 - The smoke test is `demo.py` (rebuild via `maturin develop` first); add a section

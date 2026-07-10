@@ -344,7 +344,7 @@ coherence layer over existing maps; literature + tests, little new code.
 ## stars (deferred — the not-yet-numbers, confused with zero)
 
 The star numbers are one shared nim-sum scheme across both buildable ledgers; the
-sibling stars `*2` (Drinfeld) and `*8` (ogham 3.0) live in
+sibling stars `*2` (Drinfeld) and `*8` (ogham 0.3.0) live in
 [`CONTINUATIONS.md`](CONTINUATIONS.md).
 
 ### *1: `spinor genus` (was Bridge G)

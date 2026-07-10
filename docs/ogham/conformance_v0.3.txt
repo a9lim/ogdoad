@@ -1,5 +1,10 @@
 # ogham conformance corpus — v3.0 staging archive (hand-verified, blessed 2026-07-09)
 #
+# Notation transcription, 2026-07-09 (same-day): `∥` became the canonical fuzzy
+# relop and the bare `|` relop reading was removed from the language; the two
+# fuzzy vectors below are transcribed `| → ∥` so this archive stays parseable
+# by the shipped grammar. Their blessed semantics are unchanged.
+#
 # Spec contract: docs/ogham/ogham.md §19 (the 3.0 sketch, a9 + fable design
 # session 2026-07-09). The v3.0 vectors were merged into conformance.txt on
 # 2026-07-09; this file is retained as blessing/provenance, not as an inert
@@ -176,7 +181,7 @@
 = true
 
 # standard: ∗ ∥ 0
-> *1 | 0
+> *1 ∥ 0
 = true
 
 # standard: nim sum *2 + *3 = *1 (value-level; the sum form is not the
@@ -194,7 +199,7 @@
 > up() > 0
 = true
 
-> up() | *1
+> up() ∥ *1
 = true
 
 > up() + up() > *1

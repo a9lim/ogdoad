@@ -7,7 +7,7 @@ Brauer–Wall, the char-2 Arf classifier, Frobenius outermorphisms, the transfin
 Clifford engine, theta/modular forms, Construction-A codes, the Weil representation, the
 rational and full-`ℚ/ℤ` Brauer invariants, Newton polygons, the Brown invariant, the
 unification pass, lexicodes) closed with every non-deferred bridge shipped, as did the
-ogham 1.x–2.x language work and the transfinite-excess thread. The working-notes summary
+ogham 0.1.x–0.2.x language work and the transfinite-excess thread. The working-notes summary
 of all of it is in the `AGENTS.md` files (root + per-pillar); the historical entry-level
 ledger is in git history.
 
@@ -15,7 +15,7 @@ What remains unbuilt is tracked in the two buildable ledgers —
 [`COMPLETENESS.md`](COMPLETENESS.md) (completing symmetries and connections already in
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
-`CONTINUATIONS.md`'s numbered `ogham-3.0` when its sketch landed, 2026-07-09); genuine open problems
+`CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
 stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, `over`/`under`.
 
 ## How to use this ledger
@@ -45,7 +45,7 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
-### 4·e_o: `ogham-3.0`
+### 4·e_o: `ogham-0.3.0`
 **Completed:** 2026-07-09
 **Summary:** the recursion + games layer — `=:` μ-bindings, fuel-as-steps, the
 two containers (Clifford arrays via `coef`/`dim`; game-world lists — cons
@@ -61,16 +61,23 @@ fable gating) in one day.
   `LoopyPartizanGraph` at definition; μ-validation restored to definition
   time via sampled stubs; recursion-depth + data-depth guards keep every
   input an honest error, never an abort.
-- oracles: the 129-vector v3 slice of `docs/ogham/conformance.txt`
-  (hand-verified pre-build, engine-run at merge; `conformance_v3.txt` kept
+- oracles: the 129-vector v0.3 slice of `docs/ogham/conformance.txt`
+  (hand-verified pre-build, engine-run at merge; `conformance_v0.3.txt` kept
   as blessing/provenance), incl. the grundy acceptance example, the
   `a = b ⟺ canon(a) ≡ canon(b)` coherence, `drawn(dud)`/`drawn(ones)`,
   and the fp5 definition-time regression pin.
-- boundaries: §19.6's owed list, staged as the §20 v3.1 stub (loopy
+- boundaries: §19.6's owed list, staged as the §20 v0.3.1 stub — grown and
+  relabeled the v0.4.0 sketch same-day, behind the gate (loopy
   negation/comparison/sum envelope, mutual groups, per-mover outcomes,
   display prettification, trampoline evaluator to retire the conservative
   depth guards); coinductive append was decided and shipped same-day at
-  a9's call (`ones ⧺ l = ones`, §19.4.5); `⋅` stays `E_WrongWorld` —
+  a9's call (`ones ⧺ l = ones`, §19.4.5); `∥` (U+2225) became the
+  canonical fuzzy relop same-day at a9's call, with `\` its lexer sugar
+  (the TeX reflex, affordable under never-strings) — `|` is the
+  structural braceform bar only, its relop reading removed with an
+  `E_Parse` hint (§§1–3, §7.7, §11; live corpus re-blessed; the v0.3
+  archive's two fuzzy vectors transcribed `| → ∥` under a dated header
+  note so the blessed record stays parseable); `⋅` stays `E_WrongWorld` —
   games are a group, not a ring.
 
 ### ~6·(e_s∧e_c∧e_f∧e_i∧e_g): `py-sweep-2026-07-03` (the Python face)
