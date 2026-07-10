@@ -28,53 +28,96 @@ its sketch landed — shipped on 2026-07-09, the same day; its entry moved to
 reflection release** — shipped 2026-07-10; its entry moved to
 [`DONE.md`](DONE.md) as `ogham-0.3.5`.)
 
+**The ladder** (set 2026-07-10 at the 0.3.6 pass, a9's calls): the bug
+count at 0.3.5 read as immaturity, so release moved out two rungs —
+**0.3.6 → 0.3.7 → 0.3.8 → 0.4.0 = the public release → 1.0.0**. The old
+0.4.0 sketch was split by kind: envelope extensions (error→value) and
+floor engineering matured *inside* the prereleases; the identity change
+(higher-order) became 1.0.0's question. Release shape decided with the
+ladder: **ogdoad ships with ogham as its front door** — no separate crate
+(crates.io `ogham` is taken, verified 2026-07-10; `ogdoad` is free);
+the installed `ogdoad` binary launches the REPL; one public version clock
+(ogdoad 0.4.0 contains ogham 0.4.0).
+
 ### 2·e_o: `ogham-0.3.6`
-**The second comprehensive adversarial pass — REQUIRED before release**
-(a9's call, 2026-07-09, at the 0.3.5 charter review: "we found enough bugs
-here that I want to do a second comprehensive adversarial pass"). Plays
-after the 0.3.5 build ships, in a fresh session with fresh eyes: the full
-four-perspective + codex-seat discipline re-run against the *unified* spec
-and the *unified* runtime (the reflection pass reviewed 0.3.0; nobody has
-adversarially reviewed 0.3.5's own new surface — the nine-cell
-implementation, the multiset `≡` bisimulation, the product-graph sums, the
-runtime unification). Also carries the deferred **release scoping, a9's
-call**: ogham as ogdoad's front door vs an `ogham` crate re-exporting the
-core, README/writeup (the CGSuite comparison lives there, not in the
-spec), and the public name. Nothing releases before this pass. (Value
-provisional; a9 to re-value.)
+**The second comprehensive adversarial pass — IN FLIGHT** (chartered
+2026-07-09; played 2026-07-10: seven-perspective sweep — four sol seats
+over the gaslamp `ogham-036-*` threads + three independent implementation
+reviews + a9/fable synthesis; spec rewritten same day — `docs/ogham/`
+split into `spec.md` (v0.3.6 contract) / `implementation.md` / `README.md`;
+build with sol pending). The sweep's verdict: the nine-cell core is sound
+(triple-verified — projection re-derived from Siegel cell-for-cell,
+rotation/swap laws structural, budget seams deliberate); the defect
+epicenter is §10.8 display (three independent display-law violations).
+Build scope, in order: (1) new adversarial gates FIRST (law tests: loopy
+display → fresh session → `≡` over multi-SCC/shared/collision/rebinding
+families; randomized stopper-pair projection oracle; laziness sort-checks);
+(2) defect fixes — the display rebuild (SCC systems, collision-safe
+α-names, anchors on every path), **mutual Element-`=:` groups pulled
+forward** (adjacent `;`-joined runs = one equation system), total
+sort-checking at non-strict positions, guardedness by the language's own
+reduction rules, budgeted `from_game`, memoized `≡` on shared DAGs,
+`E_StackDepth`/`E_FixpointSort`, hint-field discipline (~8 sites), the
+stale "0.3.0 envelope" string, `eval_index` drift; (3) mechanical
+`eval.rs` split (runtime/ + worlds/), then `Apply` node, `DataSort`,
+`RuntimeState`, one Index evaluator; (4) the design tranche — **`if a then b else c` replacing the `? :`
+ternary** (a9's move, 2026-07-10: the Bool tier becomes all words, glyphs
+stay mathematics; `:` freed for ordinal sum, `?` solely the Bool binder
+mark; hard removal with teaching hints), binder mark triad
+(`#`/`?`/bare-is-Element-by-law), container totality (fixed/graded/free),
+dyadic game literals + recognition rung, `birthday` (presented stratum),
+`integral`, poly `coef`, world respelling (`fp2[t]`/`fp2(t)`) + dim-0
+shorthand, Display v4 (poly joins the monomial family — reverses the old
+explicit-coefficient pin, a9's call), whitespace-agnostic exponents,
+extended continuation; (5) spec-truth
+corrections landed in `spec.md` (multiform naming, outcome-as-observation,
+predicate strata refiling, `=` cost description, Siegel provenance
+wording, conformance-suite reframing). Corpus green per commit; AGENTS.md
+display-scope note updated when the corpus pin flips.
 
-Seed punch-list from the 0.3.5 build's own gate (sol, 2026-07-10, plus
-fable's gate finds): consolidate the four `eval_index` copies (keep the
-`@`-inside-Index regression); re-attack the singles' seam — tight-budget
-error precedence when the stopper gate passes but the difference build
-exceeds `E_GraphBudget`, and randomized stopper-pair agreement between
-projected singles and the nine cells (a bounded graph-level projection
-oracle); synthesized display names `g1, g2, …` allocate without a
-collision set against user-rooted names — mixed named/anonymous
-composites may read as capture; pin multi-SCC / shared-subgraph /
-duplicate-edge / nested-negated-sum displays and first-reach stability
-under equivalent presentations; add parse/display round-trips for
-synthesized multi-equation bodies beyond the blessed representatives.
+### 2·e_o: `ogham-0.3.7`
+**The structural rung.** (1) **Ordinal sum `G:H`** — the CGT seat's top
+demand ("the mathematical colon belongs in this stroke language"); engine
+already ships `Game::ordinal_sum`, and 0.3.6's conditional-word move freed
+the colon entirely — remaining work is the precedence/associativity choice
+and the corpus family. (2) **Games-pillar absorption** — regular-game mathematics
+(rooted multiplicity-preserving graphs, short-game exits, neg/sum, stopper
+witnesses, nine-cell outcomes, regular-tree bisimilarity) moves to
+`src/games/loopy/`, killing the double-model seam; language keeps
+lowering/guardedness/provenance/recognition/display. (3) **The floor** —
+trampoline vs `stacker` vs targeted work-stacks (dependency question is
+a9's), retiring the `E_StackDepth` frame guard; array-side envelope on
+measured pain. (4) **Adversarial pass #3** — fresh eyes on the 0.3.6
+surface (the mutual-system closure, the new display, the design tranche).
 
-### 4·e_o: `ogham-0.4.0`
-**The higher-order release** — slimmed at the reflection pass
-(2026-07-09): 0.3.5 absorbed the old sketch's entire envelope program
-(the pillar stage — `neg`/`sum`/stopper detection/survival on
-`LoopyPartizanGraph` — and the language stage — stopper relations via
-the nine-cell projection, total loopy `+`/`-`, `stopper()`,
-witness-carrying `E_Loopy` — plus the persistent worker). What remains,
-per `docs/ogham/ogham.md` §18, in order: (1) the **higher-order gate**,
-0.4.0's opener — map/fold, functions-as-values, decided against the
-Index-recursion pain 0.3.x makes measurable; no Sequence sort; (2)
-**mutual `=:` groups** (adjacent-binding grammar, pure error→value);
-(3) **`canon` on stoppers** (fusion/simplest form — the largest
-genuinely-new math item, independently slippable, last); (4)
-**one-stopper biased comparison** (the sided machinery loosening the
-both-stoppers gate; onside/offside sidling for non-stoppers stays open
-beyond it); (5) the measured **floor** (trampoline vs `stacker` vs
-targeted work-stacks — the dependency question is a9's — retiring the
-depth guard; array-side envelope on measured pain). Plays after
-`ogham-0.3.6` and release. Value proposed at `4·e_o`; a9 to re-value.
+### 2·e_o: `ogham-0.3.8`
+**The loopy-envelope completion + release dress.** Error→value work:
+(1) **left/right stops** (`lstop`/`rstop` — dyadic display has bedded in);
+(2) **`temperature`/`mean`** as thin calls (thermograph value type stays
+refused); (3) **`canon` on stoppers** (fusion/simplest form — the largest
+genuinely-new math item; slip-tolerant by design: nothing depends on it,
+it slides to 1.x rather than blocking); (4) **one-stopper biased
+comparison** (the sided machinery loosening the both-stoppers gate;
+onside/offside sidling for non-stoppers stays open beyond it). Release
+dress: REPL promoted to installed binary (`src/bin/ogdoad.rs`), README
+reversal (transcript-first), `examples/ogham/*.og` gallery, the writeup
+(`writeups/ogham.tex` — identity essay, the extended why-this-is-art
+argument, the honest CGSuite comparison), corpus split thematically +
+`stage_*` tests renamed by law. Final full-surface pass gates the release.
+
+### `ogham-0.4.0` — **the public release** (after 0.3.8's gate; not a
+feature rung). Package/version alignment, publish decision execution.
+
+### 4·e_o: `ogham-1.0.0`
+**The higher-order release** — the one identity change left standing:
+map/fold, functions-as-values, decided against the Index-recursion pain
+0.3.x/0.4.0 makes measurable. No Sequence sort: if Function is promoted it
+earns it through **one symmetric map/fold story over the three container
+shapes** (fixed/graded/free — the 0.3.6 container totality made this a
+three-world question, a better one than the two-world sketch). Mutual
+*function* `=:` groups land here (Function representation changes anyway;
+Element systems shipped at 0.3.6). Whatever the release soak surfaces
+joins the docket. Value proposed at `4·e_o`; a9 to re-value.
 
 ---
 
