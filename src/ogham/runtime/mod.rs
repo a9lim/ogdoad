@@ -103,8 +103,9 @@ pub(crate) trait WorldOps: Sized {
         Err(OghamError::new(
             OghamErrorKind::WrongWorld,
             Span::point(0),
-            "only Function values apply with `@` in this world; element evaluation lives in function-shaped worlds",
-        ))
+            "only Function values apply with `@` in this world",
+        )
+        .with_hint("element evaluation lives in function-shaped worlds"))
     }
 
     fn non_function_at_error(&self) -> Option<OghamError> {
@@ -291,6 +292,9 @@ pub(crate) trait SharedRuntime: WorldOps {
                 self.env_mut()
                     .insert(name.to_string(), Value::Function(function));
                 return Ok(());
+            }
+            if matches!(self.static_sort(expr), Ok(DataSort::Bool | DataSort::Index)) {
+                return Err(fixpoint_sort_error());
             }
             return self.bind_recursive_element(name, expr);
         }

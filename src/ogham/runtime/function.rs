@@ -40,7 +40,7 @@ pub(crate) fn enter_recursion_frame(
     };
     if *depth >= RECURSION_DEPTH_GUARD {
         return Err(OghamError::new(
-            OghamErrorKind::Fuel,
+            OghamErrorKind::StackDepth,
             Span::point(0),
             format!(
                 "recursive definition `{name}` reached the recursion depth safety guard ({RECURSION_DEPTH_GUARD} frames); fuel budget {budget} has {remaining} step(s) remaining, but the host stack is not unbounded"

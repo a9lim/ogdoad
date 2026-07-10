@@ -1,5 +1,5 @@
 // ogham conformance corpus — v0.3.5 (hand-verified and fully merged)
-// Format: docs/ogham/ogham.md §14, plus `>>` continuation lines for joined
+// Format: docs/ogham/spec.md §16, plus `>>` continuation lines for joined
 // open-paren/open-bracket/open-brace inputs.
 //   @world ‹args as after ":world"›   resets bindings
 //   @fuel ‹u128›                      sets the per-statement μ-step budget
@@ -7,8 +7,8 @@
 //   > input        ~ canonical echo (optional)        = value display
 //   ! E_Kind: message-substring
 // Every vector below was hand-verified against its governing spec and standard
-// mathematics, then run against the shipped engine. The --bless harness mode may
-// APPEND engine-generated vectors; it must never modify this hand-verified prefix.
+// mathematics, then run against the shipped engine. This corpus is maintained by
+// reviewed edits only; the harness never rewrites or appends vectors.
 
 // ---------------------------------------------------------------- nimber, scalars
 @world nimber 0

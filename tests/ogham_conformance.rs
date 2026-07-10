@@ -213,6 +213,97 @@ fn stage_e_budget_witness_and_wrong_world_errors_are_distinct() {
         .is_some_and(|hint| hint.contains("relations against 0")));
 }
 
+#[test]
+fn wrong_world_teaching_lives_in_hint_fields() {
+    let mut game = OghamSession::new("game").expect("game world");
+    for (input, message, hint) in [
+        ("ω", "not a finite short game", "use finite game forms"),
+        (
+            "dim",
+            "fixed-shape Clifford literal",
+            "the game container is free-shape",
+        ),
+        (
+            "/1",
+            "additive group, not a field",
+            "`/` is undefined for games",
+        ),
+        (
+            "1⋅2",
+            "additive group, not a ring",
+            "`⋅` is undefined for games",
+        ),
+        ("1∧2", "has no wedge product", "list append is `⧺`"),
+        (
+            "1/2",
+            "additive group, not a field",
+            "`/` is undefined for games",
+        ),
+    ] {
+        let err = game.eval_line(input).expect_err("wrong-world operation");
+        assert_eq!(err.kind, OghamErrorKind::WrongWorld);
+        assert!(err.message.contains(message), "`{input}`: {}", err.message);
+        assert!(!err.message.contains(hint), "`{input}`: {}", err.message);
+        assert_eq!(err.hint.as_deref(), Some(hint), "`{input}`");
+    }
+
+    let mut integer = OghamSession::new("integer 0").expect("integer world");
+    let apply = integer
+        .eval_line("1@2")
+        .expect_err("integer Elements do not apply");
+    assert_eq!(apply.kind, OghamErrorKind::WrongWorld);
+    assert_eq!(
+        apply.hint.as_deref(),
+        Some("element evaluation lives in function-shaped worlds")
+    );
+
+    let mut ratfunc = OghamSession::new("ratfunc2").expect("ratfunc world");
+    let remainder = ratfunc
+        .eval_line("t % t")
+        .expect_err("field remainder is unavailable");
+    assert_eq!(remainder.kind, OghamErrorKind::WrongWorld);
+    assert_eq!(
+        remainder.hint.as_deref(),
+        Some("`%` is only active in polynomial worlds")
+    );
+
+    let mut surreal = OghamSession::new("surreal 0").expect("surreal world");
+    let star = surreal
+        .eval_line("*3")
+        .expect_err("star is a nimber literal");
+    assert_eq!(star.kind, OghamErrorKind::WrongWorld);
+    assert_eq!(star.hint.as_deref(), Some("`*3` is a nimber literal"));
+
+    game.eval_line("on =: {on |}").expect("loopy definition");
+    let canon = game
+        .eval_line("canon(on)")
+        .expect_err("loopy canon is outside the envelope");
+    assert_eq!(canon.kind, OghamErrorKind::Loopy);
+    assert!(!canon.message.contains("0.3.0"));
+    assert_eq!(
+        canon.hint.as_deref(),
+        Some("graph fusion is not yet in the envelope")
+    );
+}
+
+#[test]
+fn bool_and_index_equations_use_fixpoint_sort_in_every_world() {
+    for world in ["game", "integer 0"] {
+        for input in ["b =: not b", "n =: #(n + 1)"] {
+            let mut session = OghamSession::new(world).expect("test world");
+            let err = session
+                .eval_line(input)
+                .expect_err("Bool and Index equations have no fixpoint theory");
+            assert_eq!(err.kind, OghamErrorKind::FixpointSort, "{world}: {input}");
+            assert_eq!(
+                err.hint.as_deref(),
+                Some("recursion is for Functions (unfolding) and game Elements (graphs)"),
+                "{world}: {input}"
+            );
+        }
+    }
+}
+
 fn language_outcome_cell(session: &mut OghamSession, lhs: &str, rhs: &str) -> OutcomeCell {
     let true_cells = OutcomeCell::ALL
         .into_iter()
@@ -457,6 +548,8 @@ fn error_kind_codes_are_stable() {
     assert_eq!(OghamErrorKind::BareInt.code(), "E_BareInt");
     assert_eq!(OghamErrorKind::KummerEscape.code(), "E_KummerEscape");
     assert_eq!(OghamErrorKind::Fuel.code(), "E_Fuel");
+    assert_eq!(OghamErrorKind::StackDepth.code(), "E_StackDepth");
+    assert_eq!(OghamErrorKind::FixpointSort.code(), "E_FixpointSort");
     assert_eq!(OghamErrorKind::Improper.code(), "E_Improper");
     assert_eq!(OghamErrorKind::Unfounded.code(), "E_Unfounded");
     assert_eq!(OghamErrorKind::Loopy.code(), "E_Loopy");
@@ -520,7 +613,7 @@ fn recursion_depth_guard_preempts_the_host_stack() {
     let err = session
         .eval_line("f@60000")
         .expect_err("deep descent must stop before overflowing the host stack");
-    assert_eq!(err.kind, OghamErrorKind::Fuel);
+    assert_eq!(err.kind, OghamErrorKind::StackDepth);
     assert!(err.message.contains("recursion depth safety guard"));
     assert!(err.message.contains("1024 frames"));
     assert!(err.message.contains("step(s) remaining"));
@@ -621,12 +714,12 @@ fn step_fuel_message_remains_distinct_from_depth_guard() {
     session
         .eval_line("fib =: n ↦ n < 2 ? n : fib@(n - 1) + fib@(n - 2)")
         .expect("recursive definition");
-    session.set_fuel_budget(5000);
+    session.set_fuel_budget(100);
     let err = session
         .eval_line("fib@25")
         .expect_err("step fuel must catch broad recursion");
     assert_eq!(err.kind, OghamErrorKind::Fuel);
-    assert!(err.message.contains("exhausted its fuel budget of 5000"));
+    assert!(err.message.contains("exhausted its fuel budget of 100"));
     assert!(!err.message.contains("recursion depth safety guard"));
 }
 

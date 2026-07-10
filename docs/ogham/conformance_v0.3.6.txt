@@ -204,3 +204,111 @@
 > a := -on
 > {a | g1}
 = (a =: {| a}; g1 =: {1 | g1}; {a | g1})
+
+// Stage E: skipped append operands are sort-checked but never value-evaluated.
+@world game
+
+> ones =: [1] ⧺ ones
+
+> ones ⧺ true
+! E_BoolSort:
+
+> ones ⧺ #2
+! E_IndexSort:
+
+> ones ⧺ (x ↦ x)
+! E_FnSort:
+
+> ones ⧺ (ones + 0)
+= ones =: {1 | ones}
+
+> ones ⧺ (1 / 0)
+= ones =: {1 | ones}
+
+> same =: ones ⧺ same
+> same ≡ ones
+= true
+
+// Guardedness reduces with the language's current non-strict rules.
+@world game
+
+> g =: [g] ⧺ []
+> g
+= g =: {g | 0}
+
+> dead =: {true ? 0 : dead |}
+> dead
+= 1
+
+> anddead =: {(false and (anddead = 0)) ? anddead : 0 |}
+> anddead
+= 1
+
+> ordead =: {(true or (ordead = 0)) ? 0 : ordead |}
+> ordead
+= 1
+
+// Bare-root occurrences remain genuine Element guardedness failures.
+@world game
+
+> g =: g
+! E_Unfounded:
+
+> h =: [] ⧺ h
+! E_Unfounded:
+
+> k =: k ⧺ [1]
+! E_Unfounded:
+
+> m =: m + 1
+! E_Unfounded:
+
+// Bool and Index equations have their own sort diagnosis and teaching hint.
+@world game
+
+> b =: not b
+! E_FixpointSort: recursion is for Functions (unfolding) and game Elements (graphs)
+
+> n =: #(n + 1)
+! E_FixpointSort: recursion is for Functions (unfolding) and game Elements (graphs)
+
+// Guidance is carried by hints; the corpus pins the rendered teaching text.
+@world game
+
+> ω
+! E_WrongWorld: use finite game forms
+
+> dim
+! E_WrongWorld: the game container is free-shape
+
+> /1
+! E_WrongWorld: `/` is undefined for games
+
+> 1 ⋅ 2
+! E_WrongWorld: `⋅` is undefined for games
+
+> 1 ∧ 2
+! E_WrongWorld: list append is `⧺`
+
+> 1 / 2
+! E_WrongWorld: `/` is undefined for games
+
+> on =: {on |}
+
+> canon(on)
+! E_Loopy: graph fusion is not yet in the envelope
+
+@world integer 0
+
+> 1@2
+! E_WrongWorld: element evaluation lives in function-shaped worlds
+
+@world ratfunc2
+
+> t % t
+! E_WrongWorld: `%` is only active in polynomial worlds
+
+@world surreal 0
+
+> *3
+! E_WrongWorld: `*3` is a nimber literal

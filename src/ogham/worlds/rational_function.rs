@@ -238,8 +238,9 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             BinaryOp::Rem => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
-                "function-field worlds are fields; `%` is only active in polynomial worlds",
-            )),
+                "function-field worlds are fields",
+            )
+            .with_hint("`%` is only active in polynomial worlds")),
             BinaryOp::Wedge => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),

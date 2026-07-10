@@ -62,11 +62,14 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
     }
 
     fn non_function_at_error(&self) -> Option<OghamError> {
-        Some(OghamError::new(
-            OghamErrorKind::WrongWorld,
-            Span::point(0),
-            "only Function values apply with `@` in this world; element evaluation lives in function-shaped worlds",
-        ))
+        Some(
+            OghamError::new(
+                OghamErrorKind::WrongWorld,
+                Span::point(0),
+                "only Function values apply with `@` in this world",
+            )
+            .with_hint("element evaluation lives in function-shaped worlds"),
+        )
     }
 }
 
@@ -703,8 +706,9 @@ impl OghamScalar for Surreal {
         Err(OghamError::new(
             OghamErrorKind::WrongWorld,
             span,
-            "`*3` is a nimber; this is the `surreal` world",
-        ))
+            "star-literals are not Elements in the `surreal` world",
+        )
+        .with_hint("`*3` is a nimber literal"))
     }
 
     fn omega(_span: Span) -> OghamResult<Self> {
@@ -757,8 +761,9 @@ impl OghamScalar for Omnific {
         Err(OghamError::new(
             OghamErrorKind::WrongWorld,
             span,
-            "`*3` is a nimber; this is the `omnific` world",
-        ))
+            "star-literals are not Elements in the `omnific` world",
+        )
+        .with_hint("`*3` is a nimber literal"))
     }
 
     fn omega(_span: Span) -> OghamResult<Self> {
@@ -800,8 +805,9 @@ impl OghamScalar for Integer {
         Err(OghamError::new(
             OghamErrorKind::WrongWorld,
             span,
-            "`*3` is a nimber; this is the `integer` world",
-        ))
+            "star-literals are not Elements in the `integer` world",
+        )
+        .with_hint("`*3` is a nimber literal"))
     }
 
     fn omega(span: Span) -> OghamResult<Self> {
@@ -850,8 +856,9 @@ macro_rules! impl_fp_ogham {
                     Err(OghamError::new(
                         OghamErrorKind::WrongWorld,
                         span,
-                        "`*3` is a nimber; this is a prime-field world",
-                    ))
+                        "star-literals are not Elements in prime-field worlds",
+                    )
+                    .with_hint("`*3` is a nimber literal"))
                 }
                 fn omega(span: Span) -> OghamResult<Self> {
                     Err(OghamError::new(
@@ -896,8 +903,9 @@ macro_rules! impl_fpn_ogham {
                     Err(OghamError::new(
                         OghamErrorKind::WrongWorld,
                         span,
-                        "`*3` is a nimber; this is an extension-field world",
-                    ))
+                        "star-literals are not Elements in extension-field worlds",
+                    )
+                    .with_hint("`*3` is a nimber literal"))
                 }
                 fn omega(span: Span) -> OghamResult<Self> {
                     Err(OghamError::new(

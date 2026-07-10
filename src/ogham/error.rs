@@ -29,6 +29,7 @@ pub enum OghamErrorKind {
     IndexSort,
     BoolSort,
     FnSort,
+    FixpointSort,
     Shadow,
     SeqValue,
     BareInt,
@@ -49,6 +50,7 @@ pub enum OghamErrorKind {
     Overflow,
     Domain,
     Fuel,
+    StackDepth,
     Improper,
     Unfounded,
     Loopy,
@@ -64,6 +66,7 @@ impl OghamErrorKind {
             OghamErrorKind::IndexSort => "E_IndexSort",
             OghamErrorKind::BoolSort => "E_BoolSort",
             OghamErrorKind::FnSort => "E_FnSort",
+            OghamErrorKind::FixpointSort => "E_FixpointSort",
             OghamErrorKind::Shadow => "E_Shadow",
             OghamErrorKind::SeqValue => "E_SeqValue",
             OghamErrorKind::BareInt => "E_BareInt",
@@ -84,6 +87,7 @@ impl OghamErrorKind {
             OghamErrorKind::Overflow => "E_Overflow",
             OghamErrorKind::Domain => "E_Domain",
             OghamErrorKind::Fuel => "E_Fuel",
+            OghamErrorKind::StackDepth => "E_StackDepth",
             OghamErrorKind::Improper => "E_Improper",
             OghamErrorKind::Unfounded => "E_Unfounded",
             OghamErrorKind::Loopy => "E_Loopy",
@@ -156,6 +160,15 @@ pub(crate) fn fn_sort_error() -> OghamError {
         Span::point(0),
         "Function values are first-order and cannot appear here",
     )
+}
+
+pub(crate) fn fixpoint_sort_error() -> OghamError {
+    OghamError::new(
+        OghamErrorKind::FixpointSort,
+        Span::point(0),
+        "Bool and Index values do not have recursive fixpoint semantics",
+    )
+    .with_hint("recursion is for Functions (unfolding) and game Elements (graphs)")
 }
 
 pub(crate) fn exp_sort_error() -> OghamError {

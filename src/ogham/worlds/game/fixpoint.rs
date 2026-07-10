@@ -98,11 +98,15 @@ pub(crate) fn graft_game_spine(
 }
 
 pub(crate) fn symbolic_spine(heads: Vec<GameElement>, tail: SymbolicGame) -> SymbolicGame {
+    symbolic_spine_parts(heads.into_iter().map(SymbolicGame::Value).collect(), tail)
+}
+
+pub(crate) fn symbolic_spine_parts(heads: Vec<SymbolicGame>, tail: SymbolicGame) -> SymbolicGame {
     heads
         .into_iter()
         .rev()
         .fold(tail, |tail, head| SymbolicGame::Form {
-            left: vec![SymbolicGame::Value(head)],
+            left: vec![head],
             right: vec![tail],
         })
 }
@@ -120,6 +124,19 @@ pub(crate) fn materialize_regular_game(
     }
     let mut nodes = Vec::new();
     materialize_symbolic_node(&root, &mut nodes, node_budget)?;
+    let finite = finite_regular_nodes(&nodes);
+    if let Some(game) = finite[0].clone() {
+        return Ok(GameElement::Finite(game));
+    }
+    for node in &mut nodes {
+        for edge in node.left.iter_mut().chain(&mut node.right) {
+            if let RegularGameEdge::Local(target) = edge {
+                if let Some(game) = &finite[*target] {
+                    *edge = RegularGameEdge::Finite(game.clone());
+                }
+            }
+        }
+    }
     let has_draw = classify_regular_nodes(&nodes, node_budget)?;
     Ok(GameElement::Graph(GraphRef {
         graph: Arc::new(RegularGameGraph {
@@ -894,6 +911,10 @@ pub(crate) fn game_option_index(name: &str, index: i128) -> OghamResult<usize> {
 
 pub(crate) fn game_wrong_world(message: &str) -> OghamError {
     OghamError::new(OghamErrorKind::WrongWorld, Span::point(0), message)
+}
+
+pub(crate) fn game_wrong_world_hint(message: &str, hint: &str) -> OghamError {
+    game_wrong_world(message).with_hint(hint)
 }
 
 pub(crate) fn refine_game_binder_sorts(

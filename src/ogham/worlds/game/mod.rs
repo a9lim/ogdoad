@@ -105,8 +105,9 @@ impl WorldOps for GameRuntime {
             Expr::Call { name, .. } if name == "dim" => {
                 IndexPrimitive::Error(literal_call_error(name))
             }
-            Expr::Dim => IndexPrimitive::Error(game_wrong_world(
-                "`dim` is a fixed-shape Clifford literal; the game container is free-shape",
+            Expr::Dim => IndexPrimitive::Error(game_wrong_world_hint(
+                "`dim` is a fixed-shape Clifford literal",
+                "the game container is free-shape",
             )),
             _ => IndexPrimitive::NotHandled,
         }
@@ -361,8 +362,9 @@ impl GameRuntime {
             Expr::Star(StarLiteral::Cnf(_)) => Err(game_wrong_world(
                 "transfinite nimber games are outside the finite `game` world",
             )),
-            Expr::Omega => Err(game_wrong_world(
-                "`ω` is not a finite short game; use finite game forms",
+            Expr::Omega => Err(game_wrong_world_hint(
+                "`ω` is not a finite short game",
+                "use finite game forms",
             )),
             Expr::Blade(_) => Err(game_wrong_world("the game world has no Clifford blades")),
             Expr::Container(items) => {
@@ -378,8 +380,9 @@ impl GameRuntime {
             }
             Expr::Up => Ok(GameElement::Finite(Game::up())),
             Expr::Down => Ok(GameElement::Finite(Game::up().neg())),
-            Expr::Dim => Err(game_wrong_world(
-                "`dim` is a fixed-shape Clifford literal; the game container is free-shape",
+            Expr::Dim => Err(game_wrong_world_hint(
+                "`dim` is a fixed-shape Clifford literal",
+                "the game container is free-shape",
             )),
             Expr::Lambda { .. } => Err(fn_sort_error()),
             Expr::GameForm { left, right } => build_game_form(
@@ -410,8 +413,9 @@ impl GameRuntime {
                 UnaryOp::Neg => {
                     negate_game_element(self.eval_element(expr)?, self.state.graph_budget)
                 }
-                UnaryOp::Inv => Err(game_wrong_world(
-                    "games form an additive group, not a field; `/` is undefined",
+                UnaryOp::Inv => Err(game_wrong_world_hint(
+                    "games form an additive group, not a field",
+                    "`/` is undefined for games",
                 )),
                 UnaryOp::Not => Err(bool_sort_error()),
             },
@@ -440,6 +444,11 @@ impl GameRuntime {
                 add_game_elements(lhs, rhs, op == BinaryOp::Sub, self.state.graph_budget)
             }
             BinaryOp::Append => {
+                match self.static_sort(rhs)? {
+                    DataSort::Element => {}
+                    DataSort::Index => return Err(index_sort_error()),
+                    DataSort::Bool => return Err(bool_sort_error()),
+                }
                 let lhs = self.eval_element(lhs)?;
                 match walk_game_spine(&lhs)? {
                     SpineWalk::Cycles => Ok(lhs),
@@ -449,14 +458,17 @@ impl GameRuntime {
                     }
                 }
             }
-            BinaryOp::Mul => Err(game_wrong_world(
-                "games are an additive group, not a ring; `⋅` is undefined",
+            BinaryOp::Mul => Err(game_wrong_world_hint(
+                "games are an additive group, not a ring",
+                "`⋅` is undefined for games",
             )),
-            BinaryOp::Wedge => Err(game_wrong_world(
-                "the game world has no wedge product; list append is `⧺`",
+            BinaryOp::Wedge => Err(game_wrong_world_hint(
+                "the game world has no wedge product",
+                "list append is `⧺`",
             )),
-            BinaryOp::Div => Err(game_wrong_world(
-                "games are an additive group, not a field; `/` is undefined",
+            BinaryOp::Div => Err(game_wrong_world_hint(
+                "games are an additive group, not a field",
+                "`/` is undefined for games",
             )),
             BinaryOp::Rem => Err(game_wrong_world("remainder `%` is undefined for games")),
             BinaryOp::Pow => Err(game_wrong_world("power `↑` is undefined for games")),
@@ -470,9 +482,10 @@ impl GameRuntime {
                 expect_arity(name, args, 1)?;
                 match self.eval_element(&args[0])? {
                     GameElement::Finite(game) => Ok(GameElement::Finite(game.canonical())),
-                    GameElement::Graph(_) => Err(loopy_error(
-                        "`canon` is not defined on loopy games in the 0.3.0 envelope",
-                    )),
+                    GameElement::Graph(_) => {
+                        Err(loopy_error("`canon` is not defined on loopy games")
+                            .with_hint("graph fusion is not yet in the envelope"))
+                    }
                 }
             }
             "left" | "right" => {
@@ -513,51 +526,9 @@ impl GameRuntime {
         &mut self,
         name: &str,
         expr: &Expr,
-        _inside_form: bool,
+        inside_form: bool,
     ) -> OghamResult<SymbolicGame> {
-        match expr {
-            Expr::Index(_) => Err(index_sort_error()),
-            Expr::Ident(found) if found == name => Ok(SymbolicGame::SystemRef(0)),
-            Expr::Container(items) => {
-                let mut tail = SymbolicGame::Value(GameElement::Finite(Game::integer(0)));
-                for item in items.iter().rev() {
-                    tail = SymbolicGame::Form {
-                        left: vec![self.reduce_element_fixpoint(name, item, true)?],
-                        right: vec![tail],
-                    };
-                }
-                Ok(tail)
-            }
-            Expr::GameForm { left, right } => Ok(SymbolicGame::Form {
-                left: left
-                    .iter()
-                    .map(|item| self.reduce_element_fixpoint(name, item, true))
-                    .collect::<OghamResult<_>>()?,
-                right: right
-                    .iter()
-                    .map(|item| self.reduce_element_fixpoint(name, item, true))
-                    .collect::<OghamResult<_>>()?,
-            }),
-            Expr::Binary {
-                op: BinaryOp::Append,
-                lhs,
-                rhs,
-            } => {
-                if contains_free_name(lhs, name) {
-                    return Err(unfounded_error(name));
-                }
-                let left = self.eval_element(lhs)?;
-                match walk_game_spine(&left)? {
-                    SpineWalk::Cycles => Ok(SymbolicGame::Value(left)),
-                    SpineWalk::ReachesNil(heads) => {
-                        let right = self.reduce_element_fixpoint(name, rhs, false)?;
-                        Ok(symbolic_spine(heads, right))
-                    }
-                }
-            }
-            _ if contains_free_name(expr, name) => Err(unfounded_error(name)),
-            _ => self.eval_element(expr).map(SymbolicGame::Value),
-        }
+        self.reduce_element_system(name, &[name.to_string()], expr, inside_form)
     }
 
     fn reduce_element_system(
@@ -598,17 +569,16 @@ impl GameRuntime {
                 op: BinaryOp::Append,
                 lhs,
                 rhs,
+            } => self.reduce_element_append(equation, names, lhs, rhs),
+            Expr::Ternary {
+                cond,
+                then_expr,
+                else_expr,
             } => {
-                if let Some(name) = names.iter().find(|name| contains_free_name(lhs, name)) {
-                    return Err(unfounded_system_error(equation, name));
-                }
-                let left = self.eval_element(lhs)?;
-                match walk_game_spine(&left)? {
-                    SpineWalk::Cycles => Ok(SymbolicGame::Value(left)),
-                    SpineWalk::ReachesNil(heads) => {
-                        let right = self.reduce_element_system(equation, names, rhs, false)?;
-                        Ok(symbolic_spine(heads, right))
-                    }
+                if self.reduce_fixpoint_bool(equation, names, cond)? {
+                    self.reduce_element_system(equation, names, then_expr, _inside_form)
+                } else {
+                    self.reduce_element_system(equation, names, else_expr, _inside_form)
                 }
             }
             _ => {
@@ -616,6 +586,102 @@ impl GameRuntime {
                     return Err(unfounded_system_error(equation, name));
                 }
                 self.eval_element(expr).map(SymbolicGame::Value)
+            }
+        }
+    }
+
+    fn reduce_element_append(
+        &mut self,
+        equation: &str,
+        names: &[String],
+        lhs: &Expr,
+        rhs: &Expr,
+    ) -> OghamResult<SymbolicGame> {
+        let left = self.reduce_element_system(equation, names, lhs, false)?;
+        let mut heads = Vec::new();
+        let mut current = left;
+        loop {
+            match current {
+                SymbolicGame::SystemRef(index) => {
+                    return Err(unfounded_system_error(equation, &names[index]));
+                }
+                SymbolicGame::Form { left, right } => match (left.len(), right.len()) {
+                    (0, 0) => {
+                        let tail = self.reduce_element_system(equation, names, rhs, false)?;
+                        return Ok(symbolic_spine_parts(heads, tail));
+                    }
+                    (1, 1) => {
+                        heads.push(left.into_iter().next().expect("singleton symbolic head"));
+                        current = right.into_iter().next().expect("singleton symbolic tail");
+                    }
+                    _ => return Err(improper_spine_error()),
+                },
+                SymbolicGame::Value(value) => match walk_game_spine(&value)? {
+                    SpineWalk::Cycles => {
+                        return Ok(symbolic_spine_parts(heads, SymbolicGame::Value(value)));
+                    }
+                    SpineWalk::ReachesNil(value_heads) => {
+                        heads.extend(value_heads.into_iter().map(SymbolicGame::Value));
+                        let tail = self.reduce_element_system(equation, names, rhs, false)?;
+                        return Ok(symbolic_spine_parts(heads, tail));
+                    }
+                },
+            }
+        }
+    }
+
+    fn reduce_fixpoint_bool(
+        &mut self,
+        equation: &str,
+        names: &[String],
+        expr: &Expr,
+    ) -> OghamResult<bool> {
+        match expr {
+            Expr::Bool(value) => Ok(*value),
+            Expr::Unary {
+                op: UnaryOp::Not,
+                expr,
+            } => self
+                .reduce_fixpoint_bool(equation, names, expr)
+                .map(|value| !value),
+            Expr::Binary {
+                op: BinaryOp::And,
+                lhs,
+                rhs,
+            } => {
+                if !self.reduce_fixpoint_bool(equation, names, lhs)? {
+                    Ok(false)
+                } else {
+                    self.reduce_fixpoint_bool(equation, names, rhs)
+                }
+            }
+            Expr::Binary {
+                op: BinaryOp::Or,
+                lhs,
+                rhs,
+            } => {
+                if self.reduce_fixpoint_bool(equation, names, lhs)? {
+                    Ok(true)
+                } else {
+                    self.reduce_fixpoint_bool(equation, names, rhs)
+                }
+            }
+            Expr::Ternary {
+                cond,
+                then_expr,
+                else_expr,
+            } => {
+                if self.reduce_fixpoint_bool(equation, names, cond)? {
+                    self.reduce_fixpoint_bool(equation, names, then_expr)
+                } else {
+                    self.reduce_fixpoint_bool(equation, names, else_expr)
+                }
+            }
+            _ => {
+                if let Some(name) = names.iter().find(|name| contains_free_name(expr, name)) {
+                    return Err(unfounded_system_error(equation, name));
+                }
+                self.eval_bool(expr)
             }
         }
     }
