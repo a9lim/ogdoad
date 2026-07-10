@@ -1,0 +1,363 @@
+// ogham conformance staging — v0.3.5 (spec'd 2026-07-09, PRE-BUILD)
+// Discipline per ogham.md §16: the harness does NOT read this file until the
+// 0.3.5 build merges it into conformance.txt. Every vector below is
+// hand-verified against ogham.md (the 0.3.5 contract) and standard
+// mathematics (Siegel GSM 146 for the loopy/outcome families). The build
+// expands this seed — display shapes marked BUILD are blessed at build time —
+// and must also MIGRATE the 0.3.0 corpus: comments # → //, barless-brace
+// vectors → […] containers, up()/down()/dim() → atoms, drawn → hasdraw,
+// factorial vectors dropped, ≡/canon order-sensitivity vectors replaced by
+// the multiset family below, grundy Index results → #-marked.
+
+// ============================================================ comments
+@world integer 0
+
+> 5 + 3 // five and three
+= 8
+
+> 5 /* mid-expression */ + 3
+= 8
+
+> /* block /* comments */ nest */ 2
+= 2
+
+// ============================================================ # — Index literals and capture (spec §7.6, §12.4)
+@world poly5
+
+> n := deg(t↑2)
+
+> n
+= #2
+
+// capture keeps the sort: the substituted literal is marked (0.3.0 defect repaired)
+> f := u ↦ n
+
+> f
+= u ↦ #2
+
+> d := f@0
+
+> t↑d
+= 1⋅t↑2
+
+// ============================================================ ! — fuzzy sugar; factorial is gone (§2, §11)
+@world nimber 0
+
+> *1 ! *2
+~ *1 ∥ *2
+= true
+
+> *1 != *2
+! E_Parse: not-equal is `not (a = b)`
+
+> !5
+! E_Parse:
+
+// ============================================================ ternary — full branches, right-assoc (§4)
+@world integer 0
+
+> sign := u ↦ u < 0 ? -1 : u = 0 ? 0 : 1
+
+> sign@(-5)
+= -1
+
+> sign@0
+= 0
+
+> sign@7
+= 1
+
+// ============================================================ containers — […] in both faces (§7.8)
+@world fp7 3 q=[1,1,1]
+
+> dim
+= #3
+
+> dim()
+! E_UnknownFn:
+
+> coef([1, 2, 3], 1)
+= 2
+
+> dot =: (u, v, i) ↦ i = dim ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+
+> dot@([1, 2, 3], [4, 5, 6], #0)
+= 4
+
+@world game
+
+> [1, 2, 3]
+= [1, 2, 3]
+
+> []
+= 0
+
+> {1, 2}
+! E_Parse: braces are game forms
+
+> {}
+! E_Parse:
+
+> hd := l ↦ left(l, 0)
+
+> tl := l ↦ right(l, 0)
+
+> hd@[7, 8]
+= 7
+
+> tl@[7, 8]
+= [8]
+
+// ============================================================ recognition chain + the delights (§10.2)
+// [0] is star; [0,0] is up; down is [*1] — structural identities
+> [0]
+= *1
+
+> [0, 0]
+= up
+
+> [*1]
+= down
+
+> up
+= up
+
+> {0 | *1}
+= up
+
+> -up ≡ down
+= true
+
+> up > 0
+= true
+
+> up ∥ *1
+= true
+
+> up()
+! E_UnknownFn:
+
+// display never canonicalizes: the sum form stays a sum form
+> 1 + 1
+= {1, 1 |}
+
+> canon(1 + 1)
+= 2
+
+// ============================================================ multiset form equality (§10.1) — the 0.3.0 P0 repaired
+> {1, 2 | 0} ≡ {2, 1 | 0}
+= true
+
+// multiplicity is form data
+> {0, 0 |} ≡ {0 |}
+= false
+
+> {0, *1 | 0, *1} = {*1, 0 | *1, 0}
+= true
+
+> canon({0, *1 | 0, *1})
+= *2
+
+> canon({*1, 0 | *1, 0})
+= *2
+
+// the retraction laws (§10.5)
+> canon({0, *1 | 0, *1}) ≡ canon({*1, 0 | *1, 0})
+= true
+
+> canon(canon({5 | 0})) ≡ canon({5 | 0})
+= true
+
+> canon({-1 | 1}) = {-1 | 1}
+= true
+
+// ============================================================ ⧺ — right-lazy append (§10.4)
+> ones =: {1 | ones}
+
+// the right operand is never consulted on a cyclic left spine —
+// canon(ones) is E_Loopy when evaluated, but evaluation never happens
+// (world/sort checks still run; evaluation is what's deferred)
+> ones ⧺ canon(ones)
+= ones =: {1 | ones}
+
+> [] ⧺ [5]
+= [5]
+
+> [5] ⧺ []
+= [5]
+
+> {0 |} ⧺ []
+! E_Improper:
+
+// ============================================================ outcome doubles — finite corners (§10.6)
+> 1 >> 0
+= true
+
+> 1 > 0
+= true
+
+> *1 >< 0
+= true
+
+> *1 ∥ 0
+= true
+
+> 0 <> 0
+= true
+
+> -1 << 0
+= true
+
+// the five draw cells are identically false on finite forms
+> 1 >_ 0
+~ 1 >‿ 0
+= false
+
+> 1 __ 0
+~ 1 ‿‿ 0
+= false
+
+> hasdraw([1, 2])
+= false
+
+> drawn([1, 2])
+! E_UnknownFn: hasdraw
+
+// ============================================================ loopy values — stoppers, outcomes, the projection (§10.6–10.7)
+> over =: {0 | over}
+
+> under =: {under | 0}
+
+> on =: {on |}
+
+> off =: {| off}
+
+> dud =: {dud | dud}
+
+> stopper(over)
+= true
+
+> stopper(under)
+= true
+
+> stopper(ones)
+= true
+
+> stopper(dud)
+= false
+
+// the teaching triple: value vs outcome, split where the theory splits
+> over = over
+= true
+
+> over ‿‿ over
+= true
+
+> over <> over
+= false
+
+// singles gate on the operands, never the difference (over+under is no stopper)
+> over > under
+= true
+
+> over >> 0
+= true
+
+> ones = ones
+= true
+
+> on > off
+= true
+
+> on >> off
+= true
+
+> on ‿‿ off
+= false
+
+// beyond stoppers the singles refuse with a witness
+> dud = 0
+! E_Loopy:
+
+> dud = dud
+! E_Loopy:
+
+// …but the doubles are total
+> dud ‿‿ 0
+= true
+
+> hasdraw(dud)
+= true
+
+> hasdraw(on)
+= false
+
+> hasdraw(over)
+= false
+
+> hasdraw(ones)
+= false
+
+// ============================================================ loopy sums and negation are values now (§10.7)
+> stopper(on + off)
+= false
+
+> hasdraw(on + off)
+= true
+
+// BUILD: exact composite/synthesized-name display shapes for `-on`,
+// `on + off`, and interior re-rootings are blessed at build time against
+// §10.8 (deterministic g1, g2, … first-reach scheme).
+
+// ============================================================ guardedness (§10.7, unchanged semantics, new spellings)
+> g =: g
+! E_Unfounded:
+
+> h =: [] ⧺ h
+! E_Unfounded:
+
+> k =: k ⧺ [1]
+! E_Unfounded:
+
+> m =: m + 1
+! E_Unfounded:
+
+// ============================================================ grundy — the acceptance example, Index result now audible
+> grundy =: g ↦ (
+>>   has =: (n, i) ↦ not i = nleft(g) and
+>>                   (grundy@(left(g, i)) = n or has@(n, i + 1));
+>>   mexfrom =: n ↦ has@(n, 0) ? mexfrom@(n + 1) : n;
+>>   mexfrom@0
+>> )
+
+> grundy@*2
+= #2
+
+> grundy@{0, {0 | 0} | 0}
+= #2
+
+// ============================================================ hint sites (§13) — the tutor package
+@world poly2
+
+> t * t
+! E_Parse: the product is `⋅`
+
+@world game
+
+> id(x) := x
+! E_Parse: functions are lambdas
+
+> outcome(0)
+! E_Unbound: relations against 0
+
+> winner(0)
+! E_Unbound:
+
+> 1 _ 2
+! E_Parse: mover-result atoms come in pairs
+
+// BUILD: world-decl guard regression (1537-deep nested metric scalar → honest
+// E_Parse, no abort), E_GraphBudget vs E_Loopy distinctness, stopper-witness
+// cycle naming, negation-rotation and operand-swap law sweeps across all nine
+// cells, the nine-to-four projection table on stopper pairs, and the random
+// small-graph retrograde-vs-oracle agreement suite are blessed at build time.
