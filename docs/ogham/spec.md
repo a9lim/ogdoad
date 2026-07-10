@@ -1017,22 +1017,26 @@ system that defines it, and the display law (§1 discipline 2) demands the
 program be self-contained — evaluating it in a *fresh* session rebuilds the
 value up to `≡`. The rules:
 
-- **Anchors.** Every cycle-carrying node reachable from the displayed value
-  gets an equation — always, on every path (a named root's external cycles
-  included). Well-founded exits collapse back into finite forms before
-  display, so recognition still fires inside equations (`-ones` prints
-  `g1 =: {g1 | -1}`, and `on + off` prints dud's own shape
-  `g1 =: {g1 | g1}`).
+- **Anchors.** Every reachable cyclic component gets its equations — on
+  every display path (a named root's external cycles included). The grain
+  is the component, not the node: a single-name cycle stays one nested
+  equation (`l =: {1 | {2 | l}}`, never split in two), while every root of
+  a mutual source system keeps its own equation. Well-founded exits
+  collapse back into finite forms before display, so recognition still
+  fires inside equations (`-ones` prints `g1 =: {g1 | -1}`, and `on + off`
+  prints dud's own shape `g1 =: {g1 | g1}`).
 - **Names are α-bound, never environment references.** The displayed
   program binds every name it uses; a rebinding can never change the
-  meaning of an old echo, and the same value displays the same program
-  regardless of session history. User-rooted names are *reused* for anchors
-  that carry them (readability), synthesized names `g1, g2, …` cover the
-  rest — allocated in first-reach order against a **collision set**: names
-  already used in this display, user-rooted anchor names, and the current
-  environment's bindings. (α-correctness needs only the first two;
-  excluding live bindings keeps a re-entered echo from silently rebinding
-  the user's names.)
+  *meaning* of an old echo, and the same value displays the same program
+  up to α-renaming. Provenance names (user roots, local `=:` names) are
+  *reused* for readability so long as the live environment does not bind
+  the same name to a **different** graph — a rebound name synthesizes
+  instead, which is exactly what keeps rebinding histories honest; a local
+  name that has simply left scope keeps its provenance
+  (`(q =: {1 | {2 | q}}; {9 | q})` keeps `q`). Synthesized names
+  `g1, g2, …` cover the rest — allocated in first-reach order against a
+  **collision set**: names already used in this display, provenance names
+  in this display, and the current environment's bindings.
 - **Systems, emitted in dependency order.** The anchor graph's SCC
   condensation is emitted in reverse-topological order — dependencies
   first — so earlier equations satisfy later references; each nontrivial
