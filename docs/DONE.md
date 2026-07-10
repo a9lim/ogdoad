@@ -45,6 +45,54 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### 2·e_o: `ogham-0.3.6` (the second adversarial pass)
+**Completed:** 2026-07-10
+**Summary:** the release-gate pass, played same-day as its charter: a
+seven-perspective sweep (four sol seats over the `ogham-036-*` gaslamp
+threads + three independent implementation reviews, every finding verified
+against the live evaluator), a9's decision round (the ladder — 0.3.7 →
+0.3.8 → **0.4.0 = the public release** → 1.0.0 higher-order; ogdoad ships
+with ogham as front door, crates.io `ogham` being taken; `if/then/else`
+replacing the ternary — a9's move; the A+ binder triad; the poly-display
+pin reversed; birthday presented-stratum; the docs split), the spec
+rewritten as `docs/ogham/spec.md` + `implementation.md` + `README.md`, and
+the build in eight gated stages (sol over gaslamp `ogham-v36`, fable
+gating and committing per stage, 8237a86…).
+**Pillars:** ogham ↔ games    **Claim level:** implemented-and-tested
+- verdicts: the nine-cell core survived adversarial review (projection
+  re-derived from Siegel cell-for-cell; singles project the same difference
+  outcome the doubles read; rotation/swap laws structural); the defect
+  epicenter was §10.8 display — three independent display-law violations,
+  all dead: anchors on every path, SCC condensation emitted
+  dependency-first with nontrivial SCCs as adjacent mutual runs,
+  collision-safe α-names with provenance validated against the live
+  environment.
+- language: mutual Element-`=:` systems (adjacent `;`-joined runs, no
+  grammar change — pure error→value); total sort-checking at non-strict
+  positions (`ones ⧺ true` errors, `ones ⧺ (1/0)` stays `ones`);
+  guardedness by the language's own reduction (`g =: [g] ⧺ []` binds;
+  `{if true then 0 else dead |}` degenerates); word conditionals (`:` freed
+  for 0.3.7's ordinal sum, `?` solely the Bool binder mark); binder marks
+  `#i`/`?p`/bare-Element-by-law with minimal-mark display; container
+  totality (fixed/graded/free — `[1, 2, 3]` in `fp2[t]`); dyadic game
+  literals + the recognition rung (`{0 | 1}` displays `1/2`, structurally);
+  `birthday` (presented; the `#3`/`#1` teaching pair) and `integral` (no
+  fake defaults); world respelling `fp2[t]`/`fp2(t)` + dim-0 shorthand;
+  Display v4 (Poly joins the monomial family); `E_StackDepth`,
+  `E_FixpointSort`; budgeted finite→loopy embedding and memoized `≡`
+  (shared-DAG hangs → honest errors/fast values); the hint-field sweep.
+- oracles: corpus 545 → 785 vectors (the 240-vector 0.3.6 staging slice
+  merged; `conformance_v0.3.6.txt` retained as provenance; 19 blessed
+  vectors migrated under five itemized operator-authorized classes);
+  `tests/ogham_laws.rs` — seeded stopper-pair projection oracle vs an
+  independent survival path, rotation/swap laws on fresh pairs, and the
+  42-family display law (display → fresh session → `≡`); 1057 tests.
+- boundaries: `canon` on loopy stays `E_Loopy` (fusion is 0.3.8,
+  slip-tolerant); one-stopper comparison 0.3.8; games-pillar absorption,
+  ordinal sum, and the floor are 0.3.7; mutual *function* groups are
+  1.0.0; release packaging (binary, README reversal, gallery, writeup) is
+  0.3.8 dress. Release now gates on the ladder, not on this pass.
+
 ### 2·e_o: `ogham-0.3.5` (the reflection release; ex-`ogham-reflect`)
 **Completed:** 2026-07-10
 **Summary:** the pre-release consolidation grown into a full release —

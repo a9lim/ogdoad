@@ -14,7 +14,7 @@ fn add_is_xor_and_self_inverse() {
 #[test]
 fn from_int_is_the_z_embedding_not_a_bit_cast() {
     // Regression for the doc's own worked example (root AGENTS.md, scalar/mod.rs's
-    // `Scalar::from_int` doc, docs/ogham/ogham.md §"Scalar::from_int"): the default
+    // `Scalar::from_int` doc, docs/ogham/spec.md §7.2): the default
     // double-and-add ℤ-embedding gives `from_int(n) = n mod 2` in char 2, so
     // `from_int(3) == *1` and `from_int(4) == *0` — NOT the representation
     // constructors `Nimber(3)`/`Nimber(4)`.

@@ -42,7 +42,7 @@ pub use session::{eval_to_string, EvalLine, OghamSession};
 pub(crate) use worlds::*;
 
 /// The language release implemented by this evaluator.
-pub const OGHAM_VERSION: &str = "0.3.5";
+pub const OGHAM_VERSION: &str = "0.3.6";
 
 /// Compact grouping of every fixed-dispatch Ogham world.
 pub const WORLD_MENU: &str = concat!(

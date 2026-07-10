@@ -44,7 +44,7 @@ and const-generic sizes that are inherently indices.
   is the **ring of integers** of `S(t)`, so it impls `Scalar` + `HasFractionField`
   (Frac = `RationalFunction<S>`); its units are the nonzero constants, so `inv` is
   partial. `Poly::t()` is the indeterminate constructor (matching the `t` it Displays
-  as). Display is canonical ogham (Display v2, `docs/ogham/ogham.md` §9): variable
+  as). Display is canonical ogham (Display v4, `docs/ogham/spec.md` §12): variable
   `t`, explicit `⋅`, coefficient parens only when non-atomic — and it owns the
   shared `pub(crate)` `atomic`/`attach_coeff` helpers the `Multivector` display
   also uses (atomic = no spaces and no `⋅ ∧ ↑ / + -` outside balanced parens; a

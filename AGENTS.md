@@ -30,7 +30,7 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/clifford/` | the multivector engine + the GA layer | [`src/clifford/AGENTS.md`](src/clifford/AGENTS.md) |
 | `src/forms/`    | quadratic forms & invariants, by the char trichotomy plus local-global and integral layers | [`src/forms/AGENTS.md`](src/forms/AGENTS.md) (+ [`integral/`](src/forms/integral/AGENTS.md)) |
 | `src/games/`    | combinatorial game theory | [`src/games/AGENTS.md`](src/games/AGENTS.md) |
-| `src/ogham/`    | the Ogham expression-language core at v0.3.5 (lexer/parser/unparser; one `SharedRuntime` over a world-ops trait with per-world thin impls; the `game` world with loopy Element-`=:`, nine-cell outcome relations, stopper-projected value singles, total loopy `+`/`-`; `#` Index literals; persistent guarded worker; errors + conformance support) | root rules |
+| `src/ogham/`    | the Ogham expression-language core at v0.3.6 (lex/parse/unparse + `session`, `runtime/` — the shared evaluator, one Index evaluator, `Apply`, `RuntimeState` — and `worlds/` incl. `game/`; mutual Element-`=:` systems with self-contained SCC equation display; word conditionals `if/then/else`; binder mark triad `#`/`?`/bare-Element; container totality fixed/graded/free; dyadic game literals; `birthday`/`integral`; world names `fp2[t]`/`fp2(t)` + dim-0 shorthand; budgeted embeddings, `E_StackDepth`/`E_FixpointSort`) | root rules |
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
@@ -52,18 +52,22 @@ sketch landed and **shipped** the same day, 2026-07-09; see DONE.md); DONE.md �
 work; CONSISTENCY.md — the aesthetic/structural ledger; CORRECTNESS.md — the
 verification-status ledger (machine-verified / source-pinned / asserted); TABLES.md —
 the inventory of curated hardcoded tables),
-`docs/ogham/` (ogham.md — the **unified v0.3.5 contract** (rewritten at the
-2026-07-09 reflection pass; one 19-section document: the lisp-for-games
-identity, grammar/precedence/sorts/worlds, the game world's
-presentation<form<value<outcome strata, multiset `≡` + recognition,
-right-lazy `⧺`, the nine-cell outcome relations with Siegel-pinned
-stopper-projected singles, loopy display-as-program, errors, REPL, host
-alignment, the implementation contract, and §18 = the slimmed v0.4.0
-sketch — higher-order gate first; **release gates on the `ogham-0.3.6`
-second adversarial pass**, CONTINUATIONS.md);
-conformance.txt — the hand-verified corpus the language must pass, with
-conformance_v0.2.txt + conformance_v0.3.txt + conformance_v0.3.5.txt as
-merged blessing/provenance),
+`docs/ogham/` (**split at the 0.3.6 pass, 2026-07-10**: spec.md — the
+normative v0.3.6 language contract (the lisp-for-games identity,
+grammar/precedence/sorts with the binder mark triad, worlds incl.
+`fp2[t]`/`fp2(t)` spelling and container totality, the game world's
+presentation<multiform<value strata with outcome-as-observation, dyadic
+literals, mutual `=:` systems, self-contained equation-system display,
+word conditionals, Display v4, errors, the three-part conformance suite);
+implementation.md — the runtime architecture + resource-guard contract;
+README.md — the transcript-first tour; ogham.md — a pointer stub. The
+**ladder** — 0.3.7 structural rung → 0.3.8 loopy-envelope completion +
+release dress → 0.4.0 = the public release → 1.0.0 higher-order — lives
+in CONTINUATIONS.md;
+conformance.txt — the hand-verified corpus the language must pass (v0.3.6
+merged), with conformance_v0.2/0.3/0.3.5/0.3.6.txt as
+merged blessing/provenance, plus tests/ogham_laws.rs — the seeded law
+tests (display round-trips, projection oracle, rotation laws)),
 and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the
@@ -327,7 +331,7 @@ python3 experiments/exception_column_m4.py    # 2·3^k excess column m=4 certifi
   `lib.rs`; targeted `#[allow]`s carry a one-line reason). License: AGPL-3.0-or-later.
 - Numeric payload style is deliberate: non-index fixed-width integers are
   `u128`/`i128` throughout the core, docs, examples, and tests.
-- Display is deliberate and canonical (ogham Display v3, `docs/ogham/ogham.md` §12):
+- Display is deliberate and canonical (ogham Display v4, `docs/ogham/spec.md` §12):
   blades render as wedge expressions `e0∧e1` (`∧` = U+2227); coefficients attach
   `coeff⋅label` (`⋅` = U+22C5) with coefficient-`1` elided and `-1` → `-label`
   (compared via `S::one().neg()`, never a literal). A term whose rendering starts
@@ -336,12 +340,12 @@ python3 experiments/exception_column_m4.py    # 2·3^k excess column m=4 certifi
   print `*n`; ordinals are star-wrapped (`*5`, `*ω`, else `*(…)`: `*(ω + 1)`,
   `*(ω↑2)`, `*(ω⋅3)`, `*(ω↑(ω))`); surreals print CNF (`3⋅ω↑2 - ω + 5`, `ω↑(ω)`,
   `ω↑-1`, `ω↑(1/2)` — exponent bare iff a signed integer); `Fpn` `3⋅x↑2 + 2⋅x + 1`;
-  `Poly` uses variable `t` (`1 + 2⋅t`, parens on a non-atomic coefficient);
-  `RationalFunction` `(num)/(den)`. Atomic = no spaces and no `⋅ ∧ ↑ / + -`
-  outside balanced parens. **Scope note:** coefficient-`1` elision is the
-  *Multivector-blade* rule only — the polynomial family keeps the explicit
-  coefficient (`1⋅t`, `1⋅t↑2`), conformance-pinned in `docs/ogham/conformance*.txt`;
-  don't "fix" it.
+  `Poly` joined the monomial family at v4 (2026-07-10, reversing the old
+  explicit-coefficient pin deliberately): descending exponents, unit
+  coefficients elided on nonconstant terms, sign-aware join — `t↑2 - t + 1`,
+  never `1 + -1⋅t + 1⋅t↑2`; `RationalFunction` `(num)/(den)` with v4 sides.
+  Atomic = no spaces and no `⋅ ∧ ↑ / + -`
+  outside balanced parens.
 - Rust scalar operators: total-product backends have `+ - *` and unary `-`
   (concrete-only, via `impl_scalar_ops!`), plus `^ u128` for power (`x ^ 3` =
   square-and-multiply via `Scalar::mul`; `x ^ 0 == one()`). The `u128` RHS

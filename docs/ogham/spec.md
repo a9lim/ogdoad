@@ -1,9 +1,10 @@
 # ogham — language specification
 
-Status: **v0.3.6 contract — build pending** (spec'd 2026-07-10 at the second
-adversarial pass: seven-perspective sweep — four codex seats over the gaslamp
+Status: **v0.3.6 implemented** (spec'd 2026-07-10 at the second adversarial
+pass: seven-perspective sweep — four codex seats over the gaslamp
 `ogham-036-*` threads, three independent implementation reviews, a9 + fable
-deciding; build to follow with sol). This document is the **normative language
+deciding; built the same day, sol over the gaslamp `ogham-v36` thread in
+seven gated stages, fable gating). This document is the **normative language
 contract and nothing else**: identity, syntax, sorts, semantics, errors,
 display. The runtime architecture and resource guards live in
 [`implementation.md`](implementation.md); the roadmap lives in

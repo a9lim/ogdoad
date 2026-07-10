@@ -250,7 +250,7 @@ impl Scalar for Ordinal {
     }
 }
 
-/// The omega-power base `ω↑exp` (canonical ogham, Display v2 §9). Empty for a
+/// The omega-power base `ω↑exp` (canonical ogham, Display v4 (spec.md §12)). Empty for a
 /// finite (exponent-0) term, bare `ω` for exponent 1, `ω↑k` for a plain finite
 /// exponent `k`, and `ω↑(…)` for any compound ordinal exponent.
 fn fmt_exp(e: &Ordinal) -> String {
@@ -270,7 +270,7 @@ fn fmt_exp(e: &Ordinal) -> String {
 /// join with `⋅` (U+22C5).
 ///
 /// Deliberately `base⋅coeff` (`ω⋅3`, the base first), the reverse of the
-/// crate-wide `coeff⋅label` rule (`Multivector`/`Poly`, `docs/ogham/ogham.md`
+/// crate-wide `coeff⋅label` rule (`Multivector`/`Poly`, `docs/ogham/spec.md`
 /// §9). Not a drift to fix: CNF is conventionally written `ω^β·n`, and ordinal
 /// multiplication is non-commutative, so `base⋅coeff` (not `coeff⋅base`)
 /// carries real meaning here.
@@ -349,7 +349,7 @@ mod tests {
 
     #[test]
     fn display_reads_as_cnf() {
-        // Display v2 (§9): star-wrapped, bare star only for finite/bare-ω.
+        // Display v4 (spec.md §12): star-wrapped, bare star only for finite/bare-ω.
         assert_eq!(format!("{:?}", Ordinal::omega()), "*ω");
         assert_eq!(format!("{:?}", Ordinal::monomial(fin(1), 3)), "*(ω⋅3)");
         assert_eq!(format!("{:?}", Ordinal::omega_pow(fin(2))), "*(ω↑2)");

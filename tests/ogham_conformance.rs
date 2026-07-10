@@ -15,11 +15,8 @@ fn ogham_conformance_corpus() {
     run_corpus(corpus);
 }
 
-#[test]
-fn ogham_v036_staging_corpus() {
-    let corpus = include_str!("../docs/ogham/conformance_v0.3.6.txt");
-    run_corpus(corpus);
-}
+// The 0.3.6 staging corpus is merged into conformance.txt; the staging file
+// is retained as provenance beside conformance_v0.2/0.3/0.3.5.txt.
 
 #[test]
 fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {

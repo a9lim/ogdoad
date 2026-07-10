@@ -286,7 +286,7 @@ impl Scalar for Surreal {
     }
 }
 
-/// Format `coeff⋅ω↑exp` (canonical ogham, Display v2 §9) for a *non-negative*
+/// Format `coeff⋅ω↑exp` (canonical ogham, Display v4 (spec.md §12)) for a *non-negative*
 /// magnitude coefficient. The exponent renders bare iff it is a (possibly
 /// negative) integer (`ω↑-1`); any other exponent — a non-integer rational or a
 /// compound surreal — is parenthesized (`ω↑(1/2)`, `ω↑(ω)`).

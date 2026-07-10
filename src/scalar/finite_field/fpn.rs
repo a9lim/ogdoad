@@ -518,7 +518,7 @@ impl<const P: u128, const N: usize> fmt::Display for Fpn<P, N> {
             if c == 0 {
                 continue;
             }
-            // Display v2 (§9): explicit `⋅` and `↑`, coefficient-1 suppressed.
+            // Display v4 (spec.md §12): explicit `⋅` and `↑`, coefficient-1 suppressed.
             let term = match i {
                 0 => format!("{c}"),
                 1 if c == 1 => "x".to_string(),
@@ -772,7 +772,7 @@ mod tests {
 
     #[test]
     fn display_v2_canonical_ogham() {
-        // Display v2 (§9): explicit `⋅` and `↑`, coefficient-1 suppressed.
+        // Display v4 (spec.md §12): explicit `⋅` and `↑`, coefficient-1 suppressed.
         // The §9 example `3⋅x↑2 + 2⋅x + 1` needs coefficient 3, so it is only
         // realizable in a field whose characteristic exceeds 3 (in F_27 the
         // coefficient 3 reduces to 0). Pin it in F_125.

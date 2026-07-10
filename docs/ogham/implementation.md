@@ -6,9 +6,9 @@ architecture, resource guards, error-construction discipline, and validation
 gates. Nothing here changes the language; everything here is checkable
 against the code.
 
-Status: **v0.3.6 target** — describes the architecture the 0.3.6 build moves
-to. Where the 0.3.5 tree differs, the difference is listed in the build plan
-(`docs/CONTINUATIONS.md`, `ogham-0.3.6`).
+Status: **v0.3.6 current** — describes the shipped architecture. The one
+deliberate residual: the games-pillar absorption of §1.1's regular-game
+mathematics is 0.3.7 work (`docs/CONTINUATIONS.md`, `ogham-0.3.7`).
 
 ## 1. Architecture
 

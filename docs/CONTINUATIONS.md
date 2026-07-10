@@ -39,41 +39,11 @@ ladder: **ogdoad ships with ogham as its front door** — no separate crate
 the installed `ogdoad` binary launches the REPL; one public version clock
 (ogdoad 0.4.0 contains ogham 0.4.0).
 
-### 2·e_o: `ogham-0.3.6`
-**The second comprehensive adversarial pass — IN FLIGHT** (chartered
-2026-07-09; played 2026-07-10: seven-perspective sweep — four sol seats
-over the gaslamp `ogham-036-*` threads + three independent implementation
-reviews + a9/fable synthesis; spec rewritten same day — `docs/ogham/`
-split into `spec.md` (v0.3.6 contract) / `implementation.md` / `README.md`;
-build with sol pending). The sweep's verdict: the nine-cell core is sound
-(triple-verified — projection re-derived from Siegel cell-for-cell,
-rotation/swap laws structural, budget seams deliberate); the defect
-epicenter is §10.8 display (three independent display-law violations).
-Build scope, in order: (1) new adversarial gates FIRST (law tests: loopy
-display → fresh session → `≡` over multi-SCC/shared/collision/rebinding
-families; randomized stopper-pair projection oracle; laziness sort-checks);
-(2) defect fixes — the display rebuild (SCC systems, collision-safe
-α-names, anchors on every path), **mutual Element-`=:` groups pulled
-forward** (adjacent `;`-joined runs = one equation system), total
-sort-checking at non-strict positions, guardedness by the language's own
-reduction rules, budgeted `from_game`, memoized `≡` on shared DAGs,
-`E_StackDepth`/`E_FixpointSort`, hint-field discipline (~8 sites), the
-stale "0.3.0 envelope" string, `eval_index` drift; (3) mechanical
-`eval.rs` split (runtime/ + worlds/), then `Apply` node, `DataSort`,
-`RuntimeState`, one Index evaluator; (4) the design tranche — **`if a then b else c` replacing the `? :`
-ternary** (a9's move, 2026-07-10: the Bool tier becomes all words, glyphs
-stay mathematics; `:` freed for ordinal sum, `?` solely the Bool binder
-mark; hard removal with teaching hints), binder mark triad
-(`#`/`?`/bare-is-Element-by-law), container totality (fixed/graded/free),
-dyadic game literals + recognition rung, `birthday` (presented stratum),
-`integral`, poly `coef`, world respelling (`fp2[t]`/`fp2(t)`) + dim-0
-shorthand, Display v4 (poly joins the monomial family — reverses the old
-explicit-coefficient pin, a9's call), whitespace-agnostic exponents,
-extended continuation; (5) spec-truth
-corrections landed in `spec.md` (multiform naming, outcome-as-observation,
-predicate strata refiling, `=` cost description, Siegel provenance
-wording, conformance-suite reframing). Corpus green per commit; AGENTS.md
-display-scope note updated when the corpus pin flips.
+(`ogham-0.3.6` — the second comprehensive adversarial pass — **shipped
+2026-07-10**, same day as its sweep and spec rewrite; its entry moved to
+[`DONE.md`](DONE.md) as `ogham-0.3.6`. The contract is
+`docs/ogham/spec.md`; the sweep verdicts, decisions, and build record live
+in the DONE entry and the `ogham-036-*`/`ogham-v36` gaslamp threads.)
 
 ### 2·e_o: `ogham-0.3.7`
 **The structural rung.** (1) **Ordinal sum `G:H`** — the CGT seat's top
