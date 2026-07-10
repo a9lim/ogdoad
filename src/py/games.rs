@@ -2340,7 +2340,8 @@ impl PyLoopyPartizanGraph {
     fn new(left: Vec<Vec<usize>>, right: Vec<Vec<usize>>) -> PyResult<Self> {
         check_partizan_succ_bounds(&left, &right)?;
         Ok(PyLoopyPartizanGraph {
-            inner: LoopyPartizanGraph::new(left, right),
+            inner: LoopyPartizanGraph::new(left, right)
+                .expect("Python adjacency was checked immediately above"),
         })
     }
     #[staticmethod]
@@ -2352,7 +2353,8 @@ impl PyLoopyPartizanGraph {
         let left = loopy_succ_from_callback(n, &left_moves)?;
         let right = loopy_succ_from_callback(n, &right_moves)?;
         Ok(PyLoopyPartizanGraph {
-            inner: LoopyPartizanGraph::new(left, right),
+            inner: LoopyPartizanGraph::new(left, right)
+                .expect("callback adjacency uses the declared node range"),
         })
     }
     /// Left's adjacency lists.

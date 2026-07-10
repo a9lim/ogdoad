@@ -105,8 +105,10 @@ indices, and collection lengths.
     sum).
   - `loopy/graph.rs` — `LoopyGraph` (a thin computable wrapper over
     `kernel::outcomes` — loss/win/draw sets).
-  - `loopy/partizan.rs` — `LoopyPartizanGraph`: finite two-sided Left/Right
-    retrograde analysis, returning exact starter pairs via `LoopyPartizanOutcome`
+  - `loopy/partizan.rs` — `LoopyPartizanGraph`: validated finite two-sided
+    Left/Right graphs; graph negation, budgeted reachable product sums and finite
+    `Game` embedding; turn-expanded stopper detection with cycle witnesses;
+    retrograde analysis returning exact starter pairs via `LoopyPartizanOutcome`
     and only projecting to `PartizanOutcome {P,N,L,R,Draw}` when that projection
     is honest.
   - `loopy/nim_values.rs` — `LoopyNimber`, `LoopyNimCertificate`,

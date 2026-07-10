@@ -6,7 +6,7 @@
 //! a win — and the Draw-set is a genuinely new degree of freedom to test against
 //! the Gold quadric `{Q=0}` (see `docs/OPEN.md`, the Tier-2 open question).
 //!
-//! Four layers, re-exported flat so every public path is unchanged:
+//! Five layers, re-exported flat so every public path is unchanged:
 //!
 //!   * [`catalogue`] — [`LoopyWinner`], [`LoopyPartizanOutcome`],
 //!     [`PartizanOutcome`], and the [`LoopyValue`] stopper catalogue
@@ -15,8 +15,9 @@
 //!   * [`graph`] — [`LoopyGraph`], the computable wrapper over
 //!     [`kernel::outcomes`](crate::games::outcomes) (Win / Loss / Draw retrograde
 //!     analysis).
-//!   * [`partizan`] — [`LoopyPartizanGraph`]: the two-sided Left/Right retrograde
-//!     solver returning exact [`LoopyPartizanOutcome`] pairs, projecting to the
+//!   * [`partizan`] — [`LoopyPartizanGraph`]: validated two-sided graphs with
+//!     negation, budgeted reachable product sums, finite-game embedding, stopper
+//!     witnesses, and exact [`LoopyPartizanOutcome`] pairs, projecting to the
 //!     classical five-class [`PartizanOutcome`] only when honest.
 //!   * [`nim_values`] — [`LoopyNimber`], [`LoopyNimCertificate`],
 //!     [`loopy_nim_values`], and [`loopy_nim_values_certified`]: impartial loopy
@@ -185,7 +186,7 @@ mod tests {
         // position 0 is terminal; 1 = *; 2 = {0|}; 3 = {|0}.
         let left = vec![vec![], vec![0], vec![0], vec![]];
         let right = vec![vec![], vec![0], vec![], vec![0]];
-        let g = LoopyPartizanGraph::new(left, right);
+        let g = LoopyPartizanGraph::new(left, right).unwrap();
         assert_eq!(
             g.partizan_outcomes(),
             vec![
@@ -203,7 +204,7 @@ mod tests {
         // Repo convention: tis = {0|tisn}, tisn = {tis|0}, with 0 terminal.
         let left = vec![vec![2], vec![0], vec![]];
         let right = vec![vec![1], vec![2], vec![]];
-        let g = LoopyPartizanGraph::new(left, right);
+        let g = LoopyPartizanGraph::new(left, right).unwrap();
         let out = g.outcomes();
         assert_eq!(out[0], LoopyValue::Tis.outcome());
         assert_eq!(out[1], LoopyValue::Tisn.outcome());
@@ -215,7 +216,7 @@ mod tests {
     #[test]
     fn impartial_partizan_graph_matches_kernel_outcomes() {
         let succ = vec![vec![1], vec![2, 0], vec![]];
-        let g = LoopyPartizanGraph::new(succ.clone(), succ.clone());
+        let g = LoopyPartizanGraph::new(succ.clone(), succ.clone()).unwrap();
         assert_eq!(
             g.partizan_outcomes(),
             kernel::outcomes(&succ)

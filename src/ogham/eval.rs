@@ -2269,6 +2269,7 @@ fn classify_regular_nodes(nodes: &[RegularGameNode]) -> Vec<bool> {
         cursor += 1;
     }
     let draw_set = LoopyPartizanGraph::new(left, right)
+        .expect("regular-game classification builds in-range parallel adjacency tables")
         .draw_set()
         .into_iter()
         .collect::<HashSet<_>>();
