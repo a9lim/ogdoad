@@ -81,7 +81,7 @@ fn main() {
         }
         match session.eval_line(&pending) {
             Ok(out) => {
-                if out.canonical != pending {
+                if !out.canonical.is_empty() && out.canonical != pending {
                     println!("{}", out.canonical);
                 }
                 if let Some(value) = out.value {

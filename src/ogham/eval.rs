@@ -1,14 +1,13 @@
 use super::ast::{BinaryOp, Binding, Expr, RelOp, Sort, StarLiteral, Statement, UnaryOp};
 use super::error::*;
-use super::lex::needs_continuation;
+use super::lex::{needs_continuation, strip_comments};
 use super::parse::parse_statement;
 use super::unparse::unparse_statement;
 use crate::clifford::{CliffordAlgebra, Metric, Multivector};
 use crate::games::{Game, LoopyPartizanGraph};
 use crate::scalar::{
-    checked_factorial_i128, factorial_in_scalar, nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn,
-    Integer, IntegerDivExactError, Nimber, Omnific, Ordinal, Poly, Rational, RationalFunction,
-    Scalar, Surreal,
+    nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn, Integer, IntegerDivExactError, Nimber,
+    Omnific, Ordinal, Poly, Rational, RationalFunction, Scalar, Surreal,
 };
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
@@ -92,7 +91,7 @@ fn validation_sample_function(function: &FunctionValue, body: Expr) -> FunctionV
 fn display_value<E: Display>(value: &Value<E>) -> String {
     match value {
         Value::Element(value) => value.to_string(),
-        Value::Index(value) => value.to_string(),
+        Value::Index(value) => display_index(*value),
         Value::Bool(value) => value.to_string(),
         Value::Function(function) => {
             let lambda = super::unparse::unparse_expr(&function.lambda_expr());
@@ -230,7 +229,11 @@ trait WorldOps: Sized {
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
         }
         let body = substitute_names(&function.body, &replacements);
-        SharedRuntime::eval_value(self, &body)
+        match function.ret {
+            Sort::Element => self.world_eval_element(&body).map(Value::Element),
+            Sort::Index => self.world_eval_index(&body).map(Value::Index),
+            Sort::Bool => SharedRuntime::eval_bool(self, &body).map(Value::Bool),
+        }
     }
 }
 
@@ -727,7 +730,7 @@ pub fn eval_to_string(world: &str, src: &str) -> OghamResult<String> {
     let mut pending = String::new();
     for line in src.lines() {
         let trimmed = line.trim();
-        if pending.is_empty() && (trimmed.is_empty() || trimmed.starts_with('#')) {
+        if pending.is_empty() && (trimmed.is_empty() || trimmed.starts_with("//")) {
             continue;
         }
         if pending.is_empty() {
@@ -941,6 +944,12 @@ fn send_worker_reply<T>(reply: mpsc::Sender<WorkerReply<T>>, f: impl FnOnce() ->
 
 fn eval_line_in_world(world: &mut World, src: &str) -> OghamResult<EvalLine> {
     ensure_source_nesting_depth(src)?;
+    if strip_comments(src)?.trim().is_empty() {
+        return Ok(EvalLine {
+            canonical: String::new(),
+            value: None,
+        });
+    }
     let stmt = parse_statement(src)?;
     ensure_statement_depth(&stmt)?;
     let canonical = unparse_statement(&stmt);
@@ -1020,6 +1029,7 @@ macro_rules! with_world_runtime {
 impl World {
     fn from_decl(decl: &str) -> OghamResult<Self> {
         ensure_source_nesting_depth(decl)?;
+        let decl = strip_comments(decl)?;
         let decl = decl.trim().strip_prefix(":world ").unwrap_or(decl.trim());
         let mut parts = decl.split_whitespace();
         let name = parts
@@ -1441,6 +1451,7 @@ impl GameRuntime {
     fn eval_element(&mut self, expr: &Expr) -> OghamResult<GameElement> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::Index(_) => Err(index_sort_error()),
             Expr::Int(n) => {
                 let n = i128::try_from(*n).map_err(|_| overflow("game integer exceeds i128"))?;
                 Ok(GameElement::Finite(Game::integer(n)))
@@ -1453,8 +1464,17 @@ impl GameRuntime {
                 "`ω` is not a finite short game; use finite game forms",
             )),
             Expr::Blade(_) => Err(game_wrong_world("the game world has no Clifford blades")),
-            Expr::Vector(_) => Err(game_wrong_world(
-                "the game world has no fixed arrays; lists are braces here: `{1, 2, 3}`",
+            Expr::Container(items) => {
+                let mut tail = GameElement::Finite(Game::integer(0));
+                for item in items.iter().rev() {
+                    tail = build_game_form(vec![self.eval_element(item)?], vec![tail])?;
+                }
+                Ok(tail)
+            }
+            Expr::Up => Ok(GameElement::Finite(Game::up())),
+            Expr::Down => Ok(GameElement::Finite(Game::up().neg())),
+            Expr::Dim => Err(game_wrong_world(
+                "`dim` is a fixed-shape Clifford literal; the game container is free-shape",
             )),
             Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
             Expr::GameForm { left, right } => build_game_form(
@@ -1480,12 +1500,6 @@ impl GameRuntime {
                 None => Err(unbound_error(name)),
             },
             Expr::Call { name, args } => self.eval_element_call(name, args),
-            Expr::Factorial(expr) => {
-                let n = self.eval_index(expr)?;
-                let value = checked_factorial_i128(n)
-                    .ok_or_else(|| overflow("factorial exceeds the i128 game-integer range"))?;
-                Ok(GameElement::Finite(Game::integer(value)))
-            }
             Expr::Unary { op, expr } => match op {
                 UnaryOp::Neg => match self.eval_element(expr)? {
                     GameElement::Finite(game) => Ok(GameElement::Finite(game.neg())),
@@ -1579,18 +1593,11 @@ impl GameRuntime {
                     ))
                 })
             }
-            "up" => {
-                expect_arity(name, args, 0)?;
-                Ok(GameElement::Finite(Game::up()))
-            }
-            "down" => {
-                expect_arity(name, args, 0)?;
-                Ok(GameElement::Finite(Game::up().neg()))
-            }
+            "up" | "down" | "dim" => Err(literal_call_error(name)),
             "nleft" | "nright" => {
                 Err(index_sort_error().with_hint(format!("`{name}` returns an Index")))
             }
-            "coef" | "dim" => Err(array_world_error(name)),
+            "coef" => Err(array_world_error(name)),
             "rev" | "grade" | "even" | "dual" | "frob" | "tr" => Err(game_wrong_world(&format!(
                 "`{name}` is a Clifford-world operation, not a game operation"
             ))),
@@ -1613,7 +1620,18 @@ impl GameRuntime {
         _inside_form: bool,
     ) -> OghamResult<SymbolicGame> {
         match expr {
+            Expr::Index(_) => Err(index_sort_error()),
             Expr::Ident(found) if found == name => Ok(SymbolicGame::SelfRef),
+            Expr::Container(items) => {
+                let mut tail = SymbolicGame::Value(GameElement::Finite(Game::integer(0)));
+                for item in items.iter().rev() {
+                    tail = SymbolicGame::Form {
+                        left: vec![self.reduce_element_fixpoint(name, item, true)?],
+                        right: vec![tail],
+                    };
+                }
+                Ok(tail)
+            }
             Expr::GameForm { left, right } => Ok(SymbolicGame::Form {
                 left: left
                     .iter()
@@ -1648,6 +1666,7 @@ impl GameRuntime {
 
     fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
         match expr {
+            Expr::Index(expr) => self.eval_index(expr),
             Expr::Int(n) => u128_to_i128(*n),
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
@@ -1670,7 +1689,10 @@ impl GameRuntime {
                 let len = game_options(&game, name == "nleft").len();
                 i128::try_from(len).map_err(|_| overflow("game option count exceeds i128"))
             }
-            Expr::Call { name, .. } if name == "dim" => Err(array_world_error(name)),
+            Expr::Call { name, .. } if name == "dim" => Err(literal_call_error(name)),
+            Expr::Dim => Err(game_wrong_world(
+                "`dim` is a fixed-shape Clifford literal; the game container is free-shape",
+            )),
             Expr::Unary {
                 op: UnaryOp::Neg,
                 expr,
@@ -1712,10 +1734,11 @@ impl GameRuntime {
             Expr::Star(_)
             | Expr::Omega
             | Expr::Blade(_)
-            | Expr::Vector(_)
+            | Expr::Container(_)
+            | Expr::Up
+            | Expr::Down
             | Expr::GameForm { .. }
-            | Expr::Call { .. }
-            | Expr::Factorial(_) => Err(index_sort_error()),
+            | Expr::Call { .. } => Err(index_sort_error()),
         }
     }
 }
@@ -1723,7 +1746,7 @@ impl GameRuntime {
 fn display_game_value(value: &Value<GameElement>) -> String {
     match value {
         Value::Element(game) => display_game_element(game),
-        Value::Index(value) => value.to_string(),
+        Value::Index(value) => display_index(*value),
         Value::Bool(value) => value.to_string(),
         Value::Function(function) => {
             let lambda = super::unparse::unparse_expr(&function.lambda_expr());
@@ -1890,6 +1913,24 @@ fn display_game(game: &Game) -> String {
     if let Some(nimber) = structural_game_nimber(game) {
         return format!("*{nimber}");
     }
+    let up = Game::up();
+    if game_structural_eq_ordered(game, &up) {
+        return "{0 | *1}".to_string();
+    }
+    let down = up.neg();
+    if game_structural_eq_ordered(game, &down) {
+        return "{*1 | 0}".to_string();
+    }
+    if let Some(items) = structural_game_list(game) {
+        return format!(
+            "[{}]",
+            items
+                .iter()
+                .map(|item| display_game(item))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+    }
     let left = game
         .left()
         .iter()
@@ -1907,6 +1948,20 @@ fn display_game(game: &Game) -> String {
         (false, true) => format!("{{{left} |}}"),
         (true, false) => format!("{{| {right}}}"),
         (false, false) => format!("{{{left} | {right}}}"),
+    }
+}
+
+fn structural_game_list(mut game: &Game) -> Option<Vec<&Game>> {
+    let mut items = Vec::new();
+    loop {
+        if game.left().is_empty() && game.right().is_empty() {
+            return Some(items);
+        }
+        if game.left().len() != 1 || game.right().len() != 1 {
+            return None;
+        }
+        items.push(&game.left()[0]);
+        game = &game.right()[0];
     }
 }
 
@@ -2400,7 +2455,7 @@ fn refine_game_binder_sorts(
             }
             refine_game_binder_sorts(body, binders, sorts, env);
         }
-        Expr::Vector(items) | Expr::Tuple(items) => {
+        Expr::Container(items) | Expr::Tuple(items) => {
             for item in items {
                 refine_game_binder_sorts(item, binders, sorts, env);
             }
@@ -2410,7 +2465,7 @@ fn refine_game_binder_sorts(
                 refine_game_binder_sorts(item, binders, sorts, env);
             }
         }
-        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+        Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
             refine_game_binder_sorts(body, binders, sorts, env);
         }
         Expr::Call { args, .. } => {
@@ -2436,6 +2491,9 @@ fn refine_game_binder_sorts(
         | Expr::Star(_)
         | Expr::Omega
         | Expr::Blade(_)
+        | Expr::Up
+        | Expr::Down
+        | Expr::Dim
         | Expr::Ident(_) => {}
     }
 }
@@ -2462,6 +2520,7 @@ fn mark_game_expr_sort(expr: &Expr, sort: Sort, binders: &[String], sorts: &mut 
 
 fn game_known_sort(expr: &Expr, env: &BTreeMap<String, Value<GameElement>>) -> Option<Sort> {
     match expr {
+        Expr::Index(_) | Expr::Dim => Some(Sort::Index),
         Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
             Some(Sort::Index)
         }
@@ -2598,14 +2657,14 @@ fn contains_game_self_call(name: &str, expr: &Expr) -> bool {
                 .any(|binding| contains_game_self_call(name, &binding.expr))
                 || contains_game_self_call(name, body)
         }
-        Expr::Vector(items) | Expr::Tuple(items) => {
+        Expr::Container(items) | Expr::Tuple(items) => {
             items.iter().any(|item| contains_game_self_call(name, item))
         }
         Expr::GameForm { left, right } => left
             .iter()
             .chain(right)
             .any(|item| contains_game_self_call(name, item)),
-        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+        Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
             contains_game_self_call(name, body)
         }
         Expr::Call { args, .. } => args.iter().any(|arg| contains_game_self_call(name, arg)),
@@ -2626,6 +2685,9 @@ fn contains_game_self_call(name: &str, expr: &Expr) -> bool {
         | Expr::Star(_)
         | Expr::Omega
         | Expr::Blade(_)
+        | Expr::Up
+        | Expr::Down
+        | Expr::Dim
         | Expr::Ident(_) => false,
     }
 }
@@ -2647,9 +2709,9 @@ fn contains_game_unit_step(expr: &Expr) -> bool {
                 .any(|binding| contains_game_unit_step(&binding.expr))
                 || contains_game_unit_step(body)
         }
-        Expr::Vector(items) | Expr::Tuple(items) => items.iter().any(contains_game_unit_step),
+        Expr::Container(items) | Expr::Tuple(items) => items.iter().any(contains_game_unit_step),
         Expr::GameForm { left, right } => left.iter().chain(right).any(contains_game_unit_step),
-        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+        Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
             contains_game_unit_step(body)
         }
         Expr::Call { args, .. } => args.iter().any(contains_game_unit_step),
@@ -2670,6 +2732,9 @@ fn contains_game_unit_step(expr: &Expr) -> bool {
         | Expr::Star(_)
         | Expr::Omega
         | Expr::Blade(_)
+        | Expr::Up
+        | Expr::Down
+        | Expr::Dim
         | Expr::Ident(_) => false,
     }
 }
@@ -2691,14 +2756,14 @@ fn contains_game_binder_unit_step(binder: &str, expr: &Expr) -> bool {
                 .any(|binding| contains_game_binder_unit_step(binder, &binding.expr))
                 || contains_game_binder_unit_step(binder, body)
         }
-        Expr::Vector(items) | Expr::Tuple(items) => items
+        Expr::Container(items) | Expr::Tuple(items) => items
             .iter()
             .any(|item| contains_game_binder_unit_step(binder, item)),
         Expr::GameForm { left, right } => left
             .iter()
             .chain(right)
             .any(|item| contains_game_binder_unit_step(binder, item)),
-        Expr::Lambda { body, .. } | Expr::Factorial(body) | Expr::Unary { expr: body, .. } => {
+        Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
             contains_game_binder_unit_step(binder, body)
         }
         Expr::Call { args, .. } => args
@@ -2722,6 +2787,9 @@ fn contains_game_binder_unit_step(binder: &str, expr: &Expr) -> bool {
         | Expr::Star(_)
         | Expr::Omega
         | Expr::Blade(_)
+        | Expr::Up
+        | Expr::Down
+        | Expr::Dim
         | Expr::Ident(_) => false,
     }
 }
@@ -2886,15 +2954,19 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
     fn eval_element(&mut self, expr: &Expr) -> OghamResult<Poly<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::Index(_) => Err(index_sort_error()),
             Expr::GameForm { .. } => Err(game_only_error("game forms")),
             Expr::Int(n) => Ok(Poly::constant(S::bare_int(*n, Span::point(0))?)),
             Expr::Star(star) => Ok(Poly::constant(S::star(star, Span::point(0))?)),
             Expr::Omega => Ok(Poly::constant(S::omega(Span::point(0))?)),
-            Expr::Blade(_) | Expr::Vector(_) => Err(OghamError::new(
+            Expr::Blade(_) | Expr::Container(_) => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
-                "function-shaped worlds do not have Clifford blades or vectors",
+                "function-shaped worlds do not have Clifford blades or containers",
             )),
+            Expr::Up => Err(game_only_error("`up`")),
+            Expr::Down => Err(game_only_error("`down`")),
+            Expr::Dim => Err(array_world_error("dim")),
             Expr::Ident(name) => {
                 if name == "t" {
                     Ok(Poly::t())
@@ -2917,10 +2989,6 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 Value::Function(_) => Err(fn_sort_error()),
             },
             Expr::Call { name, args } => self.eval_call(name, args),
-            Expr::Factorial(expr) => {
-                let n = self.eval_index(expr)?;
-                Ok(Poly::constant(S::factorial(n, Span::point(0))?))
-            }
             Expr::Unary { op, expr } => {
                 let value = self.eval_element(expr)?;
                 match op {
@@ -3004,7 +3072,8 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
 
     fn eval_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<Poly<S>> {
         match name {
-            "coef" | "dim" => Err(array_world_error(name)),
+            "up" | "down" | "dim" => Err(literal_call_error(name)),
+            "coef" => Err(array_world_error(name)),
             "deg" => Err(index_sort_error().with_hint("`deg` returns an Index")),
             "gcd" => {
                 expect_arity(name, args, 2)?;
@@ -3022,6 +3091,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
 
     fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
         match expr {
+            Expr::Index(expr) => self.eval_index(expr),
             Expr::Int(n) => u128_to_i128(*n),
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
@@ -3038,7 +3108,8 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 Some(Value::Function(_)) => Err(fn_sort_error()),
                 None => Err(unbound_error(name)),
             },
-            Expr::Call { name, .. } if name == "dim" => Err(array_world_error(name)),
+            Expr::Call { name, .. } if name == "dim" => Err(literal_call_error(name)),
+            Expr::Dim => Err(array_world_error("dim")),
             Expr::Call { name, args } if name == "deg" => {
                 expect_arity(name, args, 1)?;
                 let value = self.eval_element(&args[0])?;
@@ -3064,6 +3135,14 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             Expr::Unary {
                 op: UnaryOp::Not, ..
             } => Err(bool_sort_error()),
+            Expr::Binary {
+                op: BinaryOp::At, ..
+            } => match self.eval_value(expr)? {
+                Value::Index(value) => Ok(value),
+                Value::Element(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
             Expr::Binary { op, lhs, rhs } => {
                 let lhs = self.eval_index(lhs)?;
                 let rhs = self.eval_index(rhs)?;
@@ -3079,9 +3158,10 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             Expr::Star(_)
             | Expr::Omega
             | Expr::Blade(_)
-            | Expr::Vector(_)
-            | Expr::Call { .. }
-            | Expr::Factorial(_) => Err(index_sort_error()),
+            | Expr::Container(_)
+            | Expr::Up
+            | Expr::Down
+            | Expr::Call { .. } => Err(index_sort_error()),
             Expr::GameForm { .. } => Err(game_only_error("game forms")),
         }
     }
@@ -3258,6 +3338,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
     fn eval_element(&mut self, expr: &Expr) -> OghamResult<RationalFunction<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::Index(_) => Err(index_sort_error()),
             Expr::GameForm { .. } => Err(game_only_error("game forms")),
             Expr::Int(n) => Ok(RationalFunction::from_base(S::bare_int(
                 *n,
@@ -3265,11 +3346,14 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             )?)),
             Expr::Star(star) => Ok(RationalFunction::from_base(S::star(star, Span::point(0))?)),
             Expr::Omega => Ok(RationalFunction::from_base(S::omega(Span::point(0))?)),
-            Expr::Blade(_) | Expr::Vector(_) => Err(OghamError::new(
+            Expr::Blade(_) | Expr::Container(_) => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
-                "function-shaped worlds do not have Clifford blades or vectors",
+                "function-shaped worlds do not have Clifford blades or containers",
             )),
+            Expr::Up => Err(game_only_error("`up`")),
+            Expr::Down => Err(game_only_error("`down`")),
+            Expr::Dim => Err(array_world_error("dim")),
             Expr::Ident(name) => {
                 if name == "t" {
                     Ok(RationalFunction::t())
@@ -3292,13 +3376,6 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Value::Function(_) => Err(fn_sort_error()),
             },
             Expr::Call { name, args } => self.eval_call(name, args),
-            Expr::Factorial(expr) => {
-                let n = self.eval_index(expr)?;
-                Ok(RationalFunction::from_base(S::factorial(
-                    n,
-                    Span::point(0),
-                )?))
-            }
             Expr::Unary { op, expr } => {
                 let value = self.eval_element(expr)?;
                 match op {
@@ -3401,7 +3478,8 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
 
     fn eval_call(&mut self, name: &str, _args: &[Expr]) -> OghamResult<RationalFunction<S>> {
         match name {
-            "coef" | "dim" => Err(array_world_error(name)),
+            "up" | "down" | "dim" => Err(literal_call_error(name)),
+            "coef" => Err(array_world_error(name)),
             "deg" | "gcd" => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
@@ -3417,6 +3495,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
 
     fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
         match expr {
+            Expr::Index(expr) => self.eval_index(expr),
             Expr::Int(n) => u128_to_i128(*n),
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
@@ -3438,7 +3517,8 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Span::point(0),
                 "`deg` is a polynomial-world function, not a ratfunc function",
             )),
-            Expr::Call { name, .. } if name == "dim" => Err(array_world_error(name)),
+            Expr::Call { name, .. } if name == "dim" => Err(literal_call_error(name)),
+            Expr::Dim => Err(array_world_error("dim")),
             Expr::Unary {
                 op: UnaryOp::Neg,
                 expr,
@@ -3452,6 +3532,14 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             Expr::Unary {
                 op: UnaryOp::Not, ..
             } => Err(bool_sort_error()),
+            Expr::Binary {
+                op: BinaryOp::At, ..
+            } => match self.eval_value(expr)? {
+                Value::Index(value) => Ok(value),
+                Value::Element(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
             Expr::Binary { op, lhs, rhs } => {
                 let lhs = self.eval_index(lhs)?;
                 let rhs = self.eval_index(rhs)?;
@@ -3467,9 +3555,10 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             Expr::Star(_)
             | Expr::Omega
             | Expr::Blade(_)
-            | Expr::Vector(_)
-            | Expr::Call { .. }
-            | Expr::Factorial(_) => Err(index_sort_error()),
+            | Expr::Container(_)
+            | Expr::Up
+            | Expr::Down
+            | Expr::Call { .. } => Err(index_sort_error()),
             Expr::GameForm { .. } => Err(game_only_error("game forms")),
         }
     }
@@ -3629,6 +3718,7 @@ impl<S: OghamScalar> Runtime<S> {
     fn eval_expr(&mut self, expr: &Expr) -> OghamResult<Multivector<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::Index(_) => Err(index_sort_error()),
             Expr::GameForm { .. } => Err(game_only_error("game forms")),
             Expr::Int(n) => Ok(self.alg.scalar(S::bare_int(*n, Span::point(0))?)),
             Expr::Star(star) => Ok(self.alg.scalar(S::star(star, Span::point(0))?)),
@@ -3644,7 +3734,10 @@ impl<S: OghamScalar> Runtime<S> {
                     Ok(self.alg.e(*i))
                 }
             }
-            Expr::Vector(items) => self.eval_vector(items),
+            Expr::Container(items) => self.eval_container(items),
+            Expr::Up => Err(game_only_error("`up`")),
+            Expr::Down => Err(game_only_error("`down`")),
+            Expr::Dim => Err(index_sort_error()),
             Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
             Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
                 Value::Element(value) => Ok(value),
@@ -3667,10 +3760,6 @@ impl<S: OghamScalar> Runtime<S> {
                 }
             }
             Expr::Call { name, args } => self.eval_call(name, args),
-            Expr::Factorial(expr) => {
-                let n = self.eval_index(expr)?;
-                Ok(self.alg.scalar(S::factorial(n, Span::point(0))?))
-            }
             Expr::Unary { op, expr } => {
                 let value = self.eval_expr(expr)?;
                 match op {
@@ -3746,6 +3835,9 @@ impl<S: OghamScalar> Runtime<S> {
         if lhs.is_omega_atom() {
             if let Err(index_err) = self.eval_index(rhs) {
                 if index_err.kind == OghamErrorKind::IndexSort {
+                    if matches!(rhs, Expr::Index(_)) {
+                        return Err(index_err);
+                    }
                     let exp = self.eval_expr(rhs)?;
                     let Some(exp) = scalar_part(&exp) else {
                         return Err(exp_sort_error());
@@ -3776,8 +3868,8 @@ impl<S: OghamScalar> Runtime<S> {
         }
     }
 
-    fn eval_vector(&mut self, items: &[Expr]) -> OghamResult<Multivector<S>> {
-        if self.alg.dim() == 0 || items.len() != self.alg.dim() {
+    fn eval_container(&mut self, items: &[Expr]) -> OghamResult<Multivector<S>> {
+        if items.len() != self.alg.dim() {
             return Err(OghamError::new(
                 OghamErrorKind::DimMismatch,
                 Span::point(0),
@@ -3837,7 +3929,7 @@ impl<S: OghamScalar> Runtime<S> {
                 let coefficient = value.terms().get(&mask).cloned().unwrap_or_else(S::zero);
                 Ok(self.alg.scalar(coefficient))
             }
-            "dim" => Err(index_sort_error().with_hint("`dim()` returns an Index")),
+            "up" | "down" | "dim" => Err(literal_call_error(name)),
             "rev" => {
                 expect_arity(name, args, 1)?;
                 if self.alg.metric().has_upper() {
@@ -3922,6 +4014,7 @@ impl<S: OghamScalar> Runtime<S> {
 
     fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
         match expr {
+            Expr::Index(expr) => self.eval_index(expr),
             Expr::Int(n) => u128_to_i128(*n),
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Tuple(_) | Expr::Lambda { .. } => Err(fn_sort_error()),
@@ -3938,8 +4031,8 @@ impl<S: OghamScalar> Runtime<S> {
                 Some(Value::Function(_)) => Err(fn_sort_error()),
                 None => Err(unbound_error(name)),
             },
-            Expr::Call { name, args } if name == "dim" => {
-                expect_arity(name, args, 0)?;
+            Expr::Call { name, .. } if name == "dim" => Err(literal_call_error(name)),
+            Expr::Dim => {
                 i128::try_from(self.alg.dim()).map_err(|_| overflow("world dimension exceeds i128"))
             }
             Expr::Unary {
@@ -3955,6 +4048,14 @@ impl<S: OghamScalar> Runtime<S> {
             Expr::Unary {
                 op: UnaryOp::Not, ..
             } => Err(bool_sort_error()),
+            Expr::Binary {
+                op: BinaryOp::At, ..
+            } => match self.eval_value(expr)? {
+                Value::Index(value) => Ok(value),
+                Value::Element(_) => Err(index_sort_error()),
+                Value::Bool(_) => Err(bool_sort_error()),
+                Value::Function(_) => Err(fn_sort_error()),
+            },
             Expr::Binary { op, lhs, rhs } => {
                 let lhs = self.eval_index(lhs)?;
                 let rhs = self.eval_index(rhs)?;
@@ -3997,9 +4098,10 @@ impl<S: OghamScalar> Runtime<S> {
             Expr::Star(_)
             | Expr::Omega
             | Expr::Blade(_)
-            | Expr::Vector(_)
-            | Expr::Call { .. }
-            | Expr::Factorial(_) => Err(index_sort_error()),
+            | Expr::Container(_)
+            | Expr::Up
+            | Expr::Down
+            | Expr::Call { .. } => Err(index_sort_error()),
             Expr::GameForm { .. } => Err(game_only_error("game forms")),
         }
     }
@@ -4241,7 +4343,7 @@ fn contains_free_name(expr: &Expr, target: &str) -> bool {
                 }
                 visit(body, target, &nested)
             }
-            Expr::Vector(items) | Expr::Tuple(items) => {
+            Expr::Container(items) | Expr::Tuple(items) => {
                 items.iter().any(|item| visit(item, target, bound))
             }
             Expr::GameForm { left, right } => left
@@ -4249,7 +4351,7 @@ fn contains_free_name(expr: &Expr, target: &str) -> bool {
                 .chain(right)
                 .any(|item| visit(item, target, bound)),
             Expr::Call { args, .. } => args.iter().any(|arg| visit(arg, target, bound)),
-            Expr::Factorial(inner) => visit(inner, target, bound),
+            Expr::Index(inner) => visit(inner, target, bound),
             Expr::Unary { expr, .. } => visit(expr, target, bound),
             Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
                 visit(lhs, target, bound) || visit(rhs, target, bound)
@@ -4263,7 +4365,14 @@ fn contains_free_name(expr: &Expr, target: &str) -> bool {
                     || visit(then_expr, target, bound)
                     || visit(else_expr, target, bound)
             }
-            Expr::Int(_) | Expr::Bool(_) | Expr::Star(_) | Expr::Omega | Expr::Blade(_) => false,
+            Expr::Int(_)
+            | Expr::Bool(_)
+            | Expr::Star(_)
+            | Expr::Omega
+            | Expr::Blade(_)
+            | Expr::Up
+            | Expr::Down
+            | Expr::Dim => false,
         }
     }
 
@@ -4271,9 +4380,10 @@ fn contains_free_name(expr: &Expr, target: &str) -> bool {
 }
 
 fn ensure_source_nesting_depth(src: &str) -> OghamResult<()> {
+    let src = strip_comments(src)?;
     let mut depth = 0_u128;
     for line in src.lines() {
-        for ch in line.chars().take_while(|ch| *ch != '#') {
+        for ch in line.chars() {
             match ch {
                 '(' | '[' | '{' => {
                     depth += 1;
@@ -4332,16 +4442,19 @@ fn ensure_statement_depth(statement: &Statement) -> OghamResult<()> {
                 | Expr::Star(_)
                 | Expr::Omega
                 | Expr::Blade(_)
+                | Expr::Up
+                | Expr::Down
+                | Expr::Dim
                 | Expr::Ident(_),
             ) => {}
-            SyntaxNode::Expr(Expr::Vector(items) | Expr::Tuple(items)) => {
+            SyntaxNode::Expr(Expr::Container(items) | Expr::Tuple(items)) => {
                 pending.extend(
                     items
                         .iter()
                         .map(|item| (SyntaxNode::Expr(item), child_depth)),
                 );
             }
-            SyntaxNode::Expr(Expr::Lambda { body, .. } | Expr::Factorial(body)) => {
+            SyntaxNode::Expr(Expr::Lambda { body, .. } | Expr::Index(body)) => {
                 pending.push((SyntaxNode::Expr(body), child_depth));
             }
             SyntaxNode::Expr(Expr::Block { bindings, body }) => {
@@ -4437,13 +4550,30 @@ fn parse_display_expr(src: &str) -> OghamResult<Expr> {
 }
 
 fn index_literal_expr(value: i128) -> OghamResult<Expr> {
-    if value >= 0 {
-        Ok(Expr::Int(value as u128))
+    let inner = if value >= 0 {
+        Expr::Int(value as u128)
     } else {
-        Ok(Expr::Unary {
+        Expr::Unary {
             op: UnaryOp::Neg,
             expr: Box::new(Expr::Int(value.unsigned_abs())),
-        })
+        }
+    };
+    Ok(Expr::Index(Box::new(inner)))
+}
+
+fn wrap_index_expr(inner: Expr) -> Expr {
+    if matches!(inner, Expr::Index(_)) {
+        inner
+    } else {
+        Expr::Index(Box::new(inner))
+    }
+}
+
+fn display_index(value: i128) -> String {
+    if value >= 0 {
+        format!("#{value}")
+    } else {
+        format!("#({value})")
     }
 }
 
@@ -4515,7 +4645,7 @@ fn substitute_env<E: Display>(
                 body: Box::new(substitute_env(body, &nested_bound, env)?),
             })
         }
-        Expr::Vector(items) => Ok(Expr::Vector(
+        Expr::Container(items) => Ok(Expr::Container(
             items
                 .iter()
                 .map(|item| substitute_env(item, bound, env))
@@ -4544,9 +4674,7 @@ fn substitute_env<E: Display>(
                 .map(|arg| substitute_env(arg, bound, env))
                 .collect::<OghamResult<Vec<_>>>()?,
         }),
-        Expr::Factorial(inner) => Ok(Expr::Factorial(Box::new(substitute_env(
-            inner, bound, env,
-        )?))),
+        Expr::Index(inner) => Ok(wrap_index_expr(substitute_env(inner, bound, env)?)),
         Expr::Unary { op, expr } => Ok(Expr::Unary {
             op: *op,
             expr: Box::new(substitute_env(expr, bound, env)?),
@@ -4609,7 +4737,7 @@ fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr>) -> Expr 
                 body: Box::new(substitute_names(body, &nested)),
             }
         }
-        Expr::Vector(items) => Expr::Vector(
+        Expr::Container(items) => Expr::Container(
             items
                 .iter()
                 .map(|item| substitute_names(item, replacements))
@@ -4638,7 +4766,7 @@ fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr>) -> Expr 
                 .map(|arg| substitute_names(arg, replacements))
                 .collect(),
         },
-        Expr::Factorial(inner) => Expr::Factorial(Box::new(substitute_names(inner, replacements))),
+        Expr::Index(inner) => wrap_index_expr(substitute_names(inner, replacements)),
         Expr::Unary { op, expr } => Expr::Unary {
             op: *op,
             expr: Box::new(substitute_names(expr, replacements)),
@@ -4668,7 +4796,7 @@ fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr>) -> Expr 
 
 fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
     match expr {
-        Expr::Vector(items) => Ok(Expr::Vector(
+        Expr::Container(items) => Ok(Expr::Container(
             items
                 .into_iter()
                 .map(beta_normalize)
@@ -4714,7 +4842,7 @@ fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                 .map(beta_normalize)
                 .collect::<OghamResult<Vec<_>>>()?,
         }),
-        Expr::Factorial(inner) => Ok(Expr::Factorial(Box::new(beta_normalize(*inner)?))),
+        Expr::Index(inner) => Ok(wrap_index_expr(beta_normalize(*inner)?)),
         Expr::Unary { op, expr } => Ok(Expr::Unary {
             op,
             expr: Box::new(beta_normalize(*expr)?),
@@ -4843,10 +4971,11 @@ fn infer_expr_sort(
 ) -> OghamResult<Sort> {
     match expr {
         Expr::Bool(_) => expect_sort(Sort::Bool, expected),
-        Expr::Int(_) | Expr::Star(_) | Expr::Omega | Expr::Blade(_) => {
+        Expr::Int(_) | Expr::Star(_) | Expr::Omega | Expr::Blade(_) | Expr::Up | Expr::Down => {
             expect_sort(default_sort(expected), expected)
         }
-        Expr::Vector(items) => {
+        Expr::Dim => expect_sort(Sort::Index, expected),
+        Expr::Container(items) => {
             for item in items {
                 infer_expr_sort(item, ExpectedSort::Known(Sort::Element), binders)?;
             }
@@ -4891,18 +5020,11 @@ fn infer_expr_sort(
                 infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
                 expect_sort(Sort::Element, expected)
             }
-            "up" | "down" => {
-                expect_arity(name, args, 0)?;
-                expect_sort(Sort::Element, expected)
-            }
+            "up" | "down" | "dim" => Err(literal_call_error(name)),
             "drawn" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(Sort::Element), binders)?;
                 expect_sort(Sort::Bool, expected)
-            }
-            "dim" => {
-                expect_arity(name, args, 0)?;
-                expect_sort(Sort::Index, expected)
             }
             "coef" => {
                 expect_arity(name, args, 2)?;
@@ -4952,9 +5074,9 @@ fn infer_expr_sort(
                 format!("unknown function `{name}`"),
             )),
         },
-        Expr::Factorial(inner) => {
+        Expr::Index(inner) => {
             infer_expr_sort(inner, ExpectedSort::Known(Sort::Index), binders)?;
-            expect_sort(Sort::Element, expected)
+            expect_sort(Sort::Index, expected)
         }
         Expr::Unary { op, expr } => match op {
             UnaryOp::Not => {
@@ -5104,6 +5226,7 @@ fn mark_binder_sort(
 
 fn index_shaped(expr: &Expr) -> bool {
     match expr {
+        Expr::Index(_) | Expr::Dim => true,
         Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
             true
         }
@@ -5145,6 +5268,7 @@ fn static_sort<E>(
 ) -> OghamResult<Sort> {
     match expr {
         Expr::Bool(_) | Expr::Relation { .. } => Ok(Sort::Bool),
+        Expr::Index(_) | Expr::Dim => Ok(Sort::Index),
         Expr::Lambda { .. } | Expr::Tuple(_) => Err(fn_sort_error()),
         Expr::Block { bindings, body } => {
             let mut local_sorts = env
@@ -5229,6 +5353,7 @@ fn static_sort_with_sorts(
 ) -> OghamResult<Sort> {
     match expr {
         Expr::Bool(_) | Expr::Relation { .. } => Ok(Sort::Bool),
+        Expr::Index(_) | Expr::Dim => Ok(Sort::Index),
         Expr::Lambda { .. } | Expr::Tuple(_) => Err(fn_sort_error()),
         Expr::Block { bindings, body } => {
             let mut local = env.clone();
@@ -5332,6 +5457,7 @@ fn is_runtime_partiality(kind: OghamErrorKind) -> bool {
 
 fn expression_is_index(expr: &Expr) -> bool {
     match expr {
+        Expr::Index(_) | Expr::Dim => true,
         Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
             true
         }
@@ -5352,7 +5478,7 @@ fn expression_is_index(expr: &Expr) -> bool {
 
 fn plain_index_expr(expr: &Expr) -> bool {
     match expr {
-        Expr::Int(_) => true,
+        Expr::Int(_) | Expr::Index(_) | Expr::Dim => true,
         Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
             true
         }
@@ -5499,7 +5625,6 @@ trait OghamScalar: Scalar + Sized + Display + 'static {
     fn reserved_ident(_name: &str) -> bool {
         false
     }
-    fn factorial(n: i128, span: Span) -> OghamResult<Self>;
     fn inv_scalar(value: &Self, span: Span) -> OghamResult<Self> {
         value
             .inv()
@@ -5607,14 +5732,6 @@ impl OghamScalar for Nimber {
         ))
     }
 
-    fn factorial(n: i128, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::BareInt,
-            span,
-            format!("`!{n}` would land through a bare integer in a nim-world"),
-        ))
-    }
-
     fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
         Ok(match op {
             RelOp::Lt | RelOp::Gt => false,
@@ -5674,14 +5791,6 @@ impl OghamScalar for Ordinal {
             "bare `ω` is an ordinal address, not a value",
         )
         .with_hint("values are starred here: `*ω`"))
-    }
-
-    fn factorial(n: i128, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::BareInt,
-            span,
-            format!("`!{n}` would land through a bare integer in a nim-world"),
-        ))
     }
 
     fn inv_scalar(value: &Self, span: Span) -> OghamResult<Self> {
@@ -5752,14 +5861,6 @@ impl OghamScalar for Surreal {
         Ok(Surreal::omega_pow(exp))
     }
 
-    fn factorial(n: i128, _span: Span) -> OghamResult<Self> {
-        if n < 0 {
-            return Err(domain("factorial is only defined for n >= 0"));
-        }
-        let n = checked_factorial_i128(n).ok_or_else(|| overflow("factorial exceeds i128"))?;
-        Ok(Surreal::from_int(n))
-    }
-
     fn inv_scalar(value: &Self, span: Span) -> OghamResult<Self> {
         if value.is_zero() {
             return Err(OghamError::new(
@@ -5820,14 +5921,6 @@ impl OghamScalar for Omnific {
         })
     }
 
-    fn factorial(n: i128, _span: Span) -> OghamResult<Self> {
-        if n < 0 {
-            return Err(domain("factorial is only defined for n >= 0"));
-        }
-        let n = checked_factorial_i128(n).ok_or_else(|| overflow("factorial exceeds i128"))?;
-        Ok(Omnific::from_int(n))
-    }
-
     fn rem(lhs: &Self, rhs: &Self, span: Span) -> OghamResult<Self> {
         if rhs.is_zero() {
             return Err(OghamError::new(
@@ -5863,14 +5956,6 @@ impl OghamScalar for Integer {
             span,
             "`ω` belongs to the surreal-family worlds",
         ))
-    }
-
-    fn factorial(n: i128, _span: Span) -> OghamResult<Self> {
-        if n < 0 {
-            return Err(domain("factorial is only defined for n >= 0"));
-        }
-        let n = checked_factorial_i128(n).ok_or_else(|| overflow("factorial exceeds i128"))?;
-        Ok(Integer(n))
     }
 
     fn exact_div(lhs: &Self, rhs: &Self, span: Span) -> Option<OghamResult<Self>> {
@@ -5920,9 +6005,6 @@ macro_rules! impl_fp_ogham {
                         span,
                         "`ω` belongs to the surreal-family worlds",
                     ))
-                }
-                fn factorial(n: i128, _span: Span) -> OghamResult<Self> {
-                    factorial_in_scalar::<Self>(n).ok_or_else(|| domain("factorial is only defined for n >= 0"))
                 }
                 fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> OghamResult<Self> {
                     Err(OghamError::new(
@@ -5975,9 +6057,6 @@ macro_rules! impl_fpn_ogham {
                 }
                 fn reserved_ident(name: &str) -> bool {
                     name == "x"
-                }
-                fn factorial(n: i128, _span: Span) -> OghamResult<Self> {
-                    factorial_in_scalar::<Self>(n).ok_or_else(|| domain("factorial is only defined for n >= 0"))
                 }
                 fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> OghamResult<Self> {
                     Err(OghamError::new(

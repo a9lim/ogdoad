@@ -28,12 +28,19 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
     let prec = precedence(expr);
     let mut out = match expr {
         Expr::Int(n) => n.to_string(),
+        Expr::Index(expr) => match &**expr {
+            Expr::Int(n) => format!("#{n}"),
+            _ => format!("#({})", unparse_expr(expr)),
+        },
         Expr::Bool(value) => value.to_string(),
         Expr::Star(StarLiteral::Finite(n)) => format!("*{n}"),
         Expr::Star(StarLiteral::Cnf(cnf)) => cnf.to_string(),
         Expr::Omega => "ω".to_string(),
         Expr::Blade(i) => format!("e{i}"),
-        Expr::Vector(items) => format!(
+        Expr::Up => "up".to_string(),
+        Expr::Down => "down".to_string(),
+        Expr::Dim => "dim".to_string(),
+        Expr::Container(items) => format!(
             "[{}]",
             items
                 .iter()
@@ -79,15 +86,12 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
         }
         Expr::Call { name, args } => format!(
             "{name}({})",
-            args.iter().map(unparse_expr).collect::<Vec<_>>().join(", ")
+            args.iter()
+                .enumerate()
+                .map(|(index, expr)| unparse_call_arg(name, index, expr))
+                .collect::<Vec<_>>()
+                .join(", ")
         ),
-        Expr::Factorial(expr) => {
-            if matches!(**expr, Expr::Int(_)) {
-                format!("!{}", unparse_prec(expr, 8, false))
-            } else {
-                format!("!({})", unparse_expr(expr))
-            }
-        }
         Expr::Unary { op, expr } => {
             let sigil = match op {
                 UnaryOp::Neg => "-",
@@ -95,7 +99,12 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 UnaryOp::Not => "not ",
             };
             let parent = if matches!(op, UnaryOp::Not) { prec } else { 10 };
-            format!("{sigil}{}", unparse_prec(expr, parent, false))
+            let inner = unparse_prec(expr, parent, false);
+            if matches!(op, UnaryOp::Inv) && (inner.starts_with('/') || inner.starts_with('*')) {
+                format!("/({})", unparse_expr(expr))
+            } else {
+                format!("{sigil}{inner}")
+            }
         }
         Expr::Binary { op, lhs, rhs } => match op {
             BinaryOp::Add => format!(
@@ -116,7 +125,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
             BinaryOp::Div => format!(
                 "{}/{}",
                 unparse_prec(lhs, prec, false),
-                unparse_prec(rhs, prec + 1, true)
+                unparse_divisor(rhs, prec + 1)
             ),
             BinaryOp::Rem => format!(
                 "{}%{}",
@@ -134,16 +143,14 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 unparse_prec(rhs, prec, true)
             ),
             BinaryOp::Pow => {
+                let omega_base = lhs.is_omega_atom();
                 let lhs = unparse_prec(lhs, prec, false);
                 let rhs = match &**rhs {
-                    Expr::Int(_) | Expr::Ident(_) => unparse_prec(rhs, prec, true),
-                    Expr::Unary {
-                        op: UnaryOp::Neg,
-                        expr,
-                    } if matches!(**expr, Expr::Int(_)) => {
-                        format!("-{}", unparse_prec(expr, 10, true))
-                    }
-                    _ => format!("({})", unparse_expr(rhs)),
+                    // Base `ω` also accepts Scalar exponents, so an explicit
+                    // Index mark is informative here rather than redundant.
+                    Expr::Index(_) if omega_base => unparse_prec(rhs, prec, true),
+                    Expr::Index(expr) => unparse_exponent(expr, prec),
+                    expr => unparse_exponent(expr, prec),
                 };
                 format!("{lhs}↑{rhs}")
             }
@@ -175,9 +182,9 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
         } => {
             format!(
                 "{} ? {} : {}",
-                unparse_prec(cond, prec, false),
-                unparse_prec(then_expr, 7, false),
-                unparse_prec(else_expr, 7, true)
+                unparse_prec(cond, prec + 1, false),
+                unparse_prec(then_expr, 0, false),
+                unparse_prec(else_expr, 0, false)
             )
         }
         Expr::Relation { op, lhs, rhs } => {
@@ -201,6 +208,40 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
         out = format!("({out})");
     }
     out
+}
+
+fn unparse_exponent(expr: &Expr, precedence: u8) -> String {
+    match expr {
+        Expr::Int(_) | Expr::Ident(_) => unparse_prec(expr, precedence, true),
+        Expr::Unary {
+            op: UnaryOp::Neg,
+            expr,
+        } if matches!(**expr, Expr::Int(_)) => {
+            format!("-{}", unparse_prec(expr, 10, true))
+        }
+        _ => format!("({})", unparse_expr(expr)),
+    }
+}
+
+fn unparse_divisor(expr: &Expr, precedence: u8) -> String {
+    let rendered = unparse_prec(expr, precedence, true);
+    if rendered.starts_with('/') || rendered.starts_with('*') {
+        format!("({})", unparse_expr(expr))
+    } else {
+        rendered
+    }
+}
+
+fn unparse_call_arg(name: &str, index: usize, expr: &Expr) -> String {
+    if matches!(
+        (name, index),
+        ("grade" | "coef" | "left" | "right", 1) | ("tr", 1)
+    ) {
+        if let Expr::Index(inner) = expr {
+            return unparse_expr(inner);
+        }
+    }
+    unparse_expr(expr)
 }
 
 fn is_blade_chain(expr: &Expr) -> bool {

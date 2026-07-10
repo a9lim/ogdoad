@@ -188,6 +188,15 @@ pub(crate) fn unbound_error(name: &str) -> OghamError {
     }
 }
 
+pub(crate) fn literal_call_error(name: &str) -> OghamError {
+    OghamError::new(
+        OghamErrorKind::UnknownFn,
+        Span::point(0),
+        format!("unknown function `{name}`"),
+    )
+    .with_hint(format!("`{name}` is a literal now"))
+}
+
 pub(crate) fn element_fixpoint_error(name: &str) -> OghamError {
     OghamError::new(
         OghamErrorKind::WrongWorld,
@@ -258,7 +267,7 @@ pub(crate) fn array_world_error(feature: &str) -> OghamError {
         Span::point(0),
         format!("`{feature}` is only defined in fixed-dimension Clifford worlds"),
     )
-    .with_hint("arrays are world-fixed length; the free-shape container lives in the game world")
+    .with_hint("`[…]` is fixed-shape in Clifford worlds and a free spine in the game world")
 }
 
 pub(crate) fn no_order_error() -> OghamError {

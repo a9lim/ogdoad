@@ -1,15 +1,15 @@
-# ogham conformance corpus — v0.3.0 (hand-verified, shipped 2026-07-09)
-# Format: docs/ogham/ogham.md §14, plus `>>` continuation lines for joined
-# open-paren/open-bracket/open-brace inputs.
-#   @world ‹args as after ":world"›   resets bindings
-#   @fuel ‹u128›                      sets the per-statement μ-step budget
-#   > input        ~ canonical echo (optional)        = value display
-#   ! E_Kind: message-substring
-# Every vector below was hand-verified against its governing spec and standard
-# mathematics, then run against the shipped engine. The --bless harness mode may
-# APPEND engine-generated vectors; it must never modify this hand-verified prefix.
+// ogham conformance corpus — v0.3.5 (hand-verified prefix through stage B)
+// Format: docs/ogham/ogham.md §14, plus `>>` continuation lines for joined
+// open-paren/open-bracket/open-brace inputs.
+//   @world ‹args as after ":world"›   resets bindings
+//   @fuel ‹u128›                      sets the per-statement μ-step budget
+//   > input        ~ canonical echo (optional)        = value display
+//   ! E_Kind: message-substring
+// Every vector below was hand-verified against its governing spec and standard
+// mathematics, then run against the shipped engine. The --bless harness mode may
+// APPEND engine-generated vectors; it must never modify this hand-verified prefix.
 
-# ---------------------------------------------------------------- nimber, scalars
+// ---------------------------------------------------------------- nimber, scalars
 @world nimber 0
 
 > *3 + *5
@@ -38,7 +38,7 @@
 > - *7
 = *7
 
-> /*2
+> /(*2)
 = *3
 
 > *2 ^ -1
@@ -66,7 +66,7 @@
 > *0 ↑ 0
 = *1
 
-# ------------------------------------------------- nimber, orthogonal plane
+// ------------------------------------------------- nimber, orthogonal plane
 @world nimber 2 q=[*1,*1]
 
 > e0 . e0
@@ -102,13 +102,13 @@
 > e2
 ! E_BladeIndex:
 
-# --------------------------------- nimber, char-2 polar pair (q and b independent)
+// --------------------------------- nimber, char-2 polar pair (q and b independent)
 @world nimber 2 q=[*1,*1] b=[(0,1):*1]
 
 > e0 ⋅ e1 + e1 ⋅ e0
 = *1
 
-# ---------------------------------------------------------------- ordinal, scalars
+// ---------------------------------------------------------------- ordinal, scalars
 @world ordinal 0
 
 > *3 + *5
@@ -137,7 +137,7 @@
 > *(ω↑(ω↑ω)) ⋅ *2
 ! E_KummerEscape:
 
-# ------------------------------------------------------------- ordinal, the hero
+// ------------------------------------------------------------- ordinal, the hero
 @world ordinal 3 q=[*1,*1,*1]
 
 > v := [*3, *1, *4]
@@ -146,7 +146,7 @@
 ~ v ∧ u
 = *ω⋅e0∧e1 + *(ω⋅7)⋅e0∧e2 + *ω⋅e1∧e2
 
-# ---------------------------------------------------------------- surreal, scalars
+// ---------------------------------------------------------------- surreal, scalars
 @world surreal 0
 
 > 1/2 + 1/2
@@ -181,7 +181,7 @@
 > *3
 ! E_WrongWorld: nimber
 
-# ------------------------------------------------------- surreal, hyperbolic-ish
+// ------------------------------------------------------- surreal, hyperbolic-ish
 @world surreal 2 q=[1,-1]
 
 > e1 ⋅ e1
@@ -193,7 +193,7 @@
 > e0 ∧ e1 = e0 ⋅ e1
 = true
 
-# ---------------------------------------------------------- integer, grassmann
+// ---------------------------------------------------------- integer, grassmann
 @world integer 2 grassmann
 
 > [1,2] & [3,4]
@@ -209,7 +209,7 @@
 > 1/2
 ! E_NotInvertible:
 
-# ---------------------------------------------------------------- fp5, scalars
+// ---------------------------------------------------------------- fp5, scalars
 @world fp5 0
 
 > 3 + 4
@@ -225,7 +225,7 @@
 ~ 2⋅3
 = 1
 
-# ---------------------------------------------------------------- f8, scalars
+// ---------------------------------------------------------------- f8, scalars
 @world f8 0
 
 > x ⋅ x
@@ -237,7 +237,7 @@
 > frob(x)
 = x↑2
 
-# ---------------------------------------------------------------- reserved syntax
+// ---------------------------------------------------------------- reserved syntax
 @world nimber 0
 
 > {0|0}
@@ -258,7 +258,7 @@
 > *2 ; *3
 ! E_SeqValue:
 
-# ------------------------------------- integer, Euclid + factorial (§7.6)
+// ------------------------------------------------- integer, Euclid (§7.6)
 @world integer 0
 
 > 7 % 3
@@ -280,25 +280,7 @@
 > (7 - 7 % 3) / 3
 = 2
 
-> !5
-= 120
-
-> !0
-= 1
-
-> !33
-= 8683317618811886495518194401280000000
-
-> !34
-! E_Overflow:
-
-> !(2⋅3)
-= 720
-
-> !(0-2)
-! E_Domain:
-
-# ------------------------------------------- surreal, CNF truncation (§7.6)
+// ------------------------------------------- surreal, CNF truncation (§7.6)
 @world surreal 0
 
 > u := 3.w^2 - w + 5
@@ -318,42 +300,22 @@
 > u % (3.w)
 ! E_Modulus:
 
-> !4
-= 24
-
-# ------------------------------------------- fp, Wilson's theorem (§7.6)
+// -------------------------------------------------------- fp remainder boundary
 @world fp7 0
-
-> !6
-= 6
-
-> !6 = -1
-= true
-
-> !7
-= 0
 
 > 7 % 3
 ! E_WrongWorld: field
 
-@world fp5 0
-
-> !4 = -1
-= true
-
-# ----------------------------------- nim-worlds reject the grab bag (§7.6)
+// ----------------------------------- nim-worlds reject the grab bag (§7.6)
 @world nimber 0
 
 > *5 % *3
 ! E_WrongWorld: field
 
-> !3
-! E_BareInt:
-
 > *2 @ *3
 ! E_WrongWorld: function-shaped
 
-# --------------------------------------------- relations, the four-way (§7.7)
+// --------------------------------------------- relations, the four-way (§7.7)
 @world integer 0
 
 > 3 < 5
@@ -362,11 +324,11 @@
 > 3 > 5
 = false
 
-> 3 \ 5
+> 3 ! 5
 ~ 3 ∥ 5
 = false
 
-# the bar is structural only; a relop-tier `|` earns the hint
+// the bar is structural only; a relop-tier `|` earns the hint
 > 3 | 5
 ! E_Parse: fuzzy is `∥`
 
@@ -403,7 +365,7 @@
 > 1/2 < 1
 = true
 
-> w \ 1
+> w ! 1
 ~ ω ∥ 1
 = false
 
@@ -417,7 +379,7 @@
 > e0 ∥ e1
 ! E_Grade0:
 
-# ------------------------------------- poly5, function-shaped world (§16)
+// ------------------------------------- poly5, function-shaped world (§16)
 @world poly5
 
 > t
@@ -439,7 +401,7 @@
 = 1 + 1⋅t
 
 > deg(t↑2 + 1)
-= 2
+= #2
 
 > t↑deg(t↑2 + 1)
 = 1⋅t↑2
@@ -456,7 +418,7 @@
 > t < t
 ! E_WrongWorld: order
 
-# ------------------------------------ polyint, monic division boundary (§16)
+// ------------------------------------ polyint, monic division boundary (§16)
 @world polyint
 
 > (5⋅t + 1)@7
@@ -478,7 +440,7 @@
 > t := 3
 ! E_Reserved: reserved
 
-# ------------------------------------------ ratfunc5, poles and composition (§16)
+// ------------------------------------------ ratfunc5, poles and composition (§16)
 @world ratfunc5
 
 > t
@@ -502,7 +464,7 @@
 > deg(t)
 ! E_WrongWorld: ratfunc
 
-# ============================================================ v0.2.0 — booleans
+// ============================================================ v0.2.0 — booleans
 @world integer 0
 
 > 3 < 5
@@ -519,11 +481,11 @@
 > not 1 = 0 and 0 = 0
 = true
 
-# control vector: the pole is real when evaluated…
+// control vector: the pole is real when evaluated…
 > 1/0
 ! E_DivisionByZero:
 
-# …and the lazy trio never evaluates it
+// …and the lazy trio never evaluates it
 > 1 = 0 and 1/0 = 1
 = false
 
@@ -548,7 +510,7 @@
 > 1 < 2 < 3
 ! E_Parse:
 
-# ------------------------------------------------------------ v0.2.0 — ternary
+// ------------------------------------------------------------ v0.2.0 — ternary
 > 0 = 0 ? 1 : 1/0
 = 1
 
@@ -563,9 +525,9 @@
 ! E_BoolSort:
 
 > 1 = 1 ? 1 : 1 = 0 ? 2 : 3
-! E_Parse:
+= 1
 
-# ===================================== v0.2.0 — lambdas, capture, application
+// ===================================== v0.2.0 — lambdas, capture, application
 @world integer 0
 
 > abs := u ~ (u < 0 ? -u : u)
@@ -586,7 +548,7 @@
 > u ↦ u + 1
 = u ↦ u + 1
 
-# capture at definition is substitution — visible, and rebind-proof
+// capture at definition is substitution — visible, and rebind-proof
 > c := 5
 
 > f := u ↦ c⋅u
@@ -599,7 +561,7 @@
 > f@1
 = 5
 
-# a binder may shadow an ordinary binding (c is 7 here; the binder wins)
+// a binder may shadow an ordinary binding (c is 7 here; the binder wins)
 > g := c ↦ c + 1
 
 > g
@@ -609,7 +571,7 @@
 = 2
 
 > sign := u ↦ (u < 0 ? -1 : (u = 0 ? 0 : 1))
-~ sign := u ↦ u < 0 ? -1 : (u = 0 ? 0 : 1)
+~ sign := u ↦ u < 0 ? -1 : u = 0 ? 0 : 1
 
 > sign@(-7)
 = -1
@@ -629,16 +591,16 @@
 > even2@7
 = false
 
-# self-reference is unbound at definition (until §19's =:)
+// self-reference is unbound at definition (until §19's =:)
 > fct := n ↦ (n = 0 ? 1 : n⋅fct@(n-1))
 ! E_Unbound:
 
-# ------------------------------------------- v0.2.0 — composition, tuples, arity
+// ------------------------------------------- v0.2.0 — composition, tuples, arity
 > inc := a ↦ a + 1
 
 > sqr := b ↦ b⋅b
 
-# the composite inherits the right operand's binder
+// the composite inherits the right operand's binder
 > cmp := inc@sqr
 
 > cmp
@@ -664,7 +626,7 @@
 > b2@7
 ! E_Arity:
 
-# composition needs a unary head
+// composition needs a unary head
 > b2@inc
 ! E_Arity:
 
@@ -677,7 +639,7 @@
 > mux@(5 < 3, 10, 20)
 = 20
 
-# ------------------------------------------------------- v0.2.0 — sort errors
+// ------------------------------------------------------- v0.2.0 — sort errors
 @world integer 0
 
 > f := u ↦ u + 1
@@ -699,15 +661,15 @@
 > bad := tr ↦ tr
 ! E_Shadow:
 
-# w lexes to ω, which is not an IDENT — never a binder
+// w lexes to ω, which is not an IDENT — never a binder
 > bad := w ↦ w
 ! E_Parse:
 
-# binder at both Element position (left of +) and Index position (exponent)
+// binder at both Element position (left of +) and Index position (exponent)
 > bad := a ↦ a + 2↑a
 ! E_IndexSort:
 
-# ------------------------------------------------------- v0.2.0 — t released
+// ------------------------------------------------------- v0.2.0 — t released
 @world integer 0
 
 > t
@@ -718,7 +680,7 @@
 > t + 1
 = 4
 
-# ====================================== v0.2.0 — Index binders, the Gold chain
+// ====================================== v0.2.0 — Index binders, the Gold chain
 @world f4 0
 
 > gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))
@@ -730,7 +692,7 @@
 > gold@(1, x + 1)
 = 0
 
-# the polar form, inlined at definition (beta at :=)
+// the polar form, inlined at definition (beta at :=)
 > q1 := s ↦ tr(s⋅s)
 
 > b := (u, v) ↦ q1@(u + v) + q1@u + q1@v
@@ -741,7 +703,7 @@
 > b@(x, x + 1)
 = 0
 
-# ====================================== v0.2.0 — poly worlds: t is the binder
+// ====================================== v0.2.0 — poly worlds: t is the binder
 @world poly2
 
 > f := t ↦ t
@@ -755,7 +717,7 @@
 > f@t
 = 1⋅t + 1⋅t↑2
 
-# Element ∘ Function and Function @ Element (v0.1.1 coherence, §17.3)
+// Element ∘ Function and Function @ Element (v0.1.1 coherence, §17.3)
 > inc := u ↦ u + 1
 
 > (t↑2)@inc
@@ -767,7 +729,7 @@
 > inc@(t↑2)
 = 1 + 1⋅t↑2
 
-# ------------------------------------------- v0.2.0 — Index bindings/relations
+// ------------------------------------------- v0.2.0 — Index bindings/relations
 @world poly5
 
 > n := deg(t↑2 + 1)
@@ -783,18 +745,18 @@
 > deg(t↑2) > deg(t)
 = true
 
-# ================================================= v0.2.0 — nim-world honesty
+// ================================================= v0.2.0 — nim-world honesty
 @world nimber 0
 
-# < is identically false here and -u = u: abs is the identity, twice over
+// < is identically false here and -u = u: abs is the identity, twice over
 > abs := u ↦ (u < 0 ? -u : u)
 ~ abs := u ↦ u < 0 ? -u : u
 
 > abs@(*5)
 = *5
 
-# the N/P indicator: fuzzy with *0 is an N-position
-> pn := g ↦ (g \ *0 ? *1 : *0)
+// the N/P indicator: fuzzy with *0 is an N-position
+> pn := g ↦ (g ! *0 ? *1 : *0)
 ~ pn := g ↦ g ∥ *0 ? *1 : *0
 
 > pn@(*3 + *2)
@@ -803,11 +765,11 @@
 > pn@(*3 + *3)
 = *0
 
-# definition-time completeness: the bare INT fails at :=, not at application
+// definition-time completeness: the bare INT fails at :=, not at application
 > bad := u ↦ u + 3
 ! E_BareInt: did you mean
 
-# ------------------------------------------- v0.2.0 — multivector-valued binders
+// ------------------------------------------- v0.2.0 — multivector-valued binders
 @world nimber 2 q=[*1,*1]
 
 > refl := v ↦ e0⋅v⋅e0
@@ -821,13 +783,13 @@
 > refl@(e0 + e1)
 = e0 + e1
 
-# ---------------------------------------- v0.2.0 — definition-time world checks
+// ---------------------------------------- v0.2.0 — definition-time world checks
 @world fp5 0
 
 > h := u ↦ (u < 0 ? 0 : 1)
 ! E_WrongWorld: order
 
-# ------------------------------------------- v0.2.0 — reserved syntax, revisited
+// ------------------------------------------- v0.2.0 — reserved syntax, revisited
 @world nimber 0
 
 > *2 ~ *3
@@ -842,13 +804,13 @@
 > *2 ; *3
 ! E_SeqValue:
 
-# and/or/not join the reserved words
+// and/or/not join the reserved words
 @world integer 0
 
 > and := 5
 ! E_Reserved:
 
-# ====================================================== v0.2.1 — sequences
+// ====================================================== v0.2.1 — sequences
 @world integer 0
 
 > a := 5; a + 1
@@ -866,11 +828,11 @@
 > x9 + y9
 = 3
 
-# intermediate statements must bind — a discarded value is dead code
+// intermediate statements must bind — a discarded value is dead code
 > 1 + 1; 2
 ! E_SeqValue:
 
-# ------------------------------------------------------- v0.2.1 — let-bodies
+// ------------------------------------------------------- v0.2.1 — let-bodies
 > f1 := u ↦ (d := u + 1; d⋅d)
 
 > f1@2
@@ -879,11 +841,11 @@
 > f1
 = u ↦ (d := u + 1; d⋅d)
 
-# locals are invisible outside
+// locals are invisible outside
 > d
 ! E_Unbound:
 
-# locals shadow; the outer binding is untouched
+// locals shadow; the outer binding is untouched
 > d0 := 100
 
 > f2 := u ↦ (d0 := u; d0 + 1)
@@ -894,7 +856,7 @@
 > d0
 = 100
 
-# body programs may bind local first-order helpers
+// body programs may bind local first-order helpers
 > f_local := u ↦ (inc := v ↦ v + 1; inc@u)
 
 > f_local@9
@@ -903,11 +865,11 @@
 > f_local
 = u ↦ (inc := v ↦ v + 1; inc@u)
 
-# a body sequence must end in an expression
+// a body sequence must end in an expression
 > f3 := u ↦ (d := u)
 ! E_SeqValue:
 
-# ------------------------------------------------- v0.2.1 — line continuation
+// ------------------------------------------------- v0.2.1 — line continuation
 > norm1 := (u, v) ↦ (
 >>   s := u + v;
 >>   d := u - v;
@@ -917,11 +879,11 @@
 > norm1@(2, 1)
 = 10
 
-# canonical display is single-line regardless of input layout
+// canonical display is single-line regardless of input layout
 > norm1
 = (u, v) ↦ (s := u + v; d := u - v; s⋅s + d⋅d)
 
-# ============================================================ 19.1/19.2 — =: and fuel
+// ============================================================ 19.1/19.2 — =: and fuel
 @world integer 0
 
 > fact =: n ~ (n = 0 ? 1 : n.fact@(n - 1))
@@ -933,7 +895,7 @@
 > fact@0
 = 1
 
-# fact is a closed μ-value: the equation form round-trips
+// fact is a closed μ-value: the equation form round-trips
 > fact
 = fact =: n ↦ n = 0 ? 1 : n⋅fact@(n - 1)
 
@@ -942,21 +904,21 @@
 > fib@10
 = 55
 
-# fuel meters STEPS, not depth: fib@25 has depth ~25 but ~240k unfoldings.
-# A depth budget would sail past this; a step budget catches the hang.
+// fuel meters STEPS, not depth: fib@25 has depth ~25 but ~240k unfoldings.
+// A depth budget would sail past this; a step budget catches the hang.
 @fuel 5000
 > fib@25
 ! E_Fuel:
 
 @fuel 65536
 
-# =: with no self-mention degenerates to := exactly (any sort, any world)
+// =: with no self-mention degenerates to := exactly (any sort, any world)
 > c =: 5
 
 > c
 = 5
 
-# the rebind idiom still works and capture stays visible (§17.3)
+// the rebind idiom still works and capture stays visible (§17.3)
 > f := n ↦ n + 1
 
 > f := n ↦ f@n + 1
@@ -967,22 +929,22 @@
 > f@1
 = 3
 
-# := with a self-mention: unbound, hint points at =:
+// := with a self-mention: unbound, hint points at =:
 > g := n ↦ g@n
 ! E_Unbound:
 
-# Element-sorted =: with a self-mention outside the game world: no fixpoint
-# theory, no fixpoint syntax
+// Element-sorted =: with a self-mention outside the game world: no fixpoint
+// theory, no fixpoint syntax
 > x =: x + 1
 ! E_WrongWorld:
 
-# local =: in a body sequence (§18 + §19.1)
+// local =: in a body sequence (§18 + §19.1)
 > tri := (h =: k ↦ k = 0 ? 0 : k + h@(k - 1); h@4)
 
 > tri
 = 10
 
-# game-world-only operators parse everywhere, fail world-legality here
+// game-world-only operators parse everywhere, fail world-legality here
 > 1 ≡ 1
 ! E_WrongWorld:
 
@@ -992,38 +954,38 @@
 > {1 | 0}
 ! E_WrongWorld:
 
-# ============================================================ 19.3 — the array container
+// ============================================================ 19.3 — the array container
 @world fp7 3 q=[1,1,1]
 
-> dim()
-= 3
+> dim
+= #3
 
 > coef([1, 2, 3], 1)
 = 2
 
-# + is zip-with-add on arrays, and coef reads it back
+// + is zip-with-add on arrays, and coef reads it back
 > coef([1, 2, 3] + [1, 1, 1], 0)
 = 2
 
-# coef is total in the Element: no e0 term in a bivector
+// coef is total in the Element: no e0 term in a bivector
 > coef(e0∧e1, 0)
 = 0
 
 > coef([1, 2, 3], 5)
 ! E_BladeIndex:
 
-# the array acceptance example: dot by Index recursion (32 ≡ 4 mod 7)
-> dot =: (u, v, i) ↦ i = dim() ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+// the array acceptance example: dot by Index recursion (32 ≡ 4 mod 7)
+> dot =: (u, v, i) ↦ i = dim ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
 
 > dot@([1, 2, 3], [4, 5, 6], 0)
 = 4
 
 @world poly2
 
-> dim()
+> dim
 ! E_WrongWorld:
 
-# ============================================================ 19.4 — game world: literals, display
+// ============================================================ 19.4 — game world: literals, display
 @world game
 
 > {|}
@@ -1032,7 +994,7 @@
 > 2
 = 2
 
-# structural recognition: {1 |} IS the form the literal 2 builds
+// structural recognition: {1 |} IS the form the literal 2 builds
 > {1 |}
 = 2
 
@@ -1049,14 +1011,14 @@
 ~ *1
 = *1
 
-# a switch stays structural — display never canonicalizes values
+// a one-cell proper spine displays as the native container
 > {5 | 0}
-= {5 | 0}
+= [5]
 
 > {0 | 1}
 = {0 | 1}
 
-# + materializes the SUM FORM; value identity is said with = or canon
+// + materializes the SUM FORM; value identity is said with = or canon
 > 1 + 1
 = {1, 1 |}
 
@@ -1066,54 +1028,54 @@
 > 1 + 1 = 2
 = true
 
-# relations are the full CGT partial order ({0 |} is the integer 1)
+// relations are the full CGT partial order ({0 |} is the integer 1)
 > {0 |} > 0
 = true
 
-# standard: ∗ ∥ 0
+// standard: ∗ ∥ 0
 > *1 ∥ 0
 = true
 
-# standard: nim sum *2 + *3 = *1 (value-level; the sum form is not the
-# nimber form, so display recognition does not fire on *2 + *3 bare)
+// standard: nim sum *2 + *3 = *1 (value-level; the sum form is not the
+// nimber form, so display recognition does not fire on *2 + *3 bare)
 > *2 + *3 = *1
 = true
 
 > canon(*2 + *3)
 = *1
 
-# up() = {0 | *1}, down() = {*1 | 0}; standard: ↑ > 0, ↑ ∥ ∗, ⇑ > ∗
-> up()
+// up = {0 | *1}, down = {*1 | 0}; standard: ↑ > 0, ↑ ∥ ∗, ⇑ > ∗
+> up // C: recognition
 = {0 | *1}
 
-> up() > 0
+> up > 0
 = true
 
-> up() ∥ *1
+> up ∥ *1
 = true
 
-> up() + up() > *1
+> up + up > *1
 = true
 
-> down() < 0
+> down < 0
 = true
 
-# the founding scope boundary, enforced: games are a group, not a ring
+// the founding scope boundary, enforced: games are a group, not a ring
 > *2 ⋅ *3
 ! E_WrongWorld:
 
-# no metric, no blades — the wedge hint points at ⧺
+// no metric, no blades — the wedge hint points at ⧺
 > {1 | 0} ∧ {2 | 0}
 ! E_WrongWorld:
 
 > [1, 2]
-! E_WrongWorld:
+= [1, 2]
 
 > ω
 ! E_WrongWorld:
 
-# ============================================================ 19.4.3 — the second equality
-# standard: {-1 | 1} = 0 by the simplicity rule; structurally it is a cons
+// ============================================================ 19.4.3 — the second equality
+// standard: {-1 | 1} = 0 by the simplicity rule; structurally it is a cons
 > {-1 | 1} = 0
 = true
 
@@ -1127,35 +1089,32 @@
 > canon({-1 | 1})
 = 0
 
-# the two equalities, related in the language: a = b ⟺ canon(a) ≡ canon(b)
+// the two equalities, related in the language: a = b ⟺ canon(a) ≡ canon(b)
 > canon({-1 | 1}) ≡ canon({|})
 = true
 
 > canon({0 |}) ≡ canon({|})
 = false
 
-# ============================================================ 19.4.5 — lists
-# barless braces are list literals (input-only sugar; the echo teaches)
-> {1, 2, 3}
-~ {1 | {2 | {3 | 0}}}
-= {1 | {2 | {3 | 0}}}
+// ============================================================ 19.4.5 — lists
+// bracket containers build and display proper spines
+> [1, 2, 3]
+= [1, 2, 3]
 
-> {}
-~ {|}
+> []
 = 0
 
-# nesting gives trees
-> {{1, 2}, 3}
-~ {{1 | {2 | 0}} | {3 | 0}}
-= {{1 | {2 | 0}} | {3 | 0}}
+// nesting gives trees
+> [[1, 2], 3]
+= [[1, 2], 3]
 
-# the missing-bar footgun, made visible: {1, 2 |} is NOT the list {1, 2}
+// the missing-bar footgun, made visible: {1, 2 |} is NOT the list [1, 2]
 > {1, 2 |}
 = {1, 2 |}
 
-# option access
+// option access
 > nleft({1, 2 | 0, 3})
-= 2
+= #2
 
 > right({1, 2 | 0, 3}, 1)
 = 3
@@ -1163,65 +1122,61 @@
 > left({1, 2 | 0, 3}, 5)
 ! E_Domain:
 
-# the list prelude is definable in-language — no new stdlib
+// the list prelude is definable in-language — no new stdlib
 > hd := l ↦ left(l, 0)
 
 > tl := l ↦ right(l, 0)
 
 > isnil := l ↦ nleft(l) = 0 and nright(l) = 0
 
-> hd@{7, 8}
-~ hd@{7 | {8 | 0}}
+> hd@[7, 8]
 = 7
 
-> tl@{7, 8}
-~ tl@{7 | {8 | 0}}
-= {8 | 0}
+> tl@[7, 8]
+= [8]
 
-> hd@(tl@{7, 8})
-~ hd@(tl@{7 | {8 | 0}})
+> hd@(tl@[7, 8])
 = 8
 
-> isnil@{}
-~ isnil@{|}
+> isnil@[]
 = true
 
-# isnil is structural; = 0 is NOT a nil test ({-1 | 1} = 0 above)
+// isnil is structural; = 0 is NOT a nil test ({-1 | 1} = 0 above)
 > isnil@{-1 | 1}
 = false
 
-# ---- ⧺ append (right-assoc; unit {|}; form-level, not a =-congruence)
-> {1, 2} ++ {3}
-~ {1 | {2 | 0}} ⧺ {3 | 0}
-= {1 | {2 | {3 | 0}}}
+// ---- ⧺ append (right-assoc; unit {|}; form-level, not a =-congruence)
+> [1, 2] ++ [3]
+~ [1, 2] ⧺ [3]
+= [1, 2, 3]
 
 > {|} ⧺ {5 | 0}
-= {5 | 0}
+= [5]
 
 > {5 | 0} ⧺ {|}
-= {5 | 0}
+= [5]
 
-# right operand unrestricted: Lisp's dotted-pair freedom
+// right operand unrestricted: Lisp's dotted-pair freedom
 > {1 | 0} ⧺ *2
 = {1 | *2}
 
-# right-assoc chain needs no parens
+// right-assoc chain needs no parens
 > {1 | 0} ⧺ {2 | 0} ⧺ {3 | 0}
-= {1 | {2 | {3 | 0}}}
+= [1, 2, 3]
 
-# left operand must be a finite proper spine
+// left operand must be a finite proper spine
 > {0 |} ⧺ {|}
 ! E_Improper:
 
-# the congruence failure, concrete: {-1 | 1} = 0, yet 0 appends and this errors
+// the congruence failure, concrete: {-1 | 1} = 0, yet 0 appends and this errors
 > {-1 | 1} ⧺ {|}
 ! E_Improper:
 
-# + is game sum, not append (sum of nils is nil; see the {1, 1 |} vector)
+// + is game sum, not append (sum of nils is nil; see the {1, 1 |} vector)
 > {|} + {|}
 = 0
 
-# ============================================================ 19.4.5 — grundy (the acceptance example)
+// ============================================================ 19.4.5 — grundy (the acceptance example)
 > grundy =: g ↦ (
 >>   has =: (n, i) ↦ not i = nleft(g) and
 >>                   (grundy@(left(g, i)) = n or has@(n, i + 1));
@@ -1230,19 +1185,19 @@
 >> )
 
 > grundy@{|}
-= 0
+= #0
 
 > grundy@{0 | 0}
-= 1
+= #1
 
 > grundy@*2
-= 2
+= #2
 
-# mex over left-option grundies {0, 1} = 2
+// mex over left-option grundies [0, 1] = 2
 > grundy@{0, {0 | 0} | 0}
-= 2
+= #2
 
-# ============================================================ 19.5 — loopy: Element-=:
+// ============================================================ 19.5 — loopy: Element-=:
 > on =: {on |}
 
 > on
@@ -1254,13 +1209,13 @@
 
 > over =: {0 | over}
 
-# =: with no self-mention degenerates to := in this world too
+// =: with no self-mention degenerates to := in this world too
 > z =: {1 | 0}
 
 > z
-= {1 | 0}
+= [1]
 
-# standard: dud draws for both movers; on and over are Left wins, no draw
+// standard: dud draws for both movers; on and over are Left wins, no draw
 > drawn(dud)
 = true
 
@@ -1270,31 +1225,30 @@
 > drawn(over)
 = false
 
-# drawn is total on finite forms
-> drawn({1, 2})
-~ drawn({1 | {2 | 0}})
+// drawn is total on finite forms
+> drawn([1, 2])
 = false
 
-# ---- streams are loopy games
+// ---- streams are loopy games
 > ones =: {1 | ones}
 
-# alternation: the mover who faces ones wins by walking into 1 — no draw
+// alternation: the mover who faces ones wins by walking into 1 — no draw
 > drawn(ones)
 = false
 
 > hd@ones
 = 1
 
-# tl of the constant stream is the root itself: equation display
+// tl of the constant stream is the root itself: equation display
 > tl@ones
 = ones =: {1 | ones}
 
 > ones ≡ tl@ones
 = true
 
-# purely periodic via ⧺: guardedness-transparent from the left (§19.5)
-> l =: {1, 2} ++ l
-~ l =: {1 | {2 | 0}} ⧺ l
+// purely periodic via ⧺: guardedness-transparent from the left (§19.5)
+> l =: [1, 2] ++ l
+~ l =: [1, 2] ⧺ l
 
 > l
 = l =: {1 | {2 | l}}
@@ -1308,20 +1262,19 @@
 > hd@(tl@(tl@l))
 = 1
 
-# regular-tree ≡: the period-2 cycle re-entered
+// regular-tree ≡: the period-2 cycle re-entered
 > l ≡ tl@(tl@l)
 = true
 
-# interior node: re-rooted equation, α-bound defining name
+// interior node: re-rooted equation, α-bound defining name
 > tl@l
 = l =: {2 | {1 | l}}
 
 > drawn(l)
 = false
 
-# eventually periodic: local =: in a body; composite display is a §18 body
-> p := (q =: {1, 2} ⧺ q; {9} ⧺ q)
-~ p := (q =: {1 | {2 | 0}} ⧺ q; {9 | 0} ⧺ q)
+// eventually periodic: local =: in a body; composite display is a §18 body
+> p := (q =: [1, 2] ⧺ q; [9] ⧺ q)
 
 > p
 = (q =: {1 | {2 | q}}; {9 | q})
@@ -1332,30 +1285,29 @@
 > hd@(tl@p)
 = 1
 
-# the self-ELEMENT circular list (sugar nil-terminates; self-tail needs ⧺)
-> se =: {1, se}
-~ se =: {1 | {se | 0}}
+// the self-ELEMENT circular list (sugar nil-terminates; self-tail needs ⧺)
+> se =: [1, se]
 
 > se
 = se =: {1 | {se | 0}}
 
-# ---- guardedness edges (checked after definition-time reduction)
+// ---- guardedness edges (checked after definition-time reduction)
 > g =: g
 ! E_Unfounded:
 
-# nil is append's unit: unfolds to h =: h
+// nil is append's unit: unfolds to h =: h
 > h =: {|} ⧺ h
 ! E_Unfounded:
 
-# ⧺ is transparent from the LEFT only
+// ⧺ is transparent from the LEFT only
 > k =: k ⧺ {1 | 0}
 ! E_Unfounded:
 
-# sums stay behind the stopper boundary
+// sums stay behind the stopper boundary
 > m =: m + 1
 ! E_Unfounded:
 
-# ---- the 0.3.0 loopy envelope (conservative; loosening owed, never breaking)
+// ---- the 0.3.0 loopy envelope (conservative; loosening owed, never breaking)
 > ones = ones
 ! E_Loopy:
 
@@ -1368,24 +1320,177 @@
 > -ones
 ! E_Loopy:
 
-# cyclic left operand of ⧺: appending never reaches the right operand
+// cyclic left operand of ⧺: appending never reaches the right operand
 > ones ⧺ {5 | 0}
 = ones =: {1 | ones}
 
 > (ones ⧺ {5 | 0}) ≡ ones
 = true
 
-# a finite prefix into a cycle is likewise unchanged as a whole
-> ({9} ⧺ ones) ⧺ {5 | 0}
-~ ({9 | 0} ⧺ ones) ⧺ {5 | 0}
+// a finite prefix into a cycle is likewise unchanged as a whole
+> ([9] ⧺ ones) ⧺ {5 | 0}
 = (ones =: {1 | ones}; {9 | ones})
 
-# ---- fuel stays the verdict for μ-descent along infinite data
+// ---- fuel stays the verdict for μ-descent along infinite data
 > len =: m ↦ nleft(m) = 0 ? 0 : 1 + len@(right(m, 0))
 
-> len@{7, 8, 9}
-~ len@{7 | {8 | {9 | 0}}}
-= 3
+> len@[7, 8, 9]
+= #3
 
 > len@ones
 ! E_Fuel:
+
+// ============================================================ migrated 0.3.5-B — comments
+@world integer 0
+
+> 1 + 2 // trailing line comment
+~ 1 + 2
+= 3
+
+> 1 /* outer /* nested */ comment */ + 2
+~ 1 + 2
+= 3
+
+> 1 + /* outer
+>>   /* nested */
+>> */ 2
+~ 1 + 2
+= 3
+
+// ============================================================ migrated 0.3.5-B — Index literals and marks
+@world poly5
+
+> n := deg(t↑2)
+
+> n
+= #2
+
+> f := u ↦ n
+
+> f
+= u ↦ #2
+
+> d := f@0
+
+> t↑d
+= 1⋅t↑2
+
+// application is legal inside Index positions (§4 exponent, §6 first-order rule)
+> t↑(f@0)
+= 1⋅t↑2
+
+> deg(t↑(f@0))
+= #2
+
+// ============================================================ migrated 0.3.5-B — fuzzy `!` and factorial removal
+@world game
+
+> *1 ! *2
+~ *1 ∥ *2
+= true
+
+> *1 != *2
+! E_Parse: not-equal is `not (a = b)`
+
+> !5
+! E_Parse:
+
+// ============================================================ migrated 0.3.5-B — full-expression ternary
+@world integer 0
+
+> sign := u ↦ u < 0 ? -1 : u = 0 ? 0 : 1
+
+> sign@(-5)
+= -1
+
+> sign@0
+= 0
+
+> sign@7
+= 1
+
+// ============================================================ migrated 0.3.5-B — containers and literal atoms
+@world fp7 3 q=[1,1,1]
+
+> dim
+= #3
+
+> dim()
+! E_UnknownFn:
+
+> coef([1, 2, 3], 1)
+= 2
+
+> dot =: (u, v, i) ↦ i = dim ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+
+> dot@([1, 2, 3], [4, 5, 6], #0)
+= 4
+
+@world integer 0
+
+> []
+= 0
+
+> up
+! E_WrongWorld:
+
+> down
+! E_WrongWorld:
+
+@world poly5
+
+> [1]
+! E_WrongWorld:
+
+> dim
+! E_WrongWorld:
+
+@world game
+
+> up // C: recognition
+= {0 | *1}
+
+> down // C: recognition
+= {*1 | 0}
+
+> up()
+! E_UnknownFn:
+
+> down()
+! E_UnknownFn:
+
+> dim
+! E_WrongWorld:
+
+> [1, 2, 3]
+= [1, 2, 3]
+
+> []
+= 0
+
+> {1, 2}
+! E_Parse: braces are game forms
+
+> {}
+! E_Parse:
+
+> hd := l ↦ left(l, 0)
+
+> tl := l ↦ right(l, 0)
+
+> hd@[7, 8]
+= 7
+
+> tl@[7, 8]
+= [8]
+
+// ============================================================ migrated 0.3.5-B — parse-side teaching hints
+@world poly5
+
+> t * t
+! E_Parse:
+
+@world integer 0
+
+> id(x) := x
+! E_Parse:

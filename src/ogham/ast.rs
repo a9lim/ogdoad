@@ -24,11 +24,15 @@ pub struct Binding {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     Int(u128),
+    Index(Box<Expr>),
     Bool(bool),
     Star(StarLiteral),
     Omega,
     Blade(usize),
-    Vector(Vec<Expr>),
+    Container(Vec<Expr>),
+    Up,
+    Down,
+    Dim,
     Tuple(Vec<Expr>),
     Ident(String),
     Lambda {
@@ -47,7 +51,6 @@ pub enum Expr {
         name: String,
         args: Vec<Expr>,
     },
-    Factorial(Box<Expr>),
     Unary {
         op: UnaryOp,
         expr: Box<Expr>,

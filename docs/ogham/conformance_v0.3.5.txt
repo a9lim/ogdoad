@@ -1,114 +1,14 @@
-// ogham conformance staging — v0.3.5 (spec'd 2026-07-09, PRE-BUILD)
+// ogham conformance staging — v0.3.5 (spec'd 2026-07-09, post-stage-B)
 // Discipline per ogham.md §16: the harness does NOT read this file until the
-// 0.3.5 build merges it into conformance.txt. Every vector below is
+// later stages merge it into conformance.txt. Every vector below is
 // hand-verified against ogham.md (the 0.3.5 contract) and standard
 // mathematics (Siegel GSM 146 for the loopy/outcome families). The build
-// expands this seed — display shapes marked BUILD are blessed at build time —
-// and must also MIGRATE the 0.3.0 corpus: comments # → //, barless-brace
-// vectors → […] containers, up()/down()/dim() → atoms, drawn → hasdraw,
-// factorial vectors dropped, ≡/canon order-sensitivity vectors replaced by
-// the multiset family below, grundy Index results → #-marked.
-
-// ============================================================ comments
-@world integer 0
-
-> 5 + 3 // five and three
-= 8
-
-> 5 /* mid-expression */ + 3
-= 8
-
-> /* block /* comments */ nest */ 2
-= 2
-
-// ============================================================ # — Index literals and capture (spec §7.6, §12.4)
-@world poly5
-
-> n := deg(t↑2)
-
-> n
-= #2
-
-// capture keeps the sort: the substituted literal is marked (0.3.0 defect repaired)
-> f := u ↦ n
-
-> f
-= u ↦ #2
-
-> d := f@0
-
-> t↑d
-= 1⋅t↑2
-
-// ============================================================ ! — fuzzy sugar; factorial is gone (§2, §11)
-@world nimber 0
-
-> *1 ! *2
-~ *1 ∥ *2
-= true
-
-> *1 != *2
-! E_Parse: not-equal is `not (a = b)`
-
-> !5
-! E_Parse:
-
-// ============================================================ ternary — full branches, right-assoc (§4)
-@world integer 0
-
-> sign := u ↦ u < 0 ? -1 : u = 0 ? 0 : 1
-
-> sign@(-5)
-= -1
-
-> sign@0
-= 0
-
-> sign@7
-= 1
-
-// ============================================================ containers — […] in both faces (§7.8)
-@world fp7 3 q=[1,1,1]
-
-> dim
-= #3
-
-> dim()
-! E_UnknownFn:
-
-> coef([1, 2, 3], 1)
-= 2
-
-> dot =: (u, v, i) ↦ i = dim ? 0 : coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
-
-> dot@([1, 2, 3], [4, 5, 6], #0)
-= 4
-
-@world game
-
-> [1, 2, 3]
-= [1, 2, 3]
-
-> []
-= 0
-
-> {1, 2}
-! E_Parse: braces are game forms
-
-> {}
-! E_Parse:
-
-> hd := l ↦ left(l, 0)
-
-> tl := l ↦ right(l, 0)
-
-> hd@[7, 8]
-= 7
-
-> tl@[7, 8]
-= [8]
+// expands this seed — display shapes marked BUILD are blessed at build time.
+// Stage B's comments, Index marks/capture, fuzzy `!`, ternary, containers,
+// literal atoms, and parse-side hint vectors now live in conformance.txt.
 
 // ============================================================ recognition chain + the delights (§10.2)
+@world game
 // [0] is star; [0,0] is up; down is [*1] — structural identities
 > [0]
 = *1
@@ -133,9 +33,6 @@
 
 > up ∥ *1
 = true
-
-> up()
-! E_UnknownFn:
 
 // display never canonicalizes: the sum form stays a sum form
 > 1 + 1
@@ -336,16 +233,8 @@
 > grundy@{0, {0 | 0} | 0}
 = #2
 
-// ============================================================ hint sites (§13) — the tutor package
-@world poly2
-
-> t * t
-! E_Parse: the product is `⋅`
-
+// ============================================================ remaining E hint sites (§13) — tutor package
 @world game
-
-> id(x) := x
-! E_Parse: functions are lambdas
 
 > outcome(0)
 ! E_Unbound: relations against 0

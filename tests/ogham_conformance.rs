@@ -15,43 +15,95 @@ fn ogham_conformance_corpus() {
 }
 
 #[test]
-fn ogham_v0_3_archive_syntax_and_echoes() {
-    let lines = include_str!("../docs/ogham/conformance_v0.3.txt")
-        .lines()
-        .collect::<Vec<_>>();
-    let mut idx = 0usize;
-    while idx < lines.len() {
-        let line_no = idx + 1;
-        let line = lines[idx].trim();
-        idx += 1;
-        let Some(input) = line.strip_prefix("> ") else {
-            continue;
-        };
-        let mut input = input.to_string();
-        while idx < lines.len() {
-            let cont = lines[idx].trim();
-            if let Some(rest) = cont.strip_prefix(">> ") {
-                input.push('\n');
-                input.push_str(rest);
-                idx += 1;
-            } else {
-                break;
-            }
-        }
-        let parsed = parse_statement(&input)
-            .unwrap_or_else(|err| panic!("line {line_no}: syntax failed for `{input}`: {err}"));
+fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {
+    for input in [
+        "#2",
+        "#(1 + 2)",
+        "up",
+        "down",
+        "dim",
+        "[up, down, #3]",
+        "true ? #1 : false ? #2 : #3",
+        "t↑#(1 + 1)",
+        "ω↑#2",
+        "ω↑#(1 + 1)",
+        "coef([1, 2], #1)",
+        "/(*2)",
+        "1/(/2)",
+    ] {
+        let parsed = parse_statement(input)
+            .unwrap_or_else(|err| panic!("syntax failed for `{input}`: {err}"));
         let canonical = unparse_statement(&parsed);
-        let expected = lines[idx..]
-            .iter()
-            .map(|line| line.trim())
-            .find(|line| !line.is_empty() && !line.starts_with('#'));
-        if let Some(expected) = expected.and_then(|line| line.strip_prefix("~ ")) {
-            assert_eq!(
-                canonical, expected,
-                "line {line_no}: canonical echo for `{input}`"
-            );
-        }
+        let reparsed = parse_statement(&canonical)
+            .unwrap_or_else(|err| panic!("canonical syntax `{canonical}` failed: {err}"));
+        assert_eq!(parsed, reparsed, "parse/unparse identity for `{input}`");
     }
+}
+
+#[test]
+fn stage_b_parse_guidance_is_carried_by_hints() {
+    let mut poly = OghamSession::new("poly5").expect("poly5 world");
+    let product = poly
+        .eval_line("t * t")
+        .expect_err("ASCII star is not product");
+    assert_eq!(product.kind, OghamErrorKind::Parse);
+    assert_eq!(
+        product.hint.as_deref(),
+        Some("`*` is the nimber prefix; the product is `⋅` (sugar `.`)")
+    );
+
+    let mut game = OghamSession::new("game").expect("game world");
+    let not_equal = game
+        .eval_line("*1 != *2")
+        .expect_err("not-equal has a teaching error");
+    assert_eq!(not_equal.kind, OghamErrorKind::Parse);
+    assert_eq!(
+        not_equal.hint.as_deref(),
+        Some("not-equal is `not (a = b)`; `!` is fuzzy `∥`")
+    );
+
+    let pipe = game
+        .eval_line("*1 | *2")
+        .expect_err("a relation-tier bar has a teaching error");
+    assert_eq!(pipe.kind, OghamErrorKind::Parse);
+    assert_eq!(
+        pipe.hint.as_deref(),
+        Some("the braceform bar is structural; fuzzy is `∥` (sugar `!`)")
+    );
+
+    let braces = game
+        .eval_line("{1, 2}")
+        .expect_err("barless braces are not containers");
+    assert_eq!(braces.kind, OghamErrorKind::Parse);
+    assert_eq!(
+        braces.hint.as_deref(),
+        Some("`[a, b]` is the list; braces are game forms `{L | R}`")
+    );
+
+    for name in ["up", "down"] {
+        let literal = game
+            .eval_line(&format!("{name}()"))
+            .expect_err("call spelling was removed for literal atoms");
+        assert_eq!(literal.kind, OghamErrorKind::UnknownFn);
+        let expected = format!("`{name}` is a literal now");
+        assert_eq!(literal.hint.as_deref(), Some(expected.as_str()));
+    }
+
+    let mut integer = OghamSession::new("integer 0").expect("integer world");
+    let dim = integer
+        .eval_line("dim()")
+        .expect_err("dim call spelling was removed");
+    assert_eq!(dim.kind, OghamErrorKind::UnknownFn);
+    assert_eq!(dim.hint.as_deref(), Some("`dim` is a literal now"));
+
+    let function = integer
+        .eval_line("id(x) := x")
+        .expect_err("function-definition call syntax was removed");
+    assert_eq!(function.kind, OghamErrorKind::Parse);
+    assert_eq!(
+        function.hint.as_deref(),
+        Some("functions are lambdas: `name := x ↦ …`")
+    );
 }
 
 fn run_corpus(corpus: &str) {
@@ -64,7 +116,7 @@ fn run_corpus(corpus: &str) {
         let line_no = idx + 1;
         let line = raw.trim();
         idx += 1;
-        if line.is_empty() || line.starts_with('#') {
+        if line.is_empty() || line.starts_with("//") {
             continue;
         }
         if let Some(decl) = line.strip_prefix("@world ") {
@@ -243,26 +295,23 @@ fn recursive_list_folds_have_realistic_worker_stack_headroom() {
             .collect::<Vec<_>>()
             .join(", ");
         let result = session
-            .eval_line(&format!("len@{{{items}}}"))
+            .eval_line(&format!("len@[{items}]"))
             .unwrap_or_else(|err| panic!("length-{length} list fold failed: {err}"));
-        let expected = length.to_string();
+        let expected = format!("#{length}");
         assert_eq!(result.value.as_deref(), Some(expected.as_str()));
     }
 }
 
 #[test]
-fn flat_list_sugar_depth_errors_before_recursive_ast_consumers() {
+fn flat_container_syntax_does_not_create_recursive_ast_depth() {
     let mut session = OghamSession::new("game").expect("game world");
     let items = (0_u128..2000)
         .map(|value| value.to_string())
         .collect::<Vec<_>>()
         .join(", ");
-    let err = session
-        .eval_line(&format!("{{{items}}}"))
-        .expect_err("deep list sugar must stop before recursive AST consumers");
-    assert_eq!(err.kind, OghamErrorKind::Parse);
-    assert!(err.message.contains("syntax tree"));
-    assert!(err.message.contains("1536 nodes"));
+    session
+        .eval_line(&format!("[{items}]"))
+        .expect("the flat container AST is bounded independently of its length");
 }
 
 #[test]
@@ -354,8 +403,10 @@ fn ogham_game_stage_d_boundaries() {
         .expect("ordered structural comparison");
     assert_eq!(ordered.value.as_deref(), Some("false"));
 
-    let factorial = session.eval_line("!5").expect("integer-game factorial");
-    assert_eq!(factorial.value.as_deref(), Some("120"));
+    let factorial = session
+        .eval_line("!5")
+        .expect_err("factorial prefix was removed in 0.3.5");
+    assert_eq!(factorial.kind, OghamErrorKind::Parse);
 
     session
         .eval_line("loop =: {loop |}")
@@ -372,9 +423,9 @@ fn ogham_coinductive_append_walk_outcomes_and_fixpoint_reduction() {
         .expect("constant stream");
 
     let graft = session
-        .eval_line("{1, 2} ⧺ {3}")
+        .eval_line("[1, 2] ⧺ [3]")
         .expect("finite spine reaches nil");
-    assert_eq!(graft.value.as_deref(), Some("{1 | {2 | {3 | 0}}}"));
+    assert_eq!(graft.value.as_deref(), Some("[1, 2, 3]"));
 
     let cycle = session
         .eval_line("ones ⧺ {5 | 0}")
@@ -382,7 +433,7 @@ fn ogham_coinductive_append_walk_outcomes_and_fixpoint_reduction() {
     assert_eq!(cycle.value.as_deref(), Some("ones =: {1 | ones}"));
 
     let prefixed_cycle = session
-        .eval_line("({9} ⧺ ones) ⧺ {5 | 0}")
+        .eval_line("([9] ⧺ ones) ⧺ {5 | 0}")
         .expect("finite prefix into a cycle is unchanged");
     assert_eq!(
         prefixed_cycle.value.as_deref(),

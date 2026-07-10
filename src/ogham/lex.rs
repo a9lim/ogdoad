@@ -13,13 +13,13 @@ pub enum TokenKind {
     Blade(usize),
     Omega,
     Star,
-    Up,
+    Index,
+    Power,
     Wedge,
     Dot,
     Slash,
     Percent,
     At,
-    Bang,
     Question,
     Colon,
     Arrow,
@@ -28,12 +28,15 @@ pub enum TokenKind {
     Not,
     True,
     False,
+    Up,
+    Down,
+    Dim,
     Semicolon,
     Eq,
     Less,
     Greater,
     Pipe,
-    // U+2225, the canonical fuzzy relop; `\` is its lexer sugar. `Pipe` is
+    // U+2225, the canonical fuzzy relop; `!` is its lexer sugar. `Pipe` is
     // the structural braceform bar only — no relop reading (a relop-tier `|`
     // gets the expect_end hint) — and `Parallel` is refused as the bar in turn.
     Parallel,
@@ -53,7 +56,18 @@ pub enum TokenKind {
 }
 
 pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
-    let src = strip_line_comments(src);
+    let (src, block_depth) = mask_comments(src);
+    if block_depth != 0 {
+        return Err(OghamError::new(
+            OghamErrorKind::Parse,
+            Span::point(src.len()),
+            "unterminated block comment",
+        ));
+    }
+    lex_masked(&src)
+}
+
+fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
     let chars: Vec<(usize, char)> = src.char_indices().collect();
     let mut out = Vec::new();
     let mut i = 0usize;
@@ -150,6 +164,12 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
                 TokenKind::True
             } else if s == "false" {
                 TokenKind::False
+            } else if s == "up" {
+                TokenKind::Up
+            } else if s == "down" {
+                TokenKind::Down
+            } else if s == "dim" {
+                TokenKind::Dim
             } else if s == "e" {
                 return Err(OghamError::new(
                     OghamErrorKind::Parse,
@@ -169,6 +189,7 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
         let kind = match ch {
             'ω' => TokenKind::Omega,
             '*' => TokenKind::Star,
+            '#' => TokenKind::Index,
             '^' | '↑' => {
                 if i + 1 < chars.len() && matches!(chars[i + 1].1, '^' | '↑') {
                     return Err(reserved(Span::new(
@@ -176,14 +197,14 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
                         chars[i + 1].0 + chars[i + 1].1.len_utf8(),
                     )));
                 }
-                TokenKind::Up
+                TokenKind::Power
             }
             '&' | '∧' => TokenKind::Wedge,
             '.' | '⋅' | '·' => TokenKind::Dot,
             '/' => TokenKind::Slash,
             '%' => TokenKind::Percent,
             '@' => TokenKind::At,
-            '!' => TokenKind::Bang,
+            '!' | '∥' => TokenKind::Parallel,
             '?' => TokenKind::Question,
             '=' => {
                 if i + 1 < chars.len() && chars[i + 1].1 == ':' {
@@ -244,7 +265,6 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
             }
             '⧺' => TokenKind::Append,
             '≡' => TokenKind::Equiv,
-            '∥' | '\\' => TokenKind::Parallel,
             '-' => TokenKind::Minus,
             ';' => TokenKind::Semicolon,
             '(' => TokenKind::LParen,
@@ -270,10 +290,14 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
 }
 
 pub fn needs_continuation(src: &str) -> OghamResult<bool> {
+    let (masked, block_depth) = mask_comments(src);
+    if block_depth != 0 {
+        return Ok(true);
+    }
     let mut paren_depth = 0usize;
     let mut bracket_depth = 0usize;
     let mut brace_depth = 0usize;
-    for token in lex(src)? {
+    for token in lex_masked(&masked)? {
         match token.kind {
             TokenKind::LParen => paren_depth += 1,
             TokenKind::RParen => {
@@ -302,11 +326,57 @@ pub fn needs_continuation(src: &str) -> OghamResult<bool> {
     Ok(paren_depth > 0 || bracket_depth > 0 || brace_depth > 0)
 }
 
-fn strip_line_comments(src: &str) -> String {
-    src.split('\n')
-        .map(|line| line.split_once('#').map_or(line, |(head, _)| head))
-        .collect::<Vec<_>>()
-        .join("\n")
+pub(crate) fn strip_comments(src: &str) -> OghamResult<String> {
+    let (masked, block_depth) = mask_comments(src);
+    if block_depth == 0 {
+        Ok(masked)
+    } else {
+        Err(OghamError::new(
+            OghamErrorKind::Parse,
+            Span::point(src.len()),
+            "unterminated block comment",
+        ))
+    }
+}
+
+fn mask_comments(src: &str) -> (String, usize) {
+    let mut bytes = src.as_bytes().to_vec();
+    let mut depth = 0usize;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if depth == 0 && bytes[i..].starts_with(b"//") {
+            bytes[i] = b' ';
+            bytes[i + 1] = b' ';
+            i += 2;
+            while i < bytes.len() && bytes[i] != b'\n' {
+                bytes[i] = b' ';
+                i += 1;
+            }
+            continue;
+        }
+        if bytes[i..].starts_with(b"/*") {
+            depth += 1;
+            bytes[i] = b' ';
+            bytes[i + 1] = b' ';
+            i += 2;
+            continue;
+        }
+        if depth != 0 && bytes[i..].starts_with(b"*/") {
+            depth -= 1;
+            bytes[i] = b' ';
+            bytes[i + 1] = b' ';
+            i += 2;
+            continue;
+        }
+        if depth != 0 && bytes[i] != b'\n' {
+            bytes[i] = b' ';
+        }
+        i += 1;
+    }
+    (
+        String::from_utf8(bytes).expect("comment masking preserves UTF-8 as ASCII whitespace"),
+        depth,
+    )
 }
 
 fn reserved(span: Span) -> OghamError {
