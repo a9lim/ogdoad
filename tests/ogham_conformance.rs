@@ -305,7 +305,7 @@ fn wrong_world_teaching_lives_in_hint_fields() {
         ),
         ("1∧2", "has no wedge product", "list append is `⧺`"),
         (
-            "1/2",
+            "(1 + 1)/2",
             "additive group, not a field",
             "`/` is undefined for games",
         ),
@@ -656,6 +656,41 @@ fn stage_f_world_menu_and_literal_guidance_are_actionable() {
         .eval_line("7")
         .expect("failed world switches must preserve the worker and world");
     assert_eq!(still_alive.value.as_deref(), Some("7"));
+}
+
+#[test]
+fn stage_g_world_spellings_aliases_and_dim_zero_shorthand_are_canonical() {
+    for (decl, summary) in [
+        ("polyint", "integer[t]"),
+        ("poly2", "fp2[t]"),
+        ("ratfunc2", "fp2(t)"),
+        ("integer[t]", "integer[t]"),
+        ("fp2[t]", "fp2[t]"),
+        ("fp2(t)", "fp2(t)"),
+    ] {
+        let session = OghamSession::new(decl).unwrap_or_else(|err| panic!("{decl}: {err}"));
+        assert_eq!(session.world_summary(), summary, "{decl}");
+    }
+
+    for name in [
+        "nimber", "ordinal", "surreal", "omnific", "integer", "fp2", "fp3", "fp5", "fp7", "f4",
+        "f8", "f16", "f9", "f27", "f25",
+    ] {
+        let session = OghamSession::new(name).unwrap_or_else(|err| panic!("{name}: {err}"));
+        assert_eq!(session.world_summary(), format!("{name} dim 0"));
+    }
+
+    for (misspelled, canonical) in [("poly22", "fp2[t]"), ("fp2[t", "fp2[t]")] {
+        let err = match OghamSession::new(misspelled) {
+            Ok(_) => panic!("{misspelled} unexpectedly succeeded"),
+            Err(err) => err,
+        };
+        assert_eq!(err.kind, OghamErrorKind::WrongWorld);
+        assert!(err
+            .hint
+            .as_deref()
+            .is_some_and(|hint| hint.contains(&format!("did you mean `{canonical}`?"))));
+    }
 }
 
 #[test]

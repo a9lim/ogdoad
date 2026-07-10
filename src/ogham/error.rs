@@ -197,7 +197,7 @@ pub(crate) fn unbound_error(name: &str) -> OghamError {
     if name == "omega" {
         err.with_hint("`ω` (sugar `w`) is the omega literal")
     } else if name == "t" {
-        err.with_hint("`t` is the indeterminate in poly/ratfunc worlds")
+        err.with_hint("`t` is the indeterminate in polynomial and rational-function worlds")
     } else {
         err.with_hint(format!(
             "did you mean `{name} := ...`? recursive definition? `{name} =: ...`"
@@ -264,9 +264,9 @@ pub(crate) fn polyint_modulus_error(span: Span) -> OghamError {
     OghamError::new(
         OghamErrorKind::Modulus,
         span,
-        "polyint divisor is outside the exact-division domain",
+        "`integer[t]` divisor is outside the exact-division domain",
     )
-    .with_hint("polyint divisors must be monic")
+    .with_hint("`integer[t]` divisors must be monic")
 }
 
 pub(crate) fn kummer_escape(span: Span) -> OghamError {

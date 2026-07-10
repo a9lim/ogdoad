@@ -478,6 +478,9 @@ pub(crate) fn display_game(game: &Game) -> String {
     if let Some(integer) = structural_game_integer(game) {
         return integer.to_string();
     }
+    if let Some(dyadic) = structural_game_dyadic(game) {
+        return dyadic;
+    }
     if let Some(nimber) = structural_game_nimber(game) {
         return format!("*{nimber}");
     }
@@ -517,6 +520,21 @@ pub(crate) fn display_game(game: &Game) -> String {
         (true, false) => format!("{{| {right}}}"),
         (false, false) => format!("{{{left} | {right}}}"),
     }
+}
+
+pub(crate) fn structural_game_dyadic(game: &Game) -> Option<String> {
+    let value = game.number_value()?;
+    let (numerator, exponent) = value.as_dyadic()?;
+    if exponent == 0 {
+        return None;
+    }
+    let canonical = Game::from_surreal(&value)?;
+    if !game_structural_eq_multiset(game, &canonical) {
+        return None;
+    }
+    let shift = u32::try_from(exponent).ok()?;
+    let denominator = 1_i128.checked_shl(shift)?;
+    Some(format!("{numerator}/{denominator}"))
 }
 
 pub(crate) fn structural_game_list(mut game: &Game) -> Option<Vec<&Game>> {

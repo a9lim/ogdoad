@@ -749,11 +749,11 @@ mod tests {
     fn function_field_place_display_render_pin() {
         assert_eq!(
             FunctionFieldPlace::<Fp<5>>::Finite(poly(&[0, 1])).to_string(),
-            "1⋅t"
+            "t"
         );
         assert_eq!(
             FunctionFieldPlace::<Fp<5>>::Finite(poly(&[1, 1])).to_string(),
-            "1 + 1⋅t"
+            "t + 1"
         );
         assert_eq!(FunctionFieldPlace::<Fp<5>>::Infinite.to_string(), "∞");
     }
@@ -768,7 +768,7 @@ mod tests {
         };
         assert_eq!(
             iso.to_string(),
-            "FFAdelicIsotropy(local=[1⋅t=true, ∞=false], is_global=false)"
+            "FFAdelicIsotropy(local=[t=true, ∞=false], is_global=false)"
         );
         assert_eq!(iso.display(), iso.to_string());
     }

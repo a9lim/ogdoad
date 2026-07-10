@@ -12,8 +12,9 @@ use crate::games::{
     LoopyStopperStatus, LoopyWinner,
 };
 use crate::scalar::{
-    nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn, Integer, IntegerDivExactError, Nimber,
-    Omnific, Ordinal, Poly, Rational, RationalFunction, Scalar, Surreal,
+    nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn, HasRingOfIntegers, Integer,
+    IntegerDivExactError, Nimber, Omnific, Ordinal, Poly, Rational, RationalFunction, Scalar,
+    Surreal,
 };
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
@@ -48,15 +49,46 @@ pub const WORLD_MENU: &str = concat!(
     "worlds:\n",
     "  scalar   nimber ordinal surreal omnific integer\n",
     "  finite   fp2 fp3 fp5 fp7 f4 f8 f16 f9 f27 f25\n",
-    "  poly     polyint poly2 poly3 poly5 poly7\n",
-    "  ratfunc  ratfunc2 ratfunc3 ratfunc5 ratfunc7\n",
+    "  poly     integer[t] fp2[t] fp3[t] fp5[t] fp7[t]\n",
+    "  fraction fp2(t) fp3(t) fp5(t) fp7(t)\n",
     "  game     game",
 );
 
-const WORLD_NAMES: [&str; 25] = [
-    "nimber", "ordinal", "surreal", "omnific", "integer", "fp2", "fp3", "fp5", "fp7", "f4", "f8",
-    "f16", "f9", "f27", "f25", "polyint", "poly2", "poly3", "poly5", "poly7", "ratfunc2",
-    "ratfunc3", "ratfunc5", "ratfunc7", "game",
+const WORLD_NAMES: [&str; 34] = [
+    "nimber",
+    "ordinal",
+    "surreal",
+    "omnific",
+    "integer",
+    "fp2",
+    "fp3",
+    "fp5",
+    "fp7",
+    "f4",
+    "f8",
+    "f16",
+    "f9",
+    "f27",
+    "f25",
+    "integer[t]",
+    "fp2[t]",
+    "fp3[t]",
+    "fp5[t]",
+    "fp7[t]",
+    "fp2(t)",
+    "fp3(t)",
+    "fp5(t)",
+    "fp7(t)",
+    "polyint",
+    "poly2",
+    "poly3",
+    "poly5",
+    "poly7",
+    "ratfunc2",
+    "ratfunc3",
+    "ratfunc5",
+    "ratfunc7",
+    "game",
 ];
 
 enum World {
@@ -134,13 +166,13 @@ impl World {
         }
         macro_rules! build_poly {
             ($variant:ident, $ty:ty, $label:expr) => {{
-                ensure_function_world_decl(name, &tail)?;
+                ensure_function_world_decl($label, &tail)?;
                 return Ok(World::$variant(PolyRuntime::<$ty>::new($label)));
             }};
         }
         macro_rules! build_ratfunc {
             ($variant:ident, $ty:ty, $label:expr) => {{
-                ensure_function_world_decl(name, &tail)?;
+                ensure_function_world_decl($label, &tail)?;
                 return Ok(World::$variant(RatFuncRuntime::<$ty>::new($label)));
             }};
         }
@@ -149,31 +181,35 @@ impl World {
                 ensure_function_world_decl(name, &tail)?;
                 return Ok(World::Game(GameRuntime::new()));
             }
-            "polyint" => build_poly!(PolyInt, Integer, "polyint"),
-            "poly2" => build_poly!(Poly2, Fp<2>, "poly2"),
-            "poly3" => build_poly!(Poly3, Fp<3>, "poly3"),
-            "poly5" => build_poly!(Poly5, Fp<5>, "poly5"),
-            "poly7" => build_poly!(Poly7, Fp<7>, "poly7"),
-            "ratfunc2" => build_ratfunc!(RatFunc2, Fp<2>, "ratfunc2"),
-            "ratfunc3" => build_ratfunc!(RatFunc3, Fp<3>, "ratfunc3"),
-            "ratfunc5" => build_ratfunc!(RatFunc5, Fp<5>, "ratfunc5"),
-            "ratfunc7" => build_ratfunc!(RatFunc7, Fp<7>, "ratfunc7"),
+            "integer[t]" | "polyint" => build_poly!(PolyInt, Integer, "integer[t]"),
+            "fp2[t]" | "poly2" => build_poly!(Poly2, Fp<2>, "fp2[t]"),
+            "fp3[t]" | "poly3" => build_poly!(Poly3, Fp<3>, "fp3[t]"),
+            "fp5[t]" | "poly5" => build_poly!(Poly5, Fp<5>, "fp5[t]"),
+            "fp7[t]" | "poly7" => build_poly!(Poly7, Fp<7>, "fp7[t]"),
+            "fp2(t)" | "ratfunc2" => build_ratfunc!(RatFunc2, Fp<2>, "fp2(t)"),
+            "fp3(t)" | "ratfunc3" => build_ratfunc!(RatFunc3, Fp<3>, "fp3(t)"),
+            "fp5(t)" | "ratfunc5" => build_ratfunc!(RatFunc5, Fp<5>, "fp5(t)"),
+            "fp7(t)" | "ratfunc7" => build_ratfunc!(RatFunc7, Fp<7>, "fp7(t)"),
             _ => {}
         }
-        let second = tail
-            .first()
-            .copied()
-            .ok_or_else(|| parse_error("missing world dimension or constructor"))?;
-        if name == "nimber" && second.starts_with("gold(") {
+        if name == "nimber" && tail.first().is_some_and(|part| part.starts_with("gold(")) {
+            let second = tail[0];
             let metric = parse_gold_metric(second)?;
             return Ok(World::Nimber(CliffordRuntime::from_metric(
                 "nimber", metric,
             )));
         }
-        let dim = second
-            .parse::<usize>()
-            .map_err(|_| parse_error("world dimension must be a usize"))?;
-        let rest = decl.split_once(second).map_or("", |(_, tail)| tail).trim();
+        let (dim, rest) = if let Some(second) = tail.first().copied() {
+            let dim = second
+                .parse::<usize>()
+                .map_err(|_| parse_error("world dimension must be a usize"))?;
+            (
+                dim,
+                decl.split_once(second).map_or("", |(_, tail)| tail).trim(),
+            )
+        } else {
+            (0, "")
+        };
         macro_rules! build {
             ($variant:ident, $ty:ty, $label:expr) => {
                 Ok(World::$variant(build_runtime::<$ty>($label, dim, rest)?))
@@ -238,7 +274,7 @@ fn unknown_world_error(name: &str) -> OghamError {
         .map(|candidate| (*candidate, edit_distance(name, candidate)))
         .min_by_key(|(_, distance)| *distance)
         .filter(|(_, distance)| *distance <= 2)
-        .map(|(candidate, _)| candidate);
+        .map(|(candidate, _)| canonical_world_name(candidate));
     let hint = match nearest {
         Some(candidate) => format!("{WORLD_MENU}\ndid you mean `{candidate}`?"),
         None => WORLD_MENU.to_string(),
@@ -249,6 +285,37 @@ fn unknown_world_error(name: &str) -> OghamError {
         format!("unknown world `{name}`"),
     )
     .with_hint(hint)
+}
+
+fn canonical_world_name(name: &str) -> &'static str {
+    match name {
+        "polyint" | "integer[t]" => "integer[t]",
+        "poly2" | "fp2[t]" => "fp2[t]",
+        "poly3" | "fp3[t]" => "fp3[t]",
+        "poly5" | "fp5[t]" => "fp5[t]",
+        "poly7" | "fp7[t]" => "fp7[t]",
+        "ratfunc2" | "fp2(t)" => "fp2(t)",
+        "ratfunc3" | "fp3(t)" => "fp3(t)",
+        "ratfunc5" | "fp5(t)" => "fp5(t)",
+        "ratfunc7" | "fp7(t)" => "fp7(t)",
+        "nimber" => "nimber",
+        "ordinal" => "ordinal",
+        "surreal" => "surreal",
+        "omnific" => "omnific",
+        "integer" => "integer",
+        "fp2" => "fp2",
+        "fp3" => "fp3",
+        "fp5" => "fp5",
+        "fp7" => "fp7",
+        "f4" => "f4",
+        "f8" => "f8",
+        "f16" => "f16",
+        "f9" => "f9",
+        "f27" => "f27",
+        "f25" => "f25",
+        "game" => "game",
+        _ => unreachable!("canonicalized name comes from WORLD_NAMES"),
+    }
 }
 
 fn edit_distance(lhs: &str, rhs: &str) -> usize {

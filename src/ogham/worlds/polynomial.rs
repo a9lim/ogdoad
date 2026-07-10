@@ -78,6 +78,18 @@ impl<S: PolyWorldCoeff> WorldOps for PolyRuntime<S> {
         Ok((name == "t").then(Poly::t))
     }
 
+    fn special_value_call(
+        &mut self,
+        name: &str,
+        args: &[Expr],
+    ) -> Option<OghamResult<Value<Self::Element>>> {
+        (name == "integral").then(|| {
+            expect_arity(name, args, 1)?;
+            self.eval_element(&args[0])?;
+            Ok(Value::Bool(true))
+        })
+    }
+
     fn deg_is_index(&self) -> bool {
         true
     }
@@ -155,11 +167,12 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
             Expr::Int(n) => Ok(Poly::constant(S::bare_int(*n, Span::point(0))?)),
             Expr::Star(star) => Ok(Poly::constant(S::star(star, Span::point(0))?)),
             Expr::Omega => Ok(Poly::constant(S::omega(Span::point(0))?)),
-            Expr::Blade(_) | Expr::Container(_) => Err(OghamError::new(
+            Expr::Blade(_) => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
-                "function-shaped worlds do not have Clifford blades or containers",
+                "function-shaped worlds do not have Clifford blades",
             )),
+            Expr::Container(items) => self.eval_container(items),
             Expr::Up => Err(game_only_error("`up`")),
             Expr::Down => Err(game_only_error("`down`")),
             Expr::Dim => Err(array_world_error("dim")),
@@ -200,7 +213,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 Value::Function(_) => Err(fn_sort_error()),
             },
             Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
-            Expr::Ternary { .. } => match self.eval_value(expr)? {
+            Expr::If { .. } => match self.eval_value(expr)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
                 Value::Bool(_) => Err(bool_sort_error()),
@@ -266,8 +279,16 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
     fn eval_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<Poly<S>> {
         match name {
             "up" | "down" | "dim" => Err(literal_call_error(name)),
-            "coef" => Err(array_world_error(name)),
+            "coef" => {
+                expect_arity(name, args, 2)?;
+                let value = self.eval_element(&args[0])?;
+                let index = self.eval_index(&args[1])?;
+                let index = usize::try_from(index)
+                    .map_err(|_| domain("coefficient index must be non-negative"))?;
+                Ok(Poly::constant(value.coeff(index)))
+            }
             "deg" => Err(index_sort_error().with_hint("`deg` returns an Index")),
+            "integral" => Err(bool_sort_error()),
             "gcd" => {
                 expect_arity(name, args, 2)?;
                 let lhs = self.eval_element(&args[0])?;
@@ -297,6 +318,23 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 "polynomial is not a unit",
             )
         })
+    }
+
+    fn eval_container(&mut self, items: &[Expr]) -> OghamResult<Poly<S>> {
+        let mut coefficients = Vec::with_capacity(items.len());
+        for item in items {
+            let value = self.eval_element(item)?;
+            if value.degree().is_some_and(|degree| degree > 0) {
+                return Err(OghamError::new(
+                    OghamErrorKind::Domain,
+                    Span::point(0),
+                    "polynomial container entry is not constant",
+                )
+                .with_hint("container entries are coefficients; `t` is not a coefficient"));
+            }
+            coefficients.push(value.coeff(0));
+        }
+        Ok(Poly::new(coefficients))
     }
 }
 

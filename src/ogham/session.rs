@@ -387,7 +387,7 @@ pub(crate) fn ensure_statement_depth(statement: &Statement) -> OghamResult<()> {
                 pending.push((SyntaxNode::Expr(lhs), child_depth));
                 pending.push((SyntaxNode::Expr(rhs), child_depth));
             }
-            SyntaxNode::Expr(Expr::Ternary {
+            SyntaxNode::Expr(Expr::If {
                 cond,
                 then_expr,
                 else_expr,

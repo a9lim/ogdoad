@@ -339,7 +339,7 @@ impl Parser {
             let then_expr = self.parse_expression()?;
             self.expect(|kind| matches!(kind, TokenKind::Else), "`else`")?;
             let else_expr = self.parse_expression()?;
-            return Ok(Expr::Ternary {
+            return Ok(Expr::If {
                 cond: Box::new(cond),
                 then_expr: Box::new(then_expr),
                 else_expr: Box::new(else_expr),

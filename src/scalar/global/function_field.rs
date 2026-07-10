@@ -117,7 +117,7 @@ impl<S: ExactFieldScalar> fmt::Display for RationalFunction<S> {
         if self.den == Poly::one() {
             write!(f, "{}", self.num)
         } else {
-            // Display v2 (§9): `(num)/(den)`; `[…]` is reserved for vectors.
+            // Display v4: `(num)/(den)` with each polynomial side canonical.
             write!(f, "({})/({})", self.num, self.den)
         }
     }
@@ -259,13 +259,12 @@ mod tests {
     }
 
     #[test]
-    fn display_v2_uses_paren_fraction() {
-        // Display v2 (§9): `(num)/(den)`; `[…]` is reserved for vectors.
-        // (Poly does not suppress a coefficient-1 term, so `t` prints `1⋅t`.)
+    fn display_v4_uses_paren_fraction() {
+        // Display v4: `(num)/(den)`; `[…]` is reserved for vectors.
         let frac = rf(&[1], &[0, 1]); // 1/t
-        assert_eq!(frac.to_string(), "(1)/(1⋅t)");
+        assert_eq!(frac.to_string(), "(1)/(t)");
         // den == 1 prints the numerator alone, unchanged.
-        assert_eq!(rf(&[1, 2], &[1]).to_string(), "1 + 2⋅t");
+        assert_eq!(rf(&[1, 2], &[1]).to_string(), "2⋅t + 1");
     }
 
     #[test]

@@ -86,7 +86,7 @@ pub(crate) trait WorldOps: Sized {
         false
     }
 
-    fn skip_ternary_eval_after_validation(&self) -> bool {
+    fn skip_if_eval_after_validation(&self) -> bool {
         false
     }
 
@@ -354,6 +354,9 @@ pub(crate) trait SharedRuntime: WorldOps {
                 if name == "stopper" && self.world_name() != "game" {
                     return Err(game_only_error("`stopper`"));
                 }
+                if name == "birthday" && self.world_name() != "game" {
+                    return Err(game_only_error("`birthday`"));
+                }
                 if let Some(result) = self.special_value_call(name, args) {
                     result
                 } else {
@@ -398,7 +401,7 @@ pub(crate) trait SharedRuntime: WorldOps {
                 }
                 Ok(Value::Bool(self.eval_bool(rhs)?))
             }
-            Expr::Ternary {
+            Expr::If {
                 cond,
                 then_expr,
                 else_expr,
@@ -747,7 +750,7 @@ pub(crate) trait SharedRuntime: WorldOps {
                 *self.validation_sample_function_names_mut() = saved_samples;
                 result?;
             }
-            Expr::Ternary {
+            Expr::If {
                 cond,
                 then_expr,
                 else_expr,
@@ -755,7 +758,7 @@ pub(crate) trait SharedRuntime: WorldOps {
                 self.validate_all(cond)?;
                 self.validate_all(then_expr)?;
                 self.validate_all(else_expr)?;
-                if self.skip_ternary_eval_after_validation() {
+                if self.skip_if_eval_after_validation() {
                     return Ok(());
                 }
             }

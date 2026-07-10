@@ -975,7 +975,7 @@ pub(crate) fn refine_game_binder_sorts(
             refine_game_binder_sorts(lhs, binders, sorts, env);
             refine_game_binder_sorts(rhs, binders, sorts, env);
         }
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
@@ -1027,10 +1027,15 @@ pub(crate) fn game_known_sort(
 ) -> Option<DataSort> {
     match expr {
         Expr::Index(_) | Expr::Dim => Some(DataSort::Index),
-        Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
+        Expr::Call { name, .. }
+            if matches!(
+                name.as_str(),
+                "nleft" | "nright" | "dim" | "deg" | "birthday"
+            ) =>
+        {
             Some(DataSort::Index)
         }
-        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => {
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper" | "integral") => {
             Some(DataSort::Bool)
         }
         Expr::Apply { callee, .. } => game_function_expr_return_sort(callee, env),
@@ -1092,7 +1097,12 @@ pub(crate) fn game_return_sort_hint(
     }
     match body {
         Expr::Apply { callee, .. } => game_function_expr_return_sort(callee, env),
-        Expr::Call { name, .. } if matches!(name.as_str(), "nleft" | "nright" | "dim" | "deg") => {
+        Expr::Call { name, .. }
+            if matches!(
+                name.as_str(),
+                "nleft" | "nright" | "dim" | "deg" | "birthday"
+            ) =>
+        {
             Some(DataSort::Index)
         }
         Expr::Block { bindings, body } => {
@@ -1118,7 +1128,7 @@ pub(crate) fn game_return_sort_hint(
             }
             game_return_sort_hint(body, env, None)
         }
-        Expr::Ternary {
+        Expr::If {
             then_expr,
             else_expr,
             ..
@@ -1160,7 +1170,7 @@ pub(crate) fn contains_game_self_call(name: &str, expr: &Expr) -> bool {
         Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
             contains_game_self_call(name, lhs) || contains_game_self_call(name, rhs)
         }
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
@@ -1210,7 +1220,7 @@ pub(crate) fn contains_game_unit_step(expr: &Expr) -> bool {
         Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
             contains_game_unit_step(lhs) || contains_game_unit_step(rhs)
         }
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
@@ -1271,7 +1281,7 @@ pub(crate) fn contains_game_binder_unit_step(binder: &str, expr: &Expr) -> bool 
             contains_game_binder_unit_step(binder, lhs)
                 || contains_game_binder_unit_step(binder, rhs)
         }
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,

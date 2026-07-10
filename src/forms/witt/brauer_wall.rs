@@ -876,7 +876,7 @@ mod tests {
             .expect("test square classes are defined");
         assert_eq!(
             quat.to_string(),
-            "FunctionFieldBrauer2Class(ramified=[\"1⋅t\", \"∞\"])"
+            "FunctionFieldBrauer2Class(ramified=[\"t\", \"∞\"])"
         );
         assert_eq!(quat.display(), quat.to_string());
     }

@@ -35,7 +35,7 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
             Expr::Call { name, .. } if name == "deg" => IndexPrimitive::Error(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
-                "`deg` is a polynomial-world function, not a ratfunc function",
+                "`deg` is a polynomial-world function, not a rational-function operation",
             )),
             Expr::Call { name, .. } if name == "dim" => {
                 IndexPrimitive::Error(literal_call_error(name))
@@ -68,6 +68,18 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
 
     fn named_element(&self, name: &str) -> OghamResult<Option<Self::Element>> {
         Ok((name == "t").then(RationalFunction::t))
+    }
+
+    fn special_value_call(
+        &mut self,
+        name: &str,
+        args: &[Expr],
+    ) -> Option<OghamResult<Value<Self::Element>>> {
+        (name == "integral").then(|| {
+            expect_arity(name, args, 1)?;
+            let value = self.eval_element(&args[0])?;
+            Ok(Value::Bool(value.is_integral()))
+        })
     }
 
     fn element_at(
@@ -144,11 +156,12 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             )?)),
             Expr::Star(star) => Ok(RationalFunction::from_base(S::star(star, Span::point(0))?)),
             Expr::Omega => Ok(RationalFunction::from_base(S::omega(Span::point(0))?)),
-            Expr::Blade(_) | Expr::Container(_) => Err(OghamError::new(
+            Expr::Blade(_) => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
-                "function-shaped worlds do not have Clifford blades or containers",
+                "function-shaped worlds do not have Clifford blades",
             )),
+            Expr::Container(items) => self.eval_container(items),
             Expr::Up => Err(game_only_error("`up`")),
             Expr::Down => Err(game_only_error("`down`")),
             Expr::Dim => Err(array_world_error("dim")),
@@ -189,7 +202,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Value::Function(_) => Err(fn_sort_error()),
             },
             Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
-            Expr::Ternary { .. } => match self.eval_value(expr)? {
+            Expr::If { .. } => match self.eval_value(expr)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
                 Value::Bool(_) => Err(bool_sort_error()),
@@ -275,12 +288,19 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
     fn eval_call(&mut self, name: &str, _args: &[Expr]) -> OghamResult<RationalFunction<S>> {
         match name {
             "up" | "down" | "dim" => Err(literal_call_error(name)),
-            "coef" => Err(array_world_error(name)),
+            "coef" => Err(OghamError::new(
+                OghamErrorKind::WrongWorld,
+                Span::point(0),
+                "`coef` is unavailable on rational functions",
+            )),
             "deg" | "gcd" => Err(OghamError::new(
                 OghamErrorKind::WrongWorld,
                 Span::point(0),
-                format!("`{name}` is a polynomial-world function, not a ratfunc function"),
+                format!(
+                    "`{name}` is a polynomial-world function, not a rational-function operation"
+                ),
             )),
+            "integral" => Err(bool_sort_error()),
             _ => Err(OghamError::new(
                 OghamErrorKind::UnknownFn,
                 Span::point(0),
@@ -298,6 +318,24 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             ));
         }
         Ok(value.inv().expect("checked nonzero rational function"))
+    }
+
+    fn eval_container(&mut self, items: &[Expr]) -> OghamResult<RationalFunction<S>> {
+        let mut coefficients = Vec::with_capacity(items.len());
+        for item in items {
+            let value = self.eval_element(item)?;
+            if value.den() != &Poly::one() || value.num().degree().is_some_and(|degree| degree > 0)
+            {
+                return Err(OghamError::new(
+                    OghamErrorKind::Domain,
+                    Span::point(0),
+                    "rational-function container entry is not constant",
+                )
+                .with_hint("container entries are coefficients; `t` is not a coefficient"));
+            }
+            coefficients.push(value.num().coeff(0));
+        }
+        Ok(RationalFunction::from_poly(Poly::new(coefficients)))
     }
 }
 

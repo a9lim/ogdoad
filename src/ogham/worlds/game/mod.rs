@@ -102,6 +102,18 @@ impl WorldOps for GameRuntime {
                     i128::try_from(len).map_err(|_| overflow("game option count exceeds i128"))
                 })())
             }
+            Expr::Call { name, args } if name == "birthday" => {
+                IndexPrimitive::from_result((|| {
+                    expect_arity(name, args, 1)?;
+                    match self.eval_element(&args[0])? {
+                        GameElement::Finite(game) => i128::try_from(game.birthday())
+                            .map_err(|_| overflow("game birthday exceeds i128")),
+                        GameElement::Graph(_) => {
+                            Err(loopy_error("loopy games have no finite formation day"))
+                        }
+                    }
+                })())
+            }
             Expr::Call { name, .. } if name == "dim" => {
                 IndexPrimitive::Error(literal_call_error(name))
             }
@@ -126,8 +138,13 @@ impl WorldOps for GameRuntime {
         name: &str,
         args: &[Expr],
     ) -> Option<OghamResult<Value<Self::Element>>> {
-        matches!(name, "hasdraw" | "stopper").then(|| {
+        matches!(name, "hasdraw" | "stopper" | "integral").then(|| {
             expect_arity(name, args, 1)?;
+            if name == "integral" {
+                return Err(game_wrong_world(
+                    "the game world has no ring-of-integers pairing",
+                ));
+            }
             let element = self.eval_element(&args[0])?;
             let result = if name == "hasdraw" {
                 game_element_has_draw(&element)
@@ -214,7 +231,7 @@ impl WorldOps for GameRuntime {
         true
     }
 
-    fn skip_ternary_eval_after_validation(&self) -> bool {
+    fn skip_if_eval_after_validation(&self) -> bool {
         true
     }
 
@@ -426,7 +443,7 @@ impl GameRuntime {
                 Value::Function(_) => Err(fn_sort_error()),
             },
             Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
-            Expr::Ternary { .. } => match self.eval_value(expr)? {
+            Expr::If { .. } => match self.eval_value(expr)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
                 Value::Bool(_) => Err(bool_sort_error()),
@@ -437,6 +454,11 @@ impl GameRuntime {
     }
 
     fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<GameElement> {
+        if op == BinaryOp::Div {
+            if let Some(literal) = eval_game_fraction_literal(lhs, rhs) {
+                return literal;
+            }
+        }
         match op {
             BinaryOp::Add | BinaryOp::Sub => {
                 let lhs = self.eval_element(lhs)?;
@@ -501,7 +523,7 @@ impl GameRuntime {
                 })
             }
             "up" | "down" | "dim" => Err(literal_call_error(name)),
-            "nleft" | "nright" => {
+            "nleft" | "nright" | "birthday" => {
                 Err(index_sort_error().with_hint(format!("`{name}` returns an Index")))
             }
             "coef" => Err(array_world_error(name)),
@@ -511,7 +533,7 @@ impl GameRuntime {
             "deg" | "gcd" => Err(game_wrong_world(&format!(
                 "`{name}` is a function-world operation, not a game operation"
             ))),
-            "hasdraw" | "stopper" => Err(bool_sort_error()),
+            "hasdraw" | "stopper" | "integral" => Err(bool_sort_error()),
             "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
             "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
             _ => Err(OghamError::new(
@@ -570,7 +592,7 @@ impl GameRuntime {
                 lhs,
                 rhs,
             } => self.reduce_element_append(equation, names, lhs, rhs),
-            Expr::Ternary {
+            Expr::If {
                 cond,
                 then_expr,
                 else_expr,
@@ -666,7 +688,7 @@ impl GameRuntime {
                     self.reduce_fixpoint_bool(equation, names, rhs)
                 }
             }
-            Expr::Ternary {
+            Expr::If {
                 cond,
                 then_expr,
                 else_expr,
@@ -684,5 +706,60 @@ impl GameRuntime {
                 self.eval_bool(expr)
             }
         }
+    }
+}
+
+fn eval_game_fraction_literal(lhs: &Expr, rhs: &Expr) -> Option<OghamResult<GameElement>> {
+    let numerator = signed_integer_literal(lhs)?;
+    let denominator = signed_integer_literal(rhs)?;
+    Some((|| {
+        let numerator = numerator?;
+        let denominator = denominator?;
+        if denominator == 0 {
+            return Err(OghamError::new(
+                OghamErrorKind::DivisionByZero,
+                Span::point(0),
+                "division by zero",
+            ));
+        }
+        let rational = Rational::try_new(numerator, denominator)
+            .ok_or_else(|| overflow("fraction literal exceeds i128"))?;
+        if !(rational.denom() as u128).is_power_of_two() {
+            return Err(OghamError::new(
+                OghamErrorKind::Domain,
+                Span::point(0),
+                "fraction literal is not dyadic",
+            )
+            .with_hint("only dyadics are short games; `1/3` is not born on any finite day"));
+        }
+        let surreal = Surreal::from_rational(rational);
+        let game = Game::from_surreal(&surreal)
+            .expect("a rational with power-of-two denominator is dyadic");
+        Ok(GameElement::Finite(game))
+    })())
+}
+
+fn signed_integer_literal(expr: &Expr) -> Option<OghamResult<i128>> {
+    match expr {
+        Expr::Int(value) => {
+            Some(i128::try_from(*value).map_err(|_| overflow("fraction literal exceeds i128")))
+        }
+        Expr::Unary {
+            op: UnaryOp::Neg,
+            expr,
+        } => match expr.as_ref() {
+            Expr::Int(value) if *value == i128::MIN.unsigned_abs() => Some(Ok(i128::MIN)),
+            Expr::Int(value) => Some(
+                i128::try_from(*value)
+                    .map_err(|_| overflow("fraction literal exceeds i128"))
+                    .and_then(|value| {
+                        value
+                            .checked_neg()
+                            .ok_or_else(|| overflow("fraction literal exceeds i128"))
+                    }),
+            ),
+            _ => None,
+        },
+        _ => None,
     }
 }

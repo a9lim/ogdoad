@@ -61,6 +61,18 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
         Ok(S::named_element(name, Span::point(0))?.map(|value| self.alg.scalar(value)))
     }
 
+    fn special_value_call(
+        &mut self,
+        name: &str,
+        args: &[Expr],
+    ) -> Option<OghamResult<Value<Self::Element>>> {
+        (name == "integral").then(|| {
+            expect_arity(name, args, 1)?;
+            let value = self.eval_grade0(&args[0])?;
+            S::integral(&value, Span::point(0)).map(Value::Bool)
+        })
+    }
+
     fn non_function_at_error(&self) -> Option<OghamError> {
         Some(
             OghamError::new(
@@ -183,7 +195,7 @@ impl<S: OghamScalar> CliffordRuntime<S> {
                 Value::Function(_) => Err(fn_sort_error()),
             },
             Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
-            Expr::Ternary { .. } => match self.eval_value(expr)? {
+            Expr::If { .. } => match self.eval_value(expr)? {
                 Value::Element(value) => Ok(value),
                 Value::Index(_) => Err(index_sort_error()),
                 Value::Bool(_) => Err(bool_sort_error()),
@@ -398,6 +410,7 @@ impl<S: OghamScalar> CliffordRuntime<S> {
                 };
                 Ok(self.alg.scalar(S::trace(&x, m, Span::point(0))?))
             }
+            "integral" => Err(bool_sort_error()),
             _ => Err(OghamError::new(
                 OghamErrorKind::UnknownFn,
                 Span::point(0),
@@ -514,6 +527,13 @@ pub(crate) trait OghamScalar: Scalar + Sized + Display + 'static {
             OghamErrorKind::WrongWorld,
             span,
             "`tr` is only available in finite-field worlds",
+        ))
+    }
+    fn integral(_value: &Self, span: Span) -> OghamResult<bool> {
+        Err(OghamError::new(
+            OghamErrorKind::WrongWorld,
+            span,
+            "this scalar world has no shipped ring-of-integers pairing",
         ))
     }
     fn mul_checked(lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<Self> {
@@ -750,6 +770,10 @@ impl OghamScalar for Surreal {
     fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
         ordered_relation(op, lhs.cmp(rhs))
     }
+
+    fn integral(value: &Self, _span: Span) -> OghamResult<bool> {
+        Ok(HasRingOfIntegers::is_integral(value))
+    }
 }
 
 impl OghamScalar for Omnific {
@@ -793,6 +817,10 @@ impl OghamScalar for Omnific {
 
     fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
         ordered_relation(op, lhs.cmp(rhs))
+    }
+
+    fn integral(_value: &Self, _span: Span) -> OghamResult<bool> {
+        Ok(true)
     }
 }
 
@@ -842,6 +870,10 @@ impl OghamScalar for Integer {
 
     fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
         ordered_relation(op, lhs.cmp(rhs))
+    }
+
+    fn integral(_value: &Self, _span: Span) -> OghamResult<bool> {
+        Ok(true)
     }
 }
 

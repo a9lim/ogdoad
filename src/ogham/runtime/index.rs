@@ -59,7 +59,7 @@ pub(crate) fn eval_index<R: SharedRuntime>(runtime: &mut R, expr: &Expr) -> Ogha
             Value::Bool(_) => Err(bool_sort_error()),
             Value::Function(_) => Err(fn_sort_error()),
         },
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,

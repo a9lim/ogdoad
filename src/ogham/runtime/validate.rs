@@ -93,7 +93,7 @@ pub(crate) fn infer_expr_sort(
             }
         }
         Expr::Call { name, args } => match name.as_str() {
-            "nleft" | "nright" => {
+            "nleft" | "nright" | "birthday" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 expect_sort(DataSort::Index, expected)
@@ -110,7 +110,7 @@ pub(crate) fn infer_expr_sort(
                 expect_sort(DataSort::Element, expected)
             }
             "up" | "down" | "dim" => Err(literal_call_error(name)),
-            "hasdraw" | "stopper" => {
+            "hasdraw" | "stopper" | "integral" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 expect_sort(DataSort::Bool, expected)
@@ -212,7 +212,7 @@ pub(crate) fn infer_expr_sort(
                 expect_sort(DataSort::Element, expected)
             }
         },
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
@@ -342,7 +342,12 @@ pub(crate) fn mark_binder_sort(
 pub(crate) fn index_shaped(expr: &Expr) -> bool {
     match expr {
         Expr::Index(_) | Expr::Dim => true,
-        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
+        Expr::Call { name, .. }
+            if matches!(
+                name.as_str(),
+                "deg" | "dim" | "nleft" | "nright" | "birthday"
+            ) =>
+        {
             true
         }
         Expr::Block { body, .. } => index_shaped(body),
@@ -370,7 +375,9 @@ pub(crate) fn bool_shaped(expr: &Expr) -> bool {
             op: BinaryOp::And | BinaryOp::Or,
             ..
         } => true,
-        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => true,
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper" | "integral") => {
+            true
+        }
         Expr::Block { body, .. } => bool_shaped(body),
         _ => false,
     }
@@ -404,12 +411,12 @@ pub(crate) fn static_sort<E>(
             None => Ok(DataSort::Element),
         },
         Expr::Call { name, .. }
-            if matches!(name.as_str(), "dim" | "nleft" | "nright")
+            if matches!(name.as_str(), "dim" | "nleft" | "nright" | "birthday")
                 || (deg_is_index && name == "deg") =>
         {
             Ok(DataSort::Index)
         }
-        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => {
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper" | "integral") => {
             Ok(DataSort::Bool)
         }
         Expr::Unary {
@@ -442,7 +449,7 @@ pub(crate) fn static_sort<E>(
                 Ok(DataSort::Element)
             }
         }
-        Expr::Ternary {
+        Expr::If {
             then_expr,
             else_expr,
             ..
@@ -478,12 +485,12 @@ pub(crate) fn static_sort_with_sorts(
         }
         Expr::Ident(name) => Ok(env.get(name).copied().unwrap_or(DataSort::Element)),
         Expr::Call { name, .. }
-            if matches!(name.as_str(), "dim" | "nleft" | "nright")
+            if matches!(name.as_str(), "dim" | "nleft" | "nright" | "birthday")
                 || (deg_is_index && name == "deg") =>
         {
             Ok(DataSort::Index)
         }
-        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper") => {
+        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper" | "integral") => {
             Ok(DataSort::Bool)
         }
         Expr::Unary {
@@ -509,7 +516,7 @@ pub(crate) fn static_sort_with_sorts(
                 Ok(DataSort::Element)
             }
         }
-        Expr::Ternary {
+        Expr::If {
             then_expr,
             else_expr,
             ..
@@ -548,6 +555,8 @@ pub(crate) fn reserved_function_binder(name: &str) -> bool {
             | "down"
             | "hasdraw"
             | "stopper"
+            | "birthday"
+            | "integral"
     )
 }
 
@@ -575,7 +584,12 @@ pub(crate) fn is_runtime_partiality(kind: OghamErrorKind) -> bool {
 pub(crate) fn expression_is_index(expr: &Expr) -> bool {
     match expr {
         Expr::Index(_) | Expr::Dim => true,
-        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
+        Expr::Call { name, .. }
+            if matches!(
+                name.as_str(),
+                "deg" | "dim" | "nleft" | "nright" | "birthday"
+            ) =>
+        {
             true
         }
         Expr::Unary { expr, .. } => expression_is_index(expr),
@@ -596,7 +610,12 @@ pub(crate) fn expression_is_index(expr: &Expr) -> bool {
 pub(crate) fn plain_index_expr(expr: &Expr) -> bool {
     match expr {
         Expr::Int(_) | Expr::Index(_) | Expr::Dim => true,
-        Expr::Call { name, .. } if matches!(name.as_str(), "deg" | "dim" | "nleft" | "nright") => {
+        Expr::Call { name, .. }
+            if matches!(
+                name.as_str(),
+                "deg" | "dim" | "nleft" | "nright" | "birthday"
+            ) =>
+        {
             true
         }
         Expr::Unary {

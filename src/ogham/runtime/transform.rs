@@ -47,7 +47,7 @@ pub(crate) fn contains_free_name(expr: &Expr, target: &str) -> bool {
             Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
                 visit(lhs, target, bound) || visit(rhs, target, bound)
             }
-            Expr::Ternary {
+            Expr::If {
                 cond,
                 then_expr,
                 else_expr,
@@ -150,11 +150,11 @@ pub(crate) fn substitute_env<E: Display>(
             lhs: Box::new(substitute_env(lhs, bound, env)?),
             rhs: Box::new(substitute_env(rhs, bound, env)?),
         }),
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
-        } => Ok(Expr::Ternary {
+        } => Ok(Expr::If {
             cond: Box::new(substitute_env(cond, bound, env)?),
             then_expr: Box::new(substitute_env(then_expr, bound, env)?),
             else_expr: Box::new(substitute_env(else_expr, bound, env)?),
@@ -243,11 +243,11 @@ pub(crate) fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr
             lhs: Box::new(substitute_names(lhs, replacements)),
             rhs: Box::new(substitute_names(rhs, replacements)),
         },
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
-        } => Expr::Ternary {
+        } => Expr::If {
             cond: Box::new(substitute_names(cond, replacements)),
             then_expr: Box::new(substitute_names(then_expr, replacements)),
             else_expr: Box::new(substitute_names(else_expr, replacements)),
@@ -366,11 +366,11 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
             lhs: Box::new(beta_normalize(*lhs)?),
             rhs: Box::new(beta_normalize(*rhs)?),
         }),
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
-        } => Ok(Expr::Ternary {
+        } => Ok(Expr::If {
             cond: Box::new(beta_normalize(*cond)?),
             then_expr: Box::new(beta_normalize(*then_expr)?),
             else_expr: Box::new(beta_normalize(*else_expr)?),

@@ -182,7 +182,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
                 unparse_prec(rhs, prec, false)
             ),
         },
-        Expr::Ternary {
+        Expr::If {
             cond,
             then_expr,
             else_expr,
@@ -211,7 +211,7 @@ fn unparse_prec(expr: &Expr, parent: u8, rhs: bool) -> String {
         }
     };
     if prec < parent
-        || (rhs && prec == parent && matches!(expr, Expr::Binary { .. } | Expr::Ternary { .. }))
+        || (rhs && prec == parent && matches!(expr, Expr::Binary { .. } | Expr::If { .. }))
     {
         out = format!("({out})");
     }
@@ -294,7 +294,7 @@ fn precedence(expr: &Expr) -> u8 {
     match expr {
         Expr::Lambda { .. } => 0,
         Expr::Block { .. } => 13,
-        Expr::Ternary { .. } => 1,
+        Expr::If { .. } => 1,
         Expr::Binary {
             op: BinaryOp::Or, ..
         } => 2,
