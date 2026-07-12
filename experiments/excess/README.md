@@ -13,7 +13,7 @@ STATUS TABLE below, not in prose.
   committed `experiments/cyclotomic_3k_family.py`).
 
 These are **research probes, not maintained or CI-tested code**. Most import
-`ogdoad`, so run them under the project venv (`maturin develop` first). They are
+`ogdoad`, so install the debug wheel into the shared base Python first. They are
 machine-generated; triage before citing any result.
 
 ## STATUS TABLE

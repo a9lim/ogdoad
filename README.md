@@ -164,10 +164,9 @@ metric; characteristic 2 keeps the explicit nonzero-`a` boundary.
 Requires Rust and Python ≥ 3.9.
 
 ```sh
-python3 -m venv .venv
-.venv/bin/pip install maturin
-VIRTUAL_ENV=.venv .venv/bin/maturin develop
-.venv/bin/python demo.py
+python -m maturin build --profile dev -i python
+python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
+python demo.py
 ```
 
 ```python

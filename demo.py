@@ -1,6 +1,8 @@
-"""A tour of ogdoad from Python. Run inside the project venv:
+"""A tour of ogdoad from the shared base Python 3.12:
 
-    VIRTUAL_ENV=.venv maturin develop && .venv/bin/python demo.py
+    python -m maturin build --profile dev -i python
+    python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
+    python demo.py
 """
 
 import ogdoad as pl

@@ -52,8 +52,9 @@ After touching `clifford/` or `scalar/big/surreal/`, rebuild and run the tour â€
 Display changes (`e0e1`, `*n`, CNF) don't surface in `cargo test`:
 
 ```sh
-VIRTUAL_ENV=.venv .venv/bin/maturin develop
-.venv/bin/python demo.py
+python -m maturin build --profile dev -i python
+python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
+python demo.py
 ```
 
 ## Claim levels

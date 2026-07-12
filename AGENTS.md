@@ -284,18 +284,19 @@ cargo run --example octal_hunt                # open-problem probe
 cargo run --example loopy_quadric             # open-problem probe
 cargo run --example misere_quotient           # open-problem probe
 cargo run --example bent_route                # open-problem probe
-python3 -m venv .venv && .venv/bin/pip install maturin
-VIRTUAL_ENV=.venv .venv/bin/maturin develop   # build + install the abi3 extension
-.venv/bin/python demo.py
-.venv/bin/python experiments/framing_obstruction.py
-.venv/bin/python experiments/gold_family_survey.py
-.venv/bin/python experiments/misere_kernel.py
+python -m maturin build --profile dev -i python
+python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
+python demo.py
+python experiments/framing_obstruction.py
+python experiments/gold_family_survey.py
+python experiments/misere_kernel.py
 python3 experiments/echo_solver.py selftest   # echo adversarial-review harness (stdlib, no venv)
 python3 experiments/linking_game.py all 5     # linking-reduction harness (stdlib, no venv; `all 7` ≈ 75 s)
 python3 experiments/exception_column_m4.py    # 2·3^k excess column m=4 certification (stdlib, no venv; ≈ 2 min)
 ```
 
-`maturin develop` needs `VIRTUAL_ENV` set (or a `.venv` in cwd) and `cargo` on PATH
+The debug-profile wheel avoids the malformed stripped Mach-O produced by the
+current release build on this macOS beta. `cargo` must be on PATH
 (`. "$HOME/.cargo/env"`).
 
 ## Hard rules
