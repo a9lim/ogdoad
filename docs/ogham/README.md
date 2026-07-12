@@ -1,7 +1,7 @@
 # ogham
 
-**ogham is ogdoad's executable notation: a lisp for games with weird
-numbers.** Games are equations (`on =: {on |}` is Siegel's `on`, verbatim as
+**ogham is ogdoad's executable notation.** 
+Games are equations (`on =: {on |}` is Siegel's `on`, verbatim as
 a program); nimbers, surreal monomials, and Clifford coordinates are
 literals; the outcome partition is a set of relation glyphs whose geometry
 *is* the mathematics (negate both games and the relation grid rotates 180°).
