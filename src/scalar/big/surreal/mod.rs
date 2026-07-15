@@ -126,7 +126,7 @@ impl Surreal {
 
     /// If this is a monic omega-power `ω^e`, return the exponent `e`.
     ///
-    /// This is the modulus shape used by ogham's surreal-family remainder:
+    /// This is the modulus shape used by grundy's surreal-family remainder:
     /// nonzero, one CNF term, coefficient exactly `1`.
     pub fn monic_omega_power_exponent(&self) -> Option<&Surreal> {
         match self.terms.as_slice() {
@@ -286,7 +286,7 @@ impl Scalar for Surreal {
     }
 }
 
-/// Format `coeff⋅ω↑exp` (canonical ogham, Display v4 (spec.md §12)) for a *non-negative*
+/// Format `coeff⋅ω↑exp` (canonical grundy, Display v4 (spec.md §12)) for a *non-negative*
 /// magnitude coefficient. The exponent renders bare iff it is a (possibly
 /// negative) integer (`ω↑-1`); any other exponent — a non-integer rational or a
 /// compound surreal — is parenthesized (`ω↑(1/2)`, `ω↑(ω)`).
@@ -415,7 +415,7 @@ mod tests {
     }
 
     #[test]
-    fn display_v2_canonical_ogham() {
+    fn display_v2_canonical_grundy() {
         let w = Surreal::omega();
         // 3⋅ω↑2 - ω + 5 : explicit ⋅, ↑, first-term sign, ` - ` join kept.
         let x = Surreal::omega_pow(int(2)).mul(&int(3)).sub(&w).add(&int(5));

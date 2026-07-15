@@ -33,7 +33,7 @@ breakdown. The load-bearing facts worth knowing before opening a file:
   2 still panics on nonzero `a`.
 - **`multivector.rs`** (`Multivector<S>`) — `terms` field is `pub(crate)`; use the
   `terms()` accessor for external reads. `impl fmt::Display` is the canonical
-  ogham renderer (Display v4, `docs/ogham/spec.md` §12).
+  grundy renderer (Display v4, `docs/grundy/spec.md` §12).
 - **`basis.rs`** — `grade_k_masks` is the one grade-k blade-mask enumerator,
   shared by `blade.rs` and `outermorphism.rs`.
 - **`terms.rs`** — `add_term`/`merge` are `pub(crate)` (shared beyond this engine,
@@ -139,7 +139,7 @@ scalar power (`x ^ k: u128`), not multivector power.
 This mirrors the scalar layer: operators on the concrete type carry no extra context;
 everything that needs context threads through the algebra value. (Python bindings:
 `&` / `__and__` is wedge; `**` / `__pow__` is MV power; `^` / `__xor__` now raises the
-Ogham `E_ExpSort` hint — `^` is power, the wedge is `∧`/`&`.)
+grundy `E_ExpSort` hint — `^` is power, the wedge is `∧`/`&`.)
 
 ## Hard rules (clifford-specific)
 

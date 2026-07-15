@@ -1,5 +1,5 @@
 use super::ast::OutcomeCell;
-use super::error::{OghamError, OghamErrorKind, OghamResult, Span};
+use super::error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Token {
@@ -61,11 +61,11 @@ pub enum TokenKind {
     Comma,
 }
 
-pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
+pub fn lex(src: &str) -> GrundyResult<Vec<Token>> {
     let (src, block_depth) = mask_comments(src);
     if block_depth != 0 {
-        return Err(OghamError::new(
-            OghamErrorKind::Parse,
+        return Err(GrundyError::new(
+            GrundyErrorKind::Parse,
             Span::point(src.len()),
             "unterminated block comment",
         ));
@@ -73,7 +73,7 @@ pub fn lex(src: &str) -> OghamResult<Vec<Token>> {
     lex_masked(&src)
 }
 
-fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
+fn lex_masked(src: &str) -> GrundyResult<Vec<Token>> {
     let chars: Vec<(usize, char)> = src.char_indices().collect();
     let mut out = Vec::new();
     let mut i = 0usize;
@@ -97,8 +97,8 @@ fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
                     .checked_mul(10)
                     .and_then(|v| v.checked_add(digit))
                     .ok_or_else(|| {
-                        OghamError::new(
-                            OghamErrorKind::Overflow,
+                        GrundyError::new(
+                            GrundyErrorKind::Overflow,
                             Span::new(start, p + c.len_utf8()),
                             "integer literal exceeds u128",
                         )
@@ -127,8 +127,8 @@ fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
                     .checked_mul(10)
                     .and_then(|v| v.checked_add(digit))
                     .ok_or_else(|| {
-                        OghamError::new(
-                            OghamErrorKind::Overflow,
+                        GrundyError::new(
+                            GrundyErrorKind::Overflow,
                             Span::new(start, p + c.len_utf8()),
                             "blade index exceeds usize",
                         )
@@ -183,8 +183,8 @@ fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
             } else if s == "dim" {
                 TokenKind::Dim
             } else if s == "e" {
-                return Err(OghamError::new(
-                    OghamErrorKind::Parse,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::Parse,
                     Span::new(start, end),
                     "`e` needs a blade index, e.g. `e0`",
                 ));
@@ -307,8 +307,8 @@ fn lex_masked(src: &str) -> OghamResult<Vec<Token>> {
             ',' => TokenKind::Comma,
             '↦' | '~' => TokenKind::Arrow,
             _ => {
-                return Err(OghamError::new(
-                    OghamErrorKind::Parse,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::Parse,
                     span,
                     format!("unexpected character `{ch}`"),
                 ));
@@ -328,7 +328,7 @@ fn mover_atom(ch: char) -> Option<char> {
     }
 }
 
-pub fn needs_continuation(src: &str) -> OghamResult<bool> {
+pub fn needs_continuation(src: &str) -> GrundyResult<bool> {
     let (masked, block_depth) = mask_comments(src);
     if block_depth != 0 {
         return Ok(true);
@@ -406,13 +406,13 @@ fn token_requires_continuation(kind: &TokenKind) -> bool {
     )
 }
 
-pub(crate) fn strip_comments(src: &str) -> OghamResult<String> {
+pub(crate) fn strip_comments(src: &str) -> GrundyResult<String> {
     let (masked, block_depth) = mask_comments(src);
     if block_depth == 0 {
         Ok(masked)
     } else {
-        Err(OghamError::new(
-            OghamErrorKind::Parse,
+        Err(GrundyError::new(
+            GrundyErrorKind::Parse,
             Span::point(src.len()),
             "unterminated block comment",
         ))
@@ -459,7 +459,7 @@ fn mask_comments(src: &str) -> (String, usize) {
     )
 }
 
-fn reserved(span: Span) -> OghamError {
-    OghamError::new(OghamErrorKind::Reserved, span, "reserved syntax")
+fn reserved(span: Span) -> GrundyError {
+    GrundyError::new(GrundyErrorKind::Reserved, span, "reserved syntax")
         .with_hint("reserved for future games/precision/function syntax")
 }

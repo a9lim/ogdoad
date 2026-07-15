@@ -2,7 +2,7 @@
 
 The aesthetic ledger: a structural/stylistic read of the core, valued like
 [`COMPLETENESS.md`](COMPLETENESS.md) — a game value `g` on a pillar blade `e_B` (`e_s` scalar,
-`e_c` clifford, `e_f` forms, `e_i` integral, `e_g` games, `e_o` ogham, `e_y` py). Claim
+`e_c` clifford, `e_f` forms, `e_i` integral, `e_g` games, `e_o` grundy, `e_y` py). Claim
 level **interpretation**: one reviewer's eye, but every item is checked against
 the actual source, not vibes. Numbers ≈ focused days; `±n` flags an a9 scope
 call (API-churn, mostly); `↑` is worth less than any number but strictly
@@ -89,7 +89,7 @@ Recorded so the next auditor inherits the truth, not the first read:
   documented in root `AGENTS.md`: coefficient-`1` elision is the Multivector-blade
   rule only — the polynomial family's `1⋅t` is conformance-pinned, don't "fix" it.
 - **↑·e_y: `py-repr-audit`** — the Display-policy pass collapsed every glossary-type
-  repr onto core `Display`; what remains for the standing ogham/py audit
+  repr onto core `Display`; what remains for the standing grundy/py audit
   ([`CONTINUATIONS.md`](CONTINUATIONS.md) → `ogham-reflect` part (3)) is the
   non-glossary py surface (game values, scalars, engine types).
 
@@ -107,4 +107,4 @@ the recorded weight-enumerator boundary, the branch-selection trap in the splitt
 test. The three-ledger cross-referencing held up in practice — the char-2 spinor
 completion still lives in COMPLETENESS, the AJ switch in CORRECTNESS, the taste
 corrections here — play them as one hand, and when the next audit comes, start it
-at `src/ogham/` and `src/py/`, the two wings no taste pass has read.
+at `src/grundy/` and `src/py/`, the two wings no taste pass has read.

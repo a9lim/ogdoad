@@ -13,7 +13,7 @@ guarantee, so every entry wears a value from the loopy-stopper lexicon — the
 shipped catalogue (`games/loopy/`: `on`, `off`, `over`, `under`, `dud`, `±`,
 `tis`, `tisn`, and integer `s&t` tags). That loopy value rides a **pillar blade**
 `e_B` exactly as in the buildable ledgers (`g·e_B`; `e_s` scalar, `e_c` clifford,
-`e_f` forms, `e_i` integral, `e_g` games, `e_o` ogham, `e_y` py) — so an open
+`e_f` forms, `e_i` integral, `e_g` games, `e_o` grundy, `e_y` py) — so an open
 problem is a *loopy-valued* multivector term, the same labeling system as
 [`COMPLETENESS.md`](COMPLETENESS.md), just with loopy coefficients in place of cold
 numbers, switches, ups, and stars. The code can now compute their finite

@@ -224,7 +224,7 @@ top. Each `src/` pillar has its own `AGENTS.md` with the file-by-file breakdown:
 - `src/games/` — normal-, misère-, and loopy-play impartial games, finite loopy-partizan
   graphs, short partizan games, thermography/atomic weight, Hackenbush, the exterior
   algebra of the game group, and the checked integer Clifford deformation surface.
-- `src/ogham/` — the Ogham expression-language core: lexer/parser/AST/unparser,
+- `src/grundy/` — the grundy expression-language core: lexer/parser/AST/unparser,
   fixed-world evaluator (Clifford worlds plus polynomial/ratfunc function worlds), error
   taxonomy, and conformance support.
 - `src/py/` — the optional PyO3 bindings behind the `python` feature.
@@ -232,7 +232,7 @@ top. Each `src/` pillar has its own `AGENTS.md` with the file-by-file breakdown:
   rank, generic field solves).
 
 See `AGENTS.md` for the working-notes summary, `docs/OPEN.md` for the genuine open
-problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `docs/ogham/` for
+problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `docs/grundy/` for
 the language contract, and `writeups/` for the draft notes.
 
 ## The bridges — a traveller's catalog

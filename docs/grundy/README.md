@@ -1,6 +1,6 @@
-# ogham
+# grundy
 
-**ogham is ogdoad's executable notation.** 
+**grundy is ogdoad's executable notation.** 
 Games are equations (`on =: {on |}` is Siegel's `on`, verbatim as
 a program); nimbers, surreal monomials, and Clifford coordinates are
 literals; the outcome partition is a set of relation glyphs whose geometry
@@ -29,14 +29,14 @@ over ‿‿ over              // true — and yet both starters draw in over −
 |---|---|
 | [`spec.md`](spec.md) | **the normative language contract** — identity, grammar, sorts, semantics, display, errors, conformance obligations |
 | [`implementation.md`](implementation.md) | the runtime contract — architecture, resource guards, validation gates |
-| [`conformance.txt`](conformance.txt) | the hand-blessed corpus (with `conformance_v*.txt` as provenance); harness in `tests/ogham_conformance.rs` |
+| [`conformance.txt`](conformance.txt) | the hand-blessed corpus (with `conformance_v*.txt` as provenance); harness in `tests/grundy_conformance.rs` |
 | `../CONTINUATIONS.md` | the roadmap and version ladder (0.3.6 → 0.3.7 → 0.3.8 → 0.4.0 release → 1.0.0) |
 
 ## Running it
 
 ```sh
-cargo run --example ogham_repl              # interactive; :help is task-first
-cargo run --example ogham_repl < file.og    # piped session
+cargo run --example grundy_repl              # interactive; :help is task-first
+cargo run --example grundy_repl < file.og    # piped session
 ```
 
 Start with `:help`, then `:world game`. The REPL is the tutor: every echo is

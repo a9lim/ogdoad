@@ -4,7 +4,7 @@ The ledger of buildable items that **complete a symmetry or connection already
 present in the code**: the old bridges' deliberately-deferred lifts, the even↔odd
 and exact↔capped mirrors a leg is still missing, verification harnesses, and elbow
 grease. Genuinely new directions — features that extend ogdoad past what it covers
-today — live in [`CONTINUATIONS.md`](CONTINUATIONS.md) (the ogham language work, the
+today — live in [`CONTINUATIONS.md`](CONTINUATIONS.md) (the grundy language work, the
 char-`p` Drinfeld mirror). Newly completed work goes in the
 [`DONE.md`](DONE.md) ledger. Nothing here is a genuine research question — those
 live in [`OPEN.md`](OPEN.md) (which carries the loopy-valued entries; open problems
@@ -20,7 +20,7 @@ its items the same way.) Natural numbers don't do ledger items justice, so the l
 is a **game-valued multivector**: each item is a term `g·e_B` — a game value `g` (its
 size and temper) on a pillar blade `e_B` (which pillars it joins; the blade's grade is
 how cross-cutting the item is). Blades: `e_s` scalar, `e_c` clifford, `e_f` forms,
-`e_i` integral, `e_g` games, `e_o` ogham, `e_y` py; pure-prose chores are
+`e_i` integral, `e_g` games, `e_o` grundy, `e_y` py; pure-prose chores are
 scalar-grade (no blade).
 
 | value | temper | meaning |

@@ -2,7 +2,7 @@
 
 The ledger of buildable items that **extend ogdoad past what it currently covers** —
 new directions and features, not the completion of a connection already in the code.
-The two exemplars are the **ogham** language work (a whole sub-language growing toward
+The two exemplars are the **grundy** language work (a whole sub-language growing toward
 recursion + games) and the **char-`p` Drinfeld/Carlitz mirror** (a candidate second
 headline pillar). Items that round out an existing symmetry or bridge — most of the
 standing content — live in [`COMPLETENESS.md`](COMPLETENESS.md); newly completed work
@@ -18,7 +18,7 @@ are cold/buildable, `±n` switches are a9's scope call first, `↑` ups are infi
 
 ---
 
-## numbers — ogham (the language)
+## numbers — grundy (the language)
 
 (`ogham-0.3.0` — the recursion + games build, converted from star `*8` when
 its sketch landed — shipped on 2026-07-09, the same day; its entry moved to
@@ -34,18 +34,29 @@ count at 0.3.5 read as immaturity, so release moved out two rungs —
 0.4.0 sketch was split by kind: envelope extensions (error→value) and
 floor engineering matured *inside* the prereleases; the identity change
 (higher-order) became 1.0.0's question. Release shape decided with the
-ladder: **ogdoad ships with ogham as its front door** — no separate crate
-(crates.io `ogham` is taken, verified 2026-07-10; `ogdoad` is free);
+ladder: **ogdoad ships with grundy as its front door** — no separate crate;
 the installed `ogdoad` binary launches the REPL; one public version clock
-(ogdoad 0.4.0 contains ogham 0.4.0).
+(ogdoad 0.4.0 contains grundy 0.4.0).
+
+**The name** (2026-07-15, a9's call, provisional): the language — **ogham**
+from birth through 0.3.6 — is renamed **grundy**, after P. M. Grundy of the
+Sprague–Grundy theorem: a person-name in the Haskell tradition, honoring the
+value the language deliberately keeps as four lines of user code rather than
+a primitive. Context: crates.io `ogham` was taken 2026-06-13 by an unrelated
+live crate (verified 2026-07-10, re-verified 2026-07-15); `grundy` is free as
+of 2026-07-15. Name finalization — confirm grundy or settle otherwise, and
+decide whether the language claims its own crate slot or stays inside ogdoad
+only — is a 0.3.8 release-dress item. History keeps the shipped name: DONE
+entry keys, gaslamp threads (`ogham-036-*`/`ogham-v36`), and the merged
+provenance corpora (`docs/grundy/conformance_v*.txt`) are not rewritten.
 
 (`ogham-0.3.6` — the second comprehensive adversarial pass — **shipped
 2026-07-10**, same day as its sweep and spec rewrite; its entry moved to
 [`DONE.md`](DONE.md) as `ogham-0.3.6`. The contract is
-`docs/ogham/spec.md`; the sweep verdicts, decisions, and build record live
+`docs/grundy/spec.md`; the sweep verdicts, decisions, and build record live
 in the DONE entry and the `ogham-036-*`/`ogham-v36` gaslamp threads.)
 
-### 2·e_o: `ogham-0.3.7`
+### 2·e_o: `grundy-0.3.7`
 **The structural rung.** (1) **Ordinal sum `G:H`** — the CGT seat's top
 demand ("the mathematical colon belongs in this stroke language"); engine
 already ships `Game::ordinal_sum`, and 0.3.6's conditional-word move freed
@@ -60,7 +71,7 @@ a9's), retiring the `E_StackDepth` frame guard; array-side envelope on
 measured pain. (4) **Adversarial pass #3** — fresh eyes on the 0.3.6
 surface (the mutual-system closure, the new display, the design tranche).
 
-### 2·e_o: `ogham-0.3.8`
+### 2·e_o: `grundy-0.3.8`
 **The loopy-envelope completion + release dress.** Error→value work:
 (1) **left/right stops** (`lstop`/`rstop` — dyadic display has bedded in);
 (2) **`temperature`/`mean`** as thin calls (thermograph value type stays
@@ -70,15 +81,17 @@ it slides to 1.x rather than blocking); (4) **one-stopper biased
 comparison** (the sided machinery loosening the both-stoppers gate;
 onside/offside sidling for non-stoppers stays open beyond it). Release
 dress: REPL promoted to installed binary (`src/bin/ogdoad.rs`), README
-reversal (transcript-first), `examples/ogham/*.og` gallery, the writeup
-(`writeups/ogham.tex` — identity essay, the extended why-this-is-art
+reversal (transcript-first), `examples/grundy/*.og` gallery, the writeup
+(`writeups/grundy.tex` — identity essay, the extended why-this-is-art
 argument, the honest CGSuite comparison), corpus split thematically +
-`stage_*` tests renamed by law. Final full-surface pass gates the release.
+`stage_*` tests renamed by law; **name finalization** (the 2026-07-15
+ogham→grundy rename is provisional — confirm the name and the crate-slot
+question). Final full-surface pass gates the release.
 
-### `ogham-0.4.0` — **the public release** (after 0.3.8's gate; not a
+### `grundy-0.4.0` — **the public release** (after 0.3.8's gate; not a
 feature rung). Package/version alignment, publish decision execution.
 
-### 4·e_o: `ogham-1.0.0`
+### 4·e_o: `grundy-1.0.0`
 **The higher-order release** — the one identity change left standing:
 map/fold, functions-as-values, decided against the Index-recursion pain
 0.3.x/0.4.0 makes measurable. No Sequence sort: if Function is promoted it

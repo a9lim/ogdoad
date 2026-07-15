@@ -1,4 +1,4 @@
-# ogham — implementation contract
+# grundy — implementation contract
 
 Companion to [`spec.md`](spec.md) (the normative language contract). This
 document owns everything about *how* the runtime realizes the spec:
@@ -8,7 +8,7 @@ against the code.
 
 Status: **v0.3.6 current** — describes the shipped architecture. The one
 deliberate residual: the games-pillar absorption of §1.1's regular-game
-mathematics is 0.3.7 work (`docs/CONTINUATIONS.md`, `ogham-0.3.7`).
+mathematics is 0.3.7 work (`docs/CONTINUATIONS.md`, `grundy-0.3.7`).
 
 ## 1. Architecture
 
@@ -27,7 +27,7 @@ plugin system.
 ### 1.1 Module layout (0.3.6 target)
 
 ```text
-src/ogham/
+src/grundy/
   mod.rs
   ast.rs                    Expr (with Apply), Binder marks, spans
   lex.rs
@@ -35,7 +35,7 @@ src/ogham/
   unparse.rs
   error.rs                  kinds, centralized constructors, hints
 
-  session.rs                OghamSession, persistent worker, world decls,
+  session.rs                GrundySession, persistent worker, world decls,
                             source/statement depth guards
   runtime/
     mod.rs                  the shared evaluator; narrow WorldOps contract
@@ -49,7 +49,7 @@ src/ogham/
     transform.rs            substitution, beta normalization, AST audits
   worlds/
     clifford.rs             CliffordRuntime<S> (the old `Runtime<S>`, renamed to
-                            say what it is), OghamScalar impls, metric parsing
+                            say what it is), GrundyScalar impls, metric parsing
     polynomial.rs           Poly worlds
     rational_function.rs    RatFunc worlds (separate from polynomial —
                             division/degree/substitution domains genuinely differ)
@@ -123,7 +123,7 @@ The abstract semantics never aborts the host. All constants are code-level
 
 | guard | constant | fires |
 |---|---|---|
-| persistent worker | 64 MiB stack (`EVAL_STACK_BYTES`) | one long-lived thread runs every statement (REPL, `ogham_eval`, harness — identical headroom); a failed `:world` preserves worker and bindings; world declarations parse under the same boundary |
+| persistent worker | 64 MiB stack (`EVAL_STACK_BYTES`) | one long-lived thread runs every statement (REPL, `grundy_eval`, harness — identical headroom); a failed `:world` preserves worker and bindings; world declarations parse under the same boundary |
 | μ-descent frame guard | 1024 frames (`RECURSION_DEPTH_GUARD`) | **`E_StackDepth`** (0.3.6: its own kind — a host resource, distinct from fuel; message names the μ, the frame limit, and the remaining fuel). The trampoline route that retires this guard is 0.3.7 floor work |
 | source/AST depth audit | 1536 (`AST_DEPTH_GUARD`) | `E_Parse` before recursive consumers run — source delimiter nesting and constructed statement depth (both are depth bounds; messages say "depth") |
 | graph node budget | 65536 default (`DEFAULT_GRAPH_BUDGET`), `:graph`/`@graph` | `E_GraphBudget` — counted per distinct node at first discovery, root included, on **every** materialization path: definition, negation, product-graph sums, flattening, **and the finite→loopy embedding** (`from_game` counts during expansion — the 0.3.5 hole where a shared-DAG operand expanded unbudgeted is closed). Nothing partial escapes on failure |
@@ -133,7 +133,7 @@ These guards are deliberately stricter than the abstract model.
 
 ## 3. Error-construction discipline
 
-`OghamError { kind, span, message, hint }`, built through centralized
+`GrundyError { kind, span, message, hint }`, built through centralized
 constructors in `error.rs`. The invariant the 0.3.6 build restores and the
 suite enforces: **guidance lives in `hint`, never in the message tail** — a
 message containing teaching advice after a `;` or `—` is a defect (the

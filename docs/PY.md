@@ -427,12 +427,12 @@ policies (all operate on already-bound types).
    the common-degree free function): the Nimber precedent (`Nimber.degree()`/
    `nim_degree`) is bound, and this diagnostic sits exactly on the project's
    open-problem boundary.
-9. `ogham/error.rs` — `OghamError`'s structured taxonomy (15+ kinds, span,
+9. `grundy/error.rs` — `GrundyError`'s structured taxonomy (15+ kinds, span,
    hint) collapses to a stringified `ValueError`; `WittClassError` already
    sets the structured-exception precedent in the same bindings layer. And
-   `ogham/eval.rs`'s `OghamSession` (stateful eval; `set_world`,
+   `grundy/eval.rs`'s `GrundySession` (stateful eval; `set_world`,
    `eval_line`, summaries) is the natural next binding if Python REPL/notebook
-   use ever matters — `ogham_eval` alone is stateless.
+   use ever matters — `grundy_eval` alone is stateless.
 10. Lower priority: `trace_form.rs`'s `cyclic_algebra_trace_form` (same
     dispatch pattern as the bound `trace_twisted_form`);
     `discriminant/phases.rs`'s `FqmGaussPhase`/`milgram_signature_mod8_fqm`;
@@ -443,7 +443,7 @@ policies (all operate on already-bound types).
 
 **Verified deliberate (no action):** open const-generic backends, arbitrary
 function-field rows, CGA where `1/2` is unavailable, `Metric::map`,
-crate-private linalg, Ogham parser/AST (documented WP6 boundary),
+crate-private linalg, grundy parser/AST (documented WP6 boundary),
 `heating.rs`'s composite predicates (reproducible from bound Game methods).
 
 **Demo-coverage gaps** (bound, exercised nowhere): `d_n`/`e_6`/`e_7`

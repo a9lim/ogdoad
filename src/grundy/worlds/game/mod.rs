@@ -88,7 +88,7 @@ impl WorldOps for GameRuntime {
         display_game_value(value, &self.state.env)
     }
 
-    fn world_eval_element(&mut self, expr: &Expr) -> OghamResult<Self::Element> {
+    fn world_eval_element(&mut self, expr: &Expr) -> GrundyResult<Self::Element> {
         GameRuntime::eval_element(self, expr)
     }
 
@@ -125,11 +125,11 @@ impl WorldOps for GameRuntime {
         }
     }
 
-    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<bool> {
         GameRuntime::eval_relation(self, op, lhs, rhs)
     }
 
-    fn sample_element_expr(&self) -> OghamResult<Expr> {
+    fn sample_element_expr(&self) -> GrundyResult<Expr> {
         Ok(Expr::Int(0))
     }
 
@@ -137,7 +137,7 @@ impl WorldOps for GameRuntime {
         &mut self,
         name: &str,
         args: &[Expr],
-    ) -> Option<OghamResult<Value<Self::Element>>> {
+    ) -> Option<GrundyResult<Value<Self::Element>>> {
         matches!(name, "hasdraw" | "stopper" | "integral").then(|| {
             expect_arity(name, args, 1)?;
             if name == "integral" {
@@ -155,7 +155,7 @@ impl WorldOps for GameRuntime {
         })
     }
 
-    fn bind_recursive_element(&mut self, name: &str, expr: &Expr) -> OghamResult<()> {
+    fn bind_recursive_element(&mut self, name: &str, expr: &Expr) -> GrundyResult<()> {
         let reduced = self.reduce_element_fixpoint(name, expr, false)?;
         let value = materialize_regular_game(name, reduced, self.state.graph_budget)?;
         self.state
@@ -164,7 +164,7 @@ impl WorldOps for GameRuntime {
         Ok(())
     }
 
-    fn bind_recursive_system(&mut self, bindings: &[Binding]) -> OghamResult<usize> {
+    fn bind_recursive_system(&mut self, bindings: &[Binding]) -> GrundyResult<usize> {
         let mut count = 0;
         while let Some(binding) = bindings.get(count) {
             if !binding.recursive
@@ -196,7 +196,7 @@ impl WorldOps for GameRuntime {
         let roots = bindings[..count]
             .iter()
             .map(|binding| self.reduce_element_system(&binding.name, &names, &binding.expr, false))
-            .collect::<OghamResult<Vec<_>>>()?;
+            .collect::<GrundyResult<Vec<_>>>()?;
         let values = materialize_regular_system(&names, roots, self.state.graph_budget)?;
         for (name, value) in names.into_iter().zip(values) {
             self.state.env.insert(name, Value::Element(value));
@@ -240,13 +240,13 @@ impl WorldOps for GameRuntime {
         _lhs_expr: &Expr,
         _lhs: Self::Element,
         _rhs: &Expr,
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         Err(game_wrong_world(
             "Element application with `@` is not defined for games",
         ))
     }
 
-    fn non_function_at_error(&self) -> Option<OghamError> {
+    fn non_function_at_error(&self) -> Option<GrundyError> {
         Some(game_wrong_world(
             "Element application with `@` is not defined for games",
         ))
@@ -285,7 +285,7 @@ impl WorldOps for GameRuntime {
         &mut self,
         function: &FunctionValue,
         _args: &[Value<Self::Element>],
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         match function.ret {
             DataSort::Element => self.eval_element(&function.body).map(Value::Element),
             DataSort::Index => self.eval_index(&function.body).map(Value::Index),
@@ -301,7 +301,7 @@ impl GameRuntime {
         }
     }
 
-    fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+    fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<bool> {
         if let RelOp::Outcome(cell) = op {
             let lhs = self.eval_element(lhs)?;
             let rhs = self.eval_element(rhs)?;
@@ -367,7 +367,7 @@ impl GameRuntime {
         }
     }
 
-    fn eval_element(&mut self, expr: &Expr) -> OghamResult<GameElement> {
+    fn eval_element(&mut self, expr: &Expr) -> GrundyResult<GameElement> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Index(_) => Err(index_sort_error()),
@@ -405,11 +405,11 @@ impl GameRuntime {
             Expr::GameForm { left, right } => build_game_form(
                 left.iter()
                     .map(|item| self.eval_element(item))
-                    .collect::<OghamResult<Vec<_>>>()?,
+                    .collect::<GrundyResult<Vec<_>>>()?,
                 right
                     .iter()
                     .map(|item| self.eval_element(item))
-                    .collect::<OghamResult<Vec<_>>>()?,
+                    .collect::<GrundyResult<Vec<_>>>()?,
                 self.state.graph_budget,
             ),
             Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
@@ -453,7 +453,7 @@ impl GameRuntime {
         }
     }
 
-    fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<GameElement> {
+    fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<GameElement> {
         if op == BinaryOp::Div {
             if let Some(literal) = eval_game_fraction_literal(lhs, rhs) {
                 return literal;
@@ -498,7 +498,7 @@ impl GameRuntime {
         }
     }
 
-    fn eval_element_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<GameElement> {
+    fn eval_element_call(&mut self, name: &str, args: &[Expr]) -> GrundyResult<GameElement> {
         match name {
             "canon" => {
                 expect_arity(name, args, 1)?;
@@ -536,8 +536,8 @@ impl GameRuntime {
             "hasdraw" | "stopper" | "integral" => Err(bool_sort_error()),
             "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
             "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
-            _ => Err(OghamError::new(
-                OghamErrorKind::UnknownFn,
+            _ => Err(GrundyError::new(
+                GrundyErrorKind::UnknownFn,
                 Span::point(0),
                 format!("unknown function `{name}`"),
             )),
@@ -549,7 +549,7 @@ impl GameRuntime {
         name: &str,
         expr: &Expr,
         inside_form: bool,
-    ) -> OghamResult<SymbolicGame> {
+    ) -> GrundyResult<SymbolicGame> {
         self.reduce_element_system(name, &[name.to_string()], expr, inside_form)
     }
 
@@ -559,7 +559,7 @@ impl GameRuntime {
         names: &[String],
         expr: &Expr,
         _inside_form: bool,
-    ) -> OghamResult<SymbolicGame> {
+    ) -> GrundyResult<SymbolicGame> {
         match expr {
             Expr::Index(_) => Err(index_sort_error()),
             Expr::Ident(found) => names
@@ -581,11 +581,11 @@ impl GameRuntime {
                 left: left
                     .iter()
                     .map(|item| self.reduce_element_system(equation, names, item, true))
-                    .collect::<OghamResult<_>>()?,
+                    .collect::<GrundyResult<_>>()?,
                 right: right
                     .iter()
                     .map(|item| self.reduce_element_system(equation, names, item, true))
-                    .collect::<OghamResult<_>>()?,
+                    .collect::<GrundyResult<_>>()?,
             }),
             Expr::Binary {
                 op: BinaryOp::Append,
@@ -623,7 +623,7 @@ impl GameRuntime {
         names: &[String],
         lhs: &Expr,
         rhs: &Expr,
-    ) -> OghamResult<SymbolicGame> {
+    ) -> GrundyResult<SymbolicGame> {
         match self.static_sort(rhs)? {
             DataSort::Element => {}
             DataSort::Index => return Err(index_sort_error()),
@@ -667,7 +667,7 @@ impl GameRuntime {
         equation: &str,
         names: &[String],
         expr: &Expr,
-    ) -> OghamResult<bool> {
+    ) -> GrundyResult<bool> {
         match expr {
             Expr::Bool(value) => Ok(*value),
             Expr::Unary {
@@ -730,15 +730,15 @@ impl GameRuntime {
     }
 }
 
-fn eval_game_fraction_literal(lhs: &Expr, rhs: &Expr) -> Option<OghamResult<GameElement>> {
+fn eval_game_fraction_literal(lhs: &Expr, rhs: &Expr) -> Option<GrundyResult<GameElement>> {
     let numerator = signed_integer_literal(lhs)?;
     let denominator = signed_integer_literal(rhs)?;
     Some((|| {
         let numerator = numerator?;
         let denominator = denominator?;
         if denominator == 0 {
-            return Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 Span::point(0),
                 "division by zero",
             ));
@@ -746,8 +746,8 @@ fn eval_game_fraction_literal(lhs: &Expr, rhs: &Expr) -> Option<OghamResult<Game
         let rational = Rational::try_new(numerator, denominator)
             .ok_or_else(|| overflow("fraction literal exceeds i128"))?;
         if !(rational.denom() as u128).is_power_of_two() {
-            return Err(OghamError::new(
-                OghamErrorKind::Domain,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Domain,
                 Span::point(0),
                 "fraction literal is not dyadic",
             )
@@ -760,7 +760,7 @@ fn eval_game_fraction_literal(lhs: &Expr, rhs: &Expr) -> Option<OghamResult<Game
     })())
 }
 
-fn signed_integer_literal(expr: &Expr) -> Option<OghamResult<i128>> {
+fn signed_integer_literal(expr: &Expr) -> Option<GrundyResult<i128>> {
     match expr {
         Expr::Int(value) => {
             Some(i128::try_from(*value).map_err(|_| overflow("fraction literal exceeds i128")))

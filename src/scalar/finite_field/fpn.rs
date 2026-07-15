@@ -771,7 +771,7 @@ mod tests {
     }
 
     #[test]
-    fn display_v4_canonical_ogham() {
+    fn display_v4_canonical_grundy() {
         // Display v4 (spec.md §12): explicit `⋅` and `↑`, coefficient-1 suppressed.
         // The §12.1 example `3⋅x↑2 + 2⋅x + 1` needs coefficient 3, so it is only
         // realizable in a field whose characteristic exceeds 3 (in F_27 the

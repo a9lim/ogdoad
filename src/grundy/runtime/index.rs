@@ -5,11 +5,11 @@ use super::*;
 pub(crate) enum IndexPrimitive {
     NotHandled,
     Value(i128),
-    Error(OghamError),
+    Error(GrundyError),
 }
 
 impl IndexPrimitive {
-    pub(crate) fn from_result(result: OghamResult<i128>) -> Self {
+    pub(crate) fn from_result(result: GrundyResult<i128>) -> Self {
         match result {
             Ok(value) => Self::Value(value),
             Err(err) => Self::Error(err),
@@ -17,7 +17,7 @@ impl IndexPrimitive {
     }
 }
 
-pub(crate) fn eval_index<R: SharedRuntime>(runtime: &mut R, expr: &Expr) -> OghamResult<i128> {
+pub(crate) fn eval_index<R: SharedRuntime>(runtime: &mut R, expr: &Expr) -> GrundyResult<i128> {
     match runtime.index_primitive(expr) {
         IndexPrimitive::Value(value) => return Ok(value),
         IndexPrimitive::Error(err) => return Err(err),
@@ -88,7 +88,7 @@ pub(crate) fn eval_index<R: SharedRuntime>(runtime: &mut R, expr: &Expr) -> Ogha
     }
 }
 
-pub(crate) fn parse_display_expr(src: &str) -> OghamResult<Expr> {
+pub(crate) fn parse_display_expr(src: &str) -> GrundyResult<Expr> {
     match parse_statement(src)? {
         Statement::Expr(expr) => Ok(expr),
         Statement::Binding { .. } | Statement::Seq { .. } => {
@@ -97,7 +97,7 @@ pub(crate) fn parse_display_expr(src: &str) -> OghamResult<Expr> {
     }
 }
 
-pub(crate) fn index_literal_expr(value: i128) -> OghamResult<Expr> {
+pub(crate) fn index_literal_expr(value: i128) -> GrundyResult<Expr> {
     let inner = if value >= 0 {
         Expr::Int(value as u128)
     } else {
@@ -134,7 +134,7 @@ pub(crate) fn value_sort<E>(value: &Value<E>) -> DataSort {
     }
 }
 
-pub(crate) fn env_sort<E>(value: &Value<E>) -> OghamResult<DataSort> {
+pub(crate) fn env_sort<E>(value: &Value<E>) -> GrundyResult<DataSort> {
     match value {
         Value::Element(_) => Ok(DataSort::Element),
         Value::Index(_) => Ok(DataSort::Index),
@@ -143,7 +143,7 @@ pub(crate) fn env_sort<E>(value: &Value<E>) -> OghamResult<DataSort> {
     }
 }
 
-pub(crate) fn ensure_value_sort<E>(value: &Value<E>, expected: DataSort) -> OghamResult<()> {
+pub(crate) fn ensure_value_sort<E>(value: &Value<E>, expected: DataSort) -> GrundyResult<()> {
     match value {
         Value::Function(_) => Err(fn_sort_error()),
         _ if value_sort(value) == expected => Ok(()),
@@ -153,7 +153,7 @@ pub(crate) fn ensure_value_sort<E>(value: &Value<E>, expected: DataSort) -> Ogha
     }
 }
 
-pub(crate) fn eval_index_binary(op: BinaryOp, lhs: i128, rhs: i128) -> OghamResult<i128> {
+pub(crate) fn eval_index_binary(op: BinaryOp, lhs: i128, rhs: i128) -> GrundyResult<i128> {
     match op {
         BinaryOp::Add => lhs
             .checked_add(rhs)
@@ -166,8 +166,8 @@ pub(crate) fn eval_index_binary(op: BinaryOp, lhs: i128, rhs: i128) -> OghamResu
             .ok_or_else(|| overflow("index multiplication overflowed i128")),
         BinaryOp::Pow => {
             if rhs < 0 {
-                return Err(OghamError::new(
-                    OghamErrorKind::Domain,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::Domain,
                     Span::point(0),
                     "index exponent must be non-negative",
                 ));
@@ -178,19 +178,19 @@ pub(crate) fn eval_index_binary(op: BinaryOp, lhs: i128, rhs: i128) -> OghamResu
     }
 }
 
-pub(crate) fn expect_arity(name: &str, args: &[Expr], expected: usize) -> OghamResult<()> {
+pub(crate) fn expect_arity(name: &str, args: &[Expr], expected: usize) -> GrundyResult<()> {
     if args.len() == expected {
         Ok(())
     } else {
-        Err(OghamError::new(
-            OghamErrorKind::Arity,
+        Err(GrundyError::new(
+            GrundyErrorKind::Arity,
             Span::point(0),
             format!("`{name}` expects {expected} argument(s)"),
         ))
     }
 }
 
-pub(crate) fn ordered_relation(op: RelOp, cmp: Ordering) -> OghamResult<bool> {
+pub(crate) fn ordered_relation(op: RelOp, cmp: Ordering) -> GrundyResult<bool> {
     Ok(match op {
         RelOp::Eq => cmp == Ordering::Equal,
         RelOp::Lt => cmp == Ordering::Less,
@@ -201,7 +201,7 @@ pub(crate) fn ordered_relation(op: RelOp, cmp: Ordering) -> OghamResult<bool> {
     })
 }
 
-pub(crate) fn checked_i128_pow(base: i128, mut exp: u128) -> OghamResult<i128> {
+pub(crate) fn checked_i128_pow(base: i128, mut exp: u128) -> GrundyResult<i128> {
     if exp == 0 {
         return Ok(1);
     }
@@ -224,6 +224,6 @@ pub(crate) fn checked_i128_pow(base: i128, mut exp: u128) -> OghamResult<i128> {
     Ok(acc)
 }
 
-pub(crate) fn u128_to_i128(n: u128) -> OghamResult<i128> {
+pub(crate) fn u128_to_i128(n: u128) -> GrundyResult<i128> {
     i128::try_from(n).map_err(|_| overflow("integer literal exceeds i128 in this world"))
 }

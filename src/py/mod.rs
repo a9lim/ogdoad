@@ -31,8 +31,8 @@ fn version() -> &'static str {
 }
 
 #[pyfunction]
-fn ogham_eval(world: &str, src: &str) -> PyResult<String> {
-    crate::ogham::eval_to_string(world, src).map_err(|err| PyValueError::new_err(err.to_string()))
+fn grundy_eval(world: &str, src: &str) -> PyResult<String> {
+    crate::grundy::eval_to_string(world, src).map_err(|err| PyValueError::new_err(err.to_string()))
 }
 
 #[pymodule]
@@ -42,6 +42,6 @@ fn ogdoad(m: &Bound<'_, PyModule>) -> PyResult<()> {
     forms::register(m)?;
     games::register(m)?;
     m.add_function(wrap_pyfunction!(version, m)?)?;
-    m.add_function(wrap_pyfunction!(ogham_eval, m)?)?;
+    m.add_function(wrap_pyfunction!(grundy_eval, m)?)?;
     Ok(())
 }

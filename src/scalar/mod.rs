@@ -225,7 +225,7 @@ pub fn checked_factorial_i128(n: i128) -> Option<i128> {
 
 /// Factorial computed inside a scalar world via the `Z -> S` ring map.
 ///
-/// This is the finite-field-friendly path for ogham `!n`: in positive
+/// This is the finite-field-friendly path for grundy `!n`: in positive
 /// characteristic the product is immediately zero once a factor equal to the
 /// characteristic appears, so no host integer overflow is involved.
 pub fn factorial_in_scalar<S: Scalar>(n: i128) -> Option<S> {
@@ -251,14 +251,14 @@ pub fn factorial_in_scalar<S: Scalar>(n: i128) -> Option<S> {
 /// domain; `Ordinal` gets hand-written additive operators and keeps its partial
 /// product behind `nim_mul` / `nim_pow`.
 ///
-/// **`^` is power (ogham `↑`), not XOR.** The RHS is deliberately `u128`
+/// **`^` is power (grundy `↑`), not XOR.** The RHS is deliberately `u128`
 /// so that `x ^ y` never compiles when `y` has the same element type as `x` —
 /// the type system enforces the "no element-element XOR" rule (on `Nimber`,
 /// `x ^ x` would silently mean nim-*addition*). The exponent is an unsigned
 /// meta-integer: `x ^ 0 == one()`.
 ///
-/// **Precedence caveat (§5 `docs/ogham/spec.md`):** Rust's `^` binds looser than
-/// `*`. `a * b ^ 3` is `a * (b ^ 3)` in ogham but `(a * b) ^ 3` in Rust.
+/// **Precedence caveat (§5 `docs/grundy/spec.md`):** Rust's `^` binds looser than
+/// `*`. `a * b ^ 3` is `a * (b ^ 3)` in grundy but `(a * b) ^ 3` in Rust.
 /// Parenthesize when mixing product and power operators.
 ///
 /// Deliberately *not* a [`Scalar`] supertrait bound: these are concrete-type
@@ -299,7 +299,7 @@ macro_rules! impl_scalar_ops {
             type Output = $ty;
             /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::pow`].
             ///
-            /// `^` is power (ogham `↑`). The RHS is `u128` so element-element `^`
+            /// `^` is power (grundy `↑`). The RHS is `u128` so element-element `^`
             /// does not compile — no [`BitXor<Self>`] impl exists on any backend.
             /// **Precedence caveat:** Rust's `^` binds looser than `*`; parenthesize
             /// when mixing with product.
@@ -334,7 +334,7 @@ macro_rules! impl_scalar_ops {
             type Output = $ty;
             /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::pow`].
             ///
-            /// `^` is power (ogham `↑`). The RHS is `u128` so element-element `^`
+            /// `^` is power (grundy `↑`). The RHS is `u128` so element-element `^`
             /// does not compile — no [`BitXor<Self>`] impl exists on any backend.
             /// **Precedence caveat:** Rust's `^` binds looser than `*`; parenthesize
             /// when mixing with product.
@@ -564,7 +564,7 @@ mod ops_tests {
     }
 
     #[test]
-    fn checked_factorial_i128_has_the_ogham_roof() {
+    fn checked_factorial_i128_has_the_grundy_roof() {
         assert_eq!(checked_factorial_i128(-1), None);
         assert_eq!(checked_factorial_i128(0), Some(1));
         assert_eq!(checked_factorial_i128(5), Some(120));

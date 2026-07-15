@@ -18,6 +18,11 @@ carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
 stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, `over`/`under`.
 
+**Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
+it is renamed **grundy** (provisional — finalization at the 0.3.8 release
+dress; see [`CONTINUATIONS.md`](CONTINUATIONS.md), the ladder). Entries below
+keep the name they shipped under: `ogham-*` keys stay `ogham-*`.
+
 ## How to use this ledger
 
 Completed items keep the game-multivector value `g·e_B` they carried as buildable

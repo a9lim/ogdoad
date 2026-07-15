@@ -154,8 +154,8 @@ runtime type is bound. What stays Rust-only is structural, not a backlog:
 - **Per-backend, no mixing.** Each Python backend monomorphises the generic engine to
   one concrete scalar type. Mixing scalar worlds in one algebra raises `TypeError` by
   construction — intended; do not add a runtime-tagged "any scalar" path.
-- **Python operators:** `*` geometric, `&` wedge (ogham `∧`; `^` raises the
-  Ogham `E_ExpSort` hint), `<<`/`>>` left/right
+- **Python operators:** `*` geometric, `&` wedge (grundy `∧`; `^` raises the
+  grundy `E_ExpSort` hint), `<<`/`>>` left/right
   contraction, `~` reverse, `/` divide (scalar or versor; `Integer` uses exact
   Euclidean division), `**` power, `+`/`-`, `==`, `Integer.__mod__` for
   Euclidean remainder, `%` on the v0.1.1 polynomial classes, and `@` on the

@@ -34,8 +34,8 @@
 pub mod clifford;
 pub mod forms;
 pub mod games;
+pub mod grundy;
 pub(crate) mod linalg;
-pub mod ogham;
 pub mod scalar;
 
 #[cfg(feature = "python")]

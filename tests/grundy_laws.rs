@@ -1,5 +1,5 @@
 use ogdoad::games::{Game, LoopyPartizanGraph};
-use ogdoad::ogham::{ast::OutcomeCell, OghamSession};
+use ogdoad::grundy::{ast::OutcomeCell, GrundySession};
 
 const SEED: u64 = 0x0360_5eed_cafe_f00d;
 
@@ -39,7 +39,7 @@ struct StopperCase {
 
 #[test]
 fn seeded_stopper_pairs_match_independent_second_player_survival_oracle() {
-    let mut session = OghamSession::new("game").expect("game world");
+    let mut session = GrundySession::new("game").expect("game world");
     let mut rng = Lcg(SEED);
     let mut cases = Vec::new();
 
@@ -98,7 +98,7 @@ fn seeded_stopper_pairs_match_independent_second_player_survival_oracle() {
 
 #[test]
 fn seeded_fresh_pairs_obey_negation_rotation_and_operand_swap() {
-    let mut session = OghamSession::new("game").expect("game world");
+    let mut session = GrundySession::new("game").expect("game world");
     let mut rng = Lcg(SEED ^ 0xa11c_e5a5_51de_0002);
     let mut names = Vec::new();
 
@@ -272,7 +272,7 @@ fn randomized_display_case(rng: &mut Lcg, case_index: usize) -> DisplayCase {
 }
 
 fn assert_display_roundtrip(case: &DisplayCase) {
-    let mut source = OghamSession::new("game").expect("source game world");
+    let mut source = GrundySession::new("game").expect("source game world");
     for statement in &case.setup {
         source.eval_line(statement).unwrap_or_else(|err| {
             panic!("{} source setup `{statement}` failed: {err}", case.label)
@@ -285,7 +285,7 @@ fn assert_display_roundtrip(case: &DisplayCase) {
         .unwrap_or_else(|| panic!("{} source expression returned no value", case.label));
     let executable = executable_display(&display);
 
-    let mut fresh = OghamSession::new("game").expect("fresh game world");
+    let mut fresh = GrundySession::new("game").expect("fresh game world");
     fresh
         .eval_line(&format!("rebuilt := {executable}"))
         .unwrap_or_else(|err| {
@@ -459,7 +459,7 @@ fn state(node: usize, left_to_move: bool) -> usize {
 }
 
 fn language_projected_relation(
-    session: &mut OghamSession,
+    session: &mut GrundySession,
     lhs: &str,
     rhs: &str,
 ) -> ProjectedRelation {
@@ -482,7 +482,7 @@ fn language_projected_relation(
     true_relations[0]
 }
 
-fn language_outcome_cell(session: &mut OghamSession, lhs: &str, rhs: &str) -> OutcomeCell {
+fn language_outcome_cell(session: &mut GrundySession, lhs: &str, rhs: &str) -> OutcomeCell {
     let true_cells = OutcomeCell::ALL
         .into_iter()
         .filter(|cell| eval_bool(session, &format!("({lhs}) {} ({rhs})", cell.glyph())))
@@ -495,7 +495,7 @@ fn language_outcome_cell(session: &mut OghamSession, lhs: &str, rhs: &str) -> Ou
     true_cells[0]
 }
 
-fn eval_bool(session: &mut OghamSession, expression: &str) -> bool {
+fn eval_bool(session: &mut GrundySession, expression: &str) -> bool {
     let value = session
         .eval_line(expression)
         .unwrap_or_else(|err| panic!("`{expression}` failed: {err}"))

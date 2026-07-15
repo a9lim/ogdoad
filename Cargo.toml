@@ -17,7 +17,7 @@ categories = ["mathematics", "science"]
 # stub, `demo.py`, `pyproject.toml`, `scripts/` — all built/consumed separately
 # via maturin, never from this tarball) are part of the source tree but not the
 # crate a `cargo add` consumer needs, so they are kept out of the `.crate`.
-# `docs/` stays: `tests/ogham_conformance.rs` `include_str!`s a file under it.
+# `docs/` stays: `tests/grundy_conformance.rs` `include_str!`s a file under it.
 exclude = [
     "experiments/",
     "writeups/",

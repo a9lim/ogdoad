@@ -2,12 +2,12 @@
 
 use super::super::*;
 
-pub(crate) struct RatFuncRuntime<S: OghamScalar + ExactFieldScalar> {
+pub(crate) struct RatFuncRuntime<S: GrundyScalar + ExactFieldScalar> {
     pub(crate) name: &'static str,
     pub(crate) state: RuntimeState<RationalFunction<S>>,
 }
 
-impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
+impl<S: GrundyScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
     type Element = RationalFunction<S>;
 
     fn state(&self) -> &RuntimeState<Self::Element> {
@@ -26,14 +26,14 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
         self.name.to_string()
     }
 
-    fn world_eval_element(&mut self, expr: &Expr) -> OghamResult<Self::Element> {
+    fn world_eval_element(&mut self, expr: &Expr) -> GrundyResult<Self::Element> {
         RatFuncRuntime::eval_element(self, expr)
     }
 
     fn index_primitive(&mut self, expr: &Expr) -> IndexPrimitive {
         match expr {
-            Expr::Call { name, .. } if name == "deg" => IndexPrimitive::Error(OghamError::new(
-                OghamErrorKind::WrongWorld,
+            Expr::Call { name, .. } if name == "deg" => IndexPrimitive::Error(GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 Span::point(0),
                 "`deg` is a polynomial-world function, not a rational-function operation",
             )),
@@ -46,11 +46,11 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
         }
     }
 
-    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<bool> {
         RatFuncRuntime::eval_relation(self, op, lhs, rhs)
     }
 
-    fn sample_element_expr(&self) -> OghamResult<Expr> {
+    fn sample_element_expr(&self) -> GrundyResult<Expr> {
         parse_display_expr(&RationalFunction::<S>::one().to_string())
     }
 
@@ -58,15 +58,15 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
         name == "t"
     }
 
-    fn adjust_binder_error(&self, err: OghamError) -> OghamError {
-        if err.kind == OghamErrorKind::Shadow && err.message.contains("`t`") {
+    fn adjust_binder_error(&self, err: GrundyError) -> GrundyError {
+        if err.kind == GrundyErrorKind::Shadow && err.message.contains("`t`") {
             err.with_hint("`t` is the indeterminate here; `5⋅t + 1` is already a function")
         } else {
             err
         }
     }
 
-    fn named_element(&self, name: &str) -> OghamResult<Option<Self::Element>> {
+    fn named_element(&self, name: &str) -> GrundyResult<Option<Self::Element>> {
         Ok((name == "t").then(RationalFunction::t))
     }
 
@@ -74,7 +74,7 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
         &mut self,
         name: &str,
         args: &[Expr],
-    ) -> Option<OghamResult<Value<Self::Element>>> {
+    ) -> Option<GrundyResult<Value<Self::Element>>> {
         (name == "integral").then(|| {
             expect_arity(name, args, 1)?;
             let value = self.eval_element(&args[0])?;
@@ -87,7 +87,7 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
         lhs_expr: &Expr,
         lhs: Self::Element,
         rhs: &Expr,
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         match self.eval_value(rhs)? {
             Value::Element(rhs) => {
                 substitute_rational_function(&lhs, &rhs, Span::point(0)).map(Value::Element)
@@ -101,7 +101,7 @@ impl<S: OghamScalar + ExactFieldScalar> WorldOps for RatFuncRuntime<S> {
     }
 }
 
-impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
+impl<S: GrundyScalar + ExactFieldScalar> RatFuncRuntime<S> {
     pub(crate) fn new(name: &'static str) -> Self {
         RatFuncRuntime {
             name,
@@ -109,7 +109,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         }
     }
 
-    fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+    fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<bool> {
         if op == RelOp::Equiv {
             return Err(game_only_error("`≡`"));
         }
@@ -145,7 +145,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         }
     }
 
-    fn eval_element(&mut self, expr: &Expr) -> OghamResult<RationalFunction<S>> {
+    fn eval_element(&mut self, expr: &Expr) -> GrundyResult<RationalFunction<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Index(_) => Err(index_sort_error()),
@@ -156,8 +156,8 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             )?)),
             Expr::Star(star) => Ok(RationalFunction::from_base(S::star(star, Span::point(0))?)),
             Expr::Omega => Ok(RationalFunction::from_base(S::omega(Span::point(0))?)),
-            Expr::Blade(_) => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
+            Expr::Blade(_) => Err(GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 Span::point(0),
                 "function-shaped worlds do not have Clifford blades",
             )),
@@ -208,8 +208,8 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                 Value::Bool(_) => Err(bool_sort_error()),
                 Value::Function(_) => Err(fn_sort_error()),
             },
-            Expr::Relation { .. } => Err(OghamError::new(
-                OghamErrorKind::BoolSort,
+            Expr::Relation { .. } => Err(GrundyError::new(
+                GrundyErrorKind::BoolSort,
                 Span::point(0),
                 "relation result is Bool, not Element",
             )),
@@ -221,7 +221,7 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         op: BinaryOp,
         lhs: &Expr,
         rhs: &Expr,
-    ) -> OghamResult<RationalFunction<S>> {
+    ) -> GrundyResult<RationalFunction<S>> {
         if op == BinaryOp::Append {
             return Err(game_only_error("`⧺`"));
         }
@@ -239,8 +239,8 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
             BinaryOp::Mul => Ok(lhs_v.mul(&rhs_v)),
             BinaryOp::Div => {
                 if rhs_v.is_zero() {
-                    Err(OghamError::new(
-                        OghamErrorKind::DivisionByZero,
+                    Err(GrundyError::new(
+                        GrundyErrorKind::DivisionByZero,
                         Span::point(0),
                         "division by zero",
                     ))
@@ -248,14 +248,14 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
                     Ok(lhs_v.mul(&rhs_v.inv().expect("checked nonzero rational function")))
                 }
             }
-            BinaryOp::Rem => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
+            BinaryOp::Rem => Err(GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 Span::point(0),
                 "function-field worlds are fields",
             )
             .with_hint("`%` is only active in polynomial worlds")),
-            BinaryOp::Wedge => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
+            BinaryOp::Wedge => Err(GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 Span::point(0),
                 "wedge product belongs to Clifford worlds",
             )),
@@ -263,10 +263,10 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         }
     }
 
-    fn eval_power(&mut self, lhs: &Expr, rhs: &Expr) -> OghamResult<RationalFunction<S>> {
+    fn eval_power(&mut self, lhs: &Expr, rhs: &Expr) -> GrundyResult<RationalFunction<S>> {
         let base = self.eval_element(lhs)?;
         let exp = self.eval_index(rhs).map_err(|err| {
-            if err.kind == OghamErrorKind::IndexSort {
+            if err.kind == GrundyErrorKind::IndexSort {
                 exp_sort_error()
             } else {
                 err
@@ -285,34 +285,34 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         }
     }
 
-    fn eval_call(&mut self, name: &str, _args: &[Expr]) -> OghamResult<RationalFunction<S>> {
+    fn eval_call(&mut self, name: &str, _args: &[Expr]) -> GrundyResult<RationalFunction<S>> {
         match name {
             "up" | "down" | "dim" => Err(literal_call_error(name)),
-            "coef" => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
+            "coef" => Err(GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 Span::point(0),
                 "`coef` is unavailable on rational functions",
             )),
-            "deg" | "gcd" => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
+            "deg" | "gcd" => Err(GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 Span::point(0),
                 format!(
                     "`{name}` is a polynomial-world function, not a rational-function operation"
                 ),
             )),
             "integral" => Err(bool_sort_error()),
-            _ => Err(OghamError::new(
-                OghamErrorKind::UnknownFn,
+            _ => Err(GrundyError::new(
+                GrundyErrorKind::UnknownFn,
                 Span::point(0),
                 format!("unknown function `{name}`"),
             )),
         }
     }
 
-    fn inverse_element(&self, value: &RationalFunction<S>) -> OghamResult<RationalFunction<S>> {
+    fn inverse_element(&self, value: &RationalFunction<S>) -> GrundyResult<RationalFunction<S>> {
         if value.is_zero() {
-            return Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 Span::point(0),
                 "division by zero",
             ));
@@ -320,14 +320,14 @@ impl<S: OghamScalar + ExactFieldScalar> RatFuncRuntime<S> {
         Ok(value.inv().expect("checked nonzero rational function"))
     }
 
-    fn eval_container(&mut self, items: &[Expr]) -> OghamResult<RationalFunction<S>> {
+    fn eval_container(&mut self, items: &[Expr]) -> GrundyResult<RationalFunction<S>> {
         let mut coefficients = Vec::with_capacity(items.len());
         for item in items {
             let value = self.eval_element(item)?;
             if value.den() != &Poly::one() || value.num().degree().is_some_and(|degree| degree > 0)
             {
-                return Err(OghamError::new(
-                    OghamErrorKind::Domain,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::Domain,
                     Span::point(0),
                     "rational-function container entry is not constant",
                 )
@@ -361,16 +361,16 @@ pub(crate) fn pow_rational_function<S: ExactFieldScalar>(
     acc
 }
 
-pub(crate) fn substitute_rational_function<S: OghamScalar + ExactFieldScalar>(
+pub(crate) fn substitute_rational_function<S: GrundyScalar + ExactFieldScalar>(
     f: &RationalFunction<S>,
     arg: &RationalFunction<S>,
     span: Span,
-) -> OghamResult<RationalFunction<S>> {
+) -> GrundyResult<RationalFunction<S>> {
     let num = eval_poly_at_rational_function(f.num(), arg);
     let den = eval_poly_at_rational_function(f.den(), arg);
     if den.is_zero() {
-        return Err(OghamError::new(
-            OghamErrorKind::DivisionByZero,
+        return Err(GrundyError::new(
+            GrundyErrorKind::DivisionByZero,
             span,
             "rational-function evaluation hit a pole",
         ));

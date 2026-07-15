@@ -8,8 +8,8 @@ pub struct EvalLine {
     pub value: Option<String>,
 }
 
-pub fn eval_to_string(world: &str, src: &str) -> OghamResult<String> {
-    let mut session = OghamSession::new(world)?;
+pub fn eval_to_string(world: &str, src: &str) -> GrundyResult<String> {
+    let mut session = GrundySession::new(world)?;
     let mut out = Vec::new();
     let mut pending = String::new();
     for line in src.lines() {
@@ -67,11 +67,11 @@ enum WorkerReply<T> {
 enum WorkerCommand {
     EvalLine {
         src: String,
-        reply: mpsc::Sender<WorkerReply<OghamResult<EvalLine>>>,
+        reply: mpsc::Sender<WorkerReply<GrundyResult<EvalLine>>>,
     },
     SetWorld {
         decl: String,
-        reply: mpsc::Sender<WorkerReply<OghamResult<()>>>,
+        reply: mpsc::Sender<WorkerReply<GrundyResult<()>>>,
     },
     SetFuelBudget {
         budget: u128,
@@ -96,18 +96,18 @@ enum WorkerCommand {
     Shutdown,
 }
 
-pub struct OghamSession {
+pub struct GrundySession {
     worker: mpsc::Sender<WorkerCommand>,
     handle: Option<JoinHandle<()>>,
 }
 
-impl OghamSession {
-    pub fn new(world_decl: &str) -> OghamResult<Self> {
+impl GrundySession {
+    pub fn new(world_decl: &str) -> GrundyResult<Self> {
         let (worker, commands) = mpsc::channel();
         let (initialized, initialization) = mpsc::channel();
         let decl = world_decl.to_string();
         let handle = std::thread::Builder::new()
-            .name("ogham-eval".to_string())
+            .name("grundy-eval".to_string())
             .stack_size(EVAL_STACK_BYTES)
             .spawn(move || {
                 let world = catch_unwind(AssertUnwindSafe(|| World::from_decl(&decl)));
@@ -130,9 +130,9 @@ impl OghamSession {
             .map_err(worker_spawn_error)?;
         match initialization
             .recv()
-            .expect("ogham evaluation worker stopped before initialization")
+            .expect("grundy evaluation worker stopped before initialization")
         {
-            WorkerReply::Returned(Ok(())) => Ok(OghamSession {
+            WorkerReply::Returned(Ok(())) => Ok(GrundySession {
                 worker,
                 handle: Some(handle),
             }),
@@ -147,14 +147,14 @@ impl OghamSession {
         }
     }
 
-    pub fn set_world(&mut self, world_decl: &str) -> OghamResult<()> {
+    pub fn set_world(&mut self, world_decl: &str) -> GrundyResult<()> {
         self.call_worker(|reply| WorkerCommand::SetWorld {
             decl: world_decl.to_string(),
             reply,
         })
     }
 
-    pub fn eval_line(&mut self, src: &str) -> OghamResult<EvalLine> {
+    pub fn eval_line(&mut self, src: &str) -> GrundyResult<EvalLine> {
         self.call_worker(|reply| WorkerCommand::EvalLine {
             src: src.to_string(),
             reply,
@@ -192,10 +192,10 @@ impl OghamSession {
         let (reply, response) = mpsc::channel();
         self.worker
             .send(command(reply))
-            .expect("ogham evaluation worker stopped unexpectedly");
+            .expect("grundy evaluation worker stopped unexpectedly");
         match response
             .recv()
-            .expect("ogham evaluation worker stopped before replying")
+            .expect("grundy evaluation worker stopped before replying")
         {
             WorkerReply::Returned(value) => value,
             WorkerReply::Panicked(payload) => resume_unwind(payload),
@@ -203,7 +203,7 @@ impl OghamSession {
     }
 }
 
-impl Drop for OghamSession {
+impl Drop for GrundySession {
     fn drop(&mut self) {
         let _ = self.worker.send(WorkerCommand::Shutdown);
         if let Some(handle) = self.handle.take() {
@@ -255,7 +255,7 @@ fn send_worker_reply<T>(reply: mpsc::Sender<WorkerReply<T>>, f: impl FnOnce() ->
     let _ = reply.send(response);
 }
 
-fn eval_line_in_world(world: &mut World, src: &str) -> OghamResult<EvalLine> {
+fn eval_line_in_world(world: &mut World, src: &str) -> GrundyResult<EvalLine> {
     ensure_source_nesting_depth(src)?;
     if strip_comments(src)?.trim().is_empty() {
         return Ok(EvalLine {
@@ -271,15 +271,15 @@ fn eval_line_in_world(world: &mut World, src: &str) -> OghamResult<EvalLine> {
     Ok(EvalLine { canonical, value })
 }
 
-fn worker_spawn_error(err: std::io::Error) -> OghamError {
-    OghamError::new(
-        OghamErrorKind::Overflow,
+fn worker_spawn_error(err: std::io::Error) -> GrundyError {
+    GrundyError::new(
+        GrundyErrorKind::Overflow,
         Span::point(0),
         format!("unable to allocate the {EVAL_STACK_BYTES}-byte evaluation stack: {err}"),
     )
 }
 
-pub(crate) fn ensure_source_nesting_depth(src: &str) -> OghamResult<()> {
+pub(crate) fn ensure_source_nesting_depth(src: &str) -> GrundyResult<()> {
     let src = strip_comments(src)?;
     let mut depth = 0_u128;
     for line in src.lines() {
@@ -288,8 +288,8 @@ pub(crate) fn ensure_source_nesting_depth(src: &str) -> OghamResult<()> {
                 '(' | '[' | '{' => {
                     depth += 1;
                     if depth > AST_DEPTH_GUARD {
-                        return Err(OghamError::new(
-                            OghamErrorKind::Parse,
+                        return Err(GrundyError::new(
+                            GrundyErrorKind::Parse,
                             Span::point(0),
                             format!(
                                 "source nesting exceeds the depth safety guard of {AST_DEPTH_GUARD} delimiters; the parser stack is bounded"
@@ -305,7 +305,7 @@ pub(crate) fn ensure_source_nesting_depth(src: &str) -> OghamResult<()> {
     Ok(())
 }
 
-pub(crate) fn ensure_statement_depth(statement: &Statement) -> OghamResult<()> {
+pub(crate) fn ensure_statement_depth(statement: &Statement) -> GrundyResult<()> {
     enum SyntaxNode<'a> {
         Statement(&'a Statement),
         Expr(&'a Expr),
@@ -314,8 +314,8 @@ pub(crate) fn ensure_statement_depth(statement: &Statement) -> OghamResult<()> {
     let mut pending = vec![(SyntaxNode::Statement(statement), 1_u128)];
     while let Some((node, depth)) = pending.pop() {
         if depth > AST_DEPTH_GUARD {
-            return Err(OghamError::new(
-                OghamErrorKind::Parse,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 Span::point(0),
                 format!(
                     "statement syntax tree exceeds the depth safety guard of {AST_DEPTH_GUARD} nodes; recursive AST consumers require bounded input depth"

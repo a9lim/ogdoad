@@ -2,7 +2,7 @@
 
 use super::*;
 
-pub(crate) fn value_to_expr<E: Display>(value: &Value<E>) -> OghamResult<Expr> {
+pub(crate) fn value_to_expr<E: Display>(value: &Value<E>) -> GrundyResult<Expr> {
     match value {
         Value::Element(value) => parse_display_expr(&value.to_string()),
         Value::Index(value) => Ok(index_literal_expr(*value)?),
@@ -74,7 +74,7 @@ pub(crate) fn substitute_env<E: Display>(
     expr: &Expr,
     bound: &BTreeSet<String>,
     env: &BTreeMap<String, Value<E>>,
-) -> OghamResult<Expr> {
+) -> GrundyResult<Expr> {
     match expr {
         Expr::Ident(name) if !bound.contains(name) => {
             if let Some(value) = env.get(name) {
@@ -114,31 +114,31 @@ pub(crate) fn substitute_env<E: Display>(
             items
                 .iter()
                 .map(|item| substitute_env(item, bound, env))
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
         )),
         Expr::Apply { callee, args } => Ok(Expr::Apply {
             callee: Box::new(substitute_env(callee, bound, env)?),
             args: args
                 .iter()
                 .map(|arg| substitute_env(arg, bound, env))
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
         }),
         Expr::GameForm { left, right } => Ok(Expr::GameForm {
             left: left
                 .iter()
                 .map(|item| substitute_env(item, bound, env))
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
             right: right
                 .iter()
                 .map(|item| substitute_env(item, bound, env))
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
         }),
         Expr::Call { name, args } => Ok(Expr::Call {
             name: name.clone(),
             args: args
                 .iter()
                 .map(|arg| substitute_env(arg, bound, env))
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
         }),
         Expr::Index(inner) => Ok(wrap_index_expr(substitute_env(inner, bound, env)?)),
         Expr::Unary { op, expr } => Ok(Expr::Unary {
@@ -261,23 +261,23 @@ pub(crate) fn substitute_names(expr: &Expr, replacements: &BTreeMap<String, Expr
     }
 }
 
-pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
+pub(crate) fn beta_normalize(expr: Expr) -> GrundyResult<Expr> {
     match expr {
         Expr::Container(items) => Ok(Expr::Container(
             items
                 .into_iter()
                 .map(beta_normalize)
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
         )),
         Expr::GameForm { left, right } => Ok(Expr::GameForm {
             left: left
                 .into_iter()
                 .map(beta_normalize)
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
             right: right
                 .into_iter()
                 .map(beta_normalize)
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
         }),
         Expr::Lambda { binders, body } => Ok(Expr::Lambda {
             binders,
@@ -293,7 +293,7 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                         recursive: binding.recursive,
                     })
                 })
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
             body: Box::new(beta_normalize(*body)?),
         }),
         Expr::Call { name, args } => Ok(Expr::Call {
@@ -301,7 +301,7 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
             args: args
                 .into_iter()
                 .map(beta_normalize)
-                .collect::<OghamResult<Vec<_>>>()?,
+                .collect::<GrundyResult<Vec<_>>>()?,
         }),
         Expr::Index(inner) => Ok(wrap_index_expr(beta_normalize(*inner)?)),
         Expr::Unary { op, expr } => Ok(Expr::Unary {
@@ -313,7 +313,7 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
             let args = args
                 .into_iter()
                 .map(beta_normalize)
-                .collect::<OghamResult<Vec<_>>>()?;
+                .collect::<GrundyResult<Vec<_>>>()?;
             if let Expr::Lambda {
                 binders,
                 body: lhs_body,
@@ -325,8 +325,8 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                 }] = args.as_slice()
                 {
                     if binders.len() != 1 {
-                        return Err(OghamError::new(
-                            OghamErrorKind::Arity,
+                        return Err(GrundyError::new(
+                            GrundyErrorKind::Arity,
                             Span::point(0),
                             "function composition needs a unary head",
                         ));
@@ -339,8 +339,8 @@ pub(crate) fn beta_normalize(expr: Expr) -> OghamResult<Expr> {
                     });
                 }
                 if args.len() != binders.len() {
-                    return Err(OghamError::new(
-                        OghamErrorKind::Arity,
+                    return Err(GrundyError::new(
+                        GrundyErrorKind::Arity,
                         Span::point(0),
                         format!(
                             "function expects {} argument(s), got {}",

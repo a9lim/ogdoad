@@ -38,13 +38,13 @@ mod worlds;
 
 pub(crate) use runtime::*;
 pub(crate) use session::*;
-pub use session::{eval_to_string, EvalLine, OghamSession};
+pub use session::{eval_to_string, EvalLine, GrundySession};
 pub(crate) use worlds::*;
 
 /// The language release implemented by this evaluator.
-pub const OGHAM_VERSION: &str = "0.3.6";
+pub const GRUNDY_VERSION: &str = "0.3.6";
 
-/// Compact grouping of every fixed-dispatch Ogham world.
+/// Compact grouping of every fixed-dispatch grundy world.
 pub const WORLD_MENU: &str = concat!(
     "worlds:\n",
     "  scalar   nimber ordinal surreal omnific integer\n",
@@ -152,7 +152,7 @@ macro_rules! with_world_runtime {
 }
 
 impl World {
-    fn from_decl(decl: &str) -> OghamResult<Self> {
+    fn from_decl(decl: &str) -> GrundyResult<Self> {
         ensure_source_nesting_depth(decl)?;
         let decl = strip_comments(decl)?;
         let decl = decl.trim().strip_prefix(":world ").unwrap_or(decl.trim());
@@ -235,7 +235,7 @@ impl World {
         }
     }
 
-    fn eval_statement(&mut self, stmt: &Statement) -> OghamResult<Option<String>> {
+    fn eval_statement(&mut self, stmt: &Statement) -> GrundyResult<Option<String>> {
         with_world_runtime!(self, |runtime| runtime.eval_statement(stmt))
     }
 
@@ -268,7 +268,7 @@ impl World {
     }
 }
 
-fn unknown_world_error(name: &str) -> OghamError {
+fn unknown_world_error(name: &str) -> GrundyError {
     let nearest = WORLD_NAMES
         .iter()
         .map(|candidate| (*candidate, edit_distance(name, candidate)))
@@ -279,8 +279,8 @@ fn unknown_world_error(name: &str) -> OghamError {
         Some(candidate) => format!("{WORLD_MENU}\ndid you mean `{candidate}`?"),
         None => WORLD_MENU.to_string(),
     };
-    OghamError::new(
-        OghamErrorKind::WrongWorld,
+    GrundyError::new(
+        GrundyErrorKind::WrongWorld,
         Span::point(0),
         format!("unknown world `{name}`"),
     )
@@ -334,7 +334,7 @@ fn edit_distance(lhs: &str, rhs: &str) -> usize {
     previous[rhs.chars().count()]
 }
 
-fn ensure_function_world_decl(name: &str, tail: &[&str]) -> OghamResult<()> {
+fn ensure_function_world_decl(name: &str, tail: &[&str]) -> GrundyResult<()> {
     if tail.is_empty() || tail == ["0"] {
         Ok(())
     } else {

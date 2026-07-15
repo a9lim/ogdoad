@@ -1,4 +1,4 @@
-# ogham — language specification
+# grundy — language specification
 
 Status: **v0.3.6 implemented** (spec'd 2026-07-10 at the second adversarial
 pass: seven-perspective sweep — four codex seats over the gaslamp
@@ -18,23 +18,27 @@ Every observable semantic rule in this document is pinned by the
 oracles. Implementing agents work until the suite is green; judgment calls go
 back to the spec, not into the code.
 
-File extension `.og`. The name: og(doad) + the ancient stroke-script — fitting
-a language whose operators are strokes and ticks (`*`, `↑`, `∧`, `⋅`, `/`,
-`#`, `‿`).
+File extension `.og` (after ogdoad, the crate that ships it). The name honors
+P. M. Grundy of the Sprague–Grundy theorem — a person-name in the Haskell
+tradition, for the value the language deliberately keeps as four lines of user
+code rather than a primitive (§1). Born **ogham** (through 0.3.6, named for
+og(doad) + the ancient stroke-script); renamed 2026-07-15, provisionally —
+finalization is 0.3.8 release dress
+([`docs/CONTINUATIONS.md`](../CONTINUATIONS.md)).
 
 ---
 
 ## 1. Identity
 
-ogham is a **lisp for games with weird numbers**: a small language whose data
+grundy is a **lisp for games with weird numbers**: a small language whose data
 model is Conway's ontology and whose computation model is as thin as the data
 model is rich. Most languages are the other way around — elaborate control,
-impoverished numbers. ogham inverts the profile. The values are the richest
+impoverished numbers. grundy inverts the profile. The values are the richest
 objects in the language (nimbers addressed by ordinals, Hahn-series surreals,
 multivectors over either, game forms over everything); computation is exactly
 three things — substitution you can see, one equation binder, and
 non-strictness exactly where the mathematics never looks. In the algebraic
-worlds ogham is a coordinate calculus over unusually rich scalars; in the game
+worlds grundy is a coordinate calculus over unusually rich scalars; in the game
 world it becomes a first-order recursive-equation language; the two faces
 share one fenced grammar, one canonical executable display, and explicit
 boundaries.
@@ -62,7 +66,7 @@ piece of mathematics. The coincidences are the language:
   function it unfolds inductively under fuel; written to a game Element it
   closes coinductively into a finite cyclic graph — and an adjacent run of
   such equations closes as one simultaneous system (§9.3), so Siegel's loopy
-  games are recursive equations and ogham writes them as such: `on =: {on |}`
+  games are recursive equations and grundy writes them as such: `on =: {on |}`
   directly executes Siegel's defining equation `on = {on |}`. Assignment `:=`
   flows the past in; `=:` states an equation the name satisfies. The notation
   mirror is the semantics; the polarity is decided by the sort.
@@ -94,7 +98,7 @@ The discipline (unchanged since v0.1, in service of the identity above):
    grammar. `*` belongs to nimbers, not to multiplication.
 2. **Two display laws.** `parse ∘ unparse = id` on parser-produced ASTs, and
    `eval ∘ parse ∘ display ≃ value` — structural `≡` for game forms,
-   α-equivalence for recursive equations. Display emits canonical ogham; the
+   α-equivalence for recursive equations. Display emits canonical grundy; the
    parser's input language is a superset. Every value's display is a
    **self-contained program** that rebuilds it in a fresh session, up to and
    including loopy values, which display as the equation systems that define
@@ -295,7 +299,7 @@ Notes:
 - The surreal-family worlds allow CNF **at expression level, unstarred and
   live**: `3⋅ω↑2 - ω + 5` is ordinary arithmetic over monomials.
 - **Conditional**: `if a then b else c` — condition Bool-sorted; branches
-  are full expressions agreeing in sort; `else` is mandatory (every ogham
+  are full expressions agreeing in sort; `else` is mandatory (every grundy
   expression has a value), which dissolves dangling-else by construction —
   each `else` binds the nearest open `if`, and the else-if chain is flat
   and parens-free: `if a then x else if b then y else z`. Relations,
@@ -331,12 +335,12 @@ Wedge tighter than `⋅` follows Hestenes. Display v4 relies on the blade row:
 blade terms print unparenthesized (`*3⋅e0∧e1`).
 
 **Host-language caveat** (§15): Rust and Python cannot reproduce this table
-for the overloaded operators. The precedence above is ogham's, full stop;
+for the overloaded operators. The precedence above is grundy's, full stop;
 host code parenthesizes.
 
 ## 6. Sorts
 
-ogham has **three first-order data sorts** — **Element** (the world's values:
+grundy has **three first-order data sorts** — **Element** (the world's values:
 multivectors, polynomials, game forms), **Index** (meta-integers, `i128`),
 **Bool** (verdicts) — plus **closed Function abstractions**, which may be
 bound, displayed, composed, and applied but not passed, returned, or stored.
@@ -555,7 +559,7 @@ unparser).
 
 ### 8.1 Operator → engine desugaring
 
-| ogham | engine call |
+| grundy | engine call |
 |---|---|
 | `a + b` | `Multivector::add`; poly worlds: ring add; game world: disjunctive sum (form-level materialization; total on loopy operands via the product graph, §10.7) |
 | `a - b`, `-a` | `sub`/`neg` — scalar `neg()` underneath, never literal −1 (core rule 3); game world: game negation (total on loopy operands — the L/R graph swap) |
@@ -624,7 +628,7 @@ order, grade-0 only:
 
 Index relations (`= < >`) are the meta-integer total order; Bool `=` is Bool
 equality; `f = g` on Functions is `E_FnSort` (function equality is
-extensional and not ogham's to decide).
+extensional and not grundy's to decide).
 
 Binding is `name := expr` (any sort; rebinding allowed). An unbound bare
 identifier left of a top-level `=` earns "did you mean `name := …`?".
@@ -750,9 +754,9 @@ contract:
 - **presentation** — option *order* as entered. Display and indexed access
   (`left(g, i)`) live here. Never semantic.
 - **multiform** — the constructors' quotient of presentation: sides as
-  **multisets** of multiforms. This is ogham's own stratum, named honestly:
+  **multisets** of multiforms. This is grundy's own stratum, named honestly:
   Conway's form is set-like (duplicate moves to one option are not form
-  data), ogham's is deliberately multiplicity-enriched (claim level:
+  data), grundy's is deliberately multiplicity-enriched (claim level:
   interpretation) — `{0, 0 |} ≢ {0 |}`, and `1 + 1` displays `{1, 1 |}`. We
   write "form" as shorthand below; the multiset is always meant. `≡`, `⧺`,
   option counts, list structure, `birthday`, and the `stopper` predicate
@@ -940,7 +944,7 @@ Left starts:  L wins              >>       >‿       ><
   themselves. (Known hazard, documented: `<>` means "not equal" in some
   languages; here, on finite forms, it is true exactly when `=` is. The
   tutor teaches; convention lost, shape won.)
-- The CGT glyph collision is settled as before: ogham's `↑` is power;
+- The CGT glyph collision is settled as before: grundy's `↑` is power;
   up/down are the literal atoms `up`, `down` (§7.5).
 
 ### 10.7 Element-`=:` — loopy games are equations
@@ -1103,7 +1107,7 @@ for it, so what remains is its precedence/associativity choice and corpus.
 
 ## 12. Display (canonical form, v4)
 
-Every `Display` impl in language scope emits canonical ogham — one rendering
+Every `Display` impl in language scope emits canonical grundy — one rendering
 path each. v4 (this version) unifies the monomial families and adds dyadic
 fractions and binder marks.
 
@@ -1169,7 +1173,7 @@ functions echo their equation form; mutual Element systems echo as adjacent
 
 ## 13. Error taxonomy
 
-`OghamError { kind, span, message, hint }`. Errors are built through
+`GrundyError { kind, span, message, hint }`. Errors are built through
 centralized constructors; **guidance lives in the `hint` field, never the
 message tail** (this is a checked build invariant — see
 `implementation.md`), and focused tests assert hints. Kinds:
@@ -1208,7 +1212,7 @@ message tail** (this is a checked build invariant — see
 
 ## 14. REPL and files
 
-`examples/ogham_repl.rs` drives `src/ogham/`'s `OghamSession`. Default world
+`examples/grundy_repl.rs` drives `src/grundy/`'s `GrundySession`. Default world
 `integer` (dim 0 — the shorthand is canonical, §7); the banner names the
 version and world. Colon commands: `:world …`, `:fuel [n]`, `:graph [n]`,
 `:env`, `:help [topic]`, `:quit`. A failed `:world` preserves the current
@@ -1222,7 +1226,7 @@ Comment-only lines are no-ops; EOF flushes a pending continuation; unknown
 worlds list the menu.
 
 `.og` files are piped sessions: the same statement syntax, `:world` directive
-lines included — `cargo run --example ogham_repl < file.og` is the runner.
+lines included — `cargo run --example grundy_repl < file.og` is the runner.
 One statement per line at depth 0; continuation per §3 (open delimiters or a
 line ending in a token that cannot end a statement).
 
@@ -1235,10 +1239,10 @@ The host overloads speak the same dialect as the display. Highlights:
 | wedge | `impl BitAnd` (`a & b`) | `__and__`; `__xor__` raises with the `E_ExpSort` hint |
 | power | scalars: `impl BitXor<u128>` (RHS is the meta-integer type — `Nimber ^ Nimber` does not compile, by design); multivectors: `CliffordAlgebra::pow` only | `**`; never `__xor__` |
 | ordinal power | no operator; `nim_pow -> Option` | `pow()` raising honestly |
-| remainder | no `Rem` impl (Rust `%` truncates; ogham's is Euclidean) — methods only | `__mod__` (Python `%` agrees) |
+| remainder | no `Rem` impl (Rust `%` truncates; grundy's is Euclidean) — methods only | `__mod__` (Python `%` agrees) |
 | evaluation | inherent `Poly::eval`/`compose` | `__matmul__` |
 | relations | `Ord` on ordered scalars; `fuzzy()` on nim types; no `PartialOrd` on nim types, no `BitOr`-as-fuzzy | rich comparisons / `fuzzy()`; `Ordinal.__richcmp__` speaks CNF *address* order, the language speaks value order — documented, not unified |
-| `↦ if/then/else and/or/not =: ⧺ ≡ {L\|R} # ‿`-doubles, dyadic game literals, binder marks | **none** — ogham spelling only | none |
+| `↦ if/then/else and/or/not =: ⧺ ≡ {L\|R} # ‿`-doubles, dyadic game literals, binder marks | **none** — grundy spelling only | none |
 
 Game-world exposure to Python remains a binding-scope-policy decision
 (`src/py/AGENTS.md`), not part of 0.3.x.
@@ -1264,7 +1268,7 @@ three parts, one obligation:
 
    Corpus files use `//` comments, on their own lines or trailing input.
    Blocks separated by blank lines. The harness is
-   `tests/ogham_conformance.rs` (pure Rust); it also asserts hint fields on
+   `tests/grundy_conformance.rs` (pure Rust); it also asserts hint fields on
    the vectors that pin them. Blessing remains an operator workflow: the
    engine can suggest values, the spec stays the oracle.
 

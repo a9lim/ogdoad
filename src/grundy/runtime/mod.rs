@@ -28,9 +28,9 @@ pub(crate) trait WorldOps: Sized {
     fn state_mut(&mut self) -> &mut RuntimeState<Self::Element>;
     fn world_name(&self) -> &'static str;
     fn world_summary(&self) -> String;
-    fn world_eval_element(&mut self, expr: &Expr) -> OghamResult<Self::Element>;
-    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool>;
-    fn sample_element_expr(&self) -> OghamResult<Expr>;
+    fn world_eval_element(&mut self, expr: &Expr) -> GrundyResult<Self::Element>;
+    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<bool>;
+    fn sample_element_expr(&self) -> GrundyResult<Expr>;
 
     fn index_primitive(&mut self, _expr: &Expr) -> IndexPrimitive {
         IndexPrimitive::NotHandled
@@ -44,11 +44,11 @@ pub(crate) trait WorldOps: Sized {
         false
     }
 
-    fn adjust_binder_error(&self, err: OghamError) -> OghamError {
+    fn adjust_binder_error(&self, err: GrundyError) -> GrundyError {
         err
     }
 
-    fn named_element(&self, _name: &str) -> OghamResult<Option<Self::Element>> {
+    fn named_element(&self, _name: &str) -> GrundyResult<Option<Self::Element>> {
         Ok(None)
     }
 
@@ -56,15 +56,15 @@ pub(crate) trait WorldOps: Sized {
         &mut self,
         _name: &str,
         _args: &[Expr],
-    ) -> Option<OghamResult<Value<Self::Element>>> {
+    ) -> Option<GrundyResult<Value<Self::Element>>> {
         None
     }
 
-    fn bind_recursive_element(&mut self, name: &str, _expr: &Expr) -> OghamResult<()> {
+    fn bind_recursive_element(&mut self, name: &str, _expr: &Expr) -> GrundyResult<()> {
         Err(element_fixpoint_error(name))
     }
 
-    fn bind_recursive_system(&mut self, _bindings: &[Binding]) -> OghamResult<usize> {
+    fn bind_recursive_system(&mut self, _bindings: &[Binding]) -> GrundyResult<usize> {
         Ok(0)
     }
 
@@ -99,16 +99,16 @@ pub(crate) trait WorldOps: Sized {
         _lhs_expr: &Expr,
         _lhs: Self::Element,
         _rhs: &Expr,
-    ) -> OghamResult<Value<Self::Element>> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    ) -> GrundyResult<Value<Self::Element>> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             Span::point(0),
             "only Function values apply with `@` in this world",
         )
         .with_hint("element evaluation lives in function-shaped worlds"))
     }
 
-    fn non_function_at_error(&self) -> Option<OghamError> {
+    fn non_function_at_error(&self) -> Option<GrundyError> {
         None
     }
 
@@ -144,7 +144,7 @@ pub(crate) trait WorldOps: Sized {
         &mut self,
         function: &FunctionValue,
         args: &[Value<Self::Element>],
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         let mut replacements = BTreeMap::new();
         for (binder, arg) in function.binders.iter().zip(args) {
             replacements.insert(binder.name.clone(), value_to_expr(arg)?);
@@ -199,7 +199,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         &mut self.state_mut().validation_sample_function_names
     }
 
-    fn eval_index(&mut self, expr: &Expr) -> OghamResult<i128> {
+    fn eval_index(&mut self, expr: &Expr) -> GrundyResult<i128> {
         index::eval_index(self, expr)
     }
 
@@ -219,7 +219,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         *self.graph_budget_mut() = budget;
     }
 
-    fn eval_statement(&mut self, stmt: &Statement) -> OghamResult<Option<String>> {
+    fn eval_statement(&mut self, stmt: &Statement) -> GrundyResult<Option<String>> {
         match stmt {
             Statement::Binding {
                 name,
@@ -255,7 +255,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         }
     }
 
-    fn bind_bindings(&mut self, bindings: &[Binding]) -> OghamResult<()> {
+    fn bind_bindings(&mut self, bindings: &[Binding]) -> GrundyResult<()> {
         let mut index = 0;
         while index < bindings.len() {
             let consumed = if bindings[index].recursive {
@@ -274,10 +274,10 @@ pub(crate) trait SharedRuntime: WorldOps {
         Ok(())
     }
 
-    fn bind_name(&mut self, name: &str, expr: &Expr, recursive: bool) -> OghamResult<()> {
+    fn bind_name(&mut self, name: &str, expr: &Expr, recursive: bool) -> GrundyResult<()> {
         if self.reserved_ident(name) || reserved_function_binder(name) {
-            return Err(OghamError::new(
-                OghamErrorKind::Reserved,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Reserved,
                 Span::point(0),
                 format!("`{name}` is reserved in the `{}` world", self.world_name()),
             ));
@@ -307,7 +307,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         &mut self,
         bindings: &[Binding],
         body: &Expr,
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         let saved = self.env().clone();
         let result = (|| {
             self.bind_bindings(bindings)?;
@@ -328,7 +328,7 @@ pub(crate) trait SharedRuntime: WorldOps {
             .collect()
     }
 
-    fn eval_value(&mut self, expr: &Expr) -> OghamResult<Value<Self::Element>> {
+    fn eval_value(&mut self, expr: &Expr) -> GrundyResult<Value<Self::Element>> {
         match expr {
             Expr::Bool(value) => Ok(Value::Bool(*value)),
             Expr::Block { bindings, body } => self.eval_block(bindings, body),
@@ -422,20 +422,20 @@ pub(crate) trait SharedRuntime: WorldOps {
         }
     }
 
-    fn eval_element_or_index(&mut self, expr: &Expr) -> OghamResult<Value<Self::Element>> {
+    fn eval_element_or_index(&mut self, expr: &Expr) -> GrundyResult<Value<Self::Element>> {
         if self.prefer_index_expression() && expression_is_index(expr) {
             return self.eval_index(expr).map(Value::Index);
         }
         match self.world_eval_element(expr) {
             Ok(value) => Ok(Value::Element(value)),
-            Err(err) if err.kind == OghamErrorKind::IndexSort => {
+            Err(err) if err.kind == GrundyErrorKind::IndexSort => {
                 self.eval_index(expr).map(Value::Index)
             }
             Err(err) => Err(err),
         }
     }
 
-    fn eval_bool(&mut self, expr: &Expr) -> OghamResult<bool> {
+    fn eval_bool(&mut self, expr: &Expr) -> GrundyResult<bool> {
         match self.eval_value(expr)? {
             Value::Bool(value) => Ok(value),
             Value::Element(_) | Value::Index(_) => Err(bool_sort_error()),
@@ -443,7 +443,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         }
     }
 
-    fn eval_apply(&mut self, callee: &Expr, args: &[Expr]) -> OghamResult<Value<Self::Element>> {
+    fn eval_apply(&mut self, callee: &Expr, args: &[Expr]) -> GrundyResult<Value<Self::Element>> {
         match self.eval_value(callee)? {
             Value::Function(function) => {
                 if args.len() != 1 {
@@ -471,7 +471,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         &mut self,
         function: &FunctionValue,
         args: Vec<Value<Self::Element>>,
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         if args.len() != function.binders.len() {
             return Err(function_arity_error(function.binders.len(), args.len()));
         }
@@ -484,8 +484,8 @@ pub(crate) trait SharedRuntime: WorldOps {
         if let Some(key) = call_key.as_deref() {
             if self.call_key_is_active(key) {
                 *self.fuel_remaining_mut() = 0;
-                return Err(OghamError::new(
-                    OghamErrorKind::Fuel,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::Fuel,
                     Span::point(0),
                     format!(
                         "recursive definition `{}` exhausted its fuel budget of {}",
@@ -532,7 +532,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         &mut self,
         function: &FunctionValue,
         args: &[Expr],
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         if args.len() != function.binders.len() {
             return Err(function_arity_error(function.binders.len(), args.len()));
         }
@@ -541,7 +541,7 @@ pub(crate) trait SharedRuntime: WorldOps {
             .iter()
             .zip(args)
             .map(|(binder, arg)| self.eval_arg_for_sort(arg, binder))
-            .collect::<OghamResult<Vec<_>>>()?;
+            .collect::<GrundyResult<Vec<_>>>()?;
         self.apply_function(function, values)
     }
 
@@ -549,14 +549,14 @@ pub(crate) trait SharedRuntime: WorldOps {
         &mut self,
         expr: &Expr,
         binder: &Binder,
-    ) -> OghamResult<Value<Self::Element>> {
+    ) -> GrundyResult<Value<Self::Element>> {
         let value = match binder.sort {
             DataSort::Element => self.world_eval_element(expr).map(Value::Element),
             DataSort::Index => self.eval_index(expr).map(Value::Index),
             DataSort::Bool => self.eval_bool(expr).map(Value::Bool),
         };
         value.map_err(|err| {
-            if binder.declared_sort.is_none() && err.kind == OghamErrorKind::IndexSort {
+            if binder.declared_sort.is_none() && err.kind == GrundyErrorKind::IndexSort {
                 err.with_hint("declare the binder: `(#i, #j) ↦ …`")
             } else {
                 err
@@ -568,7 +568,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         &mut self,
         lhs: &Expr,
         rhs: &FunctionValue,
-    ) -> OghamResult<FunctionValue> {
+    ) -> GrundyResult<FunctionValue> {
         let mut replacements = BTreeMap::new();
         replacements.insert("t".to_string(), rhs.body.clone());
         let body = beta_normalize(substitute_names(lhs, &replacements))?;
@@ -586,10 +586,10 @@ pub(crate) trait SharedRuntime: WorldOps {
         &mut self,
         lhs: &FunctionValue,
         rhs: &FunctionValue,
-    ) -> OghamResult<FunctionValue> {
+    ) -> GrundyResult<FunctionValue> {
         if lhs.binders.len() != 1 {
-            return Err(OghamError::new(
-                OghamErrorKind::Arity,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Arity,
                 Span::point(0),
                 "function composition needs a unary head",
             ));
@@ -615,7 +615,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         binders: Vec<LambdaBinder>,
         body: Expr,
         mu_name: Option<String>,
-    ) -> OghamResult<FunctionValue> {
+    ) -> GrundyResult<FunctionValue> {
         let binder_names = binders
             .iter()
             .map(|binder| binder.name.clone())
@@ -695,7 +695,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         Ok(function)
     }
 
-    fn validate_function_body(&mut self, function: &FunctionValue) -> OghamResult<()> {
+    fn validate_function_body(&mut self, function: &FunctionValue) -> GrundyResult<()> {
         let mut replacements = BTreeMap::new();
         for binder in &function.binders {
             replacements.insert(binder.name.clone(), self.sample_expr(binder.sort)?);
@@ -704,7 +704,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         self.validate_all(&sampled)
     }
 
-    fn validate_all(&mut self, expr: &Expr) -> OghamResult<()> {
+    fn validate_all(&mut self, expr: &Expr) -> GrundyResult<()> {
         match expr {
             Expr::Lambda { .. } => return Err(fn_sort_error()),
             Expr::Block { bindings, body } => {
@@ -777,7 +777,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         ignore_static_partiality(self.eval_value(expr))
     }
 
-    fn sample_expr(&self, sort: DataSort) -> OghamResult<Expr> {
+    fn sample_expr(&self, sort: DataSort) -> GrundyResult<Expr> {
         match sort {
             DataSort::Element => self.sample_element_expr(),
             DataSort::Index => Ok(Expr::Int(1)),
@@ -785,7 +785,7 @@ pub(crate) trait SharedRuntime: WorldOps {
         }
     }
 
-    fn static_sort(&self, expr: &Expr) -> OghamResult<DataSort> {
+    fn static_sort(&self, expr: &Expr) -> GrundyResult<DataSort> {
         static_sort(expr, self.env(), self.deg_is_index())
     }
 }

@@ -1171,13 +1171,13 @@ macro_rules! backend_multivector {
                     mv: acc,
                 })
             }
-            /// Exterior (wedge) product — ogham `∧`.
+            /// Exterior (wedge) product — grundy `∧`.
             ///
             /// Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-            /// operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+            /// operator on `Multivector`. `^` is grundy power syntax, not wedge,
             /// so `__xor__` raises with the parser hint.
             ///
-            /// **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+            /// **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
             /// `∧` is tighter than `⋅`. Parenthesize when mixing.
             fn wedge(&self, other: &$mv) -> PyResult<$mv> {
                 self.ensure_same_algebra(other)?;

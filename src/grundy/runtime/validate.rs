@@ -11,19 +11,19 @@ pub(crate) enum ExpectedSort {
 pub(crate) fn check_binders(
     binders: &[String],
     is_world_shadow: impl Fn(&str) -> bool,
-) -> OghamResult<()> {
+) -> GrundyResult<()> {
     let mut seen = BTreeSet::new();
     for binder in binders {
         if !seen.insert(binder.clone()) {
-            return Err(OghamError::new(
-                OghamErrorKind::Shadow,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Shadow,
                 Span::point(0),
                 format!("duplicate binder `{binder}`"),
             ));
         }
         if is_world_shadow(binder) {
-            return Err(OghamError::new(
-                OghamErrorKind::Shadow,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Shadow,
                 Span::point(0),
                 format!("binder `{binder}` shadows a reserved name"),
             ));
@@ -35,7 +35,7 @@ pub(crate) fn check_binders(
 pub(crate) fn infer_function_signature(
     body: &Expr,
     binders: &[LambdaBinder],
-) -> OghamResult<(Vec<DataSort>, DataSort)> {
+) -> GrundyResult<(Vec<DataSort>, DataSort)> {
     let mut slots = binders
         .iter()
         .map(|binder| (binder.name.clone(), binder.declared_sort))
@@ -57,7 +57,7 @@ pub(crate) fn infer_expr_sort(
     expr: &Expr,
     expected: ExpectedSort,
     binders: &mut BTreeMap<String, Option<DataSort>>,
-) -> OghamResult<DataSort> {
+) -> GrundyResult<DataSort> {
     match expr {
         Expr::Bool(_) => expect_sort(DataSort::Bool, expected),
         Expr::Int(_) | Expr::Star(_) | Expr::Omega | Expr::Blade(_) | Expr::Up | Expr::Down => {
@@ -141,8 +141,8 @@ pub(crate) fn infer_expr_sort(
             }
             "tr" => {
                 if args.is_empty() || args.len() > 2 {
-                    return Err(OghamError::new(
-                        OghamErrorKind::Arity,
+                    return Err(GrundyError::new(
+                        GrundyErrorKind::Arity,
                         Span::point(0),
                         "`tr` expects one or two arguments",
                     ));
@@ -159,8 +159,8 @@ pub(crate) fn infer_expr_sort(
                 infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Element), binders)?;
                 expect_sort(DataSort::Element, expected)
             }
-            _ => Err(OghamError::new(
-                OghamErrorKind::UnknownFn,
+            _ => Err(GrundyError::new(
+                GrundyErrorKind::UnknownFn,
                 Span::point(0),
                 format!("unknown function `{name}`"),
             )),
@@ -259,7 +259,7 @@ pub(crate) fn infer_expr_sort(
 pub(crate) fn infer_block_binding_rhs(
     rhs: &Expr,
     binders: &mut BTreeMap<String, Option<DataSort>>,
-) -> OghamResult<()> {
+) -> GrundyResult<()> {
     match rhs {
         Expr::Lambda {
             binders: local_binders,
@@ -273,7 +273,7 @@ pub(crate) fn infer_nested_lambda_body(
     local_binders: &[LambdaBinder],
     body: &Expr,
     binders: &mut BTreeMap<String, Option<DataSort>>,
-) -> OghamResult<()> {
+) -> GrundyResult<()> {
     let local = local_binders
         .iter()
         .map(|binder| binder.name.clone())
@@ -313,7 +313,7 @@ pub(crate) fn default_sort(expected: ExpectedSort) -> DataSort {
     }
 }
 
-pub(crate) fn expect_sort(actual: DataSort, expected: ExpectedSort) -> OghamResult<DataSort> {
+pub(crate) fn expect_sort(actual: DataSort, expected: ExpectedSort) -> GrundyResult<DataSort> {
     match expected {
         ExpectedSort::Any => Ok(actual),
         ExpectedSort::Known(expected) if expected == actual => Ok(actual),
@@ -325,7 +325,7 @@ pub(crate) fn mark_binder_sort(
     binders: &mut BTreeMap<String, Option<DataSort>>,
     name: &str,
     sort: DataSort,
-) -> OghamResult<()> {
+) -> GrundyResult<()> {
     let slot = binders
         .get_mut(name)
         .expect("binder existence checked before mark");
@@ -387,7 +387,7 @@ pub(crate) fn static_sort<E>(
     expr: &Expr,
     env: &BTreeMap<String, Value<E>>,
     deg_is_index: bool,
-) -> OghamResult<DataSort> {
+) -> GrundyResult<DataSort> {
     match expr {
         Expr::Bool(_) | Expr::Relation { .. } => Ok(DataSort::Bool),
         Expr::Index(_) | Expr::Dim => Ok(DataSort::Index),
@@ -396,7 +396,7 @@ pub(crate) fn static_sort<E>(
             let mut local_sorts = env
                 .iter()
                 .map(|(name, value)| env_sort(value).map(|sort| (name.clone(), sort)))
-                .collect::<OghamResult<BTreeMap<_, _>>>()?;
+                .collect::<GrundyResult<BTreeMap<_, _>>>()?;
             for binding in bindings {
                 let sort = static_sort_with_sorts(&binding.expr, &local_sorts, deg_is_index)?;
                 local_sorts.insert(binding.name.clone(), sort);
@@ -470,7 +470,7 @@ pub(crate) fn static_sort_with_sorts(
     expr: &Expr,
     env: &BTreeMap<String, DataSort>,
     deg_is_index: bool,
-) -> OghamResult<DataSort> {
+) -> GrundyResult<DataSort> {
     match expr {
         Expr::Bool(_) | Expr::Relation { .. } => Ok(DataSort::Bool),
         Expr::Index(_) | Expr::Dim => Ok(DataSort::Index),
@@ -560,7 +560,7 @@ pub(crate) fn reserved_function_binder(name: &str) -> bool {
     )
 }
 
-pub(crate) fn ignore_static_partiality<E>(result: OghamResult<Value<E>>) -> OghamResult<()> {
+pub(crate) fn ignore_static_partiality<E>(result: GrundyResult<Value<E>>) -> GrundyResult<()> {
     match result {
         Ok(_) => Ok(()),
         Err(err) if is_runtime_partiality(err.kind) => Ok(()),
@@ -568,16 +568,16 @@ pub(crate) fn ignore_static_partiality<E>(result: OghamResult<Value<E>>) -> Ogha
     }
 }
 
-pub(crate) fn is_runtime_partiality(kind: OghamErrorKind) -> bool {
+pub(crate) fn is_runtime_partiality(kind: GrundyErrorKind) -> bool {
     matches!(
         kind,
-        OghamErrorKind::DivisionByZero
-            | OghamErrorKind::NotInvertible
-            | OghamErrorKind::Domain
-            | OghamErrorKind::Overflow
-            | OghamErrorKind::KummerEscape
-            | OghamErrorKind::Modulus
-            | OghamErrorKind::GraphBudget
+        GrundyErrorKind::DivisionByZero
+            | GrundyErrorKind::NotInvertible
+            | GrundyErrorKind::Domain
+            | GrundyErrorKind::Overflow
+            | GrundyErrorKind::KummerEscape
+            | GrundyErrorKind::Modulus
+            | GrundyErrorKind::GraphBudget
     )
 }
 

@@ -2,8 +2,8 @@
 //! zeros never stored) plus the metric-free operators (`+`, `-`, unary `-`,
 //! and `&` for the exterior/wedge product) that need no algebra context — see
 //! the type's own docs for the full operator-vs-context-method policy. Also
-//! carries the canonical `fmt::Display` implementation (ogham Display v4,
-//! `docs/ogham/spec.md` §12): wedge-blade labels, coefficient attachment,
+//! carries the canonical `fmt::Display` implementation (grundy Display v4,
+//! `docs/grundy/spec.md` §12): wedge-blade labels, coefficient attachment,
 //! `1`/`-1` elision, the leading-`-` join rule, and the zero-render rule.
 
 use super::basis::bits;
@@ -27,14 +27,14 @@ use std::ops::{Add, BitAnd, Neg, Sub};
 /// // correct: metric-free additive ops use operators
 /// let sum = a + b;
 /// let w   = a & b;   // exterior/wedge product (metric-independent)
-///                    // ogham ∧; `^` is reserved for power
+///                    // grundy ∧; `^` is reserved for power
 ///
 /// // correct: metric-dependent ops use the algebra context
 /// let prod = alg.mul(&a, &b);
 /// let rev  = alg.reverse(&a);
 /// ```
 ///
-/// **Why `&` and not `^` for wedge?** In ogham, `∧`/`&` is the wedge and
+/// **Why `&` and not `^` for wedge?** In grundy, `∧`/`&` is the wedge and
 /// `↑`/`^` is power. On a type like `Nimber`, element-element `^` would read
 /// as XOR = nim-*addition* — not wedge. Using `&` for wedge and reserving `^`
 /// for power on scalars (via `impl BitXor<u128>` with a `u128` RHS) makes the
@@ -42,8 +42,8 @@ use std::ops::{Add, BitAnd, Neg, Sub};
 /// are scalars of the same type (no `BitXor<Self>` impl), preventing the
 /// Nimber XOR confusion.
 ///
-/// **Precedence caveat (§5 `docs/ogham/spec.md`):** Rust's `&` binds looser than
-/// `+` (and looser than `*`), unlike ogham's wedge-tighter-than-product table.
+/// **Precedence caveat (§5 `docs/grundy/spec.md`):** Rust's `&` binds looser than
+/// `+` (and looser than `*`), unlike grundy's wedge-tighter-than-product table.
 /// Host code that mixes `+`/`*` and `&` must parenthesize explicitly.
 ///
 /// This mirrors the scalar policy from `impl_scalar_ops!`: operators on the
@@ -66,7 +66,7 @@ impl<S: Scalar> Multivector<S> {
         self.terms.is_empty()
     }
 
-    /// Human-readable form, e.g. `3 + 2⋅e0 + e0∧e1` (canonical ogham, Display
+    /// Human-readable form, e.g. `3 + 2⋅e0 + e0∧e1` (canonical grundy, Display
     /// v2 §9). A thin alias for the [`fmt::Display`] impl (kept because the
     /// Python binding calls it).
     pub fn display(&self) -> String {
@@ -174,15 +174,15 @@ impl<S: Scalar> Sub for Multivector<S> {
 impl<S: Scalar> BitAnd for Multivector<S> {
     type Output = Multivector<S>;
 
-    /// Exterior (wedge) product `a & b` — ogham `a ∧ b`.
+    /// Exterior (wedge) product `a & b` — grundy `a ∧ b`.
     ///
     /// This is metric-independent: it computes the exterior product of the
-    /// two term maps directly. In ogham and here, wedge is `∧`/`&`; `^` is
+    /// two term maps directly. In grundy and here, wedge is `∧`/`&`; `^` is
     /// reserved for power. On `Nimber`, an element-element `^` would read as
     /// XOR = nim-*addition*, which is why `BitXor<Self>` does not exist on any
     /// backend: the type system enforces the disambiguation.
     ///
-    /// **Precedence caveat (§5 `docs/ogham/spec.md`):** Rust's `&` binds looser
+    /// **Precedence caveat (§5 `docs/grundy/spec.md`):** Rust's `&` binds looser
     /// than `+` and `*`. Parenthesize when mixing: `(a + b) & c`, not
     /// `a + b & c`.
     fn bitand(self, rhs: Multivector<S>) -> Multivector<S> {

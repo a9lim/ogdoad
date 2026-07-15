@@ -1,4 +1,4 @@
-use ogdoad::ogham::{needs_continuation, OghamSession, OGHAM_VERSION, WORLD_MENU};
+use ogdoad::grundy::{needs_continuation, GrundySession, GRUNDY_VERSION, WORLD_MENU};
 use std::io::{self, Write};
 
 const TUTOR_TASKS: &str = concat!(
@@ -17,8 +17,8 @@ fn help_screen() -> String {
 }
 
 fn main() {
-    let mut session = OghamSession::new("integer 0").expect("default ogham world");
-    println!("ogham {OGHAM_VERSION} — {}", session.world_summary());
+    let mut session = GrundySession::new("integer 0").expect("default grundy world");
+    println!("grundy {GRUNDY_VERSION} — {}", session.world_summary());
     let stdin = io::stdin();
     let mut pending = String::new();
     loop {

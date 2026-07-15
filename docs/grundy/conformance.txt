@@ -1,5 +1,5 @@
-// ogham conformance corpus — v0.3.6 (hand-verified and fully merged)
-// Format: docs/ogham/spec.md §16, plus `>>` continuation lines for joined
+// grundy conformance corpus — v0.3.6 (hand-verified and fully merged)
+// Format: docs/grundy/spec.md §16, plus `>>` continuation lines for joined
 // open-paren/open-bracket/open-brace inputs.
 //   @world ‹args as after ":world"›   resets bindings
 //   @fuel ‹u128›                      sets the per-statement μ-step budget

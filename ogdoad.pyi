@@ -387,13 +387,13 @@ class AdeleMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -1172,13 +1172,13 @@ class F16MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -1572,13 +1572,13 @@ class F25MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -1972,13 +1972,13 @@ class F27MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -2372,13 +2372,13 @@ class F4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -2772,13 +2772,13 @@ class F8MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -3172,13 +3172,13 @@ class F9MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -3580,13 +3580,13 @@ class Fp11MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -3956,13 +3956,13 @@ class Fp11PolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -4319,13 +4319,13 @@ class Fp11RationalFunctionMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -4683,13 +4683,13 @@ class Fp13MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -5059,13 +5059,13 @@ class Fp13PolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -5422,13 +5422,13 @@ class Fp13RationalFunctionMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -5786,13 +5786,13 @@ class Fp2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -6162,13 +6162,13 @@ class Fp2PolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -6525,13 +6525,13 @@ class Fp2RationalFunctionMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -6889,13 +6889,13 @@ class Fp3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -7265,13 +7265,13 @@ class Fp3PolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -7628,13 +7628,13 @@ class Fp3RationalFunctionMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -7992,13 +7992,13 @@ class Fp5MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -8368,13 +8368,13 @@ class Fp5PolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -8731,13 +8731,13 @@ class Fp5RationalFunctionMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -9095,13 +9095,13 @@ class Fp7MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -9471,13 +9471,13 @@ class Fp7PolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -9834,13 +9834,13 @@ class Fp7RationalFunctionMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -10454,13 +10454,13 @@ class GaussQp11_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -10842,13 +10842,13 @@ class GaussQp13_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -11230,13 +11230,13 @@ class GaussQp2_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -11618,13 +11618,13 @@ class GaussQp3_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -12006,13 +12006,13 @@ class GaussQp5_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -12394,13 +12394,13 @@ class GaussQp7_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -12811,13 +12811,13 @@ class IntegerMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -13182,13 +13182,13 @@ class IntegerPolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -13639,13 +13639,13 @@ class LaurentF25_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -14012,13 +14012,13 @@ class LaurentF27_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -14385,13 +14385,13 @@ class LaurentF9_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -14758,13 +14758,13 @@ class LaurentFp11_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -15131,13 +15131,13 @@ class LaurentFp13_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -15504,13 +15504,13 @@ class LaurentFp3_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -15877,13 +15877,13 @@ class LaurentFp5_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -16250,13 +16250,13 @@ class LaurentFp7_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -16646,13 +16646,13 @@ class LaurentRational_6MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -17380,13 +17380,13 @@ class NimberMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -17752,13 +17752,13 @@ class NimberPolyMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -18113,13 +18113,13 @@ class NimberRationalFunctionMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -18601,13 +18601,13 @@ class OmnificMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -18988,13 +18988,13 @@ class OrdinalMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -19463,13 +19463,13 @@ class Qp11_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -19862,13 +19862,13 @@ class Qp13_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -20261,13 +20261,13 @@ class Qp2_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -20660,13 +20660,13 @@ class Qp3_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -21059,13 +21059,13 @@ class Qp5_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -21458,13 +21458,13 @@ class Qp7_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -21866,13 +21866,13 @@ class Qq2_4_2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -22274,13 +22274,13 @@ class Qq2_4_3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -22682,13 +22682,13 @@ class Qq2_4_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -23090,13 +23090,13 @@ class Qq3_4_2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -23498,13 +23498,13 @@ class Qq3_4_3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -23906,13 +23906,13 @@ class Qq5_4_2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -24352,13 +24352,13 @@ class RamifiedQp11_4_E2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -24742,13 +24742,13 @@ class RamifiedQp11_4_E3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -25132,13 +25132,13 @@ class RamifiedQp13_4_E2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -25522,13 +25522,13 @@ class RamifiedQp13_4_E3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -25912,13 +25912,13 @@ class RamifiedQp2_4_E2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -26302,13 +26302,13 @@ class RamifiedQp2_4_E3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -26692,13 +26692,13 @@ class RamifiedQp3_4_E2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -27082,13 +27082,13 @@ class RamifiedQp3_4_E3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -27472,13 +27472,13 @@ class RamifiedQp5_4_E2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -27862,13 +27862,13 @@ class RamifiedQp5_4_E3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -28252,13 +28252,13 @@ class RamifiedQp7_4_E2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -28642,13 +28642,13 @@ class RamifiedQp7_4_E3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -29072,13 +29072,13 @@ class RationalMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -29622,13 +29622,13 @@ class SurcomplexMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -30090,13 +30090,13 @@ class SurrealMV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -30616,13 +30616,13 @@ class WittVec2_4_2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -30989,13 +30989,13 @@ class WittVec2_4_3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -31362,13 +31362,13 @@ class WittVec2_4_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -31735,13 +31735,13 @@ class WittVec3_4_2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -32108,13 +32108,13 @@ class WittVec3_4_3MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -32481,13 +32481,13 @@ class WittVec5_4_2MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -32844,13 +32844,13 @@ class Zp11_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -33207,13 +33207,13 @@ class Zp13_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -33570,13 +33570,13 @@ class Zp2_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -33933,13 +33933,13 @@ class Zp3_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -34296,13 +34296,13 @@ class Zp5_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -34659,13 +34659,13 @@ class Zp7_4MV:
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
         """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
-        """Exterior (wedge) product — ogham `∧`.
+        """Exterior (wedge) product — grundy `∧`.
 
         Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
-        operator on `Multivector`. `^` is Ogham power syntax, not wedge,
+        operator on `Multivector`. `^` is grundy power syntax, not wedge,
         so `__xor__` raises with the parser hint.
 
-        **Precedence caveat:** Python's `&` binds looser than `+`; ogham's
+        **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
         `∧` is tighter than `⋅`. Parenthesize when mixing.
         """
     def __add__(self, other: Any) -> Any: ...
@@ -35251,7 +35251,7 @@ def octal_moves(*args: Any, **kwargs: Any) -> Any:
 
 def odd_milgram_report(*args: Any, **kwargs: Any) -> Any: ...
 
-def ogham_eval(world: builtins.str, src: builtins.str) -> builtins.str: ...
+def grundy_eval(world: builtins.str, src: builtins.str) -> builtins.str: ...
 
 def omega() -> Surreal: ...
 

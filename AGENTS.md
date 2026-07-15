@@ -30,12 +30,12 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/clifford/` | the multivector engine + the GA layer | [`src/clifford/AGENTS.md`](src/clifford/AGENTS.md) |
 | `src/forms/`    | quadratic forms & invariants, by the char trichotomy plus local-global and integral layers | [`src/forms/AGENTS.md`](src/forms/AGENTS.md) (+ [`integral/`](src/forms/integral/AGENTS.md)) |
 | `src/games/`    | combinatorial game theory | [`src/games/AGENTS.md`](src/games/AGENTS.md) |
-| `src/ogham/`    | the Ogham expression-language core at v0.3.6 (lex/parse/unparse + `session`, `runtime/` — the shared evaluator, one Index evaluator, `Apply`, `RuntimeState` — and `worlds/` incl. `game/`; mutual Element-`=:` systems with self-contained SCC equation display; word conditionals `if/then/else`; binder mark triad `#`/`?`/bare-Element; container totality fixed/graded/free; dyadic game literals; `birthday`/`integral`; world names `fp2[t]`/`fp2(t)` + dim-0 shorthand; budgeted embeddings, `E_StackDepth`/`E_FixpointSort`) | root rules |
+| `src/grundy/`    | the grundy expression-language core at v0.3.6 (renamed from ogham 2026-07-15, provisional till 0.3.8; lex/parse/unparse + `session`, `runtime/` — the shared evaluator, one Index evaluator, `Apply`, `RuntimeState` — and `worlds/` incl. `game/`; mutual Element-`=:` systems with self-contained SCC equation display; word conditionals `if/then/else`; binder mark triad `#`/`?`/bare-Element; container totality fixed/graded/free; dyadic game literals; `birthday`/`integral`; world names `fp2[t]`/`fp2(t)` + dim-0 shorthand; budgeted embeddings, `E_StackDepth`/`E_FixpointSort`) | root rules |
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
-Beyond the library: `examples/` (Rust demos `tour`/`tropical`, the Ogham REPL
-`ogham_repl`, and the open-question probes `interactive_kernel`, `octal_hunt`,
+Beyond the library: `examples/` (Rust demos `tour`/`tropical`, the grundy REPL
+`grundy_repl`, and the open-question probes `interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`), `experiments/` (Python research probes on top of the shipped
 lib, two-tier by maintenance bar: top-level `experiments/*.py` + `scripts/` are
 maintained — guards, type hints, docstrings, held to the Rust side's own bar —
@@ -46,13 +46,13 @@ directories' `README.md` carries (`pinned`/`oracle`/`superseded-by`/`scratch`);
 `docs/` (OPEN.md — the genuine research problems; COMPLETENESS.md — the game-valued
 ledger of buildable items completing symmetries/connections already in the code;
 CONTINUATIONS.md — the game-valued ledger of buildable items that are genuinely new
-features (the ogham language work, the char-`p` Drinfeld mirror); the deferred stars
+features (the grundy language work, the char-`p` Drinfeld mirror); the deferred stars
 `*1`/`*2`/`*4` split across those two (`*8` — ogham 0.3.0 — converted when its
 sketch landed and **shipped** the same day, 2026-07-09; see DONE.md); DONE.md — the go-forward ledger for new
 work; CONSISTENCY.md — the aesthetic/structural ledger; CORRECTNESS.md — the
 verification-status ledger (machine-verified / source-pinned / asserted); TABLES.md —
 the inventory of curated hardcoded tables),
-`docs/ogham/` (**split at the 0.3.6 pass, 2026-07-10**: spec.md — the
+`docs/grundy/` (**split at the 0.3.6 pass, 2026-07-10**: spec.md — the
 normative v0.3.6 language contract (the lisp-for-games identity,
 grammar/precedence/sorts with the binder mark triad, worlds incl.
 `fp2[t]`/`fp2(t)` spelling and container totality, the game world's
@@ -60,13 +60,13 @@ presentation<multiform<value strata with outcome-as-observation, dyadic
 literals, mutual `=:` systems, self-contained equation-system display,
 word conditionals, Display v4, errors, the three-part conformance suite);
 implementation.md — the runtime architecture + resource-guard contract;
-README.md — the transcript-first tour; ogham.md — a pointer stub. The
+README.md — the transcript-first tour. The
 **ladder** — 0.3.7 structural rung → 0.3.8 loopy-envelope completion +
 release dress → 0.4.0 = the public release → 1.0.0 higher-order — lives
 in CONTINUATIONS.md;
 conformance.txt — the hand-verified corpus the language must pass (v0.3.6
 merged), with conformance_v0.2/0.3/0.3.5/0.3.6.txt as
-merged blessing/provenance, plus tests/ogham_laws.rs — the seeded law
+merged blessing/provenance, plus tests/grundy_laws.rs — the seeded law
 tests (display round-trips, projection oracle, rotation laws)),
 and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
@@ -278,7 +278,7 @@ cargo clippy --all-targets                    # lint (kept warning-clean)
 cargo doc --no-deps                           # rustdoc (intra-doc links warning-clean)
 cargo run --example tour                      # Rust demo
 cargo run --example tropical                  # tropical-semiring / thermography demo
-cargo run --example ogham_repl                # Ogham expression-language REPL
+cargo run --example grundy_repl                # grundy expression-language REPL
 cargo run --example interactive_kernel        # open-problem probe
 cargo run --example octal_hunt                # open-problem probe
 cargo run --example loopy_quadric             # open-problem probe
@@ -332,7 +332,7 @@ current release build on this macOS beta. `cargo` must be on PATH
   `lib.rs`; targeted `#[allow]`s carry a one-line reason). License: AGPL-3.0-or-later.
 - Numeric payload style is deliberate: non-index fixed-width integers are
   `u128`/`i128` throughout the core, docs, examples, and tests.
-- Display is deliberate and canonical (ogham Display v4, `docs/ogham/spec.md` §12):
+- Display is deliberate and canonical (grundy Display v4, `docs/grundy/spec.md` §12):
   blades render as wedge expressions `e0∧e1` (`∧` = U+2227); coefficients attach
   `coeff⋅label` (`⋅` = U+22C5) with coefficient-`1` elided and `-1` → `-label`
   (compared via `S::one().neg()`, never a literal). A term whose rendering starts
@@ -353,7 +353,7 @@ current release build on this macOS beta. `cargo` must be on PATH
   prevents element-element `^` from compiling — on `Nimber`, `x ^ x` would silently
   mean nim-addition (XOR), so no `BitXor<Self>` impl exists on any backend. **Rust
   `^` binds looser than `*`; parenthesize when mixing product and power.**
-  `Multivector` has `&` (wedge, ogham `∧`) via `impl BitAnd`; **no `^` operator on
+  `Multivector` has `&` (wedge, grundy `∧`) via `impl BitAnd`; **no `^` operator on
   `Multivector`** — the geometric product needs the metric, so use
   `CliffordAlgebra::pow(&self, v, k)` for repeated geometric multiplication.
   `Ordinal` deliberately omits owned `*` and `^` because transfinite

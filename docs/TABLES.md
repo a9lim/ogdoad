@@ -48,8 +48,8 @@ Recorded so a future sweep does not re-flag them as gaps:
   are generated from squarefree monomial evaluations over `F_2^m`; the shipped
   `BW16` constructor consumes that generated family rather than adding a new
   curated code table.
-- **The ogham language surface** — the world catalogue, builtin-function names, and reserved
-  keywords (`src/ogham/{eval,parse,lex}.rs`) — is public API vocabulary but is owned by the
-  language spec `docs/ogham/spec.md`, not this inventory.
+- **The grundy language surface** — the world catalogue, builtin-function names, and reserved
+  keywords (`src/grundy/{eval,parse,lex}.rs`) — is public API vocabulary but is owned by the
+  language spec `docs/grundy/spec.md`, not this inventory.
 - **`clifford/` and `linalg/`** carry no curated lookup tables: signs go through `Scalar::neg`
   and blade products / reductions are computed index arithmetic.

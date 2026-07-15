@@ -2,13 +2,13 @@
 
 use super::super::*;
 
-pub(crate) struct CliffordRuntime<S: OghamScalar> {
+pub(crate) struct CliffordRuntime<S: GrundyScalar> {
     pub(crate) name: &'static str,
     pub(crate) alg: CliffordAlgebra<S>,
     pub(crate) state: RuntimeState<Multivector<S>>,
 }
 
-impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
+impl<S: GrundyScalar> WorldOps for CliffordRuntime<S> {
     type Element = Multivector<S>;
 
     fn state(&self) -> &RuntimeState<Self::Element> {
@@ -27,7 +27,7 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
         format!("{} dim {}", self.name, self.alg.dim())
     }
 
-    fn world_eval_element(&mut self, expr: &Expr) -> OghamResult<Self::Element> {
+    fn world_eval_element(&mut self, expr: &Expr) -> GrundyResult<Self::Element> {
         CliffordRuntime::eval_expr(self, expr)
     }
 
@@ -45,11 +45,11 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
         }
     }
 
-    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+    fn world_eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<bool> {
         CliffordRuntime::eval_relation(self, op, lhs, rhs)
     }
 
-    fn sample_element_expr(&self) -> OghamResult<Expr> {
+    fn sample_element_expr(&self) -> GrundyResult<Expr> {
         parse_display_expr(&self.alg.scalar(S::one()).to_string())
     }
 
@@ -57,7 +57,7 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
         S::reserved_ident(name)
     }
 
-    fn named_element(&self, name: &str) -> OghamResult<Option<Self::Element>> {
+    fn named_element(&self, name: &str) -> GrundyResult<Option<Self::Element>> {
         Ok(S::named_element(name, Span::point(0))?.map(|value| self.alg.scalar(value)))
     }
 
@@ -65,7 +65,7 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
         &mut self,
         name: &str,
         args: &[Expr],
-    ) -> Option<OghamResult<Value<Self::Element>>> {
+    ) -> Option<GrundyResult<Value<Self::Element>>> {
         (name == "integral").then(|| {
             expect_arity(name, args, 1)?;
             let value = self.eval_grade0(&args[0])?;
@@ -73,10 +73,10 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
         })
     }
 
-    fn non_function_at_error(&self) -> Option<OghamError> {
+    fn non_function_at_error(&self) -> Option<GrundyError> {
         Some(
-            OghamError::new(
-                OghamErrorKind::WrongWorld,
+            GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 Span::point(0),
                 "only Function values apply with `@` in this world",
             )
@@ -85,7 +85,7 @@ impl<S: OghamScalar> WorldOps for CliffordRuntime<S> {
     }
 }
 
-impl<S: OghamScalar> CliffordRuntime<S> {
+impl<S: GrundyScalar> CliffordRuntime<S> {
     pub(crate) fn from_metric(name: &'static str, metric: Metric<S>) -> Self {
         CliffordRuntime {
             name,
@@ -94,7 +94,7 @@ impl<S: OghamScalar> CliffordRuntime<S> {
         }
     }
 
-    fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> OghamResult<bool> {
+    fn eval_relation(&mut self, op: RelOp, lhs: &Expr, rhs: &Expr) -> GrundyResult<bool> {
         if op == RelOp::Equiv {
             return Err(game_only_error("`≡`"));
         }
@@ -135,7 +135,7 @@ impl<S: OghamScalar> CliffordRuntime<S> {
         }
     }
 
-    fn eval_expr(&mut self, expr: &Expr) -> OghamResult<Multivector<S>> {
+    fn eval_expr(&mut self, expr: &Expr) -> GrundyResult<Multivector<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
             Expr::Index(_) => Err(index_sort_error()),
@@ -145,8 +145,8 @@ impl<S: OghamScalar> CliffordRuntime<S> {
             Expr::Omega => Ok(self.alg.scalar(S::omega(Span::point(0))?)),
             Expr::Blade(i) => {
                 if *i >= self.alg.dim() {
-                    Err(OghamError::new(
-                        OghamErrorKind::BladeIndex,
+                    Err(GrundyError::new(
+                        GrundyErrorKind::BladeIndex,
                         Span::point(0),
                         format!("blade e{i} is outside dimension {}", self.alg.dim()),
                     ))
@@ -201,15 +201,20 @@ impl<S: OghamScalar> CliffordRuntime<S> {
                 Value::Bool(_) => Err(bool_sort_error()),
                 Value::Function(_) => Err(fn_sort_error()),
             },
-            Expr::Relation { .. } => Err(OghamError::new(
-                OghamErrorKind::BoolSort,
+            Expr::Relation { .. } => Err(GrundyError::new(
+                GrundyErrorKind::BoolSort,
                 Span::point(0),
                 "relation result is Bool, not Element",
             )),
         }
     }
 
-    fn eval_binary(&mut self, op: BinaryOp, lhs: &Expr, rhs: &Expr) -> OghamResult<Multivector<S>> {
+    fn eval_binary(
+        &mut self,
+        op: BinaryOp,
+        lhs: &Expr,
+        rhs: &Expr,
+    ) -> GrundyResult<Multivector<S>> {
         if op == BinaryOp::Append {
             return Err(game_only_error("`⧺`"));
         }
@@ -242,10 +247,10 @@ impl<S: OghamScalar> CliffordRuntime<S> {
         }
     }
 
-    fn eval_power(&mut self, lhs: &Expr, rhs: &Expr) -> OghamResult<Multivector<S>> {
+    fn eval_power(&mut self, lhs: &Expr, rhs: &Expr) -> GrundyResult<Multivector<S>> {
         if lhs.is_omega_atom() {
             if let Err(index_err) = self.eval_index(rhs) {
-                if index_err.kind == OghamErrorKind::IndexSort {
+                if index_err.kind == GrundyErrorKind::IndexSort {
                     if matches!(rhs, Expr::Index(_)) {
                         return Err(index_err);
                     }
@@ -260,7 +265,7 @@ impl<S: OghamScalar> CliffordRuntime<S> {
         }
         let base = self.eval_expr(lhs)?;
         let exp = self.eval_index(rhs).map_err(|err| {
-            if err.kind == OghamErrorKind::IndexSort {
+            if err.kind == GrundyErrorKind::IndexSort {
                 exp_sort_error()
             } else {
                 err
@@ -279,10 +284,10 @@ impl<S: OghamScalar> CliffordRuntime<S> {
         }
     }
 
-    fn eval_container(&mut self, items: &[Expr]) -> OghamResult<Multivector<S>> {
+    fn eval_container(&mut self, items: &[Expr]) -> GrundyResult<Multivector<S>> {
         if items.len() != self.alg.dim() {
-            return Err(OghamError::new(
-                OghamErrorKind::DimMismatch,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DimMismatch,
                 Span::point(0),
                 format!(
                     "vector length {} does not match world dimension {}",
@@ -304,15 +309,15 @@ impl<S: OghamScalar> CliffordRuntime<S> {
         Ok(out)
     }
 
-    fn eval_call(&mut self, name: &str, args: &[Expr]) -> OghamResult<Multivector<S>> {
+    fn eval_call(&mut self, name: &str, args: &[Expr]) -> GrundyResult<Multivector<S>> {
         match name {
             "coef" => {
                 expect_arity(name, args, 2)?;
                 let value = self.eval_expr(&args[0])?;
                 let index = self.eval_index(&args[1])?;
                 let index = usize::try_from(index).map_err(|_| {
-                    OghamError::new(
-                        OghamErrorKind::BladeIndex,
+                    GrundyError::new(
+                        GrundyErrorKind::BladeIndex,
                         Span::point(0),
                         format!(
                             "coefficient index {index} is outside dimension {}",
@@ -321,8 +326,8 @@ impl<S: OghamScalar> CliffordRuntime<S> {
                     )
                 })?;
                 if index >= self.alg.dim() {
-                    return Err(OghamError::new(
-                        OghamErrorKind::BladeIndex,
+                    return Err(GrundyError::new(
+                        GrundyErrorKind::BladeIndex,
                         Span::point(0),
                         format!(
                             "coefficient index {index} is outside dimension {}",
@@ -331,8 +336,8 @@ impl<S: OghamScalar> CliffordRuntime<S> {
                     ));
                 }
                 let mask = 1u128.checked_shl(index as u32).ok_or_else(|| {
-                    OghamError::new(
-                        OghamErrorKind::BladeIndex,
+                    GrundyError::new(
+                        GrundyErrorKind::BladeIndex,
                         Span::point(0),
                         format!("coefficient index {index} exceeds the u128 blade mask"),
                     )
@@ -344,8 +349,8 @@ impl<S: OghamScalar> CliffordRuntime<S> {
             "rev" => {
                 expect_arity(name, args, 1)?;
                 if self.alg.metric().has_upper() {
-                    return Err(OghamError::new(
-                        OghamErrorKind::GeneralMetric,
+                    return Err(GrundyError::new(
+                        GrundyErrorKind::GeneralMetric,
                         Span::point(0),
                         "reverse is undefined for the Chevalley construction",
                     ));
@@ -358,8 +363,8 @@ impl<S: OghamScalar> CliffordRuntime<S> {
                 let x = self.eval_expr(&args[0])?;
                 let k = self.eval_index(&args[1])?;
                 if k < 0 {
-                    return Err(OghamError::new(
-                        OghamErrorKind::Domain,
+                    return Err(GrundyError::new(
+                        GrundyErrorKind::Domain,
                         Span::point(0),
                         "grade index must be non-negative",
                     ));
@@ -374,16 +379,16 @@ impl<S: OghamScalar> CliffordRuntime<S> {
             "dual" => {
                 expect_arity(name, args, 1)?;
                 if self.alg.metric().has_upper() {
-                    return Err(OghamError::new(
-                        OghamErrorKind::GeneralMetric,
+                    return Err(GrundyError::new(
+                        GrundyErrorKind::GeneralMetric,
                         Span::point(0),
                         "dual is undefined for general-bilinear metrics",
                     ));
                 }
                 let x = self.eval_expr(&args[0])?;
                 self.alg.dual(&x).ok_or_else(|| {
-                    OghamError::new(
-                        OghamErrorKind::NotInvertible,
+                    GrundyError::new(
+                        GrundyErrorKind::NotInvertible,
                         Span::point(0),
                         "pseudoscalar is not invertible",
                     )
@@ -396,8 +401,8 @@ impl<S: OghamScalar> CliffordRuntime<S> {
             }
             "tr" => {
                 if args.is_empty() || args.len() > 2 {
-                    return Err(OghamError::new(
-                        OghamErrorKind::Arity,
+                    return Err(GrundyError::new(
+                        GrundyErrorKind::Arity,
                         Span::point(0),
                         "`tr` expects one or two arguments",
                     ));
@@ -411,24 +416,24 @@ impl<S: OghamScalar> CliffordRuntime<S> {
                 Ok(self.alg.scalar(S::trace(&x, m, Span::point(0))?))
             }
             "integral" => Err(bool_sort_error()),
-            _ => Err(OghamError::new(
-                OghamErrorKind::UnknownFn,
+            _ => Err(GrundyError::new(
+                GrundyErrorKind::UnknownFn,
                 Span::point(0),
                 format!("unknown function `{name}`"),
             )),
         }
     }
 
-    fn eval_grade0(&mut self, expr: &Expr) -> OghamResult<S> {
+    fn eval_grade0(&mut self, expr: &Expr) -> GrundyResult<S> {
         let value = self.eval_expr(expr)?;
         scalar_part(&value).ok_or_else(|| grade0_error(Span::point(0)))
     }
 
-    fn inverse_mv(&self, value: &Multivector<S>) -> OghamResult<Multivector<S>> {
+    fn inverse_mv(&self, value: &Multivector<S>) -> GrundyResult<Multivector<S>> {
         if let Some(s) = scalar_part(value) {
             if s.is_zero() {
-                return Err(OghamError::new(
-                    OghamErrorKind::DivisionByZero,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::DivisionByZero,
                     Span::point(0),
                     "division by zero",
                 ));
@@ -436,18 +441,18 @@ impl<S: OghamScalar> CliffordRuntime<S> {
             return Ok(self.alg.scalar(S::inv_scalar(&s, Span::point(0))?));
         }
         self.alg.multivector_inverse(value).ok_or_else(|| {
-            OghamError::new(
-                OghamErrorKind::NotInvertible,
+            GrundyError::new(
+                GrundyErrorKind::NotInvertible,
                 Span::point(0),
                 "multivector is not invertible",
             )
         })
     }
 
-    fn div_mv(&self, lhs: &Multivector<S>, rhs: &Multivector<S>) -> OghamResult<Multivector<S>> {
+    fn div_mv(&self, lhs: &Multivector<S>, rhs: &Multivector<S>) -> GrundyResult<Multivector<S>> {
         if rhs.is_zero() {
-            return Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 Span::point(0),
                 "division by zero",
             ));
@@ -461,14 +466,14 @@ impl<S: OghamScalar> CliffordRuntime<S> {
         self.mul_mv(lhs, &inv)
     }
 
-    fn mul_mv(&self, lhs: &Multivector<S>, rhs: &Multivector<S>) -> OghamResult<Multivector<S>> {
+    fn mul_mv(&self, lhs: &Multivector<S>, rhs: &Multivector<S>) -> GrundyResult<Multivector<S>> {
         if let (Some(a), Some(b)) = (scalar_part(lhs), scalar_part(rhs)) {
             return Ok(self.alg.scalar(S::mul_checked(&a, &b, Span::point(0))?));
         }
         S::mv_mul(&self.alg, lhs, rhs, Span::point(0))
     }
 
-    fn pow_mv(&self, value: &Multivector<S>, k: u128) -> OghamResult<Multivector<S>> {
+    fn pow_mv(&self, value: &Multivector<S>, k: u128) -> GrundyResult<Multivector<S>> {
         if let Some(s) = scalar_part(value) {
             return Ok(self.alg.scalar(S::pow_checked(&s, k, Span::point(0))?));
         }
@@ -476,70 +481,70 @@ impl<S: OghamScalar> CliffordRuntime<S> {
     }
 }
 
-pub(crate) trait OghamScalar: Scalar + Sized + Display + 'static {
-    fn bare_int(n: u128, span: Span) -> OghamResult<Self>;
-    fn star(lit: &StarLiteral, span: Span) -> OghamResult<Self>;
-    fn omega(span: Span) -> OghamResult<Self>;
-    fn omega_pow(_exp: Self, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::ExpSort,
+pub(crate) trait GrundyScalar: Scalar + Sized + Display + 'static {
+    fn bare_int(n: u128, span: Span) -> GrundyResult<Self>;
+    fn star(lit: &StarLiteral, span: Span) -> GrundyResult<Self>;
+    fn omega(span: Span) -> GrundyResult<Self>;
+    fn omega_pow(_exp: Self, span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::ExpSort,
             span,
             "`ω↑s` is only an element-level monomial constructor in surreal-family worlds",
         ))
     }
-    fn named_element(_name: &str, _span: Span) -> OghamResult<Option<Self>> {
+    fn named_element(_name: &str, _span: Span) -> GrundyResult<Option<Self>> {
         Ok(None)
     }
     fn reserved_ident(_name: &str) -> bool {
         false
     }
-    fn inv_scalar(value: &Self, span: Span) -> OghamResult<Self> {
+    fn inv_scalar(value: &Self, span: Span) -> GrundyResult<Self> {
         value
             .inv()
-            .ok_or_else(|| OghamError::new(OghamErrorKind::NotInvertible, span, "not invertible"))
+            .ok_or_else(|| GrundyError::new(GrundyErrorKind::NotInvertible, span, "not invertible"))
     }
-    fn exact_div(_lhs: &Self, _rhs: &Self, _span: Span) -> Option<OghamResult<Self>> {
+    fn exact_div(_lhs: &Self, _rhs: &Self, _span: Span) -> Option<GrundyResult<Self>> {
         None
     }
-    fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "field worlds have no informative remainder operator",
         ))
     }
-    fn relation(_op: RelOp, _lhs: &Self, _rhs: &Self, span: Span) -> OghamResult<bool> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn relation(_op: RelOp, _lhs: &Self, _rhs: &Self, span: Span) -> GrundyResult<bool> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "this world has no canonical order",
         ))
     }
-    fn frob(_value: &Self, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn frob(_value: &Self, span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "`frob` is only available in finite-field worlds",
         ))
     }
-    fn trace(_value: &Self, _m: Option<i128>, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn trace(_value: &Self, _m: Option<i128>, span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "`tr` is only available in finite-field worlds",
         ))
     }
-    fn integral(_value: &Self, span: Span) -> OghamResult<bool> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn integral(_value: &Self, span: Span) -> GrundyResult<bool> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "this scalar world has no shipped ring-of-integers pairing",
         ))
     }
-    fn mul_checked(lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<Self> {
+    fn mul_checked(lhs: &Self, rhs: &Self, _span: Span) -> GrundyResult<Self> {
         Ok(lhs.mul(rhs))
     }
-    fn pow_checked(base: &Self, mut k: u128, span: Span) -> OghamResult<Self> {
+    fn pow_checked(base: &Self, mut k: u128, span: Span) -> GrundyResult<Self> {
         if k == 0 {
             return Ok(Self::one());
         }
@@ -562,7 +567,7 @@ pub(crate) trait OghamScalar: Scalar + Sized + Display + 'static {
         lhs: &Multivector<Self>,
         rhs: &Multivector<Self>,
         _span: Span,
-    ) -> OghamResult<Multivector<Self>> {
+    ) -> GrundyResult<Multivector<Self>> {
         Ok(alg.mul(lhs, rhs))
     }
     fn mv_pow(
@@ -570,44 +575,44 @@ pub(crate) trait OghamScalar: Scalar + Sized + Display + 'static {
         value: &Multivector<Self>,
         k: u128,
         _span: Span,
-    ) -> OghamResult<Multivector<Self>> {
+    ) -> GrundyResult<Multivector<Self>> {
         Ok(alg.pow(value, k))
     }
 }
 
-impl OghamScalar for Nimber {
-    fn bare_int(n: u128, span: Span) -> OghamResult<Self> {
+impl GrundyScalar for Nimber {
+    fn bare_int(n: u128, span: Span) -> GrundyResult<Self> {
         if n == 0 {
             return Ok(Nimber::zero());
         }
-        Err(OghamError::new(
-            OghamErrorKind::BareInt,
+        Err(GrundyError::new(
+            GrundyErrorKind::BareInt,
             span,
             format!("bare integer `{n}` is not a nimber literal"),
         )
         .with_hint(format!("did you mean `*{n}`?")))
     }
 
-    fn star(lit: &StarLiteral, span: Span) -> OghamResult<Self> {
+    fn star(lit: &StarLiteral, span: Span) -> GrundyResult<Self> {
         match lit {
             StarLiteral::Finite(n) => Ok(Nimber(*n)),
-            StarLiteral::Cnf(_) => Err(OghamError::new(
-                OghamErrorKind::WrongWorld,
+            StarLiteral::Cnf(_) => Err(GrundyError::new(
+                GrundyErrorKind::WrongWorld,
                 span,
                 "transfinite star-literals belong to the `ordinal` world",
             )),
         }
     }
 
-    fn omega(span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn omega(span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "`ω` is not a finite nimber literal",
         ))
     }
 
-    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
+    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> GrundyResult<bool> {
         Ok(match op {
             RelOp::Lt | RelOp::Gt => false,
             RelOp::Fuzzy => lhs.fuzzy(rhs),
@@ -617,21 +622,21 @@ impl OghamScalar for Nimber {
         })
     }
 
-    fn frob(value: &Self, _span: Span) -> OghamResult<Self> {
+    fn frob(value: &Self, _span: Span) -> GrundyResult<Self> {
         Ok(value.frobenius())
     }
 
-    fn trace(value: &Self, m: Option<i128>, span: Span) -> OghamResult<Self> {
+    fn trace(value: &Self, m: Option<i128>, span: Span) -> GrundyResult<Self> {
         let Some(m) = m else {
-            return Err(OghamError::new(
-                OghamErrorKind::Arity,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Arity,
                 span,
                 "`tr` in the nimber world expects `tr(x, m)`",
             ));
         };
         if m <= 0 {
-            return Err(OghamError::new(
-                OghamErrorKind::Domain,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Domain,
                 span,
                 "nimber trace degree must be positive",
             ));
@@ -640,39 +645,39 @@ impl OghamScalar for Nimber {
     }
 }
 
-impl OghamScalar for Ordinal {
-    fn bare_int(n: u128, span: Span) -> OghamResult<Self> {
+impl GrundyScalar for Ordinal {
+    fn bare_int(n: u128, span: Span) -> GrundyResult<Self> {
         if n == 0 {
             return Ok(Ordinal::from_u128(0));
         }
-        Err(OghamError::new(
-            OghamErrorKind::BareInt,
+        Err(GrundyError::new(
+            GrundyErrorKind::BareInt,
             span,
             format!("bare integer `{n}` is not an ordinal-nimber value"),
         )
         .with_hint(format!("did you mean `*{n}`?")))
     }
 
-    fn star(lit: &StarLiteral, _span: Span) -> OghamResult<Self> {
+    fn star(lit: &StarLiteral, _span: Span) -> GrundyResult<Self> {
         Ok(match lit {
             StarLiteral::Finite(n) => Ordinal::from_u128(*n),
             StarLiteral::Cnf(cnf) => cnf.clone(),
         })
     }
 
-    fn omega(span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::BareOrdinal,
+    fn omega(span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::BareOrdinal,
             span,
             "bare `ω` is an ordinal address, not a value",
         )
         .with_hint("values are starred here: `*ω`"))
     }
 
-    fn inv_scalar(value: &Self, span: Span) -> OghamResult<Self> {
+    fn inv_scalar(value: &Self, span: Span) -> GrundyResult<Self> {
         if value.is_zero() {
-            return Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 span,
                 "division by zero",
             ));
@@ -680,7 +685,7 @@ impl OghamScalar for Ordinal {
         value.checked_inv().ok_or_else(|| kummer_escape(span))
     }
 
-    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
+    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> GrundyResult<bool> {
         Ok(match op {
             RelOp::Lt | RelOp::Gt => false,
             RelOp::Fuzzy => lhs.fuzzy(rhs),
@@ -690,11 +695,11 @@ impl OghamScalar for Ordinal {
         })
     }
 
-    fn mul_checked(lhs: &Self, rhs: &Self, span: Span) -> OghamResult<Self> {
+    fn mul_checked(lhs: &Self, rhs: &Self, span: Span) -> GrundyResult<Self> {
         lhs.nim_mul(rhs).ok_or_else(|| kummer_escape(span))
     }
 
-    fn pow_checked(base: &Self, k: u128, span: Span) -> OghamResult<Self> {
+    fn pow_checked(base: &Self, k: u128, span: Span) -> GrundyResult<Self> {
         base.nim_pow(k).ok_or_else(|| kummer_escape(span))
     }
 
@@ -703,7 +708,7 @@ impl OghamScalar for Ordinal {
         lhs: &Multivector<Self>,
         rhs: &Multivector<Self>,
         span: Span,
-    ) -> OghamResult<Multivector<Self>> {
+    ) -> GrundyResult<Multivector<Self>> {
         catch_unwind(AssertUnwindSafe(|| alg.mul(lhs, rhs))).map_err(|_| kummer_escape(span))
     }
 
@@ -712,54 +717,54 @@ impl OghamScalar for Ordinal {
         value: &Multivector<Self>,
         k: u128,
         span: Span,
-    ) -> OghamResult<Multivector<Self>> {
+    ) -> GrundyResult<Multivector<Self>> {
         catch_unwind(AssertUnwindSafe(|| alg.pow(value, k))).map_err(|_| kummer_escape(span))
     }
 }
 
-impl OghamScalar for Surreal {
-    fn bare_int(n: u128, _span: Span) -> OghamResult<Self> {
+impl GrundyScalar for Surreal {
+    fn bare_int(n: u128, _span: Span) -> GrundyResult<Self> {
         Ok(Surreal::from_int(u128_to_i128(n)?))
     }
 
-    fn star(_lit: &StarLiteral, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn star(_lit: &StarLiteral, span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "star-literals are not Elements in the `surreal` world",
         )
         .with_hint("`*3` is a nimber literal"))
     }
 
-    fn omega(_span: Span) -> OghamResult<Self> {
+    fn omega(_span: Span) -> GrundyResult<Self> {
         Ok(Surreal::omega())
     }
 
-    fn omega_pow(exp: Self, _span: Span) -> OghamResult<Self> {
+    fn omega_pow(exp: Self, _span: Span) -> GrundyResult<Self> {
         Ok(Surreal::omega_pow(exp))
     }
 
-    fn inv_scalar(value: &Self, span: Span) -> OghamResult<Self> {
+    fn inv_scalar(value: &Self, span: Span) -> GrundyResult<Self> {
         if value.is_zero() {
-            return Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 span,
                 "division by zero",
             ));
         }
         value.inv().ok_or_else(|| {
-            OghamError::new(
-                OghamErrorKind::NotInvertible,
+            GrundyError::new(
+                GrundyErrorKind::NotInvertible,
                 span,
                 "only CNF monomials invert exactly; 1/(ω+1) is an infinite Hahn series",
             )
         })
     }
 
-    fn rem(lhs: &Self, rhs: &Self, span: Span) -> OghamResult<Self> {
+    fn rem(lhs: &Self, rhs: &Self, span: Span) -> GrundyResult<Self> {
         if rhs.is_zero() {
-            return Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 span,
                 "division by zero",
             ));
@@ -767,47 +772,47 @@ impl OghamScalar for Surreal {
         lhs.rem(rhs).ok_or_else(|| modulus_error(span))
     }
 
-    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
+    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> GrundyResult<bool> {
         ordered_relation(op, lhs.cmp(rhs))
     }
 
-    fn integral(value: &Self, _span: Span) -> OghamResult<bool> {
+    fn integral(value: &Self, _span: Span) -> GrundyResult<bool> {
         Ok(HasRingOfIntegers::is_integral(value))
     }
 }
 
-impl OghamScalar for Omnific {
-    fn bare_int(n: u128, _span: Span) -> OghamResult<Self> {
+impl GrundyScalar for Omnific {
+    fn bare_int(n: u128, _span: Span) -> GrundyResult<Self> {
         Ok(Omnific::from_int(u128_to_i128(n)?))
     }
 
-    fn star(_lit: &StarLiteral, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn star(_lit: &StarLiteral, span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "star-literals are not Elements in the `omnific` world",
         )
         .with_hint("`*3` is a nimber literal"))
     }
 
-    fn omega(_span: Span) -> OghamResult<Self> {
+    fn omega(_span: Span) -> GrundyResult<Self> {
         Ok(Omnific::omega())
     }
 
-    fn omega_pow(exp: Self, span: Span) -> OghamResult<Self> {
+    fn omega_pow(exp: Self, span: Span) -> GrundyResult<Self> {
         Omnific::from_surreal(Surreal::omega_pow(exp.inner().clone())).ok_or_else(|| {
-            OghamError::new(
-                OghamErrorKind::Domain,
+            GrundyError::new(
+                GrundyErrorKind::Domain,
                 span,
                 "omega-power exponent does not produce an omnific integer",
             )
         })
     }
 
-    fn rem(lhs: &Self, rhs: &Self, span: Span) -> OghamResult<Self> {
+    fn rem(lhs: &Self, rhs: &Self, span: Span) -> GrundyResult<Self> {
         if rhs.is_zero() {
-            return Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 span,
                 "division by zero",
             ));
@@ -815,104 +820,104 @@ impl OghamScalar for Omnific {
         lhs.rem(rhs).ok_or_else(|| modulus_error(span))
     }
 
-    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
+    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> GrundyResult<bool> {
         ordered_relation(op, lhs.cmp(rhs))
     }
 
-    fn integral(_value: &Self, _span: Span) -> OghamResult<bool> {
+    fn integral(_value: &Self, _span: Span) -> GrundyResult<bool> {
         Ok(true)
     }
 }
 
-impl OghamScalar for Integer {
-    fn bare_int(n: u128, _span: Span) -> OghamResult<Self> {
+impl GrundyScalar for Integer {
+    fn bare_int(n: u128, _span: Span) -> GrundyResult<Self> {
         Ok(Integer(u128_to_i128(n)?))
     }
 
-    fn star(_lit: &StarLiteral, span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn star(_lit: &StarLiteral, span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "star-literals are not Elements in the `integer` world",
         )
         .with_hint("`*3` is a nimber literal"))
     }
 
-    fn omega(span: Span) -> OghamResult<Self> {
-        Err(OghamError::new(
-            OghamErrorKind::WrongWorld,
+    fn omega(span: Span) -> GrundyResult<Self> {
+        Err(GrundyError::new(
+            GrundyErrorKind::WrongWorld,
             span,
             "`ω` belongs to the surreal-family worlds",
         ))
     }
 
-    fn exact_div(lhs: &Self, rhs: &Self, span: Span) -> Option<OghamResult<Self>> {
+    fn exact_div(lhs: &Self, rhs: &Self, span: Span) -> Option<GrundyResult<Self>> {
         Some(match lhs.div_exact(rhs) {
             Ok(q) => Ok(q),
-            Err(IntegerDivExactError::DivisionByZero) => Err(OghamError::new(
-                OghamErrorKind::DivisionByZero,
+            Err(IntegerDivExactError::DivisionByZero) => Err(GrundyError::new(
+                GrundyErrorKind::DivisionByZero,
                 span,
                 "division by zero",
             )),
-            Err(IntegerDivExactError::Remainder(r)) => Err(OghamError::new(
-                OghamErrorKind::NotInvertible,
+            Err(IntegerDivExactError::Remainder(r)) => Err(GrundyError::new(
+                GrundyErrorKind::NotInvertible,
                 span,
                 format!("integer exact division failed with remainder {r}"),
             )),
         })
     }
 
-    fn rem(lhs: &Self, rhs: &Self, span: Span) -> OghamResult<Self> {
+    fn rem(lhs: &Self, rhs: &Self, span: Span) -> GrundyResult<Self> {
         lhs.rem(rhs).ok_or_else(|| {
-            OghamError::new(OghamErrorKind::DivisionByZero, span, "division by zero")
+            GrundyError::new(GrundyErrorKind::DivisionByZero, span, "division by zero")
         })
     }
 
-    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> OghamResult<bool> {
+    fn relation(op: RelOp, lhs: &Self, rhs: &Self, _span: Span) -> GrundyResult<bool> {
         ordered_relation(op, lhs.cmp(rhs))
     }
 
-    fn integral(_value: &Self, _span: Span) -> OghamResult<bool> {
+    fn integral(_value: &Self, _span: Span) -> GrundyResult<bool> {
         Ok(true)
     }
 }
 
-macro_rules! impl_fp_ogham {
+macro_rules! impl_fp_grundy {
     ($($p:literal),* $(,)?) => {
         $(
-            impl OghamScalar for Fp<$p> {
-                fn bare_int(n: u128, _span: Span) -> OghamResult<Self> {
+            impl GrundyScalar for Fp<$p> {
+                fn bare_int(n: u128, _span: Span) -> GrundyResult<Self> {
                     Ok(Fp::<$p>::from_u128(n))
                 }
-                fn star(_lit: &StarLiteral, span: Span) -> OghamResult<Self> {
-                    Err(OghamError::new(
-                        OghamErrorKind::WrongWorld,
+                fn star(_lit: &StarLiteral, span: Span) -> GrundyResult<Self> {
+                    Err(GrundyError::new(
+                        GrundyErrorKind::WrongWorld,
                         span,
                         "star-literals are not Elements in prime-field worlds",
                     )
                     .with_hint("`*3` is a nimber literal"))
                 }
-                fn omega(span: Span) -> OghamResult<Self> {
-                    Err(OghamError::new(
-                        OghamErrorKind::WrongWorld,
+                fn omega(span: Span) -> GrundyResult<Self> {
+                    Err(GrundyError::new(
+                        GrundyErrorKind::WrongWorld,
                         span,
                         "`ω` belongs to the surreal-family worlds",
                     ))
                 }
-                fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> OghamResult<Self> {
-                    Err(OghamError::new(
-                        OghamErrorKind::WrongWorld,
+                fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> GrundyResult<Self> {
+                    Err(GrundyError::new(
+                        GrundyErrorKind::WrongWorld,
                         span,
                         "field worlds have no informative remainder operator",
                     ))
                 }
-                fn frob(value: &Self, _span: Span) -> OghamResult<Self> {
+                fn frob(value: &Self, _span: Span) -> GrundyResult<Self> {
                     Ok(*value)
                 }
-                fn trace(value: &Self, m: Option<i128>, span: Span) -> OghamResult<Self> {
+                fn trace(value: &Self, m: Option<i128>, span: Span) -> GrundyResult<Self> {
                     if m.is_some() {
-                        return Err(OghamError::new(
-                            OghamErrorKind::Arity,
+                        return Err(GrundyError::new(
+                            GrundyErrorKind::Arity,
                             span,
                             "`tr` in prime fields expects one argument",
                         ));
@@ -924,48 +929,48 @@ macro_rules! impl_fp_ogham {
     };
 }
 
-macro_rules! impl_fpn_ogham {
+macro_rules! impl_fpn_grundy {
     ($(($p:literal, $n:literal)),* $(,)?) => {
         $(
-            impl OghamScalar for Fpn<$p, $n> {
-                fn bare_int(n: u128, _span: Span) -> OghamResult<Self> {
+            impl GrundyScalar for Fpn<$p, $n> {
+                fn bare_int(n: u128, _span: Span) -> GrundyResult<Self> {
                     Ok(Fpn::<$p, $n>::constant(n))
                 }
-                fn star(_lit: &StarLiteral, span: Span) -> OghamResult<Self> {
-                    Err(OghamError::new(
-                        OghamErrorKind::WrongWorld,
+                fn star(_lit: &StarLiteral, span: Span) -> GrundyResult<Self> {
+                    Err(GrundyError::new(
+                        GrundyErrorKind::WrongWorld,
                         span,
                         "star-literals are not Elements in extension-field worlds",
                     )
                     .with_hint("`*3` is a nimber literal"))
                 }
-                fn omega(span: Span) -> OghamResult<Self> {
-                    Err(OghamError::new(
-                        OghamErrorKind::WrongWorld,
+                fn omega(span: Span) -> GrundyResult<Self> {
+                    Err(GrundyError::new(
+                        GrundyErrorKind::WrongWorld,
                         span,
                         "`ω` belongs to the surreal-family worlds",
                     ))
                 }
-                fn named_element(name: &str, _span: Span) -> OghamResult<Option<Self>> {
+                fn named_element(name: &str, _span: Span) -> GrundyResult<Option<Self>> {
                     Ok((name == "x").then(Fpn::<$p, $n>::generator))
                 }
                 fn reserved_ident(name: &str) -> bool {
                     name == "x"
                 }
-                fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> OghamResult<Self> {
-                    Err(OghamError::new(
-                        OghamErrorKind::WrongWorld,
+                fn rem(_lhs: &Self, _rhs: &Self, span: Span) -> GrundyResult<Self> {
+                    Err(GrundyError::new(
+                        GrundyErrorKind::WrongWorld,
                         span,
                         "field worlds have no informative remainder operator",
                     ))
                 }
-                fn frob(value: &Self, _span: Span) -> OghamResult<Self> {
+                fn frob(value: &Self, _span: Span) -> GrundyResult<Self> {
                     Ok(value.frobenius())
                 }
-                fn trace(value: &Self, m: Option<i128>, span: Span) -> OghamResult<Self> {
+                fn trace(value: &Self, m: Option<i128>, span: Span) -> GrundyResult<Self> {
                     if m.is_some() {
-                        return Err(OghamError::new(
-                            OghamErrorKind::Arity,
+                        return Err(GrundyError::new(
+                            GrundyErrorKind::Arity,
                             span,
                             "`tr` in extension fields expects one argument",
                         ));
@@ -977,14 +982,14 @@ macro_rules! impl_fpn_ogham {
     };
 }
 
-impl_fp_ogham!(2, 3, 5, 7);
-impl_fpn_ogham!((2, 2), (2, 3), (2, 4), (3, 2), (3, 3), (5, 2));
+impl_fp_grundy!(2, 3, 5, 7);
+impl_fpn_grundy!((2, 2), (2, 3), (2, 4), (3, 2), (3, 3), (5, 2));
 
-pub(crate) fn build_runtime<S: OghamScalar>(
+pub(crate) fn build_runtime<S: GrundyScalar>(
     name: &'static str,
     dim: usize,
     rest: &str,
-) -> OghamResult<CliffordRuntime<S>> {
+) -> GrundyResult<CliffordRuntime<S>> {
     let metric = if rest.trim().is_empty() {
         if dim == 0 {
             Metric::diagonal(Vec::new())
@@ -999,8 +1004,8 @@ pub(crate) fn build_runtime<S: OghamScalar>(
         let q_src = extract_bracket(rest, "q")?;
         let q = parse_scalar_list::<S>(&q_src)?;
         if q.len() != dim {
-            return Err(OghamError::new(
-                OghamErrorKind::DimMismatch,
+            return Err(GrundyError::new(
+                GrundyErrorKind::DimMismatch,
                 Span::point(0),
                 format!("q length {} does not match dimension {dim}", q.len()),
             ));
@@ -1020,7 +1025,7 @@ pub(crate) fn build_runtime<S: OghamScalar>(
     Ok(CliffordRuntime::from_metric(name, metric))
 }
 
-pub(crate) fn parse_gold_metric(src: &str) -> OghamResult<Metric<Nimber>> {
+pub(crate) fn parse_gold_metric(src: &str) -> GrundyResult<Metric<Nimber>> {
     let inner = src
         .strip_prefix("gold(")
         .and_then(|s| s.strip_suffix(')'))
@@ -1044,7 +1049,7 @@ pub(crate) fn parse_gold_metric(src: &str) -> OghamResult<Metric<Nimber>> {
     Ok(crate::forms::gold_form(m, a))
 }
 
-pub(crate) fn parse_scalar_list<S: OghamScalar>(src: &str) -> OghamResult<Vec<S>> {
+pub(crate) fn parse_scalar_list<S: GrundyScalar>(src: &str) -> GrundyResult<Vec<S>> {
     if src.trim().is_empty() {
         return Ok(Vec::new());
     }
@@ -1054,9 +1059,9 @@ pub(crate) fn parse_scalar_list<S: OghamScalar>(src: &str) -> OghamResult<Vec<S>
         .collect()
 }
 
-pub(crate) fn parse_sparse_pairs<S: OghamScalar>(
+pub(crate) fn parse_sparse_pairs<S: GrundyScalar>(
     src: &str,
-) -> OghamResult<BTreeMap<(usize, usize), S>> {
+) -> GrundyResult<BTreeMap<(usize, usize), S>> {
     let mut out = BTreeMap::new();
     if src.trim().is_empty() {
         return Ok(out);
@@ -1086,7 +1091,7 @@ pub(crate) fn parse_sparse_pairs<S: OghamScalar>(
     Ok(out)
 }
 
-pub(crate) fn parse_metric_scalar<S: OghamScalar>(src: &str) -> OghamResult<S> {
+pub(crate) fn parse_metric_scalar<S: GrundyScalar>(src: &str) -> GrundyResult<S> {
     let mut rt = CliffordRuntime::<S>::from_metric("metric", Metric::diagonal(Vec::new()));
     ensure_source_nesting_depth(src)?;
     let stmt = parse_statement(src)?;
@@ -1098,11 +1103,11 @@ pub(crate) fn parse_metric_scalar<S: OghamScalar>(src: &str) -> OghamResult<S> {
     scalar_part(&value).ok_or_else(|| grade0_error(Span::point(0)))
 }
 
-pub(crate) fn extract_bracket(rest: &str, key: &str) -> OghamResult<String> {
+pub(crate) fn extract_bracket(rest: &str, key: &str) -> GrundyResult<String> {
     extract_bracket_opt(rest, key)?.ok_or_else(|| parse_error(format!("missing `{key}=[...]`")))
 }
 
-pub(crate) fn extract_bracket_opt(rest: &str, key: &str) -> OghamResult<Option<String>> {
+pub(crate) fn extract_bracket_opt(rest: &str, key: &str) -> GrundyResult<Option<String>> {
     let needle = format!("{key}=");
     let Some(start) = rest.find(&needle) else {
         return Ok(None);

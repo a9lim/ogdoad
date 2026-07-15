@@ -27,7 +27,7 @@ use std::collections::BTreeMap;
 /// extra context; everything that needs context goes through the algebra.
 ///
 /// **Note:** `^` is reserved for scalar power (`x ^ k: u128`); `&` is wedge
-/// (`∧` in ogham). See [`Multivector`]'s `BitAnd` impl for the precedence
+/// (`∧` in grundy). See [`Multivector`]'s `BitAnd` impl for the precedence
 /// caveat (Rust `&` binds looser than `+` and `*`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct CliffordAlgebra<S: Scalar> {
@@ -310,12 +310,12 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// metric (stored here on the algebra), so iterated geometric multiplication is
     /// not metric-free and cannot live as a bare operator on the `Multivector` type.
     /// Scalar power (`x ^ k: u128` via `impl BitXor<u128>`) is total-product only,
-    /// so it CAN live on the scalar type without a metric context. Ogham's `a ↑ k`
+    /// so it CAN live on the scalar type without a metric context. grundy's `a ↑ k`
     /// desugars to this method for multivectors.
     ///
-    /// **Precedence caveat (§5 `docs/ogham/spec.md`):** Rust's `^` binds looser than `*`.
+    /// **Precedence caveat (§5 `docs/grundy/spec.md`):** Rust's `^` binds looser than `*`.
     /// When using scalar `x ^ k`, parenthesize if the intended precedence differs
-    /// from ogham's power-tighter-than-product table.
+    /// from grundy's power-tighter-than-product table.
     pub fn pow(&self, v: &Multivector<S>, k: u128) -> Multivector<S> {
         if k == 0 {
             return self.scalar(S::one());

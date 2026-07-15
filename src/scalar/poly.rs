@@ -426,7 +426,7 @@ mod tests {
     }
 
     #[test]
-    fn display_v4_canonical_ogham() {
+    fn display_v4_canonical_grundy() {
         use crate::scalar::Fpn;
         // Descending powers and atomic coefficients share the monomial family.
         assert_eq!(p(&[1, 2]).to_string(), "2⋅t + 1");

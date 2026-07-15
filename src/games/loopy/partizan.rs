@@ -315,7 +315,7 @@ impl LoopyPartizanGraph {
     /// A player wins when they can force a finite win. If the starter cannot
     /// force a win but can prevent a loss, optimal play is a draw; infinite play
     /// is a draw, so each player chooses win over draw over loss. This is the
-    /// nine-cell readout used by Ogham's outcome doubles.
+    /// nine-cell readout used by grundy's outcome doubles.
     ///
     /// The survival interpretation that the stopper-order projection uses is
     /// pinned to Aaron N. Siegel, *Combinatorial Game Theory*, GSM 146,

@@ -1,16 +1,16 @@
 use super::ast::{
     BinaryOp, Binding, DataSort, Expr, LambdaBinder, RelOp, StarLiteral, Statement, UnaryOp,
 };
-use super::error::{OghamError, OghamErrorKind, OghamResult, Span};
+use super::error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
 use super::lex::{lex, Token, TokenKind};
 use crate::scalar::Ordinal;
 
-pub fn parse_statement(src: &str) -> OghamResult<Statement> {
+pub fn parse_statement(src: &str) -> GrundyResult<Statement> {
     let tokens = lex(src)?;
     let mut parser = Parser { tokens, pos: 0 };
     if parser.tokens.is_empty() {
-        return Err(OghamError::new(
-            OghamErrorKind::Parse,
+        return Err(GrundyError::new(
+            GrundyErrorKind::Parse,
             Span::point(0),
             "empty statement",
         ));
@@ -20,32 +20,32 @@ pub fn parse_statement(src: &str) -> OghamResult<Statement> {
     Ok(stmt)
 }
 
-fn seq_value_error() -> OghamError {
-    OghamError::new(
-        OghamErrorKind::SeqValue,
+fn seq_value_error() -> GrundyError {
+    GrundyError::new(
+        GrundyErrorKind::SeqValue,
         Span::point(0),
         "intermediate program statements must be bindings",
     )
 }
 
-fn block_tail_error() -> OghamError {
-    OghamError::new(
-        OghamErrorKind::SeqValue,
+fn block_tail_error() -> GrundyError {
+    GrundyError::new(
+        GrundyErrorKind::SeqValue,
         Span::point(0),
         "a parenthesized body sequence must end in an expression",
     )
 }
 
-fn conditional_words_error(span: Span) -> OghamError {
-    OghamError::new(
-        OghamErrorKind::Parse,
+fn conditional_words_error(span: Span) -> GrundyError {
+    GrundyError::new(
+        GrundyErrorKind::Parse,
         span,
         "`?` and `:` are not conditional-expression syntax",
     )
     .with_hint("conditionals are words now: `if a then b else c`")
 }
 
-fn statement_to_block_expr(stmt: Statement) -> OghamResult<Expr> {
+fn statement_to_block_expr(stmt: Statement) -> GrundyResult<Expr> {
     match stmt {
         Statement::Expr(expr) => Ok(expr),
         Statement::Binding { .. } => Err(block_tail_error()),
@@ -86,7 +86,7 @@ fn call_arg_is_index(name: &str, index: usize) -> bool {
 }
 
 impl Parser {
-    fn parse_statement_seq(&mut self) -> OghamResult<Statement> {
+    fn parse_statement_seq(&mut self) -> GrundyResult<Statement> {
         let mut bindings = Vec::new();
         loop {
             let stmt = self.parse_single_statement()?;
@@ -109,10 +109,10 @@ impl Parser {
         }
     }
 
-    fn parse_single_statement(&mut self) -> OghamResult<Statement> {
+    fn parse_single_statement(&mut self) -> GrundyResult<Statement> {
         if self.is_reserved_word_binding() {
-            return Err(OghamError::new(
-                OghamErrorKind::Reserved,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Reserved,
                 self.span(),
                 "reserved word cannot be rebound",
             ));
@@ -169,12 +169,16 @@ impl Parser {
         tok
     }
 
-    fn expect_end(&self) -> OghamResult<()> {
+    fn expect_end(&self) -> GrundyResult<()> {
         if let Some(tok) = self.peek() {
             if matches!(tok.kind, TokenKind::Question | TokenKind::Colon) {
                 return Err(conditional_words_error(tok.span));
             }
-            let err = OghamError::new(OghamErrorKind::Parse, tok.span, "unexpected trailing token");
+            let err = GrundyError::new(
+                GrundyErrorKind::Parse,
+                tok.span,
+                "unexpected trailing token",
+            );
             Err(match tok.kind {
                 TokenKind::Pipe => {
                     err.with_hint("the braceform bar is structural; fuzzy is `∥` (sugar `!`)")
@@ -208,10 +212,10 @@ impl Parser {
         }
     }
 
-    fn expect(&mut self, pred: impl FnOnce(&TokenKind) -> bool, what: &str) -> OghamResult<Token> {
+    fn expect(&mut self, pred: impl FnOnce(&TokenKind) -> bool, what: &str) -> GrundyResult<Token> {
         self.eat(pred).ok_or_else(|| {
-            OghamError::new(
-                OghamErrorKind::Parse,
+            GrundyError::new(
+                GrundyErrorKind::Parse,
                 self.span(),
                 format!("expected {what}"),
             )
@@ -240,7 +244,7 @@ impl Parser {
         )
     }
 
-    fn parse_lambda_or_expression(&mut self) -> OghamResult<Expr> {
+    fn parse_lambda_or_expression(&mut self) -> GrundyResult<Expr> {
         if let Some(binders) = self.try_parse_binders()? {
             self.expect(|k| matches!(k, TokenKind::Arrow), "`↦`")?;
             let body = self.parse_lambda_or_expression()?;
@@ -252,7 +256,7 @@ impl Parser {
         self.parse_expression()
     }
 
-    fn try_parse_binders(&mut self) -> OghamResult<Option<Vec<LambdaBinder>>> {
+    fn try_parse_binders(&mut self) -> GrundyResult<Option<Vec<LambdaBinder>>> {
         let save = self.pos;
         let out = match self.peek_kind() {
             Some(TokenKind::Ident(_)) if matches!(self.peek_kind_at(1), Some(TokenKind::Arrow)) => {
@@ -325,7 +329,7 @@ impl Parser {
         })
     }
 
-    fn parse_expression(&mut self) -> OghamResult<Expr> {
+    fn parse_expression(&mut self) -> GrundyResult<Expr> {
         if matches!(
             self.peek_kind(),
             Some(TokenKind::Question | TokenKind::Colon)
@@ -355,7 +359,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_or(&mut self) -> OghamResult<Expr> {
+    fn parse_or(&mut self) -> GrundyResult<Expr> {
         let mut expr = self.parse_and()?;
         while matches!(self.peek_kind(), Some(TokenKind::Or)) {
             self.bump();
@@ -369,7 +373,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_and(&mut self) -> OghamResult<Expr> {
+    fn parse_and(&mut self) -> GrundyResult<Expr> {
         let mut expr = self.parse_not()?;
         while matches!(self.peek_kind(), Some(TokenKind::And)) {
             self.bump();
@@ -383,7 +387,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_not(&mut self) -> OghamResult<Expr> {
+    fn parse_not(&mut self) -> GrundyResult<Expr> {
         if matches!(self.peek_kind(), Some(TokenKind::Not)) {
             self.bump();
             let expr = self.parse_not()?;
@@ -395,14 +399,14 @@ impl Parser {
         self.parse_relation()
     }
 
-    fn parse_relation(&mut self) -> OghamResult<Expr> {
+    fn parse_relation(&mut self) -> GrundyResult<Expr> {
         let lhs = self.parse_append()?;
         let Some(op) = self.parse_relop()? else {
             return Ok(lhs);
         };
         if op == RelOp::Fuzzy && matches!(self.peek_kind(), Some(TokenKind::Eq)) {
-            return Err(OghamError::new(
-                OghamErrorKind::Parse,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 self.span(),
                 "not-equal is `not (a = b)`",
             )
@@ -410,8 +414,8 @@ impl Parser {
         }
         let rhs = self.parse_append()?;
         if self.parse_relop()?.is_some() {
-            return Err(OghamError::new(
-                OghamErrorKind::Parse,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 self.span(),
                 "relations are top-level and non-associative",
             ));
@@ -423,7 +427,7 @@ impl Parser {
         })
     }
 
-    fn parse_relop(&mut self) -> OghamResult<Option<RelOp>> {
+    fn parse_relop(&mut self) -> GrundyResult<Option<RelOp>> {
         let Some(kind) = self.peek_kind() else {
             return Ok(None);
         };
@@ -454,8 +458,8 @@ impl Parser {
                 Some(RelOp::Outcome(cell))
             }
             TokenKind::DrawAtom => {
-                return Err(OghamError::new(
-                    OghamErrorKind::Parse,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::Parse,
                     self.span(),
                     "mover-result atoms come in pairs",
                 )
@@ -465,7 +469,7 @@ impl Parser {
         })
     }
 
-    fn parse_append(&mut self) -> OghamResult<Expr> {
+    fn parse_append(&mut self) -> GrundyResult<Expr> {
         let lhs = self.parse_additive()?;
         if !matches!(self.peek_kind(), Some(TokenKind::Append)) {
             return Ok(lhs);
@@ -479,7 +483,7 @@ impl Parser {
         })
     }
 
-    fn parse_additive(&mut self) -> OghamResult<Expr> {
+    fn parse_additive(&mut self) -> GrundyResult<Expr> {
         let mut expr = self.parse_mulexpr()?;
         loop {
             let op = match self.peek_kind() {
@@ -498,7 +502,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_mulexpr(&mut self) -> OghamResult<Expr> {
+    fn parse_mulexpr(&mut self) -> GrundyResult<Expr> {
         let mut expr = self.parse_wedge()?;
         loop {
             let op = match self.peek_kind() {
@@ -518,7 +522,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_wedge(&mut self) -> OghamResult<Expr> {
+    fn parse_wedge(&mut self) -> GrundyResult<Expr> {
         let mut expr = self.parse_unary()?;
         while matches!(self.peek_kind(), Some(TokenKind::Wedge)) {
             self.bump();
@@ -532,7 +536,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_unary(&mut self) -> OghamResult<Expr> {
+    fn parse_unary(&mut self) -> GrundyResult<Expr> {
         let mut ops = Vec::new();
         loop {
             match self.peek_kind() {
@@ -557,7 +561,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_power(&mut self) -> OghamResult<Expr> {
+    fn parse_power(&mut self) -> GrundyResult<Expr> {
         let base = self.parse_appl()?;
         if !matches!(self.peek_kind(), Some(TokenKind::Power)) {
             return Ok(base);
@@ -589,7 +593,7 @@ impl Parser {
         })
     }
 
-    fn parse_appl(&mut self) -> OghamResult<Expr> {
+    fn parse_appl(&mut self) -> GrundyResult<Expr> {
         let mut expr = self.parse_atom()?;
         while matches!(self.peek_kind(), Some(TokenKind::At)) {
             self.bump();
@@ -602,7 +606,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_appl_args(&mut self) -> OghamResult<Vec<Expr>> {
+    fn parse_appl_args(&mut self) -> GrundyResult<Vec<Expr>> {
         if !matches!(self.peek_kind(), Some(TokenKind::LParen)) {
             return self.parse_atom().map(|expr| vec![expr]);
         }
@@ -621,7 +625,7 @@ impl Parser {
         Ok(items)
     }
 
-    fn parse_call_args(&mut self, name: &str) -> OghamResult<Vec<Expr>> {
+    fn parse_call_args(&mut self, name: &str) -> GrundyResult<Vec<Expr>> {
         self.expect(|kind| matches!(kind, TokenKind::LParen), "`(`")?;
         let mut args = Vec::new();
         if !matches!(self.peek_kind(), Some(TokenKind::RParen)) {
@@ -643,7 +647,7 @@ impl Parser {
         Ok(args)
     }
 
-    fn parse_literal_atom(&mut self, name: &str, atom: Expr) -> OghamResult<Expr> {
+    fn parse_literal_atom(&mut self, name: &str, atom: Expr) -> GrundyResult<Expr> {
         if matches!(self.peek_kind(), Some(TokenKind::LParen)) {
             Ok(Expr::Call {
                 name: name.to_string(),
@@ -654,9 +658,9 @@ impl Parser {
         }
     }
 
-    fn parse_atom(&mut self) -> OghamResult<Expr> {
+    fn parse_atom(&mut self) -> GrundyResult<Expr> {
         let tok = self.bump().ok_or_else(|| {
-            OghamError::new(OghamErrorKind::Parse, Span::point(0), "expected atom")
+            GrundyError::new(GrundyErrorKind::Parse, Span::point(0), "expected atom")
         })?;
         match tok.kind {
             TokenKind::Int(n) => Ok(Expr::Int(n)),
@@ -698,18 +702,18 @@ impl Parser {
             }
             TokenKind::LBrace => self.parse_braceform(),
             TokenKind::Question | TokenKind::Colon => Err(conditional_words_error(tok.span)),
-            _ => Err(OghamError::new(
-                OghamErrorKind::Parse,
+            _ => Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 tok.span,
                 "expected atom",
             )),
         }
     }
 
-    fn parse_braceform(&mut self) -> OghamResult<Expr> {
+    fn parse_braceform(&mut self) -> GrundyResult<Expr> {
         if matches!(self.peek_kind(), Some(TokenKind::RBrace)) {
-            return Err(OghamError::new(
-                OghamErrorKind::Parse,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 self.span(),
                 "game forms require a structural bar",
             )
@@ -721,8 +725,8 @@ impl Parser {
             first = self.parse_brace_items()?;
         }
         if !matches!(self.peek_kind(), Some(TokenKind::Pipe)) {
-            return Err(OghamError::new(
-                OghamErrorKind::Parse,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 self.span(),
                 "game forms require a structural bar",
             )
@@ -738,7 +742,7 @@ impl Parser {
         Ok(Expr::GameForm { left: first, right })
     }
 
-    fn parse_brace_items(&mut self) -> OghamResult<Vec<Expr>> {
+    fn parse_brace_items(&mut self) -> GrundyResult<Vec<Expr>> {
         let mut items = vec![self.parse_brace_item()?];
         while matches!(self.peek_kind(), Some(TokenKind::Comma)) {
             self.bump();
@@ -747,7 +751,7 @@ impl Parser {
         Ok(items)
     }
 
-    fn parse_brace_item(&mut self) -> OghamResult<Expr> {
+    fn parse_brace_item(&mut self) -> GrundyResult<Expr> {
         let start = self.pos;
         let mut depth = 0usize;
         let mut end = start;
@@ -763,8 +767,8 @@ impl Parser {
             end += 1;
         }
         if end == start {
-            return Err(OghamError::new(
-                OghamErrorKind::Parse,
+            return Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 self.span(),
                 "expected expression in braces",
             ));
@@ -779,7 +783,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_star(&mut self) -> OghamResult<Expr> {
+    fn parse_star(&mut self) -> GrundyResult<Expr> {
         match self.peek_kind() {
             Some(TokenKind::Int(n)) => {
                 let n = *n;
@@ -800,7 +804,7 @@ impl Parser {
         }
     }
 
-    fn parse_index(&mut self) -> OghamResult<Expr> {
+    fn parse_index(&mut self) -> GrundyResult<Expr> {
         match self.peek_kind() {
             Some(TokenKind::Int(n)) => {
                 let n = *n;
@@ -813,15 +817,15 @@ impl Parser {
                 self.expect(|kind| matches!(kind, TokenKind::RParen), "`)`")?;
                 Ok(index_expr(expr))
             }
-            _ => Err(OghamError::new(
-                OghamErrorKind::Parse,
+            _ => Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 self.span(),
                 "`#` needs an Index literal or parenthesized Index expression",
             )),
         }
     }
 
-    fn parse_cnf(&mut self) -> OghamResult<Ordinal> {
+    fn parse_cnf(&mut self) -> GrundyResult<Ordinal> {
         let mut terms = Vec::<(Ordinal, u128)>::new();
         loop {
             terms.push(self.parse_cnf_term()?);
@@ -832,8 +836,8 @@ impl Parser {
         }
         for pair in terms.windows(2) {
             if pair[0].0.cmp(&pair[1].0) != std::cmp::Ordering::Greater {
-                return Err(OghamError::new(
-                    OghamErrorKind::CnfOrder,
+                return Err(GrundyError::new(
+                    GrundyErrorKind::CnfOrder,
                     self.span(),
                     "CNF exponents must be strictly descending",
                 )
@@ -852,7 +856,7 @@ impl Parser {
         Ok(out)
     }
 
-    fn parse_cnf_term(&mut self) -> OghamResult<(Ordinal, u128)> {
+    fn parse_cnf_term(&mut self) -> GrundyResult<(Ordinal, u128)> {
         match self.bump() {
             Some(Token {
                 kind: TokenKind::Int(n),
@@ -876,15 +880,15 @@ impl Parser {
                             ..
                         }) => n,
                         Some(tok) => {
-                            return Err(OghamError::new(
-                                OghamErrorKind::Parse,
+                            return Err(GrundyError::new(
+                                GrundyErrorKind::Parse,
                                 tok.span,
                                 "expected finite CNF coefficient",
                             ));
                         }
                         None => {
-                            return Err(OghamError::new(
-                                OghamErrorKind::Parse,
+                            return Err(GrundyError::new(
+                                GrundyErrorKind::Parse,
                                 Span::point(0),
                                 "expected finite CNF coefficient",
                             ));
@@ -895,20 +899,20 @@ impl Parser {
                 };
                 Ok((exp, coeff))
             }
-            Some(tok) => Err(OghamError::new(
-                OghamErrorKind::Parse,
+            Some(tok) => Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 tok.span,
                 "expected CNF term",
             )),
-            None => Err(OghamError::new(
-                OghamErrorKind::Parse,
+            None => Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 Span::point(0),
                 "expected CNF term",
             )),
         }
     }
 
-    fn parse_cnf_exp(&mut self) -> OghamResult<Ordinal> {
+    fn parse_cnf_exp(&mut self) -> GrundyResult<Ordinal> {
         match self.bump() {
             Some(Token {
                 kind: TokenKind::Int(n),
@@ -934,13 +938,13 @@ impl Parser {
                 self.expect(|k| matches!(k, TokenKind::RParen), "`)`")?;
                 Ok(cnf)
             }
-            Some(tok) => Err(OghamError::new(
-                OghamErrorKind::Parse,
+            Some(tok) => Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 tok.span,
                 "expected CNF exponent",
             )),
-            None => Err(OghamError::new(
-                OghamErrorKind::Parse,
+            None => Err(GrundyError::new(
+                GrundyErrorKind::Parse,
                 Span::point(0),
                 "expected CNF exponent",
             )),

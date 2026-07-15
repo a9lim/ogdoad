@@ -3,7 +3,7 @@
 The verification-status ledger: which shipped claims are **machine-verified**, which
 are **source-pinned**, and which are **asserted-but-unproven** — valued like
 [`COMPLETENESS.md`](COMPLETENESS.md) — a game value `g` on a pillar blade `e_B` (`e_s`
-scalar, `e_c` clifford, `e_f` forms, `e_i` integral, `e_g` games, `e_o` ogham, `e_y`
+scalar, `e_c` clifford, `e_f` forms, `e_i` integral, `e_g` games, `e_o` grundy, `e_y`
 py). Claim level **interpretation/engineering**: each entry is a status call on the
 existing verification surface, checked against the actual oracles, not vibes. Numbers
 ≈ focused days to close a verification gap; `±n` flags an a9 scope call; `↑` is worth
@@ -138,6 +138,6 @@ external data pins.
 - `weight_enumerator` (both code types) keeps an infallible signature with a
   documented budget-referencing panic (`CODEWORD_ENUMERATION_BUDGET`); full
   `Option`-ification is a 3-caller follow-up (py, lexicode, theta) if ever wanted.
-- The next audit of this kind should read `src/ogham/` and `src/py/` — both were out
+- The next audit of this kind should read `src/grundy/` and `src/py/` — both were out
   of scope for the 2026-07-02 pass (see [`CONTINUATIONS.md`](CONTINUATIONS.md) →
   `ogham-reflect` part (3)).

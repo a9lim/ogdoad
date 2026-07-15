@@ -7,7 +7,7 @@ pub(crate) enum SpineWalk {
     Cycles,
 }
 
-pub(crate) fn walk_game_spine(spine: &GameElement) -> OghamResult<SpineWalk> {
+pub(crate) fn walk_game_spine(spine: &GameElement) -> GrundyResult<SpineWalk> {
     let mut current = spine.clone();
     let mut heads = Vec::new();
     let mut visited = HashSet::new();
@@ -30,9 +30,9 @@ pub(crate) fn walk_game_spine(spine: &GameElement) -> OghamResult<SpineWalk> {
     }
 }
 
-pub(crate) fn improper_spine_error() -> OghamError {
-    OghamError::new(
-        OghamErrorKind::Improper,
+pub(crate) fn improper_spine_error() -> GrundyError {
+    GrundyError::new(
+        GrundyErrorKind::Improper,
         Span::point(0),
         "left operand of `⧺` is improper: its right-spine reaches a node that is neither cons nor nil",
     )
@@ -42,7 +42,7 @@ pub(crate) fn build_game_form(
     left: Vec<GameElement>,
     right: Vec<GameElement>,
     node_budget: u128,
-) -> OghamResult<GameElement> {
+) -> GrundyResult<GameElement> {
     if left
         .iter()
         .chain(&right)
@@ -73,7 +73,7 @@ pub(crate) fn graft_game_spine(
     heads: Vec<GameElement>,
     tail: GameElement,
     node_budget: u128,
-) -> OghamResult<GameElement> {
+) -> GrundyResult<GameElement> {
     if heads
         .iter()
         .chain(std::iter::once(&tail))
@@ -115,7 +115,7 @@ pub(crate) fn materialize_regular_game(
     name: &str,
     root: SymbolicGame,
     node_budget: u128,
-) -> OghamResult<GameElement> {
+) -> GrundyResult<GameElement> {
     if matches!(root, SymbolicGame::SystemRef(_)) {
         return Err(unfounded_error(name));
     }
@@ -157,10 +157,10 @@ pub(crate) fn materialize_symbolic_node(
     value: &SymbolicGame,
     nodes: &mut Vec<RegularGameNode>,
     node_budget: u128,
-) -> OghamResult<usize> {
+) -> GrundyResult<usize> {
     let SymbolicGame::Form { left, right } = value else {
-        return Err(OghamError::new(
-            OghamErrorKind::Unfounded,
+        return Err(GrundyError::new(
+            GrundyErrorKind::Unfounded,
             Span::point(0),
             "an Element fixpoint must reduce to a brace constructor",
         ));
@@ -176,11 +176,11 @@ pub(crate) fn materialize_symbolic_node(
     let left = left
         .iter()
         .map(|item| materialize_symbolic_edge(item, nodes, node_budget))
-        .collect::<OghamResult<_>>()?;
+        .collect::<GrundyResult<_>>()?;
     let right = right
         .iter()
         .map(|item| materialize_symbolic_edge(item, nodes, node_budget))
-        .collect::<OghamResult<_>>()?;
+        .collect::<GrundyResult<_>>()?;
     nodes[index] = RegularGameNode { left, right };
     Ok(index)
 }
@@ -189,7 +189,7 @@ pub(crate) fn materialize_symbolic_edge(
     value: &SymbolicGame,
     nodes: &mut Vec<RegularGameNode>,
     node_budget: u128,
-) -> OghamResult<RegularGameEdge> {
+) -> GrundyResult<RegularGameEdge> {
     match value {
         SymbolicGame::SystemRef(node) => Ok(RegularGameEdge::Local(*node)),
         SymbolicGame::Value(GameElement::Finite(game)) => Ok(RegularGameEdge::Finite(game.clone())),
@@ -206,7 +206,7 @@ pub(crate) fn materialize_regular_system(
     names: &[String],
     roots: Vec<SymbolicGame>,
     node_budget: u128,
-) -> OghamResult<Vec<GameElement>> {
+) -> GrundyResult<Vec<GameElement>> {
     let mut nodes = Vec::new();
     let mut root_nodes = vec![None; roots.len()];
     for (equation, root) in roots.iter().enumerate() {
@@ -238,11 +238,11 @@ pub(crate) fn materialize_regular_system(
         let left = left
             .iter()
             .map(|item| materialize_system_edge(item, &roots, &root_nodes, &mut nodes, node_budget))
-            .collect::<OghamResult<_>>()?;
+            .collect::<GrundyResult<_>>()?;
         let right = right
             .iter()
             .map(|item| materialize_system_edge(item, &roots, &root_nodes, &mut nodes, node_budget))
-            .collect::<OghamResult<_>>()?;
+            .collect::<GrundyResult<_>>()?;
         nodes[node] = RegularGameNode { left, right };
     }
 
@@ -306,7 +306,7 @@ fn materialize_system_edge(
     root_nodes: &[Option<usize>],
     nodes: &mut Vec<RegularGameNode>,
     node_budget: u128,
-) -> OghamResult<RegularGameEdge> {
+) -> GrundyResult<RegularGameEdge> {
     match value {
         SymbolicGame::SystemRef(equation) => match &roots[*equation] {
             SymbolicGame::Value(GameElement::Finite(game)) => {
@@ -336,11 +336,11 @@ fn materialize_system_edge(
             let left = left
                 .iter()
                 .map(|item| materialize_system_edge(item, roots, root_nodes, nodes, node_budget))
-                .collect::<OghamResult<_>>()?;
+                .collect::<GrundyResult<_>>()?;
             let right = right
                 .iter()
                 .map(|item| materialize_system_edge(item, roots, root_nodes, nodes, node_budget))
-                .collect::<OghamResult<_>>()?;
+                .collect::<GrundyResult<_>>()?;
             nodes[node] = RegularGameNode { left, right };
             Ok(RegularGameEdge::Local(node))
         }
@@ -408,7 +408,7 @@ pub(crate) enum ClassificationPosition {
 pub(crate) fn classify_regular_nodes(
     nodes: &[RegularGameNode],
     node_budget: u128,
-) -> OghamResult<Vec<bool>> {
+) -> GrundyResult<Vec<bool>> {
     let mut positions = (0..nodes.len())
         .map(ClassificationPosition::Current)
         .collect::<Vec<_>>();
@@ -483,7 +483,7 @@ pub(crate) fn classification_edges(
     left: &mut Vec<Vec<usize>>,
     right: &mut Vec<Vec<usize>>,
     external: &mut HashMap<GraphKey, usize>,
-) -> OghamResult<Vec<usize>> {
+) -> GrundyResult<Vec<usize>> {
     edges
         .into_iter()
         .map(|edge| match edge {
@@ -520,7 +520,7 @@ pub(crate) fn classification_edges(
 pub(crate) fn operational_partizan_graph(
     element: &GameElement,
     node_budget: u128,
-) -> OghamResult<LoopyPartizanGraph> {
+) -> GrundyResult<LoopyPartizanGraph> {
     if let GameElement::Finite(game) = element {
         return LoopyPartizanGraph::from_game(game, node_budget).map_err(partizan_graph_error);
     }
@@ -596,7 +596,7 @@ pub(crate) fn operational_classification_edges(
     left: &mut Vec<Vec<usize>>,
     right: &mut Vec<Vec<usize>>,
     external: &mut HashMap<GraphKey, usize>,
-) -> OghamResult<Vec<usize>> {
+) -> GrundyResult<Vec<usize>> {
     edges
         .into_iter()
         .map(|edge| match edge {
@@ -636,7 +636,7 @@ pub(crate) fn push_operational_position(
     positions: &mut Vec<ClassificationPosition>,
     left: &mut Vec<Vec<usize>>,
     right: &mut Vec<Vec<usize>>,
-) -> OghamResult<usize> {
+) -> GrundyResult<usize> {
     if positions.len() as u128 >= node_budget {
         return Err(graph_budget_error(node_budget));
     }
@@ -735,7 +735,7 @@ pub(crate) fn partizan_game_element(graph: LoopyPartizanGraph) -> GameElement {
 pub(crate) fn negate_game_element(
     element: GameElement,
     node_budget: u128,
-) -> OghamResult<GameElement> {
+) -> GrundyResult<GameElement> {
     match element {
         GameElement::Finite(game) => {
             LoopyPartizanGraph::from_game(&game, node_budget).map_err(partizan_graph_error)?;
@@ -752,7 +752,7 @@ pub(crate) fn add_game_elements(
     rhs: GameElement,
     subtract: bool,
     node_budget: u128,
-) -> OghamResult<GameElement> {
+) -> GrundyResult<GameElement> {
     if let (GameElement::Finite(lhs), GameElement::Finite(rhs)) = (&lhs, &rhs) {
         return Ok(GameElement::Finite(if subtract {
             lhs.add(&rhs.neg())
@@ -774,7 +774,7 @@ pub(crate) fn game_difference_outcome(
     lhs: &GameElement,
     rhs: &GameElement,
     node_budget: u128,
-) -> OghamResult<LoopyPartizanOutcome> {
+) -> GrundyResult<LoopyPartizanOutcome> {
     let lhs = operational_partizan_graph(lhs, node_budget)?;
     let rhs = operational_partizan_graph(rhs, node_budget)?.neg();
     lhs.sum(0, &rhs, 0, node_budget)
@@ -814,7 +814,7 @@ pub(crate) fn ensure_game_stopper(
     operand: &str,
     element: &GameElement,
     node_budget: u128,
-) -> OghamResult<()> {
+) -> GrundyResult<()> {
     let graph = operational_partizan_graph(element, node_budget)?;
     match graph.stopper_status(0).map_err(partizan_graph_error)? {
         LoopyStopperStatus::Stopper => Ok(()),
@@ -828,7 +828,7 @@ pub(crate) fn ensure_game_stopper(
 pub(crate) fn game_element_is_stopper(
     element: &GameElement,
     node_budget: u128,
-) -> OghamResult<bool> {
+) -> GrundyResult<bool> {
     operational_partizan_graph(element, node_budget)?
         .is_stopper(0)
         .map_err(partizan_graph_error)
@@ -848,11 +848,11 @@ pub(crate) fn render_stopper_witness(cycle: &[crate::games::LoopyTurnState]) -> 
         .join("→")
 }
 
-pub(crate) fn partizan_graph_error(error: LoopyPartizanGraphError) -> OghamError {
+pub(crate) fn partizan_graph_error(error: LoopyPartizanGraphError) -> GrundyError {
     match error {
         LoopyPartizanGraphError::NodeBudgetExceeded { budget } => graph_budget_error(budget),
-        other => OghamError::new(
-            OghamErrorKind::Domain,
+        other => GrundyError::new(
+            GrundyErrorKind::Domain,
             Span::point(0),
             format!("invalid materialized game graph: {other}"),
         ),
@@ -883,17 +883,17 @@ pub(crate) fn game_options(element: &GameElement, left: bool) -> Vec<GameElement
     }
 }
 
-pub(crate) fn unfounded_error(name: &str) -> OghamError {
-    OghamError::new(
-        OghamErrorKind::Unfounded,
+pub(crate) fn unfounded_error(name: &str) -> GrundyError {
+    GrundyError::new(
+        GrundyErrorKind::Unfounded,
         Span::point(0),
         format!("Element fixpoint `{name}` is not guarded by a brace constructor"),
     )
 }
 
-pub(crate) fn unfounded_system_error(equation: &str, name: &str) -> OghamError {
-    OghamError::new(
-        OghamErrorKind::Unfounded,
+pub(crate) fn unfounded_system_error(equation: &str, name: &str) -> GrundyError {
+    GrundyError::new(
+        GrundyErrorKind::Unfounded,
         Span::point(0),
         format!(
             "Element equation `{equation}` has unguarded system name `{name}` outside a brace constructor"
@@ -901,19 +901,19 @@ pub(crate) fn unfounded_system_error(equation: &str, name: &str) -> OghamError {
     )
 }
 
-pub(crate) fn loopy_error(message: &str) -> OghamError {
-    OghamError::new(OghamErrorKind::Loopy, Span::point(0), message)
+pub(crate) fn loopy_error(message: &str) -> GrundyError {
+    GrundyError::new(GrundyErrorKind::Loopy, Span::point(0), message)
 }
 
-pub(crate) fn game_option_index(name: &str, index: i128) -> OghamResult<usize> {
+pub(crate) fn game_option_index(name: &str, index: i128) -> GrundyResult<usize> {
     usize::try_from(index).map_err(|_| domain(format!("{name} option index must be non-negative")))
 }
 
-pub(crate) fn game_wrong_world(message: &str) -> OghamError {
-    OghamError::new(OghamErrorKind::WrongWorld, Span::point(0), message)
+pub(crate) fn game_wrong_world(message: &str) -> GrundyError {
+    GrundyError::new(GrundyErrorKind::WrongWorld, Span::point(0), message)
 }
 
-pub(crate) fn game_wrong_world_hint(message: &str, hint: &str) -> OghamError {
+pub(crate) fn game_wrong_world_hint(message: &str, hint: &str) -> GrundyError {
     game_wrong_world(message).with_hint(hint)
 }
 

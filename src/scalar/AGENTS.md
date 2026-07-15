@@ -44,7 +44,7 @@ and const-generic sizes that are inherently indices.
   is the **ring of integers** of `S(t)`, so it impls `Scalar` + `HasFractionField`
   (Frac = `RationalFunction<S>`); its units are the nonzero constants, so `inv` is
   partial. `Poly::t()` is the indeterminate constructor (matching the `t` it Displays
-  as). Display is canonical ogham (Display v4, `docs/ogham/spec.md` §12): variable
+  as). Display is canonical grundy (Display v4, `docs/grundy/spec.md` §12): variable
   `t`, explicit `⋅`, coefficient parens only when non-atomic — and it owns the
   shared `pub(crate)` `atomic`/`attach_coeff` helpers the `Multivector` display
   also uses (atomic = no spaces and no `⋅ ∧ ↑ / + -` outside balanced parens; a
@@ -64,7 +64,7 @@ and const-generic sizes that are inherently indices.
   `Ordinal` is the deliberate exception: additive operators only, multiplication behind
   the checked `nim_mul` API (the represented Kummer tower has an honest boundary). `/`
   stays a method (inv is partial). **The operators are NOT a `Scalar` supertrait** —
-  see "things that look like bugs". Ogham backend helpers live here too:
+  see "things that look like bugs". grundy backend helpers live here too:
   `checked_factorial_i128` (host-carrier roof: `33!`, not `34!`) and
   `factorial_in_scalar<S>` (in-world product via `from_int`, zeroing at positive
   characteristic).
@@ -164,7 +164,7 @@ and const-generic sizes that are inherently indices.
   inherent value `cmp`.
 - **`integer.rs`** — exact ℤ, the coefficient ring for the exterior algebra of the
   game group (`games/game_exterior/`): games are a ℤ-module, not a ring, so Λ over
-  ℤ is the structure that lives on all of game-world. Only ±1 invertible. Ogham's
+  ℤ is the structure that lives on all of game-world. Only ±1 invertible. grundy's
   exact-division support is here: `divrem`/`rem` are Euclidean (`0 <= r < |b|`),
   and `div_exact` returns `IntegerDivExactError::Remainder(r)` on non-exact
   division. It also implements the standard total-order traits.
