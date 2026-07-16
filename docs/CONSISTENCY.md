@@ -107,4 +107,4 @@ the recorded weight-enumerator boundary, the branch-selection trap in the splitt
 test. The three-ledger cross-referencing held up in practice — the char-2 spinor
 completion still lives in COMPLETENESS, the AJ switch in CORRECTNESS, the taste
 corrections here — play them as one hand, and when the next audit comes, start it
-at `src/grundy/` and `src/py/`, the two wings no taste pass has read.
+at `grundy/src/` and `src/py/`, the two wings no taste pass has read.

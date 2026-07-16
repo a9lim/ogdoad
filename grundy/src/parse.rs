@@ -3,7 +3,7 @@ use super::ast::{
 };
 use super::error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
 use super::lex::{lex, Token, TokenKind};
-use crate::scalar::Ordinal;
+use ogdoad::scalar::Ordinal;
 
 pub fn parse_statement(src: &str) -> GrundyResult<Statement> {
     let tokens = lex(src)?;

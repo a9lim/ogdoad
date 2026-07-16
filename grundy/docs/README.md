@@ -35,8 +35,8 @@ over ‿‿ over              // true — and yet both starters draw in over −
 ## Running it
 
 ```sh
-cargo run --example grundy_repl              # interactive; :help is task-first
-cargo run --example grundy_repl < file.og    # piped session
+cargo run -p grundy --example repl              # interactive; :help is task-first
+cargo run -p grundy --example repl < file.og    # piped session
 ```
 
 Start with `:help`, then `:world game`. The REPL is the tutor: every echo is

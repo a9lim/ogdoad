@@ -20,13 +20,6 @@ def raises_value_error(fn):
     return False
 
 
-section("grundy — the expression language over fixed worlds")
-print(pl.grundy_eval("nimber 2 q=[*1,*1]", "e0 & e0\n[*1,*2] & [*1,*3]\ne0 . e0"))
-print("  bare int rejected in nimber world:", raises_value_error(lambda: pl.grundy_eval("nimber 0", "3")))
-print(pl.grundy_eval("polyint", "(5.t + 1)@7\ndeg(t^2 + 1)\ngcd(2.t + 2, 4.t + 4)"))
-print(pl.grundy_eval("integer 0", "a := 5; a + 1\nnorm1 := (u, v) ↦ (\n  s := u + v;\n  d := u - v;\n  s.s + d.d\n)\nnorm1@(2, 1)"))
-print("  ratfunc pole rejected:", raises_value_error(lambda: pl.grundy_eval("ratfunc5", "(1/(t + 1))@4")))
-
 section("nimbers On₂ — char 2, the non-commutative Clifford case")
 # b[(0,1)] = *1  ⇒  e0 e1 + e1 e0 = *1 ≠ 0  ⇒  non-commutative.
 A = pl.NimberAlgebra(q=[pl.Nimber(2), pl.Nimber(3)], b={(0, 1): 1})

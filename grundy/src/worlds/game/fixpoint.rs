@@ -654,6 +654,9 @@ pub(crate) fn partizan_game_element(graph: LoopyPartizanGraph) -> GameElement {
     let mut finite = vec![None; graph.node_count()];
     let mut remaining = vec![0_usize; graph.node_count()];
     let mut predecessors = vec![Vec::new(); graph.node_count()];
+    // Index-parallel walk over three per-node arrays (`remaining`,
+    // `predecessors`, and the graph's option lists); the range loop reads clearer.
+    #[allow(clippy::needless_range_loop)]
     for node in 0..graph.node_count() {
         remaining[node] = graph.left()[node].len() + graph.right()[node].len();
         for &target in graph.left()[node].iter().chain(&graph.right()[node]) {
@@ -834,7 +837,7 @@ pub(crate) fn game_element_is_stopper(
         .map_err(partizan_graph_error)
 }
 
-pub(crate) fn render_stopper_witness(cycle: &[crate::games::LoopyTurnState]) -> String {
+pub(crate) fn render_stopper_witness(cycle: &[ogdoad::games::LoopyTurnState]) -> String {
     cycle
         .iter()
         .map(|state| {

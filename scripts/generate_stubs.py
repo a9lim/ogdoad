@@ -45,7 +45,6 @@ import ogdoad  # type: ignore[import-not-found]  # compiled extension, resolved 
 # the builtin inside the class body and break `-> int` annotations there.
 FUNCTION_OVERRIDES: dict[str, str] = {
     "version": "() -> builtins.str",
-    "grundy_eval": "(world: builtins.str, src: builtins.str) -> builtins.str",
     "omega": "() -> Surreal",
     "epsilon": "() -> Surreal",
     "omega_pow": "(exp: Any) -> Surreal",

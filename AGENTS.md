@@ -30,13 +30,14 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/clifford/` | the multivector engine + the GA layer | [`src/clifford/AGENTS.md`](src/clifford/AGENTS.md) |
 | `src/forms/`    | quadratic forms & invariants, by the char trichotomy plus local-global and integral layers | [`src/forms/AGENTS.md`](src/forms/AGENTS.md) (+ [`integral/`](src/forms/integral/AGENTS.md)) |
 | `src/games/`    | combinatorial game theory | [`src/games/AGENTS.md`](src/games/AGENTS.md) |
-| `src/grundy/`    | the grundy expression-language core at v0.3.6 (renamed from ogham 2026-07-15, provisional till 0.3.8; lex/parse/unparse + `session`, `runtime/` — the shared evaluator, one Index evaluator, `Apply`, `RuntimeState` — and `worlds/` incl. `game/`; mutual Element-`=:` systems with self-contained SCC equation display; word conditionals `if/then/else`; binder mark triad `#`/`?`/bare-Element; container totality fixed/graded/free; dyadic game literals; `birthday`/`integral`; world names `fp2[t]`/`fp2(t)` + dim-0 shorthand; budgeted embeddings, `E_StackDepth`/`E_FixpointSort`) | root rules |
+| `grundy/`       | the grundy expression-language crate at v0.3.6 — an UNPUBLISHED workspace member (`publish = false`; the ogdoad crate ships without it, and the name stays provisional till 0.3.8 — renamed from ogham 2026-07-15). Depends on ogdoad's public API only; carries its own `examples/repl.rs`, `tests/`, and `docs/` (spec + conformance corpus). Content: lex/parse/unparse + `session`, `runtime/` — the shared evaluator, one Index evaluator, `Apply`, `RuntimeState` — and `worlds/` incl. `game/`; mutual Element-`=:` systems with self-contained SCC equation display; word conditionals `if/then/else`; binder mark triad `#`/`?`/bare-Element; container totality fixed/graded/free; dyadic game literals; `birthday`/`integral`; world names `fp2[t]`/`fp2(t)` + dim-0 shorthand; budgeted embeddings, `E_StackDepth`/`E_FixpointSort` | root rules |
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
-Beyond the library: `examples/` (Rust demos `tour`/`tropical`, the grundy REPL
-`grundy_repl`, and the open-question probes `interactive_kernel`, `octal_hunt`,
-`loopy_quadric`, `misere_quotient`, `bent_route`), `experiments/` (Python research probes on top of the shipped
+Beyond the library: `examples/` (Rust demos `tour`/`tropical` and the
+open-question probes `interactive_kernel`, `octal_hunt`,
+`loopy_quadric`, `misere_quotient`, `bent_route`; the grundy REPL lives in the
+grundy crate — `cargo run -p grundy --example repl`), `experiments/` (Python research probes on top of the shipped
 lib, two-tier by maintenance bar: top-level `experiments/*.py` + `scripts/` are
 maintained — guards, type hints, docstrings, held to the Rust side's own bar —
 while `experiments/{gold,audit,excess}/` is a rescued archive from the 2026-06-10
@@ -52,7 +53,9 @@ sketch landed and **shipped** the same day, 2026-07-09; see DONE.md); DONE.md �
 work; CONSISTENCY.md — the aesthetic/structural ledger; CORRECTNESS.md — the
 verification-status ledger (machine-verified / source-pinned / asserted); TABLES.md —
 the inventory of curated hardcoded tables),
-`docs/grundy/` (**split at the 0.3.6 pass, 2026-07-10**: spec.md — the
+`grundy/docs/` (**split at the 0.3.6 pass, 2026-07-10**; moved from
+`docs/grundy/` into the grundy crate at the workspace split, 2026-07-16:
+spec.md — the
 normative v0.3.6 language contract (the lisp-for-games identity,
 grammar/precedence/sorts with the binder mark triad, worlds incl.
 `fp2[t]`/`fp2(t)` spelling and container totality, the game world's
@@ -66,8 +69,9 @@ release dress → 0.4.0 = the public release → 1.0.0 higher-order — lives
 in CONTINUATIONS.md;
 conformance.txt — the hand-verified corpus the language must pass (v0.3.6
 merged), with conformance_v0.2/0.3/0.3.5/0.3.6.txt as
-merged blessing/provenance, plus tests/grundy_laws.rs — the seeded law
-tests (display round-trips, projection oracle, rotation laws)),
+merged blessing/provenance, plus grundy/tests/laws.rs — the seeded law
+tests (display round-trips, projection oracle, rotation laws) — and
+grundy/tests/conformance.rs, the corpus runner),
 and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the
@@ -273,12 +277,12 @@ standard-math implementations and useful infrastructure; cite them as such.
 ## Commands
 
 ```sh
-cargo test                                    # the math core (pure Rust, no Python)
-cargo clippy --all-targets                    # lint (kept warning-clean)
-cargo doc --no-deps                           # rustdoc (intra-doc links warning-clean)
+cargo test --workspace                        # the math core + grundy (pure Rust, no Python)
+cargo clippy --workspace --all-targets        # lint (kept warning-clean)
+cargo doc --no-deps --workspace               # rustdoc (intra-doc links warning-clean)
 cargo run --example tour                      # Rust demo
 cargo run --example tropical                  # tropical-semiring / thermography demo
-cargo run --example grundy_repl                # grundy expression-language REPL
+cargo run -p grundy --example repl            # grundy expression-language REPL
 cargo run --example interactive_kernel        # open-problem probe
 cargo run --example octal_hunt                # open-problem probe
 cargo run --example loopy_quadric             # open-problem probe
@@ -327,12 +331,12 @@ current release build on this macOS beta. `cargo` must be on PATH
 
 ## Style
 
-- Rust 2021, `cargo fmt` clean, `cargo clippy --all-targets` warning-clean (the one
+- Rust 2021, `cargo fmt` clean, `cargo clippy --workspace --all-targets` warning-clean (the one
   crate-level allow — `needless_range_loop` for the matrix code — is justified in
   `lib.rs`; targeted `#[allow]`s carry a one-line reason). License: AGPL-3.0-or-later.
 - Numeric payload style is deliberate: non-index fixed-width integers are
   `u128`/`i128` throughout the core, docs, examples, and tests.
-- Display is deliberate and canonical (grundy Display v4, `docs/grundy/spec.md` §12):
+- Display is deliberate and canonical (grundy Display v4, `grundy/docs/spec.md` §12):
   blades render as wedge expressions `e0∧e1` (`∧` = U+2227); coefficients attach
   `coeff⋅label` (`⋅` = U+22C5) with coefficient-`1` elided and `-1` → `-label`
   (compared via `S::one().neg()`, never a literal). A term whose rendering starts
@@ -365,7 +369,8 @@ current release build on this macOS beta. `cargo` must be on PATH
 
 ## Testing
 
-`cargo test` is the source of truth and needs no Python. It does **NOT** compile the
+`cargo test --workspace` is the source of truth (ogdoad + the grundy crate) and
+needs no Python. It does **NOT** compile the
 `python` feature — after touching `src/py/` or any core API the bindings call, run
 `cargo check --features python` (and `cargo clippy --features python --all-targets`).
 After touching `clifford/` or `scalar/big/surreal/`, also rebuild + run `demo.py`

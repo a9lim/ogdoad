@@ -27,7 +27,7 @@ plugin system.
 ### 1.1 Module layout (0.3.6 target)
 
 ```text
-src/grundy/
+grundy/src/
   mod.rs
   ast.rs                    Expr (with Apply), Binder marks, spans
   lex.rs

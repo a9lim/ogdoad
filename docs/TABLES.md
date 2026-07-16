@@ -49,7 +49,7 @@ Recorded so a future sweep does not re-flag them as gaps:
   `BW16` constructor consumes that generated family rather than adding a new
   curated code table.
 - **The grundy language surface** — the world catalogue, builtin-function names, and reserved
-  keywords (`src/grundy/{eval,parse,lex}.rs`) — is public API vocabulary but is owned by the
-  language spec `docs/grundy/spec.md`, not this inventory.
+  keywords (`grundy/src/{eval,parse,lex}.rs`) — is public API vocabulary but is owned by the
+  language spec `grundy/docs/spec.md`, not this inventory.
 - **`clifford/` and `linalg/`** carry no curated lookup tables: signs go through `Scalar::neg`
   and blade products / reductions are computed index arithmetic.

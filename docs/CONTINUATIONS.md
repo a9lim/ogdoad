@@ -48,12 +48,12 @@ of 2026-07-15. Name finalization — confirm grundy or settle otherwise, and
 decide whether the language claims its own crate slot or stays inside ogdoad
 only — is a 0.3.8 release-dress item. History keeps the shipped name: DONE
 entry keys, gaslamp threads (`ogham-036-*`/`ogham-v36`), and the merged
-provenance corpora (`docs/grundy/conformance_v*.txt`) are not rewritten.
+provenance corpora (`grundy/docs/conformance_v*.txt`) are not rewritten.
 
 (`ogham-0.3.6` — the second comprehensive adversarial pass — **shipped
 2026-07-10**, same day as its sweep and spec rewrite; its entry moved to
 [`DONE.md`](DONE.md) as `ogham-0.3.6`. The contract is
-`docs/grundy/spec.md`; the sweep verdicts, decisions, and build record live
+`grundy/docs/spec.md`; the sweep verdicts, decisions, and build record live
 in the DONE entry and the `ogham-036-*`/`ogham-v36` gaslamp threads.)
 
 ### 2·e_o: `grundy-0.3.7`

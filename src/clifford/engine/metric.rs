@@ -137,9 +137,10 @@ impl<S: Scalar> Metric<S> {
         }
     }
 
-    /// True iff there is any in-order contraction — i.e. this is a genuinely
-    /// general bilinear form and needs the Chevalley product path.
-    pub(crate) fn has_upper(&self) -> bool {
+    /// True iff there is any in-order contraction (`a` data) — i.e. this is a
+    /// genuinely general bilinear form and takes the Chevalley product path
+    /// rather than the ordinary `(q, b)` Clifford product.
+    pub fn has_upper(&self) -> bool {
         self.a.values().any(|v| !v.is_zero())
     }
 

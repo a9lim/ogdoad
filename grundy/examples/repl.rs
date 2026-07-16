@@ -1,4 +1,4 @@
-use ogdoad::grundy::{needs_continuation, GrundySession, GRUNDY_VERSION, WORLD_MENU};
+use grundy::{needs_continuation, GrundySession, GRUNDY_VERSION, WORLD_MENU};
 use std::io::{self, Write};
 
 const TUTOR_TASKS: &str = concat!(

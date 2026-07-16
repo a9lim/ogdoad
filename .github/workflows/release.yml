@@ -90,7 +90,9 @@ jobs:
         id: auth
         uses: rust-lang/crates-io-auth-action@v1
       - name: cargo publish
-        run: cargo publish
+        # -p ogdoad: the workspace also carries the unpublished grundy crate
+        # (publish = false); only the root package ships.
+        run: cargo publish -p ogdoad
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 

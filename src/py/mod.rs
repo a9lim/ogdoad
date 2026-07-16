@@ -15,7 +15,6 @@
 //! `pub(crate) fn register`, which the `#[pymodule]` entry point chains
 //! together.
 
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[macro_use]
@@ -30,11 +29,6 @@ fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-#[pyfunction]
-fn grundy_eval(world: &str, src: &str) -> PyResult<String> {
-    crate::grundy::eval_to_string(world, src).map_err(|err| PyValueError::new_err(err.to_string()))
-}
-
 #[pymodule]
 fn ogdoad(m: &Bound<'_, PyModule>) -> PyResult<()> {
     scalars::register(m)?;
@@ -42,6 +36,5 @@ fn ogdoad(m: &Bound<'_, PyModule>) -> PyResult<()> {
     forms::register(m)?;
     games::register(m)?;
     m.add_function(wrap_pyfunction!(version, m)?)?;
-    m.add_function(wrap_pyfunction!(grundy_eval, m)?)?;
     Ok(())
 }

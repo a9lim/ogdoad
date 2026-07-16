@@ -1,0 +1,14 @@
+[package]
+# The language name is provisional until the 0.3.8 rung (renamed from ogham
+# 2026-07-15); `publish = false` keeps the name internal, so nothing named
+# grundy enters any published artifact until the language ships at 0.4.0.
+name = "grundy"
+version = "0.3.6"
+edition = "2021"
+publish = false
+description = "The grundy expression language over ogdoad's scalar, Clifford, and game worlds."
+license = "AGPL-3.0-or-later"
+authors = ["a9lim <mx@a9l.im>"]
+
+[dependencies]
+ogdoad = { path = ".." }

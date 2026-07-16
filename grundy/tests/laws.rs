@@ -1,5 +1,5 @@
+use grundy::{ast::OutcomeCell, GrundySession};
 use ogdoad::games::{Game, LoopyPartizanGraph};
-use ogdoad::grundy::{ast::OutcomeCell, GrundySession};
 
 const SEED: u64 = 0x0360_5eed_cafe_f00d;
 

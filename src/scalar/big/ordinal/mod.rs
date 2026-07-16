@@ -270,7 +270,7 @@ fn fmt_exp(e: &Ordinal) -> String {
 /// join with `⋅` (U+22C5).
 ///
 /// Deliberately `base⋅coeff` (`ω⋅3`, the base first), the reverse of the
-/// crate-wide `coeff⋅label` rule (`Multivector`/`Poly`, `docs/grundy/spec.md`
+/// crate-wide `coeff⋅label` rule (`Multivector`/`Poly`, `grundy/docs/spec.md`
 /// §12). Not a drift to fix: CNF is conventionally written `ω^β·n`, and ordinal
 /// multiplication is non-commutative, so `base⋅coeff` (not `coeff⋅base`)
 /// carries real meaning here.

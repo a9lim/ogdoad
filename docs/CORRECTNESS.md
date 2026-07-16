@@ -138,6 +138,6 @@ external data pins.
 - `weight_enumerator` (both code types) keeps an infallible signature with a
   documented budget-referencing panic (`CODEWORD_ENUMERATION_BUDGET`); full
   `Option`-ification is a 3-caller follow-up (py, lexicode, theta) if ever wanted.
-- The next audit of this kind should read `src/grundy/` and `src/py/` — both were out
+- The next audit of this kind should read `grundy/src/` and `src/py/` — both were out
   of scope for the 2026-07-02 pass (see [`CONTINUATIONS.md`](CONTINUATIONS.md) →
   `ogham-reflect` part (3)).

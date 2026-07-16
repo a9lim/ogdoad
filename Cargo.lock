@@ -101,6 +101,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "grundy"
+version = "0.3.6"
+dependencies = [
+ "ogdoad",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -186,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "ogdoad"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
  "pyo3",

@@ -1,6 +1,9 @@
+[workspace]
+members = ["grundy"]
+
 [package]
 name = "ogdoad"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games: nimbers, surreals, surcomplex."
 license = "AGPL-3.0-or-later"
@@ -13,15 +16,19 @@ keywords = ["clifford-algebra", "surreal-numbers", "nimbers", "quadratic-forms",
 categories = ["mathematics", "science"]
 # The published crate is the Rust library artifact. The Python research probes
 # (`experiments/`), the LaTeX draft notes (`writeups/`), the repo CI/infra
-# (`.github/`), and the Python-distribution side (the regenerable `ogdoad.pyi`
-# stub, `demo.py`, `pyproject.toml`, `scripts/` — all built/consumed separately
-# via maturin, never from this tarball) are part of the source tree but not the
-# crate a `cargo add` consumer needs, so they are kept out of the `.crate`.
-# `docs/` stays: `tests/grundy_conformance.rs` `include_str!`s a file under it.
+# (`.github/`), the research/audit ledgers (`docs/` — repo bookkeeping, linked
+# from the README via the repository URL), the unpublished grundy language
+# crate (`grundy/`, a workspace member cargo would exclude anyway), and the
+# Python-distribution side (the regenerable `ogdoad.pyi` stub, `demo.py`,
+# `pyproject.toml`, `scripts/` — all built/consumed separately via maturin,
+# never from this tarball) are part of the source tree but not the crate a
+# `cargo add` consumer needs, so they are kept out of the `.crate`.
 exclude = [
     "experiments/",
     "writeups/",
     ".github/",
+    "docs/",
+    "grundy/",
     "ogdoad.pyi",
     "demo.py",
     "pyproject.toml",

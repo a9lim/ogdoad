@@ -1,4 +1,4 @@
-use crate::scalar::Ordinal;
+use ogdoad::scalar::Ordinal;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Statement {

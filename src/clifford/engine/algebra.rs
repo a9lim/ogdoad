@@ -313,7 +313,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// so it CAN live on the scalar type without a metric context. grundy's `a ↑ k`
     /// desugars to this method for multivectors.
     ///
-    /// **Precedence caveat (§5 `docs/grundy/spec.md`):** Rust's `^` binds looser than `*`.
+    /// **Precedence caveat (§5 `grundy/docs/spec.md`):** Rust's `^` binds looser than `*`.
     /// When using scalar `x ^ k`, parenthesize if the intended precedence differs
     /// from grundy's power-tighter-than-product table.
     pub fn pow(&self, v: &Multivector<S>, k: u128) -> Multivector<S> {

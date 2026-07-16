@@ -33,7 +33,7 @@ breakdown. The load-bearing facts worth knowing before opening a file:
   2 still panics on nonzero `a`.
 - **`multivector.rs`** (`Multivector<S>`) — `terms` field is `pub(crate)`; use the
   `terms()` accessor for external reads. `impl fmt::Display` is the canonical
-  grundy renderer (Display v4, `docs/grundy/spec.md` §12).
+  grundy renderer (Display v4, `grundy/docs/spec.md` §12).
 - **`basis.rs`** — `grade_k_masks` is the one grade-k blade-mask enumerator,
   shared by `blade.rs` and `outermorphism.rs`.
 - **`terms.rs`** — `add_term`/`merge` are `pub(crate)` (shared beyond this engine,

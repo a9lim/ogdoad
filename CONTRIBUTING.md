@@ -34,10 +34,10 @@ rules):
 ## Test plan
 
 ```sh
-cargo test                                  # the math core — source of truth, no Python
-cargo clippy --all-targets                  # kept warning-clean
-cargo fmt --check
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps   # run COLD (rm -rf target/doc first)
+cargo test --workspace                      # the math core + grundy — source of truth, no Python
+cargo clippy --workspace --all-targets      # kept warning-clean
+cargo fmt --all --check
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace   # run COLD (rm -rf target/doc first)
 ```
 
 `cargo test` does **not** compile the `python` feature. After touching `src/py/` or

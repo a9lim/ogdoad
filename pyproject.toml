@@ -4,7 +4,9 @@ build-backend = "maturin"
 
 [project]
 name = "ogdoad"
-version = "0.1.0"
+# Version is dynamic: maturin reads it from Cargo.toml, the one source of truth
+# (the release workflow's guard reads the same field).
+dynamic = ["version"]
 description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games"
 readme = "README.md"
 requires-python = ">=3.9"

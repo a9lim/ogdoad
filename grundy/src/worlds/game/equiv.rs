@@ -168,10 +168,7 @@ pub(crate) fn game_mu_call_key(name: &str, body: &Expr, args: &[Value<GameElemen
         })
         .collect::<Vec<_>>()
         .join("|");
-    format!(
-        "{name}:{}@{args}",
-        crate::grundy::unparse::unparse_expr(body)
-    )
+    format!("{name}:{}@{args}", crate::unparse::unparse_expr(body))
 }
 
 pub(crate) fn game_form_key(game: &Game) -> String {

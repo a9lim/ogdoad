@@ -1,4 +1,4 @@
-use ogdoad::grundy::{
+use grundy::{
     ast::OutcomeCell, eval_to_string, parse_statement, unparse_statement, EvalLine, GrundyError,
     GrundyErrorKind, GrundySession, WORLD_MENU,
 };
@@ -11,7 +11,7 @@ enum Outcome {
 
 #[test]
 fn grundy_conformance_corpus() {
-    let corpus = include_str!("../docs/grundy/conformance.txt");
+    let corpus = include_str!("../docs/conformance.txt");
     run_corpus(corpus);
 }
 

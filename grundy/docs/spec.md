@@ -1212,7 +1212,7 @@ message tail** (this is a checked build invariant — see
 
 ## 14. REPL and files
 
-`examples/grundy_repl.rs` drives `src/grundy/`'s `GrundySession`. Default world
+`grundy/examples/repl.rs` drives the crate's `GrundySession`. Default world
 `integer` (dim 0 — the shorthand is canonical, §7); the banner names the
 version and world. Colon commands: `:world …`, `:fuel [n]`, `:graph [n]`,
 `:env`, `:help [topic]`, `:quit`. A failed `:world` preserves the current
@@ -1226,7 +1226,7 @@ Comment-only lines are no-ops; EOF flushes a pending continuation; unknown
 worlds list the menu.
 
 `.og` files are piped sessions: the same statement syntax, `:world` directive
-lines included — `cargo run --example grundy_repl < file.og` is the runner.
+lines included — `cargo run -p grundy --example repl < file.og` is the runner.
 One statement per line at depth 0; continuation per §3 (open delimiters or a
 line ending in a token that cannot end a statement).
 

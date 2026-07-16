@@ -1046,7 +1046,7 @@ pub(crate) fn parse_gold_metric(src: &str) -> GrundyResult<Metric<Nimber>> {
     if parts.next().is_some() {
         return Err(parse_error("gold expects exactly two arguments"));
     }
-    Ok(crate::forms::gold_form(m, a))
+    Ok(ogdoad::forms::gold_form(m, a))
 }
 
 pub(crate) fn parse_scalar_list<S: GrundyScalar>(src: &str) -> GrundyResult<Vec<S>> {

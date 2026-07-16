@@ -34,7 +34,6 @@
 pub mod clifford;
 pub mod forms;
 pub mod games;
-pub mod grundy;
 pub(crate) mod linalg;
 pub mod scalar;
 

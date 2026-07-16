@@ -1,7 +1,10 @@
 //! grundy, the small expression language over ogdoad scalar worlds.
 //!
-//! The language contract lives in `docs/grundy/spec.md`; this module keeps the pure
-//! Rust parser/evaluator independent of the optional PyO3 bindings.
+//! The language contract lives in `docs/spec.md` (in this crate); the runtime
+//! architecture in `docs/implementation.md`. This crate is the pure Rust
+//! parser/evaluator over the published `ogdoad` core — unpublished
+//! (`publish = false`) while the language is pre-release, so the ogdoad crate
+//! carries no grundy surface until the language ships.
 
 pub mod ast;
 pub mod error;

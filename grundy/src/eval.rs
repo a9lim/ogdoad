@@ -6,12 +6,12 @@ use super::error::*;
 use super::lex::{needs_continuation, strip_comments};
 use super::parse::parse_statement;
 use super::unparse::unparse_statement;
-use crate::clifford::{CliffordAlgebra, Metric, Multivector};
-use crate::games::{
+use ogdoad::clifford::{CliffordAlgebra, Metric, Multivector};
+use ogdoad::games::{
     Game, LoopyMover, LoopyPartizanGraph, LoopyPartizanGraphError, LoopyPartizanOutcome,
     LoopyStopperStatus, LoopyWinner,
 };
-use crate::scalar::{
+use ogdoad::scalar::{
     nim_trace, ExactFieldScalar, FiniteField, Fp, Fpn, HasRingOfIntegers, Integer,
     IntegerDivExactError, Nimber, Omnific, Ordinal, Poly, Rational, RationalFunction, Scalar,
     Surreal,

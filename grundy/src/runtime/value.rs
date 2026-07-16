@@ -71,7 +71,7 @@ pub(crate) fn display_value<E: Display>(value: &Value<E>) -> String {
         Value::Index(value) => display_index(*value),
         Value::Bool(value) => value.to_string(),
         Value::Function(function) => {
-            let lambda = crate::grundy::unparse::unparse_expr(&function.lambda_expr());
+            let lambda = crate::unparse::unparse_expr(&function.lambda_expr());
             function
                 .mu_name
                 .as_ref()

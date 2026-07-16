@@ -199,7 +199,8 @@ pl.hilbert_product((-1, 1), (-1, 1))  # +1  (reciprocity)
 The Python surface is **runtime-friendly parity**: every backend that is a plain runtime
 type is bound, while open-ended const-generic families (arbitrary `Qp<P,K>`, `Qq<P,N,F>`,
 …) stay Rust-only unless they get an explicit fixed dispatch slice. See
-[`src/py/AGENTS.md`](src/py/AGENTS.md) for the full bound surface and the policy.
+[`src/py/AGENTS.md`](https://github.com/a9lim/ogdoad/blob/main/src/py/AGENTS.md) for the
+full bound surface and the policy.
 
 Prefer no Python? The Rust tour needs none:
 
@@ -224,15 +225,17 @@ top. Each `src/` pillar has its own `AGENTS.md` with the file-by-file breakdown:
 - `src/games/` — normal-, misère-, and loopy-play impartial games, finite loopy-partizan
   graphs, short partizan games, thermography/atomic weight, Hackenbush, the exterior
   algebra of the game group, and the checked integer Clifford deformation surface.
-- `src/grundy/` — the grundy expression-language core: lexer/parser/AST/unparser,
-  fixed-world evaluator (Clifford worlds plus polynomial/ratfunc function worlds), error
-  taxonomy, and conformance support.
 - `src/py/` — the optional PyO3 bindings behind the `python` feature.
 - `src/linalg/` — crate-private shared linear algebra (exact integer HNF/Smith, F₂/nim
   rank, generic field solves).
 
+Beside the published crate sits `grundy/` — the grundy expression-language crate over the
+core (lexer/parser/AST/unparser, fixed-world evaluator, error taxonomy, conformance
+corpus). It is an unpublished workspace member (`publish = false`) while the language is
+pre-release; it ships separately when it stabilizes.
+
 See `AGENTS.md` for the working-notes summary, `docs/OPEN.md` for the genuine open
-problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `docs/grundy/` for
+problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `grundy/docs/` for
 the language contract, and `writeups/` for the draft notes.
 
 ## The bridges — a traveller's catalog
