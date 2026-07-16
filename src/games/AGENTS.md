@@ -6,7 +6,7 @@ subclasses, where Conway multiplication is defined). Games under disjunctive sum
 are an abelian GROUP, not a ring; that constraint is *why* the Clifford story
 lives on the scalar backends and not on all games.
 
-> Read root `OPEN.md` before touching `coin_turning.rs`, `kernel.rs`, `misere.rs`, or
+> Read `docs/OPEN.md` before touching `coin_turning.rs`, `kernel.rs`, `misere.rs`, or
 > the example probes — they feed the open play-semantics question.
 
 `mod.rs` re-exports every module below flat.
@@ -22,6 +22,8 @@ indices, and collection lengths.
   `canonical_string` — the latter canonicalizes, a value key) + the game↔surreal
   bridge (`number_value`/`from_surreal`, numbers only). Also `Game::ordinal_sum`
   (G:H — Hackenbush strings are these), `Game::nim_heap` (⋆n), `Game::is_all_small`.
+  The integer-value-of-a-game logic lives once in `partizan::integer_value` (callers
+  route through it, no duplicate inline copies).
 - **`number_game.rs`** — transfinite NUMBER games (ω, ε) carried by their Surreal
   value — value/birthday/sum/cmp delegate to surreal, no infinite option tree. Plus
   the FULL transfinite round trip via sign_expansion/from_sign_expansion (the
@@ -35,21 +37,38 @@ indices, and collection lengths.
   `No ↔ On₂` symmetry at the games layer (the rest lives at the scalar layer via the
   shared CNF core, reaching Clifford through `Scalar for Ordinal` inside the checked
   Kummer boundary). Bound to Python as `NimberGame`.
-- **`game_exterior.rs`** — the exterior algebra of the GAME group: Λ over ℤ on game
+- **`game_exterior/`** — the exterior algebra of the GAME group: Λ over ℤ on game
   generators (living on all of game-world, incl. non-numbers ⋆/↑ — needs only the
-  ℤ-module structure). `GameExterior` (free Grassmann engine quotiented by integer
-  game relations such as 2⋆=0) + `GameRelation`; lattice normalization in
-  `linalg/integer.rs`.
+  ℤ-module structure). Split into three layers:
+  - `game_exterior/relations.rs` — `GameRelation`, `GameRelationCertificate`,
+    `RelationSearchCertificate` + certificate helpers (`pub(super)` to `lambda.rs`
+    and `clifford.rs`).
+  - `game_exterior/lambda.rs` — `GameExterior` (free Grassmann engine quotiented by
+    integer game relations such as `2⋆=0`) + all private helpers; lattice
+    normalization in `linalg/integer.rs`.
+  - `game_exterior/clifford.rs` — `GameCliffordError` and `GameClifford`: the checked
+    integer-valued deformation surface; hand-supplied `q`/polar tables are accepted
+    only when every game relation is null and polar-radical, so torsion-free targets
+    force the documented vanishings (for example, `2⋆=0` kills `Q(⋆)` and all
+    pairings with ⋆). This is not a game-native quadratic-data theorem; that remains
+    in `docs/OPEN.md`.
+  - `game_exterior/mod.rs` — hub; re-exports everything flat so `games::GameExterior`
+    etc. remain unchanged.
 
 ## Temperature theory
 
 - **`thermography.rs`** — the thermograph of a short game: left/right scaffolds,
   stops, cooling (`cooled_stops`), temperature, and mean (mast) value.
+- **`heating.rs`** — game-valued heating, Berlekamp overheating `int_s^t G`, and
+  Norton multiplication `G.U` by a positive unit. Infrastructure only: it does not
+  assert the associated-graded product asked for in `docs/OPEN.md` `under`.
 - **`atomic_weight.rs`** — atomic weight of ALL-SMALL games (finishes thermography):
   the two-ahead rule (Siegel Constructive Atomic Weight; Larsson–Nowakowski
   arXiv:2007.03949 Thm 10). `aw` IS additive on all-small games.
 - **`piecewise.rs`** — `Pl`: exact rational piecewise-linear wall arithmetic used by
-  thermography. `add_pl`/`sub_pl` name the tropical `⊗`.
+  thermography. `add_pl` (pointwise sum) is the tropical `⊗`; `sub_pl` is the arithmetic
+  difference (`left_raw − right_raw`) in the meeting-temperature recursion, NOT a
+  tropical operation.
 - **`tropical_thermography.rs`** — names the latent tropical structure in
   thermography and machine-checks it. The option folds are tropical `⊕` in DUAL
   semirings — the left wall a `(max,+)` fold over the Left options' right walls, the
@@ -67,38 +86,76 @@ indices, and collection lengths.
   recurrence (a different *definition* from the algebraic `nim_mul`, proven equal).
   Plus general 1-D coin-turning (`grundy_1d`) and the 2-D Tartan product
   (`tartan_grundy`), with the Tartan/Product theorem verified.
-- **`grundy.rs`** — general Sprague–Grundy (normal-play impartial center): `mex`,
+- **`grundy.rs`** — general Sprague–Grundy (normal-play impartial center): `mex`
+  (the crate's one minimal-excludant — `lexicode.rs` and every other caller route
+  through `grundy::mex`, no re-implementations),
   `grundy_graph` (DAG; None on a cycle), closure-based `grundy`. P-position ⟺ g=0;
   SG theorem `g(G+H)=g(G)⊕g(H)` pinned vs Bouton.
 - **`kernel.rs`** — normal-play Win/Loss/Draw outcomes of any finite game graph
   (retrograde analysis); `p_positions` = Loss. The interactive route to the open
-  question. Plus `scoring_values`: the Milnor minimax interval `(left, right): i128`
-  on a DAG — the integer-valued scoring knob.
-- **`loopy.rs`** — loopy (cyclic) games, the third escape from XOR-linear P-sets: a
-  cyclic rule admits a **Draw** outcome (a genuinely new degree of freedom). Three
-  layers: `LoopyGraph` (a thin computable wrapper over `kernel::outcomes` —
-  loss/win/draw sets), `loopy_nim_values`/`loopy_nim_values_certified`
-  (+ `LoopyNimCertificate`: Draw ⇒ `Side`/∞, else a nimber; exact on an acyclic
-  non-Draw subgraph), and the `LoopyValue` stopper catalogue
-  (on/off/over/under/dud with outcome/neg/partial order/partial sum). The payoff is
-  `loopy_decision_sets`/`loopy_quadric_probe`: read a cyclic rule's Loss-set AND
-  Draw-set, each fit by `fit_f2_quadratic`.
+  question. Plus `scoring_values`: the Milnor minimax `ScoreInterval { left, right }`
+  (`i128`) on a DAG — the integer-valued scoring knob.
+- **`loopy/`** — loopy (cyclic) games, the third escape from XOR-linear P-sets: a
+  cyclic rule admits a **Draw** outcome (a genuinely new degree of freedom). Split
+  into five layers:
+  - `loopy/catalogue.rs` — `LoopyWinner`, `LoopyPartizanOutcome`, `PartizanOutcome`,
+    and the `LoopyValue` catalogue (`Zero`/`Star`/`On`/`Off`/`Over`/`Under`/
+    `PlusMinus`/`Tis`/`Tisn`/`Dud` plus integer `s&t` tags, with exact
+    starter-pair `outcome`, `partizan_outcome`, `sides`, neg/partial order/partial
+    sum).
+  - `loopy/graph.rs` — `LoopyGraph` (a thin computable wrapper over
+    `kernel::outcomes` — loss/win/draw sets).
+  - `loopy/partizan.rs` — `LoopyPartizanGraph`: validated finite two-sided
+    Left/Right graphs; graph negation, budgeted reachable product sums and finite
+    `Game` embedding; turn-expanded stopper detection with cycle witnesses;
+    retrograde analysis returning exact starter pairs via `LoopyPartizanOutcome`
+    and only projecting to `PartizanOutcome {P,N,L,R,Draw}` when that projection
+    is honest.
+  - `loopy/nim_values.rs` — `LoopyNimber`, `LoopyNimCertificate`,
+    `loopy_nim_values`/`loopy_nim_values_certified`: Draw ⇒ `Side`/∞, else a
+    nimber; exact on an acyclic non-Draw subgraph; bounded sidling only when the
+    mex fixed point is unique; additive finite-nimber claims require the checked
+    `recovery_condition_holds` flag.
+  - `loopy/research.rs` — `loopy_decision_sets`/`loopy_quadric_probe`: read a
+    cyclic rule's Loss-set AND Draw-set, each fit by `fit_f2_quadratic`.
+  - `loopy/mod.rs` — hub; re-exports everything flat so `games::LoopyValue` etc.
+    remain unchanged.
 - **`misere.rs`** — checked misère-play outcomes (`try_misere_is_n`/`misere_is_p`)
   for finite acyclic impartial games; cycles return `None`. Covers misère Nim vs
   Bouton; the bounded indistinguishability quotient (`misere_quotient`,
   `AbstractGame`, `Quotient`); octal games (`octal_moves`, `octal_misere_quotient`).
   The non-linear route to the open question.
+- **`lexicode.rs`** — **Bridge O**, the games ↔ integral edge: greedy binary
+  lexicodes `L(n,d)` (Conway–Sloane 1986). `lexicode`/`lexicode_naive`/
+  `lexicode_bounded` (+ `LEXICODE_NODE_BUDGET`, an honest backstop → `None`, not a
+  silent cap). `LexicodeTurningGame` is the bounded Conway-Sloane move structure:
+  positions are packed binary words, legal moves go to smaller words whose changed
+  coordinate set has size `< d`, and the zero-Grundy positions are `L(n,d)`. The
+  greedy step is exactly `mex(Forbidden)` over radius-`(d−1)` Hamming balls
+  (`grundy::mex`); linearity is the Sprague–Grundy theorem, *discovered* not
+  assumed. Ships the `[7,4,3]` Hamming, `[8,4,4]` extended Hamming, and `[24,12,8]`
+  Golay codes as lexicodes, chaining `turning game → mex → lexicode → Golay →
+  Construction A → theta`.
+  Also ships `nim_lexicode_naive`/`NimLexicode`, the literal base-`2^k` greedy over
+  nim alphabets: closure under coordinatewise nim-addition is verified, and scalar
+  closure witnesses the Fermat-base line (base 4/16 pass, base 8 fails).
+  **Claim level:** the degree-1 (solved, linear) side of `docs/OPEN.md` §1 — explicitly does
+  NOT touch the open Gold-quadric question; do not cite as progress on it.
 
 ## The bridge object
 
 - **`hackenbush.rs`** — red/blue/green Hackenbush: `Hackenbush { edges }` (vertex 0
-  is the ground by convention) with the `string` stalk constructor, `to_game()` (the
-  universal evaluator), `value()` → surreal (blue–red), `grundy()` → nimber
-  (all-green = Nim). The one structure tying surreals + nimbers + sign-expansion
-  through a single object.
+  is the ground by convention; edges colored by the `Color {Blue, Red, Green}` enum)
+  with the `string` stalk constructor, `to_game()` (the universal evaluator),
+  `value()` → surreal (blue–red), `grundy()` → nimber (all-green = Nim). The one
+  structure tying surreals + nimbers + sign-expansion through a single object.
 
 ## Things that look like bugs but are not (games layer)
 
+- **`Game`, `LoopyValue`, `NumberGame`, and `NimberGame` `impl Display`** — that is
+  the canonical render now. The old `display()`/`name()` inherent methods are retained
+  as thin aliases over `Display`, so existing callers keep working; new code can just
+  `{}`-format.
 - **`Game::canonical_string` canonicalizes; `structural_string` does not.**
   `structural_string` is an order-independent fingerprint of the tree *as given* (so
   `(↑−↑).structural_string() ≠ 0`); `canonical_string` reduces first, so it *is* a
@@ -117,8 +174,8 @@ indices, and collection lengths.
   with `P = Vec<u128>` in `misere_is_p`/`grundy`, where a `fn(&[u128])` pointer would
   not unify.
 - **`Game` stays an acyclic `Arc` tree by construction** (it cannot represent cycles).
-  Loopy games are a separate `LoopyGraph` engine; `thermography` is
-  finite-game-only (loopy games never freeze to a number).
+  Loopy games are separate `LoopyGraph` / `LoopyPartizanGraph` engines;
+  `thermography` is finite-game-only (loopy games never freeze to a number).
 - **`Pl` does NOT implement `Semiring`.** A `Pl` wall has no representable ∞-wall
   (the tropical `⊕`-identity), so the semiring law-checking lives on `Tropical<C>`
   (which has `Infinity`), not on `Pl`; `Pl` only gets the named wrappers

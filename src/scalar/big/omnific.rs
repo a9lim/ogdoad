@@ -23,6 +23,7 @@
 
 use crate::scalar::Scalar;
 use crate::scalar::Surreal;
+use std::cmp::Ordering;
 
 /// An omnific integer: a surreal with no infinitesimal part and an integer
 /// constant term. The inner surreal is private so every value is validated at
@@ -30,11 +31,24 @@ use crate::scalar::Surreal;
 #[derive(Clone, PartialEq)]
 pub struct Omnific(Surreal);
 
-impl std::fmt::Debug for Omnific {
+impl std::fmt::Display for Omnific {
     // delegate to the inner surreal so multivector displays read `ω·e0e1`, not
     // `Omnific(ω)·e0e1`.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
+        std::fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl std::fmt::Debug for Omnific {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self, f)
+    }
+}
+
+impl From<i128> for Omnific {
+    /// The ℤ-embedding: the unique unital ring homomorphism ℤ → Oz.
+    fn from(n: i128) -> Self {
+        Omnific::from_int(n)
     }
 }
 
@@ -81,11 +95,40 @@ impl Omnific {
         &self.0
     }
 
+    /// Total order inherited from the underlying surreal value.
+    #[allow(clippy::should_implement_trait)]
+    pub fn cmp(&self, other: &Self) -> Ordering {
+        self.0.cmp(&other.0)
+    }
+
+    /// Remainder by a monic omega-power modulus, inherited from the surreal
+    /// CNF-tail filter. Returns `None` if the modulus is not a monic `ω^e`.
+    pub fn rem(&self, modulus: &Self) -> Option<Self> {
+        let r = self.0.rem(&modulus.0)?;
+        Some(Omnific::from_surreal(r).expect("an omnific CNF tail is omnific"))
+    }
+
     /// The **floor** of a surreal as an omnific integer — the greatest omnific
     /// integer `≤ s` (see [`Surreal::floor`]). Always succeeds, since a surreal
-    /// floor is by construction an omnific integer.
-    pub fn floor(s: &Surreal) -> Omnific {
+    /// floor is by construction an omnific integer. (Named `from_floor`, matching
+    /// this file's `from_*` constructor convention — `floor` collides with the
+    /// unrelated instance method [`Surreal::floor`].)
+    pub fn from_floor(s: &Surreal) -> Omnific {
         Omnific::from_surreal(s.floor()).expect("a surreal floor is always omnific")
+    }
+}
+
+impl Eq for Omnific {}
+
+impl PartialOrd for Omnific {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(std::cmp::Ord::cmp(self, other))
+    }
+}
+
+impl Ord for Omnific {
+    fn cmp(&self, other: &Self) -> Ordering {
+        Omnific::cmp(self, other)
     }
 }
 
@@ -95,6 +138,10 @@ impl Scalar for Omnific {
     }
     fn one() -> Self {
         Omnific(Surreal::one())
+    }
+    /// Faster direct construction; semantically identical to the default double-and-add.
+    fn from_int(n: i128) -> Self {
+        Omnific::from_int(n)
     }
     fn add(&self, rhs: &Self) -> Self {
         // sums of omnific integers are omnific integers — no re-validation needed
@@ -183,6 +230,15 @@ mod tests {
     }
 
     #[test]
+    fn standard_order_is_surreal_value_order() {
+        assert!(Omnific::omega() > Omnific::from_int(1_000_000));
+        assert_eq!(
+            std::cmp::Ord::cmp(&Omnific::from_int(4), &Omnific::from_int(4)),
+            Ordering::Equal
+        );
+    }
+
+    #[test]
     fn only_plus_minus_one_are_units() {
         assert!(Omnific::one().inv().is_some());
         assert!(Omnific::one().neg().inv().is_some());
@@ -192,11 +248,41 @@ mod tests {
     }
 
     #[test]
+    fn remainder_by_monic_omega_power_preserves_omnific_integrality() {
+        let x = Omnific::from_surreal(
+            Surreal::omega_pow(surr_int(2))
+                .mul(&surr_int(3))
+                .sub(&Surreal::omega())
+                .add(&surr_int(5)),
+        )
+        .unwrap();
+        let w2 = Omnific::from_surreal(Surreal::omega_pow(surr_int(2))).unwrap();
+        assert_eq!(
+            x.rem(&w2).unwrap(),
+            Omnific::from_surreal(Surreal::omega().neg().add(&surr_int(5))).unwrap()
+        );
+        assert_eq!(x.rem(&Omnific::omega()).unwrap(), Omnific::from_int(5));
+        assert_eq!(x.rem(&Omnific::from_int(1)).unwrap(), Omnific::zero());
+    }
+
+    #[test]
+    fn remainder_rejects_non_monic_omnific_moduli() {
+        let x = Omnific::omega().add(&Omnific::from_int(7));
+        assert!(x.rem(&Omnific::zero()).is_none());
+        assert!(x
+            .rem(&Omnific::omega().add(&Omnific::from_int(1)))
+            .is_none());
+        assert!(x
+            .rem(&Omnific::omega().mul(&Omnific::from_int(2)))
+            .is_none());
+    }
+
+    #[test]
     fn exterior_algebra_over_oz_with_transfinite_coefficients() {
         // Λ over the transfinite ring Oz: nilpotent generators, antisymmetry,
         // and ω-scale coefficients flow through the wedge.
         let alg = CliffordAlgebra::new(3, Metric::<Omnific>::grassmann(3));
-        let (e0, e1, e2) = (alg.gen(0), alg.gen(1), alg.gen(2));
+        let (e0, e1, e2) = (alg.e(0), alg.e(1), alg.e(2));
         // e_i² = 0
         assert!(alg.mul(&e0, &e0).is_zero());
         // antisymmetry: e0 e1 + e1 e0 = 0 (b = 0)
@@ -219,18 +305,18 @@ mod tests {
         // coefficients are ordinary integers: 2 e0 ∧ 3 e1 = 6 e0e1.
         let oz = CliffordAlgebra::new(2, Metric::<Omnific>::grassmann(2));
         let oz_prod = oz.wedge(
-            &oz.scalar_mul(&Omnific::from_int(2), &oz.gen(0)),
-            &oz.scalar_mul(&Omnific::from_int(3), &oz.gen(1)),
+            &oz.scalar_mul(&Omnific::from_int(2), &oz.e(0)),
+            &oz.scalar_mul(&Omnific::from_int(3), &oz.e(1)),
         );
         assert_eq!(
             oz_prod,
-            oz.scalar_mul(&Omnific::from_int(6), &oz.wedge(&oz.gen(0), &oz.gen(1)))
+            oz.scalar_mul(&Omnific::from_int(6), &oz.wedge(&oz.e(0), &oz.e(1)))
         );
 
         let zz = CliffordAlgebra::new(2, Metric::<Integer>::grassmann(2));
         let zz_prod = zz.wedge(
-            &zz.scalar_mul(&Integer(2), &zz.gen(0)),
-            &zz.scalar_mul(&Integer(3), &zz.gen(1)),
+            &zz.scalar_mul(&Integer(2), &zz.e(0)),
+            &zz.scalar_mul(&Integer(3), &zz.e(1)),
         );
         // same blade, coefficient 6 in each backend's own ring
         assert_eq!(*zz_prod.terms.get(&0b11).unwrap(), Integer(6));

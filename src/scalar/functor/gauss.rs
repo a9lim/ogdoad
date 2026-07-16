@@ -91,7 +91,7 @@ impl<S: Valued> Gauss<S> {
 
     /// The indeterminate `t` (a unit of valuation 0 with transcendental residue).
     pub fn t() -> Self {
-        Gauss::from_polys(Poly::x(), Poly::one())
+        Gauss::from_polys(Poly::t(), Poly::one())
     }
 
     /// The numerator / denominator coefficient slices (low-degree first).
@@ -128,7 +128,7 @@ impl<S: Valued> PartialEq for Gauss<S> {
     }
 }
 
-impl<S: Valued> fmt::Debug for Gauss<S> {
+impl<S: Valued> fmt::Display for Gauss<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn fmt_poly<S: Scalar>(p: &[S]) -> String {
             if p.is_empty() {
@@ -140,9 +140,9 @@ impl<S: Valued> fmt::Debug for Gauss<S> {
                     continue;
                 }
                 parts.push(match i {
-                    0 => format!("{c:?}"),
-                    1 => format!("({c:?})·t"),
-                    _ => format!("({c:?})·t^{i}"),
+                    0 => format!("{c}"),
+                    1 => format!("({c})·t"),
+                    _ => format!("({c})·t^{i}"),
                 });
             }
             parts.join(" + ")
@@ -157,6 +157,12 @@ impl<S: Valued> fmt::Debug for Gauss<S> {
                 fmt_poly(self.den.coeffs())
             )
         }
+    }
+}
+
+impl<S: Valued> fmt::Debug for Gauss<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 
@@ -294,7 +300,7 @@ mod tests {
     type G = Gauss<Qp<3, 6>>;
 
     fn c(n: i128) -> Qp<3, 6> {
-        Qp::from_i128(n)
+        Qp::from_int(n)
     }
 
     #[test]
@@ -417,7 +423,7 @@ mod tests {
             x.residue(),
             Some(RationalFunction::from_poly(Poly::monomial(
                 1,
-                Fp::<3>::new(2)
+                Fp::<3>::from_int(2)
             )))
         );
     }
@@ -426,8 +432,8 @@ mod tests {
     fn teichmuller_lifts_rational_function_residue() {
         type R = RationalFunction<Fp<3>>;
         let r = R::new(
-            vec![Fp::<3>::new(1), Fp::<3>::new(2)],
-            vec![Fp::<3>::new(1)],
+            vec![Fp::<3>::from_int(1), Fp::<3>::from_int(2)],
+            vec![Fp::<3>::from_int(1)],
         );
         let tau = <G as ResidueField>::teichmuller(r.clone());
         assert_eq!(tau.residue(), Some(r));
@@ -438,12 +444,12 @@ mod tests {
         type G5 = Gauss<Qp<5, 6>>;
         type R = RationalFunction<Fp<5>>;
         let r = R::new(
-            vec![Fp::<5>::new(1), Fp::<5>::new(1)],
-            vec![Fp::<5>::new(1)],
+            vec![Fp::<5>::from_int(1), Fp::<5>::from_int(1)],
+            vec![Fp::<5>::from_int(1)],
         );
         let s = R::new(
-            vec![Fp::<5>::new(1), Fp::<5>::new(2)],
-            vec![Fp::<5>::new(1)],
+            vec![Fp::<5>::from_int(1), Fp::<5>::from_int(2)],
+            vec![Fp::<5>::from_int(1)],
         );
         let rs = r.mul(&s);
         let tau_rs = <G5 as ResidueField>::teichmuller(rs.clone());

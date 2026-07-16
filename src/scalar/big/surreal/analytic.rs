@@ -9,6 +9,7 @@
 //!     the finite-support/i128-coefficient representation.
 
 use super::Surreal;
+use crate::linalg::integer::gcd_u128;
 use crate::scalar::{Rational, Scalar};
 use std::cmp::Ordering;
 
@@ -64,25 +65,28 @@ impl Surreal {
         None
     }
 
-    /// The **truncated real square root** to `n` leading terms, or `None`. `Some`
-    /// iff `self ≥ 0` **and** its leading coefficient is a perfect square in ℚ —
-    /// the deliberate ℚ-coefficient boundary: `√2` and `√(2ω)` are `None`
-    /// (`√2` is not a finite-CNF-with-ℚ-coeffs surreal), while `√ω = ω^{1/2}`
-    /// and `√(ω²+2ω+1) = ω+1` are exact in their leading terms.
+    /// The **truncated real square root** to `n` leading terms, or `None`. `None`
+    /// when `self < 0`, or its leading coefficient is not a perfect square in ℚ
+    /// (the deliberate ℚ-coefficient boundary: `√2` and `√(2ω)` are `None`),
+    /// or when deep cancellation, i128 coefficient overflow, or series-budget
+    /// exhaustion prevents constructing the requested window. `Some` is guaranteed
+    /// when the leading coefficient is an exact ℚ square and the binomial series
+    /// converges within the budget — for example `√ω = ω^{1/2}` (monomial) and
+    /// `√(ω²+2ω+1) = ω+1` are always exact in their leading terms.
     ///
     /// This is the lazy ([`SeriesRoots`](crate::scalar::SeriesRoots)) primitive;
     /// for the *exact* value (no precision argument) see the
     /// [`ExactRoots::sqrt`](crate::scalar::ExactRoots::sqrt) impl, which squares
-    /// these truncations back until one matches. Deep cancellation or i128
-    /// coefficient overflow returns `None` rather than a guessed window.
+    /// these truncations back until one matches.
     pub fn sqrt_to_terms(&self, n: usize) -> Option<Surreal> {
         self.nth_root_to_terms(2, n)
     }
 
     /// The **truncated real `k`-th root** to `n` leading terms (`k ≥ 1`), or
-    /// `None`. `Some` iff the leading coefficient is a perfect ℚ `k`-th power
-    /// (and, for even `k`, `self > 0`). See [`sqrt_to_terms`](Self::sqrt_to_terms)
-    /// for the scope.
+    /// `None`. `None` when `k = 0`, the leading coefficient is not a perfect ℚ
+    /// `k`-th power, for even `k` when `self ≤ 0`, or when deep cancellation,
+    /// i128 coefficient overflow, or series-budget exhaustion prevents constructing
+    /// the requested window. See [`sqrt_to_terms`](Self::sqrt_to_terms) for scope.
     pub fn nth_root_to_terms(&self, k: u128, n: usize) -> Option<Surreal> {
         if k == 0 {
             return None;
@@ -154,50 +158,6 @@ fn leading_below_known_window(series: &Surreal, n: usize, next_power: &Surreal) 
             .is_some_and(|(nth_exp, _)| next_power.terms[0].0.cmp(nth_exp) == Ordering::Less)
 }
 
-fn gcd_u128(mut a: u128, mut b: u128) -> u128 {
-    while b != 0 {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    a
-}
-
-fn checked_rational_mul(a: &Rational, b: &Rational) -> Option<Rational> {
-    let mut an = a.numer();
-    let mut ad = a.denom();
-    let mut bn = b.numer();
-    let mut bd = b.denom();
-
-    let g1 = gcd_u128(an.unsigned_abs(), bd as u128);
-    if g1 > 1 {
-        let g1 = i128::try_from(g1).ok()?;
-        an /= g1;
-        bd /= g1;
-    }
-    let g2 = gcd_u128(bn.unsigned_abs(), ad as u128);
-    if g2 > 1 {
-        let g2 = i128::try_from(g2).ok()?;
-        bn /= g2;
-        ad /= g2;
-    }
-
-    Rational::try_new(an.checked_mul(bn)?, ad.checked_mul(bd)?)
-}
-
-fn checked_rational_add(a: &Rational, b: &Rational) -> Option<Rational> {
-    let g = gcd_u128(a.denom() as u128, b.denom() as u128).max(1);
-    let g = i128::try_from(g).ok()?;
-    let lhs_scale = b.denom() / g;
-    let rhs_scale = a.denom() / g;
-    let num = a
-        .numer()
-        .checked_mul(lhs_scale)?
-        .checked_add(b.numer().checked_mul(rhs_scale)?)?;
-    let den = a.denom().checked_mul(lhs_scale)?;
-    Rational::try_new(num, den)
-}
-
 fn checked_rational_div_usize(a: &Rational, d: usize) -> Option<Rational> {
     let d = i128::try_from(d).ok()?;
     let g = gcd_u128(a.numer().unsigned_abs(), d as u128);
@@ -215,14 +175,14 @@ fn rational_sub_usize(a: &Rational, rhs: usize) -> Option<Rational> {
 
 fn next_binomial_coeff(prev: &Rational, alpha: &Rational, j: usize) -> Option<Rational> {
     let shifted = rational_sub_usize(alpha, j - 1)?;
-    let num = checked_rational_mul(prev, &shifted)?;
+    let num = prev.checked_mul(&shifted)?;
     checked_rational_div_usize(&num, j)
 }
 
 fn checked_surreal_scale(coeff: &Rational, x: &Surreal) -> Option<Surreal> {
     let mut terms = Vec::with_capacity(x.terms.len());
     for (exp, c) in &x.terms {
-        let scaled = checked_rational_mul(coeff, c)?;
+        let scaled = coeff.checked_mul(c)?;
         if !scaled.is_zero() {
             terms.push((exp.clone(), scaled));
         }
@@ -245,7 +205,7 @@ fn checked_surreal_add(a: &Surreal, b: &Surreal) -> Option<Surreal> {
                 j += 1;
             }
             Ordering::Equal => {
-                let coeff = checked_rational_add(&a.terms[i].1, &b.terms[j].1)?;
+                let coeff = a.terms[i].1.checked_add(&b.terms[j].1)?;
                 if !coeff.is_zero() {
                     terms.push((a.terms[i].0.clone(), coeff));
                 }

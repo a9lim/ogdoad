@@ -1,6 +1,6 @@
 //! Misère play: where disjunctive sums stop being linear.
 //!
-//! OPEN.md's open question needs a game whose P-positions are the *quadric*
+//! docs/OPEN.md's open question needs a game whose P-positions are the *quadric*
 //! `{Q=0}` of a Gold form. Normal-play disjunctive sums can't supply one: their
 //! outcomes are XOR-linear (P ⟺ ⊕ of Grundy values = 0), so the P-set is always
 //! a *subspace*. The two escape routes are interactive games and **misère** play
@@ -15,6 +15,7 @@
 //! that stays open; this gives the tooling to test candidates.
 
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::hash::Hash;
 
 fn misere_is_n_inner<P, F>(
@@ -171,11 +172,16 @@ impl AbstractGame {
         v
     }
 
-    /// Misère outcome of a sum (multiset of component positions): `true` = N.
-    pub fn misere_outcome(&self, pos: &[usize], memo: &mut HashMap<Vec<usize>, bool>) -> bool {
+    /// Misère outcome of a sum (multiset of component positions): `Some(true)` = N,
+    /// `Some(false)` = P. Returns `None` if the move graph has a cycle (e.g. a
+    /// component position whose option list points back to itself).
+    pub fn misere_outcome(
+        &self,
+        pos: &[usize],
+        memo: &mut HashMap<Vec<usize>, bool>,
+    ) -> Option<bool> {
         let canon = Self::canon(pos);
         try_misere_is_n(&canon, &|p| self.sum_moves(p), memo)
-            .expect("finite quotient sum graph should be acyclic")
     }
 }
 
@@ -211,8 +217,6 @@ pub struct Quotient {
     pub signatures: Vec<Vec<bool>>,
     /// Class id of each element (parallel to `elements`).
     pub class_of: Vec<usize>,
-    /// Number of distinct classes found.
-    pub num_classes: usize,
     /// A representative multiset for each class.
     pub class_rep: Vec<Vec<usize>>,
     /// P-status of each class (`true` = a misère P-position / second-player win).
@@ -233,6 +237,12 @@ pub struct Quotient {
 }
 
 impl Quotient {
+    /// The number of distinct classes found — derived from `class_rep.len()`
+    /// (one representative multiset per class) rather than stored separately.
+    pub fn num_classes(&self) -> usize {
+        self.class_rep.len()
+    }
+
     pub fn class_product(&self, a: usize, b: usize) -> Option<usize> {
         self.multiplication
             .as_ref()
@@ -252,29 +262,55 @@ impl Quotient {
     pub fn signature_of_element(&self, element_index: usize) -> Option<&[bool]> {
         self.signatures.get(element_index).map(Vec::as_slice)
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for Quotient {
+    /// One line: quotient order, P-class count, and whether the bounded class
+    /// multiplication table is a complete monoid — mirrors the summary
+    /// `examples/misere_quotient.rs` prints for a computed quotient (order,
+    /// P-classes), plus the monoid-completeness flavor
+    /// ([`has_complete_bounded_monoid`](Self::has_complete_bounded_monoid)),
+    /// which is cheap to read off already-stored fields.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let p_classes = self.class_is_p.iter().filter(|&&p| p).count();
+        let monoid = if self.has_complete_bounded_monoid() {
+            "complete monoid"
+        } else {
+            "partial monoid"
+        };
+        write!(
+            f,
+            "Quotient(order={}, P-classes={p_classes}, {monoid})",
+            self.num_classes(),
+        )
+    }
 }
 
 /// Build a quotient from `elements` and a `tests` set, given an `outcome`
-/// function (`true` = N) on atom-multisets. `outcome` carries its own memo. Two
-/// elements share a class iff `outcome(G+T)` agrees for every test `T`.
+/// function (`Some(true)` = N) on atom-multisets. `outcome` carries its own
+/// memo and returns `None` when the underlying move graph has a cycle, which
+/// propagates out as `None` here rather than panicking. Two elements share a
+/// class iff `outcome(G+T)` agrees for every test `T`.
 fn build_quotient(
     elements: Vec<Vec<usize>>,
     tests: &[Vec<usize>],
-    mut outcome: impl FnMut(&[usize]) -> bool,
-) -> Quotient {
-    let signatures: Vec<Vec<bool>> = elements
-        .iter()
-        .map(|g| {
-            tests
-                .iter()
-                .map(|t| {
-                    let mut gt = g.clone();
-                    gt.extend_from_slice(t);
-                    outcome(&gt)
-                })
-                .collect()
-        })
-        .collect();
+    mut outcome: impl FnMut(&[usize]) -> Option<bool>,
+) -> Option<Quotient> {
+    let mut signatures: Vec<Vec<bool>> = Vec::with_capacity(elements.len());
+    for g in &elements {
+        let mut sig = Vec::with_capacity(tests.len());
+        for t in tests {
+            let mut gt = g.clone();
+            gt.extend_from_slice(t);
+            sig.push(outcome(&gt)?);
+        }
+        signatures.push(sig);
+    }
 
     let mut class_of = vec![0usize; elements.len()];
     let mut uniq: Vec<Vec<bool>> = Vec::new();
@@ -289,12 +325,14 @@ fn build_quotient(
             }
         }
     }
-    let class_is_p: Vec<bool> = class_rep.iter().map(|r| !outcome(r)).collect();
+    let mut class_is_p: Vec<bool> = Vec::with_capacity(class_rep.len());
+    for r in &class_rep {
+        class_is_p.push(!outcome(r)?);
+    }
     let (multiplication, multiplication_consistent, elements_closed_under_sum) =
         build_multiplication(&elements, &class_of, &class_rep, uniq.len());
 
-    Quotient {
-        num_classes: uniq.len(),
+    Some(Quotient {
         elements,
         test_positions: tests.to_vec(),
         signatures,
@@ -304,7 +342,7 @@ fn build_quotient(
         multiplication,
         multiplication_consistent,
         elements_closed_under_sum,
-    }
+    })
 }
 
 fn sum_multiset(a: &[usize], b: &[usize]) -> Vec<usize> {
@@ -377,13 +415,16 @@ fn build_multiplication(
 
 /// Compute the bounded misère quotient of `game` over the generating `atoms`,
 /// distinguishing elements (sums up to `elem_bound`) by their outcomes against
-/// tests (sums up to `test_bound`).
+/// tests (sums up to `test_bound`). Returns `None` if any bounded element or
+/// test sum reaches a position whose move graph has a directed cycle (see
+/// [`AbstractGame::misere_outcome`]) — this is the same partial primitive
+/// `try_misere_is_n` guards, just threaded through the quotient builder.
 pub fn misere_quotient(
     game: &AbstractGame,
     atoms: &[usize],
     elem_bound: usize,
     test_bound: usize,
-) -> Quotient {
+) -> Option<Quotient> {
     let mut atoms_sorted = atoms.to_vec();
     atoms_sorted.sort_unstable();
     let elements = multisets(&atoms_sorted, elem_bound);
@@ -399,7 +440,8 @@ pub fn misere_quotient(
 /// Moves of an octal game `0.d₁d₂…` (`code[k-1] = dₖ`) on a heap-multiset. From a
 /// heap of size n, remove k tokens (1 ≤ k ≤ n): leaving the heap empty needs
 /// `dₖ & 1`; leaving one nonempty heap `n−k` needs `dₖ & 2`; splitting `n−k` into
-/// two nonempty heaps needs `dₖ & 4`. (Nim is `0.333…`, Dawson's chess `0.137`.)
+/// two nonempty heaps needs `dₖ & 4`. (Nim is `0.333…`; Dawson's chess is the
+/// octal game `0.137` — Berlekamp-Conway-Guy, *Winning Ways*.)
 pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
     let mut out = Vec::new();
     for idx in 0..pos.len() {
@@ -444,12 +486,16 @@ pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
 /// The bounded misère quotient of an octal game, over single heaps of size
 /// `1..=max_heap` as atoms (a heap-multiset is a sum). Splitting moves are handled
 /// (a heap can become two), so the position type is the heap-multiset itself.
+/// Returns `None` if the bounded search reaches a cyclic position — in practice
+/// this cannot happen for `octal_moves` (every move strictly decreases the total
+/// token count, so the induced graph is always acyclic), but the builder stays
+/// honest about the partial primitive it calls rather than asserting on it.
 pub fn octal_misere_quotient(
     code: &[u128],
     max_heap: usize,
     elem_bound: usize,
     test_bound: usize,
-) -> Quotient {
+) -> Option<Quotient> {
     let atoms: Vec<usize> = (1..=max_heap).collect();
     let elements = multisets(&atoms, elem_bound);
     let tests = multisets(&atoms, test_bound);
@@ -459,7 +505,6 @@ pub fn octal_misere_quotient(
         let mut pos: Vec<u128> = g.iter().map(|&x| x as u128).collect();
         pos.sort_unstable();
         try_misere_is_n(&pos, &moves, &mut memo)
-            .expect("octal quotient search expects an acyclic bounded graph")
     })
 }
 
@@ -519,8 +564,8 @@ mod tests {
         let star = AbstractGame {
             moves: vec![vec![], vec![0]],
         };
-        let q = misere_quotient(&star, &[1], 5, 3);
-        assert_eq!(q.num_classes, 2, "⋆ quotient should be order 2 (ℤ/2)");
+        let q = misere_quotient(&star, &[1], 5, 3).expect("star quotient search is acyclic");
+        assert_eq!(q.num_classes(), 2, "⋆ quotient should be order 2 (ℤ/2)");
         assert_eq!(
             q.test_positions,
             vec![vec![], vec![1], vec![1, 1], vec![1, 1, 1]]
@@ -543,6 +588,12 @@ mod tests {
         assert!(!q.elements_closed_under_sum);
         // exactly one P-class (the win-bias is a single coset)
         assert_eq!(q.class_is_p.iter().filter(|&&p| p).count(), 1);
+        // render pin: order, P-class count, and the complete-monoid flavor.
+        assert_eq!(
+            q.to_string(),
+            "Quotient(order=2, P-classes=1, complete monoid)"
+        );
+        assert_eq!(q.display(), q.to_string());
     }
 
     #[test]
@@ -574,8 +625,9 @@ mod tests {
     #[test]
     fn octal_star_quotient_is_z2() {
         // Nim restricted to heaps of size 1 (just ⋆) ⇒ the ℤ/2 quotient again.
-        let q = octal_misere_quotient(&[3, 3, 3], 1, 5, 3);
-        assert_eq!(q.num_classes, 2);
+        let q = octal_misere_quotient(&[3, 3, 3], 1, 5, 3)
+            .expect("octal_moves is always acyclic, so this quotient search is too");
+        assert_eq!(q.num_classes(), 2);
     }
 
     #[test]
@@ -600,5 +652,35 @@ mod tests {
         // (Here the point is structural: outcome is not an XOR-linear function.)
         let three_ones = nim_canonical(vec![1, 1, 1]); // XOR = 1, misère-P (odd count)
         assert!(misere_is_p(&three_ones, &nim_moves, &mut memo).expect("Nim move graph is acyclic"));
+    }
+
+    #[test]
+    fn cyclic_abstract_game_returns_none_not_panic() {
+        // A cyclic move graph: position 1 has a self-loop (1 → 1).
+        // Before the fix this panicked with expect(). Now it returns None.
+        let game = AbstractGame {
+            moves: vec![vec![], vec![1]], // pos 1 self-loops — cyclic
+        };
+        let mut memo = HashMap::new();
+        assert_eq!(
+            game.misere_outcome(&[1], &mut memo),
+            None,
+            "cyclic AbstractGame must return None, not panic"
+        );
+    }
+
+    #[test]
+    fn cyclic_abstract_game_quotient_builder_returns_none_not_panic() {
+        // Same cyclic AbstractGame as `cyclic_abstract_game_returns_none_not_panic`,
+        // but threaded through the *quotient builder* rather than `misere_outcome`
+        // directly. Before the fix `misere_quotient` called `.expect()` on this same
+        // partial primitive and panicked; now it returns None.
+        let game = AbstractGame {
+            moves: vec![vec![], vec![1]], // pos 1 self-loops — cyclic
+        };
+        assert!(
+            misere_quotient(&game, &[1], 3, 2).is_none(),
+            "cyclic AbstractGame through misere_quotient must return None, not panic"
+        );
     }
 }

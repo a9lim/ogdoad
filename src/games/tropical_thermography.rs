@@ -48,9 +48,11 @@ impl Pl {
     }
 
     /// Tropical `⊗` — the pointwise sum of two walls (tropical multiplication is
-    /// ordinary `+` on values). Below the lower of two games' temperatures the
-    /// wall of a disjunctive sum is the `⊗` of the component walls, which is why
-    /// the mean value is additive.
+    /// ordinary `+` on values). At or above the lower of two games' temperatures
+    /// the wall of a disjunctive sum equals the `⊗` of the component walls (their
+    /// pointwise sum), which is why the mean value is additive. Below the lower
+    /// temperature the sum's wall is bounded above by `⊗` but they need not be equal
+    /// — `⊗` is only an upper bound there.
     pub fn otimes(&self, other: &Pl) -> Pl {
         add_pl(self, other)
     }
@@ -82,6 +84,7 @@ mod tests {
     use crate::games::piecewise::req;
     use crate::games::thermography::thermograph;
     use crate::scalar::Rational;
+    use crate::scalar::Scalar;
 
     /// Two thermographs are equal iff their masts, temperatures, and both walls
     /// (as breakpoint lists) agree. The walls are byte-identical here because the
@@ -157,8 +160,14 @@ mod tests {
         // layer keeps `Tropical<MaxPlus>` and `Tropical<MinPlus>` distinct types.
         for (a, b) in [(1i128, -1i128), (5, 1), (3, -1)] {
             let th = thermograph_via_tropical(&Game::switch(a, b)).unwrap();
-            assert!(req(&th.left_stop(), &Rational::int(a)), "LS {{{a}|{b}}}");
-            assert!(req(&th.right_stop(), &Rational::int(b)), "RS {{{a}|{b}}}");
+            assert!(
+                req(&th.left_stop(), &Rational::from_int(a)),
+                "LS {{{a}|{b}}}"
+            );
+            assert!(
+                req(&th.right_stop(), &Rational::from_int(b)),
+                "RS {{{a}|{b}}}"
+            );
         }
     }
 }

@@ -3,8 +3,8 @@
 //! ([`Rational`]) and the function field `F_q(t)`
 //! ([`RationalFunction`]`<S>`).
 //!
-//! [`forms::padic`](crate::forms::padic)+[`adelic`](crate::forms::adelic) (over
-//! `ℚ`) and [`forms::function_field`](crate::forms::function_field) (over
+//! [`forms::padic`](crate::forms)+[`adelic`](crate::forms) (over
+//! `ℚ`) and [`forms::function_field`](crate::forms) (over
 //! `F_q(t)`) were near-line-for-line parallel — the `_ff` suffix on the latter
 //! existed only to dodge name collisions with the former. That parallelism is not
 //! a coincidence: `ℚ` and `F_q(t)` are *the two kinds of global field*, and the
@@ -31,6 +31,24 @@
 //! deliberately **not** a [`Valued`](crate::scalar::Valued) abstraction: a global
 //! field carries *all* its places at once (the same reason `RationalFunction` and
 //! `Adele` are not `Valued`), so per-place residue data stays here in `forms/`.
+//!
+//! # The characteristic-2 asymmetry
+//!
+//! Both characteristic regimes of `F_q(t)` share the **same** place type
+//! [`FunctionFieldPlace`](crate::forms::FunctionFieldPlace) — the
+//! structural payload (a finite uniformizer or the degree place) does not depend on
+//! the residue characteristic. What does *not* unify is the symbol. In odd
+//! characteristic the quaternion/quadratic symbol is the **multiplicative**, symmetric
+//! tame Hilbert symbol `(a,b)_v ∈ {±1}` with reciprocity `∏_v (a,b)_v = +1`, and that
+//! is exactly the [`try_hilbert_symbol_at`](GlobalField::try_hilbert_symbol_at)
+//! primitive this trait abstracts. In characteristic 2 the working object is the
+//! **additive**, asymmetric Artin–Schreier symbol `s_v(a,b) ∈ F₂` (the Schmid residue)
+//! with reciprocity `Σ_v s_v(a,b) = 0` — a different group (`F₂` under XOR, not `{±1}`
+//! under product) and a different functional shape (`a` additive mod `℘`, `b`
+//! multiplicative). It therefore cannot implement the multiplicative `GlobalField`
+//! trait and lives as its own surface in
+//! [`function_field_char2`](crate::forms). That asymmetry — like
+//! the missing real place in equal characteristic — is the content, not a gap.
 
 use crate::forms::FiniteOddField;
 use crate::scalar::{Rational, RationalFunction, Scalar};
@@ -144,10 +162,10 @@ fn try_rat_square_class(q: &Rational) -> Option<i128> {
 }
 
 impl GlobalField for Rational {
-    type Place = crate::forms::padic::Place;
+    type Place = crate::forms::Place;
 
     fn try_relevant_places(entries: &[Self]) -> Option<Vec<Self::Place>> {
-        use crate::forms::padic::{relevant_primes, Place};
+        use crate::forms::{relevant_primes, Place};
         if entries.iter().any(|x| x.is_zero()) {
             return None;
         }
@@ -161,7 +179,7 @@ impl GlobalField for Rational {
     }
 
     fn try_hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> Option<i128> {
-        crate::forms::padic::try_hilbert_symbol_at(
+        crate::forms::try_hilbert_symbol_at(
             try_rat_square_class(a)?,
             try_rat_square_class(b)?,
             *place,
@@ -169,7 +187,7 @@ impl GlobalField for Rational {
     }
 
     fn try_is_local_square(x: &Self, place: &Self::Place) -> Option<bool> {
-        use crate::forms::padic::{try_is_square_qp, Place};
+        use crate::forms::{try_is_square_qp, Place};
         if x.is_zero() {
             return Some(false);
         }
@@ -185,13 +203,11 @@ impl GlobalField for Rational {
         if x.is_zero() {
             return Some(false);
         }
-        Some(crate::forms::padic::is_perfect_square(
-            try_rat_square_class(x)?,
-        ))
+        Some(crate::forms::is_perfect_square(try_rat_square_class(x)?))
     }
 
     fn try_is_isotropic_at_place(entries: &[Self], place: &Self::Place) -> Option<bool> {
-        use crate::forms::padic::{try_is_isotropic_at_p, Place};
+        use crate::forms::{try_is_isotropic_at_p, Place};
         if entries.iter().any(|e| e.is_zero()) {
             return Some(true);
         }
@@ -218,26 +234,26 @@ impl GlobalField for Rational {
 // ───────────────────────── F_q(t) (function field) ─────────────────────────
 
 impl<S: FiniteOddField> GlobalField for RationalFunction<S> {
-    type Place = crate::forms::function_field::FFPlace<S>;
+    type Place = crate::forms::FunctionFieldPlace<S>;
 
     fn try_relevant_places(entries: &[Self]) -> Option<Vec<Self::Place>> {
-        crate::forms::function_field::try_relevant_places_ff(entries)
+        crate::forms::try_relevant_places_ff(entries)
     }
 
     fn try_hilbert_symbol_at(a: &Self, b: &Self, place: &Self::Place) -> Option<i128> {
-        crate::forms::function_field::try_hilbert_symbol_ff(a, b, place)
+        crate::forms::try_hilbert_symbol_ff(a, b, place)
     }
 
     fn try_is_local_square(x: &Self, place: &Self::Place) -> Option<bool> {
-        crate::forms::function_field::try_is_local_square_ff(x, place)
+        crate::forms::try_is_local_square_ff(x, place)
     }
 
     fn try_is_global_square(x: &Self) -> Option<bool> {
-        Some(crate::forms::function_field::is_global_square_ff(x))
+        Some(crate::forms::is_global_square_ff(x))
     }
 
     fn try_is_isotropic_at_place(entries: &[Self], place: &Self::Place) -> Option<bool> {
-        crate::forms::function_field::try_is_isotropic_at_place_ff(entries, place)
+        crate::forms::try_is_isotropic_at_place_ff(entries, place)
     }
 }
 
@@ -271,7 +287,7 @@ mod tests {
     fn reciprocity_over_q() {
         let samples: Vec<Rational> = [-3, -1, 1, 2, 3, 5, 6]
             .iter()
-            .map(|&n| Rational::int(n))
+            .map(|&n| Rational::from_int(n))
             .collect();
         reciprocity_and_even_ramification(&samples);
     }
@@ -281,8 +297,8 @@ mod tests {
         type F = RationalFunction<Fp<5>>;
         let rf = |num: &[i128], den: &[i128]| -> F {
             RationalFunction::new(
-                num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-                den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+                num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+                den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
             )
         };
         let samples = [
@@ -316,7 +332,7 @@ mod tests {
             &[1, -2],
         ];
         for f in forms {
-            let rats: Vec<Rational> = f.iter().map(|&n| Rational::int(n)).collect();
+            let rats: Vec<Rational> = f.iter().map(|&n| Rational::from_int(n)).collect();
             assert_eq!(
                 Rational::try_is_isotropic_global(&rats),
                 try_is_isotropic_q(f),
@@ -331,8 +347,8 @@ mod tests {
         type F = RationalFunction<Fp<5>>;
         let rf = |num: &[i128], den: &[i128]| -> F {
             RationalFunction::new(
-                num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-                den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+                num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+                den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
             )
         };
         let forms: Vec<Vec<F>> = vec![

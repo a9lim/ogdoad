@@ -1,7 +1,7 @@
 """Broadening the form: a game-realizable quadratic trace family, and where it
 goes BENT in the sampled cases.
 
-OPEN.md starts from one form, the Gold form Q_a(x) = Tr(x^{1+2^a}), and hunts for a
+docs/OPEN.md starts from one form, the Gold form Q_a(x) = Tr(x^{1+2^a}), and hunts for a
 natural game with P-set {Q_a=0}. This probe broadens the *form* side. The general
 quadratic Boolean function on F_{2^m} has the trace representation (Carlet; e.g.
 arXiv:1305.3700)
@@ -46,23 +46,9 @@ from math import gcd
 
 import ogdoad as pl
 
+from common import frob, nim_trace
 
 # ----------------------------------------------------------------------------- form
-
-
-def _frob(x, i):
-    for _ in range(i):
-        x = x * x
-    return x
-
-
-def _trace(y, m):
-    """Tr_1^m(y) ∈ {0,1}, y a Nimber."""
-    acc, t = y, y
-    for _ in range(m - 1):
-        t = t * t
-        acc = acc + t
-    return acc.value
 
 
 def qform(x, coeffs, m):
@@ -71,13 +57,13 @@ def qform(x, coeffs, m):
     X = pl.Nimber(x)
     acc = pl.Nimber(0)
     for i, c in coeffs.items():
-        term = pl.Nimber(c) * X * _frob(X, i)
-        acc = acc + pl.Nimber(_trace(term, m))
+        term = pl.Nimber(c) * X * frob(X, i)
+        acc = acc + pl.Nimber(nim_trace(term.value, m))
     return acc.value
 
 
 def arf_of(coeffs, m):
-    """ArfResult of Q_c in the bit-basis e_i = 2^i (q diagonal + b polar)."""
+    """ArfInvariants of Q_c in the bit-basis e_i = 2^i (q diagonal + b polar)."""
     q = [pl.Nimber(qform(1 << i, coeffs, m)) for i in range(m)]
     b = {}
     for i in range(m):
@@ -96,7 +82,7 @@ def part1_components_go_bent(m):
     print("=" * 72)
     print("PART 1 — scaled Gold components Tr(λ·x^{1+2^a}): bent counts by exponent")
     print("=" * 72)
-    print(f"  in this scan, unscaled Gold (λ=1) has rank m - gcd(2a,m) < m, so it is not bent.")
+    print("  in this scan, unscaled Gold (λ=1) has rank m - gcd(2a,m) < m, so it is not bent.")
     print(f"  scanning all λ ∈ F_{{2^{m}}}* :\n")
     print(f"  {'a':>2} {'gcd(a,m)':>8} {'APN?':>5} | rank distribution over λ        bent count   (2(2^m-1)/3)")
     print("  " + "-" * 86)

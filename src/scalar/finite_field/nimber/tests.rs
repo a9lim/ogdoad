@@ -12,6 +12,23 @@ fn add_is_xor_and_self_inverse() {
 }
 
 #[test]
+fn from_int_is_the_z_embedding_not_a_bit_cast() {
+    // Regression for the doc's own worked example (root AGENTS.md, scalar/mod.rs's
+    // `Scalar::from_int` doc, grundy/docs/spec.md §7.2): the default
+    // double-and-add ℤ-embedding gives `from_int(n) = n mod 2` in char 2, so
+    // `from_int(3) == *1` and `from_int(4) == *0` — NOT the representation
+    // constructors `Nimber(3)`/`Nimber(4)`.
+    assert_eq!(Nimber::from_int(3), Nimber(1));
+    assert_eq!(Nimber::from_int(4), Nimber(0));
+}
+
+#[test]
+fn fuzzy_is_distinctness_for_nimber_game_values() {
+    assert!(!Nimber(5).fuzzy(&Nimber(5)));
+    assert!(Nimber(5).fuzzy(&Nimber(6)));
+}
+
+#[test]
 fn known_small_products() {
     // F_4 = {0,1,2,3}: 2 is a generator with 2^2 = 3.
     assert_eq!(nim_mul(2, 2), 3);
@@ -223,6 +240,18 @@ fn order_factors_are_2_128_minus_1() {
         prod = prod.checked_mul(p).expect("ORDER_FACTORS overflow");
     }
     assert_eq!(prod, u128::MAX); // 2^128 − 1, squarefree
+}
+
+#[test]
+fn order_factors_are_all_prime() {
+    // The product is pinned above; this pins the other half of the doc claim —
+    // every listed factor is itself prime, not just a cofactor of the right product.
+    for &p in &ORDER_FACTORS {
+        assert!(
+            crate::scalar::is_prime_u128(p),
+            "ORDER_FACTORS entry {p} is not prime"
+        );
+    }
 }
 
 #[test]

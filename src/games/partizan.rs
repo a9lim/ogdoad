@@ -2,9 +2,9 @@
 //!
 //! Conway's games `G = { G^L | G^R }` form, under disjunctive sum, a partially
 //! ordered abelian group — but *not a ring* (the product is only a congruence on
-//! the numbers). That is the obstruction the whole project lives around: a
-//! Clifford algebra needs a commutative scalar *ring*, so it only reaches the
-//! field-like cores (nimbers, surreals, surcomplex).
+//! the number/nimber subclasses). That is the obstruction the whole project lives
+//! around: a Clifford algebra needs a commutative scalar *ring*, so it only reaches
+//! the field-like cores (nimbers, surreals, surcomplex).
 //!
 //! This module ships the short-game engine — sum, negation, the recursive order,
 //! birthday, the number test, and the **canonical form** (dominated/reversible
@@ -21,6 +21,7 @@
 
 use crate::scalar::{Scalar, Surreal};
 use std::cmp::Ordering;
+use std::fmt;
 use std::sync::Arc;
 
 /// A short partizan game `{ left | right }`. Reference-counted (atomically, so the
@@ -44,6 +45,21 @@ impl Game {
     }
     pub fn right(&self) -> &[Game] {
         &self.0.right
+    }
+
+    /// Whether two handles name the same shared finite-game node.
+    ///
+    /// This is NOT game-value equality: pointer identity is only a sound
+    /// positive short-circuit for memoized structural walks.
+    pub fn ptr_eq(&self, other: &Game) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Process-local identity of this shared finite-game node, usable as a
+    /// memoization key. Not stable across processes or runs; distinct ids do
+    /// not imply distinct game values.
+    pub fn ptr_id(&self) -> usize {
+        Arc::as_ptr(&self.0) as usize
     }
 
     /// `0 = { | }` — the empty game (second player wins).
@@ -179,18 +195,15 @@ impl Game {
     }
 
     /// A readable structural form: `0` for `{|}`, else `{L|R}` recursively.
+    /// Alias for [`to_string`](std::fmt::Display) — kept for Python compatibility.
     pub fn display(&self) -> String {
-        if self.left().is_empty() && self.right().is_empty() {
-            return "0".to_string();
-        }
-        let l: Vec<String> = self.left().iter().map(|g| g.display()).collect();
-        let r: Vec<String> = self.right().iter().map(|g| g.display()).collect();
-        format!("{{{}|{}}}", l.join(","), r.join(","))
+        self.to_string()
     }
 
     /// Whether `G` is a (surreal) *number*: all options are numbers and every left
-    /// option is strictly below every right option. Numbers are exactly the games
-    /// the Conway product (and hence the Clifford story) can reach.
+    /// option is strictly below every right option. Numbers (and the nimbers, their
+    /// characteristic-2 mirror) are the game subclasses the Conway product and hence
+    /// the Clifford story can reach.
     pub fn is_number(&self) -> bool {
         self.left().iter().all(|g| g.is_number())
             && self.right().iter().all(|g| g.is_number())
@@ -365,6 +378,25 @@ impl std::ops::Neg for Game {
     }
 }
 
+impl fmt::Display for Game {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.left().is_empty() && self.right().is_empty() {
+            return write!(f, "0");
+        }
+        let l: Vec<String> = self.left().iter().map(|g| g.to_string()).collect();
+        let r: Vec<String> = self.right().iter().map(|g| g.to_string()).collect();
+        write!(f, "{{{}|{}}}", l.join(","), r.join(","))
+    }
+}
+
+/// The exact integer value of a short game, if it is an integer-valued number.
+/// Used by `atomic_weight` and `heating`; the canonical extraction is
+/// `number_value()?.as_dyadic()?` then `k == 0`.
+pub(crate) fn integer_value(g: &Game) -> Option<i128> {
+    let (num, k) = g.number_value()?.as_dyadic()?;
+    (k == 0).then_some(num)
+}
+
 /// Keep only the order-maximal games (Left options of a canonical form): drop any
 /// option dominated by — or equal to — a kept one.
 fn maximal_games(opts: &[Game]) -> Vec<Game> {
@@ -523,6 +555,131 @@ mod tests {
         let c = g.canonical();
         assert!(c.eq(&g)); // value preserved
         assert!(c.canonical().structural_eq(&c)); // idempotent
+    }
+
+    // ---- Day-≤3 canonical-string-as-value-key oracle ----
+    //
+    // Standard math: the number of DISTINCT game VALUES born by day ≤3 is 1474
+    // (Conway, ONAG; also quoted in Siegel's CGT book) — the well-known cumulative
+    // sequence 1, 4, 22, 1474 for days 0..=3. This test does not attempt that full
+    // generative census: doing so needs pairing every antichain of the day-≤2
+    // 22-value poset against every other antichain, which is not bounded by a
+    // small constant (the day-≤2 poset alone has enough incomparable pairs that
+    // full antichain enumeration is not a quick sweep). Instead:
+    //
+    //  - Day ≤2 is swept EXHAUSTIVELY: every one of the 16×16 = 256 combinations of
+    //    subsets of the exact 4-element day-≤1 pool `{0, 1, -1, ⋆}` is built,
+    //    canonicalized, and checked. This recovers the known 22-value day-≤2
+    //    census exactly (asserted below), so this part of the sweep is a complete,
+    //    rigorous day-≤2 check, not an approximation.
+    //  - Day 3 is swept with L/R option sets BOUNDED to size ≤2, drawn from that
+    //    exact 22-element day-≤2 pool (254×254 = 64,516 raw candidates, since
+    //    C(22,0)+C(22,1)+C(22,2) = 254). This is an honest, tractable SUBSET of the
+    //    day-≤3 universe — not the complete 1474-value census — but it reaches many
+    //    genuinely day-3 values (e.g. `⇑` = up-second, `±2`, `*3`, ...) alongside
+    //    every day-≤2 value, and it is large enough (order 10^5 raw candidates) to
+    //    be a real stress test of "canonical_string is a value key," not a token
+    //    check.
+    //
+    // For every candidate, canonical_string equality is checked BOTH ways against
+    // value equality (`Game::eq`, i.e. `le` both ways): same string implies equal
+    // value, and (on first seeing a new string) that string's representative is
+    // checked as not-equal to every previously accepted representative.
+
+    /// All subsets of `pool` of size `0..=max_size` (each subset produced exactly
+    /// once, via the standard increasing-index combination recursion).
+    fn subsets_up_to(pool: &[Game], max_size: usize) -> Vec<Vec<Game>> {
+        fn rec(
+            pool: &[Game],
+            start: usize,
+            max_size: usize,
+            current: &mut Vec<Game>,
+            out: &mut Vec<Vec<Game>>,
+        ) {
+            out.push(current.clone());
+            if current.len() == max_size {
+                return;
+            }
+            for i in start..pool.len() {
+                current.push(pool[i].clone());
+                rec(pool, i + 1, max_size, current, out);
+                current.pop();
+            }
+        }
+        let mut out = Vec::new();
+        let mut current = Vec::new();
+        rec(pool, 0, max_size.min(pool.len()), &mut current, &mut out);
+        out
+    }
+
+    /// Every `Game::new(L, R)` with `L`, `R` each a subset of `pool` of size
+    /// `≤ max_opts`.
+    fn sweep_games(pool: &[Game], max_opts: usize) -> Vec<Game> {
+        let subsets = subsets_up_to(pool, max_opts);
+        let mut out = Vec::with_capacity(subsets.len() * subsets.len());
+        for l in &subsets {
+            for r in &subsets {
+                out.push(Game::new(l.clone(), r.clone()));
+            }
+        }
+        out
+    }
+
+    /// Fold `candidates` into a canonical_string -> representative map, asserting
+    /// the value-key biconditional against every representative seen so far.
+    fn assert_canonical_string_is_a_value_key(
+        candidates: &[Game],
+        reps: &mut std::collections::BTreeMap<String, Game>,
+    ) {
+        for g in candidates {
+            let key = g.canonical_string();
+            if let Some(existing) = reps.get(&key) {
+                assert!(
+                    g.eq(existing),
+                    "same canonical_string {key} but different value: {} vs {}",
+                    g.display(),
+                    existing.display()
+                );
+            } else {
+                for (other_key, other) in reps.iter() {
+                    assert!(
+                        !g.eq(other),
+                        "different canonical_string ({key} vs {other_key}) but equal value: \
+                         {} vs {}",
+                        g.display(),
+                        other.display()
+                    );
+                }
+                reps.insert(key, g.clone());
+            }
+        }
+    }
+
+    #[test]
+    fn canonical_string_is_a_value_key_on_a_bounded_day_le_3_sweep() {
+        let day1_pool = vec![
+            Game::zero(),
+            Game::integer(1),
+            Game::integer(-1),
+            Game::star(),
+        ];
+        let mut reps = std::collections::BTreeMap::new();
+
+        // Day ≤2: exhaustive (every subset of the exact day-≤1 pool, both sides).
+        let day2_candidates = sweep_games(&day1_pool, day1_pool.len());
+        assert_canonical_string_is_a_value_key(&day2_candidates, &mut reps);
+        assert_eq!(
+            reps.len(),
+            22,
+            "day-≤2 census should match the known 22 canonical values (Conway/ONAG)"
+        );
+
+        let day2_pool: Vec<Game> = reps.values().cloned().collect();
+
+        // Day 3: bounded to ≤2 options per side, drawn from the exact day-≤2 pool
+        // (see the module comment above for why this is bounded, not exhaustive).
+        let day3_candidates = sweep_games(&day2_pool, 2);
+        assert_canonical_string_is_a_value_key(&day3_candidates, &mut reps);
     }
 
     #[test]

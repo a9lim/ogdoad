@@ -18,6 +18,7 @@
 //! factorization path still return a free basis only when unit-pivot linear
 //! algebra suffices; monomial blades and vectors are factored without division.
 
+use crate::clifford::engine::grade_k_masks;
 use crate::clifford::{bits, grade, CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
@@ -36,24 +37,6 @@ fn homogeneous_grade<S: Scalar>(a: &Multivector<S>) -> Option<usize> {
         }
     }
     g // None ⇔ zero (no terms)
-}
-
-fn combinations(n: usize, k: usize) -> Vec<u128> {
-    fn rec(out: &mut Vec<u128>, n: usize, k: usize, start: usize, mask: u128) {
-        if k == 0 {
-            out.push(mask);
-            return;
-        }
-        for i in start..=n - k {
-            rec(out, n, k - 1, i + 1, mask | (1u128 << i));
-        }
-    }
-    if k > n {
-        return Vec::new();
-    }
-    let mut out = Vec::new();
-    rec(&mut out, n, k, 0, 0);
-    out
 }
 
 fn coeff<S: Scalar>(a: &Multivector<S>, mask: u128) -> S {
@@ -75,12 +58,12 @@ fn plucker_relations_hold<S: Scalar>(
     a: &Multivector<S>,
     k: usize,
 ) -> bool {
-    let n = alg.dim;
+    let n = alg.dim();
     if k == 0 || k == 1 || k == n {
         return true;
     }
-    for i_mask in combinations(n, k - 1) {
-        for j_mask in combinations(n, k + 1) {
+    for i_mask in grade_k_masks(n, k - 1) {
+        for j_mask in grade_k_masks(n, k + 1) {
             let mut acc = S::zero();
             let mut jj = j_mask;
             let mut pos = 0usize;
@@ -112,7 +95,7 @@ fn vector_from_coeffs<S: Scalar>(alg: &CliffordAlgebra<S>, x: &[S]) -> Multivect
     let mut out = alg.zero();
     for (i, c) in x.iter().enumerate() {
         if !c.is_zero() {
-            out = alg.add(&out, &alg.scalar_mul(c, &alg.gen(i)));
+            out = alg.add(&out, &alg.scalar_mul(c, &alg.e(i)));
         }
     }
     out
@@ -127,7 +110,7 @@ pub fn blade_subspace<S: Scalar>(
     a: &Multivector<S>,
 ) -> Option<Vec<Vec<S>>> {
     let k = homogeneous_grade(a)?;
-    let n = alg.dim;
+    let n = alg.dim();
     if k == 0 {
         return Some(vec![]);
     }
@@ -153,7 +136,7 @@ pub fn blade_subspace<S: Scalar>(
         }
     }
     // Columns of the linear map x ↦ x ∧ A are e_i ∧ A (grade k+1).
-    let cols: Vec<Multivector<S>> = (0..n).map(|i| alg.wedge(&alg.gen(i), a)).collect();
+    let cols: Vec<Multivector<S>> = (0..n).map(|i| alg.wedge(&alg.e(i), a)).collect();
     let mut maskset: BTreeSet<u128> = BTreeSet::new();
     for c in &cols {
         maskset.extend(c.terms.keys().copied());
@@ -178,7 +161,7 @@ pub fn is_blade<S: Scalar>(alg: &CliffordAlgebra<S>, a: &Multivector<S>) -> bool
     match homogeneous_grade(a) {
         None => false,
         Some(0) => true,
-        Some(k) if k <= alg.dim => plucker_relations_hold(alg, a, k),
+        Some(k) if k <= alg.dim() => plucker_relations_hold(alg, a, k),
         Some(_) => false,
     }
 }
@@ -197,9 +180,9 @@ fn monomial_factor<S: Scalar>(
         return None;
     }
     let mut out = Vec::with_capacity(k);
-    out.push(alg.scalar_mul(coeff, &alg.gen(gens[0])));
+    out.push(alg.scalar_mul(coeff, &alg.e(gens[0])));
     for &g in &gens[1..] {
-        out.push(alg.gen(g));
+        out.push(alg.e(g));
     }
     Some(out)
 }
@@ -251,7 +234,7 @@ mod tests {
     use crate::scalar::{Integer, Rational};
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
     fn euclid(n: usize) -> CliffordAlgebra<Rational> {
         CliffordAlgebra::new(n, Metric::diagonal(vec![r(1); n]))
@@ -261,11 +244,11 @@ mod tests {
     fn simple_wedges_are_blades() {
         let alg = euclid(4);
         assert!(is_blade(&alg, &alg.scalar(r(3)))); // scalar
-        assert!(is_blade(&alg, &alg.gen(1))); // vector
-        let e01 = alg.wedge(&alg.gen(0), &alg.gen(1));
+        assert!(is_blade(&alg, &alg.e(1))); // vector
+        let e01 = alg.wedge(&alg.e(0), &alg.e(1));
         assert!(is_blade(&alg, &e01));
         assert_eq!(blade_subspace(&alg, &e01).unwrap().len(), 2);
-        let e012 = alg.wedge(&e01, &alg.gen(2));
+        let e012 = alg.wedge(&e01, &alg.e(2));
         assert!(is_blade(&alg, &e012));
         assert_eq!(blade_subspace(&alg, &e012).unwrap().len(), 3);
     }
@@ -275,8 +258,8 @@ mod tests {
         // e0∧e1 + e2∧e3 in R⁴ is the canonical non-decomposable 2-vector.
         let alg = euclid(4);
         let a = alg.add(
-            &alg.wedge(&alg.gen(0), &alg.gen(1)),
-            &alg.wedge(&alg.gen(2), &alg.gen(3)),
+            &alg.wedge(&alg.e(0), &alg.e(1)),
+            &alg.wedge(&alg.e(2), &alg.e(3)),
         );
         assert!(!is_blade(&alg, &a));
         assert_eq!(blade_subspace(&alg, &a).unwrap().len(), 0);
@@ -287,8 +270,8 @@ mod tests {
     fn factor_reconstructs_the_blade() {
         let alg = euclid(4);
         // a "skew" 2-blade: (e0+e1) ∧ (e2 + 2e3).
-        let v = alg.add(&alg.gen(0), &alg.gen(1));
-        let w = alg.add(&alg.gen(2), &alg.scalar_mul(&r(2), &alg.gen(3)));
+        let v = alg.add(&alg.e(0), &alg.e(1));
+        let w = alg.add(&alg.e(2), &alg.scalar_mul(&r(2), &alg.e(3)));
         let blade = alg.wedge(&v, &w);
         let factors = factor_blade(&alg, &blade).unwrap();
         assert_eq!(factors.len(), 2);
@@ -303,7 +286,7 @@ mod tests {
     #[test]
     fn mixed_grade_and_zero_are_not_blades() {
         let alg = euclid(3);
-        let mixed = alg.add(&alg.scalar(r(1)), &alg.gen(0));
+        let mixed = alg.add(&alg.scalar(r(1)), &alg.e(0));
         assert!(!is_blade(&alg, &mixed));
         assert!(factor_blade(&alg, &mixed).is_none());
         assert!(!is_blade(&alg, &alg.zero()));
@@ -327,11 +310,11 @@ mod tests {
     fn integer_nonunit_multiples_are_blades() {
         let alg = CliffordAlgebra::new(3, Metric::<Integer>::grassmann(3));
         let two = Integer(2);
-        let v = alg.scalar_mul(&two, &alg.gen(0));
+        let v = alg.scalar_mul(&two, &alg.e(0));
         assert!(is_blade(&alg, &v));
         assert_eq!(factor_blade(&alg, &v).unwrap(), vec![v.clone()]);
 
-        let e01 = alg.wedge(&alg.gen(0), &alg.gen(1));
+        let e01 = alg.wedge(&alg.e(0), &alg.e(1));
         let two_e01 = alg.scalar_mul(&two, &e01);
         assert!(is_blade(&alg, &two_e01));
         assert_eq!(blade_subspace(&alg, &two_e01).unwrap().len(), 2);
@@ -347,8 +330,8 @@ mod tests {
     fn pluecker_rejects_integer_non_simple_bivector() {
         let alg = CliffordAlgebra::new(4, Metric::<Integer>::grassmann(4));
         let a = alg.add(
-            &alg.wedge(&alg.gen(0), &alg.gen(1)),
-            &alg.wedge(&alg.gen(2), &alg.gen(3)),
+            &alg.wedge(&alg.e(0), &alg.e(1)),
+            &alg.wedge(&alg.e(2), &alg.e(3)),
         );
         assert!(!is_blade(&alg, &a));
         assert!(factor_blade(&alg, &a).is_none());
@@ -358,8 +341,8 @@ mod tests {
     fn integer_blade_subspace_refuses_nonunit_kernel_pivot() {
         let alg = CliffordAlgebra::new(3, Metric::<Integer>::grassmann(3));
         let minus_two = Integer(-2);
-        let e01 = alg.wedge(&alg.gen(0), &alg.gen(1));
-        let e02 = alg.wedge(&alg.gen(0), &alg.gen(2));
+        let e01 = alg.wedge(&alg.e(0), &alg.e(1));
+        let e02 = alg.wedge(&alg.e(0), &alg.e(2));
         let a = alg.add(
             &alg.scalar_mul(&minus_two, &e01),
             &alg.scalar_mul(&minus_two, &e02),

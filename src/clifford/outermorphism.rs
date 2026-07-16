@@ -14,29 +14,42 @@
 //! is a structurally independent computation from cofactor expansion, so it
 //! doubles as a check on the engine's `wedge`.
 
+use crate::clifford::engine::grade_k_masks;
 use crate::clifford::{bits, CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
 
-/// A linear map `V → V` on grade 1, stored column-major: `cols[i]` is the image
-/// `f(e_i)` as a length-`n` coefficient vector over `e_0..e_{n-1}` (so
-/// `cols[i][j]` is the coefficient of `e_j` in `f(e_i)`, i.e. the matrix entry
-/// `M[j][i]`).
+/// A linear map `V → V` on grade 1, stored column-major: `cols()[i]` is the
+/// image `f(e_i)` as a length-`n` coefficient vector over `e_0..e_{n-1}` (so
+/// `cols()[i][j]` is the coefficient of `e_j` in `f(e_i)`, i.e. the matrix
+/// entry `M[j][i]`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinearMap<S: Scalar> {
-    pub n: usize,
-    pub cols: Vec<Vec<S>>,
+    cols: Vec<Vec<S>>,
 }
 
 impl<S: Scalar> LinearMap<S> {
-    /// Build from columns `cols[i] = f(e_i)`; panics if not square `n×n`.
+    /// The dimension `n` of this linear map — always equal to `cols().len()`.
+    pub fn n(&self) -> usize {
+        self.cols.len()
+    }
+
+    /// Read-only access to the column-major matrix data (`cols()[i]` = `f(e_i)`).
+    pub fn cols(&self) -> &[Vec<S>] {
+        &self.cols
+    }
+
+    /// Build from columns `cols[i] = f(e_i)`; panics if not square `n×n`. The
+    /// sole constructor — every internal builder (`identity`, `compose`,
+    /// `inverse_outermorphism`) routes through this too, so the squareness
+    /// check is never bypassable even from within this module.
     pub fn from_columns(cols: Vec<Vec<S>>) -> Self {
         let n = cols.len();
         assert!(
             cols.iter().all(|c| c.len() == n),
             "LinearMap must be square: each column has length n"
         );
-        LinearMap { n, cols }
+        LinearMap { cols }
     }
 
     /// The identity map on `n` generators.
@@ -48,7 +61,7 @@ impl<S: Scalar> LinearMap<S> {
                     .collect()
             })
             .collect();
-        LinearMap { n, cols }
+        LinearMap::from_columns(cols)
     }
 
     /// `f(e_i)` as a grade-1 multivector in `alg`.
@@ -56,7 +69,7 @@ impl<S: Scalar> LinearMap<S> {
         let mut out = alg.zero();
         for (j, c) in self.cols[i].iter().enumerate() {
             if !c.is_zero() {
-                out = alg.add(&out, &alg.scalar_mul(c, &alg.gen(j)));
+                out = alg.add(&out, &alg.scalar_mul(c, &alg.e(j)));
             }
         }
         out
@@ -65,8 +78,8 @@ impl<S: Scalar> LinearMap<S> {
     /// The composite `self ∘ inner` (apply `inner`, then `self`): the ordinary
     /// matrix product `M_self · M_inner`.
     pub fn compose(&self, inner: &LinearMap<S>) -> LinearMap<S> {
-        assert_eq!(self.n, inner.n, "dimension mismatch in compose");
-        let n = self.n;
+        assert_eq!(self.n(), inner.n(), "dimension mismatch in compose");
+        let n = self.n();
         // cols_{f∘g}[i][j] = Σ_k cols_f[k][j] · cols_g[i][k]
         let cols = (0..n)
             .map(|i| {
@@ -81,7 +94,7 @@ impl<S: Scalar> LinearMap<S> {
                     .collect()
             })
             .collect();
-        LinearMap { n, cols }
+        LinearMap::from_columns(cols)
     }
 }
 
@@ -93,7 +106,11 @@ pub fn apply_outermorphism<S: Scalar>(
     f: &LinearMap<S>,
     mv: &Multivector<S>,
 ) -> Multivector<S> {
-    debug_assert_eq!(f.n, alg.dim, "LinearMap dimension must match the algebra");
+    debug_assert_eq!(
+        f.n(),
+        alg.dim(),
+        "LinearMap dimension must match the algebra"
+    );
     let mut out = alg.zero();
     for (&mask, coeff) in &mv.terms {
         // Fold f(e_i) over the set bits in ascending order, starting at 1.
@@ -116,50 +133,19 @@ pub fn determinant<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
     image.terms.get(&mask).cloned().unwrap_or_else(S::zero)
 }
 
-/// The grade-`k` basis blade masks over `n` generators (the `C(n,k)` subsets),
-/// enumerated by Gosper's hack. Exponential in `n` summed over all grades, so
-/// the spectral routines below are for modest dimensions.
-fn grade_k_masks(n: usize, k: usize) -> Vec<u128> {
-    if k == 0 {
-        return vec![0];
-    }
-    if k > n {
-        return vec![];
-    }
-    assert!(n <= u128::BITS as usize, "basis masks fit in u128");
-    if k == u128::BITS as usize {
-        return vec![u128::MAX];
-    }
-    let mut out = Vec::new();
-    let mut c: u128 = (1u128 << k) - 1;
-    let limit = (n < u128::BITS as usize).then(|| 1u128 << n);
-    loop {
-        out.push(c);
-        let u = c & c.wrapping_neg();
-        let v = c.checked_add(u);
-        match v {
-            Some(v) if v != 0 => {
-                let next = v + (((v ^ c) / u) >> 2);
-                if limit.is_some_and(|lim| next >= lim) {
-                    break;
-                }
-                c = next;
-            }
-            _ => break,
-        }
-    }
-    out
-}
-
 /// The trace of the `k`-th exterior power `Λᵏf` — the `k`-th elementary
 /// symmetric function of the eigenvalues, equivalently the sum of the `k×k`
 /// principal minors. `Λ⁰f` has trace `1`, `Λ¹f` is the ordinary trace, and
 /// `Λⁿf` is the [`determinant`]. Computed straight from the outermorphism:
 /// `tr Λᵏf = Σ_{|S|=k} ⟨e_S , f(e_S)⟩`, so it is character-faithful for free.
 pub fn exterior_power_trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>, k: usize) -> S {
-    debug_assert_eq!(f.n, alg.dim, "LinearMap dimension must match the algebra");
+    debug_assert_eq!(
+        f.n(),
+        alg.dim(),
+        "LinearMap dimension must match the algebra"
+    );
     let mut acc = S::zero();
-    for mask in grade_k_masks(alg.dim, k) {
+    for mask in grade_k_masks(alg.dim(), k) {
         let blade = alg.blade(&bits(mask));
         let img = apply_outermorphism(alg, f, &blade);
         // ⟨e_S , f(e_S)⟩ — the diagonal entry of Λᵏf at this blade.
@@ -183,7 +169,7 @@ pub fn trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
 /// Char-faithful — over the nimbers every sign collapses, giving the char-2
 /// characteristic polynomial with no special-casing.
 pub fn char_poly<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> Vec<S> {
-    let n = alg.dim;
+    let n = alg.dim();
     (0..=n)
         .map(|k| {
             let ck = exterior_power_trace(alg, f, k);
@@ -201,17 +187,17 @@ pub fn char_poly<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> Vec<S
 /// not invertible in the backend (e.g. a non-monomial surreal), which includes
 /// the singular case.
 pub fn inverse_outermorphism<S: Scalar>(f: &LinearMap<S>) -> Option<LinearMap<S>> {
-    let n = f.n;
+    let n = f.n();
     // Row-major working matrix `m[r][c] = M[r][c] = cols[c][r]`.
     let m: Vec<Vec<S>> = (0..n)
-        .map(|r| (0..n).map(|c| f.cols[c][r].clone()).collect())
+        .map(|r| (0..n).map(|c| f.cols()[c][r].clone()).collect())
         .collect();
     let inv = field::inverse_matrix(m)?;
     // inv is now M⁻¹ in row-major form; convert back to columns.
     let cols = (0..n)
         .map(|i| (0..n).map(|j| inv[j][i].clone()).collect())
         .collect();
-    Some(LinearMap { n, cols })
+    Some(LinearMap::from_columns(cols))
 }
 
 #[cfg(test)]
@@ -222,7 +208,7 @@ mod tests {
     use crate::scalar::Rational;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     fn euclid(n: usize) -> CliffordAlgebra<Rational> {
@@ -304,7 +290,7 @@ mod tests {
             vec![r(0), r(1), r(3)],
             vec![r(2), r(0), r(1)],
         ]);
-        let e0e1 = alg.wedge(&alg.gen(0), &alg.gen(1));
+        let e0e1 = alg.wedge(&alg.e(0), &alg.e(1));
         let lhs = apply_outermorphism(&alg, &f, &e0e1);
         let rhs = alg.wedge(&f.image(&alg, 0), &f.image(&alg, 1));
         assert_eq!(lhs, rhs);
@@ -324,7 +310,7 @@ mod tests {
             vec![r(0), r(1), r(2)],
         ]);
         let fg = f.compose(&g);
-        let mv = alg.add(&alg.gen(0), &alg.wedge(&alg.gen(1), &alg.gen(2)));
+        let mv = alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2)));
         let lhs = apply_outermorphism(&alg, &fg, &mv);
         let rhs = apply_outermorphism(&alg, &f, &apply_outermorphism(&alg, &g, &mv));
         assert_eq!(lhs, rhs);

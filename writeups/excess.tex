@@ -1,0 +1,859 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array,booktabs}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{conjecture}{Conjecture}
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\Norm}{\operatorname{N}}
+\newcommand{\Frob}{\operatorname{Frob}}
+\newcommand{\nimmul}{\otimes}
+\newcommand{\Qset}{\mathcal{Q}}
+% claim-level tags (repo convention for this thread)
+\newcommand{\PROVED}{\textbf{[\textsc{proved}]}}
+\newcommand{\CERTIFIED}[1]{\textbf{[\textsc{certified} $#1$]}}
+\newcommand{\CONSISTENT}{\textbf{[\textsc{consistent}]}}
+\newcommand{\CONJECTURED}{\textbf{[\textsc{conjectured}]}}
+\newcommand{\OPEN}{\textbf{[\textsc{open}]}}
+
+\title{Draft: the finite excess in transfinite nim multiplication}
+\author{a9lim}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Conway's field $\mathrm{On}_2$ makes the ordinals below
+$\omega^{\omega^{\omega}}$ an algebraic closure of $\F_2$ under
+nim-arithmetic. Its multiplication is governed by a Kummer tower whose
+carries are Lenstra's \emph{excess} values: for each odd prime $p$, the
+carry is $\alpha_p=\kappa_{f(p)}+m_p$, where the transfinite part
+$\kappa_{f(p)}$ has a known closed shape (Lenstra, DiMuro) but the finite
+correction $m_p$ does not. This note consolidates the state of the excess
+problem (\texttt{docs/OPEN.md} Problem~3 of \texttt{ogdoad}): the exact
+finite-field reformulation of the root test as a multiplicative-order
+criterion and its structural norm reduction; a complete analysis of the
+$3$-power column via a half-angle splitting in the cyclotomic component
+fields, certifying $m_r=1$ for all primes $r$ with
+$f(r)\in\{3,9,\dots,3^6\}$ and forcing $m_p\geq4$ unconditionally on the
+$f(p)=2\cdot3^k$ column --- now sharpened to $m_p=4$ \emph{exactly} at
+every prime current factor tables reach (universally for $k\leq6$), via
+a corrected compositum norm
+$(\kappa+4)(\kappa+5)=\kappa^2+\kappa+\omega$ that collapses the $m=4$
+test into the same trinomial field; the empirically exact $0/1/4$
+candidate rule and the proof that the Lenstra component set alone cannot
+decide the excess; and the reduction of Lenstra's open boundedness
+question to that candidate.
+Feasibility of the first open row, $p=719$, is assessed: a
+Frobenius-orbit norm recurrence reduces it to arithmetic in
+$\F_{2^{359}}$, with the cost concentrated in tower-aware Frobenius
+composition. Each statement carries an explicit claim-level tag.
+\end{abstract}
+
+\paragraph{Claim levels.}
+\PROVED{} -- unconditional, machine-checked or classically verified;
+\CERTIFIED{k\leq6} -- proved for the stated range, blocked beyond it only
+by unfactored cofactors; \CONSISTENT{} -- no counterexample found, not
+proved; \CONJECTURED{} -- explicitly open in the literature or posed in
+this thread; \OPEN{} -- neither confirmed nor refuted, no feasible attack
+on record.
+
+\section{Notation, implemented state, external data}\label{sec:notation}
+
+\subsection{Notation}
+
+For an odd prime $p$:
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item $f(p)=\ord_p(2)$, the multiplicative order of $2$ modulo $p$;
+\item $\kappa_h$ is the Lenstra/DiMuro tower element indexed by $h$;
+\item $\Qset(h)$ is Lenstra's set of prime-power components appearing in
+$\kappa_h$;
+\item the \emph{excess} $m_p$ is the least finite $m$ such that
+$\kappa_{f(p)}+m$ has no $p$-th root in the relevant finite component
+field;
+\item the Kummer carry is $\alpha_p=\kappa_{f(p)}+m_p$.
+\end{itemize}
+For the ordinal tower, a row with $\Qset(f(p))=\{q\}$ and finite excess
+$m$ gives the ordinal sum corresponding to $\kappa_q+m$. Addition of
+nimbers is XOR; $\nimmul$ is the nim product.
+
+\subsection{Implemented tower state}
+
+In the Rust tower (\path{src/scalar/big/ordinal/tower.rs}), as of 2026-06-13:
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item the finite excess rows $m_p$ are now sourced from OEIS
+A380496~\cite{OEIS}, the b-file's $126$ known rows (odd primes
+$3 \le p \le 709$); the first $14$ rows reproduce DiMuro Table~1 + the
+formerly locally verified $\alpha_{47}=\omega^{(\omega^7)}+1$;
+\item the operational boundary is $\alpha_{719}$, the first OEIS-unknown
+row: a carry needing $\alpha_{719}$ or beyond returns \texttt{None};
+\item the table extends \emph{reach}, not \emph{feasibility}: each
+$\alpha_p$ is reconstructed in code from $\ord_p(2)$, $\Qset(f(p))$, and
+$m_p$, but for large $p$ the $\Qset$/finite-subfield reconstruction lives
+in the degree-$e_p$ component field ($e_p$ in the millions; see the
+snapshot below), so only the small-$e_p$ rows are materializable
+end-to-end today.
+\end{itemize}
+
+\subsection{External data snapshot (2026-06-09)}
+
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item OEIS A380496~\cite{OEIS} has $1417$ extended rows: $799$ known and
+$618$ unknown; the b-file has $126$ initial known rows.
+\item The first OEIS unknown is row $n=127$, the $127$th odd prime
+$p=719$. For $p=719$: $f(719)=\ord_{719}(2)=359$ and
+$\Qset(359)=\{359\}$.
+\item The transfinite-nim-calculator logs~\cite{Peeters} record the direct
+component exponent as $e_{719}=1{,}258{,}230{,}380$, the practical wall
+for direct exponentiation.
+\end{itemize}
+
+\section{The order criterion and structural norm reduction}
+\label{sec:norm}
+
+\subsection{The exact criterion}
+
+Throughout, $E$ denotes the degree of the component field containing
+$\beta=\kappa_{f(p)}+m$, so $f=f(p)\mid E$ and hence
+$p\mid 2^{E}-1$.
+
+\begin{proposition}[power criterion]\label{prop:power}
+\PROVED{} $\beta\in\F_{2^E}^{\times}$ has no $p$-th root in $\F_{2^E}$
+iff $\beta^{(2^E-1)/p}\neq1$. Hence
+\[
+  m_p=\min\bigl\{m\geq0:\ (\kappa_{f(p)}+m)^{(2^E-1)/p}\neq1\bigr\}.
+\]
+\end{proposition}
+
+\begin{proof}
+$\F_{2^E}^{\times}$ is cyclic of order $2^E-1$ and $p\mid 2^E-1$; in a
+cyclic group of order $N$, $\beta$ is a $p$-th power iff
+$\beta^{N/p}=1$.
+\end{proof}
+
+\begin{corollary}[order form]\label{cor:order}
+\PROVED{} If $v_p(2^E-1)=1$, then $\beta$ has no $p$-th root in
+$\F_{2^E}$ iff $p\mid\ord(\beta)$, so
+$m_p$ is the least $m$ with $p\mid\ord(\kappa_{f(p)}+m)$.
+\end{corollary}
+
+\begin{remark}[Wieferich caveat]\label{rem:wieferich}
+In general ``no $p$-th root'' is equivalent to
+$v_p(\ord\beta)=v_p(2^E-1)$, which collapses to
+$p\mid\ord(\beta)$ only when $v_p(2^E-1)=1$. Since
+$v_p(2^E-1)=v_p(2^{f(p)}-1)$ whenever $p\nmid E/f(p)$ (lifting the
+exponent), the hypothesis can fail only at base-$2$ Wieferich-type primes
+with $p^2\mid 2^{f(p)}-1$; the only known instances are $p=1093$ and
+$p=3511$, both of which lie inside the extended A380496 range. For those
+rows the exact test of Proposition~\ref{prop:power} (or the full-$p$-part
+order condition) must be used. The certifications of
+Section~\ref{sec:family} compute orders exactly, with squarefreeness
+checks, and are unaffected. The research-note predecessor of this
+document stated only the order form; the power criterion is the
+correct general statement.
+\end{remark}
+
+\subsection{Norm reduction}
+
+\begin{proposition}[norm reduction]\label{prop:norm}
+\PROVED{} For $\beta\in\F_{2^E}^{\times}$ with $f=f(p)\mid E$,
+\[
+  \beta^{(2^E-1)/p}
+  =
+  \Norm_{\F_{2^E}/\F_{2^f}}(\beta)^{(2^f-1)/p}.
+\]
+\end{proposition}
+
+\begin{proof}
+$\Norm_{\F_{2^E}/\F_{2^f}}(\beta)=\beta^{(2^E-1)/(2^f-1)}$, and
+$\bigl((2^E-1)/(2^f-1)\bigr)\cdot\bigl((2^f-1)/p\bigr)=(2^E-1)/p$.
+\end{proof}
+
+So the $p=719$ test reduces to: (1) compute
+$N=\Norm_{\F_{2^E}/\F_{2^{359}}}(\kappa_{359}+1)$ in $\F_{2^{359}}$;
+(2) test whether $719\mid\ord(N)$ in $\F_{2^{359}}^{\times}$, a field of
+degree $359$ in which $719\mid2^{359}-1$.
+
+\begin{proposition}[Galois-conjugacy invariance]\label{prop:galois}
+\PROVED{} The order of $\kappa_{f(p)}+m$ is constant on its Frobenius
+orbit in $\F_{2^E}$, and the norm
+$N=\prod_{i=0}^{E/f-1}\Frob^{if}(\kappa_{f}+m)$ is determined
+structurally by the tower equations without materialising the full orbit.
+\end{proposition}
+
+\begin{proposition}[tower pinning]\label{prop:pinning}
+\PROVED{} The tower equations pin $\kappa_{359}$ up to Frobenius
+conjugacy: each composed minimal polynomial along the component chain
+$359\to179\to89\to11\to5\to\text{finite}$ is irreducible (the
+non-$q$-th-power property defining the lower excess guarantees this), so
+$\kappa_{359}$ is a well-defined conjugacy class and $N$ is a well-defined
+element of $\F_{2^{359}}$.
+\end{proposition}
+
+\subsection{Feasibility for $p=719$}
+
+The component field degree is
+$E=2\cdot2\cdot5\cdot11\cdot89\cdot179\cdot359=1{,}258{,}230{,}380$; the
+norm requires $E/f=3{,}504{,}820$ Frobenius steps.
+
+\CONSISTENT{} The norm can in principle be computed by the
+binary-splitting Frobenius recurrence
+$N_{2k}=N_k\cdot\Frob^{fk}(N_k)$ (iterated-Frobenius technique, von zur
+Gathen--Shoup~\cite{vzGS92}, Kaltofen--Shoup~\cite{KS98}), requiring about
+$\log_2(3{,}504{,}820)\approx22$ squarings-with-Frobenius-composition at
+degree $E$ over $\F_2$. Each Frobenius composition is a modular
+composition in $\F_2[x]$ modulo a degree-$E$ polynomial; with dense
+polynomial arithmetic at $E\approx1.26\times10^9$ this is not locally
+feasible.
+
+\CONJECTURED{} (as a cost model, not a theorem) Kummer-tower-aware
+Frobenius -- standard-lattice arithmetic for compatibly embedded finite
+fields in the style of De~Feo--Randriam--Rousseau~\cite{DFRR19}, where
+$q$-power Frobenius acts near-monomially per tower level -- is the likely
+$10$--$100\times$ lever: the sparse factored structure
+$E=2\cdot2\cdot5\cdot11\cdot89\cdot179\cdot359$ admits a stepwise
+Frobenius representation in which each level contributes a small-degree
+modular composition. A \emph{measured} cost model, not a run, is the
+correct first deliverable.
+
+\OPEN{} Whether the Kummer-tower Frobenius model makes the $m_{719}$
+computation feasible in wall-clock hours rather than months on available
+hardware (a single consumer GPU; GF(2) arithmetic is XOR-sliced and
+GPU-friendly).
+
+\PROVED{} (2026-06-14 local rehearsal.) The first two dependency rows for
+the $p=719$ norm path are locally certified by
+\path{experiments/ordinal_excess_probe.py}: $m_{89}=1$ in the
+$E=220$ component field, and $m_{179}=1$ in the $E=19{,}580$ component
+field via the fixed-base power path (\texttt{--deep}, about one minute
+locally). The remaining local rehearsal row is $m_{359}=1$, with
+$E=3{,}504{,}820$. This row is already source-pinned by the imported
+A380496 table ($359\leq709$); what remains open here is an independent
+certificate on the same code path needed for the genuinely unknown
+$p=719$ row.
+
+\subsection{\texorpdfstring{The $m_{359}$ rehearsal obstruction}{The m359 rehearsal obstruction}}
+\label{sec:m359-obstruction}
+
+Set
+\[
+  d=19{,}580,\qquad E=179d=3{,}504{,}820,\qquad
+  B=\F_{2^d},\qquad F=\F_{2^E},\qquad L=\F_{2^{179}}.
+\]
+For the $m_{359}=1$ rehearsal, $f(359)=179$,
+$\Qset(f(359))=\Qset(179)=\{179\}$, and the candidate element is
+$\beta=\kappa_{179}+1$. To represent $\kappa_{179}$, the tower uses the
+lower prime row $f(179)=178$, $\Qset(178)=\{89\}$, $m_{179}=1$.
+Thus in the tower model $F=B(x)$ with $x=\kappa_{179}$ and
+\[
+  x^{179}=\kappa_{89}+1\in B,
+\]
+because the lower row $m_{179}=1$ has already been certified.
+
+\PROVED{} The cheap Kummer norm down the top tower step is not the
+$359$-test norm. Indeed,
+\[
+  \Norm_{F/B}(x+1)=1+(\kappa_{89}+1)=\kappa_{89}
+\]
+(evaluate the monic polynomial $T^{179}+(\kappa_{89}+1)$ at $T=1$, in
+characteristic $2$). But $359\nmid |B^\times|=2^{19580}-1$, since
+$\ord_{359}(2)=179$ and $179\nmid19580$. Thus the structurally cheap
+norm lands in exactly the field where the $359$-primary obstruction is
+invisible.
+
+\PROVED{} The norm forced by Proposition~\ref{prop:norm} is the
+transverse one
+\[
+  \Norm_{F/L}(\beta)=\prod_{i=0}^{19579}\Frob^{179i}(\beta)\in L.
+\]
+Here $\gcd(179,19580)=1$, so $B\cap L=\F_2$ and
+$F=BL$. The Frobenius $\Frob^{179}$ preserves $B$ as a set but acts
+nontrivially on it; it is not the relative Kummer action
+$x\mapsto \zeta x$ over $B$. Consequently the known lower certificates
+for $m_{89}$ and $m_{179}$ do not propagate to $m_{359}$ by taking the
+easy top-step norm.
+
+\PROVED{} The Wieferich caveat is absent at the next two pressure
+points: direct modular checks give
+$2^{179}\not\equiv1\pmod{359^2}$ and
+$2^{359}\not\equiv1\pmod{719^2}$. The order form of
+Corollary~\ref{cor:order} is therefore equivalent to the full power
+criterion for the $m_{359}$ rehearsal and the proposed $m_{719}$ test.
+
+\CONSISTENT{} (2026-06-16 diagnostic.) Re-running the maintained probe
+confirmed the quick certificate table and the \texttt{--deep}
+$m_{179}=1$ certificate. A side norm experiment then computed the
+correct transverse norm in the current term basis for the feasible
+analogues: for $p=89$ the norm to $\F_{2^{11}}$ has support
+$111/220$, and for $p=179$ the norm to $\F_{2^{178}}$ has support
+$9691/19580$. Thus the target-subfield element is essentially half-dense
+in this representation; using it as the new fixed base makes the final
+root-test exponent slower than the direct fixed-base certificate. This
+is a representation-level diagnostic, not a theorem that no sparse
+description exists.
+
+\OPEN{} The current pure-Python term algebra has no feasible route to a
+local $m_{359}$ certificate. The direct fixed-base path would have to
+precompute multiplication by $\beta$ for $E=3{,}504{,}820$ basis terms
+and then run an $E$-bit exponent. The norm path lowers the mathematical
+problem to a degree-$179$ target field, but computing that norm still
+requires the $19580$-term transverse Frobenius orbit through
+$F_{2^{3504820}}$. A practical certificate now appears to require either
+(i) dense/sliced GF(2) arithmetic such as \texttt{gf2x}/NTL, or
+(ii) a tower-aware Frobenius representation that makes the transverse
+orbit cheap. This is the obstruction hit in the present pass.
+
+\begin{remark}[shared abstraction]\label{rem:bridgek}
+The structural primitive needed here --
+$\Norm_{E/K}(\beta)=\prod_i\Frob^{i}(\beta)$ computed by a
+Frobenius-orbit recurrence -- is the same primitive that the cyclic-algebra
+Brauer-invariant bridge (Bridge~K, \path{docs/TBD.md}) requires for
+reduced norms over a Frobenius-generated cyclic extension. The existing
+\texttt{FieldExtension::relative\_norm} does not apply to the
+term-algebra/transfinite setting, but the shape is identical; factoring
+out a reusable \path{relative_norm_over_frobenius_orbit} is an
+engineering opportunity. This is not a claim that the bounded
+\texttt{Fpn} norm certifies $m_{719}$.
+\end{remark}
+
+\section{The $3^k$ family}\label{sec:family}
+
+Write $\zeta:=\kappa_{3^k}$ and $h:=3^k$ throughout this section.
+
+\subsection{Structure}
+
+\begin{proposition}[cyclotomic recognition]\label{prop:cyclo}
+\PROVED{} $\zeta^{3^k}=\kappa_2$, which has order $3$; hence $\zeta$ is a
+primitive $3^{k+1}$-st root of unity. Since $2$ is a primitive root
+modulo $3^{k+1}$, the cyclotomic polynomial
+$\Phi_{3^{k+1}}(x)=x^{2h}+x^h+1$ is irreducible over $\F_2$, the
+component field is $\F_2(\zeta)=\F_{2^{2h}}$, and it carries the index-$2$
+subfield $L=\F_{2^h}$.
+\end{proposition}
+
+\begin{proposition}[half-angle splitting]\label{prop:halfangle}
+\PROVED{} With $s=(3^{k+1}+1)/2$ (the inverse of $2$ modulo $3^{k+1}$),
+\[
+  \kappa_{3^k}+1=\zeta^{s}\,\bigl(\zeta^{s}+\zeta^{-s}\bigr),
+\]
+where $\zeta^{s}$ lies in the norm-one circle $U$ (of order exactly
+$3^{k+1}$ within the subgroup of order $2^h+1$) and
+$(\zeta^{s}+\zeta^{-s})^2=\zeta+\zeta^{-1}=:\gamma_k\in L^{\times}$.
+Since $\F_{2^{2h}}^{\times}=L^{\times}\times U$ with coprime orders,
+\[
+  \ord(\kappa_{3^k}+1)=3^{k+1}\cdot\ord(\gamma_k),
+  \qquad
+  \ord(\gamma_k)\mid 2^{3^k}-1.
+\]
+Machine-checked corollaries: $(\kappa+1)^{2^h-1}=\zeta^{-1}$ and
+$\Norm_{F/L}(\kappa+1)=\gamma_k$.
+\end{proposition}
+
+\begin{proposition}[translates $m=2,3$]\label{prop:translates}
+\PROVED{} $\kappa_{3^k}+2$ and $\kappa_{3^k}+3$ split as in
+Proposition~\ref{prop:halfangle} with $\gamma_k$ replaced by a Galois
+conjugate. Therefore
+$\ord(\kappa_{3^k}+m)=3^{k+1}\cdot\ord(\gamma_k)$ for $m=1,2,3$, and
+$\ord(\kappa_{3^k})=3^{k+1}$.
+\end{proposition}
+
+\begin{proposition}[the $2\cdot3^k$ exception, unconditionally]
+\label{prop:exception}
+\PROVED{} Any prime $p$ with $f(p)=2\cdot3^k$ satisfies
+$p\mid 2^{3^k}+1$, hence $p$ divides neither $3^{k+1}$ nor $2^{3^k}-1$,
+hence $p$ never divides $\ord(\kappa_{3^k}+m)$ for $m\in\{0,1,2,3\}$. By
+the order criterion, $m_p\geq4$. The full primitivity conjecture $C_k$
+below is not needed; the splitting alone forces the bound. The argument
+applies beyond the current tables, e.g.\ $p=87211$, $f=54$.
+\end{proposition}
+
+\begin{proposition}[the $3$-power column]\label{prop:column}
+\PROVED{} For a prime $r$ with $f(r)=3^k$, the values $m\in\{0,2,3\}$ are
+impossible: $m_r=0$ would require $r\mid\ord(\kappa_{3^k})=3^{k+1}$, a
+power of $3$, while $r\equiv1\pmod{3^k}$ is a prime distinct from $3$;
+and $m=2,3$ share $m=1$'s order class by
+Proposition~\ref{prop:translates}. Any failure of $C_k$ therefore gives
+$m_r\geq4$ directly.
+\end{proposition}
+
+\begin{proposition}[norm tower]\label{prop:tower}
+\PROVED{} $\gamma_{k-1}=\gamma_k^3+\gamma_k
+=\Norm_{L_k/L_{k-1}}(\gamma_k)$ (minimal polynomial
+$X^3+X+\gamma_{k-1}$), so $\ord(\gamma_{k-1})\mid\ord(\gamma_k)$. With
+lifting-the-exponent ($v_r(2^{3^k}-1)=v_r(2^{f(r)}-1)$ for old primes
+$r\neq3$), full-order parts propagate upward, and conjecture $C_k$
+reduces to $C_{k-1}$ plus primitivity at the new primes
+$r\mid\Phi_{3^k}(2)$.
+\end{proposition}
+
+\begin{conjecture}[$C_k$: $\gamma$-primitivity]\label{conj:ck}
+$\gamma_k$ is primitive in $L^{\times}=\F_{2^{3^k}}^{\times}$.
+\end{conjecture}
+
+\begin{proposition}[equivalence]\label{prop:equiv}
+\PROVED{} For primes $r$ with $f(r)\mid 3^k$ a $3$-power:
+\[
+  C_k
+  \iff
+  m_r=1\ \text{for every prime $r$ with } f(r)\in\{3,9,\dots,3^k\}.
+\]
+The family formula is the $0/1/4$ candidate of Section~\ref{sec:rule}
+restricted to the $3$-power column.
+\end{proposition}
+
+\subsection{Certification status}
+
+\CERTIFIED{k\leq6} $C_k$ holds for $k=1,\dots,6$: $\gamma_k$ is primitive
+in $\F_{2^{3^k}}^{\times}$, and
+$\ord(\kappa_{3^k}+1)=3^{k+1}\,(2^{3^k}-1)$ is verified exactly --
+product reconstruction, squarefreeness, primality by deterministic
+Miller--Rabin below $3.3\times10^{24}$ and MR-64 probable-primality above,
+an independent sieve re-deriving the small factors, cross-validation
+against the independent term algebra for $k=1,2$ and against the
+calculator rows $m_{2593}=1$, $m_{487}=1$
+(\path{experiments/cyclotomic_3k_family.py},
+\path{experiments/excess/}).
+
+\CONSISTENT{} $k=7,8$: every known prime factor of $\Phi_{3^7}(2)$ and
+$\Phi_{3^8}(2)$ divides $\ord(\gamma_k)$. Full certification is blocked
+only by the unfactored cofactors (FactorDB status composite-no-factor);
+no failure has been found.
+
+\OPEN{} Whether ECM or GNFS can factor the $\Phi_{3^7}(2)$ and
+$\Phi_{3^8}(2)$ cofactors within a realistic budget, converting $k=7,8$
+from \textsc{consistent} to \textsc{certified}.
+
+\subsection{Certified excess rows produced}
+
+The following $m_r=1$ rows are certified by the order criterion
+independently of the cofactor issue (analysis-level results; they are not
+new Rust carries):
+\begin{center}
+\begin{tabular}{rl}
+\toprule
+$f$ & primes $r$ with $m_r=1$ \\
+\midrule
+$27$   & $262657$ \\
+$81$   & $71119,\ 97685839$ \\
+$243$  & $16753783618801,\ 192971705688577,\ 3712990163251158343$ \\
+$729$  & $80191,\ 97687,\ 379081,\ \mathrm{P}42,\ \mathrm{P}90$ \\
+$2187$ & $39367,\ 7606246033,\ 263196614521,\ 529063556041$ \\
+$6561$ & $209953,\ 1299079,\ 70063267397606709277393$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+($\mathrm{P}42$, $\mathrm{P}90$ denote the certified/probable primes of
+$42$ and $90$ decimal digits dividing $\Phi_{3^6}(2)$.)
+
+\section{The $0/1/4$ candidate}\label{sec:rule}
+
+\begin{conjecture}[the $0/1/4$ rule]\label{conj:rule}
+\CONSISTENT{} (not proved)
+\[
+  m_p=
+  \begin{cases}
+    0 & \text{if $\Qset(f(p))$ is not a singleton odd prime-power,}\\
+    4 & \text{if $f(p)=2\cdot3^k$, $k\geq1$,}\\
+    1 & \text{otherwise (singleton odd prime-power $\Qset(f(p))$).}
+  \end{cases}
+\]
+The rule matches all $950$ calculator records with known $\Qset$-sets and
+every OEIS-known row covered by those $\Qset$-sets.
+\end{conjecture}
+
+\subsection{The component set alone is insufficient}
+
+\PROVED{} $\Qset(f(p))$ alone does not determine $m_p$:
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+$\Qset$ & $m=4$ & $m=1$ \\
+\midrule
+$\{9\}$   & $p=19$,   $f=18$  & $p=73$,   $f=6$ \\
+$\{81\}$  & $p=163$,  $f=162$ & $p=2593$, $f=18$ \\
+$\{243\}$ & $p=1459$, $f=486$ & $p=487$,  $f=18$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\PROVED{} The split for $\Qset=\{9\}$ is explained by the order
+criterion: $\ord(\kappa_9+1)=3^3\cdot(2^9-1)=27\cdot511=13797$ and
+$511=7\cdot73$, so $73\mid\ord(\kappa_9+1)$ but
+$19\nmid\ord(\kappa_9+1)$; adding $m=4$ changes the order and introduces
+the factor $19$.
+
+\PROVED{} The lower bound of the exception column is unconditional:
+$m_p\geq4$ for all $p$ with $f(p)=2\cdot3^k$
+(Proposition~\ref{prop:exception}).
+
+\CONJECTURED{} The matching upper bound $m_p\leq4$ on that column;
+equivalent to $C_k$ for the primes in the exception column.
+
+\subsection{The $m=4$ upper bound: settled at every visible prime}
+\label{sec:m4}
+
+The $m=4$ translate $\kappa_{3^k}+4$ involves the nimber $4\in\F_{16}$,
+which does not lie in $\F_2(\zeta)$ (as $4\nmid2\cdot3^k$); the
+translate lives in the degree-$4\cdot3^k$ compositum $\F_{2^{4h}}$,
+$h=3^k$. (June 2026 pass; probe
+\path{experiments/exception_column_m4.py}.)
+
+\begin{proposition}[the corrected norm]\label{prop:m4norm}
+\PROVED{} Let $\sigma=\Frob^{2h}$ generate
+$\mathrm{Gal}(\F_{2^{4h}}/\F_{2^{2h}})$. Then $\sigma(4)=5$, and with
+$\omega:=\zeta^{h}=\kappa_2$,
+\[
+  N:=\Norm_{\F_{2^{4h}}/\F_{2^{2h}}}(\kappa_{3^k}+4)
+   =(\kappa+4)(\kappa+5)
+   =\kappa^2+\kappa+\omega .
+\]
+\end{proposition}
+
+\begin{proof}
+$\F_{16}\cap\F_{2^{2h}}=\F_4$ because $\gcd(4,2\cdot3^k)=2$, so
+$\sigma|_{\F_{16}}$ is the nontrivial element of
+$\mathrm{Gal}(\F_{16}/\F_4)$, which swaps the two roots $4,5$ of the
+Artin--Schreier minimal polynomial $y^2+y+\omega$ of $4$ over $\F_4$.
+(Equivalently: $2h\equiv2\pmod4$ and the Frobenius orbit of $4$ is
+$4\to6\to5\to7$, so $\sigma(4)=4^{2^2}=5$.) Then
+$(\kappa+4)(\kappa+5)=\kappa^2+\kappa+(4\nimmul5)$ and
+$4\nimmul5=4^2+4=\omega$ by the same Artin--Schreier relation.
+\end{proof}
+
+\begin{remark}[erratum]\label{rem:erratum}
+The 2026-06-10 draft of this note stated the norm as
+$(\kappa+4)(\kappa+\Frob^2(4))=(\kappa+4)(\kappa+6)$. The conjugate
+$6=4^2$ is $\Frob^1(4)$, one squaring short of $\Frob^2(4)=5$. The slip
+is visible without computation: $4\nimmul6=14\notin\F_4$, so
+$(\kappa+4)(\kappa+6)\notin\F_{2^{2h}}$ and cannot be a norm.
+\end{remark}
+
+The corrected norm collapses the $m=4$ test into the \emph{same} sparse
+trinomial model $\F_2[x]/(x^{2h}+x^h+1)$ as the rest of the $3$-power
+analysis: no compositum arithmetic is needed.
+
+\begin{corollary}[in-field criterion]\label{cor:m4crit}
+\PROVED{} For a prime $p$ with $f(p)=2\cdot3^k$ and $v_p(2^{2h}-1)=1$,
+write $\overline{N}=N^{2^h}$ and $M_k:=\overline{N}/N=N^{2^h-1}\in U$.
+Then
+\[
+  m_p=4
+  \iff
+  p\mid\ord(M_k)
+  \iff
+  M_k^{(2^h+1)/p}\neq1 .
+\]
+\end{corollary}
+
+\begin{proof}
+$m_p\geq4$ is Proposition~\ref{prop:exception}, so $m_p=4$ iff
+$\kappa+4$ has no $p$-th root. By Propositions~\ref{prop:power}
+and~\ref{prop:norm} with $E=4h$, $f=2h$ (and
+$v_p(2^{4h}-1)=v_p(2^{2h}-1)=1$ by lifting the exponent, since
+$p\nmid2$), that holds iff $N^{(2^{2h}-1)/p}\neq1$. Since
+$\F_{2^{2h}}^{\times}=L^{\times}\times U$ with coprime orders,
+$p\mid2^h+1$, and $(2^{2h}-1)/p=(2^h-1)\cdot\bigl((2^h+1)/p\bigr)$, the
+test equals $M_k^{(2^h+1)/p}\neq1$.
+\end{proof}
+
+\begin{conjecture}[$D_k$: the column analogue of $C_k$]\label{conj:dk}
+The prime-to-$3$ part of $\ord(M_k)$ is full:
+$\bigl((2^h+1)/3^{k+1}\bigr)\mid\ord(M_k)$. Equivalently (given the
+per-prime squarefreeness audits): $m_p=4$ for \emph{every} prime $p$
+with $f(p)=2\cdot3^k$.
+\end{conjecture}
+
+\CERTIFIED{k\leq6} $D_k$ holds for $k=2,\dots,6$: every prime factor of
+the fully factored $\Phi_{2\cdot3^k}(2)$ divides $\ord(M_k)$. Hence
+$m_p=4$ exactly --- not merely $\geq4$ --- for every prime $p$ with
+$f(p)\in\{18,54,162,486,1458\}$:
+\begin{center}
+\begin{tabular}{rl}
+\toprule
+$f$ & primes $p$ with $m_p=4$ \\
+\midrule
+$18$   & $19$ \\
+$54$   & $87211$ \\
+$162$  & $163,\ 135433,\ 272010961$ \\
+$486$  & $1459,\ 139483,\ 10429407431911334611,$ \\
+       & $918125051602568899753$ \\
+$1458$ & $227862073,\ 3110690934667,\ 216892513252489863991753,$ \\
+       & $1102099161075964924744009,\ \mathrm{P}78$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+($\mathrm{P}78$ is the certified $78$-digit prime of
+$\Phi_{2\cdot3^6}(2)$; PRP-local here, factordb marks it proven.) The
+anchor rows $m_{19}=m_{163}=m_{1459}=4$ (DiMuro / calculator) are
+reproduced, never assumed; the remaining eleven rows are new.
+Independent cross-checks: the term algebra of
+\path{experiments/ordinal_excess_probe.py} re-derives the $p=19$ root
+pattern ($m=0,\dots,3$ root, $m=4$ no root) and $m_{87211}=4$; an
+explicit Artin--Schreier compositum model $\F[y]/(y^2+y+\omega)$
+verifies $\sigma(4)=5$, the norm identity, and the full direct power
+test $(\kappa+4)^{(2^{4h}-1)/p}\neq1$ on the smallest prime of each
+level $k\leq6$.
+
+\CONSISTENT{} $k=7,8$: every \emph{known} prime factor of
+$\Phi_{2\cdot3^7}(2)$ and $\Phi_{2\cdot3^8}(2)$ --- seven and five
+primes respectively; factordb CF entries verified locally by
+divisibility, primality, and order tests, the small ones re-derived by
+sieve, and the list cross-audited against the raw factordb API after an
+adversarial review caught a dropped $43$-digit $k=7$ prime --- also has
+$m_p=4$. An $m_p\geq5$ example, if one exists, now hides strictly
+inside the unfactored cofactors.
+
+\begin{proposition}[twisted norm tower]\label{prop:twisted}
+\PROVED{} With $\eta=\zeta^3=\kappa_{3^{k-1}}$,
+\[
+  \Norm_{\F_{2^{2\cdot3^k}}/\F_{2^{2\cdot3^{k-1}}}}(N_k)
+  =\eta^2+\omega^2\eta+1 ,
+\]
+which is neither $N_{k-1}=\eta^2+\eta+\omega$, nor one of its Frobenius
+conjugates (their exponent pattern is $(2^{j+1},2^j)$), nor a scaling
+$N_{k-1}(\lambda\eta)$ with $\lambda\in\mu_3$.
+\end{proposition}
+
+\begin{proof}
+The generator $\tau$ of the degree-$3$ step sends $\zeta\mapsto
+\zeta^{c}$ with $c=2^{2\cdot3^{k-1}}$ a primitive cube root of unity
+modulo $3^{k+1}$; the cube roots are $1+a3^k$, so
+$\tau(\zeta)=\omega^{a}\zeta$ ($a\neq0$) while $\tau(\omega)=\omega$.
+Hence the norm is $\prod_{r^3=\eta}(r^2+r+\omega)$ over the three cube
+roots $r$ of $\eta$. Writing $\alpha,\beta$ for the two roots of
+$T^2+T+\omega$ (so $\alpha+\beta=1$, $\alpha\beta=\omega$), each factor
+is $(r+\alpha)(r+\beta)$, and the product collapses by the resolvent
+\[
+  \prod_{r^3=\eta}(r^2+r+\omega)
+  =(\alpha^3+\eta)(\beta^3+\eta)
+  =\eta^2+(\alpha^3+\beta^3)\eta+(\alpha\beta)^3
+  =\eta^2+\omega^2\eta+1,
+\]
+since $\alpha^3+\beta^3=(\alpha+\beta)^3+\alpha\beta(\alpha+\beta)
+=1+\omega=\omega^2$ and $(\alpha\beta)^3=\omega^3=1$. Machine-checked at
+$k=2,3,4$.
+\end{proof}
+
+So, unlike the $\gamma$ tower of Proposition~\ref{prop:tower},
+old-prime full-order parts do \emph{not} propagate up the column, and
+$D_k$ is genuinely per-level: the certification at each $k$ stands on
+its own.
+
+\begin{remark}[the $3$-part]\label{rem:threepart}
+\CONSISTENT{} The $3$-part of $\ord(M_k)$ carries no column information
+but is strikingly regular in range: $v_3(\ord M_k)=k+1$ (full) for odd
+$k$ and $k-1$ (deficiency exactly $3^2$) for even $k$, for
+$2\leq k\leq6$. No explanation is on record.
+\end{remark}
+
+\section{Boundedness}\label{sec:bounded}
+
+\CONJECTURED{} (Lenstra~\cite{Lenstra77}) $m_p$ is globally bounded.
+Lenstra gave unconditional lower-bound rules (singleton odd $\Qset$
+forces positive excess; $f(p)=2\cdot3^k$ forces excess at least $4$) but
+left absolute boundedness open.
+
+\PROVED{} If the $0/1/4$ candidate holds, then $m_p\leq4$ for all $p$;
+proving Conjecture~\ref{conj:rule} would settle boundedness.
+
+\PROVED{} The $3$-power column cannot produce $m\in\{2,3\}$
+(Proposition~\ref{prop:column}); any $C_k$ failure jumps directly to
+$m_r\geq4$.
+
+\PROVED{} (conditional on $C_k$) For every prime $r$ with $f(r)=3^j$,
+$j\leq k$: $C_k$ implies $m_r=1$. With $C_k$ certified for $k\leq6$, all
+primes in the $3$-power column with $f(r)\leq6561$ have $m_r=1$
+unconditionally.
+
+\CERTIFIED{k\leq6} (June 2026 pass) On the $2\cdot3^k$ exception column
+the matching upper bound is now certified at every visible prime:
+$m_p=4$ exactly for every prime with $f(p)=2\cdot3^k$, $k\leq6$, and for
+every known prime at $k=7,8$ (Section~\ref{sec:m4}). Boundedness on the
+exception column therefore holds unconditionally through $f=1458$ and is
+equivalent to $D_k$ (Conjecture~\ref{conj:dk}) beyond.
+
+\OPEN{} Boundedness outside the $3$-power and $2\cdot3^k$ columns. The
+non-cyclotomic singleton chains (e.g.\ the $11$-chain and the $23$, $29$,
+$47$ components) have $m=1$ rows in the calculator data and OEIS, but no
+order-criterion proof covers them the way $C_k$ covers the $3$-power
+column.
+
+\OPEN{} Whether any prime $p$ has $m_p\geq5$. No counterexample is known;
+the question is not known to be decidable by any current structural
+argument outside the $3$-adic columns.
+
+\section{Ranked next moves}\label{sec:moves}
+
+\begin{enumerate}[leftmargin=*]
+\item \emph{Dress rehearsal on $m_{359}$ (highest priority).} The easy
+dependency rows are now locally certified: $m_{89}=1$ at $E=220$ and
+$m_{179}=1$ at $E=19{,}580$
+(\path{experiments/ordinal_excess_probe.py}, \texttt{--deep} for the
+latter). The remaining independent rehearsal row on which an $m_{719}$
+certificate depends is $m_{359}=1$, whose component field has degree
+$E=3{,}504{,}820$. The value is already source-pinned by A380496; the
+research value is a local certificate and a calibrated cost model for
+the first unknown row. The 2026-06-16 pass found the precise obstruction:
+the cheap top-step norm lands in $\F_{2^{19580}}$, where $359$ is
+invisible, while the correct norm is the transverse
+$\F_{2^{3504820}}/\F_{2^{179}}$ norm and is dense in the current term
+basis (Subsection~\ref{sec:m359-obstruction}). Certifying it remains a stretch,
+plausibly hours to a day with \texttt{gf2x}-style arithmetic, and is not
+reachable with the present pure-Python oracle. Confirm $m_{359}=1$ first;
+the norm recurrence for $p=719$ shifts if not. \emph{Feasible only with a
+faster tower/Frobenius implementation; blocks the next move.}
+\item \emph{Certify $m_{719}$ via the Kummer-tower Frobenius norm.}
+Implement the binary-splitting norm $N_{2k}=N_k\cdot\Frob^{359k}(N_k)$ in
+the tower-sparse representation; measure the cost model on the calibrated
+path; if tower-aware Frobenius brings the ${\sim}44$ modular compositions
+to feasible size, run to certify or falsify $m_{719}=1$. Factor out the
+shared \texttt{relative\_norm\_over\_frobenius\_orbit} abstraction
+(Remark~\ref{rem:bridgek}). \emph{Blocked on move 1 for the cost
+model.}
+\item \emph{[Done, 2026-06-12.] $m_p=4$ exactly on the $2\cdot3^k$
+column.} Settled at every prime current factor tables reach
+(Section~\ref{sec:m4}, \path{experiments/exception_column_m4.py}): the
+corrected norm $(\kappa+4)(\kappa+5)=\kappa^2+\kappa+\omega$ collapses
+the test in-field; certified universally for $k\leq6$, consistent at
+$k=7,8$. Successor moves: prove $D_k$ (Conjecture~\ref{conj:dk}) ---
+the twisted norm tower (Proposition~\ref{prop:twisted}) shows why
+$\gamma$-style propagation is unavailable; factor the
+$\Phi_{2\cdot3^7}(2)$ and $\Phi_{2\cdot3^8}(2)$ cofactors (joins the
+ECM/GNFS batch of the next move); explain the $3$-part parity
+(Remark~\ref{rem:threepart}).
+\item \emph{Convert $C_7$, $C_8$ from \textsc{consistent} to
+\textsc{certified}.} ECM/GNFS jobs on the cofactors of $\Phi_{3^7}(2)$
+and $\Phi_{3^8}(2)$; full factorization also emits a batch of new
+A380496 rows. \emph{Background job; uncertain outcome; blocks
+nothing.}
+\item \emph{Exact-order census on the non-cyclotomic singleton chains.}
+Compute $\ord(\kappa_q+m)$ for small $m$ in the explicit component fields
+for the $11$-chain and the $23$, $29$, $47$ components (degrees up to
+${\sim}5060$; trivial locally); look for an analogue of the
+$L^{\times}\times U$ splitting and for any forced-translate mechanism.
+This is the main structural gap for boundedness outside the $3$-power
+columns. \emph{Feasible now; no structural theory yet.}
+\end{enumerate}
+
+\section{Provenance and validation}\label{sec:provenance}
+
+\subsection{Independent oracle}
+
+\path{experiments/ordinal_excess_probe.py} is a small local term-algebra
+oracle -- not a replacement for CGSuite~\cite{CGSuite} or the C++
+calculator~\cite{Peeters}, but a way to verify the first subtle cases
+without using the Rust production tower as its own oracle. It implements
+the impartial term algebra used by the calculators, a
+multiplicative-order test for small component fields, and a fixed-base
+exponentiation path (ported from the calculator's strategy) for targeted
+root tests where full order factorization is unnecessary. Current probe
+output:
+
+\begin{center}
+\begin{tabular}{rrlc}
+\toprule
+$p$ & $m$ & $\Qset$ & root? \\
+\midrule
+$7$  & $0$ & $\{3\}$  & yes \\
+$7$  & $1$ & $\{3\}$  & no \\
+$19$ & $1$ & $\{9\}$  & yes \\
+$19$ & $4$ & $\{9\}$  & no \\
+$73$ & $1$ & $\{9\}$  & no \\
+$89$ & $1$ & $\{11\}$ & no \\
+$47$ & $1$ & $\{23\}$ & no \\
+$179$ & $1$ & $\{89\}$ & no \quad(\texttt{--deep}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The $p=47$ line certifies $m_{47}=1$ using only lower verified rows; since
+$f(47)=23$ and $\Qset(23)=\{23\}$, the carry is
+$\alpha_{47}=\kappa_{23}+1=\omega^{(\omega^7)}+1$, the value now
+implemented in \path{tower.rs}. The $p=179$ line is the first locally
+certified dependency row beyond the quick probe path; it still uses only
+the already-certified lower row $m_{89}=1$.
+
+\subsection{The $\alpha_{47}$ promotion}
+
+\emph{Superseded 2026-06-13:} this pass moved the boundary to
+$\alpha_{53}$ by promoting a single locally verified row; the finite
+excess table is now the full OEIS A380496 b-file ($126$ rows, odd primes
+$3 \le p \le 709$), so the refusal boundary sits at $\alpha_{719}$ and the
+boundary test is \path{boundary_returns_none_past_prime_709}. The original
+pass is recorded below for provenance.
+
+The shipped state at the time: \path{src/scalar/big/ordinal/tower.rs} carries
+$\alpha_{47}$ with the landmark test
+\path{locally_verified_alpha_47_landmark} and moves the refusal
+boundary to $\alpha_{53}$; the documented boundaries in
+\path{nim.rs}, \path{mod.rs}, \path{src/games/nimber_game.rs},
+\texttt{README.md}, and \texttt{docs/OPEN.md} were updated in step. The full
+gate ran clean: \texttt{cargo fmt --check}, \texttt{cargo test},
+\texttt{cargo check}/\texttt{clippy} with and without the
+\texttt{python} feature (warnings denied), and the probe under
+\texttt{py\_compile}.
+
+\subsection{Supporting probes}
+
+The $3^k$-family certification chain is
+\path{experiments/cyclotomic_3k_family.py} (committed, maintained),
+joined 2026-06-12 by \path{experiments/exception_column_m4.py} (the
+$2\cdot3^k$ exception column, Section~\ref{sec:m4}; committed,
+maintained, stdlib-only, $\sim$2 minutes), with the research-run probes
+under \path{experiments/excess/} (machine-generated, rescued from
+ephemeral storage; triage before citing). The analysis in
+Sections~\ref{sec:norm}--\ref{sec:bounded} synthesizes the 2026-06-10
+parallel research run plus the 2026-06-12 exception-column pass; each
+claim above carries its own tag, and no claim depends on an unverified
+solver.
+
+\section*{Acknowledgements}
+The \texttt{ogdoad} library, the experiments, and this draft were
+developed with LLM assistance; the analysis consolidates a structured
+parallel research run (2026-06-10). Mathematical direction, framing, and
+responsibility for claims remain the author's.
+
+\begin{thebibliography}{9}
+\bibitem{Conway76} J.~H.~Conway, \emph{On Numbers and Games}, Academic
+Press, 1976.
+\bibitem{DFRR19} L.~De~Feo, H.~Randriam, \'E.~Rousseau, \emph{Standard
+lattices of compatibly embedded finite fields}, Proc.\ ISSAC 2019;
+arXiv:1906.00870.
+\bibitem{DiMuro} J.~DiMuro, \emph{On $\mathrm{On}_p$}, arXiv:1108.0962.
+\bibitem{KS98} E.~Kaltofen, V.~Shoup, \emph{Subquadratic-time factoring of
+polynomials over finite fields}, Math.\ Comp.\ \textbf{67} (1998),
+1179--1197.
+\bibitem{Lenstra77} H.~W.~Lenstra, Jr., \emph{On the algebraic closure of
+two}, Indag.\ Math.\ \textbf{39} (1977), 389--396;
+\url{https://pub.math.leidenuniv.nl/~lenstrahw/PUBLICATIONS/1977e/art.pdf}.
+\bibitem{Lenstra78} H.~W.~Lenstra, Jr., \emph{Nim multiplication},
+S\'eminaire de Th\'eorie des Nombres de Bordeaux, 1977--1978.
+\bibitem{OEIS} OEIS Foundation Inc., entry A380496,
+\emph{The On-Line Encyclopedia of Integer Sequences},
+\url{https://oeis.org/A380496}.
+\bibitem{CGSuite} A.~N.~Siegel, \emph{CGSuite} (software),
+\texttt{NimFieldCalculator},
+\url{https://github.com/aaron-siegel/cgsuite}.
+\bibitem{Peeters} D.~Peeters, \emph{transfinite-nim-calculator}
+(software),
+\url{https://github.com/DjangoPeeters/transfinite-nim-calculator}.
+\bibitem{vzGS92} J.~von~zur~Gathen, V.~Shoup, \emph{Computing Frobenius
+maps and factoring polynomials}, Comput.\ Complexity \textbf{2} (1992),
+187--224.
+\end{thebibliography}
+
+\end{document}

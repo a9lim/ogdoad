@@ -5,7 +5,7 @@ the **characteristic trichotomy**: the classification of a quadratic form
 (equivalently, of the Clifford algebra it builds) is *one* theory split three ways
 by `char F`. This axis cuts ACROSS the place table that organizes `scalar/`.
 
-> Read root `OPEN.md` before touching `char2/`, `quadric_fit.rs`, `char0.rs`,
+> Read `docs/OPEN.md` before touching `char2/`, `quadric_fit.rs`, `char0.rs`,
 > `witt/`, or anything feeding the open play-semantics question.
 
 `mod.rs` re-exports the legs + `classify` + diagonalize/equivalence + the `witt/`
@@ -29,18 +29,73 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
 
 ## The façade
 
-- **`classify.rs`** — the classifier FAÇADE: `ClassifyForm` + `WittClassify` +
-  `IsometryClassify` + `WittDecompose` + `BrauerWallClassify`, keyed on the scalar so
+- **`classify.rs`** — the classifier FAÇADE: `ClassifyForm` + `ClassifyWitt` +
+  `ClassifyIsometry` + `DecomposeWitt` + `ClassifyBrauerWall`, keyed on the scalar so
   `metric.classify()` / `.witt_class()` / `.isometric_to()` / `.witt_decompose()` /
-  `.bw_class()` pick the right leg **at compile time** (Surreal→CliffordType,
-  Fp/Fpn→`FiniteFieldClass::{Odd, Char2}`, Nimber→ArfResult, finite-window
-  Ordinal→ArfResult, …). `WittDecompose` returns the leg-specific decomp record
+  `.bw_class()` pick the right leg **at compile time**. `ClassifyBrauerWall` has an
+  associated return type because global fields carry richer Wall-coordinate records
+  than the finite/real enum. The façade methods return
+  `Result<_, ClassifyError>` (`#[non_exhaustive]`: `GeneralBilinearMetric` /
+  `SingularForm` / `UnsupportedFieldOrWindow` / `DiagonalizerFailure`) so callers
+  see *why* a metric is out of domain; the underlying leg functions keep their
+  honest single-valued `Option`s.
+
+  **Naming glossary** (the record-suffix discipline): `…Class` is reserved for an
+  element of an actual group/classifying set carrying a law (`WittClass`,
+  `BrauerWallClass`, `Brauer2Class`, `BrauerClass`, `FqmWittClass`); `…Decomp` is
+  a decomposition; `…Invariants` is a classifier's report record
+  (`ArfInvariants`, `BrownInvariants`, `CliffordInvariants`, `OddCharInvariants`,
+  `FiniteFieldInvariants`, `NikulinExistenceInvariants`, `SymplecticInvariants`);
+  `…Record` is a static catalogue record carrying no group law (`NiemeierRecord`,
+  `KneserMassRecord`) — distinct from `…Class`, which is a group element with a
+  law; `…Signature` stays for the literal mathematical signature; `…Isotropy` is a
+  blessed pattern for a per-place isotropy breakdown (`AdelicIsotropy`,
+  `FFAdelicIsotropy`) — the local-global sibling of `…Invariants`, kept as its own
+  suffix because these types carry a `local` place-by-place map/vec plus a derived
+  `is_global()` verdict rather than a single invariant value. The `…Report`
+  suffix is retired: every report record now ends `…Invariants` (e.g.
+  `OddMilgramInvariants`, `WeylVersorInvariants`, `KneserMassInvariants`,
+  `CliffordBarnesWall16Invariants`). Façade traits are verb-first (`ClassifyForm`,
+  `ClassifyWitt`, `ClassifyIsometry`, `ClassifyBrauerWall`, `DecomposeWitt`).
+  **Rendering policy (a9, 2026-07-02): every classifier report renders.** Every
+  glossary record type (`…Invariants`/`…Decomp`/`…Class`/`…Record`/`…Signature`/
+  `…Isotropy`/certificates, crate-wide — games and clifford included) carries
+  `impl Display` + the inherent `display()` alias, render-pinned by at least one
+  exact-string test, with py `__repr__`s delegating to the core Display. Honesty
+  markers ride in the rendering (`Char2WittDecomp`'s complement-dependent flag, an
+  incomplete `RelationSearchCertificate` says INCOMPLETE up front, `QuadricFit`
+  renders `bias=n/a (degenerate)` when the count formula doesn't apply).
+  New types follow this glossary. Leg dispatch:
+  - `Surreal` → `CliffordInvariants`
+  - `Fp<P>` (odd primes only) → `OddCharInvariants`. `Fp<2>` is OUTSIDE the façade:
+    `classify_finite_odd` returns `None` for `P=2` (the char-2 Arf path requires
+    the `(q,b)` metric, not the char-0 diagonalizer). Use `Fpn<2,N>` for char-2
+    extension fields.
+  - `Fpn<P,N>` → `FiniteFieldInvariants::{Odd, Char2}` (dispatched on `P==2` at runtime)
+  - `Nimber` → `ArfInvariants`
+  - finite-window `Ordinal` → `ArfInvariants`
+
+  `DecomposeWitt` returns the leg-specific decomp record
   (`RealWittDecomp` / `OddWittDecomp` / `Char2WittDecomp`, with `Fpn` wrapping the last
-  two in `FiniteFieldWittDecomp { Odd, Char2 }`). `BrauerWallClassify`
-  covers Surreal, Surcomplex, odd finite fields, nonsingular Nimber metrics,
-  supported `Fpn<2,N>` metrics, and the documented finite ordinal windows. Rational &
-  Surcomplex impl `ClassifyForm` but not `WittClassify` (their Witt data isn't a
+  two in `FiniteFieldWittDecomp { Odd, Char2 }`). It is impl'd for `Surreal`, `Fp<P>`,
+  and `Fpn<P,N>` only — so `Char2WittDecomp` arises via the `Fpn<2,N>` path
+  (`Nimber`/`Ordinal` do not impl it). Caveat: when `Char2WittDecomp.radical_anisotropic`
+  is true, its `witt_index`/`core_anisotropic_dim`/`arf` are invariants of the chosen
+  symplectic complement, **not** isometry invariants of the whole form. `ClassifyBrauerWall`
+  covers Surreal, Surcomplex, Rational, odd finite fields, odd-characteristic
+  `RationalFunction<F_q>` function fields, nonsingular Nimber metrics, supported
+  `Fpn<2,N>` metrics, and the documented finite ordinal windows. Rational &
+  Surcomplex impl `ClassifyForm` but not `ClassifyWitt` (their Witt data isn't a
   single `WittClassG` — honest, not a gap).
+
+  **Cross-leg asymmetry in `ClassifyBrauerWall` for singular metrics.** The
+  char-2 legs (`bw_class_nimber`, `ClassifyBrauerWall for Fpn<2,N>`) return `None`
+  for singular (non-nonsingular-polar) metrics.  The char-0/global legs
+  (`bw_class_real`, `bw_class_complex`, `bw_class_rational`,
+  `bw_class_function_field`) and the odd-char finite leg (`bw_class_finite_odd`)
+  silently project the radical away and return the Brauer-Wall class of the
+  nondegenerate core `Cl(Q/rad)`. The rustdocs on those functions state this
+  projection explicitly.
 - **`diagonalize.rs`** — congruence diagonalization (char ≠ 2): `gram`,
   `diagonalize`, `as_diagonal`. Returns `None` in char 2 (nonsingular char-2 forms
   have an alternating polar form and are NOT diagonalizable — use the char-2
@@ -67,14 +122,31 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
 - **`char2/`** — characteristic-2 invariants (re-exported flat): `arf.rs` (the Arf
   invariant: `arf_f2` F₂ bitmask, `arf_nimber` for the represented nimber field,
   `arf_char2`/`arf_fpn_char2` for supported finite char-2 fields, `arf_ordinal_finite`
-  for the documented finite ordinal windows; all use symplectic reduction + trace and
-  return `ArfResult { arf: u128, ... }`), `dickson.rs` (`dickson_matrix = rank(g−I)
+  for detected finite ordinal-nimber subfields; all use symplectic reduction + trace and
+  return `ArfInvariants { arf: u128, ... }`), `dickson.rs` (`dickson_matrix = rank(g−I)
   mod 2`, ker = SO; `dickson_of_versor` validates the input is a versor then delegates
   to the generic versor grade parity), `field.rs` (`FiniteChar2Field` — the
   **additive** mirror of `FiniteOddField`: carries `artin_schreier_class =
   Tr_{F_q/F₂}` instead of `is_square_value`, since in char 2 the multiplicative square
   class is trivial and the working datum is `F/℘(F) ≅ F₂`; impl for `Fp<2>`/`Fpn<2,N>`,
-  NOT `Nimber` — same boundary as `FiniteOddField`).
+  NOT `Nimber` — same boundary as `FiniteOddField`), `extraspecial.rs` (the
+  extraspecial 2-group `1→F₂→E→V→0` attached to a nonsingular `F₂` quadratic form,
+  with commutator `B`, squaring map `Q`, plus/minus type classified by the Arf bit,
+  and the finite Heisenberg/Pauli representation whose center acts by `-I` and whose
+  projective transvection intertwiners give the bounded Weil/metaplectic layer),
+  `brown.rs` (the **Brown invariant** `β ∈ ℤ/8` of a `ℤ/4`-valued quadratic
+  refinement — the char-2 cell of
+  the mod-8 spine, Bridge M: `brown_f2`/`double_f2` + `BrownInvariants`, computed by
+  radical splitting plus line/plane reduction with exact-integer enumeration retained
+  as a test oracle. `β(2q′) = 4·Arf(q′)` lands the Arf bit as the 2-torsion, and
+  `DiscriminantForm::brown_invariant` gives `β ≡ sign(L) mod 8` on 2-elementary
+  discriminant forms — a fifth, float-free route to `σ mod 8`; the integral
+  `FqmGaussPhase` projection carries the same Milgram/Brown phase over all shipped
+  discriminant groups, and `fqm_witt` upgrades that phase to a bounded exact
+  Wall/Nikulin Witt normal form.
+  Category trap:
+  Brown's `b` is symmetric-not-alternating with `b_ii = q_i mod 2`, NOT the engine's
+  alternating polar — `double_f2` is the only bridge between the categories).
 
 The char0↔char2 classifier **symmetry** (the real 8-fold table mirrored by the
 char-2 Arf/Brauer–Wall story) is one of the project's central threads.
@@ -96,10 +168,42 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
   F_q; infinite ℝ tower via `e_real`). DON'T claim Arf=e2 (char-2 indexing is Kato's,
   pinned).
 - **`witt/brauer_wall.rs`** — the Brauer–Wall group BW(F): `bw_class_real` (Bott index
-  (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_finite_odd` (order-4 ≅
-  W(F_q)), `bw_class_nimber`, and façade dispatch for supported finite char-2
-  fields/windows (char-2 Arf/Witt class `ℤ/2`, nonsingular metrics only). Law =
-  graded_tensor.
+  (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_rational`
+  (`RationalBrauerWallClass` over ℚ: dimension parity + signed discriminant +
+  Bridge-F `c(q)` with Wall's twisted law), `bw_class_function_field`
+  (`FunctionFieldBrauerWallClass` over odd `F_q(t)`: the same Wall coordinates, with
+  the ungraded Clifford component represented by ramified `FunctionFieldPlace`s),
+  `bw_class_finite_odd` (order-4 ≅ W(F_q)), `bw_class_nimber`, and façade dispatch
+  for supported finite char-2 fields/windows (char-2 Arf/Witt class `ℤ/2`,
+  nonsingular metrics only). Law = graded_tensor/direct sum.
+- **`witt/brauer_rational.rs`** — the **ungraded** rational 2-torsion Brauer class
+  `Brauer2Class` (a set of ramified `Place`s, `add`/`local_invariant`/
+  `satisfies_reciprocity`/`quaternion`): `hasse_brauer_class` (the Hasse–Witt
+  invariant `s(q)`) and `clifford_brauer_class` (the *actual* Clifford-algebra class
+  `c(q) = s(q) + δ(n mod 8, disc)`, corrected by Lam GSM 67 pp. 117–119). Kept strictly
+  distinct from the graded rational `RationalBrauerWallClass` it projects out of.
+- **`witt/cyclic.rs`** — Bridge K: the **full `ℚ/ℤ`** ungraded Brauer class
+  `BrauerClass` (a `BTreeMap<Place, Rational>` of `inv_v ∈ [0,1)`, `add`/`invariant_sum`/
+  `local_invariant`/`from_local`, plus the Bridge F embedding `from_two_torsion`/
+  `two_torsion`) and `cyclic_algebra_invariant::<E: CyclicGaloisExtension>(a)` where
+  `E::Base: Valued` = `v(a)/n mod ℤ` for the unramified local cyclic class (monomorphized
+  at `Qq`; reads only the valuation, so exact even on the capped model). The tame Kummer
+  slice is separate: `tame_symbol_exponent` / `tame_symbol_invariant` use valuation +
+  angular component over `ResidueField` legs when `n | |κ*|`; wild symbols stay deferred.
+  The 2-torsion `Brauer2Class` is the `½`-slice. The full-strength `F_q(t)` reciprocity
+  legs (`constant_extension_invariants`, `tame_symbol_invariants_ff`) live in
+  `local_global/function_field.rs`; the degree-2 norm-form oracle ties `inv` to the
+  Hasse–Minkowski layer. Ungraded, distinct from `BrauerWallClass`; finite legs carry no
+  Brauer content (Wedderburn).
+- **`witt/milnor.rs`** — Milnor's map `W(ℚ) → ℤ ⊕ ⊕_p W(F_p)` as a computational
+  complete invariant: `global_residues` returns the signature plus all nonzero
+  residues. Odd `p` uses the second Springer residue; `p=2` uses Milnor's hand
+  boundary, represented as the `W(F_2) ≅ Z/2` `Char2` carrier. The equal-characteristic
+  twin is `global_residues_ff`, the split odd-`F_q(t)` map
+  `W(F_q(t)) ≅ W(F_q) ⊕ ⊕_π W(F_q[t]/π)`: infinity gives the constant-field summand,
+  finite monic irreducibles give the nonzero second residues. Cross-checked against
+  `springer_decompose_qp`, Hasse–Minkowski reconstruction tests, and exact
+  function-field place tests.
 
 (The *numeric* field invariants the ring implies — level, u-invariant — live in
 `field_invariants.rs`, not here.)
@@ -128,7 +232,7 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   layer collapses), residue ℝ is a signature not a finite square-class. Keeps its own
   engine (the flat `ResidueForm`/`SpringerDecomp`/`springer_decompose` names) — that
   mismatch IS the symmetry, not a gap. So it stays out of `ResidueField`.
-- **`springer/char2.rs`** — the **char-2 local Witt/Springer decomposition**
+- **`springer/char2/`** — the **char-2 local Witt/Springer decomposition**
   (Aravire–Jacob `(φ₀, ψ, φ₁)`) + global isotropy over `F_q(t)`. Tightly coupled to
   `local_global/function_field_char2.rs` (it reuses that engine's `pub(crate)`
   helpers); detailed in the local–global section.
@@ -156,28 +260,41 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   (`isotropy_over_adeles`/`AdelicIsotropy`), Brauer local invariant sums. Reuses
   `local_global/padic.rs`.
 - **`local_global/function_field.rs`** — the **equal-characteristic mirror** of
-  `padic.rs` + `adelic.rs` over `F_q(t)`. Places `FFPlace{Infinite, Finite(π)}`
-  (monic irreducibles + the degree place), the **tame** Hilbert symbol
+  `padic.rs` + `adelic.rs` over `F_q(t)`. Places `FunctionFieldPlace<S>{Infinite,
+  Finite(Poly<S>)}` (monic irreducibles + the degree place) — the single place type,
+  shared with the char-2 Artin–Schreier layer (below) and the `GlobalField::Place`
+  associated type for `RationalFunction`. The **tame** Hilbert symbol
   `try_hilbert_symbol_ff` (the odd-`p` branch with the residue Legendre → `χ_κ`; no
   `p=2` branch since `q` is odd), reciprocity `try_hilbert_reciprocity_product_ff`,
   `try_is_isotropic_ff`/`try_is_isotropic_at_place_ff`/`try_isotropy_over_ff_adeles`
   (Hasse–Minkowski, u-invariant 4 like `Q_p`, but **no archimedean place** ⇒ no
-  definiteness condition), `try_ramified_places_ff` (even count). Names carry `_ff`
-  where `padic.rs` collides. Exact (the product formula is `deg`-counting); odd
-  residue char only. Cross-checked against `springer_decompose_laurent`.
+  definiteness condition), `try_ramified_places_ff` (even count), and the tame Kummer
+  surface `try_tame_symbol_exponent_ff` / `try_tame_symbol_invariant_ff`. Names carry
+  `_ff` where `padic.rs` collides. Exact (the product formula is `deg`-counting); odd
+  residue char only. Cross-checked against `springer_decompose_laurent`. Also carries
+  Bridge K's full-`ℚ/ℤ` reciprocity legs: `constant_extension_invariants(n, a)`
+  (`inv_v = deg(v)·v(a)/n`, the constant extension `F_{qⁿ}(t)` — unramified at every
+  place, so `Σ_v inv_v = deg(div a)/n = 0`) and
+  `tame_symbol_invariants_ff(n, a, b)` when `μ_n ⊂ F_q`; both return a `Vec` since
+  `FunctionFieldPlace` is not `Ord`.
 - **`local_global/function_field_char2.rs`** — the **equal-characteristic-2** mirror:
   the **asymmetric Artin–Schreier symbol** `[a,b)` over `F_{2^m}(t)` (`a` additive mod
   `℘`, `b` multiplicative), NOT the tame symbol. Local invariant = the **Schmid
-  formula** `s_v(a,b) = Tr_{κ/F₂}(Res_v(a·dlog b))` (`as_symbol_at`), via a
+  formula** `s_v(a,b) = Tr_{κ/F₂}(Res_v(a·dlog b))` (`artin_schreier_symbol_at`), via a
   from-scratch residue-of-differentials engine (Hensel series `T(u)`, `P(T)=u`; the
-  `∞` place by `u=1/t`). Reciprocity `∑_v s_v = 0` (`as_symbol_reciprocity_sum`, the
-  gold oracle) + even ramification (`as_symbol_ramified_places`). Generic over
-  `FiniteChar2Field` (so `F₂(t)`, `F₄(t)`, `F₈(t)` share one engine). Names carry
-  `as_symbol_*` / `Char2Place`. The crate-private helpers (`strip_factor`/
-  `inverse_mod`/`trace_kappa_to_f2`, and `char2_monic_irreducible_factors` — a thin
-  wrapper over the shared `poly_factor` finite-field factorizer) are `pub(crate)` so
-  `springer/char2.rs` reuses them.
-- **`springer/char2.rs`** (detail) — the equal-char-2 mirror of `springer/local.rs`
+  `∞` place by `u=1/t`). Reciprocity `∑_v s_v = 0` (`artin_schreier_reciprocity_sum`, the
+  gold oracle) + even ramification (`artin_schreier_ramified_places`). Generic over
+  `FiniteChar2Field` (so `F₂(t)`, `F₄(t)`, `F₈(t)` share one engine). The symbol
+  surface carries the `artin_schreier_*` prefix and reuses the SAME
+  `FunctionFieldPlace` as the odd layer — but it stays a **separate, additive** layer
+  that cannot implement the multiplicative `GlobalField` trait. That asymmetry is the
+  content: an additive Artin–Schreier symbol with XOR reciprocity here, the
+  multiplicative Hilbert symbol with product reciprocity over there — the same kind of
+  honest gap as the missing real place over `F_q(t)`. The crate-private helpers
+  (`strip_factor`/ `inverse_mod`/`trace_kappa_to_f2`, and
+  `char2_monic_irreducible_factors` — a thin wrapper over the shared `poly_factor`
+  finite-field factorizer) are `pub(crate)` so `springer/char2/` reuses them.
+- **`springer/char2/`** (detail) — the equal-char-2 mirror of `springer/local.rs`
   (but NOT the odd story at `p=2`: the wild `R_π` summand the `W=W(k)²` grading
   misses). `springer_decompose_local_char2(form, place)` gives the **Aravire–Jacob**
   `(φ₀, ψ, φ₁)` (`Char2LocalDecomp`): split each block coeff by Laurent-parity
@@ -194,7 +311,7 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   `global_is_pe(f)` (`f ∈ ℘(F_q(t))`? — finite sweep of `f`'s poles + `∞`, settles
   rank 2: `[a,b]` iso ⟺ `ab ∈ ℘`), `ff_is_square(f)` (`f ∈ K²`? — all odd-degree
   coeffs of `num·den` vanish, settles the totally-singular part via `[K:K²]=2`), and a
-  bad-place sweep over `relevant_places_char2(form)` for rank 3/4 (good places
+  bad-place sweep over `artin_schreier_form_places(form)` for rank 3/4 (good places
   isotropic by Chevalley–Warning). `u(F_q(t))=4` (`C₂`) ⇒ rank ≥ 5 isotropic.
   **Looks like a bug, isn't:** rank 2 is NOT a finite bad-place scan — the
   constant-trace `℘`-obstruction (`[1,1]/F₂(t)`) lives at infinitely many odd-degree
@@ -206,10 +323,15 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   `direct_sum`, `classify` (rank + radical_dim — the complete invariant,
   char-uniform). `classify_symplectic(gram)` convenience. The char-2 polar form of a
   nonsingular quadratic form lives here.
-- **`hermitian.rs`** — Hermitian forms over Surcomplex (the involution `conj()` the
-  symmetric leg never used): `HermitianForm` (conj-symmetric Gram), unitary congruence
-  diagonalize → real diagonal, signature (Sylvester, the complete invariant = U(p,q)).
-  `from_skew` handles the skew-Hermitian case via mult by i.
+- **`hermitian.rs`** — Hermitian forms, the involution sibling the symmetric leg never
+  used. `HermitianForm` covers Surcomplex via `conj()`: conjugate-symmetric Gram,
+  unitary congruence diagonalize → real diagonal, signature (Sylvester, complete
+  invariant = U(p,q)); `from_skew` handles the skew-Hermitian case via mult by i.
+  `FiniteHermitianForm<F>` covers finite fields of even prime-field degree using the
+  middle Frobenius `x -> x^{p^k}` for `F_{p^{2k}}/F_{p^k}`; its complete invariant is
+  `FiniteHermitianInvariants { rank, radical_dim, ... }`. This intentionally models
+  intermediate fixed fields directly, rather than pretending the existing
+  `FieldExtension` associated base can name every `F_{p^{2k}}/F_{p^k}` subextension.
 
 ## Field invariants, the trace-form bridge, and the game bench
 
@@ -226,12 +348,18 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   **Frobenius-twisted** trace form `Q_k(x) = Tr_{E/F}(x·σ^k(x))` (q on the diagonal,
   the alternating polar `Tr(eᵢσ^k eⱼ + eⱼσ^k eᵢ)` off it). NOT the naive `Tr(x²)`,
   whose polar form vanishes in char 2 (Frobenius is additive) — the trap the twist
-  avoids. Instances: `Surcomplex` k=1 → the **norm form** `⟨2,2⟩`; unramified `Qq/Qp`
+  avoids. `transfer_diagonal(entries)` is the related Scharlau transfer
+  `s_*(⟨λ₁,…,λᵣ⟩)` of a diagonal form along `Tr_{E/F}` (char ≠ 2; the `k=0` case).
+  `cyclic_algebra_trace_form::<E>(&a)` builds the literal cyclic-algebra trace
+  form `Trd_A(z²)` for `A=(E/F,σ,a)`: self-lines route through the same assembler,
+  and `i`/`n-i` lines are pure polar pairs. It is not the reduced norm; for
+  quaternions the honest relation is `Trd(z²)=Trd(z)^2-2·Nrd(z)`. Instances:
+  `Surcomplex` k=1 → the **norm form** `⟨2,2⟩`; unramified `Qq/Qp`
   via the Teichmuller-lifted residue basis; odd `Fpn` → a diagonalizable trace form.
   Two char-2 entry points to the **Gold form** `Tr(x^{1+2^a})`, classified →
-  `ArfResult` (rank `= m − gcd(2a,m)`, Arf → the zero-count): `trace_form_arf::<E:
+  `ArfInvariants` (rank `= m − gcd(2a,m)`, Arf → the zero-count): `trace_form_arf::<E:
   …<Base=Fp<2>>>(k)` (the typed `Fpn<2,m>` path — build over `F_2`, lift `F_2 ↪
-  Nimber` via `Metric::map`), and `gold_form(m, a)` (the nim-native path over the
+  Nimber` via `Metric::map(|x| Nimber(x.value()))`), and `gold_form(m, a)` (the nim-native path over the
   subfield `F_{2^m} ⊂ Nimber`, m a power of two ≤ 128, reaching F_16/F_256/… that
   `Fpn` can't). The form has dim `[E:F]`, capped at `MAX_BASIS_DIM=128`. The same
   `CyclicGaloisExtension` basis/generator data also feeds
@@ -252,5 +380,5 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
 - **The odd-char Hasse invariant is ≡ +1** over a finite field — genuinely trivial
   there, unlike the p-adic Hilbert symbol in `local_global/padic.rs` (where Hasse does
   real work).
-- **Rational & Surcomplex impl `ClassifyForm` but not `WittClassify`** — their Witt
+- **Rational & Surcomplex impl `ClassifyForm` but not `ClassifyWitt`** — their Witt
   data isn't a single `WittClassG`. Honest, not a gap.

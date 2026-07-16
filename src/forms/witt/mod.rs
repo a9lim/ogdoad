@@ -4,15 +4,36 @@
 //! * `class` — the Witt **group** `W_q(F)`: [`WittClass`] (the order-2 group of
 //!   a finite nim-field, Arf-classified) and [`WittClassG`], the Char0/OddChar/Char2
 //!   trichotomy enum that the classifier façade returns. (The Char2 leg is a
-//!   *module*, not a ring — its `mul` panics; see `ring` for why.)
+//!   *module*, not a ring — its `mul` returns `Err(WittClassGError::Char2NotARing)`;
+//!   see `ring` for why.)
 //! * `ring` — the Witt **ring**: [`tensor_form`], Pfister forms, the fundamental
 //!   ideal `Iⁿ`, and the `eₙ` staircase (`e0 = dim`, `e1 = disc`, `e2 = Hasse`),
 //!   with per-field stabilisation (`I² = 0` over `F_q`; the infinite ℝ tower).
 //! * `brauer_wall` — the Brauer–Wall group `BW(F)`: [`bw_class_real`] (the Bott
 //!   index `(q−p) mod 8`, so `BW(ℝ) ≅ ℤ/8`), [`bw_class_complex`] (`ℤ/2`),
-//!   [`bw_class_finite_odd`] (order-4, `≅ W(F_q)`), and [`bw_class_nimber`] (the
-//!   char-2 Arf/Witt class `ℤ/2`, nonsingular metrics only). The law is the
-//!   graded tensor product.
+//!   [`bw_class_rational`] ([`RationalBrauerWallClass`], Wall's exact-sequence
+//!   coordinates over `ℚ`), [`bw_class_function_field`]
+//!   ([`FunctionFieldBrauerWallClass`], the same Wall coordinates over odd
+//!   `F_q(t)`), [`bw_class_finite_odd`] (order-4, `≅ W(F_q)`), and
+//!   [`bw_class_nimber`] (the char-2 Arf/Witt class `ℤ/2`, nonsingular metrics
+//!   only). The law is the graded tensor product.
+//! * `brauer_rational` — the **ungraded** rational 2-torsion Brauer class
+//!   ([`Brauer2Class`]) as a set of ramified places: the Hasse–Witt invariant
+//!   ([`hasse_brauer_class`]) and the Clifford invariant ([`clifford_brauer_class`])
+//!   of a `ℚ`-form, which differ by the explicit `n mod 8` / discriminant correction
+//!   (Lam). The char-0/odd mirror of the char-2 Bridge B; it is the ungraded
+//!   `c(q)` projection of [`RationalBrauerWallClass`], not the whole graded class.
+//! * `cyclic` — Bridge K: the **full `ℚ/ℤ`** ungraded Brauer class ([`BrauerClass`])
+//!   and cyclic-symbol local invariants: [`cyclic_algebra_invariant`]
+//!   (`inv = v(a)/n mod ℤ`, the unramified class) plus
+//!   [`tame_symbol_invariant`] for the tame Kummer slice. Lifts
+//!   `brauer_rational`'s 2-torsion surface to the full local Brauer group, with
+//!   [`Brauer2Class`] embedding as the `½`-slice ([`BrauerClass::from_two_torsion`]).
+//! * `milnor` — Bridge N.1: Milnor residue maps as global Witt invariants.
+//!   [`global_residues`] returns the signature plus the nonzero residues of
+//!   `W(ℚ) → ℤ ⊕ ⊕_p W(F_p)`, including Milnor's hand-defined dyadic cell, and
+//!   [`global_residues_ff`] returns the split odd-characteristic function-field map
+//!   `W(F_q(t)) ≅ W(F_q) ⊕ ⊕_π W(F_q[t]/π)`.
 //!
 //! The mod-8 spine lives here: `BW(ℝ) ≅ ℤ/8` is the same periodicity as the char-0
 //! 8-fold Clifford table, Bott periodicity, and `E₈` as the rank-8 even unimodular
@@ -23,10 +44,16 @@
 //! numeric field invariants (level, u-invariant) the ring *implies* live separately
 //! in [`field_invariants`](crate::forms::field_invariants).
 
+mod brauer_rational;
 mod brauer_wall;
 mod class;
+mod cyclic;
+mod milnor;
 mod ring;
 
+pub use brauer_rational::*;
 pub use brauer_wall::*;
 pub use class::*;
+pub use cyclic::*;
+pub use milnor::*;
 pub use ring::*;

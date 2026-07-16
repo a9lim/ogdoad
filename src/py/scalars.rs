@@ -6,11 +6,11 @@
 //! parse/wrap hooks.
 
 use crate::scalar::{
-    is_prime_u128, Adele, AdelePlace, CyclicGaloisExtension, ExactRoots, FieldExtension,
-    FiniteField, Fp, Fpn, Gauss, HasFractionField, HasRingOfIntegers, Integer, Laurent, LocalQp,
-    MaxPlus, MinPlus, Nimber, Omnific, Ordinal, Poly, Qp, Qq, Ramified, Rational, RationalFunction,
-    ReductionPolynomialKind, ResidueField, Scalar, SignExpansion, Surcomplex, Surreal, Tropical,
-    Valued, WittVec, Zp,
+    is_prime_u128, Adele, AdelePlace, CyclicGaloisExtension, ExactFieldScalar, ExactRoots,
+    FieldExtension, FiniteField, Fp, Fpn, Gauss, HasFractionField, HasRingOfIntegers, Integer,
+    IntegerDivExactError, Laurent, LocalQp, MaxPlus, MinPlus, NewtonPolygon, Nimber, Omnific,
+    Ordinal, Poly, Qp, Qq, Ramified, Rational, RationalFunction, ReductionPolynomialKind,
+    ResidueField, Scalar, SignExpansion, Surcomplex, Surreal, Tropical, Valued, WittVec, Zp,
 };
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyTypeError, PyValueError};
@@ -24,6 +24,15 @@ fn ordering_to_i8(ordering: Ordering) -> i8 {
         Ordering::Equal => 0,
         Ordering::Greater => 1,
     }
+}
+
+fn integer_div_exact_py(num: &Integer, den: &Integer) -> PyResult<Integer> {
+    num.div_exact(den).map_err(|err| match err {
+        IntegerDivExactError::DivisionByZero => PyValueError::new_err("integer division by zero"),
+        IntegerDivExactError::Remainder(r) => PyValueError::new_err(format!(
+            "integer division is not exact; Euclidean remainder is {r}"
+        )),
+    })
 }
 
 fn validate_relative_degrees<F: FiniteField>(x: &F, m: usize, e: usize) -> PyResult<()> {
@@ -62,9 +71,34 @@ fn qq_base_to_qp<const P: u128, const N: usize, const K: u128>(x: Qq<P, N, 1>) -
         None => Qp::<P, K>::zero(),
         Some(v) => {
             let unit = i128::try_from(x.unit().0[0]).expect("Python fixed Qq unit fits i128");
-            Qp::<P, K>::from_i128(unit).mul(&Qp::<P, K>::from_p_power(v))
+            Qp::<P, K>::from_int(unit).mul(&Qp::<P, K>::from_p_power(v))
         }
     }
+}
+
+fn eval_poly_at_rational_function<S: ExactFieldScalar>(
+    poly: &Poly<S>,
+    x: &RationalFunction<S>,
+) -> RationalFunction<S> {
+    let mut acc = RationalFunction::zero();
+    for c in poly.coeffs().iter().rev() {
+        acc = acc.mul(x).add(&RationalFunction::from_base(c.clone()));
+    }
+    acc
+}
+
+fn substitute_rational_function<S: ExactFieldScalar>(
+    f: &RationalFunction<S>,
+    arg: &RationalFunction<S>,
+) -> PyResult<RationalFunction<S>> {
+    let num = eval_poly_at_rational_function(f.num(), arg);
+    let den = eval_poly_at_rational_function(f.den(), arg);
+    if den.is_zero() {
+        return Err(PyValueError::new_err(
+            "rational-function evaluation hit a pole",
+        ));
+    }
+    Ok(num.mul(&den.inv().expect("checked nonzero rational function")))
 }
 
 // ---------------------------------------------------------------------------
@@ -167,6 +201,10 @@ impl PyNimber {
     fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
         matches!(other.cast::<PyNimber>(), Ok(n) if n.borrow().inner == self.inner)
     }
+    /// The nimber/game-value fuzzy relation: distinct nimbers are incomparable.
+    fn fuzzy(&self, other: &Bound<'_, PyAny>) -> PyResult<bool> {
+        Ok(self.inner.fuzzy(&parse_nimber(other)?))
+    }
     fn __hash__(&self) -> usize {
         self.inner.0 as usize
     }
@@ -246,7 +284,9 @@ impl PyNimber {
     /// `self` raised to the power `e` in `F_{2^128}` (fast exponentiation).
     fn pow(&self, e: u128) -> PyNimber {
         PyNimber {
-            inner: self.inner.pow(e),
+            // Qualified: `Scalar::pow` and `FiniteField::pow` are both in scope;
+            // the FiniteField path keeps Nimber's Fermat-tower `nim_pow`.
+            inner: FiniteField::pow(&self.inner, e),
         }
     }
     fn __pow__(&self, e: u128, modulo: Option<u128>) -> PyResult<PyNimber> {
@@ -278,7 +318,7 @@ impl PyNimber {
         ExactRoots::is_square(&self.inner)
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -324,7 +364,7 @@ impl PyNimberPoly {
     }
     #[staticmethod]
     fn x() -> Self {
-        wrap_nimber_poly(Poly::x())
+        wrap_nimber_poly(Poly::t())
     }
     #[staticmethod]
     fn constant(s: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -358,6 +398,9 @@ impl PyNimberPoly {
     }
     fn eval(&self, x: &Bound<'_, PyAny>) -> PyResult<PyNimber> {
         Ok(wrap_nimber(self.inner.eval(&parse_nimber(x)?)))
+    }
+    fn compose(&self, inner: &PyNimberPoly) -> PyNimberPoly {
+        wrap_nimber_poly(self.inner.compose(&inner.inner))
     }
     fn scale(&self, s: &Bound<'_, PyAny>) -> PyResult<Self> {
         Ok(wrap_nimber_poly(self.inner.scale(&parse_nimber(s)?)))
@@ -452,7 +495,7 @@ impl PyNimberPoly {
         matches!(parse_nimber_poly(other), Ok(p) if p == self.inner)
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -612,7 +655,7 @@ impl PyNimberRationalFunction {
         matches!(parse_nimber_rational_function(other), Ok(f) if f == self.inner)
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -659,7 +702,7 @@ macro_rules! prime_field_pyclass {
         impl $py {
             #[new]
             fn new(value: i128) -> Self {
-                $wrap(Fp::<$p>::new(value))
+                $wrap(Fp::<$p>::from_int(value))
             }
             #[staticmethod]
             fn modulus() -> u128 {
@@ -683,7 +726,7 @@ macro_rules! prime_field_pyclass {
             }
             #[staticmethod]
             fn assert_prime_modulus() {
-                Fp::<$p>::assert_prime_modulus()
+                Fp::<$p>::assert_supported_params()
             }
             #[staticmethod]
             fn from_u128(value: u128) -> Self {
@@ -764,7 +807,7 @@ macro_rules! prime_field_pyclass {
                 self.inner.value() as usize
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
 
@@ -773,7 +816,7 @@ macro_rules! prime_field_pyclass {
                 return Ok(x.borrow().inner);
             }
             if let Ok(v) = obj.extract::<i128>() {
-                return Ok(Fp::<$p>::new(v));
+                return Ok(Fp::<$p>::from_int(v));
             }
             Err(PyTypeError::new_err(concat!(
                 "expected ",
@@ -855,7 +898,7 @@ macro_rules! extension_field_pyclass {
             }
             #[staticmethod]
             fn assert_supported_field() {
-                Fpn::<$p, $n>::assert_supported_field()
+                Fpn::<$p, $n>::assert_supported_params()
             }
             #[staticmethod]
             fn from_index(code: u128) -> PyResult<Self> {
@@ -980,7 +1023,9 @@ macro_rules! extension_field_pyclass {
                 Ok(self.inner.discrete_log($parse(x)?))
             }
             fn pow(&self, e: u128) -> Self {
-                $wrap(self.inner.pow(e))
+                // Qualified: `Scalar::pow` and `FiniteField::pow` are both in
+                // scope for these extension-field backends.
+                $wrap(FiniteField::pow(&self.inner, e))
             }
             fn __pow__(&self, e: u128, modulo: Option<u128>) -> PyResult<Self> {
                 if modulo.is_some() {
@@ -1038,7 +1083,7 @@ macro_rules! extension_field_pyclass {
                 matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
     };
@@ -1055,6 +1100,7 @@ fn reduction_polynomial_kind_name(kind: ReductionPolynomialKind) -> &'static str
         ReductionPolynomialKind::PrimeField => "PrimeField",
         ReductionPolynomialKind::Conway => "Conway",
         ReductionPolynomialKind::Irreducible => "Irreducible",
+        ReductionPolynomialKind::GeneratedIrreducible => "GeneratedIrreducible",
     }
 }
 
@@ -1086,6 +1132,11 @@ impl PyReductionPolynomialKind {
         wrap_reduction_polynomial_kind(ReductionPolynomialKind::Irreducible)
     }
 
+    #[staticmethod]
+    fn generated_irreducible() -> Self {
+        wrap_reduction_polynomial_kind(ReductionPolynomialKind::GeneratedIrreducible)
+    }
+
     #[getter]
     fn name(&self) -> &'static str {
         reduction_polynomial_kind_name(self.inner)
@@ -1103,7 +1154,15 @@ impl PyReductionPolynomialKind {
 
     #[getter]
     fn is_irreducible(&self) -> bool {
-        self.inner == ReductionPolynomialKind::Irreducible
+        matches!(
+            self.inner,
+            ReductionPolynomialKind::Irreducible | ReductionPolynomialKind::GeneratedIrreducible
+        )
+    }
+
+    #[getter]
+    fn is_generated_irreducible(&self) -> bool {
+        self.inner == ReductionPolynomialKind::GeneratedIrreducible
     }
 
     fn __str__(&self) -> &'static str {
@@ -1208,7 +1267,7 @@ macro_rules! function_field_pyclasses {
             }
             #[staticmethod]
             fn x() -> Self {
-                $wrap_poly(Poly::x())
+                $wrap_poly(Poly::t())
             }
             #[staticmethod]
             fn constant(s: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -1243,6 +1302,9 @@ macro_rules! function_field_pyclasses {
             fn eval(&self, x: &Bound<'_, PyAny>) -> PyResult<$base_py> {
                 Ok($base_wrap(self.inner.eval(&$base_parse(x)?)))
             }
+            fn compose(&self, inner: &$poly_py) -> $poly_py {
+                $wrap_poly(self.inner.compose(&inner.inner))
+            }
             fn scale(&self, s: &Bound<'_, PyAny>) -> PyResult<Self> {
                 Ok($wrap_poly(self.inner.scale(&$base_parse(s)?)))
             }
@@ -1264,6 +1326,19 @@ macro_rules! function_field_pyclasses {
                     return Err(PyValueError::new_err("polynomial remainder by zero"));
                 }
                 Ok($wrap_poly(self.inner.rem(&divisor.inner)))
+            }
+            fn __mod__(&self, divisor: &Bound<'_, PyAny>) -> PyResult<$poly_py> {
+                let divisor = $parse_poly(divisor)?;
+                if divisor.is_zero() {
+                    return Err(PyValueError::new_err("polynomial remainder by zero"));
+                }
+                Ok($wrap_poly(self.inner.rem(&divisor)))
+            }
+            fn __rmod__(&self, dividend: &Bound<'_, PyAny>) -> PyResult<$poly_py> {
+                if self.inner.is_zero() {
+                    return Err(PyValueError::new_err("polynomial remainder by zero"));
+                }
+                Ok($wrap_poly($parse_poly(dividend)?.rem(&self.inner)))
             }
             fn divides(&self, multiple: &$poly_py) -> bool {
                 self.inner.divides(&multiple.inner)
@@ -1316,6 +1391,12 @@ macro_rules! function_field_pyclasses {
             fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<$poly_py> {
                 Ok($wrap_poly(self.inner.mul(&$parse_poly(other)?)))
             }
+            fn __matmul__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                if let Ok(s) = $base_parse(other) {
+                    return $base_wrap(self.inner.eval(&s)).into_py_any(py);
+                }
+                $wrap_poly(self.inner.compose(&$parse_poly(other)?)).into_py_any(py)
+            }
             fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<$poly_py> {
                 let o = $parse_poly(other)?;
                 let oi = o
@@ -1334,7 +1415,7 @@ macro_rules! function_field_pyclasses {
                 matches!($parse_poly(other), Ok(p) if p == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
 
@@ -1448,6 +1529,19 @@ macro_rules! function_field_pyclasses {
                     .map($wrap_rf)
                     .ok_or_else(|| PyValueError::new_err(concat!("0 has no inverse in ", $rf_name)))
             }
+            fn __matmul__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                if let Ok(s) = $base_parse(other) {
+                    let den = self.inner.den().eval(&s);
+                    if den.is_zero() {
+                        return Err(PyValueError::new_err("rational-function evaluation hit a pole"));
+                    }
+                    let num = self.inner.num().eval(&s);
+                    return $base_wrap(num.mul(&den.inv().expect("checked nonzero field element")))
+                        .into_py_any(py);
+                }
+                $wrap_rf(substitute_rational_function(&self.inner, &$parse_rf(other)?)?)
+                    .into_py_any(py)
+            }
             fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<$rf_py> {
                 Ok($wrap_rf(self.inner.add(&$parse_rf(other)?)))
             }
@@ -1490,7 +1584,7 @@ macro_rules! function_field_pyclasses {
                 matches!($parse_rf(other), Ok(f) if f == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
     };
@@ -1581,6 +1675,279 @@ function_field_pyclasses!(
     wrap_fp13
 );
 
+#[pyclass(name = "IntegerPoly", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyIntegerPoly {
+    inner: Poly<Integer>,
+}
+
+pub(crate) fn parse_integer_poly(obj: &Bound<'_, PyAny>) -> PyResult<Poly<Integer>> {
+    if let Ok(p) = obj.cast::<PyIntegerPoly>() {
+        return Ok(p.borrow().inner.clone());
+    }
+    if let Ok(s) = parse_integer(obj) {
+        return Ok(Poly::constant(s));
+    }
+    if let Ok(items) = obj.extract::<Vec<Bound<'_, PyAny>>>() {
+        return items
+            .iter()
+            .map(parse_integer)
+            .collect::<PyResult<Vec<_>>>()
+            .map(Poly::new);
+    }
+    Err(PyTypeError::new_err(
+        "expected IntegerPoly, Integer, int, or coefficient list",
+    ))
+}
+
+pub(crate) fn wrap_integer_poly(inner: Poly<Integer>) -> PyIntegerPoly {
+    PyIntegerPoly { inner }
+}
+
+fn integer_poly_divrem_py(
+    lhs: &Poly<Integer>,
+    divisor: &Poly<Integer>,
+) -> PyResult<(Poly<Integer>, Poly<Integer>)> {
+    if divisor.is_zero() {
+        return Err(PyValueError::new_err("polynomial division by zero"));
+    }
+    if !matches!(divisor.leading(), Some(c) if *c == Integer::one()) {
+        return Err(PyValueError::new_err("IntegerPoly divisors must be monic"));
+    }
+    Ok(lhs.divrem(divisor))
+}
+
+fn integer_poly_gcd_py(lhs: &Poly<Integer>, rhs: &Poly<Integer>) -> PyResult<Poly<Integer>> {
+    let lhs = Poly::new(
+        lhs.coeffs()
+            .iter()
+            .map(|c| Rational::from_int(c.0))
+            .collect(),
+    );
+    let rhs = Poly::new(
+        rhs.coeffs()
+            .iter()
+            .map(|c| Rational::from_int(c.0))
+            .collect(),
+    );
+    primitive_integer_poly_from_rational_py(&lhs.gcd(&rhs))
+}
+
+fn primitive_integer_poly_from_rational_py(p: &Poly<Rational>) -> PyResult<Poly<Integer>> {
+    if p.is_zero() {
+        return Ok(Poly::zero());
+    }
+    let mut scale = 1i128;
+    for c in p.coeffs() {
+        scale = lcm_positive_i128_py(scale, c.denom())?;
+    }
+    let mut coeffs = Vec::with_capacity(p.coeffs().len());
+    for c in p.coeffs() {
+        let factor = scale / c.denom();
+        coeffs.push(
+            c.numer().checked_mul(factor).ok_or_else(|| {
+                PyValueError::new_err("IntegerPoly gcd coefficient overflowed i128")
+            })?,
+        );
+    }
+    let content = gcd_i128_slice_py(&coeffs)?;
+    if content > 1 {
+        for c in &mut coeffs {
+            *c /= content;
+        }
+    }
+    if coeffs.last().is_some_and(|c| *c < 0) {
+        for c in &mut coeffs {
+            *c = c.checked_neg().ok_or_else(|| {
+                PyValueError::new_err("IntegerPoly gcd sign normalization overflowed i128")
+            })?;
+        }
+    }
+    Ok(Poly::new(coeffs.into_iter().map(Integer).collect()))
+}
+
+fn gcd_i128_slice_py(values: &[i128]) -> PyResult<i128> {
+    let mut g = 0u128;
+    for value in values {
+        g = gcd_u128_py(g, value.unsigned_abs());
+    }
+    i128::try_from(g).map_err(|_| PyValueError::new_err("IntegerPoly gcd content exceeds i128"))
+}
+
+fn lcm_positive_i128_py(lhs: i128, rhs: i128) -> PyResult<i128> {
+    debug_assert!(lhs > 0 && rhs > 0);
+    let gcd = i128::try_from(gcd_u128_py(lhs as u128, rhs as u128))
+        .map_err(|_| PyValueError::new_err("IntegerPoly denominator gcd exceeds i128"))?;
+    lhs.checked_div(gcd)
+        .and_then(|x| x.checked_mul(rhs))
+        .ok_or_else(|| PyValueError::new_err("IntegerPoly denominator lcm overflowed i128"))
+}
+
+fn gcd_u128_py(mut lhs: u128, mut rhs: u128) -> u128 {
+    while rhs != 0 {
+        let next = lhs % rhs;
+        lhs = rhs;
+        rhs = next;
+    }
+    lhs
+}
+
+#[pymethods]
+impl PyIntegerPoly {
+    #[new]
+    fn new(coeffs: Vec<Bound<'_, PyAny>>) -> PyResult<Self> {
+        coeffs
+            .iter()
+            .map(parse_integer)
+            .collect::<PyResult<Vec<_>>>()
+            .map(Poly::new)
+            .map(wrap_integer_poly)
+    }
+    #[staticmethod]
+    fn zero() -> Self {
+        wrap_integer_poly(Poly::zero())
+    }
+    #[staticmethod]
+    fn one() -> Self {
+        wrap_integer_poly(Poly::one())
+    }
+    #[staticmethod]
+    fn characteristic() -> u128 {
+        <Poly<Integer> as Scalar>::characteristic()
+    }
+    #[staticmethod]
+    fn x() -> Self {
+        wrap_integer_poly(Poly::t())
+    }
+    #[staticmethod]
+    fn constant(s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(wrap_integer_poly(Poly::constant(parse_integer(s)?)))
+    }
+    #[staticmethod]
+    fn monomial(deg: usize, coeff: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(wrap_integer_poly(Poly::monomial(
+            deg,
+            parse_integer(coeff)?,
+        )))
+    }
+    #[getter]
+    fn coeffs(&self) -> Vec<PyInteger> {
+        self.inner
+            .coeffs()
+            .iter()
+            .cloned()
+            .map(wrap_integer)
+            .collect()
+    }
+    #[getter]
+    fn degree(&self) -> Option<usize> {
+        self.inner.degree()
+    }
+    fn leading(&self) -> Option<PyInteger> {
+        self.inner.leading().cloned().map(wrap_integer)
+    }
+    fn coeff(&self, i: usize) -> PyInteger {
+        wrap_integer(self.inner.coeff(i))
+    }
+    fn is_zero(&self) -> bool {
+        self.inner.is_zero()
+    }
+    fn eval(&self, x: &Bound<'_, PyAny>) -> PyResult<PyInteger> {
+        Ok(wrap_integer(self.inner.eval(&parse_integer(x)?)))
+    }
+    fn compose(&self, inner: &PyIntegerPoly) -> PyIntegerPoly {
+        wrap_integer_poly(self.inner.compose(&inner.inner))
+    }
+    fn scale(&self, s: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(wrap_integer_poly(self.inner.scale(&parse_integer(s)?)))
+    }
+    fn divrem(&self, divisor: &PyIntegerPoly) -> PyResult<(PyIntegerPoly, PyIntegerPoly)> {
+        let (q, r) = integer_poly_divrem_py(&self.inner, &divisor.inner)?;
+        Ok((wrap_integer_poly(q), wrap_integer_poly(r)))
+    }
+    fn rem(&self, divisor: &PyIntegerPoly) -> PyResult<PyIntegerPoly> {
+        let (_, r) = integer_poly_divrem_py(&self.inner, &divisor.inner)?;
+        Ok(wrap_integer_poly(r))
+    }
+    fn gcd(&self, other: &PyIntegerPoly) -> PyResult<PyIntegerPoly> {
+        integer_poly_gcd_py(&self.inner, &other.inner).map(wrap_integer_poly)
+    }
+    fn inv(&self) -> PyResult<PyIntegerPoly> {
+        self.inner
+            .inv()
+            .map(wrap_integer_poly)
+            .ok_or_else(|| PyValueError::new_err("only ±1 constant polynomials invert"))
+    }
+    fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        Ok(wrap_integer_poly(
+            self.inner.add(&parse_integer_poly(other)?),
+        ))
+    }
+    fn __radd__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        self.__add__(other)
+    }
+    fn __sub__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        Ok(wrap_integer_poly(
+            self.inner.sub(&parse_integer_poly(other)?),
+        ))
+    }
+    fn __rsub__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        Ok(wrap_integer_poly(
+            parse_integer_poly(other)?.sub(&self.inner),
+        ))
+    }
+    fn __neg__(&self) -> PyIntegerPoly {
+        wrap_integer_poly(self.inner.neg())
+    }
+    fn __mul__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match parse_integer_poly(other) {
+            Ok(o) => wrap_integer_poly(self.inner.mul(&o)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
+    fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        Ok(wrap_integer_poly(
+            self.inner.mul(&parse_integer_poly(other)?),
+        ))
+    }
+    fn __mod__(&self, divisor: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        let divisor = parse_integer_poly(divisor)?;
+        let (_, r) = integer_poly_divrem_py(&self.inner, &divisor)?;
+        Ok(wrap_integer_poly(r))
+    }
+    fn __rmod__(&self, dividend: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        let dividend = parse_integer_poly(dividend)?;
+        let (_, r) = integer_poly_divrem_py(&dividend, &self.inner)?;
+        Ok(wrap_integer_poly(r))
+    }
+    fn __matmul__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        if let Ok(s) = parse_integer(other) {
+            return wrap_integer(self.inner.eval(&s)).into_py_any(py);
+        }
+        wrap_integer_poly(self.inner.compose(&parse_integer_poly(other)?)).into_py_any(py)
+    }
+    fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        let o = parse_integer_poly(other)?;
+        let oi = o
+            .inv()
+            .ok_or_else(|| PyValueError::new_err("polynomial divisor is not a unit"))?;
+        Ok(wrap_integer_poly(self.inner.mul(&oi)))
+    }
+    fn __rtruediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyIntegerPoly> {
+        let si = self
+            .inner
+            .inv()
+            .ok_or_else(|| PyValueError::new_err("polynomial divisor is not a unit"))?;
+        Ok(wrap_integer_poly(parse_integer_poly(other)?.mul(&si)))
+    }
+    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
+        matches!(parse_integer_poly(other), Ok(p) if p == self.inner)
+    }
+    fn __repr__(&self) -> String {
+        format!("{}", self.inner)
+    }
+}
+
 macro_rules! zp_pyclass {
     ($py:ident, $name:literal, $parse:ident, $wrap:ident, $p:literal, $k:literal) => {
         #[pyclass(name = $name, module = "ogdoad", from_py_object)]
@@ -1593,7 +1960,7 @@ macro_rules! zp_pyclass {
         impl $py {
             #[new]
             fn new(value: i128) -> Self {
-                $wrap(Zp::<$p, $k>::new(value))
+                $wrap(Zp::<$p, $k>::from_int(value))
             }
             #[staticmethod]
             fn zero() -> Self {
@@ -1617,7 +1984,7 @@ macro_rules! zp_pyclass {
             }
             #[staticmethod]
             fn assert_supported_ring() {
-                Zp::<$p, $k>::assert_supported_ring()
+                Zp::<$p, $k>::assert_supported_params()
             }
             #[staticmethod]
             fn characteristic() -> u128 {
@@ -1702,7 +2069,7 @@ macro_rules! zp_pyclass {
                 self.inner.0 as usize
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
 
@@ -1711,7 +2078,7 @@ macro_rules! zp_pyclass {
                 return Ok(x.borrow().inner);
             }
             if let Ok(v) = obj.extract::<i128>() {
-                return Ok(Zp::<$p, $k>::new(v));
+                return Ok(Zp::<$p, $k>::from_int(v));
             }
             Err(PyTypeError::new_err(concat!("expected ", $name, " or int")))
         }
@@ -1737,8 +2104,8 @@ macro_rules! qp_pyclass {
         #[pymethods]
         impl $py {
             #[staticmethod]
-            fn from_i128(value: i128) -> Self {
-                $wrap(Qp::<$p, $k>::from_i128(value))
+            fn from_int(value: i128) -> Self {
+                $wrap(Qp::<$p, $k>::from_int(value))
             }
             #[staticmethod]
             fn zero() -> Self {
@@ -1781,7 +2148,7 @@ macro_rules! qp_pyclass {
             }
             #[staticmethod]
             fn assert_supported_field() {
-                Qp::<$p, $k>::assert_supported_field()
+                Qp::<$p, $k>::assert_supported_params()
             }
             #[staticmethod]
             fn characteristic() -> u128 {
@@ -1875,7 +2242,7 @@ macro_rules! qp_pyclass {
                 matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
 
@@ -1884,7 +2251,7 @@ macro_rules! qp_pyclass {
                 return Ok(x.borrow().inner);
             }
             if let Ok(v) = obj.extract::<i128>() {
-                return Ok(Qp::<$p, $k>::from_i128(v));
+                return Ok(Qp::<$p, $k>::from_int(v));
             }
             Err(PyTypeError::new_err(concat!("expected ", $name, " or int")))
         }
@@ -2169,7 +2536,7 @@ macro_rules! witt_vec_pyclass {
                 })
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
 
@@ -2391,7 +2758,7 @@ macro_rules! qq_pyclass {
                 matches!($parse(other), Ok(x) if x == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
 
@@ -2616,7 +2983,7 @@ macro_rules! laurent_pyclass {
                 return Ok(x.borrow().inner.clone());
             }
             if let Ok(s) = $base_parse(obj) {
-                return Ok(Laurent::<$base, $k>::from_scalar(s));
+                return Ok(Laurent::<$base, $k>::from_base(s));
             }
             if let Ok(items) = obj.extract::<Vec<Bound<'_, PyAny>>>() {
                 let mut coeffs = Vec::with_capacity(items.len());
@@ -2653,7 +3020,7 @@ macro_rules! laurent_pyclass {
             }
             #[staticmethod]
             fn from_scalar(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-                Ok($wrap(Laurent::<$base, $k>::from_scalar($base_parse(s)?)))
+                Ok($wrap(Laurent::<$base, $k>::from_base($base_parse(s)?)))
             }
             #[staticmethod]
             fn teichmuller(residue: &Bound<'_, PyAny>) -> PyResult<Self> {
@@ -2776,7 +3143,7 @@ macro_rules! laurent_pyclass {
                 matches!($parse(other), Ok(x) if x == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
     };
@@ -3041,7 +3408,7 @@ macro_rules! ramified_pyclass {
                 matches!($parse(other), Ok(x) if x == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
     };
@@ -3404,7 +3771,7 @@ macro_rules! gauss_pyclass {
                 matches!($parse(other), Ok(x) if x == self.inner)
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
     };
@@ -3571,6 +3938,184 @@ fn min_coeff_valuation(coeffs: Vec<Bound<'_, PyAny>>) -> PyResult<Option<i128>> 
     ))
 }
 
+#[pyclass(name = "NewtonPolygon", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyNewtonPolygon {
+    inner: NewtonPolygon,
+}
+
+#[pymethods]
+impl PyNewtonPolygon {
+    fn vertices(&self) -> Vec<(usize, i128)> {
+        self.inner.vertices().to_vec()
+    }
+    fn degree(&self) -> usize {
+        self.inner.degree()
+    }
+    fn zero_root_multiplicity(&self) -> usize {
+        self.inner.zero_root_multiplicity()
+    }
+    fn slopes(&self) -> Vec<(PyRational, u128)> {
+        self.inner
+            .slopes()
+            .into_iter()
+            .map(|(s, len)| (wrap_rational(s), len))
+            .collect()
+    }
+    fn root_valuations(&self) -> Vec<(PyRational, u128)> {
+        self.inner
+            .root_valuations()
+            .into_iter()
+            .map(|(s, len)| (wrap_rational(s), len))
+            .collect()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "NewtonPolygon(vertices={:?}, zero_root_multiplicity={})",
+            self.inner.vertices(),
+            self.inner.zero_root_multiplicity()
+        )
+    }
+}
+
+fn newton_polygon_of<K: Valued>(coeffs: Vec<K>) -> Option<PyNewtonPolygon> {
+    NewtonPolygon::from_coeffs(&coeffs).map(|inner| PyNewtonPolygon { inner })
+}
+
+#[pyfunction]
+fn newton_polygon(coeffs: Vec<Bound<'_, PyAny>>) -> PyResult<Option<PyNewtonPolygon>> {
+    if coeffs.is_empty() {
+        return Ok(None);
+    }
+
+    macro_rules! try_valued_coeffs {
+        ($py:ty) => {{
+            let mut parsed = Vec::with_capacity(coeffs.len());
+            let mut all_match = true;
+            for coeff in &coeffs {
+                if let Ok(value) = coeff.cast::<$py>() {
+                    parsed.push(value.borrow().inner.clone());
+                } else {
+                    all_match = false;
+                    break;
+                }
+            }
+            if all_match {
+                return Ok(newton_polygon_of(parsed));
+            }
+        }};
+    }
+
+    try_valued_coeffs!(PyQp2_4);
+    try_valued_coeffs!(PyQp3_4);
+    try_valued_coeffs!(PyQp5_4);
+    try_valued_coeffs!(PyQp7_4);
+    try_valued_coeffs!(PyQp11_4);
+    try_valued_coeffs!(PyQp13_4);
+
+    try_valued_coeffs!(PyQq2_4_2);
+    try_valued_coeffs!(PyQq2_4_3);
+    try_valued_coeffs!(PyQq2_4_4);
+    try_valued_coeffs!(PyQq3_4_2);
+    try_valued_coeffs!(PyQq5_4_2);
+    try_valued_coeffs!(PyQq3_4_3);
+
+    try_valued_coeffs!(PyLaurentRational6);
+    try_valued_coeffs!(PyLaurentFp3_6);
+    try_valued_coeffs!(PyLaurentFp5_6);
+    try_valued_coeffs!(PyLaurentFp7_6);
+    try_valued_coeffs!(PyLaurentFp11_6);
+    try_valued_coeffs!(PyLaurentFp13_6);
+    try_valued_coeffs!(PyLaurentF9_6);
+    try_valued_coeffs!(PyLaurentF25_6);
+    try_valued_coeffs!(PyLaurentF27_6);
+
+    try_valued_coeffs!(PyRamifiedQp2_4E2);
+    try_valued_coeffs!(PyRamifiedQp3_4E2);
+    try_valued_coeffs!(PyRamifiedQp5_4E2);
+    try_valued_coeffs!(PyRamifiedQp7_4E2);
+    try_valued_coeffs!(PyRamifiedQp11_4E2);
+    try_valued_coeffs!(PyRamifiedQp13_4E2);
+    try_valued_coeffs!(PyRamifiedQp2_4E3);
+    try_valued_coeffs!(PyRamifiedQp3_4E3);
+    try_valued_coeffs!(PyRamifiedQp5_4E3);
+    try_valued_coeffs!(PyRamifiedQp7_4E3);
+    try_valued_coeffs!(PyRamifiedQp11_4E3);
+    try_valued_coeffs!(PyRamifiedQp13_4E3);
+
+    try_valued_coeffs!(PyGaussQp2_4);
+    try_valued_coeffs!(PyGaussQp3_4);
+    try_valued_coeffs!(PyGaussQp5_4);
+    try_valued_coeffs!(PyGaussQp7_4);
+    try_valued_coeffs!(PyGaussQp11_4);
+    try_valued_coeffs!(PyGaussQp13_4);
+
+    Err(PyTypeError::new_err(
+        "newton_polygon expects a homogeneous list of typed Qp/Qq/Laurent/Ramified/Gauss coefficients",
+    ))
+}
+
+#[pyfunction]
+fn tropicalize(x: &Bound<'_, PyAny>) -> PyResult<PyMinPlusTropical> {
+    macro_rules! try_valued_scalar {
+        ($py:ty) => {
+            if let Ok(value) = x.cast::<$py>() {
+                return Ok(PyMinPlusTropical {
+                    inner: crate::scalar::tropicalize(&value.borrow().inner),
+                });
+            }
+        };
+    }
+
+    try_valued_scalar!(PyQp2_4);
+    try_valued_scalar!(PyQp3_4);
+    try_valued_scalar!(PyQp5_4);
+    try_valued_scalar!(PyQp7_4);
+    try_valued_scalar!(PyQp11_4);
+    try_valued_scalar!(PyQp13_4);
+
+    try_valued_scalar!(PyQq2_4_2);
+    try_valued_scalar!(PyQq2_4_3);
+    try_valued_scalar!(PyQq2_4_4);
+    try_valued_scalar!(PyQq3_4_2);
+    try_valued_scalar!(PyQq5_4_2);
+    try_valued_scalar!(PyQq3_4_3);
+
+    try_valued_scalar!(PyLaurentRational6);
+    try_valued_scalar!(PyLaurentFp3_6);
+    try_valued_scalar!(PyLaurentFp5_6);
+    try_valued_scalar!(PyLaurentFp7_6);
+    try_valued_scalar!(PyLaurentFp11_6);
+    try_valued_scalar!(PyLaurentFp13_6);
+    try_valued_scalar!(PyLaurentF9_6);
+    try_valued_scalar!(PyLaurentF25_6);
+    try_valued_scalar!(PyLaurentF27_6);
+
+    try_valued_scalar!(PyRamifiedQp2_4E2);
+    try_valued_scalar!(PyRamifiedQp3_4E2);
+    try_valued_scalar!(PyRamifiedQp5_4E2);
+    try_valued_scalar!(PyRamifiedQp7_4E2);
+    try_valued_scalar!(PyRamifiedQp11_4E2);
+    try_valued_scalar!(PyRamifiedQp13_4E2);
+    try_valued_scalar!(PyRamifiedQp2_4E3);
+    try_valued_scalar!(PyRamifiedQp3_4E3);
+    try_valued_scalar!(PyRamifiedQp5_4E3);
+    try_valued_scalar!(PyRamifiedQp7_4E3);
+    try_valued_scalar!(PyRamifiedQp11_4E3);
+    try_valued_scalar!(PyRamifiedQp13_4E3);
+
+    try_valued_scalar!(PyGaussQp2_4);
+    try_valued_scalar!(PyGaussQp3_4);
+    try_valued_scalar!(PyGaussQp5_4);
+    try_valued_scalar!(PyGaussQp7_4);
+    try_valued_scalar!(PyGaussQp11_4);
+    try_valued_scalar!(PyGaussQp13_4);
+
+    Err(PyTypeError::new_err(
+        "tropicalize expects a typed Qp/Qq/Laurent/Ramified/Gauss scalar",
+    ))
+}
+
 #[pyclass(name = "Rational", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyRational {
@@ -3605,7 +4150,7 @@ impl PyRational {
     }
     #[staticmethod]
     fn integer(n: i128) -> Self {
-        wrap_rational(Rational::int(n))
+        wrap_rational(Rational::from_int(n))
     }
     #[staticmethod]
     fn characteristic() -> u128 {
@@ -3709,7 +4254,7 @@ impl PyRational {
         Ok(op.matches(self.inner.cmp(&parse_rational(other)?)))
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -3718,7 +4263,7 @@ pub(crate) fn parse_rational(obj: &Bound<'_, PyAny>) -> PyResult<Rational> {
         return Ok(q.borrow().inner.clone());
     }
     if let Ok(i) = obj.cast::<PyInteger>() {
-        return Ok(Rational::int(i.borrow().inner.0));
+        return Ok(Rational::from_int(i.borrow().inner.0));
     }
     if let Ok((num, den)) = obj.extract::<(i128, i128)>() {
         return Rational::try_new(num, den).ok_or_else(|| {
@@ -3726,7 +4271,7 @@ pub(crate) fn parse_rational(obj: &Bound<'_, PyAny>) -> PyResult<Rational> {
         });
     }
     if let Ok(v) = obj.extract::<i128>() {
-        return Ok(Rational::int(v));
+        return Ok(Rational::from_int(v));
     }
     Err(PyTypeError::new_err(
         "expected Rational, Integer, int, or (num, den) tuple",
@@ -3828,6 +4373,14 @@ impl PySurreal {
             inner: self.inner.mul(&oi),
         })
     }
+    fn rem(&self, modulus: &Bound<'_, PyAny>) -> PyResult<PySurreal> {
+        self.inner
+            .rem(&parse_surreal(modulus)?)
+            .map(|inner| PySurreal { inner })
+            .ok_or_else(|| {
+                PyValueError::new_err("surreal remainder needs a monic omega-power modulus")
+            })
+    }
     fn __pow__(&self, n: u128, modulo: Option<&Bound<'_, PyAny>>) -> PyResult<PySurreal> {
         if modulo.is_some() {
             return Err(PyValueError::new_err(
@@ -3917,7 +4470,7 @@ impl PySurreal {
     }
     /// The floor ⌊x⌋ as an `Omnific` integer.
     fn omnific_floor(&self) -> PyOmnific {
-        wrap_omnific(Omnific::floor(&self.inner))
+        wrap_omnific(Omnific::from_floor(&self.inner))
     }
     /// The fractional part `x − ⌊x⌋`, in `[0, 1)`.
     fn frac(&self) -> PySurreal {
@@ -3957,12 +4510,13 @@ impl PySurreal {
     fn as_ordinal(&self) -> Option<PyOrdinal> {
         self.inner.as_ordinal().map(PyOrdinal::from_inner)
     }
-    /// Embed an ordinal as the corresponding surreal ordinal.
+    /// Embed an ordinal as the corresponding surreal ordinal. Errors if a
+    /// coefficient exceeds the surreal's i128 range.
     #[staticmethod]
-    fn from_ordinal(o: &PyOrdinal) -> PySurreal {
-        PySurreal {
-            inner: Surreal::from_ordinal(o.as_ordinal()),
-        }
+    fn from_ordinal(o: &PyOrdinal) -> PyResult<PySurreal> {
+        Surreal::from_ordinal(o.as_ordinal())
+            .map(|inner| PySurreal { inner })
+            .ok_or_else(|| PyValueError::new_err("ordinal coefficient exceeds surreal i128 range"))
     }
     /// The **truncated inverse** `1/x` to `n` leading terms (Neumann series) —
     /// works for non-monomials too, unlike [`inv`](Self::inv). Errors on `0`.
@@ -4021,7 +4575,7 @@ impl PySurreal {
             .map(PySignExpansion::from_inner)
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -4204,9 +4758,9 @@ impl PySurcomplex {
     }
     fn __repr__(&self) -> String {
         if self.inner.im.is_zero() {
-            format!("{:?}", self.inner.re)
+            format!("{}", self.inner.re)
         } else {
-            format!("{:?} + ({:?})i", self.inner.re, self.inner.im)
+            format!("{} + ({})i", self.inner.re, self.inner.im)
         }
     }
 }
@@ -4300,25 +4854,52 @@ impl PyInteger {
             .map(wrap_integer)
             .ok_or_else(|| PyValueError::new_err("Z is a ring: only ±1 are invertible"))
     }
+    fn divrem(&self, divisor: &Bound<'_, PyAny>) -> PyResult<(PyInteger, PyInteger)> {
+        let divisor = parse_integer(divisor)?;
+        self.inner
+            .divrem(&divisor)
+            .map(|(q, r)| (wrap_integer(q), wrap_integer(r)))
+            .ok_or_else(|| PyValueError::new_err("integer division by zero"))
+    }
+    fn rem(&self, divisor: &Bound<'_, PyAny>) -> PyResult<PyInteger> {
+        let divisor = parse_integer(divisor)?;
+        self.inner
+            .rem(&divisor)
+            .map(wrap_integer)
+            .ok_or_else(|| PyValueError::new_err("integer remainder by zero"))
+    }
+    fn div_exact(&self, divisor: &Bound<'_, PyAny>) -> PyResult<PyInteger> {
+        Ok(wrap_integer(integer_div_exact_py(
+            &self.inner,
+            &parse_integer(divisor)?,
+        )?))
+    }
+    fn __mod__(&self, divisor: &Bound<'_, PyAny>) -> PyResult<PyInteger> {
+        self.rem(divisor)
+    }
+    fn __rmod__(&self, dividend: &Bound<'_, PyAny>) -> PyResult<PyInteger> {
+        parse_integer(dividend)?
+            .rem(&self.inner)
+            .map(wrap_integer)
+            .ok_or_else(|| PyValueError::new_err("integer remainder by zero"))
+    }
     fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyInteger> {
-        let rhs = parse_integer(other)?;
-        let rinv = rhs
-            .inv()
-            .ok_or_else(|| PyValueError::new_err("integer divisor is not a unit"))?;
-        Ok(wrap_integer(self.inner.mul(&rinv)))
+        Ok(wrap_integer(integer_div_exact_py(
+            &self.inner,
+            &parse_integer(other)?,
+        )?))
     }
     fn __rtruediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyInteger> {
-        let si = self
-            .inner
-            .inv()
-            .ok_or_else(|| PyValueError::new_err("integer divisor is not a unit"))?;
-        Ok(wrap_integer(parse_integer(other)?.mul(&si)))
+        Ok(wrap_integer(integer_div_exact_py(
+            &parse_integer(other)?,
+            &self.inner,
+        )?))
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(parse_integer(other), Ok(n) if n == self.inner)
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        Ok(op.matches(std::cmp::Ord::cmp(&self.inner, &parse_integer(other)?)))
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -4391,7 +4972,7 @@ impl PyOmnific {
     }
     #[staticmethod]
     fn floor(s: &PySurreal) -> Self {
-        wrap_omnific(Omnific::floor(&s.inner))
+        wrap_omnific(Omnific::from_floor(&s.inner))
     }
     #[staticmethod]
     fn characteristic() -> u128 {
@@ -4449,6 +5030,14 @@ impl PyOmnific {
             .map(|o| PyOmnific { inner: o })
             .ok_or_else(|| PyValueError::new_err("Oz is a ring: only ±1 are invertible"))
     }
+    fn rem(&self, modulus: &Bound<'_, PyAny>) -> PyResult<PyOmnific> {
+        self.inner
+            .rem(&parse_omnific(modulus)?)
+            .map(wrap_omnific)
+            .ok_or_else(|| {
+                PyValueError::new_err("omnific remainder needs a monic omega-power modulus")
+            })
+    }
     fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyOmnific> {
         let rhs = parse_omnific(other)?;
         let rinv = rhs
@@ -4463,11 +5052,11 @@ impl PyOmnific {
             .ok_or_else(|| PyValueError::new_err("omnific divisor is not a unit"))?;
         Ok(wrap_omnific(parse_omnific(other)?.mul(&si)))
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(parse_omnific(other), Ok(o) if o == self.inner)
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        Ok(op.matches(std::cmp::Ord::cmp(&self.inner, &parse_omnific(other)?)))
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner.inner())
+        format!("{}", self.inner.inner())
     }
 }
 
@@ -4577,7 +5166,7 @@ fn parse_local_qp_in_world(obj: &Bound<'_, PyAny>, p: u128, k: u128) -> PyResult
         return Ok(x);
     }
     if let Ok(v) = obj.extract::<i128>() {
-        return Ok(LocalQp::from_i128(p, k, v));
+        return Ok(LocalQp::from_int(p, k, v));
     }
     Err(PyTypeError::new_err(
         "expected LocalQp from the same (p,k) world or int",
@@ -4587,10 +5176,10 @@ fn parse_local_qp_in_world(obj: &Bound<'_, PyAny>, p: u128, k: u128) -> PyResult
 #[pymethods]
 impl PyLocalQp {
     #[staticmethod]
-    fn from_i128(p: u128, k: u128, value: i128) -> PyResult<Self> {
+    fn from_int(p: u128, k: u128, value: i128) -> PyResult<Self> {
         validate_local_qp_world(p, k)?;
         Ok(PyLocalQp {
-            inner: LocalQp::from_i128(p, k, value),
+            inner: LocalQp::from_int(p, k, value),
         })
     }
     #[staticmethod]
@@ -4707,7 +5296,7 @@ impl PyLocalQp {
         matches!(other.cast::<PyLocalQp>(), Ok(x) if x.borrow().inner == self.inner)
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -4716,7 +5305,7 @@ pub(crate) fn parse_adele(obj: &Bound<'_, PyAny>) -> PyResult<Adele> {
         return Ok(a.borrow().inner.clone());
     }
     if let Ok(v) = obj.extract::<i128>() {
-        return Ok(Adele::from_rational(&Rational::int(v)));
+        return Ok(Adele::from_rational(&Rational::from_int(v)));
     }
     Err(PyTypeError::new_err("expected Adele or int"))
 }
@@ -4948,7 +5537,7 @@ impl PyAdele {
         matches!(other.cast::<PyAdele>(), Ok(a) if a.borrow().inner == self.inner)
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -5027,7 +5616,7 @@ macro_rules! tropical_pyclass {
                 self.inner == other.inner
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.inner)
+                format!("{}", self.inner)
             }
         }
     };
@@ -5479,6 +6068,10 @@ impl PyOrdinal {
     fn is_zero(&self) -> bool {
         self.inner.is_zero()
     }
+    /// The nimber/game-value fuzzy relation: distinct ordinal nimbers are incomparable.
+    fn fuzzy(&self, other: &Bound<'_, PyAny>) -> PyResult<bool> {
+        Ok(self.inner.fuzzy(&parse_ordinal(other)?))
+    }
     /// Coefficients `[c₀, c₁, c₂]` if this ordinal is below `ω³`.
     fn as_below_omega3(&self) -> Option<Vec<u128>> {
         self.inner.as_below_omega3().map(Vec::from)
@@ -5500,7 +6093,7 @@ impl PyOrdinal {
         op.matches(self.inner.cmp(&other.inner))
     }
     fn __repr__(&self) -> String {
-        format!("{:?}", self.inner)
+        format!("{}", self.inner)
     }
 }
 
@@ -5533,6 +6126,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFp11RationalFunction>()?;
     m.add_class::<PyFp13Poly>()?;
     m.add_class::<PyFp13RationalFunction>()?;
+    m.add_class::<PyIntegerPoly>()?;
     m.add_class::<PyZp2_4>()?;
     m.add_class::<PyZp3_4>()?;
     m.add_class::<PyZp5_4>()?;
@@ -5594,6 +6188,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAdele>()?;
     m.add_class::<PyMaxPlusTropical>()?;
     m.add_class::<PyMinPlusTropical>()?;
+    m.add_class::<PyNewtonPolygon>()?;
     m.add_class::<PyOrdinal>()?;
     m.add_class::<PySignExpansion>()?;
     m.add_function(wrap_pyfunction!(omnific, m)?)?;
@@ -5624,5 +6219,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(nim_discrete_log, m)?)?;
     m.add_function(wrap_pyfunction!(adele_prec, m)?)?;
     m.add_function(wrap_pyfunction!(min_coeff_valuation, m)?)?;
+    m.add_function(wrap_pyfunction!(newton_polygon, m)?)?;
+    m.add_function(wrap_pyfunction!(tropicalize, m)?)?;
     Ok(())
 }

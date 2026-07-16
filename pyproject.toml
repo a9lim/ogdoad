@@ -4,12 +4,61 @@ build-backend = "maturin"
 
 [project]
 name = "ogdoad"
-version = "0.0.0"
+# Version is dynamic: maturin reads it from Cargo.toml, the one source of truth
+# (the release workflow's guard reads the same field).
+dynamic = ["version"]
 description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games"
+readme = "README.md"
 requires-python = ">=3.9"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
+authors = [{ name = "a9lim", email = "mx@a9l.im" }]
+keywords = [
+    "clifford-algebra",
+    "geometric-algebra",
+    "quadratic-forms",
+    "surreal-numbers",
+    "nimbers",
+    "combinatorial-game-theory",
+    "p-adic",
+    "witt-vectors",
+    "number-theory",
+    "abstract-algebra",
+    "mathematics",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+Homepage = "https://github.com/a9lim/ogdoad"
+Repository = "https://github.com/a9lim/ogdoad"
+Documentation = "https://docs.rs/ogdoad"
+Issues = "https://github.com/a9lim/ogdoad/issues"
 
 [tool.maturin]
 features = ["python"]
 module-name = "ogdoad"
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+# F-rules (real bugs: unused/undefined names, star-import opacity) repo-wide;
+# W605 (invalid escapes) becomes a hard error instead of a runtime SyntaxWarning.
+select = ["E4", "E7", "E9", "F", "W605"]
+
+[tool.ruff.lint.per-file-ignores]
+# The rescued research archive (see docs/PY.md §0) keeps its dense one-liner
+# idiom: multiple-statements/ambiguous-names/late-imports are the house style
+# there, not defects.
+"experiments/gold/**" = ["E701", "E702", "E741", "E401", "E402", "E731"]
+"experiments/audit/**" = ["E701", "E702", "E741", "E401", "E402", "E731"]
+"experiments/excess/**" = ["E701", "E702", "E741", "E401", "E402", "E731"]
+"experiments/*.py" = ["E402", "E741", "E731"]
+"demo.py" = ["E501", "E702", "E731"]

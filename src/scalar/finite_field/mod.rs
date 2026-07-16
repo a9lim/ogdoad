@@ -4,9 +4,9 @@
 //!
 //!   * [`fp`] — `F_p`, the prime fields (odd characteristic): the residue field of
 //!     `Z_p`, and the base of every extension here.
-//!   * [`fpn`] — `F_{p^n}`, finite extension fields via shipped `(p,n)`-keyed
-//!     reduction polynomials. Completes the odd-char tower *and* the supported
-//!     char-2 odd-degree fields the nimbers cannot reach (currently `F_8`).
+//!   * [`fpn`] — `F_{p^n}`, finite extension fields via generated irreducible
+//!     reduction polynomials. Completes the odd-char tower *and* the char-2
+//!     odd-degree fields the nimbers cannot reach.
 //!   * [`nimber`] — `On₂` truncated to `F_{2^128}`: the char-2 nim-field where
 //!     `add = XOR` and `mul` is the coin-turning game product. The main char-2
 //!     backend; the only finite field that is also a game-value field.
@@ -39,18 +39,26 @@ use crate::scalar::Scalar;
 /// order, primitivity, discrete log — is one algorithm over that data, written
 /// once here as default methods.
 ///
-/// An impl supplies five things: the Frobenius map, integer exponentiation, the
-/// extension degree `[F : F_p]`, the order of `F*`, and the prime factors of that
-/// order. Backends with a sharper algorithm for a derived method (nimber's
-/// Pohlig–Hellman [`discrete_log`](FiniteField::discrete_log)) override it.
+/// An impl supplies four things: the Frobenius map, the extension degree
+/// `[F : F_p]`, the order of `F*`, and the prime factors of that order.
+/// Backends with a sharper algorithm for a derived method (nimber's
+/// Pohlig–Hellman [`discrete_log`](FiniteField::discrete_log), nimber's
+/// Fermat-tower [`pow`](FiniteField::pow)) override it.
 pub trait FiniteField: Scalar + Copy {
     /// The Frobenius endomorphism `x ↦ x^p` — the generator of `Gal(F / F_p)`.
     fn frobenius(&self) -> Self;
 
-    /// Exponentiation `self^e` by an ordinary integer exponent.
-    fn pow(&self, e: u128) -> Self;
+    /// Exponentiation `self^e` by an ordinary integer exponent. Defaults to the
+    /// supertrait's [`Scalar::pow`] (square-and-multiply); nimber overrides this
+    /// with the sharper Fermat-tower `nim_pow`.
+    fn pow(&self, e: u128) -> Self {
+        Scalar::pow(self, e)
+    }
 
-    /// The extension degree `[F : F_p]`, so `|F| = p^{ext_degree}`.
+    /// The **absolute** degree `[F : F_p]` over the prime field, so `|F| = p^{ext_degree}`.
+    /// Distinct from [`FieldExtension::extension_degree`](crate::scalar::FieldExtension::extension_degree),
+    /// which is the *relative* degree over a chosen `Base` and coincides with this only
+    /// when `Base` is the prime field.
     fn ext_degree() -> usize;
 
     /// The order of the multiplicative group `F* = |F| − 1`.
@@ -156,7 +164,7 @@ pub trait FiniteField: Scalar + Copy {
         }
         let mut ord = Self::group_order();
         for p in Self::group_order_factors() {
-            while ord % p == 0 && self.pow(ord / p) == Self::one() {
+            while ord % p == 0 && FiniteField::pow(self, ord / p) == Self::one() {
                 ord /= p;
             }
         }

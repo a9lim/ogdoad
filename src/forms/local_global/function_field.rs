@@ -1,6 +1,6 @@
 //! Places, the Hilbert symbol, and Hilbert reciprocity over the **global function
 //! field** `F_q(t)` — the equal-characteristic (char `p`) mirror of
-//! [`forms::padic`](crate::forms::padic) over `ℚ`.
+//! [`forms::padic`](crate::forms) over `ℚ`.
 //!
 //! `F_q(t)` is a global field exactly like `ℚ`, with one structural simplification
 //! and one structural difference:
@@ -23,19 +23,58 @@
 //!
 //! Entries are elements of [`RationalFunction`] `= F_q(t)`; everything reduces to
 //! [`Poly`] arithmetic over `F_q`, with the residue quadratic character computed by
-//! Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)`.
+//! Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)`. Bridge K's tame Kummer helpers
+//! use the same place data, replacing the quadratic character by the full tame symbol
+//! when `μ_n` already lives in the constant field.
 
 use crate::forms::{is_square_finite, FiniteOddField};
-use crate::scalar::{Poly, RationalFunction, Scalar};
+use crate::scalar::{Poly, Rational, RationalFunction, Scalar};
 
-/// A place of `F_q(t)`: the degree place `∞`, or a finite place given by a monic
-/// irreducible `π(t)`. The mirror of [`Place`](crate::forms::Place)`{Real,Prime}`.
+/// A place of the rational function field `F_q(t)`: the degree place `∞`, or a finite
+/// place given by a monic irreducible `π(t)`. The mirror of
+/// [`Place`](crate::forms::Place)`{Real,Prime}` over `ℚ`.
+///
+/// One type for **both** characteristic regimes: the odd-`q` tame-symbol layer here
+/// and the characteristic-2 Artin–Schreier layer in
+/// [`function_field_char2`](crate::forms) share the *same*
+/// places — the structural payload (a uniformizer, finite or the degree place) does
+/// not depend on the residue characteristic. The type is generic over `S: Scalar`;
+/// the residue-arithmetic bounds (`FiniteOddField` / `FiniteChar2Field`) stay on the
+/// functions and impls that read the residue field, not on the place itself.
+///
+/// **Precondition on `Finite`:** the payload must be a monic irreducible polynomial
+/// over `F_q` — that is what makes `κ = F_q[t]/(π)` a field, so that `q^{deg π}` is a
+/// genuine field order (the assumption every `try_kappa_order`-rooted symbol function
+/// below makes). The type does not check this at construction: a full irreducibility
+/// test costs a factorization, which every place-*producing* function here
+/// ([`try_relevant_places_ff`], [`monic_irreducible_factors`]) already pays once, so
+/// paying it again on every symbol call would be a needless per-call cost on the hot
+/// path. Passing a reducible or non-monic `Finite` payload to a symbol/valuation
+/// function (`try_kappa_order`, [`try_valuation_at_ff`], `try_residue_unit_at`,
+/// `try_chi_kappa`, [`try_hilbert_symbol_ff`], …) is silently accepted and produces
+/// a **meaningless**, not erroneous, result; `try_kappa_order` and
+/// [`try_valuation_at_ff`] — the two base entry points every other function in this
+/// module routes through — `debug_assert!` the precondition, so violations panic in
+/// debug/test builds and are free in release. The one uncontrolled input boundary,
+/// `py::forms::parse_ff_place`, checks irreducibility unconditionally instead, since
+/// it cannot rely on the caller having produced the place via factorization.
 #[derive(Debug, Clone, PartialEq)]
-pub enum FFPlace<S: FiniteOddField> {
+pub enum FunctionFieldPlace<S: Scalar> {
     /// The degree place `∞` (uniformizer `1/t`, residue field `F_q`).
     Infinite,
     /// A finite place: a monic irreducible `π(t)` (residue field `F_q[t]/(π)`).
     Finite(Poly<S>),
+}
+
+impl<S: Scalar> Eq for FunctionFieldPlace<S> {}
+
+impl<S: Scalar> std::fmt::Display for FunctionFieldPlace<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FunctionFieldPlace::Infinite => f.write_str("∞"),
+            FunctionFieldPlace::Finite(pi) => write!(f, "{pi}"),
+        }
+    }
 }
 
 // ───────────────────────── factorization over F_q ─────────────────────────
@@ -72,36 +111,58 @@ fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (i128, Poly<S>) {
 // ───────────────────────── per-place local data ─────────────────────────
 
 /// The residue field order `|κ| = q^{deg π}` (or `q` at the degree place).
-fn try_kappa_order<S: FiniteOddField>(place: &FFPlace<S>) -> Option<u128> {
+///
+/// One of the two base entry points that `debug_assert!` the [`FunctionFieldPlace::Finite`]
+/// irreducibility precondition (release builds skip the check; the assumption is
+/// still silently made, just unverified). The check runs only once a genuine `Some`
+/// order is about to be returned — not before the `checked_pow` overflow guard —
+/// since an overflow returns `None` regardless of whether `pi` is irreducible, and
+/// that `None` is not a "meaningless success" the precondition needs to catch.
+pub(crate) fn try_kappa_order<S: FiniteOddField>(place: &FunctionFieldPlace<S>) -> Option<u128> {
     let q = S::field_order();
     match place {
-        FFPlace::Finite(pi) => {
+        FunctionFieldPlace::Finite(pi) => {
             let deg = pi
                 .degree()
                 .expect("an irreducible has degree ≥ 1")
                 .try_into()
                 .ok()?;
-            q.checked_pow(deg)
+            let order = q.checked_pow(deg)?;
+            debug_assert!(
+                monic_irreducible_factors(pi) == vec![pi.clone()],
+                "FunctionFieldPlace::Finite must carry a monic irreducible polynomial \
+                 (q^deg(π) is a field order only when π is prime in F_q[t])"
+            );
+            Some(order)
         }
-        FFPlace::Infinite => Some(q),
+        FunctionFieldPlace::Infinite => Some(q),
     }
 }
 
 /// The valuation `v_place(a)` of a **nonzero** `a ∈ F_q(t)`.
+///
+/// The other base entry point (with `try_kappa_order`) that `debug_assert!`s the
+/// [`FunctionFieldPlace::Finite`] irreducibility precondition: the `π`-adic
+/// multiplicity below is only a discrete valuation when `π` is prime in `F_q[t]`.
 pub fn try_valuation_at_ff<S: FiniteOddField>(
     a: &RationalFunction<S>,
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<i128> {
     if a.is_zero() {
         return None;
     }
     Some(match place {
-        FFPlace::Finite(pi) => {
+        FunctionFieldPlace::Finite(pi) => {
+            debug_assert!(
+                monic_irreducible_factors(pi) == vec![pi.clone()],
+                "FunctionFieldPlace::Finite must carry a monic irreducible polynomial \
+                 (the π-adic multiplicity is a discrete valuation only when π is prime in F_q[t])"
+            );
             let (mn, _) = strip_factor(a.num().clone(), pi);
             let (md, _) = strip_factor(a.den().clone(), pi);
             mn - md
         }
-        FFPlace::Infinite => {
+        FunctionFieldPlace::Infinite => {
             let dn = a.num().degree().expect("nonzero numerator") as i128;
             let dd = a.den().degree().expect("monic nonzero denominator") as i128;
             dd - dn // v_∞ = deg(den) − deg(num)
@@ -112,15 +173,15 @@ pub fn try_valuation_at_ff<S: FiniteOddField>(
 /// The residue unit `(a / ϖ^{v(a)}) mod ϖ ∈ κ*` of a **nonzero** `a`, as an element
 /// of the residue field: a [`Poly`] of degree `< deg π` at a finite place, or a
 /// constant (an `F_q` element) at the degree place.
-fn try_residue_unit_at<S: FiniteOddField>(
+pub(crate) fn try_residue_unit_at<S: FiniteOddField>(
     a: &RationalFunction<S>,
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<Poly<S>> {
     if a.is_zero() {
         return None;
     }
     match place {
-        FFPlace::Finite(pi) => {
+        FunctionFieldPlace::Finite(pi) => {
             let (_, num_s) = strip_factor(a.num().clone(), pi);
             let (_, den_s) = strip_factor(a.den().clone(), pi);
             let num_mod = num_s.rem(pi);
@@ -129,7 +190,7 @@ fn try_residue_unit_at<S: FiniteOddField>(
             let den_inv = den_mod.pow_mod(try_kappa_order(place)?.checked_sub(2)?, pi);
             Some(num_mod.mul_mod(&den_inv, pi))
         }
-        FFPlace::Infinite => {
+        FunctionFieldPlace::Infinite => {
             // a·t^{v_∞} → (lead num)/(lead den) as t → ∞.
             let ln = *a.num().leading().expect("nonzero numerator");
             let ld = *a.den().leading().expect("monic nonzero denominator");
@@ -141,9 +202,12 @@ fn try_residue_unit_at<S: FiniteOddField>(
 /// The residue quadratic character `χ_κ(u) ∈ {+1, −1}` of a **nonzero** residue
 /// unit `u ∈ κ*` — Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)` (or in `F_q`
 /// at the degree place).
-fn try_chi_kappa<S: FiniteOddField>(unit: &Poly<S>, place: &FFPlace<S>) -> Option<i128> {
+pub(crate) fn try_chi_kappa<S: FiniteOddField>(
+    unit: &Poly<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Option<i128> {
     match place {
-        FFPlace::Finite(pi) => {
+        FunctionFieldPlace::Finite(pi) => {
             let e = (try_kappa_order(place)?.checked_sub(1)?) / 2;
             Some(if unit.pow_mod(e, pi) == Poly::one() {
                 1
@@ -151,7 +215,7 @@ fn try_chi_kappa<S: FiniteOddField>(unit: &Poly<S>, place: &FFPlace<S>) -> Optio
                 -1 // the unique order-2 element of κ* is −1
             })
         }
-        FFPlace::Infinite => Some(if is_square_finite::<S>(unit.coeff(0)) {
+        FunctionFieldPlace::Infinite => Some(if is_square_finite::<S>(unit.coeff(0)) {
             1
         } else {
             -1
@@ -164,7 +228,7 @@ fn try_chi_kappa<S: FiniteOddField>(unit: &Poly<S>, place: &FFPlace<S>) -> Optio
 /// [`try_is_square_qp`](crate::forms::try_is_square_qp).
 pub fn try_is_local_square_ff<S: FiniteOddField>(
     a: &RationalFunction<S>,
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<bool> {
     if a.is_zero() {
         return Some(false);
@@ -187,7 +251,7 @@ pub fn try_is_local_square_ff<S: FiniteOddField>(
 pub fn try_hilbert_symbol_ff<S: FiniteOddField>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<i128> {
     if a.is_zero() || b.is_zero() {
         return None;
@@ -204,9 +268,7 @@ pub fn try_hilbert_symbol_ff<S: FiniteOddField>(
     };
     // Exactly the shared tame symbol — the same machine as the odd-`p` Q_p branch,
     // with the residue character `χ_κ` in place of the Legendre symbol.
-    Some(crate::forms::padic::tame_hilbert_symbol(
-        al, be, ca, cb, chi_neg1,
-    ))
+    Some(crate::forms::tame_hilbert_symbol(al, be, ca, cb, chi_neg1))
 }
 
 // ───────────────────────── Hasse invariant + reciprocity ─────────────────────────
@@ -215,10 +277,10 @@ pub fn try_hilbert_symbol_ff<S: FiniteOddField>(
 /// some entry has nonzero valuation (the monic irreducible factors of all
 /// numerators and denominators), plus the degree place `∞`. At every other place
 /// all entries are units, so every symbol is `+1`. Mirror of
-/// [`relevant_primes`](crate::forms::padic).
+/// [`relevant_primes`](crate::forms).
 pub fn try_relevant_places_ff<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
-) -> Option<Vec<FFPlace<S>>> {
+) -> Option<Vec<FunctionFieldPlace<S>>> {
     if entries.iter().any(|a| a.is_zero()) {
         return None;
     }
@@ -233,8 +295,9 @@ pub fn try_relevant_places_ff<S: FiniteOddField>(
             }
         }
     }
-    let mut places: Vec<FFPlace<S>> = polys.into_iter().map(FFPlace::Finite).collect();
-    places.push(FFPlace::Infinite);
+    let mut places: Vec<FunctionFieldPlace<S>> =
+        polys.into_iter().map(FunctionFieldPlace::Finite).collect();
+    places.push(FunctionFieldPlace::Infinite);
     Some(places)
 }
 
@@ -242,7 +305,7 @@ pub fn try_relevant_places_ff<S: FiniteOddField>(
 /// `_ff` suffix distinguishes it from the `ℚ` [`try_hasse_at_place`](crate::forms::try_hasse_at_place).
 pub fn try_hasse_at_place_ff<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<i128> {
     let mut h = 1i128;
     for i in 0..entries.len() {
@@ -305,12 +368,12 @@ pub(crate) fn is_global_square_ff<S: FiniteOddField>(x: &RationalFunction<S>) ->
 
 /// Local isotropy of a nondegenerate diagonal form `⟨a_1,…,a_n⟩` over the
 /// completion of `F_q(t)` at `place`, by rank — the exact mirror of
-/// [`try_is_isotropic_at_p`](crate::forms::padic) (`F_q(t)` and `Q_p` share the
+/// [`try_is_isotropic_at_p`](crate::forms) (`F_q(t)` and `Q_p` share the
 /// u-invariant `4`, so the thresholds match): `n≤1` never, `n=2` iff `−a_1a_2` is a
 /// local square, `n=3`/`4` the Hilbert conditions, `n≥5` always. Entries nonzero.
 pub fn try_is_isotropic_at_place_ff<S: FiniteOddField>(
     entries: &[RationalFunction<S>],
-    place: &FFPlace<S>,
+    place: &FunctionFieldPlace<S>,
 ) -> Option<bool> {
     if entries.iter().any(|a| a.is_zero()) {
         return Some(true);
@@ -348,13 +411,31 @@ pub fn try_is_isotropic_ff<S: FiniteOddField>(entries: &[RationalFunction<S>]) -
 #[derive(Debug, Clone)]
 pub struct FFAdelicIsotropy<S: FiniteOddField> {
     /// `(place, is_isotropic_there)` at each relevant place.
-    pub local: Vec<(FFPlace<S>, bool)>,
+    pub local: Vec<(FunctionFieldPlace<S>, bool)>,
 }
 
 impl<S: FiniteOddField> FFAdelicIsotropy<S> {
     /// Globally isotropic ⟺ isotropic at every place (Hasse–Minkowski).
     pub fn is_global(&self) -> bool {
         self.local.iter().all(|(_, iso)| *iso)
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl<S: FiniteOddField> std::fmt::Display for FFAdelicIsotropy<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FFAdelicIsotropy(local=[")?;
+        for (i, (place, iso)) in self.local.iter().enumerate() {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{place}={iso}")?;
+        }
+        write!(f, "], is_global={})", self.is_global())
     }
 }
 
@@ -380,8 +461,268 @@ pub fn try_isotropy_over_ff_adeles<S: FiniteOddField>(
 pub fn try_ramified_places_ff<S: FiniteOddField>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
-) -> Option<Vec<FFPlace<S>>> {
+) -> Option<Vec<FunctionFieldPlace<S>>> {
     <RationalFunction<S> as crate::forms::GlobalField>::try_ramified_places(a, b)
+}
+
+// ───────────────────── Bridge K: the constant-extension cyclic class ─────────────────────
+
+/// The canonical representative in `[0, 1)` of `m/n` mod `ℤ` (`n > 0`).
+fn frac_mod_one_ratio(m: i128, n: i128) -> Option<Rational> {
+    Rational::try_new(m.rem_euclid(n), n)
+}
+
+fn finite_order<S: FiniteOddField>(x: S) -> Option<u128> {
+    if x.is_zero() {
+        return None;
+    }
+    let group = S::field_order().checked_sub(1)?;
+    let mut cur = S::one();
+    for k in 1..=group {
+        cur = cur.mul(&x);
+        if cur == S::one() {
+            return Some(k);
+        }
+    }
+    None
+}
+
+fn constant_field_primitive<S: FiniteOddField>() -> Option<S> {
+    let group = S::field_order().checked_sub(1)?;
+    for i in 1..S::field_order() {
+        let g = S::from_index(i);
+        if finite_order(g) == Some(group) {
+            return Some(g);
+        }
+    }
+    None
+}
+
+fn kappa_mul<S: FiniteOddField>(
+    a: &Poly<S>,
+    b: &Poly<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Poly<S> {
+    match place {
+        FunctionFieldPlace::Finite(pi) => a.mul_mod(b, pi),
+        FunctionFieldPlace::Infinite => Poly::constant(a.coeff(0).mul(&b.coeff(0))),
+    }
+}
+
+fn kappa_pow<S: FiniteOddField>(
+    base: &Poly<S>,
+    mut e: u128,
+    place: &FunctionFieldPlace<S>,
+) -> Poly<S> {
+    let mut acc = Poly::one();
+    let mut b = base.clone();
+    while e > 0 {
+        if e & 1 == 1 {
+            acc = kappa_mul(&acc, &b, place);
+        }
+        e >>= 1;
+        if e > 0 {
+            b = kappa_mul(&b, &b, place);
+        }
+    }
+    acc
+}
+
+fn kappa_pow_signed<S: FiniteOddField>(
+    base: &Poly<S>,
+    e: i128,
+    place: &FunctionFieldPlace<S>,
+) -> Option<Poly<S>> {
+    if e >= 0 {
+        Some(kappa_pow(base, e as u128, place))
+    } else {
+        let inv = kappa_pow(base, try_kappa_order(place)?.checked_sub(2)?, place);
+        Some(kappa_pow(&inv, e.unsigned_abs(), place))
+    }
+}
+
+fn tame_symbol_raw_ff<S: FiniteOddField>(
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Option<Poly<S>> {
+    if a.is_zero() || b.is_zero() {
+        return None;
+    }
+    let alpha = try_valuation_at_ff(a, place)?;
+    let beta = try_valuation_at_ff(b, place)?;
+    let mut raw = if alpha.rem_euclid(2) == 1 && beta.rem_euclid(2) == 1 {
+        Poly::constant(S::one().neg())
+    } else {
+        Poly::one()
+    };
+    raw = kappa_mul(
+        &raw,
+        &kappa_pow_signed(&try_residue_unit_at(a, place)?, beta, place)?,
+        place,
+    );
+    raw = kappa_mul(
+        &raw,
+        &kappa_pow_signed(&try_residue_unit_at(b, place)?, -alpha, place)?,
+        place,
+    );
+    Some(raw)
+}
+
+fn kappa_log_with_order<S: FiniteOddField>(
+    base: &Poly<S>,
+    x: &Poly<S>,
+    order: u128,
+    place: &FunctionFieldPlace<S>,
+) -> Option<u128> {
+    let mut cur = Poly::one();
+    for e in 0..order {
+        if cur == *x {
+            return Some(e);
+        }
+        cur = kappa_mul(&cur, base, place);
+    }
+    None
+}
+
+/// The exponent `e ∈ {0, …, n−1}` of the tame Kummer symbol `(a,b)_v = ζ_n^e`
+/// over the completion of `F_q(t)` at `place`. The primitive root `ζ_n` is chosen
+/// in the **constant field** `F_q` (the first primitive generator of `F_q*`, raised
+/// to `(q−1)/n`) and then embedded into each residue field, so exponents at
+/// different places share one reciprocity convention.
+///
+/// Returns `None` when `a` or `b` is zero, `n = 0`, or `n ∤ q−1`; the last condition
+/// is the tame Kummer boundary `μ_n ⊂ F_q`.
+pub fn try_tame_symbol_exponent_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Option<u128> {
+    if n == 0 {
+        return None;
+    }
+    let constant_group = S::field_order().checked_sub(1)?;
+    if constant_group % n != 0 {
+        return None;
+    }
+    if n == 1 {
+        return Some(0);
+    }
+    let raw = tame_symbol_raw_ff(a, b, place)?;
+    let residue_group = try_kappa_order(place)?.checked_sub(1)?;
+    let value = kappa_pow(&raw, residue_group.checked_div(n)?, place);
+    let zeta = constant_field_primitive::<S>()?.pow(constant_group.checked_div(n)?);
+    kappa_log_with_order(&Poly::constant(zeta), &value, n, place)
+}
+
+/// The local invariant `e/n ∈ ℚ/ℤ` attached to
+/// [`try_tame_symbol_exponent_ff`], reduced to `[0,1)`.
+pub fn try_tame_symbol_invariant_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Option<Rational> {
+    let e = i128::try_from(try_tame_symbol_exponent_ff(n, a, b, place)?).ok()?;
+    let ni = i128::try_from(n).ok()?;
+    frac_mod_one_ratio(e, ni)
+}
+
+/// The nonzero tame-symbol local invariants of the Kummer cyclic class over
+/// `F_q(t)`, for `μ_n ⊂ F_q`. This is the ramified tame counterpart to
+/// [`constant_extension_invariants`]: it uses the tame symbol at zeros and poles of
+/// `a` and `b`, and leaves the wild case out.
+pub fn tame_symbol_invariants_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+) -> Option<Vec<(FunctionFieldPlace<S>, Rational)>> {
+    if a.is_zero() || b.is_zero() || n == 0 {
+        return None;
+    }
+    if S::field_order().checked_sub(1)? % n != 0 {
+        return None;
+    }
+    let mut out = Vec::new();
+    for place in try_relevant_places_ff(&[a.clone(), b.clone()])? {
+        let inv = try_tame_symbol_invariant_ff(n, a, b, &place)?;
+        if !inv.is_zero() {
+            out.push((place, inv));
+        }
+    }
+    Some(out)
+}
+
+/// The reciprocity sum `∑_v inv_v` mod `ℤ` of the tame Kummer symbol over
+/// `F_q(t)`. With the constant-field `ζ_n` convention used by
+/// [`try_tame_symbol_exponent_ff`], this is `0` for nonzero `a,b` whenever
+/// `μ_n ⊂ F_q`.
+pub fn tame_symbol_invariant_sum_ff<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+) -> Option<Rational> {
+    let invs = tame_symbol_invariants_ff(n, a, b)?;
+    let sum = invs
+        .into_iter()
+        .fold(Rational::from_int(0), |acc, (_, inv)| acc.add(&inv));
+    frac_mod_one_ratio(sum.numer(), sum.denom())
+}
+
+/// The local invariants `inv_v = deg(v)·v(a)/n (mod ℤ)` of the **constant-extension**
+/// cyclic algebra `(χ_σ, a)` over `K = F_q(t)`, where `E = F_{qⁿ}(t)` is the degree-`n`
+/// constant extension and `σ` is the `q`-power Frobenius. This is Bridge K at full
+/// **`ℚ/ℤ` strength** over a global field — and the function-field route is the *clean*
+/// one: a constant extension is **unramified at every place** (including `∞`), with
+/// `Frob_v = σ^{deg v}`, so the general local symbol collapses to the formula above and
+/// no ramified symbols are ever needed. (Over `ℚ`, by Minkowski every cyclic extension
+/// of degree `> 1` ramifies somewhere, so the `n > 2` story needs ramified symbols —
+/// out of this bridge's scope; here it falls out for free.)
+///
+/// Returns `(place, inv_v)` at each relevant place with nonzero invariant, mirroring
+/// the shape of [`brauer_local_invariants`](crate::forms::brauer_local_invariants)
+/// (a `Vec`, since [`FunctionFieldPlace`] is not `Ord`). Exact: only `deg(v)`, `v(a)`, and `n`
+/// are read. `None` if `a = 0` (not in `K*`), `n = 0`, or arithmetic overflows.
+///
+/// The reciprocity law `∑_v inv_v ≡ 0` ([`constant_extension_invariant_sum`]) is then
+/// `deg(div a)/n = 0` — the product formula the function-field layer already embodies.
+pub fn constant_extension_invariants<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+) -> Option<Vec<(FunctionFieldPlace<S>, Rational)>> {
+    if a.is_zero() || n == 0 {
+        return None;
+    }
+    let ni = i128::try_from(n).ok()?;
+    let mut out = Vec::new();
+    for place in try_relevant_places_ff(std::slice::from_ref(a))? {
+        let v = try_valuation_at_ff(a, &place)?;
+        let deg = match &place {
+            FunctionFieldPlace::Finite(pi) => i128::try_from(pi.degree()?).ok()?,
+            FunctionFieldPlace::Infinite => 1,
+        };
+        let inv = frac_mod_one_ratio(deg.checked_mul(v)?, ni)?;
+        if !inv.is_zero() {
+            out.push((place, inv));
+        }
+    }
+    Some(out)
+}
+
+/// The reciprocity sum `∑_v inv_v` mod `ℤ` of the constant-extension class — `0` for
+/// every nonzero `a` (full-`ℚ/ℤ`-strength Albert–Brauer–Hasse–Noether reciprocity over
+/// `F_q(t)`, equal to `deg(div a)/n = 0`). The function-field mirror of
+/// [`brauer_invariant_sum`](crate::forms::brauer_invariant_sum).
+pub fn constant_extension_invariant_sum<S: FiniteOddField>(
+    n: u128,
+    a: &RationalFunction<S>,
+) -> Option<Rational> {
+    let invs = constant_extension_invariants(n, a)?;
+    let sum = invs
+        .into_iter()
+        .fold(Rational::from_int(0), |acc, (_, inv)| acc.add(&inv));
+    frac_mod_one_ratio(sum.numer(), sum.denom())
 }
 
 #[cfg(test)]
@@ -394,12 +735,42 @@ mod tests {
 
     fn rf(num: &[i128], den: &[i128]) -> F {
         RationalFunction::new(
-            num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-            den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+            num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+            den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
         )
     }
     fn poly(c: &[i128]) -> PolyF {
-        Poly::new(c.iter().map(|&n| Fp::<5>::new(n)).collect())
+        Poly::new(c.iter().map(|&n| Fp::<5>::from_int(n)).collect())
+    }
+
+    // --- Display: exact-string render pins ---
+
+    #[test]
+    fn function_field_place_display_render_pin() {
+        assert_eq!(
+            FunctionFieldPlace::<Fp<5>>::Finite(poly(&[0, 1])).to_string(),
+            "t"
+        );
+        assert_eq!(
+            FunctionFieldPlace::<Fp<5>>::Finite(poly(&[1, 1])).to_string(),
+            "t + 1"
+        );
+        assert_eq!(FunctionFieldPlace::<Fp<5>>::Infinite.to_string(), "∞");
+    }
+
+    #[test]
+    fn ff_adelic_isotropy_display_render_pin() {
+        let iso = FFAdelicIsotropy::<Fp<5>> {
+            local: vec![
+                (FunctionFieldPlace::Finite(poly(&[0, 1])), true),
+                (FunctionFieldPlace::Infinite, false),
+            ],
+        };
+        assert_eq!(
+            iso.to_string(),
+            "FFAdelicIsotropy(local=[t=true, ∞=false], is_global=false)"
+        );
+        assert_eq!(iso.display(), iso.to_string());
     }
 
     #[test]
@@ -418,21 +789,34 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "monic irreducible polynomial")]
+    fn finite_place_precondition_rejects_reducible_polynomial() {
+        // x² − 1 = (x−1)(x+1) over F_5 is reducible: the FunctionFieldPlace::Finite
+        // precondition is violated, and try_kappa_order's debug_assert catches it
+        // (this test only exercises the debug/test build path, by design).
+        let reducible = FunctionFieldPlace::<Fp<5>>::Finite(poly(&[4, 0, 1]));
+        let _ = try_kappa_order(&reducible);
+    }
+
+    #[test]
     fn valuations_at_places() {
         // a = t / (t + 1)
         let a = rf(&[0, 1], &[1, 1]);
         assert_eq!(
-            try_valuation_at_ff(&a, &FFPlace::Finite(poly(&[0, 1]))),
+            try_valuation_at_ff(&a, &FunctionFieldPlace::Finite(poly(&[0, 1]))),
             Some(1)
         ); // at π = t
         assert_eq!(
-            try_valuation_at_ff(&a, &FFPlace::Finite(poly(&[1, 1]))),
+            try_valuation_at_ff(&a, &FunctionFieldPlace::Finite(poly(&[1, 1]))),
             Some(-1)
         ); // at π = t+1
-        assert_eq!(try_valuation_at_ff(&a, &FFPlace::Infinite), Some(0)); // deg den − deg num = 0
-                                                                          // 1/t² has a double pole at ∞? no: v_∞(1/t²) = deg(t²) − deg(1) = 2.
         assert_eq!(
-            try_valuation_at_ff(&rf(&[1], &[0, 0, 1]), &FFPlace::Infinite),
+            try_valuation_at_ff(&a, &FunctionFieldPlace::Infinite),
+            Some(0)
+        ); // deg den − deg num = 0
+           // 1/t² has a double pole at ∞? no: v_∞(1/t²) = deg(t²) − deg(1) = 2.
+        assert_eq!(
+            try_valuation_at_ff(&rf(&[1], &[0, 0, 1]), &FunctionFieldPlace::Infinite),
             Some(2)
         );
     }
@@ -440,7 +824,7 @@ mod tests {
     #[test]
     fn residue_field_order_overflow_returns_none() {
         let pi = Poly::<Fp<5>>::monomial(56, Fp::<5>::one()).add(&Poly::one());
-        assert_eq!(try_kappa_order(&FFPlace::Finite(pi)), None);
+        assert_eq!(try_kappa_order(&FunctionFieldPlace::Finite(pi)), None);
     }
 
     #[test]
@@ -452,10 +836,10 @@ mod tests {
             rf(&[0, 1], &[1, 1]),
         ];
         let places = [
-            FFPlace::Infinite,
-            FFPlace::Finite(poly(&[0, 1])),    // t
-            FFPlace::Finite(poly(&[1, 1])),    // t+1
-            FFPlace::Finite(poly(&[2, 0, 1])), // t²+2 (degree-2 place, residue F_25)
+            FunctionFieldPlace::Infinite,
+            FunctionFieldPlace::Finite(poly(&[0, 1])), // t
+            FunctionFieldPlace::Finite(poly(&[1, 1])), // t+1
+            FunctionFieldPlace::Finite(poly(&[2, 0, 1])), // t²+2 (degree-2 place, residue F_25)
         ];
         for a in &samples {
             for b in &samples {
@@ -467,7 +851,7 @@ mod tests {
                     );
                 }
                 // Steinberg: (a, −a)_v = 1.
-                let neg_a = a.mul(&F::from_base(Fp::<5>::new(-1)));
+                let neg_a = a.mul(&F::from_base(Fp::<5>::from_int(-1)));
                 for pl in &places {
                     assert_eq!(
                         try_hilbert_symbol_ff(a, &neg_a, pl),
@@ -510,9 +894,9 @@ mod tests {
         let b = rf(&[2], &[1]); // the nonsquare 2
         let ram = try_ramified_places_ff(&a, &b).unwrap();
         assert_eq!(ram.len(), 2, "even number of ramified places");
-        assert!(ram.contains(&FFPlace::Finite(poly(&[0, 1])))); // π = t
-        assert!(ram.contains(&FFPlace::Infinite)); // ∞
-                                                   // a split quaternion (a square second slot) ramifies nowhere.
+        assert!(ram.contains(&FunctionFieldPlace::Finite(poly(&[0, 1])))); // π = t
+        assert!(ram.contains(&FunctionFieldPlace::Infinite)); // ∞
+                                                              // a split quaternion (a square second slot) ramifies nowhere.
         assert!(try_ramified_places_ff(&a, &rf(&[4], &[1]))
             .unwrap()
             .is_empty()); // 4 = 2² is a square
@@ -567,11 +951,11 @@ mod tests {
         use crate::scalar::Laurent;
         type L5 = Laurent<Fp<5>, 4>;
         let lc = |cs: &[i128], v: i128| {
-            L5::from_coeffs(cs.iter().map(|&n| Fp::<5>::new(n)).collect(), v)
+            L5::from_coeffs(cs.iter().map(|&n| Fp::<5>::from_int(n)).collect(), v)
         };
 
         let pi = poly(&[4, 1]); // t − 1 over F_5
-        let place = FFPlace::Finite(pi.clone());
+        let place = FunctionFieldPlace::Finite(pi.clone());
 
         // ⟨ 2,  t−1,  t²+1 ⟩  — valuations 0,1,0 at π; residues 2 (nonsq), 1, 2.
         let ff = [
@@ -599,6 +983,144 @@ mod tests {
                 layer.valuation
             );
         }
+    }
+
+    #[test]
+    fn tame_symbol_quadratic_slice_matches_hilbert_symbol() {
+        let samples = [
+            rf(&[0, 1], &[1]),    // t
+            rf(&[2], &[1]),       // nonsquare constant
+            rf(&[1, 1], &[1]),    // t+1
+            rf(&[0, 1], &[1, 1]), // t/(t+1)
+        ];
+        let places = [
+            FunctionFieldPlace::Infinite,
+            FunctionFieldPlace::Finite(poly(&[0, 1])),
+            FunctionFieldPlace::Finite(poly(&[1, 1])),
+            FunctionFieldPlace::Finite(poly(&[2, 0, 1])),
+        ];
+        for a in &samples {
+            for b in &samples {
+                for place in &places {
+                    let exp = try_tame_symbol_exponent_ff(2, a, b, place).unwrap();
+                    let hilb = try_hilbert_symbol_ff(a, b, place).unwrap();
+                    assert_eq!(
+                        exp,
+                        if hilb == 1 { 0 } else { 1 },
+                        "quadratic tame slice at {place:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn tame_symbol_degree_four_convention_and_reciprocity() {
+        let t = rf(&[0, 1], &[1]);
+        let two = rf(&[2], &[1]); // first primitive generator of F_5*
+        let at_t = FunctionFieldPlace::Finite(poly(&[0, 1]));
+
+        assert_eq!(try_tame_symbol_exponent_ff(4, &two, &t, &at_t), Some(1));
+        assert_eq!(
+            try_tame_symbol_invariant_ff(4, &two, &t, &at_t),
+            Some(Rational::try_new(1, 4).unwrap())
+        );
+        assert_eq!(
+            try_tame_symbol_exponent_ff(4, &t, &two, &at_t),
+            Some(3),
+            "a^v(b)/b^v(a) makes the swapped symbol inverse"
+        );
+        assert_eq!(
+            try_tame_symbol_invariant_ff(4, &t, &two, &at_t),
+            Some(Rational::try_new(3, 4).unwrap())
+        );
+
+        let invs = tame_symbol_invariants_ff(4, &t, &two).unwrap();
+        assert_eq!(invs.len(), 2, "finite t-place plus infinity");
+        assert!(invs.contains(&(
+            FunctionFieldPlace::Finite(poly(&[0, 1])),
+            Rational::try_new(3, 4).unwrap()
+        )));
+        assert!(invs.contains(&(
+            FunctionFieldPlace::Infinite,
+            Rational::try_new(1, 4).unwrap()
+        )));
+        assert_eq!(
+            tame_symbol_invariant_sum_ff(4, &t, &two),
+            Some(Rational::zero())
+        );
+        assert_eq!(
+            tame_symbol_invariants_ff(3, &t, &two),
+            None,
+            "3 is tame at some residue extensions but μ_3 is not in F_5"
+        );
+        assert_eq!(tame_symbol_invariants_ff(4, &F::zero(), &two), None);
+    }
+
+    #[test]
+    fn constant_extension_reciprocity_full_strength() {
+        // Bridge K at full ℚ/ℤ strength: Σ_v deg(v)·v(a)/n ≡ 0 for constant extensions
+        // of *any* degree n (not only the 2-torsion ½-slice) — reduced to deg(div a)=0,
+        // with no ramified symbols (every place is unramified in a constant extension).
+        let samples = [
+            rf(&[0, 1], &[1]),       // t
+            rf(&[1, 1], &[1]),       // t+1
+            rf(&[0, 1], &[1, 1]),    // t/(t+1)
+            rf(&[2, 0, 1], &[1]),    // t²+2 (irreducible, a degree-2 place)
+            rf(&[0, 0, 1], &[2, 1]), // t²/(t+2)
+        ];
+        for n in [2u128, 3, 4, 5] {
+            for a in &samples {
+                assert_eq!(
+                    constant_extension_invariant_sum(n, a),
+                    Some(Rational::from_int(0)),
+                    "reciprocity n={n} a={a:?}"
+                );
+                // independent oracle: the divisor degree Σ deg(v)·v(a) = 0.
+                let mut div_deg = 0i128;
+                for place in try_relevant_places_ff(std::slice::from_ref(a)).unwrap() {
+                    let v = try_valuation_at_ff(a, &place).unwrap();
+                    let deg = match &place {
+                        FunctionFieldPlace::Finite(pi) => pi.degree().unwrap() as i128,
+                        FunctionFieldPlace::Infinite => 1,
+                    };
+                    div_deg += deg * v;
+                }
+                assert_eq!(div_deg, 0, "deg(div a)=0 for a={a:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn constant_extension_image_is_full_and_good_places_split() {
+        // a unit (nonzero constant) is unramified everywhere ⇒ empty invariant map.
+        assert_eq!(
+            constant_extension_invariants(3, &rf(&[2], &[1])),
+            Some(vec![])
+        );
+        // the image hits the full (1/n)ℤ/ℤ: at π = t (v=1, deg=1), inv = 1/3 for n=3.
+        let invs = constant_extension_invariants(3, &rf(&[0, 1], &[1])).unwrap();
+        let at_t = invs
+            .iter()
+            .find(|(pl, _)| *pl == FunctionFieldPlace::Finite(poly(&[0, 1])))
+            .map(|(_, r)| r.clone());
+        assert_eq!(at_t, Some(Rational::try_new(1, 3).unwrap()));
+        // a degree-2 place carries deg(v)=2: at π = t²+2 (v=1), inv = 2/3 for n=3 —
+        // a value invisible to the 2-torsion Bridge F surface.
+        let invs_b = constant_extension_invariants(3, &rf(&[2, 0, 1], &[1])).unwrap();
+        let at_b = invs_b
+            .iter()
+            .find(|(pl, _)| *pl == FunctionFieldPlace::Finite(poly(&[2, 0, 1])))
+            .map(|(_, r)| r.clone());
+        assert_eq!(at_b, Some(Rational::try_new(2, 3).unwrap()));
+        // n=1 (trivial extension, split Brauer): everything splits.
+        assert_eq!(
+            constant_extension_invariants(1, &rf(&[0, 1], &[1])),
+            Some(vec![])
+        );
+        // degenerate inputs rejected.
+        assert_eq!(constant_extension_invariants(0, &rf(&[0, 1], &[1])), None);
+        assert_eq!(constant_extension_invariants(3, &rf(&[0], &[1])), None);
     }
 
     #[test]

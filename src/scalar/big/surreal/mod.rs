@@ -71,8 +71,11 @@ impl Surreal {
         }
     }
 
+    /// Embed an integer as a surreal (the constant rational `n`). This is the
+    /// ℤ-embedding `Scalar::from_int`. Kept as a distinct inherent method for
+    /// code clarity; the `Scalar` impl delegates here.
     pub fn from_int(n: i128) -> Self {
-        Surreal::from_rational(Rational::int(n))
+        Surreal::from_rational(Rational::from_int(n))
     }
 
     /// A single monomial coeff · ω^exp.
@@ -121,6 +124,35 @@ impl Surreal {
         &self.terms
     }
 
+    /// If this is a monic omega-power `ω^e`, return the exponent `e`.
+    ///
+    /// This is the modulus shape used by grundy's surreal-family remainder:
+    /// nonzero, one CNF term, coefficient exactly `1`.
+    pub fn monic_omega_power_exponent(&self) -> Option<&Surreal> {
+        match self.terms.as_slice() {
+            [(exp, coeff)] if *coeff == Rational::one() => Some(exp),
+            _ => None,
+        }
+    }
+
+    /// Remainder by a monic omega-power modulus.
+    ///
+    /// For a modulus `ω^e`, keep exactly the CNF tail with exponents strictly
+    /// below `e`. Non-monic or non-monomial moduli return `None`; this avoids
+    /// pretending that field division by an arbitrary surreal is an integer-like
+    /// remainder operation.
+    pub fn rem(&self, modulus: &Surreal) -> Option<Surreal> {
+        let cutoff = modulus.monic_omega_power_exponent()?;
+        Some(Surreal {
+            terms: self
+                .terms
+                .iter()
+                .filter(|(exp, _)| exp.cmp(cutoff) == Ordering::Less)
+                .cloned()
+                .collect(),
+        })
+    }
+
     /// Keep the `n` leading (largest-exponent) terms. Terms are stored strictly
     /// descending, so this is the top-`n` of the Hahn series. Used by the
     /// [`analytic`] layer (and its tests) to bound working precision.
@@ -136,8 +168,50 @@ impl Surreal {
 }
 
 impl PartialEq for Surreal {
+    /// **Structural equality = value equality for canonical surreals.**
+    ///
+    /// Every `Surreal` produced by this module's arithmetic is in canonical CNF
+    /// (descending surreal-value-ordered exponents, ℚ-reduced coefficients, no
+    /// zero terms, recursively canonical exponents). For any two canonical CNFs:
+    /// if their values differ the subtraction has a nonzero leading term
+    /// (surreal comparison is sign of the leading term). Conversely, if their
+    /// values agree, the leading exponents must be equal (otherwise the
+    /// subtraction has a nonzero term) — and by induction on term count the
+    /// whole term vector is identical. This is the standard uniqueness theorem
+    /// for Hahn series in reduced form applied to the finite-support case here.
+    ///
+    /// Structural walk replaces the previous value-based `self.cmp(other) ==
+    /// Equal`, which required a subtraction and allocation. A proptest in
+    /// `tests/scalar_axioms.rs` pins the agreement.
     fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == Ordering::Equal
+        if self.terms.len() != other.terms.len() {
+            return false;
+        }
+        self.terms
+            .iter()
+            .zip(other.terms.iter())
+            .all(|((e1, c1), (e2, c2))| e1 == e2 && c1 == c2)
+    }
+}
+
+impl Eq for Surreal {}
+
+impl PartialOrd for Surreal {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(std::cmp::Ord::cmp(self, other))
+    }
+}
+
+impl Ord for Surreal {
+    fn cmp(&self, other: &Self) -> Ordering {
+        Surreal::cmp(self, other)
+    }
+}
+
+impl From<i128> for Surreal {
+    /// The ℤ-embedding: the unique unital ring homomorphism ℤ → No.
+    fn from(n: i128) -> Self {
+        Surreal::from_int(n)
     }
 }
 
@@ -150,6 +224,10 @@ impl Scalar for Surreal {
         Surreal {
             terms: vec![(Surreal::zero(), Rational::one())],
         }
+    }
+    /// Faster direct construction; semantically identical to the default double-and-add.
+    fn from_int(n: i128) -> Self {
+        Surreal::from_int(n)
     }
 
     fn add(&self, rhs: &Self) -> Self {
@@ -208,27 +286,31 @@ impl Scalar for Surreal {
     }
 }
 
-/// Format coeff·ω^exp for a *non-negative* magnitude coefficient.
+/// Format `coeff⋅ω↑exp` (canonical grundy, Display v4 (spec.md §12)) for a *non-negative*
+/// magnitude coefficient. The exponent renders bare iff it is a (possibly
+/// negative) integer (`ω↑-1`); any other exponent — a non-integer rational or a
+/// compound surreal — is parenthesized (`ω↑(1/2)`, `ω↑(ω)`).
 fn fmt_term_mag(e: &Surreal, mag: &Rational) -> String {
     if e.is_zero() {
-        return format!("{:?}", mag); // a plain constant
+        return format!("{mag}"); // a plain constant
     }
     let base = if *e == Surreal::one() {
         "ω".to_string()
-    } else if e.terms.len() == 1 && e.terms[0].0.is_zero() {
-        // exponent is a bare rational: ω^2, ω^-1, ω^(1/2) — no parens needed
-        format!("ω^{:?}", e.terms[0].1)
+    } else if e.terms.len() == 1 && e.terms[0].0.is_zero() && e.terms[0].1.is_integer() {
+        // exponent is a (signed) integer: ω↑2, ω↑-1 — no parens needed
+        format!("ω↑{}", e.terms[0].1)
     } else {
-        format!("ω^({:?})", e)
+        // non-integer rational (ω↑(1/2)) or compound surreal (ω↑(ω)) — parens
+        format!("ω↑({e})")
     };
     if *mag == Rational::one() {
         base
     } else {
-        format!("{:?}{}", mag, base)
+        format!("{mag}⋅{base}")
     }
 }
 
-impl fmt::Debug for Surreal {
+impl fmt::Display for Surreal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.terms.is_empty() {
             return write!(f, "0");
@@ -249,6 +331,12 @@ impl fmt::Debug for Surreal {
             }
         }
         write!(f, "{}", s)
+    }
+}
+
+impl fmt::Debug for Surreal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 
@@ -274,6 +362,7 @@ mod tests {
     fn omega_is_bigger_than_every_integer() {
         let w = Surreal::omega();
         assert_eq!(w.cmp(&int(1_000_000)), Ordering::Greater);
+        assert!(w > int(1_000_000));
         // ω − 1 is still infinite and still below ω
         let w_minus_1 = w.sub(&int(1));
         assert_eq!(w_minus_1.cmp(&int(1_000_000)), Ordering::Greater);
@@ -326,6 +415,28 @@ mod tests {
     }
 
     #[test]
+    fn display_v2_canonical_grundy() {
+        let w = Surreal::omega();
+        // 3⋅ω↑2 - ω + 5 : explicit ⋅, ↑, first-term sign, ` - ` join kept.
+        let x = Surreal::omega_pow(int(2)).mul(&int(3)).sub(&w).add(&int(5));
+        assert_eq!(format!("{x:?}"), "3⋅ω↑2 - ω + 5");
+        // ω↑-1 : a negative *integer* exponent renders bare.
+        assert_eq!(format!("{:?}", Surreal::epsilon()), "ω↑-1");
+        // ω↑(1/2) : a non-integer rational exponent parenthesizes.
+        let sqrt_w = Surreal::omega_pow(Surreal::from_rational(Rational::new(1, 2)));
+        assert_eq!(format!("{sqrt_w:?}"), "ω↑(1/2)");
+        // ω↑(ω) : a compound surreal exponent parenthesizes.
+        assert_eq!(format!("{:?}", Surreal::omega_pow(w)), "ω↑(ω)");
+        // a plain dyadic constant still renders as the bare rational.
+        assert_eq!(
+            format!("{:?}", Surreal::from_rational(Rational::new(1, 2))),
+            "1/2"
+        );
+        // char-0 zero renders `0`, not `*0`.
+        assert_eq!(format!("{:?}", Surreal::zero()), "0");
+    }
+
+    #[test]
     fn monomial_inverse() {
         assert_eq!(Surreal::omega().inv().unwrap(), Surreal::epsilon()); // ω⁻¹ = ε
         assert_eq!(Surreal::epsilon().inv().unwrap(), Surreal::omega()); // ε⁻¹ = ω
@@ -336,6 +447,32 @@ mod tests {
                                                                 // a genuine sum has no finite-support inverse
         assert!(Surreal::omega().add(&int(1)).inv().is_none());
         assert!(Surreal::zero().inv().is_none());
+    }
+
+    #[test]
+    fn remainder_by_monic_omega_power_filters_cnf_tail() {
+        let x = Surreal::omega_pow(int(2))
+            .mul(&int(3))
+            .sub(&Surreal::omega())
+            .add(&int(5));
+        assert_eq!(
+            x.rem(&Surreal::omega_pow(int(2))).unwrap(),
+            Surreal::omega().neg().add(&int(5))
+        );
+        assert_eq!(x.rem(&Surreal::omega()).unwrap(), int(5));
+        assert_eq!(x.rem(&Surreal::one()).unwrap(), Surreal::zero());
+
+        let sqrt_omega = Surreal::omega_pow(Surreal::from_rational(Rational::new(1, 2)));
+        assert!(sqrt_omega.monic_omega_power_exponent().is_some());
+        assert_eq!(x.rem(&sqrt_omega).unwrap(), int(5));
+    }
+
+    #[test]
+    fn remainder_rejects_non_monic_omega_power_moduli() {
+        let x = Surreal::omega().add(&int(7));
+        assert!(x.rem(&Surreal::zero()).is_none());
+        assert!(x.rem(&Surreal::omega().add(&int(1))).is_none());
+        assert!(x.rem(&Surreal::omega().mul(&int(2))).is_none());
     }
 
     #[test]
@@ -357,7 +494,7 @@ mod tests {
             2,
             Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon()]),
         );
-        let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
+        let e0e1 = alg.mul(&alg.e(0), &alg.e(1));
         let sq = alg.mul(&e0e1, &e0e1);
         assert_eq!(sq, alg.scalar(int(-1)));
     }
@@ -552,7 +689,7 @@ mod tests {
                                 // 1/(ω+1) = ω⁻¹ − ω⁻² + ω⁻³ − … : the three leading terms.
         let inv3 = x.inv_to_terms(3).unwrap();
         let expected = Surreal::monomial(int(-1), Rational::one())
-            .add(&Surreal::monomial(int(-2), Rational::int(-1)))
+            .add(&Surreal::monomial(int(-2), Rational::from_int(-1)))
             .add(&Surreal::monomial(int(-3), Rational::one()));
         assert_eq!(inv3, expected);
         // x · (1/x) = 1 in the leading term (truncation error below it).
@@ -591,13 +728,13 @@ mod tests {
         assert_eq!(int(4).sqrt_to_terms(4).unwrap(), int(2));
         // √(ω²+2ω+1) = ω+1 in the two leading terms (perfect square, square lead).
         let perfect = Surreal::omega_pow(int(2))
-            .add(&Surreal::monomial(int(1), Rational::int(2)))
+            .add(&Surreal::monomial(int(1), Rational::from_int(2)))
             .add(&int(1)); // ω² + 2ω + 1
         assert_eq!(perfect.sqrt_to_terms(2).unwrap(), w.add(&int(1)));
         // The honest ℚ-coefficient boundary: leading coeff not a perfect square
         // ⇒ None (√2, √(2ω)); negative ⇒ None (√−ω). √0 = 0.
         assert!(int(2).sqrt_to_terms(4).is_none());
-        assert!(Surreal::monomial(int(1), Rational::int(2))
+        assert!(Surreal::monomial(int(1), Rational::from_int(2))
             .sqrt_to_terms(4)
             .is_none());
         assert!(w.neg().sqrt_to_terms(4).is_none());

@@ -187,7 +187,6 @@ pub(crate) fn fp_sqrt(a: u128, p: u128) -> Option<u128> {
 /// square and `q − 1` is odd (`s = 0`), so the loop returns `a^{q/2}` (the inverse
 /// Frobenius) on the first step.
 pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn<P, N>> {
-    use crate::scalar::FiniteField;
     if a.is_zero() {
         return Some(Fpn::zero());
     }
@@ -203,9 +202,9 @@ pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn
     }
     let z = Fpn::<P, N>::primitive_element(); // a generator ⇒ a non-residue
     let mut m = s;
-    let mut c = z.pow(qodd);
-    let mut t = a.pow(qodd);
-    let mut r = a.pow(qodd.div_ceil(2));
+    let mut c = z ^ qodd;
+    let mut t = a ^ qodd;
+    let mut r = a ^ qodd.div_ceil(2);
     loop {
         if t == one {
             return Some(r);
@@ -216,7 +215,7 @@ pub(crate) fn fq_sqrt<const P: u128, const N: usize>(a: Fpn<P, N>) -> Option<Fpn
             t2 = t2.mul(&t2);
             i += 1;
         }
-        let b = c.pow(1u128 << (m - i - 1));
+        let b = c ^ (1u128 << (m - i - 1));
         m = i;
         c = b.mul(&b);
         t = t.mul(&c);
@@ -292,8 +291,12 @@ impl ExactRoots for Surreal {
         if self.sign() != Ordering::Greater {
             return None;
         }
-        let base = self.terms().len().max(1);
-        let max_terms = (8 * base + 32).min(12);
+        // Search up to 12 truncated terms. The adaptive formula `(8*base+32).min(12)`
+        // that used to appear here was identically 12 for all inputs (base ≥ 1 gives
+        // 8*1+32 = 40 > 12, so `.min(12)` was always the operative bound). 12 is
+        // also the safe ceiling before i128 binomial coefficients overflow in the
+        // underlying `sqrt_to_terms`.
+        let max_terms = 12;
         for n in 1..=max_terms {
             let root = self.sqrt_to_terms(n)?;
             if root.mul(&root) == *self {
@@ -341,11 +344,11 @@ impl<S: ExactRoots, const K: usize> ExactRoots for Laurent<S, K> {
             // Newton over the unit series: y ← (y + U·y⁻¹)·½, doubling correct
             // terms each step, seeded by the leading-coefficient root.
             let two_inv = S::one().add(&S::one()).inv()?; // 1/2 (a unit in odd/0 char)
-            let half = Laurent::<S, K>::from_scalar(two_inv);
+            let half = Laurent::<S, K>::from_base(two_inv);
             let u0 = unit[0].clone();
             let seed = u0.sqrt()?; // leading coeff must be a square in S
             let unit_series = Laurent::<S, K>::from_coeffs(unit.to_vec(), 0);
-            let mut y = Laurent::<S, K>::from_scalar(seed);
+            let mut y = Laurent::<S, K>::from_base(seed);
             for _ in 0..64 {
                 let yi = y.inv()?;
                 let next = unit_series.mul(&yi).add(&y).mul(&half);
@@ -462,10 +465,10 @@ mod tests {
 
     #[test]
     fn rational_exact_roots() {
-        assert!(ExactRoots::is_square(&Rational::int(4)));
-        assert_eq!(Rational::int(4).sqrt(), Some(Rational::int(2)));
-        assert!(!ExactRoots::is_square(&Rational::int(2)));
-        assert_eq!(ExactRoots::sqrt(&Rational::int(2)), None);
+        assert!(ExactRoots::is_square(&Rational::from_int(4)));
+        assert_eq!(Rational::from_int(4).sqrt(), Some(Rational::from_int(2)));
+        assert!(!ExactRoots::is_square(&Rational::from_int(2)));
+        assert_eq!(ExactRoots::sqrt(&Rational::from_int(2)), None);
         assert_eq!(Rational::new(9, 16).sqrt(), Some(Rational::new(3, 4)));
     }
 
@@ -483,12 +486,15 @@ mod tests {
     #[test]
     fn fp_fpn_exact_roots() {
         // F_7: 2 is a square (3²=2), 3 is not.
-        assert!(ExactRoots::is_square(&Fp::<7>::new(2)));
-        let r = ExactRoots::sqrt(&Fp::<7>::new(2)).unwrap();
-        assert_eq!(r.mul(&r), Fp::<7>::new(2));
-        assert!(!ExactRoots::is_square(&Fp::<7>::new(3)));
+        assert!(ExactRoots::is_square(&Fp::<7>::from_int(2)));
+        let r = ExactRoots::sqrt(&Fp::<7>::from_int(2)).unwrap();
+        assert_eq!(r.mul(&r), Fp::<7>::from_int(2));
+        assert!(!ExactRoots::is_square(&Fp::<7>::from_int(3)));
         // F_2 (char 2): every element is a square, sqrt(x) = x.
-        assert_eq!(ExactRoots::sqrt(&Fp::<2>::new(1)), Some(Fp::<2>::new(1)));
+        assert_eq!(
+            ExactRoots::sqrt(&Fp::<2>::from_int(1)),
+            Some(Fp::<2>::from_int(1))
+        );
         // F_8 (char 2): a generator is a square (inverse Frobenius), roots back.
         let g = Fpn::<2, 3>::generator();
         assert!(ExactRoots::is_square(&g));
@@ -540,7 +546,8 @@ mod tests {
     #[test]
     fn gaussian_sqrt() {
         type G = Surcomplex<Rational>;
-        let g = |re: i128, im: i128| Surcomplex::new(Rational::int(re), Rational::int(im));
+        let g =
+            |re: i128, im: i128| Surcomplex::new(Rational::from_int(re), Rational::from_int(im));
         // (2+i)² = 3+4i, so √(3+4i) = 2+i (im > 0 branch).
         let r = ExactRoots::sqrt(&g(3, 4)).unwrap();
         assert_eq!(r.mul(&r), g(3, 4));
@@ -583,7 +590,7 @@ mod tests {
     #[test]
     fn laurent_sqrt_char0() {
         type L = Laurent<Rational, 8>;
-        let r = |n: i128| Rational::int(n);
+        let r = |n: i128| Rational::from_int(n);
         // (1 + t)² = 1 + 2t + t²; its sqrt recovers 1 + t to precision.
         let base = Laurent::<Rational, 8>::from_coeffs(vec![r(1), r(1)], 0);
         let sq = base.mul(&base);
@@ -598,7 +605,7 @@ mod tests {
         assert_eq!(ExactRoots::sqrt(&L::t()), None);
         // a non-square leading coefficient (2) declines.
         assert_eq!(
-            ExactRoots::sqrt(&Laurent::<Rational, 8>::from_scalar(r(2))),
+            ExactRoots::sqrt(&Laurent::<Rational, 8>::from_base(r(2))),
             None
         );
     }
@@ -632,8 +639,8 @@ mod tests {
                 }
             }
         }
-        round_trips(&[Rational::int(9), Rational::int(2)]);
+        round_trips(&[Rational::from_int(9), Rational::from_int(2)]);
         round_trips(&[Nimber(7), Nimber(255)]);
-        round_trips(&[Fp::<11>::new(3), Fp::<11>::new(5)]);
+        round_trips(&[Fp::<11>::from_int(3), Fp::<11>::from_int(5)]);
     }
 }

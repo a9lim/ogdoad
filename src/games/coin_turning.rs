@@ -20,19 +20,12 @@
 //! game a position's value *is* a nimber (the bitmask of its heads-up coins),
 //! which is the sense in which the nimber backend is "made of games".
 
+use crate::games::grundy::mex;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
 thread_local! {
     static MEX_MEMO: RefCell<HashMap<(u128, u128), u128>> = RefCell::new(HashMap::new());
-}
-
-fn mex(seen: &HashSet<u128>) -> u128 {
-    let mut m = 0u128;
-    while seen.contains(&m) {
-        m += 1;
-    }
-    m
 }
 
 fn lower_mask(n: u128) -> u128 {
@@ -59,7 +52,7 @@ pub fn nim_mul_mex(x: u128, y: u128) -> u128 {
             seen.insert(nim_mul_mex(i, y) ^ nim_mul_mex(x, j) ^ nim_mul_mex(i, j));
         }
     }
-    let r = mex(&seen);
+    let r = mex(seen.iter().copied());
     MEX_MEMO.with(|m| m.borrow_mut().insert((x, y), r));
     r
 }
@@ -131,7 +124,7 @@ pub fn grundy_1d<F: Fn(u128) -> Vec<u128>>(
         }
         seen.insert(acc);
     }
-    let g = mex(&seen);
+    let g = mex(seen.iter().copied());
     memo.insert(n, g);
     g
 }
@@ -188,7 +181,7 @@ where
             seen.insert(acc);
         }
     }
-    let g = mex(&seen);
+    let g = mex(seen.iter().copied());
     memo.insert((x, y), g);
     g
 }

@@ -24,8 +24,9 @@
 //!
 //! A tensor element `e_T ⊗ e_U` of `Cl ⊗̂ Cl` is encoded as the blade
 //! `T | (U << dim)` of `tensor_square(alg)` (the low block is the left factor,
-//! the high block the right) — matching `embed_first` / `embed_second(·, dim)`.
+//! the high block the right) — matching `embed_first` / `embed_second(·, &alg)`.
 
+use crate::clifford::engine::add_term;
 use crate::clifford::{bits, CliffordAlgebra, Multivector, MAX_BASIS_DIM};
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
@@ -33,7 +34,7 @@ use std::collections::BTreeMap;
 /// The graded tensor square `Cl ⊗̂ Cl`, the codomain of the coproduct.
 pub fn tensor_square<S: Scalar>(alg: &CliffordAlgebra<S>) -> CliffordAlgebra<S> {
     assert!(
-        alg.dim * 2 <= MAX_BASIS_DIM,
+        alg.dim() * 2 <= MAX_BASIS_DIM,
         "tensor square needs 2*dim <= {MAX_BASIS_DIM} for u128 blade encoding"
     );
     alg.graded_tensor(alg)
@@ -46,7 +47,7 @@ fn blade_of<S: Scalar>(alg: &CliffordAlgebra<S>, mask: u128) -> Multivector<S> {
 /// The unshuffle coproduct `Δ: Cl → Cl ⊗̂ Cl`, returned as a multivector over
 /// `tensor_square(alg)` (a tensor `e_T ⊗ e_U` is the blade `T | (U << dim)`).
 pub fn coproduct<S: Scalar>(alg: &CliffordAlgebra<S>, mv: &Multivector<S>) -> Multivector<S> {
-    let dim = alg.dim;
+    let dim = alg.dim();
     assert!(
         dim * 2 <= MAX_BASIS_DIM,
         "coproduct tensor encoding needs 2*dim <= {MAX_BASIS_DIM}"
@@ -62,11 +63,7 @@ pub fn coproduct<S: Scalar>(alg: &CliffordAlgebra<S>, mv: &Multivector<S>) -> Mu
             let sign = w.terms.get(&mask_s).cloned().unwrap_or_else(S::zero);
             if !sign.is_zero() {
                 let tens = t | (u << dim);
-                let e = out.entry(tens).or_insert_with(S::zero);
-                *e = e.add(&coeff.mul(&sign));
-                if e.is_zero() {
-                    out.remove(&tens);
-                }
+                add_term(&mut out, tens, coeff.mul(&sign));
             }
             if t == 0 {
                 break;
@@ -95,12 +92,12 @@ mod tests {
     use crate::scalar::Rational;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     /// Split a tensor-square multivector into a (left-mask, right-mask) → coeff map.
     fn pairs<S: Scalar>(alg: &CliffordAlgebra<S>, x: &Multivector<S>) -> BTreeMap<(u128, u128), S> {
-        let dim = alg.dim;
+        let dim = alg.dim();
         let low = if dim >= MAX_BASIS_DIM {
             u128::MAX
         } else {
@@ -186,11 +183,11 @@ mod tests {
         let alg = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(3));
         let elts = [
             alg.scalar(r(1)),
-            alg.gen(0),
-            alg.gen(1),
-            alg.wedge(&alg.gen(0), &alg.gen(1)),
-            alg.wedge(&alg.wedge(&alg.gen(0), &alg.gen(1)), &alg.gen(2)),
-            alg.add(&alg.gen(0), &alg.wedge(&alg.gen(1), &alg.gen(2))),
+            alg.e(0),
+            alg.e(1),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
+            alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2))),
         ];
         run_axioms(&alg, &elts);
     }
@@ -201,9 +198,9 @@ mod tests {
         let alg = CliffordAlgebra::new(3, Metric::<Nimber>::grassmann(3));
         let elts = [
             alg.scalar(Nimber(1)),
-            alg.gen(0),
-            alg.wedge(&alg.gen(0), &alg.gen(1)),
-            alg.wedge(&alg.wedge(&alg.gen(0), &alg.gen(1)), &alg.gen(2)),
+            alg.e(0),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
         ];
         run_axioms(&alg, &elts);
     }
@@ -226,6 +223,72 @@ mod tests {
                 assert_eq!(antipode(&alg, &blade), blade);
             }
         }
+    }
+
+    /// Bialgebra compatibility: `Δ(a∧b) = Δ(a)∧Δ(b)`, with the wedge on the
+    /// right taken in the graded-tensor codomain `tensor_square(alg)` (the
+    /// Koszul/super sign convention `graded_tensor`/`Metric::direct_sum` bakes
+    /// in via plain Clifford anticommutation between the two blocks — see
+    /// `Metric::direct_sum`'s doc). Neither `Δ` being an algebra map nor
+    /// coassociativity alone pins this: coassociativity checks `Δ` against
+    /// itself, this checks `Δ` against the wedge product on both sides.
+    fn check_bialgebra_compatibility<S: Scalar>(alg: &CliffordAlgebra<S>, elts: &[Multivector<S>]) {
+        let tensor_alg = tensor_square(alg);
+        for a in elts {
+            for b in elts {
+                let lhs = coproduct(alg, &alg.wedge(a, b));
+                let rhs = tensor_alg.wedge(&coproduct(alg, a), &coproduct(alg, b));
+                assert_eq!(lhs, rhs, "Δ(a∧b) != Δ(a)∧Δ(b)");
+            }
+        }
+    }
+
+    #[test]
+    fn coproduct_is_algebra_map_for_wedge_rational() {
+        let alg = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(3));
+        let elts = [
+            alg.scalar(r(1)),
+            alg.e(0),
+            alg.e(1),
+            alg.e(2),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
+            alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2))),
+        ];
+        check_bialgebra_compatibility(&alg, &elts);
+    }
+
+    #[test]
+    fn coproduct_is_algebra_map_for_wedge_small_dim() {
+        // Smallest nontrivial case: dim 2, so a∧b covers the full grade range
+        // (0..=2) with no room for the check to trivially degenerate.
+        let alg = CliffordAlgebra::new(2, Metric::<Rational>::grassmann(2));
+        let elts = [
+            alg.scalar(r(1)),
+            alg.e(0),
+            alg.e(1),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.add(&alg.e(0), &alg.e(1)),
+        ];
+        check_bialgebra_compatibility(&alg, &elts);
+    }
+
+    #[test]
+    fn coproduct_is_algebra_map_for_wedge_nimber() {
+        // char 2: every sign collapses to +. Good cross-check that the graded
+        // sign convention on both Δ and the tensor-square wedge routes through
+        // Scalar::neg (where it vanishes) rather than a literal -1 anywhere.
+        let alg = CliffordAlgebra::new(3, Metric::<Nimber>::grassmann(3));
+        let elts = [
+            alg.scalar(Nimber(1)),
+            alg.e(0),
+            alg.e(1),
+            alg.e(2),
+            alg.wedge(&alg.e(0), &alg.e(1)),
+            alg.wedge(&alg.wedge(&alg.e(0), &alg.e(1)), &alg.e(2)),
+            alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2))),
+        ];
+        check_bialgebra_compatibility(&alg, &elts);
     }
 
     #[test]

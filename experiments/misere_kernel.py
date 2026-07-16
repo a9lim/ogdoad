@@ -152,7 +152,7 @@ if __name__ == "__main__":
     basis, coord = coordinatise(z, K)
     k = len(basis)
     print(f"  K ≅ (Z/2)^{k}  with basis {[name(b) for b in basis]}  (z ↦ 0)")
-    print(f"    coordinates: " + ", ".join(f"{name(e)}↦{coord[e]:0{k}b}" for e in K))
+    print("    coordinates: " + ", ".join(f"{name(e)}↦{coord[e]:0{k}b}" for e in K))
 
     PK = [coord[e] for e in P if e in K]
     P_outside = [name(e) for e in P if e not in K]

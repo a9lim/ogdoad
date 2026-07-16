@@ -88,15 +88,18 @@ impl Surreal {
     /// [`as_ordinal`](Self::as_ordinal). An ordinal `Σ ω^{βᵢ}·cᵢ` in Cantor normal
     /// form maps to the surreal with the *same* CNF, each exponent converted
     /// recursively (the recursion is on strictly-simpler ordinals, matching the
-    /// surreal "recurse only on exponents" discipline). Round-trips:
-    /// `from_ordinal(o).as_ordinal() == Some(o)`.
-    pub fn from_ordinal(o: &Ordinal) -> Surreal {
+    /// surreal "recurse only on exponents" discipline). `None` if a coefficient
+    /// exceeds the surreal's i128 range — the same `Option` boundary
+    /// [`as_ordinal`](Self::as_ordinal) draws in the other direction. Round-trips:
+    /// `from_ordinal(o).unwrap().as_ordinal() == Some(o)` whenever it succeeds.
+    pub fn from_ordinal(o: &Ordinal) -> Option<Surreal> {
         let mut acc = Surreal::zero();
         for (exp, c) in o.terms() {
-            let exp_s = Surreal::from_ordinal(exp); // strictly-simpler exponent
-            acc = acc.add(&Surreal::monomial(exp_s, Rational::int(*c as i128)));
+            let exp_s = Surreal::from_ordinal(exp)?; // strictly-simpler exponent
+            let c_i128 = i128::try_from(*c).ok()?;
+            acc = acc.add(&Surreal::monomial(exp_s, Rational::from_int(c_i128)));
         }
-        acc
+        Some(acc)
     }
 
     /// Reconstruct a surreal from its (possibly transfinite) **sign expansion** —
@@ -119,7 +122,7 @@ impl Surreal {
         // α-many pluses is the ordinal α, α-many minuses its negation.
         if runs.len() == 1 {
             let (sign, len) = &runs[0];
-            let s = Surreal::from_ordinal(len);
+            let s = Surreal::from_ordinal(len)?;
             return Some(if *sign { s } else { s.neg() });
         }
         // ε = ω⁻¹ ↦ `+(−)^ω` (the one pinned infinitesimal).
@@ -272,16 +275,16 @@ mod tests {
         let cases = [
             Surreal::from_int(0),
             Surreal::from_int(5),
-            Surreal::omega(),                                          // ω
-            Surreal::omega().add(&Surreal::from_int(1)),               // ω+1
-            Surreal::monomial(Surreal::from_int(1), Rational::int(3)), // ω·3
-            Surreal::omega_pow(Surreal::from_int(2)),                  // ω²
-            Surreal::omega_pow(Surreal::omega()),                      // ω^ω
+            Surreal::omega(),                                               // ω
+            Surreal::omega().add(&Surreal::from_int(1)),                    // ω+1
+            Surreal::monomial(Surreal::from_int(1), Rational::from_int(3)), // ω·3
+            Surreal::omega_pow(Surreal::from_int(2)),                       // ω²
+            Surreal::omega_pow(Surreal::omega()),                           // ω^ω
         ];
         for s in &cases {
             let o = s.as_ordinal().expect("ordinal-valued");
             assert_eq!(
-                &Surreal::from_ordinal(&o),
+                &Surreal::from_ordinal(&o).expect("representable coefficients"),
                 s,
                 "from_ordinal∘as_ordinal ≠ id: {s:?}"
             );
@@ -307,6 +310,17 @@ mod tests {
     }
 
     #[test]
+    fn from_ordinal_rejects_coefficient_exceeding_i128() {
+        // Coefficients ≥ 2^127 cannot be represented as i128; the old `*c as i128`
+        // cast would silently wrap to a negative value, and an earlier `.expect()`
+        // panicked loudly instead. `from_ordinal` now reports the honest `None`,
+        // matching the `Option` boundary `as_ordinal` already draws.
+        let large_coeff: u128 = (1u128 << 127) + 1;
+        let ord = Ordinal::monomial(Ordinal::from_u128(1), large_coeff);
+        assert_eq!(Surreal::from_ordinal(&ord), None);
+    }
+
+    #[test]
     fn transfinite_sign_expansion_round_trips() {
         // The full round trip across the representable subclass: dyadic, ordinal,
         // negative-ordinal, and the pinned infinitesimal ε — each recovered from
@@ -320,13 +334,13 @@ mod tests {
             rat(1, 2).neg(),
             rat(3, 4),
             rat(3, 4).neg(),
-            Surreal::omega(),                                          // ω
-            Surreal::omega().add(&Surreal::from_int(1)),               // ω+1
-            Surreal::monomial(Surreal::from_int(1), Rational::int(3)), // ω·3
-            Surreal::omega_pow(Surreal::from_int(2)),                  // ω²
-            Surreal::omega_pow(Surreal::omega()),                      // ω^ω
-            Surreal::omega().neg(),                                    // −ω
-            Surreal::epsilon(),                                        // ε
+            Surreal::omega(),                                               // ω
+            Surreal::omega().add(&Surreal::from_int(1)),                    // ω+1
+            Surreal::monomial(Surreal::from_int(1), Rational::from_int(3)), // ω·3
+            Surreal::omega_pow(Surreal::from_int(2)),                       // ω²
+            Surreal::omega_pow(Surreal::omega()),                           // ω^ω
+            Surreal::omega().neg(),                                         // −ω
+            Surreal::epsilon(),                                             // ε
         ];
         for s in &cases {
             let se = s.transfinite_sign_expansion().expect("representable");

@@ -1,3 +1,11 @@
+//! The GENERAL multivector inverse: `multivector_inverse` solves for a
+//! two-sided inverse of any element (not just versors) by building the
+//! left-multiplication matrix of `v` over the full `2^dim`-blade basis and
+//! solving `v x = 1` with the shared `linalg::field` solver. This is the
+//! fallback used when an element is invertible but not a versor — e.g. `1+B`
+//! in the Cayley transform — where `versor_inverse`'s `v ṽ`-is-scalar shortcut
+//! does not apply.
+
 use super::algebra::CliffordAlgebra;
 use super::multivector::Multivector;
 use crate::linalg::field;
@@ -15,7 +23,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
                 return Some(self.scalar(c.inv()?));
             }
         }
-        let n = 1usize.checked_shl(self.dim.try_into().ok()?)?;
+        let n = 1usize.checked_shl(self.dim().try_into().ok()?)?;
         let mut mat = vec![vec![S::zero(); n]; n];
         for col in 0..n {
             let mut t = BTreeMap::new();
@@ -47,13 +55,13 @@ mod tests {
     #[test]
     fn inverse_refuses_huge_non_scalar_without_shift_overflow() {
         let alg: CliffordAlgebra<Rational> = CliffordAlgebra::new(64, Metric::grassmann(64));
-        assert_eq!(alg.multivector_inverse(&alg.gen(0)), None);
+        assert_eq!(alg.multivector_inverse(&alg.e(0)), None);
     }
 
     #[test]
     fn scalar_inverse_still_works_at_huge_dimension() {
         let alg = CliffordAlgebra::new(64, Metric::grassmann(64));
-        let two = alg.scalar(Rational::int(2));
+        let two = alg.scalar(Rational::from_int(2));
         assert_eq!(
             alg.multivector_inverse(&two),
             Some(alg.scalar(Rational::new(1, 2)))

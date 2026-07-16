@@ -7,11 +7,14 @@
 //!   normal-play impartial center; P-position ⟺ g = 0).
 //! * [`kernel`] — normal-play Win/Loss/Draw outcomes of a finite game graph
 //!   (retrograde analysis); P-positions = Loss.
-//! * [`loopy`] — loopy (cyclic) games: the canonical stoppers
-//!   (on/off/over/under/dud), impartial loopy nim-values, and the
-//!   Loss-set/Draw-set quadric research instrument.
+//! * [`loopy`] — loopy (cyclic) games: impartial and finite partizan
+//!   retrograde solvers, the canonical value catalogue
+//!   (on/off/over/under/dud/±/tis/tisn plus `s&t` tags), loopy nim-values, and
+//!   the Loss-set/Draw-set quadric research instrument.
 //! * [`misere`] — misère-play outcomes, indistinguishability quotients, and
 //!   octal games.
+//! * [`lexicode`](mod@lexicode) — the Conway-Sloane turning-game witness for binary lexicodes,
+//!   plus the optimized `mex → Golay → Construction A` bridge.
 //! * [`partizan`] — short partizan games (sum, order, canonical form, the
 //!   surreal-value bridge).
 //! * [`number_game`] — transfinite number-valued games carried by their surreal
@@ -21,6 +24,8 @@
 //!   the games layer).
 //! * [`thermography`] — temperature theory: stops, cooling, and the thermograph
 //!   (mean value + temperature) of a short game.
+//! * [`heating`] — game-valued heating, Berlekamp overheating, and Norton
+//!   multiplication by a positive unit game.
 //! * [`piecewise`] — the piecewise-linear rational scaffold machinery used by
 //!   thermography.
 //! * [`hackenbush`] — red/blue/green Hackenbush: the one structure whose value
@@ -32,7 +37,9 @@ pub mod coin_turning;
 pub mod game_exterior;
 pub mod grundy;
 pub mod hackenbush;
+pub mod heating;
 pub mod kernel;
+pub mod lexicode;
 pub mod loopy;
 pub mod misere;
 pub mod nimber_game;
@@ -47,7 +54,9 @@ pub use coin_turning::*;
 pub use game_exterior::*;
 pub use grundy::*;
 pub use hackenbush::*;
+pub use heating::*;
 pub use kernel::*;
+pub use lexicode::*;
 pub use loopy::*;
 pub use misere::*;
 pub use nimber_game::*;

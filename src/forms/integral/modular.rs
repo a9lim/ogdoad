@@ -7,13 +7,44 @@
 use crate::linalg::field::inverse_matrix;
 use crate::scalar::{Rational, Scalar};
 
+/// The Eisenstein normalizing constant `c_{2k} = −4k / B_{2k}`, derived from the
+/// shared Bernoulli source so the mass formula and Eisenstein series read the
+/// same `zeta(1-2k)` data.
+fn eisenstein_constant_rational(k: i128) -> Rational {
+    let n = usize::try_from(2 * k).expect("2k fits usize");
+    let (num, den) = crate::forms::integral::mass_formula::bernoulli(n)
+        .expect("Bernoulli B_{2k} within the i128 model");
+    let numerator = (-4 * k)
+        .checked_mul(den)
+        .expect("Eisenstein constant numerator exceeds i128");
+    Rational::new(numerator, num)
+}
+
+/// Integral special cases of [`eisenstein_constant_rational`]. From
+/// `E_{2k} = 1 − (4k/B_{2k}) sum sigma_{2k-1}(n) q^n`: `c4 = -8/B4 = 240`,
+/// `c6 = -12/B6 = -504`.
+fn eisenstein_constant(k: i128) -> i128 {
+    let c = eisenstein_constant_rational(k);
+    assert!(c.is_integer(), "Eisenstein constant is integral here");
+    c.numer()
+}
+
+/// The sum of `d^power` over divisors `d` of `n`.
+///
+/// Documented cap: every step runs through `checked_pow`/`checked_add`, so an
+/// out-of-range call panics deterministically (in debug *and* release) instead
+/// of silently wrapping past `i128`. For `power = 11` (the exponent
+/// [`eisenstein_e12`] needs), the boundary is `n = 2989`: `2989^11` fits `i128`,
+/// `2990^11` does not — and since `n` always divides itself, `n >= 2990` is
+/// exactly where this starts panicking.
 fn sigma_power(n: usize, power: u32) -> i128 {
     let mut out = 0i128;
     for d in 1..=n {
         if n.is_multiple_of(d) {
-            out = out
-                .checked_add((d as i128).pow(power))
-                .expect("divisor-power sum exceeds i128");
+            let dp = (d as i128)
+                .checked_pow(power)
+                .expect("divisor power exceeds i128 (see sigma_power's documented n cap)");
+            out = out.checked_add(dp).expect("divisor-power sum exceeds i128");
         }
     }
     out
@@ -64,8 +95,8 @@ fn qexp_pow(base: &[Rational], exp: usize, terms: usize) -> Vec<Rational> {
 }
 
 /// Convert exact integer q-expansion coefficients to rational coefficients.
-pub fn qexp_from_i128(coeffs: &[i128]) -> Vec<Rational> {
-    coeffs.iter().map(|&x| Rational::int(x)).collect()
+pub fn qexp_from_int(coeffs: &[i128]) -> Vec<Rational> {
+    coeffs.iter().map(|&x| Rational::from_int(x)).collect()
 }
 
 /// `E4 = 1 + 240 * sum sigma_3(n) q^n`.
@@ -75,10 +106,10 @@ pub fn eisenstein_e4(terms: usize) -> Vec<Rational> {
         return out;
     }
     out[0] = Rational::one();
+    let c4 = eisenstein_constant(2); // −8/B₄ = 240
     for (n, coeff) in out.iter_mut().enumerate().skip(1) {
-        *coeff = Rational::int(
-            240i128
-                .checked_mul(sigma_power(n, 3))
+        *coeff = Rational::from_int(
+            c4.checked_mul(sigma_power(n, 3))
                 .expect("E4 coefficient exceeds i128"),
         );
     }
@@ -92,12 +123,26 @@ pub fn eisenstein_e6(terms: usize) -> Vec<Rational> {
         return out;
     }
     out[0] = Rational::one();
+    let c6 = eisenstein_constant(3); // −12/B₆ = −504
     for (n, coeff) in out.iter_mut().enumerate().skip(1) {
-        *coeff = Rational::int(
-            -504i128
-                .checked_mul(sigma_power(n, 5))
+        *coeff = Rational::from_int(
+            c6.checked_mul(sigma_power(n, 5))
                 .expect("E6 coefficient exceeds i128"),
         );
+    }
+    out
+}
+
+/// `E12 = 1 + (65520/691) * sum sigma_11(n) q^n`.
+pub fn eisenstein_e12(terms: usize) -> Vec<Rational> {
+    let mut out = vec![Rational::zero(); terms];
+    if terms == 0 {
+        return out;
+    }
+    out[0] = Rational::one();
+    let c12 = eisenstein_constant_rational(6);
+    for (n, coeff) in out.iter_mut().enumerate().skip(1) {
+        *coeff = c12.mul(&Rational::from_int(sigma_power(n, 11)));
     }
     out
 }
@@ -212,13 +257,57 @@ mod tests {
     fn eisenstein_series_start_with_standard_coefficients() {
         assert_eq!(
             eisenstein_e4(5),
-            qexp_from_i128(&[1, 240, 2160, 6720, 17520])
+            qexp_from_int(&[1, 240, 2160, 6720, 17520])
         );
+        assert_eq!(eisenstein_e6(4), qexp_from_int(&[1, -504, -16632, -122976]));
         assert_eq!(
-            eisenstein_e6(4),
-            qexp_from_i128(&[1, -504, -16632, -122976])
+            eisenstein_e12(3),
+            vec![
+                Rational::one(),
+                Rational::new(65_520, 691),
+                Rational::new(134_250_480, 691),
+            ]
         );
-        assert_eq!(delta(4), qexp_from_i128(&[0, 1, -24, 252]));
+        assert_eq!(delta(4), qexp_from_int(&[0, 1, -24, 252]));
+    }
+
+    #[test]
+    fn eisenstein_constants_derive_from_the_shared_bernoulli_source() {
+        // The docs/TABLES.md discipline: the curated literals 240 / −504 are pinned equal
+        // to the values derived from the single Bernoulli source the mass formula uses.
+        assert_eq!(eisenstein_constant(2), 240, "c₄ = −8/B₄");
+        assert_eq!(eisenstein_constant(3), -504, "c₆ = −12/B₆");
+        assert_eq!(
+            eisenstein_constant_rational(6),
+            Rational::new(65_520, 691),
+            "c₁₂ = −24/B₁₂"
+        );
+
+        // Free cross-check: von Staudt–Clausen denominators of B₂…B₈.
+        use crate::forms::integral::mass_formula::bernoulli;
+        assert_eq!(bernoulli(2), Some((1, 6)));
+        assert_eq!(bernoulli(4), Some((-1, 30)));
+        assert_eq!(bernoulli(6), Some((1, 42)));
+        assert_eq!(bernoulli(8), Some((-1, 30)));
+    }
+
+    #[test]
+    fn sigma_power_stays_exact_up_to_the_documented_cap() {
+        // n = 2989 is the last n below the power=11 boundary: 2989^11 fits i128
+        // (2989's divisors are 1, 7, 49, 61, 427, 2989 — none of the smaller
+        // divisor powers push the sum out of range either).
+        assert_eq!(
+            sigma_power(2989, 11),
+            170_131_631_069_539_054_464_162_161_472_679_926_966
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "divisor power exceeds i128")]
+    fn sigma_power_panics_past_the_documented_cap_instead_of_wrapping() {
+        // n divides itself, so n = 2990 forces the term 2990^11, which overflows
+        // i128. This must panic deterministically, not silently wrap.
+        let _ = sigma_power(2990, 11);
     }
 
     #[test]
@@ -235,7 +324,7 @@ mod tests {
         let e4_cubed = modular_qexp_mul(&e4_squared, &e4, 3);
         let leech_form = modular_qexp_sub(
             &e4_cubed,
-            &modular_qexp_scale(&delta(3), Rational::int(720), 3),
+            &modular_qexp_scale(&delta(3), Rational::from_int(720), 3),
             3,
         );
         assert_eq!(

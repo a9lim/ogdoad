@@ -76,7 +76,7 @@ fn rationals() -> impl Strategy<Value = Rational> {
 }
 
 fn fp7() -> impl Strategy<Value = Fp<7>> {
-    any::<i128>().prop_map(Fp::<7>::new)
+    any::<i128>().prop_map(Fp::<7>::from_int)
 }
 
 /// Small surreals: a handful of monomials `ω^e · (p/q)` with `e ∈ [−2,2]`.
@@ -99,10 +99,10 @@ fn surcomplexes() -> impl Strategy<Value = Surcomplex<Surreal>> {
 /// the denominator forced nonzero. `F_q(t)` is exact, so — unlike the local
 /// precision models — it belongs in this exact-ring fuzz.
 fn rational_functions() -> impl Strategy<Value = RationalFunction<Fp<7>>> {
-    let coeffs = || prop::collection::vec((0i128..7).prop_map(Fp::<7>::new), 0..3);
+    let coeffs = || prop::collection::vec((0i128..7).prop_map(Fp::<7>::from_int), 0..3);
     (coeffs(), coeffs()).prop_map(|(num, den)| {
         let den = if Poly::new(den.clone()).is_zero() {
-            vec![Fp::<7>::new(1)]
+            vec![Fp::<7>::from_int(1)]
         } else {
             den
         };
@@ -161,8 +161,12 @@ fn nimber_ring_axioms_on_representation_sentinels() {
 // defined, with full commutative-ring laws on the `< ω^ω` segment and
 // opportunistic associativity past it.
 
-/// True iff every CNF exponent is finite — i.e. the ordinal is `< ω^ω`, the region
-/// where nim-multiplication is implemented (the degree-3 cube-root tower).
+/// True iff every CNF exponent is finite — i.e. the ordinal is `< ω^ω`. Nim-
+/// multiplication is actually implemented far past this (the source-verified
+/// prime-power generator tower reaches every ordinal `< ω^(ω^ω)`, `src/scalar/
+/// big/ordinal/tower.rs`); `< ω^ω` is just the sub-region this fuzzer picks
+/// because it is unconditionally closed under `⊗`, so full ring-axiom coverage
+/// applies below it and only opportunistic associativity above.
 fn below_omega_omega(o: &Ordinal) -> bool {
     o.terms().iter().all(|(e, _)| e.as_finite().is_some())
 }
@@ -266,5 +270,29 @@ fn ordinal_partial_field_axioms_on_boundary_sentinels() {
     ];
     for (a, b, c) in triples {
         ordinal_field_axioms(&a, &b, &c);
+    }
+}
+
+// --- surreal-eq-cost pin ---
+//
+// `PartialEq for Surreal` was switched from value-based comparison (which
+// allocates a subtraction) to a structural term-vector walk, justified by CNF
+// uniqueness (see the `PartialEq` impl's doc comment).  This proptest is the
+// permanent pin: for all random canonical `Surreal`s, structural equality
+// agrees with value-based comparison.
+
+proptest! {
+    #![proptest_config(proptest_config(HEAVY_CASES))]
+    #[test]
+    fn surreal_structural_eq_matches_value_eq(a in surreals(), b in surreals()) {
+        let structural = a == b;
+        let value_based = a.cmp(&b) == std::cmp::Ordering::Equal;
+        prop_assert_eq!(
+            structural,
+            value_based,
+            "structural PartialEq and value cmp disagree for {:?} vs {:?}",
+            a,
+            b
+        );
     }
 }

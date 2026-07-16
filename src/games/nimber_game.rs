@@ -32,6 +32,7 @@
 use crate::games::Game;
 use crate::scalar::Ordinal;
 use std::cmp::Ordering;
+use std::fmt;
 
 /// A transfinite **nimber-valued** (impartial) game — the Nim heap `⋆α` — carried
 /// by its ordinal Grundy value rather than a (necessarily infinite) option set. The
@@ -87,8 +88,8 @@ impl NimberGame {
     /// nim-multiplication (the transfinite extension of
     /// [`coin_turning::nim_mul_mex`](crate::games::nim_mul_mex)). Defined across the
     /// `On₂` prime-power tower, including the non-scalar Kummer branching (`α_7 = ω+1`,
-    /// …); `None` only when a Kummer carry needs a prime `> 47` (past the verified
-    /// excess table) or at `≥ ⋆ω^(ω^ω)` (see [`big::ordinal`](crate::scalar::big)).
+    /// …); `None` only when a Kummer carry needs a prime `> 709` (past the verified
+    /// OEIS A380496 excess table) or at `≥ ⋆ω^(ω^ω)` (see [`big::ordinal`](crate::scalar::big)).
     /// Unlike the surreal leg — where the product is field multiplication — for nimbers
     /// the product is a *separate* game from the disjunctive sum; this is the seam where
     /// the game pillar meets the nimber field (`⋆ω ⊗ ⋆ω ⊗ ⋆ω = ⋆2`, Conway's `ω³ = 2`).
@@ -116,6 +117,14 @@ impl NimberGame {
     /// (`Some` iff dyadic). On finite heaps the finite game's value agrees.
     pub fn to_finite_game(&self) -> Option<Game> {
         self.grundy.as_finite().map(Game::nim_heap)
+    }
+}
+
+impl fmt::Display for NimberGame {
+    /// Renders as the Ordinal's star-wrapped display (e.g. `*5`, `*(ω + 1)`).
+    /// Delegates to [`Ordinal`]'s Display which already star-wraps ordinals.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.grundy)
     }
 }
 
@@ -218,6 +227,6 @@ mod tests {
         let w = NimberGame::from_ordinal(&Ordinal::omega());
         assert!(w.add(&w).grundy().is_zero(), "⋆ω + ⋆ω = 0 (XOR, not ω·2)");
         let wp1 = w.add(&NimberGame::nim_heap(1));
-        assert_eq!(format!("{:?}", wp1.grundy()), "ω + 1");
+        assert_eq!(format!("{:?}", wp1.grundy()), "*(ω + 1)");
     }
 }

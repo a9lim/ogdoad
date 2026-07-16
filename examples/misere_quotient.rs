@@ -31,11 +31,13 @@ fn nim_game(max: usize) -> AbstractGame {
 
 fn report(name: &str, game: &AbstractGame, atoms: &[usize], elem: usize, test: usize) {
     println!("\n── {name} ──");
-    let q = misere_quotient(game, atoms, elem, test);
+    let q = misere_quotient(game, atoms, elem, test)
+        .expect("bounded quotient search over a finite Nim-derived game is acyclic");
     let p_classes = q.class_is_p.iter().filter(|&&p| p).count();
     println!(
         "  quotient order = {}   P-classes = {}   (bounds: elem≤{elem}, test≤{test})",
-        q.num_classes, p_classes
+        q.num_classes(),
+        p_classes
     );
     // is every atom an involution?  a²  ≈  identity (the empty class)?
     let id_class = q.class_of[q.elements.iter().position(|e| e.is_empty()).unwrap()];
@@ -57,9 +59,13 @@ fn report(name: &str, game: &AbstractGame, atoms: &[usize], elem: usize, test: u
             match fit_f2_quadratic(&pset, atoms.len()) {
                 Some(fit) => {
                     if fit.is_genuinely_quadratic() {
+                        // `fit.arf.arf` is the Arf of the *homogeneous* part only;
+                        // the P-set's actual win-bias also depends on `fit.constant`
+                        // (the fit may be `{Q=1}`, not `{Q=0}`) — `fit.bias()` is the
+                        // honest arf⊕constant bit (see `QuadricFit::bias`).
                         println!(
-                            "    P-set IS a genuine quadric:  Arf={}, rank={}  ← a quadratic refinement!",
-                            fit.arf.arf, fit.arf.rank
+                            "    P-set IS a genuine quadric:  Arf(Q)={}, rank={}, constant={} → win-bias={}  ← a quadratic refinement!",
+                            fit.arf.arf, fit.arf.rank, fit.constant, fit.bias()
                         );
                     } else {
                         println!(

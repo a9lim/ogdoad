@@ -66,7 +66,7 @@ mod tests {
     fn two_residue_layers_survive() {
         // ⟨1, 5⟩ over Q_5: valuation 0 (unit 1) and valuation 1 (unit 1) — the two
         // layers do NOT collapse (unlike the 2-divisible surreal value group).
-        let m = Metric::diagonal(vec![Q5::from_i128(1), Q5::from_i128(5)]);
+        let m = Metric::diagonal(vec![Q5::from_int(1), Q5::from_int(5)]);
         let d = springer_decompose_qp(&m).unwrap();
         assert_eq!(d.graded.len(), 2);
         assert_eq!(d.graded[0].valuation, 1); // sorted descending
@@ -87,13 +87,13 @@ mod tests {
     #[test]
     fn residue_square_class_tracks_nonsquares() {
         // ⟨2, 10⟩ over Q_5: residues 2 (val 0) and 2 (val 1), both nonsquares.
-        let m = Metric::diagonal(vec![Q5::from_i128(2), Q5::from_i128(10)]);
+        let m = Metric::diagonal(vec![Q5::from_int(2), Q5::from_int(10)]);
         let d = springer_decompose_qp(&m).unwrap();
         assert_eq!(d.graded.len(), 2);
         assert!(!d.graded[0].disc_is_square); // residue 2 is a nonsquare mod 5
         assert!(!d.graded[1].disc_is_square);
         // ⟨2, 3⟩ at valuation 0: disc = 2·3 = 6 ≡ 1, a square ⇒ the layer is square.
-        let m2 = Metric::diagonal(vec![Q5::from_i128(2), Q5::from_i128(3)]);
+        let m2 = Metric::diagonal(vec![Q5::from_int(2), Q5::from_int(3)]);
         let d2 = springer_decompose_qp(&m2).unwrap();
         assert_eq!(d2.graded.len(), 1);
         assert_eq!(d2.graded[0].dim, 2);
@@ -103,12 +103,12 @@ mod tests {
     #[test]
     fn radical_and_rejections() {
         // a genuine zero entry is radical, not a residue layer.
-        let m = Metric::diagonal(vec![Q5::zero(), Q5::from_i128(5)]);
+        let m = Metric::diagonal(vec![Q5::zero(), Q5::from_int(5)]);
         let d = springer_decompose_qp(&m).unwrap();
         assert_eq!(d.radical_dim, 1);
         assert_eq!(d.graded.len(), 1);
         // p = 2 is rejected (residue square-class theory needs odd p).
-        assert!(springer_decompose_qp(&Metric::diagonal(vec![Qp::<2, 4>::from_i128(1)])).is_none());
+        assert!(springer_decompose_qp(&Metric::diagonal(vec![Qp::<2, 4>::from_int(1)])).is_none());
     }
 
     #[test]
@@ -117,7 +117,7 @@ mod tests {
         type Q5Unram = Qq<5, 4, 1>;
         let mqq = Metric::diagonal(vec![Q5Unram::from_int(1), Q5Unram::from_int(5)]);
         let dqq = springer_decompose_qq(&mqq).unwrap();
-        let mqp = Metric::diagonal(vec![Q5::from_i128(1), Q5::from_i128(5)]);
+        let mqp = Metric::diagonal(vec![Q5::from_int(1), Q5::from_int(5)]);
         let dqp = springer_decompose_qp(&mqp).unwrap();
         assert_eq!(dqq, dqp);
     }

@@ -30,12 +30,15 @@
 //! integral quadratic forms* (the corrected 2-adic sign-walking calculus).
 
 use crate::forms::integral::diagonal::{
-    rational_congruence_diagonal, signature_from_diagonal, DegenerateBehavior,
+    odd_unit_residue, rat_val, rational_congruence_diagonal, rdiv, signature_from_diagonal,
+    unit_mod8, DegenerateBehavior,
 };
-use crate::forms::lattice::IntegralForm;
-use crate::forms::padic::try_is_square_qp;
+use crate::forms::try_is_square_qp;
+use crate::forms::IntegralForm;
+use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::BTreeMap;
+use std::fmt;
 
 /// One scale of a p-adic Jordan symbol: the constituent `p^scale · (unimodular of
 /// dimension `dim`)`. `sign` is the determinant square class of the unimodular part
@@ -53,6 +56,33 @@ pub struct ScaleSymbol {
     pub oddity: i128,
 }
 
+/// Render one Conway-Sloane scale constituent as `q^{±n}_t` (type I, `t` = oddity)
+/// or `q_{II}^{±n}` (type II), with `base` standing in for `q = p^scale`.
+fn render_scale_symbol(base: impl fmt::Display, s: &ScaleSymbol) -> String {
+    let sign = if s.sign >= 0 { "+" } else { "-" };
+    if s.type_ii {
+        format!("{base}_II^{sign}{}", s.dim)
+    } else {
+        format!("{base}_{}^{sign}{}", s.oddity, s.dim)
+    }
+}
+
+impl ScaleSymbol {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for ScaleSymbol {
+    /// A bare `ScaleSymbol` does not carry the prime it was computed at (that
+    /// context lives on [`Genus`]), so the standalone rendering uses the
+    /// placeholder base `p`; [`Genus`]'s Display resolves the actual `p^scale`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", render_scale_symbol("p", self))
+    }
+}
+
 /// The genus of a nondegenerate integral lattice: signature, determinant, and the
 /// p-adic symbol at every prime that can carry a nontrivial local invariant
 /// (`p | 2·det`).
@@ -67,52 +97,18 @@ pub struct Genus {
 // --- exact rational helpers (p-adic valuations, unit residues) ---
 
 fn r_int(n: i128) -> Rational {
-    Rational::int(n)
-}
-
-fn v_p_i128(mut x: i128, p: i128) -> u128 {
-    debug_assert!(x != 0);
-    let mut k = 0;
-    // (i128 has no stable `is_multiple_of` yet — the lint only applies to u128.)
-    while x % p == 0 {
-        x /= p;
-        k += 1;
-    }
-    k
-}
-
-fn unit_part_i128(mut x: i128, p: i128) -> i128 {
-    while x % p == 0 {
-        x /= p;
-    }
-    x
-}
-
-/// The p-adic valuation of a nonzero rational `num/den`.
-fn rat_val(r: &Rational, p: i128) -> i128 {
-    debug_assert!(!r.is_zero());
-    v_p_i128(r.numer(), p) as i128 - v_p_i128(r.denom(), p) as i128
+    Rational::from_int(n)
 }
 
 /// The determinant square class (`±1`) of a rational unit `r` over `ℚ_p` (odd `p`).
 fn unit_sign_odd(r: &Rational, p: i128) -> i128 {
-    let a = unit_part_i128(r.numer(), p).rem_euclid(p);
-    let b = unit_part_i128(r.denom(), p).rem_euclid(p);
-    let m = (a * b).rem_euclid(p);
-    if try_is_square_qp(m, p as u128).expect("odd genus prime must be supported") {
+    if try_is_square_qp(odd_unit_residue(r, p), p as u128)
+        .expect("odd genus prime must be supported")
+    {
         1
     } else {
         -1
     }
-}
-
-/// The 2-adic unit residue `u mod 8` of a nonzero rational `r = num/den` whose
-/// 2-adic valuation is `scale` (so `r / 2^scale` is a unit). Uses `odd⁻¹ ≡ odd
-/// (mod 8)`.
-fn unit_mod8(r: &Rational) -> i128 {
-    let a = unit_part_i128(r.numer(), 2).rem_euclid(8);
-    let b = unit_part_i128(r.denom(), 2).rem_euclid(8);
-    (a * b).rem_euclid(8)
 }
 
 fn sign_from_mod8(u: i128) -> i128 {
@@ -131,13 +127,6 @@ fn to_rational(gram: &[Vec<i128>]) -> RMat {
     gram.iter()
         .map(|row| row.iter().map(|&x| r_int(x)).collect())
         .collect()
-}
-
-fn rdiv(a: &Rational, b: &Rational) -> Rational {
-    a.mul(
-        &b.inv()
-            .expect("division by zero rational in Jordan splitting"),
-    )
 }
 
 // --- the p-adic Jordan decomposition ---
@@ -312,34 +301,20 @@ fn signature(gram: &[Vec<i128>]) -> (usize, usize) {
 }
 
 /// The primes that can carry a nontrivial local invariant: `2` and every odd prime
-/// dividing the determinant.
+/// dividing the determinant. `2` is always included, even for odd determinant,
+/// since it always carries a local invariant at the genus level.
 fn relevant_primes(det: i128) -> Vec<u128> {
-    let mut ps = vec![2u128];
-    let mut n = det.unsigned_abs();
-    while n.is_multiple_of(2) {
-        n /= 2; // 2 is already included; strip its powers before odd factoring
+    let mut ps = prime_factors(det.unsigned_abs());
+    if !ps.contains(&2) {
+        ps.push(2);
+        ps.sort_unstable();
     }
-    let mut d = 3u128;
-    while d <= n / d {
-        if n.is_multiple_of(d) {
-            ps.push(d);
-            while n.is_multiple_of(d) {
-                n /= d;
-            }
-        }
-        d += 2;
-    }
-    if n > 1 {
-        ps.push(n);
-    }
-    ps.sort_unstable();
-    ps.dedup();
     ps
 }
 
 impl Genus {
     /// The genus of a nondegenerate integral lattice, or `None` if `det = 0`.
-    pub fn of(lattice: &IntegralForm) -> Option<Genus> {
+    pub fn from_lattice(lattice: &IntegralForm) -> Option<Genus> {
         let det = lattice.determinant();
         if det == 0 {
             return None;
@@ -364,9 +339,57 @@ impl Genus {
         self.symbols.get(&p).map_or(&[], |v| v)
     }
 
+    /// The symbol at `p` in the canonical form used for genus comparison.
+    ///
+    /// For odd `p` the raw Jordan symbol is already canonical. At `p = 2`, this
+    /// applies the Conway–Sloane/Allcock fine-symbol reduction: determinant
+    /// residues become signs, type-I compartment oddities are fused, and signs
+    /// are walked left along trains.
+    pub fn canonical_symbol_at(&self, p: u128) -> Vec<ScaleSymbol> {
+        let symbol = self.symbol_at(p);
+        if p == 2 {
+            canonical_2adic_symbol(symbol)
+        } else {
+            symbol.to_vec()
+        }
+    }
+
     /// The primes carrying a recorded local symbol.
     pub fn primes(&self) -> Vec<u128> {
         self.symbols.keys().copied().collect()
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for Genus {
+    /// One line: dimension, signature, determinant, and the canonical
+    /// Conway-Sloane symbol at every prime carrying a local invariant.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Genus(dim={}, signature=({}, {}), det={}",
+            self.dim, self.signature.0, self.signature.1, self.det
+        )?;
+        for p in self.primes() {
+            let rendered = self
+                .canonical_symbol_at(p)
+                .iter()
+                .map(|s| {
+                    let q = u32::try_from(s.scale)
+                        .ok()
+                        .and_then(|e| p.checked_pow(e))
+                        .unwrap_or(p);
+                    render_scale_symbol(q, s)
+                })
+                .collect::<Vec<_>>()
+                .join(" ");
+            write!(f, ", {p}: [{rendered}]")?;
+        }
+        write!(f, ")")
     }
 }
 
@@ -496,7 +519,7 @@ fn canonical_2adic_symbol(syms: &[ScaleSymbol]) -> Vec<ScaleSymbol> {
 /// the comparison uses oddity fusion plus train sign-walking before matching the
 /// carried Conway–Sloane symbols.
 pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
-    let (Some(ga), Some(gb)) = (Genus::of(a), Genus::of(b)) else {
+    let (Some(ga), Some(gb)) = (Genus::from_lattice(a), Genus::from_lattice(b)) else {
         return false;
     };
     if ga.dim != gb.dim || ga.signature != gb.signature || ga.det != gb.det {
@@ -521,8 +544,18 @@ pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::forms::root_lattices::{a_n, d_n, e_6, e_7, e_8};
     use crate::forms::{d16_plus, is_root_lattice};
+    use crate::forms::{e_6, e_7, e_8};
+
+    // `root_lattices::a_n`/`d_n` are `Option`-checked on out-of-domain rank; every
+    // call site below passes an in-domain rank, so these thin local wrappers keep
+    // the test bodies unchanged.
+    fn a_n(n: usize) -> IntegralForm {
+        crate::forms::a_n(n).unwrap()
+    }
+    fn d_n(n: usize) -> IntegralForm {
+        crate::forms::d_n(n).unwrap()
+    }
 
     fn zn(n: usize) -> IntegralForm {
         IntegralForm::diagonal(&vec![1i128; n])
@@ -577,8 +610,8 @@ mod tests {
 
     #[test]
     fn z8_and_e8_differ_only_at_two() {
-        let z8 = Genus::of(&zn(8)).unwrap();
-        let e8 = Genus::of(&e_8()).unwrap();
+        let z8 = Genus::from_lattice(&zn(8)).unwrap();
+        let e8 = Genus::from_lattice(&e_8()).unwrap();
         // Same rank, signature, determinant.
         assert_eq!(z8.dim, e8.dim);
         assert_eq!(z8.signature, e8.signature);
@@ -598,7 +631,7 @@ mod tests {
     #[test]
     fn jordan_symbols_match_known_oracles() {
         // A_2: det 3. p=2 single type-II dim-2; p=3 has a scale-1 constituent.
-        let a2 = Genus::of(&a_n(2)).unwrap();
+        let a2 = Genus::from_lattice(&a_n(2)).unwrap();
         let s2 = a2.symbol_at(2);
         assert_eq!(s2.len(), 1);
         assert!(s2[0].type_ii && s2[0].dim == 2 && s2[0].scale == 0);
@@ -606,14 +639,14 @@ mod tests {
         assert_eq!(a2.det, 3);
 
         // D_4: p=2 symbol is two type-II scales (0 and 1), each dim 2.
-        let d4 = Genus::of(&d_n(4)).unwrap();
+        let d4 = Genus::from_lattice(&d_n(4)).unwrap();
         let s2 = d4.symbol_at(2);
         assert_eq!(s2.len(), 2);
         assert_eq!((s2[0].scale, s2[0].dim, s2[0].type_ii), (0, 2, true));
         assert_eq!((s2[1].scale, s2[1].dim, s2[1].type_ii), (1, 2, true));
 
         // A_1 = ⟨2⟩: p=2 single type-I scale-1 dim-1, oddity 1.
-        let a1 = Genus::of(&IntegralForm::diagonal(&[2])).unwrap();
+        let a1 = Genus::from_lattice(&IntegralForm::diagonal(&[2])).unwrap();
         let s2 = a1.symbol_at(2);
         assert_eq!(s2.len(), 1);
         assert_eq!(
@@ -627,7 +660,7 @@ mod tests {
         let g = IntegralForm::new(vec![vec![2, 1], vec![1, 1]]).unwrap();
         assert!(are_in_same_genus(&zn(2), &g));
 
-        let s2_g = Genus::of(&g).unwrap().symbol_at(2).to_vec();
+        let s2_g = Genus::from_lattice(&g).unwrap().symbol_at(2).to_vec();
         assert_eq!(s2_g.len(), 1);
         assert_eq!((s2_g[0].scale, s2_g[0].dim, s2_g[0].type_ii), (0, 2, false));
     }
@@ -668,6 +701,22 @@ mod tests {
         let canon = canonical_2adic_symbol(&c);
         assert_eq!(canon[0].sign, -1); // Sage/CS canonical walking moves signs left
         assert_eq!(canon[1].sign, 1);
+    }
+
+    #[test]
+    fn canonical_symbol_at_exposes_the_compared_two_adic_symbol() {
+        let g = Genus::from_lattice(&IntegralForm::diagonal(&[1, 6])).unwrap();
+        let raw = g.symbol_at(2);
+        let canonical = g.canonical_symbol_at(2);
+        assert_ne!(raw, canonical.as_slice());
+        assert_eq!(
+            canonical
+                .iter()
+                .map(|s| (s.scale, s.dim, s.sign, s.type_ii, s.oddity))
+                .collect::<Vec<_>>(),
+            vec![(0, 1, -1, false, 0), (1, 1, 1, false, 0)]
+        );
+        assert_eq!(g.canonical_symbol_at(3), g.symbol_at(3).to_vec());
     }
 
     #[test]
@@ -799,11 +848,45 @@ mod tests {
         assert!(are_in_same_genus(&e8e8, &d16));
         assert!(is_root_lattice(&e8e8));
         assert!(!is_root_lattice(&d16));
-        let g = Genus::of(&e8e8).unwrap();
+        let g = Genus::from_lattice(&e8e8).unwrap();
         assert_eq!(g.signature, (16, 0));
         // single type-II scale-0 constituent of dim 16
         let s2 = g.symbol_at(2);
         assert_eq!(s2.len(), 1);
         assert_eq!((s2[0].dim, s2[0].type_ii), (16, true));
+    }
+
+    #[test]
+    fn scale_symbol_display_renders_the_conway_sloane_notation() {
+        let e8 = Genus::from_lattice(&e_8()).unwrap();
+        let s2 = &e8.canonical_symbol_at(2)[0];
+        assert_eq!(s2.to_string(), "p_II^+8");
+        assert_eq!(s2.display(), s2.to_string());
+
+        let a2 = Genus::from_lattice(&a_n(2)).unwrap();
+        let s3 = &a2.canonical_symbol_at(3)[0];
+        assert_eq!(s3.to_string(), "p_0^-1");
+    }
+
+    #[test]
+    fn genus_display_renders_signature_det_and_canonical_symbols() {
+        let z1 = Genus::from_lattice(&IntegralForm::diagonal(&[1])).unwrap();
+        assert_eq!(
+            z1.to_string(),
+            "Genus(dim=1, signature=(1, 0), det=1, 2: [1_1^+1])"
+        );
+        assert_eq!(z1.display(), z1.to_string());
+
+        let e8 = Genus::from_lattice(&e_8()).unwrap();
+        assert_eq!(
+            e8.to_string(),
+            "Genus(dim=8, signature=(8, 0), det=1, 2: [1_II^+8])"
+        );
+
+        let a2 = Genus::from_lattice(&a_n(2)).unwrap();
+        assert_eq!(
+            a2.to_string(),
+            "Genus(dim=2, signature=(2, 0), det=3, 2: [1_II^-2], 3: [1_0^-1 3_0^-1])"
+        );
     }
 }

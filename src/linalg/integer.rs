@@ -150,6 +150,48 @@ pub(crate) fn ext_gcd(a: i128, b: i128) -> (i128, i128, i128) {
     }
 }
 
+/// The non-negative gcd of two `i128`s — the Bézout-free slice of [`ext_gcd`],
+/// the crate's one integer gcd. Callers who need only the gcd use this; the few
+/// who need the cofactors call [`ext_gcd`] directly.
+pub(crate) fn gcd(a: i128, b: i128) -> i128 {
+    ext_gcd(a, b).0
+}
+
+/// The gcd of two `u128`s (the unsigned companion of [`gcd`], for the
+/// fixed-width-`u128` payload sites that never go negative).
+pub(crate) fn gcd_u128(a: u128, b: u128) -> u128 {
+    let (mut a, mut b) = (a, b);
+    while b != 0 {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    a
+}
+
+/// The distinct prime factors of `n` by trial division, ascending and deduplicated
+/// (empty for `n = 0` or `n = 1`). The crate's one integer factorizer: it reports
+/// membership, not multiplicity, which is what every caller here wants (per-prime
+/// classification dispatch, not a full factorization).
+pub(crate) fn prime_factors(n: u128) -> Vec<u128> {
+    let mut m = n;
+    let mut out = Vec::new();
+    let mut p = 2u128;
+    while p <= m / p {
+        if m.is_multiple_of(p) {
+            out.push(p);
+            while m.is_multiple_of(p) {
+                m /= p;
+            }
+        }
+        p += if p == 2 { 1 } else { 2 };
+    }
+    if m > 1 {
+        out.push(m);
+    }
+    out
+}
+
 fn swap_cols(m: &mut [Vec<i128>], a: usize, b: usize) {
     if a == b {
         return;
@@ -321,6 +363,17 @@ mod tests {
         let mut shifted = vec![9, 14];
         reduce_integer_vector(&mut shifted, rows);
         assert_ne!(shifted, vec![0, 0]);
+    }
+
+    #[test]
+    fn prime_factors_matches_known_factorizations() {
+        assert_eq!(prime_factors(0), Vec::<u128>::new());
+        assert_eq!(prime_factors(1), Vec::<u128>::new());
+        assert_eq!(prime_factors(2), vec![2]);
+        assert_eq!(prime_factors(12), vec![2, 3]); // 2^2 * 3, multiplicity dropped
+        assert_eq!(prime_factors(360), vec![2, 3, 5]); // 2^3 * 3^2 * 5
+        assert_eq!(prime_factors(97), vec![97]); // prime
+        assert_eq!(prime_factors(127 * 127), vec![127]); // perfect square of a prime
     }
 
     #[test]

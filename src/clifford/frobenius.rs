@@ -94,7 +94,7 @@ mod tests {
     where
         S: Scalar + std::fmt::Debug + PartialEq,
     {
-        let n = alg.dim;
+        let n = alg.dim();
         assert_eq!(char_poly(alg, f), expected_xn_minus_one::<S>(n));
         for k in 1..n {
             assert_eq!(exterior_power_trace(alg, f, k), S::zero(), "grade {k}");
@@ -112,24 +112,24 @@ mod tests {
     fn fpn_frobenius_has_xn_minus_one_char_poly() {
         type F8 = Fpn<2, 3>;
         let f8 = frobenius_linear_map::<F8>();
-        assert_eq!(f8.n, 3);
+        assert_eq!(f8.n(), 3);
         check_frobenius_spectrum(&exterior_alg::<Fp<2>>(3), &f8);
 
         type F9 = Fpn<3, 2>;
         let f9 = frobenius_linear_map::<F9>();
-        assert_eq!(f9.n, 2);
+        assert_eq!(f9.n(), 2);
         check_frobenius_spectrum(&exterior_alg::<Fp<3>>(2), &f9);
 
         type F27 = Fpn<3, 3>;
         let f27 = frobenius_linear_map::<F27>();
-        assert_eq!(f27.n, 3);
+        assert_eq!(f27.n(), 3);
         check_frobenius_spectrum(&exterior_alg::<Fp<3>>(3), &f27);
     }
 
     #[test]
     fn nimber_subfield_frobenius_uses_the_same_outermorphism_oracle() {
         let f16 = nimber_subfield_frobenius_linear_map(4, 1);
-        assert_eq!(f16.n, 4);
+        assert_eq!(f16.n(), 4);
         check_frobenius_spectrum(&exterior_alg::<Fp<2>>(4), &f16);
     }
 

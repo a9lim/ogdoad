@@ -39,7 +39,7 @@
 //! field (Sylvester signature; [`HermitianForm::from_skew`] handles the
 //! skew-Hermitian case via multiplication by `i`).
 //!
-//! The local–global layer is unified by [`global_field`] ([`GlobalField`]): the
+//! The local–global layer is unified by [`GlobalField`]: the
 //! local–global principle (places, Hilbert symbol, reciprocity `∏_v (a,b)_v = +1`,
 //! Hasse–Minkowski) written **once** over the two kinds of global field, `ℚ`
 //! ([`Rational`](crate::scalar::Rational)) and `F_q(t)`

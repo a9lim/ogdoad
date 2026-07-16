@@ -12,6 +12,18 @@
 //! and Pythagoras number `≤ 2`; `u(F_q) = 2` (odd `q`). For comparison,
 //! formally-real ℝ has level `∞` (no finite `n`), `u(ℝ) = ∞`, Pythagoras number
 //! `1`; and `u(Q_p) = 4`.
+//!
+//! **Contract note (CONSISTENCY.md `idiom-splits`).** These entry points guard
+//! `P` by returning `Option::None` for an unsupported modulus rather than
+//! panicking — a deliberate, different contract from `oddchar`'s internal
+//! `assert_odd_prime` helper, which panics on the same underlying check. The
+//! split is by call-site position, not inconsistency: this module's functions
+//! are arbitrary-`P` public entry points (a caller may probe any `P`, including
+//! a non-prime one, e.g. sweeping a range), so they must fail gracefully;
+//! `assert_odd_prime` guards internal helpers reached only after a
+//! `FiniteOddField` bound or `ensure_supported()` has already validated `P`, so
+//! a failure there is a programming-error invariant, not caller input, and
+//! panicking is honest.
 
 use crate::scalar::Fp;
 use std::collections::BTreeSet;

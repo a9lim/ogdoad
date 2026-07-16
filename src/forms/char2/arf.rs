@@ -18,11 +18,38 @@
 
 use crate::clifford::Metric;
 use crate::forms::FiniteChar2Field;
-use crate::scalar::{nim_add, nim_inv, nim_mul, nim_trace, Fpn, Nimber, Ordinal, Scalar};
+use crate::scalar::{
+    nim_add, nim_inv, nim_mul, nim_trace, ordinal_common_finite_subfield_degree, Fpn, Nimber,
+    Ordinal, Scalar,
+};
 use std::collections::BTreeMap;
+use std::fmt;
 
+/// The orthogonal type of a symplectic complement: `O+` (split, Arf = 0) or
+/// `O-` (non-split, Arf = 1). When [`ArfInvariants::radical_anisotropic`] is
+/// true, this complement type is not an isometry invariant of the whole
+/// singular form.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OrthogonalType {
+    /// Split type (Arf = 0, hyperbolic complement).
+    OPlus,
+    /// Non-split type (Arf = 1, anisotropic complement).
+    OMinus,
+}
+
+impl fmt::Display for OrthogonalType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OrthogonalType::OPlus => f.write_str("O+"),
+            OrthogonalType::OMinus => f.write_str("O-"),
+        }
+    }
+}
+
+/// Classification invariants for a characteristic-2 quadratic form over any
+/// nim-subfield or supported finite char-2 field.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ArfResult {
+pub struct ArfInvariants {
     /// Arf invariant of the nonsingular core (0 or 1).
     pub arf: u128,
     /// Rank of the polar form B = 2 × (number of hyperbolic pairs).
@@ -31,10 +58,39 @@ pub struct ArfResult {
     pub radical_dim: usize,
     /// Whether Q is nonzero somewhere on the radical (a "defective" direction).
     pub radical_anisotropic: bool,
-    /// Orthogonal type of the chosen symplectic complement: "O+" (split) iff
-    /// Arf=0. When `radical_anisotropic` is true, this complement type is not an
-    /// isometry invariant of the whole singular form.
-    pub o_type: &'static str,
+}
+
+impl ArfInvariants {
+    /// Orthogonal type of the chosen symplectic complement: `O+` (split) iff
+    /// `arf == 0`. When [`radical_anisotropic`](Self::radical_anisotropic) is
+    /// true, this complement type is not an isometry invariant of the whole
+    /// singular form.
+    pub fn o_type(&self) -> OrthogonalType {
+        if self.arf == 0 {
+            OrthogonalType::OPlus
+        } else {
+            OrthogonalType::OMinus
+        }
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for ArfInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "ArfInvariants(arf={}, {}, rank={}, radical_dim={}, radical_anisotropic={})",
+            self.arf,
+            self.o_type(),
+            self.rank,
+            self.radical_dim,
+            self.radical_anisotropic,
+        )
+    }
 }
 
 /// Bits of `mask` strictly above position `i`.
@@ -81,7 +137,15 @@ fn b_of(u: u128, v: u128, bmat: &[u128]) -> bool {
 
 /// Arf invariant of an F₂ quadratic form given by diagonal `qd` (the squares)
 /// and symmetric adjacency `bmat` (the polar form; `bmat[i]` bit j ⇔ b_{ij}=1).
-pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfResult {
+pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfInvariants {
+    assert!(
+        n <= 128,
+        "arf_f2 uses u128 bitmasks, so n must be at most 128"
+    );
+    assert!(
+        qd.len() >= n && bmat.len() >= n,
+        "arf_f2 needs qd and bmat entries for every basis vector"
+    );
     let mut vectors: Vec<u128> = (0..n).map(|i| 1u128 << i).collect();
     let mut arf = false;
     let mut pairs = 0usize;
@@ -111,12 +175,11 @@ pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfResult {
     }
 
     let radical_anisotropic = radical.iter().any(|&v| q_of(v, qd, bmat));
-    ArfResult {
+    ArfInvariants {
         arf: arf as u128,
         rank: 2 * pairs,
         radical_dim: radical.len(),
         radical_anisotropic,
-        o_type: if arf { "O-" } else { "O+" },
     }
 }
 
@@ -126,7 +189,7 @@ pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfResult {
 
 /// Smallest extension degree m = 2^k over F₂ such that the nim-subfield
 /// F_{2^m} (the nimbers below 2^m) contains `max_val`.
-fn min_field_degree(max_val: u128) -> u128 {
+pub(crate) fn min_field_degree(max_val: u128) -> u128 {
     let mut m = 1u128; // 2^k, starting k = 0  (F_2)
     loop {
         if m >= 128 {
@@ -210,7 +273,7 @@ fn bf_field<F: Scalar>(u: &[F], v: &[F], bmat: &[Vec<F>]) -> F {
 fn arf_char2_core<F>(
     metric: &Metric<F>,
     trace_to_f2: impl Fn(&F) -> Option<u128>,
-) -> Option<ArfResult>
+) -> Option<ArfInvariants>
 where
     F: Scalar,
 {
@@ -272,20 +335,38 @@ where
     }
 
     let arf = trace_to_f2(&s)?;
-    Some(ArfResult {
+    Some(ArfInvariants {
         arf,
         rank: 2 * pairs,
         radical_dim,
         radical_anisotropic,
-        o_type: if arf == 1 { "O-" } else { "O+" },
     })
+}
+
+/// Maximum nim-field entry value across all `q` and `b` scalars of `metric`.
+/// Used by `isometric_nimber` to find a common field degree for two metrics.
+pub(crate) fn nimber_metric_max_val(metric: &Metric<Nimber>) -> u128 {
+    let mut maxv = metric.q.iter().map(|x| x.0).max().unwrap_or(0);
+    for v in metric.b.values() {
+        maxv = maxv.max(v.0);
+    }
+    maxv
 }
 
 /// Arf invariant of a nimber Clifford metric over its field of definition (the
 /// smallest nim-subfield containing all entries), reduced to F₂ via the trace.
 /// Works for any nimber metric — F₂ is the special case where the trace is the
 /// identity. Symplectic reduction normalises each pair with `nim_inv`.
-pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
+pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfInvariants> {
+    let maxv = nimber_metric_max_val(metric);
+    arf_nimber_at_degree(metric, min_field_degree(maxv))
+}
+
+/// Arf invariant of a nimber metric using an explicit field degree `m` (a power
+/// of 2 up to 128) for the F_{2^m} → F₂ trace.  Callers that need to compare
+/// two forms isometrically must pass the same `m` to both — typically
+/// `min_field_degree(max(maxv1, maxv2))`.  General-bilinear metrics return `None`.
+pub(crate) fn arf_nimber_at_degree(metric: &Metric<Nimber>, m: u128) -> Option<ArfInvariants> {
     if !metric.a.is_empty() {
         return None;
     }
@@ -297,11 +378,7 @@ pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
         bmat[j][i] = v.0;
     }
 
-    let mut maxv = q.iter().copied().max().unwrap_or(0);
-    for row in &bmat {
-        maxv = maxv.max(row.iter().copied().max().unwrap_or(0));
-    }
-    let m = min_field_degree(maxv);
+    // (m is already determined by the caller)
 
     let mut vectors: Vec<Vec<u128>> = (0..n)
         .map(|i| {
@@ -320,7 +397,7 @@ pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
         if let Some(pos) = vectors.iter().position(|w| bf(&a, w, &bmat) != 0) {
             let braw = vectors.swap_remove(pos);
             let c = bf(&a, &braw, &bmat);
-            let b = vscale(nim_inv(c).unwrap(), &braw); // rescale so B(a,b) = 1
+            let b = vscale(nim_inv(c)?, &braw); // rescale so B(a,b) = 1
             for w in vectors.iter_mut() {
                 let wb = bf(w, &b, &bmat);
                 let wa = bf(w, &a, &bmat);
@@ -344,19 +421,18 @@ pub fn arf_nimber(metric: &Metric<Nimber>) -> Option<ArfResult> {
     }
 
     let arf = nim_trace(s, m);
-    Some(ArfResult {
+    Some(ArfInvariants {
         arf,
         rank: 2 * pairs,
         radical_dim,
         radical_anisotropic,
-        o_type: if arf == 1 { "O-" } else { "O+" },
     })
 }
 
 /// Arf invariant of a quadratic Clifford metric over a supported finite field of
 /// characteristic 2 (`F₂` or `F_{2^N}`), reduced through the absolute trace
 /// `Tr_{F/F₂}`. This is the `Fpn<2,N>` mirror of [`arf_nimber`].
-pub fn arf_char2<F: FiniteChar2Field>(metric: &Metric<F>) -> Option<ArfResult> {
+pub fn arf_char2<F: FiniteChar2Field>(metric: &Metric<F>) -> Option<ArfInvariants> {
     F::ensure_supported()?;
     arf_char2_core(metric, |x| Some(F::artin_schreier_class(*x)))
 }
@@ -366,7 +442,7 @@ pub fn arf_char2<F: FiniteChar2Field>(metric: &Metric<F>) -> Option<ArfResult> {
 /// `Fpn<P,N>` monomorphisation without pretending odd fields are char-2 fields.
 pub fn arf_fpn_char2<const P: u128, const N: usize>(
     metric: &Metric<Fpn<P, N>>,
-) -> Option<ArfResult> {
+) -> Option<ArfInvariants> {
     if P != 2 || !Fpn::<P, N>::is_supported_field() {
         return None;
     }
@@ -375,28 +451,17 @@ pub fn arf_fpn_char2<const P: u128, const N: usize>(
 }
 
 /// Arf invariant of a nimber Clifford metric (the char-2 Clifford classifier).
-pub fn arf_invariant(metric: &Metric<Nimber>) -> Option<ArfResult> {
+pub fn arf_invariant(metric: &Metric<Nimber>) -> Option<ArfInvariants> {
     arf_nimber(metric)
 }
 
-fn ordinal_f64_element(x: &Ordinal) -> bool {
-    x.as_below_omega3()
-        .is_some_and(|cs| cs.iter().all(|&c| c < 4))
-}
-
-fn ordinal_f64_trace_to_f2(x: &Ordinal) -> Option<u128> {
-    if !ordinal_f64_element(x) {
-        return None;
-    }
+fn ordinal_trace_to_f2_at_degree(x: &Ordinal, degree: u128) -> Option<u128> {
     let mut acc = Ordinal::zero();
     let mut y = x.clone();
-    for i in 0..6 {
+    for i in 0..degree {
         acc = acc.add(&y);
-        if i != 5 {
+        if i + 1 != degree {
             y = y.nim_mul(&y)?;
-            if !ordinal_f64_element(&y) {
-                return None;
-            }
         }
     }
     match acc.as_finite()? {
@@ -406,38 +471,68 @@ fn ordinal_f64_trace_to_f2(x: &Ordinal) -> Option<u128> {
     }
 }
 
+/// Try to convert a pure-finite ordinal metric to a `Metric<Nimber>`.
+/// Returns `None` if any entry is not a finite ordinal.
+pub(crate) fn ordinal_to_nimber_metric(metric: &Metric<Ordinal>) -> Option<Metric<Nimber>> {
+    if !metric.a.is_empty() {
+        return None;
+    }
+    let q = metric
+        .q
+        .iter()
+        .map(|x| x.as_finite().map(Nimber))
+        .collect::<Option<Vec<_>>>()?;
+    let b = metric
+        .b
+        .iter()
+        .map(|(&(i, j), x)| x.as_finite().map(|v| ((i, j), Nimber(v))))
+        .collect::<Option<BTreeMap<_, _>>>()?;
+    Some(Metric::new(q, b))
+}
+
+/// Minimal finite subfield degree containing every scalar in an ordinal metric.
+/// Returns `None` for general-bilinear metrics or entries outside the staged
+/// finite-subfield detector.
+pub fn ordinal_metric_finite_subfield_degree(metric: &Metric<Ordinal>) -> Option<u128> {
+    if !metric.a.is_empty() {
+        return None;
+    }
+    ordinal_common_finite_subfield_degree(metric.q.iter().chain(metric.b.values()))
+}
+
+/// Arf invariant for a finite ordinal-nimber metric using an explicit containing
+/// field degree for the absolute trace. The caller is responsible for choosing a
+/// common degree when comparing multiple forms.
+pub(crate) fn arf_ordinal_at_degree(
+    metric: &Metric<Ordinal>,
+    degree: u128,
+) -> Option<ArfInvariants> {
+    if !metric.a.is_empty() {
+        return None;
+    }
+    let metric_degree = ordinal_metric_finite_subfield_degree(metric)?;
+    if !degree.is_multiple_of(metric_degree) {
+        return None;
+    }
+    arf_char2_core(metric, |x| ordinal_trace_to_f2_at_degree(x, degree))
+}
+
 /// Arf invariant for finite ordinal-nimber windows represented by the `Ordinal`
-/// backend. Purely finite entries delegate to [`arf_nimber`]. Entries in the first
-/// transfinite finite field `F_4(ω) = F_64` use the same generic symplectic
-/// reduction plus the six-term absolute trace. Larger staged finite fields and
-/// genuinely transfinite coefficients return `None`; the general detector and
-/// transfinite classifier remain open.
-pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfResult> {
+/// backend. Purely finite entries delegate to [`arf_nimber`]. All other detected
+/// finite subfields use the same generic symplectic reduction plus the absolute
+/// trace from their minimal common `F_{2^m}`. Genuinely transfinite coefficients
+/// return `None`; choosing a classifier there remains open.
+pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfInvariants> {
     if !metric.a.is_empty() {
         return None;
     }
 
-    if metric.q.iter().all(|x| x.as_finite().is_some())
-        && metric.b.values().all(|x| x.as_finite().is_some())
-    {
-        let q = metric
-            .q
-            .iter()
-            .map(|x| x.as_finite().map(Nimber))
-            .collect::<Option<Vec<_>>>()?;
-        let b = metric
-            .b
-            .iter()
-            .map(|(&(i, j), x)| x.as_finite().map(|v| ((i, j), Nimber(v))))
-            .collect::<Option<BTreeMap<_, _>>>()?;
-        return arf_nimber(&Metric::new(q, b));
+    if let Some(nim) = ordinal_to_nimber_metric(metric) {
+        return arf_nimber(&nim);
     }
 
-    if metric.q.iter().all(ordinal_f64_element) && metric.b.values().all(ordinal_f64_element) {
-        return arf_char2_core(metric, ordinal_f64_trace_to_f2);
-    }
-
-    None
+    let degree = ordinal_metric_finite_subfield_degree(metric)?;
+    arf_ordinal_at_degree(metric, degree)
 }
 
 #[cfg(test)]
@@ -469,14 +564,17 @@ mod tests {
     fn hyperbolic_plane_is_o_plus() {
         // Q = x0 x1: a single hyperbolic pair, Arf 0.
         let r = arf_invariant(&metric(&[0, 0], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r.arf, r.rank, r.radical_dim, r.o_type), (0, 2, 0, "O+"));
+        assert_eq!(
+            (r.arf, r.rank, r.radical_dim, r.o_type()),
+            (0, 2, 0, OrthogonalType::OPlus)
+        );
     }
 
     #[test]
     fn anisotropic_plane_is_o_minus() {
         // Q = x0² + x0 x1 + x1²: Arf 1.
         let r = arf_invariant(&metric(&[1, 1], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r.arf, r.rank, r.o_type), (1, 2, "O-"));
+        assert_eq!((r.arf, r.rank, r.o_type()), (1, 2, OrthogonalType::OMinus));
     }
 
     #[test]
@@ -527,10 +625,16 @@ mod tests {
         // Genuine F₄ forms (entries up to *3), hand-computed via the trace:
         //   q=[*2,*3], b01=*1:  S = *2⊗*3 = *1,  Tr_{F₄/F₂}(*1) = *1+*1 = 0  ⇒ O+
         let r1 = arf_invariant(&metric(&[2, 3], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r1.arf, r1.o_type, r1.rank), (0, "O+", 2));
+        assert_eq!(
+            (r1.arf, r1.o_type(), r1.rank),
+            (0, OrthogonalType::OPlus, 2)
+        );
         //   q=[*2,*2], b01=*1:  S = *2⊗*2 = *3,  Tr(*3) = *3+*2 = *1       ⇒ O-
         let r2 = arf_invariant(&metric(&[2, 2], &b1(&[(0, 1)]))).unwrap();
-        assert_eq!((r2.arf, r2.o_type, r2.rank), (1, "O-", 2));
+        assert_eq!(
+            (r2.arf, r2.o_type(), r2.rank),
+            (1, OrthogonalType::OMinus, 2)
+        );
     }
 
     #[test]
@@ -615,10 +719,32 @@ mod tests {
         let r = arf_ordinal_finite(&m).unwrap();
         assert_eq!(r.rank, 2);
         assert_eq!(r.radical_dim, 0);
-        assert_eq!(r.arf, ordinal_f64_trace_to_f2(&w.mul(&w)).unwrap());
+        assert_eq!(ordinal_metric_finite_subfield_degree(&m), Some(6));
+        assert_eq!(r.arf, ordinal_trace_to_f2_at_degree(&w.mul(&w), 6).unwrap());
 
         let higher = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega())]);
-        assert_eq!(arf_ordinal_finite(&higher), None);
+        assert_eq!(ordinal_metric_finite_subfield_degree(&higher), Some(20));
+        assert!(arf_ordinal_finite(&higher).is_some());
+    }
+
+    #[test]
+    fn ordinal_detector_extends_past_f64_window() {
+        let chi5 = Ordinal::omega_pow(Ordinal::omega());
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), chi5.clone());
+        let m = Metric::new(vec![Ordinal::zero(), Ordinal::zero()], b);
+        let r = arf_ordinal_finite(&m).unwrap();
+        assert_eq!(ordinal_metric_finite_subfield_degree(&m), Some(20));
+        assert_eq!((r.arf, r.rank, r.radical_dim), (0, 2, 0));
+    }
+
+    #[test]
+    fn ordinal_detector_rejects_past_the_staged_segment() {
+        let outside = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega_pow(
+            Ordinal::omega(),
+        ))]);
+        assert_eq!(ordinal_metric_finite_subfield_degree(&outside), None);
+        assert_eq!(arf_ordinal_finite(&outside), None);
     }
 
     #[test]
@@ -652,5 +778,20 @@ mod tests {
             }
             assert_eq!(general, arf_f2(n, &qd, &bmat), "mismatch on q={:?}", qs);
         }
+    }
+
+    // `arf_f2` and `brown_f2` are declared to mirror each other field-for-field
+    // (CONSISTENCY.md `micro-naming-2`); `brown_f2` already asserts these input
+    // shapes (`forms/char2/brown.rs`), so `arf_f2` must too.
+    #[test]
+    #[should_panic(expected = "at most 128")]
+    fn arf_f2_rejects_dimension_past_u128_bitmask() {
+        arf_f2(129, &[false; 129], &[0u128; 129]);
+    }
+
+    #[test]
+    #[should_panic(expected = "entries for every basis vector")]
+    fn arf_f2_rejects_mismatched_lengths() {
+        arf_f2(3, &[false, false], &[0u128, 0u128, 0u128]);
     }
 }

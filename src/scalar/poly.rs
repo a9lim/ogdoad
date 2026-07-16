@@ -26,23 +26,90 @@ pub struct Poly<S: Scalar> {
     coeffs: Vec<S>,
 }
 
-impl<S: Scalar> std::fmt::Debug for Poly<S> {
+/// Display v4 operational atomicity: a coefficient rendering attaches bare
+/// iff it contains no spaces and no operator character (`⋅ ∧ ↑ / + -`) outside
+/// balanced parentheses; otherwise it is wrapped so `coeff⋅t↑i` stays
+/// unambiguous (`(x + 1)⋅t↑2`, but `x⋅t↑2`).
+pub(crate) fn atomic(s: &str) -> bool {
+    let mut depth: i32 = 0;
+    for ch in s.chars() {
+        match ch {
+            '(' => depth += 1,
+            ')' => depth -= 1,
+            ' ' if depth == 0 => return false,
+            '⋅' | '∧' | '↑' | '/' | '+' | '-' if depth == 0 => return false,
+            _ => {}
+        }
+    }
+    true
+}
+
+/// Attach a scalar coefficient to a label as `coeff⋅label`, parenthesizing the
+/// coefficient only when its rendering is non-atomic. A single leading `-`
+/// is a unary sign, not an internal operator, so it is checked separately and
+/// carried through bare (`-2⋅e0∧e1`); the Multivector join rule then lifts it to
+/// a ` - ` separator. Only a `-`/operator/space *inside* the magnitude forces
+/// parens (`(x + 1)⋅e0∧e1`).
+pub(crate) fn attach_coeff<S: Scalar>(c: &S, label: &str) -> String {
+    let cs = c.to_string();
+    let (sign, mag) = match cs.strip_prefix('-') {
+        Some(rest) => ("-", rest),
+        None => ("", cs.as_str()),
+    };
+    if atomic(mag) {
+        format!("{sign}{mag}⋅{label}")
+    } else {
+        format!("({cs})⋅{label}")
+    }
+}
+
+impl<S: Scalar> std::fmt::Display for Poly<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.coeffs.is_empty() {
             return write!(f, "0");
         }
+        let one = S::one();
+        let neg_one = one.neg();
         let mut parts = Vec::new();
-        for (i, c) in self.coeffs.iter().enumerate() {
+        for (i, c) in self.coeffs.iter().enumerate().rev() {
             if c.is_zero() {
                 continue;
             }
             parts.push(match i {
-                0 => format!("{c:?}"),
-                1 => format!("({c:?})·x"),
-                _ => format!("({c:?})·x^{i}"),
+                0 => format!("{c}"),
+                _ => {
+                    let label = if i == 1 {
+                        "t".to_string()
+                    } else {
+                        format!("t↑{i}")
+                    };
+                    if c == &one {
+                        label
+                    } else if c == &neg_one {
+                        format!("-{label}")
+                    } else {
+                        attach_coeff(c, &label)
+                    }
+                }
             });
         }
-        write!(f, "{}", parts.join(" + "))
+        let mut out = parts.remove(0);
+        for term in parts {
+            if let Some(magnitude) = term.strip_prefix('-') {
+                out.push_str(" - ");
+                out.push_str(magnitude);
+            } else {
+                out.push_str(" + ");
+                out.push_str(&term);
+            }
+        }
+        write!(f, "{out}")
+    }
+}
+
+impl<S: Scalar> std::fmt::Debug for Poly<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self, f)
     }
 }
 
@@ -77,8 +144,8 @@ impl<S: Scalar> Poly<S> {
         Poly::new(vec![s])
     }
 
-    /// The indeterminate `x`.
-    pub fn x() -> Self {
+    /// The indeterminate `t`.
+    pub fn t() -> Self {
         Poly::new(vec![S::zero(), S::one()])
     }
 
@@ -158,6 +225,15 @@ impl<S: Scalar> Poly<S> {
         let mut acc = S::zero();
         for c in self.coeffs.iter().rev() {
             acc = acc.mul(x).add(c);
+        }
+        acc
+    }
+
+    /// Substitute `t := inner` by Horner's rule over polynomial arithmetic.
+    pub fn compose(&self, inner: &Self) -> Self {
+        let mut acc = Poly::zero();
+        for c in self.coeffs.iter().rev() {
+            acc = acc.mul(inner).add(&Poly::constant(c.clone()));
         }
         acc
     }
@@ -299,7 +375,7 @@ mod tests {
     type P5 = Poly<Fp<5>>;
 
     fn p(coeffs: &[i128]) -> P5 {
-        Poly::new(coeffs.iter().map(|&n| Fp::<5>::new(n)).collect())
+        Poly::new(coeffs.iter().map(|&n| Fp::<5>::from_int(n)).collect())
     }
 
     #[test]
@@ -310,8 +386,11 @@ mod tests {
         // (1 + x) + (4 + 4x) = 5 + 5x ≡ 0 in F_5
         assert_eq!(p(&[1, 1]).add(&p(&[4, 4])), P5::zero());
         assert_eq!(p(&[1, 1]).neg(), p(&[4, 4]));
-        assert_eq!(P5::x().eval(&Fp::<5>::new(3)), Fp::<5>::new(3));
-        assert_eq!(p(&[1, 1, 1]).eval(&Fp::<5>::new(2)), Fp::<5>::new(7)); // 1+2+4=7
+        assert_eq!(P5::t().eval(&Fp::<5>::from_int(3)), Fp::<5>::from_int(3));
+        assert_eq!(
+            p(&[1, 1, 1]).eval(&Fp::<5>::from_int(2)),
+            Fp::<5>::from_int(7)
+        ); // 1+2+4=7
     }
 
     #[test]
@@ -329,6 +408,15 @@ mod tests {
     }
 
     #[test]
+    fn compose_substitutes_polynomials_by_horner() {
+        let f = p(&[1, 0, 1]); // 1 + t²
+        let g = p(&[1, 1]); // 1 + t
+        assert_eq!(f.compose(&g), p(&[2, 2, 1])); // 1 + (1+t)²
+        assert_eq!(P5::t().compose(&g), g);
+        assert_eq!(f.compose(&P5::zero()), p(&[1]));
+    }
+
+    #[test]
     fn gcd_and_monic() {
         // gcd(x² − 1, x² + 2x + 1) = x + 1 (monic)
         let g = p(&[4, 0, 1]).gcd(&p(&[1, 2, 1]));
@@ -338,11 +426,40 @@ mod tests {
     }
 
     #[test]
+    fn display_v4_canonical_grundy() {
+        use crate::scalar::Fpn;
+        // Descending powers and atomic coefficients share the monomial family.
+        assert_eq!(p(&[1, 2]).to_string(), "2⋅t + 1");
+        assert_eq!(p(&[0, 0, 3]).to_string(), "3⋅t↑2");
+        assert_eq!(P5::zero().to_string(), "0");
+        // Non-atomic coefficients (an F_8 element `x + 1`) parenthesize.
+        type Q = Poly<Fpn<2, 3>>;
+        let xp1 = Fpn::<2, 3>::from_coeffs(&[1, 1]); // x + 1 (non-atomic)
+        let x = Fpn::<2, 3>::from_coeffs(&[0, 1]); // x (atomic)
+        let one = Fpn::<2, 3>::one();
+        // (x + 1)⋅t↑2 + x⋅t + 1
+        let poly = Q::new(vec![one, x, xp1]);
+        assert_eq!(poly.to_string(), "(x + 1)⋅t↑2 + x⋅t + 1");
+    }
+
+    #[test]
+    fn atomicity_rule() {
+        assert!(atomic("42"));
+        assert!(atomic("*5"));
+        assert!(atomic("*ω"));
+        assert!(atomic("x"));
+        assert!(atomic("*(ω⋅7)")); // operators only inside balanced parens
+        assert!(!atomic("x + 1"));
+        assert!(!atomic("ω↑-1"));
+        assert!(!atomic("3⋅x")); // bare `⋅`
+    }
+
+    #[test]
     fn modular_powers_for_eulers_criterion() {
         // In F_5[x]/(x² + 2) (x² ≡ −2 ≡ 3), the residue field is F_25.
         let modulus = p(&[2, 0, 1]); // x² + 2, irreducible over F_5 (−2=3 is a nonsquare)
                                      // x^(25−1) ≡ 1 (Fermat in F_25*), and x is a nonsquare ⇒ x^((25−1)/2) ≡ −1.
-        assert_eq!(P5::x().pow_mod(24, &modulus), P5::one());
-        assert_eq!(P5::x().pow_mod(12, &modulus), p(&[4])); // −1 ≡ 4
+        assert_eq!(P5::t().pow_mod(24, &modulus), P5::one());
+        assert_eq!(P5::t().pow_mod(12, &modulus), p(&[4])); // −1 ≡ 4
     }
 }

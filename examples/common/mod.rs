@@ -46,7 +46,7 @@ pub fn p_set(succ: &[Vec<usize>]) -> (Vec<u128>, usize) {
 /// `F_2^k` bitmasks.
 pub fn p_set_as_f2(q: &Quotient, atoms: &[usize]) -> Option<Vec<u128>> {
     let k = atoms.len();
-    if k > 12 || q.num_classes != (1 << k) {
+    if k > 12 || q.num_classes() != (1 << k) {
         return None;
     }
     let class_of_subset = |mask: u128| -> Option<usize> {

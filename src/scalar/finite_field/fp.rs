@@ -58,13 +58,73 @@ impl<const P: u128> Fp<P> {
         is_prime_u128(P)
     }
 
-    pub fn assert_prime_modulus() {
+    pub fn assert_supported_params() {
         assert!(Self::modulus_is_prime(), "Fp<P> needs prime P, got {P}");
     }
 
-    /// Reduce an integer (possibly negative) into `F_P`.
-    pub fn new(n: i128) -> Self {
-        Self::assert_prime_modulus();
+    /// Reduce an unsigned integer into `F_P`.
+    pub fn from_u128(n: u128) -> Self {
+        Self::assert_supported_params();
+        Fp(n % P)
+    }
+
+    /// The canonical representative in `[0, P)`.
+    pub fn value(self) -> u128 {
+        self.0
+    }
+}
+
+impl<const P: u128> fmt::Display for Fp<P> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl<const P: u128> fmt::Debug for Fp<P> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
+impl<const P: u128> Scalar for Fp<P> {
+    fn zero() -> Self {
+        Self::assert_supported_params();
+        Fp(0)
+    }
+    fn one() -> Self {
+        Self::assert_supported_params();
+        Fp(1 % P)
+    }
+    fn add(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
+        Fp(add_mod::<P>(self.0, rhs.0))
+    }
+    fn neg(&self) -> Self {
+        Self::assert_supported_params();
+        if self.0 == 0 {
+            Fp(0)
+        } else {
+            Fp(P - self.0)
+        }
+    }
+    fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
+        Fp(mul_mod::<P>(self.0, rhs.0))
+    }
+    fn characteristic() -> u128 {
+        Self::assert_supported_params();
+        P
+    }
+    fn inv(&self) -> Option<Self> {
+        Self::assert_supported_params();
+        if self.0 == 0 {
+            return None;
+        }
+        Some(self.pow(P - 2))
+    }
+    /// Faster direct construction; semantically identical to the default double-and-add.
+    fn from_int(n: i128) -> Self {
+        Self::assert_supported_params();
         let v = if n >= 0 {
             (n as u128) % P
         } else {
@@ -76,79 +136,6 @@ impl<const P: u128> Fp<P> {
             }
         };
         Fp(v)
-    }
-
-    /// Reduce an unsigned integer into `F_P`.
-    pub fn from_u128(n: u128) -> Self {
-        Self::assert_prime_modulus();
-        Fp(n % P)
-    }
-
-    /// The canonical representative in `[0, P)`.
-    pub fn value(self) -> u128 {
-        self.0
-    }
-}
-
-impl<const P: u128> fmt::Debug for Fp<P> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl<const P: u128> Scalar for Fp<P> {
-    fn zero() -> Self {
-        Self::assert_prime_modulus();
-        Fp(0)
-    }
-    fn one() -> Self {
-        Self::assert_prime_modulus();
-        Fp(1 % P)
-    }
-    fn add(&self, rhs: &Self) -> Self {
-        Self::assert_prime_modulus();
-        Fp(add_mod::<P>(self.0, rhs.0))
-    }
-    fn neg(&self) -> Self {
-        Self::assert_prime_modulus();
-        if self.0 == 0 {
-            Fp(0)
-        } else {
-            Fp(P - self.0)
-        }
-    }
-    fn mul(&self, rhs: &Self) -> Self {
-        Self::assert_prime_modulus();
-        Fp(mul_mod::<P>(self.0, rhs.0))
-    }
-    fn characteristic() -> u128 {
-        Self::assert_prime_modulus();
-        P
-    }
-    fn inv(&self) -> Option<Self> {
-        Self::assert_prime_modulus();
-        if self.0 == 0 {
-            return None;
-        }
-        Some(self.pow(P - 2))
-    }
-}
-
-impl<const P: u128> Fp<P> {
-    pub fn pow(&self, mut e: u128) -> Self {
-        Self::assert_prime_modulus();
-        let mut base = *self;
-        let mut acc = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                acc = acc.mul(&base);
-            }
-            e >>= 1;
-            if e > 0 {
-                base = base.mul(&base);
-            }
-        }
-        acc
     }
 }
 
@@ -211,7 +198,7 @@ mod tests {
         let one = Fp::<5>::one();
         assert_eq!(one.neg(), Fp::<5>::from_u128(4));
         assert_ne!(one.neg(), one);
-        assert_eq!(Fp::<5>::new(-1), Fp::<5>::from_u128(4));
+        assert_eq!(Fp::<5>::from_int(-1), Fp::<5>::from_u128(4));
         assert_eq!(Fp::<5>::characteristic(), 5);
     }
 
@@ -223,13 +210,13 @@ mod tests {
             2,
             Metric::diagonal(vec![Fp::<3>::from_u128(1), Fp::<3>::from_u128(2)]),
         );
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         assert_eq!(alg.mul(&e0, &e0), alg.scalar(Fp::<3>::from_u128(1)));
         assert_eq!(alg.mul(&e1, &e1), alg.scalar(Fp::<3>::from_u128(2)));
         // e0 e1 = −(e1 e0), and −1 = 2 in F_3
         assert_eq!(
             alg.mul(&e0, &e1),
-            alg.scalar_mul(&Fp::<3>::new(-1), &alg.mul(&e1, &e0))
+            alg.scalar_mul(&Fp::<3>::from_int(-1), &alg.mul(&e1, &e0))
         );
         // (e0e1)² = 1
         let e0e1 = alg.mul(&e0, &e1);
@@ -239,6 +226,6 @@ mod tests {
     #[test]
     fn composite_modulus_is_rejected() {
         assert!(std::panic::catch_unwind(Fp::<4>::one).is_err());
-        assert!(std::panic::catch_unwind(|| Fp::<9>::new(2)).is_err());
+        assert!(std::panic::catch_unwind(|| Fp::<9>::from_int(2)).is_err());
     }
 }

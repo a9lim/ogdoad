@@ -1,11 +1,11 @@
 //! A quick tour of ogdoad's verified core. Run with:
 //!   cargo run --example tour
 
-use ogdoad::clifford::{CliffordAlgebra, Metric};
+use ogdoad::clifford::{spinor_rep, CliffordAlgebra, Metric};
 use ogdoad::forms::classify_surreal;
 use ogdoad::forms::WittClass;
 use ogdoad::forms::{dickson_matrix, dickson_of_versor};
-use ogdoad::games::{Game, GameExterior};
+use ogdoad::games::{Game, GameClifford, GameExterior, GameRelation};
 use ogdoad::scalar::Surcomplex;
 use ogdoad::scalar::Surreal;
 use ogdoad::scalar::{nim_solve_artin_schreier, nim_sqrt, nim_trace, Nimber};
@@ -22,7 +22,7 @@ fn main() {
     let mut b = BTreeMap::new();
     b.insert((0usize, 1usize), Nimber(1));
     let alg = CliffordAlgebra::new(2, Metric::new(vec![Nimber(2), Nimber(3)], b));
-    let (e0, e1) = (alg.gen(0), alg.gen(1));
+    let (e0, e1) = (alg.e(0), alg.e(1));
     println!("  e0 e1      = {}", alg.mul(&e0, &e1).display());
     println!("  e1 e0      = {}", alg.mul(&e1, &e0).display());
     println!(
@@ -36,11 +36,11 @@ fn main() {
 
     rule("Grassmann — fully null metric, nilpotent generators");
     let g = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(3));
-    println!("  e0²        = {}", g.mul(&g.gen(0), &g.gen(0)).display());
-    println!("  e0 e1      = {}", g.mul(&g.gen(0), &g.gen(1)).display());
+    println!("  e0²        = {}", g.mul(&g.e(0), &g.e(0)).display());
+    println!("  e0 e1      = {}", g.mul(&g.e(0), &g.e(1)).display());
     println!(
         "  e1 e0      = {}   (antisymmetric)",
-        g.mul(&g.gen(1), &g.gen(0)).display()
+        g.mul(&g.e(1), &g.e(0)).display()
     );
 
     rule("surreals — a Clifford metric with NO finite entries");
@@ -49,9 +49,9 @@ fn main() {
         2,
         Metric::diagonal(vec![Surreal::omega(), Surreal::epsilon()]),
     );
-    let e0e1 = s.mul(&s.gen(0), &s.gen(1));
-    println!("  e0²        = {}", s.mul(&s.gen(0), &s.gen(0)).display());
-    println!("  e1²        = {}", s.mul(&s.gen(1), &s.gen(1)).display());
+    let e0e1 = s.mul(&s.e(0), &s.e(1));
+    println!("  e0²        = {}", s.mul(&s.e(0), &s.e(0)).display());
+    println!("  e1²        = {}", s.mul(&s.e(1), &s.e(1)).display());
     println!(
         "  (e0 e1)²   = {}   (= -(ω·ε) = -1, a unit bivector)",
         s.mul(&e0e1, &e0e1).display()
@@ -104,14 +104,14 @@ fn main() {
     let even = cl30.even_subalgebra().unwrap();
     println!(
         "  Cl(3,0)⁰         = {}   (≅ Cl(0,2))",
-        classify_surreal(&even.metric).unwrap().display()
+        classify_surreal(even.metric()).unwrap().display()
     );
     let l = CliffordAlgebra::new(1, Metric::diagonal(vec![Surreal::from_int(1)]));
     let r = CliffordAlgebra::new(1, Metric::diagonal(vec![Surreal::from_int(-1)]));
     let t = l.graded_tensor(&r);
     println!(
         "  Cl(1,0) ⊗̂ Cl(0,1) = {}   (≅ Cl(1,1))",
-        classify_surreal(&t.metric).unwrap().display()
+        classify_surreal(t.metric()).unwrap().display()
     );
 
     rule("general bilinear form — the in-order contraction `a` deforms the product");
@@ -121,8 +121,18 @@ fn main() {
         2,
         Metric::general(vec![Surreal::from_int(1); 2], BTreeMap::new(), a),
     );
-    let e0e1 = d.mul(&d.gen(0), &d.gen(1));
+    let e0e1 = d.mul(&d.e(0), &d.e(1));
+    let e1e0 = d.mul(&d.e(1), &d.e(0));
     println!("  e0 e1 = {}   (= e0∧e1 + 5)", e0e1.display());
+    println!(
+        "  reverse(e0 e1) = {}   (= e1 e0 through the gauge: {})",
+        d.reverse(&e0e1).display(),
+        e1e0.display()
+    );
+    println!(
+        "  spinor basis dim through the a-gauge = {}",
+        spinor_rep(&d).unwrap().basis().len()
+    );
 
     rule("Artin–Schreier ↔ Arf — one field trace, two roles");
     println!(
@@ -153,7 +163,7 @@ fn main() {
         dickson_matrix(&[vec![0, 1], vec![1, 0]])
     );
     let nb = CliffordAlgebra::new(2, aplane);
-    let rotor = nb.mul(&nb.gen(0), &nb.gen(1));
+    let rotor = nb.mul(&nb.e(0), &nb.e(1));
     println!(
         "  Dickson(versor e0e1) = {:?}   (a rotor ⇒ SO)",
         dickson_of_versor(&nb, &rotor)
@@ -179,6 +189,22 @@ fn main() {
     println!(
         "  value(2·g0) = ⋆+⋆ = 0 ? {}",
         ext.value_of_grade1(&two_g0).eq(&Game::zero())
+    );
+
+    let checked = GameClifford::with_quadratic_data(
+        vec![Game::star(), Game::up()],
+        vec![GameRelation::new(vec![2, 0])],
+        vec![0, 5],
+        BTreeMap::new(),
+    )
+    .expect("2⋆=0 is compatible only after Q(⋆) and pairings with ⋆ vanish");
+    let c0c1 = checked.mul(&checked.generator(0), &checked.generator(1));
+    println!(
+        "  checked Clifford: ↑² = {}, 2·(⋆↑)=0 ? {}",
+        checked
+            .mul(&checked.generator(1), &checked.generator(1))
+            .display(),
+        checked.is_zero(&checked.scalar_mul(2, &c0c1))
     );
 }
 

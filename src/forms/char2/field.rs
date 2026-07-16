@@ -44,9 +44,6 @@ pub trait FiniteChar2Field: ExactFieldScalar + Copy {
     /// Whether this type is a supported finite field of characteristic 2.
     fn is_supported_char2_field() -> bool;
 
-    /// Embed an ordinary integer through the prime subfield `F₂` (so `n ↦ n mod 2`).
-    fn from_i128(n: i128) -> Self;
-
     /// Enumerate the field: index `i ∈ [0, field_order())` ↦ a distinct element,
     /// covering all of `F_q` exactly once (base-2 digits of `i` are the
     /// polynomial-basis coordinates). The char-2 mirror of
@@ -75,10 +72,6 @@ impl FiniteChar2Field for Fp<2> {
         Fp::<2>::modulus_is_prime()
     }
 
-    fn from_i128(n: i128) -> Self {
-        Fp::<2>::new(n)
-    }
-
     fn from_index(i: u128) -> Self {
         Fp::<2>::from_u128(i)
     }
@@ -96,10 +89,6 @@ impl<const N: usize> FiniteChar2Field for Fpn<2, N> {
 
     fn is_supported_char2_field() -> bool {
         Fpn::<2, N>::is_supported_field()
-    }
-
-    fn from_i128(n: i128) -> Self {
-        Fpn::<2, N>::constant(n.rem_euclid(2) as u128)
     }
 
     fn from_index(i: u128) -> Self {
@@ -140,8 +129,8 @@ mod tests {
     #[test]
     fn f2_class_is_the_identity() {
         // Tr_{F₂/F₂} = id, and ℘(F₂) = {0} (℘(0)=0, ℘(1)=1²+1=0 ⇒ only 0 has class 0).
-        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::new(0)), 0);
-        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::new(1)), 1);
+        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::from_int(0)), 0);
+        assert_eq!(Fp::<2>::artin_schreier_class(Fp::<2>::from_int(1)), 1);
         assert_eq!(Fp::<2>::field_order(), 2);
         assert!(Fp::<2>::is_supported_char2_field());
     }

@@ -21,25 +21,39 @@ impl<S: Scalar> CliffordAlgebra<S> {
     }
 
     /// The even subalgebra Cl⁰ presented as a Clifford algebra one dimension
-    /// smaller. For a diagonal (orthogonal) metric with a non-null generator
-    /// e_p, the map `f_i = e_i e_p` (i ≠ p) is an algebra isomorphism
-    /// Cl(Q)⁰ ≅ Cl(Q′) with `f_i² = −q_i q_p` — the classical
-    /// `Cl(p,q)⁰ ≅ Cl(p, q−1) ≅ Cl(q, p−1)`. Returns the smaller algebra, or
-    /// `None` if the metric is non-orthogonal (`b`/`a` nonempty) or has no
-    /// non-null generator to pivot on.
+    /// smaller. For a diagonal (orthogonal) metric with an invertible generator
+    /// e_p (i.e. `q_p` is a unit in the scalar ring), the map `f_i = e_i e_p`
+    /// (i ≠ p) is an algebra isomorphism Cl(Q)⁰ ≅ Cl(Q′) with `f_i² = −q_i q_p`
+    /// — the classical `Cl(p,q)⁰ ≅ Cl(p, q−1) ≅ Cl(q, p−1)`.
+    ///
+    /// Returns `None` if:
+    /// - the metric is non-orthogonal (`b` or `a` nonempty),
+    /// - there is no invertible (unit) generator to pivot on — i.e. every `q_i`
+    ///   with `q_i.inv().is_some()` is absent. Over a ring backend such as
+    ///   `Integer`, `q_i = 2` is nonzero but not a unit, so it cannot serve as the
+    ///   pivot; this case returns `None` rather than silently producing a
+    ///   non-isomorphic smaller algebra.
     pub fn even_subalgebra(&self) -> Option<CliffordAlgebra<S>> {
         if !self.metric.b.is_empty() || self.metric.has_upper() {
             return None; // only the orthogonal case has this clean presentation
         }
-        let p = (0..self.dim)
+        // Require the pivot q_p to be a unit (invertible) in the scalar ring.
+        // A non-zero but non-invertible pivot (e.g. q_p = 2 over Integer) would
+        // produce a map f_i ↦ e_i e_p that scales even-grade basis elements by
+        // q_p^{k/2}, which is not a unit — the resulting algebra would not be
+        // isomorphic to Cl(Q)⁰ over the ring.
+        let p = (0..self.dim())
             .rev()
-            .find(|&i| !self.metric.q_val(i).is_zero())?;
+            .find(|&i| self.metric.q_val(i).inv().is_some())?;
         let qp = self.metric.q_val(p);
-        let qprime: Vec<S> = (0..self.dim)
+        let qprime: Vec<S> = (0..self.dim())
             .filter(|&i| i != p)
             .map(|i| self.metric.q_val(i).mul(&qp).neg())
             .collect();
-        Some(CliffordAlgebra::new(self.dim - 1, Metric::diagonal(qprime)))
+        Some(CliffordAlgebra::new(
+            self.dim() - 1,
+            Metric::diagonal(qprime),
+        ))
     }
 
     /// The spinor norm ⟨v ṽ⟩₀ (scalar part of `v * reverse(v)`).
@@ -64,19 +78,29 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
-    /// Inverse of a versor (a product of invertible vectors): v⁻¹ = ṽ / (v ṽ),
-    /// valid exactly when `v * reverse(v)` is a nonzero invertible scalar.
-    /// Returns `None` otherwise (null vector, non-versor, or scalar norm not
-    /// invertible in the backend).
-    pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
+    /// The shared invertibility gate underlying both [`versor_inverse`](Self::versor_inverse)
+    /// and [`spinor_norm`](Self::spinor_norm): `Some(v ṽ)` iff `v * reverse(v)` is
+    /// a pure, invertible scalar; `None` if `v ṽ` carries any non-scalar grade or
+    /// its scalar part is not invertible in the backend.
+    pub(super) fn pure_scalar_norm(&self, v: &Multivector<S>) -> Option<S> {
         let rev = self.reverse(v);
         let vrev = self.mul(v, &rev);
         let n = self.scalar_part(&vrev);
         if self.scalar(n.clone()) != vrev {
             return None; // v ṽ is not a pure scalar ⇒ not a simple versor
         }
+        n.inv()?;
+        Some(n)
+    }
+
+    /// Inverse of a versor (a product of invertible vectors): v⁻¹ = ṽ / (v ṽ),
+    /// valid exactly when `v * reverse(v)` is a nonzero invertible scalar.
+    /// Returns `None` otherwise (null vector, non-versor, or scalar norm not
+    /// invertible in the backend).
+    pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
+        let n = self.pure_scalar_norm(v)?;
         let ninv = n.inv()?;
-        Some(self.scalar_mul(&ninv, &rev))
+        Some(self.scalar_mul(&ninv, &self.reverse(v)))
     }
 
     /// The (untwisted) sandwich product v x v⁻¹ — the rotor action. Correct for
@@ -113,7 +137,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// Left contraction a ⌟ b = Σ_{r≤s} ⟨⟨a⟩_r ⟨b⟩_s⟩_{s−r}.
     pub fn left_contract(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut out = self.zero();
-        let d = self.dim;
+        let d = self.dim();
         for r in 0..=d {
             let ar = self.grade_part(a, r);
             if ar.is_zero() {
@@ -134,7 +158,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// Right contraction a ⌞ b = Σ_{r≥s} ⟨⟨a⟩_r ⟨b⟩_s⟩_{r−s}.
     pub fn right_contract(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut out = self.zero();
-        let d = self.dim;
+        let d = self.dim();
         for s in 0..=d {
             let bs = self.grade_part(b, s);
             if bs.is_zero() {
@@ -154,10 +178,10 @@ impl<S: Scalar> CliffordAlgebra<S> {
 
     /// The unit pseudoscalar I = e₀e₁…e_{dim−1}.
     pub fn pseudoscalar(&self) -> Multivector<S> {
-        let mask = if self.dim >= MAX_BASIS_DIM {
+        let mask = if self.dim() >= MAX_BASIS_DIM {
             u128::MAX
         } else {
-            (1u128 << self.dim) - 1
+            (1u128 << self.dim()) - 1
         };
         let mut terms = BTreeMap::new();
         terms.insert(mask, S::one());
@@ -179,8 +203,13 @@ impl<S: Scalar> CliffordAlgebra<S> {
 
     /// The **Clifford (main) conjugate** `x̄ = α(x̃)` — reversion composed with
     /// grade involution. The third standard involution alongside
-    /// [`reverse`](Self::reverse) and [`grade_involution`](Self::grade_involution);
-    /// on a grade-`k` blade it is the sign `(−1)^{k(k+1)/2}`.
+    /// [`reverse`](Self::reverse) and [`grade_involution`](Self::grade_involution).
+    ///
+    /// On an **orthogonal metric** the conjugate of a grade-`k` wedge-basis blade is
+    /// `(−1)^{k(k+1)/2}` times the same blade. On a non-orthogonal metric
+    /// (`b ≠ 0`), reversion of a grade-`k` wedge blade can mix in lower-grade
+    /// terms (because `e_j e_i = b_{ij} − e_i∧e_j` introduces a grade-0 scalar),
+    /// so the result need not be a scalar multiple of the original blade.
     pub fn clifford_conjugate(&self, v: &Multivector<S>) -> Multivector<S> {
         self.grade_involution(&self.reverse(v))
     }
@@ -246,10 +275,10 @@ impl<S: Scalar> CliffordAlgebra<S> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::Rational;
+    use crate::scalar::{Rational, Surreal};
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
     fn euclid(n: usize) -> CliffordAlgebra<Rational> {
         CliffordAlgebra::new(n, Metric::diagonal(vec![r(1); n]))
@@ -260,8 +289,8 @@ mod tests {
         // (−1)^{k(k+1)/2}: scalar +, vector −, bivector −, trivector +.
         let alg = euclid(3);
         let s = alg.scalar(r(1));
-        let e0 = alg.gen(0);
-        let e01 = alg.wedge(&alg.gen(0), &alg.gen(1));
+        let e0 = alg.e(0);
+        let e01 = alg.wedge(&alg.e(0), &alg.e(1));
         let e012 = alg.pseudoscalar();
         assert_eq!(alg.clifford_conjugate(&s), s);
         assert_eq!(alg.clifford_conjugate(&e0), alg.scalar_mul(&r(-1), &e0));
@@ -272,7 +301,7 @@ mod tests {
     #[test]
     fn scalar_and_commutator_products() {
         let alg = euclid(3);
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         // ⟨e0 e0⟩₀ = q0 = 1; ⟨e0 e1⟩₀ = 0 (orthogonal).
         assert_eq!(alg.scalar_product(&e0, &e0), r(1));
         assert_eq!(alg.scalar_product(&e0, &e1), r(0));
@@ -287,8 +316,8 @@ mod tests {
         // In Cl(3,0): the planes e0∧e1 and e1∧e2 meet in the line e1. The result
         // must be a nonzero grade-1 vector contained in both planes.
         let alg = euclid(3);
-        let p1 = alg.wedge(&alg.gen(0), &alg.gen(1));
-        let p2 = alg.wedge(&alg.gen(1), &alg.gen(2));
+        let p1 = alg.wedge(&alg.e(0), &alg.e(1));
+        let p2 = alg.wedge(&alg.e(1), &alg.e(2));
         let line = alg.meet(&p1, &p2).unwrap();
         assert!(!line.is_zero());
         assert_eq!(alg.grade_part(&line, 1), line); // pure grade 1
@@ -300,7 +329,7 @@ mod tests {
     #[test]
     fn dual_undual_round_trip() {
         let alg = euclid(3);
-        let v = alg.add(&alg.gen(0), &alg.wedge(&alg.gen(1), &alg.gen(2)));
+        let v = alg.add(&alg.e(0), &alg.wedge(&alg.e(1), &alg.e(2)));
         let back = alg.undual(&alg.dual(&v).unwrap());
         assert_eq!(back, v);
     }
@@ -309,13 +338,13 @@ mod tests {
     fn general_multivector_inverse() {
         let alg = euclid(3);
         // A vector: the general inverse matches versor_inverse and v·v⁻¹ = 1.
-        let v = alg.add(&alg.gen(0), &alg.scalar_mul(&r(2), &alg.gen(1)));
+        let v = alg.add(&alg.e(0), &alg.scalar_mul(&r(2), &alg.e(1)));
         let inv = alg.multivector_inverse(&v).unwrap();
         assert_eq!(inv, alg.versor_inverse(&v).unwrap());
         assert_eq!(alg.mul(&v, &inv), alg.scalar(r(1)));
         // 1 + e0 + e1 : NOT a simple versor (v·ṽ = 3 + 2e0 + 2e1 is not scalar),
         // so versor_inverse declines — but the general inverse succeeds two-sided.
-        let x = alg.add(&alg.add(&alg.scalar(r(1)), &alg.gen(0)), &alg.gen(1));
+        let x = alg.add(&alg.add(&alg.scalar(r(1)), &alg.e(0)), &alg.e(1));
         assert!(alg.versor_inverse(&x).is_none());
         let xi = alg.multivector_inverse(&x).unwrap();
         assert_eq!(alg.mul(&x, &xi), alg.scalar(r(1)));
@@ -329,8 +358,8 @@ mod tests {
         let mut b = std::collections::BTreeMap::new();
         b.insert((0usize, 1usize), r(1));
         let alg = CliffordAlgebra::new(2, Metric::new(vec![r(1), r(1)], b));
-        let e0 = alg.gen(0);
-        let e1 = alg.gen(1);
+        let e0 = alg.e(0);
+        let e1 = alg.e(1);
         let rotor = alg.mul(&e0, &alg.add(&e0, &e1));
 
         assert_eq!(alg.spinor_norm(&rotor), Some(r(3)));
@@ -348,18 +377,104 @@ mod tests {
         // odd augmentation, so it inverts in this commutative char-2 algebra).
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Nimber(1), Nimber(1)]));
         assert!(alg
-            .multivector_inverse(&alg.add(&alg.scalar(Nimber(1)), &alg.gen(0)))
+            .multivector_inverse(&alg.add(&alg.scalar(Nimber(1)), &alg.e(0)))
             .is_none()); // 1 + e0 is nilpotent ⇒ no inverse
-        let x = alg.add(&alg.add(&alg.scalar(Nimber(1)), &alg.gen(0)), &alg.gen(1));
+        let x = alg.add(&alg.add(&alg.scalar(Nimber(1)), &alg.e(0)), &alg.e(1));
         let xi = alg.multivector_inverse(&x).unwrap();
         assert_eq!(alg.mul(&x, &xi), alg.scalar(Nimber(1)));
         assert_eq!(alg.mul(&xi, &x), alg.scalar(Nimber(1)));
     }
 
+    /// `reverse` is transported through the antisymmetric gauge in characteristic
+    /// 0, so it remains an anti-automorphism on general-bilinear metrics.
+    #[test]
+    fn reverse_is_anti_automorphism_on_general_bilinear_char0_metric() {
+        let mut a = std::collections::BTreeMap::new();
+        a.insert((0usize, 1usize), r(1));
+        let alg = CliffordAlgebra::new(
+            2,
+            Metric::general(vec![r(1), r(1)], std::collections::BTreeMap::new(), a),
+        );
+        let xy = alg.mul(&alg.e(0), &alg.e(1));
+        assert_eq!(
+            alg.reverse(&xy),
+            alg.mul(&alg.reverse(&alg.e(1)), &alg.reverse(&alg.e(0)))
+        );
+    }
+
+    /// Characteristic 2 keeps the explicit boundary: the antisymmetric-gauge
+    /// transport used in characteristic 0 is not available there.
+    #[test]
+    #[should_panic(expected = "reverse() on general-bilinear")]
+    fn reverse_panics_on_general_bilinear_char2_metric() {
+        use crate::scalar::Nimber;
+
+        let mut a = std::collections::BTreeMap::new();
+        a.insert((0usize, 1usize), Nimber(1));
+        let alg = CliffordAlgebra::new(
+            2,
+            Metric::general(
+                vec![Nimber(1), Nimber(1)],
+                std::collections::BTreeMap::new(),
+                a,
+            ),
+        );
+        let _ = alg.reverse(&alg.mul(&alg.e(0), &alg.e(1)));
+    }
+
+    /// M-3 check: on a symmetric (b-only, a=0) non-orthogonal metric the
+    /// anti-automorphism `reverse(xy) = reverse(y)*reverse(x)` holds.
+    #[test]
+    fn reverse_is_anti_automorphism_on_symmetric_metric() {
+        let mut b = std::collections::BTreeMap::new();
+        b.insert((0usize, 1usize), r(1));
+        let alg = CliffordAlgebra::new(2, Metric::new(vec![r(1), r(1)], b));
+        let e0 = alg.e(0);
+        let e1 = alg.e(1);
+        // Check reverse(e0 * e1) == reverse(e1) * reverse(e0)
+        let xy = alg.mul(&e0, &e1);
+        let rev_xy = alg.reverse(&xy);
+        let rev_y_rev_x = alg.mul(&alg.reverse(&e1), &alg.reverse(&e0));
+        assert_eq!(
+            rev_xy, rev_y_rev_x,
+            "reverse(e0*e1) != reverse(e1)*reverse(e0) on symmetric metric"
+        );
+        // Check on a mixed element
+        let biv = alg.wedge(&e0, &e1);
+        let xbiv = alg.mul(&e0, &biv);
+        assert_eq!(
+            alg.reverse(&xbiv),
+            alg.mul(&alg.reverse(&biv), &alg.reverse(&e0)),
+            "reverse(e0*(e0^e1)) != reverse(e0^e1)*reverse(e0)"
+        );
+    }
+
+    /// The documented "looks like a bug" contract: `versor_inverse` succeeds
+    /// iff `v ṽ` is a scalar AND a monomial (over surreals). `1/(ω+1)` is an
+    /// infinite Hahn series with no finite representation, so a vector whose
+    /// spinor norm is a genuine sum (not a single term) has no representable
+    /// inverse — `Surreal::inv` returns `None` on any non-monomial. Regression
+    /// for that `None`, with a monomial-norm case alongside as the contrast.
+    #[test]
+    fn versor_inverse_none_on_nonmonomial_surreal_norm() {
+        let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Surreal::omega(), Surreal::one()]));
+        let v = alg.add(&alg.e(0), &alg.e(1));
+        // v is a single vector, so reverse(v) = v and v*rev(v) = v^2 = q0 + q1
+        // = ω + 1 — a genuine two-term sum, not a monomial.
+        let norm = alg.norm2(&v);
+        assert_eq!(norm, Surreal::omega().add(&Surreal::one()));
+        assert!(norm.inv().is_none(), "ω+1 should have no exact inverse");
+        assert!(alg.versor_inverse(&v).is_none());
+
+        // Contrast: a single generator's norm (q0 = ω alone) IS a monomial,
+        // so it inverts exactly.
+        assert!(alg.versor_inverse(&alg.e(0)).is_some());
+    }
+
     #[test]
     fn cayley_bivector_to_rotor() {
         let alg = euclid(3);
-        let b = alg.wedge(&alg.gen(0), &alg.gen(1)); // a bivector generator
+        let b = alg.wedge(&alg.e(0), &alg.e(1)); // a bivector generator
         let rotor = alg.cayley(&b).unwrap();
         // The rotor is even and unit spinor norm (R ~R = 1).
         assert_eq!(alg.even_part(&rotor), rotor);
@@ -367,7 +482,7 @@ mod tests {
         // Involution: cayley back to the bivector.
         assert_eq!(alg.cayley_inverse(&rotor).unwrap(), b);
         // The rotor's sandwich preserves length.
-        let x = alg.gen(0);
+        let x = alg.e(0);
         let rx = alg.sandwich(&rotor, &x).unwrap();
         assert_eq!(alg.norm2(&rx), alg.norm2(&x));
     }

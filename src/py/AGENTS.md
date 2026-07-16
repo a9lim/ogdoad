@@ -16,7 +16,8 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
 ## Files
 
 - **`mod.rs`** — the `#[pymodule]`; chains each submodule's `pub(crate) register()`
-  (`scalars` → `engine` → `forms` → `games`). Declares `#[macro_use] mod catalog`.
+  (`scalars` → `engine` → `forms` → `games`) + the module-level `version()`. Declares
+  `#[macro_use] mod catalog`.
 - **`catalog.rs`** — the backend **manifest**: three `macro_rules!` lists
   (`py_engine_backends!`, `py_divided_power_backends!`, `py_cga_backends!`) that name
   every bound `<World>Algebra`/`MV`/`LinearMap`/`DpVector`/`Cga` monomorph and its
@@ -28,31 +29,36 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   `F9`/`F25`/`F27`); the fixed p-adic slices (`Zp*_4`/`Qp*_4` for p∈{2,3,5,7,11,13});
   the fixed unramified slices (`WittVec*_4_*`/`Qq*_4_*`); the fixed functor slices
   (`Laurent*_6`, `RamifiedQp*_4_E{2,3}`, `GaussQp*_4`); the function-field rows
-  (`NimberPoly`/`NimberRationalFunction`, `Fp*Poly`/`Fp*RationalFunction`);
+  (`NimberPoly`/`NimberRationalFunction`, `Fp*Poly`/`Fp*RationalFunction`,
+  `IntegerPoly`);
   `Rational`, `Surreal`, `Surcomplex`, `Integer`, `Omnific`, `Ordinal`,
   `SignExpansion`; the runtime cells `LocalQp`/`Adele`; and the tropical endpoints
   `MaxPlusTropical`/`MinPlusTropical`. Threads the `parse_*`/`wrap_*` hooks the
   `backend!` macro consumes. Bound scalar classes expose the shared runtime `Scalar`
   surface (`zero`/`one`/`characteristic` where applicable, `is_zero`, partial
   inverses/division, owned operators), plus per-world extras: Surreal's simplicity
-  bridge + sign-expansion round-trips + lazy analytic helpers; Nimber's
-  `pow`/`frobenius`/`sqrt` + the `nim_*` Galois toolkit; the Qp/Qq local-field package
+  bridge + sign-expansion round-trips + lazy analytic helpers + monic-omega-power
+  `rem`; Integer's Euclidean `divrem`/`rem`/`div_exact`; `IntegerPoly`'s
+  monic `divrem`/`rem`, primitive `gcd`, and eval/compose `@`; Omnific's matching
+  monic-omega-power `rem`; Nimber's `pow`/`frobenius`/`sqrt` + the `nim_*`
+  Galois toolkit + `fuzzy`; the fixed Poly classes' `compose`; the Qp/Qq local-field package
   (`uniformizer`/`residue`/`residue_unit`/`teichmuller`, `is_integral`/`to_integer`)
   and the Qq `FieldExtension`/`CyclicGaloisExtension` surface; Ordinal's CNF terms +
-  staged `nim_mul`/`checked_inv`; the `Fpn` Galois/reduction-poly metadata
+  staged `nim_mul`/`checked_inv` + `fuzzy`; the `Fpn` Galois/reduction-poly metadata
   (`ReductionPolynomialKind`).
-- **`engine.rs`** — the `backend!` macro → `<World>Algebra`/`<World>MV` pairs (driven
-  by `catalog.rs`), plus conformal GA (`<World>Cga`) over every bound char-0 scalar
-  world with a matching MV carrier. MV methods cover the full GA suite
+- **`engine.rs`** — the `backend!` macro → `<World>Algebra`/`<World>MV`/`<World>LinearMap`
+  triplets (driven by `catalog.rs`), plus conformal GA (`<World>Cga`) over every bound
+  char-0 scalar world with a matching MV carrier. MV methods cover the full GA suite
   (clifford_conjugate, scalar_product, commutator, anticommutator, undual, meet,
-  is_blade, blade_subspace, factor_blade, cayley, spinor_norm, versor_grade_parity,
-  classify_versor → `VersorClass`, plus raw `(blade_mask, coeff)` terms, `grade_part`,
+  is_blade, blade_subspace, factor_blade, cayley, cayley_inverse, spinor_norm, versor_grade_parity,
+  classify_versor → `VersorInvariants`, plus raw `(blade_mask, coeff)` terms, `grade_part`,
   `versor_inverse`, `multivector_inverse`). Algebra methods add
   trace/char_poly/determinant/exterior_power_trace/apply_outermorphism/inverse_outermorphism, the typed
   `<World>LinearMap` pyclass, fixed-dispatch Frobenius/Galois map constructors
   (`frobenius_linear_map`, `galois_linear_map`,
   `nimber_subfield_frobenius_linear_map`), `spinor_rep`/`SpinorRep` (incl. the
-  nonsingular nimber char-2 path), the lazy `lazy_spinor_rep`/`LazySpinorRep` (with
+  nonsingular nimber char-2 path and the char-0 general-bilinear `a` gauge
+  transport), the lazy `lazy_spinor_rep`/`LazySpinorRep` (with
   `apply_generator`/`apply_vector` beyond the explicit matrix cap), the metric
   constructors/helpers (`general`/`grassmann`/`q`/`b_terms`/`a_terms`/`map`/`q_val`/…),
   the `pga(n)` constructor, the `gram`/`diagonalize`/`as_diagonal` façade, tensor-square
@@ -63,34 +69,44 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
 - **`forms.rs`** — the classifier / invariant / lattice bindings: `classify_real`/
   `classify_complex`/`classify_rational`, the Brauer–Wall classes, the runtime form
   façades `OddFiniteFieldForm` (Fp/Fpn) and `Char2FiniteFieldForm` (`Fpn<2,N>`,
-  N=1..4), `FiniteFieldClass` + leg-specific classifiers, constructible
+  N=1..4), `FiniteFieldInvariants` + leg-specific classifiers, constructible
   `WittClass`/`WittClassG`/`BrauerWallClass` records, base-field isometry helpers, the
   Springer decompositions (the Surreal `springer_decompose`; `springer_decompose_qp`/
   `_qq`/`_laurent`/`_ramified_qp4_e{2,3}` + the generic `springer_decompose_local` and
   `springer_decompose_local_char2` dispatchers), the
   rational/p-adic local-global helpers (`hilbert_*`, `hasse_at_place`,
-  `is_isotropic_q`, …), the odd `F_q(t)` layer (`try_*_ff`, `FunctionFieldLocalIsotropy`)
-  and the char-2 Artin-Schreier layer (`as_symbol_*`, `Char2FunctionFieldForm`/
+  `is_isotropic_q`, …), the odd `F_q(t)` layer (`try_*_ff`,
+  `tame_symbol_invariants_ff`, `FunctionFieldLocalIsotropy`), Bridge-K local
+  cyclic-symbol helpers (`cyclic_algebra_invariant`, `tame_symbol_invariant`)
+  and the char-2 Artin-Schreier layer (`as_symbol_*`, `relevant_places_char2`,
+  `Char2FunctionFieldForm`/
   `Char2LocalDecomp` with `Char2PsiTerm`, local/global char-2 isotropy), the
   symplectic/hermitian constructors, the field numeric invariants
   (`level`/`pythagoras_number`/`u_invariant`/sum-of-squares), the quadric bench
   (`fit_f2_quadratic`/`QuadricFit`), the trace/Gold-form helpers (`trace_twisted_form`,
   `trace_form_arf`, `gold_form_arf`, `gold_form`), and the integral-lattice layer
   (`IntegralForm`, the ADE constructors `a_n`/`d_n`/`e_6`/`e_7`/`e_8`/`d16_plus`,
-  `Genus`/`ScaleSymbol`, mass/automorphism constants, `BinaryCode`/Construction A,
+  `Genus`/`ScaleSymbol`, mass/automorphism constants, `BinaryCode`/Constructions A/B/D
+  including Reed-Muller `BW16`, the Clifford-side `BW16` certificate/report and
+  Clifford/BRW order constants, odd-prime `PrimeCode`/ternary Golay Construction A,
   theta + modular q-expansion helpers `eisenstein_e4`/`eisenstein_e6`/`delta`/`as_modular_form`,
-  `DiscriminantForm`/Milgram/Weil `S`/`T`).
-- **`games.rs`** — `Game`/`NumberGame`/`NimberGame`/`GameExterior`/`Hackenbush` +
-  typed `Color`; `nim_mul_mex` + the coin-turning/Tartan probes; `grundy_graph`/
-  `grundy`/`mex`; the kernel surface (`outcomes`/`p_positions`/`scoring_values`, typed
-  `Outcome`, `ScoreInterval`); the misère/octal surface (`misere_quotient`, `Quotient`,
-  `AbstractGame`, octal helpers); and the loopy engine (`LoopyGraph`,
-  `loopy_nim_values_certified`/`LoopyNimCertificate`, `loopy_decision_sets`/
-  `loopy_quadric_probe`, the `LoopyValue` stopper catalogue). The games carry Python
-  arithmetic/order operators, the thermograph + tropical-mirror + atomic-weight
-  calculus, and the exact `Pl`/`Thermograph` wall API. Callback-backed Rust-name
-  variants (`grundy`/`try_misere_is_n`/`loopy_quadric_probe`/…) accept a Python
-  move-generator.
+  `DiscriminantForm`/Milgram/Weil `S`/`T`, and the odd-lattice
+  `OddDiscriminantForm` / `OddMilgramReport` surface).
+- **`games.rs`** — `Game`/`NumberGame`/`NimberGame`/`GameExterior`/`GameClifford`/
+  `Hackenbush` + typed `Color`; the game-relation surface (`GameRelation`,
+  `GameRelationCertificate`, `RelationSearchCertificate`); `nim_mul_mex` + the
+  coin-turning/Tartan probes; `grundy_graph`/`grundy`/`mex`; the kernel surface
+  (`outcomes`/`p_positions`/`scoring_values`, typed `Outcome`, `ScoreInterval`); the
+  misère/octal surface (`misere_quotient`, `Quotient`, `AbstractGame`, octal helpers);
+  and the loopy engine (`LoopyGraph`, `LoopyPartizanGraph`, `LoopyWinner`,
+  `LoopyPartizanOutcome`, `LoopyNimber`, `loopy_nim_values_certified`/
+  `LoopyNimCertificate`, `loopy_decision_sets`/`loopy_quadric_probe`, the
+  `LoopyValue` catalogue + typed `PartizanOutcome` projection).
+  The games carry Python arithmetic/order operators, heating / Norton multiplication /
+  overheating, the thermograph + tropical-mirror + atomic-weight calculus, and the exact
+  `Pl`/`Thermograph` wall API. Callback-backed
+  Rust-name variants (`grundy`/`try_misere_is_n`/`loopy_quadric_probe`/…) accept a
+  Python move-generator.
 
 ## Binding policy
 
@@ -138,7 +154,22 @@ runtime type is bound. What stays Rust-only is structural, not a backlog:
 - **Per-backend, no mixing.** Each Python backend monomorphises the generic engine to
   one concrete scalar type. Mixing scalar worlds in one algebra raises `TypeError` by
   construction — intended; do not add a runtime-tagged "any scalar" path.
-- **Python operators:** `*` geometric, `^` wedge, `<<`/`>>` left/right contraction,
-  `~` reverse, `/` divide (scalar or versor), `**` power, `+`/`-`, `==`.
+- **Python operators:** `*` geometric, `&` wedge (grundy `∧`; `^` raises the
+  grundy `E_ExpSort` hint), `<<`/`>>` left/right
+  contraction, `~` reverse, `/` divide (scalar or versor; `Integer` uses exact
+  Euclidean division), `**` power, `+`/`-`, `==`, `Integer.__mod__` for
+  Euclidean remainder, `%` on the v0.1.1 polynomial classes, and `@` on the
+  v0.1.1 polynomial/ratfunc classes for eval/compose.
+  Scalar power: `x ^ k` (integer RHS) on total-product backends; Ordinal: `nim_pow`
+  method. **Rust `&` binds looser than `+`/`*` in both Python and Rust — parenthesize.**
 - The smoke test is `demo.py` (rebuild via `maturin develop` first); add a section
   there when you bind something new, and a backend to `catalog.rs` when you add one.
+- **Regenerate the type stubs after any binding change.** `ogdoad.pyi` (repo root,
+  shipped + `py.typed` by maturin for a pure-Rust project) is `@generated` from the
+  built module by `scripts/generate_stubs.py` — rebuild (`maturin develop`) then run
+  `python scripts/generate_stubs.py` and commit the diff. PyO3's abi3 build drops
+  argument signatures, so the generator types the headline/README surface from a
+  curated, source-verified override table and falls back to `(*args, **kwargs)` +
+  the preserved `///` docstrings elsewhere; precise signatures for a newly bound
+  public entry point go in that table. CI runs `generate_stubs.py --check` (in the
+  `python` job) and fails on a stale stub.

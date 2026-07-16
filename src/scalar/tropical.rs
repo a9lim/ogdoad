@@ -130,7 +130,7 @@ impl<C: TropicalConvention> Tropical<C> {
 
     /// The finite tropical integer `n`.
     pub fn int(n: i128) -> Self {
-        Self::finite(Rational::int(n))
+        Self::finite(Rational::from_int(n))
     }
 
     /// The finite value as a rational, or `None` at infinity.
@@ -196,8 +196,7 @@ impl<C: TropicalConvention> Tropical<C> {
     fn fmt_inner(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
             TropVal::Infinity => f.write_str(C::ZERO_GLYPH),
-            // `Rational` is `Debug`-only (no `Display`).
-            TropVal::Finite(r) => write!(f, "{r:?}"),
+            TropVal::Finite(r) => write!(f, "{r}"),
         }
     }
 }
@@ -312,7 +311,10 @@ mod tests {
 
     #[test]
     fn value_and_infinity_accessors() {
-        assert_eq!(Tropical::<MaxPlus>::int(9).value(), Some(Rational::int(9)));
+        assert_eq!(
+            Tropical::<MaxPlus>::int(9).value(),
+            Some(Rational::from_int(9))
+        );
         assert_eq!(Tropical::<MaxPlus>::infinity().value(), None);
         assert!(Tropical::<MinPlus>::infinity().is_infinity());
         assert!(!Tropical::<MinPlus>::int(0).is_infinity());

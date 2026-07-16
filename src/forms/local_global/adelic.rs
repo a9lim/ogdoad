@@ -1,5 +1,5 @@
 //! The **local–global** layer over the adele ring — where the reciprocity facts
-//! scattered through [`padic`](crate::forms::padic) become structural statements
+//! scattered through [`padic`](crate::forms) become structural statements
 //! about [`A_Q`](crate::scalar::Adele).
 //!
 //! Three theorems, one carrier (the adele/idele):
@@ -25,7 +25,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::forms::padic::{
+use super::padic::{
     relevant_primes, try_hilbert_reciprocity_product, try_hilbert_symbol_at, try_is_isotropic_at_p,
     Place,
 };
@@ -69,6 +69,23 @@ impl AdelicIsotropy {
     pub fn is_global(&self) -> bool {
         self.real && self.local.values().all(|&b| b)
     }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for AdelicIsotropy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "AdelicIsotropy(real={}, local={:?}, is_global={})",
+            self.real,
+            self.local,
+            self.is_global()
+        )
+    }
 }
 
 /// The adelic Hasse–Minkowski decomposition of a diagonal integer form of **rank
@@ -78,12 +95,17 @@ impl AdelicIsotropy {
 /// Rank ≤ 2 is excluded: there isotropy is a *global square* condition (`−ab ∈
 /// (ℚ^*)²`), which is not detected by checking only the finitely many relevant
 /// primes — use [`try_is_isotropic_q`](crate::forms::try_is_isotropic_q) directly.
+///
+/// Returns `None` in two cases, matching the rest of this file's convention that
+/// `None` means "out of domain / could not be computed," never "computed and
+/// anisotropic" (that verdict is `Some(_)` with `is_global() == false`): rank `< 3`
+/// (out of domain, see above — not a claim about isotropy), or a relevant prime's
+/// local computation itself returning `None` (bounded `i128` square-class
+/// overflow in `square_class` / [`try_is_isotropic_at_p`](crate::forms)).
 pub fn isotropy_over_adeles(entries: &[i128]) -> Option<AdelicIsotropy> {
-    assert!(
-        entries.len() >= 3,
-        "adelic isotropy decomposition needs rank ≥ 3 (rank ≤ 2 is a global-square \
-         condition; use try_is_isotropic_q)"
-    );
+    if entries.len() < 3 {
+        return None;
+    }
     // Real place: a diagonal form is isotropic over ℝ iff it has a zero entry or is
     // indefinite (entries of both signs).
     let has_zero = entries.contains(&0);
@@ -152,6 +174,21 @@ mod tests {
     }
 
     #[test]
+    fn adelic_isotropy_display_render_pin() {
+        // Fields are public, so the pin is fully self-determined — no dependency on
+        // the Hasse/Hilbert-symbol arithmetic that builds a real AdelicIsotropy.
+        let iso = AdelicIsotropy {
+            real: true,
+            local: BTreeMap::from([(2, true), (3, false)]),
+        };
+        assert_eq!(
+            iso.to_string(),
+            "AdelicIsotropy(real=true, local={2: true, 3: false}, is_global=false)"
+        );
+        assert_eq!(iso.display(), iso.to_string());
+    }
+
+    #[test]
     fn hilbert_product_is_plus_one_reciprocity() {
         // ∏_v (a,b)_v = +1 for all rationals — the multiplicative product formula.
         for an in -6i128..=6 {
@@ -171,6 +208,16 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn rank_below_three_is_out_of_domain_not_a_verdict() {
+        // None here means "out of domain" (a rank ≤ 2 global-square condition this
+        // decomposition doesn't detect), not "computed and anisotropic" — that verdict
+        // would be Some(_) with is_global() == false. No panic either way.
+        assert_eq!(isotropy_over_adeles(&[]), None);
+        assert_eq!(isotropy_over_adeles(&[1]), None);
+        assert_eq!(isotropy_over_adeles(&[1, -1]), None);
     }
 
     #[test]

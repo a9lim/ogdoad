@@ -43,18 +43,48 @@ and const-generic sizes that are inherently indices.
   layer (`forms/function_field.rs`) uses its `divrem`/`gcd`/`pow_mod`. As `S[t]` it
   is the **ring of integers** of `S(t)`, so it impls `Scalar` + `HasFractionField`
   (Frac = `RationalFunction<S>`); its units are the nonzero constants, so `inv` is
-  partial.
+  partial. `Poly::t()` is the indeterminate constructor (matching the `t` it Displays
+  as). Display is canonical grundy (Display v4, `grundy/docs/spec.md` §12): variable
+  `t`, explicit `⋅`, coefficient parens only when non-atomic — and it owns the
+  shared `pub(crate)` `atomic`/`attach_coeff` helpers the `Multivector` display
+  also uses (atomic = no spaces and no `⋅ ∧ ↑ / + -` outside balanced parens; a
+  single leading `-` is a unary sign, carried bare).
+- **`newton.rs`** — `NewtonPolygon`: the lower convex hull of `{(i, v(aᵢ))}` for
+  `f = Σ aᵢtⁱ` over a `Valued` field (`from_coeffs`/`vertices`/`degree`/`slopes`/
+  `root_valuations`/`zero_root_multiplicity`). The tropicalization of the Springer
+  residue filtration — the Newton slope theorem (root valuations = negated hull
+  slopes) is the `Valued`-side oracle, tested over `Qp`/`Laurent`/`Ramified`.
 
 ## The `Scalar` trait + the trait layer
 
 - **`mod.rs`** — the `Scalar` trait (`add`/`neg`/`mul`/`zero`/`one`/`is_zero`/
-  `inv`/`characteristic`) + the "any number" table doc + the flat re-export hub.
-  Also `impl_scalar_ops!`: total-product backends get concrete-type operators
-  (`+ - *` and unary `-`) forwarding to the trait methods. `Ordinal` is the
-  deliberate exception: additive operators only, multiplication behind the checked
-  `nim_mul` API (the represented Kummer tower has an honest boundary). `/` stays a
-  method (inv is partial). **The operators are NOT a `Scalar` supertrait** — see
-  "things that look like bugs".
+  `inv`/`characteristic`/`from_int`) + `Display` as a supertrait + the "any number"
+  table doc + the flat re-export hub. Also `impl_scalar_ops!`: total-product backends
+  get concrete-type operators (`+ - *` and unary `-`) forwarding to the trait methods.
+  `Ordinal` is the deliberate exception: additive operators only, multiplication behind
+  the checked `nim_mul` API (the represented Kummer tower has an honest boundary). `/`
+  stays a method (inv is partial). **The operators are NOT a `Scalar` supertrait** —
+  see "things that look like bugs". grundy backend helpers live here too:
+  `checked_factorial_i128` (host-carrier roof: `33!`, not `34!`) and
+  `factorial_in_scalar<S>` (in-world product via `from_int`, zeroing at positive
+  characteristic).
+
+  **`Scalar::from_int(n: i128) -> Self`** is the ℤ-embedding (unique unital ring
+  homomorphism ℤ → R). The default double-and-add over `one()`/`neg()` is correct for
+  every characteristic: char-2 worlds automatically get `n mod 2` because `1+1=0`.
+  Backends with a direct construction (`Rational`, `Integer`, `Fp`, `Fpn`, `Zp`,
+  `Qp`, `Qq`, `WittVec`, `Surreal`, `Omnific`) override for efficiency. Do NOT
+  override in char-2 worlds with a bit-cast constructor — `Nimber(n)` and
+  `Ordinal::from_u128(n)` are *representation* constructors (which nimber / which
+  ordinal), not ℤ-embeddings.
+
+  **`Display` is a `Scalar` supertrait** (`Scalar: Clone + PartialEq + Debug +
+  Display`). Every backend has an `impl fmt::Display`, with `Debug` delegating to
+  `Display` (byte-identical output). The legacy ℤ-embedding spellings
+  (`Rational::int`, `Fp::new`, `Zp::new`, `Qp::from_i128`) were retired in the
+  taste sweep — `from_int` is the one spelling, trait-level with per-backend
+  overrides; representation constructors with different semantics keep their
+  own names (see above).
 - **`integrality.rs`** — `HasFractionField {Frac; to_fraction}` +
   `HasRingOfIntegers {Int; is_integral/to_integer}`, with `Int:
   HasFractionField<Frac=Self>` tying the loop. Impl'd for the **five** distinct-type
@@ -94,7 +124,10 @@ and const-generic sizes that are inherently indices.
 - **`extension.rs`** — the `FieldExtension: Scalar` trait: a finite separable
   extension `E/F` with `extension_degree`/`embed`/`trace`/`norm` to a distinguished
   `Base`. The orthogonal view of `FiniteField`'s relative trace/norm (one fixed base
-  vs. any subfield). Impl'd for:
+  vs. any subfield). `FieldExtension::extension_degree` (relative, over the chosen
+  `Base`) and `FiniteField::ext_degree` (absolute, over the prime field) are
+  deliberately distinct names for distinct invariants — they coincide only when `Base`
+  is the prime field. Impl'd for:
   - `Surcomplex<S: Ordered>` (deg 2);
   - `Fpn<P,N>` over `Fp<P>` (deg N, delegating to the tested `FiniteField` relative
     trace/norm);
@@ -127,10 +160,14 @@ and const-generic sizes that are inherently indices.
 - **`rational.rs`** — exact ℚ over i128, NOT a game backend: the char-0 scalar that
   validates the geometric product against the known Cl(p,q) classification before the
   exotic backends are trusted. (Overflow is a known limit; the surreal backend is the
-  real char-0 home.)
+  real char-0 home.) Implements the standard total-order traits by delegating to its
+  inherent value `cmp`.
 - **`integer.rs`** — exact ℤ, the coefficient ring for the exterior algebra of the
-  game group (`games/game_exterior.rs`): games are a ℤ-module, not a ring, so Λ over
-  ℤ is the structure that lives on all of game-world. Only ±1 invertible.
+  game group (`games/game_exterior/`): games are a ℤ-module, not a ring, so Λ over
+  ℤ is the structure that lives on all of game-world. Only ±1 invertible. grundy's
+  exact-division support is here: `divrem`/`rem` are Euclidean (`0 <= r < |b|`),
+  and `div_exact` returns `IntegerDivExactError::Remainder(r)` on non-exact
+  division. It also implements the standard total-order traits.
 
 ## `big/` — the transfinite worlds
 
@@ -141,7 +178,9 @@ and const-generic sizes that are inherently indices.
   type would be a false identity.
 - **`surreal/`** — finite-support surreal Hahn/CNF backend (char 0):
   - `mod.rs` — CNF core: `Vec<(exponent: Surreal, coeff: Rational)>`, recursive
-    exponents, Hahn arithmetic `ω^a·ω^b = ω^{a+b}`, Scalar, Debug, `truncate()`.
+    exponents, Hahn arithmetic `ω^a·ω^b = ω^{a+b}`, Scalar, Debug, `truncate()`,
+    standard total-order traits, and `rem` by a monic omega-power modulus
+    (filter terms with exponent strictly below the modulus exponent).
   - `simplicity.rs` — the {L|R}/simplicity bridge (dyadic): `as_rational`/`as_dyadic`/
     `dyadic_birthday` + `simplest_above`/`_below`/`_between`, floor/frac (the Oz
     bridge).
@@ -152,20 +191,31 @@ and const-generic sizes that are inherently indices.
     `inv_to_terms` (Neumann series) + `sqrt_to_terms`/`nth_root_to_terms` (real-closed
     roots to n terms; `Some` iff the leading coeff is a perfect ℚ-power).
 - **`omnific.rs`** — the omnific integers Oz: `Omnific(Surreal)`, a transfinite
-  commutative RING (not field). The surreal mirror of `Integer`.
+  commutative RING (not field). The surreal mirror of `Integer`; inherits the
+  total order and monic-omega-power `rem` from the underlying surreal while
+  revalidating the omnific-integral invariant.
 - **`ordinal/`** — transfinite (ordinal) NIMBERS On₂, the char-2 mirror of surreal:
   - `mod.rs` — CNF core: `Ordinal = Vec<(exponent: Ordinal, coeff: u128)>`, the lex
-    cmp, `as_finite`, `checked_inv`, `Scalar`. The `Scalar::mul` route is
+    cmp, `as_finite`, `checked_inv`, `fuzzy` (`a != b` as the nimber game-value
+    incomparability test), `Scalar`. The `Scalar::mul` route is
     panic-on-escape, matching the Kummer tower boundary; callers needing an explicit
     mathematical boundary use `nim_mul`.
   - `nim.rs` — char-2 NIM arithmetic: `nim_add` (coeff XOR) COMPLETE; `nim_mul`
     dispatches zero / finite×finite / the generator tower.
+  - `subfield.rs` — finite-subfield detection for represented ordinal nimbers:
+    minimal `F_{2^m}` by generator support plus Frobenius minimization, with
+    common-degree helper for the forms façade. `checked_inv` uses this finite-field
+    route beyond the old `F_64` window.
   - `tower.rs` — the prime-power generator tower (Conway/Lenstra/DiMuro): a monomial
     `ω^E` keyed by `place m ↦ base-p(m) digit vector`; `⊗` adds digit vectors and
     reduces with the Kummer carries `χ_u^u = α_u`. Non-scalar `α_u` (`α_7=ω+1`, …)
-    branch a carry into a *sum*, recursed in by descending place. Carries verified
-    `α_u` through DiMuro Table 1 (`u ≤ 43`) plus the locally certified `α_47`; a carry
-    needing `α_53`+ returns `None`, as does anything `≥ ω^(ω^ω)` (see `OPEN.md`).
+    branch a carry into a *sum*, recursed in by descending place. Carries are assembled
+    from `ord_u(2)`, DiMuro's `Q(f(u))`, and the finite `m_u` rows from OEIS A380496
+    (the b-file's 126 known rows, odd primes `3..=709`); a carry needing `m_719` (the
+    first OEIS-unknown row)+ returns `None`, as does anything `≥ ω^(ω^ω)` (see
+    `docs/OPEN.md`). The table extends reach, not feasibility: large primes are in the
+    table but their `q_set`/finite-subfield reconstruction over the huge component field
+    (`e_p` in the millions) is costly.
   - `cantor.rs` — ORDINARY (Cantor) `ord_add`/`ord_mul` (ω+ω=ω·2, 1+ω=ω) — the
     surreal birthday's run-length arithmetic. A distinct algebra, sharing only CNF.
 
@@ -197,11 +247,16 @@ the project's central symmetries.
   discrete_log) as default methods. An impl supplies only `frobenius`, integer `pow`,
   `ext_degree`, `group_order`, `group_order_factors`. nimber + fpn both impl it — one
   verified algorithm, two backends.
+  The per-backend const-generic validators (formerly the separate
+  `assert_prime_modulus`/`assert_supported_field`/`assert_supported_ring`/
+  `assert_supported_precision` guards across `Fp`/`Fpn`/`WittVec`/`Zp`/`Qp`/…) are
+  unified to one name, `assert_supported_params`.
 - **`fp.rs`** — `Fp<const P>`: the prime field F_P (any prime P — the odd-char
   comparison backend, and `F_2 = Base` for `Nimber`); the `Qp → Fp` residue field.
 - **`fpn.rs`** — `Fpn<const P, const N>`: F_{p^N} via a (P,N)-keyed irreducible
-  reduction poly (`reduction`, `reduction_kind` → the public `ReductionPolynomialKind`
-  metadata, `is_supported_field`). Completes the odd-char tower AND the char-2
+  reduction poly (public `reduction_rule`/`reduction_polynomial_kind` →
+  `ReductionPolynomialKind` metadata, `is_supported_field`; the bare `reduction`/
+  `reduction_kind` free fns are `pub(crate)` helpers). Completes the odd-char tower AND the char-2
   odd-degree fields nimbers can't reach (F_8); supported `Fpn<2,N>` metrics classify
   through the char-2 Arf façade. (NB the static `field_order()` = field order p^N, ≠
   `multiplicative_order(&self)`.)
@@ -209,7 +264,9 @@ the project's central symmetries.
   flat: `mod.rs` (wrapper + Scalar), `arithmetic.rs` (`nim_add`=XOR; `nim_mul` via
   Fermat-power recursion; `nim_square`/`nim_sqrt`/`nim_inv`), `artin_schreier.rs`
   (`nim_trace` + y²+y=c solver), `galois.rs` (impl FiniteField, with Pohlig–Hellman +
-  BSGS overrides for `is_primitive`/`discrete_log`).
+  BSGS overrides for `is_primitive`/`discrete_log`). `Nimber::fuzzy` is the
+  game-value incomparability predicate: exactly `self != other`; do not turn that
+  into `PartialOrd`.
 - **`wittvec.rs`** — `WittVec<const P, const N, const F>`: Witt vectors W_N(F_q) as
   the truncated unramified ring (Z/p^N)[t]/(f̃). The char-p analogue of Z_p; its field
   of fractions is `small/qq.rs`.
@@ -228,7 +285,8 @@ Orthogonal to the place table: a 2×2 of (algebraic|transcendental) ×
   `conj()`). Only meaningful over char-0 worlds (over nimbers i²=1, degenerate).
 - **`laurent.rs`** — `Laurent<S, const K>` = S((t)) to relative precision K. Over a
   finite field, the EQUAL-characteristic local cell F_q((t)) (the char-p mirror of
-  Qp); ring of integers F_q[[t]] = the val≥0 subring. Capped-relative; EXCLUDED.
+  Qp); ring of integers F_q[[t]] = the val≥0 subring. Capped-relative; EXCLUDED. The
+  base-coefficient embedding is `Laurent::from_base` (was `from_scalar`).
 - **`ramified.rs`** — `Ramified<S: Valued, const E>` = adjoin a root of xᴱ−ϖ. The
   RAMIFIED local cell Q_p(p^{1/E}), the ramified twin of Qq. Always a field
   (Eisenstein), incl. wild/inseparable p|E. `Valued` with uniformizer π and
@@ -295,6 +353,12 @@ carries the `ExactScalar`/`ExactFieldScalar` markers. It feeds
 - **`Surreal::birthday_ordinal`/`transfinite_sign_expansion` are `None` outside the
   representable subclass** (`√ω`, `ω−1`, `½ω`, mixed). Every *ordinal* (incl. ω^ω) is
   handled; `ε` is the one infinitesimal pinned. The honest Gonshor scope boundary.
+- **`PartialEq for Surreal` is structural, not value-based.** The previous
+  `self.cmp(other) == Ordering::Equal` was correct but allocated a subtraction.
+  CNF uniqueness (Hahn series in reduced form — see the inline proof comment on the
+  impl) guarantees structural equality and value equality coincide for all canonical
+  surreals this module produces. A proptest in `tests/scalar_axioms.rs`
+  (`surreal_structural_eq_matches_value_eq`) pins the agreement permanently.
 - **`Qp` addition is not associative across precision boundaries.** Capped-relative
   (the standard p-adic model, like float). No finite-memory exact Q_p exists.
 - **`nim_mul`'s `1u128 << (1u128 << n)` is not overflow-prone** for valid u128: bit

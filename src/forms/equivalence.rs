@@ -15,8 +15,12 @@
 //! Witt group made concrete.
 
 use crate::clifford::Metric;
+use crate::forms::char2::{
+    arf_nimber_at_degree, arf_ordinal_at_degree, min_field_degree, nimber_metric_max_val,
+};
 use crate::forms::{
-    arf_char2, arf_fpn_char2, arf_invariant, arf_ordinal_finite, as_diagonal, classify_finite_odd,
+    arf_char2, arf_fpn_char2, as_diagonal, classify_finite_odd,
+    ordinal_metric_finite_subfield_degree,
 };
 use crate::forms::{FiniteChar2Field, FiniteOddField};
 use crate::scalar::{Fpn, Nimber, Ordinal, Rational, Surcomplex, Surreal};
@@ -59,9 +63,18 @@ pub fn isometric_finite_odd<F: FiniteOddField>(m1: &Metric<F>, m2: &Metric<F>) -
 /// If the polar radical is defective (`Q` nonzero on the radical), adding that
 /// radical direction to a symplectic pair toggles the complement's Arf value, so
 /// the complement Arf is not an isometry invariant and is deliberately ignored.
+///
+/// Both Arf invariants are computed using the **same** field degree — the
+/// smallest nim-subfield containing all entries of *both* metrics — so that the
+/// trace `F_{2^m} → F₂` is consistent.  Computing each independently with its
+/// own minimal field degree can yield different Arf bits for isometric forms
+/// whose entries span different subfields (the trace of a fixed element differs
+/// depending on which extension it is traced from).
 pub fn isometric_nimber(m1: &Metric<Nimber>, m2: &Metric<Nimber>) -> Option<bool> {
-    let a1 = arf_invariant(m1)?;
-    let a2 = arf_invariant(m2)?;
+    let maxv = nimber_metric_max_val(m1).max(nimber_metric_max_val(m2));
+    let m = min_field_degree(maxv);
+    let a1 = arf_nimber_at_degree(m1, m)?;
+    let a2 = arf_nimber_at_degree(m2, m)?;
     Some(same_char2_isometry_invariant(&a1, &a2))
 }
 
@@ -86,15 +99,26 @@ pub fn isometric_fpn_char2<const P: u128, const N: usize>(
 
 /// Are two supported finite-window ordinal-nimber forms isometric? Returns
 /// `None` for ordinal coefficients outside the detected finite subfields.
+///
+/// Both Arf invariants are computed using the smallest finite subfield
+/// containing entries of *both* metrics, mirroring the `isometric_nimber`
+/// consistency guarantee.
 pub fn isometric_ordinal_finite(m1: &Metric<Ordinal>, m2: &Metric<Ordinal>) -> Option<bool> {
-    let a1 = arf_ordinal_finite(m1)?;
-    let a2 = arf_ordinal_finite(m2)?;
+    let d1 = ordinal_metric_finite_subfield_degree(m1)?;
+    let d2 = ordinal_metric_finite_subfield_degree(m2)?;
+    let common = lcm(d1, d2)?;
+    let a1 = arf_ordinal_at_degree(m1, common)?;
+    let a2 = arf_ordinal_at_degree(m2, common)?;
     Some(same_char2_isometry_invariant(&a1, &a2))
 }
 
+fn lcm(a: u128, b: u128) -> Option<u128> {
+    (a / crate::linalg::integer::gcd_u128(a, b)).checked_mul(b)
+}
+
 fn same_char2_isometry_invariant(
-    a1: &crate::forms::ArfResult,
-    a2: &crate::forms::ArfResult,
+    a1: &crate::forms::ArfInvariants,
+    a2: &crate::forms::ArfInvariants,
 ) -> bool {
     a1.rank == a2.rank
         && a1.radical_dim == a2.radical_dim
@@ -118,6 +142,23 @@ pub struct RealWittDecomp {
     pub anisotropic_neg: usize,
     /// Dimension of the radical (null directions).
     pub radical_dim: usize,
+}
+
+impl RealWittDecomp {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for RealWittDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "RealWittDecomp(witt_index={}, anisotropic_pos={}, anisotropic_neg={}, radical_dim={})",
+            self.witt_index, self.anisotropic_pos, self.anisotropic_neg, self.radical_dim,
+        )
+    }
 }
 
 /// Witt decomposition over the exact-square surreal subdomain:
@@ -152,6 +193,28 @@ pub struct OddWittDecomp {
     pub radical_dim: usize,
 }
 
+impl OddWittDecomp {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for OddWittDecomp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "OddWittDecomp(p={}, field_order={}, witt_index={}, anisotropic_dim={}, anisotropic_disc_is_square={}, radical_dim={})",
+            self.p,
+            self.field_order,
+            self.witt_index,
+            self.anisotropic_dim,
+            self.anisotropic_disc_is_square,
+            self.radical_dim,
+        )
+    }
+}
+
 /// Witt decomposition over any finite field `F_q` of odd characteristic: every
 /// form of odd dimension has anisotropic kernel `⟨d⟩` (dim 1); an even-dimensional
 /// form is hyperbolic (dim 0) iff its discriminant matches the hyperbolic one,
@@ -170,7 +233,7 @@ pub fn witt_decompose_finite_odd<F: FiniteOddField>(m: &Metric<F>) -> Option<Odd
         // even dim 2k: hyperbolic iff (−1)^k · det is a square.
         let k = dim / 2;
         let sign = if k % 2 == 1 {
-            F::from_i128(-1)
+            F::from_int(-1)
         } else {
             F::one()
         };
@@ -183,7 +246,7 @@ pub fn witt_decompose_finite_odd<F: FiniteOddField>(m: &Metric<F>) -> Option<Odd
     let witt_index = (dim - anisotropic_dim) / 2;
     // anisotropic kernel disc = det · (−1)^{witt_index} (mod squares).
     let twist = if witt_index % 2 == 1 {
-        F::from_i128(-1)
+        F::from_int(-1)
     } else {
         F::one()
     };
@@ -200,14 +263,16 @@ pub fn witt_decompose_finite_odd<F: FiniteOddField>(m: &Metric<F>) -> Option<Odd
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::forms::arf_invariant;
     use crate::scalar::Fp;
+    use crate::scalar::Scalar;
     use std::collections::BTreeMap;
 
     fn rsur(xs: &[i128]) -> Metric<Surreal> {
         Metric::diagonal(xs.iter().map(|&x| Surreal::from_int(x)).collect())
     }
     fn ofp<const P: u128>(xs: &[i128]) -> Metric<Fp<P>> {
-        Metric::diagonal(xs.iter().map(|&x| Fp::<P>::new(x)).collect())
+        Metric::diagonal(xs.iter().map(|&x| Fp::<P>::from_int(x)).collect())
     }
 
     #[test]
@@ -226,8 +291,8 @@ mod tests {
 
     #[test]
     fn rational_isometry_sees_square_classes() {
-        let q1 = Metric::diagonal(vec![Rational::int(1)]);
-        let q2 = Metric::diagonal(vec![Rational::int(2)]);
+        let q1 = Metric::diagonal(vec![Rational::from_int(1)]);
+        let q2 = Metric::diagonal(vec![Rational::from_int(2)]);
         assert_eq!(isometric_rational(&q1, &q1), Some(true));
         assert_eq!(isometric_rational(&q1, &q2), Some(false));
     }
@@ -250,6 +315,22 @@ mod tests {
         assert_eq!(d.witt_index, 1);
         assert_eq!((d.anisotropic_pos, d.anisotropic_neg), (0, 0));
         assert_eq!(d.radical_dim, 1);
+    }
+
+    #[test]
+    fn real_witt_decomp_display_matches_bound_python_repr() {
+        // Byte-matches the hand-rolled PyRealWittDecomp::__repr__ in src/py/forms.rs.
+        let d = RealWittDecomp {
+            witt_index: 2,
+            anisotropic_pos: 1,
+            anisotropic_neg: 0,
+            radical_dim: 0,
+        };
+        assert_eq!(
+            d.to_string(),
+            "RealWittDecomp(witt_index=2, anisotropic_pos=1, anisotropic_neg=0, radical_dim=0)"
+        );
+        assert_eq!(d.display(), d.to_string());
     }
 
     #[test]
@@ -284,6 +365,24 @@ mod tests {
     }
 
     #[test]
+    fn odd_witt_decomp_display_matches_bound_python_repr() {
+        // Byte-matches the hand-rolled PyOddWittDecomp::__repr__ in src/py/forms.rs.
+        let d = OddWittDecomp {
+            p: 5,
+            field_order: 25,
+            witt_index: 1,
+            anisotropic_dim: 2,
+            anisotropic_disc_is_square: false,
+            radical_dim: 0,
+        };
+        assert_eq!(
+            d.to_string(),
+            "OddWittDecomp(p=5, field_order=25, witt_index=1, anisotropic_dim=2, anisotropic_disc_is_square=false, radical_dim=0)"
+        );
+        assert_eq!(d.display(), d.to_string());
+    }
+
+    #[test]
     fn nimber_isometry_by_arf() {
         // Over F_2: ⟨1,1⟩ with polar 1 is the anisotropic plane (Arf 1); the
         // hyperbolic plane ⟨0,0⟩ with polar 1 is Arf 0 — not isometric.
@@ -294,6 +393,127 @@ mod tests {
         };
         assert_eq!(isometric_nimber(&plane(1, 1), &plane(1, 1)), Some(true));
         assert_eq!(isometric_nimber(&plane(1, 1), &plane(0, 0)), Some(false));
+    }
+
+    // Witness test for M-4: forms over different nim-subfields must be compared
+    // using the same field degree for the trace.  Key insight: a form that is
+    // anisotropic over F_4 can become isotropic (and hence isometric to the
+    // hyperbolic plane) over F_16, because the Artin-Schreier obstruction
+    // Tr_{F_16/F_2}(q0·q1) can vanish even when Tr_{F_4/F_2}(q0·q1) = 1.
+    //
+    // Before the fix, isometric_nimber used each form's own minimal trace,
+    // causing the same pair to compare unequal depending on how the form's
+    // entries were written — a basis-change invariance failure.
+    #[test]
+    fn nimber_cross_subfield_isometry_witness() {
+        use crate::scalar::nim_mul;
+
+        // Form A (F_4 entries): q=[2,2], b01=1.
+        // Tr_{F_4/F_2}(2*2) = Tr_{F_4/F_2}(3) = 3 XOR 2 = 1 → Arf 1 (anisotropic over F_4).
+        // But Tr_{F_16/F_2}(3) = 3 XOR 2 XOR 3 XOR 2 = 0 → Arf 0 over F_16.
+        // So this form becomes isotropic when viewed over F_16.
+        let plane_f4 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Nimber(1));
+            Metric::new(vec![Nimber(2), Nimber(2)], b)
+        };
+
+        // Form B: apply the basis change diag(α, 1) with α = 4 ∈ F_{16} \ F_4.
+        //   q_B[0] = α² * 2 = nim_mul(6, 2),  q_B[1] = 2,  b_B[0,1] = 4.
+        // Form B is isometric to A by construction (change of basis over F_16).
+        let alpha: u128 = 4;
+        let alpha_sq = nim_mul(alpha, alpha); // = 6
+        let q_b0 = nim_mul(alpha_sq, 2); // in F_16
+        let b_b01 = alpha; // = 4, in F_{16} \ F_4
+
+        assert!(q_b0 >= 4 || b_b01 >= 4, "expected F_16 entries");
+
+        let plane_f16 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Nimber(b_b01));
+            Metric::new(vec![Nimber(q_b0), Nimber(2)], b)
+        };
+
+        // Standalone arf_invariant uses each form's own minimal field, so the
+        // raw Arf bits can differ (Arf=1 for F_4 minimal, Arf=0 for F_16 minimal).
+        // This is by-design for the standalone classifier; isometric_nimber must
+        // compensate by using the joint field degree.
+        let a_f4_standalone = arf_invariant(&plane_f4).unwrap();
+        let a_f16_standalone = arf_invariant(&plane_f16).unwrap();
+        // They will disagree; record without asserting to document the contrast.
+        let _ = (a_f4_standalone.arf, a_f16_standalone.arf);
+
+        // isometric_nimber uses the joint field degree → correctly reports isometric.
+        assert_eq!(
+            isometric_nimber(&plane_f4, &plane_f16),
+            Some(true),
+            "isometric forms (related by a basis change) must compare equal"
+        );
+
+        // Pure F_2 forms: ⟨1,1⟩ vs ⟨0,0⟩ use joint m=1; should still distinguish.
+        let aniso_f2 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Nimber(1));
+            Metric::new(vec![Nimber(1), Nimber(1)], b)
+        };
+        let hyp_f2 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Nimber(1));
+            Metric::new(vec![Nimber(0), Nimber(0)], b)
+        };
+        assert_eq!(
+            isometric_nimber(&aniso_f2, &hyp_f2),
+            Some(false),
+            "same-field anisotropic vs hyperbolic must remain distinguished"
+        );
+
+        // plane_f4 viewed jointly with hyp_f2: joint m = max(m_f4, m_f2) = 2.
+        // Over F_4, Tr_{F_4/F_2}(3) = 1 → anisotropic.  Hyp has Arf 0 → not isometric.
+        assert_eq!(
+            isometric_nimber(&plane_f4, &hyp_f2),
+            Some(false),
+            "F_4 anisotropic plane must not be isometric to F_2 hyperbolic (joint m=2)"
+        );
+
+        // plane_f4 vs a hyperbolic plane written with F_16 entries:
+        // joint m=4. Tr_{F_16/F_2}(3)=0, so plane_f4 looks hyperbolic at m=4.
+        // The F_16 hyperbolic plane also has Arf=0 at m=4. → isometric over F_16.
+        let hyp_f16 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Nimber(b_b01)); // b01 = 4 ∈ F_16
+            Metric::new(vec![Nimber(0), Nimber(0)], b)
+        };
+        assert_eq!(
+            isometric_nimber(&plane_f4, &hyp_f16),
+            Some(true),
+            "F_4 anisotropic plane is isometric to the F_16 hyperbolic plane (joint m=4 \
+             makes the obstruction vanish)"
+        );
+    }
+
+    #[test]
+    fn ordinal_isometry_uses_common_finite_subfield_degree() {
+        use crate::scalar::nim_mul;
+
+        let plane_f4 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Ordinal::from_u128(1));
+            Metric::new(vec![Ordinal::from_u128(2), Ordinal::from_u128(2)], b)
+        };
+
+        let alpha: u128 = 4;
+        let q_b0 = nim_mul(nim_mul(alpha, alpha), 2);
+        let plane_f16 = {
+            let mut b = BTreeMap::new();
+            b.insert((0usize, 1usize), Ordinal::from_u128(alpha));
+            Metric::new(vec![Ordinal::from_u128(q_b0), Ordinal::from_u128(2)], b)
+        };
+
+        assert_eq!(
+            isometric_ordinal_finite(&plane_f4, &plane_f16),
+            Some(true),
+            "finite ordinal entries need the same joint trace degree as the nimber path"
+        );
     }
 
     #[test]

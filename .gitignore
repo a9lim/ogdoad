@@ -1,6 +1,5 @@
 # Rust
 /target
-Cargo.lock
 
 # Python
 __pycache__/
@@ -21,3 +20,5 @@ writeups/*.out
 writeups/*.synctex.gz
 writeups/*.fls
 writeups/*.fdb_latexmk
+.mypy_cache/
+.ruff_cache/

@@ -1,8 +1,10 @@
-//! Theta series of positive-definite even integral lattices.
+//! Theta series of positive-definite integral lattices.
 //!
 //! For an even lattice `L`, the scalar theta series is
 //! `theta_L = sum_v q^{Q(v)/2}`. The implementation enumerates short vectors up
 //! to the requested norm bound and buckets them exactly by `Q/2`.
+//! Odd lattices instead use [`IntegralForm::theta_series_level4`], the
+//! norm-indexed `sum_v q^{Q(v)}` head compatible with the level-4 boundary.
 
 use super::lattice::IntegralForm;
 
@@ -35,15 +37,42 @@ impl IntegralForm {
         }
         Some(out)
     }
+
+    /// The first `terms` coefficients of the norm-indexed theta head
+    /// `sum_v q^{Q(v)}`.
+    ///
+    /// This is the honest integer-exponent surface for odd positive-definite
+    /// lattices, whose usual theta series is a level-4 modular form rather than
+    /// an `SL_2(Z)` form. It also works for even lattices, but the full-level
+    /// even-lattice modular-form helper remains [`theta_series`](Self::theta_series).
+    pub fn theta_series_level4(&self, terms: usize) -> Option<Vec<i128>> {
+        if terms == 0 {
+            return Some(Vec::new());
+        }
+        if !self.is_positive_definite() {
+            return None;
+        }
+        let mut out = vec![0i128; terms];
+        out[0] = 1;
+        let bound = (terms - 1) as i128;
+        for v in self.short_vectors(bound)? {
+            let q = self.norm(&v);
+            let idx = usize::try_from(q).ok()?;
+            if idx < terms {
+                out[idx] += 1;
+            }
+        }
+        Some(out)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::forms::{
-        as_modular_form, delta, e_8, eisenstein_e4, leech, modular_qexp_mul, modular_qexp_scale,
-        modular_qexp_sub, qexp_from_i128, type_ii_e8_sum_code, type_ii_len16_code,
-        D16_PLUS_AUT_ORDER, E8_WEYL_GROUP_ORDER,
+        as_modular_form, delta, e_8, eisenstein_e4, leech, mass_even_unimodular, modular_qexp_mul,
+        modular_qexp_scale, modular_qexp_sub, qexp_from_int, type_ii_e8_sum_code,
+        type_ii_len16_code, D16_PLUS_AUT_ORDER, E8_WEYL_GROUP_ORDER,
     };
     use crate::scalar::{Rational, Scalar};
 
@@ -55,6 +84,25 @@ mod tests {
         );
         assert!(IntegralForm::diagonal(&[1]).theta_series(3).is_none());
         assert!(IntegralForm::diagonal(&[2, -2]).theta_series(3).is_none());
+    }
+
+    #[test]
+    fn theta_series_level4_handles_odd_lattices() {
+        assert_eq!(
+            IntegralForm::diagonal(&[1]).theta_series_level4(5),
+            Some(vec![1, 2, 0, 0, 2])
+        );
+        assert_eq!(
+            IntegralForm::diagonal(&[1, 1]).theta_series_level4(5),
+            Some(vec![1, 4, 4, 0, 4])
+        );
+        assert_eq!(
+            IntegralForm::diagonal(&[2]).theta_series_level4(5),
+            Some(vec![1, 0, 2, 0, 0])
+        );
+        assert!(IntegralForm::diagonal(&[1, -1])
+            .theta_series_level4(3)
+            .is_none());
     }
 
     #[test]
@@ -75,7 +123,7 @@ mod tests {
     fn theta_series_identifies_the_full_modular_forms() {
         let terms = 3;
         let e4 = eisenstein_e4(terms);
-        let e8_theta = qexp_from_i128(&e_8().theta_series(terms).unwrap());
+        let e8_theta = qexp_from_int(&e_8().theta_series(terms).unwrap());
         assert_eq!(e8_theta, e4);
         assert_eq!(
             as_modular_form(&e8_theta, 4, terms),
@@ -83,12 +131,12 @@ mod tests {
         );
 
         let e4_squared = modular_qexp_mul(&e4, &e4, 3);
-        let split = qexp_from_i128(
+        let split = qexp_from_int(
             &type_ii_e8_sum_code()
                 .theta_series_via_weight_enumerator(3)
                 .unwrap(),
         );
-        let d16 = qexp_from_i128(
+        let d16 = qexp_from_int(
             &type_ii_len16_code()
                 .theta_series_via_weight_enumerator(3)
                 .unwrap(),
@@ -100,13 +148,41 @@ mod tests {
         // Rank 16 Siegel-Weil is degenerate but consistent: the two class
         // representatives already have the same theta series, so the
         // mass-weighted average is the same `E4^2`.
-        assert_eq!(
-            E8_WEYL_GROUP_ORDER
-                .checked_mul(E8_WEYL_GROUP_ORDER)
-                .expect("E8+E8 automorphism order exceeds u128"),
-            485_432_135_516_160_000
-        );
+        //
+        // Pin |Aut(E8⊕E8)| = 2·|W(E8)|² (factor 2 from the swap automorphism).
+        let w2 = E8_WEYL_GROUP_ORDER
+            .checked_mul(E8_WEYL_GROUP_ORDER)
+            .expect("|W(E8)|^2 exceeds u128");
+        assert_eq!(w2, 485_432_135_516_160_000);
+        let aut_e8_e8 = 2u128
+            .checked_mul(w2)
+            .expect("|Aut(E8+E8)| = 2·|W(E8)|^2 exceeds u128");
+        assert_eq!(aut_e8_e8, 970_864_271_032_320_000);
         assert_eq!(D16_PLUS_AUT_ORDER, 685_597_979_049_984_000);
+    }
+
+    #[test]
+    fn siegel_weil_rank16_mass_identity_is_exact() {
+        // For the rank-16 even-unimodular genus with two classes (E8⊕E8 and D16+),
+        // the Siegel-Weil identity requires:
+        //   1/|Aut(E8⊕E8)| + 1/|Aut(D16+)| = mass_even_unimodular(16).
+        // |Aut(E8⊕E8)| = 2·|W(E8)|² because the two summands can be swapped.
+        let w = E8_WEYL_GROUP_ORDER;
+        let aut_e8_e8 = 2u128.checked_mul(w).unwrap().checked_mul(w).unwrap();
+        let d = D16_PLUS_AUT_ORDER;
+        let (mass_num, mass_den) = mass_even_unimodular(16).unwrap();
+        // Clear denominators: mass_num * aut_e8_e8 * d == (d + aut_e8_e8) * mass_den
+        // (all values fit in i128 after the lcm reduction in mass_even_unimodular).
+        let lhs = mass_num
+            .checked_mul(aut_e8_e8 as i128)
+            .and_then(|x| x.checked_mul(d as i128));
+        let rhs = (d as i128)
+            .checked_add(aut_e8_e8 as i128)
+            .and_then(|s| s.checked_mul(mass_den));
+        assert_eq!(
+            lhs, rhs,
+            "Siegel-Weil: 1/|Aut(E8+E8)| + 1/|Aut(D16+)| != mass(16)"
+        );
     }
 
     #[test]
@@ -116,10 +192,10 @@ mod tests {
         let e4_cubed = modular_qexp_mul(&modular_qexp_mul(&e4, &e4, terms), &e4, terms);
         let leech_form = modular_qexp_sub(
             &e4_cubed,
-            &modular_qexp_scale(&delta(terms), Rational::int(720), terms),
+            &modular_qexp_scale(&delta(terms), Rational::from_int(720), terms),
             terms,
         );
-        let leech_theta = qexp_from_i128(&leech().theta_series(terms).unwrap());
+        let leech_theta = qexp_from_int(&leech().theta_series(terms).unwrap());
         assert_eq!(leech_theta, leech_form);
         assert_eq!(
             as_modular_form(&leech_theta, 12, terms),

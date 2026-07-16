@@ -30,17 +30,34 @@ pub struct SymplecticForm<S: Scalar> {
 /// The complete invariant of an alternating form: its rank (always even, twice the
 /// number of hyperbolic planes) and the dimension of its radical.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct SymplecticClass {
+pub struct SymplecticInvariants {
     /// `2 × (number of hyperbolic planes)` — always even.
     pub rank: usize,
     /// Dimension of the radical (the kernel of the form).
     pub radical_dim: usize,
 }
 
-impl SymplecticClass {
+impl SymplecticInvariants {
     /// The number of hyperbolic planes in the canonical decomposition.
     pub fn planes(&self) -> usize {
         self.rank / 2
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for SymplecticInvariants {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "SymplecticInvariants(rank={}, radical_dim={}, planes={})",
+            self.rank,
+            self.radical_dim,
+            self.planes()
+        )
     }
 }
 
@@ -85,6 +102,10 @@ impl<S: Scalar> SymplecticForm<S> {
         self.gram.len()
     }
 
+    pub fn gram(&self) -> &[Vec<S>] {
+        &self.gram
+    }
+
     /// The orthogonal direct sum (block-diagonal Gram).
     pub fn direct_sum(&self, other: &SymplecticForm<S>) -> SymplecticForm<S> {
         let (n, m) = (self.dim(), other.dim());
@@ -106,10 +127,10 @@ impl<S: Scalar> SymplecticForm<S> {
     /// fields. The radical is the nullspace of the Gram; the rank is
     /// `dim − radical_dim` and is always even. Returns `None` when unit-pivot
     /// elimination cannot decide the kernel over a non-field scalar ring.
-    pub fn classify(&self) -> Option<SymplecticClass> {
+    pub fn classify(&self) -> Option<SymplecticInvariants> {
         let n = self.dim();
         let radical_dim = crate::linalg::field::unit_pivot_nullspace(self.gram.clone(), n)?.len();
-        Some(SymplecticClass {
+        Some(SymplecticInvariants {
             rank: n - radical_dim,
             radical_dim,
         })
@@ -118,7 +139,7 @@ impl<S: Scalar> SymplecticForm<S> {
 
 /// Classify an alternating Gram matrix directly, or `None` if it is not square and
 /// alternating. Convenience over [`SymplecticForm::from_gram`] + `classify`.
-pub fn classify_symplectic<S: Scalar>(gram: Vec<Vec<S>>) -> Option<SymplecticClass> {
+pub fn classify_symplectic<S: Scalar>(gram: Vec<Vec<S>>) -> Option<SymplecticInvariants> {
     SymplecticForm::from_gram(gram)?.classify()
 }
 
@@ -128,7 +149,7 @@ mod tests {
     use crate::scalar::{Nimber, Rational};
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     #[test]
@@ -136,7 +157,7 @@ mod tests {
         let h = SymplecticForm::<Rational>::hyperbolic(1);
         assert_eq!(
             h.classify().unwrap(),
-            SymplecticClass {
+            SymplecticInvariants {
                 rank: 2,
                 radical_dim: 0
             }
@@ -172,7 +193,7 @@ mod tests {
                 .unwrap();
         assert_eq!(
             h.classify().unwrap(),
-            SymplecticClass {
+            SymplecticInvariants {
                 rank: 2,
                 radical_dim: 0
             }
@@ -191,7 +212,7 @@ mod tests {
         let z = SymplecticForm::<Rational>::from_gram(vec![vec![r(0); 3]; 3]).unwrap();
         assert_eq!(
             z.classify().unwrap(),
-            SymplecticClass {
+            SymplecticInvariants {
                 rank: 0,
                 radical_dim: 3
             }
@@ -201,7 +222,7 @@ mod tests {
     #[test]
     fn free_function_matches_method() {
         let g = SymplecticForm::<Rational>::hyperbolic(3);
-        assert_eq!(classify_symplectic(vec_gram(&g)), g.classify());
+        assert_eq!(classify_symplectic(g.gram().to_vec()), g.classify());
     }
 
     #[test]
@@ -211,11 +232,5 @@ mod tests {
         let gram = vec![vec![Integer(0), Integer(2)], vec![Integer(-2), Integer(0)]];
         let f = SymplecticForm::from_gram(gram).unwrap();
         assert_eq!(f.classify(), None);
-    }
-
-    fn vec_gram(f: &SymplecticForm<Rational>) -> Vec<Vec<Rational>> {
-        (0..f.dim())
-            .map(|i| (0..f.dim()).map(|j| f.gram[i][j].clone()).collect())
-            .collect()
     }
 }

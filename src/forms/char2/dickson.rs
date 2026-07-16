@@ -72,8 +72,8 @@ mod tests {
     fn dickson_of_versor_is_grade_parity() {
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Nimber(1), Nimber(1)]));
         let scalar_one = alg.scalar(Nimber(1));
-        let e0 = alg.gen(0);
-        let e0e1 = alg.mul(&alg.gen(0), &alg.gen(1));
+        let e0 = alg.e(0);
+        let e0e1 = alg.mul(&alg.e(0), &alg.e(1));
         assert_eq!(dickson_of_versor(&alg, &scalar_one), Some(0)); // identity rotor
         assert_eq!(dickson_of_versor(&alg, &e0), Some(1)); // a vector = a reflection
         assert_eq!(dickson_of_versor(&alg, &e0e1), Some(0)); // a bivector = a rotor
@@ -82,6 +82,6 @@ mod tests {
         assert_eq!(dickson_of_versor(&alg, &mixed), None);
 
         let null_alg = CliffordAlgebra::new(1, Metric::grassmann(1));
-        assert_eq!(dickson_of_versor(&null_alg, &null_alg.gen(0)), None);
+        assert_eq!(dickson_of_versor(&null_alg, &null_alg.e(0)), None);
     }
 }

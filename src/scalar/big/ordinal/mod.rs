@@ -46,18 +46,20 @@
 //!   `α_11 = ω^ω+1`, `α_13 = ω+4`, …) is a *sum*, so a level-0 Kummer carry **branches**
 //!   the monomial and the reduced monomial is nim-multiplied back by `α_u`. This recurses
 //!   **strictly downward by place** (every `α_{p(m)}` is built from generators at places
-//!   `< m`), bottoming out at `α_3 = 2` in the finite field. We carry the
-//!   DiMuro Table 1 `α_u` values through `u ≤ 43` plus the locally verified
-//!   `α_47=ω^(ω^7)+1`, so a product is exact whenever its Kummer carries stay at
-//!   primes `≤ 47`; a carry needing `α_53` or beyond returns `None`, as does anything
-//!   `≥ ω^(ω^ω)` (an infinite exponent place). (The Artin–Schreier `x²+x+1` relation
-//!   is the separate `u = 2` Fermat-tower
+//!   `< m`), bottoming out at `α_3 = 2` in the finite field. We carry the finite excess
+//!   integers `m_u` from OEIS A380496 (the b-file's 126 known rows, odd primes `3..=709`);
+//!   `α_u` itself is assembled from `ord_u(2)`, `Q(f(u))`, and `m_u`. A product is exact
+//!   whenever its Kummer carries stay at primes `≤ 709`; a carry needing `m_719` (the
+//!   first OEIS-unknown row) or beyond returns `None`, as does anything `≥ ω^(ω^ω)` (an
+//!   infinite exponent place). (The Artin–Schreier `x²+x+1` relation is the separate
+//!   `u = 2` Fermat-tower
 //!   case — DiMuro Thm 3.1.7 / Cor 3.11 — handled inside the finite nimber field
-//!   [`finite_field::nimber`](crate::scalar::finite_field).) See root `OPEN.md` for
+//!   [`finite_field::nimber`](crate::scalar::finite_field).) See `docs/OPEN.md` for
 //!   the table provenance and current open boundary.
 
 mod cantor;
 mod nim;
+mod subfield;
 mod tower;
 
 use crate::scalar::{nim_inv, Scalar};
@@ -77,7 +79,13 @@ impl Ordinal {
         Ordinal { terms: Vec::new() }
     }
 
-    /// A finite ordinal / nimber `n`.
+    /// A finite ordinal / nimber `n` — a **representation** constructor.
+    ///
+    /// **Representation constructor vs ℤ-embedding:**
+    /// `Ordinal::from_u128(n)` says "the ordinal *n*", treating the u128 as a
+    /// non-negative ordinal directly. The ℤ-embedding `Scalar::from_int(n)` is
+    /// `n mod 2` for this characteristic-2 world (the unique unital ring
+    /// homomorphism ℤ → On₂). Do NOT use `from_u128` to embed integers.
     pub fn from_u128(n: u128) -> Self {
         if n == 0 {
             Ordinal::zero()
@@ -117,6 +125,12 @@ impl Ordinal {
         &self.terms
     }
 
+    /// The nimber/game-value fuzzy relation: distinct ordinal nimbers are
+    /// incomparable as games, regardless of their CNF address order.
+    pub fn fuzzy(&self, other: &Self) -> bool {
+        self != other
+    }
+
     /// The ordinal order (lexicographic on descending CNF terms).
     // Inherent value-order, deliberately kept off `std::cmp::Ord`: orders and
     // operators are opt-in here, not blanket trait impls (see AGENTS.md). The
@@ -148,10 +162,39 @@ impl Ordinal {
         }
     }
 
-    /// Checked multiplicative inverse on the represented exact subdomains. Finite
-    /// nimbers use the `u128` backend; the first transfinite field
-    /// `F_4(ω) = F_64` is found by exhaustive search. Larger transfinite
-    /// inverses are left as `None` rather than guessed.
+    /// Checked power via square-and-multiply over [`nim_mul`](Self::nim_mul).
+    ///
+    /// `nim_pow(x, 0)` returns `Some(one())` regardless of `x` (including zero,
+    /// which is the convention `x^0 = 1` in rings). `None` propagates whenever
+    /// any intermediate [`nim_mul`](Self::nim_mul) call returns `None` — i.e.
+    /// whenever a product escapes the verified Kummer boundary (`≥ ω^(ω^ω)` or
+    /// a carry past the certified prime table).
+    ///
+    /// Use this instead of `Scalar::mul`-based iteration when an explicit
+    /// `Option` boundary is needed, consistent with the deliberate omission of
+    /// owned `*` and `^` on `Ordinal`.
+    pub fn nim_pow(&self, mut k: u128) -> Option<Ordinal> {
+        if k == 0 {
+            return Some(Ordinal::from_u128(1));
+        }
+        let mut acc = Ordinal::from_u128(1);
+        let mut base = self.clone();
+        loop {
+            if k & 1 == 1 {
+                acc = acc.nim_mul(&base)?;
+            }
+            k >>= 1;
+            if k == 0 {
+                break;
+            }
+            base = base.nim_mul(&base)?;
+        }
+        Some(acc)
+    }
+
+    /// Checked multiplicative inverse on represented finite subfields. Finite
+    /// nimbers use the `u128` backend; detected finite ordinal-nimber fields use
+    /// the Frobenius formula `x^(2^m-2)` inside their minimal `F_{2^m}`.
     pub fn checked_inv(&self) -> Option<Ordinal> {
         if self.is_zero() {
             return None;
@@ -159,16 +202,19 @@ impl Ordinal {
         if let Some(x) = self.as_finite() {
             return nim_inv(x).map(Ordinal::from_u128);
         }
-        let coeffs = self.as_below_omega3()?;
-        if coeffs.iter().any(|&c| c >= 4) {
-            return None;
-        }
+        let degree = self.finite_subfield_degree()?;
         let one = Ordinal::from_u128(1);
-        (1..64u128)
-            .map(|i| Ordinal::from_omega3_coeffs([i & 3, (i >> 2) & 3, (i >> 4) & 3]))
-            .find(|cand| self.nim_mul(cand).as_ref() == Some(&one))
+        let mut acc = one.clone();
+        let mut power = self.clone();
+        for _ in 1..degree {
+            power = power.nim_mul(&power)?;
+            acc = acc.nim_mul(&power)?;
+        }
+        (self.nim_mul(&acc).as_ref() == Some(&one)).then_some(acc)
     }
 }
+
+pub use subfield::{ordinal_common_finite_subfield_degree, ordinal_finite_subfield_degree};
 
 impl Scalar for Ordinal {
     fn zero() -> Self {
@@ -204,38 +250,68 @@ impl Scalar for Ordinal {
     }
 }
 
+/// The omega-power base `ω↑exp` (canonical grundy, Display v4 (spec.md §12)). Empty for a
+/// finite (exponent-0) term, bare `ω` for exponent 1, `ω↑k` for a plain finite
+/// exponent `k`, and `ω↑(…)` for any compound ordinal exponent.
 fn fmt_exp(e: &Ordinal) -> String {
     if e.is_zero() {
         String::new()
     } else if *e == Ordinal::from_u128(1) {
         "ω".to_string()
     } else if e.terms.len() == 1 && e.terms[0].0.is_zero() {
-        format!("ω^{}", e.terms[0].1) // ω^k for a finite exponent k
+        format!("ω↑{}", e.terms[0].1) // ω↑k for a finite exponent k
     } else {
-        format!("ω^({:?})", e)
+        format!("ω↑({})", fmt_cnf(e)) // ω↑(…) for a compound ordinal exponent
+    }
+}
+
+/// The bare (un-starred) CNF body, e.g. `ω↑2 + ω⋅3 + 5` — the canonical inside
+/// of a star-literal. Terms join with ` + `; the omega-power and its coefficient
+/// join with `⋅` (U+22C5).
+///
+/// Deliberately `base⋅coeff` (`ω⋅3`, the base first), the reverse of the
+/// crate-wide `coeff⋅label` rule (`Multivector`/`Poly`, `grundy/docs/spec.md`
+/// §12). Not a drift to fix: CNF is conventionally written `ω^β·n`, and ordinal
+/// multiplication is non-commutative, so `base⋅coeff` (not `coeff⋅base`)
+/// carries real meaning here.
+fn fmt_cnf(x: &Ordinal) -> String {
+    let parts: Vec<String> = x
+        .terms
+        .iter()
+        .map(|(e, c)| {
+            let base = fmt_exp(e);
+            if base.is_empty() {
+                format!("{c}") // finite term
+            } else if *c == 1 {
+                base
+            } else {
+                format!("{base}⋅{c}")
+            }
+        })
+        .collect();
+    parts.join(" + ")
+}
+
+impl fmt::Display for Ordinal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.terms.is_empty() {
+            return write!(f, "*0"); // the zero nimber
+        }
+        // A bare star applies only to a finite value (`*5`) or bare ω (`*ω`);
+        // every compound ordinal index takes parens (`*(ω + 1)`, `*(ω↑2)`).
+        let bare =
+            (self.terms.len() == 1 && self.terms[0].0.is_zero()) || *self == Ordinal::omega();
+        if bare {
+            write!(f, "*{}", fmt_cnf(self))
+        } else {
+            write!(f, "*({})", fmt_cnf(self))
+        }
     }
 }
 
 impl fmt::Debug for Ordinal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.terms.is_empty() {
-            return write!(f, "0");
-        }
-        let parts: Vec<String> = self
-            .terms
-            .iter()
-            .map(|(e, c)| {
-                let base = fmt_exp(e);
-                if base.is_empty() {
-                    format!("{}", c) // finite term
-                } else if *c == 1 {
-                    base
-                } else {
-                    format!("{}·{}", base, c)
-                }
-            })
-            .collect();
-        write!(f, "{}", parts.join(" + "))
+        fmt::Display::fmt(self, f)
     }
 }
 
@@ -266,12 +342,28 @@ mod tests {
     }
 
     #[test]
+    fn fuzzy_is_distinctness_not_cnf_order() {
+        assert!(!Ordinal::omega().fuzzy(&Ordinal::omega()));
+        assert!(Ordinal::omega().fuzzy(&fin(7)));
+    }
+
+    #[test]
     fn display_reads_as_cnf() {
-        assert_eq!(format!("{:?}", Ordinal::omega()), "ω");
-        assert_eq!(format!("{:?}", Ordinal::monomial(fin(1), 3)), "ω·3");
-        assert_eq!(format!("{:?}", Ordinal::omega_pow(fin(2))), "ω^2");
-        assert_eq!(format!("{:?}", Ordinal::omega().nim_add(&fin(1))), "ω + 1");
-        assert_eq!(format!("{:?}", fin(5)), "5");
+        // Display v4 (spec.md §12): star-wrapped, bare star only for finite/bare-ω.
+        assert_eq!(format!("{:?}", Ordinal::omega()), "*ω");
+        assert_eq!(format!("{:?}", Ordinal::monomial(fin(1), 3)), "*(ω⋅3)");
+        assert_eq!(format!("{:?}", Ordinal::omega_pow(fin(2))), "*(ω↑2)");
+        assert_eq!(
+            format!("{:?}", Ordinal::omega().nim_add(&fin(1))),
+            "*(ω + 1)"
+        );
+        assert_eq!(format!("{:?}", fin(5)), "*5");
+        assert_eq!(format!("{:?}", Ordinal::zero()), "*0");
+        // ω↑(ω): a bare-ω exponent parenthesizes.
+        assert_eq!(
+            format!("{:?}", Ordinal::omega_pow(Ordinal::omega())),
+            "*(ω↑(ω))"
+        );
     }
 
     #[test]
@@ -299,5 +391,30 @@ mod tests {
     fn scalar_mul_panics_past_verified_tower() {
         let out_of_range = Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega()));
         let _ = out_of_range.mul(&Ordinal::omega());
+    }
+
+    // ── nim_pow tests ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn nim_pow_zero_is_one() {
+        // x^0 = 1 regardless of x.
+        assert_eq!(Ordinal::omega().nim_pow(0), Some(fin(1)));
+        assert_eq!(fin(0).nim_pow(0), Some(fin(1)));
+        assert_eq!(fin(5).nim_pow(0), Some(fin(1)));
+    }
+
+    #[test]
+    fn nim_pow_omega_cubed_is_two() {
+        // Conway: ω is the nim cube root of 2, so ω^3 = 2 (= *2 in ordinal display).
+        let omega = Ordinal::omega();
+        assert_eq!(omega.nim_pow(3), Some(fin(2)));
+    }
+
+    #[test]
+    fn nim_pow_propagates_none_on_escape() {
+        // ω^(ω^ω) is outside the verified Kummer boundary; any multiplication
+        // involving it should return None.
+        let out_of_range = Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega()));
+        assert_eq!(out_of_range.nim_pow(2), None);
     }
 }

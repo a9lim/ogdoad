@@ -3,10 +3,12 @@
 use super::FiniteOddField;
 use crate::clifford::Metric;
 use crate::forms::{as_diagonal, WittClassG};
+use std::fmt;
 
-/// The classification of a nondegenerate-plus-radical diagonal form over `F_P`.
+/// Classification invariants for a nondegenerate-plus-radical diagonal form
+/// over `F_P` of odd characteristic.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct OddCharType {
+pub struct OddCharInvariants {
     /// Characteristic prime.
     pub p: u128,
     /// Field order `q`; equal to `p` for prime fields and `p^n` for extensions.
@@ -22,8 +24,15 @@ pub struct OddCharType {
     pub hasse: i128,
 }
 
-impl OddCharType {
+impl OddCharInvariants {
+    /// `display()` alias kept for Python callers.
     pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for OddCharInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let d = if self.disc_is_square { "□" } else { "✶" };
         let field = format!("F_{}", self.field_order);
         let rad = if self.radical_dim > 0 {
@@ -31,7 +40,8 @@ impl OddCharType {
         } else {
             String::new()
         };
-        format!(
+        write!(
+            f,
             "{}: dim {} disc {} hasse {:+}{}",
             field, self.dim, d, self.hasse, rad
         )
@@ -65,13 +75,13 @@ pub fn discriminant_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<
 }
 
 /// Classify a form over any finite field of odd characteristic.
-pub fn classify_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<OddCharType> {
+pub fn classify_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<OddCharInvariants> {
     F::ensure_supported()?;
     let metric = as_diagonal(metric)?;
     let dim = metric.q.iter().filter(|x| !x.is_zero()).count();
     let radical_dim = metric.q.len() - dim;
     let disc = discriminant_finite_odd(&metric)?;
-    Some(OddCharType {
+    Some(OddCharInvariants {
         p: F::characteristic_prime(),
         field_order: F::field_order(),
         dim,
@@ -98,7 +108,7 @@ pub fn finite_odd_witt<F: FiniteOddField>(metric: &Metric<F>) -> Option<WittClas
     } else {
         det
     };
-    let kappa = if F::is_square_value(F::from_i128(-1)) {
+    let kappa = if F::is_square_value(F::from_int(-1)) {
         0
     } else {
         1

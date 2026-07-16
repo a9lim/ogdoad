@@ -53,13 +53,13 @@ pub struct Laurent<S: Scalar, const K: usize> {
 }
 
 impl<S: Scalar, const K: usize> Laurent<S, K> {
-    pub fn assert_supported_precision() {
+    pub fn assert_supported_params() {
         assert!(K > 0, "Laurent<S,K> needs positive precision K, got K={K}");
     }
 
     /// The relative precision (number of retained significant coefficients).
     pub fn precision() -> usize {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         K
     }
 
@@ -67,7 +67,7 @@ impl<S: Scalar, const K: usize> Laurent<S, K> {
     /// significant coefficients, strip trailing zeros, then strip leading zeros
     /// (folding them into the valuation). All-zero ⇒ the zero sentinel.
     fn normalized(coeffs: Vec<S>, val: i128) -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         // Leading zeros raise the valuation (the relative-precision window slides
         // up; we keep at most K coefficients from the new leading term).
         let lead = coeffs.iter().position(|c| !c.is_zero());
@@ -95,13 +95,13 @@ impl<S: Scalar, const K: usize> Laurent<S, K> {
     }
 
     /// Embed a scalar as the constant series `s` (valuation `0`).
-    pub fn from_scalar(s: S) -> Self {
+    pub fn from_base(s: S) -> Self {
         Self::normalized(vec![s], 0)
     }
 
     /// The uniformizer `t = t¹`.
     pub fn t() -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         Laurent {
             unit: vec![S::one()],
             val: 1,
@@ -110,7 +110,7 @@ impl<S: Scalar, const K: usize> Laurent<S, K> {
 
     /// The pure power `t^v` (unit series `1`). `from_t_power(-1)` is `1/t`.
     pub fn from_t_power(v: i128) -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         Laurent {
             unit: vec![S::one()],
             val: v,
@@ -153,7 +153,9 @@ impl<S: Scalar, const K: usize> Laurent<S, K> {
             return S::zero();
         }
         let i = exp - self.val;
-        if i < 0 || i as usize >= self.unit.len() {
+        // Guard both ends as i128 before any usize cast: a huge positive i
+        // would truncate-wrap on the cast and alias a small index.
+        if i < 0 || i >= self.unit.len() as i128 {
             S::zero()
         } else {
             self.unit[i as usize].clone()
@@ -161,7 +163,7 @@ impl<S: Scalar, const K: usize> Laurent<S, K> {
     }
 }
 
-impl<S: Scalar, const K: usize> fmt::Debug for Laurent<S, K> {
+impl<S: Scalar, const K: usize> fmt::Display for Laurent<S, K> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.unit.is_empty() {
             return write!(f, "0 (S((t)))");
@@ -177,18 +179,24 @@ impl<S: Scalar, const K: usize> fmt::Debug for Laurent<S, K> {
             first = false;
             let e = self.val + i as i128;
             match e {
-                0 => write!(f, "{c:?}")?,
-                1 => write!(f, "{c:?}·t")?,
-                _ => write!(f, "{c:?}·t^{e}")?,
+                0 => write!(f, "{c}")?,
+                1 => write!(f, "{c}·t")?,
+                _ => write!(f, "{c}·t^{e}")?,
             }
         }
         write!(f, " + O(t^{})", self.val + self.unit.len() as i128)
     }
 }
 
+impl<S: Scalar, const K: usize> fmt::Debug for Laurent<S, K> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
     fn zero() -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         Laurent {
             unit: Vec::new(),
             val: 0,
@@ -196,7 +204,7 @@ impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
     }
 
     fn one() -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         Laurent {
             unit: vec![S::one()],
             val: 0,
@@ -204,7 +212,7 @@ impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
     }
 
     fn add(&self, rhs: &Self) -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         if self.unit.is_empty() {
             return rhs.clone();
         }
@@ -219,7 +227,21 @@ impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
         } else {
             (rhs, self)
         };
-        let d = (hi.val - lo.val) as usize;
+        // always ≥ 0 by the sort above; compare against K as i128 BEFORE casting:
+        // a gap ≥ K means every hi-coefficient falls outside the retained window (the
+        // same precision guard Qp::add applies). Casting a huge i128 to usize first
+        // truncates-wraps on 64-bit, turning a correct "hi vanishes" into a silently
+        // wrong index offset (and panicking in debug mode).
+        let d_i128 = hi.val - lo.val;
+        if d_i128 >= K as i128 {
+            // hi is entirely outside the relative window — result is lo only.
+            let mut coeffs = vec![S::zero(); lo.unit.len().min(K)];
+            for (i, c) in lo.unit.iter().take(K).enumerate() {
+                coeffs[i] = c.clone();
+            }
+            return Self::normalized(coeffs, lo.val);
+        }
+        let d = d_i128 as usize; // safe: 0 ≤ d_i128 < K ≤ usize::MAX
         let len = lo.unit.len().max(d + hi.unit.len()).min(K);
         let mut coeffs = vec![S::zero(); len];
         for (i, c) in lo.unit.iter().enumerate() {
@@ -237,7 +259,7 @@ impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
     }
 
     fn neg(&self) -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         Laurent {
             unit: self.unit.iter().map(|c| c.neg()).collect(),
             val: self.val,
@@ -245,7 +267,7 @@ impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         if self.unit.is_empty() || rhs.unit.is_empty() {
             return Self::zero();
         }
@@ -270,14 +292,14 @@ impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
     }
 
     fn characteristic() -> u128 {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         // Adjoining a transcendental t does not change the characteristic:
         // F_q((t)) has characteristic p, ℚ((t)) characteristic 0.
         S::characteristic()
     }
 
     fn inv(&self) -> Option<Self> {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         // (t^a·U)^{-1} = t^{-a}·U^{-1}. The unit-series inverse is the standard
         // recurrence w₀ = u₀⁻¹, wₙ = −u₀⁻¹·Σ_{i=1}^{n} uᵢ·w_{n−i}, carried to K
         // terms. Total on nonzero iff the leading coeff inverts in S — THE field
@@ -300,7 +322,7 @@ impl<S: Scalar, const K: usize> Scalar for Laurent<S, K> {
     }
 
     fn is_zero(&self) -> bool {
-        Self::assert_supported_precision();
+        Self::assert_supported_params();
         self.unit.is_empty()
     }
 }
@@ -313,7 +335,7 @@ mod tests {
     type L = Laurent<Rational, 6>; // ℚ((t)) to 6 significant terms
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     fn lc(coeffs: &[i128], val: i128) -> L {
@@ -410,5 +432,24 @@ mod tests {
         assert!(std::panic::catch_unwind(L0::one).is_err());
         assert!(std::panic::catch_unwind(L0::t).is_err());
         assert!(std::panic::catch_unwind(|| L0::from_coeffs(vec![Rational::one()], 0)).is_err());
+    }
+
+    #[test]
+    fn m2_huge_valuation_gap_does_not_panic_or_corrupt() {
+        // Regression (audit M-2): `(hi.val - lo.val) as usize` for a gap ≥ K (e.g.
+        // i128::MAX) previously overflowed the intermediate `d + hi.unit.len()`
+        // computation and could panic in debug mode or silently corrupt in release.
+        // The fix compares the gap as i128 against K before any usize cast.
+        //
+        // Mathematically: t^0·1 + t^{i128::MAX}·1 = 1 (hi is outside the K=6 window).
+        let one = L::one();
+        let far = L::from_t_power(i128::MAX);
+        assert_eq!(one.add(&far), one, "huge gap: hi term must vanish");
+        assert_eq!(far.add(&one), one, "symmetric");
+        // coeff: the coefficient at t^{i128::MAX} should be 0 for `one`.
+        assert_eq!(one.coeff(i128::MAX), Rational::zero());
+        // A gap equal to K (= 6 here) is the boundary: result is lo only.
+        let at_k = L::from_t_power(6);
+        assert_eq!(one.add(&at_k), one, "gap == K: hi vanishes too");
     }
 }

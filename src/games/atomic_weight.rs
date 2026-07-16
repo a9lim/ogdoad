@@ -28,13 +28,8 @@
 //! `aw(G+H) = aw(G) + aw(H)` and `aw(−G) = −aw(G)` (Larsson–Nowakowski Thm 1,
 //! restating Siegel) — see `atomic_weight_is_additive`.
 
+use crate::games::partizan::integer_value;
 use crate::games::Game;
-
-/// `G` as an integer value, if it is an integer-valued game; else `None`.
-fn game_as_int(g: &Game) -> Option<i128> {
-    let (num, k) = g.number_value()?.as_dyadic()?;
-    (k == 0).then_some(num)
-}
 
 /// The **atomic weight** of an all-small game, as a `Game` value (usually an
 /// integer, occasionally a non-integer game). `None` if `G` is not all-small
@@ -58,7 +53,7 @@ pub fn atomic_weight(g: &Game) -> Option<Game> {
     let a_canon = Game::new(a_left.clone(), a_right.clone()).canonical();
 
     // If A is not an integer, the candidate value stands.
-    let a_int = match game_as_int(&a_canon) {
+    let a_int = match integer_value(&a_canon) {
         None => return Some(a_canon),
         Some(k) => k,
     };
@@ -104,7 +99,7 @@ pub fn atomic_weight(g: &Game) -> Option<Game> {
 /// The atomic weight as an integer, when it is one — `None` if `G` is not
 /// all-small, or its atomic weight is a genuine non-integer game.
 pub fn atomic_weight_int(g: &Game) -> Option<i128> {
-    game_as_int(&atomic_weight(g)?)
+    integer_value(&atomic_weight(g)?)
 }
 
 #[cfg(test)]

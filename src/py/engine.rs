@@ -11,17 +11,17 @@ use super::scalars::{
     parse_fp3, parse_fp3_poly, parse_fp3_rational_function, parse_fp5, parse_fp5_poly,
     parse_fp5_rational_function, parse_fp7, parse_fp7_poly, parse_fp7_rational_function,
     parse_gauss_qp11_4, parse_gauss_qp13_4, parse_gauss_qp2_4, parse_gauss_qp3_4,
-    parse_gauss_qp5_4, parse_gauss_qp7_4, parse_integer, parse_laurent_f25_6, parse_laurent_f27_6,
-    parse_laurent_f9_6, parse_laurent_fp11_6, parse_laurent_fp13_6, parse_laurent_fp3_6,
-    parse_laurent_fp5_6, parse_laurent_fp7_6, parse_laurent_rational_6, parse_nimber,
-    parse_nimber_poly, parse_nimber_rational_function, parse_omnific, parse_ordinal, parse_qp11_4,
-    parse_qp13_4, parse_qp2_4, parse_qp3_4, parse_qp5_4, parse_qp7_4, parse_qq2_4_2, parse_qq2_4_3,
-    parse_qq2_4_4, parse_qq3_4_2, parse_qq3_4_3, parse_qq5_4_2, parse_ramified_qp11_4_e2,
-    parse_ramified_qp11_4_e3, parse_ramified_qp13_4_e2, parse_ramified_qp13_4_e3,
-    parse_ramified_qp2_4_e2, parse_ramified_qp2_4_e3, parse_ramified_qp3_4_e2,
-    parse_ramified_qp3_4_e3, parse_ramified_qp5_4_e2, parse_ramified_qp5_4_e3,
-    parse_ramified_qp7_4_e2, parse_ramified_qp7_4_e3, parse_rational, parse_surcomplex,
-    parse_surreal, parse_witt_vec2_4_2, parse_witt_vec2_4_3, parse_witt_vec2_4_4,
+    parse_gauss_qp5_4, parse_gauss_qp7_4, parse_integer, parse_integer_poly, parse_laurent_f25_6,
+    parse_laurent_f27_6, parse_laurent_f9_6, parse_laurent_fp11_6, parse_laurent_fp13_6,
+    parse_laurent_fp3_6, parse_laurent_fp5_6, parse_laurent_fp7_6, parse_laurent_rational_6,
+    parse_nimber, parse_nimber_poly, parse_nimber_rational_function, parse_omnific, parse_ordinal,
+    parse_qp11_4, parse_qp13_4, parse_qp2_4, parse_qp3_4, parse_qp5_4, parse_qp7_4, parse_qq2_4_2,
+    parse_qq2_4_3, parse_qq2_4_4, parse_qq3_4_2, parse_qq3_4_3, parse_qq5_4_2,
+    parse_ramified_qp11_4_e2, parse_ramified_qp11_4_e3, parse_ramified_qp13_4_e2,
+    parse_ramified_qp13_4_e3, parse_ramified_qp2_4_e2, parse_ramified_qp2_4_e3,
+    parse_ramified_qp3_4_e2, parse_ramified_qp3_4_e3, parse_ramified_qp5_4_e2,
+    parse_ramified_qp5_4_e3, parse_ramified_qp7_4_e2, parse_ramified_qp7_4_e3, parse_rational,
+    parse_surcomplex, parse_surreal, parse_witt_vec2_4_2, parse_witt_vec2_4_3, parse_witt_vec2_4_4,
     parse_witt_vec3_4_2, parse_witt_vec3_4_3, parse_witt_vec5_4_2, parse_zp11_4, parse_zp13_4,
     parse_zp2_4, parse_zp3_4, parse_zp5_4, parse_zp7_4, wrap_adele, wrap_f16, wrap_f25, wrap_f27,
     wrap_f4, wrap_f8, wrap_f9, wrap_fp11, wrap_fp11_poly, wrap_fp11_rational_function, wrap_fp13,
@@ -29,9 +29,9 @@ use super::scalars::{
     wrap_fp2_rational_function, wrap_fp3, wrap_fp3_poly, wrap_fp3_rational_function, wrap_fp5,
     wrap_fp5_poly, wrap_fp5_rational_function, wrap_fp7, wrap_fp7_poly, wrap_fp7_rational_function,
     wrap_gauss_qp11_4, wrap_gauss_qp13_4, wrap_gauss_qp2_4, wrap_gauss_qp3_4, wrap_gauss_qp5_4,
-    wrap_gauss_qp7_4, wrap_integer, wrap_laurent_f25_6, wrap_laurent_f27_6, wrap_laurent_f9_6,
-    wrap_laurent_fp11_6, wrap_laurent_fp13_6, wrap_laurent_fp3_6, wrap_laurent_fp5_6,
-    wrap_laurent_fp7_6, wrap_laurent_rational_6, wrap_nimber, wrap_nimber_poly,
+    wrap_gauss_qp7_4, wrap_integer, wrap_integer_poly, wrap_laurent_f25_6, wrap_laurent_f27_6,
+    wrap_laurent_f9_6, wrap_laurent_fp11_6, wrap_laurent_fp13_6, wrap_laurent_fp3_6,
+    wrap_laurent_fp5_6, wrap_laurent_fp7_6, wrap_laurent_rational_6, wrap_nimber, wrap_nimber_poly,
     wrap_nimber_rational_function, wrap_omnific, wrap_ordinal, wrap_qp11_4, wrap_qp13_4,
     wrap_qp2_4, wrap_qp3_4, wrap_qp5_4, wrap_qp7_4, wrap_qq2_4_2, wrap_qq2_4_3, wrap_qq2_4_4,
     wrap_qq3_4_2, wrap_qq3_4_3, wrap_qq5_4_2, wrap_ramified_qp11_4_e2, wrap_ramified_qp11_4_e3,
@@ -44,9 +44,9 @@ use super::scalars::{
     PyFp11, PyFp11Poly, PyFp11RationalFunction, PyFp13, PyFp13Poly, PyFp13RationalFunction, PyFp2,
     PyFp2Poly, PyFp2RationalFunction, PyFp3, PyFp3Poly, PyFp3RationalFunction, PyFp5, PyFp5Poly,
     PyFp5RationalFunction, PyFp7, PyFp7Poly, PyFp7RationalFunction, PyGaussQp11_4, PyGaussQp13_4,
-    PyGaussQp2_4, PyGaussQp3_4, PyGaussQp5_4, PyGaussQp7_4, PyInteger, PyLaurentF25_6,
-    PyLaurentF27_6, PyLaurentF9_6, PyLaurentFp11_6, PyLaurentFp13_6, PyLaurentFp3_6,
-    PyLaurentFp5_6, PyLaurentFp7_6, PyLaurentRational6, PyNimber, PyNimberPoly,
+    PyGaussQp2_4, PyGaussQp3_4, PyGaussQp5_4, PyGaussQp7_4, PyInteger, PyIntegerPoly,
+    PyLaurentF25_6, PyLaurentF27_6, PyLaurentF9_6, PyLaurentFp11_6, PyLaurentFp13_6,
+    PyLaurentFp3_6, PyLaurentFp5_6, PyLaurentFp7_6, PyLaurentRational6, PyNimber, PyNimberPoly,
     PyNimberRationalFunction, PyOmnific, PyOrdinal, PyQp11_4, PyQp13_4, PyQp2_4, PyQp3_4, PyQp5_4,
     PyQp7_4, PyQq2_4_2, PyQq2_4_3, PyQq2_4_4, PyQq3_4_2, PyQq3_4_3, PyQq5_4_2, PyRamifiedQp11_4E2,
     PyRamifiedQp11_4E3, PyRamifiedQp13_4E2, PyRamifiedQp13_4E3, PyRamifiedQp2_4E2,
@@ -63,7 +63,7 @@ use crate::scalar::{
     Adele, Fp, Fpn, Gauss, Integer, Laurent, Nimber, Omnific, Ordinal, Poly, Qp, Qq, Ramified,
     Rational, RationalFunction, Scalar, Surcomplex, Surreal, WittVec, Zp,
 };
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
@@ -207,8 +207,22 @@ impl PyVersorClass {
     fn dickson(&self) -> u128 {
         self.dickson
     }
-    fn __repr__(&self) -> String {
-        format!("VersorClass(dickson={})", self.dickson)
+    // Mirrors the core `VersorInvariants` Display (`spinor_norm` rendered as a
+    // bare field element, no reduction — see the module docs on why no such
+    // reduction is valid in characteristic 2), under the pyclass's own name
+    // ("VersorClass"); `spinor_norm` is stored as an already-wrapped Python
+    // scalar object here, so its rendering goes through Python `str()`, which
+    // falls back to `__repr__` (== the wrapped scalar's own Display) since none
+    // of the scalar wrappers override `__str__`.
+    fn display(&self, py: Python<'_>) -> String {
+        format!(
+            "VersorClass(spinor_norm={}, dickson={})",
+            self.spinor_norm.bind(py),
+            self.dickson
+        )
+    }
+    fn __repr__(&self, py: Python<'_>) -> String {
+        self.display(py)
     }
 }
 
@@ -361,7 +375,7 @@ macro_rules! backend_linear_map {
 
             #[getter]
             fn n(&self) -> usize {
-                self.inner.n
+                self.inner.n()
             }
 
             #[getter]
@@ -373,7 +387,7 @@ macro_rules! backend_linear_map {
             /// multivector in the given algebra.
             fn image(&self, alg: &$alg, i: usize) -> PyResult<$mv> {
                 alg.ensure_linear_map(&self.inner)?;
-                if i >= alg.inner.dim {
+                if i >= alg.inner.dim() {
                     return Err(PyValueError::new_err("linear-map image index out of range"));
                 }
                 Ok($mv {
@@ -384,7 +398,7 @@ macro_rules! backend_linear_map {
 
             /// Rust-name `LinearMap::compose`: `self ∘ inner`.
             fn compose(&self, inner: &$lm) -> PyResult<$lm> {
-                if self.inner.n != inner.inner.n {
+                if self.inner.n() != inner.inner.n() {
                     return Err(PyValueError::new_err("dimension mismatch in compose"));
                 }
                 Ok($lm {
@@ -401,7 +415,7 @@ macro_rules! backend_linear_map {
             }
 
             fn __repr__(&self) -> String {
-                format!("{}(n={})", $lm_name, self.inner.n)
+                format!("{}(n={})", $lm_name, self.inner.n())
             }
         }
 
@@ -426,7 +440,7 @@ macro_rules! backend_linear_map {
 
             fn columns_py(&self) -> Vec<Vec<$scalar_py>> {
                 self.inner
-                    .cols
+                    .cols()
                     .iter()
                     .map(|col| col.iter().cloned().map($wrap).collect())
                     .collect()
@@ -512,7 +526,7 @@ macro_rules! backend_algebra {
 
             #[getter]
             fn dim(&self) -> usize {
-                self.inner.dim
+                self.inner.dim()
             }
 
             /// Rust-name constructor for a general-bilinear metric algebra.
@@ -591,7 +605,7 @@ macro_rules! backend_algebra {
                 }
                 let metric = Metric::general(q, b, a);
                 Ok($alg {
-                    inner: Arc::new(CliffordAlgebra::new(self.inner.dim, metric)),
+                    inner: Arc::new(CliffordAlgebra::new(self.inner.dim(), metric)),
                 })
             }
 
@@ -613,7 +627,7 @@ macro_rules! backend_algebra {
 
             /// The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other).
             fn graded_tensor(&self, other: &$alg) -> PyResult<$alg> {
-                if self.inner.dim + other.inner.dim > MAX_BASIS_DIM {
+                if self.inner.dim() + other.inner.dim() > MAX_BASIS_DIM {
                     return Err(PyValueError::new_err(format!(
                         "graded tensor dimension exceeds {MAX_BASIS_DIM}"
                     )));
@@ -625,7 +639,7 @@ macro_rules! backend_algebra {
 
             /// The tensor square `Cl ⊗̂ Cl`, used by the exterior Hopf coproduct.
             fn tensor_square(&self) -> PyResult<$alg> {
-                if self.inner.dim * 2 > MAX_BASIS_DIM {
+                if self.inner.dim() * 2 > MAX_BASIS_DIM {
                     return Err(PyValueError::new_err(format!(
                         "tensor square dimension exceeds {MAX_BASIS_DIM}"
                     )));
@@ -638,7 +652,7 @@ macro_rules! backend_algebra {
             /// Embed a multivector of the first graded-tensor factor into this
             /// target algebra.
             fn embed_first(&self, mv: &$mv) -> PyResult<$mv> {
-                if mv.alg.dim > self.inner.dim {
+                if mv.alg.dim() > self.inner.dim() {
                     return Err(PyValueError::new_err(
                         "source multivector dimension exceeds target algebra dimension",
                     ));
@@ -652,14 +666,15 @@ macro_rules! backend_algebra {
             /// Embed a multivector of the second graded-tensor factor into this
             /// target algebra by shifting its blade masks by `shift`.
             fn embed_second(&self, mv: &$mv, shift: usize) -> PyResult<$mv> {
-                if shift + mv.alg.dim > self.inner.dim {
+                if shift + mv.alg.dim() > self.inner.dim() {
                     return Err(PyValueError::new_err(
                         "shifted source multivector dimension exceeds target algebra dimension",
                     ));
                 }
+                let left = CliffordAlgebra::new(shift, Metric::<$scalar>::grassmann(shift));
                 Ok($mv {
                     alg: self.inner.clone(),
-                    mv: scalar_boundary(|| self.inner.embed_second(&mv.mv, shift))?,
+                    mv: scalar_boundary(|| self.inner.embed_second(&mv.mv, &left))?,
                 })
             }
 
@@ -742,19 +757,20 @@ macro_rules! backend_algebra {
                         )
                     })
             }
-            fn gen(&self, i: usize) -> PyResult<$mv> {
-                if i >= self.inner.dim {
+            #[pyo3(name = "gen")]
+            fn generator(&self, i: usize) -> PyResult<$mv> {
+                if i >= self.inner.dim() {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }
                 Ok($mv {
                     alg: self.inner.clone(),
-                    mv: self.inner.gen(i),
+                    mv: self.inner.e(i),
                 })
             }
             fn blade(&self, gens: Vec<usize>) -> PyResult<$mv> {
                 let mut seen = std::collections::BTreeSet::new();
                 for &g in &gens {
-                    if g >= self.inner.dim {
+                    if g >= self.inner.dim() {
                         return Err(PyValueError::new_err("blade generator index out of range"));
                     }
                     if !seen.insert(g) {
@@ -888,20 +904,29 @@ macro_rules! backend_algebra {
 
             /// Full concrete spinor data as a named `SpinorRep` record.
             /// Supports nondegenerate characteristic-0 metrics and nonsingular
-            /// characteristic-2 nimber metrics; rejects general-bilinear metrics.
+            /// characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+            /// metrics are transported through the antisymmetric `a` gauge;
+            /// characteristic 2 keeps the no-`a` boundary.
             /// `diagonalized_metric` is returned as `(q, b_terms)` when present,
             /// where `b_terms` contains `(i, j, value)` entries.
             fn spinor_rep(&self, py: Python<'_>) -> PyResult<PySpinorRep> {
                 let rep = scalar_boundary(|| crate::clifford::spinor_rep(&self.inner))?.ok_or_else(|| {
 	                    PyValueError::new_err(
-	                        "spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+	                        "spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
 	                    )
                 })?;
-                let is_left_regular = rep.is_left_regular;
+                let (
+                    rep_idempotent,
+                    rep_basis,
+                    rep_gen_matrices,
+                    is_left_regular,
+                    rep_diagonalized_metric,
+                    rep_orthogonal_basis,
+                ) = rep.into_parts();
                 let diagonalized_metric: Option<(
                     Vec<$scalar_py>,
                     Vec<(usize, usize, $scalar_py)>,
-                )> = rep.diagonalized_metric.map(|metric| {
+                )> = rep_diagonalized_metric.map(|metric| {
                     (
                         metric.q.into_iter().map($wrap).collect(),
                         metric
@@ -912,7 +937,7 @@ macro_rules! backend_algebra {
                     )
                 });
                 let orthogonal_basis_in_original: Option<Vec<Vec<$scalar_py>>> =
-                    rep.orthogonal_basis_in_original.map(|matrix| {
+                    rep_orthogonal_basis.map(|matrix| {
                         matrix
                             .into_iter()
                             .map(|row| row.into_iter().map($wrap).collect())
@@ -920,18 +945,16 @@ macro_rules! backend_algebra {
                     });
                 let idempotent = $mv {
                     alg: self.inner.clone(),
-                    mv: rep.idempotent,
+                    mv: rep_idempotent,
                 };
-                let basis: Vec<$mv> = rep
-                    .basis
+                let basis: Vec<$mv> = rep_basis
                     .into_iter()
                     .map(|mv| $mv {
                         alg: self.inner.clone(),
                         mv,
                     })
                     .collect();
-                let gen_matrices: Vec<Vec<Vec<$scalar_py>>> = rep
-                    .gen_matrices
+                let gen_matrices: Vec<Vec<Vec<$scalar_py>>> = rep_gen_matrices
                     .into_iter()
                     .map(|m| {
                         m.into_iter()
@@ -961,7 +984,7 @@ macro_rules! backend_algebra {
                 let rep = scalar_boundary(|| crate::clifford::lazy_spinor_rep(&self.inner))?
                     .ok_or_else(|| {
                         PyValueError::new_err(
-                            "lazy_spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+                            "lazy_spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
                         )
                     })?;
                 let mv = scalar_boundary(|| rep.apply_generator(i, &v.mv))?
@@ -977,7 +1000,7 @@ macro_rules! backend_algebra {
                 scalar_boundary(|| crate::clifford::lazy_spinor_rep(&self.inner))?
                     .ok_or_else(|| {
                         PyValueError::new_err(
-                            "lazy_spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+                            "lazy_spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
                         )
                     })?;
                 Ok(PyLazySpinorRep {
@@ -1000,7 +1023,7 @@ macro_rules! backend_algebra {
                 let rep = scalar_boundary(|| crate::clifford::lazy_spinor_rep(&self.inner))?
                     .ok_or_else(|| {
                         PyValueError::new_err(
-                            "lazy_spinor_rep needs a supported nondegenerate metric with no general-bilinear a-part",
+                            "lazy_spinor_rep needs a supported nondegenerate metric (char-0 a-gauges supported; char-2 a-gauges rejected)",
                         )
                     })?;
                 let mv = scalar_boundary(|| rep.apply_vector(&parsed, &v.mv))?
@@ -1012,7 +1035,7 @@ macro_rules! backend_algebra {
             }
 
             fn __repr__(&self) -> String {
-                format!("{}(dim={})", $alg_name, self.inner.dim)
+                format!("{}(dim={})", $alg_name, self.inner.dim())
             }
         }
 
@@ -1028,11 +1051,11 @@ macro_rules! backend_algebra {
             }
 
             fn ensure_linear_map(&self, lm: &LinearMap<$scalar>) -> PyResult<()> {
-                if lm.n != self.inner.dim {
+                if lm.n() != self.inner.dim() {
                     return Err(PyValueError::new_err(format!(
                         "linear-map dimension {} does not match algebra dimension {}",
-                        lm.n,
-                        self.inner.dim
+                        lm.n(),
+                        self.inner.dim()
                     )));
                 }
                 Ok(())
@@ -1148,7 +1171,14 @@ macro_rules! backend_multivector {
                     mv: acc,
                 })
             }
-            /// Exterior (wedge) product; also bound to the `^` operator.
+            /// Exterior (wedge) product — grundy `∧`.
+            ///
+            /// Bound to `&` (`__and__`) in Python, matching the Rust `BitAnd`
+            /// operator on `Multivector`. `^` is grundy power syntax, not wedge,
+            /// so `__xor__` raises with the parser hint.
+            ///
+            /// **Precedence caveat:** Python's `&` binds looser than `+`; grundy's
+            /// `∧` is tighter than `⋅`. Parenthesize when mixing.
             fn wedge(&self, other: &$mv) -> PyResult<$mv> {
                 self.ensure_same_algebra(other)?;
                 Ok($mv {
@@ -1156,8 +1186,13 @@ macro_rules! backend_multivector {
                     mv: scalar_boundary(|| self.alg.wedge(&self.mv, &other.mv))?,
                 })
             }
-            fn __xor__(&self, other: &$mv) -> PyResult<$mv> {
+            fn __and__(&self, other: &$mv) -> PyResult<$mv> {
                 self.wedge(other)
+            }
+            fn __xor__(&self, _other: &$mv) -> PyResult<$mv> {
+                Err(PyTypeError::new_err(
+                    "E_ExpSort: `^` is power; the wedge product is `∧`/`&`",
+                ))
             }
             fn reverse(&self) -> PyResult<$mv> {
                 Ok($mv {
@@ -1254,7 +1289,7 @@ macro_rules! backend_multivector {
             /// graded tensor square `Cl ⊗̂ Cl` (a tensor `e_T ⊗ e_U` is the blade
             /// `T | (U << dim)`).
             fn coproduct(&self) -> PyResult<$mv> {
-                if self.alg.dim * 2 > MAX_BASIS_DIM {
+                if self.alg.dim() * 2 > MAX_BASIS_DIM {
                     return Err(PyValueError::new_err(format!(
                         "coproduct tensor encoding needs 2*dim <= {MAX_BASIS_DIM}"
                     )));
@@ -1563,7 +1598,7 @@ macro_rules! divided_power_backend {
             }
             #[getter]
             fn dim(&self) -> usize {
-                self.inner.dim
+                self.inner.dim()
             }
             fn zero(&self) -> $vec {
                 self.wrap(self.inner.zero::<$scalar>())
@@ -1575,19 +1610,20 @@ macro_rules! divided_power_backend {
                 Ok(self.wrap(self.inner.scalar::<$scalar>($parse(s)?)))
             }
             fn divided_power(&self, i: usize, k: u128) -> PyResult<$vec> {
-                if i >= self.inner.dim {
+                if i >= self.inner.dim() {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }
                 Ok(self.wrap(self.inner.divided_power::<$scalar>(i, k)))
             }
-            fn gen(&self, i: usize) -> PyResult<$vec> {
-                if i >= self.inner.dim {
+            #[pyo3(name = "gen")]
+            fn generator(&self, i: usize) -> PyResult<$vec> {
+                if i >= self.inner.dim() {
                     return Err(PyValueError::new_err("generator index out of range"));
                 }
-                Ok(self.wrap(self.inner.gen::<$scalar>(i)))
+                Ok(self.wrap(self.inner.gamma1::<$scalar>(i)))
             }
             fn monomial(&self, alpha: Vec<u128>, coeff: &Bound<'_, PyAny>) -> PyResult<$vec> {
-                if alpha.len() > self.inner.dim {
+                if alpha.len() > self.inner.dim() {
                     return Err(PyValueError::new_err("multidegree longer than dim"));
                 }
                 Ok(self.wrap(self.inner.monomial::<$scalar>(&alpha, $parse(coeff)?)))
@@ -1625,7 +1661,7 @@ macro_rules! divided_power_backend {
                 Ok(self.wrap(scalar_boundary(|| self.inner.antipode(&x.vec))?))
             }
             fn __repr__(&self) -> String {
-                format!("{}(dim={})", $alg_name, self.inner.dim)
+                format!("{}(dim={})", $alg_name, self.inner.dim())
             }
         }
 
@@ -1653,13 +1689,13 @@ macro_rules! divided_power_backend {
             #[getter]
             fn terms(&self) -> Vec<(Vec<u128>, $scalar_py)> {
                 self.vec
-                    .terms
+                    .terms()
                     .iter()
                     .map(|(degree, coeff)| (degree.clone(), $wrap(coeff.clone())))
                     .collect()
             }
             fn is_zero(&self) -> bool {
-                self.vec.terms.is_empty()
+                self.vec.terms().is_empty()
             }
             fn __add__(&self, other: &$vec) -> PyResult<$vec> {
                 self.ensure_same_algebra(other)?;
@@ -1732,7 +1768,7 @@ macro_rules! cga_backend {
         impl $py {
             fn wrap(&self, mv: Multivector<$scalar>) -> $mv {
                 $mv {
-                    alg: Arc::new(self.inner.alg.clone()),
+                    alg: Arc::new(self.inner.alg().clone()),
                     mv,
                 }
             }
@@ -1746,11 +1782,11 @@ macro_rules! cga_backend {
             }
             #[getter]
             fn n(&self) -> usize {
-                self.inner.n
+                self.inner.n()
             }
             #[getter]
             fn dim(&self) -> usize {
-                self.inner.alg.dim
+                self.inner.alg().dim()
             }
             fn n_o(&self) -> $mv {
                 self.wrap(self.inner.n_o())
@@ -1798,7 +1834,7 @@ macro_rules! cga_backend {
             }
             /// The IPNS meet (intersection) `x ∧ y`.
             fn meet(&self, x: &$mv, y: &$mv) -> $mv {
-                self.wrap(self.inner.meet(&x.mv, &y.mv))
+                self.wrap(self.inner.outer_join(&x.mv, &y.mv))
             }
         }
     };

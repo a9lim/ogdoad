@@ -11,12 +11,13 @@
 //! We also compute the **Hasse–Witt / Clifford invariant** (a product of Hilbert
 //! symbols). Over a finite field this is *always* `+1` — finite fields have
 //! trivial Brauer group, so there are no nontrivial quaternion algebras and the
-//! Hilbert symbol of any two nonzero elements is `+1`. We compute it the honest
-//! way (search for a representing vector, which always exists by
-//! Chevalley–Warning) precisely to *exhibit* that triviality, and to make the
-//! structural parallel with the Arf invariant explicit — not because it adds
-//! classifying power over a finite field. The group-theoretic home of all this
-//! is `witt::WittClassG`.
+//! Hilbert symbol of any two nonzero elements is `+1`. The shipped classifier
+//! returns that `+1` directly (correct by Wedderburn's theorem, not by search);
+//! the honest brute-force witness — searching for a representing vector, which
+//! always exists by Chevalley–Warning — lives separately in [`hilbert_symbol`]
+//! and is exercised only in the tests, precisely to *exhibit* that triviality
+//! and make the structural parallel with the Arf invariant explicit. The
+//! group-theoretic home of all this is `witt::WittClassG`.
 
 mod field;
 mod invariants;

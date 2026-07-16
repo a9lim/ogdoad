@@ -18,15 +18,18 @@
 //! ## Scope
 //!
 //! Nondegenerate characteristic-0 metrics, and nonsingular characteristic-2
-//! metrics over field-like scalar backends such as `Nimber`, with no
-//! antisymmetric `a` part. In characteristic 0, an orthogonal metric is
-//! represented directly; a symmetric nonorthogonal metric is first diagonalized
-//! by a tracked congruence, the spinor ideal is built in that orthogonal basis,
-//! and the generator matrices are pulled back to the original generators. In
-//! characteristic 2, nonsingularity means the polar form `b` has full rank, so
-//! null-square hyperbolic generators are allowed. Degenerate, odd-positive-
-//! characteristic, non-field-pivot, general-bilinear, or non-enumerable explicit
-//! dimensions return `None`.
+//! metrics over field-like scalar backends such as `Nimber`. In characteristic
+//! 0, an orthogonal metric is represented directly; a symmetric nonorthogonal
+//! metric is first diagonalized by a tracked congruence, the spinor ideal is
+//! built in that orthogonal basis, and the generator matrices are pulled back to
+//! the original generators. A general-bilinear characteristic-0 metric is first
+//! transported through the antisymmetric `a`-gauge to the ordinary `(q, b)`
+//! metric, then its idempotent and basis are transported back to the original
+//! wedge coordinates. In characteristic 2, nonsingularity means the polar form
+//! `b` has full rank, so null-square hyperbolic generators are allowed; the
+//! general-bilinear `a` boundary remains explicit. Degenerate, odd-positive-
+//! characteristic, non-field-pivot, unsupported characteristic-2 `a`, or
+//! non-enumerable explicit dimensions return `None`.
 
 use crate::clifford::MAX_BASIS_DIM;
 use crate::clifford::{bits, CliffordAlgebra, Metric, Multivector};
@@ -38,26 +41,94 @@ use crate::scalar::Scalar;
 /// a 128-generator representation is materializable.
 const MAX_EXPLICIT_SPINOR_DIM: usize = 10;
 
+/// Owned [`SpinorRep`] storage, returned by [`SpinorRep::into_parts`] — mirrors
+/// the `Metric`/`MetricParts` pattern.
+pub type SpinorRepParts<S> = (
+    Multivector<S>,
+    Vec<Multivector<S>>,
+    Vec<Vec<Vec<S>>>,
+    bool,
+    Option<Metric<S>>,
+    Option<Vec<Vec<S>>>,
+);
+
 /// A concrete spinor representation of a Clifford algebra.
 pub struct SpinorRep<S: Scalar> {
+    idempotent: Multivector<S>,
+    basis: Vec<Multivector<S>>,
+    gen_matrices: Vec<Vec<Vec<S>>>,
+    is_left_regular: bool,
+    diagonalized_metric: Option<Metric<S>>,
+    orthogonal_basis_in_original: Option<Vec<Vec<S>>>,
+}
+
+impl<S: Scalar> SpinorRep<S> {
     /// The idempotent `f` (`f² = f`) generating the represented left ideal.
-    pub idempotent: Multivector<S>,
-    /// A basis of the left ideal `Cl·f` (in reduced echelon form). If
-    /// `is_left_regular` is true, this is the whole algebra.
-    pub basis: Vec<Multivector<S>>,
-    /// `gen_matrices[i]` is the matrix of left multiplication by `eᵢ` on `basis`
-    /// (indexed `[row][col]`; column `j` is the action on `basis[j]`).
-    pub gen_matrices: Vec<Vec<Vec<S>>>,
+    pub fn idempotent(&self) -> &Multivector<S> {
+        &self.idempotent
+    }
+
+    /// A basis of the left ideal `Cl·f`. Direct constructors store a reduced
+    /// echelon basis; characteristic-0 general-bilinear reps store the
+    /// gauge-transported basis in the same order, which need not remain echelon.
+    /// If [`is_left_regular`](Self::is_left_regular) is true, this is the whole
+    /// algebra.
+    pub fn basis(&self) -> &[Multivector<S>] {
+        &self.basis
+    }
+
+    /// `gen_matrices()[i]` is the matrix of left multiplication by `eᵢ` on
+    /// [`basis`](Self::basis) (indexed `[row][col]`; column `j` is the action
+    /// on `basis[j]`).
+    pub fn gen_matrices(&self) -> &[Vec<Vec<S>>] {
+        &self.gen_matrices
+    }
+
     /// True when the constructor fell back to `f = 1`, i.e. the complete
     /// left-regular representation.
-    pub is_left_regular: bool,
+    pub fn is_left_regular(&self) -> bool {
+        self.is_left_regular
+    }
+
     /// The diagonal metric used internally when the input metric was
-    /// nonorthogonal. `None` means the input was already orthogonal.
-    pub diagonalized_metric: Option<Metric<S>>,
+    /// nonorthogonal. For characteristic-0 general-bilinear metrics, this
+    /// describes the ordinary `(q,b,a=0)` gauge before the idempotent and basis
+    /// were transported back. `None` means the input was already orthogonal.
+    pub fn diagonalized_metric(&self) -> Option<&Metric<S>> {
+        self.diagonalized_metric.as_ref()
+    }
+
     /// Columns give the orthogonal basis vectors in the original generator basis:
-    /// `h_j = Σ_i orthogonal_basis_in_original[i][j] e_i`. Present exactly when
-    /// [`diagonalized_metric`](Self::diagonalized_metric) is present.
-    pub orthogonal_basis_in_original: Option<Vec<Vec<S>>>,
+    /// `h_j = Σ_i orthogonal_basis_in_original()[i][j] e_i`. Present exactly when
+    /// [`diagonalized_metric`](Self::diagonalized_metric) is present; the
+    /// characteristic-0 `a`-gauge transport fixes the generators, so these
+    /// coordinates still refer to the original generator basis.
+    pub fn orthogonal_basis_in_original(&self) -> Option<&[Vec<S>]> {
+        self.orthogonal_basis_in_original.as_deref()
+    }
+
+    /// Consume into the raw parts (e.g. for the Python bindings, which move
+    /// every field out rather than clone through the accessors above).
+    pub fn into_parts(self) -> SpinorRepParts<S> {
+        (
+            self.idempotent,
+            self.basis,
+            self.gen_matrices,
+            self.is_left_regular,
+            self.diagonalized_metric,
+            self.orthogonal_basis_in_original,
+        )
+    }
+
+    /// Attach diagonalization data, keeping the `diagonalized_metric` ⇔
+    /// `orthogonal_basis_in_original` pairing enforced by construction: both
+    /// fields become `Some` together (the `None`/`None` case is the default
+    /// from [`spinor_rep_from_idempotent`]).
+    fn with_diagonalization(mut self, metric: Metric<S>, basis: Vec<Vec<S>>) -> Self {
+        self.diagonalized_metric = Some(metric);
+        self.orthogonal_basis_in_original = Some(basis);
+        self
+    }
 }
 
 /// A sparse/lazy left-regular spinor action. It stores the algebra and computes
@@ -65,21 +136,26 @@ pub struct SpinorRep<S: Scalar> {
 /// [`SpinorRep`]. This is not a minimal left ideal; it is the complete regular
 /// module, but it scales to dimensions where explicit matrices are not sensible.
 pub struct LazySpinorRep<S: Scalar> {
-    pub algebra: CliffordAlgebra<S>,
+    algebra: CliffordAlgebra<S>,
 }
 
 impl<S: Scalar> LazySpinorRep<S> {
+    /// Read-only access to the algebra this lazy action runs over.
+    pub fn algebra(&self) -> &CliffordAlgebra<S> {
+        &self.algebra
+    }
+
     /// Apply left multiplication by generator `e_i` to a sparse multivector.
     pub fn apply_generator(&self, i: usize, v: &Multivector<S>) -> Option<Multivector<S>> {
-        if i >= self.algebra.dim {
+        if i >= self.algebra.dim() {
             return None;
         }
-        Some(self.algebra.mul(&self.algebra.gen(i), v))
+        Some(self.algebra.mul(&self.algebra.e(i), v))
     }
 
     /// Apply a sparse linear combination `Σ coeffs[i] e_i` by left multiplication.
     pub fn apply_vector(&self, coeffs: &[S], v: &Multivector<S>) -> Option<Multivector<S>> {
-        if coeffs.len() != self.algebra.dim {
+        if coeffs.len() != self.algebra.dim() {
             return None;
         }
         let mut out = self.algebra.zero();
@@ -87,7 +163,7 @@ impl<S: Scalar> LazySpinorRep<S> {
             if c.is_zero() {
                 continue;
             }
-            let term = self.algebra.mul(&self.algebra.gen(i), v);
+            let term = self.algebra.mul(&self.algebra.e(i), v);
             out = self.algebra.add(&out, &self.algebra.scalar_mul(c, &term));
         }
         Some(out)
@@ -150,7 +226,7 @@ fn ideal_spanning_set<S: Scalar>(
     alg: &CliffordAlgebra<S>,
     f: &Multivector<S>,
 ) -> Option<Vec<Multivector<S>>> {
-    let count = blade_count(alg.dim)?;
+    let count = blade_count(alg.dim())?;
     Some(
         (0..count)
             .map(|mask| alg.mul(&alg.blade(&bits(mask)), f))
@@ -246,7 +322,7 @@ fn ensure_pivot<S: Scalar>(g: &mut [Vec<S>], t: &mut [Vec<S>], k: usize) -> bool
 /// original basis. `a` is not accepted: this is the ordinary Clifford form, not a
 /// general bilinear-gauge representation.
 fn diagonalize_with_transform<S: Scalar>(m: &Metric<S>) -> Option<(Metric<S>, Vec<Vec<S>>)> {
-    if !m.a.is_empty() {
+    if m.has_upper() {
         return None;
     }
     let two = S::one().add(&S::one());
@@ -312,10 +388,10 @@ fn spinor_rep_from_idempotent<S: Scalar>(
     let k = basis.len();
 
     // gen_matrices[i][row][col]: left multiplication by e_i on the basis.
-    let mut gen_matrices = vec![vec![vec![S::zero(); k]; k]; alg.dim];
-    for i in 0..alg.dim {
+    let mut gen_matrices = vec![vec![vec![S::zero(); k]; k]; alg.dim()];
+    for i in 0..alg.dim() {
         for (col, (_, bvec)) in basis.iter().enumerate() {
-            let target = alg.mul(&alg.gen(i), bvec);
+            let target = alg.mul(&alg.e(i), bvec);
             let cs = coords(alg, &basis, &target)?;
             for (row, c) in cs.into_iter().enumerate() {
                 gen_matrices[i][row][col] = c;
@@ -357,7 +433,7 @@ fn scale_vec<S: Scalar>(c: &S, v: &[S]) -> Vec<S> {
 }
 
 fn char2_polar_rank<S: Scalar>(metric: &Metric<S>) -> Option<usize> {
-    if S::characteristic() != 2 || !metric.a.is_empty() {
+    if S::characteristic() != 2 || metric.has_upper() {
         return None;
     }
     let n = metric.q.len();
@@ -402,7 +478,7 @@ fn char2_shrinking_blade_idempotent<S: Scalar>(
     f: &Multivector<S>,
     current_dim: usize,
 ) -> Option<(Multivector<S>, usize)> {
-    let count = blade_count(alg.dim)?;
+    let count = blade_count(alg.dim())?;
     for mask in 1..count {
         let candidate = alg.blade(&bits(mask));
         if !is_idempotent(alg, &candidate) {
@@ -421,10 +497,10 @@ fn char2_shrinking_blade_idempotent<S: Scalar>(
 }
 
 fn spinor_rep_char2<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
-    if S::characteristic() != 2 || !alg.metric.a.is_empty() {
+    if S::characteristic() != 2 || alg.metric.has_upper() {
         return None;
     }
-    blade_count(alg.dim)?;
+    blade_count(alg.dim())?;
     if !char2_metric_is_nonsingular(&alg.metric) {
         return None;
     }
@@ -444,8 +520,8 @@ fn spinor_rep_orthogonal<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRe
     if S::characteristic() != 0 {
         return None;
     }
-    blade_count(alg.dim)?;
-    if (0..alg.dim).any(|i| alg.metric.q.get(i).map(|x| x.is_zero()).unwrap_or(true)) {
+    blade_count(alg.dim())?;
+    if (0..alg.dim()).any(|i| alg.metric.q.get(i).map(|x| x.is_zero()).unwrap_or(true)) {
         return None; // nondegenerate only (no null generators)
     }
     let half = S::one().add(&S::one()).inv()?; // needs ½ (char 0)
@@ -459,7 +535,7 @@ fn spinor_rep_orthogonal<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRe
     let mut cur = ideal_dim(alg, &f);
     loop {
         let mut progressed = false;
-        for mask in 1..blade_count(alg.dim)? {
+        for mask in 1..blade_count(alg.dim())? {
             let w = alg.blade(&bits(mask));
             if alg.mul(&w, &w) != one {
                 continue; // need w² = +1
@@ -493,10 +569,24 @@ fn spinor_rep_orthogonal<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRe
 /// Build a concrete spinor representation. For symmetric nonorthogonal metrics,
 /// the returned matrices represent the original generators; the idempotent and
 /// basis are recorded in the orthogonalized basis named by
-/// [`SpinorRep::orthogonal_basis_in_original`].
+/// [`SpinorRep::orthogonal_basis_in_original`]. For characteristic-0
+/// general-bilinear metrics, the matrices are built after dropping the
+/// antisymmetric `a` gauge and the idempotent/basis are transported back to the
+/// original wedge coordinates.
 pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
-    if !alg.metric.a.is_empty() {
-        return None;
+    if alg.metric.has_upper() {
+        if S::characteristic() == 2 {
+            return None;
+        }
+        let ordinary = alg.ordinary_gauge_algebra();
+        let mut rep = spinor_rep(&ordinary)?;
+        rep.idempotent = ordinary.transport_gauge_to(alg, &rep.idempotent)?;
+        let mut basis = Vec::with_capacity(rep.basis.len());
+        for v in &rep.basis {
+            basis.push(ordinary.transport_gauge_to(alg, v)?);
+        }
+        rep.basis = basis;
+        return Some(rep);
     }
     if S::characteristic() == 2 {
         return spinor_rep_char2(alg);
@@ -507,50 +597,49 @@ pub fn spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRep<S>> {
     if S::characteristic() != 0 {
         return None;
     }
-    blade_count(alg.dim)?;
+    blade_count(alg.dim())?;
     let (diag_metric, transform) = diagonalize_with_transform(&alg.metric)?;
     if diag_metric.q.iter().any(|x| x.is_zero()) {
         return None;
     }
-    let diag_alg = CliffordAlgebra::new(alg.dim, diag_metric.clone());
+    let diag_alg = CliffordAlgebra::new(alg.dim(), diag_metric.clone());
     let mut rep = spinor_rep_orthogonal(&diag_alg)?;
     let inverse = inverse_matrix(transform.clone())?;
-    let mut pulled = Vec::with_capacity(alg.dim);
-    for original_i in 0..alg.dim {
-        let coeffs: Vec<S> = (0..alg.dim)
+    let mut pulled = Vec::with_capacity(alg.dim());
+    for original_i in 0..alg.dim() {
+        let coeffs: Vec<S> = (0..alg.dim())
             .map(|orth_k| inverse[orth_k][original_i].clone())
             .collect();
         pulled.push(matrix_linear_combination(&coeffs, &rep.gen_matrices));
     }
     rep.gen_matrices = pulled;
-    rep.diagonalized_metric = Some(diag_metric);
-    rep.orthogonal_basis_in_original = Some(transform);
-    Some(rep)
+    Some(rep.with_diagonalization(diag_metric, transform))
 }
 
 /// Build the sparse/lazy left-regular spinor action. This keeps the same
-/// mathematical restrictions as [`spinor_rep`] (nondegenerate, no general-bilinear
-/// `a` part, characteristic 0 or characteristic 2) but does not require
-/// enumerating all blades or materializing matrices.
+/// mathematical restrictions as [`spinor_rep`] (nondegenerate characteristic 0
+/// or nonsingular characteristic 2, with the characteristic-2 `a` boundary kept)
+/// but does not require enumerating all blades or materializing matrices.
 pub fn lazy_spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<LazySpinorRep<S>> {
-    if !alg.metric.a.is_empty() {
-        return None;
-    }
     match S::characteristic() {
         0 => {
-            if alg.dim >= MAX_BASIS_DIM {
+            if alg.dim() >= MAX_BASIS_DIM {
                 return None;
             }
-            let metric = if alg.metric.b.is_empty() {
-                alg.metric.clone()
+            let ordinary = alg.ordinary_gauge_algebra();
+            let metric = if ordinary.metric.b.is_empty() {
+                ordinary.metric.clone()
             } else {
-                diagonalize_with_transform(&alg.metric)?.0
+                diagonalize_with_transform(&ordinary.metric)?.0
             };
             if metric.q.iter().any(|x| x.is_zero()) {
                 return None;
             }
         }
         2 => {
+            if alg.metric.has_upper() {
+                return None;
+            }
             if !char2_metric_is_nonsingular(&alg.metric) {
                 return None;
             }
@@ -571,7 +660,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
 
     fn cl(qs: &[i128]) -> CliffordAlgebra<Rational> {
@@ -694,7 +783,7 @@ mod tests {
         let alg = CliffordAlgebra::new(metric.q.len(), metric.clone());
         let rep = spinor_rep(&alg).unwrap();
         let k = rep.basis.len();
-        for i in 0..alg.dim {
+        for i in 0..alg.dim() {
             let mi = &rep.gen_matrices[i];
             assert_eq!(
                 mat_mul(mi, mi),
@@ -702,8 +791,8 @@ mod tests {
                 "M{i}² does not match q{i}"
             );
         }
-        for i in 0..alg.dim {
-            for j in (i + 1)..alg.dim {
+        for i in 0..alg.dim() {
+            for j in (i + 1)..alg.dim() {
                 let mi = &rep.gen_matrices[i];
                 let mj = &rep.gen_matrices[j];
                 let anti = mat_add(&mat_mul(mi, mj), &mat_mul(mj, mi));
@@ -717,12 +806,33 @@ mod tests {
         }
     }
 
+    fn check_spinor_action_in_basis(metric: Metric<Rational>) -> SpinorRep<Rational> {
+        let alg = CliffordAlgebra::new(metric.q.len(), metric);
+        let rep = spinor_rep(&alg).unwrap();
+        assert!(is_idempotent(&alg, &rep.idempotent), "f² ≠ f");
+        for i in 0..alg.dim() {
+            for (col, bvec) in rep.basis.iter().enumerate() {
+                let target = alg.mul(&alg.e(i), bvec);
+                let mut recon = alg.zero();
+                for (row, basis_vec) in rep.basis.iter().enumerate() {
+                    let coeff = &rep.gen_matrices[i][row][col];
+                    recon = alg.add(&recon, &alg.scalar_mul(coeff, basis_vec));
+                }
+                assert_eq!(
+                    recon, target,
+                    "M{i} column {col} does not reconstruct e{i}·basis[{col}]"
+                );
+            }
+        }
+        rep
+    }
+
     fn check_nimber_metric_relations(metric: Metric<Nimber>) -> SpinorRep<Nimber> {
         let alg = CliffordAlgebra::new(metric.q.len(), metric.clone());
         let rep = spinor_rep(&alg).unwrap();
         let k = rep.basis.len();
         assert!(is_idempotent(&alg, &rep.idempotent), "f² ≠ f");
-        for i in 0..alg.dim {
+        for i in 0..alg.dim() {
             let mi = &rep.gen_matrices[i];
             assert_eq!(
                 mat_mul_nimber(mi, mi),
@@ -730,8 +840,8 @@ mod tests {
                 "M{i}² does not match q{i}"
             );
         }
-        for i in 0..alg.dim {
-            for j in (i + 1)..alg.dim {
+        for i in 0..alg.dim() {
+            for j in (i + 1)..alg.dim() {
                 let mi = &rep.gen_matrices[i];
                 let mj = &rep.gen_matrices[j];
                 let anti = mat_add_nimber(&mat_mul_nimber(mi, mj), &mat_mul_nimber(mj, mi));
@@ -780,17 +890,17 @@ mod tests {
     }
 
     #[test]
-    fn degenerate_and_general_bilinear_metrics_are_rejected() {
+    fn degenerate_metrics_are_rejected_and_general_bilinear_gauge_is_supported() {
         // null generator
         assert!(spinor_rep(&cl(&[1, 0])).is_none());
-        // the antisymmetric/general bilinear gauge is still out of scope
+
         let mut a = std::collections::BTreeMap::new();
-        a.insert((0usize, 1usize), r(1));
-        let alg = CliffordAlgebra::new(
-            2,
-            Metric::general(vec![r(1), r(1)], std::collections::BTreeMap::new(), a),
-        );
-        assert!(spinor_rep(&alg).is_none());
+        a.insert((0usize, 1usize), r(5));
+        let metric = Metric::general(vec![r(1), r(1)], std::collections::BTreeMap::new(), a);
+        let alg = CliffordAlgebra::new(2, metric.clone());
+        let rep = check_spinor_action_in_basis(metric);
+        assert_eq!(rep.basis.len(), 2);
+        assert!(lazy_spinor_rep(&alg).is_some());
     }
 
     #[test]
@@ -829,6 +939,87 @@ mod tests {
             Metric::diagonal(vec![r(1); MAX_EXPLICIT_SPINOR_DIM + 1]),
         );
         assert!(spinor_rep(&large).is_none());
+    }
+
+    /// Independent oracle for `char2_polar_rank`: brute-force the radical
+    /// dimension by enumerating every `{0,1}`-coefficient vector and counting
+    /// which ones pair to zero with every basis generator (checking against
+    /// the basis suffices by bilinearity). This is a different algorithm from
+    /// the pop-and-pair elimination under test — plain enumeration, not a
+    /// symplectic-basis reduction. Valid whenever the metric's `b`-entries are
+    /// themselves `{0,1}` (as in the tests below): the radical is then
+    /// F_2-rational, and matrix rank does not change under field extension for
+    /// a matrix whose entries already live in the base field, so the count
+    /// taken over `{0,1}^n` gives the true rank over the ambient scalar field.
+    fn brute_force_char2_radical_dim<S: Scalar>(metric: &Metric<S>) -> usize {
+        let n = metric.q.len();
+        assert!(n <= 20, "brute force is exponential in n");
+        let basis: Vec<Vec<S>> = (0..n)
+            .map(|i| {
+                let mut e = vec![S::zero(); n];
+                e[i] = S::one();
+                e
+            })
+            .collect();
+        let mut radical_count: u64 = 0;
+        'outer: for mask in 0u64..(1u64 << n) {
+            let v: Vec<S> = (0..n)
+                .map(|i| {
+                    if mask & (1 << i) != 0 {
+                        S::one()
+                    } else {
+                        S::zero()
+                    }
+                })
+                .collect();
+            for e in &basis {
+                if !polar_value(metric, &v, e).is_zero() {
+                    continue 'outer;
+                }
+            }
+            radical_count += 1;
+        }
+        // radical_count is exactly 2^d for the radical's F_2-dimension d.
+        radical_count.trailing_zeros() as usize
+    }
+
+    /// `char2_metric_is_nonsingular`/`char2_polar_rank` are otherwise only
+    /// exercised at dim 2 in this file — the pop-and-pair elimination's
+    /// dim->=4 behavior (finding a partner, eliminating it from every other
+    /// remaining vector, and recursing) is untested elsewhere. This pattern
+    /// (path 0-1-2-3 plus a chord 0-2) is not block-diagonal, so the
+    /// elimination must actually interact across generators, not just peel
+    /// off disjoint pairs. Cross-checked against the brute-force radical count.
+    #[test]
+    fn char2_polar_rank_dim4_nontrivial_pairing_is_full_rank() {
+        let metric = nimber_metric(&[1, 1, 1, 1], &[(0, 1), (1, 2), (2, 3), (0, 2)]);
+        let rank = char2_polar_rank(&metric).unwrap();
+        let expected = metric.q.len() - brute_force_char2_radical_dim(&metric);
+        assert_eq!(
+            rank, expected,
+            "elimination disagrees with brute-force rank"
+        );
+        assert_eq!(rank, 4, "this coupled pairing pattern is nonsingular");
+        assert!(char2_metric_is_nonsingular(&metric));
+    }
+
+    /// A singular dim-4 case (rank < dim): the 4-cycle pairing 0-1-2-3-0 has
+    /// coincident rows (generators 0/2 and 1/3 pair identically with the
+    /// rest), so it is rank-deficient. This exercises the branch where
+    /// `vectors.pop()` finds no partner for some popped vector (it is
+    /// silently dropped into the radical rather than paired).
+    #[test]
+    fn char2_polar_rank_dim4_singular_pairing_is_rank_deficient() {
+        let metric = nimber_metric(&[1, 1, 1, 1], &[(0, 1), (1, 2), (2, 3), (0, 3)]);
+        let rank = char2_polar_rank(&metric).unwrap();
+        let expected = metric.q.len() - brute_force_char2_radical_dim(&metric);
+        assert_eq!(
+            rank, expected,
+            "elimination disagrees with brute-force rank"
+        );
+        assert_eq!(rank, 2, "the 4-cycle pairing has a 2-dim radical");
+        assert!(rank < metric.q.len());
+        assert!(!char2_metric_is_nonsingular(&metric));
     }
 
     #[test]
@@ -871,11 +1062,11 @@ mod tests {
         let lazy = lazy_spinor_rep(&alg).unwrap();
         let one = alg.scalar(Nimber(1));
         let e0 = lazy.apply_generator(0, &one).unwrap();
-        assert_eq!(e0, alg.gen(0));
+        assert_eq!(e0, alg.e(0));
         let e0_sq = lazy.apply_generator(0, &e0).unwrap();
         assert_eq!(e0_sq, alg.zero());
-        let e1e0 = lazy.apply_generator(1, &alg.gen(0)).unwrap();
-        let anti = alg.add(&alg.mul(&alg.gen(0), &alg.gen(1)), &e1e0);
+        let e1e0 = lazy.apply_generator(1, &alg.e(0)).unwrap();
+        let anti = alg.add(&alg.mul(&alg.e(0), &alg.e(1)), &e1e0);
         assert_eq!(anti, one);
     }
 
@@ -889,9 +1080,9 @@ mod tests {
         let lazy = lazy_spinor_rep(&large).unwrap();
         let one = large.scalar(r(1));
         let e0 = lazy.apply_generator(0, &one).unwrap();
-        assert_eq!(e0, large.gen(0));
+        assert_eq!(e0, large.e(0));
         let e0_sq = lazy.apply_generator(0, &e0).unwrap();
         assert_eq!(e0_sq, one);
-        assert!(lazy.apply_generator(large.dim, &one).is_none());
+        assert!(lazy.apply_generator(large.dim(), &one).is_none());
     }
 }

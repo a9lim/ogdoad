@@ -133,7 +133,7 @@ impl LocalQp {
     }
 
     /// Embed a signed integer, extracting its `p`-adic valuation.
-    pub fn from_i128(p: u128, k: u128, n: i128) -> Self {
+    pub fn from_int(p: u128, k: u128, n: i128) -> Self {
         Self::check(p, k);
         if n == 0 {
             return LocalQp {
@@ -166,11 +166,11 @@ impl LocalQp {
         }
     }
 
-    /// Embed a rational into `Q_p`: `from_i128(num) · from_i128(den)^{-1}`. The
+    /// Embed a rational into `Q_p`: `from_int(num) · from_int(den)^{-1}`. The
     /// valuation is `v_p(num) − v_p(den)`.
     pub fn from_rational(p: u128, k: u128, q: &Rational) -> Self {
-        let num = LocalQp::from_i128(p, k, q.numer());
-        let den = LocalQp::from_i128(p, k, q.denom());
+        let num = LocalQp::from_int(p, k, q.numer());
+        let den = LocalQp::from_int(p, k, q.denom());
         // den > 0 ⇒ nonzero ⇒ invertible in the field.
         num.mul(
             &den.inv()
@@ -216,10 +216,7 @@ impl LocalQp {
         let shifted = if d >= self.k {
             0
         } else {
-            p_pow(self.p, d)
-                .checked_mul(hi.unit)
-                .expect("LocalQp addition mantissa product exceeds u128")
-                % m
+            crate::scalar::mul_mod_u128(p_pow(self.p, d), hi.unit, m)
         };
         let b = lo
             .unit
@@ -265,11 +262,9 @@ impl LocalQp {
         LocalQp {
             p: self.p,
             k: self.k,
-            unit: self
-                .unit
-                .checked_mul(rhs.unit)
-                .expect("LocalQp multiplication mantissa product exceeds u128")
-                % m,
+            // mul_mod_u128, not checked_mul: p^k can approach i128::MAX, so a
+            // schoolbook unit×unit product overflows u128 on in-range inputs.
+            unit: crate::scalar::mul_mod_u128(self.unit, rhs.unit, m),
             val: self
                 .val
                 .checked_add(rhs.val)
@@ -292,7 +287,7 @@ impl LocalQp {
     }
 }
 
-impl fmt::Debug for LocalQp {
+impl fmt::Display for LocalQp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.unit == 0 {
             return write!(f, "0 (Q_{})", self.p);
@@ -309,6 +304,12 @@ impl fmt::Debug for LocalQp {
     }
 }
 
+impl fmt::Debug for LocalQp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -321,15 +322,15 @@ mod tests {
             let p: u128 = $P;
             let k: u128 = $K;
             for n in -40i128..=40 {
-                let q = Qp::<$P, $K>::from_i128(n);
-                let l = LocalQp::from_i128(p, k, n);
-                assert_eq!(q.valuation(), l.valuation(), "val from_i128 {n}");
-                assert_eq!(q.unit(), l.unit(), "unit from_i128 {n}");
+                let q = Qp::<$P, $K>::from_int(n);
+                let l = LocalQp::from_int(p, k, n);
+                assert_eq!(q.valuation(), l.valuation(), "val from_int {n}");
+                assert_eq!(q.unit(), l.unit(), "unit from_int {n}");
             }
             for a in -20i128..=20 {
                 for b in -20i128..=20 {
-                    let (qa, qb) = (Qp::<$P, $K>::from_i128(a), Qp::<$P, $K>::from_i128(b));
-                    let (la, lb) = (LocalQp::from_i128(p, k, a), LocalQp::from_i128(p, k, b));
+                    let (qa, qb) = (Qp::<$P, $K>::from_int(a), Qp::<$P, $K>::from_int(b));
+                    let (la, lb) = (LocalQp::from_int(p, k, a), LocalQp::from_int(p, k, b));
                     let qs = qa.add(&qb);
                     let ls = la.add(&lb);
                     assert_eq!(qs.valuation(), ls.valuation(), "val {a}+{b}");
@@ -364,7 +365,7 @@ mod tests {
 
     #[test]
     fn one_over_p_and_field_property() {
-        let p = LocalQp::from_i128(7, 4, 7);
+        let p = LocalQp::from_int(7, 4, 7);
         let pinv = p.inv().unwrap();
         assert_eq!(pinv.valuation(), Some(-1));
         assert_eq!(p.mul(&pinv), LocalQp::one(7, 4));

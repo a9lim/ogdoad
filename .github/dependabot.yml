@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+
+  # The only runtime/dev crates are PyO3 (optional, `python` feature) and
+  # proptest (dev). Watch them, but keep PyO3 on a short leash: its abi3 / ABI
+  # coupling means a major bump is a deliberate decision, not a weekly automerge.
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    ignore:
+      - dependency-name: "pyo3"
+        update-types: ["version-update:semver-major"]

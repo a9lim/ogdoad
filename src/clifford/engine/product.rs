@@ -1,6 +1,16 @@
+//! The general-bilinear-form geometric product on wedge-basis blades:
+//! `geom_product_blades` recursively peels one generator at a time,
+//! contracting through the bilinear form `B` (reconstructed from `q`/`b`/`a`
+//! via the private `bil` helper) and applying the wedge-reordering sign, with a
+//! fast orthogonal-basis path when `b` and `a` are both empty. The
+//! `#[cfg(test)]` `reduce_word` is an independent swap/contract oracle kept
+//! only to cross-validate this recursion (see
+//! `general_product_reproduces_reduce_word_when_a_empty` in `engine.rs`'s test
+//! module).
+
 use super::basis::wedge_sign;
 use super::metric::Metric;
-use super::terms::{merge, scale};
+use super::terms::{add_term, merge, scale};
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
@@ -35,11 +45,7 @@ impl<S: Scalar> Metric<S> {
             let c = self.bil(i, j);
             if !c.is_zero() {
                 let coeff = if k & 1 == 0 { c } else { c.neg() };
-                let e = out.entry(t ^ (1 << j)).or_insert_with(S::zero);
-                *e = e.add(&coeff);
-                if e.is_zero() {
-                    out.remove(&(t ^ (1 << j)));
-                }
+                add_term(&mut out, t ^ (1 << j), coeff);
             }
             k += 1;
         }
@@ -51,11 +57,7 @@ impl<S: Scalar> Metric<S> {
         let mut out = self.contract_vec_blade(i, t);
         if t & (1 << i) == 0 {
             let sign = wedge_sign::<S>(1 << i, t);
-            let e = out.entry(t | (1 << i)).or_insert_with(S::zero);
-            *e = e.add(&sign);
-            if e.is_zero() {
-                out.remove(&(t | (1 << i)));
-            }
+            add_term(&mut out, t | (1 << i), sign);
         }
         out
     }

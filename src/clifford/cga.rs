@@ -41,17 +41,20 @@ fn s_int<S: Scalar>(k: usize) -> S {
 /// The conformal geometric algebra of Euclidean `ℝⁿ`: `Cl(n+1, 1)` in a null
 /// basis, with helpers for the conformal embedding and round/flat primitives.
 pub struct Cga<S: Scalar> {
-    pub alg: CliffordAlgebra<S>,
-    pub n: usize,
+    alg: CliffordAlgebra<S>,
+    n: usize,
     /// generator index of `n_o` (origin).
-    pub no: usize,
+    no: usize,
     /// generator index of `n_∞` (infinity).
-    pub ninf: usize,
+    ninf: usize,
 }
 
 impl<S: Scalar> Cga<S> {
     /// Build the CGA of `ℝⁿ`. Panics unless the backend has characteristic 0
-    /// and `2` is invertible (CGA needs `½`).
+    /// and `2` is invertible (CGA needs `½`). The sole constructor: `no`/`ninf`
+    /// are always `n`/`n+1` by this construction, so there is no unchecked path
+    /// to bypass — private fields close the struct-literal escape hatch the
+    /// panics above used to leave open.
     pub fn new(n: usize) -> Self {
         assert_eq!(
             S::characteristic(),
@@ -78,6 +81,16 @@ impl<S: Scalar> Cga<S> {
         }
     }
 
+    /// Read-only access to the underlying `Cl(n+1,1)` algebra.
+    pub fn alg(&self) -> &CliffordAlgebra<S> {
+        &self.alg
+    }
+
+    /// The Euclidean dimension `n` this CGA embeds.
+    pub fn n(&self) -> usize {
+        self.n
+    }
+
     fn half(&self) -> S {
         S::one()
             .add(&S::one())
@@ -86,10 +99,10 @@ impl<S: Scalar> Cga<S> {
     }
 
     pub fn n_o(&self) -> Multivector<S> {
-        self.alg.gen(self.no)
+        self.alg.e(self.no)
     }
     pub fn n_inf(&self) -> Multivector<S> {
-        self.alg.gen(self.ninf)
+        self.alg.e(self.ninf)
     }
 
     /// The conformal (symmetric) inner product `x · y = ½⟨xy + yx⟩₀`. Note the
@@ -109,9 +122,7 @@ impl<S: Scalar> Cga<S> {
         let mut acc = self.n_o();
         let mut s = S::zero();
         for (i, pi) in p.iter().enumerate() {
-            acc = self
-                .alg
-                .add(&acc, &self.alg.scalar_mul(pi, &self.alg.gen(i)));
+            acc = self.alg.add(&acc, &self.alg.scalar_mul(pi, &self.alg.e(i)));
             s = s.add(&pi.mul(pi));
         }
         let coeff = self.half().mul(&s);
@@ -150,24 +161,25 @@ impl<S: Scalar> Cga<S> {
         assert_eq!(normal.len(), self.n, "normal dimension mismatch");
         let mut acc = self.alg.scalar_mul(d, &self.n_inf());
         for (i, ni) in normal.iter().enumerate() {
-            acc = self
-                .alg
-                .add(&acc, &self.alg.scalar_mul(ni, &self.alg.gen(i)));
+            acc = self.alg.add(&acc, &self.alg.scalar_mul(ni, &self.alg.e(i)));
         }
         acc
     }
 
-    /// The point pair / oriented join `a ∧ b`.
-    pub fn point_pair(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
+    /// The IPNS outer join (wedge) of two objects `a ∧ b`.
+    ///
+    /// In the inner-product-null-space convention (a point is *on* `X` iff
+    /// `up(p) · X = 0`), the outer join is the intersection operation; it needs
+    /// no pseudoscalar inverse and works over every char-0 backend including the
+    /// surreals.
+    pub fn outer_join(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         self.alg.wedge(a, b)
     }
 
-    /// The meet (intersection) of two IPNS objects — the outer product `x ∧ y`.
-    /// In the inner-product-null-space convention used here (a point is *on* `X`
-    /// iff `up(p) · X = 0`), intersection is the wedge; this needs no pseudoscalar
-    /// inverse, so it works over every char-0 backend including the surreals.
-    pub fn meet(&self, x: &Multivector<S>, y: &Multivector<S>) -> Multivector<S> {
-        self.alg.wedge(x, y)
+    /// The point pair (oriented join) `a ∧ b` — a pedagogical alias for
+    /// [`outer_join`](Self::outer_join) naming the specific geometric object.
+    pub fn point_pair(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
+        self.outer_join(a, b)
     }
 }
 
@@ -189,7 +201,7 @@ pub fn exp_nilpotent<S: Scalar>(
     alg: &CliffordAlgebra<S>,
     b: &Multivector<S>,
 ) -> Option<Multivector<S>> {
-    let cap = 2 * alg.dim + 2;
+    let cap = 2 * alg.dim() + 2;
     let mut acc = alg.scalar(S::one());
     let mut power = alg.scalar(S::one()); // B^0
     let mut fact = S::one(); // 0!
@@ -214,7 +226,7 @@ mod tests {
     use crate::scalar::Surreal;
 
     fn r(n: i128) -> Rational {
-        Rational::int(n)
+        Rational::from_int(n)
     }
     fn rs(num: i128, den: i128) -> Rational {
         Rational::new(num, den)
@@ -281,7 +293,7 @@ mod tests {
         let cga = Cga::<Rational>::new(3);
         let a = cga.plane(&[r(1), r(0), r(0)], &r(0));
         let b = cga.plane(&[r(0), r(1), r(0)], &r(0));
-        let m = cga.meet(&a, &b);
+        let m = cga.outer_join(&a, &b);
         assert!(!m.is_zero());
         assert_eq!(cga.alg.grade_part(&m, 2), m); // a line is a grade-2 IPNS blade
     }
@@ -313,7 +325,7 @@ mod tests {
     fn pga_nilpotent_exp_is_exact() {
         // In Cl(2,0,1), B = e0∧e1 is nilpotent (e0²=0), so exp(B) = 1 + B exactly.
         let alg = pga::<Rational>(2);
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         let b = alg.wedge(&e0, &e1);
         assert!(alg.mul(&b, &b).is_zero());
         assert_eq!(
@@ -333,7 +345,7 @@ mod tests {
         // The motor M = 1 + B (B = e0e1) is a versor; its sandwich translates
         // e1 ↦ e1 + 2 e0 exactly (a translation along the ideal direction).
         let alg = pga::<Rational>(2);
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         let b = alg.wedge(&e0, &e1);
         let motor = exp_nilpotent(&alg, &b).unwrap(); // 1 + B
         let moved = alg.sandwich(&motor, &e1).unwrap();
@@ -346,7 +358,7 @@ mod tests {
         // A Euclidean rotation bivector squares to −1 (not nilpotent) ⇒ the
         // series never terminates ⇒ None (would need transcendental cos/sin).
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
-        let b = alg.wedge(&alg.gen(0), &alg.gen(1));
+        let b = alg.wedge(&alg.e(0), &alg.e(1));
         assert!(alg.mul(&b, &b) == alg.scalar(r(-1)));
         assert!(exp_nilpotent(&alg, &b).is_none());
     }

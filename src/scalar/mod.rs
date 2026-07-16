@@ -43,7 +43,7 @@
 //! The [`global`] family is the place-organized table's local-global row: every
 //! other row picks *one* place, while `Adele` is a finite-precision model of the
 //! restricted product over all rational places (product formula, Hilbert
-//! reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms::adelic)).
+//! reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms)).
 //! Its runtime-prime cell [`LocalQp`] fills the const-generic gap the table
 //! otherwise cannot represent.
 //!
@@ -92,6 +92,7 @@ pub mod finite_field;
 pub mod functor;
 pub mod global;
 pub mod integrality;
+pub mod newton;
 pub mod poly;
 pub mod residue;
 pub mod small;
@@ -107,14 +108,15 @@ pub use finite_field::*;
 pub use functor::*;
 pub use global::*;
 pub use integrality::*;
+pub use newton::*;
 pub use poly::*;
 pub use residue::*;
 pub use small::*;
 pub use tropical::*;
 pub use valued::*;
 
-use std::fmt::Debug;
-use std::ops::{Add, Mul, Neg, Sub};
+use std::fmt::{Debug, Display};
+use std::ops::{Add, BitXor, Mul, Neg, Sub};
 
 pub(crate) fn mod_inverse_u128(a: u128, modulus: u128) -> Option<u128> {
     if modulus <= 1 {
@@ -206,12 +208,58 @@ pub(crate) fn is_prime_u128(p: u128) -> bool {
     true
 }
 
-/// Generate the owned-value operators `+`, `-` (binary and unary), and `*` for a
-/// [`Scalar`] backend by forwarding to its trait methods, so downstream code can
-/// write `a + b`, `a * b`, `-a` instead of `a.add(&b)`, `a.mul(&b)`, `a.neg()`.
+/// Checked factorial in the exact `i128` carrier.
+///
+/// Negative inputs are outside the factorial domain. `33!` is the largest
+/// factorial represented by `i128`; `34!` returns `None`.
+pub fn checked_factorial_i128(n: i128) -> Option<i128> {
+    if n < 0 {
+        return None;
+    }
+    let mut acc = 1i128;
+    for k in 2..=n {
+        acc = acc.checked_mul(k)?;
+    }
+    Some(acc)
+}
+
+/// Factorial computed inside a scalar world via the `Z -> S` ring map.
+///
+/// This is the finite-field-friendly path for grundy `!n`: in positive
+/// characteristic the product is immediately zero once a factor equal to the
+/// characteristic appears, so no host integer overflow is involved.
+pub fn factorial_in_scalar<S: Scalar>(n: i128) -> Option<S> {
+    if n < 0 {
+        return None;
+    }
+    let characteristic = S::characteristic();
+    if characteristic > 0 && n.unsigned_abs() >= characteristic {
+        return Some(S::zero());
+    }
+    let mut acc = S::one();
+    for k in 2..=n {
+        acc = acc.mul(&S::from_int(k));
+    }
+    Some(acc)
+}
+
+/// Generate the owned-value operators `+`, `-` (binary and unary), `*`, and
+/// `^ u128` (power) for a [`Scalar`] backend by forwarding to its trait
+/// methods, so downstream code can write `a + b`, `a * b`, `-a`, `a ^ 3`
+/// instead of `a.add(&b)`, `a.mul(&b)`, `a.neg()`, and an explicit loop.
 /// Only use this for backends whose multiplication is total on the represented
 /// domain; `Ordinal` gets hand-written additive operators and keeps its partial
-/// product behind `nim_mul`.
+/// product behind `nim_mul` / `nim_pow`.
+///
+/// **`^` is power (grundy `↑`), not XOR.** The RHS is deliberately `u128`
+/// so that `x ^ y` never compiles when `y` has the same element type as `x` —
+/// the type system enforces the "no element-element XOR" rule (on `Nimber`,
+/// `x ^ x` would silently mean nim-*addition*). The exponent is an unsigned
+/// meta-integer: `x ^ 0 == one()`.
+///
+/// **Precedence caveat (§5 `grundy/docs/spec.md`):** Rust's `^` binds looser than
+/// `*`. `a * b ^ 3` is `a * (b ^ 3)` in grundy but `(a * b) ^ 3` in Rust.
+/// Parenthesize when mixing product and power operators.
 ///
 /// Deliberately *not* a [`Scalar`] supertrait bound: these are concrete-type
 /// conveniences for callers (`Surreal + Surreal`, `-nimber`), so generic engine
@@ -247,6 +295,19 @@ macro_rules! impl_scalar_ops {
             #[inline]
             fn neg(self) -> $ty { <$ty as $crate::scalar::Scalar>::neg(&self) }
         }
+        impl<$($gen)*> BitXor<u128> for $ty {
+            type Output = $ty;
+            /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::pow`].
+            ///
+            /// `^` is power (grundy `↑`). The RHS is `u128` so element-element `^`
+            /// does not compile — no [`BitXor<Self>`] impl exists on any backend.
+            /// **Precedence caveat:** Rust's `^` binds looser than `*`; parenthesize
+            /// when mixing with product.
+            #[inline]
+            fn bitxor(self, k: u128) -> $ty {
+                <$ty as $crate::scalar::Scalar>::pow(&self, k)
+            }
+        }
     };
     ($ty:ty) => {
         impl Add for $ty {
@@ -269,10 +330,23 @@ macro_rules! impl_scalar_ops {
             #[inline]
             fn neg(self) -> $ty { <$ty as $crate::scalar::Scalar>::neg(&self) }
         }
+        impl BitXor<u128> for $ty {
+            type Output = $ty;
+            /// Square-and-multiply power: `x ^ 0 == one()`, `x ^ k` via [`Scalar::pow`].
+            ///
+            /// `^` is power (grundy `↑`). The RHS is `u128` so element-element `^`
+            /// does not compile — no [`BitXor<Self>`] impl exists on any backend.
+            /// **Precedence caveat:** Rust's `^` binds looser than `*`; parenthesize
+            /// when mixing with product.
+            #[inline]
+            fn bitxor(self, k: u128) -> $ty {
+                <$ty as $crate::scalar::Scalar>::pow(&self, k)
+            }
+        }
     };
 }
 
-pub trait Scalar: Clone + PartialEq + Debug {
+pub trait Scalar: Clone + PartialEq + Debug + Display {
     fn zero() -> Self;
     fn one() -> Self;
     fn add(&self, rhs: &Self) -> Self;
@@ -297,6 +371,73 @@ pub trait Scalar: Clone + PartialEq + Debug {
 
     fn sub(&self, rhs: &Self) -> Self {
         self.add(&rhs.neg())
+    }
+
+    /// The unital ring homomorphism ℤ → R (the unique ring homomorphism from
+    /// the initial ring ℤ into any unital ring).
+    ///
+    /// The default implementation uses double-and-add over [`Scalar::one`] and
+    /// [`Scalar::neg`], so **for characteristic-2 worlds `from_int(n) = n mod 2`**
+    /// automatically — do NOT override for `Nimber`/`Ordinal` with a bit-cast of
+    /// `n as u128`, which would produce a REPRESENTATION constructor (which nimber)
+    /// rather than the ℤ-embedding. Override only where a direct construction is
+    /// faster AND semantically identical (e.g. `Rational::from_int(n)`, `Integer(n)`).
+    fn from_int(n: i128) -> Self {
+        if n == 0 {
+            return Self::zero();
+        }
+        let neg = n < 0;
+        let abs = n.unsigned_abs();
+        // double-and-add
+        let mut base = Self::one();
+        let mut acc = Self::zero();
+        let mut remaining = abs;
+        while remaining > 0 {
+            if remaining & 1 == 1 {
+                acc = acc.add(&base);
+            }
+            remaining >>= 1;
+            if remaining > 0 {
+                base = base.add(&base);
+            }
+        }
+        if neg {
+            acc.neg()
+        } else {
+            acc
+        }
+    }
+
+    /// `self^exp` by square-and-multiply over [`Scalar::mul`]/[`Scalar::one`];
+    /// `x.pow(0) == one()`. The same default-method precedent as
+    /// [`Scalar::from_int`]: one correct implementation for every backend whose
+    /// `mul` is total, with per-backend overrides only where a genuinely sharper
+    /// algorithm exists (e.g. [`Nimber`]'s Fermat-tower `nim_pow`, reached through
+    /// [`FiniteField::pow`]).
+    ///
+    /// `Ordinal` implements `Scalar` with a panic-on-escape `mul` (the represented
+    /// Kummer tower's honest boundary), so it inherits this default `pow` as a
+    /// checked/panicking path — consistent with its `Scalar` impl, but the
+    /// concrete-type `^` operator (the `impl_scalar_ops!` macro) stays
+    /// deliberately absent on `Ordinal`. This method is the generic entry point
+    /// every other backend's `^` forwards to.
+    fn pow(&self, exp: u128) -> Self {
+        if exp == 0 {
+            return Self::one();
+        }
+        let mut acc = Self::one();
+        let mut base = self.clone();
+        let mut e = exp;
+        while e > 0 {
+            if e & 1 == 1 {
+                acc = acc.mul(&base);
+            }
+            e >>= 1;
+            if e > 0 {
+                base = base.mul(&base);
+            }
+        }
+        acc
     }
 }
 
@@ -364,6 +505,79 @@ mod ops_tests {
         assert_eq!(x + y, Scalar::add(&x, &y));
         assert_eq!(x * y, Scalar::mul(&x, &y));
         assert_eq!(-x, x);
+    }
+
+    #[test]
+    fn scalar_power_operator_basic_cases() {
+        // Nimber: *2 ^ 2 = nim_mul(2,2) = 3  (since 2*2=3 in nim arithmetic)
+        // i.e. Nimber(2) ^ 2 == Nimber(3)
+        assert_eq!(Nimber(2) ^ 2u128, Nimber(3));
+        // x ^ 0 == one() for all total-product backends
+        assert_eq!(Nimber(5) ^ 0u128, Nimber::one());
+        assert_eq!(Rational::from_int(7) ^ 0u128, Rational::one());
+        // Fp case: 3 ^ 2 == 9 mod p = 2 in F_5
+        use crate::scalar::Fp;
+        let three: Fp<5> = Fp::from_int(3);
+        assert_eq!(three ^ 2u128, Fp::from_int(4)); // 3^2 = 9 ≡ 4 mod 5
+                                                    // consistency with repeated mul
+        let r2 = Rational::from_int(2);
+        let r8 = Rational::from_int(8);
+        assert_eq!(r2 ^ 3u128, r8);
+    }
+
+    /// Reaches [`Scalar::pow`] through the trait bound alone — no `impl_scalar_ops!`
+    /// `^` operator is reachable inside a function generic only over `S: Scalar`,
+    /// so this pins the default method itself, independent of any concrete-type
+    /// operator convenience.
+    fn generic_pow_via_trait<S: Scalar>(x: &S, n: u128) -> S {
+        x.pow(n)
+    }
+
+    #[test]
+    fn scalar_pow_default_matches_repeated_mul_generically() {
+        let r = Rational::new(2, 3);
+        let mut expected = Rational::one();
+        for _ in 0..4 {
+            expected = Scalar::mul(&expected, &r);
+        }
+        assert_eq!(generic_pow_via_trait(&r, 4), expected);
+        assert_eq!(generic_pow_via_trait(&r, 0), Rational::one());
+
+        let x = Nimber(5);
+        let mut expected_n = Nimber::one();
+        for _ in 0..3 {
+            expected_n = Scalar::mul(&expected_n, &x);
+        }
+        assert_eq!(generic_pow_via_trait(&x, 3), expected_n);
+    }
+
+    #[test]
+    fn ordinal_pow_default_method_has_no_operator_to_fall_back_on() {
+        // `Ordinal` deliberately carries no `^` operator (multiplication is
+        // checked/partial at the Kummer boundary — see `impl_scalar_ops!`'s
+        // doc), so `.pow` here can only be the `Scalar` trait default, not an
+        // operator-forwarding convenience. Stick to 0/1 so the checked `mul`
+        // never has a chance to escape the verified boundary.
+        assert_eq!(Ordinal::zero().pow(0), Ordinal::one());
+        assert_eq!(Ordinal::zero().pow(3), Ordinal::zero());
+        assert_eq!(Ordinal::one().pow(5), Ordinal::one());
+    }
+
+    #[test]
+    fn checked_factorial_i128_has_the_grundy_roof() {
+        assert_eq!(checked_factorial_i128(-1), None);
+        assert_eq!(checked_factorial_i128(0), Some(1));
+        assert_eq!(checked_factorial_i128(5), Some(120));
+        assert!(checked_factorial_i128(33).is_some());
+        assert_eq!(checked_factorial_i128(34), None);
+    }
+
+    #[test]
+    fn factorial_in_scalar_uses_the_world_ring_map() {
+        assert_eq!(factorial_in_scalar::<Integer>(5), Some(Integer(120)));
+        assert_eq!(factorial_in_scalar::<Fp<7>>(6), Some(Fp::<7>::from_int(-1)));
+        assert_eq!(factorial_in_scalar::<Fp<7>>(7), Some(Fp::<7>::zero()));
+        assert_eq!(factorial_in_scalar::<Nimber>(4), Some(Nimber::zero()));
     }
 
     #[test]

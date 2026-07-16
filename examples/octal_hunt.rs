@@ -52,8 +52,9 @@ fn main() {
     for code in &codes {
         // scan the heap cutoff: a clean group may appear only among small heaps.
         for k in 2..=max_heap {
-            let q = octal_misere_quotient(code, k, elem, test);
-            *order_hist.entry(q.num_classes).or_insert(0) += 1;
+            let q = octal_misere_quotient(code, k, elem, test)
+                .expect("octal move graphs are acyclic, so the quotient builder cannot bail");
+            *order_hist.entry(q.num_classes()).or_insert(0) += 1;
             let atoms: Vec<usize> = (1..=k).collect();
             if let Some(pset) = p_set_as_f2(&q, &atoms) {
                 two_groups += 1;

@@ -34,10 +34,14 @@
 //! ## Precision contract
 //!
 //! Every [`Valued`] base in this crate (`Qp`/`Qq`/`Laurent`) is a *capped-relative
-//! precision model*, so `Ramified` over it inherits that contract: `mul`/`inv`
-//! are exact, additive cancellation below the retained window reads as `0`. Like
-//! its bases it is therefore **excluded from the exact-ring fuzz suite**. The
-//! *valuation* is nonetheless exact (see [`Ramified::valuation`]).
+//! precision model*, so `Ramified` over it inherits that contract: additive
+//! cancellation below the retained window reads as `0`. The `E = 2` inverse is
+//! exact (norm/conjugate closed form: a single scalar division, no Gaussian
+//! elimination). For `E ≥ 3` the inverse is computed via Gaussian elimination over
+//! the base field, so it is correct only to the retained relative precision —
+//! `x · x⁻¹ = 1` up to a residual of valuation `≫ K`, not bit-exactly. Like its
+//! bases it is therefore **excluded from the exact-ring fuzz suite**. The
+//! *valuation* is nonetheless always exact (see [`Ramified::valuation`]).
 
 use crate::scalar::{ResidueField, Scalar, Valued};
 use std::fmt;
@@ -52,14 +56,29 @@ pub struct Ramified<S: Valued, const E: usize> {
 }
 
 impl<S: Valued, const E: usize> Ramified<S, E> {
+    /// Whether `E` gives a genuine (Eisenstein-shaped) ramified extension: `E >=
+    /// 2`. `E = 1` degenerates the basis-1 uniformizer lookup ([`pi`](Self::pi)
+    /// would index out of bounds); `E = 0` is not even a unital ring (`coeffs` has
+    /// no room for `one()`'s `a₀ = 1` slot). A release-mode guard, not a
+    /// `debug_assert!` — the index panic one line later is not an honest stand-in
+    /// for it.
+    pub fn assert_supported_params() {
+        assert!(
+            E >= 2,
+            "Ramified<S,E> needs E >= 2 to be a proper extension, got E={E}"
+        );
+    }
+
     /// Build from components, padding with zeros (or truncating) to length `E`.
     pub fn new(mut coeffs: Vec<S>) -> Self {
+        Self::assert_supported_params();
         coeffs.resize(E, S::zero());
         Ramified { coeffs }
     }
 
     /// Embed a base scalar `s` as the constant `a₀ = s`.
     pub fn from_base(s: S) -> Self {
+        Self::assert_supported_params();
         let mut coeffs = vec![S::zero(); E];
         if E > 0 {
             coeffs[0] = s;
@@ -69,7 +88,7 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
 
     /// The uniformizer `π` (the basis element `a₁ = 1`).
     pub fn pi() -> Self {
-        debug_assert!(E >= 2, "Ramified needs E >= 2 to be a proper extension");
+        Self::assert_supported_params();
         let mut coeffs = vec![S::zero(); E];
         coeffs[1] = S::one();
         Ramified { coeffs }
@@ -77,6 +96,7 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
 
     /// The basis power `π^k` for `k < E` — i.e. the unit basis vector `e_k`.
     fn pi_basis(k: usize) -> Self {
+        Self::assert_supported_params();
         let mut coeffs = vec![S::zero(); E];
         coeffs[k] = S::one();
         Ramified { coeffs }
@@ -90,6 +110,7 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
     /// complete residue system), so the minimum is attained uniquely and the
     /// leading term can never cancel.
     pub fn valuation(&self) -> Option<i128> {
+        Self::assert_supported_params();
         let mut best: Option<i128> = None;
         for (i, a) in self.coeffs.iter().enumerate() {
             if let Some(v) = a.valuation() {
@@ -117,16 +138,18 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
     /// [`Laurent::is_integral`]: crate::scalar::Laurent::is_integral
     /// [`HasRingOfIntegers`]: crate::scalar::HasRingOfIntegers
     pub fn is_integral(&self) -> bool {
+        Self::assert_supported_params();
         self.valuation().is_none_or(|v| v >= 0)
     }
 
     /// The coordinate components `a₀ … a_{E−1}`.
     pub fn components(&self) -> &[S] {
+        Self::assert_supported_params();
         &self.coeffs
     }
 }
 
-impl<S: Valued, const E: usize> fmt::Debug for Ramified<S, E> {
+impl<S: Valued, const E: usize> fmt::Display for Ramified<S, E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_zero() {
             return write!(f, "0 (π^{E}=ϖ)");
@@ -141,23 +164,31 @@ impl<S: Valued, const E: usize> fmt::Debug for Ramified<S, E> {
             }
             first = false;
             match i {
-                0 => write!(f, "{c:?}")?,
-                1 => write!(f, "({c:?})·π")?,
-                _ => write!(f, "({c:?})·π^{i}")?,
+                0 => write!(f, "{c}")?,
+                1 => write!(f, "({c})·π")?,
+                _ => write!(f, "({c})·π^{i}")?,
             }
         }
         Ok(())
     }
 }
 
+impl<S: Valued, const E: usize> fmt::Debug for Ramified<S, E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
     fn zero() -> Self {
+        Self::assert_supported_params();
         Ramified {
             coeffs: vec![S::zero(); E],
         }
     }
 
     fn one() -> Self {
+        Self::assert_supported_params();
         let mut coeffs = vec![S::zero(); E];
         if E > 0 {
             coeffs[0] = S::one();
@@ -166,6 +197,7 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
     }
 
     fn add(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
         Ramified {
             coeffs: self
                 .coeffs
@@ -177,12 +209,14 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
     }
 
     fn neg(&self) -> Self {
+        Self::assert_supported_params();
         Ramified {
             coeffs: self.coeffs.iter().map(|a| a.neg()).collect(),
         }
     }
 
     fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
         // Polynomial multiplication mod (xᴱ − ϖ): an exponent k ≥ E folds once via
         // x^E = ϖ to ϖ·x^{k−E} (single pass — the largest k is 2E−2, so k−E ≤ E−2).
         let w = S::uniformizer();
@@ -208,11 +242,13 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
     }
 
     fn characteristic() -> u128 {
+        Self::assert_supported_params();
         // Ramification preserves the characteristic.
         S::characteristic()
     }
 
     fn inv(&self) -> Option<Self> {
+        Self::assert_supported_params();
         if self.is_zero() {
             return None;
         }
@@ -247,6 +283,7 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
     }
 
     fn is_zero(&self) -> bool {
+        Self::assert_supported_params();
         self.coeffs.iter().all(|a| a.is_zero())
     }
 }
@@ -295,7 +332,7 @@ mod tests {
     type E3 = Ramified<Qp<2, 8>, 3>;
 
     fn q3(n: i128) -> Qp<3, 6> {
-        Qp::from_i128(n)
+        Qp::from_int(n)
     }
 
     #[test]
@@ -348,7 +385,7 @@ mod tests {
     #[test]
     fn e3_inverse_round_trips_via_matrix_solve() {
         fn q2(n: i128) -> Qp<2, 8> {
-            Qp::from_i128(n)
+            Qp::from_int(n)
         }
         // π³ = 2 (the mul reduction, exact).
         let pi = E3::pi();
@@ -432,8 +469,8 @@ mod tests {
                 }
                 // a + t  in the first slot (a unit when a = 1, else valuation 1),
                 // b in the second.
-                let c0 = Laurent::from_scalar(Fp::<2>::new(a as i128)).add(&t);
-                let c1 = Laurent::from_scalar(Fp::<2>::new(b as i128));
+                let c0 = Laurent::from_base(Fp::<2>::from_int(a as i128)).add(&t);
+                let c1 = Laurent::from_base(Fp::<2>::from_int(b as i128));
                 let x = EW::new(vec![c0, c1]);
                 let xi = x.inv().expect("nonzero inverts: wild extension is a field");
                 assert_eq!(x.mul(&xi), EW::one(), "x·x⁻¹ ≠ 1 for {x:?}");
@@ -442,5 +479,13 @@ mod tests {
         // 1/π exists (π is a uniformizer, never a zero divisor).
         let pinv = pi.inv().expect("π inverts");
         assert_eq!(pi.mul(&pinv), EW::one());
+    }
+
+    #[test]
+    fn invalid_parameters_are_rejected() {
+        // E = 1: `pi()` would index coeffs[1] out of bounds.
+        assert!(std::panic::catch_unwind(Ramified::<Qp<3, 6>, 1>::one).is_err());
+        // E = 0: not even a unital ring (no room for one()'s a₀ slot).
+        assert!(std::panic::catch_unwind(Ramified::<Qp<3, 6>, 0>::one).is_err());
     }
 }

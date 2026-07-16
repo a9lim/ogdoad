@@ -1,24 +1,57 @@
 //! Python bindings for combinatorial game theory: partizan games, the exterior
-//! algebra of the game group (over the `Integer` backend), and nim-mult via the
-//! Turning-Corners game recurrence.
+//! algebra and checked integer Clifford deformation of the game group generators,
+//! and nim-mult via the Turning-Corners game recurrence.
 
 use super::engine::{IntegerAlgebra, IntegerMV};
-use super::forms::{wrap_quadric_fit, PyQuadricFit};
+use super::forms::{wrap_binary_code, wrap_quadric_fit, PyBinaryCode, PyQuadricFit};
 use super::scalars::{
     parse_rational, parse_surreal, wrap_rational, PyOrdinal, PyRational, PySurreal,
 };
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
-    thermography, AbstractGame, Color, Game, GameExterior, GameRelation, Hackenbush, LoopyGraph,
-    LoopyNimCertificate, LoopyNimber, LoopyValue, NimberGame, NumberGame, Outcome, PartizanOutcome,
+    thermography, AbstractGame, Color, Game, GameClifford, GameExterior, GameRelation, Hackenbush,
+    LoopyGraph, LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph, LoopyPartizanOutcome,
+    LoopyValue, LoopyWinner, NimLexicode, NimberGame, NumberGame, Outcome, PartizanOutcome,
     Quotient,
 };
 use crate::scalar::{Integer, Rational, SignExpansion, Surreal};
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
+
+/// Validate an adjacency list: every successor index must be `< n = succ.len()`.
+/// Returns `PyValueError` with the offending position and index on failure.
+/// This is the shared bounds-check for all list-input Python entry points that
+/// forward directly to Rust kernels (which would otherwise panic on out-of-range
+/// indices in the predecessor/successor arrays).
+fn check_succ_bounds(succ: &[Vec<usize>]) -> PyResult<()> {
+    let n = succ.len();
+    for (v, neighbors) in succ.iter().enumerate() {
+        for &w in neighbors {
+            if w >= n {
+                return Err(PyValueError::new_err(format!(
+                    "adjacency list out of range: succ[{v}] contains index {w}, \
+                     but the graph has only {n} positions (0..{n})"
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn check_partizan_succ_bounds(left: &[Vec<usize>], right: &[Vec<usize>]) -> PyResult<()> {
+    if left.len() != right.len() {
+        return Err(PyValueError::new_err(format!(
+            "left/right move tables must have the same number of positions: left has {}, right has {}",
+            left.len(),
+            right.len()
+        )));
+    }
+    check_succ_bounds(left)?;
+    check_succ_bounds(right)
+}
 
 /// Wrap a dyadic `Rational` (a thermograph coordinate) as a `Surreal` for Python.
 fn rat_to_py(r: Rational) -> PySurreal {
@@ -91,11 +124,11 @@ impl PyGameRelationCertificate {
     fn independent(&self) -> bool {
         self.inner.independent
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "GameRelationCertificate(coeffs={:?}, value_key={:?}, independent={})",
-            self.inner.coeffs, self.inner.value_key, self.inner.independent
-        )
+        self.inner.display()
     }
 }
 
@@ -133,25 +166,11 @@ impl PyRelationSearchCertificate {
             .map(wrap_game_relation_certificate)
             .collect()
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        let relations: Vec<_> = self
-            .inner
-            .relations
-            .iter()
-            .map(|r| {
-                format!(
-                    "GameRelationCertificate(coeffs={:?}, value_key={:?}, independent={})",
-                    r.coeffs, r.value_key, r.independent
-                )
-            })
-            .collect();
-        format!(
-            "RelationSearchCertificate(bound={}, exhaustive={}, candidate_count={:?}, relations={:?})",
-            self.inner.bound,
-            self.inner.exhaustive,
-            self.inner.candidate_count,
-            relations,
-        )
+        self.inner.display()
     }
 }
 
@@ -522,6 +541,7 @@ fn grundy(pos: u128, moves: Bound<'_, PyAny>) -> PyResult<u128> {
 /// its value is 0.
 #[pyfunction]
 fn grundy_graph(succ: Vec<Vec<usize>>) -> PyResult<Vec<u128>> {
+    check_succ_bounds(&succ)?;
     crate::games::grundy_graph(&succ)
         .ok_or_else(|| PyValueError::new_err("graph has a cycle — Grundy value is undefined"))
 }
@@ -676,6 +696,133 @@ impl PyPartizanOutcome {
     }
 }
 
+fn loopy_winner_name(w: LoopyWinner) -> String {
+    match w {
+        LoopyWinner::Left => "Left",
+        LoopyWinner::Right => "Right",
+        LoopyWinner::Draw => "Draw",
+    }
+    .to_string()
+}
+
+#[pyclass(name = "LoopyWinner", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyLoopyWinner {
+    inner: LoopyWinner,
+}
+
+fn wrap_loopy_winner(inner: LoopyWinner) -> PyLoopyWinner {
+    PyLoopyWinner { inner }
+}
+
+fn parse_loopy_winner(obj: &Bound<'_, PyAny>) -> PyResult<LoopyWinner> {
+    if let Ok(winner) = obj.cast::<PyLoopyWinner>() {
+        return Ok(winner.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected LoopyWinner"))
+}
+
+#[pymethods]
+impl PyLoopyWinner {
+    #[staticmethod]
+    fn left() -> Self {
+        wrap_loopy_winner(LoopyWinner::Left)
+    }
+    #[staticmethod]
+    fn right() -> Self {
+        wrap_loopy_winner(LoopyWinner::Right)
+    }
+    #[staticmethod]
+    fn draw() -> Self {
+        wrap_loopy_winner(LoopyWinner::Draw)
+    }
+    fn name(&self) -> String {
+        loopy_winner_name(self.inner)
+    }
+    fn is_left(&self) -> bool {
+        self.inner == LoopyWinner::Left
+    }
+    fn is_right(&self) -> bool {
+        self.inner == LoopyWinner::Right
+    }
+    fn is_draw(&self) -> bool {
+        self.inner == LoopyWinner::Draw
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_loopy_winner(other).is_ok_and(|w| w == self.inner)),
+            CompareOp::Ne => Ok(parse_loopy_winner(other).is_ok_and(|w| w != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("LoopyWinner only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __str__(&self) -> String {
+        self.name()
+    }
+    fn __repr__(&self) -> String {
+        format!("LoopyWinner.{}", loopy_winner_name(self.inner))
+    }
+}
+
+#[pyclass(name = "LoopyPartizanOutcome", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyLoopyPartizanOutcome {
+    inner: LoopyPartizanOutcome,
+}
+
+fn wrap_loopy_partizan_outcome(inner: LoopyPartizanOutcome) -> PyLoopyPartizanOutcome {
+    PyLoopyPartizanOutcome { inner }
+}
+
+fn parse_loopy_partizan_outcome(obj: &Bound<'_, PyAny>) -> PyResult<LoopyPartizanOutcome> {
+    if let Ok(outcome) = obj.cast::<PyLoopyPartizanOutcome>() {
+        return Ok(outcome.borrow().inner);
+    }
+    Err(PyTypeError::new_err("expected LoopyPartizanOutcome"))
+}
+
+#[pymethods]
+impl PyLoopyPartizanOutcome {
+    #[new]
+    fn new(left_to_move: &Bound<'_, PyAny>, right_to_move: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(wrap_loopy_partizan_outcome(LoopyPartizanOutcome::new(
+            parse_loopy_winner(left_to_move)?,
+            parse_loopy_winner(right_to_move)?,
+        )))
+    }
+    #[getter]
+    fn left_to_move(&self) -> PyLoopyWinner {
+        wrap_loopy_winner(self.inner.left_to_move)
+    }
+    #[getter]
+    fn right_to_move(&self) -> PyLoopyWinner {
+        wrap_loopy_winner(self.inner.right_to_move)
+    }
+    fn partizan_class(&self) -> Option<PyPartizanOutcome> {
+        self.inner.partizan_class().map(wrap_partizan_outcome)
+    }
+    fn has_draw(&self) -> bool {
+        self.inner.has_draw()
+    }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Eq => Ok(parse_loopy_partizan_outcome(other).is_ok_and(|o| o == self.inner)),
+            CompareOp::Ne => Ok(parse_loopy_partizan_outcome(other).is_ok_and(|o| o != self.inner)),
+            CompareOp::Lt | CompareOp::Le | CompareOp::Gt | CompareOp::Ge => Err(
+                PyValueError::new_err("LoopyPartizanOutcome only supports equality comparisons"),
+            ),
+        }
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "LoopyPartizanOutcome(left_to_move={}, right_to_move={})",
+            loopy_winner_name(self.inner.left_to_move),
+            loopy_winner_name(self.inner.right_to_move)
+        )
+    }
+}
+
 #[pyclass(name = "LoopyNimber", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyLoopyNimber {
@@ -735,18 +882,22 @@ impl PyLoopyNimber {
 /// Normal-play typed [`Outcome`] of every position of a finite
 /// game graph given as adjacency lists (`succ[v]` = positions reachable from `v`).
 /// Retrograde analysis; `Loss` = P-position. Cyclic graphs are fine (→ `Draw`).
+/// Raises `ValueError` if any successor index is out of range.
 #[pyfunction]
-fn outcomes(succ: Vec<Vec<usize>>) -> Vec<PyOutcome> {
-    crate::games::outcomes(&succ)
+fn outcomes(succ: Vec<Vec<usize>>) -> PyResult<Vec<PyOutcome>> {
+    check_succ_bounds(&succ)?;
+    Ok(crate::games::outcomes(&succ)
         .into_iter()
         .map(wrap_outcome)
-        .collect()
+        .collect())
 }
 
 /// The P-positions (Loss positions) of a finite game graph, as node indices.
+/// Raises `ValueError` if any successor index is out of range.
 #[pyfunction]
-fn p_positions(succ: Vec<Vec<usize>>) -> Vec<usize> {
-    crate::games::p_positions(&succ)
+fn p_positions(succ: Vec<Vec<usize>>) -> PyResult<Vec<usize>> {
+    check_succ_bounds(&succ)?;
+    Ok(crate::games::p_positions(&succ))
 }
 
 #[pyclass(name = "ScoreInterval", module = "ogdoad")]
@@ -779,12 +930,14 @@ fn wrap_score_interval(inner: crate::games::ScoreInterval) -> PyScoreInterval {
 /// Milnor scoring-game minimax on a finite **acyclic** graph: the `(left, right)`
 /// value interval of every position (`left` = optimal score with Left/maximizer
 /// to move, `right` with Right/minimizer), where `terminal_score[v]` scores each
-/// move-less position. Errors on a cycle (loopy scoring is out of scope).
+/// move-less position. Errors on a cycle (loopy scoring is out of scope) or if any
+/// successor index is out of range.
 #[pyfunction]
 fn scoring_values(
     succ: Vec<Vec<usize>>,
     terminal_score: Vec<i128>,
 ) -> PyResult<Vec<PyScoreInterval>> {
+    check_succ_bounds(&succ)?;
     crate::games::scoring_values(&succ, &terminal_score)
         .map(|v| v.into_iter().map(wrap_score_interval).collect())
         .ok_or_else(|| PyValueError::new_err("graph has a cycle — scoring value is undefined"))
@@ -844,24 +997,30 @@ fn octal_moves(code: Vec<u128>, pos: Vec<u128>) -> Vec<Vec<u128>> {
 
 /// The bounded misère indistinguishability quotient of an octal game, over single
 /// heaps `1..=max_heap` as atoms (elements are sums up to `elem_bound`, separated
-/// by tests up to `test_bound`).
+/// by tests up to `test_bound`). Raises `ValueError` if the bounded search reaches
+/// a cyclic position (not reachable through `octal_moves` in practice, but the
+/// binding stays honest about the partial primitive underneath).
 #[pyfunction]
 fn octal_misere_quotient(
     code: Vec<u128>,
     max_heap: usize,
     elem_bound: usize,
     test_bound: usize,
-) -> PyQuotient {
-    PyQuotient {
-        inner: crate::games::octal_misere_quotient(&code, max_heap, elem_bound, test_bound),
-    }
+) -> PyResult<PyQuotient> {
+    crate::games::octal_misere_quotient(&code, max_heap, elem_bound, test_bound)
+        .map(|inner| PyQuotient { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err("octal_misere_quotient requires an acyclic bounded move graph")
+        })
 }
 
 /// Loopy impartial nim-values of a (possibly cyclic) game graph: each position is
 /// a typed `LoopyNimber.Value(n)`, or `LoopyNimber.Side` for a Draw position.
-/// Errors when a cyclic non-Draw subgraph has no unique bounded sidling solution.
+/// Errors when a cyclic non-Draw subgraph has no unique bounded sidling solution,
+/// or when any successor index is out of range.
 #[pyfunction]
 fn loopy_nim_values(succ: Vec<Vec<usize>>) -> PyResult<Vec<PyLoopyNimber>> {
+    check_succ_bounds(&succ)?;
     crate::games::loopy_nim_values(&succ)
         .map(|vs| vs.into_iter().map(wrap_loopy_nimber).collect())
         .ok_or_else(|| {
@@ -928,22 +1087,30 @@ impl PyLoopyNimCertificate {
     fn sidling_assignments_examined(&self) -> usize {
         self.inner.sidling_assignments_examined
     }
+    #[getter]
+    fn recovery_condition_holds(&self) -> bool {
+        self.inner.recovery_condition_holds
+    }
+    #[getter]
+    fn recovery_blockers(&self) -> Vec<usize> {
+        self.inner.recovery_blockers.clone()
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "LoopyNimCertificate(side_positions={:?}, used_sidling_solver={}, sidling_assignments_examined={})",
-            self.inner.side_positions,
-            self.inner.used_sidling_solver,
-            self.inner.sidling_assignments_examined
-        )
+        self.inner.display()
     }
 }
 
 /// Loopy nim-values plus a certificate explaining Draw/Side promotion and
-/// whether the bounded sidling solver was needed.
+/// whether the bounded sidling solver and finite recovery condition were needed.
+/// Raises `ValueError` if any successor index is out of range.
 #[pyfunction]
 fn loopy_nim_values_certified(
     succ: Vec<Vec<usize>>,
 ) -> PyResult<(Vec<PyLoopyNimber>, PyLoopyNimCertificate)> {
+    check_succ_bounds(&succ)?;
     crate::games::loopy_nim_values_certified(&succ)
         .map(|(vs, inner)| {
             let values = vs.into_iter().map(wrap_loopy_nimber).collect();
@@ -974,6 +1141,24 @@ fn temperature(game: &PyGame) -> Option<PySurreal> {
 #[pyfunction]
 fn mean_value(game: &PyGame) -> Option<PySurreal> {
     crate::games::mean_value(&game.inner).map(rat_to_py)
+}
+
+#[pyfunction]
+#[pyo3(signature = (game, num, den=1))]
+fn heat(game: &PyGame, num: i128, den: i128) -> PyResult<Option<PyGame>> {
+    let t = Rational::try_new(num, den)
+        .ok_or_else(|| PyValueError::new_err("zero denominator or bounded i128 overflow"))?;
+    Ok(crate::games::heat(&game.inner, &t).map(|inner| PyGame { inner }))
+}
+
+#[pyfunction]
+fn norton_multiply(game: &PyGame, unit: &PyGame) -> Option<PyGame> {
+    crate::games::norton_multiply(&game.inner, &unit.inner).map(|inner| PyGame { inner })
+}
+
+#[pyfunction]
+fn overheat(game: &PyGame, s: &PyGame, t: &PyGame) -> Option<PyGame> {
+    crate::games::overheat(&game.inner, &s.inner, &t.inner).map(|inner| PyGame { inner })
 }
 
 #[pyfunction]
@@ -1184,6 +1369,22 @@ impl PyGame {
     fn mean_value(&self) -> Option<PySurreal> {
         thermography::mean_value(&self.inner).map(rat_to_py)
     }
+    /// Heat this game by the dyadic rational `num/den`; `None` if non-dyadic.
+    #[pyo3(signature = (num, den=1))]
+    fn heat(&self, num: i128, den: i128) -> PyResult<Option<PyGame>> {
+        let t = Rational::try_new(num, den)
+            .ok_or_else(|| PyValueError::new_err("zero denominator or bounded i128 overflow"))?;
+        Ok(crate::games::heat(&self.inner, &t).map(|inner| PyGame { inner }))
+    }
+    /// Norton multiplication by a positive unit game; `None` if the unit is not
+    /// strictly positive.
+    fn norton_multiply(&self, unit: &PyGame) -> Option<PyGame> {
+        crate::games::norton_multiply(&self.inner, &unit.inner).map(|inner| PyGame { inner })
+    }
+    /// Berlekamp overheating `int_s^t G`; `None` if `s` is not positive.
+    fn overheat(&self, s: &PyGame, t: &PyGame) -> Option<PyGame> {
+        crate::games::overheat(&self.inner, &s.inner, &t.inner).map(|inner| PyGame { inner })
+    }
     /// Left stop `LS(G)` (left wall at temperature 0).
     fn left_stop(&self) -> Option<PySurreal> {
         thermography::left_stop(&self.inner).map(rat_to_py)
@@ -1363,7 +1564,7 @@ impl PyGameExterior {
     }
     #[getter]
     fn dim(&self) -> usize {
-        self.inner.algebra().dim
+        self.inner.algebra().dim()
     }
     /// The underlying free Grassmann algebra before quotienting by game-group
     /// relations. Use `reduce`/`wedge`/`add` on `GameExterior` for quotient-aware
@@ -1466,6 +1667,206 @@ impl PyGameExterior {
             ))
         }
     }
+}
+
+#[pyclass(name = "GameClifford", module = "ogdoad")]
+struct PyGameClifford {
+    inner: GameClifford,
+    alg: Arc<CliffordAlgebra<Integer>>,
+}
+
+#[pymethods]
+impl PyGameClifford {
+    #[new]
+    #[pyo3(signature = (gens, q, b=None))]
+    fn new(
+        gens: Vec<PyGame>,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::new(games, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, q, b=None))]
+    fn free(
+        gens: Vec<PyGame>,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::free(games, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, bound, q, b=None))]
+    fn with_relation_bound(
+        gens: Vec<PyGame>,
+        bound: i128,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::with_relation_search(games, bound, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, bound, q, b=None))]
+    fn with_relation_search(
+        gens: Vec<PyGame>,
+        bound: i128,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        Self::with_relation_bound(gens, bound, q, b)
+    }
+    #[staticmethod]
+    #[pyo3(signature = (gens, relations, q, b=None))]
+    fn with_quadratic_data(
+        gens: Vec<PyGame>,
+        relations: Vec<PyGameRelation>,
+        q: Vec<i128>,
+        b: Option<Vec<(usize, usize, i128)>>,
+    ) -> PyResult<Self> {
+        let games: Vec<Game> = gens.iter().map(|g| g.inner.clone()).collect();
+        let relations = relations.into_iter().map(|rel| rel.inner).collect();
+        let b = parse_game_clifford_bilinear(b);
+        GameClifford::with_quadratic_data(games, relations, q, b)
+            .map(PyGameClifford::from_inner)
+            .map_err(game_clifford_error)
+    }
+    #[getter]
+    fn dim(&self) -> usize {
+        self.inner.algebra().dim()
+    }
+    /// The underlying free integer Clifford algebra before quotienting by
+    /// checked game-group relations.
+    fn algebra(&self) -> IntegerAlgebra {
+        IntegerAlgebra {
+            inner: self.alg.clone(),
+        }
+    }
+    fn relations(&self) -> Vec<PyGameRelation> {
+        self.inner
+            .relations()
+            .iter()
+            .cloned()
+            .map(wrap_game_relation)
+            .collect()
+    }
+    /// Whether the automatic bounded relation search exhausted its coefficient
+    /// box. Explicit relations always report true.
+    fn relation_search_complete(&self) -> bool {
+        self.inner.relation_search_complete()
+    }
+    /// Full relation-search certificate as a named record.
+    fn relation_search_certificate(&self) -> PyRelationSearchCertificate {
+        wrap_relation_search_certificate(self.inner.relation_search_certificate().clone())
+    }
+    /// The grade-1 generator e_i (an `IntegerMV`) standing for game g_i.
+    fn generator(&self, i: usize) -> IntegerMV {
+        IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.generator(i),
+        }
+    }
+    /// The game g_i a generator stands for.
+    fn game(&self, i: usize) -> PyGame {
+        PyGame {
+            inner: self.inner.game(i).clone(),
+        }
+    }
+    fn reduce(&self, mv: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(mv)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.reduce(&mv.mv),
+        })
+    }
+    fn add(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.add(&a.mv, &b.mv),
+        })
+    }
+    fn scalar_mul(&self, s: i128, mv: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(mv)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.scalar_mul(s, &mv.mv),
+        })
+    }
+    fn mul(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.mul(&a.mv, &b.mv),
+        })
+    }
+    fn wedge(&self, a: &IntegerMV, b: &IntegerMV) -> PyResult<IntegerMV> {
+        self.ensure_mv(a)?;
+        self.ensure_mv(b)?;
+        Ok(IntegerMV {
+            alg: self.alg.clone(),
+            mv: self.inner.wedge(&a.mv, &b.mv),
+        })
+    }
+    fn is_zero(&self, mv: &IntegerMV) -> PyResult<bool> {
+        self.ensure_mv(mv)?;
+        Ok(self.inner.is_zero(&mv.mv))
+    }
+    /// Map a grade-1 element Σ c_i e_i back to the game Σ c_i·g_i. Errors if
+    /// the reduced multivector is not purely grade 1.
+    fn value_of_grade1(&self, mv: &IntegerMV) -> PyResult<PyGame> {
+        self.ensure_mv(mv)?;
+        let reduced = self.inner.reduce(&mv.mv);
+        if reduced.terms.keys().any(|blade| blade.count_ones() != 1) {
+            return Err(PyValueError::new_err("expected a grade-1 element"));
+        }
+        Ok(PyGame {
+            inner: self.inner.value_of_grade1(&reduced),
+        })
+    }
+}
+
+impl PyGameClifford {
+    fn from_inner(inner: GameClifford) -> Self {
+        let alg = Arc::new(inner.algebra().clone());
+        PyGameClifford { inner, alg }
+    }
+
+    fn ensure_mv(&self, mv: &IntegerMV) -> PyResult<()> {
+        if self.alg.as_ref() == mv.alg.as_ref() {
+            Ok(())
+        } else {
+            Err(PyValueError::new_err(
+                "multivector belongs to a different GameClifford algebra",
+            ))
+        }
+    }
+}
+
+fn parse_game_clifford_bilinear(
+    b: Option<Vec<(usize, usize, i128)>>,
+) -> BTreeMap<(usize, usize), i128> {
+    b.unwrap_or_default()
+        .into_iter()
+        .map(|(i, j, value)| ((i, j), value))
+        .collect()
+}
+
+fn game_clifford_error(err: crate::games::GameCliffordError) -> PyErr {
+    PyValueError::new_err(err.to_string())
 }
 
 /// A transfinite **number-valued** game, carried by its surreal value (e.g. the
@@ -1646,7 +2047,7 @@ impl PyQuotient {
     /// The number of distinct classes (the order of the bounded quotient monoid).
     #[getter]
     fn num_classes(&self) -> usize {
-        self.inner.num_classes
+        self.inner.num_classes()
     }
     /// A representative multiset for each class.
     #[getter]
@@ -1688,12 +2089,11 @@ impl PyQuotient {
             .signature_of_element(element_index)
             .map(<[bool]>::to_vec)
     }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "Quotient(num_classes={}, elements={})",
-            self.inner.num_classes,
-            self.inner.elements.len()
-        )
+        self.inner.display()
     }
 }
 
@@ -1715,41 +2115,51 @@ impl PyAbstractGame {
     }
     /// Misère outcome of a disjunctive sum (a multiset of component positions):
     /// `True` = N (next player / first-player win), `False` = P.
-    fn misere_outcome(&self, pos: Vec<usize>) -> bool {
+    /// Raises `ValueError` if the move graph has a cycle (e.g. a position whose
+    /// option list references itself or forms an indirect cycle).
+    fn misere_outcome(&self, pos: Vec<usize>) -> PyResult<bool> {
         let mut memo = std::collections::HashMap::new();
-        self.inner.misere_outcome(&pos, &mut memo)
+        self.inner.misere_outcome(&pos, &mut memo).ok_or_else(|| {
+            PyValueError::new_err("misere_outcome: move graph has a cycle — outcome is undefined")
+        })
     }
     /// The bounded misère indistinguishability quotient over the generating
     /// `atoms` (elements are sums up to `elem_bound`, tests up to `test_bound`).
+    /// Raises `ValueError` if the bounded search reaches a position whose move
+    /// graph has a directed cycle.
     fn misere_quotient(
         &self,
         atoms: Vec<usize>,
         elem_bound: usize,
         test_bound: usize,
-    ) -> PyQuotient {
-        PyQuotient {
-            inner: crate::games::misere_quotient(&self.inner, &atoms, elem_bound, test_bound),
-        }
+    ) -> PyResult<PyQuotient> {
+        crate::games::misere_quotient(&self.inner, &atoms, elem_bound, test_bound)
+            .map(|inner| PyQuotient { inner })
+            .ok_or_else(|| {
+                PyValueError::new_err("misere_quotient requires an acyclic bounded move graph")
+            })
     }
 }
 
 /// Rust-name module-level wrapper for `games::misere_quotient`; Python passes
-/// the `AbstractGame` value explicitly.
+/// the `AbstractGame` value explicitly. Raises `ValueError` if the bounded
+/// search reaches a position whose move graph has a directed cycle.
 #[pyfunction]
 fn misere_quotient(
     game: &PyAbstractGame,
     atoms: Vec<usize>,
     elem_bound: usize,
     test_bound: usize,
-) -> PyQuotient {
-    PyQuotient {
-        inner: crate::games::misere_quotient(&game.inner, &atoms, elem_bound, test_bound),
-    }
+) -> PyResult<PyQuotient> {
+    crate::games::misere_quotient(&game.inner, &atoms, elem_bound, test_bound)
+        .map(|inner| PyQuotient { inner })
+        .ok_or_else(|| {
+            PyValueError::new_err("misere_quotient requires an acyclic bounded move graph")
+        })
 }
 
-/// A loopy game as a finite move graph (`succ[v]` = positions reachable from `v`);
-/// the graph may be cyclic. Outcomes come from the retrograde kernel analysis
-/// (Win / Loss / Draw, where Loss = P-position and Draw is the loopy escape).
+/// A named loopy value tag (`on`, `off`, `over`, `under`, `dud`, `tis`, `tisn`,
+/// `±`, or an integer `s&t` onside/offside pair).
 #[pyclass(name = "LoopyValue", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyLoopyValue {
@@ -1795,19 +2205,49 @@ impl PyLoopyValue {
         }
     }
     #[staticmethod]
+    fn plus_minus() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::PlusMinus,
+        }
+    }
+    #[staticmethod]
+    fn tis() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Tis,
+        }
+    }
+    #[staticmethod]
+    fn tisn() -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::Tisn,
+        }
+    }
+    #[staticmethod]
+    fn onside_offside(onside: i128, offside: i128) -> Self {
+        PyLoopyValue {
+            inner: LoopyValue::onside_offside(onside, offside),
+        }
+    }
+    #[staticmethod]
     fn dud() -> Self {
         PyLoopyValue {
             inner: LoopyValue::Dud,
         }
     }
-    fn name(&self) -> &'static str {
+    fn name(&self) -> String {
         self.inner.name()
     }
-    fn form(&self) -> &'static str {
+    fn form(&self) -> String {
         self.inner.form()
     }
-    fn outcome(&self) -> PyPartizanOutcome {
-        wrap_partizan_outcome(self.inner.outcome())
+    fn outcome(&self) -> PyLoopyPartizanOutcome {
+        wrap_loopy_partizan_outcome(self.inner.outcome())
+    }
+    fn partizan_outcome(&self) -> Option<PyPartizanOutcome> {
+        self.inner.partizan_outcome().map(wrap_partizan_outcome)
+    }
+    fn sides(&self) -> Option<(i128, i128)> {
+        self.inner.sides()
     }
     fn __neg__(&self) -> PyLoopyValue {
         PyLoopyValue {
@@ -1845,10 +2285,11 @@ struct PyLoopyGraph {
 #[pymethods]
 impl PyLoopyGraph {
     #[new]
-    fn new(succ: Vec<Vec<usize>>) -> Self {
-        PyLoopyGraph {
+    fn new(succ: Vec<Vec<usize>>) -> PyResult<Self> {
+        check_succ_bounds(&succ)?;
+        Ok(PyLoopyGraph {
             inner: LoopyGraph::new(succ),
-        }
+        })
     }
     #[staticmethod]
     fn from_rule(n: usize, moves: Bound<'_, PyAny>) -> PyResult<Self> {
@@ -1888,10 +2329,167 @@ impl PyLoopyGraph {
     }
 }
 
+#[pyclass(name = "LoopyPartizanGraph", module = "ogdoad")]
+struct PyLoopyPartizanGraph {
+    inner: LoopyPartizanGraph,
+}
+
+#[pymethods]
+impl PyLoopyPartizanGraph {
+    #[new]
+    fn new(left: Vec<Vec<usize>>, right: Vec<Vec<usize>>) -> PyResult<Self> {
+        check_partizan_succ_bounds(&left, &right)?;
+        Ok(PyLoopyPartizanGraph {
+            inner: LoopyPartizanGraph::new(left, right)
+                .expect("Python adjacency was checked immediately above"),
+        })
+    }
+    #[staticmethod]
+    fn from_rules(
+        n: usize,
+        left_moves: Bound<'_, PyAny>,
+        right_moves: Bound<'_, PyAny>,
+    ) -> PyResult<Self> {
+        let left = loopy_succ_from_callback(n, &left_moves)?;
+        let right = loopy_succ_from_callback(n, &right_moves)?;
+        Ok(PyLoopyPartizanGraph {
+            inner: LoopyPartizanGraph::new(left, right)
+                .expect("callback adjacency uses the declared node range"),
+        })
+    }
+    /// Left's adjacency lists.
+    fn left(&self) -> Vec<Vec<usize>> {
+        self.inner.left().to_vec()
+    }
+    /// Right's adjacency lists.
+    fn right(&self) -> Vec<Vec<usize>> {
+        self.inner.right().to_vec()
+    }
+    /// Exact two-sided outcomes of every position.
+    fn outcomes(&self) -> Vec<PyLoopyPartizanOutcome> {
+        self.inner
+            .outcomes()
+            .into_iter()
+            .map(wrap_loopy_partizan_outcome)
+            .collect()
+    }
+    /// Classical partizan classes where available; mixed draw/win cases are `None`.
+    fn partizan_outcomes(&self) -> Vec<Option<PyPartizanOutcome>> {
+        self.inner
+            .partizan_outcomes()
+            .into_iter()
+            .map(|o| o.map(wrap_partizan_outcome))
+            .collect()
+    }
+    /// The classical class of position `v`, if it has one.
+    fn classify(&self, v: usize) -> Option<PyPartizanOutcome> {
+        self.inner.classify(v).map(wrap_partizan_outcome)
+    }
+    /// Positions whose exact starter pair contains a draw.
+    fn draw_set(&self) -> Vec<usize> {
+        self.inner.draw_set()
+    }
+    /// Positions outside the classical five outcome classes.
+    fn nonclassical_set(&self) -> Vec<usize> {
+        self.inner.nonclassical_set()
+    }
+}
+
+#[pyclass(name = "NimLexicode", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyNimLexicode {
+    inner: NimLexicode,
+}
+
+#[pymethods]
+impl PyNimLexicode {
+    #[getter]
+    fn base_exp(&self) -> usize {
+        self.inner.base_exp()
+    }
+    #[getter]
+    fn base(&self) -> u128 {
+        self.inner.base()
+    }
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+    fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+    #[getter]
+    fn min_distance(&self) -> usize {
+        self.inner.min_distance()
+    }
+    fn word_count(&self) -> usize {
+        self.inner.word_count()
+    }
+    fn packed_words(&self) -> Vec<u128> {
+        self.inner.packed_words().to_vec()
+    }
+    fn words(&self) -> Vec<Vec<u128>> {
+        self.inner.words()
+    }
+    fn f2_dimension(&self) -> Option<usize> {
+        self.inner.f2_dimension()
+    }
+    fn is_closed_under_nim_add(&self) -> bool {
+        self.inner.is_closed_under_nim_add()
+    }
+    fn is_closed_under_nim_scalars(&self) -> bool {
+        self.inner.is_closed_under_nim_scalars()
+    }
+    fn has_nim_field_base(&self) -> bool {
+        self.inner.has_nim_field_base()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "NimLexicode(base_exp={}, len={}, min_distance={}, word_count={})",
+            self.inner.base_exp(),
+            self.inner.len(),
+            self.inner.min_distance(),
+            self.inner.word_count()
+        )
+    }
+}
+
+#[pyfunction]
+fn lexicode(n: usize, d: usize) -> Option<PyBinaryCode> {
+    crate::games::lexicode(n, d).map(wrap_binary_code)
+}
+
+#[pyfunction]
+fn lexicode_naive(n: usize, d: usize) -> Option<PyBinaryCode> {
+    crate::games::lexicode_naive(n, d).map(wrap_binary_code)
+}
+
+#[pyfunction]
+fn lexicode_bounded(n: usize, d: usize, node_budget: u128) -> Option<PyBinaryCode> {
+    crate::games::lexicode_bounded(n, d, node_budget).map(wrap_binary_code)
+}
+
+#[pyfunction]
+fn nim_lexicode_naive(base_exp: usize, n: usize, d: usize) -> Option<PyNimLexicode> {
+    crate::games::nim_lexicode_naive(base_exp, n, d).map(|inner| PyNimLexicode { inner })
+}
+
+#[pyfunction]
+fn nim_lexicode_naive_bounded(
+    base_exp: usize,
+    n: usize,
+    d: usize,
+    node_budget: u128,
+) -> Option<PyNimLexicode> {
+    crate::games::nim_lexicode_naive_bounded(base_exp, n, d, node_budget)
+        .map(|inner| PyNimLexicode { inner })
+}
+
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
     m.add_class::<PyOutcome>()?;
     m.add_class::<PyPartizanOutcome>()?;
+    m.add_class::<PyLoopyWinner>()?;
+    m.add_class::<PyLoopyPartizanOutcome>()?;
     m.add_class::<PyLoopyNimber>()?;
     m.add_class::<PyColor>()?;
     m.add_class::<PyPl>()?;
@@ -1899,6 +2497,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyNumberGame>()?;
     m.add_class::<PyNimberGame>()?;
     m.add_class::<PyGameExterior>()?;
+    m.add_class::<PyGameClifford>()?;
     m.add_class::<PyGameRelation>()?;
     m.add_class::<PyGameRelationCertificate>()?;
     m.add_class::<PyRelationSearchCertificate>()?;
@@ -1908,8 +2507,20 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAbstractGame>()?;
     m.add_class::<PyLoopyValue>()?;
     m.add_class::<PyLoopyGraph>()?;
+    m.add_class::<PyLoopyPartizanGraph>()?;
     m.add_class::<PyLoopyNimCertificate>()?;
+    m.add_class::<PyNimLexicode>()?;
+    m.add("LEXICODE_NODE_BUDGET", crate::games::LEXICODE_NODE_BUDGET)?;
+    m.add(
+        "NIM_LEXICODE_NODE_BUDGET",
+        crate::games::NIM_LEXICODE_NODE_BUDGET,
+    )?;
     m.add_function(wrap_pyfunction!(nim_mul_mex, m)?)?;
+    m.add_function(wrap_pyfunction!(lexicode, m)?)?;
+    m.add_function(wrap_pyfunction!(lexicode_naive, m)?)?;
+    m.add_function(wrap_pyfunction!(lexicode_bounded, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_lexicode_naive, m)?)?;
+    m.add_function(wrap_pyfunction!(nim_lexicode_naive_bounded, m)?)?;
     m.add_function(wrap_pyfunction!(coin_companions, m)?)?;
     m.add_function(wrap_pyfunction!(singleton_companions, m)?)?;
     m.add_function(wrap_pyfunction!(turtles_companions, m)?)?;
@@ -1940,6 +2551,9 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(thermograph_via_tropical, m)?)?;
     m.add_function(wrap_pyfunction!(temperature, m)?)?;
     m.add_function(wrap_pyfunction!(mean_value, m)?)?;
+    m.add_function(wrap_pyfunction!(heat, m)?)?;
+    m.add_function(wrap_pyfunction!(norton_multiply, m)?)?;
+    m.add_function(wrap_pyfunction!(overheat, m)?)?;
     m.add_function(wrap_pyfunction!(left_stop, m)?)?;
     m.add_function(wrap_pyfunction!(right_stop, m)?)?;
     m.add_function(wrap_pyfunction!(atomic_weight, m)?)?;

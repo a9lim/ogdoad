@@ -47,8 +47,24 @@ use std::fmt;
 pub struct WittVec<const P: u128, const N: usize, const F: usize>(pub [u128; F]);
 
 impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
+    /// Whether this const-generic triple is supported: a supported residue field
+    /// `F_{p^F}` (prime `P`, `F > 0`, field order `p^F` fitting `u128` — exactly
+    /// [`Fpn::is_supported_field`]) plus a positive precision `N` whose modulus
+    /// `p^N` fits `u128`.
+    pub fn assert_supported_params() {
+        assert!(
+            Fpn::<P, F>::is_supported_field() && N > 0,
+            "WittVec<P,N,F> needs a supported residue field F_{{p^F}} and positive precision N, got P={P}, N={N}, F={F}"
+        );
+        let mut acc = 1u128;
+        for _ in 0..N {
+            acc = acc.checked_mul(P).expect("WittVec modulus exceeds u128");
+        }
+    }
+
     /// The coefficient-ring modulus `p^N` (the precision).
     pub fn modulus() -> u128 {
+        Self::assert_supported_params();
         let mut acc = 1u128;
         for _ in 0..N {
             acc = acc.checked_mul(P).expect("WittVec modulus exceeds u128");
@@ -58,6 +74,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
 
     /// The residue field order `q = p^F`.
     pub fn residue_order() -> u128 {
+        Self::assert_supported_params();
         let mut acc = 1u128;
         for _ in 0..F {
             acc = acc
@@ -69,6 +86,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
 
     /// Embed a `Z/p^N` integer as the degree-0 (constant) Witt vector.
     pub fn from_int(n: i128) -> Self {
+        Self::assert_supported_params();
         let m = Self::modulus();
         let mut out = [0u128; F];
         if F > 0 {
@@ -79,6 +97,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
 
     /// Reduce mod `p`: the **residue** in `F_q` (the ghost/Teichmüller bottom layer).
     pub fn residue(&self) -> Fpn<P, F> {
+        Self::assert_supported_params();
         let mut c = [0u128; F];
         for i in 0..F {
             c[i] = self.0[i] % P;
@@ -122,24 +141,11 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
         out
     }
 
-    /// `self^e` in the ring, by square-and-multiply.
-    fn pow(&self, mut e: u128) -> Self {
-        let mut base = *self;
-        let mut acc = Self::one();
-        while e > 0 {
-            if e & 1 == 1 {
-                acc = acc.mul(&base);
-            }
-            base = base.mul(&base);
-            e >>= 1;
-        }
-        acc
-    }
-
     /// The **Teichmüller representative** `τ(x) ∈ W_N(F_q)` of `x ∈ F_q`: the unique
     /// multiplicative lift with `τ(x) ≡ x mod p`. Computed as `x̃^{q^{N-1}}` for any
     /// lift `x̃` (the power iteration stabilises modulo `p^N`).
     pub fn teichmuller(x: Fpn<P, F>) -> Self {
+        Self::assert_supported_params();
         let mut y = WittVec::<P, N, F>(x.into_coeffs()); // naive lift (coeffs already in [0,p))
         for _ in 0..N.saturating_sub(1) {
             y = y.pow(Self::residue_order());
@@ -150,6 +156,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
     /// Build a Witt vector from its Teichmüller digits `(x₀,…,x_{N-1}) ∈ F_q^N`:
     /// `Σ_i τ(x_i)·p^i`. The inverse of [`witt_components`](Self::witt_components).
     pub fn from_witt_components(xs: &[Fpn<P, F>]) -> Self {
+        Self::assert_supported_params();
         assert_eq!(xs.len(), N, "need exactly N Teichmuller digits");
         let mut acc = Self::zero();
         let mut pk = Self::one();
@@ -167,6 +174,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
     /// the precision floor — exactly the [`Zp`](crate::scalar::Zp) discipline). A
     /// unit (residue `≠ 0`) has valuation `0`.
     pub fn p_valuation(&self) -> usize {
+        Self::assert_supported_params();
         let mut w = *self;
         let mut v = 0;
         while v < N && w.residue().is_zero() {
@@ -180,6 +188,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
     /// drops one digit); else `None`. The hook the fraction field [`Qq`](crate::scalar::Qq)
     /// uses to peel a Witt unit out of an arbitrary vector.
     pub fn try_divide_by_p(&self) -> Option<Self> {
+        Self::assert_supported_params();
         if self.residue().is_zero() {
             Some(self.divide_by_p())
         } else {
@@ -202,6 +211,7 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
     /// fields these are Frobenius-twisted relative to the classical `p`-typical
     /// Witt coordinates.
     pub fn witt_components(&self) -> Vec<Fpn<P, F>> {
+        Self::assert_supported_params();
         let mut a = *self;
         let mut out = Vec::with_capacity(N);
         for _ in 0..N {
@@ -214,19 +224,27 @@ impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
     }
 }
 
-impl<const P: u128, const N: usize, const F: usize> fmt::Debug for WittVec<P, N, F> {
+impl<const P: u128, const N: usize, const F: usize> fmt::Display for WittVec<P, N, F> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // unramified-ring coordinates: coefficients of 1, t, …, t^{F-1} over Z/p^N
         write!(f, "W_{}(F_{}^{}){:?}", N, P, F, self.0)
     }
 }
 
+impl<const P: u128, const N: usize, const F: usize> fmt::Debug for WittVec<P, N, F> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> {
     fn zero() -> Self {
+        Self::assert_supported_params();
         WittVec([0u128; F])
     }
 
     fn one() -> Self {
+        Self::assert_supported_params();
         let mut out = [0u128; F];
         if F > 0 {
             out[0] = 1 % Self::modulus();
@@ -235,6 +253,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
     }
 
     fn add(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
         let m = Self::modulus();
         let mut out = [0u128; F];
         for i in 0..F {
@@ -244,19 +263,27 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
     }
 
     fn neg(&self) -> Self {
+        Self::assert_supported_params();
+        // Reduce each coefficient mod the modulus first: `WittVec(pub [u128; F])`
+        // does not enforce the reduced-into-`[0, modulus)` invariant structurally
+        // (unlike e.g. `Nimber`, where every representation is legal), so an
+        // out-of-range coefficient must not be trusted bare here.
         let m = Self::modulus();
         let mut out = [0u128; F];
         for i in 0..F {
-            out[i] = if self.0[i] == 0 { 0 } else { m - self.0[i] };
+            let r = self.0[i] % m;
+            out[i] = if r == 0 { 0 } else { m - r };
         }
         WittVec(out)
     }
 
     fn mul(&self, rhs: &Self) -> Self {
+        Self::assert_supported_params();
         WittVec(Self::ring_mul(&self.0, &rhs.0))
     }
 
     fn characteristic() -> u128 {
+        Self::assert_supported_params();
         // The length-N truncation W_N(F_q) is a finite quotient of the
         // characteristic-0 Witt ring, with p^N · 1 = 0 and no smaller positive
         // multiple of 1 vanishing.
@@ -264,6 +291,7 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
     }
 
     fn inv(&self) -> Option<Self> {
+        Self::assert_supported_params();
         // Local ring: a unit iff the residue is a unit in F_q (residue ≠ 0). Invert
         // by Hensel/Newton lifting from the residue inverse: b ← b(2 − a·b) doubles
         // the precision each step. `None` for non-units (the Omnific discipline).
@@ -279,6 +307,10 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
             prec *= 2;
         }
         Some(b)
+    }
+    /// Faster direct construction; semantically identical to the default double-and-add.
+    fn from_int(n: i128) -> Self {
+        WittVec::<P, N, F>::from_int(n)
     }
 }
 
@@ -412,5 +444,41 @@ mod tests {
             "the second Teichmuller digit carries sqrt(x0*y0), not x0*y0"
         );
         assert_ne!(z[1], t);
+    }
+
+    #[test]
+    fn invalid_parameters_are_rejected() {
+        assert!(std::panic::catch_unwind(WittVec::<4, 3, 1>::one).is_err()); // P not prime
+        assert!(std::panic::catch_unwind(WittVec::<2, 0, 1>::one).is_err()); // N = 0
+        assert!(std::panic::catch_unwind(WittVec::<2, 3, 0>::one).is_err()); // F = 0
+    }
+
+    #[test]
+    fn neg_reduces_out_of_range_representations_first() {
+        // WittVec(pub [u128; F]) doesn't structurally enforce the reduced-into-
+        // [0,modulus) invariant either — same fix as the Zp sibling. (Modulus
+        // 3² = 9.)
+        assert_eq!(WittVec::<3, 2, 1>([20]).neg().0[0], 7); // 20 mod 9 = 2, 9 - 2 = 7
+        assert_eq!(
+            WittVec::<3, 2, 1>([9]).neg(),
+            WittVec::<3, 2, 1>([0]) // an exact-modulus multiple negates to 0
+        );
+    }
+
+    #[test]
+    fn teichmuller_is_frobenius_fixed_for_f_greater_than_one() {
+        // τ(x)^q = τ(x) (equivalently τ(x) is Frobenius-fixed) was previously
+        // pinned only at F=1 (small/analytic.rs's Zp/Qp check, where q = p).
+        // W_3(F_9) exercises the genuine-extension case: q = p^F = 9, F = 2.
+        type W = WittVec<3, 3, 2>;
+        let q = W::residue_order(); // 9
+        for c0 in 0..3u128 {
+            for c1 in 0..3u128 {
+                let x = Fpn::<3, 2>::from_coeffs(&[c0, c1]);
+                let t = W::teichmuller(x);
+                assert_eq!(t.residue(), x, "τ lifts the residue");
+                assert_eq!(t.pow(q), t, "τ is Frobenius-fixed: τ(x)^q = τ(x)");
+            }
+        }
     }
 }

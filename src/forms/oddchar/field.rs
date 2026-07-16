@@ -2,8 +2,15 @@
 
 use crate::scalar::{ExactFieldScalar, Fp, Fpn, Scalar};
 
+/// Panics (rather than returning `Option`) because this guards internal
+/// helpers (`is_square`, `hilbert_symbol`) that are only ever reached after a
+/// `FiniteOddField` bound or `ensure_supported()` call has already validated
+/// `P` — a failed check here is a programming-error invariant, not caller
+/// input. Contrast `field_invariants.rs`'s `Option`-returning entry points,
+/// which take an arbitrary `P` straight from the public API and must fail
+/// gracefully (CONSISTENCY.md `idiom-splits`).
 pub(super) fn assert_odd_prime<const P: u128>() {
-    Fp::<P>::assert_prime_modulus();
+    Fp::<P>::assert_supported_params();
     assert!(P != 2, "odd-characteristic form theory needs P odd");
 }
 
@@ -20,9 +27,6 @@ pub trait FiniteOddField: ExactFieldScalar + Copy {
 
     /// Whether this type is a supported finite field of odd characteristic.
     fn is_supported_odd_field() -> bool;
-
-    /// Embed an ordinary integer through the prime subfield.
-    fn from_i128(n: i128) -> Self;
 
     /// Enumerate the field: index `i ∈ [0, field_order())` ↦ a distinct element,
     /// covering all of `F_q` exactly once. Used by deterministic finite-field
@@ -50,10 +54,6 @@ impl<const P: u128> FiniteOddField for Fp<P> {
         Fp::<P>::modulus_is_prime() && P != 2
     }
 
-    fn from_i128(n: i128) -> Self {
-        Fp::<P>::new(n)
-    }
-
     fn from_index(i: u128) -> Self {
         Fp::<P>::from_u128(i)
     }
@@ -76,12 +76,6 @@ impl<const P: u128, const N: usize> FiniteOddField for Fpn<P, N> {
         Fpn::<P, N>::is_supported_field() && P != 2
     }
 
-    fn from_i128(n: i128) -> Self {
-        let m = P as i128;
-        let v = ((n % m) + m) % m;
-        Fpn::<P, N>::constant(v as u128)
-    }
-
     fn from_index(i: u128) -> Self {
         // base-P digits of `i` are the polynomial-basis coordinates of the element.
         let mut digits = [0u128; N];
@@ -98,26 +92,13 @@ impl<const P: u128, const N: usize> FiniteOddField for Fpn<P, N> {
     }
 }
 
-/// `base^e` in `F_P` by square-and-multiply.
-fn fp_pow<const P: u128>(mut base: Fp<P>, mut e: u128) -> Fp<P> {
-    let mut acc = Fp::<P>::one();
-    while e > 0 {
-        if e & 1 == 1 {
-            acc = acc.mul(&base);
-        }
-        base = base.mul(&base);
-        e >>= 1;
-    }
-    acc
-}
-
 /// Euler's criterion: is `x` a square in `F_P`? (`0` counts as a square.)
 pub fn is_square<const P: u128>(x: Fp<P>) -> bool {
     assert_odd_prime::<P>();
     if x.is_zero() {
         return true;
     }
-    fp_pow(x, (P - 1) / 2) == Fp::<P>::one()
+    x.pow((P - 1) / 2) == Fp::<P>::one()
 }
 
 /// Square-class predicate over any supported finite field of odd characteristic.

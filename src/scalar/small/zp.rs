@@ -9,7 +9,7 @@
 //! Clifford algebra over `Z/p^k` is a genuine zero-divisor / non-semisimple object —
 //! the engine's nilpotent path exercised at the *scalar* level.
 //!
-//! Where the companion [`forms::padic`](crate::forms::padic) module supplies the
+//! Where the companion [`forms::padic`](crate::forms) module supplies the
 //! quadratic-form payoff over `Q_p` (the Hilbert symbol, Hasse–Minkowski) at the
 //! forms layer, this is "the integers underneath" as an actual `Scalar` backend.
 //!
@@ -30,7 +30,7 @@ use std::fmt;
 pub struct Zp<const P: u128, const K: u128>(pub u128);
 
 impl<const P: u128, const K: u128> Zp<P, K> {
-    pub fn assert_supported_ring() {
+    pub fn assert_supported_params() {
         assert!(
             Fp::<P>::modulus_is_prime() && K > 0,
             "Zp<P,K> needs prime P and positive precision K, got P={P}, K={K}"
@@ -47,7 +47,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
 
     /// The modulus `p^k`.
     pub fn modulus() -> u128 {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         let mut acc = 1u128;
         for _ in 0..K {
             acc = acc.checked_mul(P).expect("Zp modulus exceeds u128");
@@ -55,17 +55,10 @@ impl<const P: u128, const K: u128> Zp<P, K> {
         acc
     }
 
-    /// Reduce an integer (possibly negative) into `Z/p^k`.
-    pub fn new(n: i128) -> Self {
-        Self::assert_supported_ring();
-        let m = Self::modulus() as i128;
-        Zp((((n % m) + m) % m) as u128)
-    }
-
     /// The `p`-adic valuation of this element, capped at the precision `k`
     /// (`v_p(0)` reads as `k`, the precision floor).
     pub fn valuation(&self) -> u128 {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         if self.0 == 0 {
             return K;
         }
@@ -80,62 +73,72 @@ impl<const P: u128, const K: u128> Zp<P, K> {
 
     /// Whether this element is a unit (invertible) in `Z/p^k`: iff `p ∤ a`.
     pub fn is_unit(&self) -> bool {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         !self.0.is_multiple_of(P)
     }
 }
 
-impl<const P: u128, const K: u128> fmt::Debug for Zp<P, K> {
+impl<const P: u128, const K: u128> fmt::Display for Zp<P, K> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} (mod {}^{})", self.0, P, K)
     }
 }
 
+impl<const P: u128, const K: u128> fmt::Debug for Zp<P, K> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
     fn zero() -> Self {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         Zp(0)
     }
 
     fn one() -> Self {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         Zp(1 % Self::modulus())
     }
 
     fn add(&self, rhs: &Self) -> Self {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         let m = Self::modulus();
         Zp(self.0.checked_add(rhs.0).expect("Zp addition exceeds u128") % m)
     }
 
     fn neg(&self) -> Self {
-        Self::assert_supported_ring();
-        if self.0 == 0 {
+        Self::assert_supported_params();
+        // Reduce first: `Zp(pub u128)` does not enforce the reduced-into-
+        // `[0, modulus)` invariant structurally (unlike e.g. `Nimber`, where every
+        // representation is legal), so an out-of-range `self.0` must not be
+        // trusted bare here — `Zp::<3, 2>(20).neg()` would otherwise underflow.
+        let m = Self::modulus();
+        let r = self.0 % m;
+        if r == 0 {
             Zp(0)
         } else {
-            Zp(Self::modulus() - self.0)
+            Zp(m - r)
         }
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         let m = Self::modulus();
-        Zp(self
-            .0
-            .checked_mul(rhs.0)
-            .expect("Zp multiplication exceeds u128")
-            % m)
+        // mul_mod_u128, not checked_mul: the modulus p^k can approach i128::MAX,
+        // so a schoolbook product of two in-range residues overflows u128.
+        Zp(crate::scalar::mul_mod_u128(self.0, rhs.0, m))
     }
 
     fn characteristic() -> u128 {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         // The finite quotient Z/p^k has characteristic p^k: p^k · 1 = 0, and no
         // smaller positive multiple of 1 vanishes.
         Self::modulus()
     }
 
     fn inv(&self) -> Option<Self> {
-        Self::assert_supported_ring();
+        Self::assert_supported_params();
         // Local ring: a unit iff p ∤ a. Invert units by extended Euclid mod p^k;
         // return None for non-units (p | a, including 0) — the Omnific discipline,
         // never leaving the ring with a spurious 1/p.
@@ -143,6 +146,12 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
             return None;
         }
         Some(Zp(mod_inverse_u128(self.0, Self::modulus())?))
+    }
+    /// Faster direct construction; semantically identical to the default double-and-add.
+    fn from_int(n: i128) -> Self {
+        Self::assert_supported_params();
+        let m = Self::modulus() as i128;
+        Zp((((n % m) + m) % m) as u128)
     }
 }
 
@@ -219,6 +228,16 @@ mod tests {
     }
 
     #[test]
+    fn neg_reduces_out_of_range_representations_first() {
+        // Zp(pub u128) doesn't structurally enforce the reduced-into-[0,modulus)
+        // invariant; neg() must reduce before negating, or an out-of-range
+        // representation like Zp::<3,2>(20) (modulus 3² = 9) underflows.
+        assert_eq!(Zp::<3, 2>(20).0, 20); // the raw (unreduced) representation
+        assert_eq!(Zp::<3, 2>(20).neg().0, 7); // 20 mod 9 = 2, 9 - 2 = 7
+        assert_eq!(Zp::<3, 2>(9).neg(), Zp::<3, 2>(0)); // an exact-modulus multiple negates to 0
+    }
+
+    #[test]
     fn inverse_reduces_to_the_mod_p_inverse() {
         // Hensel consistency: the unit inverse in Z/p^k reduces mod p to the F_p
         // inverse. In Z/27, 2⁻¹ = 14 (2·14 = 28 ≡ 1); 14 ≡ 2 mod 3, and 2⁻¹ = 2 in F_3.
@@ -234,7 +253,7 @@ mod tests {
         // zero divisor (2·2 = 0 in Z/4), so this is a genuinely non-semisimple
         // Clifford algebra — the nilpotent path exercised at the scalar level.
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Zp::<2, 2>(1), Zp::<2, 2>(2)]));
-        let (e0, e1) = (alg.gen(0), alg.gen(1));
+        let (e0, e1) = (alg.e(0), alg.e(1));
         assert_eq!(alg.mul(&e0, &e0), alg.scalar(Zp::<2, 2>(1)));
         assert_eq!(alg.mul(&e1, &e1), alg.scalar(Zp::<2, 2>(2)));
         // (e1)⁴ = q1² = 2² = 0 in Z/4: a nilpotent generator.

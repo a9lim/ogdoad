@@ -91,7 +91,7 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
 
     /// The indeterminate `t`.
     pub fn t() -> Self {
-        RationalFunction::from_poly(Poly::x())
+        RationalFunction::from_poly(Poly::t())
     }
 
     /// The numerator polynomial.
@@ -112,13 +112,20 @@ impl<S: ExactFieldScalar> PartialEq for RationalFunction<S> {
     }
 }
 
-impl<S: ExactFieldScalar> fmt::Debug for RationalFunction<S> {
+impl<S: ExactFieldScalar> fmt::Display for RationalFunction<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.den == Poly::one() {
-            write!(f, "{:?}", self.num)
+            write!(f, "{}", self.num)
         } else {
-            write!(f, "[{:?}] / [{:?}]", self.num, self.den)
+            // Display v4: `(num)/(den)` with each polynomial side canonical.
+            write!(f, "({})/({})", self.num, self.den)
         }
+    }
+}
+
+impl<S: ExactFieldScalar> fmt::Debug for RationalFunction<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 
@@ -184,8 +191,8 @@ mod tests {
 
     fn rf(num: &[i128], den: &[i128]) -> F {
         RationalFunction::new(
-            num.iter().map(|&n| Fp::<5>::new(n)).collect(),
-            den.iter().map(|&n| Fp::<5>::new(n)).collect(),
+            num.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
+            den.iter().map(|&n| Fp::<5>::from_int(n)).collect(),
         )
     }
 
@@ -193,7 +200,7 @@ mod tests {
     fn is_an_exact_field() {
         let samples = [
             F::t(),
-            F::from_base(Fp::<5>::new(2)),
+            F::from_base(Fp::<5>::from_int(2)),
             rf(&[1, 1], &[1]),       // 1 + t
             rf(&[1], &[0, 1]),       // 1/t
             rf(&[2, 0, 1], &[1, 1]), // (2 + t²)/(1 + t)
@@ -219,7 +226,10 @@ mod tests {
         // (t + 1)(t + 2) / (2(t + 1)) = (t + 2) / 2 = 1 + 3t over F_5.
         let x = rf(&[2, 3, 1], &[2, 2]);
         assert_eq!(x.den(), &Poly::one());
-        assert_eq!(x.num(), &Poly::new(vec![Fp::<5>::new(1), Fp::<5>::new(3)]));
+        assert_eq!(
+            x.num(),
+            &Poly::new(vec![Fp::<5>::from_int(1), Fp::<5>::from_int(3)])
+        );
     }
 
     #[test]
@@ -228,7 +238,7 @@ mod tests {
             F::zero(),
             F::one(),
             F::t(),
-            F::from_base(Fp::<5>::new(3)),
+            F::from_base(Fp::<5>::from_int(3)),
             rf(&[1, 1], &[1]), // 1 + t
             rf(&[1], &[0, 1]), // 1/t
         ];
@@ -249,9 +259,24 @@ mod tests {
     }
 
     #[test]
+    fn display_v4_uses_paren_fraction() {
+        // Display v4: `(num)/(den)`; `[…]` is reserved for vectors.
+        let frac = rf(&[1], &[0, 1]); // 1/t
+        assert_eq!(frac.to_string(), "(1)/(t)");
+        // den == 1 prints the numerator alone, unchanged.
+        assert_eq!(rf(&[1, 2], &[1]).to_string(), "2⋅t + 1");
+    }
+
+    #[test]
     fn num_den_accessors_expose_polys_for_the_forms_layer() {
         let x = rf(&[0, 1], &[1, 1]); // t / (1 + t)
-        assert_eq!(x.num(), &Poly::new(vec![Fp::<5>::new(0), Fp::<5>::new(1)]));
-        assert_eq!(x.den(), &Poly::new(vec![Fp::<5>::new(1), Fp::<5>::new(1)]));
+        assert_eq!(
+            x.num(),
+            &Poly::new(vec![Fp::<5>::from_int(0), Fp::<5>::from_int(1)])
+        );
+        assert_eq!(
+            x.den(),
+            &Poly::new(vec![Fp::<5>::from_int(1), Fp::<5>::from_int(1)])
+        );
     }
 }

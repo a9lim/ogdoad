@@ -23,10 +23,24 @@ use std::collections::BTreeSet;
 use crate::scalar::{is_prime_u128, mul_mod_u128};
 
 /// A place of `Q`: the real place `ℝ`, or the `p`-adic place `Q_p`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// `Ord` (derived) sorts `Real` before every `Prime(p)` (declaration order), and
+/// `Prime` by the prime — so a `BTreeSet<Place>`/`BTreeMap<Place, _>` of ramified
+/// places enumerates `ℝ, Q_2, Q_3, …`, which the rational Brauer class
+/// ([`Brauer2Class`](crate::forms::Brauer2Class)) relies on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Place {
     Real,
     Prime(u128),
+}
+
+impl std::fmt::Display for Place {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Place::Real => f.write_str("R"),
+            Place::Prime(p) => write!(f, "Q_{p}"),
+        }
+    }
 }
 
 // --- elementary number theory (i128 internals; square-free keeps values tiny) ---
@@ -72,7 +86,7 @@ pub(crate) fn try_square_free(n: i128) -> Option<i128> {
 }
 
 /// `p`-adic valuation `v_p(n)` (for `n ≠ 0`).
-fn val_p(n: i128, p: i128) -> u128 {
+pub(crate) fn val_p(n: i128, p: i128) -> u128 {
     let mut k = 0;
     let mut n = n.unsigned_abs();
     let p = p as u128;
@@ -84,7 +98,7 @@ fn val_p(n: i128, p: i128) -> u128 {
 }
 
 /// The `p`-adic unit part `n / p^{v_p(n)}` (sign preserved).
-fn unit_part(mut n: i128, p: i128) -> i128 {
+pub(crate) fn unit_part(mut n: i128, p: i128) -> i128 {
     while n % p == 0 {
         n /= p;
     }
@@ -92,7 +106,7 @@ fn unit_part(mut n: i128, p: i128) -> i128 {
 }
 
 /// The Legendre symbol `(a | p)` for an odd prime `p`: `0` if `p | a`, else `±1`.
-fn legendre(a: i128, p: i128) -> i128 {
+pub(crate) fn legendre(a: i128, p: i128) -> i128 {
     let p_u = p as u128;
     let a = a.rem_euclid(p) as u128;
     if a == 0 {
@@ -381,6 +395,13 @@ pub fn try_is_isotropic_q(entries: &[i128]) -> Option<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn place_display_render_pin() {
+        assert_eq!(Place::Real.to_string(), "R");
+        assert_eq!(Place::Prime(2).to_string(), "Q_2");
+        assert_eq!(Place::Prime(691).to_string(), "Q_691");
+    }
 
     fn sq(n: i128, p: u128) -> bool {
         try_is_square_qp(n, p).expect("test prime is supported")

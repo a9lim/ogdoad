@@ -1,6 +1,8 @@
-"""A tour of ogdoad from Python. Run inside the project venv:
+"""A tour of ogdoad from the shared base Python 3.12:
 
-    VIRTUAL_ENV=.venv maturin develop && .venv/bin/python demo.py
+    python -m maturin build --profile dev -i python
+    python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
+    python demo.py
 """
 
 import ogdoad as pl
@@ -31,8 +33,8 @@ section("Grassmann — fully null metric, nilpotent generators")
 G = pl.SurrealAlgebra(q=[0, 0, 0])
 g0, g1 = G.gen(0), G.gen(1)
 print("  g0²          =", g0 ** 2)
-print("  g0 ∧ g1      =", g0 ^ g1, "  (^ is the wedge)")
-print("  g0∧g1 == g0 g1:", (g0 ^ g1) == (g0 * g1))
+print("  g0 ∧ g1      =", g0 & g1)
+print("  g0∧g1 == g0 g1:", (g0 & g1) == (g0 * g1))
 
 section("surreals — a Clifford metric with NO finite entries")
 # e0² = ω (infinite), e1² = ε = ω⁻¹ (infinitesimal), orthogonal.
@@ -79,7 +81,7 @@ print("  spinor norm/parity    =", R.spinor_norm(), R.versor_grade_parity(),
       " named:", (vc.spinor_norm, vc.dickson))
 print("  norm² preserved       =", x.norm2(), "->", R.sandwich(x).norm2())
 print("  ~(e0 e1)  (reversion) =", ~R)
-print("  e0 ⌟ (e0∧e1)          =", e0 << (e0 ^ e1))
+print("  e0 ⌟ (e0∧e1)          =", e0 << (e0 & e1))
 print("  dual(e0) in 3D        =", e0.dual(), "  (a bivector)")
 
 section("Arf invariant — the char-2 Clifford classifier (see README.md)")
@@ -114,6 +116,8 @@ D = pl.SurrealAlgebra(q=[1, 1], b=None, a={(0, 1): pl.surreal(5)})
 d0, d1 = D.gen(0), D.gen(1)
 print("  e0 e1            =", d0 * d1, "  (= e0∧e1 + 5)")
 print("  {e0,e1} = b = 0  :", d0 * d1 + d1 * d0)
+print("  reverse(e0 e1)   =", (d0 * d1).reverse(), "  (= e1 e0 through the gauge)")
+print("  spinor basis dim through a-gauge:", len(D.spinor_rep().basis))
 
 section("twisted adjoint (Pin) — the correct versor action")
 P = pl.SurrealAlgebra(q=[1, 1])
@@ -156,6 +160,14 @@ rel = pl.GameRelation([2, 0])
 ext_explicit = pl.GameExterior.with_relations([pl.Game.star(), pl.Game.up()], [rel])
 print("  explicit relation 2⋆=0   :", ext_explicit.is_zero(2 * ext_explicit.generator(0)),
       ext_explicit.relations()[0].coeffs, cert.bound)
+checked = pl.GameClifford.with_quadratic_data([pl.Game.star(), pl.Game.up()], [rel], [0, 5])
+c0, c1 = checked.generator(0), checked.generator(1)
+print("  checked Clifford ↑²       :", checked.mul(c1, c1),
+      "  2·(⋆↑)=0:", checked.is_zero(checked.scalar_mul(2, checked.mul(c0, c1))))
+try:
+    pl.GameClifford.with_quadratic_data([pl.Game.star(), pl.Game.up()], [rel], [1, 0])
+except ValueError as exc:
+    print("  rejects Q(⋆)=1 under 2⋆=0:", "polar pairing" in str(exc))
 
 
 # ===========================================================================
@@ -190,13 +202,16 @@ print("  W(F₅) is ℤ/2×ℤ/2 :", g5 + g5 == zero5 and h5 + h5 == zero5)
 f2a = pl.Char2FiniteFieldForm([1, 1], {(0, 1): 1})
 f8h = pl.Char2FiniteFieldForm([0, 0], {(0, 1): 3}, degree=3)
 print("  F₂ char-2 anisotropic plane :", f2a.classify(), f2a.classify_unified().kind, f2a.bw_class())
-print("  F₈ char-2 hyperbolic plane  :", f8h.classify(), f8h.is_isometric(
+f8h_class = f8h.classify()
+print("  F₈ char-2 hyperbolic plane  :", f8h_class, f8h.is_isometric(
       pl.Char2FiniteFieldForm([0, 0], {(0, 1): 1}, degree=3)))
 n2a = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})
 print("  char-2 form methods          :", pl.arf_nimber(n2a).arf,
-      f8h.classify().arf,
+      f8h_class.arf,
+      "iso to another hyperbolic plane:",
       f8h.isometric_to(pl.Char2FiniteFieldForm([0, 0], {(0, 1): 1}, degree=3)),
-      f8h.isometric_to(pl.Char2FiniteFieldForm([0, 0], {(0, 1): 1}, degree=3)))
+      "iso to the anisotropic plane:",
+      f8h.isometric_to(pl.Char2FiniteFieldForm([1, 1], {(0, 1): 1}, degree=3)))
 fp = pl.Fp5(2) * pl.Fp5(3)
 f8x = pl.F8.generator()
 print("  F₅ scalar 2·3 and inverse   :", fp, fp.inv())
@@ -230,20 +245,17 @@ Oz = pl.OmnificAlgebra(q=[0, 0, 0])  # Grassmann over Oz
 e0, e1, e2 = Oz.gen(0), Oz.gen(1), Oz.gen(2)
 w = pl.omnific_omega()
 print("  e0² = 0 (nilpotent):", (e0 * e0).is_zero())
-print("  (ω·e0) ∧ e1 ∧ e2   :", (w * e0) ^ e1 ^ e2, "  (ω-scale coefficient)")
+print("  (ω·e0) ∧ e1 ∧ e2   :", (w * e0) & e1 & e2, "  (ω-scale coefficient)")
 print("  Oz validator ω / ε :", pl.is_omnific_integer(pl.omega()), "/", pl.is_omnific_integer(pl.epsilon()))
-print("  ω is not a unit (1/ω=ε ∉ Oz):", end=" ")
-try:
-    w.inv(); print("?!")
-except ValueError:
-    print("correctly rejected")
+print("  ω is not a unit (1/ω=ε ∉ Oz):",
+      "correctly rejected" if raises_value_error(lambda: w.inv()) else "?!")
 
 section("ordinal nimbers On₂ — the char-2 mirror of the surreals")
 omega = pl.Ordinal.omega()
 print("  ω ⊕ ω        =", omega.nim_add(omega), "   (self-inverse)")
 print("  ω·2 ⊕ ω      =", pl.Ordinal.monomial(pl.Ordinal(1), 2).nim_add(omega))
 print("  ω < ω²       :", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
-print("  ordinal order ω < ω²:", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
+print("  ω fuzzy ω² (as nimbers):", omega.fuzzy(pl.Ordinal.omega_pow(pl.Ordinal(2))))
 print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
 # nim-multiplication: implemented below ω^ω via the current DiMuro/Conway
 # degree-3 tower. The old φ_{ω+1} (<ω³) case is the first layer.
@@ -260,8 +272,8 @@ print("  ω³ ⊗ ω       :", pl.Ordinal.omega_pow(pl.Ordinal(3)).nim_mul(omega
 print("  ω^ω staged   :", pl.Ordinal.omega_pow(omega).nim_mul(omega))
 print("  scalar ops/inv in On₂         :", omega + pl.Ordinal(1), pl.Ordinal(2) * pl.Ordinal(3),
       pl.Ordinal(3).inv())
-O = pl.OrdinalAlgebra([omega, omega.nim_mul(omega)])
-print("  Cl_On₂ e0²/e1²:", O.gen(0) * O.gen(0), O.gen(1) * O.gen(1))
+O_ord = pl.OrdinalAlgebra([omega, omega.nim_mul(omega)])
+print("  Cl_On₂ e0²/e1²:", O_ord.gen(0) * O_ord.gen(0), O_ord.gen(1) * O_ord.gen(1))
 OH = pl.OrdinalAlgebra([0, 0], b={(0, 1): 1})
 print("  finite ordinal Arf/Witt/BW:", pl.arf_ordinal_finite(OH), pl.ordinal_witt(OH),
       pl.bw_class_ordinal(OH))
@@ -326,7 +338,7 @@ print("  tensor embeddings e0/e1      :", TT.embed_first(R.gen(0)), TT.embed_sec
 
 section("exterior Hopf algebra — antipode = grade involution (not reversion-twist)")
 H = pl.SurrealAlgebra(q=[0, 0])  # exterior algebra
-b = H.gen(0) ^ H.gen(1)
+b = H.gen(0) & H.gen(1)
 print("  Δ(e0) primitive (lives in Cl⊗̂Cl):", H.gen(0).coproduct())
 print("  S(e0) = −e0          :", H.gen(0).antipode() == -H.gen(0))
 print("  S(e0∧e1) = +e0∧e1    :", b.antipode() == b, " (grade 2: (−1)²=+1)")
@@ -375,8 +387,8 @@ print("  ε-sphere: ε-point on, 2ε-point off:",
 
 section("projective GA — exact nilpotent motor (no transcendentals)")
 P = pl.SurrealAlgebra.pga(2)                # Cl(2,0,1), e0 the ideal direction
-motor = (P.gen(0) ^ P.gen(1)).exp_nilpotent()  # B² = 0 ⇒ exp(B) = 1 + B
-print("  exp(e0∧e1) = 1 + B:", motor == P.scalar(1) + (P.gen(0) ^ P.gen(1)))
+motor = (P.gen(0) & P.gen(1)).exp_nilpotent()  # B² = 0 ⇒ exp(B) = 1 + B
+print("  exp(e0∧e1) = 1 + B:", motor == P.scalar(1) + (P.gen(0) & P.gen(1)))
 print("  it translates e1 ↦ e1 + 2e0:", motor.sandwich(P.gen(1)) == P.gen(1) + 2 * P.gen(0))
 
 section("non-Archimedean Springer decomposition (surreal)")
@@ -401,7 +413,8 @@ print("  WittClassG constructors:",
       pl.WittClassG.char0(3, 1), pl.WittClassG.oddchar_one(5, 0) * pl.WittClassG.oddchar_zero(5, 0),
       pl.WittClassG.char2(1).arf())
 print("  WittClassG operators:",
-      pl.WittClassG.try_char2_from_metric(A).arf(),
+      pl.WittClassG.try_char2_from_metric(
+          pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})).arf(),
       (pl.WittClassG.char0(2, 0) + pl.WittClassG.char0(1, 0)).signature(),
       (pl.WittClassG.oddchar_one(5, 0) * pl.WittClassG.oddchar_one(5, 0)).kind())
 print("  2 is a sum of two squares in F3:", pl.is_sum_of_n_squares(3, 2, 2))
@@ -413,6 +426,9 @@ H = pl.HermitianForm.from_gram([[pl.Surcomplex(2, 0), pl.Surcomplex(0, 1)],
                                 [pl.Surcomplex(0, -1), pl.Surcomplex(2, 0)]])
 print("  Hermitian [[2,i],[-i,2]]:", H.signature(), "diagonal", H.diagonalize())
 print("  diagonal Hermitian ⟨1,-1,0⟩:", pl.HermitianForm.diagonal([1, -1, 0]).signature())
+finite_H = pl.FiniteHermitianForm.diagonal(3, 2, [1, 1, 0]).classify()
+print("  finite Hermitian F9/F3       :", (finite_H.rank, finite_H.radical_dim,
+                                           finite_H.base_field_order, finite_H.extension_field_order))
 print("  form Rust constructors       :",
       pl.SymplecticForm.from_gram([[0, 1], [-1, 0]]).classify().planes(),
       (lambda sig: (sig.pos, sig.neg, sig.radical))(
@@ -433,7 +449,8 @@ for f in ([1, 1, 1], [1, 1, -1], [1, 1, -3], [1, 1, 1, 1, -1]):
 
 section("loopy impartial games — Side values with a certificate")
 values, cert = pl.loopy_nim_values_certified([[1], [0], []])
-print("  2-cycle plus terminal:", values, cert, "outcomes", cert.outcomes)
+print("  2-cycle plus terminal:", values, cert, "outcomes", cert.outcomes,
+      "recovery:", cert.recovery_condition_holds)
 
 section("Brauer–Wall group — BW(ℝ)=ℤ/8 is the Bott clock")
 # walk ⟨−1⟩⊗̂…⊗̂⟨−1⟩: the Bott index cycles mod 8.
@@ -444,13 +461,15 @@ for _ in range(8):
 print("  [Cl⟨−1⟩]ⁿ for n=1..8:", " ".join(w.replace("Real(", "").rstrip(")") for w in walk))
 print("  BW constructors/zero_like:", pl.BrauerWallClass.real(9), g.zero_like(),
       pl.BrauerWallClass.char2(1) + pl.BrauerWallClass.char2(1))
+rq = pl.bw_class_rational(pl.RationalAlgebra(q=[-1]))
+print("  BW(Q) of ⟨−1⟩:", rq, "real", rq.real_class(), "square", rq + rq)
 print("  BW(F_3) of ⟨1⟩:", pl.OddFiniteFieldForm(3, [1]).bw_class(), "(order-4 graded part ≅ W(F_3))")
-A2 = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})
-print("  BW(F_2^m) anisotropic nimber plane:", pl.bw_class_nimber(A2), "(Z/2 Arf class)")
+A2_nim = pl.NimberAlgebra(q=[1, 1], b={(0, 1): 1})
+print("  BW(F_2^m) anisotropic nimber plane:", pl.bw_class_nimber(A2_nim), "(Z/2 Arf class)")
 
 
 # ===========================================================================
-# Arc IV: the CGT/surreal core, forms foundations, and GA depth
+# The CGT/surreal core, forms foundations, and GA depth
 # ===========================================================================
 
 section("partizan canonical form — Conway's simplicity theorem")
@@ -514,15 +533,15 @@ print("  trace =", R.trace(lin_map), " det =", R.determinant(lin_map))
 section("GA depth — conjugate, scalar/commutator products, meet, blade factoring")
 E = pl.SurrealAlgebra(q=[1, 1, 1])
 e0, e1, e2 = E.gen(0), E.gen(1), E.gen(2)
-print("  Clifford conjugate of e0∧e1   :", (e0 ^ e1).clifford_conjugate(), " (sign (−1)^{k(k+1)/2})")
+print("  Clifford conjugate of e0∧e1   :", (e0 & e1).clifford_conjugate(), " (sign (−1)^{k(k+1)/2})")
 print("  scalar product ⟨e0 e0⟩₀       :", e0.scalar_product(e0))
 print("  commutator [e0,e1] = 2 e0e1   :", e0.commutator(e1))
-blade = (e0 + e1) ^ e2
+blade = (e0 + e1) & e2
 print("  blade subspace dimension       :", len(blade.blade_subspace()), blade.blade_subspace())
 print("  factor the blade (e0+e1)∧e2   :", blade.factor_blade())
 print("  raw blade term/bits/grade     :",
       blade.terms, pl.bits(blade.terms[0][0]), pl.grade(blade.terms[0][0]))
-print("  e0∧e1 + e1∧e2 ... meet(planes):", (e0 ^ e1).meet(e1 ^ e2), " (their common line, ±e1)")
+print("  e0∧e1 + e1∧e2 ... meet(planes):", (e0 & e1).meet(e1 & e2), " (their common line, ±e1)")
 
 section("nimber field toolkit — degree, minimal polynomial, order, discrete log")
 print("  *2 over F₂: degree", pl.nim_degree(2), " min_poly", pl.nim_min_poly(2), " (x²+x+1)")
@@ -557,6 +576,10 @@ print("  exact Pl wall at t=1       :", th.left_wall.value_at(pl.Rational(1)),
 print("  module temp/mean/stops      :", pl.temperature(hot), pl.mean_value(hot),
       pl.left_stop(hot), pl.right_stop(hot))
 print("  Pl tropical ⊗ sample       :", th.left_wall.otimes(pl.Pl.constant(1)).value_at(1))
+heated = hot.heat(2)
+norton = hot.norton_multiply(pl.Game.integer(2))
+print("  heat by 2 / Norton by 2    :", heated.temperature(), heated.mean_value(),
+      norton.mean_value(), norton.canonical_string())
 
 section("surreal sign-expansion & floor (the omnific bridge)")
 print("  sign expansion of 3/4    :", pl.Surreal.from_rational(3, 4).sign_expansion(), " (+ − +)")
@@ -630,7 +653,7 @@ print("  ⋆ω ⊗ ⋆ω ⊗ ⋆ω = ⋆2 (Conway ω³=2):",
 
 section("Cayley transform — bivector (Lie algebra) ↔ rotor (Spin group)")
 G = pl.SurrealAlgebra(q=[1, 1, 1])
-B = G.gen(0) ^ G.gen(1)
+B = G.gen(0) & G.gen(1)
 R = B.cayley()
 print("  cayley(e0∧e1) = rotor        :", R, "  norm² =", R.norm2())
 print("  cayley_inverse(rotor) = B    :", R.cayley_inverse())
@@ -662,6 +685,12 @@ print("  loopy values on+off, over+under:",
       pl.LoopyValue.on() + pl.LoopyValue.off(), pl.LoopyValue.over() + pl.LoopyValue.under())
 print("  loopy value dud is stopper?  :", pl.LoopyValue.dud().is_stopper(),
       " outcome:", pl.LoopyValue.dud().outcome())
+tis_graph = pl.LoopyPartizanGraph(
+    [[2], [0], []],        # tis -> 0, tisn -> tis, 0 terminal
+    [[1], [2], []],        # tis -> tisn, tisn -> 0, 0 terminal
+)
+print("  partizan tis/tisn outcomes   :", tis_graph.outcomes(), " classical:", tis_graph.partizan_outcomes())
+print("  tis sides / class            :", pl.LoopyValue.tis().sides(), pl.LoopyValue.tis().partizan_outcome())
 loopy_rule = lambda v: [[1], [0], [3], []][v]
 print("  LoopyGraph.from_rule         :", pl.LoopyGraph.from_rule(4, loopy_rule).succ())
 print("  callback loss/draw sets      :", pl.loopy_decision_sets(4, loopy_rule))
@@ -697,16 +726,16 @@ print("  inv_v(−1,−1), sum            :", pl.brauer_local_invariants((-1, 1)
 section("runtime p-adic cells + adeles — the scalar side of local–global")
 k3 = pl.adele_prec(3)
 third_3 = pl.LocalQp.from_rational(3, k3, 1, 3)
-two_3 = pl.LocalQp.from_i128(3, k3, 2)
+two_3 = pl.LocalQp.from_int(3, k3, 2)
 print("  1/3 in Q₃ has valuation     :", third_3.valuation(), " unit:", third_3.unit)
-print("  Local/fixed Qp from_i128     :", pl.LocalQp.from_i128(3, k3, 9).valuation(),
-      pl.Qp3_4.from_i128(9).valuation())
+print("  Local/fixed Qp from_int     :", pl.LocalQp.from_int(3, k3, 9).valuation(),
+      pl.Qp3_4.from_int(9).valuation())
 print("  2·(1/3) in Q₃               :", two_3 * third_3)
 adelic = pl.Adele.from_rational(2, 3)
 print("  diagonal 2/3 local at 3      :", adelic.local_at(3),
       " norm:", adelic.idele_norm(), " product formula:", adelic.satisfies_product_formula())
 print("  adelic precision policy       :", pl.adele_prec(3))
-print("  adding a 3-adic correction   :", adelic.with_correction(3, pl.LocalQp.from_i128(3, k3, 1)).local_at(3))
+print("  adding a 3-adic correction   :", adelic.with_correction(3, pl.LocalQp.from_int(3, k3, 1)).local_at(3))
 adele_alg = pl.AdeleAlgebra([adelic])
 adele_cga = pl.AdeleCga(1)
 adele_pt = adele_cga.up([adelic])
@@ -737,13 +766,13 @@ print("  Q₅ Springer repeat check     :",
       same_local_springer(pl.springer_decompose_local(Q5), q5_sp))
 print("  Q₅ residue/integral package  :",
       pl.Qp5_4.uniformizer().valuation(), pl.Qp5_4.teichmuller(pl.Fp5(2)).residue(),
-      pl.Qp5_4.from_i128(25).to_integer(), q5.residue(), q5.residue_unit(),
+      pl.Qp5_4.from_int(25).to_integer(), q5.residue(), q5.residue_unit(),
       q5.is_integral())
 print("  valued polynomial Gauss min  :",
       pl.min_coeff_valuation([pl.Qp5_4.from_p_power(2), pl.Qp5_4.zero(), pl.Qp5_4.from_p_power(1)]))
 print("  p-adic checked roots         :",
       pl.Zp2_4(4).is_square(), raises_value_error(lambda: pl.Zp2_4(4).sqrt()),
-      pl.Qp5_4.from_i128(4).sqrt())
+      pl.Qp5_4.from_int(4).sqrt())
 f9_ns = pl.F9.primitive_element()
 w9_ns = pl.WittVec3_4_2.teichmuller(f9_ns)
 q9_ns = pl.Qq3_4_2.from_witt(w9_ns)
@@ -829,13 +858,16 @@ print("  fit zero-set {00,01,10}     :", fit, " genuine:", fit.is_genuinely_quad
 gold = pl.gold_form_arf(8, 1)
 print("  Gold Q₁ over F₂⁸             :", gold, " rank/rad:", (gold.rank, gold.radical_dim))
 gold_alg = pl.gold_form(4, 1)
-print("  same Gold form as Cl metric  :", pl.arf_nimber(gold_alg))
-print("  Gold/trace helpers           :", pl.arf_nimber(pl.gold_form(4, 1)).arf,
-      pl.trace_form_arf(3).arf,
-      pl.classify_finite_algebra(pl.trace_twisted_form(3, 2)))
+gold_alg_arf = pl.arf_nimber(gold_alg)
+print("  same Gold form as Cl metric  :", gold_alg_arf)
+tf_arf3 = pl.trace_form_arf(3)
+tf_twisted_class = pl.classify_finite_algebra(pl.trace_twisted_form(3, 2))
+print("  Gold/trace helpers           :", gold_alg_arf.arf,
+      tf_arf3.arf,
+      tf_twisted_class)
 print("  typed trace forms F₈/F₉      :",
-      pl.trace_form_arf(3),
-      pl.classify_finite_algebra(pl.trace_twisted_form(3, 2)))
+      tf_arf3,
+      tf_twisted_class)
 
 section("integral lattices — ADE, genus, mass, Leech constants")
 A2 = pl.a_n(2)
@@ -844,10 +876,19 @@ print("  A₂ det/min/kissing/Coxeter   :",
       A2.determinant(), A2.minimum(), A2.kissing_number(), pl.coxeter_number(A2),
       pl.is_root_lattice(A2))
 print("  E₈ even unimodular aut order :", E8.is_even(), E8.is_unimodular(), E8.automorphism_group_order())
+wv = pl.weyl_versor_report("E", 8)
+print("  E₈ Weyl versors in Pin       :",
+      wv.weyl_group_order, wv.coxeter_versor_order,
+      wv.simple_reflections_match_cartan)
 gen = A2.genus()
-print("  genus(A₂) primes/symbol@3    :", gen.primes(), gen.symbol_at(3))
+print("  genus(A₂) primes/symbols     :",
+      gen.primes(), gen.symbol_at(3), gen.canonical_symbol_at(2))
 print("  mass rank 8 even unimodular  :", pl.mass_even_unimodular(8),
       " Leech |Aut|:", pl.leech_aut_order())
+kn = pl.even_unimodular_kneser_report(8)
+print("  Kneser rank-8 mass closure   :",
+      kn.generated_class_labels, kn.mass_closed,
+      E8.kneser_neighbors(2, 1)[0].lattice.is_even())
 print("  pinned automorphism constants:", pl.E8_WEYL_GROUP_ORDER, pl.D16_PLUS_AUT_ORDER,
       pl.AUTO_NODE_BUDGET)
 d16p = pl.d16_plus()
@@ -867,8 +908,36 @@ print("  A₂ mod-2 Clifford Arf        :", pl.arf_nimber(A2_f2) if A2_f2 else N
 code = pl.BinaryCode.extended_hamming()
 print("  [8,4,4] code weight/theta    :", code.weight_enumerator(), code.theta_series_via_weight_enumerator(3))
 print("  Construction A kissing       :", code.construction_a().kissing_number())
-print("  Golay raw generator rows     :", len(pl.extended_golay_generator_rows()),
-      len(pl.extended_golay_generator_rows()[0]))
+b_golay = pl.BinaryCode.golay().construction_b()
+d_hamming = pl.construction_d([pl.BinaryCode(8, []), code])
+print("  Constructions B/D            :",
+      b_golay.determinant(), len(b_golay.short_vectors(2)),
+      d_hamming.determinant(), d_hamming.is_even())
+rm1 = pl.BinaryCode.reed_muller(1, 4)
+rm2 = pl.reed_muller_code(2, 4)
+bw16 = pl.barnes_wall_16()
+print("  Reed-Muller/BW16             :",
+      rm1.dim(), rm2.dim(), rm2.contains(rm1),
+      bw16.determinant(), bw16.minimum(), bw16.kissing_number())
+cl_bw = pl.clifford_barnes_wall_16_report()
+print("  Clifford/BW16 certificate    :",
+      cl_bw.matches_construction_d, cl_bw.determinant(), cl_bw.minimum(),
+      cl_bw.kissing_number(), cl_bw.automorphism_group_order,
+      "index in C4:", cl_bw.automorphism_index_in_clifford_group)
+ternary = pl.PrimeCode.ternary_golay()
+ternary_lattice = ternary.construction_a()
+print("  ternary Golay Construction A :",
+      ternary.weight_enumerator(), ternary_lattice.determinant(),
+      ternary_lattice.minimum(), ternary_lattice.is_even())
+type_i = pl.BinaryCode.type_i_z2()
+z2 = type_i.construction_a()
+odd_disc = pl.OddDiscriminantForm.from_lattice(pl.IntegralForm.diagonal([3]))
+print("  Type I Construction A        :",
+      type_i.weight_enumerator(), z2.is_even(), z2.theta_series_level4(5))
+print("  odd discr/Milgram report     :",
+      odd_disc.group, odd_disc.quadratic_value_mod1([1]), pl.odd_milgram_report(pl.IntegralForm.diagonal([3])))
+golay_rows = pl.extended_golay_generator_rows()
+print("  Golay raw generator rows     :", len(golay_rows), len(golay_rows[0]))
 disc = pl.DiscriminantForm.from_lattice(A2)
 print("  discr(A₂) group/Milgram/Weil :", disc.group, disc.milgram_signature_mod8(),
       pl.genus_signature_mod8(A2), disc.verify_weil_relations())
@@ -902,25 +971,37 @@ print("  Cl_F5(t) and Γ_F5(t)         :",
       FF5.gen(0) * FF5.gen(0), FF5DP.scalar(fp5_func_t) * FF5DP.gen(0))
 print("  F₅[t]/F₅(t) operator checks   :",
       fp5_poly_t + 1, fp5_func_t * fp5_func_t)
+int_poly_t = pl.IntegerPoly.x()
+print("  Z[t] eval/rem/gcd             :",
+      (5 * int_poly_t + 1) @ 7,
+      (int_poly_t * int_poly_t - 1) % (int_poly_t - 1),
+      pl.IntegerPoly([2, 2]).gcd(pl.IntegerPoly([4, 4])))
+print("  F₅[t]/F₅(t) @ checks          :",
+      (fp5_poly_t * fp5_poly_t + 1) @ (fp5_poly_t + 1),
+      (1 / fp5_func_t) @ 2)
 t = ([0, 1], [1])          # t in F_5(t)
 two = ([2], [1])           # nonsquare constant 2 in F_5
 norm_form = [([1], [1]), ([0, 4], [1]), ([3], [1]), ([0, 2], [1])]
 print("  F₅(t) factors t²+2          :", pl.monic_irreducible_factors(5, [2, 0, 1]))
+reciprocity_ff = pl.try_hilbert_reciprocity_product_ff(5, t, two)
 print("  F₅(t) (t,2) ramifies        :", pl.try_ramified_places_ff(5, t, two),
-      " reciprocity:", pl.try_hilbert_reciprocity_product_ff(5, t, two))
+      " reciprocity:", reciprocity_ff)
 ff_adeles = pl.try_isotropy_over_ff_adeles(5, norm_form)
 ff_local0 = ff_adeles.local[0] if ff_adeles is not None else None
-print("  F₅(t) norm form isotropic?  :", pl.try_is_isotropic_ff(5, norm_form),
+isotropic_ff = pl.try_is_isotropic_ff(5, norm_form)
+print("  F₅(t) norm form isotropic?  :", isotropic_ff,
       ff_adeles.is_global() if ff_adeles is not None else None,
-      ff_local0.place if ff_local0 is not None else None,
-      ff_local0.is_isotropic if ff_local0 is not None else None,
       (ff_local0.place, ff_local0.is_isotropic) if ff_local0 is not None else None)
 print("  F₅(t) helper checks         :",
       pl.try_valuation_at_ff(5, t, [0, 1]),
       pl.is_global_square_ff(5, ([1, 2, 1], [1])),
       pl.try_hilbert_symbol_ff(5, t, two, [0, 1]),
-      pl.try_hilbert_reciprocity_product_ff(5, t, two),
-      pl.try_is_isotropic_ff(5, norm_form))
+      reciprocity_ff,
+      isotropic_ff)
+print("  F₅(t) tame μ₄ symbol        :",
+      pl.try_tame_symbol_invariant_ff(5, 4, t, two, [0, 1]),
+      pl.tame_symbol_invariants_ff(5, 4, t, two),
+      pl.tame_symbol_invariant_sum_ff(5, 4, t, two))
 f2_one = ([1], [1])
 f2_t = ([0, 1], [1])
 print("  F₂(t) factors t²+t+1       :", pl.char2_monic_irreducible_factors([1, 1, 1]))
@@ -939,8 +1020,9 @@ print("  F₂(t) [1,t]⊥<1> local/global:",
       char2_form.is_isotropic_at_place([0, 1]),
       char2_form.is_isotropic())
 aj = char2_form.decompose_at()
-print("  F₂(t) AJ decomp at ∞        :", aj, [(term.pole_order, term.coefficient) for term in aj.psi],
-      (aj.phi0, [(term.pole_order, term.coefficient) for term in aj.psi], aj.phi1))
+aj_psi = [(term.pole_order, term.coefficient) for term in aj.psi]
+print("  F₂(t) AJ decomp at ∞        :", aj, aj_psi,
+      (aj.phi0, aj_psi, aj.phi1))
 print("  F₂(t) helper checks         :",
       pl.as_symbol_places(f2_one, f2_t),
       pl.as_symbol_at(f2_one, f2_t, [0, 1]),
@@ -955,3 +1037,40 @@ section("nimber Galois — Frobenius x↦x² and its inverse, the nim √")
 n = pl.Nimber(5)
 print("  *5² (Frobenius)              :", n.frobenius(), " == *5**2:", n ** 2)
 print("  √*5  (inverse Frobenius)     :", n.sqrt(), " squares back:", n.sqrt() ** 2)
+
+section("py-waves parity — Bridge J/K/M/N/O from Python")
+lex = pl.lexicode(7, 3)
+nimlex = pl.nim_lexicode_naive(2, 2, 2)
+print("  lexicode L(7,3)              :",
+      (lex.len(), lex.dim(), lex.minimum_distance(), lex.weight_enumerator()))
+print("  nim lexicode base 4          :",
+      nimlex.words(), nimlex.is_closed_under_nim_scalars())
+print("  Brown β and doubled Arf      :",
+      pl.brown_f2(1, [1], [0]).beta,
+      pl.double_f2([True, True], [2, 1]).beta)
+a1_disc = pl.DiscriminantForm.from_lattice(pl.IntegralForm.a(1))
+print("  discriminant form iso/Brown  :",
+      a1_disc.is_isomorphic(a1_disc),
+      a1_disc.brown_invariant())
+npoly = pl.newton_polygon([pl.Qp5_4.from_int(-5), pl.Qp5_4.zero(), pl.Qp5_4.one()])
+print("  Newton roots of x²-5 over Q₅ :", npoly.root_valuations(),
+      " τ(5²)=", pl.tropicalize(pl.Qp5_4.from_p_power(2)))
+transfer = pl.transfer_diagonal(3, 2, [1])
+print("  Scharlau transfer F₉/F₃ <1> :", transfer.dim, pl.classify_finite_algebra(transfer))
+quat = pl.Brauer2Class.quaternion(-1, -1)
+full = pl.BrauerClass.from_two_torsion(quat)
+print("  Brauer 2-torsion → Q/Z      :", quat.ramified_places(), full.local(), full.invariant_sum())
+print("  unramified cyclic invariant  :",
+      pl.cyclic_algebra_invariant(5, 2, pl.Qp5_4.from_p_power(1)))
+print("  tame cyclic symbol over Q₅   :",
+      pl.tame_symbol_invariant(5, 4, pl.Qp5_4.from_int(2), pl.Qp5_4.from_p_power(1)))
+ff_t = ([0, 1], [1])
+print("  Milnor residues over Q/F₅(t):",
+      pl.global_residues([3, 5]),
+      pl.global_residues_ff(5, [ff_t]))
+print("  constant-extension reciprocity:",
+      pl.constant_extension_invariants(5, 3, ff_t),
+      pl.constant_extension_invariant_sum(5, 3, ff_t))
+print("  tame-symbol reciprocity      :",
+      pl.tame_symbol_invariants_ff(5, 4, ff_t, ([2], [1])),
+      pl.tame_symbol_invariant_sum_ff(5, 4, ff_t, ([2], [1])))

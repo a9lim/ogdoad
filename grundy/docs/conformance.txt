@@ -1,0 +1,2536 @@
+// grundy conformance corpus — v0.3.6 (hand-verified and fully merged)
+// Format: docs/grundy/spec.md §16, plus `>>` continuation lines for joined
+// open-paren/open-bracket/open-brace inputs.
+//   @world ‹args as after ":world"›   resets bindings
+//   @fuel ‹u128›                      sets the per-statement μ-step budget
+//   @graph ‹u128›                     sets the materialized-graph node budget
+//   > input        ~ canonical echo (optional)        = value display
+//   ! E_Kind: message-substring
+// Every vector below was hand-verified against its governing spec and standard
+// mathematics, then run against the shipped engine. This corpus is maintained by
+// reviewed edits only; the harness never rewrites or appends vectors.
+
+// ---------------------------------------------------------------- nimber, scalars
+@world nimber 0
+
+> *3 + *5
+= *6
+
+> * + *2
+~ *1 + *2
+= *3
+
+> *2 . *2
+~ *2⋅*2
+= *3
+
+> *2 ⋅ *3
+= *1
+
+> *3 ⋅ *3
+= *2
+
+> *4 ⋅ *4
+= *6
+
+> *3 + *3
+= *0
+
+> - *7
+= *7
+
+> /(*2)
+= *3
+
+> *2 ^ -1
+~ *2↑-1
+= *3
+
+> *2 ↑ 2
+= *3
+
+> *5 / *5
+= *1
+
+> frob(*2)
+= *3
+
+> tr(*7, 4)
+= *0
+
+> 3
+! E_BareInt: did you mean `*3`?
+
+> w
+! E_WrongWorld:
+
+> *0 ↑ 0
+= *1
+
+// ------------------------------------------------- nimber, orthogonal plane
+@world nimber 2 q=[*1,*1]
+
+> e0 . e0
+~ e0⋅e0
+= *1
+
+> e0 & e0
+~ e0∧e0
+= *0
+
+> [*1,*2] & [*1,*3]
+~ [*1, *2] ∧ [*1, *3]
+= e0∧e1
+
+> [*1,*2] ⋅ [*1,*3]
+= e0∧e1
+
+> rev(e0 ∧ e1)
+= e0∧e1
+
+> e0 ⋅ e1 = e0 ∧ e1
+= true
+
+> e0 ⋅ e1 + e1 ⋅ e0
+= *0
+
+> e0 ^ e1
+! E_ExpSort: wedge
+
+> [*1]
+! E_DimMismatch:
+
+> e2
+! E_BladeIndex:
+
+// --------------------------------- nimber, char-2 polar pair (q and b independent)
+@world nimber 2 q=[*1,*1] b=[(0,1):*1]
+
+> e0 ⋅ e1 + e1 ⋅ e0
+= *1
+
+// ---------------------------------------------------------------- ordinal, scalars
+@world ordinal 0
+
+> *3 + *5
+= *6
+
+> *w + *1
+~ *ω + *1
+= *(ω + 1)
+
+> *w ⋅ *w
+~ *ω⋅*ω
+= *(ω↑2)
+
+> *ω ↑ 3
+= *2
+
+> *(ω↑2) ⋅ *ω = *2
+= true
+
+> *(1 + ω)
+! E_CnfOrder:
+
+> w
+! E_BareOrdinal: *ω
+
+> *(ω↑(ω↑ω)) ⋅ *2
+! E_KummerEscape:
+
+// ------------------------------------------------------------- ordinal, the hero
+@world ordinal 3 q=[*1,*1,*1]
+
+> v := [*3, *1, *4]
+> u := [*w, *0, *w]
+> v & u
+~ v ∧ u
+= *ω⋅e0∧e1 + *(ω⋅7)⋅e0∧e2 + *ω⋅e1∧e2
+
+// ---------------------------------------------------------------- surreal, scalars
+@world surreal 0
+
+> 1/2 + 1/2
+= 1
+
+> w + 1
+~ ω + 1
+= ω + 1
+
+> 3.w^2 - w + 5
+~ 3⋅ω↑2 - ω + 5
+= 3⋅ω↑2 - ω + 5
+
+> w^-1
+~ ω↑-1
+= ω↑-1
+
+> w^w
+~ ω↑(ω)
+= ω↑(ω)
+
+> w^(1/2)
+~ ω↑(1/2)
+= ω↑(1/2)
+
+> 2 ↑ 3
+= 8
+
+> /(w + 1)
+! E_NotInvertible: Hahn
+
+> *3
+! E_WrongWorld: nimber
+
+// ------------------------------------------------------- surreal, hyperbolic-ish
+@world surreal 2 q=[1,-1]
+
+> e1 ⋅ e1
+= -1
+
+> [1,1] ⋅ [1,1]
+= 0
+
+> e0 ∧ e1 = e0 ⋅ e1
+= true
+
+// ---------------------------------------------------------- integer, grassmann
+@world integer 2 grassmann
+
+> [1,2] & [3,4]
+~ [1, 2] ∧ [3, 4]
+= -2⋅e0∧e1
+
+> e0 ⋅ e0
+= 0
+
+> /e0
+! E_NotInvertible:
+
+> 1/2
+! E_NotInvertible:
+
+// ---------------------------------------------------------------- fp5, scalars
+@world fp5 0
+
+> 3 + 4
+= 2
+
+> /2
+= 3
+
+> 2 ↑ -1
+= 3
+
+> 2.3
+~ 2⋅3
+= 1
+
+// ---------------------------------------------------------------- f8, scalars
+@world f8 0
+
+> x ⋅ x
+= x↑2
+
+> x + x
+= 0
+
+> frob(x)
+= x↑2
+
+// ---------------------------------------------------------------- reserved syntax
+@world nimber 0
+
+> {0|0}
+! E_WrongWorld:
+
+> *2 ↑↑ 3
+! E_Reserved:
+
+> *2 ~ *3
+! E_Parse:
+
+> ?
+! E_Parse:
+
+> *3 : *5
+! E_Parse:
+
+> *2 ; *3
+! E_SeqValue:
+
+// ------------------------------------------------- integer, Euclid (§7.6)
+@world integer 0
+
+> 7 % 3
+~ 7%3
+= 1
+
+> -7 % 3
+= 2
+
+> 6 / 3
+= 2
+
+> 7 / 3
+! E_NotInvertible: remainder
+
+> 7 % 0
+! E_DivisionByZero:
+
+> (7 - 7 % 3) / 3
+= 2
+
+// ------------------------------------------- surreal, CNF truncation (§7.6)
+@world surreal 0
+
+> u := 3.w^2 - w + 5
+~ u := 3⋅ω↑2 - ω + 5
+
+> u % w
+~ u%ω
+= 5
+
+> u % w^2
+~ u%ω↑2
+= -ω + 5
+
+> (w + 5 + w^-1) % 1
+= ω↑-1
+
+> u % (3.w)
+! E_Modulus:
+
+// -------------------------------------------------------- fp remainder boundary
+@world fp7 0
+
+> 7 % 3
+! E_WrongWorld: field
+
+// ----------------------------------- nim-worlds reject the grab bag (§7.6)
+@world nimber 0
+
+> *5 % *3
+! E_WrongWorld: field
+
+> *2 @ *3
+! E_WrongWorld: function-shaped
+
+// --------------------------------------------- relations, the four-way (§7.7)
+@world integer 0
+
+> 3 < 5
+= true
+
+> 3 > 5
+= false
+
+> 3 ! 5
+~ 3 ∥ 5
+= false
+
+// the bar is structural only; a relop-tier `|` earns the hint
+> 3 | 5
+! E_Parse: fuzzy is `∥`
+
+> -7 = -7
+= true
+
+> 3 == 3
+~ 3 = 3
+= true
+
+> q = 5
+! E_Unbound: :=
+
+@world nimber 0
+
+> *2 ∥ *3
+= true
+
+> *2 < *3
+= false
+
+> *2 ∥ *2
+= false
+
+> *2 + *3 = *1
+= true
+
+@world surreal 0
+
+> w > 5
+~ ω > 5
+= true
+
+> 1/2 < 1
+= true
+
+> w ! 1
+~ ω ∥ 1
+= false
+
+@world fp5 0
+
+> 2 < 3
+! E_WrongWorld: order
+
+@world nimber 2 q=[*1,*1]
+
+> e0 ∥ e1
+! E_Grade0:
+
+// ------------------------------------- poly5, function-shaped world (§16)
+@world poly5
+
+> t
+= t
+
+> t ^ 2 + 3.t + 1
+~ t↑2 + 3⋅t + 1
+= t↑2 + 3⋅t + 1
+
+> (t↑2 + 1)@(t + 1)
+= t↑2 + 2⋅t + 2
+
+> (t↑2 - 1) % (t - 1)
+~ (t↑2 - 1)%(t - 1)
+= 0
+
+> (t↑2 - 1) / (t - 1)
+~ (t↑2 - 1)/(t - 1)
+= t + 1
+
+> deg(t↑2 + 1)
+= #2
+
+> t↑deg(t↑2 + 1)
+= t↑2
+
+> deg(t) = 1
+= true
+
+> gcd(t↑2 - 1, t - 1)
+= t + 4
+
+> t % 0
+! E_DivisionByZero:
+
+> t < t
+! E_WrongWorld: order
+
+// ------------------------------------ polyint, monic division boundary (§16)
+@world polyint
+
+> (5⋅t + 1)@7
+= 36
+
+> (t↑2 - 1) / (t - 1)
+~ (t↑2 - 1)/(t - 1)
+= t + 1
+
+> (t↑2 - 1) % (2⋅t + 2)
+! E_Modulus: exact-division domain
+
+> gcd(2⋅t + 2, 4⋅t + 4)
+= t + 1
+
+> deg(0)
+! E_Domain: zero polynomial
+
+> t := 3
+! E_Reserved: reserved
+
+// ------------------------------------------ ratfunc5, poles and composition (§16)
+@world ratfunc5
+
+> t
+= t
+
+> 1/t
+= (1)/(t)
+
+> (1/t)@2
+= 3
+
+> (1/(t + 1))@4
+! E_DivisionByZero: pole
+
+> (t + 1)/(t + 1)
+= 1
+
+> t % 1
+! E_WrongWorld: fields
+
+> deg(t)
+! E_WrongWorld: rational-function
+
+// ============================================================ v0.2.0 — booleans
+@world integer 0
+
+> 3 < 5
+= true
+
+> p := 3 < 5
+
+> p
+= true
+
+> not p
+= false
+
+> not 1 = 0 and 0 = 0
+= true
+
+// control vector: the pole is real when evaluated…
+> 1/0
+! E_DivisionByZero:
+
+// …and the lazy trio never evaluates it
+> 1 = 0 and 1/0 = 1
+= false
+
+> 0 = 0 or 1/0 = 1
+= true
+
+> true
+= true
+
+> (3 < 5) = (1 = 0)
+= false
+
+> true + 1
+! E_BoolSort:
+
+> 3 < true
+! E_BoolSort:
+
+> true and 2
+! E_BoolSort:
+
+> 1 < 2 < 3
+! E_Parse:
+
+// ------------------------------------------------------------ v0.2.0 — ternary
+> if 0 = 0 then 1 else 1/0
+= 1
+
+> if 1 = 0 then 1/0 else 7
+= 7
+
+> if 3 == 3 then 1 else 2
+~ if 3 = 3 then 1 else 2
+= 1
+
+> if 1 = 1 then 2 else (2 < 3)
+! E_BoolSort:
+
+> if 1 = 1 then 1 else if 1 = 0 then 2 else 3
+= 1
+
+// ===================================== v0.2.0 — lambdas, capture, application
+@world integer 0
+
+> abs := u ~ (if u < 0 then -u else u)
+~ abs := u ↦ if u < 0 then -u else u
+
+> abs@(-5)
+= 5
+
+> abs@7
+= 7
+
+> abs
+= u ↦ if u < 0 then -u else u
+
+> (u ↦ u⋅u)@10
+= 100
+
+> u ↦ u + 1
+= u ↦ u + 1
+
+// capture at definition is substitution — visible, and rebind-proof
+> c := 5
+
+> f := u ↦ c⋅u
+
+> f
+= u ↦ 5⋅u
+
+> c := 7
+
+> f@1
+= 5
+
+// a binder may shadow an ordinary binding (c is 7 here; the binder wins)
+> g := c ↦ c + 1
+
+> g
+= c ↦ c + 1
+
+> g@1
+= 2
+
+> sign := u ↦ (if u < 0 then -1 else (if u = 0 then 0 else 1))
+~ sign := u ↦ if u < 0 then -1 else if u = 0 then 0 else 1
+
+> sign@(-7)
+= -1
+
+> sign@0
+= 0
+
+> sign@4
+= 1
+
+> even2 := u ↦ u % 2 = 0
+~ even2 := u ↦ u%2 = 0
+
+> even2@4
+= true
+
+> even2@7
+= false
+
+// self-reference is unbound at definition (until §19's =:)
+> fct := n ↦ (if n = 0 then 1 else n⋅fct@(n-1))
+! E_Unbound:
+
+// ------------------------------------------- v0.2.0 — composition, tuples, arity
+> inc := a ↦ a + 1
+
+> sqr := b ↦ b⋅b
+
+// the composite inherits the right operand's binder
+> cmp := inc@sqr
+
+> cmp
+= b ↦ b⋅b + 1
+
+> cmp@3
+= 10
+
+> inc@sqr@3
+= 10
+
+> b2 := (u, v) ↦ u + 2⋅v
+
+> b2@(1, 2)
+= 5
+
+> b2@(1, 2)↑2
+= 25
+
+> b2@(1, 2, 3)
+! E_Arity:
+
+> b2@7
+! E_Arity:
+
+// composition needs a unary head
+> b2@inc
+! E_Arity:
+
+> mux := (p, u, v) ↦ (if p then u else v)
+~ mux := (p, u, v) ↦ if p then u else v
+
+> mux@(3 < 5, 10, 20)
+= 10
+
+> mux@(5 < 3, 10, 20)
+= 20
+
+// ------------------------------------------------------- v0.2.0 — sort errors
+@world integer 0
+
+> f := u ↦ u + 1
+
+> g := u ↦ u⋅u
+
+> f + 1
+! E_FnSort:
+
+> f = g
+! E_FnSort:
+
+> h := u ↦ (v ↦ v)
+! E_FnSort:
+
+> bad := (u, u) ↦ u
+! E_Shadow: duplicate
+
+> bad := tr ↦ tr
+! E_Shadow:
+
+// w lexes to ω, which is not an IDENT — never a binder
+> bad := w ↦ w
+! E_Parse:
+
+// binder at both Element position (left of +) and Index position (exponent)
+> bad := a ↦ a + 2↑a
+! E_IndexSort:
+
+// ------------------------------------------------------- v0.2.0 — t released
+@world integer 0
+
+> t
+! E_Unbound: poly
+
+> t := 3
+
+> t + 1
+= 4
+
+// ====================================== v0.2.0 — Index binders, the Gold chain
+@world f4 0
+
+> gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))
+~ gold := (a, u) ↦ tr(u⋅u↑(2↑a))
+
+> gold@(1, x)
+= 0
+
+> gold@(1, x + 1)
+= 0
+
+// the polar form, inlined at definition (beta at :=)
+> q1 := s ↦ tr(s⋅s)
+
+> b := (u, v) ↦ q1@(u + v) + q1@u + q1@v
+
+> b
+= (u, v) ↦ tr((u + v)⋅(u + v)) + tr(u⋅u) + tr(v⋅v)
+
+> b@(x, x + 1)
+= 0
+
+// ====================================== v0.2.0 — poly worlds: t is the binder
+@world poly2
+
+> f := t ↦ t
+! E_Shadow: indeterminate
+
+> f := s ↦ s⋅s + t
+
+> f
+= s ↦ s⋅s + t
+
+> f@t
+= t↑2 + t
+
+// Element ∘ Function and Function @ Element (v0.1.1 coherence, §17.3)
+> inc := u ↦ u + 1
+
+> (t↑2)@inc
+= u ↦ (u + 1)↑2
+
+> ((t↑2)@inc)@1
+= 0
+
+> inc@(t↑2)
+= t↑2 + 1
+
+// ------------------------------------------- v0.2.0 — Index bindings/relations
+@world poly5
+
+> n := deg(t↑2 + 1)
+
+> pw := u ↦ u↑n
+
+> pw
+= u ↦ u↑2
+
+> pw@(t + 1)
+= t↑2 + 2⋅t + 1
+
+> deg(t↑2) > deg(t)
+= true
+
+// ================================================= v0.2.0 — nim-world honesty
+@world nimber 0
+
+// < is identically false here and -u = u: abs is the identity, twice over
+> abs := u ↦ (if u < 0 then -u else u)
+~ abs := u ↦ if u < 0 then -u else u
+
+> abs@(*5)
+= *5
+
+// the N/P indicator: fuzzy with *0 is an N-position
+> pn := g ↦ (if g ! *0 then *1 else *0)
+~ pn := g ↦ if g ∥ *0 then *1 else *0
+
+> pn@(*3 + *2)
+= *1
+
+> pn@(*3 + *3)
+= *0
+
+// definition-time completeness: the bare INT fails at :=, not at application
+> bad := u ↦ u + 3
+! E_BareInt: did you mean
+
+// ------------------------------------------- v0.2.0 — multivector-valued binders
+@world nimber 2 q=[*1,*1]
+
+> refl := v ↦ e0⋅v⋅e0
+
+> refl@e1
+= e1
+
+> refl@[*1, *2]
+= e0 + *2⋅e1
+
+> refl@(e0 + e1)
+= e0 + e1
+
+// ---------------------------------------- v0.2.0 — definition-time world checks
+@world fp5 0
+
+> h := u ↦ (if u < 0 then 0 else 1)
+! E_WrongWorld: order
+
+// ------------------------------------------- v0.2.0 — reserved syntax, revisited
+@world nimber 0
+
+> *2 ~ *3
+! E_Parse:
+
+> ?
+! E_Parse:
+
+> *3 : *5
+! E_Parse:
+
+> *2 ; *3
+! E_SeqValue:
+
+// and/or/not join the reserved words
+@world integer 0
+
+> and := 5
+! E_Reserved:
+
+// ====================================================== v0.2.1 — sequences
+@world integer 0
+
+> a := 5; a + 1
+= 6
+
+> a
+= 5
+
+> z := 4; z.z
+~ z := 4; z⋅z
+= 16
+
+> x9 := 1; y9 := 2
+
+> x9 + y9
+= 3
+
+// intermediate statements must bind — a discarded value is dead code
+> 1 + 1; 2
+! E_SeqValue:
+
+// ------------------------------------------------------- v0.2.1 — let-bodies
+> f1 := u ↦ (d := u + 1; d⋅d)
+
+> f1@2
+= 9
+
+> f1
+= u ↦ (d := u + 1; d⋅d)
+
+// locals are invisible outside
+> d
+! E_Unbound:
+
+// locals shadow; the outer binding is untouched
+> d0 := 100
+
+> f2 := u ↦ (d0 := u; d0 + 1)
+
+> f2@5
+= 6
+
+> d0
+= 100
+
+// body programs may bind local first-order helpers
+> f_local := u ↦ (inc := v ↦ v + 1; inc@u)
+
+> f_local@9
+= 10
+
+> f_local
+= u ↦ (inc := v ↦ v + 1; inc@u)
+
+// a body sequence must end in an expression
+> f3 := u ↦ (d := u)
+! E_SeqValue:
+
+// ------------------------------------------------- v0.2.1 — line continuation
+> norm1 := (u, v) ↦ (
+>>   s := u + v;
+>>   d := u - v;
+>>   s⋅s + d⋅d
+>> )
+
+> norm1@(2, 1)
+= 10
+
+// canonical display is single-line regardless of input layout
+> norm1
+= (u, v) ↦ (s := u + v; d := u - v; s⋅s + d⋅d)
+
+// ============================================================ 19.1/19.2 — =: and fuel
+@world integer 0
+
+> fact =: n ~ (if n = 0 then 1 else n.fact@(n - 1))
+~ fact =: n ↦ if n = 0 then 1 else n⋅fact@(n - 1)
+
+> fact@5
+= 120
+
+> fact@0
+= 1
+
+// fact is a closed μ-value: the equation form round-trips
+> fact
+= fact =: n ↦ if n = 0 then 1 else n⋅fact@(n - 1)
+
+> fib =: n ↦ if n < 2 then n else fib@(n - 1) + fib@(n - 2)
+
+> fib@10
+= 55
+
+// fuel meters STEPS, not depth: fib@25 has depth ~25 but ~240k unfoldings.
+// A depth budget would sail past this; a step budget catches the hang.
+@fuel 5000
+> fib@25
+! E_Fuel:
+
+@fuel 65536
+
+// =: with no self-mention degenerates to := exactly (any sort, any world)
+> c =: 5
+
+> c
+= 5
+
+// the rebind idiom still works and capture stays visible (§17.3)
+> f := n ↦ n + 1
+
+> f := n ↦ f@n + 1
+
+> f
+= n ↦ n + 1 + 1
+
+> f@1
+= 3
+
+// := with a self-mention: unbound, hint points at =:
+> g := n ↦ g@n
+! E_Unbound:
+
+// Element-sorted =: with a self-mention outside the game world: no fixpoint
+// theory, no fixpoint syntax
+> x =: x + 1
+! E_WrongWorld:
+
+// local =: in a body sequence (§18 + §19.1)
+> tri := (h =: k ↦ if k = 0 then 0 else k + h@(k - 1); h@4)
+
+> tri
+= 10
+
+// game-world-only operators parse everywhere, fail world-legality here
+> 1 ≡ 1
+! E_WrongWorld:
+
+> 1 ⧺ 2
+! E_WrongWorld:
+
+> {1 | 0}
+! E_WrongWorld:
+
+// ============================================================ 19.3 — the array container
+@world fp7 3 q=[1,1,1]
+
+> dim
+= #3
+
+> coef([1, 2, 3], 1)
+= 2
+
+// + is zip-with-add on arrays, and coef reads it back
+> coef([1, 2, 3] + [1, 1, 1], 0)
+= 2
+
+// coef is total in the Element: no e0 term in a bivector
+> coef(e0∧e1, 0)
+= 0
+
+> coef([1, 2, 3], 5)
+! E_BladeIndex:
+
+// the array acceptance example: dot by Index recursion (32 ≡ 4 mod 7)
+> dot =: (u, v, i) ↦ if i = dim then 0 else coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+
+> dot@([1, 2, 3], [4, 5, 6], 0)
+= 4
+
+@world poly2
+
+> dim
+! E_WrongWorld:
+
+// ============================================================ 19.4 — game world: literals, display
+@world game
+
+> {|}
+= 0
+
+> 2
+= 2
+
+// structural recognition: {1 |} IS the form the literal 2 builds
+> {1 |}
+= 2
+
+> {| 0}
+= -1
+
+> -2
+= -2
+
+> *2
+= *2
+
+> *
+~ *1
+= *1
+
+// a one-cell proper spine displays as the native container
+> {5 | 0}
+= [5]
+
+> {0 | 1}
+= 1/2
+
+// + materializes the SUM FORM; value identity is said with = or canon
+> 1 + 1
+= {1, 1 |}
+
+> canon(1 + 1)
+= 2
+
+> 1 + 1 = 2
+= true
+
+// relations are the full CGT partial order ({0 |} is the integer 1)
+> {0 |} > 0
+= true
+
+// standard: ∗ ∥ 0
+> *1 ∥ 0
+= true
+
+// standard: nim sum *2 + *3 = *1 (value-level; the sum form is not the
+// nimber form, so display recognition does not fire on *2 + *3 bare)
+> *2 + *3 = *1
+= true
+
+> canon(*2 + *3)
+= *1
+
+// up = {0 | *1}, down = {*1 | 0}; standard: ↑ > 0, ↑ ∥ ∗, ⇑ > ∗
+> up
+= up
+
+> up > 0
+= true
+
+> up ∥ *1
+= true
+
+> up + up > *1
+= true
+
+> down < 0
+= true
+
+// the founding scope boundary, enforced: games are a group, not a ring
+> *2 ⋅ *3
+! E_WrongWorld:
+
+// no metric, no blades — the wedge hint points at ⧺
+> {1 | 0} ∧ {2 | 0}
+! E_WrongWorld:
+
+> [1, 2]
+= [1, 2]
+
+> ω
+! E_WrongWorld:
+
+// ============================================================ 19.4.3 — the second equality
+// standard: {-1 | 1} = 0 by the simplicity rule; structurally it is a cons
+> {-1 | 1} = 0
+= true
+
+> {-1 | 1} ≡ 0
+= false
+
+> {-1 | 1} === {-1 | 1}
+~ {-1 | 1} ≡ {-1 | 1}
+= true
+
+> canon({-1 | 1})
+= 0
+
+// the two equalities, related in the language: a = b ⟺ canon(a) ≡ canon(b)
+> canon({-1 | 1}) ≡ canon({|})
+= true
+
+> canon({0 |}) ≡ canon({|})
+= false
+
+// ============================================================ 19.4.5 — lists
+// bracket containers build and display proper spines
+> [1, 2, 3]
+= [1, 2, 3]
+
+> []
+= 0
+
+// nesting gives trees
+> [[1, 2], 3]
+= [[1, 2], 3]
+
+// the missing-bar footgun, made visible: {1, 2 |} is NOT the list [1, 2]
+> {1, 2 |}
+= {1, 2 |}
+
+// option access
+> nleft({1, 2 | 0, 3})
+= #2
+
+> right({1, 2 | 0, 3}, 1)
+= 3
+
+> left({1, 2 | 0, 3}, 5)
+! E_Domain:
+
+// the list prelude is definable in-language — no new stdlib
+> hd := l ↦ left(l, 0)
+
+> tl := l ↦ right(l, 0)
+
+> isnil := l ↦ nleft(l) = 0 and nright(l) = 0
+
+> hd@[7, 8]
+= 7
+
+> tl@[7, 8]
+= [8]
+
+> hd@(tl@[7, 8])
+= 8
+
+> isnil@[]
+= true
+
+// isnil is structural; = 0 is NOT a nil test ({-1 | 1} = 0 above)
+> isnil@{-1 | 1}
+= false
+
+// ---- ⧺ append (right-assoc; unit {|}; form-level, not a =-congruence)
+> [1, 2] ++ [3]
+~ [1, 2] ⧺ [3]
+= [1, 2, 3]
+
+> {|} ⧺ {5 | 0}
+= [5]
+
+> {5 | 0} ⧺ {|}
+= [5]
+
+// right operand unrestricted: Lisp's dotted-pair freedom
+> {1 | 0} ⧺ *2
+= {1 | *2}
+
+// right-assoc chain needs no parens
+> {1 | 0} ⧺ {2 | 0} ⧺ {3 | 0}
+= [1, 2, 3]
+
+// left operand must be a finite proper spine
+> {0 |} ⧺ {|}
+! E_Improper:
+
+// the congruence failure, concrete: {-1 | 1} = 0, yet 0 appends and this errors
+> {-1 | 1} ⧺ {|}
+! E_Improper:
+
+// + is game sum, not append (sum of nils is nil; see the {1, 1 |} vector)
+> {|} + {|}
+= 0
+
+// ============================================================ 19.4.5 — grundy (the acceptance example)
+> grundy =: g ↦ (
+>>   has =: (n, i) ↦ not i = nleft(g) and
+>>                   (grundy@(left(g, i)) = n or has@(n, i + 1));
+>>   mexfrom =: n ↦ if has@(n, 0) then mexfrom@(n + 1) else n;
+>>   mexfrom@0
+>> )
+
+> grundy@{|}
+= #0
+
+> grundy@{0 | 0}
+= #1
+
+> grundy@*2
+= #2
+
+// mex over left-option grundies [0, 1] = 2
+> grundy@{0, {0 | 0} | 0}
+= #2
+
+// ============================================================ 19.5 — loopy: Element-=:
+> on =: {on |}
+
+> on
+= on =: {on |}
+
+> off =: {| off}
+
+> dud =: {dud | dud}
+
+> over =: {0 | over}
+
+// =: with no self-mention degenerates to := in this world too
+> z =: {1 | 0}
+
+> z
+= [1]
+
+// standard: dud draws for both movers; on and over are Left wins, no draw
+> hasdraw(dud)
+= true
+
+> hasdraw(on)
+= false
+
+> hasdraw(over)
+= false
+
+// hasdraw is total on finite forms
+> hasdraw([1, 2])
+= false
+
+// ---- streams are loopy games
+> ones =: {1 | ones}
+
+// alternation: the mover who faces ones wins by walking into 1 — no draw
+> hasdraw(ones)
+= false
+
+> hd@ones
+= 1
+
+// tl of the constant stream is the root itself: equation display
+> tl@ones
+= ones =: {1 | ones}
+
+> ones ≡ tl@ones
+= true
+
+// purely periodic via ⧺: guardedness-transparent from the left (§19.5)
+> l =: [1, 2] ++ l
+~ l =: [1, 2] ⧺ l
+
+> l
+= l =: {1 | {2 | l}}
+
+> hd@l
+= 1
+
+> hd@(tl@l)
+= 2
+
+> hd@(tl@(tl@l))
+= 1
+
+// regular-tree ≡: the period-2 cycle re-entered
+> l ≡ tl@(tl@l)
+= true
+
+// interior node: re-rooted equation, α-bound defining name
+> tl@l
+= l =: {2 | {1 | l}}
+
+> hasdraw(l)
+= false
+
+// eventually periodic: local =: in a body; composite display is a §18 body
+> p := (q =: [1, 2] ⧺ q; [9] ⧺ q)
+
+> p
+= (q =: {1 | {2 | q}}; {9 | q})
+
+> hd@p
+= 9
+
+> hd@(tl@p)
+= 1
+
+// the self-ELEMENT circular list (sugar nil-terminates; self-tail needs ⧺)
+> se =: [1, se]
+
+> se
+= se =: {1 | {se | 0}}
+
+// ---- guardedness edges (checked after definition-time reduction)
+> g =: g
+! E_Unfounded:
+
+// nil is append's unit: unfolds to h =: h
+> h =: {|} ⧺ h
+! E_Unfounded:
+
+// ⧺ is transparent from the LEFT only
+> k =: k ⧺ {1 | 0}
+! E_Unfounded:
+
+// totality of + on values does not make an unguarded recursive RHS founded
+> m =: m + 1
+! E_Unfounded:
+
+// ---- the 0.3.5 loopy envelope
+> ones = ones
+= true
+
+> canon(ones)
+! E_Loopy:
+
+> -ones
+= g1 =: {g1 | -1}
+
+// cyclic left operand of ⧺: appending never reaches the right operand
+> ones ⧺ {5 | 0}
+= ones =: {1 | ones}
+
+> (ones ⧺ {5 | 0}) ≡ ones
+= true
+
+// a finite prefix into a cycle is likewise unchanged as a whole
+> ([9] ⧺ ones) ⧺ {5 | 0}
+= (ones =: {1 | ones}; {9 | ones})
+
+// ---- fuel stays the verdict for μ-descent along infinite data
+> len =: m ↦ if nleft(m) = 0 then 0 else 1 + len@(right(m, 0))
+
+> len@[7, 8, 9]
+= #3
+
+> len@ones
+! E_Fuel:
+
+// ============================================================ migrated 0.3.5-B — comments
+@world integer 0
+
+> 1 + 2 // trailing line comment
+~ 1 + 2
+= 3
+
+> 1 /* outer /* nested */ comment */ + 2
+~ 1 + 2
+= 3
+
+> 1 + /* outer
+>>   /* nested */
+>> */ 2
+~ 1 + 2
+= 3
+
+// ============================================================ migrated 0.3.5-B — Index literals and marks
+@world poly5
+
+> n := deg(t↑2)
+
+> n
+= #2
+
+> f := u ↦ n
+
+> f
+= u ↦ #2
+
+> d := f@0
+
+> t↑d
+= t↑2
+
+// application is legal inside Index positions (§4 exponent, §6 first-order rule)
+> t↑(f@0)
+= t↑2
+
+> deg(t↑(f@0))
+= #2
+
+// ============================================================ migrated 0.3.5-B — fuzzy `!` and factorial removal
+@world game
+
+> *1 ! *2
+~ *1 ∥ *2
+= true
+
+> *1 != *2
+! E_Parse: not-equal is `not (a = b)`
+
+> !5
+! E_Parse:
+
+// ============================================================ migrated 0.3.5-B — full-expression ternary
+@world integer 0
+
+> sign := u ↦ if u < 0 then -1 else if u = 0 then 0 else 1
+
+> sign@(-5)
+= -1
+
+> sign@0
+= 0
+
+> sign@7
+= 1
+
+// ============================================================ migrated 0.3.5-B — containers and literal atoms
+@world fp7 3 q=[1,1,1]
+
+> dim
+= #3
+
+> dim()
+! E_UnknownFn:
+
+> coef([1, 2, 3], 1)
+= 2
+
+> dot =: (u, v, i) ↦ if i = dim then 0 else coef(u, i)⋅coef(v, i) + dot@(u, v, i + 1)
+
+> dot@([1, 2, 3], [4, 5, 6], #0)
+= 4
+
+@world integer 0
+
+> []
+= 0
+
+> up
+! E_WrongWorld:
+
+> down
+! E_WrongWorld:
+
+@world poly5
+
+> [1]
+= 1
+
+> dim
+! E_WrongWorld:
+
+@world game
+
+> up
+= up
+
+> down
+= down
+
+> up()
+! E_UnknownFn:
+
+> down()
+! E_UnknownFn:
+
+> dim
+! E_WrongWorld:
+
+> [1, 2, 3]
+= [1, 2, 3]
+
+> []
+= 0
+
+> {1, 2}
+! E_Parse: braces are game forms
+
+> {}
+! E_Parse:
+
+> hd := l ↦ left(l, 0)
+
+> tl := l ↦ right(l, 0)
+
+> hd@[7, 8]
+= 7
+
+> tl@[7, 8]
+= [8]
+
+// ============================================================ migrated 0.3.5-B — parse-side teaching hints
+@world poly5
+
+> t * t
+! E_Parse:
+
+@world integer 0
+
+> id(x) := x
+! E_Parse:
+
+// ============================================================ migrated 0.3.5-C — recognition and delights
+@world game
+
+> [0]
+= *1
+
+> [0] ≡ *1
+= true
+
+> [0, 0]
+= up
+
+> [0, 0] ≡ up
+= true
+
+> [*1]
+= down
+
+> [*1] ≡ down
+= true
+
+> up
+= up
+
+> {0 | *1}
+= up
+
+> {*1, 0 | *1, 0}
+= *2
+
+> -up ≡ down
+= true
+
+> up > 0
+= true
+
+> up ∥ *1
+= true
+
+> 1 + 1
+= {1, 1 |}
+
+> canon(1 + 1)
+= 2
+
+// ============================================================ migrated 0.3.5-C — multiset form equality and canon
+> {1, 2 | 0} ≡ {2, 1 | 0}
+= true
+
+> {0, 0 |} ≡ {0 |}
+= false
+
+> {0, *1 | 0, *1} = {*1, 0 | *1, 0}
+= true
+
+> canon({0, *1 | 0, *1})
+= *2
+
+> canon({*1, 0 | *1, 0})
+= *2
+
+> canon({0, *1 | 0, *1}) ≡ canon({*1, 0 | *1, 0})
+= true
+
+> canon(canon({5 | 0})) ≡ canon({5 | 0})
+= true
+
+> canon({-1 | 1}) = {-1 | 1}
+= true
+
+// ============================================================ migrated 0.3.5-C — right-lazy append
+> ones =: {1 | ones}
+
+> ones ⧺ canon(ones)
+= ones =: {1 | ones}
+
+> [] ⧺ [5]
+= [5]
+
+> [5] ⧺ []
+= [5]
+
+> {0 |} ⧺ canon(ones)
+! E_Improper:
+
+// ============================================================ migrated 0.3.5-C — hasdraw surface
+> hasdraw([1, 2])
+= false
+
+> drawn([1, 2])
+! E_UnknownFn: hasdraw
+
+> dud =: {dud | dud}
+
+> on =: {on |}
+
+> over =: {0 | over}
+
+> hasdraw(dud)
+= true
+
+> hasdraw(on)
+= false
+
+> hasdraw(over)
+= false
+
+> hasdraw(ones)
+= false
+
+// ============================================================ migrated 0.3.5-C — guardedness respellings
+> h =: [] ⧺ h
+! E_Unfounded:
+
+> k =: k ⧺ [1]
+! E_Unfounded:
+
+// ============================================================ migrated 0.3.5-E — outcome doubles and finite corners
+@world game
+
+// finite forms occupy only the four no-draw corners
+> 1 >> 0
+= true
+
+> 1 > 0
+= true
+
+> *1 >< 0
+= true
+
+> *1 ∥ 0
+= true
+
+> 0 <> 0
+= true
+
+> 0 = 0
+= true
+
+> -1 << 0
+= true
+
+> -1 < 0
+= true
+
+> 1 >_ 0
+~ 1 >‿ 0
+= false
+
+> 1 _> 0
+~ 1 ‿> 0
+= false
+
+> 1 __ 0
+~ 1 ‿‿ 0
+= false
+
+> 1 _< 0
+~ 1 ‿< 0
+= false
+
+> 1 <_ 0
+~ 1 <‿ 0
+= false
+
+// one concrete witness for every outcome cell
+> on =: {on |}
+
+> off =: {| off}
+
+> dud =: {dud | dud}
+
+> ll := on
+
+> ld := {0 | dud}
+
+> lr := *1
+
+> dl := {dud |}
+
+> dd := dud
+
+> dr := {dud | 0}
+
+> rl := 0
+
+> rd := {| dud}
+
+> rr := off
+
+> ll >> 0
+= true
+
+> ld >‿ 0
+= true
+
+> lr >< 0
+= true
+
+> dl ‿> 0
+= true
+
+> dd ‿‿ 0
+= true
+
+> dr ‿< 0
+= true
+
+> rl <> 0
+= true
+
+> rd <‿ 0
+= true
+
+> rr << 0
+= true
+
+// negation rotation and operand swap use the same 180-degree cell map
+> -ll << 0
+= true
+
+> 0 << ll
+= true
+
+> -ld ‿< 0
+= true
+
+> 0 ‿< ld
+= true
+
+> -lr >< 0
+= true
+
+> 0 >< lr
+= true
+
+> -dl <‿ 0
+= true
+
+> 0 <‿ dl
+= true
+
+> -dd ‿‿ 0
+= true
+
+> 0 ‿‿ dd
+= true
+
+> -dr >‿ 0
+= true
+
+> 0 >‿ dr
+= true
+
+> -rl <> 0
+= true
+
+> 0 <> rl
+= true
+
+> -rd ‿> 0
+= true
+
+> 0 ‿> rd
+= true
+
+> -rr >> 0
+= true
+
+> 0 >> rr
+= true
+
+// ============================================================ migrated 0.3.5-E — stoppers and projected singles
+> over =: {0 | over}
+
+> under =: {under | 0}
+
+> ones =: {1 | ones}
+
+> stopper(over)
+= true
+
+> stopper(under)
+= true
+
+> stopper(ones)
+= true
+
+> stopper(dud)
+= false
+
+// the value/outcome teaching triple
+> over = over
+= true
+
+> over ‿‿ over
+= true
+
+> over <> over
+= false
+
+// the gate is on the presented operands, never their difference
+> over > under
+= true
+
+> over >> 0
+= true
+
+> stopper(over + under)
+= false
+
+> on > off
+= true
+
+> on >> off
+= true
+
+> on ‿‿ off
+= false
+
+// non-stopper singles carry a compact closed turn-state cycle
+> dud = 0
+! E_Loopy: alternating cycle 0:L→0:R→0:L
+
+> dud = dud
+! E_Loopy: alternating cycle 0:L→0:R→0:L
+
+> 0 = dud
+! E_Loopy: right operand has alternating cycle 0:L→0:R→0:L
+
+// doubles remain total beyond the stopper boundary
+> dud ‿‿ 0
+= true
+
+// ============================================================ migrated 0.3.5-E — total loopy arithmetic and display
+> -on
+= g1 =: {| g1}
+
+> on + off
+= g1 =: {g1 | g1}
+
+> stopper(on + off)
+= false
+
+> hasdraw(on + off)
+= true
+
+> hasdraw(over - over)
+= true
+
+> [9] ⧺ ones
+= (ones =: {1 | ones}; {9 | ones})
+
+// hasdraw is exactly the union of the five draw cells against zero
+> hasdraw(dud) = (dud >‿ 0 or dud ‿> 0 or dud ‿‿ 0 or dud ‿< 0 or dud <‿ 0)
+= true
+
+> hasdraw(on) = (on >‿ 0 or on ‿> 0 or on ‿‿ 0 or on ‿< 0 or on <‿ 0)
+= true
+
+// product overflow is a resource error, distinct from E_Loopy
+@graph 2
+
+> over + under
+! E_GraphBudget: node budget of 2
+
+@graph 65536
+
+// total + on values does not loosen recursive guardedness
+> m =: m + 1
+! E_Unfounded:
+
+// ============================================================ migrated 0.3.5-E — relation teaching sites
+> outcome(0)
+! E_Unbound: relations against 0
+
+> winner(0)
+! E_Unbound: relations against 0
+
+> 1 _ 2
+! E_Parse: mover-result atoms come in pairs
+
+@world integer 0
+
+> 1 >> 0
+! E_WrongWorld: game
+
+> stopper(0)
+! E_WrongWorld: game
+
+// ---------------------------------------------------------------- 0.3.6: the second adversarial pass (merged from conformance_v0.3.6.txt)
+
+// The stopper gate passes for both operands; only the difference product is over budget.
+@world game
+
+> over =: {0 | over}
+> under =: {under | 0}
+
+@graph 2
+
+> over = under
+! E_GraphBudget:
+
+// Finite shared DAGs are budgeted during every graph-materializing operation.
+@world game
+
+> on =: {on |}
+> g0 := {0 | 0}
+> g1 := {g0 | g0}
+> g2 := {g1 | g1}
+> g3 := {g2 | g2}
+> g4 := {g3 | g3}
+> g5 := {g4 | g4}
+> g6 := {g5 | g5}
+> g7 := {g6 | g6}
+> g8 := {g7 | g7}
+> g9 := {g8 | g8}
+> g10 := {g9 | g9}
+> g11 := {g10 | g10}
+> g12 := {g11 | g11}
+> g13 := {g12 | g12}
+> g14 := {g13 | g13}
+> g15 := {g14 | g14}
+> g16 := {g15 | g15}
+> g17 := {g16 | g16}
+> g18 := {g17 | g17}
+> g19 := {g18 | g18}
+> g20 := {g19 | g19}
+> g21 := {g20 | g20}
+> g22 := {g21 | g21}
+> g23 := {g22 | g22}
+> g24 := {g23 | g23}
+> g25 := {g24 | g24}
+> g26 := {g25 | g25}
+
+@graph 8
+
+> g26 >> on
+! E_GraphBudget:
+
+> g26 = 0
+! E_GraphBudget:
+
+> g26 + on
+! E_GraphBudget:
+
+> -g26
+! E_GraphBudget:
+
+// Structural equality follows sharing rather than the exponential tree unfolding.
+@world game
+
+> g0 := {0 | 0}
+> h0 := {0 | 1}
+> g1 := {g0 | g0}
+> h1 := {h0 | h0}
+> g2 := {g1 | g1}
+> h2 := {h1 | h1}
+> g3 := {g2 | g2}
+> h3 := {h2 | h2}
+> g4 := {g3 | g3}
+> h4 := {h3 | h3}
+> g5 := {g4 | g4}
+> h5 := {h4 | h4}
+> g6 := {g5 | g5}
+> h6 := {h5 | h5}
+> g7 := {g6 | g6}
+> h7 := {h6 | h6}
+> g8 := {g7 | g7}
+> h8 := {h7 | h7}
+> g9 := {g8 | g8}
+> h9 := {h8 | h8}
+> g10 := {g9 | g9}
+> h10 := {h9 | h9}
+> g11 := {g10 | g10}
+> h11 := {h10 | h10}
+> g12 := {g11 | g11}
+> h12 := {h11 | h11}
+> g13 := {g12 | g12}
+> h13 := {h12 | h12}
+> g14 := {g13 | g13}
+> h14 := {h13 | h13}
+> g15 := {g14 | g14}
+> h15 := {h14 | h14}
+> g16 := {g15 | g15}
+> h16 := {h15 | h15}
+> g17 := {g16 | g16}
+> h17 := {h16 | h16}
+> g18 := {g17 | g17}
+> h18 := {h17 | h17}
+> g19 := {g18 | g18}
+> h19 := {h18 | h18}
+> g20 := {g19 | g19}
+> h20 := {h19 | h19}
+> g21 := {g20 | g20}
+> h21 := {h20 | h20}
+> g22 := {g21 | g21}
+> h22 := {h21 | h21}
+> g23 := {g22 | g22}
+> h23 := {h22 | h22}
+> g24 := {g23 | g23}
+> h24 := {h23 | h23}
+> g25 := {g24 | g24}
+> h25 := {h24 | h24}
+> g26 := {g25 | g25}
+> h26 := {h25 | h25}
+> g27 := {g26 | g26}
+> h27 := {h26 | h26}
+> g28 := {g27 | g27}
+> h28 := {h27 | h27}
+> g29 := {g28 | g28}
+> h29 := {h28 | h28}
+> g30 := {g29 | g29}
+> h30 := {h29 | h29}
+
+> g30 ≡ g30
+= true
+
+> g30 ≡ h30
+= false
+
+// Stage D: adjacent Element equations are simultaneous and display is self-contained.
+@world game
+
+> a =: {b |}; b =: {| a}
+> a
+= a =: {b |}; b =: {| a}
+
+> (c =: {d |}; d =: {| c}; d)
+= d =: {| c}; c =: {d |}
+
+@world game
+
+> twos =: {2 | woes}; woes =: {2 | twos}
+> twos
+= twos =: {2 | woes}; woes =: {2 | twos}
+
+// A non-recursive binding ends the equation system; the forward reference is unbound.
+@world game
+
+> a =: {b |}; cut := 0; b =: {| a}
+! E_Unbound: `b`
+
+@world game
+
+> a =: {b |}; f =: x ↦ x; b =: {| a}
+! E_Unbound: `b`
+
+// Unguardedness names both the offending equation and the symbolic system name.
+@world game
+
+> a =: b; b =: {| a}
+! E_Unfounded: equation `a` has unguarded system name `b`
+
+// Multi-SCC sums emit dependencies first and mutual SCCs as adjacent runs.
+@world game
+
+> on =: {on |}
+> l =: [1, 2] ⧺ l
+> l + on
+= (g3 =: {g3 |}; g2 =: {g3, g2 |}; g7 =: {g7 |}; g6 =: {g7, g6 |}; g5 =: {g6, g5 |}; g1 =: {g2, g1 | g4}; g4 =: {g5, g4 | g1}; g1)
+
+// Rebinding history never aliases two distinct cycles through stale provenance.
+@world game
+
+> a =: {a |}
+> old := a
+> a =: {| a}
+> {old | a}
+= (old =: {old |}; a =: {| a}; {old | a})
+
+// Named roots include every external cyclic dependency and end in their own name.
+@world game
+
+> a =: {0 | a}
+> g =: {a | g}
+> g
+= (a =: {0 | a}; g =: {a | g}; g)
+
+@world game
+
+> on =: {on |}
+> x := -on
+> g =: {x | g}
+> g
+= (x =: {| x}; g =: {x | g}; g)
+
+// Synthesized anchors avoid current environment names and user-rooted anchors.
+@world game
+
+> on =: {on |}
+> g1 =: {1 | g1}
+> a := -on
+> {a | g1}
+= (a =: {| a}; g1 =: {1 | g1}; {a | g1})
+
+// Stage E: skipped append operands are sort-checked but never value-evaluated.
+@world game
+
+> ones =: [1] ⧺ ones
+
+> ones ⧺ true
+! E_BoolSort:
+
+> ones ⧺ #2
+! E_IndexSort:
+
+> ones ⧺ (x ↦ x)
+! E_FnSort:
+
+> ones ⧺ (ones + 0)
+= ones =: {1 | ones}
+
+> ones ⧺ (1 / 0)
+= ones =: {1 | ones}
+
+> same =: ones ⧺ same
+> same ≡ ones
+= true
+
+// Guardedness reduces with the language's current non-strict rules.
+@world game
+
+> g =: [g] ⧺ []
+> g
+= g =: {g | 0}
+
+> dead =: {if true then 0 else dead |}
+> dead
+= 1
+
+> anddead =: {if false and (anddead = 0) then anddead else 0 |}
+> anddead
+= 1
+
+> ordead =: {if true or (ordead = 0) then 0 else ordead |}
+> ordead
+= 1
+
+// Bare-root occurrences remain genuine Element guardedness failures.
+@world game
+
+> g =: g
+! E_Unfounded:
+
+> h =: [] ⧺ h
+! E_Unfounded:
+
+> k =: k ⧺ [1]
+! E_Unfounded:
+
+> m =: m + 1
+! E_Unfounded:
+
+// Bool and Index equations have their own sort diagnosis and teaching hint.
+@world game
+
+> b =: not b
+! E_FixpointSort: recursion is for Functions (unfolding) and game Elements (graphs)
+
+> n =: #(n + 1)
+! E_FixpointSort: recursion is for Functions (unfolding) and game Elements (graphs)
+
+// Guidance is carried by hints; the corpus pins the rendered teaching text.
+@world game
+
+> ω
+! E_WrongWorld: use finite game forms
+
+> dim
+! E_WrongWorld: the game container is free-shape
+
+> /1
+! E_WrongWorld: `/` is undefined for games
+
+> 1 ⋅ 2
+! E_WrongWorld: `⋅` is undefined for games
+
+> 1 ∧ 2
+! E_WrongWorld: list append is `⧺`
+
+> 1 / 2
+= 1/2
+
+> on =: {on |}
+
+> canon(on)
+! E_Loopy: graph fusion is not yet in the envelope
+
+@world integer 0
+
+> 1@2
+! E_WrongWorld: element evaluation lives in function-shaped worlds
+
+@world ratfunc2
+
+> t % t
+! E_WrongWorld: `%` is only active in polynomial worlds
+
+@world surreal 0
+
+> *3
+! E_WrongWorld: `*3` is a nimber literal
+
+// Stage F: conditionals are words, nearest-else, lazy, and totally sort-checked.
+@world integer 0
+
+> if false then 1 else if true then 2 else 3
+= 2
+
+> if true then if false then 1 else 2 else 3
+= 2
+
+> if true then 7 else 1 / 0
+= 7
+
+> if true then 1 else false
+! E_BoolSort:
+
+> if true then 1 else #2
+! E_IndexSort:
+
+> if 1 then 2 else 3
+! E_BoolSort:
+
+> 1 ? 2 : 3
+! E_Parse: conditionals are words now: `if a then b else c`
+
+> :
+! E_Parse: conditionals are words now: `if a then b else c`
+
+// Signed powers ignore token adjacency and retain one canonical spelling.
+@world surreal 0
+
+> 2 ↑ - 3
+~ 2↑-3
+= 1/8
+
+> 2↑-3
+= 1/8
+
+// Every token that cannot end a statement drives continuation.
+@world integer 0
+
+> inc := x ↦
+>> x + 1
+
+> inc@2
+= 3
+
+> 1 +
+>> 2
+~ 1 + 2
+= 3
+
+@world game
+
+> a =: {b |};
+>> b =: {| a}
+
+> a
+= a =: {b |}; b =: {| a}
+
+// Binder marks declare sorts; display retains only marks the body does not force.
+@world integer 1 q=[1]
+
+> keep := (#i, ?p) ↦ 7
+
+> keep
+= (#i, ?p) ↦ 7
+
+> same := (?p, ?q) ↦ p = q
+
+> same
+= (?p, ?q) ↦ p = q
+
+> bad := #x ↦ x ⋅ e0
+! E_IndexSort:
+
+> bad_bool := ?p ↦ p + 1
+! E_BoolSort:
+
+> duplicate := (#a, a) ↦ a
+! E_Shadow: duplicate binder `a`
+
+> less := (i, j) ↦ i < j
+
+> less
+= (i, j) ↦ i < j
+
+> less@(#1, #2)
+! E_IndexSort: declare the binder: `(#i, #j) ↦ …`
+
+@world f4 0
+
+> gold := (#a, u) ↦ tr(u ⋅ u↑(2↑a))
+~ gold := (#a, u) ↦ tr(u⋅u↑(2↑a))
+
+> gold
+= (a, u) ↦ tr(u⋅u↑(2↑a))
+
+// Stage G: one container glyph for graded polynomial and function-field worlds.
+@world fp5[t]
+
+> [1, 2, 3]
+= 3⋅t↑2 + 2⋅t + 1
+
+> []
+= 0
+
+> [1, t]
+! E_Domain: container entries are coefficients; `t` is not a coefficient
+
+> coef([1, 2, 3], 0)
+= 1
+
+> coef([1, 2, 3], 2)
+= 3
+
+> coef([1, 2, 3], 8)
+= 0
+
+> coef([1, 2, 3], -1)
+! E_Domain: non-negative
+
+@world fp5(t)
+
+> [1, 2, 3]
+= 3⋅t↑2 + 2⋅t + 1
+
+> []
+= 0
+
+> [1, t]
+! E_Domain: container entries are coefficients; `t` is not a coefficient
+
+> coef([1, 2, 3], 0)
+! E_WrongWorld: unavailable on rational functions
+
+// Dyadic literals are structural literals in game and recognition is structural.
+@world game
+
+> 1/2
+= 1/2
+
+> -3/4
+= -3/4
+
+> 3/-4
+= -3/4
+
+> 5/8
+= 5/8
+
+> {0 | 1}
+= 1/2
+
+> {0, -1 | 1}
+= {0, -1 | 1}
+
+> canon({0, -1 | 1})
+= 1/2
+
+> 1/3
+! E_Domain: only dyadics are short games; `1/3` is not born on any finite day
+
+> 1/0
+! E_DivisionByZero:
+
+> g := 1
+
+> g/2
+! E_WrongWorld: `/` is undefined for games
+
+> (1 + 1)/2
+! E_WrongWorld: `/` is undefined for games
+
+> /g
+! E_WrongWorld: `/` is undefined for games
+
+> ones =: [1] ⧺ ones
+
+> ones ⧺ (1/0)
+= ones =: {1 | ones}
+
+// Canonical world spellings coexist with the input aliases.
+@world fp2[t]
+
+> [1, 1]
+= t + 1
+
+@world poly2
+
+> [1, 1]
+= t + 1
+
+@world fp2(t)
+
+> [1, 1]
+= t + 1
+
+@world ratfunc2
+
+> [1, 1]
+= t + 1
+
+@world nimber
+
+> *1
+= *1
+
+// Display v4: descending powers, elided units, and sign-aware joins.
+@world integer[t]
+
+> [1, -1, 1]
+= t↑2 - t + 1
+
+> [0, 1, 0, 2]
+= 2⋅t↑3 + t
+
+@world fp5(t)
+
+> 1/[1, -1, 1]
+= (1)/(t↑2 - t + 1)
+
+// Presented birthdays differ from value birthdays; cycles have no finite day.
+@world game
+
+> birthday({0 | 2})
+= #3
+
+> birthday(canon({0 | 2}))
+= #1
+
+> on =: {on |}
+
+> birthday(on)
+! E_Loopy: finite formation day
+
+> birthday := 0
+! E_Reserved:
+
+// `integral` exposes only the shipped ring-of-integers pairings.
+@world surreal
+
+> integral(ω)
+= true
+
+> integral(1/2)
+= false
+
+> integral(ω↑-1)
+= false
+
+@world fp2(t)
+
+> integral(1/t)
+= false
+
+> integral([1, 0, 1])
+= true
+
+@world integer
+
+> integral(7)
+= true
+
+@world omnific
+
+> integral(ω + 1)
+= true
+
+@world fp3[t]
+
+> integral(t)
+= true
+
+@world nimber
+
+> integral(*1)
+! E_WrongWorld: ring-of-integers pairing
+
+@world ordinal
+
+> integral(*1)
+! E_WrongWorld: ring-of-integers pairing
+
+@world fp2
+
+> integral(1)
+! E_WrongWorld: ring-of-integers pairing
+
+@world f4
+
+> integral(x)
+! E_WrongWorld: ring-of-integers pairing
+
+@world game
+
+> integral(0)
+! E_WrongWorld: ring-of-integers pairing
+
+@world surreal 1 q=[1]
+
+> integral(ω)
+= true
+
+> integral(e0)
+! E_Grade0:
+
+> integral := 0
+! E_Reserved:
+
+// Stage E addendum: Element equations sort-check before non-strict reduction skips.
+@world game
+
+> dead =: if true then {dead |} else true
+! E_BoolSort:
+
+> c =: {if false and 1 then c else 0 |}
+! E_BoolSort:
+
+> ones =: [1] ⧺ ones
+
+> x =: {x | ones ⧺ true}
+! E_BoolSort:
+
+// Symbolic skipped operands classify as Elements without being evaluated.
+> kept =: {if true then 0 else kept |}
+> kept
+= 1
+
+> kept_and =: {if false and (kept_and = 0) then kept_and else 0 |}
+> kept_and
+= 1
+
+> kept_or =: {if true or (kept_or = 0) then 0 else kept_or |}
+> kept_or
+= 1
+
+> kept_tail =: {kept_tail | ones ⧺ kept_tail}

@@ -22,7 +22,7 @@
 //! therefore a *precision model*, **excluded from the exact-ring fuzz suite**.
 //! The tested facts are the diagonal embedding, the finite-place bookkeeping, the
 //! multiplicative idele behavior in represented cases, and the local–global
-//! routines in [`forms::adelic`](crate::forms::adelic).
+//! routines in [`forms::adelic`](crate::forms).
 //!
 //! Deliberately **not** [`Valued`](crate::scalar::Valued) (an adele has a whole
 //! family of valuations, no single canonical one — use [`Adele::local_at`] and
@@ -31,6 +31,7 @@
 //! [`Adele::is_integral`]), honest gaps in the same spirit as `Laurent`.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
 
 use crate::scalar::{LocalQp, Rational, Scalar};
 
@@ -38,7 +39,10 @@ use crate::scalar::{LocalQp, Rational, Scalar};
 pub(crate) const ADELE_PREC_NOMINAL: u128 = 16;
 
 /// The effective relative precision at prime `p`: the nominal precision, capped so
-/// the schoolbook mantissa product `(p^k)²` never overflows `u128`. A deterministic
+/// the mantissa modulus `p^k` fits `i128::MAX` — the "i128-backed embeddings"
+/// contract [`LocalQp`]'s own guard enforces (mirroring `Zp`/`Qp`), not a
+/// `(p^k)²`-fits-`u128` bound: `LocalQp::mul` routes the mantissa product through
+/// `mul_mod_u128`, which never needs the squared modulus to fit. A deterministic
 /// function of `p`, so all cells at a given prime share one precision (and
 /// [`LocalQp`] arithmetic never mixes precisions). Large primes get less precision —
 /// the same `i128`-scale limitation as [`Rational`].
@@ -46,11 +50,10 @@ pub(crate) fn adele_prec(p: u128) -> u128 {
     let mut k = ADELE_PREC_NOMINAL;
     while k > 1
         && p.checked_pow(
-            (2 * k)
-                .try_into()
+            k.try_into()
                 .expect("adele precision exponent fits the platform exponent type"),
         )
-        .is_none()
+        .is_none_or(|pk| pk > i128::MAX as u128)
     {
         k -= 1;
     }
@@ -94,14 +97,14 @@ fn p_pow_rational(p: u128, e: i128) -> Rational {
         acc = acc.checked_mul(p as i128).expect("p-power exceeds i128");
     }
     if e >= 0 {
-        Rational::int(acc)
+        Rational::from_int(acc)
     } else {
         Rational::new(1, acc)
     }
 }
 
 /// An element of the adele ring `A_Q`.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Adele {
     /// The global/diagonal rational — the local component at almost every place.
     principal: Rational,
@@ -355,6 +358,25 @@ impl Scalar for Adele {
     }
 }
 
+impl fmt::Display for Adele {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Adele(principal={}", self.principal)?;
+        if self.real != self.principal {
+            write!(f, ", real={}", self.real)?;
+        }
+        for (p, dev) in &self.finite {
+            write!(f, ", Q_{p}={dev}")?;
+        }
+        write!(f, ")")
+    }
+}
+
+impl fmt::Debug for Adele {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -420,7 +442,10 @@ mod tests {
         assert_eq!(x.absolute_value_at(AdelePlace::Real), q(12, 5));
         assert_eq!(x.absolute_value_at(AdelePlace::Prime(2)), q(1, 4));
         assert_eq!(x.absolute_value_at(AdelePlace::Prime(3)), q(1, 3));
-        assert_eq!(x.absolute_value_at(AdelePlace::Prime(5)), Rational::int(5));
+        assert_eq!(
+            x.absolute_value_at(AdelePlace::Prime(5)),
+            Rational::from_int(5)
+        );
         assert_eq!(x.absolute_value_at(AdelePlace::Prime(7)), Rational::one());
         assert_eq!(x.idele_norm(), Rational::one());
     }
@@ -428,7 +453,7 @@ mod tests {
     #[test]
     fn a_nonprincipal_idele_and_its_inverse() {
         // Perturb at p = 7: a genuine deviation that keeps the element a unit there.
-        let dev = LocalQp::from_i128(7, adele_prec(7), 1); // small unit deviation
+        let dev = LocalQp::from_int(7, adele_prec(7), 1); // small unit deviation
         let x = Adele::from_rational(&q(2, 3)).with_correction(7, dev);
         assert!(!x.is_principal());
         assert!(x.is_idele());

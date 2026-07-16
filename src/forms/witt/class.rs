@@ -28,25 +28,100 @@ pub enum WittClassError {
     },
 }
 
+impl std::fmt::Display for WittClassError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WittClassError::GeneralBilinearMetric => {
+                f.write_str("general-bilinear metric: classifier requires a pure (q, b) metric")
+            }
+            WittClassError::Singular {
+                radical_dim,
+                radical_anisotropic,
+            } => write!(
+                f,
+                "singular form: radical_dim={radical_dim}, radical_anisotropic={radical_anisotropic}"
+            ),
+        }
+    }
+}
+
+/// Reason a [`WittClassG::try_add`] or [`WittClassG::try_mul`] call returned `Err`.
+/// Shared as the error type for both [`WittClass`] and [`WittClassG`] operations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum WittClassGError {
+    /// The two operands live over different finite fields of the same characteristic
+    /// and cannot be directly summed; re-evaluate over a common extension first.
+    DifferentFields,
+    /// The operands are from different characteristic regimes (char 0, odd, char 2).
+    DifferentCharacteristics,
+    /// The characteristic-2 quadratic Witt group `W_q` is a module over the
+    /// bilinear Witt ring, not a ring itself; ring multiplication of char-2 classes
+    /// is undefined.
+    Char2NotARing,
+}
+
+impl std::fmt::Display for WittClassGError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WittClassGError::DifferentFields => {
+                f.write_str("Witt classes are from different finite fields")
+            }
+            WittClassGError::DifferentCharacteristics => {
+                f.write_str("cannot combine Witt classes across different characteristics")
+            }
+            WittClassGError::Char2NotARing => f.write_str(
+                "char-2 quadratic Witt classes form a module, not a ring; ring multiplication is undefined",
+            ),
+        }
+    }
+}
+
 /// A class in the Witt group `W_q(F) ≅ ℤ/2` of a finite nim-field: the Arf
 /// invariant of a form's anisotropic core (hyperbolic planes are the identity).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WittClass {
-    /// Degree `m` of the finite char-2 field `F_{2^m}` this class lives over.
-    pub field_degree: u128,
-    /// The class, 0 or 1 — equivalently the Arf invariant of the nonsingular core.
-    pub arf: u128,
+    field_degree: u128,
+    arf: u128,
 }
 
 impl WittClass {
+    /// Build a Witt class from its field degree and Arf bit, checking the
+    /// invariants every constructor in this file maintains: `field_degree` positive,
+    /// `arf` a bit (`0` or `1`). Mirrors the checked-constructor discipline of the
+    /// other Brauer/Witt siblings in this shelf (`RationalBrauerWallClass::from_parts`,
+    /// `FunctionFieldBrauerWallClass::from_parts`).
+    pub fn new(field_degree: u128, arf: u128) -> Option<Self> {
+        if field_degree == 0 || arf > 1 {
+            return None;
+        }
+        Some(WittClass { field_degree, arf })
+    }
+
+    /// Degree `m` of the finite char-2 field `F_{2^m}` this class lives over.
+    pub fn field_degree(&self) -> u128 {
+        self.field_degree
+    }
+
+    /// The class, 0 or 1 — equivalently the Arf invariant of the nonsingular core.
+    pub fn arf(&self) -> u128 {
+        self.arf
+    }
+
     /// The identity over `F₂`: the class of the hyperbolic plane (and of the
     /// zero form). Use [`zero_over`](Self::zero_over) when the ground field is
     /// a larger finite char-2 field.
-    pub fn zero() -> Self {
+    pub fn zero_f2() -> Self {
         WittClass {
             field_degree: 1,
             arf: 0,
         }
+    }
+
+    /// Backward-compatible alias for [`zero_f2`](Self::zero_f2).
+    #[deprecated(since = "0.0.0", note = "use zero_f2() for clarity")]
+    pub fn zero() -> Self {
+        Self::zero_f2()
     }
 
     /// The identity over `F_{2^field_degree}`.
@@ -79,9 +154,9 @@ impl WittClass {
     /// checked to stay over the same finite field. Arf is additive only after
     /// the base field is fixed; cross-field sums must first be re-evaluated over
     /// a common extension.
-    pub fn try_add(&self, other: &WittClass) -> Result<WittClass, &'static str> {
+    pub fn try_add(&self, other: &WittClass) -> Result<WittClass, WittClassGError> {
         if self.field_degree != other.field_degree {
-            return Err("char-2 Witt classes are from different finite fields");
+            return Err(WittClassGError::DifferentFields);
         }
         Ok(WittClass {
             field_degree: self.field_degree,
@@ -109,12 +184,19 @@ impl WittClass {
         }
     }
 
+    /// `display()` alias kept for Python callers.
     pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for WittClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let field = format!("F_2^{}", self.field_degree);
         if self.arf == 0 {
-            format!("0 (hyperbolic class over {field})")
+            write!(f, "0 (hyperbolic class over {field})")
         } else {
-            format!("[anisotropic plane] (Arf 1 over {field})")
+            write!(f, "[anisotropic plane] (Arf 1 over {field})")
         }
     }
 }
@@ -137,9 +219,13 @@ impl std::ops::Neg for WittClass {
     }
 }
 
-/// The Witt class across **all three characteristics** — the group-theoretic
+/// The *generic* Witt class across **all three characteristics** — the group-theoretic
 /// home of the classifier trichotomy (char-0 signature / odd-char
 /// discriminant / char-2 Arf), mirroring the Artin–Schreier↔Arf unification.
+///
+/// The `G` suffix denotes **generic** (spanning the full characteristic trichotomy),
+/// as distinct from the nimber-specific [`WittClass`] in this file which is fixed to
+/// the char-2 field `F_{2^m}`.
 ///
 /// * `Char0`: over the exact-square surreal subdomain, the real-table Witt class
 ///   is classified by the signature `p − q`; forms outside that subdomain are
@@ -205,7 +291,7 @@ impl WittClassG {
 
     /// The group operation `⊥`, checked because classes from different
     /// characteristic regimes cannot be added.
-    pub fn try_add(&self, other: &WittClassG) -> Result<WittClassG, &'static str> {
+    pub fn try_add(&self, other: &WittClassG) -> Result<WittClassG, WittClassGError> {
         match (*self, *other) {
             (WittClassG::Char0 { signature: a }, WittClassG::Char0 { signature: b }) => {
                 Ok(WittClassG::Char0 { signature: a + b })
@@ -221,7 +307,7 @@ impl WittClassG {
                 },
             ) => {
                 if ma != mb {
-                    return Err("char-2 Witt classes are from different finite fields");
+                    return Err(WittClassGError::DifferentFields);
                 }
                 Ok(WittClassG::Char2 {
                     field_degree: ma,
@@ -243,7 +329,7 @@ impl WittClassG {
                 },
             ) => {
                 if qa != qb || ka != kb {
-                    return Err("odd-char Witt classes are from different finite fields");
+                    return Err(WittClassGError::DifferentFields);
                 }
                 // signed-disc multiplies with a (−1)^{mn} = (−1)^{e0a·e0b} twist:
                 let twist = if e0a & e0b == 1 { ka } else { 0 };
@@ -254,7 +340,7 @@ impl WittClassG {
                     sclass: sa ^ sb ^ twist,
                 })
             }
-            _ => Err("cannot add Witt classes across characteristics"),
+            _ => Err(WittClassGError::DifferentCharacteristics),
         }
     }
 
@@ -271,7 +357,7 @@ impl WittClassG {
     /// In characteristic 2 the *quadratic* Witt group `W_q` is a **module over**
     /// the bilinear Witt ring, not a ring, so char-2 operands are rejected instead
     /// of forcing an infallible product.
-    pub fn try_mul(&self, other: &WittClassG) -> Result<WittClassG, &'static str> {
+    pub fn try_mul(&self, other: &WittClassG) -> Result<WittClassG, WittClassGError> {
         match (*self, *other) {
             (WittClassG::Char0 { signature: a }, WittClassG::Char0 { signature: b }) => {
                 Ok(WittClassG::Char0 { signature: a * b })
@@ -291,7 +377,7 @@ impl WittClassG {
                 },
             ) => {
                 if qa != qb || ka != kb {
-                    return Err("odd-char Witt classes are from different finite fields");
+                    return Err(WittClassGError::DifferentFields);
                 }
                 if ka == 1 {
                     // ℤ/4 via z = e0 + 2·sclass; multiply mod 4.
@@ -318,10 +404,10 @@ impl WittClassG {
                     })
                 }
             }
-            (WittClassG::Char2 { .. }, WittClassG::Char2 { .. }) => Err(
-                "char-2 quadratic Witt classes form a module over the bilinear Witt ring, not a ring",
-            ),
-            _ => Err("cannot multiply Witt classes across characteristics"),
+            (WittClassG::Char2 { .. }, WittClassG::Char2 { .. }) => {
+                Err(WittClassGError::Char2NotARing)
+            }
+            _ => Err(WittClassGError::DifferentCharacteristics),
         }
     }
 
@@ -333,6 +419,31 @@ impl WittClassG {
             kappa,
             e0: 1,
             sclass: 0,
+        }
+    }
+
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for WittClassG {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WittClassG::Char0 { signature } => write!(f, "W(R): signature {signature}"),
+            WittClassG::OddChar {
+                field_order,
+                kappa,
+                e0,
+                sclass,
+            } => write!(
+                f,
+                "W(F_{field_order}): e0 {e0} sclass {sclass} (kappa {kappa})"
+            ),
+            WittClassG::Char2 { field_degree, arf } => {
+                write!(f, "W_q(F_2^{field_degree}): arf {arf}")
+            }
         }
     }
 }
@@ -359,16 +470,16 @@ mod tests {
             .expect("anisotropic plane is nonsingular"); // Arf 1
         assert!(h.is_hyperbolic());
         assert!(!a.is_hyperbolic());
-        assert_eq!(h, WittClass::zero());
+        assert_eq!(h, WittClass::zero_f2());
         assert_eq!(a.anisotropic_dim(), 2);
         // self-inverse: a + a = 0  ⟺  A ⊕ A ≅ H ⊕ H
-        assert_eq!(a.try_add(&a), Ok(WittClass::zero()));
+        assert_eq!(a.try_add(&a), Ok(WittClass::zero_f2()));
         assert_eq!(a.try_add(&h), Ok(a)); // identity
     }
 
     #[test]
     fn group_law_is_xor_of_arf() {
-        let h = WittClass::zero();
+        let h = WittClass::zero_f2();
         let a = WittClass {
             field_degree: 1,
             arf: 1,

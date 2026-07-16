@@ -30,16 +30,54 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/clifford/` | the multivector engine + the GA layer | [`src/clifford/AGENTS.md`](src/clifford/AGENTS.md) |
 | `src/forms/`    | quadratic forms & invariants, by the char trichotomy plus local-global and integral layers | [`src/forms/AGENTS.md`](src/forms/AGENTS.md) (+ [`integral/`](src/forms/integral/AGENTS.md)) |
 | `src/games/`    | combinatorial game theory | [`src/games/AGENTS.md`](src/games/AGENTS.md) |
+| `grundy/`       | the grundy expression-language crate at v0.3.6 — an UNPUBLISHED workspace member (`publish = false`; the ogdoad crate ships without it, and the name stays provisional till 0.3.8 — renamed from ogham 2026-07-15). Depends on ogdoad's public API only; carries its own `examples/repl.rs`, `tests/`, and `docs/` (spec + conformance corpus). Content: lex/parse/unparse + `session`, `runtime/` — the shared evaluator, one Index evaluator, `Apply`, `RuntimeState` — and `worlds/` incl. `game/`; mutual Element-`=:` systems with self-contained SCC equation display; word conditionals `if/then/else`; binder mark triad `#`/`?`/bare-Element; container totality fixed/graded/free; dyadic game literals; `birthday`/`integral`; world names `fp2[t]`/`fp2(t)` + dim-0 shorthand; budgeted embeddings, `E_StackDepth`/`E_FixpointSort` | root rules |
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
-Beyond the library: `examples/` (Rust demos `tour`/`tropical` + the open-question
-probes `interactive_kernel`, `octal_hunt`, `loopy_quadric`, `misere_quotient`,
-`bent_route`), `experiments/` (Python research probes on top of the shipped
-lib), `demo.py` (the Python tour), `OPEN.md` (the genuine research problems),
-`ROADMAP.md` (the cross-pillar bridge map and remaining boundaries),
-`TABLES.md` (the inventory of curated hardcoded tables), and
-`writeups/goldarf.tex` (the draft note on the Gold/Arf game thread).
+Beyond the library: `examples/` (Rust demos `tour`/`tropical` and the
+open-question probes `interactive_kernel`, `octal_hunt`,
+`loopy_quadric`, `misere_quotient`, `bent_route`; the grundy REPL lives in the
+grundy crate — `cargo run -p grundy --example repl`), `experiments/` (Python research probes on top of the shipped
+lib, two-tier by maintenance bar: top-level `experiments/*.py` + `scripts/` are
+maintained — guards, type hints, docstrings, held to the Rust side's own bar —
+while `experiments/{gold,audit,excess}/` is a rescued archive from the 2026-06-10
+fable-fleet run, judged file-by-file in the STATUS TABLE each of those three
+directories' `README.md` carries (`pinned`/`oracle`/`superseded-by`/`scratch`);
+`docs/PY.md` is the audit ledger tracking both tiers), `demo.py` (the Python tour),
+`docs/` (OPEN.md — the genuine research problems; COMPLETENESS.md — the game-valued
+ledger of buildable items completing symmetries/connections already in the code;
+CONTINUATIONS.md — the game-valued ledger of buildable items that are genuinely new
+features (the grundy language work, the char-`p` Drinfeld mirror); the deferred stars
+`*1`/`*2`/`*4` split across those two (`*8` — ogham 0.3.0 — converted when its
+sketch landed and **shipped** the same day, 2026-07-09; see DONE.md); DONE.md — the go-forward ledger for new
+work; CONSISTENCY.md — the aesthetic/structural ledger; CORRECTNESS.md — the
+verification-status ledger (machine-verified / source-pinned / asserted); TABLES.md —
+the inventory of curated hardcoded tables),
+`grundy/docs/` (**split at the 0.3.6 pass, 2026-07-10**; moved from
+`docs/grundy/` into the grundy crate at the workspace split, 2026-07-16:
+spec.md — the
+normative v0.3.6 language contract (the lisp-for-games identity,
+grammar/precedence/sorts with the binder mark triad, worlds incl.
+`fp2[t]`/`fp2(t)` spelling and container totality, the game world's
+presentation<multiform<value strata with outcome-as-observation, dyadic
+literals, mutual `=:` systems, self-contained equation-system display,
+word conditionals, Display v4, errors, the three-part conformance suite);
+implementation.md — the runtime architecture + resource-guard contract;
+README.md — the transcript-first tour. The
+**ladder** — 0.3.7 structural rung → 0.3.8 loopy-envelope completion +
+release dress → 0.4.0 = the public release → 1.0.0 higher-order — lives
+in CONTINUATIONS.md;
+conformance.txt — the hand-verified corpus the language must pass (v0.3.6
+merged), with conformance_v0.2/0.3/0.3.5/0.3.6.txt as
+merged blessing/provenance, plus grundy/tests/laws.rs — the seeded law
+tests (display round-trips, projection oracle, rotation laws) — and
+grundy/tests/conformance.rs, the corpus runner),
+and `writeups/`
+(`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
+including the Tier-2 no-go/construction program; `excess.tex` — the
+consolidated note on the transfinite nim excess problem;
+`game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
+`thermo_newton.tex` — the thermography ↔ Newton-polygon tropical bridge).
 
 ## Claim levels and non-claims
 
@@ -55,7 +93,7 @@ Use these labels when changing prose, papers, examples, or comments:
   game whose P-set is the corresponding quadratic zero set.
 - **Open**: the natural Gold-quadric game rule, a genuine game-native quadratic
   deformation of `GameExterior`, and transfinite nim multiplication beyond the
-  source-verified excess table. These live in `OPEN.md`.
+  source-verified excess table. These live in `docs/OPEN.md`.
 
 Scope boundaries to preserve:
 
@@ -99,7 +137,7 @@ The scalar landscape is broad, but not all backends have the same exactness clai
 | `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss` | local-field-style backends/functors, mostly capped-relative precision models |
 | `Adele`, `LocalQp` | runtime-prime adelic precision model over `Q` |
 | `RationalFunction` | exact global function field `F_q(t)` over `Poly = F_q[t]` |
-| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through the source-verified Kummer carries `α_u` (DiMuro `u ≤ 43`, plus the certified `α_47`) below `ω^(ω^ω)` |
+| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through Kummer carries `α_u` assembled from `ord_u(2)`, `Q(f(u))`, and the source-pinned finite `m_u` rows (OEIS A380496 b-file, odd primes `3..=709`, diffed in full against a vendored copy) below `ω^(ω^ω)` — the *integer* table is pinned for all 126 rows, but the resulting `α_u` *ordinal* is independently value-checked only at a named subset (`docs/OPEN.md`) |
 
 The char-2 Clifford point is load-bearing. In characteristic 2, `q` and `b` are
 independent:
@@ -111,31 +149,93 @@ e_i e_j + e_j e_i = b_ij
 
 The polar form is alternating, so `b_ii = 0`, while `q_i` can be nonzero. If the
 engine collapses `q` and `b`, the char-2 Clifford product becomes the wrong
-commutative object. The char-2 form layer reports `ArfResult { arf: u128, rank,
-radical_dim, radical_anisotropic, o_type }`; for degenerate forms, the Arf of the
+commutative object. The char-2 form layer reports `ArfInvariants { arf: u128, rank,
+radical_dim, radical_anisotropic }` plus the derived `o_type()` →
+`OrthogonalType`; for degenerate forms, the Arf of the
 nonsingular core is not the whole form. On nonsingular metrics over `Nimber`,
 supported `Fpn<2,N>`, and the documented finite ordinal windows, the same Arf bit is
 the Brauer-Wall class `BW(F_{2^m}) ≅ Z/2`; hyperbolic planes are `0`, the
 anisotropic plane is `1`, and direct sum / graded tensor adds by XOR.
 `clifford::spinor` has a separate char-2 route: no `1/2(1+w)`, blade idempotents
 such as `e_i e_j` when they shrink a left ideal, and otherwise the full
-regular/lazy left action. Singular polar forms and general-bilinear `a` metrics are
-rejected.
+regular/lazy left action. In characteristic 0, general-bilinear `a` metrics are
+handled by transporting through the antisymmetric gauge to the matching ordinary
+`(q,b)` metric; characteristic 2 keeps the explicit nonzero-`a` rejection.
 
-The cross-pillar bridges from `ROADMAP.md` live in the Rust core. `IntegralForm`
-exports rational and even-mod-2 Clifford metrics plus discriminant
-Gauss-sum/Milgram checks; finite char-2 `Fpn<2,N>` classification runs through the
-façade; cyclic Galois/Frobenius maps have Clifford linear-map constructors;
-`Ordinal` serves as a Clifford scalar inside the verified Kummer boundary;
-`forms/integral/codes.rs` carries binary codes, MacWilliams, and Construction A
-(with the `1/sqrt(2)` scaling and an `Option` boundary when the scaled Gram is not
-integral), including the Type II length-16 code whose lattice is `D16+`;
-`forms/integral/{theta,modular}.rs` give exact theta coefficients and `E4`/`E6`
+The cross-pillar bridges live in the Rust core. `IntegralForm` exports rational and even-mod-2 Clifford metrics plus
+even discriminant Gauss-sum/Milgram checks and odd-lattice `Q/Z` discriminant /
+oddity-corrected Milgram reports; finite char-2 `Fpn<2,N>` classification runs
+through the façade; finite Hermitian forms over `F_{p^{2k}}/F_{p^k}` use the middle
+Frobenius and are classified by rank plus radical dimension; cyclic Galois/Frobenius
+maps have Clifford linear-map constructors;
+the **rational 2-torsion Brauer class** `Brauer2Class` (`witt/brauer_rational.rs`:
+Hasse–Witt `s(q)` vs the Clifford invariant `c(q) = s(q) + δ(n mod 8, disc)`), the
+graded rational Brauer-Wall wrapper `RationalBrauerWallClass`
+(`witt/brauer_wall.rs`: Wall exact-sequence coordinates = dimension parity, signed
+discriminant, and Bridge-F `c(q)`, with `ℚ→ℝ` recovering the Bott index), and its
+**full `ℚ/ℤ` lift** `BrauerClass` (`witt/cyclic.rs`: `cyclic_algebra_invariant = v(a)/n`,
+with full-strength reciprocity over `F_q(t)`); the **valuation as (lax) tropicalization**
+with `NewtonPolygon` over the valued legs (`scalar/newton.rs`, slope = root valuation =
+Springer residue layer); `Ordinal` serves as a Clifford scalar inside the verified Kummer
+boundary;
+`forms/integral/codes.rs` carries binary and odd-prime codes, MacWilliams, and
+Constructions A/B/D (with scaled integer-coordinate Gram constructors and an `Option`
+boundary when the scaled Gram is not integral), including Type I witnesses (`Z^2`,
+`Z^2⊕E8`), the Type II length-16 code whose Construction-A lattice is `D16+`, the
+`B(Golay)` half-Leech oracle, scaled nested-code Construction D, generated
+Reed-Muller codes with `BW16` (`RM(0,4) <= RM(2,4)`, determinant 256, minimum 4,
+kissing 4320), and the ternary Golay `[12,6,6]` odd unimodular rank-12 p-ary
+Construction-A witness; `forms/integral/clifford_lattices.rs` gives the reverse
+Clifford→integral certificate for `BW16` from the real spinor weight basis,
+quadratic-phase `RM(2,4)` rows, and `4e_x` coordinate weights, recording
+`|Aut(BW16)| = 2^21·3^5·5^2·7` as the index-2 real Clifford/BRW subgroup and the
+full `C_4` order separately;
+`forms/integral/{theta,modular}.rs` give exact theta coefficients and `E4`/`E6`/`E12`
 identification (`theta_E8 = E4`, `theta_{E8+E8} = theta_{D16+} = E4^2`, the rootless
-Leech `q^1` oracle); and `DiscriminantForm` exposes dependency-free `Complex64` Weil
+Leech `q^1` oracle), plus the norm-indexed level-4 theta head for odd lattices,
+while `forms/integral/niemeier.rs` carries the 24-class
+Niemeier root/glue/Aut catalogue and verifies the rank-24 mass plus weighted
+Siegel-Weil identity against `E12` and the 691 coefficient;
+`forms/integral/kneser.rs` carries explicit denominator-checked Kneser
+`p`-neighbors plus mass-closed reports for the explicit rank-8/rank-16
+even-unimodular genera (`E8`, `E8+E8`, `D16+`; rank 24 stays catalogue-backed);
+`forms/integral/weyl_versors.rs` realizes ADE simple roots as Clifford Pin
+versors, checking Cartan reflection actions, determinant `-1`, and Coxeter
+orders through the Clifford outermorphism/twisted-adjoint surface;
+and
+`DiscriminantForm` exposes dependency-free `Complex64` Weil
 `S`/`T` matrices, with the `S` prefactor the conjugate of the positive Milgram phase
 and `verify_weil_relations` checking the honest metaplectic relations (not the
-oversimplified `S^4 = I`).
+oversimplified `S^4 = I`), while the char-2 extraspecial surface carries the finite
+Heisenberg/Pauli representation and projective symplectic-transvection intertwiners
+over its `F₂` bitmask boundary. The fourth-wave joins are shipped too: Milnor's exact
+sequence `W(ℤ)→W(ℚ)→⊕_p W(F_p)` (`witt/milnor.rs::global_residues`, odd `p`), the named
+Scharlau transfer (`trace_form::transfer_diagonal`), Nikulin's genus criterion
+(`DiscriminantForm::is_isomorphic`) plus the theorem-1.10.1 existence predicate
+(`nikulin_existence_report` / `nikulin_even_lattice_exists`), exact Conway-Sloane
+`p`-adic genus symbols (`Genus::canonical_symbol_at`, with the corrected 2-adic
+train/compartment/oddity reduction), the games↔integral lexicode edge
+(`games/lexicode.rs`: `LexicodeTurningGame` has P-set `L(n,d)`, greedy = mex, so the
+`[24,12,8]` lexicode is Golay), and the
+Brown `ℤ/8` invariant — the char-2 cell of the mod-8 spine (`char2/brown.rs`:
+`brown_f2`/`double_f2`, with `β = 4·Arf`, plus `DiscriminantForm::brown_invariant`
+giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms). The
+fifth-wave Bridge K is shipped too: the full `ℚ/ℤ` ungraded Brauer invariant
+(`witt/cyclic.rs`: `BrauerClass` + `cyclic_algebra_invariant` = `v(a)/n` for the
+unramified local cyclic class over the `Qq` leg, plus `tame_symbol_exponent` /
+`tame_symbol_invariant` for the tame Kummer slice) with full-strength reciprocity over
+`F_q(t)` (`constant_extension_invariants`, `Σ_v deg(v)·v(a)/n = 0`, and
+`tame_symbol_invariants_ff` / `tame_symbol_invariant_sum_ff` for `μ_n ⊂ F_q`); it
+lifts the 2-torsion `Brauer2Class` (which embeds as its `½`-slice) to the full local
+Brauer group. Wild norm-residue symbols remain deferred.
+
+The checked game-Clifford deformation surface is implemented as an engineering
+bridge, not as a game-native scalar claim. `GameClifford::with_quadratic_data` accepts
+integer `q`/polar data on a chosen game-generator tuple only after verifying every
+game relation in the quotient is null and polar-radical for that data; over the
+torsion-free target `ℤ`, relations such as `2* = 0` force `Q(*)` and all pairings
+with `*` to vanish. The stronger question of a natural game-native source for such
+quadratic data remains open in `docs/OPEN.md`.
 
 The game-built Gold-form bridge is implemented, but the play rule is not. The
 standard chain is:
@@ -153,35 +253,54 @@ reconstruction on small fields, frame-obstruction experiments, misère-kernel
 obstruction examples, loopy Draw/Loss-set experiments, and bent Gold-component route
 probes. The conditional statement: if a game has P-positions `{Q = 0}`, Arf gives
 the sign and size of the second-player win-bias. The existence of a non-tautological
-natural rule is open (`OPEN.md`).
+natural rule with P-set `{Q = 0}` is open (`docs/OPEN.md`), but the σ-valued
+echo-fifo+dummy realizer is **verified** (2026-06-10, adversarial review:
+`experiments/echo_solver.py`, 391,680/391,680 m=8 checks, zero misses — record in
+`writeups/goldarf.tex` §8); the open steps are recasting its forced-charge readout into
+normal/misère/loopy outcome semantics and the general-n linking proof. The
+realizer's *mechanism* is reduced (2026-06-10 second pass,
+`experiments/linking_game.py`, goldarf §8 `sec:linking`): the σ-game is the
+odd-close parity game on the support graph, and the linking theorem — an isolated
+coin forces flips even, hence exactness for all m — is machine-verified on every
+graph class k ≤ 7 with a strictly-verified two-mode defender strategy; only the
+general-n induction is open.
 
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
-tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`), the
-source-verified ordinal nim Kummer tower below `ω^(ω^ω)`, the characteristic-2
+tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`) plus
+game-valued heating/overheating/Norton operators (infrastructure for `under`, not
+the associated-graded product theorem), the source-pinned (OEIS A380496) ordinal
+nim Kummer tower below `ω^(ω^ω)`, the characteristic-2
 Artin-Schreier local-global layer over `F_{2^m}(t)` including the Aravire-Jacob wild
-summand, and the integral lattice/genus/mass/Leech/theta/code/Weil chain. These are
+summand, and the integral lattice/genus/mass/Leech/Niemeier/theta/code/Weil chain. These are
 standard-math implementations and useful infrastructure; cite them as such.
 
 ## Commands
 
 ```sh
-cargo test                                    # the math core (pure Rust, no Python)
-cargo clippy --all-targets                    # lint (kept warning-clean)
-cargo doc --no-deps                           # rustdoc (intra-doc links warning-clean)
+cargo test --workspace                        # the math core + grundy (pure Rust, no Python)
+cargo clippy --workspace --all-targets        # lint (kept warning-clean)
+cargo doc --no-deps --workspace               # rustdoc (intra-doc links warning-clean)
 cargo run --example tour                      # Rust demo
 cargo run --example tropical                  # tropical-semiring / thermography demo
+cargo run -p grundy --example repl            # grundy expression-language REPL
 cargo run --example interactive_kernel        # open-problem probe
+cargo run --example octal_hunt                # open-problem probe
 cargo run --example loopy_quadric             # open-problem probe
+cargo run --example misere_quotient           # open-problem probe
 cargo run --example bent_route                # open-problem probe
-python3 -m venv .venv && .venv/bin/pip install maturin
-VIRTUAL_ENV=.venv .venv/bin/maturin develop   # build + install the abi3 extension
-.venv/bin/python demo.py
-.venv/bin/python experiments/framing_obstruction.py
-.venv/bin/python experiments/gold_family_survey.py
-.venv/bin/python experiments/misere_kernel.py
+python -m maturin build --profile dev -i python
+python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
+python demo.py
+python experiments/framing_obstruction.py
+python experiments/gold_family_survey.py
+python experiments/misere_kernel.py
+python3 experiments/echo_solver.py selftest   # echo adversarial-review harness (stdlib, no venv)
+python3 experiments/linking_game.py all 5     # linking-reduction harness (stdlib, no venv; `all 7` ≈ 75 s)
+python3 experiments/exception_column_m4.py    # 2·3^k excess column m=4 certification (stdlib, no venv; ≈ 2 min)
 ```
 
-`maturin develop` needs `VIRTUAL_ENV` set (or a `.venv` in cwd) and `cargo` on PATH
+The debug-profile wheel avoids the malformed stripped Mach-O produced by the
+current release build on this macOS beta. `cargo` must be on PATH
 (`. "$HOME/.cargo/env"`).
 
 ## Hard rules
@@ -212,23 +331,46 @@ VIRTUAL_ENV=.venv .venv/bin/maturin develop   # build + install the abi3 extensi
 
 ## Style
 
-- Rust 2021, `cargo fmt` clean, `cargo clippy --all-targets` warning-clean (the one
+- Rust 2021, `cargo fmt` clean, `cargo clippy --workspace --all-targets` warning-clean (the one
   crate-level allow — `needless_range_loop` for the matrix code — is justified in
   `lib.rs`; targeted `#[allow]`s carry a one-line reason). License: AGPL-3.0-or-later.
 - Numeric payload style is deliberate: non-index fixed-width integers are
   `u128`/`i128` throughout the core, docs, examples, and tests.
-- Display is deliberate: blades render `e0e1`; coefficients `1`/`-1` elided; nimbers
-  print `*n`; surreals print CNF (`3ω^2 - ω + 5`, `ω^(ω)`, `ω^-1`).
+- Display is deliberate and canonical (grundy Display v4, `grundy/docs/spec.md` §12):
+  blades render as wedge expressions `e0∧e1` (`∧` = U+2227); coefficients attach
+  `coeff⋅label` (`⋅` = U+22C5) with coefficient-`1` elided and `-1` → `-label`
+  (compared via `S::one().neg()`, never a literal). A term whose rendering starts
+  with `-` joins with ` - ` (string-level, char-agnostic); the empty multivector
+  renders as `S::zero()`'s display (`*0` in nim-worlds, `0` elsewhere). Nimbers
+  print `*n`; ordinals are star-wrapped (`*5`, `*ω`, else `*(…)`: `*(ω + 1)`,
+  `*(ω↑2)`, `*(ω⋅3)`, `*(ω↑(ω))`); surreals print CNF (`3⋅ω↑2 - ω + 5`, `ω↑(ω)`,
+  `ω↑-1`, `ω↑(1/2)` — exponent bare iff a signed integer); `Fpn` `3⋅x↑2 + 2⋅x + 1`;
+  `Poly` joined the monomial family at v4 (2026-07-10, reversing the old
+  explicit-coefficient pin deliberately): descending exponents, unit
+  coefficients elided on nonconstant terms, sign-aware join — `t↑2 - t + 1`,
+  never `1 + -1⋅t + 1⋅t↑2`; `RationalFunction` `(num)/(den)` with v4 sides.
+  Atomic = no spaces and no `⋅ ∧ ↑ / + -`
+  outside balanced parens.
 - Rust scalar operators: total-product backends have `+ - *` and unary `-`
-  (concrete-only, via `impl_scalar_ops!`). `Ordinal` deliberately omits owned `*`
-  because transfinite nim-multiplication is partial at the verified Kummer boundary;
-  use `nim_mul` for the checked path. Generic engine code over `S: Scalar` still
-  calls `.add(&x)`/`.mul(&x)` — operators are NOT a supertrait (see
-  `src/scalar/AGENTS.md`).
+  (concrete-only, via `impl_scalar_ops!`), plus `^ u128` for power (`x ^ 3` =
+  square-and-multiply via `Scalar::mul`; `x ^ 0 == one()`). The `u128` RHS
+  prevents element-element `^` from compiling — on `Nimber`, `x ^ x` would silently
+  mean nim-addition (XOR), so no `BitXor<Self>` impl exists on any backend. **Rust
+  `^` binds looser than `*`; parenthesize when mixing product and power.**
+  `Multivector` has `&` (wedge, grundy `∧`) via `impl BitAnd`; **no `^` operator on
+  `Multivector`** — the geometric product needs the metric, so use
+  `CliffordAlgebra::pow(&self, v, k)` for repeated geometric multiplication.
+  `Ordinal` deliberately omits owned `*` and `^` because transfinite
+  nim-multiplication is partial at the verified Kummer boundary; use `nim_mul` and
+  `nim_pow` for the checked paths. Generic engine code over `S: Scalar` still calls
+  `.add(&x)`/`.mul(&x)` — operators are NOT a supertrait (see `src/scalar/AGENTS.md`).
+- Python: `import ogdoad as pl` is the house alias (`pl` = *pleroma*, the crate's
+  pre-rename name — kept deliberately).
 
 ## Testing
 
-`cargo test` is the source of truth and needs no Python. It does **NOT** compile the
+`cargo test --workspace` is the source of truth (ogdoad + the grundy crate) and
+needs no Python. It does **NOT** compile the
 `python` feature — after touching `src/py/` or any core API the bindings call, run
 `cargo check --features python` (and `cargo clippy --features python --all-targets`).
 After touching `clifford/` or `scalar/big/surreal/`, also rebuild + run `demo.py`
@@ -244,14 +386,18 @@ untouched modules.
 Two property suites (dev-dep `proptest`, in `tests/`): `scalar_axioms.rs` fuzzes the
 commutative-ring axioms across every backend, `clifford_axioms.rs` fuzzes geometric-
 product associativity/distributivity over random metrics in char 0 and char 2. The
+default depth is smoke-sized (`FAST_CASES = 2`, `HEAVY_CASES = 1` — the sentinel tests
+carry the regression weight); before trusting changes to core arithmetic, run with
+`OGDOAD_PROPTEST_CASES=N` for real fuzzing depth. The
 capped-relative precision models (Qp/Qq/Laurent/Ramified/Gauss/Adele) are excluded
 from the exact-ring fuzz by design; `ExactScalar`/`ExactFieldScalar`/`PrecisionScalar`
 mark that boundary without becoming `Scalar` supertraits. (serde is intentionally NOT
 shipped — the invariant-carrying types need custom deserialization, not a naive
 derive.)
 
-The narrow Gold/Arf game thread and the genuine open problems live in `OPEN.md`; the
-draft note is `writeups/goldarf.tex`. Read `OPEN.md` before touching `forms/char2/`,
+The narrow Gold/Arf game thread and the genuine open problems live in `docs/OPEN.md`; the
+draft notes are `writeups/goldarf.tex` (Gold/Arf) and `writeups/excess.tex`
+(transfinite excess). Read `docs/OPEN.md` before touching `forms/char2/`,
 `forms/quadric_fit.rs`, `forms/char0.rs`, `games/coin_turning.rs`, `games/kernel.rs`,
-`games/misere.rs`, `games/loopy.rs`, `forms/witt/`, `experiments/`, or the
+`games/misere.rs`, `games/loopy/`, `forms/witt/`, `experiments/`, or the
 open-question example probes.
