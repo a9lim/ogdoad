@@ -29,7 +29,7 @@ jobs:
       pypi_published: ${{ steps.state.outputs.pypi_published }}
       released: ${{ steps.state.outputs.released }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Read version from Cargo.toml
@@ -84,7 +84,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - name: Mint a short-lived crates.io token (OIDC)
         id: auth
@@ -117,7 +117,7 @@ jobs:
           - { runner: macos-latest, target: aarch64, manylinux: auto }
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.9"
@@ -138,7 +138,7 @@ jobs:
     if: needs.guard.outputs.should_release == 'true' && needs.guard.outputs.pypi_published == 'false'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Build the sdist
         uses: PyO3/maturin-action@v1
         with:
@@ -183,7 +183,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Tag and create the GitHub release
