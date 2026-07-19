@@ -63,7 +63,14 @@ presentation<multiform<value strata with outcome-as-observation, dyadic
 literals, mutual `=:` systems, self-contained equation-system display,
 word conditionals, Display v4, errors, the three-part conformance suite);
 implementation.md — the runtime architecture + resource-guard contract;
-README.md — the transcript-first tour. The
+README.md — the transcript-first tour;
+stance.md — non-normative (2026-07-19): the design tradition named —
+total/codata (Turner, Agda-kin), lazy exactly where the objects are
+coinductive, **⊥ refused** (divergence is a budgeted error, never a
+value); cyclic vs productive coinduction split (loopy graphs =
+eventually-periodic, 0.3.8 w/ Honsell–Lenisa; productive streams = 1.0.0
+higher-order, `ω` genetically needs a generator); Haskell the
+acknowledged cousin, not the semantics. The
 **ladder** — 0.3.7 structural rung → 0.3.8 loopy-envelope completion +
 release dress → 0.4.0 = the public release → 1.0.0 higher-order — lives
 in CONTINUATIONS.md;
