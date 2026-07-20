@@ -31,7 +31,7 @@
 
 \title{Draft: the finite excess in transfinite nim multiplication}
 \author{a9lim}
-\date{June 2026}
+\date{July 2026}
 
 \begin{document}
 \maketitle
@@ -56,8 +56,18 @@ a corrected compositum norm
 $(\kappa+4)(\kappa+5)=\kappa^2+\kappa+\omega$ that collapses the $m=4$
 test into the same trinomial field; the empirically exact $0/1/4$
 candidate rule and the proof that the Lenstra component set alone cannot
-decide the excess; and the reduction of Lenstra's open boundedness
-question to that candidate.
+decide the excess; an exact transverse-norm formulation of every
+singleton-odd row; two embedded maximal-order problems (the Conway
+Fermat tower on the even side and explicit Gaussian-period primitivity on
+the $3$-power side), with the latter now reduced to primitivity of the
+irreducible Dickson iterate $D_{3^k}(X,1)+1$ and to an explicit recursive
+Singer-generator problem in a cubic norm-one torus, proved analytically
+through the first three prime-order kernel steps and reduced thereafter
+to an exact character nonvanishing test for a norm-coherent cyclotomic
+unit; and the fact that
+proving the candidate would settle
+Lenstra's open boundedness question, while already requiring those two
+hard maximal-order inputs.
 Feasibility of the first open row, $p=719$, is assessed: a
 Frobenius-orbit norm recurrence reduces it to arithmetic in
 $\F_{2^{359}}$, with the cost concentrated in tower-aware Frobenius
@@ -66,7 +76,7 @@ composition. Each statement carries an explicit claim-level tag.
 
 \paragraph{Claim levels.}
 \PROVED{} -- unconditional, machine-checked or classically verified;
-\CERTIFIED{k\leq6} -- proved for the stated range, blocked beyond it only
+\CERTIFIED{4\leq k\leq6} -- proved for the stated range, blocked beyond it only
 by unfactored cofactors; \CONSISTENT{} -- no counterexample found, not
 proved; \CONJECTURED{} -- explicitly open in the literature or posed in
 this thread; \OPEN{} -- neither confirmed nor refuted, no feasible attack
@@ -154,13 +164,16 @@ $m_p$ is the least $m$ with $p\mid\ord(\kappa_{f(p)}+m)$.
 \begin{remark}[Wieferich caveat]\label{rem:wieferich}
 In general ``no $p$-th root'' is equivalent to
 $v_p(\ord\beta)=v_p(2^E-1)$, which collapses to
-$p\mid\ord(\beta)$ only when $v_p(2^E-1)=1$. Since
-$v_p(2^E-1)=v_p(2^{f(p)}-1)$ whenever $p\nmid E/f(p)$ (lifting the
-exponent), the hypothesis can fail only at base-$2$ Wieferich-type primes
-with $p^2\mid 2^{f(p)}-1$; the only known instances are $p=1093$ and
-$p=3511$, both of which lie inside the extended A380496 range. For those
-rows the exact test of Proposition~\ref{prop:power} (or the full-$p$-part
-order condition) must be used. The certifications of
+$p\mid\ord(\beta)$ only when $v_p(2^E-1)=1$. By lifting the exponent,
+\[
+v_p(2^E-1)=v_p(2^{f(p)}-1)+v_p(E/f(p)).
+\]
+Thus the hypothesis can fail either at base-$2$ Wieferich-type primes
+with $p^2\mid 2^{f(p)}-1$ or when $p\mid E/f(p)$.  The only known
+base-$2$ Wieferich primes are $p=1093$ and $p=3511$, both of which lie
+inside the extended A380496 range. For those rows, and for any row with
+$p\mid E/f(p)$, the exact test of Proposition~\ref{prop:power} (or the
+full-$p$-part order condition) must be used. The certifications of
 Section~\ref{sec:family} compute orders exactly, with squarefreeness
 checks, and are unaffected. The research-note predecessor of this
 document stated only the order form; the power criterion is the
@@ -203,6 +216,111 @@ non-$q$-th-power property defining the lower excess guarantees this), so
 $\kappa_{359}$ is a well-defined conjugacy class and $N$ is a well-defined
 element of $\F_{2^{359}}$.
 \end{proposition}
+
+\subsection{Exact support and the general singleton-odd obstruction}
+
+For $h>1$, write
+\[
+  \Pi_h:=\prod_{\substack{\ell\ \mathrm{odd\ prime}\\
+                    \ord_\ell(2)=h}}
+          \ell^{v_\ell(2^h-1)}.
+\]
+This is the full prime-power part of $2^h-1$ supported at primes whose
+order of $2$ is exactly $h$; using the full valuations, rather than only
+the radical, incorporates the Wieferich cases.
+
+\begin{proposition}[exact-order support]\label{prop:support}
+\PROVED{} Let $x=\kappa_h$, let $E=d(x)$, and put
+\[
+  T_h=\Norm_{\F_{2^E}/\F_{2^h}}(x).
+\]
+Then $m_p=0$ for every odd prime $p$ with $f(p)=h$ if and only if
+\[
+  \Pi_h\mid\ord(T_h).
+\]
+For an individual such $p$, $m_p=0$ iff
+$v_p(\ord T_h)=v_p(2^h-1)$.
+\end{proposition}
+
+\begin{proof}
+The definition of $\kappa_h$ gives $h\mid E$.  Proposition~\ref{prop:norm}
+with $\beta=x$ identifies the $p$-power test in $\F_{2^E}$ with the
+same test on $T_h$ in $\F_{2^h}$.  In the cyclic group
+$\F_{2^h}^{\times}$, failure to be a $p$-th power is exactly the presence
+of the full $p$-primary part of the group order in $\ord(T_h)$.  Taking
+the product over the distinct eligible primes proves the claim.  No
+hypothesis on $p\nmid E/h$ is hidden here: if
+$c=v_p((2^E-1)/(2^h-1))$, the norm exponent gives
+$v_p(\ord T_h)=\max\{0,v_p(\ord x)-c\}$, so equality with
+$v_p(2^h-1)$ is equivalent to $v_p(\ord x)=v_p(2^E-1)$.
+\end{proof}
+
+The singleton-odd case admits a sharper field square.  Let $r$ be an odd
+prime, $q=r^a$, and set $b_r=d(\alpha_r)$, where
+$\kappa_q^q=\alpha_r$.  Since $\alpha_r<\kappa_r$, Lenstra's field
+description gives $r\nmid b_r$, while the successive Kummer equations
+have degree $r$~\cite[Proposition~1.8]{Lenstra77}; hence
+\[
+  d(\kappa_q)=qb_r,\qquad \gcd(q,b_r)=1.
+\]
+
+\begin{proposition}[singleton transverse-norm criterion]
+\label{prop:singleton-transverse}
+\PROVED{} Suppose $\Qset(h)=\{q\}$ with $q=r^a$ odd.  Then
+$h=qs$ for a divisor $s\mid b_r$.  In the field square
+\[
+  F=\F_{2^{qb_r}},\quad B=\F_{2^{b_r}},\quad
+  K=\F_{2^{qs}},\quad C=\F_{2^s},
+\]
+one has $B\cap K=C$ and $F=BK$.  Put $x=\kappa_q$ and
+\[
+  \Theta_{q,s}:=\Norm_{F/K}(x+1)\in K^{\times}.
+\]
+For every prime $p$ with $f(p)=h$:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item $x$ is a $p$-th power in $F$, so $m_p\geq1$;
+\item $m_p=1$ iff
+\[
+  v_p(\ord\Theta_{q,s})=v_p(2^{qs}-1);
+\]
+\item the easy Kummer norm is
+\[
+  \Norm_{F/B}(x+1)=1+\alpha_r,
+\]
+but $p\nmid |B^{\times}|$, so this norm cannot see the required
+$p$-primary obstruction.  The norm to $K$ is genuinely transverse.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+Lenstra's component theorem gives
+$\kappa_h=\sum_{t\in\Qset(h)}\kappa_t$ and, for each component $t$,
+$t\mid h$ and $\gcd(t,h/t)=1$
+\cite[Corollary~2.2]{Lenstra77}.  Thus the singleton assumption identifies
+$\kappa_h=\kappa_q$.  Since $h\mid d(\kappa_h)=d(\kappa_q)=qb_r$, one
+has $h=qs$ with $s\mid b_r$.  The
+intersection and compositum statements follow from the gcd/lcm rules for
+finite subfields and $\gcd(q,b_r)=1$.
+
+Since $p>h\geq r$, one has $p\nmid q$.  Also $f(p)=qs\nmid b_r$, so
+$p\nmid2^{b_r}-1$.  The relation $x^q=\alpha_r\in B$ therefore gives
+$p\nmid\ord(x)$, proving (i), including the full $p$-primary statement.
+Part (ii) is Proposition~\ref{prop:norm} applied to $x+1$.  Finally,
+$X^q+\alpha_r$ is the minimal polynomial of $x$ over $B$, and evaluating
+it at $1$ gives (iii); the invisibility follows again from
+$p\nmid2^{b_r}-1$.
+\end{proof}
+
+Thus the singleton-one arm is not an unspecified root search.  It is the
+uniform assertion that the explicitly defined transverse norm
+$\Theta_{q,s}$ contains the full $p$-primary part for every prime
+$p$ of exact order $qs$.  The $C_k$ norms below are the special case
+$q=3^k$, $b_r=2$, $s=1$; the $m_{359}$ obstruction is the same square at
+$q=179$, $b_r=19580$, $s=1$.
+Lenstra's use of Carlitz's primitive-root distribution theorem gives an
+effective bound at which \emph{some} finite translate works
+\cite{Carlitz53,Lenstra77}; it does not evaluate this fixed first
+transverse norm.
 
 \subsection{Feasibility for $p=719$}
 
@@ -400,6 +518,496 @@ reduces to $C_{k-1}$ plus primitivity at the new primes
 $r\mid\Phi_{3^k}(2)$.
 \end{proposition}
 
+\begin{proposition}[the norm-kernel seam]\label{prop:norm-kernel-seam}
+\PROVED{} Put $q=2^{3^{k-1}}$, so
+$L_k=\F_{q^3}$ and $L_{k-1}=\F_q$.  There is a canonical direct product
+\[
+  L_k^{\times}=L_{k-1}^{\times}\times U_k,
+  \qquad |U_k|=q^2+q+1=\Phi_{3^k}(2),
+\]
+where $U_k=\ker\Norm_{L_k/L_{k-1}}$.  If
+$\gamma_k=a_kb_k$ in this product, then
+\[
+  \gamma_{k-1}=\Norm(\gamma_k)=a_k^3,
+\]
+and cubing is an automorphism of $L_{k-1}^{\times}$.  Consequently
+\[
+  C_k\iff C_{k-1}\ \text{and}\ b_k\ \text{generates }U_k.
+\]
+In particular, the norm recursion determines the old component $a_k$
+exactly but supplies no order information about the new component $b_k$.
+\end{proposition}
+
+\begin{proof}
+The two displayed factor orders are coprime:
+\[
+ \gcd(q-1,q^2+q+1)=\gcd(q-1,3)=1,
+\]
+because $q=2^{\text{odd}}\equiv2\pmod3$.  The cyclic group
+$L_k^{\times}$ therefore splits as asserted.  The relative norm is
+$z\mapsto z^{1+q+q^2}$; it kills $U_k$ and restricts on
+$L_{k-1}^{\times}$ to $a\mapsto a^3$, which is bijective because
+$3\nmid q-1$.  The final equivalence follows from coprimality of the two
+factor orders.
+\end{proof}
+
+\begin{proposition}[primitive Dickson iterate]\label{prop:dickson-iterate}
+\PROVED{} Let $D_n(X,1)$ be the Dickson polynomial characterized by
+$D_n(u+u^{-1},1)=u^n+u^{-n}$, and put $f(X)=X^3+X$.  Then
+\[
+ P_k(X):=D_{3^k}(X,1)+1=f^{\circ k}(X)+1
+\]
+is the minimal polynomial of $\gamma_k$ over $\F_2$.  In particular it
+is irreducible of degree $3^k$, and
+\[
+ C_k\iff P_k(X)\text{ is a primitive polynomial over }\F_2.
+\]
+The polynomials also obey the coefficient recursion
+\[
+ P_{k+1}=P_k^3+P_k^2+1,
+ \qquad P_1=X^3+X+1.
+\]
+\end{proposition}
+
+\begin{proof}
+The Dickson composition law gives
+$D_{3^k}=D_3^{\circ k}=f^{\circ k}$ in characteristic two.  Since
+$\zeta^{3^k}$ is a primitive cube root of unity,
+\[
+ D_{3^k}(\gamma_k,1)
+ =\zeta^{3^k}+\zeta^{-3^k}=1.
+\]
+On the other hand, the Frobenius orbit of $\zeta+\zeta^{-1}$ has length
+$3^k$: the least $j>0$ with $2^j\equiv\pm1\pmod{3^{k+1}}$ is $3^k$.
+Thus the displayed monic polynomial, which has degree $3^k$, is the
+minimal polynomial.  Its root is primitive precisely when the
+polynomial is primitive.  Finally, writing $D_{3^k}=P_k+1$ and using
+$D_3(Y)=Y^3+Y$ gives
+$P_{k+1}=(P_k+1)^3+(P_k+1)+1=P_k^3+P_k^2+1$.
+\end{proof}
+
+\begin{proposition}[shifted cyclotomic-unit form]\label{prop:shifted-unit}
+\PROVED{} Put $x_k=1+\zeta\in\F_{2^{2h}}^\times$, where $h=3^k$ and
+$N=3^{k+1}$.  Then
+\[
+ x_k^{2^h-1}=\zeta^{-1},\qquad
+ x_k^{2^h+1}=\gamma_k,qquad
+ \ord(x_k)=N\,\ord(\gamma_k).
+\]
+Consequently
+\[
+ C_k\iff \ord(1+\zeta)=3^{k+1}(2^{3^k}-1).
+\]
+Thus the cubic arm is equivalently maximal order for the reduction at
+$2$ of the cyclotomic unit $1+\zeta_{3^{k+1}}$.
+\end{proposition}
+
+\begin{proof}
+Because $2^h\equiv-1\pmod N$,
+$x_k^{2^h}=1+\zeta^{-1}=\zeta^{-1}x_k$.  Dividing and multiplying by
+$x_k$ gives the first two identities.  The factors $2^h-1$ and
+$2^h+1$ are coprime.  In the corresponding direct-product
+decomposition of $\F_{2^{2h}}^\times$, the first displayed power has
+exact order $N$ and the second has order $\ord(\gamma_k)$, so the order
+of $x_k$ is their product.
+\end{proof}
+
+\begin{proposition}[norm-coherent cyclotomic lift]\label{prop:unit-lift}
+\PROVED{} Let $\xi_k=\zeta_{3^{k+1}}$ in characteristic zero and
+$u_k=1+\xi_k$.  Then $2$ is inert in $\Q(\xi_k)$ and
+\[
+ \Norm_{\Q(\xi_k)/\Q(\xi_{k-1})}(u_k)=u_{k-1}.
+\]
+The norm to the maximal real subfield is
+\[
+ \Norm_{\Q(\xi_k)/\Q(\xi_k+\xi_k^{-1})}(u_k)
+ =2+\xi_k+\xi_k^{-1},
+\]
+whose reduction modulo the unique prime above $2$ is $\gamma_k$.
+Thus Proposition~\ref{prop:shifted-unit} is the residue-field shadow of
+a norm-coherent cyclotomic-unit system in the cyclotomic
+$\mathbb Z_3$-tower.
+Conditional on $C_{k-1}$, $C_k$ is exactly the assertion that, for every
+prime $\ell\mid\Phi_{3^k}(2)$, the reduction of $u_k$ is not an
+$\ell$-th power.
+\end{proposition}
+
+\begin{proof}
+The residue degree of $2$ in $\Q(\xi_k)$ is
+$\ord_{3^{k+1}}(2)=2\cdot3^k=\varphi(3^{k+1})$, proving inertness.  The
+three relative conjugates of $\xi_k$ are $\xi_k,\xi_k\omega$, and
+$\xi_k\omega^2$, so
+\[
+ \prod_{j=0}^2(1+\xi_k\omega^j)=1+\xi_k^3=1+\xi_{k-1}.
+\]
+Multiplication by the complex-conjugate factor gives the real norm.
+The final assertion follows from Proposition~\ref{prop:shifted-unit}:
+in a cyclic group an element has the full $\ell$-primary part of the
+group order precisely when it is not an $\ell$-th power.
+\end{proof}
+
+\begin{proposition}[circular-unit and ray-class form]
+\label{prop:circular-ray}
+\PROVED{} Let
+\[
+ F_k=\Q(\xi_k+\xi_k^{-1}),\qquad
+ \lambda_k=(1-\xi_k)(1-\xi_k^{-1}),
+\]
+let $\mathfrak p_k=(2)$ be the unique prime of $F_k$ above $2$, and
+let $\mathcal C_k\subset\mathcal O_{F_k}^{\times}$ be the real
+circular-unit group.  If $\sigma(\xi_k)=\xi_k^2$, then
+\[
+ c_k:=\frac{\sigma(\lambda_k)}{\lambda_k}
+     =(1+\xi_k)(1+\xi_k^{-1})
+     =2+\xi_k+\xi_k^{-1}
+\]
+is a circular unit, its Galois conjugates generate a subgroup of
+$2$-power index in $\mathcal C_k$, and its reduction modulo
+$\mathfrak p_k$ is $\gamma_k$.  Since the residue-field unit group has
+odd order, that $2$-power index disappears on reduction.  Consequently
+\[
+ \overline{\mathcal C_k}=\langle\gamma_k\rangle
+ \subset (\mathcal O_{F_k}/\mathfrak p_k)^{\times}
+       \simeq\F_{2^{3^k}}^{\times},                         \tag{\(\clubsuit\)}
+\]
+and hence
+\[
+ [\F_{2^{3^k}}^{\times}:\langle\gamma_k\rangle]
+ =[(\mathcal O_{F_k}/\mathfrak p_k)^{\times}:
+     \overline{\mathcal C_k}].                              \tag{\(\spadesuit\)}
+\]
+In particular, $C_k$ is exactly surjectivity modulo $2$ of the real
+circular units of conductor $3^{k+1}$.
+
+More precisely, put $E_k=\mathcal O_{F_k}^{\times}$ and let
+$\operatorname{Cl}_{\mathfrak p_k}(F_k)$ be the ray class group of finite modulus
+$\mathfrak p_k$.  The ray class exact sequence gives
+\[
+ [\F_{2^{3^k}}^{\times}:\langle\gamma_k\rangle]
+ =\frac{|\operatorname{Cl}_{\mathfrak p_k}(F_k)|}
+        {|\operatorname{Cl}(F_k)|}
+   [\overline{E_k}:\overline{\mathcal C_k}],                \tag{\(\heartsuit\)}
+\]
+where
+$[\overline{E_k}:\overline{\mathcal C_k}]\mid
+ [E_k:\mathcal C_k]$.  The circular-unit index theorem identifies
+the odd part of the latter index with the odd part of
+$|\operatorname{Cl}(F_k)|$.
+Thus, for an odd prime $\ell\nmid|\operatorname{Cl}(F_k)|$,
+\[
+ v_{\ell}\!\left(
+ [\F_{2^{3^k}}^{\times}:\langle\gamma_k\rangle]\right)
+ =v_{\ell}\!\left(
+ \frac{|\operatorname{Cl}_{\mathfrak p_k}(F_k)|}
+      {|\operatorname{Cl}(F_k)|}\right).                    \tag{\(\diamondsuit\)}
+\]
+Equation~\((\heartsuit)\) names the obstruction but does not reduce its
+difficulty: the ray class group is defined through this residue-unit
+quotient, and the class-number exclusion in \((\diamondsuit)\) is itself
+not known uniformly in $k$.
+Finally, with $h=3^k$, $q=2^{h/3}$, and
+$\tau=\sigma^{h/3}$, the relative circular unit
+\[
+ \varepsilon_k=\frac{\tau(c_k)}{c_k},\qquad
+ \Norm_{F_k/F_{k-1}}(\varepsilon_k)=1,
+\]
+reduces to $\eta_k$.  Thus the exact character obstruction of
+Proposition~\ref{prop:character-test} is the new relative part of the
+same ray-class obstruction.
+\end{proposition}
+
+\begin{proof}
+The class of $2$ generates
+$(\mathbb Z/3^{k+1}\mathbb Z)^{\times}/\{\pm1\}$, so $\sigma$ generates
+$\operatorname{Gal}(F_k/\Q)$.  The squares of the standard real
+circular units are generated, up to $-1$, by the quotients
+$\sigma^j(\lambda_k)/\lambda_k$.  Telescoping gives
+\[
+ \frac{\sigma^j(\lambda_k)}{\lambda_k}
+ =\prod_{i=0}^{j-1}\sigma^i(c_k),
+\]
+so the conjugates of $c_k$ generate this square subgroup.  Squaring is
+an automorphism of the odd-order residue-field unit group, so the full
+circular-unit group and this subgroup have the same reduction image.
+Reduction commutes with $\sigma$, which becomes Frobenius at the inert
+prime $2$, and
+\[
+ \overline{c_k}
+ =(1+\zeta)(1+\zeta^{-1})=\zeta+\zeta^{-1}=\gamma_k.
+\]
+The reductions of the conjugates are therefore
+$\gamma_k,\gamma_k^2,\gamma_k^{2^2},\ldots$, and they generate the
+single multiplicative subgroup $\langle\gamma_k\rangle$.  This proves
+\((\clubsuit)\) and \((\spadesuit)\).
+
+The exact sequence
+\[
+ E_k\longrightarrow
+ (\mathcal O_{F_k}/\mathfrak p_k)^{\times}\longrightarrow
+ \operatorname{Cl}_{\mathfrak p_k}(F_k)
+ \longrightarrow\operatorname{Cl}(F_k)
+ \longrightarrow1
+\]
+proves \((\heartsuit)\).  The divisibility of reduction indices is
+immediate from $\mathcal C_k\subset E_k$, and the circular-unit index
+theorem gives \((\diamondsuit)\); see Washington~\cite[Ch.~8]{Washington97}.
+Finally $\tau$ generates $\operatorname{Gal}(F_k/F_{k-1})$, so the norm of its
+coboundary $\tau(c_k)/c_k$ telescopes to $1$.  Modulo $2$ it is
+$\gamma_k^q/\gamma_k=\eta_k$.
+\end{proof}
+
+\begin{proposition}[explicit cubic kernel tower]\label{prop:eta-tower}
+\PROVED{} Define $\eta_0=0$.  For $k\geq1$ put
+\[
+ q_k=2^{3^{k-1}},\qquad
+ \eta_k=\gamma_k^{q_k-1},\qquad
+ U_k=\ker\!\left(\Norm_{\F_{q_k^3}/\F_{q_k}}\right).
+\]
+Then $\eta_k\in U_k$, $|U_k|=q_k^2+q_k+1=\Phi_{3^k}(2)$, and, with
+$\omega=\zeta^{3^k}\in\F_4$,
+\[
+ q_k\equiv3^k-1\pmod{3^{k+1}},\qquad
+ \eta_k=\frac{\omega+\omega^2\zeta^2}{1+\zeta^2},\qquad
+ \zeta^2=\frac{\eta_k+\omega}{\eta_k+\omega^2}.
+\]
+Moreover $\eta_k$ has the irreducible cubic equation over
+$\F_{q_k}=\F_{2^{3^{k-1}}}$
+\[
+ X^3+\eta_{k-1}X^2+(\eta_{k-1}+1)X+1=0.       \tag{\(*\)}
+\]
+Equivalently,
+\[
+ \Norm(\eta_k)=1,\qquad
+ \operatorname{Tr}(\eta_k)=\eta_{k-1},\qquad
+ e_2(\eta_k)=\eta_{k-1}+1.
+\]
+It also satisfies
+\[
+ \eta_k^{q_k+1}+\eta_k+1=0,
+ \qquad \eta_k+1=\eta_k^{q_k+1},
+ \qquad \ord(\eta_k+1)=\ord(\eta_k).          \tag{\(\dagger\)}
+\]
+Thus $\eta_k$ lies in the planar Singer difference set
+\[
+ \mathcal H_k=\{y\in U_k:y^{q_k+1}+y+1=0\}
+\]
+of size $q_k+1$ inside $U_k$~\cite{MRS20}.
+Finally,
+\[
+ C_k\iff C_{k-1}\ \text{and}\
+ \ord(\eta_k)=q_k^2+q_k+1.                    \tag{\(**\)}
+\]
+(Here $C_0$ is the tautological assertion that $1$ generates
+$\F_2^\times$.)
+Thus the new-prime obstruction is the single assertion that the
+distinguished root of \((*)\) is a generator of the cubic norm-one
+torus (equivalently, multiplication by it is a Singer cycle).
+\end{proposition}
+
+\begin{proof}
+The congruence starts with $2\equiv3-1\pmod9$ and lifts by cubing:
+if $a\equiv-1+3^k\pmod{3^{k+1}}$, then
+$a^3\equiv-1+3^{k+1}\pmod{3^{k+2}}$.  Hence
+$\zeta^{q_k}=\omega\zeta^{-1}$.  Dividing
+$\gamma_k^{q_k}$ by $\gamma_k$ now gives the stated M\"obius formula;
+solving it gives the inverse formula.
+
+Put $t=\zeta^2$ and
+$M(T)=(\omega+\omega^2T)/(1+T)$.  The same formula one level down says
+$\eta_{k-1}=M(t^3)$ (also for $k=1$, when it gives $\eta_0=0$).  If
+$a=\eta_{k-1}$ and $X=M(t)$, then
+\[
+ \left(\frac{X+\omega}{X+\omega^2}\right)^3
+ =\frac{a+\omega}{a+\omega^2}.
+\]
+Cross-multiplication and $\omega^2+\omega+1=0$ reduce exactly to
+\((*)\).  Also
+$\eta_k^{1+q_k+q_k^2}=\gamma_k^{q_k^3-1}=1$, so $\eta_k\in U_k$.
+It cannot lie in $\F_{q_k}$: otherwise its norm-one condition would give
+$\eta_k^3=1$, hence $\eta_k=1$ because $3\nmid q_k-1$; the inverse
+M\"obius formula would then give $t=\omega$, contradicting
+$\ord(t)=3^{k+1}>3$.  Thus \((*)\) is irreducible, and its coefficients
+give the three symmetric identities.
+
+The earlier minimal polynomial
+$X^3+X+\gamma_{k-1}$ gives
+$\operatorname{Tr}_{\F_{q_k^3}/\F_{q_k}}(\gamma_k)=0$.  Dividing
+$\gamma_k+\gamma_k^{q_k}+\gamma_k^{q_k^2}=0$ by $\gamma_k$ yields
+$1+\eta_k+\eta_k^{q_k+1}=0$, proving the first two parts of
+\((\dagger)\).  Since
+$\gcd(q_k+1,q_k^2+q_k+1)=1$, exponentiation by $q_k+1$ is an
+automorphism of $U_k$, proving the equality of orders.  The cited
+difference-set identification is the norm-one realization of the planar
+Singer set.
+
+In the direct product of Proposition~\ref{prop:norm-kernel-seam},
+raising to $q_k-1$ kills the old-field component and is an automorphism
+on $U_k$, since $\gcd(q_k-1,q_k^2+q_k+1)=1$.  Therefore the kernel
+component of $\gamma_k$ generates $U_k$ exactly when $\eta_k$ does;
+Proposition~\ref{prop:norm-kernel-seam} gives \((**)\).
+\end{proof}
+
+\begin{proposition}[no transfer and the exact character test]
+\label{prop:character-test}
+\PROVED{} The kernel orders are pairwise coprime: for $1\leq i<k$,
+\[
+ \gcd\!\left(\Phi_{3^i}(2),\Phi_{3^k}(2)\right)=1.
+\]
+For each prime $\ell\mid |U_k|$, let
+$\chi_{k,\ell}:U_k\to\mu_\ell$ be a character of exact order $\ell$.
+Then
+\[
+ \operatorname{Hom}\!\left(
+ \F_{2^{3^{k-1}}}^{\times},\mu_\ell\right)=1; \tag{\(\ddagger_0\)}
+\]
+no multiplicative character or power-residue datum from a previous
+level can transfer an $\ell$-part to level $k$.  Moreover,
+\[
+ C_k\iff C_{k-1}\ \text{and}\
+ \chi_{k,\ell}(\eta_k)\neq1
+ \quad\text{for every prime }\ell\mid |U_k|.       \tag{\(\ddagger\)}
+\]
+Equivalently, with
+\[
+ \rho_{k,\ell}(A)=\chi_{k,\ell}(A^{q_k-1})
+ \quad(A\in\F_{q_k^3}^{\times}),
+\]
+where $\rho_{k,\ell}$ is trivial on $\F_{q_k}^{\times}$, the missing
+assertion is $\rho_{k,\ell}(\gamma_k)\neq1$ for every such $\ell$.
+This is the smallest power-residue form of the cubic obstruction.
+\end{proposition}
+
+\begin{proof}
+If a prime $r$ divided two displayed cyclotomic values, then
+$r\neq3$ and the standard cyclotomic-divisor criterion would give both
+$\ord_r(2)=3^i$ and $\ord_r(2)=3^k$, a contradiction.  Thus every
+$\ell\mid |U_k|$ is coprime to
+$|\F_{2^{3^{k-1}}}^{\times}|=\prod_{j<k}\Phi_{3^j}(2)$, proving
+\((\ddagger_0)\).  In the cyclic group $U_k$, the kernel of an exact
+order-$\ell$ character is $U_k^\ell$.  If
+$|U_k|=\ell^a m$ with $\ell\nmid m$, then an element has the full
+$\ell^a$ in its order exactly when it is not in $U_k^\ell$.  Applying
+this for every prime divisor and using \((**)\) proves
+\((\ddagger)\).  The formula for $\rho_{k,\ell}$ and
+$\eta_k=\gamma_k^{q_k-1}$ give the final equivalence.
+\end{proof}
+
+\begin{proposition}[Capelli form of the surviving lemma]
+\label{prop:capelli}
+\PROVED{} Put
+\[
+ A(X)=X^3+X+1,\qquad B(X)=X^2+X,\qquad
+ R(X)=\frac{A(X)}{B(X)}.
+\]
+Let $Q_0(X)=X$ and, for $k\geq1$, define the monic binary polynomial
+\[
+ Q_k(X)=B(X)^{3^{k-1}}
+        Q_{k-1}\!\left(R(X)\right).                         \tag{\(\star\)}
+\]
+Then $Q_k$ is the minimal polynomial of $\eta_k$ over $\F_2$ and is
+irreducible of degree $3^k$.  Its first four values are
+\begin{align*}
+ Q_1(X)&=X^3+X+1,\\
+ Q_2(X)&=X^9+X+1,\\
+ Q_3(X)&=X^{27}+X^{25}+X^{24}+X^{19}+X^{18}+X^{16}
+          +X^{10}+X^9+X^3+X+1,\\
+ Q_4(X)&=X^{81}+X^{64}+X^{16}+X+1.
+\end{align*}
+For every prime $\ell\mid\Phi_{3^k}(2)$, the following are equivalent:
+\begin{enumerate}[label=\textup{(\roman*)}]
+\item $\chi_{k,\ell}(\eta_k)\neq1$;
+\item $\eta_k$ is not an $\ell$-th power in
+      $\F_{2^{3^k}}^{\times}$;
+\item $X^{\ell}-\eta_k$ is irreducible over $\F_{2^{3^k}}$;
+\item $Q_k(X^{\ell})$ is irreducible over $\F_2$.
+\end{enumerate}
+Thus the surviving character lemma is equivalently the assertion that
+all the explicitly recursive compositions $Q_k(X^{\ell})$, for
+$\ell\mid\Phi_{3^k}(2)$, are irreducible.  At the first composite
+level $k=4$, the three targets are the monomial compositions of the
+displayed pentanomial $Q_4$ by
+$\ell\in\{2593,71119,97685839\}$.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:eta-tower} gives $R(\eta_k)=\eta_{k-1}$ and an
+irreducible cubic for $\eta_k$ over $\F_{2^{3^{k-1}}}$.  Since
+$\eta_{k-1}\in\F_2(\eta_k)$, induction gives
+$[\F_2(\eta_k):\F_2]=3^k$.  Clearing the denominator in the minimal
+polynomial of $\eta_{k-1}$ gives \((\star)\), a monic polynomial of
+degree $3^k$ having $\eta_k$ as a root: its leading term is
+$A(X)^{3^{k-1}}=X^{3^k}+\cdots$.  It is therefore the minimal
+polynomial.  Direct substitution in \((\star)\) gives the four displayed
+polynomials.
+
+Here $\Phi_{3^k}(2)=q_k^2+q_k+1\equiv1\pmod3$, so a prime
+$\ell\mid\Phi_{3^k}(2)$ is not $3$.  The cyclotomic-divisor criterion
+therefore gives $\ord_{\ell}(2)=3^k$, and hence
+$\mu_{\ell}\subset\F_{2^{3^k}}$.  Since $\ell$ is prime, Kummer theory
+says that $X^{\ell}-\eta_k$ either splits off a linear factor or is
+irreducible, according as $\eta_k$ is or is not an $\ell$-th power.
+This proves the equivalence of (ii) and (iii), while
+Capelli's lemma gives the equivalence of (iii) and (iv).  The direct
+product
+$\F_{2^{3^k}}^{\times}\simeq
+ \F_{q_k}^{\times}\times U_k$ and
+$\ell\nmid(q_k-1)$ show that being an $\ell$-th power in the full
+field is equivalent, for $\eta_k\in U_k$, to lying in $U_k^{\ell}$.
+This is the equivalence with (i).
+\end{proof}
+
+\begin{remark}[Singer membership is not primitivity]
+\label{rem:singer-not-primitive}
+The difference-set identification cannot replace the character test.
+Indeed, exponentiation
+\[
+ s_k:U_k\longrightarrow U_k,\qquad s_k(y)=y^{q_k+1},
+\]
+is an automorphism of order $6$: one has
+$\gcd(q_k+1,|U_k|)=1$ and
+$(q_k+1)^3\equiv-1\pmod{|U_k|}$, while
+$(q_k+1)^2\equiv q_k\not\equiv1$.  The Singer equation is simply
+$s_k(y)=y+1$.  Thus its consequence
+$\ord(y+1)=\ord(y)$ is automatic order preservation by an
+automorphism and supplies no order divisor by itself.
+For example, take $q=32$ and let $y$ be a root of
+$X^3+X^2+1$ over $\F_2$.  Then $y$ has order $7$ and
+$q+1\equiv5\pmod7$; the defining cubic gives
+$y^5+y+1=0$.  Hence $y\in\{x:x^{q+1}+x+1=0\}$, but $y$ does not
+generate the norm-one group of order
+$q^2+q+1=7\cdot151$.  What must be used in the Conway tower is the
+recursive coefficient $\eta_{k-1}$ in \((*)\), not Singer membership
+alone.
+\end{remark}
+
+\begin{proposition}[prime-step closure]\label{prop:prime-step}
+\PROVED{} If $\Phi_{3^k}(2)$ is prime, then
+\[
+ C_k\iff C_{k-1}.
+\]
+Consequently $C_1,C_2,C_3$ hold analytically: the three new kernel
+orders are respectively
+\[
+ 7,\qquad73,\qquad262657,
+\]
+and all are prime.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:eta-tower} proves that $\eta_k$ has degree $3$
+over $\F_{q_k}$, so in particular $\eta_k\neq1$.  A nonidentity element
+of a group of prime order generates it, and \((**)\) gives the first
+claim.  The primality of $7$ and $73$ is immediate.  For completeness,
+$262657-1=2^9\cdot3^3\cdot19$, and base $5$ gives the Pocklington
+certificate
+\[
+ 5^{262656}\equiv1\pmod{262657},\qquad
+ \gcd\!\left(5^{262656/r}-1,262657\right)=1
+ \quad(r=2,3,19),
+\]
+which proves the third primality assertion.
+\end{proof}
+
 \begin{conjecture}[$C_k$: $\gamma$-primitivity]\label{conj:ck}
 $\gamma_k$ is primitive in $L^{\times}=\F_{2^{3^k}}^{\times}$.
 \end{conjecture}
@@ -417,7 +1025,10 @@ restricted to the $3$-power column.
 
 \subsection{Certification status}
 
-\CERTIFIED{k\leq6} $C_k$ holds for $k=1,\dots,6$: $\gamma_k$ is primitive
+\PROVED{} Proposition~\ref{prop:prime-step} proves $C_k$ for
+$k=1,2,3$ without an order computation.
+
+\CERTIFIED{4\leq k\leq6} $C_k$ holds for $k=4,5,6$: $\gamma_k$ is primitive
 in $\F_{2^{3^k}}^{\times}$, and
 $\ord(\kappa_{3^k}+1)=3^{k+1}\,(2^{3^k}-1)$ is verified exactly --
 product reconstruction, squarefreeness, primality by deterministic
@@ -430,8 +1041,8 @@ calculator rows $m_{2593}=1$, $m_{487}=1$
 
 \CONSISTENT{} $k=7,8$: every known prime factor of $\Phi_{3^7}(2)$ and
 $\Phi_{3^8}(2)$ divides $\ord(\gamma_k)$. Full certification is blocked
-only by the unfactored cofactors (FactorDB status composite-no-factor);
-no failure has been found.
+by the unfactored cofactors (FactorDB status composite-no-factor),
+including their unknown prime multiplicities; no failure has been found.
 
 \OPEN{} Whether ECM or GNFS can factor the $\Phi_{3^7}(2)$ and
 $\Phi_{3^8}(2)$ cofactors within a realistic budget, converting $k=7,8$
@@ -475,6 +1086,152 @@ The rule matches all $950$ calculator records with known $\Qset$-sets and
 every OEIS-known row covered by those $\Qset$-sets.
 \end{conjecture}
 
+\subsection{Two maximal-order problems already contained in the rule}
+
+The candidate contains strong explicit maximal-order assertions even
+before the non-cyclotomic singleton chains are reached.  This prevents a
+proof from following from field degree or irreducibility alone.
+
+\begin{proposition}[the singleton-even arm is Conway--Fermat maximality]
+\label{prop:fermat-arm}
+\PROVED{} For $n\geq0$, put
+\[
+ h_n=2^{n+1},\qquad c_n=\kappa_{h_n}=2^{2^n},\qquad
+ E_n=\F_{2^{h_n}},\qquad F_n=2^{2^n}+1.
+\]
+With $E_{-1}=\F_2$, let
+\[
+ \delta_n=\ord\bigl(c_nE_{n-1}^{\times}\bigr)
+ \quad\text{in}\quad E_n^{\times}/E_{n-1}^{\times}.
+\]
+Then $1<\delta_n\mid F_n$, and the $m=0$ arm of
+Conjecture~\ref{conj:rule} for every prime $p\mid F_n$ is equivalent to
+\[
+  \delta_n=F_n.
+\]
+\end{proposition}
+
+\begin{proof}
+The Conway finite-nimber tower satisfies
+\[
+ c_n^2+c_n=c_{n-1}c_{n-2}\cdots c_0
+\]
+(with the empty product $1$).  Thus $E_n/E_{n-1}$ is quadratic and
+$c_n\notin E_{n-1}$, so the coset order is nontrivial.  Its ambient
+quotient has order
+\[
+ \frac{2^{2^{n+1}}-1}{2^{2^n}-1}=F_n,
+\]
+which proves $1<\delta_n\mid F_n$; equivalently the relative norm is
+$c_n^{F_n}=c_{n-1}\cdots c_0$.
+
+If $p\mid F_n$, then $2^{2^n}\equiv-1\pmod p$, hence
+$f(p)=2^{n+1}=h_n$.  Fermat numbers are pairwise coprime, so the entire
+$p$-primary part of $|E_n^{\times}|$ lies in the quotient by
+$E_{n-1}^{\times}$.  The full power criterion therefore gives
+$m_p=0$ iff
+$v_p(\delta_n)=v_p(F_n)$.  Requiring this for every prime divisor of
+$F_n$ is exactly $\delta_n=F_n$.
+\end{proof}
+
+When $F_n$ is prime, irreducibility and $\delta_n>1$ force
+$\delta_n=F_n$, recovering Lenstra's Fermat-prime rule.  When $F_n$ is
+composite, irreducibility forces only one nontrivial divisor: it does not
+force every prime-power factor.  The condition $\delta_n=F_n$ is exactly
+the maximal-coset-order hypothesis studied for Conway's quadratic tower
+by Popovych~\cite{Popovych18}.  It is strictly weaker than primitivity of
+$c_n$, which already fails at $n=2$ since
+$\ord(c_2)=5\cdot17=85<255$; Popovych uses the all-level
+hypothesis instead to prove that products such as $c_0c_n$ are primitive.
+Wiedemann's related iterated quadratic tower
+poses the analogous full-Fermat-order problem~\cite{Wiedemann88}.  Thus
+the apparently easy ``singleton even implies zero'' clause already
+contains a longstanding explicit maximal-coset-order problem.
+
+\begin{proposition}[the $3$-power arm is Gaussian-period primitivity]
+\label{prop:gauss-arm}
+\PROVED{} Fix $k\geq1$.  The $m=1$ arm of
+Conjecture~\ref{conj:rule} for every prime $p$ with
+$f(p)\in\{3,9,\ldots,3^k\}$ is equivalent to $C_k$: the Gaussian period
+\[
+  \gamma_k=\zeta+\zeta^{-1}\in\F_{2^{3^k}}^{\times},
+  \qquad \zeta^{3^{k+1}}=1,
+\]
+is primitive.
+\end{proposition}
+
+\begin{proof}
+Propositions~\ref{prop:halfangle} and~\ref{prop:tower} show that the old
+prime-power factors of $2^{3^k}-1$ propagate from lower levels.  For a
+prime $p$ with $f(p)=3^j$, the full power criterion says $m_p=1$ iff
+$v_p(\ord\gamma_j)=v_p(2^{3^j}-1)$.  Combining these statements for all
+$j\leq k$ gives every prime-power factor of $2^{3^k}-1$, which is
+equivalent to primitivity; the converse is immediate.
+\end{proof}
+
+The two arms are instances of the same projective statement.  The
+quadratic arm asks that the class of $c_n$ generate
+$E_n^\times/E_{n-1}^\times$.  In the cubic arm the natural map
+\[
+ U_k\longrightarrow \F_{q_k^3}^{\times}/\F_{q_k}^{\times}
+\]
+is an isomorphism, and the increment from $C_{k-1}$ to $C_k$ asks that
+the class of $\gamma_k$
+generate this quotient.  Equivalently, the projective class of the
+multiplication-by-$\gamma_k$ matrix generates a Singer cycle in
+$\operatorname{PGL}_3(q_k)$.  The $0/1/4$ rule therefore contains a
+quadratic and a cubic maximal-projective-order conjecture, rather than
+two unrelated order coincidences.
+
+\begin{proposition}[cyclotomic-type residue reduction]
+\label{prop:unit-residue}
+\PROVED{} Let $h=3^k$ and let $\ell$ be any prime divisor of
+$2^h-1$.  Then
+\[
+ \gamma_k=\zeta^{-1}(1+\zeta)^2
+\]
+is an $\ell$-th power in $\F_{2^h}$ if and only if $1+\zeta$ is an
+$\ell$-th power in $\F_{2^{2h}}$.  The same equivalence holds at every
+power $\ell^a\mid2^h-1$; however, non-$\ell$-power already implies that
+$\gamma_k$ has the full $\ell$-primary part of $2^h-1$ in its order.
+\end{proposition}
+
+\begin{proof}
+Because $\ell\mid2^h-1$, one has
+$\ell\nmid2^h+1$.  Extension from $\F_{2^h}^{\times}$ to
+$\F_{2^{2h}}^{\times}$ therefore preserves the $\ell$-primary quotient.
+Also $\ell\neq3$, so exponentiation by $\ell$ is an automorphism of the
+$3^{k+1}$-group generated by $\zeta$; hence $\zeta^{-1}$ is an
+$\ell$-th power.  Finally, squaring is an automorphism of every
+$\ell$-primary quotient for odd $\ell$.  The displayed factorization
+then proves both assertions.
+\end{proof}
+
+Even in the standard prime-conductor case, general results on
+multiplicative orders of Gaussian periods provide large lower bounds but
+not maximal order~\cite{ASV10}.  For the present prime-power conductor,
+the norm recursion $\gamma_k^3+\gamma_k=\gamma_{k-1}$ propagates the old
+factors only.  At level $k$, a proof must still show that every new
+prime-power factor of $\Phi_{3^k}(2)$ divides $\ord(\gamma_k)$.  That is
+the precise new-prime obstruction; degree $3^k$ guarantees at most that
+some exact-order factor occurs, not that all of them do.
+
+The Dickson formulation cleanly separates what the existing theory does
+and does not supply.  Mullin--Mahalanobis give the corresponding
+irreducibility criterion for $D_{3^k}(X,1)+1$~\cite{MM05}; irreducibility
+is not primitivity.  For prime conductor, Gao--Vanstone's analogous
+Gaussian-period primitivity statement remains conjectural~\cite{GV95},
+while Breuer shows that small divisors of the period index can reflect
+units and class numbers in an intermediate real quadratic
+field~\cite{Breuer21}.  The real $3$-power cyclotomic tower here has only
+odd-degree intermediate fields, so that quadratic norm argument does not
+apply.  Proposition~\ref{prop:eta-tower} supplies the appropriate cubic
+replacement and places the root on a Singer difference set, but neither
+the three symmetric coefficients nor the difference-set property proves
+that this distinguished member generates $U_k$; the explicit
+$q=32$ example in Remark~\ref{rem:singer-not-primitive} rules out that
+shortcut.
+
 \subsection{The component set alone is insufficient}
 
 \PROVED{} $\Qset(f(p))$ alone does not determine $m_p$:
@@ -483,9 +1240,9 @@ every OEIS-known row covered by those $\Qset$-sets.
 \toprule
 $\Qset$ & $m=4$ & $m=1$ \\
 \midrule
-$\{9\}$   & $p=19$,   $f=18$  & $p=73$,   $f=6$ \\
-$\{81\}$  & $p=163$,  $f=162$ & $p=2593$, $f=18$ \\
-$\{243\}$ & $p=1459$, $f=486$ & $p=487$,  $f=18$ \\
+$\{9\}$   & $p=19$,   $f=18$  & $p=73$,   $f=9$ \\
+$\{81\}$  & $p=163$,  $f=162$ & $p=2593$, $f=81$ \\
+$\{243\}$ & $p=1459$, $f=486$ & $p=487$,  $f=243$ \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -615,7 +1372,8 @@ divisibility, primality, and order tests, the small ones re-derived by
 sieve, and the list cross-audited against the raw factordb API after an
 adversarial review caught a dropped $43$-digit $k=7$ prime --- also has
 $m_p=4$. An $m_p\geq5$ example, if one exists, now hides strictly
-inside the unfactored cofactors.
+inside the unfactored cofactors; their prime multiplicities are likewise
+unknown until factorization.
 
 \begin{proposition}[twisted norm tower]\label{prop:twisted}
 \PROVED{} With $\eta=\zeta^3=\kappa_{3^{k-1}}$,
@@ -649,9 +1407,19 @@ $k=2,3,4$.
 \end{proof}
 
 So, unlike the $\gamma$ tower of Proposition~\ref{prop:tower},
-old-prime full-order parts do \emph{not} propagate up the column, and
-$D_k$ is genuinely per-level: the certification at each $k$ stands on
-its own.
+old-prime full-order parts do \emph{not propagate by that argument}, and
+$D_k$ is genuinely per-level for the present method: the certification at
+each $k$ stands on its own.  Structurally, at the degree-$3$ step with
+$Q=2^{2\cdot3^{k-1}}$, the relative norm kernel has order
+\[
+ Q^2+Q+1=\Phi_{3^k}(2)\Phi_{2\cdot3^k}(2).
+\]
+Its gcd with $Q-1$ is $3$, so there is no direct-product splitting at
+the $3$-part as in Proposition~\ref{prop:norm-kernel-seam}; nevertheless,
+for every $\ell\ne3$ the new $\ell$-Sylow subgroups of both columns lie
+entirely in the norm kernel.  This is the
+prime-to-$3$ analogue of Proposition~\ref{prop:norm-kernel-seam} and
+explains why a lower-level norm identity cannot determine $D_k$.
 
 \begin{remark}[the $3$-part]\label{rem:threepart}
 \CONSISTENT{} The $3$-part of $\ord(M_k)$ carries no column information
@@ -696,57 +1464,47 @@ column.
 the question is not known to be decidable by any current structural
 argument outside the $3$-adic columns.
 
+\PROVED{} A proof of the full $0/1/4$ candidate would in particular prove
+both the Conway--Fermat maximality statement
+$\delta_n=F_n$ at every quadratic level
+(Proposition~\ref{prop:fermat-arm}) and the Gaussian-period primitivity
+statement $C_k$ at every cubic level
+(Proposition~\ref{prop:gauss-arm}).  These are independent new-factor
+problems; neither follows from the existing norm recursions.
+
 \section{Ranked next moves}\label{sec:moves}
 
 \begin{enumerate}[leftmargin=*]
-\item \emph{Dress rehearsal on $m_{359}$ (highest priority).} The easy
-dependency rows are now locally certified: $m_{89}=1$ at $E=220$ and
-$m_{179}=1$ at $E=19{,}580$
-(\path{experiments/ordinal_excess_probe.py}, \texttt{--deep} for the
-latter). The remaining independent rehearsal row on which an $m_{719}$
-certificate depends is $m_{359}=1$, whose component field has degree
-$E=3{,}504{,}820$. The value is already source-pinned by A380496; the
-research value is a local certificate and a calibrated cost model for
-the first unknown row. The 2026-06-16 pass found the precise obstruction:
-the cheap top-step norm lands in $\F_{2^{19580}}$, where $359$ is
-invisible, while the correct norm is the transverse
-$\F_{2^{3504820}}/\F_{2^{179}}$ norm and is dense in the current term
-basis (Subsection~\ref{sec:m359-obstruction}). Certifying it remains a stretch,
-plausibly hours to a day with \texttt{gf2x}-style arithmetic, and is not
-reachable with the present pure-Python oracle. Confirm $m_{359}=1$ first;
-the norm recurrence for $p=719$ shifts if not. \emph{Feasible only with a
-faster tower/Frobenius implementation; blocks the next move.}
-\item \emph{Certify $m_{719}$ via the Kummer-tower Frobenius norm.}
-Implement the binary-splitting norm $N_{2k}=N_k\cdot\Frob^{359k}(N_k)$ in
-the tower-sparse representation; measure the cost model on the calibrated
-path; if tower-aware Frobenius brings the ${\sim}44$ modular compositions
-to feasible size, run to certify or falsify $m_{719}=1$. Factor out the
-shared \texttt{relative\_norm\_over\_frobenius\_orbit} abstraction
-(Remark~\ref{rem:bridgek}). \emph{Blocked on move 1 for the cost
-model.}
-\item \emph{[Done, 2026-06-12.] $m_p=4$ exactly on the $2\cdot3^k$
-column.} Settled at every prime current factor tables reach
-(Section~\ref{sec:m4}, \path{experiments/exception_column_m4.py}): the
-corrected norm $(\kappa+4)(\kappa+5)=\kappa^2+\kappa+\omega$ collapses
-the test in-field; certified universally for $k\leq6$, consistent at
-$k=7,8$. Successor moves: prove $D_k$ (Conjecture~\ref{conj:dk}) ---
-the twisted norm tower (Proposition~\ref{prop:twisted}) shows why
-$\gamma$-style propagation is unavailable; factor the
-$\Phi_{2\cdot3^7}(2)$ and $\Phi_{2\cdot3^8}(2)$ cofactors (joins the
-ECM/GNFS batch of the next move); explain the $3$-part parity
-(Remark~\ref{rem:threepart}).
-\item \emph{Convert $C_7$, $C_8$ from \textsc{consistent} to
-\textsc{certified}.} ECM/GNFS jobs on the cofactors of $\Phi_{3^7}(2)$
-and $\Phi_{3^8}(2)$; full factorization also emits a batch of new
-A380496 rows. \emph{Background job; uncertain outcome; blocks
-nothing.}
-\item \emph{Exact-order census on the non-cyclotomic singleton chains.}
-Compute $\ord(\kappa_q+m)$ for small $m$ in the explicit component fields
-for the $11$-chain and the $23$, $29$, $47$ components (degrees up to
-${\sim}5060$; trivial locally); look for an analogue of the
-$L^{\times}\times U$ splitting and for any forced-translate mechanism.
-This is the main structural gap for boundedness outside the $3$-power
-columns. \emph{Feasible now; no structural theory yet.}
+\item \emph{Conway--Fermat quotient lemma (highest analytical priority).}
+Prove or refute $\delta_n=F_n$ in Proposition~\ref{prop:fermat-arm}.
+The norm identity gives only $1<\delta_n\mid F_n$; the missing step is to
+exclude each proper prime-power quotient of $F_n$.  A proof must use more
+than irreducibility, and would settle the entire singleton-even arm.
+\item \emph{New-prime lemma for the $3$-power spine.}  For every
+$\ell^a\mid\Phi_{3^k}(2)$, prove
+$v_\ell(\ord\gamma_k)=a$.  The norm tower already carries all old
+factors, so this single per-level statement is exactly $C_k$.  Equivalently,
+prove that the distinguished root $\eta_k$ of
+$X^3+\eta_{k-1}X^2+(\eta_{k-1}+1)X+1$ generates the norm-one torus
+$U_k$.  The sharp analytical languages are therefore either the
+$\ell$-power residue symbol of the cyclotomic unit $1+\zeta$ or the
+character theory of this explicit cubic trace/norm fibre, not another
+order census.
+\item \emph{General transverse reciprocity.}  Evaluate the power-residue
+symbol of $\Theta_{q,s}$ from
+Proposition~\ref{prop:singleton-transverse}.  A theorem forcing its full
+exact-order support would prove the singleton-one arm simultaneously for
+the $11$-chain and the $23$, $29$, $47$, $179$, \ldots{} components.
+The easy Kummer norm is provably the wrong object.
+\item \emph{Exception-column new-prime lemma.}  Prove $D_k$ for the
+prime-to-$3$ part of $\ord(M_k)$.  The twisted norm formula in
+Proposition~\ref{prop:twisted} rules out direct induction on $k$; a
+residue-symbol calculation for $N_k=\zeta^2+\zeta+\omega$ must account
+for the twist.
+\item \emph{Numerical work only as falsification and audit.}  The
+$m_{359}$/$m_{719}$ transverse norm, complete factorizations at $k=7,8$,
+and exact-order censuses remain useful counterexample searches and
+checks of any proposed lemma, but they no longer lead the proof program.
 \end{enumerate}
 
 \section{Provenance and validation}\label{sec:provenance}
@@ -824,16 +1582,27 @@ solver.
 \section*{Acknowledgements}
 The \texttt{ogdoad} library, the experiments, and this draft were
 developed with LLM assistance; the analysis consolidates a structured
-parallel research run (2026-06-10). Mathematical direction, framing, and
-responsibility for claims remain the author's.
+parallel research run (2026-06-10) and an independent adversarial proof
+audit (2026-07-20). Mathematical direction, framing, and responsibility
+for claims remain the author's.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
+\bibitem{ASV10} O.~Ahmadi, I.~E.~Shparlinski, J.~F.~Voloch,
+\emph{Multiplicative order of Gauss periods}, Int.~J.~Number Theory
+\textbf{6} (2010), 877--882; arXiv:0707.4034.
+\bibitem{Breuer21} F.~Breuer, \emph{Multiplicative orders of Gauss
+periods and the arithmetic of real quadratic fields}, Finite Fields
+Appl.\ \textbf{73} (2021), 101848.
+\bibitem{Carlitz53} L.~Carlitz, \emph{Distribution of primitive roots in
+a finite field}, Quart.~J.~Math. Oxford (2) \textbf{4} (1953), 4--10.
 \bibitem{Conway76} J.~H.~Conway, \emph{On Numbers and Games}, Academic
 Press, 1976.
 \bibitem{DFRR19} L.~De~Feo, H.~Randriam, \'E.~Rousseau, \emph{Standard
 lattices of compatibly embedded finite fields}, Proc.\ ISSAC 2019;
 arXiv:1906.00870.
 \bibitem{DiMuro} J.~DiMuro, \emph{On $\mathrm{On}_p$}, arXiv:1108.0962.
+\bibitem{GV95} S.~Gao, S.~A.~Vanstone, \emph{On orders of optimal basis
+generators}, Math.\ Comp.\ \textbf{64} (1995), 1227--1233.
 \bibitem{KS98} E.~Kaltofen, V.~Shoup, \emph{Subquadratic-time factoring of
 polynomials over finite fields}, Math.\ Comp.\ \textbf{67} (1998),
 1179--1197.
@@ -842,6 +1611,12 @@ two}, Indag.\ Math.\ \textbf{39} (1977), 389--396;
 \url{https://pub.math.leidenuniv.nl/~lenstrahw/PUBLICATIONS/1977e/art.pdf}.
 \bibitem{Lenstra78} H.~W.~Lenstra, Jr., \emph{Nim multiplication},
 S\'eminaire de Th\'eorie des Nombres de Bordeaux, 1977--1978.
+\bibitem{MM05} R.~C.~Mullin, A.~Mahalanobis, \emph{Dickson bases and
+finite fields}, CACR Technical Report 2005--03, University of Waterloo,
+2005.
+\bibitem{MRS20} T.~M\'esz\'aros, L.~R\'onyai, T.~Szab\'o,
+\emph{Singer difference sets and the projective norm graph},
+arXiv:1908.05591 (2019).
 \bibitem{OEIS} OEIS Foundation Inc., entry A380496,
 \emph{The On-Line Encyclopedia of Integer Sequences},
 \url{https://oeis.org/A380496}.
@@ -851,9 +1626,17 @@ S\'eminaire de Th\'eorie des Nombres de Bordeaux, 1977--1978.
 \bibitem{Peeters} D.~Peeters, \emph{transfinite-nim-calculator}
 (software),
 \url{https://github.com/DjangoPeeters/transfinite-nim-calculator}.
+\bibitem{Popovych18} R.~Popovych, \emph{Multiplicative orders of
+elements in Conway's towers of finite fields}, Algebra Discrete Math.
+\textbf{25} (2018), 137--146; arXiv:1509.01958.
 \bibitem{vzGS92} J.~von~zur~Gathen, V.~Shoup, \emph{Computing Frobenius
 maps and factoring polynomials}, Comput.\ Complexity \textbf{2} (1992),
 187--224.
+\bibitem{Wiedemann88} D.~Wiedemann, \emph{An iterated quadratic
+extension of $GF(2)$}, Fibonacci Quart.\ \textbf{26} (1988), 290--295.
+\bibitem{Washington97} L.~C.~Washington, \emph{Introduction to
+Cyclotomic Fields}, 2nd ed., Graduate Texts in Mathematics 83,
+Springer, 1997.
 \end{thebibliography}
 
 \end{document}

@@ -500,9 +500,10 @@ Current external state:
   This is still only a candidate rule, not a theorem.
 - The exact finite-field reformulation is sharper than root-search language. If
   `beta = kappa_{f(p)} + m` lies in the component field `F_{2^E}`, then `beta`
-  has no `p`-th root exactly when `p` divides the multiplicative order of `beta`.
-  Thus the excess is the least `m` such that
-  `p | ord(kappa_{f(p)} + m)`.
+  has no `p`-th root exactly when the multiplicative order of `beta` contains the
+  full `p`-primary part of `2^E - 1`. When `v_p(2^E - 1) = 1` this reduces to
+  `p | ord(beta)`; the full statement is required at base-2 Wieferich primes
+  and whenever `p | E/f(p)`.
 - The local fixed-base probe (`experiments/ordinal_excess_probe.py`) uses that
   criterion to verify `m_47 = 1` from the lower rows. Since `f(47) = 23` and
   `Q(23) = {23}`, this gives `alpha_47 = omega^(omega^7)+1` — historically the first
@@ -514,9 +515,74 @@ Since the 2026-06 research pass (`writeups/excess.tex`, `experiments/excess/`,
 
 - The 3-power column is now structural: `C_k` — the exact formula
   `ord(kappa_{3^k} + 1) = 3^(k+1) * (2^(3^k) - 1)` with `gamma_k` primitive — is
-  certified for `k <= 6` and consistent-but-uncertified for `k = 7, 8`, blocked
-  only by the unfactored cofactors of `Phi_{3^7}(2)` and `Phi_{3^8}(2)` (FactorDB
+  proved analytically for `k <= 3`, certified by exact-order computation for
+  `4 <= k <= 6`, and consistent-but-uncertified for `k = 7, 8`, blocked only
+  by the unfactored cofactors of `Phi_{3^7}(2)` and `Phi_{3^8}(2)` (FactorDB
   CF). Whether ECM/GNFS reaches those on a realistic budget is open.
+- The analytical target inside `C_k` is now explicit at polynomial and torus level
+  (2026-07-20, `writeups/excess.tex`). With `f(X) = X^3 + X`, the minimal
+  polynomial of `gamma_k` is the irreducible Dickson iterate
+  `P_k(X) = D_(3^k)(X,1) + 1 = f^k(X) + 1`, satisfying
+  `P_(k+1) = P_k^3 + P_k^2 + 1`; hence `C_k` says exactly that `P_k` is
+  *primitive*, not merely irreducible. Equivalently, for
+  `q_k = 2^(3^(k-1))`, the new component
+  `eta_k = gamma_k^(q_k - 1)` lies in the cubic norm-one torus
+  `U_k` of order `q_k^2 + q_k + 1` and obeys the fully recursive equation
+  `X^3 + eta_(k-1) X^2 + (eta_(k-1)+1) X + 1 = 0` (`eta_0 = 0`). Thus its
+  norm, trace, and second elementary coefficient are respectively
+  `1`, `eta_(k-1)`, and `eta_(k-1)+1`; `C_k` is precisely the remaining claim
+  that this distinguished root generates `U_k`. The same element is the Möbius
+  image `(omega + omega^2*zeta^2)/(1+zeta^2)`, with inverse
+  `zeta^2 = (eta_k+omega)/(eta_k+omega^2)`. It also obeys
+  `eta_k^(q_k+1) + eta_k + 1 = 0`, so it is a member of the planar Singer
+  difference set of size `q_k+1` in `U_k`. Singer membership alone is
+  formally order-neutral: `y -> y^(q_k+1)` is an order-6 automorphism of
+  `U_k`, and the Singer equation merely says that this automorphism sends
+  `y` to `y+1`. At `q=32`, a root of `X^3+X^2+1` lies in the analogous set
+  but has order `7` inside the group of order `7*151`. The recursive
+  coefficient `eta_(k-1)` is therefore essential.
+- The exact remaining lemma now has a character form. For every prime
+  `ell | |U_k|`, let `chi_(k,ell)` be an exact-order-`ell` character of
+  `U_k`. Then `C_k` is equivalent to `C_(k-1)` plus
+  `chi_(k,ell)(eta_k) != 1` for every such `ell`. Equivalently, the
+  multiplicative character `rho(A) = chi(A^(q_k-1))`, trivial on the base
+  field, must satisfy `rho(gamma_k) != 1`. All distinct kernel orders are
+  pairwise coprime; in fact
+  `Hom(F_(2^(3^(k-1)))^*, mu_ell)=1` for `ell | |U_k|`, so no
+  multiplicative character or power-residue datum from a previous level
+  can transfer an `ell`-part to this test.
+- The same lemma now has two further exact analytical forms (2026-07-20).
+  First, if `Q_0(X)=X`, `A=X^3+X+1`, `B=X^2+X`, and
+  `Q_k(X)=B(X)^(3^(k-1)) Q_(k-1)(A/B)`, then `Q_k` is the degree-`3^k`
+  minimal polynomial of `eta_k`; for each prime `ell | Phi_(3^k)(2)`,
+  character nonvanishing is equivalent by Kummer theory and Capelli's
+  lemma to irreducibility of `Q_k(X^ell)`. Notably
+  `Q_4=X^81+X^64+X^16+X+1`, so the first composite level is an explicit
+  pentanomial-composition reformulation; no known general irreducibility
+  criterion turns it into a reduction. Second, in
+  the real cyclotomic field `F_k=Q(zeta_(3^(k+1)))^+`, the conjugates of
+  `c_k=2+zeta+zeta^(-1)` generate a 2-power-index subgroup of the real
+  circular units and reduce modulo the inert prime `2` to the powers of
+  `gamma_k`; the index disappears in the odd-order residue group. Hence `C_k` is
+  exactly surjectivity of circular units onto `F_(2^(3^k))^*`. The index
+  factors through the ray-class exact sequence as ray-class growth at
+  modulus `(2)` times a quotient of the circular-unit index; away from
+  primes dividing the ordinary class number, an `ell`-failure is exactly
+  `ell`-part growth in that ray class group. This names rather than solves
+  the obstruction: the ray group is defined by the same residue quotient,
+  and the required ordinary-class-number exclusion is not uniform in `k`.
+  The relative coboundary
+  `sigma^(3^(k-1))(c_k)/c_k` reduces to `eta_k`.
+- There is one unconditional analytical closure: if `Phi_(3^k)(2)` is
+  prime, the nonidentity element `eta_k` automatically generates `U_k`.
+  Hence `C_1`, `C_2`, and `C_3` follow without an order computation from
+  the primality of `7`, `73`, and `262657`; only `k=4,5,6` retain the
+  finite-field order-certificate label.
+- The shifted unit `1+zeta_(3^(k+1))` is norm-coherent in the characteristic-
+  zero cyclotomic `Z_3`-tower, and its real norm reduces modulo the unique
+  prime above `2` to `gamma_k`. Thus the character lemma is an Artin-type
+  fixed-prime power-residue problem for a cyclotomic unit, not merely an
+  irreducible-polynomial question.
 - The `f(p) = 2*3^k` exception column is settled at every prime current factor
   tables reach (2026-06-12, `experiments/exception_column_m4.py`): `m_p = 4`
   *exactly*, universally for `k <= 6` (fully factored levels — 14 rows, 11 of
@@ -593,6 +659,43 @@ Why this is research:
   as singleton-odd `Q(f(p))` forcing positive excess and `f(p)=2*3^k` forcing
   excess at least `4` (the matching upper bound `m_p = 4` is now certified at
   every visible prime of that column; see above).
+- The candidate contains two independent explicit maximal-order problems. On the
+  singleton-even side, put `c_n = kappa_(2^(n+1))` and let `delta_n` be the order
+  of its coset in
+  `F_(2^(2^(n+1)))^* / F_(2^(2^n))^*`, whose order is the Fermat number
+  `F_n = 2^(2^n) + 1`. The zero arm for every prime divisor of `F_n` is exactly
+  `delta_n = F_n`, the maximal-coset-order condition studied for Conway's
+  quadratic tower. This is strictly weaker than primitivity of `c_n`, which
+  already fails at `n = 2` (`ord(c_2) = 85 < 255`); Popovych instead uses the
+  same condition to obtain primitive products involving the bottom generator.
+  On the `3`-power side,
+  the one arm through level `k` is
+  exactly the assertion that the Gaussian period
+  `gamma_k = zeta + zeta^(-1)` is primitive in `F_(2^(3^k))`. Irreducibility and
+  field degree do not prove either statement: they force some new order factor,
+  not every prime-power factor. In fact the cubic step splits as
+  `F_(2^(3^k))^* = F_(2^(3^(k-1)))^* x U_k`, with
+  `|U_k| = Phi_(3^k)(2)`, and the relative norm kills `U_k`. The norm recursion
+  therefore supplies no order information about exactly the new-prime component
+  that `C_k` must show is generated. The explicit `eta_k` recursion above recovers all
+  three symmetric coefficients of that component, but maximal order still asks
+  whether `eta_k` avoids every proper prime-index subgroup of `U_k`. Known
+  Gaussian-period results provide large lower bounds, and the analogous
+  prime-conductor primitivity statement of Gao–Vanstone is itself conjectural;
+  neither result supplies this prime-power-conductor Singer assertion.
+- These are the same species of obstruction in projective degree `2` and `3`.
+  The even arm asks that `c_n` generate `E_n^*/E_(n-1)^*`; the cubic
+  increment asks that `gamma_k` generate
+  `F_(q_k^3)^*/F_(q_k)^*`, equivalently that its multiplication matrix
+  generate a Singer cycle in `PGL_3(q_k)`. The candidate rule therefore
+  contains two maximal-projective-coset-order conjectures.
+- Every singleton-odd row now has one exact analytical target. If
+  `Q(h) = {q = r^a}`, write `b = d(alpha_r)` and `h = q*s` with `s | b`. Then
+  `kappa_q` is a `p`-th power for every `p` with `f(p) = h`, and `m_p = 1` is
+  equivalent to the transverse norm
+  `Theta_(q,s) = Norm_(F_(2^(q*b))/F_(2^(q*s)))(kappa_q + 1)` containing the
+  full `p`-primary part of `2^(q*s) - 1`. The easy top-step Kummer norm lands in
+  `F_(2^b)`, where that `p`-part is absent, so it cannot prove the claim.
 - The order formulation explains the first weak-formula failures without appealing
   to the production table. In the independent probe, `ord(kappa_9 + 1) =
   3^3*(2^9 - 1)`, so `73 | ord(kappa_9 + 1)` but `19` does not divide it; adding
@@ -609,20 +712,29 @@ Concrete progress targets:
   (126 rows, odd primes `3..=709`), source-pinned rather than per-row locally oracled.
   The remaining gap is *feasibility* (materializing `alpha_u` for large-`e_u` rows),
   not *coverage*.
-- Derive or certify finite excess terms beyond the published table. (Done for
-  the `2*3^k` column at every visible prime — 11 new `m_p = 4` rows, 2026-06-12;
-  the `3`-power column's `m_r = 1` rows were certified in the earlier pass;
-  the `p=719` dependency rehearsal now locally certifies `m_89 = m_179 = 1`.
-  Other columns remain.)
-- Prove or find a counterexample to the candidate `0/1/4` rule. The smallest
-  pressure point is `p = 719`, where the rule predicts `m_719 = 1` but the direct
-  calculator path is too large for ordinary local verification; the next
-  dependency to certify locally is `m_359 = 1`, now shown obstructed in the
-  pure-Python oracle (the required transverse norm is half-dense — see above),
-  pending faster GF(2) / tower-Frobenius arithmetic.
-- Turn the order-divisibility criterion into an actual theorem about the prime
-  divisors of `ord(kappa_q + m)`, especially for singleton odd `Q = {q}` and for
-  the exceptional tower `q = 3^k`.
+- Prove or refute the Conway-Fermat quotient lemma `delta_n = F_n`. This is the
+  whole singleton-even arm; the relative norm currently proves only
+  `1 < delta_n | F_n`.
+- Prove the new-prime lemma for the cubic spine: for every
+  `ell^a | Phi_(3^k)(2)`, show `v_ell(ord(gamma_k)) = a`. Old factors already
+  propagate down the norm tower, so this is exactly the missing step in `C_k`.
+  In its smallest current form: prove that the distinguished root `eta_k` of
+  `X^3 + eta_(k-1) X^2 + (eta_(k-1)+1) X + 1` generates the cyclic norm-one
+  torus of order `Phi_(3^k)(2)`. A character or power-residue proof must exclude
+  `eta_k` from every proper prime-index subgroup; irreducibility alone cannot.
+  Precisely, prove `chi_(k,ell)(eta_k) != 1` for every
+  `ell | Phi_(3^k)(2)`, or equivalently prove that the reduction modulo `2`
+  of the norm-coherent cyclotomic unit `1+zeta_(3^(k+1))` is not an
+  `ell`-th power. This is now the smallest named lemma for the cubic arm.
+- Evaluate the power-residue symbol of the general transverse norm
+  `Theta_(q,s)`. A uniform nonresidue theorem would prove the singleton-one arm
+  for the non-cyclotomic chains (`11`, `23`, `29`, `47`, `179`, ...).
+- Prove the corresponding new-prime statement `D_k` for the `m = 4` norm on the
+  `2*3^k` column; the established twisted norm formula rules out the naive
+  induction.
+- Keep `m_359`, `m_719`, factorization, and exact-order runs as falsification and
+  proof audits rather than the leading route. They remain valuable tests of any
+  proposed residue-symbol lemma.
 - Build a verified `u`-th-power/root-search oracle for the transfinite field.
 - Prove enough about the search to avoid merely empirical extensions.
 - ~~Decide what evidence is acceptable for shipping `alpha_53` and beyond.~~ Settled:
