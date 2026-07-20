@@ -291,12 +291,14 @@ one place a traveller may wander in circles.
 
 Closing the tour now wants a *third* Scalar–Clifford span — bridges C and D are the two
 it already has. None of the pending threads supplies one: **`*2` (S–I)**, the
-Drinfeld/Carlitz mirror, would even Scalar but tip the Integral wing odd in turn; `*1`
-(the spinor genus), `*4` (the wild local symbol), and `under` (now carrying proved
-numeric filtered transports, with the stronger thermography ↔ Newton-polygon bridge
-still open) each matter on their own terms but land elsewhere
-on the map. The round trip stays open — and the obstruction has simply walked from the
-Integral shore to the Clifford one.
+Drinfeld/Carlitz mirror, would even Scalar but tip the Integral wing odd in turn;
+`*1` (the spinor genus) and `*4` (the wild local symbol) matter on their own terms
+but land elsewhere. `under` is closed rather than pending: the game filtration has
+genuine numeric filtered transports, but its `[*]` 2-torsion and the exact Norton
+composition defect prove that it cannot carry the place axis's full dyadic
+coefficient object, even in graded initial-form form. It likewise lands elsewhere
+on the map. The round trip stays open —
+and the obstruction has simply walked from the Integral shore to the Clifford one.
 
 ## The research thread
 

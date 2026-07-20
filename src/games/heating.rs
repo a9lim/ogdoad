@@ -10,10 +10,17 @@
 //!
 //! The unrestricted associated-graded hope is false: a nonnumeric unit can turn
 //! a hidden cold-number coefficient into a leading residue.  Positive **numeric**
-//! units do survive, however.  [`numeric_norton_regrade`] and
-//! [`numeric_norton_mean_temperature`] encode the exact affine regrading proved in
-//! the `under` research pass without materializing the (potentially much larger)
-//! Norton product.
+//! units do survive individually, however.  [`numeric_norton_regrade`] and
+//! [`numeric_norton_mean_temperature`] encode their exact affine regrading without
+//! materializing the (potentially much larger) Norton product.
+//!
+//! They do **not** form a multiplicative scalar action.  The exact obstruction is
+//! [`numeric_norton_composition_defect`]: applying the `u` transport and then the
+//! `v` transport differs in degree from the `uv` transport by a nonnegative dyadic
+//! defect that is often positive.  Together with the nonzero 2-torsion class of
+//! `*` in the temperature-zero residue, this closes the one-ring reading of
+//! `under`: the surviving connection is a filtered shadow, not a faithful
+//! full-dyadic Newton-style graded ring.
 
 use crate::games::partizan::integer_value;
 use crate::games::Game;
@@ -56,6 +63,45 @@ pub fn numeric_norton_regrade(unit: &Game) -> Option<(Rational, Rational)> {
     let mesh = Rational::new(1, scale.denom());
     let shift = scale.sub(&mesh);
     Some((scale, shift))
+}
+
+/// The exact degree defect in composing two positive numeric Norton transports.
+///
+/// Apply `first_unit = u` and then `second_unit = v`.  If
+/// `delta_x = 1 / denominator(x)` (with `delta_x = 1` for an integer), the
+/// individual degree maps on nonnumeric temperature layers are
+///
+/// ```text
+/// r_x(tau) = x*tau + x - delta_x.
+/// ```
+///
+/// Their composite and the transport by the ordinary dyadic product differ by
+///
+/// ```text
+/// r_v(r_u(tau)) - r_(uv)(tau)
+///     = v*(1 - delta_u) - delta_v + delta_(uv) >= 0.
+/// ```
+///
+/// The defect is independent of `tau`.  It can be positive: for `u = 1/2` and
+/// `v = 2` it is `1`, so `A_2 A_(1/2)(*)` has temperature `1` while
+/// `A_1(*) = *` has temperature `0`.  Consequently the numeric Norton transports
+/// cannot be the scalar action of an associative graded algebra whose dyadic
+/// coefficients multiply ordinarily.  Returns `None` when either unit is not a
+/// positive short-game number.
+pub fn numeric_norton_composition_defect(
+    first_unit: &Game,
+    second_unit: &Game,
+) -> Option<Rational> {
+    let (first_scale, first_shift) = numeric_norton_regrade(first_unit)?;
+    let (second_scale, second_shift) = numeric_norton_regrade(second_unit)?;
+    let product = first_scale.mul(&second_scale);
+    let product_shift = product.sub(&Rational::new(1, product.denom()));
+    Some(
+        second_scale
+            .mul(&first_shift)
+            .add(&second_shift)
+            .sub(&product_shift),
+    )
 }
 
 /// Compute `(mean, temperature)` of `G.u` for a positive numeric unit `u`
@@ -493,17 +539,49 @@ mod tests {
     }
 
     #[test]
-    fn numeric_norton_units_are_not_a_multiplicative_action() {
-        // The individual additive transports are exact, but composition in the
-        // unit is not Norton multiplication by the ordinary product unit.
-        let star = Game::star();
-        let half = dyadic(1, 2);
-        let two = Game::integer(2);
-        let composite = norton_multiply(&norton_multiply(&star, &half).unwrap(), &two).unwrap();
-        let identity = norton_multiply(&star, &Game::integer(1)).unwrap();
-        assert!(!composite.eq(&identity));
-        assert!(req(&temperature(&composite).unwrap(), &int(1)));
-        assert!(req(&temperature(&identity).unwrap(), &int(0)));
+    fn numeric_norton_has_the_exact_composition_defect() {
+        // The theorem is degree-level, so test it on several nonnumeric layers.
+        let games = [Game::star(), Game::up(), Game::switch(1, -1)];
+        let cases = [
+            (dyadic(1, 2), Game::integer(2), int(1)),
+            (Game::integer(2), dyadic(1, 2), Rational::new(1, 2)),
+            (Game::integer(3), dyadic(1, 2), int(0)),
+            (dyadic(1, 2), dyadic(1, 4), int(0)),
+            (dyadic(3, 2), dyadic(3, 2), Rational::new(1, 2)),
+        ];
+
+        for (first, second, expected_defect) in cases {
+            let defect = numeric_norton_composition_defect(&first, &second).unwrap();
+            assert!(req(&defect, &expected_defect));
+            assert!(defect.sign() != Ordering::Less);
+
+            let first_value = first.number_value().unwrap().as_rational().unwrap();
+            let second_value = second.number_value().unwrap().as_rational().unwrap();
+            let product_value = first_value.mul(&second_value);
+            let product_unit = dyadic(product_value.numer(), product_value.denom());
+            for game in &games {
+                let composite =
+                    norton_multiply(&norton_multiply(game, &first).unwrap(), &second).unwrap();
+                let direct = norton_multiply(game, &product_unit).unwrap();
+                let actual_defect = temperature(&composite)
+                    .unwrap()
+                    .sub(&temperature(&direct).unwrap());
+                assert!(
+                    req(&actual_defect, &defect),
+                    "composition defect failed for G={}, u={}, v={}",
+                    game.display(),
+                    first_value,
+                    second_value
+                );
+                assert!(req(
+                    &mean_value(&composite).unwrap(),
+                    &mean_value(&direct).unwrap()
+                ));
+            }
+        }
+
+        assert!(numeric_norton_composition_defect(&Game::up(), &Game::integer(2)).is_none());
+        assert!(numeric_norton_composition_defect(&Game::integer(1), &Game::zero()).is_none());
     }
 
     #[test]

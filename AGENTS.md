@@ -84,7 +84,8 @@ and `writeups/`
 including the Tier-2 no-go/construction program; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
-`thermo_newton.tex` — the thermography ↔ Newton-polygon tropical bridge).
+`thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
+filtered shadow, but no faithful dyadic-unital tropical ring).
 
 ## Claim levels and non-claims
 
@@ -279,8 +280,12 @@ open.
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
 tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`) plus
 game-valued heating/overheating/Norton operators and the proved positive-numeric-unit
-regrading `gr_τ -> gr_{uτ+u-δ}` (a substantive `under` result, not an internal
-product on arbitrary residual games), the source-pinned (OEIS A380496) ordinal
+regrading `gr_τ -> gr_{uτ+u-δ}`. The completed `under` theorem proves that the
+game and place consumers are two tropical objects: `gr_0`'s nonzero `[*]`
+2-torsion forbids a lift-compatible action by any full dyadic object
+(ordinary or graded initial-form), and the exact nonnegative
+Norton composition defect forbids a multiplicative dyadic action even after
+any temperature-preserving residue refinement. The source-pinned (OEIS A380496) ordinal
 nim Kummer tower below `ω^(ω^ω)`, the characteristic-2
 Artin-Schreier local-global layer over `F_{2^m}(t)` including the Aravire-Jacob wild
 summand, and the integral lattice/genus/mass/Leech/Niemeier/theta/code/Weil chain. These are

@@ -28,7 +28,10 @@ the vocabulary. The values come in dual pairs, and so do the problems:
   every verified rung (`on`), and the classifier that switches off beyond the
   finite windows (`off`).
 - **`over`/`under`** — the two mirror questions: the mod-8 spine above the Arf
-  bit (`over`), and the MinPlus shadow beneath MaxPlus thermography (`under`).
+  bit (`over`) remains open; the MinPlus shadow beneath MaxPlus thermography
+  (`under`) was resolved on 2026-07-20: a substantive filtered transport exists,
+  while a faithful full-dyadic Newton-style ring is impossible.  It is retained
+  below only as a closure tombstone.
 
 The games are the names: refer to a problem by its loopy value. `dud` stays
 unassigned: `dud + G = dud` for every `G`, and no problem has yet earned
@@ -861,17 +864,15 @@ Relevant surfaces:
 - `writeups/goldarf.tex` §5 (the extraspecial reframing this lifts)
 - `tis` — the `ℤ/2` floor of this question
 
-### under·(e_g∧e_s): `thermography ↔ Newton polygons: one tropical object or two?`
+### ~~under·(e_g∧e_s): `thermography ↔ Newton polygons: one tropical object or two?`~~ — resolved
 
-Decide whether the project's two tropical consumers — thermography (`MaxPlus`, the
-games axis) and the valuation/Newton-polygon stack (`MinPlus`, the place axis,
-Bridge J) — are connected by a substantive transport, or whether the mirror is
-purely notational. Either answer is the contribution; as of this pass the
-thermograph-level mirror has a *negative* theorem and the positive question has a
-sharper form (below). The duality is named (`scalar/tropical.rs` enforces the
-two-type separation), and the place axis is fully standard.
+**Resolved 2026-07-20: two objects, with a substantive filtered shadow.**  The
+project's two tropical consumers — thermography (`MaxPlus`, the games axis) and
+the valuation/Newton-polygon stack (`MinPlus`, the place axis, Bridge J) — cannot
+be one faithful Newton-style dyadic graded ring.  The exact closure is in
+`writeups/thermo_newton.tex`; the implementation record lives in `docs/DONE.md`.
 
-Why this is research:
+Why this was research:
 - On the place axis the valuation axiom `v(x+y) >= min(v(x), v(y))` makes Newton
   polygons additive under multiplication (Dumas), and passing to the graded ring
   `gr_v` "freezes" leading terms; `scalar/newton.rs` plus the Springer tests pin
@@ -884,10 +885,11 @@ Why this is research:
   thermograph as a sum-compatible tropical object — provably fails, and replaced
   it with a sharper target.
 
-The program state (2026-07-20 — `writeups/thermo_newton.tex` +
+The closed program state (2026-07-20 — `writeups/thermo_newton.tex` +
 `experiments/under_descent.py`): a negative theorem at the thermograph level,
-an unrestricted associated-graded obstruction, and a positive exact descent
-theorem for every numeric Norton unit.
+an unrestricted associated-graded obstruction, a positive exact descent theorem
+for every numeric Norton unit, and two final no-go theorems excluding a faithful
+dyadic-unital ring and a multiplicative Norton scalar action.
 
 - **The thermograph is not a sum invariant (proved).** `G ↦ Th(G)` is not a
   congruence for disjunctive sum: no operation taking only `Th(G)` and `Th(H)` can
@@ -927,7 +929,9 @@ theorem for every numeric Norton unit.
   multiplication by the positive infinitesimal unit `↑` sends that hidden integer
   residue to a leading temperature-0 difference (`aw = -1`); the degenerate
   overheating operator `∫_↑^0` gives the same obstruction (`aw = -2`). Thus
-  nonnumeric units do **not** descend to the naive `gr_T(Games)` quotient.
+  the unrestricted nonnumeric-unit family does **not** descend to the naive
+  `gr_T(Games)` quotient (this proves existence of failure, not failure for every
+  positive nonnumeric unit).
 - **Numeric Norton descent is proved (new positive transport).** Let the positive
   dyadic unit be `u = m/2^k`, put `δ = 2^-k` (`δ = 1` for an integer), and
   `a = u - δ`. For every nonnumeric thermographic game,
@@ -943,15 +947,32 @@ theorem for every numeric Norton unit.
   22-value day-two census plus a bounded day-three singleton-option census; the
   Python probe checked 210 thermic pairs and 24 representative pairs each for
   Norton/matching overheating with zero numeric-unit failures.
-- **What remains open.** Numeric units settle the leading restricted-product target,
-  so the mirror is not purely notational: the residual classes carry a genuine
-  external numeric regrading. There is still no internal product of two arbitrary
-  residual game classes, no descent for unrestricted nonnumeric units, and no
-  concrete description of the full residue objects. The scalar temperature
-  hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else "all temperatures `≤ a`")
-  remains clean but cannot recover thermographs without residue data.
+- **The internal-ring hope is impossible under the full-dyadic coefficient
+  contract (proved).** The nonzero class `[*]` in `gr_0` has order 2.  In either
+  an ordinary `ℤ[1/2]` algebra or a graded initial-form coefficient object for a
+  valued dyadic field, the element representing 2 is homogeneous and invertible;
+  lift-compatible action sends `[*]` to the initial class of `*+*=0` and would
+  therefore force `[*] = 0`.  Thus a Rees or
+  secondary valuation does not evade the theorem when the full dyadic field still
+  acts.  A characteristic-2 nimber-only slice or a valuation-ring action can evade
+  it only by omitting the `1/2` inverse.
+- **The numeric transports are not a scalar action (proved exactly).** Their
+  degree maps `r_u(τ)=uτ+u-δ_u` obey
+  `r_v(r_u(τ)) = r_(uv)(τ) + Δ(u,v)`, where
+  `Δ(u,v)=v(1-δ_u)-δ_v+δ_(uv) ≥ 0`.  At `u=1/2`, `v=2`, the defect is `1`:
+  `A_2 A_(1/2)(*)` has temperature `1`, while `A_1(*)` has temperature `0`.
+  No residue enrichment preserving temperature can repair an exact degree
+  mismatch.  `numeric_norton_composition_defect` implements the formula; the
+  Python probe checks 2,304 dyadic pairs and five materialized witnesses.
+- **Resolution.** The mirror is substantive but stops before multiplication:
+  the game side is a temperature-filtered abelian group with external numeric
+  regradings, while the place side is an associated graded ring.  A
+  characteristic-2 slice, valuation-ring/integer-only action without `1/2`,
+  nonunital ringoid, hyperstructure, or quotient killing `[*]` may still be
+  interesting, but each abandons a stated part of the full-dyadic unification
+  contract and is not a reopening of `under`.
 
-Concrete progress targets:
+Closure checklist:
 - ~~Formulate and test the lax law for `t(G+H)` as a hyperfield statement; locate
   the game-side vanishing locus.~~ **Done**: `temp(G+H) ≤ max(temp G, temp H)`
   holds with equal-temperature pairs as the vanishing locus, but it is provably too
@@ -960,23 +981,22 @@ Concrete progress targets:
   dictionary works only in the trivial one-parameter switch family and does not
   extend to a sum theorem.
 - ~~Test whether unrestricted Norton multiplication / overheating descends to
-  the first temperature-filtration quotient.~~ **Done, negative for nonnumeric
-  units:** `* ≡ * + 1 (mod F_<0)`, but multiplying/overheating by `↑` leaves a
-  non-lower temperature-0 residue. This rules out the naive full Berlekamp/Norton
-  product on `gr_T(Games)`.
+  the first temperature-filtration quotient.~~ **Done, negative for the
+  unrestricted nonnumeric-unit family:** `* ≡ * + 1 (mod F_<0)`, but
+  multiplying/overheating by `↑` leaves a non-lower temperature-0 residue.
+  This existence witness rules out the naive full Berlekamp/Norton product on
+  `gr_T(Games)`; it does not assert failure for every nonnumeric unit.
 - ~~Decide whether numeric Norton units survive on the temperature associated
   graded.~~ **Done, positive for every positive dyadic unit:** the exact affine
   regrading is `τ -> uτ + (u-δ)`, and the image of every cold-number difference is
   strictly lower. This is the first substantive positive transport in `under`.
-- Decide whether anything larger survives: mean-normalized nonnumeric units with
-  cold coefficients retained separately, an all-small quotient refined by
-  atomic-weight/nimber-kernel data, or an actual internal product. The current
-  answer is therefore “one filtered object with a family of numeric transports,”
-  not yet “one tropical ring.” These transports are not a multiplicative action:
-  composition in the numeric unit already fails on `*`.
-- If every transport trivializes, write the no-go in the now-precise form: the
-  thermograph is not a sum congruence (done), and no residue enrichment recovers a
-  cooling-compatible product.
+- ~~Decide whether anything larger survives under the Newton-style coefficient
+  contract.~~ **Done, negative:** the `[*]` 2-torsion obstruction rules out any
+  faithful dyadic-unital algebra, independently of the chosen internal product.
+- ~~Promote the numeric composition failure from a witness to an exact theorem.~~
+  **Done:** the nonnegative defect and all zero-defect pairs are classified;
+  `u=1/2`, `v=2` rules out a multiplicative Norton action in exact temperature
+  degree.
 
 Relevant surfaces:
 - `writeups/thermo_newton.tex`

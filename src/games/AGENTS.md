@@ -63,10 +63,13 @@ indices, and collection lengths.
   Norton multiplication `G.U` by a positive unit. The `under` pass proved the exact
   positive-dyadic regrading: for `u=m/2^k`, `δ=2^-k`, numeric Norton multiplication
   induces `gr_τ -> gr_{uτ+u-δ}`; `numeric_norton_regrade` and
-  `numeric_norton_mean_temperature` compute it without building the product. This is
-  a family of external additive transports, not an action (composition in the unit
-  fails) and not an internal product on arbitrary residual games; nonnumeric units
-  still fail descent.
+  `numeric_norton_mean_temperature` compute it without building the product, and
+  `numeric_norton_composition_defect` gives the exact nonnegative failure of the
+  dyadic action law. The completed separation theorem is stronger: `gr_0` retains
+  the nonzero order-2 class `[*]`, so no faithful unital `ℤ[1/2]`-algebra can retain
+  the needed residue at all. The game side is a filtered abelian group with external
+  numeric transports, not the Newton side's associated graded ring; nonnumeric
+  units can fail descent (the explicit unit `↑` is the minimal witness).
 - **`atomic_weight.rs`** — atomic weight of ALL-SMALL games (finishes thermography):
   the two-ahead rule (Siegel Constructive Atomic Weight; Larsson–Nowakowski
   arXiv:2007.03949 Thm 10). `aw` IS additive on all-small games.

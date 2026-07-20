@@ -16,7 +16,8 @@ What remains unbuilt is tracked in the two buildable ledgers —
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, `over`/`under`.
+stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, and `over`.
+`under` is the first former loopy-valued research entry closed into this ledger.
 
 **Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
 it is renamed **grundy** (provisional — finalization at the 0.3.8 release
@@ -332,8 +333,36 @@ overheating, and Norton multiplication beside the thermograph/cooling surface.
 - boundaries: this is a family of external additive transports, not a
   multiplicative action and not an internal product on the associated graded.
   Indeed `A_2 A_(1/2)(*)` has temperature `1` while `A_1(*)` has temperature `0`.
-  Nonnumeric units fail descent, and the full residue object remains the narrower
-  `under` problem.
+  Nonnumeric units can fail descent, and the full residue object remains the narrower
+  `under` problem resolved immediately below.
+
+### under·(e_g∧e_s): `thermography-newton-separation`
+**Completed:** 2026-07-20
+**Summary:** thermography and Newton polygons are two tropical objects, joined by
+a genuine filtered shadow but not by one faithful Newton-style dyadic graded ring.
+**Pillars:** games ↔ scalar    **Claim level:** proved + implemented and tested
+- arbitrary-product theorem: `gr_0` contains the nonzero order-2 class `[*]`.
+  Any full dyadic coefficient object has an invertible homogeneous element
+  representing 2 (and its `1/2` inverse); lift-compatible action sends `[*]` to
+  the initial class of `*+*=0` and therefore kills it.  This covers both an ordinary unital `ℤ[1/2]` algebra and the
+  graded initial-form coefficients of a valued dyadic field.
+- Norton theorem: if `r_u(τ)=uτ+u-δ_u`, then
+  `r_v(r_u(τ))-r_(uv)(τ)=v(1-δ_u)-δ_v+δ_(uv) ≥ 0`, with all zero-defect pairs
+  classified.  The pair `u=1/2`, `v=2` has defect `1`, so the individual
+  additive Norton transports are not a multiplicative dyadic action in any
+  temperature-preserving refinement.
+- surface: `numeric_norton_composition_defect`, the expanded
+  `experiments/under_descent.py` arithmetic/game audit, and the complete proof in
+  `writeups/thermo_newton.tex`; `docs/OPEN.md` retains only the closure tombstone.
+- oracles: the Rust heating suite pins five materialized composition defects;
+  the Python probe checks 2,304 positive-dyadic pairs for nonnegativity and the
+  exact zero classification, alongside the prior 210 thermic predictions and
+  quotient-descent witnesses.
+- boundaries: characteristic-2 residue slices, valuation-ring/integer-only
+  actions without `1/2`, nonunital/nonassociative structures, and quotients
+  killing `[*]` are not ruled out.  Each drops a defining part of the stated
+  full-dyadic unification contract, so they are follow-up structures rather than
+  counterexamples.
 
 ### 1·(e_c∧e_f∧e_i): `heisenberg-weil`
 **Completed:** 2026-06-19

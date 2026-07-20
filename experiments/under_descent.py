@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Bounded descent probe for the `under` thermography open problem.
+"""Closure audit for the resolved `under` thermography problem.
 
 The question is whether the newly shipped Norton multiplication / overheating
 operators respect the temperature-filtration quotient
 
     gr_T = ⊕_τ F_{≤τ}/F_{<τ}.
 
-This script keeps the test deliberately small and source-backed: build a compact
-short-game catalogue, identify pairs equivalent modulo lower temperature, then
-ask whether the operators produce equivalent leading outputs.  It records both
-sides of the current result: a nonnumeric-unit counterexample, and the exact
-affine regrading through which every positive dyadic numeric unit descends.
+This script keeps the game-tree tests deliberately small and source-backed:
+build a compact short-game catalogue, identify pairs equivalent modulo lower
+temperature, then ask whether the operators produce equivalent leading outputs.
+It records all three parts of the final `under` result: a nonnumeric-unit
+counterexample, the exact affine regrading through which every positive dyadic
+numeric unit descends, and the nonnegative composition defect that prevents
+those transports from being a multiplicative scalar action.
 """
 
 from __future__ import annotations
@@ -127,6 +129,70 @@ def positive_units() -> list[NumericUnit]:
             raise AssertionError(f"binding reports scale {bound_scale}, expected {scale}")
         out.append(NumericUnit(str(scale), game, scale, bound_shift))
     return out
+
+
+def dyadic_mesh(value: Fraction) -> Fraction:
+    """The canonical option mesh delta_x = 1 / denominator(x)."""
+    return Fraction(1, value.denominator)
+
+
+def composition_defect(first: Fraction, second: Fraction) -> Fraction:
+    """Degree of A_second A_first minus the degree of A_(first*second)."""
+    return (
+        second * (1 - dyadic_mesh(first))
+        - dyadic_mesh(second)
+        + dyadic_mesh(first * second)
+    )
+
+
+def zero_defect_is_expected(first: Fraction, second: Fraction) -> bool:
+    """The exact parity/mesh classification from the composition theorem."""
+    if first.denominator > 1:
+        return second.numerator == 1  # second = 2^-ell, including 1
+    return first.numerator % 2 == 1 or second.denominator == 1
+
+
+def composition_defect_scan() -> tuple[int, int, int]:
+    """Exhaust the theorem arithmetically and pin selected defects on actual games."""
+    values = sorted(
+        {Fraction(n, 1 << k) for k in range(5) for n in range(1, 17)}
+    )
+    checked = 0
+    positive = 0
+    for first in values:
+        for second in values:
+            defect = composition_defect(first, second)
+            if defect < 0:
+                raise AssertionError(f"negative defect for {first=}, {second=}: {defect}")
+            if (defect == 0) != zero_defect_is_expected(first, second):
+                raise AssertionError(
+                    f"zero classification failed for {first=}, {second=}: {defect}"
+                )
+            checked += 1
+            positive += defect > 0
+
+    star = pl.Game.star()
+    witnessed = 0
+    for first, second in [
+        (Fraction(1, 2), Fraction(2)),
+        (Fraction(2), Fraction(1, 2)),
+        (Fraction(3), Fraction(1, 2)),
+        (Fraction(1, 2), Fraction(1, 4)),
+        (Fraction(3, 2), Fraction(3, 2)),
+    ]:
+        first_product = star.norton_multiply(number(first))
+        composite = first_product.norton_multiply(number(second)) if first_product else None
+        direct = star.norton_multiply(number(first * second))
+        if composite is None or direct is None:
+            raise AssertionError(f"missing numeric Norton composition for {first}, {second}")
+        actual = temp(composite) - temp(direct)
+        expected = composition_defect(first, second)
+        if actual != expected:
+            raise AssertionError(
+                f"game-level defect failed for {first}, {second}: {actual} != {expected}"
+            )
+        witnessed += 1
+    return checked, positive, witnessed
 
 
 def explicit_non_numeric_failures() -> list[Failure]:
@@ -264,6 +330,7 @@ def bounded_numeric_unit_scan() -> tuple[list[Failure], dict[str, int], int, int
 def main() -> None:
     explicit = explicit_non_numeric_failures()
     failures, checked, game_count, unit_count, thermic_checks = bounded_numeric_unit_scan()
+    defect_checks, positive_defects, game_defect_witnesses = composition_defect_scan()
     print(f"catalogue games: {game_count}; positive units: {unit_count}")
     print(f"exact numeric-unit thermic checks: {thermic_checks}")
     print(f"checked norton pairs: {checked['norton']}")
@@ -274,6 +341,11 @@ def main() -> None:
 
     print(f"numeric-unit failures in bounded scan: {len(failures)}")
     print(f"explicit non-numeric-unit failures: {len(explicit)}")
+    print(
+        "composition-defect pairs: "
+        f"{defect_checks} ({positive_defects} positive); "
+        f"game-level witnesses: {game_defect_witnesses}"
+    )
 
     if explicit:
         first = explicit[0]

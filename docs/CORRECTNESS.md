@@ -32,7 +32,7 @@ comment-only transcription swap, fixed). Post-sweep baseline: **968 lib tests** 
 archived play record is [`DONE.md`](DONE.md) → `revision-sweep-2026-07-02`; residuals
 and standing switches below are what remains *of this ledger's scope*.
 
-### Addendum — `under` numeric Norton descent, 2026-07-20
+### Addendum — `under` separation theorem, 2026-07-20
 
 The positive-dyadic Norton regrading is a proved result, not merely a bounded
 pattern: for `u=m/2^k`, `a=u-2^-k` (or `u-1` for an integer), nonnumeric finite
@@ -41,13 +41,28 @@ thermographs satisfy `mean(G.u)=u mean(G)` and
 The proof in `writeups/thermo_newton.tex` was adversarially reread; that pass
 caught and removed the false shortcut “numeric differences remain numeric,”
 supplied the load-bearing numeric-image lemma, and isolated the
-temperature-zero no-premature-meeting argument. Machine verification is
-supporting rather than a formal proof: exact checks cover the complete 22-value
-day-two census, a bounded day-three singleton-option census, dedicated numeric
-images, quotient representatives, matching Berlekamp overheating, and the
-non-associativity witness `A_2 A_(1/2)(*) != A_1(*)`. The Python binding probe
-adds 210 thermic and 48 quotient/operator checks. Do not promote this family of
-additive transports to a multiplicative action or an internal graded product.
+temperature-zero no-premature-meeting argument.
+
+The final separation is also proved, under an explicit full-dyadic,
+lift-compatible coefficient contract.  First, `gr_0` retains the nonzero class
+`[*]`; a homogeneous coefficient representing 2 sends it to the initial class
+of `*+*=0`, while the full dyadic coefficient object also supplies the inverse
+representing `1/2`, forcing a contradiction.  This covers ordinary
+`ℤ[1/2]`-algebras and graded initial-form/Rees coefficients without falsely
+claiming that a valued field embeds additively in its associated graded.  Second,
+the numeric Norton degree maps have the exact nonnegative composition defect
+`Δ(u,v)=v(1-δ_u)-δ_v+δ_(uv)`; `u=1/2`, `v=2` gives exact degree mismatch `1`, so
+no temperature-preserving residue refinement makes them a multiplicative action.
+
+Machine verification is supporting rather than a formal proof: exact Rust
+checks cover the complete 22-value day-two census, a bounded day-three
+singleton-option census, dedicated numeric images, quotient representatives,
+matching Berlekamp overheating, and five materialized composition defects.  The
+Python binding probe adds 210 thermic and 48 quotient/operator checks plus 2,304
+positive-dyadic pairs for defect nonnegativity and the exact zero classification.
+The surviving structure is a filtered abelian group with external transports,
+not an internal full-dyadic graded ring; valuation-ring/integer-only or
+characteristic-2 restricted structures remain outside the theorem's contract.
 
 ## What holds (the baseline — don't dilute it on any cleanup pass)
 
