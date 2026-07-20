@@ -172,22 +172,43 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   bounded-window blocker conjecture is untouched (the FIFO queue is unbounded
   memory). The recasting is now the load-bearing open step; the
   Plambeck–Siegel Thm 6.4 regularity gate is still slug `ps-regularity`.
-- The mechanism behind the verified realizer is now reduced and largely
-  explained (2026-06-10 second pass, goldarf §8 "linking reduction",
+- The mechanism behind the verified realizer is now reduced and substantially
+  sharpened (2026-06-10 and 2026-07-20 passes, goldarf §8 "linking reduction",
   `experiments/linking_game.py`): FIFO forces closes in opening order (no
   nesting, linked = overlap), the whole σ-game is equivalent to an
   **odd-close parity game** (only closing a queue front with an odd number
   of untouched neighbors flips the outcome bit), ko/passes localize away,
   and the **general-m linking theorem** — flips forced even on any board
   with an isolated coin, hence exactness for ALL m — is machine-verified
-  for every graph isomorphism class through k = 7 (1,044 classes, both
-  seats), far beyond Gold-arising boards. The dummy's role is identified
-  (it defeats the unique local obstruction, the domination device, at
-  every root — matching the no-dummy Bad-graph census 1/4/34 at n=3/5/7,
-  all mover-controlled), and an explicit two-mode defender strategy
-  (prevention/debt menus) is strictly verified through k = 7. What
-  remains is the general-n induction (firewall segmentation
-  architecture); parity-local invariants provably do not suffice.
+  for every graph isomorphism class through k = 8 real coins plus dummy
+  (12,346 classes at k = 8, both seats), far beyond Gold-arising boards.
+  Two new exact reductions delimit the proof route. Every maximal
+  nonempty-queue block on b coins uses 2b touches, so the initial mover
+  starts every block. And, with L the still-unclosed vertices when x opens,
+  the flip parity is `sum_x deg_L(x) mod 2`: for the potential
+  `P = e(queue,U)`, a close changes P by its flip bit and an open changes P
+  by `deg_L(x)`. This second identity is FIFO-blind, so FIFO must enter the
+  strategy through its forced close target rather than through the
+  accounting itself.
+- The old parity-local menu realization of the proof architecture is now
+  falsified precisely rather than merely unfinished. The original
+  prevention/debt menus remain strictly complete
+  through k = 7, but graph6 class `GCRU]w` at k = 8 requires a proactive
+  neighbor-open that creates an even odd-degree queue corridor even though
+  safe non-neighbor opens exist; `GCZMmw` then requires leaving an odd front
+  deliberately unrepaired. Thus a parity-local "repair whenever possible"
+  induction cannot prove the theorem. The broader no-self-flip prevention
+  envelope (every open plus even-front closes), paired with the existing
+  debt menu, is strictly complete on all 12,346 k = 8 classes, both seats.
+  The remaining question is whether that broader finite strategy has a
+  general recursive certificate.
+- The dummy defeats the empty-queue domination device at every root, matching
+  the no-dummy Bad-graph census 1/4/34 at n = 3/5/7 (all mover-controlled),
+  but that device is not the unique local squeeze. On the path `z-f-y-h`,
+  state `queue=(f,h), U={y,z}` has an even front and no safe move: either
+  open makes f odd, while closing f exposes odd h. The isolated dummy kills
+  this squeeze while untouched, but once queued or spent it becomes exactly
+  the recursive repair-potential problem.
 
 The naturality dichotomy:
 
@@ -258,12 +279,14 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
   the family-boundary sweep (ko-window `w`, pass semantics, pair touches,
   no-dummy controls), which also puts the bounded-window blocker on valid data.
 - Close the **general-n linking theorem** (the mechanism half, reduced
-  2026-06-10): prove that the odd-close parity game on any graph with an
-  isolated coin forces an even flip count from both seats. Verified for all
-  classes k ≤ 7 with a strictly-verified two-mode strategy
-  (`experiments/linking_game.py`); the open residue is the firewall-segmented
-  no-debt/one-debt induction with certificate-depth completeness (goldarf
-  §8). A proof upgrades the m∈{4,8} verification to exactness for all m.
+  2026-06-10 and sharpened 2026-07-20): prove that the odd-close parity game
+  on any graph with an isolated coin forces an even flip count from both
+  seats. Verified for all 12,346 classes at k = 8 real coins plus dummy
+  (`experiments/linking_game.py`). The old R3/D3 induction fails first at
+  `GCRU]w`; the live route is the block-turn plus live-degree-pairing
+  formulation, with FIFO re-entering through forced front deletion and the
+  proactive-debt witnesses above. A proof upgrades the m∈{4,8} verification
+  to exactness for all m.
 - Repair or replace N3, the anti-clock axiom — the open definitional problem: the
   escape-edge construction passes N1–N3 while being morally a clock, and two-game
   criticality is unsatisfiable in two-class outcome semantics.

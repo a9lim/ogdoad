@@ -269,8 +269,12 @@ realizer's *mechanism* is reduced (2026-06-10 second pass,
 `experiments/linking_game.py`, goldarf §8 `sec:linking`): the σ-game is the
 odd-close parity game on the support graph, and the linking theorem — an isolated
 coin forces flips even, hence exactness for all m — is machine-verified on every
-graph class k ≤ 7 with a strictly-verified two-mode defender strategy; only the
-general-n induction is open.
+graph class through k = 8 real coins plus dummy (12,346 classes at k = 8, both
+seats). The original prevention/debt menu is strictly complete only through k = 7;
+two k = 8 witnesses require proactive debt, while the broader no-self-flip/debt
+envelope is strictly complete across the full k = 8 census. The block-turn and
+live-degree identities sharpen the proof route; the general-n induction remains
+open.
 
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
 tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`) plus
