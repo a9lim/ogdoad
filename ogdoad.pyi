@@ -9948,6 +9948,15 @@ class Game:
         """Norton multiplication by a positive unit game; `None` if the unit is not
         strictly positive.
         """
+    def numeric_norton_mean_temperature(self, *args: Any, **kwargs: Any) -> Any:
+        """Exact `(mean, temperature)` after Norton-multiplying `self` by `unit`,
+        without constructing the product; `None` unless `unit` is a positive
+        short-game number.
+        """
+    def numeric_norton_regrade(self, *args: Any, **kwargs: Any) -> Any:
+        """Affine `(scale, shift)` for this positive numeric Norton unit, or `None`
+        when this game is nonnumeric/nonpositive.
+        """
     def number_value(self, *args: Any, **kwargs: Any) -> Any:
         """The surreal value of a number-valued game (`None` for non-numbers like
         `⋆`, `↑`, switches).

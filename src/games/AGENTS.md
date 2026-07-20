@@ -60,8 +60,13 @@ indices, and collection lengths.
 - **`thermography.rs`** — the thermograph of a short game: left/right scaffolds,
   stops, cooling (`cooled_stops`), temperature, and mean (mast) value.
 - **`heating.rs`** — game-valued heating, Berlekamp overheating `int_s^t G`, and
-  Norton multiplication `G.U` by a positive unit. Infrastructure only: it does not
-  assert the associated-graded product asked for in `docs/OPEN.md` `under`.
+  Norton multiplication `G.U` by a positive unit. The `under` pass proved the exact
+  positive-dyadic regrading: for `u=m/2^k`, `δ=2^-k`, numeric Norton multiplication
+  induces `gr_τ -> gr_{uτ+u-δ}`; `numeric_norton_regrade` and
+  `numeric_norton_mean_temperature` compute it without building the product. This is
+  a family of external additive transports, not an action (composition in the unit
+  fails) and not an internal product on arbitrary residual games; nonnumeric units
+  still fail descent.
 - **`atomic_weight.rs`** — atomic weight of ALL-SMALL games (finishes thermography):
   the two-ahead rule (Siegel Constructive Atomic Weight; Larsson–Nowakowski
   arXiv:2007.03949 Thm 10). `aw` IS additive on all-small games.

@@ -32,6 +32,23 @@ comment-only transcription swap, fixed). Post-sweep baseline: **968 lib tests** 
 archived play record is [`DONE.md`](DONE.md) → `revision-sweep-2026-07-02`; residuals
 and standing switches below are what remains *of this ledger's scope*.
 
+### Addendum — `under` numeric Norton descent, 2026-07-20
+
+The positive-dyadic Norton regrading is a proved result, not merely a bounded
+pattern: for `u=m/2^k`, `a=u-2^-k` (or `u-1` for an integer), nonnumeric finite
+thermographs satisfy `mean(G.u)=u mean(G)` and
+`temp(G.u)=u temp(G)+a`, and numeric inputs land strictly below `a`.
+The proof in `writeups/thermo_newton.tex` was adversarially reread; that pass
+caught and removed the false shortcut “numeric differences remain numeric,”
+supplied the load-bearing numeric-image lemma, and isolated the
+temperature-zero no-premature-meeting argument. Machine verification is
+supporting rather than a formal proof: exact checks cover the complete 22-value
+day-two census, a bounded day-three singleton-option census, dedicated numeric
+images, quotient representatives, matching Berlekamp overheating, and the
+non-associativity witness `A_2 A_(1/2)(*) != A_1(*)`. The Python binding probe
+adds 210 thermic and 48 quotient/operator checks. Do not promote this family of
+additive transports to a multiplicative action or an internal graded product.
+
 ## What holds (the baseline — don't dilute it on any cleanup pass)
 
 - **The cross-validation spine is real, and this sweep widened it.** `verify_milgram`

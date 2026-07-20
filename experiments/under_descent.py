@@ -8,9 +8,9 @@ operators respect the temperature-filtration quotient
 
 This script keeps the test deliberately small and source-backed: build a compact
 short-game catalogue, identify pairs equivalent modulo lower temperature, then
-ask whether the operators produce equivalent leading outputs.  A failure is a
-bounded witness that the operator does not descend to the naive associated
-graded with cold numbers quotiented out.
+ask whether the operators produce equivalent leading outputs.  It records both
+sides of the current result: a nonnumeric-unit counterexample, and the exact
+affine regrading through which every positive dyadic numeric unit descends.
 """
 
 from __future__ import annotations
@@ -28,10 +28,19 @@ class NamedGame:
 
 
 @dataclass(frozen=True)
+class NumericUnit:
+    name: str
+    game: pl.Game
+    scale: Fraction
+    shift: Fraction
+
+
+@dataclass(frozen=True)
 class Failure:
     operator: str
     unit: str
     tau: Fraction
+    output_layer: Fraction
     g_name: str
     h_name: str
     delta_temp: Fraction
@@ -49,6 +58,15 @@ def temp(g: pl.Game) -> Fraction:
     if rational is None:
         raise ValueError(f"temperature not rational for {g.display()}")
     return Fraction(rational.numerator, rational.denominator)
+
+
+def as_fraction(value: object) -> Fraction:
+    return Fraction(value.numerator, value.denominator)
+
+
+def number(value: Fraction | int) -> pl.Game:
+    value = Fraction(value)
+    return pl.Game.from_surreal(pl.Surreal.from_rational(value.numerator, value.denominator))
 
 
 def dedupe(games: list[NamedGame]) -> list[NamedGame]:
@@ -79,18 +97,36 @@ def catalogue() -> list[NamedGame]:
 
     shifted: list[NamedGame] = []
     for item in base:
-        for n in [-1, 0, 1]:
-            shift = pl.Game.integer(n)
-            suffix = "" if n == 0 else f"{n:+d}"
-            shifted.append(NamedGame(f"{item.name}{suffix}", item.game + shift))
+        for value in [Fraction(-1), Fraction(-1, 2), Fraction(0), Fraction(1, 2), Fraction(1)]:
+            if value == 0:
+                suffix = ""
+            elif value.denominator == 1:
+                suffix = f"{value.numerator:+d}"
+            else:
+                suffix = f"{value.numerator:+d}/{value.denominator}"
+            shifted.append(NamedGame(f"{item.name}{suffix}", item.game + number(value)))
     return dedupe(shifted)
 
 
-def positive_units() -> list[NamedGame]:
-    return [
-        NamedGame("1", pl.Game.integer(1)),
-        NamedGame("2", pl.Game.integer(2)),
-    ]
+def positive_units() -> list[NumericUnit]:
+    out: list[NumericUnit] = []
+    for scale in [
+        Fraction(1, 4),
+        Fraction(1, 2),
+        Fraction(3, 4),
+        Fraction(1),
+        Fraction(3, 2),
+        Fraction(2),
+    ]:
+        game = number(scale)
+        result = game.numeric_norton_regrade()
+        if result is None:
+            raise AssertionError(f"positive numeric unit {scale} has no regrade")
+        bound_scale, bound_shift = map(as_fraction, result)
+        if bound_scale != scale:
+            raise AssertionError(f"binding reports scale {bound_scale}, expected {scale}")
+        out.append(NumericUnit(str(scale), game, scale, bound_shift))
+    return out
 
 
 def explicit_non_numeric_failures() -> list[Failure]:
@@ -114,6 +150,7 @@ def explicit_non_numeric_failures() -> list[Failure]:
                 operator=operator,
                 unit=unit.name,
                 tau=Fraction(0),
+                output_layer=Fraction(0),
                 g_name=g.name,
                 h_name=h.name,
                 delta_temp=temp(g.game - h.game),
@@ -138,81 +175,102 @@ def same_leading_output(a: pl.Game, b: pl.Game) -> tuple[bool, Fraction, Fractio
     return td < ta, ta, tb, td, aw
 
 
-def bounded_numeric_unit_scan() -> tuple[list[Failure], dict[str, int], int, int]:
+def exact_numeric_thermic_scan(games: list[NamedGame], units: list[NumericUnit]) -> int:
+    checked = 0
+    for item in games:
+        for unit in units:
+            product = item.game.norton_multiply(unit.game)
+            predicted = item.game.numeric_norton_mean_temperature(unit.game)
+            if product is None or predicted is None:
+                raise AssertionError(f"numeric Norton product missing for {item.name}, {unit.name}")
+            predicted_mean, predicted_temp = map(as_fraction, predicted)
+            actual_mean = as_fraction(product.mean_value().as_rational())
+            if actual_mean != predicted_mean or temp(product) != predicted_temp:
+                raise AssertionError(
+                    f"thermic formula failed for {item.name}, {unit.name}: "
+                    f"actual={(actual_mean, temp(product))}, "
+                    f"predicted={(predicted_mean, predicted_temp)}"
+                )
+            checked += 1
+    return checked
+
+
+def bounded_numeric_unit_scan() -> tuple[list[Failure], dict[str, int], int, int, int]:
     games = catalogue()
     units = positive_units()
-    taus = sorted({temp(g.game) for g in games if temp(g.game) >= 0})
+    thermic_checks = exact_numeric_thermic_scan(games, units)
     failures: list[Failure] = []
-    checked_by_operator = {"norton": 0, "overheat_s_unit_t_0": 0}
+    checked_by_operator = {"norton": 0, "overheat_s_unit_t_shift": 0}
+    half = number(Fraction(1, 2))
+    representatives = [
+        (Fraction(0), NamedGame("*", pl.Game.star()), NamedGame("*+1/2", pl.Game.star() + half)),
+        (
+            Fraction(0),
+            NamedGame("up", pl.Game.up()),
+            NamedGame("up+1/2", pl.Game.up() + half),
+        ),
+        (
+            Fraction(1),
+            NamedGame("{1|-1}", pl.Game.switch(1, -1)),
+            NamedGame("{1|-1}+1/2", pl.Game.switch(1, -1) + half),
+        ),
+        (
+            Fraction(2),
+            NamedGame("{3|-1}", pl.Game.switch(3, -1)),
+            NamedGame("{3|-1}+1/2", pl.Game.switch(3, -1) + half),
+        ),
+    ]
 
-    for tau in taus:
-        for g in games:
-            if temp(g.game) > tau:
-                continue
-            for h in games:
-                if temp(h.game) > tau:
-                    continue
-                delta_temp = temp(g.game - h.game)
-                if delta_temp >= tau:
-                    continue
-                # Ignore pairs that both already lie in the lower filtration;
-                # they represent the zero class one layer earlier.  The witness
-                # below is stronger: both representatives have leading temp tau.
-                if temp(g.game) < tau and temp(h.game) < tau:
-                    continue
-
-                for unit in units:
+    for tau, g, h in representatives:
+        delta_temp = temp(g.game - h.game)
+        if delta_temp >= tau:
+            raise AssertionError(f"bad representative pair {g.name}, {h.name}")
+        for unit in units:
+            output_layer = unit.scale * tau + unit.shift
+            for operator in ["norton", "overheat_s_unit_t_shift"]:
+                if operator == "norton":
                     p = g.game.norton_multiply(unit.game)
                     q = h.game.norton_multiply(unit.game)
-                    if p is not None and q is not None:
-                        checked_by_operator["norton"] += 1
-                        ok, tp, tq, td, aw = same_leading_output(p, q)
-                        if not ok:
-                            failures.append(
-                                Failure(
-                                    operator="norton",
-                                    unit=unit.name,
-                                    tau=tau,
-                                    g_name=g.name,
-                                    h_name=h.name,
-                                    delta_temp=delta_temp,
-                                    left_temp=tp,
-                                    right_temp=tq,
-                                    output_delta_temp=td,
-                                    output_delta_aw=aw,
-                                )
-                            )
+                else:
+                    shift_game = number(unit.shift)
+                    p = g.game.overheat(unit.game, shift_game)
+                    q = h.game.overheat(unit.game, shift_game)
+                if p is None or q is None:
+                    continue
+                checked_by_operator[operator] += 1
+                tp, tq, td = temp(p), temp(q), temp(p - q)
+                aw = (p - q).atomic_weight_int()
+                ok = tp <= output_layer and tq <= output_layer and td < output_layer
+                if not ok:
+                    failures.append(
+                        Failure(
+                            operator=operator,
+                            unit=unit.name,
+                            tau=tau,
+                            output_layer=output_layer,
+                            g_name=g.name,
+                            h_name=h.name,
+                            delta_temp=delta_temp,
+                            left_temp=tp,
+                            right_temp=tq,
+                            output_delta_temp=td,
+                            output_delta_aw=aw,
+                        )
+                    )
 
-                    p = g.game.overheat(unit.game, pl.Game.zero())
-                    q = h.game.overheat(unit.game, pl.Game.zero())
-                    if p is not None and q is not None:
-                        checked_by_operator["overheat_s_unit_t_0"] += 1
-                        ok, tp, tq, td, aw = same_leading_output(p, q)
-                        if not ok:
-                            failures.append(
-                                Failure(
-                                    operator="overheat_s_unit_t_0",
-                                    unit=unit.name,
-                                    tau=tau,
-                                    g_name=g.name,
-                                    h_name=h.name,
-                                    delta_temp=delta_temp,
-                                    left_temp=tp,
-                                    right_temp=tq,
-                                    output_delta_temp=td,
-                                    output_delta_aw=aw,
-                                )
-                            )
-
-    return failures, checked_by_operator, len(games), len(units)
+    return failures, checked_by_operator, len(games), len(units), thermic_checks
 
 
 def main() -> None:
     explicit = explicit_non_numeric_failures()
-    failures, checked, game_count, unit_count = bounded_numeric_unit_scan()
+    failures, checked, game_count, unit_count, thermic_checks = bounded_numeric_unit_scan()
     print(f"catalogue games: {game_count}; positive units: {unit_count}")
+    print(f"exact numeric-unit thermic checks: {thermic_checks}")
     print(f"checked norton pairs: {checked['norton']}")
-    print(f"checked overheat(s=unit,t=0) pairs: {checked['overheat_s_unit_t_0']}")
+    print(
+        "checked matching overheat(s=unit,t=shift) pairs: "
+        f"{checked['overheat_s_unit_t_shift']}"
+    )
 
     print(f"numeric-unit failures in bounded scan: {len(failures)}")
     print(f"explicit non-numeric-unit failures: {len(explicit)}")
@@ -223,6 +281,7 @@ def main() -> None:
         print(f"  operator: {first.operator}")
         print(f"  unit: {first.unit}")
         print(f"  layer tau: {first.tau}")
+        print(f"  output layer: {first.output_layer}")
         print(f"  representatives: {first.g_name} and {first.h_name}")
         print(f"  temp(G-H): {first.delta_temp} < {first.tau}")
         print(f"  output temps: {first.left_temp}, {first.right_temp}")

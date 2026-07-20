@@ -292,8 +292,9 @@ one place a traveller may wander in circles.
 Closing the tour now wants a *third* Scalar–Clifford span — bridges C and D are the two
 it already has. None of the pending threads supplies one: **`*2` (S–I)**, the
 Drinfeld/Carlitz mirror, would even Scalar but tip the Integral wing odd in turn; `*1`
-(the spinor genus), `*4` (the wild local symbol), and `under` (a constructive
-thermography ↔ Newton-polygon bridge) each matter on their own terms but land elsewhere
+(the spinor genus), `*4` (the wild local symbol), and `under` (now carrying proved
+numeric filtered transports, with the stronger thermography ↔ Newton-polygon bridge
+still open) each matter on their own terms but land elsewhere
 on the map. The round trip stays open — and the obstruction has simply walked from the
 Integral shore to the Clifford one.
 

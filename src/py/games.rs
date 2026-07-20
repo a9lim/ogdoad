@@ -1381,6 +1381,19 @@ impl PyGame {
     fn norton_multiply(&self, unit: &PyGame) -> Option<PyGame> {
         crate::games::norton_multiply(&self.inner, &unit.inner).map(|inner| PyGame { inner })
     }
+    /// Affine `(scale, shift)` for this positive numeric Norton unit, or `None`
+    /// when this game is nonnumeric/nonpositive.
+    fn numeric_norton_regrade(&self) -> Option<(PyRational, PyRational)> {
+        crate::games::numeric_norton_regrade(&self.inner)
+            .map(|(scale, shift)| (wrap_rational(scale), wrap_rational(shift)))
+    }
+    /// Exact `(mean, temperature)` after Norton-multiplying `self` by `unit`,
+    /// without constructing the product; `None` unless `unit` is a positive
+    /// short-game number.
+    fn numeric_norton_mean_temperature(&self, unit: &PyGame) -> Option<(PyRational, PyRational)> {
+        crate::games::numeric_norton_mean_temperature(&self.inner, &unit.inner)
+            .map(|(mean, temperature)| (wrap_rational(mean), wrap_rational(temperature)))
+    }
     /// Berlekamp overheating `int_s^t G`; `None` if `s` is not positive.
     fn overheat(&self, s: &PyGame, t: &PyGame) -> Option<PyGame> {
         crate::games::overheat(&self.inner, &s.inner, &t.inner).map(|inner| PyGame { inner })

@@ -313,21 +313,27 @@ integral genus and mass surfaces.
   all 23 rooted Niemeier classes.
 
 ### 1·e_g: `overheating`
-**Completed:** 2026-06-19
+**Completed:** 2026-06-19; numeric associated-graded follow-up 2026-07-20
 **Summary:** the games pillar now has game-valued heating, Berlekamp
 overheating, and Norton multiplication beside the thermograph/cooling surface.
-**Pillars:** games    **Claim level:** standard math, implemented and tested
+**Pillars:** games    **Claim level:** standard infrastructure + proved research follow-up, implemented and tested
 - surface: `heat`, `norton_multiply`, `overheat`, `is_positive_game`, and
-  `integer_game_value`, plus Python module functions and `Game` methods for
-  `heat`, `norton_multiply`, and `overheat`.
+  `integer_game_value`; the follow-up adds `numeric_norton_regrade` and
+  `numeric_norton_mean_temperature` plus matching Python `Game` methods.
 - oracles: heating fixes numbers and sends `{1|-1}` heated by `2` to `{3|-3}`;
   non-dyadic heating temperatures reject honestly; Norton multiplication by unit
   `1` is the identity, nonpositive units reject, integer-unit Norton products
   have the expected mean, and Berlekamp overheating uses Norton multiplication
   on integer leaves.
-- boundaries: this is finite short-game infrastructure only. It does not claim
-  that Norton multiplication descends to a product on the temperature
-  associated graded; that compatibility remains the `under` open problem.
+- follow-up theorem: every positive dyadic unit `u=m/2^k` induces the exact
+  additive regrading `gr_τ -> gr_{uτ+u-δ}` (`δ=2^-k`, or `1` for integers);
+  even when a cold noninteger number becomes hot, its image stays strictly below
+  the target layer. For integer `n`, shifted thermal height scales by `n`.
+- boundaries: this is a family of external additive transports, not a
+  multiplicative action and not an internal product on the associated graded.
+  Indeed `A_2 A_(1/2)(*)` has temperature `1` while `A_1(*)` has temperature `0`.
+  Nonnumeric units fail descent, and the full residue object remains the narrower
+  `under` problem.
 
 ### 1·(e_c∧e_f∧e_i): `heisenberg-weil`
 **Completed:** 2026-06-19

@@ -32,7 +32,7 @@
 
 \title{Draft: thermographs, Newton polygons, and the missing residue}
 \author{a9lim}
-\date{June 2026}
+\date{July 2026}
 
 \begin{document}
 \maketitle
@@ -68,9 +68,25 @@ $*$ and $*+1$ differ by a cold number, but Norton multiplication by the
 positive infinitesimal unit $\uparrow$ converts that hidden integer into a
 leading temperature-zero residue. The same obstruction appears for the
 degenerate overheating operator $\int_{\uparrow}^{0}$. Thus the full
-Berlekamp/Norton operator does not descend to the naive associated graded. The
-remaining live question is narrower: numeric units, mean-normalized units with
-the cold coefficient retained, or a refined quotient carrying more residue data.
+Berlekamp/Norton operator does not descend to the naive associated graded.
+
+The third pass settles the leading restricted case positively.  If the Norton
+unit is the positive dyadic number $u=m/2^k$, put
+$\delta=2^{-k}$ (and $\delta=1$ for an integer) and $a=u-\delta$.
+Then every nonnumeric thermographic game obeys
+\[
+  \mean(G.u)=u\mean(G),\qquad
+  \temp(G.u)=u\temp(G)+a.
+\]
+A cold dyadic number can become hot under Norton multiplication, but its exact
+temperature is always strictly below $a$.  Norton linearity therefore induces
+an additive map
+$\gr_{\tau}\to\gr_{u\tau+a}$ for every $\tau\geq0$; equivalently the matching
+Berlekamp operator $\int_u^a$ descends.  For integer $u=n$, the shifted thermal
+height $h=\tau+1$ simply scales as $h\mapsto nh$.  Thus the mirror is not purely
+notational: the game filtration has a genuine family of numeric regrading
+transports, although no multiplicative action, unrestricted internal product,
+or complete residue model is claimed.
 \end{abstract}
 
 \paragraph{Claim levels.}
@@ -353,14 +369,174 @@ theorem; it is a useful pointer that the obstruction is not ``Norton exists, so
 everything fails'', but specifically that nonnumeric units can see cold
 coefficients erased by the naive quotient.
 
-\section{Where the second pass hit the wall}
+\section{Positive result: numeric Norton units descend}
 
-\OPEN{} I do not currently have a product on $\gr_T(\mathrm{Games})$ that would
+The bounded scan above left one conspicuous possibility alive.  It is not an
+accident of the small catalogue; numeric units admit an exact formula.
+
+\begin{definition}
+Let $U=u>0$ be a short-game number, written in lowest dyadic form
+$u=m/2^k$.  Put
+\[
+  \delta_U=\begin{cases}2^{-k},&k>0,\\1,&k=0,\end{cases}
+  \qquad a_U=u-\delta_U.
+\]
+Thus the canonical options of a nonintegral $u$ are
+$u-\delta_U$ and $u+\delta_U$, while a positive integer has the sole Left
+option $u-1$.
+\end{definition}
+
+\begin{proposition}[exact numeric Norton thermics]\label{prop:numeric-thermics}
+\PROVED{} Let $U=u>0$ be dyadic and write $a=a_U$.
+For every short game $G$ in the finite thermographic domain,
+\[
+  \mean(G.u)=u\mean(G).
+\]
+If $G$ is not a number, then
+\[
+  \temp(G.u)=u\temp(G)+a. \tag{1}
+\]
+If $G=x$ is a number and
+$\epsilon_x=1/\operatorname{den}(x)$ is its canonical dyadic mesh, then
+\[
+ \temp(x.u)=
+ \begin{cases}
+  -1,&a-u\epsilon_x<0,\\
+  a-u\epsilon_x,&a-u\epsilon_x\geq0.
+ \end{cases} \tag{2}
+\]
+In particular, the image of every cold number has temperature strictly less
+than $a$.
+\end{proposition}
+
+\begin{proof}
+For the canonical numeric unit $u$, every Norton increment $U+I$ is the same
+number $a$: a Left option contributes $U^L=u-\delta_U=a$, and a Right option
+contributes $2U-U^R=u-\delta_U=a$.  Hence the defining recursion is
+\[
+ n.u=nu\quad(n\in\mathbb Z),\qquad
+ G.u=\{G^L.u+a\mid G^R.u-a\}\quad(G\notin\mathbb Z). \tag{3}
+\]
+
+We first need the numeric-option lemma hidden by the integer base case in (3).
+If $x$ has exact denominator $2^j$, induction on $j$ gives mast $ux$.  Integers
+are literal leaves and have temperature $-1$.  If $j>0$, the canonical options
+are $x\pm2^{-j}$ and have smaller denominator.  Once their images have frozen,
+the parent walls meet at
+$s_x=a-u2^{-j}$.  When $a=0$ (precisely $u=1$ or $u=2^{-k}$), the simplicity
+theorem instead makes every $x.u$ the number $ux$; when $a>0$, one has
+$s_x\geq0$ for every $j>0$.  Thus (2) follows, together with the strict bound
+$\temp(x.u)<a$.  In particular, Norton multiplication treats integer leaves
+specially, not all number leaves: for example
+$(1/2).2=1+*$ has temperature $0$.
+
+Now let $G$ be nonnumeric and induct on its birthday.  At a scaffold parameter
+$s=a+ut$, $t\geq0$, (3), translation of walls, and the induction hypothesis give
+\[
+  L_{G.u}(a+ut)=uL_G(t),\qquad
+  R_{G.u}(a+ut)=uR_G(t). \tag{4}
+\]
+Numeric options cause no exception: by (2) they have already frozen strictly
+below $a$, with mast equal to their ordinary product by $u$.  Equation (4)
+locates a meeting at $a+u\temp(G)$; it remains to rule out a premature meeting
+below $a$.
+
+Write $D_G(t)=L_G^{\rm raw}(t)-R_G^{\rm raw}(t)-2t$.  The wall-slope bounds make
+$D_G$ nonincreasing.  If $\temp(G)>0$, then
+$D_{G.u}(a)=uD_G(0)>0$, so monotonicity rules out every earlier zero.  Only the
+infinitesimal case $\temp(G)=0$ needs care.  We use the following elementary
+stop lemma.
+
+\emph{No-premature-meeting lemma.}  Let $a>0$, let $m$ be a number, and let $X$
+be canonical.  If the transformed right wall of $X.u$ has maximal slope $+1$
+up to height $a$ and terminates at $um$, then Right wins $X-m$ moving first.
+The mirror statement holds for a transformed left wall of slope $-1$.
+
+For completeness, prove the lemma by induction on the birthday of $X$.  The
+maximal slope forces an extremizing Right option $Y$.  If $Y$ is numeric, the
+numeric-option lemma and its strict freeze below $a$ force $Y=m$, giving the
+winning move immediately.  Otherwise every Left reply $Z$ of $Y$ has
+$\operatorname{RS}(Z)\leq m$.  Strict inequality is already a Right win;
+equality forces the same maximal-slope condition and invokes the induction
+hypothesis.  Number avoidance ensures that these are all relevant replies in
+$Y-m$.  This proves the lemma; negation proves its mirror.
+
+Suppose now that both transformed walls met on a terminal interval below $a$.
+Put $m=\operatorname{LS}(G)=\operatorname{RS}(G)$.  Every stop-maximizing Left
+option then satisfies the first half of the lemma, while lower-stop options are
+immediate Right wins.  Number avoidance therefore gives $G\leq m$; the mirror
+argument gives $G\geq m$.  Hence $G=m$, contrary to $G$ being nonnumeric.
+There is no premature meeting.  Equation (4) therefore gives exactly
+$\temp(G.u)=a+u\temp(G)$ and common mast $u\mean(G)$.
+\end{proof}
+
+\begin{corollary}[numeric Norton descent]\label{cor:numeric-descent}
+\PROVED{} For every $\tau\geq0$, Norton multiplication by a fixed positive
+dyadic unit $u$ induces an additive map
+\[
+ \overline A_{u,\tau}:\quad
+ F_{\leq\tau}/F_{<\tau}
+ \longrightarrow
+ F_{\leq u\tau+a_U}/F_{<u\tau+a_U}.
+ \tag{5}
+\]
+The same map is the generalized overheating operator $\int_u^{a_U}$.
+For a positive integer $n$, the shifted degree $h=\tau+1$ satisfies
+\[
+ h(G.n)=n\,h(G).
+\]
+\end{corollary}
+
+\begin{proof}
+Norton multiplication by a fixed positive unit is additive, a standard Norton
+product theorem.  If $G-H$ is nonnumeric of temperature $\sigma<\tau$, (1)
+gives
+\[
+ \temp((G-H).u)=u\sigma+a_U<u\tau+a_U.
+\]
+If $G-H$ is a number, (2) instead puts its image strictly below $a_U$, hence
+strictly below the target layer.  Thus the map is independent of the chosen
+representative and is additive.  Finally, (3) is exactly Berlekamp overheating
+from lower unit $u$ to upper shift $a_U$.  For $u=n$, $a_U=n-1$, so
+$\temp(G.n)+1=n(\temp(G)+1)$ on every nonnumeric graded layer.
+\end{proof}
+
+\TESTED{} Proposition~\ref{prop:numeric-thermics} is computed without
+materializing the Norton product by the two Rust helpers
+\begin{center}
+\texttt{numeric\_norton\_regrade}\qquad
+\texttt{numeric\_norton\_mean\_temperature}.
+\end{center}
+Source-level tests compare them with
+the actual recursive product on integer and nonintegral numeric games, all-small
+games, switches, and a nested hot game for eight units from $1/4$ through $3$.
+The Python probe independently checked $210$ game/unit thermic pairs and $24$
+representative pairs for both Norton multiplication and the matching overheating
+operator, with no numeric-unit failure.
+
+\begin{remark}
+This is the first nontrivial positive transport in the \texttt{under} thread.
+It is weaker than a ring structure: $u$ is an external numeric coefficient, not
+an arbitrary game, and (5) regrades rather than multiplying two residual game
+classes.  It is not even a multiplicative action of the positive dyadics:
+$A_2A_{1/2}(*)$ has temperature $1$, whereas $A_1(*)=*$ has temperature $0$.
+The result is a family of additive transports.  That is still stronger than the
+scalar temperature hyperoperation: each transport acts on the residual classes
+themselves and, for integer units, multiplies thermal height exactly as a
+ramification index multiplies a valuation scale.
+\end{remark}
+
+\section{What remains after the third pass}
+
+\OPEN{} I do not currently have an \emph{internal} product on
+$\gr_T(\mathrm{Games})$ that would
 make it the literal peer of the graded ring of a valued field. The old candidate
 ``use Norton multiplication / overheating'' is now too broad:
 Proposition~\ref{prop:norton-fails} rules out unrestricted nonnumeric units on
-the naive quotient. Full short games still do not form a ring, and the repo
-correctly refuses to pretend otherwise.
+the naive quotient.  Corollary~\ref{cor:numeric-descent} proves that every
+positive numeric unit survives, so the boundary is now exact rather than
+experimental. Full short games still do not form a ring, and the repo correctly
+refuses to pretend otherwise.
 
 \OPEN{} I also do not have a nontrivial thermograph hyperoperation. The scalar
 temperature hyperoperation is clear and useful:
@@ -376,18 +552,19 @@ from scalar temperatures to full thermographs without adding residues becomes
 either false (Proposition~\ref{prop:no-congruence}) or tautological (return
 ``all thermographs of all sums of representatives'').
 
-\OPEN{} The next solvable formulation is therefore not ``find a binary
-operation on thermographs'', and not ``use the full Berlekamp/Norton surface''.
-It is:
+\OPEN{} The next formulation is therefore not ``find a binary operation on
+thermographs'', and not ``use the full Berlekamp/Norton surface''.  Numeric
+units are solved.  What remains is:
 \begin{quote}
 Define a residue-enriched temperature quotient for a manageable class of games
-and decide whether a restricted Norton/overheating product survives: numeric
-units, mean-normalized units with cold coefficients retained separately, or an
-all-small quotient refined by atomic weight plus its nimber-like kernel.
+and decide whether it supports anything beyond the proved external numeric
+regrading: mean-normalized nonnumeric units with cold coefficients retained
+separately, or an all-small quotient refined by atomic weight plus its
+nimber-like kernel.
 \end{quote}
-If yes, the answer to the open problem is ``one tropical object, but only after
-passing to a stricter residue-enriched associated graded''. If no, the answer is
-``two tropical objects sharing only the scalar hyperfield shadow''.
+The answer is already no longer ``purely notational'': (5) is a substantive
+filtered-group transport.  The stronger ``one tropical ring'' reading remains
+open.
 
 \appendix
 \section{Checks run in this pass}\label{sec:checks}
@@ -403,12 +580,19 @@ The code-level facts used above were checked against the live repo with:
 \item A Python probe through the installed \texttt{.venv} binding checked 324
   small-game sums for the temperature inequality and the off-diagonal equality
   pattern, and printed the witnesses in Proposition~\ref{prop:no-congruence}.
-\item \texttt{cargo test heating}: 7 heating/Norton/overheating tests passed,
+\item \texttt{cargo test heating}: 15 heating/Norton/overheating tests passed,
   including the explicit non-descent witness
-  \texttt{hot\_units\_do\_not\_descend\_mod\_cold\_numbers}.
-\item \texttt{.venv/bin/python experiments/under\_descent.py}: recorded the
-  $*$ versus $*+1$ obstruction for unit $\uparrow$, and found no failures for
-  numeric units $1,2$ on the bounded 21-game / 126-pair sanity scan.
+  \texttt{hot\_units\_do\_not\_descend\_mod\_cold\_numbers}, the exact dyadic
+  regrade, the load-bearing numeric-image lemma, matching-overheating equality,
+  numeric quotient descent, a bounded day-three singleton-option census, a
+  Norton-linearity sentinel, and the failure of multiplicative composition.
+\item \texttt{cargo check --features python}: the new Python thermic shortcuts
+  compile against the feature-gated bindings.
+\item \texttt{python experiments/under\_descent.py}: recorded the $*$ versus
+  $*+1$ obstruction for unit $\uparrow$; checked $210$ exact thermic predictions
+  on a 35-game catalogue and six numeric units; and checked $24$ representative
+  pairs each for Norton multiplication and matching overheating, with zero
+  numeric-unit failures.
 \end{itemize}
 
 \begin{thebibliography}{9}
@@ -424,6 +608,11 @@ Aaron Siegel.
 Elwyn Berlekamp.
 The economist's view of combinatorial games.
 In \emph{Games of No Chance}, 1996.
+
+\bibitem{BerlekampBlockbusting}
+Elwyn Berlekamp.
+Blockbusting and Domineering.
+\emph{Journal of Combinatorial Theory, Series A} 49 (1988), 67--116.
 
 \bibitem{Viro}
 Oleg Viro.

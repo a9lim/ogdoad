@@ -884,10 +884,10 @@ Why this is research:
   thermograph as a sum-compatible tropical object — provably fails, and replaced
   it with a sharper target.
 
-The program state (2026-06-19 — `writeups/thermo_newton.tex` +
+The program state (2026-07-20 — `writeups/thermo_newton.tex` +
 `experiments/under_descent.py`): a negative theorem at the thermograph level,
-plus a sharper associated-graded obstruction after the Norton/overheating
-infrastructure landed.
+an unrestricted associated-graded obstruction, and a positive exact descent
+theorem for every numeric Norton unit.
 
 - **The thermograph is not a sum invariant (proved).** `G ↦ Th(G)` is not a
   congruence for disjunctive sum: no operation taking only `Th(G)` and `Th(H)` can
@@ -920,21 +920,36 @@ infrastructure landed.
   on all-small games (`aw(↑) = 1`, `aw(↓) = −1`, `aw(*) = 0`), but its kernel still
   contains nimber-like residues (`* + * = 0` shows the kernel matters) — so even the
   first graded piece is a genuine residual game object, not the mast.
-- **Where it stalls (open).** Short games are not a ring. The repo now carries
+- **Unrestricted descent fails.** Short games are not a ring. The repo now carries
   game-valued Norton multiplication / overheating operators as infrastructure, so
-  the question is sharper, and the unrestricted answer is now negative. In the
+  the unrestricted answer is negative. In the
   `τ = 0` quotient, `*` and `* + 1` differ by the cold number `-1`, but Norton
   multiplication by the positive infinitesimal unit `↑` sends that hidden integer
   residue to a leading temperature-0 difference (`aw = -1`); the degenerate
   overheating operator `∫_↑^0` gives the same obstruction (`aw = -2`). Thus
-  nonnumeric units do **not** descend to the naive `gr_T(Games)` quotient. The
-  bounded sanity scan found no failures for numeric units `1` and `2` on a
-  21-game catalogue (126 representative-pair checks for Norton and for
-  `∫_s^0`), so the remaining live target is a restricted/normalized product or a
-  refined quotient that retains cold-number coefficients. The scalar temperature
+  nonnumeric units do **not** descend to the naive `gr_T(Games)` quotient.
+- **Numeric Norton descent is proved (new positive transport).** Let the positive
+  dyadic unit be `u = m/2^k`, put `δ = 2^-k` (`δ = 1` for an integer), and
+  `a = u - δ`. For every nonnumeric thermographic game,
+  `mean(G.u) = u mean(G)` and `temp(G.u) = u temp(G) + a`. A cold number `x`
+  with canonical mesh `ε = 1/den(x)` can become hot, but its exact temperature is
+  `a-uε` when that is nonnegative and `-1` otherwise — always strictly below `a`.
+  Standard Norton linearity therefore gives an additive graded map
+  `gr_τ -> gr_(uτ+a)` for every `τ >= 0`; the identical recursion is Berlekamp
+  overheating `∫_u^a`. For integer `u=n`, the shifted height `h=τ+1` scales
+  exactly as `h -> n h`. `numeric_norton_regrade` and
+  `numeric_norton_mean_temperature` compute the theorem without materializing the
+  product. Rust tests pin the formula and quotient descent on the complete
+  22-value day-two census plus a bounded day-three singleton-option census; the
+  Python probe checked 210 thermic pairs and 24 representative pairs each for
+  Norton/matching overheating with zero numeric-unit failures.
+- **What remains open.** Numeric units settle the leading restricted-product target,
+  so the mirror is not purely notational: the residual classes carry a genuine
+  external numeric regrading. There is still no internal product of two arbitrary
+  residual game classes, no descent for unrestricted nonnumeric units, and no
+  concrete description of the full residue objects. The scalar temperature
   hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else "all temperatures `≤ a`")
-  is clean and useful, but lifting it to full thermographs without adding
-  residues is either false (no-congruence) or tautological.
+  remains clean but cannot recover thermographs without residue data.
 
 Concrete progress targets:
 - ~~Formulate and test the lax law for `t(G+H)` as a hyperfield statement; locate
@@ -949,12 +964,16 @@ Concrete progress targets:
   units:** `* ≡ * + 1 (mod F_<0)`, but multiplying/overheating by `↑` leaves a
   non-lower temperature-0 residue. This rules out the naive full Berlekamp/Norton
   product on `gr_T(Games)`.
-- The reframed central target: decide whether any restricted product survives:
-  numeric Norton units, mean-normalized positive units with the cold coefficient
-  retained separately, or a quotient refined by atomic-weight/nimber-kernel data.
-  **Yes** ⇒ one tropical object, but only after a stricter residue enrichment than
-  the naive associated graded; **no** ⇒ two tropical objects sharing only the
-  scalar hyperfield shadow.
+- ~~Decide whether numeric Norton units survive on the temperature associated
+  graded.~~ **Done, positive for every positive dyadic unit:** the exact affine
+  regrading is `τ -> uτ + (u-δ)`, and the image of every cold-number difference is
+  strictly lower. This is the first substantive positive transport in `under`.
+- Decide whether anything larger survives: mean-normalized nonnumeric units with
+  cold coefficients retained separately, an all-small quotient refined by
+  atomic-weight/nimber-kernel data, or an actual internal product. The current
+  answer is therefore “one filtered object with a family of numeric transports,”
+  not yet “one tropical ring.” These transports are not a multiplicative action:
+  composition in the numeric unit already fails on `*`.
 - If every transport trivializes, write the no-go in the now-precise form: the
   thermograph is not a sum congruence (done), and no residue enrichment recovers a
   cooling-compatible product.
@@ -989,6 +1008,8 @@ Relevant surfaces:
   quotient/kernel theory behind the misère obstruction (for `tis`).
 - Berlekamp, *The economist's view of combinatorial games*, in Games of No Chance
   (1996): the informal cooling dictionary (for `under`).
+- Berlekamp, *Blockbusting and Domineering*, JCTA 49 (1988): generalized
+  overheating, the numeric-unit surface used by the positive `under` theorem.
 - Maclagan-Sturmfels, *Introduction to Tropical Geometry*; Viro, *Hyperfields for
   tropical geometry I*: valuations as (lax) tropicalization and the strictness
   repair (for `under`).
