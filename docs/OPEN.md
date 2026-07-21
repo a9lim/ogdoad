@@ -465,10 +465,10 @@ statements. They are the permanent coordinates for this problem:
 
 | arm | exact assertion | proved so far | universal gap |
 |---|---|---|---|
-| \(Z\): zero | the structural norm of \(\kappa_h\) generates the full primitive-support quotient for every non-ordinary component set | synchronized multicomponent phase; exact two-component resultant; nontrivial primitive support on the power-of-two two-spine family; complete \(h=12,24\) | generation when the primitive quotient is composite; arbitrary synchronized phase; singleton-even Conway-Fermat maximality |
-| \(O\): ordinary odd spine | the selected projective class of \(\kappa_{r^a}+1\) has full primary order for every odd \(r\ne3\) | transverse norm; relative Hilbert-90 unit; signed conjugate-ball lower bound and large-factor sieve | the smaller primary factors |
-| \(C\): cubic | \(\gamma_k=\zeta+\zeta^{-1}\in\mathbb F_{2^{3^k}}^\times\) is primitive for every \(k\) | \(C_1,C_2,C_3\) analytically; exact norm tower; partition bound; derivative regulator and reciprocity reductions | selected Kummer-class nonvanishing at the smaller current factors |
-| \(D\): exceptional | \(\Psi_k\mid\operatorname{ord}(M_k)\) for every \(k\), with \(\Psi_k=\Phi_{2\cdot3^k}(2)/3\) | corrected norm; exact current-factor/Capelli forms; quadratic-twist antiunit; partition bound; bad-locus exhaustions | the smaller current factors |
+| \(Z\): zero | the structural norm of \(\kappa_h\) generates the full primitive-support quotient for every non-ordinary component set | synchronized multicomponent phase; exact two-component resultant; nontrivial primitive support on the power-of-two two-spine family; complete \(h=12,24\); Dickson dichotomy, reverse-Dickson trace divisor, and exact Kummer-coset transport | generation when the primitive quotient is composite; arbitrary synchronized phase; exclusion of the selected transported coset in the singleton-even Conway-Fermat case |
+| \(O\): ordinary odd spine | the selected projective class of \(\kappa_{r^a}+1\) has full primary order for every odd \(r\ne3\) | transverse norm; relative Hilbert-90 unit; signed conjugate-ball lower bound; mixed-Jacobi formulas; projective minimal polynomial and binary-section ancestry; tower-faithful common-section no-go | selected-minimal-polynomial nondivisibility at the unscaled Conway value for the smaller primary factors |
+| \(C\): cubic | \(\gamma_k=\zeta+\zeta^{-1}\in\mathbb F_{2^{3^k}}^\times\) is primitive for every \(k\) | \(C_1,C_2,C_3\) analytically; exact norm tower; partition bound; cyclic-parity and block reductions; Singer--Wendt factorization; selected \(S_3\)-quotient, reciprocal order seam, and prescribed-trace character boundary | exclusion of the recursively selected Wendt/trace fibre, equivalently the extra proper-subproduct relation, at the smaller current factors |
+| \(D\): exceptional | \(\Psi_k\mid\operatorname{ord}(M_k)\) for every \(k\), with \(\Psi_k=\Phi_{2\cdot3^k}(2)/3\) | corrected norm; exact current-factor/Capelli forms; quadratic-twist antiunit; partition bound; mixed-Jacobi flatness and binary cyclic-parity equivalences; half-block norm and selected-trace form; selected reciprocal sextic and complete cubic Dickson-factor boundary; universal cubic-shape no-go and selected absolute-trace fingerprint | exclusion of the explicit recursively selected cubic from the Dickson factor list at the smaller current factors |
 
 The reduction is a theorem. None of the four universal assertions is claimed
 complete.
@@ -510,12 +510,48 @@ exact smaller-field power test.
   generalized-Jacobian formulations all reduce to the same distinguished
   Miller-unit value. They prove that degree, trace, norm, quarter-turn
   symmetry, and the full natural boundary-character package do not decide
-  nonvanishing.
+  nonvanishing. The exact \(\ell\)-root descent now shows that even the full
+  lower trace/norm ancestry and the maximal predecessor order survive a
+  hypothetical failure automatically; the top step is equivalent to one
+  explicit Dickson power-sum equation. Its degree-\(\ell\) Dickson
+  polynomial has an all-or-nothing factorization: it splits completely on
+  failure and is irreducible on success, with an exact resultant and
+  absolute Capelli composition. A reverse-Dickson transform gives a sharper
+  exact criterion: failure occurs precisely when an explicit absolute norm
+  polynomial containing the selected minimal polynomial of \(a_{n-1}\)
+  divides the trace-one polynomial
+  \(1+\sum_{j=0}^{2^n-1}Z^{2^j}\). On success that norm polynomial is one
+  irreducible; on failure it is exactly \(\ell\) full-degree factors. The
+  resulting root count and long leading-coefficient gap are both compatible
+  with every composite Fermat case. More exactly, the trace-one hyperplane is
+  the inversion quotient of the norm-one torus, and the reverse-Dickson
+  factor is literally one multiplicative \(\mu_\ell\)-coset transported
+  through that quotient. Its fibotomic support is explicit and has automatic
+  capacity. Thus derivatives, root sums, coefficient gaps, and support are
+  all realized by nonselected cosets: this is a selected-factor reduction,
+  not yet a contradiction.
 
 - **\(O\), ordinary odd spines.** These now have a structural theory: a
   projective quotient, a selected relative cyclotomic unit, and a signed
   conjugate-ball sieve. The missing theorem is full order at the remaining
-  small primary factors. The table value \(m_{359}=1\) is known from A380496;
+  small primary factors. The unweighted reciprocity orbit cancels not only for
+  the second argument \(2\), but for every selector from the base cyclotomic
+  field. A Teichmuller-weighted product formula proves that pure
+  \(\mathbb Q(\mu_p)\) selectors cancel as well; mixed Jacobi sums escape
+  that cancellation and recover the target as one exact inverse-Fourier
+  coefficient, but its local \(p\)-adic phase is the original unresolved
+  Kummer datum. Equivalently, the selected relative unit has an explicit
+  degree-\(r\) projective minimal polynomial, and failure means that all
+  nonconstant binary sections of \((1+x)^{\mathcal L_{r,a}/p}\) vanish at
+  \(x_{a-1}\). Descending the ancestry makes this simultaneous divisibility
+  by the actual Conway minimal polynomial \(P_{\alpha_r}\). Relative norm and
+  submask complementation are automatic on that pattern, so only the selected
+  nondivisibility can close the arm. A character-sum construction makes the
+  point sharp: complete irreducible \(r\)-power towers with smooth exact
+  degree, the same bottom Kummer coset, matched multiplicative order, all
+  section divisibilities, and full Wieferich-safe bookkeeping can fail
+  abundantly. Only the unscaled Conway scalar remains distinguished. The
+  table value \(m_{359}=1\) is known from A380496;
   what remains open at that row is an independent analytical evaluation of
   its selected trace/resultant phase.
 
@@ -523,7 +559,34 @@ exact smaller-field power test.
   level introduces a new factor \(\Phi_{3^k}(2)\). The paper proves the first
   three levels without order computation and gives several exact
   reformulations and lower bounds. The derivative regulator is rigorous but
-  circular: its reduction is a power of the same unknown Gaussian period.
+  circular: its reduction is a power of the same unknown Gaussian period. An
+  exact counterexample also shows that the polynomial coefficient recursion
+  can carry a primitive irreducible input to an irreducible but nonprimitive
+  output, so primitivity is not a formal inductive invariant. A new cyclic
+  group-algebra reduction makes failure equivalent to a sharp subset-sum
+  parity pattern: every residue modulo \(3^{k+1}\) occurs oddly except one.
+  In the augmentation ideal this is an extra proper-subproduct relation;
+  the full Frobenius product and its immediate \(\ell\)-th-power exponent
+  consequence are unconditional, so they cannot supply the contradiction.
+  A block compression now proves that submask complementation forces the
+  unique even residue into exactly the position required by failure. Failure
+  is also equivalent to the distinguished minimal polynomial and its
+  reciprocal translate occurring in a binary Wendt gcd. Every factor of
+  that gcd has degree \(3^k\) and translation pairs the factors, so neither
+  Wendt-factor existence nor reciprocal symmetry singles out the selected
+  pair. More sharply, an exact Singer-difference-set factorization gives
+  the coset-intersection moments; when
+  \(\ell-1<\sqrt q+1/\sqrt q\), every coset necessarily contains
+  degree-\(3^k\) Wendt factors. The selected pair descends under the free
+  \(S_3\) action to the lower trace value
+  \(\eta_{k-1}^2+\eta_{k-1}+1=\gamma_{k-1}^{-2}\). The descended
+  elements satisfy an irreducible cubic with trace and norm equal to the
+  preceding one, and their orders factor exactly as the preceding order
+  times the current norm-one selector order. Thus this is a lossless
+  reciprocal formulation, not an induction. Equivalently, failure is the
+  extremal value \(3\) of one prescribed-trace character sum at
+  \(\eta_{k-1}\). Other trace fibres genuinely attain \(3\), so a uniform
+  Weil or character bound cannot exclude the selected fibre.
 
 - **\(D\), exceptional spine.** The corrected \(m=4\) norm is
   \(N_k=\zeta^2+\zeta+\omega\), and the exact conjecture is current-level
@@ -531,7 +594,30 @@ exact smaller-field power test.
   antiunit and partition regulator prove an explicit large-factor range.
   Semiprimitive Fourier data, line saturation, Dirichlet coefficients,
   relative Dickson forms, and proper-subfield norms are all compatible with
-  failure; they delimit rather than solve the remaining Kummer evaluation.
+  failure. Mixed Jacobi sums now give an exact first-order formulation:
+  failure is equivalent to simultaneous congruences
+  \(J_j\equiv-1\pmod{(\zeta_\ell-1)^2}\) for the full composite-conductor
+  family. Equivalently, binary submasks of \((2^{4\cdot3^k}-1)/\ell\)
+  occur evenly in residue zero modulo \(15\cdot3^k\) and oddly in every
+  nonzero residue; raising this identity to \(\ell\) is again automatic.
+  The binary exponent splits into two equal blocks, turning failure into a
+  quadratic norm equation. Its involution-fixed residue pushforward is
+  unconditional, and Hilbert--90 gives no obstruction. The remaining
+  selected \(\ell\)-th root is nontrivial exactly when one explicit relative
+  trace to \(\mathbb F_{2^{3^{k-1}}}\) is nonzero. More sharply, the
+  selected phase has an explicit reciprocal sextic over that field, and
+  failure is equivalent to one named irreducible cubic dividing
+  \(D_e\), where \(e=(2^{2\cdot3^{k-1}}-2^{3^{k-1}}+1)/\ell\).
+  The exact factorization of \(D_e\) is \(Y(Y+1)^2\) times squares of
+  irreducible cubics, so the ambient structure supplies many admissible
+  false positives. Every one of those cubics has constant coefficient equal
+  to the square of its trace coefficient, exactly matching the selected
+  cubic. The selected remaining coefficients have absolute traces \(1\) and
+  \(k\bmod2\), but the factorization supplies no contradictory coordinate
+  identity. The cubic and exceptional current groups also have coprime
+  orders, so their analogous torus formulations cannot transfer the result.
+  Excluding the recursively selected cubic, not generic
+  cubic-factor existence, is the remaining Kummer evaluation.
 
 #### Evidence boundary
 
@@ -553,6 +639,12 @@ Current evidence:
 - The implementation vendors and row-diffs all \(126\) A380496 entries for odd
   primes \(3\le p\le709\). These *integer excesses* are source-pinned. The next
   unsupported carry is \(\alpha_{719}\).
+- The contributor-linked extended A380496 auxiliary table reports
+  \(m_{1093}=m_{3511}=0\), the two known base-2 Wieferich rows. The calculator
+  uses Lenstra's exact \((2^E-1)/p\) power test, so these values assert full
+  \(p^2\)-primary order rather than radical support. They are external exact
+  computations, however: they are outside the approved 126-row b-file and
+  carry no compact remainder certificate in this checkout.
 - The resulting ordinal carry is independently value-checked only at the named
   subset documented beside the tower tests; table coverage must not be confused
   with per-row ordinal verification or practical constructibility.
@@ -568,15 +660,20 @@ Current evidence:
 
 #### Current proof targets
 
-1. **\(Z\).** Prove the Conway-Fermat quotient order
-   \(\delta_n=F_n\); prove generation of the composite two-spine primitive
-   quotient; then control the general synchronized phase.
-2. **\(O\).** Evaluate the selected residue symbol
-   \(\Theta_{q,s}\) at the remaining small primary factors.
-3. **\(C\).** Prove that every current primary factor of
-   \(\Phi_{3^k}(2)\) occurs fully in \(\operatorname{ord}(\gamma_k)\).
-4. **\(D\).** Prove \(D'_k\), equivalently the Capelli irreducibility or
-   antiunit nonvanishing condition at every factor of \(\Psi_k\).
+1. **\(Z\).** Exclude the selected reverse-Dickson divisor and thereby prove
+   the Conway-Fermat quotient order \(\delta_n=F_n\); prove generation of the
+   composite two-spine primitive quotient; then control the general
+   synchronized phase.
+2. **\(O\).** Prove that at least one selected binary section is nonzero
+   modulo \(P_{\alpha_r}\) at every remaining small primary factor
+   (equivalently evaluate \(\Theta_{q,s}\)).
+3. **\(C\).** Exclude the extremal prescribed-trace value at the Conway
+   fibre \(\eta_{k-1}\), equivalently prove that every current primary
+   factor of \(\Phi_{3^k}(2)\) occurs fully in
+   \(\operatorname{ord}(\gamma_k)\).
+4. **\(D\).** Exclude the explicit selected cubic of
+   `prop:dk-selected-sextic` from its Dickson factor list at every factor
+   of \(\Psi_k\); equivalently prove the Capelli/antiunit condition \(D'_k\).
 
 Exact-order and factorization runs remain useful for falsification and audits,
 but they are not the leading proof route. A solution must exploit the
