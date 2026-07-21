@@ -434,589 +434,166 @@ Relevant surfaces:
 
 ### on·e_s: `ordinal nim multiplication beyond the verified excess table`
 
-Push transfinite nim multiplication beyond the source-verified Lenstra-DiMuro
-excess table. Historically the first missing carry in this checkout was
-`alpha_47`; a local fixed-base finite-field oracle now verifies that carry, but
-the general closed-form problem remains open.
+**Status:** open. The proof source of truth is
+[`writeups/excess.tex`](../writeups/excess.tex); this entry is the concise
+research ledger and implementation boundary.
 
-What is implemented:
-- The algebraic closure of `F_2` is represented by ordinals `< omega^(omega^omega)`
-  under nim-arithmetic.
-- The prime-power generator tower is implemented in `src/scalar/big/ordinal/tower.rs`.
-  Products are exact when every Kummer carry uses a finite Lenstra excess `m_u` for an
-  odd prime `u <= 709`: the finite `m_u` are sourced from OEIS A380496 ("Lenstra excess
-  of the n-th odd prime"), the b-file's 126 known rows (odd primes `3..=709`; the first
-  14 reproduce DiMuro Table 1 + the old `m_47`). The first OEIS-unknown row is `p=719`,
-  so a carry at `u >= 719` returns `None`. The ordinal carry `alpha_u` is assembled in
-  code from `f(u)=ord_u(2)`, DiMuro's recursive `Q(f(u))`, and the finite `m_u`.
-- Stage 1 handles scalar excesses such as `alpha_3 = 2`, `alpha_5 = 4`, and
-  `alpha_17 = 16`; Stage 2 handles nonscalar excesses such as `alpha_7 = omega+1`
-  by branching the monomial and recursing to lower places.
-- The 126 finite excess rows (the *integers* `m_u`) are source-pinned to OEIS A380496 in
-  full — the vendored b-file is diffed against the table row-for-row by
-  `excess_table_matches_vendored_b380496_in_full` (`src/scalar/big/ordinal/
-  b380496.txt`, fetched 2026-07-02). Caveat: the table extends *reach*, not
-  *feasibility* — for large primes `alpha_u` is in the table but its `Q(f(u))`/finite-
-  subfield reconstruction over the degree-`e_u` component field (`e_u` in the millions
-  for `u` near 709) is too costly to materialize in practice, so only the smaller-`e_u`
-  rows are usable end-to-end today.
-- "Exact for `u <= 709`" means the construction is *defined* there (`alpha_ordinal(u)`
-  returns `Some`, since every input it needs — `f(u)`, `Q(f(u))`, and `m_u` — resolves).
-  It is a separate, narrower claim that the resulting *ordinal value* has been checked
-  against an oracle outside the construction itself: that per-row value pin currently
-  covers `u` in `{3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 73, 89}`
-  (DiMuro Table 1 for the first 14; `73`/`89` cross-checked against `experiments/
-  ordinal_excess_probe.py`'s independently curated `Q_SET`/order-based excess
-  certification; `47` additionally re-derived by raw repeated multiplication in
-  `locally_verified_alpha_47_landmark`). The remaining rows up to `709` are defined and
-  internally consistent (the field-axiom sweeps exercise engine consistency) but do not
-  yet have an independent value oracle. The "large primes near 709" cost caveat above
-  actually bites much earlier than 709: `alpha_ordinal(179)` (`f=178=2*89`,
-  `Q(f)={89}`) already recurses into a `finite_subfield_degree` Frobenius minimization
-  on `chi(89)=omega^(omega^22)` that does not finish in a unit-test budget, confirmed
-  by hand while extending this table — so `179` is a genuine gap in the "cheap today"
-  set, not merely an oversight.
+#### Problem
 
-The first fourteen rows (odd primes `3..=47`) are shown below for readability — the
-historic DiMuro Table 1 + `m_47` landmarks, now also OEIS A380496 `a(1)..a(14)`;
-production stores the finite `m_u` for all 126 rows (`3..=709`) and reconstructs the
-displayed `alpha_u` values:
+For an odd prime \(p\), Conway's Kummer carry below
+\(\omega^{\omega^\omega}\) has the form
+\[
+\alpha_p=\kappa_{f(p)}+m_p,\qquad f(p)=\operatorname{ord}_p(2),
+\]
+where \(m_p\) is Lenstra's finite *excess*. Lenstra proved structural lower
+bounds and conjectured absolute boundedness. Every source-pinned row presently
+available is consistent with the sharper rule
+\[
+m_p=
+\begin{cases}
+0,&\mathcal Q(f(p))\text{ is not a singleton odd prime-power},\\
+4,&f(p)=2\cdot3^k,\ k\ge1,\\
+1,&\text{otherwise}.
+\end{cases}
+\]
+This \(0/1/4\) rule is not proved.
 
-| u | alpha_u | u | alpha_u | u | alpha_u |
-|---|---|---|---|---|---|
-| 3 | 2 | 13 | omega+4 | 29 | omega^(omega^2)+4 |
-| 5 | 4 | 17 | 16 | 31 | omega^omega+1 |
-| 7 | omega+1 | 19 | omega^3+4 | 37 | omega^3+4 |
-| 11 | omega^omega+1 | 23 | omega^(omega^3)+1 | 41 | omega^omega+1 |
-| | | 43 | omega^(omega^2)+1 | 47 | omega^(omega^7)+1 |
+#### Exact reduction
 
-Current external state:
-- The first OEIS unknown in the extended table is now `p = 719`, where
-  `f(719) = 359` and `Q(359) = {359}`. The calculator notes the required finite
-  exponent as `e_719 = 1258230380`, which is the practical wall for the direct
-  Lenstra power test.
-- A tempting pattern matches the checked OEIS/calculator records from this pass:
-  `m_p = 0` when `Q(f(p))` is not a singleton odd prime-power; `m_p = 1` for a
-  singleton odd `Q(f(p))`, except the observed `f(p) = 2*3^k` cases have
-  `m_p = 4`. A local audit matched this rule against the 950 calculator records
-  with known `Q`-sets, and against every OEIS-known row covered by those `Q`-sets.
-  This is still only a candidate rule, not a theorem.
-- The exact finite-field reformulation is sharper than root-search language. If
-  `beta = kappa_{f(p)} + m` lies in the component field `F_{2^E}`, then `beta`
-  has no `p`-th root exactly when the multiplicative order of `beta` contains the
-  full `p`-primary part of `2^E - 1`. When `v_p(2^E - 1) = 1` this reduces to
-  `p | ord(beta)`; the full statement is required at base-2 Wieferich primes
-  and whenever `p | E/f(p)`.
-- The local fixed-base probe (`experiments/ordinal_excess_probe.py`) uses that
-  criterion to verify `m_47 = 1` from the lower rows. Since `f(47) = 23` and
-  `Q(23) = {23}`, this gives `alpha_47 = omega^(omega^7)+1` — historically the first
-  row past DiMuro Table 1, now subsumed by the OEIS A380496 import (the shipped table
-  is source-pinned, not per-row locally oracled).
-- A finite-window Kummer no-go now rules out the most direct uniformization of
-  Lenstra's translate argument.  For every odd `p` and every fixed finite set
-  `A` in `F_2bar`, there are elements of arbitrarily large exact degree for
-  which every translate `x+a`, `a in A`, is a `p`-th power.  The proof uses the
-  geometrically integral Kummer cover `Y_a^p=X+a`, Hasse--Weil, and exclusion
-  of proper subfields.  Hence any absolute excess proof must use special
-  identities of the Conway elements `kappa_f`; full degree plus a bounded
-  generic translate window cannot suffice.
+The paper proves that the rule is equivalent to four universal order
+statements. They are the permanent coordinates for this problem:
 
-Since the 2026-06 research pass (`writeups/excess.tex`, `experiments/excess/`,
-`experiments/cyclotomic_3k_family.py`):
+| arm | exact assertion | proved so far | universal gap |
+|---|---|---|---|
+| \(Z\): zero | the structural norm of \(\kappa_h\) generates the full primitive-support quotient for every non-ordinary component set | synchronized multicomponent phase; exact two-component resultant; nontrivial primitive support on the power-of-two two-spine family; complete \(h=12,24\) | generation when the primitive quotient is composite; arbitrary synchronized phase; singleton-even Conway-Fermat maximality |
+| \(O\): ordinary odd spine | the selected projective class of \(\kappa_{r^a}+1\) has full primary order for every odd \(r\ne3\) | transverse norm; relative Hilbert-90 unit; signed conjugate-ball lower bound and large-factor sieve | the smaller primary factors |
+| \(C\): cubic | \(\gamma_k=\zeta+\zeta^{-1}\in\mathbb F_{2^{3^k}}^\times\) is primitive for every \(k\) | \(C_1,C_2,C_3\) analytically; exact norm tower; partition bound; derivative regulator and reciprocity reductions | selected Kummer-class nonvanishing at the smaller current factors |
+| \(D\): exceptional | \(\Psi_k\mid\operatorname{ord}(M_k)\) for every \(k\), with \(\Psi_k=\Phi_{2\cdot3^k}(2)/3\) | corrected norm; exact current-factor/Capelli forms; quadratic-twist antiunit; partition bound; bad-locus exhaustions | the smaller current factors |
 
-- The 3-power column is now structural: `C_k` — the exact formula
-  `ord(kappa_{3^k} + 1) = 3^(k+1) * (2^(3^k) - 1)` with `gamma_k` primitive — is
-  proved analytically for `k <= 3`, certified by exact-order computation for
-  `4 <= k <= 6`, and consistent-but-uncertified for `k = 7, 8`, blocked only
-  by the unfactored cofactors of `Phi_{3^7}(2)` and `Phi_{3^8}(2)` (FactorDB
-  CF). Whether ECM/GNFS reaches those on a realistic budget is open.
-- The analytical target inside `C_k` is now explicit at polynomial and torus level
-  (2026-07-20, `writeups/excess.tex`). With `f(X) = X^3 + X`, the minimal
-  polynomial of `gamma_k` is the irreducible Dickson iterate
-  `P_k(X) = D_(3^k)(X,1) + 1 = f^k(X) + 1`, satisfying
-  `P_(k+1) = P_k^3 + P_k^2 + 1`; hence `C_k` says exactly that `P_k` is
-  *primitive*, not merely irreducible. Equivalently, for
-  `q_k = 2^(3^(k-1))`, the new component
-  `eta_k = gamma_k^(q_k - 1)` lies in the cubic norm-one torus
-  `U_k` of order `q_k^2 + q_k + 1` and obeys the fully recursive equation
-  `X^3 + eta_(k-1) X^2 + (eta_(k-1)+1) X + 1 = 0` (`eta_0 = 0`). Thus its
-  norm, trace, and second elementary coefficient are respectively
-  `1`, `eta_(k-1)`, and `eta_(k-1)+1`; `C_k` is precisely the remaining claim
-  that this distinguished root generates `U_k`. The same element is the Möbius
-  image `(omega + omega^2*zeta^2)/(1+zeta^2)`, with inverse
-  `zeta^2 = (eta_k+omega)/(eta_k+omega^2)`. It also obeys
-  `eta_k^(q_k+1) + eta_k + 1 = 0`, so it is a member of the planar Singer
-  difference set of size `q_k+1` in `U_k`. Singer membership alone is
-  formally order-neutral: `y -> y^(q_k+1)` is an order-6 automorphism of
-  `U_k`, and the Singer equation merely says that this automorphism sends
-  `y` to `y+1`. At `q=32`, a root of `X^3+X^2+1` lies in the analogous set
-  but has order `7` inside the group of order `7*151`. The recursive
-  coefficient `eta_(k-1)` is therefore essential.
-- The exact remaining lemma now has a character form. For every prime
-  `ell | |U_k|`, let `chi_(k,ell)` be an exact-order-`ell` character of
-  `U_k`. Then `C_k` is equivalent to `C_(k-1)` plus
-  `chi_(k,ell)(eta_k) != 1` for every such `ell`. Equivalently, the
-  multiplicative character `rho(A) = chi(A^(q_k-1))`, trivial on the base
-  field, must satisfy `rho(gamma_k) != 1`. All distinct kernel orders are
-  pairwise coprime; in fact
-  `Hom(F_(2^(3^(k-1)))^*, mu_ell)=1` for `ell | |U_k|`, so no
-  multiplicative character or power-residue datum from a previous level
-  can transfer an `ell`-part to this test.
-- The same lemma now has two further exact analytical forms (2026-07-20).
-  First, if `Q_0(X)=X`, `A=X^3+X+1`, `B=X^2+X`, and
-  `Q_k(X)=B(X)^(3^(k-1)) Q_(k-1)(A/B)`, then `Q_k` is the degree-`3^k`
-  minimal polynomial of `eta_k`; for each prime `ell | Phi_(3^k)(2)`,
-  character nonvanishing is equivalent by Kummer theory and Capelli's
-  lemma to irreducibility of `Q_k(X^ell)`. Notably
-  `Q_4=X^81+X^64+X^16+X+1`, so the first composite level is an explicit
-  pentanomial-composition reformulation; no known general irreducibility
-  criterion turns it into a reduction. Second, in
-  the real cyclotomic field `F_k=Q(zeta_(3^(k+1)))^+`, the conjugates of
-  `c_k=2+zeta+zeta^(-1)` generate a 2-power-index subgroup of the real
-  circular units and reduce modulo the inert prime `2` to the powers of
-  `gamma_k`; the index disappears in the odd-order residue group. Hence `C_k` is
-  exactly surjectivity of circular units onto `F_(2^(3^k))^*`. The index
-  factors through the ray-class exact sequence as ray-class growth at
-  modulus `(2)` times a quotient of the circular-unit index; away from
-  primes dividing the ordinary class number, an `ell`-failure is exactly
-  `ell`-part growth in that ray class group. This names rather than solves
-  the obstruction: the ray group is defined by the same residue quotient,
-  and the required ordinary-class-number exclusion is not uniform in `k`.
-  The relative coboundary
-  `sigma^(3^(k-1))(c_k)/c_k` reduces to `eta_k`.
-- The ray obstruction now has an exact Galois shape.  If
-  `ell` does not divide the class number of `F_k`, cubic failure is
-  equivalent to a degree-`ell` cyclic extension of `F_k`, conductor exactly
-  `(2)`, whose Galois closure over `Q` has group
-  `C_ell semidirect_2 C_(3^k)`.  It is totally tamely ramified in the
-  `C_ell` direction at two, while the unique prime above three is forced to
-  split in that layer because `(1-zeta)(1-zeta^(-1))/c_k` is congruent to
-  one modulo `(2)`.  Both local behaviors are admissible, so reciprocity
-  gives no contradiction.  Without the hypothesis, failure gives the sharp
-  dichotomy: either this semidirect ray extension exists or `ell` divides
-  the ordinary class number.  The unevaluated input is genuinely global.
-- Classical reciprocity is now proved to miss exactly the surviving cubic
-  coordinate.  On the one-dimensional residue quotient, `sigma` acts as
-  multiplication by `2`; the full norm, the relative cubic norm, the plus
-  Stickelberger element, and the integrality factor `2-sigma` all vanish.
-  This is a simple exceptional zero: the derivative of
-  `(X^n-1)/(X-1)` at `X=2` is `n*2^(n-1) != 0 mod ell`.  After adjoining
-  `mu_ell`, the selected local Artin value at one prime over two runs through
-  all conjugates `A^a`, `a in F_ell^*`; the wild symbols over `ell` are
-  trivial by higher-unit orthogonality, so Hilbert reciprocity says only
-  `prod_a A^a=1`, an identity for every `A`.  A proof needs a first-order
-  unit regulator in this exceptional eigenspace, not another ideal
-  factorization, norm, or global product formula.
-- There is one unconditional analytical closure: if `Phi_(3^k)(2)` is
-  prime, the nonidentity element `eta_k` automatically generates `U_k`.
-  Hence `C_1`, `C_2`, and `C_3` follow without an order computation from
-  the primality of `7`, `73`, and `262657`; only `k=4,5,6` retain the
-  finite-field order-certificate label.
-- A new unconditional Singer-orbit sieve (2026-07-20) goes beyond those
-  prime-order levels. Put `n=3^k` and `N=|U_k|`. The `n` Frobenius conjugates
-  of `eta_k` lie in the `(N,q+1,1)` Singer difference set, so their
-  `n(n-1)` ordered quotients are distinct. Consequently
-  `ord(eta_k) >= n(n-1)+1`. More sharply, if `ell | N` and
-  `ell > N/(n(n-1)+1)`, then `eta_k` is not an `ell`-th power and its order
-  contains the full `ell`-primary part of `N`. The translated orbit
-  `eta_k+1` does not double the sieve: its quotient set coincides with the
-  original one. The remaining small-index characters are still open.
-- The Singer sieve now has a substantially stronger, proof-only refinement.
-  Let `B(n)` count partitions of total at most `n=3^k` into distinct parts
-  not divisible by `3`. Frobenius sends `eta_k` to an explicit Möbius product
-  for each part; if two partition-indexed powers coincided, the resulting
-  polynomial would vanish at both inverse primitive `3^(k+1)`-th roots.
-  Their two degree-`n` minimal polynomials over `F_4`, plus cancellation of
-  the boundary leading term, force the polynomial to vanish identically;
-  the least part in the symmetric difference then gives `omega^j=1`, a
-  contradiction. Hence `ord(eta_k) >= B(n)`, in particular
-  `exp((sqrt(2)*pi/3+o(1))*sqrt(n))`, and every
-  `ell > |U_k|/B(n)` occurs to its full primary valuation in the order.
-  This is exponential in `sqrt(n)` rather than quadratic, but still does not
-  control all small-index subgroups. It is scale-optimal for proofs which
-  certify noncollision only through the factor-by-factor weighted-degree
-  triangle bound: a colored-partition count caps every such certified family
-  at `exp(O(sqrt(n)))`. Systematic cancellations and exact cyclotomic
-  reduction are not covered by that ceiling and remain possible routes.
-- The remaining cubic character has also been compressed to a short exact
-  period. For an exact `ell`-character `rho`,
-  `sum_(t in mu_(3n),t!=1) rho(t+t^(-1))` equals
-  `(n-1)+2*sum_(i<n) zeta_ell^(a*2^i)`, where
-  `rho(gamma_k)=zeta_ell^a`; failure is exactly the extremal value `3n-1`.
-  Thus a completion needs a non-extremality theorem for this specific
-  length-`n` cyclotomic period, not a full Singer-set character estimate.
-- Failure of the cubic lemma is now proved to saturate every cyclotomic secant:
-  for `m=3^(k+1)` and `ell | Phi_(3^k)(2)`, it is equivalent to every
-  `zeta^a+zeta^b` (`a != b mod m`) being an `ell`-th power.  Equivalently the
-  full secant sum `sum_(t in mu_m,t!=1) chi(1-t)` takes its maximal value
-  `m-1`.  The associated Kummer cover is rational, with inverse
-  `T=(Z^ell+omega)/(Z^ell+omega^2)`, so generic positive-genus Weil geometry
-  cannot decide this distinguished fibre either; the surviving datum is the
-  exact cyclotomic-unit Artin value.
-- The shifted unit `1+zeta_(3^(k+1))` is norm-coherent in the characteristic-
-  zero cyclotomic `Z_3`-tower, and its real norm reduces modulo the unique
-  prime above `2` to `gamma_k`. Thus the character lemma is an Artin-type
-  fixed-prime power-residue problem for a cyclotomic unit, not merely an
-  irreducible-polynomial question.
-- The singleton-even arm now has an equally exact polynomial reduction.
-  For `S_0=0`, `S_1=1`, `S_(r+2)=S_(r+1)+X*S_r` and
-  `a=a_(n-1)=prod_(j<n)c_j`, one has
-  `delta_n=min{r>0:S_r(a)=0}`. Hence maximal quotient order is exactly
-  `S_(F_n/ell)(a) != 0` for every prime `ell | F_n`. The fibotomic factors
-  of `S_(F_n)` separate the possible quotient orders, but every proper-order
-  and full-order stratum has the same irreducible degree `2^n`. In fact every
-  divisor `d>1` of `F_n` admits a top-step countermodel with quotient order
-  `d` and the same full degree, absolute trace one, Artin-Schreier equation,
-  and relative norm. Thus none of those coarse invariants can prove the
-  Conway statement. What distinguishes Conway is the exact recursion
-  `A_i(X)=Res_Y(A_(i-1)(Y), X^2+Y*X+Y^3)` for the minimal polynomial of
-  `a_i`; the remaining conjecture says this selected factor always lands in
-  the full-order fibotomic stratum. Popovych verifies only through `n=11`,
-  and Cagliero-Herman-Szechtman (2025) still leave the quotient order
-  undetermined in general.
-- Even exact one-step induction from predecessor maximality is now ruled out.
-  The irreducible degree-16 polynomial
-  `C=Y^16+Y^15+Y^12+Y^11+Y^10+Y^8+1` lies in the full `F_4=65537`
-  fibotomic stratum, but its exact Conway resultant is an irreducible
-  degree-32 factor of the proper `6700417=F_5/641` stratum.  Rabin,
-  Artin-Schreier, resultant, and Fibonacci-polynomial identities give a
-  finite symbolic certificate.  This does not refute the actual Conway path:
-  `C` is an alternative `A_3`.  It proves that a successful induction must
-  use the distinguished factor's earlier ancestry, not merely predecessor
-  maximality plus the exact one-step recurrence.
-- That earlier ancestry is now recovered exactly.  The actual chain satisfies
-  `Tr_(E_i/E_j)(a_i)=a_j` and `Norm_(E_i/E_j)(a_i)=a_j^(3^(i-j))`, and
-  conversely these identities characterize the actual top factor up to
-  Frobenius.  Nevertheless every nonzero relative-trace fibre in
-  `F_(q^2)` contains exactly `(q+1)/ell-1` `ell`-th powers; in the actual
-  fibre they are all normal and full-degree.  Imposing the actual relative
-  norm compresses the condition back to
-  `S_((q+1)/ell)(a_(n-1))=0`, exactly the original fibotomic obstruction.
-  Thus incomplete ancestry was not the hidden gap: complete ancestry, trace,
-  separate norm, normality, and orbit length still leave the same
-  anti-invariant Kummer class.
-- The exact Conway transition is now geometric as well as fibotomic. With
-  `u_i=(c_i+1)/c_i`, consecutive levels satisfy
-  `u/(u+1)^2=v/(v+1)^3`; the normalization of this fixed correspondence is
-  the supersingular elliptic curve `y^2+y=x^3+x^2`. It has an order-four
-  automorphism
-  `A(u,v)=((u+v)/(uv+1),v^(-1))`, and relative Frobenius at the distinguished
-  Conway point is `A` or `A^(-1)`. This symmetry is exactly character-neutral:
-  for `ell | F_n`, an order-`ell` character gives only
-  `chi(u)=chi(u+1)^2` and the tautology
-  `chi(u+1)^(Q^2)=chi(u+1)^(-1)`. The remaining statement is precisely that
-  `c_n` is not an `ell`-th power, equivalently that `X^ell-c_n` is
-  irreducible over the top field, for every `ell | F_n`.
-- The CM geometry now identifies exactly why that symmetry stops. On the
-  elliptic normalization, `c_n` is the value of
-  `c=x/(x^2+x+y)`, whose divisor is `[-T]+2[O]-3[-2T]`. After translating
-  the fixed point `-2T`, relative Frobenius at `P_n` is multiplication
-  by `+i` or `-i`. But the Kummer cover `z^ell=c`, of genus
-  `(3*ell-1)/2`, admits no lift of the quarter-turn: the four divisor
-  classes of `c o A^j` form an invertible circulant modulo every
-  `ell | F_n` (determinant `15`). Thus the base-curve CM action cannot
-  evaluate the distinguished fibre; the remaining datum is genuinely its
-  ramified Kummer Artin symbol.
-- The elliptic residue has now been placed precisely in the generalized
-  Jacobian.  Up to scalar, `c^(-1)` is the Miller tripling function for
-  `S=-2T`, with divisor `3[S]-[3S]-2[O]`.  For `ell | q+1`, multiplication by
-  `ell` is an automorphism of the rational elliptic group, while the Kummer
-  class has tame residue vector `(1,2,-3)` at `{-T,O,-2T}`.  Thus its surviving
-  projection is ramified and toric in the three-point generalized Jacobian;
-  ordinary rational Tate--Lichtenbaum or formal-group data cannot decide it.
-  This locates the missing calculation without asserting that its evaluation
-  at the distinguished Conway point is nontrivial.
-- The generalized-Jacobian extension itself is now exhausted.  In the boundary
-  basis `D1=[-T]-[-2T]`, `D2=[O]-[-2T]`, its character-lattice class is
-  `(a,b) -> (a+2b)T`, hence entirely rational 5-torsion.  Frobenius acts as
-  `-1` on geometric `E[ell]`, so both its invariants and first cohomology
-  vanish; even non-rational elliptic `ell`-torsion contributes no hidden
-  rational Kummer class.  The Miller unit is the character `(x,y)->x*y^2`,
-  and EC5 is exactly nonvanishing of the one functional `x+2y` on the
-  normalized Abel lift of `P_n`.  Torus translation over a fixed elliptic
-  point realizes every functional value, so the sole missing datum is that
-  distinguished toric coordinate—not the CM point or extension class.
-- That toric coordinate is now explicit in two independent languages.  If
-  `ell*Z=P_n-T`, `W=T+Z`, and `F_(ell,Z)` is the corresponding Miller function,
-  its Rosenlicht coordinates are
-  `rho_1=F(2T)/F(-2T)` and `rho_2=F(2T)/F(-T)`, with
-  `[c(P_n)]=[rho_1*rho_2^2]`.  A constant-complexity five-torsion splitting
-  gives rational functions
-  `g_1=(1+x+x^2+y+xy)/(1+x+xy)` and `g_2=1/(1+x+xy)` satisfying
-  `c^5=g_1*g_2^2`, and hence the full normalized Abel coordinates modulo
-  `ell`.  Weil reciprocity also proves the exact boundary: collapsing the
-  three Miller values returns `c(W)^ell/c(P_n)`, so this explicit formula is
-  circular as a nonresidue proof rather than a hidden pairing evaluation.
-  Separately, a failed Fermat residue saturates the four-point affine plane
-  `{c_n,c_n+1,c_n+c_(n-1),c_n+c_(n-1)+1}`; its product is the old-field
-  cube `a_(n-2)^3`, again automatically an `ell`-th power.
-- The `f(p) = 2*3^k` exception column is settled at every prime current factor
-  tables reach (2026-06-12, `experiments/exception_column_m4.py`): `m_p = 4`
-  *exactly*, universally for `k <= 6` (fully factored levels — 14 rows, 11 of
-  them new, anchors `19`/`163`/`1459` reproduced never assumed) and at every
-  known prime of `k = 7, 8`. The enabling fact is a corrected compositum norm:
-  `sigma(4) = 5` (the F_4-Artin-Schreier conjugate; the earlier draft's
-  `(kappa+4)(kappa+6)` was a Frobenius slip), so
-  `Norm(kappa+4) = (kappa+4)(kappa+5) = kappa^2 + kappa + 2`, which collapses
-  the `m = 4` test into the same trinomial field as the `C_k` chain:
-  `M_k = Nbar/N`, `N = zeta^2 + zeta + zeta^h`.
-  The exact current-level factor is
-  `Psi_k=Phi_(2*3^k)(2)/3`: every prime divisor has order exactly `2*3^k`,
-  with its full valuation, and
-  `m_p=4` for every current-level prime iff `Psi_k | ord(M_k)`. Equivalently,
-  `N` is not an `ell`-th power for every `ell | Psi_k`; if `R_k` is the
-  explicit degree-`2*3^k` resultant minimal polynomial of `N`, this is iff
-  every `R_k(X^ell)` is irreducible. Call this exact condition `D'_k`.
-  The earlier `D_k=(2^(3^k)+1)/3^(k+1) | ord(M_k)` was cumulative — it is
-  `prod_(j<=k) Psi_j` — and therefore strictly stronger absent an old-factor
-  propagation theorem; its claimed equivalence to the current level was an
-  error. The norm tower is *twisted*
-  (`Norm(N_k) = eta^2 + omega^2*eta + 1 != N_{k-1}`), so no `gamma`-style
-  propagation exists and each level stands alone. An `m_p >= 5` example, if one
-  exists, now hides strictly inside the unfactored cofactors of
-  `Phi_{2*3^7}(2)` and beyond.
-- The current exception factor now has an unconditional projection theorem.
-  Writing `a=2^(3^(k-1))` and `P_k=M_k^(a+1)`, exponentiation removes the
-  irrelevant `(a+1)`-part without changing any `Psi_k`-primary valuation,
-  and `P_k=(zeta^4+zeta+omega)/(omega^2*zeta^4+zeta^3+1)`.
-  This element has exact degree `2*3^k` over `F_2`. Its order has one
-  factor `3` for odd `k` and none for even `k`; consequently every
-  `ell | Psi_k` above
-  `Phi_(2*3^k)(2)/(c_k*(2*3^k+1))`, with `c_k=3` for odd `k` and `1`
-  otherwise, occurs to full valuation. In particular the prime
-  `Psi_2=19` and `Psi_3=87211` levels are now analytical rather than
-  computational. For the remaining primes, `pi(x)=x/(x+1)^2` gives an
-  exact fibotomic criterion: `M_k` is an `ell`-th power iff
-  `W^ell+Z*H_ell(W)^2` has a root in `F_(2^(3^k))`, where
-  `Z=pi(M_k)`; this polynomial either has no base-field root or splits
-  into `ell` distinct linear factors. Proving rootlessness for the
-  distinguished `Z` is the surviving `D'_k` lemma. Trace and degree
-  cannot do it: `pi(U^ell)` already contains at least `a/2+1`
-  trace-one elements of exact degree `3^k`. Nor can any proper-subfield
-  multiplicative norm: every such norm annihilates the whole current
-  `ell`-Sylow subgroup.
-- The same `D'_k` residue now has two exact low-degree forms.  Over `F_16`, if
-  `u^2+u=omega` and `beta=zeta+u`, then `beta` has minimal polynomial
-  `(Y+u)^(3^k)+omega`, and the full `ell`-part occurs exactly when
-  `(X^ell+u)^(3^k)+omega` is irreducible; in the bad case it has exactly `ell`
-  factors of degree `3^k`.  After projection to the relative norm-one torus,
-  the same condition is irreducibility of an explicit degree-`3ell` Dickson
-  composition.  The bad subgroup nevertheless contains
-  `Lambda_k/ell-3` elements of exact relative degree six, proving that degree
-  and reciprocal-torus structure alone cannot select the distinguished point.
-- A bad `D'_k` translate now forces full affine-line saturation:
-  `zeta+u` is an `ell`-th power iff every `zeta+c`, `c in F_16`, is one.
-  In the good case none of the twelve translates outside `F_4` is a power.
-  Their Kummer classes form one explicit six-value Frobenius orbit, each value
-  occurring twice; equivalently failure is the extremal character sum
-  `sum_(c in F_16) chi(zeta+c)=16`.  Thus all Frobenius, conjugation, and
-  known `F_4`-translate identities collapse to scalar multiples of a single
-  unresolved class rather than supplying an independent obstruction.
-- The semiprimitive character theory of that bad case is now exhausted
-  exactly.  Failure is equivalent both to
-  `F_16+F_16*zeta`, minus zero, lying in `(F_(q^4)^*)^ell` and, after
-  norm-down, to `F_4+F_4*zeta+F_4*zeta^2`, minus zero, lying in
-  `(F_(q^2)^*)^ell`.
-  Thus it saturates additive spaces of dimensions eight and six over `F_2`.
-  All nontrivial order-`ell` Gauss sums are `q` over `F_(q^2)` and `-q^2`
-  over `F_(q^4)`; the corresponding Jacobi sums and the complete Fourier
-  intersection counts for both saturated spaces are integral and
-  nonnegative.  Semiprimitive Gauss/Jacobi theory and additive-subspace
-  dimension therefore permit failure exactly.  A completion must use the
-  distinguished cyclotomic placement of those spaces, not merely their
-  character table.
-- The distinguished placement has now been pushed through its Dirichlet
-  `L`-function and exact subspace polynomial.  Over `F_4`, failure is exactly
-  the extremal second coefficient `A_2=16`: ten monic quadratics already
-  contribute one and the six irreducibles contribute the period
-  `sum_(j=0)^5 t^(A^j)`.  Quadratic constant-field base change identifies
-  this with the sixteen-term `F_16` line extremum, so the two constraints are
-  identical.  The even functional equation has root number `+1` and sends
-  `(b_0,b_1,b_2)=(1,5,21)` to precisely the Fourier count forced by the bad
-  trace-dual plane; RH gives no contradiction.  In the exact linearized
-  subspace polynomial, the derivative coefficient is also automatically an
-  `ell`-th power.  The live statement is now exactly `A_2 != 16`; a proof
-  must evaluate that six-term period or introduce genuinely higher
-  Dirichlet-coefficient information.
-- Wieferich caveat: the order criterion `m_p = min m : p | ord(kappa_{f(p)} + m)`
-  is valid only when `v_p(2^(f(p)) - 1) = 1`. The two known base-2 Wieferich
-  primes `1093` and `3511` sit inside the extended range and need the full power
-  criterion.
-- Newly certified `m_r = 1` rows (`262657` at `f = 27`; `71119` and `97685839` at
-  `f = 81`; representatives at `f = 243, 729, 2187, 6561`) keep the candidate
-  `0/1/4` rule unbroken. Still no proof; boundedness outside the 3-power and
-  `2*3^k` columns (the 11-chain, the 23/29/47 components) has no structural
-  theory, and no `m_p >= 5` example is known.
-- The `p = 719` dependency rehearsal advanced one rung and then hit a wall. The
-  local fixed-base oracle certifies `m_89 = 1` (`E = 220`) and `m_179 = 1`
-  (`E = 19,580`) via the fixed-base power path (`python3
-  experiments/ordinal_excess_probe.py --deep`, ~1 min). `m_359 = 1` is the
-  remaining rehearsal row before `m_719` — already source-pinned by A380496, but
-  with no *independent* local certificate, and the 2026-06-16 pass diagnosed
-  precisely why it is blocked (`writeups/excess.tex`, "the m359 rehearsal
-  obstruction"):
-  - The structurally cheap **top-step Kummer norm** is the wrong norm. With
-    `f(359) = 179`, the tower has `F = F_{2^E}` over `B = F_{2^19580}`, and
-    `Norm_{F/B}(κ_179 + 1) = κ_89 ∈ B` — but `359 ∤ 2^19580 − 1` (since
-    `ord_359(2) = 179 ∤ 19580`), so `359` is *invisible* in `B`. The certified
-    `m_89` / `m_179` rows do not propagate up through the easy norm.
-  - The norm actually forced by the order criterion is the **transverse**
-    `Norm_{F/L}(β)`, `L = F_{2^179}` (`gcd(179, 19580) = 1`, so `F = B·L`): the
-    `F_{2^3504820} / F_{2^179}` norm is the genuinely required object.
-  - In the current pure-Python term basis that target-subfield element is
-    essentially **half-dense** (support `111/220` for the `p = 89` analogue,
-    `9691/19580` for `p = 179`), so the direct fixed-base root-test exponent is
-    slower than the cheap certificate — a representation diagnostic, not a no-go.
-  - The Wieferich caveat is *absent* at the live pressure points: `2^179 ≢ 1
-    (mod 359²)` and `2^359 ≢ 1 (mod 719²)`, so the order form equals the full
-    power criterion for both `m_359` and the proposed `m_719` test.
-  A practical `m_359` certificate now needs either dense/sliced GF(2) arithmetic
-  (`gf2x` / NTL) or a tower-aware Frobenius representation that makes the
-  transverse orbit cheap; the pure-Python oracle cannot reach it. The same
-  `Norm_{E/K}(β) = ∏_i Frob^i(β)` orbit primitive is what Bridge K's
-  cyclic-algebra reduced norm needs — a reusable
-  `relative_norm_over_frobenius_orbit` is the shared engineering lever (not a
-  claim that the bounded `Fpn` norm certifies `m_719`).
-- `p = 719` feasibility: the direct test needs ~3.5 million Frobenius steps in
-  `F_{2^1258230380}`; tower-aware Frobenius arithmetic (De Feo–Randriam–Rousseau
-  standard lattices) is the conjectured 10–100x lever — a cost model, not a
-  theorem.
+The reduction is a theorem. None of the four universal assertions is claimed
+complete.
 
-Why this is research:
-- The same-coverage implementation improvement is now done: the shipped code computes
-  `f(u)`, `Q(f(u))`, and the `chi`-sum, while hardcoding only the finite excess
-  integer. That changes provenance hygiene, not reach.
-- Extending past the verified finite-excess table is different. DiMuro's theorem proves that the
-  excess has a formulaic transfinite shape plus a finite correction, but the finite
-  correction has no closed form in the cited theorem.
-- Weaker "closed forms" already fail: `Q(f(p))` alone does not determine the
-  excess, since `Q = {9}` gives `m_19 = 4` but `m_73 = 1`; similarly
-  `Q = {81}` gives `m_163 = 4` but `m_2593 = 1`, and `Q = {243}` gives
-  `m_1459 = 4` but `m_487 = 1`.
-- The candidate `0/1/4` rule above would imply a global bound `m_p <= 4`. Lenstra
-  explicitly left absolute boundedness open after proving lower-bound rules such
-  as singleton-odd `Q(f(p))` forcing positive excess and `f(p)=2*3^k` forcing
-  excess at least `4` (the matching upper bound `m_p = 4` is now certified at
-  every visible prime of that column; see above).
-- The candidate contains two independent explicit maximal-order problems. On the
-  singleton-even side, put `c_n = kappa_(2^(n+1))` and let `delta_n` be the order
-  of its coset in
-  `F_(2^(2^(n+1)))^* / F_(2^(2^n))^*`, whose order is the Fermat number
-  `F_n = 2^(2^n) + 1`. The zero arm for every prime divisor of `F_n` is exactly
-  `delta_n = F_n`, the maximal-coset-order condition studied for Conway's
-  quadratic tower. This is strictly weaker than primitivity of `c_n`, which
-  already fails at `n = 2` (`ord(c_2) = 85 < 255`); Popovych instead uses the
-  same condition to obtain primitive products involving the bottom generator.
-  On the `3`-power side,
-  the one arm through level `k` is
-  exactly the assertion that the Gaussian period
-  `gamma_k = zeta + zeta^(-1)` is primitive in `F_(2^(3^k))`. Irreducibility and
-  field degree do not prove either statement: they force some new order factor,
-  not every prime-power factor. In fact the cubic step splits as
-  `F_(2^(3^k))^* = F_(2^(3^(k-1)))^* x U_k`, with
-  `|U_k| = Phi_(3^k)(2)`, and the relative norm kills `U_k`. The norm recursion
-  therefore supplies no order information about exactly the new-prime component
-  that `C_k` must show is generated. The explicit `eta_k` recursion above recovers all
-  three symmetric coefficients of that component, but maximal order still asks
-  whether `eta_k` avoids every proper prime-index subgroup of `U_k`. Known
-  Gaussian-period results provide large lower bounds, and the analogous
-  prime-conductor primitivity statement of Gao–Vanstone is itself conjectural;
-  neither result supplies this prime-power-conductor Singer assertion.
-- These are the same species of obstruction in projective degree `2` and `3`.
-  The even arm asks that `c_n` generate `E_n^*/E_(n-1)^*`; the cubic
-  increment asks that `gamma_k` generate
-  `F_(q_k^3)^*/F_(q_k)^*`, equivalently that its multiplication matrix
-  generate a Singer cycle in `PGL_3(q_k)`. The candidate rule therefore
-  contains two maximal-projective-coset-order conjectures.
-- Every singleton-odd row now has one exact analytical target. If
-  `Q(h) = {q = r^a}`, write `b = d(alpha_r)` and `h = q*s` with `s | b`. Then
-  `kappa_q` is a `p`-th power for every `p` with `f(p) = h`, and `m_p = 1` is
-  equivalent to the transverse norm
-  `Theta_(q,s) = Norm_(F_(2^(q*b))/F_(2^(q*s)))(kappa_q + 1)` containing the
-  full `p`-primary part of `2^(q*s) - 1`. The easy top-step Kummer norm lands in
-  `F_(2^b)`, where that `p`-part is absent, so it cannot prove the claim.
-- The order formulation explains the first weak-formula failures without appealing
-  to the production table. In the independent probe, `ord(kappa_9 + 1) =
-  3^3*(2^9 - 1)`, so `73 | ord(kappa_9 + 1)` but `19` does not divide it; adding
-  `4` changes the order and picks up `19`. This is why the same `Q = {9}` gives
-  both `m_73 = 1` and `m_19 = 4`.
-- Shipping new values would require an independent oracle, a root-search theorem,
-  or a new algorithmic proof. Otherwise the project would be numerology with a
-  pleasant API.
+#### Shared finite-field criterion
 
-Concrete progress targets:
-- ~~Decide whether to import more known OEIS/calculator values through `p <= 709` as
-  cited data, or keep requiring a local finite-field oracle for each shipped row.~~
-  **Done (2026-06-13):** the finite `m_u` table is now the full OEIS A380496 b-file
-  (126 rows, odd primes `3..=709`), source-pinned rather than per-row locally oracled.
-  The remaining gap is *feasibility* (materializing `alpha_u` for large-`e_u` rows),
-  not *coverage*.
-- Prove or refute the Conway-Fermat quotient lemma `delta_n = F_n`. This is the
-  whole singleton-even arm. The exact target is now to prove that the
-  resultant-selected minimal polynomial `A_(n-1)` divides the full-order
-  fibotomic factor, equivalently that `S_(F_n/ell)(a_(n-1)) != 0` for every
-  prime `ell | F_n`.  Equivalently, on the supersingular elliptic
-  correspondence `y^2+y=x^3+x^2`, evaluate the nontrivial Kummer symbol of
-  `c_n` at the distinguished point.  The exact full-to-proper alternative
-  factor above proves that predecessor maximality plus one resultant step
-  cannot be the induction invariant; the actual factor's ancestry must enter.
-  Coarse degree/trace/norm and the
-  quarter-turn Frobenius symmetry are now proved neutral.  The complete
-  generalized-Jacobian calculation reduces this to the toric linear
-  functional `x+2y` on the normalized Abel lift.  Its Rosenlicht/Miller and
-  rational five-torsion formulas are now explicit, and their evident
-  reciprocity collapse is proved circular; prove the resulting distinguished
-  value is nonzero rather than seeking another coordinate model.
-- Prove the new-prime lemma for the cubic spine: for every
-  `ell^a | Phi_(3^k)(2)`, show `v_ell(ord(gamma_k)) = a`. Old factors already
-  propagate down the norm tower, so this is exactly the missing step in `C_k`.
-  In its smallest current form: prove that the distinguished root `eta_k` of
-  `X^3 + eta_(k-1) X^2 + (eta_(k-1)+1) X + 1` generates the cyclic norm-one
-  torus of order `Phi_(3^k)(2)`. A character or power-residue proof must exclude
-  `eta_k` from every proper prime-index subgroup; irreducibility alone cannot.
-  Precisely, prove `chi_(k,ell)(eta_k) != 1` for every
-  `ell | Phi_(3^k)(2)`, or equivalently prove that the reduction modulo `2`
-  of the norm-coherent cyclotomic unit `1+zeta_(3^(k+1))` is not an
-  `ell`-th power. This is now the smallest named lemma for the cubic arm; the
-  partition-order sieve handles `ell > |U_k|/B(3^k)`, and the short
-  cyclotomic period identifies failure with one exact extremal character sum.
-- Evaluate the power-residue symbol of the general transverse norm
-  `Theta_(q,s)`. A uniform nonresidue theorem would prove the singleton-one arm
-  for the non-cyclotomic chains (`11`, `23`, `29`, `47`, `179`, ...).
-- Prove the exact current-factor statement `D'_k`, namely
-  `Psi_k | ord(M_k)`, for the `m = 4` norm on the `2*3^k` column;
-  equivalently prove every explicit `R_k(X^ell)` irreducible, or prove the
-  distinguished fibotomic polynomial
-  `W^ell+pi(M_k)*H_ell(W)^2` rootless over `F_(2^(3^k))`. The exact-degree
-  projection and dominant-factor sieve remove one current prime and every
-  sufficiently large factor, but the twisted norm and norm-blindness formulas
-  still rule out naive induction for the survivors.  The translated-binomial,
-  relative Dickson, and full-`F_16`-line forms show that a completion must make
-  the corresponding 16-term character sum non-extremal by an identity beyond
-  Frobenius and base-field translation.  The exact semiprimitive Gauss/Jacobi
-  table and its six/eight-dimensional Fourier incidence equations are already
-  compatible with the bad case, so generic semiprimitive character estimates
-  cannot supply that identity.
-- Keep `m_359`, `m_719`, factorization, and exact-order runs as falsification and
-  proof audits rather than the leading route. They remain valuable tests of any
-  proposed residue-symbol lemma.
-- Build a verified `u`-th-power/root-search oracle for the transfinite field.
-- Prove enough about the search to avoid merely empirical extensions.
-- ~~Decide what evidence is acceptable for shipping `alpha_53` and beyond.~~ Settled:
-  OEIS A380496 (a maintained sequence, values verified upstream by CGSuite's calculator)
-  is accepted as source-pinned evidence through `p <= 709`. The next question is what
-  evidence justifies rows past `p = 719` (the first OEIS-unknown), which need a fresh
-  computation, not a table lookup.
+If the candidate translate
+\(\beta=\kappa_{f(p)}+m\) lies in \(\mathbb F_{2^E}\), then it has no
+\(p\)-th root exactly when
+\[
+\beta^{(2^E-1)/p}\ne1,
+\]
+equivalently when \(\operatorname{ord}(\beta)\) contains the full
+\(p\)-primary part of \(2^E-1\). Reducing this to
+\(p\mid\operatorname{ord}(\beta)\) is valid only when
+\(v_p(2^E-1)=1\). The correct valuation is
+\[
+v_p(2^E-1)
+=
+v_p(2^{f(p)}-1)+v_p(E/f(p)).
+\]
+Thus both base-2 Wieferich behavior and a factor of \(p\) in \(E/f(p)\)
+must be retained. Relative norm to \(\mathbb F_{2^{f(p)}}\) gives the
+exact smaller-field power test.
+
+#### What the four arms now say
+
+- **\(Z\), multicomponent phase.** Componentwise norms lose a synchronized
+  Frobenius phase. The paper retains that phase exactly, expresses the
+  two-component case by a resultant over the intersection field, and proves
+  primitive support for a power-of-two two-spine family. The associated
+  Hilbert-90 cross-ratio is exact, but the first divisor comparison has degree
+  up to \(2r-2\); it does **not** imply the formerly claimed \(2^r-1\) order
+  bound. That invalid bound has been removed.
+
+- **\(Z\), singleton-even chain.** The condition is precisely maximal order of
+  the Conway class in the quadratic quotient:
+  \(\delta_n=F_n=2^{2^n}+1\). Fibotomic, resultant, elliptic, Kummer-cover, and
+  generalized-Jacobian formulations all reduce to the same distinguished
+  Miller-unit value. They prove that degree, trace, norm, quarter-turn
+  symmetry, and the full natural boundary-character package do not decide
+  nonvanishing.
+
+- **\(O\), ordinary odd spines.** These now have a structural theory: a
+  projective quotient, a selected relative cyclotomic unit, and a signed
+  conjugate-ball sieve. The missing theorem is full order at the remaining
+  small primary factors. The table value \(m_{359}=1\) is known from A380496;
+  what remains open at that row is an independent analytical evaluation of
+  its selected trace/resultant phase.
+
+- **\(C\), cubic spine.** The norm recursion carries old factors, while each
+  level introduces a new factor \(\Phi_{3^k}(2)\). The paper proves the first
+  three levels without order computation and gives several exact
+  reformulations and lower bounds. The derivative regulator is rigorous but
+  circular: its reduction is a power of the same unknown Gaussian period.
+
+- **\(D\), exceptional spine.** The corrected \(m=4\) norm is
+  \(N_k=\zeta^2+\zeta+\omega\), and the exact conjecture is current-level
+  \(D'_k\), not cumulative propagation of all old factors. The quadratic-twist
+  antiunit and partition regulator prove an explicit large-factor range.
+  Semiprimitive Fourier data, line saturation, Dirichlet coefficients,
+  relative Dickson forms, and proper-subfield norms are all compatible with
+  failure; they delimit rather than solve the remaining Kummer evaluation.
+
+#### Evidence boundary
+
+Use four distinct evidence levels:
+
+1. **Proved theorem / cited theorem.** A written proof in
+   `writeups/excess.tex` or an identified external theorem.
+2. **Certified exact finite computation.** Exact arithmetic plus locally
+   checkable factorization and primality information for the stated finite
+   levels only.
+3. **Source-pinned external value.** Imported from an identified maintained
+   source, without an independent proof in this checkout.
+4. **Consistent incomplete evidence.** All known factors or sampled rows pass,
+   but an unfactored cofactor, unproved primality claim, or untested level
+   remains.
+
+Current evidence:
+
+- The implementation vendors and row-diffs all \(126\) A380496 entries for odd
+  primes \(3\le p\le709\). These *integer excesses* are source-pinned. The next
+  unsupported carry is \(\alpha_{719}\).
+- The resulting ordinal carry is independently value-checked only at the named
+  subset documented beside the tower tests; table coverage must not be confused
+  with per-row ordinal verification or practical constructibility.
+- Cubic: \(C_1,C_2,C_3\) are theorems; \(C_4,C_5\) are locally certified;
+  \(C_6\) is source-assisted because the local path has only probable-prime
+  evidence for its 42- and 90-digit factors; \(k=7,8\) are consistent only,
+  with unfactored cofactors.
+- Exceptional: \(k=2,\ldots,5\) are locally certified; \(k=6\) is
+  source-assisted because its 78-digit factor lacks a local certificate;
+  \(k=7,8\) are consistent only, again with unfactored cofactors.
+- The finite exception rows do not prove \(D'_k\) universally, and the finite
+  cubic rows do not prove \(C_k\) universally.
+
+#### Current proof targets
+
+1. **\(Z\).** Prove the Conway-Fermat quotient order
+   \(\delta_n=F_n\); prove generation of the composite two-spine primitive
+   quotient; then control the general synchronized phase.
+2. **\(O\).** Evaluate the selected residue symbol
+   \(\Theta_{q,s}\) at the remaining small primary factors.
+3. **\(C\).** Prove that every current primary factor of
+   \(\Phi_{3^k}(2)\) occurs fully in \(\operatorname{ord}(\gamma_k)\).
+4. **\(D\).** Prove \(D'_k\), equivalently the Capelli irreducibility or
+   antiunit nonvanishing condition at every factor of \(\Psi_k\).
+
+Exact-order and factorization runs remain useful for falsification and audits,
+but they are not the leading proof route. A solution must exploit the
+distinguished Conway/cyclotomic value, because the paper now proves that the
+obvious generic invariants are insufficient.
 
 Relevant surfaces:
 - `writeups/excess.tex`
+- `writeups/excess.pdf`
 - `experiments/ordinal_excess_probe.py`
 - `experiments/cyclotomic_3k_family.py`
 - `experiments/exception_column_m4.py`
+- `experiments/excess/` (archive; honor its per-file status table)
 - `src/scalar/big/ordinal/tower.rs`
+- `src/scalar/big/ordinal/b380496.txt`
 - `src/scalar/big/ordinal/mod.rs`
 - `src/scalar/AGENTS.md`
-- `examples/tour.rs`
 
 ### off·(e_f∧e_s∧e_c): `transfinite Arf/Witt classification for ordinal-nimber coefficients`
 
