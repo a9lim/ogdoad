@@ -1268,7 +1268,7 @@ three parts, one obligation:
 
    Corpus files use `//` comments, on their own lines or trailing input.
    Blocks separated by blank lines. The harness is
-   `tests/grundy_conformance.rs` (pure Rust); it also asserts hint fields on
+   `tests/conformance.rs` (pure Rust); it also asserts hint fields on
    the vectors that pin them. Blessing remains an operator workflow: the
    engine can suggest values, the spec stays the oracle.
 

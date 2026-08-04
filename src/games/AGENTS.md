@@ -12,8 +12,8 @@ lives on the scalar backends and not on all games.
 `mod.rs` re-exports every module below flat.
 
 Fixed-width game payloads use `u128`/`i128`: finite nim heaps, octal codes, Grundy
-values, scoring integers, and quotient counters. `usize` is for graph nodes, option
-indices, and collection lengths.
+values, and scoring integers. `usize` is for graph nodes, option indices, collection
+lengths, and the `Quotient` class machinery (indices, not payloads).
 
 ## Values & arithmetic
 
@@ -161,9 +161,9 @@ indices, and collection lengths.
 ## Things that look like bugs but are not (games layer)
 
 - **`Game`, `LoopyValue`, `NumberGame`, and `NimberGame` `impl Display`** — that is
-  the canonical render now. The old `display()`/`name()` inherent methods are retained
-  as thin aliases over `Display`, so existing callers keep working; new code can just
-  `{}`-format.
+  the canonical render now. `Game::display()` and `LoopyValue::name()` survive as thin
+  aliases over `Display` for existing callers; `NumberGame`/`NimberGame` never had
+  inherent render methods. New code can just `{}`-format.
 - **`Game::canonical_string` canonicalizes; `structural_string` does not.**
   `structural_string` is an order-independent fingerprint of the tree *as given* (so
   `(↑−↑).structural_string() ≠ 0`); `canonical_string` reduces first, so it *is* a
