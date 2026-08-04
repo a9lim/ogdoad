@@ -86,7 +86,12 @@ reversal (transcript-first), `examples/grundy/*.og` gallery, the writeup
 argument, the honest CGSuite comparison), corpus split thematically +
 `stage_*` tests renamed by law; **name finalization** (the 2026-07-15
 ogham→grundy rename is provisional — confirm the name and the crate-slot
-question). Final full-surface pass gates the release.
+question). Theory citation for the loopy envelope: Honsell–Lenisa 2011
+(loopy Conway games as a final coalgebra) — the stance note
+(`grundy/docs/stance.md`, 2026-07-19) pins the data/codata reading of the
+shipped constructs; whether spec §1 states the coalgebraic identity out
+loud is a release-dress decision beside name finalization. Final
+full-surface pass gates the release.
 
 ### `grundy-0.4.0` — **the public release** (after 0.3.8's gate; not a
 feature rung). Package/version alignment, publish decision execution.
@@ -99,7 +104,13 @@ earns it through **one symmetric map/fold story over the three container
 shapes** (fixed/graded/free — the 0.3.6 container totality made this a
 three-world question, a better one than the two-world sketch). Mutual
 *function* `=:` groups land here (Function representation changes anyway;
-Element systems shipped at 0.3.6). Whatever the release soak surfaces
+Element systems shipped at 0.3.6). **Productive streams** are the codata
+face of this rung (`grundy/docs/stance.md`): `ω = {0, 1, 2, … |}`
+genetically has a non-periodic option stream — no finite cyclic
+presentation exists — so a generator is a function, and lazy transfinites
+arrive with higher-order rather than as a separate tack; the
+Escardó–Oliva selection monad is the strategy-shaped star to steer by.
+Whatever the release soak surfaces
 joins the docket. Value proposed at `4·e_o`; a9 to re-value.
 
 ---

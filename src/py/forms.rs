@@ -5640,21 +5640,11 @@ struct PyWeylVersorReport {
     inner: crate::forms::WeylVersorInvariants,
 }
 
-fn weyl_kind_label(kind: crate::forms::NiemeierComponentKind) -> String {
-    match kind {
-        crate::forms::NiemeierComponentKind::A(n) => format!("A_{n}"),
-        crate::forms::NiemeierComponentKind::D(n) => format!("D_{n}"),
-        crate::forms::NiemeierComponentKind::E6 => "E_6".to_string(),
-        crate::forms::NiemeierComponentKind::E7 => "E_7".to_string(),
-        crate::forms::NiemeierComponentKind::E8 => "E_8".to_string(),
-    }
-}
-
 #[pymethods]
 impl PyWeylVersorReport {
     #[getter]
     fn kind(&self) -> String {
-        weyl_kind_label(self.inner.kind)
+        self.inner.kind.to_string()
     }
     #[getter]
     fn rank(&self) -> usize {
@@ -5688,13 +5678,13 @@ impl PyWeylVersorReport {
     fn coxeter_versor_grade_parity(&self) -> Option<u128> {
         self.inner.coxeter_versor_grade_parity
     }
+    fn display(&self) -> String {
+        self.inner
+            .display()
+            .replacen("WeylVersorInvariants", "WeylVersorReport", 1)
+    }
     fn __repr__(&self) -> String {
-        format!(
-            "WeylVersorReport(kind={}, weyl_group_order={}, coxeter_order={:?})",
-            weyl_kind_label(self.inner.kind),
-            self.inner.weyl_group_order,
-            self.inner.coxeter_versor_order
-        )
+        self.display()
     }
 }
 

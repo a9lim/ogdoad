@@ -24,6 +24,10 @@ solver data on the repo-wide width contract.
     by the game exterior algebra's lattice quotient (`games/game_exterior/`).
   - `gcd`/`gcd_u128` — the crate's one integer gcd, exported here beside `ext_gcd`
     (the integral/Niemeier layers consume these rather than carrying per-file copies).
+  - `prime_factors` — the crate's one integer factorizer (distinct primes by trial
+    division; membership, not multiplicity), consumed
+    by `forms/integral/fqm_witt.rs`, `forms/integral/genus.rs`, and
+    `scalar/finite_field/fpn.rs`.
   - `ext_gcd` (Bézout `a·x + b·y = gcd`) and `smith_normal_form` (invariant factors
     `d₀ | d₁ | …` via unimodular `ext_gcd`-based row/column combines; `∏ dᵢ = |det|`,
     cokernel `ℤⁿ/Mℤⁿ ≅ ⨁ ℤ/dᵢ`). Used by the integral-lattice layer:

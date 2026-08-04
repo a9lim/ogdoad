@@ -68,11 +68,11 @@ asserted.
 ## Releasing
 
 The version in `Cargo.toml` is the single source of truth (pyproject and the
-maturin build inherit it). The release workflow is **dormant** while the version is
-`0.0.0`; bumping it arms the pipeline, which on the next push to `main` publishes to
-crates.io and PyPI (both via OIDC trusted publishing), tags `vX.Y.Z`, and cuts a
-GitHub release. Each target is checked independently, so a partial-failure run
-resumes cleanly.
+maturin build inherit it). On a push to `main` carrying a new version, the release
+workflow publishes to crates.io and PyPI (both via OIDC trusted publishing), tags
+`vX.Y.Z`, and cuts a GitHub release. Each target is checked independently, so a
+partial-failure run resumes cleanly. The unpublished `grundy/` workspace member
+(`publish = false`) is deliberately outside the pipeline.
 
 ## License
 
