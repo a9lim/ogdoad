@@ -580,6 +580,16 @@ heated = hot.heat(2)
 norton = hot.norton_multiply(pl.Game.integer(2))
 print("  heat by 2 / Norton by 2    :", heated.temperature(), heated.mean_value(),
       norton.mean_value(), norton.canonical_string())
+u = pl.Game.integer(2)
+scale, shift = u.numeric_norton_regrade()
+pred_mean, pred_temp = hot.numeric_norton_mean_temperature(u)
+print("  numeric Norton descent u=2 :", f"regrade (scale,shift)=({scale},{shift})",
+      f" predicted (mean,temp)=({pred_mean},{pred_temp})",
+      " matches product:", (str(pred_mean), str(pred_temp)) ==
+      (str(norton.mean_value()), str(norton.temperature())))
+over = hot.overheat(u, pl.Game.integer(1))
+print("  overheat ∫_2^1 = Norton·2  :", over == norton,
+      " temp:", over.temperature())
 
 section("surreal sign-expansion & floor (the omnific bridge)")
 print("  sign expansion of 3/4    :", pl.Surreal.from_rational(3, 4).sign_expansion(), " (+ − +)")
