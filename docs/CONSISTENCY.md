@@ -75,9 +75,46 @@ Recorded so the next auditor inherits the truth, not the first read:
   `smallest_prime_factor` is a different shape — early-exit smallest factor, not a
   factor list).
 
+## Recorded 2026-07-30 — the polynomial altitude question (discussion, not audit)
+
+Prompted by "should polynomials be exposed publicly / unified into a pillar?"
+Answered in discussion and recorded here so it isn't re-litigated:
+
+- **No polynomial pillar, no preemptive public factorization.** Pillars are
+  domains, not representations; `Poly` is already public at its correct altitude
+  (a place-table row — `F_q[t]` beside `F_q(t)` — with `Scalar` +
+  `HasFractionField`, py bindings, and the grundy `fp2[t]`/`fp2(t)` worlds). The
+  one private polynomial *capability* is `forms/poly_factor.rs`, and 1.0.0 makes
+  every export a semver commitment. The trigger for exposing it: the first
+  consumer that can't reach `pub(crate)` — realistically the Python experiments
+  tier or a grundy `factor` word (nothing on the 0.3.7/0.3.8 ladder demands one).
+  When it fires, export the small honest surface (monic irreducible support),
+  keep the Cantor–Zassenhaus internals private.
+- **The pillar line, named**: operations *valued in* `Poly` (divrem, gcd,
+  factor) are ring arithmetic → `scalar/`; structures *indexed by places*
+  (residue forms, Hilbert symbols, reciprocity) → `forms/`. This sharpens
+  scalar/AGENTS.md's "per-place residues live at the forms layer" without
+  contradicting it: factorization takes a polynomial and returns polynomials, so
+  it sits on the scalar side, and its current `forms/` home is consumer-driven
+  placement (three call sites: the char-2 façade plus the two
+  `local_global/function_field*` layers).
+- **`Fpn`'s `[u128; N]` arithmetic is NOT latent `Poly` duplication** — the same
+  refusal as `cnf.rs` (shared function, not shared type): quotient-ring elements
+  with `Copy` and a static modulus on the hot finite-field path vs free-ring
+  `Vec` elements. Folding them buys allocation in `F_{p^N}` mul and a false
+  identity. A cleanup pass that "unifies" these destroys a deliberate boundary.
+- **`divrem`'s panic contract is fine until grundy consumes it.** The field-base
+  assumption is documented where it lives; the crate pattern once the language
+  becomes a consumer is a checked sibling (`Integer::div_exact` precedent).
+  Recorded, not pre-built.
+
 ## ups — still open (worth less than any number, strictly positive)
 
 - **↑·(e_s∧e_i): `ordinal-factor-fold`** — the two ordinal-local helpers above.
+- **↑·(e_s∧e_f): `poly-factor-altitude`** — move `forms/poly_factor.rs` beside
+  `scalar/poly.rs` per the pillar line above; three call sites, stays
+  `pub(crate)`. Rides with the next structural pass, not worth a dedicated
+  commit.
 - **`display-policy` — PLAYED 2026-07-02.** a9 made it policy: **every classifier
   report renders.** All 34 remaining glossary record types (the suffix net over
   `…Invariants`/`…Decomp`/`…Class`/`…Record`/`…Isotropy`/certificates plus

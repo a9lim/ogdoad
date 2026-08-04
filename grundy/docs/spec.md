@@ -9,9 +9,9 @@ gating and committing throughout). This document is the **normative language
 contract and nothing else**: identity, syntax, sorts, semantics, errors,
 display. The runtime architecture and resource guards live in
 [`implementation.md`](implementation.md); the roadmap lives in
-[`docs/CONTINUATIONS.md`](../CONTINUATIONS.md) (the version ladder:
+[`docs/CONTINUATIONS.md`](../../docs/CONTINUATIONS.md) (the version ladder:
 0.3.6 → 0.3.7 → 0.3.8 → **0.4.0 = the public release** → 1.0.0 higher-order);
-history lives in [`docs/DONE.md`](../DONE.md) and §17.
+history lives in [`docs/DONE.md`](../../docs/DONE.md) and §17.
 
 Every observable semantic rule in this document is pinned by the
 **conformance suite** (§16): exact corpus vectors, law tests, or differential
@@ -24,7 +24,7 @@ tradition, for the value the language deliberately keeps as four lines of user
 code rather than a primitive (§1). Born **ogham** (through 0.3.6, named for
 og(doad) + the ancient stroke-script); renamed 2026-07-15, provisionally —
 finalization is 0.3.8 release dress
-([`docs/CONTINUATIONS.md`](../CONTINUATIONS.md)).
+([`docs/CONTINUATIONS.md`](../../docs/CONTINUATIONS.md)).
 
 ---
 
@@ -1268,7 +1268,7 @@ three parts, one obligation:
 
    Corpus files use `//` comments, on their own lines or trailing input.
    Blocks separated by blank lines. The harness is
-   `tests/grundy_conformance.rs` (pure Rust); it also asserts hint fields on
+   `tests/conformance.rs` (pure Rust); it also asserts hint fields on
    the vectors that pin them. Blessing remains an operator workflow: the
    engine can suggest values, the spec stays the oracle.
 
@@ -1313,6 +1313,6 @@ singles' seam (`E_GraphBudget` with the stopper gate passed).
 | 0.3.6 | 2026-07-10 | **the second adversarial pass** (this contract): display law restored — self-contained equation-system display, mutual `=:` groups, collision-safe α-names; total sort-checking at non-strict positions; guardedness by the language's own reduction; budgeted finite→loopy embedding, DAG-safe `≡`; `if a then b else c` replaces `? :` (the Bool tier is all words; `:` freed for ordinal sum, `?` solely the binder mark); the binder mark triad (`#`/`?`/bare-is-Element); container totality (fixed/graded/free); dyadic game literals + recognition; `birthday`, `integral`, poly `coef`; world respelling (`fp2[t]`/`fp2(t)`) + dim-0 shorthand; Display v4 (poly joins the monomial family); strata corrections (multiform, outcome-as-observation, predicate refiling); `E_StackDepth`, `E_FixpointSort`; whitespace-agnostic exponents; extended continuation; the spec split (this document) |
 
 The ladder (0.3.7 → 0.3.8 → 0.4.0 = release → 1.0.0 higher-order) lives in
-[`docs/CONTINUATIONS.md`](../CONTINUATIONS.md). Provenance: the staging
-corpora, [`docs/DONE.md`](../DONE.md), and the session records (the
+[`docs/CONTINUATIONS.md`](../../docs/CONTINUATIONS.md). Provenance: the staging
+corpora, [`docs/DONE.md`](../../docs/DONE.md), and the session records (the
 `ogham-036-*` gaslamp threads and the 0.3.6 synthesis document).

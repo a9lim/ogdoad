@@ -6,21 +6,23 @@
 [![docs.rs](https://img.shields.io/docsrs/ogdoad)](https://docs.rs/ogdoad)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-The **Ogdoad** were eight Egyptian gods of the primordial waters, arranged in four
-pairs — the world before there was a world. This `ogdoad` keeps a smaller pantheon:
-eight number-systems, also in four pairs, also a little primordial. Surreals and
-omnific integers; p-adics and Witt vectors; rational functions and polynomials; and
-the plain old rationals and integers. Each pair is a **field beside its ring of
-integers**. Off to one side sit the finite fields and the nimbers, who are their own
-rings of integers and answer to no one. Eight, plus the loners.
+Clifford algebras — **with nilpotents**: the quadratic form may be degenerate
+(`q[i] = 0` ⇒ `eᵢ² = 0`; all-zero `q` is the exterior algebra) — over the
+commutative scalar worlds adjacent to Conway's combinatorial games. A pure Rust
+engine, generic over a `Scalar` trait, whose backends are the nimbers, the
+surreals and surcomplex numbers, and a bench of comparison worlds: p-adics and
+Witt vectors, Laurent series, finite fields, the exact global function field
+`F_q(t)`, and the plain rationals and integers. On top sit a quadratic-forms
+classification layer across the characteristic trichotomy, an integral-lattice
+wing, a combinatorial-games pillar, and per-backend Python bindings.
 
-The conceit is that these exotic worlds are not a curiosity cabinet. They are **cells
-of one table**, and the number eight is not an accident: read the table one way and
-you get Clifford algebras, read it the other way and you get the classification of
-quadratic forms, and the *same* structures keep surfacing cell after cell with the
-characteristic and the place politely swapped. The eightfold periodicity of the real
-Clifford table, `BW(ℝ) ≅ ℤ/8`, Bott, `E₈` — it is all one spine, and the code is laid
-out to make the rhyming visible.
+The claim behind the collection is that these worlds are not a curiosity
+cabinet. They are **cells of one table**: read the table one way and you get
+Clifford algebras, read it the other way and you get the classification of
+quadratic forms, and the *same* structures keep surfacing cell after cell with
+the characteristic and the place politely swapped. The eightfold periodicity of
+the real Clifford table, `BW(ℝ) ≅ ℤ/8`, Bott, `E₈` — it is all one spine, and
+the code is laid out to make the rhyming visible.
 
 One honest caveat up front, because it shaped everything. Conway's games, under
 disjunctive sum, form an abelian **group but not a ring**: you can add games freely,
@@ -40,7 +42,7 @@ Every backend is a cell in a table with two axes:
   is how `src/forms/` is grouped.
 
 The axes are independent. The place axis is what pairs each **field** with its **ring
-of integers** — the four pairs of the Ogdoad:
+of integers** — four such pairs, plus the finite worlds that are their own:
 
 | | field | ring of integers |
 | --- | --- | --- |
@@ -291,17 +293,21 @@ one place a traveller may wander in circles.
 
 Closing the tour now wants a *third* Scalar–Clifford span — bridges C and D are the two
 it already has. None of the pending threads supplies one: **`*2` (S–I)**, the
-Drinfeld/Carlitz mirror, would even Scalar but tip the Integral wing odd in turn; `*1`
-(the spinor genus), `*4` (the wild local symbol), and `under` (a constructive
-thermography ↔ Newton-polygon bridge) each matter on their own terms but land elsewhere
-on the map. The round trip stays open — and the obstruction has simply walked from the
-Integral shore to the Clifford one.
+Drinfeld/Carlitz mirror, would even Scalar but tip the Integral wing odd in turn;
+`*1` (the spinor genus) and `*4` (the wild local symbol) matter on their own terms
+but land elsewhere. `under` is closed rather than pending: the game filtration has
+genuine numeric filtered transports, but its `[*]` 2-torsion and the exact Norton
+composition defect prove that it cannot carry the place axis's full dyadic
+coefficient object, even in graded initial-form form. It likewise lands elsewhere
+on the map. The round trip stays open —
+and the obstruction has simply walked from the Integral shore to the Clifford one.
 
-## The research thread
+## The research threads
 
-The narrow mathematical thread in `docs/OPEN.md` and `writeups/goldarf.tex` is *not* a
-claim of a new Clifford classification theorem. It is an investigation of game-built
-quadratic forms in the nimber backend:
+The genuine open problems live in `docs/OPEN.md`, each named by a **loopy game
+value** — an open problem is a game played without a termination guarantee. The
+flagship, `tis`, is *not* a claim of a new Clifford classification theorem. It is
+an investigation of game-built quadratic forms in the nimber backend:
 
 1. Turning-Corners games realize nim multiplication.
 2. Frobenius squaring and traces are built from nim multiplication and XOR.
@@ -309,9 +315,48 @@ quadratic forms in the nimber backend:
    operations.
 4. The Arf invariant gives the standard zero-count bias for a quadratic zero set.
 5. **The open question:** is there a natural, non-tautological game rule whose
-   P-positions are exactly such a zero set? Current probes span normal play, misère
-   quotient, interactive (`kernel`), loopy (Draw-set), and bent-form searches; they
-   narrow the target but do not hit it.
+   P-positions are exactly such a zero set?
+
+The current frontier (`writeups/goldarf.tex`): the linear case is both floor and
+ceiling — lexicodes show natural rules realize rich *linear* codes as P-sets,
+and Theorem A shows every Winning Ways coin-turning P-set is the kernel of an
+`F₂`-linear map — so `tis` asks precisely whether that phenomenon admits a
+quadratic refinement. A no-go ladder kills the frame-blind tier (`Sp(B)`-invariant
+rules see only orbit unions) and shows the known normal-play realizers are
+clocks. The one verified positive object is **σ-valued**: the echo-fifo+dummy
+realizer computes `Q` as a forced terminal charge, checked exhaustively at
+`m = 8` (391,680/391,680, adversarial review), and its mechanism reduces to an
+**odd-close parity game** whose isolated-coin linking theorem is machine-verified
+on all 12,346 graph classes through `k = 8`. The two load-bearing open steps:
+recast that charge readout into normal/misère/loopy outcome semantics, and prove
+the general-`m` linking theorem.
+
+The rest of the board, briefly:
+
+- **`tisn`** — a game-native quadratic deformation of the game exterior algebra.
+  The torsion obstruction is now a theorem (integer-valued deformations are blind
+  to torsion: `2* = 0` forces `Q(*)` and all pairings with `*` to zero), and the
+  surviving escapes are tautological or off-core; what is missing is a
+  **directed/noncommutative** coefficient source whose squaring remembers the
+  first-/second-player asymmetry — the same obstruction `tis` hit in misère form.
+- **`on`** — transfinite nim multiplication beyond the verified excess table.
+  Conway's Kummer carry below `ω^(ω^ω)` is `α_p = κ_{f(p)} + m_p` with `m_p`
+  Lenstra's finite excess; every source-pinned row obeys an unproved `0/1/4`
+  rule, and `writeups/excess.tex` reduces that rule *exactly* to four universal
+  order statements — the zero, ordinary-odd-spine, cubic, and exceptional arms.
+  The next unsupported carry is `α₇₁₉`.
+- **`off`** — what, if anything, replaces the finite Arf/Brauer–Wall bit for
+  Clifford metrics with genuinely transfinite ordinal-nimber coefficients, where
+  no finite trace to `F₂` exists.
+- **`over`** — whether the Brown `ℤ/8` invariant has a game reading the way the
+  Arf bit does: a natural *four*-class outcome census whose Gauss-sum phase is
+  `ζ₈^β`, lifting the two-class win-bias from `ℤ/2` to `ℤ/8`.
+- **`under`** — *resolved 2026-07-20*: thermography and the Newton-polygon stack
+  are **two** tropical objects. Temperature is an honest tropical valuation and
+  every positive dyadic Norton unit `u = m/2^k` transports the temperature
+  filtration exactly (`gr_τ → gr_{uτ+u−δ}`), but `gr₀`'s `[*]` 2-torsion and the
+  exact Norton composition defect forbid any faithful dyadic-unital graded ring
+  (`writeups/thermo_newton.tex`).
 
 If you want to play along, the open-problem examples (`interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`) are the doors in.
