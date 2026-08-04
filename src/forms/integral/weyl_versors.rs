@@ -17,6 +17,7 @@
 use super::{IntegralForm, NiemeierComponentKind};
 use crate::clifford::{determinant, versor_grade_parity, CliffordAlgebra, LinearMap, Multivector};
 use crate::scalar::{Rational, Scalar};
+use std::fmt;
 
 /// The Clifford/Weyl report for one irreducible ADE component.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -30,6 +31,34 @@ pub struct WeylVersorInvariants {
     pub coxeter_versor_order: u128,
     pub coxeter_order_matches: bool,
     pub coxeter_versor_grade_parity: Option<u128>,
+}
+
+impl WeylVersorInvariants {
+    /// `display()` alias kept for Python callers.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for WeylVersorInvariants {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let parity = self
+            .coxeter_versor_grade_parity
+            .map_or_else(|| "none".to_string(), |p| p.to_string());
+        write!(
+            f,
+            "WeylVersorInvariants(kind={}, rank={}, weyl_group_order={}, coxeter_number={}, coxeter_versor_order={}, coxeter_order_matches={}, simple_reflections_match_cartan={}, simple_reflection_determinants_are_minus_one={}, coxeter_versor_grade_parity={})",
+            self.kind,
+            self.rank,
+            self.weyl_group_order,
+            self.coxeter_number,
+            self.coxeter_versor_order,
+            self.coxeter_order_matches,
+            self.simple_reflections_match_cartan,
+            self.simple_reflection_determinants_are_minus_one,
+            parity,
+        )
+    }
 }
 
 fn r(n: i128) -> Rational {
@@ -205,6 +234,20 @@ mod tests {
         assert_eq!(report.coxeter_versor_order, 3);
         assert!(report.coxeter_order_matches);
         assert_eq!(report.coxeter_versor_grade_parity, Some(0));
+    }
+
+    #[test]
+    fn display_renders_the_full_report() {
+        let report = weyl_versor_report(NiemeierComponentKind::A(2)).unwrap();
+        assert_eq!(
+            report.to_string(),
+            "WeylVersorInvariants(kind=A_2, rank=2, weyl_group_order=6, \
+             coxeter_number=3, coxeter_versor_order=3, coxeter_order_matches=true, \
+             simple_reflections_match_cartan=true, \
+             simple_reflection_determinants_are_minus_one=true, \
+             coxeter_versor_grade_parity=0)"
+        );
+        assert_eq!(report.display(), report.to_string());
     }
 
     #[test]

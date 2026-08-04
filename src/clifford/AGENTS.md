@@ -17,8 +17,9 @@ divided-power exponents, spinor/Dickson parities, and Frobenius subfield data.
 ## The engine (`engine.rs` + `engine/`)
 
 `engine.rs` is a thin hub (+ the engine's integration test suite: algebra
-construction, the GA ops, Cayley, even subalgebra, exercised over the Ordinal/Surreal
-backends). The associative-algebra core is split by concept under `engine/`; every
+construction, the GA ops, even subalgebra, associativity, exercised over the
+Ordinal/Surreal backends; the Cayley-transform test lives with its code in
+`versor.rs`). The associative-algebra core is split by concept under `engine/`; every
 file there now carries its own `//!` module doc — read those for the full
 breakdown. The load-bearing facts worth knowing before opening a file:
 
@@ -94,8 +95,9 @@ breakdown. The load-bearing facts worth knowing before opening a file:
   exact. `Cga::outer_join` is the CGA IPNS wedge join (infallible) — NOT to be
   confused with `CliffordAlgebra::meet`, the fallible regressive product (see
   "things that look like bugs").
-- **`spinor.rs`** — concrete left-ideal spinor matrices. Three paths, keyed on
-  `characteristic()` and whether the polar form `b` is diagonal: char-0 *orthogonal*
+- **`spinor.rs`** — concrete left-ideal spinor matrices. Three underlying engines
+  (the general-bilinear case is a gauge-transport wrapper over the first two), keyed
+  on `characteristic()` and whether the polar form `b` is diagonal: char-0 *orthogonal*
   uses the `∏½(1+w)` idempotent search and matches the real-table classifier when it
   reaches a minimal ideal; char-0 *nonorthogonal* (`b ≠ 0`) first diagonalizes by
   congruence (tracking the transform), builds the ideal in the orthogonal basis, then
@@ -132,8 +134,9 @@ Metric-free additive operations (`+`, `-`, unary `-`, `&` for exterior product) 
 implemented as operators directly on `Multivector<S>` — no algebra context required.
 Every metric-dependent operation (geometric product `mul`, `reverse`, contractions,
 dual, spinor norm, …) is a method on `CliffordAlgebra<S>`, which provides the metric
-as context. Use `a + b` / `a & b` for the metric-free ops; `alg.mul(&a, &b)` /
-`alg.wedge(&a, &b)` (or the free wedge `alg.wedge(…)`) for metric-dependent ones.
+as context. Use `a + b` / `a & b` for the metric-free ops; `alg.mul(&a, &b)` and friends for
+metric-dependent ones (`&` and `alg.wedge` compute the same wedge — the operator
+needs no metric, the method form is there for symmetry).
 Use `alg.pow(&v, k)` for repeated geometric multiplication — `^` is reserved for
 scalar power (`x ^ k: u128`), not multivector power.
 This mirrors the scalar layer: operators on the concrete type carry no extra context;

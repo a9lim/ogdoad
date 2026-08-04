@@ -51,7 +51,8 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   char-0 scalar world with a matching MV carrier. MV methods cover the full GA suite
   (clifford_conjugate, scalar_product, commutator, anticommutator, undual, meet,
   is_blade, blade_subspace, factor_blade, cayley, cayley_inverse, spinor_norm, versor_grade_parity,
-  classify_versor → `VersorInvariants`, plus raw `(blade_mask, coeff)` terms, `grade_part`,
+  classify_versor → `VersorClass` (the pyclass name; it mirrors the core
+  `VersorInvariants` Display), plus raw `(blade_mask, coeff)` terms, `grade_part`,
   `versor_inverse`, `multivector_inverse`). Algebra methods add
   trace/char_poly/determinant/exterior_power_trace/apply_outermorphism/inverse_outermorphism, the typed
   `<World>LinearMap` pyclass, fixed-dispatch Frobenius/Galois map constructors
@@ -86,7 +87,11 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   (`fit_f2_quadratic`/`QuadricFit`), the trace/Gold-form helpers (`trace_twisted_form`,
   `trace_form_arf`, `gold_form_arf`, `gold_form`), and the integral-lattice layer
   (`IntegralForm`, the ADE constructors `a_n`/`d_n`/`e_6`/`e_7`/`e_8`/`d16_plus`,
-  `Genus`/`ScaleSymbol`, mass/automorphism constants, `BinaryCode`/Constructions A/B/D
+  `Genus`/`ScaleSymbol`, mass/automorphism constants, the Kneser-neighbor surface
+  (`KneserNeighbor`/`KneserMassClass`/`KneserMassReport`, `kneser_neighbor`/
+  `kneser_neighbors` both as `IntegralForm` methods and module functions), the
+  ADE-versor bridge `weyl_versor_report` → `WeylVersorReport`,
+  `BinaryCode`/Constructions A/B/D
   including Reed-Muller `BW16`, the Clifford-side `BW16` certificate/report and
   Clifford/BRW order constants, odd-prime `PrimeCode`/ternary Golay Construction A,
   theta + modular q-expansion helpers `eisenstein_e4`/`eisenstein_e6`/`delta`/`as_modular_form`,
@@ -98,12 +103,17 @@ policy; consult `catalog.rs` for the actual instance set when you need it.
   coin-turning/Tartan probes; `grundy_graph`/`grundy`/`mex`; the kernel surface
   (`outcomes`/`p_positions`/`scoring_values`, typed `Outcome`, `ScoreInterval`); the
   misère/octal surface (`misere_quotient`, `Quotient`, `AbstractGame`, octal helpers);
-  and the loopy engine (`LoopyGraph`, `LoopyPartizanGraph`, `LoopyWinner`,
+  the loopy engine (`LoopyGraph`, `LoopyPartizanGraph`, `LoopyWinner`,
   `LoopyPartizanOutcome`, `LoopyNimber`, `loopy_nim_values_certified`/
   `LoopyNimCertificate`, `loopy_decision_sets`/`loopy_quadric_probe`, the
-  `LoopyValue` catalogue + typed `PartizanOutcome` projection).
+  `LoopyValue` catalogue + typed `PartizanOutcome` projection); and the lexicode
+  surface (`NimLexicode`, `lexicode`/`lexicode_naive`/`lexicode_bounded`,
+  `nim_lexicode_naive`/`nim_lexicode_naive_bounded`, the
+  `LEXICODE_NODE_BUDGET`/`NIM_LEXICODE_NODE_BUDGET` constants).
   The games carry Python arithmetic/order operators, heating / Norton multiplication /
-  overheating, the thermograph + tropical-mirror + atomic-weight calculus, and the exact
+  overheating (including the numeric-descent pair `numeric_norton_regrade`/
+  `numeric_norton_mean_temperature` from the `under` closure), the thermograph +
+  tropical-mirror + atomic-weight calculus, and the exact
   `Pl`/`Thermograph` wall API. Callback-backed
   Rust-name variants (`grundy`/`try_misere_is_n`/`loopy_quadric_probe`/…) accept a
   Python move-generator.
@@ -158,8 +168,9 @@ runtime type is bound. What stays Rust-only is structural, not a backlog:
   grundy `E_ExpSort` hint), `<<`/`>>` left/right
   contraction, `~` reverse, `/` divide (scalar or versor; `Integer` uses exact
   Euclidean division), `**` power, `+`/`-`, `==`, `Integer.__mod__` for
-  Euclidean remainder, `%` on the v0.1.1 polynomial classes, and `@` on the
-  v0.1.1 polynomial/ratfunc classes for eval/compose.
+  Euclidean remainder, `%` on the polynomial classes, and `@` on the
+  polynomial/ratfunc classes for eval/compose (both from the grundy-spec 0.1.1
+  wave — a language-changelog tag, not a crate version).
   Scalar power: `x ^ k` (integer RHS) on total-product backends; Ordinal: `nim_pow`
   method. **Rust `&` binds looser than `+`/`*` in both Python and Rust — parenthesize.**
 - The smoke test is `demo.py` (rebuild via `maturin develop` first); add a section

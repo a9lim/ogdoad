@@ -9952,6 +9952,15 @@ class Game:
         """The surreal value of a number-valued game (`None` for non-numbers like
         `⋆`, `↑`, switches).
         """
+    def numeric_norton_mean_temperature(self, *args: Any, **kwargs: Any) -> Any:
+        """Exact `(mean, temperature)` after Norton-multiplying `self` by `unit`,
+        without constructing the product; `None` unless `unit` is a positive
+        short-game number.
+        """
+    def numeric_norton_regrade(self, *args: Any, **kwargs: Any) -> Any:
+        """Affine `(scale, shift)` for this positive numeric Norton unit, or `None`
+        when this game is nonnumeric/nonpositive.
+        """
     @staticmethod
     def of(*args: Any, **kwargs: Any) -> Any:
         """A general game `{ left | right }` from explicit option lists."""
@@ -30189,6 +30198,7 @@ class WeylVersorReport:
     def simple_reflections_match_cartan(self) -> Any: ...
     @property
     def weyl_group_order(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
 class WittClass:
