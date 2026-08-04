@@ -16,7 +16,8 @@ What remains unbuilt is tracked in the two buildable ledgers —
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, `over`/`under`.
+stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, and `over`.
+`under` is the first former loopy-valued research entry closed into this ledger.
 
 **Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
 it is renamed **grundy** (provisional — finalization at the 0.3.8 release
@@ -313,21 +314,55 @@ integral genus and mass surfaces.
   all 23 rooted Niemeier classes.
 
 ### 1·e_g: `overheating`
-**Completed:** 2026-06-19
+**Completed:** 2026-06-19; numeric associated-graded follow-up 2026-07-20
 **Summary:** the games pillar now has game-valued heating, Berlekamp
 overheating, and Norton multiplication beside the thermograph/cooling surface.
-**Pillars:** games    **Claim level:** standard math, implemented and tested
+**Pillars:** games    **Claim level:** standard infrastructure + proved research follow-up, implemented and tested
 - surface: `heat`, `norton_multiply`, `overheat`, `is_positive_game`, and
-  `integer_game_value`, plus Python module functions and `Game` methods for
-  `heat`, `norton_multiply`, and `overheat`.
+  `integer_game_value`; the follow-up adds `numeric_norton_regrade` and
+  `numeric_norton_mean_temperature` plus matching Python `Game` methods.
 - oracles: heating fixes numbers and sends `{1|-1}` heated by `2` to `{3|-3}`;
   non-dyadic heating temperatures reject honestly; Norton multiplication by unit
   `1` is the identity, nonpositive units reject, integer-unit Norton products
   have the expected mean, and Berlekamp overheating uses Norton multiplication
   on integer leaves.
-- boundaries: this is finite short-game infrastructure only. It does not claim
-  that Norton multiplication descends to a product on the temperature
-  associated graded; that compatibility remains the `under` open problem.
+- follow-up theorem: every positive dyadic unit `u=m/2^k` induces the exact
+  additive regrading `gr_τ -> gr_{uτ+u-δ}` (`δ=2^-k`, or `1` for integers);
+  even when a cold noninteger number becomes hot, its image stays strictly below
+  the target layer. For integer `n`, shifted thermal height scales by `n`.
+- boundaries: this is a family of external additive transports, not a
+  multiplicative action and not an internal product on the associated graded.
+  Indeed `A_2 A_(1/2)(*)` has temperature `1` while `A_1(*)` has temperature `0`.
+  Nonnumeric units can fail descent, and the full residue object remains the narrower
+  `under` problem resolved immediately below.
+
+### under·(e_g∧e_s): `thermography-newton-separation`
+**Completed:** 2026-07-20
+**Summary:** thermography and Newton polygons are two tropical objects, joined by
+a genuine filtered shadow but not by one faithful Newton-style dyadic graded ring.
+**Pillars:** games ↔ scalar    **Claim level:** proved + implemented and tested
+- arbitrary-product theorem: `gr_0` contains the nonzero order-2 class `[*]`.
+  Any full dyadic coefficient object has an invertible homogeneous element
+  representing 2 (and its `1/2` inverse); lift-compatible action sends `[*]` to
+  the initial class of `*+*=0` and therefore kills it.  This covers both an ordinary unital `ℤ[1/2]` algebra and the
+  graded initial-form coefficients of a valued dyadic field.
+- Norton theorem: if `r_u(τ)=uτ+u-δ_u`, then
+  `r_v(r_u(τ))-r_(uv)(τ)=v(1-δ_u)-δ_v+δ_(uv) ≥ 0`, with all zero-defect pairs
+  classified.  The pair `u=1/2`, `v=2` has defect `1`, so the individual
+  additive Norton transports are not a multiplicative dyadic action in any
+  temperature-preserving refinement.
+- surface: `numeric_norton_composition_defect`, the expanded
+  `experiments/under_descent.py` arithmetic/game audit, and the complete proof in
+  `writeups/thermo_newton.tex`; `docs/OPEN.md` retains only the closure tombstone.
+- oracles: the Rust heating suite pins five materialized composition defects;
+  the Python probe checks 2,304 positive-dyadic pairs for nonnegativity and the
+  exact zero classification, alongside the prior 210 thermic predictions and
+  quotient-descent witnesses.
+- boundaries: characteristic-2 residue slices, valuation-ring/integer-only
+  actions without `1/2`, nonunital/nonassociative structures, and quotients
+  killing `[*]` are not ruled out.  Each drops a defining part of the stated
+  full-dyadic unification contract, so they are follow-up structures rather than
+  counterexamples.
 
 ### 1·(e_c∧e_f∧e_i): `heisenberg-weil`
 **Completed:** 2026-06-19

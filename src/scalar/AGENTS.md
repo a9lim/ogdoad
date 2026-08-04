@@ -40,7 +40,7 @@ and const-generic sizes that are inherently indices.
 - **`poly.rs`** — `Poly<S>`, the shared dense-univariate polynomial ring `S[t]`
   (low-degree-first, trimmed). The crate's one polynomial primitive: `Gauss` and
   `RationalFunction` store `num/den` as `Poly` pairs, and the function-field place
-  layer (`forms/function_field.rs`) uses its `divrem`/`gcd`/`pow_mod`. As `S[t]` it
+  layer (`forms/local_global/function_field*.rs`) uses its `divrem`/`gcd`/`pow_mod`. As `S[t]` it
   is the **ring of integers** of `S(t)`, so it impls `Scalar` + `HasFractionField`
   (Frac = `RationalFunction<S>`); its units are the nonzero constants, so `inv` is
   partial. `Poly::t()` is the indeterminate constructor (matching the `t` it Displays
@@ -244,9 +244,9 @@ the project's central symmetries.
 
 - **`mod.rs`** — the `FiniteField` TRAIT: the shared Galois engine (degree,
   conjugates, min_poly_monic, relative_trace/_norm, multiplicative_order, is_primitive,
-  discrete_log) as default methods. An impl supplies only `frobenius`, integer `pow`,
-  `ext_degree`, `group_order`, `group_order_factors`. nimber + fpn both impl it — one
-  verified algorithm, two backends.
+  discrete_log) as default methods. An impl supplies only `frobenius`, `ext_degree`,
+  `group_order`, `group_order_factors` (integer `pow` has a default an impl may
+  override). nimber + fpn both impl it — one verified algorithm, two backends.
   The per-backend const-generic validators (formerly the separate
   `assert_prime_modulus`/`assert_supported_field`/`assert_supported_ring`/
   `assert_supported_precision` guards across `Fp`/`Fpn`/`WittVec`/`Zp`/`Qp`/…) are
@@ -264,9 +264,9 @@ the project's central symmetries.
   flat: `mod.rs` (wrapper + Scalar), `arithmetic.rs` (`nim_add`=XOR; `nim_mul` via
   Fermat-power recursion; `nim_square`/`nim_sqrt`/`nim_inv`), `artin_schreier.rs`
   (`nim_trace` + y²+y=c solver), `galois.rs` (impl FiniteField, with Pohlig–Hellman +
-  BSGS overrides for `is_primitive`/`discrete_log`). `Nimber::fuzzy` is the
-  game-value incomparability predicate: exactly `self != other`; do not turn that
-  into `PartialOrd`.
+  BSGS overrides for `is_primitive`/`discrete_log`), plus the layer's own `tests.rs`.
+  `Nimber::fuzzy` is the game-value incomparability predicate: exactly
+  `self != other`; do not turn that into `PartialOrd`.
 - **`wittvec.rs`** — `WittVec<const P, const N, const F>`: Witt vectors W_N(F_q) as
   the truncated unramified ring (Z/p^N)[t]/(f̃). The char-p analogue of Z_p; its field
   of fractions is `small/qq.rs`.
@@ -300,10 +300,10 @@ Orthogonal to the place table: a 2×2 of (algebraic|transcendental) ×
 
 `Adele` is a finite-precision restricted-product model over ℚ, with `LocalQp` as the
 runtime-prime p-adic cell. Useful for product-formula / Hilbert-reciprocity /
-Hasse–Minkowski experiments in `forms/adelic.rs`; not an exact infinite-memory adele.
-`LocalQp` (runtime prime, NOT const-generic) deliberately does NOT impl `Scalar` —
-its world `(p,k)` is only known at construction — so it is the runtime-only analogue
-of `forms`'s runtime `OddFiniteFieldForm`.
+Hasse–Minkowski experiments in `forms/local_global/adelic.rs`; not an exact
+infinite-memory adele. `LocalQp` (runtime prime, NOT const-generic) deliberately does
+NOT impl `Scalar` — its world `(p,k)` is only known at construction — the same
+runtime-world pattern as the py-facing `OddFiniteFieldForm` class.
 
 `RationalFunction<S>` (in `global/function_field.rs`) is the **equal-characteristic
 mirror**: the global function field `F_q(t)`, the char-`p` analogue of `ℚ` as a
@@ -312,7 +312,7 @@ den/num`, cross-mult equality) but a different ROLE — it carries *all* its pla
 valuations at once, so like `Adele` it is deliberately **not** `Valued`. Unlike the
 precision-model functors it is **exact**, so it joins the `scalar_axioms` fuzz and
 carries the `ExactScalar`/`ExactFieldScalar` markers. It feeds
-`forms/function_field.rs`.
+`forms/local_global/function_field.rs`.
 
 ## Things that look like bugs but are not (scalar layer)
 
