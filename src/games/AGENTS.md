@@ -12,8 +12,8 @@ lives on the scalar backends and not on all games.
 `mod.rs` re-exports every module below flat.
 
 Fixed-width game payloads use `u128`/`i128`: finite nim heaps, octal codes, Grundy
-values, scoring integers, and quotient counters. `usize` is for graph nodes, option
-indices, and collection lengths.
+values, and scoring integers. `usize` is for graph nodes, option indices, collection
+lengths, and the `Quotient` class machinery (indices, not payloads).
 
 ## Values & arithmetic
 
@@ -60,8 +60,16 @@ indices, and collection lengths.
 - **`thermography.rs`** — the thermograph of a short game: left/right scaffolds,
   stops, cooling (`cooled_stops`), temperature, and mean (mast) value.
 - **`heating.rs`** — game-valued heating, Berlekamp overheating `int_s^t G`, and
-  Norton multiplication `G.U` by a positive unit. Infrastructure only: it does not
-  assert the associated-graded product asked for in `docs/OPEN.md` `under`.
+  Norton multiplication `G.U` by a positive unit. The `under` pass proved the exact
+  positive-dyadic regrading: for `u=m/2^k`, `δ=2^-k`, numeric Norton multiplication
+  induces `gr_τ -> gr_{uτ+u-δ}`; `numeric_norton_regrade` and
+  `numeric_norton_mean_temperature` compute it without building the product, and
+  `numeric_norton_composition_defect` gives the exact nonnegative failure of the
+  dyadic action law. The completed separation theorem is stronger: `gr_0` retains
+  the nonzero order-2 class `[*]`, so no faithful unital `ℤ[1/2]`-algebra can retain
+  the needed residue at all. The game side is a filtered abelian group with external
+  numeric transports, not the Newton side's associated graded ring; nonnumeric
+  units can fail descent (the explicit unit `↑` is the minimal witness).
 - **`atomic_weight.rs`** — atomic weight of ALL-SMALL games (finishes thermography):
   the two-ahead rule (Siegel Constructive Atomic Weight; Larsson–Nowakowski
   arXiv:2007.03949 Thm 10). `aw` IS additive on all-small games.
@@ -153,9 +161,9 @@ indices, and collection lengths.
 ## Things that look like bugs but are not (games layer)
 
 - **`Game`, `LoopyValue`, `NumberGame`, and `NimberGame` `impl Display`** — that is
-  the canonical render now. The old `display()`/`name()` inherent methods are retained
-  as thin aliases over `Display`, so existing callers keep working; new code can just
-  `{}`-format.
+  the canonical render now. `Game::display()` and `LoopyValue::name()` survive as thin
+  aliases over `Display` for existing callers; `NumberGame`/`NimberGame` never had
+  inherent render methods. New code can just `{}`-format.
 - **`Game::canonical_string` canonicalizes; `structural_string` does not.**
   `structural_string` is an order-independent fingerprint of the tree *as given* (so
   `(↑−↑).structural_string() ≠ 0`); `canonical_string` reduces first, so it *is* a

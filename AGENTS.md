@@ -63,7 +63,14 @@ presentation<multiform<value strata with outcome-as-observation, dyadic
 literals, mutual `=:` systems, self-contained equation-system display,
 word conditionals, Display v4, errors, the three-part conformance suite);
 implementation.md — the runtime architecture + resource-guard contract;
-README.md — the transcript-first tour. The
+README.md — the transcript-first tour;
+stance.md — non-normative (2026-07-19): the design tradition named —
+total/codata (Turner, Agda-kin), lazy exactly where the objects are
+coinductive, **⊥ refused** (divergence is a budgeted error, never a
+value); cyclic vs productive coinduction split (loopy graphs =
+eventually-periodic, 0.3.8 w/ Honsell–Lenisa; productive streams = 1.0.0
+higher-order, `ω` genetically needs a generator); Haskell the
+acknowledged cousin, not the semantics. The
 **ladder** — 0.3.7 structural rung → 0.3.8 loopy-envelope completion +
 release dress → 0.4.0 = the public release → 1.0.0 higher-order — lives
 in CONTINUATIONS.md;
@@ -77,7 +84,8 @@ and `writeups/`
 including the Tier-2 no-go/construction program; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
-`thermo_newton.tex` — the thermography ↔ Newton-polygon tropical bridge).
+`thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
+filtered shadow, but no faithful dyadic-unital tropical ring).
 
 ## Claim levels and non-claims
 
@@ -262,13 +270,22 @@ realizer's *mechanism* is reduced (2026-06-10 second pass,
 `experiments/linking_game.py`, goldarf §8 `sec:linking`): the σ-game is the
 odd-close parity game on the support graph, and the linking theorem — an isolated
 coin forces flips even, hence exactness for all m — is machine-verified on every
-graph class k ≤ 7 with a strictly-verified two-mode defender strategy; only the
-general-n induction is open.
+graph class through k = 8 real coins plus dummy (12,346 classes at k = 8, both
+seats). The original prevention/debt menu is strictly complete only through k = 7;
+two k = 8 witnesses require proactive debt, while the broader no-self-flip/debt
+envelope is strictly complete across the full k = 8 census. The block-turn and
+live-degree identities sharpen the proof route; the general-n induction remains
+open.
 
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
 tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`) plus
-game-valued heating/overheating/Norton operators (infrastructure for `under`, not
-the associated-graded product theorem), the source-pinned (OEIS A380496) ordinal
+game-valued heating/overheating/Norton operators and the proved positive-numeric-unit
+regrading `gr_τ -> gr_{uτ+u-δ}`. The completed `under` theorem proves that the
+game and place consumers are two tropical objects: `gr_0`'s nonzero `[*]`
+2-torsion forbids a lift-compatible action by any full dyadic object
+(ordinary or graded initial-form), and the exact nonnegative
+Norton composition defect forbids a multiplicative dyadic action even after
+any temperature-preserving residue refinement. The source-pinned (OEIS A380496) ordinal
 nim Kummer tower below `ω^(ω^ω)`, the characteristic-2
 Artin-Schreier local-global layer over `F_{2^m}(t)` including the Aravire-Jacob wild
 summand, and the integral lattice/genus/mass/Leech/Niemeier/theta/code/Weil chain. These are

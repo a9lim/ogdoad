@@ -96,6 +96,20 @@ impl NiemeierComponentKind {
     }
 }
 
+impl fmt::Display for NiemeierComponentKind {
+    /// The Dynkin label (`A_2`, `D_4`, `E_8`), matching the component notation
+    /// inside the catalogue labels (`E_8^3`).
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            NiemeierComponentKind::A(n) => write!(f, "A_{n}"),
+            NiemeierComponentKind::D(n) => write!(f, "D_{n}"),
+            NiemeierComponentKind::E6 => write!(f, "E_6"),
+            NiemeierComponentKind::E7 => write!(f, "E_7"),
+            NiemeierComponentKind::E8 => write!(f, "E_8"),
+        }
+    }
+}
+
 /// A repeated irreducible component of a Niemeier root system.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NiemeierRootComponent {

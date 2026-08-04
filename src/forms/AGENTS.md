@@ -44,8 +44,9 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   element of an actual group/classifying set carrying a law (`WittClass`,
   `BrauerWallClass`, `Brauer2Class`, `BrauerClass`, `FqmWittClass`); `…Decomp` is
   a decomposition; `…Invariants` is a classifier's report record
-  (`ArfInvariants`, `BrownInvariants`, `CliffordInvariants`, `OddCharInvariants`,
-  `FiniteFieldInvariants`, `NikulinExistenceInvariants`, `SymplecticInvariants`);
+  (`ArfInvariants`, `BrownInvariants`, `CliffordInvariants`,
+  `RationalCliffordInvariants`, `OddCharInvariants`, `FiniteFieldInvariants`,
+  `NikulinExistenceInvariants`, `SymplecticInvariants`);
   `…Record` is a static catalogue record carrying no group law (`NiemeierRecord`,
   `KneserMassRecord`) — distinct from `…Class`, which is a group element with a
   law; `…Signature` stays for the literal mathematical signature; `…Isotropy` is a
@@ -61,8 +62,9 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   glossary record type (`…Invariants`/`…Decomp`/`…Class`/`…Record`/`…Signature`/
   `…Isotropy`/certificates, crate-wide — games and clifford included) carries
   `impl Display` + the inherent `display()` alias, render-pinned by at least one
-  exact-string test, with py `__repr__`s delegating to the core Display. Honesty
-  markers ride in the rendering (`Char2WittDecomp`'s complement-dependent flag, an
+  exact-string test, with py `__repr__`s delegating to the core Display.
+  Honesty markers ride in the rendering (`Char2WittDecomp`'s complement-dependent
+  flag, an
   incomplete `RelationSearchCertificate` says INCOMPLETE up front, `QuadricFit`
   renders `bias=n/a (degenerate)` when the count formula doesn't apply).
   New types follow this glossary. Leg dispatch:
@@ -112,8 +114,11 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
 - **`char0.rs`** — the char-0 Clifford classifier: Cl(p,q) → matrix algebra over
   ℝ/ℂ/ℍ via the 8-fold table (real-closed surreal/rational) and the 2-fold table
   (surcomplex). `classify_real(p,q,r)` / `classify_complex(n,r)` are the
-  bare-signature entry points (no metric needed); non-diagonal metrics are
-  diagonalized first.
+  bare-signature entry points (no metric needed); `classify_surreal` /
+  `classify_surcomplex` take metrics, and `classify_rational` returns the richer
+  `RationalCliffordInvariants` (dim, radical, discriminant, signature, plus a
+  per-place `RationalPlaceInvariant` Hasse vector — the `ClassifyForm` associated
+  `Class` for `Rational`). Non-diagonal metrics are diagonalized first.
 - **`oddchar/`** — odd-characteristic forms (re-exported flat): `field.rs`
   (`FiniteOddField` unifies Fp and Fpn square classes), `invariants.rs`
   (`classify_finite_odd`/`finite_odd_witt`/`discriminant_finite_odd`/
@@ -129,11 +134,13 @@ automorphism counts, node budgets. `usize` is for dimensions and matrix indices.
   **additive** mirror of `FiniteOddField`: carries `artin_schreier_class =
   Tr_{F_q/F₂}` instead of `is_square_value`, since in char 2 the multiplicative square
   class is trivial and the working datum is `F/℘(F) ≅ F₂`; impl for `Fp<2>`/`Fpn<2,N>`,
-  NOT `Nimber` — same boundary as `FiniteOddField`), `extraspecial.rs` (the
-  extraspecial 2-group `1→F₂→E→V→0` attached to a nonsingular `F₂` quadratic form,
-  with commutator `B`, squaring map `Q`, plus/minus type classified by the Arf bit,
-  and the finite Heisenberg/Pauli representation whose center acts by `-I` and whose
-  projective transvection intertwiners give the bounded Weil/metaplectic layer),
+  NOT `Nimber` — same boundary as `FiniteOddField`), `extraspecial.rs`
+  (`Extraspecial2Group`/`ExtraspecialElement` — the extraspecial 2-group
+  `1→F₂→E→V→0` attached to a nonsingular `F₂` quadratic form, with commutator `B`,
+  squaring map `Q`, plus/minus type classified by the Arf bit, and
+  `HeisenbergWeilRepresentation` — the finite Heisenberg/Pauli representation whose
+  center acts by `-I` and whose projective transvection intertwiners give the
+  bounded Weil/metaplectic layer),
   `brown.rs` (the **Brown invariant** `β ∈ ℤ/8` of a `ℤ/4`-valued quadratic
   refinement — the char-2 cell of
   the mod-8 spine, Bridge M: `brown_f2`/`double_f2` + `BrownInvariants`, computed by
@@ -164,9 +171,9 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
   checked group and ring operations; `try_mul` rejects Char2 because `W_q` is a
   module, not a ring.
 - **`witt/ring.rs`** — the Witt RING: `tensor_form`, Pfister forms, fundamental ideal
-  Iⁿ, the eₙ staircase (e0=dim, e1=disc, e2=Hasse). Stabilization per field (I²=0 over
-  F_q; infinite ℝ tower via `e_real`). DON'T claim Arf=e2 (char-2 indexing is Kato's,
-  pinned).
+  Iⁿ, the eₙ staircase (e0=dim, e1=disc, e2=Hasse; materialized as `EnStaircase` via
+  `e_staircase_finite_odd`). Stabilization per field (I²=0 over F_q; infinite ℝ tower
+  via `e_real`). DON'T claim Arf=e2 (char-2 indexing is Kato's, pinned).
 - **`witt/brauer_wall.rs`** — the Brauer–Wall group BW(F): `bw_class_real` (Bott index
   (q−p) mod 8 ⇒ BW(ℝ)=ℤ/8), `bw_class_complex` (ℤ/2), `bw_class_rational`
   (`RationalBrauerWallClass` over ℚ: dimension parity + signed discriminant +
@@ -175,7 +182,9 @@ char-0 8-fold table, Bott, and `E₈` in `integral/`.
   the ungraded Clifford component represented by ramified `FunctionFieldPlace`s),
   `bw_class_finite_odd` (order-4 ≅ W(F_q)), `bw_class_nimber`, and façade dispatch
   for supported finite char-2 fields/windows (char-2 Arf/Witt class `ℤ/2`,
-  nonsingular metrics only). Law = graded_tensor/direct sum.
+  nonsingular metrics only). Law = graded_tensor/direct sum. The same file carries
+  the `F_q(t)` mirror of the next bullet's ungraded machinery:
+  `FunctionFieldBrauer2Class` with `hasse_brauer_class_ff`/`clifford_brauer_class_ff`.
 - **`witt/brauer_rational.rs`** — the **ungraded** rational 2-torsion Brauer class
   `Brauer2Class` (a set of ramified `Place`s, `add`/`local_invariant`/
   `satisfies_reciprocity`/`quaternion`): `hasse_brauer_class` (the Hasse–Witt
@@ -325,8 +334,8 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   nonsingular quadratic form lives here.
 - **`hermitian.rs`** — Hermitian forms, the involution sibling the symmetric leg never
   used. `HermitianForm` covers Surcomplex via `conj()`: conjugate-symmetric Gram,
-  unitary congruence diagonalize → real diagonal, signature (Sylvester, complete
-  invariant = U(p,q)); `from_skew` handles the skew-Hermitian case via mult by i.
+  unitary congruence diagonalize → real diagonal, `HermitianSignature` (Sylvester,
+  complete invariant = U(p,q)); `from_skew` handles the skew-Hermitian case via mult by i.
   `FiniteHermitianForm<F>` covers finite fields of even prime-field degree using the
   middle Frobenius `x -> x^{p^k}` for `F_{p^{2k}}/F_{p^k}`; its complete invariant is
   `FiniteHermitianInvariants { rank, radical_dim, ... }`. This intentionally models

@@ -20,8 +20,9 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
     rational diagonalization), `invariant_factors` (SNF → discriminant group `L#/L`),
     `level` (smallest `N` with `N·G⁻¹` even-integral, via the exact `Rational` inverse),
     `clifford_metric` (rational Clifford metric), `clifford_metric_f2` (even-lattice
-    mod-2 char-2 metric), `direct_sum`. Internal helpers `gcd_i128`, `lcm_i128`,
-    `bareiss_det`, `matvec`, `dot` are `pub(super)` for `geometry.rs`.
+    mod-2 char-2 metric), `direct_sum`. Integer gcd comes from `linalg::integer::gcd`; the internal
+    helpers `lcm_i128`, `bareiss_det`, `matvec`, `dot` are `pub(super)` for
+    `geometry.rs`.
   - **`lattice/geometry.rs`** — the positive-definite geometry: `short_vectors`
     (two-stage: an exact rational ellipsoid enumeration first for small boxes — up to
     `SHORT_VECTOR_EXACT_ENUM_LIMIT = 2_000_000` candidates via `short_vectors_exact_bounded`
@@ -134,11 +135,11 @@ unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
   `NiemeierComponentKind` names the exceptional roots explicitly (`E6`/`E7`/`E8`
   variants, not a single `E(usize)`), and `coxeter_number`/`determinant`/
   `root_lattice`/`root_count` all return `Option` uniformly — matching
-  `weyl_group_order` — instead of panicking out of domain. Substrate sharing keeps
-  the arithmetic deduplicated: integer gcd is `linalg::integer::gcd`/`gcd_u128`,
-  primality is `scalar::is_prime_u128`, prime-power-order detection is a shared
-  `is_prime_power`, and `checked_factorial`/`checked_pow2` are shared from the lattice
-  module (no per-file copies). Oracles:
+  `weyl_group_order` — instead of panicking out of domain. `checked_factorial`/
+  `checked_pow2` are shared from the lattice module (no per-file copies; the wider
+  substrate — `linalg::integer::gcd`/`gcd_u128`, `scalar::is_prime_u128`, the shared
+  `is_prime_power` in `integral/mod.rs` — serves `kneser.rs`, `fqm_witt.rs`, and
+  `discriminant/form.rs`, not this file). Oracles:
   `glue^2 = det(R)`, anchor automorphism orders (Leech, `A_1^24`, `E_8^3`),
   `Σ 1/|Aut(N)| = mass_even_unimodular(24)`, and the exact weighted identity
   `(Σ theta_N/|Aut(N)|)/mass(24) = E12`.

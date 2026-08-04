@@ -28,7 +28,10 @@ plugin system.
 
 ```text
 grundy/src/
-  mod.rs
+  lib.rs                    crate root: re-exports, module wiring
+  eval.rs                   GRUNDY_VERSION, eval_to_string/EvalLine, the guard
+                            constants, and the #[path] wiring for runtime/,
+                            session.rs, worlds/
   ast.rs                    Expr (with Apply), Binder marks, spans
   lex.rs
   parse.rs

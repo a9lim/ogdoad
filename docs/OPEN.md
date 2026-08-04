@@ -28,7 +28,10 @@ the vocabulary. The values come in dual pairs, and so do the problems:
   every verified rung (`on`), and the classifier that switches off beyond the
   finite windows (`off`).
 - **`over`/`under`** — the two mirror questions: the mod-8 spine above the Arf
-  bit (`over`), and the MinPlus shadow beneath MaxPlus thermography (`under`).
+  bit (`over`) remains open; the MinPlus shadow beneath MaxPlus thermography
+  (`under`) was resolved on 2026-07-20: a substantive filtered transport exists,
+  while a faithful full-dyadic Newton-style ring is impossible.  It is retained
+  below only as a closure tombstone.
 
 The games are the names: refer to a problem by its loopy value. `dud` stays
 unassigned: `dud + G = dud` for every `G`, and no problem has yet earned
@@ -172,22 +175,43 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   bounded-window blocker conjecture is untouched (the FIFO queue is unbounded
   memory). The recasting is now the load-bearing open step; the
   Plambeck–Siegel Thm 6.4 regularity gate is still slug `ps-regularity`.
-- The mechanism behind the verified realizer is now reduced and largely
-  explained (2026-06-10 second pass, goldarf §8 "linking reduction",
+- The mechanism behind the verified realizer is now reduced and substantially
+  sharpened (2026-06-10 and 2026-07-20 passes, goldarf §8 "linking reduction",
   `experiments/linking_game.py`): FIFO forces closes in opening order (no
   nesting, linked = overlap), the whole σ-game is equivalent to an
   **odd-close parity game** (only closing a queue front with an odd number
   of untouched neighbors flips the outcome bit), ko/passes localize away,
   and the **general-m linking theorem** — flips forced even on any board
   with an isolated coin, hence exactness for ALL m — is machine-verified
-  for every graph isomorphism class through k = 7 (1,044 classes, both
-  seats), far beyond Gold-arising boards. The dummy's role is identified
-  (it defeats the unique local obstruction, the domination device, at
-  every root — matching the no-dummy Bad-graph census 1/4/34 at n=3/5/7,
-  all mover-controlled), and an explicit two-mode defender strategy
-  (prevention/debt menus) is strictly verified through k = 7. What
-  remains is the general-n induction (firewall segmentation
-  architecture); parity-local invariants provably do not suffice.
+  for every graph isomorphism class through k = 8 real coins plus dummy
+  (12,346 classes at k = 8, both seats), far beyond Gold-arising boards.
+  Two new exact reductions delimit the proof route. Every maximal
+  nonempty-queue block on b coins uses 2b touches, so the initial mover
+  starts every block. And, with L the still-unclosed vertices when x opens,
+  the flip parity is `sum_x deg_L(x) mod 2`: for the potential
+  `P = e(queue,U)`, a close changes P by its flip bit and an open changes P
+  by `deg_L(x)`. This second identity is FIFO-blind, so FIFO must enter the
+  strategy through its forced close target rather than through the
+  accounting itself.
+- The old parity-local menu realization of the proof architecture is now
+  falsified precisely rather than merely unfinished. The original
+  prevention/debt menus remain strictly complete
+  through k = 7, but graph6 class `GCRU]w` at k = 8 requires a proactive
+  neighbor-open that creates an even odd-degree queue corridor even though
+  safe non-neighbor opens exist; `GCZMmw` then requires leaving an odd front
+  deliberately unrepaired. Thus a parity-local "repair whenever possible"
+  induction cannot prove the theorem. The broader no-self-flip prevention
+  envelope (every open plus even-front closes), paired with the existing
+  debt menu, is strictly complete on all 12,346 k = 8 classes, both seats.
+  The remaining question is whether that broader finite strategy has a
+  general recursive certificate.
+- The dummy defeats the empty-queue domination device at every root, matching
+  the no-dummy Bad-graph census 1/4/34 at n = 3/5/7 (all mover-controlled),
+  but that device is not the unique local squeeze. On the path `z-f-y-h`,
+  state `queue=(f,h), U={y,z}` has an even front and no safe move: either
+  open makes f odd, while closing f exposes odd h. The isolated dummy kills
+  this squeeze while untouched, but once queued or spent it becomes exactly
+  the recursive repair-potential problem.
 
 The naturality dichotomy:
 
@@ -258,12 +282,14 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
   the family-boundary sweep (ko-window `w`, pass semantics, pair touches,
   no-dummy controls), which also puts the bounded-window blocker on valid data.
 - Close the **general-n linking theorem** (the mechanism half, reduced
-  2026-06-10): prove that the odd-close parity game on any graph with an
-  isolated coin forces an even flip count from both seats. Verified for all
-  classes k ≤ 7 with a strictly-verified two-mode strategy
-  (`experiments/linking_game.py`); the open residue is the firewall-segmented
-  no-debt/one-debt induction with certificate-depth completeness (goldarf
-  §8). A proof upgrades the m∈{4,8} verification to exactness for all m.
+  2026-06-10 and sharpened 2026-07-20): prove that the odd-close parity game
+  on any graph with an isolated coin forces an even flip count from both
+  seats. Verified for all 12,346 classes at k = 8 real coins plus dummy
+  (`experiments/linking_game.py`). The old R3/D3 induction fails first at
+  `GCRU]w`; the live route is the block-turn plus live-degree-pairing
+  formulation, with FIFO re-entering through forced front deletion and the
+  proactive-debt witnesses above. A proof upgrades the m∈{4,8} verification
+  to exactness for all m.
 - Repair or replace N3, the anti-clock axiom — the open definitional problem: the
   escape-edge construction passes N1–N3 while being morally a clock, and two-game
   criticality is unsatisfiable in two-class outcome semantics.
@@ -408,215 +434,263 @@ Relevant surfaces:
 
 ### on·e_s: `ordinal nim multiplication beyond the verified excess table`
 
-Push transfinite nim multiplication beyond the source-verified Lenstra-DiMuro
-excess table. Historically the first missing carry in this checkout was
-`alpha_47`; a local fixed-base finite-field oracle now verifies that carry, but
-the general closed-form problem remains open.
+**Status:** open. The proof source of truth is
+[`writeups/excess.tex`](../writeups/excess.tex); this entry is the concise
+research ledger and implementation boundary.
 
-What is implemented:
-- The algebraic closure of `F_2` is represented by ordinals `< omega^(omega^omega)`
-  under nim-arithmetic.
-- The prime-power generator tower is implemented in `src/scalar/big/ordinal/tower.rs`.
-  Products are exact when every Kummer carry uses a finite Lenstra excess `m_u` for an
-  odd prime `u <= 709`: the finite `m_u` are sourced from OEIS A380496 ("Lenstra excess
-  of the n-th odd prime"), the b-file's 126 known rows (odd primes `3..=709`; the first
-  14 reproduce DiMuro Table 1 + the old `m_47`). The first OEIS-unknown row is `p=719`,
-  so a carry at `u >= 719` returns `None`. The ordinal carry `alpha_u` is assembled in
-  code from `f(u)=ord_u(2)`, DiMuro's recursive `Q(f(u))`, and the finite `m_u`.
-- Stage 1 handles scalar excesses such as `alpha_3 = 2`, `alpha_5 = 4`, and
-  `alpha_17 = 16`; Stage 2 handles nonscalar excesses such as `alpha_7 = omega+1`
-  by branching the monomial and recursing to lower places.
-- The 126 finite excess rows (the *integers* `m_u`) are source-pinned to OEIS A380496 in
-  full — the vendored b-file is diffed against the table row-for-row by
-  `excess_table_matches_vendored_b380496_in_full` (`src/scalar/big/ordinal/
-  b380496.txt`, fetched 2026-07-02). Caveat: the table extends *reach*, not
-  *feasibility* — for large primes `alpha_u` is in the table but its `Q(f(u))`/finite-
-  subfield reconstruction over the degree-`e_u` component field (`e_u` in the millions
-  for `u` near 709) is too costly to materialize in practice, so only the smaller-`e_u`
-  rows are usable end-to-end today.
-- "Exact for `u <= 709`" means the construction is *defined* there (`alpha_ordinal(u)`
-  returns `Some`, since every input it needs — `f(u)`, `Q(f(u))`, and `m_u` — resolves).
-  It is a separate, narrower claim that the resulting *ordinal value* has been checked
-  against an oracle outside the construction itself: that per-row value pin currently
-  covers `u` in `{3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 73, 89}`
-  (DiMuro Table 1 for the first 14; `73`/`89` cross-checked against `experiments/
-  ordinal_excess_probe.py`'s independently curated `Q_SET`/order-based excess
-  certification; `47` additionally re-derived by raw repeated multiplication in
-  `locally_verified_alpha_47_landmark`). The remaining rows up to `709` are defined and
-  internally consistent (the field-axiom sweeps exercise engine consistency) but do not
-  yet have an independent value oracle. The "large primes near 709" cost caveat above
-  actually bites much earlier than 709: `alpha_ordinal(179)` (`f=178=2*89`,
-  `Q(f)={89}`) already recurses into a `finite_subfield_degree` Frobenius minimization
-  on `chi(89)=omega^(omega^22)` that does not finish in a unit-test budget, confirmed
-  by hand while extending this table — so `179` is a genuine gap in the "cheap today"
-  set, not merely an oversight.
+#### Problem
 
-The first fourteen rows (odd primes `3..=47`) are shown below for readability — the
-historic DiMuro Table 1 + `m_47` landmarks, now also OEIS A380496 `a(1)..a(14)`;
-production stores the finite `m_u` for all 126 rows (`3..=709`) and reconstructs the
-displayed `alpha_u` values:
+For an odd prime \(p\), Conway's Kummer carry below
+\(\omega^{\omega^\omega}\) has the form
+\[
+\alpha_p=\kappa_{f(p)}+m_p,\qquad f(p)=\operatorname{ord}_p(2),
+\]
+where \(m_p\) is Lenstra's finite *excess*. Lenstra proved structural lower
+bounds and conjectured absolute boundedness. Every source-pinned row presently
+available is consistent with the sharper rule
+\[
+m_p=
+\begin{cases}
+0,&\mathcal Q(f(p))\text{ is not a singleton odd prime-power},\\
+4,&f(p)=2\cdot3^k,\ k\ge1,\\
+1,&\text{otherwise}.
+\end{cases}
+\]
+This \(0/1/4\) rule is not proved.
 
-| u | alpha_u | u | alpha_u | u | alpha_u |
-|---|---|---|---|---|---|
-| 3 | 2 | 13 | omega+4 | 29 | omega^(omega^2)+4 |
-| 5 | 4 | 17 | 16 | 31 | omega^omega+1 |
-| 7 | omega+1 | 19 | omega^3+4 | 37 | omega^3+4 |
-| 11 | omega^omega+1 | 23 | omega^(omega^3)+1 | 41 | omega^omega+1 |
-| | | 43 | omega^(omega^2)+1 | 47 | omega^(omega^7)+1 |
+#### Exact reduction
 
-Current external state:
-- The first OEIS unknown in the extended table is now `p = 719`, where
-  `f(719) = 359` and `Q(359) = {359}`. The calculator notes the required finite
-  exponent as `e_719 = 1258230380`, which is the practical wall for the direct
-  Lenstra power test.
-- A tempting pattern matches the checked OEIS/calculator records from this pass:
-  `m_p = 0` when `Q(f(p))` is not a singleton odd prime-power; `m_p = 1` for a
-  singleton odd `Q(f(p))`, except the observed `f(p) = 2*3^k` cases have
-  `m_p = 4`. A local audit matched this rule against the 950 calculator records
-  with known `Q`-sets, and against every OEIS-known row covered by those `Q`-sets.
-  This is still only a candidate rule, not a theorem.
-- The exact finite-field reformulation is sharper than root-search language. If
-  `beta = kappa_{f(p)} + m` lies in the component field `F_{2^E}`, then `beta`
-  has no `p`-th root exactly when `p` divides the multiplicative order of `beta`.
-  Thus the excess is the least `m` such that
-  `p | ord(kappa_{f(p)} + m)`.
-- The local fixed-base probe (`experiments/ordinal_excess_probe.py`) uses that
-  criterion to verify `m_47 = 1` from the lower rows. Since `f(47) = 23` and
-  `Q(23) = {23}`, this gives `alpha_47 = omega^(omega^7)+1` — historically the first
-  row past DiMuro Table 1, now subsumed by the OEIS A380496 import (the shipped table
-  is source-pinned, not per-row locally oracled).
+The paper proves that the rule is equivalent to four universal order
+statements. They are the permanent coordinates for this problem:
 
-Since the 2026-06 research pass (`writeups/excess.tex`, `experiments/excess/`,
-`experiments/cyclotomic_3k_family.py`):
+| arm | exact assertion | proved so far | universal gap |
+|---|---|---|---|
+| \(Z\): zero | the structural norm of \(\kappa_h\) generates the full primitive-support quotient for every non-ordinary component set | synchronized multicomponent phase; exact two-component resultant; nontrivial primitive support on the power-of-two two-spine family; complete \(h=12,24\); Dickson dichotomy, reverse-Dickson trace divisor, and exact Kummer-coset transport | generation when the primitive quotient is composite; arbitrary synchronized phase; exclusion of the selected transported coset in the singleton-even Conway-Fermat case |
+| \(O\): ordinary odd spine | the selected projective class of \(\kappa_{r^a}+1\) has full primary order for every odd \(r\ne3\) | transverse norm; relative Hilbert-90 unit; signed conjugate-ball lower bound; mixed-Jacobi formulas; projective minimal polynomial and binary-section ancestry; tower-faithful common-section no-go | selected-minimal-polynomial nondivisibility at the unscaled Conway value for the smaller primary factors |
+| \(C\): cubic | \(\gamma_k=\zeta+\zeta^{-1}\in\mathbb F_{2^{3^k}}^\times\) is primitive for every \(k\) | \(C_1,C_2,C_3\) analytically; exact norm tower; partition bound; cyclic-parity and block reductions; Singer--Wendt factorization; selected \(S_3\)-quotient, reciprocal order seam, and prescribed-trace character boundary | exclusion of the recursively selected Wendt/trace fibre, equivalently the extra proper-subproduct relation, at the smaller current factors |
+| \(D\): exceptional | \(\Psi_k\mid\operatorname{ord}(M_k)\) for every \(k\), with \(\Psi_k=\Phi_{2\cdot3^k}(2)/3\) | corrected norm; exact current-factor/Capelli forms; quadratic-twist antiunit; partition bound; mixed-Jacobi flatness and binary cyclic-parity equivalences; half-block norm and selected-trace form; selected reciprocal sextic and complete cubic Dickson-factor boundary; universal cubic-shape no-go and selected absolute-trace fingerprint | exclusion of the explicit recursively selected cubic from the Dickson factor list at the smaller current factors |
 
-- The 3-power column is now structural: `C_k` — the exact formula
-  `ord(kappa_{3^k} + 1) = 3^(k+1) * (2^(3^k) - 1)` with `gamma_k` primitive — is
-  certified for `k <= 6` and consistent-but-uncertified for `k = 7, 8`, blocked
-  only by the unfactored cofactors of `Phi_{3^7}(2)` and `Phi_{3^8}(2)` (FactorDB
-  CF). Whether ECM/GNFS reaches those on a realistic budget is open.
-- The `f(p) = 2*3^k` exception column is settled at every prime current factor
-  tables reach (2026-06-12, `experiments/exception_column_m4.py`): `m_p = 4`
-  *exactly*, universally for `k <= 6` (fully factored levels — 14 rows, 11 of
-  them new, anchors `19`/`163`/`1459` reproduced never assumed) and at every
-  known prime of `k = 7, 8`. The enabling fact is a corrected compositum norm:
-  `sigma(4) = 5` (the F_4-Artin-Schreier conjugate; the earlier draft's
-  `(kappa+4)(kappa+6)` was a Frobenius slip), so
-  `Norm(kappa+4) = (kappa+4)(kappa+5) = kappa^2 + kappa + 2`, which collapses
-  the `m = 4` test into the same trinomial field as the `C_k` chain:
-  `m_p = 4  <=>  p | ord(M_k)`, `M_k = Nbar/N`, `N = zeta^2 + zeta + zeta^h`.
-  The per-level conjecture `D_k` (the prime-to-3 part of `ord(M_k)` is full) is
-  the new column analogue of `C_k`; the norm tower is *twisted*
-  (`Norm(N_k) = eta^2 + omega^2*eta + 1 != N_{k-1}`), so no `gamma`-style
-  propagation exists and each level stands alone. An `m_p >= 5` example, if one
-  exists, now hides strictly inside the unfactored cofactors of
-  `Phi_{2*3^7}(2)` and beyond.
-- Wieferich caveat: the order criterion `m_p = min m : p | ord(kappa_{f(p)} + m)`
-  is valid only when `v_p(2^(f(p)) - 1) = 1`. The two known base-2 Wieferich
-  primes `1093` and `3511` sit inside the extended range and need the full power
-  criterion.
-- Newly certified `m_r = 1` rows (`262657` at `f = 27`; `71119` and `97685839` at
-  `f = 81`; representatives at `f = 243, 729, 2187, 6561`) keep the candidate
-  `0/1/4` rule unbroken. Still no proof; boundedness outside the 3-power and
-  `2*3^k` columns (the 11-chain, the 23/29/47 components) has no structural
-  theory, and no `m_p >= 5` example is known.
-- The `p = 719` dependency rehearsal advanced one rung and then hit a wall. The
-  local fixed-base oracle certifies `m_89 = 1` (`E = 220`) and `m_179 = 1`
-  (`E = 19,580`) via the fixed-base power path (`python3
-  experiments/ordinal_excess_probe.py --deep`, ~1 min). `m_359 = 1` is the
-  remaining rehearsal row before `m_719` — already source-pinned by A380496, but
-  with no *independent* local certificate, and the 2026-06-16 pass diagnosed
-  precisely why it is blocked (`writeups/excess.tex`, "the m359 rehearsal
-  obstruction"):
-  - The structurally cheap **top-step Kummer norm** is the wrong norm. With
-    `f(359) = 179`, the tower has `F = F_{2^E}` over `B = F_{2^19580}`, and
-    `Norm_{F/B}(κ_179 + 1) = κ_89 ∈ B` — but `359 ∤ 2^19580 − 1` (since
-    `ord_359(2) = 179 ∤ 19580`), so `359` is *invisible* in `B`. The certified
-    `m_89` / `m_179` rows do not propagate up through the easy norm.
-  - The norm actually forced by the order criterion is the **transverse**
-    `Norm_{F/L}(β)`, `L = F_{2^179}` (`gcd(179, 19580) = 1`, so `F = B·L`): the
-    `F_{2^3504820} / F_{2^179}` norm is the genuinely required object.
-  - In the current pure-Python term basis that target-subfield element is
-    essentially **half-dense** (support `111/220` for the `p = 89` analogue,
-    `9691/19580` for `p = 179`), so the direct fixed-base root-test exponent is
-    slower than the cheap certificate — a representation diagnostic, not a no-go.
-  - The Wieferich caveat is *absent* at the live pressure points: `2^179 ≢ 1
-    (mod 359²)` and `2^359 ≢ 1 (mod 719²)`, so the order form equals the full
-    power criterion for both `m_359` and the proposed `m_719` test.
-  A practical `m_359` certificate now needs either dense/sliced GF(2) arithmetic
-  (`gf2x` / NTL) or a tower-aware Frobenius representation that makes the
-  transverse orbit cheap; the pure-Python oracle cannot reach it. The same
-  `Norm_{E/K}(β) = ∏_i Frob^i(β)` orbit primitive is what Bridge K's
-  cyclic-algebra reduced norm needs — a reusable
-  `relative_norm_over_frobenius_orbit` is the shared engineering lever (not a
-  claim that the bounded `Fpn` norm certifies `m_719`).
-- `p = 719` feasibility: the direct test needs ~3.5 million Frobenius steps in
-  `F_{2^1258230380}`; tower-aware Frobenius arithmetic (De Feo–Randriam–Rousseau
-  standard lattices) is the conjectured 10–100x lever — a cost model, not a
-  theorem.
+The reduction is a theorem. None of the four universal assertions is claimed
+complete.
 
-Why this is research:
-- The same-coverage implementation improvement is now done: the shipped code computes
-  `f(u)`, `Q(f(u))`, and the `chi`-sum, while hardcoding only the finite excess
-  integer. That changes provenance hygiene, not reach.
-- Extending past the verified finite-excess table is different. DiMuro's theorem proves that the
-  excess has a formulaic transfinite shape plus a finite correction, but the finite
-  correction has no closed form in the cited theorem.
-- Weaker "closed forms" already fail: `Q(f(p))` alone does not determine the
-  excess, since `Q = {9}` gives `m_19 = 4` but `m_73 = 1`; similarly
-  `Q = {81}` gives `m_163 = 4` but `m_2593 = 1`, and `Q = {243}` gives
-  `m_1459 = 4` but `m_487 = 1`.
-- The candidate `0/1/4` rule above would imply a global bound `m_p <= 4`. Lenstra
-  explicitly left absolute boundedness open after proving lower-bound rules such
-  as singleton-odd `Q(f(p))` forcing positive excess and `f(p)=2*3^k` forcing
-  excess at least `4` (the matching upper bound `m_p = 4` is now certified at
-  every visible prime of that column; see above).
-- The order formulation explains the first weak-formula failures without appealing
-  to the production table. In the independent probe, `ord(kappa_9 + 1) =
-  3^3*(2^9 - 1)`, so `73 | ord(kappa_9 + 1)` but `19` does not divide it; adding
-  `4` changes the order and picks up `19`. This is why the same `Q = {9}` gives
-  both `m_73 = 1` and `m_19 = 4`.
-- Shipping new values would require an independent oracle, a root-search theorem,
-  or a new algorithmic proof. Otherwise the project would be numerology with a
-  pleasant API.
+#### Shared finite-field criterion
 
-Concrete progress targets:
-- ~~Decide whether to import more known OEIS/calculator values through `p <= 709` as
-  cited data, or keep requiring a local finite-field oracle for each shipped row.~~
-  **Done (2026-06-13):** the finite `m_u` table is now the full OEIS A380496 b-file
-  (126 rows, odd primes `3..=709`), source-pinned rather than per-row locally oracled.
-  The remaining gap is *feasibility* (materializing `alpha_u` for large-`e_u` rows),
-  not *coverage*.
-- Derive or certify finite excess terms beyond the published table. (Done for
-  the `2*3^k` column at every visible prime — 11 new `m_p = 4` rows, 2026-06-12;
-  the `3`-power column's `m_r = 1` rows were certified in the earlier pass;
-  the `p=719` dependency rehearsal now locally certifies `m_89 = m_179 = 1`.
-  Other columns remain.)
-- Prove or find a counterexample to the candidate `0/1/4` rule. The smallest
-  pressure point is `p = 719`, where the rule predicts `m_719 = 1` but the direct
-  calculator path is too large for ordinary local verification; the next
-  dependency to certify locally is `m_359 = 1`, now shown obstructed in the
-  pure-Python oracle (the required transverse norm is half-dense — see above),
-  pending faster GF(2) / tower-Frobenius arithmetic.
-- Turn the order-divisibility criterion into an actual theorem about the prime
-  divisors of `ord(kappa_q + m)`, especially for singleton odd `Q = {q}` and for
-  the exceptional tower `q = 3^k`.
-- Build a verified `u`-th-power/root-search oracle for the transfinite field.
-- Prove enough about the search to avoid merely empirical extensions.
-- ~~Decide what evidence is acceptable for shipping `alpha_53` and beyond.~~ Settled:
-  OEIS A380496 (a maintained sequence, values verified upstream by CGSuite's calculator)
-  is accepted as source-pinned evidence through `p <= 709`. The next question is what
-  evidence justifies rows past `p = 719` (the first OEIS-unknown), which need a fresh
-  computation, not a table lookup.
+If the candidate translate
+\(\beta=\kappa_{f(p)}+m\) lies in \(\mathbb F_{2^E}\), then it has no
+\(p\)-th root exactly when
+\[
+\beta^{(2^E-1)/p}\ne1,
+\]
+equivalently when \(\operatorname{ord}(\beta)\) contains the full
+\(p\)-primary part of \(2^E-1\). Reducing this to
+\(p\mid\operatorname{ord}(\beta)\) is valid only when
+\(v_p(2^E-1)=1\). The correct valuation is
+\[
+v_p(2^E-1)
+=
+v_p(2^{f(p)}-1)+v_p(E/f(p)).
+\]
+Thus both base-2 Wieferich behavior and a factor of \(p\) in \(E/f(p)\)
+must be retained. Relative norm to \(\mathbb F_{2^{f(p)}}\) gives the
+exact smaller-field power test.
+
+#### What the four arms now say
+
+- **\(Z\), multicomponent phase.** Componentwise norms lose a synchronized
+  Frobenius phase. The paper retains that phase exactly, expresses the
+  two-component case by a resultant over the intersection field, and proves
+  primitive support for a power-of-two two-spine family. The associated
+  Hilbert-90 cross-ratio is exact, but the first divisor comparison has degree
+  up to \(2r-2\); it does **not** imply the formerly claimed \(2^r-1\) order
+  bound. That invalid bound has been removed.
+
+- **\(Z\), singleton-even chain.** The condition is precisely maximal order of
+  the Conway class in the quadratic quotient:
+  \(\delta_n=F_n=2^{2^n}+1\). Fibotomic, resultant, elliptic, Kummer-cover, and
+  generalized-Jacobian formulations all reduce to the same distinguished
+  Miller-unit value. They prove that degree, trace, norm, quarter-turn
+  symmetry, and the full natural boundary-character package do not decide
+  nonvanishing. The exact \(\ell\)-root descent now shows that even the full
+  lower trace/norm ancestry and the maximal predecessor order survive a
+  hypothetical failure automatically; the top step is equivalent to one
+  explicit Dickson power-sum equation. Its degree-\(\ell\) Dickson
+  polynomial has an all-or-nothing factorization: it splits completely on
+  failure and is irreducible on success, with an exact resultant and
+  absolute Capelli composition. A reverse-Dickson transform gives a sharper
+  exact criterion: failure occurs precisely when an explicit absolute norm
+  polynomial containing the selected minimal polynomial of \(a_{n-1}\)
+  divides the trace-one polynomial
+  \(1+\sum_{j=0}^{2^n-1}Z^{2^j}\). On success that norm polynomial is one
+  irreducible; on failure it is exactly \(\ell\) full-degree factors. The
+  resulting root count and long leading-coefficient gap are both compatible
+  with every composite Fermat case. More exactly, the trace-one hyperplane is
+  the inversion quotient of the norm-one torus, and the reverse-Dickson
+  factor is literally one multiplicative \(\mu_\ell\)-coset transported
+  through that quotient. Its fibotomic support is explicit and has automatic
+  capacity. Thus derivatives, root sums, coefficient gaps, and support are
+  all realized by nonselected cosets: this is a selected-factor reduction,
+  not yet a contradiction.
+
+- **\(O\), ordinary odd spines.** These now have a structural theory: a
+  projective quotient, a selected relative cyclotomic unit, and a signed
+  conjugate-ball sieve. The missing theorem is full order at the remaining
+  small primary factors. The unweighted reciprocity orbit cancels not only for
+  the second argument \(2\), but for every selector from the base cyclotomic
+  field. A Teichmuller-weighted product formula proves that pure
+  \(\mathbb Q(\mu_p)\) selectors cancel as well; mixed Jacobi sums escape
+  that cancellation and recover the target as one exact inverse-Fourier
+  coefficient, but its local \(p\)-adic phase is the original unresolved
+  Kummer datum. Equivalently, the selected relative unit has an explicit
+  degree-\(r\) projective minimal polynomial, and failure means that all
+  nonconstant binary sections of \((1+x)^{\mathcal L_{r,a}/p}\) vanish at
+  \(x_{a-1}\). Descending the ancestry makes this simultaneous divisibility
+  by the actual Conway minimal polynomial \(P_{\alpha_r}\). Relative norm and
+  submask complementation are automatic on that pattern, so only the selected
+  nondivisibility can close the arm. A character-sum construction makes the
+  point sharp: complete irreducible \(r\)-power towers with smooth exact
+  degree, the same bottom Kummer coset, matched multiplicative order, all
+  section divisibilities, and full Wieferich-safe bookkeeping can fail
+  abundantly. Only the unscaled Conway scalar remains distinguished. The
+  table value \(m_{359}=1\) is known from A380496;
+  what remains open at that row is an independent analytical evaluation of
+  its selected trace/resultant phase.
+
+- **\(C\), cubic spine.** The norm recursion carries old factors, while each
+  level introduces a new factor \(\Phi_{3^k}(2)\). The paper proves the first
+  three levels without order computation and gives several exact
+  reformulations and lower bounds. The derivative regulator is rigorous but
+  circular: its reduction is a power of the same unknown Gaussian period. An
+  exact counterexample also shows that the polynomial coefficient recursion
+  can carry a primitive irreducible input to an irreducible but nonprimitive
+  output, so primitivity is not a formal inductive invariant. A new cyclic
+  group-algebra reduction makes failure equivalent to a sharp subset-sum
+  parity pattern: every residue modulo \(3^{k+1}\) occurs oddly except one.
+  In the augmentation ideal this is an extra proper-subproduct relation;
+  the full Frobenius product and its immediate \(\ell\)-th-power exponent
+  consequence are unconditional, so they cannot supply the contradiction.
+  A block compression now proves that submask complementation forces the
+  unique even residue into exactly the position required by failure. Failure
+  is also equivalent to the distinguished minimal polynomial and its
+  reciprocal translate occurring in a binary Wendt gcd. Every factor of
+  that gcd has degree \(3^k\) and translation pairs the factors, so neither
+  Wendt-factor existence nor reciprocal symmetry singles out the selected
+  pair. More sharply, an exact Singer-difference-set factorization gives
+  the coset-intersection moments; when
+  \(\ell-1<\sqrt q+1/\sqrt q\), every coset necessarily contains
+  degree-\(3^k\) Wendt factors. The selected pair descends under the free
+  \(S_3\) action to the lower trace value
+  \(\eta_{k-1}^2+\eta_{k-1}+1=\gamma_{k-1}^{-2}\). The descended
+  elements satisfy an irreducible cubic with trace and norm equal to the
+  preceding one, and their orders factor exactly as the preceding order
+  times the current norm-one selector order. Thus this is a lossless
+  reciprocal formulation, not an induction. Equivalently, failure is the
+  extremal value \(3\) of one prescribed-trace character sum at
+  \(\eta_{k-1}\). Other trace fibres genuinely attain \(3\), so a uniform
+  Weil or character bound cannot exclude the selected fibre.
+
+- **\(D\), exceptional spine.** The corrected \(m=4\) norm is
+  \(N_k=\zeta^2+\zeta+\omega\), and the exact conjecture is current-level
+  \(D'_k\), not cumulative propagation of all old factors. The quadratic-twist
+  antiunit and partition regulator prove an explicit large-factor range.
+  Semiprimitive Fourier data, line saturation, Dirichlet coefficients,
+  relative Dickson forms, and proper-subfield norms are all compatible with
+  failure. Mixed Jacobi sums now give an exact first-order formulation:
+  failure is equivalent to simultaneous congruences
+  \(J_j\equiv-1\pmod{(\zeta_\ell-1)^2}\) for the full composite-conductor
+  family. Equivalently, binary submasks of \((2^{4\cdot3^k}-1)/\ell\)
+  occur evenly in residue zero modulo \(15\cdot3^k\) and oddly in every
+  nonzero residue; raising this identity to \(\ell\) is again automatic.
+  The binary exponent splits into two equal blocks, turning failure into a
+  quadratic norm equation. Its involution-fixed residue pushforward is
+  unconditional, and Hilbert--90 gives no obstruction. The remaining
+  selected \(\ell\)-th root is nontrivial exactly when one explicit relative
+  trace to \(\mathbb F_{2^{3^{k-1}}}\) is nonzero. More sharply, the
+  selected phase has an explicit reciprocal sextic over that field, and
+  failure is equivalent to one named irreducible cubic dividing
+  \(D_e\), where \(e=(2^{2\cdot3^{k-1}}-2^{3^{k-1}}+1)/\ell\).
+  The exact factorization of \(D_e\) is \(Y(Y+1)^2\) times squares of
+  irreducible cubics, so the ambient structure supplies many admissible
+  false positives. Every one of those cubics has constant coefficient equal
+  to the square of its trace coefficient, exactly matching the selected
+  cubic. The selected remaining coefficients have absolute traces \(1\) and
+  \(k\bmod2\), but the factorization supplies no contradictory coordinate
+  identity. The cubic and exceptional current groups also have coprime
+  orders, so their analogous torus formulations cannot transfer the result.
+  Excluding the recursively selected cubic, not generic
+  cubic-factor existence, is the remaining Kummer evaluation.
+
+#### Evidence boundary
+
+Use four distinct evidence levels:
+
+1. **Proved theorem / cited theorem.** A written proof in
+   `writeups/excess.tex` or an identified external theorem.
+2. **Certified exact finite computation.** Exact arithmetic plus locally
+   checkable factorization and primality information for the stated finite
+   levels only.
+3. **Source-pinned external value.** Imported from an identified maintained
+   source, without an independent proof in this checkout.
+4. **Consistent incomplete evidence.** All known factors or sampled rows pass,
+   but an unfactored cofactor, unproved primality claim, or untested level
+   remains.
+
+Current evidence:
+
+- The implementation vendors and row-diffs all \(126\) A380496 entries for odd
+  primes \(3\le p\le709\). These *integer excesses* are source-pinned. The next
+  unsupported carry is \(\alpha_{719}\).
+- The contributor-linked extended A380496 auxiliary table reports
+  \(m_{1093}=m_{3511}=0\), the two known base-2 Wieferich rows. The calculator
+  uses Lenstra's exact \((2^E-1)/p\) power test, so these values assert full
+  \(p^2\)-primary order rather than radical support. They are external exact
+  computations, however: they are outside the approved 126-row b-file and
+  carry no compact remainder certificate in this checkout.
+- The resulting ordinal carry is independently value-checked only at the named
+  subset documented beside the tower tests; table coverage must not be confused
+  with per-row ordinal verification or practical constructibility.
+- Cubic: \(C_1,C_2,C_3\) are theorems; \(C_4,C_5\) are locally certified;
+  \(C_6\) is source-assisted because the local path has only probable-prime
+  evidence for its 42- and 90-digit factors; \(k=7,8\) are consistent only,
+  with unfactored cofactors.
+- Exceptional: \(k=2,\ldots,5\) are locally certified; \(k=6\) is
+  source-assisted because its 78-digit factor lacks a local certificate;
+  \(k=7,8\) are consistent only, again with unfactored cofactors.
+- The finite exception rows do not prove \(D'_k\) universally, and the finite
+  cubic rows do not prove \(C_k\) universally.
+
+#### Current proof targets
+
+1. **\(Z\).** Exclude the selected reverse-Dickson divisor and thereby prove
+   the Conway-Fermat quotient order \(\delta_n=F_n\); prove generation of the
+   composite two-spine primitive quotient; then control the general
+   synchronized phase.
+2. **\(O\).** Prove that at least one selected binary section is nonzero
+   modulo \(P_{\alpha_r}\) at every remaining small primary factor
+   (equivalently evaluate \(\Theta_{q,s}\)).
+3. **\(C\).** Exclude the extremal prescribed-trace value at the Conway
+   fibre \(\eta_{k-1}\), equivalently prove that every current primary
+   factor of \(\Phi_{3^k}(2)\) occurs fully in
+   \(\operatorname{ord}(\gamma_k)\).
+4. **\(D\).** Exclude the explicit selected cubic of
+   `prop:dk-selected-sextic` from its Dickson factor list at every factor
+   of \(\Psi_k\); equivalently prove the Capelli/antiunit condition \(D'_k\).
+
+Exact-order and factorization runs remain useful for falsification and audits,
+but they are not the leading proof route. A solution must exploit the
+distinguished Conway/cyclotomic value, because the paper now proves that the
+obvious generic invariants are insufficient.
 
 Relevant surfaces:
 - `writeups/excess.tex`
+- `writeups/excess.pdf`
 - `experiments/ordinal_excess_probe.py`
 - `experiments/cyclotomic_3k_family.py`
 - `experiments/exception_column_m4.py`
+- `experiments/excess/` (archive; honor its per-file status table)
 - `src/scalar/big/ordinal/tower.rs`
+- `src/scalar/big/ordinal/b380496.txt`
 - `src/scalar/big/ordinal/mod.rs`
 - `src/scalar/AGENTS.md`
-- `examples/tour.rs`
 
 ### off·(e_f∧e_s∧e_c): `transfinite Arf/Witt classification for ordinal-nimber coefficients`
 
@@ -726,17 +800,15 @@ Relevant surfaces:
 - `writeups/goldarf.tex` §5 (the extraspecial reframing this lifts)
 - `tis` — the `ℤ/2` floor of this question
 
-### under·(e_g∧e_s): `thermography ↔ Newton polygons: one tropical object or two?`
+### ~~under·(e_g∧e_s): `thermography ↔ Newton polygons: one tropical object or two?`~~ — resolved
 
-Decide whether the project's two tropical consumers — thermography (`MaxPlus`, the
-games axis) and the valuation/Newton-polygon stack (`MinPlus`, the place axis,
-Bridge J) — are connected by a substantive transport, or whether the mirror is
-purely notational. Either answer is the contribution; as of this pass the
-thermograph-level mirror has a *negative* theorem and the positive question has a
-sharper form (below). The duality is named (`scalar/tropical.rs` enforces the
-two-type separation), and the place axis is fully standard.
+**Resolved 2026-07-20: two objects, with a substantive filtered shadow.**  The
+project's two tropical consumers — thermography (`MaxPlus`, the games axis) and
+the valuation/Newton-polygon stack (`MinPlus`, the place axis, Bridge J) — cannot
+be one faithful Newton-style dyadic graded ring.  The exact closure is in
+`writeups/thermo_newton.tex`; the implementation record lives in `docs/DONE.md`.
 
-Why this is research:
+Why this was research:
 - On the place axis the valuation axiom `v(x+y) >= min(v(x), v(y))` makes Newton
   polygons additive under multiplication (Dumas), and passing to the graded ring
   `gr_v` "freezes" leading terms; `scalar/newton.rs` plus the Springer tests pin
@@ -749,10 +821,11 @@ Why this is research:
   thermograph as a sum-compatible tropical object — provably fails, and replaced
   it with a sharper target.
 
-The program state (2026-06-19 — `writeups/thermo_newton.tex` +
+The closed program state (2026-07-20 — `writeups/thermo_newton.tex` +
 `experiments/under_descent.py`): a negative theorem at the thermograph level,
-plus a sharper associated-graded obstruction after the Norton/overheating
-infrastructure landed.
+an unrestricted associated-graded obstruction, a positive exact descent theorem
+for every numeric Norton unit, and two final no-go theorems excluding a faithful
+dyadic-unital ring and a multiplicative Norton scalar action.
 
 - **The thermograph is not a sum invariant (proved).** `G ↦ Th(G)` is not a
   congruence for disjunctive sum: no operation taking only `Th(G)` and `Th(H)` can
@@ -785,23 +858,57 @@ infrastructure landed.
   on all-small games (`aw(↑) = 1`, `aw(↓) = −1`, `aw(*) = 0`), but its kernel still
   contains nimber-like residues (`* + * = 0` shows the kernel matters) — so even the
   first graded piece is a genuine residual game object, not the mast.
-- **Where it stalls (open).** Short games are not a ring. The repo now carries
+- **Unrestricted descent fails.** Short games are not a ring. The repo now carries
   game-valued Norton multiplication / overheating operators as infrastructure, so
-  the question is sharper, and the unrestricted answer is now negative. In the
+  the unrestricted answer is negative. In the
   `τ = 0` quotient, `*` and `* + 1` differ by the cold number `-1`, but Norton
   multiplication by the positive infinitesimal unit `↑` sends that hidden integer
   residue to a leading temperature-0 difference (`aw = -1`); the degenerate
   overheating operator `∫_↑^0` gives the same obstruction (`aw = -2`). Thus
-  nonnumeric units do **not** descend to the naive `gr_T(Games)` quotient. The
-  bounded sanity scan found no failures for numeric units `1` and `2` on a
-  21-game catalogue (126 representative-pair checks for Norton and for
-  `∫_s^0`), so the remaining live target is a restricted/normalized product or a
-  refined quotient that retains cold-number coefficients. The scalar temperature
-  hyperoperation (`a ⊞ b = max(a,b)` if `a ≠ b`, else "all temperatures `≤ a`")
-  is clean and useful, but lifting it to full thermographs without adding
-  residues is either false (no-congruence) or tautological.
+  the unrestricted nonnumeric-unit family does **not** descend to the naive
+  `gr_T(Games)` quotient (this proves existence of failure, not failure for every
+  positive nonnumeric unit).
+- **Numeric Norton descent is proved (new positive transport).** Let the positive
+  dyadic unit be `u = m/2^k`, put `δ = 2^-k` (`δ = 1` for an integer), and
+  `a = u - δ`. For every nonnumeric thermographic game,
+  `mean(G.u) = u mean(G)` and `temp(G.u) = u temp(G) + a`. A cold number `x`
+  with canonical mesh `ε = 1/den(x)` can become hot, but its exact temperature is
+  `a-uε` when that is nonnegative and `-1` otherwise — always strictly below `a`.
+  Standard Norton linearity therefore gives an additive graded map
+  `gr_τ -> gr_(uτ+a)` for every `τ >= 0`; the identical recursion is Berlekamp
+  overheating `∫_u^a`. For integer `u=n`, the shifted height `h=τ+1` scales
+  exactly as `h -> n h`. `numeric_norton_regrade` and
+  `numeric_norton_mean_temperature` compute the theorem without materializing the
+  product. Rust tests pin the formula and quotient descent on the complete
+  22-value day-two census plus a bounded day-three singleton-option census; the
+  Python probe checked 210 thermic pairs and 24 representative pairs each for
+  Norton/matching overheating with zero numeric-unit failures.
+- **The internal-ring hope is impossible under the full-dyadic coefficient
+  contract (proved).** The nonzero class `[*]` in `gr_0` has order 2.  In either
+  an ordinary `ℤ[1/2]` algebra or a graded initial-form coefficient object for a
+  valued dyadic field, the element representing 2 is homogeneous and invertible;
+  lift-compatible action sends `[*]` to the initial class of `*+*=0` and would
+  therefore force `[*] = 0`.  Thus a Rees or
+  secondary valuation does not evade the theorem when the full dyadic field still
+  acts.  A characteristic-2 nimber-only slice or a valuation-ring action can evade
+  it only by omitting the `1/2` inverse.
+- **The numeric transports are not a scalar action (proved exactly).** Their
+  degree maps `r_u(τ)=uτ+u-δ_u` obey
+  `r_v(r_u(τ)) = r_(uv)(τ) + Δ(u,v)`, where
+  `Δ(u,v)=v(1-δ_u)-δ_v+δ_(uv) ≥ 0`.  At `u=1/2`, `v=2`, the defect is `1`:
+  `A_2 A_(1/2)(*)` has temperature `1`, while `A_1(*)` has temperature `0`.
+  No residue enrichment preserving temperature can repair an exact degree
+  mismatch.  `numeric_norton_composition_defect` implements the formula; the
+  Python probe checks 2,304 dyadic pairs and five materialized witnesses.
+- **Resolution.** The mirror is substantive but stops before multiplication:
+  the game side is a temperature-filtered abelian group with external numeric
+  regradings, while the place side is an associated graded ring.  A
+  characteristic-2 slice, valuation-ring/integer-only action without `1/2`,
+  nonunital ringoid, hyperstructure, or quotient killing `[*]` may still be
+  interesting, but each abandons a stated part of the full-dyadic unification
+  contract and is not a reopening of `under`.
 
-Concrete progress targets:
+Closure checklist:
 - ~~Formulate and test the lax law for `t(G+H)` as a hyperfield statement; locate
   the game-side vanishing locus.~~ **Done**: `temp(G+H) ≤ max(temp G, temp H)`
   holds with equal-temperature pairs as the vanishing locus, but it is provably too
@@ -810,19 +917,22 @@ Concrete progress targets:
   dictionary works only in the trivial one-parameter switch family and does not
   extend to a sum theorem.
 - ~~Test whether unrestricted Norton multiplication / overheating descends to
-  the first temperature-filtration quotient.~~ **Done, negative for nonnumeric
-  units:** `* ≡ * + 1 (mod F_<0)`, but multiplying/overheating by `↑` leaves a
-  non-lower temperature-0 residue. This rules out the naive full Berlekamp/Norton
-  product on `gr_T(Games)`.
-- The reframed central target: decide whether any restricted product survives:
-  numeric Norton units, mean-normalized positive units with the cold coefficient
-  retained separately, or a quotient refined by atomic-weight/nimber-kernel data.
-  **Yes** ⇒ one tropical object, but only after a stricter residue enrichment than
-  the naive associated graded; **no** ⇒ two tropical objects sharing only the
-  scalar hyperfield shadow.
-- If every transport trivializes, write the no-go in the now-precise form: the
-  thermograph is not a sum congruence (done), and no residue enrichment recovers a
-  cooling-compatible product.
+  the first temperature-filtration quotient.~~ **Done, negative for the
+  unrestricted nonnumeric-unit family:** `* ≡ * + 1 (mod F_<0)`, but
+  multiplying/overheating by `↑` leaves a non-lower temperature-0 residue.
+  This existence witness rules out the naive full Berlekamp/Norton product on
+  `gr_T(Games)`; it does not assert failure for every nonnumeric unit.
+- ~~Decide whether numeric Norton units survive on the temperature associated
+  graded.~~ **Done, positive for every positive dyadic unit:** the exact affine
+  regrading is `τ -> uτ + (u-δ)`, and the image of every cold-number difference is
+  strictly lower. This is the first substantive positive transport in `under`.
+- ~~Decide whether anything larger survives under the Newton-style coefficient
+  contract.~~ **Done, negative:** the `[*]` 2-torsion obstruction rules out any
+  faithful dyadic-unital algebra, independently of the chosen internal product.
+- ~~Promote the numeric composition failure from a witness to an exact theorem.~~
+  **Done:** the nonnegative defect and all zero-defect pairs are classified;
+  `u=1/2`, `v=2` rules out a multiplicative Norton action in exact temperature
+  degree.
 
 Relevant surfaces:
 - `writeups/thermo_newton.tex`
@@ -854,6 +964,8 @@ Relevant surfaces:
   quotient/kernel theory behind the misère obstruction (for `tis`).
 - Berlekamp, *The economist's view of combinatorial games*, in Games of No Chance
   (1996): the informal cooling dictionary (for `under`).
+- Berlekamp, *Blockbusting and Domineering*, JCTA 49 (1988): generalized
+  overheating, the numeric-unit surface used by the positive `under` theorem.
 - Maclagan-Sturmfels, *Introduction to Tropical Geometry*; Viro, *Hyperfields for
   tropical geometry I*: valuations as (lax) tropicalization and the strictness
   repair (for `under`).
