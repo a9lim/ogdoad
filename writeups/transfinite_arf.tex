@@ -1,0 +1,451 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\F}{F}
+\newcommand{\On}{\mathrm{On}_2}
+\newcommand{\rad}{\operatorname{rad}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\Cl}{\operatorname{Cl}}
+\newcommand{\BW}{\operatorname{BW}}
+\newcommand{\Wq}{W_q}
+\newcommand{\wpmap}{\wp}
+
+\title{The Arf Switches Off:\\
+Quadratic Forms over the Full Nimber Field}
+\author{a9lim and Codex}
+\date{7 August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note resolves the \texttt{off} problem in Ogdoad's open ledger.  The
+ground field, rather than a new transfinite trace, decides the question.
+Conway's full nimber field $\On$ is algebraically closed of characteristic
+$2$.  Consequently the Artin--Schreier map is surjective, every regular
+finite-dimensional quadratic form over $\On$ is hyperbolic, and the
+quadratic Witt group is zero.  A possibly singular form is classified by
+the rank of its polar form, the radical dimension, and whether its
+restriction to the radical vanishes; there is no further Arf coordinate.
+The Clifford/Brauer--Wall class of every regular form is therefore split.
+
+The finite-field Arf bit remains correct as a \emph{relative} invariant over
+the chosen finite nim-subfield.  It dies after a quadratic scalar extension,
+so its directed colimit through the finite nim-subfields is zero.  This also
+exposes an empty mathematical middle case: every ordinal below
+$\omega^{\omega^\omega}$ is algebraic over $\mathbb F_2$, so every finite
+metric in that segment has a common finite field of definition.  The backend
+detects that field only when the required Kummer excess rows are verified and
+the checked degree arithmetic remains representable.
+Finally, Ogdoad's partial \texttt{Ordinal} arithmetic need not pretend to
+construct Artin--Schreier roots that lie outside its verified window, even
+though the full-$\On$ classification is mathematically complete.
+\end{abstract}
+
+\section{Question and answer}
+
+Let $\F$ be a field of characteristic $2$, let $V$ be finite-dimensional,
+and let
+\[
+ Q:V\longrightarrow \F,
+ \qquad Q(av)=a^2Q(v),
+\]
+be a quadratic form.  Its polar form is
+\[
+B(u,v)=Q(u+v)+Q(u)+Q(v).
+\]
+It is alternating.  Write $R=\rad(B)$, and call $Q$ regular when $R=0$.
+In repository terms this is an ordinary characteristic-$2$ $(q,b)$ metric:
+the general-bilinear deformation coordinate \texttt{metric.a} is empty.
+The Artin--Schreier map and quotient are
+\[
+ \wpmap:\F\longrightarrow\F,\qquad
+ \wpmap(t)=t^2+t,
+ \qquad \F/\wpmap(\F).
+\]
+For a regular form and a symplectic basis $(e_i,f_i)_{i=1}^r$, the usual
+characteristic-$2$ Arf class is represented by
+\[
+ \sum_{i=1}^r Q(e_i)Q(f_i)\pmod{\wpmap(\F)}.
+\]
+Over a finite field this quotient has two elements and the absolute trace
+identifies it with $\mathbb F_2$.  The open question was what replaces that
+bit for genuinely transfinite nimber coefficients, where no finite absolute
+trace exists.
+
+The answer is: \emph{nothing replaces it over the full nimber field.}  The
+class already lives naturally in $\F/\wpmap(\F)$, and this quotient is zero
+when $\F=\On$.  More strongly, we give the complete singular normal form
+below.
+
+The needed external input is standard.  Conway's nim addition and nim
+multiplication turn the class of ordinals into the algebraically closed
+characteristic-$2$ field $\On$; Lenstra states this explicitly and analyzes
+the algebraic-closure beginning segment~\cite{Lenstra77}.  All remaining
+arguments in this note are elementary linear algebra.
+
+\section{Elementary splitting lemmas}
+
+\begin{lemma}[Closure consequences]\label{lem:closure}
+Let $\F$ be algebraically closed of characteristic $2$.  Then Frobenius
+$x\mapsto x^2$ and the Artin--Schreier map $\wpmap(x)=x^2+x$ are both
+surjective.  Hence $\F$ is perfect and $\F/\wpmap(\F)=0$.
+\end{lemma}
+
+\begin{proof}
+For $a\in\F$, algebraic closure supplies a root of $X^2-a$ and a root of
+$X^2+X-a$.  These are respectively a square root of $a$ and a preimage of
+$a$ under $\wpmap$.  Frobenius is injective in every field, so the square
+root is unique.
+\end{proof}
+
+Let $H$ denote the hyperbolic plane: in a basis $e,f$,
+\[
+ Q(e)=Q(f)=0,\qquad B(e,f)=1.
+\]
+
+\begin{lemma}[Every regular plane is hyperbolic]\label{lem:plane}
+Let $\F$ be algebraically closed of characteristic $2$.  Every regular
+quadratic plane over $\F$ is isometric to $H$.
+\end{lemma}
+
+\begin{proof}
+Choose a symplectic basis $e,f$, so $B(e,f)=1$, and put
+$a=Q(e)$, $b=Q(f)$.  Thus
+\[
+ Q(xe+yf)=ax^2+xy+by^2.
+\]
+If $a=0$, then $e$ is a nonzero isotropic vector.  If $a\ne0$, choose
+$t\in\F$ satisfying
+\[
+ t^2+t+ab=0
+\]
+and set $v=(t/a)e+f$.  Direct substitution gives
+\[
+ Q(v)=\frac{t^2+t+ab}{a}=0.
+\]
+In either case take a nonzero isotropic vector $v$.  Regularity supplies
+$w_0$ with $B(v,w_0)=1$.  Since $Q(v)=0$,
+\[
+ w=w_0+Q(w_0)v
+\]
+satisfies $B(v,w)=1$ and
+\[
+ Q(w)=Q(w_0)+Q(w_0)B(w_0,v)=0.
+\]
+Thus $v,w$ are a hyperbolic basis.
+\end{proof}
+
+\begin{proposition}[The regular part]\label{prop:regular}
+Every regular quadratic space of dimension $2r$ over an algebraically
+closed field of characteristic $2$ is isometric to $H^{\perp r}$.
+Consequently $\Wq(\F)=0$.
+\end{proposition}
+
+\begin{proof}
+An alternating nondegenerate form has even dimension and a symplectic
+plane.  Lemma~\ref{lem:plane} makes the quadratic form on that plane
+hyperbolic.  Its polar-orthogonal complement is again regular.  Induction
+splits off $r$ hyperbolic planes.  Since every regular form is metabolic,
+its quadratic Witt class is zero.
+\end{proof}
+
+The polar radical carries a small residue of information, but it is not an
+Arf class.  Let $Z$ denote the one-dimensional zero form and let $A$ denote
+the one-dimensional form $x\mapsto x^2$; both have zero polar form.
+
+\begin{lemma}[The radical has only two forms]\label{lem:radical}
+Let $R$ be an $s$-dimensional vector space over a perfect field of
+characteristic $2$, and suppose the polar form of $Q|_R$ is zero.  Then
+there is a unique linear functional $\ell:R\to\F$ such that
+\[
+ Q(r)=\ell(r)^2.
+\]
+Up to isometry, $Q|_R$ is $Z^{\perp s}$ if $\ell=0$, and
+$A\perp Z^{\perp(s-1)}$ if $\ell\ne0$.
+\end{lemma}
+
+\begin{proof}
+For a basis $r_1,\dots,r_s$, choose the unique $c_i\in\F$ with
+$c_i^2=Q(r_i)$ and define
+\[
+ \ell\!\left(\sum_i x_i r_i\right)=\sum_i c_i x_i.
+\]
+Because the polar form vanishes,
+\[
+ Q\!\left(\sum_i x_i r_i\right)=\sum_i x_i^2Q(r_i)
+ =\left(\sum_i c_i x_i\right)^2.
+\]
+Uniqueness follows from injectivity of Frobenius.  A nonzero linear
+functional admits a basis in which it is the first coordinate; this gives
+the asserted normal forms.
+\end{proof}
+
+\section{Complete normal form over $\On$}
+
+\begin{theorem}[Transfinite nimber quadratic classification]
+\label{thm:classification}
+Let $Q$ be a finite-dimensional quadratic form over the full nimber field
+$\On$, let $B$ be its polar form, and write
+\[
+ \rank(B)=2r,
+ \qquad \dim\rad(B)=s,
+ \qquad
+ \epsilon=
+ \begin{cases}
+ 0,&Q|_{\rad(B)}=0,\\
+ 1,&Q|_{\rad(B)}\ne0.
+ \end{cases}
+\]
+Then
+\[
+ (V,Q)\cong
+ \begin{cases}
+ H^{\perp r}\perp Z^{\perp s},&\epsilon=0,\\
+ H^{\perp r}\perp A\perp Z^{\perp(s-1)},&\epsilon=1.
+ \end{cases}
+\]
+Here the second case necessarily has $s\ge1$.  Thus two such forms are
+isometric over $\On$ if and only if the triples $(2r,s,\epsilon)$ agree.
+In particular every regular form has a unique isometry class at fixed
+dimension, its Arf class is zero, and no transfinite Arf bit exists.
+\end{theorem}
+
+\begin{proof}
+Choose a vector-space complement $W$ to $R=\rad(B)$.  The restriction
+$B|_W$ is nondegenerate: if $w\in W$ is orthogonal to $W$, it is also
+orthogonal to $R$, hence lies in $R$, and therefore $w=0$.  Since
+$B(W,R)=0$, the quadratic space is the orthogonal sum
+\[
+ (V,Q)=(W,Q|_W)\perp(R,Q|_R).
+\]
+Proposition~\ref{prop:regular} identifies the first summand with
+$H^{\perp r}$, and Lemma~\ref{lem:radical} gives the two stated radical
+normal forms.  Rank, radical dimension, and vanishing of $Q|_R$ are
+isometry invariants, so the normal forms are mutually distinct exactly
+when their triples differ.
+\end{proof}
+
+\begin{remark}[No hidden proper-class step]
+The theorem concerns a finite matrix of coefficients and performs finitely
+many field operations and root choices.  The fact that $\On$ is a proper
+class causes no extra algebraic step: every polynomial used in the proof
+has an ordinal root in Conway's field.  Explicitly, start with the set-sized
+subfield generated by the finitely many coefficients and take its relative
+algebraic closure inside $\On$; this is a set-sized algebraically closed
+subfield in which the argument can be carried out.
+\end{remark}
+
+The theorem says exactly what survives from the existing
+\texttt{ArfInvariants} report after scalar extension to full $\On$:
+\[
+ \texttt{arf}=0,\qquad
+ \texttt{rank}=2r,\qquad
+ \texttt{radical\_dim}=s,\qquad
+ \texttt{radical\_anisotropic}=\epsilon.
+\]
+The last field means ``$Q$ is nonzero on the polar radical''; it is not a
+remaining anisotropic regular core.
+
+\section{Why the finite Arf bit is still correct}
+
+There is no contradiction between Theorem~\ref{thm:classification} and the
+existing finite-nim-field classifier.  Isometry depends on the ground field.
+
+Let $K_d=\mathbb F_{2^d}\subset\On$.  For a regular form over $K_d$, its Arf
+class lies in
+\[
+ K_d/\wpmap(K_d)\cong\mathbb F_2,
+\]
+where the isomorphism is the absolute trace.  A form of nonzero Arf class
+is not hyperbolic over $K_d$, but it becomes hyperbolic after scalar
+extension to $K_{2d}$.
+
+\begin{proposition}[Every finite Arf bit dies one stage later]
+\label{prop:finite-dies}
+The scalar-extension map
+\[
+ \Wq(K_d)\longrightarrow\Wq(K_{2d})
+\]
+is zero.  Hence the directed colimit of the finite-field quadratic Witt
+groups inside $\On$ is zero.
+\end{proposition}
+
+\begin{proof}
+For $c\in K_d$, the polynomial $X^2+X+c$ either already has a root in
+$K_d$ or is an irreducible quadratic and therefore has a root in
+$K_{2d}$.  Thus every $c$ lies in $\wpmap(K_{2d})$, so the induced map
+$K_d/\wpmap(K_d)\to K_{2d}/\wpmap(K_{2d})$ is zero.  Arf's classification
+then makes the Witt-group map zero.  Every element at every finite stage
+therefore maps to zero at a later stage, which is precisely the vanishing
+of the directed colimit.
+\end{proof}
+
+For the smallest example, the plane $Q(e)=Q(f)=B(e,f)=1$ is anisotropic
+over $\mathbb F_2$.  If $t^2+t+1=0$ in $\mathbb F_4$, then $te+f$ is
+isotropic, so the same plane is hyperbolic over $\mathbb F_4$.  The finite
+Arf bit records failure to split over the declared finite field; it was
+never invariant under arbitrary nimber scalar extension.
+
+This settles the proposed ``direct-limit finite-subfield invariant'': the
+direct limit is canonically zero.  It also distinguishes two legitimate
+questions:
+\begin{itemize}
+\item Over the ideal full scalar world motivating \texttt{Ordinal}, namely
+      $\On$, Theorem~\ref{thm:classification} is the complete classification.
+\item If one deliberately freezes the smallest subfield $K$ generated by
+      the coefficients and restricts all basis changes to $\mathrm{GL}_n(K)$,
+      the relative invariant belongs to $K/\wpmap(K)$.  For transfinite
+      coefficients this $K$ need not be finite or algebraically closed.
+      This Arf class is generally not by itself a complete higher-dimensional
+      isometry invariant over such a field.  That is a different, explicitly
+      relative classification problem; it is not a scalar-level invariant of
+      $\On$ and has no canonical reduction to one bit.
+\end{itemize}
+
+Ogdoad already makes the first distinction for finite metrics: the raw
+\texttt{ArfInvariants} result is evaluated at a separately detected degree,
+and the higher \texttt{ClassifyWitt}/\texttt{ClassifyBrauerWall} surfaces
+store that degree alongside the Arf bit.  The degree is part of those classes,
+not decoration.
+
+\section{The Clifford and Brauer--Wall boundary}
+
+The quadratic Witt conclusion immediately answers the Clifford half of the
+problem, with one scope qualification.
+
+\begin{corollary}[The regular Clifford class splits]
+\label{cor:clifford}
+For every regular finite-dimensional quadratic form $Q$ over $\On$, the
+graded Morita class of $\Cl(Q)$ on Ogdoad's characteristic-$2$
+Clifford/Brauer--Wall surface is zero.
+\end{corollary}
+
+\begin{proof}
+By Theorem~\ref{thm:classification}, $Q\cong H^{\perp r}$.  Orthogonal sum
+maps to graded tensor product of Clifford algebras.  For a hyperbolic basis
+$e,f$, the relations
+\[
+ e^2=f^2=0,\qquad ef+fe=1
+\]
+identify $\Cl(H)$ with the graded matrix algebra on a $1|1$-dimensional
+space, which is graded Morita-trivial.  Therefore
+\[
+ [\Cl(Q)]=r[\Cl(H)]=0.
+\]
+\end{proof}
+
+This corollary concerns the subgroup of the graded Brauer--Wall theory
+carried by Clifford algebras of regular quadratic forms---the exact surface
+used by the repository's finite characteristic-$2$ classifier.  It does not
+claim a classification of every possible graded central simple algebra in
+characteristic $2$.  For singular $Q$, a nonzero polar-radical vector
+becomes a non-scalar homogeneous graded-central Clifford element (the
+characteristic-$2$ graded sign is trivial); if its square is zero, it also
+generates a nilpotent graded ideal.  Thus the full Clifford algebra is not
+graded central simple on the required surface, so there is no Brauer--Wall
+class of the whole singular algebra; any polar-nondegenerate complement
+nevertheless has the split class above.  Such a complement need not define a
+canonical quotient quadratic form when $Q|_{\rad(B)}\ne0$.  The radical
+normal-form flag $\epsilon$ is quadratic-form data, not a Brauer--Wall coordinate.
+
+\section{Executable boundary}
+
+The mathematical ground field and the current Rust execution domain are not
+the same object.
+
+\begin{itemize}
+\item The intended scalar world is full $\On$, but \texttt{Ordinal::nim\_mul}
+      is implemented only through a source-verified Kummer window.  Generic
+      \texttt{Scalar::mul} is deliberately panic-on-escape.
+\item Mathematically, every ordinal below $\omega^{\omega^\omega}$ is
+      algebraic over $\mathbb F_2$ and has finite degree.  A finite metric
+      there therefore lies in the compositum
+      $\mathbb F_{2^m}$, where $m$ is the least common multiple of the entry
+      degrees.  The repository's
+      \texttt{ordinal\_common\_finite\_subfield\_degree} certifies this field
+      when every required Kummer excess is in the verified table and the checked
+      degree arithmetic does not overflow, and returns \texttt{None} otherwise.
+      Thus there is no mathematical third regime of
+      entries in this segment that are not jointly contained in a finite
+      nim-subfield, although the partial implementation can honestly report an
+      operationally unknown degree.
+\item \texttt{arf\_ordinal\_finite} correctly classifies a metric over its
+      detected and thereby declared common finite subfield, and uses that
+      field's absolute trace.  It does not classify after scalar extension to
+      the whole algebraic-closure segment.  Its result is relative to the
+      separately detected degree; the higher class wrappers record that degree,
+      as
+      Proposition~\ref{prop:finite-dies} requires.
+\item A metric with coefficients outside the algebraic-closure initial
+      segment, or an arbitrary metric over ideal full $\On$, is split over
+      $\On$ by Theorem~\ref{thm:classification}; but constructing the isometry
+      may require an Artin--Schreier root or square root outside the represented
+      multiplication window.  Returning a bare executable ``Arf $=0$'' without
+      that distinction would confuse a mathematical base-extension theorem
+      with a checked in-window witness.
+\end{itemize}
+
+Accordingly no new root-search oracle is required to close the research
+problem.  A future implementation may expose a theorem-level
+\texttt{classification\_over\_full\_on2} report, or a checked isometry only
+when all needed roots are representable.  It should not invent a transfinite
+trace to $\mathbb F_2$.
+
+\section{Disposition of \texttt{off}}
+
+The four targets in the former open entry now have exact answers:
+\begin{enumerate}
+\item \textbf{Domain.}  The ideal full-field classification motivating the
+      \texttt{Ordinal} scalar is over $\On$; finite or coefficient-generated
+      subfields are explicitly relative refinements.
+\item \textbf{Invariant.}  Over full $\On$, the Arf/Artin--Schreier quotient
+      vanishes.  The complete possibly singular invariant is
+      $(\rank B,\dim\rad B,[Q|_{\rad B}\ne0])$.
+\item \textbf{Root route.}  Algebraic closure proves that the required roots
+      exist.  The proof gives explicit basis changes once such roots are
+      supplied; executable root search remains bounded by the backend rather
+      than by mathematics.
+\item \textbf{Brauer--Wall.}  Every regular quadratic Clifford class is split;
+      singular radicals carry no class of the same kind.
+\end{enumerate}
+
+Thus \texttt{off} is resolved by collapse, not by a new transfinite bit.  The
+finite bit remains useful precisely because it remembers a smaller declared
+ground field.
+
+\begin{thebibliography}{9}
+
+\bibitem{Arf41}
+C.~Arf,
+\emph{Untersuchungen \"uber quadratische Formen in K\"orpern der
+Charakteristik 2. I},
+J. Reine Angew. Math. \textbf{183} (1941), 148--167.
+\url{https://doi.org/10.1515/crll.1941.183.148}
+
+\bibitem{Conway76}
+J.~H. Conway,
+\emph{On Numbers and Games},
+Academic Press, 1976.
+
+\bibitem{Lenstra77}
+H.~W. Lenstra, Jr.,
+\emph{On the algebraic closure of two},
+Indagationes Mathematicae (Proceedings) \textbf{80} (1977), 389--396.
+\url{https://pub.math.leidenuniv.nl/~lenstrahw/PUBLICATIONS/1977e/art.pdf}
+
+\end{thebibliography}
+
+\end{document}

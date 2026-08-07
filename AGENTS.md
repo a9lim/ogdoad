@@ -85,7 +85,11 @@ including the Tier-2 no-go/construction program; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
 `thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
-filtered shadow, but no faithful dyadic-unital tropical ring).
+filtered shadow, but no faithful dyadic-unital tropical ring;
+`transfinite_arf.tex` — the resolved full-`On₂` quadratic-classification theorem:
+the Artin--Schreier/Witt class vanishes over the algebraically closed nimber field,
+with polar rank, radical dimension, and radical anisotropy the complete singular
+normal-form data).
 
 ## Claim levels and non-claims
 
@@ -146,6 +150,17 @@ The scalar landscape is broad, but not all backends have the same exactness clai
 | `Adele`, `LocalQp` | runtime-prime adelic precision model over `Q` |
 | `RationalFunction` | exact global function field `F_q(t)` over `Poly = F_q[t]` |
 | `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through Kummer carries `α_u` assembled from `ord_u(2)`, `Q(f(u))`, and the source-pinned finite `m_u` rows (OEIS A380496 b-file, odd primes `3..=709`, diffed in full against a vendored copy) below `ω^(ω^ω)` — the *integer* table is pinned for all 126 rows, but the resulting `α_u` *ordinal* is independently value-checked only at a named subset (`docs/OPEN.md`) |
+
+The ideal full-field semantics motivating the `Ordinal` classifier is now proved
+rather than open (`writeups/transfinite_arf.tex`, 2026-08-07).  Every finite metric in the supported
+`< ω^(ω^ω)` tower already lies in a common finite subfield and keeps the existing
+degree-relative Arf bit.  After scalar extension to full algebraically closed
+`On₂`, every regular ordinary `(q,b)` quadratic form (`metric.a` empty) is
+hyperbolic, `W_q(On₂)=0`, and its quadratic Clifford/Brauer-Wall class is split;
+singular forms retain exactly polar rank, radical dimension, and whether `Q` is
+nonzero on the radical.  This is a
+mathematical full-field result, not a claim that the partial backend can construct
+every required Artin--Schreier root in-window.
 
 The char-2 Clifford point is load-bearing. In characteristic 2, `q` and `b` are
 independent:

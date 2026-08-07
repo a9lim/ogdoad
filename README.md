@@ -345,9 +345,13 @@ The rest of the board, briefly:
   rule, and `writeups/excess.tex` reduces that rule *exactly* to four universal
   order statements — the zero, ordinary-odd-spine, cubic, and exceptional arms.
   The next unsupported carry is `α₇₁₉`.
-- **`off`** — what, if anything, replaces the finite Arf/Brauer–Wall bit for
-  Clifford metrics with genuinely transfinite ordinal-nimber coefficients, where
-  no finite trace to `F₂` exists.
+- **`off`** — *resolved 2026-08-07*: full `On₂` is algebraically closed, so its
+  Artin–Schreier quotient and regular quadratic Witt group vanish.  Every regular
+  ordinary `(q,b)` form (`metric.a` empty) is hyperbolic; a singular form is
+  classified by polar rank, radical dimension, and whether `Q` is nonzero on the
+  radical.  Finite-subfield Arf bits
+  remain relative invariants and die after a quadratic scalar extension
+  (`writeups/transfinite_arf.tex`).
 - **`over`** — whether the Brown `ℤ/8` invariant has a game reading the way the
   Arf bit does: a natural *four*-class outcome census whose Gauss-sum phase is
   `ζ₈^β`, lifting the two-class win-bias from `ℤ/2` to `ℤ/8`.
@@ -377,8 +381,9 @@ Scope boundaries, stated plainly:
   Nim-multiplication works below `ω^(ω^ω)` whenever every carry uses a verified finite
   Lenstra excess row (OEIS A380496 b-file, 126 rows, odd primes `3..=709`); a carry
   needing a prime past that table (the first unknown is `719`) returns `None`. Finite
-  ordinal-nimber metrics classify through their detected `F_{2^m}`; genuinely transfinite
-  metrics stay outside the classifier.
+  ordinal-nimber metrics classify relative to their detected `F_{2^m}`. Metrics outside
+  the checked finite-subfield detector stay outside the executable classifier; over ideal
+  full `On₂`, regular classes are theorem-level split (`writeups/transfinite_arf.tex`).
 - `Surreal` uses finite support and rational coefficients — the honest truncation of true
   CNF. Non-monomial inverses are infinite Hahn series and are not represented.
 - `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss`, and `Adele` are finite-precision

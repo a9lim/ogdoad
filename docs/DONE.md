@@ -16,8 +16,9 @@ What remains unbuilt is tracked in the two buildable ledgers —
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`/`off`, and `over`.
-`under` is the first former loopy-valued research entry closed into this ledger.
+stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`, and `over`.
+`under` and `off` are the former loopy-valued research entries closed into this
+ledger.
 
 **Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
 it is renamed **grundy** (provisional — finalization at the 0.3.8 release
@@ -50,6 +51,25 @@ Fold the one-line structural fact into the relevant `AGENTS.md`; keep any longer
 derivation alongside the code or in a `writeups/` note.
 
 ## completed items
+
+### off·(e_f∧e_s∧e_c): `transfinite-arf-collapse`
+**Completed:** 2026-08-07
+**Summary:** full `On₂` needs no transfinite Arf bit: algebraic closure makes
+every regular quadratic form hyperbolic and leaves only the polar-radical normal
+form data in the singular case.
+**Pillars:** forms ↔ scalar ↔ clifford    **Claim level:** standard math, proved synthesis
+- theorem: for `rank(B)=2r`, `dim(rad B)=s`, an ordinary `(q,b)` form
+  (`metric.a` empty) over full `On₂` is
+  `H^r ⊥ 0^s` when `Q|rad=0`, and `H^r ⊥ <x²> ⊥ 0^(s-1)` otherwise; hence
+  `W_q(On₂)=0` and every regular quadratic Clifford/Brauer-Wall class is split.
+- finite boundary: the `F_{2^d}` Arf bit remains correct relative to that field,
+  but dies over `F_{2^(2d)}`; the directed colimit of finite-field classes is
+  zero.
+- implementation boundary: mathematically every finite metric below
+  `omega^(omega^omega)` has a common finite subfield; the backend detects it only
+  when the needed excess data and checked degree arithmetic are available.  The
+  full-`On₂` theorem does not pretend to supply an in-window root or isometry witness.
+- artifact: `writeups/transfinite_arf.tex` / `writeups/transfinite_arf.pdf`.
 
 ### 2·e_o: `ogham-0.3.6` (the second adversarial pass)
 **Completed:** 2026-07-10

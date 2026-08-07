@@ -25,8 +25,10 @@ the vocabulary. The values come in dual pairs, and so do the problems:
   round of constructions and no-gos swings the apparent answer) and the
   coefficient side (`tisn`, where the obstructions lean *isn't*).
 - **`on`/`off`** — the two transfinite-On₂ questions: the tower that climbs past
-  every verified rung (`on`), and the classifier that switches off beyond the
-  finite windows (`off`).
+  every verified rung (`on`) remains open; the classifier beyond the finite
+  windows (`off`) was resolved on 2026-08-07.  Over full algebraically closed
+  `On₂` the Artin–Schreier quotient and regular quadratic Witt group vanish, so
+  the finite Arf bit switches off under scalar extension.
 - **`over`/`under`** — the two mirror questions: the mod-8 spine above the Arf
   bit (`over`) remains open; the MinPlus shadow beneath MaxPlus thermography
   (`under`) was resolved on 2026-07-20: a substantive filtered transport exists,
@@ -692,54 +694,79 @@ Relevant surfaces:
 - `src/scalar/big/ordinal/mod.rs`
 - `src/scalar/AGENTS.md`
 
-### off·(e_f∧e_s∧e_c): `transfinite Arf/Witt classification for ordinal-nimber coefficients`
+### ~~off·(e_f∧e_s∧e_c): `transfinite Arf/Witt classification for ordinal-nimber coefficients`~~ — resolved
 
-Decide what, if anything, should replace the finite-field Arf/Brauer-Wall bit for
-`CliffordAlgebra<Ordinal>` metrics whose coefficients do not all lie in one finite
-nim-subfield.
+**Resolved 2026-08-07** (`writeups/transfinite_arf.tex`).  Nothing replaces the
+finite-field bit over the scalar world actually named by full `On₂`: Conway's
+nimber field is algebraically closed of characteristic 2, so both Frobenius and
+the Artin–Schreier map `wp(t)=t²+t` are surjective.  Hence
 
-What is implementation, not research:
-- Bridge D is the tractable engine bridge: make `Ordinal` usable as a
-  checked Clifford coefficient domain on the source-verified tower, and test the
-  Clifford relations for genuinely transfinite squares such as `omega`.
-- If all metric entries lie in a common finite nim-subfield `F_{2^d} ⊂ On₂`,
-  classification should route through the generic finite characteristic-2 Arf
-  classifier from Bridge B after detecting that subfield.
-- The finite-field answer is an `F₂` bit because the absolute trace
-  `Tr_{F_{2^d}/F₂}` exists. That finite-subfield case should stay separated from
-  the genuinely transfinite case.
+```text
+On₂ / wp(On₂) = 0,
+W_q(On₂) = 0.
+```
 
-Why this is research:
-- For genuinely transfinite ordinal-nimber coefficients there is no finite degree,
-  so the finite trace-to-`F₂` definition of the Arf bit does not apply as-is.
-- General characteristic-2 quadratic form theory has invariants over the
-  coefficient field, such as Artin-Schreier quotient data, but the repo's current
-  finite-nimber facade is an `F₂`-valued Arf/BW classifier. Deciding the right
-  computable invariant for the represented ordinal-nimber domain is not just
-  genericizing `arf_nimber`.
-- The implemented ordinal multiplication itself is partial outside the verified
-  Kummer tower. Any classifier that needs Artin-Schreier solving, roots, or field
-  closure must respect that same source-verified boundary.
+Every regular finite-dimensional ordinary `(q,b)` quadratic form (`metric.a`
+empty) over `On₂` is hyperbolic.  The
+proof is constructive after choosing roots: on a symplectic plane
 
-Concrete progress targets:
-- Define the classification domain exactly: common finite subfields, the
-  source-verified transfinite tower, or the ideal full `On_2` nimber field.
-- ~~Implement and test common finite-subfield detection so Bridge D can honestly
-  delegate those metrics to Bridge B.~~ Done 2026-06-11 as `subfield-detect`
-  (git history) — implementation, not research.
-- Decide whether genuinely transfinite metrics should expose no classifier, a
-  coefficient-field Arf class, a direct-limit finite-subfield invariant, or some
-  other replacement for the finite trace bit.
-- If an Artin-Schreier quotient or root-search route is chosen, build a checked
-  oracle and prove enough about its represented domain to avoid table-driven
-  guesses.
-- State separately whether a Brauer-Wall class exists on the same surface, and
-  whether it agrees with any proposed Arf-like invariant.
+```text
+Q(xe+yf) = a x² + xy + b y²,
+```
+
+algebraic closure supplies `t²+t+ab=0`; if `a≠0`, the vector `(t/a)e+f` is
+isotropic (and `e` already is when `a=0`).  Split that hyperbolic plane and
+induct.
+
+The complete singular normal form is just as small.  If `rank(B)=2r`,
+`dim(rad B)=s`, and `epsilon` records whether `Q` is nonzero on `rad B`, then
+
+```text
+epsilon = 0:  Q ≅ H^r ⊥ 0^s
+epsilon = 1:  Q ≅ H^r ⊥ <x²> ⊥ 0^(s-1).
+```
+
+Indeed, on the radical `Q` has zero polar form, and perfection gives a unique
+linear functional `ell` with `Q|rad = ell²`; a nonzero linear functional has one
+coordinate after a basis change.  Thus the full-`On₂` classifier is exactly
+`(rank, radical_dim, radical_anisotropic)`, with no Arf coordinate.  On regular
+forms, the associated characteristic-2 Clifford/Brauer-Wall class is split
+because the form is a sum of hyperbolic planes.  Singular Clifford algebras are
+not graded central simple on this surface: a nonzero polar-radical vector becomes
+a non-scalar homogeneous graded-central element.  Thus the radical flag is not a
+Brauer-Wall coordinate.
+
+The finite classifier remains correct, but **relative to its recorded ground
+field**.  A class in
+`F_{2^d}/wp(F_{2^d}) ≅ F₂` dies over `F_{2^(2d)}` because every
+Artin–Schreier polynomial acquires a root there.  Therefore the directed colimit
+of the finite-field Arf/Witt classes inside `On₂` is zero; a finite bit cannot be
+promoted to a stable transfinite bit.
+
+The apparent mathematical middle case was empty.  Every element below
+`omega^(omega^omega)` is algebraic over `F₂` and has finite degree, so any finite
+metric there lies in the common finite field whose degree is the lcm of its entry
+degrees.  `ordinal_common_finite_subfield_degree` certifies this when the needed
+excess data and checked degree arithmetic are available.  Elements beyond
+that staged segment belong to the ideal full `On₂` semantics, where the theorem
+above applies, but the partial backend need not claim an executable isometry when
+the required square or Artin–Schreier roots escape its verified multiplication
+window.
+
+So the old four targets close as follows: the ideal full scalar domain motivating
+`Ordinal` is `On₂`; the invariant collapses to the radical normal-form data;
+algebraic closure proves root existence without requiring a new in-window oracle;
+and every regular quadratic Clifford class is zero.  A classifier over the
+coefficient-generated subfield `K` could instead return a relative class in
+`K/wp(K)`, but that class is not generally a complete higher-dimensional isometry
+invariant.  It would be a separately declared base-field problem, not a replacement
+invariant of `On₂`.
 
 Relevant surfaces:
-- `src/scalar/big/ordinal/`
-- `src/forms/char2/`
-- `src/forms/witt/brauer_wall.rs`
+- `writeups/transfinite_arf.tex`
+- `src/scalar/big/ordinal/subfield.rs`
+- `src/forms/char2/arf.rs`
+- `src/forms/witt/{class,brauer_wall}.rs`
 - `src/clifford/`
 
 ### over·(e_f∧e_g): `the mod-8 spine in game semantics`
@@ -945,6 +972,8 @@ Relevant surfaces:
 ## references for the open threads
 
 - Conway, *On Numbers and Games*: surreal numbers and nimbers.
+- Lenstra, *On the algebraic closure of two*: the algebraically closed `On₂`
+  field and its algebraic-closure beginning segment (for resolved `off`).
 - Berlekamp-Conway-Guy, *Winning Ways*: coin-turning games, Turning-Corners/nim
   product theorem, and thermography.
 - Siegel, *Combinatorial Game Theory*: temperature theory and thermography.
