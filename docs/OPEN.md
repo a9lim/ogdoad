@@ -246,6 +246,14 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   induction: the second cell can split those four fibres unevenly, and a
   later close/open switch must then transport the resulting continuation
   offset.
+- That refinement is now sharply bounded.  Equal two-bit colour does **not**
+  make an ordered first cell safe under unrestricted play: on
+  `01,03,05,07,12,14,15,17,24,26,27,34,37,45,46,47,57,67`, `Q=(6,7)`
+  is losing while the reverse `Q=(7,6)` is winning.  More strongly, in the
+  class `G?ben[` opener 2 has only one same-colour mate, 7, and `Q=(2,7)`
+  is losing.  Thus even the existential “some same-colour reply” selector is
+  false at order eight.  These are counterexamples to the selector, not to
+  the even-board or isolated-dummy theorems.
 - The scalar force sets now have canonical roots `T(A), K_x(A), S_x(A),
   Q_xy(A)` with exact union/intersection recurrences.  This gives a rigorous
   least-counterexample reduction for the even-board subproblem.  If a least
@@ -297,7 +305,8 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   the second player can return the **actual flip score to zero after every
   one of her moves**.  Its exact certificate is a ranked, noninjective repair
   forest on even queue checkpoints, with the singleton
-  OPEN--pass--CLOSE tail treated as a terminal macro.  Pair-open replies extend the queue's
+  OPEN--pass--CLOSE tail treated as a terminal macro.  Pair-open replies
+  extend the queue's
   consecutive matching, pair-closes delete its front edge, and a zero-close
   reply flips matching phase along the entire queue.  If the odd queue word is
   `W=(v0,...,v2r)`, the old/new matching difference is the path `P(W)` with
@@ -310,6 +319,22 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   all have explicit small counterexamples.  The open theorem is construction
   of the strategy-relative repair forest/affine chain, not discovery of one
   more scalar invariant.
+- Even a tempting dynamic splice is false.  On
+  `01,02,03,04,05,06,12,13,14,17,23,26,27,35,37,56,57`, the safe checkpoint
+  `Q=(4,3), U={0,1,2,5,6,7}` has the following property: after attacker
+  `OPEN(6)`, the unique safe normalized reply is `CLOSE(4)`.  All five OPEN
+  replies lose.  Hence “a safe even-U state always has a safe OPEN
+  completion” cannot lift a residual strategy through a dummy/suspension
+  prefix; phase-changing OC branches are essential.
+- Time reversal does preserve the disjointness vector on pass-free complete
+  schedules, but it is not a strategy contraction.  It swaps seats, becomes
+  anti-causal after reconvergent branches, and moves the unique terminal pass
+  to an illegal pass immediately after the initial opening.  The minimal
+  commuting diamond
+  `C_f;OPEN(x)` versus `OPEN(x);C_f` differs by the edge coordinate `fx`;
+  diamond-symmetrizing its two leaves has even augmentation.  A valid affine
+  certificate may be one nonsymmetric leaf, so requiring diamond symmetry would
+  destroy exactly the odd augmentation the theorem needs.
 - The dummy defeats the empty-queue domination device at every root, matching
   the no-dummy Bad-graph census 1/4/34 at n = 3/5/7 (all mover-controlled),
   but that device is not the unique local squeeze. On the path `z-f-y-h`,
@@ -317,6 +342,14 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   open makes f odd, while closing f exposes odd h. The isolated dummy kills
   this squeeze while untouched, but once queued or spent it becomes exactly
   the recursive repair-potential problem.
+- The debt corridor is locally well founded at a fixed front.  If the front
+  has positive even untouched degree, opening a neighbour either lets the
+  debt be discharged within the next round or forces the attacker to open a
+  second neighbour, reducing that degree by exactly two.  The potential
+  `H = debt + e(queue,U)` is invariant under every close, and `debt=1,H=0`
+  rules out a singleton anticomplete firewall.  But opens change `H` by their
+  full live-degree parity, and deleting the firewall shifts the queue front;
+  neither fact supplies the missing global induction.
 - The earlier no-dummy heuristic also needed correction at order eight.  Seven
   exact classes are anti-mover-controlled: the second player can force either
   declared target parity, so the initial mover cannot always force even.  The

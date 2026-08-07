@@ -86,6 +86,11 @@ STATUS (2026-08-07), machine-verified by this file:
     after every one of their moves.  ``zero_normalized_safe`` is the exact
     ranked repair-forest recursion, and stage ``neutral`` checks a supplied
     even-order graph6 census.  This is tested evidence, not a general proof.
+  * Three stronger induction templates now have pinned order-8 failures.
+    Equal two-bit colour does not make an ordered first cell safe; one opener
+    can have no safe same-colour mate; and a Safe even-U checkpoint can require
+    a zero CLOSE as its unique response to an attacker OPEN.  ``validate``
+    checks all three with the shared operational checkpoint solver.
 
 The old description of the empty-queue domination device as the unique
 local obstruction was too strong.  A nonempty queue can squeeze too: on
@@ -180,6 +185,49 @@ def rigid_values(k: int, edges, dummy: bool) -> list:
     return out
 
 
+def even_checkpoint_safe(k: int, edges, u: int, seq: tuple[int, ...],
+                         *, ko: bool = False, mover: int = 0, score: int = 0,
+                         zero_normalized: bool = False) -> bool:
+    """Whether the fixed Even defender wins from one explicit checkpoint.
+
+    ``mover == 0`` is the universal Odd attacker and ``mover == 1`` the
+    existential Even defender.  With ``zero_normalized``, every Even move
+    must restore the accumulated flip score to zero.  The unrestricted form
+    asks only for zero terminal score.  This shared operational recursion is
+    useful for pinning proof-template counterexamples at non-root states.
+    """
+    adj = adj_of(k, edges)
+    memo: dict = {}
+
+    def safe(u0, seq0, ko0, mover0, g0):
+        if u0 == 0 and not seq0:
+            return g0 == 0
+        key = (u0, seq0, ko0, mover0, g0)
+        result = memo.get(key)
+        if result is not None:
+            return result
+        moves = legal_moves(k, adj, u0, seq0, ko0)
+        if not moves:
+            # A pass is a move.  In particular, a zero-normalizing Even pass
+            # requires that the score already be zero.
+            result = (not zero_normalized or mover0 != 1 or g0 == 0) and \
+                safe(u0, seq0, False, 1 - mover0, g0)
+        elif mover0 == 0:
+            result = all(safe(u2, seq2, ko2, 1, g0 ^ flip)
+                         for (_kind, _coin, flip, u2, seq2, ko2) in moves)
+        elif zero_normalized:
+            result = any(g0 ^ flip == 0 and
+                         safe(u2, seq2, ko2, 0, 0)
+                         for (_kind, _coin, flip, u2, seq2, ko2) in moves)
+        else:
+            result = any(safe(u2, seq2, ko2, 0, g0 ^ flip)
+                         for (_kind, _coin, flip, u2, seq2, ko2) in moves)
+        memo[key] = result
+        return result
+
+    return safe(u, seq, ko, mover, score)
+
+
 def zero_normalized_safe(k: int, edges) -> bool:
     """Whether the second player can restore flip score zero after each move.
 
@@ -190,33 +238,8 @@ def zero_normalized_safe(k: int, edges) -> bool:
     accumulated flip parity zero.  The recursive strategy certificate is
     strictly stronger than merely winning the final even target.
     """
-    adj = adj_of(k, edges)
-    memo: dict = {}
-
-    def safe(u, seq, ko, mover, g):
-        if u == 0 and not seq:
-            return g == 0
-        key = (u, seq, ko, mover, g)
-        result = memo.get(key)
-        if result is not None:
-            return result
-        moves = legal_moves(k, adj, u, seq, ko)
-        if not moves:
-            # A pass is a move.  In particular, an Even pass must already be
-            # zero-normalized; the pass itself has zero charge.
-            result = (mover != 1 or g == 0) and \
-                safe(u, seq, False, 1 - mover, g)
-        elif mover == 0:
-            result = all(safe(u2, seq2, ko2, 1, g ^ flip)
-                         for (_kind, _coin, flip, u2, seq2, ko2) in moves)
-        else:
-            result = any(g ^ flip == 0 and
-                         safe(u2, seq2, ko2, 0, 0)
-                         for (_kind, _coin, flip, u2, seq2, ko2) in moves)
-        memo[key] = result
-        return result
-
-    return safe((1 << k) - 1, (), False, 0, 0)
+    return even_checkpoint_safe(
+        k, edges, (1 << k) - 1, (), zero_normalized=True)
 
 
 def two_bit_root_failures(k: int, edges) -> list[tuple]:
@@ -658,6 +681,80 @@ def stage_validate() -> None:
             assert zero_normalized_safe(k, edges), (k, edges)
             cnt += 1
     print(f"   {cnt} even boards admit repair forests")
+
+    print("== exact failures of stronger response lemmas ==")
+    colour_edges = frozenset({
+        (0, 1), (0, 3), (0, 5), (0, 7), (1, 2), (1, 4),
+        (1, 5), (1, 7), (2, 4), (2, 6), (2, 7), (3, 4),
+        (3, 7), (4, 5), (4, 6), (4, 7), (5, 7), (6, 7),
+    })
+    full8 = (1 << 8) - 1
+
+    def two_bit_colours(edges):
+        adj = adj_of(8, edges)
+        parity = [bin(adj[v]).count("1") & 1 for v in range(8)]
+        odd = sum(1 << v for v, bit in enumerate(parity) if bit)
+        return [(parity[v], bin(adj[v] & odd).count("1") & 1)
+                for v in range(8)]
+
+    def first_spoilers(edges, u, seq):
+        adj = adj_of(8, edges)
+        spoilers = []
+        for kind, coin, flip, u2, seq2, ko2 in legal_moves(
+                8, adj, u, seq, False):
+            if not even_checkpoint_safe(
+                    8, edges, u2, seq2, ko=ko2, mover=1, score=flip):
+                spoilers.append((kind, coin))
+        return spoilers
+
+    assert two_bit_colours(colour_edges)[6] == \
+        two_bit_colours(colour_edges)[7]
+    colour_u = full8 ^ (1 << 6) ^ (1 << 7)
+    assert not even_checkpoint_safe(
+        8, colour_edges, colour_u, (6, 7))
+    assert even_checkpoint_safe(
+        8, colour_edges, colour_u, (7, 6))
+    assert first_spoilers(colour_edges, colour_u, (6, 7)) == [("o", 5)]
+
+    sole_colour_edges = frozenset({
+        (0, 4), (0, 5), (1, 5), (2, 5), (0, 6), (1, 6),
+        (3, 6), (5, 6), (0, 7), (1, 7), (2, 7), (4, 7),
+        (5, 7), (6, 7),
+    })
+    assert decode_graph6("G?ben[") == (8, sole_colour_edges)
+    sole_colours = two_bit_colours(sole_colour_edges)
+    assert [v for v in range(8)
+            if v != 2 and sole_colours[v] == sole_colours[2]] == [7]
+    sole_u = full8 ^ (1 << 2) ^ (1 << 7)
+    assert not even_checkpoint_safe(
+        8, sole_colour_edges, sole_u, (2, 7))
+    assert even_checkpoint_safe(
+        8, sole_colour_edges, sole_u, (7, 2))
+    assert first_spoilers(sole_colour_edges, sole_u, (2, 7)) == [("o", 3)]
+
+    completion_edges = frozenset({
+        (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6),
+        (1, 2), (1, 3), (1, 4), (1, 7), (2, 3), (2, 6),
+        (2, 7), (3, 5), (3, 7), (5, 6), (5, 7),
+    })
+    u = sum(1 << v for v in (0, 1, 2, 5, 6, 7))
+    seq = (4, 3)
+    assert even_checkpoint_safe(
+        8, completion_edges, u, seq, zero_normalized=True)
+    adj = adj_of(8, completion_edges)
+    attack = next(move for move in legal_moves(8, adj, u, seq, False)
+                  if move[:2] == ("o", 6))
+    _kind, _coin, attack_flip, u1, seq1, ko1 = attack
+    safe_replies = []
+    for reply in legal_moves(8, adj, u1, seq1, ko1):
+        kind, coin, flip, u2, seq2, ko2 = reply
+        if attack_flip ^ flip == 0 and even_checkpoint_safe(
+                8, completion_edges, u2, seq2, ko=ko2,
+                score=0, zero_normalized=True):
+            safe_replies.append((kind, coin))
+    assert safe_replies == [("c", 4)], safe_replies
+    print("   same-colour orientation, sole-colour mate, and open-completion"
+          " conjectures have pinned order-8 counterexamples")
 
     print("== sigma-explicit vs the verified echo_solver.fifo_value ==")
     from echo_solver import fifo_value, SynthForm

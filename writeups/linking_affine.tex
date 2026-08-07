@@ -727,6 +727,44 @@ new front (it is an even close), but it may be buried in the queue or already
 closed.  The proposition therefore isolates the local obstruction without
 pretending to solve its recurrence.
 
+One portion of that recurrence is nevertheless well founded.  Let $g$ be the
+accumulated flip debt and keep $P=e_G(Q,U)$ as above.
+
+\begin{lemma}[fixed-front poison descent]\label{lem:poison-descent}
+\PROVED{} Suppose it is the defender's turn, $g=1$, and the front $f$ has
+positive even degree into $U$; ko may be set or clear.  The defender can open
+a neighbour of $f$ so that either the debt is discharged within the next
+attacker--defender round or the degree drops by exactly two.  If the result is
+still positive the lemma may be repeated; if it is zero, the descended
+anticomplete front can be closed but need not discharge the debt.  Hence the
+fixed-front loop terminates.
+Moreover
+\[
+ H=g+P
+\]
+is unchanged by every close.  Thus $g=1,H=0$ excludes a singleton
+anticomplete front, although $H$ is not generally preserved by opens.
+\end{lemma}
+
+\begin{proof}
+Opening one neighbour changes $\deg_U(f)$ from even to odd and clears ko,
+since the queue was already nonempty.  If the attacker
+closes $f$, that odd close discharges the debt.  If the attacker opens a
+nonneighbour, the front remains odd and the defender closes it, again
+discharging the debt.  The only remaining attacker move is to open a second
+neighbour; then the front is even again, the defender faces the same local
+problem when its degree remains positive, and exactly two of its untouched
+neighbours have been removed.  At degree zero the neighbour-open loop stops;
+ko is clear at this descended boundary, so the even close is legal and carries
+no flip.
+
+A close of charge $c$ changes both $g$ and $P$ by $c$, so it fixes $H$.
+If $g=1$ and $H=0$, then $P=1$, whereas a singleton queue whose front is
+anticomplete to $U$ has $P=0$.  Finally an open $x$ changes $H$ by
+$\deg_{G[Q\cup U]}(x)$, which may be odd; therefore this exclusion is a local
+corridor condition, not a global invariant.
+\end{proof}
+
 The first obstruction to same-action pairing does have a complete local
 repair.  Write $B(u,v)$ for adjacency in the current graph.
 
@@ -913,6 +951,91 @@ charges differ.  Hence any successful carrier theorem must retain the charge
 and continuation labels; ordinary shellability or a constant-coefficient cone
 is not enough.
 
+Three further exact obstructions delimit the remaining Boolean contraction.
+First, the two-bit colour is a prefix moment, not a winning selector.
+\TESTED{} On the eight-vertex graph
+\[
+\begin{split}
+ E=\{&01,03,05,07,12,14,15,17,24,26,27,34,\\
+     &37,45,46,47,57,67\},
+\end{split}
+\]
+vertices $6,7$ have the same $(p,b)$ colour, but $Q_{67}$ is unsafe while
+$Q_{76}$ is safe.  The unique first spoiler in $Q_{67}$ is $O_5$.
+There is also an opener with no safe same-colour mate: in graph6 class
+\verb|G?ben[|, with
+\[
+ E=\{04,05,15,25,06,16,36,56,07,17,27,47,57,67\},
+\]
+vertex $2$ has sole same-colour mate $7$, yet $Q_{27}$ is unsafe.  Its
+unique first spoiler is $O_3$; the reverse $Q_{72}$ is safe.  Thus neither
+orientation nor existential choice within one colour class proves the root
+theorem.
+
+Second, a safe residual strategy cannot always be lifted by insisting on an
+open response.  On
+\[
+\begin{split}
+ E=\{&01,02,03,04,05,06,12,13,14,17,23,26,\\
+     &27,35,37,56,57\},
+\end{split}
+\]
+the checkpoint
+\[
+ Q=(4,3),\qquad U=\{0,1,2,5,6,7\}
+\]
+is safe in the zero-normalized recursion.  After attacker $O_6$, the unique
+safe reply is the zero close $C_4$, leading to
+$Q=(3,6)$ and $U=\{0,1,2,5,7\}$.  The five open replies by
+$0,1,2,5,7$ are all unsafe; respective short spoilers may be chosen as
+$C_4,C_4,O_7,O_7,O_1$.  Hence the phase-changing OC branch is not an
+artifact of the finite search: it is indispensable even when $|U|$ was even.
+
+Finally, time reversal does not repair the strategic pruning.  For a
+pass-free complete event word put
+\[
+ \rho(e_1\cdots e_m)=\bar e_m\cdots\bar e_1,
+ \qquad \overline{O_v}=C_v,\quad \overline{C_v}=O_v.
+\]
+\PROVED{} This is a legal FIFO schedule, swaps the two seats, and preserves
+$D$ coordinatewise.  Indeed, if both opening and closing order in the original
+word are $v_1,\ldots,v_n$, both orders after reversal are
+$v_n,\ldots,v_1$, so FIFO is preserved.  A pass-free word has no adjacent
+singleton block $O_vC_v$, hence reversal creates no ko violation.  Position
+$i$ moves to $2n+1-i$, which swaps seat parity, while each activity interval
+$[o_v,c_v]$ reflects to
+$[2n+1-c_v,2n+1-o_v]$; interval disjointness, and therefore $D$, is
+unchanged.
+
+This identity does not extend to a strategy contraction.  If one attempts to
+set $\rho(P)=P$, a terminal singleton component $O_x,P,C_x$ moves to the
+beginning; when other vertices remain untouched there, its pass is not forced
+and is illegal.  Even without passes, fixed strategies are anti-causal under
+$\rho$.  Put the original attacker in the even positions.  One deterministic
+attacker strategy contains both histories below: after $O_0$ it prescribes
+$O_d$; after the defender's choice $C_0$ or $O_1$ it prescribes respectively
+$O_1$ or $C_0$; and after $C_d$ it prescribes $C_1$.  The smallest such local
+witness has real vertices $0,1$ plus $d$:
+\[
+\begin{array}{c|c}
+h_C=O_0O_dC_0O_1C_dC_1&D(h_C)=01,\\
+h_O=O_0O_dO_1C_0C_dC_1&D(h_O)=0.
+\end{array}
+\]
+The two histories reconverge across the commuting $C_0/O_1$ diamond, whose
+label difference is the edge coordinate $01$.  Reversal gives a common
+prefix $O_1O_d$ but demands different moves, $C_1$ and $O_0$, at the same
+odd-position attacker node.  Hence the reversed pair cannot lie under one
+deterministic reversed attacker strategy.  Separately, the diamond involution
+$\iota$ exchanging $C_0$ and $O_1$ swaps $h_C$ and $h_O$, so
+\[
+ \F_2\{h_C,h_O\}^{\iota}=\{0,h_C+h_O\}.
+\]
+Both invariant chains have even augmentation (and
+$D(h_C+h_O)=01$), whereas the valid odd zero-moment certificate is the
+nonsymmetric singleton $h_O$.  Diamond symmetrization therefore destroys the
+odd augmentation rather than proving it.
+
 \section{The remaining global lemma}
 
 The proof target can now be stated without Gold forms, graph enumeration, or a
@@ -1052,7 +1175,9 @@ The following claims have different status and should not be flattened.
       classification, two-switch tail, scalar force-set recursion,
       least-counterexample odd routing, zero-normalized repair recursion,
       queue-matching phase-fan identity, tetrahedral coherence, and displayed
-      triangular fan are complete proofs in this note.
+      triangular fan and fixed-front poison descent, together with the
+      pass-free reversal identity and its local causal obstruction, are
+      complete proofs in this note.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is
@@ -1073,6 +1198,11 @@ The following claims have different status and should not be flattened.
       symplectic-flag, and one-cut selectors have the explicit failures stated
       above.  The finite forests do not prove their own existence at arbitrary
       order.
+\item \TESTED{} Ordered same-colour safety and the weaker existence of a safe
+      same-colour mate both fail at order eight.  The open-completion lift also
+      fails at the displayed safe checkpoint, where a zero close is the unique
+      safe response.  These are failures of structural proof templates, not
+      counterexamples to the root theorem.
 \item \OPEN{} The global FIFO affine-contraction statement
       \eqref{eq:affine-target} is not proved.  Neither the complete finite
       census nor the graph-free affine searches are evidence of a general
