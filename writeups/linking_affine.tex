@@ -1,0 +1,566 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Aff}{\operatorname{Aff}}
+\newcommand{\Cut}{\operatorname{Cut}}
+\newcommand{\Span}{\operatorname{span}}
+\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
+\newcommand{\PROVED}{\taglabel{PROVED}}
+\newcommand{\TESTED}{\taglabel{TESTED}}
+\newcommand{\STANDARD}{\taglabel{STANDARD MATH}}
+\newcommand{\OPEN}{\taglabel{OPEN}}
+
+\title{The FIFO linking theorem:\\affine response and the cut-space frontier}
+\author{a9lim}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note attacks the general linking theorem underlying the
+\textsc{echo}-\textsc{fifo}+dummy Gold-quadric realizer.  A finite graph is
+played by opening vertices into a FIFO queue and later closing the front.  A
+close flips a bit when the front has odd degree into the untouched set.  The
+target theorem says that one isolated dummy lets the even player force even
+total flip parity from either seat, for every graph.
+
+The theorem is not proved here.  The contribution is an exact algebraic
+reduction that replaces the failed local partner/debt induction by a global
+affine-flow target.  Every play has a vector-valued score: its graph of disjoint
+activity intervals.  For every fixed attacker strategy, the linking theorem is
+equivalent to saying that zero lies in the $\F_2$-affine hull of all response
+scores.  At a real FIFO front $f$, the edge space splits canonically as
+\[
+ E(K_L)=\Cut(K_L)\oplus E(K_{L\setminus\{f\}}),
+\]
+so openings before $f$ closes occupy one cut-space layer and all later play
+occupies the smaller edge-space layer.  This gives a canonical filtration, but
+not a branchwise induction: an exact $P_4+d$ state has defender children whose
+projected continuation affine hulls are disjoint.
+
+Two positive theorems accompany the reduction.  The vector live-star identity
+proves the affine formulation, and a parity-cell pairing theorem strictly
+extends the earlier twin-pair solution.  Exact small witnesses show why neither
+same-degree pairing nor greedy FIFO rotation closes the general case.  The
+remaining obligation is a global odd-flow contraction which couples branches
+across the filtration rather than solving each projected child separately.
+The note therefore advances the proof
+frontier without promoting the complete finite census through eight real
+vertices to a proof.
+\end{abstract}
+
+\section{The reduced game}
+
+Let $G=(R,E)$ be a finite simple graph on the \emph{real} vertices, and adjoin
+one isolated vertex $d$.  A state is $(U,Q,\mathsf{ko})$, where $U$ is the set
+of untouched vertices, $Q$ is an ordered FIFO queue of open vertices, and
+$\mathsf{ko}$ records the one-move prohibition after a vertex is opened onto an
+empty queue.  A legal move is
+\begin{enumerate}[leftmargin=*,itemsep=1pt]
+\item $\operatorname{OPEN}(x)$ for any $x\in U$, moving $x$ to the back of
+      $Q$; or
+\item $\operatorname{CLOSE}(f)$ for the front $f$ of $Q$, unless
+      $\mathsf{ko}$ is set.
+\end{enumerate}
+A close of $f$ scores
+\[
+  \deg_U(f)\pmod 2.
+\]
+If no move is legal, the forced pass only clears $\mathsf{ko}$.  This can occur
+only after $U$ is empty, when no later close can score.  The players have
+opposite targets for the parity of the total score.
+
+\PROVED{} Every vertex opens and closes exactly once.  FIFO makes the opening
+and closing orders identical.  Consequently the activity intervals
+$I_x=[o(x),c(x)]$ never properly nest.  For an edge $xy$ with $o(x)<o(y)$, the
+edge contributes to the flip score precisely when $c(x)<o(y)$, i.e. precisely
+when $I_x$ and $I_y$ are disjoint.  Thus the total score is
+\begin{equation}\label{eq:scalar-score}
+  F_G(h)=\sum_{xy\in E(G)}[I_x\cap I_y=\varnothing]\pmod2.
+\end{equation}
+The proper-interval vocabulary is standard; the adversarial parity problem is
+not a standard queue-layout problem, because the queue stores vertices and the
+play itself constructs their intervals.
+
+\section{The vector score}
+
+Write
+\[
+  \mathcal E_R=\F_2^{\binom{R}{2}}
+\]
+for the vector space whose coordinates are unordered pairs of real vertices.
+For a completed history $h$, define its \emph{disjointness vector}
+\[
+  D(h)=\sum_{\{x,y\}\subseteq R}
+       [I_x\cap I_y=\varnothing],xy\in\mathcal E_R.
+\]
+Pairing $D(h)$ with the adjacency vector $A_G$ recovers
+\eqref{eq:scalar-score}.
+
+At any moment let $L=U\cup Q$ be the live set.  For a real $x\in L$, put
+\[
+  s_L(x)=\sum_{y\in (L\cap R)\setminus\{x\}}xy,
+\]
+and set $s_L(d)=0$.  These are the vertex stars, or simplicial
+coboundaries, of the live complete graph.
+
+\begin{theorem}[vector live-star identity]\label{thm:live-star}
+\PROVED{} Every completed history satisfies
+\begin{equation}\label{eq:live-star}
+  D(h)=\sum_{x\text{ opened}}s_{L_x}(x),
+\end{equation}
+where $L_x$ is the live set at the instant $x$ opens.
+\end{theorem}
+
+\begin{proof}
+Fix a real pair $xy$ and suppose $x$ opens first.  The vertex $y$ is live when
+$x$ opens, so $xy$ occurs once in $s_{L_x}(x)$.  If the activity intervals
+overlap, $x$ is still live when $y$ opens and the coordinate occurs a second
+time in $s_{L_y}(y)$; the two occurrences cancel over $\F_2$.  If the intervals
+are disjoint, $x$ has already closed when $y$ opens and there is no second
+occurrence.  The coordinate of the right-hand side is therefore exactly the
+coordinate of $D(h)$.
+\end{proof}
+
+\begin{corollary}[scalar live-degree identity]
+\PROVED{} For every graph $G$,
+\[
+  F_G(h)=\sum_{x\text{ opened}}\deg_{G[L_x]}(x)\pmod2.
+\]
+\end{corollary}
+
+This upgrades the earlier scalar potential calculation to an identity before
+a graph is chosen.  The graph enters only through the final linear functional
+$z\mapsto\langle A_G,z\rangle$.
+
+\section{Affine response is exactly the theorem}
+
+Fix which seat seeks odd parity, and fix a deterministic strategy $S$ for that
+attacker.  Move legality is graph-independent, so $S$ can be regarded as a
+strategy in the schedule game before an adjacency vector is chosen.  Let
+$\mathcal H_S$ be the set of terminal histories compatible with $S$ and with
+arbitrary legal responses by the other player.
+
+\begin{theorem}[affine separation]\label{thm:affine}
+\PROVED{} The strategy $S$ forces odd score for some graph on $R$ if and only if
+\[
+  0\notin\Aff_{\F_2}\{D(h):h\in\mathcal H_S\}.
+\]
+Consequently, the general linking theorem is equivalent to the following
+graph-free statement for both choices of attacker seat:
+\begin{equation}\label{eq:affine-target}
+  \text{for every }S,\qquad
+  0\in\Aff_{\F_2}\{D(h):h\in\mathcal H_S\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+If $S$ forces odd score for a graph with adjacency vector $A$, then
+$\langle A,D(h)\rangle=1$ for every $h\in\mathcal H_S$.  The whole affine hull
+therefore lies in the affine hyperplane $\langle A,z\rangle=1$, which excludes
+zero.
+
+Conversely, write the affine hull as $a+W$.  If it excludes zero, then
+$a\notin W$.  Elementary linear separation over $\F_2$ supplies a linear
+functional $\ell$ with $\ell(W)=0$ and $\ell(a)=1$.  Every linear functional on
+$\mathcal E_R$ is pairing with the adjacency vector of a simple graph on $R$.
+For that graph, $\ell(D(h))=1$ for every response history, so $S$ forces odd
+score.
+\end{proof}
+
+Equivalently, one must select an odd-cardinality formal multiset of response
+histories whose disjointness vectors XOR to zero.  This is an
+$\F_2$-flow problem: attacker nodes route all incoming weight along the move
+prescribed by $S$, while defender nodes may split it among an odd number of
+outgoing moves.  Uniformly summing all response leaves does \emph{not} work in
+general; the flow must be selected.
+
+There is a useful exact homogeneous recursion.  At a history $h$, let
+$Z(h)\subseteq\F_2\oplus\mathcal E_R$ be the span of
+$(1,D_h(\lambda))$ over response leaves $\lambda$ below $h$, where $D_h$ is
+the future disjointness increment.  Give a close of a real front $f$ the
+charge $c=\sum_{u\in U\cap R}fu$, and give an open, dummy close, or pass charge
+zero.  This sums to $D(h)$ because a pair becomes disjoint exactly when its
+earlier vertex closes while the later one is untouched.  Put
+\[
+  \tau_c(a,z)=(a,z+ac).
+\]
+Then a terminal node has $Z=\Span\{(1,0)\}$; an attacker node, unary after
+fixing $S$, has $Z(h)=\tau_c Z(h')$; and a defender node has
+\[
+  Z(h)=\Span_m\tau_{c_m}Z(h_m).
+\]
+The desired affine response is exactly $(1,0)\in Z(\text{root})$.  Thus the
+open problem is a label-preserving contraction of this recursion, not an
+ordinary contraction of the response tree: ordinary boundaries have even
+augmentation, while the required leaf chain has odd augmentation.
+
+\TESTED{} The existing exhaustive graph census through eight real vertices
+plus dummy, both attacker seats, implies \eqref{eq:affine-target} in those
+dimensions by Theorem~\ref{thm:affine}.  Independent graph-free policy searches
+also found no affine offset through eight real vertices; selected structured
+policies at nine and ten real vertices likewise had zero offset.  These are
+finite checks, not a proof of \eqref{eq:affine-target}.
+
+\section{A solved parity-cell subclass}
+
+The true/false-twin argument in the earlier draft can be weakened
+substantially.
+
+\begin{theorem}[parity-cell pairing]\label{thm:cells}
+\PROVED{} Suppose all vertices, including the dummy if present, admit a perfect
+partition $\mathcal M$ into two-element cells such that
+\begin{equation}\label{eq:cell-condition}
+  e_G(A,B)=0\pmod2
+  \qquad\text{for every distinct }A,B\in\mathcal M.
+\end{equation}
+Then the second player forces even flip parity.
+\end{theorem}
+
+\begin{proof}
+When the first player opens one member of a cell $A$, the second opens its
+mate.  When the first player closes the FIFO-front member of $A$, its mate is
+the next queue front and the second closes it.  Thus untouched vertices are
+always a union of whole cells, and the queue is a concatenation of whole cells.
+Ko causes no exception because the forced second opening completes the first
+cell.
+
+When the two members $a,a'$ of $A$ close consecutively, their two flip bits sum
+to
+\[
+  \deg_U(a)+\deg_U(a')
+  =\sum_{B\subseteq U}e_G(A,B)=0
+\]
+by \eqref{eq:cell-condition}.  Every flip is contained in one such consecutive
+pair, so the total parity is even.
+\end{proof}
+
+Twin pairs satisfy \eqref{eq:cell-condition}, but the condition only asks for
+even cross-parity between cells; no automorphism is required.
+
+\TESTED{} This theorem is still not general.  Among the $1{,}044$
+isomorphism classes on seven real vertices, $64$ boards obtained by adjoining
+the isolated dummy have no such partition.  The first witness in the local
+ordering has real edges
+\[
+  02,04,06,14,15,23.
+\]
+The general linking theorem nevertheless passes exact minimax on every one of
+those boards.  Seidel switching cannot repair the pairing obstruction: between
+two two-cells $A,B$, switching a set $S$ toggles
+\[
+ |A\cap S||B\setminus S|+|A\setminus S||B\cap S|
+ \equiv ab+ab=0\pmod2.
+\]
+
+\section{FIFO gives a cut-space filtration}
+
+Let $L\subseteq R$ be a live real set and let $f\in L$ be the FIFO front.  Let
+$E(L)=\F_2^{\binom{L}{2}}$ and let
+\[
+  \Cut(L)=\Span\{s_L(x):x\in L\}.
+\]
+This is the cut space of the complete graph on $L$.
+
+\begin{theorem}[front splitting]\label{thm:front-split}
+\PROVED{} There is a canonical direct sum
+\begin{equation}\label{eq:front-split}
+  E(L)=\Cut(L)\oplus E(L\setminus\{f\}).
+\end{equation}
+The projection to the second summand is
+\begin{equation}\label{eq:Tf}
+  (T_fz)_{ij}=z_{ij}+z_{fi}+z_{fj},
+  \qquad i,j\neq f.
+\end{equation}
+It kills every live star and is the identity on the canonical
+$E(L\setminus\{f\})$ summand.
+\end{theorem}
+
+\begin{proof}
+For $x=f$, the two incident coordinates in \eqref{eq:Tf} cancel; for
+$x=i\neq f$, the $ij$ and $fi$ coordinates of $s_L(i)$ cancel.  Hence $T_f$
+kills all generators of $\Cut(L)$.  If $z$ is supported away from $f$, then
+$T_fz=z$.  Finally,
+\[
+ \dim\Cut(L)+\dim E(L\setminus\{f\})
+ =(|L|-1)+\binom{|L|-1}{2}=\binom{|L|}{2},
+\]
+so the two subspaces are complementary and exhaust $E(L)$.
+\end{proof}
+
+While $f$ remains front, opens do not change the live set.  By
+Theorem~\ref{thm:live-star}, all their contributions lie in the current
+$\Cut(L)$ layer.  Once FIFO deletes the real front $f$, every later contribution
+is supported on $E(L\setminus\{f\})$.  Repeating the splitting along the forced
+closure order gives a triangular decomposition of the complete play score.
+This is the missing structural use of FIFO: the earlier scalar potential was
+valid even if any queued vertex could close and therefore could not prove the
+theorem.
+
+The dummy needs a companion state in this induction.  Its star is zero, but
+closing it does not shrink the real edge space.  A proof must use that zero
+star to adjust affine augmentation and then transfer the odd response flow to
+the unchanged real live set.  Treating the dummy as an ordinary deleted front
+silently loses precisely the exceptional case.
+
+\section{Why the deterministic local induction fails}
+
+The live-degree pairing heuristic is correct only conditionally.  At a turn of
+the block initiator the queue has even length.  If the initiator opens $x$, the
+responder would like to open an untouched $y$ with the matching live-degree
+parity.  If no such $y$ exists and the old queue is nonempty, closing the old
+front rotates
+\[
+ (a_1,b_1,\ldots,a_r,b_r,x)
+ \longmapsto
+ (b_1,a_2,\ldots,a_r,b_r,x).
+\]
+Neither operation is a complete strategy.
+
+\TESTED{} The smallest useful witnesses are exact minimax states, not
+counterexamples to the linking theorem.
+\begin{enumerate}[leftmargin=*,itemsep=3pt]
+\item On $K_2+d$, after
+\[
+ A:O_d,\qquad D:O_0,\qquad A:C_d,
+\]
+the defender faces $Q=(0)$ and $U=\{1\}$.  The winning move is $O_1$; the
+apparently natural mirror close $C_0$ loses.
+\item On the real path $3-0-1-2$ plus $d$, after
+\[
+ A:O_0,\qquad D:O_1,\qquad A:O_d,
+\]
+the defender faces $Q=(0,1,d)$ and $U=\{2,3\}$.  Both available opens have the
+wrong live-score parity, and closing $0$ loses.  The unique winning move is the
+proactive wrong-parity open $O_3$, which creates an even odd-front corridor and
+stores a debt before the local trap appears.
+\end{enumerate}
+Thus a state descriptor consisting only of current debt, front parity, parity
+classes in $U$, and one FIFO rotation is insufficient.  The missing datum is a
+recursive repair certificate in the untouched graph.  This is exactly what the
+affine flow is allowed to encode globally.
+
+\section{The exact local residue}
+
+The scalar cut potential gives a complete local classification, provided its
+limitation is stated explicitly.  Regard the queue as a set when counting
+edges and put
+\[
+  P(Q,U)=e_G(Q,U)\pmod2.
+\]
+For a move $m$, let $\chi(m)$ be the change in $P$.  If
+$R=Q\cup U$, direct edge accounting gives
+\[
+ \chi(O_x)=\deg_{G[R]}(x),\qquad
+ \chi(C_f)=\deg_U(f),\qquad
+ \chi(\mathrm{pass})=0.
+\]
+The middle term is the actual flip.
+
+\begin{proposition}[charge-matching and the poison state]
+\PROVED{} Suppose $P=0$, $|U|$ is even, and the position is nonterminal.
+After an opponent open, there is always a distinct legal open with the same
+$\chi$.  If a reply is due after an opponent close of charge $c$, there is a
+legal response of charge $c$ except in exactly the following case:
+\begin{equation}\label{eq:poison}
+ c=0,\quad U\ne\varnothing,\quad
+ \deg_{R'}(u)=1\pmod2\ \text{for every }u\in U,\quad
+ Q'=\varnothing\ \text{or }\deg_U(\operatorname{front}Q')=1\pmod2,
+\end{equation}
+where $Q'=Q\setminus\{f\}$ and $R'=Q'\cup U$ after the close.
+\end{proposition}
+
+\begin{proof}
+At $P=0$,
+\[
+ \sum_{u\in U}\deg_R(u)=e(U,Q)=0\pmod2,
+\]
+because edges internal to $U$ are counted twice.  Hence the odd-charge opens
+form an even set; since $|U|$ is even, the even-charge opens do too.  The charge
+class containing the opponent's opener therefore contains another vertex.
+Opening never has a ko obstruction, and the live set $R$ is unchanged by an
+open, so this is a legal matching response.
+
+If the opponent closes $f$ with charge $c$, then
+\[
+ \sum_{u\in U}\deg_{R'}(u)=e(U,Q')=c\pmod2.
+\]
+For $c=1$ an odd-charge open exists.  For $c=0$ an even-charge open exists
+unless every untouched vertex has odd charge; in that exceptional case a
+matching response still exists precisely when the new FIFO front exists and
+has even degree into $U$.  A close clears ko, so that front close is legal.
+This is exactly the complement of \eqref{eq:poison}.  When $U$ is empty all
+remaining closes, including the close after the unique terminal pass, have
+charge zero.
+\end{proof}
+
+Matching $\chi$ restores $P=0$, but does \emph{not} by itself pair the flip
+score: a mixed odd-close/odd-open round contains one actual flip.  This is the
+debt which the global chain must transport.  The dummy prevents
+\eqref{eq:poison} while it is untouched (it is an even-charge open) or is the
+new front (it is an even close), but it may be buried in the queue or already
+closed.  The proposition therefore isolates the local obstruction without
+pretending to solve its recurrence.
+
+\section{The remaining global lemma}
+
+The proof target can now be stated without Gold forms, graph enumeration, or a
+particular local menu.
+
+\begin{question}[global FIFO affine contraction]\label{q:contraction}
+\OPEN{} Fix either attacker seat and a deterministic attacker strategy $S$ in
+the schedule game with one isolated dummy.  Does there always exist an odd
+$\F_2$-flow through the defender branches whose terminal disjointness moment is
+zero, with the flow allowed to couple different defender children and different
+levels of the front filtration?
+\end{question}
+
+An affirmative answer proves the general linking theorem by
+Theorems~\ref{thm:affine} and~\ref{thm:front-split}.  The tempting stronger
+claim---that projected continuation hulls of different defender children meet
+one common coset---is false.  At the $P_4+d$ state above, fix a
+history-dependent attacker which follows different continuations after $O_2$
+and $O_3$.  Under the front projection $T_0$ to the edge coordinates
+$12,13,23$, exact recursion gives the two open-child continuation hulls
+\[
+  \{0\},
+  \qquad
+  \Aff\{23,12+23\}.
+\]
+They are disjoint.  Exhaustive recursion over the smaller states with two real
+open children shows that this is the first such childwise failure.
+
+Thus a valid contraction must transport nonzero target cosets and cancel them
+\emph{across} defender children; it cannot solve every projected child as an
+independent zero-target subproblem.  In particular, an induction classified
+only by dummy presence, live-set parity, attacker seat, and front position is
+false on reachable states.  The local relations
+\[
+  s_L(d)=0,
+  \qquad
+  \sum_{x\in L\cap R}s_L(x)=0
+\]
+provide the cone and the cut dependence, but not the required global coupling.
+
+This boundary also explains why the nearest imported techniques do not close
+the problem.  A standard strategy-stealing pass must be optional and harmless;
+the dummy has two mandatory events which change FIFO legality.  A static
+copycat argument requires an involution or a parity-cell partition, absent on
+the $64$ finite witnesses above.  Local complementation changes the required
+pairing data but is not a legal FIFO move.  Queue layouts supply terminology
+for nonnesting but no adversarial parity strategy.
+
+\PROVED{} The smallest genuine affine cancellation is already a three-history
+fan, not a dummy cone.  With real vertices $1,2,3$, let a first-seat attacker open the
+dummy and thereafter close whenever possible, otherwise opening the least
+untouched vertex.  After the shared prefix $O_d,O_1,C_d$, the defender can
+realize the three compatible terminal histories
+\[
+\begin{array}{c|l|c}
+ &\text{remaining moves}&D(h)\\ \hline
+(i)&O_2,C_1,O_3,C_2,C_3&\{13\}\\
+(ii)&O_3,C_1,O_2,C_3,C_2&\{12\}\\
+(iii)&C_1,O_2,O_3,C_2,C_3&\{12,13\}.
+\end{array}
+\]
+Their three vectors XOR to zero, although none is zero.  In (iii), $O_2$
+opens an empty queue and $O_3$ is the ko-forced response, so all three rows are
+legal.  The cancellation happens after the dummy has closed.
+
+\TESTED{} Even the natural fan over \emph{all} second openings is too rigid.  On real
+vertices $0,1,2$ plus $d$, let the attacker first play $O_0$; after replies
+$O_1$ or $O_2$ use ``open least untouched, otherwise close'', and after $O_d$
+use ``close whenever possible, otherwise open least''.  Exact terminal affine
+hulls conditioned on the second reply, in coordinates $01,02,12$, are
+\[
+  \mathcal A_1=\{0\},\qquad
+  \mathcal A_2=\{0\},\qquad
+  \mathcal A_d=\{3,7\}.
+\]
+The immediate star charges of the three branches XOR to zero, but no
+one-leaf-per-branch transversal does.  The global affine target survives by
+retaining only an odd subflow inside $\mathcal A_1$ or $\mathcal A_2$.  Hence a
+proof must choose its odd subset of defender branches using continuation data;
+neither dummy-edge contraction nor the full root fan is a valid fixed recipe.
+
+\section{Consequence for the Gold realizer}
+
+\PROVED{} The reductions in \path{writeups/goldarf.tex} identify the terminal
+$\sigma$-charge with the overlap parity of $G$-edges.  Since overlap and
+disjointness partition $E(G)$,
+\[
+  \sigma(h)=|E(G)|+F_G(h)\pmod2.
+\]
+Therefore an affirmative answer to Question~\ref{q:contraction} would force
+$\sigma=|E(G)|$ for every support graph and both seats.  On a Gold support
+graph this is the required quadratic value, upgrading the verified
+$m\in\{4,8\}$ realizer to every $m$.
+
+\OPEN{} This would still solve only the mechanism half of the original
+\texttt{tis} problem.  The realizer is $\sigma$-valued; recasting its forced
+charge as a natural normal-, mis\`ere-, or loopy-outcome P-set remains a
+separate open step.
+
+\section{Verification boundary}
+
+The following claims have different status and should not be flattened.
+\begin{itemize}[leftmargin=*]
+\item \PROVED{} The interval/disjointness reduction, vector live-star identity,
+      affine-separation equivalence, homogeneous response recursion,
+      parity-cell theorem, front cut-space splitting, charge/poison
+      classification, and displayed triangular fan are complete proofs in
+      this note.
+\item \TESTED{} Exact minimax verifies the general linking theorem on every
+      isomorphism class through eight real vertices plus dummy, both seats, and
+      verifies the two local-strategy witnesses.  The parity-cell census is
+      complete through seven real vertices.
+\item \TESTED{} The childwise common-coset strengthening is false, first at the
+      displayed $P_4+d$ state.  This is a failure of the proposed induction,
+      not of the linking theorem.
+\item \TESTED{} The mandatory full second-opening fan also fails at three real
+      vertices plus dummy, despite the immediate star identity.  The global
+      affine target survives inside a single reply branch.
+\item \OPEN{} The global FIFO affine-contraction statement
+      \eqref{eq:affine-target} is not proved.  Neither the complete finite
+      census nor the graph-free affine searches are evidence of a general
+      chain contraction.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{heath-rosenberg}
+L.~S. Heath and A.~L. Rosenberg,
+\emph{Laying out graphs using queues},
+SIAM Journal on Computing 21 (1992), 927--958,
+\href{https://doi.org/10.1137/0221055}{doi:10.1137/0221055}.
+
+\bibitem{proper-interval}
+P.~Klav\'ik, Y.~Otachi, and J.~\v{S}ejnoha,
+\emph{On the classes of interval graphs of limited nesting and count of
+lengths},
+Algorithmica 81 (2019), 1490--1511,
+\href{https://arxiv.org/abs/1510.03998}{arXiv:1510.03998}.
+
+\bibitem{strategy-stealing}
+G.~Bodwin and O.~Grossman,
+\emph{Strategy-stealing is non-constructive},
+\href{https://arxiv.org/abs/1911.06907}{arXiv:1911.06907}.
+\end{thebibliography}
+
+\end{document}

@@ -83,6 +83,11 @@ and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
+`linking_affine.tex` — the proof-frontier note for the general FIFO linking
+theorem: vector live-star score, affine-response equivalence, parity-cell
+subclass, homogeneous response recursion, cut-space and poison filtrations,
+the false childwise/full-fan inductions, and the exact still-open global
+odd-flow lemma;
 `game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
 `thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
 filtered shadow, but no faithful dyadic-unital tropical ring;

@@ -205,6 +205,43 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   induction cannot prove the theorem. The broader no-self-flip prevention
   envelope (every open plus even-front closes), paired with the existing
   debt menu, is strictly complete on all 12,346 k = 8 classes, both seats.
+- A proof-level third pass (2026-08-07,
+  `writeups/linking_affine.tex`) lifts the live-degree identity to the
+  **disjointness vector** `D(h)` in the full `F_2` edge space.  For a fixed
+  attacker strategy `S`, the general theorem is now exactly equivalent to
+  `0 in Aff{D(h): h responds to S}`: if zero is absent, finite-field linear
+  separation produces an actual graph on which `S` forces odd parity.  At a
+  real FIFO front `f`, the edge space splits canonically as
+  `E(K_L) = Cut(K_L) direct-sum E(K_{L-f})`, with quotient gauge
+  `T_f(z)_ij = z_ij + z_fi + z_fj`.  Opens before `f` closes occupy the cut
+  layer; later play occupies the smaller edge-space layer.  This turns the
+  remaining proof into one precise global affine-contraction lemma: construct
+  an odd formal response flow with zero terminal edge moment.  A stronger
+  branchwise common-coset induction is **false already on `P4+dummy`**: two
+  defender-open children can have disjoint projected continuation affine
+  hulls.  Any proof must transport nonzero target cosets and cancel across
+  branches and filtration levels.  The global lemma is open.
+- The affine target now has an exact homogeneous recursion
+  `Z(h) <= F_2 + E_real`: attacker nodes translate one child, defender nodes
+  span translated child spaces, and the theorem asks for `(1,0) in Z(root)`.
+  This rules out an ordinary tree contraction because the odd augmentation
+  must be preserved with the edge label.  The scalar cut potential also gives
+  an exact local poison classification: at `P=e(queue,U)=0` and even `|U|`,
+  equal-charge replies always exist except after an even close when every
+  untouched live degree and the next front degree are odd.  Matching charge
+  restores `P` but mixed close/open rounds retain one flip debt, so this does
+  not close the global recurrence.
+- The same pass proves a strict extension of the twin-pair subclass.  If the
+  vertices partition into 2-cells `A` with `e(A,B)` even for every two cells,
+  the second player mirrors mates and forces even flips.  This is not general:
+  64/1,044 seven-real-vertex classes plus dummy admit no such partition.  Exact
+  `K2+dummy` and `P4+dummy` states also show why debt-sensitive and proactive
+  wrong-parity opens are mandatory; same-degree pairing plus FIFO rotation is
+  not an induction.  At three real vertices, a universal triangular
+  three-history cancellation exists at the last nontrivial queue state, but a
+  separate exact strategy shows that the fan over all second openings cannot
+  be composed recursively.  A valid contraction must choose an odd subset of
+  branches from their continuation data.
   The remaining question is whether that broader finite strategy has a
   general recursive certificate.
 - The dummy defeats the empty-queue domination device at every root, matching
@@ -290,8 +327,10 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
   (`experiments/linking_game.py`). The old R3/D3 induction fails first at
   `GCRU]w`; the live route is the block-turn plus live-degree-pairing
   formulation, with FIFO re-entering through forced front deletion and the
-  proactive-debt witnesses above. A proof upgrades the m∈{4,8} verification
-  to exactness for all m.
+  proactive-debt witnesses above.  The current exact target is the global
+  affine-contraction lemma of `writeups/linking_affine.tex`, with the FIFO
+  cut-space filtration as a coordinate system but not a childwise induction.
+  A proof upgrades the m∈{4,8} verification to exactness for all m.
 - Repair or replace N3, the anti-clock axiom — the open definitional problem: the
   escape-edge construction passes N1–N3 while being morally a clock, and two-game
   criticality is unsatisfiable in two-class outcome semantics.
@@ -312,6 +351,7 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
 
 Relevant surfaces:
 - `writeups/goldarf.tex`
+- `writeups/linking_affine.tex`
 - `experiments/open_question_probe.py`
 - `experiments/framing_obstruction.py`
 - `experiments/gold_family_survey.py`
