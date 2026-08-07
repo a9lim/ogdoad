@@ -86,6 +86,26 @@ STATUS (2026-08-07), machine-verified by this file:
     after every one of their moves.  ``zero_normalized_safe`` is the exact
     ranked repair-forest recursion, and stage ``neutral`` checks a supplied
     even-order graph6 census.  This is tested evidence, not a general proof.
+    The normalized subtree is not a graph-independent affine carrier: an
+    exact pair of order-8 Euler graphs has a primary repair forest but a
+    deterministic attack whose 88 primary-normalized response histories all
+    have secondary Euler moment 1.  ``normalized_secondary_moment`` pins this
+    obstruction; it does not refute the scalar primary strategy.
+  * Bounded affine certificates fail even after quotienting by cuts.  A
+    reachable singleton-front subtree projects onto the causal simplex cap
+    ``{1^r} union {1^r + e_i}``.  For ``r >= 4`` it has no zero or zero-sum
+    triple, and its unique nonempty projected relation has support ``r`` for
+    odd ``r`` and ``r+1`` for even ``r``.  The first ``r=4`` witness attains
+    the five-leaf bound exactly; ``close_first_schedule_quotient`` checks its
+    schedules and quotient labels.
+    Pairwise ancestor escape is also false: immediately before that subtree,
+    one target-forcing attack keeps the two defender children ``OPEN(1)`` and
+    ``OPEN(5)`` inside a 52-point quotient cap.  The independent finite
+    safety-game recursion ``quotient_target_response_labels`` pins it.
+    More strongly, a five-real-vertex spine ends in ``X={1,3}`` while every
+    sibling at every preceding defender fan admits a compatible attack
+    avoiding ``{0,2} = {0} union (X+X)``.  Thus even full ancestor-sibling
+    escape is false; the required flow must couple several branches at once.
   * Three stronger induction templates now have pinned order-8 failures.
     Equal two-bit colour does not make an ordered first cell safe; one opener
     can have no safe same-colour mate; and a Safe even-U checkpoint can require
@@ -623,6 +643,150 @@ def close_first_response_vectors(k: int) -> frozenset[int]:
     return rec((1 << n) - 1, (), False, 0, 0)
 
 
+def close_first_schedule_quotient(
+        k: int, word: tuple[tuple[str, int | None], ...],
+        *, policy_after: int, front: int = 0) -> int:
+    """Validate one schedule and return its fixed-front cut quotient.
+
+    Vertices ``0..k-1`` are real and ``k`` is the isolated dummy.  Player 0
+    moves in the even word positions.  From ``policy_after`` onward, each of
+    player 0's moves must close when possible and otherwise open the least
+    untouched vertex.  Quotient bits use lexicographic edge order after
+    deleting ``front``.
+
+    This is a small exact checker for the causal-simplex witness in
+    ``writeups/linking_affine.tex``; game legality is graph-independent.
+    """
+    n = k + 1
+    u = (1 << n) - 1
+    seq: tuple[int, ...] = ()
+    ko = False
+    edge_order = tuple(
+        (i, j) for i in range(k) for j in range(i + 1, k))
+    edge_bit = {edge: bit for bit, edge in enumerate(edge_order)}
+    score = 0
+
+    for turn, (kind, coin) in enumerate(word):
+        moves = legal_moves(n, [0] * n, u, seq, ko)
+        if turn >= policy_after and turn % 2 == 0:
+            closes = [move for move in moves if move[0] == "c"]
+            expected = closes[0] if closes else min(
+                (move for move in moves if move[0] == "o"),
+                key=lambda move: move[1],
+            )
+            assert (kind, coin) == expected[:2]
+
+        if kind == "p":
+            assert coin is None and not moves
+            ko = False
+            continue
+
+        chosen = next(
+            (move for move in moves if move[:2] == (kind, coin)), None)
+        assert chosen is not None, (turn, kind, coin, u, seq, ko)
+        _kind, chosen_coin, _flip, u2, seq2, ko2 = chosen
+        if kind == "c" and chosen_coin != k:
+            for other in range(k):
+                if u >> other & 1:
+                    edge = (min(chosen_coin, other),
+                            max(chosen_coin, other))
+                    score ^= 1 << edge_bit[edge]
+        u, seq, ko = u2, seq2, ko2
+
+    assert u == 0 and not seq
+    quotient = 0
+    quotient_bit = 0
+    for i in range(k):
+        if i == front:
+            continue
+        for j in range(i + 1, k):
+            if j == front:
+                continue
+            ij = (score >> edge_bit[i, j]) & 1
+            fi = (score >> edge_bit[min(front, i), max(front, i)]) & 1
+            fj = (score >> edge_bit[min(front, j), max(front, j)]) & 1
+            quotient |= (ij ^ fi ^ fj) << quotient_bit
+            quotient_bit += 1
+    return quotient
+
+
+def quotient_target_response_labels(
+        k: int, target: frozenset[int], u: int, seq: tuple[int, ...],
+        *, ko: bool = False, mover: int = 0, score: int = 0,
+        front: int = 0,
+        root_defender_moves: frozenset[tuple[str, int]] | None = None,
+        ) -> frozenset[int] | None:
+    """Response labels for one lexicographic target-forcing attacker.
+
+    The score is the disjointness vector modulo cut, in the fixed ``front``
+    chart.  Attacker 0 chooses the first legal child which keeps every
+    terminal label in ``target``; defender 1 is universal.  At the supplied
+    root only, ``root_defender_moves`` may restrict the defender fan.  Return
+    ``None`` when no such attacker strategy exists.
+
+    This exact finite safety-game recursion checks the two-sibling cap
+    obstruction in ``writeups/linking_affine.tex``.
+    """
+    n = k + 1
+
+    def close_quotient(closing: int, untouched: int) -> int:
+        if closing == k:
+            return 0
+
+        def edge(a: int, b: int) -> int:
+            return int(closing == a and (untouched >> b & 1) or
+                       closing == b and (untouched >> a & 1))
+
+        out = 0
+        bit = 0
+        for i in range(k):
+            if i == front:
+                continue
+            for j in range(i + 1, k):
+                if j == front:
+                    continue
+                out |= (edge(i, j) ^ edge(front, i) ^ edge(front, j)) << bit
+                bit += 1
+        return out
+
+    @functools.lru_cache(None)
+    def rec(u0: int, seq0: tuple[int, ...], ko0: bool,
+            mover0: int, score0: int) -> frozenset[int] | None:
+        if u0 == 0 and not seq0:
+            return frozenset({score0}) if score0 in target else None
+        moves = legal_moves(n, [0] * n, u0, seq0, ko0)
+        if not moves:
+            return rec(u0, seq0, False, 1 - mover0, score0)
+
+        children = []
+        for kind, coin, _flip, u2, seq2, ko2 in sorted(
+                moves, key=lambda move: move[:2]):
+            increment = close_quotient(coin, u0) if kind == "c" else 0
+            child = rec(u2, seq2, ko2, 1 - mover0, score0 ^ increment)
+            children.append(child)
+        if mover0 == 0:
+            return next((child for child in children if child is not None),
+                        None)
+        if any(child is None for child in children):
+            return None
+        return frozenset().union(*children)
+
+    if root_defender_moves is None:
+        return rec(u, seq, ko, mover, score)
+    assert mover == 1
+    selected = [move for move in legal_moves(n, [0] * n, u, seq, ko)
+                if move[:2] in root_defender_moves]
+    assert {move[:2] for move in selected} == root_defender_moves
+    labels = []
+    for kind, coin, _flip, u2, seq2, ko2 in selected:
+        increment = close_quotient(coin, u) if kind == "c" else 0
+        child = rec(u2, seq2, ko2, 0, score ^ increment)
+        if child is None:
+            return None
+        labels.append(child)
+    return frozenset().union(*labels)
+
+
 def minimum_worst_switches(k: int, edges) -> int | None:
     """Minimum worst-case action-type switches for a second-seat even player.
 
@@ -651,6 +815,69 @@ def minimum_worst_switches(k: int, edges) -> int | None:
 
     answer = cost((1 << n) - 1, (), False, 0, 0, "")
     return None if answer >= inf else answer
+
+
+def normalized_secondary_moment(
+        k: int, primary_edges, secondary_edges) -> tuple[int, int]:
+    """Secondary score mask below one exact primary-normalized attack.
+
+    The defender may use every reply which restores the ``primary`` score to
+    zero after their move.  At attacker nodes, choose lexicographically by
+    whether the child secondary mask differs from ``{1}``, then leaf count,
+    then prefer CLOSE, then move name.  This constructs a deterministic
+    positional attack and returns ``(secondary_mask, terminal_history_count)``.
+
+    It is a counterexample generator for the tempting *graph-independent*
+    strengthening of zero normalization: even when the primary graph has a
+    repair forest, its normalized response affine set need not meet Cut.
+    """
+    primary = adj_of(k, primary_edges)
+    secondary = adj_of(k, secondary_edges)
+
+    @functools.lru_cache(None)
+    def rec(u: int, seq: tuple[int, ...], ko: bool,
+            mover: int, primary_score: int,
+            secondary_score: int) -> tuple[int, int]:
+        if u == 0 and not seq:
+            return 1 << secondary_score, 1
+        moves = legal_moves(k, primary, u, seq, ko)
+        if not moves:
+            if mover == 1 and primary_score:
+                return 0, 0
+            return rec(u, seq, False, 1 - mover,
+                       primary_score, secondary_score)
+
+        children = []
+        for kind, coin, flip_primary, u2, seq2, ko2 in moves:
+            flip_secondary = 0 if kind == "o" else \
+                (secondary[coin] & u).bit_count() & 1
+            child = rec(u2, seq2, ko2, 1 - mover,
+                        primary_score ^ flip_primary,
+                        secondary_score ^ flip_secondary)
+            if mover == 0 or primary_score ^ flip_primary == 0:
+                children.append((kind, coin, child))
+
+        if mover == 0:
+            _kind, _coin, answer = min(
+                children,
+                key=lambda item: (
+                    item[2][0] != 2,
+                    item[2][1],
+                    item[0] == "o",
+                    item[0],
+                    item[1],
+                ),
+            )
+            return answer
+
+        mask = 0
+        count = 0
+        for _kind, _coin, (child_mask, child_count) in children:
+            mask |= child_mask
+            count += child_count
+        return mask, count
+
+    return rec((1 << k) - 1, (), False, 0, 0, 0)
 
 
 # ---------------------------------------------------------------- stages
@@ -939,6 +1166,118 @@ def stage_validate() -> None:
     assert functools.reduce(int.__xor__, certificate) == 0
     print("   7 no-dummy anti-mover classes; two exact two-switch minima;"
           " k=5 close-first affine support minimum 5")
+
+    print("== causal-simplex quotient cap ==")
+    prefix = (
+        ("o", 0), ("o", 6), ("c", 0), ("o", 5), ("c", 6),
+    )
+
+    def event_word(text: str) -> tuple[tuple[str, int | None], ...]:
+        return tuple(
+            ("p", None) if token == "P"
+            else (token[0].lower(), int(token[1:]))
+            for token in text.split()
+        )
+
+    continuations = tuple(map(event_word, (
+        "O3 C5 C3 O1 O2 C1 C2 O4 P C4",
+        "O2 C5 O4 C2 O3 C4 O1 C3 C1",
+        "O1 C5 O3 C1 O4 C3 O2 C4 C2",
+        "C5 O1 O3 C1 O4 C3 O2 C4 C2",
+        "O4 C5 O1 C4 C1 O2 O3 C2 C3",
+    )))
+    quotient_labels = tuple(
+        close_first_schedule_quotient(
+            6, prefix + continuation, policy_after=len(prefix))
+        for continuation in continuations
+    )
+    assert quotient_labels == (766, 797, 853, 861, 491)
+    assert functools.reduce(int.__xor__, quotient_labels) == 0
+    star_bits = (3, 6, 8, 9)  # 15,25,35,45 in the quotient edge order
+    star_labels = {
+        sum(((label >> bit) & 1) << out_bit
+            for out_bit, bit in enumerate(star_bits))
+        for label in quotient_labels
+    }
+    assert star_labels == {0b1111} | {
+        0b1111 ^ (1 << bit) for bit in range(4)
+    }
+    assert 0 not in star_labels
+    assert not any(x ^ y in star_labels
+                   for x in star_labels for y in star_labels if x != y)
+    print("   reachable r=4 cap has no quotient singleton/triple;"
+          " five compatible histories XOR to Cut")
+
+    sibling_cap = frozenset({
+        7, 11, 13, 14, 15, 29, 30, 31, 71, 78, 79, 141,
+        328, 360, 382, 395, 411, 413, 456, 493, 494, 509, 510,
+        523, 551, 584, 600, 638, 679, 683, 712, 730, 766, 776,
+        777, 792, 827, 829, 832, 836, 840, 844, 871, 887, 955,
+        957, 962, 967, 978, 983, 1000, 1003,
+    })
+    assert 0 not in sibling_cap
+    assert not any(x ^ y in sibling_cap
+                   for x in sibling_cap for y in sibling_cap if x != y)
+    assert functools.reduce(int.__xor__, (7, 11, 13, 14, 15)) == 0
+    sibling_labels = quotient_target_response_labels(
+        6, sibling_cap, sum(1 << i for i in range(1, 6)), (6,),
+        mover=1, root_defender_moves=frozenset({("o", 1), ("o", 5)}),
+    )
+    assert sibling_labels == sibling_cap
+    print("   one level earlier, two complete defender siblings remain inside"
+          " an exact 52-point cap")
+
+    # A still stronger ancestor rule fails at five real vertices.  Along the
+    # selected path, the terminal child image is X={1,3}, so its forbidden
+    # escape set {0} union (X+X) is {0,2}.  Every sibling at every prior
+    # defender node has its own compatible target-avoiding attack.  Since the
+    # subtrees are disjoint, those attacks combine into one deterministic
+    # root strategy.
+    avoid_escape = frozenset(set(range(1 << 6)) - {0, 2})
+    full6 = (1 << 6) - 1
+
+    def assert_avoids(u: int, seq: tuple[int, ...], score: int) -> None:
+        labels = quotient_target_response_labels(
+            5, avoid_escape, u, seq, mover=0, score=score)
+        assert labels is not None and labels.isdisjoint({0, 2})
+
+    # Root action O0; at the first defender fan retain O2 and check O1,O3,O4,O5.
+    for coin in (1, 3, 4, 5):
+        assert_avoids(full6 ^ 1 ^ (1 << coin), (0, coin), 0)
+    # Selected O2,C0 has quotient score 25.  Retain O1 and check C2,O3,O4,O5.
+    middle_u = (1 << 1) | (1 << 3) | (1 << 4) | (1 << 5)
+    assert_avoids(middle_u, (), 0)
+    for coin in (3, 4, 5):
+        assert_avoids(middle_u ^ (1 << coin), (2, coin), 25)
+    # Selected O1,O5 reaches the final defender fan.  Retain C2 and check O3,O4.
+    last_u = (1 << 3) | (1 << 4)
+    for coin in (3, 4):
+        assert_avoids(last_u ^ (1 << coin), (2, 1, 5, coin), 25)
+    terminal_cap = quotient_target_response_labels(
+        5, frozenset({1, 3}), last_u, (1, 5), mover=0, score=1)
+    assert terminal_cap == frozenset({1, 3})
+    print("   full ancestor cap-escape is false: X={1,3}, while every prior"
+          " sibling avoids {0,2}=zero union (X+X)")
+
+    print("== normalized affine-Cut obstruction ==")
+    primary = frozenset({
+        (0, 2), (0, 3), (0, 6), (0, 7), (1, 3), (1, 5),
+        (2, 3), (2, 4), (2, 6), (3, 5), (3, 6), (3, 7),
+        (4, 7), (5, 6), (5, 7),
+    })
+    secondary = frozenset({
+        (0, 1), (0, 4), (0, 6), (0, 7), (1, 2), (1, 3),
+        (1, 5), (1, 6), (1, 7), (2, 4), (2, 5), (2, 7),
+        (3, 5), (4, 5), (4, 7), (5, 6), (5, 7), (6, 7),
+    })
+    assert all(degree.bit_count() % 2 == 0
+               for degree in adj_of(8, primary))
+    assert all(degree.bit_count() % 2 == 0
+               for degree in adj_of(8, secondary))
+    assert zero_normalized_safe(8, primary)
+    assert normalized_secondary_moment(8, primary, secondary) == (2, 88)
+    print("   Euler primary repair forest has 88 normalized response histories;"
+          " every one has secondary Euler moment 1")
     print("validate: PASS")
 
 

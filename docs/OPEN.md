@@ -294,6 +294,31 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   zero or zero-XOR triple, and an exact minimum odd certificate of support
   five.  A valid contraction must choose an odd subset of branches from their
   continuation data.
+  This bounded-support obstruction is now proved to be unbounded even after
+  quotienting by cuts.  A reachable singleton-front checkpoint with `r`
+  untouched vertices and a close-first attacker projects all terminal labels
+  onto the causal simplex cap
+  `C_r = {1^r} union {1^r + e_i}`.  For `r >= 4` it contains neither zero nor
+  a zero-sum triple; its unique nonempty relation has odd support `r` for odd
+  `r` and `r+1` for even `r`.  At `r=4`, five explicit compatible histories
+  attain the bound and XOR to a cut.  Hence no bounded affine-circuit theorem
+  can work childwise.  A root proof must couple these caps to a wider
+  collection of earlier sibling branches.
+  Even pairwise ancestor escape is false.  At the preceding checkpoint
+  `U={1,2,3,4,5}, Q=(dummy)`, one target-forcing attacker keeps the union of
+  the two defender children `OPEN(1)` and `OPEN(5)` inside a pinned 52-point
+  quotient cap.  That cap already has the five-circuit
+  `7 xor 11 xor 13 xor 14 xor 15 = 0`, and the full defender fan has four
+  further moves, so this is not a root or affine counterexample; it proves
+  that cancellation cannot be reduced to a zero-or-triangle escape from a
+  cap child plus one arbitrary sibling.
+  The stronger ancestor-cap escape rule is false too.  A five-real-vertex
+  spine ends in a child image `X={1,3}`, yet every sibling at every preceding
+  defender fan admits a compatible deterministic attack whose complete image
+  avoids `{0,2}={0} union (X+X)`.  These branch strategies coexist because
+  their histories diverge at the defender choice.  Thus no single ancestor
+  sibling need break a cap child; the missing proof must construct a larger
+  odd dependence across several sibling images at once.
   The remaining question is whether that broader finite strategy has a
   general recursive certificate.
 - Same-action adaptive pairing has a sharp first failure on the no-dummy
@@ -324,6 +349,14 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   all have explicit small counterexamples.  The open theorem is construction
   of the strategy-relative repair forest/affine chain, not discovery of one
   more scalar invariant.
+- Scalar zero normalization is not a graph-independent affine carrier.  An
+  exact eight-vertex pair of Euler graphs `A,B` is pinned in
+  `normalized_secondary_moment`: `A` has a repair forest, but one deterministic
+  attack has 88 complete `A`-normalized response histories and every one has
+  `B`-moment one.  Their affine hull therefore misses Cut.  This does not
+  threaten the scalar `A` strategy; it rules out pruning to `A`-normal replies
+  and then applying the Euler quotient contraction uniformly in a second
+  graph.
 - Complete schedules now have an exact permutation--threshold normal form.
   If `pi` is the common FIFO opening/closing order and `r_b` is the number of
   closes before the `b`th open, then `r` is nondecreasing,
@@ -354,6 +387,25 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   response chain has odd augmentation, and attacker pruning destroys even
   wall incidence.  The precise missing theorem can therefore be named as a
   relative, strategy-pruned, charge-decorated 3-oik contraction.
+- The exact Euler target is now smaller and cleaner than graph-free affine
+  cancellation.  If a fixed attacker's response scores form `a+W`, then it is
+  harmless on every Euler graph exactly when `(a+W)` meets the cut space;
+  after choosing a front `f`, equivalently `0` lies in the affine hull of the
+  quotient scores `T_f D(h)`.  A proposed requirement that response
+  differences span all even cycles is false already at four vertices: for
+  even order the bicycle directions `Cycle intersect Cut` are invisible to
+  every Euler adjacency cochain.  Thus the correct missing object is an odd
+  response flow with **cut-valued** terminal moment.
+- The ambient Euler complex has a complete dichotomy.  Unless the graph is a
+  disjoint union of two odd cliques, it has a three-vertex set spanning an
+  even number of graph edges.  That single triangle `F` has odd augmentation
+  and `<delta B,F>=0`, while its three-edge boundary `R` has `<B,R>=0`.
+  The exceptional two-clique family is already solved: every partition into
+  pairs satisfies the parity-cell theorem, including every prescribed
+  initial pair.  Hence the unresolved step is no longer existence of an odd
+  zero-curvature chain, but promotion of one compatible triangle through a
+  deterministic attacker's pruning without losing odd augmentation or the
+  cut-valued boundary.
 - The broad prevention/debt menu also has a sharp block boundary.  A maximal
   FIFO block with opening order `v_i`, residual `S`, and threshold `t_i`
   scores `e(B,S)` plus the internal edges `v_i v_j` with `j>t_i`.  It ends in
