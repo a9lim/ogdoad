@@ -30,7 +30,7 @@ dummy), the flip count is forced even -- both seats, every graph.  Hence
 sigma is forced = |E| mod 2, which on a Gold board is Q(x): m-uniform
 exactness of the echo-fifo+dummy realizer.
 
-STATUS (2026-07-20), machine-verified by this file:
+STATUS (2026-08-07), machine-verified by this file:
   * Rigidity holds for ALL graph iso classes with k <= 8 real coins +
     dummy, both seats (k=8: 12,346 classes, supplied by nauty ``geng``) --
     far beyond the Gold-arising boards of the m=8 sweep.
@@ -81,6 +81,11 @@ STATUS (2026-07-20), machine-verified by this file:
     and odd-neighbour parity.  Every same-colour second reply is minimax-winning
     through k = 7; opening the dummy first is also winning throughout that
     census.  The optional ``refinement`` stage reproduces this root screen.
+  * A stronger even-board finite target also survives: on every graph through
+    even order 8, the second player can restore the actual flip score to zero
+    after every one of their moves.  ``zero_normalized_safe`` is the exact
+    ranked repair-forest recursion, and stage ``neutral`` checks a supplied
+    even-order graph6 census.  This is tested evidence, not a general proof.
 
 The old description of the empty-queue domination device as the unique
 local obstruction was too strong.  A nonempty queue can squeeze too: on
@@ -88,11 +93,12 @@ the path z-f-y-h, queue (f,h), U={y,z}, and an even front f, either open
 makes f odd while closing f exposes the odd front h.  The dummy defeats
 this squeeze while untouched, but a proof must track the queued case.
 
-Stages: validate | screen [K] | strategy [K] | refinement [K] | graph6 | all (default K =
-5; the k=7 screen ~45 s, k=7 strategy ~25 s).  ``graph6`` consumes a
-nauty ``geng`` census through ``--graph6-path`` and can parallelize with
+Stages: validate | screen [K] | strategy [K] | refinement [K] | graph6 |
+neutral | all (default K = 5; the k=7 screen ~45 s, k=7 strategy ~25 s).
+``graph6`` and ``neutral`` consume a nauty ``geng`` census through
+``--graph6-path`` and can parallelize with
 ``--jobs`` (for example, ``geng -q 8 > graphs8.g6`` followed by
-``python linking_game.py graph6 --graph6-path graphs8.g6 --jobs 12``).
+``python linking_game.py neutral --graph6-path graphs8.g6 --jobs 12``).
 Stdlib only, no venv needed.
 Cross-validated against experiments/echo_solver.py (the adversarially
 reviewed solver) through the SynthForm bridge in stage `validate`.
@@ -172,6 +178,45 @@ def rigid_values(k: int, edges, dummy: bool) -> list:
         g = t ^ par  # flips needed for sigma == t
         out.append(t if win(full, (), False, g) else 1 ^ t)
     return out
+
+
+def zero_normalized_safe(k: int, edges) -> bool:
+    """Whether the second player can restore flip score zero after each move.
+
+    This is the exact scalar predicate behind Proposition ``repair-forest`` in
+    ``writeups/linking_affine.tex``.  The graph has no dummy and is intended to
+    have even order.  Odd moves universally; Even chooses a legal reply, but
+    every resulting Even move (including the unique forced pass) must leave
+    accumulated flip parity zero.  The recursive strategy certificate is
+    strictly stronger than merely winning the final even target.
+    """
+    adj = adj_of(k, edges)
+    memo: dict = {}
+
+    def safe(u, seq, ko, mover, g):
+        if u == 0 and not seq:
+            return g == 0
+        key = (u, seq, ko, mover, g)
+        result = memo.get(key)
+        if result is not None:
+            return result
+        moves = legal_moves(k, adj, u, seq, ko)
+        if not moves:
+            # A pass is a move.  In particular, an Even pass must already be
+            # zero-normalized; the pass itself has zero charge.
+            result = (mover != 1 or g == 0) and \
+                safe(u, seq, False, 1 - mover, g)
+        elif mover == 0:
+            result = all(safe(u2, seq2, ko2, 1, g ^ flip)
+                         for (_kind, _coin, flip, u2, seq2, ko2) in moves)
+        else:
+            result = any(g ^ flip == 0 and
+                         safe(u2, seq2, ko2, 0, 0)
+                         for (_kind, _coin, flip, u2, seq2, ko2) in moves)
+        memo[key] = result
+        return result
+
+    return safe((1 << k) - 1, (), False, 0, 0)
 
 
 def two_bit_root_failures(k: int, edges) -> list[tuple]:
@@ -347,6 +392,16 @@ def verify_graph6_record(item: tuple[str, bool]):
         for seat in (0, 1):
             if not strategy_holds(k, edges, seat):
                 return ("menu", line.strip(), seat)
+    return None
+
+
+def verify_neutral_graph6_record(line: str):
+    """Return an even-board zero-normalization counterexample, if any."""
+    k, edges = decode_graph6(line)
+    if k % 2:
+        return ("odd-order-input", line.strip(), k)
+    if not zero_normalized_safe(k, edges):
+        return ("zero-normalized", line.strip())
     return None
 
 
@@ -593,6 +648,17 @@ def stage_validate() -> None:
                     cnt += 1
     print(f"   {cnt} agree")
 
+    print("== zero-normalized repair recursion (even k <= 4 exhaustive) ==")
+    cnt = 0
+    for k in (2, 4):
+        pairs = [(i, j) for i in range(k) for j in range(i + 1, k)]
+        for gmask in range(1 << len(pairs)):
+            edges = frozenset(p for ii, p in enumerate(pairs)
+                              if gmask >> ii & 1)
+            assert zero_normalized_safe(k, edges), (k, edges)
+            cnt += 1
+    print(f"   {cnt} even boards admit repair forests")
+
     print("== sigma-explicit vs the verified echo_solver.fifo_value ==")
     from echo_solver import fifo_value, SynthForm
     rng = random.Random(2026)
@@ -807,11 +873,42 @@ def stage_graph6(path: str, jobs: int, check_strategy: bool) -> None:
     print(f"graph6: PASS ({len(records)} records in {time.time()-t0:.0f}s)")
 
 
+def stage_neutral(path: str, jobs: int) -> None:
+    """Verify the stronger zero-after-every-Even-move even-board target."""
+    if jobs < 1:
+        raise ValueError("jobs must be positive")
+    records = [line for line in Path(path).read_text(encoding="ascii").splitlines()
+               if line and not line.startswith(">>")]
+    if not records:
+        raise ValueError(f"no graph6 records in {path}")
+    orders = {decode_graph6(line)[0] for line in records}
+    if any(order % 2 for order in orders):
+        raise ValueError(f"neutral requires even graph orders, got {orders}")
+    print(f"neutral: {len(records)} records, orders={sorted(orders)},"
+          f" jobs={jobs}", flush=True)
+    t0 = time.time()
+    failures = []
+    with multiprocessing.Pool(processes=jobs) as pool:
+        for index, result in enumerate(
+                pool.imap_unordered(verify_neutral_graph6_record,
+                                    records, chunksize=1), 1):
+            if result is not None:
+                failures.append(result)
+                pool.terminate()
+                break
+            if index % 1000 == 0:
+                print(f"   {index}/{len(records)} [{time.time()-t0:.0f}s]",
+                      flush=True)
+    if failures:
+        raise AssertionError(f"neutral counterexample: {failures[0]}")
+    print(f"neutral: PASS ({len(records)} records in {time.time()-t0:.0f}s)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", nargs="?", default="all",
                          choices=("validate", "screen", "strategy",
-                                  "refinement", "graph6", "all"))
+                                  "refinement", "graph6", "neutral", "all"))
     parser.add_argument("kmax", nargs="?", type=int, default=5)
     parser.add_argument("--graph6-path")
     parser.add_argument("--jobs", type=int, default=1)
@@ -829,6 +926,10 @@ def main() -> None:
         if args.graph6_path is None:
             parser.error("graph6 requires --graph6-path")
         stage_graph6(args.graph6_path, args.jobs, not args.skip_strategy)
+    if args.stage == "neutral":
+        if args.graph6_path is None:
+            parser.error("neutral requires --graph6-path")
+        stage_neutral(args.graph6_path, args.jobs)
 
 
 if __name__ == "__main__":

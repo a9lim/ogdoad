@@ -246,6 +246,17 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   induction: the second cell can split those four fibres unevenly, and a
   later close/open switch must then transport the resulting continuation
   offset.
+- The scalar force sets now have canonical roots `T(A), K_x(A), S_x(A),
+  Q_xy(A)` with exact union/intersection recurrences.  This gives a rigorous
+  least-counterexample reduction for the even-board subproblem.  If a least
+  even counterexample opens `x`, the same-degree-parity reply set `Y` has odd
+  size; on every `y in Y` the winning continuation must OPEN a third vertex
+  and must survive every sibling reply at the next face.  A pointwise
+  one-cut induction is false: the realized six-vertex witness
+  `03,12,13,14,23,25,34` has even remainder `P4`, yet all three targets
+  shifted by the front cut remain forceable.  The missing object is the
+  joint distribution across the odd sibling family, not another color of a
+  single `Q_xy` branch.
 - The affine target now has an exact homogeneous recursion
   `Z(h) <= F_2 + E_real`: attacker nodes translate one child, defender nodes
   span translated child spaces, and the theorem asks for `(1,0) in Z(root)`.
@@ -282,6 +293,23 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   is the prefix theorem forcing a suitable corridor.  Abstract symplectic
   rank/Witt data cannot supply it: congruent alternating forms already have
   different FIFO outcomes at order three.
+- A stronger finite target survives: on every even graph through order eight,
+  the second player can return the **actual flip score to zero after every
+  one of her moves**.  Its exact certificate is a ranked, noninjective repair
+  forest on even queue checkpoints, with the singleton
+  OPEN--pass--CLOSE tail treated as a terminal macro.  Pair-open replies extend the queue's
+  consecutive matching, pair-closes delete its front edge, and a zero-close
+  reply flips matching phase along the entire queue.  If the odd queue word is
+  `W=(v0,...,v2r)`, the old/new matching difference is the path `P(W)` with
+  `boundary P = v0+v2r`; coning that path produces a triangle fan whose
+  residual charge is the two-graph holonomy `sum delta B(v0,vi,v{i+1})`.
+  Tetrahedral `delta^2 B=0` makes the full sibling simplex coherent, but a
+  fixed attacker strategy prunes interior faces and assigns non-flat
+  continuation coefficients.  Ordinary injective-word shelling, a static
+  matching, degree/two-bit colors, Krylov signatures, and symplectic flag data
+  all have explicit small counterexamples.  The open theorem is construction
+  of the strategy-relative repair forest/affine chain, not discovery of one
+  more scalar invariant.
 - The dummy defeats the empty-queue domination device at every root, matching
   the no-dummy Bad-graph census 1/4/34 at n = 3/5/7 (all mover-controlled),
   but that device is not the unique local squeeze. On the path `z-f-y-h`,

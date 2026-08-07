@@ -66,8 +66,14 @@ even on an even-order graph, and a same-colour pair balances all four joint
 degree/incidence fibres.  A two-switch tail lemma closes the first genuine
 adaptive-pairing obstruction.  Exact witnesses show why neither same-degree
 pairing, greedy FIFO rotation, a bare symplectic quotient, nor a uniformly
-bounded triangular fan closes the general case.  The remaining obligation is
-simultaneous cancellation of the correlated cut and continuation moments.
+bounded triangular fan closes the general case.  Scalar force sets give a
+least-counterexample odd-routing lemma, while a stronger finite strategy has
+an exact ranked repair-forest recursion: consecutive queue matchings may
+extend, delete their front pair, or flip phase along an alternating path.
+That flip carries a genuine two-graph curvature term.  Tetrahedral coherence
+controls its label, but attacker pruning destroys the constant-coefficient
+simplex contraction.  The remaining obligation is simultaneous cancellation
+of the correlated cut and continuation moments by a strategy-relative chain.
 The note therefore advances the proof
 frontier without promoting the complete finite census through eight real
 vertices to a proof.
@@ -488,6 +494,124 @@ the dummy throughout the seven-vertex census.  The optional
 these checks.  They support the two-bit prefix but do not prove that its
 balanced fibres survive later FIFO switches.
 
+\section{Scalar response faces and the least counterexample}
+
+It is useful to isolate exactly what an induction on a smaller even board
+would have to prove.  Fix the player seeking odd parity and, for any game
+state $h$, let $R(h)\subseteq\F_2$ be the set of future charge bits that this
+attacker can force.  If a move of charge $c$ leads to $h'$, write
+$c+R(h')=\{c+r:r\in R(h')\}$.  Backward induction gives
+\begin{equation}\label{eq:force-recursion}
+ R(h)=
+ \begin{cases}
+  \displaystyle\bigcup_m(c_m+R(h_m)),&h\text{ is an attacker node},\\[6pt]
+  \displaystyle\bigcap_m(c_m+R(h_m)),&h\text{ is a defender node},
+ \end{cases}
+ \qquad R(\text{terminal})=\{0\}.
+\end{equation}
+Here a forced pass is the sole move from its state and has charge zero.
+For a live vertex set $A$, use the following canonical roots:
+\[
+\begin{array}{c|c|c|c}
+&Q&U&\text{mover / ko}\\ \hline
+T(A)&()&A&\text{attacker / false}\\
+K_x(A)&(x)&A-\{x\}&\text{defender / true}\\
+S_x(A)&(x)&A-\{x\}&\text{defender / false}\\
+Q_{xy}(A)&(x,y)&A-\{x,y\}&\text{attacker / false}.
+\end{array}
+\]
+The same letters denote their force sets.  The boundary values are
+$T(\varnothing)=K_x(\{x\})=\{0\}$.  Away from the empty-union boundary,
+directly from
+\eqref{eq:force-recursion},
+\begin{equation}\label{eq:canonical-faces}
+ T(A)=\bigcup_{x\in A}K_x(A)\quad(A\ne\varnothing),\qquad
+ K_x(A)=\bigcap_{y\ne x}Q_{xy}(A)\quad(|A|\ge2),
+\end{equation}
+and
+\begin{equation}\label{eq:S-face}
+ S_x(A)=K_x(A)\cap
+ \bigl(\deg_{A-\{x\}}(x)+T(A-\{x\})\bigr).
+\end{equation}
+Thus the scalar even-board statement is
+\begin{equation}\label{eq:even-board}
+ E(A):\qquad 1\notin T(A)\quad (|A|\text{ even}).
+\end{equation}
+It says that a first-seat odd attacker cannot force odd parity; by finite
+determinacy, the second player can force even parity.
+
+\begin{lemma}[least-counterexample odd routing]\label{lem:odd-routing}
+\PROVED{} Suppose $A$ is a least-order even counterexample to
+\eqref{eq:even-board}.  Then there is an $x\in A$ with $1\in K_x(A)$.  Put
+\[
+ Y=\{y\in A-\{x\}:\deg_A(y)=\deg_A(x)\pmod2\}.
+\]
+The set $Y$ has odd cardinality.  For every $y\in Y$, every target-$1$
+strategy witnessing $1\in Q_{xy}(A)$ begins by opening a third vertex
+$z_y$; it cannot begin by closing $x$.
+
+At the resulting defender state $(x,y,z_y)$, such a strategy must satisfy
+both
+\begin{equation}\label{eq:routing-faces}
+ 1+\deg_{A-\{x,y,z_y\}}(x)\in Q_{y z_y}(A-\{x\})
+\end{equation}
+and target-$1$ forceability after every defender opening
+$w\in A-\{x,y,z_y\}$.
+\end{lemma}
+
+\begin{proof}
+Direct play proves $E(A)$ for $|A|=0,2$: on two vertices the forced opening
+pair is followed by two zero-charge closes.  Hence a least counterexample has
+order at least four, and Equation~\eqref{eq:canonical-faces} supplies $x$
+without meeting either boundary case.  Each degree-parity class
+in an even-order graph has even cardinality, so deleting $x$ leaves the
+odd set $Y$.
+
+Fix $y\in Y$.  If the attacker closes $x$ from $Q_{xy}(A)$, the charge is
+\[
+ c=\deg_{A-\{x,y\}}(x),
+\]
+and the child is $S_y(A-\{x\})$.  By minimality,
+$T(A-\{x,y\})\subseteq\{0\}$, so \eqref{eq:S-face} gives
+\[
+ S_y(A-\{x\})
+ \subseteq \{\deg_{A-\{x,y\}}(y)\}.
+\]
+But equality of the full degree parities gives
+\[
+ \deg_{A-\{x,y\}}(x)=\deg_{A-\{x,y\}}(y),
+\]
+where the possible edge $xy$ cancels from both sides.  The remaining target
+after the close is $1+c$, not $c$, so this branch cannot force target $1$.
+The attacker must therefore open some $z_y$.  The defender may now close
+$x$ or open any remaining $w$.  Applying \eqref{eq:force-recursion} to
+those children gives \eqref{eq:routing-faces} and the stated universal open
+conditions.
+\end{proof}
+
+The odd routing is a real strengthening over the handshake lemma: it couples
+an odd family of sibling histories.  It still cannot be collapsed one sibling
+at a time.  A tempting twisted induction would label
+$C=A-\{x,y\}$ by $a(u)=B(x+y,u)$ and ask for a $w$ with
+\[
+ 1+a(z)+a(w)\notin Q_{zw}(C).
+\]
+\TESTED{} This is false first at $|C|=4$.  Take the path
+$5-2-3-4$, put $(a_2,a_3,a_4,a_5)=(1,0,1,0)$, and $z=5$.
+Exact recursion gives
+\[
+ T(C)=\{0\},\qquad
+ Q_{52}=\{0\},\quad Q_{53}=\{0,1\},\quad Q_{54}=\{0\},
+\]
+while the three shifted targets are $0,1,0$.  All three survive.  This is
+realized inside the six-vertex graph
+\[
+ E=\{03,12,13,14,23,25,34\},\qquad (x,y)=(0,1).
+\]
+Hence ordinary smaller-board induction, even augmented by one complete cut
+bit, does not prove Lemma~\ref{lem:odd-routing}'s required joint sibling
+cancellation.
+
 The lemma cannot simply be followed by an independent quotient induction.
 On real vertices $0,1,2$ plus $d$, fix a second-seat attacker so that the line
 \[
@@ -648,6 +772,147 @@ In both graphs $7$ dominates the remaining live graph, so
 \eqref{eq:tail-pairs} is immediate.  This proves the tail repair, not the
 still-missing prefix theorem that would force such a tail on every board.
 
+\section{The zero-normalized kernel and dynamic queue matchings}
+
+The order-eight search reveals a stronger scalar target than
+\eqref{eq:even-board}.  Sample play after every defender move, with the
+odd-seeking player about to move and accumulated flip score zero.  Away from
+the unique terminal-pass boundary, the queue then has even length.  Put
+\[
+ \rho(U,Q)=|U|+\frac{|Q|}{2};
+\]
+every two-move block decreases $\rho$ by one.
+
+\begin{proposition}[zero-normalized repair recursion]
+\label{prop:repair-forest}
+\PROVED{} Let $Q$ have even length.  There is a strategy returning the flip
+score to zero after every defender move if and only if the following recursive
+predicate $\mathsf{Safe}(U,Q)$ holds.
+\begin{itemize}[leftmargin=*]
+\item $\mathsf{Safe}(\varnothing,())$ holds.
+\item $\mathsf{Safe}(\{z\},())$ holds as the terminal macro
+      $O_z$, forced zero-charge pass, $C_z$.  The pass is the defender's move;
+      after it the score is still zero, and the last close also has charge
+      zero.
+\item After an attacker open $O_z$, a legal zero-charge reply is either
+      $O_w$ for some $w\in U-\{z\}$, leading to
+      \[
+       \mathsf{Safe}(U-\{z,w\},Qzw),
+      \]
+      or, when $Q=(f,Q_0)$ and
+      $\deg_{U-\{z\}}(f)=0$, the close $C_f$, leading to
+      \[
+       \mathsf{Safe}(U-\{z\},Q_0z).
+      \]
+\item After an attacker close $C_f$ of charge
+      $\epsilon=\deg_U(f)$ from $Q=(f,h,Q_0)$, a same-charge reply is
+      $C_h$ when $\deg_U(h)=\epsilon$, leading to
+      $\mathsf{Safe}(U,Q_0)$.  When $\epsilon=0$, the defender may instead
+      open $w\in U$, leading to
+      $\mathsf{Safe}(U-\{w\},hQ_0w)$.
+\end{itemize}
+Except inside the displayed terminal macro, every legal attacker move must
+have at least one listed reply whose child is safe.
+\end{proposition}
+
+\begin{proof}
+All opens and passes have flip charge zero, and the only nonzero move charge is
+the displayed untouched degree of a FIFO front.  Consequently the list
+contains exactly the replies whose charge equals the preceding attacker
+charge.  The singleton macro is the only time the defender has no ordinary
+reply: opening the last untouched vertex onto an empty queue creates ko, so
+the forced pass clears it and leaves one final zero-charge close.  Every other
+child has rank $\rho-1$.  Induction on $\rho$, treating the macro as a terminal
+leaf, proves sufficiency by selecting the recorded child after every attacker
+move.  Conversely, record the first reply of any strategy which restores zero
+after each defender move, and apply the same argument to every reachable
+child.  This produces the recursion.
+\end{proof}
+
+The resulting certificate is a ranked, branch-dependent repair forest.  It is
+not yet a structural existence proof: defining the forest by the winning
+strategy would be circular.  It does, however, state exactly what the finite
+search certifies and prevents weaker local invariants from being mistaken for
+the theorem.
+
+\TESTED{} Every even-order graph through order eight has
+$\mathsf{Safe}(V,())$.  On all $12{,}346$ order-eight isomorphism classes, the
+second player can therefore keep the \emph{actual} flip score zero after every
+one of her moves.  The first failures of the stronger same-action rule occur
+on \verb|GCZN^{| and \verb|GEjt~{|; the zero-normalized strategy survives by
+using a close/open or open/close rotation.  Static selectors fail more
+sharply: on \verb|G?bFf[| an opener's unique same-$(p,b)$ mate is unsafe, and
+on \verb|GCz^vw| an odd-degree opener's only safe reply has even degree.
+These are failures of proposed selectors, not of
+Proposition~\ref{prop:repair-forest} or the linking theorem.
+
+The rotations have an exact ordered-matching interpretation.  At a checkpoint
+write
+\[
+ Q=(v_0,v_1,\ldots,v_{2r-1})
+\]
+and match consecutive queue vertices.  Pair opens extend this matching and
+pair closes delete its front edge.  If the attacker appends
+$z=v_{2r}$ and the defender gives the legal zero close $C_{v_0}$, the new
+matching is shifted by one place.  Let
+\[
+ P(W)=\sum_{i=0}^{2r-1}[v_i,v_{i+1}],
+ \qquad W=(v_0,\ldots,v_{2r}).
+\]
+Then the old and shifted matching chains differ by $P(W)$ and
+\[
+ \partial P(W)=e_{v_0}+e_z.
+\]
+More precisely, with the triangle fan
+\[
+ F(W)=\sum_{i=1}^{2r-1}[v_0,v_i,v_{i+1}],
+\]
+one has
+\begin{equation}\label{eq:phase-fan}
+ P(W)+[v_0,z]=\partial F(W).
+\end{equation}
+For the adjacency $1$-cochain $B$, therefore,
+\begin{equation}\label{eq:phase-holonomy}
+ \langle B,P(W)\rangle
+ =B(v_0,z)+
+ \sum_{i=1}^{2r-1}\delta B(v_0,v_i,v_{i+1}).
+\end{equation}
+The second term is genuine two-graph holonomy.  Endpoint exchange, a queue
+matching span, or a symplectic basis invariant sees only $B(v_0,z)$ and is
+therefore insufficient on an arbitrary graph.
+
+The triangle shears are coherent but not flat.  If
+$\tau(i,j,k)=\delta B(i,j,k)$, then
+\begin{equation}\label{eq:tetrahedron-coherence}
+ \tau(j,k,l)+\tau(i,k,l)+\tau(i,j,l)+\tau(i,j,k)=0,
+\end{equation}
+which is $\delta^2B=0$.  Thus the ambient complete simplex fills the fan in
+\eqref{eq:phase-fan} consistently.  The adversarial obstruction is in its
+coefficients: after fixing an attacker strategy, compatible histories are not
+closed under deleting an interior letter.  Defender coefficients may split,
+but an attacker coefficient must follow one prescribed child.  Projection to
+compatible histories consequently fails to commute with the simplicial
+boundary.
+
+This is not repaired by ordinary topology of injective words.  Those words
+form a Boolean cell complex with
+\[
+ \partial[v_0\cdots v_k]
+ =\sum_i[v_0\cdots\widehat v_i\cdots v_k]
+ \quad\text{over }\F_2
+\]
+\cite{jonsson-welker,gan}.  Define the strategy carrier here as the Boolean
+subcomplex generated by the attacker-compatible pre-close tail words.  Even
+with a dummy, attacker pruning need not leave this carrier acyclic.  On
+$K_2+d$, let the attacker open a real front $f$ and, after the forced-open
+reply is chosen as $O_a$ or $O_d$, close $f$ immediately.  Before the first
+close the carrier consists of the two isolated vertices $[a]$ and $[d]$; the
+joining cells $[ad]$ and $[da]$ have been pruned.  Its reduced
+$H_0$ is nonzero.  The linking response still exists because the two close
+charges differ.  Hence any successful carrier theorem must retain the charge
+and continuation labels; ordinary shellability or a constant-coefficient cone
+is not enough.
+
 \section{The remaining global lemma}
 
 The proof target can now be stated without Gold forms, graph enumeration, or a
@@ -784,8 +1049,10 @@ The following claims have different status and should not be flattened.
       affine separation equivalence, homogeneous response recursion,
       parity-cell theorem, front cut-space splitting and two-graph absorption,
       correlated-moment identity, initial cut contraction, charge/poison
-      classification, two-switch tail, and displayed triangular fan are
-      complete proofs in this note.
+      classification, two-switch tail, scalar force-set recursion,
+      least-counterexample odd routing, zero-normalized repair recursion,
+      queue-matching phase-fan identity, tetrahedral coherence, and displayed
+      triangular fan are complete proofs in this note.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is
@@ -801,6 +1068,11 @@ The following claims have different status and should not be flattened.
       affine certificate first fails for the displayed five-real-vertex
       strategy, whose exact minimum support is five.  These are failures of
       stronger proof templates, not of the linking theorem.
+\item \TESTED{} Every even-order graph through order eight has a ranked
+      zero-normalized repair forest.  Static degree, two-bit, matching,
+      symplectic-flag, and one-cut selectors have the explicit failures stated
+      above.  The finite forests do not prove their own existence at arbitrary
+      order.
 \item \OPEN{} The global FIFO affine-contraction statement
       \eqref{eq:affine-target} is not proved.  Neither the complete finite
       census nor the graph-free affine searches are evidence of a general
@@ -836,6 +1108,16 @@ SIAM Journal on Applied Mathematics 28 (1975), 876--880,
 V.~Limouzy,
 \emph{Seidel minor, permutation graphs and combinatorial properties},
 \href{https://arxiv.org/abs/0904.1923}{arXiv:0904.1923}.
+
+\bibitem{jonsson-welker}
+J.~Jonsson and V.~Welker,
+\emph{Complexes of injective words and their commutation classes},
+\href{https://arxiv.org/abs/0712.2143}{arXiv:0712.2143}.
+
+\bibitem{gan}
+W.~L.~Gan,
+\emph{Complex of injective words revisited},
+\href{https://arxiv.org/abs/1608.04496}{arXiv:1608.04496}.
 \end{thebibliography}
 
 \end{document}
