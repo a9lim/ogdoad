@@ -235,6 +235,17 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   that this contraction does not lift independently through an arbitrary
   attacker continuation.  The remaining lemma is therefore joint-moment
   cancellation, not merely a quotient normalization.
+- A proved two-bit handshake refinement now repairs the first degree-only
+  pairing failure.  On every even-order graph, colouring `v` by
+  `(deg(v) mod 2, number of odd-degree neighbors mod 2)` gives four
+  even-cardinality colour classes.  Pairing equal colours makes all four
+  residual `(degree parity, incidence into the first pair)` fibres even, so
+  the defender has a second reply matching both the next opening charge and
+  its cut against the first FIFO cell.  This is exactly the joint moment
+  missing from the six-vertex degree-only witness.  It is not yet an
+  induction: the second cell can split those four fibres unevenly, and a
+  later close/open switch must then transport the resulting continuation
+  offset.
 - The affine target now has an exact homogeneous recursion
   `Z(h) <= F_2 + E_real`: attacker nodes translate one child, defender nodes
   span translated child spaces, and the theorem asks for `(1,0) in Z(root)`.

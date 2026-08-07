@@ -87,8 +87,9 @@ consolidated note on the transfinite nim excess problem;
 theorem: vector live-star score, affine-response equivalence, parity-cell
 subclass, homogeneous response recursion, cut-space/two-graph and poison
 filtrations, the correlated cut/continuation moment, initial cut contraction,
-two-switch tail, the false childwise/full-fan/bounded-support inductions, and
-the exact still-open global odd-flow lemma;
+the two-bit handshake refinement, two-switch tail, the false
+childwise/full-fan/bounded-support inductions, and the exact still-open global
+odd-flow lemma;
 `game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
 `thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
 filtered shadow, but no faithful dyadic-unital tropical ring;
@@ -298,8 +299,9 @@ envelope is strictly complete across the full k = 8 census. The block-turn and
 live-degree identities sharpen the proof route. The current proof note further
 identifies the target with an odd affine response flow, interprets front deletion
 as a two-graph/Seidel chart, proves contraction of the initial cut moment and a
-two-switch endgame corridor, and proves that cut and continuation moments must be
-cancelled jointly; the general-n contraction remains open.
+two-bit handshake refinement, proves a two-switch endgame corridor, and proves
+that cut and continuation moments must be cancelled jointly; the general-n
+contraction remains open.
 
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
 tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`) plus

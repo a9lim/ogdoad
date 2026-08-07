@@ -77,6 +77,10 @@ STATUS (2026-07-20), machine-verified by this file:
     correlated.  This file pins the first stronger-template failures: two
     no-dummy order-8 graphs need exactly two action switches, and a close-first
     k=5 attacker needs a five-leaf rather than three-leaf affine certificate.
+  * The proved two-bit handshake refinement colours a vertex by degree parity
+    and odd-neighbour parity.  Every same-colour second reply is minimax-winning
+    through k = 7; opening the dummy first is also winning throughout that
+    census.  The optional ``refinement`` stage reproduces this root screen.
 
 The old description of the empty-queue domination device as the unique
 local obstruction was too strong.  A nonempty queue can squeeze too: on
@@ -84,7 +88,7 @@ the path z-f-y-h, queue (f,h), U={y,z}, and an even front f, either open
 makes f odd while closing f exposes the odd front h.  The dummy defeats
 this squeeze while untouched, but a proof must track the queued case.
 
-Stages: validate | screen [K] | strategy [K] | graph6 | all (default K =
+Stages: validate | screen [K] | strategy [K] | refinement [K] | graph6 | all (default K =
 5; the k=7 screen ~45 s, k=7 strategy ~25 s).  ``graph6`` consumes a
 nauty ``geng`` census through ``--graph6-path`` and can parallelize with
 ``--jobs`` (for example, ``geng -q 8 > graphs8.g6`` followed by
@@ -168,6 +172,67 @@ def rigid_values(k: int, edges, dummy: bool) -> list:
         g = t ^ par  # flips needed for sigma == t
         out.append(t if win(full, (), False, g) else 1 ^ t)
     return out
+
+
+def two_bit_root_failures(k: int, edges) -> list[tuple]:
+    """Failures of the proved two-bit root selector on ``G + d``.
+
+    This is an exact minimax check of a stronger *tested* statement, not the
+    proof of :ref:`lem:two-bit` in ``writeups/linking_affine.tex``.  If the odd
+    player opens a real vertex, test every same-colour reply, where
+    ``colour(v) = (deg(v), number of odd-degree neighbours) mod 2`` in the
+    relevant even-order graph.  When ``k`` is even and the odd player opens the
+    unmatched dummy, test every real reply.  Also test the first-seat rule that
+    the even player opens the dummy.
+    """
+    n = k + 1
+    dummy = k
+    adj = adj_of(n, edges)
+    full = (1 << n) - 1
+    memo: dict = {}
+
+    def even_wins(seat, u, seq, ko, mover, g):
+        # Once U is empty, every remaining close has charge zero.
+        if u == 0:
+            return g == 0
+        key = (seat, u, seq, ko, mover, g)
+        result = memo.get(key)
+        if result is not None:
+            return result
+        moves = legal_moves(n, adj, u, seq, ko)
+        if not moves:
+            result = even_wins(seat, u, seq, False, 1 - mover, g)
+        else:
+            values = [even_wins(seat, u2, seq2, ko2, 1 - mover, g ^ flip)
+                      for (_kind, _coin, flip, u2, seq2, ko2) in moves]
+            result = any(values) if mover == seat else all(values)
+        memo[key] = result
+        return result
+
+    failures = []
+    if not even_wins(0, full ^ (1 << dummy), (dummy,), True, 1, 0):
+        failures.append(("first-open-dummy",))
+
+    colour_order = n if k % 2 else k
+    parity = [bin(adj[v] & ((1 << colour_order) - 1)).count("1") & 1
+              for v in range(colour_order)]
+    odd = sum(1 << v for v, bit in enumerate(parity) if bit)
+    colour = [(parity[v], bin(adj[v] & odd).count("1") & 1)
+              for v in range(colour_order)]
+    for v in range(n):
+        if k % 2 == 0 and v == dummy:
+            replies = range(k)
+        else:
+            replies = [w for w in range(colour_order)
+                       if w != v and colour[w] == colour[v]]
+            if not replies:
+                failures.append(("no-mate", v))
+                continue
+        for w in replies:
+            u = full ^ (1 << v) ^ (1 << w)
+            if not even_wins(1, u, (v, w), False, 0, 0):
+                failures.append(("second-reply", v, w))
+    return failures
 
 
 def sigma_value(k: int, edges, dummy: bool, t: int) -> int:
@@ -694,6 +759,20 @@ def stage_strategy(kmax: int) -> None:
             print(f"   FAIL {f}")
 
 
+def stage_refinement(kmax: int) -> None:
+    """Exact root screen for the two-bit handshake refinement."""
+    for k in range(1, kmax + 1):
+        t0 = time.time()
+        reps = iso_classes(k)
+        failures = [(tuple(sorted(edges)), failure)
+                    for edges in reps
+                    for failure in two_bit_root_failures(k, edges)]
+        print(f"k={k}: {len(reps)} classes | two-bit root failures:"
+              f" {len(failures)}  [{time.time()-t0:.0f}s]", flush=True)
+        for failure in failures[:8]:
+            print(f"   FAIL {failure}")
+
+
 def stage_graph6(path: str, jobs: int, check_strategy: bool) -> None:
     """Screen an externally generated nonisomorphic graph6 census.
 
@@ -731,8 +810,8 @@ def stage_graph6(path: str, jobs: int, check_strategy: bool) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", nargs="?", default="all",
-                         choices=("validate", "screen", "strategy", "graph6",
-                                  "all"))
+                         choices=("validate", "screen", "strategy",
+                                  "refinement", "graph6", "all"))
     parser.add_argument("kmax", nargs="?", type=int, default=5)
     parser.add_argument("--graph6-path")
     parser.add_argument("--jobs", type=int, default=1)
@@ -744,6 +823,8 @@ def main() -> None:
         stage_screen(args.kmax)
     if args.stage in ("strategy", "all"):
         stage_strategy(args.kmax)
+    if args.stage == "refinement":
+        stage_refinement(args.kmax)
     if args.stage == "graph6":
         if args.graph6_path is None:
             parser.error("graph6 requires --graph6-path")

@@ -59,12 +59,15 @@ children whose projected continuation affine hulls are disjoint.
 
 Positive results accompany the reduction.  The vector live-star identity
 proves the affine formulation, a parity-cell pairing theorem strictly extends
-the earlier twin-pair solution, the cut moment at the initial front contracts
-affinely, and a two-switch tail lemma closes the first genuine adaptive-pairing
-obstruction.  Exact witnesses show why neither same-degree pairing, greedy FIFO
-rotation, a bare symplectic quotient, nor a uniformly bounded triangular fan
-closes the general case.  The remaining obligation is simultaneous cancellation
-of the correlated cut and continuation moments.
+the earlier twin-pair solution, and the cut moment at the initial front
+contracts affinely.  A second handshake refinement colours a vertex by its
+degree parity and its parity of odd-degree neighbours: every colour class is
+even on an even-order graph, and a same-colour pair balances all four joint
+degree/incidence fibres.  A two-switch tail lemma closes the first genuine
+adaptive-pairing obstruction.  Exact witnesses show why neither same-degree
+pairing, greedy FIFO rotation, a bare symplectic quotient, nor a uniformly
+bounded triangular fan closes the general case.  The remaining obligation is
+simultaneous cancellation of the correlated cut and continuation moments.
 The note therefore advances the proof
 frontier without promoting the complete finite census through eight real
 vertices to a proof.
@@ -401,6 +404,89 @@ positive and even, so another remains and the defender restores $s=0$.
 Whenever the attacker closes $f$, therefore, $a\mathbin{\cdot}p_f=0$, a
 contradiction.
 \end{proof}
+
+The scalar separation proof has a useful two-round refinement.  It repairs the
+first explicit failure of degree-only pairing, although it still does not
+iterate through an arbitrary FIFO prefix.
+
+For a finite graph $H$, put
+\[
+ p_v=\deg_H(v)\pmod2,
+ \qquad
+ b_v=\sum_{u\sim_H v}p_u\pmod2,
+ \qquad
+ c(v)=(p_v,b_v).
+\]
+Thus $b_v$ is the parity of the odd-degree neighbours of $v$.
+
+\begin{lemma}[two-bit handshake refinement]\label{lem:two-bit}
+\PROVED{} If $H$ has even order, every one of the four colour classes
+$c^{-1}(i,j)$ has even cardinality.  In particular every vertex has a
+distinct same-colour mate.
+
+If $c(v)=c(w)$ and $A=\{v,w\}$, put
+$r_x=e_H(x,A)\pmod2$ for $x\notin A$.  Then each of the four sets
+\[
+ \{x\notin A:(p_x,r_x)=(i,j)\},\qquad (i,j)\in\F_2^2,
+\]
+also has even cardinality.
+\end{lemma}
+
+\begin{proof}
+Let $O=\{v:p_v=1\}$ and $E=V(H)\setminus O$.  Handshaking gives $|O|=0$
+in $\F_2$.  Moreover
+\[
+ \sum_{v\in O}b_v=2e_H(O)=0,
+\]
+so both $b$-fibres in $O$ are even.  The cut $e_H(O,E)$ is even, since
+\[
+ e_H(O,E)=\sum_{v\in O}\deg_H(v)=|O|=0
+\]
+in $\F_2$.  Hence the $b=1$ fibre in $E$ is even; $|E|$ is even because
+$|V(H)|$ and $|O|$ are even, so the remaining fibre is even as well.
+
+For the second assertion, the four parity moments of the map
+$x\mapsto(p_x,r_x)$ on $V(H)\setminus A$ vanish:
+\[
+ \sum 1=0,
+ \quad
+ \sum p_x=0,
+ \quad
+ \sum r_x=p_v+p_w=0,
+ \quad
+ \sum p_xr_x=b_v+b_w=0.
+\]
+The internal edge $vw$, when present, contributes
+$p_v+p_w=0$ to the last two displayed identities.  The four fibre
+indicators are the four polynomials
+$(1+p)(1+r),(1+p)r,p(1+r),pr$ over $\F_2$; their sums therefore vanish.
+\end{proof}
+
+\begin{remark}[what the second bit buys]
+Suppose an attacker opens $v$ and the defender opens a same-colour mate $w$.
+If the attacker closes $v$, closing $w$ makes the two flip charges cancel.
+If the attacker instead opens $x$, Lemma~\ref{lem:two-bit} supplies a $y$
+with both $p_y=p_x$ and $e_H(y,A)=e_H(x,A)$.  Thus the new cell matches the
+opening-charge parity and is orthogonal to the first FIFO cell.  The equality
+$b_v=b_w$ is exactly the missing joint moment in the first degree-only
+counterexample.
+
+This is a two-round statement, not an induction: the new cell can split the
+four balanced fibres unevenly.  A later response may have to close rather
+than open, which is the correlated continuation obstruction in
+Question~\ref{q:contraction}.
+\end{remark}
+
+\TESTED{} Exact minimax on every graph isomorphism class through seven real
+vertices plus the dummy gives a stronger root fact: whenever the same-colour
+mate of Lemma~\ref{lem:two-bit} applies, \emph{every} such reply is winning
+for the second-seat even player.  When the real graph has even order and the
+attacker opens the unmatched dummy, every real second opening is winning
+through six real vertices.  The first-seat even player also wins by opening
+the dummy throughout the seven-vertex census.  The optional
+\texttt{refinement} stage of \path{experiments/linking_game.py} reproduces
+these checks.  They support the two-bit prefix but do not prove that its
+balanced fibres survive later FIFO switches.
 
 The lemma cannot simply be followed by an independent quotient induction.
 On real vertices $0,1,2$ plus $d$, fix a second-seat attacker so that the line
