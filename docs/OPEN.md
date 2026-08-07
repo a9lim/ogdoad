@@ -214,13 +214,27 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   real FIFO front `f`, the edge space splits canonically as
   `E(K_L) = Cut(K_L) direct-sum E(K_{L-f})`, with quotient gauge
   `T_f(z)_ij = z_ij + z_fi + z_fj`.  Opens before `f` closes occupy the cut
-  layer; later play occupies the smaller edge-space layer.  This turns the
+  layer; later play occupies the smaller edge-space layer.  More canonically,
+  `T_f(z)_ij = (delta z)_fij` is the two-graph/Seidel chart of the simplicial
+  coboundary, and successive front gauges absorb: `T_g T_f = T_g` after the
+  corresponding deletions.  This turns the
   remaining proof into one precise global affine-contraction lemma: construct
   an odd formal response flow with zero terminal edge moment.  A stronger
   branchwise common-coset induction is **false already on `P4+dummy`**: two
   defender-open children can have disjoint projected continuation affine
   hulls.  Any proof must transport nonzero target cosets and cancel across
   branches and filtration levels.  The global lemma is open.
+- The cone calculation now identifies the exact correlated induction datum.
+  If `p_f` is the indicator of vertices untouched when front `f` closes and
+  `W_f` is the away-`f` continuation moment, then
+  `D = sum_i p_i fi + W` and `T_f D = W + delta p`; a response chain cancels
+  `D` exactly when it cancels **both** `p` and `W`.  The cut moment `p` alone
+  does contract affinely at an attacker-opened initial front: a separating
+  weight can always be answered by the zero-weight dummy or another
+  weight-one vertex.  An explicit three-real-vertex broken diamond proves
+  that this contraction does not lift independently through an arbitrary
+  attacker continuation.  The remaining lemma is therefore joint-moment
+  cancellation, not merely a quotient normalization.
 - The affine target now has an exact homogeneous recursion
   `Z(h) <= F_2 + E_real`: attacker nodes translate one child, defender nodes
   span translated child spaces, and the theorem asks for `(1,0) in Z(root)`.
@@ -240,10 +254,23 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   not an induction.  At three real vertices, a universal triangular
   three-history cancellation exists at the last nontrivial queue state, but a
   separate exact strategy shows that the fan over all second openings cannot
-  be composed recursively.  A valid contraction must choose an odd subset of
-  branches from their continuation data.
+  be composed recursively.  Nor is support three a global bound: a fixed
+  close-first attacker at five real vertices has 132 response vectors, no
+  zero or zero-XOR triple, and an exact minimum odd certificate of support
+  five.  A valid contraction must choose an odd subset of branches from their
+  continuation data.
   The remaining question is whether that broader finite strategy has a
   general recursive certificate.
+- Same-action adaptive pairing has a sharp first failure on the no-dummy
+  order-eight classes `GCZN^{` and `GEjt~{`.  Exact minimax needs two action
+  switches on each, not one.  The tail is now proved rather than merely
+  observed: with `U={x,y}` and an odd queue whose consecutive pairs (after
+  appending `x`) have equal adjacency to `y`, the defender opens `x`, pairs
+  close responses, and closes once if the attacker opens `y`; all pair charges
+  cancel.  Both witnesses enter this tail with `y` dominating.  What remains
+  is the prefix theorem forcing a suitable corridor.  Abstract symplectic
+  rank/Witt data cannot supply it: congruent alternating forms already have
+  different FIFO outcomes at order three.
 - The dummy defeats the empty-queue domination device at every root, matching
   the no-dummy Bad-graph census 1/4/34 at n = 3/5/7 (all mover-controlled),
   but that device is not the unique local squeeze. On the path `z-f-y-h`,
@@ -251,6 +278,12 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   open makes f odd, while closing f exposes odd h. The isolated dummy kills
   this squeeze while untouched, but once queued or spent it becomes exactly
   the recursive repair-potential problem.
+- The earlier no-dummy heuristic also needed correction at order eight.  Seven
+  exact classes are anti-mover-controlled: the second player can force either
+  declared target parity, so the initial mover cannot always force even.  The
+  narrower statement that the second-seat even player wins every even-order
+  no-dummy board survives the finite screen but remains unproved.  This is not
+  used as evidence for the isolated-dummy theorem.
 
 The naturality dichotomy:
 

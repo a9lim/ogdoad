@@ -51,16 +51,20 @@ scores.  At a real FIFO front $f$, the edge space splits canonically as
  E(K_L)=\Cut(K_L)\oplus E(K_{L\setminus\{f\}}),
 \]
 so openings before $f$ closes occupy one cut-space layer and all later play
-occupies the smaller edge-space layer.  This gives a canonical filtration, but
-not a branchwise induction: an exact $P_4+d$ state has defender children whose
-projected continuation affine hulls are disjoint.
+occupies the smaller edge-space layer.  The quotient is the classical
+two-graph coboundary chart: changing the front changes the affine-simplex
+origin, and successive changes obey an absorption law.  This gives a canonical
+filtration, but not a branchwise induction: an exact $P_4+d$ state has defender
+children whose projected continuation affine hulls are disjoint.
 
-Two positive theorems accompany the reduction.  The vector live-star identity
-proves the affine formulation, and a parity-cell pairing theorem strictly
-extends the earlier twin-pair solution.  Exact small witnesses show why neither
-same-degree pairing nor greedy FIFO rotation closes the general case.  The
-remaining obligation is a global odd-flow contraction which couples branches
-across the filtration rather than solving each projected child separately.
+Positive results accompany the reduction.  The vector live-star identity
+proves the affine formulation, a parity-cell pairing theorem strictly extends
+the earlier twin-pair solution, the cut moment at the initial front contracts
+affinely, and a two-switch tail lemma closes the first genuine adaptive-pairing
+obstruction.  Exact witnesses show why neither same-degree pairing, greedy FIFO
+rotation, a bare symplectic quotient, nor a uniformly bounded triangular fan
+closes the general case.  The remaining obligation is simultaneous cancellation
+of the correlated cut and continuation moments.
 The note therefore advances the proof
 frontier without promoting the complete finite census through eight real
 vertices to a proof.
@@ -305,6 +309,36 @@ $T_fz=z$.  Finally,
 so the two subspaces are complementary and exhaust $E(L)$.
 \end{proof}
 
+There is a front-independent description of the same quotient.  Regard
+$z\in E(L)$ as a simplicial $1$-cochain on the full simplex on $L$, and put
+\[
+  (\delta z)_{ijk}=z_{ij}+z_{ik}+z_{jk}.
+\]
+Then $\ker\delta=\Cut(L)$ and
+\begin{equation}\label{eq:two-graph-chart}
+  (T_fz)_{ij}=(\delta z)_{fij}.
+\end{equation}
+Thus $T_f$ is the chart based at $f$ of the odd-triple two-graph of $z$;
+graphically it is Seidel complementation at $f$ followed by deletion of $f$
+\cite{mallows-sloane,limouzy}.  Equivalently, if $B$ is the alternating form
+with Gram matrix $z$ and
+\[
+  E_0=\{x\in\F_2^L:\textstyle\sum_i x_i=0\},\qquad
+  b_i^{(f)}=e_i+e_f,
+\]
+then $T_fz$ is the Gram matrix of $B|_{E_0}$ in the basis
+$\{b_i^{(f)}:i\ne f\}$.  Changing the basepoint from $f$ to $g$ gives
+\[
+ b_f^{(g)}=b_g^{(f)},\qquad
+ b_i^{(g)}=b_i^{(f)}+b_g^{(f)}.
+\]
+In particular, after restricting away from distinct $f,g$,
+\begin{equation}\label{eq:T-absorption}
+  T_g(T_fz)=T_gz.
+\end{equation}
+This absorption law says that earlier quotient gauges cancel exactly; it does
+not say that their affine payoff offsets cancel.
+
 While $f$ remains front, opens do not change the live set.  By
 Theorem~\ref{thm:live-star}, all their contributions lie in the current
 $\Cut(L)$ layer.  Once FIFO deletes the real front $f$, every later contribution
@@ -319,6 +353,67 @@ closing it does not shrink the real edge space.  A proof must use that zero
 star to adjust affine augmentation and then transfer the odd response flow to
 the unchanged real live set.  Treating the dummy as an ordinary deleted front
 silently loses precisely the exceptional case.
+
+\section{What the cone homotopy does and does not contract}
+
+Fix a real front $f$ and a terminal continuation $\lambda$.  Let
+$p_f(\lambda)\in\F_2^{L\setminus\{f\}}$ be the indicator of the real vertices
+still untouched when $f$ closes, and let $W_f(\lambda)$ be the away-$f$
+disjointness vector accumulated by the whole continuation.  Directly from the
+definition of disjoint intervals,
+\begin{equation}\label{eq:correlated-moment}
+ D_h(\lambda)=\sum_i p_f(\lambda)_i\,fi+W_f(\lambda),
+ \qquad
+ T_fD_h(\lambda)=W_f(\lambda)+\delta p_f(\lambda),
+\end{equation}
+where $(\delta p)_{ij}=p_i+p_j$.  Hence for every formal response-leaf chain
+$c$, of either augmentation,
+\begin{equation}\label{eq:joint-cancellation}
+ D_h(c)=0
+ \quad\Longleftrightarrow\quad
+ p_f(c)=0\ \text{ and }\ W_f(c)=0.
+\end{equation}
+The two-graph chart therefore replaces the desired edge moment by a
+\emph{joint} cut/continuation moment; it does not discard the correlation.
+
+One half of that joint target does contract cleanly at the root.
+
+\begin{lemma}[initial cut-moment contraction]\label{lem:cut-contract}
+\PROVED{} Suppose the attacker opens a real initial front $f$, so the isolated
+dummy remains untouched and ko forbids the defender's immediate close.  For
+every fixed attacker strategy up to the close of $f$,
+\[
+ 0\in\Aff\{p_f(\lambda):\lambda\text{ is a compatible pre-close response}\}.
+\]
+\end{lemma}
+
+\begin{proof}
+If zero were absent, separation would give weights $a_i\in\F_2$ on the
+remaining real vertices such that the attacker forced
+$a\mathbin{\cdot}p_f=1$.  Give the dummy weight zero, and let $s$ be the total
+weight of the still-unselected vertices.  On the ko-forced first response, the
+defender selects the dummy when $s=0$, and selects a weight-one real vertex
+when $s=1$; either choice leaves $s=0$.  On every later response, close $f$
+when $s=0$, and select a weight-one vertex when $s=1$.  If the attacker selects
+weight zero, $s$ remains zero and the defender closes.  If the attacker selects
+weight one from a zero total, the number of remaining weight-one vertices was
+positive and even, so another remains and the defender restores $s=0$.
+Whenever the attacker closes $f$, therefore, $a\mathbin{\cdot}p_f=0$, a
+contradiction.
+\end{proof}
+
+The lemma cannot simply be followed by an independent quotient induction.
+On real vertices $0,1,2$ plus $d$, fix a second-seat attacker so that the line
+\[
+ O_d,O_1,C_d,O_0,C_1,O_2,C_0,C_2
+\]
+is forced below the displayed defender choices.  At the $C_1$ branch from
+$Q=(1,0),U=\{2\}$, one has $p_1=e_2$, $W_1=0$, $D=12$, and
+$T_1D=02$.  The subtree below that branch has one leaf.  The fictitious $02$
+terms in $W+\delta p$ cancel only after the cut and quotient pieces are
+recombined; no compatible continuation chain realizes either term separately.
+This is the smallest broken commuting diamond behind the false branchwise
+induction.
 
 \section{Why the deterministic local induction fails}
 
@@ -380,9 +475,12 @@ After an opponent open, there is always a distinct legal open with the same
 $\chi$.  If a reply is due after an opponent close of charge $c$, there is a
 legal response of charge $c$ except in exactly the following case:
 \begin{equation}\label{eq:poison}
- c=0,\quad U\ne\varnothing,\quad
- \deg_{R'}(u)=1\pmod2\ \text{for every }u\in U,\quad
- Q'=\varnothing\ \text{or }\deg_U(\operatorname{front}Q')=1\pmod2,
+ \begin{aligned}
+ c&=0,\qquad U\ne\varnothing,\qquad
+ \deg_{R'}(u)=1\pmod2\quad\text{for every }u\in U,\\
+ &Q'=\varnothing\quad\text{or}\quad
+ \deg_U(\operatorname{front}Q')=1\pmod2.
+ \end{aligned}
 \end{equation}
 where $Q'=Q\setminus\{f\}$ and $R'=Q'\cup U$ after the close.
 \end{proposition}
@@ -418,6 +516,51 @@ debt which the global chain must transport.  The dummy prevents
 new front (it is an even close), but it may be buried in the queue or already
 closed.  The proposition therefore isolates the local obstruction without
 pretending to solve its recurrence.
+
+The first obstruction to same-action pairing does have a complete local
+repair.  Write $B(u,v)$ for adjacency in the current graph.
+
+\begin{lemma}[two-switch tail]\label{lem:two-switch-tail}
+\PROVED{} Suppose the defender moves just after an attacker close, the score
+debt is zero, and
+\[
+ U=\{x,y\},\qquad Q=(v_1,\ldots,v_{2r+1}).
+\]
+If
+\begin{equation}\label{eq:tail-pairs}
+ B(v_{2i-1},y)=B(v_{2i},y)\quad(1\le i\le r),
+ \qquad B(v_{2r+1},y)=B(x,y),
+\end{equation}
+then the defender forces even final score with at most two changes of action
+type relative to the attacker's preceding move.
+\end{lemma}
+
+\begin{proof}
+The defender first opens $x$, so the even queue is paired as
+$(v_1,v_2),\ldots,(v_{2r+1},x)$ and every pair has equal adjacency to the sole
+untouched vertex $y$.  While the attacker closes, the defender closes the next
+front; the two flip bits in each pair cancel by \eqref{eq:tail-pairs}.  If the
+attacker opens $y$, the defender closes the front.  Now $U$ is empty and every
+later close has charge zero.  If the attacker never opens $y$ before the pairs
+are exhausted, $y$ is the harmless terminal singleton.  The initial
+close/open and the possible later open/close are the two switches.
+\end{proof}
+
+\TESTED{} Same-action adaptive pairing first fails, without a dummy, on two
+of the seven exceptional order-eight graphs: \verb|GCZN^{| and
+\verb|GEjt~{|.  Call them $G_1,G_2$ in the table below.
+Exact minimax gives minimum worst-case switch count two on each.  Their worst
+paths enter Lemma~\ref{lem:two-switch-tail} at
+\[
+\begin{array}{c|c|c|c}
+&Q&U&(x,y)\\ \hline
+G_1&(1,2,4,3,5)&\{6,7\}&(6,7)\\
+G_2&(1,2,3,4,5)&\{6,7\}&(6,7).
+\end{array}
+\]
+In both graphs $7$ dominates the remaining live graph, so
+\eqref{eq:tail-pairs} is immediate.  This proves the tail repair, not the
+still-missing prefix theorem that would force such a tail on every board.
 
 \section{The remaining global lemma}
 
@@ -467,6 +610,18 @@ the $64$ finite witnesses above.  Local complementation changes the required
 pairing data but is not a legal FIFO move.  Queue layouts supply terminology
 for nonnesting but no adversarial parity strategy.
 
+\TESTED{} A useful stronger conjecture is false: without the dummy, the
+initial mover does not always force even score on even-order graphs.  The first
+failures occur at order eight, in exactly seven isomorphism classes:
+\verb|GCZN^{|, \verb|GCrU~{|, \verb|GEhvn{|, \verb|GCx}~{|,
+\verb|GEjt~{|, \verb|GEl~v{|, and \verb|GUZv^{|.  They are
+anti-mover-controlled: the second player can force the target parity, whether
+that target is even or odd.  In particular the weaker finite conjecture that a
+second-seat even player wins every even-order no-dummy board survives this
+screen, but it is not proved.  Bare alternating rank or Witt class cannot
+classify these outcomes: $P_3$ and $K_2\sqcup K_1$ have congruent rank-two
+alternating adjacency forms over $\F_2$ but different seat outcomes.
+
 \PROVED{} The smallest genuine affine cancellation is already a three-history
 fan, not a dummy cone.  With real vertices $1,2,3$, let a first-seat attacker open the
 dummy and thereafter close whenever possible, otherwise opening the least
@@ -483,6 +638,23 @@ realize the three compatible terminal histories
 Their three vectors XOR to zero, although none is zero.  In (iii), $O_2$
 opens an empty queue and $O_3$ is the ko-forced response, so all three rows are
 legal.  The cancellation happens after the dummy has closed.
+
+\TESTED{} Three histories do not suffice uniformly.  With five real vertices
+plus $d$, let a first-seat attacker close whenever legal and otherwise open the
+least untouched vertex.  Its $132$ distinct response scores contain neither
+zero nor three vectors with XOR zero.  The minimum odd certificate has support
+five; one is
+\[
+\begin{aligned}
+&\{01,02,03,13,14,24\},
+&&\{01,02,04,12,13,23,24\},\\
+&\{01,03,04,12,14,23\},
+&&\{02,03,04,12,14,23\},\\
+&\{01,02,03,04,12,14,23\}.
+\end{aligned}
+\]
+The five rows XOR to zero.  Thus the triangular fan is a real local
+cancellation, not a bounded global normal form for affine response flows.
 
 \TESTED{} Even the natural fan over \emph{all} second openings is too rigid.  On real
 vertices $0,1,2$ plus $d$, let the attacker first play $O_0$; after replies
@@ -523,10 +695,11 @@ separate open step.
 The following claims have different status and should not be flattened.
 \begin{itemize}[leftmargin=*]
 \item \PROVED{} The interval/disjointness reduction, vector live-star identity,
-      affine-separation equivalence, homogeneous response recursion,
-      parity-cell theorem, front cut-space splitting, charge/poison
-      classification, and displayed triangular fan are complete proofs in
-      this note.
+      affine separation equivalence, homogeneous response recursion,
+      parity-cell theorem, front cut-space splitting and two-graph absorption,
+      correlated-moment identity, initial cut contraction, charge/poison
+      classification, two-switch tail, and displayed triangular fan are
+      complete proofs in this note.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is
@@ -537,6 +710,11 @@ The following claims have different status and should not be flattened.
 \item \TESTED{} The mandatory full second-opening fan also fails at three real
       vertices plus dummy, despite the immediate star identity.  The global
       affine target survives inside a single reply branch.
+\item \TESTED{} Same-action adaptive pairing first fails on two order-eight
+      no-dummy boards and needs exactly two switches there.  A three-leaf
+      affine certificate first fails for the displayed five-real-vertex
+      strategy, whose exact minimum support is five.  These are failures of
+      stronger proof templates, not of the linking theorem.
 \item \OPEN{} The global FIFO affine-contraction statement
       \eqref{eq:affine-target} is not proved.  Neither the complete finite
       census nor the graph-free affine searches are evidence of a general
@@ -561,6 +739,17 @@ Algorithmica 81 (2019), 1490--1511,
 G.~Bodwin and O.~Grossman,
 \emph{Strategy-stealing is non-constructive},
 \href{https://arxiv.org/abs/1911.06907}{arXiv:1911.06907}.
+
+\bibitem{mallows-sloane}
+C.~L. Mallows and N.~J.~A. Sloane,
+\emph{Two-graphs, switching classes and Euler graphs are equal in number},
+SIAM Journal on Applied Mathematics 28 (1975), 876--880,
+\href{https://doi.org/10.1137/0128070}{doi:10.1137/0128070}.
+
+\bibitem{limouzy}
+V.~Limouzy,
+\emph{Seidel minor, permutation graphs and combinatorial properties},
+\href{https://arxiv.org/abs/0904.1923}{arXiv:0904.1923}.
 \end{thebibliography}
 
 \end{document}

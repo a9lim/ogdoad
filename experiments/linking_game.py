@@ -34,9 +34,12 @@ STATUS (2026-07-20), machine-verified by this file:
   * Rigidity holds for ALL graph iso classes with k <= 8 real coins +
     dummy, both seats (k=8: 12,346 classes, supplied by nauty ``geng``) --
     far beyond the Gold-arising boards of the m=8 sweep.
-  * Without the dummy the failures ("Bad graphs") are exactly mover-
-    controlled, census {3:1, 5:4, 7:34}; none contains an isolated vertex;
-    33/34 at n=7 have a dominating vertex (one composite exception).
+  * Without the dummy the odd-order failures through n=7 are mover-controlled,
+    census {3:1, 5:4, 7:34}; none contains an isolated vertex, and 33/34 at
+    n=7 have a dominating vertex.  Order n=8 has exactly seven different,
+    anti-mover-controlled failures: the second player can force either declared
+    target parity.  Thus the old "initial mover always forces even" heuristic
+    is false, while the narrower even-order second-seat-even screen survives.
   * Core Lemma (the empty-queue obstruction; proof = 4-case check): with
     the queue empty, after opening v with R = U \\ {v}, the responder can
     re-even v before it becomes closable UNLESS R is a subset of N(v) with
@@ -68,6 +71,12 @@ STATUS (2026-07-20), machine-verified by this file:
     distinguishing pairs differ in E(U) repair structure).  The two k=8
     menu witnesses now show that any such induction must admit proactive
     debt before the parity-local trap appears.
+  * The proof-frontier note ``writeups/linking_affine.tex`` now replaces that
+    local induction by the exact affine target 0 in Aff{D(h)}.  Front deletion
+    is a two-graph/Seidel quotient, but its cut and continuation moments remain
+    correlated.  This file pins the first stronger-template failures: two
+    no-dummy order-8 graphs need exactly two action switches, and a close-first
+    k=5 attacker needs a five-leaf rather than three-leaf affine certificate.
 
 The old description of the empty-queue domination device as the unique
 local obstruction was too strong.  A nonempty queue can squeeze too: on
@@ -86,6 +95,7 @@ reviewed solver) through the SynthForm bridge in stage `validate`.
 """
 
 import argparse
+import functools
 import multiprocessing
 import random
 import sys
@@ -425,6 +435,81 @@ def strategy_holds(k: int, edges, seat: int, menu_version: int = 5) -> bool:
     return W((1 << n) - 1, (), False, 0, 0)
 
 
+def close_first_response_vectors(k: int) -> frozenset[int]:
+    """Exact D-vectors against the first-seat close-first attacker.
+
+    Edge bits use ``itertools.combinations(range(k), 2)`` order.  The dummy is
+    vertex ``k`` and contributes no coordinate.
+    """
+    n = k + 1
+    dummy = k
+    pidx = {pair: bit for bit, pair in
+            enumerate((i, j) for i in range(k) for j in range(i + 1, k))}
+
+    def close_vector(front: int, u: int) -> int:
+        if front == dummy:
+            return 0
+        out = 0
+        for x in range(k):
+            if u >> x & 1:
+                out ^= 1 << pidx[min(front, x), max(front, x)]
+        return out
+
+    @functools.lru_cache(None)
+    def rec(u: int, seq: tuple[int, ...], ko: bool,
+            mover: int, score: int) -> frozenset[int]:
+        if u == 0 and not seq:
+            return frozenset({score})
+        opens = [(u ^ (1 << x), seq + (x,), not seq, score)
+                 for x in range(n) if u >> x & 1]
+        close = None
+        if seq and not ko:
+            close = (u, seq[1:], False, score ^ close_vector(seq[0], u))
+        moves = opens + ([close] if close is not None else [])
+        if not moves:
+            return rec(u, seq, False, 1 - mover, score)
+        if mover == 0:
+            chosen = close if close is not None else opens[0]
+            assert chosen is not None
+            return rec(chosen[0], chosen[1], chosen[2], 1 - mover, chosen[3])
+        out: set[int] = set()
+        for child in moves:
+            out.update(rec(child[0], child[1], child[2], 1 - mover, child[3]))
+        return frozenset(out)
+
+    return rec((1 << n) - 1, (), False, 0, 0)
+
+
+def minimum_worst_switches(k: int, edges) -> int | None:
+    """Minimum worst-case action-type switches for a second-seat even player.
+
+    Return ``None`` if that defender cannot force even.  A switch is a defender
+    OPEN after an attacker CLOSE or vice versa; forced passes are uncharged.
+    """
+    n = k
+    adj = adj_of(n, edges)
+    inf = 10_000
+
+    @functools.lru_cache(None)
+    def cost(u: int, seq: tuple[int, ...], ko: bool,
+             mover: int, g: int, pending: str) -> int:
+        if u == 0 and not seq:
+            return 0 if g == 0 else inf
+        moves = legal_moves(n, adj, u, seq, ko)
+        if not moves:
+            return cost(u, seq, False, 1 - mover, g, "")
+        values = []
+        for kind, _coin, flip, u2, seq2, ko2 in moves:
+            extra = int(mover == 1 and pending and kind != pending)
+            next_pending = kind if mover == 0 else ""
+            values.append(extra + cost(
+                u2, seq2, ko2, 1 - mover, g ^ flip, next_pending))
+        return max(values) if mover == 0 else min(values)
+
+    answer = cost((1 << n) - 1, (), False, 0, 0, "")
+    return None if answer >= inf else answer
+
+
 # ---------------------------------------------------------------- stages
 
 def stage_validate() -> None:
@@ -546,6 +631,29 @@ def stage_validate() -> None:
     assert strategy_holds(nonrepair_k, nonrepair_edges, 1, menu_version=5)
     print("   GCZMmw defeats the corridor menu; deliberate nonrepair needs"
           " the no-self-flip envelope")
+
+    print("== affine-response and action-switch witnesses ==")
+    anti_mover_graphs = (
+        "GCZN^{", "GCrU~{", "GEhvn{", "GCx}~{",
+        "GEjt~{", "GEl~v{", "GUZv^{",
+    )
+    for graph6 in anti_mover_graphs:
+        order, edges = decode_graph6(graph6)
+        assert order == 8
+        assert rigid_values(order, edges, False) == [1, 0]
+    for graph6 in ("GCZN^{", "GEjt~{"):
+        order, edges = decode_graph6(graph6)
+        assert minimum_worst_switches(order, edges) == 2
+    response_vectors = close_first_response_vectors(5)
+    certificate = (359, 443, 221, 222, 223)
+    assert len(response_vectors) == 132 and 0 not in response_vectors
+    assert not any(x ^ y in response_vectors
+                   for x in response_vectors for y in response_vectors
+                   if x != y)
+    assert all(x in response_vectors for x in certificate)
+    assert functools.reduce(int.__xor__, certificate) == 0
+    print("   7 no-dummy anti-mover classes; two exact two-switch minima;"
+          " k=5 close-first affine support minimum 5")
     print("validate: PASS")
 
 

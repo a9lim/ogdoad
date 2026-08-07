@@ -85,9 +85,10 @@ including the Tier-2 no-go/construction program; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `linking_affine.tex` — the proof-frontier note for the general FIFO linking
 theorem: vector live-star score, affine-response equivalence, parity-cell
-subclass, homogeneous response recursion, cut-space and poison filtrations,
-the false childwise/full-fan inductions, and the exact still-open global
-odd-flow lemma;
+subclass, homogeneous response recursion, cut-space/two-graph and poison
+filtrations, the correlated cut/continuation moment, initial cut contraction,
+two-switch tail, the false childwise/full-fan/bounded-support inductions, and
+the exact still-open global odd-flow lemma;
 `game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
 `thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
 filtered shadow, but no faithful dyadic-unital tropical ring;
@@ -294,8 +295,11 @@ graph class through k = 8 real coins plus dummy (12,346 classes at k = 8, both
 seats). The original prevention/debt menu is strictly complete only through k = 7;
 two k = 8 witnesses require proactive debt, while the broader no-self-flip/debt
 envelope is strictly complete across the full k = 8 census. The block-turn and
-live-degree identities sharpen the proof route; the general-n induction remains
-open.
+live-degree identities sharpen the proof route. The current proof note further
+identifies the target with an odd affine response flow, interprets front deletion
+as a two-graph/Seidel chart, proves contraction of the initial cut moment and a
+two-switch endgame corridor, and proves that cut and continuation moments must be
+cancelled jointly; the general-n contraction remains open.
 
 Appendix-grade shipped layers that should not be mistaken for new Gold/Arf claims:
 tropical thermography (`Semiring` + dual `Tropical<MaxPlus/MinPlus>`) plus
