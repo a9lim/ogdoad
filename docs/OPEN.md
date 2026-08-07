@@ -252,8 +252,9 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   is losing while the reverse `Q=(7,6)` is winning.  More strongly, in the
   losing orientation the unique first spoiler is `OPEN(5)`, whose degree
   parity is opposite to 6 and 7.  Thus the least-counterexample witness map
-  does not preserve its odd routing set, blocking a bare functional-digraph
-  cycle argument.  Separately, in the
+  is not forced to preserve its odd routing set by the local unsafe-state
+  hypotheses alone; a cycle argument would require a new closure consequence
+  of global minimality.  Separately, in the
   class `G?ben[` opener 2 has only one same-colour mate, 7, and `Q=(2,7)`
   is losing.  Thus even the existential “some same-colour reply” selector is
   false at order eight.  These are counterexamples to the selector, not to
@@ -323,6 +324,46 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   all have explicit small counterexamples.  The open theorem is construction
   of the strategy-relative repair forest/affine chain, not discovery of one
   more scalar invariant.
+- Complete schedules now have an exact permutation--threshold normal form.
+  If `pi` is the common FIFO opening/closing order and `r_b` is the number of
+  closes before the `b`th open, then `r` is nondecreasing,
+  `0 <= r_b <= b-1`, ko says `r_b=b-1 => r_{b+1}=b-1`, and
+  `pi_a pi_b` is disjoint exactly when `a <= r_b`.  This is an iff
+  parametrization, including the unique terminal-pass case, rather than a
+  schedule heuristic.  It also pins a new causal no-go: for one four-vertex
+  block with fixed opening order `(a,d,b,c)`, an attacker prunes the five-point
+  threshold lattice to a four-point square with affine moment
+  `ac + span{ab}`, excluding zero.  The omitted fifth point is exactly the
+  zero-moment correction.  Hence no proof can contract each opening
+  permutation independently; opening-permutation branches must interact.
+- The tempting Eulerian restriction is now proved to contain the whole
+  even-board kernel.  Given any even graph `H`, add `x,y`, the edge `xy`, an
+  odd neighbourhood `A` at `x`, and neighbourhood `A triangle O` at `y`, where
+  `O` is the odd-degree set of `H`.  The enlarged graph is Eulerian, and from
+  `Q=(x,y)` an odd close of `x` forces the odd close of `y`, leaving exactly
+  the root game on `H`.  Thus universal Eulerian ordered-pair safety would
+  prove universal even-board safety, and any counterexample to the latter
+  lifts two vertices higher.
+- Eulerianity nevertheless supplies a real higher-dimensional structure.  For
+  adjacency cochain `B`, the odd-triple curvature
+  `tau(i,j,k)=B_ij+B_ik+B_jk` is a 3-oik: every two-vertex wall lies in an even
+  number of odd triangles.  It always has a coherently oriented integral
+  multiset lift, and the queue phase-rotation defect is exactly its room parity
+  over the matching fan.  Ordinary complementary pivoting still has the wrong
+  boundary: its paths pair endpoints (even augmentation), while the desired
+  response chain has odd augmentation, and attacker pruning destroys even
+  wall incidence.  The precise missing theorem can therefore be named as a
+  relative, strategy-pruned, charge-decorated 3-oik contraction.
+- The broad prevention/debt menu also has a sharp block boundary.  A maximal
+  FIFO block with opening order `v_i`, residual `S`, and threshold `t_i`
+  scores `e(B,S)` plus the internal edges `v_i v_j` with `j>t_i`.  It ends in
+  odd debt exactly when its last odd close belongs to the attacker.  On the
+  path `a-f-u` plus isolated `d`, the legal line
+  `O_a,O_d,C_a,C_d,O_f,O_u,C_f,C_u` reaches the terminal residual-`K2` debt
+  trap; the losing fork is replying to the odd-degree opener `a` with the
+  dummy.  Degree-matching repairs this two-close fork, but does not yet control
+  longer blocks.  Hence the potential `debt + e(queue,U)` and fixed-front
+  descent do not by themselves prove the menu globally.
 - Even a tempting dynamic splice is false.  On
   `01,02,03,04,05,06,12,13,14,17,23,26,27,35,37,56,57`, the safe checkpoint
   `Q=(4,3), U={0,1,2,5,6,7}` has the following property: after attacker

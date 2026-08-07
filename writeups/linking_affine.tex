@@ -70,10 +70,14 @@ bounded triangular fan closes the general case.  Scalar force sets give a
 least-counterexample odd-routing lemma, while a stronger finite strategy has
 an exact ranked repair-forest recursion: consecutive queue matchings may
 extend, delete their front pair, or flip phase along an alternating path.
-That flip carries a genuine two-graph curvature term.  Tetrahedral coherence
-controls its label, but attacker pruning destroys the constant-coefficient
-simplex contraction.  The remaining obligation is simultaneous cancellation
-of the correlated cut and continuation moments by a strategy-relative chain.
+That flip carries a genuine two-graph curvature term.  On an even-order
+Eulerian graph its odd triangles form a $3$-oik, with a coherent oriented
+multiset lift.  This is not an easier subclass: an explicit two-vertex gadget
+embeds every even-board instance behind a forced cancelling close pair in an
+Eulerian graph.  Tetrahedral coherence controls the curvature label, but
+attacker pruning destroys the constant-coefficient simplex contraction.  The
+remaining obligation is simultaneous cancellation of the correlated cut and
+continuation moments by a strategy-relative chain.
 The note therefore advances the proof
 frontier without promoting the complete finite census through eight real
 vertices to a proof.
@@ -111,6 +115,98 @@ when $I_x$ and $I_y$ are disjoint.  Thus the total score is
 The proper-interval vocabulary is standard; the adversarial parity problem is
 not a standard queue-layout problem, because the queue stores vertices and the
 play itself constructs their intervals.
+
+There is also an exact static encoding of the schedule which is useful for
+checking any proposed involution.  Let $N=|R|+1$, including the dummy, and let
+$\pi=(\pi_1,\ldots,\pi_N)$ be the common opening and closing order.  Put
+\[
+ r_b=\#\{\hbox{closes strictly before }O_{\pi_b}\}.
+\]
+
+\begin{proposition}[permutation--threshold normal form]
+\label{prop:threshold}
+\PROVED{} Complete legal schedules are in bijection with pairs $(\pi,r)$ in
+which $\pi$ is a permutation and
+\[
+ 0=r_1\le r_2\le\cdots\le r_N,\qquad 0\le r_b\le b-1,
+\]
+subject to the ko condition
+\begin{equation}\label{eq:threshold-ko}
+ r_b=b-1\text{ and }b<N\quad\Longrightarrow\quad r_{b+1}=b-1.
+\end{equation}
+For $a<b$ one has
+\begin{equation}\label{eq:threshold-D}
+ \pi_a\pi_b\in D(h)\quad\Longleftrightarrow\quad a\le r_b.
+\end{equation}
+If $r_N=N-1$, the unique forced pass occurs after $O_{\pi_N}$ and before its
+close; otherwise the encoding is pass-free.
+\end{proposition}
+
+\begin{proof}
+FIFO identifies the opening and closing permutations.  The number of closes
+before successive opens is nondecreasing, and before the $b$th open at most
+$b-1$ vertices have opened.  Equality $r_b=b-1$ says that $\pi_b$ opens onto
+an empty queue.  Ko then forbids closing it before the next open, which is
+exactly \eqref{eq:threshold-ko}.  Conversely, before each $O_{\pi_b}$ close
+the first $r_b-r_{b-1}$ queued vertices.  The displayed bounds make these
+closes available, and \eqref{eq:threshold-ko} is precisely the only possible
+ko obstruction.  After the last open, close the remaining queue, inserting
+the forced pass exactly in the stated singleton case.  Finally, when $a<b$,
+$I_{\pi_a}$ and $I_{\pi_b}$ are disjoint exactly when $\pi_a$ is among the
+$r_b$ vertices already closed before $O_{\pi_b}$, proving
+\eqref{eq:threshold-D}.
+\end{proof}
+
+\begin{corollary}[maximal-block score]
+\label{cor:block-score}
+\PROVED{} Consider one maximal nonempty-queue block with opening order
+$v_1,\ldots,v_b$, and let $S$ be the vertices still untouched when the block
+ends.  If $t_i$ is the number of block vertices opened before $C_{v_i}$, then
+either $b=1$, $S=\varnothing$, and the block is the terminal
+open--pass--close macro, or $b\ge2$ and
+\[
+ i+1\le t_i\le b\ (i<b),\qquad t_b=b,\qquad
+ t_1\le\cdots\le t_b,
+\]
+and these conditions characterize maximal blocks.  The charge of the $i$th
+close and the total block score are
+\begin{align}
+ c_i&=\deg_S(v_i)+\sum_{j>t_i}[v_iv_j\in E(G)],\label{eq:block-charge}\\
+ F_{\rm block}
+ &=e_G(\{v_1,\ldots,v_b\},S)
+   +\sum_{\substack{i<j\\j>t_i}}[v_iv_j\in E(G)]\pmod2.
+   \label{eq:block-score}
+\end{align}
+\end{corollary}
+
+\begin{proof}
+The singleton case is exactly the ko-forced terminal macro.  Assume $b\ge2$.
+After $C_{v_i}$ the queue has length $t_i-i$.  It must remain positive for
+$i<b$ and become zero for $i=b$, giving the bounds; monotonicity records that
+opens accumulate as the FIFO closes proceed.  Conversely, open the next
+vertices and perform $C_{v_i}$ as soon as the count reaches $t_i$, resolving
+ties in FIFO order.  The bounds make the queue positive until the last close,
+so this constructs the unique canonical block word.  At $C_{v_i}$ the
+untouched vertices are $S$ together with exactly the later block vertices
+$v_j$ for which $j>t_i$.  This proves \eqref{eq:block-charge}; summing over
+$i$ gives \eqref{eq:block-score}.
+\end{proof}
+
+The block formula exposes a sharp boundary for the broad prevention/debt
+menu.  A defender close cannot create debt under that menu: at debt zero only
+an even close is admitted, while at debt one an odd close discharges and an
+even close transports.  Hence a block ends odd precisely when its last odd
+$c_i$ belongs to the attacker; its final close always belongs to the defender,
+so necessarily $c_b=0$.  This condition is not by itself an exclusion.  On
+the path $a-f-u$ plus isolated $d$, the completely legal line
+\[
+ O_a,O_d,C_a^{(1)},C_d^{(0)},O_f,O_u,C_f^{(0)},C_u^{(0)}
+\]
+ends with odd debt.  The losing defender fork is the first reply $O_d$: the
+two-vertex block $\{a,d\}$ has score $\deg_{\{f,u\}}(a)=1$.  If an initial
+real opener has odd degree, handshaking instead supplies another odd real
+vertex; replying with it makes the immediate close--close branch even.  This
+repairs the displayed fork but does not constrain longer block continuations.
 
 \section{The vector score}
 
@@ -158,6 +254,41 @@ coordinate of $D(h)$.
   F_G(h)=\sum_{x\text{ opened}}\deg_{G[L_x]}(x)\pmod2.
 \]
 \end{corollary}
+
+The threshold normal form does not permit a contraction one opening
+permutation at a time.
+
+\begin{proposition}[fixed-permutation contraction fails]
+\label{prop:fixed-pi}
+\PROVED{} There is a conditioned deterministic attacker strategy whose four
+response leaves have the same opening permutation but whose projected real
+disjointness vectors have affine hull excluding zero.
+\end{proposition}
+
+\begin{proof}
+Take real vertices $a,b,c$ and dummy $d$.  After the prefix $O_a,O_d$, put the
+attacker in the even positions.  If the defender's third move is $O_b$, the
+attacker plays $C_a$; if it is $C_a$, play $O_b$.  On move six, after the
+defender chooses $O_c$ or $C_d$, play the other.  The four resulting leaves
+are
+\begin{align*}
+ B&=O_aO_dO_bC_aO_cC_dC_bC_c,&
+ C&=O_aO_dO_bC_aC_dO_cC_bC_c,\\
+ D&=O_aO_dC_aO_bO_cC_dC_bC_c,&
+ E&=O_aO_dC_aO_bC_dO_cC_bC_c.
+\end{align*}
+They are legal single blocks, all with opening order $(a,d,b,c)$.  Their two
+free thresholds $(r_3,r_4)$ are respectively
+$(0,1),(0,2),(1,1),(1,2)$, and direct use of
+\eqref{eq:threshold-D} gives
+\[
+ D(B)=D(C)=ac,\qquad D(D)=D(E)=ab+ac.
+\]
+The affine hull is $ac+\Span\{ab\}$ and excludes zero.  The unpruned threshold
+lattice has one further point $(0,0)$ with zero moment; the attacker's move
+$C_a$ prunes exactly that correction.  Thus any global contraction must couple
+different opening-permutation branches.
+\end{proof}
 
 This upgrades the earlier scalar potential calculation to an identity before
 a graph is chosen.  The graph enters only through the final linear functional
@@ -989,6 +1120,90 @@ but an attacker coefficient must follow one prescribed child.  Projection to
 compatible histories consequently fails to commute with the simplicial
 boundary.
 
+Eulerian support makes this curvature into an honest Euler complex.  Recall
+that a $3$-oik is a multiset of three-element rooms in which every two-element
+wall occurs with even multiplicity \cite{vegh-von-stengel}.
+
+\begin{theorem}[Euler curvature oik]
+\label{thm:euler-oik}
+\PROVED{} Let $G$ be an Eulerian graph of even order $n$, with adjacency
+$1$-cochain $B$, and put
+\[
+ \tau(i,j,k)=B(i,j)+B(i,k)+B(j,k).
+\]
+The triples on which $\tau=1$ form a $3$-oik.  Moreover this binary room
+multiset has a coherent oriented integral multiset lift: there is an integral
+$2$-cycle $z$ in the full simplex whose coefficient on each triangle is
+congruent to $\tau$ modulo $2$.
+\end{theorem}
+
+\begin{proof}
+For a wall $\{i,j\}$, its room incidence modulo two is
+\[
+ \sum_{k\ne i,j}\tau(i,j,k)
+ =(n-2)B(i,j)+(\deg i-B(i,j))+(\deg j-B(i,j))=0,
+\]
+because $n$, $\deg i$, and $\deg j$ are even.  This is exactly the oik wall
+condition.
+
+For the oriented lift, choose an orientation on every triangle and regard the
+$0/1$ room set as an integral $2$-chain $t$.  The wall condition says that
+$\partial t$ is even, so write $\partial t=2b$.  Then $\partial b=0$.
+The full simplex has $H_1(-;\mathbb Z)=0$, hence $b=\partial c$ for an
+integral $2$-chain $c$.  The chain $z=t-2c$ is an integral cycle and satisfies
+$z\equiv t\equiv\tau\pmod2$.  Replacing each nonzero coefficient by that many
+signed copies gives the claimed coherent oriented multiset.
+\end{proof}
+
+Equation~\eqref{eq:phase-holonomy} now says exactly that the phase defect is
+the parity of rooms of this $3$-oik occurring in the triangle fan $F(W)$.
+This is a genuine bridge to complementary pivoting, but ordinary oik parity
+does not close the game.  A fan overlaps in vertices and is not a room
+partition; attacker pruning is irreversible and need not give every wall even
+incidence; and a pivot path pairs endpoints, producing augmentation zero over
+$\F_2$, whereas the required response chain has augmentation one.  The
+curvature also cannot be oriented on Markov states alone.  The two legal words
+$C_fO_z$ and $O_zC_f$ end in the same state when both orders are legal, but
+their charges differ by $B(f,z)$.  Thus a successful use of
+Theorem~\ref{thm:euler-oik} needs a relative, strategy-pruned,
+charge-decorated oik contraction, not the constant-coefficient room-partition
+theorem.
+
+Nor is the Eulerian case a simplifying restriction of the scalar kernel.
+
+\begin{theorem}[Euler ordered-pair kernel is complete]
+\label{thm:euler-complete}
+\PROVED{} Suppose that for every even-order Eulerian graph $G$ and every
+ordered pair of distinct vertices $(x,y)$, the checkpoint
+\[
+ U=V(G)-\{x,y\},\qquad Q=(x,y)
+\]
+is safe in the zero-normalized recursion.  Then every even-order graph $H$
+satisfies $\mathsf{Safe}(V(H),())$.
+Equivalently, any even-board counterexample produces an Eulerian ordered-pair
+counterexample two vertices larger.
+\end{theorem}
+
+\begin{proof}
+Let $H$ have nonempty even vertex set $V$, put
+$p(v)=\deg_H(v)\pmod2$, and let $O=\{v:p(v)=1\}$.  Handshaking makes $|O|$
+even.  Choose any odd set $A\subseteq V$ and put $C=A\mathbin\triangle O$.
+Adjoin $x,y$, the edge $xy$, all edges from $x$ to $A$, and all edges from
+$y$ to $C$.  For $v\in V$,
+\[
+ \deg_G(v)=p(v)+1_A(v)+1_C(v)=0\pmod2,
+\]
+while $\deg_G(x)=1+|A|$ and
+$\deg_G(y)=1+|C|=1+|A|+|O|$ are even.  Thus $G$ is Eulerian of even order.
+
+At the displayed checkpoint, the attacker may close $x$ with charge
+$|A|=1$.  Zero normalization forbids an open reply, and FIFO leaves only the
+close of $y$, whose charge $|C|$ is also one.  The two charges cancel and the
+resulting state is exactly $U=V$, $Q=()$, attacker to move, with score zero in
+the original graph $H$.  Safety of the Eulerian checkpoint therefore implies
+$\mathsf{Safe}(V,())$; contraposition gives the final assertion.
+\end{proof}
+
 This is not repaired by ordinary topology of injective words.  Those words
 form a Boolean cell complex with
 \[
@@ -1020,9 +1235,10 @@ First, the two-bit colour is a prefix moment, not a winning selector.
 vertices $6,7$ have the same $(p,b)$ colour, but $Q_{67}$ is unsafe while
 $Q_{76}$ is safe.  The unique first spoiler in $Q_{67}$ is $O_5$.
 Vertices $6,7$ have odd degree while $5$ has even degree, so the
-least-counterexample witness choice $y\mapsto z_y$ need not even preserve the
-odd routing set $Y$; functional-digraph cycle parity cannot be applied without
-a new closure theorem.
+local unsafe-$Q$ hypotheses used by odd routing do not themselves force the
+witness choice $y\mapsto z_y$ to preserve $Y$.  Functional-digraph cycle
+parity would first need a genuinely least-counterexample-specific closure
+theorem.
 There is also an opener with no safe same-colour mate: in graph6 class
 \verb|G?ben[|, with
 \[
@@ -1259,15 +1475,18 @@ separate open step.
 The following claims have different status and should not be flattened.
 \begin{itemize}[leftmargin=*]
 \item \PROVED{} The interval/disjointness reduction, vector live-star identity,
-      affine separation equivalence, homogeneous response recursion,
+      threshold schedule normal form, affine separation equivalence,
+      homogeneous response recursion,
       parity-cell theorem, front cut-space splitting and two-graph absorption,
       correlated-moment identity, initial cut contraction, charge/poison
       classification, two-switch tail, scalar force-set recursion,
       least-counterexample odd routing, zero-normalized repair recursion,
-      queue-matching phase-fan identity, tetrahedral coherence, and displayed
-      triangular fan and fixed-front poison descent, together with the
-      front-signature no-go, pass-free reversal identity, and its local causal
-      obstruction, are complete proofs in this note.
+      queue-matching phase-fan identity, tetrahedral coherence, Euler curvature
+      oik and its oriented lift, completeness of the Euler ordered-pair kernel,
+      fixed-permutation no-go, and displayed triangular fan and fixed-front
+      poison descent, together with the front-signature no-go, pass-free
+      reversal identity, and its local causal obstruction, are complete proofs
+      in this note.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is
@@ -1338,6 +1557,12 @@ J.~Jonsson and V.~Welker,
 W.~L.~Gan,
 \emph{Complex of injective words revisited},
 \href{https://arxiv.org/abs/1608.04496}{arXiv:1608.04496}.
+
+\bibitem{vegh-von-stengel}
+L.~A. V\'egh and B.~von Stengel,
+\emph{Oriented Euler complexes and signed perfect matchings},
+Mathematical Programming 150 (2015), 153--178,
+\href{https://arxiv.org/abs/1210.4694}{arXiv:1210.4694}.
 \end{thebibliography}
 
 \end{document}
