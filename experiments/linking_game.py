@@ -707,8 +707,9 @@ def stage_validate() -> None:
                 spoilers.append((kind, coin))
         return spoilers
 
-    assert two_bit_colours(colour_edges)[6] == \
-        two_bit_colours(colour_edges)[7]
+    colour_bits = two_bit_colours(colour_edges)
+    assert colour_bits[6] == colour_bits[7]
+    assert colour_bits[5][0] != colour_bits[6][0]
     colour_u = full8 ^ (1 << 6) ^ (1 << 7)
     assert not even_checkpoint_safe(
         8, colour_edges, colour_u, (6, 7))
@@ -753,8 +754,64 @@ def stage_validate() -> None:
                 score=0, zero_normalized=True):
             safe_replies.append((kind, coin))
     assert safe_replies == [("c", 4)], safe_replies
+
+    profile_a = frozenset({(2, 3), (0, 4), (1, 4)})
+    profile_b = frozenset({(2, 3), (2, 4), (0, 2), (1, 2)})
+    profile_u = sum(1 << v for v in (2, 3, 4))
+
+    def front_signature(edges):
+        adj = adj_of(5, edges)
+        queue_graph = ((adj[0] >> 1) & 1,)
+        untouched = sorted(
+            ((adj[u] >> 0) & 1, (adj[u] >> 1) & 1,
+             (adj[u] & profile_u).bit_count() & 1)
+            for u in (2, 3, 4))
+        return queue_graph, untouched
+
+    assert front_signature(profile_a) == front_signature(profile_b)
+    assert even_checkpoint_safe(
+        5, profile_a, profile_u, (0, 1), zero_normalized=True)
+    assert not even_checkpoint_safe(
+        5, profile_b, profile_u, (0, 1), zero_normalized=True)
+
+    def named_move(n, adj, u, seq, ko, name):
+        return next(move for move in legal_moves(n, adj, u, seq, ko)
+                    if move[:2] == name)
+
+    adj_a = adj_of(5, profile_a)
+    for attack_name, reply_name in (
+            (("c", 0), ("c", 1)),
+            (("o", 2), ("o", 3)),
+            (("o", 3), ("o", 2)),
+            (("o", 4), ("o", 2))):
+        attack = named_move(5, adj_a, profile_u, (0, 1), False,
+                            attack_name)
+        _ak, _av, af, au, aq, ako = attack
+        reply = named_move(5, adj_a, au, aq, ako, reply_name)
+        _rk, _rv, rf, ru, rq, rko = reply
+        assert af ^ rf == 0
+        assert even_checkpoint_safe(
+            5, profile_a, ru, rq, ko=rko, mover=0, score=0,
+            zero_normalized=True)
+
+    adj_b = adj_of(5, profile_b)
+    attack = named_move(5, adj_b, profile_u, (0, 1), False, ("c", 0))
+    _ak, _av, af, au, aq, ako = attack
+    normalized = [move for move in legal_moves(5, adj_b, au, aq, ako)
+                  if af ^ move[2] == 0]
+    assert [move[:2] for move in normalized] == [("c", 1)]
+    _rk, _rv, _rf, ru, rq, rko = normalized[0]
+    open_two = named_move(5, adj_b, ru, rq, rko, ("o", 2))
+    _ok, _ov, of, ou, oq, oko = open_two
+    forced_opens = [move for move in legal_moves(5, adj_b, ou, oq, oko)
+                    if of ^ move[2] == 0]
+    assert [move[:2] for move in forced_opens] == [("o", 3), ("o", 4)]
+    assert all(not even_checkpoint_safe(
+        5, profile_b, move[3], move[4], ko=move[5], mover=0,
+        score=0, zero_normalized=True) for move in forced_opens)
     print("   same-colour orientation, sole-colour mate, and open-completion"
-          " conjectures have pinned order-8 counterexamples")
+          " conjectures have pinned order-8 counterexamples;")
+    print("   identical rich front signatures can have opposite safety")
 
     print("== sigma-explicit vs the verified echo_solver.fifo_value ==")
     from echo_solver import fifo_value, SynthForm

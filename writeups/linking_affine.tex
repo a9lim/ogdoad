@@ -765,6 +765,63 @@ $\deg_{G[Q\cup U]}(x)$, which may be odd; therefore this exclusion is a local
 corridor condition, not a global invariant.
 \end{proof}
 
+The fixed-front data can be packaged much more richly and still fail to
+determine the continuation.  For $Q=(q_0,\ldots,q_{m-1})$, define the
+\emph{front signature}
+\[
+ \mathcal F(U,Q)=\left(
+ B|_{Q\times Q},
+ \left\{\!\left\{
+  \bigl(B(u,q_0),\ldots,B(u,q_{m-1});\deg_{G[U]}(u)\bmod2\bigr):u\in U
+ \right\}\!\right\}
+ \right).
+\]
+It retains the ordered queue graph, every live front degree, each untouched
+vertex's live-degree parity, and its full adjacency word into the queue; only
+the internal adjacency correlations among untouched vertices are forgotten,
+while their degree parities are retained.
+
+\begin{proposition}[front-signature insufficiency]
+\PROVED{} The debt, mover, ko bit, and $\mathcal F(U,Q)$ do not determine
+zero-normalized safety.  This already fails with five active vertices and a
+nonempty even queue.
+\end{proposition}
+
+\begin{proof}
+Put $Q=(0,1)$, $U=\{2,3,4\}$, debt zero, ko clear, and let the attacker move.
+Compare
+\[
+ E(G_A)=\{23,04,14\},\qquad
+ E(G_B)=\{23,24,02,12\}.
+\]
+Neither graph has edge $01$, and in both cases the untouched signature
+multiset is
+\[
+ \left\{\!\left\{(00;1),(00;1),(11;0)\right\}\!\right\}.
+\]
+For $G_A$ the defender has the following first replies:
+\[
+ C_0\mapsto C_1,\qquad
+ O_2\mapsto O_3,\qquad O_3\mapsto O_2,\qquad O_4\mapsto O_2.
+\]
+The first branch leaves the edge $23$ plus isolated vertex $4$ on an empty
+queue; pair $O_2/O_3$, and after $O_4$ use $O_2$, opening the last vertex
+before any unmatched close.  The middle two branches leave queue pairs
+$(0,1)$ and $(2,3)$ (in one order or the other): mate-closing gives equal
+charges, while an attack opening $4$ makes every later close zero.  In the
+last branch, after $Q=(0,1,4,2),U=\{3\}$, answer $C_0$ by $C_1$ and $O_3$ by
+$C_0$; from $Q=(4,2),U=\{3\}$ answer $C_4$ by $O_3$ and $O_3$ by $C_4$.
+Every displayed response has charge equal to the preceding attack, and the
+remaining closes have charge zero.  Thus $G_A$ is safe.
+
+For $G_B$, the attack $C_0$ has charge one, forcing the sole normalized reply
+$C_1$, also of charge one.  The queue is now empty.  The attacker opens $2$;
+ko forces the defender to open $3$ or $4$.  In the first case $C_2$ has charge
+one into $\{4\}$, and in the second it has charge one into $\{3\}$; both legal
+defender replies then have charge zero.  Hence $G_B$ is unsafe despite the
+identical signature.
+\end{proof}
+
 The first obstruction to same-action pairing does have a complete local
 repair.  Write $B(u,v)$ for adjacency in the current graph.
 
@@ -962,6 +1019,10 @@ First, the two-bit colour is a prefix moment, not a winning selector.
 \]
 vertices $6,7$ have the same $(p,b)$ colour, but $Q_{67}$ is unsafe while
 $Q_{76}$ is safe.  The unique first spoiler in $Q_{67}$ is $O_5$.
+Vertices $6,7$ have odd degree while $5$ has even degree, so the
+least-counterexample witness choice $y\mapsto z_y$ need not even preserve the
+odd routing set $Y$; functional-digraph cycle parity cannot be applied without
+a new closure theorem.
 There is also an opener with no safe same-colour mate: in graph6 class
 \verb|G?ben[|, with
 \[
@@ -1007,6 +1068,21 @@ $[o_v,c_v]$ reflects to
 $[2n+1-c_v,2n+1-o_v]$; interval disjointness, and therefore $D$, is
 unchanged.
 
+Let $\mathcal L_{\rm pf}$ be the full set of legal pass-free complete
+schedules and extend $\rho$ linearly to $\F_2[\mathcal L_{\rm pf}]$.  For at
+least two vertices, $\rho$ is fixed-point-free: a fixed word would
+have its common FIFO opening/closing order equal to its reverse, impossible
+for distinct labels.  Thus every $\rho$-invariant chain in this full space is
+a sum of two-element orbits, hence lies in the image of $1+\rho$.  For every
+chain $c$,
+\[
+ (\operatorname{aug},D)((1+\rho)c)=(0,0).
+\]
+Reversal averaging therefore produces a homogeneous zero-moment chain, never
+the required affine certificate $(1,0)$.  Even a hypothetical causal reversal
+would preserve the odd payoff rather than complement it, so composing two
+odd-target strategies would give no contradiction.
+
 This identity does not extend to a strategy contraction.  If one attempts to
 set $\rho(P)=P$, a terminal singleton component $O_x,P,C_x$ moves to the
 beginning; when other vertices remain untouched there, its pass is not forced
@@ -1035,6 +1111,20 @@ Both invariant chains have even augmentation (and
 $D(h_C+h_O)=01$), whereas the valid odd zero-moment certificate is the
 nonsymmetric singleton $h_O$.  Diamond symmetrization therefore destroys the
 odd augmentation rather than proving it.
+
+Nor can the dummy simply be erased to make a shadow copycat game.  If $\pi$
+deletes $O_d,C_d$, then
+$\pi(h_C)=O_0C_0O_1C_1$ is illegal: after $O_0$, ko forbids $C_0$ while
+$O_1$ remains available.  Even when a schedule and its dummy deletion are
+both legal, controllers are not preserved.  For
+\[
+ k=O_dO_0O_1C_dC_0C_1,\qquad \pi(k)=O_0O_1C_0C_1,
+\]
+the projected real events were controlled in order by $B,A,A,B$, not by
+alternating seats.  With only one real vertex, deletion instead requires
+inserting the forced pass state-dependently.  Hence dummy deletion preserves
+neither legality, turn ownership, nor the pass boundary; it is not a game-tree
+morphism.
 
 \section{The remaining global lemma}
 
@@ -1176,8 +1266,8 @@ The following claims have different status and should not be flattened.
       least-counterexample odd routing, zero-normalized repair recursion,
       queue-matching phase-fan identity, tetrahedral coherence, and displayed
       triangular fan and fixed-front poison descent, together with the
-      pass-free reversal identity and its local causal obstruction, are
-      complete proofs in this note.
+      front-signature no-go, pass-free reversal identity, and its local causal
+      obstruction, are complete proofs in this note.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is

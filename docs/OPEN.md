@@ -250,6 +250,10 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   make an ordered first cell safe under unrestricted play: on
   `01,03,05,07,12,14,15,17,24,26,27,34,37,45,46,47,57,67`, `Q=(6,7)`
   is losing while the reverse `Q=(7,6)` is winning.  More strongly, in the
+  losing orientation the unique first spoiler is `OPEN(5)`, whose degree
+  parity is opposite to 6 and 7.  Thus the least-counterexample witness map
+  does not preserve its odd routing set, blocking a bare functional-digraph
+  cycle argument.  Separately, in the
   class `G?ben[` opener 2 has only one same-colour mate, 7, and `Q=(2,7)`
   is losing.  Thus even the existential “some same-colour reply” selector is
   false at order eight.  These are counterexamples to the selector, not to
@@ -335,6 +339,13 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   diamond-symmetrizing its two leaves has even augmentation.  A valid affine
   certificate may be one nonsymmetric leaf, so requiring diamond symmetry would
   destroy exactly the odd augmentation the theorem needs.
+- Globally, pass-free reversal is fixed-point-free once at least two vertices
+  remain.  Every reversal-invariant chain is therefore an orbit sum and has
+  `(augmentation,D)=(0,0)`, never the required affine `(1,0)`.  Erasing the
+  dummy is not a copycat escape: it can create a ko-illegal word, assign two
+  consecutive projected events to the same controller, or require a
+  state-dependent pass.  Reversal averaging and dummy projection are thus
+  proved no-go templates, not candidate contractions.
 - The dummy defeats the empty-queue domination device at every root, matching
   the no-dummy Bad-graph census 1/4/34 at n = 3/5/7 (all mover-controlled),
   but that device is not the unique local squeeze. On the path `z-f-y-h`,
@@ -350,6 +361,15 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   rules out a singleton anticomplete firewall.  But opens change `H` by their
   full live-degree parity, and deleting the firewall shifts the queue front;
   neither fact supplies the missing global induction.
+- Even retaining the ordered queue graph, every untouched vertex's full
+  adjacency word into the queue, and its internal-degree parity is
+  insufficient.  The proved five-active-vertex pair
+  `queue=(0,1), U={2,3,4}` with edge sets `{23,04,14}` and
+  `{23,24,02,12}` has the same signature multiset
+  `{(00;1),(00;1),(11;0)}`, but the first state is zero-normalized safe and
+  the second is unsafe.  Any adequate smaller state quotient therefore needs
+  at least one further moment of adjacency correlations among untouched
+  fibres; which moment closes the recurrence remains open.
 - The earlier no-dummy heuristic also needed correction at order eight.  Seven
   exact classes are anti-mover-controlled: the second player can force either
   declared target parity, so the initial mover cannot always force even.  The
