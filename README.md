@@ -239,7 +239,8 @@ pre-release; it ships separately when it stabilizes.
 `formal/` is a separately pinned Lean 4 + mathlib project.  It kernel-checks the
 load-bearing algebra of the resolved `off` classification, the theorem-level
 Lenstra-excess column reduction (lower bound, corrected norm, exact power
-criterion, and finite arithmetic inputs), and the exact FIFO transition system,
+criterion, and finite arithmetic inputs), the Brown-to-binary canonical split
+and short-game divisibility obstruction, and the exact FIFO transition system,
 termination/strategy semantics, cut invariant, and edgeless base theorem.  The
 universal `D'_k` and general isolated-dummy FIFO theorems are stated there but
 remain open; no finite census is presented as either proof.
@@ -362,9 +363,17 @@ The rest of the board, briefly:
   radical.  Finite-subfield Arf bits
   remain relative invariants and die after a quadratic scalar extension
   (`writeups/transfinite_arf.tex`).
-- **`over`** — whether the Brown `ℤ/8` invariant has a game reading the way the
-  Arf bit does: a natural *four*-class outcome census whose Gauss-sum phase is
-  `ζ₈^β`, lifting the two-class win-bias from `ℤ/2` to `ℤ/8`.
+- **`over`** — *resolved as an independent charge/invariant problem
+  2026-08-09*: every Brown form splits canonically as
+  `q = lift(ell) + 2Q`, with `ell` linear and `Q` an ordinary `F₂` quadratic;
+  its phase is the correlated Walsh pair of `Q` and `Q+ell`, with closed
+  even/odd-dimensional Arf formulas.  Under synchronized terminal-charge
+  pairing, the four labels are exactly `(ell,Q)`; a single-game outcome
+  internalization remains a generalized `tis`-type boundary, literally `tis`
+  on doubled Gold forms.  Ambient-coherent Brown colours of all short-game
+  values vanish by two-divisibility, while the abelian `Z/8` model proves that
+  local odd phases require a chosen section
+  (`writeups/brown_game_semantics.tex`).
 - **`under`** — *resolved 2026-07-20*: thermography and the Newton-polygon stack
   are **two** tropical objects. Temperature is an honest tropical valuation and
   every positive dyadic Norton unit `u = m/2^k` transports the temperature

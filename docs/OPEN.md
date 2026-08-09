@@ -30,11 +30,13 @@ the vocabulary. The values come in dual pairs, and so do the problems:
   windows (`off`) was resolved on 2026-08-07.  Over full algebraically closed
   `On₂` the Artin–Schreier quotient and regular quadratic Witt group vanish, so
   the finite Arf bit switches off under scalar extension.
-- **`over`/`under`** — the two mirror questions: the mod-8 spine above the Arf
-  bit (`over`) remains open; the MinPlus shadow beneath MaxPlus thermography
-  (`under`) was resolved on 2026-07-20: a substantive filtered transport exists,
-  while a faithful full-dyadic Newton-style ring is impossible.  It is retained
-  below only as a closure tombstone.
+- **`over`/`under`** — the two mirror questions are now both resolved as
+  independent directions.  Above the Arf bit, every Brown form canonically
+  splits into a linear bit and an ordinary quadratic bit, while ambient
+  short-game divisibility kills every global value-level Brown colour
+  (`over`, 2026-08-09).  Beneath thermography, a substantive filtered transport
+  exists while a faithful full-dyadic Newton-style ring is impossible
+  (`under`, 2026-07-20).  Both are retained below as closure tombstones.
 
 The games are the names: refer to a problem by its loopy value. `dud` stays
 unassigned: `dud + G = dud` for every `G`, and no problem has yet earned
@@ -1138,63 +1140,83 @@ Relevant surfaces:
 - `src/forms/witt/{class,brauer_wall}.rs`
 - `src/clifford/`
 
-### over·(e_f∧e_g): `the mod-8 spine in game semantics`
+### ~~over·(e_f∧e_g): `the mod-8 spine in game semantics`~~ — resolved as an independent charge/invariant problem
 
-Decide whether the Brown invariant — the char-2 cell of the mod-8 spine, shipped as
-Bridge M — has a game-theoretic reading the way the Arf bit does, i.e. whether the
-conditional win-bias interpretation of `tis` lifts from `ℤ/2` to `ℤ/8`.
+**Resolved 2026-08-09**
+([`writeups/brown_game_semantics.tex`](../writeups/brown_game_semantics.tex)).
+The Brown four-class output introduces no independent nonlinear quadratic
+datum beyond the ordinary characteristic-two problem, and it cannot extend as
+a nonzero disjunctive-sum-natural colour of all short-game values.
 
-What is implemented (Bridge M, `forms/char2/brown.rs`): a `ℤ/4`-valued quadratic
-refinement `q : V -> Z/4` has Gauss sum
+For every Brown refinement
 
 ```text
-Sum_{x in V} i^(q(x)) = 2^(n/2) * zeta_8^beta,
+q(x+y) = q(x) + q(y) + 2*b(x,y),   q : V -> Z/4,
 ```
 
-read off the integer value-census Gaussian integer `(n0 - n2) + i*(n1 - n3)`, where
-`n_k = #{x : q(x) = k}`. Doubling a classical char-2 form gives `beta = 4*Arf` — the
-shipped win-bias bit embeds as the 2-torsion `{0, 4}` of `ℤ/8`.
+there is a canonical, basis-free split
 
-Why this is research:
-- The Arf reading is a **two**-class census: P-positions versus N-positions, bias
-  `2^(r-1)` with sign `(-1)^Arf`. The Brown phase is a **four**-class census with a
-  complex bias. No shipped outcome semantics has four classes: normal play has two,
-  loopy play three (W/L/D). The question is whether any natural four-way outcome
-  partition — loopy outcomes crossed with a parity, normal/misère outcome pairs, a
-  mod-4 scoring residue, or something not yet named — produces the `zeta_8` phase of
-  a game-built `ℤ/4`-form as its census.
-- Game-built doubled forms only ever reach `beta in {0, 4}`. A genuinely odd `beta`
-  needs `b` symmetric-but-not-alternating with `b_ii = q_i mod 2` — diagonal data
-  again, one level up: this is the diagonal-framing problem of `tis` with the
-  diagonal now *forced* by `q mod 2` rather than vanishing. The two problems are
-  entangled, not parallel.
-- The extraspecial picture of `tis` lifts: `ℤ/4`-valued forms correspond to
-  central extensions by `ℤ/4` (the Pauli/complex-extraspecial family) exactly as
-  `F₂`-forms correspond to extensions by `ℤ/2`. If the abelian obstruction
-  (Lemma `abelian`) survives the lift, the four-class census also cannot come from
-  any commutative game structure's own multiplication — which would make the
-  first-/second-player asymmetry carry *three* extra bits instead of one.
+```text
+ell(x) = q(x) mod 2,
+q(x)   = lift(ell(x)) + 2*Q(x),
+B_Q    = b + ell tensor ell.
+```
 
-Conditional claim, same shape as `tis`: if a game's positions admitted a natural
-four-class outcome census matching `i^q` for a game-built `q`, then `beta` would be
-the phase and magnitude of its outcome imbalance — `sign mod 8` as a win-bias octant.
-That interpretation is meaningful but conditional; it does not exhibit the game.
+Here `ell` is linear, `Q` is an ordinary `F₂`-quadratic form, and `B_Q` is
+alternating.  Conversely every such pair `(ell,Q)` gives a unique Brown form.
+The four residues are exactly the synchronized terminal-label pair
 
-Concrete progress targets:
-- Census probe: tabulate `(n0, n1, n2, n3)` for `ℤ/4`-refinements of game-built
-  polar forms (doubled Gold forms first) and check which Gaussian integers actually
-  arise on the game-reachable slice.
-- Decide whether any existing three-class route (loopy W/L/D, `examples/loopy_quadric.rs`)
-  extends by one natural axis to a four-class census with nonvanishing phase.
-- Formulate the `ℤ/4` analogue of the abelian obstruction and prove or refute it.
-- Connect to the lattice side: on 2-elementary discriminant forms `beta ≡ sign mod 8`
-  (shipped); a game realizing `beta` would be a game computing a lattice signature.
+```text
+q = 0,1,2,3  <->  (ell,Q) = (0,0),(1,0),(0,1),(1,1).
+```
 
-Relevant surfaces:
-- `src/forms/char2/brown.rs`, `src/forms/integral/discriminant/` (Bridge M)
-- `src/games/loopy/`, `src/games/misere.rs`
-- `writeups/goldarf.tex` §5 (the extraspecial reframing this lifts)
-- `tis` — the `ℤ/2` floor of this question
+The phase keeps the correlation rather than only the two marginal biases:
+
+```text
+G(q) = ((1+i)/2) W(Q) + ((1-i)/2) W(Q+ell),
+W(R) = Sum_x (-1)^R(x).
+```
+
+For nonsingular `b`, this gives complete ordinary-quadratic formulas.  In even
+dimension, if `B_Q(a,-)=ell`, then
+`beta = 4*Arf(Q) + 2*Q(a) mod 8`.  In odd dimension,
+`rad(B_Q)=<w>`, `ell(w)=1`, and
+`beta = 4*Arf(Q|ker(ell)) + 1` or `+7` according as `Q(w)=0` or `1`.
+Degenerate forms retain the existing radical rule: a nonzero `Q` on
+`rad(b)` cancels the full Gauss sum; otherwise the pair descends to the
+nonsingular quotient.
+
+The exact semantic contract is a **synchronized charge/output** contract:
+binary terminal-charge channels on the same loaded input may be paired and
+deterministically relabelled.  Under that contract a Brown readout is
+observationally exactly `(ell,Q)`.  Once `ell` is supplied its linear channel
+has the standard local XOR realization; the nonlinear channel is a generalized
+`tis`-type ordinary quadratic problem.  On the doubled Gold slice
+`ell=0`, `q=2Q`, it is literally `tis`.  This is not a factorization of game
+trees and does not construct a single canonical normal/misère/loopy four-way
+outcome; demanding that internalization is the residual play question
+transferred to the corresponding ordinary-quadratic rule problem.
+
+There are two complementary no-gos/corrections.
+
+- Moews gives `ShUg = 2*ShUg`.  Any inclusion-compatible Brown-law family on
+  finitely generated short-game subgroups has `b=0` after adjoining halves,
+  then `q=0` after adjoining quarters.  Thus no nonzero Brown module is an
+  additive quotient of the full short-game group.  This does **not** kill the
+  intrinsic root-incomplete subgroup `ShUg[2]`, which contains `*` and admits
+  local Brown tables.
+- A bare `Z/4`-central extension does not determine a Brown form.  The abelian
+  sequence `Z/4 -> Z/8 -> Z/2` gives `q(1)=1` or `q(1)=3` according to the
+  chosen lift, with phases `1` and `7`.  A section/phase framing is essential;
+  the old `Z/2` extraspecial abelian obstruction does not lift verbatim.
+
+The canonical split, converse, global two-divisible collapse, and `Z/8`
+sharpness model are kernel-checked in `formal/Ogdoad/BrownGame.lean`.  Moews's
+short-game classification remains an explicit source-pinned input, not a Lean
+axiom.  Bridge M itself remains shipped and unchanged in
+`src/forms/char2/brown.rs`; the lattice identity `beta = signature mod 8`
+remains standard-math infrastructure, not a claim that games compute lattice
+signatures.
 
 ### ~~under·(e_g∧e_s): `thermography ↔ Newton polygons: one tropical object or two?`~~ — resolved
 
@@ -1358,6 +1380,9 @@ Relevant surfaces:
   `ℤ/4`-valued quadratic refinements and the `ℤ/8` invariant (for `over`).
 - Wall, *Quadratic forms on finite groups*, Topology 2 (1963): the Witt group of
   finite quadratic forms (for `over`).
+- Moews, *The Abstract Structure of the Group of Games*, MSRI Publications 42
+  (2002): `ShUg` is a direct sum of dyadic and dyadic-mod-integer groups, hence
+  two-divisible (for resolved `tisn` and `over`).
 - Plambeck-Siegel, *Misere quotients for impartial games*, JCTA 115 (2008): the
   quotient/kernel theory behind the misère obstruction (for `tis`).
 - Berlekamp, *The economist's view of combinatorial games*, in Games of No Chance

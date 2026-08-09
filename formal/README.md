@@ -12,6 +12,29 @@ lake build
 
 The sources contain no `sorry`, `admit`, or custom `axiom` declarations.
 
+## Brown game semantics
+
+[`Ogdoad/BrownGame.lean`](Ogdoad/BrownGame.lean) kernel-checks the algebraic
+resolution of the independent `over` invariant question:
+
+- every Brown refinement on an exponent-two additive group splits canonically
+  as `q = lift(ell) + 2Q`, with `ell = q mod 2` additive and `Q` an ordinary
+  characteristic-two quadratic form;
+- the corrected polar is `B_Q = b + ell tensor ell`, and Lean proves it is
+  alternating, symmetric, and biadditive;
+- the converse construction and pointwise round trip show that no Brown value
+  is lost in the split;
+- on a two-divisible source, every exponent-four Brown-compatible quadratic
+  value is zero, and every additive exponent-two quotient is trivial; and
+- the explicit abelian extension `Z/4 -> Z/8 -> Z/2` realizes the odd Brown
+  line only after a section is chosen, proving that a bare central extension
+  does not determine the phase.
+
+The external instantiation remains source-pinned: Moews proves the additive
+short-game group is a direct sum of copies of `Z[1/2]` and `Z[1/2]/Z`, hence
+is two-divisible.  The Lean file proves the full implication from that abstract
+divisibility hypothesis but does not encode short games or Moews's theorem.
+
 ## Game-exterior divisibility obstruction
 
 [`Ogdoad/GameExterior.lean`](Ogdoad/GameExterior.lean) formalizes the algebraic

@@ -44,7 +44,11 @@ criterion, finite factor/order screens, and open `D'_k` target;
 strategy semantics, cut invariant, and edgeless base theorem, while leaving the
 general isolated-dummy proposition explicitly open; and
 `Ogdoad/GameExterior.lean` kernel-checks the root-collapse lemma and the
-coefficient-faithful quadratic/polar consequences resolving `tisn`.  See
+coefficient-faithful quadratic/polar consequences resolving `tisn`; and
+`Ogdoad/BrownGame.lean` kernel-checks the canonical
+`q = lift(ell) + 2Q` Brown split, its converse, the two-divisible global
+collapse, and the section-framed `Z/8` sharpness model resolving the independent
+algebraic content of `over`.  See
 `formal/README.md` for the proof/non-proof boundary.
 
 Beyond the library: `examples/` (Rust demos `tour`/`tropical` and the
@@ -266,7 +270,12 @@ train/compartment/oddity reduction), the games↔integral lexicode edge
 `[24,12,8]` lexicode is Golay), and the
 Brown `ℤ/8` invariant — the char-2 cell of the mod-8 spine (`char2/brown.rs`:
 `brown_f2`/`double_f2`, with `β = 4·Arf`, plus `DiscriminantForm::brown_invariant`
-giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms). The
+giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms).
+The independent game-output question `over` is resolved at the exact
+synchronized-charge boundary: `q=lift(ell)+2Q`, with phase the correlated Walsh
+pair of `Q` and `Q+ell`; ambient Brown colours of full `ShUg` vanish, while a
+single-game outcome internalization remains a generalized `tis`-type problem
+(`writeups/brown_game_semantics.tex`). The
 fifth-wave Bridge K is shipped too: the full `ℚ/ℤ` ungraded Brauer invariant
 (`witt/cyclic.rs`: `BrauerClass` + `cyclic_algebra_invariant` = `v(a)/n` for the
 unramified local cyclic class over the `Qq` leg, plus `tame_symbol_exponent` /

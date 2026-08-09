@@ -75,6 +75,19 @@ characteristic-two field as the finite-form proxy for full proper-class `On₂`;
 the standard general symplectic decomposition remains an input interface rather
 than a theorem reproved here.
 
+`Ogdoad/BrownGame.lean` kernel-checks the `over` algebraic reduction and the
+ambient value-level obstruction.  On every exponent-two additive source it
+splits a Brown refinement canonically as `q = lift(ell) + 2Q`, proves
+`ell = q mod 2` additive, proves the corrected polar
+`B_Q = b + ell tensor ell` alternating/symmetric/biadditive, and proves the
+converse and pointwise round trip.  Separately, two-divisibility kills every
+exponent-two polar defect and then every exponent-four quadratic value.  The
+finite `Z/8` cyclic extension is a kernel-checked sharpness witness: it carries
+an odd Brown line only relative to a chosen section, so a bare `Z/4`-central
+extension does not determine `q`.  Moews's classification supplies the
+short-game divisibility used to instantiate the abstract theorem and remains
+source-pinned rather than encoded as an axiom.
+
 `Ogdoad/Fifo.lean` kernel-checks the exact reduced game semantics, strict
 termination rank, queue invariant, strategy quantifiers, queue-cut conservation,
 and the edgeless base theorem.  `FifoLinkingTheorem` is deliberately only a

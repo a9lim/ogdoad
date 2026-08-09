@@ -16,9 +16,9 @@ What remains unbuilt is tracked in the two buildable ledgers —
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`, `on`, and `over`.
-`tisn`, `under`, and `off` are the former loopy-valued research entries closed
-into this ledger.
+stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis` and `on`.
+`tisn`, `under`, `off`, and `over` are the former loopy-valued research entries
+closed into this ledger.
 
 **Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
 it is renamed **grundy** (provisional — finalization at the 0.3.8 release
@@ -51,6 +51,35 @@ Fold the one-line structural fact into the relevant `AGENTS.md`; keep any longer
 derivation alongside the code or in a `writeups/` note.
 
 ## completed items
+
+### over·(e_f∧e_g): `brown-game-semantics-reduction`
+**Completed:** 2026-08-09
+**Summary:** the Brown four-class census is canonically a linearly graded
+ordinary-quadratic census, while any ambient-coherent Brown colour of all
+short-game values vanishes by two-divisibility.
+**Pillars:** forms ↔ games    **Claim level:** proved synthesis, source-pinned input, kernel-checked algebra
+- canonical split: every `q : V -> Z/4` is uniquely
+  `q = lift(ell) + 2Q`, with `ell=q mod 2` linear and ordinary quadratic
+  polar `B_Q=b+ell tensor ell`; conversely every `(ell,Q)` reconstructs `q`.
+- phase: `G(q)=((1+i)/2)W(Q)+((1-i)/2)W(Q+ell)`.  For nonsingular `b`, even
+  dimension gives `beta=4*Arf(Q)+2Q(a)` with `B_Q(a,-)=ell`; odd dimension
+  gives `beta=4*Arf(Q|ker ell)+1/7` from the value on `rad(B_Q)`.
+- semantic contract: under synchronized terminal-charge pairing and fixed
+  relabelling, the four Brown classes are observationally `(ell,Q)`.  This is
+  not a game-tree factorization or a single canonical normal/misère/loopy
+  outcome; the nonlinear internalization is a generalized `tis`-type problem,
+  literally `tis` on doubled Gold forms.
+- global no-go: inclusion-compatible Brown-law data on finitely generated
+  short-game subgroups vanishes after adjoining halves and quarters.  This
+  rules out exponent-two additive quotients of full `ShUg`, not its nonzero
+  root-incomplete 2-torsion subgroup.
+- sharpness/correction: the abelian extension `Z/4 -> Z/8 -> Z/2` carries the
+  odd Brown line only relative to a chosen section; a bare central extension
+  neither fixes `q` nor supports a verbatim extraspecial abelian obstruction.
+- artifact: `writeups/brown_game_semantics.{tex,pdf}`.
+- formal core: `formal/Ogdoad/BrownGame.lean` kernel-checks the split,
+  corrected polar, converse/round trip, two-divisible collapse, and `Z/8`
+  model.  Moews's classification is source-pinned rather than a Lean axiom.
 
 ### tisn·(e_g∧e_c∧e_f): `game-exterior-divisibility-collapse`
 **Completed:** 2026-08-09
