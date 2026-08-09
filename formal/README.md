@@ -65,9 +65,14 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 - strict rank descent, absence of nonterminal stuck states, and preservation of
   the queue/untouched invariant;
 - an explicit existential/universal finite strategy tree;
+- its explicit odd-forcing dual, kernel-checked finite determinacy and
+  incompatibility (`EvenWins` iff no `OddWins` counterstrategy);
 - the isolated-dummy hypothesis and exact general theorem statement;
 - the queue-cut potential, including CLOSE and PASS conservation and the fact
   that no flip is possible once the untouched set is empty; and
+- the exact singleton-untouched queue scan used by the terminal repair
+  corridor, together with a formal winning strategy for every queue satisfying
+  that scan; and
 - a complete strategy proof for the edgeless base class.
 
 `FifoLinkingTheorem` is a proposition, not an axiom or claimed theorem.  The

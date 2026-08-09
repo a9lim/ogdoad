@@ -328,6 +328,26 @@ theorem step_score_eq_of_untouched_empty {G : SimpleGraph V} {s s' : State V}
   · exact pass_score h
 
 omit [Fintype V] in
+/-- Once the untouched set is empty, every legal transition keeps it empty. -/
+theorem step_untouched_eq_empty {G : SimpleGraph V} {s s' : State V}
+    {m : Move V} (hU : s.untouched = ∅) (h : step G s m = some s') :
+    s'.untouched = ∅ := by
+  cases m
+  · simp [step, hU] at h
+  · simp only [step] at h
+    split at h
+    · contradiction
+    · split at h
+      · contradiction
+      · cases h
+        exact hU
+  · simp only [step] at h
+    split at h
+    · cases h
+      exact hU
+    · contradiction
+
+omit [Fintype V] in
 /-- Terminal states have no legal transition. -/
 theorem terminal_no_step {G : SimpleGraph V} {s : State V}
     (hs : Terminal s) : ¬∃ m s', step G s m = some s' := by
@@ -385,6 +405,126 @@ inductive EvenWins (G : SimpleGraph V) (seat : Bool) : State V → Prop
       (hwin : ∀ m s', step G s m = some s' → EvenWins G seat s') :
       EvenWins G seat s
 
+omit [Fintype V] in
+/-- After the last OPEN, either seat can force an already-even score to remain
+even while the queue drains.  This is the terminal-tail interface used by
+finite repair arguments. -/
+theorem evenWins_of_untouched_empty {G : SimpleGraph V} (seat : Bool)
+    (s : State V) (hU : s.untouched = ∅) (hscore : s.score = 0) :
+    EvenWins G seat s := by
+  induction s using (measure rank).wf.induction with
+  | h s ih =>
+      by_cases hterminal : Terminal s
+      · exact EvenWins.terminal s hterminal hscore
+      · have hasMove : ∃ m s', step G s m = some s' :=
+          not_terminal_has_step hterminal
+        by_cases hseat : s.toMove = seat
+        · obtain ⟨m, s', hstep⟩ := hasMove
+          refine EvenWins.choose s hseat m s' hstep
+            (ih s' (rank_step_lt hstep) ?_ ?_)
+          · exact step_untouched_eq_empty hU hstep
+          · rw [step_score_eq_of_untouched_empty hU hstep, hscore]
+        · refine EvenWins.answer s hseat hasMove ?_
+          intro m s' hstep
+          exact ih s' (rank_step_lt hstep)
+            (step_untouched_eq_empty hU hstep)
+            (by rw [step_score_eq_of_untouched_empty hU hstep, hscore])
+
+/-- The dual finite strategy tree: the player outside `seat` can force a
+terminal odd score.  This is not the negation of `EvenWins` by definition;
+`strategy_determined` below proves that one of the two explicit strategy
+objects exists from every state. -/
+inductive OddWins (G : SimpleGraph V) (seat : Bool) : State V → Prop
+  | terminal (s : State V) (hterminal : Terminal s) (hscore : s.score ≠ 0) :
+      OddWins G seat s
+  | choose (s : State V) (hseat : s.toMove ≠ seat) (m : Move V) (s' : State V)
+      (hstep : step G s m = some s') (hwin : OddWins G seat s') :
+      OddWins G seat s
+  | answer (s : State V) (hseat : s.toMove = seat)
+      (hasMove : ∃ m s', step G s m = some s')
+      (hwin : ∀ m s', step G s m = some s' → OddWins G seat s') :
+      OddWins G seat s
+
+omit [Fintype V] in
+/-- Backward induction is internal to the formal model: from every state,
+either the designated seat has an explicit even-forcing strategy tree or the
+other seat has an explicit odd-forcing strategy tree.  Thus a counterexample
+to the linking theorem may be taken to be a concrete `OddWins` object, with
+no appeal to an external determinacy theorem. -/
+theorem strategy_determined (G : SimpleGraph V) (seat : Bool) (s : State V) :
+    EvenWins G seat s ∨ OddWins G seat s := by
+  induction s using (measure rank).wf.induction with
+  | h s ih =>
+      by_cases hterminal : Terminal s
+      · by_cases hscore : s.score = 0
+        · exact Or.inl (EvenWins.terminal s hterminal hscore)
+        · exact Or.inr (OddWins.terminal s hterminal hscore)
+      · have hasMove : ∃ m s', step G s m = some s' :=
+          not_terminal_has_step hterminal
+        by_cases hseat : s.toMove = seat
+        · by_cases hchild : ∃ m s',
+              step G s m = some s' ∧ EvenWins G seat s'
+          · obtain ⟨m, s', hstep, hwin⟩ := hchild
+            exact Or.inl (EvenWins.choose s hseat m s' hstep hwin)
+          · refine Or.inr (OddWins.answer s hseat hasMove ?_)
+            intro m s' hstep
+            rcases ih s' (rank_step_lt hstep) with hwin | hwin
+            · exact False.elim (hchild ⟨m, s', hstep, hwin⟩)
+            · exact hwin
+        · by_cases hchild : ∃ m s',
+              step G s m = some s' ∧ OddWins G seat s'
+          · obtain ⟨m, s', hstep, hwin⟩ := hchild
+            exact Or.inr (OddWins.choose s hseat m s' hstep hwin)
+          · refine Or.inl (EvenWins.answer s hseat hasMove ?_)
+            intro m s' hstep
+            rcases ih s' (rank_step_lt hstep) with hwin | hwin
+            · exact hwin
+            · exact False.elim (hchild ⟨m, s', hstep, hwin⟩)
+
+omit [Fintype V] in
+/-- Negating an even-forcing strategy produces an explicit odd-forcing
+counterstrategy, rather than only a classical double negation. -/
+theorem oddWins_of_not_evenWins (G : SimpleGraph V) (seat : Bool) (s : State V)
+    (h : ¬EvenWins G seat s) : OddWins G seat s := by
+  exact (strategy_determined G seat s).resolve_left h
+
+omit [Fintype V] in
+/-- The two explicit strategy trees are incompatible.  The proof follows the
+chosen branch at a `choose` node and the corresponding universally supplied
+branch at an `answer` node. -/
+theorem EvenWins.not_oddWins {G : SimpleGraph V} {seat : Bool} {s : State V}
+    (h : EvenWins G seat s) : ¬OddWins G seat s := by
+  induction h with
+  | terminal s hterminal hscore =>
+      intro hodd
+      cases hodd with
+      | terminal _ _ hoddscore => exact hoddscore hscore
+      | choose _ _ m s' hstep _ =>
+          exact terminal_no_step hterminal ⟨m, s', hstep⟩
+      | answer _ _ hasMove _ =>
+          exact terminal_no_step hterminal hasMove
+  | choose s hseat m s' hstep _ ih =>
+      intro hodd
+      cases hodd with
+      | terminal _ hterminal _ =>
+          exact terminal_no_step hterminal ⟨m, s', hstep⟩
+      | choose _ hoddseat _ _ _ _ => exact hoddseat hseat
+      | answer _ _ _ hanswer => exact ih (hanswer m s' hstep)
+  | answer s hseat hasMove _ ih =>
+      intro hodd
+      cases hodd with
+      | terminal _ hterminal _ =>
+          exact terminal_no_step hterminal hasMove
+      | choose _ _ m s' hstep hchild => exact ih m s' hstep hchild
+      | answer _ hoddseat _ _ => exact hseat hoddseat
+
+omit [Fintype V] in
+/-- Exact logical form used by a proof by counterstrategy exclusion. -/
+theorem evenWins_iff_not_oddWins (G : SimpleGraph V) (seat : Bool) (s : State V) :
+    EvenWins G seat s ↔ ¬OddWins G seat s := by
+  exact ⟨EvenWins.not_oddWins, fun hodd ↦
+    (strategy_determined G seat s).resolve_right hodd⟩
+
 /-- `d` is an isolated dummy coin. -/
 def IsDummy (G : SimpleGraph V) (d : V) : Prop :=
   ∀ v, ¬G.Adj d v
@@ -406,6 +546,171 @@ def FifoLinkingTheorem : Prop :=
   ∀ (V : Type*) (_ : Fintype V) (_ : DecidableEq V)
     (G : SimpleGraph V) (d : V), IsDummy G d →
       ∀ seat : Bool, EvenWins G seat (initial (V := V))
+
+/-- Pointwise form of the open theorem as counterstrategy exclusion.  This is
+the formal interface for a minimal-counterexample or affine-separation proof;
+the dummy hypothesis is recorded even though determinacy itself is general. -/
+theorem linking_at_iff_noOddCounterstrategy {G : SimpleGraph V} {d : V}
+    (_hd : IsDummy G d) (seat : Bool) :
+    EvenWins G seat (initial (V := V)) ↔
+      ¬OddWins G seat (initial (V := V)) := by
+  exact evenWins_iff_not_oddWins G seat initial
+
+/-- Canonical attacker checkpoint with one untouched vertex and no ko delay. -/
+def singletonState (b : V) (q : List V) (turn : Bool) : State V where
+  untouched := {b}
+  queue := q
+  ko := false
+  toMove := turn
+  score := 0
+
+/-- Exact queue-word criterion at a singleton untouched tail.  Reading the
+queue in consecutive cells, a front bit zero is immediately absorbable; a
+front bit one must be followed by another one before the scan continues. -/
+def SingletonTail (G : SimpleGraph V) (b : V) : List V → Prop
+  | [] => True
+  | [_] => False
+  | v :: w :: q => ¬G.Adj v b ∨ (G.Adj w b ∧ SingletonTail G b q)
+
+omit [Fintype V] [DecidableEq V] in
+theorem flip_singleton_of_adj {G : SimpleGraph V} {v b : V}
+    (h : G.Adj v b) : flip G {b} v = 1 := by
+  classical
+  have hfilter : ({b} : Finset V).filter (G.Adj v) = {b} := by
+    ext x
+    simp only [Finset.mem_filter, Finset.mem_singleton]
+    constructor
+    · exact fun hx ↦ hx.1
+    · intro hx
+      subst x
+      exact ⟨rfl, h⟩
+  simp [flip, hfilter]
+
+omit [Fintype V] [DecidableEq V] in
+theorem flip_singleton_of_not_adj {G : SimpleGraph V} {v b : V}
+    (h : ¬G.Adj v b) : flip G {b} v = 0 := by
+  classical
+  have hfilter : ({b} : Finset V).filter (G.Adj v) = ∅ := by
+    ext x
+    constructor
+    · intro hx
+      rcases Finset.mem_filter.mp hx with ⟨hxb, hadj⟩
+      have hxb' : x = b := Finset.mem_singleton.mp hxb
+      subst x
+      exact False.elim (h hadj)
+    · simp
+  simp [flip, hfilter]
+
+omit [Fintype V] in
+/-- The singleton-tail criterion is sufficient, against every attacker move.
+This is the exact terminating corridor used after all but one untouched vertex
+has been opened. -/
+theorem evenWins_singletonTail (G : SimpleGraph V) (seat : Bool) (b : V) :
+    ∀ q, SingletonTail G b q →
+      EvenWins G seat (singletonState b q (!seat)) := by
+  intro q
+  induction q using List.twoStepInduction with
+  | nil =>
+      intro _
+      let s := singletonState b [] (!seat)
+      have hnotseat : s.toMove ≠ seat := by
+        simp [s, singletonState]
+      have hasMove : ∃ m s', step G s m = some s' := by
+        apply not_terminal_has_step
+        simp [Terminal, s, singletonState]
+      refine EvenWins.answer s hnotseat hasMove ?_
+      intro m s' hstep
+      cases m
+      · rename_i v
+        simp only [step, s, singletonState] at hstep
+        split at hstep
+        · rename_i hv
+          cases hstep
+          apply evenWins_of_untouched_empty seat
+          · have hv' : v = b := Finset.mem_singleton.mp hv
+            subst v
+            simp
+          · rfl
+        · contradiction
+      · simp [step, s, singletonState] at hstep
+      · simp [step, s, singletonState] at hstep
+  | singleton v => simp [SingletonTail]
+  | cons_cons v w q ih _ =>
+      intro htail
+      let s := singletonState b (v :: w :: q) (!seat)
+      have hnotseat : s.toMove ≠ seat := by
+        simp [s, singletonState]
+      have hasMove : ∃ m s', step G s m = some s' := by
+        apply not_terminal_has_step
+        simp [Terminal, s, singletonState]
+      refine EvenWins.answer s hnotseat hasMove ?_
+      intro m s' hstep
+      cases m
+      · rename_i x
+        simp only [step, s, singletonState] at hstep
+        split at hstep
+        · rename_i hx
+          cases hstep
+          apply evenWins_of_untouched_empty seat
+          · have hx' : x = b := Finset.mem_singleton.mp hx
+            subst x
+            simp
+          · rfl
+        · contradiction
+      · simp only [step, s, singletonState] at hstep
+        by_cases hvb : G.Adj v b
+        · have hwb : G.Adj w b := by
+            rcases htail with hnv | ⟨hw, _⟩
+            · exact False.elim (hnv hvb)
+            · exact hw
+          have htail' : SingletonTail G b q := by
+            rcases htail with hnv | ⟨_, ht⟩
+            · exact False.elim (hnv hvb)
+            · exact ht
+          cases hstep
+          let s2 := singletonState b q (!seat)
+          have hclose : step G {
+              untouched := {b}
+              queue := w :: q
+              ko := false
+              toMove := seat
+              score := 1 } .close = some s2 := by
+            simp [step, s2, singletonState, flip_singleton_of_adj hwb,
+              CharTwo.add_self_eq_zero]
+          have heven : EvenWins G seat {
+              untouched := {b}
+              queue := w :: q
+              ko := false
+              toMove := seat
+              score := 1 } :=
+            EvenWins.choose _ (by rfl) .close s2 hclose (ih htail')
+          simpa [flip_singleton_of_adj hvb] using heven
+        · cases hstep
+          let s2 : State V := {
+            untouched := ∅
+            queue := w :: q ++ [b]
+            ko := false
+            toMove := !seat
+            score := 0 }
+          have hopen : step G {
+              untouched := {b}
+              queue := w :: q
+              ko := false
+              toMove := seat
+              score := 0 } (.open b) = some s2 := by
+            simp [step, s2]
+          have heven : EvenWins G seat {
+              untouched := {b}
+              queue := w :: q
+              ko := false
+              toMove := seat
+              score := 0 } := by
+            refine EvenWins.choose _ (by rfl) (.open b) s2 hopen ?_
+            apply evenWins_of_untouched_empty seat
+            · rfl
+            · rfl
+          simpa [flip_singleton_of_not_adj hvb] using heven
+      · simp [step, s, singletonState] at hstep
 
 /-- An edgeless graph is the fully proved base class: every close has charge
 zero, so either seat forces even parity regardless of its choices. -/

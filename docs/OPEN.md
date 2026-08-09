@@ -514,6 +514,26 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   now a **causal charge-balanced factor-extension theorem** under arbitrary
   attacker pruning, allowing an unmatched untouched defect endpoint until a
   legal phase pivot absorbs it.
+- The strategy semantics is now two-sided in Lean.  `formal/Ogdoad/Fifo.lean`
+  defines an explicit odd-forcing tree `OddWins`, proves finite determinacy and
+  incompatibility with `EvenWins`, and exposes the pointwise target as exact
+  counterstrategy exclusion.  It also proves the singleton-untouched terminal
+  corridor: scan the even queue in pairs; a front bit zero is absorbable, while
+  a front bit one must be followed by one before the scan continues.  This
+  closes the terminal tail inside the proof kernel, but not the step which
+  forces an arbitrary pruned strategy into that tail.
+- A new unbounded family rules out repairing the missing step by tracking a
+  bounded number of queue defects.  For any `r >= 1`, take
+  `Q=(x1,y1,...,xr,yr)`, `U={a,b,d}`, and edges `xi-a`, `yi-b`, with `d`
+  isolated.  Every queued cell initially has charge `11`.  After attacker
+  `OPEN(d)`, a normalized defender must open `a` or `b`; either choice turns
+  all `r` old cells simultaneously into `01` or `10`.  Nevertheless the
+  branch is safe: the complementary `OPEN` and zero front `CLOSE` form a
+  two-switch square, after which `U` is empty.  Thus clean matchings, one
+  transported defect, monotone defect position, and any uniformly bounded
+  defect count are all false induction objects.  A valid repair forest must
+  recognize a factored terminally absorbable defect fan, not enumerate local
+  defects.
 - One genuinely unbounded attacker subclass is solved for all orders and both
   seats.  If the attacker always closes whenever legal, defender histories
   realize complements of Hamiltonian paths or path squares.  Affine separation

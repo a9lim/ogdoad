@@ -1596,6 +1596,78 @@ strategy would be circular.  It does, however, state exactly what the finite
 search certifies and prevents weaker local invariants from being mistaken for
 the theorem.
 
+The operational semantics has now also been made logically two-sided.  Let
+$\mathsf{EvenWins}(s)$ be the existential/universal strategy tree above, and
+define $\mathsf{OddWins}(s)$ by exchanging the two seats and requiring terminal
+score one.
+
+\begin{proposition}[finite strategy duality]
+\label{prop:strategy-duality}
+\PROVED{} Every state admits exactly one of $\mathsf{EvenWins}$ and
+$\mathsf{OddWins}$.  Consequently the linking theorem is pointwise equivalent
+to the nonexistence of an odd-forcing counterstrategy.  This proposition,
+including the explicit dual trees, determinacy, incompatibility, and the
+equivalence, is formalized in \path{formal/Ogdoad/Fifo.lean} without axioms.
+\end{proposition}
+
+\begin{proof}
+The move rank strictly decreases.  Induct on it.  At a terminal state the
+score chooses exactly one tree.  At a nonterminal state, if the designated
+seat moves, choose an even child when one exists; otherwise every child is odd
+by induction.  If the other seat moves, exchange ``even'' and ``odd''.  The
+two trees cannot coexist: at a choice node follow the chosen child through the
+opposite tree's universal node, and continue by induction.  The terminal
+scores then contradict one another.
+\end{proof}
+
+There is an exact terminal corridor inside the repair forest.  Suppose
+$U=\{b\}$, the attacker moves, and the even queue is
+$Q=(v_0,v_1,\ldots,v_{2r-1})$.  Put $c_i=B(v_i,b)$.  Scan consecutive cells
+$c_{2i}c_{2i+1}$ from the front.  The state is zero-normalized safe exactly
+when the first cell which is not $11$, if one exists, is not $10$.
+Indeed, an attacker OPEN of $b$ empties $U$.  Against $C_{v_0}$, a zero first
+bit is answered by $O_b$; a one first bit has the unique normalized form
+$C_{v_1}$, which succeeds exactly when the second bit is also one and then
+recurses on the tail.  This is a two-step induction on $Q$.  The sufficient
+strategy, together with the all-touched terminal tail, is formalized as
+\path{SingletonTail} and \path{evenWins_singletonTail} in the same Lean file.
+
+This exact tail does \emph{not} promote a bounded-defect matching invariant to
+the full game.
+
+\begin{proposition}[unbounded absorbable defect fan]
+\label{prop:defect-fan}
+\PROVED{} For every $r\ge1$ there is a normalized reachable checkpoint whose
+queue consists of $r$ balanced cells, but after the attacker opens the dummy,
+every normalized reply makes all $r$ old cells defective at once.  The branch
+is nevertheless zero-normalized safe in one more response square.
+\end{proposition}
+
+\begin{proof}
+Take
+\[
+ Q=(x_1,y_1,\ldots,x_r,y_r),\qquad U=\{a,b,d\},
+\]
+where $d$ is isolated, and put in exactly the edges $x_i a$ and $y_i b$.
+Opening the displayed queue in order reaches the checkpoint, and every cell
+has charge $11$ into $U$.  After the attacker plays $O_d$, closing $x_1$ has
+charge one, so a normalized defender must play $O_a$ or $O_b$.  After $O_a$
+the residual set is $\{b\}$ and all old cells read $01$; after $O_b$ they all
+read $10$.  Thus the defect count is $r$, with either orientation.
+
+Choose $O_a$.  The attacker can now only open $b$ or close $x_1$, whose charge
+has become zero.  Answer $O_b$ by $C_{x_1}$ and answer $C_{x_1}$ by $O_b$.
+Either way $U$ becomes empty with score zero, so every later close is neutral.
+This is precisely the first-cell-$01$ exit of the singleton corridor.
+\end{proof}
+
+Therefore clean consecutive matching, a single transported defect, monotone
+defect position, and every uniformly bounded defect count are false induction
+objects.  What must be transported is a \emph{factored} repair fan: arbitrarily
+many local defects can share one complementary OPEN/CLOSE absorber.  The open
+factor-extension theorem must recognize such shared absorbers while still
+surviving attacker pruning.
+
 \TESTED{} Every even-order graph through order eight has
 $\mathsf{Safe}(V,())$.  On all $12{,}346$ order-eight isomorphism classes, the
 second player can therefore keep the \emph{actual} flip score zero after every
