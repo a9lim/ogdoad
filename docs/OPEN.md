@@ -335,6 +335,22 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   locally (an exact five-vertex counterexample has an earlier even close), so
   excluding these sibling-coupled terminal patterns is now the narrowest
   scalar proof obligation.
+- The conditioned close-first tail is now closed without a dummy hypothesis.
+  From any coherent clear defender state with nonempty queue, a close-first
+  attacker cannot force future flip parity one.  A minimum-rank proof opens
+  each untouched vertex before the forced front close; if every smaller child
+  were odd, the front would dominate an even untouched set with zero current
+  charge.  The singleton and two-front continuations then contradict the same
+  minimality, with a separate whole-queue drain argument for exactly two
+  untouched vertices.  The exact strategy semantics, drain identities, and full
+  conditioned theorem are kernel-checked in `formal/Ogdoad/Fifo.lean`.
+  Hence every leafmost voluntary attacker OPEN lies on residual
+  target zero, behind an earlier odd CLOSE.  This does not iterate across
+  residual switches: the reachable graph `{01,02,12,03}` at
+  `U={0,2}, queue=(1,3)` has a target-one policy which is close-first on every
+  target-one state and uses one indispensable target-zero singleton-wall
+  OPEN.  The open root problem is therefore the coupling of those earlier
+  odd-CLOSE siblings, not the post-OPEN tail.
 - The same pass proves a strict extension of the twin-pair subclass.  If the
   vertices partition into 2-cells `A` with `e(A,B)` even for every two cells,
   the second player mirrors mates and forces even flips.  This is not general:

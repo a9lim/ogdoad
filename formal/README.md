@@ -110,6 +110,10 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 - an explicit existential/universal finite strategy tree;
 - its explicit odd-forcing dual, kernel-checked finite determinacy and
   incompatibility (`EvenWins` iff no `OddWins` counterstrategy);
+- an absolute-target `CloseFirstWins` strategy tree, whole-queue drain
+  identities, and the dummy-free `ConditionedCloseFirstTheorem`: from every
+  coherent ko-clear defender checkpoint with nonempty queue, a close-first
+  attacker cannot force the score to change;
 - the isolated-dummy hypothesis and exact general theorem statement;
 - the queue-cut potential, including CLOSE and PASS conservation and the fact
   that no flip is possible once the untouched set is empty; and
@@ -121,6 +125,9 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 `FifoLinkingTheorem` is a proposition, not an axiom or claimed theorem.  The
 general isolated-dummy result remains open: the missing mathematical step is
 the global causal affine-contraction/factor-extension lemma identified in
-`writeups/linking_affine.tex`.  The Lean development therefore hardens the
-semantics and the proved reduction spine without laundering the finite census
-through `k = 8` into a proof for all finite graphs.
+`writeups/linking_affine.tex`.  In particular, the conditioned close-first
+theorem controls final parity but not score-one STOPs at intermediate attacker
+checkpoints; that stronger prefix-safe normalization is false locally and its
+root-level sibling coupling is still open.  The Lean development therefore
+hardens the semantics and the proved reduction spine without laundering the
+finite census through `k = 8` into a proof for all finite graphs.

@@ -102,10 +102,13 @@ still leave a next-front cut, and that even a clean homogeneous cell state can
 be a canonical unsafe Euler-wall exit.  Separately, every close-first attacker
 is contracted for arbitrary order and either seat by Hamiltonian path and
 path-square affine spans, with a two-block correction when the attacker opens
-the dummy.  With an arbitrary preloaded queue, an untouched dummy still
-contracts every close-first tail by an adjacent-swap argument on the
-defender's opening permutations; thus a leafmost deviation at residual one
-must occur after the dummy is spent or behind an earlier odd CLOSE.
+the dummy.  With an arbitrary preloaded queue, an untouched dummy contracts
+every close-first tail by an adjacent-swap argument on the defender's opening
+permutations.  A stronger minimum-rank argument removes the dummy hypothesis
+at every clear defender checkpoint: a leafmost attacker deviation can occur
+only on residual target zero, behind an earlier odd CLOSE.  This conditioned
+contraction, including its whole-queue two-untouched base, is also
+kernel-checked in \path{formal/Ogdoad/Fifo.lean}.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
@@ -2877,6 +2880,118 @@ dummy has already been spent, Theorem~\ref{thm:untouched-dummy-tail} no longer
 applies.  These are exactly the odd-CLOSE spike and post-dummy domination
 boundaries in Proposition~\ref{prop:minimum-bad-predecessor}.
 
+The dummy hypothesis can in fact be removed completely once the tail begins
+at a clear defender checkpoint.  This is strictly stronger than the root
+close-first contraction: the queue may be arbitrary, and the conclusion is a
+single scalar response rather than an affine combination of root histories.
+
+\begin{theorem}[conditioned close-first contraction]
+\label{thm:conditioned-close-first}
+\PROVED{} Let the defender move from a coherent state with nonempty queue,
+$\mathsf{ko}=0$, and arbitrary untouched set $U$.  Against an attacker which
+CLOSEs whenever CLOSE is legal, the defender has a continuation of future
+score zero.  No dummy or parity hypothesis on the live graph is required.
+\end{theorem}
+
+\begin{proof}
+Fix a close-first attacker and suppose that it forces future score one from
+some such defender state.  Among coherent ko-clear defender states with
+nonempty queue carrying such a target-one close-first strategy tree, choose a
+counterexample of minimum remaining move rank.  Legal moves preserve coherence
+and strictly decrease this rank.  Write
+\[
+ Q=(f,Q_0).
+\]
+If $U$ is empty, every remaining charge is zero.  If $U=\{x\}$, the defender
+opens $x$; the forced $C_f$ and every later close then see empty untouched
+set.  Hence $|U|\ge2$.
+
+We first dispose of the only small fibre which is not covered by the uniform
+degree comparison below.  Let $U=\{x,y\}$ and write $Q=(f,Q_0)$.  If $f$
+misses, say, $y$, the defender opens $x$.  The forced $C_f$ sees only $y$ and
+has charge zero; the defender then opens $y$, after which all charges vanish.
+We may therefore assume that $f$ sees both $x$ and $y$.
+
+After $O_x,C_f$ the score has changed by one and the defender faces the
+singleton untouched set $\{y\}$ with queue $(Q_0,x)$.  It may simply drain
+that queue.  The close-first attacker also closes whenever it moves, and
+after the queue empties the sole remaining vertex opens, passes if necessary,
+and closes at charge zero.  Since the attacker tree forces the score already
+present after $C_f$, this defender line gives
+\[
+ \sum_{v\in Q_0}B(v,y)+B(x,y)=0.
+\]
+Reversing $x,y$ gives
+\[
+ \sum_{v\in Q_0}B(v,x)+B(x,y)=0.
+\]
+Now instead drain the original queue before either untouched vertex opens.
+Its total charge is
+\[
+ B(f,x)+B(f,y)
+ +\sum_{v\in Q_0}\bigl(B(v,x)+B(v,y)\bigr)=0:
+\]
+the front contribution is $1+1$, and the two displayed equations leave two
+copies of $B(x,y)$.  Once the queue is empty, the first remaining OPEN creates
+ko and forces the other vertex to OPEN before either can close, so all later
+charges vanish.  This zero-charge defender continuation contradicts the
+target-one tree.  Thus $|U|=2$ cannot be a counterexample.
+
+Assume now $|U|\ge3$.  For every $x\in U$, let the defender open $x$.  The
+attacker must close $f$, reaching a smaller clear defender state with
+nonempty queue and prefix charge
+\[
+ c_x=\deg_{U-\{x\}}(f).
+\]
+If some $c_x$ were zero, the restricted attacker tree would be a smaller
+counterexample.  Hence $c_x=1$ for every $x$.  With
+$p=\deg_U(f)$ this says
+\[
+ p+B(f,x)=1\qquad(x\in U).
+\]
+The alternative $p=1$ would make every $B(f,x)$ zero and hence $p=0$.
+Therefore $f$ is universal on $U$, $|U|$ is even, and $p=0$; in particular
+$|U|\ge4$.
+
+Suppose first that $Q=(f)$.  The defender closes $f$ at charge zero.  At the
+now empty, ko-clear queue the attacker opens some $z$, creating the
+ko-protected singleton queue $(z)$; the defender opens an arbitrary $y\ne z$,
+and the attacker is forced to close $z$.  Minimality
+would require
+\[
+ \deg_{U-\{z,y\}}(z)=1\qquad(y\ne z),
+\]
+since a zero charge would expose a smaller counterexample.  Write
+$a_y=B(z,y)$ and $\delta=\sum_{u\ne z}B(z,u)$.  The displayed equations are
+$\delta+a_y=1$ for every $y$, so all $a_y$ have one value $b$.  But
+$|U|-1$ is odd, whence $\delta=b$ and every displayed charge is actually
+zero, a contradiction.
+
+Finally write $Q=(f,h,Q_1)$.  For distinct $x,y\in U$, use the four-move
+prefix
+\[
+ O_x,C_f,O_y,C_h.
+\]
+The first close has charge one.  If
+$e_{xy}=\deg_{U-\{x,y\}}(h)$ were also one, the two charges would cancel and
+leave a smaller counterexample.  Thus $e_{xy}=0$ for every pair.  Comparing
+two pairs with one common vertex shows that $B(h,-)$ is constant on $U$;
+since $|U|$ is even, $\deg_U(h)=0$.  The defender can now play $C_f$ and the
+attacker must answer $C_h$; both charges are zero.  If $Q_1$ is nonempty this
+is immediately a smaller counterexample.  If $Q_1$ is empty, the defender
+opens some $x$ onto the empty queue, creating ko; the attacker is forced to
+open some $y\ne x$.  The resulting clear state has queue $(x,y)$, the defender
+to move, and smaller rank, so it is again a counterexample.  This final
+contradiction proves the theorem.
+\end{proof}
+
+In particular, the poststate of a leafmost attacker OPEN is a clear defender
+state with nonempty queue and a close-first attacker tail.  Such a deviation
+can force only residual target zero, whether or not the dummy has already
+been spent.  The remaining root problem is therefore not the conditioned
+tail conjecture stated in the previous draft: it is the transport of those
+target-zero deviations across the preceding odd CLOSE.
+
 Neither ``the dummy has already been touched'' nor ``$z$ is the unique
 untouched neighbour of $f$'' follows locally.  For the latter, take
 $K_{2,2}$ on parts $\{0,1\},\{2,3\}$ after the reachable spent-dummy prefix
@@ -2891,9 +3006,35 @@ $O_d$ or $C_1$ leaves only zero charges, while replacing it by $C_1$ has
 unit charge and the spoiler $O_d$ makes every later charge zero.  Thus the
 isolated dummy remains untouched in this irreducible target-zero example.
 Hence the last-deviation program
-reduces to a conditioned close-first theorem for post-OPEN queues of length
-at least two, not to a local uniqueness lemma.  That conditioned theorem is
-strictly stronger than Theorem~\ref{thm:close-first} and remains open.
+does not reduce to a local uniqueness lemma.  Theorem~\ref{thm:conditioned-close-first}
+closes every post-OPEN close-first tail, but only at residual target one; the
+irreducible examples above live on residual target zero after an earlier odd
+CLOSE.
+
+This distinction cannot be removed by requiring close-first play only on the
+residual-one sheet.  On the graph
+\[
+ E=\{01,02,12,03\}
+\]
+consider the clear defender state
+\[
+ U=\{0,2\},\qquad Q=(1,3),
+\]
+with residual target one.  There is an odd-forcing attacker policy which
+always CLOSEs on residual one and makes exactly one voluntary target-zero
+OPEN.  After defender $O_0$ it plays the unit $C_1$; the branches $O_2$ and
+$C_3$ are answered respectively by the zero $C_3$ and by $O_2$ in place of
+the now-odd $C_0$.  The $O_2$ branch is symmetric, except that defender
+$C_3$ has charge one and is followed by the unit $C_2$.  If the defender
+initially plays the zero $C_1$, the attacker plays the unit $C_3$; the two
+remaining vertices then open across the empty-queue ko wall and all later
+charges vanish.  Every defender line has future score one.  The sole
+deviation is the target-zero singleton state
+$U=\{2\},Q=(0)$, where replacing $O_2$ by the unit $C_0$ is spoiled by the
+ko-wall $O_2$.  An isolated dummy may already have been spent along the legal
+zero prefix $O_d,O_1,O_3,C_d$.  Thus induction on the last residual switch is
+false at a reachable conditioned state; the root ancestry must still couple
+different earlier defender branches.
 
 This boundary also explains why the nearest imported techniques do not close
 the problem.  A standard strategy-stealing pass must be optional and harmless;
@@ -3144,13 +3285,17 @@ The following claims have different status and should not be flattened.
       its cell-cut coefficient calculus, the response-factor normal form,
       completeness of the Euler ordered-pair kernel,
       the complete both-seat close-first contraction,
-      the leafmost-deviation spoiler dichotomy and untouched-dummy
-      arbitrary-prefix close-first tail,
+      the leafmost-deviation spoiler dichotomy, untouched-dummy
+      arbitrary-prefix close-first tail, and the dummy-free conditioned
+      close-first contraction,
       the causal simplex-cap family and the causal matching-exchange no-go,
       fixed-permutation no-go, and displayed triangular fan and fixed-front
       poison descent, together with the front-signature no-go, pass-free
       reversal identity, its local causal obstruction, and the
       label-essential dummy ko wall, are complete proofs in this note.
+      The dummy-free conditioned close-first theorem, its absolute-target
+      strategy semantics, and its whole-queue drain base are additionally
+      kernel-checked in \path{formal/Ogdoad/Fifo.lean}.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is

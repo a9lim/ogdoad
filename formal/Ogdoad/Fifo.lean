@@ -49,6 +49,29 @@ def adjacencyBit (G : SimpleGraph V) (u v : V) : ZMod 2 := by
   classical
   exact if G.Adj u v then 1 else 0
 
+/-- A nonzero parity bit is the unit bit. -/
+theorem zmod2_eq_one_of_ne_zero (x : ZMod 2) (hx : x ≠ 0) : x = 1 := by
+  apply ZMod.val_injective
+  have hxval : x.val ≠ 0 := by
+    intro h
+    exact hx ((ZMod.val_eq_zero x).mp h)
+  have hxlt : x.val < 2 := x.val_lt
+  change x.val = 1
+  omega
+
+/-- A parity bit different from the unit bit is zero. -/
+theorem zmod2_eq_zero_of_ne_one (x : ZMod 2) (hx : x ≠ 1) : x = 0 := by
+  by_contra hx0
+  exact hx (zmod2_eq_one_of_ne_zero x hx0)
+
+omit [Fintype V] [DecidableEq V] in
+/-- The adjacency bit inherits symmetry from a simple graph. -/
+theorem adjacencyBit_comm (G : SimpleGraph V) (x y : V) :
+    adjacencyBit G x y = adjacencyBit G y x := by
+  classical
+  simp only [adjacencyBit]
+  rw [G.adj_comm]
+
 omit [Fintype V] in
 /-- Removing `z` from the untouched set removes exactly the adjacency bit
 between the closing front `f` and `z`.  The equation is oriented so the
@@ -69,6 +92,211 @@ theorem flip_eq_flip_erase_add {G : SimpleGraph V} {U : Finset V} {f z : V}
     simpa only [Nat.cast_add, Nat.cast_one] using hcast.symm
   · have hzfilter : z ∉ U.filter (G.Adj f) := by simp [hadj]
     simp [hadj, hzfilter]
+
+omit [Fintype V] [DecidableEq V] in
+/-- If a vertex is adjacent to every member of `U`, its flip is exactly the
+cardinality parity of `U`. -/
+theorem flip_eq_card_of_forall_adj {G : SimpleGraph V} {U : Finset V} {f : V}
+    (h : ∀ x ∈ U, G.Adj f x) : flip G U f = (U.card : ZMod 2) := by
+  classical
+  have hfilter : U.filter (G.Adj f) = U := by
+    exact Finset.filter_eq_self.mpr h
+  simp [flip, hfilter]
+
+omit [Fintype V] in
+/-- The local obstruction exposed by a minimal CLOSE-first counterexample:
+if deleting any one untouched vertex leaves odd front charge, then the front
+dominates the untouched set and its undeleted charge is zero. -/
+theorem flip_zero_and_adj_of_all_erase_flip_one
+    {G : SimpleGraph V} {U : Finset V} {f : V}
+    (hU : U.Nonempty)
+    (herase : ∀ x ∈ U, flip G (U.erase x) f = 1) :
+    flip G U f = 0 ∧ ∀ x ∈ U, G.Adj f x := by
+  classical
+  obtain ⟨x, hx⟩ := hU
+  have hall : ∀ y ∈ U, G.Adj f y := by
+    intro y hy
+    by_contra hfy
+    have hflipOne : flip G U f = 1 := by
+      rw [flip_eq_flip_erase_add hy, herase y hy]
+      simp [adjacencyBit, hfy]
+    have hnot : ∀ z ∈ U, ¬G.Adj f z := by
+      intro z hz hfz
+      have hflipZero : flip G U f = 0 := by
+        rw [flip_eq_flip_erase_add hz, herase z hz]
+        simpa [adjacencyBit, hfz] using
+          (CharTwo.add_self_eq_zero (1 : ZMod 2))
+      rw [hflipOne] at hflipZero
+      exact one_ne_zero hflipZero
+    have hfilter : U.filter (G.Adj f) = ∅ := by
+      exact Finset.filter_eq_empty_iff.mpr (fun z hz ↦ hnot z hz)
+    have hflipZero : flip G U f = 0 := by simp [flip, hfilter]
+    rw [hflipOne] at hflipZero
+    exact one_ne_zero hflipZero
+  constructor
+  · rw [flip_eq_flip_erase_add hx, herase x hx]
+    simpa [adjacencyBit, hall x hx] using
+      (CharTwo.add_self_eq_zero (1 : ZMod 2))
+  · exact hall
+
+omit [Fintype V] in
+/-- Three two-point erasure equations already force the undeleted charge to
+vanish.  This is the algebraic core of the second-front step in the
+conditioned CLOSE-first proof. -/
+theorem flip_zero_of_three_double_erases
+    {G : SimpleGraph V} {U : Finset V} {f x y z : V}
+    (hx : x ∈ U) (hy : y ∈ U) (hz : z ∈ U)
+    (hxy : x ≠ y) (hxz : x ≠ z) (hyz : y ≠ z)
+    (herase : ∀ a ∈ U, ∀ b ∈ U, a ≠ b →
+      flip G ((U.erase a).erase b) f = 0) :
+    flip G U f = 0 := by
+  classical
+  have pair (a b : V) (ha : a ∈ U) (hb : b ∈ U) (hab : a ≠ b) :
+      flip G U f = adjacencyBit G f a + adjacencyBit G f b := by
+    have hb' : b ∈ U.erase a := Finset.mem_erase.mpr ⟨Ne.symm hab, hb⟩
+    calc
+      flip G U f = flip G (U.erase a) f + adjacencyBit G f a :=
+        flip_eq_flip_erase_add ha
+      _ = (flip G ((U.erase a).erase b) f + adjacencyBit G f b) +
+          adjacencyBit G f a := congrArg (fun t ↦ t + adjacencyBit G f a)
+            (flip_eq_flip_erase_add hb')
+      _ = adjacencyBit G f a + adjacencyBit G f b := by
+        rw [herase a ha b hb hab]
+        abel
+  have h₁ := pair x y hx hy hxy
+  have h₂ := pair x z hx hz hxz
+  have h₃ := pair y z hy hz hyz
+  calc
+    flip G U f = adjacencyBit G f y + adjacencyBit G f z := h₃
+    _ = (adjacencyBit G f x + adjacencyBit G f y) +
+        (adjacencyBit G f x + adjacencyBit G f z) := by
+      calc
+        adjacencyBit G f y + adjacencyBit G f z =
+            (adjacencyBit G f x + adjacencyBit G f x) +
+              (adjacencyBit G f y + adjacencyBit G f z) := by
+                rw [CharTwo.add_self_eq_zero, zero_add]
+        _ = (adjacencyBit G f x + adjacencyBit G f y) +
+            (adjacencyBit G f x + adjacencyBit G f z) := by abel
+    _ = flip G U f + flip G U f := by rw [← h₁, ← h₂]
+    _ = 0 := CharTwo.add_self_eq_zero _
+
+omit [Fintype V] in
+/-- The singleton-queue ko branch cannot repeat the one-point obstruction on
+the punctured untouched set: the two all-adjacent conclusions would make a
+finite set and its one-point erasure have the same cardinality parity. -/
+theorem not_all_nested_erase_flips_one
+    {G : SimpleGraph V} {U : Finset V} {f z : V}
+    (hz : z ∈ U) (hpunctured : (U.erase z).Nonempty)
+    (hfront : ∀ x ∈ U, flip G (U.erase x) f = 1)
+    (hnested : ∀ y ∈ U.erase z,
+      flip G ((U.erase z).erase y) z = 1) : False := by
+  classical
+  obtain ⟨hflipU, hadjU⟩ :=
+    flip_zero_and_adj_of_all_erase_flip_one ⟨z, hz⟩ hfront
+  obtain ⟨hflipErase, hadjErase⟩ :=
+    flip_zero_and_adj_of_all_erase_flip_one hpunctured hnested
+  have hcardU : ((U.card : Nat) : ZMod 2) = 0 := by
+    rw [← flip_eq_card_of_forall_adj hadjU]
+    exact hflipU
+  have hcardErase : (((U.erase z).card : Nat) : ZMod 2) = 0 := by
+    rw [← flip_eq_card_of_forall_adj hadjErase]
+    exact hflipErase
+  have hcardNat := Finset.card_erase_add_one hz
+  have hcardCast : (((U.erase z).card : ZMod 2) + 1) = (U.card : ZMod 2) := by
+    have hcast := congrArg (fun n : Nat ↦ (n : ZMod 2)) hcardNat
+    simpa only [Nat.cast_add, Nat.cast_one] using hcast
+  rw [hcardErase, hcardU, zero_add] at hcardCast
+  exact one_ne_zero hcardCast
+
+omit [Fintype V] [DecidableEq V] in
+/-- The flip into a singleton untouched set is its adjacency coordinate. -/
+theorem flip_singleton_eq_adjacencyBit {G : SimpleGraph V} {v x : V} :
+    flip G {x} v = adjacencyBit G v x := by
+  classical
+  by_cases hvx : G.Adj v x
+  · have hfilter : ({x} : Finset V).filter (G.Adj v) = {x} := by
+      apply Finset.filter_eq_self.mpr
+      intro z hz
+      have hzx : z = x := Finset.mem_singleton.mp hz
+      subst z
+      exact hvx
+    simp [flip, adjacencyBit, hvx, hfilter]
+  · have hfilter : ({x} : Finset V).filter (G.Adj v) = ∅ := by
+      apply Finset.filter_eq_empty_iff.mpr
+      intro z hz
+      have hzx : z = x := Finset.mem_singleton.mp hz
+      subst z
+      exact hvx
+    simp [flip, adjacencyBit, hvx, hfilter]
+
+omit [Fintype V] in
+/-- On a two-point untouched set, the close charge is the sum of the two
+adjacency coordinates. -/
+theorem flip_pair {G : SimpleGraph V} {v x y : V} (hxy : x ≠ y) :
+    flip G {x, y} v = adjacencyBit G v x + adjacencyBit G v y := by
+  classical
+  have hx : x ∈ ({x, y} : Finset V) := by simp
+  have herase : ({x, y} : Finset V).erase x = {y} := by
+    ext z
+    simp [hxy]
+  rw [flip_eq_flip_erase_add hx, herase, flip_singleton_eq_adjacencyBit,
+    add_comm]
+
+omit [Fintype V] in
+/-- Summing two-point charges is the sum of the two coordinate totals. -/
+theorem sum_flip_pair {G : SimpleGraph V} {x y : V} (hxy : x ≠ y) :
+    ∀ q : List V, (q.map (flip G {x, y})).sum =
+      (q.map (flip G {x})).sum + (q.map (flip G {y})).sum := by
+  intro q
+  induction q with
+  | nil => simp
+  | cons v q ih =>
+      rw [List.map_cons, List.map_cons, List.map_cons, List.sum_cons,
+        List.sum_cons, List.sum_cons, flip_pair hxy,
+        flip_singleton_eq_adjacencyBit, flip_singleton_eq_adjacencyBit, ih]
+      abel
+
+/-- Consecutive queue cells have matching adjacency coordinates to the two
+untouched vertices.  This is exactly the relation extracted by comparing the
+"open now" response with the response that first consumes one more CLOSE
+pair in the two-untouched base case. -/
+inductive MatchedQueuePairs (G : SimpleGraph V) (x y : V) : List V → Prop
+  | nil : MatchedQueuePairs G x y []
+  | cons (a b : V) (q : List V)
+      (hx : adjacencyBit G a x = adjacencyBit G b x)
+      (hy : adjacencyBit G a y = adjacencyBit G b y)
+      (tail : MatchedQueuePairs G x y q) :
+      MatchedQueuePairs G x y (a :: b :: q)
+
+omit [Fintype V] in
+/-- Every matched queue-pair block has zero aggregate charge into a
+two-point untouched set. -/
+theorem MatchedQueuePairs.sum_flip_eq_zero
+    {G : SimpleGraph V} {x y : V} (hxy : x ≠ y) :
+    ∀ {q}, MatchedQueuePairs G x y q →
+      (q.map (flip G {x, y})).sum = 0 := by
+  intro q h
+  induction h with
+  | nil => simp
+  | cons a b q hx hy _ ih =>
+      rw [List.map_cons, List.map_cons, List.sum_cons, List.sum_cons,
+        flip_pair hxy, flip_pair hxy, hx, hy, ih]
+      rw [add_zero]
+      calc
+        (adjacencyBit G b x + adjacencyBit G b y) +
+            (adjacencyBit G b x + adjacencyBit G b y) = 0 :=
+          CharTwo.add_self_eq_zero _
+
+omit [Fintype V] in
+/-- A single final queue cell whose two adjacency coordinates agree also has
+zero charge into the two-point set.  This is the even-length endpoint of the
+queue-pair argument. -/
+theorem flip_pair_eq_zero_of_coordinates_eq
+    {G : SimpleGraph V} {v x y : V} (hxy : x ≠ y)
+    (h : adjacencyBit G v x = adjacencyBit G v y) :
+    flip G {x, y} v = 0 := by
+  rw [flip_pair hxy, h]
+  exact CharTwo.add_self_eq_zero _
 
 /-- One authoritative transition function, matching `legal_moves` in the
 Python research oracle.
@@ -607,6 +835,812 @@ inductive OddWins (G : SimpleGraph V) (seat : Bool) : State V → Prop
       (hasMove : ∃ m s', step G s m = some s')
       (hwin : ∀ m s', step G s m = some s' → OddWins G seat s') :
       OddWins G seat s
+
+/-- A target-forcing strategy tree for a distinguished attacker who must
+CLOSE whenever CLOSE is legal.  The target is an absolute terminal score;
+using an explicit target, rather than only the predicate "odd", lets a
+well-founded proof compare a subtree with the score at its new root.
+
+At an attacker node the selected move is existential, with `priority`
+enforcing CLOSE-first play.  At every other node all legal replies remain
+universal. -/
+inductive CloseFirstWins (G : SimpleGraph V) (attacker : Bool)
+    (target : ZMod 2) : State V → Prop
+  | terminal (s : State V) (hterminal : Terminal s) (hscore : s.score = target) :
+      CloseFirstWins G attacker target s
+  | choose (s : State V) (hattacker : s.toMove = attacker)
+      (m : Move V) (s' : State V) (hstep : step G s m = some s')
+      (priority : (∃ sc, step G s .close = some sc) → m = .close)
+      (hwin : CloseFirstWins G attacker target s') :
+      CloseFirstWins G attacker target s
+  | answer (s : State V) (hdefender : s.toMove ≠ attacker)
+      (hasMove : ∃ m s', step G s m = some s')
+      (hwin : ∀ m s', step G s m = some s' →
+        CloseFirstWins G attacker target s') :
+      CloseFirstWins G attacker target s
+
+omit [Fintype V] in
+/-- At a defender node, a target-forcing tree contains the subtree after each
+legal reply. -/
+theorem CloseFirstWins.answer_child {G : SimpleGraph V} {attacker : Bool}
+    {target : ZMod 2} {s s' : State V} {m : Move V}
+    (h : CloseFirstWins G attacker target s)
+    (hdefender : s.toMove ≠ attacker) (hstep : step G s m = some s') :
+    CloseFirstWins G attacker target s' := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨m, s', hstep⟩)
+  | choose _ hattacker _ _ _ _ _ => exact False.elim (hdefender hattacker)
+  | answer _ _ _ hanswer => exact hanswer m s' hstep
+
+omit [Fintype V] in
+/-- At an attacker node where CLOSE is legal, CLOSE-first play selects that
+unique move and exposes its target-forcing subtree. -/
+theorem CloseFirstWins.close_child {G : SimpleGraph V} {attacker : Bool}
+    {target : ZMod 2} {s s' : State V}
+    (h : CloseFirstWins G attacker target s)
+    (hattacker : s.toMove = attacker)
+    (hclose : step G s .close = some s') :
+    CloseFirstWins G attacker target s' := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨Move.close, s', hclose⟩)
+  | choose _ _ m child hstep priority hchild =>
+      have hm : m = .close := priority ⟨s', hclose⟩
+      subst m
+      rw [hclose] at hstep
+      cases hstep
+      exact hchild
+  | answer _ hdefender _ _ => exact False.elim (hdefender hattacker)
+
+omit [Fintype V] in
+/-- Once the untouched set is empty, a CLOSE-first strategy can force only
+the score already present at the root.  PASS and every remaining CLOSE are
+score-neutral there. -/
+theorem CloseFirstWins.target_eq_of_untouched_empty
+    {G : SimpleGraph V} {attacker : Bool} {target : ZMod 2} {s : State V}
+    (h : CloseFirstWins G attacker target s) (hU : s.untouched = ∅) :
+    target = s.score := by
+  induction h with
+  | terminal _ _ hscore => exact hscore.symm
+  | choose _ _ _ _ hstep _ _ ih =>
+      have hU' := step_untouched_eq_empty hU hstep
+      have hscore := step_score_eq_of_untouched_empty hU hstep
+      rw [ih hU', hscore]
+  | answer _ _ hasMove _ ih =>
+      obtain ⟨m, s', hstep⟩ := hasMove
+      have hU' := step_untouched_eq_empty hU hstep
+      have hscore := step_score_eq_of_untouched_empty hU hstep
+      rw [ih m s' hstep hU', hscore]
+
+omit [Fintype V] in
+/-- With no untouched vertex, no CLOSE-first strategy can force the score to
+change.  This is the rank-zero base of the conditioned theorem. -/
+theorem not_closeFirstWins_next_of_untouched_empty
+    {G : SimpleGraph V} {attacker : Bool} {s : State V}
+    (hU : s.untouched = ∅) :
+    ¬CloseFirstWins G attacker (s.score + 1) s := by
+  intro hwin
+  have htarget := hwin.target_eq_of_untouched_empty hU
+  have htarget' : s.score + 1 = s.score := htarget
+  have h10 : (1 : ZMod 2) = 0 := by
+    calc
+      1 = -s.score + (s.score + 1) := by abel
+      _ = -s.score + s.score := by rw [htarget']
+      _ = 0 := by abel
+  exact one_ne_zero h10
+
+omit [Fintype V] in
+/-- The first base case of the conditioned CLOSE-first theorem.  If the
+defender moves with one untouched vertex and a clear nonempty queue, opening
+that vertex removes every possible future charge.  Thus a CLOSE-first
+attacker cannot change the score parity from this checkpoint. -/
+theorem not_closeFirstWins_next_of_singleton_untouched
+    {G : SimpleGraph V} {attacker : Bool} {s : State V} {x : V}
+    (hdefender : s.toMove ≠ attacker) (hU : s.untouched = {x})
+    (hqueue : s.queue ≠ []) :
+    ¬CloseFirstWins G attacker (s.score + 1) s := by
+  intro hwin
+  cases hwin with
+  | terminal _ hterminal _ => exact hqueue hterminal.2
+  | choose _ hattacker _ _ _ _ _ => exact hdefender hattacker
+  | answer _ _ _ hanswer =>
+      cases hq : s.queue with
+      | nil => exact False.elim (hqueue hq)
+      | cons f q =>
+          let s' : State V := {
+            untouched := ∅
+            queue := f :: q ++ [x]
+            ko := false
+            toMove := !s.toMove
+            score := s.score }
+          have hopen : step G s (.open x) = some s' := by
+            simp [step, s', hq, hU]
+          have hchild := hanswer (.open x) s' hopen
+          have htarget := hchild.target_eq_of_untouched_empty (by rfl)
+          have htarget' : s.score + 1 = s.score := by
+            simp only [s'] at htarget
+            exact htarget
+          have h10 : (1 : ZMod 2) = 0 := by
+            calc
+              1 = -s.score + (s.score + 1) := by abel
+              _ = -s.score + s.score := by rw [htarget']
+              _ = 0 := by abel
+          exact one_ne_zero h10
+
+omit [Fintype V] in
+/-- If exactly one untouched vertex remains and CLOSE is illegal, the only
+possible score-changing phase is over: either player must OPEN that vertex,
+after which every charge is zero. -/
+theorem CloseFirstWins.target_eq_score_of_singleton_no_close
+    {G : SimpleGraph V} {attacker : Bool} {target : ZMod 2}
+    {s : State V} {u : V} (hwin : CloseFirstWins G attacker target s)
+    (hU : s.untouched = {u}) (hnoClose : ¬∃ sc, step G s .close = some sc) :
+    target = s.score := by
+  classical
+  by_cases hattacker : s.toMove = attacker
+  · cases hwin with
+    | terminal _ hterminal _ =>
+        simp [Terminal, hU] at hterminal
+    | answer _ hdefender _ _ => exact False.elim (hdefender hattacker)
+    | choose _ _ m s' hstep _ hchild =>
+        cases m with
+        | close => exact False.elim (hnoClose ⟨s', hstep⟩)
+        | pass => simp [step, hU] at hstep
+        | «open» v =>
+            have hv : v ∈ s.untouched := by
+              simp only [step] at hstep
+              split at hstep
+              · assumption
+              · contradiction
+            have hvu : v = u := by simpa [hU] using hv
+            have hU' : s'.untouched = ∅ := by
+              simp only [step] at hstep
+              split at hstep
+              · cases hstep
+                simp [hU, hvu]
+              · contradiction
+            have htarget := hchild.target_eq_of_untouched_empty hU'
+            rw [open_score hstep] at htarget
+            exact htarget
+  · let s' : State V := {
+      untouched := ∅
+      queue := s.queue ++ [u]
+      ko := s.queue.isEmpty
+      toMove := !s.toMove
+      score := s.score }
+    have hopen : step G s (.open u) = some s' := by
+      simp [step, s', hU]
+    have hchild := hwin.answer_child hattacker hopen
+    exact hchild.target_eq_of_untouched_empty rfl
+
+/-- A state used while deliberately draining a fixed FIFO queue. -/
+def drainState (U : Finset V) (q : List V) (turn : Bool)
+    (score : ZMod 2) : State V where
+  untouched := U
+  queue := q
+  ko := false
+  toMove := turn
+  score := score
+
+omit [Fintype V] in
+/-- Once the empty-queue endpoint is known to preserve the score, alternating
+defender CLOSE choices and mandatory attacker CLOSEs compute the target as
+the initial score plus the whole live queue cut. -/
+theorem CloseFirstWins.target_eq_score_add_sum_flip_of_drain
+    {G : SimpleGraph V} {attacker turn : Bool} {target score : ZMod 2}
+    {U : Finset V} {q : List V}
+    (hfinish : ∀ (turn' : Bool) (score' : ZMod 2),
+      CloseFirstWins G attacker target (drainState U [] turn' score') →
+        target = score')
+    (hwin : CloseFirstWins G attacker target (drainState U q turn score)) :
+    target = score + (q.map (flip G U)).sum := by
+  induction q generalizing turn score with
+  | nil => simpa [drainState] using hfinish turn score hwin
+  | cons f q ih =>
+      let s' := drainState U q (!turn) (score + flip G U f)
+      have hclose : step G (drainState U (f :: q) turn score) .close =
+          some s' := by
+        simp [step, drainState, s']
+      have hchild : CloseFirstWins G attacker target s' := by
+        by_cases hattacker : turn = attacker
+        · exact hwin.close_child (by simpa [drainState] using hattacker) hclose
+        · exact hwin.answer_child (by simpa [drainState] using hattacker) hclose
+      have htarget := ih hchild
+      simpa [s', List.sum_cons, add_assoc] using htarget
+
+omit [Fintype V] in
+/-- With exactly two untouched vertices and an empty clear queue, ko forces
+both OPENs before either new queue cell can close, so the score cannot change. -/
+theorem CloseFirstWins.target_eq_score_of_pair_empty
+    {G : SimpleGraph V} {attacker turn : Bool} {target score : ZMod 2}
+    {x y : V} (hxy : x ≠ y)
+    (hwin : CloseFirstWins G attacker target
+      (drainState {x, y} [] turn score)) : target = score := by
+  classical
+  let s := drainState ({x, y} : Finset V) [] turn score
+  by_cases hattacker : turn = attacker
+  · cases hwin with
+    | terminal _ hterminal _ => simp [Terminal, drainState] at hterminal
+    | answer _ hdefender _ _ =>
+        exact False.elim (hdefender (by simpa [drainState] using hattacker))
+    | choose _ _ m s' hstep _ hchild =>
+        cases m with
+        | close => simp [step, drainState] at hstep
+        | pass => simp [step, drainState] at hstep
+        | «open» v =>
+            have hv : v ∈ ({x, y} : Finset V) := by
+              simp only [step] at hstep
+              split at hstep
+              · assumption
+              · contradiction
+            let sv : State V := {
+              untouched := ({x, y} : Finset V).erase v
+              queue := [v]
+              ko := true
+              toMove := !turn
+              score := score }
+            have hs' : s' = sv := by
+              simp only [step] at hstep
+              split at hstep
+              · cases hstep
+                simp [drainState, sv]
+              · contradiction
+            rw [hs'] at hchild
+            have hcard : (({x, y} : Finset V).erase v).card = 1 := by
+              rw [Finset.card_erase_of_mem hv]
+              simp [hxy]
+            obtain ⟨u, hu⟩ := Finset.card_eq_one.mp hcard
+            have hU' : sv.untouched = {u} := by exact hu
+            have hnoClose : ¬∃ sc, step G sv .close = some sc := by
+              simp [step, sv]
+            have ht := hchild.target_eq_score_of_singleton_no_close hU' hnoClose
+            simpa [sv] using ht
+  · let sx : State V := {
+      untouched := {y}
+      queue := [x]
+      ko := true
+      toMove := !turn
+      score := score }
+    have hopen : step G (drainState ({x, y} : Finset V) [] turn score)
+        (.open x) = some sx := by
+      simp [step, drainState, sx, hxy]
+    have hchild := hwin.answer_child (by simpa [drainState] using hattacker) hopen
+    have hnoClose : ¬∃ sc, step G sx .close = some sc := by
+      intro hc
+      obtain ⟨sc, hc⟩ := hc
+      simp [step, sx] at hc
+    exact hchild.target_eq_score_of_singleton_no_close rfl hnoClose
+
+/-- Exact dummy-free target of the conditioned CLOSE-first argument.
+`Coherent` records precisely the reachability invariants used by the proof:
+queue nodupness, queue/untouched disjointness, and the singleton shape of a
+ko-protected queue. -/
+theorem ConditionedCloseFirstTheorem :
+    ∀ (V : Type*) (_ : Fintype V) (_ : DecidableEq V)
+      (G : SimpleGraph V) (attacker : Bool) (s : State V),
+        Coherent s → s.toMove ≠ attacker → s.queue ≠ [] → s.ko = false →
+          ¬CloseFirstWins G attacker (s.score + 1) s := by
+  intro V _ _ G attacker s
+  induction s using (measure rank).wf.induction with
+  | h s ih =>
+      intro hcoherent hdefender hqueue hko hwin
+      classical
+      by_cases hU0 : s.untouched = ∅
+      · exact not_closeFirstWins_next_of_untouched_empty hU0 hwin
+      by_cases hU1 : s.untouched.card = 1
+      · obtain ⟨x, hx⟩ := Finset.card_eq_one.mp hU1
+        exact not_closeFirstWins_next_of_singleton_untouched
+          hdefender hx hqueue hwin
+      by_cases hU2 : s.untouched.card = 2
+      · obtain ⟨x, y, hxy, hU⟩ := Finset.card_eq_two.mp hU2
+        cases hq : s.queue with
+        | nil => exact False.elim (hqueue hq)
+        | cons f q =>
+          have hEraseX : s.untouched.erase x = {y} := by
+            rw [hU]
+            simp [hxy]
+          have hEraseY : s.untouched.erase y = {x} := by
+            rw [hU]
+            ext z
+            simp only [Finset.mem_erase, Finset.mem_insert, Finset.mem_singleton]
+            constructor
+            · rintro ⟨_, rfl | rfl⟩
+              · rfl
+              · contradiction
+            · intro hz
+              subst z
+              exact ⟨hxy, Or.inl rfl⟩
+          have hxmem : x ∈ s.untouched := by simp [hU]
+          have hymem : y ∈ s.untouched := by simp [hU]
+          have hturn : (!s.toMove : Bool) = attacker := by
+            cases hs : s.toMove <;> cases ha : attacker <;> simp_all
+          let sox : State V := {
+            untouched := {y}
+            queue := f :: (q ++ [x])
+            ko := false
+            toMove := !s.toMove
+            score := s.score }
+          have hopenx : step G s (.open x) = some sox := by
+            simp [step, sox, hq, hxmem, hEraseX]
+          have hwinox := hwin.answer_child hdefender hopenx
+          have hfrontY : adjacencyBit G f y = 1 := by
+            have hne : adjacencyBit G f y ≠ 0 := by
+              intro hzero
+              let sy : State V := {
+                untouched := {y}
+                queue := q ++ [x]
+                ko := false
+                toMove := s.toMove
+                score := s.score }
+              have hclose : step G sox .close = some sy := by
+                simp [step, sox, sy, flip_singleton_eq_adjacencyBit, hzero]
+              have hwiny := hwinox.close_child (by
+                change (!s.toMove : Bool) = attacker
+                exact hturn) hclose
+              exact not_closeFirstWins_next_of_singleton_untouched
+                (s := sy) hdefender rfl (by simp [sy]) hwiny
+            exact zmod2_eq_one_of_ne_zero _ hne
+          let sy : State V := {
+            untouched := {y}
+            queue := q ++ [x]
+            ko := false
+            toMove := s.toMove
+            score := s.score + 1 }
+          have hcloseY : step G sox .close = some sy := by
+            simp [step, sox, sy, flip_singleton_eq_adjacencyBit, hfrontY]
+          have hwinY : CloseFirstWins G attacker (s.score + 1) sy :=
+            hwinox.close_child (by
+              change (!s.toMove : Bool) = attacker
+              exact hturn) hcloseY
+          let soy : State V := {
+            untouched := {x}
+            queue := f :: (q ++ [y])
+            ko := false
+            toMove := !s.toMove
+            score := s.score }
+          have hopeny : step G s (.open y) = some soy := by
+            simp [step, soy, hq, hymem, hEraseY]
+          have hwinoy := hwin.answer_child hdefender hopeny
+          have hfrontX : adjacencyBit G f x = 1 := by
+            have hne : adjacencyBit G f x ≠ 0 := by
+              intro hzero
+              let sx : State V := {
+                untouched := {x}
+                queue := q ++ [y]
+                ko := false
+                toMove := s.toMove
+                score := s.score }
+              have hclose : step G soy .close = some sx := by
+                simp [step, soy, sx, flip_singleton_eq_adjacencyBit, hzero]
+              have hwinx := hwinoy.close_child (by
+                change (!s.toMove : Bool) = attacker
+                exact hturn) hclose
+              exact not_closeFirstWins_next_of_singleton_untouched
+                (s := sx) hdefender rfl (by simp [sx]) hwinx
+            exact zmod2_eq_one_of_ne_zero _ hne
+          let sx : State V := {
+            untouched := {x}
+            queue := q ++ [y]
+            ko := false
+            toMove := s.toMove
+            score := s.score + 1 }
+          have hcloseX : step G soy .close = some sx := by
+            simp [step, soy, sx, flip_singleton_eq_adjacencyBit, hfrontX]
+          have hwinX : CloseFirstWins G attacker (s.score + 1) sx :=
+            hwinoy.close_child (by
+              change (!s.toMove : Bool) = attacker
+              exact hturn) hcloseX
+          have hfinishY : ∀ (turn' : Bool) (score' : ZMod 2),
+              CloseFirstWins G attacker (s.score + 1)
+                (drainState {y} [] turn' score') → s.score + 1 = score' := by
+            intro turn' score' hw
+            exact hw.target_eq_score_of_singleton_no_close rfl (by
+              simp [step, drainState])
+          have hwinY' : CloseFirstWins G attacker (s.score + 1)
+              (drainState {y} (q ++ [x]) s.toMove (s.score + 1)) := by
+            simpa [sy, drainState] using hwinY
+          have hsumY :=
+            hwinY'.target_eq_score_add_sum_flip_of_drain hfinishY
+          have hzeroY : ((q ++ [x]).map (flip G {y})).sum = 0 := by
+            have h := congrArg (fun z ↦ z - (s.score + 1)) hsumY
+            simpa using h.symm
+          have hfinishX : ∀ (turn' : Bool) (score' : ZMod 2),
+              CloseFirstWins G attacker (s.score + 1)
+                (drainState {x} [] turn' score') → s.score + 1 = score' := by
+            intro turn' score' hw
+            exact hw.target_eq_score_of_singleton_no_close rfl (by
+              simp [step, drainState])
+          have hwinX' : CloseFirstWins G attacker (s.score + 1)
+              (drainState {x} (q ++ [y]) s.toMove (s.score + 1)) := by
+            simpa [sx, drainState] using hwinX
+          have hsumX :=
+            hwinX'.target_eq_score_add_sum_flip_of_drain hfinishX
+          have hzeroX : ((q ++ [y]).map (flip G {x})).sum = 0 := by
+            have h := congrArg (fun z ↦ z - (s.score + 1)) hsumX
+            simpa using h.symm
+          have haddZeroEq (a b : ZMod 2) (hab : a + b = 0) : a = b := by
+            calc
+              a = a + (b + b) := by rw [CharTwo.add_self_eq_zero, add_zero]
+              _ = (a + b) + b := by abel
+              _ = b := by rw [hab, zero_add]
+          have hqx : (q.map (flip G {x})).sum = adjacencyBit G x y := by
+            have h : (q.map (flip G {x})).sum + adjacencyBit G y x = 0 := by
+              simpa [List.map_append, flip_singleton_eq_adjacencyBit,
+                List.sum_append] using hzeroX
+            rw [adjacencyBit_comm G y x] at h
+            exact haddZeroEq _ _ h
+          have hqy : (q.map (flip G {y})).sum = adjacencyBit G x y := by
+            have h : (q.map (flip G {y})).sum + adjacencyBit G x y = 0 := by
+              simpa [List.map_append, flip_singleton_eq_adjacencyBit,
+                List.sum_append] using hzeroY
+            exact haddZeroEq _ _ h
+          have hqsplit : (q.map (flip G {x, y})).sum =
+              (q.map (flip G {x})).sum + (q.map (flip G {y})).sum :=
+            sum_flip_pair hxy q
+          have hqzero : (q.map (flip G {x, y})).sum = 0 := by
+            rw [hqsplit, hqx, hqy]
+            exact CharTwo.add_self_eq_zero _
+          have hfrontzero : flip G {x, y} f = 0 := by
+            rw [flip_pair hxy, hfrontX, hfrontY]
+            exact CharTwo.add_self_eq_zero _
+          have hwinDrain : CloseFirstWins G attacker (s.score + 1)
+              (drainState {x, y} (f :: q) s.toMove s.score) := by
+            have hsDrain : s =
+                drainState ({x, y} : Finset V) (f :: q) s.toMove s.score := by
+              cases s with
+              | mk U Q ko turn score =>
+                  change U = {x, y} at hU
+                  change Q = f :: q at hq
+                  change ko = false at hko
+                  subst U
+                  subst Q
+                  subst ko
+                  rfl
+            rw [← hsDrain]
+            exact hwin
+          have hfinishPair : ∀ (turn' : Bool) (score' : ZMod 2),
+              CloseFirstWins G attacker (s.score + 1)
+                (drainState {x, y} [] turn' score') → s.score + 1 = score' := by
+            intro turn' score' hw
+            exact hw.target_eq_score_of_pair_empty hxy
+          have htotal :=
+            hwinDrain.target_eq_score_add_sum_flip_of_drain hfinishPair
+          have htarget : s.score + 1 = s.score := by
+            simp [hfrontzero, hqzero] at htotal
+          have h10 : (1 : ZMod 2) = 0 := by
+            calc
+              1 = -s.score + (s.score + 1) := by abel
+              _ = -s.score + s.score := by rw [htarget]
+              _ = 0 := by abel
+          exact one_ne_zero h10
+      have hU3 : 3 ≤ s.untouched.card := by
+        have hpos : 0 < s.untouched.card := Finset.card_pos.mpr
+          (Finset.nonempty_iff_ne_empty.mpr hU0)
+        omega
+      cases hq : s.queue with
+      | nil => exact False.elim (hqueue hq)
+      | cons f q =>
+        have hturn : (!s.toMove : Bool) = attacker := by
+          cases hs : s.toMove <;> cases ha : attacker <;> simp_all
+        have herase : ∀ x ∈ s.untouched,
+            flip G (s.untouched.erase x) f = 1 := by
+          intro x hx
+          let so : State V := {
+            untouched := s.untouched.erase x
+            queue := f :: (q ++ [x])
+            ko := false
+            toMove := !s.toMove
+            score := s.score }
+          let soc : State V := {
+            untouched := s.untouched.erase x
+            queue := q ++ [x]
+            ko := false
+            toMove := s.toMove
+            score := s.score + flip G (s.untouched.erase x) f }
+          have hopen : step G s (.open x) = some so := by
+            simp [step, so, hq, hx]
+          have hclose : step G so .close = some soc := by
+            simp [step, so, soc]
+          have hwino : CloseFirstWins G attacker (s.score + 1) so :=
+            hwin.answer_child hdefender hopen
+          have hwinc : CloseFirstWins G attacker (s.score + 1) soc :=
+            hwino.close_child (by change (!s.toMove : Bool) = attacker; exact hturn) hclose
+          have hne : flip G (s.untouched.erase x) f ≠ 0 := by
+            intro hzero
+            have htarget : s.score + 1 = soc.score + 1 := by
+              simp [soc, hzero]
+            rw [htarget] at hwinc
+            exact ih soc (lt_trans (rank_step_lt hclose) (rank_step_lt hopen))
+              (coherent_step (coherent_step hcoherent hopen) hclose)
+              (by change s.toMove ≠ attacker; exact hdefender)
+              (by simp [soc]) (by rfl) hwinc
+          exact zmod2_eq_one_of_ne_zero _ hne
+        obtain ⟨hflipf, hfuniv⟩ :=
+          flip_zero_and_adj_of_all_erase_flip_one
+            (Finset.nonempty_iff_ne_empty.mpr hU0) herase
+        cases q with
+        | nil =>
+          let sc : State V := {
+            untouched := s.untouched
+            queue := []
+            ko := false
+            toMove := !s.toMove
+            score := s.score }
+          have hclosef : step G s .close = some sc := by
+            simp [step, sc, hq, hko, hflipf]
+          have hwinc : CloseFirstWins G attacker (s.score + 1) sc :=
+            hwin.answer_child hdefender hclosef
+          have hattacker : sc.toMove = attacker := by
+            change (!s.toMove : Bool) = attacker
+            exact hturn
+          cases hwinc with
+          | terminal _ hterminal _ =>
+              exact hU0 hterminal.1
+          | answer _ hnotattacker _ _ =>
+              exact False.elim (hnotattacker hattacker)
+          | choose _ _ m sz hstep _ hwinsz =>
+              cases m with
+              | close => simp [step, sc] at hstep
+              | pass => simp [step, sc, hU0] at hstep
+              | «open» z =>
+                have hz : z ∈ s.untouched := by
+                  simp only [step] at hstep
+                  split at hstep
+                  · assumption
+                  · contradiction
+                let sz' : State V := {
+                  untouched := s.untouched.erase z
+                  queue := [z]
+                  ko := true
+                  toMove := s.toMove
+                  score := s.score }
+                have hsz : sz = sz' := by
+                  simp only [step] at hstep
+                  split at hstep
+                  · cases hstep
+                    simp [sc, sz']
+                  · contradiction
+                rw [hsz] at hwinsz
+                have hopenz : step G sc (.open z) = some sz' := by
+                  simp [step, sc, sz', hz]
+                have hpunctured : (s.untouched.erase z).Nonempty := by
+                  rw [Finset.nonempty_iff_ne_empty]
+                  intro hempty
+                  have hcard : s.untouched.card = 1 := by
+                    have := Finset.card_erase_add_one hz
+                    simp [hempty] at this
+                    omega
+                  exact hU1 hcard
+                have hnested : ∀ y ∈ s.untouched.erase z,
+                    flip G ((s.untouched.erase z).erase y) z = 1 := by
+                  intro y hy
+                  let szy : State V := {
+                    untouched := (s.untouched.erase z).erase y
+                    queue := [z, y]
+                    ko := false
+                    toMove := !s.toMove
+                    score := s.score }
+                  let szyc : State V := {
+                    untouched := (s.untouched.erase z).erase y
+                    queue := [y]
+                    ko := false
+                    toMove := s.toMove
+                    score := s.score +
+                      flip G ((s.untouched.erase z).erase y) z }
+                  have hopeny : step G sz' (.open y) = some szy := by
+                    simp [step, sz', szy, hy]
+                  have hwinszy : CloseFirstWins G attacker (s.score + 1) szy :=
+                    hwinsz.answer_child (by
+                      change s.toMove ≠ attacker
+                      exact hdefender) hopeny
+                  have hclosez : step G szy .close = some szyc := by
+                    simp [step, szy, szyc]
+                  have hwinszyc : CloseFirstWins G attacker (s.score + 1) szyc :=
+                    hwinszy.close_child (by
+                      change (!s.toMove : Bool) = attacker
+                      exact hturn) hclosez
+                  have hne : flip G ((s.untouched.erase z).erase y) z ≠ 0 := by
+                    intro hzero
+                    have htarget : s.score + 1 = szyc.score + 1 := by
+                      simp [szyc, hzero]
+                    rw [htarget] at hwinszyc
+                    exact ih szyc
+                      (lt_trans (rank_step_lt hclosez)
+                        (lt_trans (rank_step_lt hopeny)
+                          (lt_trans (rank_step_lt hopenz)
+                            (rank_step_lt hclosef))))
+                      (coherent_step
+                        (coherent_step
+                          (coherent_step
+                            (coherent_step hcoherent hclosef) hopenz) hopeny)
+                        hclosez)
+                      (by change s.toMove ≠ attacker; exact hdefender)
+                      (by simp [szyc]) (by rfl) hwinszyc
+                  exact zmod2_eq_one_of_ne_zero _ hne
+                exact not_all_nested_erase_flips_one hz hpunctured herase hnested
+        | cons g qtail =>
+          have hdouble : ∀ x ∈ s.untouched, ∀ y ∈ s.untouched, x ≠ y →
+              flip G ((s.untouched.erase x).erase y) g = 0 := by
+            intro x hx y hy hxy
+            let so : State V := {
+              untouched := s.untouched.erase x
+              queue := f :: g :: (qtail ++ [x])
+              ko := false
+              toMove := !s.toMove
+              score := s.score }
+            let sof : State V := {
+              untouched := s.untouched.erase x
+              queue := g :: (qtail ++ [x])
+              ko := false
+              toMove := s.toMove
+              score := s.score + 1 }
+            let sofy : State V := {
+              untouched := (s.untouched.erase x).erase y
+              queue := g :: (qtail ++ [x, y])
+              ko := false
+              toMove := !s.toMove
+              score := s.score + 1 }
+            let sofyc : State V := {
+              untouched := (s.untouched.erase x).erase y
+              queue := qtail ++ [x, y]
+              ko := false
+              toMove := s.toMove
+              score := s.score + 1 +
+                flip G ((s.untouched.erase x).erase y) g }
+            have hopenx : step G s (.open x) = some so := by
+              simp [step, so, hq, hx]
+            have hclosef' : step G so .close = some sof := by
+              simp [step, so, sof, herase x hx]
+            have hyerase : y ∈ s.untouched.erase x :=
+              Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+            have hopeny : step G sof (.open y) = some sofy := by
+              simp [step, sof, sofy, hyerase, List.append_assoc]
+            have hcloseg : step G sofy .close = some sofyc := by
+              simp [step, sofy, sofyc]
+            have hwino := hwin.answer_child hdefender hopenx
+            have hwinof := hwino.close_child (by
+              change (!s.toMove : Bool) = attacker
+              exact hturn) hclosef'
+            have hwinofy := hwinof.answer_child hdefender hopeny
+            have hwinofyc := hwinofy.close_child (by
+              change (!s.toMove : Bool) = attacker
+              exact hturn) hcloseg
+            have hneone : flip G ((s.untouched.erase x).erase y) g ≠ 1 := by
+              intro hone
+              have htarget : s.score + 1 = sofyc.score + 1 := by
+                simp only [sofyc, hone]
+                abel
+              rw [htarget] at hwinofyc
+              exact ih sofyc
+                (lt_trans (rank_step_lt hcloseg)
+                  (lt_trans (rank_step_lt hopeny)
+                    (lt_trans (rank_step_lt hclosef')
+                      (rank_step_lt hopenx))))
+                (coherent_step
+                  (coherent_step
+                    (coherent_step
+                      (coherent_step hcoherent hopenx) hclosef') hopeny)
+                  hcloseg)
+                hdefender (by simp [sofyc]) (by rfl) hwinofyc
+            exact zmod2_eq_zero_of_ne_one _ hneone
+          obtain ⟨x, hx⟩ := Finset.card_pos.mp (by omega : 0 < s.untouched.card)
+          obtain ⟨y, hy, hxy⟩ : ∃ y ∈ s.untouched, y ≠ x := by
+            by_contra hnone
+            push Not at hnone
+            have hsub : s.untouched ⊆ {x} := by
+              intro z hz
+              simp only [Finset.mem_singleton]
+              exact hnone z hz
+            have := Finset.card_le_card hsub
+            simp at this
+            omega
+          obtain ⟨z, hz, hzx, hzy⟩ :
+              ∃ z ∈ s.untouched, z ≠ x ∧ z ≠ y := by
+            by_contra hnone
+            push Not at hnone
+            have hsub : s.untouched ⊆ {x, y} := by
+              intro w hw
+              simp only [Finset.mem_insert, Finset.mem_singleton]
+              by_cases hwx : w = x
+              · exact Or.inl hwx
+              · exact Or.inr (hnone w hw hwx)
+            have := Finset.card_le_card hsub
+            have hcardpair : ({x, y} : Finset V).card = 2 :=
+              Finset.card_eq_two.mpr ⟨x, y, Ne.symm hxy, rfl⟩
+            rw [hcardpair] at this
+            omega
+          have hflipg : flip G s.untouched g = 0 :=
+            flip_zero_of_three_double_erases hx hy hz
+              (Ne.symm hxy) (Ne.symm hzx) (Ne.symm hzy)
+              hdouble
+          let sf : State V := {
+            untouched := s.untouched
+            queue := g :: qtail
+            ko := false
+            toMove := !s.toMove
+            score := s.score }
+          let sfg : State V := {
+            untouched := s.untouched
+            queue := qtail
+            ko := false
+            toMove := s.toMove
+            score := s.score }
+          have hclosef : step G s .close = some sf := by
+            simp [step, sf, hq, hko, hflipf]
+          have hcloseg : step G sf .close = some sfg := by
+            simp [step, sf, sfg, hflipg]
+          have hwinf := hwin.answer_child hdefender hclosef
+          have hwinfg := hwinf.close_child (by
+            change (!s.toMove : Bool) = attacker
+            exact hturn) hcloseg
+          cases qtail with
+          | cons a rest =>
+              exact ih sfg
+                (lt_trans (rank_step_lt hcloseg) (rank_step_lt hclosef))
+                (coherent_step (coherent_step hcoherent hclosef) hcloseg)
+                hdefender (by simp [sfg]) (by rfl) (by
+                  simpa [sfg] using hwinfg)
+          | nil =>
+              let sx : State V := {
+                untouched := s.untouched.erase x
+                queue := [x]
+                ko := true
+                toMove := !s.toMove
+                score := s.score }
+              have hopenx : step G sfg (.open x) = some sx := by
+                simp [step, sfg, sx, hx]
+              have hwinx : CloseFirstWins G attacker (s.score + 1) sx :=
+                hwinfg.answer_child hdefender hopenx
+              have hremain : s.untouched.erase x ≠ ∅ := by
+                intro hempty
+                have hcard := Finset.card_erase_add_one hx
+                simp [hempty] at hcard
+                omega
+              have hattackerx : sx.toMove = attacker := by
+                change (!s.toMove : Bool) = attacker
+                exact hturn
+              cases hwinx with
+              | terminal _ hterminal _ =>
+                  exact List.cons_ne_nil x [] hterminal.2
+              | answer _ hnotattacker _ _ =>
+                  exact False.elim (hnotattacker hattackerx)
+              | choose _ _ m sxy0 hstep _ hwinsxy =>
+                  cases m with
+                  | close => simp [step, sx] at hstep
+                  | pass => simp [step, sx, hremain] at hstep
+                  | «open» y =>
+                    have hyerase : y ∈ s.untouched.erase x := by
+                      simp only [step] at hstep
+                      split at hstep
+                      · assumption
+                      · contradiction
+                    let sxy : State V := {
+                      untouched := (s.untouched.erase x).erase y
+                      queue := [x, y]
+                      ko := false
+                      toMove := s.toMove
+                      score := s.score }
+                    have hsxy : sxy0 = sxy := by
+                      simp only [step] at hstep
+                      split at hstep
+                      · cases hstep
+                        simp [sx, sxy]
+                      · contradiction
+                    rw [hsxy] at hwinsxy
+                    have hopeny : step G sx (.open y) = some sxy := by
+                      simp [step, sx, sxy, hyerase]
+                    exact ih sxy
+                      (lt_trans (rank_step_lt hopeny)
+                        (lt_trans (rank_step_lt hopenx)
+                          (lt_trans (rank_step_lt hcloseg)
+                            (rank_step_lt hclosef))))
+                      (coherent_step
+                        (coherent_step
+                          (coherent_step
+                            (coherent_step hcoherent hclosef) hcloseg) hopenx)
+                        hopeny)
+                      hdefender (by simp [sxy]) (by rfl) hwinsxy
 
 omit [Fintype V] in
 /-- Backward induction is internal to the formal model: from every state,

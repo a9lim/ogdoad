@@ -90,10 +90,14 @@ source-pinned rather than encoded as an axiom.
 
 `Ogdoad/Fifo.lean` kernel-checks the exact reduced game semantics, strict
 termination rank, queue invariant, strategy quantifiers, queue-cut conservation,
-and the edgeless base theorem.  `FifoLinkingTheorem` is deliberately only a
-definition of the open proposition.  The exhaustive graph census through eight
-real coins remains machine evidence, not a formal proof of the missing global
-affine-contraction lemma.
+the edgeless base theorem, and the dummy-free conditioned close-first theorem.
+The last result uses an absolute-target close-first strategy tree and a
+whole-queue drain argument to prove that such an attacker cannot change parity
+from any coherent ko-clear defender checkpoint with nonempty queue.
+`FifoLinkingTheorem` is deliberately only a definition of the open proposition.
+The exhaustive graph census through eight real coins remains machine evidence,
+not a formal proof of the missing global affine-contraction lemma or of the
+stronger prefix-safe STOP normalization.
 
 `Ogdoad/Excess.lean` kernel-checks the exceptional-column reduction: coprime
 order classes supply the four lower translates, the corrected sparse norm is
