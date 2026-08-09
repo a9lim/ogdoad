@@ -12,6 +12,26 @@ lake build
 
 The sources contain no `sorry`, `admit`, or custom `axiom` declarations.
 
+## Game-exterior divisibility obstruction
+
+[`Ogdoad/GameExterior.lean`](Ogdoad/GameExterior.lean) formalizes the algebraic
+core of the resolved `tisn` problem:
+
+- an additive grade-one realization in an arbitrary associative ring;
+- explicit `n`-th roots of a torsion game and of an arbitrary second input;
+- the resulting square-zero and polar-anticommutator-zero identities; and
+- coefficient-valued `Q(t)=0` and `B(t,x)=0` corollaries when the coefficient
+  map into the Clifford algebra is injective;
+- polarization forced by the Clifford relations, symmetry of the polar value,
+  and `Q(x+t)=Q(x)`, the torsion-coset invariance behind quotient factorization.
+
+The external game theorem remains source-pinned rather than axiomatized here:
+Moews proves that the short-game group is a countable direct sum of
+`Z[1/2]` and `Z[1/2]/Z`, hence power-of-two division is available, and that all
+finite-order short games have power-of-two order.  The Lean file proves the
+entire ring-theoretic implication from explicit roots, without encoding the
+short-game group itself.
+
 ## `off`
 
 [`Ogdoad/Off.lean`](Ogdoad/Off.lean) formalizes the load-bearing algebra of the

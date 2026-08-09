@@ -16,9 +16,9 @@ What remains unbuilt is tracked in the two buildable ledgers —
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`/`tisn`, `on`, and `over`.
-`under` and `off` are the former loopy-valued research entries closed into this
-ledger.
+stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis`, `on`, and `over`.
+`tisn`, `under`, and `off` are the former loopy-valued research entries closed
+into this ledger.
 
 **Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
 it is renamed **grundy** (provisional — finalization at the 0.3.8 release
@@ -51,6 +51,30 @@ Fold the one-line structural fact into the relevant `AGENTS.md`; keep any longer
 derivation alongside the code or in a `writeups/` note.
 
 ## completed items
+
+### tisn·(e_g∧e_c∧e_f): `game-exterior-divisibility-collapse`
+**Completed:** 2026-08-09
+**Summary:** a quadratic datum genuinely attached to short-game values is
+Grassmann on all torsion: ambient subgroup coherence and coefficient faithfulness
+force every torsion game to be square-zero and polar-radical over every
+commutative coefficient target.
+**Pillars:** games ↔ clifford ↔ forms    **Claim level:** source-pinned input, kernel-checked synthesis
+- theorem: Moews gives `ShUg ≅ ⊕ Z[1/2] ⊕ ⊕ (Z[1/2]/Z)` and power-of-two
+  torsion.  For `nt=0`, choose `ny=t` and `nz=x`; then `n²y=0`, so any additive
+  grade-one realization has `i(t)²=0` and zero anticommutator with `i(x)`.
+  Injectivity of the coefficient map gives `Q(t)=B(t,x)=0`.
+- naturality boundary: the result covers one global datum and, equivalently,
+  coherent data on finitely generated subgroups with injective maps along
+  inclusions.  A hand table on one root-incomplete subgroup remains possible but
+  is ambient-dependent and therefore not game-native.
+- consequences: characteristic two and torsion coefficient rings do not escape;
+  `Sym(M/2M)` vanishes globally because `ShUg=2ShUg`; nonzero nimber Gold forms
+  cannot extend coherently to all short games; free-direction mean/atomic-weight
+  squares survive through the torsion-free quotient.
+- artifact: `writeups/game_exterior_divisibility.{tex,pdf}`.
+- formal core: `formal/Ogdoad/GameExterior.lean` kernel-checks the abstract ring
+  proof from explicit roots and the coefficient-valued corollaries.  Moews's
+  short-game group theorem is an explicit external input, not a Lean axiom.
 
 ### off·(e_f∧e_s∧e_c): `transfinite-arf-collapse`
 **Completed:** 2026-08-07

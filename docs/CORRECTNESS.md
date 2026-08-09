@@ -92,6 +92,16 @@ claims retain their documented external provenance.  `DPrimeTarget` is only
 the open universal `D'_k` proposition: no declaration assumes that the
 distinguished `M_k` meets it.
 
+`Ogdoad/GameExterior.lean` kernel-checks the algebraic core of the resolved
+`tisn` theorem.  From explicit roots `ny=t`, `nz=x` and the torsion relation
+`nt=0`, it proves in an arbitrary associative ring that an additive grade-one
+map satisfies `i(t)^2=0` and has zero polar anticommutator with `i(x)`; an
+injective coefficient map then gives `Q(t)=B(t,x)=0`.  It also derives
+polarization from the Clifford relations and proves `Q(x+t)=Q(x)`.  Moews's external
+classification of the short-game group supplies the power-of-two roots and
+power-of-two torsion used to instantiate that theorem.  The game classification
+is source-pinned prose, not a Lean axiom or executable model of short games.
+
 ## What holds (the baseline — don't dilute it on any cleanup pass)
 
 - **The cross-validation spine is real, and this sweep widened it.** `verify_milgram`

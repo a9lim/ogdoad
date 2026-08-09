@@ -275,7 +275,7 @@ loop; crossing it counts like any other.
 | N.3 | I–I | Nikulin: genus and existence via signature + discriminant form |
 | N.4 | I–I | one Bernoulli source for the Eisenstein constants and the mass formula |
 | O | G–I | lexicodes: the turning-game P-set is greedy = mex; the `[24,12,8]` lexicode is Golay |
-| `game-clifford-checked` | C–G | checked integer Clifford data on game generators; quotient-compatible, not game-native |
+| `game-clifford-checked` | C–G | checked local integer Clifford data on game generators; globally coherent torsion data is proved Grassmann |
 
 (G and L were never built under those letters — they became the deferred stars `*1`
 (spinor genus, `docs/COMPLETENESS.md`) and `*2` (the char-`p` Drinfeld mirror,
@@ -341,12 +341,14 @@ the general-`m` linking theorem.
 
 The rest of the board, briefly:
 
-- **`tisn`** — a game-native quadratic deformation of the game exterior algebra.
-  The torsion obstruction is now a theorem (integer-valued deformations are blind
-  to torsion: `2* = 0` forces `Q(*)` and all pairings with `*` to zero), and the
-  surviving escapes are tautological or off-core; what is missing is a
-  **directed/noncommutative** coefficient source whose squaring remembers the
-  first-/second-player asymmetry — the same obstruction `tis` hit in misère form.
+- **`tisn`** — *resolved 2026-08-09*: the short-game group is power-of-two
+  divisible with power-of-two torsion.  In any ambient-coherent,
+  coefficient-faithful Clifford datum, taking roots of `nt=0` forces
+  `Q(t)=0` and `B(t,x)=0` for every torsion game `t`; this holds over every
+  coefficient characteristic.  Local tables on root-incomplete subgroups remain
+  valid engineering data but are ambient-dependent, while a directed outcome
+  construction would be a different object belonging to `tis`
+  (`writeups/game_exterior_divisibility.tex`).
 - **`on`** — transfinite nim multiplication beyond the verified excess table.
   Conway's Kummer carry below `ω^(ω^ω)` is `α_p = κ_{f(p)} + m_p` with `m_p`
   Lenstra's finite excess; every source-pinned row obeys an unproved `0/1/4`

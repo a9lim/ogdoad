@@ -1,0 +1,302 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\F}{\mathbb F}
+\newcommand{\D}{\mathbb Z[1/2]}
+\newcommand{\Cl}{\operatorname{Cl}}
+\newcommand{\ShUg}{\operatorname{ShUg}}
+\newcommand{\Tor}{\operatorname{Tor}}
+\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
+\newcommand{\PROVED}{\taglabel{PROVED}}
+\newcommand{\SOURCE}{\taglabel{SOURCE-PINNED}}
+\newcommand{\BOUNDARY}{\taglabel{BOUNDARY}}
+
+\title{The divisibility obstruction to a game-native Clifford deformation}
+\author{Codex}
+\date{2026-08-09}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The exterior algebra of the short-game group admits many quadratic
+deformations after one first chooses a small subgroup and then supplies a
+quadratic table by hand.  That local freedom does not extend to a quadratic
+datum belonging to game values themselves.  The reason is the abstract group
+structure of short games: it is $2$-divisible and all of its torsion is
+$2$-primary.  We prove that in any coefficient-faithful Clifford realization
+of such a group, every torsion game has square zero and is polar-orthogonal to
+every game.  Equivalently, every globally defined, or subgroup-inclusion
+coherent, quadratic datum factors through the torsion-free quotient.  This
+settles the \texttt{tisn} problem negatively under an exact naturality
+condition and explains why the nonzero Gold forms on nimbers cannot extend to
+general partizan games.
+\end{abstract}
+
+\section{The question and the naturality contract}
+
+The implemented object \path{GameExterior} starts with finitely many short
+games, takes their $\Z$-span $M$, and forms $\Lambda_{\Z}M$.  The checked
+\path{GameClifford} surface accepts integer values
+\[
+ e_x^2=Q(x),\qquad e_xe_y+e_ye_x=B(x,y)
+\]
+only after every known relation in $M$ is null and polar-radical.  Its tables
+are intentionally supplied by the caller.  This leaves a mathematical
+question: can the game structure itself provide a nonzero torsion square,
+rather than merely allowing a table on one selected presentation?
+
+The phrase ``game-native'' needs a naturality condition.  Without one, the
+question has the tautological answer ``yes'': on $\langle *\rangle\cong\Z/2$
+one may choose characteristic-two coefficients and declare $e_*^2=1$.
+Nothing in that declaration distinguishes $*$ from an abstract generator of
+$\Z/2$, and the value changes when the ambient subgroup changes.
+
+\begin{definition}[ambient coherence]\label{def:coherent}
+A Clifford deformation of short games is \emph{ambient-coherent} if it is
+either a single coefficient-faithful datum on the full additive group
+$\ShUg$, or, sufficiently for finite calculations, a directed family of data
+on finitely generated subgroups $M\leq\ShUg$ such that every inclusion
+$M\subseteq N$ induces injective coefficient and algebra maps preserving the
+grade-one generators, their squares, and their polar anticommutators.
+\end{definition}
+
+This is the weakest contract under which $Q(x)$ is attached to the game value
+$x$ rather than to the accident that one stopped at a root-incomplete
+subgroup.  It permits the coefficient ring and algebra to grow with the
+subgroup.  Injectivity is essential: without it an inclusion may ``preserve''
+a square only by killing the coefficient that recorded it.
+
+\section{The external game-group input}
+
+Let $\D=\Z[1/2]$ be the additive group of dyadic rationals.
+
+\begin{theorem}[Moews]\label{thm:moews}
+\SOURCE{} The additive group of short partizan games has abstract group
+structure
+\[
+ \ShUg\cong\bigoplus_{\mathbb N}\D\;\oplus\;
+              \bigoplus_{\mathbb N}\D/\Z.
+\]
+Moreover, every finite-order short game has order a power of two.
+\end{theorem}
+
+The order statement is Theorem~8 and the decomposition is Theorem~9 of
+Moews~\cite{moews}.  Two consequences, and only these consequences, enter the
+new proof:
+\begin{enumerate}[label=(\roman*),leftmargin=2.5em]
+\item multiplication by $2^k$ on $\ShUg$ is surjective for every $k$;
+\item if $t$ is torsion, then $2^k t=0$ for some $k$.
+\end{enumerate}
+Notice that $\ShUg$ is not divisible by every integer: the $\D$ summands are
+not $3$-divisible.  Full divisibility is neither claimed nor needed.
+
+\section{The algebraic root lemma}
+
+The obstruction occurs before any classification of quadratic maps.  It is a
+statement about an additive grade-one realization in an arbitrary associative
+ring.
+
+\begin{lemma}[root collapse]\label{lem:root}
+\PROVED{} Let $A$ be an abelian group, $C$ an associative ring, and
+$i:A\to(C,+)$ an additive map.  Suppose $n t=0$ and choose $y,z\in A$ with
+\[
+ ny=t,\qquad nz=x.
+\]
+Then
+\[
+ i(t)^2=0,
+ \qquad
+ i(t)i(x)+i(x)i(t)=0.
+\]
+\end{lemma}
+
+\begin{proof}
+The relation $nt=0$ and the identity $ny=t$ give
+\[
+ n^2y=n(ny)=nt=0,
+\]
+hence $n^2i(y)=i(n^2y)=0$.  Since integer scalars are central in $C$,
+\[
+\begin{aligned}
+ i(t)^2
+   &=(n i(y))(n i(y))
+     =n^2 i(y)^2
+     =(n^2i(y))i(y)=0,\\
+ i(t)i(x)+i(x)i(t)
+   &=(n i(y))(n i(z))+(n i(z))(n i(y))\\
+   &=n^2\bigl(i(y)i(z)+i(z)i(y)\bigr)\\
+   &=(n^2i(y))i(z)+i(z)(n^2i(y))=0.
+\end{aligned}
+\]
+No commutativity of $C$, quadratic homogeneity axiom, or assumption on its
+characteristic is used.
+\end{proof}
+
+\begin{remark}[formal proof]
+\PROVED{} The kernel-checked file is \texttt{GameExterior.lean}.  Its theorem takes the roots
+$y,z$ explicitly, proves both ring identities, and then proves the
+coefficient-valued corollaries below from injectivity of the algebra map.  The
+file contains no \path{sorry}, custom axiom, or finite computation.  The
+Moews theorem remains an explicit external input rather than being encoded as
+an axiom.
+\end{remark}
+
+\section{Global torsion-radical collapse}
+
+Let $R$ be a commutative ring and $C$ an $R$-algebra.  A
+coefficient-faithful Clifford datum consists of an additive grade-one map
+$i:A\to C$, functions $Q:A\to R$ and $B:A\times A\to R$, relations
+\[
+ i(x)^2=\iota(Q(x)),\qquad
+ i(x)i(y)+i(y)i(x)=\iota(B(x,y)),
+\]
+and an injective coefficient map $\iota:R\hookrightarrow C$.
+
+\begin{theorem}[game-torsion radical theorem]\label{thm:main}
+\PROVED{} In every ambient-coherent coefficient-faithful Clifford datum on
+short games,
+\[
+ Q(t)=0,
+ \qquad
+ B(t,x)=B(x,t)=0
+\]
+for every torsion game $t$ and every short game $x$.  Consequently
+\[
+ Q(x+t)=Q(x)
+\]
+and the quadratic datum factors uniquely through
+$\ShUg/\Tor(\ShUg)$.
+\end{theorem}
+
+\begin{proof}
+First take a global datum.  By Theorem~\ref{thm:moews}, choose a power of two
+$n$ such that $nt=0$, and choose $n$-th roots $ny=t$ and $nz=x$.  Apply
+Lemma~\ref{lem:root}.  The square and anticommutator relations give
+\[
+ \iota(Q(t))=0,
+ \qquad
+ \iota(B(t,x))=0.
+\]
+Injectivity of $\iota$ gives the two asserted vanishings.  Symmetry of the
+displayed anticommutator gives $B(x,t)=0$ as well.  Finally, the defining
+polarization identity gives
+\[
+ Q(x+t)=Q(x)+Q(t)+B(x,t)=Q(x).
+\]
+
+For a directed family, begin in any finitely generated subgroup containing
+$t$ and $x$.  Choose the roots $y,z$ in $\ShUg$ and enlarge to the finitely
+generated subgroup containing $t,x,y,z$.  The preceding proof applies there.
+The injective transition maps pull the vanishing back to the original
+subgroup.  This is exactly where ambient coherence is used.
+\end{proof}
+
+\begin{corollary}[coefficient-independent no-go]\label{cor:coeff}
+\PROVED{} Changing the commutative coefficient target cannot rescue a
+game-native torsion square.  The conclusion of Theorem~\ref{thm:main} holds in
+characteristic zero, characteristic two, and torsion rings such as $\Z/4$.
+\end{corollary}
+
+\begin{proof}
+The proof of Lemma~\ref{lem:root} is an identity in the target algebra and
+does not inspect the characteristic of $R$.
+\end{proof}
+
+\section{Consequences for the proposed escapes}
+
+\subsection{The characteristic-two local square}
+
+On the isolated subgroup $M=\langle *\rangle\cong\Z/2$, the declaration
+$e_*^2=1$ over $\F_2$ is a valid local Clifford algebra.  Moews's theorem
+supplies a short partizan game $h$ with $2h=*$.  In any coherent enlargement
+containing $h$,
+\[
+ e_*^2=(2e_h)^2=4e_h^2=0.
+\]
+Thus the local square cannot survive an injective transition map.  It is a
+property of the root-incomplete presentation $\langle *\rangle$, not a
+quadratic invariant of the game value $*$.
+
+The same argument eliminates the universal local record
+$\operatorname{Sym}_{\F_2}(M/2M)$.  Globally,
+$\ShUg=2\ShUg$, so $\ShUg/2\ShUg=0$.
+
+\subsection{The Brown \texorpdfstring{$\Z/4$}{Z/4} route}
+
+The older coefficient-faithfulness obstruction already shows that an odd
+local value $Q(*)\in\Z/4$ collapses the scalar $2$.  Theorem~\ref{thm:main}
+is stronger: even a locally faithful even value cannot extend coherently,
+because the partizan roots of $*$ force $Q(*)=0$ in every coefficient ring.
+Hence a genuine odd Brown phase cannot arise as the square of a globally
+game-native Clifford generator.  Brown quadratic modules remain valid objects
+on $\F_2$-spaces; this theorem concerns their proposed extension as faithful
+Clifford square data on all short games.
+
+\subsection{Why the Gold forms stop at the nimber core}
+
+Finite nimber fields carry extra multiplication and trace, producing the
+nonzero forms
+\[
+ Q_a(u)=\operatorname{Tr}(u\,u^{2^a}).
+\]
+These are genuinely non-tautological on the impartial field-like core.  Every
+additive nimber is nevertheless a torsion short game.  Therefore
+Theorem~\ref{thm:main} implies that no nonzero Gold form extends to an
+ambient-coherent coefficient-faithful Clifford datum on general short games.
+The obstruction is not the absence of a clever coefficient ring; adjoining
+the partizan halves of nimbers kills the torsion quadratic data.
+
+\subsection{What survives}
+
+Quadratic data on the torsion-free quotient survives.  The implemented
+mean-value and atomic-weight constructions are examples of additive game
+invariants whose squares live on free directions.  The theorem predicts their
+documented behavior: they are blind to torsion.
+
+\section{Resolution and exact boundary}
+
+\PROVED{} The \texttt{tisn} question for the current commutative-scalar
+Clifford architecture has a negative answer.  A quadratic datum belonging to
+short-game values must be ambient-coherent; every such coefficient-faithful
+datum is Grassmann on the entire torsion subgroup and factors through the
+torsion-free quotient.  This is a complete obstruction, not a finite search or
+a restriction to integer coefficients.
+
+\BOUNDARY{} The theorem deliberately does not forbid three different objects:
+\begin{enumerate}[leftmargin=2em]
+\item a hand-supplied table on one chosen root-incomplete subgroup;
+\item the nonzero Gold forms retained inside the nimber field-like core; or
+\item a directed or noncommutative game construction that is not a Clifford
+      algebra over a commutative coefficient ring with additive grade one.
+\end{enumerate}
+The first is exactly the existing engineering API and is not game-native under
+Definition~\ref{def:coherent}; the second cannot extend beyond its core; the
+third changes the mathematical object and belongs to the still-open
+game-semantics problem \texttt{tis}, not to a deformation of
+\path{GameExterior}.  No residual coefficient target remains inside the
+problem just solved.
+
+\begin{thebibliography}{9}
+\bibitem{moews}
+David Moews,
+\emph{The Abstract Structure of the Group of Games},
+in \emph{More Games of No Chance}, MSRI Publications 42 (2002), 49--58.
+\url{https://library.slmath.org/books/Book42/files/moews.pdf}.
+\end{thebibliography}
+
+\end{document}

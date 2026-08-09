@@ -42,8 +42,10 @@ unconditional lower bound, corrected norm, exact cyclic/finite-field power
 criterion, finite factor/order screens, and open `D'_k` target;
 `Ogdoad/Fifo.lean` formalizes the exact reduced FIFO game, its terminating
 strategy semantics, cut invariant, and edgeless base theorem, while leaving the
-general isolated-dummy proposition explicitly open.  See `formal/README.md` for
-the proof/non-proof boundary.
+general isolated-dummy proposition explicitly open; and
+`Ogdoad/GameExterior.lean` kernel-checks the root-collapse lemma and the
+coefficient-faithful quadratic/polar consequences resolving `tisn`.  See
+`formal/README.md` for the proof/non-proof boundary.
 
 Beyond the library: `examples/` (Rust demos `tour`/`tropical` and the
 open-question probes `interactive_kernel`, `octal_hunt`,
@@ -102,6 +104,9 @@ the two-bit handshake refinement, two-switch tail, the false
 childwise/full-fan/bounded-support inductions, and the exact still-open global
 odd-flow lemma;
 `game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
+`game_exterior_divisibility.tex` — the resolved global game-native deformation
+question: power-of-two roots in the short-game group force all torsion squares
+and polar pairings to vanish in every ambient-coherent faithful Clifford datum;
 `thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
 filtered shadow, but no faithful dyadic-unital tropical ring;
 `transfinite_arf.tex` — the resolved full-`On₂` quadratic-classification theorem:
@@ -121,9 +126,10 @@ Use these labels when changing prose, papers, examples, or comments:
   experiments, or the `demo.py` tour in this checkout.
 - **Interpretation**: bridges such as "Arf is a win-bias" are conditional on a
   game whose P-set is the corresponding quadratic zero set.
-- **Open**: the natural Gold-quadric game rule, a genuine game-native quadratic
-  deformation of `GameExterior`, and transfinite nim multiplication beyond the
-  source-verified excess table. These live in `docs/OPEN.md`.
+- **Open**: the natural Gold-quadric game rule and transfinite nim multiplication
+  beyond the source-verified excess table. These live in `docs/OPEN.md`; the
+  game-native `GameExterior` deformation question was resolved negatively under
+  ambient subgroup coherence on 2026-08-09.
 
 Scope boundaries to preserve:
 
@@ -275,8 +281,13 @@ bridge, not as a game-native scalar claim. `GameClifford::with_quadratic_data` a
 integer `q`/polar data on a chosen game-generator tuple only after verifying every
 game relation in the quotient is null and polar-radical for that data; over the
 torsion-free target `ℤ`, relations such as `2* = 0` force `Q(*)` and all pairings
-with `*` to vanish. The stronger question of a natural game-native source for such
-quadratic data remains open in `docs/OPEN.md`.
+with `*` to vanish. The stronger global question is now resolved: Moews's abstract
+structure theorem makes the short-game group power-of-two divisible with
+power-of-two torsion, so adjoining roots of `nt=0` forces `Q(t)=B(t,x)=0` over
+every coefficient ring in any ambient-coherent faithful Clifford datum.  Thus
+nonzero local torsion tables are necessarily root-incomplete and ambient-dependent;
+the proof is in `writeups/game_exterior_divisibility.tex` and its algebraic core is
+kernel-checked in `formal/Ogdoad/GameExterior.lean`.
 
 The game-built Gold-form bridge is implemented, but the play rule is not. The
 standard chain is:

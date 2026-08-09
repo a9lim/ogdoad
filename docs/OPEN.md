@@ -21,9 +21,10 @@ starter-pair outcomes; the open part is the game-semantic recasting problem, not
 the vocabulary. The values come in dual pairs, and so do the problems:
 
 - **`tis`/`tisn`** (`{0|tisn}`/`{tis|0}` — "this is / this isn't") — the two
-  game-native-quadratic-data questions: the outcome side (`tis`, where every
-  round of constructions and no-gos swings the apparent answer) and the
-  coefficient side (`tisn`, where the obstructions lean *isn't*).
+  game-native-quadratic-data questions.  The outcome side (`tis`) remains open;
+  the coefficient side (`tisn`) was resolved on 2026-08-09: ambient coherence
+  across short-game subgroups plus coefficient faithfulness forces every
+  torsion game to stay square-zero and polar-radical.
 - **`on`/`off`** — the two transfinite-On₂ questions: the tower that climbs past
   every verified rung (`on`) remains open; the classifier beyond the finite
   windows (`off`) was resolved on 2026-08-07.  Over full algebraically closed
@@ -738,117 +739,66 @@ Relevant surfaces:
 - `src/forms/quadric_fit.rs`
 - `src/games/kernel.rs`, `src/games/misere.rs`, `src/games/loopy/`
 
-### tisn·(e_g∧e_c∧e_f): `quadratic deformation of the game exterior algebra`
+### ~~tisn·(e_g∧e_c∧e_f): `quadratic deformation of the game exterior algebra`~~ — resolved
 
-Decide whether the current `GameExterior` construction admits a genuinely
-game-native quadratic deformation on torsion-carrying game subgroups, rather than
-only the all-zero Grassmann metric.
+**Resolved 2026-08-09**
+([`writeups/game_exterior_divisibility.tex`](../writeups/game_exterior_divisibility.tex)).
+The answer is negative for a quadratic datum that genuinely belongs to game
+values rather than to one hand-chosen presentation.
 
-What is implemented:
-- `GameExterior` is deliberately the exterior algebra of the game group. It uses
-  the `Z`-module structure of games under disjunctive sum and can include non-number
-  games such as `*` and `up`.
-- Relation propagation is quotient-aware. If the game group imposes a relation,
-  the exterior ideal respects it; for example, torsion in grade 1 propagates to
-  torsion constraints in higher grades.
-- `GameClifford::with_quadratic_data` is the checked engineering artifact: it
-  accepts hand-supplied integer quadratic/polar tables on a chosen game subgroup
-  only after verifying that every imposed game relation is null and polar-radical
-  for the supplied data. The Python bindings expose the same checked surface.
-- This does not pretend that arbitrary games form a scalar ring. The construction
-  is an exterior algebra over an abelian group plus a checked integer-valued
-  deformation, not a Clifford algebra over games.
+The exact naturality contract is **ambient coherence**: a datum is defined on
+the full additive group of short games, or on finitely generated subgroups with
+injective structure maps along every inclusion.  Moews's structure theorem gives
 
-Why this is research:
-- A Clifford deformation would require extra quadratic data compatible with the
-  game-group relations. Over torsion-free integer coefficients, a relation such as
-  `2* = 0` forces any bilinear pairing involving `*` to vanish, and also forces a
-  `Z`-valued quadratic value on `*` to vanish.
-- Supplying an arbitrary quotient-compatible bilinear/quadratic table is a bounded
-  implementation exercise. The research question is whether there is a natural,
-  non-tautological source of such data from game structure itself.
-- Torsion and mixed torsion/free subgroups make this sharper than "add a metric":
-  the coefficient target, polarization identity, and relation compatibility all
-  matter.
+```text
+ShUg ≅ ⊕_N Z[1/2] ⊕ ⊕_N (Z[1/2]/Z),
+```
 
-The program state (2026-06-17 — `writeups/game_exterior_deformation.tex`):
+and every torsion short game has power-of-two order.  Thus multiplication by
+the order `n` of a torsion game is surjective.  If `nt=0`, choose `ny=t` and
+`nz=x`.  For any additive grade-one realization `i` in an associative ring,
 
-- **Two descent gates, not one.** A quadratic datum must descend through the game
-  relations — `Q(r) = 0` and `B(r, e_j) = 0` for every relation row `r`, which are
-  exactly the null and polar-radical checks the integer checker already runs. A
-  Clifford quotient over a coefficient ring `R` must *also* keep the coefficient map
-  `R -> Cl` injective: the relation vector `n·e_t` sits in a two-sided ideal, and
-  `(n·e_t)·e_t = n·Q(t)` is a scalar the ideal can silently kill. Over `Z` both gates
-  give the same visible answer; over torsion coefficient rings the faithfulness gate
-  is strictly sharper.
-- **The torsion obstruction is now proved, both gates.** For a torsion-free target
-  and a torsion element `t` (`nt = 0`), `n·B(t,x) = 0` and `n²·Q(t) = 0` force
-  `B(t,x) = 0` and `Q(t) = 0`. Hence every integer-valued deformation of a mixed
-  subgroup `M = T ⊕ F` is **blind to `T`**: torsion generators stay
-  exterior/nilpotent and polar-orthogonal to the free part, and all nonzero integer
-  quadratic data factors through the free quotient `M/T`. This settles the
-  torsion-free / `Z`-valued progress target below as a no-go, not a gap.
-- **The `ℤ/4` Brown lift is not a faithful square quotient.** Trying `M = ⟨*⟩ ≅
-  ℤ/2`, `R = ℤ/4`, `Q(*) = 1` passes the bare quadratic check (`Q(2*) = 4 = 0`), but
-  `(2e_*)·e_* = 2` puts the scalar `2` in the relation ideal, silently collapsing
-  `ℤ/4` toward characteristic 2. So the `over` Brown category (`forms/char2/brown.rs`)
-  is a genuine quadratic-*module* target — but it does not by itself deform
-  `GameExterior`'s algebra without changing the coefficient ring the quotient sees.
-  The two problems touch here without coinciding.
-- **The escapes that survive are tautological or off-core.** Over `F_2` the
-  one-generator square `Q(*) = 1` survives (`2 = 0` already), and the canonical
-  `R = Sym_{F_2}(M/2M)`, `Q(x) = x̄`, `B = 0` is relation-compatible and
-  coefficient-faithful — but it has zero polar form and merely *records* the mod-2
-  game class instead of explaining torsion. The additive-invariant family
-  `Q_φ(x) = φ(x)²`, `B_φ(x,y) = 2·φ(x)·φ(y)` for a game-native additive `φ`
-  (thermographic mean value, atomic weight — both re-confirmed additive this pass) is
-  genuinely game-native on the **free** directions (`aw(↑) = 1`, `aw(*) = 0`,
-  reproducing the mixed-subgroup split) but sends every torsion element to zero. The
-  nimber Gold forms `Q_a(x) = Tr(x·x^(2^a))` are the one non-tautological torsion
-  source, but they live on the field-like impartial core where the scalar story
-  already applies — they do not extend over general partizan games.
-- **The sharpened question.** A solving construction needs a game-built coefficient
-  target and a square operation that (i) survives the coefficient-faithfulness test,
-  (ii) is not the tautological polynomial ring on `M/2M`, (iii) does not factor
-  through an additive invariant into a torsion-free ring, and (iv) reaches beyond the
-  nimber core. The likely missing ingredient is not another commutative value
-  invariant but a game-native **directed / noncommutative** structure whose square
-  remembers first-/second-player asymmetry — the same obstruction recorded for `tis`
-  (commutative game-value monoids make squaring additive, hence polar-zero).
+```text
+n²y = 0,
+i(t)² = (n i(y))² = (n² i(y)) i(y) = 0,
+i(t)i(x) + i(x)i(t) = 0.
+```
 
-Concrete progress targets:
-- ~~Formalize the algebraic object: a quadratic map on a game subgroup, its
-  coefficient ring or module, its polar pairing, and the exact compatibility
-  condition with integer game relations.~~ **Done** (the two-gate descent above):
-  quadratic descent plus the coefficient-faithfulness intersection of the relation
-  ideal.
-- ~~Prove obstruction results for torsion generators and mixed torsion/free subgroups
-  under `Z`-valued or torsion-free coefficient targets.~~ **Done**: torsion is forced
-  into the radical, and integer deformations are blind to `T`.
-- Identify coefficient targets where torsion can support nonzero quadratic data, and
-  decide whether those targets are game-native or merely chosen by hand. (Bounded
-  from two sides now: char-2 targets keep nonzero torsion squares but the canonical
-  one is tautological; `ℤ/4` is not faithful as a square quotient. A *non-tautological*
-  char-2 or torsion target is still open.)
-- Exhibit a nonzero deformation on a restricted class of games beyond the nimber
-  core, or prove that every natural relation-respecting deformation collapses to
-  Grassmann / the additive-invariant family / the tautological `Sym(M/2M)`.
-- Build the directed/noncommutative coefficient source whose square encodes the
-  first-/second-player asymmetry — shared with `tis`; no construction yet.
-- Implementation guard: a future `GameClifford` over torsion coefficient rings must
-  also check the scalar intersection of the two-sided relation ideal (the necessary
-  conditions `nQ(t) = 0`, `nB(t,x) = 0` for every visible torsion relation `nt = 0`),
-  not only the integer null/polar-radical checks; otherwise a datum can look
-  quadratic while the quotient silently changes the coefficient ring.
+If the coefficient ring injects into the Clifford quotient, its square and
+polar relations therefore force
+
+```text
+Q(t) = 0,
+B(t,x) = 0  for every x.
+```
+
+This is coefficient-independent: characteristic two, `Z/4`, and every other
+commutative coefficient target collapse alike.  Consequently every ambient-
+coherent faithful datum factors through `ShUg / Tor(ShUg)`.  The local escape
+`e_*²=1` over `F_2` survives only because `⟨*⟩` omits a partizan half `h` with
+`2h=*`; it cannot survive an injective enlargement.  Likewise the nonzero Gold
+forms on the nimber field-like core cannot extend coherently to general games.
+
+This resolves the original distinction:
+
+- `GameClifford::with_quadratic_data` remains a valid checked engineering API
+  for hand-supplied data on one root-incomplete subgroup.  Such a table is not
+  game-native because its value depends on the ambient subgroup.
+- Mean-value and atomic-weight squares remain valid on torsion-free directions;
+  the theorem predicts that they factor through the torsion-free quotient.
+- A directed/noncommutative outcome construction would change the algebraic
+  object rather than deform the commutative-scalar `GameExterior`; that route is
+  part of the still-open play-semantics problem `tis`, not a residual `tisn` case.
+
+The abstract ring proof and coefficient-valued corollaries are kernel-checked
+in `formal/Ogdoad/GameExterior.lean`; Moews's short-game group theorem remains
+an explicit source-pinned input, not a Lean axiom.
 
 Relevant surfaces:
-- `writeups/game_exterior_deformation.tex`
+- `writeups/game_exterior_divisibility.{tex,pdf}` (complete proof and boundary)
+- `writeups/game_exterior_deformation.tex` (the earlier local two-gate analysis)
+- `formal/Ogdoad/GameExterior.lean`
 - `src/games/game_exterior/` (`lambda.rs`, `clifford.rs`)
-- `src/games/thermography.rs`, `src/games/atomic_weight.rs` (the additive sources)
-- `src/forms/char2/brown.rs` (the `ℤ/4` module target; shared with `over`)
-- `src/games/AGENTS.md`
-- `examples/tour.rs`
-- `demo.py`
 
 ### on·e_s: `ordinal nim multiplication beyond the verified excess table`
 

@@ -50,8 +50,12 @@ lengths, and the `Quotient` class machinery (indices, not payloads).
     integer-valued deformation surface; hand-supplied `q`/polar tables are accepted
     only when every game relation is null and polar-radical, so torsion-free targets
     force the documented vanishings (for example, `2⋆=0` kills `Q(⋆)` and all
-    pairings with ⋆). This is not a game-native quadratic-data theorem; that remains
-    in `docs/OPEN.md`.
+    pairings with ⋆). The global game-native question is now resolved negatively:
+    ambient coherence across short-game subgroups plus coefficient faithfulness
+    forces every torsion game to be square-zero and polar-radical, over every
+    coefficient ring (`writeups/game_exterior_divisibility.tex`, kernel-checked in
+    `formal/Ogdoad/GameExterior.lean`). Local root-incomplete hand tables remain this
+    API's deliberate engineering scope.
   - `game_exterior/mod.rs` — hub; re-exports everything flat so `games::GameExterior`
     etc. remain unchanged.
 
