@@ -46,7 +46,10 @@ reduction that replaces the failed local partner/debt induction by a global
 affine-flow target.  Every play has a vector-valued score: its graph of disjoint
 activity intervals.  For every fixed attacker strategy, the linking theorem is
 equivalent to saying that zero lies in the $\F_2$-affine hull of all response
-scores.  At a real FIFO front $f$, the edge space splits canonically as
+scores.  Resolving augmentation parity gives an exact affine convolution at
+every defender fan; its dual turns any counterexample into a strategy-relative
+linear obstruction which descends through every balanced front.  At a real
+FIFO front $f$, the edge space splits canonically as
 \[
  E(K_L)=\Cut(K_L)\oplus E(K_{L\setminus\{f\}}),
 \]
@@ -87,7 +90,10 @@ one graph's zero-normalized replies is not a graph-independent contraction.
 Balanced FIFO fronts nevertheless admit a canonical strategy-pruned odd
 transport through arbitrarily many OPEN rounds; its residual coefficient is
 an Eulerian, isotropic two-star whose exact cell-cut calculus converts OPENs
-into queued four-cycles.  Separately, every close-first attacker is contracted
+into queued four-cycles.  Exact witnesses show that three defender siblings
+can be essential, that cancelling both the first cut and triangle quotient can
+still leave a next-front cut, and that even a clean homogeneous cell state can
+be a canonical unsafe Euler-wall exit.  Separately, every close-first attacker is contracted
 for arbitrary order and either seat by Hamiltonian path and path-square affine
 spans, with a two-block correction when the attacker opens the dummy.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
@@ -430,6 +436,279 @@ open problem is a label-preserving contraction of this recursion, not an
 ordinary contraction of the response tree: ordinary boundaries have even
 augmentation, while the required leaf chain has odd augmentation.
 
+The augmentation parity can be resolved explicitly rather than hidden inside
+the homogeneous span.  This is the exact operation needed when an odd flow
+must split among several defender children.
+
+\begin{proposition}[parity-resolved continuation convolution]
+\label{prop:parity-convolution}
+\PROVED{} At a history $h$, with its residual history-dependent attacker
+policy retained, let $\Lambda_h$ be the compatible terminal leaves and put
+\[
+ \mathcal C_h^\epsilon
+ =\{D_h(c):c\in\F_2[\Lambda_h],\ \operatorname{aug}(c)=\epsilon\},
+ \qquad \epsilon\in\F_2.
+\]
+Then $W_h:=\mathcal C_h^0$ is a linear space and
+$A_h:=\mathcal C_h^1$ is a nonempty affine $W_h$-coset.  At a terminal node,
+$\mathcal C_h^0=\mathcal C_h^1=\{0\}$.  If an attacker node uses its fixed
+move of charge $c$ and has child $h'$, then
+\begin{equation}\label{eq:parity-attacker}
+ \mathcal C_h^\epsilon=\epsilon c+\mathcal C_{h'}^\epsilon.
+\end{equation}
+At a defender node with legal moves $m$, charges $c_m$, and children $h_m$,
+\begin{equation}\label{eq:parity-defender}
+ \mathcal C_h^\epsilon
+ =\bigcup_{\sum_m\epsilon_m=\epsilon}
+   \sum_m\bigl(\epsilon_m c_m+\mathcal C_{h_m}^{\epsilon_m}\bigr).
+\end{equation}
+Equivalently, choose $a_m\in A_{h_m}$, put $b_m=c_m+a_m$, and fix one
+reference move $m_0$.  Then
+\begin{align}
+ W_h&=\sum_mW_{h_m}
+      +\Span\{b_m+b_{m_0}:m\ne m_0\},\label{eq:parity-W}\\
+ A_h&=b_{m_0}+W_h.\label{eq:parity-A}
+\end{align}
+In particular a target $t$ is feasible with odd augmentation exactly when
+$t+b_{m_0}$ belongs to the space on the right of
+\eqref{eq:parity-W}.
+\end{proposition}
+
+\begin{proof}
+A formal leaf chain splits uniquely among the disjoint child leaf sets.  Its
+augmentation and moment are respectively the sums of the child augmentations
+and of the translated child moments, giving
+\eqref{eq:parity-attacker} and \eqref{eq:parity-defender}.  Two chains of the
+same augmentation differ by an even chain, so $A_h$ is a $W_h$-coset.  At a
+defender node, every odd child-parity profile is obtained from the profile
+supported on $m_0$ by toggling pairs of child parities.  The even corrections
+inside each child give $\sum_mW_{h_m}$, and toggling $m_0$ together with $m$
+adds $b_{m_0}+b_m$.  This proves \eqref{eq:parity-W} and
+\eqref{eq:parity-A}.  The rank
+\[
+ \rho(h)=3|U|+|Q|+1_{\mathsf{ko}}
+\]
+strictly decreases under every OPEN, CLOSE, or forced pass, so the recursion
+is well founded.  Its domain is the pair consisting of the history and the
+residual policy: two histories may reconverge to the same public
+$(U,Q,\mathsf{ko})$ state while a history-dependent attacker retains different
+continuations.
+\end{proof}
+
+Sibling coupling is essential already at three real vertices.  Let $d=3$ and
+consider the defender fan after the attacker opens $0$.  One deterministic
+residual attacker has the three branch spaces
+\begin{equation}\label{eq:essential-three-fan}
+ A_1=02+\langle12\rangle,
+ \qquad A_2=01+\langle12\rangle,
+ \qquad A_d=01+02+\langle12\rangle,
+ \qquad W_1=W_2=W_d=\langle12\rangle.
+\end{equation}
+The compatible schedules are replayed in
+\path{experiments/linking_game.py}.  Direct interval calculation gives the
+displayed labels.  Zero is absent from every individual $A_m$, even after all
+three even spaces are added, but the odd parity profile $(1,1,1)$ works because
+\[
+ 02+01+(01+02)=0.
+\]
+Thus no induction can send the odd target into one chosen defender child.
+This is minimal in real-vertex count: when the real edge space has dimension at
+most one, either the combined even space is the whole edge space, making a
+unit child feasible, or it is zero, in which case equal nonzero child offsets
+make every odd sum nonzero.
+
+There is a useful dual form.  Pair $\F_2\oplus\mathcal E_R$ with itself by
+\[
+ \langle(\alpha,B),(a,z)\rangle=\alpha a+\langle B,z\rangle
+\]
+and put $N_h=Z(h)^\perp$.  For a move charge $c$, define the involution
+\[
+ \sigma_c(\alpha,B)=(\alpha+\langle B,c\rangle,B).
+\]
+
+\begin{proposition}[dual obstruction descent]
+\label{prop:dual-descent}
+\PROVED{} The exact dual recursion is
+\begin{align*}
+ N_h&=\{(0,B):B\in\mathcal E_R\}&&\text{at a terminal node},\\
+ N_h&=\sigma_cN_{h'}&&\text{at a fixed attacker move},\\
+ N_h&=\bigcap_m\sigma_{c_m}N_{h_m}&&\text{at a defender node}.
+\end{align*}
+Hence a counterexample is exactly a pair $(1,B)\in N_{\rm root}$.
+
+More generally, let an odd formal flow from a node $h$ reach a frontier
+$\mathcal F$ with coefficients $\epsilon_q$ and path charges $\Gamma_q$.
+If $(r_h,B)\in N_h$ and $(r_q,B)\in N_q$ are the inherited dual bits, then
+\begin{equation}\label{eq:dual-frontier}
+ \sum_{q\in\mathcal F}\epsilon_qr_q
+ =r_h+\left\langle B,
+       \sum_{q\in\mathcal F}\epsilon_q\Gamma_q\right\rangle.
+\end{equation}
+Thus every odd frontier flow of actual $B$-charge zero from a bad node
+$r_h=1$ has an odd number of bad exits.
+
+For a fixed counterexample choose a bad reachable node lexicographically
+minimal in
+\[
+ \bigl(\,|(U\cup Q)\cap R|,\ \rho\,\bigr).
+\]
+It is an attacker node, its prescribed move is an odd real CLOSE, and its
+child has dual bit zero.  It cannot have a balanced ordered front pair.
+\end{proposition}
+
+\begin{proof}
+Orthogonality against $\tau_c(a,z)=(a,z+ac)$ replaces $\alpha$ by
+$\alpha+\langle B,c\rangle$, proving the three dual recurrences.  Along a
+selected path this gives
+$r_h=\langle B,\Gamma_q\rangle+r_q$; multiply by $\epsilon_q$, sum, and use
+$\sum_q\epsilon_q=1$ to obtain \eqref{eq:dual-frontier}.
+
+At a bad defender node with $U\ne\varnothing$, every OPEN child has charge
+zero, preserves the number of live real vertices, and lowers $\rho$.  If
+$U=\varnothing$, every CLOSE or pass has charge zero and
+gives the same contradiction.  A lexicographically minimum bad node is
+therefore controlled by the attacker.  Its prescribed child would be bad
+unless the move had charge one; only an odd real CLOSE can have that charge.
+Finally Theorem~\ref{thm:balanced-front-transport} supplies an odd
+frontier whose consecutive front closes have equal scalar charge and whose
+transported coefficient $\kappa$ is $B$-isotropic.  Equation
+\eqref{eq:dual-frontier} would then produce a lower-rank bad exit, excluding a
+balanced front at the minimum node.
+\end{proof}
+
+The predecessor of that minimum node has a much more rigid form.
+
+\begin{proposition}[minimum-bad predecessor normal form]
+\label{prop:minimum-bad-predecessor}
+\PROVED{} Let $h$ be lexicographically minimum as in
+Proposition~\ref{prop:dual-descent}.  Write its prescribed move as the odd
+close $C_x$.  Its immediate defender predecessor is exactly one of the
+following two types.
+
+\begin{enumerate}
+\item A CLOSE predecessor
+\[
+ r_g=1+q_y\ \xrightarrow{\ C_y,\;q_y=\deg_U(y)\ }\
+ r_h=1\ \xrightarrow{\ C_x,\;\deg_U(x)=1\ }\ r=0.
+\tag{A}
+\]
+Here the predecessor queue begins $(y,x,\ldots)$.  If $q_y=1$, this is the
+good--bad--good odd--odd CLOSE spike.  If $q_y=0$, then $g$ is also bad and
+$|U_h|$ is necessarily even.
+
+\item A ko-protected domination state after the dummy has already been
+touched:
+\[
+ r_g=1,\qquad Q_g=(x),\qquad \mathsf{ko}=1,
+ \qquad \varnothing\ne U_g\subseteq R,
+\tag{B}
+\]
+where $|U_g|$ is even and $B(x,u)=1$ for every $u\in U_g$.  The defender is
+forced to open some $u$; every such child is minimum bad, and the attacker
+immediately plays $C_x$ with odd charge $|U_g|-1$.
+
+This second type has a forced one-step ancestry.  Let $j$ be the empty-queue
+attacker node whose prescribed $O_x$ reaches $g$, and let $e$ be the preceding
+defender node.  Then
+\[
+ Q_e=(y),\qquad
+ e\xrightarrow{\ C_y,\;\deg_{U_e}(y)=1\ }j
+ \xrightarrow{\ O_x,\;0\ }g,
+\tag{B$'$}
+\]
+and $r_e=0$.  Thus (B), like the odd subcase of (A), is created from a good
+defender node by an odd singleton-front CLOSE; it merely inserts a
+zero-charge empty-queue OPEN before the minimum bad checkpoint.
+\end{enumerate}
+In particular an untouched isolated dummy rules out every OPEN predecessor
+of a minimum bad node.
+\end{proposition}
+
+\begin{proof}
+The node $h$ is not the root, since its prescribed move is a CLOSE.  A pass
+cannot precede it because $U_h\ne\varnothing$.  Suppose first that the
+defender reached it by opening $z$ at a node $g$.  OPEN has zero charge, so
+$g$ is bad.  Every alternative OPEN $w\in U_g$ has a bad child with the same
+lexicographic rank as $h$.  Proposition~\ref{prop:dual-descent} forces the
+attacker at each such child to close the common real front $x$ oddly.  If
+$q=\deg_{U_g}(x)$, then
+\begin{equation}\label{eq:minimum-open-predecessor}
+ q+B(x,w)=1\qquad(w\in U_g).
+\end{equation}
+If the dummy $d$ were untouched, the equation for $w=d$ would give $q=1$,
+whereas the equations for all real $w$ would make every $B(x,w)=0$ and hence
+$q=0$, a contradiction.
+
+Thus every vertex of $U_g$ is real.  Summing
+\eqref{eq:minimum-open-predecessor} over $w$ gives
+\[
+ q=|U_g|(1+q).
+\]
+The cardinality $|U_g|$ is therefore even, $q=0$, and
+$B(x,w)=1$ for all $w\in U_g$.  If ko were clear, the defender could instead
+play the even close $C_x$; its child would be bad with one fewer live real
+vertex.  Hence ko is set, which at a reachable position forces
+$Q_g=(x)$.  This is (B).
+
+The remaining possibility is a defender close $C_y$ from a queue beginning
+$(y,x,\ldots)$.  Put $q_y=\deg_U(y)$.  If $q_y=0$, then $g$ is bad and any
+defender OPEN child is bad.  Moreover
+\[
+ \sum_{v\in U}\bigl(B(y,v)+B(x,v)\bigr)=q_y+\deg_U(x)=1,
+\]
+so the set of $v$ which make the two front charges equal after $O_v$ is odd.
+If $|U|$ were odd, each such child would have an even untouched set and a
+balanced front.  Theorem~\ref{thm:balanced-front-transport} and
+Proposition~\ref{prop:dual-descent} would then give a bad exit deleting
+$y,x$, with fewer live real vertices than $h$ (whether or not $y=d$), a
+contradiction.  Hence $q_y=0$ forces $|U|$ even.  If $q_y=1$, the defender
+recurrence instead gives $r_g=0$.  Together with the odd $C_x$ and its good
+child, these are exactly the two subcases of (A).
+
+It remains to prove the ancestry assertion for (B).  Since the dummy has
+already been touched and $U_g$ is nonempty, the empty-queue predecessor $j$
+is not the root and cannot follow a pass.  Its preceding move is therefore a
+defender close $C_y$ from a ko-clear singleton queue at a node $e$.  Put
+$A=\{x\}\sqcup U_g$ and $q_y=\deg_A(y)$.  The fixed $O_x$ has charge zero,
+so $r_j=r_g=1$, while the defender recurrence at $e$ gives
+\[
+ r_e=1+q_y.
+\]
+Suppose $q_y=0$.  Then $e$ is bad, and every alternative defender OPEN
+$O_v$, $v\in A$, leads to a bad attacker checkpoint with queue $(y,v)$.
+In the even-order live graph on $\{y\}\sqcup A$, the full-degree parity class
+of $y$ has even cardinality.  After deleting $y$, it therefore supplies an
+odd nonempty set of vertices $v$ for which the two front charges at $(y,v)$
+agree.  The untouched set $A-\{v\}$ is even, so both $\eta_{yv}$ fibres are
+even and Theorem~\ref{thm:balanced-front-transport} applies.  Its odd
+zero-charge flow has a bad exit by Proposition~\ref{prop:dual-descent}; that
+exit deletes $y,v$.  If $y$ is real it starts with one more live real vertex
+than $g$ and deletes two, while if $y=d$ it starts with the same number and
+deletes the one real vertex $v$.  Either way the exit has one fewer live real
+vertex than $g$, hence also fewer than the chosen minimum node $h$.  This
+contradicts the primary minimality of $h$.  Hence $q_y=1$ and $r_e=0$,
+proving (B$'$).
+\end{proof}
+
+This is a genuine monotone reduction, but not yet the theorem.  Case (A)
+cannot be extended backwards into a corridor of odd CLOSE pairs by local
+reasoning.  For example, take $U=\{a,d\}$, $Q=(z,y,x)$, with $d$ isolated
+and the only displayed separator edges $xa,ya$.  There is a residual policy
+with the exact dual pattern
+\[
+ 0\xrightarrow{C_z,\,0}0\xrightarrow{C_y,\,1}1
+  \xrightarrow{C_x,\,1}0:
+\]
+after the defender alternatives $O_a$ and $O_d$, the attacker can respectively
+use the now-even $C_y$ and the zero OPEN $O_a$, and all later charges vanish.
+Thus the unresolved global task has two sharply related terminal patterns.
+The odd subcase of (A) and all of (B) begin at a good defender singleton whose
+odd close creates badness; (B) then carries that bad bit through one
+empty-queue OPEN before the ko-protected domination fan.  The remaining even
+subcase of (A) can occur only with an even untouched set.  One must exclude
+these patterns by coupling earlier bad siblings; neither endpoint can be
+discarded from its public state alone.
+
 There is a sharper target when the separating graph is Eulerian.  It removes
 exactly the directions which no Euler adjacency vector can see.
 
@@ -666,6 +945,74 @@ Whenever the attacker closes $f$, therefore, $a\mathbin{\cdot}p_f=0$, a
 contradiction.
 \end{proof}
 
+The exact residue after this contraction is a Schur complement, rather than an
+automatically exact spectral-sequence page.  Let $V_h=\F_2[\Lambda_h]$ at a
+fixed real front $f$, extend $p_f$ and $W_f$ linearly, and suppose
+$c_0\in V_h$ has
+\[
+ \operatorname{aug}(c_0)=1,
+ \qquad p_f(c_0)=0.
+\]
+Put $K_f=\ker(\operatorname{aug},p_f)$.  Then
+\begin{equation}\label{eq:schur-obstruction}
+ \omega_f(S)=[W_f(c_0)]\in
+ E(L-\{f\})/W_f(K_f)
+\end{equation}
+is independent of the chosen $c_0$, and vanishes exactly when $c_0$ can be
+corrected to an odd zero-moment chain.  Indeed, any two choices differ by
+$K_f$, while \eqref{eq:joint-cancellation} says that an admissible correction
+$k\in K_f$ must solve $W_f(k)=W_f(c_0)$.  This is the honest first filtered
+obstruction; attacker pruning gives no chain complex whose ambient simplicial
+$\delta^2=0$ would make it vanish automatically.
+
+The first phase-pivot differential is visible in one commuting real diamond.
+If $x$ is front and $z$ untouched, the two orders OPEN--CLOSE and
+CLOSE--OPEN have charge vectors
+\[
+ \Gamma_{OC}=s_x(U-\{z\}),
+ \qquad \Gamma_{CO}=s_x(U),
+ \qquad \Gamma_{OC}+\Gamma_{CO}=xz.
+\]
+Their $p_x$ values differ by $e_z$, and
+$T_x(xz)=\delta e_z$ is the cut star of $z$ on the residual live set.
+Successive matching shifts therefore create rooted-triangle holonomy.
+
+Two exact four-real-vertex witnesses delimit this filtration.  First, the
+compatible pair
+\begin{align*}
+h_1&=O_0O_1O_dC_0O_2C_1O_3C_dC_2C_3,\\
+h_2&=O_0O_dO_1C_0O_3C_dC_1C_3O_2PC_2
+\end{align*}
+has equal $p_0=e_2+e_3$, but
+\[
+ D(h_1)=02+03+13,\qquad
+ D(h_2)=02+03+12+23,\qquad
+ W_0(h_1+h_2)=12+13+23.
+\]
+Thus the first surviving class may be the genuine triangle rather than a cut.
+This order is minimal because after deleting $f$ a non-cut class requires at
+least three real vertices.
+
+More sharply, one deterministic policy admits three leaves
+\begin{align*}
+g_1&=O_0O_1O_2O_dC_0O_3C_1C_2C_dC_3,\\
+g_2&=O_0O_2O_3O_dC_0O_1C_2C_3C_dC_1,\\
+g_3&=O_0O_dO_2C_0O_1C_dC_2C_1O_3PC_3.
+\end{align*}
+Their respective $(p_0,W_0)$ values are
+\[
+ (e_3,0),\qquad(e_1,0),\qquad
+ (e_1+e_3,13+23).
+\]
+The odd sum cancels $p_0$, and its residual $13+23$ pairs trivially with the
+unique residual triangle $12+13+23$, so both the first cut and the triangle
+quotient vanish; nevertheless its full moment is the nonzero next-front cut
+$13+23$.  The three histories occupy different residual phases, so the
+initial cut contraction cannot simply be reapplied to their sum as one child
+state.  Vanishing of two ambient filtration layers is therefore a strict
+false positive; the parity-resolved convolution must couple further siblings
+across levels.
+
 The scalar separation proof has a useful two-round refinement.  It repairs the
 first explicit failure of degree-only pairing, although it still does not
 iterate through an arbitrary FIFO prefix.
@@ -794,6 +1141,70 @@ Thus the scalar even-board statement is
 \end{equation}
 It says that a first-seat odd attacker cannot force odd parity; by finite
 determinacy, the second player can force even parity.
+
+The four possible force sets have an exact Boolean form.  Write
+$r_h(t)=1_{t\in R(h)}\in\F_2$.  Then
+\begin{equation}\label{eq:boolean-force-recursion}
+ r_h(t)=
+ \begin{cases}
+  1+\displaystyle\prod_m\bigl(1+r_{h_m}(t+c_m)\bigr),
+     &h\text{ an attacker node},\\[5pt]
+  \displaystyle\prod_m r_{h_m}(t+c_m),
+     &h\text{ a defender node}.
+ \end{cases}
+\end{equation}
+In particular
+\begin{equation}\label{eq:boolean-canonical-faces}
+ K_x(t)=\prod_{y\ne x}Q_{xy}(t),\qquad
+ T(t)=1+\prod_x(1+K_x(t)),\qquad
+ S_x(t)=K_x(t)T_{A-x}\bigl(t+\deg_{A-x}(x)\bigr).
+\end{equation}
+
+\begin{proposition}[the universal-full-fan residual]
+\label{prop:universal-full-fan}
+\PROVED{} For an even graph $H$, put
+\[
+ P(H):\qquad 0\in S_z^H(V)\quad(z\in V).
+\]
+Then
+\[
+ P(H)\iff
+ \left\{
+ \begin{array}{ll}
+ 0\in Q_{zy}(H)&(z\ne y),\\
+ \deg_H(z)\in T(H-z)&(z\in V).
+ \end{array}\right.
+\]
+If $P(H)$ and $1\in T(H)$, there is a vertex $x$ such that
+\begin{equation}\label{eq:universal-full-row}
+ Q_{xy}(H)=\F_2\qquad(y\ne x).
+\end{equation}
+Consequently $P(H)\Rightarrow T(H)=\{0\}$ is equivalent to excluding the
+universal full row \eqref{eq:universal-full-row}.
+If, in addition, $H$ has an even-cross perfect pairing as in
+Theorem~\ref{thm:cells}, then $T(H)=\{0\}$.
+\end{proposition}
+
+\begin{proof}
+Equations~\eqref{eq:S-face} and \eqref{eq:canonical-faces} give the first
+equivalence.  If $1\in T(H)$, some $K_x$ contains $1$.  Under $P(H)$ the
+same $K_x$ also contains zero, so it equals $\F_2$; its intersection formula
+forces every $Q_{xy}$ in that row to equal $\F_2$.  Conversely such a row
+gives $1\in K_x\subseteq T$.  Finally the parity-cell strategy forces even
+score from the empty-queue second-seat root, so $1\notin T(H)$, while $P(H)$
+already gives $0\in T(H)$.
+\end{proof}
+
+\TESTED{} The implication $P(H)\Rightarrow T(H)=\{0\}$ holds on the complete
+graph census through order eight; the numbers of $P$-classes in even orders
+$2,4,6,8$ are respectively $1,4,18,262$, and every one admits an even-cross
+pairing.  This is not yet a proof.  The most obvious Boolean parity repairs
+already fail: on the path $01,03,12$, all $S_z=\{0\}$ but the row at $0$ is
+$\{0\},\{0\},\F_2$; even the same-degree subrow can have odd full-set count
+at order six.  Nor does Eulerianity alone supply the static certificate: an
+exact order-fourteen Eulerian graph has no even-cross perfect pairing.  Thus the missing step is a
+joint identity internal to the ordered $Q$-subtrees, not a rowwise M\"obius
+parity or a static pairing induction.
 
 \begin{lemma}[least-counterexample odd routing]\label{lem:odd-routing}
 \PROVED{} Suppose $A$ is a least-order even counterexample to
@@ -1456,15 +1867,18 @@ canonical response flow of odd augmentation with the following rules:
       fixed-front phase.
 \end{itemize}
 Every exit has equal charges on $C_x,C_y$, so the phase contributes zero
-scalar score.  If $U_\lambda$ is the untouched set at an exit $\lambda$, its
-future disjointness increment on the deleted pair is exactly
+scalar score.  This assertion and the flow construction also allow one of
+$x,y$ to be the isolated dummy, with every dummy edge projected to zero.  If
+$U_\lambda$ is the untouched set at an exit $\lambda$, its future
+disjointness increment on the deleted pair is exactly
 \begin{equation}\label{eq:kappa-front}
  \kappa_{xy}(U_\lambda)
  =\sum_{u\in U_\lambda}(xu+yu).
 \end{equation}
-This chain is Eulerian and $B$-isotropic:
+When both front vertices are real this chain is Eulerian; in every case its
+real projection is $B$-isotropic:
 \[
- \partial\kappa_{xy}(U_\lambda)=0,
+ x,y\in R\Longrightarrow\partial\kappa_{xy}(U_\lambda)=0,
  \qquad
  \langle B,\kappa_{xy}(U_\lambda)\rangle=0.
 \]
@@ -1486,10 +1900,11 @@ At an exit,
 \]
 so the consecutive close charges agree.  A residual untouched vertex is
 disjoint from both deleted front intervals, whereas every vertex already in
-the queue overlaps them.  This proves \eqref{eq:kappa-front}.  The residual
-set has even cardinality, so every vertex in the displayed complete bipartite
-chain has even degree.  Pairing that chain with $B$ gives the same even
-$\eta$-sum, proving the last two assertions.
+the queue overlaps them.  This proves \eqref{eq:kappa-front}.  If $x,y$ are
+real, the residual set has even cardinality, so every vertex in the displayed
+complete bipartite chain has even degree.  Pairing the real projection with
+$B$ gives the same even $\eta$-sum whether or not one front vertex is the
+dummy, proving the last two assertions with the stated qualification.
 \end{proof}
 
 At an Euler ordered-pair checkpoint, balancedness follows from
@@ -1595,6 +2010,47 @@ on the intermediate phase cut exactly as
 \eqref{eq:cell-prefix-charge} predicts.  Hence the remaining lemma must
 causally lift these cross-cell four-cycles through legal OPEN/CLOSE matching
 shifts; aggregate front balance is not the invariant.
+
+Even the complete ordered cell-cut datum is not a Markov state for this
+lifting.  On seven real vertices, with isolated $d=7$, put
+\begin{align*}
+ E_{\rm bad}={}&\{01,02,04,12,13,14,16,23,24,26,34,35,45,56\},\\
+ Q={}&(6,1,5,4),\qquad U=\{0,2,3,7\}.
+\end{align*}
+All four individual queue charges are one, all four queued vertices have odd
+full degree, both cell defects $\Delta_i$ vanish, and
+$c_{61,54}=0$.  Nevertheless the checkpoint is unsafe even for the
+unrestricted terminal-score game.  The attacker opens the isolated dummy.
+Replies $O_0$ and $O_3$ are met by the odd close $C_6$, while $C_1$ and every
+remaining OPEN have charge zero.  After reply $O_2$, the attacker closes $6$
+evenly; the three normalized replies $O_0,O_3,C_1$ are defeated respectively
+by short continuations beginning $C_1,C_1,C_5$.  In the $O_0$ subbranch the
+forced charge-one responses continue through $C_5,C_4$.  Direct evaluation
+gives one on each displayed spoiler and zero on every available response; the
+exact tree is replayed by the checker.
+
+This is not an arbitrary unreachable carrier.  Add old fronts $x=8,y=9$,
+make $x$ isolated, and join $y$ to
+$\{0,1,2,4,5,6\}$, the odd-degree set of $E_{\rm bad}$.  The resulting
+ten-vertex graph is Eulerian.  From $Q=(x,y)$ the canonical balanced-wall
+branch
+\[
+ O_6,O_1,O_5,O_4,C_x,C_y
+\]
+exits exactly at the displayed bad checkpoint with zero accumulated charge.
+Thus no proof may continue every canonical wall exit independently.
+
+For comparison, the labelled graph
+\[
+ E_{\rm good}=\{04,06,13,14,15,23,35,45\}
+\]
+has the same $Q,U$, the same four individual charges, full-degree colours,
+$\Delta$ vector, cross-cell parity, and formal chains
+$K(P_i,U),K(P_1,P_2)$, but exact zero-normalized recursion marks it safe.
+\TESTED{} The graph6 records are respectively \texttt{Fz\{ZG} and
+\texttt{FBp[?}; \path{experiments/linking_game.py} verifies both decisions
+and the Euler lift.  Hence vertex-resolved continuation data below the cell
+aggregation is indispensable.
 
 Nor is the Eulerian case a simplifying restriction of the scalar kernel.
 
@@ -1919,6 +2375,62 @@ while Proposition~\ref{prop:response-factor} says what its one-vertex causal
 pivots must ultimately assemble.  The unresolved theorem is precisely that
 every attacker-pruned partial factor admits this balanced extension; neither
 the cell handshake nor the static dummy endpoint proves it.
+
+At the isolated-dummy root this can be sharpened to an odd corridor whose only
+uncontrolled endpoint is the dummy branch.  The statement is for the stronger
+zero-normalized target and even real order, the case used by the exact root
+selectors.
+
+\begin{proposition}[least-root odd corridor]
+\label{prop:root-corridor}
+\PROVED{} Let $G$ have an even real vertex set $R$ and isolated $d$, and
+assume every smaller even-real isolated-dummy board is zero-normalized safe.
+Fix a real opener $x$ and put
+\[
+ Y_x=\{y\in R-\{x\}:\deg_G(y)=\deg_G(x)\pmod2\}.
+\]
+Then $|Y_x|$ is odd.  If every checkpoint $Q=(x,y)$ with $y\in Y_x$ is
+unsafe, each has an OPEN as its first spoiler.  Moreover every real spoiler
+extends to a finite odd-augmentation corridor of unsafe same-$\eta_{xy}$
+OPEN pairs.  The only corridor exits are
+\begin{enumerate}[leftmargin=*,itemsep=1pt]
+\item consecutive CLOSEs $C_x,C_y$ with equal charge;
+\item a zero-charge phase pivot $O_z,C_x$; or
+\item the attacker opening $d$.
+\end{enumerate}
+Summing the corridors over the odd set $Y_x$ gives an odd aggregate exit
+chain.
+\end{proposition}
+
+\begin{proof}
+Both degree-parity classes of an even graph have even size, by handshaking,
+so $|Y_x|$ is odd.  At $Q=(x,y)$ the two front charges agree.  If the attacker
+closes $x$, the defender closes $y$ with the same charge and reaches exactly
+the smaller root on $G-\{x,y\}$ with $d$ still isolated.  Minimality makes
+that child safe, so the first spoiler is an OPEN.
+
+Initially $U$ has odd size and contains $d$.  Equal front charges make the
+$\eta=1$ fibre even; the $\eta=0$ fibre is odd and contains $d$.  If a real
+spoiler opens $z$, the number of remaining \emph{real} vertices in its own
+$\eta$ fibre is odd: in the one-fibre remove $z$ from an even real set, while
+in the zero-fibre first remove $d$ from an odd set and then remove $z$.
+Every corresponding real OPEN reply is normalized, hence unsafe under the
+chosen spoiler, and removes two vertices of one fibre.  It preserves equal
+front charges, odd $|U|$, and the untouched dummy, so the construction
+iterates.  Each round removes two real untouched vertices.  It must therefore
+terminate at a CLOSE--CLOSE exit, at an OPEN after which $C_x$ has charge zero,
+or when the attacker selects $d$.  Every internal fan and the outer $Y_x$
+fan have odd augmentation, proving the last assertion.
+\end{proof}
+
+The proposition isolates a precise parity leak rather than closing the root
+induction.  After $O_d$ there are $|R|-2$ real OPEN replies, an even fan, and
+$C_x$ is an additional normalized reply exactly when the common initial front
+charge is zero.  Exact minimax through the complete eight-real census finds
+that $O_d$ is never a spoiler at an unsafe same-parity root, but no fan-level
+proof is known.  Pairwise dummy diamonds are insufficient: the checker has a
+root for which a real-spoiler child crossed with $d$ is itself unsafe, although
+other real replies make the actual $O_d$ branch safe.
 
 One unbounded attacker class can nevertheless be contracted completely.  It
 is the class used below to generate the causal simplex caps, so the result is
@@ -2292,10 +2804,13 @@ The following claims have different status and should not be flattened.
 \item \PROVED{} The interval/disjointness reduction, vector live-star identity,
       threshold schedule normal form, endpoint-controller boundary identity,
       affine separation equivalence,
-      homogeneous response recursion and Euler quotient separation,
+      homogeneous response recursion, parity-resolved continuation
+      convolution, dual obstruction descent, filtered Schur-complement
+      criterion, and Euler quotient separation,
       parity-cell theorem, front cut-space splitting and two-graph absorption,
       correlated-moment identity, initial cut contraction, charge/poison
       classification, two-switch tail, scalar force-set recursion,
+      Boolean force-set identities, universal-full-fan residual,
       least-counterexample odd routing, zero-normalized repair recursion,
       queue-matching phase-fan identity, tetrahedral coherence, Euler curvature
       oik and its oriented lift, the odd isotropic triangle dichotomy,
@@ -2334,6 +2849,12 @@ The following claims have different status and should not be flattened.
       symplectic-flag, and one-cut selectors have the explicit failures stated
       above.  The finite forests do not prove their own existence at arbitrary
       order.
+\item \TESTED{} The scalar implication $P(H)\Rightarrow T(H)=\{0\}$ holds
+      through the complete order-eight census; all $262$ order-eight
+      $P$-classes admit an even-cross pairing.  Rowwise and same-degree
+      Boolean parity strengthenings already have the displayed smaller
+      counterexamples, so this does not supply the universal-full-fan
+      contraction at arbitrary order.
 \item \TESTED{} With an isolated dummy, exact zero-normalized minimax succeeds
       through eight real vertices for both defender seats.
       The same census verifies the three root selectors stated after
@@ -2342,6 +2863,12 @@ The following claims have different status and should not be flattened.
       displayed Euler graph has exit imbalances $0,0,1$, with the remaining
       defect carried by a cross-cell four-cycle.  These tests delimit the
       causal factor-extension lemma; they do not prove it.
+\item \TESTED{} The clean-cell pair \texttt{Fz\{ZG}/\texttt{FBp[?} has
+      identical ordered homogeneous-cell charges, colours, defects,
+      cross-parities, and formal cell-cut chains but opposite exact safety.
+      The unsafe member has the displayed hand-checkable spoiler tree and is
+      itself a canonical exit from an Eulerian balanced-front wall.  Thus even
+      complete cell-cut aggregation cannot be the recursive state.
 \item \TESTED{} Restricting the defender to OPEN while untouched vertices
       remain is false already on $K_4+d$ and $(K_4-e)+d$.  The unrestricted
       winning line uses a phase-changing front CLOSE, so the close-first
@@ -2364,7 +2891,10 @@ The following claims have different status and should not be flattened.
       missing assertion is a strategy-relative causal extension theorem for
       the charge-balanced response factor, allowing odd wall fans, front-cell
       deletion, and matching-phase pivots to share their transported
-      four-cycle defects across branches.
+      four-cycle defects across branches.  Proposition~\ref{prop:dual-descent}
+      reduces any counterexample to an even-$|U|$ singleton phase or an
+      imbalanced multicell front, but neither terminal phase has yet been
+      contracted.
 \end{itemize}
 
 \begin{thebibliography}{9}

@@ -270,6 +270,29 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   shifted by the front cut remain forceable.  The missing object is the
   joint distribution across the odd sibling family, not another color of a
   single `Q_xy` branch.
+  Writing force-set membership as a Boolean polynomial sharpens the residual
+  further.  If `P(H)` means `0 in S_z(H)` for every vertex, then a failure of
+  `P(H) => T(H)={0}` forces one universal full row:
+  `Q_xy(H)={0,1}` for every `y != x`.  The implication holds on the complete
+  census through order eight (`1,4,18,262` `P`-classes in even orders
+  `2,4,6,8`), because each such graph has an even-cross perfect pairing.
+  This remains a finite certificate, not the proof: rowwise and same-degree
+  Möbius parities already fail at orders four and six, and Eulerianity alone
+  does not guarantee the pairing by order fourteen.  The exact missing scalar
+  lemma is therefore a joint contraction internal to the ordered `Q_xy`
+  subtrees which excludes the universal full row.
+  With the isolated dummy this odd family now has a proved pointed corridor.
+  In a least even-real root failure, `C_x` cannot first spoil a same-degree
+  pair: `C_y` cancels it and reaches the smaller isolated-dummy root.  Every
+  first spoiler is therefore OPEN.  For a real spoiler, the remaining real
+  vertices in its `eta_xy` fibre form an odd nonempty reply fan; iterating
+  preserves equal front charges and the untouched dummy until a CC exit, a
+  zero OC phase pivot, or attacker `O_d`.  Summing over the odd root-mate set
+  gives an odd aggregate exit chain.  The precise parity leak is the `O_d`
+  exit: its real OPEN replies form an even fan, with `C_x` present only when
+  its charge is zero.  Exact minimax says `O_d` is never the spoiler at such
+  an unsafe root through the complete order-eight census, but this fan-level
+  harmlessness remains unproved and is not a pairwise dummy diamond.
 - The affine target now has an exact homogeneous recursion
   `Z(h) <= F_2 + E_real`: attacker nodes translate one child, defender nodes
   span translated child spaces, and the theorem asks for `(1,0) in Z(root)`.
@@ -280,6 +303,35 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   untouched live degree and the next front degree are odd.  Matching charge
   restores `P` but mixed close/open rounds retain one flip debt, so this does
   not close the global recurrence.
+- Augmentation parity is now resolved rather than hidden in `Z`.  At every
+  history, even continuation moments form a linear space `W_h` and odd
+  moments an affine coset `A_h`; a defender fan combines the child pairs by
+  exact parity convolution.  The smallest essential coupling occurs with
+  three real vertices plus dummy: no single reply coset contains zero, but
+  the odd profile on all three replies cancels.  Dually,
+  `N_h=Z(h)^perp` has an intersection recursion.  Any odd frontier flow of
+  actual graph-charge zero from a bad node has an odd number of bad exits.
+  This makes balanced-front transport monotone: it descends a dual
+  counterexample by two live vertices.  Lexicographically minimizing first
+  the number of live real vertices and then event rank sharpens the terminal
+  obstruction completely.  Its predecessor is either a CLOSE with an odd
+  next-front charge, or a ko-set singleton `(x)` after the dummy has already
+  been touched, with a nonempty even real untouched set to which `x` is
+  universal.  The untouched dummy rules out every OPEN predecessor.  The
+  domination case also has a forced ancestry: the preceding empty-queue
+  OPEN is zero, while the singleton-front defender CLOSE immediately before
+  it must be odd.  If that CLOSE were even, an odd family of same-live-degree
+  OPEN siblings would all be balanced bad checkpoints, and balanced-front
+  transport would produce a bad exit with one fewer live real vertex.  Thus
+  the domination form is created from a good defender node by an
+  odd CLOSE and merely inserts one zero OPEN.  The CLOSE-spike alternative
+  has two subcases: an odd predecessor gives the same good--bad--good pattern,
+  while an even predecessor remains bad but can occur only with an even
+  untouched set; an odd same-eta OPEN fan would otherwise give a smaller
+  balanced bad exit.  The spike cannot be propagated farther backwards
+  locally (an exact five-vertex counterexample has an earlier even close), so
+  excluding these sibling-coupled terminal patterns is now the narrowest
+  scalar proof obligation.
 - The same pass proves a strict extension of the twin-pair subclass.  If the
   vertices partition into 2-cells `A` with `e(A,B)` even for every two cells,
   the second player mirrors mates and forces even flips.  This is not general:
@@ -428,6 +480,27 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   residue into cross-cell four-cycles.  A pinned Euler example has canonical
   exit imbalances `0,0,1`, so aggregate next-front balance is false; the
   four-cycle defect must be transported through later matching-phase pivots.
+- Cell-cut transport is exact but not Markov.  The graph6 pair
+  `Fz{ZG`/`FBp[?`, at the same checkpoint
+  `Q=(6,1,5,4), U={0,2,3,d}`, agrees on every individual queue charge,
+  homogeneous full-degree colour, cell defect, cross-cell parity, and formal
+  cell-cut chain, yet the first state is unsafe even for terminal-score play
+  and the second is zero-normalized safe.  The unsafe state is itself a
+  canonical balanced-wall exit of an Eulerian ten-vertex extension.  Hence a
+  proof must retain vertex-resolved continuation spaces and cancel across
+  wall siblings before or during the next front; it cannot recurse on an
+  aggregated cell state.
+- The front filtration has an exact Schur-complement obstruction.  After an
+  odd chain cancels the first-front untouched indicator `p_f`, its residual
+  class is `[W_f(c)]` modulo moments of even chains in
+  `ker(augmentation,p_f)`.  Real OC/CO phase diamonds send the edge `fz` to
+  the next cut star, and their shifts create rooted triangles.  A minimal
+  four-real pair realizes a genuine triangle first differential.  More
+  sharply, an odd three-history chain cancels both the first cut and the
+  triangle quotient but leaves the nonzero next-front cut `13+23`; its leaves
+  occupy different residual phases, so the initial cut contraction cannot be
+  reapplied childwise.  Ambient `delta^2=0` is therefore not a
+  strategy-relative two-layer contraction.
 - Complete pass-free histories also have a response-factor normal form.  Pair
   each coin's OPEN/CLOSE events and pair each attacker move with the following
   defender response.  The two matchings form alternating cycles when the
@@ -607,7 +680,9 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
   `GCRU]w`; the live route is the block-turn plus live-degree-pairing
   formulation, with FIFO re-entering through forced front deletion and the
   proactive-debt witnesses above.  Balanced-front odd-flow transport and the
-  complete close-first contraction are now proved, but the current exact
+  complete close-first contraction are now proved.  Dual descent reduces a
+  hypothetical counterexample to an isolated odd/odd CLOSE spike or an
+  after-dummy ko-protected universal-neighbour singleton, but the current exact
   target remains the global affine-contraction/causal-factor-extension lemma
   of `writeups/linking_affine.tex`, with the FIFO cut-space filtration as a
   coordinate system rather than a childwise induction.

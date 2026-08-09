@@ -116,6 +116,19 @@ STATUS (2026-08-08), machine-verified by this file:
     forced pass), the accumulated flip score can be restored to zero.  This is
     stronger than the root linking theorem but remains a tested conjecture;
     stage ``dummy-neutral`` checks a supplied graph6 census.
+  * The affine recursion is now resolved by augmentation parity: even
+    continuation moments form a linear space, odd moments an affine coset,
+    and a defender fan combines them by exact parity convolution.  The
+    smallest essential fan already needs odd weight on all three replies.
+    A dual obstruction descends through every balanced front and forces any
+    deepest counterexample into a singleton/ko phase or an imbalanced front.
+    Two four-real schedules show that cancelling the first cut and triangle
+    quotient can still leave a next-front cut.
+  * Ordered homogeneous-cell data are not Markov for continuation safety.
+    ``validate`` pins a seven-real unsafe/safe pair with identical individual
+    charges, degree colours, cell defects, cross parity, and cell-cut chains;
+    the unsafe state is itself a canonical exit from an Eulerian balanced
+    wall.  Vertex-resolved continuation spaces are therefore load-bearing.
   * The close-first attacker is now solved analytically for arbitrary k and
     either seat.  One-block responses give complements of Hamiltonian paths
     or path squares; a controlled second block repairs the dummy-root case.
@@ -295,13 +308,19 @@ def _zero_normalized_dummy_solver(k: int, edges, seat: int):
             if mover == seat and score:
                 return False
             return safe(u, seq, False, 1 - mover, score)
-        values = []
+        if mover == seat:
+            for _kind, _coin, flip, u2, seq2, ko2 in moves:
+                score2 = score ^ flip
+                if score2 == 0 and safe(
+                        u2, seq2, ko2, 1 - mover, score2):
+                    return True
+            return False
+
         for _kind, _coin, flip, u2, seq2, ko2 in moves:
             score2 = score ^ flip
-            if mover == seat and score2:
-                continue
-            values.append(safe(u2, seq2, ko2, 1 - mover, score2))
-        return any(values) if mover == seat else all(values)
+            if not safe(u2, seq2, ko2, 1 - mover, score2):
+                return False
+        return True
 
     return n, adj, safe
 
@@ -834,6 +853,55 @@ def close_first_response_vectors(k: int) -> frozenset[int]:
     return rec((1 << n) - 1, (), False, 0, 0)
 
 
+def event_word(text: str) -> tuple[tuple[str, int | None], ...]:
+    """Parse a compact ``O0 C0 P`` schedule used by exact witnesses."""
+    return tuple(
+        ("p", None) if token == "P"
+        else (token[0].lower(), int(token[1:]))
+        for token in text.split()
+    )
+
+
+def disjointness_vector(
+        k: int, word: tuple[tuple[str, int | None], ...]) -> int:
+    """Validate a complete schedule and return its real-edge D-vector.
+
+    Real vertices are ``0..k-1`` and the isolated dummy is ``k``.  Edge bits
+    use lexicographic pair order.  The vector is accumulated at CLOSE events:
+    a real front becomes disjoint from exactly the still-untouched reals.
+    """
+    n = k + 1
+    u = (1 << n) - 1
+    seq: tuple[int, ...] = ()
+    ko = False
+    pidx = {pair: bit for bit, pair in enumerate(
+        (i, j) for i in range(k) for j in range(i + 1, k))}
+    out = 0
+    for turn, (kind, coin) in enumerate(word):
+        moves = legal_moves(n, [0] * n, u, seq, ko)
+        if kind == "p":
+            assert coin is None and not moves, (turn, u, seq, ko)
+            ko = False
+            continue
+        chosen = next(
+            (move for move in moves if move[:2] == (kind, coin)), None)
+        assert chosen is not None, (turn, kind, coin, u, seq, ko)
+        if kind == "c" and coin is not None and coin < k:
+            for other in range(k):
+                if u >> other & 1:
+                    out ^= 1 << pidx[min(coin, other), max(coin, other)]
+        _kind, _coin, _flip, u, seq, ko = chosen
+    assert u == 0 and not seq
+    return out
+
+
+def real_edge_vector(k: int, edges) -> int:
+    """Pack real edges into the lexicographic coordinate order used for D."""
+    pidx = {pair: bit for bit, pair in enumerate(
+        (i, j) for i in range(k) for j in range(i + 1, k))}
+    return sum(1 << pidx[min(i, j), max(i, j)] for i, j in edges)
+
+
 def close_first_schedule_quotient(
         k: int, word: tuple[tuple[str, int | None], ...],
         *, policy_after: int, front: int = 0) -> int:
@@ -1177,6 +1245,133 @@ def stage_validate() -> None:
     print("   canonical Euler-wall exits have first-cell defects 0,0,1;"
           " the last is paired by its cross-cell four-cycle")
 
+    print("== parity-resolved continuation convolution witnesses ==")
+    # At the defender fan after attacker O0 on three reals plus d=3, a
+    # single deterministic residual attacker can give the three reply
+    # branches the affine odd spaces
+    #   A_1=02+<12>, A_2=01+<12>, A_d=01+02+<12>.
+    # No branch alone reaches zero, whereas putting odd augmentation on all
+    # three branches does.  This is the smallest essential sibling coupling.
+    fan_words = {
+        1: (
+            "O0 O1 C0 O2 O3 C1 C2 C3",
+            "O0 O1 C0 O3 O2 C1 C3 C2",
+            "O0 O1 C0 C1 O2 O3 C2 C3",
+        ),
+        2: (
+            "O0 O2 C0 O1 O3 C2 C1 C3",
+            "O0 O2 C0 O3 O1 C2 C3 C1",
+            "O0 O2 C0 C2 O1 O3 C1 C3",
+        ),
+        3: (
+            "O0 O3 C0 O1 O2 C3 C1 C2",
+            "O0 O3 C0 O2 C3 O1 C2 C1",
+            "O0 O3 C0 O2 C3 C2 O1 P C1",
+            "O0 O3 C0 C3 O1 O2 C1 C2",
+        ),
+    }
+    fan_labels = {
+        reply: frozenset(disjointness_vector(3, event_word(word))
+                         for word in words)
+        for reply, words in fan_words.items()
+    }
+    edge01 = real_edge_vector(3, {(0, 1)})
+    edge02 = real_edge_vector(3, {(0, 2)})
+    edge12 = real_edge_vector(3, {(1, 2)})
+    assert fan_labels == {
+        1: frozenset({edge02, edge02 ^ edge12}),
+        2: frozenset({edge01, edge01 ^ edge12}),
+        3: frozenset({edge01 ^ edge02,
+                      edge01 ^ edge02 ^ edge12}),
+    }
+    assert all(0 not in labels for labels in fan_labels.values())
+    assert edge02 ^ edge01 ^ (edge01 ^ edge02) == 0
+
+    # A front-cut/triangle two-layer truncation is also insufficient.  These
+    # three leaves coexist under one policy (their first defender replies are
+    # distinct).  Their odd sum kills p_0 and the K3 cycle quotient, but leaves
+    # the next-front cut 13+23 rather than zero.
+    layered_words = tuple(map(event_word, (
+        "O0 O1 O2 O4 C0 O3 C1 C2 C4 C3",
+        "O0 O2 O3 O4 C0 O1 C2 C3 C4 C1",
+        "O0 O4 O2 C0 O1 C4 C2 C1 O3 P C3",
+    )))
+    layered_labels = tuple(disjointness_vector(4, word)
+                           for word in layered_words)
+    assert layered_labels == (
+        real_edge_vector(4, {(0, 3)}),
+        real_edge_vector(4, {(0, 1)}),
+        real_edge_vector(4, {(0, 1), (0, 3), (1, 3), (2, 3)}),
+    )
+    layered_sum = functools.reduce(int.__xor__, layered_labels)
+    assert layered_sum == real_edge_vector(4, {(1, 3), (2, 3)})
+    triangle123 = real_edge_vector(4, {(1, 2), (1, 3), (2, 3)})
+    assert (layered_sum & triangle123).bit_count() % 2 == 0
+
+    # The first surviving filtered class can itself be genuinely triangular.
+    triangular_words = tuple(map(event_word, (
+        "O0 O1 O4 C0 O2 C1 O3 C4 C2 C3",
+        "O0 O4 O1 C0 O3 C4 C1 C3 O2 P C2",
+    )))
+    triangular_labels = tuple(disjointness_vector(4, word)
+                              for word in triangular_words)
+    assert triangular_labels == (
+        real_edge_vector(4, {(0, 2), (0, 3), (1, 3)}),
+        real_edge_vector(4, {(0, 2), (0, 3), (1, 2), (2, 3)}),
+    )
+    assert triangular_labels[0] ^ triangular_labels[1] == triangle123
+    print("   a 3-child fan is essential; cut plus triangle filtration can"
+          " still leave a next-front cut")
+
+    print("== clean-cell continuation obstruction ==")
+    unsafe_order, clean_unsafe = decode_graph6("Fz{ZG")
+    safe_order, clean_safe = decode_graph6("FBp[?")
+    assert unsafe_order == safe_order == 7
+    clean_u = sum(1 << v for v in (0, 2, 3, 7))
+    clean_q = (6, 1, 5, 4)
+
+    def clean_cell_signature(edges):
+        adj = adj_of(8, edges)
+        charges = tuple((adj[v] & clean_u).bit_count() & 1
+                        for v in clean_q)
+        colours = tuple(adj[v].bit_count() & 1 for v in clean_q)
+        tail = sum(1 << v for v in clean_q[2:])
+        cross = sum((adj[v] & tail).bit_count()
+                    for v in clean_q[:2]) & 1
+        deltas = (charges[0] ^ charges[1], charges[2] ^ charges[3])
+        return charges, colours, deltas, cross
+
+    assert clean_cell_signature(clean_unsafe) == \
+        clean_cell_signature(clean_safe) == ((1, 1, 1, 1),
+                                              (1, 1, 1, 1), (0, 0), 0)
+    assert not even_checkpoint_safe(
+        8, clean_unsafe, clean_u, clean_q, zero_normalized=False)
+    assert even_checkpoint_safe(
+        8, clean_safe, clean_u, clean_q, zero_normalized=True)
+
+    # The unsafe state is reached by a canonical same-eta wall branch from an
+    # Euler graph.  Vertex 8 is the isolated old front; vertex 9 completes the
+    # Euler extension by joining precisely the odd-degree vertices of H.
+    odd_h = {v for v, degree in enumerate(adj_of(8, clean_unsafe))
+             if degree.bit_count() & 1}
+    assert odd_h == {0, 1, 2, 4, 5, 6}
+    euler_extension = clean_unsafe | {(v, 9) for v in odd_h}
+    extension_adj = adj_of(10, euler_extension)
+    assert all(degree.bit_count() % 2 == 0 for degree in extension_adj)
+    eu = sum(1 << v for v in range(8))
+    eq = (8, 9)
+    eko = False
+    escore = 0
+    for name in (("o", 6), ("o", 1), ("o", 5), ("o", 4),
+                 ("c", 8), ("c", 9)):
+        move = next(move for move in legal_moves(
+            10, extension_adj, eu, eq, eko) if move[:2] == name)
+        _kind, _coin, flip, eu, eq, eko = move
+        escore ^= flip
+    assert (eu, eq, escore) == (clean_u, clean_q, 0)
+    print("   identical homogeneous cell/cut data can be safe or unsafe;"
+          " the unsafe state is a canonical Euler-wall exit")
+
     print("== exact failures of stronger response lemmas ==")
     colour_edges = frozenset({
         (0, 1), (0, 3), (0, 5), (0, 7), (1, 2), (1, 4),
@@ -1468,13 +1663,6 @@ def stage_validate() -> None:
     prefix = (
         ("o", 0), ("o", 6), ("c", 0), ("o", 5), ("c", 6),
     )
-
-    def event_word(text: str) -> tuple[tuple[str, int | None], ...]:
-        return tuple(
-            ("p", None) if token == "P"
-            else (token[0].lower(), int(token[1:]))
-            for token in text.split()
-        )
 
     continuations = tuple(map(event_word, (
         "O3 C5 C3 O1 O2 C1 C2 O4 P C4",
