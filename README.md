@@ -236,6 +236,12 @@ core (lexer/parser/AST/unparser, fixed-world evaluator, error taxonomy, conforma
 corpus). It is an unpublished workspace member (`publish = false`) while the language is
 pre-release; it ships separately when it stabilizes.
 
+`formal/` is a separately pinned Lean 4 + mathlib project.  It kernel-checks the
+load-bearing algebra of the resolved `off` classification and formalizes the exact
+FIFO transition system, termination/strategy semantics, cut invariant, and edgeless
+base theorem.  The general isolated-dummy FIFO theorem is stated there but remains
+open; no finite census is presented as its proof.
+
 See `AGENTS.md` for the working-notes summary, `docs/OPEN.md` for the genuine open
 problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `grundy/docs/` for
 the language contract, and `writeups/` for the draft notes.
@@ -365,12 +371,19 @@ The rest of the board, briefly:
 If you want to play along, the open-problem examples (`interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`) are the doors in.
 
+The proof-kernel experiment is likewise one command:
+
+```sh
+(cd formal && lake build)
+```
+
 ## Status and limits
 
 Active research code with tests, examples, and experiments. Treat green tests as
 regression evidence, not as proof of the mathematical program. CI runs `cargo fmt
 --check`, `cargo clippy --all-targets` (warning-clean), `cargo test`, `cargo check
---features python`, `cargo check --examples`, and `cargo doc --no-deps`.
+--features python`, `cargo check --examples`, `cargo doc --no-deps`, and the pinned
+Lean build with warnings and proof placeholders rejected.
 
 Scope boundaries, stated plainly:
 

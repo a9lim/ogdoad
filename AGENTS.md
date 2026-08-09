@@ -34,6 +34,14 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 | `src/py/`       | PyO3 bindings (feature = "python") + the binding-scope policy | [`src/py/AGENTS.md`](src/py/AGENTS.md) |
 | `src/linalg/`   | crate-private shared linear algebra | [`src/linalg/AGENTS.md`](src/linalg/AGENTS.md) |
 
+`formal/` is the separately pinned Lean 4 + mathlib proof-kernel experiment:
+`Ogdoad/Off.lean` formalizes the load-bearing algebra of the resolved full-`On₂`
+classification through a set-sized algebraically closed char-2 proxy;
+`Ogdoad/Fifo.lean` formalizes the exact reduced FIFO game, its terminating
+strategy semantics, cut invariant, and edgeless base theorem, while leaving the
+general isolated-dummy proposition explicitly open.  See `formal/README.md` for
+the proof/non-proof boundary.
+
 Beyond the library: `examples/` (Rust demos `tour`/`tropical` and the
 open-question probes `interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`; the grundy REPL lives in the
@@ -331,6 +339,7 @@ cargo run --example octal_hunt                # open-problem probe
 cargo run --example loopy_quadric             # open-problem probe
 cargo run --example misere_quotient           # open-problem probe
 cargo run --example bent_route                # open-problem probe
+(cd formal && lake build)                     # Lean off/FIFO proof-kernel check
 python -m maturin build --profile dev -i python
 python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
 python demo.py

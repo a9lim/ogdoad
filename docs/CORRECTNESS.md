@@ -64,6 +64,24 @@ The surviving structure is a filtered abelian group with external transports,
 not an internal full-dyadic graded ring; valuation-ring/integer-only or
 characteristic-2 restricted structures remain outside the theorem's contract.
 
+### Addendum — Lean proof-kernel boundary, 2026-08-09
+
+`formal/` pins Lean 4 and mathlib and contains no `sorry`, `admit`, or custom
+`axiom`.  `Ogdoad/Off.lean` kernel-checks the load-bearing `off` algebra:
+Artin–Schreier surjectivity, explicit symplectic-plane hyperbolization with the
+plane span preserved, and the zero-polar radical normal form `Q = ℓ²` with its
+zero/codimension-one split.  It uses a set-sized algebraically closed
+characteristic-two field as the finite-form proxy for full proper-class `On₂`;
+the standard general symplectic decomposition remains an input interface rather
+than a theorem reproved here.
+
+`Ogdoad/Fifo.lean` kernel-checks the exact reduced game semantics, strict
+termination rank, queue invariant, strategy quantifiers, queue-cut conservation,
+and the edgeless base theorem.  `FifoLinkingTheorem` is deliberately only a
+definition of the open proposition.  The exhaustive graph census through eight
+real coins remains machine evidence, not a formal proof of the missing global
+affine-contraction lemma.
+
 ## What holds (the baseline — don't dilute it on any cleanup pass)
 
 - **The cross-validation spine is real, and this sweep widened it.** `verify_milgram`

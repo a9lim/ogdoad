@@ -68,6 +68,26 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo doc --no-deps --workspace
 
+  lean:
+    # The standalone proof experiment is warning-clean and deliberately has no
+    # proof placeholders or custom axioms.  lean-action reads the pinned
+    # formal/lean-toolchain and obtains mathlib's binary cache before building.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Reject proof placeholders and custom axioms
+        run: |
+          if grep -REn '\b(sorry|admit|axiom)\b' formal --include='*.lean'; then
+            exit 1
+          fi
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: formal
+          build: true
+          build-args: --wfail
+          test: false
+          lint: false
+
   python:
     # Build the abi3 extension with maturin, install the wheel, and run the demo
     # tour. Display paths (blade / nimber / surreal rendering) don't surface in

@@ -70,6 +70,11 @@ form data in the singular case.
   when the needed excess data and checked degree arithmetic are available.  The
   full-`On₂` theorem does not pretend to supply an in-window root or isometry witness.
 - artifact: `writeups/transfinite_arf.tex` / `writeups/transfinite_arf.pdf`.
+- formal core: `formal/Ogdoad/Off.lean` kernel-checks Artin–Schreier
+  surjectivity, span-preserving hyperbolization of every supplied symplectic
+  plane, and the zero-polar radical normal form.  The proper-class-to-set-sized
+  reduction and the standard general symplectic decomposition are explicit
+  boundaries in `formal/README.md`.
 
 ### 2·e_o: `ogham-0.3.6` (the second adversarial pass)
 **Completed:** 2026-07-10

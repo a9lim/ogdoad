@@ -1,6 +1,9 @@
 # Rust
 /target
 
+# Lean
+/formal/.lake/
+
 # Python
 __pycache__/
 *.so
