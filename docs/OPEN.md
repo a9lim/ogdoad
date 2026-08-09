@@ -416,6 +416,40 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   losing and a phase-changing CLOSE as its unique safe reply.  The missing
   chain must mix strategy-selected OPEN and CLOSE children across front
   levels.
+- The wall fan now has a genuine strategy-pruned extension while its ordered
+  front remains fixed.  If both fibres of
+  `eta_xy(u)=B(x,u)+B(y,u)` are even, every attacker OPEN branches over the odd
+  set of remaining same-`eta` replies; when the attacker closes `x`, the
+  responder closes `y`.  This transports odd augmentation through arbitrarily
+  many OPEN rounds with zero scalar charge.  Its exact residue is the
+  Eulerian, `B`-isotropic chain `kappa_xy(U)=sum_{u in U}(xu+yu)`.  For queued
+  two-cells `P_i`, the prefix identity
+  `sum_{i<=k} K(P_i,U) + sum_{i<=k<j} K(P_i,P_j) = delta(A_k)` converts that
+  residue into cross-cell four-cycles.  A pinned Euler example has canonical
+  exit imbalances `0,0,1`, so aggregate next-front balance is false; the
+  four-cycle defect must be transported through later matching-phase pivots.
+- Complete pass-free histories also have a response-factor normal form.  Pair
+  each coin's OPEN/CLOSE events and pair each attacker move with the following
+  defender response.  The two matchings form alternating cycles when the
+  defender moves second, or cycles plus one path when the defender moves
+  first.  If a forced pass occurs, delete its whole terminal singleton macro
+  and mark that zero-charge vertex outside the prefix factor.  Zero
+  normalization is exactly the condition that every response edge is
+  charge-balanced.  With the isolated dummy, exact minimax certifies that such
+  factors exist for both seats on the complete graph census through eight real
+  vertices; this remains a tested conjecture.  The precise open statement is
+  now a **causal charge-balanced factor-extension theorem** under arbitrary
+  attacker pruning, allowing an unmatched untouched defect endpoint until a
+  legal phase pivot absorbs it.
+- One genuinely unbounded attacker subclass is solved for all orders and both
+  seats.  If the attacker always closes whenever legal, defender histories
+  realize complements of Hamiltonian paths or path squares.  Affine separation
+  shows their traces contain the complete real graph; when the first attacker
+  opener is the dummy, a controlled second block supplies isolated-vertex plus
+  Hamiltonian-path traces and repairs the otherwise false one-block span.
+  Conversely, forcing the defender to OPEN whenever untouched vertices remain
+  is false already on `K4+dummy` and `(K4-e)+dummy`: the winning unrestricted
+  repair is a phase-changing front CLOSE.
 - The broad prevention/debt menu also has a sharp block boundary.  A maximal
   FIFO block with opening order `v_i`, residual `S`, and threshold `t_i`
   scores `e(B,S)` plus the internal edges `v_i v_j` with `j>t_i`.  It ends in
@@ -572,9 +606,11 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
   (`experiments/linking_game.py`). The old R3/D3 induction fails first at
   `GCRU]w`; the live route is the block-turn plus live-degree-pairing
   formulation, with FIFO re-entering through forced front deletion and the
-  proactive-debt witnesses above.  The current exact target is the global
-  affine-contraction lemma of `writeups/linking_affine.tex`, with the FIFO
-  cut-space filtration as a coordinate system but not a childwise induction.
+  proactive-debt witnesses above.  Balanced-front odd-flow transport and the
+  complete close-first contraction are now proved, but the current exact
+  target remains the global affine-contraction/causal-factor-extension lemma
+  of `writeups/linking_affine.tex`, with the FIFO cut-space filtration as a
+  coordinate system rather than a childwise induction.
   A proof upgrades the m∈{4,8} verification to exactness for all m.
 - Repair or replace N3, the anti-clock axiom — the open definitional problem: the
   escape-edge construction passes N1–N3 while being morally a clock, and two-game

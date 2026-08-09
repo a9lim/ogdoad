@@ -84,6 +84,12 @@ moment.  Every Euler graph outside the solved two-odd-clique family has a
 single even-curvature triangle, but that face may be precisely what the
 attacker prunes; an exact secondary-Euler witness also shows that pruning to
 one graph's zero-normalized replies is not a graph-independent contraction.
+Balanced FIFO fronts nevertheless admit a canonical strategy-pruned odd
+transport through arbitrarily many OPEN rounds; its residual coefficient is
+an Eulerian, isotropic two-star whose exact cell-cut calculus converts OPENs
+into queued four-cycles.  Separately, every close-first attacker is contracted
+for arbitrary order and either seat by Hamiltonian path and path-square affine
+spans, with a two-block correction when the attacker opens the dummy.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
@@ -1428,6 +1434,168 @@ phase-changing close.  A valid odd flow must therefore choose a
 strategy-dependent subset across OPEN and CLOSE children and across earlier
 front levels, rather than assigning coefficient one to the whole odd wall.
 
+The wall does, however, transport an odd flow through an arbitrarily long
+run of OPEN moves while one ordered front pair is fixed.  The right hypothesis
+is slightly more general than Eulerianity.  For a checkpoint
+$Q=(x,y,Q_0)$, put
+\[
+ \eta_{xy}(u)=B(x,u)+B(y,u)\qquad(u\in U),
+\]
+and call the front pair \emph{balanced} when both $\eta_{xy}$ fibres in $U$
+have even cardinality.
+
+\begin{theorem}[balanced-front odd-flow transport]
+\label{thm:balanced-front-transport}
+\PROVED{} Fix a balanced checkpoint with the attacker to move and fix an
+arbitrary deterministic attacker strategy until $x$ closes.  There is a
+canonical response flow of odd augmentation with the following rules:
+\begin{itemize}[leftmargin=*]
+\item after an attacker OPEN $O_z$, put coefficient one on every reply
+      $O_w$ with $\eta_{xy}(w)=\eta_{xy}(z)$;
+\item after the attacker closes $x$, reply by closing $y$ and exit the
+      fixed-front phase.
+\end{itemize}
+Every exit has equal charges on $C_x,C_y$, so the phase contributes zero
+scalar score.  If $U_\lambda$ is the untouched set at an exit $\lambda$, its
+future disjointness increment on the deleted pair is exactly
+\begin{equation}\label{eq:kappa-front}
+ \kappa_{xy}(U_\lambda)
+ =\sum_{u\in U_\lambda}(xu+yu).
+\end{equation}
+This chain is Eulerian and $B$-isotropic:
+\[
+ \partial\kappa_{xy}(U_\lambda)=0,
+ \qquad
+ \langle B,\kappa_{xy}(U_\lambda)\rangle=0.
+\]
+\end{theorem}
+
+\begin{proof}
+If the attacker opens $z$, its $\eta$-fibre had even size, so after removing
+$z$ the displayed reply set is odd and nonempty.  Every selected child removes
+two vertices of one fibre; hence both fibres remain even and the construction
+may be repeated.  Each OPEN round removes two untouched vertices, so the
+process terminates.  Attacker nodes route their coefficient to the one child
+prescribed by the strategy, while every defender fan has odd augmentation;
+the exit flow therefore has augmentation one.
+
+At an exit,
+\[
+ \deg_{U_\lambda}(x)+\deg_{U_\lambda}(y)
+ =\sum_{u\in U_\lambda}\eta_{xy}(u)=0,
+\]
+so the consecutive close charges agree.  A residual untouched vertex is
+disjoint from both deleted front intervals, whereas every vertex already in
+the queue overlaps them.  This proves \eqref{eq:kappa-front}.  The residual
+set has even cardinality, so every vertex in the displayed complete bipartite
+chain has even degree.  Pairing that chain with $B$ gives the same even
+$\eta$-sum, proving the last two assertions.
+\end{proof}
+
+At an Euler ordered-pair checkpoint, balancedness follows from
+Lemma~\ref{lem:same-curvature-fan}, since
+$\eta_{xy}=\tau_{xy}+B(x,y)$.  Theorem~\ref{thm:balanced-front-transport}
+is therefore a genuine strategy-pruned local coefficient transport, not merely the
+one-round wall count.  Its nonzero $\kappa$ is the local coefficient which
+must be carried to the next FIFO front.
+
+That coefficient has an exact cell-cut calculus.  For arbitrary disjoint sets
+$P,X$ in a residual live graph $H$, write
+\[
+ K(P,X)=\sum_{p\in P,\,x\in X}px.
+\]
+It is an Eulerian edge chain when both sets are even.
+The application below uses two-cells $P_i=\{a_i,b_i\}$ whose endpoints have
+equal degree parity in $H$.
+
+\begin{proposition}[cell-cut transport]
+\label{prop:cell-cut-transport}
+\PROVED{} Let the residual queue be
+$P_1P_2\cdots P_r$, where $P_i=\{a_i,b_i\}$ and
+$\deg_H(a_i)=\deg_H(b_i)\pmod2$ for every $i$, and let $U$ be untouched.
+For every prefix
+$A_k=P_1\cup\cdots\cup P_k$,
+\begin{equation}\label{eq:cell-prefix-cut}
+ \sum_{i\le k}K(P_i,U)
+ +\sum_{i\le k<j}K(P_i,P_j)
+ =\delta_H(A_k).
+\end{equation}
+Consequently, with
+\[
+ \Delta_i=\langle B,K(P_i,U)\rangle,
+ \qquad c_{ij}=\langle B,K(P_i,P_j)\rangle,
+\]
+one has
+\begin{equation}\label{eq:cell-prefix-charge}
+ \sum_{i\le k}\Delta_i=\sum_{i\le k<j}c_{ij}.
+\end{equation}
+In particular the number of cells with $\Delta_i=1$ is even.  Moving a new
+two-cell $R$ from $U$ to the back of the queue obeys
+\begin{equation}\label{eq:cell-open-transport}
+ K(P,U-R)=K(P,U)+K(P,R).
+\end{equation}
+Thus OPEN converts untouched $\kappa$-mass into a queued four-cycle, while
+successive CLOSE pairs, with intervening OPEN transfers accounted for by
+\eqref{eq:cell-open-transport}, move the same defect across the phase cuts in
+\eqref{eq:cell-prefix-cut}; after the entire queue closes only a cut remains.
+\end{proposition}
+
+\begin{proof}
+Both sides of \eqref{eq:cell-prefix-cut} are exactly the complete bipartite
+edge chain from $A_k$ to $H-A_k$: the first sum contains its edges to $U$ and
+the second its edges to later queue cells.  Pairing with $B$ proves
+\eqref{eq:cell-prefix-charge}, because
+\[
+ \langle B,\delta_H(A_k)\rangle
+ =\sum_{i\le k}\bigl(\deg_H(a_i)+\deg_H(b_i)\bigr)=0.
+\]
+More explicitly, $\deg_H(a_i)+\deg_H(b_i)=0$ gives
+\[
+ \Delta_i=\sum_{j\ne i}c_{ij};
+\]
+summing over $i$ cancels every $c_{ij}$ twice and proves the even-defect
+claim.  Equation~\eqref{eq:cell-open-transport} is the disjoint union
+$P\times U=(P\times(U-R))\sqcup(P\times R)$ over $\F_2$.
+\end{proof}
+
+For the Euler ordered-pair exits of
+Theorem~\ref{thm:balanced-front-transport}, the homogeneity hypothesis is
+automatic.  Put $H=G-\{x,y\}$.  Every wall-created cell $P_i=\{z_i,w_i\}$
+has $\eta_{xy}(z_i)=\eta_{xy}(w_i)$, while Eulerianity gives
+\[
+ \deg_H(v)=B(v,x)+B(v,y)=\eta_{xy}(v).
+\]
+Moreover $U$ is even, so each $K(P_i,U)$ is itself Eulerian.  This application
+does not extend merely from balancedness at an arbitrary non-Euler checkpoint;
+the cell-degree hypothesis is an additional datum there.
+
+The tempting next induction---that the first residual cell is balanced after
+summing the canonical wall exits---is false.  \TESTED{} On the Euler graph
+\[
+ E=\{02,03,04,07,24,34,36,37,45,46,47,57\},
+\]
+start at $(x,y)=(0,1)$.  The nonzero $\eta_{01}$ fibre is
+$\{2,3,4,7\}$ and the zero fibre is $\{5,6\}$.  Let the attacker open $2$;
+after replies $3,4,7$, respectively, let it follow
+\[
+ C_0,\qquad O_6O_7C_0,\qquad O_5C_0.
+\]
+The canonical transport exits at
+\[
+\begin{array}{c|c|c}
+ &Q&U\\ \hline
+(a)&(2,3)&\{4,5,6,7\}\\
+(b)&(2,4,6,5,7,3)&\varnothing\\
+(c)&(2,7,5,6)&\{3,4\}.
+\end{array}
+\]
+Their first-cell imbalances are $0,0,1$.  In the last exit both cells $27$
+and $56$ are imbalanced and $c_{27,56}=1$: the defect is not lost, but sits
+on the intermediate phase cut exactly as
+\eqref{eq:cell-prefix-charge} predicts.  Hence the remaining lemma must
+causally lift these cross-cell four-cycles through legal OPEN/CLOSE matching
+shifts; aggregate front balance is not the invariant.
+
 Nor is the Eulerian case a simplifying restriction of the scalar kernel.
 
 \begin{theorem}[Euler ordered-pair kernel is complete]
@@ -1667,6 +1835,228 @@ false on reachable states.  The local relations
   \sum_{x\in L\cap R}s_L(x)=0
 \]
 provide the cone and the cut dependence, but not the required global coupling.
+
+There is a second exact encoding of the causal obstruction.  Call a complete
+winning line \emph{zero-normalized} when the cumulative flip score is zero
+after every defender move (or forced defender pass).
+
+\begin{proposition}[response-factor normal form]
+\label{prop:response-factor}
+\PROVED{} First suppose the history is pass-free.  Let $I$ pair the two event
+occurrences $O_v,C_v$ of each vertex, and pair each attacker event with the
+immediately following defender event to obtain a response matching $R$.
+If the defender moves second, $I\cup R$ is a disjoint union of alternating
+even cycles.  If the defender moves first, it is a union of alternating
+cycles and one alternating path from the defender's initial OPEN to the
+attacker's terminal zero-charge CLOSE.  Projecting $R$ to vertex labels gives
+a loopless $2$-regular multigraph in the second-seat case and the analogous
+path-plus-cycles factor in the first-seat case.
+
+If a forced pass occurs in the terminal singleton macro $O_v,P,C_v$, delete
+that entire macro, retain the actual charge labels on the prefix, and apply
+the pass-free statement on $V-\{v\}$.  The vertex $v$ is then a marked
+zero-charge terminal singleton outside the factor.  For a second-seat
+defender the prefix again gives cycles.  For a first-seat defender it gives
+cycles plus a path from the initial OPEN to the zero-charge attacker CLOSE
+immediately preceding the deleted macro, unless the prefix is empty, in which
+case only the marked singleton remains.
+
+A response edge has zero normalization defect exactly when it is an
+OPEN--OPEN edge, a CLOSE--CLOSE edge whose two charges agree, or a mixed edge
+whose unique CLOSE has charge zero.  Thus a complete zero-normalized line is
+equivalently a causal charge-balanced response factor of the stated type,
+together with the marked zero terminal singleton when a pass occurs.
+\end{proposition}
+
+\begin{proof}
+Both $I$ and, in the second-seat case, $R$ are perfect matchings on the $2N$
+event occurrences, so their union consists of alternating even cycles.  In
+the first-seat case $R$ leaves only the initial and terminal occurrences
+unmatched, producing one alternating path in addition to cycles.  Every
+vertex has its OPEN and CLOSE occurrence in $I$ and therefore two projected
+$R$ incidences, except at those path endpoints.  A projected loop would
+require two consecutive legal events on the same vertex, which FIFO and ko
+forbid.  Immediately before every attacker--defender response round the
+cumulative score is zero.  XORing the two event charges gives precisely the
+three cases stated.  The unmatched initial event is an OPEN, and terminal
+victory makes the unmatched final CLOSE charge zero.
+
+Contracting an OPEN--pass--CLOSE tail would not preserve the matching: its
+OPEN and CLOSE belong to the same player.  Deleting all three moves instead
+leaves a pass-free complete prefix.  If the defender moves second, both
+deleted touch events belonged to the attacker and the prefix matchings are
+perfect.  If the defender moves first, both belonged to the defender; the
+preceding attacker CLOSE becomes the path endpoint, and its charge is zero
+because the following defender OPEN had to leave the cumulative score
+normalized.  The deleted macro itself has zero charge, proving the pass case.
+\end{proof}
+
+\TESTED{} Exact minimax finds such zero-normalized strategies after adjoining
+the isolated dummy for every graph isomorphism class through eight real
+vertices, for either defender seat.  In the complete order-eight census the
+following sharper root selectors also survive: a first-seat defender may open
+$d$; after a second-seat defender observes $O_x$ on a real vertex, some real
+same-degree-parity $O_y$ is safe; and after $O_d$ some real OPEN is safe.
+These are finite certificates, not a factor-extension proof.  Static routing
+to the dummy is already false on small reachable checkpoints: a phase pivot
+may first terminate at an unmatched untouched vertex.
+
+The local choice at a normalized ordered cell makes the missing extension
+especially explicit.  Suppose $Q=(x,y,Q_0)$, $|U|$ is even, and
+$\deg_U(x)=\deg_U(y)=a$.  Thus both $\eta_{xy}$ fibres are even.  After an
+attacker OPEN $O_z$, the front charges are
+\[
+ \bigl(a+B(x,z),\ a+B(y,z)\bigr).
+\]
+If the first bit is zero, $C_x$ is a legal normalized phase pivot to queue
+$(y,Q_0,z)$; if the bits are $11$, that pivot is forbidden, while a same-$\eta$
+OPEN reply remains in the balanced-front corridor; and a $10$ or $01$ pair
+is a transported defect endpoint.  An OPEN--OPEN reply $O_w$ preserves
+equality of the eventual consecutive $C_x,C_y$ charges exactly when
+$B(x+y,z+w)=0$; further same-$\eta$ pairs preserve it again.  The
+same-curvature wall supplies an odd fan of such $w$,
+while Proposition~\ref{prop:response-factor} says what its one-vertex causal
+pivots must ultimately assemble.  The unresolved theorem is precisely that
+every attacker-pruned partial factor admits this balanced extension; neither
+the cell handshake nor the static dummy endpoint proves it.
+
+One unbounded attacker class can nevertheless be contracted completely.  It
+is the class used below to generate the causal simplex caps, so the result is
+not a bounded-support statement in disguise.  Call an attacker
+\emph{close-first} if it closes the front whenever that is legal and opens
+only when ko or an empty queue forbids a close.  Write $J_R$ for the all-edge
+chain on the real vertices, and for an ordering $P$ of $R\sqcup\{d\}$ write
+$P_R$ and $P_R^2$ for the real-edge traces of the path and its square.
+
+\begin{theorem}[complete close-first contraction]
+\label{thm:close-first}
+\PROVED{} For every number of real vertices, every close-first attacker admits
+an odd compatible response chain with zero terminal disjointness moment.  This
+holds whether the attacker occupies the first or the second seat.
+\end{theorem}
+
+\begin{proof}
+Suppose first that the attacker moves first and opens a real vertex $p$.
+The defender opens $v_2$ and thereafter, following every attacker close,
+opens an arbitrary untouched vertex; after the last opening the remaining
+fronts close.  Every Hamiltonian ordering
+\[
+ P=(p,v_2,\ldots,v_N)
+\]
+is therefore compatible.  Its overlap graph is the path $P_R$, so
+\begin{equation}\label{eq:close-first-path}
+ D_R=J_R+P_R.
+\end{equation}
+The affine hull of these path traces is the whole $E(K_R)$.  Indeed, if a
+real edge weighting $A$ has constant path sum, compare two orders which are
+identical except for the local segments
+\[
+ a,d,x,b,\qquad a,x,d,b.
+\]
+Their difference gives $A_{xb}=A_{ax}$.  Varying the three real vertices
+makes every real edge carry one common value $t$.  Putting the dummy at an
+endpoint or in the interior changes the number of real path edges by one, so
+$t=0$.  The cases with at most three real vertices follow directly; for
+three, the three traces from
+\[
+ (p,x,y,d),\quad(p,y,x,d),\quad(p,d,x,y)
+\]
+XOR to $J_R$.  Hence $J_R$ is an odd affine sum of the $P_R$, and
+\eqref{eq:close-first-path} gives a zero sum of the corresponding $D_R$.
+
+If $|R|\le1$, a dummy-root game is trivial.  Otherwise, if the first attacker
+opener is the dummy, use two compatible response
+families.  One-block play realizes every Hamiltonian path on $R$ as the real
+overlap graph.  Alternatively, for each real $x$ the defender plays
+\[
+ O_d,O_x,C_d,C_x.
+\]
+The queue is empty, so the attacker must open some history-dependent
+$y_x\in R-\{x\}$; resuming one-block play realizes an isolated $x$ together
+with every Hamiltonian path on $R-\{x\}$ beginning at $y_x$.  Any edge
+weighting constant on all Hamiltonian paths of $K_R$ is uniform: comparing
+the paths $x,a,y,r,L$ and $y,a,x,r,L$ gives $A_{yr}=A_{xr}$, and varying the
+vertices makes $A_e=t$ for every real edge when $|R|\ge4$; equality of the
+three two-edge path sums gives the same conclusion when $|R|=3$.  A full
+path and an isolate-first path have respectively $|R|-1$ and $|R|-2$ edges,
+so constancy on their union forces $t=0$.  Thus this union has full affine
+hull and again contains $J_R$.  For $|R|=2$ the two families have traces
+$J_R$ and $0$.  This proves the first-seat assertion,
+including the dummy-root wall which one-block paths alone would not cover.
+
+Now let the close-first attacker move second.  The case $|R|\le1$ is trivial,
+so assume at least two real vertices.  The defender first opens a
+vertex $p$; ko forces the attacker to open a vertex $q(p)$; the defender then
+always opens while an untouched vertex remains.  Every remaining opening
+order is under defender control, and the real overlap graph is $P_R^2$ for a
+Hamiltonian order with prefix $(p,q(p))$.  Hence
+\begin{equation}\label{eq:close-first-square}
+ D_R=J_R+P_R^2.
+\end{equation}
+It remains to show that $J_R$ lies in the affine hull of the available square
+traces.
+
+First suppose some real $p$ has real $q=q(p)$.  Restrict to that root.  If
+$F_A(P)=\langle A,P_R^2\rangle$ is constant on all orders with prefix
+$(p,q)$, extend the real-edge weighting $A$ by zero on dummy edges.  Swapping
+adjacent tail vertices in the local words
+\[
+ a,b,x,y,c,e,\qquad a,b,y,x,c,e
+\]
+gives
+\begin{equation}\label{eq:path-square-swap}
+ A_{ax}+A_{ye}+A_{ay}+A_{xe}=0.
+\end{equation}
+For $|R|\ge7$, putting $e=d$ and varying the tail shows that all $p$-tail edges have one
+value $\alpha$, all $q$-tail edges one value $\beta$, and all tail-tail edges
+one value $t$; write $A_{pq}=\gamma$.  Moving $d$ to tail positions
+$3,4,N-1,N$ changes the nonconstant part of $F_A$ through
+\[
+ \gamma+\beta+t,\quad
+ \gamma+\alpha+\beta,\quad
+ \gamma+\alpha,\quad
+ \gamma+\alpha+t.
+\]
+Constancy forces $\alpha=\beta=t=0$.  The only possible residual functional
+is supported on $pq$; its constant value is $\gamma=\langle A,J_R\rangle$.
+By affine separation this is exactly the condition
+$J_R\in\Aff\{P_R^2:P\text{ begins }(p,q)\}$.  The finitely shorter ranks are witnessed directly by
+the odd supports of sizes $1,1,3,5,7$ for $|R|=2,3,4,5,6$; these explicit
+orders are checked in the companion experiment by
+\path{close_first_low_rank_certificates}.
+
+It remains that $q(p)=d$ for every real root $p$.  Include also the dummy root,
+where the forced second opener is some real $q_0$.  Thus the response family
+contains all square paths beginning $(p,d)$, for every real $p$, together with
+all those beginning $(d,q_0)$.  If $F_A$ is constant on this union, comparing
+the two allowed prefixes $(d,q_0,x,y,\ldots)$ and
+$(q_0,d,x,y,\ldots)$ gives $A_{q_0y}=0$.  Further adjacent-tail comparisons
+are also explicit.  For distinct $p,x,y,z\in W=R-\{q_0\}$, compare
+\[
+ (p,d,x,q_0,y,z,\ldots),\qquad
+ (p,d,q_0,x,y,z,\ldots).
+\]
+The difference is $A_{px}+A_{xz}$, so every edge inside $W$ has one value
+$t$.  On $(d,q_0,w_1,\ldots,w_{|W|})$ the $W$-edge contribution is
+$(2|W|-3)t=t$, whereas on an order $(p,d,x,\ldots,q_0)$ with $q_0$
+last and all of $W-\{p,x\}$ in the omitted positions, it is
+$t+(2(|R|-2)-3)t=0$.  Both values equal the common constant, so $t=0$.
+Hence $A=0$, and the
+union in fact has full affine hull.  Direct odd supports of sizes $1,1,3$
+cover $|R|=2,3,4$ in the same companion function; the comparison applies
+from $|R|=5$ onward.  Therefore
+$J_R$ is an odd affine sum in every second-seat case, and
+\eqref{eq:close-first-square} finishes the proof.
+\end{proof}
+
+Theorem~\ref{thm:close-first} closes the policy responsible for the unbounded
+caps, but not an arbitrary policy.  It also exposes why a simple monotonicity
+argument fails: replacing one forced close by an attacker OPEN prunes the
+very adjacent-event diamond which would add the correcting rooted triangle.
+A responder restricted to OPEN while untouched vertices remain is already
+false on $K_4-e$ plus the dummy; the winning unrestricted reply is a
+phase-changing front CLOSE.  Thus neither ``more overlap is easier'' nor a
+single-block reduction removes the causal phase problem.
 
 This boundary also explains why the nearest imported techniques do not close
 the problem.  A standard strategy-stealing pass must be optional and harmless;
@@ -1909,8 +2299,10 @@ The following claims have different status and should not be flattened.
       least-counterexample odd routing, zero-normalized repair recursion,
       queue-matching phase-fan identity, tetrahedral coherence, Euler curvature
       oik and its oriented lift, the odd isotropic triangle dichotomy,
-      the same-curvature odd wall fan,
+      the same-curvature odd wall fan, balanced-front odd-flow transport and
+      its cell-cut coefficient calculus, the response-factor normal form,
       completeness of the Euler ordered-pair kernel,
+      the complete both-seat close-first contraction,
       the causal simplex-cap family,
       fixed-permutation no-go, and displayed triangular fan and fixed-front
       poison descent, together with the front-signature no-go, pass-free
@@ -1942,6 +2334,18 @@ The following claims have different status and should not be flattened.
       symplectic-flag, and one-cut selectors have the explicit failures stated
       above.  The finite forests do not prove their own existence at arbitrary
       order.
+\item \TESTED{} With an isolated dummy, exact zero-normalized minimax succeeds
+      through eight real vertices for both defender seats.
+      The same census verifies the three root selectors stated after
+      Proposition~\ref{prop:response-factor}.  The canonical balanced-front
+      wall exits need not have zero aggregate first-cell imbalance: the
+      displayed Euler graph has exit imbalances $0,0,1$, with the remaining
+      defect carried by a cross-cell four-cycle.  These tests delimit the
+      causal factor-extension lemma; they do not prove it.
+\item \TESTED{} Restricting the defender to OPEN while untouched vertices
+      remain is false already on $K_4+d$ and $(K_4-e)+d$.  The unrestricted
+      winning line uses a phase-changing front CLOSE, so the close-first
+      theorem cannot be extended by a one-block monotonicity argument.
 \item \TESTED{} The displayed pair of order-eight Euler graphs proves that a
       primary repair forest need not have a cut-valued affine
       response moment uniformly for a secondary Euler functional: the pinned
@@ -1956,7 +2360,11 @@ The following claims have different status and should not be flattened.
 \item \OPEN{} The global FIFO affine-contraction statement
       \eqref{eq:affine-target} is not proved.  Neither the complete finite
       census nor the graph-free affine searches are evidence of a general
-      chain contraction.
+      chain contraction.  Equivalently at the normalized frontier, the
+      missing assertion is a strategy-relative causal extension theorem for
+      the charge-balanced response factor, allowing odd wall fans, front-cell
+      deletion, and matching-phase pivots to share their transported
+      four-cycle defects across branches.
 \end{itemize}
 
 \begin{thebibliography}{9}

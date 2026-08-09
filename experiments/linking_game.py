@@ -30,7 +30,7 @@ dummy), the flip count is forced even -- both seats, every graph.  Hence
 sigma is forced = |E| mod 2, which on a Gold board is Q(x): m-uniform
 exactness of the echo-fifo+dummy realizer.
 
-STATUS (2026-08-07), machine-verified by this file:
+STATUS (2026-08-08), machine-verified by this file:
   * Rigidity holds for ALL graph iso classes with k <= 8 real coins +
     dummy, both seats (k=8: 12,346 classes, supplied by nauty ``geng``) --
     far beyond the Gold-arising boards of the m=8 sweep.
@@ -111,6 +111,16 @@ STATUS (2026-08-07), machine-verified by this file:
     dummy, when the unique forced pass is omitted from the event positions.
     Deleting the dummy coordinate contributes precisely its disjointness
     bit.  The randomized reduction checks below pin both forms.
+  * Exact zero-normalized minimax with an isolated dummy survives the complete
+    k <= 8 census for either Even seat: after every Even move (including a
+    forced pass), the accumulated flip score can be restored to zero.  This is
+    stronger than the root linking theorem but remains a tested conjecture;
+    stage ``dummy-neutral`` checks a supplied graph6 census.
+  * The close-first attacker is now solved analytically for arbitrary k and
+    either seat.  One-block responses give complements of Hamiltonian paths
+    or path squares; a controlled second block repairs the dummy-root case.
+    ``validate`` pins every exceptional low-rank affine certificate used by
+    the separation proof.
   * Three stronger induction templates now have pinned order-8 failures.
     Equal two-bit colour does not make an ordered first cell safe; one opener
     can have no safe same-colour mate; and a Safe even-U checkpoint can require
@@ -124,11 +134,11 @@ makes f odd while closing f exposes the odd front h.  The dummy defeats
 this squeeze while untouched, but a proof must track the queued case.
 
 Stages: validate | screen [K] | strategy [K] | refinement [K] | graph6 |
-neutral | all (default K = 5; the k=7 screen ~45 s, k=7 strategy ~25 s).
-``graph6`` and ``neutral`` consume a nauty ``geng`` census through
-``--graph6-path`` and can parallelize with
+neutral | dummy-neutral | all (default K = 5; the k=7 screen ~45 s, k=7
+strategy ~25 s).  ``graph6``, ``neutral``, and ``dummy-neutral`` consume a
+nauty ``geng`` census through ``--graph6-path`` and can parallelize with
 ``--jobs`` (for example, ``geng -q 8 > graphs8.g6`` followed by
-``python linking_game.py neutral --graph6-path graphs8.g6 --jobs 12``).
+``python linking_game.py dummy-neutral --graph6-path graphs8.g6 --jobs 12``).
 Stdlib only, no venv needed.
 Cross-validated against experiments/echo_solver.py (the adversarially
 reviewed solver) through the SynthForm bridge in stage `validate`.
@@ -265,6 +275,168 @@ def zero_normalized_safe(k: int, edges) -> bool:
     """
     return even_checkpoint_safe(
         k, edges, (1 << k) - 1, (), zero_normalized=True)
+
+
+def _zero_normalized_dummy_solver(k: int, edges, seat: int):
+    """Build the exact normalized recursion on ``k`` reals plus a dummy."""
+    if seat not in (0, 1):
+        raise ValueError("seat must be 0 or 1")
+    n = k + 1
+    adj = adj_of(n, edges)
+
+    @functools.lru_cache(None)
+    def safe(u: int, seq: tuple[int, ...], ko: bool,
+             mover: int, score: int) -> bool:
+        # No future close can carry charge once every vertex is touched.
+        if u == 0:
+            return score == 0
+        moves = legal_moves(n, adj, u, seq, ko)
+        if not moves:
+            if mover == seat and score:
+                return False
+            return safe(u, seq, False, 1 - mover, score)
+        values = []
+        for _kind, _coin, flip, u2, seq2, ko2 in moves:
+            score2 = score ^ flip
+            if mover == seat and score2:
+                continue
+            values.append(safe(u2, seq2, ko2, 1 - mover, score2))
+        return any(values) if mover == seat else all(values)
+
+    return n, adj, safe
+
+
+def zero_normalized_dummy_safe(k: int, edges, seat: int) -> bool:
+    """Exact both-seat zero-normalization on ``k`` reals plus a dummy.
+
+    ``seat`` is the Even player's seat, 0 or 1.  Odd is universal.  Every
+    Even move, including the unique forced pass, must leave accumulated flip
+    score zero.  The complete k=8 graph6 census has no counterexample, but no
+    general proof is claimed.
+    """
+    n, _adj, safe = _zero_normalized_dummy_solver(k, edges, seat)
+    return safe((1 << n) - 1, (), False, 0, 0)
+
+
+def zero_normalized_dummy_root_selectors(k: int, edges) -> tuple[bool, bool, bool]:
+    """Check the three isolated-dummy root selectors from the finite census.
+
+    Returns ``(even_first_opens_dummy, every_real_attack_has_degree_mate,
+    dummy_attack_has_real_reply)`` for positive even ``k``.  All selected
+    children must be winning in the exact zero-normalized recursion.
+    """
+    n0, adj0, safe0 = _zero_normalized_dummy_solver(k, edges, 0)
+    full = (1 << n0) - 1
+    first_dummy_move = next(
+        move for move in legal_moves(n0, adj0, full, (), False)
+        if move[:2] == ("o", k))
+    first_dummy = safe0(
+        first_dummy_move[3], first_dummy_move[4], first_dummy_move[5], 1, 0)
+
+    n1, adj1, safe1 = _zero_normalized_dummy_solver(k, edges, 1)
+
+    def safe_open_reply(opener: int, require_same_degree: bool) -> bool:
+        attack = next(
+            move for move in legal_moves(n1, adj1, full, (), False)
+            if move[:2] == ("o", opener))
+        _kind, _coin, _flip, u1, seq1, ko1 = attack
+        for reply in legal_moves(n1, adj1, u1, seq1, ko1):
+            kind, coin, flip, u2, seq2, ko2 = reply
+            if kind != "o" or coin == k or flip:
+                continue
+            if require_same_degree and \
+                    ((adj1[coin].bit_count() ^ adj1[opener].bit_count()) & 1):
+                continue
+            if safe1(u2, seq2, ko2, 0, 0):
+                return True
+        return False
+
+    real_degree_mates = all(safe_open_reply(x, True) for x in range(k))
+    dummy_real_reply = safe_open_reply(k, False)
+    return first_dummy, real_degree_mates, dummy_real_reply
+
+
+def open_while_untouched_safe(k: int, edges) -> bool:
+    """Whether first-seat Even wins while OPEN-only until U is empty.
+
+    This deliberately false stronger carrier helps pin why phase-changing
+    CLOSE replies are load-bearing.  It carries arbitrary intermediate debt
+    and tests only the terminal score.
+    """
+    n = k + 1
+    adj = adj_of(n, edges)
+
+    @functools.lru_cache(None)
+    def safe(u: int, seq: tuple[int, ...], ko: bool,
+             mover: int, score: int) -> bool:
+        if u == 0 and not seq:
+            return score == 0
+        moves = legal_moves(n, adj, u, seq, ko)
+        if not moves:
+            return safe(u, seq, False, 1 - mover, score)
+        if mover == 0:
+            kind = "o" if u else "c"
+            moves = [move for move in moves if move[0] == kind]
+            return any(safe(u2, seq2, ko2, 1, score ^ flip)
+                       for _kind, _coin, flip, u2, seq2, ko2 in moves)
+        return all(safe(u2, seq2, ko2, 0, score ^ flip)
+                   for _kind, _coin, flip, u2, seq2, ko2 in moves)
+
+    return safe((1 << n) - 1, (), False, 0, 0)
+
+
+def real_path_power_trace(k: int, order: tuple[int, ...], power: int) -> int:
+    """Real-edge trace of a path power on ``k`` reals plus dummy ``k``."""
+    assert sorted(order) == list(range(k + 1))
+    edge_bit = {(i, j): bit for bit, (i, j) in enumerate(
+        (i, j) for i in range(k) for j in range(i + 1, k))}
+    out = 0
+    for i, left in enumerate(order):
+        if left == k:
+            continue
+        for right in order[i + 1:i + power + 1]:
+            if right == k:
+                continue
+            out ^= 1 << edge_bit[min(left, right), max(left, right)]
+    return out
+
+
+def close_first_low_rank_certificates() -> None:
+    """Check the finite affine supports in the close-first proof."""
+    fixed_real_prefix = {
+        2: [(0, 1, 2)],
+        3: [(0, 1, 2, 3)],
+        4: [(0, 1, 2, 4, 3), (0, 1, 3, 2, 4),
+            (0, 1, 4, 2, 3)],
+        5: [(0, 1, 2, 3, 4, 5), (0, 1, 2, 3, 5, 4),
+            (0, 1, 2, 5, 3, 4), (0, 1, 3, 2, 4, 5),
+            (0, 1, 4, 2, 3, 5)],
+        6: [(0, 1, 2, 3, 4, 5, 6), (0, 1, 2, 3, 6, 4, 5),
+            (0, 1, 2, 6, 3, 4, 5), (0, 1, 3, 2, 4, 5, 6),
+            (0, 1, 4, 2, 3, 5, 6), (0, 1, 5, 2, 3, 4, 6),
+            (0, 1, 6, 2, 3, 4, 5)],
+    }
+    all_dummy_replies = {
+        2: [(0, 2, 1)],
+        3: [(3, 0, 1, 2)],
+        4: [(0, 4, 1, 2, 3), (0, 4, 2, 1, 3),
+            (0, 4, 3, 1, 2)],
+    }
+    for k, orders in fixed_real_prefix.items():
+        assert all(order[:2] == (0, 1) for order in orders)
+        total = 0
+        for order in orders:
+            total ^= real_path_power_trace(k, order, 2)
+        assert total == (1 << (k * (k - 1) // 2)) - 1
+        assert len(orders) & 1
+    for k, orders in all_dummy_replies.items():
+        assert all((order[0] < k and order[1] == k)
+                   or order[:2] == (k, 0) for order in orders)
+        total = 0
+        for order in orders:
+            total ^= real_path_power_trace(k, order, 2)
+        assert total == (1 << (k * (k - 1) // 2)) - 1
+        assert len(orders) & 1
 
 
 def two_bit_root_failures(k: int, edges) -> list[tuple]:
@@ -450,6 +622,20 @@ def verify_neutral_graph6_record(line: str):
         return ("odd-order-input", line.strip(), k)
     if not zero_normalized_safe(k, edges):
         return ("zero-normalized", line.strip())
+    return None
+
+
+def verify_dummy_neutral_graph6_record(line: str):
+    """Return an isolated-dummy zero-normalization counterexample, if any."""
+    k, edges = decode_graph6(line)
+    if k < 2 or k % 2:
+        for seat in (0, 1):
+            if not zero_normalized_dummy_safe(k, edges, seat):
+                return ("dummy-zero-normalized", line.strip(), seat)
+        return None
+    selectors = zero_normalized_dummy_root_selectors(k, edges)
+    if selectors != (True, True, True):
+        return ("dummy-root-selectors", line.strip(), selectors)
     return None
 
 
@@ -913,6 +1099,83 @@ def stage_validate() -> None:
             assert zero_normalized_safe(k, edges), (k, edges)
             cnt += 1
     print(f"   {cnt} even boards admit repair forests")
+
+    print("== isolated-dummy zero normalization (k <= 4 exhaustive) ==")
+    cnt = 0
+    for k in range(1, 5):
+        pairs = [(i, j) for i in range(k) for j in range(i + 1, k)]
+        for gmask in range(1 << len(pairs)):
+            edges = frozenset(p for ii, p in enumerate(pairs)
+                              if gmask >> ii & 1)
+            for seat in (0, 1):
+                assert zero_normalized_dummy_safe(k, edges, seat), \
+                    (k, edges, seat)
+                cnt += 1
+            if k >= 2 and k % 2 == 0:
+                assert zero_normalized_dummy_root_selectors(k, edges) == \
+                    (True, True, True), (k, edges)
+    print(f"   {cnt} labelled boards/seats admit zero-normalized strategies")
+
+    print("== close-first affine certificates and one-block no-go ==")
+    close_first_low_rank_certificates()
+    complete4 = frozenset(
+        (i, j) for i in range(4) for j in range(i + 1, 4))
+    almost_complete4 = complete4 - {(0, 1)}
+    assert not open_while_untouched_safe(4, complete4)
+    assert not open_while_untouched_safe(4, almost_complete4)
+    print("   low-rank path-square certificates XOR to J; K4+d and"
+          " (K4-e)+d defeat OPEN-only play")
+
+    print("== balanced-front transport coefficient witness ==")
+    wall_edges = frozenset({
+        (0, 2), (0, 3), (0, 4), (0, 7), (2, 4), (3, 4),
+        (3, 6), (3, 7), (4, 5), (4, 6), (4, 7), (5, 7),
+    })
+    wall_adj = adj_of(8, wall_edges)
+
+    def eta(v):
+        return ((wall_adj[0] >> v) ^ (wall_adj[1] >> v)) & 1
+
+    assert {v for v in range(2, 8) if eta(v)} == {2, 3, 4, 7}
+    assert {v for v in range(2, 8) if not eta(v)} == {5, 6}
+
+    def cell_charge(cell, untouched):
+        umask = sum(1 << v for v in untouched)
+        return sum((wall_adj[v] & umask).bit_count()
+                   for v in cell) & 1
+
+    assert cell_charge((2, 3), (4, 5, 6, 7)) == 0
+    assert cell_charge((2, 4), ()) == 0
+    assert cell_charge((2, 7), (3, 4)) == 1
+    assert cell_charge((5, 6), (3, 4)) == 1
+    assert cell_charge((2, 7), (5, 6)) == 1
+
+    def replay_wall(word):
+        u = sum(1 << v for v in range(2, 8))
+        seq = (0, 1)
+        ko = False
+        score = 0
+        for name in word:
+            move = next(
+                move for move in legal_moves(8, wall_adj, u, seq, ko)
+                if move[:2] == name)
+            _kind, _coin, flip, u, seq, ko = move
+            score ^= flip
+        return u, seq, score
+
+    assert replay_wall((
+        ("o", 2), ("o", 3), ("c", 0), ("c", 1),
+    )) == (sum(1 << v for v in (4, 5, 6, 7)), (2, 3), 0)
+    assert replay_wall((
+        ("o", 2), ("o", 4), ("o", 6), ("o", 5),
+        ("o", 7), ("o", 3), ("c", 0), ("c", 1),
+    )) == (0, (2, 4, 6, 5, 7, 3), 0)
+    assert replay_wall((
+        ("o", 2), ("o", 7), ("o", 5), ("o", 6),
+        ("c", 0), ("c", 1),
+    )) == (sum(1 << v for v in (3, 4)), (2, 7, 5, 6), 0)
+    print("   canonical Euler-wall exits have first-cell defects 0,0,1;"
+          " the last is paired by its cross-cell four-cycle")
 
     print("== exact failures of stronger response lemmas ==")
     colour_edges = frozenset({
@@ -1431,11 +1694,42 @@ def stage_neutral(path: str, jobs: int) -> None:
     print(f"neutral: PASS ({len(records)} records in {time.time()-t0:.0f}s)")
 
 
+def stage_dummy_neutral(path: str, jobs: int) -> None:
+    """Verify both-seat zero-normalization after adjoining a dummy."""
+    if jobs < 1:
+        raise ValueError("jobs must be positive")
+    records = [line for line in Path(path).read_text(encoding="ascii").splitlines()
+               if line and not line.startswith(">>")]
+    if not records:
+        raise ValueError(f"no graph6 records in {path}")
+    orders = {decode_graph6(line)[0] for line in records}
+    print(f"dummy-neutral: {len(records)} records, orders={sorted(orders)},"
+          f" jobs={jobs}", flush=True)
+    t0 = time.time()
+    failures = []
+    with multiprocessing.Pool(processes=jobs) as pool:
+        for index, result in enumerate(
+                pool.imap_unordered(verify_dummy_neutral_graph6_record,
+                                    records, chunksize=1), 1):
+            if result is not None:
+                failures.append(result)
+                pool.terminate()
+                break
+            if index % 1000 == 0:
+                print(f"   {index}/{len(records)} [{time.time()-t0:.0f}s]",
+                      flush=True)
+    if failures:
+        raise AssertionError(f"dummy-neutral counterexample: {failures[0]}")
+    print(f"dummy-neutral: PASS ({len(records)} records in"
+          f" {time.time()-t0:.0f}s)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", nargs="?", default="all",
                          choices=("validate", "screen", "strategy",
-                                  "refinement", "graph6", "neutral", "all"))
+                                  "refinement", "graph6", "neutral",
+                                  "dummy-neutral", "all"))
     parser.add_argument("kmax", nargs="?", type=int, default=5)
     parser.add_argument("--graph6-path")
     parser.add_argument("--jobs", type=int, default=1)
@@ -1457,6 +1751,10 @@ def main() -> None:
         if args.graph6_path is None:
             parser.error("neutral requires --graph6-path")
         stage_neutral(args.graph6_path, args.jobs)
+    if args.stage == "dummy-neutral":
+        if args.graph6_path is None:
+            parser.error("dummy-neutral requires --graph6-path")
+        stage_dummy_neutral(args.graph6_path, args.jobs)
 
 
 if __name__ == "__main__":
