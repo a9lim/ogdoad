@@ -99,20 +99,45 @@ an Eulerian, isotropic two-star whose exact cell-cut calculus converts OPENs
 into queued four-cycles.  Exact witnesses show that three defender siblings
 can be essential, that cancelling both the first cut and triangle quotient can
 still leave a next-front cut, and that even a clean homogeneous cell state can
-be a canonical unsafe Euler-wall exit.  Separately, every close-first attacker
+be a canonical unsafe Euler-wall exit.  An odd OPEN fan does admit an affine
+virtual-vertex coordinate when the next close is common, but an exact
+three-real history-dependent policy shows that this coordinate does not
+commute with branch pruning.  Separately, every close-first attacker
 is contracted for arbitrary order and either seat by Hamiltonian path and
 path-square affine spans, with a two-block correction when the attacker opens
 the dummy.  With an arbitrary preloaded queue, an untouched dummy contracts
 every close-first tail by an adjacent-swap argument on the defender's opening
-permutations.  A stronger minimum-rank argument removes the dummy hypothesis
+permutations; in fact its even continuation space is the entire live edge
+face, although no descendant can alter an already frozen prefix coordinate.
+A stronger minimum-rank argument removes the dummy hypothesis
 at every clear defender checkpoint: a leafmost attacker deviation can occur
 only on residual target zero, behind an earlier odd CLOSE.  This conditioned
 contraction, including its whole-queue two-untouched base, is also
 kernel-checked in \path{formal/Ogdoad/Fifo.lean}.
+There is also a complete root theorem for the stopped extension needed by the
+normalization attempt: if a close-first attacker may terminate immediately at
+a clear score-one checkpoint, then the defender still wins from every
+defender-first empty no-dummy root.  Its proof is a mutual induction on
+ordered bad pairs; a two-bit walk-parity rank makes their directed graph
+acyclic, and the complete argument is kernel-checked in
+\path{formal/Ogdoad/Fifo.lean}.  At a dummy-first root the dummy itself is exactly a one-use
+draft-and-switch move, while fixed-history deletion reverses one controller
+interval and has at most one labelled ko-wall repair.  These reductions
+sharpen the boundary but do not turn the nonempty drafted prefix into an
+empty root.  Thus the stopped theorem closes its empty-root base, but not the
+actual odd-CLOSE ancestry step: at an (A)/(B$'$) predecessor the frozen
+ko-wall defect can require cancellation across the entire defender fan.  An
+exact secondary-star strategy also rules out the tempting repair which uses
+every immediate (B$'$) OPEN face once; several faces individually contain
+zero, so this is a transversal no-go rather than a counterexample.  Even under
+the minimum-bad colour switch, the first-response forest contracts exactly
+when each ungrounded component is even; an odd component with an alternating
+two-cycle and one in-tree is the sharp remaining map-level obstruction.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
-continuation, and pruning-frontier moments by a strategy-relative chain.
+continuation, pruning-frontier, and frozen ko-wall moments by a
+strategy-relative multibranch chain.
 The note therefore advances the proof
 frontier without promoting the complete finite census through eight real
 vertices to a proof.
@@ -549,6 +574,132 @@ $(U,Q,\mathsf{ko})$ state while a history-dependent attacker retains different
 continuations.
 \end{proof}
 
+The same convolution can be flattened across an arbitrary decorated
+frontier; this is the exact bookkeeping needed below when prefixes have
+already accumulated different cut charges.
+
+\begin{corollary}[decorated-frontier decomposition]
+\label{cor:decorated-frontier}
+\PROVED{} Let $\mathcal F$ be a finite antichain in the residual response tree
+which meets every terminal branch exactly once.  For $q\in\mathcal F$, let
+$\Gamma_q$ be the disjointness charge accumulated from the root to $q$, and
+write the odd continuation coset at $q$ as
+\[
+ A_q=a_q+W_q.
+\]
+Then
+\begin{align}
+ A_{\rm root}
+   &=\Aff\{\Gamma_q+a_q:q\in\mathcal F\}
+     +\sum_{q\in\mathcal F}W_q,
+     \label{eq:decorated-frontier-A}\\
+ W_{\rm root}
+   &=\sum_{q\in\mathcal F}W_q
+     +\Span\{(\Gamma_q+a_q)+(\Gamma_{q_0}+a_{q_0}):
+               q\ne q_0\}
+     \label{eq:decorated-frontier-W}
+\end{align}
+for any fixed $q_0\in\mathcal F$.
+\end{corollary}
+
+\begin{proof}
+Every root leaf lies below a unique $q\in\mathcal F$.  Splitting a formal
+leaf chain by these disjoint descendant sets shows that its total moment is
+\[
+ \sum_q\bigl(\epsilon_q(\Gamma_q+a_q)+w_q\bigr),
+ \qquad w_q\in W_q,
+\]
+where $\epsilon_q$ is the augmentation of the $q$-part.  The root chain is
+odd exactly when $\sum_q\epsilon_q=1$.  The odd sums of the decorated points
+$\Gamma_q+a_q$ form their affine hull, while the $w_q$ vary independently;
+this proves \eqref{eq:decorated-frontier-A}.  The even sums of the decorated
+points are generated by their pairwise differences from one reference point,
+which gives \eqref{eq:decorated-frontier-W}.
+\end{proof}
+
+The isolated dummy also gives an exact affine model of one OPEN fan, but only
+as long as the next attacker operator is common across its children.
+
+\begin{proposition}[virtual OPEN and the pruning obstruction]
+\label{prop:virtual-open-pruning}
+\PROVED{} Let $U=R\sqcup\{d\}$ with $d$ isolated, and let
+$\epsilon\in\F_2^U$ have odd augmentation.  Its real virtual vertex
+\[
+ \nu(\epsilon)=\sum_{r\in R}\epsilon_r r
+\]
+determines $\epsilon$ uniquely, since
+$\epsilon_d=1+\sum_{r\in R}\epsilon_r$.  If every selected OPEN child is
+followed by the same front close $C_f$, then the aggregate prefix charge is
+\begin{equation}\label{eq:virtual-open-common-close}
+ \sum_{z\in U}\epsilon_zc_z
+ =\sum_{r\in R}fr+f\nu(\epsilon).
+\end{equation}
+
+This affine rule does not commute with a history-dependent attacker policy.
+On real vertices $0,1,2$ and dummy $d$, let the attacker first play $O_0$.
+After defender replies $O_1$ or $O_2$, it plays ``OPEN the least untouched
+vertex, otherwise CLOSE''; after $O_d$, it plays ``CLOSE if legal, otherwise
+OPEN the least untouched vertex''.  The three continuation affine sets, in
+coordinates $01,02,12$, are exactly
+\begin{equation}\label{eq:virtual-open-counterexample}
+ \mathcal A_1=\mathcal A_2=\{0\},
+ \qquad
+ \mathcal A_d=01+02+\langle12\rangle.
+\end{equation}
+Hence the nontrivial odd superposition of all three OPEN children has
+continuation coset
+\[
+ \mathcal A_1+\mathcal A_2+\mathcal A_d
+ =01+02+\langle12\rangle,
+\]
+which excludes zero despite the common zero OPEN charge.
+\end{proposition}
+
+\begin{proof}
+Odd augmentation makes the displayed formula for $\epsilon_d$ immediate.
+After $O_z$, a common $C_f$ has charge
+\[
+ c_z=\sum_{r\in R}fr+fz\quad(z\in R),
+ \qquad
+ c_d=\sum_{r\in R}fr.
+\]
+Summing with coefficients $\epsilon_z$ proves
+\eqref{eq:virtual-open-common-close}.
+
+For the policy obstruction, all compatible terminal histories are the
+following; thus the verification is a finite branch argument rather than a
+force-set computation:
+\[
+\begin{array}{c|l|c}
+ &\text{history}&D_R\\ \hline
+O_1&O_0O_1O_2O_dC_0C_1C_2C_d&0\\
+   &O_0O_1O_2C_0O_dC_1C_2C_d&0\\ \hline
+O_2&O_0O_2O_1O_dC_0C_2C_1C_d&0\\
+   &O_0O_2O_1C_0O_dC_2C_1C_d&0\\ \hline
+O_d&O_0O_dC_0O_1C_dO_2C_1C_2&01+02\\
+   &O_0O_dC_0O_2C_dO_1C_2C_1&01+02\\
+   &O_0O_dC_0C_dO_1O_2C_1C_2&01+02\\
+   &O_0O_dC_0O_1C_dC_1O_2PC_2&01+02+12\\
+   &O_0O_dC_0O_2C_dC_2O_1PC_1&01+02+12.
+\end{array}
+\]
+In a real child, after the attacker's next OPEN the defender can only OPEN
+the remaining dummy or close $0$, giving the two listed rows.  In the dummy
+child the forced $C_0$ leaves the defender the three choices $O_1,O_2,C_d$;
+the first two each split once more between an OPEN and the next front CLOSE,
+while the last creates the unique ko-forced row.  This exhausts the policy
+tree.  Direct interval inspection gives the last column and proves
+\eqref{eq:virtual-open-counterexample}.
+\end{proof}
+
+The example is the smallest nontrivial odd OPEN superposition: with at most
+two children every odd subset is a singleton.  It is not a root
+counterexample, because either singleton real branch already supplies the
+zero moment.  What fails is precisely the attempt to replace the decorated
+family $z\mapsto a_z+W_z$ by one virtual vertex before applying the
+branch-dependent attacker continuations; symplectic Gram--Schmidt on the
+alternating adjacency form alone cannot make that replacement.
+
 Sibling coupling is essential already at three real vertices.  Let $d=3$ and
 consider the defender fan after the attacker opens $0$.  One deterministic
 residual attacker has the three branch spaces
@@ -743,6 +894,174 @@ vertex than $g$, hence also fewer than the chosen minimum node $h$.  This
 contradicts the primary minimality of $h$.  Hence $q_y=1$ and $r_e=0$,
 proving (B$'$).
 \end{proof}
+
+The ancestry statement cannot be strengthened by requiring one odd unit from
+every immediate OPEN child.  The following counterexample is entirely
+strategy-theoretic; no computed force set is used.
+
+\begin{proposition}[the mandatory (B$'$) OPEN fan is false]
+\label{prop:bad-open-fan}
+\PROVED{} Let
+\[
+ y=0,\qquad x=1,\qquad A=\{2,3,4,5\},
+\]
+and use the primary and diagnostic graphs
+\[
+ B=\{01,12,13,14,15\},
+ \qquad L=\{02\}.
+\]
+At the clear defender state
+\[
+ e:\qquad U=\{1,2,3,4,5\},\qquad Q=(0),\qquad g_B=0,
+\]
+there is one history-dependent attacker policy below the six defender moves
+with the following constant terminal scores:
+\[
+ (B,L)(\mathcal A_1)=\{(0,1)\},\qquad
+ (B,L)(\mathcal A_s)=\{(0,0)\}\quad(2\le s\le5),
+ \qquad
+ (B,L)(\mathcal A_{C_0})=\{(0,1)\}.
+\]
+Here $\mathcal A_s$ is the terminal continuation set below $O_s$, and
+$\mathcal A_{C_0}$ is the corresponding set below $C_0$.
+Consequently
+\[
+ L(\mathcal A_1+\mathcal A_2+\mathcal A_3+
+   \mathcal A_4+\mathcal A_5)=\{1\},
+\]
+so an odd flow constrained to use every immediate OPEN face cannot contract.
+\end{proposition}
+
+\begin{proof}
+We first record the elementary star strategy used in every branch.  Once the
+center $1$ is open, let $k$ be the number of queued leaves ahead of it and
+let $m$ be the number of untouched leaves.  The only remaining $B$-charge is
+the charge $m$ of $C_1$.  At an attacker turn, play
+\[
+ \begin{cases}
+ C_1,&k=0, m\text{ even},\\
+ \text{OPEN an untouched leaf},&k=0, m\text{ odd},
+       \text{ or }k>0, m>0,\\
+ \text{CLOSE the front},&k>0, m=0.
+ \end{cases}
+\]
+This forces an even future $B$-charge from every attacker turn, and from every
+defender turn satisfying $k>0$ or $m$ even.  Indeed, mutual induction on
+$k+m$ is immediate: a defender OPEN gives the attacker $(k,m-1)$, a defender
+prefront CLOSE gives $(k-1,m)$, and at $k=0$ a defender $C_1$ is already even
+when $m$ is even.  Each prescribed attacker move either finishes evenly or
+strictly decreases the same rank.  Fix the least-labelled leaf whenever the
+rule asks for an OPEN.
+
+Now consider the six first moves at $e$.  After $O_1$, the attacker plays
+$C_0$, of charge $(B,L)=(0,1)$, and invokes the star strategy at the defender
+state $(k,m)=(0,4)$.  After $O_2$, it plays $O_1$; the intervals of $0,2$
+already overlap, and the star strategy begins at the defender state
+$(k,m)=(2,3)$.  These give respectively the first two displayed score sets.
+
+Let next $s\in\{3,4,5\}$ and write $\{a,b\}=A-\{2,s\}$.  The attacker first
+plays $O_2$, fixing the $L$-score at zero.  If the defender now opens $1$, use
+the star strategy; if it opens $a$ or $b$, open $1$ and then use that strategy.
+If instead the defender closes $0$, that close has $B$-charge one; answer by
+$C_s$, also of $B$-charge one.  From the resulting defender state, an OPEN is
+answered by opening $1$ if necessary and then using the star strategy.  The
+only other move is $C_2$, which supplies a third unit $B$-charge and leaves
+the attacker at an empty queue with $U=\{1,a,b\}$.  Play $O_1$; ko forces the
+defender to open $a$ or $b$, and $C_1$ then sees the one remaining untouched
+leaf and supplies the fourth unit.  All later $B$- and $L$-charges vanish.
+Thus every $O_s$ branch has total $(B,L)=(0,0)$.
+
+Finally, the defender move $C_0$ itself has charge $(1,1)$.  The attacker
+opens $1$ at the empty queue, ko forces the defender to open one of
+$2,3,4,5$, and the attacker closes $1$ with $B$-charge three and $L$-charge
+zero.  No later edge can score, so this branch totals $(0,1)$.  The policies
+on the six disjoint child trees combine into the asserted single
+history-dependent policy.
+\end{proof}
+
+This refutes only the mandatory all-five transversal, not the global affine
+contraction.  Under the same policy every face $s=2,3,4,5$ contains a literal
+zero-moment leaf; compatible continuations are
+\[
+\begin{array}{c|l}
+2&O_2O_1O_3O_4O_5C_0C_2C_1C_3C_4C_5\\
+3&O_3O_2O_1O_4O_5C_0C_3C_2C_1C_4C_5\\
+4&O_4O_2O_1O_3O_5C_0C_4C_2C_1C_3C_5\\
+5&O_5O_2O_1O_3O_4C_0C_5C_2C_1C_3C_4.
+\end{array}
+\]
+All OPENs precede all CLOSEs, so their disjointness moment is zero.  A
+one-face odd flow therefore already contracts; the example supplies no
+odd-winning strategy and no root counterexample.
+
+The minimum-bad hypotheses do impose more structure on the first response,
+but that structure still has one exact obstruction.
+
+\begin{proposition}[the (B$'$) first-response forest criterion]
+\label{prop:bprime-response-forest}
+\PROVED{} At a (B$'$) predecessor put
+\[
+ A=N\sqcup Z,\qquad
+ N=\{v:B(y,v)=1\},\qquad Z=\{v:B(y,v)=0\}.
+\]
+Thus $|A|$ and $|N|$ are odd and $|Z|$ is even.  Mark a vertex
+$v\in N$ as \emph{grounded} when the attacker answers $O_v$ by the immediate
+zero close $C_y$.  For every other canonical branch, suppose its first
+attacker response is $O_{w_v}$ and the defender then plays $C_y$.  Minimum
+badness forces $v,w_v$ to have opposite $y$-colours.  Form the bipartite
+multigraph $H$ on $A$ with edges $\{v,w_v\}$, and regard the grounded
+vertices as marked components.
+
+The resulting canonical good $C_y$ exits contain an odd chain whose prefix
+decoration is zero if and only if every component of $H$ containing no
+grounded vertex has even order.
+\end{proposition}
+
+\begin{proof}
+Write $p=\sum_{a\in A}a$.  The prefix decorations are
+\[
+ \Gamma_v=y(p+v)\quad(v\text{ grounded}),
+ \qquad
+ \Gamma_v=y(p+v+w_v)\quad(v\text{ an edge branch}).
+\]
+For branch coefficients $\alpha_v$, their sum is zero exactly when
+\begin{equation}\label{eq:bprime-response-incidence}
+ p=\sum_{v\ {m grounded}}\alpha_vv
+   +\sum_{v\ {m edge}}\alpha_v(v+w_v).
+\end{equation}
+Conversely, any solution of \eqref{eq:bprime-response-incidence} already has
+odd branch augmentation.  Taking total coordinate augmentation says that an
+odd number of grounded units is selected, because $|A|$ is odd.  Summing only
+the $N$-coordinates then says that an even number of edge branches is
+selected, because every edge crosses $N\mid Z$ and $|N|$ is odd.
+
+Inside one connected component, its edge-incidence vectors span exactly the
+even-weight subspace.  A grounded unit enlarges this to the full coordinate
+space of that component.  Hence the all-one vector $p$ is representable
+precisely when every component without such a unit has even order, proving
+the criterion.
+\end{proof}
+
+The criterion is not automatic from (B$'$).  Take
+\[
+ A=\{x,z,z'\},\qquad
+ E(B)=\{yx,xz,xz'\},
+\]
+with no grounded branch and first responses
+\[
+ x\longmapsto z,qquad z\longmapsto x,qquad z'\longmapsto x.
+\]
+Here $N=\{x\}$, $Z=\{z,z'\}$, and $x$ dominates the even set
+$\{z,z'\}$ exactly as required in (B$'$).  The response graph is one
+ungrounded component of odd order three, while the three decorations are
+\[
+ \Gamma_x=yz',\qquad \Gamma_z=yz',\qquad \Gamma_{z'}=yz.
+\]
+Only the even pair $\Gamma_x+\Gamma_z$ cancels.  Thus even an alternating
+two-cycle may carry an odd in-tree defect.  This is a no-go for a proof using
+only the first-response map: descendant continuation spaces and the other
+defender replies remain available, so it is not a counterexample to the
+linking theorem.
 
 This is a genuine monotone reduction, but not yet the theorem.  Case (A)
 cannot be extended backwards into a corridor of odd CLOSE pairs by local
@@ -2387,8 +2706,90 @@ $D(h_C+h_O)=01$), whereas the valid odd zero-moment certificate is the
 nonsymmetric singleton $h_O$.  Diamond symmetrization therefore destroys the
 odd augmentation rather than proving it.
 
-Nor can the dummy simply be erased to make a shadow copycat game.  If $\pi$
-deletes $O_d,C_d$, then
+The dummy does have one exact phase interpretation when it is opened onto an
+empty root.
+
+\begin{proposition}[dummy-first draft and switch]
+\label{prop:dummy-draft-switch}
+\PROVED{} Suppose $R\ne\varnothing$ and the first move is $O_d$.  After the
+ko-forced first real OPEN, the play until $C_d$ is precisely an alternating
+draft of distinct real vertices: on each turn the player either OPENs an
+untouched real vertex or plays the zero-charge switch $C_d$.  At the switch,
+ordinary no-dummy FIFO play begins at score zero from the nonempty drafted
+queue, with ko clear and with the other player to move.  If all real vertices
+are drafted before the switch, $C_d$ is forced.  Conversely every such
+draft-and-switch word is legal.
+\end{proposition}
+
+\begin{proof}
+Opening $d$ onto the empty queue sets ko, so the next move is a real OPEN.
+Until $d$ closes it remains the FIFO front.  Hence the only legal CLOSE is
+$C_d$, while every other legal move is an OPEN of a fresh real vertex.  All
+these OPENs and $C_d$ have charge zero.  Closing $d$ clears ko and leaves,
+in its opening order, the nonempty queue of drafted real vertices.  These
+observations also prove the converse and the exhausted-draft clause.
+\end{proof}
+
+Thus the dummy is a genuine one-use phase switch at a dummy-first root, but
+not an empty-root reduction.  In particular, the stopped close-first theorem
+cannot be invoked at the switch: its hypothesis is a defender-first empty
+no-dummy root, whereas Proposition~\ref{prop:dummy-draft-switch} exposes a
+nonempty queue and either player may have taken the switch.  The nonempty
+drafted prefix, rather than the dummy event itself, remains part of the global
+ancestry problem.
+
+For a general history, deleting the dummy has one further, exactly localized
+defect.
+
+\begin{proposition}[dummy deletion and the unique ko wall]
+\label{prop:dummy-deletion-wall}
+\PROVED{} Let $h$ be a complete legal history with isolated dummy $d$.  Form
+the raw projected event word by deleting $O_d,C_d$ and any pass, while
+retaining the real events in order.  Then:
+\begin{enumerate}[leftmargin=*,itemsep=1pt]
+\item every real CLOSE has the same charge before and after deletion;
+\item relative to the raw projected positions, the controller parity of
+      precisely the real events strictly between $O_d$ and $C_d$ is
+      reversed;
+\item after inserting the unique forced pass exactly when required at a
+      terminal singleton, the projected word is a legal real FIFO history
+      except possibly at one internal ko wall; and
+\item if that wall occurs, its consecutive real events are
+      $O_v,C_v,O_w$.  Replacing them by $O_v,O_w,C_v$ gives a legal real
+      history $\widetilde h$ and
+      \[
+        D_R(\widetilde h)=D_R(h)+vw,
+        \qquad
+        F_G(\widetilde h)=F_G(h)+B(v,w).
+      \]
+\end{enumerate}
+The wall occurs exactly when $d$ is the sole open vertex immediately before
+$O_v$, and both $C_d$ and $C_v$ occur before the next real OPEN $O_w$.
+\end{proposition}
+
+\begin{proof}
+Because $d$ is isolated, removing it from the untouched set changes no real
+CLOSE charge.  Deleting two event positions preserves controller parity
+outside their open interval and reverses it inside.
+
+Deletion preserves the real opening order, closing order, and FIFO condition.
+Suppose nevertheless that a projected $O_v$ opens an empty real queue and is
+followed by $C_v$ while another real vertex remains untouched.  The original
+$O_v$ could not have opened an actually empty queue, since its ko would have
+made $C_v$ illegal.  Thus $d$ was the unique open vertex before $O_v$.
+FIFO then forces $C_d$ before $C_v$, and no other real event can intervene
+before the next real OPEN $O_w$.  Once this happens $d$ is closed, so there
+can be no second internal wall.  If no such $w$ exists, the projected block
+is terminal and inserting its forced pass is the unique repair.
+
+In the internal case, moving $O_w$ immediately before $C_v$ clears ko and
+preserves FIFO legality.  The adjacent exchange changes no real interval
+relation except that of $v,w$: their intervals were disjoint and now overlap.
+This proves both displayed identities and the characterization of the wall.
+\end{proof}
+
+Consequently the dummy cannot simply be erased to make a shadow copycat game.
+If $\pi$ deletes $O_d,C_d$, then
 $\pi(h_C)=O_0C_0O_1C_1$ is illegal: after $O_0$, ko forbids $C_0$ while
 $O_1$ remains available.  Even when a schedule and its dummy deletion are
 both legal, controllers are not preserved.  For
@@ -2396,8 +2797,9 @@ both legal, controllers are not preserved.  For
  k=O_dO_0O_1C_dC_0C_1,\qquad \pi(k)=O_0O_1C_0C_1,
 \]
 the projected real events were controlled in order by $B,A,A,B$, not by
-alternating seats.  With only one real vertex, deletion instead requires
-inserting the forced pass state-dependently.  Hence dummy deletion preserves
+alternating seats.  With only one real vertex, deletion instead requires the
+state-dependent terminal pass from
+Proposition~\ref{prop:dummy-deletion-wall}.  Hence dummy deletion preserves
 neither legality, turn ownership, nor the pass boundary; it is not a game-tree
 morphism.
 
@@ -2423,10 +2825,12 @@ $O_0C_0O_1C_1$.  The only legal real FIFO word with the same real opening and
 closing orders is $O_0O_1C_0C_1$, whose disjointness score is zero.  A virtual
 pass cannot repair the former word while vertex $1$ remains untouched.
 Thus bubbling or deleting the dummy cannot be made both causal and
-label-preserving by retaining only a role-switch or ko marker: repairing the
-ko wall necessarily transports the missing $01$ edge moment.  The global odd
-flow may cancel such terms across several histories, but no single-history
-dummy normalization proves the theorem.
+label-preserving by retaining only a role-switch or ko marker:
+Proposition~\ref{prop:dummy-deletion-wall} shows that repairing the ko wall
+necessarily transports its labelled edge moment.  The global odd flow may
+cancel such terms across several histories, but neither the exact
+draft-and-switch reduction nor a single-history dummy normalization proves
+the theorem.
 
 \section{The remaining global lemma}
 
@@ -2873,6 +3277,94 @@ $\F_2$-valued image already contains zero.  In either case choose a
 zero-valued ordering $P$ and follow the displayed OPEN strategy.
 \end{proof}
 
+The scalar conclusion hides a stronger affine fact.  For disjoint vertex
+sets write
+\[
+ \mathcal E(S)=\Span_{\F_2}\{st:s,t\in S,\ s\ne t\},
+ \qquad
+ \mathcal E(S,T)=\Span_{\F_2}\{st:s\in S,\ t\in T\}.
+\]
+
+\begin{theorem}[untouched-dummy close-first full live face]
+\label{thm:untouched-dummy-full-face}
+\PROVED{} In the state of Theorem~\ref{thm:untouched-dummy-tail}, write
+$U=\{d\}\sqcup R$ and suppose ko is clear.  For the fixed ordinary
+close-first attacker, let $W$ be the even continuation-moment space, projected
+to the coordinates which are still live at this state.  Then
+\begin{equation}\label{eq:untouched-dummy-full-face}
+ W=\mathcal E(R)\oplus\mathcal E(Q,R).
+\end{equation}
+Equivalently, the affine hull of the future terminal moments is the whole
+live face.
+\end{theorem}
+
+\begin{proof}
+Put $X=\mathcal E(R)\oplus\mathcal E(Q,R)$.  It suffices to show that every
+linear functional $\ell$ on $X$ which annihilates $W$ is zero.  Such an
+$\ell$ has one constant value $c$ on all odd terminal continuation moments,
+since the difference of two such moments lies in $W$.  We induct on $|R|$,
+uniformly in the nonempty queue $Q=(f,Q_0)$.
+
+Assume first that $|R|\ge2$.  For each $x\in R$, take the defender move
+$O_x$; the close-first attacker answers $C_f$.  The child is again a clear
+defender state with untouched dummy and real untouched set $R-\{x\}$.
+An even chain inside this child is also an even chain at the parent, because
+its common prefix has even total coefficient.  By induction the child even
+space is its whole live coordinate space.  Therefore $\ell$ vanishes on
+\[
+ \mathcal E(R-\{x\})
+ \oplus\mathcal E(Q_0,R-\{x\})
+ \oplus\mathcal E(\{x\},R-\{x\}).
+\]
+As $x$ varies, this kills every coefficient in $\mathcal E(R)$ and in
+$\mathcal E(Q_0,R)$.  The only coefficients which may remain are those of
+$fR$.  The charge of the forced $C_f$ in the $O_x$ branch then gives
+\begin{equation}\label{eq:untouched-dummy-full-face-open}
+ c=\sum_{u\in R-\{x\}}\ell(fu)
+ \qquad(x\in R).
+\end{equation}
+If the defender instead begins with $C_f$, every later live coordinate has
+already been killed, while this close contributes all of $fR$.  Hence
+\begin{equation}\label{eq:untouched-dummy-full-face-close}
+ c=\sum_{u\in R}\ell(fu).
+\end{equation}
+Comparing the two displays gives $\ell(fx)=0$ for every $x$, and then $c=0$.
+
+If $R=\varnothing$, then $X=0$.  Finally let $R=\{u\}$ and write
+$Q=(v_0,\ldots,v_{L-1})$.  The defender continuation beginning with $O_u$
+has zero live moment, so $c=0$.  For each $0\le k<L$, there is also a legal
+continuation in which precisely $v_0,\ldots,v_k$ close before $O_u$: if $k$
+is even, begin
+\[
+O_d,C_{v_0},C_{v_1},\ldots,C_{v_k},O_u,
+\]
+and if $k$ is odd, omit the initial $O_d$.  In the first word the attacker
+takes the even-indexed closes and the defender the odd-indexed ones; in the
+second word these roles are reversed.  Thus every attacker move displayed is
+its forced close-first reply, every displayed defender close is legal, and
+the last close is followed by the defender's $O_u$.  After this prefix
+complete the play arbitrarily.  Constancy of $\ell$ now gives
+\[
+ \sum_{i=0}^k\ell(v_i u)=0
+ \qquad(0\le k<L).
+\]
+Successive differences kill every $\ell(v_i u)$.  Thus the annihilator of
+$W$ in $X^*$ is zero in every case, proving \eqref{eq:untouched-dummy-full-face}.
+Since the odd continuation set is a nonempty $W$-coset contained in $X$, it
+is then all of $X$ as well.
+\end{proof}
+
+The word ``live'' is essential.  Coordinates frozen by the prefix are not in
+$X$ and need not be absorbable by the tail.  With sole real edge $ab$ and
+$c,d$ isolated, the legal prefix
+\[
+ O_a,O_c,C_a,O_b
+\]
+reaches $Q=(c,b)$ and $U=\{d\}$ with accumulated moment $ab$.  Every future
+charge is zero, so Theorem~\ref{thm:untouched-dummy-full-face} correctly gives
+$W=X=0$ but cannot remove the frozen prefix bit.  This is precisely why the
+conditioned tail theorem does not by itself close the root ancestry.
+
 Consequently, while the dummy is untouched a leafmost deviation can only
 enter a close-first tail on residual target zero.  In the minimum-bad descent,
 residual one must first cross to zero through the preceding odd CLOSE; if the
@@ -2984,6 +3476,234 @@ open some $y\ne x$.  The resulting clear state has queue $(x,y)$, the defender
 to move, and smaller rank, so it is again a counterexample.  This final
 contradiction proves the theorem.
 \end{proof}
+
+The preceding theorem has a useful stopped extension at an empty root.  The
+notation below is deliberately different from the universal-full-fan
+predicate $P(H)$ used earlier in the repair-forest discussion.
+
+Call an attacker \emph{stopped close-first} if its rules are as follows.  At a
+clear node---that is, $Q\ne()$ and $\mathsf{ko}=0$---it must CLOSE when the
+current score is zero, while at score one it may STOP and win immediately; if
+it declines to STOP, it must still CLOSE.  When ko or an empty queue forbids
+CLOSE, it may choose any legal OPEN; at a nonterminal state with no legal move,
+the usual forced pass occurs.  The defender retains every ordinary legal move.
+A completed play is won by the attacker exactly when its terminal score is
+one.  Write $\mathsf P_{\rm stop}(H)$ when the defender wins this stopped game
+from score zero, empty queue, and all vertices of $H$ untouched, with the
+defender to move.  No dummy is assumed.
+
+For distinct $x,y\in V(H)$, call the ordered pair $x\to y$ \emph{bad} when
+the stopped attacker wins from the defender state
+\[
+ U=V(H)-\{x,y\},\qquad Q=(x,y),\qquad
+ \mathsf{ko}=0,\qquad g=0.
+\]
+All quantities in the next lemma lie in $\F_2$.  Put
+\[
+ X_z=B(x,z),\quad Y_z=B(y,z),\quad a=B(x,y),
+\]
+\[
+ \alpha=\sum_{z\in U}X_z,\qquad
+ \beta=\sum_{z\in U}Y_z,
+\]
+and, for the full graph $H$,
+\[
+ p_v=\deg_H(v),\qquad
+ b_v=\sum_{w\sim v}p_w,\qquad
+ r=\alpha+\beta=p_x+p_y,\qquad
+ \epsilon=|V(H)|.
+\]
+
+\begin{lemma}[stopped bad-pair fan]
+\label{lem:stopped-bad-pair}
+Assume $\mathsf P_{\rm stop}(K)$ for every proper induced subgraph $K$ of
+$H$, and assume the present lemma for every graph of smaller order.  If
+$x\to y$ is bad in $H$, then
+\begin{equation}\label{eq:stopped-bad-bits}
+ \beta=1,\qquad b_x=1,
+ \qquad \alpha=1\Longrightarrow\epsilon=1.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+If $\alpha=\beta=0$, the defender plays $C_x$, the score-zero attacker is
+forced to play $C_y$, and the game returns at score zero to the smaller empty
+root on $U$.  Thus
+\begin{equation}\label{eq:stopped-alpha-zero}
+ \alpha=0\Longrightarrow\beta=1.
+\end{equation}
+
+There is a second elementary absorber.  If some $z\in U$ satisfies
+\begin{equation}\label{eq:stopped-three-fibre}
+ p_z=r,\qquad X_z+Y_z=r,
+\end{equation}
+then the defender uses
+\[
+ O_z,C_x,C_y,C_z,
+\]
+where the first and third moves are its own.  The first two close charges
+agree because
+\[
+ \alpha+X_z=\beta+Y_z,
+\]
+and the last charge is $p_z+X_z+Y_z=0$.  The line therefore returns at score
+zero to the smaller empty root on $U-\{z\}$.  Hence the fibre
+\eqref{eq:stopped-three-fibre} is empty for a bad pair.
+
+The parity of that fibre is the sum over $U$ of
+\[
+ (p_z+1+r)(X_z+Y_z+1+r).
+\]
+Now
+\[
+ \sum_U p_z=\sum_U(X_z+Y_z)=r
+\]
+and
+\[
+ \sum_U p_z(X_z+Y_z)=b_x+b_y+ar.
+\]
+Since $|U|=\epsilon$ modulo two, emptiness gives the exact moment identity
+\begin{equation}\label{eq:stopped-bad-moment}
+ b_x+b_y=(1+r)\epsilon+ar.
+\end{equation}
+
+It remains to use the complete zero-charge OPEN fan.  Set
+\[
+ Z=\{z\in U:X_z=\alpha\},
+ \qquad c=\sum_{w\in U}X_wY_w.
+\]
+For every $z\in Z$, the defender move $O_z$ followed by the forced $C_x$
+has charge zero and reaches the smaller bad pair $y\to z$ in $H-x$.
+Applying the inductive lemma to this child gives
+\begin{equation}\label{eq:stopped-child-beta}
+ p_z+\alpha+Y_z=1
+ \qquad(z\in Z),
+\end{equation}
+because the left side is its second-front charge.  The child's source bit is
+\begin{equation}\label{eq:stopped-child-b}
+ b_y^{H-x}=b_y+ap_x+c=1.
+\end{equation}
+Indeed, deleting $x$ changes the degree bit of every remaining $w$ by
+$B(x,w)$.  Finally the child front charge is
+$\alpha'_z=\beta+Y_z$.  If $\epsilon=1$, then $H-x$ has even order, so the
+inductive implication in \eqref{eq:stopped-bad-bits} forces
+\begin{equation}\label{eq:stopped-child-alpha}
+ \epsilon=1\Longrightarrow Y_z=\beta
+ \qquad(z\in Z).
+\end{equation}
+
+First suppose $Z=\varnothing$.  Then $\alpha=0$: if $\alpha=1$, its odd set
+of neighbours in $U$ would be nonempty.  Since no $X_z$ is zero, $x$ is
+universal on $U$, and $0=\alpha=|U|=\epsilon$.  Equation
+\eqref{eq:stopped-alpha-zero} gives $\beta=1$.  Hence
+\[
+ p_x=a,\qquad p_y=a+1,
+ \qquad \sum_U p_z=p_x+p_y=1.
+\]
+Because $x$ is universal on $U$,
+\[
+ b_x=ap_y+\sum_U p_z=a(a+1)+1=1.
+\]
+Thus \eqref{eq:stopped-bad-bits} holds at every terminal domination wall.
+
+Assume now that $Z\ne\varnothing$ and $\alpha=1$.  The set
+$Z=N_H(x)\cap U$ has odd cardinality, and
+\eqref{eq:stopped-child-beta} says $p_z=Y_z$ on $Z$.  Therefore
+\begin{equation}\label{eq:stopped-alpha-one-bx}
+ b_x=ap_y+\sum_Zp_z=a(1+\beta)+c=ar+c.
+\end{equation}
+Also $p_x=a+1$, so $ap_x=0$, and
+\eqref{eq:stopped-child-b} gives $b_y=1+c$.  Substitution in
+\eqref{eq:stopped-bad-moment} yields
+\[
+ 1+ar=(1+r)\epsilon+ar,
+\]
+or $\beta\epsilon=1$, since $r=1+\beta$.  Thus
+$\beta=\epsilon=1$.  Equation \eqref{eq:stopped-child-alpha} now gives
+$Y_z=1$ for every $z\in Z$.  Hence $c=1$, while $r=0$, and
+\eqref{eq:stopped-alpha-one-bx} gives $b_x=1$.
+
+Finally suppose $Z\ne\varnothing$ and $\alpha=0$.  By
+\eqref{eq:stopped-alpha-zero}, $\beta=r=1$.  Here $Z$ is the set of
+nonneighbours of $x$ in $U$, and $|Z|\equiv\epsilon\pmod2$.  Summing
+\eqref{eq:stopped-child-beta}, now $p_z+Y_z=1$, over $Z$ gives
+\begin{equation}\label{eq:stopped-alpha-zero-sum}
+ b_x+c=\epsilon.
+\end{equation}
+Explicitly,
+\[
+ \sum_Zp_z=\sum_U(1+X_z)p_z=r+b_x+ap_y=1+b_x
+\]
+because $p_y=a+1$, while $\sum_ZY_z=\beta+c=1+c$.
+Since $p_x=a$, equation \eqref{eq:stopped-child-b} gives
+$b_y=1+a+c$.  Equation \eqref{eq:stopped-bad-moment}, with $r=1$, gives
+$b_x+b_y=a$, hence
+\[
+ b_x+c=1.
+\]
+Comparison with \eqref{eq:stopped-alpha-zero-sum} yields $\epsilon=1$.
+Equation \eqref{eq:stopped-child-alpha} forces $Y_z=1$ on $Z$.  Thus
+$\sum_ZY_z=1$; since $\sum_UY_z=\beta=1$, we have $c=0$, and therefore
+$b_x=1$.  This proves the lemma.
+\end{proof}
+
+\begin{theorem}[stopped close-first empty-root contraction]
+\label{thm:stopped-close-first-root}
+\PROVED{} For every finite graph $H$, $\mathsf P_{\rm stop}(H)$ holds.
+Equivalently, from a defender-first empty no-dummy root of score zero, no
+stopped close-first attacker can force either a score-one STOP or terminal
+score one.
+\end{theorem}
+
+\begin{proof}
+We prove the theorem and Lemma~\ref{lem:stopped-bad-pair} simultaneously by
+strong induction on $|V(H)|$: the lemma at order $n$ uses the theorem and the
+lemma only on smaller induced graphs, and then proves the theorem at order
+$n$.
+
+The empty graph is terminal at score zero.  On a one-vertex graph the moves
+are an OPEN, a forced pass clearing ko, and a zero-charge CLOSE.  Now suppose
+$|V(H)|\ge2$ and that $\mathsf P_{\rm stop}(H)$ fails.  After any first
+defender OPEN $O_x$, ko forbids CLOSE and the attacker must have some winning
+OPEN $O_y$.  Thus every vertex of $H$ has an outgoing bad arc $x\to y$.
+
+Give each vertex the rank
+\[
+ R(v)=
+ \begin{cases}
+ 2,&(p_v,b_v)=(0,1),\\
+ 1,&(p_v,b_v)=(1,1),\\
+ 0,&b_v=0.
+ \end{cases}
+\]
+Every bad arc strictly decreases this rank.  If $\alpha=0$, then
+$\beta=1$, $a=p_x$, and $p_y=1+p_x$.  Equation
+\eqref{eq:stopped-bad-moment}, with $r=1$ and $b_x=1$, gives
+$b_y=1+p_x$.  Hence
+\[
+ (0,1)\longrightarrow(1,1)
+ \quad\hbox{or}\quad
+ (1,1)\longrightarrow b=0.
+\]
+If $\alpha=1$, Lemma~\ref{lem:stopped-bad-pair} gives
+$\beta=\epsilon=1$.  Thus $r=0$, $p_y=p_x$, and
+\eqref{eq:stopped-bad-moment} gives $b_y=0$.
+
+A finite directed graph in which every vertex has positive outdegree contains
+a directed cycle, while strict descent of $R$ forbids one.  This
+contradiction proves $\mathsf P_{\rm stop}(H)$ and completes the mutual
+induction.
+\end{proof}
+
+Theorem~\ref{thm:stopped-close-first-root} closes exactly the empty-root base
+left by a STOP normalization.  It does not justify iterating a branchwise
+collapse through the odd-CLOSE spike (A) or the singleton ko wall (B$'$) of
+Proposition~\ref{prop:minimum-bad-predecessor}.  There the closest
+$C_y;O_x$ and $O_x;C_y$ histories differ by the frozen edge $xy$ and by ko
+until another real OPEN occurs; descendant close-first spaces cannot in
+general absorb that defect.  The unresolved bridge is therefore an odd
+affine cancellation across the complete defender fan at the (A)/(B$'$)
+ancestor, not another empty-root theorem.
 
 In particular, the poststate of a leafmost attacker OPEN is a clear defender
 state with nonempty queue and a close-first attacker tail.  Such a deviation
@@ -3229,21 +3949,11 @@ $\{0\}\cup(X+X)$.  This still is not a counterexample to affine contraction:
 several sibling images may have a larger odd dependence even though none
 contains the proposed one-step escape label.
 
-\TESTED{} Even the natural fan over \emph{all} second openings is too rigid.  On real
-vertices $0,1,2$ plus $d$, let the attacker first play $O_0$; after replies
-$O_1$ or $O_2$ use ``open least untouched, otherwise close'', and after $O_d$
-use ``close whenever possible, otherwise open least''.  Exact terminal affine
-hulls conditioned on the second reply, in coordinates $01,02,12$, are
-\[
-  \mathcal A_1=\{0\},\qquad
-  \mathcal A_2=\{0\},\qquad
-  \mathcal A_d=\{3,7\}.
-\]
-The immediate star charges of the three branches XOR to zero, but no
-one-leaf-per-branch transversal does.  The global affine target survives by
-retaining only an odd subflow inside $\mathcal A_1$ or $\mathcal A_2$.  Hence a
-proof must choose its odd subset of defender branches using continuation data;
-neither dummy-edge contraction nor the full root fan is a valid fixed recipe.
+Proposition~\ref{prop:virtual-open-pruning} proves that even the natural fan
+over \emph{all} second openings is too rigid.  The global affine target
+survives inside either singleton real branch, so a proof must choose its odd
+subset of defender branches using continuation data; neither dummy-edge
+contraction nor the full root fan is a valid fixed recipe.
 
 \section{Consequence for the Gold realizer}
 
@@ -3271,7 +3981,9 @@ The following claims have different status and should not be flattened.
       threshold schedule normal form, endpoint-controller boundary identity,
       affine separation equivalence and positional scalar reduction,
       homogeneous response recursion, parity-resolved continuation
-      convolution, dual obstruction descent, filtered Schur-complement
+      convolution and its decorated-frontier decomposition, the virtual-OPEN
+      common-close identity and exact pruning obstruction, dual obstruction
+      descent, filtered Schur-complement
       criterion, and Euler quotient separation,
       parity-cell theorem, front cut-space splitting and two-graph absorption,
       correlated-moment identity, initial cut contraction, charge/poison
@@ -3286,16 +3998,27 @@ The following claims have different status and should not be flattened.
       completeness of the Euler ordered-pair kernel,
       the complete both-seat close-first contraction,
       the leafmost-deviation spoiler dichotomy, untouched-dummy
-      arbitrary-prefix close-first tail, and the dummy-free conditioned
-      close-first contraction,
+      arbitrary-prefix close-first tail and its full-live-face strengthening,
+      and the dummy-free conditioned close-first contraction, together with
+      the stopped close-first
+      defender-first empty-root contraction and its bad-pair fan lemma,
       the causal simplex-cap family and the causal matching-exchange no-go,
       fixed-permutation no-go, and displayed triangular fan and fixed-front
       poison descent, together with the front-signature no-go, pass-free
-      reversal identity, its local causal obstruction, and the
-      label-essential dummy ko wall, are complete proofs in this note.
+      reversal identity, its local causal obstruction, the dummy-first
+      draft-and-switch normal form, fixed-history dummy deletion with its
+      unique labelled ko-wall repair, the label-essential dummy ko wall, and
+      the mandatory (B$'$) all-OPEN-fan counterexample together with the
+      first-response forest criterion and its odd ungrounded-component
+      obstruction, are complete proofs in this note.
       The dummy-free conditioned close-first theorem, its absolute-target
       strategy semantics, and its whole-queue drain base are additionally
-      kernel-checked in \path{formal/Ogdoad/Fifo.lean}.
+      kernel-checked in \path{formal/Ogdoad/Fifo.lean}.  The same file now
+      kernel-checks the complete stopped empty-root theorem: stopped strategy
+      semantics, two- and three-block absorbers, graph-moment identities, all
+      three finite zero-fan cases, bad-arc rank descent, the root fan, and the
+      mutual strong induction through
+      \texttt{stoppedCloseFirstEmptyRootTheorem}.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is
@@ -3303,9 +4026,6 @@ The following claims have different status and should not be flattened.
 \item \TESTED{} The childwise common-coset strengthening is false, first at the
       displayed $P_4+d$ state.  This is a failure of the proposed induction,
       not of the linking theorem.
-\item \TESTED{} The mandatory full second-opening fan also fails at three real
-      vertices plus dummy, despite the immediate star identity.  The global
-      affine target survives inside a single reply branch.
 \item \TESTED{} Pairwise ancestor cap escape fails at the displayed $r=4$
       checkpoint: two complete defender siblings have a combined $52$-point
       cap-valued response image.  The stronger full-ancestor escape rule also
@@ -3360,13 +4080,17 @@ The following claims have different status and should not be flattened.
 \item \OPEN{} The global FIFO affine-contraction statement
       \eqref{eq:affine-target} is not proved.  Neither the complete finite
       census nor the graph-free affine searches are evidence of a general
-      chain contraction.  Equivalently at the normalized frontier, the
-      missing assertion is a strategy-relative causal extension theorem for
-      the charge-balanced response factor, allowing odd wall fans, front-cell
-      deletion, and matching-phase pivots to share their transported
-      four-cycle defects across branches.  Proposition~\ref{prop:dual-descent}
-      reduces any counterexample to an even-$|U|$ singleton phase or an
-      imbalanced multicell front, but neither terminal phase has yet been
+      chain contraction.  Theorem~\ref{thm:stopped-close-first-root} closes
+      the defender-first stopped empty-root base, but it does not contract an
+      arbitrary conditioned stopped tail and therefore does not iterate
+      through the (A)/(B$'$) ancestry pattern.  Equivalently at the normalized
+      frontier, the missing assertion is a strategy-relative causal extension
+      theorem for the charge-balanced response factor, allowing odd wall
+      fans, front-cell deletion, matching-phase pivots, and frozen ko-wall
+      edges to share their transported four-cycle defects across the complete
+      defender fan.  Proposition~\ref{prop:dual-descent} reduces any
+      counterexample to an even-$|U|$ singleton phase or an imbalanced
+      multicell front, but neither multibranch ancestry phase has yet been
       contracted.
 \end{itemize}
 

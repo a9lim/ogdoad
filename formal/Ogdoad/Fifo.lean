@@ -10,6 +10,12 @@ The target theorem is deliberately stated but not postulated.  Results below
 its statement are proved from the transition system; the one theorem carrying
 the open mathematical content is exposed as the proposition
 `FifoLinkingTheorem`.
+
+The stopped CLOSE-first empty-root theorem from the companion writeup has a
+separate semantics below.  Its operational absorbers, bad-pair moment and rank
+reduction, finite zero-fan mutual induction, and final rank contradiction are
+kernel-checked.  This theorem remains separate from the open
+`FifoLinkingTheorem`.
 -/
 
 namespace Ogdoad.Fifo
@@ -892,6 +898,1633 @@ theorem CloseFirstWins.close_child {G : SimpleGraph V} {attacker : Bool}
       cases hstep
       exact hchild
   | answer _ hdefender _ _ => exact False.elim (hdefender hattacker)
+
+/-- A public state at which FIFO CLOSE is legal.  This is also exactly the
+checkpoint at which the stopped extension permits its artificial STOP. -/
+def Clear (s : State V) : Prop :=
+  s.queue ≠ [] ∧ s.ko = false
+
+/-- The exact stopped CLOSE-first attacker used by the normalization argument.
+
+At a clear attacker node it may STOP only when the accumulated score is odd.
+If it continues, its selected ordinary move must be CLOSE, at either score.
+At a ko-protected or empty-queue attacker node it may select any legal ordinary
+move.  Defender nodes retain the full universal legal-move fan.  Thus this
+predicate is deliberately distinct from `CloseFirstWins`: a STOP is a genuine
+winning leaf rather than a claim about the eventual terminal score. -/
+inductive StoppedCloseFirstWins (G : SimpleGraph V) (attacker : Bool) :
+    State V → Prop
+  | terminal (s : State V) (hterminal : Terminal s) (hscore : s.score ≠ 0) :
+      StoppedCloseFirstWins G attacker s
+  | stop (s : State V) (hattacker : s.toMove = attacker)
+      (hclear : Clear s) (hscore : s.score ≠ 0) :
+      StoppedCloseFirstWins G attacker s
+  | choose (s : State V) (hattacker : s.toMove = attacker)
+      (m : Move V) (s' : State V) (hstep : step G s m = some s')
+      (priority : Clear s → m = .close)
+      (hwin : StoppedCloseFirstWins G attacker s') :
+      StoppedCloseFirstWins G attacker s
+  | answer (s : State V) (hdefender : s.toMove ≠ attacker)
+      (hasMove : ∃ m s', step G s m = some s')
+      (hwin : ∀ m s', step G s m = some s' →
+        StoppedCloseFirstWins G attacker s') :
+      StoppedCloseFirstWins G attacker s
+
+omit [Fintype V] in
+/-- Every legal defender reply occurs in a stopped CLOSE-first winning tree. -/
+theorem StoppedCloseFirstWins.answer_child
+    {G : SimpleGraph V} {attacker : Bool} {s s' : State V} {m : Move V}
+    (h : StoppedCloseFirstWins G attacker s)
+    (hdefender : s.toMove ≠ attacker) (hstep : step G s m = some s') :
+    StoppedCloseFirstWins G attacker s' := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨m, s', hstep⟩)
+  | stop _ hattacker _ _ => exact False.elim (hdefender hattacker)
+  | choose _ hattacker _ _ _ _ _ => exact False.elim (hdefender hattacker)
+  | answer _ _ _ hanswer => exact hanswer m s' hstep
+
+omit [Fintype V] in
+/-- At a clear attacker node, continuing a stopped strategy exposes the
+unique CLOSE child.  A score-one STOP leaf is the only alternative. -/
+theorem StoppedCloseFirstWins.close_child_of_score_zero
+    {G : SimpleGraph V} {attacker : Bool} {s s' : State V}
+    (h : StoppedCloseFirstWins G attacker s)
+    (hattacker : s.toMove = attacker) (hscore : s.score = 0)
+    (hclose : step G s .close = some s') :
+    StoppedCloseFirstWins G attacker s' := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨Move.close, s', hclose⟩)
+  | stop _ _ _ hodd => exact False.elim (hodd hscore)
+  | choose _ _ m child hstep priority hchild =>
+      have hclear : Clear s := by
+        simp only [Clear]
+        simp only [step] at hclose
+        split at hclose
+        · contradiction
+        · split at hclose
+          · contradiction
+          · rename_i f q hq _
+            exact ⟨by simp [hq], by cases hk : s.ko <;> simp_all⟩
+      have hm : m = .close := priority hclear
+      subst m
+      rw [hclose] at hstep
+      cases hstep
+      exact hchild
+  | answer _ hdefender _ _ => exact False.elim (hdefender hattacker)
+
+/-- Empty no-dummy root used only for the stopped theorem.  The distinguished
+attacker moves second; its opponent therefore owns the root move. -/
+def stoppedEmptyRoot (U : Finset V) (attacker : Bool) : State V where
+  untouched := U
+  queue := []
+  ko := false
+  toMove := !attacker
+  score := 0
+
+/-- Kernel-level notation for the stopped empty-root assertion.  This is not
+the universal-full-fan predicate `P(H)` from the paper. -/
+def StoppedEmptyRootSafe (G : SimpleGraph V) (U : Finset V)
+    (attacker : Bool) : Prop :=
+  ¬StoppedCloseFirstWins G attacker (stoppedEmptyRoot U attacker)
+
+/-- Ordered two-front checkpoint used by the stopped bad-pair induction.  The
+board parameter includes the two queued vertices; all other board vertices
+remain untouched. -/
+def stoppedPairState (S : Finset V) (x y : V) (attacker : Bool) : State V where
+  untouched := (S.erase x).erase y
+  queue := [x, y]
+  ko := false
+  toMove := !attacker
+  score := 0
+
+/-- An ordered pair is bad when the stopped attacker wins from its canonical
+defender checkpoint.  Membership and distinctness are recorded in the
+predicate so later fan arguments can delete either front without side
+conditions escaping. -/
+def StoppedBadPair (G : SimpleGraph V) (S : Finset V) (attacker : Bool)
+    (x y : V) : Prop :=
+  x ∈ S ∧ y ∈ S ∧ x ≠ y ∧
+    StoppedCloseFirstWins G attacker (stoppedPairState S x y attacker)
+
+omit [Fintype V] in
+/-- The elementary two-CLOSE absorber: at a bad pair, a zero source charge
+forces the second-front charge to be one whenever the smaller empty root is
+safe. -/
+theorem StoppedBadPair.beta_eq_one_of_alpha_eq_zero
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hroot : StoppedEmptyRootSafe G ((S.erase x).erase y) attacker)
+    (halpha : flip G ((S.erase x).erase y) x = 0) :
+    flip G ((S.erase x).erase y) y = 1 := by
+  rcases hbad with ⟨hx, hy, hxy, hwin⟩
+  let sx : State V := {
+    untouched := (S.erase x).erase y
+    queue := [y]
+    ko := false
+    toMove := attacker
+    score := 0 }
+  let sxy := stoppedEmptyRoot ((S.erase x).erase y) attacker
+  have hclosex : step G (stoppedPairState S x y attacker) .close = some sx := by
+    simp [step, stoppedPairState, sx, halpha]
+  have hdefender : (!attacker : Bool) ≠ attacker := by
+    cases attacker <;> simp
+  have hwinx : StoppedCloseFirstWins G attacker sx :=
+    hwin.answer_child hdefender hclosex
+  by_contra hbeta
+  have hbeta0 := zmod2_eq_zero_of_ne_one _ hbeta
+  have hclosey : step G sx .close = some sxy := by
+    simp [step, sx, sxy, stoppedEmptyRoot, hbeta0]
+  have hwiny : StoppedCloseFirstWins G attacker sxy :=
+    hwinx.close_child_of_score_zero rfl rfl hclosey
+  exact hroot hwiny
+
+omit [Fintype V] in
+/-- The operational three-block absorber.  Equality of the first two close
+charges cancels the temporary score, and a zero last charge returns to the
+smaller stopped empty root. -/
+theorem not_stoppedBadPair_of_threeBlock
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y z : V}
+    (hz : z ∈ (S.erase x).erase y)
+    (hpair : flip G (((S.erase x).erase y).erase z) x =
+      flip G (((S.erase x).erase y).erase z) y)
+    (hlast : flip G (((S.erase x).erase y).erase z) z = 0)
+    (hroot : StoppedEmptyRootSafe G
+      (((S.erase x).erase y).erase z) attacker) :
+    ¬StoppedBadPair G S attacker x y := by
+  intro hbad
+  rcases hbad with ⟨hx, hy, hxy, hwin⟩
+  let U := (S.erase x).erase y
+  let so : State V := {
+    untouched := U.erase z
+    queue := [x, y, z]
+    ko := false
+    toMove := attacker
+    score := 0 }
+  let sox : State V := {
+    untouched := U.erase z
+    queue := [y, z]
+    ko := false
+    toMove := !attacker
+    score := flip G (U.erase z) x }
+  let soxy : State V := {
+    untouched := U.erase z
+    queue := [z]
+    ko := false
+    toMove := attacker
+    score := 0 }
+  let soxyz := stoppedEmptyRoot (U.erase z) attacker
+  have hopen : step G (stoppedPairState S x y attacker) (.open z) = some so := by
+    simp [step, stoppedPairState, so, U, hz]
+  have hdefender : (!attacker : Bool) ≠ attacker := by
+    cases attacker <;> simp
+  have hwino : StoppedCloseFirstWins G attacker so :=
+    hwin.answer_child hdefender hopen
+  have hclosex : step G so .close = some sox := by
+    simp [step, so, sox]
+  have hwinox : StoppedCloseFirstWins G attacker sox :=
+    hwino.close_child_of_score_zero rfl rfl hclosex
+  have hclosey : step G sox .close = some soxy := by
+    simp [step, sox, soxy, U, ← hpair, CharTwo.add_self_eq_zero]
+  have hwinoxy : StoppedCloseFirstWins G attacker soxy :=
+    hwinox.answer_child hdefender hclosey
+  have hclosez : step G soxy .close = some soxyz := by
+    simpa [step, soxy, soxyz, stoppedEmptyRoot, U] using hlast
+  have hwinxyz : StoppedCloseFirstWins G attacker soxyz :=
+    hwinoxy.close_child_of_score_zero rfl rfl hclosez
+  exact hroot hwinxyz
+
+omit [Fintype V] [DecidableEq V] in
+@[simp] theorem adjacencyBit_self (G : SimpleGraph V) (v : V) :
+    adjacencyBit G v v = 0 := by
+  simp [adjacencyBit]
+
+omit [Fintype V] in
+/-- Adjoining one untouched vertex adds precisely its adjacency coordinate to
+every close charge. -/
+theorem flip_insert_of_not_mem {G : SimpleGraph V} {U : Finset V} {f z : V}
+    (hz : z ∉ U) :
+    flip G (insert z U) f = flip G U f + adjacencyBit G f z := by
+  have hzmem : z ∈ insert z U := Finset.mem_insert_self z U
+  rw [flip_eq_flip_erase_add hzmem, Finset.erase_insert hz]
+
+omit [Fintype V] in
+/-- `flip` is the sum of adjacency coordinates over the untouched board. -/
+theorem flip_eq_sum_adjacencyBit (G : SimpleGraph V) (U : Finset V) (f : V) :
+    flip G U f = ∑ z ∈ U, adjacencyBit G f z := by
+  induction U using Finset.induction with
+  | empty => simp
+  | @insert z U hz ih =>
+      rw [flip_insert_of_not_mem hz, ih]
+      simp [hz, add_comm]
+
+omit [Fintype V] in
+/-- Handshaking over an arbitrary finite induced board, stated directly in
+the parity language used by the game. -/
+theorem sum_flip_self_eq_zero (G : SimpleGraph V) (U : Finset V) :
+    (∑ v ∈ U, flip G U v) = 0 := by
+  induction U using Finset.induction with
+  | empty => simp
+  | @insert x U hx ih =>
+      rw [Finset.sum_insert hx]
+      simp_rw [flip_insert_of_not_mem hx]
+      rw [Finset.sum_add_distrib, ih]
+      rw [flip_eq_sum_adjacencyBit]
+      have hsymm :
+          (∑ v ∈ U, adjacencyBit G v x) =
+            ∑ v ∈ U, adjacencyBit G x v := by
+        apply Finset.sum_congr rfl
+        intro v hv
+        exact adjacencyBit_comm G v x
+      rw [hsymm]
+      simp
+      simpa [two_nsmul] using
+        (CharTwo.add_self_eq_zero (∑ z ∈ U, adjacencyBit G x z))
+
+/-- The parity of the degrees of the neighbours of `v` in the induced board
+`U`.  This is the two-step walk bit denoted `b_v` in the stopped bad-pair
+proof. -/
+def neighborDegreeBit (G : SimpleGraph V) (U : Finset V) (v : V) : ZMod 2 :=
+  ∑ w ∈ U, adjacencyBit G v w * flip G U w
+
+omit [Fintype V] in
+/-- Deleting a board vertex toggles every remaining degree by its adjacency
+coordinate to the deleted vertex. -/
+theorem flip_erase_eq_add {G : SimpleGraph V} {U : Finset V} {x w : V}
+    (hx : x ∈ U) :
+    flip G (U.erase x) w = flip G U w + adjacencyBit G w x := by
+  have h := flip_eq_flip_erase_add (G := G) (f := w) hx
+  calc
+    flip G (U.erase x) w =
+        (flip G (U.erase x) w + adjacencyBit G w x) +
+          adjacencyBit G w x := by
+            rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+    _ = flip G U w + adjacencyBit G w x := by rw [← h]
+
+omit [Fintype V] in
+/-- The source two-step bit after deleting `x`.  The correction consists of
+the removed neighbour-degree term and the common-neighbour moment. -/
+theorem neighborDegreeBit_erase
+    {G : SimpleGraph V} {U : Finset V} {x y : V} (hx : x ∈ U) :
+    neighborDegreeBit G (U.erase x) y =
+      neighborDegreeBit G U y +
+        adjacencyBit G y x * flip G U x +
+        ∑ w ∈ U.erase x,
+          adjacencyBit G y w * adjacencyBit G x w := by
+  classical
+  rw [neighborDegreeBit, neighborDegreeBit]
+  have hsplit :
+      (∑ w ∈ U.erase x, adjacencyBit G y w * flip G U w) +
+          adjacencyBit G y x * flip G U x =
+        ∑ w ∈ U, adjacencyBit G y w * flip G U w :=
+    Finset.sum_erase_add U
+      (fun w ↦ adjacencyBit G y w * flip G U w) hx
+  have hsplit' :
+      (∑ w ∈ U.erase x, adjacencyBit G y w * flip G U w) =
+        (∑ w ∈ U, adjacencyBit G y w * flip G U w) -
+          adjacencyBit G y x * flip G U x := by
+    apply eq_sub_of_add_eq
+    simpa [add_comm] using hsplit
+  simp_rw [flip_erase_eq_add (G := G) hx, mul_add]
+  rw [Finset.sum_add_distrib, hsplit']
+  have hcommon :
+      (∑ w ∈ U.erase x,
+          adjacencyBit G y w * adjacencyBit G w x) =
+        ∑ w ∈ U.erase x,
+          adjacencyBit G y w * adjacencyBit G x w := by
+    apply Finset.sum_congr rfl
+    intro w hw
+    rw [adjacencyBit_comm G w x]
+  rw [hcommon]
+  rw [sub_eq_add_neg]
+  have hneg (t : ZMod 2) : -t = t := by
+    exact CharTwo.neg_eq t
+  rw [hneg]
+
+omit [Fintype V] in
+/-- Splitting a finite sum after erasing two distinct members. -/
+theorem sum_erase_erase_add
+    {S : Finset V} {x y : V} (f : V → ZMod 2)
+    (hx : x ∈ S) (hy : y ∈ S) (hxy : x ≠ y) :
+    (∑ z ∈ (S.erase x).erase y, f z) + f y + f x =
+      ∑ z ∈ S, f z := by
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+  have hySplit := Finset.sum_erase_add (S.erase x) f hyErase
+  have hxSplit := Finset.sum_erase_add S f hx
+  calc
+    (∑ z ∈ (S.erase x).erase y, f z) + f y + f x =
+        (∑ z ∈ S.erase x, f z) + f x := by rw [hySplit]
+    _ = ∑ z ∈ S, f z := hxSplit
+
+omit [Fintype V] in
+/-- Erasing two board vertices toggles a charge by the two corresponding
+adjacency coordinates. -/
+theorem flip_erase_erase_eq_add
+    {G : SimpleGraph V} {S : Finset V} {x y w : V}
+    (hx : x ∈ S) (hy : y ∈ S) (hxy : x ≠ y) :
+    flip G ((S.erase x).erase y) w =
+      flip G S w + adjacencyBit G w x + adjacencyBit G w y := by
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+  rw [flip_erase_eq_add (G := G) hyErase,
+    flip_erase_eq_add (G := G) hx]
+
+omit [Fintype V] in
+/-- Reverse orientation of `flip_erase_erase_eq_add`, valid because every
+adjacency coordinate has additive order two. -/
+theorem flip_eq_erase_erase_add
+    {G : SimpleGraph V} {S : Finset V} {x y w : V}
+    (hx : x ∈ S) (hy : y ∈ S) (hxy : x ≠ y) :
+    flip G S w = flip G ((S.erase x).erase y) w +
+      adjacencyBit G w x + adjacencyBit G w y := by
+  have h := flip_erase_erase_eq_add (G := G) (w := w) hx hy hxy
+  calc
+    flip G S w = flip G S w +
+        ((adjacencyBit G w x + adjacencyBit G w x) +
+          (adjacencyBit G w y + adjacencyBit G w y)) := by
+            rw [CharTwo.add_self_eq_zero, CharTwo.add_self_eq_zero,
+              zero_add, add_zero]
+    _ = flip G ((S.erase x).erase y) w +
+        adjacencyBit G w x + adjacencyBit G w y := by rw [h]; abel
+
+omit [Fintype V] in
+/-- The sum of full-board degree bits over the untouched complement of an
+ordered pair is the sum of the two front charges. -/
+theorem sum_flip_pairUntouched
+    {G : SimpleGraph V} {S : Finset V} {x y : V}
+    (hx : x ∈ S) (hy : y ∈ S) (hxy : x ≠ y) :
+    (∑ z ∈ (S.erase x).erase y, flip G S z) =
+      flip G ((S.erase x).erase y) x +
+        flip G ((S.erase x).erase y) y := by
+  let U := (S.erase x).erase y
+  let alpha := flip G U x
+  let beta := flip G U y
+  let a := adjacencyBit G x y
+  have hpx : flip G S x = alpha + a := by
+    simpa [U, alpha, a, adjacencyBit_self, add_comm, add_left_comm,
+      add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := x) hx hy hxy)
+  have hpy : flip G S y = beta + a := by
+    simpa [U, beta, a, adjacencyBit_self, adjacencyBit_comm,
+      add_comm, add_left_comm, add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := y) hx hy hxy)
+  have hsplit := sum_erase_erase_add (f := fun z ↦ flip G S z) hx hy hxy
+  have hhandshake := sum_flip_self_eq_zero G S
+  rw [hhandshake, hpx, hpy] at hsplit
+  have hzero : (∑ z ∈ U, flip G S z) + (alpha + beta) = 0 := by
+    calc
+      (∑ z ∈ U, flip G S z) + (alpha + beta) =
+          ((∑ z ∈ U, flip G S z) + (alpha + beta)) + (a + a) := by
+            rw [CharTwo.add_self_eq_zero, add_zero]
+      _ = (∑ z ∈ U, flip G S z) + (beta + a) + (alpha + a) := by abel
+      _ = 0 := hsplit
+  change (∑ z ∈ U, flip G S z) = alpha + beta
+  calc
+    (∑ z ∈ U, flip G S z) =
+        ((∑ z ∈ U, flip G S z) + (alpha + beta)) +
+          (alpha + beta) := by
+            rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+    _ = alpha + beta := by rw [hzero, zero_add]
+
+omit [Fintype V] in
+/-- Splitting the source two-step bit into the opposite-front endpoint and
+the untouched contribution. -/
+theorem neighborDegreeBit_split_pair
+    {G : SimpleGraph V} {S : Finset V} {x y : V}
+    (hx : x ∈ S) (hy : y ∈ S) (hxy : x ≠ y) :
+    neighborDegreeBit G S x =
+      adjacencyBit G x y * flip G S y +
+        ∑ z ∈ (S.erase x).erase y,
+          adjacencyBit G x z * flip G S z := by
+  have hsplit := sum_erase_erase_add
+    (f := fun z ↦ adjacencyBit G x z * flip G S z) hx hy hxy
+  rw [adjacencyBit_self, zero_mul, add_zero] at hsplit
+  rw [neighborDegreeBit]
+  rw [← hsplit]
+  abel
+
+omit [Fintype V] in
+/-- The common-neighbour correction in the deletion formula may be summed on
+the pair-untouched board; the omitted second front contributes zero. -/
+theorem commonNeighbor_sum_erase_eq_pairUntouched
+    {G : SimpleGraph V} {S : Finset V} {x y : V}
+    (_hx : x ∈ S) (hy : y ∈ S) (hxy : x ≠ y) :
+    (∑ w ∈ S.erase x,
+      adjacencyBit G y w * adjacencyBit G x w) =
+        ∑ w ∈ (S.erase x).erase y,
+          adjacencyBit G x w * adjacencyBit G y w := by
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+  have hsplit := Finset.sum_erase_add (S.erase x)
+    (fun w ↦ adjacencyBit G y w * adjacencyBit G x w) hyErase
+  rw [adjacencyBit_self, zero_mul, add_zero] at hsplit
+  rw [← hsplit]
+  apply Finset.sum_congr rfl
+  intro w hw
+  ring
+
+omit [Fintype V] [DecidableEq V] in
+/-- Multiplication by a parity bit restricts a sum to its one-fibre. -/
+theorem sum_bit_mul_eq_filter_one
+    (U : Finset V) (bit f : V → ZMod 2) :
+    (∑ z ∈ U, bit z * f z) =
+      ∑ z ∈ U.filter (fun z ↦ bit z = 1), f z := by
+  rw [Finset.sum_filter]
+  apply Finset.sum_congr rfl
+  intro z hz
+  by_cases hbit0 : bit z = 0
+  · simp [hbit0]
+  · have hbit1 := zmod2_eq_one_of_ne_zero (bit z) hbit0
+    simp [hbit1]
+
+omit [Fintype V] [DecidableEq V] in
+/-- The zero-fibre indicator of a parity bit is `1 + bit`. -/
+theorem sum_one_add_bit_mul_eq_filter_zero
+    (U : Finset V) (bit f : V → ZMod 2) :
+    (∑ z ∈ U, (1 + bit z) * f z) =
+      ∑ z ∈ U.filter (fun z ↦ bit z = 0), f z := by
+  rw [Finset.sum_filter]
+  apply Finset.sum_congr rfl
+  intro z hz
+  by_cases hbit0 : bit z = 0
+  · simp [hbit0]
+  · have hbit1 := zmod2_eq_one_of_ne_zero (bit z) hbit0
+    simp [hbit1, CharTwo.add_self_eq_zero]
+
+omit [Fintype V] in
+/-- Erasing one member changes cardinality parity by one. -/
+theorem card_erase_cast_add_one {S : Finset V} {x : V} (hx : x ∈ S) :
+    (((S.erase x).card : Nat) : ZMod 2) + 1 = (S.card : ZMod 2) := by
+  have hcard := Finset.card_erase_add_one hx
+  have hcast := congrArg (fun n : Nat ↦ (n : ZMod 2)) hcard
+  simpa only [Nat.cast_add, Nat.cast_one] using hcast
+
+omit [Fintype V] in
+/-- Erasing two distinct members preserves cardinality parity. -/
+theorem card_erase_erase_cast_eq
+    {S : Finset V} {x y : V} (hx : x ∈ S) (hy : y ∈ S) (hxy : x ≠ y) :
+    ((((S.erase x).erase y).card : Nat) : ZMod 2) =
+      (S.card : ZMod 2) := by
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+  have hyCard := card_erase_cast_add_one hyErase
+  have hxCard := card_erase_cast_add_one hx
+  calc
+    ((((S.erase x).erase y).card : Nat) : ZMod 2) =
+        ((((S.erase x).erase y).card : Nat) : ZMod 2) + (1 + 1) := by
+          rw [CharTwo.add_self_eq_zero, add_zero]
+    _ = (((((S.erase x).erase y).card : Nat) : ZMod 2) + 1) + 1 := by abel
+    _ = (((S.erase x).card : Nat) : ZMod 2) + 1 := by rw [hyCard]
+    _ = (S.card : ZMod 2) := hxCard
+
+omit [Fintype V] in
+/-- Graph-parity form of the three-block absorber.  A bad pair has no vertex
+whose full-board degree and two front-adjacency sum both equal
+`alpha + beta`. -/
+theorem StoppedBadPair.no_threeBlock_fibre
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y z : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hz : z ∈ (S.erase x).erase y)
+    (hroot : StoppedEmptyRootSafe G
+      (((S.erase x).erase y).erase z) attacker) :
+    ¬(flip G S z =
+          flip G ((S.erase x).erase y) x +
+            flip G ((S.erase x).erase y) y ∧
+       adjacencyBit G x z + adjacencyBit G y z =
+          flip G ((S.erase x).erase y) x +
+            flip G ((S.erase x).erase y) y) := by
+  rintro ⟨hp, hadj⟩
+  let U := (S.erase x).erase y
+  have hpair : flip G (U.erase z) x = flip G (U.erase z) y := by
+    have hxerase := flip_erase_eq_add (G := G) (w := x) hz
+    have hyerase := flip_erase_eq_add (G := G) (w := y) hz
+    rw [hxerase, hyerase]
+    have hadj' : adjacencyBit G x z + adjacencyBit G y z =
+        flip G U x + flip G U y := by simpa [U] using hadj
+    apply eq_of_sub_eq_zero
+    rw [sub_eq_add_neg, CharTwo.neg_eq]
+    calc
+      (flip G U x + adjacencyBit G x z) +
+          (flip G U y + adjacencyBit G y z) =
+          (adjacencyBit G x z + adjacencyBit G y z) +
+            (flip G U x + flip G U y) := by abel
+      _ = 0 := by rw [hadj', CharTwo.add_self_eq_zero]
+  have hxS : x ∈ S := hbad.1
+  have hyS : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hyS⟩
+  have hzU : z ∈ U := by simpa [U] using hz
+  have hlastU : flip G U z = 0 := by
+    have hxdel := flip_erase_eq_add (G := G) (w := z) hxS
+    have hydel := flip_erase_eq_add (G := G) (w := z) hyErase
+    have hp' : flip G S z = flip G U x + flip G U y := by
+      simpa [U] using hp
+    have hadj' : adjacencyBit G z x + adjacencyBit G z y =
+        flip G U x + flip G U y := by
+      rw [adjacencyBit_comm G z x, adjacencyBit_comm G z y]
+      exact hadj
+    rw [hydel, hxdel, hp']
+    calc
+      flip G U x + flip G U y + adjacencyBit G z x +
+          adjacencyBit G z y =
+          (flip G U x + flip G U y) +
+            (adjacencyBit G z x + adjacencyBit G z y) := by abel
+      _ = 0 := by rw [hadj', CharTwo.add_self_eq_zero]
+  have hlast : flip G (U.erase z) z = 0 := by
+    rw [flip_erase_eq_add (G := G) hzU, hlastU, adjacencyBit_self]
+    rfl
+  exact not_stoppedBadPair_of_threeBlock hz hpair hlast hroot hbad
+
+omit [Fintype V] in
+/-- A zero-charge OPEN/CLOSE rotation exports a bad pair to the one-front
+deleted board.  This is the semantic child used by the `Z`-fan induction. -/
+theorem StoppedBadPair.child_of_zero_open
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y z : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hz : z ∈ (S.erase x).erase y)
+    (hzero : flip G (((S.erase x).erase y).erase z) x = 0) :
+    StoppedBadPair G (S.erase x) attacker y z := by
+  rcases hbad with ⟨hx, hy, hxy, hwin⟩
+  let U := (S.erase x).erase y
+  let so : State V := {
+    untouched := U.erase z
+    queue := [x, y, z]
+    ko := false
+    toMove := attacker
+    score := 0 }
+  let child := stoppedPairState (S.erase x) y z attacker
+  have hopen : step G (stoppedPairState S x y attacker) (.open z) = some so := by
+    simp [step, stoppedPairState, so, U, hz]
+  have hdefender : (!attacker : Bool) ≠ attacker := by
+    cases attacker <;> simp
+  have hwino : StoppedCloseFirstWins G attacker so :=
+    hwin.answer_child hdefender hopen
+  have hclose : step G so .close = some child := by
+    simp [step, so, child, stoppedPairState, U, hzero]
+  have hwinchild : StoppedCloseFirstWins G attacker child :=
+    hwino.close_child_of_score_zero rfl rfl hclose
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+  have hzErase : z ∈ S.erase x :=
+    Finset.mem_of_mem_erase hz
+  have hyz : y ≠ z := by
+    intro heq
+    subst z
+    exact (Finset.notMem_erase y (S.erase x)) hz
+  exact ⟨hyErase, hzErase, hyz, hwinchild⟩
+
+/-- Every scalar in `ZMod 2` is idempotent. -/
+theorem zmod2_sq_eq_self (t : ZMod 2) : t * t = t := by
+  by_cases ht : t = 0
+  · simp [ht]
+  · rw [zmod2_eq_one_of_ne_zero t ht]
+    simp
+
+/-- Distinct parity bits differ by the unit bit, so the affine equality
+indicator `x + 1 + y` vanishes. -/
+theorem zmod2_add_one_add_eq_zero_of_ne (x y : ZMod 2) (hxy : x ≠ y) :
+    x + 1 + y = 0 := by
+  have hsum0 : x + y ≠ 0 := by
+    intro h
+    have : x = y := by
+      calc
+        x = x + (y + y) := by rw [CharTwo.add_self_eq_zero, add_zero]
+        _ = (x + y) + y := by abel
+        _ = y := by rw [h, zero_add]
+    exact hxy this
+  have hsum1 : x + y = 1 := zmod2_eq_one_of_ne_zero _ hsum0
+  calc
+    x + 1 + y = (x + y) + 1 := by abel
+    _ = 0 := by rw [hsum1, CharTwo.add_self_eq_zero]
+
+omit [Fintype V] [DecidableEq V] in
+/-- Parity of an empty equality fibre.  This is the abstract algebra behind
+the stopped bad-pair moment identity. -/
+theorem no_common_value_moment
+    (U : Finset V) (p q : V → ZMod 2) (r : ZMod 2)
+    (hp : (∑ z ∈ U, p z) = r) (hq : (∑ z ∈ U, q z) = r)
+    (hfibre : ∀ z ∈ U, ¬(p z = r ∧ q z = r)) :
+    (∑ z ∈ U, p z * q z) = (1 + r) * (U.card : ZMod 2) := by
+  have hindicator :
+      (∑ z ∈ U, (p z + 1 + r) * (q z + 1 + r)) = 0 := by
+    apply Finset.sum_eq_zero
+    intro z hz
+    by_cases hpzr : p z = r
+    · have hqzr : q z ≠ r := by
+        intro h
+        exact hfibre z hz ⟨hpzr, h⟩
+      rw [zmod2_add_one_add_eq_zero_of_ne (q z) r hqzr]
+      simp
+    · rw [zmod2_add_one_add_eq_zero_of_ne (p z) r hpzr]
+      simp
+  have hexpand :
+      (∑ z ∈ U, (p z + 1 + r) * (q z + 1 + r)) =
+        (∑ z ∈ U, p z * q z) +
+          (1 + r) * (∑ z ∈ U, p z) +
+          (1 + r) * (∑ z ∈ U, q z) +
+          (U.card : ZMod 2) * ((1 + r) * (1 + r)) := by
+    have hpoint (z : V) :
+        (p z + 1 + r) * (q z + 1 + r) =
+          p z * q z + (1 + r) * p z +
+            (1 + r) * q z + (1 + r) * (1 + r) := by ring
+    simp_rw [hpoint, Finset.sum_add_distrib]
+    rw [← Finset.mul_sum, ← Finset.mul_sum]
+    simp only [Finset.sum_const, nsmul_eq_mul]
+  rw [hexpand, hp, hq] at hindicator
+  rw [zmod2_sq_eq_self (1 + r)] at hindicator
+  have hcross : (1 + r) * r + (1 + r) * r = 0 :=
+    CharTwo.add_self_eq_zero _
+  have hsummed :
+      (∑ z ∈ U, p z * q z) +
+          (U.card : ZMod 2) * (1 + r) = 0 := by
+    calc
+      (∑ z ∈ U, p z * q z) + (U.card : ZMod 2) * (1 + r) =
+          ((∑ z ∈ U, p z * q z) +
+            ((1 + r) * r + (1 + r) * r)) +
+              (U.card : ZMod 2) * (1 + r) := by rw [hcross, add_zero]
+      _ = 0 := by simpa [add_assoc] using hindicator
+  calc
+    (∑ z ∈ U, p z * q z) =
+        (∑ z ∈ U, p z * q z) +
+          ((U.card : ZMod 2) * (1 + r) +
+            (U.card : ZMod 2) * (1 + r)) := by
+              rw [CharTwo.add_self_eq_zero, add_zero]
+    _ = (U.card : ZMod 2) * (1 + r) := by
+      rw [← add_assoc, hsummed, zero_add]
+    _ = (1 + r) * (U.card : ZMod 2) := mul_comm _ _
+
+omit [Fintype V] in
+/-- The empty three-block fibre gives the exact stopped bad-pair moment
+identity in graph notation. -/
+theorem StoppedBadPair.moment
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hsafe : ∀ T : Finset V, T ⊂ S → StoppedEmptyRootSafe G T attacker) :
+    neighborDegreeBit G S x + neighborDegreeBit G S y =
+      (1 + (flip G ((S.erase x).erase y) x +
+        flip G ((S.erase x).erase y) y)) * (S.card : ZMod 2) +
+      adjacencyBit G x y *
+        (flip G ((S.erase x).erase y) x +
+          flip G ((S.erase x).erase y) y) := by
+  let U := (S.erase x).erase y
+  let alpha := flip G U x
+  let beta := flip G U y
+  let a := adjacencyBit G x y
+  let r := alpha + beta
+  have hx : x ∈ S := hbad.1
+  have hy : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+  have hproper (T : Finset V) (hTS : T ⊆ S) (hxT : x ∉ T) : T ⊂ S := by
+    rw [Finset.ssubset_iff_subset_ne]
+    exact ⟨hTS, fun hEq ↦ hxT (hEq ▸ hx)⟩
+  have hUSub : U ⊆ S := by
+    intro z hz
+    exact Finset.mem_of_mem_erase (Finset.mem_of_mem_erase hz)
+  have hxU : x ∉ U := by simp [U]
+  have hproperU : U ⊂ S := hproper U hUSub hxU
+  have hpx : flip G S x = alpha + a := by
+    simpa [U, alpha, a, adjacencyBit_self, add_comm, add_left_comm,
+      add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := x) hx hy hxy)
+  have hpy : flip G S y = beta + a := by
+    simpa [U, beta, a, adjacencyBit_self, adjacencyBit_comm,
+      add_comm, add_left_comm, add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := y) hx hy hxy)
+  have hpSum : (∑ z ∈ U, flip G S z) = r := by
+    have hsplit := sum_erase_erase_add (f := fun z ↦ flip G S z) hx hy hxy
+    have hhandshake := sum_flip_self_eq_zero G S
+    rw [hhandshake, hpx, hpy] at hsplit
+    have hzero : (∑ z ∈ U, flip G S z) + r = 0 := by
+      calc
+        (∑ z ∈ U, flip G S z) + r =
+            ((∑ z ∈ U, flip G S z) + r) + (a + a) := by
+              rw [CharTwo.add_self_eq_zero, add_zero]
+        _ = (∑ z ∈ U, flip G S z) + (beta + a) + (alpha + a) := by
+              simp only [r]
+              abel
+        _ = 0 := hsplit
+    calc
+      (∑ z ∈ U, flip G S z) =
+          ((∑ z ∈ U, flip G S z) + r) + r := by
+            rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+      _ = r := by rw [hzero, zero_add]
+  have hqSum :
+      (∑ z ∈ U, (adjacencyBit G x z + adjacencyBit G y z)) = r := by
+    rw [Finset.sum_add_distrib]
+    rw [← flip_eq_sum_adjacencyBit G U x,
+      ← flip_eq_sum_adjacencyBit G U y]
+  have hfibre : ∀ z ∈ U,
+      ¬(flip G S z = r ∧
+        adjacencyBit G x z + adjacencyBit G y z = r) := by
+    intro z hz
+    have hsub : U.erase z ⊆ S :=
+      Finset.Subset.trans (Finset.erase_subset z U) hUSub
+    have hxErase : x ∉ U.erase z := fun hxmem ↦ hxU (Finset.mem_of_mem_erase hxmem)
+    have hroot := hsafe (U.erase z) (hproper (U.erase z) hsub hxErase)
+    simpa [U, alpha, beta, r] using hbad.no_threeBlock_fibre hz hroot
+  have hprod := no_common_value_moment U
+    (fun z ↦ flip G S z)
+    (fun z ↦ adjacencyBit G x z + adjacencyBit G y z)
+    r hpSum hqSum hfibre
+  have hcardNat : U.card + 2 = S.card := by
+    have hyCard := Finset.card_erase_add_one hyErase
+    have hxCard := Finset.card_erase_add_one hx
+    dsimp [U]
+    omega
+  have hcard : (U.card : ZMod 2) = (S.card : ZMod 2) := by
+    have hcast := congrArg (fun n : Nat ↦ (n : ZMod 2)) hcardNat
+    simpa [Nat.cast_add, CharTwo.two_eq_zero] using hcast
+  rw [hcard] at hprod
+  have hwalk : neighborDegreeBit G S x + neighborDegreeBit G S y =
+      ∑ z ∈ S, flip G S z *
+        (adjacencyBit G x z + adjacencyBit G y z) := by
+    rw [neighborDegreeBit, neighborDegreeBit, ← Finset.sum_add_distrib]
+    apply Finset.sum_congr rfl
+    intro z hz
+    ring
+  have hsplit := sum_erase_erase_add
+    (f := fun z ↦ flip G S z *
+      (adjacencyBit G x z + adjacencyBit G y z)) hx hy hxy
+  have hends :
+      flip G S y * (adjacencyBit G x y + adjacencyBit G y y) +
+        flip G S x * (adjacencyBit G x x + adjacencyBit G y x) = a * r := by
+    rw [adjacencyBit_self, adjacencyBit_self, zero_add, add_zero,
+      adjacencyBit_comm G y x, hpx, hpy]
+    simp only [r]
+    calc
+      (beta + a) * a + (alpha + a) * a =
+          a * (alpha + beta) + (a * a + a * a) := by ring
+      _ = a * (alpha + beta) := by
+        rw [CharTwo.add_self_eq_zero, add_zero]
+  have hsplit' :
+      (∑ z ∈ U, flip G S z *
+        (adjacencyBit G x z + adjacencyBit G y z)) + a * r =
+          ∑ z ∈ S, flip G S z *
+            (adjacencyBit G x z + adjacencyBit G y z) := by
+    calc
+      (∑ z ∈ U, flip G S z *
+          (adjacencyBit G x z + adjacencyBit G y z)) + a * r =
+          (∑ z ∈ U, flip G S z *
+            (adjacencyBit G x z + adjacencyBit G y z)) +
+              (flip G S y *
+                (adjacencyBit G x y + adjacencyBit G y y) +
+               flip G S x *
+                (adjacencyBit G x x + adjacencyBit G y x)) := by rw [hends]
+      _ = _ := by simpa [U, add_assoc] using hsplit
+  rw [hwalk, ← hsplit', hprod]
+
+/-- Three-level rank used to orient stopped bad arcs. -/
+def stoppedBadRank (p b : ZMod 2) : Nat :=
+  if b = 0 then 0 else if p = 0 then 2 else 1
+
+/-- The exact bad-pair bits and moment equation force strict rank descent.
+This is the algebraic terminal step of the stopped empty-root proof. -/
+theorem stoppedBadArc_rank_lt
+    (a alpha beta epsilon px py bX bY r : ZMod 2)
+    (hpx : px = a + alpha) (hpy : py = a + beta)
+    (hr : r = alpha + beta) (hbeta : beta = 1) (hbx : bX = 1)
+    (halpha : alpha = 1 → epsilon = 1)
+    (hmoment : bX + bY = (1 + r) * epsilon + a * r) :
+    stoppedBadRank py bY < stoppedBadRank px bX := by
+  have h11 : (1 : ZMod 2) + 1 = 0 := CharTwo.add_self_eq_zero 1
+  by_cases halpha0 : alpha = 0
+  · simp [halpha0, hbeta] at hr hpx hpy hmoment
+    have hr1 : r = 1 := by simpa using hr
+    rw [hr1, hbx] at hmoment
+    have hby : bY = 1 + a := by
+      have := hmoment
+      simp only [CharTwo.add_self_eq_zero, zero_mul, mul_one] at this
+      calc
+        bY = bY + (1 + 1) := by rw [CharTwo.add_self_eq_zero, add_zero]
+        _ = 1 + (1 + bY) := by abel
+        _ = 1 + a := by simp [this]
+    have hpxa : px = a := by simpa using hpx
+    have hpya : py = a + 1 := by simpa using hpy
+    by_cases ha0 : a = 0
+    · simp [stoppedBadRank, hpxa, hpya, hby, hbx, ha0]
+    · have ha1 : a = 1 := zmod2_eq_one_of_ne_zero a ha0
+      simp [stoppedBadRank, hpxa, hby, hbx, ha1, h11]
+  · have halpha1 : alpha = 1 := zmod2_eq_one_of_ne_zero alpha halpha0
+    have hepsilon1 : epsilon = 1 := halpha halpha1
+    simp [halpha1, hbeta, hepsilon1, hbx] at hr hmoment hpx hpy
+    have hr0 : r = 0 := by simpa [h11] using hr
+    rw [hr0] at hmoment
+    have hby0 : bY = 0 := by
+      have := hmoment
+      simpa using this
+    unfold stoppedBadRank
+    simp only [hby0, hbx, ↓reduceIte, one_ne_zero]
+    by_cases hpx0 : px = 0 <;> simp [hpx0]
+
+omit [Fintype V] [DecidableEq V] in
+/-- A finite nonempty set cannot support an everywhere-outgoing relation that
+strictly decreases a natural-valued rank.  This packages the directed-cycle
+argument without choosing an actual cycle. -/
+theorem no_total_strict_rank_relation
+    (S : Finset V) (hS : S.Nonempty) (R : V → V → Prop) (rho : V → Nat)
+    (hout : ∀ x ∈ S, ∃ y ∈ S, R x y)
+    (hdesc : ∀ {x y}, x ∈ S → y ∈ S → R x y → rho y < rho x) : False := by
+  obtain ⟨x, hxS, hxmin⟩ := Finset.exists_min_image S rho hS
+  obtain ⟨y, hyS, hxy⟩ := hout x hxS
+  exact (not_lt_of_ge (hxmin y hyS)) (hdesc hxS hyS hxy)
+
+omit [Fintype V] in
+/-- A stopped winning tree at an empty defender root exports a bad outgoing
+ordered pair from every possible first OPEN.  This is the exact root fan used
+by the final rank contradiction. -/
+theorem StoppedCloseFirstWins.outgoing_stoppedBadPair
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool}
+    (hwin : StoppedCloseFirstWins G attacker (stoppedEmptyRoot S attacker))
+    (hcard : 2 ≤ S.card) :
+    ∀ x ∈ S, ∃ y ∈ S, StoppedBadPair G S attacker x y := by
+  intro x hx
+  let sx : State V := {
+    untouched := S.erase x
+    queue := [x]
+    ko := true
+    toMove := attacker
+    score := 0 }
+  have hopenx : step G (stoppedEmptyRoot S attacker) (.open x) = some sx := by
+    simp [step, stoppedEmptyRoot, sx, hx]
+  have hdefender : (!attacker : Bool) ≠ attacker := by
+    cases attacker <;> simp
+  have hwinx : StoppedCloseFirstWins G attacker sx :=
+    hwin.answer_child hdefender hopenx
+  have hremain : S.erase x ≠ ∅ := by
+    intro hempty
+    have hcardErase := Finset.card_erase_add_one hx
+    rw [hempty] at hcardErase
+    simp at hcardErase
+    omega
+  cases hwinx with
+  | terminal _ hterminal _ => exact False.elim (List.cons_ne_nil x [] hterminal.2)
+  | stop _ _ hclear _ => exact False.elim (by simp [Clear, sx] at hclear)
+  | answer _ hnotattacker _ _ => exact False.elim (hnotattacker rfl)
+  | choose _ _ m child hstep _ hchild =>
+      cases m with
+      | close => simp [step, sx] at hstep
+      | pass => simp [step, sx, hremain] at hstep
+      | «open» y =>
+          have hyErase : y ∈ S.erase x := by
+            simp only [step] at hstep
+            split at hstep
+            · assumption
+            · contradiction
+          have hyS : y ∈ S := Finset.mem_of_mem_erase hyErase
+          have hyx : y ≠ x := (Finset.ne_of_mem_erase hyErase)
+          have hchildState : child = stoppedPairState S x y attacker := by
+            simp only [step] at hstep
+            split at hstep
+            · cases hstep
+              simp [sx, stoppedPairState]
+            · contradiction
+          subst child
+          exact ⟨y, hyS, hx, hyS, Ne.symm hyx, hchild⟩
+
+omit [Fintype V] in
+/-- With no untouched vertex and even current score, neither terminal play nor
+a stopped leaf can witness an attacker win. -/
+theorem not_stoppedCloseFirstWins_of_untouched_empty
+    {G : SimpleGraph V} {attacker : Bool} {s : State V}
+    (hU : s.untouched = ∅) (hscore : s.score = 0) :
+    ¬StoppedCloseFirstWins G attacker s := by
+  intro hwin
+  induction hwin with
+  | terminal _ _ hodd => exact hodd hscore
+  | stop _ _ _ hodd => exact hodd hscore
+  | choose _ _ _ _ hstep _ _ ih =>
+      exact ih (step_untouched_eq_empty hU hstep)
+        (by rw [step_score_eq_of_untouched_empty hU hstep, hscore])
+  | answer _ _ hasMove _ ih =>
+      obtain ⟨m, s', hstep⟩ := hasMove
+      exact ih m s' hstep (step_untouched_eq_empty hU hstep)
+        (by rw [step_score_eq_of_untouched_empty hU hstep, hscore])
+
+omit [Fintype V] in
+/-- Empty-board base of the stopped empty-root induction. -/
+theorem stoppedEmptyRootSafe_empty (G : SimpleGraph V) (attacker : Bool) :
+    StoppedEmptyRootSafe G ∅ attacker := by
+  apply not_stoppedCloseFirstWins_of_untouched_empty
+  · rfl
+  · rfl
+
+omit [Fintype V] in
+/-- One-vertex base of the stopped empty-root induction.  The defender opens
+the sole vertex, after which every continuation has empty untouched set and
+even score. -/
+theorem stoppedEmptyRootSafe_singleton (G : SimpleGraph V) (attacker : Bool)
+    (x : V) : StoppedEmptyRootSafe G {x} attacker := by
+  intro hwin
+  let sx : State V := {
+    untouched := ∅
+    queue := [x]
+    ko := true
+    toMove := attacker
+    score := 0 }
+  have hopen : step G (stoppedEmptyRoot {x} attacker) (.open x) = some sx := by
+    simp [step, stoppedEmptyRoot, sx]
+  have hdefender : (!attacker : Bool) ≠ attacker := by
+    cases attacker <;> simp
+  have hwinx : StoppedCloseFirstWins G attacker sx :=
+    hwin.answer_child hdefender hopen
+  exact not_stoppedCloseFirstWins_of_untouched_empty rfl rfl hwinx
+
+/-- The exact local obligation left by the formalized absorber algebra: every
+stopped bad pair must strictly descend the two-bit rank. -/
+def StoppedBadPairRankDescent (G : SimpleGraph V) (S : Finset V)
+    (attacker : Bool) : Prop :=
+  ∀ ⦃x y⦄, StoppedBadPair G S attacker x y →
+    stoppedBadRank (flip G S y) (neighborDegreeBit G S y) <
+      stoppedBadRank (flip G S x) (neighborDegreeBit G S x)
+
+/-- The three inductive bits of the stopped bad-pair fan lemma: the second
+front charge and source two-step bit are one, and a one source charge forces
+odd board order. -/
+def StoppedBadPairBits (G : SimpleGraph V) (S : Finset V)
+    (attacker : Bool) : Prop :=
+  ∀ ⦃x y⦄, StoppedBadPair G S attacker x y →
+    flip G ((S.erase x).erase y) y = 1 ∧
+      neighborDegreeBit G S x = 1 ∧
+      (flip G ((S.erase x).erase y) x = 1 →
+        (S.card : ZMod 2) = 1)
+
+omit [Fintype V] in
+/-- Terminal domination wall of the stopped bad-pair fan: if the complete
+zero-charge OPEN fibre is empty, the source charge is zero and the remaining
+two required bits follow from the two-CLOSE absorber and handshaking. -/
+theorem StoppedBadPair.bits_of_zeroFan_empty
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hroot : StoppedEmptyRootSafe G ((S.erase x).erase y) attacker)
+    (hZ : ((S.erase x).erase y).filter (fun z ↦
+      adjacencyBit G x z = flip G ((S.erase x).erase y) x) = ∅) :
+    flip G ((S.erase x).erase y) y = 1 ∧
+      neighborDegreeBit G S x = 1 ∧
+      (flip G ((S.erase x).erase y) x = 1 →
+        (S.card : ZMod 2) = 1) := by
+  let U := (S.erase x).erase y
+  let alpha := flip G U x
+  let beta := flip G U y
+  have hx : x ∈ S := hbad.1
+  have hy : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  have halpha0 : alpha = 0 := by
+    by_contra hne
+    have halpha1 := zmod2_eq_one_of_ne_zero alpha hne
+    have hallZero : ∀ z ∈ U, adjacencyBit G x z = 0 := by
+      intro z hz
+      by_contra hbit0
+      have hbit1 := zmod2_eq_one_of_ne_zero (adjacencyBit G x z) hbit0
+      have hzZ : z ∈ U.filter (fun w ↦ adjacencyBit G x w = alpha) := by
+        simp [hz, hbit1, halpha1]
+      rw [show U.filter (fun w ↦ adjacencyBit G x w = alpha) = ∅ by
+        simpa [U, alpha] using hZ] at hzZ
+      simp at hzZ
+    have : alpha = 0 := by
+      change flip G U x = 0
+      rw [flip_eq_sum_adjacencyBit]
+      exact Finset.sum_eq_zero (fun z hz ↦ hallZero z hz)
+    exact hne this
+  have hallOne : ∀ z ∈ U, adjacencyBit G x z = 1 := by
+    intro z hz
+    by_contra hbit0
+    have hzZ : z ∈ U.filter (fun w ↦ adjacencyBit G x w = alpha) := by
+      have hbit1 := zmod2_eq_zero_of_ne_one (adjacencyBit G x z) hbit0
+      simp [hz, hbit1, halpha0]
+    rw [show U.filter (fun w ↦ adjacencyBit G x w = alpha) = ∅ by
+      simpa [U, alpha] using hZ] at hzZ
+    simp at hzZ
+  have hbeta : beta = 1 := by
+    apply hbad.beta_eq_one_of_alpha_eq_zero hroot
+    simpa [U, alpha] using halpha0
+  have hsum :
+      (∑ z ∈ U, adjacencyBit G x z * flip G S z) =
+        ∑ z ∈ U, flip G S z := by
+    apply Finset.sum_congr rfl
+    intro z hz
+    rw [hallOne z hz, one_mul]
+  have hpSum := sum_flip_pairUntouched (G := G) hx hy hxy
+  have hsplit := neighborDegreeBit_split_pair (G := G) hx hy hxy
+  have hpy : flip G S y = beta + adjacencyBit G x y := by
+    simpa [U, beta, adjacencyBit_self, adjacencyBit_comm,
+      add_comm, add_left_comm, add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := y) hx hy hxy)
+  have hbX : neighborDegreeBit G S x = 1 := by
+    rw [hsplit, hsum, hpSum, hpy]
+    simp only [U, alpha, beta] at halpha0 hbeta ⊢
+    rw [halpha0, hbeta]
+    let t := adjacencyBit G x y
+    change t * (1 + t) + 1 = 1
+    calc
+      t * (1 + t) + 1 = (t + t * t) + 1 := by rw [mul_add, mul_one]
+      _ = (t + t) + 1 := by rw [zmod2_sq_eq_self]
+      _ = 1 := by rw [CharTwo.add_self_eq_zero, zero_add]
+  refine ⟨?_, hbX, ?_⟩
+  · simpa [U, beta] using hbeta
+  · intro halpha1
+    have : (0 : ZMod 2) = 1 := by
+      simpa only [U, alpha, halpha0] using halpha1
+    exact False.elim (zero_ne_one this)
+
+omit [Fintype V] in
+/-- Inductive handoff for every member of the complete zero-charge OPEN fan.
+The three conclusions are exactly the child versions of equations (E1)--(E3)
+before rewriting them into full-board degree notation. -/
+theorem StoppedBadPair.zeroFan_child_bits
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y z : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hz : z ∈ (S.erase x).erase y)
+    (hcoordinate : adjacencyBit G x z =
+      flip G ((S.erase x).erase y) x)
+    (hsmall : StoppedBadPairBits G (S.erase x) attacker) :
+    flip G (((S.erase x).erase y).erase z) z = 1 ∧
+      neighborDegreeBit G (S.erase x) y = 1 ∧
+      (flip G (((S.erase x).erase y).erase z) y = 1 →
+        ((S.erase x).card : ZMod 2) = 1) := by
+  have hzero : flip G (((S.erase x).erase y).erase z) x = 0 := by
+    rw [flip_erase_eq_add (G := G) hz, hcoordinate,
+      CharTwo.add_self_eq_zero]
+  have hchild := hbad.child_of_zero_open hz hzero
+  simpa [Finset.erase_right_comm] using hsmall hchild
+
+omit [Fintype V] in
+/-- The complete nonempty zero-charge OPEN fan exports the three equations
+used in the two algebraic case splits. -/
+theorem StoppedBadPair.zeroFan_equations
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hsmall : StoppedBadPairBits G (S.erase x) attacker)
+    (hZ : (((S.erase x).erase y).filter (fun z ↦
+      adjacencyBit G x z = flip G ((S.erase x).erase y) x)).Nonempty) :
+    (∀ z ∈ ((S.erase x).erase y).filter (fun w ↦
+        adjacencyBit G x w = flip G ((S.erase x).erase y) x),
+      flip G S z + flip G ((S.erase x).erase y) x +
+        adjacencyBit G y z = 1) ∧
+    (neighborDegreeBit G S y +
+      adjacencyBit G x y * flip G S x +
+      (∑ w ∈ (S.erase x).erase y,
+        adjacencyBit G x w * adjacencyBit G y w) = 1) ∧
+    ((S.card : ZMod 2) = 1 →
+      ∀ z ∈ ((S.erase x).erase y).filter (fun w ↦
+          adjacencyBit G x w = flip G ((S.erase x).erase y) x),
+        adjacencyBit G y z = flip G ((S.erase x).erase y) y) := by
+  let U := (S.erase x).erase y
+  let alpha := flip G U x
+  let beta := flip G U y
+  let Z := U.filter (fun z ↦ adjacencyBit G x z = alpha)
+  have hx : x ∈ S := hbad.1
+  have hy : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  have hE1 : ∀ z ∈ Z,
+      flip G S z + alpha + adjacencyBit G y z = 1 := by
+    intro z hzZ
+    have hzU : z ∈ U := (Finset.mem_filter.mp hzZ).1
+    have hcoord : adjacencyBit G x z = alpha := (Finset.mem_filter.mp hzZ).2
+    have hchild := hbad.zeroFan_child_bits hzU hcoord hsmall
+    have hthree := flip_erase_erase_eq_add (G := G) (w := z) hx hy hxy
+    have hself := flip_erase_eq_add (G := G) (w := z) hzU
+    rw [hself, adjacencyBit_self, add_zero, hthree,
+      adjacencyBit_comm G z x, adjacencyBit_comm G z y, hcoord] at hchild
+    exact hchild.1
+  have hE2 : neighborDegreeBit G S y +
+      adjacencyBit G x y * flip G S x +
+      (∑ w ∈ U, adjacencyBit G x w * adjacencyBit G y w) = 1 := by
+    obtain ⟨z, hzZ⟩ := hZ
+    have hzU : z ∈ U := by
+      simpa [U, alpha, Z] using (Finset.mem_filter.mp hzZ).1
+    have hcoord : adjacencyBit G x z = alpha := by
+      simpa [U, alpha, Z] using (Finset.mem_filter.mp hzZ).2
+    have hchild := hbad.zeroFan_child_bits hzU hcoord hsmall
+    have hdelete := neighborDegreeBit_erase (G := G) (x := x) (y := y) hx
+    have hcommon := commonNeighbor_sum_erase_eq_pairUntouched
+      (G := G) hx hy hxy
+    rw [hcommon] at hdelete
+    rw [hdelete] at hchild
+    simpa [U, adjacencyBit_comm G y x] using hchild.2.1
+  have hE3 : (S.card : ZMod 2) = 1 →
+      ∀ z ∈ Z, adjacencyBit G y z = beta := by
+    intro hepsilon z hzZ
+    have hzU : z ∈ U := (Finset.mem_filter.mp hzZ).1
+    have hcoord : adjacencyBit G x z = alpha := (Finset.mem_filter.mp hzZ).2
+    have hchild := hbad.zeroFan_child_bits hzU hcoord hsmall
+    have hcard := card_erase_cast_add_one hx
+    rw [hepsilon] at hcard
+    have hcard0 : (((S.erase x).card : Nat) : ZMod 2) = 0 := by
+      exact add_right_cancel (hcard.trans rfl)
+    by_contra hY
+    have hsumNe : beta + adjacencyBit G y z ≠ 0 := by
+      intro hsum
+      have heq : adjacencyBit G y z = beta := by
+        calc
+          adjacencyBit G y z = (beta + beta) + adjacencyBit G y z := by
+            rw [CharTwo.add_self_eq_zero, zero_add]
+          _ = beta + (beta + adjacencyBit G y z) := by abel
+          _ = beta := by rw [hsum, add_zero]
+      exact hY heq
+    have hsum1 := zmod2_eq_one_of_ne_zero _ hsumNe
+    have hcharge1 : flip G (U.erase z) y = 1 := by
+      rw [flip_erase_eq_add (G := G) hzU, adjacencyBit_comm G y z]
+      simpa [beta, adjacencyBit_comm G z y] using hsum1
+    have hcard1 := hchild.2.2 hcharge1
+    rw [hcard0] at hcard1
+    exact zero_ne_one hcard1
+  refine ⟨?_, ?_, ?_⟩
+  · intro z hzZ
+    exact hE1 z (by simpa [U, alpha, Z] using hzZ)
+  · simpa [U] using hE2
+  · intro hepsilon z hzZ
+    have := hE3 hepsilon z (by simpa [U, alpha, Z] using hzZ)
+    simpa [U, beta] using this
+
+omit [Fintype V] in
+/-- Nonempty zero-fan, source-charge-one branch of the stopped bad-pair
+lemma. -/
+theorem StoppedBadPair.bits_of_zeroFan_alpha_one
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hsafe : ∀ T : Finset V, T ⊂ S → StoppedEmptyRootSafe G T attacker)
+    (hsmall : StoppedBadPairBits G (S.erase x) attacker)
+    (hZ : (((S.erase x).erase y).filter (fun z ↦
+      adjacencyBit G x z = flip G ((S.erase x).erase y) x)).Nonempty)
+    (halpha : flip G ((S.erase x).erase y) x = 1) :
+    flip G ((S.erase x).erase y) y = 1 ∧
+      neighborDegreeBit G S x = 1 ∧
+      (flip G ((S.erase x).erase y) x = 1 →
+        (S.card : ZMod 2) = 1) := by
+  let U := (S.erase x).erase y
+  let alpha := flip G U x
+  let beta := flip G U y
+  let a := adjacencyBit G x y
+  let epsilon : ZMod 2 := S.card
+  let r := alpha + beta
+  let c := ∑ w ∈ U, adjacencyBit G x w * adjacencyBit G y w
+  have hx : x ∈ S := hbad.1
+  have hy : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  have hfan := hbad.zeroFan_equations hsmall hZ
+  have hE1 := hfan.1
+  have hE2 := hfan.2.1
+  have hE3 := hfan.2.2
+  have hpEqY : ∀ z ∈ U.filter (fun w ↦ adjacencyBit G x w = alpha),
+      flip G S z = adjacencyBit G y z := by
+    intro z hzZ
+    have h := hE1 z (by simpa [U, alpha] using hzZ)
+    have ha1 : alpha = 1 := by simpa [U, alpha] using halpha
+    rw [show flip G ((S.erase x).erase y) x = 1 from halpha] at h
+    calc
+      flip G S z = flip G S z +
+          ((1 + 1) + (adjacencyBit G y z + adjacencyBit G y z)) := by
+            rw [CharTwo.add_self_eq_zero, CharTwo.add_self_eq_zero,
+              zero_add, add_zero]
+      _ = (flip G S z + 1 + adjacencyBit G y z) +
+          (1 + adjacencyBit G y z) := by abel
+      _ = adjacencyBit G y z := by
+        rw [h]
+        calc
+          1 + (1 + adjacencyBit G y z) =
+              (1 + 1) + adjacencyBit G y z := by abel
+          _ = adjacencyBit G y z := by
+            rw [CharTwo.add_self_eq_zero, zero_add]
+  have hsumEq :
+      (∑ z ∈ U, adjacencyBit G x z * flip G S z) = c := by
+    simp only [c]
+    apply Finset.sum_congr rfl
+    intro z hzU
+    by_cases hX0 : adjacencyBit G x z = 0
+    · simp [hX0]
+    · have hX1 := zmod2_eq_one_of_ne_zero (adjacencyBit G x z) hX0
+      have hzZ : z ∈ U.filter (fun w ↦ adjacencyBit G x w = alpha) := by
+        simp [hzU, hX1, show alpha = 1 by simpa [U, alpha] using halpha]
+      rw [hpEqY z hzZ]
+  have hpy : flip G S y = beta + a := by
+    simpa [U, beta, a, adjacencyBit_self, adjacencyBit_comm,
+      add_comm, add_left_comm, add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := y) hx hy hxy)
+  have hpx : flip G S x = a + 1 := by
+    simpa [U, a, adjacencyBit_self, add_comm, add_left_comm,
+      add_assoc, halpha] using
+        (flip_eq_erase_erase_add (G := G) (w := x) hx hy hxy)
+  have hbXformula : neighborDegreeBit G S x = a * r + c := by
+    have hsplit := neighborDegreeBit_split_pair (G := G) hx hy hxy
+    rw [hsplit, hsumEq, hpy]
+    simp only [r, alpha]
+    rw [show flip G U x = 1 by simpa [U] using halpha]
+    calc
+      a * (beta + a) + c = a * (1 + beta) + c := by
+        rw [mul_add, mul_add, zmod2_sq_eq_self, mul_one]
+        abel
+      _ = a * (1 + beta) + c := rfl
+  have hbYformula : neighborDegreeBit G S y = 1 + c := by
+    have hE2' : neighborDegreeBit G S y + a * flip G S x + c = 1 := by
+      simpa [U, a, c] using hE2
+    rw [hpx] at hE2'
+    have hzero : a * (a + 1) = 0 := by
+      rw [mul_add, mul_one, zmod2_sq_eq_self, CharTwo.add_self_eq_zero]
+    rw [hzero, add_zero] at hE2'
+    calc
+      neighborDegreeBit G S y =
+          (neighborDegreeBit G S y + c) + c := by
+            rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+      _ = 1 + c := by rw [hE2']
+  have hmoment := hbad.moment hsafe
+  have hmoment' : (a * r + c) + (1 + c) =
+      (1 + r) * epsilon + a * r := by
+    rw [hbXformula, hbYformula] at hmoment
+    simpa [U, alpha, beta, a, epsilon, r] using hmoment
+  have hleft : (a * r + c) + (1 + c) = 1 + a * r := by
+    calc
+      (a * r + c) + (1 + c) = 1 + a * r + (c + c) := by abel
+      _ = 1 + a * r := by rw [CharTwo.add_self_eq_zero, add_zero]
+  rw [hleft] at hmoment'
+  have hprod : beta * epsilon = 1 := by
+    have hcancel : (1 + r) * epsilon = 1 := by
+      calc
+        (1 + r) * epsilon = ((1 + r) * epsilon + a * r) + a * r := by
+          rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+        _ = (1 + a * r) + a * r := by rw [← hmoment']
+        _ = 1 := by rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+    have honeR : 1 + r = beta := by
+      simp only [r, alpha]
+      rw [show flip G U x = 1 by simpa [U] using halpha]
+      calc
+        1 + (1 + beta) = (1 + 1) + beta := by abel
+        _ = beta := by rw [CharTwo.add_self_eq_zero, zero_add]
+    rw [honeR] at hcancel
+    exact hcancel
+  have hbeta : beta = 1 := by
+    by_contra hb0
+    have hbzero := zmod2_eq_zero_of_ne_one beta hb0
+    rw [hbzero, zero_mul] at hprod
+    exact zero_ne_one hprod
+  have hepsilon : epsilon = 1 := by
+    by_contra he0
+    have hezero := zmod2_eq_zero_of_ne_one epsilon he0
+    rw [hezero, mul_zero] at hprod
+    exact zero_ne_one hprod
+  have hc : c = 1 := by
+    have hall : ∀ z ∈ U,
+        adjacencyBit G x z * adjacencyBit G y z = adjacencyBit G x z := by
+      intro z hzU
+      by_cases hX0 : adjacencyBit G x z = 0
+      · simp [hX0]
+      · have hX1 := zmod2_eq_one_of_ne_zero (adjacencyBit G x z) hX0
+        have hzZ : z ∈ U.filter (fun w ↦ adjacencyBit G x w = alpha) := by
+          simp [hzU, hX1, show alpha = 1 by simpa [U, alpha] using halpha]
+        have hY := hE3 (by simpa [epsilon] using hepsilon) z
+          (by simpa [U, alpha] using hzZ)
+        rw [show adjacencyBit G y z = 1 by
+          simpa [U, beta, hbeta] using hY, hX1]
+        simp
+    calc
+      c = ∑ z ∈ U, adjacencyBit G x z := by
+        simp only [c]
+        apply Finset.sum_congr rfl
+        exact hall
+      _ = alpha := by rw [← flip_eq_sum_adjacencyBit G U x]
+      _ = 1 := by simpa [U, alpha] using halpha
+  have hbX : neighborDegreeBit G S x = 1 := by
+    rw [hbXformula, hc]
+    have hr0 : r = 0 := by
+      simp only [r, alpha]
+      rw [show flip G U x = 1 by simpa [U] using halpha, hbeta,
+        CharTwo.add_self_eq_zero]
+    rw [hr0, mul_zero, zero_add]
+  refine ⟨?_, hbX, ?_⟩
+  · simpa [U, beta] using hbeta
+  · intro _
+    simpa [epsilon] using hepsilon
+
+omit [Fintype V] in
+/-- Nonempty zero-fan, source-charge-zero branch of the stopped bad-pair
+lemma. -/
+theorem StoppedBadPair.bits_of_zeroFan_alpha_zero
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool} {x y : V}
+    (hbad : StoppedBadPair G S attacker x y)
+    (hsafe : ∀ T : Finset V, T ⊂ S → StoppedEmptyRootSafe G T attacker)
+    (hsmall : StoppedBadPairBits G (S.erase x) attacker)
+    (hZ : (((S.erase x).erase y).filter (fun z ↦
+      adjacencyBit G x z = flip G ((S.erase x).erase y) x)).Nonempty)
+    (halpha : flip G ((S.erase x).erase y) x = 0) :
+    flip G ((S.erase x).erase y) y = 1 ∧
+      neighborDegreeBit G S x = 1 ∧
+      (flip G ((S.erase x).erase y) x = 1 →
+        (S.card : ZMod 2) = 1) := by
+  let U := (S.erase x).erase y
+  let X := fun z ↦ adjacencyBit G x z
+  let Y := fun z ↦ adjacencyBit G y z
+  let alpha := flip G U x
+  let beta := flip G U y
+  let a := adjacencyBit G x y
+  let epsilon : ZMod 2 := S.card
+  let r := alpha + beta
+  let c := ∑ w ∈ U, X w * Y w
+  let Z := U.filter (fun z ↦ X z = alpha)
+  have hx : x ∈ S := hbad.1
+  have hy : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  have hyErase : y ∈ S.erase x := Finset.mem_erase.mpr ⟨Ne.symm hxy, hy⟩
+  have hUSub : U ⊂ S := by
+    rw [Finset.ssubset_iff_subset_ne]
+    refine ⟨fun z hz ↦ Finset.mem_of_mem_erase (Finset.mem_of_mem_erase hz), ?_⟩
+    intro hEq
+    have hxU : x ∈ U := hEq ▸ hx
+    exact (by simp [U] at hxU)
+  have hroot := hsafe U hUSub
+  have hbeta : beta = 1 := by
+    apply hbad.beta_eq_one_of_alpha_eq_zero hroot
+    simpa [U, alpha] using halpha
+  have hfan := hbad.zeroFan_equations hsmall hZ
+  have hE1 := hfan.1
+  have hE2 := hfan.2.1
+  have hE3 := hfan.2.2
+  have hpx : flip G S x = a := by
+    simpa [U, a, adjacencyBit_self, add_comm, add_left_comm,
+      add_assoc, halpha] using
+        (flip_eq_erase_erase_add (G := G) (w := x) hx hy hxy)
+  have hpy : flip G S y = 1 + a := by
+    have h := flip_eq_erase_erase_add (G := G) (w := y) hx hy hxy
+    simpa [U, beta, a, adjacencyBit_self, adjacencyBit_comm,
+      add_comm, add_left_comm, add_assoc, hbeta] using h
+  have hpSum := sum_flip_pairUntouched (G := G) hx hy hxy
+  have hpSum' : (∑ z ∈ U, flip G S z) = 1 := by
+    simpa [U, alpha, beta, halpha, hbeta] using hpSum
+  have hsumXp : (∑ z ∈ U, X z * flip G S z) =
+      neighborDegreeBit G S x := by
+    have hsplit := neighborDegreeBit_split_pair (G := G) hx hy hxy
+    have ha0 : a * (1 + a) = 0 := by
+      rw [mul_add, mul_one, zmod2_sq_eq_self, CharTwo.add_self_eq_zero]
+    rw [hpy, ha0, zero_add] at hsplit
+    simpa [U, X] using hsplit.symm
+  have hsumZY : (∑ z ∈ Z, Y z) = 1 + c := by
+    have hfilter := sum_one_add_bit_mul_eq_filter_zero U X Y
+    have hsumY : (∑ z ∈ U, Y z) = 1 := by
+      rw [show (∑ z ∈ U, Y z) = flip G U y by
+        simpa [Y] using (flip_eq_sum_adjacencyBit G U y).symm]
+      exact hbeta
+    calc
+      (∑ z ∈ Z, Y z) = ∑ z ∈ U, (1 + X z) * Y z := by
+        simpa [Z, halpha, U, X, alpha] using hfilter.symm
+      _ = (∑ z ∈ U, Y z) + ∑ z ∈ U, X z * Y z := by
+        simp_rw [add_mul, one_mul]
+        rw [Finset.sum_add_distrib]
+      _ = 1 + c := by rw [hsumY]
+  have hsumZp : (∑ z ∈ Z, flip G S z) =
+      1 + neighborDegreeBit G S x := by
+    have hfilter := sum_one_add_bit_mul_eq_filter_zero U X
+      (fun z ↦ flip G S z)
+    calc
+      (∑ z ∈ Z, flip G S z) =
+          ∑ z ∈ U, (1 + X z) * flip G S z := by
+            simpa [Z, halpha, U, X, alpha] using hfilter.symm
+      _ = (∑ z ∈ U, flip G S z) +
+          ∑ z ∈ U, X z * flip G S z := by
+            simp_rw [add_mul, one_mul]
+            rw [Finset.sum_add_distrib]
+      _ = 1 + neighborDegreeBit G S x := by rw [hpSum', hsumXp]
+  have hcardZ : ((Z.card : Nat) : ZMod 2) = epsilon := by
+    have hfilter := sum_one_add_bit_mul_eq_filter_zero U X (fun _ ↦ (1 : ZMod 2))
+    have hsumX : (∑ z ∈ U, X z) = 0 := by
+      rw [show (∑ z ∈ U, X z) = flip G U x by
+        simpa [X] using (flip_eq_sum_adjacencyBit G U x).symm]
+      simpa [U, alpha] using halpha
+    have hcardU := card_erase_erase_cast_eq hx hy hxy
+    calc
+      ((Z.card : Nat) : ZMod 2) = ∑ z ∈ Z, (1 : ZMod 2) := by simp
+      _ = ∑ z ∈ U, (1 + X z) * 1 := by
+        simpa [Z, halpha, U, X, alpha] using hfilter.symm
+      _ = (∑ z ∈ U, (1 : ZMod 2)) + ∑ z ∈ U, X z := by
+        simp_rw [mul_one]
+        rw [Finset.sum_add_distrib]
+      _ = (U.card : ZMod 2) := by rw [hsumX]; simp
+      _ = epsilon := by simpa [U, epsilon] using hcardU
+  have hsumE1 : (∑ z ∈ Z, flip G S z) + (∑ z ∈ Z, Y z) =
+      (Z.card : ZMod 2) := by
+    rw [← Finset.sum_add_distrib]
+    calc
+      (∑ z ∈ Z, (flip G S z + Y z)) = ∑ z ∈ Z, (1 : ZMod 2) := by
+        apply Finset.sum_congr rfl
+        intro z hzZ
+        have h := hE1 z (by simpa [U, X, alpha, Z] using hzZ)
+        simpa [U, Y, alpha, halpha] using h
+      _ = (Z.card : ZMod 2) := by simp
+  have hbXcEpsilon : neighborDegreeBit G S x + c = epsilon := by
+    rw [hsumZp, hsumZY, hcardZ] at hsumE1
+    have heq : (1 + neighborDegreeBit G S x) + (1 + c) =
+        neighborDegreeBit G S x + c := by
+      calc
+        (1 + neighborDegreeBit G S x) + (1 + c) =
+            (neighborDegreeBit G S x + c) + (1 + 1) := by abel
+        _ = neighborDegreeBit G S x + c := by
+          rw [CharTwo.add_self_eq_zero, add_zero]
+    calc
+      neighborDegreeBit G S x + c =
+          (1 + neighborDegreeBit G S x) + (1 + c) := heq.symm
+      _ = epsilon := hsumE1
+  have hbYformula : neighborDegreeBit G S y = 1 + a + c := by
+    have hE2' : neighborDegreeBit G S y + a * flip G S x + c = 1 := by
+      simpa [U, X, Y, a, c] using hE2
+    rw [hpx, zmod2_sq_eq_self] at hE2'
+    calc
+      neighborDegreeBit G S y =
+          (neighborDegreeBit G S y + a + c) + (a + c) := by
+            calc
+              neighborDegreeBit G S y = neighborDegreeBit G S y +
+                  ((a + c) + (a + c)) := by
+                    rw [CharTwo.add_self_eq_zero, add_zero]
+              _ = _ := by abel
+      _ = 1 + a + c := by rw [hE2']; abel
+  have hmoment := hbad.moment hsafe
+  have hbXcOne : neighborDegreeBit G S x + c = 1 := by
+    have hmoment' : neighborDegreeBit G S x + (1 + a + c) = a := by
+      rw [hbYformula] at hmoment
+      simpa [U, alpha, beta, a, epsilon, r, halpha, hbeta,
+        CharTwo.add_self_eq_zero] using hmoment
+    calc
+      neighborDegreeBit G S x + c =
+          (neighborDegreeBit G S x + (1 + a + c)) + (1 + a) := by
+            calc
+              neighborDegreeBit G S x + c =
+                  (neighborDegreeBit G S x + c) +
+                    ((1 + 1) + (a + a)) := by
+                      rw [CharTwo.add_self_eq_zero, CharTwo.add_self_eq_zero,
+                        zero_add, add_zero]
+              _ = _ := by abel
+      _ = a + (1 + a) := by rw [hmoment']
+      _ = 1 := by
+        calc
+          a + (1 + a) = 1 + (a + a) := by abel
+          _ = 1 := by rw [CharTwo.add_self_eq_zero, add_zero]
+  have hepsilon : epsilon = 1 := by rw [← hbXcEpsilon, hbXcOne]
+  have hallY : ∀ z ∈ Z, Y z = 1 := by
+    intro z hzZ
+    have h := hE3 (by simpa [epsilon] using hepsilon) z
+      (by simpa [U, X, alpha, Z] using hzZ)
+    simpa [U, Y, beta, hbeta] using h
+  have hc : c = 0 := by
+    have hsumZY' : (∑ z ∈ Z, Y z) = (Z.card : ZMod 2) := by
+      calc
+        (∑ z ∈ Z, Y z) = ∑ z ∈ Z, (1 : ZMod 2) := by
+          apply Finset.sum_congr rfl
+          intro z hzZ
+          rw [hallY z hzZ]
+        _ = (Z.card : ZMod 2) := by simp
+    have honec : 1 + c = 1 := by
+      calc
+        1 + c = ∑ z ∈ Z, Y z := hsumZY.symm
+        _ = (Z.card : ZMod 2) := hsumZY'
+        _ = epsilon := hcardZ
+        _ = 1 := hepsilon
+    apply add_left_cancel (a := (1 : ZMod 2))
+    simpa using honec
+  have hbX : neighborDegreeBit G S x = 1 := by
+    rw [hc, add_zero] at hbXcOne
+    exact hbXcOne
+  refine ⟨?_, hbX, ?_⟩
+  · simpa [U, beta] using hbeta
+  · intro hcontra
+    have : (0 : ZMod 2) = 1 := by
+      simpa only [U, alpha, halpha] using hcontra
+    exact False.elim (zero_ne_one this)
+
+omit [Fintype V] in
+/-- The bad-pair bits plus the already-proved moment identity imply strict
+rank descent on the current board. -/
+theorem stoppedBadPairRankDescent_of_bits
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool}
+    (hbits : StoppedBadPairBits G S attacker)
+    (hsafe : ∀ T : Finset V, T ⊂ S → StoppedEmptyRootSafe G T attacker) :
+    StoppedBadPairRankDescent G S attacker := by
+  intro x y hbad
+  have hx : x ∈ S := hbad.1
+  have hy : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  let U := (S.erase x).erase y
+  let a := adjacencyBit G x y
+  let alpha := flip G U x
+  let beta := flip G U y
+  let epsilon : ZMod 2 := S.card
+  let px := flip G S x
+  let py := flip G S y
+  let bX := neighborDegreeBit G S x
+  let bY := neighborDegreeBit G S y
+  let r := alpha + beta
+  have hpx : px = a + alpha := by
+    simpa [U, px, a, alpha, adjacencyBit_self, add_comm, add_left_comm,
+      add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := x) hx hy hxy)
+  have hpy : py = a + beta := by
+    simpa [U, py, a, beta, adjacencyBit_self, adjacencyBit_comm,
+      add_comm, add_left_comm, add_assoc] using
+        (flip_eq_erase_erase_add (G := G) (w := y) hx hy hxy)
+  obtain ⟨hbeta, hbX, halpha⟩ := hbits hbad
+  have hmoment := hbad.moment hsafe
+  exact stoppedBadArc_rank_lt a alpha beta epsilon px py bX bY r
+    hpx hpy rfl (by simpa [U, beta] using hbeta)
+    (by simpa [bX] using hbX)
+    (by simpa [U, alpha, epsilon] using halpha)
+    (by simpa [U, alpha, beta, epsilon, a, bX, bY, r] using hmoment)
+
+omit [Fintype V] in
+/-- Once bad-pair rank descent is available on a board of order at least two,
+the complete root fan contradicts finiteness. -/
+theorem stoppedEmptyRootSafe_of_rankDescent
+    {G : SimpleGraph V} {S : Finset V} {attacker : Bool}
+    (hcard : 2 ≤ S.card) (hdesc : StoppedBadPairRankDescent G S attacker) :
+    StoppedEmptyRootSafe G S attacker := by
+  intro hwin
+  have hout := hwin.outgoing_stoppedBadPair hcard
+  have hS : S.Nonempty := Finset.card_pos.mp (by omega)
+  exact no_total_strict_rank_relation S hS
+    (StoppedBadPair G S attacker)
+    (fun v ↦ stoppedBadRank (flip G S v) (neighborDegreeBit G S v))
+    hout (fun hx hy hbad ↦ hdesc hbad)
+
+/-- Strategy-level form of the mutual fan step.  Its induction
+hypothesis supplies both stopped empty-root safety and the three bad-pair bits
+on every proper subboard; all defender siblings stay inside `StoppedBadPair`. -/
+def StoppedBadPairFanLift (G : SimpleGraph V) (attacker : Bool) : Prop :=
+  ∀ S : Finset V,
+    (∀ T : Finset V, T ⊂ S →
+      StoppedEmptyRootSafe G T attacker ∧
+        StoppedBadPairBits G T attacker) →
+      StoppedBadPairBits G S attacker
+
+omit [Fintype V] in
+/-- The audited three-way zero-fan proof: empty fibre, nonempty source-charge
+one, and nonempty source-charge zero. -/
+theorem stoppedBadPairFanLift (G : SimpleGraph V) (attacker : Bool) :
+    StoppedBadPairFanLift G attacker := by
+  intro S ih x y hbad
+  let U := (S.erase x).erase y
+  let alpha := flip G U x
+  let Z := U.filter (fun z ↦ adjacencyBit G x z = alpha)
+  have hx : x ∈ S := hbad.1
+  have hy : y ∈ S := hbad.2.1
+  have hxy : x ≠ y := hbad.2.2.1
+  have hproperU : U ⊂ S := by
+    rw [Finset.ssubset_iff_subset_ne]
+    refine ⟨fun z hz ↦ Finset.mem_of_mem_erase (Finset.mem_of_mem_erase hz), ?_⟩
+    intro hEq
+    have hxU : x ∈ U := hEq ▸ hx
+    exact (by simp [U] at hxU)
+  have hroot : StoppedEmptyRootSafe G U attacker := (ih U hproperU).1
+  by_cases hZ0 : Z = ∅
+  · apply hbad.bits_of_zeroFan_empty hroot
+    simpa [U, alpha, Z] using hZ0
+  · have hZne : Z.Nonempty := Finset.nonempty_iff_ne_empty.mpr hZ0
+    have hsmall : StoppedBadPairBits G (S.erase x) attacker :=
+      (ih (S.erase x) (Finset.erase_ssubset hx)).2
+    have hsafe : ∀ T : Finset V, T ⊂ S →
+        StoppedEmptyRootSafe G T attacker := fun T hT ↦ (ih T hT).1
+    by_cases halpha0 : alpha = 0
+    · apply hbad.bits_of_zeroFan_alpha_zero hsafe hsmall
+        (by simpa [U, alpha, Z] using hZne)
+      simpa [U, alpha] using halpha0
+    · have halpha1 : alpha = 1 := zmod2_eq_one_of_ne_zero alpha halpha0
+      apply hbad.bits_of_zeroFan_alpha_one hsafe hsmall
+        (by simpa [U, alpha, Z] using hZne)
+      simpa [U, alpha] using halpha1
+
+omit [Fintype V] in
+/-- The mutual-induction shell is complete: the local fan lift alone implies
+the stopped close-first empty-root theorem on every finite board. -/
+theorem stoppedEmptyRootSafe_of_badPairFanLift
+    (G : SimpleGraph V) (attacker : Bool)
+    (hfan : StoppedBadPairFanLift G attacker) :
+    ∀ S : Finset V, StoppedEmptyRootSafe G S attacker := by
+  have hall : ∀ S : Finset V,
+      StoppedEmptyRootSafe G S attacker ∧
+        StoppedBadPairBits G S attacker := by
+    intro S
+    induction S using Finset.strongInduction with
+    | H S ih =>
+        have hbits := hfan S ih
+        have hsafe : ∀ T : Finset V, T ⊂ S →
+            StoppedEmptyRootSafe G T attacker := fun T hT ↦ (ih T hT).1
+        have hdesc := stoppedBadPairRankDescent_of_bits hbits hsafe
+        refine ⟨?_, hbits⟩
+        by_cases h0 : S = ∅
+        · subst S
+          exact stoppedEmptyRootSafe_empty G attacker
+        by_cases h1 : S.card = 1
+        · obtain ⟨x, rfl⟩ := Finset.card_eq_one.mp h1
+          exact stoppedEmptyRootSafe_singleton G attacker x
+        have hcard0 : S.card ≠ 0 :=
+          Finset.card_ne_zero.mpr (Finset.nonempty_iff_ne_empty.mpr h0)
+        have hcard : 2 ≤ S.card := by omega
+        exact stoppedEmptyRootSafe_of_rankDescent hcard hdesc
+  exact fun S ↦ (hall S).1
+
+/-- Exact formal statement of the stopped CLOSE-first empty-root theorem. -/
+def StoppedCloseFirstEmptyRootTheorem : Prop :=
+  ∀ (V : Type*) (_ : Fintype V) (_ : DecidableEq V)
+    (G : SimpleGraph V) (attacker : Bool) (S : Finset V),
+      StoppedEmptyRootSafe G S attacker
+
+/-- The stopped CLOSE-first empty-root theorem, fully kernel-checked. -/
+theorem stoppedCloseFirstEmptyRootTheorem :
+    StoppedCloseFirstEmptyRootTheorem := by
+  intro V _ _ G attacker S
+  exact stoppedEmptyRootSafe_of_badPairFanLift G attacker
+    (stoppedBadPairFanLift G attacker) S
 
 omit [Fintype V] in
 /-- Once the untouched set is empty, a CLOSE-first strategy can force only
