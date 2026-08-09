@@ -44,6 +44,32 @@ def flip (G : SimpleGraph V) (U : Finset V) (v : V) : ZMod 2 :=
     classical
     exact ((U.filter (G.Adj v)).card : ZMod 2)
 
+/-- The adjacency indicator as a scalar parity bit. -/
+def adjacencyBit (G : SimpleGraph V) (u v : V) : ZMod 2 := by
+  classical
+  exact if G.Adj u v then 1 else 0
+
+omit [Fintype V] in
+/-- Removing `z` from the untouched set removes exactly the adjacency bit
+between the closing front `f` and `z`.  The equation is oriented so the
+cardinality decomposition occurs before reduction modulo two. -/
+theorem flip_eq_flip_erase_add {G : SimpleGraph V} {U : Finset V} {f z : V}
+    (hz : z ∈ U) :
+    flip G U f = flip G (U.erase z) f + adjacencyBit G f z := by
+  classical
+  rw [flip, flip, adjacencyBit, Finset.filter_erase]
+  by_cases hadj : G.Adj f z
+  · have hzfilter : z ∈ U.filter (G.Adj f) := by simp [hz, hadj]
+    have hcard := Finset.card_erase_add_one hzfilter
+    simp only [hadj, if_true]
+    have hcast :
+        ((((U.filter (G.Adj f)).erase z).card + 1 : Nat) : ZMod 2) =
+          ((U.filter (G.Adj f)).card : ZMod 2) :=
+      congrArg (fun n : Nat ↦ (n : ZMod 2)) hcard
+    simpa only [Nat.cast_add, Nat.cast_one] using hcast.symm
+  · have hzfilter : z ∉ U.filter (G.Adj f) := by simp [hadj]
+    simp [hadj, hzfilter]
+
 /-- One authoritative transition function, matching `legal_moves` in the
 Python research oracle.
 
@@ -87,6 +113,12 @@ def Terminal (s : State V) : Prop :=
 already in the queue. -/
 def WellFormed (s : State V) : Prop :=
   s.queue.Nodup ∧ Disjoint s.untouched s.queue.toFinset
+
+/-- The full representation invariant of a reachable position.  Besides
+queue/untouched disjointness, the ko delay can only occur immediately after
+opening onto an empty queue, so a ko-set queue is necessarily a singleton. -/
+def Coherent (s : State V) : Prop :=
+  WellFormed s ∧ (s.ko = true → ∃ v, s.queue = [v])
 
 /-- The initial position on the whole board. -/
 def initial : State V where
@@ -164,6 +196,10 @@ theorem step_toMove {G : SimpleGraph V} {s s' : State V} {m : Move V}
 theorem wellFormed_initial : WellFormed (initial (V := V)) := by
   simp [WellFormed, initial]
 
+/-- The initial state satisfies the complete reachable-state invariant. -/
+theorem coherent_initial : Coherent (initial (V := V)) := by
+  exact ⟨wellFormed_initial, by simp [initial]⟩
+
 omit [Fintype V] in
 /-- The transition function preserves the queue/untouched representation
 invariant. -/
@@ -207,6 +243,36 @@ theorem wellFormed_step {G : SimpleGraph V} {s s' : State V} {m : Move V}
     · cases hstep
       exact ⟨hnodup, hdisjoint⟩
     · contradiction
+
+omit [Fintype V] in
+/-- Every legal transition preserves the fact that ko can only protect a
+singleton queue. -/
+theorem coherent_step {G : SimpleGraph V} {s s' : State V} {m : Move V}
+    (hs : Coherent s) (hstep : step G s m = some s') : Coherent s' := by
+  constructor
+  · exact wellFormed_step hs.1 hstep
+  · intro hko
+    cases m
+    · rename_i v
+      simp only [step] at hstep
+      split at hstep
+      · cases hstep
+        cases hq : s.queue with
+        | nil => exact ⟨v, by simp⟩
+        | cons f q => simp [hq] at hko
+      · contradiction
+    · simp only [step] at hstep
+      split at hstep
+      · contradiction
+      · split at hstep
+        · contradiction
+        · cases hstep
+          simp at hko
+    · simp only [step] at hstep
+      split at hstep
+      · cases hstep
+        simp at hko
+      · contradiction
 
 omit [Fintype V] in
 /-- A close is FIFO by construction: the next queue is the old queue's tail. -/
@@ -257,6 +323,103 @@ theorem close_score {G : SimpleGraph V} {s s' : State V}
     · contradiction
     · cases h
       exact ⟨f, q, hq, rfl⟩
+
+omit [Fintype V] in
+/-- Away from the singleton-queue ko wall, OPEN `z` then CLOSE `f` and CLOSE
+`f` then OPEN `z` lead to the same public state.  Their scores differ by the
+single adjacency bit `fz`; this is the local curvature of the two commuting
+schedule paths. -/
+theorem open_close_square_away_singleton (G : SimpleGraph V) (s : State V)
+    (f z : V) (q : List V) (hqueue : s.queue = f :: q) (hq : q ≠ [])
+    (hko : s.ko = false) (hz : z ∈ s.untouched) :
+    ∃ so soc sc sco,
+      step G s (.open z) = some so ∧
+      step G so .close = some soc ∧
+      step G s .close = some sc ∧
+      step G sc (.open z) = some sco ∧
+      soc.untouched = sco.untouched ∧
+      soc.queue = sco.queue ∧
+      soc.ko = sco.ko ∧
+      soc.toMove = sco.toMove ∧
+      sco.score = soc.score + adjacencyBit G f z := by
+  have hqEmpty : q.isEmpty = false := by
+    cases q with
+    | nil => contradiction
+    | cons _ _ => rfl
+  let so : State V := {
+    untouched := s.untouched.erase z
+    queue := f :: (q ++ [z])
+    ko := false
+    toMove := !s.toMove
+    score := s.score }
+  let soc : State V := {
+    untouched := s.untouched.erase z
+    queue := q ++ [z]
+    ko := false
+    toMove := s.toMove
+    score := s.score + flip G (s.untouched.erase z) f }
+  let sc : State V := {
+    untouched := s.untouched
+    queue := q
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G s.untouched f }
+  let sco : State V := {
+    untouched := s.untouched.erase z
+    queue := q ++ [z]
+    ko := false
+    toMove := s.toMove
+    score := s.score + flip G s.untouched f }
+  refine ⟨so, soc, sc, sco, ?_, ?_, ?_, ?_, rfl, rfl, rfl, rfl, ?_⟩
+  · simp [step, so, hqueue, hz]
+  · simp [step, so, soc]
+  · simp [step, sc, hqueue, hko]
+  · simp [step, sc, sco, hz, hqEmpty]
+  · simp only [soc, sco]
+    rw [flip_eq_flip_erase_add hz]
+    simp [add_assoc]
+
+/-- Every adjacency coordinate occurs on a reachable OPEN/CLOSE square.  The
+prefix `OPEN f; OPEN d` leaves the dummy behind `f`, so a distinct untouched
+`z` supplies the square whose curvature is the bit `fz`. -/
+theorem initial_reaches_open_close_square (G : SimpleGraph V) (f d z : V)
+    (hfd : f ≠ d) (hfz : f ≠ z) (hdz : d ≠ z) :
+    ∃ sf sfd so soc sc sco,
+      step G (initial (V := V)) (.open f) = some sf ∧
+      step G sf (.open d) = some sfd ∧
+      step G sfd (.open z) = some so ∧
+      step G so .close = some soc ∧
+      step G sfd .close = some sc ∧
+      step G sc (.open z) = some sco ∧
+      soc.untouched = sco.untouched ∧
+      soc.queue = sco.queue ∧
+      soc.ko = sco.ko ∧
+      soc.toMove = sco.toMove ∧
+      sco.score = soc.score + adjacencyBit G f z := by
+  let sf : State V := {
+    untouched := Finset.univ.erase f
+    queue := [f]
+    ko := true
+    toMove := true
+    score := 0 }
+  let sfd : State V := {
+    untouched := (Finset.univ.erase f).erase d
+    queue := [f, d]
+    ko := false
+    toMove := false
+    score := 0 }
+  have hsf : step G (initial (V := V)) (.open f) = some sf := by
+    simp [step, initial, sf]
+  have hdmem : d ∈ Finset.univ.erase f := by simp [hfd.symm]
+  have hsfd : step G sf (.open d) = some sfd := by
+    simp [step, sf, sfd, hdmem]
+  have hzmem : z ∈ sfd.untouched := by
+    simp [sfd, hfz.symm, hdz.symm]
+  obtain ⟨so, soc, sc, sco, hso, hsoc, hsc, hsco, hU, hq, hko, hturn,
+      hscore⟩ :=
+    open_close_square_away_singleton G sfd f z [d] rfl (by simp) rfl hzmem
+  exact ⟨sf, sfd, so, soc, sc, sco, hsf, hsfd, hso, hsoc, hsc, hsco,
+    hU, hq, hko, hturn, hscore⟩
 
 /-- The current queue-to-untouched cut, counted modulo two.  The list form is
 intentional: it makes the FIFO close identity independent of a separate

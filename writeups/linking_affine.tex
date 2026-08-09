@@ -46,9 +46,12 @@ reduction that replaces the failed local partner/debt induction by a global
 affine-flow target.  Every play has a vector-valued score: its graph of disjoint
 activity intervals.  For every fixed attacker strategy, the linking theorem is
 equivalent to saying that zero lies in the $\F_2$-affine hull of all response
-scores.  Resolving augmentation parity gives an exact affine convolution at
-every defender fan; its dual turns any counterexample into a strategy-relative
-linear obstruction which descends through every balanced front.  At a real
+scores.  Linear separation followed by finite backward induction further
+reduces every hypothetical counterexample to a scalar positional Bellman
+certificate on full public states.  Resolving augmentation parity gives an
+exact affine convolution at every defender fan; its dual turns any
+counterexample into a strategy-relative linear obstruction which descends
+through every balanced front.  At a real
 FIFO front $f$, the edge space splits canonically as
 \[
  E(K_L)=\Cut(K_L)\oplus E(K_{L\setminus\{f\}}),
@@ -78,7 +81,10 @@ an exact ranked repair-forest recursion: consecutive queue matchings may
 extend, delete their front pair, or flip phase along an alternating path.
 That flip carries a genuine two-graph curvature term.  On an even-order
 Eulerian graph its odd triangles form a $3$-oik, with a coherent oriented
-multiset lift.  This is not an easier subclass: an explicit two-vertex gadget
+multiset lift.  The natural public-state transport is nevertheless maximally
+nonflat: every real edge occurs as the holonomy of a reachable OPEN/CLOSE
+square, so any quotient which flattens all schedule squares erases the entire
+payoff space.  This is not an easier subclass: an explicit two-vertex gadget
 embeds every even-board instance behind a forced cancelling close pair in an
 Eulerian graph.  Tetrahedral coherence controls the curvature label, but
 attacker pruning destroys the constant-coefficient simplex contraction.  For
@@ -93,9 +99,13 @@ an Eulerian, isotropic two-star whose exact cell-cut calculus converts OPENs
 into queued four-cycles.  Exact witnesses show that three defender siblings
 can be essential, that cancelling both the first cut and triangle quotient can
 still leave a next-front cut, and that even a clean homogeneous cell state can
-be a canonical unsafe Euler-wall exit.  Separately, every close-first attacker is contracted
-for arbitrary order and either seat by Hamiltonian path and path-square affine
-spans, with a two-block correction when the attacker opens the dummy.
+be a canonical unsafe Euler-wall exit.  Separately, every close-first attacker
+is contracted for arbitrary order and either seat by Hamiltonian path and
+path-square affine spans, with a two-block correction when the attacker opens
+the dummy.  With an arbitrary preloaded queue, an untouched dummy still
+contracts every close-first tail by an adjacent-swap argument on the
+defender's opening permutations; thus a leafmost deviation at residual one
+must occur after the dummy is spent or behind an earlier odd CLOSE.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
@@ -408,6 +418,47 @@ $\mathcal E_R$ is pairing with the adjacency vector of a simple graph on $R$.
 For that graph, $\ell(D(h))=1$ for every response history, so $S$ forces odd
 score.
 \end{proof}
+
+The separating graph can also be used to remove an apparent source of
+generality from a hypothetical counterexample.  Say that a scalar policy is
+\emph{positional} when its prescribed attacker move depends only on the full
+public state $(U,Q,\mathsf{ko},\mathsf{turn},g)$, including the accumulated
+score bit, and not on the history which reached that state.
+
+\begin{proposition}[positional scalar reduction]
+\label{prop:positional-reduction}
+\PROVED{} If \eqref{eq:affine-target} fails for either attacker seat, then it
+fails for a strategy which is positional after scalarization by one graph
+$B$.  More precisely, a counterexample is equivalent to a finite set
+$\mathcal W$ of full public states, containing the initial state, such that
+every terminal state in $\mathcal W$ has score one, every defender state in
+$\mathcal W$ has all of its legal children in $\mathcal W$, and every attacker
+state in $\mathcal W$ has at least one legal child in $\mathcal W$.
+\end{proposition}
+
+\begin{proof}
+If affine contraction fails, Theorem~\ref{thm:affine} supplies a graph $B$ for
+which the original history-dependent policy forces terminal score one.  On
+the finite acyclic public-state graph, let $W(s)$ mean that the attacker can
+force terminal score one from $s$.  Backward induction on the number of
+remaining legal events gives the Bellman alternatives: at an attacker state
+$W(s)$ holds exactly when it holds at some legal child, while at a defender
+state it holds exactly when it holds at every legal child.  Choose one winning
+child once and for all at every winning attacker state.  The resulting policy
+is positional and the set of its winning states is the required
+$\mathcal W$.
+
+Conversely, choose one child in $\mathcal W$ at every attacker state.  Closure
+at defender states makes every compatible terminal history have scalar score
+one.  Pairing its disjointness vector with $B$ is therefore one on every leaf,
+so their affine hull lies in the hyperplane
+$\langle B,z\rangle=1$ and excludes zero.
+\end{proof}
+
+Thus history-dependent pruning is not itself the essential obstruction.  A
+proof may work with a Markov Bellman certificate, but it must retain the score
+sheet: two paths which reconverge after forgetting score can arrive on
+opposite sheets.
 
 Equivalently, one must select an odd-cardinality formal multiset of response
 histories whose disjointness vectors XOR to zero.  This is an
@@ -1748,6 +1799,56 @@ but an attacker coefficient must follow one prescribed child.  Projection to
 compatible histories consequently fails to commute with the simplicial
 boundary.
 
+There is a stronger obstruction before attacker pruning.  On the
+score-forgotten public-state graph give a real close $C_f$ from untouched set
+$U$ the universal charge
+\[
+ c(U,f)=\sum_{u\in U\cap R}fu\in\mathcal E_R,
+\]
+and give every other move charge zero.  On
+$M=\F_2\oplus\mathcal E_R$ transport along a move of charge $c$ by
+$T_c(a,z)=(a,z+ac)$.
+
+\begin{proposition}[universal public-state holonomy]
+\label{prop:universal-holonomy}
+\PROVED{} Let $Q=(f,Q_0)$ be ko-clear, let $Q_0\ne()$, and let
+$z\in U\cap R$.  The legal paths
+\[
+ O_z;C_f\qquad\hbox{and}\qquad C_f;O_z
+\]
+end in the same score-forgotten public state, but their transports differ by
+$T_{fz}$.  Every real basis edge $fz$ occurs on a reachable such square.
+Consequently, if $p:\mathcal E_R\to W$ is a linear quotient on which the
+induced transports are flat on every schedule square, then $p=0$.  In
+particular scalarization by a graph $B$ is flat on all squares if and only if
+$B$ is edgeless.
+\end{proposition}
+
+\begin{proof}
+The close-before-open path has charge $c(U,f)$, whereas the
+open-before-close path has charge $c(U-\{z\},f)$.  Their difference is exactly
+$fz$.  The identity $T_cT_{c'}=T_{c+c'}$ proves the transport assertion, and
+the two paths visibly leave the same untouched set, queue, ko bit and mover.
+
+For distinct real $f,z$, first play $O_f,O_d$, where $d$ is the isolated
+dummy.  The resulting queue is $(f,d)$, ko is clear, and $z$ is untouched, so
+the displayed square is reachable and has curvature $fz$.  These $fz$ form a
+basis of $\mathcal E_R$.  Flatness after applying $p$ therefore gives
+$p(fz)=0$ basiswise and hence $p=0$.  Pairing with a scalar adjacency vector
+$B$ sends this curvature to $B(f,z)$, which vanishes for all pairs exactly
+when $B$ has no edges.
+\end{proof}
+
+The qualification $Q_0\ne()$ is exact.  At a singleton queue the two paths
+have different ko bits, so there is no square to fill.  Squares involving the
+dummy have zero real curvature, and the missing singleton square is precisely
+where the dummy cannot cone off a nonzero $fz$.  Hence adding ordinary
+curvature fillers to the public-state complex either fails to define a flat
+complex or, after quotienting, erases the entire terminal invariant.  The
+Lean model kernel-checks both the charge identity and the complete operational
+square, including reachability of every real basis coordinate, in
+\texttt{Ogdoad/Fifo.lean}.
+
 Eulerian support makes this curvature into an honest Euler complex.  Recall
 that a $3$-oik is a multiset of three-element rooms in which every two-element
 wall occurs with even multiplicity \cite{vegh-von-stengel}.
@@ -2419,6 +2520,42 @@ because the following defender OPEN had to leave the cumulative score
 normalized.  The deleted macro itself has zero charge, proving the pass case.
 \end{proof}
 
+The matching reformulation does not turn the causal factors into the perfect
+matchings of a static graph.  This failure already occurs against a
+close-first attacker on four labels.  Consider the two legal leaves
+\begin{align*}
+ h_1&=O_0O_1C_0O_2C_1O_3C_2C_3,\\
+ h_2&=O_0O_2C_0O_1C_2O_3C_1C_3.
+\end{align*}
+Their response matchings are
+\begin{align*}
+ M_1&=\{O_0O_1,C_0O_2,C_1O_3,C_2C_3\},\\
+ M_2&=\{O_0O_2,C_0O_1,C_2O_3,C_1C_3\}.
+\end{align*}
+The symmetric difference is two independent alternating four-cycles.  A
+perfect-matching pivot may flip either cycle separately, but neither mixed
+factor is causal.  Following the first mixed factor gives
+$O_0O_2C_0O_1C_2$ and then demands the response $C_3$ before vertex $3$ has
+opened; the other mixed factor fails symmetrically after
+$O_0O_1C_0O_2C_1$.  Thus compatible response factors are not exchange-closed,
+even inside this close-first policy.
+
+Nor does the directed response factor determine the payoff after chronology
+is forgotten.  The histories
+\[
+ O_0O_1O_2O_3C_0C_1C_2C_3,
+ \qquad
+ O_0O_1C_0C_1O_2O_3C_2C_3
+\]
+have the same directed factor
+$\{O_0\to O_1,O_2\to O_3,C_0\to C_1,C_2\to C_3\}$.
+Taking $3$ as the dummy, their real disjointness moments are respectively
+$0$ and $02+12$.  Consequently a factor-only edge weight cannot carry $D$;
+retaining the attacker policy and chronology restores the label but destroys
+alternating-cycle exchange.  Ordinary Pfaffian or complementary-pivoting
+parity therefore cannot supply Proposition~\ref{prop:response-factor}'s
+missing causal extension without additional history-decorated cells.
+
 \TESTED{} Exact minimax finds such zero-normalized strategies after adjoining
 the isolated dummy for every graph isomorphism class through eight real
 vertices, for either defender seat.  In the complete order-eight census the
@@ -2641,6 +2778,122 @@ A responder restricted to OPEN while untouched vertices remain is already
 false on $K_4-e$ plus the dummy; the winning unrestricted reply is a
 phase-changing front CLOSE.  Thus neither ``more overlap is easier'' nor a
 single-block reduction removes the causal phase problem.
+
+Positional reduction makes the last attempted normalization exact.  Let a
+\emph{leafmost deviation} be an attacker state
+$s=(U,Q,\mathsf{ko}=0,t)$, with $Q=(f,Q_0)$, at which a positional winning policy chooses
+$O_z$ although $C_f$ is legal, and is close-first at every strict descendant.
+Suppose replacing that move by $C_f$, while retaining the positional tail,
+is losing.
+
+\begin{proposition}[leafmost-deviation spoiler dichotomy]
+\label{prop:leafmost-spoiler}
+\PROVED{} A defender spoiler after the replacement $C_f$ has exactly one of
+the following forms.
+\begin{enumerate}[leftmargin=*]
+\item It is $O_z$ and $Q_0\ne()$.  Then the two paths
+      $O_z;C_f$ and $C_f;O_z$ reconverge publicly, and irreducibility forces
+      $B(f,z)=1$.
+\item It is $O_z$ and $Q_0=()$.  The two paths agree except that the latter
+      has a ko-protected singleton queue (and their score sheets may differ
+      by $B(f,z)$); this is the singleton wall.
+\item It is $O_w$ for $w\ne z$, producing genuinely different queue orders.
+\item It is the close of the new front $g$, when $Q_0=(g,Q_1)$; this is the
+      phase-changing two-close spoiler.
+\end{enumerate}
+A pass cannot be the spoiler.
+\end{proposition}
+
+\begin{proof}
+After $C_f$, the vertex $z$ is still untouched, so an OPEN is legal and a
+pass is not.  The displayed OPENs and, when $Q_0$ is nonempty, the close of
+its front exhaust the legal moves.  If the spoiler is $O_z$ away from the
+singleton wall, Proposition~\ref{prop:universal-holonomy} says that its state
+and the winning $O_z;C_f$ state differ only by the score bit $B(f,z)$.
+If that bit were zero, positionality would give the same winning
+continuation after the replacement, a contradiction.  The remaining cases
+are the three exact ways public reconvergence fails: ko at a singleton, a
+different append/delete order, or an additional front close.
+\end{proof}
+
+The untouched-dummy part of the conditioned tail does admit a complete
+contraction, for an arbitrary preloaded queue rather than only a root.
+
+\begin{theorem}[untouched-dummy close-first tail]
+\label{thm:untouched-dummy-tail}
+\PROVED{} Let the defender move from a state with nonempty queue
+$Q=(q_1,\ldots,q_L)$ and untouched set $U$ containing the isolated dummy
+$d$.  If the attacker is close-first from this state onward, the defender can
+force future score zero.
+\end{theorem}
+
+\begin{proof}
+The defender may choose an arbitrary ordering
+$P=(p_1,\ldots,p_m)$ of $U$, always OPENing the next $p_i$.  While untouched
+vertices remain, the close-first attacker closes one FIFO front after each
+such OPEN.  Once $U$ is empty all later charges vanish.  Directly reading the
+front at each round gives the future score
+\begin{equation}\label{eq:close-first-tail-permutation}
+ F(P)=
+ \sum_{\substack{i<j\\i\le L}}B(q_i,p_j)
+ +\sum_{a+L<b}B(p_a,p_b).
+\end{equation}
+It suffices to show that $F(P)=0$ for some permutation.
+
+Suppose instead that $F$ is constant.  Swap adjacent entries $x,y$ in
+positions $j,j+1$.  The only changed contributions are those at distance one
+across the queue lag, and
+\begin{equation}\label{eq:close-first-tail-swap}
+ F(\cdots xy\cdots)+F(\cdots yx\cdots)
+ =B(x+y,a_j+b_j),
+\end{equation}
+where
+\[
+ a_j=\begin{cases}q_j,&j\le L,\\p_{j-L},&j>L,\end{cases}
+ \qquad
+ b_j=\begin{cases}p_{j+L+1},&j+L+1\le m,\\0,&j+L+1>m.
+ \end{cases}
+\]
+Put $y=d$ in \eqref{eq:close-first-tail-swap}; every pairing with $d$
+vanishes.
+
+If $m\le L+1$, every $b_j$ vanishes and the equations give
+$B(q_j,x)=0$ for every queue row which occurs in the first sum of
+\eqref{eq:close-first-tail-permutation}; the second sum is empty.  Hence
+$F=0$.  If $m=L+2$, use the final swap $j=L+1$: here
+$a_j=p_1$ and $b_j=0$, and arbitrary placement of the other vertices proves
+$B|_U=0$.  The swaps $j\le L$ then kill every scoring $q_j$ row.  If
+$m\ge L+3$, the final swap again has $a_j\in U,b_j=0$ and proves
+$B|_U=0$; the remaining swaps kill the scoring queue rows in the same way.
+Thus a constant $F$ is the constant zero.  If $F$ is nonconstant, its
+$\F_2$-valued image already contains zero.  In either case choose a
+zero-valued ordering $P$ and follow the displayed OPEN strategy.
+\end{proof}
+
+Consequently, while the dummy is untouched a leafmost deviation can only
+enter a close-first tail on residual target zero.  In the minimum-bad descent,
+residual one must first cross to zero through the preceding odd CLOSE; if the
+dummy has already been spent, Theorem~\ref{thm:untouched-dummy-tail} no longer
+applies.  These are exactly the odd-CLOSE spike and post-dummy domination
+boundaries in Proposition~\ref{prop:minimum-bad-predecessor}.
+
+Neither ``the dummy has already been touched'' nor ``$z$ is the unique
+untouched neighbour of $f$'' follows locally.  For the latter, take
+$K_{2,2}$ on parts $\{0,1\},\{2,3\}$ after the reachable spent-dummy prefix
+$O_dO_1O_0C_d$: at $U=\{2,3\},Q=(1,0)$ the irreducible $O_2$ has a
+close-first zero tail although front $1$ has two untouched neighbours.  If
+the defender opens $3$, the untouched set is empty; if it closes $1$, the
+forced close of $0$ has the same unit charge, and all later charges vanish.
+Replacing $O_2$ by $C_1$ is spoiled by $O_2,O_3$, leaving the forced $C_0$
+as the sole unit charge.  For the former claim, with sole real edge $01$, the
+reachable prefix $O_2O_1C_2$ leaves $U=\{0,d\},Q=(1)$; after $O_0$, either
+$O_d$ or $C_1$ leaves only zero charges, while replacing it by $C_1$ has
+unit charge and the spoiler $O_d$ makes every later charge zero.  Thus the
+isolated dummy remains untouched in this irreducible target-zero example.
+Hence the last-deviation program
+reduces to a conditioned close-first theorem for post-OPEN queues of length
+at least two, not to a local uniqueness lemma.  That conditioned theorem is
+strictly stronger than Theorem~\ref{thm:close-first} and remains open.
 
 This boundary also explains why the nearest imported techniques do not close
 the problem.  A standard strategy-stealing pass must be optional and harmless;
@@ -2875,7 +3128,7 @@ The following claims have different status and should not be flattened.
 \begin{itemize}[leftmargin=*]
 \item \PROVED{} The interval/disjointness reduction, vector live-star identity,
       threshold schedule normal form, endpoint-controller boundary identity,
-      affine separation equivalence,
+      affine separation equivalence and positional scalar reduction,
       homogeneous response recursion, parity-resolved continuation
       convolution, dual obstruction descent, filtered Schur-complement
       criterion, and Euler quotient separation,
@@ -2884,13 +3137,16 @@ The following claims have different status and should not be flattened.
       classification, two-switch tail, scalar force-set recursion,
       Boolean force-set identities, universal-full-fan residual,
       least-counterexample odd routing, zero-normalized repair recursion,
-      queue-matching phase-fan identity, tetrahedral coherence, Euler curvature
+      queue-matching phase-fan identity, tetrahedral coherence, universal
+      public-state holonomy obstruction, Euler curvature
       oik and its oriented lift, the odd isotropic triangle dichotomy,
       the same-curvature odd wall fan, balanced-front odd-flow transport and
       its cell-cut coefficient calculus, the response-factor normal form,
       completeness of the Euler ordered-pair kernel,
       the complete both-seat close-first contraction,
-      the causal simplex-cap family,
+      the leafmost-deviation spoiler dichotomy and untouched-dummy
+      arbitrary-prefix close-first tail,
+      the causal simplex-cap family and the causal matching-exchange no-go,
       fixed-permutation no-go, and displayed triangular fan and fixed-front
       poison descent, together with the front-signature no-go, pass-free
       reversal identity, its local causal obstruction, and the
