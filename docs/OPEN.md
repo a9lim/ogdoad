@@ -406,6 +406,16 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   zero-curvature chain, but promotion of one compatible triangle through a
   deterministic attacker's pruning without losing odd augmentation or the
   cut-valued boundary.
+- The corresponding wall parity has a local game form.  At an Eulerian
+  ordered pair \`(x,y)\`, colour each remaining vertex by
+  \`tau_xy(v)=Bxy+Bxv+Byv\`.  Both fibres are even, so after an attacker opens
+  \`z\` the same-colour reply set excluding \`z\` is odd; every such reply
+  \`w\` makes the immediate consecutive closes of \`x,y\` carry equal
+  charges.  This is an honest odd 3-oik wall fan, but it does not survive
+  attacker pruning: the pinned open-completion witness has all OPEN children
+  losing and a phase-changing CLOSE as its unique safe reply.  The missing
+  chain must mix strategy-selected OPEN and CLOSE children across front
+  levels.
 - The broad prevention/debt menu also has a sharp block boundary.  A maximal
   FIFO block with opening order `v_i`, residual `S`, and threshold `t_i`
   scores `e(B,S)` plus the internal edges `v_i v_j` with `j>t_i`.  It ends in
@@ -439,6 +449,23 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   consecutive projected events to the same controller, or require a
   state-dependent pass.  Reversal averaging and dummy projection are thus
   proved no-go templates, not candidate contractions.
+- The cut boundary of a terminal response has an exact controller formula.
+  If \`o_v,c_v\` are the OPEN/CLOSE positions among the \`2n\` touches on all
+  real vertices plus dummy, then
+  \`deg_Dhat(v) = n + o_v + c_v (mod 2)\`.  On the real edge space this
+  becomes \`deg_D(v) = n + o_v + c_v + Dhat(v,d)\`, or, after formally
+  deleting the two dummy events,
+  \`deg_D(v) = k + obar_v + cbar_v\`.  Thus constant-coefficient topology
+  misses an endpoint-controller local system coupled to whether the real
+  interval overlaps the dummy.
+- That formal deletion has a sharp ko wall.  The score-zero diamonds
+  \`OPEN(d);CLOSE(f)\` and \`CLOSE(f);OPEN(d)\` commute statewise except when
+  \`f\` is the singleton front; there they end with opposite ko bits.  The
+  minimal word \`O0 Od C0 O1 Cd C1\` has real label \`01\`, but dummy
+  deletion gives the illegal \`O0 C0 O1 C1\`, and the only legal same-order
+  repair \`O0 O1 C0 C1\` has label zero.  A pass is illegal while \`1\` is
+  untouched.  Hence a dummy-as-role-switch normalization cannot be repaired
+  causally without transporting a genuine edge moment.
 - The dummy defeats the empty-queue domination device at every root, matching
   the no-dummy Bad-graph census 1/4/34 at n = 3/5/7 (all mover-controlled),
   but that device is not the unique local squeeze. On the path `z-f-y-h`,

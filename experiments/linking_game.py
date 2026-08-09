@@ -106,6 +106,11 @@ STATUS (2026-08-07), machine-verified by this file:
     sibling at every preceding defender fan admits a compatible attack
     avoiding ``{0,2} = {0} union (X+X)``.  Thus even full ancestor-sibling
     escape is false; the required flow must couple several branches at once.
+  * The terminal cut boundary has an exact event-controller formula:
+    deg_D(v) = n + o_v + c_v modulo two on all vertices, including the
+    dummy, when the unique forced pass is omitted from the event positions.
+    Deleting the dummy coordinate contributes precisely its disjointness
+    bit.  The randomized reduction checks below pin both forms.
   * Three stronger induction templates now have pinned order-8 failures.
     Equal two-bit colour does not make an ordered first cell safe; one opener
     can have no safe same-colour mate; and a Safe even-U checkpoint can require
@@ -1074,6 +1079,8 @@ def stage_validate() -> None:
         seq: tuple = ()
         ko = False
         windows = {}
+        touch_windows = {}
+        touch = 0
         flips = 0
         live_degree_sum = 0
         while u or seq:
@@ -1093,13 +1100,16 @@ def stage_validate() -> None:
                 live_degree_sum ^= bin(adj[i] & (u | omask)).count("1") & 1
                 sigma ^= bin(omask & hadj[i]).count("1") & 1
                 windows[i] = [tt, None]
+                touch_windows[i] = [touch, None]
                 u, seq, ko = u2, seq2, ko2
             else:
                 _kind, c, flip, u2, seq2, ko2 = closes[0]
                 sigma ^= bin(omask & hadj[c]).count("1") & 1
                 flips ^= flip
                 windows[c][1] = tt
+                touch_windows[c][1] = touch
                 u, seq, ko = u2, seq2, ko2
+            touch += 1
             tt += 1
         overlap = 0
         for (i, j) in edges:
@@ -1112,8 +1122,32 @@ def stage_validate() -> None:
         assert flips == (len(edges) & 1) ^ sigma, "flips != |E| ^ sigma (R2)"
         assert flips == live_degree_sum, \
             "flips != sum of live degrees at opens (R4)"
+        disjoint_degree = [0] * n
+        for i in range(n):
+            oi, ci = touch_windows[i]
+            for j in range(i + 1, n):
+                oj, cj = touch_windows[j]
+                if ci < oj or cj < oi:
+                    disjoint_degree[i] ^= 1
+                    disjoint_degree[j] ^= 1
+        for v, (opened, closed) in touch_windows.items():
+            assert disjoint_degree[v] == (n + opened + closed) & 1, \
+                "endpoint-controller boundary identity failed"
+        if dummy:
+            d = k
+            od, cd = touch_windows[d]
+            for v in range(k):
+                ov, cv = touch_windows[v]
+                dvd = int(cv < od or cd < ov)
+                real_degree = disjoint_degree[v] ^ dvd
+                projected_open = ov - int(od < ov) - int(cd < ov)
+                projected_close = cv - int(od < cv) - int(cd < cv)
+                assert real_degree == \
+                    (k + projected_open + projected_close) & 1, \
+                    "projected endpoint-controller identity failed"
     print("   400 random legal plays (dummy on/off): no nesting; sigma == overlap;"
-          " odd-close flips == |E| ^ sigma == live-open degree sum")
+          " odd-close flips == |E| ^ sigma == live-open degree sum;"
+          " endpoint boundary identities hold")
 
     print("== nonempty-queue squeeze witness ==")
     # The path z-f-y-h with queue (f,h) and U={y,z}.  The front f is

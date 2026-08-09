@@ -60,7 +60,10 @@ children whose projected continuation affine hulls are disjoint.
 Positive results accompany the reduction.  The vector live-star identity
 proves the affine formulation, a parity-cell pairing theorem strictly extends
 the earlier twin-pair solution, and the cut moment at the initial front
-contracts affinely.  A second handshake refinement colours a vertex by its
+contracts affinely.  The cut boundary of every terminal score has an exact
+endpoint-controller formula: the parity degree of a vertex is determined by
+the seats controlling its opening and closing, with one explicit correction
+for disjointness from the dummy.  A second handshake refinement colours a vertex by its
 degree parity and its parity of odd-degree neighbours: every colour class is
 even on an even-order graph, and a same-colour pair balances all four joint
 degree/incidence fibres.  A two-switch tail lemma closes the first genuine
@@ -229,6 +232,64 @@ For a completed history $h$, define its \emph{disjointness vector}
 \]
 Pairing $D(h)$ with the adjacency vector $A_G$ recovers
 \eqref{eq:scalar-score}.
+
+There is an exact endpoint formula for the cut boundary of this score.  It is
+useful because it isolates the part of any prospective local coefficient
+system which constant-coefficient topology cannot see.  Temporarily put
+$V=R\sqcup\{d\}$ and let $\widehat D(h)\in E(K_V)$ include the dummy
+coordinates as well.  Number only OPEN and CLOSE events, omitting the unique
+possible forced pass, and write $o_v,c_v\in\{1,\ldots,2|V|\}$ for the two
+event positions of $v$.
+
+\begin{proposition}[endpoint-controller boundary]
+\label{prop:endpoint-boundary}
+\PROVED{} For every complete legal FIFO history and every $v\in V$,
+\begin{equation}\label{eq:endpoint-boundary}
+ \deg_{\widehat D(h)}(v)=|V|+o_v+c_v\pmod2.
+\end{equation}
+Consequently, on the real edge space,
+\begin{equation}\label{eq:real-endpoint-boundary}
+ (\partial D(h))_v
+ =|V|+o_v+c_v+\widehat D(h)_{vd}.
+\end{equation}
+If $\bar o_v,\bar c_v$ are the positions of the real events after deleting
+$O_d,C_d$ from the event word, whether or not the resulting word is legal,
+then equivalently
+\begin{equation}\label{eq:projected-endpoint-boundary}
+ (\partial D(h))_v=|R|+\bar o_v+\bar c_v.
+\end{equation}
+Thus the cut boundary records exactly whether the two endpoint events of each
+real interval are inherited by the same or opposite projected controllers.
+\end{proposition}
+
+\begin{proof}
+Let $v$ have opening rank $b$, let $r$ earlier vertices have closed before
+$O_v$, and let $t$ vertices have opened by $C_v$.  FIFO makes $v$ the $b$th
+vertex to close, so
+\[
+ o_v=b+r,\qquad c_v=b+t.
+\]
+Exactly the $r$ already-closed earlier vertices and the $|V|-t$ not-yet-opened
+later vertices have intervals disjoint from $I_v$.  Hence
+\[
+ \deg_{\widehat D}(v)=r+|V|-t
+ =|V|+o_v+c_v\pmod2,
+\]
+which proves \eqref{eq:endpoint-boundary}.  Deleting the dummy coordinate
+from $\widehat D$ gives \eqref{eq:real-endpoint-boundary}.
+
+Finally, deleting $O_d,C_d$ changes the parity of an endpoint position exactly
+when that endpoint lies strictly between the two dummy events.  Properness of
+the FIFO intervals says that exactly one endpoint of $I_v$ lies there when
+$I_v$ overlaps $I_d$, and zero modulo two lie there when the intervals are
+disjoint.  Therefore
+\[
+ \bar o_v+\bar c_v
+ =o_v+c_v+1+\widehat D_{vd}.
+\]
+Since $|V|+1=|R|$ modulo two, substitution proves
+\eqref{eq:projected-endpoint-boundary}.
+\end{proof}
 
 At any moment let $L=U\cup Q$ be the live set.  For a real $x\in L$, put
 \[
@@ -1318,6 +1379,55 @@ attacker strategy.  The remaining theorem is now sharply one of promoting
 such a triangle through attacker pruning while preserving odd augmentation
 and its cut-valued terminal moment.
 
+The wall parity itself has a precise game-facing form.  It supplies an odd
+fan of locally cancelling OPEN replies, but the continuation coefficients are
+still the unresolved datum.
+
+\begin{lemma}[same-curvature odd wall fan]
+\label{lem:same-curvature-fan}
+\PROVED{} Let $G$ be an even-order Eulerian graph, fix distinct $x,y$, and put
+\[
+ \tau_{xy}(v)=B(x,y)+B(x,v)+B(y,v)
+ \qquad(v\notin\{x,y\}).
+\]
+Each of the two $\tau_{xy}$ fibres in $V-\{x,y\}$ has even cardinality.
+Consequently, after an attacker opens $z$ from the ordered-pair checkpoint
+$Q=(x,y)$, the set
+\[
+ W_z=\{w\notin\{x,y,z\}:\tau_{xy}(w)=\tau_{xy}(z)\}
+\]
+has odd cardinality.  For every $w\in W_z$, if the defender opens $w$ and the
+attacker next closes $x$, then closing $y$ gives the same charge and cancels
+that close pair.
+\end{lemma}
+
+\begin{proof}
+Because $|V|$, $\deg x$, and $\deg y$ are even,
+\[
+ \sum_{v\ne x,y}\tau_{xy}(v)
+ =(|V|-2)B(x,y)+(\deg x-B(x,y))+(\deg y-B(x,y))=0.
+\]
+Thus the one-fibre is even; its complement in the even set $V-\{x,y\}$ is
+even as well.  Removing $z$ from its own fibre leaves the odd set $W_z$.
+
+After $z,w$ have opened, put $U=V-\{x,y,z,w\}$.  Eulerianity gives
+\begin{align*}
+ \deg_U(x)+\deg_U(y)
+ &=B(x,z)+B(y,z)+B(x,w)+B(y,w)\\
+ &=\tau_{xy}(z)+\tau_{xy}(w)=0.
+\end{align*}
+These are exactly the charges of the consecutive closes of $x$ and $y$, so
+they agree and cancel.
+\end{proof}
+
+Lemma~\ref{lem:same-curvature-fan} is the local $3$-oik wall promised by
+Theorem~\ref{thm:euler-oik}; it is not a contraction of the response tree.
+The order-eight open-completion witness below has an attacker open for which
+every OPEN child can be made losing while the unique safe reply is the
+phase-changing close.  A valid odd flow must therefore choose a
+strategy-dependent subset across OPEN and CLOSE children and across earlier
+front levels, rather than assigning coefficient one to the whole odd wall.
+
 Nor is the Eulerian case a simplifying restriction of the scalar kernel.
 
 \begin{theorem}[Euler ordered-pair kernel is complete]
@@ -1490,6 +1600,33 @@ alternating seats.  With only one real vertex, deletion instead requires
 inserting the forced pass state-dependently.  Hence dummy deletion preserves
 neither legality, turn ownership, nor the pass boundary; it is not a game-tree
 morphism.
+
+The failure is concentrated at an exact ko wall.  Suppose $d$ is untouched,
+$Q=(f,Q_0)$ has real front $f$, and ko is clear.  The adjacent words
+\[
+ O_dC_f,\qquad C_fO_d
+\]
+have the same real score and end with the same untouched set and queue
+$Q_0d$.  Their ko bits agree unless $Q_0$ is empty; at that singleton wall
+the first word ends with ko clear and the second with ko set.  Dually, from
+$Q=(d,Q_0)$ and untouched $x$, the words $C_dO_x$ and $O_xC_d$ end in the
+same queue $Q_0x$ with equal real score, but at $Q_0=()$ their ko bits are set
+and clear respectively.  This follows directly because a close clears ko,
+whereas an open sets it exactly when the pre-open queue is empty.
+
+The first wall is already label-essential.  The legal word
+\[
+ O_0O_dC_0O_1C_dC_1
+\]
+has $D_R=01$, whereas deleting the dummy gives the illegal word
+$O_0C_0O_1C_1$.  The only legal real FIFO word with the same real opening and
+closing orders is $O_0O_1C_0C_1$, whose disjointness score is zero.  A virtual
+pass cannot repair the former word while vertex $1$ remains untouched.
+Thus bubbling or deleting the dummy cannot be made both causal and
+label-preserving by retaining only a role-switch or ko marker: repairing the
+ko wall necessarily transports the missing $01$ edge moment.  The global odd
+flow may cancel such terms across several histories, but no single-history
+dummy normalization proves the theorem.
 
 \section{The remaining global lemma}
 
@@ -1763,7 +1900,8 @@ separate open step.
 The following claims have different status and should not be flattened.
 \begin{itemize}[leftmargin=*]
 \item \PROVED{} The interval/disjointness reduction, vector live-star identity,
-      threshold schedule normal form, affine separation equivalence,
+      threshold schedule normal form, endpoint-controller boundary identity,
+      affine separation equivalence,
       homogeneous response recursion and Euler quotient separation,
       parity-cell theorem, front cut-space splitting and two-graph absorption,
       correlated-moment identity, initial cut contraction, charge/poison
@@ -1771,12 +1909,13 @@ The following claims have different status and should not be flattened.
       least-counterexample odd routing, zero-normalized repair recursion,
       queue-matching phase-fan identity, tetrahedral coherence, Euler curvature
       oik and its oriented lift, the odd isotropic triangle dichotomy,
+      the same-curvature odd wall fan,
       completeness of the Euler ordered-pair kernel,
       the causal simplex-cap family,
       fixed-permutation no-go, and displayed triangular fan and fixed-front
       poison descent, together with the front-signature no-go, pass-free
-      reversal identity, and its local causal obstruction, are complete proofs
-      in this note.
+      reversal identity, its local causal obstruction, and the
+      label-essential dummy ko wall, are complete proofs in this note.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is
