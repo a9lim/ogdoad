@@ -1,6 +1,6 @@
 # Lean formalization
 
-This standalone Lean 4 project tests how much of the two current proof threads
+This standalone Lean 4 project tests how much of the current proof threads
 can be moved from checked prose and exhaustive computation into a proof kernel.
 It pins Lean and mathlib independently of the Rust workspace.
 
@@ -31,6 +31,30 @@ roots lie in a set-sized algebraically closed subfield.  The standard
 symplectic decomposition theorem for a finite-dimensional alternating form is
 used as the interface to `hyperbolic_family_of_symplectic_family`; this project
 does not yet re-formalize that general linear-algebra theorem.
+
+## Lenstra excess
+
+[`Ogdoad/Excess.lean`](Ogdoad/Excess.lean) formalizes the theorem-level spine
+of the exceptional `2·3^k` column:
+
+- the first-non-`p`-th-power definition of finite excess;
+- the group-theoretic lower bound: a shared order class coprime to `p` makes
+  the `0,1,2,3` translates `p`-th powers, hence `m_p ≥ 4`;
+- the corrected norm
+  `(kappa+a)(kappa+a+1) = kappa²+kappa+(a²+a)`, specializing to
+  `kappa²+kappa+omega`;
+- the exact cyclic-group and finite-field Euler-quotient criteria for being a
+  `p`-th power; and
+- the open target `DPrimeTarget M`, namely `Psi_k | orderOf (M k)` for every
+  level.
+
+Lean also reduces the complete `k=2,...,6` factor products and every recorded
+`ord_p(2)=2·3^k` residue screen.  Primality is proved locally through `k=4`;
+the larger factors retain the paper's explicit source-assisted boundary.
+These are arithmetic input checks, not a proof that the distinguished circle
+element `M_k` has the required order.  The universal `D'_k` assertion remains
+open, as do the finite `M_k` computations beyond the separately maintained
+Python certificate.
 
 ## FIFO linking
 

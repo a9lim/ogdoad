@@ -82,6 +82,16 @@ definition of the open proposition.  The exhaustive graph census through eight
 real coins remains machine evidence, not a formal proof of the missing global
 affine-contraction lemma.
 
+`Ogdoad/Excess.lean` kernel-checks the exceptional-column reduction: coprime
+order classes supply the four lower translates, the corrected sparse norm is
+an identity in every characteristic-two commutative ring, and the
+Euler-quotient test is an iff in finite cyclic groups and finite fields.  The
+recorded `k=2,...,6` factor products and order-of-two residue screens reduce
+inside Lean; primality is locally proved through `k=4`, while larger primality
+claims retain their documented external provenance.  `DPrimeTarget` is only
+the open universal `D'_k` proposition: no declaration assumes that the
+distinguished `M_k` meets it.
+
 ## What holds (the baseline — don't dilute it on any cleanup pass)
 
 - **The cross-validation spine is real, and this sweep widened it.** `verify_milgram`

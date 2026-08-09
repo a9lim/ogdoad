@@ -237,10 +237,12 @@ corpus). It is an unpublished workspace member (`publish = false`) while the lan
 pre-release; it ships separately when it stabilizes.
 
 `formal/` is a separately pinned Lean 4 + mathlib project.  It kernel-checks the
-load-bearing algebra of the resolved `off` classification and formalizes the exact
-FIFO transition system, termination/strategy semantics, cut invariant, and edgeless
-base theorem.  The general isolated-dummy FIFO theorem is stated there but remains
-open; no finite census is presented as its proof.
+load-bearing algebra of the resolved `off` classification, the theorem-level
+Lenstra-excess column reduction (lower bound, corrected norm, exact power
+criterion, and finite arithmetic inputs), and the exact FIFO transition system,
+termination/strategy semantics, cut invariant, and edgeless base theorem.  The
+universal `D'_k` and general isolated-dummy FIFO theorems are stated there but
+remain open; no finite census is presented as either proof.
 
 See `AGENTS.md` for the working-notes summary, `docs/OPEN.md` for the genuine open
 problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `grundy/docs/` for

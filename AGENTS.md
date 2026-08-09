@@ -37,6 +37,9 @@ Each pillar's `mod.rs` re-exports its children flat, so public paths stay shallo
 `formal/` is the separately pinned Lean 4 + mathlib proof-kernel experiment:
 `Ogdoad/Off.lean` formalizes the load-bearing algebra of the resolved full-`On₂`
 classification through a set-sized algebraically closed char-2 proxy;
+`Ogdoad/Excess.lean` formalizes the exceptional Lenstra-excess column's
+unconditional lower bound, corrected norm, exact cyclic/finite-field power
+criterion, finite factor/order screens, and open `D'_k` target;
 `Ogdoad/Fifo.lean` formalizes the exact reduced FIFO game, its terminating
 strategy semantics, cut invariant, and edgeless base theorem, while leaving the
 general isolated-dummy proposition explicitly open.  See `formal/README.md` for

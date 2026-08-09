@@ -1079,6 +1079,9 @@ distinguished Conway/cyclotomic value, because the paper now proves that the
 obvious generic invariants are insufficient.
 
 Relevant surfaces:
+- `formal/Ogdoad/Excess.lean` (proved reduction spine and the unproved
+  `DPrimeTarget`; not a universal column proof)
+- `formal/README.md`
 - `writeups/excess.tex`
 - `writeups/excess.pdf`
 - `experiments/ordinal_excess_probe.py`
