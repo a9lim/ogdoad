@@ -92,8 +92,10 @@ beat.
   source-edge weights, and the parity of active hyperbolic pairs. No dense
   adapted-basis `Q` query or q-dependent loading is used.
 - FIFO theorem: on every matching plus isolates, either designated seat keeps
-  the opponent front ko-protected or zero-live-degree and therefore forces zero
-  correction parity in every dimension, without a dummy.
+  the opponent front ko-protected or zero-live-degree. Run on the q-blind
+  potential matching, this makes every close individually zero, so every
+  potential pair overlaps. The same strategy works for every refinement and
+  every dimension, without a dummy.
 - normal semantics: a unique terminal claim move enabled by `sigma xor phase`
   compiles any finite forced-charge tree to ordinary normal play; with stance
   one the root is P exactly when the forced charge is zero.

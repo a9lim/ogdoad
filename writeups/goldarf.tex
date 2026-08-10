@@ -1739,8 +1739,8 @@ lantern'', not an inspection of $x$, $B$, or $Q(x)$.
 \begin{theorem}[FIFO matching theorem]\label{thm:matchingfifo}
 Let every component of $G$ be $K_1$ or $K_2$. From the empty-queue root,
 either designated seat has a strategy forcing the sum of all close charges
-$\deg_U(f)$ to be zero. The theorem holds for every finite board and needs no
-dummy.
+$\deg_U(f)$ to be zero. In fact the strategy makes every close charge zero
+individually. The theorem holds for every finite board and needs no dummy.
 \end{theorem}
 
 \begin{proof}
@@ -1762,13 +1762,24 @@ At an opponent checkpoint, OPEN and PASS preserve the score and return the
 turn. A legal CLOSE rules out ko, so safety makes its charge zero and likewise
 returns a score-zero state. Every branch has smaller rank. Initially the queue
 is empty: the second seat receives a vacuously safe root, while the first seat
-uses the empty-queue OPEN. This proves both seats.
+uses the empty-queue OPEN. The designated seat itself never closes while an
+untouched coin remains, and after the untouched set is empty every close has
+charge zero. Thus the constructed strategy makes each close charge zero, not
+only their total. This proves both seats.
 \end{proof}
 
 The exact transition-system proof is kernel-checked as
 \texttt{evenWins\_initial\_of\_matching} in
 \path{formal/Ogdoad/FifoMatching.lean}. The finite matching census helped find
-the policy but is not used in the theorem.
+the policy but is not used in the theorem. Its refinement-blind strengthening,
+with a public potential matching and an arbitrary edge-deleted scoring
+submatching, is kernel-checked as
+\path{evenWins_initial_of_every_submatching}. The proposition is
+pointwise in the scoring submatching, while its proof branches choose moves
+only from the public matching. Since \texttt{EvenWins} does not reify a
+first-class policy or complete play traces, the literal single-policy
+quantifier and the per-close-zero observation are the explicit argument above,
+not separate theorem statements in Lean.
 
 \begin{theorem}[weighted-source exactness]\label{thm:wittfifo}
 For every $\F_2$-valued quadratic refinement $Q_q$ on a finite-dimensional
@@ -1792,27 +1803,25 @@ Therefore
 \begin{equation}\label{eq:splitsource}
  Q_q(x)=\sum_i y_ip_i+\sum_jx_jq_j+\sum_hy_{a_h}y_{b_h}.
 \end{equation}
-Fix $q$ and form the proof-auxiliary graph $H_q$: retain every loaded strategic
-Witt edge, retain the source-pair edge $S_j^0S_j^1$ exactly when $q_j=1$, and
-treat the remaining source pairs as isolates. This graph is a matching,
-although the actual board skeleton and loading are q-blind.
+Form instead the q-blind \emph{potential matching} $P$: retain every loaded
+strategic Witt edge and every loaded source-pair edge, irrespective of its
+weight $q_j$. Apply the explicit safe-front strategy of
+Theorem~\ref{thm:matchingfifo} to $P$. The policy consults only this potential
+matching and the public FIFO state: when the front's potential mate is still
+untouched it opens that mate, and otherwise it opens any untouched coin. It is
+therefore the same strategy for every refinement $q$. The proof of the theorem
+shows more than cancellation of a total score: every close has zero live
+$P$-degree.
 
-For one active edge $e$, exactly one of the following occurs: its two touch
+For one potential edge $e$, exactly one of the following occurs: its two touch
 intervals overlap, or the earlier-opened endpoint closes while the other
-endpoint is still untouched. Hence
+endpoint is still untouched. The latter case would give that close live
+$P$-degree one, so the strategy excludes it. Consequently every potential
+pair overlaps. The rule's total OPEN charge is therefore directly
 \[
- [e\text{ overlaps}]+[e\text{ contributes an odd close}]=1.
+ \sum_h y_{a_h}y_{b_h}+\sum_jx_jq_j,
 \]
-Summing over $H_q$ shows that the rule's total OPEN charge is
-\[
- |E(H_q)|+\sum_{\mathrm{closes}}\deg_U(f).
-\]
-The second term is an auxiliary correction score, not a charge separately
-added by the rule. By Theorem~\ref{thm:matchingfifo}, either designated seat
-forces it to zero. The remaining edge parity is
-\[
- \sum_h y_{a_h}y_{b_h}+\sum_jx_jq_j.
-\]
+with no refinement-dependent auxiliary graph or strategy.
 Every active strategic $F_i$ closes exactly once and supplies
 $\sum_i y_ip_i$. Equation~\eqref{eq:splitsource} therefore gives forced
 terminal charge $Q_q(x)$ at both stances.
@@ -1840,8 +1849,9 @@ potential edges, public charges $p_i$, and terminal board condition use only
 $B,x$ and the fixed frame. Thus F1 holds. An OPEN involving a source pair
 needs at most the one singleton value $O_q(e_j)$, and only when its mate is
 already queued; every other move predicate and transition is
-refinement-blind. This proves F2 and N2 with $(1,1)$. The semantics is the
-single normal-play claim rule, giving F3, and
+refinement-blind. Even the forcing strategy is refinement-blind: it is the
+safe-front policy on the public potential matching $P$. This proves F2 and N2
+with $(1,1)$. The semantics is the single normal-play claim rule, giving F3, and
 Theorem~\ref{thm:wittfifo} is N1 for every refinement of $B$.
 
 There is one source pair exactly when $x_j=1$, so the set of possible oracle
@@ -1910,7 +1920,10 @@ independent regression evidence and historical provenance.
 
 \begin{itemize}[leftmargin=*]
 \item \path{formal/Ogdoad/FifoMatching.lean} kernel-checks the exact
-transition-system proof of the both-seat matching strategy.
+transition-system proof of the both-seat matching strategy and its public-
+matching construction parameterized over every edge-deleted submatching. The
+q-blind single-policy and per-close trace observations use the visible move
+branches of that construction but are not separately reified Lean predicates.
 \path{formal/Ogdoad/GoldMatchingAlgebra.lean} checks the abstract
 adapted-support expansion and split-diagonal identity from their supplied
 Witt-pairing and diagonal hypotheses; the concrete matrix $C$ and

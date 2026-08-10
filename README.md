@@ -333,9 +333,10 @@ ceiling — lexicodes show natural rules realize rich *linear* codes as P-sets,
 and Theorem A shows every Winning Ways coin-turning P-set is the kernel of an
 `F₂`-linear map. A public Witt frame reduces the polar interaction to a
 matching; q-blind source pairs carry original-coordinate singleton weights;
-the safe-front strategy forces the exact quadratic charge; and a phase-aware
-claim move compiles it to ordinary normal play. Exactness forces every stable
-observation certificate to span the input, so the support-sized singleton
+one q-blind safe-front strategy forces every potential pair to overlap and
+therefore forces the exact quadratic charge for every refinement; and a
+phase-aware claim move compiles it to ordinary normal play. Exactness forces
+every stable observation certificate to span the input, so the support-sized singleton
 interface is optimal and a constant total budget is impossible. A separate
 padding theorem proves that strategic-liveness tests cannot define
 non-tautology when those tests are the basic reachable, optimal, or unavoidable

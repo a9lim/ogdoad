@@ -48,7 +48,9 @@ dual reconstruction, absolute-trace descent, and the full finite-field
 Artin--Schreier image-equals-trace-kernel theorem
 behind the all-exponent Gold diagonal source;
 `Ogdoad/FifoMatching.lean` proves the both-seat zero-flip theorem for every
-matching-plus-isolates board and connects it to adapted hyperbolic coordinates;
+matching-plus-isolates board, formalizes the public-matching induction
+parameterized over all edge-deleted submatchings, and connects it to adapted
+hyperbolic coordinates;
 `Ogdoad/GoldMatchingAlgebra.lean` proves the adapted-basis quadratic expansion;
 `Ogdoad/GoldSemantics.lean` proves the forced-charge-to-normal-play winner
 equivalence; `Ogdoad/GoldNoEvaluator.lean` proves the sharp transcript-span and

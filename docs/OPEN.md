@@ -171,9 +171,12 @@ Resolution state (2026-08-09):
   legality; refinement data enters a play-dependent interaction rather than an
   invariant terminal label.
 - On every matching-plus-isolates board, either seat keeps the opponent's FIFO
-  front ko-protected or zero-live-degree. A rank induction proves zero total
-  flip parity for every finite board, with no dummy. Polarization then proves
-  forced terminal charge `sigma=Q_q(x)` for all dimensions and refinements.
+  front ko-protected or zero-live-degree. Applied to the q-blind potential
+  matching, the same policy makes every close individually zero and hence
+  forces every potential pair to overlap; the strategy itself is uniform in
+  the refinement. A rank induction proves this for every finite board, with no
+  dummy. Polarization then proves forced terminal charge `sigma=Q_q(x)` for all
+  dimensions and refinements.
 - A unique terminal claim move, enabled iff `sigma = 1 xor phase`, compiles the
   finite charge tree to ordinary normal play. At the root, P iff `Q_q(x)=0`.
   The phase is the existing mover bit and is necessary to preserve seat identity

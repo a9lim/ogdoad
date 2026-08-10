@@ -246,6 +246,187 @@ theorem evenWins_initial_of_matching
       intro f q hq
       simp [initial] at hq
 
+omit [Fintype V] in
+/-- Erasing the public mate of the front kills every possible live edge in
+any selected submatching.  The selected edge itself need not be present. -/
+theorem flip_erase_eq_zero_of_public_matching_mate
+    {G0 H : SimpleGraph V} (hG0 : IsMatchingGraph G0) (hHG0 : H ≤ G0)
+    {U : Finset V} {f u : V} (hfu : G0.Adj f u) :
+    flip H (U.erase u) f = 0 := by
+  classical
+  have hempty : (U.erase u).filter (H.Adj f) = ∅ := by
+    apply Finset.filter_eq_empty_iff.mpr
+    intro z hz
+    rcases Finset.mem_erase.mp hz with ⟨hzu, _hzU⟩
+    intro hfz
+    exact hzu (hG0 (hHG0 hfz) hfu)
+  simp [flip, hempty]
+
+omit [Fintype V] [DecidableEq V] in
+/-- If the public matching has no live neighbour at the front, neither does
+any refinement-selected submatching. -/
+theorem flip_eq_zero_of_no_public_matching_neighbor
+    {G0 H : SimpleGraph V} (hHG0 : H ≤ G0)
+    {U : Finset V} {f : V}
+    (hnone : ∀ u ∈ U, ¬G0.Adj f u) :
+    flip H U f = 0 := by
+  classical
+  have hempty : U.filter (H.Adj f) = ∅ := by
+    apply Finset.filter_eq_empty_iff.mpr
+    intro u hu
+    exact fun hfu ↦ hnone u hu (hHG0 hfu)
+  simp [flip, hempty]
+
+omit [Fintype V] in
+/-- Opening the public mate makes the opponent front safe simultaneously for
+every selected submatching of the public graph. -/
+theorem matchingFrontSafe_of_open_public_mate
+    {G0 H : SimpleGraph V} (hG0 : IsMatchingGraph G0) (hHG0 : H ≤ G0)
+    (s : State V) (f u : V) (q : List V)
+    (hq : s.queue = f :: q) (hfu : G0.Adj f u) :
+    MatchingFrontSafe H {
+      untouched := s.untouched.erase u
+      queue := s.queue ++ [u]
+      ko := s.queue.isEmpty
+      toMove := !s.toMove
+      score := s.score } := by
+  right
+  intro f' q' hq'
+  rw [hq] at hq'
+  simp only [List.cons_append] at hq'
+  injection hq' with hff
+  subst f'
+  exact flip_erase_eq_zero_of_public_matching_mate hG0 hHG0 hfu
+
+omit [Fintype V] in
+/-- When the public front has no live mate, opening any untouched vertex
+preserves safety for every selected submatching. -/
+theorem matchingFrontSafe_of_open_no_public_neighbor
+    {G0 H : SimpleGraph V} (hHG0 : H ≤ G0)
+    (s : State V) (f z : V) (q : List V)
+    (hq : s.queue = f :: q)
+    (hnone : ∀ u ∈ s.untouched, ¬G0.Adj f u) :
+    MatchingFrontSafe H {
+      untouched := s.untouched.erase z
+      queue := s.queue ++ [z]
+      ko := s.queue.isEmpty
+      toMove := !s.toMove
+      score := s.score } := by
+  right
+  intro f' q' hq'
+  rw [hq] at hq'
+  simp only [List.cons_append] at hq'
+  injection hq' with hff
+  subst f'
+  apply flip_eq_zero_of_no_public_matching_neighbor hHG0
+  intro u hu
+  exact hnone u (Finset.mem_of_mem_erase hu)
+
+omit [Fintype V] in
+/-- Let `G0` be a public potential matching and let `H ≤ G0` select any
+subset of its edges.  Either seat can force even score in `H` by a policy
+whose choices use only `G0`: if the current FIFO front has an untouched
+public mate, open it whether or not its edge survives in `H`; otherwise open
+any untouched vertex.  Thus one policy works uniformly across all
+refinement-selected submatchings. -/
+theorem evenWins_of_public_matching
+    {G0 H : SimpleGraph V} (hG0 : IsMatchingGraph G0) (hHG0 : H ≤ G0)
+    (seat : Bool) :
+    ∀ s : State V, s.score = 0 →
+      (s.toMove = seat ∨ MatchingFrontSafe H s) → EvenWins H seat s := by
+  intro s
+  induction s using (measure rank).wf.induction with
+  | h s ih =>
+      intro hscore hmode
+      by_cases ht : Terminal s
+      · exact EvenWins.terminal s ht hscore
+      by_cases hseat : s.toMove = seat
+      · by_cases hU : s.untouched = ∅
+        · exact evenWins_of_untouched_empty seat s hU hscore
+        · obtain ⟨z, hz⟩ := Finset.nonempty_iff_ne_empty.mpr hU
+          cases hq : s.queue with
+          | nil =>
+              let s' : State V := {
+                untouched := s.untouched.erase z
+                queue := s.queue ++ [z]
+                ko := s.queue.isEmpty
+                toMove := !s.toMove
+                score := s.score }
+              have hstep : step H s (.open z) = some s' := by
+                simp [step, s', hz]
+              refine EvenWins.choose s hseat (.open z) s' hstep
+                (ih s' (rank_step_lt hstep) ?_ (Or.inr ?_))
+              · exact hscore
+              · exact matchingFrontSafe_of_open_empty s z hq
+          | cons f q =>
+              by_cases hmate : ∃ u ∈ s.untouched, G0.Adj f u
+              · obtain ⟨u, hu, hfu⟩ := hmate
+                let s' : State V := {
+                  untouched := s.untouched.erase u
+                  queue := s.queue ++ [u]
+                  ko := s.queue.isEmpty
+                  toMove := !s.toMove
+                  score := s.score }
+                have hstep : step H s (.open u) = some s' := by
+                  simp [step, s', hu]
+                refine EvenWins.choose s hseat (.open u) s' hstep
+                  (ih s' (rank_step_lt hstep) ?_ (Or.inr ?_))
+                · exact hscore
+                · exact matchingFrontSafe_of_open_public_mate
+                    hG0 hHG0 s f u q hq hfu
+              · have hnone : ∀ u ∈ s.untouched, ¬G0.Adj f u := by
+                  intro u hu hfu
+                  exact hmate ⟨u, hu, hfu⟩
+                let s' : State V := {
+                  untouched := s.untouched.erase z
+                  queue := s.queue ++ [z]
+                  ko := s.queue.isEmpty
+                  toMove := !s.toMove
+                  score := s.score }
+                have hstep : step H s (.open z) = some s' := by
+                  simp [step, s', hz]
+                refine EvenWins.choose s hseat (.open z) s' hstep
+                  (ih s' (rank_step_lt hstep) ?_ (Or.inr ?_))
+                · exact hscore
+                · exact matchingFrontSafe_of_open_no_public_neighbor
+                    hHG0 s f z q hq hnone
+      · have hasMove : ∃ m s', step H s m = some s' :=
+          not_terminal_has_step ht
+        refine EvenWins.answer s hseat hasMove ?_
+        intro m s' hstep
+        have hchildturn : s'.toMove = seat := by
+          rw [step_toMove hstep]
+          cases hs : s.toMove <;> cases hseat' : seat <;> simp_all
+        apply ih s' (rank_step_lt hstep)
+        · cases m with
+          | «open» v => rw [open_score hstep, hscore]
+          | pass => rw [pass_score hstep, hscore]
+          | close =>
+              obtain ⟨f, q, hq, hs'⟩ := close_score hstep
+              rcases hmode with hturn | hsafe
+              · exact False.elim (hseat hturn)
+              · rcases hsafe with hko | hfront
+                · simp [step, hq, hko] at hstep
+                · rw [hs', hfront f q hq, add_zero, hscore]
+        · exact Or.inl hchildturn
+
+/-- Root form of the public-strategy theorem.  The quantifier over `H` makes
+the refinement uniformity explicit: one public matching supports both-seat
+zero-correction strategies for every one of its submatchings. -/
+theorem evenWins_initial_of_every_submatching
+    {G0 : SimpleGraph V} (hG0 : IsMatchingGraph G0) (seat : Bool) :
+    ∀ H : SimpleGraph V, H ≤ G0 →
+      EvenWins H seat (initial (V := V)) := by
+  intro H hHG0
+  apply evenWins_of_public_matching hG0 hHG0 seat (initial (V := V))
+  · rfl
+  · by_cases hs : seat = false
+    · exact Or.inl (by simpa [initial] using hs.symm)
+    · right
+      right
+      intro f q hq
+      simp [initial] at hq
+
 /-- Indices for an adapted alternating basis: left and right endpoints of
 each hyperbolic plane, followed by radical/isolated coordinates. -/
 abbrev HyperbolicIndex (P I : Type*) := Sum P (Sum P I)

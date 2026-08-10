@@ -175,6 +175,11 @@ subclass needed by the resolved Gold construction:
   state at the designated seat's turn, or at a safe opponent front;
 - `evenWins_initial_of_matching` proves that either seat forces zero flip
   parity from the empty-queue root, without a dummy; and
+- `evenWins_initial_of_every_submatching` formalizes the same public-branching
+  induction for every edge-deleted submatching. Its move branches inspect only
+  the public matching, although `EvenWins` does not expose a first-class policy,
+  so the literal `exists policy, forall submatching` and per-close trace
+  statements remain paper-level observations; and
 - the abstract hyperbolic-plus-radical graph and induced-subgraph lemmas provide
   the matching target; the paper supplies the concrete Witt-frame and loaded-
   support instantiation.
