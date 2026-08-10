@@ -383,6 +383,28 @@ Historical program state (2026-06-10 — retained as proof provenance):
   locally (an exact five-vertex counterexample has an earlier even close), so
   excluding these sibling-coupled terminal patterns is now the narrowest
   scalar proof obligation.
+- The complete fixed-front prefix itself now contracts.  Stop every compatible
+  response when the current front `y` closes and record the untouched
+  remainder `R`.  For every deterministic attacker policy,
+  `0 in Aff{R}`, hence the accumulated front-star labels `yR` admit an odd
+  zero-moment response flow.  The proof is an exact two-line force recursion:
+  for a separator `ell`, attacker-root forcing is
+  `ell(S)=1 or exists w, D(S-w)`, while defender-root forcing is
+  `ell(S)=1 and forall v, A(S-v)`; strong induction makes every `D(S)` false.
+  This does not yet carry the minimum-bad branch.  When `ell(S)=1`, an
+  attacker can make every leaf below a non-CLOSE first move have `ell(R)=0`,
+  so no zero flow containing the immediate odd CLOSE need exist.  The prefix
+  is therefore absolutely contractible but not relatively contractible at
+  the selected (A)/(B') leaf; descendant continuation cosets or earlier
+  siblings remain necessary.
+- The singleton ko wall is no longer an unformalized local defect.  Lean proves
+  that, from a clear singleton queue, `C_f; O_z; O_w` and
+  `O_z; C_f; O_w` reconverge after the next distinct real OPEN.  Their public
+  states agree and their score difference is exactly the frozen edge `fz`.
+  It also proves transition equivariance under score translation and the
+  induced strategy-sheet equivalences.  This transports any chosen local
+  square through a shared continuation; it does not choose a coherent family
+  of squares across the complete defender fan.
 - The conditioned close-first tail is now closed without a dummy hypothesis.
   From any coherent clear defender state with nonempty queue, a close-first
   attacker cannot force future flip parity one.  A minimum-rank proof opens

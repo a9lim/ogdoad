@@ -16,6 +16,12 @@ separate semantics below.  Its operational absorbers, bad-pair moment and rank
 reduction, finite zero-fan mutual induction, and final rank contradiction are
 kernel-checked.  This theorem remains separate from the open
 `FifoLinkingTheorem`.
+
+The local ancestry layer also records score-translation equivariance and the
+exact singleton-queue OPEN/CLOSE reconvergence after one further OPEN.  These
+transport a chosen ko-wall square through a shared continuation; they do not
+assert the still-open global selection of compatible squares across a full
+strategy fan.
 -/
 
 namespace Ogdoad.Fifo

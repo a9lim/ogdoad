@@ -132,7 +132,12 @@ every immediate (B$'$) OPEN face once; several faces individually contain
 zero, so this is a transversal no-go rather than a counterexample.  Even under
 the minimum-bad colour switch, the first-response forest contracts exactly
 when each ungrounded component is even; an odd component with an alternating
-two-cycle and one in-tree is the sharp remaining map-level obstruction.
+two-cycle and one in-tree is the sharp map-level obstruction.  Expanding the
+entire fixed-front phase removes that absolute prefix obstruction: for every
+attacker policy its remainder vectors have affine hull containing zero.  A
+sharp relative example shows that this zero flow need not carry the immediate
+odd-CLOSE leaf, however, so it cannot transport the selected (B$'$) child
+without using descendant continuation cosets or earlier siblings.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
@@ -1062,6 +1067,113 @@ two-cycle may carry an odd in-tree defect.  This is a no-go for a proof using
 only the first-response map: descendant continuation spaces and the other
 defender replies remain available, so it is not a counterexample to the
 linking theorem.
+
+The obstruction is not a failure of the complete fixed-front prefix.  If one
+allows the response tree to run until the old front closes, rather than
+truncating after the first response, all of its front-star decorations do
+affinely cancel.  The exact limitation is that the cancelling chain need not
+carry the distinguished immediate CLOSE which leads into (B).
+
+\begin{theorem}[complete fixed-front prefix contraction]
+\label{thm:complete-fixed-front-prefix}
+\PROVED{} Let $y$ be the clear front, let $S$ be the finite untouched set,
+and fix an arbitrary deterministic attacker strategy until $y$ closes.  Stop
+each branch at that close and write $R_\lambda\subseteq S$ for its untouched
+remainder.  Then
+\[
+ 0\in\operatorname{Aff}\{R_\lambda:\lambda\text{ is a defender response}\}.
+\]
+Equivalently, there is an odd response flow through the complete prefix whose
+terminal front-star moment is zero:
+\[
+ \sum_\lambda\epsilon_\lambda=1,
+ \qquad
+ \sum_\lambda\epsilon_\lambda\,yR_\lambda=0.
+\]
+No graph, parity, or dummy hypothesis is required.
+\end{theorem}
+
+\begin{proof}
+It is enough to exclude affine separation.  Fix a linear functional
+$\ell$ on the subset space of $S$.  For $T\subseteq S$, let $A(T)$ mean
+that some branchwise attacker policy, starting with the attacker to move,
+makes $\ell(R)=1$ at every eventual $C_y$ leaf.  Let $D(T)$ denote the same
+assertion with the defender to move.  Before $y$ closes, an OPEN merely
+deletes its chosen element from $T$.  Hence the exact recurrences are
+\begin{align*}
+ A(T)&\iff \ell(T)=1\ \text{ or }\
+       \bigl(\exists w\in T\;D(T-\{w\})\bigr),\\
+ D(T)&\iff \ell(T)=1\ \text{ and }\
+       \bigl(\forall v\in T\;A(T-\{v\})\bigr).
+\end{align*}
+The existential choices in different defender branches are independent, so
+these formulas describe one deterministic history-dependent policy, not a
+different game.
+
+Simultaneous strong induction on $|T|$ gives
+\[
+ D(T)=\mathsf{false},\qquad A(T)\iff\ell(T)=1.
+\]
+Indeed all smaller $D$-terms vanish, which proves the formula for $A(T)$.
+If $D(T)$ held, then $\ell(T)=\ell(T-\{v\})=1$ for every $v\in T$.
+Writing $a_v=\ell(\{v\})$ gives $a_v=0$ for every $v\in T$, contradicting
+$\ell(T)=1$; for $T=\varnothing$ the contradiction is immediate from
+$\ell(0)=0$.  Thus no attacker policy can put every defender-response leaf
+in an affine hyperplane $\ell=1$.  Finite-dimensional affine separation over
+$\F_2$ proves the first assertion, and multiplication by the fixed symbol
+$y$ proves the front-star form.
+\end{proof}
+
+\begin{proposition}[the distinguished prefix leaf cannot be prescribed]
+\label{prop:fixed-front-relative-failure}
+\PROVED{} Theorem~\ref{thm:complete-fixed-front-prefix} cannot in general be
+strengthened by requiring coefficient one on the defender's immediate
+$C_y$ leaf.  More precisely, let $\ell(S)=1$.  There is an attacker policy
+for which every leaf below a non-CLOSE first defender move has
+$\ell(R)=0$.
+\end{proposition}
+
+\begin{proof}
+After the defender has declined the immediate close, use the following
+policy.  At an attacker node with $\ell(T)=0$, close $y$.  At an attacker
+node with $\ell(T)=1$, open any $w\in T$ with
+$\ell(\{w\})=1$.  The latter vertex exists.  Its removal hands the defender
+a set of $\ell$-value zero.  If the defender closes, the leaf is zero; if the
+defender opens a zero-weight vertex, the attacker closes; and if the defender
+opens a unit-weight vertex, the remaining set has value one and the attacker
+removes another unit-weight vertex.  In the last case another such vertex
+exists because the defender started from an even number of unit weights.
+The set strictly shrinks whenever play continues, so every non-immediate
+leaf has value zero.
+
+The immediate leaf has remainder $S$ and value one.  Applying $\ell$ shows
+that its vector cannot be the XOR of an even number of the other leaf
+vectors.  That is exactly the relation which an odd zero-moment chain with
+coefficient one on the immediate leaf would require.
+\end{proof}
+
+The sharpest concrete instance takes $|S|$ odd and makes the attacker close
+$y$ immediately after every defender OPEN.  The exit labels are $S$ and
+$S-\{v\}$ for $v\in S$.  Their unique odd zero-moment chain is
+\[
+ \sum_{v\in S}(S-\{v\})=0,
+\]
+so it uses every one-OPEN exit and excludes the immediate close.  Taking $y$
+adjacent to every member of $S$ supplies the separating functional in the
+proposition.  The smallest (B$'$)-compatible instance has
+$S=\{x,z,z'\}$ and edges
+\[
+ yx,yz,yz',xz,xz'.
+\]
+After the excluded $C_y$ exit and $O_x$, the front $x$ dominates the even set
+$\{z,z'\}$, exactly the ko-protected state (B).
+
+Thus the full prefix itself is affinely harmless, while the relative
+contraction needed by the minimum-bad argument is genuinely decorated: it
+must carry a specified odd-CLOSE branch and cancel that branch using
+post-$C_y$ continuation spaces and/or still earlier defender siblings.  The
+odd ungrounded component above is the first truncation at which that relative
+defect is visible.
 
 This is a genuine monotone reduction, but not yet the theorem.  Case (A)
 cannot be extended backwards into a corridor of odd CLOSE pairs by local
@@ -4012,7 +4124,9 @@ The following claims have different status and should not be flattened.
       unique labelled ko-wall repair, the label-essential dummy ko wall, and
       the mandatory (B$'$) all-OPEN-fan counterexample together with the
       first-response forest criterion and its odd ungrounded-component
-      obstruction, are complete proofs in this note.
+      obstruction, the complete fixed-front prefix contraction, and the sharp
+      failure of its distinguished-leaf strengthening, are complete proofs in
+      this note.
       The dummy-free conditioned close-first theorem, its absolute-target
       strategy semantics, and its whole-queue drain base are additionally
       kernel-checked in \path{formal/Ogdoad/Fifo.lean}.  The same file now
@@ -4020,7 +4134,9 @@ The following claims have different status and should not be flattened.
       semantics, two- and three-block absorbers, graph-moment identities, all
       three finite zero-fan cases, bad-arc rank descent, the root fan, and the
       mutual strong induction through
-      \texttt{stoppedCloseFirstEmptyRootTheorem}.
+      \texttt{stoppedCloseFirstEmptyRootTheorem}.  It also checks score
+      translation through arbitrary transitions and strategy trees, and the
+      exact singleton-wall reconvergence square after the next real OPEN.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is

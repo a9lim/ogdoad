@@ -139,6 +139,9 @@ Python certificate.
 for the reduced odd-close parity game from `experiments/linking_game.py`:
 
 - OPEN, FIFO CLOSE, forced PASS, ko delay, mover, and the `ZMod 2` score;
+- score-translation equivariance for every transition, its exact
+  even/odd strategy-sheet equivalences, and the singleton-wall reconvergence
+  of `C_f; O_z; O_w` with `O_z; C_f; O_w` after the next real OPEN;
 - strict rank descent, absence of nonterminal stuck states, and preservation of
   the queue/untouched invariant;
 - an explicit existential/universal finite strategy tree;
