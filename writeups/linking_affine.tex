@@ -144,11 +144,13 @@ all frontier continuation spaces and even off-spine combinations.  A
 finite one-front-offset ladder realizes candidate generators for this sum;
 its entire holonomy is an explicit sum of token--OPEN edges, but arbitrary
 strategy pruning does not yet supply the needed odd ladder incidence.
-Taking the minimum inside the actual odd strategy tree does force the selected
-unit CLOSE to have a completely score-neutral translated tail.  A complete
-family of the resulting punctured singleton tails at (B$'$) would make the
-even untouched remainder Eulerian, while the scalar minimum independently
-rules out an immediate off-spine unit close.  A four-real star cap with a reachable odd prefix
+Taking the scalar minimum inside the actual odd strategy tree forces the
+selected unit CLOSE to have a completely score-neutral translated tail.
+The Bellman residual and accumulated score are complementary along that tree,
+so every minimum (B) child supplies such a tail; the resulting complete family
+of punctured singleton tails makes the even untouched remainder Eulerian.
+The scalar minimum independently rules out an immediate off-spine unit close.
+A four-real star cap with a reachable odd prefix
 nevertheless satisfies all of those strengthened local conditions, with two
 unit closes on the selected branch and wholly neutral off-spine subtrees.
 The same mutual star induction proves that the four-real core cap graph with
@@ -1291,21 +1293,66 @@ kernel-checked by
 \path{formal/Ogdoad/Fifo.lean}.
 \end{proof}
 
-At a ko-protected branch (B), make the additional all-punctures hypothesis
-that every child after a defender OPEN $O_z$ is a strategy-tree minimum to
-which Proposition~\ref{prop:strategy-tree-neutral-tail} applies.  Thus a
-translated neutral subtree is available after every selected odd $C_x$.
-The defender may then
-immediately close the new singleton front $z$ in each neutral tail.  Therefore
+The strategy-tree extraction aligns exactly with the scalar minimum; no
+additional all-punctures hypothesis is needed.
+
+\begin{proposition}[dual-minimum neutral fan]
+\label{prop:dual-minimum-neutral-fan}
+\PROVED{} Fix a positional scalar counterstrategy $S$, its separator $B$, and
+the lexicographically minimum bad node $h$ of
+Proposition~\ref{prop:dual-descent}.  The score-one child of the selected odd
+CLOSE at $h$, translated by one, carries a completely score-neutral strategy
+for the same physical player.
+
+In case (B), let $U=U_g$.  For every forced defender OPEN $O_z$, $z\in U$,
+the selected $C_x$ child translates to a neutral singleton tail
+\[
+ U-\{z\},\qquad Q=(z),\qquad \mathsf{ko}=0,
+\]
+with the defender to move.  Consequently
 \begin{equation}\label{eq:bprime-eulerian-tail}
   \deg_{U-\{z\}}(z)=0\qquad(z\in U),
 \end{equation}
-so the graph induced by the even set $U$ is Eulerian.  The conditional implication from
-the family of neutral singleton tails to
-\eqref{eq:bprime-eulerian-tail} is also kernel-checked by
-\texttt{treeNeutral\_singletonTails\_eulerian}.  This is a genuine
-strengthening of (B), but it does not contradict it: a cone from $x$ over any
-even-order Eulerian graph has exactly these local parities.
+so the graph induced by the even set $U$ is Eulerian.
+\end{proposition}
+
+\begin{proof}
+For a reachable response-tree node $q$, let $\Gamma_q$ be its accumulated
+vector charge and put
+\[
+ r_q=1+\langle B,\Gamma_q\rangle,
+ \qquad g_q=\langle B,\Gamma_q\rangle.
+\]
+The dual recursion gives $(r_q,B)\in N_q$, while $g_q$ is the accumulated
+scalar score.  Hence
+\begin{equation}\label{eq:score-residual-complement}
+ g_q+r_q=1;
+\end{equation}
+in particular a node is bad precisely when it is on score sheet zero in the
+explicit odd strategy tree.
+
+Let $k$ be the selected $C_x$ child of $h$.  The close is real, so the number
+of live real vertices drops by one at $k$ and can never increase afterward.
+Every node below $k$ therefore has fewer live real vertices than $h$.
+Primary minimality makes all of them good, and
+\eqref{eq:score-residual-complement} puts all of them on score sheet one.
+Translating those sheets by one makes every included transition neutral:
+at attacker nodes retain $S$'s selected edge, at defender nodes retain all
+legal edges, and terminal score one becomes zero.  This is the formal
+interface kernel-checked by
+\texttt{oddStrategy\_one\_subtree\_translates\_neutral}.
+
+In case (B), Proposition~\ref{prop:minimum-bad-predecessor} says that every
+$O_z$ child is itself minimum bad and selects the odd $C_x$.  Applying the
+same argument to each child gives the displayed neutral singleton tails.
+The defender may immediately close $z$ in each one; neutrality forces its
+charge to vanish, proving \eqref{eq:bprime-eulerian-tail}.  This last
+implication is independently kernel-checked by
+\texttt{treeNeutral\_singletonTails\_eulerian}.
+\end{proof}
+
+This is a genuine strengthening of (B), but it does not contradict it: a cone
+from $x$ over any even-order Eulerian graph has exactly these local parities.
 
 Write $A=\{x\}\sqcup U_g=U_e$.  Minimum badness also excludes one apparent
 escape from an off-spine
@@ -1316,8 +1363,69 @@ $w\in A-\{v\}$, the alternative $O_w$ reaches a bad attacker node of exactly
 the selected minimum rank; its prescribed odd $C_v$ gives
 $q+B(v,w)=1$.  Hence every $B(v,w)$ vanishes, contradicting
 $q=\sum_wB(v,w)=1$.  Thus an off-spine policy cannot use an immediate odd
-$C_y$.  The following exact cap shows why that still does not close the
-ancestry.
+$C_y$.
+
+The unconditional Eulerian conclusion also sharpens every first response.
+
+\begin{proposition}[(B$'$) first responses cross the $y$-colour]
+\label{prop:bprime-cross-colour}
+\PROVED{} In case (B$'$), put $U=U_g$, $A=\{x\}\sqcup U$, and
+$Y_v=B(y,v)$.  Thus $U$ is even and Eulerian, $x$ is universal on $U$, and
+$\sum_{v\in A}Y_v=1$.  After any defender $O_v$ with $v\in U$, the attacker
+cannot answer $C_y$.  Its first response is an OPEN $O_w$ for some
+$w\in A-\{v\}$, and necessarily
+\begin{equation}\label{eq:bprime-cross-colour}
+ Y_w=1+Y_v.
+\end{equation}
+
+Unless
+\begin{equation}\label{eq:bprime-cap-colour}
+ Y_x=1,\qquad Y_v=0\quad(v\in U),
+\end{equation}
+the defender can choose $v\in U$ with $Y_v=Y_x$.  Then the forced response
+$w$ lies in $U$ and has the opposite $y$-colour.  After the defender's
+zero-charge $C_y$, the attacker faces the ordered front $(v,w)$.  Its
+$C_v$ is zero exactly when $B(v,w)=1$; when $B(v,w)=0$, minimum badness
+forces the attacker to continue OPENing.
+\end{proposition}
+
+\begin{proof}
+After $O_v$, the charge of $C_y$ is $1+Y_v$.  If this is one, the immediate
+odd-CLOSE argument above excludes the move.  If it is zero, $C_y$ reaches a
+good defender singleton with front $v$.  Since $U$ is Eulerian and $x$ is
+universal on $U$,
+\[
+ \deg_{A-\{v\}}(v)=\deg_A(v)=1.
+\]
+The defender's legal $C_v$ would therefore create a bad node with fewer live
+real vertices than $h$, again impossible.  Thus the attacker must OPEN some
+$w$.
+
+If $Y_w=Y_v$, the defender's $C_y$ has charge one and reaches a bad attacker
+state with queue $(v,w)$ at exactly the lexicographic rank of $h$.  When
+$w\in U$, both fronts have charge $1+B(v,w)$ and are balanced, contrary to
+Proposition~\ref{prop:dual-descent}.  When $w=x$, the front $v$ has charge
+$\deg_A(v)+B(v,x)=0$, whereas a minimum bad attacker node must select an odd
+CLOSE.  Both cases are impossible, proving
+\eqref{eq:bprime-cross-colour}.
+
+Write $t=Y_x$.  If \eqref{eq:bprime-cap-colour} fails, there is a
+$v\in U$ with $Y_v=t$: for $t=1$ this follows from failure of the displayed
+exception, while for $t=0$ it follows because the even set $U$ cannot have
+all $Y_v=1$ and odd total $\sum_UY_v=1$.  Equation
+\eqref{eq:bprime-cross-colour} then excludes $w=x$, so $w\in U$.
+The intervening $C_y$ has charge $1+Y_v+Y_w=0$.  At the resulting front,
+\[
+ \deg_{A-\{v,w\}}(v)=\deg_A(v)+B(v,w)=1+B(v,w).
+\]
+If this charge were one, selecting $C_v$ would create a smaller bad node;
+therefore that branch must continue with an OPEN.  This proves the final
+assertion.
+\end{proof}
+
+The exceptional colour class \eqref{eq:bprime-cap-colour} is precisely the
+sharp cap in which $y$ has sole live neighbour $x$.  The following example
+shows why even the strengthened conclusions do not close that ancestry.
 
 \begin{proposition}[sharp neutral (B$'$) cap]
 \label{prop:bprime-neutral-cap}
@@ -1434,12 +1542,66 @@ follows:
 \end{align*}
 Every displayed charge is zero.  The first line is a smaller isolated-dummy
 root.  The last is not: closing $x,d$ exposes the empty no-dummy game on the
-even graph $H$.  Under the neutral-tail hypotheses $H$ is Eulerian, but that
-does not make the endpoint elementary; the even-board kernel is itself open,
-and Theorem~\ref{thm:euler-complete} shows that its Euler ordered-pair form is
-complete.  This is only the $C_p,O_x$ branch, not a proof that $O_x$ handles
-every earlier sibling.  It identifies the exact dummy/rotated-queue endpoint
-which the offset ladder must couple to the short (B$'$) cap.
+even graph $H$.  Proposition~\ref{prop:dual-minimum-neutral-fan} makes $H$
+Eulerian and gives a neutral strategy from every defender singleton
+$S_z^H$; in the notation of
+Proposition~\ref{prop:universal-full-fan}, it proves $P(H)$.  That proposition
+reduces exclusion of an odd empty-root strategy to the single possibility of
+a universal full row
+\[
+ Q_{xy}(H)=\F_2\qquad(y\ne x).
+\]
+This is still not enough by itself.  At $Q=(x,d),U=H$, the attacker may OPEN
+vertices in pairs before choosing the stopping move $C_x$.  Since $x$ is
+universal and the untouched set stays even after each response pair, every
+stop $C_x,C_d$ is neutral and exposes the drafted $H$ checkpoint.  Hence the
+exact endpoint assertion is an online draft-and-stop lift: after every attack
+$O_z$ the defender must choose an $O_w$ so that every possible later stopping
+checkpoint is safe.  Ordinary safety of the empty root $T(H)$ does not supply
+this online choice; a safe drafted checkpoint can require a CLOSE as its only
+safe reply to an OPEN, while that CLOSE is unavailable behind $x,d$.
+
+Thus neither Eulerianity nor the bare even-board root theorem makes the
+endpoint elementary.  Theorem~\ref{thm:euler-complete} shows that the Euler
+ordered-pair form is already complete, and the online draft lift is the
+strategy-relative strengthening required here.  This is only the
+$C_p,O_x$ branch, not a proof that $O_x$ handles every earlier sibling.  It
+identifies the exact dummy/rotated-queue endpoint which the offset ladder must
+couple to the short (B$'$) cap.
+
+There is a tempting sharper strategy-theoretic subtarget inside the scalar
+part.  Say
+that an attacker has a \emph{neutral tree} at a state when one selected move
+at each attacker node and every legal move at each defender node preserve
+zero charge all the way to a zero terminal sheet, as in
+Proposition~\ref{prop:strategy-tree-neutral-tail}.
+
+\TESTED{} One neutral tree is not exclusive even on an Euler graph.  On
+vertices $0,\ldots,9$, let
+\[
+\begin{split}
+E(H)=\{&01,02,03,04,05,07,08,09,12,13,14,15,16,18,19,\\
+       &25,26,38,39,45,47,48,49,57,59,68,69,79,89\}.
+\end{split}
+\]
+Its degree sequence is $(8,8,4,4,6,6,4,4,6,8)$, so $H$ is Eulerian.  At
+the canonical attacker state
+\[
+ Q=(2,9),\qquad U=V(H)-\{2,9\},\qquad \mathsf{ko}=0,
+\]
+exact recursion gives both a neutral tree and a strategy forcing future
+charge one for the same physical player.  The proposed exclusivity does hold
+through order eight, so order ten is its first observed Euler failure.  Off
+the Euler locus it fails already with four live vertices, queue $(0,1)$,
+untouched $\{2,3\}$, and sole edge $02$.
+
+The neutral singleton tree at $S_x^H$ does restrict to a neutral tree at every
+$Q_{xy}(H)$, while a universal full row gives target-one strategies there.
+The displayed witness shows that these two facts are not contradictory at one
+ordered pair.  Any proof of the universal-full-fan kernel must use the
+\emph{simultaneous family} of punctured neutral trees, or their correlated
+continuation spaces, rather than determinacy or Eulerianity at an individual
+pair.
 
 This is a genuine monotone reduction, but not yet the theorem.  Case (A)
 cannot be extended backwards into a corridor of odd CLOSE pairs by local
@@ -4473,7 +4635,8 @@ The following claims have different status and should not be flattened.
       failure of its distinguished-leaf strengthening, the exact relative
       spine quotient and finite one-front-offset ladder, together with the
       strategy-tree charged-close/neutral-tail extraction, the resulting
-      conditional all-punctures Eulerian consequence, the exclusion of an immediate
+      dual-minimum neutral fan and unconditional (B) Eulerian consequence,
+      the exclusion of an immediate
       off-spine unit close, the sharp reachable neutral (B$'$) cap, and the
       both-seat star-plus-dummy root strategy, are
       complete proofs in this note.

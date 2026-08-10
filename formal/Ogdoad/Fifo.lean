@@ -4002,6 +4002,72 @@ theorem TreeNeutralWins.toEvenWins
   | answer s hplayer hasMove _ _ ih =>
       exact EvenWins.answer s hplayer hasMove ih
 
+/-- If every node of one explicit odd strategy subtree is already on score
+sheet one, translating the subtree by one produces a completely score-neutral
+strategy for the same physical player.  This is the direct interface used
+when a separate monotone measure (for example the number of live real
+vertices) proves that no score-zero descendant can occur. -/
+theorem oddStrategy_one_subtree_translates_neutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {s : State V}
+    (h : OddWins G seat s)
+    (hone : ∀ {t : State V}, InOddStrategy G seat h t → t.score = 1) :
+    TreeNeutralWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal _ =>
+      have hs1 : s.score = 1 := hone (InOddStrategy.root _)
+      refine TreeNeutralWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · simp [scoreTranslate, hs1, CharTwo.add_self_eq_zero]
+  | choose s hseat m s' hstep hchild ih =>
+      have hs1 : s.score = 1 := hone (InOddStrategy.root _)
+      have hlocal : InOddStrategy G seat
+          (OddWins.choose s hseat m s' hstep hchild) s' :=
+        InOddStrategy.choose (hseat := hseat) (m := m) (hstep := hstep)
+          (InOddStrategy.root hchild)
+      have hs'1 : s'.score = 1 := hone hlocal
+      have hone' : ∀ {t : State V}, InOddStrategy G seat hchild t →
+          t.score = 1 := by
+        intro t ht
+        exact hone (hlocal.trans ht)
+      refine TreeNeutralWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ?_ (ih hone')
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · rw [step_scoreTranslate, hstep]
+        simp
+      · simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+  | answer s hseat hasMove hchildren ih =>
+      have hs1 : s.score = 1 := hone (InOddStrategy.root _)
+      refine TreeNeutralWins.answer (scoreTranslate 1 s) ?_ ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.ne_not.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hs'1 : s'.score = 1 := hone hlocal
+        simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hone' : ∀ {u : State V},
+            InOddStrategy G seat (hchildren m s' hstep) u → u.score = 1 := by
+          intro u hu
+          exact hone (hlocal.trans hu)
+        exact ih m s' hstep hone'
+
 /-- If every proper node of an odd strategy subtree stays on score sheet one,
 then translating its root by one produces a score-neutral strategy for the
 same physical player.  The hypothesis is relative to the original strategy

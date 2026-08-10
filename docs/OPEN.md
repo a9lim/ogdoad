@@ -426,10 +426,18 @@ Historical program state (2026-06-10 — retained as proof provenance):
   strategy tree, avoiding irrelevant smaller states elsewhere in the game
   graph.  Every zero-sheet odd counterstrategy contains a selected unit CLOSE
   whose translated child is a completely score-neutral same-player tree.
-  Opponent-controlled singleton closes in such a tail have charge zero; hence
-  the full family of punctured singleton tails at (B') would force the even
-  untouched remainder to be Eulerian.  Minimum badness also forbids an
-  immediate off-spine unit `C_y`.  These facts still do not close the local
+  The scalar Bellman residual and actual accumulated score are complementary,
+  so the lexicographic dual minimum supplies this neutral tail after every
+  forced `(B)` puncture.  Opponent-controlled singleton closes in those tails
+  have charge zero, and the even untouched remainder is therefore
+  unconditionally Eulerian.  Minimum badness also forbids an
+  immediate off-spine unit `C_y`.  More sharply, after every `(B')` defender
+  `O_v` with `v` in the Eulerian remainder, the attacker must answer by an
+  `O_w` of the opposite `y`-adjacency colour.  Outside the sole-neighbour cap
+  (`yx=1` and `y` anticomplete to the remainder), the defender can force this
+  first response to stay inside the Eulerian remainder; a zero `C_y` then
+  exposes an adaptive cross-colour ordered pair.  These facts still do not
+  close the local
   cap: on edges `{yx,xa,xb}`, with `Q=(y)` and `U={x,a,b}`, the selected
   `C_y,O_x,O_z,C_x` branch has charges `1,0,0,1`, while one attacker policy
   makes every off-spine subtree entirely neutral.  Adding isolated `d`, a
@@ -444,9 +452,22 @@ Historical program state (2026-06-10 — retained as proof provenance):
   discarded, by the remaining relative-spine argument.  The first exact
   degree-one sibling explains the difficulty: on its `C_p,O_x,O_d,C_y`
   branch one reaches `Q=(x,d), U=H`, with `H` even Eulerian.  Closing `x,d`
-  exposes the still-open no-dummy even-board kernel on `H`; ordinary
-  smaller-dummy-root induction therefore stops at precisely the offset-ladder
-  endpoint, rather than closing the ancestry.
+  exposes the no-dummy empty-root force set `T(H)`, while the neutral puncture
+  family gives the exact hypothesis `P(H)` of the universal-full-fan
+  reduction.  Excluding `1 in T(H)` is therefore equivalent to ruling out one
+  universal full `Q` row.  Even that root exclusion is not the whole endpoint:
+  before `C_x,C_d`, the attacker may draft arbitrarily many real pairs, so the
+  defender needs an online draft-and-stop lift whose every possible stopping
+  checkpoint is safe.  Ordinary smaller-dummy-root or bare empty-root
+  induction therefore stops at precisely the offset-ladder endpoint rather
+  than closing the ancestry.
+  A tempting sharper scalar target is false at order ten.  An explicit Euler
+  graph with degree sequence `(8,8,4,4,6,6,4,4,6,8)` has, at the canonical
+  state `Q=(2,9)`, both an all-zero-charge `TreeNeutralWins` and an odd-forcing
+  strategy for the same physical attacker.  (The exclusivity happened to hold
+  through order eight; off the Euler locus it fails already on four live
+  vertices.)  Thus the `(B)` proof must use its simultaneous family of
+  punctured neutral trees, not determinacy or Eulerianity at one ordered pair.
 - The conditioned close-first tail is now closed without a dummy hypothesis.
   From any coherent clear defender state with nonempty queue, a close-first
   attacker cannot force future flip parity one.  A minimum-rank proof opens

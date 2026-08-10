@@ -154,9 +154,12 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 - explicit membership in one fixed `OddWins` strategy tree and a
   strategy-relative minimum theorem: every zero-sheet odd counterstrategy
   contains a selected charge-one CLOSE whose translated child has a fully
-  score-neutral continuation tree; opponent-controlled singleton closes in
-  such tails have charge zero, so a complete family of punctured singleton
-  tails forces the induced untouched graph to be Eulerian;
+  score-neutral continuation tree; more generally, an explicit score-one
+  subtree translates directly to a neutral tree.  Opponent-controlled
+  singleton closes in such tails have charge zero, so any complete family of
+  punctured singleton tails forces the induced untouched graph to be
+  Eulerian.  The writeup's scalar dual-minimum argument supplies that family
+  in case `(B)`;
 - an absolute-target `CloseFirstWins` strategy tree, whole-queue drain
   identities, and the dummy-free `ConditionedCloseFirstTheorem`: from every
   coherent ko-clear defender checkpoint with nonempty queue, a close-first
