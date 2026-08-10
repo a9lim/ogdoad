@@ -1540,6 +1540,126 @@ by the minimal-polynomial criterion over \(\mathbb F_2\), proves
 \((\mathsf{OB}_5)\).
 \end{proof}
 
+\begin{proposition}[full cyclotomic ancestry of an ordinary carry]
+\label{prop:ordinary-full-conductor}
+Let \(\beta\) be an element of exact odd order \(M\) over \(\F_2\), put
+\(b=\ord_M(2)\), and let \(r\) be an odd prime such that
+\[
+ v_r(M)=v_r(2^b-1)\geq1.                              \tag{\(\mathsf{FC}_1\)}
+\]
+For \(R=r^s\), every root \(\theta\) of
+\(\theta^R=\beta\) has exact order \(RM\), and
+\[
+ \ord_{RM}(2)=bR.                                    \tag{\(\mathsf{FC}_2\)}
+\]
+Consequently, if \(P_\beta\) is the minimal polynomial of \(\beta\),
+then
+\[
+ P_\beta(X^R)\ \text{is irreducible of degree }bR,\qquad
+ \Phi_{RM}(X)=\Phi_M(X^R).                           \tag{\(\mathsf{FC}_3\)}
+\]
+
+In the ordinary Conway arm, put
+\[
+ b=d(\alpha_r),\quad M=\ord(\alpha_r),\quad
+ R=r^{a-1},\quad C=RM,\quad A=x_{a-1}.
+\]
+The Kummer carry supplies \((\mathsf{FC}_1)\), and hence
+\[
+ P_A(X)=P_{\alpha_r}(X^R).                            \tag{\(\mathsf{FC}_4\)}
+\]
+Thus the failure system in Proposition~\ref{prop:ordinary-binary-sections}
+is located at the actual full-conductor factor
+\(P_{\alpha_r}(X^R)\mid\overline\Phi_C(X)\).  At the top conductor
+\(N=r^aM\), failure at a current prime \(p\) is equivalently
+\[
+ P_{\alpha_r}(X^{r^a})\mid
+ \gcd\!\left(
+   \overline\Phi_N(X),
+   (1+X)^{(2^{r^ab}-1)/p}-1
+ \right).                                             \tag{\(\mathsf{FC}_5\)}
+\]
+In particular a model with the wrong lower conductor cannot represent
+the selected full-conductor factor.
+\end{proposition}
+
+\begin{proof}
+Write \(\ord(\theta)=r^uD\), with \(r\nmid D\).  Since
+\(\theta^R=\beta\), comparison of the prime-to-\(r\) parts gives
+\(D=M/r^{v_r(M)}\), while the \(r\)-part gives
+\(u=s+v_r(M)\).  Hence \(\ord(\theta)=RM\).
+LTE and \((\mathsf{FC}_1)\) show that adjoining one further factor
+of \(r\) to the modulus multiplies the order of \(2\) by \(r\);
+iteration gives \((\mathsf{FC}_2)\).  Therefore every root of
+\(P_\beta(X^R)\) has an absolute Frobenius orbit of its full degree
+\(bR\), proving irreducibility.  The cyclotomic identity in
+\((\mathsf{FC}_3)\) is the standard prime-divisor identity for
+\(r\mid M\).
+
+For the Conway carry, the exact \(r\)-valuation is part of the Kummer
+construction of \(M=\ord(\alpha_r)\), and \(A^R=\alpha_r\).  The
+degree just proved identifies its minimal polynomial, giving
+\((\mathsf{FC}_4)\).  Finally \(x_a\) has exact order \(N\) and
+minimal polynomial \(P_{\alpha_r}(X^{r^a})\).  Failure says precisely
+\((1+x_a)^{(2^{r^ab}-1)/p}=1\); the minimal-polynomial criterion and
+the order-\(N\) cyclotomic factor give \((\mathsf{FC}_5)\).
+\end{proof}
+
+\begin{proposition}[singleton dependency-section descent]
+\label{prop:ordinary-dependency-descent}
+Let \(Q=s^v\) be an odd prime power, with \(s\) an odd prime, and
+suppose a singleton Conway
+dependency has
+\[
+ \theta^Q=\alpha_s,\qquad
+ \alpha_r=\theta+\varepsilon,qquad \varepsilon\in\F_2,qquad
+ [\F_2(\theta):\F_2(\alpha_s)]=Q.                    \tag{\(\mathsf{DD}_1\)}
+\]
+Then
+\[
+ P_{\alpha_r}(Z)
+ =P_{\alpha_s}\bigl((Z+\varepsilon)^Q\bigr)
+ =\operatorname{Res}_Y\!\left(
+   P_{\alpha_s}(Y),(Z+\varepsilon)^Q+Y
+ \right).                                             \tag{\(\mathsf{DD}_2\)}
+\]
+Every \(R(Z)\in\F_2[Z]\) has a unique section decomposition
+\[
+ R(Z)=\sum_{j=0}^{Q-1}(Z+\varepsilon)^j
+        R_j\bigl((Z+\varepsilon)^Q\bigr),             \tag{\(\mathsf{DD}_3\)}
+\]
+and the selected divisibility descends exactly:
+\[
+ P_{\alpha_r}\mid R
+ \iff
+ P_{\alpha_s}\mid R_j\quad(0\leq j<Q).              \tag{\(\mathsf{DD}_4\)}
+\]
+Thus every odd-Kummer singleton \(0/1\)-excess edge satisfying
+\((\mathsf{DD}_1)\) can be pushed to its unique predecessor.  At a
+two-primary Artin--Schreier node one must instead use its quadratic
+ancestry relation.  At a multicomponent or excess-\(4\) node, the
+synchronized orbit resultant is essential: separate univariate
+compositions discard the phase.
+Even along an all-singleton chain, \((\mathsf{DD}_4)\) is an exact
+ancestral reformulation, not a degree-forced nondivisibility theorem.
+\end{proposition}
+
+\begin{proof}
+The first two relations in \((\mathsf{DD}_1)\) make the right side of
+\((\mathsf{DD}_2)\) vanish at \(\alpha_r\); the degree hypothesis
+shows that both monic polynomials have the same degree and proves the
+identity.  Grouping the powers of \(Z+\varepsilon\) by their residue
+modulo \(Q\) gives the unique decomposition \((\mathsf{DD}_3)\).
+After evaluation at \(Z=\alpha_r\), it becomes
+\[
+ R(\alpha_r)=\sum_{j=0}^{Q-1}\theta^jR_j(\alpha_s).
+\]
+The elements \(1,\theta,\ldots,\theta^{Q-1}\) are a basis over
+\(\F_2(\alpha_s)\), so this value is zero exactly when all the
+coefficients vanish.  Applying the two minimal-polynomial criteria
+proves \((\mathsf{DD}_4)\).
+\end{proof}
+
 \begin{corollary}[norm and complement are automatic in the ordinary sections]
 \label{cor:ordinary-sections-no-go}
 Retain Proposition~\ref{prop:ordinary-binary-sections}.  Write
@@ -6101,6 +6221,277 @@ on \(\F_q^\times\), while both \(q-1\) and \(2\) are invertible modulo
 \(\ell\); this proves \((\mathsf{RS}_6)\).
 \end{proof}
 
+\begin{proposition}[fixed-norm iterated cubic fibre]
+\label{prop:cubic-iterated-fibre}
+Put
+\[
+ L_j=\F_{2^{3^j}},\qquad
+ z_0=1,\qquad z_j=\eta_j^2+\eta_j+1=\gamma_j^{-2}.
+\]
+Fix \(k\geq1\) and a prime
+\(\ell\mid\Phi_{3^k}(2)\).  For \(0\leq j<k\), let \(r_j\in L_j^\times\)
+be the unique element such that
+\[
+ r_j^\ell=z_j.                                        \tag{\(\mathsf{IF}_0\)}
+\]
+Then \(r_0=1\), and the roots are norm coherent:
+\[
+ \Norm_{L_j/L_{j-1}}(r_j)=r_{j-1}\qquad(1\leq j<k).  \tag{\(\mathsf{IF}_1\)}
+\]
+
+For indeterminates \(C,D,E\), define generalized power sums by
+\[
+ \begin{aligned}
+ T_0(C,D,E)&=1,&T_1(C,D,E)&=C,&T_2(C,D,E)&=C^2,\\
+ T_n(C,D,E)&=CT_{n-1}+DT_{n-2}+ET_{n-3}&&&(n\geq3),
+ \end{aligned}                                        \tag{\(\mathsf{IF}_2\)}
+\]
+and put
+\[
+ (A,B)=\Psi_{\ell,E}(C,D)
+ =\bigl(T_\ell(C,D,E),T_\ell(D,EC,E^2)\bigr).
+\]
+If \(J=\det(\partial(A,B)/\partial(C,D))\), then in
+\(\F_2[C,D,E]\),
+\[
+ \boxed{(CD+E)J=AB+E^\ell.}                          \tag{\(\mathsf{IF}_3\)}
+\]
+
+Now specialize \(E\) to a nonzero field element.  For
+\(1\leq j\leq k\), take \(K=L_{j-1}\), \(E=r_{j-1}\), and the
+fixed-\(E\) selected fibre
+\[
+ T_\ell(C,D,E)=z_{j-1},\qquad
+ T_\ell(D,EC,E^2)=0.                                 \tag{\(\mathsf{IF}_4\)}
+\]
+It has exactly \(\ell^2\) reduced geometric points and is
+\(\acute{e}\)tale.  Every \(K\)-rational point gives an irreducible
+cubic \(X^3+CX^2+DX+E\).  For \(j<k\), the \(K\)-rational fibre is a
+singleton, the minimal polynomial of \(r_j\).  At \(j=k\), its
+cardinality is
+\[
+ \#\Psi_{\ell,r_{k-1}}^{-1}(z_{k-1},0)(K)
+ =\begin{cases}
+ 0,&z_k\notin(L_k^\times)^\ell,\\
+ \ell,&z_k\in(L_k^\times)^\ell.
+ \end{cases}                                          \tag{\(\mathsf{IF}_5\)}
+\]
+In the failure case the \(\ell\) points correspond to the \(\ell\)
+roots \(b^\ell=z_k\), and all of them have
+\(\Norm_{L_k/K}(b)=r_{k-1}\).  Thus every bad top lift collapses to
+the same complete selected lower norm ancestry.
+\end{proposition}
+
+\begin{proof}
+Put \(q=2^{3^{k-1}}\).  Since
+\(\Phi_{3^k}(2)\equiv1\pmod3\), one has \(\ell\ne3\).
+Also \(q^2+q+1\equiv0\pmod\ell\), while \(q\not\equiv1\pmod\ell\);
+hence \(\ord_\ell(q)=3\) and \(\ord_\ell(2)=3^k\).  Therefore
+\(\ell\nmid|L_j^\times|\) for \(j<k\), which proves existence and
+uniqueness in \((\mathsf{IF}_0)\).  Taking norms and using
+Corollary~\ref{cor:cubic-reciprocal-selector} gives
+\[
+ \Norm(r_j)^\ell=z_{j-1}=r_{j-1}^\ell.
+\]
+Powering by \(\ell\) is injective on \(L_{j-1}^\times\), proving
+\((\mathsf{IF}_1)\).
+
+For \((\mathsf{IF}_3)\), work first over \(\F_2(E)\), take
+independent \(x,y\), and put \(z=E/(xy)\).  Then
+\[
+ C=x+y+z,qquad D=xy+yz+zx,
+\]
+while \(A=x^\ell+y^\ell+z^\ell\).  The three pair-products
+\(xy,yz,zx\) have elementary coefficients \(D,EC,E^2\), so the
+second recurrence gives
+\(B=(xy)^\ell+(yz)^\ell+(zx)^\ell\).  Logarithmic differentiation
+gives
+\[
+ \det\frac{\partial(C,D)}{\partial(\log x,\log y)}=CD+E,
+ \qquad
+ \det\frac{\partial(A,B)}
+          {\partial(\log x^\ell,\log y^\ell)}=AB+E^\ell.
+\]
+The power map has logarithmic determinant
+\(\ell^2=1\) in characteristic two.  The chain rule proves
+\((\mathsf{IF}_3)\) over \(\F_2(E)\), hence as a polynomial identity.
+
+Label the three distinct roots \(y_1,y_2,y_3\) of the target cubic
+\(X^3+z_{j-1}X^2+z_{j-1}\).  Choose \(\ell\)-th roots of
+\(y_1,y_2\) independently; among the roots of \(y_3\), exactly one
+makes the product equal to \(E\).  This gives \(\ell^2\) source
+triples.  The target labels are recovered after powering, so distinct
+choices do not coalesce on passing to coefficients.  On the selected
+fibre, \((\mathsf{IF}_3)\) reads
+\[
+ (CD+E)J=E^\ell=z_{j-1}\ne0,
+\]
+which proves separability, reducedness, and \(\acute{e}\)taleness.
+
+At a rational point, the powered source roots are the roots of the
+irreducible selected target cubic.  A reducible source cubic over the
+finite field \(K\) would have a \(K\)-root whose \(\ell\)-th power was
+a \(K\)-root of that target, a contradiction.  Hence its roots lie in
+the unique cubic extension \(L_j\), and the coefficient points are in
+bijection with roots \(b^\ell=z_j\) having norm \(E\).  For \(j<k\),
+powering is bijective on \(L_j^\times\), giving the singleton \(r_j\).
+At the top there are no roots on success and exactly \(\ell\) on
+failure.  Their norms all equal \(r_{k-1}\) by the same injectivity
+argument in \(K^\times\), proving \((\mathsf{IF}_5)\).
+\end{proof}
+
+\begin{proposition}[the top cubic fibre is one Kummer coordinate]
+\label{prop:cubic-torus-torsor}
+Retain Proposition~\ref{prop:cubic-iterated-fibre}, and put
+\[
+ K=L_{k-1}=\F_q,\qquad L=L_k=\F_{q^3},\qquad
+ N=q^2+q+1,qquad T=R^1_{L/K}\mathbb G_m.
+\]
+Let \(r=r_{k-1}\), let \(c\in K^\times\) be the unique cube root of
+\(r\), and set
+\[
+ \alpha=\frac{z_k}{c^\ell}\in T(K).                  \tag{\(\mathsf{KT}_1\)}
+\]
+Then
+\[
+ z_k\in(L^\times)^\ell
+ \iff \alpha\in\ell T(K).                           \tag{\(\mathsf{KT}_2\)}
+\]
+The fixed-norm coefficient fibre is naturally isomorphic to the finite
+\(\acute{e}\)tale torsor
+\[
+ X=[\ell]^{-1}(\alpha)
+\]
+under \(T[\ell]\), of degree \(\ell^2\).  Its class
+\[
+ \kappa=\delta(\alpha)
+ \in H^1(K,T[\ell])
+ \simeq T(K)/\ell T(K)\simeq\F_\ell                 \tag{\(\mathsf{KT}_3\)}
+\]
+vanishes exactly on failure; the desired \(C\)-conclusion is
+\(\kappa\ne0\).
+
+There is an exact Euler representative containing the full selected
+lower ancestry:
+\[
+ \boxed{\Omega=\alpha^{N/\ell}
+ =\frac{z_k^{N/\ell}}{r}\in T[\ell](K),}
+ \qquad
+ \kappa=0\iff\Omega=1.                               \tag{\(\mathsf{KT}_4\)}
+\]
+Moreover
+\[
+ \Omega^{q-1}=\eta_k^{-2N/\ell},                     \tag{\(\mathsf{KT}_5\)}
+\]
+so this is an invertible power of the original selected obstruction,
+not a new lower invariant.
+
+More precisely, identify
+\[
+ A=T[\ell](\overline K)
+ \simeq\{(u_0,u_1,u_2)\in\F_\ell^3:
+                u_0+u_1+u_2=0\}.
+\]
+Arithmetic \(q\)-Frobenius is \(F=qP\), with \(P\) a three-cycle; its
+eigenvalues on \(A\) are \(1,q^2\).  Choosing a geometric origin makes
+Frobenius on \(X\) the affine map \(x\mapsto Fx+v\), where the class of
+\(v\) on the fixed line is \(\kappa\).  For every \(s\geq1\),
+\[
+ \#X(\F_{q^s})=
+ \begin{cases}
+ \ell^{1+\mathbf1_{3\mid s}},&\kappa=0,\\
+ 0,&\kappa\ne0\text{ and }\ell\nmid s,\\
+ \ell^{1+\mathbf1_{3\mid s}},&\kappa\ne0\text{ and }\ell\mid s.
+ \end{cases}                                          \tag{\(\mathsf{KT}_6\)}
+\]
+Equivalently, the Frobenius cycle types and zeta functions are
+\[
+ \begin{array}{c|c|c}
+ &\text{cycles}&Z(X,t)\\ \hline
+ \kappa=0&
+ \ell[1]+\dfrac{\ell^2-\ell}{3}[3]&
+ (1-t)^{-\ell}(1-t^3)^{-(\ell^2-\ell)/3}\\[2mm]
+ \kappa\ne0&
+ [\ell]+\dfrac{\ell-1}{3}[3\ell]&
+ (1-t^\ell)^{-1}(1-t^{3\ell})^{-(\ell-1)/3}.
+ \end{array}                                          \tag{\(\mathsf{KT}_7\)}
+\]
+Thus the entire fibre geometry differs only by translation along one
+fixed line.  The torus \(T\) has no nontrivial \(K\)-rational
+character.  More precisely, let \(B\) be a finite-dimensional
+\(\F_\ell\)-representation of \(F\), let \(f:A\to B\) be an
+\(F\)-equivariant linear homomorphism, and let \(v\in A^F\) represent
+\(\kappa\).  The induced quotient map sends
+\[
+ \kappa\longmapsto[f(v)]\in B/(F-1)B.
+\]
+It kills \(\kappa\) exactly when \(f(v)\in(F-1)B\), in particular if
+\(f\) kills \(A^F\).  When \(B=B^F\oplus(F-1)B\) is semisimple,
+nonvanishing of \(f(v)\) is sufficient to retain only an image of the
+same unresolved coordinate.  Thus scalar characters and the ordinary
+norm/determinant routes are blind; a transfer to another anisotropic
+torus must be checked through its particular module map.
+\end{proposition}
+
+\begin{proof}
+Since \(3\nmid q-1\), the cube root \(c\) is unique.  The norm of
+\(z_k\) is \(z_{k-1}=r^\ell=c^{3\ell}\), proving
+\(\alpha\in T(K)\).  If \(b^\ell=z_k\), norm coherence gives
+\(\Norm(b)=r=c^3\), so \(b/c\in T(K)\); the converse is immediate.
+This proves \((\mathsf{KT}_2)\).  To identify \(X\) with the coefficient
+fibre, let \(\sigma_0,\sigma_1,\sigma_2\) be the three embeddings of
+\(L/K\).  Over \(\overline K\), a point
+\(t=(t_0,t_1,t_2)\in X\) satisfies
+\[
+ t_i^\ell=\sigma_i(\alpha),\qquad t_0t_1t_2=1.
+\]
+Send it to
+\[
+ (C,D)=\left(
+   c\sum_i t_i,\,
+   c^2\sum_{i<j}t_it_j
+ \right).                                             \tag{\(\mathsf{KT}_8\)}
+\]
+The three source roots are \(ct_i\); their \(\ell\)-th powers are the
+three distinct conjugates of \(z_k\), and their product is
+\(c^3=r\).  Thus \((\mathsf{KT}_8)\) lands in the selected fixed-norm
+coefficient fibre.  Conversely those distinct powered targets recover
+the labeled \(t_i\), so the map is a bijection on geometric points.
+It is \(K\)-defined, and both sides are finite \(\acute{e}\)tale;
+hence it is an isomorphism.  The Kummer sequence, together with Lang's
+theorem \(H^1(K,T)=0\), gives
+\((\mathsf{KT}_3)\).
+
+Modulo \(q-1\), one has \(N\equiv3\), hence \(c^N=c^3=r\).
+The cyclic Euler criterion in the group \(T(K)\), of order \(N\),
+now proves \((\mathsf{KT}_4)\).  Equation
+\((\mathsf{KT}_5)\) follows from
+\(z_k^{q-1}=\eta_k^{-2}\), since the base scalar \(c\) is killed by
+raising to \(q-1\).
+
+On the augmentation plane \(A\), the three-cycle has eigenvalues
+\(q,q^2\), because \(q\) has order three modulo \(\ell\); therefore
+\(qP\) has eigenvalues \(1,q^2\).  The cohomology quotient
+\(A/(F-1)A\) is exactly its fixed line.  If \(v\in A^F\) represents
+\(\kappa\), then over \(\F_{q^s}\) the exact restriction formula is
+\[
+ \operatorname{res}_{\F_{q^s}/\F_q}(\kappa)
+ =[(1+F+\cdots+F^{s-1})v]=[sv]
+ \in A/(F^s-1)A.                                     \tag{\(\mathsf{KT}_9\)}
+\]
+Moreover,
+\[
+ |A^{F^s}|=\ell^{1+\mathbf1_{3\mid s}}.
+\]
+This proves \((\mathsf{KT}_6)\), and orbit enumeration gives
+\((\mathsf{KT}_7)\).  Finally the character lattice of the norm-one
+cubic torus is the \(C_3\)-augmentation lattice, whose invariant
+subgroup is zero.  Functoriality of the quotient
+\(H^1=A/(F-1)A\) sends \([v]\) to \([f(v)]\); the final assertions
+follow, with the stated semisimple direct-sum condition when it is
+invoked.
+\end{proof}
+
 \begin{proposition}[the selected Singer trace is the whole remaining phase]
 \label{prop:cubic-prescribed-trace}
 Retain Proposition~\ref{prop:cubic-wendt-singer}.  For \(a\in\F_q\)
@@ -6931,6 +7322,55 @@ But $E_i/\F_2$ has degree $2^{i+1}$, and every proper subfield of
 $E_i$ is contained in its unique index-two subfield $E_{i-1}$.
 Therefore $a_i$ has full degree $2^{i+1}=2\deg A_{i-1}$, so the
 resultant is its minimal polynomial.
+\end{proof}
+
+\begin{proposition}[exact quadratic remainder descent]
+\label{prop:fermat-remainder-descent}
+Retain Proposition~\ref{prop:fermat-resultant}.  For
+\(R(X)\in\F_2[X]\), divide \(R(X)\), now regarded as an element of
+\(\F_2[Y][X]\), by the monic quadratic
+\[
+ Q_Y(X)=X^2+YX+Y^3.
+\]
+There are unique \(U_R,V_R\in\F_2[Y]\) such that
+\[
+ R(X)\equiv U_R(Y)+XV_R(Y)\pmod{Q_Y(X)}.             \tag{\(\mathsf{QR}_1\)}
+\]
+Then, for every \(i\geq0\),
+\[
+ \boxed{
+ A_i(X)\mid R(X)
+ \iff
+ A_{i-1}(Y)\mid U_R(Y)
+ \qquad\text{and}\qquad
+ A_{i-1}(Y)\mid V_R(Y).}                             \tag{\(\mathsf{QR}_2\)}
+\]
+Consequently the selected divisibility
+\(A_{n-1}\mid S_{F_n/\ell}\) can be pushed, without loss, through
+every preceding Conway quadratic: iterating \((\mathsf{QR}_1)\) gives
+an exact binary dependency tree of divisibilities at \(A_{-1}=Y+1\).
+This criterion uses the complete deterministic ancestry, so a one-step
+countermodel with the wrong predecessor does not certify the selected
+divisibility.  Its leaf
+conditions are nevertheless an exact re-expression of the original
+selected Fibonacci value; degree alone does not make any leaf
+coprimality automatic.
+\end{proposition}
+
+\begin{proof}
+Euclidean division by the monic polynomial \(Q_Y\) proves existence
+and uniqueness in \((\mathsf{QR}_1)\).  Substitute
+\(Y=a_{i-1}\) and \(X=a_i\).  Proposition~\ref{prop:fermat-resultant}
+gives \(Q_{a_{i-1}}(a_i)=0\), so
+\[
+ R(a_i)=U_R(a_{i-1})+a_iV_R(a_{i-1}).                 \tag{\(\mathsf{QR}_3\)}
+\]
+The extension
+\(\F_2(a_i)/\F_2(a_{i-1})\) has degree two; hence
+\(1,a_i\) is a basis over the lower field.  Thus the right side of
+\((\mathsf{QR}_3)\) vanishes exactly when both lower coefficients
+vanish.  The minimal-polynomial criterion gives
+\((\mathsf{QR}_2)\), and iteration proves the final assertion.
 \end{proof}
 
 \begin{proposition}[one-step maximality is not an inductive invariant]
@@ -10429,6 +10869,138 @@ which expresses \(g_k=\gamma_k^2+\gamma_k+1\) as a power of
 multiplicative order.  Thus \(C\)-primitivity supplies no order transfer
 to \(g_k\).
 \end{remark}
+
+\begin{proposition}[\(C\)-tower-faithful exceptional countermodel]
+\label{prop:dk-tower-countermodel}
+Let \(k\geq1\), \(h=3^k\), \(q=2^h\), and retain the compatible
+selected Conway roots \(\zeta_j=\kappa_{3^j}\), so
+\(\zeta_{j-1}=\zeta_j^3\).  Thus
+\(\zeta_k\in\F_{q^2}\) has order \(3h\) and
+\(\zeta_k^q=\zeta_k^{-1}\).  Put
+\[
+ \gamma_k=\zeta_k+\zeta_k^{-1},\qquad
+ Z_k^\circ=\gamma_k^{-1}
+   =\frac{\zeta_k}{(\zeta_k+1)^2},\qquad
+ w_k^\circ=\frac1{\zeta_k+1}.                         \tag{\(\mathsf{TC}_1\)}
+\]
+Then
+\[
+ (w_k^\circ)^2+w_k^\circ=Z_k^\circ,\qquad
+ (w_k^\circ)^q=w_k^\circ+1,\qquad
+ \frac{w_k^\circ+1}{w_k^\circ}
+ =(w_k^\circ)^{q-1}=\zeta_k.                         \tag{\(\mathsf{TC}_2\)}
+\]
+The coefficient \(Z_k^\circ\in\F_q\) has exact degree \(h\) over
+\(\F_2\), satisfies
+\[
+ \operatorname{Tr}_{\F_q/\F_2}(Z_k^\circ)=1,         \tag{\(\mathsf{TC}_3\)}
+\]
+and, for \(k\geq2\), is norm coherent:
+\[
+ \Norm_{\F_{2^{3^k}}/\F_{2^{3^{k-1}}}}(Z_k^\circ)
+ =Z_{k-1}^\circ.                                     \tag{\(\mathsf{TC}_4\)}
+\]
+Moreover
+\[
+ \ord(Z_k^\circ)=\ord(\gamma_k),                     \tag{\(\mathsf{TC}_5\)}
+\]
+so \(C_k\) makes \(Z_k^\circ\) primitive in \(\F_q^\times\).
+
+Now let \(k\geq2\), let \(\ell\mid\Psi_k\), and put
+\(a=v_\ell(q+1)=v_\ell(\Psi_k)\).  Then this model misses the entire
+current primary factor:
+\[
+ \zeta_k\in U^{\ell^a},\qquad
+ w_k^\circ\in(\F_{q^2}^\times)^{\ell^a},\qquad
+ v_\ell\!\left(
+   \ord\frac{w_k^\circ+1}{w_k^\circ}
+ \right)=0.                                          \tag{\(\mathsf{TC}_6\)}
+\]
+This is not a counterexample to \(D'_k\): its coefficient is
+\(Z_k^\circ=\gamma_k^{-1}\), whereas the actual Conway coefficient is
+\[
+ Z_{D,k}=g_k^{t^2-2},\qquad
+ g_k=\gamma_k^2+\gamma_k+1,\qquad t=2^{h/3}.
+\]
+It proves that trace one, exact degree, norm-coherent actual
+\(C\)-period ancestry, and even \(C_k\)-primitivity of an
+Artin--Schreier constant give no direct current-primary order transfer.
+It does not rule out an implication \(C_k\Rightarrow D'_k\) for the
+actual selector; any such implication must use the special rational
+function selecting \(Z_{D,k}\).
+\end{proposition}
+
+\begin{proof}
+Since
+\((\zeta_k+1)^2=\zeta_k(\zeta_k+\zeta_k^{-1})\),
+the identities in \((\mathsf{TC}_1)\)--\((\mathsf{TC}_2)\) are direct.
+The element \(\zeta_k\) has irreducible quadratic
+\[
+ X^2+\gamma_kX+1
+\]
+over \(\F_q\).  Dividing by \(\gamma_k^2\) gives an
+Artin--Schreier equation with coefficient \(\gamma_k^{-2}\), so that
+coefficient has absolute trace one.  Absolute trace is invariant under
+squaring, hence \(\operatorname{Tr}(\gamma_k^{-1})=1\).  The field
+\(\F_2(\gamma_k)\) has degree \(h\), and inversion preserves it, which
+proves the degree assertion.  Proposition~\ref{prop:tower} gives
+\(\Norm(\gamma_k)=\gamma_{k-1}\); inversion proves
+\((\mathsf{TC}_4)\).  Equation \((\mathsf{TC}_5)\) is immediate.
+
+For a current prime, \(\ord_\ell(2)=2h\), so
+\(\ell\nmid3h\).  The element \(\zeta_k\), whose order is \(3h\), is
+therefore an \(\ell^a\)-th power in the norm-one group \(U\).
+Also \(\ell\nmid q-1\).  In the direct product
+\[
+ \F_{q^2}^\times=\F_q^\times\times U,
+\]
+\(\ell^a\)-powering is an automorphism on the first factor, while
+raising the second factor to \(q-1\) is invertible on its
+\(\ell\)-primary power quotient.  The last identity in
+\((\mathsf{TC}_2)\) therefore gives
+\(w_k^\circ\in(\F_{q^2}^\times)^{\ell^a}\), and the order assertion
+follows.
+\end{proof}
+
+\begin{proposition}[the actual exceptional root's lower norm]
+\label{prop:dk-normalized-root-norm}
+Retain \(k\geq2\), \(h=3^k\), \(t=2^{h/3}\), and the actual normalized
+root
+\[
+ w_k=\frac{N_k}{g_k},\qquad
+ N_k=\zeta_k^2+\zeta_k+\omega
+\]
+from Proposition~\ref{prop:cd-selector-bridge}.  Put
+\(\eta=\zeta_k^3\).  Then
+\[
+ \boxed{
+ \Norm_{\F_{2^{2h}}/\F_{2^{2h/3}}}(w_k)
+ =\frac{\eta^2+\omega^2\eta+1}{g_{k-1}}
+ =\frac{\eta^2}{\eta^2+\omega\eta+1}.}                \tag{\(\mathsf{TN}_1\)}
+\]
+For every current prime \(\ell\mid\Psi_k\), even this exact lower norm
+is automatically an \(\ell^{v_\ell(\Psi_k)}\)-th power in
+\(\F_{2^{2h/3}}^\times\).  It therefore carries no current Kummer
+coordinate.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:twisted}'s twisted norm formula for \(N_k\),
+divided by the norm-coherence formula for \(g_k\), gives the first expression in
+\((\mathsf{TN}_1)\).  In characteristic two,
+\[
+ g_{k-1}
+ =\eta^{-2}(\eta^4+\eta^3+\eta^2+\eta+1)
+ =\eta^{-2}
+   (\eta^2+\omega\eta+1)
+   (\eta^2+\omega^2\eta+1),
+\]
+which gives the second.  Finally
+\(\ord_\ell(2)=2h\), so
+\(\ell\nmid 2^{2h/3}-1\).  Powering by the full current
+\(\ell\)-primary factor is therefore bijective in the lower
+multiplicative group.
+\end{proof}
 
 \begin{proposition}[translated-binomial form of $D'_k$]
 \label{prop:dk-translated-binomial}
@@ -14230,6 +14802,16 @@ old Fermat factor through the successor does not determine its new
 Fermat component.  The proof uses the internal direct product of the
 base-field and norm-one factors, avoiding the spurious factor-three
 ambiguity left by an order-lcm argument.
+Proposition~\ref{prop:fermat-remainder-descent} now restores the
+complete actual ancestry: dividing any candidate section by
+\(X^2+YX+Y^3\) pushes selected divisibility to two exact coefficient
+divisibilities at the preceding minimal polynomial, and iteration
+terminates at \(A_{-1}=Y+1\).  Thus the preceding countermodel's
+alternative degree-sixteen factor does not certify divisibility on the
+actual path.
+However, the resulting leaf nonvanishing is equivalent to the original
+selected Conway--Fermat obstruction; the descent itself supplies no
+coprimality.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -14329,6 +14911,18 @@ counterexample because that lower element has order five rather than
 \(\ord(\alpha_5)=15\), changing the cyclotomic conductor from \(75\) to
 \(25\).  Thus the surviving theorem must use the full multiplicative
 ancestry and the Conway-selected prime inside that conductor.
+Proposition~\ref{prop:ordinary-full-conductor} makes that boundary
+exact.  The full \(r\)-valuation in the Conway Kummer carry gives
+\(P_{x_s}(X)=P_{\alpha_r}(X^{r^s})\), so wrong-conductor models are
+cyclotomically disjoint from the selected factor.
+Proposition~\ref{prop:ordinary-dependency-descent} then pushes any
+hypothetical failure through each odd-Kummer singleton
+\(0/1\)-excess dependency satisfying its hypotheses by taking all
+\(Q\) polynomial sections.  This retains the actual
+selected ancestry without loss, but ends in the same unevaluated
+selected-factor divisibilities.  Multicomponent and excess-\(4\) nodes
+still require their synchronized orbit resultants, while a two-primary
+node uses its separate quadratic ancestry.
 
 \item \emph{Cubic arm.}
 Prove \(C_k\) for every \(k\): equivalently, for each
@@ -14435,6 +15029,21 @@ recursion, and proves the exact order seam
 \]
 Thus the descent is a lossless reciprocal form of \(C_k\), not an
 induction from \(C_{k-1}\).
+Proposition~\ref{prop:cubic-iterated-fibre} carries this descent through
+the entire selected lower tower.  The unique lower \(\ell\)-th roots
+are norm coherent; after fixing that norm, every geometric coefficient
+fibre has \(\ell^2\) reduced points, each lower rational fibre is a
+singleton, and the top rational fibre has zero or \(\ell\) points.
+Proposition~\ref{prop:cubic-torus-torsor} identifies the top fibre with
+one \(T[\ell]\)-torsor and its complete unresolved coordinate with
+\[
+ \Omega_{k,\ell}
+ =\frac{z_k^{(q^2+q+1)/\ell}}{r_{k-1}}.
+\]
+Its exact affine Frobenius cycle structure shows that Jacobians,
+ordinary norms, scalar characters, and linear determinant data erase
+or merely re-express this one translation class; they do not create a
+second obstruction.
 Proposition~\ref{prop:cubic-prescribed-trace} makes the last coordinate
 one extremal value \(\Theta_\chi(\eta_{k-1})=3\).  Other Singer trace
 fibres genuinely attain \(3\), so uniform character bounds cannot close
@@ -14476,6 +15085,16 @@ Artin--Schreier root pair \(w,w+1\).  This still does not transfer
 base-field coefficient is automatically an \(\ell\)-th power on the
 \(D\) line, and the unevaluated datum is the unordered opposite
 Kummer-class pair \(\{[w],-[w]\}\).
+Proposition~\ref{prop:dk-tower-countermodel} proves that the coarse
+\(C\)-tower invariants alone do not select this coefficient.  The alternative
+\(Z_k^\circ=\gamma_k^{-1}\) has trace one, full degree, norm-coherent
+actual \(C\)-period ancestry, and is primitive under \(C_k\), yet its
+Artin--Schreier root misses the entire current \(\ell\)-primary factor.
+This does not disprove a special-form implication \(C_k\Rightarrow D'_k\);
+such an implication remains open and must use the actual formula for \(Z\).
+Proposition~\ref{prop:dk-normalized-root-norm} computes the actual
+root's exact next lower norm; current \(\ell\)-powering is bijective in
+that lower field, so even this stronger selected norm remains blind.
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
 Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}

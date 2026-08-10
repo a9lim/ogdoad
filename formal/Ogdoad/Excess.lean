@@ -454,7 +454,61 @@ theorem cubic_auxiliary_norm_coherence
       rw [h₁, h₂, h₃, hchar]
       ring
 
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- Denominator-free algebra behind the tower-faithful exceptional
+countermodel.  For `w = 1 / (z + 1)`, the Artin--Schreier coefficient is
+the inverse of `z + z⁻¹`, while the associated norm-one quotient is exactly
+`z`.  In the paper `z` is the selected `3^(k+1)`-st root of unity. -/
+theorem cyclotomic_artinSchreier_countermodel
+    (z : F) (hz : z ≠ 0) (hz1 : z + 1 ≠ 0) :
+    ((((z + 1)⁻¹) ^ 2 + (z + 1)⁻¹) * (z + z⁻¹) = 1) ∧
+      (((z + 1)⁻¹ + 1) / (z + 1)⁻¹ = z) := by
+  have h2 : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  constructor <;> field_simp [hz, hz1] <;> ring_nf <;> simp [h2]
+
 end SelectorBridgeAlgebra
+
+section KummerNormCoherence
+
+variable {G H : Type*} [CommMonoid G] [CommMonoid H]
+
+/-- If `ell`-th powering is injective in the target, a multiplicative map
+must send an `ell`-th root to the unique compatible `ell`-th root.  Applied
+to finite-field norms, this is the algebraic core of the cubic arm's complete
+lower-tower norm coherence. -/
+theorem map_power_root_eq_of_injective
+    (N : G →* H) (ell : Nat) (x z : G) (r z₀ : H)
+    (hx : x ^ ell = z) (hz : N z = z₀) (hr : r ^ ell = z₀)
+    (hinj : Function.Injective fun y : H ↦ y ^ ell) :
+    N x = r := by
+  apply hinj
+  change (N x) ^ ell = r ^ ell
+  rw [← map_pow, hx, hz, hr]
+
+variable {R : Type*} [CommRing R]
+
+/-- The three pair-products of roots of a monic cubic have elementary
+coefficients `(D, C * E, E²)`.  This is the symmetric-algebra input to the
+second generalized Dickson recurrence in the cubic Kummer descent. -/
+theorem cubic_pair_product_coefficients
+    (x y z C D E : R)
+    (h₁ : x + y + z = C)
+    (h₂ : x * y + x * z + y * z = D)
+    (h₃ : x * y * z = E) :
+    x * y + x * z + y * z = D ∧
+      (x * y) * (x * z) + (x * y) * (y * z) + (x * z) * (y * z) = C * E ∧
+      (x * y) * (x * z) * (y * z) = E ^ 2 := by
+  refine ⟨h₂, ?_, ?_⟩
+  · calc
+      (x * y) * (x * z) + (x * y) * (y * z) + (x * z) * (y * z) =
+          (x + y + z) * (x * y * z) := by ring
+      _ = C * E := by rw [h₁, h₃]
+  · calc
+      (x * y) * (x * z) * (y * z) = (x * y * z) ^ 2 := by ring
+      _ = E ^ 2 := by rw [h₃]
+
+end KummerNormCoherence
 
 section WeightedFrobeniusWords
 

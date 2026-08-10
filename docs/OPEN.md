@@ -170,10 +170,10 @@ four universal order assertions:
 
 | arm | assertion | exact remaining target |
 |---|---|---|
-| `Z` | the structural norm of `kappa_h` generates the primitive-support quotient for every non-ordinary component set | exclude the selected reverse-Dickson divisor in the Conway–Fermat chain, prove generation for composite two-spine quotients, and control the general synchronized phase |
-| `O` | the selected projective class of `kappa_(r^a)+1` has full primary order for every odd `r != 3` | prove selected binary-section nondivisibility at every remaining small primary factor |
-| `C` | `gamma_k = zeta + zeta^(-1)` is primitive in `F_(2^(3^k))` | exclude the extremal prescribed-trace value at the recursively selected Conway fibre |
-| `D` | `Psi_k` divides `ord(M_k)`, where `Psi_k = Phi_(2*3^k)(2)/3` | exclude the selected reciprocal cubic from the relevant Dickson factor list; equivalently prove the Capelli/antiunit condition `D'_k` |
+| `Z` | the structural norm of `kappa_h` generates the primitive-support quotient for every non-ordinary component set | prove a nonzero leaf in the exact Conway quadratic-remainder tree, generation for composite two-spine quotients, and control the general synchronized phase |
+| `O` | the selected projective class of `kappa_(r^a)+1` has full primary order for every odd `r != 3` | exclude the actual full-conductor factor after exact odd-Kummer singleton dependency-section descent at every remaining small primary factor |
+| `C` | `gamma_k = zeta + zeta^(-1)` is primitive in `F_(2^(3^k))` | prove `Omega_(k,ell) != 1` for the single selected norm-one-torus torsor class at every current prime |
+| `D` | `Psi_k` divides `ord(M_k)`, where `Psi_k = Phi_(2*3^k)(2)/3` | prove the actual selected Artin--Schreier root is not a current primary power; equivalently exclude its reciprocal cubic / prove the Capelli--antiunit condition `D'_k` |
 
 The equivalence is a theorem. None of the four assertions is proved
 universally.
@@ -232,7 +232,11 @@ absolute boundedness.
   factor. The exact one-step countermodel is stronger than a predecessor-only
   example: its degree-32 successor has order `(2^32-1)/3`, hence carries every
   preceding Fermat factor, while its following norm-one quotient still loses
-  the factor `641`.
+  the factor `641`. The exact quadratic-remainder descent now pushes any
+  selected divisibility through every actual Conway resultant edge to a binary
+  tree at `A_(-1)=Y+1`; this prevents a wrong predecessor from certifying the
+  actual path but leaves a leaf nonvanishing equivalent to the original
+  selected Conway--Fermat obstruction.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
@@ -242,7 +246,13 @@ absolute boundedness.
   norm-one reciprocity, and literal least-nonresidue labeling; it differs
   exactly in the lower ancestor's multiplicative order and cyclotomic
   conductor, isolating full Conway ancestry as indispensable. At the actual
-  full conductor, a truncated-log Fermat regulator now detects exactly whether
+  full conductor, the full-valuation cyclotomic lift identifies the selected
+  irreducible factor as `P_(alpha_r)(X^(r^a))`, and dependency-section descent
+  pushes it through every actual odd-Kummer singleton `0/1` Lenstra edge
+  satisfying its hypotheses. Two-primary nodes use their separate quadratic
+  ancestry; multicomponent and excess-4 nodes still require synchronized orbit
+  resultants. The final selected section nondivisibility remains open. A truncated-log Fermat
+  regulator detects exactly whether
   the relative cyclotomic unit is locally a `p`-th power. Its nonzero values
   give conductor exactly `p^2`, and global reciprocity is an exact bilinear
   identity between Stickelberger valuations and the first mixed-Jacobi
@@ -256,10 +266,15 @@ absolute boundedness.
   Kummer descent now identifies failure with two explicit Dickson power-sum
   equations over the preceding field and factors the Capelli composition into
   selected irreducible cubics. The equations already force irreducibility;
-  their geometric fibre is reduced etale of size `ell^2`, with exactly zero or
-  `ell` rational points. Its Jacobian, discriminant, reciprocal obstruction,
-  and Berlekamp trace all collapse to the same selected Kummer class rather
-  than supplying an exclusion. Both distinguished
+  after fixing the selected lower norm, their geometric fibre is reduced etale
+  of size `ell^2`, with a singleton rational fibre at every lower level and
+  exactly zero or `ell` rational points at the top. The top fibre is a
+  `T[ell]`-torsor whose sole class has the exact representative
+  `Omega = z_k^((q^2+q+1)/ell)/r_(k-1)`; its complete extension-field point
+  counts differ only by affine translation along one Frobenius-fixed line.
+  Its Jacobian, discriminant, and Berlekamp trace are blind, while its
+  reciprocal obstruction is the same selected Kummer class; none supplies an
+  exclusion. Both distinguished
   period coordinates have absolute trace zero and are not normal, so
   primitive-normal and normal-Gaussian-period theorems do not apply. Generic
   Wendt factors and other trace fibres attain every structural value used by
@@ -280,7 +295,13 @@ absolute boundedness.
   `Z = (gamma_k^2 + gamma_k + 1)^(2^(2h/3)-2)`. The intermediate `g_k` form a
   norm-coherent tower, and the exceptional norm becomes one selected
   Artin--Schreier root pair. Current C and D primes are disjoint, so this bridge
-  does not transfer C primitivity to D. The line criterion gives the effective
+  gives no direct primary-order transfer from C to D. A C-tower-faithful alternative coefficient
+  `Z_k^circ = gamma_k^(-1)` has trace one, full degree, norm coherence, and is
+  primitive under `C_k`, yet its Artin--Schreier root misses the entire current
+  D-primary factor. This does not rule out an actual implication `C_k => D'_k`;
+  any such implication remains open and must use the special coefficient above.
+  Even the exact lower norm of the actual normalized root is automatically a
+  current primary power downstairs. The line criterion gives the effective
   polynomial bound above but not the required fixed window.
 
 ### Evidence boundary

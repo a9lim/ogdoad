@@ -126,6 +126,13 @@ of the exceptional `2·3^k` column:
 - the exact coboundary-to-fibotomic projection, normalized
   Artin--Schreier quadratic, and symmetric cubic norm-coherence identity behind
   the Conway C-to-D selector bridge;
+- the denominator-free cyclotomic Artin--Schreier identity used by the paper's
+  trace-one, norm-coherent alternative coefficient; the finite-field trace,
+  degree, norm, and primary-power consequences remain paper-level deductions;
+- the general uniqueness lemma that transports compatible power roots through
+  a multiplicative map when powering is injective, plus the symmetric
+  pair-product coefficients (D, C*E, E^2) behind the iterated cubic Dickson
+  fibre;
 - the characteristic-two Berlekamp-numerator factorization and its literal
   vanishing on the selected reciprocal cubic;
 - the denominator-free characteristic-two identity that depresses every
