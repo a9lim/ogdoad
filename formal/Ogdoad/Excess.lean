@@ -403,6 +403,59 @@ theorem selected_cubic_berlekamp_numerator_zero
 
 end FirstOrderProducts
 
+section SelectorBridgeAlgebra
+
+variable {K : Type*} [Field K]
+
+/-- Algebraic core of the exceptional selector projection.  If the
+coboundary is Nbar / N, then its fibotomic projection is the norm N*Nbar
+divided by the square of the trace N+Nbar. -/
+theorem coboundary_fibotomic_projection
+    (N Nbar : K) (hN : N ≠ 0) (htrace : N + Nbar ≠ 0) :
+    (Nbar / N) / (Nbar / N + 1) ^ 2 =
+      (N * Nbar) / (N + Nbar) ^ 2 := by
+  have hsum : Nbar + N ≠ 0 := by simpa [add_comm] using htrace
+  rw [div_add_one hN]
+  field_simp [hN, htrace, hsum]
+  ring
+
+/-- Dividing a monic quadratic relation by the square of its nonzero
+linear coefficient gives the normalized Artin--Schreier equation used by
+the C-to-D selector bridge. -/
+theorem normalize_quadratic_to_artin_schreier
+    (N g h : K) (hg : g ≠ 0) (hquad : N ^ 2 + g * N + h = 0) :
+    (N / g) ^ 2 + N / g + h / g ^ 2 = 0 := by
+  field_simp [hg]
+  linear_combination hquad
+
+variable {R : Type*} [CommRing R]
+
+/-- Symmetric characteristic-two identity behind norm coherence of
+g_k = gamma_k^2 + gamma_k + 1.  The hypotheses are the elementary
+symmetric coefficients of the cubic X^3 + X + t. -/
+theorem cubic_auxiliary_norm_coherence
+    (x y z t : R) (hchar : (2 : R) = 0)
+    (h₁ : x + y + z = 0)
+    (h₂ : x * y + x * z + y * z = 1)
+    (h₃ : x * y * z = t) :
+    (x ^ 2 + x + 1) * (y ^ 2 + y + 1) * (z ^ 2 + z + 1) =
+      t ^ 2 + t + 1 := by
+  calc
+    (x ^ 2 + x + 1) * (y ^ 2 + y + 1) * (z ^ 2 + z + 1) =
+        (x + y + z) ^ 2 +
+          (x + y + z) * (x * y + x * z + y * z) -
+          (x + y + z) * (x * y * z) +
+          (x + y + z) +
+          (x * y + x * z + y * z) ^ 2 +
+          (x * y + x * z + y * z) * (x * y * z) -
+          (x * y + x * z + y * z) +
+          (x * y * z) ^ 2 - 2 * (x * y * z) + 1 := by ring
+    _ = t ^ 2 + t + 1 := by
+      rw [h₁, h₂, h₃, hchar]
+      ring
+
+end SelectorBridgeAlgebra
+
 section WeightedFrobeniusWords
 
 variable {G : Type*} [CommMonoid G]

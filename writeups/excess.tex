@@ -174,7 +174,9 @@ synchronized-phase reduction; exact two-component resultant;
 nontrivial support in the power-of-two two-spine family; complete
 \(h=12,24\); exact root-ancestry, Dickson dichotomy, and reverse-Dickson
 trace-divisor and Kummer-coset criteria; two-step selected quartic and
-all-or-\(\ell\)-quartic Kummer dichotomy &
+all-or-\(\ell\)-quartic Kummer dichotomy; an exact one-step
+countermodel whose predecessor and successor retain every earlier
+Fermat order factor &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -182,7 +184,9 @@ maximal primary projective order &
 transverse norm and relative-unit formulas; nontrivial order; absolute-Frobenius
 signed-ball factor range; weighted-selector and mixed-Jacobi formulas;
 projective minimal polynomial and binary-section ancestry; tower-faithful
-common-section no-go; uniform safe-prime trace detector &
+common-section no-go; uniform safe-prime trace detector;
+full-conductor truncated-log regulator and exact conductor-\(p^2\)
+ray/Jacobi reciprocity &
 nondivisibility at the selected Conway polynomial for the remaining smaller
 primary factors \\
 \((C)\) &
@@ -207,7 +211,9 @@ no-go, universal Hasse jets through degree five, the \(Q/2-1\)-fold
 nonuniqueness of the depressed Gaussian class, selected absolute-trace
 fingerprint, the rank-one top-Jacobi/antiunit-regulator collapse, and the
 explicit wild truncated-log regulator, mixed-character semiprimitive
-parity obstruction, and unweighted Hasse--Davenport flatness, together with the
+parity obstruction, unweighted Hasse--Davenport flatness, and the exact
+\(C\)-ancestral selector \(Z=(\gamma_k^2+\gamma_k+1)^{2^{2h/3}-2}\)
+with its norm-coherent Artin--Schreier lift, together with the
 constant-extension line criterion with
 \(m_\ell<16(3^k)^4\) &
 nonvanishing of the selected antiunit index
@@ -1920,6 +1926,225 @@ exactly the original selected Kummer coordinate.  Formula
 \((\mathsf{WS}_2)\) relates its ideal weights to the still-essential
 local symbols above \(p\); it does not itself prove nonvanishing.
 \end{corollary}
+
+\begin{proposition}[full-conductor Mirimanoff--ray reciprocity]
+\label{prop:ordinary-mirimanoff-ray}
+Retain Propositions~\ref{prop:singleton-relative-unit}
+and~\ref{cor:ordinary-mixed-jacobi}.  Thus
+\[
+ N=r^a\ord(\alpha_r),\qquad
+ q_0=2^{r^{a-1}b},\qquad
+ \rho=\frac{1-\zeta_N^{q_0}}{1-\zeta_N},
+ \qquad E=\Q(\mu_N,\mu_p),
+\]
+where \(p\ne r\) is a current prime, and the Jacobi specialization is
+\[
+ M=N,\qquad Q=2^{r^ab},\qquad z=x_a.
+\]
+Let \(\mathfrak q_{\rm C}\mid2\) be the Conway-selected prime of
+\(\Q(\mu_N)\), characterized by \(\zeta_N\mapsto
+x_a=\kappa_{r^a}\).  Choose a generator \(g\in\F_Q^\times\) with
+\(g^{(Q-1)/N}=x_a\), and choose the lift
+\(\mathfrak P_0\mid\mathfrak q_{\rm C}\) to \(E\) for which
+\(\overline{\zeta_p}=g^{(Q-1)/p}\).  Then
+\(\mathfrak q_{\rm C}\) restricts to the actual lower ancestor:
+\[
+ \zeta_N^{r^a}\longmapsto x_a^{r^a}=\alpha_r.          \tag{\(\mathsf{MR}_0\)}
+\]
+In particular this construction uses the full conductor \(N\), not
+only the degree-\(r\) Kummer step.
+With this compatible normalization of the \(p\)-power residue symbol,
+\[
+ \left(\frac{\rho}{\mathfrak P_0}\right)_p
+ =\zeta_p^{(q_0-1)\operatorname{ind}_p(1+x_a)},         \tag{\(\mathsf{MR}_0'\)}
+\]
+and \(q_0-1\ne0\pmod p\).  Thus this symbol retains the full
+\(p\)-primary ordinary target.
+
+Let \(\lambda\mid p\), put \(f=\ord_N(p)\), and let
+\(E_\lambda^0\) be the maximal unramified subfield of \(E_\lambda\),
+with residue field \(k_\lambda\).  The current-prime condition gives
+\[
+ p\nmid N,\qquad |k_\lambda|=p^f,\qquad
+ E_\lambda=E_\lambda^0(\mu_p),\qquad
+ \rho\in(E_\lambda^0)^\times.
+\]
+Write \(\tau\) for the
+Teichmuller image of \(\zeta_N\), and put
+\[
+ u=\tau^{p^{f-1}},\qquad u^p=\tau,
+ \qquad
+ \mathcal L_p(T)=\sum_{i=1}^{p-1}\frac{T^i}{i}\in\F_p[T].
+\]
+For \(v\in\mathcal O_{E_\lambda^0}^\times\), define the Fermat quotient
+\[
+ q_\lambda(v)=
+ \overline{\frac{v^{p^f-1}-1}{p}}\in k_\lambda.
+\]
+Then the full-conductor local regulator is
+\[
+ \boxed{
+ A_\lambda:=q_\lambda(\rho)
+ =\frac{\mathcal L_p(u)}{(1-u)^p}
+  -\frac{\mathcal L_p(u^{q_0})}{(1-u^{q_0})^p}.}       \tag{\(\mathsf{MR}_1\)}
+\]
+It detects the complete local Kummer class:
+\[
+ \rho\in(E_\lambda^\times)^p\iff A_\lambda=0.         \tag{\(\mathsf{MR}_2\)}
+\]
+If \(A_\lambda\ne0\), the character
+\(w\mapsto(\rho,w)_{\lambda,p}\) has conductor exactly
+\(\lambda^2\); if \(A_\lambda=0\), it is locally trivial.  Hence
+\(E(\sqrt[p]{\rho})/E\) is unramified away from \(p\), with exact
+finite conductor
+\[
+ \mathfrak m_\rho=\prod_{\substack{\lambda\mid p\\A_\lambda\ne0}}
+ \lambda^2.                                           \tag{\(\mathsf{MR}_3\)}
+\]
+
+Fix \(\pi=\zeta_p-1\).  For each \(\lambda\mid p\) there is a
+nonzero normalization scalar \(c_\lambda\in k_\lambda^\times\), fixed
+by the Hilbert-symbol convention, such that a local unit
+\[
+ w=[\overline w]
+   \bigl(1+\pi B_\lambda(w)+O(\pi^2)\bigr)
+\]
+satisfies Iwasawa's critical-pairing formula
+\[
+ (\rho,w)_{\lambda,p}
+ =\zeta_p^{\operatorname{Tr}_{k_\lambda/\F_p}
+       (c_\lambda A_\lambda B_\lambda(w))}.            \tag{\(\mathsf{MR}_4\)}
+\]
+Normalize local reciprocity so a uniformizer maps to arithmetic
+Frobenius.  If \(w\in E^\times\) has divisor
+\[
+ (w)=\prod_{\mathfrak P\mid2}\mathfrak P^{n_\mathfrak P},
+ \qquad
+ \left(\frac{\rho}{\mathfrak P}\right)_p
+ =\zeta_p^{\ell_\mathfrak P},
+\]
+then global reciprocity is the exact bilinear identity
+\[
+ \boxed{
+ \sum_{\mathfrak P\mid2}n_\mathfrak P\ell_\mathfrak P
+ =-\sum_{\lambda\mid p}
+   \operatorname{Tr}_{k_\lambda/\F_p}
+      (c_\lambda A_\lambda B_\lambda(w))\pmod p.}     \tag{\(\mathsf{MR}_5\)}
+\]
+For the specialized mixed Jacobi sums of
+Proposition~\ref{prop:mixed-jacobi-phase}, write
+\[
+ C_{j,\lambda}
+ =\overline{\frac{J_j+1}{\pi}}
+\]
+at \(\lambda\), where \(1\leq j<N\).  The choice \(w=-J_j\) has
+\(B_\lambda(w)=-C_{j,\lambda}\), so
+\[
+ \boxed{
+ \sum_{\mathfrak P\mid2}v_\mathfrak P(J_j)\ell_\mathfrak P
+ =\sum_{\lambda\mid p}
+   \operatorname{Tr}_{k_\lambda/\F_p}
+      (c_\lambda A_\lambda C_{j,\lambda})\pmod p.}    \tag{\(\mathsf{MR}_6\)}
+\]
+Thus Stickelberger's explicit valuation vector and the first Jacobi
+coefficient meet in one exact ray-class formula, but neither side has
+disappeared.
+\end{proposition}
+
+\begin{proof}
+The restriction statement \((\mathsf{MR}_0)\) follows from the exact
+order \(N\) of \(x_a\) and the defining Kummer ancestry.  It also shows
+that replacing \(N\) by a generic conductor changes the residue of
+\(\tau\), and therefore can change the regulator in
+\((\mathsf{MR}_1)\).  Formula \((\mathsf{MR}_0')\) is
+\((\mathsf{RU}_2)\), with the chosen generator of \(\mu_p\);
+\(q_0-1\ne0\) follows because \(q_0\) has exact order \(r>1\) modulo
+\(p\).
+
+Put \(m=p^f-1\).  Expanding
+\((1-\tau)^{p^f}-(1-\tau)\) modulo \(p^2\), the only interior binomial
+coefficients of \(p\)-valuation one occur at exponents
+\(ip^{f-1}\), \(1\leq i<p\), and
+\[
+ \frac1p\binom{p^f}{ip^{f-1}}
+ \equiv\frac{(-1)^{i-1}}i\pmod p.
+\]
+After including the sign from \((-\tau)^{ip^{f-1}}\) and dividing by
+\(1-\tau\), this gives
+\[
+ q_\lambda(1-\tau)
+ =-\frac{\mathcal L_p(u)}{(1-u)^p}.
+\]
+The congruence
+\((vw)^m-1\equiv(v^m-1)+(w^m-1)\pmod{p^2}\) makes
+\(q_\lambda\) additive on products.  Applying it to the quotient
+defining \(\rho\) proves \((\mathsf{MR}_1)\).
+
+Let \(\widetilde A_\lambda\in\mathcal O_{E_\lambda^0}\) be the
+Teichmuller lift of \(A_\lambda\).  The Teichmuller decomposition has
+the sharper form
+\[
+ \rho=[\overline\rho]
+      \bigl(1-p\widetilde A_\lambda+O(p^2)\bigr).      \tag{\(\mathsf{MR}_7\)}
+\]
+Its Teichmuller factor is a \(p\)-th power.  In
+\(E_\lambda=E_\lambda^0(\mu_p)\), the absolute ramification index is
+\(p-1\).  If \(A_\lambda\ne0\), the principal factor in
+\((\mathsf{MR}_7)\) has nonzero class in the critical graded piece
+\(U_{p-1}/U_p\), so it is not a \(p\)-th power.  If
+\(A_\lambda=0\), it lies in \(U_{2p-2}\), which is the \(p\)-th power
+of \(U_{p-1}\) by the \(p\)-adic logarithm.  This proves
+\((\mathsf{MR}_2)\).  The critical Kummer pairing is perfect between
+the displayed graded piece and \(U_1/U_2\), and is trivial on \(U_2\).
+This gives the exact conductor dichotomy and the local formula
+\((\mathsf{MR}_4)\); it is the standard explicit norm-residue formula
+of Iwasawa~\cite{Iwasawa68}.  Since \(\rho\) is a global unit and
+\(p\) is invertible away from the primes above \(p\), the Kummer
+extension is unramified at every other finite place, proving
+\((\mathsf{MR}_3)\).
+
+At a place \(\mathfrak P\mid2\), bilinearity and the tame unit formula
+give
+\[
+ (\rho,w)_{\mathfrak P,p}
+ =\left(\frac\rho{\mathfrak P}\right)_p^{n_\mathfrak P}.
+\]
+At every place away from \(2p\), both entries are units and the tame
+symbol is one.  The global product formula, followed by
+\((\mathsf{MR}_4)\), proves \((\mathsf{MR}_5)\).
+
+Finally \(\chi_N^j\), \(\chi_p\), and their product are all nontrivial
+for \(1\leq j<N\), because \((N,p)=1\).  Thus \(J_j\) is integral and
+the standard identity
+\[
+ J_j\overline{J_j}=Q=2^{r^ab}
+\]
+(with complex conjugation in this display) shows that its divisor is
+supported only above two.  Also
+\(J_j=-1+\pi C_{j,\lambda}+O(\pi^2)\).  Hence
+\(-J_j=1-\pi C_{j,\lambda}+O(\pi^2)\), so
+\(B_\lambda(-J_j)=-C_{j,\lambda}\).  The two minus signs in
+\((\mathsf{MR}_5)\) cancel and give \((\mathsf{MR}_6)\).
+\end{proof}
+
+\begin{remark}[the remaining ordinary ray coordinate]
+Proposition~\ref{prop:ordinary-mirimanoff-ray} makes the obstruction
+conductor-sensitive and explicit, but does not prove its nonvanishing.
+Stickelberger determines the valuations on the left of
+\((\mathsf{MR}_6)\), not the \(p\)-adic unit coefficients on the
+right.  Mixed Jacobi sums supply those coefficients, but their inverse
+Fourier transform, at the compatible \(p\)-adic place and generator
+used in \((\mathsf{OMJ})\), is exactly
+\(\operatorname{ind}_p(1+x_a)\), the original selected coordinate.
+If every \(A_\lambda\) vanishes, the Kummer extension is everywhere
+unramified; it is then either trivial or, if nontrivial, defines a
+\(p\)-class-group character.  If some \(A_\lambda\) is nonzero, reciprocity gives a
+conductor-\(p^2\) ray equation but still requires the selected Jacobi
+phase.  This is precisely the separation between ideal factorization
+and the additional local Hilbert coefficient in the Jacobi-sum Hecke
+character analysis of Rohrlich~\cite{Rohrlich86}; no uniform theorem
+there evaluates \((\mathsf{MR}_1)\) on the Conway conductor.
+\end{remark}
 
 \subsection{Unconditional projective order bounds}
 
@@ -6742,11 +6967,19 @@ Moreover, if \(y\) is a root of \(C\), then
 \[
  \ord(y)=21845=\frac{2^{16}-1}{3}=5\cdot17\cdot257.    \tag{\(\mathsf{NI}_{2a}\)}
 \]
+If \(x\) is a root of \(B\), then in fact
+\[
+ \ord(x)=\frac{2^{32}-1}{3}
+        =F_1F_2F_3F_4.                                  \tag{\(\mathsf{NI}_{2b}\)}
+\]
 Thus the countermodel also satisfies the exact multiplicative-order
 consequence that all preceding Conway--Fermat maximalities impose on
-the distinguished degree-sixteen element.  Even that strengthened
-predecessor hypothesis, together with the exact resultant transition,
-does not force target maximality.
+both its degree-sixteen element and its successor.  In
+particular, the successor contains every preceding Fermat factor with
+full multiplicity even though its next norm-one component loses the
+factor \(641\).  Even that strengthened predecessor/successor order
+data, together with the exact resultant transition, does not force
+target maximality.
 
 Thus the exact one-step resultant can send a full-order predecessor
 factor to a proper-order target factor, already at the first composite
@@ -6855,6 +7088,42 @@ where
 
 Thus \(B(x)=0\).  Its displayed degree is thirty-two, so it is the
 minimal polynomial of \(x\), and consequently the stated resultant.
+
+The multiplicative order of this successor can also be read exactly,
+without sampling.  Put \(q=2^{16}\).  Since \(y^q=y\) and the two roots
+of \(Z^2+Z+y\) are \(z,z+1\), one has \(z^q=z+1\).  Therefore, with
+\(v=(z+1)/z\),
+\[
+ x^{q+1}=y^3,
+ \qquad
+ x^{q-1}=v.                                             \tag{\(\mathsf{NI}_{5a}\)}
+\]
+The element \(v\) is a nonidentity element of the norm-one group of
+order \(q+1=65537\); that order is prime, so \(\ord(v)=q+1\).  On the
+other hand, \((\mathsf{NI}_{2a})\) and
+\(\gcd(3,21845)=1\) give
+\(\ord(y^3)=(q-1)/3\).
+
+Now
+\[
+ \F_{q^2}^{\times}
+ =\F_q^{\times}\times
+   \ker\!\left(\Norm_{\F_{q^2}/\F_q}\right),
+\]
+because the two factor orders \(q-1\) and \(q+1\) are coprime.  Write
+the corresponding components of \(x\) as \(x_-\) and \(x_+\).
+Equation \((\mathsf{NI}_{5a})\) has orders
+\(\ord(x_-^2)=\ord(x_-)\) and
+\(\ord(x_+^{-2})=\ord(x_+)\), since both factor groups have odd order.
+It follows that
+\[
+ \ord(x_-)=\frac{q-1}{3},\qquad
+ \ord(x_+)=q+1,
+\]
+and their coprime product proves \((\mathsf{NI}_{2b})\).  Notice that
+the loss of \(641\) below concerns the following quotient of order
+\(2^{32}+1=F_5\), not either component in this decomposition; keeping
+these two adjacent quadratic levels separate is essential.
 
 It remains to identify the target stratum.  From a pair
 \((f,g)=(S_r,S_{r+1})\), put
@@ -9486,6 +9755,18 @@ a square root of two has order \(2^{n+2}\); hence
  d\equiv1\pmod{2^{n+2}},\qquad \ord_d(2)=2^{n+1}.
 \]
 
+The newer first-zero theorem of Zhu--Wu~\cite[Theorem~4.1]{ZhuWu26}
+identifies the binomial and multiplicative orders of an irreducible
+quadratic from its first vanishing Lucas coefficient.  Applied here, it
+recovers exactly the reverse-Dickson/Lucas criterion already isolated
+above; it does not prove that the first zero is \(F_n\).  Their later
+primitive-coefficient criterion assumes both that the constant term is
+primitive and that \(q+1=2^m\pi\) with \(m>0\) and \(\pi\) an odd prime.
+The Conway quadratic has constant term of order \((q-1)/3\) under the
+full preceding hypothesis, while \(q+1=F_n\) is odd and may be
+composite.  Thus that theorem does not cover the selected Conway
+polynomial.
+
 Thus the Euler--Lucas congruence is automatic from
 \(1<\delta_n\mid F_n\).  No all-level proof or counterexample is presently
 known.
@@ -9977,6 +10258,177 @@ length is the least \(d>0\) with \(2^d\equiv\pm1\pmod\ell\).  Since
 of the factors follow, and the roots are distinct, proving
 squarefreeness.
 \end{proof}
+
+\begin{proposition}[Conway \(C\)-to-\(D\) selector bridge]
+\label{prop:cd-selector-bridge}
+Retain Proposition~\ref{prop:dk-fibotomic}; in particular \(k\geq2\).  Put
+\[
+ h=3^k,\qquad t=2^{h/3},\qquad q=2^h=t^3,
+\]
+and write
+\[
+ \gamma=\gamma_k=\zeta+\zeta^{-1},\qquad
+ g_k=\gamma^2+\gamma+1.
+\]
+For the corrected exceptional norm
+\(N=\zeta^2+\zeta+\omega\), with
+\(\overline N=N^q\), one has
+\[
+ \operatorname{Tr}_{\F_{q^2}/\F_q}(N)=g_k,
+ \qquad
+ \Norm_{\F_{q^2}/\F_q}(N)=g_k^{t^2}.                 \tag{\(\mathsf{CD}_1\)}
+\]
+Consequently
+\[
+ N^2+g_kN+g_k^{t^2}=0.                               \tag{\(\mathsf{CD}_2\)}
+\]
+The auxiliary periods are norm coherent:
+\[
+ \Norm_{\F_{2^{3^k}}/\F_{2^{3^{k-1}}}}(g_k)=g_{k-1},
+ \qquad
+ \operatorname{Tr}_{\F_{2^{3^k}}/\F_{2^{3^{k-1}}}}(g_k)=1.
+                                                               \tag{\(\mathsf{CD}_3\)}
+\]
+In particular
+\[
+ \F_2(g_k)=\F_2(\gamma_k)=\F_q,
+ \qquad
+ \operatorname{Tr}_{\F_q/\F_2}(g_k)=1.                \tag{\(\mathsf{CD}_4\)}
+\]
+
+The coefficient \(Z=\pi(M_k)\) in
+Proposition~\ref{prop:dk-fibotomic} is therefore the explicit
+ancestral power
+\[
+ \boxed{Z=g_k^{t^2-2}.}                              \tag{\(\mathsf{CD}_5\)}
+\]
+Moreover
+\[
+ \gcd(t^2-2,t^3-1)=1,                                \tag{\(\mathsf{CD}_6\)}
+\]
+so \(Z\) and \(g_k\) have the same multiplicative order and generate
+the same field over \(\F_2\).  If
+\[
+ w=\frac N{g_k},
+\]
+then
+\[
+ w^2+w+Z=0,
+ \qquad
+ \overline w=w+1,
+ \qquad
+ M_k=\frac{w+1}{w}=w^{q-1}.                          \tag{\(\mathsf{CD}_7\)}
+\]
+For every current prime \(\ell\mid\Psi_k\), failure at \(\ell\) is
+equivalent to each of
+\[
+ M_k\in U^\ell,qquad
+ w\in(\F_{q^2}^{\times})^\ell,qquad
+ \mathcal F_{\ell,g_k^{t^2-2}}(W)
+   \text{ having a root in }\F_q.                    \tag{\(\mathsf{CD}_8\)}
+\]
+The two roots \(w,w+1=w^q\) have the same \(\ell\)-power status, while
+their Kummer classes are opposite.  Thus the remaining datum is the
+unordered opposite pair \(\{[w],-[w]\}\), equivalently the norm-one
+phase \(\{M_k,M_k^{-1}\}\); it is not a choice of orientation between
+the two roots.
+\end{proposition}
+
+\begin{proof}
+The \(q\)-Frobenius sends \(\zeta\) to \(\zeta^{-1}\) and
+\(\omega\) to \(\omega^2\).  Hence
+\[
+ N+\overline N
+ =\zeta^2+\zeta^{-2}+\zeta+\zeta^{-1}+\omega+\omega^2
+ =\gamma^2+\gamma+1=g_k.
+\]
+The relation \(\zeta^t=\omega\zeta^{-1}\) from
+Proposition~\ref{prop:eta-tower}, together with direct expansion, gives
+\[
+ N\overline N
+ =1+\gamma+\gamma^t+(\gamma^t+\gamma)^2.
+\]
+The three conjugates of \(\gamma_k\) over the preceding cubic field
+sum to zero, so
+\(\gamma+\gamma^t+\gamma^{t^2}=0\).  Therefore
+\[
+ N\overline N
+ =1+\gamma^{t^2}+\gamma^{2t^2}=g_k^{t^2},
+\]
+which proves \((\mathsf{CD}_1)\)--\((\mathsf{CD}_2)\).
+
+Let \(x_1,x_2,x_3\) be the roots of
+\(P(X)=X^3+X+\gamma_{k-1}\).  Since
+\(X^2+X+1=(X+\omega)(X+\omega^2)\),
+\[
+ \begin{split}
+ \prod_{i=1}^3(x_i^2+x_i+1)
+ &=P(\omega)P(\omega^2)\\
+ &=(\gamma_{k-1}+\omega^2)
+   (\gamma_{k-1}+\omega)
+ =g_{k-1}.
+ \end{split}
+\]
+This is the norm identity in \((\mathsf{CD}_3)\).  The relative trace
+is
+\[
+ \sum_i(x_i^2+x_i+1)
+ =\left(\sum_i x_i\right)^2+\sum_i x_i+1=1.
+\]
+The element \(\gamma\) is at most quadratic over \(\F_2(g_k)\), while
+\([\F_2(\gamma):\F_2]=h\) is odd.  Hence that possible quadratic
+index is one, proving the field equality in \((\mathsf{CD}_4)\).
+Transitivity applied to the relative trace one proves the absolute
+trace assertion.
+
+For \(M_k=\overline N/N\), elementary cancellation gives
+\[
+ \pi(M_k)
+ =\frac{\overline N/N}{(\overline N/N+1)^2}
+ =\frac{N\overline N}{(N+\overline N)^2}
+ =g_k^{t^2-2},
+\]
+proving \((\mathsf{CD}_5)\).  If an integer divides both
+\(t^2-2\) and \(t^3-1\), then it divides \(2t-1\), and hence divides
+seven.  Since \(k\geq2\), one has \(t\equiv1\pmod7\), and therefore
+seven does not divide \(t^2-2\).
+This proves \((\mathsf{CD}_6)\), and exponentiation by \(t^2-2\) is
+therefore an automorphism of the cyclic group \(\F_q^\times\).
+
+Dividing \((\mathsf{CD}_2)\) by \(g_k^2\) gives the first identity in
+\((\mathsf{CD}_7)\); the remaining two follow from relative trace one.
+For a current prime, \(\ell\mid q+1\) and \(\ell\nmid q-1\).
+The direct product \(\F_{q^2}^\times=\F_q^\times\times U\) gives
+\[
+ U^\ell=U\cap(\F_{q^2}^\times)^\ell,
+\]
+because \(\ell\)-powering is an automorphism of \(\F_q^\times\).
+Multiplication by \(q-1\) is consequently invertible on the
+one-dimensional \(\ell\)-power quotient of \(\F_{q^2}^\times\), so
+\[
+ w^{q-1}\in U^\ell
+ \iff w\in(\F_{q^2}^\times)^\ell.
+\]
+Proposition~\ref{prop:dk-fibotomic} supplies the final equivalence in
+\((\mathsf{CD}_8)\).  Frobenius preserves \(\ell\)-th powers and
+sends \(w\) to \(w+1\), proving the last assertion.
+\end{proof}
+
+\begin{remark}[what the selector bridge does not transfer]
+The bridge transports the complete selected \(D\)-coefficient through
+the recursively selected \(C\)-period and the norm-coherent tower
+\((g_k)\), but it is not an implication \(C_k\Rightarrow D'_k\).
+The current primes in the two arms satisfy respectively
+\(\ord_\ell(2)=h\) and \(\ord_\ell(2)=2h\), so they are disjoint.
+At a \(D\)-current prime every element of \(\F_q^\times\), including
+\(g_k\) and \(Z\), is automatically an \(\ell\)-th power.  The missing
+class lives in the selected quadratic root \(w\), not in its base-field
+trace or norm.  There is no known uniform exponent, coprime to \(q-1\),
+which expresses \(g_k=\gamma_k^2+\gamma_k+1\) as a power of
+\(\gamma_k\); the map \(x\mapsto x^2+x+1\) need not preserve
+multiplicative order.  Thus \(C\)-primitivity supplies no order transfer
+to \(g_k\).
+\end{remark}
 
 \begin{proposition}[translated-binomial form of $D'_k$]
 \label{prop:dk-translated-binomial}
@@ -13769,6 +14221,15 @@ Proposition~\ref{prop:fermat-wiedemann-separation} also rules out the
 most direct transfer from Wiedemann's tower: although both targets are
 norm-one Fermat-order assertions, their recursive drivers have
 incompatible multiplicative orders and cannot be related by Frobenius.
+Proposition~\ref{prop:fermat-one-step-no-go} is stronger than a
+predecessor-only warning.  Its degree-sixteen predecessor has order
+\((2^{16}-1)/3\), and the exact resultant successor has order
+\((2^{32}-1)/3=F_1F_2F_3F_4\); nevertheless the following norm-one
+quotient has order \(F_5/641\).  Thus even maximal propagation of every
+old Fermat factor through the successor does not determine its new
+Fermat component.  The proof uses the internal direct product of the
+base-field and norm-one factors, avoiding the spurious factor-three
+ambiguity left by an order-lcm argument.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -13833,6 +14294,17 @@ family escapes both cancellations, but
 Corollary~\ref{cor:ordinary-mixed-jacobi} identifies the target with one
 inverse-Fourier coordinate of its first local phase.  Proving that
 coordinate nonzero remains the theorem.
+Proposition~\ref{prop:ordinary-mirimanoff-ray} computes the previously
+implicit wild side at the actual full conductor.  Its truncated-log
+regulator \(A_\lambda\) vanishes exactly when the relative cyclotomic
+unit is locally a \(p\)-th power; otherwise the local character has
+conductor exactly \(\lambda^2\).  Global reciprocity then pairs the
+explicit Stickelberger valuation vector with
+\(A_\lambda C_{j,\lambda}\).  This is a genuine conductor-sensitive
+refinement, but it still contains the same selected first Jacobi phase.
+If all \(A_\lambda\) vanish, the extension is everywhere unramified and
+is either trivial or, if nontrivial, defines a \(p\)-class-group
+character.
 Proposition~\ref{prop:ordinary-binary-sections} gives an equivalent
 characteristic-two boundary: failure means that every nonconstant binary
 section of \((1+x)^{\mathcal L_{r,a}/p}\) vanishes at \(x_{a-1}\), or,
@@ -13991,6 +14463,19 @@ Proposition~\ref{prop:dk-partition-regulator} treats the large factors.
 The antiunit, translated-binomial, semiprimitive, Dirichlet, Dickson,
 and norm-blindness results show precisely why the remaining smaller
 factors are not consequences of the present generic identities.
+Proposition~\ref{prop:cd-selector-bridge} transports the complete
+fibotomic coefficient through the selected cubic ancestry:
+\[
+ Z=\pi(M_k)
+  =(\gamma_k^2+\gamma_k+1)^{2^{2h/3}-2}.
+\]
+The intermediate \(g_k=\gamma_k^2+\gamma_k+1\) form a norm-coherent
+tower, and the corrected exceptional norm becomes one selected
+Artin--Schreier root pair \(w,w+1\).  This still does not transfer
+\(C_k\) to \(D'_k\): their current primes are disjoint, every
+base-field coefficient is automatically an \(\ell\)-th power on the
+\(D\) line, and the unevaluated datum is the unordered opposite
+Kummer-class pair \(\{[w],-[w]\}\).
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
 Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}
@@ -14312,6 +14797,10 @@ Math.\ Z.\ \textbf{59} (1954), 388--398.
 \bibitem{Popovych18} R.~Popovych, \emph{Multiplicative orders of
 elements in Conway's towers of finite fields}, Algebra Discrete Math.
 \textbf{25} (2018), 137--146; arXiv:1509.01958.
+\bibitem{Rohrlich86} D.~E.~Rohrlich,
+\emph{Jacobi sums and explicit reciprocity laws},
+Compos.\ Math.\ \textbf{60} (1986), 97--114;
+\url{https://www.numdam.org/item/CM_1986__60_1_97_0/}.
 \bibitem{RJW25} J.~Rodrigues Jacinto, C.~Williams,
 \emph{An introduction to \(p\)-adic \(L\)-functions}, Essential Number
 Theory \textbf{4} (2025), 101--216;
@@ -14324,6 +14813,9 @@ extension of $GF(2)$}, Fibonacci Quart.\ \textbf{26} (1988), 290--295.
 \bibitem{Washington97} L.~C.~Washington, \emph{Introduction to
 Cyclotomic Fields}, 2nd ed., Graduate Texts in Mathematics 83,
 Springer, 1997.
+\bibitem{ZhuWu26} L.~Zhu, H.~Wu,
+\emph{On binomial order and primitivity of irreducible quadratic
+polynomials over finite fields}, arXiv:2608.01327 (2026).
 \end{thebibliography}
 
 \end{document}

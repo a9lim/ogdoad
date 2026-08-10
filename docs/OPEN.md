@@ -227,9 +227,12 @@ absolute boundedness.
   divisor of the trace-zero linearized polynomial. Adapted-basis countermodels
   realize this entire additive/Moore pattern while changing the multiplicative
   ancestry, so the special Fermat multiplication remains essential. Trace,
-  norm, degree, fibotomic
-  support, lower ancestry, and generic Kummer-cover symmetries are all proved
-  insufficient without evaluating the selected factor.
+  norm, degree, fibotomic support, lower ancestry, and generic Kummer-cover
+  symmetries are all proved insufficient without evaluating the selected
+  factor. The exact one-step countermodel is stronger than a predecessor-only
+  example: its degree-32 successor has order `(2^32-1)/3`, hence carries every
+  preceding Fermat factor, while its following norm-one quotient still loses
+  the factor `641`.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
@@ -238,7 +241,14 @@ absolute boundedness.
   countermodel now also matches full Kummer degree, all binary sections,
   norm-one reciprocity, and literal least-nonresidue labeling; it differs
   exactly in the lower ancestor's multiplicative order and cyclotomic
-  conductor, isolating full Conway ancestry as indispensable.
+  conductor, isolating full Conway ancestry as indispensable. At the actual
+  full conductor, a truncated-log Fermat regulator now detects exactly whether
+  the relative cyclotomic unit is locally a `p`-th power. Its nonzero values
+  give conductor exactly `p^2`, and global reciprocity is an exact bilinear
+  identity between Stickelberger valuations and the first mixed-Jacobi
+  coefficients. Neither factor is known to be universally nonzero; if every
+  local regulator vanishes, the resulting everywhere-unramified Kummer
+  extension is either trivial or, if nontrivial, a `p`-class-group character.
 - **`C`.** The first three levels are proved analytically. Norm recursion,
   cyclic parity, primitive-CRT isolation, mixed Jacobi expansion,
   Singer–Wendt factorization, `S_3` descent, and the prescribed-trace character
@@ -265,8 +275,13 @@ absolute boundedness.
   symmetric coordinate and cannot force the target's nonvanishing. The ambient
   Dickson polynomial contains many cubics with the same depressed equation;
   an exact nonselected countermodel also matches the selected two-trace
-  fingerprint. The line criterion gives the effective polynomial bound above
-  but not the required fixed window.
+  fingerprint. The selected fibotomic coefficient is now transported exactly
+  through the C ancestry:
+  `Z = (gamma_k^2 + gamma_k + 1)^(2^(2h/3)-2)`. The intermediate `g_k` form a
+  norm-coherent tower, and the exceptional norm becomes one selected
+  Artin--Schreier root pair. Current C and D primes are disjoint, so this bridge
+  does not transfer C primitivity to D. The line criterion gives the effective
+  polynomial bound above but not the required fixed window.
 
 ### Evidence boundary
 
@@ -300,9 +315,15 @@ absolute boundedness.
   95 (1972), 368–383.
 - Conway, *On Numbers and Games*.
 - DiMuro, “On `On_p`,” arXiv:1108.0962.
+- Iwasawa, “On explicit formulas for the norm residue symbol,” *Journal of the
+  Mathematical Society of Japan* 20 (1968), 151–165.
 - Lenstra, “On the algebraic closure of two,” *Indagationes Mathematicae* 39
   (1977), 389–396.
 - Moews, “The Abstract Structure of the Group of Games,” in *More Games of No
   Chance*, MSRI Publications 42 (2002), 49–58.
+- Rohrlich, “Jacobi sums and explicit reciprocity laws,” *Compositio
+  Mathematica* 60 (1986), 97–114.
 - Wall, “Quadratic forms on finite groups, and related topics,” *Topology* 2
   (1963), 281–298.
+- Zhu and Wu, “On binomial order and primitivity of irreducible quadratic
+  polynomials over finite fields,” arXiv:2608.01327 (2026).

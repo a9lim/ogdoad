@@ -123,6 +123,9 @@ of the exceptional `2·3^k` column:
   exceptional arm's canonical four-Jacobi detector;
 - the denominator-free alternating-determinant identity behind its quadratic-
   relative Eisenstein reduction;
+- the exact coboundary-to-fibotomic projection, normalized
+  Artin--Schreier quadratic, and symmetric cubic norm-coherence identity behind
+  the Conway C-to-D selector bridge;
 - the characteristic-two Berlekamp-numerator factorization and its literal
   vanishing on the selected reciprocal cubic;
 - the denominator-free characteristic-two identity that depresses every
