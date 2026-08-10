@@ -165,3 +165,50 @@ checkpoints; that stronger prefix-safe normalization is false locally and its
 root-level sibling coupling is still open.  The Lean development therefore
 hardens the semantics and the proved reduction spine without laundering the
 finite census through `k = 8` into a proof for all finite graphs.
+
+[`Ogdoad/FifoMatching.lean`](Ogdoad/FifoMatching.lean) closes the exact
+subclass needed by the resolved Gold construction:
+
+- `IsMatchingGraph` says every vertex has at most one neighbour, hence the
+  board is a matching plus isolates;
+- `evenWins_of_matching` gives a rank-inductive strategy from every score-zero
+  state at the designated seat's turn, or at a safe opponent front;
+- `evenWins_initial_of_matching` proves that either seat forces zero flip
+  parity from the empty-queue root, without a dummy; and
+- the explicit hyperbolic-plus-radical graph and induced-subgraph lemmas connect
+  a public Witt frame and every loaded input support to that theorem.
+
+This does **not** prove the arbitrary-graph isolated-dummy conjecture.  It
+shows instead that the conjecture is an unnecessary strengthening for Gold.
+
+## Gold normal-play semantics
+
+[`Ogdoad/GoldMatchingAlgebra.lean`](Ogdoad/GoldMatchingAlgebra.lean)
+kernel-checks the quadratic expansion in a supplied adapted basis: selected
+basis diagonals plus the parity of hyperbolic pairs whose two coordinates are
+active. It includes the exact split in which each adapted diagonal is a public
+polar correction plus a transported original-frame linear source; this is the
+step that rules out a hidden dense refinement query after the Witt change.
+The standard existence of a symplectic-plus-radical basis for a finite
+alternating form remains an ordinary linear-algebra input; the file proves the
+entire identity once such a basis is supplied.
+
+[`Ogdoad/GoldSemantics.lean`](Ogdoad/GoldSemantics.lean) proves the semantic
+compiler independently of the FIFO mechanism:
+
+- any finite Boolean-payoff move tree becomes an ordinary normal-play tree by
+  retaining its moves and adding one terminal claim move exactly when the
+  current seat is designated by the charge;
+- backward induction proves winner equivalence at every subtree and phase, so
+  stance one has a P-root exactly when the forced charge is zero;
+- a phase-free terminal gadget cannot preserve seat identity across both path
+  parities;
+- outcome-dominance pruning makes mixed-successor criticality impossible in
+  every two-class game; and
+- the two-action edge fork has complementary values and its optimum swaps when
+  one unread refinement source is toggled.
+
+Together these three files kernel-check the load-bearing game theorem,
+quadratic decomposition, and payoff-to-normal-play bridge of
+`writeups/goldarf.tex`.  They do not encode finite-field nim arithmetic or the
+standard Witt-basis existence theorem.

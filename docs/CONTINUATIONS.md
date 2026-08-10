@@ -201,8 +201,9 @@ points, collinearity = polar-form orthogonality, totally-isotropic subspaces,
 `W(3,2)` (the doily) from `Sp(4,2)`, ovoids/spreads censuses, quadric point-sets as
 the geometric face of the Arf zero-count. Consumers on both sides: the extraspecial/
 Pauli layer (commutation graphs) and the quadric P-set bench (incidence data for the
-probes) — with no claim on the open Gold rule (`OPEN.md` tis stays untouched; this
-is the geometry, not the game). References: Payne–Thas; Taylor.
+probes). This is the incidence-geometry continuation of the now-resolved Gold
+rule, not an alternate proof of the Witt--FIFO theorem. References: Payne–Thas;
+Taylor.
 
 ### 1·(e_i∧e_g): `matroid-tutte`
 **Matroids, deletion/contraction, and Greene's theorem.** Represented matroids from

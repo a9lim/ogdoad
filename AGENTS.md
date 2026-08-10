@@ -42,11 +42,16 @@ unconditional lower bound, corrected norm, exact cyclic/finite-field power
 criterion, finite factor/order screens, and open `D'_k` target;
 `Ogdoad/Fifo.lean` formalizes the exact reduced FIFO game, its terminating
 strategy semantics, cut invariant, and edgeless base theorem, while leaving the
-general isolated-dummy proposition explicitly open; and
+general isolated-dummy proposition explicitly open;
 `Ogdoad/GoldDiagonal.lean` kernel-checks the quadratic-tower trace blocks,
 dual reconstruction, absolute-trace descent, and the full finite-field
 Artin--Schreier image-equals-trace-kernel theorem
-behind the all-exponent Gold diagonal source; and
+behind the all-exponent Gold diagonal source;
+`Ogdoad/FifoMatching.lean` proves the both-seat zero-flip theorem for every
+matching-plus-isolates board and connects it to adapted hyperbolic coordinates;
+`Ogdoad/GoldMatchingAlgebra.lean` proves the adapted-basis quadratic expansion;
+`Ogdoad/GoldSemantics.lean` proves the forced-charge-to-normal-play compiler and
+the dominance-stable strategic fork resolving `tis`; and
 `Ogdoad/GameExterior.lean` kernel-checks the root-collapse lemma and the
 coefficient-faithful quadratic/polar consequences resolving `tisn`; and
 `Ogdoad/BrownGame.lean` kernel-checks the canonical
@@ -101,8 +106,8 @@ merged blessing/provenance, plus grundy/tests/laws.rs — the seeded law
 tests (display round-trips, projection oracle, rotation laws) — and
 grundy/tests/conformance.rs, the corpus runner),
 and `writeups/`
-(`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
-including the Tier-2 no-go/construction program; `excess.tex` — the
+(`goldarf.tex` — the resolved Gold/Arf normal-play theorem, including the
+Tier-2 no-go history and split-source Witt--FIFO construction; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `gold_diagonal_source.tex` — the complete quadratic-tower proof that every Gold
 exponent has a constructive Artin--Schreier coordinate-diagonal source;
@@ -134,10 +139,11 @@ Use these labels when changing prose, papers, examples, or comments:
   reciprocity, and Conway-Sloane lattice theory.
 - **Implemented and tested**: statements backed by the Rust tests, examples, Python
   experiments, or the `demo.py` tour in this checkout.
-- **Interpretation**: bridges such as "Arf is a win-bias" are conditional on a
-  game whose P-set is the corresponding quadratic zero set.
-- **Open**: the natural Gold-quadric game rule and transfinite nim multiplication
-  beyond the source-verified excess table. These live in `docs/OPEN.md`; the
+- **Proved synthesis**: the split-source Witt--FIFO theorem makes "Arf is a
+  win-bias" literal for its normal-play P-set; the standard Arf zero-count is
+  external math, while the game/linking/compiler core is kernel-checked.
+- **Open**: transfinite nim multiplication beyond the source-verified excess
+  table, plus the now-optional arbitrary-graph FIFO strengthening. These live in `docs/OPEN.md`; the
   game-native `GameExterior` deformation question was resolved negatively under
   ambient subgroup coherence on 2026-08-09.
 
@@ -150,8 +156,9 @@ Scope boundaries to preserve:
   supported `Fpn<2,N>` fields, and the documented finite ordinal windows; it rejects
   singular metrics where a nonsingular Witt/BW class is required, and keeps
   rank/radical data explicit.
-- Not a solved game-semantics theorem. Gold forms are built from game operations,
-  but no non-tautological natural game is known whose P-set is their zero set.
+- Not a proof of the arbitrary-graph isolated-dummy FIFO conjecture. Gold uses a
+  public Witt frame and split singleton sources, reducing its boards to the
+  separately proved matching-plus-isolates class.
 - Not an algebraically closed finite backend. `Nimber(u128)` is `F_{2^128}` and
   contains only finite nimber subfields whose degrees divide 128.
 
@@ -304,7 +311,7 @@ nonzero local torsion tables are necessarily root-incomplete and ambient-depende
 the proof is in `writeups/game_exterior_divisibility.tex` and its algebraic core is
 kernel-checked in `formal/Ogdoad/GameExterior.lean`.
 
-The game-built Gold-form bridge is implemented, but the play rule is not. The
+The game-built Gold-form bridge and its normal-play rule are proved. The
 standard chain is:
 
 ```text
@@ -318,16 +325,24 @@ Q_a(x)     = Tr(x * x^(2^a))
 Implemented probes verify Gold ranks, Arf zero-count bias, literal Turning-Corners
 reconstruction on small fields, frame-obstruction experiments, misère-kernel
 obstruction examples, loopy Draw/Loss-set experiments, and bent Gold-component route
-probes. The conditional statement: if a game has P-positions `{Q = 0}`, Arf gives
-the sign and size of the second-player win-bias. The existence of a non-tautological
-natural rule with P-set `{Q = 0}` is open (`docs/OPEN.md`), but the σ-valued
-echo-fifo+dummy realizer is **verified** (2026-06-10, adversarial review:
+probes. The split-source Witt--FIFO rule now makes the Arf interpretation
+unconditional: its ordinary normal-play P-set is `{Q = 0}` for every finite
+characteristic-2 refinement. A deterministic public Witt frame makes the
+strategic graph a matching, public adapted coins carry the triangular
+`B`-correction, and isolated original-coordinate coins source one singleton
+`q_i` each. Either seat forces zero correction parity on every such board by a
+rank-inductive safe-front strategy; a local terminal claim move keyed by charge
+and mover phase compiles the forced bit to normal play. Loading is q-blind,
+transition access is `(w0,c)=(1,1)`, and on positive polar rank toggling an unread
+source swaps the two unique optimal actions at a live edge (N3cf). The matching,
+algebra, and semantic cores are kernel-checked in
+`formal/Ogdoad/{FifoMatching,GoldMatchingAlgebra,GoldSemantics}.lean`.
+
+The earlier σ-valued echo-fifo+dummy realizer remains **verified**
+(2026-06-10, adversarial review:
 `experiments/echo_solver.py`, 391,680/391,680 m=8 checks, zero misses — record in
-`writeups/goldarf.tex` §8); the open steps are recasting its forced-charge readout into
-normal/misère/loopy outcome semantics and the general-n linking proof. The
-formerly open even-exponent diagonal premise is resolved uniformly: the
-trace-dual at every even tower degree descends to the half-field and is `w²+w`
-(`writeups/gold_diagonal_source.tex`, `formal/Ogdoad/GoldDiagonal.lean`). The
+`writeups/goldarf.tex` §8). Its arbitrary-graph mechanism is a strict
+generalization, no longer a premise of Gold exactness. The
 realizer's *mechanism* is reduced (2026-06-10 second pass,
 `experiments/linking_game.py`, goldarf §8 `sec:linking`): the σ-game is the
 odd-close parity game on the support graph, and the linking theorem — an isolated

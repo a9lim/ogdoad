@@ -16,8 +16,8 @@ What remains unbuilt is tracked in the two buildable ledgers —
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `tis` and `on`.
-`tisn`, `under`, `off`, and `over` are the former loopy-valued research entries
+stay in [`OPEN.md`](OPEN.md), loopy-valued: `on`.
+`tis`, `tisn`, `under`, `off`, and `over` are the former loopy-valued research entries
 closed into this ledger.
 
 **Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
@@ -72,9 +72,41 @@ coordinate diagonal in the canonical nim tower.
   `formal/Ogdoad/GoldDiagonal.lean` checks the tower trace, dual reconstruction,
   absolute-trace descent, and the full Artin–Schreier image-equals-trace-kernel
   theorem without axioms.
-- boundary: this closes one named algebraic subproblem of `tis`; the natural
-  play rule, P-set realization, N1–N3 screen, and general FIFO theorem remain
-  open. A general scale `c` need not have trace-zero dual.
+- boundary: a general scale `c` need not have trace-zero dual. The separate
+  weighted-source Witt--FIFO theorem below closes the natural play-rule and
+  P-set realization questions without requiring a general scaled descent.
+
+### tis·(e_g∧e_f): `gold-witt-fifo-normal-play`
+**Completed:** 2026-08-09
+**Summary:** a fixed, singleton-local normal-play rule has P-set exactly the
+zero quadric of every finite characteristic-two refinement, so Gold Arf is an
+actual second-player win-bias rather than a conditional interpretation.
+**Pillars:** games ↔ forms    **Claim level:** proved synthesis, kernel-checked core
+- split source: choose a deterministic symplectic-plus-radical basis from the
+  public polar form `B`; active adapted coins form a matching and carry only
+  public triangular corrections, while isolated active original-coordinate
+  coins source one singleton refinement bit each.
+- identity: `Q_q(x)` is the XOR of adapted public diagonals, original singleton
+  sources, and the parity of active hyperbolic pairs. No dense adapted-basis
+  `Q` query or per-input evaluator is used.
+- FIFO theorem: on every matching plus isolates, either designated seat keeps
+  the opponent front ko-protected or zero-live-degree and therefore forces zero
+  correction parity in every dimension, without a dummy.
+- normal semantics: a unique terminal claim move enabled by `sigma xor phase`
+  compiles any finite forced-charge tree to ordinary normal play; with stance
+  one the root is P exactly when the forced charge is zero.
+- naturality: q-blind loading and `(w0,c)=(1,1)` transition access satisfy
+  N1--N2. For positive polar rank, toggling one unread source exchanges the two
+  unique optimal actions at a live matching edge, satisfying dominance-stable
+  N3cf. Rank-zero forms stay exact but are not padded with a cosmetic gadget.
+- formal core: `formal/Ogdoad/FifoMatching.lean` proves the both-seat matching
+  strategy; `GoldMatchingAlgebra.lean` proves the adapted quadratic expansion;
+  `GoldSemantics.lean` proves the claim compiler, phase obstruction,
+  dominance-pruning impossibility, and action swap. All are sorry-free.
+- boundary: the older isolated-dummy arbitrary-graph FIFO conjecture remains a
+  strict combinatorial generalization in `writeups/linking_affine.tex`; it is no
+  longer load-bearing for Gold.
+- artifact: `writeups/goldarf.{tex,pdf}`.
 
 ### over·(e_f∧e_g): `brown-game-semantics-reduction`
 **Completed:** 2026-08-09
@@ -693,8 +725,8 @@ zero-Grundy positions are the binary lexicode `L(n,d)`.
   `[7,4,3]` / `[8,4,4]` Hamming examples.
 - boundaries: the explicit SG route is a bounded witness and inspection surface,
   not the production constructor for large codes; `lexicode(24,8)` remains the
-  optimized Golay path, and this solved degree-1 bridge is not progress on the
-  open Gold-quadric play-rule question.
+  optimized Golay path, and this solved degree-1 bridge is independent of the
+  later split-source Witt--FIFO resolution of the Gold play-rule question.
 
 ### 2·e_i: `odd-lattices`
 **Completed:** 2026-06-15

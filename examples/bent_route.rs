@@ -166,6 +166,7 @@ fn main() {
     println!("   per-coin field q_i to B. It does NOT align B's quadric to {{Q=0}}; it leaves");
     println!("   the quadric variety entirely. So the naive local-field assembly fails: the");
     println!("   diagonal framing must enter some other way than a per-coin spin-flip gate.");
-    println!("This sharpens the open question on this bent case: B+frame can reach a");
-    println!("right-Arf quadric class, but aligning to the specific Gold quadric remains open.");
+    println!("This pins why the naive bent routes fail: B+frame reaches a right-Arf");
+    println!("quadric class but not the specific Gold quadric; split-source Witt--FIFO");
+    println!("resolves the global play question by a different stateful construction.");
 }

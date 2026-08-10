@@ -43,9 +43,9 @@
 \newcommand{\mex}{\operatorname{mex}}
 \newcommand{\Stab}{\operatorname{Stab}}
 
-\title{Draft: game-built quadratic forms in the nimber Clifford backend}
+\title{Gold--Arf normal play from split-source Witt--FIFO}
 \author{a9lim}
-\date{June 2026}
+\date{August 2026}
 
 \begin{document}
 \maketitle
@@ -68,12 +68,12 @@ are standard quadratic forms over fields of characteristic $2$, but in the
 nimber setting they are also composites of combinatorial-game operations:
 nim-product via Turning Corners, Frobenius squaring via the diagonal product,
 and XOR via disjunctive sum. Their Arf invariant has the classical zero-count
-interpretation, so if a natural game had $P$-positions exactly
-$\{x:Q_a(x)=0\}$, Arf would be the sign of the second-player win-bias. The
-note does not claim such a game has been found.
+interpretation.  The main result of this revision constructs a uniform
+normal-play game whose $P$-positions are exactly
+$\{x:Q_a(x)=0\}$, so Arf is the sign of its second-player win-bias.
 
 Beyond the construction, the note synthesizes three threads of work on the
-open game-semantics question. First, the obstruction landscape: normal-play
+formerly open game-semantics question. First, the obstruction landscape: normal-play
 sums and Winning-Ways coin-turning realize only \emph{linear} $P$-sets
 (the lexicode phenomenon is the rich solved case of that linear ceiling), and
 a family of no-go theorems eliminates symmetric, commutative, oracle-bounded,
@@ -82,13 +82,15 @@ extraspecial-group reframing: a characteristic-$2$ quadratic form \emph{is} a
 central extension $1\to\mathbb{Z}/2\to E\to V\to 1$ whose squaring map is $Q$,
 which forces the quadratic datum to come from a noncommutative source and
 yields a naturality screen strictly between the frame-blind no-go and
-tautological evaluation. Third, the constructive boundary: within every tested
-bounded-access class, exact realizers of $\{Q=0\}$ exist but are forced
-clocks; one charge-counting construction (\textsc{echo}-ko) is exact on
-the verified rank-$4$ bent instances and near-exact at low rank, while
-remaining decision-live. A formalized naturality
-criterion makes the residual question precise: does a decision-nondegenerate
-fixed uniform rule realize a Gold quadric?
+tautological evaluation. Third, the constructive resolution: a public,
+refinement-blind Witt frame turns the strategic support graph into a matching,
+while separate isolated source coins retain weight-one access to the original
+Grundy-frame diagonal. A local FIFO strategy proves that either seat forces
+zero correction parity on every matching-plus-isolates board. A one-move
+terminal charge lantern then compiles the forced bit to ordinary normal play.
+The resulting fixed rule is refinement-uniform, uses at most one weight-one
+refinement query per transition, and has counterfactually disjoint optimal
+actions whenever the polar rank is positive.
 \end{abstract}
 
 \paragraph{Claim levels.}
@@ -98,12 +100,16 @@ tested} (backed by tests, examples, or experiments in this checkout),
 \emph{interpretation} (conditional bridges), or \emph{open}. Several results
 of the 2026-06-10 parallel research run are machine-verified only at stated
 small parameters; each such result carries its verification scope inline.
-One construction claim (\textsc{echo}-\textsc{fifo}+dummy,
+One earlier construction claim (\textsc{echo}-\textsc{fifo}+dummy,
 Section~\ref{sec:constructions}), recorded as unverified in earlier drafts,
 has since passed its pre-registered adversarial review (2026-06-10): a fresh
 direct stateful solver (\path{experiments/echo_solver.py}) re-derives the
 full $391{,}680$-check $m=8$ exactness sweep with zero misses. The
-verification record is in Section~\ref{sec:constructions}.
+verification record is in Section~\ref{sec:constructions}. The general theorem
+proved here is structural rather than extrapolated from that census; its
+matching-board strategy and normal-play compiler are independently
+kernel-checked in \path{formal/Ogdoad/FifoMatching.lean} and
+\path{formal/Ogdoad/GoldSemantics.lean}.
 
 \section{Scope}\label{sec:scope}
 
@@ -276,7 +282,7 @@ over $\F_{256}$, is that scaled Gold components
 \]
 already reach nondegenerate (bent) forms for many $\lambda$. For APN Gold
 exponents in that field, the observed count matches the classical
-$2(2^m-1)/3$ bent-component count. This matters for the open game question
+$2(2^m-1)/3$ bent-component count. This matters for the game question
 because a bent form has trivial radical: the loopy radical route collapses to
 $\{0\}$, and the frame-blind symplectic no-go applies without a degenerate
 layer to hide in.
@@ -1212,9 +1218,10 @@ A \emph{uniform local rule} satisfies:
 \begin{enumerate}[leftmargin=*,itemsep=0pt]
 \item[\textbf{F1}] (\emph{$q$-blind statics}) position set, loading map,
 and terminal set are computed without oracle access;
-\item[\textbf{F2}] (\emph{metered access}) each legality bit is decided
-with at most $c$ adaptive oracle queries, each at a point of Hamming weight
-at most $w_0$, with $(w_0,c)$ constants independent of $m$;
+\item[\textbf{F2}] (\emph{metered access}) each move predicate and state
+transition together use at most $c$ adaptive oracle queries, each at a point
+of Hamming weight at most $w_0$, with $(w_0,c)$ constants independent of
+$m$;
 \item[\textbf{F3}] (\emph{declared semantics}) one canonical outcome
 labeling (normal, misère, loopy, or $q$-blind terminal payoff).
 \end{enumerate}
@@ -1224,13 +1231,16 @@ It is a \emph{natural realizer} if additionally:
 $m$, every $B$ in the declared family, and every refinement $q$ of $B$:
 $\mathrm{outcome}(\iota(x))=\text{target}$ iff $Q_q(x)=0$;
 \item[\textbf{N2}] (\emph{locality budget}) the $(w_0,c)$ metering of F2;
-\item[\textbf{N3}] (\emph{strategic relevance -- anti-clock}) for every
-instance $(m,B,q)$ there is a reachable position that is simultaneously
-\emph{outcome-critical} (it has legal moves to different outcome classes)
-and \emph{form-live} (its outcome differs under some refinement $q'$).
+\item[\textbf{N3cf}] (\emph{counterfactual optimal-action dependence --
+anti-clock}) for every positive-polar-rank instance $(m,B,q)$ there are a
+refinement $q'$ of the same $B$ and a common reachable position $s$ which is
+winning for the player to move in both games, but whose two nonempty sets of
+winning moves $W_q(s)$ and $W_{q'}(s)$ are disjoint.
 \end{enumerate}
-A rule satisfying the outcome-critical clause of N3 at some reachable
-position is called \emph{decision-nondegenerate}.
+A rule with a reachable position having both a winning and a losing move is
+called \emph{decision-nondegenerate}. Rank-zero instances are required to
+satisfy N1--N2 but are excluded from N3cf: adding a strategically irrelevant
+polar gadget there would reinstate the escape-edge defect by definition.
 \end{definition}
 
 \begin{theorem}[Tier-3 exclusion under N1+N2]\label{thm:tier3excl}
@@ -1242,37 +1252,42 @@ dense positions -- by theorem, not stipulation.
 \end{theorem}
 
 \begin{theorem}[clock completeness; machine-verified]\label{thm:clock}
-N1+N2 alone, without N3, admit pure transport clocks in every semantics,
+N1+N2 alone, without N3cf, admit pure transport clocks in every semantics,
 including plain normal play: the \emph{pending-marker clock} -- positions
 $(x,\varepsilon,i)$ with invariant $J=Q(x)\oplus\varepsilon$, $(1,1)$-local,
 zero outcome-critical positions -- satisfies N1+N2 exactly for every
-characteristic-$2$ form. Hence N3 is load-bearing: it carries the entire
+characteristic-$2$ form. Hence N3cf is load-bearing: it carries the entire
 residual content of ``natural''.
 \end{theorem}
 
-\begin{remark}[N3 is stated to be attacked]\label{rem:N3}
+\begin{remark}[Why outcome-critical N3 is replaced]\label{rem:N3}
 The \emph{escape-edge} construction -- a clock plus one dominated $q$-blind
-gadget edge from every nonzero position -- passes N1, N2, and N3 (and a
-density-strengthened N3$^{+}$) while being morally a clock
+gadget edge from every nonzero position -- passes N1, N2, and the old N3 (and
+a density-strengthened N3$^{+}$) while being morally a clock
 (\path{experiments/gold/skeptic_escape_edge_attack.py}). The natural
-repair, a dominance-pruned or two-game version of N3, runs into the fact
-that two-game criticality (critical in both the $q$- and $q'$-games with
-differing outcomes) is unsatisfiable in two-class outcome semantics. The
-anti-clock axiom therefore remains an open definitional problem; N3 is the
-best current formulation, recorded so that it can be attacked further.
+dominance-pruned mixed-successor repair is structurally impossible: at an
+$N$-position pruning retains exactly the options to $P$, while every option
+of a $P$-position is $N$. Thus all retained successors at any position have
+one outcome class. N3cf instead compares the \emph{winning action sets} in
+two counterfactual refinements at the same state. It is invariant under
+deleting dominated losing options, and a dead escape edge cannot affect it.
+The two-class impossibility and the Boolean action-swap identity are
+kernel-checked in \path{formal/Ogdoad/GoldSemantics.lean}.
 \end{remark}
 
 \paragraph{Calibration (implemented and tested at the stated instances).}
 Under F1--F3 + N1--N2: the T2 spin-flip rule of
-Section~\ref{sec:constructions} fails N3 (zero outcome-critical positions,
-verified at $(8,1)$ and $(8,2)$); the pending-marker clock fails N3;
-\textsc{echo}-ko passes N3 (at least $160$ mistake-states at each verified
+Section~\ref{sec:constructions} fails N3cf (its one forced winning move does
+not counterfactually swap); the pending-marker clock fails N3cf;
+\textsc{echo}-ko passes the weaker old N3 (at least $160$ mistake-states at each verified
 exact $m=4$ instance); an order-$4$-alphabet loopy candidate from the run
 fails N2 (its alphabet is a $2^m$-point $Q$-evaluation); an
 unwinding-game candidate from the run fails N1 (isotropic frames break
 exactness); and the repository's Tier-3 circuit and
 \texttt{interactive\_kernel} Rule~2 fail N2 (dense-point form access).
-The candidates named here live in \texttt{experiments/gold/}.
+The candidates named here live in \texttt{experiments/gold/}. The split-source
+Witt--FIFO rule below satisfies N3cf for every positive-rank instance by
+theorem, not census.
 
 \section{Constructions and near-misses}\label{sec:constructions}
 
@@ -1588,73 +1603,236 @@ coin supplies or regenerates a same-parity partner (including the exceptional
 dummy-open/all-others-odd case), or find a graph where that repair debt cannot
 be discharged.
 
-\section{Status and next moves}\label{sec:status}
+\section{Resolution: the split-source Witt--FIFO game}
+\label{sec:wittfifo}
+
+The arbitrary-graph linking theorem above is stronger than the Gold problem
+requires. The polar form is public data, so it may be put into a deterministic
+Witt frame before play. This changes the strategic support graph from an
+arbitrary induced graph to a matching. A naive version would attach the dense
+value $Q(f_i)$ to a Witt-basis coin $f_i$, violating N2 in the original
+Grundy frame. The decisive point is to split that value into a public polar
+part and separate weight-one refinement sources.
+
+Fix the original frame $e_1,\dots,e_m$ and write
+\[
+ P_B(z)=\sum_{j<k}B(e_j,e_k)z_jz_k,
+ \qquad Q_q(z)=P_B(z)+\sum_j q_jz_j,
+ \qquad q_j=Q_q(e_j).
+\]
+Choose, by a fixed Gaussian-elimination convention depending only on $B$, a
+symplectic-plus-radical basis
+\[
+ f_i=\sum_j C_{ji}e_j,
+ \qquad B(f_{a_h},f_{b_h})=1
+\]
+whose other pairings vanish. For $x=\sum_i y_if_i$, put
+\[
+ p_i=P_B(f_i)=\sum_{j<k}C_{ji}C_{ki}B(e_j,e_k).
+\]
+All of $C$, $y=C^{-1}x$, and $p_i$ are refinement-blind public data.
+
+For completeness, the adapted basis exists by the usual two-line induction for
+alternating forms. If $B=0$, retain any basis as radical vectors. Otherwise
+choose the lexicographically first pair $u,v$ with $B(u,v)=1$. The plane
+$H=\langle u,v\rangle$ is nonsingular, since a vector $au+bv$ orthogonal to
+both $u$ and $v$ has $a=b=0$; hence $V=H\oplus H^\perp$. Recurse on
+$H^\perp$. Choosing the first available pivot and performing row operations in
+the fixed original-coordinate order makes the construction deterministic. It
+uses only the public matrix $B$, works unchanged in the singular case, and
+terminates after one dimension drop for a radical step or two for a
+hyperbolic-plane step.
+
+\begin{quote}
+\textbf{Rule (split-source \textsc{witt-fifo}).}
+Load a strategic coin $F_i$ for each $y_i=1$, with fixed public diagonal
+charge $p_i$. Join $F_{a_h}$ to $F_{b_h}$ exactly when both are loaded.
+Load in addition an isolated source coin $S_j$ for each original coordinate
+$x_j=1$; closing $S_j$ reads the single oracle bit $q_j=O_q(e_j)$.
+
+Every loaded coin must be touched twice. An untouched coin may be opened;
+only the FIFO front may close; opening onto an empty queue sets the one-move
+ko; and a player passes exactly when no open or close is legal, clearing ko.
+Initialize $\sigma=0$. When a strategic coin $v$ opens, update $\sigma$ by
+the parity of its already-open strategic neighbours in the queue. Thus an
+edge is charged exactly when its two touch intervals overlap. When a front
+$v$ closes, update
+\[
+ \sigma\mathrel{\oplus{=}}d(v),
+ \quad d(F_i)=p_i,\quad d(S_j)=q_j.
+\]
+Passes do not change $\sigma$.
+After the queue is drained, add one ordinary normal-play claim move exactly
+when $\sigma=1\oplus\phi$, where $\phi$ is the current move-parity bit
+initialized to $0$ and toggled after every move.
+\end{quote}
+
+The move-parity bit is not an evaluator or form oracle; it is already the
+mover field of the FIFO state. It is necessary for an identity-valued payoff
+compiler: a phase-free terminal leaf assigns opposite initial-seat winners at
+even and odd depths. The final claim is therefore a two-state local ``charge
+lantern'', not an inspection of $x$, $B$, or $Q(x)$.
+
+\begin{theorem}[FIFO matching theorem]\label{thm:matchingfifo}
+Let every component of $G$ be $K_1$ or $K_2$. From the empty-queue root,
+either designated seat has a strategy forcing the sum of all close charges
+$\deg_U(f)$ to be zero. The theorem holds for every finite board and needs no
+dummy.
+\end{theorem}
+
+\begin{proof}
+Call a FIFO front \emph{safe} when either ko is set or its unique mate is not
+untouched; equivalently, every legal close at that checkpoint has charge zero.
+Induct on $4|U|+2|\mathcal Q|+[\mathrm{ko}]$. We show that a designated seat
+forces terminal score zero whenever it moves from score zero, and whenever its
+opponent receives a score-zero safe state.
+
+If the designated seat moves with $U\ne\varnothing$ and the queue is empty,
+OPEN any $z\in U$; ko makes the next checkpoint safe. If the front $f$ has
+charge one, its unique mate $u$ lies in $U$; OPEN $u$, which erases the only
+possible live neighbour of $f$. If $f$ has charge zero, OPEN any $z\in U$;
+maximum degree one implies that erasure preserves the zero front. When
+$U=\varnothing$, all later closes have charge zero and the forced PASS, when
+present, is harmless.
+
+At an opponent checkpoint, OPEN and PASS preserve the score and return the
+turn. A legal CLOSE rules out ko, so safety makes its charge zero and likewise
+returns a score-zero state. Every branch has smaller rank. Initially the queue
+is empty: the second seat receives a vacuously safe root, while the first seat
+uses the empty-queue OPEN. This proves both seats.
+\end{proof}
+
+The exact transition-system proof is kernel-checked as
+\texttt{evenWins\_initial\_of\_matching} in
+\path{formal/Ogdoad/FifoMatching.lean}. The finite matching census helped find
+the policy but is not used in the theorem.
+
+\begin{theorem}[split-source exactness]\label{thm:wittfifo}
+For every finite-dimensional characteristic-$2$ quadratic refinement $Q_q$,
+every input $x$, and either charge stance, split-source \textsc{witt-fifo}
+forces terminal charge $\sigma=Q_q(x)$. Consequently its charge-lantern
+normal-play root is $P$ if and only if $Q_q(x)=0$.
+\end{theorem}
+
+\begin{proof}
+Quadratic expansion in the adapted basis gives
+\[
+ P_B(x)=\sum_i y_iP_B(f_i)+\sum_{i<k}y_iy_kB(f_i,f_k)
+ =\sum_i y_ip_i+\sum_h y_{a_h}y_{b_h}.
+\]
+The linear refinement part transports without any dense query:
+\[
+ \sum_i y_i\sum_j C_{ji}q_j=\sum_j x_jq_j.
+\]
+Therefore
+\begin{equation}\label{eq:splitsource}
+ Q_q(x)=\sum_i y_ip_i+\sum_jx_jq_j+\sum_hy_{a_h}y_{b_h}.
+\end{equation}
+The loaded strategic graph is a matching plus isolates. FIFO implies that an
+edge is charged exactly when its two intervals overlap. The odd-close identity
+of Section~\ref{sec:linking} says that overlap parity equals total active-edge
+parity plus the sum of close charges $\deg_U(f)$. By
+Theorem~\ref{thm:matchingfifo}, either seat forces the latter correction to
+zero, leaving the last sum in~\eqref{eq:splitsource}. Every active $F_i$ and
+$S_j$ closes exactly once, contributing the first two sums. Thus the minimax
+charge is $Q_q(x)$ at both stances.
+
+For the final assertion, retain the finite charge game tree. At a leaf of
+charge $\sigma$ and phase $\phi$, the unique claim exists exactly when the
+player to move is the seat designated by $\sigma$. Backward induction says
+that the compiled normal-play winner equals the charge-game winner at every
+subtree and phase. At the root, seat zero plays for charge one, so the root is
+$N$ for $Q_q(x)=1$ and $P$ for $Q_q(x)=0$. The general compiler and root
+equivalence are kernel-checked in \path{formal/Ogdoad/GoldSemantics.lean}.
+\end{proof}
+
+\begin{proposition}[naturality]\label{prop:wittfifonatural}
+The rule satisfies F1--F3 and N1--N2 with $(w_0,c)=(1,1)$. On every
+positive-polar-rank instance it also satisfies N3cf.
+\end{proposition}
+
+\begin{proof}
+The basis algorithm, $x\mapsto y$, both loaded support sets, the matching
+edges, the public charges $p_i$, the OPEN overlap charge, and the terminal
+board condition use only $B$ and the fixed frame. Thus F1 holds. Only a close
+of $S_j$ accesses the refinement, and it queries exactly $O_q(e_j)$; every
+other predicate and transition is refinement-blind. This proves F2 and N2
+with $(1,1)$. The semantics is the single normal-play claim rule, giving F3,
+and Theorem~\ref{thm:wittfifo} is N1 for every refinement of $B$.
+
+For N3cf choose one symplectic pair $f_a,f_b$ and load $x=f_a+f_b$.
+Since $x\ne0$, at least one original-coordinate source $S_j$ is loaded.
+OPEN $F_b$ and then every source coin, without closing any. This $q$-blind
+prefix reaches a common state for $q$ and $q'=q+e_j^*$ with
+\[
+ U=\{F_a\},\qquad
+ \mathcal Q=(F_b,S_{j_1},\ldots,S_{j_t}),
+\]
+clear ko, and $S_j$ still unread. The only legal actions are OPEN $F_a$ and
+CLOSE $F_b$. OPEN $F_a$ charges the unique active edge because $F_b$ is still
+queued; CLOSE $F_b$ makes that overlap impossible. All diagonal contributions
+are the same in the two continuations. The terminal bits are therefore
+complementary, so the player to move has
+exactly one winning action. Toggling $q_j$ complements both bits and exchanges
+those actions. Hence the common state is winning in both games and
+$W_q(s)\cap W_{q'}(s)=\varnothing$.
+\end{proof}
+
+The rank-zero boundary is deliberately not decorated with a fake strategic
+edge. There the same rule realizes $Q_q$ and satisfies N1--N2, while N3cf is
+inapplicable by its positive-rank clause. Conversely, every nonzero Gold core
+exposes form dependence in the optimal strategy, not merely in a terminal
+label or a dominated escape option.
+
+N3cf is not claimed to be a metaphysical characterization of naturality: one
+could deliberately bolt on a $q$-dependent winning fork. Its proved advantage
+is narrower and exact. It repairs the logical impossibility of
+dominance-pruned mixed-successor criticality and the dominated escape-edge
+attack, while the witness here is the same hyperbolic edge and unread local
+source that supply the quadratic term, not an auxiliary outcome gadget.
+
+The original isolated-dummy arbitrary-graph linking conjecture remains an
+interesting strict generalization, but it is no longer load-bearing for Gold:
+the public Witt frame reduces precisely the required boards to the proved
+matching class, while split sources preserve fixed-frame locality.
+
+\section{Status and remaining generalizations}\label{sec:status}
 
 \paragraph{Status of the trichotomy.}
 Tier 1 ($\Sp(B)$-blind) is dead by Proposition~\ref{prop:nogo} and
 Theorems~\ref{thm:D}--\ref{thm:G}. Tier 3 (evaluation) is live and even
-decision-nondegenerate, but tautological. Tier 2 under the bounded-framing
-quarantine is inhabited \emph{only by clocks} among normal-play realizers
-(Theorems~\ref{thm:rigidity}, \ref{thm:clock}). In $\sigma$-valued
-(forced-charge) semantics the picture changed on 2026-06-10: the
-\textsc{echo}-\textsc{fifo}+dummy realizer is \emph{verified} exact on all
-$765$ scaled $m=8$ Gold forms at both stances
-(Section~\ref{sec:fifodummy}), decision-nondegenerate in bulk, with
-bounded per-move access (open-set row sums plus the local $q_i$ at closes)
--- an N1+N2-satisfying non-clock, in a readout the rigidity theorems do
-not cover. The mechanism question was then reduced
-(Section~\ref{sec:linking}) to the linking theorem -- flips forced even
-on any board with an isolated coin -- now verified for every graph class
-through $k=8$ (all $12{,}346$ classes there), with the old two-mode menu's
-first failures isolated and the no-self-flip envelope strictly complete;
-what remains of it is the general-$n$ induction. The live questions are
-\emph{semantics} (recast the charge readout into normal/misère/loopy
-outcome classes, or prove the recasting impossible) and the general-$n$
-linking proof. The all-$a$ diagonal source is now Theorem
-\ref{thm:all-diagonal-source}; sourcing is no longer an open premise.
+decision-nondegenerate, but tautological. The direct-board bounded-framing
+quarantine contains only clocks at dense positions
+(Theorems~\ref{thm:rigidity}, \ref{thm:clock}); the split-source construction
+escapes by a q-blind structural lift, not by extra refinement access. Its
+matching theorem is uniform in dimension, its transitions are singleton-local,
+and its claim lantern gives an ordinary normal-play P-set. Thus Tier 2 is
+inhabited by a proved N1+N2+N3cf non-clock.
 
-\paragraph{Ranked next moves.}
-(Move 1 of the previous ranking -- the adversarial review -- was executed
-2026-06-10 with outcome \textsc{confirm}, Section~\ref{sec:fifodummy};
-the mechanism-reconciliation half of the old move 1 was then executed in
-the same-day second pass, Section~\ref{sec:linking}: the reduction is
-done, the mechanism is the odd-close parity game, and \textsc{fifo}'s
-role -- no nesting, hence overlap $=$ linking -- and the dummy's role --
-killing the domination device at every root -- are identified.)
-\begin{enumerate}[leftmargin=*]
-\item \emph{Recasting} (highest leverage): recast the $\sigma$-valued
-charge readout into normal/misère/loopy outcome semantics -- or prove
-the recasting impossible.
-\item[1$'$.] \emph{The general-$n$ linking proof}: close the open residue
-of Section~\ref{sec:linking} (firewall segmentation, mutual no-debt /
-one-debt induction, certificate-depth completeness); this upgrades
-$m$-by-$m$ verification to the theorem for all $m$.
-\item \emph{Family-boundary sweep} (the remaining pre-registered axes):
-ko-memory window $w\in\{1,2,3\}$, pass semantics, pair touches, no-dummy
-controls -- map which disciplines are exact; this also puts the
-bounded-window blocker conjecture on valid data at last.
-\item[done.] \emph{The even-$a$ diagonal lemma}: resolved by the quadratic-tower
-recursion and Artin--Schreier exactness in Theorem
-\ref{thm:all-diagonal-source}. This removes the sourcing premise but does
-not settle the Tier-2 play-rule reading of the verified realizer.
-\item \emph{Frobenius-aware access enumeration}: finite enumeration of
-Frobenius-equivariant legality predicates at $m=4,8$ -- the one access
-window (escape hatch 3 of Remark~\ref{rem:hatches}) where both the symmetry
-and oracle methods are provably silent.
-\item \emph{Cheap gates}: (a) verify the regularity hypothesis of
-\cite[Thm.~6.4]{PS} against the published paper (load-bearing for
-Theorem~\ref{thm:C}); (b) enumerate conjugation-move rules on $E$ (the
-involution locus is conjugacy-invariant, so Theorem~\ref{thm:H}'s
-left-translation kill does not apply); (c) exhaust the board-8 case of the
-\textsc{fifo} parity-pinning conjecture.
-\end{enumerate}
+\paragraph{Remaining generalizations.}
+The isolated-dummy arbitrary-graph linking theorem of
+Section~\ref{sec:linking} remains open, with the exact global affine-contraction
+frontier recorded in \path{writeups/linking_affine.tex}. It would strengthen
+FIFO combinatorics but no longer strengthens Gold exactness. The historical
+family sweeps (ko-window, alternate pass rules, pair touches), Frobenius-aware
+enumeration, conjugation-move census, and Plambeck--Siegel regularity check are
+likewise calibration or independent continuations, not premises of
+Theorem~\ref{thm:wittfifo}. The all-exponent diagonal source is supplied by
+Theorem~\ref{thm:all-diagonal-source}; sourcing is no longer an open premise.
 
 \section{Validation}\label{sec:validation}
 
-The claims above are backed by implementation checks, not by a finished
-proof of the open game statement.
+The principal game statement is proved structurally and its load-bearing
+parts are checked in Lean. The older implementation checks remain as
+independent regression evidence and historical provenance.
 
 \begin{itemize}[leftmargin=*]
+\item \path{formal/Ogdoad/FifoMatching.lean} kernel-checks the both-seat
+matching strategy; \path{formal/Ogdoad/GoldMatchingAlgebra.lean} checks the
+adapted-support quadratic expansion; and
+\path{formal/Ogdoad/GoldSemantics.lean} checks the normal-play compiler,
+phase obstruction, dominance-pruning impossibility, and edge-fork swap. These
+files contain no \texttt{sorry}, \texttt{admit}, or custom axioms.
 \item \texttt{cargo test} exercises the scalar arithmetic, Clifford product,
 Arf computation, quadratic fitting, misere machinery, and related invariant
 modules.
@@ -1705,35 +1883,37 @@ subset labeling is a homomorphism.
 \section{Conclusion}
 
 The meaningful content is layered. At the base: game-operation-built
-characteristic-$2$ trace forms inside a nimber Clifford backend, with a
-precise conditional interpretation of Arf as a $P$-set bias. Above it: the
+characteristic-$2$ trace forms inside a nimber Clifford backend, with Arf now
+literally the $P$-set bias of split-source \textsc{witt-fifo}. Above it: the
 linear ceiling (Theorem~\ref{thm:A}, with the lexicodes as its rich solved
 floor), the extraspecial identification of the missing quadratic datum with
 a noncommutative central extension (Lemmas~\ref{lem:extdict}--\ref{lem:abelian}),
 and a no-go program (Theorems~\ref{thm:B}--\ref{thm:H},
 \ref{thm:rigidity}--\ref{thm:nolivemiddle}) that empties every symmetric,
 commutative, and oracle-bounded architecture of bulk strategic content. At
-the boundary: exact normal-play realizers exist in every tested quarantine
-class but are forced clocks; \textsc{echo}-ko is exact on the $m=4$ bent
+the historical boundary: exact direct-board normal-play realizers in the
+tested quarantine are forced clocks; \textsc{echo}-ko is exact on the $m=4$ bent
 instances at one stance, degrades gracefully with polar rank, and stays
 decision-live; and the \textsc{echo}-\textsc{fifo}+dummy realizer is now
 \emph{verified} exact on all $765$ scaled $m=8$ Gold forms at both stances
 -- decision-nondegenerate, bounded-access, and $\sigma$-valued
-(Section~\ref{sec:fifodummy}). A formalized criterion (N1--N3) reduces
-``natural'' to one load-bearing, still-attackable axiom. The draft does
-not solve the game-semantics problem; the verified realizer narrows it to
-a named question: \emph{can the forced-charge readout be recast into
-normal, misère, or loopy outcome semantics on a Gold quadric of core
-rank $\geq6$ -- or is the two-class outcome layer itself the obstruction?}
+(Section~\ref{sec:fifodummy}). The resolution uses a q-blind structural lift
+outside that direct-board quarantine: a Witt frame makes the polar graph a
+matching, split sources preserve original-frame singleton locality, the
+both-seat safe-front theorem forces the exact charge in all dimensions, and
+the phase-aware claim lantern compiles it to normal play. N3cf repairs the old
+anti-clock axiom and is witnessed by an actual swap of optimal actions. The
+remaining arbitrary-graph FIFO contraction is a strict combinatorial
+generalization, not a gap in the Gold theorem.
 
 \section*{Acknowledgements}
 The \texttt{ogdoad} library, the experiments, and this draft were developed
 with LLM assistance; Sections~\ref{sec:nogos}--\ref{sec:status} synthesize
 the output of a structured parallel research run (2026-06-10) whose probes
 are committed under \texttt{experiments/gold/}. Results from that run are
-reported with their verification scope, and one construction claim is
-explicitly flagged unverified. Mathematical direction, framing, and
-responsibility for claims remain the author's.
+reported with their verification scope; the final theorem is structural and
+its load-bearing components are checked in Lean. Mathematical direction,
+framing, and responsibility for claims remain the author's.
 
 \begin{thebibliography}{9}
 \bibitem{Arf41} C.~Arf, \emph{Untersuchungen \"uber quadratische Formen in

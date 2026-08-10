@@ -420,7 +420,10 @@ Scope boundaries, stated plainly:
 - Fixed-width integer payloads are consistently `u128`/`i128` for arithmetic carriers,
   residues, invariants, counts, and budgets. `usize` is for indices, dimensions, and ABI
   hooks.
-- The Gold/Arf game thread is conditional: *if* a game has P-set `{Q = 0}`, Arf predicts
-  the win-bias. No non-tautological natural game with that P-set has been found.
+- The Gold/Arf game thread is resolved by split-source Witt--FIFO: a public
+  polar-form basis change, original-frame singleton sources, and a local
+  charge-lantern give an ordinary normal-play P-set `{Q = 0}`. Thus Arf is the
+  actual win-bias of that rule; see `writeups/goldarf.tex` and the three
+  `formal/Ogdoad/Gold*` / `FifoMatching` proof modules.
 
 License: AGPL-3.0-or-later (see `LICENSE`).
