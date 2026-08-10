@@ -224,21 +224,32 @@ absolute boundedness.
   the Conway–Fermat quotient-order problem. In that chain, absolute trace is
   exactly the top binary coordinate, the selected ancestry is the least
   trace-one nimber, and failure is equivalent to a centered reverse-Dickson
-  divisor of the trace-zero linearized polynomial. Trace, norm, degree, fibotomic
+  divisor of the trace-zero linearized polynomial. Adapted-basis countermodels
+  realize this entire additive/Moore pattern while changing the multiplicative
+  ancestry, so the special Fermat multiplication remains essential. Trace,
+  norm, degree, fibotomic
   support, lower ancestry, and generic Kummer-cover symmetries are all proved
   insufficient without evaluating the selected factor.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
   remaining selected coordinate exactly. Tower-faithful countermodels show
-  that generic ancestry and bookkeeping do not determine it.
+  that generic ancestry and bookkeeping do not determine it. A fixed-translate
+  countermodel now also matches full Kummer degree, all binary sections,
+  norm-one reciprocity, and literal least-nonresidue labeling; it differs
+  exactly in the lower ancestor's multiplicative order and cyclotomic
+  conductor, isolating full Conway ancestry as indispensable.
 - **`C`.** The first three levels are proved analytically. Norm recursion,
   cyclic parity, primitive-CRT isolation, mixed Jacobi expansion,
   Singer–Wendt factorization, `S_3` descent, and the prescribed-trace character
   formulation all agree on one selected top-component test. Reciprocal cubic
   Kummer descent now identifies failure with two explicit Dickson power-sum
   equations over the preceding field and factors the Capelli composition into
-  selected irreducible cubics. Both distinguished
+  selected irreducible cubics. The equations already force irreducibility;
+  their geometric fibre is reduced etale of size `ell^2`, with exactly zero or
+  `ell` rational points. Its Jacobian, discriminant, reciprocal obstruction,
+  and Berlekamp trace all collapse to the same selected Kummer class rather
+  than supplying an exclusion. Both distinguished
   period coordinates have absolute trace zero and are not normal, so
   primitive-normal and normal-Gaussian-period theorems do not apply. Generic
   Wendt factors and other trace fibres attain every structural value used by
@@ -248,7 +259,10 @@ absolute boundedness.
   Dickson factorization reduce the arm to one selected cubic. The surviving
   ray coordinate is also the first-order tangent of a canonical four-Jacobi
   cross-resolvent, the unique inversion-invariant zero-augmentation detector
-  on the conductor-five phases. The ambient
+  on the conductor-five phases. Quadratic-relative descent identifies that
+  tangent with a two-by-two Eisenstein determinant; the first-order
+  order-five Hasse--Davenport relation controls only the complementary
+  symmetric coordinate and cannot force the target's nonvanishing. The ambient
   Dickson polynomial contains many cubics with the same depressed equation;
   an exact nonselected countermodel also matches the selected two-trace
   fingerprint. The line criterion gives the effective polynomial bound above

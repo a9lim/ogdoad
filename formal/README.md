@@ -121,6 +121,10 @@ of the exceptional `2·3^k` column:
   including the distinguished lift `an - 1`;
 - the denominator-free square-zero cross-product identity behind the
   exceptional arm's canonical four-Jacobi detector;
+- the denominator-free alternating-determinant identity behind its quadratic-
+  relative Eisenstein reduction;
+- the characteristic-two Berlekamp-numerator factorization and its literal
+  vanishing on the selected reciprocal cubic;
 - the denominator-free characteristic-two identity that depresses every
   trace--constant Dickson cubic to an Artin--Schreier cubic;
 - the four-axis reciprocal-root factorization behind the theorem that a

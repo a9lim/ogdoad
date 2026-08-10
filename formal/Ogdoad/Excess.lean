@@ -363,6 +363,44 @@ theorem four_jacobi_cross_multiply (ε C : R) (hε : ε ^ 2 = 0) :
   ring_nf
   simp [hε, hε3]
 
+/-- Denominator-free first-order identity behind the relative Eisenstein
+detector.  If the two Eisenstein coordinates acquire tangent coefficients
+`u₁,u₂`, their squared cross-ratio retains precisely the alternating
+determinant `u₁*e₂-u₂*e₁`; no division or unit hypothesis is needed here. -/
+theorem eisenstein_determinant_cross_multiply
+    (ε e₁ e₂ u₁ u₂ : R) (hε : ε ^ 2 = 0) :
+    (e₁ * (e₂ + ε * u₂)) ^ 2 =
+      (e₂ * (e₁ + ε * u₁)) ^ 2 -
+        2 * ε * e₁ * e₂ * (u₁ * e₂ - u₂ * e₁) := by
+  ring_nf
+  simp [hε]
+
+/-- Characteristic-two factorization of the symmetric Berlekamp numerator
+for a reciprocal cubic.  The selected cubic substitutes `D = C + 1`, making
+this representative vanish; the paper explains why the auxiliary root
+coordinate depends on cyclic orientation while this value is invariant. -/
+theorem cubic_berlekamp_numerator_factorization
+    (C D : R) (hchar : (2 : R) = 0) :
+    C ^ 3 + D ^ 3 + C * D + 1 =
+      (C + D + 1) * (C ^ 2 + C * D + D ^ 2 + C + D + 1) := by
+  symm
+  calc
+    (C + D + 1) * (C ^ 2 + C * D + D ^ 2 + C + D + 1) =
+        C ^ 3 + D ^ 3 + C * D + 1 +
+          2 * (C + C ^ 2 + D + D ^ 2 + C * D + C * D ^ 2 + C ^ 2 * D) := by
+            ring
+    _ = C ^ 3 + D ^ 3 + C * D + 1 := by rw [hchar]; ring
+
+/-- The Berlekamp numerator above is literally zero on the selected
+reciprocal coefficient pair `(C,C+1)`. -/
+theorem selected_cubic_berlekamp_numerator_zero
+    (C : R) (hchar : (2 : R) = 0) :
+    C ^ 3 + (C + 1) ^ 3 + C * (C + 1) + 1 = 0 := by
+  calc
+    C ^ 3 + (C + 1) ^ 3 + C * (C + 1) + 1 =
+        2 * (1 + 2 * C + 2 * C ^ 2 + C ^ 3) := by ring
+    _ = 0 := by rw [hchar]; simp
+
 end FirstOrderProducts
 
 section WeightedFrobeniusWords
