@@ -63,7 +63,7 @@ algebraic content of `over`.  See
 `formal/README.md` for the proof/non-proof boundary.
 
 Beyond the library: `examples/` (Rust demos `tour`/`tropical` and the
-open-question probes `interactive_kernel`, `octal_hunt`,
+research probes `interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`; the grundy REPL lives in the
 grundy crate — `cargo run -p grundy --example repl`), `experiments/` (Python research probes on top of the shipped
 lib, two-tier by maintenance bar: top-level `experiments/*.py` + `scripts/` are
@@ -341,9 +341,11 @@ transition access is `(w0,c)=(1,1)`, and its distinct observations are exactly
 the active singleton directions. Any transcript-stable exact rule must observe
 vectors spanning the input, so this support is optimal and a constant total
 budget is impossible. Outcome-preserving unavoidable fork padding proves that
-no semantic liveness axiom alone certifies naturality. Lean checks these
-independent ingredients in the `FifoMatching`, `GoldMatchingAlgebra`,
-`GoldSemantics`, `GoldNoEvaluator`, and `GoldForkPadding` formal modules.
+the basic reachable, optimal, and unavoidable fork properties do not certify
+naturality. Lean checks these
+independent ingredients in the `GoldDiagonal`, `FifoMatching`,
+`GoldMatchingAlgebra`, `GoldSemantics`, `GoldNoEvaluator`, and
+`GoldForkPadding` formal modules.
 
 The earlier σ-valued echo-fifo+dummy realizer remains **verified**
 (2026-06-10, adversarial review:
@@ -388,11 +390,11 @@ cargo doc --no-deps --workspace               # rustdoc (intra-doc links warning
 cargo run --example tour                      # Rust demo
 cargo run --example tropical                  # tropical-semiring / thermography demo
 cargo run -p grundy --example repl            # grundy expression-language REPL
-cargo run --example interactive_kernel        # open-problem probe
-cargo run --example octal_hunt                # open-problem probe
-cargo run --example loopy_quadric             # open-problem probe
-cargo run --example misere_quotient           # open-problem probe
-cargo run --example bent_route                # open-problem probe
+cargo run --example interactive_kernel        # research probe
+cargo run --example octal_hunt                # research probe
+cargo run --example loopy_quadric             # research probe
+cargo run --example misere_quotient           # research probe
+cargo run --example bent_route                # research probe
 (cd formal && lake build)                     # Lean off/FIFO proof-kernel check
 python -m maturin build --profile dev -i python
 python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
@@ -506,4 +508,4 @@ draft notes are `writeups/goldarf.tex` (Gold/Arf) and `writeups/excess.tex`
 (transfinite excess). Read `docs/OPEN.md` before touching `forms/char2/`,
 `forms/quadric_fit.rs`, `forms/char0.rs`, `games/coin_turning.rs`, `games/kernel.rs`,
 `games/misere.rs`, `games/loopy/`, `forms/witt/`, `experiments/`, or the
-open-question example probes.
+research example probes.

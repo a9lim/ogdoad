@@ -81,9 +81,9 @@ a family of no-go theorems eliminates symmetric, commutative, oracle-bounded,
 and translation-equivariant architectures above it. Second, an
 extraspecial-group reframing: a characteristic-$2$ quadratic form \emph{is} a
 central extension $1\to\mathbb{Z}/2\to E\to V\to 1$ whose squaring map is $Q$,
-which forces the quadratic datum to come from a noncommutative source and
-yields a useful vocabulary between the frame-blind no-go and direct global
-evaluation. Third, the constructive boundary: a public, refinement-blind Witt
+so any group model realizing $Q$ as its squaring map must be noncommutative;
+this yields a useful vocabulary between the frame-blind no-go and direct
+global evaluation. Third, the constructive boundary: a public, refinement-blind Witt
 frame turns the polar support into a matching, while each active original
 coordinate is a second matched pair whose local overlap has weight $q_j$. A
 local FIFO strategy proves that either seat forces zero correction parity on
@@ -95,10 +95,11 @@ That positive theorem is paired with two negative ones. Any
 transcript-stable exact realizer must observe vectors spanning the input; with
 weight-$w$ observations, a weight-$t$ input needs at least $t/w$ observations.
 Thus a constant total observation budget is impossible, and the construction's
-singleton source pairs attain the sharp support bound. Conversely, no
-existential ``strategic fork'' axiom can certify non-tautology: an
-outcome-preserving terminal padding makes a refinement-sensitive fork
-unavoidable in every finite normal-play tree. The result is an exact dichotomy
+singleton source pairs attain the sharp support bound. Conversely, the basic
+property ``there exists a refinement-sensitive winning fork'', even when the
+fork is required after every completed play, cannot certify non-tautology: an
+outcome-preserving terminal padding gives every finite normal-play tree that
+property. The result is an exact dichotomy
 under declared access disciplines, not a claim that an extensional outcome
 test can define the word ``natural'' by itself.
 \end{abstract}
@@ -117,9 +118,9 @@ direct stateful solver (\path{experiments/echo_solver.py}) re-derives the
 full $391{,}680$-check $m=8$ exactness sweep with zero misses. The
 verification record is in Section~\ref{sec:constructions}. The general theorem
 proved here is structural rather than extrapolated from that census. Lean
-kernel-checks the independent matching, adapted-algebra,
-compiler-equivalence, observation-lower-bound, and fork-padding lemmas used in
-the synthesis; the formal boundary is stated precisely in
+kernel-checks the independent all-exponent diagonal-source, matching,
+adapted-algebra, compiler-equivalence, observation-lower-bound, and
+fork-padding lemmas used in the synthesis; the formal boundary is stated precisely in
 Section~\ref{sec:validation}.
 
 \section{Scope}\label{sec:scope}
@@ -580,18 +581,17 @@ whose absolute trace from an even-degree extension vanishes. The Gold diagonal
 lives on the top Fermat layer only.
 \end{remark}
 
-\begin{question}
-Is the diagonal framing
+\begin{remark}[resolved diagonal-framing question]
+The diagonal framing
 \[
   q_i=Q_a(e_i)=\Tr(e_i^{1+2^a})
 \]
-itself game-natural for all $a$, in a way that yields a natural game with
-P-set $\{x:Q_a(x)=0\}$? Proposition~\ref{prop:wp} answers the
-\emph{sourcing} half explicitly for $a=1$, and
-Theorem~\ref{thm:all-diagonal-source} answers it constructively for every
-$a$; whether any acceptable source yields a non-tautological \emph{play rule}
-is the subject of the remaining sections.
-\end{question}
+is game-built for every $a$: Proposition~\ref{prop:wp} gives the explicit
+$a=1$ source, and Theorem~\ref{thm:all-diagonal-source} gives a constructive
+source for every exponent. The weighted-source Witt--FIFO theorem in
+Section~\ref{sec:wittfifo} supplies the formerly missing local normal-play rule
+with P-set $\{x:Q_a(x)=0\}$.
+\end{remark}
 
 \section{The extraspecial reframing}\label{sec:extraspecial}
 
@@ -603,9 +603,10 @@ use, to keep the note self-contained. Claim levels: Lemmas~\ref{lem:extdict},
 \ref{lem:arftypes}, \ref{lem:abelian} and
 Proposition~\ref{prop:between} are standard mathematics; the $R_8$
 instantiation in Corollary~\ref{cor:kernel} is implemented and tested
-(\path{experiments/misere_kernel.py}); reading $E$-equivariance as the right
-naturality criterion is interpretation; the existence of a game-native model
-of the extension is open.
+(\path{experiments/misere_kernel.py}); reading $E$-equivariance as a
+naturality criterion is interpretation. The weighted-source theorem below
+realizes the quadric without claiming that ordinary play itself is a model of
+the central extension $E$; that stricter extension-model question is optional.
 
 Throughout, $V=\F_2^n$ written additively, and $Z=\{1,z\}\cong\mathbb{Z}/2$
 written multiplicatively. A \emph{quadratic map} $Q\colon V\to\F_2$ is a
@@ -1185,9 +1186,9 @@ strategic content is confined to a Hamming ball of radius $c\,w_0$, and no
 bulk-decision-live realizer exists.
 \end{theorem}
 
-\begin{remark}[honest scope: five escape hatches]\label{rem:hatches}
+\begin{remark}[honest scope: five historical escape hatches]\label{rem:hatches}
 Theorem~\ref{thm:nolivemiddle} is relative to its hypotheses, and each
-hypothesis is an open experimental window:
+hypothesis exposed an experimental window during the no-go phase:
 \begin{enumerate}[leftmargin=*,itemsep=0pt]
 \item \emph{Loopy-Draw semantics}: the substitution contradiction of
 Theorem~\ref{thm:rigidity} does not fire (Draw-to-Draw edges are legal).
@@ -1207,8 +1208,10 @@ The quarantine hypothesis (R) is a choice with a justification: without
 quarantining the form-identifying datum, the descent evaluator is
 decision-live everywhere and no purely complexity-based no-go is possible.
 Whether game-built diagonal sources such as $\wp(w)$ count as ``probing''
-or ``feeding in'' the form is the central open definitional question of
-this program.
+or ``feeding in'' the form was the central definitional question of that
+program. Section~\ref{sec:criterion} replaces the vocabulary quarantine by
+the invariant transcript-span boundary, and Section~\ref{sec:wittfifo}
+attains it with an explicit local rule.
 \end{remark}
 
 \section{Local realization and the observation boundary}\label{sec:criterion}
@@ -1297,8 +1300,9 @@ Both forms are kernel-checked in
 \end{proof}
 
 \begin{theorem}[fork padding obstruction]\label{thm:forkpadding}
-No existential condition phrased only as a refinement-sensitive winning fork
-at a reachable, optimal, or even unavoidable position can certify that a
+The properties ``there exists a refinement-sensitive winning fork at a
+reachable position'' and the stronger variant requiring that fork after every
+original completed (hence every optimal completed) play do not certify that a
 finite normal-play realizer is non-evaluative. Every finite normal-play tree
 can be padded, without changing its root outcome, so that every completed play
 enters an always-$N$ two-action fork whose unique winning action swaps with one
@@ -1363,8 +1367,9 @@ $Q(v)$ in the basis then forces $Q(v)=0$, a contradiction.
 $(8,1,\lambda=2)$, and $20$ random refinements of each $B$ (the
 ``refinement uniformity certificate'';
 \texttt{experiments/gold/witness\_test.py} and companions). For $a=1$ the
-rule constants $q_i$ are game-native via Proposition~\ref{prop:wp}; for
-$a\geq2$ they are fed in, and game-nativity is open.
+rule constants $q_i$ are game-native via Proposition~\ref{prop:wp}; for every
+$a$ they are constructively game-built by
+Theorem~\ref{thm:all-diagonal-source}. T2 nevertheless remains a forced clock.
 
 T2 is, however, a forced clock: every legal move flips $Q$, play telescopes
 $Q(x)$ as a parity count, every position's options share one outcome class,
@@ -1697,6 +1702,7 @@ hyperbolic-plane step.
 \textbf{Rule (weighted-source \textsc{witt-fifo}).}
 Load a strategic coin $F_i$ for each $y_i=1$, with fixed public diagonal
 charge $p_i$. Join $F_{a_h}$ to $F_{b_h}$ exactly when both are loaded.
+Every loaded strategic Witt edge has weight one.
 For each original coordinate $x_j=1$, load in addition a q-blind source pair
 $S_j^0,S_j^1$. Its potential edge has local weight
 $q_j=O_q(e_j)$: opening one endpoint while its mate is already queued xors
@@ -1717,6 +1723,12 @@ After the queue is drained, add one ordinary normal-play claim move exactly
 when $\sigma=1\oplus\phi$, where $\phi$ is the current move-parity bit
 initialized to $0$ and toggled after every move.
 \end{quote}
+
+For a Gold form, Theorem~\ref{thm:all-diagonal-source} supplies
+$q_j=\Tr((w_a^2+w_a)e_j)$ for the source-pair weight. Definition~\ref{def:criterion}
+counts this as one weight-one oracle observation on an overlapping source
+OPEN. It does not claim that constructing $w_a$ by exact finite-field linear
+algebra, or evaluating its trace, is itself one primitive game move.
 
 The move-parity bit is not an evaluator or form oracle; it is already the
 mover field of the FIFO state. It is necessary for an identity-valued payoff
@@ -1850,7 +1862,8 @@ trees. In the present rule the coefficient of $q_j$ is the play-dependent
 overlap of $S_j^0,S_j^1$; refinement data therefore enters the same local
 interaction law as the polar edges, not a history-independent terminal bit.
 This is an intensional design fact, not an outcome-only certification:
-Theorem~\ref{thm:forkpadding} proves that no such certification is available.
+Theorem~\ref{thm:forkpadding} proves that the reachable and unavoidable fork
+properties do not provide such a certification.
 
 The rank-zero boundary is left undecorated. The same weighted-source rule still
 realizes the linear refinement exactly; there simply are no strategic Witt
@@ -1875,8 +1888,8 @@ ordinary normal-play P-set. It is not a bounded-total-observation rule:
 Theorem~\ref{thm:certificate} proves that no torsor-uniform exact rule can be
 one. Instead it attains the necessary support span exactly and uses every
 refinement bit as a local overlap weight. This is the sharp objective boundary;
-Theorem~\ref{thm:forkpadding} explains why no outcome-only fork screen supplies
-a further theorem of ``non-tautology''.
+Theorem~\ref{thm:forkpadding} explains why these outcome-only fork screens
+supply no further theorem of ``non-tautology''.
 
 \paragraph{Remaining generalizations.}
 The isolated-dummy arbitrary-graph linking theorem of
@@ -1908,9 +1921,12 @@ equivalence for the claim compiler; it does not construct a second explicit
 move-graph datatype. \path{formal/Ogdoad/GoldNoEvaluator.lean} checks the
 span/support observation lower bounds, and
 \path{formal/Ogdoad/GoldForkPadding.lean} checks outcome-preserving unavoidable
-fork padding. The paper supplies the joins between these independently checked
+fork padding. \path{formal/Ogdoad/GoldDiagonal.lean} checks the quadratic-tower
+trace reconstruction, absolute-trace descent, and finite-field
+Artin--Schreier exactness behind the all-exponent source. The paper supplies
+the joins between these independently checked
 lemmas; there is not a single end-to-end Lean theorem constructing the whole
-weighted arena. All five files contain no \texttt{sorry}, \texttt{admit}, or
+weighted arena. All six files contain no \texttt{sorry}, \texttt{admit}, or
 custom axioms.
 \item \texttt{cargo test} exercises the scalar arithmetic, Clifford product,
 Arf computation, quadratic fitting, misere machinery, and related invariant
@@ -1984,7 +2000,8 @@ both-seat safe-front theorem forces the exact charge in all dimensions, and
 the phase-aware claim lantern compiles it to normal play. Exactness itself
 forces every stable observation certificate to span the input, so the rule's
 support-sized singleton access is optimal; and unavoidable fork padding proves
-that semantic liveness cannot certify naturality. The
+that the reachable/optimal/unavoidable fork properties cannot certify
+naturality. The
 remaining arbitrary-graph FIFO contraction is a strict combinatorial
 generalization, not a gap in the Gold theorem.
 

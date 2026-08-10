@@ -58,10 +58,11 @@ dimension and a local claim lantern compiles forced charge to normal play.
 The negative boundary is equally exact: every transcript-stable exact rule
 must observe vectors spanning the input, so no constant total observation
 budget works in unbounded dimension and the rule's active singleton support is
-optimal. Outcome-preserving unavoidable fork padding proves that no semantic
-liveness axiom alone defines non-tautology. The proof is in
-`writeups/goldarf.tex`; five Lean modules check its independent matching,
-algebra, compiler, observation, and padding ingredients.
+optimal. Outcome-preserving unavoidable fork padding proves that the basic
+reachable, optimal, and unavoidable fork properties do not define
+non-tautology. The proof is in
+`writeups/goldarf.tex`; six Lean modules check its independent diagonal-source,
+matching, algebra, compiler, observation, and padding ingredients.
 
 The implemented bridge is already concrete. In a finite nimber field,
 
@@ -98,8 +99,9 @@ Why this was research:
 - Frame-blind rules are too symmetric, while rules with a constant total
   outcome certificate cannot be exact at dense inputs. The resolved boundary
   is a fixed local-interaction rule attaining the necessary observation span;
-  no outcome-only fork test can strengthen that statement into an invariant
-  definition of the adjective "natural".
+  the basic reachable, optimal, and unavoidable outcome-only fork tests cannot
+  strengthen that statement into an invariant definition of the adjective
+  "natural".
 
 The lexicode shadow (standard math + interpretation; the solved linear case):
 
@@ -196,13 +198,18 @@ Historical program state (2026-06-10 — retained as proof provenance):
   and unavoidable variants. The transcript-span theorem is the replacement.
 - A no-go ladder (Theorems B–H) kills Tier 1 outright and shows every known
   in-quarantine Tier-2 normal-play realizer is a clock. Five named escape hatches
-  remain: loopy-Draw semantics, `t ≥ 2r−2` with anisotropic complement,
+  were catalogued: loopy-Draw semantics, `t ≥ 2r−2` with anisotropic complement,
   Frobenius-aware access (where both the symmetry and oracle methods are provably
   silent), non-quarantined rules using the game-native `℘` diagonal source, and
   rank-1 / radical-anisotropic degenerate layers.
 - The abelian obstruction conjectured here is now Lemma `abelian` in the draft:
   no commutative game monoid's intrinsic squaring realizes a nondegenerate polar
   form, so the quadratic datum must come from the move relation's directedness.
+- The formerly open even-`a` diagonal source is closed for every exponent
+  (`writeups/gold_diagonal_source.tex`). The exact quadratic-tower recursion
+  makes the unscaled trace-dual descend to the half-field, hence its absolute
+  trace vanishes and it is `w²+w`. This supplies the whole Gold diagonal by
+  game operations; weighted-source Witt--FIFO supplies the separate play rule.
 - The leading Tier-2 candidate was the `echo`-ko charge-counting family on the
   extraspecial cocycle, and its `echo`-`fifo`+dummy variant is now **verified**
   (2026-06-10, pre-registered adversarial review, `experiments/echo_solver.py`):
@@ -695,11 +702,13 @@ The naturality dichotomy:
   subgames with inputs driven by `x`, its P-condition is exactly `{Q_a = 0}`.
   That is more structured than a lookup table, but the form is still fed in rather
   than produced by autonomous play.
-- **Tier 2: fixed-rule middle: open.** Positions should be indexed by field
-  elements, with one rule independent of the chosen `x`, and the single-position
-  Grundy-zero / kernel / Loss / Draw set should be `{Q_a = 0}`. The rule may use
-  the nim product, Frobenius, or coordinate-frame data if a naturality criterion
-  justifies them, but it must not simply evaluate `Q_a(x)`.
+- **Tier 2: fixed-rule middle: resolved.** Weighted-source Witt--FIFO is one
+  q-blind structural rule for every `x`: it uses a public Witt frame, matched
+  source pairs, singleton-local transition weights, and a phase-aware terminal
+  claim. Its ordinary normal-play P-set is `{Q_a = 0}`. The transcript-span
+  theorem gives the exact invariant boundary: dense inputs cannot have a
+  constant total outcome certificate, and the construction's active singleton
+  support attains the necessary span.
 
 The extraspecial-group reframing (interpretation; explains the misère obstruction):
 
@@ -767,18 +776,23 @@ Closure of the former progress targets:
 - ~~Repair or replace the anti-evaluator screen~~ — **done as a boundary
   theorem, not another N3**. Exactness forces transcript observations to span
   the input; constant total observation is impossible. Unavoidable fork
-  padding proves that every outcome-only strategic-liveness repair remains
-  decoration-vulnerable.
+  padding proves that the basic reachable, optimal, and unavoidable
+  strategic-liveness repairs remain decoration-vulnerable.
 - ~~Exhibit the fixed uniform local rule~~ — **done** by weighted-source
   Witt--FIFO, with q-blind statics, `(w0,c)=(1,1)` transitions, the optimal
   singleton observation support, and ordinary normal-play P-set `{Q=0}`.
+- ~~Construct an Artin--Schreier source for every Gold diagonal~~ — **done** by
+  the half-field descent theorem and `gold_diagonal_artin_schreier_source`, for
+  every exponent and every supported tower through `m = 128`.
 - Family-boundary sweeps, Frobenius-aware enumeration, conjugation rules, and
   the Plambeck--Siegel regularity check remain useful historical calibrations,
   not conditions on the existence theorem.
 
 Relevant surfaces:
 - `writeups/goldarf.tex`
+- `writeups/gold_diagonal_source.tex`
 - `writeups/linking_affine.tex`
+- `formal/Ogdoad/GoldDiagonal.lean`
 - `experiments/open_question_probe.py`
 - `experiments/framing_obstruction.py`
 - `experiments/gold_family_survey.py`

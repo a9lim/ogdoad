@@ -175,8 +175,9 @@ subclass needed by the resolved Gold construction:
   state at the designated seat's turn, or at a safe opponent front;
 - `evenWins_initial_of_matching` proves that either seat forces zero flip
   parity from the empty-queue root, without a dummy; and
-- the explicit hyperbolic-plus-radical graph and induced-subgraph lemmas connect
-  a public Witt frame and every loaded input support to that theorem.
+- the abstract hyperbolic-plus-radical graph and induced-subgraph lemmas provide
+  the matching target; the paper supplies the concrete Witt-frame and loaded-
+  support instantiation.
 
 This does **not** prove the arbitrary-graph isolated-dummy conjecture.  It
 shows instead that the conjecture is an unnecessary strengthening for Gold.
@@ -216,19 +217,22 @@ coordinate frame it proves
 weight(x) <= number of observations * maximum observation weight
 ```
 
-and rules out uniform exactness under a bounded total certificate. The
+and rules out uniform exactness under a bounded total certificate. The paper's
 weighted-source rule uses exactly the active singleton directions and attains
 this support bound.
 
-[`Ogdoad/GoldForkPadding.lean`](Ogdoad/GoldForkPadding.lean) proves that
-strategic-fork axioms cannot define non-tautology extensionally. It replaces
-every terminal P-node of an arbitrary finite normal-play tree by an
-outcome-equivalent forced wrapper leading to an always-N refinement-sensitive
-fork, and `win_padTerminals` proves the root outcome is unchanged.
+[`Ogdoad/GoldForkPadding.lean`](Ogdoad/GoldForkPadding.lean) proves generic
+Bool-parameter fork padding. It replaces every terminal P-node of an arbitrary
+finite normal-play tree by an outcome-equivalent forced wrapper leading to an
+always-N swapping fork, and `win_padTerminals` proves the root outcome is
+unchanged. The paper instantiates the Bool as a chosen refinement bit and
+draws the fork-screen corollary.
 
 These files kernel-check independent ingredients of the synthesis in
 `writeups/goldarf.tex`; there is no single end-to-end Lean theorem constructing
 the weighted-source arena and connecting every layer. In particular they do
 not encode finite-field nim arithmetic, construct the standard Witt basis,
 instantiate its concrete matrix coefficients, or build the compiled arena as a
-second explicit move-graph datatype.
+second explicit move-graph datatype. `TranscriptStable`, `twist`, and `observe`
+are abstract assumptions in Lean; their weighted-arena instantiation is also
+part of the paper's synthesis.

@@ -103,8 +103,8 @@ beat.
   singleton directions attain that bound. A constant total certificate is
   impossible in unbounded dimension.
 - anti-decoration boundary: replacing every terminal by a forced wrapper into
-  a refinement-sensitive two-action fork preserves every root outcome. Thus no
-  reachable, optimal, or unavoidable fork axiom can define non-tautology; the
+  a refinement-sensitive two-action fork preserves every root outcome. Thus
+  the basic reachable, optimal, and unavoidable fork properties cannot define non-tautology; the
   rule's weighted-interaction syntax and access discipline are stated directly.
 - formal core: `formal/Ogdoad/FifoMatching.lean` proves the both-seat matching
   strategy; `GoldMatchingAlgebra.lean` proves abstract adapted identities;

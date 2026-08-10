@@ -338,9 +338,14 @@ claim move compiles it to ordinary normal play. Exactness forces every stable
 observation certificate to span the input, so the support-sized singleton
 interface is optimal and a constant total budget is impossible. A separate
 padding theorem proves that strategic-liveness tests cannot define
-non-tautology extensionally. The older echo-fifo+dummy census remains useful
+non-tautology when those tests are the basic reachable, optimal, or unavoidable
+fork properties. The older echo-fifo+dummy census remains useful
 historical evidence, and its arbitrary-graph linking conjecture is now an
 optional strict generalization rather than a Gold premise.
+
+The diagonal inputs are game-built at every Gold exponent, not merely assumed:
+the quadratic-tower theorem makes each unscaled trace-dual an
+Artin--Schreier value `w²+w`, constructively through the supported nim tower.
 
 The rest of the board, briefly:
 
@@ -428,7 +433,7 @@ Scope boundaries, stated plainly:
   give an ordinary normal-play P-set `{Q = 0}`. A sharp theorem says every
   transcript-stable exact rule must observe vectors spanning the input, so no
   constant total observation budget can work; unavoidable fork padding also
-  rules out semantic liveness as a definition of non-tautology. See
-  `writeups/goldarf.tex` and the five Gold/FIFO proof modules.
+  rules out the basic fork properties as definitions of non-tautology. See
+  `writeups/goldarf.tex` and the six Gold/FIFO proof modules.
 
 License: AGPL-3.0-or-later (see `LICENSE`).

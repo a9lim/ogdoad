@@ -4,10 +4,11 @@ import Mathlib.Data.Bool.Basic
 # Compiling a forced charge to normal play
 
 The Gold FIFO construction first produces a finite perfect-information tree
-whose leaves carry a Boolean charge. This file proves that a uniform local
-claim move turns any such tree into an ordinary normal-play game without
-changing who can force the designated charge. It also records exact boundaries
-for the naturality criterion.
+whose leaves carry a Boolean charge. This file proves winner equivalence for
+the recursive evaluator corresponding to retaining every move and adding a
+uniform local claim at each terminal; it does not construct a second explicit
+move-graph datatype. It also records exact boundaries for the naturality
+criterion.
 -/
 
 
