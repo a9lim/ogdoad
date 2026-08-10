@@ -21,7 +21,9 @@ The local ancestry layer also records score-translation equivariance and the
 exact singleton-queue OPEN/CLOSE reconvergence after one further OPEN.  These
 transport a chosen ko-wall square through a shared continuation; they do not
 assert the still-open global selection of compatible squares across a full
-strategy fan.
+strategy fan.  An abstract fixed-front closure game separately kernel-checks
+the affine no-separation recurrence and its sharp distinguished-leaf failure;
+it deliberately omits the descendant continuation cosets which remain open.
 -/
 
 namespace Ogdoad.Fifo

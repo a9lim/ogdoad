@@ -142,6 +142,10 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 - score-translation equivariance for every transition, its exact
   even/odd strategy-sheet equivalences, and the singleton-wall reconvergence
   of `C_f; O_z; O_w` with `O_z; C_f; O_w` after the next real OPEN;
+- the abstract fixed-front closure recursion, including kernel-checked
+  exclusion of every affine sheet-one separator at a defender root and the
+  sharp sheet-zero policy showing why a designated immediate-close leaf
+  cannot generally be retained;
 - strict rank descent, absence of nonterminal stuck states, and preservation of
   the queue/untouched invariant;
 - an explicit existential/universal finite strategy tree;
