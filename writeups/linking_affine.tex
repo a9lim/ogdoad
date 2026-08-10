@@ -160,6 +160,12 @@ unit closes on the selected branch and wholly neutral off-spine subtrees.
 The same mutual star induction proves that the four-real core cap graph with
 the isolated dummy is nevertheless root-safe from both seats, locating the
 escape in its earlier defender siblings rather than in the local cone.
+Using the complete relative-spine frontier, those siblings can now be proved
+to carry the entire live $y$-star: otherwise a separating star functional
+would replay the fixed policy as an odd strategy on a star-plus-isolates
+board, contradicting that both-seat induction.  The (B$'$) obstruction is
+therefore reduced to a canonical Schur class supported strictly away from
+$y$; killing that remaining class is still open.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
@@ -1480,19 +1486,20 @@ enough incidence information.
 For the cap's four-real core graph, the necessary earlier response can be given
 uniformly rather than found by search.
 
-\begin{proposition}[star plus dummy, both seats]
+\begin{proposition}[star plus isolates, both seats]
 \label{prop:star-root}
 \PROVED{} Let $B$ be a star with center $x$ and any finite leaf set $L$,
-together with one isolated dummy $d$.  From the empty root, the
+together with a nonempty finite set $I$ of isolated vertices, one designated
+as the dummy $d$.  From the empty root, the
 zero-seeking player has a strategy from either seat under which every realized
 CLOSE has charge zero.
 \end{proposition}
 
 \begin{proof}
 Once $x$ is open, let $k$ be the number of neutral queued vertices ahead of
-$x$ (leaves and, if present there, $d$), let $m$ be the number of untouched
-star leaves, and record separately whether $d$ is untouched.  The only move
-which can carry charge is $C_x$, with charge $m$.  Use the mutual star
+$x$ (leaves or isolates), let $m$ be the number of untouched star leaves,
+and let $i$ be the number of untouched isolates.  The only move which can
+carry charge is $C_x$, with charge $m$.  Use the mutual star
 induction established in the proof of Proposition~\ref{prop:bad-open-fan}:
 at a controller turn,
 close $x$ when $k=0$ and $m$ is even, open a leaf when $m>0$ and either
@@ -1500,18 +1507,18 @@ $k>0$ or $m$ is odd, and close a neutral prefront when $k>0,m=0$.
 At an opponent turn the same induction is valid whenever $k>0$ or $m$ is
 even.  An opponent OPEN or prefront CLOSE strictly lowers
 \[
- k+m+\mathbf 1_{\{d\text{ untouched}\}},
+ k+m+i,
 \]
 and an available $C_x$ has even charge.  The ko-set singleton-$x$ case is
 entered only through the root prescriptions below; its forced OPEN lowers the
 same rank, while the terminal singleton pass/drain has zero charge.
 
 If the controller moves first, open $x$.  Ko forces the opponent to open a
-leaf or $d$; the resulting controller state enters the unconditional half of
+leaf or an isolate; the resulting controller state enters the unconditional half of
 the induction.  If the controller moves second, answer an initial $O_x$ by
-opening a leaf when $|L|$ is odd and by opening $d$ when $|L|$ is even;
-answer an initial leaf OPEN or $O_d$ by $O_x$.  The resulting opponent state
-has respectively even $m$, positive $k$, or positive $k$, so again lies in
+opening a leaf when $|L|$ is odd and by opening any isolate when $|L|$ is even;
+answer an initial leaf or isolate OPEN by $O_x$.  The resulting opponent state
+has either even $m$ or positive $k$, so again lies in
 the induction domain.  (When $L$ is empty the first prescription uses $d$.)
 Before $x$ opens no edge can score, and afterward the induction makes $C_x$
 even.  Hence every CLOSE has charge zero.
@@ -1524,6 +1531,153 @@ separate processed vertex $p$ and edge $py$ used only to exhibit a reachable
 odd prefix.  What remains is not to defeat the isolated core cap again, but to
 show that extra ancestry edges which sustain its earlier sibling branches
 necessarily contribute the missing generators to $M_h$.
+
+They do force one complete coordinate block.  This is the first genuinely
+global relative incidence statement in the (B$'$) analysis.
+
+\begin{proposition}[relative live-star incidence]
+\label{prop:relative-live-star-incidence}
+\PROVED{} Retain the notation of (B$'$), let $h=h_s$ be the distinguished
+minimum child of the ko fan at $g$, and let $h_z$ be its child after the
+defender OPEN $O_z$, $z\in U$.  Put $A=\{x\}\sqcup U$ and let
+$P_y$ project an edge moment to the coordinates $\{ya:a\in A\}$, identified
+with $\F_2^A$.
+
+For each $z$, choose a terminal representative $n_z$ below the neutral tail
+following the prescribed $C_x$.  If $r\ne s$, then
+\begin{equation}\label{eq:bprime-all-but-one-fan}
+ d_r:=\sum_{z\ne r}b_{h_z}
+ =\Gamma_e+yA+xr+\sum_{z\ne r}n_z
+ \in b_h+M_h,
+ \qquad P_y(d_r)=A.
+\end{equation}
+Moreover
+\begin{equation}\label{eq:bprime-live-star-incidence}
+ A\in P_y(M_h).
+\end{equation}
+Consequently, after choosing $m_y\in M_h$ with $P_y(m_y)=A$, the class
+\begin{equation}\label{eq:bprime-away-schur}
+ \omega_r=[d_r+m_y]\in
+ \ker(P_y)/(M_h\cap\ker(P_y))
+\end{equation}
+is independent of $m_y$ and vanishes exactly when $b_h\in M_h$.
+Thus the remaining (B$'$) obstruction is strictly away from the live
+$y$-star.
+\end{proposition}
+
+\begin{proof}
+The path from $e$ to $h_z$ first closes $y$ against $A$, then closes $x$
+against $U-\{z\}$.  At $e$ every vertex of $A$ is still untouched and $y$
+has not closed, so $P_y(\Gamma_e)=0$; no later event after $C_y$ contains a
+$y$-coordinate.  Hence
+\[
+ b_{h_z}=\Gamma_e+yA+x(U-\{z\})+n_z.
+\]
+Give coefficient one to every ko child except $h_r$.  Since $|U|$ is even,
+this is an odd child flow; it contains $h_s$ and uses an even number of the
+other off-spine children.  It therefore represents the relative coset
+$b_h+M_h$.  Summing the displayed formula and using
+$\sum_{z\ne r}x(U-\{z\})=xr$ proves
+\eqref{eq:bprime-all-but-one-fan}.
+
+Suppose that \eqref{eq:bprime-live-star-incidence} fails.  Choose a linear
+functional $\ell$ on $\F_2^A$ which annihilates $P_y(M_h)$ and satisfies
+$\ell(A)=1$.  Every continuation space $W_q$ at the relative-spine frontier
+lies in $M_h$, so $\ell P_y$ is constant on the terminal affine set below
+$q$.  The excluded ko child $h_r$ is an off-spine reference with
+$P_y(b_{h_r})=A$.  For every other off-spine frontier state $q$,
+$b_q+b_{h_r}\in E_{\rm off}(h)\subseteq M_h$, and therefore
+\[
+ \ell P_y(b_q)=\ell(A)=1.
+\]
+Equation~\eqref{eq:bprime-all-but-one-fan} gives the same value at the
+distinguished state $h$.  Since this frontier meets every terminal branch,
+every terminal history in the fixed attacker response tree has
+$\ell P_y(D)=1$.
+
+Replay that history-indexed policy on the support graph whose only real edges
+are $ya$ for which $\ell(a)=1$; all other real vertices remain isolated,
+including the designated dummy.  Legality is graph-independent, so the same
+response-history tree is obtained, and its terminal scalar score is always
+one.  But the new graph is a star plus isolates.  Proposition~\ref{prop:star-root}
+gives the opposing player an all-zero-charge strategy from the same seat,
+a contradiction.  This proves \eqref{eq:bprime-live-star-incidence}.
+
+Finally $d_r+m_y$ has zero $P_y$-projection.  Two choices of $m_y$ differ by
+an element of $M_h\cap\ker(P_y)$, so \eqref{eq:bprime-away-schur} is
+well-defined.  It vanishes precisely when $d_r\in M_h$, which, because
+$d_r\in b_h+M_h$, is equivalent to $b_h\in M_h$.
+\end{proof}
+
+The complete first-response forest still cannot kill
+\eqref{eq:bprime-away-schur}.  If an $e\to O_v$ branch first selects
+$O_{w_v}$ and the defender then closes $y$, its live-star column is
+$v+w_v$.  Every such column has even coordinate augmentation, whereas $A$
+has odd augmentation.  Hence an even combination of these truncated branches
+cannot produce $A$: the proof of
+Proposition~\ref{prop:relative-live-star-incidence} necessarily uses deeper
+continuation directions or genuinely earlier defender siblings.
+
+The next marginal is only two-dimensional, but it is genuinely relative.
+Put
+\[
+ K_y=\ker P_y,\qquad M_0=M_h\cap K_y,
+\]
+choose $m_*\in M_h$ with $P_y(m_*)=A$, and let $P_x$ project to the live
+coordinates $\{xu:u\in U\}$.  Since $\Gamma_e$ has no live $A$--$A$
+coordinate and every $n_z$ begins after $x$ closes,
+\begin{equation}\label{eq:bprime-second-star}
+ P_x(d_r)=e_r,qquad
+ \xi_r=[e_r+P_x(m_*)]\in\F_2^U/P_x(M_0).
+\end{equation}
+For distinct off-spine ko siblings $z,w\ne s$,
+\[
+ b_{h_z}+b_{h_w}\in M_0,qquad
+ P_x(b_{h_z}+b_{h_w})=e_z+e_w.
+\]
+Consequently
+\begin{equation}\label{eq:bprime-even-x-star}
+ \operatorname{Even}(U-\{s\})\subseteq P_x(M_0).
+\end{equation}
+Every dual functional on the quotient in
+\eqref{eq:bprime-second-star} is therefore constant, say $t$, on
+$U-\{s\}$, with one independent value $b$ at $s$.
+
+This two-bit description respects the full relative space, not only its
+projection.  If such a functional $\psi$ separates $\xi_r$, then
+$\psi P_x$ annihilates $M_0$, so its restriction to $M_h$ factors through
+$P_y(M_h)$.  Extend that factor to a functional $\lambda$ on the whole
+$y$-star space.  Then
+\[
+ B_*=\psi P_x+\lambda P_y\in M_h^\perp,
+ \qquad B_*(b_h)=1.
+\]
+If $c$ is its common value on every off-spine frontier cylinder, comparison
+with any ko sibling gives
+\begin{equation}\label{eq:bprime-two-bit-colour}
+ c=1+b+t.
+\end{equation}
+When $b=t$, separation forces $b=t=1$: this is the global all-$U$ $x$-star,
+or universal-cone colour.  When $b\ne t$, the distinguished cylinder has
+value one and every off-spine cylinder value zero, so the root replay used in
+Proposition~\ref{prop:relative-live-star-incidence} gives no contradiction.
+
+Equivalently, with
+\[
+ \bar X=\F_2^U/\operatorname{Even}(U-\{s\}),\qquad
+ J=(P_y,\bar P_x),
+\]
+the next joint incidence target is
+\begin{equation}\label{eq:bprime-joint-two-bit}
+ (A,\bar e_r)\in J(M_h).
+\end{equation}
+The live-star theorem proves only its first marginal; the neutral tails map
+to $(0,0)$ and ko-sibling differences only to $(0,\operatorname{Even})$.
+Thus repeated marginal star elimination does not descend to a smaller board.
+An earlier sibling carrying the $y$-correction $A$ together with the selected
+$x$-bit $\delta_s$ is exactly the missing second-stage coefficient.  Even
+after \eqref{eq:bprime-joint-two-bit}, coordinates away from both stars would
+still have to be contracted.
 
 The first earlier sibling already exposes why ordinary smaller-board
 induction does not do this.  In the genuine degree-one ancestry, consider

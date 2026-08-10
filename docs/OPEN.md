@@ -447,9 +447,28 @@ Historical program state (2026-06-10 — retained as proof provenance):
   insufficient.  The four-real core cap graph itself is not a counterexample:
   this excludes the separate processed `p` and ancestry edge `py`.  The existing
   mutual star induction gives a symbolic both-seat, all-zero-charge root
-  strategy for every star plus an isolated dummy.  Extra edges needed to
-  sustain the earlier sibling branches must therefore be used, rather than
-  discarded, by the remaining relative-spine argument.  The first exact
+  strategy for every star plus any nonempty set of isolates.  The complete
+  earlier relative-spine frontier now yields a genuine global incidence
+  theorem: it carries the entire live `yA` star.  Otherwise a linear
+  functional separating that star from `P_y(M_h)` would have value one on
+  every frontier cylinder (the second ko child fixes the off-spine constant),
+  so replaying the history policy on its support star would force odd score,
+  contradicting the both-seat star strategy.  After choosing
+  `m_y in M_h` with `P_y(m_y)=yA`, the sole remaining `(B')` obstruction is
+  the well-defined away-star Schur class
+  `[d_r+m_y] in ker(P_y)/(M_h intersect ker(P_y))`; it vanishes exactly when
+  the selected leaf belongs to `M_h`.  A truncation at the first off-spine
+  response cannot prove this incidence—its columns are only even-weight
+  `v+w_v`—so the global argument genuinely uses deeper or earlier siblings.
+  Projecting the away-star class once more to the live `xU` star leaves only
+  two bits: ko-sibling differences supply every even vector on `U-{s}`, so a
+  dual obstruction is constant off the selected puncture `s`.  Equal bits
+  recover the universal-cone colour; unequal bits give the genuinely relative
+  pattern `h=1` and every off-spine cylinder `=0`.  The exact next target is
+  the *joint* incidence `(yA, delta_s)` in the image of `M_h`, not either
+  marginal separately.  Neutral tails and ko differences cannot supply that
+  correlation, and coordinates away from both stars remain afterward.
+  The first exact
   degree-one sibling explains the difficulty: on its `C_p,O_x,O_d,C_y`
   branch one reaches `Q=(x,d), U=H`, with `H` even Eulerian.  Closing `x,d`
   exposes the no-dummy empty-root force set `T(H)`, while the neutral puncture
