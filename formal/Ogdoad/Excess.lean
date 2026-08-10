@@ -245,6 +245,24 @@ theorem cubic_exceptional_residue_mod (a n : Nat) (t r : ZMod (3 * n))
   · exact ht
   · exact hr
 
+section TraceTower
+
+variable {F K L : Type*} [Field F] [Field K] [Field L]
+variable [Algebra F K] [Algebra K L] [Algebra F L] [IsScalarTower F K L]
+variable [Module.Free F K] [Module.Finite F K]
+variable [Module.Free K L] [Module.Finite K L]
+
+/-- A vanishing relative trace forces the absolute trace to vanish.  This is
+the formal transitivity step behind the cubic arm's trace-zero obstruction:
+the selected `gamma_k` has relative trace zero at every cubic step. -/
+theorem absolute_trace_eq_zero_of_relative_trace_eq_zero (x : L)
+    (htrace : Algebra.trace K L x = 0) :
+    Algebra.trace F L x = 0 := by
+  rw [← Algebra.trace_trace (R := F) (S := K) (T := L), htrace]
+  exact LinearMap.map_zero (Algebra.trace F K)
+
+end TraceTower
+
 /-- The parity obstruction preventing a semiprimitive Gauss-sum evaluation
 of the exceptional arm's surviving mixed character.  At a current prime,
 the `ℓ`-component forces a minus-one Frobenius exponent to be congruent to

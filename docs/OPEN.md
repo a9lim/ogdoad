@@ -293,9 +293,11 @@ absolute boundedness.
 - **`C`.** The first three levels are proved analytically. Norm recursion,
   cyclic parity, primitive-CRT isolation, mixed Jacobi expansion,
   Singer–Wendt factorization, `S_3` descent, and the prescribed-trace character
-  formulation all agree on one selected top-component test. Generic Wendt
-  factors and other trace fibres attain every structural value used by the
-  obvious bounds.
+  formulation all agree on one selected top-component test. Both distinguished
+  period coordinates have absolute trace zero and are not normal, so
+  primitive-normal and normal-Gaussian-period theorems do not apply. Generic
+  Wendt factors and other trace fibres attain every structural value used by
+  the obvious bounds.
 - **`D`.** The corrected norm, current-factor formulation, quadratic-twist
   antiunit, mixed-Jacobi and binary-parity criteria, reciprocal sextic, and
   Dickson factorization reduce the arm to one selected cubic. The ambient

@@ -191,7 +191,8 @@ proof for \(k\leq3\); partition order bounds; exact derivative
 regulator, exceptional ray-character quotient, real-square resultant,
 reciprocity boundary, cyclic-parity obstruction, and
 augmentation-ideal and block normalization; Singer--Wendt factorization
-and selected \(S_3\)-trace quotient; reciprocal order seam and
+and selected \(S_3\)-trace quotient; absolute trace-zero and non-normality;
+reciprocal order seam and
 prescribed-trace character boundary &
 exclusion of the selected Wendt/trace fibre at the remaining current
 factors \\
@@ -3962,6 +3963,40 @@ raising to $q_k-1$ kills the old-field component and is an automorphism
 on $U_k$, since $\gcd(q_k-1,q_k^2+q_k+1)=1$.  Therefore the kernel
 component of $\gamma_k$ generates $U_k$ exactly when $\eta_k$ does;
 Proposition~\ref{prop:norm-kernel-seam} gives \((**)\).
+\end{proof}
+
+\begin{proposition}[absolute-trace obstruction to normal-period arguments]
+\label{prop:cubic-trace-zero}
+For every $k\geq1$ one has
+\[
+ \operatorname{Tr}_{L_k/\F_2}(\gamma_k)=0,
+ \qquad
+ \operatorname{Tr}_{L_k/\F_2}(\eta_k)=0.
+\]
+Consequently neither $\gamma_k$ nor $\eta_k$ is normal over $\F_2$.
+In particular, a theorem whose hypothesis is that the selected Gaussian
+period is normal cannot prove the cubic arm for this family.
+\end{proposition}
+
+\begin{proof}
+The relative minimal polynomial of $\gamma_k$ over $L_{k-1}$ is
+$X^3+X+\gamma_{k-1}$.  Its quadratic coefficient is zero, so
+\[
+ \operatorname{Tr}_{L_k/L_{k-1}}(\gamma_k)=0.
+\]
+Trace transitivity gives the first equality.  By
+Proposition~\ref{prop:eta-tower}, the relative minimal polynomial of
+$\eta_k$ has quadratic coefficient $\eta_{k-1}$; in characteristic two,
+\[
+ \operatorname{Tr}_{L_k/L_{k-1}}(\eta_k)=\eta_{k-1}.
+\]
+Iterating trace transitivity reduces the absolute trace to that of
+$\eta_0=0$, proving the second equality.
+
+If either element were normal, its full absolute-Frobenius orbit would be
+an $\F_2$-basis of $L_k$.  The sum of that orbit is the absolute trace, so
+trace zero would give the nontrivial all-ones linear relation among the
+basis vectors.  This is impossible.
 \end{proof}
 
 \begin{proposition}[Singer-orbit sieve]\label{prop:singer-sieve}
@@ -12754,6 +12789,11 @@ Proposition~\ref{prop:cubic-prescribed-trace} makes the last coordinate
 one extremal value \(\Theta_\chi(\eta_{k-1})=3\).  Other Singer trace
 fibres genuinely attain \(3\), so uniform character bounds cannot close
 the selected fibre.
+Proposition~\ref{prop:cubic-trace-zero} also proves that both selected
+period coordinates have absolute trace zero and are not normal.  Thus
+primitive-normal and normal-Gaussian-period theorems do not apply to the
+actual cubic sequence; normality is not a missing route to the selected
+Kummer value.
 Proposition~\ref{prop:cubic-previous-singer-lift} further proves that
 every point of the preceding Singer set has exactly one current
 three-point trace fibre.  Thus preceding Singer membership and
