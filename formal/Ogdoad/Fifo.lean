@@ -4002,6 +4002,20 @@ theorem TreeNeutralWins.toEvenWins
   | answer s hplayer hasMove _ _ ih =>
       exact EvenWins.answer s hplayer hasMove ih
 
+/-- At an opponent-controlled node of a neutral tree, every legal move both
+preserves the score and leads to another neutral subtree. -/
+theorem TreeNeutralWins.answer_child
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {player : Bool} {s s' : State V}
+    (h : TreeNeutralWins G player s) (hturn : s.toMove ≠ player)
+    {m : Move V} (hstep : step G s m = some s') :
+    s'.score = s.score ∧ TreeNeutralWins G player s' := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨m, s', hstep⟩)
+  | choose _ hplayer _ _ _ _ _ => exact False.elim (hturn hplayer)
+  | answer _ _ _ hneutral hwin => exact ⟨hneutral m s' hstep, hwin m s' hstep⟩
+
 /-- If every node of one explicit odd strategy subtree is already on score
 sheet one, translating the subtree by one produces a completely score-neutral
 strategy for the same physical player.  This is the direct interface used

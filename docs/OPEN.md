@@ -468,6 +468,33 @@ Historical program state (2026-06-10 — retained as proof provenance):
   through order eight; off the Euler locus it fails already on four live
   vertices.)  Thus the `(B)` proof must use its simultaneous family of
   punctured neutral trees, not determinacy or Eulerianity at one ordered pair.
+  That full family has a proved row contraction: at `Q=(x,y)` its selected
+  neutral move either grounds `C_x` on `xy=0`, or opens a vertex `z` with
+  `xz=xy`, after which the universal `C_x` child is neutral on the smaller
+  ordered pair `(y,z)`.  It also supplies a neutral short root `T(H-x)`.
+  Opening its first `y` places that short policy at ko-singleton `(y)` against
+  the hypothetical full-row odd policy at long queue `(x,y)`, exactly the
+  one-front-offset wall.  Only a long initial OPEN has a common OPEN which
+  enters the clear offset recurrence.  A long initial CLOSE instead removes
+  the token, after which one common defender OPEN reconverges the copies
+  diagonally (or the empty tail drains); it therefore lands immediately in
+  the same-state continuation-flex obstruction.  Eulerianity kills the complete `x`-star sum; the
+  unresolved step is proving that the strategy-pruned ladder has the required
+  even token-OPEN incidence.  More exactly, one coupled trunk records a rooted
+  ancestry tree: use `xy` as the cut-equivalent seed for the initial `xU`,
+  then attach each common OPEN `z` to the current offset token `a` by `az`;
+  crossed CLOSEs only change the token.  It spans all vertices only in the
+  full-drain case, and its pairing measures only the first diagonal/drain
+  checkpoint.  A single such tree need not pair evenly with an Euler graph,
+  nor do the different terminal targets force an odd pairing at a nonterminal
+  diagonal because the same player may choose different continuations there.
+  The missing global lemma must first define a recursive comparison past those
+  diagonals and promote unused defender children to a branching response
+  family, then extract an odd subfamily whose XOR is a cut.  Unrestricted
+  recursion after a diagonal is not itself progress: the sum of the two odd
+  continuation cosets meets the cut space exactly when their cut-quotient
+  projections intersect, which is the original decorated-frontier common-coset
+  problem.  Earlier off-spine sibling spaces must therefore enter essentially.
 - The conditioned close-first tail is now closed without a dummy hypothesis.
   From any coherent clear defender state with nonempty queue, a close-first
   attacker cannot force future flip parity one.  A minimum-rank proof opens

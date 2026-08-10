@@ -149,6 +149,10 @@ selected unit CLOSE to have a completely score-neutral translated tail.
 The Bellman residual and accumulated score are complementary along that tree,
 so every minimum (B) child supplies such a tail; the resulting complete family
 of punctured singleton tails makes the even untouched remainder Eulerian.
+One neutral ordered pair can still coexist with an odd strategy on an
+Euler graph (first at order ten), but the full family retains a row-wise
+same-colour contraction and supplies the coherent short root of the offset
+ladder.
 The scalar minimum independently rules out an immediate off-spine unit close.
 A four-real star cap with a reachable odd prefix
 nevertheless satisfies all of those strengthened local conditions, with two
@@ -1602,6 +1606,163 @@ ordered pair.  Any proof of the universal-full-fan kernel must use the
 \emph{simultaneous family} of punctured neutral trees, or their correlated
 continuation spaces, rather than determinacy or Eulerianity at an individual
 pair.
+
+The simultaneous family does retain one exact row-wise coherence which the
+counterexample lacks.
+
+\begin{proposition}[neutral row contraction]
+\label{prop:neutral-row-contraction}
+\PROVED{} Let $H$ be Eulerian and suppose the attacker has a neutral tree at
+the defender singleton $S_x^H$.  Then:
+\begin{enumerate}[leftmargin=*,itemsep=1pt]
+\item the defender's $C_x$ child is a neutral attacker tree at the odd root
+      $T(H-x)$;
+\item for every $y\ne x$, the defender's $O_y$ child is a neutral attacker
+      tree at $Q_{xy}(H)$; and
+\item the selected first move of this $Q_{xy}$ tree is either $C_x$, in which
+      case $B(x,y)=0$, or an OPEN $O_z$, in which case
+      \begin{equation}\label{eq:neutral-row-colour}
+       B(x,z)=B(x,y),
+      \end{equation}
+      and the defender's subsequent $C_x$ child is a neutral tree at
+      $Q_{yz}(H-x)$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+At $S_x^H$ the opponent controls the node, so every legal move belongs to the
+neutral tree.  Eulerianity makes $C_x$ neutral, and its child is exactly
+$T(H-x)$.  Every $O_y$ is also legal and neutral, giving the second claim.
+
+At $Q_{xy}$ the attacker controls the node.  Pass is not legal, so the
+selected move is a CLOSE or an OPEN.  The charge of $C_x$ is
+\[
+ \deg_{H-\{x,y\}}(x)=B(x,y),
+\]
+because $x$ has even degree in $H$.  Hence a selected neutral $C_x$ forces
+$B(x,y)=0$.  If the selected move is $O_z$, its child is defender-controlled,
+so the legal $C_x$ reply belongs to the neutral tree.  Its charge is
+\[
+ \deg_{H-\{x,y,z\}}(x)=B(x,y)+B(x,z),
+\]
+which must vanish.  This proves \eqref{eq:neutral-row-colour}, and the child
+state after $C_x$ is visibly $Q_{yz}(H-x)$.  The generic fact that every legal
+opponent child of a neutral tree remains neutral is kernel-checked by
+\texttt{TreeNeutralWins.answer\_child}.
+\end{proof}
+
+Thus a full punctured family supplies neutral odd roots $T(H-x)$ and a
+same-$x$-colour contraction in every ordered row.  What remains open is to
+combine these independently selected row contractions with a hypothetical
+target-one full row.  The order-ten pairwise flex witness shows why one row
+cannot be detached from that simultaneous convolution.
+
+The full family also supplies exactly the coherent short strategy needed by
+the offset ladder.  Fix a hypothetical universal target-one row $x$.  The
+$C_x$ child of the neutral tree at $S_x^H$ is a neutral attacker tree
+$N_0$ at $T(H-x)$.  Its first move is some $O_y$.  After that move the short
+state is
+\[
+ Q=(y),\quad U=H-\{x,y\},\quad \mathsf{ko}=1,
+ \quad\hbox{defender to move},
+\]
+whereas the target-one row supplies a long attacker strategy at
+\[
+ Q=(x,y),\quad U=H-\{x,y\},\quad \mathsf{ko}=0,
+ \quad\hbox{attacker to move}.
+\]
+These are precisely the opposite-mover one-front-offset states of
+Proposition~\ref{prop:one-front-offset-ladder}, but they begin on its
+singleton ko wall rather than in its clear interior.  If the long target-one
+strategy first selects an OPEN $O_z$, the common OPEN repairs that wall and
+enters the ordinary recurrence.  A selected initial $C_x$ has no simultaneous
+short mirror, but after it the two copies have the same queue and untouched
+set and differ only in ko.  Any common legal defender OPEN $O_z$ then
+reconverges them diagonally, with scalar prefix difference $B(x,y)$; when no
+such $z$ exists the terminal wall drain is immediate.  Thus this branch lands
+directly in the same-state continuation-flex problem below.  Once in the
+clear recurrence, a paired
+OPEN contributes the token edge $xz$, crossed CLOSEs change the token without
+changing the corrected offset moment, and a token CLOSE in the long copy
+diagonalizes the states.  Eulerianity gives
+\[
+ \sum_{z\ne x}B(x,z)=0.
+\]
+The remaining incidence problem is causal rather than scalar: the pruned
+coupled ladder need not use every $z$ once, and no proof yet forces its
+selected token--OPEN edges to have even $B$-sum.  Establishing that relative
+incidence, with the short neutral policy retained, would exclude the universal
+full row without invoking the false pairwise exclusivity.
+
+There is a useful exact combinatorial form of one coupled trunk.  Start with a
+formal seed edge $xy$.  Vectorially
+\[
+ xU+xy=x(H-x)=\delta_H(\{x\}),
+\]
+so the seed and initial correction agree only modulo the cut space, and hence
+have the same pairing with the Euler edge set $B$.  Whenever a previously untouched vertex $z$ is
+OPENed in both copies while the long-only offset token is $a$, record the
+parent edge $az$.  Crossed CLOSEs merely replace the token by the next short
+front and record no edge.  Every subsequently encountered vertex is therefore
+attached once to an already encountered vertex.  The seed and recorded edges
+form a rooted ancestry tree $T$ on the vertices opened by that trunk (a
+spanning tree of $H$ only when the trunk drains every untouched vertex).  The
+offset recurrence gives, at the first diagonal or drain checkpoint, the exact
+scalar holonomy
+
+\begin{equation}\label{eq:offset-tree-holonomy}
+ \langle B,\Delta_{\mathrm{checkpoint}}\rangle=\langle B,T\rangle .
+\end{equation}
+
+Thus a neutral short strategy and a hypothetical universal target-one row do
+not produce a parity-forbidden object from one traversal: an Euler graph can
+meet one rooted tree oddly.  Moreover two fixed deterministic strategy trees
+select only one cross-fed trunk.  If the long strategy closes the offset
+token, the copies diagonalize at a generally nonterminal public state; their
+two same-player continuations may diverge again, so their different terminal
+targets do not imply that the checkpoint tree pairs oddly.  This is exactly
+the flexibility exhibited by the order-ten witness.
+
+To obtain the required global cancellation one must first define a recursive
+comparison object which continues past every diagonal and also promotes the
+unused defender children to new seeds.  The hoped-for exchange conclusion is
+an odd formal family whose symmetric difference is cut-valued; Eulerianity
+would then annihilate its scalar pairing.  The ancestry-tree construction and
+checkpoint holonomy identity are the proved one-front recurrence in
+combinatorial dress.  Existence of that recursive response family, and of the
+required odd cut-valued sum inside it, are both \OPEN{}.
+
+Even one spanning tree for every seed would not make the exchange conclusion
+formal.  On $V=\{0,1,2,3\}$ take the Euler edge set
+$B=\{01,12,23,03\}$, root $x=0$, and
+\[
+ T_1=\{01,12,23\},\qquad
+ T_2=\{02,01,13\},\qquad
+ T_3=\{03,02,13\}.
+\]
+Each $T_y$ is a spanning tree containing its seed $0y$, and each has
+$\langle B,T_y\rangle=1$.  Therefore every odd subfamily still pairs to one
+and cannot be cut-valued; explicitly
+$T_1+T_2+T_3=\{12,23,03\}$.  The missing exchange closure must consequently
+come from the actual game-semantic response product, not from rooted-tree
+incidence alone.
+
+Nor does unrestricted recursion after a diagonal create a smaller automatic
+invariant.  If the two same-state continuation trees have odd terminal cosets
+$A_\sigma=a_\sigma+W_\sigma$ and
+$A_\tau=a_\tau+W_\tau$, their paired odd-flow differences are exactly
+\[
+ A_\sigma+A_\tau
+ =(a_\sigma+a_\tau)+(W_\sigma+W_\tau).
+\]
+After quotienting by cuts, this coset meets zero exactly when the two projected
+continuation cosets intersect.  That is the decorated-frontier common-coset
+problem again.  Operationally, two different selected moves at the diagonal
+create either another CLOSE--OPEN front defect or an unrestricted pair of
+different untouched sets.  Closing the product under all such restarts thus
+recovers the original response-tree affine problem.  The offset tree alone
+cannot prove the theorem; the earlier off-spine sibling spaces in $M_h$ must
+enter essentially.
 
 This is a genuine monotone reduction, but not yet the theorem.  Case (A)
 cannot be extended backwards into a corridor of odd CLOSE pairs by local

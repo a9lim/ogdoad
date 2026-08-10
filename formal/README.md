@@ -156,6 +156,7 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
   contains a selected charge-one CLOSE whose translated child has a fully
   score-neutral continuation tree; more generally, an explicit score-one
   subtree translates directly to a neutral tree.  Opponent-controlled
+  moves have score-neutral child trees (`TreeNeutralWins.answer_child`), and
   singleton closes in such tails have charge zero, so any complete family of
   punctured singleton tails forces the induced untouched graph to be
   Eulerian.  The writeup's scalar dual-minimum argument supplies that family
