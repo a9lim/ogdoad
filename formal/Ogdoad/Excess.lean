@@ -349,6 +349,20 @@ theorem prod_one_sub_squareZero_eq_one (ε : R) (hε : ε ^ 2 = 0)
   rw [prod_one_sub_squareZero ε hε s c, hsum]
   simp
 
+/-- Denominator-free first-order identity behind the exceptional arm's
+canonical four-Jacobi detector.  The two positive conductor-five phases have
+coefficient `C`, the two negative phases have coefficient `-C`, and their
+cross product retains exactly `-4 * ε * C` modulo `ε²`. -/
+theorem four_jacobi_cross_multiply (ε C : R) (hε : ε ^ 2 = 0) :
+    (-1 + ε * C) ^ 2 =
+      (1 - 4 * ε * C) * (-1 - ε * C) ^ 2 := by
+  have hε3 : ε ^ 3 = 0 := by
+    calc
+      ε ^ 3 = ε ^ 2 * ε := by ring
+      _ = 0 := by rw [hε]; simp
+  ring_nf
+  simp [hε, hε3]
+
 end FirstOrderProducts
 
 section WeightedFrobeniusWords

@@ -118,7 +118,9 @@ of the exceptional `2·3^k` column:
   the simple-zero theorem showing that the cubic norm discards the current
   Kummer coordinate while its first transverse derivative survives;
 - the cubic arm's square-zero exceptional-residue calculation modulo `3n`,
-  including the distinguished lift `an - 1`; and
+  including the distinguished lift `an - 1`;
+- the denominator-free square-zero cross-product identity behind the
+  exceptional arm's canonical four-Jacobi detector;
 - the denominator-free characteristic-two identity that depresses every
   trace--constant Dickson cubic to an Artin--Schreier cubic;
 - the four-axis reciprocal-root factorization behind the theorem that a

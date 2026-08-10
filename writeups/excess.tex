@@ -3965,6 +3965,123 @@ component of $\gamma_k$ generates $U_k$ exactly when $\eta_k$ does;
 Proposition~\ref{prop:norm-kernel-seam} gives \((**)\).
 \end{proof}
 
+\begin{proposition}[reciprocal cubic Kummer descent]
+\label{prop:cubic-kummer-descent}
+Retain Proposition~\ref{prop:eta-tower}, write
+\[
+ K=\F_q,\qquad L=\F_{q^3},\qquad
+ U=\ker\!\left(\Norm_{L/K}\right),\qquad
+ a=\eta_{k-1},
+\]
+and let the prime \(\ell\mid q^2+q+1\).  Define
+\(S_r(C,D)\in\F_2[C,D]\) by
+\[
+ S_0=1,\qquad S_1=C,\qquad S_2=C^2,\qquad
+ S_r=CS_{r-1}+DS_{r-2}+S_{r-3}\quad(r\geq3).
+ \tag{\(\mathsf{CK}_1\)}
+\]
+Then failure at \(\ell\), namely \(\eta_k\in U^\ell\), is equivalent
+to the existence of \(c,d\in K\) such that
+\[
+ X^3+cX^2+dX+1
+ \quad\hbox{is irreducible over }K                         \tag{\(\mathsf{CK}_2\)}
+\]
+and
+\[
+ S_\ell(c,d)=a,\qquad S_\ell(d,c)=a+1.                    \tag{\(\mathsf{CK}_3\)}
+\]
+Given a witness \((c,d)\), choose a root \(b\) of
+\((\mathsf{CK}_2)\) and Frobenius-conjugate it so that
+\(b^\ell=\eta_k\).  Then \(c=\operatorname{Tr}(b)\) and
+\(d=\operatorname{Tr}(b^{-1})\).  For a fixed primitive
+\(\rho\in\mu_\ell\subset L\) and
+\(j\in\mathbb Z/\ell\mathbb Z\), put
+\[
+ \begin{split}
+ c_j={}&\rho^jb+\rho^{jq}b^q+\rho^{jq^2}b^{q^2},\\
+ d_j={}&\rho^{j(1+q)}b^{1+q}
+       +\rho^{j(q+q^2)}b^{q+q^2}
+       +\rho^{j(q^2+1)}b^{q^2+1}.
+ \end{split}                                               \tag{\(\mathsf{CK}_4\)}
+\]
+Every \(c_j,d_j\) lies in \(K\), every displayed cubic below is
+irreducible over \(K\), and one has the exact factorization
+\[
+ X^{3\ell}+aX^{2\ell}+(a+1)X^\ell+1
+ =\prod_{j\bmod\ell}
+   \left(X^3+c_jX^2+d_jX+1\right).                         \tag{\(\mathsf{CK}_5\)}
+\]
+The reciprocal cubic \(X^3+dX^2+cX+1\) contains the conjugates of
+\(b^{-1}\); equivalently, \(b^{q+1}=b^{-q^2}\) is an
+\(\ell\)-th root of \(\eta_k+1\).  Finally
+\[
+ \F_2(c,d)=K,\qquad
+ \sum_jc_j=\sum_jd_j=0,\qquad
+ \prod_j(c_j+d_j)=1.                                      \tag{\(\mathsf{CK}_6\)}
+\]
+Thus cubic failure is a selected pair of reciprocal degree-three
+Dickson equations over the preceding field, rather than merely a factor
+of the degree-\(3\ell\) Capelli composition.
+\end{proposition}
+
+\begin{proof}
+Because \(\ell\mid q^2+q+1\) and \(3\nmid q^2+q+1\), one has
+\(\ord_\ell(q)=3\).  Suppose first that \(b\in U\) and
+\(b^\ell=\eta_k\).  The element \(b\) cannot lie in \(K\), since
+its \(\ell\)-th power does not.  Hence its conjugates have the
+irreducible minimal polynomial
+\[
+ X^3+cX^2+dX+1,\qquad
+ c=\operatorname{Tr}_{L/K}(b),\qquad
+ d=\operatorname{Tr}_{L/K}(b^{-1}).
+\]
+The recurrence \((\mathsf{CK}_1)\) is the power-sum recurrence for
+these three roots.  It gives
+\[
+ \operatorname{Tr}(b^\ell)=S_\ell(c,d)=a,
+ \qquad
+ \operatorname{Tr}(b^{-\ell})=S_\ell(d,c)=a+1,
+\]
+where the second equality uses the reciprocal cubic and the symmetric
+coefficients of the polynomial in Proposition~\ref{prop:eta-tower}.
+
+Conversely, let the roots of \((\mathsf{CK}_2)\) be
+\(b,b^q,b^{q^2}\).  Their product is one, so \(b\in U\).  The
+first elementary symmetric function of their \(\ell\)-th powers is
+\(S_\ell(c,d)=a\).  Since their product is one, the second is
+\[
+ b^{-\ell}+b^{-q\ell}+b^{-q^2\ell}=S_\ell(d,c)=a+1,
+\]
+and the third is one.  Those powers are therefore the three distinct
+roots of the separable polynomial \(X^3+aX^2+(a+1)X+1\).  A
+Frobenius conjugate of \(b\) is consequently an \(\ell\)-th root of
+\(\eta_k\) in \(U\); choose this conjugate for the rest of the proof.
+
+For the factorization, Frobenius cycles
+\[
+ \rho^jb,\quad \rho^{jq}b^q,\quad
+ \rho^{jq^2}b^{q^2}
+\]
+because \(q^3\equiv1\pmod\ell\).  Their product is one because
+\(1+q+q^2\equiv0\pmod\ell\), and their first two symmetric
+coefficients are \((\mathsf{CK}_4)\).  No orbit has size one, since
+its \(\ell\)-th power would put \(\eta_k\) in \(K\).  If a member of
+the triple indexed by \(j\) equalled a member indexed by \(j'\), then
+raising to the \(\ell\)-th power and using irreducibility of the
+polynomial for \(\eta_k\) would first force the same Frobenius position;
+primitivity of \(\rho\) would then force \(j=j'\).  Thus the triples
+are disjoint.  These are all roots of the
+left side of \((\mathsf{CK}_5)\), proving the factorization and
+irreducibility.  The reciprocal assertion follows from
+\(b^{1+q+q^2}=1\) and
+\((b^{q+1})^\ell=\eta_k^{q+1}=\eta_k+1\).
+
+Since \(a=S_\ell(c,d)\) generates \(K/\F_2\), one has
+\(\F_2(c,d)=K\).  Comparing the coefficients of
+\(X^{3\ell-1}\) and \(X\) in \((\mathsf{CK}_5)\) gives the two sums in
+\((\mathsf{CK}_6)\); evaluation at \(X=1\) gives the product.
+\end{proof}
+
 \begin{proposition}[absolute-trace obstruction to normal-period arguments]
 \label{prop:cubic-trace-zero}
 For every $k\geq1$ one has
@@ -7373,6 +7490,85 @@ the factorization alternative.  Finally
 form follows from $q\geq2m$.
 \end{proof}
 
+\begin{proposition}[the Conway trace is the top-bit functional]
+\label{prop:fermat-top-bit-trace}
+For every \(n\geq0\), put
+\(m=2^n\), \(q=2^m\), \(K=E_{n-1}=\F_q\), and
+\(a=a_{n-1}=\prod_{j<n}c_j\), with the empty product
+\(a_{-1}=1\).  In the ordinary binary
+representatives of the nimbers in \(K\), one has
+\[
+ a=\prod_{j=0}^{n-1}c_j=2^{m-1}=q/2.                  \tag{\(\mathsf{TB}_1\)}
+\]
+For the Conway bit basis \(e_i=2^i\), \(0\leq i<m\),
+\[
+ \operatorname{Tr}_{K/\F_2}(e_i)=
+ \begin{cases}
+  0,&i<m-1,\\
+  1,&i=m-1.
+ \end{cases}                                          \tag{\(\mathsf{TB}_2\)}
+\]
+Consequently absolute trace is literally the top-bit coordinate:
+\[
+ \ker\operatorname{Tr}_{K/\F_2}=\{0,\ldots,q/2-1\},
+ \qquad
+ \operatorname{Tr}_{K/\F_2}^{-1}(1)=\{q/2,\ldots,q-1\}.
+                                                               \tag{\(\mathsf{TB}_3\)}
+\]
+In particular \(a\) is the least Conway ordinal of absolute trace one.
+
+Now assume \(n\geq2\), let the prime \(\ell\mid F_n\), and retain
+the polynomial \(P_{\ell,a}\) of
+Proposition~\ref{prop:fermat-trace-divisor}.  Let
+\[
+ L_m(Z)=\sum_{i=0}^{m-1}Z^{2^i}.
+\]
+Then the singleton-even arm fails at \(\ell\) exactly when
+\[
+ \boxed{P_{\ell,a}(Z+a)\mid L_m(Z)\quad\hbox{in }K[Z].}
+                                                               \tag{\(\mathsf{TB}_4\)}
+\]
+Thus the bad reverse-Dickson fibre is centered, at the literal least
+trace-one nimber, inside the trace-zero linearized polynomial.
+\end{proposition}
+
+\begin{proof}
+Products of distinct Conway--Fermat generators require no quadratic
+reduction, and therefore agree with their ordinary binary product.  Hence
+\[
+ a=\prod_{j<n}2^{2^j}
+   =2^{\sum_{j<n}2^j}=2^{2^n-1}=2^{m-1},
+\]
+which proves \((\mathsf{TB}_1)\).
+
+We prove \((\mathsf{TB}_2)\) by induction on \(n\).  The assertion for
+\(K=\F_2\) is immediate.  For \(n\geq1\), put \(d=m/2\) and
+\(K_0=E_{n-2}=\F_{2^d}\).  If \(i<d\), then \(e_i\in K_0\), so its
+relative trace through the quadratic extension \(K/K_0\) is zero.  If
+\(i\geq d\), disjoint Fermat support gives
+\[
+ e_i=c_{n-1}e_{i-d}.
+\]
+The two roots of the Conway equation for \(c_{n-1}\) differ by one;
+hence \(\operatorname{Tr}_{K/K_0}(c_{n-1})=1\), and
+\[
+ \operatorname{Tr}_{K/K_0}(e_i)=e_{i-d}.
+\]
+Trace transitivity and the induction hypothesis leave the value one
+only at \(i-d=d-1\), namely \(i=m-1\).  Linearity now proves
+\((\mathsf{TB}_3)\).
+
+By Proposition~\ref{prop:fermat-trace-divisor}, failure is equivalent
+to complete splitting of the separable polynomial \(P_{\ell,a}\) over
+\(K\), and every one of its roots has trace one.  Since \(a\) also has
+trace one, translation by \(a\) puts all those roots in the trace-zero
+space.  Its vanishing polynomial is the separable linearized polynomial
+\(L_m\), proving the forward implication in \((\mathsf{TB}_4)\).
+Conversely, the divisibility puts every root of \(P_{\ell,a}(Z+a)\),
+and hence every root of \(P_{\ell,a}\), in \(K\).  The same proposition
+then gives failure.
+\end{proof}
+
 \begin{proposition}[half-field additive saturation of a failure fibre]
 \label{prop:fermat-additive-saturation}
 Retain Proposition~\ref{prop:fermat-trace-divisor}.  Write
@@ -10111,6 +10307,115 @@ trivial under the quadratic character modulo five, so both factors of
 \(E_2\) have index \(-L(1)\).  This proves
 \((\mathsf{DJ}_5)\), and \((\mathsf{DJ}_6)\)--\((\mathsf{DJ}_7)\)
 follow because four and \(G_1\) are nonzero modulo \(\ell\).
+\end{proof}
+
+\begin{proposition}[canonical four-Jacobi detector]
+\label{prop:dk-four-jacobi}
+Retain Proposition~\ref{prop:dk-jacobi-top}.  Write the primitive
+Dirichlet character as \(\lambda=\lambda_-\chi_5\), where
+\(\chi_5=(\frac{\cdot}{5})\).  Decompose the selected character
+\(\chi_M\) of Proposition~\ref{prop:mixed-jacobi-phase} uniquely as \(AB\),
+where \(A,B\) have orders \(3h,5\), and set
+\(X=\chi_\ell\) with the normalization
+\(X(g)=\zeta_\ell\) used there.  For \(r=1,2,3,4\), let
+\(j_r\bmod M\) be the CRT class
+\[
+ j_r\equiv1\pmod{3h},\qquad j_r\equiv r\pmod5,
+\]
+and put \(J_r=J(AB^r,X)\).  In the fraction field of the local
+cyclotomic ring define
+\[
+ \mathcal D_{k,\ell}=\frac{J_1J_4}{J_2J_3}.
+\]
+Then, with \(\pi=\zeta_\ell-1\),
+\[
+ \boxed{
+ \mathcal D_{k,\ell}
+ \equiv1-4\pi C_1
+ =1-\pi G_1\operatorname{ind}_\ell(d_k)
+ \pmod{\pi^2}.}                                          \tag{\(\mathsf{FJ}_1\)}
+\]
+Consequently
+\[
+ D'_k\text{ fails at }\ell
+ \iff \mathcal D_{k,\ell}\equiv1\pmod{\pi^2},           \tag{\(\mathsf{FJ}_2\)}
+\]
+and
+\[
+ \operatorname{ind}_\ell(d_k)
+ =-G_1^{-1}\overline{\frac{\mathcal D_{k,\ell}-1}{\pi}}.
+                                                               \tag{\(\mathsf{FJ}_3\)}
+\]
+
+This four-term quotient is canonical and minimal under the conductor-five
+symmetries.  Indeed, an inversion-invariant integer weight vector on the four
+phases has the form \((u,v,v,u)\); zero augmentation forces \(v=-u\),
+and the resulting detector line over \(\F_\ell\) is spanned by
+\((1,-1,-1,1)\).  The primitive integral weights are its two signs.
+
+There is also a single-antiunit form.  For a multiplicative character
+\(C\), fixed in the conductor-five coordinate, such that \(C^2\) and
+the displayed characters are nontrivial, put
+\[
+ \mathcal H_5(C)=
+ \frac{J(CB,CB^{-1})}{J(CB^2,CB^{-2})}
+ =\frac{G(CB)G(CB^{-1})}{G(CB^2)G(CB^{-2})}.              \tag{\(\mathsf{FJ}_4\)}
+\]
+Here \(G(\cdot)\) denotes the finite-field Gauss sum; the common
+\(G(C^2)\) denominator has cancelled.
+Then
+\[
+ \boxed{\mathcal D_{k,\ell}=\frac{\mathcal H_5(A)}{\mathcal H_5(AX)}.}
+                                                               \tag{\(\mathsf{FJ}_5\)}
+\]
+For \(C=A\) or \(AX\), let \(E\) be the field generated by the values
+of \(C\).  Conductor-five conjugation \(B\mapsto B^{-1}\) fixes
+\(\mathcal H_5(C)\), so it lies in
+\(E(\zeta_5+\zeta_5^{-1})\).  The nontrivial automorphism of this
+quadratic extension, induced by \(B\mapsto B^2\), sends
+\(\mathcal H_5(C)\) to its inverse.  Hence
+\[
+ \Norm_{E(\sqrt5)/E}\mathcal H_5(C)=1.                 \tag{\(\mathsf{FJ}_6\)}
+\]
+If the forward \(X\)-tangent is normalized by
+\[
+ \partial_X\log\mathcal H_5(A)
+ =\overline{\frac{\mathcal H_5(AX)/\mathcal H_5(A)-1}{\pi}},
+\]
+then \((\mathsf{FJ}_3)\) reads
+\(\operatorname{ind}_\ell(d_k)=G_1^{-1}\partial_X\log\mathcal H_5(A)\).
+Order-five product formulas evaluate the invariant norm and therefore
+erase, rather than evaluate, this anti-invariant tangent.
+\end{proposition}
+
+\begin{proof}
+The four CRT classes have
+\[
+ C_{j_1}=C_{j_4}=C_1,
+ \qquad C_{j_2}=C_{j_3}=-C_1.
+\]
+Indeed \(G_j=\lambda(j)^{-1}G_1\), while
+\(\lambda(j_r)=\chi_5(r)\).
+Since \(J_r\equiv-1+\pi C_{j_r}\pmod{\pi^2}\), and every
+denominator is a \(\pi\)-adic unit,
+\[
+ \frac{(1-\pi C_1)^2}{(1+\pi C_1)^2}
+ \equiv1-4\pi C_1\pmod{\pi^2}.
+\]
+Now use \((\mathsf{DJ}_6)\) and the nonvanishing of \(G_1\) to obtain
+\((\mathsf{FJ}_1)\)--\((\mathsf{FJ}_3)\).  The minimality assertion
+is the displayed two-dimensional linear calculation.
+
+Finally the Gauss--Jacobi identity gives
+\[
+ \frac{J(AB,X)J(AB^{-1},X)}
+      {J(AB^2,X)J(AB^{-2},X)}
+ =\frac{\mathcal H_5(A)}{\mathcal H_5(AX)},
+\]
+because the common factor \(G(X)^2\) cancels.  Replacing \(B\) by \(B^2\)
+interchanges numerator and denominator in \((\mathsf{FJ}_4)\), while
+replacing it by \(B^{-1}\) only swaps factors.  This proves the last
+claims.
 \end{proof}
 
 \begin{proposition}[semiprimitive parity obstruction on the mixed line]
@@ -12896,6 +13201,14 @@ of a reverse-Dickson polynomial, containing the actual minimal polynomial
 of \(a_{n-1}\), must divide the trace-one polynomial.  Its factorization
 is one irreducible of degree \(m\ell\) on success and \(\ell\)
 irreducibles of degree \(m\) on failure.
+Proposition~\ref{prop:fermat-top-bit-trace} identifies the selected
+ancestry more rigidly: absolute trace in the Conway bit basis is exactly
+the top-bit functional, and \(a_{n-1}=q/2\) is the least trace-one
+nimber.  After translation by that literal top bit, failure is the
+selected divisibility
+\(P_{\ell,a}(Z+a)\mid\sum_{i<m}Z^{2^i}\) inside the trace-zero
+linearized polynomial.  This centers the obstruction but does not exclude
+it; transported nonselected Kummer cosets yield the same type of divisor.
 Proposition~\ref{prop:fermat-two-step-quartic} keeps two consecutive
 selected levels at once: its sparse quartic composition is irreducible
 on success and splits into exactly \(\ell\) irreducible quartics on
@@ -13063,6 +13376,13 @@ minimal polynomial of \(\eta_k\), together with its reciprocal translate,
 in a binary Wendt gcd.  Every Wendt factor already has the required
 degree and a translation partner, so a closure must exclude this selected
 pair rather than all such factors.
+Proposition~\ref{prop:cubic-kummer-descent} gives a complementary
+degree-three descent: failure is exactly the existence over the preceding
+field of one irreducible reciprocal coefficient pair satisfying two
+explicit Dickson power-sum equations, and the degree-\(3\ell\) Capelli
+composition then factors into \(\ell\) selected irreducible cubics.
+This is lossless compression, not a contradiction: the two equations are
+the same missing Kummer fibre.
 Proposition~\ref{prop:cubic-wendt-singer} factors the gcd through Singer
 coset intersections and gives their exact first two moments.  In the range
 \(\ell-1<\sqrt q+1/\sqrt q\), every coset contains degree-\(n\)
@@ -13115,6 +13435,13 @@ then proves that this vector has rank one: the single coefficient
 \(\operatorname{ind}_\ell(d_k)\).  Thus the remaining first-order theorem
 is exactly nonvanishing of the selected antiunit regulator, not a family
 of independent Jacobi congruences.
+Proposition~\ref{prop:dk-four-jacobi} compresses it further to the
+canonical four-term cross-resolvent \(J_1J_4/(J_2J_3)\).  It is the
+unique inversion-invariant, zero-augmentation detector on the
+conductor-five phases, equivalently the selected \(\ell\)-character
+tangent of one real quintic Jacobi antiunit.  The order-five norm sends
+that antiunit to one and therefore discards the tangent rather than
+evaluating it.
 Proposition~\ref{prop:jacobi-second-layer} also identifies simultaneous
 flatness with rationality of the second \(\pi\)-torsion layer of the
 mixed Kummer-curve Jacobian.  Its exact size divides the Weil envelope

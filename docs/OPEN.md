@@ -221,7 +221,10 @@ absolute boundedness.
   paper retains that phase, gives an exact two-component resultant, proves
   primitive support and a cyclic-variation lower bound for the power-of-two
   two-spine family, and closes `h=12,24`. The singleton-even chain is exactly
-  the Conway–Fermat quotient-order problem. Trace, norm, degree, fibotomic
+  the Conway–Fermat quotient-order problem. In that chain, absolute trace is
+  exactly the top binary coordinate, the selected ancestry is the least
+  trace-one nimber, and failure is equivalent to a centered reverse-Dickson
+  divisor of the trace-zero linearized polynomial. Trace, norm, degree, fibotomic
   support, lower ancestry, and generic Kummer-cover symmetries are all proved
   insufficient without evaluating the selected factor.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
@@ -232,14 +235,20 @@ absolute boundedness.
 - **`C`.** The first three levels are proved analytically. Norm recursion,
   cyclic parity, primitive-CRT isolation, mixed Jacobi expansion,
   Singer–Wendt factorization, `S_3` descent, and the prescribed-trace character
-  formulation all agree on one selected top-component test. Both distinguished
+  formulation all agree on one selected top-component test. Reciprocal cubic
+  Kummer descent now identifies failure with two explicit Dickson power-sum
+  equations over the preceding field and factors the Capelli composition into
+  selected irreducible cubics. Both distinguished
   period coordinates have absolute trace zero and are not normal, so
   primitive-normal and normal-Gaussian-period theorems do not apply. Generic
   Wendt factors and other trace fibres attain every structural value used by
   the obvious bounds.
 - **`D`.** The corrected norm, current-factor formulation, quadratic-twist
   antiunit, mixed-Jacobi and binary-parity criteria, reciprocal sextic, and
-  Dickson factorization reduce the arm to one selected cubic. The ambient
+  Dickson factorization reduce the arm to one selected cubic. The surviving
+  ray coordinate is also the first-order tangent of a canonical four-Jacobi
+  cross-resolvent, the unique inversion-invariant zero-augmentation detector
+  on the conductor-five phases. The ambient
   Dickson polynomial contains many cubics with the same depressed equation;
   an exact nonselected countermodel also matches the selected two-trace
   fingerprint. The line criterion gives the effective polynomial bound above
