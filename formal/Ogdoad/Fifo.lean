@@ -1065,6 +1065,144 @@ theorem oddWins_scoreTranslate_one_iff_evenWins (G : SimpleGraph V)
   · intro h
     simpa using h.scoreTranslate_one
 
+/-! ## Fixed-front prefix affine recurrence
+
+The following deletion game isolates only the closure prefix at one frozen
+front.  A remainder is a finite coordinate set and `closureValue weight S` is
+the value of a linear functional on its characteristic vector.  There is no
+FIFO queue, graph, descendant strategy, or continuation coset in these
+definitions: the result is exactly the scalar no-separation recurrence. -/
+
+/-- Evaluation of a linear functional on the characteristic vector of a
+finite remainder. -/
+def closureValue (weight : V → ZMod 2) (S : Finset V) : ZMod 2 :=
+  ∑ v ∈ S, weight v
+
+omit [Fintype V] in
+/-- Erasing one coordinate changes the functional by that coordinate's
+weight. -/
+theorem closureValue_erase_eq_add (weight : V → ZMod 2)
+    {S : Finset V} {v : V} (hv : v ∈ S) :
+    closureValue weight (S.erase v) =
+      closureValue weight S + weight v := by
+  have hsum := Finset.sum_erase_add S weight hv
+  calc
+    closureValue weight (S.erase v) =
+        (closureValue weight (S.erase v) + weight v) + weight v := by
+          rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+    _ = closureValue weight S + weight v := by
+      simpa only [closureValue] using congrArg (fun x ↦ x + weight v) hsum
+
+omit [Fintype V] [DecidableEq V] in
+/-- A unit value of a binary linear functional has a coordinate of unit
+weight. -/
+theorem exists_weight_one_of_closureValue_eq_one (weight : V → ZMod 2)
+    {S : Finset V} (hvalue : closureValue weight S = 1) :
+    ∃ v ∈ S, weight v = 1 := by
+  by_contra h
+  push Not at h
+  have hzero : ∀ v ∈ S, weight v = 0 := by
+    intro v hv
+    exact zmod2_eq_zero_of_ne_one (weight v) (h v hv)
+  have hsumZero : closureValue weight S = 0 := by
+    apply Finset.sum_eq_zero
+    intro v hv
+    exact hzero v hv
+  rw [hvalue] at hsumZero
+  exact one_ne_zero hsumZero
+
+mutual
+  /-- At an attacker node, the attacker may stop at the present remainder or
+  choose one coordinate to erase and hand the resulting state to the
+  defender. -/
+  inductive ClosureAttackerForces (weight : V → ZMod 2) (target : ZMod 2) :
+      Finset V → Prop where
+    | stop (S : Finset V) (hvalue : closureValue weight S = target) :
+        ClosureAttackerForces weight target S
+    | erase (S : Finset V) (v : V) (hv : v ∈ S)
+        (next : ClosureDefenderForces weight target (S.erase v)) :
+        ClosureAttackerForces weight target S
+
+  /-- At a defender node, both the immediate stop and every possible
+  one-coordinate erasure must stay on the target sheet. -/
+  inductive ClosureDefenderForces (weight : V → ZMod 2) (target : ZMod 2) :
+      Finset V → Prop where
+    | all (S : Finset V) (stop : closureValue weight S = target)
+        (erase : ∀ v ∈ S,
+          ClosureAttackerForces weight target (S.erase v)) :
+        ClosureDefenderForces weight target S
+end
+
+omit [Fintype V] in
+/-- No attacker policy can put every leaf of a defender-rooted closure prefix
+on affine sheet one.  Equivalently, the characteristic vectors of the leaf
+remainders cannot all be separated from zero by one binary linear
+functional. -/
+theorem not_closureDefenderForces_one (weight : V → ZMod 2) :
+    ∀ S : Finset V, ¬ClosureDefenderForces weight 1 S := by
+  intro S
+  induction S using Finset.strongInduction with
+  | H S ih =>
+      intro hforce
+      cases hforce with
+      | all _ hvalue erase =>
+          obtain ⟨v, hv, hweight⟩ :=
+            exists_weight_one_of_closureValue_eq_one weight hvalue
+          have hchild := erase v hv
+          have hchildValue : closureValue weight (S.erase v) = 0 := by
+            rw [closureValue_erase_eq_add weight hv, hvalue, hweight]
+            exact CharTwo.add_self_eq_zero 1
+          cases hchild with
+          | stop _ hstop =>
+              rw [hchildValue] at hstop
+              exact zero_ne_one hstop
+          | erase _ w hw hnext =>
+              exact ih ((S.erase v).erase w)
+                (lt_of_le_of_lt (Finset.erase_subset w (S.erase v))
+                  (Finset.erase_ssubset hv)) hnext
+
+omit [Fintype V] in
+/-- The sharp opposite-sheet policy.  At an attacker node of value zero,
+stop.  At one of value one, erase a unit-weight coordinate; the new defender
+node has value zero. -/
+theorem closure_zero_policy (weight : V → ZMod 2) :
+    ∀ S : Finset V,
+      ClosureAttackerForces weight 0 S ∧
+        (closureValue weight S = 0 →
+          ClosureDefenderForces weight 0 S) := by
+  intro S
+  induction S using Finset.strongInduction with
+  | H S ih =>
+      constructor
+      · by_cases hzero : closureValue weight S = 0
+        · exact ClosureAttackerForces.stop S hzero
+        · have hone : closureValue weight S = 1 :=
+            zmod2_eq_one_of_ne_zero (closureValue weight S) hzero
+          obtain ⟨v, hv, hweight⟩ :=
+            exists_weight_one_of_closureValue_eq_one weight hone
+          refine ClosureAttackerForces.erase S v hv ?_
+          apply (ih (S.erase v) (Finset.erase_ssubset hv)).2
+          rw [closureValue_erase_eq_add weight hv, hone, hweight]
+          exact CharTwo.add_self_eq_zero 1
+      · intro hzero
+        refine ClosureDefenderForces.all S hzero ?_
+        intro v hv
+        exact (ih (S.erase v) (Finset.erase_ssubset hv)).1
+
+omit [Fintype V] in
+/-- Sharp relative failure of prefix separation.  If the defender's immediate
+stop at the root has value one, every branch after a defender erasure admits
+an attacker policy whose leaves all have value zero.  Thus a prefix affine
+flow cannot in general be required to carry that designated immediate-close
+(B') branch together with the rest of the fan. -/
+theorem fixedFrontPrefix_sharp_relative_failure (weight : V → ZMod 2)
+    (S : Finset V) (hroot : closureValue weight S = 1) :
+    closureValue weight S = 1 ∧
+      (¬ClosureDefenderForces weight 1 S) ∧
+        (∀ v ∈ S, ClosureAttackerForces weight 0 (S.erase v)) := by
+  exact ⟨hroot, not_closureDefenderForces_one weight S,
+    fun v _hv ↦ (closure_zero_policy weight (S.erase v)).1⟩
+
 /-- A target-forcing strategy tree for a distinguished attacker who must
 CLOSE whenever CLOSE is legal.  The target is an absolute terminal score;
 using an explicit target, rather than only the predicate "odd", lets a
