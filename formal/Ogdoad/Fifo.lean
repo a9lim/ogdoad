@@ -356,6 +356,25 @@ theorem step_scoreTranslate (G : SimpleGraph V) (c : ZMod 2) (s : State V)
   · cases q <;> cases ko <;> simp [step, scoreTranslate, add_assoc]
   · simp [step, scoreTranslate]
 
+omit [Fintype V] in
+/-- Successors of a translated state are exactly translations of successors
+of the original state. -/
+theorem step_scoreTranslate_eq_some_iff (G : SimpleGraph V) (c : ZMod 2)
+    (s t : State V) (m : Move V) :
+    step G (scoreTranslate c s) m = some t ↔
+      ∃ s', step G s m = some s' ∧ scoreTranslate c s' = t := by
+  rw [step_scoreTranslate, Option.map_eq_some_iff]
+
+omit [Fintype V] [DecidableEq V] in
+/-- Translating a binary score sheet twice by one recovers the original
+state. -/
+theorem scoreTranslate_one_involutive (s : State V) :
+    scoreTranslate 1 (scoreTranslate 1 s) = s := by
+  obtain ⟨U, q, ko, turn, score⟩ := s
+  simp only [scoreTranslate]
+  congr 1
+  rw [← add_assoc, CharTwo.add_self_eq_zero, zero_add]
+
 /-- The game is over after every vertex has been opened and the FIFO queue has
 been drained. -/
 def Terminal (s : State V) : Prop :=
@@ -938,6 +957,107 @@ inductive OddWins (G : SimpleGraph V) (seat : Bool) : State V → Prop
       (hasMove : ∃ m s', step G s m = some s')
       (hwin : ∀ m s', step G s m = some s' → OddWins G seat s') :
       OddWins G seat s
+
+omit [Fintype V] in
+/-- Translating the score sheet by one turns a strategy for `seat` to force
+even score into a strategy for the same player, expressed as an odd strategy
+outside the complementary distinguished seat. -/
+theorem EvenWins.scoreTranslate_one {G : SimpleGraph V} {seat : Bool}
+    {s : State V} (h : EvenWins G seat s) :
+    OddWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal hscore =>
+      refine OddWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · simp [scoreTranslate, hscore]
+  | choose s hseat m s' hstep _ ih =>
+      refine OddWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ih
+      · simp [scoreTranslate, hseat]
+      · rw [step_scoreTranslate, hstep]
+        simp
+  | answer s hseat hasMove hwin ih =>
+      refine OddWins.answer (scoreTranslate 1 s) ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t hstep
+        obtain ⟨s', hbase, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp hstep
+        exact ih m s' hbase
+
+omit [Fintype V] in
+/-- Dually, translating by one turns an odd-forcing strategy into an
+even-forcing strategy for the same player, now named as the complementary
+seat. -/
+theorem OddWins.scoreTranslate_one {G : SimpleGraph V} {seat : Bool}
+    {s : State V} (h : OddWins G seat s) :
+    EvenWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal hscore =>
+      refine EvenWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · have hscoreOne : s.score = 1 :=
+          zmod2_eq_one_of_ne_zero s.score hscore
+        simp only [scoreTranslate, hscoreOne]
+        exact CharTwo.add_self_eq_zero 1
+  | choose s hseat m s' hstep _ ih =>
+      refine EvenWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ih
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · rw [step_scoreTranslate, hstep]
+        simp
+  | answer s hseat hasMove hwin ih =>
+      refine EvenWins.answer (scoreTranslate 1 s) ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.ne_not.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t hstep
+        obtain ⟨s', hbase, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp hstep
+        exact ih m s' hbase
+
+omit [Fintype V] in
+/-- Exact win-sheet transport in the orientation used by a locally
+reconvergent schedule square.  The complemented seat is essential because
+`OddWins G seat` is controlled by the player outside `seat`. -/
+theorem evenWins_scoreTranslate_one_iff_oddWins (G : SimpleGraph V)
+    (seat : Bool) (s : State V) :
+    EvenWins G seat (scoreTranslate 1 s) ↔ OddWins G (!seat) s := by
+  constructor
+  · intro h
+    have ht := h.scoreTranslate_one
+    rw [scoreTranslate_one_involutive] at ht
+    exact ht
+  · intro h
+    simpa using h.scoreTranslate_one
+
+omit [Fintype V] in
+/-- Rewriting form of `evenWins_scoreTranslate_one_iff_oddWins`, intended for
+the endpoint equality produced by a local schedule square. -/
+theorem evenWins_iff_oddWins_of_eq_scoreTranslate_one
+    {G : SimpleGraph V} {seat : Bool} {s t : State V}
+    (h : s = scoreTranslate 1 t) :
+    EvenWins G seat s ↔ OddWins G (!seat) t := by
+  rw [h]
+  exact evenWins_scoreTranslate_one_iff_oddWins G seat t
+
+omit [Fintype V] in
+/-- The dual orientation of `evenWins_scoreTranslate_one_iff_oddWins`. -/
+theorem oddWins_scoreTranslate_one_iff_evenWins (G : SimpleGraph V)
+    (seat : Bool) (s : State V) :
+    OddWins G seat (scoreTranslate 1 s) ↔ EvenWins G (!seat) s := by
+  constructor
+  · intro h
+    have ht := h.scoreTranslate_one
+    rw [scoreTranslate_one_involutive] at ht
+    exact ht
+  · intro h
+    simpa using h.scoreTranslate_one
 
 /-- A target-forcing strategy tree for a distinguished attacker who must
 CLOSE whenever CLOSE is legal.  The target is an absolute terminal score;
