@@ -338,6 +338,24 @@ def step (G : SimpleGraph V) (s : State V) : Move V → Option (State V)
         some { s with ko := false, toMove := !s.toMove }
       else none
 
+/-- Translate the accumulated score without changing the public game state. -/
+def scoreTranslate (c : ZMod 2) (s : State V) : State V :=
+  { s with score := c + s.score }
+
+omit [Fintype V] in
+/-- Every FIFO transition is equivariant under a uniform score translation.
+Thus a locally reconvergent schedule square may be transported through any
+common continuation without reopening its already-accounted score defect. -/
+theorem step_scoreTranslate (G : SimpleGraph V) (c : ZMod 2) (s : State V)
+    (m : Move V) :
+    step G (scoreTranslate c s) m =
+      (step G s m).map (scoreTranslate c) := by
+  obtain ⟨U, q, ko, turn, score⟩ := s
+  cases m
+  · simp [step, scoreTranslate]
+  · cases q <;> cases ko <;> simp [step, scoreTranslate, add_assoc]
+  · simp [step, scoreTranslate]
+
 /-- The game is over after every vertex has been opened and the FIFO queue has
 been drained. -/
 def Terminal (s : State V) : Prop :=
@@ -612,6 +630,85 @@ theorem open_close_square_away_singleton (G : SimpleGraph V) (s : State V)
   · simp only [soc, sco]
     rw [flip_eq_flip_erase_add hz]
     simp [add_assoc]
+
+omit [Fintype V] in
+/-- At the singleton-queue ko wall the immediate OPEN/CLOSE square fails to
+reconverge only because closing first makes the subsequent OPEN set `ko`.
+Opening one further distinct untouched vertex clears that wall on both paths.
+The resulting public states agree, and their scores differ by exactly the
+adjacency bit between the original front and the first opened vertex.
+
+This is the local transport square needed at a type-B/B' predecessor: the ko
+discrepancy does not survive the next real OPEN. -/
+theorem singleton_wall_reconverges_after_open (G : SimpleGraph V) (s : State V)
+    (f z w : V) (hqueue : s.queue = [f]) (hko : s.ko = false)
+    (hz : z ∈ s.untouched) (hw : w ∈ s.untouched) (hzw : z ≠ w) :
+    ∃ sc scz sczw so soc socw,
+      step G s .close = some sc ∧
+      step G sc (.open z) = some scz ∧
+      step G scz (.open w) = some sczw ∧
+      step G s (.open z) = some so ∧
+      step G so .close = some soc ∧
+      step G soc (.open w) = some socw ∧
+      sczw.untouched = socw.untouched ∧
+      sczw.queue = socw.queue ∧
+      sczw.ko = socw.ko ∧
+      sczw.toMove = socw.toMove ∧
+      sczw.score = socw.score + adjacencyBit G f z ∧
+      sczw = scoreTranslate (adjacencyBit G f z) socw := by
+  have hwErase : w ∈ s.untouched.erase z :=
+    Finset.mem_erase.mpr ⟨Ne.symm hzw, hw⟩
+  let sc : State V := {
+    untouched := s.untouched
+    queue := []
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G s.untouched f }
+  let scz : State V := {
+    untouched := s.untouched.erase z
+    queue := [z]
+    ko := true
+    toMove := s.toMove
+    score := s.score + flip G s.untouched f }
+  let sczw : State V := {
+    untouched := (s.untouched.erase z).erase w
+    queue := [z, w]
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G s.untouched f }
+  let so : State V := {
+    untouched := s.untouched.erase z
+    queue := [f, z]
+    ko := false
+    toMove := !s.toMove
+    score := s.score }
+  let soc : State V := {
+    untouched := s.untouched.erase z
+    queue := [z]
+    ko := false
+    toMove := s.toMove
+    score := s.score + flip G (s.untouched.erase z) f }
+  let socw : State V := {
+    untouched := (s.untouched.erase z).erase w
+    queue := [z, w]
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G (s.untouched.erase z) f }
+  refine ⟨sc, scz, sczw, so, soc, socw, ?_, ?_, ?_, ?_, ?_, ?_,
+    rfl, rfl, rfl, rfl, ?_, ?_⟩
+  · simp [step, sc, hqueue, hko]
+  · simp [step, sc, scz, hz]
+  · simp [step, scz, sczw, hwErase]
+  · simp [step, so, hqueue, hz]
+  · simp [step, so, soc]
+  · simp [step, soc, socw, hwErase]
+  · simp only [sczw, socw]
+    rw [flip_eq_flip_erase_add hz]
+    simp [add_assoc]
+  · simp only [sczw, socw, scoreTranslate]
+    congr 1
+    rw [flip_eq_flip_erase_add hz]
+    abel
 
 /-- Every adjacency coordinate occurs on a reachable OPEN/CLOSE square.  The
 prefix `OPEN f; OPEN d` leaves the dummy behind `f`, so a distinct untouched
