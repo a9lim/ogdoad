@@ -1,4 +1,4 @@
-//! The loopy route to the open question — and what it reveals.
+//! A historical loopy route to the Gold-quadric question — and what it reveals.
 //!   cargo run --example loopy_quadric
 //!
 //! `interactive_kernel` orients moves strictly downward so the game terminates —
@@ -18,7 +18,8 @@
 //! like a Tier-2 hit but is a coincidence of the radical — it breaks at `m=8`. And
 //! R(B) is exactly the degenerate part where the frame-blind no-go is *silent*. So
 //! the loopy B-only rule confirms the obstruction from a new angle rather than
-//! breaking it; a genuine witness must hit `{Q=0}` where it is NOT the radical.
+//! breaking it; it explains why the eventual weighted-source FIFO witness had
+//! to retain diagonal refinement data rather than use the polar graph alone.
 
 use ogdoad::forms::{fit_f2_quadratic, QuadricFit};
 use ogdoad::games::loopy_decision_sets;

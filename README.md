@@ -315,30 +315,38 @@ and the obstruction has simply walked from the Integral shore to the Clifford on
 
 The genuine open problems live in `docs/OPEN.md`, each named by a **loopy game
 value** — an open problem is a game played without a termination guarantee. The
-flagship, `tis`, is *not* a claim of a new Clifford classification theorem. It is
-an investigation of game-built quadratic forms in the nimber backend:
+former flagship, `tis`, was *not* a claim of a new Clifford classification
+theorem. It was an investigation of game-built quadratic forms in the nimber
+backend and is now resolved:
 
 1. Turning-Corners games realize nim multiplication.
 2. Frobenius squaring and traces are built from nim multiplication and XOR.
 3. Gold-style trace forms `Tr(λ · x^{1+2^a})` are therefore expressible from game-value
    operations.
 4. The Arf invariant gives the standard zero-count bias for a quadratic zero set.
-5. **The open question:** is there a natural, non-tautological game rule whose
-   P-positions are exactly such a zero set?
+5. **The resolved boundary:** weighted-source Witt--FIFO has exactly that
+   P-set, while a transcript theorem proves the observation cost that no exact
+   torsor-uniform rule can beat.
 
-The current frontier (`writeups/goldarf.tex`): the linear case is both floor and
+The theorem (`writeups/goldarf.tex`) starts from the linear case as both floor and
 ceiling — lexicodes show natural rules realize rich *linear* codes as P-sets,
 and Theorem A shows every Winning Ways coin-turning P-set is the kernel of an
-`F₂`-linear map — so `tis` asks precisely whether that phenomenon admits a
-quadratic refinement. A no-go ladder kills the frame-blind tier (`Sp(B)`-invariant
-rules see only orbit unions) and shows the known normal-play realizers are
-clocks. The one verified positive object is **σ-valued**: the echo-fifo+dummy
-realizer computes `Q` as a forced terminal charge, checked exhaustively at
-`m = 8` (391,680/391,680, adversarial review), and its mechanism reduces to an
-**odd-close parity game** whose isolated-coin linking theorem is machine-verified
-on all 12,346 graph classes through `k = 8`. The two load-bearing open steps:
-recast that charge readout into normal/misère/loopy outcome semantics, and prove
-the general-`m` linking theorem.
+`F₂`-linear map. A public Witt frame reduces the polar interaction to a
+matching; q-blind source pairs carry original-coordinate singleton weights;
+one q-blind safe-front strategy forces every potential pair to overlap and
+therefore forces the exact quadratic charge for every refinement; and a
+phase-aware claim move compiles it to ordinary normal play. Exactness forces
+every stable observation certificate to span the input, so the support-sized singleton
+interface is optimal and a constant total budget is impossible. A separate
+padding theorem proves that strategic-liveness tests cannot define
+non-tautology when those tests are the basic reachable, optimal, or unavoidable
+fork properties. The older echo-fifo+dummy census remains useful
+historical evidence, and its arbitrary-graph linking conjecture is now an
+optional strict generalization rather than a Gold premise.
+
+The diagonal inputs are game-built at every Gold exponent, not merely assumed:
+the quadratic-tower theorem makes each unscaled trace-dual an
+Artin--Schreier value `w²+w`, constructively through the supported nim tower.
 
 The rest of the board, briefly:
 
@@ -348,7 +356,7 @@ The rest of the board, briefly:
   `Q(t)=0` and `B(t,x)=0` for every torsion game `t`; this holds over every
   coefficient characteristic.  Local tables on root-incomplete subgroups remain
   valid engineering data but are ambient-dependent, while a directed outcome
-  construction would be a different object belonging to `tis`
+  construction is the different object now supplied by `tis`
   (`writeups/game_exterior_divisibility.tex`).
 - **`on`** — transfinite nim multiplication beyond the verified excess table.
   Conway's Kummer carry below `ω^(ω^ω)` is `α_p = κ_{f(p)} + m_p` with `m_p`
@@ -368,9 +376,9 @@ The rest of the board, briefly:
   `q = lift(ell) + 2Q`, with `ell` linear and `Q` an ordinary `F₂` quadratic;
   its phase is the correlated Walsh pair of `Q` and `Q+ell`, with closed
   even/odd-dimensional Arf formulas.  Under synchronized terminal-charge
-  pairing, the four labels are exactly `(ell,Q)`; a single-game outcome
-  internalization remains a generalized `tis`-type boundary, literally `tis`
-  on doubled Gold forms.  Ambient-coherent Brown colours of all short-game
+  pairing, the four labels are exactly `(ell,Q)`; the weighted-source theorem
+  supplies the nonlinear binary factor, while a single four-class game outcome
+  remains a distinct Brown-semantic boundary. Ambient-coherent Brown colours of all short-game
   values vanish by two-divisibility, while the abelian `Z/8` model proves that
   local odd phases require a chosen section
   (`writeups/brown_game_semantics.tex`).
@@ -420,7 +428,13 @@ Scope boundaries, stated plainly:
 - Fixed-width integer payloads are consistently `u128`/`i128` for arithmetic carriers,
   residues, invariants, counts, and budgets. `usize` is for indices, dimensions, and ABI
   hooks.
-- The Gold/Arf game thread is conditional: *if* a game has P-set `{Q = 0}`, Arf predicts
-  the win-bias. No non-tautological natural game with that P-set has been found.
+- The Gold/Arf game thread is resolved at an explicit observation boundary.
+  Weighted-source Witt--FIFO uses a public polar-form basis change,
+  original-frame singleton-weighted source pairs, and a local charge lantern to
+  give an ordinary normal-play P-set `{Q = 0}`. A sharp theorem says every
+  transcript-stable exact rule must observe vectors spanning the input, so no
+  constant total observation budget can work; unavoidable fork padding also
+  rules out the basic fork properties as definitions of non-tautology. See
+  `writeups/goldarf.tex` and the six Gold/FIFO proof modules.
 
 License: AGPL-3.0-or-later (see `LICENSE`).

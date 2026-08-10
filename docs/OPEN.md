@@ -16,15 +16,17 @@ shipped catalogue (`games/loopy/`: `on`, `off`, `over`, `under`, `dud`, `±`,
 `e_f` forms, `e_i` integral, `e_g` games, `e_o` grundy, `e_y` py) — so an open
 problem is a *loopy-valued* multivector term, the same labeling system as
 [`COMPLETENESS.md`](COMPLETENESS.md), just with loopy coefficients in place of cold
-numbers, switches, ups, and stars. The code can now compute their finite
-starter-pair outcomes; the open part is the game-semantic recasting problem, not
-the vocabulary. The values come in dual pairs, and so do the problems:
+numbers, switches, ups, and stars. The code can compute their finite
+starter-pair outcomes; closure tombstones below record when the mathematical
+problem has been settled independently of that naming vocabulary. The values
+come in dual pairs, and so do the problems:
 
 - **`tis`/`tisn`** (`{0|tisn}`/`{tis|0}` — "this is / this isn't") — the two
-  game-native-quadratic-data questions.  The outcome side (`tis`) remains open;
-  the coefficient side (`tisn`) was resolved on 2026-08-09: ambient coherence
-  across short-game subgroups plus coefficient faithfulness forces every
-  torsion game to stay square-zero and polar-radical.
+  game-native-quadratic-data questions are both resolved (2026-08-09). The
+  outcome side uses the weighted-source Witt--FIFO normal-play rule and sharp
+  observation boundary below; the
+  coefficient side uses ambient short-game divisibility to force every
+  torsion game square-zero and polar-radical.
 - **`on`/`off`** — the two transfinite-On₂ questions: the tower that climbs past
   every verified rung (`on`) remains open; the classifier beyond the finite
   windows (`off`) was resolved on 2026-08-07.  Over full algebraically closed
@@ -42,13 +44,25 @@ The games are the names: refer to a problem by its loopy value. `dud` stays
 unassigned: `dud + G = dud` for every `G`, and no problem has yet earned
 absorbing the whole roadmap. May none ever.
 
-## open problems
+## open problems and closure tombstones
 
-### tis·(e_g∧e_f): `natural Gold-quadric game rule`
+### ~~tis·(e_g∧e_f): `natural Gold-quadric game rule`~~ — resolved
 
-Find, or rule out under a precise naturality condition, a non-tautological game
-rule whose P-positions are the zero set `{Q = 0}` of a game-built Gold quadratic
-form.
+**Resolved 2026-08-09.** The weighted-source Witt--FIFO rule is a fixed ordinary
+normal-play rule whose P-positions are exactly the zero set `{Q = 0}` of every
+finite `F_2`-valued quadratic refinement, hence of every Gold form. A q-blind
+Witt frame makes the public polar graph a matching; one q-blind matched source
+pair per active original coordinate uses its singleton diagonal bit as a local
+overlap weight. The matching strategy is proved for both seats in every
+dimension and a local claim lantern compiles forced charge to normal play.
+The negative boundary is equally exact: every transcript-stable exact rule
+must observe vectors spanning the input, so no constant total observation
+budget works in unbounded dimension and the rule's active singleton support is
+optimal. Outcome-preserving unavoidable fork padding proves that the basic
+reachable, optimal, and unavoidable fork properties do not define
+non-tautology. The proof is in
+`writeups/goldarf.tex`; six Lean modules check its independent diagonal-source,
+matching, algebra, compiler, observation, and padding ingredients.
 
 The implemented bridge is already concrete. In a finite nimber field,
 
@@ -71,23 +85,23 @@ quadratic form on `F_2^(2r)`,
 
 For degenerate forms, the implementation uses the usual radical-adjusted count:
 an anisotropic radical balances the values exactly, while an isotropic radical
-scales the bias. So if a game had P-positions exactly `{x : Q(x)=0}`, Arf would
-say which player wins from more starting positions and by what square-root-scale
-margin. That interpretation is meaningful, but it is conditional; it does not
-exhibit the game.
+scales the bias. For the resolved game, Arf therefore says which player wins
+from more starting positions and by what square-root-scale margin.
 
-Why this is research:
+Why this was research:
 - The repo already builds the Gold forms and tests several game routes. The
-  missing datum is not code for `Q`; it is a play rule, or a definition of
-  "natural" strong enough to make the question non-ad-hoc.
+  former missing datum was not code for `Q`; it was a play rule and a
+  definition of "natural" strong enough to make the question non-ad-hoc.
 - Normal-play sums do not solve it. For impartial normal play the P-condition is
   `g_1 xor ... xor g_n = 0`, hence linear in Grundy coordinates, while
   characteristic-2 quadrics obey `Q(u+v) = Q(u) + Q(v) + B(u,v)`. The polar form is
   exactly the XOR-closure obstruction.
-- Frame-blind rules are too symmetric, while rules that directly evaluate `Q`
-  are too tautological. The open core is the middle: a fixed play rule that reads
-  the bilinear/game structure as a quadratic outcome without being a disguised
-  evaluator.
+- Frame-blind rules are too symmetric, while rules with a constant total
+  outcome certificate cannot be exact at dense inputs. The resolved boundary
+  is a fixed local-interaction rule attaining the necessary observation span;
+  the basic reachable, optimal, and unavoidable outcome-only fork tests cannot
+  strengthen that statement into an invariant definition of the adjective
+  "natural".
 
 The lexicode shadow (standard math + interpretation; the solved linear case):
 
@@ -107,7 +121,7 @@ demonstrably realize rich *linear* codes as P-sets; and the matching no-go
 (`writeups/goldarf.tex`, Theorem A:
 every Winning Ways coin-turning P-set is the kernel of an `F_2`-linear map)
 says linearity is also the ceiling for that architecture. Floor and ceiling
-coincide at linear. `tis` is exactly whether the lexicode phenomenon admits
+coincide at linear. `tis` asked whether the lexicode phenomenon admits
 a quadratic refinement — a rule producing the XOR-closure failure that the
 polar form `B` measures. Bridge O (built) makes the
 lexicode chain executable (`LexicodeTurningGame` -> greedy = mex -> Golay ->
@@ -130,8 +144,8 @@ Current probe map:
   classical count. Bent forms are the cleanest target because `R(B) = {0}`.
 - `experiments/framing_obstruction.py` shows that for tested Gold polar forms,
   the coordinate-frame quadratic refinement has Arf 0 and the diagonal term
-  flips to the Gold form. The remaining problem is whether the diagonal framing
-  `q_i = Q(e_i)` is itself game-natural.
+  flips to the Gold form. Historically this exposed the diagonal-framing
+  question later answered by the local weighted-source construction.
 - `experiments/misere_kernel.py` verifies the Plambeck-Siegel kernel obstruction
   concretely on `R8`: the kernel is `(Z/2)^2`, `P cap K = {0}` is linear, and the
   genuine misere P-element lies outside the group where a vector-space quadric
@@ -146,32 +160,62 @@ Current probe map:
   rule reaches a bent quadric of the correct Arf class but not the specific Gold
   zero set; adding the naive per-coin Ising field leaves the quadric variety.
 
-The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by the
-`experiments/gold/` probes):
+Resolution state (2026-08-09):
 
-- The naturality criterion asked for below now has a draft formalization — N1
+- Weighted-source Witt--FIFO chooses a deterministic
+  symplectic-plus-radical basis from public `B`, loads its active coordinates
+  as a matching, and loads one q-blind source pair for each active original
+  coordinate of `x`. Public basis coins carry the `B`-dependent triangular
+  correction; the overlap of source pair `j` has weight `q_j`. Thus F1 is
+  q-blind and F2/N2 hold with `(w0,c)=(1,1)` for transitions as well as
+  legality; refinement data enters a play-dependent interaction rather than an
+  invariant terminal label.
+- On every matching-plus-isolates board, either seat keeps the opponent's FIFO
+  front ko-protected or zero-live-degree. Applied to the q-blind potential
+  matching, the same policy makes every close individually zero and hence
+  forces every potential pair to overlap; the strategy itself is uniform in
+  the refinement. A rank induction proves this for every finite board, with no
+  dummy. Polarization then proves forced terminal charge `sigma=Q_q(x)` for all
+  dimensions and refinements.
+- A unique terminal claim move, enabled iff `sigma = 1 xor phase`, compiles the
+  finite charge tree to ordinary normal play. At the root, P iff `Q_q(x)=0`.
+  The phase is the existing mover bit and is necessary to preserve seat identity
+  across both history parities.
+- Transcript stability plus torsor-uniform exactness forces every outcome
+  certificate at `x` to span `x`. With weight-`w` observations this gives
+  `wt(x) <= #observations*w`; no constant total budget is possible, and the
+  source pairs attain the singleton lower bound exactly.
+- The old mixed-successor N3 is defeated by dominated escape edges, while
+  dominance-pruned mixed-successor criticality is impossible. Stronger
+  reachable/optimal/unavoidable fork tests also fail: every terminal of an
+  arbitrary finite normal-play tree can be padded by an outcome-preserving
+  forced wrapper into a refinement-sensitive fork. This is kernel-checked, so
+  strategic liveness is retained as description rather than a naturality axiom.
+
+Historical program state (2026-06-10 — retained as proof provenance):
+
+- The naturality criterion asked for below had a draft formalization — N1
   (decision-nondegeneracy), N2 (bounded framing access), N3 (strategic
-  relevance / anti-clock). N3's exact formulation is itself an open definitional
-  problem: the escape-edge construction passes N1–N3 while being morally a clock,
-  and the natural repairs run into two-game criticality being unsatisfiable in
-  two-class outcome semantics.
+  relevance / anti-clock). The final audit proves that no reachability-only N3
+  can do this job: outcome-preserving forced fork padding defeats even optimal
+  and unavoidable variants. The transcript-span theorem is the replacement.
 - A no-go ladder (Theorems B–H) kills Tier 1 outright and shows every known
   in-quarantine Tier-2 normal-play realizer is a clock. Five named escape hatches
-  remain: loopy-Draw semantics, `t ≥ 2r−2` with anisotropic complement,
+  were catalogued: loopy-Draw semantics, `t ≥ 2r−2` with anisotropic complement,
   Frobenius-aware access (where both the symmetry and oracle methods are provably
   silent), non-quarantined rules using the game-native `℘` diagonal source, and
   rank-1 / radical-anisotropic degenerate layers.
 - The abelian obstruction conjectured here is now Lemma `abelian` in the draft:
   no commutative game monoid's intrinsic squaring realizes a nondegenerate polar
   form, so the quadratic datum must come from the move relation's directedness.
-- The formerly open even-`a` diagonal-sourcing lemma is now closed for every
-  exponent (2026-08-09; `writeups/gold_diagonal_source.tex`). The trace-dual
+- The formerly open even-`a` diagonal source is closed for every exponent
+  (2026-08-09; `writeups/gold_diagonal_source.tex`). The trace-dual
   `lambda_{a,c}^{(2M)}` has an exact quadratic-tower recursion; at `c = 1` it
-  descends to the half-field and therefore has absolute trace zero, so it is
-  `w^2 + w`. This supplies the whole Gold diagonal constructively, but the
-  source is selected by exact finite-field linear algebra rather than the
-  closed Fermat-coin expression known at `a = 1`, and it does not itself turn
-  the source into a non-tautological play rule.
+  descends to the half-field, hence its absolute trace vanishes and it is
+  `w²+w`. This supplies the whole Gold diagonal constructively by game
+  operations. The source is selected by exact finite-field linear algebra
+  rather than the closed Fermat-coin expression known at `a = 1`;
+  weighted-source Witt--FIFO supplies the separate play rule.
 - The leading Tier-2 candidate was the `echo`-ko charge-counting family on the
   extraspecial cocycle, and its `echo`-`fifo`+dummy variant is now **verified**
   (2026-06-10, pre-registered adversarial review, `experiments/echo_solver.py`):
@@ -180,13 +224,12 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
   decomposition, σ in the memo key, validated against tree enumeration and the
   original direct solver, with a second-model cross-run. Decision-live in bulk
   (1.5–4.4M decision states per benchmark instance), torsor-uniform across
-  refinements of each `B`. Three honest boundaries: the realizer is
-  **σ-valued** (it realizes `Q` as a forced terminal charge — the central
-  character of the play word — not yet as a P-set in normal/misère/loopy
+  refinements of each `B`. At that date three honest boundaries were: the
+  realizer was **σ-valued** (the later claim-lantern theorem supplies normal
   semantics); the `echo`-ko table is stance-asymmetric (its exactness face is
   the σ=1 stance only, where `fifo`+dummy is exact at both); and the
   bounded-window blocker conjecture is untouched (the FIFO queue is unbounded
-  memory). The recasting is now the load-bearing open step; the
+  memory). The
   Plambeck–Siegel Thm 6.4 regularity gate is still slug `ps-regularity`.
 - The mechanism behind the verified realizer is now reduced and substantially
   sharpened (2026-06-10 and 2026-07-20 passes, goldarf §8 "linking reduction",
@@ -665,11 +708,13 @@ The naturality dichotomy:
   subgames with inputs driven by `x`, its P-condition is exactly `{Q_a = 0}`.
   That is more structured than a lookup table, but the form is still fed in rather
   than produced by autonomous play.
-- **Tier 2: fixed-rule middle: open.** Positions should be indexed by field
-  elements, with one rule independent of the chosen `x`, and the single-position
-  Grundy-zero / kernel / Loss / Draw set should be `{Q_a = 0}`. The rule may use
-  the nim product, Frobenius, or coordinate-frame data if a naturality criterion
-  justifies them, but it must not simply evaluate `Q_a(x)`.
+- **Tier 2: fixed-rule middle: resolved.** Weighted-source Witt--FIFO is one
+  q-blind structural rule for every `x`: it uses a public Witt frame, matched
+  source pairs, singleton-local transition weights, and a phase-aware terminal
+  claim. Its ordinary normal-play P-set is `{Q_a = 0}`. The transcript-span
+  theorem gives the exact invariant boundary: dense inputs cannot have a
+  constant total outcome certificate, and the construction's active singleton
+  support attains the necessary span.
 
 The extraspecial-group reframing (interpretation; explains the misère obstruction):
 
@@ -707,21 +752,20 @@ under the extension `E`, **not** merely under `Sp(B)`. That sits properly betwee
 frame-blind `Sp(B)` (Tier 1, the no-go) and direct `Q_a`-evaluation (Tier 3,
 tautological), because `E` is a proper central extension of `V`: it carries the `q_i`
 data structurally without being a `Q`-evaluator. Status: developed into the Tier-2
-screen and no-go ladder of `writeups/goldarf.tex` §§5–6 (see the program-state block
-above); it does not yet exhibit a game.
+screen and no-go ladder of `writeups/goldarf.tex` §§5–6. The resolved rule uses
+that extension data covariantly in play rather than as an invariant lookup.
 
-Concrete progress targets (aligned with the goldarf §9 ranked moves):
+Closure of the former progress targets:
 - ~~Adversarially verify or refute the `echo`-`fifo`+dummy `m = 8` exactness
   claim~~ — **done, CONFIRM** (2026-06-10; `experiments/echo_solver.py`, record
-  in goldarf §8). The successor target: **recast the
-  σ-valued charge readout into normal/misère/loopy outcome semantics**, or
-  prove the recasting impossible — the step that converts the verified
-  realizer into a Tier-2 witness in the original P-set sense. Alongside it:
-  the family-boundary sweep (ko-window `w`, pass semantics, pair touches,
-  no-dummy controls), which also puts the bounded-window blocker on valid data.
-- Close the **general-n linking theorem** (the mechanism half, reduced
-  2026-06-10 and sharpened 2026-07-20): prove that the odd-close parity game
-  on any graph with an isolated coin forces an even flip count from both
+  in goldarf §8). ~~Recast forced charge into normal play~~ — **done** by the
+  local claim-lantern compiler, kernel-checked for arbitrary finite payoff
+  trees. The weighted-source construction supplies the all-dimension charge
+  theorem needed at its input.
+- The **arbitrary-graph general-n linking theorem** is now a strict optional
+  generalization rather than a Gold obligation. The conjecture, reduced in
+  2026-06-10 and sharpened in 2026-07-20, asks whether the odd-close parity
+  game on any graph with an isolated coin forces an even flip count from both
   seats. Verified for all 12,346 classes at k = 8 real coins plus dummy
   (`experiments/linking_game.py`). The old R3/D3 induction fails first at
   `GCRU]w`; the live route is the block-turn plus live-degree-pairing
@@ -729,30 +773,25 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
   proactive-debt witnesses above.  Balanced-front odd-flow transport and the
   complete close-first contraction are now proved.  Dual descent reduces a
   hypothetical counterexample to an isolated odd/odd CLOSE spike or an
-  after-dummy ko-protected universal-neighbour singleton, but the current exact
-  target remains the global affine-contraction/causal-factor-extension lemma
-  of `writeups/linking_affine.tex`, with the FIFO cut-space filtration as a
-  coordinate system rather than a childwise induction.
-  A proof upgrades the m∈{4,8} verification to exactness for all m.
-- Repair or replace N3, the anti-clock axiom — the open definitional problem: the
-  escape-edge construction passes N1–N3 while being morally a clock, and two-game
-  criticality is unsatisfiable in two-class outcome semantics.
-- Exhibit a fixed uniform rule satisfying N1, N2, and N3 simultaneously on a Gold
-  quadric of core rank ≥ 6 — or close the remaining escape hatches (loopy-Draw,
-  `t ≥ 2r−2` anisotropic, Frobenius-aware access, `℘`-sourced diagonals,
-  rank-1/radical-anisotropic layers) with no-gos of their own.
-- Enumerate the Frobenius-aware access window at `m = 4, 8` — the one hatch where
-  both the symmetry-killing and oracle methods are provably silent.
-- ~~Construct an Artin–Schreier source for the diagonal refinement
-  `q_i = Q(e_i)` for every `a`~~ — **done** (2026-08-09). The recursive dual
-  `lambda_{a,1}^{(m)}` lies in the half-field for every `m > 1`, hence equals
-  `w^2 + w`; `gold_diagonal_artin_schreier_source` constructs such a `w` through
-  `m = 128`. This closes the constructive sourcing lemma, including every even
-  `a`, while leaving the stronger play-rule/naturality question above open.
-- Cheap gates: verify the Plambeck–Siegel Thm 6.4 regularity hypothesis (slug
-  `ps-regularity`); enumerate conjugation-move rules on `E` (the left-translation
-  kill of Theorem H does not apply to conjugation); exhaust the board-8 case of the
-  `fifo` parity-pinning conjecture.
+  after-dummy ko-protected universal-neighbour singleton. The remaining global
+  affine-contraction/causal-factor-extension lemma of
+  `writeups/linking_affine.tex` stays open, with the FIFO cut-space filtration
+  as a coordinate system rather than a childwise induction, but a proof would
+  strengthen FIFO combinatorics rather than the Gold result.
+- ~~Repair or replace the anti-evaluator screen~~ — **done as a boundary
+  theorem, not another N3**. Exactness forces transcript observations to span
+  the input; constant total observation is impossible. Unavoidable fork
+  padding proves that the basic reachable, optimal, and unavoidable
+  strategic-liveness repairs remain decoration-vulnerable.
+- ~~Exhibit the fixed uniform local rule~~ — **done** by weighted-source
+  Witt--FIFO, with q-blind statics, `(w0,c)=(1,1)` transitions, the optimal
+  singleton observation support, and ordinary normal-play P-set `{Q=0}`.
+- ~~Construct an Artin--Schreier source for every Gold diagonal~~ — **done** by
+  the half-field descent theorem and `gold_diagonal_artin_schreier_source`, for
+  every exponent and every supported tower through `m = 128`.
+- Family-boundary sweeps, Frobenius-aware enumeration, conjugation rules, and
+  the Plambeck--Siegel regularity check remain useful historical calibrations,
+  not conditions on the existence theorem.
 
 Relevant surfaces:
 - `writeups/goldarf.tex`
@@ -816,9 +855,10 @@ This resolves the original distinction:
   game-native because its value depends on the ambient subgroup.
 - Mean-value and atomic-weight squares remain valid on torsion-free directions;
   the theorem predicts that they factor through the torsion-free quotient.
-- A directed/noncommutative outcome construction would change the algebraic
-  object rather than deform the commutative-scalar `GameExterior`; that route is
-  part of the still-open play-semantics problem `tis`, not a residual `tisn` case.
+- A directed/noncommutative outcome construction changes the algebraic object
+  rather than deforming the commutative-scalar `GameExterior`; the weighted-source
+  FIFO rule now supplies that separate `tis` construction, not a residual `tisn`
+  deformation.
 
 The abstract ring proof and coefficient-valued corollaries are kernel-checked
 in `formal/Ogdoad/GameExterior.lean`; Moews's short-game group theorem remains
@@ -1336,13 +1376,13 @@ nonsingular quotient.
 The exact semantic contract is a **synchronized charge/output** contract:
 binary terminal-charge channels on the same loaded input may be paired and
 deterministically relabelled.  Under that contract a Brown readout is
-observationally exactly `(ell,Q)`.  Once `ell` is supplied its linear channel
-has the standard local XOR realization; the nonlinear channel is a generalized
-`tis`-type ordinary quadratic problem.  On the doubled Gold slice
-`ell=0`, `q=2Q`, it is literally `tis`.  This is not a factorization of game
-trees and does not construct a single canonical normal/misère/loopy four-way
-outcome; demanding that internalization is the residual play question
-transferred to the corresponding ordinary-quadratic rule problem.
+observationally exactly `(ell,Q)`. Once `ell` is supplied its linear channel
+has the standard local XOR realization, and the weighted-source Witt--FIFO
+theorem now supplies the nonlinear normal-play bit. On the doubled Gold slice
+`ell=0`, `q=2Q`, this is the resolved `tis` construction. This is not a
+factorization of game trees and does not construct a single canonical
+normal/misère/loopy four-way outcome; demanding that internalization remains
+the distinct residual Brown semantic boundary.
 
 There are two complementary no-gos/corrections.
 

@@ -7,7 +7,8 @@ are an abelian GROUP, not a ring; that constraint is *why* the Clifford story
 lives on the scalar backends and not on all games.
 
 > Read `docs/OPEN.md` before touching `coin_turning.rs`, `kernel.rs`, `misere.rs`, or
-> the example probes — they feed the open play-semantics question.
+> the example probes — they preserve the proof history of the resolved Gold
+> play-semantics question and still feed independent continuations.
 
 `mod.rs` re-exports every module below flat.
 
@@ -106,7 +107,8 @@ lengths, and the `Quotient` class machinery (indices, not payloads).
 - **`kernel.rs`** — normal-play Win/Loss/Draw outcomes of any finite game graph
   (retrograde analysis); `p_positions` = Loss. The interactive route to the open
   question. Plus `scoring_values`: the Milnor minimax `ScoreInterval { left, right }`
-  (`i128`) on a DAG — the integer-valued scoring knob.
+  (`i128`) on a DAG — the integer-valued scoring knob. The interactive route was
+  part of the historical Gold search; the theorem now lives in the FIFO formalization.
 - **`loopy/`** — loopy (cyclic) games, the third escape from XOR-linear P-sets: a
   cyclic rule admits a **Draw** outcome (a genuinely new degree of freedom). Split
   into five layers:
@@ -136,7 +138,7 @@ lengths, and the `Quotient` class machinery (indices, not payloads).
   for finite acyclic impartial games; cycles return `None`. Covers misère Nim vs
   Bouton; the bounded indistinguishability quotient (`misere_quotient`,
   `AbstractGame`, `Quotient`); octal games (`octal_moves`, `octal_misere_quotient`).
-  The non-linear route to the open question.
+  The non-linear route explored during the former open question.
 - **`lexicode.rs`** — **Bridge O**, the games ↔ integral edge: greedy binary
   lexicodes `L(n,d)` (Conway–Sloane 1986). `lexicode`/`lexicode_naive`/
   `lexicode_bounded` (+ `LEXICODE_NODE_BUDGET`, an honest backstop → `None`, not a
@@ -151,8 +153,8 @@ lengths, and the `Quotient` class machinery (indices, not payloads).
   Also ships `nim_lexicode_naive`/`NimLexicode`, the literal base-`2^k` greedy over
   nim alphabets: closure under coordinatewise nim-addition is verified, and scalar
   closure witnesses the Fermat-base line (base 4/16 pass, base 8 fails).
-  **Claim level:** the degree-1 (solved, linear) side of `docs/OPEN.md` §1 — explicitly does
-  NOT touch the open Gold-quadric question; do not cite as progress on it.
+  **Claim level:** the degree-1 (solved, linear) comparison in the Gold proof
+  history; it is not evidence for the separate Witt--FIFO theorem.
 
 ## The bridge object
 

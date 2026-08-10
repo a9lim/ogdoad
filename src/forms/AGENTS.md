@@ -6,7 +6,7 @@ the **characteristic trichotomy**: the classification of a quadratic form
 by `char F`. This axis cuts ACROSS the place table that organizes `scalar/`.
 
 > Read `docs/OPEN.md` before touching `char2/`, `quadric_fit.rs`, `char0.rs`,
-> `witt/`, or anything feeding the open play-semantics question.
+> `witt/`, or anything feeding the Gold play-semantics theorem and its formal boundary.
 
 `mod.rs` re-exports the legs + `classify` + diagonalize/equivalence + the `witt/`
 invariant-group shelf + the `springer/` valuation-graded decomposition +
@@ -374,9 +374,10 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   trace-dual of the scaled coordinate diagonal by quadratic-tower recursion;
   for the unscaled form at `m > 1`, `gold_diagonal_dual` descends to the
   half-field and `gold_diagonal_artin_schreier_source` returns `w` with dual
-  `w²+w`. This
-  closes the all-exponent diagonal-sourcing lemma, not the open game-semantic
-  realization. The form has dim `[E:F]`, capped at `MAX_BASIS_DIM=128`. The same
+  `w²+w`. This is the algebraic sourcing component used by the resolved
+  weighted-source Witt--FIFO normal-play theorem; the strategic proof lives in
+  `writeups/goldarf.tex`. The form has dim `[E:F]`, capped at
+  `MAX_BASIS_DIM=128`. The same
   `CyclicGaloisExtension` basis/generator data also feeds
   `clifford::frobenius::{galois_linear_map, frobenius_linear_map}`, giving the bridge
   a Clifford outermorphism oracle.

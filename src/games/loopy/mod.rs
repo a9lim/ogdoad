@@ -3,8 +3,9 @@
 //! [`kernel`](crate::games::kernel) route and the [`misere`](crate::games::misere)
 //! route) from the XOR-linear P-sets of normal-play disjunctive sums: a cyclic
 //! rule admits a **Draw** outcome — a position from which neither player can force
-//! a win — and the Draw-set is a genuinely new degree of freedom to test against
-//! the Gold quadric `{Q=0}` (see `docs/OPEN.md`, the Tier-2 open question).
+//! a win — and the Draw-set is a genuinely new degree of freedom. The historical
+//! Gold probe is retained as a contrast with the resolved normal-play
+//! weighted-source Witt--FIFO rule in `writeups/goldarf.tex`.
 //!
 //! Five layers, re-exported flat so every public path is unchanged:
 //!

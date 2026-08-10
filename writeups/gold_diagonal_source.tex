@@ -40,8 +40,9 @@ single tower-constructed source $w$ satisfying
  \Tr\!\left((w^2+w)e_i\right)=Q_a(e_i)\qquad(0\le i<m).
 \]
 The result closes the diagonal-sourcing problem, including the even-$a$
-case.  It does not solve the separate problem of turning those constants into
-a non-clock normal-, mis\`ere-, or loopy-outcome game.
+case. By itself it does not turn those constants into a normal-play rule; the
+companion weighted-source Witt--FIFO theorem in
+\texttt{writeups/goldarf.tex} supplies that separate strategic step.
 \end{abstract}
 
 \section{Statement and boundary}
@@ -90,9 +91,10 @@ and therefore
 The two possible sources are $w^{(m)}_a$ and $w^{(m)}_a+1$.
 \end{theorem}
 
-The theorem is about sourcing the diagonal constants.  It does not infer a
-$P$-set theorem, a linking strategy, or a resolution of the full natural
-Gold-quadric game problem.  This proof/semantics boundary is essential.
+The theorem is about sourcing the diagonal constants. It does not itself
+infer a $P$-set theorem or a linking strategy. Those are supplied by the
+separate weighted-source Witt--FIFO theorem; this proof/semantics boundary is
+essential even though the combined project-level problem is now resolved.
 
 \section{The quadratic nim-tower block}
 
@@ -282,7 +284,7 @@ from rank--nullity, trace surjectivity, and the two-element kernel, rather than
 introduced as an axiom. The module does not encode the finite nim tower or
 replace the Rust implementation with a Lean finite-field model.
 
-\section{Consequence for the open Gold-game program}
+\section{Consequence for the resolved Gold-game program}
 
 The former even-$a$ constructive sourcing question is closed: for every
 exponent, the diagonal is supplied by one deterministically selected tower
@@ -293,10 +295,11 @@ formula, the final $w$ is selected by exact finite-field linear algebra; the
 theorem does not claim a comparably simple closed expression or that this
 selection itself satisfies the strategic naturality axioms.
 
-What remains open is the strategic layer.  A rule may consume the sourced
-diagonal and still be a transport clock, or may realize only a terminal charge
-rather than a normal/mis\`ere/loopy outcome class.  The all-$a$ source removes
-one algebraic obstruction from that problem; it does not weaken the existing
-naturality and outcome-semantics requirements.
+The strategic layer is resolved separately by weighted-source Witt--FIFO. Its
+source-pair weights consume these diagonal bits locally, the matching theorem
+forces the exact charge in every dimension, and the phase-aware claim lantern
+gives an ordinary normal-play P-set $\{Q_a=0\}$. The present theorem supplies
+the all-$a$ algebraic input to that construction; it does not collapse the
+distinction between sourcing and play semantics.
 
 \end{document}

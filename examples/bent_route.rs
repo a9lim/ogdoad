@@ -1,4 +1,4 @@
-//! The bent route to the open question.
+//! The historical bent route to the Gold question.
 //!   cargo run --example bent_route
 //!
 //! Bent (nondegenerate) game-realizable forms are a clean Tier-2 target. The
@@ -18,8 +18,8 @@
 //! The decisive new probe is a LOCAL SPIN-FLIP rule: flip a single coin i when the
 //! local energy change ΔQ_i(v) = q_i ⊕ B(v,e_i) is 1. It reads ONLY the couplings
 //! B and the per-coin field q_i — Tier-2 data (B + a diagonal frame), never the
-//! global Q. If its P-set is {Q=0}, the open question reduces to whether "pairwise
-//! coupling + per-coin field, played as spin flips" counts as natural. We use a
+//! global Q. This tested whether "pairwise coupling + per-coin field, played as
+//! spin flips" could realize the target. We use a
 //! bent Gold COMPONENT Tr(λ x^{1+2^a}) (bent for 2/3 of λ; see gold_family_survey).
 
 use ogdoad::forms::fit_f2_quadratic;
@@ -166,6 +166,7 @@ fn main() {
     println!("   per-coin field q_i to B. It does NOT align B's quadric to {{Q=0}}; it leaves");
     println!("   the quadric variety entirely. So the naive local-field assembly fails: the");
     println!("   diagonal framing must enter some other way than a per-coin spin-flip gate.");
-    println!("This sharpens the open question on this bent case: B+frame can reach a");
-    println!("right-Arf quadric class, but aligning to the specific Gold quadric remains open.");
+    println!("This pins why the naive bent routes fail: B+frame reaches a right-Arf");
+    println!("quadric class but not the specific Gold quadric; weighted-source Witt--FIFO");
+    println!("resolves the global play question by a different stateful construction.");
 }

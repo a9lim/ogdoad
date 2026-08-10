@@ -165,3 +165,79 @@ checkpoints; that stronger prefix-safe normalization is false locally and its
 root-level sibling coupling is still open.  The Lean development therefore
 hardens the semantics and the proved reduction spine without laundering the
 finite census through `k = 8` into a proof for all finite graphs.
+
+[`Ogdoad/FifoMatching.lean`](Ogdoad/FifoMatching.lean) closes the exact
+subclass needed by the resolved Gold construction:
+
+- `IsMatchingGraph` says every vertex has at most one neighbour, hence the
+  board is a matching plus isolates;
+- `evenWins_of_matching` gives a rank-inductive strategy from every score-zero
+  state at the designated seat's turn, or at a safe opponent front;
+- `evenWins_initial_of_matching` proves that either seat forces zero flip
+  parity from the empty-queue root, without a dummy; and
+- `evenWins_initial_of_every_submatching` formalizes the same public-branching
+  induction for every edge-deleted submatching. Its move branches inspect only
+  the public matching, although `EvenWins` does not expose a first-class policy,
+  so the literal `exists policy, forall submatching` and per-close trace
+  statements remain paper-level observations; and
+- the abstract hyperbolic-plus-radical graph and induced-subgraph lemmas provide
+  the matching target; the paper supplies the concrete Witt-frame and loaded-
+  support instantiation.
+
+This does **not** prove the arbitrary-graph isolated-dummy conjecture.  It
+shows instead that the conjecture is an unnecessary strengthening for Gold.
+
+## Gold normal-play semantics
+
+[`Ogdoad/GoldMatchingAlgebra.lean`](Ogdoad/GoldMatchingAlgebra.lean)
+kernel-checks the quadratic expansion in a supplied adapted basis: selected
+basis diagonals plus the parity of hyperbolic pairs whose two coordinates are
+active. It includes the exact split in which each adapted diagonal is a public
+polar correction plus a transported original-frame linear source.
+The standard existence of a symplectic-plus-radical basis for a finite
+alternating form remains an ordinary linear-algebra input; the file proves the
+identity once such a basis and the split-diagonal hypotheses are supplied. It
+does not define the original-frame change-of-basis matrix or prove that its
+concrete public correction is `P_B(f_i)`; that elementary polarization step
+remains in the paper.
+
+[`Ogdoad/GoldSemantics.lean`](Ogdoad/GoldSemantics.lean) proves the semantic
+compiler independently of the FIFO mechanism:
+
+- a recursive winning-status compiler models retaining every move and adding
+  one terminal claim exactly when the current seat is designated by the charge;
+- mutual backward induction proves winner equivalence at every subtree and phase, so
+  stance one has a P-root exactly when the forced charge is zero;
+- the Boolean complement identity behind the need for a mover/phase bit;
+- outcome-dominance pruning makes mixed-successor criticality impossible in
+  every two-class game; and
+- the local Boolean swap identity for a two-action fork.
+
+[`Ogdoad/GoldNoEvaluator.lean`](Ogdoad/GoldNoEvaluator.lean) proves the sharp
+observation boundary. Coordinate-free, transcript stability and exactness
+force the input into the span of the observed vectors. In the Boolean
+coordinate frame it proves
+
+```text
+weight(x) <= number of observations * maximum observation weight
+```
+
+and rules out uniform exactness under a bounded total certificate. The paper's
+weighted-source rule uses exactly the active singleton directions and attains
+this support bound.
+
+[`Ogdoad/GoldForkPadding.lean`](Ogdoad/GoldForkPadding.lean) proves generic
+Bool-parameter fork padding. It replaces every terminal P-node of an arbitrary
+finite normal-play tree by an outcome-equivalent forced wrapper leading to an
+always-N swapping fork, and `win_padTerminals` proves the root outcome is
+unchanged. The paper instantiates the Bool as a chosen refinement bit and
+draws the fork-screen corollary.
+
+These files kernel-check independent ingredients of the synthesis in
+`writeups/goldarf.tex`; there is no single end-to-end Lean theorem constructing
+the weighted-source arena and connecting every layer. In particular they do
+not encode finite-field nim arithmetic, construct the standard Witt basis,
+instantiate its concrete matrix coefficients, or build the compiled arena as a
+second explicit move-graph datatype. `TranscriptStable`, `twist`, and `observe`
+are abstract assumptions in Lean; their weighted-arena instantiation is also
+part of the paper's synthesis.
