@@ -6,9 +6,9 @@ and exact↔capped mirrors a leg is still missing, verification harnesses, and e
 grease. Genuinely new directions — features that extend ogdoad past what it covers
 today — live in [`CONTINUATIONS.md`](CONTINUATIONS.md) (the grundy language work, the
 char-`p` Drinfeld mirror). Newly completed work goes in the
-[`DONE.md`](DONE.md) ledger. Nothing here is a genuine research question — those
-live in [`OPEN.md`](OPEN.md) (which carries the loopy-valued entries; open problems
-give no termination guarantee).
+[`DONE.md`](DONE.md) ledger. Nothing here is a genuine research question: solved
+questions are indexed in [`CLOSED.md`](CLOSED.md), and unsolved questions live in
+[`OPEN.md`](OPEN.md).
 
 Claim-level discipline (`AGENTS.md` → "Claim levels and non-claims") applies to every
 item: each is **standard math** or **engineering** when built — not a new theorem.

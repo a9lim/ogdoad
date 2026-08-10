@@ -25,14 +25,8 @@
 \newcommand{\Frob}{\operatorname{Frob}}
 \newcommand{\nimmul}{\otimes}
 \newcommand{\Qset}{\mathcal{Q}}
-% Evidence tags are reserved for statements outside theorem environments.
-\newcommand{\CERTIFIED}[1]{\textbf{[certified $#1$]}}
-\newcommand{\SOURCEPINNED}{\textbf{[source-pinned]}}
-\newcommand{\CONSISTENT}{\textbf{[consistent]}}
-\newcommand{\CONJECTURED}{\textbf{[conjectured]}}
-\newcommand{\OPEN}{\textbf{[open]}}
 
-\title{Finite excess in transfinite nim multiplication\\
+\title{Finite Excess in Transfinite Nim Multiplication\\
 \large Exact reductions, order bounds, and the \(0/1/4\) frontier}
 \author{a9lim}
 \date{August 2026}
@@ -41,141 +35,43 @@
 \maketitle
 
 \begin{abstract}
-Conway's field $\mathrm{On}_2$ makes nim-multiplication below
-$\omega^{\omega^{\omega}}$ depend on Lenstra's finite \emph{excess}
-$m_p$ in the Kummer carry
-$\alpha_p=\kappa_{f(p)}+m_p$.  The observed rule is that every excess is
-$0$, $1$, or $4$.  We prove that this rule is equivalent to four exact
-statements: a primitive-support norm condition, a projective-order
-condition on each ordinary odd Kummer spine, Gaussian-period primitivity
-on the cubic spine, and a current-factor condition on the exceptional
-$2\cdot3^k$ spine.  This is a complete reduction, not a proof of the rule.
+Conway's field of ordinal nimbers below
+$\omega^{\omega^{\omega}}$ is organized by finite Kummer carries
+$\alpha_p=\kappa_{f(p)}+m_p$, where $f(p)=\operatorname{ord}_p(2)$ and
+$m_p$ is Lenstra's finite excess.  The observed rule is
+$m_p\in\{0,1,4\}$.  We prove that this rule is equivalent to four
+distinguished finite-field order statements: a primitive-support norm
+condition, maximal projective order on the ordinary odd Kummer spines,
+primitivity of a Gaussian period on the cubic spine, and a current-factor
+condition on the exceptional $2\cdot3^k$ spine.
 
-The zero arm is sharpened in two directions.  For arbitrary component
-sets we isolate the synchronized Frobenius phase that is lost by separate
-component norms, and for two components express it by a resultant over the
-intersection field.  For the infinite power-of-two two-spine family
-$h=2^ar^b$, where $d(\alpha_r)=2^t$ and $a\geq t+1$, the
-distinguished Conway class in the primitive-support quotient is nontrivial
-and the zero arm is equivalent to generation of that explicit cyclic
-quotient.  This proves the zero arm outright at \(h=12\) and \(h=24\),
-where the quotient orders are prime.
+For each arm we derive exact norm, resultant, character, and polynomial
+criteria, together with unconditional order lower bounds that settle all
+sufficiently large primary factors relative to explicit regulators.  The
+zero arm is proved at the first two power-of-two two-spine levels.  The
+ordinary arm is reduced to selected trace and mixed-Jacobi coordinates;
+the cubic arm to a selected reciprocal Wendt factor and prescribed-trace
+character value; and the exceptional arm to nonvanishing of a selected
+cyclotomic antiunit index, equivalently exclusion of a named reciprocal
+cubic factor.  We also prove that the principal generic alternatives---
+degree, norm, reciprocity, unweighted character products, bounded-support
+arguments, and several natural descent schemes---do not determine these
+selected values.
 
-On an ordinary odd spine, the selected class is an explicit relative
-Hilbert--90 unit.  An absolute-Frobenius signed-ball argument gives the
-unconditional order lower bound $B_{r,a}^{\mathrm{abs},\pm}$, built from
-$r^ab/\ord_r(2)$ distinct linear sections, and proves every primary
-factor $p>\mathcal L_{r,a}/B_{r,a}^{\mathrm{abs},\pm}$.  For the first source-pinned safe-prime
-row lacking an independent analytical certificate, \(p=359\), we reduce
-the desired value exactly to one trace bit in
-$\F_{2^{179}}$ and identify the selected phase among $179$ resultant
-factors; the trace bit itself remains open.  A Teichmuller-weighted
-Hilbert-product formula proves that base-field and pure order-(p)
-selectors have zero weight, while mixed Jacobi sums recover the desired
-phase as one explicit inverse-Fourier coordinate; its nonvanishing remains
-open.  A projective minimal polynomial and its binary section expansion
-make failure equivalent to simultaneous divisibility by the actual Conway
-minimal polynomial; norm and complementation are automatic on that system.
-A tower-faithful character-sum construction shows that this complete
-section pattern occurs abundantly with irreducible ancestry, smooth exact
-degree, and full primary bookkeeping, even within a fixed bottom Kummer
-coset.  It leaves only the unscaled Conway selector distinguished.
-On the singleton-even Fermat
-arm, a five-point generalized-Jacobian calculation proves that the full
-natural equivariant divisor-and-pairing package carries exactly the
-original Kummer scalar and supplies no independent relation.  An exact
-root-extraction descent now shows more: all lower trace, norm, and maximal
-multiplicative-order ancestry is compatible with failure, which is
-equivalent to one explicit Dickson power-sum equation at the top step.  The
-corresponding Dickson polynomial either splits completely in the failure
-case or is irreducible in the success case, with an exact resultant and
-absolute Capelli factorization.  A reverse-Dickson transform sharpens
-failure to divisibility of the trace-one polynomial by an explicit absolute
-norm containing the selected minimal polynomial.  Its degree count and long
-coefficient gap are compatible with every composite Fermat case, so the
-selected divisibility remains open.  An exact semiconjugacy identifies the
-trace-one polynomial with the inversion quotient of the norm-one torus and
-the reverse-Dickson factor with one transported Kummer coset.  It also gives
-the precise fibotomic support, proving that all additive and support
-constraints are realized by nonselected cosets.
-
-The cubic simple-zero derivative regulator is
-\(\lambda_k^{3^k}/3\); its reduction is \(\gamma_k^{3^k}\), so both it
-and its relative norm-one quotient carry exactly the original unknown
-Kummer class.  The unique current ray character has residue module
-\(\mathcal O/(2-\vartheta)\): its Euler factor is forced to vanish, and
-the circular unit maps to the same coefficient \(L(1)\).  A real
-cyclotomic descent expresses the characteristic-zero resultant as a square
-and turns failure into divisibility by \(2^{2\cdot3^k}\); an exact
-second-row norm disproves the hoped-for archimedean size bound.  A cyclic
-group-algebra reduction sharpens cubic failure to
-one exact subset-sum parity pattern: every residue occurs oddly except one.
-After normalization inside the augmentation ideal, this is an extra
-proper-subproduct relation among Frobenius-conjugate units; the full product
-and the apparent \(\ell\)-th-power exponent test are unconditional identities.
-A block compression shows that mask complementation forces the unique even
-residue into exactly the position required by failure.  The surviving
-condition is equivalently the occurrence of a distinguished reciprocal pair
-of degree-\(3^k\) factors in a binary Wendt gcd; all Wendt factors have that
-degree and are paired, so factor existence alone is insufficient.  An exact
-Singer-difference-set factorization and its quotient moments go further:
-for a substantial small-index range every multiplicative coset contains
-such factors.  The selected pair descends through the \(S_3\) invariant to
-one lower trace polynomial.  Its selector is exactly the reciprocal
-Gaussian period \(\gamma_{k-1}^{-2}\), and an exact order product proves
-that this recursion is lossless rather than inductive.  Failure is the
-extremal value of one prescribed-trace character sum; other trace fibres
-genuinely attain that value, so only the selected fibre can be excluded.
-The cubic and exceptional arms also admit a common
-norm-coherent antiunit.  For the exception column, a distinct-part
-regulator gives order at least
-$B_-(h)=\exp((\pi/(6\sqrt2)+o(1))\sqrt h)$ and proves every current
-primary factor above the corresponding threshold.  Exceptional failure
-is also equivalent to simultaneous first-order flatness of a complete
-mixed Jacobi family; a primitive Fourier calculation proves that this
-family has rank one and identifies its selected coefficient with the
-antiunit index \(\operatorname{ind}_\ell(d_k)\).  The wild local
-coefficient of that antiunit is an explicit finite truncated logarithm;
-the critical norm-residue pairing with the weighted Jacobi selector is
-homogeneous in the same unknown index.  Failure is also
-equivalent to an exact complementary binary-submask parity pattern modulo
-\(15\cdot3^k\).  Raising that parity identity to the
-\(\ell\)-th power is again unconditional.  The cubic and exceptional
-failure words generate the ordinary single-parity-check code and are
-complements of singleton difference sets, so cyclic-code, uncertainty,
-and design bounds admit them exactly.  Higher two-adic lifts add no odd
-Kummer obstruction because their principal-unit groups are uniquely
-\(\ell\)-divisible.  A half-block factorization makes
-the parity identity a quadratic norm equation.  Its fixed-residue
-pushforward is automatic, and the remaining selected residue symbol is
-nontrivial exactly when one explicit relative trace is nonzero.  Parallel partition
-bounds hold on the cubic spine.  A further antiunit descent makes the
-selected exceptional phase a root of an explicit reciprocal sextic, and
-failure is exactly divisibility of one named irreducible cubic by a Dickson
-polynomial whose complete factorization consists of cubic squares.  The
-ambient factorization contains many admissible cubics, and every such cubic
-has the same trace--constant shape as the selected one.  The first Hasse
-jets are universal, and a symbolic family of (Q/2-1) ambient factors has
-exactly the same affine depressed Gaussian equation as the selected cubic.
-Two further absolute traces of its coefficients are explicit but yield no
-conflicting ambient identity, so the remaining
-problem is exclusion of the recursively selected one.  The remaining small factors in these
-three order problems, and maximality of the zero-arm primitive quotient,
-are genuine distinguished-value nonvanishing statements not forced by
-degree, norm, reciprocity, or generic character-sum bounds.  Thus the full
-$0/1/4$ rule and Lenstra's absolute boundedness question remain open, but
-the exact proof frontier and several infinite subfamilies are now rigorous.
+Thus the universal $0/1/4$ rule remains conjectural, but its proof frontier
+is reduced to four explicit nonvanishing problems.  A separate affine-line
+criterion characterizes Lenstra's weaker absolute-boundedness conjecture,
+and the exceptional column admits the effective bound
+$m_p<16(3^k)^4$.
 \end{abstract}
 
-\paragraph{Evidence taxonomy.}
-Statements in theorem, proposition, lemma, and corollary environments are
-proved in this note or deduced from a cited theorem.
-\CERTIFIED{I} denotes an exact finite computation for the displayed
-instances \(I\), with no claim about untested levels.
-\SOURCEPINNED{} denotes a value imported from an external table.
-\CONSISTENT{} denotes agreement with incomplete computational evidence.
-\CONJECTURED{} and \OPEN{} mark statements for which no proof or
-counterexample is known.
+\paragraph{Scope of the results.}
+Statements presented as theorems, propositions, lemmas, and corollaries
+are proved here or deduced from cited results.  Finite computations are
+identified as such and are used for certification and falsification only;
+they are not promoted to uniform theorems.  Values imported from the
+published A380496 table are source-pinned inputs.  The four universal
+order assertions are conjectures throughout.
 
 \tableofcontents
 
@@ -256,10 +152,10 @@ identifies the second family with \((D)\).  These cases are disjoint and
 exhaust the definition of Conjecture~\ref{conj:rule}.
 \end{proof}
 
-\subsection{What is proved and what remains open}
+\subsection{Main results and conjectural boundary}
 
-The theorem is a reduction, not a proof of any universal arm.  The
-present frontier is summarized below; finite certifications are listed
+The theorem is a reduction, not a proof of the four universal arms.  The
+resulting boundary is summarized below; finite certifications are listed
 separately in Appendix~\ref{sec:provenance}.
 
 \begin{center}
@@ -2742,14 +2638,14 @@ sign, and $1+a=\kappa_{89}\ne0$; its norm lies in
 $\F_2^\times=\{1\}$.  Hence \((\mathsf{SPH}_3)\) follows.
 \end{proof}
 
-\SOURCEPINNED{} The value \(m_{359}=1\) is present in A380496, but the
+\emph{Source-pinned datum.} The value \(m_{359}=1\) is present in A380496, but the
 trace in \((\mathsf{SPH}_1)\) is not independently evaluated here.
 Quadratic half-orbit norms do not decide it:
 $\sum_{h\in H}h=0$ in $\F_{359}$, so their symbol product is identically
 one.  Proposition~\ref{prop:kummer-eigenline-no-go} likewise shows why
 the safe-prime eigenline data alone cannot select the Conway phase.
 
-\subsection{\texorpdfstring{Open problem \(O\)}{Open problem O}}
+\subsection{The ordinary-spine conjecture \texorpdfstring{\((O)\)}{(O)}}
 
 For each odd component prime \(r\ne3\), prove that the selected relative
 unit of Proposition~\ref{prop:singleton-relative-unit} has full primary
@@ -5886,7 +5782,7 @@ cubic replacement and places the root on a Singer difference set, but
 Remark~\ref{rem:singer-not-primitive} shows that Singer membership
 alone cannot prove generation.
 
-\subsection{\texorpdfstring{Open problem \(C\)}{Open problem C}}
+\subsection{The cubic-spine conjecture \texorpdfstring{\((C)\)}{(C)}}
 
 The universal cubic arm is Conjecture~\ref{conj:ck}.  The prime-step
 argument proves \(C_k\) analytically for \(k\leq3\), and
@@ -7513,7 +7409,7 @@ There are exactly \(q/2=Q^2/2\) such elements, proving
 \((\mathsf{AS}_5)\).
 \end{proof}
 
-\begin{proposition}[exact two-axis factorization of a relative-trace collision]
+\begin{proposition}[relative-trace collision factorization]
 \label{prop:fermat-relative-trace-axes}
 Retain Proposition~\ref{prop:fermat-additive-saturation}, and put
 \[
@@ -8971,7 +8867,7 @@ quadratic and a cubic maximal-projective-order conjecture among its four exact
 arms, rather than
 two unrelated order coincidences.
 
-\subsection{\texorpdfstring{Open problem \(Z\)}{Open problem Z}}
+\subsection{The singleton-even conjecture \texorpdfstring{\((Z)\)}{(Z)}}
 
 The singleton-even part of the zero arm is exactly the assertion
 $\delta_n=F_n$ for all $n$.  The results above identify the recursively
@@ -9008,7 +8904,7 @@ The lower bound of the exception column is unconditional:
 $m_p\geq4$ for all $p$ with $f(p)=2\cdot3^k$
 (Proposition~\ref{prop:exception}).
 
-\CONJECTURED{} The matching upper bound $m_p\leq4$ on that column;
+\emph{Conjecture.} The matching upper bound $m_p\leq4$ on that column;
 its exact current-level formulation is $D'_k$ in
 Conjecture~\ref{conj:dk}, not the Gaussian-period conjecture $C_k$.
 
@@ -9170,7 +9066,7 @@ $\F_2$, completing the proof.
 
 \begin{conjecture}[$D'_k$: the exact current exception factor]
 \label{conj:dk}
-\CONJECTURED{} One has
+\emph{Conjecture.} One has
 \[
  D'_k:\qquad \Psi_k\mid\ord(M_k).
 \]
@@ -12533,12 +12429,12 @@ Proposition~\ref{prop:dk-projection} and
  v_3(\ord M_k)\leq k\quad(k\text{ even}).
 \]
 Thus the odd-level full \(3\)-part is now explained analytically.
-\CONSISTENT{} At even levels \(2\leq k\leq6\), the sharper observed
+\emph{Computational evidence.} At even levels \(2\leq k\leq6\), the sharper observed
 value is \(v_3(\ord M_k)=k-1\); the remaining one-step deficiency is
 not determined by the projection theorem.
 \end{remark}
 
-\subsection{\texorpdfstring{Open problem \(D\)}{Open problem D}}
+\subsection{The exceptional-spine conjecture \texorpdfstring{\((D)\)}{(D)}}
 
 The exceptional arm is precisely Conjecture~\ref{conj:dk}: for each
 $k$, the distinguished antiunit $M_k$ must contain the full
@@ -12555,7 +12451,7 @@ Propositions~\ref{prop:parity-code-no-go} and
 nor a higher lift supplies an independent value.  This is a distinguished
 cyclotomic Kummer-class problem, not a further degree or norm identity.
 
-\section{Consequences and exact frontier}\label{sec:bounded}
+\section{Consequences and the Conjectural Frontier}\label{sec:bounded}
 
 \subsection{Boundedness}
 
@@ -12648,7 +12544,7 @@ Each leaves smaller current primary factors untreated.  Consequently
 neither global boundedness nor the nonexistence of an excess
 \(m_p\geq5\) is presently proved.
 
-\subsection{The four remaining theorem targets}\label{sec:moves}
+\subsection{The four remaining order problems}\label{sec:moves}
 
 The proof frontier is most cleanly stated in the same four coordinates
 as Theorem~\ref{thm:rule-four-arms}.
@@ -12972,13 +12868,25 @@ selected antiunit index, equivalently exclusion of the recursively
 selected cubic.
 \end{enumerate}
 
-Appendix~\ref{sec:provenance} records finite computations, external
-factorization dependencies, and implementation provenance.  Those data
+Appendix~\ref{sec:provenance} records finite computations and external
+factorization dependencies.  Those data
 are valuable for falsification and audit, but none is used to promote a
 uniform conjecture to a theorem.
 
+\subsection{Conclusion}
+
+The finite excess problem is therefore no longer diffuse.  The global
+$0/1/4$ prediction is equivalent to four selected-value statements, each
+with an exact algebraic detector and an explicit range of primary factors
+already controlled by order bounds.  The remaining difficulty is not a
+missing generic estimate: it is the arithmetic of the distinguished
+Conway-compatible selector in each family.  Proving those four
+nonvanishing assertions would establish the observed rule and hence a
+uniform bound.  Conversely, a failure in any arm would identify the first
+mechanism by which Lenstra excess escapes $\{0,1,4\}$.
+
 \appendix
-\section{Computational and implementation evidence}\label{sec:provenance}
+\section{Computational Evidence and Reproducibility}\label{sec:provenance}
 
 This appendix separates exact finite computation from theorem and from
 external data.  A row is called \emph{locally certified} only when the
@@ -13096,24 +13004,16 @@ rather than assumed.  An independent Artin--Schreier compositum model
 also verifies \(\sigma(4)=5\), Proposition~\ref{prop:m4norm}, and the
 direct power test on the smallest factor of each checked level.
 
-\subsection{Reproducibility boundary}
+\subsection{Reproducibility}
 
 The three maintained entry points are
 \path{experiments/ordinal_excess_probe.py},
 \path{experiments/cyclotomic_3k_family.py}, and
 \path{experiments/exception_column_m4.py}.  The additional programs
-under \path{experiments/excess/} are archived research probes and must
-be judged file by file under that directory's status table before being
-used as evidence.  The paper's theorem statements depend only on the
-displayed proofs and cited standard results; the programs serve finite
-certification, falsification, and audit.
-
-\section*{Acknowledgements}
-The \texttt{ogdoad} library, the experiments, and this draft were
-developed with LLM assistance; the analysis consolidates a structured
-parallel research run (2026-06-10) and an independent adversarial proof
-audit (2026-07-20). Mathematical direction, framing, and responsibility
-for claims remain the author's.
+under \path{experiments/excess/} are exploratory and are not evidence
+for the theorem statements in this paper.  Those statements depend only
+on the displayed proofs and cited results; the maintained programs serve
+finite certification, falsification, and audit.
 
 \begin{thebibliography}{99}
 \bibitem{Arul21} V.~Arul,

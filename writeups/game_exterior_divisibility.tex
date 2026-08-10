@@ -20,14 +20,10 @@
 \newcommand{\Cl}{\operatorname{Cl}}
 \newcommand{\ShUg}{\operatorname{ShUg}}
 \newcommand{\Tor}{\operatorname{Tor}}
-\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
-\newcommand{\PROVED}{\taglabel{PROVED}}
-\newcommand{\SOURCE}{\taglabel{SOURCE-PINNED}}
-\newcommand{\BOUNDARY}{\taglabel{BOUNDARY}}
 
-\title{The divisibility obstruction to a game-native Clifford deformation}
-\author{Codex}
-\date{2026-08-09}
+\title{The Divisibility Obstruction to a Game-Native Clifford Deformation}
+\author{a9lim}
+\date{August 2026}
 
 \begin{document}
 \maketitle
@@ -42,12 +38,12 @@ $2$-primary.  We prove that in any coefficient-faithful Clifford realization
 of such a group, every torsion game has square zero and is polar-orthogonal to
 every game.  Equivalently, every globally defined, or subgroup-inclusion
 coherent, quadratic datum factors through the torsion-free quotient.  This
-settles the \texttt{tisn} problem negatively under an exact naturality
-condition and explains why the nonzero Gold forms on nimbers cannot extend to
+gives a negative answer under an exact naturality condition and explains why
+the nonzero Gold forms on nimbers cannot extend to
 general partizan games.
 \end{abstract}
 
-\section{The question and the naturality contract}
+\section{Introduction and main result}
 
 The implemented object \path{GameExterior} starts with finitely many short
 games, takes their $\Z$-span $M$, and forms $\Lambda_{\Z}M$.  The checked
@@ -81,12 +77,12 @@ subgroup.  It permits the coefficient ring and algebra to grow with the
 subgroup.  Injectivity is essential: without it an inclusion may ``preserve''
 a square only by killing the coefficient that recorded it.
 
-\section{The external game-group input}
+\section{Divisibility of the short-game group}
 
 Let $\D=\Z[1/2]$ be the additive group of dyadic rationals.
 
 \begin{theorem}[Moews]\label{thm:moews}
-\SOURCE{} The additive group of short partizan games has abstract group
+The additive group of short partizan games has abstract group
 structure
 \[
  \ShUg\cong\bigoplus_{\mathbb N}\D\;\oplus\;
@@ -112,7 +108,7 @@ statement about an additive grade-one realization in an arbitrary associative
 ring.
 
 \begin{lemma}[root collapse]\label{lem:root}
-\PROVED{} Let $A$ be an abelian group, $C$ an associative ring, and
+Let $A$ be an abelian group, $C$ an associative ring, and
 $i:A\to(C,+)$ an additive map.  Suppose $n t=0$ and choose $y,z\in A$ with
 \[
  ny=t,\qquad nz=x.
@@ -148,7 +144,7 @@ characteristic is used.
 \end{proof}
 
 \begin{remark}[formal proof]
-\PROVED{} The kernel-checked file is \texttt{GameExterior.lean}.  Its theorem takes the roots
+The kernel-checked file is \texttt{GameExterior.lean}. Its theorem takes the roots
 $y,z$ explicitly, proves both ring identities, and then proves the
 coefficient-valued corollaries below from injectivity of the algebra map.  The
 file contains no \path{sorry}, custom axiom, or finite computation.  The
@@ -168,7 +164,7 @@ $i:A\to C$, functions $Q:A\to R$ and $B:A\times A\to R$, relations
 and an injective coefficient map $\iota:R\hookrightarrow C$.
 
 \begin{theorem}[game-torsion radical theorem]\label{thm:main}
-\PROVED{} In every ambient-coherent coefficient-faithful Clifford datum on
+In every ambient-coherent coefficient-faithful Clifford datum on
 short games,
 \[
  Q(t)=0,
@@ -207,7 +203,7 @@ subgroup.  This is exactly where ambient coherence is used.
 \end{proof}
 
 \begin{corollary}[coefficient-independent no-go]\label{cor:coeff}
-\PROVED{} Changing the commutative coefficient target cannot rescue a
+Changing the commutative coefficient target cannot rescue a
 game-native torsion square.  The conclusion of Theorem~\ref{thm:main} holds in
 characteristic zero, characteristic two, and torsion rings such as $\Z/4$.
 \end{corollary}
@@ -268,16 +264,16 @@ mean-value and atomic-weight constructions are examples of additive game
 invariants whose squares live on free directions.  The theorem predicts their
 documented behavior: they are blind to torsion.
 
-\section{Resolution and exact boundary}
+\section{Conclusion}
 
-\PROVED{} The \texttt{tisn} question for the current commutative-scalar
+The commutative-scalar
 Clifford architecture has a negative answer.  A quadratic datum belonging to
 short-game values must be ambient-coherent; every such coefficient-faithful
 datum is Grassmann on the entire torsion subgroup and factors through the
 torsion-free quotient.  This is a complete obstruction, not a finite search or
 a restriction to integer coefficients.
 
-\BOUNDARY{} The theorem deliberately does not forbid three different objects:
+The theorem deliberately does not forbid three different objects:
 \begin{enumerate}[leftmargin=2em]
 \item a hand-supplied table on one chosen root-incomplete subgroup;
 \item the nonzero Gold forms retained inside the nimber field-like core; or
@@ -286,10 +282,9 @@ a restriction to integer coefficients.
 \end{enumerate}
 The first is exactly the existing engineering API and is not game-native under
 Definition~\ref{def:coherent}; the second cannot extend beyond its core; the
-third changes the mathematical object and belongs to the now-resolved directed
-game-semantics problem \texttt{tis}, not to a deformation of
-\path{GameExterior}.  No residual coefficient target remains inside the
-problem just solved.
+third changes the mathematical object and belongs to directed game semantics,
+not to a deformation of \path{GameExterior}. No commutative coefficient target
+evades the theorem.
 
 \begin{thebibliography}{9}
 \bibitem{moews}

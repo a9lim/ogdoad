@@ -20,13 +20,9 @@
 \newcommand{\Aff}{\operatorname{Aff}}
 \newcommand{\Cut}{\operatorname{Cut}}
 \newcommand{\Span}{\operatorname{span}}
-\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
-\newcommand{\PROVED}{\taglabel{PROVED}}
-\newcommand{\TESTED}{\taglabel{TESTED}}
-\newcommand{\STANDARD}{\taglabel{STANDARD MATH}}
-\newcommand{\OPEN}{\taglabel{OPEN}}
 
-\title{The FIFO linking theorem:\\affine response and the cut-space frontier}
+\title{The FIFO Linking Conjecture:\\
+Affine Response and the Cut-Space Frontier}
 \author{a9lim}
 \date{August 2026}
 
@@ -34,113 +30,30 @@
 \maketitle
 
 \begin{abstract}
-This note attacks the general linking theorem underlying the
-\textsc{echo}-\textsc{fifo}+dummy Gold-quadric realizer.  A finite graph is
-played by opening vertices into a FIFO queue and later closing the front.  A
-close flips a bit when the front has odd degree into the untouched set.  The
-target theorem says that one isolated dummy lets the even player force even
-total flip parity from either seat, for every graph.
+Let a finite graph be played by opening vertices into a FIFO queue and later
+closing the front. A close flips a bit exactly when the front has odd degree
+into the untouched set. The FIFO linking conjecture asserts that one isolated
+dummy lets either designated seat force even terminal parity on every graph.
 
-The theorem is not proved here.  The contribution is an exact algebraic
-reduction that replaces the failed local partner/debt induction by a global
-affine-flow target.  Every play has a vector-valued score: its graph of disjoint
-activity intervals.  For every fixed attacker strategy, the linking theorem is
-equivalent to saying that zero lies in the $\F_2$-affine hull of all response
-scores.  Linear separation followed by finite backward induction further
-reduces every hypothetical counterexample to a scalar positional Bellman
-certificate on full public states.  Resolving augmentation parity gives an
-exact affine convolution at every defender fan; its dual turns any
-counterexample into a strategy-relative linear obstruction which descends
-through every balanced front.  At a real
-FIFO front $f$, the edge space splits canonically as
-\[
- E(K_L)=\Cut(K_L)\oplus E(K_{L\setminus\{f\}}),
-\]
-so openings before $f$ closes occupy one cut-space layer and all later play
-occupies the smaller edge-space layer.  The quotient is the classical
-two-graph coboundary chart: changing the front changes the affine-simplex
-origin, and successive changes obey an absorption law.  This gives a canonical
-filtration, but not a branchwise induction: an exact $P_4+d$ state has defender
-children whose projected continuation affine hulls are disjoint.
+We convert the conjecture into an exact affine problem. Every complete history
+has a disjointness vector in the $\F_2$ edge space of the complete graph. For a
+fixed attacker strategy, universal harmlessness is equivalent to zero lying in
+the affine hull of the compatible response vectors. At a front $f$, the edge
+space splits into the cut star at $f$ and the edge space after deleting $f$;
+the quotient is the two-graph coboundary chart. The missing proof is therefore
+a causal, strategy-relative affine contraction across successive front levels.
 
-Positive results accompany the reduction.  The vector live-star identity
-proves the affine formulation, a parity-cell pairing theorem strictly extends
-the earlier twin-pair solution, and the cut moment at the initial front
-contracts affinely.  The cut boundary of every terminal score has an exact
-endpoint-controller formula: the parity degree of a vertex is determined by
-the seats controlling its opening and closing, with one explicit correction
-for disjointness from the dummy.  A second handshake refinement colours a vertex by its
-degree parity and its parity of odd-degree neighbours: every colour class is
-even on an even-order graph, and a same-colour pair balances all four joint
-degree/incidence fibres.  A two-switch tail lemma closes the first genuine
-adaptive-pairing obstruction.  Exact witnesses show why neither same-degree
-pairing, greedy FIFO rotation, a bare symplectic quotient, nor a uniformly
-bounded triangular fan closes the general case.  Scalar force sets give a
-least-counterexample odd-routing lemma, while a stronger finite strategy has
-an exact ranked repair-forest recursion: consecutive queue matchings may
-extend, delete their front pair, or flip phase along an alternating path.
-That flip carries a genuine two-graph curvature term.  On an even-order
-Eulerian graph its odd triangles form a $3$-oik, with a coherent oriented
-multiset lift.  The natural public-state transport is nevertheless maximally
-nonflat: every real edge occurs as the holonomy of a reachable OPEN/CLOSE
-square, so any quotient which flattens all schedule squares erases the entire
-payoff space.  This is not an easier subclass: an explicit two-vertex gadget
-embeds every even-board instance behind a forced cancelling close pair in an
-Eulerian graph.  Tetrahedral coherence controls the curvature label, but
-attacker pruning destroys the constant-coefficient simplex contraction.  For
-Euler separators the exact affine target is only a cut-valued response
-moment.  Every Euler graph outside the solved two-odd-clique family has a
-single even-curvature triangle, but that face may be precisely what the
-attacker prunes; an exact secondary-Euler witness also shows that pruning to
-one graph's zero-normalized replies is not a graph-independent contraction.
-Balanced FIFO fronts nevertheless admit a canonical strategy-pruned odd
-transport through arbitrarily many OPEN rounds; its residual coefficient is
-an Eulerian, isotropic two-star whose exact cell-cut calculus converts OPENs
-into queued four-cycles.  Exact witnesses show that three defender siblings
-can be essential, that cancelling both the first cut and triangle quotient can
-still leave a next-front cut, and that even a clean homogeneous cell state can
-be a canonical unsafe Euler-wall exit.  An odd OPEN fan does admit an affine
-virtual-vertex coordinate when the next close is common, but an exact
-three-real history-dependent policy shows that this coordinate does not
-commute with branch pruning.  Separately, every close-first attacker
-is contracted for arbitrary order and either seat by Hamiltonian path and
-path-square affine spans, with a two-block correction when the attacker opens
-the dummy.  With an arbitrary preloaded queue, an untouched dummy contracts
-every close-first tail by an adjacent-swap argument on the defender's opening
-permutations; in fact its even continuation space is the entire live edge
-face, although no descendant can alter an already frozen prefix coordinate.
-A stronger minimum-rank argument removes the dummy hypothesis
-at every clear defender checkpoint: a leafmost attacker deviation can occur
-only on residual target zero, behind an earlier odd CLOSE.  This conditioned
-contraction, including its whole-queue two-untouched base, is also
-kernel-checked in \path{formal/Ogdoad/Fifo.lean}.
-There is also a complete root theorem for the stopped extension needed by the
-normalization attempt: if a close-first attacker may terminate immediately at
-a clear score-one checkpoint, then the defender still wins from every
-defender-first empty no-dummy root.  Its proof is a mutual induction on
-ordered bad pairs; a two-bit walk-parity rank makes their directed graph
-acyclic, and the complete argument is kernel-checked in
-\path{formal/Ogdoad/Fifo.lean}.  At a dummy-first root the dummy itself is exactly a one-use
-draft-and-switch move, while fixed-history deletion reverses one controller
-interval and has at most one labelled ko-wall repair.  These reductions
-sharpen the boundary but do not turn the nonempty drafted prefix into an
-empty root.  Thus the stopped theorem closes its empty-root base, but not the
-actual odd-CLOSE ancestry step: at an (A)/(B$'$) predecessor the frozen
-ko-wall defect can require cancellation across the entire defender fan.  An
-exact secondary-star strategy also rules out the tempting repair which uses
-every immediate (B$'$) OPEN face once; several faces individually contain
-zero, so this is a transversal no-go rather than a counterexample.  Even under
-the minimum-bad colour switch, the first-response forest contracts exactly
-when each ungrounded component is even; an odd component with an alternating
-two-cycle and one in-tree is the sharp remaining map-level obstruction.
-Conditioned subtrees contain causal simplex caps of unbounded affine girth,
-so no bounded-support circuit theorem can replace the missing coupling.
-The remaining obligation is simultaneous cancellation of the correlated cut,
-continuation, pruning-frontier, and frozen ko-wall moments by a
-strategy-relative multibranch chain.
-The note therefore advances the proof
-frontier without promoting the complete finite census through eight real
-vertices to a proof.
+We prove the transition and affine reductions, a parity-cell subclass, initial
+cut contraction, a two-bit handshake refinement, complete contraction against
+close-first attackers, the conditioned close-first tail, and the stopped
+defender-first root theorem. We also derive Eulerian curvature and
+response-factor formulations. Explicit counterexamples rule out childwise
+common-coset induction, bounded-support certificates, scalar Markov states,
+fixed-permutation contraction, and several natural pairing schemes. Exact
+minimax verifies the conjecture through eight real vertices plus the dummy,
+but no finite census is used as a universal argument. The remaining theorem
+is the construction of an odd multibranch response chain whose terminal moment
+is zero, or equivalently cut-valued in the Euler quotient.
 \end{abstract}
 
 \section{The reduced game}
@@ -164,7 +77,7 @@ If no move is legal, the forced pass only clears $\mathsf{ko}$.  This can occur
 only after $U$ is empty, when no later close can score.  The players have
 opposite targets for the parity of the total score.
 
-\PROVED{} Every vertex opens and closes exactly once.  FIFO makes the opening
+Every vertex opens and closes exactly once.  FIFO makes the opening
 and closing orders identical.  Consequently the activity intervals
 $I_x=[o(x),c(x)]$ never properly nest.  For an edge $xy$ with $o(x)<o(y)$, the
 edge contributes to the flip score precisely when $c(x)<o(y)$, i.e. precisely
@@ -185,7 +98,7 @@ $\pi=(\pi_1,\ldots,\pi_N)$ be the common opening and closing order.  Put
 
 \begin{proposition}[permutation--threshold normal form]
 \label{prop:threshold}
-\PROVED{} Complete legal schedules are in bijection with pairs $(\pi,r)$ in
+Complete legal schedules are in bijection with pairs $(\pi,r)$ in
 which $\pi$ is a permutation and
 \[
  0=r_1\le r_2\le\cdots\le r_N,\qquad 0\le r_b\le b-1,
@@ -219,7 +132,7 @@ $r_b$ vertices already closed before $O_{\pi_b}$, proving
 
 \begin{corollary}[maximal-block score]
 \label{cor:block-score}
-\PROVED{} Consider one maximal nonempty-queue block with opening order
+Consider one maximal nonempty-queue block with opening order
 $v_1,\ldots,v_b$, and let $S$ be the vertices still untouched when the block
 ends.  If $t_i$ is the number of block vertices opened before $C_{v_i}$, then
 either $b=1$, $S=\varnothing$, and the block is the terminal
@@ -293,7 +206,7 @@ event positions of $v$.
 
 \begin{proposition}[endpoint-controller boundary]
 \label{prop:endpoint-boundary}
-\PROVED{} For every complete legal FIFO history and every $v\in V$,
+For every complete legal FIFO history and every $v\in V$,
 \begin{equation}\label{eq:endpoint-boundary}
  \deg_{\widehat D(h)}(v)=|V|+o_v+c_v\pmod2.
 \end{equation}
@@ -349,7 +262,7 @@ and set $s_L(d)=0$.  These are the vertex stars, or simplicial
 coboundaries, of the live complete graph.
 
 \begin{theorem}[vector live-star identity]\label{thm:live-star}
-\PROVED{} Every completed history satisfies
+Every completed history satisfies
 \begin{equation}\label{eq:live-star}
   D(h)=\sum_{x\text{ opened}}s_{L_x}(x),
 \end{equation}
@@ -367,7 +280,7 @@ coordinate of $D(h)$.
 \end{proof}
 
 \begin{corollary}[scalar live-degree identity]
-\PROVED{} For every graph $G$,
+For every graph $G$,
 \[
   F_G(h)=\sum_{x\text{ opened}}\deg_{G[L_x]}(x)\pmod2.
 \]
@@ -378,7 +291,7 @@ permutation at a time.
 
 \begin{proposition}[fixed-permutation contraction fails]
 \label{prop:fixed-pi}
-\PROVED{} There is a conditioned deterministic attacker strategy whose four
+There is a conditioned deterministic attacker strategy whose four
 response leaves have the same opening permutation but whose projected real
 disjointness vectors have affine hull excluding zero.
 \end{proposition}
@@ -421,7 +334,7 @@ $\mathcal H_S$ be the set of terminal histories compatible with $S$ and with
 arbitrary legal responses by the other player.
 
 \begin{theorem}[affine separation]\label{thm:affine}
-\PROVED{} The strategy $S$ forces odd score for some graph on $R$ if and only if
+The strategy $S$ forces odd score for some graph on $R$ if and only if
 \[
   0\notin\Aff_{\F_2}\{D(h):h\in\mathcal H_S\}.
 \]
@@ -455,7 +368,7 @@ score bit, and not on the history which reached that state.
 
 \begin{proposition}[positional scalar reduction]
 \label{prop:positional-reduction}
-\PROVED{} If \eqref{eq:affine-target} fails for either attacker seat, then it
+If \eqref{eq:affine-target} fails for either attacker seat, then it
 fails for a strategy which is positional after scalarization by one graph
 $B$.  More precisely, a counterexample is equivalent to a finite set
 $\mathcal W$ of full public states, containing the initial state, such that
@@ -521,7 +434,7 @@ must split among several defender children.
 
 \begin{proposition}[parity-resolved continuation convolution]
 \label{prop:parity-convolution}
-\PROVED{} At a history $h$, with its residual history-dependent attacker
+At a history $h$, with its residual history-dependent attacker
 policy retained, let $\Lambda_h$ be the compatible terminal leaves and put
 \[
  \mathcal C_h^\epsilon
@@ -580,7 +493,7 @@ already accumulated different cut charges.
 
 \begin{corollary}[decorated-frontier decomposition]
 \label{cor:decorated-frontier}
-\PROVED{} Let $\mathcal F$ be a finite antichain in the residual response tree
+Let $\mathcal F$ be a finite antichain in the residual response tree
 which meets every terminal branch exactly once.  For $q\in\mathcal F$, let
 $\Gamma_q$ be the disjointness charge accumulated from the root to $q$, and
 write the odd continuation coset at $q$ as
@@ -622,7 +535,7 @@ as long as the next attacker operator is common across its children.
 
 \begin{proposition}[virtual OPEN and the pruning obstruction]
 \label{prop:virtual-open-pruning}
-\PROVED{} Let $U=R\sqcup\{d\}$ with $d$ isolated, and let
+Let $U=R\sqcup\{d\}$ with $d$ isolated, and let
 $\epsilon\in\F_2^U$ have odd augmentation.  Its real virtual vertex
 \[
  \nu(\epsilon)=\sum_{r\in R}\epsilon_r r
@@ -733,7 +646,7 @@ and put $N_h=Z(h)^\perp$.  For a move charge $c$, define the involution
 
 \begin{proposition}[dual obstruction descent]
 \label{prop:dual-descent}
-\PROVED{} The exact dual recursion is
+The exact dual recursion is
 \begin{align*}
  N_h&=\{(0,B):B\in\mathcal E_R\}&&\text{at a terminal node},\\
  N_h&=\sigma_cN_{h'}&&\text{at a fixed attacker move},\\
@@ -785,7 +698,7 @@ The predecessor of that minimum node has a much more rigid form.
 
 \begin{proposition}[minimum-bad predecessor normal form]
 \label{prop:minimum-bad-predecessor}
-\PROVED{} Let $h$ be lexicographically minimum as in
+Let $h$ be lexicographically minimum as in
 Proposition~\ref{prop:dual-descent}.  Write its prescribed move as the odd
 close $C_x$.  Its immediate defender predecessor is exactly one of the
 following two types.
@@ -901,7 +814,7 @@ strategy-theoretic; no computed force set is used.
 
 \begin{proposition}[the mandatory (B$'$) OPEN fan is false]
 \label{prop:bad-open-fan}
-\PROVED{} Let
+Let
 \[
  y=0,\qquad x=1,\qquad A=\{2,3,4,5\},
 \]
@@ -999,7 +912,7 @@ but that structure still has one exact obstruction.
 
 \begin{proposition}[the (B$'$) first-response forest criterion]
 \label{prop:bprime-response-forest}
-\PROVED{} At a (B$'$) predecessor put
+At a (B$'$) predecessor put
 \[
  A=N\sqcup Z,\qquad
  N=\{v:B(y,v)=1\},\qquad Z=\{v:B(y,v)=0\}.
@@ -1087,7 +1000,7 @@ exactly the directions which no Euler adjacency vector can see.
 
 \begin{theorem}[Euler quotient separation]
 \label{thm:euler-quotient}
-\PROVED{} Fix a deterministic attacker strategy $S$ on a vertex set $V$, and
+Fix a deterministic attacker strategy $S$ on a vertex set $V$, and
 write its response affine set as
 \[
  \mathcal A_S=\Aff\{D(h):h\in\mathcal H_S\}=a+W
@@ -1132,7 +1045,7 @@ differences span those invisible directions is strictly stronger than the
 game.  The remaining problem is the quotient contraction
 \eqref{eq:quotient-affine-target}, not full edge-space spanning.
 
-\TESTED{} The existing exhaustive graph census through eight real vertices
+\emph{Computational evidence.} The existing exhaustive graph census through eight real vertices
 plus dummy, both attacker seats, implies \eqref{eq:affine-target} in those
 dimensions by Theorem~\ref{thm:affine}.  Independent graph-free policy searches
 also found no affine offset through eight real vertices; selected structured
@@ -1145,7 +1058,7 @@ The true/false-twin argument in the earlier draft can be weakened
 substantially.
 
 \begin{theorem}[parity-cell pairing]\label{thm:cells}
-\PROVED{} Suppose all vertices, including the dummy if present, admit a perfect
+Suppose all vertices, including the dummy if present, admit a perfect
 partition $\mathcal M$ into two-element cells such that
 \begin{equation}\label{eq:cell-condition}
   e_G(A,B)=0\pmod2
@@ -1175,7 +1088,7 @@ pair, so the total parity is even.
 Twin pairs satisfy \eqref{eq:cell-condition}, but the condition only asks for
 even cross-parity between cells; no automorphism is required.
 
-\TESTED{} This theorem is still not general.  Among the $1{,}044$
+\emph{Computational evidence.} This theorem is still not general.  Among the $1{,}044$
 isomorphism classes on seven real vertices, $64$ boards obtained by adjoining
 the isolated dummy have no such partition.  The first witness in the local
 ordering has real edges
@@ -1200,7 +1113,7 @@ $E(L)=\F_2^{\binom{L}{2}}$ and let
 This is the cut space of the complete graph on $L$.
 
 \begin{theorem}[front splitting]\label{thm:front-split}
-\PROVED{} There is a canonical direct sum
+There is a canonical direct sum
 \begin{equation}\label{eq:front-split}
   E(L)=\Cut(L)\oplus E(L\setminus\{f\}).
 \end{equation}
@@ -1295,7 +1208,7 @@ The two-graph chart therefore replaces the desired edge moment by a
 One half of that joint target does contract cleanly at the root.
 
 \begin{lemma}[initial cut-moment contraction]\label{lem:cut-contract}
-\PROVED{} Suppose the attacker opens a real initial front $f$, so the isolated
+Suppose the attacker opens a real initial front $f$, so the isolated
 dummy remains untouched and ko forbids the defender's immediate close.  For
 every fixed attacker strategy up to the close of $f$,
 \[
@@ -1401,7 +1314,7 @@ For a finite graph $H$, put
 Thus $b_v$ is the parity of the odd-degree neighbours of $v$.
 
 \begin{lemma}[two-bit handshake refinement]\label{lem:two-bit}
-\PROVED{} If $H$ has even order, every one of the four colour classes
+If $H$ has even order, every one of the four colour classes
 $c^{-1}(i,j)$ has even cardinality.  In particular every vertex has a
 distinct same-colour mate.
 
@@ -1458,7 +1371,7 @@ than open, which is the correlated continuation obstruction in
 Question~\ref{q:contraction}.
 \end{remark}
 
-\TESTED{} Exact minimax on every graph isomorphism class through seven real
+\emph{Computational evidence.} Exact minimax on every graph isomorphism class through seven real
 vertices plus the dummy gives a stronger root fact: whenever the same-colour
 mate of Lemma~\ref{lem:two-bit} applies, \emph{every} such reply is winning
 for the second-seat even player.  When the real graph has even order and the
@@ -1535,7 +1448,7 @@ In particular
 
 \begin{proposition}[the universal-full-fan residual]
 \label{prop:universal-full-fan}
-\PROVED{} For an even graph $H$, put
+For an even graph $H$, put
 \[
  P(H):\qquad 0\in S_z^H(V)\quad(z\in V).
 \]
@@ -1568,7 +1481,7 @@ score from the empty-queue second-seat root, so $1\notin T(H)$, while $P(H)$
 already gives $0\in T(H)$.
 \end{proof}
 
-\TESTED{} The implication $P(H)\Rightarrow T(H)=\{0\}$ holds on the complete
+\emph{Computational evidence.} The implication $P(H)\Rightarrow T(H)=\{0\}$ holds on the complete
 graph census through order eight; the numbers of $P$-classes in even orders
 $2,4,6,8$ are respectively $1,4,18,262$, and every one admits an even-cross
 pairing.  This is not yet a proof.  The most obvious Boolean parity repairs
@@ -1580,7 +1493,7 @@ joint identity internal to the ordered $Q$-subtrees, not a rowwise M\"obius
 parity or a static pairing induction.
 
 \begin{lemma}[least-counterexample odd routing]\label{lem:odd-routing}
-\PROVED{} Suppose $A$ is a least-order even counterexample to
+Suppose $A$ is a least-order even counterexample to
 \eqref{eq:even-board}.  Then there is an $x\in A$ with $1\in K_x(A)$.  Put
 \[
  Y=\{y\in A-\{x\}:\deg_A(y)=\deg_A(x)\pmod2\}.
@@ -1635,7 +1548,7 @@ $C=A-\{x,y\}$ by $a(u)=B(x+y,u)$ and ask for a $w$ with
 \[
  1+a(z)+a(w)\notin Q_{zw}(C).
 \]
-\TESTED{} This is false first at $|C|=4$.  Take the path
+\emph{Computational evidence.} This is false first at $|C|=4$.  Take the path
 $5-2-3-4$, put $(a_2,a_3,a_4,a_5)=(1,0,1,0)$, and $z=5$.
 Exact recursion gives
 \[
@@ -1664,7 +1577,7 @@ recombined; no compatible continuation chain realizes either term separately.
 This is the smallest broken commuting diamond behind the false branchwise
 induction.
 
-\section{Why the deterministic local induction fails}
+\section{Obstructions to deterministic local induction}
 
 The live-degree pairing heuristic is correct only conditionally.  At a turn of
 the block initiator the queue has even length.  If the initiator opens $x$, the
@@ -1678,7 +1591,7 @@ front rotates
 \]
 Neither operation is a complete strategy.
 
-\TESTED{} The smallest useful witnesses are exact minimax states, not
+\emph{Computational evidence.} The smallest useful witnesses are exact minimax states, not
 counterexamples to the linking theorem.
 \begin{enumerate}[leftmargin=*,itemsep=3pt]
 \item On $K_2+d$, after
@@ -1701,7 +1614,7 @@ classes in $U$, and one FIFO rotation is insufficient.  The missing datum is a
 recursive repair certificate in the untouched graph.  This is exactly what the
 affine flow is allowed to encode globally.
 
-\section{The exact local residue}
+\section{Local obstruction theory}
 
 The scalar cut potential gives a complete local classification, provided its
 limitation is stated explicitly.  Regard the queue as a set when counting
@@ -1719,7 +1632,7 @@ $R=Q\cup U$, direct edge accounting gives
 The middle term is the actual flip.
 
 \begin{proposition}[charge-matching and the poison state]
-\PROVED{} Suppose $P=0$, $|U|$ is even, and the position is nonterminal.
+Suppose $P=0$, $|U|$ is even, and the position is nonterminal.
 After an opponent open, there is always a distinct legal open with the same
 $\chi$.  If a reply is due after an opponent close of charge $c$, there is a
 legal response of charge $c$ except in exactly the following case:
@@ -1770,7 +1683,7 @@ One portion of that recurrence is nevertheless well founded.  Let $g$ be the
 accumulated flip debt and keep $P=e_G(Q,U)$ as above.
 
 \begin{lemma}[fixed-front poison descent]\label{lem:poison-descent}
-\PROVED{} Suppose it is the defender's turn, $g=1$, and the front $f$ has
+Suppose it is the defender's turn, $g=1$, and the front $f$ has
 positive even degree into $U$; ko may be set or clear.  The defender can open
 a neighbour of $f$ so that either the debt is discharged within the next
 attacker--defender round or the degree drops by exactly two.  If the result is
@@ -1821,7 +1734,7 @@ the internal adjacency correlations among untouched vertices are forgotten,
 while their degree parities are retained.
 
 \begin{proposition}[front-signature insufficiency]
-\PROVED{} The debt, mover, ko bit, and $\mathcal F(U,Q)$ do not determine
+The debt, mover, ko bit, and $\mathcal F(U,Q)$ do not determine
 zero-normalized safety.  This already fails with five active vertices and a
 nonempty even queue.
 \end{proposition}
@@ -1865,7 +1778,7 @@ The first obstruction to same-action pairing does have a complete local
 repair.  Write $B(u,v)$ for adjacency in the current graph.
 
 \begin{lemma}[two-switch tail]\label{lem:two-switch-tail}
-\PROVED{} Suppose the defender moves just after an attacker close, the score
+Suppose the defender moves just after an attacker close, the score
 debt is zero, and
 \[
  U=\{x,y\},\qquad Q=(v_1,\ldots,v_{2r+1}).
@@ -1890,7 +1803,7 @@ are exhausted, $y$ is the harmless terminal singleton.  The initial
 close/open and the possible later open/close are the two switches.
 \end{proof}
 
-\TESTED{} Same-action adaptive pairing first fails, without a dummy, on two
+\emph{Computational evidence.} Same-action adaptive pairing first fails, without a dummy, on two
 of the seven exceptional order-eight graphs: \verb|GCZN^{| and
 \verb|GEjt~{|.  Call them $G_1,G_2$ in the table below.
 Exact minimax gives minimum worst-case switch count two on each.  Their worst
@@ -1919,7 +1832,7 @@ every two-move block decreases $\rho$ by one.
 
 \begin{proposition}[zero-normalized repair recursion]
 \label{prop:repair-forest}
-\PROVED{} Let $Q$ have even length.  There is a strategy returning the flip
+Let $Q$ have even length.  There is a strategy returning the flip
 score to zero after every defender move if and only if the following recursive
 predicate $\mathsf{Safe}(U,Q)$ holds.
 \begin{itemize}[leftmargin=*]
@@ -1976,7 +1889,7 @@ score one.
 
 \begin{proposition}[finite strategy duality]
 \label{prop:strategy-duality}
-\PROVED{} Every state admits exactly one of $\mathsf{EvenWins}$ and
+Every state admits exactly one of $\mathsf{EvenWins}$ and
 $\mathsf{OddWins}$.  Consequently the linking theorem is pointwise equivalent
 to the nonexistence of an odd-forcing counterstrategy.  This proposition,
 including the explicit dual trees, determinacy, incompatibility, and the
@@ -2010,7 +1923,7 @@ the full game.
 
 \begin{proposition}[unbounded absorbable defect fan]
 \label{prop:defect-fan}
-\PROVED{} For every $r\ge1$ there is a normalized reachable checkpoint whose
+For every $r\ge1$ there is a normalized reachable checkpoint whose
 queue consists of $r$ balanced cells, but after the attacker opens the dummy,
 every normalized reply makes all $r$ old cells defective at once.  The branch
 is nevertheless zero-normalized safe in one more response square.
@@ -2041,7 +1954,7 @@ many local defects can share one complementary OPEN/CLOSE absorber.  The open
 factor-extension theorem must recognize such shared absorbers while still
 surviving attacker pruning.
 
-\TESTED{} Every even-order graph through order eight has
+\emph{Computational evidence.} Every even-order graph through order eight has
 $\mathsf{Safe}(V,())$.  On all $12{,}346$ order-eight isomorphism classes, the
 second player can therefore keep the \emph{actual} flip score zero after every
 one of her moves.  The first failures of the stronger same-action rule occur
@@ -2053,7 +1966,7 @@ These are failures of proposed selectors, not of
 Proposition~\ref{prop:repair-forest} or the linking theorem.
 
 The normalized repair forest cannot itself be promoted to the Euler quotient
-target of Theorem~\ref{thm:euler-quotient}.  \TESTED{} On eight vertices, let
+target of Theorem~\ref{thm:euler-quotient}.  \emph{Computational evidence.} On eight vertices, let
 the primary and secondary Euler graphs have edge sets
 \begin{align*}
  A=\{&02,03,06,07,13,15,23,24,26,35,36,37,47,56,57\},\\
@@ -2133,7 +2046,7 @@ $T_c(a,z)=(a,z+ac)$.
 
 \begin{proposition}[universal public-state holonomy]
 \label{prop:universal-holonomy}
-\PROVED{} Let $Q=(f,Q_0)$ be ko-clear, let $Q_0\ne()$, and let
+Let $Q=(f,Q_0)$ be ko-clear, let $Q_0\ne()$, and let
 $z\in U\cap R$.  The legal paths
 \[
  O_z;C_f\qquad\hbox{and}\qquad C_f;O_z
@@ -2177,7 +2090,7 @@ wall occurs with even multiplicity \cite{vegh-von-stengel}.
 
 \begin{theorem}[Euler curvature oik]
 \label{thm:euler-oik}
-\PROVED{} Let $G$ be an Eulerian graph of even order $n$, with adjacency
+Let $G$ be an Eulerian graph of even order $n$, with adjacency
 $1$-cochain $B$, and put
 \[
  \tau(i,j,k)=B(i,j)+B(i,k)+B(j,k).
@@ -2226,7 +2139,7 @@ in a binary chain modulo two.
 
 \begin{theorem}[odd isotropic cycle dichotomy]
 \label{thm:odd-cycle-dichotomy}
-\PROVED{} Let $G$ be an Eulerian graph of positive even order, with adjacency
+Let $G$ be an Eulerian graph of positive even order, with adjacency
 chain $B$.  Exactly one of the following holds.
 \begin{enumerate}[leftmargin=*]
 \item There are distinct vertices $i,j,k$ spanning an even number of edges of
@@ -2297,7 +2210,7 @@ still the unresolved datum.
 
 \begin{lemma}[same-curvature odd wall fan]
 \label{lem:same-curvature-fan}
-\PROVED{} Let $G$ be an even-order Eulerian graph, fix distinct $x,y$, and put
+Let $G$ be an even-order Eulerian graph, fix distinct $x,y$, and put
 \[
  \tau_{xy}(v)=B(x,y)+B(x,v)+B(y,v)
  \qquad(v\notin\{x,y\}).
@@ -2352,7 +2265,7 @@ have even cardinality.
 
 \begin{theorem}[balanced-front odd-flow transport]
 \label{thm:balanced-front-transport}
-\PROVED{} Fix a balanced checkpoint with the attacker to move and fix an
+Fix a balanced checkpoint with the attacker to move and fix an
 arbitrary deterministic attacker strategy until $x$ closes.  There is a
 canonical response flow of odd augmentation with the following rules:
 \begin{itemize}[leftmargin=*]
@@ -2420,7 +2333,7 @@ equal degree parity in $H$.
 
 \begin{proposition}[cell-cut transport]
 \label{prop:cell-cut-transport}
-\PROVED{} Let the residual queue be
+Let the residual queue be
 $P_1P_2\cdots P_r$, where $P_i=\{a_i,b_i\}$ and
 $\deg_H(a_i)=\deg_H(b_i)\pmod2$ for every $i$, and let $U$ be untouched.
 For every prefix
@@ -2480,7 +2393,7 @@ does not extend merely from balancedness at an arbitrary non-Euler checkpoint;
 the cell-degree hypothesis is an additional datum there.
 
 The tempting next induction---that the first residual cell is balanced after
-summing the canonical wall exits---is false.  \TESTED{} On the Euler graph
+summing the canonical wall exits---is false.  \emph{Computational evidence.} On the Euler graph
 \[
  E=\{02,03,04,07,24,34,36,37,45,46,47,57\},
 \]
@@ -2542,7 +2455,7 @@ For comparison, the labelled graph
 has the same $Q,U$, the same four individual charges, full-degree colours,
 $\Delta$ vector, cross-cell parity, and formal chains
 $K(P_i,U),K(P_1,P_2)$, but exact zero-normalized recursion marks it safe.
-\TESTED{} The graph6 records are respectively \texttt{Fz\{ZG} and
+\emph{Computational evidence.} The graph6 records are respectively \texttt{Fz\{ZG} and
 \texttt{FBp[?}; \path{experiments/linking_game.py} verifies both decisions
 and the Euler lift.  Hence vertex-resolved continuation data below the cell
 aggregation is indispensable.
@@ -2551,7 +2464,7 @@ Nor is the Eulerian case a simplifying restriction of the scalar kernel.
 
 \begin{theorem}[Euler ordered-pair kernel is complete]
 \label{thm:euler-complete}
-\PROVED{} Suppose that for every even-order Eulerian graph $G$ and every
+Suppose that for every even-order Eulerian graph $G$ and every
 ordered pair of distinct vertices $(x,y)$, the checkpoint
 \[
  U=V(G)-\{x,y\},\qquad Q=(x,y)
@@ -2603,7 +2516,7 @@ is not enough.
 
 Three further exact obstructions delimit the remaining Boolean contraction.
 First, the two-bit colour is a prefix moment, not a winning selector.
-\TESTED{} On the eight-vertex graph
+\emph{Computational evidence.} On the eight-vertex graph
 \[
 \begin{split}
  E=\{&01,03,05,07,12,14,15,17,24,26,27,34,\\
@@ -2652,7 +2565,7 @@ pass-free complete event word put
  \rho(e_1\cdots e_m)=\bar e_m\cdots\bar e_1,
  \qquad \overline{O_v}=C_v,\quad \overline{C_v}=O_v.
 \]
-\PROVED{} This is a legal FIFO schedule, swaps the two seats, and preserves
+This is a legal FIFO schedule, swaps the two seats, and preserves
 $D$ coordinatewise.  Indeed, if both opening and closing order in the original
 word are $v_1,\ldots,v_n$, both orders after reversal are
 $v_n,\ldots,v_1$, so FIFO is preserved.  A pass-free word has no adjacent
@@ -2711,7 +2624,7 @@ empty root.
 
 \begin{proposition}[dummy-first draft and switch]
 \label{prop:dummy-draft-switch}
-\PROVED{} Suppose $R\ne\varnothing$ and the first move is $O_d$.  After the
+Suppose $R\ne\varnothing$ and the first move is $O_d$.  After the
 ko-forced first real OPEN, the play until $C_d$ is precisely an alternating
 draft of distinct real vertices: on each turn the player either OPENs an
 untouched real vertex or plays the zero-charge switch $C_d$.  At the switch,
@@ -2743,7 +2656,7 @@ defect.
 
 \begin{proposition}[dummy deletion and the unique ko wall]
 \label{prop:dummy-deletion-wall}
-\PROVED{} Let $h$ be a complete legal history with isolated dummy $d$.  Form
+Let $h$ be a complete legal history with isolated dummy $d$.  Form
 the raw projected event word by deleting $O_d,C_d$ and any pass, while
 retaining the real events in order.  Then:
 \begin{enumerate}[leftmargin=*,itemsep=1pt]
@@ -2832,13 +2745,13 @@ cancel such terms across several histories, but neither the exact
 draft-and-switch reduction nor a single-history dummy normalization proves
 the theorem.
 
-\section{The remaining global lemma}
+\section{The causal affine-contraction conjecture}
 
 The proof target can now be stated without Gold forms, graph enumeration, or a
 particular local menu.
 
 \begin{question}[global FIFO affine contraction]\label{q:contraction}
-\OPEN{} Fix either attacker seat and a deterministic attacker strategy $S$ in
+\emph{Conjecture.} Fix either attacker seat and a deterministic attacker strategy $S$ in
 the schedule game with one isolated dummy.  Does there always exist an odd
 $\F_2$-flow through the defender branches whose terminal disjointness moment is
 zero, with the flow allowed to couple different defender children and different
@@ -2878,7 +2791,7 @@ after every defender move (or forced defender pass).
 
 \begin{proposition}[response-factor normal form]
 \label{prop:response-factor}
-\PROVED{} First suppose the history is pass-free.  Let $I$ pair the two event
+First suppose the history is pass-free.  Let $I$ pair the two event
 occurrences $O_v,C_v$ of each vertex, and pair each attacker event with the
 immediately following defender event to obtain a response matching $R$.
 If the defender moves second, $I\cup R$ is a disjoint union of alternating
@@ -2963,7 +2876,7 @@ alternating-cycle exchange.  Ordinary Pfaffian or complementary-pivoting
 parity therefore cannot supply Proposition~\ref{prop:response-factor}'s
 missing causal extension without additional history-decorated cells.
 
-\TESTED{} Exact minimax finds such zero-normalized strategies after adjoining
+\emph{Computational evidence.} Exact minimax finds such zero-normalized strategies after adjoining
 the isolated dummy for every graph isomorphism class through eight real
 vertices, for either defender seat.  In the complete order-eight census the
 following sharper root selectors also survive: a first-seat defender may open
@@ -2999,7 +2912,7 @@ selectors.
 
 \begin{proposition}[least-root odd corridor]
 \label{prop:root-corridor}
-\PROVED{} Let $G$ have an even real vertex set $R$ and isolated $d$, and
+Let $G$ have an even real vertex set $R$ and isolated $d$, and
 assume every smaller even-real isolated-dummy board is zero-normalized safe.
 Fix a real opener $x$ and put
 \[
@@ -3058,7 +2971,7 @@ $P_R$ and $P_R^2$ for the real-edge traces of the path and its square.
 
 \begin{theorem}[complete close-first contraction]
 \label{thm:close-first}
-\PROVED{} For every number of real vertices, every close-first attacker admits
+For every number of real vertices, every close-first attacker admits
 an odd compatible response chain with zero terminal disjointness moment.  This
 holds whether the attacker occupies the first or the second seat.
 \end{theorem}
@@ -3195,7 +3108,7 @@ is losing.
 
 \begin{proposition}[leafmost-deviation spoiler dichotomy]
 \label{prop:leafmost-spoiler}
-\PROVED{} A defender spoiler after the replacement $C_f$ has exactly one of
+A defender spoiler after the replacement $C_f$ has exactly one of
 the following forms.
 \begin{enumerate}[leftmargin=*]
 \item It is $O_z$ and $Q_0\ne()$.  Then the two paths
@@ -3228,7 +3141,7 @@ contraction, for an arbitrary preloaded queue rather than only a root.
 
 \begin{theorem}[untouched-dummy close-first tail]
 \label{thm:untouched-dummy-tail}
-\PROVED{} Let the defender move from a state with nonempty queue
+Let the defender move from a state with nonempty queue
 $Q=(q_1,\ldots,q_L)$ and untouched set $U$ containing the isolated dummy
 $d$.  If the attacker is close-first from this state onward, the defender can
 force future score zero.
@@ -3287,7 +3200,7 @@ sets write
 
 \begin{theorem}[untouched-dummy close-first full live face]
 \label{thm:untouched-dummy-full-face}
-\PROVED{} In the state of Theorem~\ref{thm:untouched-dummy-tail}, write
+In the state of Theorem~\ref{thm:untouched-dummy-tail}, write
 $U=\{d\}\sqcup R$ and suppose ko is clear.  For the fixed ordinary
 close-first attacker, let $W$ be the even continuation-moment space, projected
 to the coordinates which are still live at this state.  Then
@@ -3379,7 +3292,7 @@ single scalar response rather than an affine combination of root histories.
 
 \begin{theorem}[conditioned close-first contraction]
 \label{thm:conditioned-close-first}
-\PROVED{} Let the defender move from a coherent state with nonempty queue,
+Let the defender move from a coherent state with nonempty queue,
 $\mathsf{ko}=0$, and arbitrary untouched set $U$.  Against an attacker which
 CLOSEs whenever CLOSE is legal, the defender has a continuation of future
 score zero.  No dummy or parity hypothesis on the live graph is required.
@@ -3454,7 +3367,10 @@ would require
  \deg_{U-\{z,y\}}(z)=1\qquad(y\ne z),
 \]
 since a zero charge would expose a smaller counterexample.  Write
-$a_y=B(z,y)$ and $\delta=\sum_{u\ne z}B(z,u)$.  The displayed equations are
+\[
+ a_y=B(z,y),\qquad \delta=\sum_{u\ne z}B(z,u).
+\]
+The displayed equations are
 $\delta+a_y=1$ for every $y$, so all $a_y$ have one value $b$.  But
 $|U|-1$ is odd, whence $\delta=b$ and every displayed charge is actually
 zero, a contradiction.
@@ -3649,7 +3565,7 @@ $b_x=1$.  This proves the lemma.
 
 \begin{theorem}[stopped close-first empty-root contraction]
 \label{thm:stopped-close-first-root}
-\PROVED{} For every finite graph $H$, $\mathsf P_{\rm stop}(H)$ holds.
+For every finite graph $H$, $\mathsf P_{\rm stop}(H)$ holds.
 Equivalently, from a defender-first empty no-dummy root of score zero, no
 stopped close-first attacker can force either a score-one STOP or terminal
 score one.
@@ -3764,7 +3680,7 @@ the $64$ finite witnesses above.  Local complementation changes the required
 pairing data but is not a legal FIFO move.  Queue layouts supply terminology
 for nonnesting but no adversarial parity strategy.
 
-\TESTED{} A useful stronger conjecture is false: without the dummy, the
+\emph{Computational evidence.} A useful stronger conjecture is false: without the dummy, the
 initial mover does not always force even score on even-order graphs.  The first
 failures occur at order eight, in exactly seven isomorphism classes:
 \verb|GCZN^{|, \verb|GCrU~{|, \verb|GEhvn{|, \verb|GCx}~{|,
@@ -3776,7 +3692,7 @@ screen, but it is not proved.  Bare alternating rank or Witt class cannot
 classify these outcomes: $P_3$ and $K_2\sqcup K_1$ have congruent rank-two
 alternating adjacency forms over $\F_2$ but different seat outcomes.
 
-\PROVED{} The smallest genuine affine cancellation is already a three-history
+The smallest genuine affine cancellation is already a three-history
 fan, not a dummy cone.  With real vertices $1,2,3$, let a first-seat attacker open the
 dummy and thereafter close whenever possible, otherwise opening the least
 untouched vertex.  After the shared prefix $O_d,O_1,C_d$, the defender can
@@ -3793,7 +3709,7 @@ Their three vectors XOR to zero, although none is zero.  In (iii), $O_2$
 opens an empty queue and $O_3$ is the ko-forced response, so all three rows are
 legal.  The cancellation happens after the dummy has closed.
 
-\TESTED{} Three histories do not suffice uniformly.  With five real vertices
+\emph{Computational evidence.} Three histories do not suffice uniformly.  With five real vertices
 plus $d$, let a first-seat attacker close whenever legal and otherwise open the
 least untouched vertex.  Its $132$ distinct response scores contain neither
 zero nor three vectors with XOR zero.  The minimum odd certificate has support
@@ -3815,7 +3731,7 @@ an isolated finite-search phenomenon.
 
 \begin{proposition}[causal simplex caps]
 \label{prop:causal-cap}
-\PROVED{} For every $r\ge4$ there is a reachable defender node below a fixed
+For every $r\ge4$ there is a reachable defender node below a fixed
 first-seat attacker at which the terminal cut-quotient labels project onto
 \[
  \mathcal C_r=\{\mathbf1\}\cup
@@ -3900,7 +3816,7 @@ three-history fan.  No induction can bound the support of a certificate inside
 each defender child independently.  A root contraction must couple these
 growing caps to a wider collection of earlier sibling branches.
 
-Nor is one arbitrary sibling enough.  \TESTED{} At the immediately preceding
+Nor is one arbitrary sibling enough.  \emph{Computational evidence.} At the immediately preceding
 checkpoint
 \[
  U=\{1,2,3,4,5\},\qquad Q=(6),
@@ -3920,7 +3836,7 @@ the partial fan, since the cap itself contains the five-circuit
 $7\mathbin\oplus11\mathbin\oplus13\mathbin\oplus14\mathbin\oplus15=0$.
 
 The exact ancestor-cap escape rule is false as well, not merely its pairwise
-version.  \TESTED{} Use five real vertices $0,\ldots,4$, dummy $5$, and the
+version.  \emph{Computational evidence.} Use five real vertices $0,\ldots,4$, dummy $5$, and the
 $T_0$ quotient with bit order $12,13,14,23,24,34$.  One first-seat attacker
 has the spine
 \[
@@ -3955,146 +3871,54 @@ survives inside either singleton real branch, so a proof must choose its odd
 subset of defender branches using continuation data; neither dummy-edge
 contraction nor the full root fan is a valid fixed recipe.
 
-\section{Consequence for the Gold realizer}
+\section{Relation to Gold--Arf normal play}
 
-\PROVED{} The reductions in \path{writeups/goldarf.tex} identify the terminal
+The reductions in \path{writeups/goldarf.tex} identify the terminal
 $\sigma$-charge with the overlap parity of $G$-edges.  Since overlap and
 disjointness partition $E(G)$,
 \[
   \sigma(h)=|E(G)|+F_G(h)\pmod2.
 \]
 Therefore an affirmative answer to Question~\ref{q:contraction} would force
-$\sigma=|E(G)|$ for every support graph and both seats.  On a Gold support
-graph this is the required quadratic value, upgrading the verified
-$m\in\{4,8\}$ realizer to every $m$.
+$\sigma=|E(G)|$ for every support graph and both seats.
 
-\PROVED{} This arbitrary-graph theorem is no longer load-bearing for the
-Gold problem.  The later deterministic Witt re-framing reduces every loaded
+This arbitrary-graph theorem is not load-bearing for the
+Gold problem. The deterministic Witt re-framing reduces every loaded
 support graph to a matching, where the FIFO theorem is proved, and the
 phase-aware claim compiler turns its forced charge into normal play.  Question
-\ref{q:contraction} remains an optional strict generalization of the FIFO
-mechanism rather than an open step of \texttt{tis}.
+\ref{q:contraction} is a strict combinatorial generalization of the FIFO
+mechanism rather than a gap in the Gold theorem.
 
-\section{Verification boundary}
+\section{Conclusion and evidence boundary}
 
-The following claims have different status and should not be flattened.
-\begin{itemize}[leftmargin=*]
-\item \PROVED{} The interval/disjointness reduction, vector live-star identity,
-      threshold schedule normal form, endpoint-controller boundary identity,
-      affine separation equivalence and positional scalar reduction,
-      homogeneous response recursion, parity-resolved continuation
-      convolution and its decorated-frontier decomposition, the virtual-OPEN
-      common-close identity and exact pruning obstruction, dual obstruction
-      descent, filtered Schur-complement
-      criterion, and Euler quotient separation,
-      parity-cell theorem, front cut-space splitting and two-graph absorption,
-      correlated-moment identity, initial cut contraction, charge/poison
-      classification, two-switch tail, scalar force-set recursion,
-      Boolean force-set identities, universal-full-fan residual,
-      least-counterexample odd routing, zero-normalized repair recursion,
-      queue-matching phase-fan identity, tetrahedral coherence, universal
-      public-state holonomy obstruction, Euler curvature
-      oik and its oriented lift, the odd isotropic triangle dichotomy,
-      the same-curvature odd wall fan, balanced-front odd-flow transport and
-      its cell-cut coefficient calculus, the response-factor normal form,
-      completeness of the Euler ordered-pair kernel,
-      the complete both-seat close-first contraction,
-      the leafmost-deviation spoiler dichotomy, untouched-dummy
-      arbitrary-prefix close-first tail and its full-live-face strengthening,
-      and the dummy-free conditioned close-first contraction, together with
-      the stopped close-first
-      defender-first empty-root contraction and its bad-pair fan lemma,
-      the causal simplex-cap family and the causal matching-exchange no-go,
-      fixed-permutation no-go, and displayed triangular fan and fixed-front
-      poison descent, together with the front-signature no-go, pass-free
-      reversal identity, its local causal obstruction, the dummy-first
-      draft-and-switch normal form, fixed-history dummy deletion with its
-      unique labelled ko-wall repair, the label-essential dummy ko wall, and
-      the mandatory (B$'$) all-OPEN-fan counterexample together with the
-      first-response forest criterion and its odd ungrounded-component
-      obstruction, are complete proofs in this note.
-      The dummy-free conditioned close-first theorem, its absolute-target
-      strategy semantics, and its whole-queue drain base are additionally
-      kernel-checked in \path{formal/Ogdoad/Fifo.lean}.  The same file now
-      kernel-checks the complete stopped empty-root theorem: stopped strategy
-      semantics, two- and three-block absorbers, graph-moment identities, all
-      three finite zero-fan cases, bad-arc rank descent, the root fan, and the
-      mutual strong induction through
-      \texttt{stoppedCloseFirstEmptyRootTheorem}.
-\item \TESTED{} Exact minimax verifies the general linking theorem on every
-      isomorphism class through eight real vertices plus dummy, both seats, and
-      verifies the two local-strategy witnesses.  The parity-cell census is
-      complete through seven real vertices.
-\item \TESTED{} The childwise common-coset strengthening is false, first at the
-      displayed $P_4+d$ state.  This is a failure of the proposed induction,
-      not of the linking theorem.
-\item \TESTED{} Pairwise ancestor cap escape fails at the displayed $r=4$
-      checkpoint: two complete defender siblings have a combined $52$-point
-      cap-valued response image.  The stronger full-ancestor escape rule also
-      fails on the five-real-vertex spine ending in $X=\{1,3\}$: every prior
-      sibling image avoids $\{0,2\}=\{0\}\cup(X+X)$.  Larger odd dependencies
-      keep both witnesses from being root counterexamples.
-\item \TESTED{} Same-action adaptive pairing first fails on two order-eight
-      no-dummy boards and needs exactly two switches there.  A three-leaf
-      affine certificate first fails for the displayed five-real-vertex
-      strategy, whose exact minimum support is five.  These are failures of
-      stronger proof templates, not of the linking theorem.
-\item \TESTED{} Every even-order graph through order eight has a ranked
-      zero-normalized repair forest.  Static degree, two-bit, matching,
-      symplectic-flag, and one-cut selectors have the explicit failures stated
-      above.  The finite forests do not prove their own existence at arbitrary
-      order.
-\item \TESTED{} The scalar implication $P(H)\Rightarrow T(H)=\{0\}$ holds
-      through the complete order-eight census; all $262$ order-eight
-      $P$-classes admit an even-cross pairing.  Rowwise and same-degree
-      Boolean parity strengthenings already have the displayed smaller
-      counterexamples, so this does not supply the universal-full-fan
-      contraction at arbitrary order.
-\item \TESTED{} With an isolated dummy, exact zero-normalized minimax succeeds
-      through eight real vertices for both defender seats.
-      The same census verifies the three root selectors stated after
-      Proposition~\ref{prop:response-factor}.  The canonical balanced-front
-      wall exits need not have zero aggregate first-cell imbalance: the
-      displayed Euler graph has exit imbalances $0,0,1$, with the remaining
-      defect carried by a cross-cell four-cycle.  These tests delimit the
-      causal factor-extension lemma; they do not prove it.
-\item \TESTED{} The clean-cell pair \texttt{Fz\{ZG}/\texttt{FBp[?} has
-      identical ordered homogeneous-cell charges, colours, defects,
-      cross-parities, and formal cell-cut chains but opposite exact safety.
-      The unsafe member has the displayed hand-checkable spoiler tree and is
-      itself a canonical exit from an Eulerian balanced-front wall.  Thus even
-      complete cell-cut aggregation cannot be the recursive state.
-\item \TESTED{} Restricting the defender to OPEN while untouched vertices
-      remain is false already on $K_4+d$ and $(K_4-e)+d$.  The unrestricted
-      winning line uses a phase-changing front CLOSE, so the close-first
-      theorem cannot be extended by a one-block monotonicity argument.
-\item \TESTED{} The displayed pair of order-eight Euler graphs proves that a
-      primary repair forest need not have a cut-valued affine
-      response moment uniformly for a secondary Euler functional: the pinned
-      attack has $88$ normalized histories, all of secondary moment one.  This
-      refutes a graph-independent carrier strengthening, not scalar zero
-      normalization.
-\item \TESTED{} Ordered same-colour safety and the weaker existence of a safe
-      same-colour mate both fail at order eight.  The open-completion lift also
-      fails at the displayed safe checkpoint, where a zero close is the unique
-      safe response.  These are failures of structural proof templates, not
-      counterexamples to the root theorem.
-\item \OPEN{} The global FIFO affine-contraction statement
-      \eqref{eq:affine-target} is not proved.  Neither the complete finite
-      census nor the graph-free affine searches are evidence of a general
-      chain contraction.  Theorem~\ref{thm:stopped-close-first-root} closes
-      the defender-first stopped empty-root base, but it does not contract an
-      arbitrary conditioned stopped tail and therefore does not iterate
-      through the (A)/(B$'$) ancestry pattern.  Equivalently at the normalized
-      frontier, the missing assertion is a strategy-relative causal extension
-      theorem for the charge-balanced response factor, allowing odd wall
-      fans, front-cell deletion, matching-phase pivots, and frozen ko-wall
-      edges to share their transported four-cycle defects across the complete
-      defender fan.  Proposition~\ref{prop:dual-descent} reduces any
-      counterexample to an even-$|U|$ singleton phase or an imbalanced
-      multicell front, but neither multibranch ancestry phase has yet been
-      contracted.
-\end{itemize}
+The exact reductions in this paper replace the FIFO game by a causal affine
+response problem over the binary edge space.  They prove the interval and
+live-star identities, the affine separation criterion, the homogeneous-cell
+recursion, the cut-space and two-graph decompositions, the correlated cut and
+continuation moment, the initial-cut contraction, the stopped close-first
+theorem, and the obstruction results for the stronger local induction
+templates considered above.  The stopped close-first argument and its
+finite-fan absorbers are also kernel-checked in
+\path{formal/Ogdoad/Fifo.lean}.
+
+The remaining statement is Conjecture~\ref{q:contraction}: a causal affine
+contraction for an arbitrary conditioned tail.  Its difficulty is genuinely
+multibranch.  The response factor must transport four-cycle defects across a
+complete defender fan while allowing odd wall fans, front-cell deletion,
+matching-phase pivots, and frozen ko-wall edges.  The dual descent reduces a
+minimal counterexample to an even-$|U|$ singleton phase or an imbalanced
+multicell front, but neither ancestry type is yet contracted.
+
+Exact minimax provides a finite check, not a proof: the conjecture holds on
+every graph isomorphism class through eight real vertices with an isolated
+dummy, for both defender seats.  The same census confirms the ranked
+zero-normalized repair forests and the stated root selectors.  The explicit
+counterexamples in this paper show why this evidence does not support the
+stronger childwise-coset, bounded-support, static-selector, ordered-colour,
+open-completion, or graph-independent carrier claims.  Thus the theorem
+frontier is narrow and exact: construct the causal factor extension, or
+produce an arbitrary-order obstruction to it.
+
 
 \begin{thebibliography}{9}
 \bibitem{heath-rosenberg}

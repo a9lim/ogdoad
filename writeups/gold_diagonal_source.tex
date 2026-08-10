@@ -18,7 +18,7 @@
 
 \title{A Tower-Recursive Source for Every Gold Diagonal}
 \author{a9lim}
-\date{August 9, 2026}
+\date{August 2026}
 
 \begin{document}
 \maketitle
@@ -29,23 +29,20 @@ nim-field, and write $e_i=2^i$ for its Conway bit basis.  For the Gold form
 \[
  Q_a(x)=\Tr_{K_m/\F_2}\!\left(x^{1+2^a}\right),
 \]
-the diagonal constants $Q_a(e_i)$ are the datum missing from the polar form.
-Previously a uniform game-built source was known only for $a=1$, while the
-trace-dual elements for even $a$ visibly drifted under tower doubling.  We
-give a recursion for the trace-dual diagonal of every scaled Gold component,
+the diagonal constants $Q_a(e_i)$ are independent of the polar form. We give
+a recursion for the trace-dual diagonal of every scaled Gold component,
 prove that the unscaled dual always descends to the half-field, and conclude
 that it is an Artin--Schreier value $w^2+w$.  Thus every Gold exponent has a
 single tower-constructed source $w$ satisfying
 \[
  \Tr\!\left((w^2+w)e_i\right)=Q_a(e_i)\qquad(0\le i<m).
 \]
-The result closes the diagonal-sourcing problem, including the even-$a$
-case. By itself it does not turn those constants into a normal-play rule; the
-companion weighted-source Witt--FIFO theorem in
-\texttt{writeups/goldarf.tex} supplies that separate strategic step.
+The construction works uniformly for odd and even $a$. It supplies the
+algebraic source used by the companion weighted-source Witt--FIFO theorem,
+while leaving the strategic normal-play argument logically separate.
 \end{abstract}
 
-\section{Statement and boundary}
+\section{Introduction and main theorem}
 
 For a scale $c\in K_m$, define the scaled Gold component
 \[
@@ -94,7 +91,8 @@ The two possible sources are $w^{(m)}_a$ and $w^{(m)}_a+1$.
 The theorem is about sourcing the diagonal constants. It does not itself
 infer a $P$-set theorem or a linking strategy. Those are supplied by the
 separate weighted-source Witt--FIFO theorem; this proof/semantics boundary is
-essential even though the combined project-level problem is now resolved.
+essential even though the companion normal-play construction supplies the
+remaining game-semantic layer.
 
 \section{The quadratic nim-tower block}
 
@@ -188,9 +186,8 @@ the lower and upper diagonal blocks.  Nondegeneracy of the absolute trace
 pairing makes the candidate unique, proving~\eqref{eq:recursion}.
 \end{proof}
 
-This is the point at which the even-$a$ drift ceases to be an obstruction.
-The scale $d_1$ can change at every tower level; the recursion transports that
-change instead of requiring one fixed dual element throughout the tower.
+The scale $d_1$ may change at every tower level; the recursion transports that
+change rather than requiring one fixed dual element throughout the tower.
 
 \section{Descent and the Artin--Schreier source}
 
@@ -284,10 +281,9 @@ from rank--nullity, trace surjectivity, and the two-element kernel, rather than
 introduced as an axiom. The module does not encode the finite nim tower or
 replace the Rust implementation with a Lean finite-field model.
 
-\section{Consequence for the resolved Gold-game program}
+\section{Integration with Gold normal play}
 
-The former even-$a$ constructive sourcing question is closed: for every
-exponent, the diagonal is supplied by one deterministically selected tower
+For every exponent, the diagonal is supplied by one deterministically selected tower
 constant through nim multiplication, Frobenius, trace, and finally one square
 plus XOR at the source identity $\Lam=\AS(w)$. No coordinate-by-coordinate
 evaluation of $Q_a$ occurs in the recursion. Unlike the $a=1$ Fermat-coin
@@ -295,7 +291,7 @@ formula, the final $w$ is selected by exact finite-field linear algebra; the
 theorem does not claim a comparably simple closed expression or that this
 selection itself satisfies the strategic naturality axioms.
 
-The strategic layer is resolved separately by weighted-source Witt--FIFO. Its
+The strategic layer is supplied separately by weighted-source Witt--FIFO. Its
 source-pair weights consume these diagonal bits locally, the matching theorem
 forces the exact charge in every dimension, and the phase-aware claim lantern
 gives an ordinary normal-play P-set $\{Q_a=0\}$. The present theorem supplies

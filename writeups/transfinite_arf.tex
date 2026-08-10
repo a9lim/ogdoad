@@ -24,15 +24,13 @@
 
 \title{The Arf Switches Off:\\
 Quadratic Forms over the Full Nimber Field}
-\author{a9lim and Codex}
-\date{7 August 2026}
+\author{a9lim}
+\date{August 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This note resolves the \texttt{off} problem in Ogdoad's open ledger.  The
-ground field, rather than a new transfinite trace, decides the question.
 Conway's full nimber field $\On$ is algebraically closed of characteristic
 $2$.  Consequently the Artin--Schreier map is surjective, every regular
 finite-dimensional quadratic form over $\On$ is hyperbolic, and the
@@ -54,7 +52,7 @@ construct Artin--Schreier roots that lie outside its verified window, even
 though the full-$\On$ classification is mathematically complete.
 \end{abstract}
 
-\section{Question and answer}
+\section{Introduction and main result}
 
 Let $\F$ be a field of characteristic $2$, let $V$ be finite-dimensional,
 and let
@@ -81,9 +79,9 @@ characteristic-$2$ Arf class is represented by
  \sum_{i=1}^r Q(e_i)Q(f_i)\pmod{\wpmap(\F)}.
 \]
 Over a finite field this quotient has two elements and the absolute trace
-identifies it with $\mathbb F_2$.  The open question was what replaces that
-bit for genuinely transfinite nimber coefficients, where no finite absolute
-trace exists.
+identifies it with $\mathbb F_2$. Over the full nimber field no finite
+absolute trace exists, so the intrinsic Artin--Schreier quotient is the
+correct starting point.
 
 The answer is: \emph{nothing replaces it over the full nimber field.}  The
 class already lives naturally in $\F/\wpmap(\F)$, and this quotient is zero
@@ -193,7 +191,7 @@ functional admits a basis in which it is the first coordinate; this gives
 the asserted normal forms.
 \end{proof}
 
-\section{Complete normal form over $\On$}
+\section{\texorpdfstring{Complete normal form over $\On$}{Complete normal form over On2}}
 
 \begin{theorem}[Transfinite nimber quadratic classification]
 \label{thm:classification}
@@ -404,9 +402,9 @@ problem.  A future implementation may expose a theorem-level
 when all needed roots are representable.  It should not invent a transfinite
 trace to $\mathbb F_2$.
 
-\section{Disposition of \texttt{off}}
+\section{Conclusion}
 
-The four targets in the former open entry now have exact answers:
+The classification has four consequences:
 \begin{enumerate}
 \item \textbf{Domain.}  The ideal full-field classification motivating the
       \texttt{Ordinal} scalar is over $\On$; finite or coefficient-generated
@@ -422,9 +420,9 @@ The four targets in the former open entry now have exact answers:
       singular radicals carry no class of the same kind.
 \end{enumerate}
 
-Thus \texttt{off} is resolved by collapse, not by a new transfinite bit.  The
-finite bit remains useful precisely because it remembers a smaller declared
-ground field.
+The full-nimber theory therefore closes by collapse, not by a new transfinite
+bit. The finite bit remains useful precisely because it remembers a smaller
+declared ground field.
 
 \begin{thebibliography}{9}
 

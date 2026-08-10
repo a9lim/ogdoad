@@ -6,7 +6,8 @@ The two exemplars are the **grundy** language work (a whole sub-language growing
 recursion + games) and the **char-`p` Drinfeld/Carlitz mirror** (a candidate second
 headline pillar). Items that round out an existing symmetry or bridge — most of the
 standing content — live in [`COMPLETENESS.md`](COMPLETENESS.md); newly completed work
-goes in [`DONE.md`](DONE.md); genuine research questions in [`OPEN.md`](OPEN.md).
+goes in [`DONE.md`](DONE.md); solved research questions are indexed in
+[`CLOSED.md`](CLOSED.md), and genuine research questions in [`OPEN.md`](OPEN.md).
 
 Claim-level discipline (`AGENTS.md` → "Claim levels and non-claims") applies to every
 item: each is **standard math** or **engineering** when built — not a new theorem.

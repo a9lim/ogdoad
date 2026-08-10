@@ -246,8 +246,9 @@ universal `D'_k` and general isolated-dummy FIFO theorems are stated there but
 remain open; no finite census is presented as either proof.
 
 See `AGENTS.md` for the working-notes summary, `docs/OPEN.md` for the genuine open
-problems, the other `docs/` ledgers for the cross-pillar bookkeeping, `grundy/docs/` for
-the language contract, and `writeups/` for the draft notes.
+problems, `docs/CLOSED.md` for the current theorem index, the other `docs/` ledgers for
+cross-pillar bookkeeping, `grundy/docs/` for the language contract, and `writeups/` for
+the papers.
 
 ## The bridges — a traveller's catalog
 
@@ -313,81 +314,31 @@ and the obstruction has simply walked from the Integral shore to the Clifford on
 
 ## The research threads
 
-The genuine open problems live in `docs/OPEN.md`, each named by a **loopy game
-value** — an open problem is a game played without a termination guarantee. The
-former flagship, `tis`, was *not* a claim of a new Clifford classification
-theorem. It was an investigation of game-built quadratic forms in the nimber
-backend and is now resolved:
+The exact research boundary is split between two current-only ledgers:
 
-1. Turning-Corners games realize nim multiplication.
-2. Frobenius squaring and traces are built from nim multiplication and XOR.
-3. Gold-style trace forms `Tr(λ · x^{1+2^a})` are therefore expressible from game-value
-   operations.
-4. The Arf invariant gives the standard zero-count bias for a quadratic zero set.
-5. **The resolved boundary:** weighted-source Witt--FIFO has exactly that
-   P-set, while a transcript theorem proves the observation cost that no exact
-   torsor-uniform rule can beat.
+- `docs/OPEN.md` contains the three unsolved fronts: arbitrary-graph FIFO
+  linking, intrinsic four-outcome Brown semantics, and the universal Lenstra
+  excess `0/1/4` rule.
+- `docs/CLOSED.md` states the solved questions as theorems, with their proof,
+  formalization, implementation, and non-claim boundaries.
 
-The theorem (`writeups/goldarf.tex`) starts from the linear case as both floor and
-ceiling — lexicodes show natural rules realize rich *linear* codes as P-sets,
-and Theorem A shows every Winning Ways coin-turning P-set is the kernel of an
-`F₂`-linear map. A public Witt frame reduces the polar interaction to a
-matching; q-blind source pairs carry original-coordinate singleton weights;
-one q-blind safe-front strategy forces every potential pair to overlap and
-therefore forces the exact quadratic charge for every refinement; and a
-phase-aware claim move compiles it to ordinary normal play. Exactness forces
-every stable observation certificate to span the input, so the support-sized singleton
-interface is optimal and a constant total budget is impossible. A separate
-padding theorem proves that strategic-liveness tests cannot define
-non-tautology when those tests are the basic reachable, optimal, or unavoidable
-fork properties. The older echo-fifo+dummy census remains useful
-historical evidence, and its arbitrary-graph linking conjecture is now an
-optional strict generalization rather than a Gold premise.
+The central closed result is the Gold--Arf normal-play theorem. Turning-Corners
+realizes nim multiplication; Frobenius and trace are built from nim operations;
+and a public Witt frame reduces every finite quadratic refinement to a matching
+with singleton-weighted source pairs. The both-seat FIFO matching strategy
+forces the exact charge, and a phase-aware terminal claim compiles it to
+ordinary normal play. Consequently the `P`-set is precisely the quadratic zero
+set. A transcript theorem proves that the support-sized observation interface
+is optimal. A separate quadratic-tower theorem supplies a constructive
+Artin--Schreier source for the diagonal of every Gold exponent.
 
-The diagonal inputs are game-built at every Gold exponent, not merely assumed:
-the quadratic-tower theorem makes each unscaled trace-dual an
-Artin--Schreier value `w²+w`, constructively through the supported nim tower.
-
-The rest of the board, briefly:
-
-- **`tisn`** — *resolved 2026-08-09*: the short-game group is power-of-two
-  divisible with power-of-two torsion.  In any ambient-coherent,
-  coefficient-faithful Clifford datum, taking roots of `nt=0` forces
-  `Q(t)=0` and `B(t,x)=0` for every torsion game `t`; this holds over every
-  coefficient characteristic.  Local tables on root-incomplete subgroups remain
-  valid engineering data but are ambient-dependent, while a directed outcome
-  construction is the different object now supplied by `tis`
-  (`writeups/game_exterior_divisibility.tex`).
-- **`on`** — transfinite nim multiplication beyond the verified excess table.
-  Conway's Kummer carry below `ω^(ω^ω)` is `α_p = κ_{f(p)} + m_p` with `m_p`
-  Lenstra's finite excess; every source-pinned row obeys an unproved `0/1/4`
-  rule, and `writeups/excess.tex` reduces that rule *exactly* to four universal
-  order statements — the zero, ordinary-odd-spine, cubic, and exceptional arms.
-  The next unsupported carry is `α₇₁₉`.
-- **`off`** — *resolved 2026-08-07*: full `On₂` is algebraically closed, so its
-  Artin–Schreier quotient and regular quadratic Witt group vanish.  Every regular
-  ordinary `(q,b)` form (`metric.a` empty) is hyperbolic; a singular form is
-  classified by polar rank, radical dimension, and whether `Q` is nonzero on the
-  radical.  Finite-subfield Arf bits
-  remain relative invariants and die after a quadratic scalar extension
-  (`writeups/transfinite_arf.tex`).
-- **`over`** — *resolved as an independent charge/invariant problem
-  2026-08-09*: every Brown form splits canonically as
-  `q = lift(ell) + 2Q`, with `ell` linear and `Q` an ordinary `F₂` quadratic;
-  its phase is the correlated Walsh pair of `Q` and `Q+ell`, with closed
-  even/odd-dimensional Arf formulas.  Under synchronized terminal-charge
-  pairing, the four labels are exactly `(ell,Q)`; the weighted-source theorem
-  supplies the nonlinear binary factor, while a single four-class game outcome
-  remains a distinct Brown-semantic boundary. Ambient-coherent Brown colours of all short-game
-  values vanish by two-divisibility, while the abelian `Z/8` model proves that
-  local odd phases require a chosen section
-  (`writeups/brown_game_semantics.tex`).
-- **`under`** — *resolved 2026-07-20*: thermography and the Newton-polygon stack
-  are **two** tropical objects. Temperature is an honest tropical valuation and
-  every positive dyadic Norton unit `u = m/2^k` transports the temperature
-  filtration exactly (`gr_τ → gr_{uτ+u−δ}`), but `gr₀`'s `[*]` 2-torsion and the
-  exact Norton composition defect forbid any faithful dyadic-unital graded ring
-  (`writeups/thermo_newton.tex`).
+The other closed results delimit the scalar and game boundaries. Ambient
+coherence forces every torsion square and polar pairing of short-game values to
+vanish; full `On_2` has trivial regular quadratic Witt and Brauer--Wall classes;
+Brown labels split canonically into one linear and one ordinary quadratic bit;
+and thermography and Newton polygons share a filtered tropical shadow but
+cannot form one faithful full-dyadic graded ring. The Brown single-game
+internalization remains open even though its algebraic reduction is complete.
 
 If you want to play along, the open-problem examples (`interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`) are the doors in.

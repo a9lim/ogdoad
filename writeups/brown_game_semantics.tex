@@ -19,14 +19,11 @@
 \newcommand{\F}{\mathbb F}
 \newcommand{\ShUg}{\operatorname{ShUg}}
 \newcommand{\Arf}{\operatorname{Arf}}
-\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
-\newcommand{\PROVED}{\taglabel{PROVED}}
-\newcommand{\SOURCE}{\taglabel{SOURCE-PINNED}}
-\newcommand{\BOUNDARY}{\taglabel{BOUNDARY}}
 
-\title{Brown phases in game semantics:\\a canonical two-bit split and a divisibility obstruction}
-\author{Codex}
-\date{2026-08-09}
+\title{Brown Phases in Game Semantics:\\
+A Canonical Binary Split and a Divisibility Obstruction}
+\author{a9lim}
+\date{August 2026}
 
 \begin{document}
 \maketitle
@@ -41,21 +38,21 @@ problem.  Every Brown form has a canonical decomposition
 \]
 where $\ell=q\bmod2$ is linear and $Q$ is an ordinary $\F_2$-quadratic
 form.  Consequently the four residue classes are precisely the joint census
-of one linear game bit and the ordinary quadratic bit already isolated by the
-\texttt{tis} problem; the Brown phase introduces no second nonlinear
+of one linear game bit and one ordinary quadratic bit; the Brown phase
+introduces no second nonlinear
 game-semantic problem.  We also prove a complementary global no-go: an
 ambient-coherent Brown refinement of the additive group of all short games is
 identically zero, because that group is $2$-divisible.  Finally, the cyclic
 extension $C_4\to C_8\to C_2$ shows that a bare central extension by $C_4$
 does not determine a Brown form: a section or phase framing is essential.
-Together these results dispose of the independent Brown invariant/output
-question under an explicit synchronized-charge contract.  The later
-weighted-source theorem supplies the ordinary quadratic normal-play bit; what
-is not claimed here is that a synchronized pair of binary games is itself one
-canonical four-class normal-, mis\`ere-, or loopy-play outcome.
+Together these results completely describe Brown labels under an explicit
+synchronized-charge contract. The weighted-source theorem supplies the
+ordinary quadratic normal-play bit. The remaining semantic question is whether
+one intrinsic game can realize all four Brown classes without an external
+product of binary channels.
 \end{abstract}
 
-\section{The exact question}
+\section{Introduction}
 
 A Brown form on an $\F_2$-space $V$ is a function
 \[
@@ -105,7 +102,7 @@ section $0\mapsto0$, $1\mapsto1$.  It obeys
 where the left addition is in $\F_2$ and the right addition is in $\Z/4$.
 
 \begin{theorem}[canonical Brown split]\label{thm:split}
-\PROVED{} Let $(q,b)$ satisfy \eqref{eq:brown-law}.  There are unique maps
+Let $(q,b)$ satisfy \eqref{eq:brown-law}.  There are unique maps
 \[
  \ell:V\to\F_2,
  \qquad
@@ -163,7 +160,7 @@ of every element of $\Z/4$.
 
 \begin{corollary}[the four-class census is a joint binary census]
 \label{cor:census}
-\PROVED{} Under Theorem~\ref{thm:split}, the four Brown classes are
+Under Theorem~\ref{thm:split}, the four Brown classes are
 \begin{center}
 \begin{tabular}{cccc}
 \toprule
@@ -212,7 +209,7 @@ The split gives more than a four-colour relabelling: it computes every Brown
 octant from ordinary characteristic-two data.
 
 \begin{theorem}[phase formulas]\label{thm:phase}
-\PROVED{} Suppose the symmetric Brown polar form $b$ is nondegenerate and put
+Suppose the symmetric Brown polar form $b$ is nondegenerate and put
 $n=\dim V$.
 \begin{enumerate}[label=(\roman*),leftmargin=2.5em]
 \item If $n$ is even, $B_Q$ is nondegenerate.  Let $a$ be the unique vector
@@ -318,9 +315,9 @@ their strategies are independent, or that the pair is already one of the
 canonical outcome classes of a single normal-, misere-, or loopy-play game.
 \end{definition}
 
-\begin{proposition}[no independent \texttt{over} charge]
+\begin{proposition}[no independent nonlinear Brown charge]
 \label{prop:game-split}
-\PROVED{} A four-class charge readout realizing a Brown form $q$ is equivalent,
+A four-class charge readout realizing a Brown form $q$ is equivalent,
 by deterministic relabelling, to the joint readout $(\ell,Q)$ of
 Theorem~\ref{thm:split}.  Conversely, joint readouts of $\ell$ and $Q$ give a
 four-class readout by $(a,c)\mapsto\widehat a+2c$, provided the semantics
@@ -332,9 +329,9 @@ active coordinates on which $\ell$ is one; their disjunctive sum has Grundy
 value $*\ell(x)$.  All nonlinear dependence of the terminal charge on the
 input is therefore the ordinary quadratic readout $Q$.
 If one strengthens ``charge readout'' to ``$P$ exactly when $Q=0$'', the
-weighted-source Witt--FIFO theorem now supplies precisely that ordinary
+weighted-source Witt--FIFO theorem supplies precisely that ordinary
 quadratic normal-play game.  On the doubled slice $\ell=0$, $q=2Q$, this is
-the resolved Gold-form \texttt{tis} construction.
+the Gold-form construction.
 \end{proposition}
 
 \begin{proof}
@@ -344,12 +341,12 @@ of terminal labels, not a factorization theorem for game trees.
 For the linear realization, write $x=\sum_i x_i e_i$.  The sum of the tagged
 $*$ components has Grundy coordinate
 $\sum_i x_i\ell(e_i)=\ell(x)$.  Changing basis changes the presentation, not
-the resulting linear functional.  The final sentence is the definition of
-the \texttt{tis} target applied to the ordinary quadratic form $Q$.
+the resulting linear functional.  The final sentence applies the ordinary
+quadratic target to $Q$.
 \end{proof}
 
 \begin{remark}[the exact residual boundary]
-\BOUNDARY{} Proposition~\ref{prop:game-split} by itself does not turn a forced
+Proposition~\ref{prop:game-split} by itself does not turn a forced
 terminal charge into a normal-play winner.  The later weighted-source matching
 theorem and phase-aware claim compiler do supply the $Q$ bit as ordinary normal
 play.  A synchronized ordered pair is still not automatically one canonical
@@ -379,7 +376,7 @@ is elementary abelian.
 \end{definition}
 
 \begin{theorem}[short-game Brown collapse]\label{thm:global}
-\PROVED{} Every ambient-coherent Brown value datum on short games is zero:
+Every ambient-coherent Brown value datum on short games is zero:
 \[
  b_M=0,
  \qquad q_M=0
@@ -410,7 +407,7 @@ $v\in\ShUg$ with $4v=x$ and put $P=\langle M,v\rangle$.  Then
 \end{proof}
 
 \begin{corollary}[no exponent-two Brown quotient]
-\PROVED{} Every additive map from $\ShUg$ to an exponent-two group is zero;
+Every additive map from $\ShUg$ to an exponent-two group is zero;
 in particular $\ShUg/2\ShUg=0$.  Hence no nonzero $\F_2$ Brown module can
 be an additive quotient or homomorphic image of the full short-game group.
 This does not kill the intrinsic subgroup $\ShUg[2]$: it contains $*$ and
@@ -437,7 +434,7 @@ $C_2$ to $C_4$.  The obstruction is not commutativity but missing section
 data.
 
 \begin{proposition}[minimal framed cyclic model]\label{prop:c8}
-\PROVED{} Consider the abelian exact sequence
+Consider the abelian exact sequence
 \[
  0\longrightarrow C_4\xrightarrow{\,a\mapsto2a\,}C_8
  \longrightarrow C_2\longrightarrow0.
@@ -458,36 +455,37 @@ $z+g$ changes its double by $2z$; the square exponent is not fibre-invariant.
 \end{proof}
 
 The finite model and the non-fibre-invariance statement are also
-kernel-checked in \texttt{BrownGame.lean}.  It corrects the tempting but false
+kernel-checked in \path{formal/Ogdoad/BrownGame.lean}.  It corrects the tempting but false
 claim that a $C_4$-central extension ``corresponds exactly'' to a Brown form.
 What corresponds to the full refinement is a suitably section-framed
 extension.  Its commutator remembers only alternating information; the
 admissible section/framing carries the missing quadratic lift data, including
 the diagonal phase.
 
-\section{Disposition of \texttt{over}}
+\section{Conclusion and open semantic boundary}
 
 The three readings from Section~1 now have exact answers.
 \begin{enumerate}[label=(\arabic*),leftmargin=2.5em]
-\item \PROVED{} On a selected finite $\F_2$-space, the Brown four-class
+\item On a selected finite $\F_2$-space, the Brown four-class
       census is canonically the joint census of a locally realizable linear
       charge $\ell$ (once supplied) and one ordinary quadratic bit $Q$.  Its complex imbalance is
       \eqref{eq:joint-gauss}.
-\item \PROVED{} On short-game values with ambient coherence, every such
+\item On short-game values with ambient coherence, every such
       Brown datum is zero by Theorem~\ref{thm:global}.
-\item \PROVED{} A bare $C_4$-central extension is insufficient; a chosen
+\item A bare $C_4$-central extension is insufficient; a chosen
       section can encode the phase, but then the framing is supplied data.
 \end{enumerate}
 
-Accordingly, under the explicit synchronized four-charge contract, there is
-no independent mod-$8$ charge/output problem left.  The weighted-source
-Witt--FIFO theorem supplies the autonomous nonlinear normal-play bit, and
-crossing it with the linear bit gives the Brown classes automatically.  This
-closes \texttt{over} as a separate invariant/output direction without
-asserting that the synchronized pair is already a single canonical
-normal/misere/loopy four-way outcome.  If that single-game internalization is
-demanded, it is the exact residual boundary; it is not a surviving instance
-of the now-resolved binary \texttt{tis} problem.
+Accordingly, under the synchronized four-charge contract there is no second
+nonlinear invariant problem: the weighted-source Witt--FIFO theorem supplies
+the quadratic bit, and the linear bit supplies the other Brown coordinate.
+The exact open boundary is narrower. One may ask for a single fixed game whose
+intrinsic four-way outcome realizes $q$, without an external synchronized
+product or terminal evaluator. Such a construction must retain the correlation
+between $Q$ and $Q+\ell$ in \eqref{eq:walsh-pair}; a no-go theorem must state
+the structural axioms it excludes. This is a semantic internalization problem,
+not a missing algebraic invariant and not a nonzero ambient Brown colour of all
+short-game values.
 
 \begin{thebibliography}{9}
 \bibitem{brown}

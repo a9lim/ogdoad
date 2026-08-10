@@ -16,9 +16,8 @@ What remains unbuilt is tracked in the two buildable ledgers —
 the code) and [`CONTINUATIONS.md`](CONTINUATIONS.md) (genuinely new features), each
 carrying its slice of the deferred stars `*1`/`*2`/`*4` (`*8` converted to
 `CONTINUATIONS.md`'s numbered `ogham-0.3.0` when its sketch landed, 2026-07-09); genuine open problems
-stay in [`OPEN.md`](OPEN.md), loopy-valued: `on`.
-`tis`, `tisn`, `under`, `off`, and `over` are the former loopy-valued research entries
-closed into this ledger.
+stay in [`OPEN.md`](OPEN.md). Solved research questions and their current theorem
+boundaries are indexed separately in [`CLOSED.md`](CLOSED.md).
 
 **Naming note (2026-07-15):** the language shipped through 0.3.6 as **ogham**;
 it is renamed **grundy** (provisional — finalization at the 0.3.8 release
@@ -499,7 +498,7 @@ a genuine filtered shadow but not by one faithful Newton-style dyadic graded rin
   temperature-preserving refinement.
 - surface: `numeric_norton_composition_defect`, the expanded
   `experiments/under_descent.py` arithmetic/game audit, and the complete proof in
-  `writeups/thermo_newton.tex`; `docs/OPEN.md` retains only the closure tombstone.
+  `writeups/thermo_newton.tex`; `docs/CLOSED.md` indexes the theorem.
 - oracles: the Rust heating suite pins five materialized composition defects;
   the Python probe checks 2,304 positive-dyadic pairs for nonnegativity and the
   exact zero classification, alongside the prior 210 thermic predictions and
