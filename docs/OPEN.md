@@ -164,6 +164,14 @@ The program state (2026-06-10 — `writeups/goldarf.tex` §§5–9, backed by th
 - The abelian obstruction conjectured here is now Lemma `abelian` in the draft:
   no commutative game monoid's intrinsic squaring realizes a nondegenerate polar
   form, so the quadratic datum must come from the move relation's directedness.
+- The formerly open even-`a` diagonal-sourcing lemma is now closed for every
+  exponent (2026-08-09; `writeups/gold_diagonal_source.tex`). The trace-dual
+  `lambda_{a,c}^{(2M)}` has an exact quadratic-tower recursion; at `c = 1` it
+  descends to the half-field and therefore has absolute trace zero, so it is
+  `w^2 + w`. This supplies the whole Gold diagonal constructively, but the
+  source is selected by exact finite-field linear algebra rather than the
+  closed Fermat-coin expression known at `a = 1`, and it does not itself turn
+  the source into a non-tautological play rule.
 - The leading Tier-2 candidate was the `echo`-ko charge-counting family on the
   extraspecial cocycle, and its `echo`-`fifo`+dummy variant is now **verified**
   (2026-06-10, pre-registered adversarial review, `experiments/echo_solver.py`):
@@ -735,10 +743,12 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
   rank-1/radical-anisotropic layers) with no-gos of their own.
 - Enumerate the Frobenius-aware access window at `m = 4, 8` — the one hatch where
   both the symmetry-killing and oracle methods are provably silent.
-- Decide whether the diagonal refinement `q_i = Q(e_i)` is game-native for all `a`:
-  the `a = 1` case is answered affirmatively by the `℘`-construction
-  (`Wp(w) = w·w + w`, verified at `m = 4..32`); the even-`a` analogue (the drifting
-  dual `λ_a^{(m)}` tower) has no named preimage family beyond `m = 8`.
+- ~~Construct an Artin–Schreier source for the diagonal refinement
+  `q_i = Q(e_i)` for every `a`~~ — **done** (2026-08-09). The recursive dual
+  `lambda_{a,1}^{(m)}` lies in the half-field for every `m > 1`, hence equals
+  `w^2 + w`; `gold_diagonal_artin_schreier_source` constructs such a `w` through
+  `m = 128`. This closes the constructive sourcing lemma, including every even
+  `a`, while leaving the stronger play-rule/naturality question above open.
 - Cheap gates: verify the Plambeck–Siegel Thm 6.4 regularity hypothesis (slug
   `ps-regularity`); enumerate conjugation-move rules on `E` (the left-translation
   kill of Theorem H does not apply to conjugation); exhaust the board-8 case of the
@@ -746,7 +756,9 @@ Concrete progress targets (aligned with the goldarf §9 ranked moves):
 
 Relevant surfaces:
 - `writeups/goldarf.tex`
+- `writeups/gold_diagonal_source.tex`
 - `writeups/linking_affine.tex`
+- `formal/Ogdoad/GoldDiagonal.lean`
 - `experiments/open_question_probe.py`
 - `experiments/framing_obstruction.py`
 - `experiments/gold_family_survey.py`
@@ -851,10 +863,10 @@ statements. They are the permanent coordinates for this problem:
 
 | arm | exact assertion | proved so far | universal gap |
 |---|---|---|---|
-| \(Z\): zero | the structural norm of \(\kappa_h\) generates the full primitive-support quotient for every non-ordinary component set | synchronized multicomponent phase; exact two-component resultant; nontrivial primitive support on the power-of-two two-spine family; complete \(h=12,24\); Dickson dichotomy, reverse-Dickson trace divisor, and exact Kummer-coset transport | generation when the primitive quotient is composite; arbitrary synchronized phase; exclusion of the selected transported coset in the singleton-even Conway-Fermat case |
-| \(O\): ordinary odd spine | the selected projective class of \(\kappa_{r^a}+1\) has full primary order for every odd \(r\ne3\) | transverse norm; relative Hilbert-90 unit; signed conjugate-ball lower bound; mixed-Jacobi formulas; projective minimal polynomial and binary-section ancestry; tower-faithful common-section no-go | selected-minimal-polynomial nondivisibility at the unscaled Conway value for the smaller primary factors |
-| \(C\): cubic | \(\gamma_k=\zeta+\zeta^{-1}\in\mathbb F_{2^{3^k}}^\times\) is primitive for every \(k\) | \(C_1,C_2,C_3\) analytically; exact norm tower; partition bound; cyclic-parity and block reductions; Singer--Wendt factorization; selected \(S_3\)-quotient, reciprocal order seam, and prescribed-trace character boundary | exclusion of the recursively selected Wendt/trace fibre, equivalently the extra proper-subproduct relation, at the smaller current factors |
-| \(D\): exceptional | \(\Psi_k\mid\operatorname{ord}(M_k)\) for every \(k\), with \(\Psi_k=\Phi_{2\cdot3^k}(2)/3\) | corrected norm; exact current-factor/Capelli forms; quadratic-twist antiunit; partition bound; mixed-Jacobi flatness and binary cyclic-parity equivalences; half-block norm and selected-trace form; selected reciprocal sextic and complete cubic Dickson-factor boundary; universal cubic-shape no-go and selected absolute-trace fingerprint | exclusion of the explicit recursively selected cubic from the Dickson factor list at the smaller current factors |
+| \(Z\): zero | the structural norm of \(\kappa_h\) generates the full primitive-support quotient for every non-ordinary component set | synchronized multicomponent phase; exact two-component resultant; nontrivial primitive support and a cyclic-variation order lower bound/large-prime sieve on the power-of-two two-spine family; complete \(h=12,24\); Dickson dichotomy, reverse-Dickson trace divisor, and exact Kummer-coset transport | generation when the primitive quotient is composite; arbitrary synchronized phase; exclusion of the selected transported coset in the singleton-even Conway-Fermat case |
+| \(O\): ordinary odd spine | the selected projective class of \(\kappa_{r^a}+1\) has full primary order for every odd \(r\ne3\) | transverse norm; relative Hilbert-90 unit; absolute-Frobenius signed-ball lower bound from \(r^ab/\operatorname{ord}_r(2)\) linear sections; mixed-Jacobi formulas; projective minimal polynomial and binary-section ancestry; tower-faithful common-section no-go | selected-minimal-polynomial nondivisibility at the unscaled Conway value for the smaller primary factors |
+| \(C\): cubic | \(\gamma_k=\zeta+\zeta^{-1}\in\mathbb F_{2^{3^k}}^\times\) is primitive for every \(k\) | \(C_1,C_2,C_3\) analytically; exact norm tower; partition bound; cyclic-parity and block reductions; three-lift exceptional-residue formula and primitive-CRT isolation; one-dimensional mixed-Jacobi top line; Singer--Wendt factorization; selected \(S_3\)-quotient, reciprocal order seam, and prescribed-trace character boundary | the selected first-order congruence \(J_1\not\equiv-1\pmod{(\zeta_\ell-1)^2}\), equivalently exclusion of the recursively selected Wendt/trace fibre at every smaller current factor |
+| \(D\): exceptional | \(\Psi_k\mid\operatorname{ord}(M_k)\) for every \(k\), with \(\Psi_k=\Phi_{2\cdot3^k}(2)/3\) | corrected norm; exact current-factor/Capelli forms; quadratic-twist antiunit; partition bound; mixed-Jacobi flatness and binary cyclic-parity equivalences; half-block norm and selected-trace form; selected reciprocal sextic and complete cubic Dickson-factor boundary; universal cubic-shape no-go; exact affine recovery of the preceding Gaussian recursion; universal Hasse jets through degree five; a symbolic \(Q/2-1\)-fold family of ambient Dickson cubics with that same depressed Gaussian equation; selected absolute-trace fingerprint and an exact nonselected same-fingerprint countermodel; constant-extension line criterion and the direct effective bound \(m_\ell<16(3^k)^4\) | exclusion of the explicit recursively selected cubic from the Dickson factor list at the smaller current factors |
 
 The reduction is a theorem. None of the four universal assertions is claimed
 complete.
@@ -880,15 +892,72 @@ Thus both base-2 Wieferich behavior and a factor of \(p\) in \(E/f(p)\)
 must be retained. Relative norm to \(\mathbb F_{2^{f(p)}}\) gives the
 exact smaller-field power test.
 
+#### Direct boundedness coordinate
+
+For \(a\ge0\), the finite nimbers
+
+\[
+C_a=\{0,1,\ldots,2^{2^a}-1\}=\mathbb F_{2^{2^a}}
+\]
+
+form one complete finite Conway subfield.  The paper proves the exact weak
+criterion
+
+\[
+\sup_p m_p<\infty
+\quad\Longleftrightarrow\quad
+\exists a\ \forall p\ \exists c\in C_a:
+\kappa_{f(p)}+c\text{ is not a }p\text{-th power}.
+\]
+
+All translates may be tested in the common compositum: adjoining \(C_a\)
+changes the defining field degree by a power of two, so it is injective on
+the odd-\(p\) Kummer quotient.  Absolute boundedness is therefore exactly
+uniform nonsaturation of one fixed finite-Conway-subfield affine line, not
+maximal order of the \(0/1/4\) candidates.
+
+On the exceptional column with \(k\ge2\), write \(h=3^k\) and
+\(C_a=\mathbb F_{4^t}\) with \(t=2^{a-1}\).  If
+\(1,\alpha_1,\ldots,\alpha_{h-2}\) are the reciprocal roots of the selected
+even Dirichlet \(L\)-polynomial, then the line character sum is exactly
+
+\[
+S_{a,k,\ell}=-\left(1+\sum_{j=1}^{h-2}\alpha_j^t\right),
+\qquad |S_{a,k,\ell}|\le1+(h-2)2^t.
+\]
+
+The whole line consists of \(\ell\)-th powers exactly when
+\(S_{a,k,\ell}=4^t\).  Hence \(2^t\ge h-1\) supplies a nonresidue and,
+choosing the least admissible power-of-two \(t\), gives the unconditional
+effective estimate
+
+\[
+m_\ell<16h^4.
+\]
+
+This is not an absolute bound.  At every fixed \(t\), the Riemann--Weil
+inequality becomes compatible with the extremal value as \(h\) grows.  A
+fixed-window proof must evaluate the selected moment
+\(S_{a,k,\ell}\ne4^t\) uniformly.  The case \(t=2\) is precisely the
+existing \(\mathbb F_{16}\)-line form of \(D'_k\); larger fixed \(t\) are
+weaker selected least-nonresidue statements that can bypass maximal order
+only by supplying new selected arithmetic.  The complete-line product
+cannot do this: its resultant
+\(\prod_{c\in C_a}(\zeta+c)=\zeta^{|C_a|}+\zeta\) is unconditionally an
+\(\ell\)-th power.
+
 #### What the four arms now say
 
 - **\(Z\), multicomponent phase.** Componentwise norms lose a synchronized
   Frobenius phase. The paper retains that phase exactly, expresses the
   two-component case by a resultant over the intersection field, and proves
   primitive support for a power-of-two two-spine family. The associated
-  Hilbert-90 cross-ratio is exact, but the first divisor comparison has degree
-  up to \(2r-2\); it does **not** imply the formerly claimed \(2^r-1\) order
-  bound. That invalid bound has been removed.
+  Hilbert-90 cross-ratio now yields an unconditional cyclic-variation bound:
+  its order is at least the number of zero-sum integer \(r\)-vectors with
+  \(\ell^1\)-norm at most \((r-1)/2\), hence at least \(1+r(r-1)\) for
+  \(r\ge5\). This supplies full support at every prime above the explicit
+  complementary threshold. It does not force the remaining smaller primary
+  factors or generation of a composite quotient.
 
 - **\(Z\), singleton-even chain.** The condition is precisely maximal order of
   the Conway class in the quadratic quotient:
@@ -909,17 +978,41 @@ exact smaller-field power test.
   \(1+\sum_{j=0}^{2^n-1}Z^{2^j}\). On success that norm polynomial is one
   irreducible; on failure it is exactly \(\ell\) full-degree factors. The
   resulting root count and long leading-coefficient gap are both compatible
-  with every composite Fermat case. More exactly, the trace-one hyperplane is
+  with every composite Fermat case. The trace-one hyperplane is
+  saturated by every translate of a hypothetical failure fibre under the
+  half-field. If the selected relative-trace polynomial
+  \(\prod_z(Y+z^{\sqrt q}+z)\) is separable, this gives the sharper bound
+  \(\ell\leq\sqrt q/2\); failure above that threshold must therefore create
+  a selected relative-trace collision. The collision equation now factors
+  exactly into two disjoint alternatives: after centering the root pair,
+  the ratio of its selected transported value to a fibotomic value lies
+  either in the half-field multiplicative group or in the relative
+  norm-one torus. Equivalently, \(a_{n-1}^{-1}\) must be a selected
+  Dickson value on one of those two axes through a fibotomic zero; the
+  full ancestry fixes its normalized relative norm-to-trace coordinate
+  to \(a_{n-2}\), but does not evaluate the Dickson value. Nonselected
+  failure cosets with the first kind of
+  collision exist whenever \(\ell\leq\sqrt q\), including the range
+  \(\sqrt q/2<\ell\leq\sqrt q\). Thus separability of the actual Conway
+  fibre is a selected two-axis transversality statement and is not implied
+  by one-step ancestry or the square-root count. The same trace-one hyperplane is
   the inversion quotient of the norm-one torus, and the reverse-Dickson
   factor is literally one multiplicative \(\mu_\ell\)-coset transported
   through that quotient. Its fibotomic support is explicit and has automatic
   capacity. Thus derivatives, root sums, coefficient gaps, and support are
   all realized by nonselected cosets: this is a selected-factor reduction,
-  not yet a contradiction.
+  not yet a contradiction. The known Euler--Lucas constraint
+  \(\delta_n\equiv1\pmod{2^{n+2}}\) gives a genuine lower bound, but still
+  does not force any prescribed factor of a composite \(F_n\).
 
 - **\(O\), ordinary odd spines.** These now have a structural theory: a
-  projective quotient, a selected relative cyclotomic unit, and a signed
-  conjugate-ball sieve. The missing theorem is full order at the remaining
+  projective quotient, a selected relative cyclotomic unit, and an
+  absolute-Frobenius signed-ball sieve. It uses
+  (r^ab/\operatorname{ord}_r(2)\ge r^a\) distinct linear sections over
+  the lower field, rather than only the (r) relative conjugates, and hence
+  gives a strictly sharper complementary threshold at every (a>1\), as
+  well as at (a=1\) whenever (b>\operatorname{ord}_r(2)\). The missing
+  theorem is full order at the remaining
   small primary factors. The unweighted reciprocity orbit cancels not only for
   the second argument \(2\), but for every selector from the base cyclotomic
   field. A Teichmuller-weighted product formula proves that pure
@@ -946,11 +1039,39 @@ exact smaller-field power test.
   three levels without order computation and gives several exact
   reformulations and lower bounds. The derivative regulator is rigorous but
   circular: its reduction is a power of the same unknown Gaussian period. An
-  exact counterexample also shows that the polynomial coefficient recursion
+  exact exponent-lattice audit closes the related circulant route: although
+  the conjugate-unit difference operator has determinant (3^k), it reduces
+  as multiplication by (2-1=1), and equivariant abstract reduction models
+  realize arbitrary current-factor index while preserving the lower norm. A
+  separate exact counterexample shows that the polynomial coefficient recursion
   can carry a primitive irreducible input to an irreducible but nonprimitive
   output, so primitivity is not a formal inductive invariant. A new cyclic
   group-algebra reduction makes failure equivalent to a sharp subset-sum
   parity pattern: every residue modulo \(3^{k+1}\) occurs oddly except one.
+  The exceptional residue is exactly one of
+  \(3^{k+1}-1,3^k-1,2\cdot3^k-1\), and CRT decomposition proves that
+  every proper cyclic projection is fixed unconditionally: success or failure
+  lives only in the top \(\Phi_{3^{k+1}}\)-component. Binary weight and
+  mod-four screens follow, but do not evaluate that selected component.
+  The mixed-Jacobi expansion isolates the same component in characteristic
+  zero: all proper-conductor first-order coefficients vanish, every primitive
+  coefficient is a known nonzero multiple of one selected index, and the
+  universal target is exactly
+  \(J_1\not\equiv-1\pmod{(\zeta_\ell-1)^2}\). Stickelberger ideals do not
+  determine this additive congruence for \(J_1+1\). A weighted Jacobi
+  resolvent detects it exactly, while the corresponding unweighted primitive
+  product is identically flat modulo \((\zeta_\ell-1)^2\).
+  The norm-coherent circular unit also has an explicit three-adic Coleman
+  series, \((2+T)^2/(1+T)\), but this route has a forced exceptional zero:
+  for the characteristic-zero lift \(\widetilde\lambda\) and algebraic weight
+  \(r=3^k-1\), its Coleman specialization contains the factor
+  \(\widetilde\lambda(2)2^r-1\equiv2^{3^k}-1\equiv0\pmod\ell\).
+  Dividing that factor leaves a generalized Bernoulli value, not an evaluated
+  selected residue index; Coleman theory at three gives no \(\ell\)-unit
+  conclusion. This is genuinely route-separating: at \((k,\ell)=(2,73)\),
+  \(C_2\) is proved while the algebraic Coleman specialization is nevertheless
+  zero modulo \(73\). The weight-zero value avoids the forced zero but is
+  three-adic and has no canonical reduction at the prime above \(\ell\).
   In the augmentation ideal this is an extra proper-subproduct relation;
   the full Frobenius product and its immediate \(\ell\)-th-power exponent
   consequence are unconditional, so they cannot supply the contradiction.
@@ -998,9 +1119,19 @@ exact smaller-field power test.
   irreducible cubics, so the ambient structure supplies many admissible
   false positives. Every one of those cubics has constant coefficient equal
   to the square of its trace coefficient, exactly matching the selected
-  cubic. The selected remaining coefficients have absolute traces \(1\) and
-  \(k\bmod2\), but the factorization supplies no contradictory coordinate
-  identity. The cubic and exceptional current groups also have coprime
+  cubic. Depressing and scaling the selected cubic recovers the preceding
+  Gaussian equation \(U^3+U+g\) exactly, so its depressed form is likewise
+  not an independent invariant. The first Dickson Hasse jets add no hidden
+  multiplicity obstruction: through degree five they are universal rational
+  functions of the root, and degree six adds only the common value determined
+  by \(e\bmod8\). In fact the nonuniqueness is uniform and symbolic: the same
+  depressed Gaussian equation gives \(Q/2-1\) distinct irreducible cubic
+  factors of the ambient \(D_{Q^2-Q+1}\), only one of which is recursively
+  selected. The selected remaining coefficients have absolute traces \(1\) and
+  \(k\bmod2\). At \(k=4\), an exact nonselected irreducible factor of the bad
+  Dickson polynomial has the same pair \((1,0)\), conclusively ruling out the
+  joint two-trace fingerprint as an exclusion invariant. The cubic and
+  exceptional current groups also have coprime
   orders, so their analogous torus formulations cannot transfer the result.
   Excluding the recursively selected cubic, not generic
   cubic-factor existence, is the remaining Kummer evaluation.

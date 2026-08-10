@@ -25,3 +25,6 @@ writeups/*.fls
 writeups/*.fdb_latexmk
 .mypy_cache/
 .ruff_cache/
+
+# Local research scratch space
+/tmp/

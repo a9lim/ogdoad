@@ -157,6 +157,18 @@ theorem full_primary_dvd_quotient_of_coprime {a b r : Nat}
   rw [hfactor] at hr
   exact hcop.dvd_of_dvd_mul_left hr
 
+/-- A decomposition into old and new factors carries no hidden information
+at a prime absent from the old factor: its complete primary valuation is
+exactly the valuation of the new factor.  This is the abstract reason the
+known Conway-tower order factorization does not determine a new Fermat
+quotient order. -/
+theorem newPrime_factorization_neutral (p old new : Nat) [Fact p.Prime]
+    (hold : old ≠ 0) (hnew : new ≠ 0) (hpold : ¬p ∣ old) :
+    padicValNat p (old * new) = padicValNat p new := by
+  rw [padicValNat.mul hold hnew]
+  rw [padicValNat.eq_zero_of_not_dvd hpold]
+  simp
+
 /-- The degree-three norm polynomial has a simple zero on every current
 Kummer line away from characteristic three.  Thus the norm discards the
 selected coordinate, while its first transverse derivative does not. -/
@@ -232,6 +244,144 @@ theorem cubic_exceptional_residue_mod (a n : Nat) (t r : ZMod (3 * n))
   · exact cubic_linear_term_sq_eq_zero a n hn3
   · exact ht
   · exact hr
+
+/-- The parity obstruction preventing a semiprimitive Gauss-sum evaluation
+of the exceptional arm's surviving mixed character.  At a current prime,
+the `ℓ`-component forces a minus-one Frobenius exponent to be congruent to
+the odd half-order `h` modulo `2 * h`; the conductor-five component forces
+the same exponent to be `2` modulo four.  These requirements cannot coexist.
+-/
+theorem no_mixed_semiprimitive_exponent {h t : Nat}
+    (hh : Odd h) (hcurrent : t ≡ h [MOD 2 * h])
+    (hfive : t ≡ 2 [MOD 4]) : False := by
+  have hmod2odd : t ≡ h [MOD 2] :=
+    hcurrent.of_dvd (by exact dvd_mul_right 2 h)
+  have htodd : t % 2 = 1 := by
+    rw [Nat.ModEq] at hmod2odd
+    simpa [Nat.odd_iff.mp hh] using hmod2odd
+  have hmod2even : t ≡ 2 [MOD 2] :=
+    hfive.of_dvd (by norm_num)
+  have hteven : t % 2 = 0 := by
+    simpa [Nat.ModEq] using hmod2even
+  omega
+
+/-- Factorization of the degree-three norm exponent behind the exceptional
+arm's selected norm collapse.  With `A = 2^(3^(k-1))`, the first factor
+is `3 * Ψ_k`, so corestriction annihilates the entire current primary line. -/
+theorem exceptional_norm_exponent_factorization (A : ℤ) :
+    (A ^ 2 - A + 1) * (A ^ 2 + A + 1) = A ^ 4 + A ^ 2 + 1 := by
+  ring
+
+/-- Exact finite certificate for the small current prime used by the paper's
+actual-degree Conway--Fermat Kummer countermodel. -/
+theorem fermatNine_smallFactor_prime : Nat.Prime 2424833 := by
+  native_decide
+
+/-- The certified prime above is a divisor of `F₉ = 2^512 + 1`. -/
+theorem fermatNine_smallFactor_dvd : 2424833 ∣ 2 ^ 512 + 1 := by
+  native_decide
+
+section FirstOrderProducts
+
+variable {R ι : Type*} [CommRing R] [DecidableEq ι]
+
+/-- Exact first-order multiplication in a square-zero direction.  This is
+the algebraic core of the weighted Jacobi resolvents in the cubic and
+exceptional arms: modulo the square of the local uniformizer, a product
+remembers only the sum of its first coefficients. -/
+theorem prod_one_sub_squareZero (ε : R) (hε : ε ^ 2 = 0)
+    (s : Finset ι) (c : ι → R) :
+    (∏ i ∈ s, (1 - ε * c i)) = 1 - ε * ∑ i ∈ s, c i := by
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert a s ha ih =>
+      rw [Finset.prod_insert ha, Finset.sum_insert ha, ih]
+      calc
+        (1 - ε * c a) * (1 - ε * ∑ i ∈ s, c i) =
+            1 - ε * (c a + ∑ i ∈ s, c i) + ε ^ 2 * c a * ∑ i ∈ s, c i := by
+              ring
+        _ = 1 - ε * (c a + ∑ i ∈ s, c i) := by rw [hε]; simp
+
+/-- An equal-weight first-order product is flat whenever its coefficient
+sum vanishes.  Character orthogonality supplies this hypothesis for the
+unweighted Hasse--Davenport products, so such products cannot decide the
+selected Kummer coordinate. -/
+theorem prod_one_sub_squareZero_eq_one (ε : R) (hε : ε ^ 2 = 0)
+    (s : Finset ι) (c : ι → R) (hsum : ∑ i ∈ s, c i = 0) :
+    (∏ i ∈ s, (1 - ε * c i)) = 1 := by
+  rw [prod_one_sub_squareZero ε hε s c, hsum]
+  simp
+
+end FirstOrderProducts
+
+section WeightedFrobeniusWords
+
+variable {G : Type*} [CommMonoid G]
+
+/-- A finite weighted Frobenius word is just exponentiation by the
+evaluation of its group-ring exponent.  In the finite-field application
+`r = 2`, so this is the algebraic core of the fact that orbit regulators
+either erase a selected Kummer class or return a power of that same class. -/
+theorem weighted_frobenius_word (x : G) (r : Nat)
+    (s : Finset Nat) (w : Nat → Nat) :
+    (∏ i ∈ s, (x ^ (r ^ i)) ^ (w i)) =
+      x ^ (∑ i ∈ s, w i * r ^ i) := by
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert i s hi ih =>
+      rw [Finset.prod_insert hi, Finset.sum_insert hi, ih]
+      rw [← pow_mul, ← pow_add]
+      congr 1
+      simp [Nat.mul_comm]
+
+/-- Raising a weighted Frobenius word to an Euler-test exponent evaluates
+the same word on the selected power-residue class `x ^ d`. -/
+theorem weighted_frobenius_euler (x : G) (r d : Nat)
+    (s : Finset Nat) (w : Nat → Nat) :
+    ((∏ i ∈ s, (x ^ (r ^ i)) ^ (w i)) ^ d) =
+      (x ^ d) ^ (∑ i ∈ s, w i * r ^ i) := by
+  rw [weighted_frobenius_word]
+  simp only [← pow_mul]
+  congr 1
+  exact Nat.mul_comm _ _
+
+end WeightedFrobeniusWords
+
+section CoprimePowerDetection
+
+variable {G : Type*} [CommGroup G]
+
+/-- On an element whose order divides `ell`, a power with exponent coprime
+to `ell` detects the identity exactly.  This is the group-theoretic half of
+the weighted-orbit dichotomy: a nonzero evaluation modulo a prime `ell`
+cannot create an independent nonvanishing condition. -/
+theorem pow_eq_one_iff_of_coprime (a : G) {ell e : Nat}
+    (hell : a ^ ell = 1) (hcop : ell.Coprime e) :
+    a ^ e = 1 ↔ a = 1 := by
+  constructor
+  · intro he
+    have hdell : orderOf a ∣ ell := orderOf_dvd_iff_pow_eq_one.mpr hell
+    have hde : orderOf a ∣ e := orderOf_dvd_iff_pow_eq_one.mpr he
+    have hdgcd : orderOf a ∣ Nat.gcd ell e := Nat.dvd_gcd hdell hde
+    have hgcd : Nat.gcd ell e = 1 := hcop.gcd_eq_one
+    rw [hgcd] at hdgcd
+    have hord : orderOf a = 1 := Nat.eq_one_of_dvd_one hdgcd
+    exact orderOf_eq_one_iff.mp hord
+  · intro ha
+    simp [ha]
+
+/-- If the evaluated weight is coprime to `ell`, the Euler test of a
+weighted Frobenius word is trivial exactly when the original selected
+Euler class is trivial. -/
+theorem weighted_frobenius_euler_eq_one_iff (x : G) (r d ell : Nat)
+    (s : Finset Nat) (w : Nat → Nat)
+    (hell : (x ^ d) ^ ell = 1)
+    (hcop : ell.Coprime (∑ i ∈ s, w i * r ^ i)) :
+    ((∏ i ∈ s, (x ^ (r ^ i)) ^ (w i)) ^ d = 1) ↔ x ^ d = 1 := by
+  rw [weighted_frobenius_euler]
+  exact pow_eq_one_iff_of_coprime (x ^ d) hell hcop
+
+end CoprimePowerDetection
 
 section DepressedDicksonCubic
 
@@ -372,6 +522,54 @@ theorem mobius_mate_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
     linear_combination h
 
 end RelativeTraceAxes
+
+section ConwayFermatTwoStep
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- Eliminating the intermediate Conway value from two consecutive
+Artin--Schreier transitions gives the sparse quartic used in the
+singleton-even arm's two-step Kummer dichotomy. -/
+theorem conwayFermat_twoStep_quartic (b a c : R)
+    (ha : a ^ 2 + b * a + b ^ 3 = 0)
+    (hc : c ^ 2 + c + a = 0) :
+    c ^ 4 + (b + 1) * c ^ 2 + b * c + b ^ 3 = 0 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have ha' : a = c ^ 2 + c := by
+    calc
+      a = a + ((c ^ 2 + c) + (c ^ 2 + c)) := by
+        rw [CharTwo.add_self_eq_zero, add_zero]
+      _ = (c ^ 2 + c + a) + (c ^ 2 + c) := by ac_rfl
+      _ = c ^ 2 + c := by rw [hc, zero_add]
+  rw [ha'] at ha
+  ring_nf at ha ⊢
+  simp [h2] at ha ⊢
+  exact ha
+
+/-- If a bad two-step factor is obtained by multiplying the conjugate
+quadratics `X^2 + s X + r` and `X^2 + s' X + r'`, its three
+nonconstant coefficients lie on an exact characteristic-two conic.
+In the Conway--Fermat application the inverse formula recovers `s`, so
+this conic is a lossless coordinate model of the existing Dickson fibre,
+not an additional obstruction. -/
+theorem quarticFactor_coefficient_conic (s s' r r' : R) :
+    let A := s + s'
+    let e := r + r'
+    let B := e + s * s'
+    let C := s * r' + s' * r
+    let d := r * r'
+    C ^ 2 + A * e * C + A ^ 2 * d = e ^ 2 * (B + e) := by
+  dsimp
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h6 : (6 : R) = 0 := by
+    calc
+      (6 : R) = 3 * 2 := by norm_num
+      _ = 3 * 0 := by rw [h2]
+      _ = 0 := by simp
+  ring_nf
+  simp [h2, h6]
+
+end ConwayFermatTwoStep
 
 /-- The group-theoretic content of the exceptional lower bound.  The paper's
 half-angle splitting puts the first four translates in one order class `A`;

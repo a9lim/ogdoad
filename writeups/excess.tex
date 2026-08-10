@@ -277,7 +277,8 @@ full primitive-support order &
 synchronized-phase reduction; exact two-component resultant;
 nontrivial support in the power-of-two two-spine family; complete
 \(h=12,24\); exact root-ancestry, Dickson dichotomy, and reverse-Dickson
-trace-divisor and Kummer-coset criteria &
+trace-divisor and Kummer-coset criteria; two-step selected quartic and
+all-or-\(\ell\)-quartic Kummer dichotomy &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -285,7 +286,7 @@ maximal primary projective order &
 transverse norm and relative-unit formulas; nontrivial order; absolute-Frobenius
 signed-ball factor range; weighted-selector and mixed-Jacobi formulas;
 projective minimal polynomial and binary-section ancestry; tower-faithful
-common-section no-go &
+common-section no-go; uniform safe-prime trace detector &
 nondivisibility at the selected Conway polynomial for the remaining smaller
 primary factors \\
 \((C)\) &
@@ -308,7 +309,8 @@ selected reciprocal-sextic/Dickson factorization, universal cubic-shape
 no-go, universal Hasse jets through degree five, the \(Q/2-1\)-fold
 nonuniqueness of the depressed Gaussian class, selected absolute-trace
 fingerprint, the rank-one top-Jacobi/antiunit-regulator collapse, and the
-explicit wild truncated-log regulator, together with the
+explicit wild truncated-log regulator, mixed-character semiprimitive
+parity obstruction, and unweighted Hasse--Davenport flatness, together with the
 constant-extension line criterion with
 \(m_\ell<16(3^k)^4\) &
 nonvanishing of the selected antiunit index
@@ -2639,6 +2641,33 @@ Corollary~\ref{cor:order} is therefore equivalent to the full power
 criterion at \(p=359\) and at the next unknown table row \(p=719\).
 
 
+\begin{proposition}[safe-prime trace detector]
+\label{prop:safe-prime-trace-detector}
+Let \(p=2r+1\) be prime, where \(r\) is an odd prime and
+\(\ord_p(2)=r\).  For every \(A\in\mu_p(\F_{2^r})\),
+\[
+ A\ne1
+ \quad\Longleftrightarrow\quad
+ \operatorname{Tr}_{\F_{2^r}/\F_2}(A+A^{-1})=1.       \tag{\(\mathsf{SPH}_0\)}
+\]
+Thus every safe-prime instance of the ordinary arm reduces its selected
+power-residue obstruction to one absolute trace bit; the proposition
+detects that bit but does not evaluate it.
+\end{proposition}
+
+\begin{proof}
+The subgroup \(H=\langle2\rangle\subset\F_p^\times\) has order \(r\),
+so it is the quadratic-residue subgroup.  Since \(p=2r+1\equiv3\pmod4\),
+the cosets \(H\) and \(-H\) partition \(\F_p^\times\).  If
+\(A=\zeta^u\ne1\), its Frobenius exponents and those of \(A^{-1}\)
+are respectively \(uH\) and \(-uH\).  Hence, in characteristic two,
+\[
+ \operatorname{Tr}_{\F_{2^r}/\F_2}(A+A^{-1})
+ =\sum_{j=1}^{p-1}\zeta^{uj}=1.
+\]
+For \(A=1\), the traced element is zero.
+\end{proof}
+
 \begin{proposition}[the selected phase at \(p=359\)]
 \label{prop:m359-safe-phase}
 Retain the notation above and put
@@ -2690,18 +2719,8 @@ identifies the $359$-power test on $x+1$ with the corresponding test on
 $\Theta\in L^\times$.  Since the $359$-part of $|L^\times|$ has order
 exactly $359$, that test is nontrivial exactly when $A\ne1$.
 
-The subgroup $H=\langle2\rangle\subset\F_{359}^\times$ has order
-$179$, hence is the subgroup of quadratic residues.  As
-$359\equiv3\pmod4$, one has $-1\notin H$.  If $A\ne1$, then $A$ is a
-primitive $359$th root, and the two absolute-Frobenius orbits of $A$
-and $A^{-1}$ have exponent sets $uH$ and $-uH$ for some
-$u\in\F_{359}^\times$.  These sets partition
-$\F_{359}^\times$, so in characteristic two
-\[
- \operatorname{Tr}_{L/\F_2}(A+A^{-1})
- =\sum_{t=1}^{358}A^t=1.
-\]
-For $A=1$ the traced element is zero.  This proves
+Proposition~\ref{prop:safe-prime-trace-detector}, with
+\((p,r)=(359,179)\), proves the final equivalence in
 \((\mathsf{SPH}_1)\).
 
 The lower-row condition says that
@@ -3670,6 +3689,111 @@ of \(\F_{2^{n/3}}^\times\); every lower-field factor is therefore an
 as claimed.
 \end{proof}
 
+\begin{proposition}[weighted Frobenius words only erase or reparameterize]
+\label{prop:cubic-weighted-orbit-dichotomy}
+Let \(x\in\F_{2^n}^\times\), let the prime
+\(\ell\mid 2^n-1\), and put
+
+\[
+ A=x^{(2^n-1)/\ell}\in\mu_\ell,
+ \qquad \sigma(x)=x^2.
+\]
+For a finite group-ring word \(w=\sum_i a_i\sigma^i\), with
+\(a_i\in\mathbb Z\), define
+
+\[
+ x^w=\prod_i\sigma^i(x)^{a_i},
+ \qquad
+ \operatorname{ev}_2(w)=\sum_i a_i2^i\pmod\ell.
+\]
+Then
+
+\[
+ (x^w)^{(2^n-1)/\ell}=A^{\operatorname{ev}_2(w)}.       \tag{\(\mathsf{WO}_1\)}
+\]
+Consequently a weighted Frobenius-orbit construction has only two
+possibilities.  If \(\operatorname{ev}_2(w)=0\), it is identically
+\(\ell\)-power flat.  If
+\(\operatorname{ev}_2(w)\ne0\), and in particular if that value is a
+unit modulo \(\ell\), its nontriviality is exactly the nontriviality of
+the original selected class \(A\), merely transported by an automorphism
+of \(\mu_\ell\).
+
+For the cubic arm, take \(n=3^k\), a current prime
+\(\ell\mid\Phi_n(2)\), and
+\(\nu_n=1+\sigma+\cdots+\sigma^{n-1}\).  Then
+
+\[
+ \operatorname{ev}_2(\nu_n)=0,
+ \qquad
+ \operatorname{ev}_2\bigl(\sigma\nu_n'(\sigma)\bigr)
+   =2\nu_n'(2)\equiv n\pmod\ell.                    \tag{\(\mathsf{WO}_2\)}
+\]
+Thus the norm word is automatically flat, whereas the derivative
+regulator of Proposition~\ref{prop:cubic-derivative-regulator} has
+Euler phase \(A^n\).  Its nonzero derivative does not evaluate the
+selected class; it is an invertible reparameterization of it.
+
+Nor can the discrete coefficient \(L(1)\) itself have a
+normalization-independent formula in terms of a fixed integer Euler or
+Fermat quotient.  In the notation of
+Proposition~\ref{prop:cubic-mixed-jacobi-top}, put
+\(Q=2^{2n}\), \(m=3n\), and
+\(z=g^{(Q-1)/m}\).  Replacing the compatible primitive generator \(g\)
+by \(g^a\), where
+
+\[
+ a\equiv1\pmod m,
+ \qquad \gcd(a,Q-1)=1,
+\]
+keeps \(z\) fixed but changes
+
+\[
+ L(1)\longmapsto a^{-1}L(1)\pmod\ell.              \tag{\(\mathsf{WO}_3\)}
+\]
+The Chinese remainder theorem permits every nonzero value of
+\(a\pmod\ell\) while retaining these conditions.  Hence only the
+vanishing or nonvanishing of \(L(1)\) is intrinsic; a literal equality
+with a fixed scalar Euler quotient is not even well normalized.
+\end{proposition}
+
+\begin{proof}
+Put \(E=(2^n-1)/\ell\).  Frobenius commutes with taking the \(E\)-th
+power, so
+
+\[
+ (x^w)^E
+ =\prod_i(x^{2^i})^{a_iE}
+ =\prod_i(x^E)^{a_i2^i}
+ =A^{\sum_i a_i2^i},
+\]
+which proves \((\mathsf{WO}_1)\).  The two alternatives follow because
+\(A\in\mu_\ell\).
+
+The first congruence in \((\mathsf{WO}_2)\) is
+\(\nu_n(2)=2^n-1\equiv0\pmod\ell\).  Differentiating
+\((X-1)\nu_n(X)=X^n-1\) and evaluating at \(X=2\) gives
+
+\[
+ \nu_n(2)+\nu_n'(2)=n2^{n-1}.
+\]
+Therefore \(2\nu_n'(2)\equiv n2^n\equiv n\pmod\ell\).
+Since \(\operatorname{ord}_\ell(2)=n\), one has \(n\mid\ell-1\), so
+\(\ell\nmid n\).
+
+Finally, \(a\equiv1\pmod m\) gives
+
+\[
+ (g^a)^{(Q-1)/m}=g^{(Q-1)/m}=z.
+\]
+If \(1-z=g^v=(g^a)^{v'}\), then \(v'\equiv a^{-1}v\pmod\ell\), proving
+\((\mathsf{WO}_3)\).  To realize a prescribed nonzero residue modulo
+\(\ell\), impose it together with \(a\equiv1\pmod m\), and impose
+\(a\equiv1\) modulo every other prime divisor of \(Q-1\); the Chinese
+remainder theorem applies because \(\ell\nmid m\).  The resulting \(a\)
+is coprime to \(Q-1\), as required.
+\end{proof}
+
 \begin{proposition}[the Coleman specialization has a forced exceptional zero]
 \label{prop:cubic-coleman-exceptional-zero}
 Retain Proposition~\ref{prop:circular-ray}, put \(n=3^k\) and
@@ -4464,6 +4588,28 @@ divisible by three.  Thus \((\mathsf{MJ}_4)\) is precisely the claimed
 top-component statement, and \((\mathsf{MJ}_6)\) is the surviving
 nonvanishing condition.
 \end{proof}
+
+\begin{remark}[higher Jacobi congruences do not bootstrap the first line]
+\label{rem:cubic-higher-jacobi-no-go}
+Arul's higher congruence theorem~\cite[Theorem~1.5]{Arul21}, stated for
+a second prime conductor, expands
+\[
+ J+1=\sum_{i=1}^{\ell-1}\pi^iA_i\pmod{\pi^\ell}.
+\]
+The coefficient field is unramified at \(\ell\), so distinct nonzero
+summands have distinct valuations \(i/(\ell-1)\) modulo the integers
+and cannot cancel.  In particular
+\[
+ v_\pi(J+1)=1\iff A_1\ne0.
+\]
+Higher congruences impose additional power-residue conditions only
+after \(A_1=0\); they cannot force \(A_1\ne0\) from \(A_2,A_3,\ldots\).
+Proposition~\ref{prop:cubic-mixed-jacobi-top} proves the required
+composite-conductor first-order analogue directly, with
+\(A_1=C_1=G_1L(1)\) and \(G_1\ne0\).  Hence this route again stops at
+the selected Kummer index \(L(1)\), rather than providing an induction
+from a deeper Jacobi congruence.
+\end{remark}
 
 \begin{corollary}[the selected weighted Jacobi resolvent]
 \label{cor:cubic-weighted-jacobi-resolvent}
@@ -5453,6 +5599,112 @@ whole relative orbit lies in \(H\), so its trace fibre has
 \(\Theta_\chi=3\).
 \end{proof}
 
+\begin{proposition}[exact one-step lifting of the previous Singer set]
+\label{prop:cubic-previous-singer-lift}
+Let \(j\geq2\), put \(r=2^{3^{j-2}}\), \(q=r^3\), and fix
+\(\omega\in\F_4\setminus\F_2\).  For \(s\in\{r,q\}\), write
+\[
+ U_s=\ker(\Norm_{\F_{s^3}/\F_s}),\qquad
+ D_s=\{x\in U_s:x^{s+1}+x+1=0\}.
+\]
+In a common algebraic closure put
+\[
+ M(T)=\frac{\omega+\omega^2T}{1+T}.
+\]
+Then \(M\) gives a bijection
+\[
+ \{t:t^{s+1}=\omega^2\}\xrightarrow{\;\sim\;}D_s,
+\]
+and, for \(t^{q+1}=\omega^2\),
+\[
+ \operatorname{Tr}_{\F_{q^3}/\F_q}(M(t))=M(t^3).   \tag{\(\mathsf{SL}_1\)}
+\]
+Consequently the restricted trace map
+\[
+ \operatorname{Tr}:\operatorname{Tr}^{-1}(D_r)\cap D_q\longrightarrow D_r
+\]
+is surjective with every fibre of cardinality exactly three, and
+\[
+ |\operatorname{Tr}^{-1}(D_r)\cap D_q|=3(r+1).      \tag{\(\mathsf{SL}_2\)}
+\]
+Thus precisely \(r+1\) of the \((q+1)/3\) nonempty current Singer
+trace fibres lie over the previous Singer set.  In particular, the
+selected coefficient's membership in \(D_r\) does not distinguish its
+current fibre: every previous Singer point has a current three-point
+fibre satisfying the same norm-one, Singer, and cubic-trace identities.
+\end{proposition}
+
+\begin{proof}
+For \(x\in D_s\), put
+\[
+ t=\frac{x+\omega}{x+\omega^2}.
+\]
+Since \(s\) is a power of two with odd exponent,
+\(\omega^s=\omega^2\).  Using
+\(x^s=(x+1)/x\) gives \(t^s=\omega^2/t\), and hence
+\(t^{s+1}=\omega^2\) and \(x=M(t)\).  Conversely,
+\(t^{s+1}=\omega^2\) gives
+\[
+ M(t)^s=\frac{M(t)+1}{M(t)}.
+\]
+Iterating this order-three Möbius map shows that \(M(t)\) belongs to
+\(\F_{s^3}\), has norm one, and lies in \(D_s\).  This proves the
+bijection.
+
+For \(x=M(t)\in D_q\), put
+\(a=\operatorname{Tr}_{\F_{q^3}/\F_q}(x)\).  The relative orbit has cubic
+\[
+ X^3+aX^2+(a+1)X+1.
+\]
+Substitution and cross-multiplication give
+\[
+ \left(\frac{x+\omega}{x+\omega^2}\right)^3
+ =\frac{a+\omega}{a+\omega^2}.
+\]
+Thus \(t^3=M^{-1}(a)\), proving \((\mathsf{SL}_1)\).
+
+Now let \(a=M(u)\in D_r\), so \(u^{r+1}=\omega^2\), and choose any
+of the three roots \(t^3=u\).  Write
+\[
+ C=\frac{r^2-r+1}{3},\qquad q+1=3(r+1)C.
+\]
+For \(j=2\), one has \(r=2\) and \(C=1\).  For \(j\geq3\),
+\(r\equiv-1\pmod9\), so
+\(r^2-r+1\equiv3\pmod9\).  In either case \(C\equiv1\pmod3\), and
+\[
+ t^{q+1}
+ =(t^3)^{(r+1)C}
+ =(\omega^2)^C
+ =\omega^2.
+\]
+All three roots therefore give distinct points of \(D_q\) with trace
+\(a\).  Conversely, \((\mathsf{SL}_1)\) shows that every point above
+\(D_r\) arises this way, proving \((\mathsf{SL}_2)\).
+\end{proof}
+
+\begin{remark}[the complete cubic recursion is Frobenius-rigid]
+Suppose \(\xi_0=0\) and, for every \(i\geq1\), the element \(\xi_i\)
+is a root of
+\[
+ X^3+\xi_{i-1}X^2+(\xi_{i-1}+1)X+1.
+\]
+Then \(\xi_i=\eta_i^{2^{e_i}}\) for some \(e_i\), with
+\[
+ e_i\equiv e_{i-1}\pmod{3^{i-1}}.
+\]
+Indeed, after
+\(\xi_{i-1}=\eta_{i-1}^{2^e}\), the stage-\(i\) cubic is the
+\(2^e\)-Frobenius twist of the selected cubic.  Its three roots are
+\[
+ \eta_i^{\,2^{e+t3^{i-1}}},\qquad t=0,1,2.
+\]
+Induction proves the assertion.  Thus imposing the complete recursive
+chain determines one absolute Frobenius orbit, whose members all have
+the same multiplicative order.  Proposition~\ref{prop:cubic-previous-singer-lift}
+therefore rules out a one-step membership argument; it does not create
+a false recursive tower.
+\end{remark}
+
 \begin{remark}[the natural secant Kummer cover is rational]
 Over \(\F_4\), the Möbius function
 
@@ -5757,6 +6009,224 @@ Hence \(c_0c_n\) is primitive exactly when
 \(\prod_{j=1}^n\delta_j=\prod_{j=1}^nF_j\).  Since the Fermat numbers
 are pairwise coprime and \(\delta_j\mid F_j\), this is equivalent to
 all the displayed equalities in \((\mathsf{PP}_2)\).
+\end{proof}
+
+\begin{proposition}[the Conway and Wiedemann norm-one drivers are not Frobenius-identical]
+\label{prop:fermat-wiedemann-separation}
+Put \(q=|E_{n-1}|=2^{2^n}\) and
+\[
+ w_n=c_n^{q-1}=\frac{c_n+1}{c_n}.
+\]
+The canonical isomorphism
+\[
+ E_n^\times/E_{n-1}^\times
+   \longrightarrow
+ \ker\!\left(\Norm_{E_n/E_{n-1}}\right),
+ \qquad zE_{n-1}^\times\longmapsto z^{q-1},
+\]
+preserves order, and therefore
+\[
+ \ord(w_n)=\delta_n,\qquad
+ w_n+w_n^{-1}=a_{n-1}^{-1}.                         \tag{\(\mathsf{WW}_1\)}
+\]
+If \(d_n=a_{n-1}^{-1}\), then the Conway drivers themselves obey
+\[
+ d_{n+1}=d_n(w_n+1)=\frac{(w_n+1)^3}{w_n}.           \tag{\(\mathsf{WW}_2\)}
+\]
+This has the same norm-one shape as Wiedemann's iterated quadratic
+tower~\cite{Wiedemann88}, whose selected elements satisfy
+\[
+ x_n+x_n^{-1}=x_{n-1},
+ \qquad \ord(x_n)\mid F_n,
+\]
+but it is not the same recursion.  For every \(n\geq3\), no
+\(\F_2\)-automorphism of an algebraic closure can send \(x_n\) to
+\(w_n\).  Thus Wiedemann maximality cannot be transferred to the
+Conway--Fermat arm by a Frobenius identification of the selected
+elements.
+\end{proposition}
+
+\begin{proof}
+The displayed quotient map is injective because its kernel is
+\(E_{n-1}^\times\), and both groups have order \(q+1=F_n\), proving the
+order assertion.  The Conway relation gives
+\(c_n(c_n+1)=a_{n-1}\), whence
+\[
+ w_n+w_n^{-1}
+ =\frac{(c_n+1)^2+c_n^2}{c_n(c_n+1)}
+ =a_{n-1}^{-1}
+\]
+in characteristic two.
+Also \(a_n=a_{n-1}c_n\) and
+\(c_n=(w_n+1)^{-1}\), so
+\[
+ d_{n+1}=d_n(w_n+1)
+ =(w_n+w_n^{-1})(w_n+1)
+ =\frac{(w_n+1)^3}{w_n},
+\]
+which proves \((\mathsf{WW}_2)\).
+
+If an \(\F_2\)-automorphism sent \(x_n\) to \(w_n\), it would send
+\(x_{n-1}=x_n+x_n^{-1}\) to \(a_{n-1}^{-1}\), and hence preserve their
+multiplicative orders.  But
+\(\ord(x_{n-1})\mid F_{n-1}\), whereas
+\[
+ \ord(a_{n-1}^{-1})
+ =\prod_{j=1}^{n-1}\delta_j
+\]
+by \((\mathsf{PP}_1)\), and this order is divisible by
+\(\delta_1=F_1=5\).  Fermat numbers are pairwise coprime, so
+\(5\nmid F_{n-1}\) for \(n\geq3\), a contradiction.
+\end{proof}
+
+\begin{proposition}[two-step quartic and exact Kummer dichotomy]
+\label{prop:fermat-two-step-quartic}
+Let \(n\geq2\), put \(B=a_{n-2}\), \(K_0=E_{n-2}\), and
+\(c=c_n\).  Then the minimal polynomial of \(c\) over \(K_0\) is
+\[
+ f_n(X)=X^4+(B+1)X^2+BX+B^3.                         \tag{\(\mathsf{TQ}_1\)}
+\]
+For every prime \(\ell\mid F_n\), the following are equivalent:
+\begin{enumerate}[label=\textup{(\roman*)}]
+\item the order \(\delta_n\) contains the full \(\ell\)-primary part
+      of \(F_n\);
+\item \(c\) is not an \(\ell\)-th power in \(E_n^\times\);
+\item \(f_n(X^\ell)\) is irreducible over \(K_0\).
+\end{enumerate}
+If these conditions fail, then \(f_n(X^\ell)\) is a product of exactly
+\(\ell\) distinct irreducible quartics over \(K_0\).  Thus a
+minimal-counterexample argument may be descended across two quadratic
+levels without discarding the selected coefficient \(B\), but failure
+remains a complete quartic splitting pattern rather than a degree
+contradiction.
+\end{proposition}
+
+\begin{proof}
+Write \(a=a_{n-1}=Bc_{n-1}\).  The two consecutive Conway relations
+give
+\[
+ c_{n-1}^2+c_{n-1}=B,\qquad c^2+c=a.
+\]
+Multiplying the first by \(B^2\) and using \(a=Bc_{n-1}\) gives
+\[
+ a^2+Ba+B^3=0.
+\]
+Eliminating \(a=c^2+c\) now gives \(f_n(c)=0\).
+Moreover \(B\ne0\), so \(c_{n-1}=a/B\) belongs to \(K_0(c)\).
+Consequently
+\[
+ K_0(c)\supset K_0(c_{n-1})=E_{n-1},
+\]
+and adjoining \(c\) gives \(E_n\).  Since
+\([E_n:K_0]=4\), the displayed quartic is the minimal polynomial.
+
+Fix \(\ell\mid F_n\).  The entire \(\ell\)-primary part of
+\(E_n^\times\) lies in
+\(E_n^\times/E_{n-1}^\times\), so (i) and (ii) are the exact cyclic
+power criterion.  Also \(\mu_\ell\subset E_n\).  Capelli's lemma gives
+\[
+ f_n(X^\ell)\text{ irreducible over }K_0
+ \iff X^\ell-c\text{ irreducible over }E_n,
+\]
+and Kummer theory over \(E_n\) identifies the latter condition with
+\(c\notin E_n^{\times\ell}\).  This proves the equivalence.
+
+Under failure write \(c=t^\ell\) with \(t\in E_n\).  Every root of
+\(f_n(X^\ell)\) lies in \(E_n\), since \(\mu_\ell\subset E_n\).
+No such root lies in the unique intermediate field \(E_{n-1}\):
+otherwise its \(\ell\)-th power, one of the four \(K_0\)-conjugates of
+\(c\), would lie there, forcing \(c\) itself into \(E_{n-1}\).
+Hence every root has degree four over \(K_0\).  The polynomial is
+separable and has \(4\ell\) roots, so it factors into exactly
+\(\ell\) distinct irreducible quartics.
+\end{proof}
+
+\begin{proposition}[coefficient conic of the bad quartics]
+\label{prop:fermat-quartic-conic}
+Retain Proposition~\ref{prop:fermat-two-step-quartic}, put
+\(Q=|K_0|\), \(L=E_{n-1}\), and suppose that \(c=t^\ell\) in
+\(E_n\).  Set
+\[
+ r=\Norm_{E_n/L}(t),\qquad e=r+r^Q,\qquad d=rr^Q.
+\]
+Then
+\[
+ r^\ell=a_{n-1},\qquad e\ne0,\qquad d^\ell=B^3.       \tag{\(\mathsf{TQ}_2\)}
+\]
+For \(\zeta\in\mu_\ell\), put
+\[
+ y_\zeta=t\zeta,\qquad s_\zeta=y_\zeta+y_\zeta^{Q^2}.
+\]
+Writing \(\mathcal D_\ell(S,P)\) for the Dickson power sum of
+Proposition~\ref{prop:fermat-root-ancestry}, one has
+\[
+ \mathcal D_\ell(s_\zeta,r)=1.                       \tag{\(\mathsf{TQ}_3\)}
+\]
+The \(\ell\) irreducible quartic factors of \(f_n(X^\ell)\) are
+exactly
+\[
+ \begin{split}
+ g_{s_\zeta}(X)
+ &=\Norm_{L/K_0}(X^2+s_\zeta X+r)\\
+ &=X^4+\alpha_\zeta X^3+\beta_\zeta X^2
+       +\gamma_\zeta X+d,
+ \end{split}
+\]
+where
+\[
+ \alpha_\zeta=s_\zeta+s_\zeta^Q,\qquad
+ \beta_\zeta=e+s_\zeta s_\zeta^Q,\qquad
+ \gamma_\zeta=s_\zeta r^Q+s_\zeta^Q r.
+\]
+Every coefficient triple lies on the conic
+\[
+ \gamma_\zeta^2+\alpha_\zeta e\gamma_\zeta
+ +\alpha_\zeta^2d=e^2(\beta_\zeta+e).                \tag{\(\mathsf{TQ}_4\)}
+\]
+Conversely, \(\alpha_\zeta\) and \(\gamma_\zeta\) recover
+\[
+ s_\zeta=\frac{\gamma_\zeta+\alpha_\zeta r}{e},
+\]
+and \(\beta_\zeta\) is then forced.  Thus the coefficient conic is
+a lossless change of coordinates on the same Dickson fibre
+\(\mathcal D_\ell(S,r)=1\); it supplies no independent obstruction
+to the bad factorization.
+\end{proposition}
+
+\begin{proof}
+Taking the norm of \(t^\ell=c\) from \(E_n\) to \(L\) gives
+\(r^\ell=a_{n-1}\).  If \(r\) belonged to \(K_0\), then so would
+\(a_{n-1}=Bc_{n-1}\); since \(B\ne0\) and
+\(c_{n-1}\notin K_0\), this is impossible.  Hence \(e\ne0\).  A second
+norm and the quadratic equation for \(a_{n-1}\) give
+\[
+ d^\ell=\Norm_{L/K_0}(a_{n-1})=B^3.
+\]
+
+Because \(\ell\mid Q^2+1\), every \(\zeta\in\mu_\ell\) has norm one
+from \(E_n\) to \(L\).  Thus \(y_\zeta\) has relative trace
+\(s_\zeta\) and norm \(r\).  The Dickson identity gives
+\[
+ \mathcal D_\ell(s_\zeta,r)
+ =y_\zeta^\ell+(y_\zeta^{Q^2})^\ell
+ =c+c^{Q^2}=1.
+\]
+The traces \(s_\zeta\) are distinct: equality would identify the two
+unordered root pairs of the corresponding quadratic; the crossed
+identification has \(\ell\)-th powers \(c\) and \(c+1\), which is
+impossible.  Taking the \(Q\)-conjugate norm of these quadratics gives
+all \(\ell\) quartics and the displayed coefficient formulas; their
+irreducibility was proved in Proposition~\ref{prop:fermat-two-step-quartic}.
+
+Finally
+\[
+ \gamma_\zeta+\alpha_\zeta r=e s_\zeta.
+\]
+Taking the norm from \(L\) to \(K_0\) and expanding both sides gives
+\((\mathsf{TQ}_4)\).  Since \(e\ne0\), the same identity recovers
+\(s_\zeta\), after which
+\(\beta_\zeta=e+s_\zeta s_\zeta^Q\) is forced.  This proves the
+lossless assertion.
 \end{proof}
 
 \begin{proposition}[Fibonacci-polynomial criterion]
@@ -8340,6 +8810,109 @@ and hence an isomorphism, on the one-dimensional eigenspace.  Its
 value is \([f_0(P)/f_0(R)]=[\mathfrak c(P)]\), completing the proof.
 \end{proof}
 
+\begin{proposition}[equivariant Kummer countermodels at the actual ordinal degree]
+\label{prop:fermat-equivariant-kummer-countermodel}
+Retain the elliptic curve \(\mathcal E\), its order-four automorphism
+\(\mathcal A\), the five-point boundary
+\(D=\mathcal E(\F_2)\), and the four functions
+\[
+ f_j=\mathfrak c\circ\mathcal A^{-j},
+ \qquad j\in\mathbb Z/4\mathbb Z,
+\]
+from Proposition~\ref{prop:fermat-five-point-exhaustion}.  Let
+\(\ell\nmid15\) be an odd prime, and let \(Y_\ell\) be the
+normalization of the Kummer cover
+\[
+ z_j^\ell=f_j,\qquad j=0,1,2,3.                     \tag{\(\mathsf{EK}_1\)}
+\]
+Then \(Y_\ell/\mathcal E\) is geometrically connected of degree
+\(\ell^4\), is ramified exactly over the five points of \(D\), and
+has
+\[
+ 2g(Y_\ell)-2=5\ell^4-5\ell^3.                     \tag{\(\mathsf{EK}_2\)}
+\]
+The order-four automorphism lifts as
+\[
+ \widetilde{\mathcal A}(P,z_0,z_1,z_2,z_3)
+ =(\mathcal A P,z_3,z_0,z_1,z_2).                  \tag{\(\mathsf{EK}_3\)}
+\]
+
+Let \(Q\) be a power of two with \(\ell\mid Q^2+1\).  If
+\[
+ Q+1-2g(Y_\ell)\sqrt Q>5\ell^3,                    \tag{\(\mathsf{EK}_4\)}
+\]
+then there exists
+\(P\in\mathcal E(\F_{Q^4})\setminus D\) such that
+\[
+ \Frob_Q(P)=\mathcal A(P),\qquad
+ f_j(P)\in\F_{Q^4}^{\times\ell}\quad(0\leq j<4).    \tag{\(\mathsf{EK}_5\)}
+\]
+In particular \(\mathfrak c(P)\) is an \(\ell\)-th power.
+
+Condition \((\mathsf{EK}_4)\) holds at an actual Conway--Fermat field
+size:
+\[
+ Q=2^{256},\qquad
+ \ell=2424833\mid F_9=2^{512}+1.                   \tag{\(\mathsf{EK}_6\)}
+\]
+Thus the exact field degree, elliptic transition, quarter-turn
+Frobenius relation, and complete four-function Kummer orbit admit
+structural failure points.  This is not a counterexample to
+\(\delta_9=F_9\): the constructed point is not asserted to be the one
+selected by the full Conway ancestry.  It proves that an
+ancestry-insensitive CM, isogeny, generalized-Jacobian, or reciprocity
+argument cannot force the required nonresidue.
+\end{proposition}
+
+\begin{proof}
+The divisor vectors of the four functions are the rows of
+\(2I+C\), where \(C\) is a four-cycle.  Their determinant is \(15\),
+so they are independent modulo \(\ell\).  Kummer theory over the
+geometric function field therefore makes \((\mathsf{EK}_1)\)
+connected of degree \(\ell^4\).
+
+The union of the supports of the four divisors is exactly \(D\).
+At each of its five points the valuation vector is nonzero modulo
+\(\ell\), so inertia has order \(\ell\) and there are
+\(\ell^3\) geometric points above it.  Since the base curve has genus
+one, Riemann--Hurwitz gives
+\[
+ 2g(Y_\ell)-2
+ =5\ell^4\left(1-\frac1\ell\right),
+\]
+which is \((\mathsf{EK}_2)\).  The identity
+\[
+ f_j(\mathcal A P)=f_{j-1}(P)
+\]
+proves that \((\mathsf{EK}_3)\) preserves the four Kummer equations
+and has order four.
+
+Twist \(Y_\ell\) over \(\F_Q\) by the cocycle sending arithmetic
+\(Q\)-Frobenius to \(\widetilde{\mathcal A}\).  Its
+\(\F_Q\)-points correspond to geometric points \(y\) satisfying
+\[
+ \Frob_Q(y)=\widetilde{\mathcal A}(y).
+\]
+Hasse--Weil and \((\mathsf{EK}_4)\) give more such points than the at
+most \(5\ell^3\) points above the branch boundary.  Choose a
+nonbranch point.  Four Frobenius iterations give
+\(\Frob_Q^4(y)=y\), so all its coordinates lie in \(\F_{Q^4}\).
+Projecting to \(\mathcal E\) and reading the four \(z_j\) proves
+\((\mathsf{EK}_5)\).
+
+Finally, \(2424833\) is a prime divisor of \(F_9\) and is smaller than
+\(2^{22}\).  Its primality and the divisibility
+\(2424833\mid 2^{512}+1\) are independently kernel-checked in the
+companion Lean file.  Hence
+\[
+ g(Y_\ell)<3\ell^4<2^{90},\qquad
+ 2g(Y_\ell)\sqrt Q<2^{219},\qquad
+ 5\ell^3<2^{69},
+\]
+whereas \(Q=2^{256}\).  This proves
+\((\mathsf{EK}_4)\) and \((\mathsf{EK}_6)\).
+\end{proof}
+
 When $F_n$ is prime, irreducibility and $\delta_n>1$ force
 $\delta_n=F_n$, recovering Lenstra's Fermat-prime rule.  When $F_n$ is
 composite, irreducibility forces only one nontrivial divisor: it does not
@@ -8350,7 +8923,10 @@ $c_n$, which already fails at $n=2$ since
 $\ord(c_2)=5\cdot17=85<255$; Popovych uses the all-level
 hypothesis instead to prove that products such as $c_0c_n$ are primitive.
 Wiedemann's related iterated quadratic tower
-poses the analogous full-Fermat-order problem~\cite{Wiedemann88}.  Thus
+poses the analogous full-Fermat-order problem~\cite{Wiedemann88}, but
+Proposition~\ref{prop:fermat-wiedemann-separation} proves that its
+selected norm-one element is not Frobenius-identifiable with the
+Conway element after the first levels.  Thus
 the apparently easy ``singleton even implies zero'' clause already
 contains a longstanding explicit maximal-coset-order problem.
 Popovych verified the Conway condition only through $n=11$; the recent
@@ -9606,6 +10182,193 @@ trivial under the quadratic character modulo five, so both factors of
 follow because four and \(G_1\) are nonzero modulo \(\ell\).
 \end{proof}
 
+\begin{proposition}[semiprimitive parity obstruction on the mixed line]
+\label{prop:dk-mixed-semiprimitive-no-go}
+Let \(h=3^k\), let the prime \(\ell\mid\Psi_k\), and retain the
+primitive mixed character of conductor \(M\ell=15h\ell\) from
+Proposition~\ref{prop:dk-jacobi-top}.  There is no exponent \(t\) for
+which
+\[
+  2^t\equiv-1\pmod{5\ell}.
+  \tag{\(\mathsf{SMP}_1\)}
+\]
+In particular, two is not semiprimitive modulo \(M\ell\).  Hence the
+semiprimitive Gauss--Jacobi evaluations available for the pure
+\(\ell\)-character and the proper-conductor components do not evaluate
+the surviving primitive mixed coefficient \(C_1=G_1L(1)\).  More
+precisely, the mixed conductor has decomposition index
+\[
+ \frac{\varphi(M\ell)}{\ord_{M\ell}(2)}=2(\ell-1),
+ \tag{\(\mathsf{SMP}_2\)}
+\]
+whereas the pure \(M\)-component has index two and the pure
+\(\ell\)-component is semiprimitive.
+\end{proposition}
+
+\begin{proof}
+The cyclotomic-divisor criterion gives
+\(\ord_\ell(2)=2h\), and \(2^h\equiv-1\pmod\ell\).  The unique
+element of order two in \(\langle2\rangle\) is therefore reached exactly
+at exponents
+\[
+  t\equiv h\pmod{2h}.
+\]
+Since \(h\) is odd, every such \(t\) is odd.  On the other hand,
+\(\ord_5(2)=4\), so \(2^t\equiv-1\pmod5\) forces
+\(t\equiv2\pmod4\), which is even.  Thus
+\((\mathsf{SMP}_1)\) is impossible.  Because \(5\ell\mid M\ell\),
+semiprimitivity modulo \(M\ell\) is impossible as well.  The final
+statement follows: the mixed character is precisely the component whose
+first-order value is \(G_1L(1)\), while the semiprimitive proper
+components are the already forced-flat coordinates of
+Proposition~\ref{prop:dk-jacobi-flatness}.
+
+Finally \(\gcd(M,\ell)=1\), so
+\[
+ \ord_{M\ell}(2)
+ =\operatorname{lcm}(\ord_M(2),\ord_\ell(2))
+ =\operatorname{lcm}(4h,2h)=4h,
+\]
+while \(\varphi(M\ell)=8h(\ell-1)\).  This proves
+\((\mathsf{SMP}_2)\).  Thus the two explicitly evaluable constituent
+Gauss sums leave a mixed Gauss sum of growing decomposition index in
+their Jacobi quotient.
+\end{proof}
+
+\begin{corollary}[only a weighted exceptional resolvent sees the first line]
+\label{cor:dk-weighted-only}
+Retain Proposition~\ref{prop:dk-jacobi-top}, put
+\(U=(\mathbb Z/M\mathbb Z)^\times\), and choose integer lifts
+\(w_j\equiv\lambda(j)\pmod\ell\).  Then
+\[
+ \prod_{j\in U}(-J_j)\equiv1\pmod{\pi^2},
+ \qquad
+ \prod_{j\in U}(-J_j)^{w_j}
+ \equiv1-8h\pi C_1\pmod{\pi^2}.                    \tag{\(\mathsf{HD}_1\)}
+\]
+The same unweighted congruence holds after adjoining all nonunit
+indices \(1\leq j<M\).  Consequently every ordinary equal-weight
+Hasse--Davenport product is flat whether or not \(D'_k\) holds, while
+the weighted product is nonflat exactly when \(D'_k\) holds.
+\end{corollary}
+
+\begin{proof}
+Changing variables in the Gauss sum of \((\mathsf{DJ}_2)\) gives
+\(G_j=\lambda(j)^{-1}G_1\), hence
+\(C_j=\lambda(j)^{-1}C_1\) for \(j\in U\).  Since
+\(-J_j\equiv1-\pi C_j\pmod{\pi^2}\), the unweighted linear term is
+\[
+ -\pi C_1\sum_{j\in U}\lambda(j)^{-1}=0,
+\]
+whereas the weighted term is
+\(-\pi|U|C_1=-8h\pi C_1\).  Here \(\ell\nmid8h\), so
+Proposition~\ref{prop:dk-jacobi-top} proves the detector assertion.
+For nonunit \(j\), Proposition~\ref{prop:dk-jacobi-flatness} already
+gives \(J_j\equiv-1\pmod{\pi^2}\), proving the final extension.
+\end{proof}
+
+\begin{proposition}[the ordinary cyclotomic derivative is blind]
+\label{prop:dk-cyclotomic-derivative-no-go}
+Retain Proposition~\ref{prop:dk-jacobi-top}, write \(M=15h\), and
+let \(\widetilde\rho\) be the complex primitive \(M\)-th root whose
+reduction at the selected prime above two is \(z\).  Put
+\(Q=2^{4h}\), choose a generator \(g\in\F_Q^\times\), and normalize
+\[
+ z=g^{(Q-1)/M},\qquad
+ \xi=g^{(Q-1)/\ell},\qquad
+ \operatorname{ind}_\ell(g^v)=v\pmod\ell.
+\]
+Then the selected Euler residue is exactly
+\[
+ (1-z)^{(Q-1)/\ell}=\xi^{L(1)}.                    \tag{\(\mathsf{ED}_1\)}
+\]
+By contrast, the reduction of the ordinary cyclotomic derivative is
+unconditionally an \(\ell\)-th power:
+\[
+ \overline{\Phi'_M(\widetilde\rho)}
+ =z^{-1}\frac{z^h-1}{(z^{3h}-1)(z^{5h}-1)}
+ \in(\F_Q^\times)^\ell.                            \tag{\(\mathsf{ED}_2\)}
+\]
+Thus neither \(\Phi'_M(\widetilde\rho)\) nor any formula depending
+only on its ordinary reduction can evaluate the selected exponent
+\(L(1)\).
+
+There is an exact weighted replacement, but it is the original target.
+For \(a\in U=(\mathbb Z/M\mathbb Z)^\times\), choose integer lifts
+\(r_a\equiv\lambda(a)^{-1}\pmod\ell\) and put, modulo global
+\(\ell\)-th powers,
+\[
+ \varepsilon_{\lambda^{-1}}
+   =\prod_{a\in U}(1-\widetilde\rho^a)^{r_a}.
+\]
+Its selected reduction satisfies
+\[
+ \operatorname{ind}_\ell
+   (\overline{\varepsilon_{\lambda^{-1}}})
+ =8hL(1).                                            \tag{\(\mathsf{ED}_3\)}
+\]
+Consequently \(D'_k\) holds at \(\ell\) exactly when this weighted
+circular unit has nontrivial \(\ell\)-power residue at the selected
+prime above two.
+
+Finally, if \(\widetilde\lambda\) is the characteristic-zero lift of
+the primitive even nontrivial character \(\lambda\), then
+\[
+ B_{1,\widetilde\lambda^{-1}}
+ =-L(0,\widetilde\lambda^{-1})=0.                   \tag{\(\mathsf{ED}_4\)}
+\]
+This vanishing is independent of the exceptional target: for example
+\(D'_2\) holds analytically by Proposition~\ref{prop:dk-projection},
+so its selected \(L(1)\) is nonzero although
+\((\mathsf{ED}_4)\) vanishes.  Hence the first generalized Bernoulli
+value cannot be a nonzero scalar multiple of the selected Kummer index.
+\end{proposition}
+
+\begin{proof}
+Equation \((\mathsf{ED}_1)\) is the Euler criterion after writing
+\(1-z=g^v\): both sides are \(g^{v(Q-1)/\ell}\), and
+\(v\bmod\ell=L(1)\).
+
+Since \(M=5\cdot3^{k+1}=15h\), one has the polynomial identity
+\[
+ \Phi_M(X)
+ =\frac{(X^M-1)(X^h-1)}{(X^{3h}-1)(X^{5h}-1)}.
+\]
+Differentiating at the primitive root \(\widetilde\rho\) gives
+\[
+ \Phi'_M(\widetilde\rho)
+ =M\widetilde\rho^{-1}
+   \frac{\widetilde\rho^h-1}
+        {(\widetilde\rho^{3h}-1)(\widetilde\rho^{5h}-1)}.
+\]
+After reduction in characteristic two the odd scalar \(M\) becomes
+one, proving the displayed equality in \((\mathsf{ED}_2)\).  The
+element \(z\) has order \(M\), prime to \(\ell\).  Moreover
+\(z^h,z^{3h},z^{5h}\) have orders \(15,5,3\), respectively, so the
+three factors involving them lie in \(\F_{16}^\times\) or
+\(\F_4^\times\).  All four factors therefore have order prime to
+\(\ell\), and each is an \(\ell\)-th power in \(\F_Q^\times\).
+
+The choice of the lifts \(r_a\) changes
+\(\varepsilon_{\lambda^{-1}}\) only by an \(\ell\)-th power.  Using
+\((\mathsf{DJ}_2)\) gives
+\[
+ \operatorname{ind}_\ell
+   (\overline{\varepsilon_{\lambda^{-1}}})
+ =\sum_{a\in U}\lambda(a)^{-1}L(a)
+ =\sum_{a\in U}L(1)=8hL(1),
+\]
+which proves \((\mathsf{ED}_3)\); here \(\ell\nmid8h\).
+Finally, for any nontrivial even character \(\chi\) modulo \(M\),
+pairing \(a\) with \(M-a\) in
+\[
+ B_{1,\chi}=M^{-1}\sum_{a=1}^{M}a\chi(a)
+\]
+and using \(\sum_a\chi(a)=0\) gives \(B_{1,\chi}=0\).  Apply this to
+\(\chi=\widetilde\lambda^{-1}\).  This proves
+\((\mathsf{ED}_4)\) and the final separation.
+\end{proof}
+
 \begin{proposition}[the wild regulator is explicit but homogeneous]
 \label{prop:dk-wild-regulator-no-go}
 Retain Proposition~\ref{prop:dk-jacobi-top}.  Let
@@ -10436,6 +11199,60 @@ three.  Since \(A_0^3\equiv-1\pmod\Lambda\), while
 \(\gcd(A_0+1,\Lambda)=3\), its inverse-pair Frobenius orbit has
 length three.  Grouping the remaining roots in
 \((\mathsf{DS}_{10})\) proves \((\mathsf{DS}_9)\).
+\end{proof}
+
+\begin{proposition}[the selected Dickson phase has trivial downward norm]
+\label{prop:dk-selected-norm-collapse}
+Retain Proposition~\ref{prop:dk-selected-sextic}.  Thus
+\[
+ A_0=2^{3^{k-1}},\qquad
+ \Lambda=A_0^2-A_0+1=3\Psi_k,
+ \qquad r\in\F_{A_0^6}^\times,\qquad r^\Lambda=1.
+\]
+Then
+\[
+ \Norm_{\F_{A_0^6}/\F_{A_0^2}}(r)=1.                \tag{\(\mathsf{NC}_1\)}
+\]
+More strongly, if \(\ell^a\parallel\Psi_k\), the norm annihilates
+the full \(\ell\)-primary subgroup of
+\(\F_{A_0^6}^\times\), while
+\(\F_{A_0^2}^\times\) has no \(\ell\)-torsion.  Hence the induced
+corestriction
+\[
+ \F_{A_0^6}^\times/
+   (\F_{A_0^6}^\times)^{\ell^a}
+ \longrightarrow
+ \F_{A_0^2}^\times/
+   (\F_{A_0^2}^\times)^{\ell^a}                    \tag{\(\mathsf{NC}_2\)}
+\]
+is zero on the entire current primary line.  In particular, the exact
+antiunit recurrence cannot transport any part of the assertion
+\[
+ r^{\Lambda/\ell}\ne1
+\]
+from level \(k-1\).
+\end{proposition}
+
+\begin{proof}
+The norm exponent factors as
+\[
+ \frac{A_0^6-1}{A_0^2-1}
+ =A_0^4+A_0^2+1
+ =(A_0^2-A_0+1)(A_0^2+A_0+1)
+ =\Lambda(A_0^2+A_0+1).
+\]
+Equation \(r^\Lambda=1\) proves \((\mathsf{NC}_1)\).  If
+\(\ell^a\parallel\Psi_k\), then
+\(\ell^a\mid\Lambda\), whereas
+\(\operatorname{ord}_\ell(2)=6\cdot3^{k-1}\) makes \(A_0\) have
+exact order six modulo \(\ell\), and hence
+\[
+ \ell\nmid(A_0^2-1)(A_0^2+A_0+1).
+\]
+Thus the displayed norm exponent kills the full current
+\(\ell\)-primary subgroup, and raising to the \(\ell^a\)-th power is
+an automorphism of the lower unit group.  Its Kummer quotient is
+therefore trivial, proving \((\mathsf{NC}_2)\).
 \end{proof}
 
 \begin{proposition}[the trace--constant shape of every Dickson cubic]
@@ -11861,6 +12678,25 @@ of a reverse-Dickson polynomial, containing the actual minimal polynomial
 of \(a_{n-1}\), must divide the trace-one polynomial.  Its factorization
 is one irreducible of degree \(m\ell\) on success and \(\ell\)
 irreducibles of degree \(m\) on failure.
+Proposition~\ref{prop:fermat-two-step-quartic} keeps two consecutive
+selected levels at once: its sparse quartic composition is irreducible
+on success and splits into exactly \(\ell\) irreducible quartics on
+failure.  Thus even two-level degree data preserve, rather than exclude,
+the bad Kummer pattern.
+Proposition~\ref{prop:fermat-quartic-conic} gives every bad quartic's
+exact coefficient conic and an inverse formula recovering its selected
+Dickson trace.  It is therefore a lossless coordinate chart on the same
+failure fibre, not a new constraint capable of excluding that fibre.
+Proposition~\ref{prop:fermat-wiedemann-separation} also rules out the
+most direct transfer from Wiedemann's tower: although both targets are
+norm-one Fermat-order assertions, their recursive drivers have
+incompatible multiplicative orders and cannot be related by Frobenius.
+Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
+generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
+degree: a connected four-function Kummer cover and its quarter-turn
+twist contain points satisfying the complete equivariant Kummer orbit
+with \(\mathfrak c(P)\) an \(\ell\)-th power.  What those points lack
+is precisely the full selected Conway ancestry.
 Proposition~\ref{prop:fermat-additive-saturation} saturates that failure
 fibre under translation by the half-field.  It gives the sharper
 conditional sieve \(\ell\leq\sqrt q/2\); the exact obstruction is a
@@ -11907,7 +12743,10 @@ and Proposition~\ref{prop:singleton-conjugate-ball} prove every primary
 factor above its sharper explicit signed-ball threshold, so the unresolved
 content is confined to the smaller factors.  The source-pinned
 \(m_{359}=1\) row is a concrete instance whose independent trace
-evaluation remains open.  Remark~\ref{rem:base-selector-cancel} shows
+evaluation remains open.  Proposition~\ref{prop:safe-prime-trace-detector}
+generalizes its last reduction to every safe-prime component:
+nontriviality is one absolute trace bit, but the selected Conway norm
+still has to be evaluated.  Remark~\ref{rem:base-selector-cancel} shows
 that the unweighted orbit product in global reciprocity still cancels
 over the \(p-1\) lifts for every selector from the base cyclotomic
 field.  Proposition~\ref{prop:weighted-selector-reciprocity} proves that
@@ -11955,6 +12794,14 @@ the binary subset sums of \((2^{3^k}-1)/\ell\) cannot have parity one at
 every residue except a single prescribed residue.  This universal
 inequality, equivalently direct Kummer nonvanishing at the smaller
 current factors, remains open.
+Proposition~\ref{prop:cubic-weighted-orbit-dichotomy} subsumes every
+Euler derivative or weighted Frobenius-word escape: evaluating the word
+at two either kills the selected power-residue class or returns an
+invertible power of exactly that class.  It also proves that a scalar
+identity for \(L(1)\) with a fixed integer Euler quotient is
+normalization-ill-posed; changing the compatible primitive generator
+while fixing the selected root rescales \(L(1)\) arbitrarily.  Only its
+vanishing is intrinsic.
 Proposition~\ref{prop:cubic-mixed-jacobi-top} gives the exact
 characteristic-zero counterpart: every first-order mixed Jacobi
 coefficient outside the primitive top component vanishes, and every
@@ -11963,6 +12810,10 @@ single selected Fermat quotient decides the arm:
 \[
  J_1\not\equiv-1\pmod{(\zeta_\ell-1)^2}.
 \]
+Remark~\ref{rem:cubic-higher-jacobi-no-go} proves that higher Jacobi
+congruences cannot bootstrap this first coefficient: their terms have
+distinct local valuations, so every deeper condition begins only after
+the still-unknown \(L(1)\) has vanished.
 Stickelberger ideal data see \(J_1\), but not this additive first-order
 congruence for \(J_1+1\).  Corollary~\ref{cor:cubic-weighted-jacobi-resolvent}
 packages it into one weighted product
@@ -12007,6 +12858,13 @@ Proposition~\ref{prop:cubic-prescribed-trace} makes the last coordinate
 one extremal value \(\Theta_\chi(\eta_{k-1})=3\).  Other Singer trace
 fibres genuinely attain \(3\), so uniform character bounds cannot close
 the selected fibre.
+Proposition~\ref{prop:cubic-previous-singer-lift} further proves that
+every point of the preceding Singer set has exactly one current
+three-point trace fibre.  Thus preceding Singer membership and
+lower-level primitivity do not single out the selected fibre.  The full
+cubic recursion remains rigid up to absolute Frobenius, so this is a
+sharp obstruction to one-step descent rather than a recursive
+countermodel.
 
 \item \emph{Exceptional arm.}
 Prove \(D'_k\) for every \(k\), equivalently
@@ -12027,6 +12885,23 @@ then proves that this vector has rank one: the single coefficient
 \(\operatorname{ind}_\ell(d_k)\).  Thus the remaining first-order theorem
 is exactly nonvanishing of the selected antiunit regulator, not a family
 of independent Jacobi congruences.
+Proposition~\ref{prop:dk-mixed-semiprimitive-no-go} proves that the
+surviving primitive mixed character cannot enter the semiprimitive
+Gauss--Jacobi regime: its current \(\ell\)-component requires an odd
+minus-one exponent while its conductor-five component requires an even
+one.  Hence the explicit semiprimitive tables stop exactly before
+\(C_1\); the mixed decomposition index is in fact \(2(\ell-1)\), not
+two.  Corollary~\ref{cor:dk-weighted-only} gives the complementary
+product obstruction: every equal-weight Hasse--Davenport product is
+automatically flat, and only the \(\lambda\)-weighted resolvent retains
+the selected first line.
+Proposition~\ref{prop:dk-cyclotomic-derivative-no-go} closes the ordinary
+cyclotomic-derivative escape: its reduction is unconditionally an
+\(\ell\)-th power, while the \(\lambda^{-1}\)-weighted circular unit has
+index exactly \(8hL(1)\).  The first generalized Bernoulli value is
+identically zero for the relevant even character, including levels
+where \(L(1)\ne0\).  Thus the weighted construction is an exact detector
+but not an independent evaluation.
 Proposition~\ref{prop:dk-cyclic-parity} gives the parallel
 characteristic-two boundary: failure is a complement-of-zero submask
 parity pattern modulo \(15h\), while its \(\ell\)-th-power consequence
@@ -12047,6 +12922,11 @@ failure is the selected divisibility
 The Dickson polynomial factors completely as \(Y(Y+1)^2\) times
 squares of irreducible cubics.  Thus degree, reciprocity, and factor
 shape admit many false positives.
+Proposition~\ref{prop:dk-selected-norm-collapse} proves that even the
+exact selected phase has trivial downward norm: corestriction
+annihilates its full current \(\ell\)-primary line, while the lower
+field has no \(\ell\)-torsion.  The recursive antiunit norm therefore
+cannot transport a single bit of the required current order.
 Proposition~\ref{prop:dk-cubic-shape} proves more: every admissible
 cubic has constant coefficient equal to the square of its trace
 coefficient, exactly as \(G/C^2\) does.
