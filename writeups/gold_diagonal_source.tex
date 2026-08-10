@@ -1,0 +1,302 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\F}{\mathbb F}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Fr}{\operatorname{Fr}}
+\newcommand{\AS}{\wp}
+\newcommand{\Lam}{\Lambda}
+
+\title{A Tower-Recursive Source for Every Gold Diagonal}
+\author{a9lim}
+\date{August 9, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let $m$ be a power of two, let $K_m=\F_{2^m}$ be the canonical finite
+nim-field, and write $e_i=2^i$ for its Conway bit basis.  For the Gold form
+\[
+ Q_a(x)=\Tr_{K_m/\F_2}\!\left(x^{1+2^a}\right),
+\]
+the diagonal constants $Q_a(e_i)$ are the datum missing from the polar form.
+Previously a uniform game-built source was known only for $a=1$, while the
+trace-dual elements for even $a$ visibly drifted under tower doubling.  We
+give a recursion for the trace-dual diagonal of every scaled Gold component,
+prove that the unscaled dual always descends to the half-field, and conclude
+that it is an Artin--Schreier value $w^2+w$.  Thus every Gold exponent has a
+single tower-constructed source $w$ satisfying
+\[
+ \Tr\!\left((w^2+w)e_i\right)=Q_a(e_i)\qquad(0\le i<m).
+\]
+The result closes the diagonal-sourcing problem, including the even-$a$
+case.  It does not solve the separate problem of turning those constants into
+a non-clock normal-, mis\`ere-, or loopy-outcome game.
+\end{abstract}
+
+\section{Statement and boundary}
+
+For a scale $c\in K_m$, define the scaled Gold component
+\[
+ Q^{(m)}_{a,c}(x)=\Tr_m\!\left(c\,x\Fr^a(x)\right),
+ \qquad \Fr(x)=x^2,
+\]
+where $\Tr_m=\Tr_{K_m/\F_2}$.  Its canonical-basis diagonal extends uniquely
+to an $\F_2$-linear functional
+\[
+ \ell^{(m)}_{a,c}\!\left(\sum_i x_i e_i\right)
+   =\sum_i x_i Q^{(m)}_{a,c}(e_i).
+\]
+The absolute trace pairing on a finite separable field is nondegenerate, so
+there is a unique $\Lam^{(m)}_{a,c}\in K_m$ such that
+\begin{equation}\label{eq:dual}
+ \Tr_m\!\left(\Lam^{(m)}_{a,c}e_i\right)
+ =\Tr_m\!\left(c\,e_i\Fr^a(e_i)\right)
+ \quad\text{for every }i<m.
+\end{equation}
+Write $\Lam^{(m)}_a=\Lam^{(m)}_{a,1}$.
+
+\begin{theorem}[all-exponent Gold-diagonal source]\label{thm:main}
+For every power of two $m\ge2$ and every $a\ge0$:
+\begin{enumerate}
+\item $\Lam^{(m)}_{a,c}$ is given by the quadratic-tower recursion in
+Theorem~\ref{thm:recursion}, using only nim addition and multiplication,
+Frobenius, relative trace, and the canonical tower generator;
+\item the unscaled dual descends:
+\[
+ \Lam^{(m)}_a\in K_{m/2}\subset K_m;
+\]
+\item there is $w^{(m)}_a\in K_m$ with
+\[
+ \Lam^{(m)}_a=\AS(w^{(m)}_a)
+   =(w^{(m)}_a)^2+w^{(m)}_a;
+\]
+and therefore
+\[
+ Q_a(e_i)=\Tr_m\!\left(\AS(w^{(m)}_a)e_i\right)
+ \quad(0\le i<m).
+\]
+\end{enumerate}
+The two possible sources are $w^{(m)}_a$ and $w^{(m)}_a+1$.
+\end{theorem}
+
+The theorem is about sourcing the diagonal constants.  It does not infer a
+$P$-set theorem, a linking strategy, or a resolution of the full natural
+Gold-quadric game problem.  This proof/semantics boundary is essential.
+
+\section{The quadratic nim-tower block}
+
+Put $m=2M$.  The canonical nim tower has
+\[
+ K_m=K_M(u)=K_M\oplus uK_M,
+ \qquad u=e_M,
+\]
+and the nontrivial $K_M$-automorphism $\sigma=\Fr^M$ satisfies
+\[
+ \sigma(u)=u+1.
+\]
+The canonical basis splits as
+\[
+ e_0,\ldots,e_{M-1},\quad ue_0,\ldots,ue_{M-1};
+\]
+indeed $ue_j=e_{M+j}$.  Let
+\[
+ T=T_{m/M}=1+\sigma:K_m\longrightarrow K_M
+\]
+be the relative trace.
+
+\begin{lemma}[trace-pairing blocks]\label{lem:blocks}
+For $A,B,e\in K_M$,
+\begin{align}
+ T\bigl((A+uB)e\bigr)&=Be,\label{eq:lowblock}\\
+ T\bigl((A+uB)ue\bigr)&=(A+B)e.\label{eq:topblock}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+Because $\sigma$ fixes $A,B,e$ and sends $u$ to $u+1$,
+\[
+ (A+uB)e+\sigma((A+uB)e)
+ =(A+uB)e+(A+(u+1)B)e=Be.
+\]
+For the upper block, apply the same calculation to $(A+uB)u$:
+\begin{align*}
+ &(A+uB)u+(A+(u+1)B)(u+1)\\
+ &\qquad=Au+u^2B+Au+A+(u+1)^2B=A+B,
+\end{align*}
+since characteristic two cancels the doubled $Au$, $u^2B$, and $uB$
+terms.  Multiplication by $e$ gives~\eqref{eq:topblock}.
+\end{proof}
+
+Now write $c=c_0+uc_1$ and set
+\begin{equation}\label{eq:scales}
+ d_0=T(c),\qquad
+ d_1=T\!\left(c\,u\Fr^a(u)\right).
+\end{equation}
+For a lower basis vector $e\in K_M$,
+\begin{align*}
+ Q^{(m)}_{a,c}(e)
+ &=\Tr_M\!\left(T(c)e\Fr^a(e)\right)
+ =Q^{(M)}_{a,d_0}(e).
+\end{align*}
+For its upper mate $ue$,
+\begin{align*}
+ Q^{(m)}_{a,c}(ue)
+ &=\Tr_M\!\left(T(cu\Fr^a(u))e\Fr^a(e)\right)
+ =Q^{(M)}_{a,d_1}(e).
+\end{align*}
+Thus $d_0$ and $d_1$ are exactly the smaller-field scales of the two
+diagonal blocks.
+
+\begin{theorem}[scaled dual recursion]\label{thm:recursion}
+Let
+\[
+ L_0=\Lam^{(M)}_{a,d_0},\qquad
+ L_1=\Lam^{(M)}_{a,d_1},
+\]
+with $d_0,d_1$ as in~\eqref{eq:scales}.  Then
+\begin{equation}\label{eq:recursion}
+ \boxed{\quad
+ \Lam^{(2M)}_{a,c}=(L_0+L_1)+uL_0.
+ \quad}
+\end{equation}
+The base case over $K_1=\F_2$ is $\Lam^{(1)}_{a,c}=c$.
+\end{theorem}
+
+\begin{proof}
+Write the candidate in~\eqref{eq:recursion} as $A+uB$, where
+$B=L_0$ and $A=L_0+L_1$.  By Lemma~\ref{lem:blocks}, its relative
+trace pairing with a lower basis vector $e$ is $L_0e$, while its pairing
+with $ue$ is
+\[
+ (A+B)e=(L_0+L_1+L_0)e=L_1e.
+\]
+After applying $\Tr_M$, these are exactly the two defining dualities for
+the lower and upper diagonal blocks.  Nondegeneracy of the absolute trace
+pairing makes the candidate unique, proving~\eqref{eq:recursion}.
+\end{proof}
+
+This is the point at which the even-$a$ drift ceases to be an obstruction.
+The scale $d_1$ can change at every tower level; the recursion transports that
+change instead of requiring one fixed dual element throughout the tower.
+
+\section{Descent and the Artin--Schreier source}
+
+\begin{lemma}[unscaled half-field descent]\label{lem:descent}
+For $m=2M$,
+\[
+ \Lam^{(m)}_a\in K_M.
+\]
+\end{lemma}
+
+\begin{proof}
+In the unscaled case $c=1$, the lower scale is
+\[
+ d_0=T(1)=1+1=0.
+\]
+Linearity (or the recursion from the base case) gives
+$L_0=\Lam^{(M)}_{a,0}=0$.  Theorem~\ref{thm:recursion} therefore reduces to
+\[
+ \Lam^{(2M)}_a=L_1\in K_M.
+\]
+\end{proof}
+
+\begin{lemma}[Artin--Schreier exact sequence]\label{lem:as}
+For a finite field $K=\F_{2^m}$,
+\[
+ \operatorname{im}(x\mapsto x^2+x)=\ker(\Tr_{K/\F_2}).
+\]
+Each element of this common hyperplane has exactly two preimages, differing
+by $1$.
+\end{lemma}
+
+\begin{proof}
+The Artin--Schreier map $\AS(x)=x^2+x$ is $\F_2$-linear and has kernel
+$\F_2=\{0,1\}$, so its image has $|K|/2$ elements.  Frobenius invariance of
+trace gives
+\[
+ \Tr(\AS(x))=\Tr(x^2)+\Tr(x)=\Tr(x)^2+\Tr(x)=0,
+\]
+so the image lies in the trace-zero hyperplane.  The finite-field trace is a
+nonzero $\F_2$-linear functional, hence its kernel also has $|K|/2$ elements.
+The inclusion is equality.  Every nonempty fibre is a coset of the two-element
+kernel.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Theorem~\ref{thm:recursion} proves the constructive first assertion and
+Lemma~\ref{lem:descent} proves the second.  If
+$\lambda=\Lam^{(2M)}_a\in K_M$, trace transitivity gives
+\[
+ \Tr_{2M}(\lambda)
+ =\Tr_M\!\left(\Tr_{K_{2M}/K_M}(\lambda)\right)
+ =\Tr_M(2\lambda)=0.
+\]
+Lemma~\ref{lem:as} supplies $w$ with $w^2+w=\lambda$.  Substituting this
+identity into the defining trace duality~\eqref{eq:dual} yields the stated
+formula for every basis coin.  The fibre statement in Lemma~\ref{lem:as}
+gives the two sources $w$ and $w+1$.
+\end{proof}
+
+\section{Implementation and formal boundary}
+
+The Rust core implements the proof literally:
+\begin{itemize}
+\item \texttt{gold\_component\_diagonal\_dual(m,a,c)} evaluates
+Theorem~\ref{thm:recursion};
+\item \texttt{gold\_diagonal\_dual(m,a)} specializes to $c=1$; and
+\item \texttt{gold\_diagonal\_artin\_schreier\_source(m,a)} uses the existing
+exact finite-nim-field solver to choose one of the two sources.
+\end{itemize}
+The implementation is checked directly against all defining trace-pairing
+equations for every scale over $K_m$ at $m\le8$.  For the unscaled theorem it
+checks half-field descent, the Artin--Schreier equation, and every diagonal
+coordinate at representative exponents through the full $m=128$ backend.  The
+previous even-$a$ values
+\[
+ \Lam^{(4)}_2=0,
+ \quad\Lam^{(8)}_2=6,
+ \quad\Lam^{(16)}_2=102,
+ \quad\Lam^{(32)}_2=24582
+\]
+and $\Lam^{(16)}_4=31$, $\Lam^{(32)}_4=8030$ are pinned as regression values;
+their drift is now explained and handled by the scale recursion.
+
+The Lean module \texttt{formal/Ogdoad/GoldDiagonal.lean} kernel-checks the
+quadratic trace-block formulas, the dual-block reconstruction, the vanishing
+of the absolute trace of a quadratic-extension base element, additivity of the
+Artin--Schreier map, the one-step tower lift of a source, and the full
+finite-field equivalence
+$\Tr(\lambda)=0\Longleftrightarrow\lambda=w^2+w$. The last result is proved
+from rank--nullity, trace surjectivity, and the two-element kernel, rather than
+introduced as an axiom. The module does not encode the finite nim tower or
+replace the Rust implementation with a Lean finite-field model.
+
+\section{Consequence for the open Gold-game program}
+
+The former even-$a$ constructive sourcing question is closed: for every
+exponent, the diagonal is supplied by one deterministically selected tower
+constant through nim multiplication, Frobenius, trace, and finally one square
+plus XOR at the source identity $\Lam=\AS(w)$. No coordinate-by-coordinate
+evaluation of $Q_a$ occurs in the recursion. Unlike the $a=1$ Fermat-coin
+formula, the final $w$ is selected by exact finite-field linear algebra; the
+theorem does not claim a comparably simple closed expression or that this
+selection itself satisfies the strategic naturality axioms.
+
+What remains open is the strategic layer.  A rule may consume the sourced
+diagonal and still be a transport clock, or may realize only a terminal charge
+rather than a normal/mis\`ere/loopy outcome class.  The all-$a$ source removes
+one algebraic obstruction from that problem; it does not weaken the existing
+naturality and outcome-semantics requirements.
+
+\end{document}

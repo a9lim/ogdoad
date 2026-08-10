@@ -43,6 +43,10 @@ criterion, finite factor/order screens, and open `D'_k` target;
 `Ogdoad/Fifo.lean` formalizes the exact reduced FIFO game, its terminating
 strategy semantics, cut invariant, and edgeless base theorem, while leaving the
 general isolated-dummy proposition explicitly open; and
+`Ogdoad/GoldDiagonal.lean` kernel-checks the quadratic-tower trace blocks,
+dual reconstruction, absolute-trace descent, and the full finite-field
+Artin--Schreier image-equals-trace-kernel theorem
+behind the all-exponent Gold diagonal source; and
 `Ogdoad/GameExterior.lean` kernel-checks the root-collapse lemma and the
 coefficient-faithful quadratic/polar consequences resolving `tisn`; and
 `Ogdoad/BrownGame.lean` kernel-checks the canonical
@@ -100,6 +104,8 @@ and `writeups/`
 (`goldarf.tex` — the consolidated draft note on the Gold/Arf game thread,
 including the Tier-2 no-go/construction program; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
+`gold_diagonal_source.tex` — the complete quadratic-tower proof that every Gold
+exponent has a constructive Artin--Schreier coordinate-diagonal source;
 `linking_affine.tex` — the proof-frontier note for the general FIFO linking
 theorem: vector live-star score, affine-response equivalence, parity-cell
 subclass, homogeneous response recursion, cut-space/two-graph and poison
@@ -319,6 +325,9 @@ echo-fifo+dummy realizer is **verified** (2026-06-10, adversarial review:
 `experiments/echo_solver.py`, 391,680/391,680 m=8 checks, zero misses — record in
 `writeups/goldarf.tex` §8); the open steps are recasting its forced-charge readout into
 normal/misère/loopy outcome semantics and the general-n linking proof. The
+formerly open even-exponent diagonal premise is resolved uniformly: the
+trace-dual at every even tower degree descends to the half-field and is `w²+w`
+(`writeups/gold_diagonal_source.tex`, `formal/Ogdoad/GoldDiagonal.lean`). The
 realizer's *mechanism* is reduced (2026-06-10 second pass,
 `experiments/linking_game.py`, goldarf §8 `sec:linking`): the σ-game is the
 odd-close parity game on the support graph, and the linking theorem — an isolated

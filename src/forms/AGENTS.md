@@ -370,7 +370,13 @@ char-2 mirror, one shelf (`mod.rs` re-exports flat).
   …<Base=Fp<2>>>(k)` (the typed `Fpn<2,m>` path — build over `F_2`, lift `F_2 ↪
   Nimber` via `Metric::map(|x| Nimber(x.value()))`), and `gold_form(m, a)` (the nim-native path over the
   subfield `F_{2^m} ⊂ Nimber`, m a power of two ≤ 128, reaching F_16/F_256/… that
-  `Fpn` can't). The form has dim `[E:F]`, capped at `MAX_BASIS_DIM=128`. The same
+  `Fpn` can't). `gold_component_diagonal_dual(m,a,c)` constructs the exact
+  trace-dual of the scaled coordinate diagonal by quadratic-tower recursion;
+  for the unscaled form at `m > 1`, `gold_diagonal_dual` descends to the
+  half-field and `gold_diagonal_artin_schreier_source` returns `w` with dual
+  `w²+w`. This
+  closes the all-exponent diagonal-sourcing lemma, not the open game-semantic
+  realization. The form has dim `[E:F]`, capped at `MAX_BASIS_DIM=128`. The same
   `CyclicGaloisExtension` basis/generator data also feeds
   `clifford::frobenius::{galois_linear_map, frobenius_linear_map}`, giving the bridge
   a Clifford outermorphism oracle.

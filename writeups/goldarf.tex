@@ -26,6 +26,7 @@
 \newcommand{\On}{\mathrm{On}_2}
 \newcommand{\F}{\mathbb{F}}
 \newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Fr}{\operatorname{Fr}}
 \newcommand{\Arf}{\operatorname{Arf}}
 \newcommand{\nimmul}{\otimes}
 \newcommand{\Cl}{\mathrm{Cl}}
@@ -506,11 +507,51 @@ $m=4,8,16,32$ via the trace-pairing uniqueness of the dual element
 
 This gives a game-native, tower-uniform, commutative source for the $a=1$
 diagonal: one nim-squaring, one XOR, one trace -- all inside the licensed
-operation chain of Section~\ref{sec:gold}. For even $a$ the dual
-$\lambda_a^{(m)}$ provably drifts at each tower doubling
-($\lambda_2$: $0,6,102,24582$; $\lambda_4$: $31,8030$), and no
-$\wp$-preimage family has been named beyond $m=8$; the even-$a$ analogue is
-open.
+operation chain of Section~\ref{sec:gold}. The following theorem closes the
+same sourcing question for every exponent, including even $a$.
+
+\begin{theorem}[all-exponent diagonal source]\label{thm:all-diagonal-source}
+Let $m=2^k\ge2$ and let $\lambda_{a,c}^{(m)}$ be the unique trace-dual of the
+scaled diagonal
+\[
+ \Tr_m(\lambda_{a,c}^{(m)}e_i)
+   =\Tr_m(c e_i\Fr^a(e_i)).
+\]
+For $m=2M$, write $\F_{2^m}=\F_{2^M}(u)$ with
+$u=e_M$ and $u^{2^M}=u+1$. Put
+\[
+ d_0=\Tr_{m/M}(c),\qquad
+ d_1=\Tr_{m/M}(c u\Fr^a(u)),\qquad
+ L_j=\lambda_{a,d_j}^{(M)}.
+\]
+Then
+\[
+ \lambda_{a,c}^{(2M)}=(L_0+L_1)+uL_0.
+\]
+In particular, for $c=1$ one has $L_0=0$, so
+$\lambda_{a,1}^{(2M)}\in\F_{2^M}$ and
+$\Tr_m(\lambda_{a,1}^{(2M)})=0$. Consequently there is a
+$w\in\F_{2^m}$ with
+\[
+ \lambda_{a,1}^{(m)}=w^2+w,
+ \qquad
+ Q_a(e_i)=\Tr_m((w^2+w)e_i)
+\]
+for every $i$ and every $a$.
+\end{theorem}
+
+The proof is the quadratic-tower trace calculation in
+\texttt{writeups/gold\_diagonal\_source.tex}. The recursion is implemented by
+\texttt{gold\_component\_diagonal\_dual};
+\texttt{gold\_diagonal\_artin\_schreier\_source} then solves the final
+Artin--Schreier equation. The tower block identities and the absolute-trace
+descent are kernel-checked in \texttt{formal/Ogdoad/GoldDiagonal.lean}. Thus
+the previously observed drift records the recursive dual rather than an
+obstruction: every unscaled dual has a uniform constructive preimage. The
+claim is deliberately unscaled; a general coefficient $c$ need not descend
+or have trace zero. The source $w$ is selected by exact finite-field linear
+algebra, not by a simple Fermat-coin formula as in Proposition~\ref{prop:wp};
+this is a uniform constructive source, not yet a strategic naturality result.
 
 \begin{remark}[subfield vanishing; standard math]
 $q_i^{(m,a)}=0$ for all $i<m/2$: the Fermat basis elements at lower indices,
@@ -526,9 +567,10 @@ Is the diagonal framing
 \]
 itself game-natural for all $a$, in a way that yields a natural game with
 P-set $\{x:Q_a(x)=0\}$? Proposition~\ref{prop:wp} answers the
-\emph{sourcing} half affirmatively for $a=1$; whether any acceptable source
-yields a non-tautological \emph{play rule} is the subject of the remaining
-sections.
+\emph{sourcing} half explicitly for $a=1$, and
+Theorem~\ref{thm:all-diagonal-source} answers it constructively for every
+$a$; whether any acceptable source yields a non-tautological \emph{play rule}
+is the subject of the remaining sections.
 \end{question}
 
 \section{The extraspecial reframing}\label{sec:extraspecial}
@@ -1567,8 +1609,9 @@ through $k=8$ (all $12{,}346$ classes there), with the old two-mode menu's
 first failures isolated and the no-self-flip envelope strictly complete;
 what remains of it is the general-$n$ induction. The live questions are
 \emph{semantics} (recast the charge readout into normal/misère/loopy
-outcome classes, or prove the recasting impossible), the general-$n$
-linking proof, and the even-$a$ diagonal lemma.
+outcome classes, or prove the recasting impossible) and the general-$n$
+linking proof. The all-$a$ diagonal source is now Theorem
+\ref{thm:all-diagonal-source}; sourcing is no longer an open premise.
 
 \paragraph{Ranked next moves.}
 (Move 1 of the previous ranking -- the adversarial review -- was executed
@@ -1590,9 +1633,10 @@ $m$-by-$m$ verification to the theorem for all $m$.
 ko-memory window $w\in\{1,2,3\}$, pass semantics, pair touches, no-dummy
 controls -- map which disciplines are exact; this also puts the
 bounded-window blocker conjecture on valid data at last.
-\item \emph{The even-$a$ diagonal lemma}: prove or refute the even-$a$
-$\wp$-preimage family (Section~\ref{sec:framing}) -- the second condition
-on the Tier-2-witness reading of the verified realizer.
+\item[done.] \emph{The even-$a$ diagonal lemma}: resolved by the quadratic-tower
+recursion and Artin--Schreier exactness in Theorem
+\ref{thm:all-diagonal-source}. This removes the sourcing premise but does
+not settle the Tier-2 play-rule reading of the verified realizer.
 \item \emph{Frobenius-aware access enumeration}: finite enumeration of
 Frobenius-equivariant legality predicates at $m=4,8$ -- the one access
 window (escape hatch 3 of Remark~\ref{rem:hatches}) where both the symmetry

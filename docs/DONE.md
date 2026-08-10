@@ -52,6 +52,30 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### tis·(e_f∧e_g): `all-exponent-gold-diagonal-source`
+**Completed:** 2026-08-09
+**Summary:** at every power-of-two degree `m ≥ 2`, every Gold exponent,
+including even exponents, has a constructive Artin–Schreier source for its full
+coordinate diagonal in the canonical nim tower.
+**Pillars:** forms ↔ scalar ↔ games    **Claim level:** proved synthesis, implemented-and-tested, kernel-checked algebra
+- recursion: in `F_{2^{2M}}=F_{2^M}(u)`, the scaled trace-dual is
+  `lambda_{a,c}=(L0+L1)+uL0`, where `L0,L1` are the downstairs duals for the two
+  relative-trace blocks.
+- descent: at scale `c=1`, `Tr_rel(1)=0`, so `L0=0` and the dual lies in the
+  half-field. Its absolute trace upstairs is therefore zero.
+- source: finite-field Artin–Schreier exactness gives `lambda=w²+w`, hence
+  `Q_a(e_i)=Tr((w²+w)e_i)` for every basis coordinate and every exponent `a`.
+- surface: `gold_component_diagonal_dual`, `gold_diagonal_dual`, and
+  `gold_diagonal_artin_schreier_source` in `src/forms/trace_form.rs`, with all
+  supported tower degrees through 128 covered by the tests.
+- proof: `writeups/gold_diagonal_source.{tex,pdf}`; formal core:
+  `formal/Ogdoad/GoldDiagonal.lean` checks the tower trace, dual reconstruction,
+  absolute-trace descent, and the full Artin–Schreier image-equals-trace-kernel
+  theorem without axioms.
+- boundary: this closes one named algebraic subproblem of `tis`; the natural
+  play rule, P-set realization, N1–N3 screen, and general FIFO theorem remain
+  open. A general scale `c` need not have trace-zero dual.
+
 ### over·(e_f∧e_g): `brown-game-semantics-reduction`
 **Completed:** 2026-08-09
 **Summary:** the Brown four-class census is canonically a linearly graded

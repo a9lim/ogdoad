@@ -12,6 +12,25 @@ lake build
 
 The sources contain no `sorry`, `admit`, or custom `axiom` declarations.
 
+## Gold diagonal source
+
+[`Ogdoad/GoldDiagonal.lean`](Ogdoad/GoldDiagonal.lean) kernel-checks the
+load-bearing algebra of the all-exponent Gold diagonal theorem:
+
+- the two relative-trace coordinate identities in a characteristic-two
+  quadratic tower with `sigma(u) = u + 1`;
+- reconstruction of the upstairs trace-dual from the two downstairs duals;
+- vanishing of the absolute trace of a base-field element in a quadratic
+  extension; and
+- the full finite-field exact sequence
+  `im(w ↦ w²+w) = ker(absolute trace)`, proved by rank--nullity and trace
+  surjectivity, plus the additive and tower-lifting identities.
+
+The concrete canonical nim-field recursion and its basis identifications are
+implemented and exhaustively tested in `src/forms/trace_form.rs`. Lean proves
+the abstract identities and the finite-field existence theorem from the stated
+hypotheses; it does not encode the `u128` nim multiplication implementation.
+
 ## Brown game semantics
 
 [`Ogdoad/BrownGame.lean`](Ogdoad/BrownGame.lean) kernel-checks the algebraic
