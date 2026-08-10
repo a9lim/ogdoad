@@ -263,6 +263,25 @@ theorem absolute_trace_eq_zero_of_relative_trace_eq_zero (x : L)
 
 end TraceTower
 
+section ReciprocityOrbit
+
+/-- The orbit product which makes base-field Hilbert reciprocity tautological
+in every selected Kummer arm.  If an odd-order symbol `A` is seen at the
+`ell - 1` cyclotomic lifts as `A^a`, their product is one.  The range includes
+`a = 0`, whose factor is harmless; it therefore represents the same product
+as the nonzero residue classes modulo `ell`. -/
+theorem odd_torsion_conjugate_product_eq_one {G : Type*} [CommGroup G]
+    {ell : Nat} (hell : Odd ell) {A : G} (hA : A ^ ell = 1) :
+    (∏ a ∈ Finset.range ell, A ^ a) = 1 := by
+  rw [Finset.prod_pow_eq_pow_sum, Finset.sum_range_id]
+  rcases hell with ⟨t, rfl⟩
+  have hsub : 2 * t + 1 - 1 = 2 * t := by omega
+  rw [hsub, Nat.mul_div_assoc _ (dvd_mul_right 2 t)]
+  rw [Nat.mul_div_cancel_left t (by decide : 0 < 2), pow_mul, hA]
+  simp
+
+end ReciprocityOrbit
+
 /-- The parity obstruction preventing a semiprimitive Gauss-sum evaluation
 of the exceptional arm's surviving mixed character.  At a current prime,
 the `ℓ`-component forces a minus-one Frobenius exponent to be congruent to

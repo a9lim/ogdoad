@@ -12486,6 +12486,293 @@ Propositions~\ref{prop:parity-code-no-go} and
 nor a higher lift supplies an independent value.  This is a distinguished
 cyclotomic Kummer-class problem, not a further degree or norm identity.
 
+\begin{proposition}[common selected-prime reciprocity boundary]
+\label{prop:selected-principalizer}
+Let \(\ell\) be an odd prime, let \(E\) be a number field containing
+\(\mu_\ell\), let \(u\in\mathcal O_E^\times\), and let
+\(\mathfrak P\nmid\ell\).  Fix a finite set \(S\) of primes, disjoint
+from \(\{\mathfrak P\}\) and the primes over \(\ell\).  Suppose that
+\(d\in\mathbb Z_{>0}\), \(n_{\mathfrak r}\in\mathbb Z\), and
+\(\beta\in E^\times\) principalize the selected prime up to \(S\), as
+an equality of fractional ideals:
+\[
+ (\beta)=\mathfrak P^d
+          \prod_{\mathfrak r\in S}\mathfrak r^{n_{\mathfrak r}}.
+                                                               \tag{\(\mathsf{PR}_1\)}
+\]
+Use the convention
+\[
+ (u,b)_{v,\ell}
+ :=\frac{\operatorname{rec}_v(b)(\sqrt[\ell]{u})}
+          {\sqrt[\ell]{u}},
+\]
+where local reciprocity sends a uniformizer to arithmetic Frobenius.
+Then
+\[
+ \left(\frac{u}{\mathfrak P}\right)_\ell^{d}
+ =\left[
+    \prod_{\mathfrak r\in S}
+       \left(\frac{u}{\mathfrak r}\right)_\ell^{n_{\mathfrak r}}
+    \prod_{\mathfrak L\mid\ell}
+       (u,\beta)_{\mathfrak L,\ell}
+ \right]^{-1}.                                      \tag{\(\mathsf{PR}_2\)}
+\]
+Here a negative exponent \(n_{\mathfrak r}\) means the corresponding
+inverse residue symbol.
+If \(\ell\nmid d\), this determines the selected symbol from the
+displayed local product after raising the right side to
+\(d^{-1}\bmod\ell\).  If \(\ell\mid d\), its left side is identically
+one and the formula gives no selected information.
+
+Suppose in addition that \(E/K\) is Galois, that
+\(u\in\mathcal O_K^\times\), and that a prime
+\(\mathfrak q\mid2\) of \(K\) splits into the \(\ell-1\) primes
+\(\mathfrak P_a=\tau_a\mathfrak P_1\),
+\(a\in\F_\ell^\times\), where
+\(\tau_a(\zeta_\ell)=\zeta_\ell^a\).  If
+\[
+ A=\left(\frac{u}{\mathfrak P_1}\right)_\ell,
+\]
+then
+\[
+ \left(\frac{u}{\mathfrak P_a}\right)_\ell=A^a,
+ \qquad
+ \prod_{a\in\F_\ell^\times}
+ \left(\frac{u}{\mathfrak P_a}\right)_\ell
+ =A^{\ell(\ell-1)/2}=1.                              \tag{\(\mathsf{PR}_3\)}
+\]
+Consequently an element of the base field, whose valuations are equal
+at all the \(\mathfrak P_a\), can recover only the tautological orbit
+product.  Isolating one Conway-selected lift requires a genuinely mixed
+principalizer in the \(K\)- and \(\ell\)-cyclotomic directions.
+\end{proposition}
+
+\begin{proof}
+At a finite place away from \(\ell\), adjoining an \(\ell\)-th root of
+the unit \(u\) gives either the split extension or an unramified Kummer
+extension.  Local units therefore act trivially.  Equation
+\((\mathsf{PR}_1)\) gives
+\[
+ (u,\beta)_{\mathfrak P,\ell}
+   =\left(\frac{u}{\mathfrak P}\right)_\ell^d,
+ \qquad
+ (u,\beta)_{\mathfrak r,\ell}
+   =\left(\frac{u}{\mathfrak r}\right)_\ell^{n_{\mathfrak r}}.
+\]
+All other finite places away from \(\ell\) contribute one, and the
+archimedean symbols are trivial because \(\ell\) is odd.  The global
+Hilbert product formula is exactly \((\mathsf{PR}_2)\).
+
+For the second assertion, Galois covariance of the Hilbert symbol acts
+on its value through the cyclotomic character, giving the first formula
+in \((\mathsf{PR}_3)\).  The sum of the nonzero residue classes is
+\(\ell(\ell-1)/2\), a multiple of \(\ell\), while \(A^\ell=1\).
+This proves the orbit cancellation.  Equal valuations of a base-field
+element at conjugate lifts cannot replace that product by one selected
+factor.
+\end{proof}
+
+\begin{corollary}[the cyclotomic-unit arms share one wild ray boundary]
+\label{cor:cyclotomic-ray-coordinate}
+The cyclotomic-unit specializations of the cubic arm, the ordinary arm,
+the exact two-component zero reduction, and the exceptional arm all
+meet the same principalizer boundary:
+\begin{itemize}
+\item in the cubic arm one may take
+\(u=(1+\xi)(1+\xi^{-1})\), whose selected residue symbol is the
+root of unity determined by the coefficient \(L(1)\) of
+Proposition~\ref{prop:cubic-mixed-jacobi-top};
+\item the ordinary arm and exact two-component zero reduction use
+respectively their norm-one quotient and
+\(1+\zeta=(1-\zeta^2)/(1-\zeta)\), both global cyclotomic units;
+\item in the exceptional arm, writing
+\(\rho=\alpha\beta\), with \(\ord(\alpha)=3h\) and
+\(\ord(\beta)=5\), the antiunit
+\[
+ d_k=\frac{(1-\alpha\beta)(1-\alpha\beta^{-1})}
+           {(1-\alpha\beta^2)(1-\alpha\beta^{-2})}
+\]
+has the same selected \(\ell\)-class as \(1-\rho\), up to the
+invertible factor four.  At a prime over five one has \(d_k\equiv1\).
+At a prime over three,
+\[
+ \overline d_k=\frac{\beta}{(1+\beta)^2}\in\F_{3^4}^{\times},
+\]
+whose order divides eighty; hence it and the principal-unit correction
+are \(\ell\)-th powers for every current \(\ell\).
+\end{itemize}
+In each case choose \(d\) to be the order of the selected prime in the
+ordinary ideal class group, so that \((\mathsf{PR}_1)\) has
+\(S=\varnothing\).  Formula \((\mathsf{PR}_2)\) then identifies the
+mixed \(\ell\)-adic local product with the \(d\)-th power of the
+selected symbol.  If \(\ell\nmid d\), this transports the selected ray
+coordinate but does not evaluate it; if \(\ell\mid d\), the formula is
+tautological.  Equivalently, the surviving quantities
+\(\Theta_{q,s}\), the cubic \(L(1)\), and the exceptional antiunit
+index are distinct instances of the same selected-prime ray-coordinate
+problem, not consequences of conductor-local reciprocity.
+
+The abstract proposition also applies to a chosen characteristic-zero
+lift of the singleton-even Conway minimal polynomial, whose constant
+coefficient is one and whose root is therefore a global unit.  That
+lift is noncanonical and the resulting mixed local coordinate is still
+unevaluated.  No claim here replaces the separate synchronized-phase
+problem for zero arms with three or more components.
+\end{corollary}
+
+\begin{proof}
+Finiteness of the ordinary ideal class group supplies the stated
+choice of \(d\) and a generator of \(\mathfrak P^d\).  Only the
+exceptional local calculation is not already part of the arm-specific
+propositions.  At five, \(\beta\) reduces to one, so the
+two numerator and two denominator factors agree.  At three,
+\(\alpha\) reduces to one and direct cancellation gives the displayed
+element.  Its residue order divides \(3^4-1=80\); the current primes are
+different from two, three, and five.  Raising to the \(\ell\)-th power is
+therefore an automorphism on this residue group, and also on the
+pro-three and pro-five principal units.  The remaining assertions are
+the respective selected-symbol identifications and
+Proposition~\ref{prop:selected-principalizer}.
+\end{proof}
+
+\begin{proposition}[Jacobi failure is the second ramified torsion layer]
+\label{prop:jacobi-second-layer}
+Let \(M\) and \(\ell\) be coprime odd integers, with \(\ell\) prime,
+and suppose \(M\ell\mid Q-1\).  Over \(\F_Q\), let
+\[
+ X_{M,\ell}:\qquad y^\ell=1-x^M,
+ \qquad J=\operatorname{Jac}(X_{M,\ell}),
+ \qquad \pi=\zeta_\ell-1.
+\]
+For nontrivial characters of orders dividing \(M\) and \(\ell\), put
+\[
+ J_{j,t}=\sum_{a\in\F_Q}
+     \chi_M(a)^j\chi_\ell(1-a)^t
+ \quad(1\leq j<M,\ 1\leq t<\ell).
+\]
+Then
+\[
+ g(X_{M,\ell})=\frac{(M-1)(\ell-1)}2,
+ \qquad
+ P_X(T)=\prod_{j=1}^{M-1}\prod_{t=1}^{\ell-1}
+             (1+J_{j,t}T).                            \tag{\(\mathsf{JT}_1\)}
+\]
+In particular, the Frobenius eigenvalues are
+\(\alpha_{j,t}=-J_{j,t}\).
+
+The simultaneous first-order flatness condition
+\[
+ J_{j,1}\equiv-1\pmod{\pi^2}
+ \qquad(1\leq j<M)                                   \tag{\(\mathsf{JT}_2\)}
+\]
+is equivalent to
+\[
+ J[\pi^2]\subseteq J(\F_Q).                          \tag{\(\mathsf{JT}_3\)}
+\]
+Consequently it implies the exact divisibility
+\[
+ \ell^{2(M-1)}\mid\#J(\F_Q).                        \tag{\(\mathsf{JT}_4\)}
+\]
+The congruence modulo \(\pi\), and hence rationality of
+\(J[\pi]\), is unconditional.  Failure is exactly rationality through
+the second ramified layer and may lift further; it does not assert
+rationality of the full \(\ell\)-torsion.
+
+For the cubic arm take
+\[
+ M=3^{k+1},\qquad Q=2^{2\cdot3^k};
+\]
+for the exceptional arm, with \(k\geq2\), take
+\[
+ M=15\cdot3^k,\qquad Q=2^{4\cdot3^k}.
+\]
+Their respective mixed-Jacobi failure criteria are exactly
+\((\mathsf{JT}_2)\).  In both cases
+\[
+ \ell<\sqrt Q+1.                                     \tag{\(\mathsf{JT}_5\)}
+\]
+Thus even the much stronger hypothetical inclusion
+\(J[\ell]\subseteq J(\F_Q)\), which would force the divisor
+\(\ell^{2g}\), is compatible with the Weil bound
+\[
+ \#J(\F_Q)\leq(\sqrt Q+1)^{2g}.                      \tag{\(\mathsf{JT}_6\)}
+\]
+Neither the point-count bound nor the polarization excludes the actual
+second-layer failure pattern.
+\end{proposition}
+
+\begin{proof}
+The polynomial \(1-x^M\) is squarefree and \((M,\ell)=1\), so the
+superelliptic genus formula gives the first identity in
+\((\mathsf{JT}_1)\).  To count points, expand the number of
+\(\ell\)-th roots of \(1-x^M\) by \(\ell\)-characters, and expand the
+number of \(M\)-th roots of a field element by \(M\)-characters.  The
+two nontrivial character sums are exactly the \(J_{j,t}\); the unique
+point at infinity supplies the remaining one.  Hence
+\[
+ \#X_{M,\ell}(\F_Q)=Q+1+\sum_{j,t}J_{j,t}.
+\]
+The same calculation over every finite extension, together with
+Hasse--Davenport, gives the second identity in
+\((\mathsf{JT}_1)\).
+
+Let \(\mathcal O=\mathbb Z_\ell[\zeta_\ell]\) and
+\[
+ R=\mathcal O[T]\big/\bigl((T^M-1)/(T-1)\bigr).
+\]
+Because \(\ell\nmid M\), this is finite \(\acute{e}\)tale of rank
+\(M-1\) over \(\mathcal O\).  The automorphisms
+\((x,y)\mapsto(\zeta_Mx,y)\) and
+\((x,y)\mapsto(x,\zeta_\ell y)\) act on \(J\).  After the unramified
+extension adjoining \(\zeta_M\), the quotient by either deck group is
+genus zero, so neither the \(M\)- nor the \(\ell\)-invariant part of
+the Tate module occurs.  Because \(\ell\nmid M\), the \(M\)-action is
+\(\ell\)-adically semisimple; \(T_\ell J\) is
+\(\mathcal O\)-torsion-free, and formula \((\mathsf{JT}_1)\) shows
+that every nontrivial \(M\)-character component is free of
+\(\mathcal O\)-rank one.  Descent from this unramified splitting then
+makes \(T_\ell J\) rank-one projective over \(R\).  Frobenius acts on
+its character lines by the \(\alpha_{j,1}\), up to harmless inversion
+of \(j\) according to the eigenspace convention.
+
+Every automorphism \(\zeta_\ell\mapsto\zeta_\ell^t\) sends \(\pi\)
+to a unit multiple of \(\pi\) and sends
+\(J_{j,1}\) to \(J_{j,t}\).  Therefore
+\((\mathsf{JT}_2)\) says exactly that Frobenius is the identity modulo
+\(\pi^2\) on \(T_\ell J\).  This is equivalent to
+\((\mathsf{JT}_3)\).  Since
+\[
+ |R/\pi^2R|=\ell^{2(M-1)},
+\]
+equation \((\mathsf{JT}_4)\) follows.  Reduction modulo \(\pi\)
+makes every \(\ell\)-character value one away from zero, giving
+\(J_{j,t}\equiv-1\pmod\pi\) without any failure hypothesis.
+
+For the cubic arm, put \(n=3^k\) and \(x=2^{n/3}\).  A current prime
+satisfies
+\[
+ \ell\leq x^2+x+1<x^3+1=\sqrt Q+1.
+\]
+For the exceptional arm, with \(h=3^k\),
+\[
+ \ell\leq\Psi_k<2^{2h}=\sqrt Q.
+\]
+This proves \((\mathsf{JT}_5)\), and raising it to the power \(2g\)
+proves compatibility with \((\mathsf{JT}_6)\).
+Finally \(Q\equiv1\pmod\ell\), so the Weil pairing permits rational
+\(\ell\)-torsion.  More sharply, for the present \(\ell\geq7\), the
+established \(\mathcal O\)-freeness gives
+\(J[\pi^2]=\pi^{\ell-3}J[\ell]\).  The Rosati involution sends
+\(\zeta_\ell\) to \(\zeta_\ell^{-1}\), so \(\pi^\dagger\) is a unit
+times \(\pi\).  For
+\(x=\pi^{\ell-3}x_0\) and \(y=\pi^{\ell-3}y_0\), the product
+\((\pi^{\ell-3})^\dagger\pi^{\ell-3}\) has \(\pi\)-valuation
+\(2\ell-6\geq\ell-1=v_\pi(\ell)\); the Weil pairing of \(x\) and
+\(y\) is therefore one.  Thus \(J[\pi^2]\) is totally isotropic, and
+its rank respects the polarization bound.  This completes the claimed
+geometric no-go.
+\end{proof}
+
 \section{Consequences and the Conjectural Frontier}\label{sec:bounded}
 
 \subsection{Boundedness}
@@ -12750,6 +13037,13 @@ congruence for \(J_1+1\).  Corollary~\ref{cor:cubic-weighted-jacobi-resolvent}
 packages it into one weighted product
 \(\mathcal R_\lambda\not\equiv1\pmod{(\zeta_\ell-1)^2}\), while proving
 that the corresponding unweighted product is identically flat.
+Proposition~\ref{prop:jacobi-second-layer} gives the exact geometric
+meaning of this congruence: cubic failure rationalizes
+\(J[\pi^2]\) on the associated mixed Kummer-curve Jacobian, whereas
+\(J[\pi]\) is rational unconditionally.  The theorem forces only the
+second ramified layer (higher layers may also lift), and even full
+rational \(\ell\)-torsion would fit inside the Weil and polarization
+bounds.
 Corollary~\ref{cor:cubic-primitive-crt-isolation} proves that the
 exceptional residue is one of the three lifts
 \(3^{k+1}-1,3^k-1,2\cdot3^k-1\), and isolates all success/failure
@@ -12821,6 +13115,11 @@ then proves that this vector has rank one: the single coefficient
 \(\operatorname{ind}_\ell(d_k)\).  Thus the remaining first-order theorem
 is exactly nonvanishing of the selected antiunit regulator, not a family
 of independent Jacobi congruences.
+Proposition~\ref{prop:jacobi-second-layer} also identifies simultaneous
+flatness with rationality of the second \(\pi\)-torsion layer of the
+mixed Kummer-curve Jacobian.  Its exact size divides the Weil envelope
+by a wide margin, so point counting and polarization do not exclude the
+failure fibre.
 Proposition~\ref{prop:dk-mixed-semiprimitive-no-go} proves that the
 surviving primitive mixed character cannot enter the semiprimitive
 Gauss--Jacobi regime: its current \(\ell\)-component requires an odd
