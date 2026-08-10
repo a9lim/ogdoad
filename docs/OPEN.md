@@ -467,7 +467,17 @@ Historical program state (2026-06-10 — retained as proof provenance):
   pattern `h=1` and every off-spine cylinder `=0`.  The exact next target is
   the *joint* incidence `(yA, delta_s)` in the image of `M_h`, not either
   marginal separately.  Neutral tails and ko differences cannot supply that
-  correlation, and coordinates away from both stars remain afterward.
+  correlation, and coordinates away from both stars remain afterward.  This
+  joint coefficient is not tree-local: on the legal spine
+  `O_p,O_q,C_p,O_d,C_q,O_y,C_d,C_y,O_x,O_s,C_x`, a policy can make the
+  single edge `xr` equal one on the selected cylinder and zero after every
+  first defender deviation.  The edge then separates `b_h` from `M_h` even
+  though its support is matching plus isolates and the same spine has the
+  complete local `(B')` neutral-cap geometry.  What fails in this witness is
+  the original global all-terminal-one separator constraint.  Thus any valid
+  joint-incidence theorem must use that global Bellman datum beyond the
+  extracted normal form; root safety of a two-colour replay board is not
+  enough.
   The first exact
   degree-one sibling explains the difficulty: on its `C_p,O_x,O_d,C_y`
   branch one reaches `Q=(x,d), U=H`, with `H` even Eulerian.  Closing `x,d`
@@ -479,7 +489,16 @@ Historical program state (2026-06-10 — retained as proof provenance):
   defender needs an online draft-and-stop lift whose every possible stopping
   checkpoint is safe.  Ordinary smaller-dummy-root or bare empty-root
   induction therefore stops at precisely the offset-ladder endpoint rather
-  than closing the ancestry.
+  than closing the ancestry.  Dually, if an Euler separator `B` is quotiented
+  at front `f`, the induced graph `K=B-f` has ghost boundary
+  `p=B(f,-)=boundary(K)` and satisfies
+  `<B,z>=<K,T_f z>`.  Closing the ghost calls the ordinary neutral/force
+  recursion at an arbitrary ordered queue of `K`; re-basing at a later front
+  updates the boundary by that front row.  Hence a transition-closed
+  smaller-Euler induction necessarily restores the full ordinary Bellman
+  table (equivalently the continuation cosets), and a blanket arbitrary-state
+  safety premise is false already on the sole-edge queue
+  `U={2,3}, Q=(0,1)`.
   A tempting sharper scalar target is false at order ten.  An explicit Euler
   graph with degree sequence `(8,8,4,4,6,6,4,4,6,8)` has, at the canonical
   state `Q=(2,9)`, both an all-zero-charge `TreeNeutralWins` and an odd-forcing

@@ -165,7 +165,13 @@ to carry the entire live $y$-star: otherwise a separating star functional
 would replay the fixed policy as an odd strategy on a star-plus-isolates
 board, contradicting that both-seat induction.  The (B$'$) obstruction is
 therefore reduced to a canonical Schur class supported strictly away from
-$y$; killing that remaining class is still open.
+$y$.  Dually, quotienting an Euler separator by that front produces an
+arbitrary smaller graph with boundary-charged ghost, and its exact Bellman
+recurrence calls the full ordinary continuation table; bare smaller-Euler
+induction is therefore circular.  A legal neutral-cap response tree on a
+single-edge support further shows that the next two-bit joint coefficient is
+not forced by tree shape and local minimum data alone.  Killing the remaining
+Schur class is still open.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
@@ -1679,6 +1685,65 @@ $x$-bit $\delta_s$ is exactly the missing second-stage coefficient.  Even
 after \eqref{eq:bprime-joint-two-bit}, coordinates away from both stars would
 still have to be contracted.
 
+This joint coefficient is not forced by the response-tree shape or the local
+(B$'$) neutral-cap data, even when its two-colour support graph is a solved
+root class.
+
+\begin{proposition}[the joint coefficient is not tree-local]
+\label{prop:bprime-joint-not-local}
+\PROVED{} There is a legal fixed attacker response tree with a selected
+(B$'$) spine and neutral punctured tails for which
+\[
+ b_h\notin M_h.
+\]
+The separating support consists of one edge, hence is matching plus isolates
+and has a both-seat zero strategy.  Thus root safety of the support graph does
+not imply \eqref{eq:bprime-joint-two-bit}.
+\end{proposition}
+
+\begin{proof}
+Take real vertices $p,q,y,x,s,r$ and isolated dummy $d$.  Put the attacker on
+the odd positions of the selected spine
+\[
+ O_p,O_q,C_p,O_d,C_q,O_y,C_d,C_y,O_x,O_s,C_x.
+\]
+This word is legal: the first and penultimate OPENs set ko, the following
+defender OPEN clears it, and every displayed CLOSE is then the FIFO front.
+At $e$ the queue is $(y)$ and $A=\{x,s,r\}$; the distinguished ko child opens
+$s$, and $C_x$ occurs while $r$ is untouched.
+
+Use the single edge $xr$ as a linear functional.  Below the distinguished
+cylinder, $x$ and $r$ are disjoint, so every terminal has value one.  After
+the first defender deviation, let the attacker force them to overlap.  If
+the deviation opens one of $x,r$, open the other immediately.  If neither is
+open, open $x$ and then open $r$ at the next attacker turn unless the defender
+has already done so.  The intervening defender cannot close $x$: if $x$ was
+opened onto an empty queue, ko forbids the close, and otherwise an older FIFO
+front precedes it.  Hence every off-spine terminal has $xr$-value zero.
+
+It follows that $xr$ annihilates every continuation-difference space $W_q$
+and every even off-spine sum, while it pairs to one with $b_h$.  Therefore it
+annihilates $M_h$ and separates $b_h$ from it.
+
+For completeness, on the local separator
+\[
+ B_0=py+yx+xs+xr
+\]
+the selected closes $C_p,C_y,C_x$ have charges $1,1,1$.  At the cap, $y$ has
+sole live neighbour $x$, while $x$ is universal over the even edgeless set
+$\{s,r\}$; either ko child has a neutral singleton tail.  What fails is the
+global hypothesis: this history policy does not force odd score under $B_0$
+on every earlier defender sibling.  Root safety chooses such a zero
+off-spine cylinder; it does not furnish a relative chain carrying $h$.
+\end{proof}
+
+Consequently any valid form of \eqref{eq:bprime-joint-two-bit} must use the
+original separator's all-terminal-one Bellman constraint beyond the extracted
+minimum normal form.  Conditioned on an actual global counterstrategy and its
+minimum, proving that coefficient is simply the remaining (B$'$) relative
+contraction problem; presenting it as a boundary-potential lemma would not
+reduce the obligation.  Case (A) remains a separate relative contraction.
+
 The first earlier sibling already exposes why ordinary smaller-board
 induction does not do this.  In the genuine degree-one ancestry, consider
 the attacker state
@@ -1726,6 +1791,64 @@ strategy-relative strengthening required here.  This is only the
 $C_p,O_x$ branch, not a proof that $O_x$ handles every earlier sibling.  It
 identifies the exact dummy/rotated-queue endpoint which the offset ladder must
 couple to the short (B$'$) cap.
+
+There is an exact dual form of this obstruction.  It shows why deleting the
+Euler front does not give an induction on smaller Euler graphs.
+
+\begin{proposition}[boundary-charged front quotient]
+\label{prop:boundary-charged-front}
+\PROVED{} Let $L=\{f\}\sqcup A$, let $B$ be an Euler graph on $L$, put
+$K=B|_A$, and define $p_i=B(fi)$.  Then
+\begin{equation}\label{eq:boundary-charged-front}
+ p=\partial K,
+ \qquad
+ \langle B,z\rangle=\langle K,T_fz\rangle
+ \quad(z\in E(L)).
+\end{equation}
+Thus front deletion replaces the Euler separator by the arbitrary graph $K$
+with a ghost front $f$ whose CLOSE charge against $U\subseteq A$ is
+$p(U)$.  Re-basing at a later real front $r$ updates the boundary to
+\[
+ p'_i=p_i+K(ri)=\partial(K-r)_i.
+\]
+The resulting ghost recursion closes only by retaining the neutral and
+target force sets at arbitrary ordinary FIFO states of $K$.
+\end{proposition}
+
+\begin{proof}
+Eulerianity at $i\in A$ gives
+\[
+ p_i=B(fi)=\sum_{j\in A-\{i\}}K(ij)=(\partial K)_i.
+\]
+On expanding $\langle K,T_fz\rangle$, the coefficient of $z_{ij}$ is
+$K(ij)=B(ij)$, while the coefficient of $z_{fi}$ is
+$\sum_{j\ne i}K(ij)=p_i=B(fi)$.  This proves
+\eqref{eq:boundary-charged-front}.  If $f$ closes against $U$, its star pairs
+with $B$ as $p(U)$.  Deleting a subsequent front $r$ removes the $r$-row of
+$K$ and toggles the ghost boundary by that row, giving the displayed update.
+
+While the ghost remains front, a neutral player node is the disjunction of
+the zero-charge ghost CLOSE into the corresponding ordinary opponent state
+and all ghost-preserving OPEN children; at an opponent node the same clauses
+are conjunctive.  For a target force set the CLOSE clause is translated by
+$p(U)$, and OPEN clauses again take union at a player node and intersection at
+an opponent node.  Closing the ghost therefore calls the ordinary recursion
+at the same arbitrary ordered queue.  These equations are well founded in
+the usual FIFO rank, but they retain the complete ordinary Bellman table; they
+are not a smaller Euler-board hypothesis.
+\end{proof}
+
+The need for the full ordinary exit data is real, not a weakness of the
+formulation.  On the graph with sole edge $02$, the ordinary state
+\[
+ U=\{2,3\},\qquad Q=(0,1),\qquad\mathsf{ko}=0
+\]
+is unsafe for the zero target: the attacker closes $0$, scores one, and
+deletes the only edge which could change the score later.  Its empty root with
+an isolated dummy is nevertheless safe.  Hence a blanket safety assertion on
+the transition-closed quotient class is false.  Enlarging the charged-ghost
+induction enough to describe every ordinary exit restores precisely the
+continuation cosets in $M_h$; it does not bypass their correlated incidence.
 
 There is a tempting sharper strategy-theoretic subtarget inside the scalar
 part.  Say
@@ -4952,8 +5075,11 @@ The following claims have different status and should not be flattened.
       strategy-tree charged-close/neutral-tail extraction, the resulting
       dual-minimum neutral fan and unconditional (B) Eulerian consequence,
       the exclusion of an immediate
-      off-spine unit close, the sharp reachable neutral (B$'$) cap, and the
-      both-seat star-plus-dummy root strategy, are
+      off-spine unit close, the sharp reachable neutral (B$'$) cap, the
+      both-seat star-plus-dummy root strategy, the relative live-star
+      incidence and its two-bit joint-obstruction reduction, the sharp
+      response-tree-local failure of that joint coefficient, and the exact
+      boundary-charged front quotient, are
       complete proofs in this note.
       The dummy-free conditioned close-first theorem, its absolute-target
       strategy semantics, and its whole-queue drain base are additionally
