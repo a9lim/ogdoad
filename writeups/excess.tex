@@ -35,7 +35,7 @@
 \title{Finite excess in transfinite nim multiplication\\
 \large Exact reductions, order bounds, and the \(0/1/4\) frontier}
 \author{a9lim}
-\date{July 2026}
+\date{August 2026}
 
 \begin{document}
 \maketitle
@@ -102,7 +102,13 @@ constraints are realized by nonselected cosets.
 The cubic simple-zero derivative regulator is
 \(\lambda_k^{3^k}/3\); its reduction is \(\gamma_k^{3^k}\), so both it
 and its relative norm-one quotient carry exactly the original unknown
-Kummer class.  A cyclic group-algebra reduction sharpens cubic failure to
+Kummer class.  The unique current ray character has residue module
+\(\mathcal O/(2-\vartheta)\): its Euler factor is forced to vanish, and
+the circular unit maps to the same coefficient \(L(1)\).  A real
+cyclotomic descent expresses the characteristic-zero resultant as a square
+and turns failure into divisibility by \(2^{2\cdot3^k}\); an exact
+second-row norm disproves the hoped-for archimedean size bound.  A cyclic
+group-algebra reduction sharpens cubic failure to
 one exact subset-sum parity pattern: every residue occurs oddly except one.
 After normalization inside the augmentation ideal, this is an extra
 proper-subproduct relation among Frobenius-conjugate units; the full product
@@ -128,10 +134,18 @@ primary factor above the corresponding threshold.  Exceptional failure
 is also equivalent to simultaneous first-order flatness of a complete
 mixed Jacobi family; a primitive Fourier calculation proves that this
 family has rank one and identifies its selected coefficient with the
-antiunit index \(\operatorname{ind}_\ell(d_k)\).  Failure is also
+antiunit index \(\operatorname{ind}_\ell(d_k)\).  The wild local
+coefficient of that antiunit is an explicit finite truncated logarithm;
+the critical norm-residue pairing with the weighted Jacobi selector is
+homogeneous in the same unknown index.  Failure is also
 equivalent to an exact complementary binary-submask parity pattern modulo
 \(15\cdot3^k\).  Raising that parity identity to the
-\(\ell\)-th power is again unconditional.  A half-block factorization makes
+\(\ell\)-th power is again unconditional.  The cubic and exceptional
+failure words generate the ordinary single-parity-check code and are
+complements of singleton difference sets, so cyclic-code, uncertainty,
+and design bounds admit them exactly.  Higher two-adic lifts add no odd
+Kummer obstruction because their principal-unit groups are uniquely
+\(\ell\)-divisible.  A half-block factorization makes
 the parity identity a quadratic norm equation.  Its fixed-residue
 pushforward is automatic, and the remaining selected residue symbol is
 nontrivial exactly when one explicit relative trace is nonzero.  Parallel partition
@@ -249,7 +263,7 @@ present frontier is summarized below; finite certifications are listed
 separately in Appendix~\ref{sec:provenance}.
 
 \begin{center}
-\small
+\footnotesize
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{>{\raggedright\arraybackslash}p{0.07\linewidth}
                 >{\raggedright\arraybackslash}p{0.25\linewidth}
@@ -277,7 +291,8 @@ primary factors \\
 \((C)\) &
 \(\gamma_k\) primitive &
 proof for \(k\leq3\); partition order bounds; exact derivative
-regulator, reciprocity boundary, cyclic-parity obstruction, and
+regulator, exceptional ray-character quotient, real-square resultant,
+reciprocity boundary, cyclic-parity obstruction, and
 augmentation-ideal and block normalization; Singer--Wendt factorization
 and selected \(S_3\)-trace quotient; reciprocal order seam and
 prescribed-trace character boundary &
@@ -287,11 +302,13 @@ factors \\
 \(\Psi_k\mid\ord(M_k)\) &
 exact current-factor criterion; projection and antiunit partition
 bounds; equivalent polynomial, character, Jacobi-flatness, and
-binary cyclic-parity formulations; half-block norm, selected-trace form,
+binary cyclic-parity formulations; common code/design and higher
+two-adic no-go; half-block norm, selected-trace form,
 selected reciprocal-sextic/Dickson factorization, universal cubic-shape
 no-go, universal Hasse jets through degree five, the \(Q/2-1\)-fold
 nonuniqueness of the depressed Gaussian class, selected absolute-trace
 fingerprint, the rank-one top-Jacobi/antiunit-regulator collapse, and the
+explicit wild truncated-log regulator, together with the
 constant-extension line criterion with
 \(m_\ell<16(3^k)^4\) &
 nonvanishing of the selected antiunit index
@@ -979,7 +996,7 @@ gives
 After clearing denominators, the two sides of
 \((\mathsf{MC}_{20})\) are products of the linear polynomials
 \[
- \zeta^jX+c,qquad \zeta^jX+c'\qquad(0\leq j<r)
+ \zeta^jX+c,\qquad \zeta^jX+c'\qquad(0\leq j<r)
 \]
 over \(B\), each of degree
 \[
@@ -3116,6 +3133,115 @@ coboundary $\tau(c_k)/c_k$ telescopes to $1$.  Modulo $2$ it is
 $\gamma_k^q/\gamma_k=\eta_k$.
 \end{proof}
 
+\begin{proposition}[the exceptional residue character is the Kummer regulator]
+\label{prop:cubic-ray-exceptional-character}
+Retain Proposition~\ref{prop:circular-ray}, and put
+\[
+ n=3^k,\qquad M=2^n-1,\qquad
+ A=(\mathcal O_{F_k}/\mathfrak p_k)^\times,
+ \qquad \Delta=\langle\sigma\rangle.
+\]
+Let \(\ell\mid\Phi_n(2)\), let \(\mathcal O\) be the ring of integers
+of an unramified extension of \(\mathbb Q_\ell\) containing \(\mu_n\),
+and let \(\lambda\) be its maximal ideal.  There is a unique
+\(\vartheta\in\mu_n(\mathcal O)\) such that
+\(\vartheta\equiv2\pmod\lambda\).  In additive exponent notation, the
+corresponding character quotient of the residue module is
+\[
+ A_\vartheta
+ :=\frac{A\otimes_{\mathbb Z}\mathcal O}
+          {(\sigma-\vartheta)(A\otimes_{\mathbb Z}\mathcal O)}
+ \simeq \frac{\mathcal O}{(2-\vartheta)}.             \tag{\(\mathsf{RC}_1\)}
+\]
+Moreover
+\[
+ v_\lambda(2-\vartheta)
+ =v_\ell(2^n-1)=v_\ell(\Phi_n(2)).                  \tag{\(\mathsf{RC}_2\)}
+\]
+Thus the local ray determinant has a forced zero at every current
+prime; it can never prove the cubic arm by being an \(\ell\)-adic unit.
+
+Choose a generator \(g_0\) of \(A\), write
+\(\gamma_k=g_0^{e_k}\), and let \(R_\vartheta\) be the class of
+\(e_k\) in the right side of \((\mathsf{RC}_1)\).  Then
+\[
+ (A/\overline{\mathcal C_k})_\vartheta
+ \simeq
+ \frac{\mathcal O}{(2-\vartheta,R_\vartheta)},       \tag{\(\mathsf{RC}_3\)}
+\]
+and, with the compatible generator used in
+Proposition~\ref{prop:cubic-mixed-jacobi-top},
+\[
+ R_\vartheta\equiv L(1)\pmod\lambda.                \tag{\(\mathsf{RC}_4\)}
+\]
+Consequently
+\[
+ \begin{split}
+ \ell\nmid[A:\overline{\mathcal C_k}]
+ &\iff R_\vartheta\not\equiv0\pmod\lambda\\
+ &\iff L(1)\ne0
+ \iff \gamma_k\notin A^\ell.
+ \end{split}
+ \tag{\(\mathsf{RC}_5\)}
+\]
+The exceptional ray-class regulator is therefore exactly the selected
+Kummer coordinate, rather than an independent class-number factor.
+\end{proposition}
+
+\begin{proof}
+The cyclotomic-divisor criterion gives
+\(\operatorname{ord}_\ell(2)=n\); in particular \(\ell\nmid n\).
+The residue class of two is consequently a simple root of
+\(X^n-1\) modulo \(\ell\), and Hensel lifting gives the unique
+\(\vartheta\).  The exponent map identifies the
+\(\mathbb Z[\Delta]\)-module \(A\) with
+\(\mathbb Z/M\mathbb Z\), on which \(\sigma\) acts as multiplication
+by two.  It follows immediately that
+\[
+ A_\vartheta\simeq\mathcal O/(M,2-\vartheta).
+\]
+In \(\mathcal O\) one has
+\[
+ M=2^n-1=\prod_{\zeta\in\mu_n}(2-\zeta).
+\]
+Every factor except \(2-\vartheta\) is a unit modulo \(\lambda\).
+Hence \((M)=(2-\vartheta)\), which proves
+\((\mathsf{RC}_1)\)--\((\mathsf{RC}_2)\); the last equality in
+\((\mathsf{RC}_2)\) again uses
+\(\operatorname{ord}_\ell(2)=n\).
+
+Proposition~\ref{prop:circular-ray} gives
+\(\overline{\mathcal C_k}=\langle\gamma_k\rangle\).
+Passing to the \(\vartheta\)-quotient therefore adds the single relation
+\(e_k=0\), proving \((\mathsf{RC}_3)\).
+For the final identification, use the generator \(g\) of
+\(\mathbb F_{2^{2n}}^\times\) from
+Proposition~\ref{prop:cubic-mixed-jacobi-top} and take
+\(g_0=g^{2^n+1}\).  If \(z=g^{(2^{2n}-1)/(3n)}\), then
+\[
+ \gamma_k=z^{-1}(1+z)^2.
+\]
+The \(3n\)-torsion factor has zero \(\ell\)-index, while
+\(2^n+1\equiv2\pmod\ell\).  Comparing exponents relative to \(g\)
+and \(g_0\) gives \(e_k\equiv L(1)\pmod\ell\), which is
+\((\mathsf{RC}_4)\).  The equivalences in \((\mathsf{RC}_5)\) now
+follow from cyclicity of \(A\).
+\end{proof}
+
+\begin{remark}[what the ray-class Gras theorem does and does not say]
+All's local presentation~\cite[Cor.~2.4]{All17}, specialized to the
+inert rational prime two, is the group-ring form of
+\((\mathsf{RC}_1)\).  His ray-class Gras theorem~\cite[Thm.~1.2]{All17}
+applies here because \(\ell\nmid2|\Delta|\), but it compares the
+Schmidt group of \(2\)-cyclotomic units congruent to one modulo two
+with the corresponding nontrivial ray-class component.  It does not
+identify that group with the reduction of the ordinary circular units
+in Proposition~\ref{prop:circular-ray}, and it supplies no
+nonvanishing of \(R_\vartheta\).  The elementary calculation above is
+the required specialization: the known Euler factor vanishes, and its
+remaining circular-unit regulator is precisely \(L(1)\).
+\end{remark}
+
 \begin{proposition}[the circular-unit circulant is residue-invisible]
 \label{prop:cubic-circulant-no-go}
 Retain Proposition~\ref{prop:circular-ray}, put
@@ -4454,6 +4580,136 @@ Proposition~\ref{prop:cubic-mixed-jacobi-top} gives
 \(C_1=G_1L(1)\) with \(G_1\ne0\), proving the remaining assertions.
 \end{proof}
 
+\begin{proposition}[real square resultant and the failed size strategy]
+\label{prop:cubic-real-resultant}
+Retain Corollary~\ref{cor:cubic-jacobi-current-projection}, and put
+\[
+ K=\mathbb Q(\zeta_m),\qquad K^+=\mathbb Q(\zeta_m+\zeta_m^{-1}),
+ \qquad s=\frac{m+1}{2},
+\]
+\[
+ \beta=\zeta_m^{-s}(1+\zeta_m),\qquad
+ x=\zeta_m^{-r}(1+\zeta_m)^t=\beta^t.
+\]
+Then \(\beta,x\in K^+\), and
+\[
+ \Norm_{K^+/\mathbb Q}(\beta)
+ =\Norm_{K^+/\mathbb Q}(x)=-1.                    \tag{\(\mathsf{RN}_1\)}
+\]
+Let \(F_m(Y)\) be the degree-\(n\) minimal polynomial of \(\beta\),
+and set
+\[
+ A_{k,\ell}=\Norm_{K^+/\mathbb Q}(x-1).
+\]
+Up to the standard harmless sign convention for the first resultant,
+\[
+ A_{k,\ell}=\operatorname{Res}(F_m(Y),Y^t-1),        \tag{\(\mathsf{RN}_2\)}
+\]
+while the full cyclotomic resultant is the exact square
+\[
+ \operatorname{Res}\!\left(
+   \Phi_m(X),(1+X)^t-X^r
+ \right)=A_{k,\ell}^{\,2}.                          \tag{\(\mathsf{RN}_3\)}
+\]
+
+The prime two is inert in \(K^+\), with residue degree \(n\).  If
+\(\Theta\) is the selected phase in \((\mathsf{CJ}_1)\), then
+\[
+ \begin{split}
+ \Theta=1
+ &\iff x\equiv1\pmod{(2)}\\
+ &\iff 2^n\mid A_{k,\ell}\\
+ &\iff 2^{2n}\mid
+ \operatorname{Res}\!\left(
+   \Phi_m(X),(1+X)^t-X^r
+ \right).
+ \end{split}
+ \tag{\(\mathsf{RN}_4\)}
+\]
+Thus a bound \(0<|A_{k,\ell}|<2^n\) would prove the cubic arm.
+That proposed mechanism is false already in the second row.  For
+\[
+ k=2,\qquad n=9,\qquad m=27,\qquad \ell=73,\qquad t=7,\qquad r=17,
+\]
+one has
+\[
+ F_{27}(Y)=Y^9-9Y^7+27Y^5-30Y^3+9Y+1
+\]
+and the exact resultant
+\[
+ |A_{2,73}|=567780193>2^9,                            \tag{\(\mathsf{RN}_5\)}
+\]
+so the full resultant is \(567780193^2\).  Real descent and unit norm
+therefore sharpen failure to an inert-prime divisibility statement,
+but do not yield an archimedean contradiction; proving that
+\(A_{k,\ell}\) is odd is exactly the original selected residue test.
+\end{proposition}
+
+\begin{proof}
+Since \(2s\equiv1\pmod m\),
+\[
+ \overline\beta
+ =\zeta_m^s(1+\zeta_m^{-1})
+ =\zeta_m^{s-1}(1+\zeta_m)=\beta.
+\]
+For representatives \(1\leq a<m/2\), \(3\nmid a\), of the real
+embeddings,
+\[
+ \sigma_a(\beta)=(-1)^a\,2\cos(\pi a/m).           \tag{\(\mathsf{RN}_6\)}
+\]
+These values are distinct, so \(\beta\) generates \(K^+\).  The
+number of odd representatives is
+\((n+(-1)^k)/2\), which is odd because
+\(3^k\equiv(-1)^k\pmod4\).  Equation
+\((\mathsf{RN}_6)\) proves the first equality in
+\((\mathsf{RN}_1)\).  The integer \(t\) is odd, proving the second.
+
+Taking the product of \(\beta^t-1\) over the real embeddings proves
+\((\mathsf{RN}_2)\).  Since \(x-1\in K^+\), its norm from \(K\) is
+the square of its real norm.  Multiplication by \(\zeta_m^r\) does not
+change the full rational norm, and this gives \((\mathsf{RN}_3)\).
+
+The order identities
+\[
+ \operatorname{ord}_m(2)=2n,\qquad 2^n\equiv-1\pmod m
+\]
+show that two is inert in \(K\) and in \(K^+\), of residue degrees
+\(2n\) and \(n\), respectively.  Thus for the unique prime
+\(\mathfrak p\mid2\) in \(K^+\),
+\[
+ v_2(A_{k,\ell})=n\,v_{\mathfrak p}(x-1).
+\]
+The reduction of \(x\) is \(\Theta\), proving
+\((\mathsf{RN}_4)\).
+
+For the final exact obstruction, the displayed polynomial for
+\(F_{27}\) follows by separating the primitive-
+twenty-seven factor in the Dickson identity for
+\[
+ D_{27}(Y)-2=(Y-2)(Y+1)^2(Y^3-3Y+1)^2F_{27}(Y)^2.
+\]
+Reducing \(F_{27}\) modulo \(Y^7-1\) gives
+\[
+ 27Y^5-30Y^3+Y^2+9Y-8.
+\]
+The determinant of multiplication by this element on
+\(\mathbb Z[Y]/(Y^7-1)\) is
+\[
+\det\!\begin{pmatrix}
+-8&0&27&0&-30&1&9\\
+9&-8&0&27&0&-30&1\\
+1&9&-8&0&27&0&-30\\
+-30&1&9&-8&0&27&0\\
+0&-30&1&9&-8&0&27\\
+27&0&-30&1&9&-8&0\\
+0&27&0&-30&1&9&-8
+\end{pmatrix}
+=-567780193.
+\]
+This proves \((\mathsf{RN}_5)\).  Squaring and using
+\((\mathsf{RN}_3)\) gives the stated full resultant.
+\end{proof}
+
 \begin{proposition}[cyclic parity form of the cubic obstruction]
 \label{prop:cubic-cyclic-parity}
 Put \(n=3^k\), \(m=3n\), with \(k\geq1\), and let the prime
@@ -5385,7 +5641,12 @@ argument proves \(C_k\) analytically for \(k\leq3\), and
 Proposition~\ref{prop:cubic-partitions} proves the required primary
 order above an explicit partition threshold at every level.  The
 remaining task is the selected Kummer-class nonvanishing at the smaller
-new primary factors.  Finite order checks, their factorization
+new primary factors.  Propositions~\ref{prop:cubic-ray-exceptional-character}
+and~\ref{prop:cubic-real-resultant} show respectively that the current
+ray Euler factor has a forced simple zero whose circular-unit regulator is
+exactly \(L(1)\), and that the real norm criterion has no viable size
+bound.  Proposition~\ref{prop:parity-code-no-go} rules out a generic
+cyclic-code or difference-set contradiction.  Finite order checks, their factorization
 dependencies, and the distinction between local certificates and
 external primality records are isolated in
 Appendix~\ref{sec:cubic-evidence}.  Proposition~\ref{prop:cubic-coleman-exceptional-zero}
@@ -9345,6 +9606,109 @@ trivial under the quadratic character modulo five, so both factors of
 follow because four and \(G_1\) are nonzero modulo \(\ell\).
 \end{proof}
 
+\begin{proposition}[the wild regulator is explicit but homogeneous]
+\label{prop:dk-wild-regulator-no-go}
+Retain Proposition~\ref{prop:dk-jacobi-top}.  Let
+\(K_0/\mathbb Q_\ell\) be the unramified extension of degree
+\(f=\operatorname{ord}_M(\ell)\) containing \(\mu_M\), with residue
+field \(k_0\),
+and for an unramified unit \(y\)
+define
+\[
+ q_\ell(y)=\frac{y^{\ell^f-1}-1}{\ell}\pmod\ell.
+\]
+For \(\tau\in\mu_M\setminus\{1\}\), one has the finite truncated-log
+formula
+\[
+ q_\ell(1-\tau)
+ =-\frac1{1-\tau}
+   \sum_{a=1}^{\ell-1}
+    \frac{\tau^{a\ell^{f-1}}}{a}                    \tag{\(\mathsf{WL}_1\)}
+\]
+in the residue field.  For the characteristic-zero antiunit
+\(d_k=E_1/E_2\) of \((\mathsf{DJ}_5)\), put
+\[
+ \begin{split}
+ A_d={}&q_\ell(1-\alpha\beta)
+       +q_\ell(1-\alpha\beta^{-1})\\
+      &-q_\ell(1-\alpha\beta^2)
+       -q_\ell(1-\alpha\beta^{-2}).
+ \end{split}
+ \tag{\(\mathsf{WL}_2\)}
+\]
+If \([\overline d_k]\) is its Teichm\"uller part, then
+\[
+ d_k=[\overline d_k]
+       \bigl(1-\ell A_d+O(\ell^2)\bigr).             \tag{\(\mathsf{WL}_3\)}
+\]
+
+Now pass to \(K=K_0(\zeta_\ell)\), with
+\(\pi=\zeta_\ell-1\).  For a mixed local selector
+\[
+ w=[\overline w](1+\pi B_w+O(\pi^2)),
+\]
+the critical explicit norm-residue formula has the form
+\[
+ (d_k,w)_{K,\ell}
+ =\zeta_\ell^{
+   \operatorname{Tr}_{k_0/\mathbb F_\ell}
+       (c_\ell A_dB_w)},                             \tag{\(\mathsf{WL}_4\)}
+\]
+where \(c_\ell\) is a nonzero scalar depending only on the
+uniformizer normalization.  Base-field selectors have \(B_w=0\).
+For the canonical weighted Jacobi resolvent
+\[
+ \mathcal R_\lambda
+ =\prod_{j\in(\mathbb Z/M\mathbb Z)^\times}(-J_j)^{w_j},
+ \qquad w_j\equiv\lambda(j)\pmod\ell,
+\]
+one has
+\[
+ B_w=-8hC_1=-8hG_1L(1),
+ \qquad \operatorname{ind}_\ell(d_k)=4L(1).          \tag{\(\mathsf{WL}_5\)}
+\]
+Thus the wild pairing with the only canonical selector that isolates the
+exceptional character is homogeneous in the still-unknown \(L(1)\).
+When exceptional failure holds, both the selected Kummer symbol and the
+critical wild term are one.  Explicit wild reciprocity therefore computes
+the local regulator \(A_d\), but does not force
+\(\operatorname{ind}_\ell(d_k)\ne0\).
+\end{proposition}
+
+\begin{proof}
+Because \(\tau^{\ell^f}=\tau\), expand
+\((1-\tau)^{\ell^f}-(1-\tau)\) modulo \(\ell^2\).
+The only interior binomial coefficients of valuation one have indices
+\(a\ell^{f-1}\), \(1\leq a<\ell\), and
+\[
+ \frac1\ell\binom{\ell^f}{a\ell^{f-1}}
+ \equiv\frac{(-1)^{a-1}}a\pmod\ell.
+\]
+Since \(\ell^{f-1}\) is odd, multiplication by
+\((-\tau)^{a\ell^{f-1}}\), followed by division by \(1-\tau\),
+proves \((\mathsf{WL}_1)\).  The Fermat quotient is additive on
+products and subtractive on quotients modulo \(\ell\), which gives
+\((\mathsf{WL}_2)\).  If
+\(d_k=[\overline d_k](1+\ell c+O(\ell^2))\), then
+\(\ell^f-1\equiv-1\pmod\ell\), so
+\(q_\ell(d_k)=-c\); this proves \((\mathsf{WL}_3)\).
+
+In \(K\), the first entry of the pairing lies in
+\(U_{\ell-1}\) and the second in \(U_1\).  The critical case of
+Iwasawa's explicit norm-residue formula~\cite{Iwasawa68} is the
+nondegenerate residue pairing \((\mathsf{WL}_4)\); the unit converting
+\(\ell\) to \(\pi^{\ell-1}\) is absorbed into \(c_\ell\).
+Finally, first-order expansion of the displayed weighted product and
+\((\mathsf{DJ}_2)\) give
+\[
+ \mathcal R_\lambda
+ \equiv1-\pi\sum_{j\in U}\lambda(j)C_j
+ =1-8h\pi C_1\pmod{\pi^2}.
+\]
+Equation \((\mathsf{DJ}_5)\) supplies the second identity in
+\((\mathsf{WL}_5)\), completing the proof.
+\end{proof}
+
 \begin{proposition}[binary cyclic-parity form of exceptional failure]
 \label{prop:dk-cyclic-parity}
 Retain Proposition~\ref{prop:dk-jacobi-flatness}, set
@@ -9402,6 +9766,111 @@ so cyclic reduction proves the submask-parity formulation.  Finally
 at \(X=1\) both sides vanish, while at every other \(M\)-th root
 \(\xi\in\mathbb F_Q\), Fermat gives
 \((1+\xi)^{Q-1}=1\).  Squarefree interpolation completes the proof.
+\end{proof}
+
+\begin{proposition}[single-deletion words exhaust the code and design bounds]
+\label{prop:parity-code-no-go}
+Let \(m\) be odd and put
+\[
+ A_m=\mathbb F_2[X]/(X^m-1),\qquad
+ J_m=1+X+\cdots+X^{m-1},\qquad v_r=J_m+X^r.
+\]
+Then
+\[
+ v_r=X^r(1+J_m),\qquad
+ \operatorname{supp}(v_r)=\mathbb Z/m\mathbb Z\setminus\{r\},
+                                                               \tag{\(\mathsf{CD}_1\)}
+\]
+and, at the \(m\)-th roots in a splitting field,
+\[
+ v_r(1)=0,\qquad v_r(\xi)=\xi^r\quad(\xi\ne1).       \tag{\(\mathsf{CD}_2\)}
+\]
+Consequently
+\[
+ \gcd(v_r,X^m-1)=X+1,                                \tag{\(\mathsf{CD}_3\)}
+\]
+so the cyclic code generated by \(v_r\) is exactly the binary
+single-parity-check code \([m,m-1,2]\).  Its coefficient support and
+its finite-field Fourier support both have size \(m-1\).
+
+The same support is the trivial cyclic difference set
+\[
+ (m,m-1,m-2),                                        \tag{\(\mathsf{CD}_4\)}
+\]
+whose nontrivial complex character sums have squared absolute value
+one.  Adding the exceptional monomial gives
+\[
+ v_r+X^r=J_m,                                        \tag{\(\mathsf{CD}_5\)}
+\]
+the generator of the repetition code, whose Fourier support has size
+one.
+
+Under cubic failure, Proposition~\ref{prop:cubic-cyclic-parity} gives
+the word \(v_r\); under exceptional failure,
+Proposition~\ref{prop:dk-cyclic-parity} gives \(v_0\).  Hence cyclic
+distance bounds, support-uncertainty inequalities, ordinary
+difference-set multiplier conditions, and character-magnitude
+conditions all admit the two failure patterns exactly.  After
+\((\mathsf{CD}_5)\), the associated vanishing sum is merely the full
+regular polygon \(J_m(\zeta)=0\), which decomposes through the proper
+conductor primes.  These methods discard the same primitive CRT
+coordinate isolated in \((\mathsf{CP}_7)\) and
+\((\mathsf{DP}_1)\).
+\end{proposition}
+
+\begin{proof}
+Translation fixes \(J_m\), so
+\(X^r(1+J_m)=X^r+J_m=v_r\), proving
+\((\mathsf{CD}_1)\).  Since \(m\) is odd,
+\(J_m(1)=1\) in characteristic two, while
+\(J_m(\xi)=0\) for every nonidentity \(m\)-th root.  This proves
+\((\mathsf{CD}_2)\).  The polynomial \(X^m-1\) is squarefree, so
+one is the only common root and \((\mathsf{CD}_3)\) follows.  The
+ideal generated by \(X+1\) is the even-weight code, giving the stated
+parameters.
+
+Every nonzero group element has exactly \(m-2\) representations as a
+difference of two elements outside a fixed singleton.  This proves
+\((\mathsf{CD}_4)\); equivalently, a nontrivial complex character has
+sum \(-\chi(r)\) over the support.  Equation \((\mathsf{CD}_5)\) is
+immediate.  The two applications are exactly
+\((\mathsf{CP}_3)\) and \((\mathsf{DP}_1)\).
+\end{proof}
+
+\begin{proposition}[higher two-adic lifts carry no odd Kummer obstruction]
+\label{prop:two-adic-kummer-no-go}
+Let \(\mathcal O\) be the ring of integers of a finite unramified
+extension of \(\mathbb Q_2\), with residue field \(K\), and let
+\(\ell\) be odd.  Then
+\[
+ 1+2\mathcal O\longrightarrow1+2\mathcal O,
+ \qquad x\longmapsto x^\ell                         \tag{\(\mathsf{2K}_1\)}
+\]
+is an automorphism.  Under the Teichm\"uller splitting
+\[
+ \mathcal O^\times=[K^\times]\times(1+2\mathcal O), \tag{\(\mathsf{2K}_2\)}
+\]
+a unit is therefore an \(\ell\)-th power exactly when its residue in
+\(K^\times\) is an \(\ell\)-th power.
+
+The statement applies coordinatewise to the unramified lift of
+\(\mathbb F_2[C_m]\) for odd \(m\), because that group algebra is
+squarefree and hence a product of finite fields.  Consequently
+modulo-four, modulo-eight, and higher carry refinements of the cubic or
+exceptional parity identities cannot supply an independent obstruction:
+the principal-unit lift is uniquely \(\ell\)-divisible once the
+selected residue Kummer coordinate is fixed.  The same conclusion
+applies to the Fermat and ordinary arms.
+\end{proposition}
+
+\begin{proof}
+For \(u\in1+2\mathcal O\), the polynomial \(Y^\ell-u\) has the root
+one modulo two and derivative \(\ell Y^{\ell-1}\), which is a unit.
+Hensel's lemma gives a unique root in \(1+2\mathcal O\).  Thus
+\((\mathsf{2K}_1)\) is bijective.  The standard Teichm\"uller
+decomposition gives \((\mathsf{2K}_2)\) and the power criterion.  The
+coordinatewise assertion follows from the squarefreeness of
+\(X^m-1\) in characteristic two when \(m\) is odd.
 \end{proof}
 
 \begin{proposition}[exceptional half-block norm and its automatic symmetries]
@@ -11260,9 +11729,14 @@ current-level factor $\Psi_k$ in its order.  The projection and
 partition-regulator theorems settle explicit large primary factors,
 while the translated-binomial, semiprimitive, Dirichlet, Dickson, and
 norm calculations prove that the remaining smaller factors survive all
-present generic criteria.  What remains is an arithmetic evaluation of
-this distinguished cyclotomic Kummer class, not a further degree or norm
-identity.
+present generic criteria.  What remains is the single arithmetic
+evaluation \(\operatorname{ind}_\ell(d_k)\ne0\).  The explicit wild
+regulator in Proposition~\ref{prop:dk-wild-regulator-no-go} and the
+code/design and two-adic lifting no-go results in
+Propositions~\ref{prop:parity-code-no-go} and
+\ref{prop:two-adic-kummer-no-go} show that neither a derived local symbol
+nor a higher lift supplies an independent value.  This is a distinguished
+cyclotomic Kummer-class problem, not a further degree or norm identity.
 
 \section{Consequences and exact frontier}\label{sec:bounded}
 
@@ -11769,6 +12243,9 @@ J.~Th\'eor. Nombres Bordeaux \textbf{33} (2021), 607--625;
 \bibitem{ASV10} O.~Ahmadi, I.~E.~Shparlinski, J.~F.~Voloch,
 \emph{Multiplicative order of Gauss periods}, Int.~J.~Number Theory
 \textbf{6} (2010), 877--882; arXiv:0707.4034.
+\bibitem{All17} T.~All, \emph{Gauss sums, Stickelberger's theorem and
+the Gras conjecture for ray class groups}, Acta Arith.\ \textbf{178}
+(2017), 273--299.
 \bibitem{Breuer21} F.~Breuer, \emph{Multiplicative orders of Gauss
 periods and the arithmetic of real quadratic fields}, Finite Fields
 Appl.\ \textbf{73} (2021), 101848.
