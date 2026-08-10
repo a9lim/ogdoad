@@ -87,7 +87,22 @@ of the exceptional `2·3^k` column:
   `(kappa+a)(kappa+a+1) = kappa²+kappa+(a²+a)`, specializing to
   `kappa²+kappa+omega`;
 - the exact cyclic-group and finite-field Euler-quotient criteria for being a
-  `p`-th power; and
+  `p`-th power, including the prime-order shortcut used at Fermat-prime levels
+  and the equivalence between maximal order and simultaneous non-`p`-power at
+  every prime divisor of the ambient cyclic-group order;
+- the full-primary quotient lemma behind the norm-blindness obstruction, and
+  the simple-zero theorem showing that the cubic norm discards the current
+  Kummer coordinate while its first transverse derivative survives;
+- the cubic arm's square-zero exceptional-residue calculation modulo `3n`,
+  including the distinguished lift `an - 1`; and
+- the denominator-free characteristic-two identity that depresses every
+  trace--constant Dickson cubic to an Artin--Schreier cubic;
+- the four-axis reciprocal-root factorization behind the theorem that a
+  trace--constant cubic with anisotropic quadratic lift lies on the smaller
+  (Q^2-Q+1) Dickson torus;
+- the characteristic-two algebra behind the singleton-even relative-trace
+  collision: Artin--Schreier additivity, the centered ratio identity, and the
+  exact fixed-field versus norm-one Mobius alternatives; and
 - the open target `DPrimeTarget M`, namely `Psi_k | orderOf (M k)` for every
   level.
 

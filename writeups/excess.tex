@@ -62,9 +62,10 @@ quotient.  This proves the zero arm outright at \(h=12\) and \(h=24\),
 where the quotient orders are prime.
 
 On an ordinary odd spine, the selected class is an explicit relative
-Hilbert--90 unit.  A signed conjugate-ball argument gives an unconditional
-order lower bound $B_r^{\pm}$ and proves every primary factor
-$p>\mathcal L_{r,a}/B_r^{\pm}$.  For the first source-pinned safe-prime
+Hilbert--90 unit.  An absolute-Frobenius signed-ball argument gives the
+unconditional order lower bound $B_{r,a}^{\mathrm{abs},\pm}$, built from
+$r^ab/\ord_r(2)$ distinct linear sections, and proves every primary
+factor $p>\mathcal L_{r,a}/B_{r,a}^{\mathrm{abs},\pm}$.  For the first source-pinned safe-prime
 row lacking an independent analytical certificate, \(p=359\), we reduce
 the desired value exactly to one trace bit in
 $\F_{2^{179}}$ and identify the selected phase among $179$ resultant
@@ -125,8 +126,11 @@ regulator gives order at least
 $B_-(h)=\exp((\pi/(6\sqrt2)+o(1))\sqrt h)$ and proves every current
 primary factor above the corresponding threshold.  Exceptional failure
 is also equivalent to simultaneous first-order flatness of a complete
-mixed Jacobi family, and to an exact complementary binary-submask parity
-pattern modulo \(15\cdot3^k\).  Raising that parity identity to the
+mixed Jacobi family; a primitive Fourier calculation proves that this
+family has rank one and identifies its selected coefficient with the
+antiunit index \(\operatorname{ind}_\ell(d_k)\).  Failure is also
+equivalent to an exact complementary binary-submask parity pattern modulo
+\(15\cdot3^k\).  Raising that parity identity to the
 \(\ell\)-th power is again unconditional.  A half-block factorization makes
 the parity identity a quadratic norm equation.  Its fixed-residue
 pushforward is automatic, and the remaining selected residue symbol is
@@ -136,9 +140,11 @@ selected exceptional phase a root of an explicit reciprocal sextic, and
 failure is exactly divisibility of one named irreducible cubic by a Dickson
 polynomial whose complete factorization consists of cubic squares.  The
 ambient factorization contains many admissible cubics, and every such cubic
-has the same trace--constant shape as the selected one.  Two further
-absolute traces of its coefficients are explicit but yield no conflicting
-ambient identity, so the remaining
+has the same trace--constant shape as the selected one.  The first Hasse
+jets are universal, and a symbolic family of (Q/2-1) ambient factors has
+exactly the same affine depressed Gaussian equation as the selected cubic.
+Two further absolute traces of its coefficients are explicit but yield no
+conflicting ambient identity, so the remaining
 problem is exclusion of the recursively selected one.  The remaining small factors in these
 three order problems, and maximality of the zero-arm primitive quotient,
 are genuine distinguished-value nonvanishing statements not forced by
@@ -262,8 +268,8 @@ generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
 maximal primary projective order &
-transverse norm and relative-unit formulas; nontrivial order; signed
-conjugate-ball factor range; weighted-selector and mixed-Jacobi formulas;
+transverse norm and relative-unit formulas; nontrivial order; absolute-Frobenius
+signed-ball factor range; weighted-selector and mixed-Jacobi formulas;
 projective minimal polynomial and binary-section ancestry; tower-faithful
 common-section no-go &
 nondivisibility at the selected Conway polynomial for the remaining smaller
@@ -283,9 +289,13 @@ exact current-factor criterion; projection and antiunit partition
 bounds; equivalent polynomial, character, Jacobi-flatness, and
 binary cyclic-parity formulations; half-block norm, selected-trace form,
 selected reciprocal-sextic/Dickson factorization, universal cubic-shape
-no-go, and selected absolute-trace fingerprint &
-exclusion of the explicit selected cubic from the Dickson factor list at
-the remaining current factors \\
+no-go, universal Hasse jets through degree five, the \(Q/2-1\)-fold
+nonuniqueness of the depressed Gaussian class, selected absolute-trace
+fingerprint, the rank-one top-Jacobi/antiunit-regulator collapse, and the
+constant-extension line criterion with
+\(m_\ell<16(3^k)^4\) &
+nonvanishing of the selected antiunit index
+\(\operatorname{ind}_\ell(d_k)\) at the remaining current factors \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -878,9 +888,10 @@ class already means generation.  Finally
 holds at those two levels.
 \end{proof}
 
-\begin{remark}[the two-spine cross ratio and its present limit]
-\label{rem:two-spine-cross-ratio}
-Put \(q=2^{h/(2r)}\),
+\begin{proposition}[cyclic-variation sieve for the two-spine cross ratio]
+\label{prop:two-spine-cross-ratio-sieve}
+Retain the hypotheses and notation of
+Proposition~\ref{prop:fermat-two-spine-support}.  Put \(q=2^{h/(2r)}\),
 \(L_0=(q^r-1)(q+1)\), \(P=z^{L_0}\), and \(c'=c^q\).  The same
 Hilbert--90 calculation gives the exact representative
 \[
@@ -890,17 +901,115 @@ Hilbert--90 calculation gives the exact representative
         {(x+c)(\zeta x+c')},                          \tag{\(\mathsf{MC}_{14}\)}
 \]
 where \(x^q=\zeta x\) and \(\zeta\) is a primitive \(r\)-th root in
-\(J\).  This formula does not presently imply a nontrivial lower bound
-for \(\ord(P)\).  Indeed, in the natural subset-product comparison of
-its \(r\) conjugates, clearing a relation with cyclic differences
-\(\delta_j\) produces polynomials of degree
-\(\sum_j|\delta_j|\), which may be as large as \(2r-2\); it is not
-bounded by \(r-1\).  Since \(x\) has degree only \(r\) over \(B\),
-evaluation at \(x\) cannot then be promoted to a polynomial identity.
-Thus tensor rank proves nontriviality, but maximality of the composite
-quotient remains open.  We record \((\mathsf{MC}_{14})\) as an exact
-starting point, not as an order estimate.
-\end{remark}
+\(J\).  Set
+\[
+ R=\frac{r-1}{2},\qquad
+ \mathcal D_R=
+ \left\{\mathbf d\in\mathbb Z^r:
+   \sum_{j=0}^{r-1}d_j=0,\quad
+   \sum_{j=0}^{r-1}|d_j|\leq R\right\},
+ \qquad
+ B_r^{\mathrm{cyc}}=|\mathcal D_R|.                  \tag{\(\mathsf{MC}_{15}\)}
+\]
+Then
+\[
+ \ord(P)
+ =\ord\bigl(z(A^\times B^\times)\bigr)
+ \geq B_r^{\mathrm{cyc}}.                            \tag{\(\mathsf{MC}_{16}\)}
+\]
+In particular,
+\[
+ B_r^{\mathrm{cyc}}
+ \geq
+ \sum_{\substack{k\geq0\\2k\leq R}}
+   \binom r{2k}\binom{2k}k,                          \tag{\(\mathsf{MC}_{17}\)}
+\]
+so \(B_r^{\mathrm{cyc}}\geq1+r(r-1)\) for \(r\geq5\).
+Consequently, if a prime \(p\mid\Phi_h(2)\) satisfies
+\[
+ p>\frac{\Phi_h(2)}{B_r^{\mathrm{cyc}}},              \tag{\(\mathsf{MC}_{18}\)}
+\]
+then the class of \(z\) contains the full \(p\)-primary part of the
+primitive-support quotient.  This is an unconditional lower bound and
+large-prime sieve; it does not prove generation when the quotient is
+composite.
+\end{proposition}
+
+\begin{proof}
+The order equality in \((\mathsf{MC}_{16})\) follows first from the
+preceding proposition.  Indeed,
+\(|A^\times B^\times|=L_0\), and every prime divisor of
+\(\Phi_h(2)\) has exact order \(h\) for the base \(2\), so none divides
+\(L_0\).  Thus exponentiation by \(L_0\) kills the subgroup
+\(A^\times B^\times\) and is an automorphism on the quotient of order
+\(\Phi_h(2)\).  Also \(P^{\Phi_h(2)}=z^{|\mathbb F_{2^h}^\times|}=1\),
+so \(\langle P\rangle\) intersects \(A^\times B^\times\) trivially;
+projection to the quotient is injective on \(\langle P\rangle\).
+
+Index all subscripts modulo \(r\), and put
+\[
+ f_j=\frac{\zeta^jx+c'}{\zeta^jx+c},
+ \qquad P_j=\frac{f_j}{f_{j+1}}.
+\]
+Since \(c'=c^q\), \(c'{}^q=c\), and \(\zeta\in J=\mathbb F_q\), one has
+\[
+ f_j^q=f_{j+1}^{-1},
+ \qquad P_0=P,
+ \qquad P_j=P^{(-q)^j}.                              \tag{\(\mathsf{MC}_{19}\)}
+\]
+The last identity follows inductively from \(P_j^q=P_{j+1}^{-1}\).
+
+For \(\mathbf d\in\mathcal D_R\), there is a unique cyclic integer
+vector \(\mathbf e=(e_j)\) with \(e_0=0\) and
+\[
+ d_j=e_j-e_{j-1}.
+\]
+Map \(\mathbf d\) to
+\(W_{\mathbf d}=\prod_jP_j^{e_j}\).  By
+\((\mathsf{MC}_{19})\), every \(W_{\mathbf d}\) is a power of \(P\).
+We show that these powers are distinct.
+
+Suppose \(W_{\mathbf d}=W_{\mathbf d'}\), put
+\(g_j=e_j-e_j'\), and let
+\(\delta_j=g_j-g_{j-1}=d_j-d_j'\).  Telescoping the \(f_j\)-exponents
+gives
+\[
+ 1=\prod_jP_j^{g_j}=\prod_jf_j^{\delta_j}.            \tag{\(\mathsf{MC}_{20}\)}
+\]
+After clearing denominators, the two sides of
+\((\mathsf{MC}_{20})\) are products of the linear polynomials
+\[
+ \zeta^jX+c,qquad \zeta^jX+c'\qquad(0\leq j<r)
+\]
+over \(B\), each of degree
+\[
+ \sum_j|\delta_j|
+ \leq \sum_j|d_j|+\sum_j|d_j'|
+ \leq2R=r-1.
+\]
+Their values agree at \(x\).  Since \([B(x):B]=r\), the two polynomial
+products are therefore identical.
+
+The displayed \(2r\) linear factors are pairwise nonassociate.  This is
+clear within either family.  A cross-family association would give
+\(c'/c\in\mu_r\).  But
+\((c'/c)^{q+1}=1\), while \(r\mid q-1\) and \(r\) is odd, so
+\(\gcd(r,q+1)=1\); hence it would force \(c'=c\), contrary to
+\(c\in B\setminus J\).  Unique factorization now forces
+\(\boldsymbol\delta=0\).  Thus \(\mathbf g\) is constant, and
+\(g_0=0\) forces \(\mathbf g=0\), proving \(\mathbf d=\mathbf d'\).
+This proves the injection \(\mathcal D_R\hookrightarrow\langle P\rangle\)
+and hence \((\mathsf{MC}_{16})\).
+
+For \((\mathsf{MC}_{17})\), take the vectors with \(k\) entries equal
+to \(1\), \(k\) entries equal to \(-1\), and all other entries zero.
+There are \(\binom r{2k}\binom{2k}k\) of them and their
+\(\ell^1\)-norm is \(2k\).  Finally, write
+\(D=\ord(P)\mid\Phi_h(2)\).  If \(D\) lacked the full \(p\)-primary
+part, then \(D\mid\Phi_h(2)/p\), contradicting
+\((\mathsf{MC}_{16})\) under \((\mathsf{MC}_{18})\).  This proves the
+sieve.
+\end{proof}
 
 \begin{remark}[sharp boundary of the tensor argument]
 \label{rem:two-spine-tensor-boundary}
@@ -922,7 +1031,7 @@ quotient has order
  =
  \prod_{\substack{d_1\mid m,\ d_1>1\\
                    d_2\mid n,\ d_2>1}}
-       \Phi_{d_1d_2}(q).                              \tag{\(\mathsf{MC}_{18}\)}
+       \Phi_{d_1d_2}(q).                              \tag{\(\mathsf{MC}_{21}\)}
 \]
 The desired \(h=2^ar^b\) support occupies only the factor
 \(\Phi_{nr^b}(q)\).  Tensor nontriviality may instead be supported on a
@@ -1940,51 +2049,101 @@ has a prime divisor different from \(r\).  The final assertions follow
 from \((\mathsf P_4)\), with the stated full-valuation caveat.
 \end{proof}
 
-\begin{proposition}[signed conjugate-ball order sieve]
+\begin{proposition}[absolute-Frobenius signed-ball order sieve]
 \label{prop:singleton-conjugate-ball}
 Retain the notation of
 Proposition~\ref{prop:singleton-projective-spine}.  Put
 \[
- R=\frac{r-1}{2},\qquad
- B_r^{\pm}
+ t_r=\ord_r(2),\qquad
+ \nu_{r,a}=\frac{r^ab}{t_r},\qquad
+ R=\frac{r-1}{2},
+\]
+and define
+\[
+ B_{r,a}^{\mathrm{abs},\pm}
  =\sum_{u=0}^{R}\sum_{v=0}^{R}
    [X^uY^v]\!
-   \left(1+\frac{X}{1-X}+\frac{Y}{1-Y}\right)^r.        \tag{\(\mathsf{CS}_0\)}
+   \left(1+\frac{X}{1-X}+\frac{Y}{1-Y}\right)^{\nu_{r,a}}.
+                                                               \tag{\(\mathsf{CS}_0\)}
 \]
 Then
 \[
- d_{r,a}=\ord(y_aF_{a-1}^{\times})\geq B_r^{\pm}.       \tag{\(\mathsf{CS}_1\)}
+ d_{r,a}=\ord(y_aF_{a-1}^{\times})
+ \geq B_{r,a}^{\mathrm{abs},\pm}.                       \tag{\(\mathsf{CS}_1\)}
 \]
+Moreover \(\nu_{r,a}\geq r^a\).  Thus this contains the bound obtained
+from the \(r\) relative conjugates, is strictly stronger at every
+\(a>1\), and is also strictly stronger at \(a=1\) whenever \(b>t_r\).
+More explicitly, if $B_r^{\pm}$ denotes the same coefficient sum as
+\((\mathsf{CS}_0)\) with exponent $r$, then
+\[
+ B_{r,a}^{\mathrm{abs},\pm}
+ \geq B_r^{\pm}+2(\nu_{r,a}-r),\qquad
+ B_{r,a}^{\mathrm{abs},\pm}
+ \geq\binom{\nu_{r,a}}R\binom{\nu_{r,a}-R}R.          \tag{\(\mathsf{CS}_1'\)}
+\]
+The same construction gives a selected line-saturation statement.  Define
+\[
+ \mathcal C_{r,a}
+ =\left\{x_{a-1}^{(2^{t_rj}-1)/r}:0\leq j<\nu_{r,a}\right\}
+ \subset F_{a-1}^{\times}.
+\]
+Then $|\mathcal C_{r,a}|=\nu_{r,a}$, and failure at a primary factor
+$p$ forces
+\[
+ 1+cx_a\in(F_a^{\times})^p
+ \qquad\text{for every }c\in\mathcal C_{r,a}.          \tag{\(\mathsf{CS}_{\mathrm{sat}}\)}
+\]
+
 Consequently, if \(p\ne r\) divides \(\mathcal L_{r,a}\) and
 \[
- p>\frac{\mathcal L_{r,a}}{B_r^{\pm}},                   \tag{\(\mathsf{CS}_2\)}
+ p>\frac{\mathcal L_{r,a}}
+          {B_{r,a}^{\mathrm{abs},\pm}},                  \tag{\(\mathsf{CS}_2\)}
 \]
 then the Conway-selected \(p\)-th power-residue symbol is nontrivial and
 \[
  v_p(d_{r,a})=v_p(\mathcal L_{r,a}).                     \tag{\(\mathsf{CS}_3\)}
 \]
-Thus every prime factor above the explicit complementary threshold is
-proved in the ordinary arm, including its full primary valuation.
+Thus every prime factor above the sharper explicit complementary
+threshold is proved in the ordinary arm, including its full primary
+valuation.
 \end{proposition}
 
 \begin{proof}
-Write \(q_0=|F_{a-1}|\), let \(\sigma(z)=z^{q_0}\) generate
-\(\operatorname{Gal}(F_a/F_{a-1})\), and set
+Write \(D=r^ab=d(x_a)\), \(t=t_r\), and
+\(\nu=\nu_{r,a}=D/t\).  Since \(r^a\mid\ord(x_a)\), one has
+\(t\mid D\).  For \(0\leq j<\nu\), put
 \[
- \zeta=\frac{\sigma(x_a)}{x_a}.
+ n_j=\frac{2^{tj}-1}{r},\qquad
+ c_j=x_{a-1}^{n_j}\in F_{a-1}^{\times}.
 \]
-The Kummer equation \(x_a^r=x_{a-1}\) and the degree-\(r\) irreducibility
-show that \(\zeta\) is a primitive \(r\)-th root of unity.  Since
-\(r\mid q_0-1\), it belongs to \(F_{a-1}\), and
+The equation \(x_a^r=x_{a-1}\) gives the
+absolute-Frobenius linearization
 \[
- \sigma^j(y_a)=1+\zeta^j x_a\qquad(0\leq j<r).          \tag{\(\mathsf{CS}_4\)}
+ y_a^{2^{tj}}
+ =1+x_a^{2^{tj}}
+ =1+c_jx_a.                                           \tag{\(\mathsf{CS}_4\)}
+\]
+These \(\nu\) coefficients are pairwise distinct.  Indeed, if
+\(c_i=c_j\), then
+\(x_a^{2^{ti}}=x_a^{2^{tj}}\).  The absolute Frobenius orbit of
+\(x_a\) has exact length \(D\), so \(D\mid t(i-j)\).  Since
+\(0\leq i,j<D/t\), this forces \(i=j\).
+This proves the cardinality assertion for $\mathcal C_{r,a}$.  If
+$y_a=z^p$, then \((\mathsf{CS}_4)\) gives
+$1+c_jx_a=(z^{2^{tj}})^p$ for every $j$, proving
+\((\mathsf{CS}_{\mathrm{sat}})\).
+
+The relation \(r\mid2^b-1\) gives \(t_r\mid b\).  Hence
+\[
+ \nu_{r,a}=\frac{r^ab}{t_r}\geq r^a.                \tag{\(\mathsf{CS}_5\)}
 \]
 
-For \(\mathbf e=(e_0,\ldots,e_{r-1})\in\mathbb Z^r\), write
+For \(\mathbf e=(e_0,\ldots,e_{\nu-1})\in\mathbb Z^\nu\), write
 \(e_j^+=\max(e_j,0)\) and \(e_j^-=\max(-e_j,0)\), and consider
 \[
  \mathcal S_R
- =\left\{\mathbf e\in\mathbb Z^r:
+ =\left\{\mathbf e\in\mathbb Z^\nu:
           |\mathbf e^+|\leq R,\ |\mathbf e^-|\leq R\right\}.
 \]
 The single-coordinate generating series
@@ -1992,22 +2151,23 @@ The single-coordinate generating series
  1+X+X^2+\cdots+Y+Y^2+\cdots
  =1+\frac{X}{1-X}+\frac{Y}{1-Y}
 \]
-shows that \(|\mathcal S_R|=B_r^{\pm}\).
+shows that
+\(|\mathcal S_R|=B_{r,a}^{\mathrm{abs},\pm}\).
 
 For \(\mathbf e\in\mathcal S_R\), form the nonzero signed product
 \[
  Z_{\mathbf e}
- =\prod_{j=0}^{r-1}\sigma^j(y_a)^{e_j}\in F_a^\times.
+ =\prod_{j=0}^{\nu-1}(1+c_jx_a)^{e_j}\in F_a^\times.
 \]
 Suppose \(Z_{\mathbf e}\) and \(Z_{\mathbf f}\) represent the same class
 modulo \(F_{a-1}^{\times}\), and put
 \(\mathbf g=\mathbf e-\mathbf f\).  Then
 \[
- \prod_j(1+\zeta^jx_a)^{g_j^+}
- =c\prod_j(1+\zeta^jx_a)^{g_j^-}
- \quad\text{for some }c\in F_{a-1}^{\times}.             \tag{\(\mathsf{CS}_5\)}
+ \prod_j(1+c_jx_a)^{g_j^+}
+ =c\prod_j(1+c_jx_a)^{g_j^-}
+ \quad\text{for some }c\in F_{a-1}^{\times}.             \tag{\(\mathsf{CS}_6\)}
 \]
-The two polynomial products in \((\mathsf{CS}_5)\) have degrees at most
+The two polynomial products in \((\mathsf{CS}_6)\) have degrees at most
 \[
  |\mathbf g^+|
  \leq|\mathbf e^+|+|\mathbf f^-|
@@ -2016,18 +2176,25 @@ The two polynomial products in \((\mathsf{CS}_5)\) have degrees at most
 and the same bound holds for \(|\mathbf g^-|\).  Their difference
 therefore has degree less than \(r\), whereas \(x_a\) has degree \(r\)
 over \(F_{a-1}\); it must be the zero polynomial.  Both constant terms
-are one, so \(c=1\).  The linear factors \(1+\zeta^jX\) are pairwise
-distinct and normalized.  Unique factorization gives
+are one, so \(c=1\).  The normalized linear factors \(1+c_jX\) are
+pairwise distinct.  Unique factorization gives
 \(\mathbf g^+=\mathbf g^-\), hence \(\mathbf e=\mathbf f\).
 
-Negative powers cause no problem in the projective quotient:
+Finally, \((\mathsf{CS}_4)\) gives
 \[
  [Z_{\mathbf e}]
- =\prod_{j=0}^{r-1}[\sigma^j(y_a)]^{e_j}
- =[y_a]^{\sum_j e_jq_0^j}.
+ =\prod_{j=0}^{\nu-1}[y_a]^{e_j2^{tj}}
+ =[y_a]^{\sum_j e_j2^{tj}}.
 \]
-Thus the \(B_r^{\pm}\) elements of \(\mathcal S_R\) give distinct powers
-of the single class \([y_a]\), proving \((\mathsf{CS}_1)\).
+Thus the \(B_{r,a}^{\mathrm{abs},\pm}\) elements of \(\mathcal S_R\)
+give distinct powers of the single class \([y_a]\), proving
+\((\mathsf{CS}_1)\).  Embedding the old $r$-coordinate ball and then
+adding the two signed unit vectors on each new coordinate proves the
+first inequality in \((\mathsf{CS}_1')\).  Taking vectors with exactly
+$R$ entries $+1$, exactly $R$ disjoint entries $-1$, and all
+other entries zero proves the second.  In particular, strictness when
+\(\nu_{r,a}>r\) follows at once, and the preceding inequality for
+\(\nu_{r,a}\) gives the two stated sufficient conditions.
 
 If the selected \(p\)-th residue symbol were trivial, then \(y_a\) would
 be a \(p\)-th power in \(F_a\).  Since the full \(p\)-part of
@@ -2200,7 +2367,7 @@ its kernel is \((K^\times)^p\).  No element \(1+cv\), with
 \(c\in\mathbb F_q\), vanishes.  Character orthogonality gives
 \[
 \begin{split}
- N&:=\#\{c\in\mathbb F_q:1+cv\in(K^\times)^p\}\\
+  N&:=\#\{c\in\mathbb F_q:1+cv\in(K^\times)^p\}\\
   &=\frac1p\left(
       q+\sum_{j=1}^{p-1}\sum_{c\in\mathbb F_q}
                      \chi^j(1+cv)\right).
@@ -2551,7 +2718,8 @@ the safe-prime eigenline data alone cannot select the Conway phase.
 For each odd component prime \(r\ne3\), prove that the selected relative
 unit of Proposition~\ref{prop:singleton-relative-unit} has full primary
 order at every divisor of \(\mathcal L_{r,a}\).  The signed
-conjugate-ball theorem proves the larger primary factors; the remaining
+absolute-Frobenius signed-ball theorem proves the larger primary factors;
+the remaining
 smaller factors, including the independent \(p=359\) trace evaluation,
 are the exact unresolved core.
 
@@ -2948,6 +3116,97 @@ coboundary $\tau(c_k)/c_k$ telescopes to $1$.  Modulo $2$ it is
 $\gamma_k^q/\gamma_k=\eta_k$.
 \end{proof}
 
+\begin{proposition}[the circular-unit circulant is residue-invisible]
+\label{prop:cubic-circulant-no-go}
+Retain Proposition~\ref{prop:circular-ray}, put
+\[
+ n=3^k,\qquad M=2^n-1,\qquad
+ R=\mathbb Z[\Delta],\qquad
+ \nu=1+\sigma+\cdots+\sigma^{n-1},
+\]
+and let \(\mathcal L_k\) be the multiplicative lattice generated by the
+conjugates of \(c_k\).  The exponent map identifies
+\[
+ \mathcal L_k\simeq R/\mathbb Z\nu.                    \tag{\(\mathsf{CL}_1\)}
+\]
+On this rank-\(n-1\) lattice the circulant difference operator
+\(\delta=\sigma-1\) has
+\[
+ \left|\det(\delta\mid R/\mathbb Z\nu)\right|
+   =\prod_{\substack{\chi^n=1\\\chi\ne1}}|\chi-1|
+   =n=3^k.                                             \tag{\(\mathsf{CL}_2\)}
+\]
+This three-primary determinant does \emph{not} imply that the index of
+the reduction of \(\mathcal L_k\) is three-primary.  Indeed, if
+\(s=\ord(\gamma_k)\), reduction is exactly
+\[
+ \rho_s:R/\mathbb Z\nu\longrightarrow\mathbb Z/s\mathbb Z,
+ \qquad [f]\longmapsto f(2)\pmod s,                   \tag{\(\mathsf{CL}_3\)}
+\]
+where the target records exponents of \(\gamma_k\).  Hence
+\[
+ [\mathbb F_{2^n}^{\times}:\overline{\mathcal L_k}]
+   =M/s,
+\]
+while \(\delta\) acts on the target as multiplication by
+\(2-1=1\).  Thus the determinant in \((\mathsf{CL}_2)\) is invisible to
+every residue quotient relevant to the cubic arm.
+
+More strongly, this failure is formal rather than merely a gap in the
+determinant estimate.  For every divisor \(d\mid M\), let
+\(G=\langle g\rangle\) be cyclic of order \(M\), with the
+\(\Delta\)-action \(\sigma(g)=g^2\).  Then
+\[
+ \rho_d:R/\mathbb Z\nu\longrightarrow G,
+ \qquad [f]\longmapsto g^{d f(2)}                    \tag{\(\mathsf{CL}_4\)}
+\]
+is a well-defined equivariant reduction model whose image has index
+exactly \(d\).  It preserves the integral orbit lattice, the sole
+characteristic-zero norm relation, Frobenius covariance, and the
+circulant determinant.  If \(n=3h\), \(q=2^h\), and
+\(d\mid q^2+q+1\), then \(\gcd(d,q-1)=1\) and the relative norm of
+\(g^d\) has order \(q-1\); thus the model preserves maximal lower-field
+norm as well.  If, in addition, \(M/d\) has a divisor on which two has
+order \(n\), the Frobenius orbit of \(g^d\) still has length \(n\).
+Consequently even the orbit degree and old-factor norm propagation can
+coexist with a non-three-primary current index.  The models
+\((\mathsf{CL}_4)\) are not finite-field counterexamples to \(C_k\):
+they prove that an argument using only the conjugate exponent lattice
+and its circulant regulator cannot evaluate the selected reduction of
+the circular unit.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:circular-ray} shows that the conjugates of
+\(c_k\) generate a finite-index subgroup of the real circular units,
+so \(\mathcal L_k\) has rank \(n-1\).  They are totally positive and
+hence have no nontrivial torsion.  Their norm relation is
+\(c_k^\nu=1\).  The kernel of the exponent map \(R\to\mathcal L_k\)
+therefore has rank one and contains the primitive vector \(\nu\), so
+it is exactly \(\mathbb Z\nu\).  This proves
+\((\mathsf{CL}_1)\).
+
+The characteristic polynomial of \(\sigma\) on
+\(R/\mathbb Z\nu\) is \((X^n-1)/(X-1)\).  Evaluating it at one gives
+\((\mathsf{CL}_2)\).  At the inert prime above two, \(\sigma\) reduces
+to Frobenius and \(\sigma^i(c_k)\) reduces to
+\(\gamma_k^{2^i}\), proving \((\mathsf{CL}_3)\).  In particular the
+image has order \(s\), and \(\sigma-1\) evaluates to one.
+
+For \((\mathsf{CL}_4)\), well-definedness follows from
+\(\nu(2)=M\), and equivariance follows from
+\(2^n\equiv1\pmod M\).  The image is \(\langle g^d\rangle\), of index
+\(d\).  Finally put \(A=1+q+q^2=M/(q-1)\).  The relative norm is
+\[
+ \Norm(g^d)=(g^d)^A.
+\]
+Because \(q\equiv-1\pmod3\), one has \(\gcd(A,q-1)=1\); hence a
+divisor \(d\mid A\) is coprime to \(q-1\), and the displayed element
+has order \(q-1\).  The Frobenius-orbit assertion follows because the
+orbit length of an element of order \(M/d\) is
+\(\ord_{M/d}(2)\).
+\end{proof}
+
 \begin{proposition}[exceptional eigenspace and Hilbert-reciprocity no-go]
 \label{prop:cubic-reciprocity-no-go}
 Put \(n=3^k\), \(m=3n\), let
@@ -3283,6 +3542,113 @@ property of \(\mathcal E_k^{\partial}\) follow immediately.  Since
 of \(\F_{2^{n/3}}^\times\); every lower-field factor is therefore an
 \(\ell\)-th power.  The relative unit has the same current Kummer class,
 as claimed.
+\end{proof}
+
+\begin{proposition}[the Coleman specialization has a forced exceptional zero]
+\label{prop:cubic-coleman-exceptional-zero}
+Retain Proposition~\ref{prop:circular-ray}, put \(n=3^k\) and
+\(m=3n\), and let \(\ell\mid\Phi_n(2)\) be prime.  The norm-coherent
+real circular unit \(\mathbf c=(c_k)_k\) has, at the prime three, the
+Coleman power series
+\[
+ f_{\mathbf c}(T)=\frac{(2+T)^2}{1+T},\qquad
+ (1+T)\frac{d}{dT}\log f_{\mathbf c}(T)=\frac{T}{2+T}.       \tag{\(\mathsf{CO}_1\)}
+\]
+Write \(\zeta_3^{\mathrm{KL}}\) for the Kubota--Leopoldt three-adic
+zeta pseudo-measure.  With the Coleman-map normalization
+of~\cite[Sections~7.2--7.4]{RJW25},
+its image on the even Iwasawa quotient is
+\[
+ \operatorname{Col}(\mathbf c)
+   =2\bigl([2]-[1]\bigr)\zeta_3^{\mathrm{KL}}.             \tag{\(\mathsf{CO}_2\)}
+\]
+
+Let \(\widetilde\lambda\) be the characteristic-zero lift of the
+primitive even character in \((\mathsf{MJ}_2)\): choose a primitive
+\(n\)-th root \(\vartheta\) and set
+\[
+ \widetilde\lambda(\mathord\pm2^i)=\vartheta^i
+ \quad(0\leq i<n).
+\]
+There is a prime \(\mathfrak L\mid\ell\) of its coefficient field for
+which \(\vartheta\equiv2\pmod{\mathfrak L}\).  For every positive even
+integer \(r\), Coleman interpolation gives the algebraic value
+\[
+ \operatorname{ev}_{\widetilde\lambda x^r}
+       \operatorname{Col}(\mathbf c)
+ =2\bigl(\widetilde\lambda(2)2^r-1\bigr)
+       L(\widetilde\lambda,1-r)
+ =-\frac2r\bigl(\widetilde\lambda(2)2^r-1\bigr)
+       B_{r,\widetilde\lambda}.                           \tag{\(\mathsf{CO}_3\)}
+\]
+At the least positive even weight for which the smoothing factor
+vanishes after reduction, namely \(r=n-1\), this value is
+forced to vanish modulo \(\mathfrak L\):
+\[
+ \operatorname{ev}_{\widetilde\lambda x^{n-1}}
+       \operatorname{Col}(\mathbf c)
+ \equiv0\pmod{\mathfrak L}.                              \tag{\(\mathsf{CO}_4\)}
+\]
+Indeed its smoothing factor reduces to \(2^n-1\).  Dividing that
+forced factor before reduction leaves only
+\[
+ 2L(\widetilde\lambda,2-n)
+   =-\frac{2}{n-1}B_{n-1,\widetilde\lambda}.              \tag{\(\mathsf{CO}_5\)}
+\]
+The Coleman identity controls this quotient three-adically; it gives no
+\(\mathfrak L\)-unit theorem and no identification of
+\((\mathsf{CO}_5)\) with the selected residue index
+\(L(1)=\operatorname{ind}_\ell(1-z)\).  At weight zero the corresponding
+specialization is a noncritical three-adic \(L\)-value and has no
+canonical reduction at \(\mathfrak L\).
+
+Thus the standard Coleman/\(p\)-adic-\(L\)-function specialization cannot
+prove \(\mathcal R_\lambda\not\equiv1\pmod{(\zeta_\ell-1)^2}\): its
+algebraic specialization meets a forced exceptional zero, while its
+noncritical specialization lives at the wrong prime.  This is a
+route-exclusion theorem, not a failure of \(C_k\).  The separation is
+already exact at \(k=2\): Proposition~\ref{prop:prime-step} proves
+\(C_2\), but for \(n=9\), \(\ell=73\), and \(r=8\), the right side of
+\((\mathsf{CO}_3)\) is zero modulo \(\mathfrak L\) because
+\(2^9-1=7\cdot73\).
+\end{proposition}
+
+\begin{proof}
+Write
+\[
+ c(2)_k=\frac{\xi_k^2-1}{\xi_k-1}=1+\xi_k.
+\]
+The standard cyclotomic-unit Coleman series is
+\(((1+T)^2-1)/T=2+T\).  Complex conjugation substitutes
+\((1+T)^{-1}-1\) for \(T\), so its conjugate has series
+\((2+T)/(1+T)\).  Their product is \(f_{\mathbf c}\), and direct
+logarithmic differentiation proves \((\mathsf{CO}_1)\).
+
+The cyclotomic-unit formula
+\(\operatorname{Col}(c(2))=([2]-[1])\zeta_3^{\mathrm{KL}}\) and
+equivariance under
+complex conjugation give \((\mathsf{CO}_2)\) after passage to the even
+quotient.  Evaluating at the even character
+\(\widetilde\lambda x^r\) and using the Kubota--Leopoldt interpolation
+formula gives the first equality in \((\mathsf{CO}_3)\); the standard
+identity \(L(\chi,1-r)=-B_{r,\chi}/r\) gives the second.
+
+Since \(\operatorname{ord}_\ell(2)=n\), reduction at a suitable prime
+above \(\ell\) sends \(\vartheta\) to \(2\).  Also \(n\mid\ell-1\)
+and in fact \(n<\ell-1\), so \(r=n-1\) is positive, even, and smaller
+than \(\ell-1\).  The generalized Bernoulli quotient in
+\((\mathsf{CO}_3)\) is therefore \(\mathfrak L\)-integral: its
+conductor and \(r\) are prime to \(\ell\), and no ordinary Bernoulli
+denominator occurring below weight \(\ell-1\) contains \(\ell\).
+Finally,
+\[
+ \widetilde\lambda(2)2^{n-1}-1
+ \equiv2^n-1\equiv0\pmod{\mathfrak L},
+\]
+which proves \((\mathsf{CO}_4)\).  Removing this displayed factor gives
+\((\mathsf{CO}_5)\).  The final assertions follow from the places at
+which the two interpolation values live and from the exact
+\(k=2\) prime-step theorem.
 \end{proof}
 
 \begin{proposition}[semidirect ray extension forced by cubic failure]
@@ -3820,6 +4186,274 @@ positive real number \(m-1\) forces every term to be one by equality
 in the triangle inequality.
 \end{proof}
 
+\begin{proposition}[the mixed-Jacobi top line of the cubic obstruction]
+\label{prop:cubic-mixed-jacobi-top}
+Let \(k\geq1\), put \(n=3^k\), \(m=3n\), and let
+\(\ell\mid\Phi_n(2)\) be prime.  Put \(Q=2^{2n}\), choose a
+generator \(g\in\F_Q^\times\), and set
+\[
+ z=g^{(Q-1)/m}.
+\]
+Thus \(z\) is a primitive \(m\)-th root of unity.  Define
+\(\operatorname{ind}_\ell(g^v)=v\pmod\ell\), and let
+\(\chi_m,\chi_\ell\) be the multiplicative characters, extended by
+zero at zero, determined by
+\[
+ \chi_m(g)=\zeta_m,\qquad \chi_\ell(g)=\zeta_\ell.
+\]
+For \(1\leq j<m\), form the mixed Jacobi sums
+\[
+ J_j=\sum_{x\in\F_Q}\chi_m(x)^j\chi_\ell(1-x).
+\]
+Fix a prime above \(\ell\), put \(\pi=\zeta_\ell-1\), and write
+\(\omega\) for the reduction of \(\zeta_m\).  Then
+\[
+ J_j\equiv-1+\pi C_j\pmod{\pi^2},\qquad
+ C_j=\sum_{a=1}^{m-1}\omega^{ja}L(a),
+ \quad L(a)=\operatorname{ind}_\ell(1-z^a).           \tag{\(\mathsf{MJ}_1\)}
+\]
+
+There is a primitive even character
+\[
+ \lambda:(\mathbb Z/m\mathbb Z)^\times\longrightarrow\F_\ell^\times,
+ \qquad \lambda(\mathord\pm2^i)=2^i\quad(0\leq i<n),
+                                                               \tag{\(\mathsf{MJ}_2\)}
+\]
+and
+\[
+ L(a)=
+ \begin{cases}
+  0,&3\mid a,\\
+  \lambda(a)L(1),&(a,m)=1.
+ \end{cases}                                                \tag{\(\mathsf{MJ}_3\)}
+\]
+Consequently, if
+\[
+ G_j=\sum_{a\in(\mathbb Z/m\mathbb Z)^\times}
+       \lambda(a)\omega^{ja},
+\]
+then \(C_j=L(1)G_j\), and
+\[
+ G_j=
+ \begin{cases}
+  0,&3\mid j,\\
+  \lambda(j)^{-1}G_1,&(j,m)=1,
+ \end{cases}
+ \qquad
+ G_1G(\lambda^{-1})=\lambda(-1)m=m\ne0.             \tag{\(\mathsf{MJ}_4\)}
+\]
+Here
+\(G(\lambda^{-1})=\sum_{a\in(\mathbb Z/m\mathbb Z)^\times}
+\lambda(a)^{-1}\omega^a\).
+In particular \(G_1\ne0\), and
+\[
+\begin{split}
+ \gamma_k\notin(\F_{2^n}^\times)^\ell
+ &\iff 1-z\notin(\F_Q^\times)^\ell\\
+ &\iff L(1)\ne0\\
+ &\iff C_1\ne0\\
+ &\iff J_1\not\equiv-1\pmod{\pi^2}.
+\end{split}                                          \tag{\(\mathsf{MJ}_5\)}
+\]
+Thus the entire first-order Jacobi vector is supported on the
+primitive top-\(\Phi_m\) Fourier coordinates, and every primitive
+coordinate is a known nonzero multiple of the one selected coordinate
+\(L(1)\).  The remaining cubic theorem is precisely the all-level
+assertion
+\[
+ v_\pi(J_1+1)=1.                                    \tag{\(\mathsf{MJ}_6\)}
+\]
+\end{proposition}
+
+\begin{proof}
+The cyclotomic-divisor criterion gives
+\(\ord_\ell(2)=n\), while \(\ord_m(2)=2n\).  Hence
+\(m\ell\mid Q-1\).
+
+Expand
+\(\zeta_\ell^v=(1+\pi)^v\equiv1+v\pi\pmod{\pi^2}\)
+in the defining Jacobi sum.  Its constant term is \(-1\).  To obtain
+the linear term, partition \(\F_Q^\times\) by the value of the
+discrete logarithm modulo \(m\).  For a nonzero class \(a\),
+\[
+ \prod_{v\equiv a\, (m)}(1-g^v)=1-z^a;
+\]
+this is the polynomial identity for the coset of the subgroup
+\(\langle g^m\rangle\), evaluated at one.  Taking
+\(\ell\)-indices gives the displayed coefficient.  In the zero class,
+the term \(x=1\) is omitted by the zero-extension of \(\chi_\ell\), and
+\[
+ \prod_{h\in\langle g^m\rangle\setminus\{1\}}(1-h)
+ =\frac{Q-1}{m}=1\quad\hbox{in characteristic two};
+\]
+its index is therefore zero.  This proves \((\mathsf{MJ}_1)\).
+
+The group \((\mathbb Z/m\mathbb Z)^\times\) is generated by \(2\),
+has order \(2n\), and satisfies \(2^n=-1\pmod m\).  Since \(2\) has
+order \(n\) modulo \(\ell\), the rule in \((\mathsf{MJ}_2)\) is
+well-defined and multiplicative.  It is even, and its kernel is
+exactly \(\{\mathord\pm1\}\).  It cannot factor through modulus
+\(m/3\): the kernel of reduction to
+\((\mathbb Z/(m/3)\mathbb Z)^\times\) has order three, whereas
+\(\ker\lambda\) has order two.  Thus its conductor is \(m\).
+
+If \(3\mid a\), then \(1-z^a\in\F_{2^{2n/3}}^\times\), whose order
+is coprime to \(\ell\), because
+\(\ord_\ell(2)=n\nmid2n/3\).  Hence \(L(a)=0\).  If
+\((a,m)=1\), write \(a\equiv\mathord\pm2^i\pmod m\).  Frobenius
+gives
+\[
+ \operatorname{ind}_\ell(1-z^{2^i})
+ =2^i\operatorname{ind}_\ell(1-z).
+\]
+For the negative sign use
+\(1-z^{-2^i}=z^{-2^i}(1-z^{2^i})\); the \(m\)-torsion factor has
+zero \(\ell\)-index.  This proves \((\mathsf{MJ}_3)\), and hence
+\(C_j=L(1)G_j\).
+
+For \((j,m)=1\), changing variables gives
+\(G_j=\lambda(j)^{-1}G_1\).  If \(3\mid j\), the additive factor is
+constant on the three lifts of a unit modulo \(m/3\), while
+\(\lambda\) is nontrivial on that order-three kernel, so each fibre
+sums to zero.  Finally the standard Gauss identity gives
+\[
+ G(\lambda)G(\lambda^{-1})=\lambda(-1)m=m.
+\]
+Since \(\ell\nmid m\), this proves \((\mathsf{MJ}_4)\) and
+\(G_1\ne0\).
+
+The equivalence between \(L(1)=0\) and \(1-z\) being an
+\(\ell\)-th power is the definition of the index.  Up to a Frobenius
+conjugate, the selected period satisfies
+\[
+ \gamma_k=z+z^{-1}=z^{-1}(1+z)^2.
+\]
+The \(m\)-torsion factor is an \(\ell\)-th power, squaring is
+invertible on the odd \(\ell\)-Kummer quotient, and extension from
+\(\F_{2^n}\) to \(\F_Q\) preserves that quotient because
+\(\ell\nmid2^n+1\).  This proves \((\mathsf{MJ}_5)\).  Finally,
+the indices coprime to \(m\) are exactly the primitive additive
+characters of the cyclic group of order \(m\); the other indices are
+divisible by three.  Thus \((\mathsf{MJ}_4)\) is precisely the claimed
+top-component statement, and \((\mathsf{MJ}_6)\) is the surviving
+nonvanishing condition.
+\end{proof}
+
+\begin{corollary}[the selected weighted Jacobi resolvent]
+\label{cor:cubic-weighted-jacobi-resolvent}
+Retain Proposition~\ref{prop:cubic-mixed-jacobi-top}, put
+\(U=(\mathbb Z/m\mathbb Z)^\times\), and choose integer lifts
+\(w_j\equiv\lambda(j)\pmod\ell\).  Then
+\[
+ \mathcal R_\lambda
+ :=\prod_{j\in U}(-J_j)^{w_j}
+ \equiv1-2n\pi C_1\pmod{\pi^2}.                     \tag{\(\mathsf{WR}_1\)}
+\]
+Consequently the cubic arm at \((k,\ell)\) is equivalent to the one
+weighted congruence
+\[
+ \mathcal R_\lambda\not\equiv1\pmod{\pi^2}.         \tag{\(\mathsf{WR}_2\)}
+\]
+By contrast, the full unweighted primitive product is identically flat:
+\[
+ \prod_{j\in U}(-J_j)\equiv1\pmod{\pi^2}.           \tag{\(\mathsf{WR}_3\)}
+\]
+Thus an unweighted Hasse--Davenport relation necessarily loses the
+selected first-order phase; a proof must evaluate a genuinely weighted
+resolvent such as \(\mathcal R_\lambda\).
+\end{corollary}
+
+\begin{proof}
+Since \(-J_j\equiv1-\pi C_j\pmod{\pi^2}\), first-order expansion and
+Proposition~\ref{prop:cubic-mixed-jacobi-top} give
+\[
+ \mathcal R_\lambda
+ \equiv1-\pi\sum_{j\in U}w_jC_j
+ =1-\pi\sum_{j\in U}\lambda(j)\lambda(j)^{-1}C_1
+ =1-2n\pi C_1.
+\]
+Now \(\ell\nmid2n\), and \(C_1=G_1L(1)\) with \(G_1\ne0\), proving
+\((\mathsf{WR}_2)\).  With every weight equal to one, the linear term
+instead contains
+\(C_1\sum_{j\in U}\lambda(j)^{-1}=0\), which proves
+\((\mathsf{WR}_3)\).
+\end{proof}
+
+\begin{corollary}[the first Jacobi phase is the selected current projection]
+\label{cor:cubic-jacobi-current-projection}
+Retain Proposition~\ref{prop:cubic-mixed-jacobi-top}.  Put
+
+\[
+ t=\frac{2^n-1}{\ell},\qquad s=\frac{m+1}{2},\qquad
+ r\equiv st\pmod m,
+\]
+
+write \(I\) for the binary support of \(t\), and set
+
+\[
+ \rho=g^{(Q-1)/\ell},\qquad
+ \Theta=z^{-r}\prod_{i\in I}(1+z^{2^i})
+       =z^{-r}(1+z)^t.                                \tag{\(\mathsf{CJ}_1\)}
+\]
+
+Then
+
+\[
+ \Theta\in\mu_\ell,qquad
+ \Theta^2=\rho^{L(1)}.                               \tag{\(\mathsf{CJ}_2\)}
+\]
+
+Consequently, if \(\log_\rho:\mu_\ell\to\mathbb F_\ell\) is the
+discrete logarithm with base \(\rho\), then
+
+\[
+ C_1=2G_1\log_\rho(\Theta),                          \tag{\(\mathsf{CJ}_3\)}
+\]
+
+and
+
+\[
+ v_{\zeta_\ell-1}(J_1+1)=1
+ \iff \Theta\ne1.                                    \tag{\(\mathsf{CJ}_4\)}
+\]
+
+Thus the first Jacobi derivative is literally the discrete logarithm of
+the selected current \(\ell\)-projection.  Its Fourier and binary-support
+forms locate the missing scalar but do not replace its evaluation.
+\end{corollary}
+
+\begin{proof}
+Since \(2^n\equiv-1\pmod m\),
+
+\[
+ (1+z)^{2^n-1}=z^{-1}.
+\]
+
+Also \(\ell t=2^n-1\) and \(2r\equiv t\pmod m\), whence
+\(r\ell\equiv-1\pmod m\).  Therefore
+
+\[
+ \Theta^\ell
+ =z^{-r\ell}(1+z)^{2^n-1}=1.
+\]
+
+On the other hand,
+
+\[
+ \Theta^{2^n+1}
+ =z^{-r(2^n+1)}(1+z)^{t(2^n+1)}
+ =(1+z)^{(Q-1)/\ell}
+ =\rho^{L(1)}.
+\]
+
+The omitted torsion factor is one because \(m\mid r(2^n+1)\).
+Since \(2^n+1\equiv2\pmod\ell\), this proves
+\((\mathsf{CJ}_2)\).  Taking the \(\rho\)-logarithm gives
+\(L(1)=2\log_\rho(\Theta)\); now
+Proposition~\ref{prop:cubic-mixed-jacobi-top} gives
+\(C_1=G_1L(1)\) with \(G_1\ne0\), proving the remaining assertions.
+\end{proof}
+
 \begin{proposition}[cyclic parity form of the cubic obstruction]
 \label{prop:cubic-cyclic-parity}
 Put \(n=3^k\), \(m=3n\), with \(k\geq1\), and let the prime
@@ -3929,6 +4563,99 @@ the subsets with exponent sum congruent to \(j\).  Rewriting
 \((\mathsf{CP}_2)\) as
 \(R_{k,\ell}=\sum_{j\ne r}X^j\) proves
 \((\mathsf{CP}_3)\)--\((\mathsf{CP}_4)\).
+\end{proof}
+
+\begin{corollary}[exceptional residue and primitive CRT isolation]
+\label{cor:cubic-primitive-crt-isolation}
+Retain Proposition~\ref{prop:cubic-cyclic-parity}, write
+\(\ell=1+an\), and set
+\[
+ S_{k,\ell}(X)=R_{k,\ell}(X)+X^r.
+\]
+Then \(a\) is even and the exceptional residue is one of exactly three
+lifts of \(-1\pmod n\):
+\[
+ r\equiv an-1\pmod m,
+ \qquad
+ r=
+ \begin{cases}
+ m-1,&a\equiv0\pmod3,\\
+ n-1,&a\equiv1\pmod3,\\
+ 2n-1,&a\equiv2\pmod3.
+ \end{cases}                                         \tag{\(\mathsf{CP}_6\)}
+\]
+
+Moreover, in the squarefree group algebra
+\[
+ \mathcal A_m=\F_2[X]/(X^m-1)
+ \cong
+ \F_2\times\prod_{j=1}^{k+1}\F_{2^{2\cdot3^{j-1}}},
+\]
+the CRT coordinates of \(S_{k,\ell}\) have the form
+\[
+ S_{k,\ell}=(1,0,\ldots,0,\sigma_{\mathrm{top}}).       \tag{\(\mathsf{CP}_7\)}
+\]
+Cubic failure is exactly \(\sigma_{\mathrm{top}}=0\).  Thus every
+invariant which factors through a proper cyclic projection of
+\(C_m\), or otherwise discards the top \(\Phi_m\)-component, is
+identical on success and failure.  At a primitive \(m\)-th root
+\(\zeta\), the surviving coordinate is precisely the original selected
+Kummer test, since
+\[
+ \zeta^{-r}S_{k,\ell}(\zeta)
+ =(1+\zeta)^t\zeta^{-r}+1.                            \tag{\(\mathsf{CP}_8\)}
+\]
+
+Finally let \(w\) be the binary weight of \(t\), and let \(C_j\) be the
+integer number of binary submasks of \(t\) congruent to \(j\pmod m\).
+Failure necessarily implies
+\[
+ 2^w\geq m-1,
+ \qquad
+ C_r\equiv1-m\pmod4.                                 \tag{\(\mathsf{CP}_9\)}
+\]
+In particular, \(w<\lceil\log_2(m-1)\rceil\) is an unconditional
+nonfailure criterion.  These are exact screens, not an evaluation of
+the remaining top component.
+\end{corollary}
+
+\begin{proof}
+The equality \(\ord_m(2)=2n\) gives \(2^n\equiv-1\pmod m\).
+Since \(\ell\) and \(n\) are odd, \(a\) is even.  Also
+\[
+ (1+an)^{-1}\equiv1-an\pmod{3n},
+\]
+because \(3n\mid a^2n^2\).  Hence
+\[
+ t\equiv-2\ell^{-1}\equiv2an-2\pmod m.
+\]
+As \(2r\equiv t\pmod m\), this proves
+\((\mathsf{CP}_6)\).
+
+The standard factorization
+\[
+ X^m-1=(X-1)\prod_{j=1}^{k+1}\Phi_{3^j}(X)
+\]
+is squarefree, and every displayed cyclotomic factor is irreducible
+over \(\F_2\), because
+\(\ord_{3^j}(2)=2\cdot3^{j-1}\).
+Equation \((\mathsf{CP}_1)\) kills the coordinates for
+\(1\leq j\leq k\), while \(S_{k,\ell}(1)=1\).  This proves
+\((\mathsf{CP}_7)\); equation \((\mathsf{CP}_5)\) says exactly that its
+last coordinate vanishes.  Equation \((\mathsf{CP}_8)\) is immediate
+from the definition of \(S_{k,\ell}\).
+
+Under failure, the \(2^w\) submasks must occupy all \(m-1\)
+nonexceptional residues, proving the first inequality in
+\((\mathsf{CP}_9)\).  Complementation gives \(C_j=C_{t-j}\).  The only
+fixed residue of this involution is \(r\); every other residue occurs
+in one of \((m-1)/2\) pairs, and failure makes the common count in each
+pair odd.  Since \(2^w\equiv0\pmod4\) under the first inequality, summing
+all counts modulo four gives
+\[
+ 0\equiv C_r+m-1\pmod4,
+\]
+which completes the proof.
 \end{proof}
 
 \begin{corollary}[augmentation-ideal normalization of cubic failure]
@@ -4661,7 +5388,15 @@ remaining task is the selected Kummer-class nonvanishing at the smaller
 new primary factors.  Finite order checks, their factorization
 dependencies, and the distinction between local certificates and
 external primality records are isolated in
-Appendix~\ref{sec:cubic-evidence}.
+Appendix~\ref{sec:cubic-evidence}.  Proposition~\ref{prop:cubic-coleman-exceptional-zero}
+also closes the natural three-adic Coleman route: the circular unit has
+the explicit series \((2+T)^2/(1+T)\), but its algebraic
+\(\widetilde\lambda x^{3^k-1}\)-specialization is forced to vanish
+modulo every current \(\ell\), even at the proved level
+\((k,\ell)=(2,73)\).  After division by that exceptional factor one
+is left with a generalized Bernoulli value for which Coleman theory
+supplies no \(\ell\)-adic unit
+statement or cross-prime identification with the selected Kummer index.
 \section{The singleton-even Conway--Fermat arm}\label{sec:fermat}
 
 The candidate contains strong explicit maximal-order assertions even
@@ -5479,6 +6214,94 @@ its nontrivial inverse pairs with the roots of
 \([a_n]=[c_n]\).
 \end{proof}
 
+\begin{corollary}[a completely normal primitive candidate]
+\label{cor:fermat-completely-normal}
+For every \(n\geq0\), the elements \(a_n\) and \(c_0a_n\) are normal
+over every intermediate field \(E_j\), \(-1\leq j<n\).  In particular
+they are completely normal over \(\mathbb F_2\).  Moreover
+
+\[
+ \ord(c_0a_n)=3\prod_{j=1}^n\delta_j,                 \tag{\(\mathsf{CN}_1\)}
+\]
+
+so
+
+\[
+ c_0a_n\text{ is primitive in }E_n
+ \iff \delta_j=F_j\quad(1\leq j\leq n).              \tag{\(\mathsf{CN}_2\)}
+\]
+
+Thus the singleton-even conjecture may equivalently be stated as
+primitivity of one explicit completely normal element.
+
+By contrast, the Popovych product \(c_0c_n\) is normal only over the
+immediately preceding field when \(n\geq2\):
+
+\[
+ \operatorname{Tr}_{E_n/E_{n-1}}(c_0c_n)=c_0,
+ \qquad
+ \operatorname{Tr}_{E_n/E_j}(c_0c_n)=0
+ \quad(-1\leq j\leq n-2).                             \tag{\(\mathsf{CN}_3\)}
+\]
+
+Hence complete normality does not supply the missing primary order,
+and no absolute normal-basis theorem applies directly to \(c_0c_n\).
+\end{corollary}
+
+\begin{proof}
+For a cyclic extension \(L/K\) of characteristic two and degree a power
+of two, an element \(x\in L\) is normal over \(K\) if and only if
+\(\operatorname{Tr}_{L/K}(x)\ne0\).  Indeed, after choosing a normal
+generator, the regular module is
+
+\[
+ K[C_{2^r}]\simeq K[X]/((X+1)^{2^r}),
+\]
+
+a local ring.  The coordinate of \(x\) is a unit exactly when its
+augmentation is nonzero, and that augmentation is nonzero exactly when
+the relative trace of \(x\) is nonzero.
+
+Proposition~\ref{prop:fermat-ancestry-exhaustion} gives
+
+\[
+ \operatorname{Tr}_{E_n/E_j}(a_n)=a_j\ne0
+ \qquad(-1\leq j<n),
+\]
+
+so \(a_n\) is normal over every \(E_j\).  For \(j\geq0\), the scalar
+\(c_0\) lies in \(E_j\), and hence
+
+\[
+ \operatorname{Tr}_{E_n/E_j}(c_0a_n)=c_0a_j\ne0.
+\]
+
+At the bottom,
+
+\[
+ \operatorname{Tr}_{E_n/\mathbb F_2}(c_0a_n)
+ =\operatorname{Tr}_{E_0/\mathbb F_2}(c_0a_0)
+ =\operatorname{Tr}_{E_0/\mathbb F_2}(c_0^2)=1.
+\]
+
+This proves complete normality.  Corollary~\ref{cor:fermat-popovych-equivalence}
+gives \(\ord(a_n)=\prod_{j=1}^n\delta_j\), which is prime to three;
+since \(c_0\) has order three, \((\mathsf{CN}_1)\) follows.  The identity
+
+\[
+ |E_n^\times|=3\prod_{j=1}^nF_j
+\]
+
+and the pairwise coprimality of the Fermat numbers prove
+\((\mathsf{CN}_2)\).
+
+Finally the quadratic equation for \(c_n\) has trace one, so the first
+trace in \((\mathsf{CN}_3)\) is \(c_0\).  Every further relative
+trace takes the lower-field element \(c_0\) through a positive even
+extension degree and is therefore zero in characteristic two.  The
+normality criterion above completes the proof.
+\end{proof}
+
 \begin{proposition}[\(\ell\)-th-root ancestry and the exact Dickson obstruction]
 \label{prop:fermat-root-ancestry}
 For variables \(S,P\), define the characteristic-two Dickson power
@@ -5886,6 +6709,292 @@ conjugate fibres form exactly \(\ell\) Frobenius orbits.  This proves
 the factorization alternative.  Finally
 \(\deg H_m=2^{m-1}=q/2\), giving \((\mathsf{TD}_3)\); the equivalent
 form follows from $q\geq2m$.
+\end{proof}
+
+\begin{proposition}[half-field additive saturation of a failure fibre]
+\label{prop:fermat-additive-saturation}
+Retain Proposition~\ref{prop:fermat-trace-divisor}.  Write
+\[
+ q=Q^2=2^m,\qquad K=\F_q,\qquad K_0=\F_Q,
+\]
+and suppose that the Conway--Fermat condition fails at \(\ell\).
+Let \(S\subset K\) be the \(\ell\)-element root set of
+\(P_{\ell,a}\).  Then, for every \(t\in K_0\),
+\[
+ P_{\ell,a}(Z+t)\mid H_m(Z).                         \tag{\(\mathsf{AS}_1\)}
+\]
+These translated polynomials are pairwise distinct; indeed,
+\[
+ [Z^{\ell-1}]P_{\ell,a}(Z+t)=a+t.                   \tag{\(\mathsf{AS}_2\)}
+\]
+Define the relative-trace polynomial
+\[
+ \Theta_{\ell,a}(Y)
+ =\prod_{z\in S}\bigl(Y+z^Q+z\bigr)\in K_0[Y].
+\]
+Then
+\[
+ \prod_{t\in K_0}P_{\ell,a}(Z+t)
+ =\Theta_{\ell,a}(Z^Q+Z).                           \tag{\(\mathsf{AS}_3\)}
+\]
+If \(\Theta_{\ell,a}\) is separable, then
+\[
+ \ell\leq\frac Q2.                                  \tag{\(\mathsf{AS}_4\)}
+\]
+Equivalently, failure at a prime \(\ell>Q/2\) forces distinct roots
+\(z,z'\in S\) with
+\[
+ z^Q+z=(z')^Q+z',
+ \qquad\text{or equivalently}\qquad z+z'\in K_0.    \tag{\(\mathsf{AS}_5\)}
+\]
+Thus separability of this one selected relative-trace fibre would give
+a square-root-scale sieve strictly sharper than the unconditional degree
+bound \((\mathsf{TD}_3)\).  It is an additional selected assertion, not
+a consequence of one-step trace and norm data.
+\end{proposition}
+
+\begin{proof}
+Every \(z\in S\) has absolute trace one by
+Proposition~\ref{prop:fermat-trace-divisor}.  For \(t\in K_0\),
+\[
+ \operatorname{Tr}_{K/\F_2}(t)
+ =\operatorname{Tr}_{K_0/\F_2}(t+t)=0.
+\]
+Hence all roots \(z+t\) of \(P_{\ell,a}(Z+t)\) are again roots of
+the trace-one polynomial \(H_m\), proving \((\mathsf{AS}_1)\).
+Because \(R_\ell\) has degree \(\ell-1\) and leading coefficient
+one, while \(\ell\) is odd, translation gives
+\((\mathsf{AS}_2)\).
+
+Interchanging the two products gives
+\[
+\begin{split}
+ \prod_{t\in K_0}P_{\ell,a}(Z+t)
+ &=\prod_{z\in S}\prod_{t\in K_0}(Z+t+z)\\
+ &=\prod_{z\in S}\bigl(Z^Q+Z+z^Q+z\bigr),
+\end{split}
+\]
+which is \((\mathsf{AS}_3)\).  If \(\Theta_{\ell,a}\) is separable,
+its \(\ell\) relative-trace values are distinct.  The \(Q\) translates
+of each root then give \(Q\ell\) distinct trace-one elements of \(K\).
+There are exactly \(q/2=Q^2/2\) such elements, proving
+\((\mathsf{AS}_4)\).  Negating this injectivity condition gives
+\((\mathsf{AS}_5)\).
+\end{proof}
+
+\begin{proposition}[exact two-axis factorization of a relative-trace collision]
+\label{prop:fermat-relative-trace-axes}
+Retain Proposition~\ref{prop:fermat-additive-saturation}, and put
+\[
+ U=\ker\!\left(\Norm_{\F_{q^2}/K}\right),\qquad
+ U_0=\ker\!\left(\Norm_{K/K_0}\right),\qquad
+ \Phi(u)=\frac{u}{(u+1)^2}.
+\]
+Under the hypothetical failure, choose \(u_0\in U\) with
+\(u_0^\ell=w=(c_n+1)/c_n\), so that, as in
+Proposition~\ref{prop:fermat-coset-semiconjugacy},
+\[
+ S=\{\Phi(u_0v):v\in\mu_\ell\}.
+\]
+For \(x^\ell=w\) and \(v\in\mu_\ell\setminus\{1\}\), set
+\[
+ A=x^Q,\qquad B=v^Q,\qquad
+ D=(1+x)(1+xv),\qquad D_Q=(1+A)(1+AB)
+\]
+and
+\[
+ \begin{split}
+ N_0&=A(1+B)D+x(1+v)D_Q,\\
+ N_1&=N_0+DD_Q.
+ \end{split}
+\]
+All four factors in \(DD_Q\) are nonzero, and the collision equation
+factors exactly as
+\[
+ \Phi(A)+\Phi(AB)+\Phi(x)+\Phi(xv)
+ =\frac{N_0N_1}{(DD_Q)^2}.                            \tag{\(\mathsf{AX}_1\)}
+\]
+
+There is a more intrinsic form.  Let \(s\in\mu_\ell\) be the unique
+square root of \(v\), put \(y=xs\), and set
+\[
+ \alpha=\Phi(y),\qquad \beta=\Phi(s).
+\]
+Then \(y^\ell=w\), \(s^\ell=1\), and \(\alpha\ne\beta\).  The two
+factors in \((\mathsf{AX}_1)\) give the disjoint alternatives
+\[
+ \begin{split}
+ N_0=0&\iff \alpha/\beta\in K_0^\times,\\
+ N_1=0&\iff \alpha/\beta\in U_0.
+ \end{split}                                           \tag{\(\mathsf{AX}_2\)}
+\]
+Consequently the selected polynomial \(\Theta_{\ell,a}\) is
+separable if and only if
+\[
+ \frac{\Phi(y)}{\Phi(s)}
+ \notin K_0^\times\cup U_0                            \tag{\(\mathsf{AX}_3\)}
+\]
+for every \(y^\ell=w\) and every
+\(s\in\mu_\ell\setminus\{1\}\).  Thus its separability is exactly
+a selected two-axis transversality assertion, not merely a generic
+property of a transported multiplicative coset.
+
+Equivalently, put \(\sigma=s+s^{-1}\) and use the Dickson power sum
+\(\mathcal D_\ell\) of
+Proposition~\ref{prop:fermat-root-ancestry}.  A collision exists if
+and only if there are
+\[
+ s\in\mu_\ell\setminus\{1\},\qquad
+ \tau\in K_0^\times\cup U_0
+\]
+such that
+\[
+ \mathcal D_\ell(\sigma,1)=0,\qquad
+ \mathcal D_\ell(\tau\sigma,1)=a^{-1}.                \tag{\(\mathsf{AX}_4\)}
+\]
+Thus the Conway value is not discarded: the remaining assertion is
+that \(a^{-1}\) avoids the two axis-restrictions of the Dickson map
+through every fibotomic zero.  In particular, for
+\(z\in K^\times\setminus K_0^\times\) put
+\[
+ J(z)=\frac{\Norm_{K/K_0}(z)}
+            {\operatorname{Tr}_{K/K_0}(z)^2}
+      =\Phi(z^{Q-1}),
+\]
+the selected ancestry \(J(a)=a_{n-2}\) makes every collision satisfy
+\[
+ J\!\left(\mathcal D_\ell(\tau\sigma,1)\right)=a_{n-2}. \tag{\(\mathsf{AX}_5\)}
+\]
+This last equality is a necessary shadow of \((\mathsf{AX}_4)\), not
+an exclusion by itself.
+
+Indeed, generic separability is false even at square-root scale.
+For every fixed \(s\in\mu_\ell\setminus\{1\}\), there are exactly
+\(Q/2\) elements \(\lambda\in K_0^\times\) for which
+\(\lambda\Phi(s)\) has absolute trace one, and hence exactly \(Q\)
+elements \(y\in U\setminus\{1\}\) such that
+\[
+ \frac{\Phi(y)}{\Phi(s)}\in K_0^\times.              \tag{\(\mathsf{AX}_6\)}
+\]
+If \(\ell\leq Q\), at least one of these \(y\)'s lies outside
+\(\mu_\ell\).  For \(w'=y^\ell\ne1\), the nonselected transported
+coset over \(w'\) then has a type-\(N_0\) relative-trace collision.
+This construction includes the range \(Q/2<\ell\leq Q\); therefore
+the square-root inequality alone cannot exclude the collision of the
+actual Conway coset.
+\end{proposition}
+
+\begin{proof}
+For \(t\in U\setminus\{1\}\), put \(c_t=(1+t)^{-1}\).  Then
+\(\Phi(t)=c_t^2+c_t\).  Hence, with
+\[
+ h=c_x+c_{xv}
+   =\frac{x(1+v)}{(1+x)(1+xv)},
+\]
+one has
+\[
+ \Phi(x)+\Phi(xv)=h^2+h.                              \tag{\(\mathsf{AX}_7\)}
+\]
+The assumptions \(x^\ell=w\ne1\) and \(v^\ell=1\) show that neither
+\(x\) nor \(xv\) is one; the same holds after \(Q\)-Frobenius, so the
+displayed denominators are nonzero.  Moreover \(x,v\in U\), and
+inversion fixes \(h\), so \(h^q=h\) and \(h\in K\).
+
+The two relative traces collide precisely when
+\[
+ 0=(h^2+h)^Q+(h^2+h)
+   =(h^Q+h)^2+(h^Q+h).
+\]
+Now \(h^Q+h\in K_0\), and the roots of \(T^2+T\) are \(0,1\).
+Thus a collision is exactly \(h^Q=h\) or \(h^Q=h+1\).  Directly,
+\[
+ h^Q+h=\frac{N_0}{DD_Q},
+\]
+so multiplying
+\((h^Q+h)(h^Q+h+1)\) by \((DD_Q)^2\) proves
+\((\mathsf{AX}_1)\) and identifies its two factors.
+
+Because \(\ell\) is odd, squaring permutes \(\mu_\ell\), so \(s\)
+is unique.  Substitution of \(x=y/s\) and \(v=s^2\) gives
+\[
+ h=\frac{y(1+s)^2}{(y+s)(1+ys)}
+   =\frac{\Phi(y)}{\Phi(y)+\Phi(s)}
+   =\frac{\rho}{\rho+1},qquad
+ \rho=\frac{\alpha}{\beta}.                          \tag{\(\mathsf{AX}_8\)}
+\]
+Here \(y^\ell=w\) and \(s^\ell=1\).  The standard identity
+\[
+ \Phi(r)=\Phi(t)\iff(r+t)(1+rt)=0
+\]
+shows that \(\alpha=\beta\) would force \(y=s^{\pm1}\), contrary to
+\(w\ne1\).  Thus every denominator in \((\mathsf{AX}_8)\) is nonzero.
+It follows that
+\[
+ h^Q=h\iff\rho^Q=\rho\iff\rho\in K_0^\times,
+\]
+whereas
+\[
+ h^Q=h+1
+ \iff \frac{\rho^Q}{\rho^Q+1}=\frac1{\rho+1}
+ \iff \rho^{Q+1}=1
+ \iff \rho\in U_0.
+\]
+Since
+\(K_0^\times\cap U_0\) has order
+\(\gcd(Q-1,Q+1)=1\), and \(\rho\ne1\), these alternatives are
+disjoint.  Centering an unordered pair of distinct elements of
+\(u_0\mu_\ell\) reverses the construction uniquely up to replacing
+\(s\) by \(s^{-1}\).  This proves \((\mathsf{AX}_2)\)--
+\((\mathsf{AX}_3)\).
+
+Since \(\Phi(t)^{-1}=t+t^{-1}\), take
+\(\tau=\beta/\alpha=\rho^{-1}\).  Both axes are closed under
+inversion, and
+\[
+ y+y^{-1}=\tau(s+s^{-1})=\tau\sigma.
+\]
+The Dickson power-sum identity and \(y^\ell=w\), \(s^\ell=1\) give
+\((\mathsf{AX}_4)\).  Conversely, suppose \((\mathsf{AX}_4)\) holds
+and let \(y,y^{-1}\) be the roots of
+\[
+ X^2+\tau\sigma X+1.
+\]
+Then
+\[
+ y^\ell+y^{-\ell}=a^{-1}=w+w^{-1},
+\]
+so \(y^\ell\in\{w,w^{-1}\}\).  The element \(y\) cannot lie in \(K\),
+because then \(y^\ell\in K\), whereas
+\(w\in U\setminus\{1\}\) and \(U\cap K^\times=\{1\}\).  As the
+quadratic has coefficients in \(K\), it follows that \(y^q=y^{-1}\),
+so \(y\in U\); replace \(y\) by \(y^{-1}\) if necessary to arrange
+\(y^\ell=w\).  Now
+\[
+ \frac{\Phi(y)}{\Phi(s)}=\tau^{-1}
+ \in K_0^\times\cup U_0,
+\]
+and \((\mathsf{AX}_2)\) gives a collision.  Finally,
+\(J(z^{-1})=J(z)\), while the Conway trace and norm recursion gives
+\(J(a)=a_{n-2}\), proving \((\mathsf{AX}_5)\).
+
+For the final assertion fix \(s\ne1\) and write \(\beta=\Phi(s)\).
+The element \(\beta\) has absolute trace one.  Therefore
+\(b_0=\beta^Q+\beta\) is nonzero: if \(\beta\in K_0\), its absolute
+trace from the quadratic extension \(K/K_0\) would vanish.  For
+\(\lambda\in K_0\), transitivity of trace gives
+\[
+ \operatorname{Tr}_{K/\F_2}(\lambda\beta)
+ =\operatorname{Tr}_{K_0/\F_2}(\lambda b_0).
+\]
+This nonzero \(\F_2\)-linear functional takes the value one on exactly
+\(Q/2\) elements of \(K_0\), none of them zero.  Every trace-one
+element of \(K\) has exactly the inverse pair of lifts under
+\(\Phi:U\setminus\{1\}\to K\), so these scalars produce exactly
+\(Q\) values of \(y\) satisfying \((\mathsf{AX}_6)\).  At most
+\(\ell-1\) of them lie in \(\mu_\ell\).  If \(\ell\leq Q\), choose
+one outside, put \(w'=y^\ell\), and center the pair \(y/s,ys\).
+It consists of distinct members of the same \(\mu_\ell\)-coset and
+has a collision by \((\mathsf{AX}_2)\), completing the construction.
 \end{proof}
 
 \begin{proposition}[the reverse-Dickson divisor is a transported Kummer coset]
@@ -6985,8 +8094,28 @@ the apparently easy ``singleton even implies zero'' clause already
 contains a longstanding explicit maximal-coset-order problem.
 Popovych verified the Conway condition only through $n=11$; the recent
 analysis of Cagliero--Herman--Szechtman still retains the quotient order
-as an undetermined divisor~\cite{CHS25}.  No all-level proof or
-counterexample is presently known.
+as an undetermined divisor~\cite{CHS25}.  Their Euler--Lucas argument does
+give the unconditional congruence
+\[
+ \delta_n\equiv1\pmod{2^{n+2}},\qquad
+ \delta_n\geq1+2^{n+2}\quad(n\geq2),
+\]
+but this remains far below \(F_n\) and does not force any prescribed prime
+factor of a composite \(F_n\).  In fact this congruence cannot distinguish
+the selected order from any proper candidate.  For every prime
+\(\ell\mid F_n\), one has \(\ord_\ell(2)=2^{n+1}\).  Since
+\(\ell\equiv1\pmod8\), the element two is a square modulo \(\ell\), and
+a square root of two has order \(2^{n+2}\); hence
+\(\ell\equiv1\pmod{2^{n+2}}\).  It follows that every nontrivial divisor
+\(d\mid F_n\) already satisfies
+
+\[
+ d\equiv1\pmod{2^{n+2}},\qquad \ord_d(2)=2^{n+1}.
+\]
+
+Thus the Euler--Lucas congruence is automatic from
+\(1<\delta_n\mid F_n\).  No all-level proof or counterexample is presently
+known.
 
 \subsection{Comparison with the cubic arm}
 
@@ -7768,6 +8897,139 @@ field.  It follows that both \(\zeta\) and
 \((\mathsf G_{C_a})\).
 \end{proof}
 
+\begin{proposition}[constant-extension line criterion and an explicit
+exceptional bound]
+\label{prop:dk-constant-line}
+Retain \(k\geq2\), \(h=3^k\),
+\[
+ K=\F_{4^h}=\F_4(\zeta),
+ \qquad \ell\mid\Psi_k,
+\]
+and let \(\chi:K^\times\to\mu_\ell\) have exact order \(\ell\).
+For \(a\geq1\), put
+\[
+ t=2^{a-1},\qquad
+ C_a=\F_{2^{2^a}}=\F_{4^t},\qquad
+ L_a=KC_a=\F_{4^{ht}},
+\]
+and let
+\[
+ \chi_a=\chi\circ\Norm_{L_a/K},\qquad
+ S_{a,k,\ell}=\sum_{c\in C_a}\chi_a(\zeta+c).
+                                                               \tag{\(\mathsf{CE}_1\)}
+\]
+Then
+\[
+ \zeta+C_a\subset (L_a^\times)^\ell
+ \iff S_{a,k,\ell}=4^t.                              \tag{\(\mathsf{CE}_2\)}
+\]
+More precisely, attach to \(\chi\) the primitive even Dirichlet
+character modulo \(X^h+\omega\) over \(\F_4[X]\), and write its
+\(L\)-polynomial as
+\[
+ L_\chi(T)
+  =(1-T)\prod_{j=1}^{h-2}(1-\alpha_jT),
+ \qquad |\alpha_j|=2.
+\]
+Then constant-field extension gives the exact selected moment
+\[
+ S_{a,k,\ell}
+   =-\left(1+\sum_{j=1}^{h-2}\alpha_j^t\right),
+ \qquad
+ |S_{a,k,\ell}|\leq1+(h-2)2^t.                       \tag{\(\mathsf{CE}_3\)}
+\]
+Consequently
+\[
+ 2^t\geq h-1
+ \quad\Longrightarrow\quad
+ m_\ell\leq4^t-1.                                    \tag{\(\mathsf{CE}_4\)}
+\]
+If \(t\) is the least power of two at least
+\(\lceil\log_2(h-1)\rceil\), then
+\[
+ m_\ell<4^t<16h^4.                                   \tag{\(\mathsf{CE}_5\)}
+\]
+Thus this gives a direct polynomial upper bound on the exceptional
+column, but not an absolute one.  For any fixed \(a\), the Riemann--Weil
+bound in \((\mathsf{CE}_3)\) is compatible with the extremal value
+\(S_{a,k,\ell}=4^t\) for all sufficiently large \(h\).  A fixed-window
+proof by this route must therefore prove the selected nonextremality
+\[
+ S_{a,k,\ell}\ne4^t
+\]
+uniformly in \(k\) and \(\ell\).  At \(a=2\), this is exactly the
+full-\(\F_{16}\)-line formulation of \(D'_k\); larger fixed \(a\) give
+genuinely weaker selected least-nonresidue assertions rather than a
+consequence of the four maximal-order arms.
+\end{proposition}
+
+\begin{proof}
+Since \(h\) is odd and \(t\) is a power of two, the fields \(K\) and
+\(C_a\) are linearly disjoint over \(\F_4\), and
+\([L_a:K]=t\).  Norm followed by inclusion on the cyclic
+\(\ell\)-Kummer quotients is multiplication by \(t\).  As
+\(\ell\nmid t\), the norm induces an isomorphism
+\[
+ L_a^\times/(L_a^\times)^\ell
+   \xrightarrow{\ \sim\ }
+ K^\times/(K^\times)^\ell.                           \tag{\(\mathsf{CE}_6\)}
+\]
+In particular \(\chi_a\) has exact order \(\ell\), its kernel is
+\((L_a^\times)^\ell\), and no term \(\zeta+c\) vanishes because
+\(\zeta\) has odd degree \(h>1\) over \(\F_4\), whereas every element
+of \(C_a\) has degree dividing \(t\).  Equation
+\((\mathsf{CE}_2)\) now follows from equality in the complex triangle
+inequality: a sum of \(4^t\) roots of unity equals the positive real
+number \(4^t\) precisely when every summand is one.
+
+The polynomial \(X^h+\omega\) remains irreducible after extension of
+constants to \(C_a\), again because \(\gcd(h,t)=1\).  Since
+\(\ell\ne3\), the order-\(\ell\) character is trivial on
+\(\F_4^\times\), so the attached Dirichlet character is even.
+The character \(\chi_a\) is exactly its constant-field norm lift.
+If the reciprocal roots of \(L_\chi\) are
+\(1,\alpha_1,\ldots,\alpha_{h-2}\), constant extension raises them
+to their \(t\)-th powers.  The degree-one coefficient of the extended
+\(L\)-polynomial is on the one hand
+\[
+ \sum_{c\in C_a}\chi_a(\zeta+c)=S_{a,k,\ell},
+\]
+and on the other hand the negative of the sum of those reciprocal
+roots.  This proves the equality in \((\mathsf{CE}_3)\); the
+function-field Riemann hypothesis gives \(|\alpha_j|=2\), proving its
+inequality.  Notice that \(1\) is the reciprocal root of the
+trivial even factor \(1-T\), so neither the sign nor the additive
+constant is being suppressed.
+
+If \(2^t\geq h-1\), then
+\[
+ 1+(h-2)2^t
+ \leq1+(2^t-1)2^t
+ =4^t-2^t+1
+ <4^t.
+\]
+Equations \((\mathsf{CE}_2)\)--\((\mathsf{CE}_3)\) therefore supply
+some \(c\in C_a\) for which \(\zeta+c\) is not an \(\ell\)-th power
+in \(L_a\), and hence is not one in its defining subfield.  The finite
+nimbers \(0,1,\ldots,4^t-1\) are exactly the elements of \(C_a\),
+proving \((\mathsf{CE}_4)\).
+
+Finally put \(R=\lceil\log_2(h-1)\rceil\).  The least power of two
+\(t\geq R\) satisfies
+\[
+ t<2R<2(\log_2 h+1).
+\]
+Hence
+\[
+ 4^t<4^{2(\log_2 h+1)}=16h^4,
+\]
+which proves \((\mathsf{CE}_5)\).  For fixed \(t\), the right side of
+the bound in \((\mathsf{CE}_3)\) eventually exceeds \(4^t\), proving
+the stated limitation.  The case \(a=2\) has \(t=2\) and
+\(C_a=\F_{16}\), so Proposition~\ref{prop:dk-line-saturation} gives
+the final identification with \(D'_k\).
+\end{proof}
+
 \begin{corollary}[composite-conductor cyclotomic-unit form of \(D'_k\)]
 \label{cor:dk-cyclotomic-unit}
 Retain Proposition~\ref{prop:dk-gap}, put \(N_0=15h\), and
@@ -7935,6 +9197,152 @@ Proposition~\ref{prop:mixed-jacobi-phase} now gives
 coefficient \(C_j\) vanish, so \((\mathsf{MJ}_2)\) at \(a=1\) says
 that \(1-z\) is an \(\ell\)-th power.  This is precisely failure of
 \(D'_k\) at \(\ell\).
+\end{proof}
+
+\begin{proposition}[the exceptional Jacobi vector has one selected coordinate]
+\label{prop:dk-jacobi-top}
+Retain Proposition~\ref{prop:dk-jacobi-flatness}, and for
+
+\[
+ U=(\mathbb Z/M\mathbb Z)^\times
+\]
+
+define
+
+\[
+ \lambda(\mathord\pm2^i)=2^i\pmod\ell
+ \qquad(0\leq i<4h).
+                                                               \tag{\(\mathsf{DJ}_1\)}
+\]
+
+Then \(\lambda:U\to\mathbb F_\ell^\times\) is a primitive even
+Dirichlet character modulo \(M\).  If
+
+\[
+ L(a)=\operatorname{ind}_\ell(1-z^a),\qquad
+ G_j=\sum_{a\in U}\lambda(a)\overline{\zeta_M}^{ja},
+\]
+
+then
+
+\[
+ L(a)=
+ \begin{cases}
+  0,&(a,M)>1,\\
+  \lambda(a)L(1),&(a,M)=1,
+ \end{cases}
+ \qquad
+ C_j=L(1)G_j.                                         \tag{\(\mathsf{DJ}_2\)}
+\]
+
+Moreover
+
+\[
+ G_1G(\lambda^{-1})=\lambda(-1)M=M\ne0\pmod\ell,     \tag{\(\mathsf{DJ}_3\)}
+\]
+
+and consequently
+
+\[
+ D'_k\text{ holds at }\ell
+ \iff L(1)\ne0
+ \iff C_1\ne0
+ \iff J_1\not\equiv-1\pmod{(\zeta_\ell-1)^2}.        \tag{\(\mathsf{DJ}_4\)}
+\]
+
+Thus the simultaneous Jacobi flatness in
+Proposition~\ref{prop:dk-jacobi-flatness} is a rank-one condition, not
+\(M-1\) independent conditions.
+
+This coordinate is exactly the first regulator of the quadratic-twist
+antiunit in Proposition~\ref{prop:dk-antiunit}.  With
+
+\[
+ E_1=(1-ab)(1-ab^{-1}),\qquad
+ E_2=(1-ab^2)(1-ab^{-2}),\qquad d_k=E_1/E_2,
+\]
+
+one has
+
+\[
+ \operatorname{ind}_\ell(E_1)=2L(1),\qquad
+ \operatorname{ind}_\ell(E_2)=-2L(1),\qquad
+ \operatorname{ind}_\ell(d_k)=4L(1),                 \tag{\(\mathsf{DJ}_5\)}
+\]
+
+and hence
+
+\[
+ C_1=\frac{G_1}{4}\operatorname{ind}_\ell(d_k).      \tag{\(\mathsf{DJ}_6\)}
+\]
+
+In particular the exact remaining exceptional theorem is the single
+nonvanishing assertion
+
+\[
+ \operatorname{ind}_\ell(d_k)\ne0
+ \qquad(\ell\mid\Psi_k).                              \tag{\(\mathsf{DJ}_7\)}
+\]
+\end{proposition}
+
+\begin{proof}
+The group \(U\) has order \(\varphi(M)=8h\), while
+\(\ord_M(2)=4h\).  Moreover \(-1\notin\langle2\rangle\), because a
+power of two congruent to \(-1\) modulo \(3h\) has exponent
+\(h\pmod{2h}\), whereas a power of two congruent to \(-1\) modulo
+five has exponent \(2\pmod4\), and these conditions are incompatible
+for odd \(h\).  Hence
+
+\[
+ U=\{\mathord\pm2^i:0\leq i<4h\}.
+\]
+
+Since \(\ord_\ell(2)=2h\), the rule in \((\mathsf{DJ}_1)\) is
+well-defined, multiplicative, and even.  It is primitive.  Indeed it
+cannot factor modulo \(M/3\): the kernel of
+\(U\to(\mathbb Z/(M/3)\mathbb Z)^\times\) has order three, whereas
+the kernel of \(\lambda\) has order four.  It cannot factor modulo
+\(M/5=3h\) either.  The CRT class \(r\) with
+
+\[
+ r\equiv1\pmod{3h},\qquad r\equiv2\pmod5
+\]
+
+belongs to the reduction kernel but satisfies \(\lambda(r)=-1\): in
+the factorization
+
+\[
+ \lambda=\lambda_-\chi_5,
+\]
+
+the first factor is trivial on \(r\), while \(\chi_5(2)=-1\).
+Removing either prime divisor of \(M\) therefore destroys the
+character, which proves primitivity.
+
+If \((a,M)>1\), then \(z^a\) has proper order.  The proof of
+Proposition~\ref{prop:dk-jacobi-flatness} shows unconditionally that
+every such \(1-z^a\) is an \(\ell\)-th power, and hence \(L(a)=0\).
+If \((a,M)=1\), write \(a=\mathord\pm2^i\).  Frobenius covariance
+gives \(L(2^i)=2^iL(1)\); replacing \(z^{2^i}\) by its inverse
+changes \(1-z^{2^i}\) only by an \(M\)-torsion factor, whose
+\(\ell\)-index is zero.  This proves the first identity in
+\((\mathsf{DJ}_2)\).  Substitution into the Fourier coefficient
+\((\mathsf{MJ}_1)\) of Proposition~\ref{prop:mixed-jacobi-phase}
+gives \(C_j=L(1)G_j\).
+
+The standard Gauss identity for a primitive Dirichlet character gives
+\((\mathsf{DJ}_3)\).  Here \(\ell\nmid M\), so \(G_1\ne0\).
+Corollary~\ref{cor:dk-cyclotomic-unit} identifies \(D'_k\) with
+\(L(1)\ne0\), while the first-order Jacobi expansion identifies
+\(C_1\ne0\) with the final congruence in \((\mathsf{DJ}_4)\).
+
+Finally the two exponents carrying \(ab\) and \(ab^{-1}\) are
+trivial under the quadratic character modulo five, so both factors of
+\(E_1\) have index \(L(1)\).  The exponents carrying \(ab^2\) and
+\(ab^{-2}\) have quadratic character \(-1\), so both factors of
+\(E_2\) have index \(-L(1)\).  This proves
+\((\mathsf{DJ}_5)\), and \((\mathsf{DJ}_6)\)--\((\mathsf{DJ}_7)\)
+follow because four and \(G_1\) are nonzero modulo \(\ell\).
 \end{proof}
 
 \begin{proposition}[binary cyclic-parity form of exceptional failure]
@@ -8614,6 +10022,315 @@ coefficients of the monic cubic in characteristic two, proving
 gives \((\mathsf{CS}_2)\).
 \end{proof}
 
+\begin{proposition}[depressing the selected cubic recovers the Gaussian recursion]
+\label{prop:dk-depressed-selected-cubic}
+Over a field of characteristic two, put
+\[
+ f(Y)=Y^3+aY^2+bY+a^2,
+ \qquad \delta^2=a^2+b.
+\]
+Then
+\[
+ f(\delta U+a)
+ =\delta^3\left(U^3+U+\frac{ab+a^2}{\delta^3}\right).
+                                                               \tag{\(\mathsf{DC}_1\)}
+\]
+For the recursively selected cubic \(f=G/C^2\), so that
+\[
+ a=\frac gC,\qquad b=\frac1{C^2},\qquad C=g^2+g+1,
+\]
+one may take \(\delta=(g+1)/C\), and the constant in
+\((\mathsf{DC}_1)\) is exactly \(g\).  Thus
+\[
+ \boxed{\quad
+ (G/C^2)\left(\frac{g+1}{C}U+\frac gC\right)
+ =\left(\frac{g+1}{C}\right)^3(U^3+U+g).
+ \quad}                                                        \tag{\(\mathsf{DC}_2\)}
+\]
+In particular, depressing and scaling the selected Dickson cubic is a
+lossless recovery of the preceding Gaussian-tower equation; it supplies
+no invariant independent of the recursion.
+\end{proposition}
+
+\begin{proof}
+Direct expansion in characteristic two cancels the quadratic and
+constant terms coming from \((\delta U+a)^3+a(\delta U+a)^2\), and
+the linear coefficient is
+\(\delta(a^2+b)=\delta^3\).  This proves
+\((\mathsf{DC}_1)\).  In the selected case,
+\[
+ a^2+b=\frac{(g+1)^2}{C^2},
+ \qquad
+ ab+a^2=\frac{g(1+gC)}{C^3}.
+\]
+The identity \(1+gC=(g+1)^3\) now gives
+\((ab+a^2)/\delta^3=g\), proving \((\mathsf{DC}_2)\).
+\end{proof}
+
+\begin{proposition}[the first Dickson Hasse jets are universal]
+\label{prop:dk-dickson-hasse-jets}
+Let \(F\) have characteristic two, let \(e\) be odd, and let
+\(D_e\) be characterized by
+
+\[
+ D_e(T+T^{-1})=T^e+T^{-e}.
+\]
+
+Suppose that \(t^e=1\), \(t\ne1\), and put \(y=t+t^{-1}\).  If
+\(D_e^{[j]}\) denotes the \(j\)-th Hasse derivative, then
+
+\[
+\begin{aligned}
+ D_e^{[1]}(y)&=0,&
+ D_e^{[2]}(y)&=y^{-2},&
+ D_e^{[3]}(y)&=y^{-3},\\
+ D_e^{[4]}(y)&=(y^2+1)y^{-6},&
+ D_e^{[5]}(y)&=(y^2+1)y^{-7}.
+\end{aligned}                                      \tag{\(\mathsf{HJ}_1\)}
+\]
+
+The first place at which the exponent can enter the local expansion is
+order six.  More precisely,
+
+\[
+ D_e^{[6]}(y)=\epsilon_e y^{-6},\qquad
+ \epsilon_e=
+ \begin{cases}
+  1,&e\equiv1,7\pmod8,\\
+  0,&e\equiv3,5\pmod8.
+ \end{cases}                                      \tag{\(\mathsf{HJ}_2\)}
+\]
+
+Consequently the derivative, multiplicity, and Hasse-jet data through
+degree five impose no condition beyond the root coordinate itself:
+they are fixed rational functions of \(y\), independent of \(e\).
+Even the sixth jet adds only \(e\bmod8\), common to every root of the
+same Dickson polynomial.  Thus higher multiplicity does not furnish a
+new exponent-sensitive ancestry invariant for the recursively selected
+cubic in Proposition~\ref{prop:dk-selected-sextic}.
+\end{proposition}
+
+\begin{proof}
+The element \(y\) is nonzero: otherwise \(t^2=1\), and the odd order of
+\(t\) would force \(t=1\).  Work in the completed local ring and write
+
+\[
+ T=t(1+u),\qquad x=(T+T^{-1})-y,\qquad a=t^{-1}.
+\]
+
+Then
+
+\[
+ x=yu+a(u^2+u^3+u^4+u^5)+O(u^6).                    \tag{\(\mathsf{HJ}_3\)}
+\]
+
+Since \(t^e=1\),
+
+\[
+ D_e(y+x)=(1+u)^e+(1+u)^{-e}.
+\]
+
+For odd \(e\), the coefficient
+
+\[
+ \binom ej+\binom{e+j-1}j\pmod2
+\]
+
+is zero for \(j=0,1\), is one for \(2\leq j\leq5\), and at \(j=6\)
+is \(\epsilon_e\).  Hence
+
+\[
+ D_e(y+x)=u^2+u^3+u^4+u^5+\epsilon_eu^6+O(u^7).
+                                                               \tag{\(\mathsf{HJ}_4\)}
+\]
+
+Successively inverting \((\mathsf{HJ}_3)\) gives
+
+\[
+ u=px+qx^2+rx^3+sx^4+O(x^5),
+\]
+
+where
+
+\[
+ p=y^{-1},\qquad q=ay^{-3},\qquad r=ay^{-4},\qquad
+ s=a(1+y^2)y^{-7}.                                  \tag{\(\mathsf{HJ}_5\)}
+\]
+
+Substitution in \((\mathsf{HJ}_4)\) gives the coefficients of
+\(x^2,x^3,x^4,x^5\) as
+
+\[
+ p^2,\quad p^3,\quad q^2+p^2q+p^4,\quad
+ p^2r+pq^2+p^5.
+\]
+
+Using \(a^2+ay=1\), these are exactly the four values in
+\((\mathsf{HJ}_1)\).  The coefficient of \(x^6\) is
+
+\[
+ r^2+p^2s+q^3+p^4q+\epsilon_ep^6
+ =\epsilon_ey^{-6};
+\]
+
+the non-\(\epsilon_e\) terms cancel again by \(a^2+ay=1\).  By the
+defining Taylor identity for Hasse derivatives, these local
+coefficients are \(D_e^{[j]}(y)\), proving both formulas and the stated
+no-go.
+\end{proof}
+
+\begin{proposition}[the Gaussian depressed class is not a selected invariant]
+\label{prop:dk-depressed-class-multiplicity}
+Let \(Q=2^s\) with \(s\) odd, let \(g\in\F_Q\), and suppose that
+
+\[
+ h(U)=U^3+U+g
+\]
+
+is irreducible over \(\F_Q\).  For every \(\xi\in\F_Q^\times\), put
+
+\[
+ H_\xi=\xi^3+\xi+g,\qquad
+ \delta_\xi=\frac{\xi^2}{H_\xi},\qquad
+ a_\xi=\xi\delta_\xi,\qquad
+ b_\xi=a_\xi^2+\delta_\xi^2,
+\]
+
+and
+
+\[
+ f_\xi(Y)=Y^3+a_\xi Y^2+b_\xi Y+a_\xi^2.
+\]
+
+Then \(H_\xi\ne0\), the cubics \(f_\xi\) are irreducible and pairwise
+distinct, and
+
+\[
+ f_\xi(\delta_\xi U+a_\xi)
+ =\delta_\xi^3(U^3+U+g).                            \tag{\(\mathsf{GM}_1\)}
+\]
+
+Put \(\Lambda=Q^2-Q+1\).  If
+
+\[
+ \operatorname{Tr}_{\F_Q/\F_2}(\xi^{-1})=0,          \tag{\(\mathsf{GM}_2\)}
+\]
+
+then \(f_\xi\mid D_\Lambda\).  There are exactly \(Q/2-1\) such
+parameters \(\xi\).  Consequently the single depressed recursion
+\(U^3+U+g\) occurs in \(Q/2-1\) distinct irreducible cubic factors of
+the ambient Dickson polynomial \(D_\Lambda\).
+
+For the exceptional arm, take \(Q=A_0\), \(g=\gamma_{k-1}\).  The
+recursively selected cubic of
+Proposition~\ref{prop:dk-depressed-selected-cubic} is the member with
+
+\[
+ \xi=\frac{a}{\delta}=\frac g{g+1}.
+\]
+
+Thus, for \(k\geq2\), at least \(Q/2-2\) nonselected Dickson cubics
+have exactly the same affine depressed equation.  Excluding the
+selected factor from \(D_e\) must use its multiplicative placement in
+the subgroup \(\mu_e\), not its full affine cubic class.
+\end{proposition}
+
+\begin{proof}
+Irreducibility of \(h\) gives \(H_\xi\ne0\).  Put
+\(a=a_\xi\), \(b=b_\xi\), and \(\delta=\delta_\xi\).  Since
+\(a/\delta=\xi\) and \(\delta H_\xi=\xi^2\), direct substitution in
+Proposition~\ref{prop:dk-depressed-selected-cubic} gives
+
+\[
+ \frac{ab+a^2}{\delta^3}
+ =\xi^3+\xi+\frac{\xi^2}{\delta}=g,
+\]
+
+which proves \((\mathsf{GM}_1)\).  Hence every \(f_\xi\) is
+irreducible.  Moreover \(\delta\) is the unique square root of
+\(a^2+b\), so the parameter \(\xi=a/\delta\) is recovered from the
+coefficients of \(f_\xi\); the cubics are pairwise distinct.
+
+Let \(y\) be a root of \(f_\xi\) in \(\F_{Q^3}\).  The quadratic
+
+\[
+ T^2+yT+1
+\]
+
+is irreducible over \(\F_{Q^3}\) exactly when
+
+\[
+ \operatorname{Tr}_{\F_{Q^3}/\F_2}(y^{-2})=1.
+\]
+
+If \(y_0,y_1,y_2\) are the three conjugates of \(y\), then
+
+\[
+ \sum_i y_i^{-1}=\frac b{a^2},
+\]
+
+so invariance of absolute trace under squaring gives
+
+\[
+\begin{aligned}
+ \operatorname{Tr}_{\F_{Q^3}/\F_2}(y^{-2})
+ &=\operatorname{Tr}_{\F_Q/\F_2}\!\left(\frac b{a^2}\right)\\
+ &=\operatorname{Tr}_{\F_Q/\F_2}(1+\xi^{-2})
+  =1+\operatorname{Tr}_{\F_Q/\F_2}(\xi^{-1}).
+\end{aligned}                                      \tag{\(\mathsf{GM}_3\)}
+\]
+
+Here \(\operatorname{Tr}(1)=1\) because \(s\) is odd.  Thus
+\((\mathsf{GM}_2)\) makes the quadratic irreducible.  Choose a root
+\(t\in\F_{Q^6}\), so \(y=t+t^{-1}\) and \(t^{Q^3}=t^{-1}\).
+
+It remains to recover the smaller torus \(\mu_\Lambda\), rather than
+only \(\mu_{Q^3+1}\).  Put
+
+\[
+ x=t,\qquad u=t^Q,\qquad v=t^{Q^2}.
+\]
+
+The trace--constant identity for \(f_\xi\) has the exact factorization
+
+\[
+\begin{aligned}
+ &\prod_{w\in\{x,u,v\}}(w+w^{-1})
+  +\left(\sum_{w\in\{x,u,v\}}(w+w^{-1})\right)^2\\
+ &\qquad=
+ \frac{(u+xv)(v+xu)(x+uv)(1+xuv)}{x^2u^2v^2}=0.
+\end{aligned}                                      \tag{\(\mathsf{GM}_4\)}
+\]
+
+The four factors respectively assert that the order of \(t\) divides
+
+\[
+ Q^2-Q+1,\quad Q^2-Q-1,\quad Q^2+Q-1,\quad Q^2+Q+1.
+\]
+
+On the other hand it divides \(Q^3+1\).  The last three displayed
+integers are coprime to \(Q^3+1\): for the first two of them this
+follows by Euclidean reduction to the coprime pairs
+\((Q+1,Q^2-Q-1)\) and \((Q,Q^2+Q-1)\), while
+\(Q^2+Q+1\mid Q^3-1\) and \(\gcd(Q^3-1,Q^3+1)=1\) because both
+relevant orders are odd.  Since \(t\ne1\), only the first factor can
+vanish.  Hence \(t^\Lambda=1\), and Dickson's identity gives
+
+\[
+ D_\Lambda(y)=t^\Lambda+t^{-\Lambda}=0.
+\]
+
+Thus \(f_\xi\mid D_\Lambda\).  Finally inversion permutes
+\(\F_Q^\times\), and the absolute-trace-zero hyperplane has \(Q/2\)
+elements, one of which is zero.  Therefore exactly \(Q/2-1\) nonzero
+parameters satisfy \((\mathsf{GM}_2)\).  The specialization to the
+selected cubic follows from
+\(a=g/C\) and \(\delta=(g+1)/C\); the reciprocal sextic is
+irreducible by Proposition~\ref{prop:dk-selected-sextic}, so
+\((\mathsf{GM}_3)\) also places the selected parameter among the
+\(Q/2-1\) counted above.
+\end{proof}
+
 \begin{proposition}[the selected cubic's absolute-trace fingerprint]
 \label{prop:dk-selected-fingerprint}
 Put \(K_j=\F_{2^{3^j}}\), set \(\gamma_0=1\), and choose the
@@ -8683,6 +10400,78 @@ gives \(U_j=1+U_{j-1}\), with \(U_0=\psi(1)=1\); this proves
 \((\mathsf{CF}_2)\).  Finally take \(j=k-1\), use
 \(C=g^2+g+1\), and use invariance of the absolute trace under
 squaring to obtain \((\mathsf{CF}_3)\).
+\end{proof}
+
+\begin{proposition}[the joint fingerprint admits a nonselected factor]
+\label{prop:dk-fingerprint-countermodel}
+At \(k=4\), the two absolute traces in
+Proposition~\ref{prop:dk-selected-fingerprint} are simultaneously
+realized by an irreducible cubic factor of the bad Dickson polynomial
+which is not the selected cubic.  More precisely, put
+\[
+ A=2^{27},\qquad
+ \Psi_4=163\cdot135433\cdot272010961,
+ \qquad \Lambda=A^2-A+1=3\Psi_4,
+\]
+and let \(P_4\) be the projected element of
+Proposition~\ref{prop:dk-projection}.  In the exact trinomial model
+\(\F_2[X]/(X^{162}+X^{81}+1)\), one has
+\(\ord(P_4)=\Psi_4\).  Set
+\[
+ t=P_4^{163\cdot7},\qquad
+ e=\frac{\Lambda}{163}
+   =3\cdot135433\cdot272010961,
+ \qquad y_t=t+t^{-1}.
+\]
+Then
+\[
+ \ord(t)=135433\cdot272010961,
+\]
+so \(t\in\mu_e\setminus\mu_3\).  If
+\[
+ a_t=\sum_{i=0}^2y_t^{A^i},\qquad
+ b_t=\sum_{0\leq i<j\leq2}y_t^{A^i}y_t^{A^j},
+\]
+then
+\[
+ Q_t(Y)=Y^3+a_tY^2+b_tY+a_t^2
+\]
+is an irreducible cubic factor of \(D_e(Y)\), distinct from \(G\), and
+the exact finite-field certificate gives
+\[
+ \operatorname{Tr}_{\F_A/\F_2}(a_t)=1,
+ \qquad
+ \operatorname{Tr}_{\F_A/\F_2}(b_t)=0.              \tag{\(\mathsf{CF}_4\)}
+\]
+This is exactly the selected pair \((1,k\bmod2)=(1,0)\).  Thus even
+the two trace coordinates jointly cannot exclude the selected factor.
+\end{proposition}
+
+\begin{proof}
+The order and trace statements in this proposition are an exact finite
+certificate, not an analytical instance of \(D'_k\).  They use the same
+bit-polynomial arithmetic as
+\path{experiments/exception_column_m4.py}: represent \(\zeta\) by \(X\),
+reduce with \(X^{162}=X^{81}+1\), form \(P_4\) from
+\((\mathsf D_2)\), and use repeated squaring for Frobenius and absolute
+trace.  Exact powering first gives
+\[
+ P_4^{\Psi_4}=1,
+ \qquad
+ P_4^{\Psi_4/r}\ne1
+ \quad(r=163,135433,272010961).
+\]
+Since \(\gcd(163\cdot7,\Psi_4)=163\), this proves the displayed order
+of \(t\), hence \(t^e=1\).  Proposition~\ref{prop:dk-cubic-shape}
+then gives the irreducible cubic \(Q_t\), and the root factorization
+\((\mathsf{DS}_{10})\) gives \(Q_t\mid D_e\).
+
+The same exact reduction evaluates the two Frobenius sums defining
+\(a_t,b_t\); summing their \(27\) absolute Frobenius conjugates gives
+respectively \(1\) and \(0\), which is \((\mathsf{CF}_4)\).  Finally
+the certified selected element at \(k=4\) retains its \(163\)-primary
+order, whereas \(t\) does not.  Their inverse-pair Frobenius orbits
+therefore cannot agree, so \(Q_t\ne G\).
 \end{proof}
 
 \begin{remark}[the plus and minus current tori have disjoint orders]
@@ -9489,6 +11278,60 @@ what would settle the question: Conjecture~\ref{conj:rule} implies
   m_p\in\{0,1,4\}\qquad\text{for every odd prime }p.
 \]
 
+There is also an exact formulation of the weaker boundedness question
+which does not ask for any maximal-order arm.  It identifies precisely
+what a direct fixed-window proof would still have to evaluate.
+
+\begin{proposition}[finite Conway-line criterion for absolute boundedness]
+\label{prop:absolute-conway-line}
+For \(a\geq0\), let
+\[
+ C_a=\F_{2^{2^a}}=\{0,1,\ldots,2^{2^a}-1\}
+\]
+be the corresponding finite Conway subfield.  For an odd prime \(p\),
+put \(x_p=\kappa_{f(p)}\) and
+\[
+ L_{p,a}=\F_2(x_p)C_a.
+\]
+Then
+\[
+ m_p<2^{2^a}
+ \iff
+ \text{some }c\in C_a\text{ is such that }
+ x_p+c\notin L_{p,a}^{p},                            \tag{\(\mathsf{AB}_1\)}
+\]
+where \(L^p=\{y^p:y\in L\}\).  Consequently
+\[
+ \sup_p m_p<\infty
+ \iff
+ \text{for some fixed }a,\quad
+ \forall p\ \exists c\in C_a:\ x_p+c\notin L_{p,a}^{p}.
+                                                               \tag{\(\mathsf{AB}_2\)}
+\]
+Thus absolute boundedness is exactly uniform nonsaturation of one
+fixed finite-Conway-subfield affine line.
+\end{proposition}
+
+\begin{proof}
+Fix \(c\in C_a\), put \(\beta=x_p+c\), and let
+\(F_c=\F_2(\beta)\).  Since \(x_p=\beta+c\), one has
+\[
+ L_{p,a}=F_cC_a.
+\]
+Hence \([L_{p,a}:F_c]\) divides \([C_a:\F_2]=2^a\), and is therefore
+prime to the odd prime \(p\).  Extension from \(F_c\) to \(L_{p,a}\)
+is injective on \(p\)-Kummer quotients: restriction followed by norm is
+multiplication by \([L_{p,a}:F_c]\), which is invertible modulo \(p\).
+Thus \(\beta\) is a \(p\)-th power in its defining finite field exactly
+when it is a \(p\)-th power in the common field \(L_{p,a}\).
+
+The finite nimbers below \(2^{2^a}\) are exactly \(C_a\), so the
+definition of the excess gives \((\mathsf{AB}_1)\).  A fixed \(a\)
+therefore gives the uniform bound \(2^{2^a}-1\).  Conversely, from a
+uniform bound \(B\), choose \(a\) with \(2^{2^a}>B\); every witnessing
+translate then lies in \(C_a\).  This proves \((\mathsf{AB}_2)\).
+\end{proof}
+
 The theorem also explains why a generic finite-field argument is
 insufficient.  Proposition~\ref{prop:translate-no-go} constructs
 arbitrarily large exact-degree elements whose translates in any fixed
@@ -9498,8 +11341,18 @@ the distinguished Conway-tower identities.
 The available uniform results are substantial but incomplete.
 The zero arm is proved for primitive support and completely at the first
 two power-of-two two-spine levels \(h=12,24\); the ordinary odd-spine
-arm has projective reductions and a signed conjugate-ball sieve; the
+arm has projective reductions and an absolute-Frobenius signed-ball sieve; the
 cubic and exceptional arms have explicit partition-regulator bounds.
+On the exceptional column, Proposition~\ref{prop:dk-constant-line}
+also gives the direct effective estimate
+\[
+ m_\ell<16(3^k)^4
+ \qquad\bigl(f(\ell)=2\cdot3^k,\ k\geq2\bigr).
+\]
+Its proof shows why this does not become absolute: a fixed Conway line
+is one fixed constant-extension power sum of a selected Dirichlet
+\(L\)-polynomial, and the Riemann--Weil bound is eventually compatible
+with complete saturation of that line.
 Each leaves smaller current primary factors untreated.  Consequently
 neither global boundedness nor the nonexistence of an excess
 \(m_p\geq5\) is presently proved.
@@ -9534,6 +11387,25 @@ of a reverse-Dickson polynomial, containing the actual minimal polynomial
 of \(a_{n-1}\), must divide the trace-one polynomial.  Its factorization
 is one irreducible of degree \(m\ell\) on success and \(\ell\)
 irreducibles of degree \(m\) on failure.
+Proposition~\ref{prop:fermat-additive-saturation} saturates that failure
+fibre under translation by the half-field.  It gives the sharper
+conditional sieve \(\ell\leq\sqrt q/2\); the exact obstruction is a
+collision of the selected roots under
+\(z\mapsto z^{\sqrt q}+z\).
+Proposition~\ref{prop:fermat-relative-trace-axes} factors the collision
+equation completely.  After centering a pair, it says that the ratio of
+one selected transported value and one fibotomic value lies either in
+the half-field multiplicative group or in its relative norm-one torus;
+the two alternatives are disjoint.  Equivalently, \(a^{-1}\) must be
+the value of \(\mathcal D_\ell(\tau(s+s^{-1}),1)\) for a fibotomic
+\(s\) and an axis scalar \(\tau\); full Conway ancestry forces the
+corresponding \(J\)-value to be \(a_{n-2}\), but does not evaluate it.
+The proposition also constructs nonselected
+failure cosets with the first kind of collision whenever
+\(\ell\leq\sqrt q\), including the interval
+\(\sqrt q/2<\ell\leq\sqrt q\).  Thus proving the actual Conway ratio
+avoids both axes remains additional selected content, rather than a
+consequence of the one-step trace identities or the square-root count.
 Remark~\ref{rem:fermat-trace-gap} proves that the resulting degree and
 coefficient-gap constraints remain compatible with every composite
 Fermat case.  Proposition~\ref{prop:fermat-coset-semiconjugacy}
@@ -9547,8 +11419,10 @@ multicomponent zero sets,
 Proposition~\ref{prop:fermat-two-spine-support} proves that the Conway
 class is nontrivial in the primitive-support quotient under its stated
 two-spine hypotheses, but generation of a composite quotient remains
-open.  Remark~\ref{rem:two-spine-cross-ratio} records the exact
-Hilbert--90 representative and why it yields no order bound by itself.
+open.  Proposition~\ref{prop:two-spine-cross-ratio-sieve} turns the
+exact Hilbert--90 representative into a cyclic-variation order lower
+bound and proves every primary factor above its explicit complementary
+threshold; the smaller factors remain unevaluated.
 
 \item \emph{Ordinary odd-spine arm.}
 Evaluate the selected power-residue class
@@ -9556,7 +11430,7 @@ Evaluate the selected power-residue class
 prove its full projective order.  This includes the \(11\)-chain and
 the \(23,29,47,179,\ldots\) components.  The relative-unit formulation
 and Proposition~\ref{prop:singleton-conjugate-ball} prove every primary
-factor above an explicit signed-ball threshold, so the unresolved
+factor above its sharper explicit signed-ball threshold, so the unresolved
 content is confined to the smaller factors.  The source-pinned
 \(m_{359}=1\) row is a concrete instance whose independent trace
 evaluation remains open.  Remark~\ref{rem:base-selector-cancel} shows
@@ -9594,7 +11468,11 @@ The norm tower propagates all old factors, and
 Proposition~\ref{prop:cubic-partitions} settles primary factors above
 its explicit threshold.  The derivative regulator, secant saturation,
 and reciprocity calculations all recover the same one-dimensional
-Kummer class without evaluating it, while
+Kummer class without evaluating it.  Proposition~\ref{prop:cubic-circulant-no-go}
+proves that the apparent \(3^k\)-determinant of the conjugate
+circular-unit lattice acts as one after reduction and admits equivariant
+abstract models of every current-factor index, even while preserving
+maximal lower-field norm.  Meanwhile
 Proposition~\ref{prop:cubic-recursion-no-go} proves that the coefficient
 recursion does not preserve primitivity even when it preserves
 irreducibility.  Proposition~\ref{prop:cubic-cyclic-parity} makes the
@@ -9602,7 +11480,27 @@ remaining assertion purely combinatorial in the cyclic group algebra:
 the binary subset sums of \((2^{3^k}-1)/\ell\) cannot have parity one at
 every residue except a single prescribed residue.  This universal
 inequality, equivalently direct Kummer nonvanishing at the smaller
-current factors, remains open.  Corollary~\ref{cor:cubic-augmentation}
+current factors, remains open.
+Proposition~\ref{prop:cubic-mixed-jacobi-top} gives the exact
+characteristic-zero counterpart: every first-order mixed Jacobi
+coefficient outside the primitive top component vanishes, and every
+primitive coefficient is a known nonzero multiple of \(L(1)\).  Thus a
+single selected Fermat quotient decides the arm:
+\[
+ J_1\not\equiv-1\pmod{(\zeta_\ell-1)^2}.
+\]
+Stickelberger ideal data see \(J_1\), but not this additive first-order
+congruence for \(J_1+1\).  Corollary~\ref{cor:cubic-weighted-jacobi-resolvent}
+packages it into one weighted product
+\(\mathcal R_\lambda\not\equiv1\pmod{(\zeta_\ell-1)^2}\), while proving
+that the corresponding unweighted product is identically flat.
+Corollary~\ref{cor:cubic-primitive-crt-isolation} proves that the
+exceptional residue is one of the three lifts
+\(3^{k+1}-1,3^k-1,2\cdot3^k-1\), and isolates all success/failure
+information in the top \(\Phi_{3^{k+1}}\)-component.  Thus every proper
+cyclic projection is provably blind; its weight and mod-four consequences
+give exact screens but do not evaluate the selected top coordinate.
+Corollary~\ref{cor:cubic-augmentation}
 shows that both the full Frobenius product and the apparent
 \(\ell\)-th-power exponent test are unconditional: failure is an extra
 proper-subproduct relation, so those identities alone cannot exclude it.
@@ -9649,8 +11547,12 @@ and norm-blindness results show precisely why the remaining smaller
 factors are not consequences of the present generic identities.
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
-Jacobi sums of conductor \(15h\).  Ruling out that simultaneous
-flatness is still equivalent to evaluating the selected local phase.
+Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}
+then proves that this vector has rank one: the single coefficient
+\(C_1\) is a nonzero Gauss factor times
+\(\operatorname{ind}_\ell(d_k)\).  Thus the remaining first-order theorem
+is exactly nonvanishing of the selected antiunit regulator, not a family
+of independent Jacobi congruences.
 Proposition~\ref{prop:dk-cyclic-parity} gives the parallel
 characteristic-two boundary: failure is a complement-of-zero submask
 parity pattern modulo \(15h\), while its \(\ell\)-th-power consequence
@@ -9674,6 +11576,19 @@ shape admit many false positives.
 Proposition~\ref{prop:dk-cubic-shape} proves more: every admissible
 cubic has constant coefficient equal to the square of its trace
 coefficient, exactly as \(G/C^2\) does.
+Proposition~\ref{prop:dk-depressed-selected-cubic} then shows that even
+the full affine depressed form is recursion-neutral: the selected cubic
+is carried exactly back to \(U^3+U+g\).  Thus depressing the cubic does
+not produce an independent discriminant or coefficient obstruction.
+Proposition~\ref{prop:dk-dickson-hasse-jets} closes the suggested
+higher-derivative escape: the Hasse jets through degree five are
+universal rational functions of the root, and the sixth adds only the
+common residue \(e\bmod8\).  More decisively,
+Proposition~\ref{prop:dk-depressed-class-multiplicity} constructs
+symbolically \(Q/2-1\) distinct ambient Dickson cubics whose full affine
+depressed equation is the same \(U^3+U+g\).  The selected cubic is only
+one member; its unresolved content is placement in \(\mu_e\), not its
+affine cubic class.
 Proposition~\ref{prop:dk-selected-fingerprint} evaluates the two
 absolute traces
 \[
@@ -9681,12 +11596,26 @@ absolute traces
  \qquad
  \operatorname{Tr}(C^{-2})=k\pmod2,
 \]
-but the ambient factorization supplies no contrary coordinate identity.
+and Proposition~\ref{prop:dk-fingerprint-countermodel} proves
+conclusively that their joint value is not an exclusion invariant: at
+\(k=4\) a nonselected irreducible factor of the bad Dickson polynomial
+has the same pair \((1,0)\).  Hence no argument using only these two
+absolute traces can close the exceptional arm.
+Proposition~\ref{prop:dk-constant-line} treats the weaker boundedness
+question directly.  Its constant-extension moment proves
+\(m_\ell<16(3^k)^4\) throughout this column, but the bound grows with
+the level.  At any fixed Conway-subfield dimension, Riemann--Weil is
+compatible with full line saturation; obtaining an absolute window
+still requires uniform nonextremality of that selected moment.  The
+complete-line product is unavailable as a substitute because
+Proposition~\ref{prop:dk-gap} proves it is unconditionally an
+\(\ell\)-th power.
 Remark~\ref{rem:plus-minus-tori} also shows that the cubic and
 exceptional current groups have coprime orders, so no rational-point
 homomorphism can transfer arm \((C)\) to arm \((D)\).
-The remaining theorem is precisely
-exclusion of the recursively selected cubic.
+The remaining theorem is precisely nonvanishing of the recursively
+selected antiunit index, equivalently exclusion of the recursively
+selected cubic.
 \end{enumerate}
 
 Appendix~\ref{sec:provenance} records finite computations, external
@@ -9889,6 +11818,10 @@ Math.\ Z.\ \textbf{59} (1954), 388--398.
 \bibitem{Popovych18} R.~Popovych, \emph{Multiplicative orders of
 elements in Conway's towers of finite fields}, Algebra Discrete Math.
 \textbf{25} (2018), 137--146; arXiv:1509.01958.
+\bibitem{RJW25} J.~Rodrigues Jacinto, C.~Williams,
+\emph{An introduction to \(p\)-adic \(L\)-functions}, Essential Number
+Theory \textbf{4} (2025), 101--216;
+\url{https://doi.org/10.2140/ent.2025.4.101}; arXiv:2309.15692.
 \bibitem{vzGS92} J.~von~zur~Gathen, V.~Shoup, \emph{Computing Frobenius
 maps and factoring polynomials}, Comput.\ Complexity \textbf{2} (1992),
 187--224.
