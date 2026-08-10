@@ -187,28 +187,48 @@ shows instead that the conjecture is an unnecessary strengthening for Gold.
 kernel-checks the quadratic expansion in a supplied adapted basis: selected
 basis diagonals plus the parity of hyperbolic pairs whose two coordinates are
 active. It includes the exact split in which each adapted diagonal is a public
-polar correction plus a transported original-frame linear source; this is the
-step that rules out a hidden dense refinement query after the Witt change.
+polar correction plus a transported original-frame linear source.
 The standard existence of a symplectic-plus-radical basis for a finite
 alternating form remains an ordinary linear-algebra input; the file proves the
-entire identity once such a basis is supplied.
+identity once such a basis and the split-diagonal hypotheses are supplied. It
+does not define the original-frame change-of-basis matrix or prove that its
+concrete public correction is `P_B(f_i)`; that elementary polarization step
+remains in the paper.
 
 [`Ogdoad/GoldSemantics.lean`](Ogdoad/GoldSemantics.lean) proves the semantic
 compiler independently of the FIFO mechanism:
 
-- any finite Boolean-payoff move tree becomes an ordinary normal-play tree by
-  retaining its moves and adding one terminal claim move exactly when the
-  current seat is designated by the charge;
-- backward induction proves winner equivalence at every subtree and phase, so
+- a recursive winning-status compiler models retaining every move and adding
+  one terminal claim exactly when the current seat is designated by the charge;
+- mutual backward induction proves winner equivalence at every subtree and phase, so
   stance one has a P-root exactly when the forced charge is zero;
-- a phase-free terminal gadget cannot preserve seat identity across both path
-  parities;
+- the Boolean complement identity behind the need for a mover/phase bit;
 - outcome-dominance pruning makes mixed-successor criticality impossible in
   every two-class game; and
-- the two-action edge fork has complementary values and its optimum swaps when
-  one unread refinement source is toggled.
+- the local Boolean swap identity for a two-action fork.
 
-Together these three files kernel-check the load-bearing game theorem,
-quadratic decomposition, and payoff-to-normal-play bridge of
-`writeups/goldarf.tex`.  They do not encode finite-field nim arithmetic or the
-standard Witt-basis existence theorem.
+[`Ogdoad/GoldNoEvaluator.lean`](Ogdoad/GoldNoEvaluator.lean) proves the sharp
+observation boundary. Coordinate-free, transcript stability and exactness
+force the input into the span of the observed vectors. In the Boolean
+coordinate frame it proves
+
+```text
+weight(x) <= number of observations * maximum observation weight
+```
+
+and rules out uniform exactness under a bounded total certificate. The
+weighted-source rule uses exactly the active singleton directions and attains
+this support bound.
+
+[`Ogdoad/GoldForkPadding.lean`](Ogdoad/GoldForkPadding.lean) proves that
+strategic-fork axioms cannot define non-tautology extensionally. It replaces
+every terminal P-node of an arbitrary finite normal-play tree by an
+outcome-equivalent forced wrapper leading to an always-N refinement-sensitive
+fork, and `win_padTerminals` proves the root outcome is unchanged.
+
+These files kernel-check independent ingredients of the synthesis in
+`writeups/goldarf.tex`; there is no single end-to-end Lean theorem constructing
+the weighted-source arena and connecting every layer. In particular they do
+not encode finite-field nim arithmetic, construct the standard Witt basis,
+instantiate its concrete matrix coefficients, or build the compiled arena as a
+second explicit move-graph datatype.

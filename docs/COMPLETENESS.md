@@ -32,8 +32,8 @@ scalar-grade (no blade).
 
 Reference items by **slug**. The ledger's total value is the disjunctive sum; play it
 in any order. (`echo-solver`, the formerly hottest cold item, was played 2026-06-10
-with outcome **CONFIRM** — see `writeups/goldarf.tex` §8; its successor move is the
-σ-recasting target in `OPEN.md` tis, which is loopy-valued, not a number.)
+with outcome **CONFIRM** — see `writeups/goldarf.tex` §8; its former
+σ-recasting successor was resolved by the later claim-lantern theorem.)
 
 ---
 
@@ -114,8 +114,9 @@ conjecture on valid data. (Partially advanced by the 2026-06-10 `linking-reducti
 pass: the no-dummy controls are fully mapped at the abstract-graph
 level — the Bad census — and the fifo+dummy mechanism is identified
 (`experiments/linking_game.py`, goldarf §8 `sec:linking`); the `w ≥ 2` ko-window and
-pass/pair axes remain unswept, and the general-n linking *proof* is loopy-valued in
-`OPEN.md` tis, not a number here.)
+pass/pair axes remain unswept. The arbitrary-graph general-n linking proof remains
+an optional research generalization, while the Gold problem itself is closed by
+the proved Witt-matching route recorded in `DONE.md`.)
 
 ### 1·(e_s∧e_f): `brauer-algebras`
 **Explicit algebra representatives for the Brauer invariants.** Bridges F/K

@@ -1,4 +1,4 @@
-//! The interactive route: can a natural B-coupled game have P-set {Q=0}?
+//! A historical interactive route toward a B-coupled game with P-set {Q=0}.
 //!   cargo run --example interactive_kernel
 //!
 //! Normal-play disjunctive sums give XOR-linear (subspace) P-sets, so they can't
@@ -7,8 +7,9 @@
 //!
 //!  (a) ANY set S is the P-set of *some* acyclic game — trivially: send every
 //!      v∉S to a fixed loss in S, and every v∈S only to wins. So existence is
-//!      free; the open question is whether a *natural*, uniform, B-coupled rule
-//!      does it.
+//!      free; the question at the time was whether a *natural*, uniform,
+//!      B-coupled rule did it. The weighted-source FIFO rule now does; this
+//!      example records why the simpler downward rules did not.
 //!
 //!  (b) A natural candidate couples moves through the polar form B of Q (the
 //!      exact obstruction identified earlier). We orient moves downward (to
@@ -84,7 +85,7 @@ fn main() {
         "\n(a) hand-built acyclic game reproduces {{Q=0}} exactly: {}",
         adhoc_p == zero
     );
-    println!("    ⇒ existence is free; the open question is a NATURAL uniform rule.");
+    println!("    ⇒ existence is free; this probe tested much simpler uniform rules.");
 
     // (b) natural uniform B-/Q-coupled descent rules (downward ⇒ terminating).
     println!("\n(b) natural uniform rules (move v→w only for w<v, so the game terminates):");
@@ -130,8 +131,8 @@ fn main() {
     println!("The rules coupled through B — the polar form, which is the legitimately");
     println!("game-realizable (coin-turning) ingredient — do NOT give {{Q=0}}: B-coupled descent");
     println!("yields an affine subspace, and the single-bit B-gated turn yields a *different*");
-    println!("quadric (wrong Arf). So the sharp open question stands: a game whose moves are");
-    println!("built from the combinatorial ingredients (B / coin-turning) ALONE — not from Q");
-    println!("itself — with P-set {{Q=0}}. The kernel solver + fit_f2_quadratic are the test");
-    println!("bench; the gap is now precisely a B-only rule that integrates up to the Q-quadric.");
+    println!("quadric (wrong Arf). These failures motivated the later Witt-matching FIFO rule,");
+    println!("whose moves use public B-data and singleton refinement queries and whose P-set");
+    println!("is now proved to be {{Q=0}}. This kernel solver remains a regression instrument");
+    println!("for the earlier, deliberately simpler descent candidates.");
 }

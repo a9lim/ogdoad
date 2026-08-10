@@ -79,30 +79,39 @@ coordinate diagonal in the canonical nim tower.
 ### tis·(e_g∧e_f): `gold-witt-fifo-normal-play`
 **Completed:** 2026-08-09
 **Summary:** a fixed, singleton-local normal-play rule has P-set exactly the
-zero quadric of every finite characteristic-two refinement, so Gold Arf is an
-actual second-player win-bias rather than a conditional interpretation.
-**Pillars:** games ↔ forms    **Claim level:** proved synthesis, kernel-checked core
-- split source: choose a deterministic symplectic-plus-radical basis from the
+zero quadric of every finite `F_2`-valued refinement, while a sharp transcript
+theorem identifies the exact observation cost that no torsor-uniform rule can
+beat.
+**Pillars:** games ↔ forms    **Claim level:** proved synthesis, kernel-checked ingredients
+- weighted source: choose a deterministic symplectic-plus-radical basis from the
   public polar form `B`; active adapted coins form a matching and carry only
-  public triangular corrections, while isolated active original-coordinate
-  coins source one singleton refinement bit each.
+  public triangular corrections, while a matched pair for each active
+  original coordinate uses its singleton refinement bit as a local overlap
+  weight.
 - identity: `Q_q(x)` is the XOR of adapted public diagonals, original singleton
-  sources, and the parity of active hyperbolic pairs. No dense adapted-basis
-  `Q` query or per-input evaluator is used.
+  source-edge weights, and the parity of active hyperbolic pairs. No dense
+  adapted-basis `Q` query or q-dependent loading is used.
 - FIFO theorem: on every matching plus isolates, either designated seat keeps
   the opponent front ko-protected or zero-live-degree and therefore forces zero
   correction parity in every dimension, without a dummy.
 - normal semantics: a unique terminal claim move enabled by `sigma xor phase`
   compiles any finite forced-charge tree to ordinary normal play; with stance
   one the root is P exactly when the forced charge is zero.
-- naturality: q-blind loading and `(w0,c)=(1,1)` transition access satisfy
-  N1--N2. For positive polar rank, toggling one unread source exchanges the two
-  unique optimal actions at a live matching edge, satisfying dominance-stable
-  N3cf. Rank-zero forms stay exact but are not padded with a cosmetic gadget.
+- observation boundary: q-blind loading and `(w0,c)=(1,1)` transition access
+  satisfy N1--N2. Exactness plus transcript stability forces every observation
+  certificate to span `x`, hence `wt(x) <= #queries*w0`; the rule's active
+  singleton directions attain that bound. A constant total certificate is
+  impossible in unbounded dimension.
+- anti-decoration boundary: replacing every terminal by a forced wrapper into
+  a refinement-sensitive two-action fork preserves every root outcome. Thus no
+  reachable, optimal, or unavoidable fork axiom can define non-tautology; the
+  rule's weighted-interaction syntax and access discipline are stated directly.
 - formal core: `formal/Ogdoad/FifoMatching.lean` proves the both-seat matching
-  strategy; `GoldMatchingAlgebra.lean` proves the adapted quadratic expansion;
-  `GoldSemantics.lean` proves the claim compiler, phase obstruction,
-  dominance-pruning impossibility, and action swap. All are sorry-free.
+  strategy; `GoldMatchingAlgebra.lean` proves abstract adapted identities;
+  `GoldSemantics.lean` proves the claim-compiler winner recursion;
+  `GoldNoEvaluator.lean` proves the span/support bounds; and
+  `GoldForkPadding.lean` proves the padding obstruction. They are sorry-free
+  ingredient proofs, not one end-to-end encoded arena theorem.
 - boundary: the older isolated-dummy arbitrary-graph FIFO conjecture remains a
   strict combinatorial generalization in `writeups/linking_affine.tex`; it is no
   longer load-bearing for Gold.
@@ -123,8 +132,9 @@ short-game values vanishes by two-divisibility.
 - semantic contract: under synchronized terminal-charge pairing and fixed
   relabelling, the four Brown classes are observationally `(ell,Q)`.  This is
   not a game-tree factorization or a single canonical normal/misère/loopy
-  outcome; the nonlinear internalization is a generalized `tis`-type problem,
-  literally `tis` on doubled Gold forms.
+  four-way outcome. The weighted-source theorem now supplies the nonlinear
+  binary normal-play factor; combining the pair into one four-class outcome is
+  a distinct Brown semantic boundary.
 - global no-go: inclusion-compatible Brown-law data on finitely generated
   short-game subgroups vanishes after adjoining halves and quarters.  This
   rules out exponent-two additive quotients of full `ShUg`, not its nonzero
@@ -517,8 +527,8 @@ implemented and tested
 - boundaries: this is the finite Stone-von Neumann / Pauli representation layer
   over `F_2`-valued extraspecial data, with dense matrices honestly capped by
   `HEISENBERG_WEIL_MATRIX_RANK_CAP`; it is adjacent to the Gold/Arf `tis`
-  program but does not realize a game P-set or solve the loopy-valued open
-  problem.
+  proof history but does not itself realize the later weighted-source game
+  P-set.
 
 ### 2·(e_i∧e_s): `construction-a-p`
 **Completed:** 2026-06-17
@@ -591,8 +601,8 @@ implemented and tested
   inverses on the order-8 cells, `[x,y] = B(x,y)` and `x^2 = Q(x)` are verified
   directly, and the nimber-metric route agrees with `arf_nimber`.
 - boundaries: this is the standard group-extension side of the Gold/Arf
-  reframing over `F_2`-valued metrics; the game realization of `Q` as a P-set
-  remains the loopy-valued `tis` open problem, and higher finite char-2 fields
+  reframing over `F_2`-valued metrics; the later weighted-source construction
+  realizes `Q` as a P-set, while higher finite char-2 fields
   still route through the existing Arf classifiers rather than this bitmask
   extraspecial object.
 
@@ -726,7 +736,7 @@ zero-Grundy positions are the binary lexicode `L(n,d)`.
 - boundaries: the explicit SG route is a bounded witness and inspection surface,
   not the production constructor for large codes; `lexicode(24,8)` remains the
   optimized Golay path, and this solved degree-1 bridge is independent of the
-  later split-source Witt--FIFO resolution of the Gold play-rule question.
+  later weighted-source Witt--FIFO resolution of the Gold play-rule question.
 
 ### 2·e_i: `odd-lattices`
 **Completed:** 2026-06-15

@@ -32,6 +32,15 @@ theorem IsMatchingGraph.induce {G : SimpleGraph V} (hG : IsMatchingGraph G)
   apply Subtype.ext
   exact hG hvx hvy
 
+omit [Fintype V] [DecidableEq V] in
+/-- Deleting any collection of edges from a matching preserves the matching
+property. This is the fixed-refinement step for weighted Gold source pairs:
+zero-weight source edges are simply absent from the proof-auxiliary graph. -/
+theorem IsMatchingGraph.mono {G H : SimpleGraph V} (hG : IsMatchingGraph G)
+    (hHG : H ≤ G) : IsMatchingGraph H := by
+  intro v x y hvx hvy
+  exact hG (hHG hvx) (hHG hvy)
+
 /-- At an opponent checkpoint either ko protects the FIFO front, or that
 front has zero live charge.  The empty queue satisfies the latter clause
 vacuously. -/

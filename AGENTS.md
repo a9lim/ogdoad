@@ -50,8 +50,10 @@ behind the all-exponent Gold diagonal source;
 `Ogdoad/FifoMatching.lean` proves the both-seat zero-flip theorem for every
 matching-plus-isolates board and connects it to adapted hyperbolic coordinates;
 `Ogdoad/GoldMatchingAlgebra.lean` proves the adapted-basis quadratic expansion;
-`Ogdoad/GoldSemantics.lean` proves the forced-charge-to-normal-play compiler and
-the dominance-stable strategic fork resolving `tis`; and
+`Ogdoad/GoldSemantics.lean` proves the forced-charge-to-normal-play winner
+equivalence; `Ogdoad/GoldNoEvaluator.lean` proves the sharp transcript-span and
+query-weight lower bounds; `Ogdoad/GoldForkPadding.lean` proves that unavoidable
+strategic-fork padding cannot certify non-tautology; and
 `Ogdoad/GameExterior.lean` kernel-checks the root-collapse lemma and the
 coefficient-faithful quadratic/polar consequences resolving `tisn`; and
 `Ogdoad/BrownGame.lean` kernel-checks the canonical
@@ -106,8 +108,8 @@ merged blessing/provenance, plus grundy/tests/laws.rs — the seeded law
 tests (display round-trips, projection oracle, rotation laws) — and
 grundy/tests/conformance.rs, the corpus runner),
 and `writeups/`
-(`goldarf.tex` — the resolved Gold/Arf normal-play theorem, including the
-Tier-2 no-go history and split-source Witt--FIFO construction; `excess.tex` — the
+(`goldarf.tex` — the resolved Gold/Arf normal-play/observation-boundary theorem,
+including the Tier-2 no-go history and weighted-source Witt--FIFO construction; `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `gold_diagonal_source.tex` — the complete quadratic-tower proof that every Gold
 exponent has a constructive Artin--Schreier coordinate-diagonal source;
@@ -139,9 +141,11 @@ Use these labels when changing prose, papers, examples, or comments:
   reciprocity, and Conway-Sloane lattice theory.
 - **Implemented and tested**: statements backed by the Rust tests, examples, Python
   experiments, or the `demo.py` tour in this checkout.
-- **Proved synthesis**: the split-source Witt--FIFO theorem makes "Arf is a
-  win-bias" literal for its normal-play P-set; the standard Arf zero-count is
-  external math, while the game/linking/compiler core is kernel-checked.
+- **Proved synthesis**: the weighted-source Witt--FIFO theorem makes "Arf is a
+  win-bias" literal for its normal-play P-set; the transcript-span theorem gives
+  the sharp observation boundary, while the standard Arf zero-count is external
+  math and the formal files check independent proof ingredients rather than one
+  end-to-end arena theorem.
 - **Open**: transfinite nim multiplication beyond the source-verified excess
   table, plus the now-optional arbitrary-graph FIFO strengthening. These live in `docs/OPEN.md`; the
   game-native `GameExterior` deformation question was resolved negatively under
@@ -157,7 +161,7 @@ Scope boundaries to preserve:
   singular metrics where a nonsingular Witt/BW class is required, and keeps
   rank/radical data explicit.
 - Not a proof of the arbitrary-graph isolated-dummy FIFO conjecture. Gold uses a
-  public Witt frame and split singleton sources, reducing its boards to the
+  public Witt frame and singleton-weighted source pairs, reducing its boards to the
   separately proved matching-plus-isolates class.
 - Not an algebraically closed finite backend. `Nimber(u128)` is `F_{2^128}` and
   contains only finite nimber subfields whose degrees divide 128.
@@ -287,7 +291,7 @@ giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms)
 The independent game-output question `over` is resolved at the exact
 synchronized-charge boundary: `q=lift(ell)+2Q`, with phase the correlated Walsh
 pair of `Q` and `Q+ell`; ambient Brown colours of full `ShUg` vanish, while a
-single-game outcome internalization remains a generalized `tis`-type problem
+single-game four-class outcome internalization remains a distinct Brown-semantic problem
 (`writeups/brown_game_semantics.tex`). The
 fifth-wave Bridge K is shipped too: the full `ℚ/ℤ` ungraded Brauer invariant
 (`witt/cyclic.rs`: `BrauerClass` + `cyclic_algebra_invariant` = `v(a)/n` for the
@@ -325,18 +329,21 @@ Q_a(x)     = Tr(x * x^(2^a))
 Implemented probes verify Gold ranks, Arf zero-count bias, literal Turning-Corners
 reconstruction on small fields, frame-obstruction experiments, misère-kernel
 obstruction examples, loopy Draw/Loss-set experiments, and bent Gold-component route
-probes. The split-source Witt--FIFO rule now makes the Arf interpretation
+probes. The weighted-source Witt--FIFO rule now makes the Arf interpretation
 unconditional: its ordinary normal-play P-set is `{Q = 0}` for every finite
-characteristic-2 refinement. A deterministic public Witt frame makes the
+`F_2`-valued quadratic refinement. A deterministic public Witt frame makes the
 strategic graph a matching, public adapted coins carry the triangular
-`B`-correction, and isolated original-coordinate coins source one singleton
-`q_i` each. Either seat forces zero correction parity on every such board by a
+`B`-correction, and one matched source pair per active original coordinate uses
+its singleton `q_i` as a local overlap weight. Either seat forces zero correction parity on every such board by a
 rank-inductive safe-front strategy; a local terminal claim move keyed by charge
 and mover phase compiles the forced bit to normal play. Loading is q-blind,
-transition access is `(w0,c)=(1,1)`, and on positive polar rank toggling an unread
-source swaps the two unique optimal actions at a live edge (N3cf). The matching,
-algebra, and semantic cores are kernel-checked in
-`formal/Ogdoad/{FifoMatching,GoldMatchingAlgebra,GoldSemantics}.lean`.
+transition access is `(w0,c)=(1,1)`, and its distinct observations are exactly
+the active singleton directions. Any transcript-stable exact rule must observe
+vectors spanning the input, so this support is optimal and a constant total
+budget is impossible. Outcome-preserving unavoidable fork padding proves that
+no semantic liveness axiom alone certifies naturality. Lean checks these
+independent ingredients in the `FifoMatching`, `GoldMatchingAlgebra`,
+`GoldSemantics`, `GoldNoEvaluator`, and `GoldForkPadding` formal modules.
 
 The earlier σ-valued echo-fifo+dummy realizer remains **verified**
 (2026-06-10, adversarial review:
@@ -494,7 +501,7 @@ mark that boundary without becoming `Scalar` supertraits. (serde is intentionall
 shipped — the invariant-carrying types need custom deserialization, not a naive
 derive.)
 
-The narrow Gold/Arf game thread and the genuine open problems live in `docs/OPEN.md`; the
+The resolved Gold/Arf tombstone and the genuine open problems live in `docs/OPEN.md`; the
 draft notes are `writeups/goldarf.tex` (Gold/Arf) and `writeups/excess.tex`
 (transfinite excess). Read `docs/OPEN.md` before touching `forms/char2/`,
 `forms/quadric_fit.rs`, `forms/char0.rs`, `games/coin_turning.rs`, `games/kernel.rs`,

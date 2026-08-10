@@ -5,7 +5,7 @@
 //! rule admits a **Draw** outcome — a position from which neither player can force
 //! a win — and the Draw-set is a genuinely new degree of freedom. The historical
 //! Gold probe is retained as a contrast with the resolved normal-play
-//! split-source Witt--FIFO rule in `writeups/goldarf.tex`.
+//! weighted-source Witt--FIFO rule in `writeups/goldarf.tex`.
 //!
 //! Five layers, re-exported flat so every public path is unchanged:
 //!

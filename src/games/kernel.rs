@@ -1,5 +1,5 @@
 //! Outcomes of a finite impartial game graph — the instrument for the
-//! "interactive" route to the open question.
+//! historical "interactive" route to the Gold-quadric question.
 //!
 //! Normal-play disjunctive sums give XOR-linear P-sets (subspaces); the escape is
 //! an *interactive* game whose move graph is not a disjunctive sum. For any such
@@ -148,7 +148,7 @@ fn score_dfs(
 /// has a cycle (loopy scoring is out of scope — use [`outcomes`] for the
 /// Win/Loss/Draw analysis of cyclic games).
 ///
-/// This is the **scoring knob** for the open question: where [`outcomes`] returns a
+/// This was the **scoring knob** for the Gold-quadric search: where [`outcomes`] returns a
 /// single Win/Loss bit, the scoring value is an integer, rich enough to *carry* a
 /// quadratic form's value `Q(v)` at a position rather than only its zero set — the
 /// extra structure a quadratic play rule would need.

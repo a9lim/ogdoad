@@ -6,7 +6,7 @@ the **characteristic trichotomy**: the classification of a quadratic form
 by `char F`. This axis cuts ACROSS the place table that organizes `scalar/`.
 
 > Read `docs/OPEN.md` before touching `char2/`, `quadric_fit.rs`, `char0.rs`,
-> `witt/`, or anything feeding the open play-semantics question.
+> `witt/`, or anything feeding the Gold play-semantics theorem and its formal boundary.
 
 `mod.rs` re-exports the legs + `classify` + diagonalize/equivalence + the `witt/`
 invariant-group shelf + the `springer/` valuation-graded decomposition +
