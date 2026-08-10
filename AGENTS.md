@@ -60,8 +60,8 @@ strategic-fork padding cannot certify non-tautology; and
 coefficient-faithful quadratic/polar consequences resolving `tisn`; and
 `Ogdoad/BrownGame.lean` kernel-checks the canonical
 `q = lift(ell) + 2Q` Brown split, its converse, the two-divisible global
-collapse, and the section-framed `Z/8` sharpness model resolving the independent
-algebraic content of `over`.  See
+collapse, the section-framed `Z/8` sharpness model, and the intrinsic partizan
+selector resolving the full finite-space semantic content of `over`.  See
 `formal/README.md` for the proof/non-proof boundary.
 
 Beyond the library: `examples/` (Rust demos `tour`/`tropical` and the
@@ -293,7 +293,8 @@ giving the float-free `β ≡ sign(L) mod 8` on 2-elementary discriminant forms)
 The independent game-output question `over` is resolved at the exact
 synchronized-charge boundary: `q=lift(ell)+2Q`, with phase the correlated Walsh
 pair of `Q` and `Q+ell`; ambient Brown colours of full `ShUg` vanish, while a
-single-game four-class outcome internalization remains a distinct Brown-semantic problem
+single partizan selector `{A_(Q+ell) | A_Q}` realizes residues `0,1,2,3` as
+intrinsic outcomes `N,R,P,L` without an external product or terminal evaluator
 (`writeups/brown_game_semantics.tex`). The
 fifth-wave Bridge K is shipped too: the full `ℚ/ℤ` ungraded Brauer invariant
 (`witt/cyclic.rs`: `BrauerClass` + `cyclic_algebra_invariant` = `v(a)/n` for the

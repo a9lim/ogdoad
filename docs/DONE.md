@@ -118,11 +118,11 @@ beat.
   longer load-bearing for Gold.
 - artifact: `writeups/goldarf.{tex,pdf}`.
 
-### over·(e_f∧e_g): `brown-game-semantics-reduction`
-**Completed:** 2026-08-09
-**Summary:** the Brown four-class census is canonically a linearly graded
-ordinary-quadratic census, while any ambient-coherent Brown colour of all
-short-game values vanishes by two-divisibility.
+### over·(e_f∧e_g): `brown-game-semantics`
+**Completed:** 2026-08-10
+**Summary:** one intrinsic partizan selector realizes the complete Brown
+four-class census, while any ambient-coherent Brown colour of all short-game
+values vanishes by two-divisibility.
 **Pillars:** forms ↔ games    **Claim level:** proved synthesis, source-pinned input, kernel-checked algebra
 - canonical split: every `q : V -> Z/4` is uniquely
   `q = lift(ell) + 2Q`, with `ell=q mod 2` linear and ordinary quadratic
@@ -130,12 +130,11 @@ short-game values vanishes by two-divisibility.
 - phase: `G(q)=((1+i)/2)W(Q)+((1-i)/2)W(Q+ell)`.  For nonsingular `b`, even
   dimension gives `beta=4*Arf(Q)+2Q(a)` with `B_Q(a,-)=ell`; odd dimension
   gives `beta=4*Arf(Q|ker ell)+1/7` from the value on `rad(B_Q)`.
-- semantic contract: under synchronized terminal-charge pairing and fixed
-  relabelling, the four Brown classes are observationally `(ell,Q)`.  This is
-  not a game-tree factorization or a single canonical normal/misère/loopy
-  four-way outcome. The weighted-source theorem now supplies the nonlinear
-  binary normal-play factor; combining the pair into one four-class outcome is
-  a distinct Brown semantic boundary.
+- semantic internalization: if `A_R(x)` is the weighted-source ordinary arena,
+  `B_q(x)={A_(Q+ell)(x) | A_Q(x)}` is one finite partizan game. Its outcomes
+  are `N,R,P,L` for residues `0,1,2,3`; only one follower is played, so this is
+  neither an external synchronized product nor terminal relabelling. The
+  outcome census recovers the correlated Brown Gauss phase.
 - global no-go: inclusion-compatible Brown-law data on finitely generated
   short-game subgroups vanishes after adjoining halves and quarters.  This
   rules out exponent-two additive quotients of full `ShUg`, not its nonzero
@@ -145,8 +144,9 @@ short-game values vanishes by two-divisibility.
   neither fixes `q` nor supports a verbatim extraspecial abelian obstruction.
 - artifact: `writeups/brown_game_semantics.{tex,pdf}`.
 - formal core: `formal/Ogdoad/BrownGame.lean` kernel-checks the split,
-  corrected polar, converse/round trip, two-divisible collapse, and `Z/8`
-  model.  Moews's classification is source-pinned rather than a Lean axiom.
+  corrected polar, converse/round trip, two-divisible collapse, `Z/8` model,
+  partizan starter-profile table, and exact outcome decoder.  Moews's
+  classification is source-pinned rather than a Lean axiom.
 
 ### tisn·(e_g∧e_c∧e_f): `game-exterior-divisibility-collapse`
 **Completed:** 2026-08-09

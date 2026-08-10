@@ -2,7 +2,7 @@
 
 This file records solved research questions as mathematical results, not as a
 development chronology. Implementation milestones remain in [`DONE.md`](DONE.md),
-while the three unsolved fronts remain in [`OPEN.md`](OPEN.md).
+while the two unsolved fronts remain in [`OPEN.md`](OPEN.md).
 
 | solved question | answer | authoritative paper |
 |---|---|---|
@@ -10,7 +10,7 @@ while the three unsolved fronts remain in [`OPEN.md`](OPEN.md).
 | diagonal sources for every Gold exponent | every unscaled Gold diagonal in the canonical quadratic nim tower is an Artin--Schreier value | [`gold_diagonal_source.tex`](../writeups/gold_diagonal_source.tex) |
 | a game-native Clifford deformation on short-game values | ambient coherence forces every torsion square and polar pairing to vanish | [`game_exterior_divisibility.tex`](../writeups/game_exterior_divisibility.tex) |
 | quadratic classification over the full nimber field | the regular Witt and Brauer--Wall classes vanish; singular forms retain only polar-radical data | [`transfinite_arf.tex`](../writeups/transfinite_arf.tex) |
-| the independent algebraic content of Brown game semantics | every Brown form is a synchronized linear/quadratic pair, and every ambient-coherent Brown colour on all short games is zero | [`brown_game_semantics.tex`](../writeups/brown_game_semantics.tex) |
+| Brown game semantics | one partizan selector realizes all four local Brown residues; every ambient-coherent Brown colour on all short games is zero | [`brown_game_semantics.tex`](../writeups/brown_game_semantics.tex) |
 | thermography versus Newton polygons | they share a filtered tropical shadow but cannot form one faithful full-dyadic graded ring | [`thermo_newton.tex`](../writeups/thermo_newton.tex) |
 
 ## 1. Gold quadratic zero sets have a normal-play realization
@@ -147,14 +147,21 @@ G(q) = ((1+i)/2) W(Q) + ((1-i)/2) W(Q+ell).
 ```
 
 The linear bit has a local XOR realization and the Gold theorem supplies the
-ordinary quadratic normal-play bit. There is no second independent nonlinear
-invariant. Globally, any ambient-coherent Brown datum on the additive group of
-all short games vanishes by two-divisibility. A bare `Z/4 -> Z/8 -> Z/2`
-extension is insufficient to recover a Brown phase without a chosen section.
+ordinary quadratic normal-play bit. For its exact ordinary arena `A_R(x)`, the
+single partizan game
 
-The remaining question is semantic rather than algebraic: whether one intrinsic
-game can realize the four Brown classes without an external synchronized pair.
-That question remains in [`OPEN.md`](OPEN.md#2-brown-four-outcome-internalization).
+```text
+B_q(x) = { A_(Q+ell)(x) | A_Q(x) }
+```
+
+has intrinsic outcome `N,R,P,L` for Brown residues `0,1,2,3`, respectively.
+Only one follower is played; this is primitive partizan option formation, not
+an external synchronized product, and there is no terminal evaluator. Its
+outcome census recovers the full correlated Brown Gauss phase.
+
+Globally, any ambient-coherent Brown datum on the additive group of all short
+games vanishes by two-divisibility. A bare `Z/4 -> Z/8 -> Z/2` extension is
+insufficient to recover a Brown phase without a chosen section.
 
 Proof surfaces:
 
@@ -190,8 +197,7 @@ Proof surfaces:
 Only the following research questions remain open:
 
 1. the arbitrary-graph causal affine-contraction theorem for FIFO linking;
-2. intrinsic single-game Brown four-outcome semantics;
-3. the universal Lenstra excess `0/1/4` rule.
+2. the universal Lenstra excess `0/1/4` rule.
 
 Their exact current formulations and evidence boundaries are in
 [`OPEN.md`](OPEN.md).

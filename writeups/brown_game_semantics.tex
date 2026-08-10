@@ -47,9 +47,14 @@ extension $C_4\to C_8\to C_2$ shows that a bare central extension by $C_4$
 does not determine a Brown form: a section or phase framing is essential.
 Together these results completely describe Brown labels under an explicit
 synchronized-charge contract. The weighted-source theorem supplies the
-ordinary quadratic normal-play bit. The remaining semantic question is whether
-one intrinsic game can realize all four Brown classes without an external
-product of binary channels.
+ordinary quadratic normal-play bit. We then close the semantic boundary with
+one partizan selector:
+\[
+  \mathcal B_q(x)=\{\mathcal A_{Q+\ell}(x)\mid\mathcal A_Q(x)\}.
+\]
+Its four intrinsic normal-play outcomes are in fixed bijection with the four
+Brown residues. This is one game tree, not an external product, and it uses no
+terminal evaluator.
 \end{abstract}
 
 \section{Introduction}
@@ -356,6 +361,103 @@ Brown's four classes add a linear axis and a correlated second census, not a
 new algebraic kind of nonlinear charge/output problem.
 \end{remark}
 
+\section{One intrinsic partizan game realizes all four residues}
+
+For every ordinary characteristic-two quadratic form $R$ and input $x$, let
+$\mathcal A_R(x)$ denote the finite impartial normal-play arena supplied by
+the weighted-source Witt--FIFO theorem.  Its exact outcome contract is
+\begin{equation}\label{eq:ordinary-arena}
+ \mathcal A_R(x)\text{ is }\mathcal P
+ \quad\Longleftrightarrow\quad R(x)=0,
+ \qquad
+ \mathcal A_R(x)\text{ is }\mathcal N
+ \quad\Longleftrightarrow\quad R(x)=1.
+\end{equation}
+Here $\mathcal L,\mathcal R,\mathcal N,\mathcal P$ are the standard partizan
+normal-play outcome classes: Left wins regardless of starter, Right wins
+regardless of starter, the next player wins, and the previous player wins,
+respectively.  Adding the linear form $\ell$ to $Q$ does not change its polar
+form, so both $Q$ and $Q+\ell$ are eligible ordinary quadratic inputs to the
+same arena construction.
+
+\begin{theorem}[intrinsic partizan Brown selector]
+\label{thm:partizan-selector}
+For a Brown form $q=\widehat\ell+2Q$, define the single finite partizan game
+\begin{equation}\label{eq:partizan-selector}
+ \mathcal B_q(x)
+ =\bigl\{\mathcal A_{Q+\ell}(x)
+       \mathbin\vert \mathcal A_Q(x)\bigr\}.
+\end{equation}
+The braces have their ordinary Conway meaning: the displayed left follower is
+the unique Left option and the displayed right follower is the unique Right
+option.  Its outcome is
+\begin{center}
+\begin{tabular}{ccccccc}
+\toprule
+$q(x)$ & $\ell(x)$ & $Q(x)$ & $Q(x)+\ell(x)$
+ & $\mathcal A_{Q+\ell}$ & $\mathcal A_Q$ & $o(\mathcal B_q)$\\
+\midrule
+$0$ & $0$ & $0$ & $0$ & $\mathcal P$ & $\mathcal P$ & $\mathcal N$\\
+$1$ & $1$ & $0$ & $1$ & $\mathcal N$ & $\mathcal P$ & $\mathcal R$\\
+$2$ & $0$ & $1$ & $1$ & $\mathcal N$ & $\mathcal N$ & $\mathcal P$\\
+$3$ & $1$ & $1$ & $0$ & $\mathcal P$ & $\mathcal N$ & $\mathcal L$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Consequently the fixed decoder
+\begin{equation}\label{eq:outcome-decoder}
+ \mathcal N\mapsto0,\qquad
+ \mathcal R\mapsto1,\qquad
+ \mathcal P\mapsto2,\qquad
+ \mathcal L\mapsto3
+\end{equation}
+recovers $q(x)$ exactly.  The construction is presentation-independent at the
+outcome level and remains coherent under restriction of a Brown form to a
+subspace.
+\end{theorem}
+
+\begin{proof}
+If Left starts, her sole move enters $\mathcal A_{Q+\ell}(x)$ with Right to
+move.  By \eqref{eq:ordinary-arena}, Left wins exactly when that follower is a
+$\mathcal P$-position, namely when $Q(x)+\ell(x)=0$.  If Right starts, his
+sole move enters $\mathcal A_Q(x)$ with Left to move.  Right wins exactly when
+that follower is a $\mathcal P$-position, namely when $Q(x)=0$.
+The two starter results give the four rows: both starters win in the first,
+only Right wins in the second, neither starter wins in the third, and only
+Left wins in the fourth.  These are respectively
+$\mathcal N,\mathcal R,\mathcal P,\mathcal L$, proving the table and the
+decoder.
+
+Equation \eqref{eq:partizan-selector} is primitive partizan option formation,
+not a disjunctive or synchronized product.  A complete play enters exactly one
+of its two followers.  There is no terminal relabelling: after the root move,
+the winner is determined by ordinary play in the weighted-source arena.  The
+canonical split makes $\ell$ and $Q$ intrinsic to $q$, and the two follower
+outcome contracts depend only on $Q(x)+\ell(x)$ and $Q(x)$.  Thus changing a
+basis, Witt frame, or compatible ambient presentation cannot change the root
+outcome; restriction preserves the same two values.  This proves the final
+claim.
+\end{proof}
+
+\begin{corollary}[the Brown phase is an intrinsic outcome census]
+\label{cor:outcome-census}
+Let $n_{\mathcal C}$ count the inputs whose selector outcome is
+$\mathcal C$.  Then
+\begin{equation}\label{eq:outcome-gauss}
+ \sum_x i^{q(x)}
+ =n_{\mathcal N}+i n_{\mathcal R}
+  -n_{\mathcal P}-i n_{\mathcal L}.
+\end{equation}
+Hence the intrinsic four-outcome census retains exactly the correlated Walsh
+pair in \eqref{eq:walsh-pair}, including its Brown phase.
+\end{corollary}
+
+\begin{proof}
+Apply the decoder \eqref{eq:outcome-decoder} and group the four terms of the
+Gauss sum by outcome class.  Comparison with Corollary~\ref{cor:census}
+proves the last sentence.
+\end{proof}
+
 \section{The global value-level obstruction}
 
 The previous section concerns a selected finite $\F_2$-space.  A stronger
@@ -462,7 +564,7 @@ extension.  Its commutator remembers only alternating information; the
 admissible section/framing carries the missing quadratic lift data, including
 the diagonal phase.
 
-\section{Conclusion and open semantic boundary}
+\section{Conclusion}
 
 The three readings from Section~1 now have exact answers.
 \begin{enumerate}[label=(\arabic*),leftmargin=2.5em]
@@ -476,16 +578,16 @@ The three readings from Section~1 now have exact answers.
       section can encode the phase, but then the framing is supplied data.
 \end{enumerate}
 
-Accordingly, under the synchronized four-charge contract there is no second
-nonlinear invariant problem: the weighted-source Witt--FIFO theorem supplies
-the quadratic bit, and the linear bit supplies the other Brown coordinate.
-The exact open boundary is narrower. One may ask for a single fixed game whose
-intrinsic four-way outcome realizes $q$, without an external synchronized
-product or terminal evaluator. Such a construction must retain the correlation
-between $Q$ and $Q+\ell$ in \eqref{eq:walsh-pair}; a no-go theorem must state
-the structural axioms it excludes. This is a semantic internalization problem,
-not a missing algebraic invariant and not a nonzero ambient Brown colour of all
-short-game values.
+Accordingly there is no second nonlinear invariant problem.  The
+weighted-source Witt--FIFO theorem supplies the ordinary quadratic followers,
+and Theorem~\ref{thm:partizan-selector} packages the correlated pair
+$(Q+\ell,Q)$ into the two starter faces of one finite partizan game.  The
+construction uses neither an external synchronized product nor a terminal
+evaluator, and Corollary~\ref{cor:outcome-census} recovers the full Brown phase
+from its intrinsic outcome census.  This resolves the selected finite-space
+semantic internalization problem.  The global value-level no-go remains a
+different statement: ambient-coherent nonzero Brown colours on all short-game
+values are impossible by Theorem~\ref{thm:global}.
 
 \begin{thebibliography}{9}
 \bibitem{brown}

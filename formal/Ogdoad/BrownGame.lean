@@ -1,15 +1,18 @@
 import Mathlib
 
 /-!
-# The Brown-phase obstruction for short-game values
+# Brown game semantics and the short-game obstruction
 
-This file formalizes three algebraic layers of the `over` problem.  First,
+This file formalizes four layers of the `over` problem.  First,
 2-divisibility kills every ambient Brown-compatible refinement with values in
 an exponent-four group.  Second, the abelian cyclic extension
 `Z/4 -> Z/8 -> Z/2` shows that a local odd Brown line exists only relative to a
 chosen section.  Third, every Brown refinement on an exponent-two source
 splits canonically as `q = lift(ell) + 2Q`, with an ordinary characteristic-two
 quadratic form `Q`, and the converse recovers the refinement pointwise.
+Finally, the intrinsic partizan selector with Left follower `Q + ell` and
+Right follower `Q` gives four distinct normal-play outcome classes and decodes
+back to the Brown residue.
 
 The external theorem that the additive group of short games is 2-divisible
 remains source-pinned; it is not encoded as an axiom here.
@@ -398,5 +401,77 @@ theorem brownRefinement_converse_roundtrip
   · intro x
     rw [BrownRefinement.classicalPart, hq]
     exact residual_lift_double _ _
+
+/-! ## Intrinsic four-outcome selector
+
+The weighted-source construction supplies, for each ordinary quadratic bit
+`r`, an impartial follower which is `P` exactly when `r = 0` and `N` exactly
+when `r = 1`.  A partizan root with the `Q + ell` follower as its unique Left
+option and the `Q` follower as its unique Right option is therefore one game,
+not a synchronized product.  The two Boolean fields below are its operational
+normal-play starter profile.
+-/
+
+/-- The four standard outcome classes of a finite partizan normal-play game. -/
+inductive PartizanOutcome where
+  | left
+  | right
+  | next
+  | previous
+deriving DecidableEq, Repr
+
+/-- Classify a game from whether Left wins moving first and moving second. -/
+def outcomeOfStarterProfile
+    (leftStartsWins leftWinsWhenRightStarts : Bool) : PartizanOutcome :=
+  match leftStartsWins, leftWinsWhenRightStarts with
+  | true, true => .left
+  | false, false => .right
+  | true, false => .next
+  | false, true => .previous
+
+/-- The next player wins the ordinary quadratic follower exactly on bit one. -/
+def quadraticArenaNextWins (r : ZMod 2) : Bool := r == 1
+
+/-- Outcome of the single partizan selector
+`{ A_(Q + ell) | A_Q }`, where each `A_r` is the exact ordinary quadratic
+`P/N` arena. -/
+def brownSelectorOutcome (ell Q : ZMod 2) : PartizanOutcome :=
+  outcomeOfStarterProfile
+    (!(quadraticArenaNextWins (Q + ell)))
+    (quadraticArenaNextWins Q)
+
+/-- Fixed decoding of the four intrinsic outcomes back to Brown residues. -/
+def brownResidueOfOutcome : PartizanOutcome → ZMod 4
+  | .next => 0
+  | .right => 1
+  | .previous => 2
+  | .left => 3
+
+/-- The selector has four distinct outcomes: `0 -> N`, `1 -> R`, `2 -> P`,
+and `3 -> L`. -/
+theorem brownSelectorOutcome_table :
+    brownSelectorOutcome 0 0 = .next ∧
+    brownSelectorOutcome 1 0 = .right ∧
+    brownSelectorOutcome 0 1 = .previous ∧
+    brownSelectorOutcome 1 1 = .left := by
+  decide
+
+/-- The intrinsic outcome decodes to the canonical Brown recomposition. -/
+theorem brownSelectorOutcome_decodes (ell Q : ZMod 2) :
+    brownResidueOfOutcome (brownSelectorOutcome ell Q) =
+      liftBit ell + doubleBit Q := by
+  fin_cases ell <;> fin_cases Q <;> decide
+
+/-- Apply the fixed selector to the canonical two bits of a Brown refinement. -/
+def BrownRefinement.partizanOutcome (q : BrownRefinement V)
+    (x : V) : PartizanOutcome :=
+  brownSelectorOutcome (q.linearPart x) (q.classicalPart x)
+
+/-- The partizan selector is an exact four-class realization of `q`. -/
+theorem BrownRefinement.partizanOutcome_decodes
+    (q : BrownRefinement V) (x : V) :
+    brownResidueOfOutcome (q.partizanOutcome x) = q.quadratic x := by
+  rw [BrownRefinement.partizanOutcome, brownSelectorOutcome_decodes]
+  exact (q.decomposition x).symm
 
 end Ogdoad.BrownGame

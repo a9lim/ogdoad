@@ -6,12 +6,11 @@ questions and their exact theorem boundaries are indexed in
 [`DONE.md`](DONE.md). Work that does not require new mathematics belongs in
 [`COMPLETENESS.md`](COMPLETENESS.md) or [`CONTINUATIONS.md`](CONTINUATIONS.md).
 
-Three research problems are live:
+Two research problems are live:
 
 | problem | present reduction | authoritative paper |
 |---|---|---|
 | arbitrary-graph FIFO linking | a causal affine-contraction problem in the edge space of a complete graph | [`linking_affine.tex`](../writeups/linking_affine.tex) |
-| Brown four-outcome internalization | turn the canonical binary pair `(ell,Q)` into one intrinsic four-class game outcome | [`brown_game_semantics.tex`](../writeups/brown_game_semantics.tex) |
 | finite excess in transfinite nim multiplication | prove the universal `0/1/4` rule through four exact order-theoretic arms | [`excess.tex`](../writeups/excess.tex) |
 
 The evidence vocabulary is fixed throughout this file:
@@ -142,67 +141,7 @@ the stated target.
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`experiments/linking_game.py`](../experiments/linking_game.py)
 
-## 2. Brown four-outcome internalization
-
-### Completed algebraic reduction
-
-Every Brown refinement
-
-```text
-q(x+y) = q(x) + q(y) + 2 b(x,y),    q : V -> Z/4
-```
-
-has the unique canonical split
-
-```text
-ell(x) = q(x) mod 2,
-q(x)   = lift(ell(x)) + 2 Q(x),
-B_Q    = b + ell tensor ell.
-```
-
-Here `ell` is linear and `Q` is an ordinary `F_2`-quadratic form. The four
-residues are the synchronized pair `(ell,Q)`, and their phase is the correlated
-Walsh combination
-
-```text
-G(q) = ((1+i)/2) W(Q) + ((1-i)/2) W(Q+ell).
-```
-
-The linear bit has a standard local XOR realization. The weighted-source
-Witt–FIFO theorem realizes the quadratic bit as ordinary normal play. Thus a
-synchronized pair of binary channels already computes every Brown label.
-
-Two global obstructions are also proved. Ambient-coherent Brown data on the
-additive group of all short games vanish because that group is two-divisible;
-and a bare `Z/4 -> Z/8 -> Z/2` central extension does not select the Brown
-phase without a section. `formal/Ogdoad/BrownGame.lean` checks the split,
-converse, divisibility implication, and sharp cyclic model.
-
-### Open semantic problem
-
-Construct, or rule out under an explicit naturality contract, a **single fixed
-game family** whose intrinsic four-way outcome realizes `q(x)` on every finite
-Brown space. The target must specify the outcome convention—for example the
-four partizan outcome classes—and must not use:
-
-- an external synchronized product of two already evaluated games;
-- terminal relabelling by a direct call to `q`, `ell`, or `Q`;
-- a presentation-dependent Brown table that changes under ambient inclusion.
-
-A satisfactory construction must retain the correlation between `Q` and
-`Q+ell`, not merely reproduce their marginal zero counts. A no-go theorem must
-state the structural axioms it excludes. This question is semantic: it neither
-reopens the binary Gold–Arf theorem nor asks for a nonzero Brown colour on all
-short-game values, which is impossible.
-
-### Verification surfaces
-
-- [`writeups/brown_game_semantics.tex`](../writeups/brown_game_semantics.tex)
-- [`writeups/goldarf.tex`](../writeups/goldarf.tex)
-- [`formal/Ogdoad/BrownGame.lean`](../formal/Ogdoad/BrownGame.lean)
-- [`formal/Ogdoad/GoldSemantics.lean`](../formal/Ogdoad/GoldSemantics.lean)
-
-## 3. Finite excess in transfinite nim multiplication
+## 2. Finite excess in transfinite nim multiplication
 
 ### Problem
 

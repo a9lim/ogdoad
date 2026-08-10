@@ -47,12 +47,17 @@ resolution of the independent `over` invariant question:
   value is zero, and every additive exponent-two quotient is trivial; and
 - the explicit abelian extension `Z/4 -> Z/8 -> Z/2` realizes the odd Brown
   line only after a section is chosen, proving that a bare central extension
-  does not determine the phase.
+  does not determine the phase; and
+- the single partizan selector `{A_(Q+ell) | A_Q}` has outcomes `N,R,P,L`
+  for residues `0,1,2,3`, with a kernel-checked fixed decoder back to `q`.
 
 The external instantiation remains source-pinned: Moews proves the additive
 short-game group is a direct sum of copies of `Z[1/2]` and `Z[1/2]/Z`, hence
 is two-divisible.  The Lean file proves the full implication from that abstract
 divisibility hypothesis but does not encode short games or Moews's theorem.
+The Lean selector layer abstracts each shipped ordinary quadratic arena by its
+proved `P iff bit = 0` contract; it checks the partizan root semantics and
+four-class decoder rather than re-encoding the full weighted-source arena.
 
 ## Game-exterior divisibility obstruction
 

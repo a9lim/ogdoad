@@ -239,8 +239,9 @@ pre-release; it ships separately when it stabilizes.
 `formal/` is a separately pinned Lean 4 + mathlib project.  It kernel-checks the
 load-bearing algebra of the resolved `off` classification, the theorem-level
 Lenstra-excess column reduction (lower bound, corrected norm, exact power
-criterion, and finite arithmetic inputs), the Brown-to-binary canonical split
-and short-game divisibility obstruction, and the exact FIFO transition system,
+criterion, and finite arithmetic inputs), the Brown-to-binary canonical split,
+intrinsic four-outcome partizan selector, and short-game divisibility
+obstruction, plus the exact FIFO transition system,
 termination/strategy semantics, cut invariant, and edgeless base theorem.  The
 universal `D'_k` and general isolated-dummy FIFO theorems are stated there but
 remain open; no finite census is presented as either proof.
@@ -316,9 +317,8 @@ and the obstruction has simply walked from the Integral shore to the Clifford on
 
 The exact research boundary is split between two current-only ledgers:
 
-- `docs/OPEN.md` contains the three unsolved fronts: arbitrary-graph FIFO
-  linking, intrinsic four-outcome Brown semantics, and the universal Lenstra
-  excess `0/1/4` rule.
+- `docs/OPEN.md` contains the two unsolved fronts: arbitrary-graph FIFO
+  linking and the universal Lenstra excess `0/1/4` rule.
 - `docs/CLOSED.md` states the solved questions as theorems, with their proof,
   formalization, implementation, and non-claim boundaries.
 
@@ -337,8 +337,10 @@ coherence forces every torsion square and polar pairing of short-game values to
 vanish; full `On_2` has trivial regular quadratic Witt and Brauer--Wall classes;
 Brown labels split canonically into one linear and one ordinary quadratic bit;
 and thermography and Newton polygons share a filtered tropical shadow but
-cannot form one faithful full-dyadic graded ring. The Brown single-game
-internalization remains open even though its algebraic reduction is complete.
+cannot form one faithful full-dyadic graded ring. One partizan root with the
+`Q+ell` arena as its Left follower and the `Q` arena as its Right follower
+realizes Brown residues `0,1,2,3` as outcomes `N,R,P,L` without an external
+product or terminal evaluator.
 
 If you want to play along, the open-problem examples (`interactive_kernel`, `octal_hunt`,
 `loopy_quadric`, `misere_quotient`, `bent_route`) are the doors in.

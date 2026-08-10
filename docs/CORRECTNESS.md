@@ -86,7 +86,11 @@ finite `Z/8` cyclic extension is a kernel-checked sharpness witness: it carries
 an odd Brown line only relative to a chosen section, so a bare `Z/4`-central
 extension does not determine `q`.  Moews's classification supplies the
 short-game divisibility used to instantiate the abstract theorem and remains
-source-pinned rather than encoded as an axiom.
+source-pinned rather than encoded as an axiom.  The same file kernel-checks the
+starter-profile semantics of `{A_(Q+ell) | A_Q}`, its `N,R,P,L` outcome table,
+and the fixed decoder to the Brown residue.  The shipped weighted-source
+theorem supplies the follower contract; Lean does not duplicate that complete
+arena construction here.
 
 `Ogdoad/Fifo.lean` kernel-checks the exact reduced game semantics, strict
 termination rank, queue invariant, strategy quantifiers, queue-cut conservation,
