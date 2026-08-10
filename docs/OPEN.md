@@ -397,6 +397,16 @@ Historical program state (2026-06-10 — retained as proof provenance):
   is therefore absolutely contractible but not relatively contractible at
   the selected (A)/(B') leaf; descendant continuation cosets or earlier
   siblings remain necessary.
+- The exact relative target is now a single quotient-membership statement.
+  For the frontier consisting of the chosen minimum-bad node `h` and every
+  earlier off-spine defender child, write each decorated odd continuation as
+  `b_q + W_q`.  The root chains with coefficient one at `h` have moments
+  exactly `b_h + M_h`, where `M_h` is the sum of all continuation spaces and
+  all even off-spine sums.  Hence the desired chain exists exactly when
+  `b_h in M_h`.  Any scalar counterexample pairs to one with `b_h` and
+  annihilates `M_h`.  This is the precise remaining ancestry contraction;
+  forgetting the coefficient at `h` recovers only the already-proved absolute
+  fixed-front result.
 - The singleton ko wall is no longer an unformalized local defect.  Lean proves
   that, from a clear singleton queue, `C_f; O_z; O_w` and
   `O_z; C_f; O_w` reconverge after the next distinct real OPEN.  Their public
@@ -405,6 +415,38 @@ Historical program state (2026-06-10 — retained as proof provenance):
   induced strategy-sheet equivalences.  This transports any chosen local
   square through a shared continuation; it does not choose a coherent family
   of squares across the complete defender fan.
+- Cross-feeding two copies whose queues differ by one leading front gives a
+  finite offset ladder.  Paired CLOSEs merely change the offset token and are
+  flat; a paired OPEN `z` contributes exactly the token edge `az`, and a long
+  front CLOSE diagonalizes the copies.  Thus the ladder holonomy is an
+  explicit sum of frozen token-OPEN edges.  An odd ladder family through the
+  selected branch would prove `b_h in M_h`, but score-sensitive strategy
+  pruning does not presently give the required even internal incidence.
+- A second Lean-checked minimum now lives inside the assumed `OddWins`
+  strategy tree, avoiding irrelevant smaller states elsewhere in the game
+  graph.  Every zero-sheet odd counterstrategy contains a selected unit CLOSE
+  whose translated child is a completely score-neutral same-player tree.
+  Opponent-controlled singleton closes in such a tail have charge zero; hence
+  the full family of punctured singleton tails at (B') would force the even
+  untouched remainder to be Eulerian.  Minimum badness also forbids an
+  immediate off-spine unit `C_y`.  These facts still do not close the local
+  cap: on edges `{yx,xa,xb}`, with `Q=(y)` and `U={x,a,b}`, the selected
+  `C_y,O_x,O_z,C_x` branch has charges `1,0,0,1`, while one attacker policy
+  makes every off-spine subtree entirely neutral.  Adding isolated `d`, a
+  processed `p`, edge `py`, and prefix `O_p,O_d,C_p,O_y,C_d` reaches this cap
+  with odd score.  Thus the remaining proof must use still earlier root-to-cap
+  siblings; Eulerianity plus the complete three-event ancestry is
+  insufficient.  The four-real core cap graph itself is not a counterexample:
+  this excludes the separate processed `p` and ancestry edge `py`.  The existing
+  mutual star induction gives a symbolic both-seat, all-zero-charge root
+  strategy for every star plus an isolated dummy.  Extra edges needed to
+  sustain the earlier sibling branches must therefore be used, rather than
+  discarded, by the remaining relative-spine argument.  The first exact
+  degree-one sibling explains the difficulty: on its `C_p,O_x,O_d,C_y`
+  branch one reaches `Q=(x,d), U=H`, with `H` even Eulerian.  Closing `x,d`
+  exposes the still-open no-dummy even-board kernel on `H`; ordinary
+  smaller-dummy-root induction therefore stops at precisely the offset-ladder
+  endpoint, rather than closing the ancestry.
 - The conditioned close-first tail is now closed without a dummy hypothesis.
   From any coherent clear defender state with nonempty queue, a close-first
   attacker cannot force future flip parity one.  A minimum-rank proof opens
@@ -790,7 +832,9 @@ Closure of the former progress targets:
   `GCRU]w`; the live route is the block-turn plus live-degree-pairing
   formulation, with FIFO re-entering through forced front deletion and the
   proactive-debt witnesses above.  Balanced-front odd-flow transport and the
-  complete close-first contraction are now proved.  Dual descent reduces a
+  complete close-first contraction are now proved.  Strategy-tree-relative
+  minimum extraction and its neutral-tail/Eulerian consequence are now
+  kernel-checked as well.  Dual descent reduces a
   hypothetical counterexample to an isolated odd/odd CLOSE spike or an
   after-dummy ko-protected universal-neighbour singleton, but the current exact
   target remains the global affine-contraction/causal-factor-extension lemma

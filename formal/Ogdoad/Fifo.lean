@@ -24,6 +24,11 @@ assert the still-open global selection of compatible squares across a full
 strategy fan.  An abstract fixed-front closure game separately kernel-checks
 the affine no-separation recurrence and its sharp distinguished-leaf failure;
 it deliberately omits the descendant continuation cosets which remain open.
+Inside an explicit odd strategy tree, a separate minimum theorem extracts a
+selected unit CLOSE followed, on the opposite score sheet, by a completely
+score-neutral continuation.  Neutral opponent-controlled singleton tails
+force the corresponding punctured vertex degrees to vanish; composing enough
+such tails across the singleton wall remains part of the open global step.
 -/
 
 namespace Ogdoad.Fifo
@@ -3904,6 +3909,330 @@ theorem evenWins_singletonTail (G : SimpleGraph V) (seat : Bool) (b : V) :
             · rfl
           simpa [flip_singleton_of_not_adj hvb] using heven
       · simp [step, s, singletonState] at hstep
+
+/-! ### Strategy-tree-relative charged-close extraction
+
+The local score-sheet transport lemmas above do not by themselves contradict
+determinacy: the same physical player can sometimes force either target from
+one public state.  The useful object is therefore the actual subtree of a
+fixed odd strategy.  A rank-minimal zero-sheet node in that subtree has a
+rigid operational form: the odd-seeking player selects an odd CLOSE, and the
+opposite score sheet of its child admits a strategy all of whose moves are
+score-neutral. -/
+
+/-- Membership in the explicit finite strategy tree carried by an `OddWins`
+proof.  At a `choose` node only the strategy's selected child belongs; at an
+`answer` node every legal child belongs. -/
+inductive InOddStrategy {V : Type*} [DecidableEq V]
+    (G : SimpleGraph V) (seat : Bool) :
+    {s : State V} → OddWins G seat s → State V → Prop
+  | root {s : State V} (h : OddWins G seat s) :
+      InOddStrategy G seat h s
+  | choose {s s' t : State V} {hseat : s.toMove ≠ seat}
+      {m : Move V} {hstep : step G s m = some s'}
+      {hchild : OddWins G seat s'}
+      (ht : InOddStrategy G seat hchild t) :
+      InOddStrategy G seat
+        (OddWins.choose s hseat m s' hstep hchild) t
+  | answer {s s' t : State V} {hseat : s.toMove = seat}
+      {hasMove : ∃ m u, step G s m = some u}
+      {hchildren : ∀ m u, step G s m = some u → OddWins G seat u}
+      {m : Move V} {hstep : step G s m = some s'}
+      (ht : InOddStrategy G seat (hchildren m s' hstep) t) :
+      InOddStrategy G seat
+        (OddWins.answer s hseat hasMove hchildren) t
+
+/-- Strategy-tree membership composes down nested odd subtrees. -/
+theorem InOddStrategy.trans
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {r s t : State V}
+    {hr : OddWins G seat r} {hs : OddWins G seat s}
+    (hrs : InOddStrategy G seat hr s)
+    (hst : InOddStrategy G seat hs t) :
+    InOddStrategy G seat hr t := by
+  induction hrs with
+  | root => simpa using hst
+  | @choose s0 s1 t0 hseat m hstep hchild ht ih =>
+      exact InOddStrategy.choose (hseat := hseat) (m := m)
+        (hstep := hstep) (ih hst)
+  | @answer s0 s1 t0 hseat hasMove hchildren m hstep ht ih =>
+      exact InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+        (hchildren := hchildren) (m := m) (hstep := hstep) (ih hst)
+
+/-- Every node in an odd strategy tree carries the corresponding odd
+sub-strategy. -/
+theorem InOddStrategy.oddWins
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {s t : State V}
+    {h : OddWins G seat s} (ht : InOddStrategy G seat h t) :
+    OddWins G seat t := by
+  induction ht with
+  | root => assumption
+  | choose _ ih => exact ih
+  | answer _ ih => exact ih
+
+/-- A strategy which forces terminal score zero without changing the score
+on any move in its explicit strategy tree. -/
+inductive TreeNeutralWins {V : Type*} [DecidableEq V]
+    (G : SimpleGraph V) (player : Bool) : State V → Prop
+  | terminal (s : State V) (hterminal : Terminal s) (hscore : s.score = 0) :
+      TreeNeutralWins G player s
+  | choose (s : State V) (hplayer : s.toMove = player)
+      (m : Move V) (s' : State V) (hstep : step G s m = some s')
+      (hneutral : s'.score = s.score) (hwin : TreeNeutralWins G player s') :
+      TreeNeutralWins G player s
+  | answer (s : State V) (hplayer : s.toMove ≠ player)
+      (hasMove : ∃ m s', step G s m = some s')
+      (hneutral : ∀ m s', step G s m = some s' → s'.score = s.score)
+      (hwin : ∀ m s', step G s m = some s' →
+        TreeNeutralWins G player s') :
+      TreeNeutralWins G player s
+
+/-- Forgetting the transition-by-transition neutrality certificate leaves an
+ordinary strategy forcing terminal score zero. -/
+theorem TreeNeutralWins.toEvenWins
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {player : Bool} {s : State V}
+    (h : TreeNeutralWins G player s) : EvenWins G player s := by
+  induction h with
+  | terminal s hterminal hscore =>
+      exact EvenWins.terminal s hterminal hscore
+  | choose s hplayer m s' hstep _ _ ih =>
+      exact EvenWins.choose s hplayer m s' hstep ih
+  | answer s hplayer hasMove _ _ ih =>
+      exact EvenWins.answer s hplayer hasMove ih
+
+/-- If every proper node of an odd strategy subtree stays on score sheet one,
+then translating its root by one produces a score-neutral strategy for the
+same physical player.  The hypothesis is relative to the original strategy
+tree, not to arbitrary game states. -/
+theorem oddStrategy_subtree_one_translates_neutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {root s : State V}
+    {hroot : OddWins G seat root} (h : OddWins G seat s)
+    (hmem : InOddStrategy G seat hroot s)
+    (hrank : rank s < rank root)
+    (hnozero : ∀ {t : State V}, InOddStrategy G seat hroot t →
+      rank t < rank root → t.score ≠ 0) :
+    TreeNeutralWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal hscore =>
+      have hs1 : s.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem hrank)
+      refine TreeNeutralWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · simp [scoreTranslate, hs1, CharTwo.add_self_eq_zero]
+  | choose s hseat m s' hstep hchild ih =>
+      have hlocal : InOddStrategy G seat
+          (OddWins.choose s hseat m s' hstep hchild) s' :=
+        InOddStrategy.choose (hseat := hseat) (m := m) (hstep := hstep)
+          (InOddStrategy.root hchild)
+      have hmem' : InOddStrategy G seat hroot s' := hmem.trans hlocal
+      have hrank' : rank s' < rank root :=
+        lt_trans (rank_step_lt hstep) hrank
+      have hs1 : s.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem hrank)
+      have hs'1 : s'.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem' hrank')
+      refine TreeNeutralWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ?_ (ih hmem' hrank')
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · rw [step_scoreTranslate, hstep]
+        simp
+      · simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+  | answer s hseat hasMove hchildren ih =>
+      have hs1 : s.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem hrank)
+      refine TreeNeutralWins.answer (scoreTranslate 1 s) ?_ ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.ne_not.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hmem' : InOddStrategy G seat hroot s' := hmem.trans hlocal
+        have hrank' : rank s' < rank root :=
+          lt_trans (rank_step_lt hstep) hrank
+        have hs'1 : s'.score = 1 :=
+          zmod2_eq_one_of_ne_zero _ (hnozero hmem' hrank')
+        simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hmem' : InOddStrategy G seat hroot s' := hmem.trans hlocal
+        have hrank' : rank s' < rank root :=
+          lt_trans (rank_step_lt hstep) hrank
+        exact ih m s' hstep hmem' hrank'
+
+/-- A rank-minimal zero-sheet node inside one explicit odd strategy tree is
+controlled by the odd-seeking player, whose selected move is an odd FIFO
+CLOSE.  The selected child's opposite sheet has a fully neutral continuation.
+This is the strategy-tree-relative replacement for global-state minimality. -/
+theorem minimalOddStrategy_zeroNode_close_neutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {s : State V}
+    (h : OddWins G seat s) (hs0 : s.score = 0)
+    (hminimal : ∀ {t : State V}, InOddStrategy G seat h t →
+      rank t < rank s → t.score ≠ 0) :
+    s.toMove = !seat ∧
+      ∃ f q s', s.queue = f :: q ∧ s.ko = false ∧
+        step G s .close = some s' ∧ flip G s.untouched f = 1 ∧
+          TreeNeutralWins G (!seat) (scoreTranslate 1 s') := by
+  cases h with
+  | terminal _ _ hscore => exact False.elim (hscore hs0)
+  | choose _ hseat m s' hstep hchild =>
+      have hplayer : s.toMove = !seat := Bool.eq_not_iff.mpr hseat
+      have hmem : InOddStrategy G seat
+          (OddWins.choose s hseat m s' hstep hchild) s' :=
+        InOddStrategy.choose (hseat := hseat) (m := m) (hstep := hstep)
+          (InOddStrategy.root hchild)
+      have hrank : rank s' < rank s := rank_step_lt hstep
+      have hs'1 : s'.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hminimal hmem hrank)
+      have hneutral : TreeNeutralWins G (!seat) (scoreTranslate 1 s') :=
+        oddStrategy_subtree_one_translates_neutral hchild hmem hrank hminimal
+      have hm : m = .close := by
+        cases m with
+        | «open» v =>
+            have hscore := open_score hstep
+            rw [hs0] at hscore
+            exact False.elim (one_ne_zero (hs'1.symm.trans hscore))
+        | close => rfl
+        | pass =>
+            have hscore := pass_score hstep
+            rw [hs0] at hscore
+            exact False.elim (one_ne_zero (hs'1.symm.trans hscore))
+      subst m
+      obtain ⟨f, q, hqueue, hscore⟩ := close_score hstep
+      have hko : s.ko = false := by
+        cases hk : s.ko with
+        | false => rfl
+        | true => simp [step, hqueue, hk] at hstep
+      have hflip : flip G s.untouched f = 1 := by
+        rw [hs0, zero_add] at hscore
+        exact hscore.symm.trans hs'1
+      exact ⟨hplayer, f, q, s', hqueue, hko, hstep, hflip, hneutral⟩
+  | answer _ hseat hasMove hchildren =>
+      exfalso
+      by_cases hU : s.untouched = ∅
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        have hsome : ∃ m t, step G s m = some t := ⟨m, s', hstep⟩
+        have hmem : InOddStrategy G seat
+            (OddWins.answer s hseat hsome hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hsome)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hrank : rank s' < rank s := rank_step_lt hstep
+        have hs'0 : s'.score = 0 := by
+          rw [step_score_eq_of_untouched_empty hU hstep, hs0]
+        exact hminimal hmem hrank hs'0
+      · obtain ⟨v, hv⟩ := Finset.nonempty_iff_ne_empty.mpr hU
+        let s' : State V := {
+          untouched := s.untouched.erase v
+          queue := s.queue ++ [v]
+          ko := s.queue.isEmpty
+          toMove := !s.toMove
+          score := s.score }
+        have hstep : step G s (.open v) = some s' := by
+          simp [step, s', hv]
+        have hmem : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := .open v) (hstep := hstep)
+            (InOddStrategy.root (hchildren (.open v) s' hstep))
+        have hrank : rank s' < rank s := rank_step_lt hstep
+        have hs'0 : s'.score = 0 := by simp [s', hs0]
+        exact hminimal hmem hrank hs'0
+
+/-- Every zero-sheet odd strategy contains a rank-minimal zero-sheet node.
+At that node the preceding theorem gives the selected charged CLOSE followed
+by a neutral translated tail.  Minimality is taken only over nodes of the
+given strategy tree. -/
+theorem oddStrategy_extract_minimalCloseNeutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {root : State V}
+    (hroot : OddWins G seat root) (hroot0 : root.score = 0) :
+    ∃ s, InOddStrategy G seat hroot s ∧ s.score = 0 ∧
+      s.toMove = !seat ∧
+      ∃ f q s', s.queue = f :: q ∧ s.ko = false ∧
+        step G s .close = some s' ∧ flip G s.untouched f = 1 ∧
+          TreeNeutralWins G (!seat) (scoreTranslate 1 s') := by
+  classical
+  let P : Nat → Prop := fun n ↦ ∃ s,
+    InOddStrategy G seat hroot s ∧ s.score = 0 ∧ rank s = n
+  have hP : ∃ n, P n := by
+    exact ⟨rank root, root, InOddStrategy.root hroot, hroot0, rfl⟩
+  let n := Nat.find hP
+  obtain ⟨s, hmem, hs0, hrank⟩ := Nat.find_spec hP
+  have h : OddWins G seat s := hmem.oddWins
+  have hminimal : ∀ {t : State V}, InOddStrategy G seat h t →
+      rank t < rank s → t.score ≠ 0 := by
+    intro t hinner hlt ht0
+    have hglobal : InOddStrategy G seat hroot t := hmem.trans hinner
+    have hPt : P (rank t) := ⟨t, hglobal, ht0, rfl⟩
+    have hnle : n ≤ rank t := Nat.find_min' hP hPt
+    have hsle : rank s ≤ rank t := by simpa [n, hrank] using hnle
+    exact (Nat.not_lt_of_ge hsle) hlt
+  obtain ⟨hturn, f, q, s', hqueue, hko, hstep, hflip, hneutral⟩ :=
+    minimalOddStrategy_zeroNode_close_neutral h hs0 hminimal
+  exact ⟨s, hmem, hs0, hturn, f, q, s', hqueue, hko, hstep,
+    hflip, hneutral⟩
+
+/-- At an opponent-controlled node of a neutral strategy, every legal CLOSE
+has zero charge.  This is the local bridge from neutral tails to Eulerian
+degree parity. -/
+theorem TreeNeutralWins.opponent_close_flip_zero
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {player : Bool} {s : State V} {f : V} {q : List V}
+    (h : TreeNeutralWins G player s) (hturn : s.toMove ≠ player)
+    (hqueue : s.queue = f :: q) (hko : s.ko = false) :
+    flip G s.untouched f = 0 := by
+  let sc : State V := {
+    untouched := s.untouched
+    queue := q
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G s.untouched f }
+  have hstep : step G s .close = some sc := by
+    simp [step, hqueue, hko, sc]
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨.close, sc, hstep⟩)
+  | choose _ hplayer _ _ _ _ _ => exact False.elim (hturn hplayer)
+  | answer _ _ _ hneutral _ =>
+      have heq := hneutral .close sc hstep
+      have hadd : s.score + flip G s.untouched f = s.score + 0 := by
+        simpa [sc] using heq
+      exact add_left_cancel hadd
+
+/-- A neutral tail after every puncture of `U`, with the puncturing vertex as
+the next opponent-controlled singleton front, forces even degree at every
+vertex of the induced graph on `U`. -/
+theorem treeNeutral_singletonTails_eulerian
+    {V : Type*} [DecidableEq V]
+    (G : SimpleGraph V) (player : Bool) (U : Finset V)
+    (htails : ∀ w ∈ U,
+      TreeNeutralWins G player {
+        untouched := U.erase w
+        queue := [w]
+        ko := false
+        toMove := !player
+        score := 0 }) :
+    ∀ w ∈ U, flip G (U.erase w) w = 0 := by
+  intro w hw
+  exact (htails w hw).opponent_close_flip_zero (by simp) rfl rfl
 
 /-- An edgeless graph is the fully proved base class: every close has charge
 zero, so either seat forces even parity regardless of its choices. -/

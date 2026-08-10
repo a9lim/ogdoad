@@ -151,6 +151,12 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 - an explicit existential/universal finite strategy tree;
 - its explicit odd-forcing dual, kernel-checked finite determinacy and
   incompatibility (`EvenWins` iff no `OddWins` counterstrategy);
+- explicit membership in one fixed `OddWins` strategy tree and a
+  strategy-relative minimum theorem: every zero-sheet odd counterstrategy
+  contains a selected charge-one CLOSE whose translated child has a fully
+  score-neutral continuation tree; opponent-controlled singleton closes in
+  such tails have charge zero, so a complete family of punctured singleton
+  tails forces the induced untouched graph to be Eulerian;
 - an absolute-target `CloseFirstWins` strategy tree, whole-queue drain
   identities, and the dummy-free `ConditionedCloseFirstTheorem`: from every
   coherent ko-clear defender checkpoint with nonempty queue, a close-first
