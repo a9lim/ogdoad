@@ -142,6 +142,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   polynomial product over `F_Q`, rescaling invariance of the complete
   translate set, and the marked-scalar Kummer interpretation remain
   paper-level;
+- the first exact dependency composition in the selected `p=359` chain and
+  invariance of marked power status under a ring equivalence.  The maintained
+  stdlib certificate constructs the complete sparse degree-3,504,820
+  full-conductor polynomial and checks its term counts and coefficient hash.
+  The remaining dependency identifications, finite-field irreducibility, and
+  selected gcd/trace evaluation are paper-level; this does not prove
+  `m_359=1`;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -286,6 +293,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   checks the two-point fibre of `x^2+x+1` and that the three selected
   symmetric coordinates expand to one rigid cubic.  It does not check either
   finite-field witness, its irreducibility, primitivity, or power tests;
+- the alternating `F_4` translate of the selected exceptional cubic, including
+  its twisted recursion, Artin--Schreier coefficient, symmetric-product norm,
+  invariance of power membership after multiplication by a known power, and
+  the uniqueness step forcing a norm-coherent chain of lower power roots.
+  The finite-field tower, irreducibility after constant extension, current
+  order calculation, and Kummer interpretation remain paper-level;
 - the characteristic-two Mobius trace identity
   `M + M^(-1) = (w^2+w)^(-1)` behind the exceptional arm's selected
   one-variable Dickson critical value;
@@ -306,6 +319,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Conway--Fermat continued-fraction reduction; and the formal-derivative
   identities `S'_(2r)=0`, `S'_(2r+1)=S_r^2`, which show that an odd selected
   zero is simple whenever its half-index value is nonzero;
+- the complementary factor/cofactor core: the power-of-two-plus-one Fibonacci
+  derivative is one, while product zero plus the differentiated Bézout value
+  one forces exactly one factor to vanish and makes the corresponding
+  `ZMod 2` resultants sum to one.  Fibonacci divisibility, the selected
+  finite-field specialization, and the resultant/norm identification remain
+  paper-level;
 - partial Frobenius-trace additivity, Frobenius commutation, index splitting,
   and the exact conjugate descent
   `Tr(1+T_s(a))=T_s(A)` when `a^(2^d)=a+A`, which underlies the paper's

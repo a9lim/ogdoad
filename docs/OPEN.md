@@ -315,7 +315,13 @@ absolute boundedness.
   lossless normal form rather than a closure. As a word in the exponent, that
   terminal bit is exactly the zero-at-multiples indicator for `delta_n`; its
   least period, linear complexity plus one, and minimal binary-automaton state
-  count are all `delta_n`. The unique lower `ell`-th root in the Dickson
+  count are all `delta_n`. Factoring the complete trace-one polynomial as
+  `S_N=S_d*J_(N,d)` adds exactly the complementary terminal bit: the two
+  actual selected resultants sum to one, and the derivative supplies an
+  inverse on whichever factor does not vanish. It does not determine which
+  factor vanishes; the position of the unique zero in the full fibotomic
+  factorization is the same unknown order `delta_n`. The unique lower
+  `ell`-th root in the Dickson
   obstruction is now choice-free: with `d=(q+1)/ell`, it is
   `(a_(n-1)^d)^(q/2)`. This removes an auxiliary root but leaves the same
   selected Dickson nonvanishing. Thus even the automatic-sequence complexity
@@ -567,8 +573,14 @@ absolute boundedness.
   `x -> u*x`, `u in F_q^x`; its entire labelled multiset and every
   symmetric statistic are therefore blind to which nonzero scalar is marked
   as `1`. The `p=359` safe-prime trace bit is precisely that marked scalar,
-  not an invariant of the affine orbit. At the actual
-  ordinary singleton step, even the canonical additive lower norm is
+  not an invariant of the affine orbit. At this actual row, the complete
+  dependency chain gives one sparse degree-3,504,820 polynomial with 3,447
+  terms for `kappa_179`; the selected assertion is exactly its marked
+  `359`-power gcd, Capelli irreducibility, or safe-prime trace test. Preserving
+  both this polynomial and the mark leaves no countermodel freedom, because
+  finite-field isomorphisms preserve marked `359`-power status. The sparse
+  construction is therefore an exact normal form, not an evaluation. At the
+  actual ordinary singleton step, even the canonical additive lower norm is
   current-Kummer blind: `Norm(1+x)=1+x^r`, while
   `ord_p(q_0)=r>1` makes `p`-powering an automorphism of the lower
   multiplicative group. Hence this norm is always a lower `p`-th power,
@@ -782,7 +794,14 @@ absolute boundedness.
   Artin--Schreier coefficient in the exact selector bridge remains capable of
   coupling the arms.
   Even the exact lower norm of the actual normalized root is automatically a
-  current primary power downstairs. A coprime plus/minus decomposition now
+  current primary power downstairs. An alternating `F_4` translate packages
+  the actual D class into a norm-coherent twisted cubic at every selected
+  level. Under hypothetical failure its `ell`-th roots descend uniquely and
+  norm-coherently through the complete Conway chain to the consistent terminal
+  value in `F_4`. Thus even full recursive ancestry cannot close the arm by
+  norms or Kummer corestriction alone; a surviving proof must use a nonlinear
+  additive-multiplicative relation involving the top root and the twisted
+  cubics. A coprime plus/minus decomposition now
   identifies the entire current primary order with the minus coordinate
   `P_k=M_k^(t+1)`, while the plus coordinate is the explicit `g_k` coboundary.
   The lower norm fixes only the already-known 3-part. Among ambient

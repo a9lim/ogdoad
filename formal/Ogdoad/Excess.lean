@@ -1110,6 +1110,106 @@ theorem cubic_auxiliary_e2_coherence
       ring_nf
       rw [sub_eq_add_neg, hneg]
 
+/-- The alternating `F₄` translate turns the selected depressed cubic into
+a norm-coherent twisted cubic. -/
+theorem dk_twisted_translate_recursion
+    {S : Type*} [CommRing S] [CharP S 2]
+    (x a c : S) (hc : c ^ 2 + c = 1) (hx : x ^ 3 + x = a) :
+    let u := x + c
+    let v := a + c ^ 2
+    u ^ 3 + c * u ^ 2 + c * u = v := by
+  dsimp
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  have hfour : (4 : S) = 0 := by
+    calc
+      (4 : S) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo, zero_add]
+  have hfive : (5 : S) = 1 := by
+    calc
+      (5 : S) = 4 + 1 := by norm_num
+      _ = 1 := by rw [hfour, zero_add]
+  rw [show a = x ^ 3 + x by simpa using hx.symm]
+  calc
+    (x + c) ^ 3 + c * (x + c) ^ 2 + c * (x + c) =
+        x ^ 3 + x * (c ^ 2 + c) + c ^ 2 := by
+          ring_nf
+          simp [htwo, hfour, hfive]
+    _ = x ^ 3 + x + c ^ 2 := by rw [hc, mul_one]
+
+/-- The same alternating translate is an Artin--Schreier root of the actual
+exceptional auxiliary coordinate `x²+x+1`. -/
+theorem dk_twisted_translate_artinSchreier
+    {S : Type*} [CommRing S] [CharP S 2]
+    (x c : S) (hc : c ^ 2 + c = 1) :
+    (x + c) ^ 2 + (x + c) = x ^ 2 + x + 1 := by
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  calc
+    (x + c) ^ 2 + (x + c) = x ^ 2 + x + (c ^ 2 + c) := by
+      ring_nf
+      simp [htwo]
+    _ = x ^ 2 + x + 1 := by rw [hc]
+
+/-- Symmetric-coordinate form of the alternating translate's exact norm
+identity. -/
+theorem dk_twisted_translate_product
+    {S : Type*} [CommRing S] [CharP S 2]
+    (x y z a c : S)
+    (h1 : x + y + z = 0)
+    (h2 : x * y + x * z + y * z = 1)
+    (h3 : x * y * z = a)
+    (hc : c ^ 2 + c = 1) :
+    (x + c) * (y + c) * (z + c) = a + c ^ 2 := by
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  have hself (w : S) : w + w = 0 := by
+    calc
+      w + w = (2 : S) * w := by ring
+      _ = 0 := by rw [htwo, zero_mul]
+  have hnegc : -c = c := neg_eq_of_add_eq_zero_right (hself c)
+  have hc' : c ^ 2 = 1 + c := by
+    calc
+      c ^ 2 = 1 - c := by linear_combination hc
+      _ = 1 + c := by rw [sub_eq_add_neg, hnegc]
+  have hc'' : c + 1 = c ^ 2 := by simpa [add_comm] using hc'.symm
+  have hc3 : c ^ 3 = 1 := by
+    calc
+      c ^ 3 = c * c ^ 2 := by ring
+      _ = c * (1 + c) := by rw [hc']
+      _ = c + c ^ 2 := by ring
+      _ = 1 := by simpa [add_comm] using hc
+  calc
+    (x + c) * (y + c) * (z + c) =
+        x*y*z + c*(x*y + x*z + y*z) + c^2*(x+y+z) + c^3 := by ring
+    _ = a + c + 1 := by simp only [h1, h2, h3, hc3, mul_one, mul_zero, add_zero]
+    _ = a + (c + 1) := by ring
+    _ = a + c ^ 2 := by rw [hc'']
+
+/-- Multiplication by a known `ell`-th power does not change Kummer
+membership. -/
+theorem mul_power_isPthPower_iff
+    {G : Type*} [CommGroup G] (a u : G) (ell : Nat)
+    (ha : IsPthPower ell a) :
+    IsPthPower ell (a * u) ↔ IsPthPower ell u := by
+  obtain ⟨r, hr⟩ := ha
+  constructor
+  · rintro ⟨z, hz⟩
+    refine ⟨z / r, ?_⟩
+    rw [div_pow, hz, hr]
+    simp
+  · rintro ⟨v, hv⟩
+    refine ⟨r * v, ?_⟩
+    rw [mul_pow, hr, hv]
+
+/-- A multiplicative norm carries an `ell`-th root to the unique lower
+`ell`-th root, forcing norm coherence of the complete root chain. -/
+theorem norm_of_power_root
+    {A B : Type*} [CommMonoid A] [CommMonoid B]
+    (N : A →* B) (v u : A) (u0 v0 : B) (ell : Nat)
+    (hv : v ^ ell = u) (hNu : N u = u0)
+    (huniq : ∀ z : B, z ^ ell = u0 → z = v0) :
+    N v = v0 := by
+  apply huniq
+  rw [← hNu, ← hv, map_pow]
+
 variable {F : Type*} [Field F] [CharP F 2]
 
 /-- The quadratic auxiliary coordinate `x^2+x+1` determines `x` only up to
@@ -2097,6 +2197,57 @@ theorem ordinary_affine_translate_collapse (Y Yq lambda : R) :
 
 end OrdinaryAffineTranslate
 
+section Ordinary359FullConductor
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- The first exact odd-Kummer dependency lift in the selected `p=359`
+Conway chain. -/
+theorem ordinary359_first_dependency_polynomial (X : R) :
+    ((X + 1) ^ 5) ^ 4 + (X + 1) ^ 5 + 1 =
+      X ^ 20 + X ^ 16 + X ^ 5 + X + 1 := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hsquare (u v : R) : (u + v) ^ 2 = u ^ 2 + v ^ 2 := by
+    calc
+      (u + v) ^ 2 = u ^ 2 + 2 * u * v + v ^ 2 := by ring
+      _ = u ^ 2 + v ^ 2 := by rw [htwo]; ring
+  have hfourth (u v : R) : (u + v) ^ 4 = u ^ 4 + v ^ 4 := by
+    calc
+      (u + v) ^ 4 = ((u + v) ^ 2) ^ 2 := by ring
+      _ = (u ^ 2 + v ^ 2) ^ 2 := by rw [hsquare]
+      _ = u ^ 4 + v ^ 4 := by rw [hsquare]; ring
+  have hfive : (X + 1) ^ 5 = X ^ 5 + X ^ 4 + X + 1 := by
+    calc
+      (X + 1) ^ 5 = (X + 1) ^ 4 * (X + 1) := by ring
+      _ = (X ^ 4 + 1) * (X + 1) := by rw [hfourth]; ring
+      _ = X ^ 5 + X ^ 4 + X + 1 := by ring
+  rw [hfive]
+  calc
+    (X ^ 5 + X ^ 4 + X + 1) ^ 4 + (X ^ 5 + X ^ 4 + X + 1) + 1 =
+        X ^ 20 + X ^ 16 + X ^ 4 + 1 +
+          (X ^ 5 + X ^ 4 + X + 1) + 1 := by
+            repeat' rw [hfourth]
+            ring
+    _ = X ^ 20 + X ^ 16 + X ^ 5 + X + 1 := by
+      linear_combination (X ^ 4 + 1) * htwo
+
+variable {F K : Type*} [CommRing F] [CommRing K]
+
+/-- Once the marked irreducible factor is fixed, a field-model change cannot
+alter the selected power class. -/
+theorem ordinary_marked_power_status_equiv
+    (e : F ≃+* K) (x : F) (p : Nat) :
+    (∃ y : F, y ^ p = x) ↔ ∃ z : K, z ^ p = e x := by
+  constructor
+  · rintro ⟨y, rfl⟩
+    exact ⟨e y, by simp⟩
+  · rintro ⟨z, hz⟩
+    refine ⟨e.symm z, ?_⟩
+    apply e.injective
+    simpa using hz
+
+end Ordinary359FullConductor
+
 section CubicNormalBridge
 
 variable {K : Type*} [Field K] [CharP K 2]
@@ -2765,6 +2916,73 @@ theorem fermat_complement_indices_not_dvd
     omega
 
 end FermatFibonacciCompression
+
+section FermatComplementaryCofactorCore
+
+/-- The Fibonacci polynomial of index `2^(t+1)+1` has derivative one in
+characteristic two. -/
+theorem fibPolyDerivativeValue_pow_two_succ_add_one
+    {R : Type*} [CommRing R] [CharP R 2] (a : R) (t : Nat) :
+    fibPolyDerivativeValue a (2 ^ (t + 1) + 1) = 1 := by
+  rw [show 2 ^ (t + 1) + 1 = 2 * (2 ^ t) + 1 by
+    rw [pow_succ]
+    omega]
+  rw [(fibPolyDerivativeValue_double a (2 ^ t)).2]
+  have hpow : fibPolyValue a (2 ^ t) =
+      (fibPolyValue a 1) ^ (2 ^ t) := by
+    simpa using fibPolyValue_pow_two_mul a t 1
+  rw [hpow]
+  simp [fibPolyValue]
+
+/-- The differentiated factorization identifies the inverse on whichever
+factor does not vanish. -/
+theorem factor_cofactor_branch_inverse
+    {K : Type*} [Field K] (s q ds dq : K)
+    (hprod : s * q = 0) (hderiv : ds * q + s * dq = 1) :
+    (s = 0 ∧ ds * q = 1) ∨ (q = 0 ∧ s * dq = 1) := by
+  rcases mul_eq_zero.mp hprod with hs | hq
+  · left
+    refine ⟨hs, ?_⟩
+    simpa [hs] using hderiv
+  · right
+    refine ⟨hq, ?_⟩
+    simpa [hq] using hderiv
+
+/-- A zero product together with differentiated Bézout value one forces
+exactly one factor to vanish. -/
+theorem exactly_one_zero_of_product_and_derivative
+    {K : Type*} [Field K] (s q ds dq : K)
+    (hprod : s * q = 0) (hderiv : ds * q + s * dq = 1) :
+    (s = 0 ∧ q ≠ 0) ∨ (s ≠ 0 ∧ q = 0) := by
+  rcases factor_cofactor_branch_inverse s q ds dq hprod hderiv with
+      ⟨hs, hunit⟩ | ⟨hq, hunit⟩
+  · left
+    refine ⟨hs, ?_⟩
+    exact right_ne_zero_of_mul_eq_one hunit
+  · right
+    refine ⟨?_, hq⟩
+    exact left_ne_zero_of_mul_eq_one hunit
+
+/-- Over the two-element field, a one-hot pair has sum one. -/
+theorem complementary_bits_sum_one
+    (r t : ZMod 2)
+    (h : (r = 0 ∧ t ≠ 0) ∨ (r ≠ 0 ∧ t = 0)) :
+    r + t = 1 := by
+  rcases h with ⟨hr, ht⟩ | ⟨hr, ht⟩
+  · subst r
+    have ht1 : t = 1 := by
+      fin_cases t
+      · exact (ht rfl).elim
+      · rfl
+    simp [ht1]
+  · subst t
+    have hr1 : r = 1 := by
+      fin_cases r
+      · exact (hr rfl).elim
+      · rfl
+    simp [hr1]
+
+end FermatComplementaryCofactorCore
 
 section ConwayTopBitCompanion
 
