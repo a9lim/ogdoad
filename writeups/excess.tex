@@ -1973,6 +1973,28 @@ binary submask \(j=k+tr\) sends it to
 Pairing the coefficients gives \((\mathsf{ON}_3)\).
 \end{proof}
 
+\begin{corollary}[the ordinary lower norm is current-Kummer blind]
+\label{cor:ordinary-current-norm-blind}
+Retain the ordinary current-prime notation, so
+\(x^r=A\), \(y=1+x\), and \(\ord_p(q_0)=r>1\).  Then
+\[
+ \Norm_{F/F_0}(y)=1+A\in(F_0^\times)^p.              \tag{\(\mathsf{ON}_4\)}
+\]
+Thus the only additive lower norm available from the selected binomial
+step is trivial in the current \(p\)-Kummer quotient, independently of
+whether \(y\) is a \(p\)-th power upstairs.  In particular no induction
+through this norm can transmit either success or failure to a lower
+ordinary coordinate.
+\end{corollary}
+
+\begin{proof}
+The binomial norm is \(\Norm(1+x)=1+x^r=1+A\).  Since
+\(\ord_p(q_0)=r>1\), one has \(p\nmid q_0-1=|F_0^\times|\).
+Exponentiation by \(p\) is therefore an automorphism of the lower
+cyclic group.  This is the generic coprime-order power lemma
+kernel-checked in \texttt{Ogdoad.Excess}.
+\end{proof}
+
 \begin{proposition}[reduced reciprocal divisor of ordinary failure]
 \label{prop:ordinary-reduced-failure-divisor}
 Retain the ordinary current-prime notation, and write
@@ -4920,6 +4942,116 @@ raising to $q_k-1$ kills the old-field component and is an automorphism
 on $U_k$, since $\gcd(q_k-1,q_k^2+q_k+1)=1$.  Therefore the kernel
 component of $\gamma_k$ generates $U_k$ exactly when $\eta_k$ does;
 Proposition~\ref{prop:norm-kernel-seam} gives \((**)\).
+\end{proof}
+
+\begin{proposition}[the normal Singer translate]
+\label{prop:singer-normal-translate}
+Retain Proposition~\ref{prop:eta-tower}, put
+\[
+ \varepsilon_0=1,\qquad \varepsilon_k=\eta_k+1\quad(k\geq1),
+\]
+and write \(q=q_k\), \(N=q^2+q+1\).  Then
+\(\varepsilon_k\in U_k\) has order \(\ord(\eta_k)\) and has the
+irreducible relative cubic
+\[
+ X^3+\varepsilon_{k-1}X^2
+   +(\varepsilon_{k-1}+1)X+1.                         \tag{\(\mathsf{SN}_1\)}
+\]
+Consequently
+\[
+ \operatorname{Tr}_{L_k/L_{k-1}}(\varepsilon_k)=\varepsilon_{k-1},\qquad
+ e_2(\varepsilon_k)=\varepsilon_{k-1}+1,\qquad
+ \Norm_{L_k/L_{k-1}}(\varepsilon_k)=1.              \tag{\(\mathsf{SN}_2\)}
+\]
+Moreover \(\varepsilon_k\) is normal over \(\F_2\).  More exactly, if
+\(\sigma(x)=x^2\) and
+\[
+ T_j=\sum_{r=0}^{3^{k-j}-1}\sigma^{r3^j}\quad(0\leq j\leq k),
+ \qquad E_0=T_0,\qquad E_j=T_j+T_{j-1}\quad(j\geq1),
+\]
+then the \(E_j\) are the cyclotomic Frobenius projectors and
+\[
+ T_j(\varepsilon_k)=\varepsilon_j,\qquad
+ E_0(\varepsilon_k)=1,\qquad
+ E_j(\varepsilon_k)=\eta_j+\eta_{j-1}\ne0\quad(j\geq1). \tag{\(\mathsf{SN}_3\)}
+\]
+Thus the absolute Frobenius orbit of \(\varepsilon_k\) is an
+\(\F_2\)-basis of \(L_k\).  In the same decomposition
+\[
+ E_0(\eta_k)=0,\qquad E_j(\eta_k)=E_j(\varepsilon_k)\ne0\quad(j\geq1),
+\]
+so the orbit of \(\eta_k\) spans exactly the absolute trace-zero
+hyperplane and has rank \(3^k-1\).
+
+For the immediate extension put
+\(x=\varepsilon_k\), \(y=x^q\), \(z=x^{q^2}\), and
+\(b=\varepsilon_{k-1}\).  The trace Gram and cyclic Moore determinants
+are
+\[
+ G=(\operatorname{Tr}(x^{q^i}x^{q^j}))_{0\leq i,j<3}
+  =\begin{pmatrix}
+     b^2&b+1&b+1\\ b+1&b^2&b+1\\ b+1&b+1&b^2
+    \end{pmatrix},
+\]
+\[
+ \det G=b^2(b^2+b+1)^2,
+ \qquad
+ \det\!\begin{pmatrix}x&y&z\\y&z&x\\z&x&y\end{pmatrix}
+   =b(b^2+b+1).                                      \tag{\(\mathsf{SN}_4\)}
+\]
+Both determinants are nonzero.  Finally
+\[
+ C_k\iff C_{k-1}\ \text{and}\
+       \varepsilon_k\ \text{generates }U_k.          \tag{\(\mathsf{SN}_5\)}
+\]
+Thus the current Singer coordinate has a normal translate of exactly the
+same multiplicative order.  This proves absolute and immediate normality;
+it does not assert that \(\varepsilon_k\) is completely normal.  It is
+also distinct from the later trace-zero coordinate
+\(h_k=1+\gamma_k^{-1}\).
+\end{proposition}
+
+\begin{proof}
+In characteristic two, translating the cubic for \(\eta_k\) by
+\(X\mapsto X+1\) gives \((\mathsf{SN}_1)\); translation preserves
+irreducibility, and its symmetric coefficients give
+\((\mathsf{SN}_2)\).  The Singer identity gives
+\[
+ \varepsilon_k=\eta_k^{q+1},\qquad
+ \varepsilon_k^q=\eta_k^{-1}.
+\]
+Since \(N=q(q+1)+1\), one has \(\gcd(q+1,N)=1\); exponentiation by
+\(q+1\) is an automorphism of \(U_k\), proving equality of orders and
+\((\mathsf{SN}_5)\) from Proposition~\ref{prop:eta-tower}.
+
+The operator \(T_j\) is \(\operatorname{Tr}_{L_k/L_j}\) and, since all relative
+degrees are odd, is the idempotent projector onto \(L_j\).  Trace
+transitivity and \((\mathsf{SN}_2)\) give
+\(T_j(\varepsilon_k)=\varepsilon_j\), hence \((\mathsf{SN}_3)\).
+Its last value is nonzero: equality \(\eta_j=\eta_{j-1}\) would put
+\(\eta_j\) in \(L_{j-1}\), contrary to the irreducibility of its
+relative cubic.  Now
+\(\ord_{3^j}(2)=2\cdot3^{j-1}=\varphi(3^j)\), so
+\(\Phi_{3^j}\) is irreducible over \(\F_2\).  Each nonzero
+\(E_j\)-component therefore generates its whole simple Frobenius block.
+All blocks occur in \(\varepsilon_k\), proving normality; omitting only
+the \(E_0\)-block gives the assertion for \(\eta_k\).
+
+Equation \((\mathsf{SN}_1)\) gives
+\(e_1=b\), \(e_2=b+1\), \(e_3=1\).  Hence the diagonal Gram entries are
+\(\operatorname{Tr}(x^2)=b^2\) and the off-diagonal entries are
+\(\operatorname{Tr}(xy)=xy+yz+zx=b+1\), giving the first determinant in
+\((\mathsf{SN}_4)\).  In characteristic two the cyclic Moore determinant
+is
+\[
+ x^3+y^3+z^3+xyz=e_1^3+e_1e_2=b(b^2+b+1),
+\]
+whose square is \(\det G\).  Here \(b\ne0\), and
+\(b^2+b+1=0\) would give an element of order three in
+\(L_{k-1}^{\times}\); this is impossible because
+\(3\nmid2^{3^{k-1}}-1\).  The translated-cubic, Moore, Gram, and
+coprime-order algebra used here is kernel-checked in
+\texttt{Ogdoad.Excess}; the Frobenius-projector argument is paper-level.
 \end{proof}
 
 \begin{proposition}[reciprocal cubic Kummer descent]
@@ -12034,6 +12166,158 @@ two identities \((\mathsf{GL}_2)\), and the corresponding odd-Kummer
 square-class equivalence in \texttt{Ogdoad.Excess}.
 \end{proof}
 
+\begin{proposition}[the semiprimitive Gauss table remembers only the selected label]
+\label{prop:fermat-semiprimitive-label}
+Retain Proposition~\ref{prop:fermat-canonical-global-lift}.  Put
+\[
+ m=2^n,\qquad q=2^m,\qquad
+ k_0=\F_q,\qquad k=\F_{q^2},
+\]
+and identify the residue copy of \(\mu_\ell\subset k^\times\) with the
+fixed global copy by inverse reduction at \(\mathfrak q_1\).  Define
+\[
+ \chi(x)=x^{(q^2-1)/\ell}\in\mu_\ell,\qquad
+ \psi(x)=(-1)^{\operatorname{Tr}_{k/\F_2}(x)}.
+\]
+Thus \(\chi\) has order \(\ell\) and is trivial on \(k_0^\times\).
+For \(a\in(\mathbf Z/\ell\mathbf Z)^\times\) and \(b\in k^\times\), put
+\[
+ G_a(b)=\sum_{x\in k^\times}\chi(x)^a\psi(bx).
+\]
+Then
+\[
+ \boxed{
+ G_a(1)=q,\qquad
+ G_a(b)=q\chi(b)^{-a},\qquad
+ G_a(w_n)=qH^{-a}.}                                  \tag{\(\mathsf{SG}_1\)}
+\]
+
+For \(\xi\in\mu_\ell\), define the labelled signed period
+\[
+ P_\xi(b)=
+ \sum_{\substack{x\in k^\times\\ \chi(x)=\xi}}\psi(bx)\in\mathbf Z.
+\]
+Its complete table is
+\[
+ \boxed{
+ P_\xi(b)=
+ \begin{cases}
+ \displaystyle\frac{(\ell-1)q-1}{\ell},
+      &\xi=\chi(b)^{-1},\\[2mm]
+ \displaystyle-\frac{q+1}{\ell},
+      &\xi\ne\chi(b)^{-1}.
+ \end{cases}}                                         \tag{\(\mathsf{SG}_2\)}
+\]
+Both values are integers because \(\ell\mid q+1\).  In particular,
+\[
+ H=1
+ \iff
+ P_1(w_n)=\frac{(\ell-1)q-1}{\ell},                 \tag{\(\mathsf{SG}_3\)}
+\]
+whereas for \(H\ne1\), one has
+\(P_1(w_n)=-(q+1)/\ell\).
+
+Consequently the unordered period multiset, every symmetric function of
+that multiset, all Gauss absolute values, and all principal-ideal or
+Stickelberger data are independent of \(H\).  Explicitly,
+\[
+ |G_a(w_n)|=q,\qquad
+ (G_a(w_n))=(q),\qquad
+ G_a(w_n)G_{-a}(w_n)=q^2,
+\]
+and
+\[
+ \prod_{a=1}^{\ell-1}G_a(w_n)=q^{\ell-1}.            \tag{\(\mathsf{SG}_4\)}
+\]
+The datum which remains is exactly the label of the unique exceptional
+period, equivalently the root-of-unity phase
+\[
+ \frac{G_a(w_n)}q=H^{-a}.
+\]
+Thus the semiprimitive Gauss table gives a two-valued integral
+reformulation of the selected problem, but not a nonvanishing theorem.
+\end{proposition}
+
+\begin{proof}
+For \(y\in k^\times\), consider the \(k_0^\times\)-line
+\(yk_0^\times\).  For \(t\in k_0\),
+\[
+ \psi(ty)=(-1)^{
+  \operatorname{Tr}_{k_0/\F_2}
+  (t\operatorname{Tr}_{k/k_0}(y))}.
+\]
+Because \(k/k_0\) is quadratic of characteristic two,
+\[
+ \operatorname{Tr}_{k/k_0}(y)=0
+ \iff y^q=y
+ \iff y\in k_0.
+\]
+Hence
+\[
+ \sum_{t\in k_0^\times}\psi(ty)=
+ \begin{cases}
+ q-1,&yk_0^\times=k_0^\times,\\
+ -1,&yk_0^\times\ne k_0^\times.
+ \end{cases}                                          \tag{\(\mathsf{SG}_5\)}
+\]
+The second row follows because the corresponding nontrivial additive
+character sums to zero on \(k_0\), and deleting \(t=0\) removes one.
+
+The character \(\chi^a\) is constant on these lines and is a nontrivial
+character of the cyclic quotient \(k^\times/k_0^\times\).  Its sum over
+that quotient is zero.  The exceptional line has character value one, so
+\[
+ G_a(1)
+ =(q-1)-\sum_{\substack{C\in k^\times/k_0^\times\\C\ne k_0^\times}}
+       \chi(C)^a
+ =(q-1)-(-1)=q.
+\]
+Changing variables \(y=bx\) gives
+\(G_a(b)=\chi(b)^{-a}G_a(1)\).  Moreover
+\[
+ \chi(w_n)
+ =w_n^{(q^2-1)/\ell}
+ =\left(w_n^{(q+1)/\ell}\right)^{q-1}
+ =\left(w_n^{(q+1)/\ell}\right)^{-2}
+ =H,
+\]
+because \(q\equiv-1\pmod\ell\).  This proves
+\((\mathsf{SG}_1)\).
+
+Each fibre of \(\chi\) consists of \((q+1)/\ell\)
+\(k_0^\times\)-lines.  In \(P_\xi(b)\), the unique line on which the
+additive character is trivial is \(b^{-1}k_0^\times\), whose
+\(\chi\)-label is \(\chi(b)^{-1}\).  If that line belongs to the fibre,
+its contribution is \(q-1\) and the remaining \((q+1)/\ell-1\) lines
+contribute \(-1\); otherwise all \((q+1)/\ell\) lines contribute
+\(-1\).  This proves \((\mathsf{SG}_2)\).  Its two values differ by
+\(q\), proving \((\mathsf{SG}_3)\).
+
+Finally \(H\) is a root of unity, so multiplication by \(H^{-a}\)
+changes neither absolute values nor principal ideals.  Pairing \(a\) with
+\(-a\), or using
+\(\sum_{a=1}^{\ell-1}a\equiv0\pmod\ell\), proves
+\((\mathsf{SG}_4)\).
+
+More generally, let \(\rho_0\) be a multiplicative character of
+\(k_0^\times\) and put
+\(\rho=\rho_0\circ\Norm_{k/k_0}\).  Since
+\(\Norm(w_n)=1\), the same change of variables gives
+\[
+ G_{\chi^a\rho,w_n}
+ =H^{-a}G_{\chi^a\rho,1}.                            \tag{\(\mathsf{SG}_6\)}
+\]
+Thus arbitrary lower multiplicative characters do not repair the loss:
+Gauss--Jacobi quotients of total \(\chi\)-weight zero erase the phase,
+whereas nonzero total weight retains exactly the unknown \(H\).  This
+statement covers lower characters factoring through the norm, not arbitrary
+nonlinear ancestry-dependent sums.  Lean kernel-checks the abstract
+nontrivial line sum, multiplicative change of variables, exceptional-line
+aggregation, denominator-cleared period values, and label-blind symmetric
+sums in \texttt{Ogdoad.Excess}; the finite-extension trace-line
+identification remains paper-level.
+\end{proof}
+
 \begin{proposition}[weighted reciprocity and a circular cyclotomic-difference selector]
 \label{prop:fermat-weighted-selector}
 Retain Proposition~\ref{prop:fermat-canonical-global-lift}, put
@@ -14283,17 +14567,25 @@ FermatSearch tables give the following exact screen~\cite{FermatSearch}:
 & zero residues & residual cofactor \\
 \hline
 12 & 4096 & 2093 & 6 & 0 & \(C_{1133}\) \\
-13 & 8192 & 4119 & 4 & 0 & \(C_{2391}\)
+13 & 8192 & 4119 & 4 & 0 & \(C_{2391}\) \\
+14 & 16384 & 8179 & 1 & 0 & \(C_{4880}\) \\
+15 & 32768 & 16369 & 3 & 0 & \(C_{9808}\) \\
+16 & 65536 & 32809 & 2 & 0 & \(C_{19694}\) \\
+17 & 131072 & 65521 & 2 & 0 & \(C_{39395}\) \\
+18 & 262144 & 131087 & 2 & 0 & \(C_{78884}\)
 \end{tabular}
 \end{center}
 
 Here every displayed database factor is a proved prime occurring to the first
-power, while \(C_{1133}\) and \(C_{2391}\) are exact cofactors proved
-composite but not factored.  The script checks exact divisibility but imports
-primality from that source; its degrees and hashes are reproducibility
-fingerprints rather than standalone formal certificates.  Thus no selected
-counterexample occurs at any currently published prime of \(F_{12}\) or
-\(F_{13}\), but neither level is proved maximal and the all-level problem
+power, while the displayed \(C_d\) are exact cofactors proved composite but
+not factored.  The script checks exact divisibility but imports primality from
+that source; its degrees and hashes are reproducibility fingerprints rather
+than standalone formal certificates.  The optional FLINT backend agrees
+bit-for-bit with the dependency-free reducer at the orientation gate and
+records the complete per-factor fingerprints in
+\path{experiments/fermat_selected_screen_results.md}.  Thus no selected
+counterexample occurs at any currently published prime from \(F_{12}\) through
+\(F_{18}\), but none of these levels is proved maximal and the all-level problem
 remains open.
 
 There is also an exact bridge to the current primitive-quadratic
@@ -15018,6 +15310,94 @@ which expresses \(g_k=\gamma_k^2+\gamma_k+1\) as a power of
 multiplicative order.  Thus \(C\)-primitivity supplies no order transfer
 to \(g_k\).
 \end{remark}
+
+\begin{proposition}[actual-selector primitivity still does not transfer]
+\label{prop:dk-actual-selector-countermodel}
+There is an exact finite-field model which retains a primitive degree-nine
+scalar, the literal rational selector of Proposition~\ref{prop:cd-selector-bridge},
+and the trace-one Artin--Schreier coupling, but fails the current
+\(D\)-condition at \(19\).  Namely, in
+\[
+ E=\F_2[z]/(z^{18}+z^9+1)=\F_{2^{18}},
+\]
+put
+\[
+ \gamma=(z+z^{-1})^{25},\qquad
+ g=\gamma^2+\gamma+1,\qquad
+ Z=g^{62}.
+\]
+Then \(\gamma\in\F_{2^9}\) has order \(511\).  Nevertheless, with
+\[
+ M=z^{10},\qquad w=(z^{10}+1)^{-1},
+\]
+one has
+\[
+ Z=\frac{M}{(M+1)^2}=w^2+w,\qquad
+ w^{512}=w+1,\qquad
+ \frac{w+1}{w}=M,\qquad \ord(M)=27,               \tag{\(\mathsf{ACD}_1\)}
+\]
+and \(w\) is a nineteenth power in \(E^\times\).  Thus primitivity of
+\(\gamma\), even after applying the exact selected rational map and
+retaining the correct trace-one quadratic root, does not force the
+new \(19\)-primary coordinate.
+
+This is not a counterexample to the selected implication
+\(C_2\Rightarrow D'_2\).  Its lower norm is
+\[
+ \Norm_{\F_{2^9}/\F_{2^3}}(g)=\mathtt{0x8048},
+\]
+whereas the recursively selected lower coefficient is
+\(\mathtt{0x9001}\).  Complete cubic ancestry removes precisely the
+freedom used by the model: Frobenius conjugation preserves both the
+Artin--Schreier equation and nineteenth-power status.  Hence any proof of
+the actual implication must use the selected norm ancestry, not merely
+primitivity, the rational formula, degree, trace, or the quadratic root.
+
+The exact degree-nine census makes this boundary quantitative.  Among the
+\(432\) primitive values of \(\gamma\), \(216\) give a trace-one selector and
+exactly \(9\) of those fail at \(19\); the failures form one absolute
+Frobenius orbit.  Imposing the selected lower norm leaves \(60\) primitive
+values and no failures.  Imposing in addition the selected lower trace leaves
+\(9\) values and still no failures.  This is finite evidence at \(k=2\), not
+a proof that norm ancestry forces success at every level.
+\end{proposition}
+
+\begin{proof}
+In the polynomial basis \(1,z,\ldots,z^{17}\), exact binary arithmetic
+gives
+\[
+ \gamma=\mathtt{0x14831},\quad
+ g=\mathtt{0x16d03},\quad
+ Z=\mathtt{0x279cf},\quad
+ w=\mathtt{0x1b7b6}.
+\]
+The checks
+\[
+ \gamma^{73}=\mathtt{0x9000}\ne1,
+ \qquad \gamma^7=\mathtt{0x154b}\ne1
+\]
+prove \(\ord(\gamma)=511=7\cdot73\).  Direct multiplication gives
+\((\mathsf{ACD}_1)\), and
+\(y=\mathtt{0x203ba}\) satisfies \(y^{19}=w\).
+The same exact calculation gives
+\(g^{73}=\mathtt{0x8048}\ne\mathtt{0x9001}\).  Exhausting all primitive
+exponents gives the count triples/pairs
+\[
+ (432,216,9),\qquad (60,0),\qquad (9,0),
+\]
+for respectively primitive/trace-one/failing values, selected-norm
+fibre/failures, and selected-norm-and-trace fibre/failures.  The failing
+exponents are
+\[
+ 25,50,67,100,134,200,268,289,400,
+\]
+one doubling orbit modulo \(511\).
+These identities are independently rerun by
+\texttt{experiments/cyclotomic\_3k\_family.py}.  Lean kernel-checks the
+generic fact that a ring map preserves simultaneously an
+Artin--Schreier equation and a chosen \(\ell\)-th root; the finite
+certificate and its selected-norm mismatch remain script-level.
+\end{proof}
 
 \begin{proposition}[\(C\)-tower-faithful exceptional countermodel]
 \label{prop:dk-tower-countermodel}

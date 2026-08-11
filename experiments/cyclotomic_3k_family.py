@@ -77,6 +77,7 @@ are PRP-local; factordb marks them proven). The small factors 39367, 209953,
 from __future__ import annotations
 
 import random
+from math import gcd
 
 # ---------------------------------------------------------------------------
 # GF(2)[x] arithmetic; ints as coefficient bit-vectors, modulus x^(2h)+x^h+1.
@@ -303,8 +304,124 @@ def term_algebra_cross_check() -> None:
     print("term-algebra cross-check (k=1,2): orders, circle/norm, translates, norm tower OK")
 
 
+def actual_selector_transfer_countermodel() -> None:
+    """Certify the sharp k=2 C/D transfer countermodel.
+
+    This keeps a primitive degree-nine scalar, the literal rational selector
+    ``Z = (gamma^2 + gamma + 1)^62``, and its trace-one Artin--Schreier
+    root.  The resulting norm-one phase nevertheless has order 27 and misses
+    the current D-prime 19.  What the model does not keep is the selected
+    cubic norm ancestry: the lower norm of ``g`` differs from the actual
+    selected ``g_1``.  Thus it is a no-transfer certificate, not a
+    counterexample to the selected C-to-D implication.  The same routine
+    exhausts the primitive degree-nine scalars and verifies that the selected
+    norm and trace fibres contain no failures at this finite level.
+    """
+
+    h = 9
+    zeta = 2
+    zeta_inv = fpow(zeta, (1 << (2 * h)) - 2, h)
+    gamma = fpow(zeta ^ zeta_inv, 25, h)
+    g = fmul(gamma, gamma, h) ^ gamma ^ 1
+    selector = fpow(g, 62, h)
+    phase = fpow(zeta, 10, h)
+    root = fpow(phase ^ 1, (1 << (2 * h)) - 2, h)
+    nineteenth_root = 0x203BA
+
+    assert gamma == 0x14831
+    assert g == 0x16D03
+    assert selector == 0x279CF
+    assert root == 0x1B7B6
+    assert fpow(gamma, 73, h) == 0x9000 != 1
+    assert fpow(gamma, 7, h) == 0x154B != 1
+    assert fmul(root, root, h) ^ root == selector
+    assert fpow(root, 512, h) == root ^ 1
+    assert fmul(root ^ 1, fpow(root, (1 << (2 * h)) - 2, h), h) == phase
+    assert fpow(phase, 27, h) == 1 and fpow(phase, 9, h) != 1
+    assert fpow(nineteenth_root, 19, h) == root
+    assert fpow(g, 73, h) == 0x8048
+    assert fpow(g, 73, h) != 0x9001  # the actual selected lower coefficient
+
+    # Exhaust the primitive degree-nine scalars.  The nine failures form one
+    # absolute-Frobenius orbit, but none survives the actual selected lower
+    # norm.  Adding the selected trace cuts that norm fibre from 60 points to
+    # nine without introducing a failure.
+    q = 1 << h
+    lower_degree = h // 3
+    as_root: dict[int, int] = {}
+    for candidate in range(1 << (2 * h)):
+        image = fmul(candidate, candidate, h) ^ candidate
+        as_root.setdefault(image, candidate)
+
+    gamma_selected = zeta ^ zeta_inv
+    gamma_1 = fpow(gamma_selected, 3, h) ^ gamma_selected
+    selected_g_1 = fmul(gamma_1, gamma_1, h) ^ gamma_1 ^ 1
+    counts = {
+        "primitive": 0,
+        "trace_one": 0,
+        "failure": 0,
+        "norm_fibre": 0,
+        "norm_fibre_failure": 0,
+        "selected_fibre": 0,
+        "selected_fibre_failure": 0,
+    }
+    failure_exponents: list[int] = []
+    for exponent in range(1, q - 1):
+        if gcd(exponent, q - 1) != 1:
+            continue
+        counts["primitive"] += 1
+        gamma_i = fpow(gamma_selected, exponent, h)
+        g_i = fmul(gamma_i, gamma_i, h) ^ gamma_i ^ 1
+        selector_i = fpow(g_i, (1 << (2 * lower_degree)) - 2, h)
+
+        trace_selector = 0
+        conjugate = selector_i
+        for _ in range(h):
+            trace_selector ^= conjugate
+            conjugate = fmul(conjugate, conjugate, h)
+
+        root_i = as_root[selector_i]
+        failure = trace_selector == 1 and fpow(root_i, (q * q - 1) // 19, h) == 1
+        if trace_selector == 1:
+            counts["trace_one"] += 1
+            assert fpow(root_i, q, h) == root_i ^ 1
+        if failure:
+            counts["failure"] += 1
+            failure_exponents.append(exponent)
+
+        norm_g = fpow(g_i, 1 + (1 << lower_degree) + (1 << (2 * lower_degree)), h)
+        trace_g = (
+            g_i
+            ^ fpow(g_i, 1 << lower_degree, h)
+            ^ fpow(g_i, 1 << (2 * lower_degree), h)
+        )
+        if norm_g == selected_g_1:
+            counts["norm_fibre"] += 1
+            counts["norm_fibre_failure"] += int(failure)
+        if norm_g == selected_g_1 and trace_g == 1:
+            counts["selected_fibre"] += 1
+            counts["selected_fibre_failure"] += int(failure)
+
+    assert counts == {
+        "primitive": 432,
+        "trace_one": 216,
+        "failure": 9,
+        "norm_fibre": 60,
+        "norm_fibre_failure": 0,
+        "selected_fibre": 9,
+        "selected_fibre_failure": 0,
+    }
+    assert failure_exponents == [25, 50, 67, 100, 134, 200, 268, 289, 400]
+    print(
+        "actual-selector C/D countermodel: primitive gamma and trace-one selector; "
+        "phase order 27, root is a 19th power; census "
+        "432/216/9, selected norm fibre 60/0, full selected fibre 9/0"
+    )
+
+
 def main() -> None:
     term_algebra_cross_check()
+    actual_selector_transfer_countermodel()
     # factorization audit: exact products, squarefreeness, primality
     for k in FULLY_FACTORED_LEVELS:
         prod = 1

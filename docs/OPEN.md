@@ -286,11 +286,14 @@ absolute boundedness.
   two-spine family, and closes `h=12,24`. The singleton-even chain is exactly
   the Conway–Fermat quotient-order problem. An exact selected-factor harness
   now reconstructs the literal Conway resultant rather than substituting a
-  generic tower element. It finds nonzero Fibonacci residues at all six
-  published prime factors of `F_12` and all four published prime factors of
-  `F_13`. These are falsification results only: the exact residual cofactors
-  `C1133` and `C2391` are proved composite but remain unfactored, so neither
-  level nor the all-level conjecture is certified. In that chain, absolute
+  generic tower element. It finds nonzero Fibonacci residues at every
+  published prime factor from `F_12` through `F_18` (six, four, one, three,
+  two, two, and two factors respectively). These are falsification results only:
+  the exact residual cofactors `C1133`, `C2391`, `C4880`, `C9808`, `C19694`,
+  `C39395`, and `C78884` are proved composite but remain unfactored, so no level nor the
+  all-level conjecture is certified. The optional FLINT backend agrees
+  bit-for-bit with the dependency-free reducer at the orientation gate, and
+  the per-factor hashes are only reproducibility fingerprints. In that chain, absolute
   trace is exactly the top binary coordinate, the selected ancestry is the least
   trace-one nimber, and failure is equivalent to a centered reverse-Dickson
   divisor of the trace-zero linearized polynomial. Adapted-basis countermodels
@@ -361,7 +364,16 @@ absolute boundedness.
   element from either unmixed factor has weighted exponent zero: on the
   cyclotomic side `-1` lies in the decomposition group of two, so the `a` and
   `-a` valuation contributions cancel. This rules out ordinary
-  Gauss/Jacobi/Stickelberger principalizers. The natural mixed element
+  Gauss/Jacobi/Stickelberger principalizers. The exact semiprimitive Gauss
+  calculation is sharper: twisting the additive character by the complete
+  Conway unit gives `G_a(w_n)=q*H^(-a)`, and the labelled periods have one
+  large entry precisely at label `H^(-1)` and one common small value
+  elsewhere. Thus their unordered multiset, every symmetric function,
+  absolute values, principal ideals, and Stickelberger data are independent
+  of `H`; ordering the exceptional label merely reads the original selected
+  phase. Lower multiplicative characters pulled back through the norm either
+  cancel that phase in weight-zero Jacobi quotients or retain exactly the same
+  unknown. The natural mixed element
   `W_n^(F_n/ell)-zeta_ell` has support above two exactly when
   `w_n^(F_n/ell) != 1`, so even its existence as a selector is the original
   target. That circularity can now be removed: affine interpolation writes
@@ -532,6 +544,11 @@ absolute boundedness.
   norm-one reciprocity, and literal least-nonresidue labeling; it differs
   exactly in the lower ancestor's multiplicative order and cyclotomic
   conductor, isolating full Conway ancestry as indispensable. At the actual
+  ordinary singleton step, even the canonical additive lower norm is
+  current-Kummer blind: `Norm(1+x)=1+x^r`, while
+  `ord_p(q_0)=r>1` makes `p`-powering an automorphism of the lower
+  multiplicative group. Hence this norm is always a lower `p`-th power,
+  independently of the upstairs selected status. At the actual
   full conductor, the full-valuation cyclotomic lift identifies the selected
   irreducible factor as `P_(alpha_r)(X^(r^a))`, and dependency-section descent
   pushes it through every actual odd-Kummer singleton `0/1` Lenstra edge
@@ -603,6 +620,15 @@ absolute boundedness.
   the same order class. A second normalization `h_k=1+gamma_k^(-1)` has the
   trace-recursive cubic `X^3+h_(k-1)X^2+X+1` and the same order as `tau_k` and
   `eta_k`; it is an invertible-power reparameterization, not an induction.
+  The current Singer element itself has a different normal translate:
+  `epsilon_k=eta_k+1` is absolutely normal over `F_2`, has the same order as
+  `eta_k`, and generates the current torus exactly when `eta_k` does. Its
+  Frobenius projectors hit every cyclotomic block, while the orbit of `eta_k`
+  spans exactly the trace-zero hyperplane. The immediate trace-Gram and Moore
+  determinants are explicit nonzero expressions in `epsilon_(k-1)` only.
+  Thus the selected current subgroup already contains a normal translate of
+  the same order, but its normal-basis determinants again transport only lower
+  data. Complete normality of `epsilon_k` is not claimed.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -663,6 +689,18 @@ absolute boundedness.
   primitive under `C_k`, yet its Artin--Schreier root misses the entire current
   D-primary factor. This does not rule out an actual implication `C_k => D'_k`;
   any such implication remains open and must use the special coefficient above.
+  Even retaining that literal rational coefficient is not enough without its
+  selected lower norm: an exact degree-18 model has primitive degree-nine
+  `gamma`, uses `Z=(gamma^2+gamma+1)^62`, and has the correct trace-one
+  Artin--Schreier root, yet that root is a nineteenth power and its phase has
+  order only `27`. The model deliberately has the wrong lower norm for
+  `gamma^2+gamma+1`; full selected cubic ancestry would make it a Frobenius
+  conjugate and preserve the power status. An exhaustive degree-nine census
+  finds nine failures among 432 primitive scalars, all in one Frobenius orbit,
+  but zero failures among the 60 points with the selected lower norm and zero
+  among the nine points satisfying both selected norm and trace. This is exact
+  finite evidence, not a universal implication. It isolates the selected norm
+  ancestry as the remaining possible C-to-D coupling.
   The conductor-five antiunit now gives a second exact reflection descent.
   With `x=alpha+alpha^(-1)`, `F=Q(x)`, `K=F(sqrt(5))`, and
   `d_k=(x-s)/(x-s')`, the conductor-five involution sends `d_k` to its
@@ -733,6 +771,7 @@ absolute boundedness.
 - [`experiments/cyclotomic_3k_family.py`](../experiments/cyclotomic_3k_family.py)
 - [`experiments/exception_column_m4.py`](../experiments/exception_column_m4.py)
 - [`experiments/fermat_selected_screen.py`](../experiments/fermat_selected_screen.py)
+- [`experiments/fermat_selected_screen_results.md`](../experiments/fermat_selected_screen_results.md)
 - [`src/scalar/big/ordinal/tower.rs`](../src/scalar/big/ordinal/tower.rs)
 - [`src/scalar/big/ordinal/b380496.txt`](../src/scalar/big/ordinal/b380496.txt)
 

@@ -118,6 +118,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the Conway-unit Euler-symbol identity
   `c^((q-1)h)=w^h` from `c^q=c*w`, which is the finite-field core of the
   paper's exact cyclotomic lift of the selected Fermat residue symbol;
+- the abstract semiprimitive Gauss-table core: the nontrivial additive
+  character sum on field units, multiplicative change of variables, the
+  one-exceptional-line evaluation, denominator-cleared large and small period
+  values, and invariance of every symmetric labelled sum under moving the
+  exceptional label.  The quadratic finite-field trace-line decomposition and
+  identification of that label with the selected Fermat symbol remain
+  paper-level;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -198,6 +205,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   cyclotomic-block decomposition, exact orbit ranks, Scheerhorn
   completely-normal conclusion, absolute Moore diagonalization, resultant,
   and finite-field Hilbert--90 instantiation remain paper-level;
+- the translated selected Singer cubic for
+  `epsilon_k=eta_k+1`, its symmetric-coefficient Moore identity, the exact
+  constant-off-diagonal trace-Gram determinant, and preservation of element
+  order by a coprime power.  The paper proves from the cyclotomic Frobenius
+  projectors that `epsilon_k` is absolutely normal and that `eta_k` spans the
+  trace-zero hyperplane; it does not claim complete normality for
+  `epsilon_k`;
 - the denominator-free first-Witt recurrence for the lifted Conway unit,
   including its selected terminal numerator and the next-discriminant relative
   norm; identifying these expressions with a local Fermat quotient requires
@@ -228,6 +242,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the exact coboundary-to-fibotomic projection, normalized
   Artin--Schreier quadratic, and symmetric cubic norm-coherence identity behind
   the Conway C-to-D selector bridge;
+- naturality of an Artin--Schreier equation together with a chosen
+  `ell`-th root under every ring map.  The exact degree-18 finite-field
+  countermodel showing that primitivity plus the literal C-to-D rational
+  selector does not transfer the current factor is certified by
+  `experiments/cyclotomic_3k_family.py`; Lean checks only this naturality core,
+  not the bit certificate, its exhaustive degree-nine fibre census, or its
+  deliberately missing selected lower norm;
 - the characteristic-two Mobius trace identity
   `M + M^(-1) = (w^2+w)^(-1)` behind the exceptional arm's selected
   one-variable Dickson critical value;

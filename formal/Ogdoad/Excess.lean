@@ -1604,7 +1604,271 @@ theorem cubic_moore_det_core (x y z a : K)
             simp [hfour]
     _ = a ^ 3 := by rw [hpair, mul_zero, add_zero, hsum]
 
+/-- Translating the selected Singer cubic by one swaps its two lower
+coefficients.  This is the polynomial core of the paper's normal
+translate `epsilon_k = eta_k + 1`. -/
+theorem selectedSinger_translate_cubic (x a : K)
+    (hrel : x ^ 3 + a * x ^ 2 + (a + 1) * x + 1 = 0) :
+    (x + 1) ^ 3 + (a + 1) * (x + 1) ^ 2 +
+        a * (x + 1) + 1 = 0 := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have h3 : (3 : K) = 1 := by
+    simpa using (CharP.cast_eq_mod K 2 3)
+  have h4 : (4 : K) = 0 := by
+    simpa using (CharP.cast_eq_mod K 2 4)
+  have h5 : (5 : K) = 1 := by
+    simpa using (CharP.cast_eq_mod K 2 5)
+  ring_nf at hrel ⊢
+  simpa [h2, h3, h4, h5] using hrel
+
+/-- Moore/circulant determinant in terms of the first two elementary
+symmetric coefficients. -/
+theorem cubic_moore_det_symmetric_core (x y z b c : K)
+    (hsum : x + y + z = b)
+    (hpair : x * y + y * z + z * x = c) :
+    x ^ 3 + y ^ 3 + z ^ 3 + x * y * z = b ^ 3 + b * c := by
+  have hfour : (4 : K) = 0 := by
+    change ((4 : Nat) : K) = 0
+    rw [CharP.cast_eq_mod K 2 4]
+    norm_num
+  calc
+    x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
+        (x + y + z) ^ 3 +
+          (x + y + z) * (x * y + y * z + z * x) := by
+            ring_nf
+            rw [show (9 : K) = 1 by
+              change ((9 : Nat) : K) = 1
+              rw [CharP.cast_eq_mod K 2 9]
+              norm_num]
+            simp [hfour]
+    _ = b ^ 3 + b * c := by rw [hsum, hpair]
+
+/-- Determinant of the constant-off-diagonal trace Gram matrix of the
+normal Singer translate.  It depends only on the lower selected scalar. -/
+theorem singerTranslate_traceGram_det (b : K) :
+    Matrix.det !![b ^ 2, b + 1, b + 1;
+                  b + 1, b ^ 2, b + 1;
+                  b + 1, b + 1, b ^ 2] =
+      b ^ 2 * (b ^ 2 + b + 1) ^ 2 := by
+  rw [Matrix.det_fin_three]
+  simp only [Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_zero,
+    Matrix.cons_val_fin_one, Matrix.cons_val_one, Matrix.cons_val]
+  rw [CharTwo.sub_eq_add, CharTwo.sub_eq_add, CharTwo.sub_eq_add]
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have h6 : (6 : K) = 0 := by
+    change ((6 : Nat) : K) = 0
+    rw [CharP.cast_eq_mod K 2 6]
+    norm_num
+  have h8 : (8 : K) = 0 := by
+    change ((8 : Nat) : K) = 0
+    rw [CharP.cast_eq_mod K 2 8]
+    norm_num
+  have h9 : (9 : K) = 1 := by
+    change ((9 : Nat) : K) = 1
+    rw [CharP.cast_eq_mod K 2 9]
+    norm_num
+  ring_nf
+  simp [h2, h6, h8, h9]
+
+/-- The remaining Moore/Gram factor is nonzero when the field has no
+nontrivial cube root of unity. -/
+theorem singerTranslate_quadratic_factor_ne_zero
+    {F : Type*} [Field F] [CharP F 2]
+    (b : F) (hno3 : ∀ x : F, x ^ 3 = 1 → x = 1) :
+    b ^ 2 + b + 1 ≠ 0 := by
+  intro hquad
+  have hcubic : b ^ 3 = 1 := by
+    have hmul := congrArg (fun z : F => (b + 1) * z) hquad
+    have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+    ring_nf at hmul ⊢
+    rw [htwo] at hmul
+    simp only [mul_zero, add_zero] at hmul
+    have hnegone : (-1 : F) = 1 := by
+      rw [neg_eq_iff_add_eq_zero]
+      calc
+        (1 : F) + 1 = 2 := by norm_num
+        _ = 0 := htwo
+    calc
+      b ^ 3 = -1 := eq_neg_of_add_eq_zero_right hmul
+      _ = 1 := hnegone
+  have hb : b = 1 := hno3 b hcubic
+  rw [hb] at hquad
+  have hthree : (3 : F) = 1 := by
+    change ((3 : Nat) : F) = 1
+    rw [CharP.cast_eq_mod F 2 3]
+    norm_num
+  ring_nf at hquad
+  rw [hthree] at hquad
+  exact one_ne_zero hquad
+
 end CubicNormalBasisCore
+
+section CoprimePowerOrder
+
+variable {G : Type*} [Group G] [Finite G]
+
+/-- An exponent coprime to an element's order preserves that order. -/
+theorem orderOf_eq_of_eq_pow_coprime
+    (x y : G) (e : Nat)
+    (hy : y = x ^ e) (hcop : (orderOf x).Coprime e) :
+    orderOf y = orderOf x := by
+  rw [hy, orderOf_pow, hcop.gcd_eq_one, Nat.div_one]
+
+end CoprimePowerOrder
+
+section ArtinSchreierPowerNaturality
+
+variable {K L : Type*} [Semiring K] [Semiring L]
+
+/-- Ring maps preserve both an Artin--Schreier equation and a chosen
+`ell`-th root.  This is the algebraic core of the paper's sharp C/D
+countermodel boundary: Frobenius conjugation cannot change the selected
+power status once the complete cyclotomic ancestry is fixed. -/
+theorem map_artinSchreier_pthPower
+    (φ : K →+* L) (w z y : K) (ell : Nat)
+    (hAS : w ^ 2 + w = z) (hroot : y ^ ell = w) :
+    (φ w) ^ 2 + φ w = φ z ∧ (φ y) ^ ell = φ w := by
+  constructor
+  · simpa only [map_add, map_pow] using congrArg φ hAS
+  · simpa only [map_pow] using congrArg φ hroot
+
+end ArtinSchreierPowerNaturality
+
+section FermatSemiprimitiveGauss
+
+open AddChar MulChar
+
+/-- A nontrivial additive character sums to `-1` on the nonzero field
+elements.  This is the exceptional-line input to the semiprimitive Gauss
+table. -/
+theorem nontrivial_additive_unit_sum
+    {F R : Type*} [Field F] [Fintype F] [DecidableEq F]
+    [CommRing R] [IsDomain R]
+    (psi : AddChar F R) (hpsi : psi ≠ 1) :
+    (∑ t : F, if t = 0 then 0 else psi t) = -1 := by
+  have hterm : ∀ t : F,
+      (1 : MulChar F R) t * psi t = if t = 0 then 0 else psi t := by
+    intro t
+    by_cases ht : t = 0
+    · subst t
+      simp
+    · rw [if_neg ht, MulChar.one_apply (isUnit_iff_ne_zero.mpr ht), one_mul]
+  simpa only [gaussSum, hterm] using
+    (gaussSum_one_left (R := F) (R' := R) hpsi)
+
+/-- Multiplicative change of variables for a finite-group Gauss sum. -/
+theorem gauss_sum_mul_twist
+    {G R : Type*} [CommGroup G] [Fintype G] [CommRing R]
+    (chi : G →* R) (psi : G → R) (b : G) :
+    chi b * (∑ x : G, chi x * psi (b * x)) =
+      ∑ x : G, chi x * psi x := by
+  rw [Finset.mul_sum]
+  calc
+    ∑ x : G, chi b * (chi x * psi (b * x)) =
+        ∑ x : G, chi (b * x) * psi (b * x) := by
+          apply Finset.sum_congr rfl
+          intro x _
+          rw [map_mul]
+          ring
+    _ = ∑ x : G, chi x * psi x := by
+      simpa only [Equiv.coe_mulLeft] using
+        (Equiv.sum_comp (Equiv.mulLeft b)
+          (fun x : G => chi x * psi x))
+
+/-- Solved form of the multiplicative Gauss twist. -/
+theorem twist_eq_inv_mul
+    {G R : Type*} [CommGroup G] [Fintype G] [Field R]
+    (chi : G →* R) (psi : G → R) (b : G) (hb : chi b ≠ 0) :
+    (∑ x : G, chi x * psi (b * x)) =
+      (chi b)⁻¹ * ∑ x : G, chi x * psi x := by
+  have h := gauss_sum_mul_twist chi psi b
+  apply (mul_left_cancel₀ hb)
+  rw [h]
+  field_simp
+
+/-- A quotient-line sum with one exceptional weight evaluates exactly to
+`q`.  This is the finite combinatorial core of the paper's semiprimitive
+Gauss calculation. -/
+theorem gauss_from_one_exceptional_line
+    {I R : Type*} [Fintype I] [DecidableEq I] [CommRing R]
+    (exceptional : I) (weight character : I → R) (q : R)
+    (hweight : weight exceptional = q - 1)
+    (hother : ∀ i, i ≠ exceptional → weight i = -1)
+    (hchar : ∑ i : I, character i = 0)
+    (hexceptional : character exceptional = 1) :
+    ∑ i : I, character i * weight i = q := by
+  classical
+  rw [← Finset.sum_erase_add _ _ (Finset.mem_univ exceptional)] at hchar ⊢
+  rw [hexceptional] at hchar
+  rw [hweight, hexceptional]
+  have hrest : ∑ x ∈ Finset.univ.erase exceptional, character x = -1 := by
+    linear_combination hchar
+  have hweighted :
+      ∑ x ∈ Finset.univ.erase exceptional, character x * weight x = 1 := by
+    calc
+      ∑ x ∈ Finset.univ.erase exceptional, character x * weight x =
+          ∑ x ∈ Finset.univ.erase exceptional, -(character x) := by
+            apply Finset.sum_congr rfl
+            intro i hi
+            rw [hother i (Finset.ne_of_mem_erase hi)]
+            ring
+      _ = -(∑ x ∈ Finset.univ.erase exceptional, character x) := by simp
+      _ = 1 := by rw [hrest]; ring
+  rw [hweighted]
+  ring
+
+/-- Denominator-cleared large signed-period value. -/
+theorem period_large_denominator_cleared
+    (ell q r : ℤ) (hq : q + 1 = ell * r) :
+    ell * ((q - 1) - (r - 1)) = (ell - 1) * q - 1 := by
+  linear_combination hq
+
+/-- Denominator-cleared small signed-period value. -/
+theorem period_small_denominator_cleared
+    (ell q r : ℤ) (hq : q + 1 = ell * r) :
+    ell * (-r) = -(q + 1) := by
+  linear_combination hq
+
+/-- Moving one exceptional label does not change any symmetric sum of the
+labelled table. -/
+theorem labelled_exceptional_sum_blind
+    {I R S : Type*} [Fintype I] [DecidableEq I] [AddCommMonoid S]
+    (first second : I) (large small : R) (f : R → S) :
+    (∑ i : I, f (if i = first then large else small)) =
+      ∑ i : I, f (if i = second then large else small) := by
+  classical
+  let swap : I ≃ I := Equiv.swap first second
+  calc
+    (∑ i : I, f (if i = first then large else small)) =
+        ∑ i : I, f (if swap i = first then large else small) :=
+      (Equiv.sum_comp swap
+        (fun i : I => f (if i = first then large else small))).symm
+    _ = ∑ i : I, f (if i = second then large else small) := by
+      apply Finset.sum_congr rfl
+      intro i _
+      simp only [swap, Equiv.swap_apply_def]
+      by_cases hfs : first = second
+      · simp [hfs]
+      · by_cases hi : i = first
+        · subst i
+          simp [hfs, Ne.symm hfs]
+        · by_cases hj : i = second
+          · subst i
+            simp
+          · simp [hi, hj]
+
+/-- The trivial label carries the large value exactly when it is the
+exceptional label. -/
+theorem trivial_label_is_exceptional_iff
+    {I R : Type*} [DecidableEq I]
+    (trivial exceptional : I) (large small : R) (hne : large ≠ small) :
+    (if trivial = exceptional then large else small) = large ↔
+      trivial = exceptional := by
+  by_cases h : trivial = exceptional
+  · simp [h]
+  · simp [h, hne.symm]
+
+end FermatSemiprimitiveGauss
 
 section CubicFrobeniusTwistCore
 

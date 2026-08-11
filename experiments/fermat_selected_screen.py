@@ -21,9 +21,17 @@ It builds the selected minimal polynomial from
     A_i(X) = Res_Y(A_(i-1)(Y), X^2 + X*Y + Y^3),
 
 then evaluates the characteristic-two Fibonacci recurrence by fast doubling
-in ``F_2[X] / (A_(n-1))``.  Polynomials are Python integers with coefficient
-bits; multiplication is exact carryless Karatsuba and modular squaring uses a
-precomputed four-bit reduction table.
+in ``F_2[X] / (A_(n-1))``.  The default ``stdlib`` backend represents
+polynomials by Python-integer coefficient bits, with exact carryless Karatsuba
+and a precomputed four-bit reduction table.  The optional ``flint`` backend is
+the same computation in python-flint's ``FQ_NMOD`` finite field and is intended
+for the larger published-factor screens.  A dependency-free invocation of the
+latter is, for example,
+
+    uv run --no-project --with python-flint python \
+      experiments/fermat_selected_screen.py --backend flint \
+      --flint-threads 4 --level 14 \
+      --factor 116928085873074369829035993834596371340386703423373313
 
 This is a falsification/primary-coordinate harness, not a proof of all-level
 maximality.  The paper and Lean ledger retain that boundary explicitly.
@@ -33,15 +41,17 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import time
 from dataclasses import dataclass
+from typing import Any
 
 
-FERMATSEARCH_FACTOR_URL = "https://www.fermatsearch.org/factors/composite.php"
+FERMATSEARCH_FACTOR_URL = "https://www.fermatsearch.org/factors/faclist.php"
 
 # Published prime factors on the FermatSearch current-factor table, accessed
-# 2026-08-11.  The remaining cofactors at both levels are composite and
-# incompletely factored, so passing this list does not prove the level.
+# 2026-08-11.  Every listed level is incompletely factored, so passing its
+# published coordinates does not prove the level.
 PUBLISHED_FACTORS = {
     12: (
         114_689,
@@ -56,6 +66,26 @@ PUBLISHED_FACTORS = {
         2_663_848_877_152_141_313,
         3_603_109_844_542_291_969,
         319_546_020_820_551_643_220_672_513,
+    ),
+    14: (
+        116_928_085_873_074_369_829_035_993_834_596_371_340_386_703_423_373_313,
+    ),
+    15: (
+        1_214_251_009,
+        2_327_042_503_868_417,
+        168_768_817_029_516_972_383_024_127_016_961,
+    ),
+    16: (
+        825_753_601,
+        188_981_757_975_021_318_420_037_633,
+    ),
+    17: (
+        31_065_037_602_817,
+        7_751_061_099_802_522_589_358_967_058_392_886_922_693_580_423_169,
+    ),
+    18: (
+        13_631_489,
+        81_274_690_703_860_512_587_777,
     ),
 }
 
@@ -230,12 +260,77 @@ def fibonacci_residue(index: int, field: BinaryFieldReducer) -> tuple[int, int]:
     return current, following
 
 
+def _flint_element_to_int(value: Any) -> int:
+    """Return the coefficient-bit encoding of a python-flint field element."""
+
+    poly = value.polynomial()
+    result = 0
+    for exponent in range(len(poly)):
+        if int(poly[exponent]):
+            result |= 1 << exponent
+    return result
+
+
+def fibonacci_residue_flint(
+    index: int, modulus: int, threads: int = 1
+) -> tuple[int, int, float]:
+    """Evaluate the recurrence in python-flint's exact ``FQ_NMOD`` backend."""
+
+    if index < 0:
+        raise ValueError("index must be nonnegative")
+    if threads < 1:
+        raise ValueError("threads must be positive")
+    try:
+        flint = importlib.import_module("flint")
+    except ModuleNotFoundError as error:
+        raise RuntimeError(
+            "the flint backend requires python-flint; run with "
+            "`uv run --no-project --with python-flint python ...`"
+        ) from error
+    flint.ctx.threads = threads
+
+    prepared_at = time.perf_counter()
+    polynomial_ring = flint.fmpz_mod_poly_ctx(2)
+    modulus_poly = polynomial_ring(
+        [(modulus >> exponent) & 1 for exponent in range(modulus.bit_length())]
+    )
+    field = flint.fq_default_ctx(
+        modulus=modulus_poly,
+        var="a",
+        fq_type="FQ_NMOD",
+        check_modulus=False,
+    )
+    preparation_seconds = time.perf_counter() - prepared_at
+
+    generator = field.gen()
+    current = field.zero()
+    following = field.one()
+    for bit in bin(index)[2:]:
+        current_square = current.square()
+        following_square = following.square()
+        middle = following_square + generator * current_square
+        if bit == "0":
+            current, following = current_square, middle
+        else:
+            current, following = middle, following_square
+    return (
+        _flint_element_to_int(current),
+        _flint_element_to_int(following),
+        preparation_seconds,
+    )
+
+
 def residue_hash(value: int) -> str:
     payload = value.to_bytes(max(1, (value.bit_length() + 7) // 8), "big")
     return hashlib.sha256(payload).hexdigest()
 
 
-def screen(level: int, factor: int) -> int:
+def screen(
+    level: int,
+    factor: int,
+    backend: str = "stdlib",
+    flint_threads: int = 1,
+) -> int:
     """Run one exact selected residue screen and print a reproducible fingerprint."""
 
     if level < 1:
@@ -251,16 +346,28 @@ def screen(level: int, factor: int) -> int:
     expected_degree = 1 << level
     if modulus.bit_length() - 1 != expected_degree:
         raise AssertionError("selected resultant has the wrong degree")
-    field = BinaryFieldReducer.build(modulus)
-    prepared = time.perf_counter()
-    residue, successor = fibonacci_residue(quotient, field)
+    if backend == "stdlib":
+        field = BinaryFieldReducer.build(modulus)
+        prepared = time.perf_counter()
+        preparation_seconds = prepared - built
+        residue, successor = fibonacci_residue(quotient, field)
+    elif backend == "flint":
+        residue, successor, preparation_seconds = fibonacci_residue_flint(
+            quotient, modulus, flint_threads
+        )
+        prepared = built + preparation_seconds
+    else:
+        raise ValueError(f"unknown backend: {backend}")
     finished = time.perf_counter()
 
+    print(f"backend={backend}")
+    if backend == "flint":
+        print(f"flint_threads={flint_threads}")
     print(f"level={level}")
     print(f"factor={factor}")
     print(f"factor_bits={factor.bit_length()}")
     print(f"quotient_bits={quotient.bit_length()}")
-    print(f"modulus_degree={field.degree}")
+    print(f"modulus_degree={expected_degree}")
     print(f"modulus_weight={modulus.bit_count()}")
     print(f"residue_nonzero={residue != 0}")
     print(f"residue_degree={residue.bit_length() - 1 if residue else -1}")
@@ -269,13 +376,15 @@ def screen(level: int, factor: int) -> int:
     print(f"successor_degree={successor.bit_length() - 1 if successor else -1}")
     print(f"successor_sha256={residue_hash(successor)}")
     print(f"build_seconds={built - started:.6f}")
-    print(f"table_seconds={prepared - built:.6f}")
+    print(f"prepare_seconds={preparation_seconds:.6f}")
     print(f"residue_seconds={finished - prepared:.6f}")
     print(f"total_seconds={finished - started:.6f}")
     return 0 if residue else 2
 
 
-def screen_published(level: int) -> int:
+def screen_published(
+    level: int, backend: str = "stdlib", flint_threads: int = 1
+) -> int:
     """Screen every currently published prime factor at a supported level."""
 
     factors = PUBLISHED_FACTORS.get(level)
@@ -288,7 +397,7 @@ def screen_published(level: int) -> int:
     status = 0
     for position, factor in enumerate(factors, start=1):
         print(f"published_factor={position}/{len(factors)}")
-        status = max(status, screen(level, factor))
+        status = max(status, screen(level, factor, backend, flint_threads))
     return status
 
 
@@ -322,6 +431,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--level", type=int)
     parser.add_argument("--factor", type=int)
     parser.add_argument(
+        "--backend",
+        choices=("stdlib", "flint"),
+        default="stdlib",
+        help="exact arithmetic backend (default: stdlib)",
+    )
+    parser.add_argument(
+        "--flint-threads",
+        type=int,
+        default=1,
+        help="FLINT worker threads (default: 1; ignored by stdlib)",
+    )
+    parser.add_argument(
         "--published-level",
         type=int,
         help="screen the pinned, incomplete FermatSearch factor list",
@@ -331,6 +452,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    if args.flint_threads < 1:
+        raise SystemExit("--flint-threads must be positive")
     if args.self_test:
         self_test()
         print("self-test: ok")
@@ -341,10 +464,12 @@ def main() -> int:
             raise SystemExit(
                 "--published-level cannot be combined with --level/--factor"
             )
-        return screen_published(args.published_level)
+        return screen_published(
+            args.published_level, args.backend, args.flint_threads
+        )
     if args.level is None or args.factor is None:
         raise SystemExit("--level and --factor must be supplied together")
-    return screen(args.level, args.factor)
+    return screen(args.level, args.factor, args.backend, args.flint_threads)
 
 
 if __name__ == "__main__":
