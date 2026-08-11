@@ -353,17 +353,57 @@ absolute boundedness.
   Gauss/Jacobi/Stickelberger principalizers. The natural mixed element
   `W_n^(F_n/ell)-zeta_ell` has support above two exactly when
   `w_n^(F_n/ell) != 1`, so even its existence as a selector is the original
-  target. What remains is a genuinely mixed `ell`-adic ray-class coefficient,
-  not supplied by classical cyclotomic reciprocity.
+  target. At an unramified/étale prime above `ell`, the first ramified local
+  coefficient is now explicit: it is a recursively selected second-Witt
+  polynomial built from the Teichmuller defects
+  `D(c)=([c]+1-[c+1])/ell`. Its nonvanishing proves that the local Kummer
+  character is nontrivial, but does not evaluate that character at the prime
+  above two; in fact every local pairing of two elements descended from
+  `K_n` is individually trivial at every `ell`-adic place by
+  decomposition-stabilizer symmetry. A last simple ramified derivative stage
+  is now controlled too: in the discriminant uniformizer its leading unit
+  coefficient starts at `-1` and propagates by the exact factors
+  `(3*c_j+2)/(2*c_j+1)`. Unless one of those branch-sensitive numerators
+  vanishes, `W_n` is locally nontrivial; a kernel-checked equivariant
+  two-coordinate toy model shows that the displayed local nonvanishing and
+  orbit relations still do not determine the named
+  prime-above-two value. A multiple discriminant zero, or a vanished
+  `3*c_j+2`, requires a higher-filtration calculation. Globally,
+  if `theta^ell=W_n`, the missing value is exactly
+  `chi_W([q_1])=H` for the Artin character of `M(theta)/M`. Fixed/ambiguous
+  classes and inverse pairs are annihilated, while equivariance permits both
+  `H=1` and every `H!=1`; reflection and Chevalley--Gras formulas compare
+  eigenspace ranks or count fixed ray classes but do not locate this named
+  class. What remains is therefore one genuinely mixed Artin pairing; even
+  after proving the ray character nontrivial, its value at the named class is
+  still required, and classical cyclotomic reciprocity does not supply it.
+  Equivalently, failure says that `2` is a global norm from the cyclic Kummer
+  extension `M(W_n^(1/ell))/M`. If `W_n` is not already a global `ell`-th
+  power, its lower-field Galois closure is dihedral, and every abelian quotient
+  of that specific extension kills the selected translation Frobenius. Thus no
+  abelian quotient or descent factoring through that dihedral extension can
+  decide the norm equation. In Brauer-group form all lower ancestral symbols
+  with `2` vanish, while `beta={W_n,2}=-2*alpha` for the anti-invariant top
+  class `alpha={C_n,2}`. Corestriction kills that class, so this formulation
+  isolates the obstruction at the top edge but supplies no inductive
+  nonvanishing.
   A complementary cross-level theorem shows that this Kummer coordinate is
   born only once. If `M=ell^e || F_n`, then the `M`-Kummer quotients vanish
   below `E_n`, are cyclic of order `M` from `E_n` onward, and every later
   inclusion is an isomorphism. Writing `kappa_j=[a_j]_M`, the exact transport
   is `kappa_j=(3/2)kappa_(j-1)`. Since `3/2` is a unit modulo `M`, success or
-  failure persists unchanged through the infinite tail. Equivalently, for
+  failure persists unchanged through the infinite tail. At the selected
+  character level this is `h_j=h_(j-1)^3`, so the actual Euler symbol is
+  merely cubed at each future edge. Equivalently, for
   every `j>=n`, `A_j(X^ell)` is irreducible in the success case and splits
   into exactly `ell` full-degree factors in the failure case. Future ancestry
-  therefore copies rather than constrains the missing birth coordinate.
+  therefore copies rather than constrains the missing birth coordinate. The
+  universal Dickson--Conway resultant makes this closure coefficient-exact:
+  each failed future Kummer lift factors into `ell` selected irreducible
+  quadratics, whereas success gives one irreducible degree-`2*ell` polynomial.
+  Compatible failed root towers form one `mu_ell`-torsor of parallel rays,
+  transported by `zeta -> zeta^(3/2)`, rather than an accumulating branching
+  tree.
   The resultant correspondence itself has rational normalization
   `Y=c^2+c`, `X=c^3+c^2` and a unique parent on trace-one irreducibles, but
   its critical portrait, degree growth, and cyclic splitting fields are
@@ -434,7 +474,7 @@ absolute boundedness.
   Kummer descent now identifies failure with two explicit Dickson power-sum
   equations over the preceding field and factors the Capelli composition into
   selected irreducible cubics. The equations already force irreducibility;
-  after fixing the selected lower norm, their geometric fibre is reduced etale
+  after fixing the selected lower norm, their geometric fibre is reduced étale
   of size `ell^2`, with a singleton rational fibre at every lower level and
   exactly zero or `ell` rational points at the top. The top fibre is a
   `T[ell]`-torsor; its class is trivial exactly when the Euler representative

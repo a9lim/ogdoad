@@ -126,13 +126,34 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the denominator-free quadratic-tail Kummer transport
   `2*[c_j]=i([a_(j-1)])` and `2*[a_j]=3*i([a_(j-1)])`, which underlies the
   paper's exact `3/2` propagation of a Fermat-prime obstruction through every
-  later Conway level; the finite-field quotient identifications and Capelli
-  factorization corollary remain paper-level;
+  later Conway level, together with the norm/Frobenius identity cubing the
+  corresponding selected Euler symbol; the finite-field quotient
+  identifications and Capelli factorization corollary remain paper-level;
 - the weighted-selector algebra: inverse-pair and decomposition-coset first
   moments vanish for unmixed cyclotomic divisors, while the odd geometric sum
   at `W^(F_n/ell)` vanishes exactly when the desired selected residue is
   nontrivial; the global ray-class and local Hilbert-symbol interpretation
   remains paper-level;
+- the abstract mixed-ray character no-go: weight-one equivariance permits
+  both zero and nonzero distinguished values, while every fixed source class
+  is annihilated, and every abelian quotient of an odd dihedral group kills
+  its translation subgroup; the anti-invariant coboundary is `-2*x` and
+  vanishes exactly with `x` in odd characteristic. The Artin map, Hasse norm
+  equivalence, Brauer projection/corestriction, and class-field interpretation
+  remain paper-level;
+- the denominator-free first-Witt recurrence for the lifted Conway unit,
+  including its selected terminal numerator and the next-discriminant relative
+  norm; identifying these expressions with a local Fermat quotient requires
+  the paper's unramified/étale hypothesis;
+- the homogeneous leading-unit recurrence after a last simple ramified Conway
+  step, its Cayley-coordinate initial term, the exact branch-sensitive
+  nonvanishing factors, and a two-coordinate toy model satisfying both
+  nonzero equivariance on a local line and vanishing on the distinguished
+  prime-above-two orbit; the valuation-theoretic interpretation and the claim
+  that the resulting unit is not a local `ell`-th power remain paper-level;
+- the single-quadratic factorization underlying the paper's universal
+  Dickson--Conway resultant; root enumeration, the full resultant identity,
+  and the compatible parallel-ray torsor remain paper-level;
 - the exact quotient-order factorization used by relative-order products, with
   maximality of the individual quotient factors deliberately left as an input;
 - the finite-level Popovych primitive-product equivalence: the selected

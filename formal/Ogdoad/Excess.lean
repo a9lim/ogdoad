@@ -436,6 +436,119 @@ theorem even_weight_first_moment_eq_zero
 
 end FermatWeightedSelector
 
+section FermatRayCharacter
+
+/-- A weight-one equivariant orbit map is determined by its value at the
+distinguished base point.  In the paper this is the abstract shape of the
+Artin values at the primes above two. -/
+theorem mulEquivariant_eq_baseScalar
+    {F : Type*} [Field F]
+    (f : Fˣ → F)
+    (hf : ∀ a b, f (a * b) = (a : F) * f b)
+    (a : Fˣ) :
+    f a = (a : F) * f 1 := by
+  simpa using hf a 1
+
+/-- Every base scalar, including zero, gives an equivariant orbit map. -/
+theorem every_baseScalar_is_mulEquivariant
+    {F : Type*} [Field F]
+    (c : F) :
+    ∃ f : Fˣ → F,
+      (∀ a b, f (a * b) = (a : F) * f b) ∧ f 1 = c := by
+  refine ⟨fun a ↦ (a : F) * c, ?_, ?_⟩
+  · intro a b
+    simp [mul_assoc]
+  · simp
+
+/-- Equivariance alone permits both the zero selected value and a nonzero
+one; it cannot prove the required ray-character nonvanishing. -/
+theorem mulEquivariance_does_not_force_nonzero
+    {F : Type*} [Field F] :
+    (∃ f : Fˣ → F,
+      (∀ a b, f (a * b) = (a : F) * f b) ∧ f 1 = 0) ∧
+    (∃ f : Fˣ → F,
+      (∀ a b, f (a * b) = (a : F) * f b) ∧ f 1 ≠ 0) := by
+  constructor
+  · simpa using (every_baseScalar_is_mulEquivariant (F := F) 0)
+  · obtain ⟨f, hf, h1⟩ := every_baseScalar_is_mulEquivariant (F := F) 1
+    exact ⟨f, hf, by simp [h1]⟩
+
+/-- A fixed source class is annihilated by any nontrivially weighted
+equivariant character.  This is the algebraic core of the ambiguous-class
+no-go in the mixed ray group. -/
+theorem fixed_source_maps_zero
+    {F A : Type*} [Field F]
+    (act : Fˣ → A → A) (f : A → F)
+    (a : Fˣ) (ha : (a : F) ≠ 1)
+    (x : A) (hx : act a x = x)
+    (hf : f (act a x) = (a : F) * f x) :
+    f x = 0 := by
+  have hscale : f x = (a : F) * f x := by simpa [hx] using hf
+  have hprod : ((a : F) - 1) * f x = 0 := by
+    calc
+      ((a : F) - 1) * f x = (a : F) * f x - f x := by ring
+      _ = 0 := by rw [← hscale]; simp
+  exact (mul_eq_zero.mp hprod).resolve_left (sub_ne_zero.mpr ha)
+
+/-- In an odd dihedral extension, every homomorphism to an abelian target
+kills the translation subgroup.  This is the algebraic core of the paper's
+lower-field abelian-descent no-go for the selected Frobenius. -/
+theorem dihedral_translation_killed_in_abelian_target
+    {G A : Type*} [Group G] [CommGroup A]
+    (f : G →* A) (sigma s : G) (ell k : Nat)
+    (hell : ell = 2 * k + 1)
+    (horder : sigma ^ ell = 1)
+    (hconj : s * sigma * s⁻¹ = sigma⁻¹) :
+    f sigma = 1 := by
+  have hinv : f sigma = (f sigma)⁻¹ := by
+    have hmapped := congrArg f hconj
+    simpa [map_mul] using hmapped
+  have htwo : (f sigma) ^ 2 = 1 := by
+    calc
+      (f sigma) ^ 2 = (f sigma)⁻¹ * f sigma := by rw [pow_two, ← hinv]
+      _ = 1 := inv_mul_cancel _
+  have hodd : (f sigma) ^ ell = 1 := by
+    rw [← map_pow, horder, map_one]
+  rw [hell] at hodd
+  simpa [pow_add, pow_mul, htwo] using hodd
+
+/-- An anti-invariant class has coboundary equal to minus twice the class.
+This is the additive algebra behind the paper's top-generator Brauer
+reduction. -/
+theorem antiInvariant_coboundary_eq_neg_two
+    {V : Type*} [AddCommGroup V]
+    (s : V →+ V) (x : V)
+    (hcore : x + s x = 0) :
+    s x - x = -(2 • x) := by
+  have hs : s x = -x := eq_neg_of_add_eq_zero_right hcore
+  rw [hs]
+  simp only [two_nsmul]
+  abel
+
+/-- Over odd characteristic, the anti-invariant coboundary vanishes exactly
+when its source class does. -/
+theorem antiInvariant_coboundary_eq_zero_iff
+    {F V : Type*} [Field F] [AddCommGroup V] [Module F V]
+    (s : V →ₗ[F] V) (x : V)
+    (hcore : x + s x = 0) (htwo : (2 : F) ≠ 0) :
+    s x - x = 0 ↔ x = 0 := by
+  have hs : s x = -x := eq_neg_of_add_eq_zero_right hcore
+  rw [hs]
+  constructor
+  · intro h
+    have hsum : x + x = 0 := by
+      calc
+        x + x = -(-x - x) := by abel
+        _ = -0 := congrArg Neg.neg h
+        _ = 0 := neg_zero
+    have hsmul : (2 : F) • x = 0 := by
+      simpa only [two_smul] using hsum
+    exact (smul_eq_zero.mp hsmul).resolve_left htwo
+  · rintro rfl
+    simp
+
+end FermatRayCharacter
+
 section FermatMixedNormDetector
 
 variable {k : Type*} [Field k] [CharP k 2]
@@ -748,6 +861,20 @@ theorem conway_quadratic_pair_odd [CharP R 2]
   have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
   ring_nf
 
+/-- Factorization of one quadratic in the universal Dickson--Conway
+resultant.  When `x*y = P`, multiplying the two linear factors associated
+to `P*x` and `P*y` gives the selected Conway quadratic. -/
+theorem conway_kummer_quadratic_factor
+    (Z P x y : R) (hxy : x * y = P) :
+    (Z + P * x) * (Z + P * y) =
+      Z ^ 2 + P * (x + y) * Z + P ^ 3 := by
+  calc
+    (Z + P * x) * (Z + P * y) =
+        Z ^ 2 + P * (x + y) * Z + P ^ 2 * (x * y) := by ring
+    _ = Z ^ 2 + P * (x + y) * Z + P ^ 3 := by
+      rw [hxy]
+      ring
+
 /-- The three pair-products of roots of a monic cubic have elementary
 coefficients `(D, C * E, E²)`.  This is the symmetric-algebra input to the
 second generalized Dickson recurrence in the cubic Kummer descent. -/
@@ -818,7 +945,242 @@ theorem canonicalLift_discriminant_recursion
   · linear_combination 4 * hrel
   · linear_combination -8 * C * hrel
 
+/-- Relative norm of the next lifted Conway discriminant.  Its absolute
+prime divisors are the exact places where the simple unramified first-Witt
+expansion may fail. -/
+theorem canonicalLift_nextDiscriminant_relativeNorm
+    (C A : R) (hrel : C ^ 2 + C + A = 0) :
+    (1 - 4 * A * C) * (1 + 4 * A + 4 * A * C) =
+      1 + 4 * A + 16 * A ^ 3 := by
+  linear_combination -16 * A ^ 2 * hrel
+
 end FermatCanonicalDiscriminant
+
+section FermatEllRay
+
+variable {k : Type*} [Field k]
+
+/-- Dividing the first-order expansion of `C^2 + C + A = 0` by the
+nonzero residue `c` gives the update used below. -/
+theorem canonicalLift_firstOrder_from_expansion
+    (c a s defect b : k) (hc : c ≠ 0)
+    (ha : a = -c * (c + 1))
+    (hexp : c * defect + (2 * c ^ 2 + c) * b + a * s = 0) :
+    (2 * c + 1) * b = (c + 1) * s - defect := by
+  rw [ha] at hexp
+  have hfactor :
+      c * (defect + (2 * c + 1) * b - (c + 1) * s) = 0 := by
+    linear_combination hexp
+  have hzero : defect + (2 * c + 1) * b - (c + 1) * s = 0 :=
+    (mul_eq_zero.mp hfactor).resolve_left hc
+  linear_combination hzero
+
+/-- The denominator-free first-order formula for the critical ray
+coefficient of a lifted Conway unit.  The arithmetic interpretation in the
+paper additionally assumes an unramified Teichmuller expansion at `ell`. -/
+theorem canonicalLift_firstOrder_target
+    (c s defect b : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s - defect) :
+    (2 * c + 1) * (2 * b - s) = s - 2 * defect := by
+  linear_combination 2 * hb
+
+/-- One step of the parent coefficient under the same first-order Conway
+relation. -/
+theorem canonicalLift_firstOrder_parent_update
+    (c s defect b s' : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s - defect)
+    (hs' : s' = s + b) :
+    (2 * c + 1) * s' = (3 * c + 2) * s - defect := by
+  rw [hs']
+  linear_combination hb
+
+/-- Denominator-cleared recurrence for the numerator and denominator of the
+ancestral first-order coefficient. -/
+theorem canonicalLift_firstOrder_cleared_update
+    (c s defect b s' P Q : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s - defect)
+    (hs' : s' = s + b) (hQs : Q * s = P) :
+    (Q * (2 * c + 1)) * s' = (3 * c + 2) * P - defect * Q := by
+  have hu := canonicalLift_firstOrder_parent_update c s defect b s' hb hs'
+  calc
+    (Q * (2 * c + 1)) * s' = Q * ((2 * c + 1) * s') := by ring
+    _ = Q * ((3 * c + 2) * s - defect) := by rw [hu]
+    _ = (3 * c + 2) * P - defect * Q := by rw [← hQs]; ring
+
+/-- Denominator-cleared numerator of the terminal critical ray coefficient. -/
+theorem canonicalLift_firstOrder_cleared_target
+    (c s defect b P Q : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s - defect)
+    (hQs : Q * s = P) :
+    (Q * (2 * c + 1)) * (2 * b - s) = P - 2 * defect * Q := by
+  have ht := canonicalLift_firstOrder_target c s defect b hb
+  calc
+    (Q * (2 * c + 1)) * (2 * b - s) =
+        Q * ((2 * c + 1) * (2 * b - s)) := by ring
+    _ = Q * (s - 2 * defect) := by rw [ht]
+    _ = P - 2 * defect * Q := by rw [← hQs]; ring
+
+/-- Away from the derivative and denominator divisors, nonvanishing of the
+critical coefficient is exactly nonvanishing of its selected ancestral
+numerator. -/
+theorem canonicalLift_firstOrder_target_ne_zero_iff
+    (c s defect b P Q : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s - defect)
+    (hQs : Q * s = P) (hQ : Q ≠ 0) (hc : 2 * c + 1 ≠ 0) :
+    2 * b - s ≠ 0 ↔ P - 2 * defect * Q ≠ 0 := by
+  have ht := canonicalLift_firstOrder_cleared_target c s defect b P Q hb hQs
+  have hfactor : Q * (2 * c + 1) ≠ 0 := mul_ne_zero hQ hc
+  constructor
+  · intro hr hnum
+    have hz : (Q * (2 * c + 1)) * (2 * b - s) = 0 := by rw [ht, hnum]
+    exact hr ((mul_eq_zero.mp hz).resolve_left hfactor)
+  · intro hnum hr
+    apply hnum
+    rw [← ht, hr, mul_zero]
+
+end FermatEllRay
+
+section FermatRamifiedRay
+
+variable {k : Type*} [Field k]
+
+/-- Below the absolute `ell`-depth, Teichmuller addition contributes no
+defect.  The parent principal-unit coefficient therefore propagates by this
+homogeneous logarithmic derivative. -/
+theorem canonicalLift_ramified_parent_update
+    (c s b s' : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s)
+    (hs' : s' = s + b) :
+    (2 * c + 1) * s' = (3 * c + 2) * s := by
+  rw [hs']
+  linear_combination hb
+
+/-- At an etale terminal step, the leading coefficient of
+`A_parent * C^{-2}` is the negative parent coefficient divided by the
+quadratic derivative. -/
+theorem canonicalLift_ramified_target
+    (c s b : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s) :
+    (2 * c + 1) * (s - 2 * b) = -s := by
+  linear_combination -2 * hb
+
+/-- A nonzero ramified coefficient survives one noncritical parent update
+provided the logarithmic numerator is also nonzero. -/
+theorem canonicalLift_ramified_parent_update_ne_zero
+    (c s b s' : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s)
+    (hs' : s' = s + b)
+    (hs : s ≠ 0) (hcNum : 3 * c + 2 ≠ 0) :
+    s' ≠ 0 := by
+  intro hs'zero
+  have hu := canonicalLift_ramified_parent_update c s b s' hb hs'
+  rw [hs'zero, mul_zero] at hu
+  exact (mul_ne_zero hcNum hs) hu.symm
+
+/-- At the final noncritical step, a nonzero parent coefficient forces a
+nonzero leading coefficient for the norm-one unit. -/
+theorem canonicalLift_ramified_target_ne_zero
+    (c s b : k)
+    (hb : (2 * c + 1) * b = (c + 1) * s)
+    (hs : s ≠ 0) :
+    s - 2 * b ≠ 0 := by
+  intro hzero
+  have ht := canonicalLift_ramified_target c s b hb
+  rw [hzero, mul_zero] at ht
+  exact hs (neg_eq_zero.mp ht.symm)
+
+/-- Cayley form of the lifted norm-one unit in the discriminant square-root
+coordinate `Y = 2*C+1`. -/
+theorem canonicalLift_normOne_eq_cayley
+    (C Y : k) (hY : Y = 2 * C + 1)
+    (hC : C ≠ 0) (hYm : 1 - Y ≠ 0) :
+    -(C + 1) / C = (1 + Y) / (1 - Y) := by
+  field_simp [hC, hYm]
+  rw [hY]
+  ring
+
+/-- Exact first-order decomposition of the Cayley unit; if `Y` is a
+uniformizer in residue characteristic other than two, its leading
+principal-unit coefficient is `2`. -/
+theorem cayley_sub_one
+    (Y : k) (hYm : 1 - Y ≠ 0) :
+    (1 + Y) / (1 - Y) - 1 = 2 * Y / (1 - Y) := by
+  field_simp
+  ring
+
+/-- At a simple first derivative prime, `A_parent = 1/4 mod Y^2` and
+`C = (-1+Y)/2`; hence the new parent coordinate has leading coefficient
+`-1` in the `Y` direction. -/
+theorem canonicalLift_firstRamified_parent_coordinate
+    (Y : k) (h2 : (2 : k) ≠ 0) :
+    (1 / 4 : k) * ((-1 + Y) / 2) =
+      (-1 / 8 : k) * (1 - Y) := by
+  have h4 : (4 : k) ≠ 0 := by
+    rw [show (4 : k) = 2 * 2 by norm_num]
+    exact mul_ne_zero h2 h2
+  have h8 : (8 : k) ≠ 0 := by
+    rw [show (8 : k) = 2 * 2 * 2 by norm_num]
+    exact mul_ne_zero (mul_ne_zero h2 h2) h2
+  field_simp [h2, h4, h8]
+  ring
+
+/-- Algebraic normalization of the first critical discriminant coefficient:
+if the rational unit `4` has Teichmuller coefficient `-q4` and the parent
+has coefficient `s`, then `1-4*A_parent` has coefficient `q4-s`. -/
+theorem canonicalLift_criticalDiscriminant_coefficient
+    (q4 s t : k) (ht : t = -q4) :
+    -(t + s) = q4 - s := by
+  rw [ht]
+  ring
+
+/-- At the repeated residue root, the critical derivative obstruction and
+the first discriminant coefficient are the same scalar once
+`q4 = 2*defect` is imposed. -/
+theorem canonicalLift_criticalDefect_eq_discriminant
+    (q4 s defect : k) (h2 : (2 : k) ≠ 0) (hq : q4 = 2 * defect) :
+    (s / 2 - defect) * 2 = s - q4 := by
+  rw [hq]
+  field_simp [h2]
+
+end FermatRamifiedRay
+
+section FermatRayPairingNoGo
+
+variable {F : Type*} [Field F]
+
+/-- Even a nonzero weight-one equivariant map can kill the complete
+orbit of a distinguished class.  The first coordinate models the ramified
+local-unit line detected by the Witt coefficient; the second models the
+prime-above-two orbit. -/
+theorem nonzero_equivariant_map_can_kill_selected_orbit :
+    ∃ (act : Fˣ → F × F → F × F) (chi : F × F → F)
+      (inertia selected : F × F),
+      (∀ a x, chi (act a x) = (a : F) * chi x) ∧
+      chi inertia ≠ 0 ∧
+      (∀ a, chi (act a selected) = 0) := by
+  refine ⟨fun a x ↦ ((a : F) * x.1, (a : F) * x.2),
+    Prod.fst, (1, 0), (0, 1), ?_, ?_, ?_⟩
+  · intro a x
+    rfl
+  · simp
+  · intro a
+    simp
+
+/-- The same countermodel can impose the additive shadow of norm one:
+the detected Kummer radical is anti-invariant under an involution, while the
+selected class remains in the kernel. -/
+theorem normOne_equivariant_map_still_does_not_force_selected_pairing :
+    ∃ (sigma : F × F → F × F) (chi : F × F → F)
+      (radical selected : F × F),
+      sigma radical = -radical ∧
+      chi radical ≠ 0 ∧
+      chi selected = 0 := by
+  refine ⟨fun x ↦ (-x.1, x.2), Prod.fst, (1, 0), (0, 1), ?_, ?_, ?_⟩
+  · ext <;> simp
+  · simp
+  · simp
+
+end FermatRayPairingNoGo
 
 section OddKummerSquare
 
@@ -881,6 +1243,55 @@ theorem quadratic_kummer_tail_transport
   ac_rfl
 
 end KummerTailTransport
+
+section FermatEulerTail
+
+variable {G : Type*} [CommMonoid G]
+
+/-- The selected Euler/Kummer symbol is cubed at every Conway edge after
+its birth.  Here `a^Q = a` is lower-field Frobenius fixity and
+`c^(Q+1) = a` is the relative norm identity. -/
+theorem conway_euler_symbol_tail_cube
+    (a c : G) (Q h : Nat)
+    (ha : a ^ Q = a) (hnorm : c ^ (Q + 1) = a) :
+    (a * c) ^ ((Q + 1) * h) = (a ^ h) ^ 3 := by
+  rw [mul_pow]
+  rw [pow_mul, pow_mul, hnorm]
+  rw [pow_succ, ha]
+  rw [mul_pow]
+  simp [pow_succ, mul_assoc]
+
+/-- The inverse-square Hilbert normalization is cubed by the same tail
+transport. -/
+theorem inverse_square_cube_transport
+    {H : Type*} [CommGroup H] (Bnext Bprev : H)
+    (h : Bnext = Bprev ^ 3) :
+    (Bnext⁻¹) ^ 2 = ((Bprev⁻¹) ^ 2) ^ 3 := by
+  rw [h, inv_pow, ← pow_mul, ← pow_mul]
+  norm_num
+
+/-- Dividing the new quadratic generator by the lower-field square root of
+its norm produces the canonical norm-one component. -/
+theorem canonical_new_component_norm_one
+    {H : Type*} [CommGroup H] (s c : H) (Q : Nat)
+    (hs : s ^ Q = s) (hc : c ^ (Q + 1) = s ^ 2) :
+    (c / s) ^ (Q + 1) = 1 := by
+  rw [div_pow, hc, div_eq_one]
+  calc
+    s ^ 2 = s * s := pow_two s
+    _ = s ^ Q * s := by rw [hs]
+    _ = s ^ (Q + 1) := (pow_succ s Q).symm
+
+/-- Frobenius ratio is unchanged after dividing by a fixed lower-field
+element. -/
+theorem canonical_new_component_ratio
+    {H : Type*} [CommGroup H] (s c : H) (Q : Nat)
+    (hs : s ^ Q = s) :
+    (c / s) ^ Q / (c / s) = c ^ Q / c := by
+  rw [div_pow, hs]
+  simp [div_eq_mul_inv]
+
+end FermatEulerTail
 
 section FermatFibonacciCompression
 

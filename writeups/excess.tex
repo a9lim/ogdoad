@@ -176,7 +176,9 @@ nontrivial support in the power-of-two two-spine family; complete
 trace-divisor and Kummer-coset criteria; two-step selected quartic and
 all-or-\(\ell\)-quartic Kummer dichotomy; an exact one-step
 countermodel whose predecessor and successor retain every earlier
-Fermat order factor &
+Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
+transport; canonical global lift, weighted reciprocity, selected
+first-Witt polynomial, and named Artin-class reduction &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -11046,6 +11048,61 @@ for one, equivalently every, \(j\geq n\).  Hence the infinite future
 resultant tree supplies no accumulating obstruction: its irreducible or
 completely split behavior is an exact copy of the single Kummer coordinate
 born at level \(n\).
+
+The transport is equally explicit on the selected Euler symbols.  Put
+\[
+ \mathfrak h_j
+ =a_j^{(|E_j|-1)/\ell}\in\mu_\ell
+ \qquad(j\geq n).
+\]
+Then
+\[
+ \mathfrak h_n=w_n^{F_n/\ell},
+ \qquad
+ \boxed{\ \mathfrak h_j=\mathfrak h_{j-1}^3
+       =\mathfrak h_n^{3^{j-n}}\quad(j>n).\ }        \tag{\(\mathsf{KT}_7\)}
+\]
+Since \(\ell\ne3\), cubing is an automorphism of \(\mu_\ell\).  Thus the
+selected Euler residue remains nontrivial or trivial along the entire tail.
+Motivated by the birth Hilbert-symbol normalization, put
+\(\widehat{\mathfrak h}_j=\mathfrak h_j^{-2}\).  Then
+\[
+ \widehat{\mathfrak h}_n=H
+ \quad\text{in \((\mathsf{GL}_6)\)},
+ \qquad
+ \widehat{\mathfrak h}_j=\widehat{\mathfrak h}_{j-1}^3.
+\]
+
+There is also a simultaneous direct-product diagonalization.  At the edge
+\(E_{j-1}\subset E_j\), put \(q=|E_{j-1}|\), let
+\(s_j\in E_{j-1}\) be the unique square root
+of \(a_{j-1}\), and put \(g_j=c_j/s_j\).  Then
+\[
+ \Norm(g_j)=1,
+ \qquad
+ c_j=s_jg_j,
+ \qquad
+ a_j=s_j^3g_j,
+ \qquad
+ w_j=g_j^{-2}.                                      \tag{\(\mathsf{KT}_8\)}
+\]
+Because \(q-1\) and \(q+1\) are coprime, multiplication gives the canonical
+split
+\[
+ E_j^\times\cong E_{j-1}^\times\times U_j,
+ \qquad
+ a_j\longleftrightarrow
+ \bigl(a_{j-1}^{3/2},w_j^{-1/2}\bigr).              \tag{\(\mathsf{KT}_9\)}
+\]
+Consequently, for \(1\leq m\leq j\), the \(U_m\)-coordinate of \(a_j\) is
+\[
+ w_m^{-\frac12(\frac32)^{j-m}},                     \tag{\(\mathsf{KT}_{10}\)}
+\]
+where the exponent is read in \(\mathbf Z/F_m\mathbf Z\).  Every displayed
+exponent is a unit.  Thus multiplicative CRT diagonalizes the complete
+ancestry into independently born Fermat coordinates; only the additive
+Conway equation can couple them, and evaluating that coupling is the original
+selected birth-symbol problem.
 \end{proposition}
 
 \begin{proof}
@@ -11087,9 +11144,163 @@ when \(a_j\) is not an \(\ell\)-th power in \(E_j\).  In the power case
 Every root retains full absolute degree, because its \(\ell\)-th power is
 the full-degree element \(a_j\).  This gives exactly \(\ell\) distinct
 irreducible factors of degree \([E_j:\F_2]\), proving
-\((\mathsf{KT}_6)\).  Lean independently checks the denominator-free
+\((\mathsf{KT}_6)\).
+
+For the birth identity in \((\mathsf{KT}_7)\), put
+\(q=|E_{n-1}|\).  The lower factor in \(a_n=a_{n-1}c_n\) disappears at
+exponent \((q^2-1)/\ell\), and the Conway-unit Euler identity gives
+\[
+ \mathfrak h_n
+ =c_n^{(q-1)(q+1)/\ell}=w_n^{(q+1)/\ell}.
+\]
+For \(j>n\), put \(Q=|E_{j-1}|\) and \(h=(Q-1)/\ell\).  Frobenius
+fixity and \(c_j^{Q+1}=a_{j-1}\) give
+\[
+ \mathfrak h_j
+ =(a_{j-1}c_j)^{(Q+1)h}
+ =(a_{j-1}^{h})^2a_{j-1}^{h}
+ =\mathfrak h_{j-1}^3.
+\]
+For \((\mathsf{KT}_8)\), the norm of both \(c_j\) and the included lower
+element \(s_j\) is \(a_{j-1}=s_j^2\), so \(g_j\) has norm one.  Since
+\(g_j^q=g_j^{-1}\) and \(c_j^q=c_j+1\), one has
+\[
+ w_j=\frac{c_j^q}{c_j}=\frac{g_j^q}{g_j}=g_j^{-2}.
+\]
+The remaining identities are immediate.  Coprimality of \(q-1\) and
+\(q+1\) proves \((\mathsf{KT}_9)\), and iteration multiplies every old
+coordinate exponent by \(3/2\), proving \((\mathsf{KT}_{10})\).
+Lean independently checks this generic norm/Frobenius cube identity and the denominator-free
 transport identities \(2[c_j]=\iota_j(\kappa_{j-1})\) and
 \(2\kappa_j=3\iota_j(\kappa_{j-1})\).
+\end{proof}
+
+\begin{proposition}[Dickson--Conway resultant and parallel rays]
+\label{prop:fermat-dickson-conway-resultant}
+For odd \(\ell\), let
+\(\mathcal D_0(S,R)=0\), \(\mathcal D_1(S,R)=S\), and
+\[
+ \mathcal D_{r+2}(S,R)
+ =S\mathcal D_{r+1}(S,R)+R\mathcal D_r(S,R)
+\]
+in characteristic two.  With the monic convention
+\(\operatorname{Res}_S(f,g)=\prod_{f(s)=0}g(s)\), one has the universal
+identity
+\[
+ \boxed{\quad
+ \operatorname{Res}_S\!\left(
+   \mathcal D_\ell(S,R)+1,\ Z^2+SRZ+R^3
+ \right)
+ =Z^{2\ell}+R^\ell Z^\ell+R^{3\ell}.
+ \quad}                                                \tag{\(\mathsf{DCR}_1\)}
+\]
+
+Now let \(\ell\) be prime and fix \(M=\ell^e\parallel F_n\).  At the
+birth edge put \(a=a_{n-1}\) and \(Q_a(T)=T^2+aT+a^3\).  If the
+coordinate born at \((n,\ell)\) fails, the unique lower root
+\(R^\ell=a\) lies in \(E_{n-1}\), and
+\[
+ Q_a(Z^\ell)
+ =\prod_{\mathcal D_\ell(s,R)=1}
+     \bigl(Z^2+sRZ+R^3\bigr),                         \tag{\(\mathsf{DCR}_2\)}
+\]
+where the \(\ell\) factors are distinct irreducible quadratics over
+\(E_{n-1}\).  This is the coefficient-exact birth-edge refinement of
+Proposition~\ref{prop:fermat-dickson-dichotomy}.
+
+At a later edge \(j>n\), use the normalized roots below: put
+\(R=r_{j-1}\), \(T=r_j\), \(q=|E_{j-1}|\), and
+\(d=T+T^q\in E_{j-1}\).  Since now
+\(\mu_\ell\subset E_{j-1}\), one instead has
+\[
+ Q_{a_{j-1}}(Z^\ell)
+ =\prod_{i\bmod\ell}
+   \bigl(Z^2+\zeta^i dZ+\zeta^{2i}R^3\bigr).          \tag{\(\mathsf{DCR}_{2a}\)}
+\]
+These are again \(\ell\) distinct irreducible quadratics.  If the born
+coordinate succeeds, \(Q_{a_{j-1}}(Z^\ell)\) is irreducible of degree
+\(2\ell\) at every \(j\geq n\).  Thus relative Frobenius is respectively
+\(\ell\) disjoint transpositions or one \(2\ell\)-cycle.  Both patterns are
+closed under every later Conway transition; factor counts, symmetric
+coefficients, and relative arboreal monodromy add no new obstruction.
+
+More precisely, in the failure case choose the unique lower root
+\(r_{n-1}^\ell=a_{n-1}\).  Every one of the \(\ell\) choices
+\(r_n^\ell=a_n\) automatically satisfies
+\[
+ \Norm_{E_n/E_{n-1}}(r_n)=r_{n-1}^3.                 \tag{\(\mathsf{DCR}_3\)}
+\]
+Given one such \(r_n\), there is for each \(j>n\) a unique continuation
+\[
+ r_j^\ell=a_j,
+ \qquad
+ \Norm_{E_j/E_{j-1}}(r_j)=r_{j-1}^3.                \tag{\(\mathsf{DCR}_4\)}
+\]
+All normalized infinite rays therefore form one \(\mu_\ell\)-torsor, not
+an \(\ell\)-branching tree.  If two rays differ by
+\(r'_j=\zeta_jr_j\), then only after the birth edge,
+\[
+ \zeta_j^2=\zeta_{j-1}^3,
+ \qquad
+ \zeta_j=\zeta_n^{(3/2)^{j-n}}\quad(j>n).            \tag{\(\mathsf{DCR}_5\)}
+\]
+Hence the full compatible root tower is precisely the root-level form of
+the \(3/2\)-transport in \((\mathsf{KT}_3)\).
+\end{proposition}
+
+\begin{proof}
+The Dickson polynomial is monic of \(S\)-degree \(\ell\).  Work over an
+algebraic closure of \(\F_2(R)\).  Choose
+\(\alpha+\beta=1\), \(\alpha\beta=R^\ell\), then choose
+\(x^\ell=\alpha\), put \(y=R/x\), and let \(\zeta\) be a primitive
+\(\ell\)-th root of unity.  The \(\ell\) elements
+\[
+ s_i=x\zeta^i+y\zeta^{-i}\qquad(i\bmod\ell)
+\]
+satisfy \(\mathcal D_\ell(s_i,R)=x^\ell+y^\ell=1\).  They are distinct:
+an equality identifies the unordered root pairs of
+\(T^2+s_iT+R\); the crossed identification would give
+\(\alpha=\beta\), impossible because \(\alpha+\beta=1\).  Moreover
+\[
+ Z^2+s_iRZ+R^3
+ =(Z+Rx\zeta^i)(Z+Ry\zeta^{-i}).
+\]
+Multiplying over \(i\) gives
+\[
+ (Z^\ell+R^\ell\alpha)(Z^\ell+R^\ell\beta)
+ =Z^{2\ell}+R^\ell Z^\ell+R^{3\ell},
+\]
+which proves \((\mathsf{DCR}_1)\).  At the birth edge, substituting
+\(R^\ell=a\) gives the right side \(Q_a(Z^\ell)\), while
+Proposition~\ref{prop:fermat-dickson-dichotomy} puts every \(s_i\) in
+\(E_{n-1}\).  A displayed quadratic cannot have a root there, since its
+\(\ell\)-th power would be one of the two roots of \(Q_a\), both outside
+\(E_{n-1}\).  This proves \((\mathsf{DCR}_2)\).
+
+At a future edge Frobenius fixes \(\zeta\) and pairs
+\(T\zeta^i\) with \(T^q\zeta^i\), which gives
+\((\mathsf{DCR}_{2a})\) directly from
+\(TT^q=R^3\).  Their constants are distinct because squaring permutes
+\(\mu_\ell\), and the same root argument proves that the quadratics are
+irreducible.  Under success, an \(\ell\)-th root of \(a_j\) has relative
+degree \(2\ell\), proving the asserted irreducibility at every edge.
+
+For \((\mathsf{DCR}_3)\), the quotient of
+\(\Norm(r_n)\) by \(r_{n-1}^3\) lies in
+\(\mu_\ell\cap E_{n-1}^\times=\{1\}\).  At a later edge an arbitrary
+\(\ell\)-th root has norm \(\xi r_{j-1}^3\) for some
+\(\xi\in\mu_\ell\); multiplying it by the unique
+\(\eta\in\mu_\ell\) with \(\eta^2=\xi^{-1}\) gives
+\((\mathsf{DCR}_4)\), and uniqueness follows because squaring is bijective
+on odd-order \(\mu_\ell\).  Comparing two continuations proves
+\((\mathsf{DCR}_5)\).  The single quadratic factorization underlying
+\((\mathsf{DCR}_1)\) is independently kernel-checked in
+\texttt{Ogdoad.Excess}; the root enumeration and resultant are paper-level.
+Base-rationality of the constant-term Dickson factors uses the birth
+congruence \(|E_{n-1}|\equiv-1\pmod\ell\); later edges require
+\((\mathsf{DCR}_{2a})\).  These identities prove coefficient and monodromy
+compatibility under hypothetical failure, not the value of the initial
+selected Kummer coordinate.
 \end{proof}
 
 \begin{proposition}[exact cyclotomic lift of the selected Fermat symbol]
@@ -11295,7 +11506,13 @@ therefore says only
  \prod_{\lambda\mid\ell}(W_n,2)_{\lambda,\ell}=1;   \tag{\(\mathsf{GL}_7\)}
 \]
 the product over the complete orbit above two is identically one for every
-possible $H$.  Consequently the canonical lift, its principal divisor,
+possible $H$.  In fact, for \(n\geq2\) the stronger pointwise statement is
+\[
+ (u,b)_{\lambda,\ell}=1
+ \qquad
+ (u,b\in\mathcal K_n^\times,\ \lambda\mid\ell).     \tag{\(\mathsf{GL}_{7a}\)}
+\]
+Consequently the canonical lift, its principal divisor,
 its total $3$-adic ramification, and unweighted global reciprocity do not
 select the Conway residue symbol.  Any reciprocity proof must add a genuinely
 weighted $\ell$-adic ray or Jacobi coefficient that breaks the torsor in
@@ -11350,7 +11567,21 @@ Finally $W_n\bmod\mathfrak p=w_n$, and the displayed tame convention gives
 since $w_n^N=1$.  The standard tame local formula makes all other places
 outside $\ell$ trivial as stated.  The product formula now yields
 \((\mathsf{GL}_7)\), while \((\mathsf{GL}_5)\) proves that it imposes no
-condition on $H$.
+condition on $H$.  For \((\mathsf{GL}_{7a})\), let
+\(\mathfrak l=\lambda\cap\mathcal K_n\).  Every prime divisor
+\(\ell\mid F_n\), \(n\geq2\), satisfies
+\(\ell\equiv1\pmod{2^{n+2}}\), whereas
+\([\mathcal K_{n,\mathfrak l}:\mathbf Q_\ell]\leq2^{n+1}\).
+Thus \(\mathcal K_{n,\mathfrak l}\) cannot contain
+\(\mathbf Q_\ell(\zeta_\ell)\), and the decomposition stabilizer of
+\(\lambda\) in \(\Delta\) contains some \(\tau_a\ne1\).  Since
+\(\tau_a\) fixes \(u\), \(b\), and \(\lambda\), equivariance gives
+\[
+ (u,b)_{\lambda,\ell}
+ =\tau_a\bigl((u,b)_{\lambda,\ell}\bigr)
+ =(u,b)_{\lambda,\ell}^{a}.
+\]
+The symbol has prime order dividing \(\ell\), so it is one.
 
 Lean independently checks the characteristic-free reparametrization, the
 two identities \((\mathsf{GL}_2)\), and the corresponding odd-Kummer
@@ -11486,12 +11717,428 @@ annihilated by \((\mathsf{FWS}_4)\); the latter reduces orthogonality to
 additional Fermat-quotient congruences rather than excluding it universally.
 The integral Brumer--Stark theorem of
 Dasgupta--Kakde--Silliman--Wang~\cite{DKSW23} assumes a totally real base and
-an abelian CM extension.  Here \(M/\mathcal K_n\) has the required split
+an abelian CM extension; the explicit class-field construction of
+Dasgupta--Kakde~\cite{DK24} has the same structural scope.  Here
+\(M/\mathcal K_n\) has the required split
 prime but \(\mathcal K_n\supset\mathbf Q(\zeta_3)\) is not totally real,
 whereas the cyclotomic presentation over \(\mathbf Q\) is CM but two has
 residue degree \(2^{n+1}\), not one.  Thus none of these theorems supplies
 the genuinely mixed, inverse-pair-breaking coefficient required by
 \((\mathsf{FWS}_3)\).
+
+\begin{proposition}[the first selected \(\ell\)-ray coefficient is an explicit
+Witt polynomial]
+\label{prop:fermat-ell-ray-coefficient}
+Retain the lifted chain of
+Proposition~\ref{prop:fermat-canonical-global-lift}, let
+\(\mathfrak l\) be a prime of \(\mathcal K_n\) above \(\ell\), and put
+\(F=\mathcal K_{n,\mathfrak l}\).
+Assume that the displayed Conway order is \'etale along this branch, equivalently
+\[
+ 2\bar C_i+1\ne0\quad(0\leq i\leq n)                \tag{\(\mathsf{ER}_0\)}
+\]
+in the successive residue fields.  This holds, in particular, if
+\(\ell\) divides none of the absolute norms of
+\(D_i=1-4\mathcal A_i\) for \(i<n\).  Under this hypothesis
+\(F/\mathbf Q_\ell\) is unramified.  Put
+\(k=\mathcal O_F/\mathfrak l\mathcal O_F\),
+\(|k|=\ell^f\), and write \([x]\in\mathcal O_F\) for the Teichmuller lift
+of \(x\in k\).  Define the second-Witt addition defect
+\[
+ \mathfrak d_\ell(x)
+ =\overline{\frac{[x]+1-[x+1]}{\ell}}\in k.
+\]
+It is explicit:
+\[
+ \mathfrak d_\ell(x)^\ell
+ =\sum_{r=1}^{\ell-1}\frac{(-1)^r}{r}x^r.           \tag{\(\mathsf{ER}_1\)}
+\]
+
+Write, modulo \(\ell^2\),
+\[
+ C_i=[\bar C_i](1+\ell b_i),\qquad
+ \mathcal A_i=[\bar{\mathcal A}_i](1+\ell s_i),
+ \qquad s_{-1}=0.
+\]
+Then \(s_i=s_{i-1}+b_i\), and the lifted Conway equation gives
+\[
+ (2\bar C_i+1)b_i
+  =(\bar C_i+1)s_{i-1}-\mathfrak d_\ell(\bar C_i).   \tag{\(\mathsf{ER}_2\)}
+\]
+For the standard Fermat quotient
+\[
+ q_{\mathfrak l}(W_n)
+ =\overline{\frac{W_n^{\ell^f-1}-1}{\ell}},
+\]
+one therefore has
+\[
+ q_{\mathfrak l}(W_n)
+ =2b_n-s_{n-1}
+ =\frac{s_{n-1}-2\mathfrak d_\ell(\bar C_n)}
+        {2\bar C_n+1}.                               \tag{\(\mathsf{ER}_3\)}
+\]
+Equivalently, set \(P_{-1}=0\), \(Q_{-1}=1\), and recursively
+\[
+ \begin{split}
+ P_i&=(3\bar C_i+2)P_{i-1}
+       -\mathfrak d_\ell(\bar C_i)Q_{i-1},\\
+ Q_i&=(2\bar C_i+1)Q_{i-1}.
+ \end{split}                                         \tag{\(\mathsf{ER}_4\)}
+\]
+Then
+\[
+ \boxed{\quad
+ q_{\mathfrak l}(W_n)\ne0
+ \iff
+ P_{n-1}-2\mathfrak d_\ell(\bar C_n)Q_{n-1}\ne0.
+ \quad}                                              \tag{\(\mathsf{ER}_5\)}
+\]
+Thus the first ramified local Kummer coefficient is an explicit
+full-ancestry truncated-log polynomial.  Its nonvanishing makes the local
+character of \(W_n\) nontrivial at the unique prime \(\lambda\) of
+\(F(\zeta_\ell)\) above \(\mathfrak l\), but it does
+\emph{not} imply \(H\ne1\): it neither evaluates that character on the
+distinguished prime above two nor supplies a useful local second argument.
+Indeed \((W_n,2)_{\lambda,\ell}=1\) pointwise by
+\((\mathsf{GL}_{7a})\).  If \((\mathsf{ER}_0)\) fails, the ramified unit filtration
+must replace this first-Witt expansion; the denominator-cleared identities
+remain valid, but \((\mathsf{ER}_5)\) is not available by cancellation.
+\end{proposition}
+
+\begin{proof}
+The binomial expansion modulo \(\ell^2\) first gives
+\[
+ \mathfrak d_\ell(x^\ell)
+ =\sum_{r=1}^{\ell-1}\frac{(-1)^r}{r}x^r.
+\]
+Teichmuller Frobenius gives
+\(\mathfrak d_\ell(x^\ell)=\mathfrak d_\ell(x)^\ell\), proving
+\((\mathsf{ER}_1)\).  Teichmuller multiplicativity gives
+\(s_i=s_{i-1}+b_i\).  Expanding
+\(C_i^2+C_i+\mathcal A_{i-1}=0\) to first order and dividing by the
+nonzero residue \(\bar C_i\) gives \((\mathsf{ER}_2)\).  Since
+\(W_n=\mathcal A_{n-1}C_n^{-2}\), the chosen Fermat-quotient convention
+gives \(q_{\mathfrak l}(W_n)=2b_n-s_{n-1}\); eliminating \(b_n\)
+proves \((\mathsf{ER}_3)\).  Induction in \((\mathsf{ER}_2)\) gives
+\(s_i=P_i/Q_i\) and hence \((\mathsf{ER}_4)\)--\((\mathsf{ER}_5)\).
+In \(F(\zeta_\ell)\), one has
+\(\ell=u(\zeta_\ell-1)^{\ell-1}\) for a unit \(u\).  Hence a nonzero
+Fermat quotient gives a nonzero class in
+\(U_{\ell-1}/U_\ell\), so \(W_n\) is not a local \(\ell\)-th power.
+The relative discriminant identity
+\[
+ \Norm_{\mathcal K_i/\mathcal K_{i-1}}(D_i)
+ =1+4\mathcal A_{i-1}+16\mathcal A_{i-1}^3
+\]
+makes the excluded derivative primes explicit.  Lean kernel-checks this
+identity, the one-step cleared parent update, the cleared terminal identity,
+and their generic nonvanishing equivalence.  It does not formalize the
+recursive \(P_i,Q_i\) induction, Teichmuller expansion, or Fermat-quotient
+interpretation, which remain paper-level.
+\end{proof}
+
+\begin{corollary}[the last simple ramified branch has a nonzero leading class]
+\label{cor:fermat-simple-ramified-ray}
+Suppose that \((\mathsf{ER}_0)\) fails, and let \(r\leq n\) be the last
+non-\'etale index on the chosen \(\ell\)-adic branch.  Assume that its
+discriminant zero is simple:
+\[
+ \mathfrak l_i=\mathfrak l\cap\mathcal K_i,\qquad
+ F_i=\mathcal K_{i,\mathfrak l_i},\qquad
+ v_{r-1}(D_{r-1})=1,
+ \qquad D_{r-1}=1-4\mathcal A_{r-1}.                \tag{\(\mathsf{RR}_0\)}
+\]
+Here \(v_i\) denotes the normalized valuation on \(F_i\), and every
+Teichmuller bracket below is taken in \(F_n\), equivalently in its maximal
+unramified subfield.
+Put \(Y_r=2C_r+1\).  Then \(Y_r\) is a uniformizer of the ramified
+quadratic completion and
+\[
+ \mathcal A_r\equiv[-1/8](1-Y_r)\pmod {Y_r^2}.     \tag{\(\mathsf{RR}_1\)}
+\]
+In particular its leading parent coefficient is \(s_r=-1\).
+
+Assume for \(r<j\leq n\) that \(2\bar C_j+1\ne0\), and for
+\(r<j<n\) that the branch-sensitive factors \(3\bar C_j+2\ne0\).
+If \(r<n\), the later first-order coefficients obey
+\[
+ (2\bar C_j+1)s_j=(3\bar C_j+2)s_{j-1},            \tag{\(\mathsf{RR}_2\)}
+\]
+and the terminal norm-one unit has
+\[
+ \begin{split}
+ s_{n-1}
+   &=-\prod_{j=r+1}^{n-1}
+       \frac{3\bar C_j+2}{2\bar C_j+1}\ne0,\\
+ \operatorname{coeff}_{Y_r}(W_n)
+   &=-\frac{s_{n-1}}{2\bar C_n+1}\ne0.
+ \end{split}                                        \tag{\(\mathsf{RR}_3\)}
+\]
+If \(r=n\), the Cayley identity
+\[
+ W_n=\frac{1+Y_n}{1-Y_n}
+\]
+instead gives leading coefficient two directly.  In either case \(W_n\)
+is not an \(\ell\)-th power in the corresponding completion after adjoining
+\(\zeta_\ell\).  Thus the local Kummer character is genuinely nontrivial
+through every last-simple-ramification branch satisfying the displayed
+noncritical conditions.
+
+This still does not prove \(H\ne1\).  A nonzero weight-one equivariant
+character may be nonzero on this ramified inertia line and vanish on the
+entire distinguished prime-above-two orbit.  The companion Lean file checks
+the displayed equivariance, inertia nonvanishing, and selected-orbit
+vanishing in an explicit two-coordinate toy model.
+\end{corollary}
+
+\begin{proof}
+The equation \(Y_r^2=D_{r-1}\) and \((\mathsf{RR}_0)\) show that the
+quadratic completion is tamely ramified and that \(Y_r\) is a uniformizer.
+Rational units differ from their Teichmuller lifts first at \(\ell\)-depth,
+which has \(Y_r\)-depth at least two after this simple ramified quadratic
+step.
+Since
+\[
+ C_r=\frac{-1+Y_r}{2},\qquad
+ \mathcal A_{r-1}\equiv[1/4]\pmod {Y_r^2},
+\]
+one obtains \((\mathsf{RR}_1)\).  This quadratic step is totally ramified,
+so lower-field principal perturbations acquire \(Y_r\)-depth at least two;
+the later steps are unramified because \(r\) was the last non-\'etale
+index.  Their Teichmuller addition defects likewise have depth at least
+two.  Writing
+\[
+ \mathcal A_j=[\bar{\mathcal A}_j](1+Y_rs_j),\qquad
+ C_j=[\bar C_j](1+Y_rb_j)\pmod {Y_r^2},
+\]
+therefore gives
+\[
+ (2\bar C_j+1)b_j=(\bar C_j+1)s_{j-1},
+ \qquad s_j=s_{j-1}+b_j.
+\]
+Elimination proves \((\mathsf{RR}_2)\).  At the terminal step it gives
+\[
+ (2\bar C_n+1)(s_{n-1}-2b_n)=-s_{n-1},
+\]
+which proves \((\mathsf{RR}_3)\).  Because \(r\) was the last non-\'etale
+stage, \(Y_r\) remains a uniformizer thereafter.  Put
+\(L=F_n(\zeta_\ell)\) and \(d=e(L/F_n)\).  Then
+\[
+ d\mid\ell-1,\qquad v_L(Y_r)=d,\qquad
+ e_L:=v_L(\ell)=e(F_n/\mathbf Q_\ell)d\geq2d.
+\]
+The Teichmuller factor of \(W_n\) is already an \(\ell\)-th power because
+\(\ell\) is coprime to the order of the residue-field unit group.  If
+\(z\in U_m\), the first possible depth of \(z^\ell-1\) is at least
+\(\min\{\ell m,e_L+m\}\), with cancellation only raising it.  Neither
+term can equal \(d\): one has \(\ell m>d\) and \(e_L+m>d\).
+Hence a principal unit with the nonzero depth-\(d\) leading class in
+\((\mathsf{RR}_3)\) cannot be an \(\ell\)-th power.  The case \(r=n\)
+follows from the displayed Cayley identity and
+\((1+Y)/(1-Y)-1=2Y/(1-Y)\).
+
+If the lower completion before the critical step is unramified and
+\(\mathcal A_{r-1}=[1/4](1+\ell s)\), then
+\[
+ \frac{D_{r-1}}{\ell}\equiv q_{\mathfrak l}(4)-s,
+ \qquad q_{\mathfrak l}(4)=2\mathfrak d_\ell(-1/2).
+\]
+Thus \(s\ne q_{\mathfrak l}(4)\) is exactly the simple-discriminant case;
+equality is a genuine second-Witt or higher-filtration branch, not a failure
+of the first-order algebra.  Lean kernel-checks the Cayley identities, the
+homogeneous recurrence, the terminal nonvanishing, and these two critical
+coefficient identities.  The local valuation interpretation remains
+paper-level.
+\end{proof}
+
+\begin{proposition}[the remaining value is one specified Artin class]
+\label{prop:fermat-ray-character}
+Put \(\mathcal E=M(\theta)\), \(\theta^\ell=W_n\), and let
+\(\mathfrak f_W\) be the Artin conductor of \(\mathcal E/M\), supported
+above \(\ell\).  Since \(W_n\) is fixed by \(\Delta\) and
+\(\mu_\ell\subset M\), the extension \(\mathcal E/\mathcal K_n\) is
+Galois; hence \(\mathfrak f_W\) is \(\Delta\)-stable.  With arithmetic
+Frobenius, the Artin--Kummer character
+\[
+ \chi_W:\operatorname{Cl}_{\mathfrak f_W}(M)/
+              \operatorname{Cl}_{\mathfrak f_W}(M)^\ell
+       \longrightarrow\mu_\ell,
+ \qquad
+ \chi_W([\mathfrak a])
+ =\frac{\operatorname{Art}_{\mathcal E/M}(\mathfrak a)(\theta)}{\theta}
+\]
+satisfies
+\[
+ \boxed{\quad \chi_W([\mathfrak q_1])=H,\quad}       \tag{\(\mathsf{RCF}_1\)}
+\]
+and, for \(a\in\Delta\),
+\[
+ \chi_W(\tau_a x)=\chi_W(x)^a.                      \tag{\(\mathsf{RCF}_2\)}
+\]
+Consequently the desired \(\ell\)-primary Popovych condition is exactly
+\[
+ [\mathfrak q_1]\notin\ker\chi_W.                  \tag{\(\mathsf{RCF}_3\)}
+\]
+If \([\mathcal E:M]=\ell\), this says precisely that
+\(\mathfrak q_1\) is inert rather than split in \(\mathcal E/M\).
+
+This formulation also exhausts the standard group-theoretic information.
+Every \(\Delta\)-fixed ray class is killed by \(\chi_W\), and
+\(\chi_W([\mathfrak q_a\mathfrak q_{-a}])=1\).  Conversely, the orbit
+relations alone admit base value one or any element of \(\mu_\ell\).
+Reflection
+theorems identify the \(\Delta\)-trivial Kummer radical generated by
+\([W_n]\) with the reflected cyclotomic ray eigenspace, but compare ranks;
+they do not decide whether the projection of \([\mathfrak q_1]\) pairs
+nontrivially with \([W_n]\).  After enlarging \(\mathfrak f_W\) to a
+sufficiently large \(\Delta\)-invariant modulus induced from
+\(\mathcal K_n\), ambiguous ray-class formulas count fixed classes and norm
+indices, but still cannot evaluate \((\mathsf{RCF}_1)\).  The desired
+condition is stronger than existence: even after proving \(\chi_W\)
+nontrivial, one must evaluate it at one distinguished mixed class.
+\end{proposition}
+
+\begin{proof}
+Local Artin reciprocity at \(\mathfrak q_1\) and the Hilbert-symbol
+orientation of Proposition~\ref{prop:fermat-canonical-global-lift} give
+\((\mathsf{RCF}_1)\).  Because \(W_n\) is fixed by \(\Delta\) while
+\(\tau_a\) acts on \(\mu_\ell\) by the \(a\)-th power,
+Artin equivariance gives \((\mathsf{RCF}_2)\).  A nonidentity Frobenius in
+a cyclic degree-\(\ell\) extension has order \(\ell\), proving the
+inert/split assertion.
+
+If a source class is fixed by some \(a\ne1\), equivariance says its image
+equals its own \(a\)-th power and hence is one.  The inverse-pair assertion
+is immediate from \((\mathsf{RCF}_2)\).  Finally an equivariant orbit map
+has the form \(a\mapsto a h\) in additive \(\F_\ell\)-coordinates, with
+arbitrary base scalar \(h\); the orbit relations permit both \(h=0\) and
+\(h\ne0\).  These abstract fixed-class and scalar-freedom statements are
+kernel-checked in \texttt{Ogdoad.Excess}.  Gras's reflection theorem
+\cite[Theorems~4.4 and~5.18]{Gras98} and the Chevalley--Gras formula of
+Li--Yu~\cite[Theorem~2.1]{LiYu20}, applied after the stated modulus
+enlargement, have exactly the rank/counting scope just described and do not
+evaluate the named Artin class.
+\end{proof}
+
+\begin{corollary}[Hasse norm and dihedral descent boundary]
+\label{cor:fermat-hasse-dihedral}
+Retain Proposition~\ref{prop:fermat-ray-character} with \(n\geq2\).  Then
+\[
+ \boxed{\quad
+ H=1
+ \iff
+ 2\in\Norm_{\mathcal E/M}(\mathcal E^\times).
+ \quad}                                               \tag{\(\mathsf{HD}_1\)}
+\]
+Thus failure of the Popovych \(\ell\)-condition is exactly solvability of
+one global cyclic norm equation.
+
+Assume now that \([\mathcal E:M]=\ell\), put
+\(M'=\mathcal K_{n-1}(\zeta_\ell)\), and let \(\iota\) be the top
+involution of \(M/M'\).  It extends to \(\mathcal E\) by
+\(\iota(\theta)=\theta^{-1}\).  If
+\(\sigma(\theta)=\zeta_\ell\theta\), then
+\[
+ \iota\sigma\iota^{-1}=\sigma^{-1},                 \tag{\(\mathsf{HD}_2\)}
+\]
+so \(\operatorname{Gal}(\mathcal E/M')\) is dihedral.  The involution
+exchanges \(\mathfrak q_1\) and \(\mathfrak q_{-1}\).  For their common
+prime \(\mathfrak r\) of \(M'\), choosing a prime of \(\mathcal E\) above
+\(\mathfrak q_1\) gives the Frobenius representative \(\sigma^h\)
+determined by \(H=\zeta_\ell^h\).  Every homomorphism from this dihedral group to an
+abelian group kills \(\sigma\).  Consequently every abelian quotient or
+descent of this specific Kummer extension sees the same image for
+\(h=0\) and \(h\ne0\); a successful lower-field descent must retain its
+nonabelian dihedral Frobenius.
+\end{corollary}
+
+\begin{proof}
+For a cyclic Kummer extension, local norm theory says that \(2\) is a norm
+at a place \(v\) exactly when \((W_n,2)_{v,\ell}=1\).  Away from
+\(2\ell\) both entries are tame units, and at three \(W_n\) is already an
+\(\ell\)-th power.  Every place above \(\ell\) is pointwise trivial by
+\((\mathsf{GL}_{7a})\), and the archimedean places are complex.  At
+\(\mathfrak q_a\mid2\), the symbol is \(H^a\), so all two-adic local norm
+conditions hold exactly when \(H=1\).  The cyclic Hasse norm theorem proves
+\((\mathsf{HD}_1)\)~\cite{Hasse31}.
+
+The top involution sends \(W_n\) to \(W_n^{-1}\), proving that the stated
+extension of \(\iota\) is well-defined; direct evaluation on \(\theta\)
+gives \((\mathsf{HD}_2)\).  At the prime of \(\mathcal K_{n-1}\) above
+two, arithmetic Frobenius in
+\(\operatorname{Gal}(M/\mathcal K_{n-1})=\langle\iota\rangle\times\Delta\)
+is the diagonal element \(\iota\tau_{-1}\), because the residue size is
+\(q\equiv-1\pmod\ell\).  Hence \(\iota\tau_{-1}\) stabilizes
+\(\mathfrak q_1\), so \(\iota(\mathfrak q_1)=\mathfrak q_{-1}\); the
+chosen Frobenius above \(\mathfrak r\) is the stated translation.  Finally,
+in any abelian quotient the images of
+\(\sigma\) and \(\sigma^{-1}\) are equal by \((\mathsf{HD}_2)\).  The
+image of \(\sigma\) therefore has order dividing both two and the odd prime
+\(\ell\), hence is trivial.  This last group-theoretic step is independently
+kernel-checked in \texttt{Ogdoad.Excess}.
+\end{proof}
+
+\begin{corollary}[only the top generator carries the Brauer obstruction]
+\label{cor:fermat-top-brauer}
+Retain Corollary~\ref{cor:fermat-hasse-dihedral}, put
+\(M_0=\mathcal K_{n-1}(\zeta_\ell)\), and write the
+\(\ell\)-torsion norm-residue symbol additively.  Then
+\[
+ \{\mathcal A_{n-1},2\}_\ell=0
+ \quad\text{in }\operatorname{Br}(M_0)[\ell].        \tag{\(\mathsf{TB}_1\)}
+\]
+If \(s\) is the top involution and
+\[
+ \alpha=\{C_n,2\}_\ell,
+ \qquad
+ \beta=\{W_n,2\}_\ell
+ \quad\text{in }\operatorname{Br}(M)[\ell],
+\]
+then
+\[
+ \alpha+s\alpha=0,
+ \qquad
+ \boxed{\ \beta=-2\alpha.\ }                       \tag{\(\mathsf{TB}_2\)}
+\]
+Consequently
+\[
+ H\ne1\iff\beta\ne0\iff\alpha\ne0.                \tag{\(\mathsf{TB}_3\)}
+\]
+Thus every lower ancestral factor has zero symbol with two after adjoining
+\(\zeta_\ell\); the whole obstruction is the anti-invariant class of the
+single top generator.  Corestriction kills the class at issue, so this
+reduction gives no inductive nonvanishing theorem by itself.
+\end{corollary}
+
+\begin{proof}
+We prove \((\mathsf{TB}_1)\) place by place.  Away from \(2\ell\), both
+entries are units and the tame symbol is trivial.  At a place above two,
+the completion of \(M_0\) is unramified with residue field
+\(\F_{q^2}\), where \(q=2^{2^n}\), while the reduction of
+\(\mathcal A_{n-1}\) lies in \(\F_q^\times\).  Since
+\(\gcd(\ell,q-1)=1\), its residue is an \(\ell\)-th power, and
+\(\ell\)-powering is an automorphism of the pro-two principal units.
+Thus \(\mathcal A_{n-1}\) is already a local \(\ell\)-th power.  At a
+place above \(\ell\), the decomposition-stabilizer argument of
+\((\mathsf{GL}_{7a})\), now with
+\([\mathcal K_{n-1}:\mathbf Q]=2^n\), kills the symbol pointwise.  All
+infinite places are complex.  The identical argument applies to every lower
+unit \(C_i\) and \(\mathcal A_i\), \(i<n\).  Brauer--Hasse--Noether proves
+\((\mathsf{TB}_1)\).
+
+Projection for corestriction gives
+\[
+ \operatorname{cor}_{M/M_0}(\alpha)
+ =\{\Norm(C_n),2\}_\ell
+ =\{\mathcal A_{n-1},2\}_\ell=0.
+\]
+Restricting back to \(M\) yields \(\alpha+s\alpha=0\).  Finally
+\(W_n=\mathcal A_{n-1}C_n^{-2}\) and bilinearity give
+\(\beta=-2\alpha\).  Multiplication by two is invertible on
+\(\ell\)-torsion, proving \((\mathsf{TB}_3)\).  Lean independently checks
+the abstract anti-invariant and coboundary identities in
+\texttt{Ogdoad.Excess}.
+\end{proof}
 
 \begin{proposition}[four-point saturation of a Fermat failure]
 \label{prop:fermat-four-plane}
@@ -12396,14 +13043,22 @@ cover the selected composite-Fermat polynomial.
 Thus the Euler--Lucas congruence is automatic from
 \(1<\delta_n\mid F_n\).  Proposition~\ref{prop:fermat-kummer-tail} further
 shows that the missing \(\ell\)-primary class is born at one edge and merely
-propagated by \(3/2\) through every future edge.
+propagated by \(3/2\) through every future edge, while
+Proposition~\ref{prop:fermat-dickson-conway-resultant} proves that even the
+complete compatible root tower is one torsor of parallel rays.
 Proposition~\ref{prop:fermat-weighted-selector} proves that all unmixed classical
 cyclotomic principalizers have zero selector weight and that the natural
 mixed principal element has two-adic support exactly when the target is
-already true.  Hence the remaining proof obligation is sharply the
-nonvanishing of the genuinely mixed \(\ell\)-adic ray coefficient in
-\((\mathsf{FWS}_3)\).  No all-level proof or counterexample is presently
-known.
+already true.  Proposition~\ref{prop:fermat-ell-ray-coefficient} computes the
+first local ramified coefficient as an ancestry-sensitive Witt polynomial
+at every \'etale contracted prime, but local nontriviality does not evaluate the
+selected prime above two.  Proposition~\ref{prop:fermat-ray-character}
+identifies the remaining obligation exactly as
+\(\chi_W([\mathfrak q_1])\ne1\) in one mixed ray class group.
+Corollary~\ref{cor:fermat-hasse-dihedral} equivalently asks that two not be a
+global norm from the associated cyclic Kummer extension and proves that every
+abelian descent of its lower dihedral closure kills the selected translation.
+No all-level proof or counterexample is presently known.
 
 \subsection{Comparison with the cubic arm}
 
@@ -17969,9 +18624,21 @@ arXiv:1906.00870.
 \bibitem{DKSW23} S.~Dasgupta, M.~Kakde, J.~Silliman, and J.~Wang,
 \emph{The Brumer--Stark conjecture over \(\mathbf Z\)}, arXiv:2310.16399
 (2023).
+\bibitem{DK24} S.~Dasgupta, M.~Kakde,
+\emph{Brumer--Stark units and explicit class field theory},
+Duke Math.~J.\ \textbf{173} (2024), 1477--1555;
+\url{https://doi.org/10.1215/00127094-2023-0039}.
 \bibitem{DiMuro} J.~DiMuro, \emph{On $\mathrm{On}_p$}, arXiv:1108.0962.
 \bibitem{GV95} S.~Gao, S.~A.~Vanstone, \emph{On orders of optimal basis
 generators}, Math.\ Comp.\ \textbf{64} (1995), 1227--1233.
+\bibitem{Gras98} G.~Gras, \emph{Th\'eor\`emes de r\'eflexion},
+J.~Th\'eor. Nombres Bordeaux \textbf{10} (1998), 399--499;
+\url{https://www.numdam.org/item/JTNB_1998__10_2_399_0/}.
+\bibitem{Hasse31} H.~Hasse,
+\emph{Beweis eines Satzes und Wiederlegung einer Vermutung \"uber das
+allgemeine Normenrestsymbol}, Nachr.~Ges. Wiss. G\"ottingen,
+Math.-Phys. Kl.\ (1931), 64--69;
+\url{https://eudml.org/doc/59337}.
 \bibitem{Helou95} C.~Helou, \emph{Norm residue symbol and cyclotomic units},
 Acta Arith.\ \textbf{73} (1995), 147--188;
 \url{https://doi.org/10.4064/aa-73-2-147-188}.
@@ -17987,6 +18654,10 @@ two}, Indag.\ Math.\ \textbf{39} (1977), 389--396;
 \url{https://pub.math.leidenuniv.nl/~lenstrahw/PUBLICATIONS/1977e/art.pdf}.
 \bibitem{Lenstra78} H.~W.~Lenstra, Jr., \emph{Nim multiplication},
 S\'eminaire de Th\'eorie des Nombres de Bordeaux, 1977--1978.
+\bibitem{LiYu20} J.~Li, C.-F.~Yu,
+\emph{The Chevalley--Gras formula over global fields},
+J.~Th\'eor. Nombres Bordeaux \textbf{32} (2020), 525--543;
+\url{https://doi.org/10.5802/jtnb.1133}.
 \bibitem{LMFDB11} The LMFDB Collaboration,
 \emph{Elliptic curve with LMFDB label \(11.\mathrm{a}2\)
 (Cremona label \(11\mathrm{a}1\))},
