@@ -862,6 +862,467 @@ theorem oddWins_sameDegreeMate_dummyRoot_forces_open
   · exact hres
   · exact hodd
 
+/-! ## Rank-minimal hot states
+
+The following four-valued minimax interface forgets a fixed target strategy
+and instead asks what either physical player can force from one state.  A
+state is `Hot` for a player when that player can force either terminal score.
+A state is `ColdAtOwnScore` when both physical players can force preservation
+of the score already accumulated at that state.
+
+This distinction makes the minimum-flexibility argument precise.  Below a
+rank-minimal hot state, a charge-changing edge would itself give the mover
+both targets: use that edge for the new score, or OPEN an untouched vertex for
+the old score.  Hence every lower edge is neutral and every lower state is
+cold at its own score. -/
+
+/-- A physical player can force the score already accumulated at `s`. -/
+def WinsCurrentScore (G : SimpleGraph V) (player : Bool) (s : State V) : Prop :=
+  if s.score = 0 then EvenWins G player s else OddWins G (!player) s
+
+/-- Both physical players can force preservation of the current score. -/
+def ColdAtOwnScore (G : SimpleGraph V) (s : State V) : Prop :=
+  ∀ player, WinsCurrentScore G player s
+
+/-- One physical player can force both possible terminal scores. -/
+def Hot (G : SimpleGraph V) (player : Bool) (s : State V) : Prop :=
+  EvenWins G player s ∧ OddWins G (!player) s
+
+omit [Fintype V] in
+theorem ColdAtOwnScore.evenWins {G : SimpleGraph V} {s : State V}
+    (h : ColdAtOwnScore G s) (hscore : s.score = 0) (player : Bool) :
+    EvenWins G player s := by
+  simpa [ColdAtOwnScore, WinsCurrentScore, hscore] using h player
+
+omit [Fintype V] in
+theorem ColdAtOwnScore.oddWins {G : SimpleGraph V} {s : State V}
+    (h : ColdAtOwnScore G s) (hscore : s.score ≠ 0) (player : Bool) :
+    OddWins G (!player) s := by
+  simpa [ColdAtOwnScore, WinsCurrentScore, hscore] using h player
+
+omit [Fintype V] in
+theorem EvenWins.answer_child {G : SimpleGraph V} {seat : Bool}
+    {s t : State V} {m : Move V} (h : EvenWins G seat s)
+    (hseat : s.toMove ≠ seat) (hstep : step G s m = some t) :
+    EvenWins G seat t := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨m, t, hstep⟩)
+  | choose _ hturn _ _ _ _ => exact False.elim (hseat hturn)
+  | answer _ _ _ hchildren => exact hchildren m t hstep
+
+omit [Fintype V] in
+theorem OddWins.answer_child {G : SimpleGraph V} {seat : Bool}
+    {s t : State V} {m : Move V} (h : OddWins G seat s)
+    (hseat : s.toMove = seat) (hstep : step G s m = some t) :
+    OddWins G seat t := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨m, t, hstep⟩)
+  | choose _ hturn _ _ _ _ => exact False.elim (hturn hseat)
+  | answer _ _ _ hchildren => exact hchildren m t hstep
+
+omit [Fintype V] in
+/-- If no hot state occurs below a fixed rank bound, then every state below
+that bound is cold at its own accumulated score.  In particular every legal
+edge between such states preserves the score.
+
+The proof is simultaneous backward induction on the terminating FIFO rank.
+If a legal edge changed score, its source has a nonempty untouched set.  The
+mover could take that edge and force the new score from the cold child, or
+OPEN any untouched vertex and force the old score from the other cold child,
+making the source hot. -/
+theorem coldAtOwnScore_below_minHot
+    (G : SimpleGraph V) (bound : Nat)
+    (hnohot : ∀ (player : Bool) (t : State V), rank t < bound →
+      ¬Hot G player t) :
+    ∀ s : State V, rank s < bound → ColdAtOwnScore G s := by
+  intro s
+  induction s using (measure rank).wf.induction with
+  | h s ih =>
+      intro hsbound
+      have hscorePreserved : ∀ {m : Move V} {t : State V},
+          step G s m = some t → t.score = s.score := by
+        intro m t hstep
+        by_contra hscore
+        have hUne : s.untouched ≠ ∅ := by
+          intro hU
+          exact hscore (step_score_eq_of_untouched_empty hU hstep)
+        obtain ⟨v, hv⟩ := Finset.nonempty_iff_ne_empty.mpr hUne
+        let so : State V := {
+          untouched := s.untouched.erase v
+          queue := s.queue ++ [v]
+          ko := s.queue.isEmpty
+          toMove := !s.toMove
+          score := s.score }
+        have hopen : step G s (.open v) = some so := by
+          simp [step, so, hv]
+        have htbound : rank t < bound :=
+          lt_trans (rank_step_lt hstep) hsbound
+        have hsobound : rank so < bound :=
+          lt_trans (rank_step_lt hopen) hsbound
+        have hcoldT : ColdAtOwnScore G t :=
+          ih t (rank_step_lt hstep) htbound
+        have hcoldO : ColdAtOwnScore G so :=
+          ih so (rank_step_lt hopen) hsobound
+        have hhot : Hot G s.toMove s := by
+          by_cases hs0 : s.score = 0
+          · have ht1 : t.score ≠ 0 := by
+              intro ht0
+              exact hscore (ht0.trans hs0.symm)
+            have hevenO : EvenWins G s.toMove so :=
+              hcoldO.evenWins (by simp [so, hs0]) s.toMove
+            have hoddT : OddWins G (!s.toMove) t :=
+              hcoldT.oddWins ht1 s.toMove
+            exact ⟨
+              EvenWins.choose s rfl (.open v) so hopen hevenO,
+              OddWins.choose s (Bool.eq_not_iff.mpr rfl) m t hstep hoddT⟩
+          · have hs1 : s.score = 1 :=
+              zmod2_eq_one_of_ne_zero _ hs0
+            have ht0 : t.score = 0 := by
+              by_contra htne
+              have ht1 : t.score = 1 :=
+                zmod2_eq_one_of_ne_zero _ htne
+              exact hscore (ht1.trans hs1.symm)
+            have hevenT : EvenWins G s.toMove t :=
+              hcoldT.evenWins ht0 s.toMove
+            have hoddO : OddWins G (!s.toMove) so :=
+              hcoldO.oddWins (by simp [so, hs0]) s.toMove
+            exact ⟨
+              EvenWins.choose s rfl m t hstep hevenT,
+              OddWins.choose s (Bool.eq_not_iff.mpr rfl)
+                (.open v) so hopen hoddO⟩
+        exact hnohot s.toMove s hsbound hhot
+      by_cases hterminal : Terminal s
+      · intro player
+        by_cases hs0 : s.score = 0
+        · simp only [WinsCurrentScore, hs0, if_true]
+          exact EvenWins.terminal s hterminal hs0
+        · simp only [WinsCurrentScore, hs0, if_false]
+          exact OddWins.terminal s hterminal hs0
+      · have hasMove : ∃ m t, step G s m = some t :=
+          not_terminal_has_step hterminal
+        intro player
+        by_cases hs0 : s.score = 0
+        · simp only [WinsCurrentScore, hs0, if_true]
+          by_cases hplayer : s.toMove = player
+          · obtain ⟨m, t, hstep⟩ := hasMove
+            have hcold : ColdAtOwnScore G t :=
+              ih t (rank_step_lt hstep)
+                (lt_trans (rank_step_lt hstep) hsbound)
+            exact EvenWins.choose s hplayer m t hstep
+              (hcold.evenWins ((hscorePreserved hstep).trans hs0) player)
+          · refine EvenWins.answer s hplayer hasMove ?_
+            intro m t hstep
+            have hcold : ColdAtOwnScore G t :=
+              ih t (rank_step_lt hstep)
+                (lt_trans (rank_step_lt hstep) hsbound)
+            exact hcold.evenWins ((hscorePreserved hstep).trans hs0) player
+        · simp only [WinsCurrentScore, hs0, if_false]
+          by_cases hplayer : s.toMove = player
+          · obtain ⟨m, t, hstep⟩ := hasMove
+            have hcold : ColdAtOwnScore G t :=
+              ih t (rank_step_lt hstep)
+                (lt_trans (rank_step_lt hstep) hsbound)
+            refine OddWins.choose s ?_ m t hstep
+              (hcold.oddWins ?_ player)
+            · simpa using Bool.eq_not_iff.mpr hplayer
+            · intro ht0
+              exact hs0 ((hscorePreserved hstep).symm.trans ht0)
+          · have hseat : s.toMove = !player :=
+              Bool.eq_not_iff.mp hplayer
+            refine OddWins.answer s hseat hasMove ?_
+            intro m t hstep
+            have hcold : ColdAtOwnScore G t :=
+              ih t (rank_step_lt hstep)
+                (lt_trans (rank_step_lt hstep) hsbound)
+            simpa using hcold.oddWins (by
+              intro ht0
+              exact hs0 ((hscorePreserved hstep).symm.trans ht0)) player
+
+omit [Fintype V] in
+/-- Every edge strictly below a rank-minimal hot state preserves the current
+score.  The nonmoving player's current-score strategy contains every legal
+child.  If one child changed score, that player could force the old score via
+the universal branch and the new score via coldness of the child, making the
+child hot. -/
+theorem step_score_eq_below_minHot
+    (G : SimpleGraph V) (bound : Nat)
+    (hnohot : ∀ (player : Bool) (t : State V), rank t < bound →
+      ¬Hot G player t)
+    {s t : State V} {m : Move V} (hsbound : rank s < bound)
+    (hstep : step G s m = some t) : t.score = s.score := by
+  have htbound : rank t < bound := lt_trans (rank_step_lt hstep) hsbound
+  have hcoldS : ColdAtOwnScore G s :=
+    coldAtOwnScore_below_minHot G bound hnohot s hsbound
+  have hcoldT : ColdAtOwnScore G t :=
+    coldAtOwnScore_below_minHot G bound hnohot t htbound
+  let opponent := !s.toMove
+  have hnotturn : s.toMove ≠ opponent := by
+    simp [opponent]
+  by_cases hs0 : s.score = 0
+  · have hevenS : EvenWins G opponent s :=
+      hcoldS.evenWins hs0 opponent
+    have hevenT : EvenWins G opponent t :=
+      hevenS.answer_child hnotturn hstep
+    by_contra htne
+    have ht1 : t.score ≠ 0 := by
+      intro ht0
+      exact htne (ht0.trans hs0.symm)
+    have hoddT : OddWins G (!opponent) t :=
+      hcoldT.oddWins ht1 opponent
+    exact hnohot opponent t htbound ⟨hevenT, hoddT⟩
+  · have hseat : s.toMove = !opponent := by simp [opponent]
+    have hoddS : OddWins G (!opponent) s :=
+      hcoldS.oddWins hs0 opponent
+    have hoddT : OddWins G (!opponent) t :=
+      hoddS.answer_child hseat hstep
+    by_contra hscore
+    have ht0 : t.score = 0 := by
+      by_contra htne
+      have hs1 : s.score = 1 := zmod2_eq_one_of_ne_zero _ hs0
+      have ht1 : t.score = 1 := zmod2_eq_one_of_ne_zero _ htne
+      exact hscore (ht1.trans hs1.symm)
+    have hevenT : EvenWins G opponent t :=
+      hcoldT.evenWins ht0 opponent
+    exact hnohot opponent t htbound ⟨hevenT, hoddT⟩
+
+omit [Fintype V] in
+/-- Once the untouched set below a rank-minimal hot state is a singleton,
+every queued vertex is nonadjacent to it.  Successively closing the FIFO
+queue stays below the rank bound, and score neutrality identifies each
+singleton flip with the corresponding adjacency bit. -/
+theorem queue_nonadjacent_below_minHot
+    (G : SimpleGraph V) (bound : Nat)
+    (hnohot : ∀ (player : Bool) (t : State V), rank t < bound →
+      ¬Hot G player t)
+    (z : V) (q : List V) (turn : Bool) (score : ZMod 2)
+    (hbound : rank ({
+      untouched := {z}
+      queue := q
+      ko := false
+      toMove := turn
+      score := score } : State V) < bound) :
+    ∀ a ∈ q, adjacencyBit G a z = 0 := by
+  induction q generalizing turn score with
+  | nil => simp
+  | cons f q ih =>
+      let s : State V := {
+        untouched := {z}
+        queue := f :: q
+        ko := false
+        toMove := turn
+        score := score }
+      let t : State V := {
+        untouched := {z}
+        queue := q
+        ko := false
+        toMove := !turn
+        score := score + flip G {z} f }
+      have hclose : step G s .close = some t := by
+        simp [step, s, t]
+      have hscoreEq :=
+        step_score_eq_below_minHot G bound hnohot hbound hclose
+      have hflip : flip G {z} f = 0 := by
+        have hadd : score + flip G {z} f = score + 0 := by
+          simpa [s, t] using hscoreEq
+        exact add_left_cancel hadd
+      have hfront : adjacencyBit G f z = 0 := by
+        simpa [flip_singleton_eq_adjacencyBit] using hflip
+      intro a ha
+      rcases (List.mem_cons.mp ha) with rfl | ha
+      · exact hfront
+      · exact ih (!turn) (score + flip G {z} f)
+          (lt_trans (rank_step_lt hclose) hbound) a ha
+
+omit [Fintype V] in
+/-- Exact public shape of a rank-minimal state at which one physical player
+can force both score sheets.  From score zero the player to move chooses
+between a unit CLOSE and a zero OPEN.  The untouched set is necessarily the
+singleton endpoint of that unit edge.
+
+The singleton conclusion is the extra force-set rigidity absent from a
+minimum node in one fixed strategy tree.  Below a minimum hot state every
+legal edge is neutral.  Thus deleting any one untouched vertex makes the
+front charge zero; deleting two in either order would force a second vertex
+to be simultaneously adjacent and nonadjacent to the front. -/
+theorem minHotState_is_singletonWall
+    (G : SimpleGraph V) (player : Bool) (s : State V)
+    (hs0 : s.score = 0) (hhot : Hot G player s)
+    (hminimal : ∀ (other : Bool) (t : State V), rank t < rank s →
+      ¬Hot G other t) :
+    s.toMove = player ∧
+      ∃ f q z, s.queue = f :: q ∧ s.ko = false ∧
+        s.untouched = {z} ∧ adjacencyBit G f z = 1 ∧
+          ∀ a ∈ q, adjacencyBit G a z = 0 := by
+  classical
+  have hcold : ∀ t : State V, rank t < rank s → ColdAtOwnScore G t :=
+    coldAtOwnScore_below_minHot G (rank s) hminimal
+  have hturn : s.toMove = player := by
+    by_contra hturn
+    have hodd := hhot.2
+    cases hodd with
+    | terminal _ _ hscore => exact hscore hs0
+    | choose _ hseat _ _ _ _ =>
+        exact hseat (Bool.eq_not_iff.mp hturn)
+    | answer _ _ hasMove hchildren =>
+        obtain ⟨m, t, hstep⟩ := hasMove
+        have hevenT : EvenWins G player t :=
+          hhot.1.answer_child hturn hstep
+        have hoddT : OddWins G (!player) t := hchildren m t hstep
+        exact hminimal player t (rank_step_lt hstep) ⟨hevenT, hoddT⟩
+  have hoddChoice : ∃ m t, step G s m = some t ∧
+      OddWins G (!player) t := by
+    cases hhot.2 with
+    | terminal _ _ hscore => exact False.elim (hscore hs0)
+    | choose _ _ m t hstep hwin => exact ⟨m, t, hstep, hwin⟩
+    | answer _ hseat _ _ =>
+        exact False.elim ((Bool.eq_not_iff.mpr hturn) hseat)
+  obtain ⟨mOne, tOne, hstepOne, hoddOne⟩ := hoddChoice
+  have htOne : tOne.score = 1 := by
+    have htne : tOne.score ≠ 0 := by
+      intro ht0
+      have hevenOne : EvenWins G player tOne :=
+        (hcold tOne (rank_step_lt hstepOne)).evenWins ht0 player
+      exact hminimal player tOne (rank_step_lt hstepOne)
+        ⟨hevenOne, hoddOne⟩
+    exact zmod2_eq_one_of_ne_zero _ htne
+  have hmOne : mOne = .close := by
+    cases mOne with
+    | «open» v =>
+        have hscore := open_score hstepOne
+        rw [hs0] at hscore
+        exact False.elim (one_ne_zero (htOne.symm.trans hscore))
+    | close => rfl
+    | pass =>
+        have hscore := pass_score hstepOne
+        rw [hs0] at hscore
+        exact False.elim (one_ne_zero (htOne.symm.trans hscore))
+  subst mOne
+  obtain ⟨f, q, hqueue, hcloseScore⟩ := close_score hstepOne
+  have hko : s.ko = false := by
+    cases hk : s.ko with
+    | false => rfl
+    | true => simp [step, hqueue, hk] at hstepOne
+  have hflip : flip G s.untouched f = 1 := by
+    rw [hs0, zero_add] at hcloseScore
+    exact hcloseScore.symm.trans htOne
+  have hevenChoice : ∃ m t, step G s m = some t ∧
+      EvenWins G player t := by
+    cases hhot.1 with
+    | terminal _ hterminal _ =>
+        exact False.elim (terminal_no_step hterminal
+          ⟨.close, tOne, hstepOne⟩)
+    | choose _ _ m t hstep hwin => exact ⟨m, t, hstep, hwin⟩
+    | answer _ hseat _ _ => exact False.elim (hseat hturn)
+  obtain ⟨mZero, tZero, hstepZero, hevenZero⟩ := hevenChoice
+  have htZero : tZero.score = 0 := by
+    by_contra htne
+    have hoddZero : OddWins G (!player) tZero :=
+      (hcold tZero (rank_step_lt hstepZero)).oddWins htne player
+    exact hminimal player tZero (rank_step_lt hstepZero)
+      ⟨hevenZero, hoddZero⟩
+  have hmZero : ∃ z, mZero = .open z := by
+    cases mZero with
+    | «open» z => exact ⟨z, rfl⟩
+    | close =>
+        rw [hstepOne] at hstepZero
+        cases hstepZero
+        exact False.elim (one_ne_zero (htOne.symm.trans htZero))
+    | pass => simp [step, hqueue, hko] at hstepZero
+  obtain ⟨z, rfl⟩ := hmZero
+  have hzU : z ∈ s.untouched := by
+    simp only [step] at hstepZero
+    split at hstepZero
+    · assumption
+    · contradiction
+  have herase : ∀ w ∈ s.untouched,
+      flip G (s.untouched.erase w) f = 0 := by
+    intro w hw
+    let so : State V := {
+      untouched := s.untouched.erase w
+      queue := s.queue ++ [w]
+      ko := s.queue.isEmpty
+      toMove := !s.toMove
+      score := s.score }
+    have hopen : step G s (.open w) = some so := by
+      simp [step, so, hw]
+    let soc : State V := {
+      untouched := s.untouched.erase w
+      queue := q ++ [w]
+      ko := false
+      toMove := s.toMove
+      score := s.score + flip G (s.untouched.erase w) f }
+    have hclose : step G so .close = some soc := by
+      simp [step, so, soc, hqueue, hko]
+    have hscoreEq := step_score_eq_below_minHot G (rank s) hminimal
+      (rank_step_lt hopen) hclose
+    simpa [so, soc, hs0] using hscoreEq
+  have hsingleton : s.untouched = {z} := by
+    ext w
+    constructor
+    · intro hw
+      by_contra hwz
+      have hwErase : w ∈ s.untouched.erase z :=
+        Finset.mem_erase.mpr ⟨hwz, hw⟩
+      let soz : State V := {
+        untouched := s.untouched.erase z
+        queue := s.queue ++ [z]
+        ko := s.queue.isEmpty
+        toMove := !s.toMove
+        score := s.score }
+      have hopenz : step G s (.open z) = some soz := by
+        simp [step, soz, hzU]
+      let sozw : State V := {
+        untouched := (s.untouched.erase z).erase w
+        queue := (s.queue ++ [z]) ++ [w]
+        ko := false
+        toMove := s.toMove
+        score := s.score }
+      have hopenw : step G soz (.open w) = some sozw := by
+        simp [step, soz, sozw, hwErase, hqueue]
+      let sc : State V := {
+        untouched := (s.untouched.erase z).erase w
+        queue := (q ++ [z]) ++ [w]
+        ko := false
+        toMove := !s.toMove
+        score := s.score + flip G ((s.untouched.erase z).erase w) f }
+      have hclose : step G sozw .close = some sc := by
+        simp [step, sozw, sc, hqueue, hko]
+      have hdouble : flip G ((s.untouched.erase z).erase w) f = 0 := by
+        have hscoreEq := step_score_eq_below_minHot G (rank s) hminimal
+          (lt_trans (rank_step_lt hopenw) (rank_step_lt hopenz)) hclose
+        simpa [sozw, sc, hs0] using hscoreEq
+      have hbitOne : adjacencyBit G f w = 1 := by
+        have heq := flip_eq_flip_erase_add (G := G) (f := f) hw
+        rw [hflip, herase w hw, zero_add] at heq
+        exact heq.symm
+      have hbitZero : adjacencyBit G f w = 0 := by
+        have heq := flip_eq_flip_erase_add (G := G) (f := f) hwErase
+        rw [herase z hzU, hdouble, zero_add] at heq
+        exact heq.symm
+      exact one_ne_zero (hbitOne.symm.trans hbitZero)
+    · simp only [Finset.mem_singleton]
+      intro hwz
+      subst w
+      exact hzU
+  have hbit : adjacencyBit G f z = 1 := by
+    have heq := flip_eq_flip_erase_add (G := G) (f := f) hzU
+    rw [hflip, herase z hzU, zero_add] at heq
+    exact heq.symm
+  have htail : ∀ a ∈ q, adjacencyBit G a z = 0 := by
+    let t : State V := {
+      untouched := {z}
+      queue := q
+      ko := false
+      toMove := !s.toMove
+      score := s.score + flip G {z} f }
+    have hclose : step G s .close = some t := by
+      simp [step, t, hqueue, hko, hsingleton]
+    exact queue_nonadjacent_below_minHot G (rank s) hminimal z q
+      (!s.toMove) (s.score + flip G {z} f) (rank_step_lt hclose)
+  exact ⟨hturn, f, q, z, hqueue, hko, hsingleton, hbit, htail⟩
+
 end
 
 end Ogdoad.Fifo

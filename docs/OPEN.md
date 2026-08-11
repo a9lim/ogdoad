@@ -173,9 +173,12 @@ hot leaf is the last-untouched edge switch `C_f` versus `O_z`; tracing a
 strategy-relevant occurrence backward yields either an odd-odd CLOSE spike or
 the protected `B'` seed whose remaining live graph is the three-vertex star.
 Busy-block analysis transports the latter through pendant odd closes but does
-not kill it: the first unavoidable cancellation lies in an earlier universal
-ko fan choosing the dummy versus real replies.  Coupling that whole fan, not
-the terminal wall or one busy block, is the remaining proof obligation.
+not kill an arbitrary chain.  The paper now contracts a single
+pendant-to-star step by an explicit arbitrary-policy sibling strategy; a
+longer broom can still rotate into the online draft-and-stop endpoint.  The
+first unresolved cancellation lies in the earlier universal ko fan choosing
+the dummy versus real replies.  Coupling that whole fan, not the terminal wall
+or one busy block, is the remaining proof obligation.
 
 This is the only missing mathematical step. More exhaustive enumeration or a
 new scalar queue invariant would be useful for falsification, but neither is

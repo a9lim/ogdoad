@@ -461,6 +461,78 @@ singleton ko wall.  A global contraction must therefore couple those two
 cases through their full defender ancestry; finding public holonomy alone
 cannot close the score cover.
 
+There is a sharper statement for the \emph{unpruned} force sets.  For a
+physical player $P$, let $R_P(p)\subseteq\F_2$ be the future charge bits which
+$P$ can force from the score-forgotten state $p$.  Determinacy gives
+
+\[
+ b\in R_P(p)\quad\Longleftrightarrow\quad
+ 1+b\notin R_{\bar P}(p).
+\]
+
+\begin{proposition}[minimum-hot singleton wall]
+\label{prop:minimum-hot-wall}
+\PROVED{} Choose, over both physical players, a state $p$ of minimum game
+rank for which $R_P(p)=\F_2$.  Then every strict descendant is cold zero for
+both players, and every legal edge strictly below $p$ has charge zero.
+Moreover
+\[
+ U=\{z\},\qquad Q=(f,Q_0),\qquad \mathsf{ko}=0,
+ \qquad B(f,z)=1,
+\]
+$P$ moves, the target-one choice is $C_f$, and the target-zero choice is
+$O_z$.  Every vertex of $Q_0$ is nonadjacent to $z$.  In particular an
+isolated dummy cannot be the untouched vertex of a minimum hot wall.
+\end{proposition}
+
+\begin{proof}
+If a strict descendant had empty force set for one player, the displayed
+duality would make it hot for the other; minimality excludes both empty and
+full force sets below $p$.  Hence every strict descendant has a common
+singleton force value for the two players.  At such a state every legal edge
+preserves that value: at the mover's union node no nonempty child value may
+leave the singleton, while at the other player's intersection node the same
+conclusion follows after exchanging the players.  The legal completion which
+OPENs every untouched vertex and then drains the queue has charge zero.
+Therefore the common singleton is zero, and every strict legal edge has
+charge zero.
+
+The state $p$ cannot be terminal or opponent-controlled, since either case
+would pass both targets to a smaller child.  OPEN and PASS have charge zero,
+and CLOSE is unique.  Thus the two targets require a unit $C_f$ and at least
+one zero OPEN.  For each $z\in U$, the strict child after $O_z$ still admits
+$C_f$, so
+\[
+ \deg_{U-\{z\}}(f)=0,
+ \qquad\deg_U(f)=1,
+\]
+and consequently $B(f,z)=1$.  If $z\ne w$ both lay in $U$, the strict path
+$O_z,O_w,C_f$ would instead require
+\[
+ 0=\deg_{U-\{z,w\}}(f)
+  =\deg_U(f)+B(f,z)+B(f,w)=1,
+\]
+a contradiction.  Hence $U=\{z\}$.  After $C_f$, successively closing the
+tail of $Q$ is strict and neutral, so every tail vertex is nonadjacent to
+$z$.
+\end{proof}
+
+The score-zero, absolute-target form of this proposition is kernel-checked in
+\path{formal/Ogdoad/FifoNormalization.lean}, as
+\path{minHotState_is_singletonWall}.  Its induction is stronger than
+a local minimax census: below the rank bound Lean derives both-player
+current-score strategies and proves score preservation for every legal edge.
+The proposition is nevertheless not the missing ancestry theorem.  Primitive
+hot walls are reachable even below a safe root.  A root proof must show that
+one fixed target-one strategy cannot promote an odd, ancestry-weighted family
+of these walls after the dummy has been spent.  There is also a genuine
+quantifier mismatch: the proposition minimizes over both physical players in
+the unpruned game, whereas Proposition~\ref{prop:dual-descent} minimizes one
+dual bit inside a fixed pruned strategy tree.  A minimum hot wall need not lie
+in that tree, and its minimum-bad node need not itself be hot.  Aligning the
+two minima is part of the ancestry obligation, not a consequence of either
+normal form separately.
+
 Equivalently, one must select an odd-cardinality formal multiset of response
 histories whose disjointness vectors XOR to zero.  This is an
 $\F_2$-flow problem: attacker nodes route all incoming weight along the move
@@ -1663,6 +1735,48 @@ separate processed vertex $p$ and edge $py$ used only to exhibit a reachable
 odd prefix.  What remains is not to defeat the isolated core cap again, but to
 show that extra ancestry edges which sustain its earlier sibling branches
 necessarily contribute the missing generators to $M_h$.
+
+One pendant ancestry step can also be removed without an affine
+superposition.
+
+\begin{proposition}[pendant-to-star sibling]
+\label{prop:pendant-star-sibling}
+\PROVED{} Let the live graph have edges $pa,af$, let $f$ be the center of a
+star with further leaf set $L$, and let $I$ be a nonempty set of isolates
+containing $d$.  Assume $p$ has no other neighbour.  From the clear
+score-zero state
+\[
+ Q=(p,a),\qquad U=\{f\}\sqcup L\sqcup I,
+\]
+the zero-seeking player wins from either mover against arbitrary play.
+Consequently the concrete ancestry
+$p-a-f-\{z,w\}$ together with isolated $d$ cannot make both the initial
+$O_d$ and $O_a$ replies bad.
+\end{proposition}
+
+\begin{proof}
+Before $f$ opens every legal CLOSE has charge zero.  If the zero-seeking
+player moves, open $f$.  If the opponent moves, answer $C_p$ by $O_f$ and
+answer any OPEN other than $O_f$ by $O_f$; if the opponent itself opens $f$,
+enter the continuation immediately.  In every case $f$ is now queued behind
+at least one neutral vertex, so the opponent-turn half of the mutual star
+induction in Proposition~\ref{prop:star-root} applies with $k>0$.  It keeps
+$C_f$ even, and all other queued vertices are leaves or isolates whose only
+possible live neighbour $f$ has already opened.  Thus every subsequent
+CLOSE is neutral as well.
+
+For the final assertion, the two root replies $O_d$ and $O_a$ have the same
+zero prefix charge.  The $O_a$ child is exactly the displayed state, so it
+cannot belong to the universal defender fan of an all-terminal-one strategy.
+\end{proof}
+
+This argument does not iterate automatically along a longer pendant broom.
+An out-of-order OPEN rotates its endpoint to a state of the form
+$Q=(a,d)$ over the remaining live graph.  Although replacing the dummy reply
+by the real sibling strictly decreases the number of untouched real vertices,
+that rotated state leaves the pendant-to-star class.  Excluding it is the
+online draft-and-stop/full-row problem described below, not a consequence of
+the monotone count alone.
 
 They do force one complete coordinate block.  This is the first genuinely
 global relative incidence statement in the (B$'$) analysis.

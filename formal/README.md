@@ -273,14 +273,16 @@ current normalization frontier rather than assuming it:
   rank-minimal hot state Lean proves every state cold at its own score and
   every legal edge score-neutral; `minHotState_is_singletonWall` then forces
   the minimum hot state to have one untouched vertex `z`, a clear front `f`,
-  and adjacency bit `fz = 1`.
+  adjacency bit `fz = 1`, and a queue tail wholly nonadjacent to `z`.
 
 The last theorem deliberately stops before the unresolved step.  If the
 selected OPEN touches the dummy, the remaining real reply fan has even
 cardinality; neither the same-degree induction nor the local balanced-front
 lemmas provide an even-winning child.  Likewise, the minimum-hot theorem
 classifies primitive flexible walls but does not show that a fixed root
-counterstrategy can reach one on the required sheet.  The required same-eta
+counterstrategy can reach one on the required sheet: its unpruned global
+minimum is not the same object as the minimum dual bit in one pruned strategy
+tree.  The required same-eta
 corridor and global `(A)/(B')` ancestry contraction remain mathematical
 obligations.
 
