@@ -218,6 +218,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Fibonacci companion, including the equivalence between scalar return and
   `S_r(a)=0`; this identifies the hidden projective/Singer order with the
   original Conway--Fermat first-zero target rather than proving maximality;
+- the characteristic-two cubic Horner reduction modulo
+  `Y^3 + X*Y + X^2` and the determinant of its explicit multiplication
+  matrix; these are the algebraic core of the exact selected-resultant screen,
+  while the complete integer-bit polynomial loop and its finite outputs remain
+  script-level checks;
 - the algebraic parametrization identities underlying the paper's rational
   normalization of the Conway resultant correspondence by
   `alpha(c)=c^2+c` and `beta(c)=c^3+c^2`, including translation of the two

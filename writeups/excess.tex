@@ -13372,6 +13372,41 @@ a square root of two has order \(2^{n+2}\); hence
 d\equiv1\pmod{2^{n+2}},\qquad \ord_d(2)=2^{n+1}.
 \]
 
+\paragraph{Exact selected-factor screen.}
+The companion script \path{experiments/fermat_selected_screen.py}
+reconstructs the selected polynomial without a precomputed Conway table:
+starting from \(A_{-1}(Y)=Y+1\), it iterates
+\[
+ A_i(X)=\operatorname{Res}_Y\bigl(A_{i-1}(Y),X^2+XY+Y^3\bigr)
+\]
+and evaluates \(S_{F_n/\ell}(X)\bmod A_{n-1}(X)\) by exact
+binary-polynomial fast doubling.  The companion Lean file kernel-checks the
+cubic Horner reduction and the multiplication-matrix determinant giving each
+resultant step; the complete bit-packed iteration remains script-level.  For
+a published prime divisor \(\ell\mid F_n\), the criterion above says that a
+zero remainder is a genuine failure of the \(\ell\)-coordinate, whereas a
+nonzero remainder certifies only that published coordinate.  The current
+FermatSearch tables give the following exact screen~\cite{FermatSearch}:
+
+\begin{center}
+\begin{tabular}{c|r|r|c|c|c}
+\(n\) & \(\deg A_{n-1}\) & \(\mathrm{wt}(A_{n-1})\) & published primes
+& zero residues & residual cofactor \\
+\hline
+12 & 4096 & 2093 & 6 & 0 & \(C_{1133}\) \\
+13 & 8192 & 4119 & 4 & 0 & \(C_{2391}\)
+\end{tabular}
+\end{center}
+
+Here every displayed database factor is a proved prime occurring to the first
+power, while \(C_{1133}\) and \(C_{2391}\) are exact cofactors proved
+composite but not factored.  The script checks exact divisibility but imports
+primality from that source; its degrees and hashes are reproducibility
+fingerprints rather than standalone formal certificates.  Thus no selected
+counterexample occurs at any currently published prime of \(F_{12}\) or
+\(F_{13}\), but neither level is proved maximal and the all-level problem
+remains open.
+
 There is also an exact bridge to the current primitive-quadratic
 classification.  Assume \(n\geq2\) and the lower Fermat levels are maximal, so that
 \(a=a_{n-1}\) has order \((q-1)/3\) in \(\F_q^\times\), where
@@ -19050,6 +19085,11 @@ S\'eminaire Lotharingien de Combinatoire \textbf{21} (1989), B21d,
 \bibitem{Popovych18} R.~Popovych, \emph{Multiplicative orders of
 elements in Conway's towers of finite fields}, Algebra Discrete Math.
 \textbf{25} (2018), 137--146; arXiv:1509.01958.
+\bibitem{FermatSearch} FermatSearch project,
+\emph{Prime factors of \(k2^r+1\) of Fermat numbers} and
+\emph{Compositeness}, compiled by L.~Morelli, accessed 11 August 2026;
+\url{https://www.fermatsearch.org/factors/faclist.php},
+\url{https://www.fermatsearch.org/factors/composite.php}.
 \bibitem{Rohrlich86} D.~E.~Rohrlich,
 \emph{Jacobi sums and explicit reciprocity laws},
 Compos.\ Math.\ \textbf{60} (1986), 97--114;

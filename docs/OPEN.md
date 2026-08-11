@@ -284,8 +284,14 @@ absolute boundedness.
   paper retains that phase, gives an exact two-component resultant, proves
   primitive support and a cyclic-variation lower bound for the power-of-two
   two-spine family, and closes `h=12,24`. The singleton-even chain is exactly
-  the Conway–Fermat quotient-order problem. In that chain, absolute trace is
-  exactly the top binary coordinate, the selected ancestry is the least
+  the Conway–Fermat quotient-order problem. An exact selected-factor harness
+  now reconstructs the literal Conway resultant rather than substituting a
+  generic tower element. It finds nonzero Fibonacci residues at all six
+  published prime factors of `F_12` and all four published prime factors of
+  `F_13`. These are falsification results only: the exact residual cofactors
+  `C1133` and `C2391` are proved composite but remain unfactored, so neither
+  level nor the all-level conjecture is certified. In that chain, absolute
+  trace is exactly the top binary coordinate, the selected ancestry is the least
   trace-one nimber, and failure is equivalent to a centered reverse-Dickson
   divisor of the trace-zero linearized polynomial. Adapted-basis countermodels
   realize this entire additive/Moore pattern while changing the multiplicative
@@ -606,6 +612,7 @@ absolute boundedness.
 - [`experiments/ordinal_excess_probe.py`](../experiments/ordinal_excess_probe.py)
 - [`experiments/cyclotomic_3k_family.py`](../experiments/cyclotomic_3k_family.py)
 - [`experiments/exception_column_m4.py`](../experiments/exception_column_m4.py)
+- [`experiments/fermat_selected_screen.py`](../experiments/fermat_selected_screen.py)
 - [`src/scalar/big/ordinal/tower.rs`](../src/scalar/big/ordinal/tower.rs)
 - [`src/scalar/big/ordinal/b380496.txt`](../src/scalar/big/ordinal/b380496.txt)
 

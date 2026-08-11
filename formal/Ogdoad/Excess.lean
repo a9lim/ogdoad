@@ -1862,6 +1862,59 @@ theorem fibCompanionIter_scalar_iff
 
 end ConwayTopBitCompanion
 
+section ConwayResultantCore
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- One Horner step modulo `Y^3 + X*Y + X^2` in characteristic two.
+The coefficient triple is ordered as `(constant, Y, Y^2)`. -/
+theorem conway_cubic_horner_step
+    (X Y u v w c : R)
+    (hrel : Y ^ 3 + X * Y + X ^ 2 = 0) :
+    c + Y * (u + v * Y + w * Y ^ 2) =
+      (c + w * X ^ 2) + (u + w * X) * Y + v * Y ^ 2 := by
+  have hY3 : Y ^ 3 = X * Y + X ^ 2 := by
+    have h := hrel
+    rw [show Y ^ 3 + X * Y + X ^ 2 =
+        Y ^ 3 - (X * Y + X ^ 2) by
+      rw [CharTwo.sub_eq_add]
+      ring] at h
+    exact sub_eq_zero.mp h
+  rw [show Y * (u + v * Y + w * Y ^ 2) =
+      u * Y + v * Y ^ 2 + w * Y ^ 3 by ring, hY3]
+  ring
+
+/-- Multiplication by `u + v*Y + w*Y^2` in the cubic basis
+`(1,Y,Y^2)`, after reducing by `Y^3 = X*Y + X^2`. Columns are the
+reduced products with the three basis vectors. -/
+def conwayCubicMulMatrix (X u v w : R) : Matrix (Fin 3) (Fin 3) R :=
+  !![u, w * X ^ 2, v * X ^ 2;
+     v, u + w * X, v * X + w * X ^ 2;
+     w, v, u + w * X]
+
+/-- Determinant/norm formula used by the exact selected resultant step. -/
+theorem conway_cubic_mulMatrix_det (X u v w : R) :
+    (conwayCubicMulMatrix X u v w).det =
+      u * u ^ 2 +
+      (u * v ^ 2) * X +
+      (v * v ^ 2) * X ^ 2 +
+      (u * w ^ 2) * X ^ 2 +
+      (v * w ^ 2) * X ^ 3 +
+      (u * v * w) * X ^ 2 +
+      (w * w ^ 2) * X ^ 4 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h3 : (3 : R) = 1 := by
+    simpa using (CharP.cast_eq_mod R 2 3)
+  rw [Matrix.det_fin_three]
+  simp only [conwayCubicMulMatrix, Matrix.of_apply, Matrix.cons_val',
+    Matrix.cons_val_zero, Matrix.cons_val_fin_one, Matrix.cons_val_one,
+    Matrix.cons_val]
+  rw [CharTwo.sub_eq_add, CharTwo.sub_eq_add, CharTwo.sub_eq_add]
+  ring_nf
+  simp [h2, h3]
+
+end ConwayResultantCore
+
 section ConwayResultantParametrization
 
 variable {R : Type*} [CommRing R] [CharP R 2]
