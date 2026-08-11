@@ -7955,6 +7955,120 @@ so only the inverse pair $\{v,v^{-1}\}$ has the same image.  This
 proves the equal-degree assertion.
 \end{proof}
 
+\begin{proposition}[trailing-zero compression and its exact circularity]
+\label{prop:fermat-trailing-zero}
+Let \(K\) be a characteristic-two field, let \(a\in K\), and put
+\[
+ T_t(a)=\sum_{j=0}^{t-1}a^{2^j}.
+\]
+For the Fibonacci values of
+Proposition~\ref{prop:fermat-fibotomic}, one has, for all \(t,h\geq0\),
+\[
+ \boxed{
+ S_{2^th+1}(a)
+ =S_{h+1}(a)^{2^t}+T_t(a)S_h(a)^{2^t}.}              \tag{\(\mathsf{TZ}_1\)}
+\]
+If \(S_h(a)\ne0\), this is equivalently
+\[
+ \boxed{
+ S_{2^th+1}(a)=0
+ \iff
+ \left(\frac{S_{h+1}(a)}{S_h(a)}\right)^{2^t}=T_t(a).}
+                                                               \tag{\(\mathsf{TZ}_2\)}
+\]
+
+Now retain the Conway--Fermat notation, assume \(n\geq2\), and put
+\(m=2^n\).  Let \(d>1\) divide \(F_n\), write
+\[
+ d=1+2^th,
+ \qquad 0<t\leq m,
+\]
+where \(t\) is a chosen power-of-two divisor of \(d-1\), not necessarily
+its exact $2$-adic valuation, so \(h\) need not be odd.  Suppose
+\(\delta_n\mid d\) and \(\delta_n>2^t\).  Then
+\[
+ S_h(a)\ne0,\qquad S_{h+1}(a)\ne0.                  \tag{\(\mathsf{TZ}_3\)}
+\]
+In particular, for a failed prime-factor test
+\(d=F_n/\ell>1\), one may take \(t=n+2\): every nontrivial divisor of
+\(F_n\) is \(1\pmod {2^{n+2}}\), and so is larger than \(2^{n+2}\).
+Writing
+\[
+ R_h=\frac{S_{h+1}(a)}{S_h(a)},
+\]
+the hypothetical failure then has the choice-free form
+\[
+ \boxed{R_h=1+T_{m-t}(a).}                            \tag{\(\mathsf{TZ}_4\)}
+\]
+
+This sharper formula is nevertheless automatic on every relevant
+proper-order stratum.  Indeed, if \(u=(c_n+1)/c_n\) has order
+\(\delta_n\mid d\), and \(k=2^{m-t}\), then
+\[
+ 2^th\equiv-1\pmod {\delta_n},\qquad
+ 2^m\equiv-1\pmod {\delta_n}
+ \quad\Longrightarrow\quad
+ h\equiv k\pmod {\delta_n}.                           \tag{\(\mathsf{TZ}_5\)}
+\]
+Thus the continued-fraction, Cassini, trace, and Frobenius identities
+obtained functorially from \((\mathsf{TZ}_4)\) hold on every corresponding
+order-\(\delta_n\) stratum.  By themselves they do not distinguish the
+selected Conway factor from a proper fibotomic factor; new full-ancestry
+information could still make such an identity useful.
+\end{proposition}
+
+\begin{proof}
+In characteristic two the doubling identities are
+\[
+ S_{2r}=S_r^2,
+ \qquad
+ S_{2r+1}=S_{r+1}^2+aS_r^2.
+\]
+Induction on \(t\), using \(T_{t+1}=T_t^2+a\), proves
+\((\mathsf{TZ}_1)\); division by \(S_h^{2^t}\) proves
+\((\mathsf{TZ}_2)\).
+
+By Proposition~\ref{prop:fermat-fibotomic}, the zero indices are exactly
+the multiples of \(\delta_n\).  If \(\delta_n\mid h\), then
+\(\delta_n\mid 2^th\) and \(\delta_n\mid 2^th+1=d\), forcing
+\(\delta_n\mid1\).  If \(\delta_n\mid h+1\), then
+\[
+ \delta_n\mid 2^t(h+1)-d=2^t-1,
+\]
+contrary to \(\delta_n>2^t\).  This proves
+\((\mathsf{TZ}_3)\).  The standard prime-divisor congruence for \(F_n\)
+gives the stated choice \(t=n+2\), and \(n+2\leq2^n=m\) for \(n\geq2\).
+
+The absolute trace of \(a=a_{n-1}\) is one, so
+\[
+ 1=T_m(a)=T_t(a)+T_{m-t}(a)^{2^t}.
+\]
+Under failure, \((\mathsf{TZ}_2)\) therefore gives
+\[
+ R_h^{2^t}=(1+T_{m-t}(a))^{2^t}.
+\]
+Frobenius is injective, proving \((\mathsf{TZ}_4)\).
+
+Finally multiply \(2^th\equiv-1\pmod{\delta_n}\) by
+\(2^{m-t}\) and use \(2^m\equiv-1\pmod{\delta_n}\) to obtain
+\((\mathsf{TZ}_5)\).  Hence \(u^h=u^k\).  The Binet identity and
+\(S_k(a)=c_n^k+(c_n+1)^k=1\) give the explicit calculation
+\[
+ \begin{split}
+ T_{m-t}(a)&=c_n^k+c_n,\\
+ R_h
+ &=c_n\frac{1+u^{h+1}}{1+u^h}
+  =c_n\frac{1+u^{k+1}}{1+u^k}
+  =c_n^k+c_n+1.
+ \end{split}
+\]
+Thus \((\mathsf{TZ}_4)\) is automatic on the whole
+order-\(\delta_n\) stratum; the identities derived from it alone cannot
+select the Conway ancestry.  Conversely
+\((\mathsf{TZ}_2)\) returns the original zero \(S_d(a)=0\).  The
+compression is exact but supplies no independent nonvanishing invariant.
+\end{proof}
+
 \subsection{The selected factor and the limits of one-step induction}
 
 \begin{proposition}[coarse top-step data cannot force maximality]

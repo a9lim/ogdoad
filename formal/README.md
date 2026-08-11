@@ -145,6 +145,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the choice-free Conway--Fermat root elimination: if `b^ell=a`,
   `ell*d=q+1`, and `b^q=b`, then `b^2=a^d`, and for `q=2Q` the selected root
   is explicitly `b=(a^d)^Q`;
+- the characteristic-two Fibonacci doubling laws and trailing-zero
+  compression
+  `S_(2^t*h+1)=S_(h+1)^(2^t)+T_t(a)*S_h^(2^t)`, including its exact ratio
+  form and the complementary-index nondivisibility used in the
+  Conway--Fermat continued-fraction reduction;
 - the denominator-free quadratic-remainder norm
   `(U+xV)(U+x'V) = U^2 + YUV + Y^3V^2` used by the paper's one-branch
   Conway--Fermat descent;

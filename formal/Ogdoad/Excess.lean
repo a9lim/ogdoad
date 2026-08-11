@@ -626,6 +626,214 @@ theorem cubic_pair_product_coefficients
 
 end KummerNormCoherence
 
+section FermatFibonacciCompression
+
+variable {R : Type*} [CommRing R]
+
+/-- Evaluation at `a` of the characteristic-two Fibonacci polynomials
+`S₀ = 0`, `S₁ = 1`, and `Sᵣ₊₂ = Sᵣ₊₁ + a Sᵣ`. -/
+def fibPolyValue (a : R) : Nat → R
+  | 0 => 0
+  | 1 => 1
+  | n + 2 => fibPolyValue a (n + 1) + a * fibPolyValue a n
+
+/-- The recursively presented partial Frobenius trace.  The theorem
+`partialFrobeniusTrace_eq_sum` identifies it with
+`a + a² + ⋯ + a^(2^(t-1))` after imposing characteristic two. -/
+def partialFrobeniusTrace (a : R) : Nat → R
+  | 0 => 0
+  | t + 1 => (partialFrobeniusTrace a t) ^ 2 + a
+
+@[simp]
+theorem partialFrobeniusTrace_zero (a : R) :
+    partialFrobeniusTrace a 0 = 0 := by
+  rfl
+
+theorem partialFrobeniusTrace_succ (a : R) (t : Nat) :
+    partialFrobeniusTrace a (t + 1) =
+      (partialFrobeniusTrace a t) ^ 2 + a := by
+  rfl
+
+variable [CharP R 2]
+
+/-- In characteristic two, the recursive partial trace is literally the
+sum of the first `t` Frobenius conjugates. -/
+theorem partialFrobeniusTrace_eq_sum (a : R) (t : Nat) :
+    partialFrobeniusTrace a t =
+      ∑ j ∈ Finset.range t, a ^ (2 ^ j) := by
+  induction t with
+  | zero => simp
+  | succ t ih =>
+      rw [partialFrobeniusTrace_succ, ih, Finset.sum_range_succ']
+      rw [sum_pow_char]
+      congr 1
+      · apply Finset.sum_congr rfl
+        intro j hj
+        rw [← pow_mul]
+        congr 1
+      · simp
+
+/-- Characteristic-two doubling for the selected Fibonacci recurrence. -/
+theorem fibPolyValue_double (a : R) (r : Nat) :
+    fibPolyValue a (2 * r) = (fibPolyValue a r) ^ 2 ∧
+    fibPolyValue a (2 * r + 1) =
+      (fibPolyValue a (r + 1)) ^ 2 + a * (fibPolyValue a r) ^ 2 := by
+  induction r with
+  | zero => simp [fibPolyValue]
+  | succ r ih =>
+      rcases ih with ⟨heven, hodd⟩
+      have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+      constructor
+      · rw [show 2 * (r + 1) = (2 * r + 1) + 1 by omega]
+        rw [show fibPolyValue a ((2 * r + 1) + 1) =
+            fibPolyValue a (2 * r + 1) + a * fibPolyValue a (2 * r) by
+              rw [show (2 * r + 1) + 1 = 2 * r + 2 by omega]
+              simp only [fibPolyValue]]
+        rw [hodd, heven]
+        ring_nf
+        simp [h2]
+      · rw [show 2 * (r + 1) + 1 = (2 * r + 2) + 1 by omega]
+        rw [show fibPolyValue a ((2 * r + 2) + 1) =
+            fibPolyValue a (2 * r + 2) + a * fibPolyValue a (2 * r + 1) by
+              rw [show (2 * r + 2) + 1 = (2 * r + 1) + 2 by omega]
+              simp only [fibPolyValue]]
+        have hnext : fibPolyValue a (2 * r + 2) =
+            (fibPolyValue a (r + 1)) ^ 2 := by
+          rw [show 2 * r + 2 = (2 * r + 1) + 1 by omega]
+          rw [show fibPolyValue a ((2 * r + 1) + 1) =
+              fibPolyValue a (2 * r + 1) + a * fibPolyValue a (2 * r) by
+                rw [show (2 * r + 1) + 1 = 2 * r + 2 by omega]
+                simp only [fibPolyValue]]
+          rw [hodd, heven]
+          ring_nf
+          simp [h2]
+        rw [hnext, hodd]
+        rw [show fibPolyValue a (r + 2) =
+            fibPolyValue a (r + 1) + a * fibPolyValue a r by
+              simp only [fibPolyValue]]
+        ring_nf
+        simp [h2]
+
+/-- Pulling a power of two out of the Fibonacci index is Frobenius
+powering in characteristic two. -/
+theorem fibPolyValue_pow_two_mul (a : R) (t h : Nat) :
+    fibPolyValue a ((2 ^ t) * h) = (fibPolyValue a h) ^ (2 ^ t) := by
+  induction t with
+  | zero => simp
+  | succ t ih =>
+      have ht : 2 ^ (t + 1) = (2 ^ t) * 2 := by
+        rw [pow_succ]
+      calc
+        fibPolyValue a ((2 ^ (t + 1)) * h) =
+            fibPolyValue a (2 * ((2 ^ t) * h)) := by
+              rw [ht]
+              congr 1
+              ac_rfl
+        _ = (fibPolyValue a ((2 ^ t) * h)) ^ 2 :=
+          (fibPolyValue_double a ((2 ^ t) * h)).1
+        _ = ((fibPolyValue a h) ^ (2 ^ t)) ^ 2 := by rw [ih]
+        _ = (fibPolyValue a h) ^ (2 ^ (t + 1)) := by
+          rw [ht, ← pow_mul]
+
+/-- Exact trailing-zero compression of a Fibonacci index in characteristic
+two.  This is the formal algebraic core of the continued-fraction reduction
+for a hypothetical Conway--Fermat failure. -/
+theorem fibPolyValue_trailing_zero_compression (a : R) (t h : Nat) :
+    fibPolyValue a ((2 ^ t) * h + 1) =
+      (fibPolyValue a (h + 1)) ^ (2 ^ t) +
+        partialFrobeniusTrace a t * (fibPolyValue a h) ^ (2 ^ t) := by
+  induction t with
+  | zero => simp [partialFrobeniusTrace]
+  | succ t ih =>
+      have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+      have ht : 2 ^ (t + 1) = (2 ^ t) * 2 := by
+        rw [pow_succ]
+      have hA : ((fibPolyValue a (h + 1)) ^ (2 ^ t)) ^ 2 =
+          (fibPolyValue a (h + 1)) ^ (2 ^ (t + 1)) := by
+        rw [ht, ← pow_mul]
+      have hB : ((fibPolyValue a h) ^ (2 ^ t)) ^ 2 =
+          (fibPolyValue a h) ^ (2 ^ (t + 1)) := by
+        rw [ht, ← pow_mul]
+      calc
+        fibPolyValue a ((2 ^ (t + 1)) * h + 1) =
+            fibPolyValue a (2 * ((2 ^ t) * h) + 1) := by
+              rw [ht]
+              congr 2
+              ac_rfl
+        _ = (fibPolyValue a ((2 ^ t) * h + 1)) ^ 2 +
+              a * (fibPolyValue a ((2 ^ t) * h)) ^ 2 :=
+          (fibPolyValue_double a ((2 ^ t) * h)).2
+        _ = ((fibPolyValue a (h + 1)) ^ (2 ^ t) +
+                partialFrobeniusTrace a t *
+                  (fibPolyValue a h) ^ (2 ^ t)) ^ 2 +
+              a * ((fibPolyValue a h) ^ (2 ^ t)) ^ 2 := by
+          rw [ih, fibPolyValue_pow_two_mul]
+        _ = (fibPolyValue a (h + 1)) ^ (2 ^ (t + 1)) +
+              partialFrobeniusTrace a (t + 1) *
+                (fibPolyValue a h) ^ (2 ^ (t + 1)) := by
+          rw [partialFrobeniusTrace_succ]
+          ring_nf
+          simp [h2]
+
+/-- Over a field, the trailing-zero compression is equivalently a single
+continued-fraction ratio equation. -/
+theorem fibPolyValue_trailing_zero_ratio_iff
+    {K : Type*} [Field K] [CharP K 2]
+    (a : K) (t h : Nat) (hSh : fibPolyValue a h ≠ 0) :
+    fibPolyValue a ((2 ^ t) * h + 1) = 0 ↔
+      (fibPolyValue a (h + 1) / fibPolyValue a h) ^ (2 ^ t) =
+        partialFrobeniusTrace a t := by
+  rw [fibPolyValue_trailing_zero_compression, div_pow]
+  have hden : (fibPolyValue a h) ^ (2 ^ t) ≠ 0 := pow_ne_zero _ hSh
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  constructor
+  · intro hz
+    apply (div_eq_iff hden).2
+    have hneg :
+        - (partialFrobeniusTrace a t * (fibPolyValue a h) ^ (2 ^ t)) =
+          partialFrobeniusTrace a t * (fibPolyValue a h) ^ (2 ^ t) := by
+      apply eq_of_sub_eq_zero
+      ring_nf
+      simp [h2]
+    exact (eq_neg_of_add_eq_zero_left hz).trans hneg
+  · intro hratio
+    have heq := (div_eq_iff hden).1 hratio
+    rw [heq]
+    ring_nf
+    simp [h2]
+
+/-- If `delta` divides an index `d = 2^t h + 1` and is larger than the
+extracted power of two, neither complementary index can already be a zero
+index. -/
+theorem fermat_complement_indices_not_dvd
+    (delta d t h : Nat) (ht : 0 < t)
+    (hd : d = (2 ^ t) * h + 1) (hdelta_d : delta ∣ d)
+    (hlarge : 2 ^ t < delta) :
+    ¬delta ∣ h ∧ ¬delta ∣ h + 1 := by
+  constructor
+  · intro hdelta_h
+    have hmul : delta ∣ (2 ^ t) * h := dvd_mul_of_dvd_right hdelta_h _
+    have hd' : delta ∣ (2 ^ t) * h + 1 := by simpa [hd] using hdelta_d
+    have h1 : delta ∣ 1 := (Nat.dvd_add_iff_right hmul).mpr hd'
+    have : delta = 1 := Nat.eq_one_of_dvd_one h1
+    have hp : 0 < 2 ^ t := pow_pos (by omega) _
+    omega
+  · intro hdelta_h1
+    have hmul : delta ∣ (2 ^ t) * (h + 1) :=
+      dvd_mul_of_dvd_right hdelta_h1 _
+    have hpow : 1 < 2 ^ t := one_lt_pow₀ (by omega : 1 < 2) ht.ne'
+    have heq : (2 ^ t) * (h + 1) = d + (2 ^ t - 1) := by
+      rw [Nat.mul_add, hd]
+      omega
+    have hsum : delta ∣ d + (2 ^ t - 1) := by simpa [heq] using hmul
+    have hsmall : delta ∣ 2 ^ t - 1 :=
+      (Nat.dvd_add_iff_right hdelta_d).mpr hsum
+    have hpos : 0 < 2 ^ t - 1 := by omega
+    have hle : delta ≤ 2 ^ t - 1 := Nat.le_of_dvd hpos hsmall
+    omega
+
+end FermatFibonacciCompression
+
 section NormalizedSingerAlgebra
 
 variable {F : Type*} [Field F]

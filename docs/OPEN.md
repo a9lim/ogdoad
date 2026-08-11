@@ -274,7 +274,13 @@ absolute boundedness.
   obstruction is now choice-free: with `d=(q+1)/ell`, it is
   `(a_(n-1)^d)^(q/2)`. This removes an auxiliary root but leaves the same
   selected Dickson nonvanishing. Thus even the automatic-sequence complexity
-  is the unknown quotient order itself.
+  is the unknown quotient order itself. A new trailing-zero compression makes
+  the first continued-fraction obstruction explicit: if
+  `d = 1 + 2^t h`, then
+  `S_d = S_(h+1)^(2^t) + T_t S_h^(2^t)`, and hypothetical failure at a
+  Fermat divisor forces `S_(h+1)/S_h = 1 + T_(2^n-t)`. This too is exact but
+  circular: Binet and Cassini reduce it to the automatic congruence
+  `h = 2^(2^n-t) (mod delta_n)` on every order-`delta_n` fibotomic stratum.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
