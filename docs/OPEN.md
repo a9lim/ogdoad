@@ -326,11 +326,31 @@ absolute boundedness.
   Choosing the prime by sending a root of unity directly to `w_n` would assume
   maximality; local logarithms, principal-ideal/Stickelberger data, and
   circular-unit distribution do not determine the remaining residue of `r_n`.
+  The canonical characteristic-zero Hensel lift makes this failure exact:
+  two is inert and unramified through the lifted Conway chain, three is
+  totally ramified, and the lifted norm-one ratio is a global unit already an
+  `ell`-th power at three. Yet the prime above two splits into a full
+  cyclotomic torsor after adjoining `mu_ell`; its local Hilbert symbols are
+  `H^a` and their product is one for every `H`. Unweighted global reciprocity
+  therefore leaves the selected symbol completely free and only moves the
+  obstruction to a genuinely new weighted `ell`-adic ray coefficient.
   The resultant correspondence itself has rational normalization
   `Y=c^2+c`, `X=c^3+c^2` and a unique parent on trace-one irreducibles, but
   its critical portrait, degree growth, and cyclic splitting fields are
   universal. Hence its exact parent chain retains full Conway ancestry while
-  supplying no shorter dynamical selector. At a hypothetical first failure
+  supplying no shorter dynamical selector. Scheme-theoretically, the complete
+  ancestry equations already present the field `E_(n-1)`: adjoining a
+  fibotomic equation gives either that entire reduced Frobenius orbit or the
+  unit ideal, and its multiplication determinant/resultant is exactly the
+  existing terminal norm bit. Odd Fibonacci polynomials are squarefree
+  (`S'_(2r+1)=S_r^2`), so local multiplicity and higher Hasse jets add no
+  hidden contradiction. Proving the unit-ideal case remains literally the
+  selected nondivisibility target. The natural ancestry weight filtration
+  degenerates to `F_2[x_i]/(x_i^2)`, where Frobenius kills every positive
+  graded class; exact quadratic-basis doubling then drops to lower grades
+  with cancellable summands. Thus Newton/leading-monomial induction also
+  needs new control of the full selected normal form. At a hypothetical
+  first failure
   the old coefficient's
   maximal order only makes it a generator of the cube subgroup; exact Conway
   ancestry already makes that coefficient an explicit cube, and tripling on

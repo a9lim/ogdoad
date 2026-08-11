@@ -632,6 +632,34 @@ theorem quadratic_remainder_norm
         U ^ 2 + (x + x') * U * V + (x * x') * V ^ 2 := by ring
     _ = U ^ 2 + Y * U * V + Y ^ 3 * V ^ 2 := by rw [hsum, hprod]
 
+/-- Squaring a linear remainder at a Conway edge, still expressed in the
+same quadratic basis. -/
+theorem conway_quadratic_pair_square [CharP R 2]
+    (x A U V : R) (hx : x ^ 2 = A * x + A ^ 3) :
+    (U + x * V) ^ 2 =
+      (U ^ 2 + A ^ 3 * V ^ 2) + x * (A * V ^ 2) := by
+  rw [add_sq]
+  rw [mul_pow, hx]
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+  simp [h2]
+
+/-- The exact odd fast-doubling update for two adjacent linear remainders
+at a Conway edge. -/
+theorem conway_quadratic_pair_odd [CharP R 2]
+    (x A U V P Q : R) (hx : x ^ 2 = A * x + A ^ 3) :
+    (P + x * Q) ^ 2 + x * (U + x * V) ^ 2 =
+      (P ^ 2 + A ^ 3 * Q ^ 2 + A ^ 4 * V ^ 2) +
+        x * (A * Q ^ 2 + U ^ 2 + (A ^ 3 + A ^ 2) * V ^ 2) := by
+  rw [conway_quadratic_pair_square x A P Q hx]
+  rw [conway_quadratic_pair_square x A U V hx]
+  have hxx : x * x = A * x + A ^ 3 := by simpa [pow_two] using hx
+  rw [show x * (U ^ 2 + A ^ 3 * V ^ 2 + x * (A * V ^ 2)) =
+      x * U ^ 2 + x * A ^ 3 * V ^ 2 + (x * x) * (A * V ^ 2) by ring]
+  rw [hxx]
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+
 /-- The three pair-products of roots of a monic cubic have elementary
 coefficients `(D, C * E, E²)`.  This is the symmetric-algebra input to the
 second generalized Dickson recurrence in the cubic Kummer descent. -/
@@ -654,6 +682,78 @@ theorem cubic_pair_product_coefficients
 
 end KummerNormCoherence
 
+section FermatCanonicalLift
+
+variable {K : Type*} [Field K]
+
+/-- Characteristic-free reparametrization of one lifted Conway--Fermat
+quadratic step by its norm-one ratio. -/
+theorem canonicalLift_normOne_reparam
+    (C A : K) (hC : C ≠ 0) (hrel : C ^ 2 + C + A = 0) :
+    let W := -(C + 1) / C
+    A = W / (W + 1) ^ 2 ∧ A * C = -W / (W + 1) ^ 3 := by
+  dsimp
+  have hWp : -(C + 1) / C + 1 = -(1 / C) := by
+    field_simp
+    ring
+  have hA : A = -(C ^ 2 + C) := by
+    linear_combination hrel
+  rw [hWp]
+  rw [hA]
+  constructor <;> field_simp
+
+end FermatCanonicalLift
+
+section FermatCanonicalDiscriminant
+
+variable {R : Type*} [CommRing R]
+
+/-- Denominator-free discriminant recursion for the characteristic-zero
+lift.  With `Y = 2*C+1`, the old discriminant is `Y^2`, while the new one
+has `-Y` as its unique first-order term at the prime above three. -/
+theorem canonicalLift_discriminant_recursion
+    (C A : R) (hrel : C ^ 2 + C + A = 0) :
+    (2 * C + 1) ^ 2 = 1 - 4 * A ∧
+      2 * (1 - 4 * (A * C)) =
+        (2 * C + 1) ^ 3 - (2 * C + 1) ^ 2 - (2 * C + 1) + 3 := by
+  constructor
+  · linear_combination 4 * hrel
+  · linear_combination -8 * C * hrel
+
+end FermatCanonicalDiscriminant
+
+section OddKummerSquare
+
+variable {G : Type*} [CommGroup G]
+
+/-- Multiplication by a known `ell`-th power does not affect an odd Kummer
+class, and squaring is invertible on that class. -/
+theorem isPthPower_mul_sq_iff
+    (ell : Nat) (hell : Odd ell) (A W g : G)
+    (hA : IsPthPower ell A) (hrel : W = A * g ^ 2) :
+    IsPthPower ell W ↔ IsPthPower ell g := by
+  rcases hell with ⟨s, rfl⟩
+  constructor
+  · rintro ⟨z, hz⟩
+    rcases hA with ⟨x, hx⟩
+    have ht : (z * x⁻¹) ^ (2 * s + 1) = g ^ 2 := by
+      rw [mul_pow, inv_pow, hz, hx, hrel]
+      simp
+    have hts : ((z * x⁻¹) ^ s) ^ (2 * s + 1) = (g ^ 2) ^ s := by
+      rw [← pow_mul, Nat.mul_comm s (2 * s + 1), pow_mul, ht]
+    refine ⟨g * ((z * x⁻¹) ^ s)⁻¹, ?_⟩
+    rw [mul_pow, inv_pow, hts]
+    rw [show 2 * s + 1 = 1 + 2 * s by omega, pow_add, pow_mul]
+    simp
+  · rintro ⟨y, hy⟩
+    rcases hA with ⟨x, hx⟩
+    have hy2 : (y ^ 2) ^ (2 * s + 1) = g ^ 2 := by
+      rw [← pow_mul, Nat.mul_comm 2 (2 * s + 1), pow_mul, hy]
+    refine ⟨x * y ^ 2, ?_⟩
+    rw [mul_pow, hx, hy2, ← hrel]
+
+end OddKummerSquare
+
 section FermatFibonacciCompression
 
 variable {R : Type*} [CommRing R]
@@ -664,6 +764,15 @@ def fibPolyValue (a : R) : Nat → R
   | 0 => 0
   | 1 => 1
   | n + 2 => fibPolyValue a (n + 1) + a * fibPolyValue a n
+
+/-- Evaluation at `a` of the formal derivative of `Sᵣ`.  Differentiating
+`Sᵣ₊₂ = Sᵣ₊₁ + X Sᵣ` gives the displayed recursive definition. -/
+def fibPolyDerivativeValue (a : R) : Nat → R
+  | 0 => 0
+  | 1 => 0
+  | n + 2 =>
+      fibPolyDerivativeValue a (n + 1) + fibPolyValue a n +
+        a * fibPolyDerivativeValue a n
 
 /-- The recursively presented partial Frobenius trace.  The theorem
 `partialFrobeniusTrace_eq_sum` identifies it with
@@ -806,6 +915,50 @@ theorem fibPolyValue_double (a : R) (r : Nat) :
               simp only [fibPolyValue]]
         ring_nf
         simp [h2]
+
+/-- In characteristic two the derivative of every even-index Fibonacci
+polynomial vanishes, while the derivative at odd index `2r+1` is `Sᵣ²`. -/
+theorem fibPolyDerivativeValue_double (a : R) (r : Nat) :
+    fibPolyDerivativeValue a (2 * r) = 0 ∧
+    fibPolyDerivativeValue a (2 * r + 1) = (fibPolyValue a r) ^ 2 := by
+  induction r with
+  | zero => simp [fibPolyDerivativeValue, fibPolyValue]
+  | succ r ih =>
+      rcases ih with ⟨heven, hodd⟩
+      have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+      have hevenNext : fibPolyDerivativeValue a (2 * (r + 1)) = 0 := by
+        rw [show 2 * (r + 1) = (2 * r + 1) + 1 by omega]
+        rw [show fibPolyDerivativeValue a ((2 * r + 1) + 1) =
+            fibPolyDerivativeValue a (2 * r + 1) + fibPolyValue a (2 * r) +
+              a * fibPolyDerivativeValue a (2 * r) by
+                rw [show (2 * r + 1) + 1 = 2 * r + 2 by omega]
+                simp only [fibPolyDerivativeValue]]
+        rw [hodd, heven, (fibPolyValue_double a r).1]
+        ring_nf
+        simp [h2]
+      constructor
+      · exact hevenNext
+      · rw [show 2 * (r + 1) + 1 = (2 * r + 2) + 1 by omega]
+        rw [show fibPolyDerivativeValue a ((2 * r + 2) + 1) =
+            fibPolyDerivativeValue a (2 * r + 2) + fibPolyValue a (2 * r + 1) +
+              a * fibPolyDerivativeValue a (2 * r + 1) by
+                rw [show (2 * r + 2) + 1 = (2 * r + 1) + 2 by omega]
+                simp only [fibPolyDerivativeValue]]
+        rw [show fibPolyDerivativeValue a (2 * r + 2) = 0 by
+              simpa [Nat.mul_add] using hevenNext]
+        rw [(fibPolyValue_double a r).2, hodd]
+        ring_nf
+        simp [h2]
+
+/-- An odd Fibonacci zero is simple as soon as its half-index value is
+nonzero.  This is the kernel-checked multiplicity obstruction used in the
+Conway--Fermat selected-factor analysis. -/
+theorem fibPolyDerivativeValue_odd_ne_zero
+    {K : Type*} [Field K] [CharP K 2] (a : K) (r : Nat)
+    (hr : fibPolyValue a r ≠ 0) :
+    fibPolyDerivativeValue a (2 * r + 1) ≠ 0 := by
+  rw [(fibPolyDerivativeValue_double a r).2]
+  exact pow_ne_zero 2 hr
 
 /-- Pulling a power of two out of the Fibonacci index is Frobenius
 powering in characteristic two. -/

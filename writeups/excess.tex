@@ -8365,6 +8365,181 @@ Lean independently checks \(\beta=c\alpha\),
 \(\beta(c)\beta(c+1)=\alpha(c)^3\) in \texttt{Ogdoad.Excess}.
 \end{proof}
 
+\begin{proposition}[the full ancestry chain is an étale zero--unit dichotomy]
+\label{prop:fermat-full-chain-etale}
+For $n\geq1$, put
+\[
+ \begin{split}
+ I_n=(&X_0^2+X_0+1,\\
+     &X_i^2+X_{i-1}X_i+X_{i-1}^3\ :\ 1\leq i<n)
+ \subseteq\F_2[X_0,\ldots,X_{n-1}].
+ \end{split}
+\]
+Evaluation at the complete Conway ancestry is an isomorphism
+\[
+ \F_2[X_0,\ldots,X_{n-1}]/I_n
+   \xrightarrow{\ \sim\ } E_{n-1},
+ \qquad X_i\longmapsto a_i.                         \tag{\(\mathsf{FE}_1\)}
+\]
+Consequently
+\[
+ I_n\cap\F_2[X_{n-1}]=(A_{n-1}(X_{n-1})),
+\]
+and, for every $R\in\F_2[X]$,
+\[
+ I_n+(R(X_{n-1}))=
+ \begin{cases}
+   I_n,&A_{n-1}\mid R,\\
+   (1),&A_{n-1}\nmid R.
+ \end{cases}                                      \tag{\(\mathsf{FE}_2\)}
+\]
+The quotient in \((\mathsf{FE}_1)\) is finite étale of degree $2^n$;
+geometrically its points form one free Frobenius orbit.  Moreover
+\[
+ \det\bigl(m_{R(a_{n-1})}:E_{n-1}\to E_{n-1}\bigr)
+ =\Norm_{E_{n-1}/\F_2}(R(a_{n-1}))
+ =\operatorname{Res}(A_{n-1},R).                  \tag{\(\mathsf{FE}_3\)}
+\]
+Thus for $R=S_d$, adjoining the complete ancestry equations and the
+hypothetical proper-order equation produces no intermediate intersection:
+it gives the whole selected orbit or the empty scheme.  Proving the second
+case is exactly $A_{n-1}\nmid S_d$, the original Conway--Fermat target.
+\end{proposition}
+
+\begin{proof}
+Successively adjoining the variables in their displayed monic quadratic
+equations makes the source of \((\mathsf{FE}_1)\) a vector space of dimension
+at most $2^n$.  Evaluation is onto: its image contains all the $a_i$, and
+the top one generates $E_{n-1}$ by
+Proposition~\ref{prop:fermat-resultant}.  Since
+$[E_{n-1}:\F_2]=2^n$, evaluation is an isomorphism.  The elimination and
+zero--unit assertions are then just divisibility by the minimal polynomial
+and the fact that the quotient is a field.
+
+The Jacobian of the displayed generators is lower triangular with diagonal
+$1,X_0,\ldots,X_{n-2}$.  Every $a_i$ is nonzero, so it is nonsingular at
+every geometric point; Frobenius transitivity follows from the full degree of
+$a_{n-1}$.  Finally, the determinant of multiplication by an element is its
+field norm, and the norm of $R(a_{n-1})$ is the displayed monic resultant.
+\end{proof}
+
+\begin{proposition}[odd fibotomic intersections are reduced]
+\label{prop:fermat-fibonacci-squarefree}
+For every odd $d>1$, the Fibonacci polynomial $S_d(X)$ is squarefree over
+$\F_2$.  More explicitly, if $u^d=1$, $u\ne1$, and
+$\Phi(u)=u/(1+u)^2$, then
+\[
+ S_d(\Phi(u))=0,
+ \qquad
+ S_d'(\Phi(u))=\frac1{u(1+u)^{d-2}}\ne0.           \tag{\(\mathsf{FS}_1\)}
+\]
+Equivalently, in characteristic two,
+\[
+ S'_{2r}(X)=0,
+ \qquad
+ S'_{2r+1}(X)=S_r(X)^2.                            \tag{\(\mathsf{FS}_2\)}
+\]
+Hence if a selected factor $A_{n-1}$ divides $S_d$, it occurs with
+multiplicity one.  Writing $S_d=A_{n-1}Q$, its higher Hasse derivatives at
+$a=a_{n-1}$ merely give
+\[
+ S_d^{[j]}(a)=
+   \sum_{s=1}^{j}A_{n-1}^{[s]}(a)Q^{[j-s]}(a),      \tag{\(\mathsf{FS}_3\)}
+\]
+which recursively determines the quotient jets because
+$A_{n-1}'(a)\ne0$.  Tangent multiplicity and local jets therefore do not
+strengthen the selected nondivisibility problem by themselves.
+\end{proposition}
+
+\begin{proof}
+The Binet parametrization gives
+\[
+ S_d(\Phi(u))=\frac{1+u^d}{(1+u)^d}.
+\]
+Differentiate at a nontrivial $d$-th root $u$.  Since $d$ is odd and the
+characteristic is two, the derivative of the right side is
+$u^{-1}(1+u)^{-d}$, while
+$\Phi'(u)=(1+u)^{-2}$.  This proves \((\mathsf{FS}_1)\).
+The inverse-pair parametrization $u\sim u^{-1}$ supplies all
+$(d-1)/2=\deg S_d$ roots, so $S_d$ is squarefree.
+
+Alternatively, differentiating the Fibonacci recurrence and using the
+doubling identities proves \((\mathsf{FS}_2)\) by induction.  This derivative
+identity and its nonvanishing consequence are independently kernel-checked in
+\texttt{Ogdoad.Excess}.  Formula \((\mathsf{FS}_3)\) is the Hasse product rule
+after evaluating at a root of $A_{n-1}$.
+\end{proof}
+
+\begin{proposition}[the natural ancestry filtration loses Frobenius]
+\label{prop:fermat-groebner-filtration}
+Retain the full-chain ideal $I_n$ of
+Proposition~\ref{prop:fermat-full-chain-etale} and give $X_i$ weight
+$2^i$.  For every monomial order refining this weight, the displayed
+generators of $I_n$ are a Gr\"obner basis with initial ideal
+\[
+ (X_0^2,\ldots,X_{n-1}^2).
+\]
+Consequently the associated graded algebra is
+\[
+ \operatorname{gr}E_{n-1}
+ \simeq
+ \F_2[x_0,\ldots,x_{n-1}]/(x_0^2,\ldots,x_{n-1}^2), \tag{\(\mathsf{GF}_1\)}
+\]
+and Frobenius annihilates every positive-degree element of this graded
+algebra.  Thus a max-weight, Newton-polygon, or unique-leading-monomial
+argument cannot propagate a nonzero leading class through the squaring
+steps in Fibonacci fast doubling; each such step necessarily falls to
+uncontrolled lower filtration.
+
+The exact loss at one Conway edge can be written without division.  If
+\[
+ x^2=Ax+A^3,
+ \qquad
+ S_r(x)=U_r+xV_r,
+\]
+then
+\[
+ \begin{aligned}
+ U_{2r}&=U_r^2+A^3V_r^2,&
+ V_{2r}&=AV_r^2,\\
+ U_{2r+1}&=U_{r+1}^2+A^3V_{r+1}^2+A^4V_r^2,&
+ V_{2r+1}&=AV_{r+1}^2+U_r^2+(A^3+A^2)V_r^2.
+ \end{aligned}                                      \tag{\(\mathsf{GF}_2\)}
+\]
+The three summands in either odd update may cancel in every leading grade.
+Moreover every ordered multiplicative valuation on the finite field
+$E_{n-1}$ is trivial.  Hence replacing the weight filtration by a genuine
+field valuation cannot repair the loss.  This rules out a leading-term proof
+by itself; it does not rule out an induction that controls the complete lower
+normal form by new ancestry-sensitive information.
+\end{proposition}
+
+\begin{proof}
+The leading term of the first chain equation is $X_0^2$.  For $i>0$,
+the three terms have weights
+\[
+ 2^{i+1},\qquad 3\cdot2^{i-1},\qquad 3\cdot2^{i-1},
+\]
+so the unique leading term is $X_i^2$.  These leading monomials are
+pairwise coprime; Buchberger's coprime criterion proves the Gr\"obner-basis
+claim and \((\mathsf{GF}_1)\).  In characteristic two, the square of a sum
+of squarefree positive-degree monomials is the sum of their squares, each of
+which contains some $x_i^2$, so it vanishes in the associated graded.
+
+The characteristic-two doubling identities are
+\[
+ S_{2r}=S_r^2,
+ \qquad
+ S_{2r+1}=S_{r+1}^2+xS_r^2.
+\]
+Substitute $S_r=U_r+xV_r$, reduce every $x^2$ by $Ax+A^3$, and collect
+the constant and $x$-coefficients to obtain \((\mathsf{GF}_2)\).  Both
+algebraic reductions are independently kernel-checked in the Lean companion.
+Finally, if $v$ is an ordered multiplicative
+valuation and $z\ne0$, then $z^{|E_{n-1}^\times|}=1$, so
+$|E_{n-1}^\times|v(z)=0$ and hence $v(z)=0$.
+\end{proof}
+
 \begin{proposition}[the top-bit block is the same projective-order problem]
 \label{prop:fermat-top-bit-companion}
 Fix one Conway edge, put
@@ -10902,6 +11077,173 @@ is equivalent to retaining the full \(\ell\)-primary part of the
 order.  Proposition~\ref{prop:fermat-fibotomic} supplies the last
 equivalence in \((\mathsf{CS}_3)\).  The Euler-exponent identity used
 here is independently kernel-checked in \texttt{Ogdoad.Excess}.
+\end{proof}
+
+\begin{proposition}[the canonical global lift leaves a free cyclotomic torsor]
+\label{prop:fermat-canonical-global-lift}
+Define a characteristic-zero lift of the complete Conway chain by
+\[
+ \mathcal K_{-1}=\mathbf Q,\qquad \mathcal A_{-1}=1,
+\]
+and, for $i\geq0$,
+\[
+ C_i^2+C_i+\mathcal A_{i-1}=0,
+ \qquad
+ \mathcal A_i=\mathcal A_{i-1}C_i,
+ \qquad
+ \mathcal K_i=\mathcal K_{i-1}(C_i).               \tag{\(\mathsf{GL}_1\)}
+\]
+At two, choose the Hensel branch reducing successively to the Conway
+elements $c_i$.  Then $2$ is inert and unramified through
+$\mathcal K_n/\mathbf Q$.  On the other hand, $3$ is totally ramified,
+with a unique prime at every level.  More precisely, if
+\[
+ D_i=1-4\mathcal A_i,\qquad Y_i=2C_i+1,
+\]
+where $D_{-1}=-3$, then
+\[
+ Y_i^2=D_{i-1},
+ \qquad
+ 2D_i=Y_i^3-Y_i^2-Y_i+3,                            \tag{\(\mathsf{GL}_2\)}
+\]
+and $D_i$ is a uniformizer at the prime above three.
+
+Put
+\[
+ W_i=-\frac{C_i+1}{C_i}.
+\]
+Then, characteristic-freely,
+\[
+ \mathcal A_{i-1}=\frac{W_i}{(W_i+1)^2},
+ \qquad
+ \mathcal A_i=-\frac{W_i}{(W_i+1)^3}.
+\]
+Every $C_i$, $C_i+1$, $\mathcal A_i$, and $W_i$ is an algebraic unit;
+in particular
+\[
+ \operatorname{div}(W_i)=0,
+ \qquad
+ \Norm_{\mathcal K_i/\mathbf Q}(W_i)=1.             \tag{\(\mathsf{GL}_3\)}
+\]
+At the prime above three, $C_i\equiv W_i\equiv1$.  Hence, for every
+prime $\ell\mid F_n$ with $n\geq1$, $W_n$ is an $\ell$-th power in the
+full $3$-adic completion.
+
+At two, all lower-field units are $\ell$-th powers.  The first
+reparametrization therefore gives
+\[
+ [W_n]=-2[C_n]
+ \quad\text{in }\mathcal K_{n,\mathfrak p}^{\times}/
+                    \mathcal K_{n,\mathfrak p}^{\times\ell}.  \tag{\(\mathsf{GL}_{3a}\)}
+\]
+For the cyclotomic unit $\varepsilon_{r_n}$ of
+Proposition~\ref{prop:fermat-cyclotomic-symbol}, the compatible Hensel lifts
+satisfy $C_n/\varepsilon_{r_n}\in1+2\mathcal O$.  This principal-unit group
+is uniquely $\ell$-divisible, so
+\[
+ [W_n]=-2[\varepsilon_{r_n}].                       \tag{\(\mathsf{GL}_{3b}\)}
+\]
+Thus higher two-adic precision retains exactly the same selected Kummer
+class, up to an invertible scalar.
+
+Nevertheless global reciprocity does not determine its selected symbol at
+two.  Put $M=\mathcal K_n(\zeta_\ell)$.  Then
+\[
+ \mathcal K_n\cap\mathbf Q(\zeta_\ell)=\mathbf Q,    \tag{\(\mathsf{GL}_4\)}
+\]
+and the unique prime $\mathfrak p\mid2$ of $\mathcal K_n$ splits completely
+in $M/\mathcal K_n$.  Label the primes above it by
+\[
+ \mathfrak q_a=\tau_a\mathfrak q_1,
+ \qquad \tau_a(\zeta_\ell)=\zeta_\ell^a,
+ \qquad a\in(\mathbf Z/\ell\mathbf Z)^\times.
+\]
+For the tame Hilbert-symbol orientation
+\[
+ (x,y)_{\mathfrak q,\ell}
+ =\left(
+   (-1)^{v(x)v(y)}\frac{x^{v(y)}}{y^{v(x)}}
+  \bmod\mathfrak q\right)^{(|k(\mathfrak q)|-1)/\ell},
+\]
+write $H=(W_n,2)_{\mathfrak q_1,\ell}$.  Equivariance gives
+\[
+ (W_n,2)_{\mathfrak q_a,\ell}=H^a,
+ \qquad
+ \prod_{a\in(\mathbf Z/\ell\mathbf Z)^\times}H^a=1 \quad
+ \text{for every }H\in\mu_\ell.                    \tag{\(\mathsf{GL}_5\)}
+\]
+If $q=2^{2^n}$ and $N=q+1=F_n$, reduction at $\mathfrak q_1$ gives
+\[
+ H=\left(w_n^{N/\ell}\right)^{-2}.                 \tag{\(\mathsf{GL}_6\)}
+\]
+Thus $H\ne1$ is exactly the desired full $\ell$-primary order condition.
+All finite places away from $2\ell$ are tame-trivial, the place above three
+is already power-trivial, and there are no real places.  Global reciprocity
+therefore says only
+\[
+ \prod_{\lambda\mid\ell}(W_n,2)_{\lambda,\ell}=1;   \tag{\(\mathsf{GL}_7\)}
+\]
+the product over the complete orbit above two is identically one for every
+possible $H$.  Consequently the canonical lift, its principal divisor,
+its total $3$-adic ramification, and unweighted global reciprocity do not
+select the Conway residue symbol.  Any reciprocity proof must add a genuinely
+weighted $\ell$-adic ray or Jacobi coefficient that breaks the torsor in
+\((\mathsf{GL}_5)\); proving that coefficient nonzero is a new arithmetic
+input, not a consequence of the lifted ancestry alone.
+\end{proposition}
+
+\begin{proof}
+The reductions of the quadratics in \((\mathsf{GL}_1)\) are precisely the
+successive irreducible Conway quadratics.  Hensel lifting therefore makes
+each local extension at two the unramified quadratic extension and proves
+the first assertion.
+
+The identities \((\mathsf{GL}_2)\) follow directly from
+$C_i^2+C_i=-\mathcal A_{i-1}$.  Starting from the uniformizer
+$D_{-1}=-3$, the first identity is Eisenstein at the unique prime over three.
+In the resulting ramified quadratic extension, the linear term $-Y_i$ in
+the second identity has strictly smallest valuation, so $D_i$ is again a
+uniformizer.  This proves total ramification inductively.
+
+The relative norm of each of $C_i$ and $C_i+1$ is
+$\mathcal A_{i-1}$.  Induction therefore makes them, and hence
+$\mathcal A_i$ and $W_i$, units.  The nontrivial relative conjugation sends
+$W_i$ to $W_i^{-1}$, proving \((\mathsf{GL}_3)\).  At three,
+$Y_i\equiv0$ gives $C_i\equiv1$ and then $W_i\equiv1$.  Since
+$\ell$ is odd and different from three, powering by $\ell$ is an
+automorphism of both the order-two residue-unit group and the pro-$3$
+principal units.
+
+Solving $W_i=-(C_i+1)/C_i$ for $C_i$ and using
+$C_i^2+C_i=-\mathcal A_{i-1}$ gives the two displayed rational
+reparametrizations.  At two, $\ell\mid q+1$ is coprime to the lower
+residue-group order $q-1$, proving \((\mathsf{GL}_{3a})\).  The two
+characteristic-zero units $C_n$ and $\varepsilon_{r_n}$ have the same
+reduction $c_n$; their ratio is therefore a principal unit, on which odd
+$\ell$-powering is an automorphism.  This proves \((\mathsf{GL}_{3b})\).
+
+Every nontrivial subfield of $\mathcal K_n$ is ramified at three, whereas
+$\mathbf Q(\zeta_\ell)$ is not; since the latter has abelian Galois group,
+this proves \((\mathsf{GL}_4)\).  The residue field at $\mathfrak p$ is
+$\F_{q^2}$ and contains $\mu_\ell$, so $\mathfrak p$ splits completely in
+$M$.  Hilbert-symbol equivariance proves the first equality in
+\((\mathsf{GL}_5)\), and the second follows because
+$\sum_{a=1}^{\ell-1}a$ is divisible by $\ell$.
+
+Finally $W_n\bmod\mathfrak p=w_n$, and the displayed tame convention gives
+\[
+ H=w_n^{(q^2-1)/\ell}
+   =\left(w_n^{N/\ell}\right)^{q-1}
+   =\left(w_n^{N/\ell}\right)^{-2},
+\]
+since $w_n^N=1$.  The standard tame local formula makes all other places
+outside $\ell$ trivial as stated.  The product formula now yields
+\((\mathsf{GL}_7)\), while \((\mathsf{GL}_5)\) proves that it imposes no
+condition on $H$.
+
+Lean independently checks the characteristic-free reparametrization, the
+two identities \((\mathsf{GL}_2)\), and the corresponding odd-Kummer
+square-class equivalence in \texttt{Ogdoad.Excess}.
 \end{proof}
 
 \begin{proposition}[four-point saturation of a Fermat failure]

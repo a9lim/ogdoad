@@ -118,6 +118,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the Conway-unit Euler-symbol identity
   `c^((q-1)h)=w^h` from `c^q=c*w`, which is the finite-field core of the
   paper's exact cyclotomic lift of the selected Fermat residue symbol;
+- the characteristic-free canonical-lift reparametrization
+  `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, its denominator-free discriminant
+  recursion, and the odd-Kummer square-class equivalence used in the paper's
+  global-reciprocity torsor no-go; the number-field ramification and Hilbert-
+  symbol deductions themselves remain paper-level;
 - the exact quotient-order factorization used by relative-order products, with
   maximality of the individual quotient factors deliberately left as an input;
 - the finite-level Popovych primitive-product equivalence: the selected
@@ -152,7 +157,9 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   compression
   `S_(2^t*h+1)=S_(h+1)^(2^t)+T_t(a)*S_h^(2^t)`, including its exact ratio
   form and the complementary-index nondivisibility used in the
-  Conway--Fermat continued-fraction reduction;
+  Conway--Fermat continued-fraction reduction; and the formal-derivative
+  identities `S'_(2r)=0`, `S'_(2r+1)=S_r^2`, which show that an odd selected
+  zero is simple whenever its half-index value is nonzero;
 - partial Frobenius-trace additivity, Frobenius commutation, index splitting,
   and the exact conjugate descent
   `Tr(1+T_s(a))=T_s(A)` when `a^(2^d)=a+A`, which underlies the paper's
@@ -172,6 +179,10 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the denominator-free quadratic-remainder norm
   `(U+xV)(U+x'V) = U^2 + YUV + Y^3V^2` used by the paper's one-branch
   Conway--Fermat descent;
+- the exact square and odd fast-doubling updates for a linear remainder
+  `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
+  paper's ancestry-filtration degeneration; the Gröbner-basis statement
+  itself remains paper-level;
 - the denominator-free normalization of the selected Singer cubic to
   `tau^3 + d^2*tau^2 + 1 = 0`, together with the coefficient-ancestry identity
   `s_k^3 = s_(k-1)*tau_(k-1)^2`;
