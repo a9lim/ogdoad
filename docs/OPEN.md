@@ -523,6 +523,13 @@ Historical program state (2026-06-10 — retained as proof provenance):
   The open coherence lemma is therefore to show that the universal neutral
   `Q`-branches cannot sustain this blocker fan and must produce a complete
   equal-signature flag.  No proof of that implication is known.
+  The static obstruction is stable under adjoining any even number of
+  isolates: mixed isolate-real cells can be uncrossed, so `H + I_(2k)` has
+  parity cells iff `H` does.  Correspondingly, the 14-vertex no-pair witness
+  plus two isolates is a live stress case rather than a claimed
+  counterexample: all 16 singleton roots survive exact bounded refutation
+  through depth 12 (selected roots through 15), but full recursion exceeded
+  memory.  This bounded result is evidence only.
   In the separate odd-spike `(A)` normal form there is now an analogous exact
   first-response restriction: after a defender `O_v`, an immediate selected
   `C_y` is possible only when both front incidences are one,

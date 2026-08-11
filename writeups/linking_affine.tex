@@ -2023,6 +2023,16 @@ $O_4$.  Thus neither the $C_x$ child nor even one complete singleton tree can
 be promoted to a static cell certificate; simultaneity across all punctures
 is essential.
 
+Adding two isolates to this same $H$ gives a sharp unresolved stress test for
+the simultaneous conjecture.  Proposition~\ref{prop:cells-even-isolates}
+proves that the sixteen-vertex extension still has no parity-cell pairing.
+\TESTED{} Exact bounded neutral recursion finds no opponent refutation at any
+of its sixteen singleton roots through depth twelve, and selected formerly
+bad, formerly good, and isolated roots survive through depth fifteen.  Full
+recursion exceeded the available state memory, so this is neither a neutral
+strategy certificate nor a counterexample; it records that shallow local
+obstructions do not settle the all-punctures implication.
+
 The full family also supplies exactly the coherent short strategy needed by
 the offset ladder.  Fix a hypothetical universal target-one row $x$.  The
 $C_x$ child of the neutral tree at $S_x^H$ is a neutral attacker tree
@@ -2665,6 +2675,30 @@ There are
 perfect pairings.  The union bound therefore leaves at least one Euler form
 outside every pairing locus.  Its coordinate matrix is the required simple
 Euler graph.
+\end{proof}
+
+The obstruction persists after adding neutral coordinates; static cells
+cannot use isolated vertices as an unlimited repair resource.
+
+\begin{proposition}[even isolated extension preserves parity cells]
+\label{prop:cells-even-isolates}
+\PROVED{} Let $I$ be an even set of new isolated vertices.  Then
+$H\sqcup I$ has an even-cross perfect pairing if and only if $H$ does.
+\end{proposition}
+
+\begin{proof}
+One direction pairs the vertices of $I$ among themselves.  Conversely,
+consider an even-cross pairing of $H\sqcup I$.  The number of mixed cells
+$\{d_i,a_i\}$, with $d_i\in I$ and $a_i\in H$, is even.  Two mixed cells
+give
+\[
+ e(\{d_i,a_i\},\{d_j,a_j\})=B(a_i,a_j)=0,
+\]
+and a mixed cell against an old real cell $C$ gives $B(a_i,C)=0$.
+Pair the mixed real partners $a_i$ arbitrarily among themselves and do the
+same with the mixed isolates.  The new real cells are mutually cross-even
+and cross-even to every unchanged real cell, while every new isolate cell is
+trivial.  This produces an even-cross pairing of $H$.
 \end{proof}
 
 There is a useful exact flag form of the static certificate.  It says what
