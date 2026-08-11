@@ -374,9 +374,14 @@ absolute boundedness.
   divisor of `x`. Its relative norm is the explicit scalar
   `A_(n-1)+R+R^2`, but the two split orientations carry reciprocal values of
   `W_n`; the ordinary norm/resultant erases precisely the half selected by
-  `x`. The exact norm-two choice `A_(n-1)+R+R^2=2` is impossible by the
-  unique-quadratic-subfield and two-adic square-class comparison, while a
-  general `{2,ell}`-unit value remains a genuine constrained S-unit problem.
+  `x`. More strongly, this norm has valuation vector `(1,0,...,0)` on the
+  `(ell-1)/2` primes of the cyclotomic layer above two. Its Galois stabilizer
+  is therefore contained in `{+1,-1}`, so it has lower-field degree at least
+  `(ell-1)/2` and cannot descend to any ancestral scalar. Even without the
+  selector congruences, the exact norm-two equation
+  `A_(n-1)+R+R^2=2` has no solution by the unique-quadratic-subfield and
+  two-adic square-class comparison, while a general `{2,ell}`-unit value
+  remains a genuine constrained S-unit problem.
   Classical power reciprocity now evaluates that half-resultant exactly:
   `T_R=(R/r)^2` and `H=(R/r)^(-2)`, with `R mod r=c_n`. Every lower
   ancestral unit cancels separately. Thus the affine selector is a
@@ -415,11 +420,25 @@ absolute boundedness.
   after proving the ray character nontrivial, its value at the named class is
   still required, and classical cyclotomic reciprocity does not supply it.
   Equivalently, failure says that `2` is a global norm from the cyclic Kummer
-  extension `M(W_n^(1/ell))/M`. If `W_n` is not already a global `ell`-th
-  power, its lower-field Galois closure is dihedral, and every abelian quotient
+  extension `M(W_n^(1/ell))/M`. If `y` is such a norm witness, then
+  `Norm(y^P)=2^aug(P)` for every integral group-ring operation `P` in the
+  cyclic Kummer direction. These operations retain a constant valuation
+  vector across the primes over two and cannot produce the affine selector's
+  one-point vector without the missing weighted `Delta`-operation. If `W_n`
+  is not already a global `ell`-th power, its lower-field Galois closure is
+  dihedral, and every abelian quotient
   of that specific extension kills the selected translation Frobenius. Thus no
   abelian quotient or descent factoring through that dihedral extension can
-  decide the norm equation. In Brauer-group form all lower ancestral symbols
+  decide the norm equation. There is, however, an exact nonabelian descent:
+  if `L` is the degree-`ell` reflection fixed field, then
+  `H=1 iff 2 in Norm(L/M_0)`. A cyclic witness `y` descends explicitly as
+  `((y*s(y))^((ell+1)/2))/2`; this retains rather than removes the dihedral
+  orientation. Explicitly `L=M_0(theta+theta^(-1))`, with defining Dickson
+  equation `D^cl_ell(t)=W_n+W_n^(-1)`, where
+  `D^cl_0=2`, `D^cl_1=T`, and `D^cl_(m+2)=T*D^cl_(m+1)-D^cl_m`.
+  The remaining target is exclusion of one
+  norm in this named non-Galois reflection field. In Brauer-group form all
+  lower ancestral symbols
   with `2` vanish, while `beta={W_n,2}=-2*alpha` for the anti-invariant top
   class `alpha={C_n,2}`. Corestriction kills that class, so this formulation
   isolates the obstruction at the top edge but supplies no inductive

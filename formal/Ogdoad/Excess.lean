@@ -438,6 +438,45 @@ end FermatWeightedSelector
 
 section FermatAffineMixedSelector
 
+/-- An invariant function on a transitive orbit is constant.  Applied to
+normalized valuations at the primes over two, this is the abstract core of
+the paper's proof that a `(1, 0, ..., 0)` valuation vector cannot descend to
+the lower Conway field. -/
+theorem invariant_function_eq_of_transitive
+    {G I V : Type*} [Group G] [MulAction G I]
+    (htrans : ∀ i j : I, ∃ g : G, g • i = j)
+    (f : I → V)
+    (hinv : ∀ (g : G) (i : I), f (g • i) = f i)
+    (i j : I) : f i = f j := by
+  obtain ⟨g, rfl⟩ := htrans i j
+  exact (hinv g i).symm
+
+/-- A transitive invariant cannot take the two distinct values zero and one.
+This packages the valuation contradiction used for the affine selector norm. -/
+theorem invariant_function_not_one_zero_of_transitive
+    {G I V : Type*} [Group G] [MulAction G I] [Zero V] [One V]
+    (h10 : (1 : V) ≠ 0)
+    (htrans : ∀ i j : I, ∃ g : G, g • i = j)
+    (f : I → V)
+    (hinv : ∀ (g : G) (i : I), f (g • i) = f i)
+    (i j : I) (hi : f i = 1) (hj : f j = 0) : False := by
+  apply h10
+  rw [← hi, ← hj]
+  exact invariant_function_eq_of_transitive htrans f hinv i j
+
+/-- If a value occurs at exactly one point, every symmetry preserving the
+function fixes that point.  This is the abstract stabilizer step behind the
+degree bound for the mixed affine-selector norm. -/
+theorem unique_value_stabilizer_fixes
+    {G I V : Type*} [Group G] [MulAction G I]
+    (f : I → V) (i : I) (value : V)
+    (huniq : ∀ j, f j = value ↔ j = i)
+    (g : G) (hinv : ∀ j, f (g • j) = f j) :
+    g • i = i := by
+  apply (huniq (g • i)).mp
+  rw [hinv]
+  exact (huniq i).2 rfl
+
 /-- Affine interpolation against a nonzero coefficient isolates exactly one
 value of the cyclotomic coordinate.  This is the finite-field algebra behind
 the paper's principal selector with weighted two-adic moment one. -/
@@ -657,6 +696,47 @@ theorem fixed_source_maps_zero
       ((a : F) - 1) * f x = (a : F) * f x - f x := by ring
       _ = 0 := by rw [← hscale]; simp
   exact (mul_eq_zero.mp hprod).resolve_left (sub_ne_zero.mpr ha)
+
+/-- If a multiplicative map is invariant under every member of a finite
+family of endomorphisms, applying it to an integral group-ring product sees
+only the augmentation.  This is the abstract algebra behind the paper's
+observation that cyclic operations on a Hasse norm witness retain a constant
+prime-above-two norm vector. -/
+theorem invariant_hom_groupRing_product_eq_augmentation
+    {G A B : Type*} [Group G] [Fintype G] [CommGroup A] [CommGroup B]
+    (phi : A →* B) (rho : G → A →* A)
+    (hinv : ∀ (g : G) (x : A), phi (rho g x) = phi x)
+    (y : A) (coeff : G → ℤ) :
+    phi (∏ g : G, (rho g y) ^ coeff g) =
+      (phi y) ^ (∑ g : G, coeff g) := by
+  classical
+  rw [map_prod]
+  simp_rw [map_zpow, hinv]
+  induction (Finset.univ : Finset G) using Finset.induction_on with
+  | empty => simp
+  | @insert g s hg ih => simp [hg, ih, zpow_add]
+
+/-- Abstract algebra of the reflection-norm descent.  If `N(y) = a`, the
+reflection has the same norm, and base elements have degree-`ell` norm, then
+the symmetrized witness `((y * s y)^r) / a` is reflection-fixed and still has
+norm `a` whenever `2*r = ell+1`. -/
+theorem reflection_symmetrized_norm_witness
+    {A : Type*} [CommGroup A]
+    (s : A ≃* A) (N : A →* A) (y a : A) (ell r : Nat)
+    (hs : Function.Involutive s) (ha : s a = a)
+    (hy : N y = a) (hsy : N (s y) = a)
+    (hbase : N a = a ^ ell) (hfactor : 2 * r = ell + 1) :
+    let z := (y * s y) ^ r / a
+    s z = z ∧ N z = a := by
+  dsimp
+  constructor
+  · simp [map_div, map_pow, map_mul, hs y, ha, mul_comm]
+  · calc
+      N ((y * s y) ^ r / a) = (a * a) ^ r / a ^ ell := by
+        rw [map_div, map_pow, map_mul, hy, hsy, hbase]
+      _ = a ^ (2 * r) / a ^ ell := by rw [← pow_two, pow_mul]
+      _ = a ^ (ell + 1) / a ^ ell := by rw [hfactor]
+      _ = a := by rw [pow_succ]; simp [div_eq_mul_inv, mul_assoc]
 
 /-- In an odd dihedral extension, every homomorphism to an abelian target
 kills the translation subgroup.  This is the algebraic core of the paper's

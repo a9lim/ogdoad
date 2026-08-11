@@ -11860,6 +11860,77 @@ simultaneous approximation, valuation statements, Hilbert symbols, and
 global reciprocity remain paper-level.
 \end{proof}
 
+\begin{corollary}[the affine selector norm is genuinely mixed]
+\label{cor:fermat-affine-norm-mixed}
+Retain Proposition~\ref{prop:fermat-affine-selector}, let
+\(\mathfrak p\) be the unique prime of \(\mathcal K_{n-1}\) above two,
+and put
+\[
+ g=\Norm_{M/M_0}(x)=\mathcal A_{n-1}+R+R^2.
+\]
+The primes of \(M_0\) above \(\mathfrak p\) are naturally indexed by
+\(\Delta/\{\mathord\pm1\}\); write
+\(\mathfrak r_{\bar a}=\mathfrak q_a\cap M_0\).  Their normalized
+valuations satisfy
+\[
+ v_{\mathfrak r_{\bar a}}(g)=
+ \begin{cases}
+  1,&\bar a=\bar1,\\
+  0,&\bar a\ne\bar1.
+ \end{cases}                                      \tag{\(\mathsf{AFS}_{4c}\)}
+\]
+Consequently
+\[
+ \operatorname{Stab}_{\Delta}(g)\subseteq\{\mathord\pm1\},
+ \qquad
+ [\mathcal K_{n-1}(g):\mathcal K_{n-1}]
+ \geq\frac{\ell-1}{2}.                            \tag{\(\mathsf{AFS}_{4d}\)}
+\]
+In particular \(g\notin\mathcal K_{n-1}\).  Thus the relative norm of an
+affine principalizer isolating the named prime cannot lie in the lower
+Conway field.  The norm element, and its prime-above-two valuation divisor,
+has \(\Delta\)-orbit size at least \((\ell-1)/2\).
+\end{corollary}
+
+\begin{proof}
+The residue size at \(\mathfrak p\) is \(q\), and
+\(q\equiv-1\pmod\ell\).  Hence the decomposition group of
+\(\mathfrak p\) in
+\(M_0/\mathcal K_{n-1}\) is \(\{\mathord\pm1\}\): the extension is
+unramified there, has residue degree two, and has
+\((\ell-1)/2>1\) primes above \(\mathfrak p\).
+The top involution sends
+\(\mathfrak q_a\) to \(\mathfrak q_{-a}\), so
+\(\mathfrak r_{\bar a}\) splits in \(M/M_0\) as the pair
+\(\mathfrak q_a,\mathfrak q_{-a}\), each with residue degree one.
+The element \(x=C_n-R\) is integral.  Equation
+\(\mathsf{AFS}_1\) therefore gives
+\[
+ v_{\mathfrak r_{\bar a}}(g)
+ =v_{\mathfrak q_a}(x)+v_{\mathfrak q_{-a}}(x),
+\]
+which is exactly \(\mathsf{AFS}_{4c}\).
+
+If \(\tau_b(g)=g\), its unique prime-above-two support must be fixed, so
+\(\mathfrak r_{\bar b}=\mathfrak r_{\bar1}\), equivalently
+\(b=\mathord\pm1\).  More precisely,
+\[
+ \operatorname{Stab}_{\Delta}(g)
+ =\operatorname{Gal}\bigl(M_0/\mathcal K_{n-1}(g)\bigr),
+\]
+so the Galois orbit--stabilizer equality proves
+\(\mathsf{AFS}_{4d}\).  Equivalently, every element descended from
+\(\mathcal K_{n-1}\) has the same valuation at all primes above
+\(\mathfrak p\), whereas \(g\) has the nonconstant vector
+\((1,0,\ldots,0)\).
+
+The companion Lean file checks the two abstract group-action cores: an
+invariant function on a transitive orbit is constant, and a symmetry
+preserving a uniquely supported value fixes that support point.  The
+cyclotomic decomposition, norm-valuation formula and Galois covariance, and
+the stabilizer-index/Galois-degree passage remain paper-level.
+\end{proof}
+
 \begin{corollary}[affine normalization loses no oriented ray data]
 \label{cor:fermat-affine-normalization}
 Let \(s\) be the top involution of \(M/M_0\) and put
@@ -12023,16 +12094,18 @@ Using \((g)=\mathfrak r\mathfrak a_R\) gives
 the Jacobi and Hilbert reciprocity argument is paper-level.
 \end{proof}
 
-\begin{corollary}[there is no norm-two affine principalizer]
+\begin{corollary}[even the unrestricted norm-two equation has no solution]
 \label{cor:fermat-no-norm-two-affine-selector}
-Under the hypotheses of Proposition~\ref{prop:fermat-affine-selector}, no
-\(R\in M_0\) satisfies
+Retain the fields of Proposition~\ref{prop:fermat-affine-selector}.  Even
+without imposing the selector congruences on \(R\), no \(R\in M_0\) satisfies
 \[
  \mathcal A_{n-1}+R+R^2=2.                           \tag{\(\mathsf{AFS}_5\)}
 \]
-Thus the simplest possible attempt to remove the oriented tame divisor by
-making the relative norm exactly two is impossible.  This does not exclude
-a general \(\{2,\ell\}\)-unit value on the left of \(\mathsf{AFS}_5\).
+For the selected \(R\), lower-field values are already excluded by
+Corollary~\ref{cor:fermat-affine-norm-mixed}; the present statement is
+stronger in a different direction because it rules out the equation for
+every \(R\in M_0\).  It does not exclude a general
+\(\{2,\ell\}\)-unit value on the left of \(\mathsf{AFS}_5\).
 \end{corollary}
 
 \begin{proof}
@@ -12395,6 +12468,26 @@ Retain Proposition~\ref{prop:fermat-ray-character} with \(n\geq2\).  Then
 Thus failure of the Popovych \(\ell\)-condition is exactly solvability of
 one global cyclic norm equation.
 
+If \(H=1\), choose \(y\in\mathcal E^\times\) with
+\(\Norm_{\mathcal E/M}(y)=2\), put
+\(G=\operatorname{Gal}(\mathcal E/M)\), and let
+\(P=\sum_{\gamma\in G}n_\gamma\gamma\in\mathbf Z[G]\).  Then
+\[
+ \Norm_{\mathcal E/M}(y^P)
+ =2^{\operatorname{aug}(P)},
+ \qquad
+ \operatorname{aug}(P)=\sum_{\gamma\in G}n_\gamma.  \tag{\(\mathsf{HD}_{1a}\)}
+\]
+Hence every unweighted operation in the cyclic Kummer direction has the
+same norm valuation at every \(\mathfrak q_a\mid2\).  In particular, if
+some \(y^P\) descends to \(M\), then
+\((y^P)^\ell=2^{\operatorname{aug}(P)}\), so its own valuation vector is
+constant.  It cannot equal the affine selector, supported only at
+\(\mathfrak q_1\), or its mixed relative norm, supported only on the
+\(\{\mathord\pm1\}\)-coset of that prime.  A coupling
+would have to weight the \(\Delta\)-orbit, which is precisely the missing
+mixed ray-class operation.
+
 Assume now that \([\mathcal E:M]=\ell\), put
 \(M'=\mathcal K_{n-1}(\zeta_\ell)\), and let \(\iota\) be the top
 involution of \(M/M'\).  It extends to \(\mathcal E\) by
@@ -12412,6 +12505,36 @@ abelian group kills \(\sigma\).  Consequently every abelian quotient or
 descent of this specific Kummer extension sees the same image for
 \(h=0\) and \(h\ne0\); a successful lower-field descent must retain its
 nonabelian dihedral Frobenius.
+
+Nevertheless the norm equation itself has an exact nonabelian reflection
+descent.  Put \(L=\mathcal E^{\langle\iota\rangle}\), so
+\([L:M']=\ell\).  More explicitly, if
+\(t=\theta+\theta^{-1}\), and if the classical power sums are defined by
+\[
+ D^{\mathrm{cl}}_0(T)=2,\qquad D^{\mathrm{cl}}_1(T)=T,\qquad
+ D^{\mathrm{cl}}_{m+2}(T)
+ =T D^{\mathrm{cl}}_{m+1}(T)-D^{\mathrm{cl}}_m(T),
+\]
+then
+\[
+ L=M'(t),\qquad
+ D^{\mathrm{cl}}_\ell(t)=W_n+W_n^{-1}.              \tag{\(\mathsf{HD}_{2a}\)}
+\]
+For every \(a\in M'^\times\),
+\[
+ \boxed{\quad
+ a\in\Norm_{\mathcal E/M}(\mathcal E^\times)
+ \iff
+ a\in\Norm_{L/M'}(L^\times).
+ \quad}                                               \tag{\(\mathsf{HD}_3\)}
+\]
+In particular, when \([\mathcal E:M]=\ell\),
+\[
+ H=1\iff2\in\Norm_{L/M'}(L^\times).                  \tag{\(\mathsf{HD}_4\)}
+\]
+Thus the selected obstruction can be placed over the lower field only by
+retaining the non-Galois degree-\(\ell\) reflection field; abelianization
+erases it.
 \end{corollary}
 
 \begin{proof}
@@ -12423,6 +12546,18 @@ at a place \(v\) exactly when \((W_n,2)_{v,\ell}=1\).  Away from
 \(\mathfrak q_a\mid2\), the symbol is \(H^a\), so all two-adic local norm
 conditions hold exactly when \(H=1\).  The cyclic Hasse norm theorem proves
 \((\mathsf{HD}_1)\)~\cite{Hasse31}.
+
+For \(P\in\mathbf Z[G]\), norm invariance under every
+\(\gamma\in G\) gives
+\[
+ \Norm(y^P)
+ =\prod_{\gamma\in G}\Norm(y)^{n_\gamma}
+ =2^{\sum n_\gamma},
+\]
+which proves \((\mathsf{HD}_{1a})\).  In particular the common further norm
+is \(\Norm_{\mathcal E/M'}(y)=4\), with constant prime-above-two
+valuations; this is fully compatible with the mixed affine-norm theorem
+rather than contradicting it.
 
 The top involution sends \(W_n\) to \(W_n^{-1}\), proving that the stated
 extension of \(\iota\) is well-defined; direct evaluation on \(\theta\)
@@ -12436,8 +12571,43 @@ chosen Frobenius above \(\mathfrak r\) is the stated translation.  Finally,
 in any abelian quotient the images of
 \(\sigma\) and \(\sigma^{-1}\) are equal by \((\mathsf{HD}_2)\).  The
 image of \(\sigma\) therefore has order dividing both two and the odd prime
-\(\ell\), hence is trivial.  This last group-theoretic step is independently
-kernel-checked in \texttt{Ogdoad.Excess}.
+\(\ell\), hence is trivial.  The abstract augmentation identity
+underlying \(\mathsf{HD}_{1a}\) and this final dihedral group-theoretic step
+are independently kernel-checked in \texttt{Ogdoad.Excess}.
+
+To prove \(\mathsf{HD}_3\), first let \(z\in L\).  Its \(M'\)-embeddings
+are the restrictions of \(\sigma^j\), \(0\leq j<\ell\), so
+\[
+ \Norm_{L/M'}(z)
+ =\prod_{j=0}^{\ell-1}\sigma^j(z)
+ =\Norm_{\mathcal E/M}(z).
+\]
+The identity \(\mathsf{HD}_{2a}\) is the classical Dickson--Chebyshev
+power-sum formula applied to \(t=\theta+\theta^{-1}\).  If two conjugates
+\(\zeta_\ell^j\theta+\zeta_\ell^{-j}\theta^{-1}\) and
+\(\zeta_\ell^k\theta+\zeta_\ell^{-k}\theta^{-1}\) coincide, then either
+\(j=k\) or \(\zeta_\ell^{j+k}\theta^2=1\).  The latter implies
+\(W_n^2=1\), hence that \(W_n\) is an \(\ell\)-th power because \(\ell\) is
+odd, contrary to \([\mathcal E:M]=\ell\).  Thus the \(\ell\) conjugates are
+distinct and \(t\) generates the reflection fixed field.
+Conversely, suppose \(\Norm_{\mathcal E/M}(y)=a\in M'^\times\), put
+\(r=(\ell+1)/2\), and define
+\[
+ z=\frac{(y\iota(y))^r}{a}.
+\]
+Then \(\iota(z)=z\), hence \(z\in L\), while conjugating the cyclic norm
+by \(\iota\) gives \(\Norm(\iota(y))=a\).  Therefore
+\[
+ \Norm_{L/M'}(z)=\Norm_{\mathcal E/M}(z)
+ =\frac{(a^2)^r}{a^\ell}=a^{2r-\ell}=a.
+\]
+This proves \(\mathsf{HD}_3\), and \(\mathsf{HD}_4\) follows from
+\(\mathsf{HD}_1\).  Lean checks the generic reflection symmetrization and
+its exponent identity.  The field-norm interpretation, fixed-field degree,
+and prime-valuation statements remain paper-level.  If \(W_n\) is already a
+global \(\ell\)-th power, then \(\mathcal E=M\) and the dihedral construction
+degenerates; that case is itself a stronger global failure and is not covered
+by \(\mathsf{HD}_3\).
 \end{proof}
 
 \begin{corollary}[only the top generator carries the Brauer obstruction]
@@ -13483,6 +13653,14 @@ generalized-Jacobian data currently available without evaluating its
 Kummer class.  Thus the remaining theorem is not another coarse
 invariant: it is the nonvanishing of the explicit distinguished
 Miller-unit value in Proposition~\ref{prop:fermat-five-point-exhaustion}.
+Equivalently, in the nontrivial Kummer case, failure is the assertion that
+two is a norm from the explicit degree-\(\ell\) reflection field
+\[
+ M'\bigl(\theta+\theta^{-1}\bigr)/M',\qquad
+ D^{\mathrm{cl}}_\ell(\theta+\theta^{-1})=W_n+W_n^{-1}.
+\]
+This non-Galois norm form is the sharpest lower-field target retained by the
+full dihedral ancestry; its abelian quotients erase the marked Frobenius.
 
 \section{\texorpdfstring{The exceptional \(2\cdot3^k\) arm}{The exceptional 2 times 3-power arm}}\label{sec:exception}
 

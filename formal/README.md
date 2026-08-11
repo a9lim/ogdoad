@@ -137,15 +137,21 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the affine mixed-selector algebra: a nonzero affine coefficient isolates one
   cyclotomic coordinate, its relative quadratic norm is `A + R + R^2`, the two
   orientations carry reciprocal Conway-unit values, and relative norm two is
-  equivalent to a shifted-discriminant square.  It also checks that every
+  equivalent to a shifted-discriminant square.  Abstract orbit lemmas check
+  that a transitive invariant valuation vector is constant and that a unique
+  support point is fixed by every stabilizer; these are the abstract constancy
+  and support-fixing ingredients in the paper's lower-field non-descent and
+  degree bound.  It also checks that every
   nonsymmetric element can be rescaled by an involution-fixed scalar into the
   affine anti-trace normalization, and that the local oriented residue has a
   rational `ell`-power parametrization.  Finally, an abstract anti-invariant
   character kills every norm divisor while its oriented quotient retains the
   square of the selected value, and the abstract Jacobi-collapse lemma shows
   that a residual symbol inverse to the distinguished one makes the oriented
-  half-resultant exactly its square.  Simultaneous approximation, the
-  valuation-one selector, elimination of every `ell`-adic pairing, preservation
+  half-resultant exactly its square.  The cyclotomic prime decomposition,
+  norm-valuation covariance, stabilizer-index/Galois-degree passage,
+  valuation-one selector and its field-degree interpretation, simultaneous
+  approximation, elimination of every `ell`-adic pairing, preservation
   of the oriented ray character under fractional rescaling, and the resulting
   global reciprocity and Jacobi-symbol identities remain paper-level;
 - the finite additive translation identity behind the paper's exact saturation
@@ -155,9 +161,14 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   paper-level;
 - the abstract mixed-ray character no-go: weight-one equivariance permits
   both zero and nonzero distinguished values, while every fixed source class
-  is annihilated, and every abelian quotient of an odd dihedral group kills
-  its translation subgroup; the anti-invariant coboundary is `-2*x` and
-  vanishes exactly with `x` in odd characteristic. The Artin map, Hasse norm
+  is annihilated.  An invariant homomorphism evaluates every finite integral
+  group-ring product through its augmentation alone, and every abelian
+  quotient of an odd dihedral group kills its translation subgroup; the
+  anti-invariant coboundary is `-2*x` and vanishes exactly with `x` in odd
+  characteristic.  The reflection-symmetrization identity also constructs a
+  fixed norm witness `((y*s(y))^r)/a` when `2*r=ell+1`, the algebraic core of
+  the paper's descent to the non-Galois reflection field. The Artin map, Hasse
+  norm
   equivalence, Brauer projection/corestriction, and class-field interpretation
   remain paper-level;
 - the denominator-free first-Witt recurrence for the lifted Conway unit,
