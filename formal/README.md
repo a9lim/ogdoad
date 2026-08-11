@@ -167,9 +167,16 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   anti-invariant coboundary is `-2*x` and vanishes exactly with `x` in odd
   characteristic.  The reflection-symmetrization identity also constructs a
   fixed norm witness `((y*s(y))^r)/a` when `2*r=ell+1`, the algebraic core of
-  the paper's descent to the non-Galois reflection field. The Artin map, Hasse
-  norm
-  equivalence, Brauer projection/corestriction, and class-field interpretation
+  the paper's descent to the non-Galois reflection field, and packages the
+  resulting ordinary-witness/fixed-witness equivalence under equivariance of
+  the norm. The Artin map, finite-etale base-change interpretation, cyclic
+  Hasse theorem and resulting Hasse norm principle for the reflection field,
+  Brauer projection/corestriction, and class-field interpretation remain
+  paper-level;
+- the two denominator-free conductor-five identities and their quotient form
+  `d + d^-1 = 2 + 5/(x^2+x-1)`, the algebraic coefficient in the paper's
+  exceptional-arm reflection field.  The cyclotomic number-field extension,
+  local Hilbert-symbol inventory, and Hasse/weak-approximation consequences
   remain paper-level;
 - the denominator-free first-Witt recurrence for the lifted Conway unit,
   including its selected terminal numerator and the next-discriminant relative

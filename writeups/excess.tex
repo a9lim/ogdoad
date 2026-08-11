@@ -12532,9 +12532,68 @@ In particular, when \([\mathcal E:M]=\ell\),
 \[
  H=1\iff2\in\Norm_{L/M'}(L^\times).                  \tag{\(\mathsf{HD}_4\)}
 \]
-Thus the selected obstruction can be placed over the lower field only by
-retaining the non-Galois degree-\(\ell\) reflection field; abelianization
-erases it.
+The equivalence is stable under every completion.  For a place \(v\) of
+\(M'\), put
+\[
+ \mathcal E_v=\mathcal E\otimes_{M'}M'_v,
+ \qquad M_v=M\otimes_{M'}M'_v,
+ \qquad L_v=L\otimes_{M'}M'_v.
+\]
+Then, for every \(a\in(M'_v)^\times\),
+\[
+ a\in\Norm_{L_v/M'_v}(L_v^\times)
+ \iff
+ \operatorname{diag}(a)
+   \in\Norm_{\mathcal E_v/M_v}(\mathcal E_v^\times).
+                                                        \tag{\(\mathsf{HD}_5\)}
+\]
+Consequently, for every \(a\in M'^\times\), this non-Galois prime-degree
+extension satisfies the Hasse norm principle:
+\[
+ \boxed{\quad
+ a\in\Norm_{L/M'}(L^\times)
+ \iff
+ a\in\Norm_{L_v/M'_v}(L_v^\times)
+       \quad\hbox{for every place }v.
+ \quad}                                                \tag{\(\mathsf{HD}_6\)}
+\]
+At a prime \(\mathfrak r_{\bar a}\mid2\), one has the sharper dichotomy
+\[
+ \begin{array}{c|c}
+ H=1&L_v\simeq(M'_v)^\ell,\\
+ H\ne1&L_v/M'_v\text{ is the unramified extension of degree }\ell.
+ \end{array}                                           \tag{\(\mathsf{HD}_7\)}
+\]
+In the second row every norm has valuation divisible by \(\ell\), whereas
+\(v(2)=1\).  All local conditions away from the primes above two are
+automatic.  Thus the
+reflection field retains the nonabelian marked Frobenius, but it creates no
+new relative class-group or global norm obstruction: its norm-two equation
+is exactly the original selected local splitting question at two.
+
+The quadratic discriminant resolvent is blind as well.  Put
+\(A=W_n+W_n^{-1}\in M'\).  Since \([\mathcal E:M]=\ell\), one has
+\(A^2-4\ne0\): otherwise \(W_n=\pm1\), hence \(W_n\) is an
+\(\ell\)-th power because \(\ell\) is odd.  In fact the coefficient and
+its discriminant already lie in the lower ancestry:
+\[
+ A=\mathcal A_{n-1}^{-1}-2,
+ \qquad
+ A^2-4=\frac{D_{n-1}}{\mathcal A_{n-1}^2}.
+\]
+Then
+\[
+ \operatorname{disc}_T\bigl(D^{\mathrm{cl}}_\ell(T)-A\bigr)
+ =(-1)^{\ell(\ell-1)/2}\ell^\ell
+   (A^2-4)^{(\ell-1)/2}
+ \in(M'^\times)^2.                                  \tag{\(\mathsf{HD}_8\)}
+\]
+Indeed \(\ell\equiv1\pmod4\), so the sign is positive and
+\((\ell-1)/2\) is even, while the quadratic Gauss subfield of
+\(\mathbf Q(\zeta_\ell)\subset M'\) contains \(\sqrt\ell\).
+Equivalently, both the identity and the nontrivial \(\ell\)-cycle in
+\(\mathsf{HD}_7\) are even permutations.  Neither the polynomial nor field
+discriminant can distinguish success from failure.
 \end{corollary}
 
 \begin{proof}
@@ -12602,12 +12661,73 @@ by \(\iota\) gives \(\Norm(\iota(y))=a\).  Therefore
  =\frac{(a^2)^r}{a^\ell}=a^{2r-\ell}=a.
 \]
 This proves \(\mathsf{HD}_3\), and \(\mathsf{HD}_4\) follows from
-\(\mathsf{HD}_1\).  Lean checks the generic reflection symmetrization and
-its exponent identity.  The field-norm interpretation, fixed-field degree,
-and prime-valuation statements remain paper-level.  If \(W_n\) is already a
+\(\mathsf{HD}_1\).
+
+The proof just given is an identity in finite etale algebras and therefore
+commutes with the base change \(M'\to M'_v\).  In particular the same
+formula proves \(\mathsf{HD}_5\).  If \(a\) is a local norm from \(L_v\)
+for every \(v\), equation \(\mathsf{HD}_5\) makes its diagonal image a
+local norm from \(\mathcal E/M\) at every place of \(M\).  The cyclic
+Hasse norm theorem produces a global \(y\in\mathcal E^\times\), and the
+symmetrization above produces the required global \(z\in L^\times\).
+This proves \(\mathsf{HD}_6\).
+As an independent cross-check, Hoshi--Yamasaki's metacyclic norm-torus
+theorem gives both the Hasse norm principle and weak approximation here:
+the odd dihedral group has trivial Schur multiplier and the reflection
+stabilizer is cyclic~\cite[Theorem~3.2 and Example~4.6]{HoshiYamasaki25}.
+Thus, once the norm fibre is nonempty, finitely many additional local open
+conditions on a witness cannot supply a new obstruction.
+
+At \(\mathfrak r_{\bar a}\), the extension \(M/M'\) splits into the two
+primes \(\mathfrak q_a,\mathfrak q_{-a}\).  If \(H=1\), their Frobenius
+translations are trivial, so this prime splits completely in
+\(\mathcal E/M'\), and hence in \(L/M'\).  If \(H\ne1\), the Frobenius is a nonidentity
+\(\sigma^h\); since \(\ell\) is prime it generates
+\(\langle\sigma\rangle\), which acts transitively on the \(\ell\) cosets
+of the reflection subgroup.  This makes \(L_v/M'_v\) unramified of degree
+\(\ell\) and proves \(\mathsf{HD}_7\).  The remaining local assertions are
+the place-by-place calculation already used for \(\mathsf{HD}_1\).
+
+For \(f_A(T)=D^{\mathrm{cl}}_\ell(T)-A\), the classical Chebyshev
+description gives
+\[
+ f_A(T)=2T_\ell(T/2)-A,
+ \qquad
+ f_A'(T)=\ell U_{\ell-1}(T/2).
+\]
+The latter polynomial has leading coefficient \(\ell\) and roots
+\(x_j=2\cos(j\pi/\ell)\), \(1\le j<\ell\).  At these roots,
+\(D^{\mathrm{cl}}_\ell(x_j)=2(-1)^j\).  With
+\(m=(\ell-1)/2\), therefore,
+\[
+ \operatorname{Res}(f_A',f_A)
+ =\ell^\ell\prod_{j=1}^{\ell-1}\bigl(2(-1)^j-A\bigr)
+ =\ell^\ell\bigl((2-A)(-2-A)\bigr)^m
+ =\ell^\ell(A^2-4)^m.
+\]
+The monic discriminant formula supplies the sign in \(\mathsf{HD}_8\),
+and the square-class argument in the statement proves its final assertion.
+The two lower-ancestry identities follow directly from
+\(W_n=-(C_n+1)/C_n\),
+\(C_n(C_n+1)=-\mathcal A_{n-1}\), and
+\(D_{n-1}=1-4\mathcal A_{n-1}\).  Thus even the reflection polynomial is
+lower-defined; the selected information is its factorization at the named
+prime above two, not a hidden top-field coefficient.
+Moreover
+\(\operatorname{disc}(\mathcal O_{M'}[t])
+ =\mathfrak d_{L/M'}[\mathcal O_L:\mathcal O_{M'}[t]]^2\)
+as ideals.  Hence neither the polynomial discriminant nor the relative
+field-discriminant ideal retains the selected Frobenius; the index changes
+the discriminant only by a square.
+
+Lean checks the generic reflection symmetrization, its exponent identity,
+and the resulting fixed-witness equivalence in a commutative group.  The
+finite-etale base-change interpretation, cyclic Hasse theorem, fixed-field
+degree, discriminant calculation, and prime-valuation statements remain
+paper-level.  If \(W_n\) is already a
 global \(\ell\)-th power, then \(\mathcal E=M\) and the dihedral construction
 degenerates; that case is itself a stronger global failure and is not covered
-by \(\mathsf{HD}_3\).
+by \(\mathsf{HD}_3\)--\(\mathsf{HD}_7\).
 \end{proof}
 
 \begin{corollary}[only the top generator carries the Brauer obstruction]
@@ -13661,6 +13781,12 @@ two is a norm from the explicit degree-\(\ell\) reflection field
 \]
 This non-Galois norm form is the sharpest lower-field target retained by the
 full dihedral ancestry; its abelian quotients erase the marked Frobenius.
+However, the explicit symmetrization is valid over every completion and
+proves the Hasse norm principle for this reflection field.  The norm-two
+equation fails locally exactly when the named prime above two has nontrivial
+translation Frobenius, and has no additional global class-group obstruction.
+Thus even this nonabelian descent is an exact reformulation of the selected
+birth symbol, not an independent route to its nonvanishing.
 
 \section{\texorpdfstring{The exceptional \(2\cdot3^k\) arm}{The exceptional 2 times 3-power arm}}\label{sec:exception}
 
@@ -16598,6 +16724,158 @@ one-dimensional regulator coordinate and does not evaluate \(d_k\) in
 that coordinate.
 \end{proof}
 
+\begin{proposition}[conductor-five reflection descent]
+\label{prop:dk-reflection-descent}
+Retain Proposition~\ref{prop:dk-antiunit}, put
+\[
+ x=\alpha+\alpha^{-1},\qquad
+ F=\mathbf Q(x),\qquad
+ K=F(\sqrt5)=F_k^{\mathrm{tw}},
+\]
+and let the prime \(\ell\mid\Psi_k\).  Set
+\[
+ B=F(\zeta_\ell),\qquad M=K(\zeta_\ell).
+\]
+Because \(\ord_\ell(2)=2h\), one has \(\ell\nmid15h\).  The extension
+\(K/\mathbf Q\) has conductor dividing \(15h\), so coprime-conductor
+disjointness gives \(K\cap\mathbf Q(\zeta_\ell)=\mathbf Q\).  After
+base change from \(\mathbf Q\) to \(F\), this gives
+\[
+ K\cap B=F,
+ \qquad [M:B]=2,
+ \qquad [M:K]=\ell-1.
+\]
+Equivalently, one may see the first equality from ramification: \(K/F\)
+is ramified above five, whereas \(B/F\) is unramified there.
+Suppose first that \(d_k\notin(M^\times)^\ell\), choose
+\(\theta^\ell=d_k\), and put \(\mathcal E_D=M(\theta)\).  The
+nontrivial conductor-five involution \(j\in\operatorname{Gal}(K/F)\)
+extends by
+\[
+ j(\zeta_\ell)=\zeta_\ell,\qquad j(\theta)=\theta^{-1}.
+\]
+For \(L_D=\mathcal E_D^{\langle j\rangle}\) and
+\(t=\theta+\theta^{-1}\), one has
+\[
+ \operatorname{Gal}(\mathcal E_D/B)
+   \simeq\text{the dihedral group of order }2\ell,
+ \qquad [L_D:B]=\ell,
+\]
+and the reflection field has the explicit lower-coordinate equation
+\[
+ \boxed{\quad
+ L_D=B(t),\qquad
+ D^{\mathrm{cl}}_\ell(t)
+   =2+\frac5{x^2+x-1}.
+ \quad}                                                \tag{\(\mathsf{DHR}_1\)}
+\]
+Moreover
+\[
+ \boxed{\quad
+ D'_k\text{ fails at }\ell
+ \iff
+ 2\in\Norm_{L_D/B}(L_D^\times).
+ \quad}                                                \tag{\(\mathsf{DHR}_2\)}
+\]
+The degree-\(\ell\) extension \(L_D/B\) satisfies the Hasse norm
+principle, and its norm-one torus has weak approximation.  At every prime
+\(\mathfrak r\mid2\) of \(B\), the local algebra is \(B_{\mathfrak r}^\ell\)
+on failure and the unramified degree-\(\ell\) field on success.  Every
+local norm condition for the element two away from the primes over two is
+automatic.
+
+If \(d_k\in(M^\times)^\ell\), then \(D'_k\) already fails and the
+dihedral construction degenerates.  Thus \(\mathsf{DHR}_2\) is an exact
+reflection-norm normal form for the exceptional arm, not a new proof of
+nonvanishing.
+\end{proposition}
+
+\begin{proof}
+In the notation of \(\mathsf{QT}_1\),
+\(d_k=(x-s)/(x-s')\), with \(s+s'=-1\) and \(ss'=-1\).  Direct
+algebra gives
+\[
+ (x-s)(x-s')=x^2+x-1
+\]
+and
+\[
+ (x-s)^2+(x-s')^2=2(x^2+x-1)+5.
+\]
+The two denominators are nonzero: otherwise \(\alpha\) would have order
+five, contrary to \(\ord(\alpha)=3h\).  Therefore
+\[
+ d_k+d_k^{-1}=2+\frac5{x^2+x-1}.                     \tag{\(\mathsf{DHR}_3\)}
+\]
+The involution \(j\) interchanges \(s,s'\), hence sends \(d_k\) to
+\(d_k^{-1}\).  If
+\(\sigma(\theta)=\zeta_\ell\theta\), then
+\(j\sigma j^{-1}=\sigma^{-1}\), proving the dihedral assertion.
+The classical power-sum identity gives \(\mathsf{DHR}_1\).  Its
+\(\ell\) conjugates are distinct: a collision would imply
+\(\zeta_\ell^{a+b}\theta^2=1\), hence \(d_k^2=1\); since \(\ell\) is
+odd, that would make \(d_k\) an \(\ell\)-th power.
+
+The reflection symmetrization used in
+Corollary~\ref{cor:fermat-hasse-dihedral} works verbatim here, over both
+global fields and their completions.  Thus, for every \(a\in B^\times\),
+\[
+ a\in\Norm_{\mathcal E_D/M}(\mathcal E_D^\times)
+ \iff a\in\Norm_{L_D/B}(L_D^\times).                 \tag{\(\mathsf{DHR}_4\)}
+\]
+
+It remains to identify the selected norm.  Each
+\(1-\alpha\beta^r\) occurring in \(\mathsf{QT}_1\) has exact conductor
+\(15h\); since this conductor has two distinct prime divisors,
+\(\Phi_{15h}(1)=1\), so these factors and their quotient \(d_k\) are
+global units.  Let \(\mathfrak p\mid2\) be the prime selected in
+Corollary~\ref{cor:dk-cyclotomic-unit}, let
+\(\mathfrak P=\mathfrak p\cap K\), and choose a compatible prime
+\(\mathfrak q_1\mid\mathfrak P\) of \(M\).  Then
+\(k(\mathfrak P)=k(\mathfrak q_1)=\F_{2^{2h}}\), this field contains
+\(\mu_\ell\), and tame reciprocity gives
+\[
+ (d_k,2)_{\mathfrak q_1,\ell}
+ =R_k^{(2^{2h}-1)/\ell}.                              \tag{\(\mathsf{DHR}_5\)}
+\]
+By \(\mathsf{QT}_4\), this symbol is one exactly when \(D'_k\) fails.
+The prime \(\mathfrak P\) splits completely in \(M/K\).  Label its
+primes \(\mathfrak q_a=\tau_a\mathfrak q_1\).  Galois covariance gives
+\[
+ (d_k,2)_{\mathfrak q_a,\ell}
+ = (d_k,2)_{\mathfrak q_1,\ell}^a,
+\]
+while \(j\) pairs \(\mathfrak q_a\) with \(\mathfrak q_{-a}\).
+Thus all two-adic symbols are one exactly in that same case.
+At every finite place away from \(2\ell\), both arguments are units and
+the tame symbol is one.  Because
+\(\ord_\ell(2)=2h\), the prime \(\ell\) is coprime to the conductor
+\(15h\); hence \(K\) is unramified there, while \(M/K\) is
+cyclotomically totally ramified.  Each prime above \(\ell\) is fixed by
+the full cyclotomic group.  Covariance fixes the two inputs and raises
+the value in \(\mu_\ell\) by every
+\(a\in\F_\ell^\times\), so the local symbol is one.  The infinite
+places of \(M\) are complex.
+
+The cyclic Hasse norm theorem for \(\mathcal E_D/M\), followed by
+\(\mathsf{DHR}_4\), proves \(\mathsf{DHR}_2\).  Completionwise, a
+prime \(v\mid2\) of \(F\) has residue degree \(h\).  For every
+\(\mathfrak r\mid v\) of \(B\), both \(K_{\mathfrak P}/F_v\) and
+\(B_{\mathfrak r}/F_v\) are the unique unramified quadratic extension.
+Hence \(M/B\) splits at \(\mathfrak r\).  Trivial selected Frobenius gives the split local
+\(L_D\)-algebra, while a nontrivial translation gives the unramified
+degree-\(\ell\) field, whose norm valuations are divisible by \(\ell\)
+and therefore exclude \(v(2)=1\).  This proves the local assertions.
+Finally, Hoshi--Yamasaki's odd-dihedral norm-torus theorem supplies the
+Hasse norm principle and weak approximation independently
+of the explicit descent~\cite[Theorem~3.2 and
+Example~4.6]{HoshiYamasaki25}.
+
+Lean checks the two denominator-free identities, their quotient form
+\(\mathsf{DHR}_3\), and the generic reflection symmetrization.  The
+number-field, local-symbol, Hasse, and weak-approximation interpretations
+remain paper-level.
+\end{proof}
+
 \begin{proposition}[selected exceptional sextic and the Dickson-factor boundary]
 \label{prop:dk-selected-sextic}
 Retain Propositions~\ref{prop:dk-half-block},
@@ -18908,6 +19186,19 @@ actual \(C\)-period ancestry, and is primitive under \(C_k\), yet its
 Artin--Schreier root misses the entire current \(\ell\)-primary factor.
 This does not disprove a special-form implication \(C_k\Rightarrow D'_k\);
 such an implication remains open and must use the actual formula for \(Z\).
+Proposition~\ref{prop:dk-reflection-descent} puts that actual formula into
+the same non-Galois reflection-norm normal form as the singleton-even arm:
+\[
+ D'_k\text{ fails at }\ell
+ \iff
+ 2\in\Norm_{L_D/F(\zeta_\ell)}(L_D^\times),
+ \qquad
+ D^{\mathrm{cl}}_\ell(t)=2+\frac5{x^2+x-1}.
+\]
+This reflection field satisfies the Hasse norm principle and weak
+approximation.  Its sole local norm obstruction is the original selected
+prime over two, so the descent imports the exact \(C\)-coordinate but does
+not couple the disjoint \(+2\) and \(-2\) current eigenspaces.
 Proposition~\ref{prop:dk-normalized-root-norm} computes the actual
 root's exact next lower norm; current \(\ell\)-powering is bijective in
 that lower field, so even this stronger selected norm remains blind.
@@ -19217,6 +19508,10 @@ Math.-Phys. Kl.\ (1931), 64--69;
 \bibitem{Helou95} C.~Helou, \emph{Norm residue symbol and cyclotomic units},
 Acta Arith.\ \textbf{73} (1995), 147--188;
 \url{https://doi.org/10.4064/aa-73-2-147-188}.
+\bibitem{HoshiYamasaki25} A.~Hoshi and A.~Yamasaki,
+\emph{Hasse norm principle for metacyclic extensions with trivial Schur
+multiplier}, arXiv:2503.14365v5 (2025);
+\url{https://arxiv.org/abs/2503.14365}.
 \bibitem{Iwasawa68} K.~Iwasawa, \emph{On explicit formulas for the norm
 residue symbol}, J.~Math. Soc. Japan \textbf{20} (1968), 151--165.
 \bibitem{Katz89} N.~M.~Katz, \emph{An estimate for character sums},

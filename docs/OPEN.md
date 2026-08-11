@@ -436,8 +436,26 @@ absolute boundedness.
   orientation. Explicitly `L=M_0(theta+theta^(-1))`, with defining Dickson
   equation `D^cl_ell(t)=W_n+W_n^(-1)`, where
   `D^cl_0=2`, `D^cl_1=T`, and `D^cl_(m+2)=T*D^cl_(m+1)-D^cl_m`.
-  The remaining target is exclusion of one
-  norm in this named non-Galois reflection field. In Brauer-group form all
+  The symmetrization commutes with every completion. Combined with the
+  cyclic Hasse norm theorem upstairs, it proves the Hasse norm principle for
+  `L/M_0`: a base element is a global norm exactly when it is a local norm
+  everywhere. At the selected prime over two, `H=1` makes `L` split
+  completely, while `H!=1` makes the local factor unramified of degree
+  `ell`; then norm valuations are divisible by `ell` and cannot contain the
+  valuation-one element `2`. All local conditions away from the primes above
+  two are automatic. The odd-dihedral norm-one torus also has weak approximation,
+  so finitely many additional local open conditions on a hypothetical
+  witness add no obstruction. Its classical Dickson discriminant is already
+  a square in `M_0`, so discriminant parity and the quadratic resolvent cannot
+  distinguish complete splitting from the nontrivial `ell`-cycle either.
+  Its defining coefficient is already lower-ancestral:
+  `W_n+W_n^(-1)=A_(n-1)^(-1)-2`, with
+  `(W_n+W_n^(-1))^2-4=D_(n-1)/A_(n-1)^2`. The only selected datum is the
+  factorization of this lower-defined polynomial at the named prime over two.
+  Thus the reflection reformulation retains the marked
+  nonabelian Frobenius but creates no new relative class-group obstruction:
+  its norm equation is another exact form of the original selected local
+  splitting question. In Brauer-group form all
   lower ancestral symbols
   with `2` vanish, while `beta={W_n,2}=-2*alpha` for the anti-invariant top
   class `alpha={C_n,2}`. Corestriction kills that class, so this formulation
@@ -587,6 +605,20 @@ absolute boundedness.
   primitive under `C_k`, yet its Artin--Schreier root misses the entire current
   D-primary factor. This does not rule out an actual implication `C_k => D'_k`;
   any such implication remains open and must use the special coefficient above.
+  The conductor-five antiunit now gives a second exact reflection descent.
+  With `x=alpha+alpha^(-1)`, `F=Q(x)`, `K=F(sqrt(5))`, and
+  `d_k=(x-s)/(x-s')`, the conductor-five involution sends `d_k` to its
+  inverse. For each current `ell`, the resulting degree-`ell` reflection field
+  over `F(zeta_ell)` is defined by
+  `D^cl_ell(t)=2+5/(x^2+x-1)`, and `D'_k` fails exactly when `2` is a norm
+  from that field. If `d_k` is already a global `ell`-th power, failure is
+  automatic and the dihedral field degenerates. Otherwise this norm torus
+  again satisfies the Hasse norm principle
+  and weak approximation; locally, the named prime over two is split on
+  failure and unramified of degree `ell` on success. Thus the D descent shares
+  the Popovych reflection normal form but supplies no new C-to-D constraint:
+  it collapses exactly to the original selected `-2`-eigenspace symbol, while
+  C occupies the disjoint `+2` current eigenspace.
   Even the exact lower norm of the actual normalized root is automatically a
   current primary power downstairs. A coprime plus/minus decomposition now
   identifies the entire current primary order with the minus coordinate

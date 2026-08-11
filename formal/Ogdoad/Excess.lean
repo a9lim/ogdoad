@@ -716,6 +716,48 @@ theorem invariant_hom_groupRing_product_eq_augmentation
   | empty => simp
   | @insert g s hg ih => simp [hg, ih, zpow_add]
 
+/-- The conductor-five quadratic antiunit has a reflection invariant whose
+coefficient is a rational function of the fixed trace coordinate.  These two
+denominator-free identities are the algebraic core of the paper's second
+dihedral reflection descent, for the exceptional arm. -/
+theorem conductorFive_reflection_invariant
+    {R : Type*} [CommRing R]
+    (x s s' : R) (hsum : s + s' = -1) (hprod : s * s' = -1) :
+    (x - s) * (x - s') = x ^ 2 + x - 1 ∧
+      (x - s) ^ 2 + (x - s') ^ 2 =
+        2 * (x ^ 2 + x - 1) + 5 := by
+  constructor
+  · calc
+      (x - s) * (x - s') = x ^ 2 - x * (s + s') + s * s' := by ring
+      _ = x ^ 2 + x - 1 := by rw [hsum, hprod]; ring
+  · calc
+      (x - s) ^ 2 + (x - s') ^ 2 =
+          2 * x ^ 2 - 2 * x * (s + s') + (s + s') ^ 2 - 2 * (s * s') := by
+            ring
+      _ = 2 * (x ^ 2 + x - 1) + 5 := by rw [hsum, hprod]; ring
+
+/-- Quotient form of `conductorFive_reflection_invariant`: the norm-one
+antiunit and its inverse add to the lower-field Chebyshev coefficient used in
+the exceptional arm's reflection polynomial. -/
+theorem conductorFive_antiunit_trace
+    {F : Type*} [Field F]
+    (x s s' : F)
+    (hsum : s + s' = -1) (hprod : s * s' = -1)
+    (hxs : x - s ≠ 0) (hxsp : x - s' ≠ 0) :
+    let d := (x - s) / (x - s')
+    d + d⁻¹ = 2 + 5 / (x ^ 2 + x - 1) := by
+  dsimp
+  obtain ⟨hden, hnum⟩ :=
+    conductorFive_reflection_invariant x s s' hsum hprod
+  have hnum' :
+      (x - s) ^ 2 + (x - s') ^ 2 =
+        2 * ((x - s) * (x - s')) + 5 := by
+    rw [hden]
+    exact hnum
+  rw [← hden]
+  field_simp
+  simpa [mul_comm, mul_left_comm, mul_assoc] using hnum'
+
 /-- Abstract algebra of the reflection-norm descent.  If `N(y) = a`, the
 reflection has the same norm, and base elements have degree-`ell` norm, then
 the symmetrized witness `((y * s y)^r) / a` is reflection-fixed and still has
@@ -737,6 +779,27 @@ theorem reflection_symmetrized_norm_witness
       _ = a ^ (2 * r) / a ^ ell := by rw [← pow_two, pow_mul]
       _ = a ^ (ell + 1) / a ^ ell := by rw [hfactor]
       _ = a := by rw [pow_succ]; simp [div_eq_mul_inv, mul_assoc]
+
+/-- Under reflection-equivariance of the norm, every norm witness can be
+symmetrized to a reflection-fixed one, and a fixed witness is already an
+ordinary witness.  Because this is an identity of commutative groups, it
+survives every scalar extension.  This is the algebraic core of the paper's
+local as well as global reflection-norm equivalence. -/
+theorem reflection_fixed_norm_witness_iff
+    {A : Type*} [CommGroup A]
+    (s : A ≃* A) (N : A →* A) (a : A) (ell r : Nat)
+    (hs : Function.Involutive s) (ha : s a = a)
+    (hN : ∀ y, N (s y) = s (N y))
+    (hbase : N a = a ^ ell) (hfactor : 2 * r = ell + 1) :
+    (∃ y, N y = a) ↔ ∃ z, s z = z ∧ N z = a := by
+  constructor
+  · rintro ⟨y, hy⟩
+    let z := (y * s y) ^ r / a
+    have hz := reflection_symmetrized_norm_witness
+      s N y a ell r hs ha hy (by rw [hN, hy, ha]) hbase hfactor
+    exact ⟨z, hz⟩
+  · rintro ⟨z, _, hz⟩
+    exact ⟨z, hz⟩
 
 /-- In an odd dihedral extension, every homomorphism to an abelian target
 kills the translation subgroup.  This is the algebraic core of the paper's
