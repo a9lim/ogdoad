@@ -171,7 +171,11 @@ recurrence calls the full ordinary continuation table; bare smaller-Euler
 induction is therefore circular.  A legal neutral-cap response tree on a
 single-edge support further shows that the next two-bit joint coefficient is
 not forced by tree shape and local minimum data alone.  Killing the remaining
-Schur class is still open.
+Schur class is still open.  An even-cross parity-cell matching would close the
+entire universal-front online draft endpoint, not merely its empty root;
+Eulerianity alone does not force such a matching by an exact dimension count,
+while whether the full transition-neutral singleton family does so remains a
+sharper open coherence question.
 Conditioned subtrees contain causal simplex caps of unbounded affine girth,
 so no bounded-support circuit theorem can replace the missing coupling.
 The remaining obligation is simultaneous cancellation of the correlated cut,
@@ -1000,6 +1004,39 @@ The ancestry statement cannot be strengthened by requiring one odd unit from
 every immediate OPEN child.  The following counterexample is entirely
 strategy-theoretic; no computed force set is used.
 
+The CLOSE-predecessor alternative has a parallel first-response restriction.
+
+\begin{proposition}[(A) immediate-close fibre]
+\label{prop:a-immediate-close-fibre}
+\PROVED{} In the odd-spike subcase of (A), so
+\[
+ r_g=0\xrightarrow{C_y,1}r_h=1
+       \xrightarrow{C_x,1}0,
+ \qquad \deg_U(y)=\deg_U(x)=1,
+\]
+consider a defender alternative $O_v$ at $g$.  If the attacker's prescribed
+first response is $C_y$, then necessarily
+\[
+ B(y,v)=B(x,v)=1.
+\]
+Thus every $v$ outside the joint $11$ fibre of the two front rows forces the
+attacker to continue with an OPEN.
+\end{proposition}
+
+\begin{proof}
+After $O_v$, the charge of $C_y$ is $1+B(y,v)$.  If $B(y,v)=0$, this close
+creates a bad state with the same live-real count as $h$ but strictly smaller
+secondary rank, contradicting the choice of $h$.  Hence $B(y,v)=1$, and the
+$C_y$ child is good.  It is defender-controlled with clear front $x$, whose
+legal close has charge
+\[
+ \deg_{U-\{v\}}(x)=1+B(x,v).
+\]
+If $B(x,v)=0$, that close creates a bad child after deleting the real front
+$x$, with fewer live real vertices than $h$.  Primary minimality excludes
+this, so $B(x,v)=1$ as claimed.
+\end{proof}
+
 \begin{proposition}[the mandatory (B$'$) OPEN fan is false]
 \label{prop:bad-open-fan}
 \PROVED{} Let
@@ -1792,6 +1829,41 @@ $C_p,O_x$ branch, not a proof that $O_x$ handles every earlier sibling.  It
 identifies the exact dummy/rotated-queue endpoint which the offset ladder must
 couple to the short (B$'$) cap.
 
+The static parity-cell certificate, when it exists, closes this stronger
+online endpoint as well as the empty root.
+
+\begin{proposition}[parity cells close the universal-dummy endpoint]
+\label{prop:cells-universal-dummy}
+\PROVED{} Let $H$ have an even-cross perfect pairing $\mathcal M$.  Adjoin a
+vertex $x$ universal to $H$ and an isolated vertex $d$.  From the clear state
+\[
+ Q=(x,d),\qquad U=V(H),
+\]
+with the odd-seeking attacker to move and score zero, the defender has a
+strategy under which every response round has total charge zero.  In
+particular the attacker cannot force future charge one, even when it drafts an
+arbitrary number of vertices before closing $x$.
+\end{proposition}
+
+\begin{proof}
+While $x$ is front, answer every attacker OPEN by opening its mate in
+$\mathcal M$.  The untouched set remains a union of whole cells and the
+drafted suffix is a concatenation of whole cells.  If the attacker closes
+$x$, its charge is $|U|=0$ in $\F_2$; close the isolated $d$ in reply.  If all
+cells are drafted first, the same two CLOSEs are forced and still neutral.
+
+After $C_x,C_d$, both the queue and untouched set are unions of whole cells,
+and the attacker moves.  Continue with the parity-cell strategy of
+Theorem~\ref{thm:cells}: answer an OPEN by opening its mate and answer a
+front CLOSE by closing the next, matched front.  When a cell $C$ closes, its
+two charges sum to
+\[
+ \sum_{D\subseteq U} e_H(C,D)=0.
+\]
+Ko causes no exception, because an OPEN onto an empty queue is answered by
+the mate OPEN.  Thus every response round is neutral through termination.
+\end{proof}
+
 There is an exact dual form of this obstruction.  It shows why deleting the
 Euler front does not give an induction on smaller Euler graphs.
 
@@ -1933,6 +2005,23 @@ same-$x$-colour contraction in every ordered row.  What remains open is to
 combine these independently selected row contractions with a hypothetical
 target-one full row.  The order-ten pairwise flex witness shows why one row
 cannot be detached from that simultaneous convolution.
+
+The still weaker proposal that just one neutral odd root forces a parity-cell
+completion is false.  \TESTED{} Let $H$ be the fourteen-vertex Euler graph
+with edges
+\[
+\begin{split}
+\{&02,03,0\,10,0\,13,12,1\,13,24,29,3\,13,46,58,5\,11,69,\\
+  &7\,10,7\,13,8\,13,9\,12,9\,13,10\,11,10\,12\}.
+\end{split}
+\]
+Exact recursion gives both a neutral tree at $T(H-0)$ and a neutral singleton
+tree at $S_2^H$, but exact matching enumeration gives no even-cross pairing
+of $H$.  The full family does detect the obstruction: the singleton $S_0^H$
+is not neutral, and a minimum-height refutation begins with the opponent move
+$O_4$.  Thus neither the $C_x$ child nor even one complete singleton tree can
+be promoted to a static cell certificate; simultaneity across all punctures
+is essential.
 
 The full family also supplies exactly the coherent short strategy needed by
 the offset ladder.  Fix a hypothetical universal target-one row $x$.  The
@@ -2546,16 +2635,146 @@ score from the empty-queue second-seat root, so $1\notin T(H)$, while $P(H)$
 already gives $0\in T(H)$.
 \end{proof}
 
+Eulerianity by itself cannot supply the pairing premise, for a dimension
+reason rather than only by census.
+
+\begin{proposition}[Euler graphs need not have parity cells]
+\label{prop:euler-no-cells}
+\PROVED{} There is an Euler graph on sixteen vertices with no even-cross
+perfect pairing.
+\end{proposition}
+
+\begin{proof}
+Let $V=\F_2^{16}$ with coordinate basis $e_1,\ldots,e_{16}$ and all-ones
+vector $\mathbf 1$.  Euler graphs are exactly the alternating forms $B$ on
+$V$ for which $B\mathbf 1=0$, hence exactly the alternating forms on the
+fifteen-dimensional quotient $V/\langle\mathbf 1\rangle$.
+
+Fix a perfect pairing $\pi$.  Its eight cell vectors $e_a+e_b$ span an
+eight-dimensional space $L_\pi$ containing $\mathbf 1$, so their image
+$\bar L_\pi$ in the quotient has dimension seven.  The pairing is even-cross
+exactly when $\bar L_\pi$ is totally $B$-isotropic.  Restriction of
+alternating forms to $\bar L_\pi$ is surjective, so this imposes
+$\binom72=21$ independent linear equations.  Thus the fraction of Euler
+forms admitting this fixed pairing is $2^{-21}$.
+
+There are
+\[
+ \frac{16!}{2^8 8!}=2{,}027{,}025<2^{21}=2{,}097{,}152
+\]
+perfect pairings.  The union bound therefore leaves at least one Euler form
+outside every pairing locus.  Its coordinate matrix is the required simple
+Euler graph.
+\end{proof}
+
+There is a useful exact flag form of the static certificate.  It says what
+the neutral response trees would have to construct coherently, rather than
+only one row at a time.
+
+\begin{proposition}[isotropic pairing flag]
+\label{prop:isotropic-pairing-flag}
+\PROVED{} Let $B$ be an Euler graph on an even coordinate set $V$.  After
+choosing disjoint cells $\{a_j,b_j\}$ for $j\leq i$, put
+\[
+ d_j=e_{a_j}+e_{b_j},\qquad
+ D_i=\Span\{d_1,\ldots,d_i\},
+\]
+and let $S_i$ be the unpaired coordinates.  For each syndrome
+$\lambda\in D_i^*$, write
+\[
+ C_\lambda=\{v\in S_i:B(-,v)|_{D_i}=\lambda\}.
+\]
+Assume that $D_i$ is $B$-isotropic and every $C_\lambda$ has even
+cardinality.  Define the joint signature
+\[
+ \sigma_i(v)=
+ \left(B(-,v)|_{D_i},
+       \bigl(B(v,\mathbf 1_{C_\lambda})\bigr)_\lambda\right).
+\]
+Then $a,b\in S_i$ may be adjoined as the next cell while preserving both
+invariants if and only if
+\[
+ \sigma_i(a)=\sigma_i(b).
+\]
+Consequently an even-cross perfect pairing is equivalent to a complete
+sequence of equal-signature choices.  Every ordering of the cells of an
+even-cross pairing gives such a sequence.
+\end{proposition}
+
+\begin{proof}
+Equality of the first signature coordinate says that
+$d=e_a+e_b$ lies in $D_i^\perp$, so $D_i+\langle d\rangle$ remains
+isotropic.  Inside an old fibre $C_\lambda$, the new syndrome bit is
+$B(d,v)$.  The parity of its one-subfibre is
+\[
+ B(d,\mathbf 1_{C_\lambda})
+ =B(a,\mathbf 1_{C_\lambda})+B(b,\mathbf 1_{C_\lambda}),
+\]
+which vanishes exactly when the second signature coordinates agree.  Removing
+$a,b$ does not alter that parity: they lie in the same old fibre and
+$B(d,a)=B(a,b)=B(d,b)$.  The zero-subfibre is then even as well because the
+old fibre, minus either zero or two points, is even.  This proves the extension
+criterion and, by iteration, its sufficiency.
+
+Conversely, order the cells of an even-cross pairing arbitrarily.  Their cell
+vectors span a totally $B$-isotropic space.  Every remaining cell has equal
+syndrome at its two endpoints, so every old fibre is a union of whole cells.
+For the next cell vector $d$, orthogonality to every remaining cell vector
+gives $B(d,\mathbf 1_{C_\lambda})=0$ in every fibre.  Its endpoints therefore
+have equal joint signature, proving necessity.
+\end{proof}
+
+A locally optimal pairing makes the obstruction to extending this flag
+equally concrete.
+
+\begin{proposition}[minimum-defect cell switch]
+\label{prop:minimum-defect-cell-switch}
+\PROVED{} For a perfect pairing $\mathcal M$, let $\Gamma_{\mathcal M}$ be
+the graph on its cells with
+\[
+ \Gamma_{\mathcal M}(A,C)=e_B(A,C),
+\]
+and choose $\mathcal M$ minimizing the ordinary integer edge count
+$e(\mathcal M)=|E(\Gamma_{\mathcal M})|$.  If $A,B$ are adjacent defective
+cells, the unique re-pairing of their four vertices which removes their
+mutual defect must create defects from both new cells to some old cell $C$
+which was adjacent to neither $A$ nor $B$.
+\end{proposition}
+
+\begin{proof}
+The mutual cross bits of the three pairings of four vertices sum to zero in
+$\F_2$.  Since the current bit is one, exactly one of the two alternative
+pairings has bit zero; call it $\mathcal M'$.  For every other cell $C$, let
+$n_C\in\{0,1,2\}$ be the ordinary number of its adjacencies to $A,B$, and
+define $n'_C$ for the two replacement cells.  Their total cell vector is
+unchanged, so
+\[
+ n'_C-n_C\in\{-2,0,2\}.
+\]
+Therefore
+\[
+ e(\mathcal M')-e(\mathcal M)
+ =-1+\sum_C(n'_C-n_C).
+\]
+Minimality makes this odd integer nonnegative, hence at least one.  Some
+summand must consequently be $+2$, which says precisely that
+$n_C=0$ and $n'_C=2$ for a blocker cell $C$.
+\end{proof}
+
 \TESTED{} The implication $P(H)\Rightarrow T(H)=\{0\}$ holds on the complete
 graph census through order eight; the numbers of $P$-classes in even orders
 $2,4,6,8$ are respectively $1,4,18,262$, and every one admits an even-cross
 pairing.  This is not yet a proof.  The most obvious Boolean parity repairs
 already fail: on the path $01,03,12$, all $S_z=\{0\}$ but the row at $0$ is
 $\{0\},\{0\},\F_2$; even the same-degree subrow can have odd full-set count
-at order six.  Nor does Eulerianity alone supply the static certificate: an
-exact order-fourteen Eulerian graph has no even-cross perfect pairing.  Thus the missing step is a
+at order six.  Nor does Eulerianity alone supply the static certificate:
+Proposition~\ref{prop:euler-no-cells} proves this abstractly, and an exact
+order-fourteen Eulerian graph already has no even-cross perfect pairing.  Thus the missing step is a
 joint identity internal to the ordered $Q$-subtrees, not a rowwise M\"obius
-parity or a static pairing induction.
+parity or a static pairing induction.  Proposition~\ref{prop:isotropic-pairing-flag}
+identifies it as the synchronization of all old syndrome-fibre parities;
+Proposition~\ref{prop:minimum-defect-cell-switch} gives the equivalent local
+picture in which every defect repair branches into a new blocker fan.
 
 \begin{lemma}[least-counterexample odd routing]\label{lem:odd-routing}
 \PROVED{} Suppose $A$ is a least-order even counterexample to
@@ -5044,7 +5263,9 @@ The following claims have different status and should not be flattened.
       common-close identity and exact pruning obstruction, dual obstruction
       descent, filtered Schur-complement
       criterion, and Euler quotient separation,
-      parity-cell theorem, front cut-space splitting and two-graph absorption,
+      parity-cell theorem, the dimension-counted Euler no-cell example and
+      the parity-cell universal-dummy endpoint strategy, front cut-space
+      splitting and two-graph absorption,
       correlated-moment identity, initial cut contraction, charge/poison
       classification, two-switch tail, scalar force-set recursion,
       Boolean force-set identities, universal-full-fan residual,

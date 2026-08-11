@@ -498,7 +498,37 @@ Historical program state (2026-06-10 — retained as proof provenance):
   smaller-Euler induction necessarily restores the full ordinary Bellman
   table (equivalently the continuation cosets), and a blanket arbitrary-state
   safety premise is false already on the sole-edge queue
-  `U={2,3}, Q=(0,1)`.
+  `U={2,3}, Q=(0,1)`.  A static even-cross perfect pairing of `H`, when
+  available, does close the stronger online endpoint: behind `Q=(x,d)`, pair
+  every attacker OPEN with its cell mate; `C_x,C_d` is neutral because the
+  untouched cells have even cardinality, and the ordinary parity-cell
+  strategy then handles every drafted checkpoint.  Eulerianity alone cannot
+  guarantee such cells.  Symbolically, on 16 vertices a fixed pairing makes
+  a 7-plane isotropic and imposes 21 independent equations on the Euler form,
+  while there are only `16!/(2^8 8!) < 2^21` pairings; hence some Euler graph
+  has none.  The live stronger conjecture is that the *full transition-neutral
+  singleton family* supplied by the minimum forces a pairing (or an equivalent
+  online cell-switch strategy).  Exact checks support this through order
+  eight; the known 14-vertex Euler no-pair witness fails the stronger neutral
+  hypothesis already at `S_0`.  Its weaker one-puncture root nevertheless is
+  neutral, and so is a different full singleton: exact recursion gives both
+  `TreeNeutralWins T(H-0)` and `TreeNeutralWins S_2(H)`.  Thus reductions from
+  either one odd root or one singleton tree are false; simultaneity across all
+  punctures is genuinely needed.  Static parity cells admit an exact flag
+  characterization: after some cells have been chosen, the next endpoints
+  must agree both on their current isotropic syndrome and on their incidences
+  with every old syndrome fibre.  A minimum-defect cell pairing has an equally
+  sharp exchange obstruction: removing any quotient defect by a 2-switch
+  must create two new defects against a previously nonadjacent blocker cell.
+  The open coherence lemma is therefore to show that the universal neutral
+  `Q`-branches cannot sustain this blocker fan and must produce a complete
+  equal-signature flag.  No proof of that implication is known.
+  In the separate odd-spike `(A)` normal form there is now an analogous exact
+  first-response restriction: after a defender `O_v`, an immediate selected
+  `C_y` is possible only when both front incidences are one,
+  `B(y,v)=B(x,v)=1`; every vertex outside that joint fibre forces another
+  attacker OPEN.  This narrows `(A)` to the same adaptive multiround pairing
+  problem but does not yet provide the required relative coefficient.
   A tempting sharper scalar target is false at order ten.  An explicit Euler
   graph with degree sequence `(8,8,4,4,6,6,4,4,6,8)` has, at the canonical
   state `Q=(2,9)`, both an all-zero-charge `TreeNeutralWins` and an odd-forcing
