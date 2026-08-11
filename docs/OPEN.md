@@ -79,9 +79,10 @@ not a scalar parity identity.
   finitely determined. `formal/Ogdoad/Fifo.lean` proves the dual even/odd
   strategy semantics, queue invariants, drain identities, the singleton tail,
   and the edgeless base case.
-- A close-first attacker cannot change the score from any coherent, ko-clear
-  defender checkpoint with nonempty queue. A stronger prefix-safe
-  normalization is false; earlier odd-close siblings must be coupled.
+- Close-first play contracts completely from either seat. The conditioned
+  tail, its whole-live-face strengthening, and the stopped defender-first
+  empty-root theorem are proved; their load-bearing strategy semantics and
+  induction kernels are checked in `formal/Ogdoad/Fifo.lean`.
 - Matching graphs are solved for both seats, without a dummy.
   `formal/Ogdoad/FifoMatching.lean` proves the rank-inductive strategy used by
   the Gold–Arf paper.
@@ -97,6 +98,19 @@ not a scalar parity identity.
 - Complete schedules admit an exact permutation-threshold normal form, and
   pass-free histories admit a response-factor normal form. Both expose the
   same missing causal extension rather than proving it.
+- Every fixed-front attacker phase has zero in the affine hull of its remainder
+  vectors, but the corresponding distinguished-leaf statement is false. The
+  exact replacement is a relative-spine quotient together with a finite
+  one-front-offset ladder whose holonomy is an explicit sum of token-opening
+  edges.
+- Minimum extraction inside an odd strategy tree produces a charged close with
+  a translated neutral tail. The full family of punctured singleton tails
+  makes the even untouched remainder Eulerian and excludes the
+  zero-charge/even-untouched predecessor branch. At the remaining odd-odd spike,
+  relative live-star incidence forces earlier siblings to carry the selected
+  front star, leaving a canonical Schur class supported strictly away from that
+  front. Exact response trees show that neither descendants alone nor the next
+  two-bit coefficient kills this class.
 - Exact minimax verifies the conjecture for every graph isomorphism class
   through eight real vertices plus the isolated dummy, for either designated
   seat. This is certified finite evidence only.
@@ -124,11 +138,12 @@ proof must retain.
 
 For every deterministic attacker strategy, construct a strategy-compatible
 odd response chain with zero terminal edge moment. An equivalent Eulerian form
-asks for a chain with cut-valued terminal moment. The construction must couple
-several sibling images across successive front levels while preserving odd
-augmentation. In the response-factor language, it is a **causal
-charge-balanced factor-extension theorem** that may carry an unmatched dummy
-endpoint until a legal phase pivot absorbs it.
+asks for a chain with cut-valued terminal moment. After the proved predecessor
+reductions, the unresolved step is to kill the odd-spike/B-prime Schur class by
+coupling earlier siblings with descendant continuation cosets. In the
+response-factor language, this is a **causal charge-balanced factor-extension
+theorem** simultaneously cancelling cut, continuation, pruning-frontier, and
+frozen ko-wall moments while preserving odd augmentation.
 
 This is the only missing mathematical step. More exhaustive enumeration or a
 new scalar queue invariant would be useful for falsification, but neither is

@@ -175,11 +175,28 @@ Python certificate.
 for the reduced odd-close parity game from `experiments/linking_game.py`:
 
 - OPEN, FIFO CLOSE, forced PASS, ko delay, mover, and the `ZMod 2` score;
+- score-translation equivariance for every transition, its exact
+  even/odd strategy-sheet equivalences, and the singleton-wall reconvergence
+  of `C_f; O_z; O_w` with `O_z; C_f; O_w` after the next real OPEN;
+- the abstract fixed-front closure recursion, including kernel-checked
+  exclusion of every affine sheet-one separator at a defender root and the
+  sharp sheet-zero policy showing why a designated immediate-close leaf
+  cannot generally be retained;
 - strict rank descent, absence of nonterminal stuck states, and preservation of
   the queue/untouched invariant;
 - an explicit existential/universal finite strategy tree;
 - its explicit odd-forcing dual, kernel-checked finite determinacy and
   incompatibility (`EvenWins` iff no `OddWins` counterstrategy);
+- explicit membership in one fixed `OddWins` strategy tree and a
+  strategy-relative minimum theorem: every zero-sheet odd counterstrategy
+  contains a selected charge-one CLOSE whose translated child has a fully
+  score-neutral continuation tree; more generally, an explicit score-one
+  subtree translates directly to a neutral tree.  Opponent-controlled
+  moves have score-neutral child trees (`TreeNeutralWins.answer_child`), and
+  singleton closes in such tails have charge zero, so any complete family of
+  punctured singleton tails forces the induced untouched graph to be
+  Eulerian.  The writeup's scalar dual-minimum argument supplies that family
+  in case `(B)`;
 - an absolute-target `CloseFirstWins` strategy tree, whole-queue drain
   identities, and the dummy-free `ConditionedCloseFirstTheorem`: from every
   coherent ko-clear defender checkpoint with nonempty queue, a close-first

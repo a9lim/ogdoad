@@ -16,6 +16,19 @@ separate semantics below.  Its operational absorbers, bad-pair moment and rank
 reduction, finite zero-fan mutual induction, and final rank contradiction are
 kernel-checked.  This theorem remains separate from the open
 `FifoLinkingTheorem`.
+
+The local ancestry layer also records score-translation equivariance and the
+exact singleton-queue OPEN/CLOSE reconvergence after one further OPEN.  These
+transport a chosen ko-wall square through a shared continuation; they do not
+assert the still-open global selection of compatible squares across a full
+strategy fan.  An abstract fixed-front closure game separately kernel-checks
+the affine no-separation recurrence and its sharp distinguished-leaf failure;
+it deliberately omits the descendant continuation cosets which remain open.
+Inside an explicit odd strategy tree, a separate minimum theorem extracts a
+selected unit CLOSE followed, on the opposite score sheet, by a completely
+score-neutral continuation.  Neutral opponent-controlled singleton tails
+force the corresponding punctured vertex degrees to vanish; composing enough
+such tails across the singleton wall remains part of the open global step.
 -/
 
 namespace Ogdoad.Fifo
@@ -338,6 +351,43 @@ def step (G : SimpleGraph V) (s : State V) : Move V → Option (State V)
         some { s with ko := false, toMove := !s.toMove }
       else none
 
+/-- Translate the accumulated score without changing the public game state. -/
+def scoreTranslate (c : ZMod 2) (s : State V) : State V :=
+  { s with score := c + s.score }
+
+omit [Fintype V] in
+/-- Every FIFO transition is equivariant under a uniform score translation.
+Thus a locally reconvergent schedule square may be transported through any
+common continuation without reopening its already-accounted score defect. -/
+theorem step_scoreTranslate (G : SimpleGraph V) (c : ZMod 2) (s : State V)
+    (m : Move V) :
+    step G (scoreTranslate c s) m =
+      (step G s m).map (scoreTranslate c) := by
+  obtain ⟨U, q, ko, turn, score⟩ := s
+  cases m
+  · simp [step, scoreTranslate]
+  · cases q <;> cases ko <;> simp [step, scoreTranslate, add_assoc]
+  · simp [step, scoreTranslate]
+
+omit [Fintype V] in
+/-- Successors of a translated state are exactly translations of successors
+of the original state. -/
+theorem step_scoreTranslate_eq_some_iff (G : SimpleGraph V) (c : ZMod 2)
+    (s t : State V) (m : Move V) :
+    step G (scoreTranslate c s) m = some t ↔
+      ∃ s', step G s m = some s' ∧ scoreTranslate c s' = t := by
+  rw [step_scoreTranslate, Option.map_eq_some_iff]
+
+omit [Fintype V] [DecidableEq V] in
+/-- Translating a binary score sheet twice by one recovers the original
+state. -/
+theorem scoreTranslate_one_involutive (s : State V) :
+    scoreTranslate 1 (scoreTranslate 1 s) = s := by
+  obtain ⟨U, q, ko, turn, score⟩ := s
+  simp only [scoreTranslate]
+  congr 1
+  rw [← add_assoc, CharTwo.add_self_eq_zero, zero_add]
+
 /-- The game is over after every vertex has been opened and the FIFO queue has
 been drained. -/
 def Terminal (s : State V) : Prop :=
@@ -613,6 +663,85 @@ theorem open_close_square_away_singleton (G : SimpleGraph V) (s : State V)
     rw [flip_eq_flip_erase_add hz]
     simp [add_assoc]
 
+omit [Fintype V] in
+/-- At the singleton-queue ko wall the immediate OPEN/CLOSE square fails to
+reconverge only because closing first makes the subsequent OPEN set `ko`.
+Opening one further distinct untouched vertex clears that wall on both paths.
+The resulting public states agree, and their scores differ by exactly the
+adjacency bit between the original front and the first opened vertex.
+
+This is the local transport square needed at a type-B/B' predecessor: the ko
+discrepancy does not survive the next real OPEN. -/
+theorem singleton_wall_reconverges_after_open (G : SimpleGraph V) (s : State V)
+    (f z w : V) (hqueue : s.queue = [f]) (hko : s.ko = false)
+    (hz : z ∈ s.untouched) (hw : w ∈ s.untouched) (hzw : z ≠ w) :
+    ∃ sc scz sczw so soc socw,
+      step G s .close = some sc ∧
+      step G sc (.open z) = some scz ∧
+      step G scz (.open w) = some sczw ∧
+      step G s (.open z) = some so ∧
+      step G so .close = some soc ∧
+      step G soc (.open w) = some socw ∧
+      sczw.untouched = socw.untouched ∧
+      sczw.queue = socw.queue ∧
+      sczw.ko = socw.ko ∧
+      sczw.toMove = socw.toMove ∧
+      sczw.score = socw.score + adjacencyBit G f z ∧
+      sczw = scoreTranslate (adjacencyBit G f z) socw := by
+  have hwErase : w ∈ s.untouched.erase z :=
+    Finset.mem_erase.mpr ⟨Ne.symm hzw, hw⟩
+  let sc : State V := {
+    untouched := s.untouched
+    queue := []
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G s.untouched f }
+  let scz : State V := {
+    untouched := s.untouched.erase z
+    queue := [z]
+    ko := true
+    toMove := s.toMove
+    score := s.score + flip G s.untouched f }
+  let sczw : State V := {
+    untouched := (s.untouched.erase z).erase w
+    queue := [z, w]
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G s.untouched f }
+  let so : State V := {
+    untouched := s.untouched.erase z
+    queue := [f, z]
+    ko := false
+    toMove := !s.toMove
+    score := s.score }
+  let soc : State V := {
+    untouched := s.untouched.erase z
+    queue := [z]
+    ko := false
+    toMove := s.toMove
+    score := s.score + flip G (s.untouched.erase z) f }
+  let socw : State V := {
+    untouched := (s.untouched.erase z).erase w
+    queue := [z, w]
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G (s.untouched.erase z) f }
+  refine ⟨sc, scz, sczw, so, soc, socw, ?_, ?_, ?_, ?_, ?_, ?_,
+    rfl, rfl, rfl, rfl, ?_, ?_⟩
+  · simp [step, sc, hqueue, hko]
+  · simp [step, sc, scz, hz]
+  · simp [step, scz, sczw, hwErase]
+  · simp [step, so, hqueue, hz]
+  · simp [step, so, soc]
+  · simp [step, soc, socw, hwErase]
+  · simp only [sczw, socw]
+    rw [flip_eq_flip_erase_add hz]
+    simp [add_assoc]
+  · simp only [sczw, socw, scoreTranslate]
+    congr 1
+    rw [flip_eq_flip_erase_add hz]
+    abel
+
 /-- Every adjacency coordinate occurs on a reachable OPEN/CLOSE square.  The
 prefix `OPEN f; OPEN d` leaves the dummy behind `f`, so a distinct untouched
 `z` supplies the square whose curvature is the bit `fz`. -/
@@ -841,6 +970,245 @@ inductive OddWins (G : SimpleGraph V) (seat : Bool) : State V → Prop
       (hasMove : ∃ m s', step G s m = some s')
       (hwin : ∀ m s', step G s m = some s' → OddWins G seat s') :
       OddWins G seat s
+
+omit [Fintype V] in
+/-- Translating the score sheet by one turns a strategy for `seat` to force
+even score into a strategy for the same player, expressed as an odd strategy
+outside the complementary distinguished seat. -/
+theorem EvenWins.scoreTranslate_one {G : SimpleGraph V} {seat : Bool}
+    {s : State V} (h : EvenWins G seat s) :
+    OddWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal hscore =>
+      refine OddWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · simp [scoreTranslate, hscore]
+  | choose s hseat m s' hstep _ ih =>
+      refine OddWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ih
+      · simp [scoreTranslate, hseat]
+      · rw [step_scoreTranslate, hstep]
+        simp
+  | answer s hseat hasMove hwin ih =>
+      refine OddWins.answer (scoreTranslate 1 s) ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t hstep
+        obtain ⟨s', hbase, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp hstep
+        exact ih m s' hbase
+
+omit [Fintype V] in
+/-- Dually, translating by one turns an odd-forcing strategy into an
+even-forcing strategy for the same player, now named as the complementary
+seat. -/
+theorem OddWins.scoreTranslate_one {G : SimpleGraph V} {seat : Bool}
+    {s : State V} (h : OddWins G seat s) :
+    EvenWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal hscore =>
+      refine EvenWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · have hscoreOne : s.score = 1 :=
+          zmod2_eq_one_of_ne_zero s.score hscore
+        simp only [scoreTranslate, hscoreOne]
+        exact CharTwo.add_self_eq_zero 1
+  | choose s hseat m s' hstep _ ih =>
+      refine EvenWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ih
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · rw [step_scoreTranslate, hstep]
+        simp
+  | answer s hseat hasMove hwin ih =>
+      refine EvenWins.answer (scoreTranslate 1 s) ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.ne_not.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t hstep
+        obtain ⟨s', hbase, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp hstep
+        exact ih m s' hbase
+
+omit [Fintype V] in
+/-- Exact win-sheet transport in the orientation used by a locally
+reconvergent schedule square.  The complemented seat is essential because
+`OddWins G seat` is controlled by the player outside `seat`. -/
+theorem evenWins_scoreTranslate_one_iff_oddWins (G : SimpleGraph V)
+    (seat : Bool) (s : State V) :
+    EvenWins G seat (scoreTranslate 1 s) ↔ OddWins G (!seat) s := by
+  constructor
+  · intro h
+    have ht := h.scoreTranslate_one
+    rw [scoreTranslate_one_involutive] at ht
+    exact ht
+  · intro h
+    simpa using h.scoreTranslate_one
+
+omit [Fintype V] in
+/-- Rewriting form of `evenWins_scoreTranslate_one_iff_oddWins`, intended for
+the endpoint equality produced by a local schedule square. -/
+theorem evenWins_iff_oddWins_of_eq_scoreTranslate_one
+    {G : SimpleGraph V} {seat : Bool} {s t : State V}
+    (h : s = scoreTranslate 1 t) :
+    EvenWins G seat s ↔ OddWins G (!seat) t := by
+  rw [h]
+  exact evenWins_scoreTranslate_one_iff_oddWins G seat t
+
+omit [Fintype V] in
+/-- The dual orientation of `evenWins_scoreTranslate_one_iff_oddWins`. -/
+theorem oddWins_scoreTranslate_one_iff_evenWins (G : SimpleGraph V)
+    (seat : Bool) (s : State V) :
+    OddWins G seat (scoreTranslate 1 s) ↔ EvenWins G (!seat) s := by
+  constructor
+  · intro h
+    have ht := h.scoreTranslate_one
+    rw [scoreTranslate_one_involutive] at ht
+    exact ht
+  · intro h
+    simpa using h.scoreTranslate_one
+
+/-! ## Fixed-front prefix affine recurrence
+
+The following deletion game isolates only the closure prefix at one frozen
+front.  A remainder is a finite coordinate set and `closureValue weight S` is
+the value of a linear functional on its characteristic vector.  There is no
+FIFO queue, graph, descendant strategy, or continuation coset in these
+definitions: the result is exactly the scalar no-separation recurrence. -/
+
+/-- Evaluation of a linear functional on the characteristic vector of a
+finite remainder. -/
+def closureValue (weight : V → ZMod 2) (S : Finset V) : ZMod 2 :=
+  ∑ v ∈ S, weight v
+
+omit [Fintype V] in
+/-- Erasing one coordinate changes the functional by that coordinate's
+weight. -/
+theorem closureValue_erase_eq_add (weight : V → ZMod 2)
+    {S : Finset V} {v : V} (hv : v ∈ S) :
+    closureValue weight (S.erase v) =
+      closureValue weight S + weight v := by
+  have hsum := Finset.sum_erase_add S weight hv
+  calc
+    closureValue weight (S.erase v) =
+        (closureValue weight (S.erase v) + weight v) + weight v := by
+          rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+    _ = closureValue weight S + weight v := by
+      simpa only [closureValue] using congrArg (fun x ↦ x + weight v) hsum
+
+omit [Fintype V] [DecidableEq V] in
+/-- A unit value of a binary linear functional has a coordinate of unit
+weight. -/
+theorem exists_weight_one_of_closureValue_eq_one (weight : V → ZMod 2)
+    {S : Finset V} (hvalue : closureValue weight S = 1) :
+    ∃ v ∈ S, weight v = 1 := by
+  by_contra h
+  push Not at h
+  have hzero : ∀ v ∈ S, weight v = 0 := by
+    intro v hv
+    exact zmod2_eq_zero_of_ne_one (weight v) (h v hv)
+  have hsumZero : closureValue weight S = 0 := by
+    apply Finset.sum_eq_zero
+    intro v hv
+    exact hzero v hv
+  rw [hvalue] at hsumZero
+  exact one_ne_zero hsumZero
+
+mutual
+  /-- At an attacker node, the attacker may stop at the present remainder or
+  choose one coordinate to erase and hand the resulting state to the
+  defender. -/
+  inductive ClosureAttackerForces (weight : V → ZMod 2) (target : ZMod 2) :
+      Finset V → Prop where
+    | stop (S : Finset V) (hvalue : closureValue weight S = target) :
+        ClosureAttackerForces weight target S
+    | erase (S : Finset V) (v : V) (hv : v ∈ S)
+        (next : ClosureDefenderForces weight target (S.erase v)) :
+        ClosureAttackerForces weight target S
+
+  /-- At a defender node, both the immediate stop and every possible
+  one-coordinate erasure must stay on the target sheet. -/
+  inductive ClosureDefenderForces (weight : V → ZMod 2) (target : ZMod 2) :
+      Finset V → Prop where
+    | all (S : Finset V) (stop : closureValue weight S = target)
+        (erase : ∀ v ∈ S,
+          ClosureAttackerForces weight target (S.erase v)) :
+        ClosureDefenderForces weight target S
+end
+
+omit [Fintype V] in
+/-- No attacker policy can put every leaf of a defender-rooted closure prefix
+on affine sheet one.  Equivalently, the characteristic vectors of the leaf
+remainders cannot all be separated from zero by one binary linear
+functional. -/
+theorem not_closureDefenderForces_one (weight : V → ZMod 2) :
+    ∀ S : Finset V, ¬ClosureDefenderForces weight 1 S := by
+  intro S
+  induction S using Finset.strongInduction with
+  | H S ih =>
+      intro hforce
+      cases hforce with
+      | all _ hvalue erase =>
+          obtain ⟨v, hv, hweight⟩ :=
+            exists_weight_one_of_closureValue_eq_one weight hvalue
+          have hchild := erase v hv
+          have hchildValue : closureValue weight (S.erase v) = 0 := by
+            rw [closureValue_erase_eq_add weight hv, hvalue, hweight]
+            exact CharTwo.add_self_eq_zero 1
+          cases hchild with
+          | stop _ hstop =>
+              rw [hchildValue] at hstop
+              exact zero_ne_one hstop
+          | erase _ w hw hnext =>
+              exact ih ((S.erase v).erase w)
+                (lt_of_le_of_lt (Finset.erase_subset w (S.erase v))
+                  (Finset.erase_ssubset hv)) hnext
+
+omit [Fintype V] in
+/-- The sharp opposite-sheet policy.  At an attacker node of value zero,
+stop.  At one of value one, erase a unit-weight coordinate; the new defender
+node has value zero. -/
+theorem closure_zero_policy (weight : V → ZMod 2) :
+    ∀ S : Finset V,
+      ClosureAttackerForces weight 0 S ∧
+        (closureValue weight S = 0 →
+          ClosureDefenderForces weight 0 S) := by
+  intro S
+  induction S using Finset.strongInduction with
+  | H S ih =>
+      constructor
+      · by_cases hzero : closureValue weight S = 0
+        · exact ClosureAttackerForces.stop S hzero
+        · have hone : closureValue weight S = 1 :=
+            zmod2_eq_one_of_ne_zero (closureValue weight S) hzero
+          obtain ⟨v, hv, hweight⟩ :=
+            exists_weight_one_of_closureValue_eq_one weight hone
+          refine ClosureAttackerForces.erase S v hv ?_
+          apply (ih (S.erase v) (Finset.erase_ssubset hv)).2
+          rw [closureValue_erase_eq_add weight hv, hone, hweight]
+          exact CharTwo.add_self_eq_zero 1
+      · intro hzero
+        refine ClosureDefenderForces.all S hzero ?_
+        intro v hv
+        exact (ih (S.erase v) (Finset.erase_ssubset hv)).1
+
+omit [Fintype V] in
+/-- Sharp relative failure of prefix separation.  If the defender's immediate
+stop at the root has value one, every branch after a defender erasure admits
+an attacker policy whose leaves all have value zero.  Thus a prefix affine
+flow cannot in general be required to carry that designated immediate-close
+(B') branch together with the rest of the fan. -/
+theorem fixedFrontPrefix_sharp_relative_failure (weight : V → ZMod 2)
+    (S : Finset V) (hroot : closureValue weight S = 1) :
+    closureValue weight S = 1 ∧
+      (¬ClosureDefenderForces weight 1 S) ∧
+        (∀ v ∈ S, ClosureAttackerForces weight 0 (S.erase v)) := by
+  exact ⟨hroot, not_closureDefenderForces_one weight S,
+    fun v _hv ↦ (closure_zero_policy weight (S.erase v)).1⟩
 
 /-- A target-forcing strategy tree for a distinguished attacker who must
 CLOSE whenever CLOSE is legal.  The target is an absolute terminal score;
@@ -3541,6 +3909,410 @@ theorem evenWins_singletonTail (G : SimpleGraph V) (seat : Bool) (b : V) :
             · rfl
           simpa [flip_singleton_of_not_adj hvb] using heven
       · simp [step, s, singletonState] at hstep
+
+/-! ### Strategy-tree-relative charged-close extraction
+
+The local score-sheet transport lemmas above do not by themselves contradict
+determinacy: the same physical player can sometimes force either target from
+one public state.  The useful object is therefore the actual subtree of a
+fixed odd strategy.  A rank-minimal zero-sheet node in that subtree has a
+rigid operational form: the odd-seeking player selects an odd CLOSE, and the
+opposite score sheet of its child admits a strategy all of whose moves are
+score-neutral. -/
+
+/-- Membership in the explicit finite strategy tree carried by an `OddWins`
+proof.  At a `choose` node only the strategy's selected child belongs; at an
+`answer` node every legal child belongs. -/
+inductive InOddStrategy {V : Type*} [DecidableEq V]
+    (G : SimpleGraph V) (seat : Bool) :
+    {s : State V} → OddWins G seat s → State V → Prop
+  | root {s : State V} (h : OddWins G seat s) :
+      InOddStrategy G seat h s
+  | choose {s s' t : State V} {hseat : s.toMove ≠ seat}
+      {m : Move V} {hstep : step G s m = some s'}
+      {hchild : OddWins G seat s'}
+      (ht : InOddStrategy G seat hchild t) :
+      InOddStrategy G seat
+        (OddWins.choose s hseat m s' hstep hchild) t
+  | answer {s s' t : State V} {hseat : s.toMove = seat}
+      {hasMove : ∃ m u, step G s m = some u}
+      {hchildren : ∀ m u, step G s m = some u → OddWins G seat u}
+      {m : Move V} {hstep : step G s m = some s'}
+      (ht : InOddStrategy G seat (hchildren m s' hstep) t) :
+      InOddStrategy G seat
+        (OddWins.answer s hseat hasMove hchildren) t
+
+/-- Strategy-tree membership composes down nested odd subtrees. -/
+theorem InOddStrategy.trans
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {r s t : State V}
+    {hr : OddWins G seat r} {hs : OddWins G seat s}
+    (hrs : InOddStrategy G seat hr s)
+    (hst : InOddStrategy G seat hs t) :
+    InOddStrategy G seat hr t := by
+  induction hrs with
+  | root => simpa using hst
+  | @choose s0 s1 t0 hseat m hstep hchild ht ih =>
+      exact InOddStrategy.choose (hseat := hseat) (m := m)
+        (hstep := hstep) (ih hst)
+  | @answer s0 s1 t0 hseat hasMove hchildren m hstep ht ih =>
+      exact InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+        (hchildren := hchildren) (m := m) (hstep := hstep) (ih hst)
+
+/-- Every node in an odd strategy tree carries the corresponding odd
+sub-strategy. -/
+theorem InOddStrategy.oddWins
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {s t : State V}
+    {h : OddWins G seat s} (ht : InOddStrategy G seat h t) :
+    OddWins G seat t := by
+  induction ht with
+  | root => assumption
+  | choose _ ih => exact ih
+  | answer _ ih => exact ih
+
+/-- A strategy which forces terminal score zero without changing the score
+on any move in its explicit strategy tree. -/
+inductive TreeNeutralWins {V : Type*} [DecidableEq V]
+    (G : SimpleGraph V) (player : Bool) : State V → Prop
+  | terminal (s : State V) (hterminal : Terminal s) (hscore : s.score = 0) :
+      TreeNeutralWins G player s
+  | choose (s : State V) (hplayer : s.toMove = player)
+      (m : Move V) (s' : State V) (hstep : step G s m = some s')
+      (hneutral : s'.score = s.score) (hwin : TreeNeutralWins G player s') :
+      TreeNeutralWins G player s
+  | answer (s : State V) (hplayer : s.toMove ≠ player)
+      (hasMove : ∃ m s', step G s m = some s')
+      (hneutral : ∀ m s', step G s m = some s' → s'.score = s.score)
+      (hwin : ∀ m s', step G s m = some s' →
+        TreeNeutralWins G player s') :
+      TreeNeutralWins G player s
+
+/-- Forgetting the transition-by-transition neutrality certificate leaves an
+ordinary strategy forcing terminal score zero. -/
+theorem TreeNeutralWins.toEvenWins
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {player : Bool} {s : State V}
+    (h : TreeNeutralWins G player s) : EvenWins G player s := by
+  induction h with
+  | terminal s hterminal hscore =>
+      exact EvenWins.terminal s hterminal hscore
+  | choose s hplayer m s' hstep _ _ ih =>
+      exact EvenWins.choose s hplayer m s' hstep ih
+  | answer s hplayer hasMove _ _ ih =>
+      exact EvenWins.answer s hplayer hasMove ih
+
+/-- At an opponent-controlled node of a neutral tree, every legal move both
+preserves the score and leads to another neutral subtree. -/
+theorem TreeNeutralWins.answer_child
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {player : Bool} {s s' : State V}
+    (h : TreeNeutralWins G player s) (hturn : s.toMove ≠ player)
+    {m : Move V} (hstep : step G s m = some s') :
+    s'.score = s.score ∧ TreeNeutralWins G player s' := by
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨m, s', hstep⟩)
+  | choose _ hplayer _ _ _ _ _ => exact False.elim (hturn hplayer)
+  | answer _ _ _ hneutral hwin => exact ⟨hneutral m s' hstep, hwin m s' hstep⟩
+
+/-- If every node of one explicit odd strategy subtree is already on score
+sheet one, translating the subtree by one produces a completely score-neutral
+strategy for the same physical player.  This is the direct interface used
+when a separate monotone measure (for example the number of live real
+vertices) proves that no score-zero descendant can occur. -/
+theorem oddStrategy_one_subtree_translates_neutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {s : State V}
+    (h : OddWins G seat s)
+    (hone : ∀ {t : State V}, InOddStrategy G seat h t → t.score = 1) :
+    TreeNeutralWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal _ =>
+      have hs1 : s.score = 1 := hone (InOddStrategy.root _)
+      refine TreeNeutralWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · simp [scoreTranslate, hs1, CharTwo.add_self_eq_zero]
+  | choose s hseat m s' hstep hchild ih =>
+      have hs1 : s.score = 1 := hone (InOddStrategy.root _)
+      have hlocal : InOddStrategy G seat
+          (OddWins.choose s hseat m s' hstep hchild) s' :=
+        InOddStrategy.choose (hseat := hseat) (m := m) (hstep := hstep)
+          (InOddStrategy.root hchild)
+      have hs'1 : s'.score = 1 := hone hlocal
+      have hone' : ∀ {t : State V}, InOddStrategy G seat hchild t →
+          t.score = 1 := by
+        intro t ht
+        exact hone (hlocal.trans ht)
+      refine TreeNeutralWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ?_ (ih hone')
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · rw [step_scoreTranslate, hstep]
+        simp
+      · simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+  | answer s hseat hasMove hchildren ih =>
+      have hs1 : s.score = 1 := hone (InOddStrategy.root _)
+      refine TreeNeutralWins.answer (scoreTranslate 1 s) ?_ ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.ne_not.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hs'1 : s'.score = 1 := hone hlocal
+        simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hone' : ∀ {u : State V},
+            InOddStrategy G seat (hchildren m s' hstep) u → u.score = 1 := by
+          intro u hu
+          exact hone (hlocal.trans hu)
+        exact ih m s' hstep hone'
+
+/-- If every proper node of an odd strategy subtree stays on score sheet one,
+then translating its root by one produces a score-neutral strategy for the
+same physical player.  The hypothesis is relative to the original strategy
+tree, not to arbitrary game states. -/
+theorem oddStrategy_subtree_one_translates_neutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {root s : State V}
+    {hroot : OddWins G seat root} (h : OddWins G seat s)
+    (hmem : InOddStrategy G seat hroot s)
+    (hrank : rank s < rank root)
+    (hnozero : ∀ {t : State V}, InOddStrategy G seat hroot t →
+      rank t < rank root → t.score ≠ 0) :
+    TreeNeutralWins G (!seat) (scoreTranslate 1 s) := by
+  induction h with
+  | terminal s hterminal hscore =>
+      have hs1 : s.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem hrank)
+      refine TreeNeutralWins.terminal (scoreTranslate 1 s) ?_ ?_
+      · simpa [Terminal, scoreTranslate] using hterminal
+      · simp [scoreTranslate, hs1, CharTwo.add_self_eq_zero]
+  | choose s hseat m s' hstep hchild ih =>
+      have hlocal : InOddStrategy G seat
+          (OddWins.choose s hseat m s' hstep hchild) s' :=
+        InOddStrategy.choose (hseat := hseat) (m := m) (hstep := hstep)
+          (InOddStrategy.root hchild)
+      have hmem' : InOddStrategy G seat hroot s' := hmem.trans hlocal
+      have hrank' : rank s' < rank root :=
+        lt_trans (rank_step_lt hstep) hrank
+      have hs1 : s.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem hrank)
+      have hs'1 : s'.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem' hrank')
+      refine TreeNeutralWins.choose (scoreTranslate 1 s) ?_ m
+        (scoreTranslate 1 s') ?_ ?_ (ih hmem' hrank')
+      · simpa [scoreTranslate] using Bool.eq_not_iff.mpr hseat
+      · rw [step_scoreTranslate, hstep]
+        simp
+      · simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+  | answer s hseat hasMove hchildren ih =>
+      have hs1 : s.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hnozero hmem hrank)
+      refine TreeNeutralWins.answer (scoreTranslate 1 s) ?_ ?_ ?_ ?_
+      · simpa [scoreTranslate] using Bool.ne_not.mpr hseat
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        exact ⟨m, scoreTranslate 1 s', by
+          rw [step_scoreTranslate, hstep]
+          simp⟩
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hmem' : InOddStrategy G seat hroot s' := hmem.trans hlocal
+        have hrank' : rank s' < rank root :=
+          lt_trans (rank_step_lt hstep) hrank
+        have hs'1 : s'.score = 1 :=
+          zmod2_eq_one_of_ne_zero _ (hnozero hmem' hrank')
+        simp [scoreTranslate, hs1, hs'1, CharTwo.add_self_eq_zero]
+      · intro m t htranslated
+        obtain ⟨s', hstep, rfl⟩ :=
+          (step_scoreTranslate_eq_some_iff G 1 s t m).mp htranslated
+        have hlocal : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hmem' : InOddStrategy G seat hroot s' := hmem.trans hlocal
+        have hrank' : rank s' < rank root :=
+          lt_trans (rank_step_lt hstep) hrank
+        exact ih m s' hstep hmem' hrank'
+
+/-- A rank-minimal zero-sheet node inside one explicit odd strategy tree is
+controlled by the odd-seeking player, whose selected move is an odd FIFO
+CLOSE.  The selected child's opposite sheet has a fully neutral continuation.
+This is the strategy-tree-relative replacement for global-state minimality. -/
+theorem minimalOddStrategy_zeroNode_close_neutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {s : State V}
+    (h : OddWins G seat s) (hs0 : s.score = 0)
+    (hminimal : ∀ {t : State V}, InOddStrategy G seat h t →
+      rank t < rank s → t.score ≠ 0) :
+    s.toMove = !seat ∧
+      ∃ f q s', s.queue = f :: q ∧ s.ko = false ∧
+        step G s .close = some s' ∧ flip G s.untouched f = 1 ∧
+          TreeNeutralWins G (!seat) (scoreTranslate 1 s') := by
+  cases h with
+  | terminal _ _ hscore => exact False.elim (hscore hs0)
+  | choose _ hseat m s' hstep hchild =>
+      have hplayer : s.toMove = !seat := Bool.eq_not_iff.mpr hseat
+      have hmem : InOddStrategy G seat
+          (OddWins.choose s hseat m s' hstep hchild) s' :=
+        InOddStrategy.choose (hseat := hseat) (m := m) (hstep := hstep)
+          (InOddStrategy.root hchild)
+      have hrank : rank s' < rank s := rank_step_lt hstep
+      have hs'1 : s'.score = 1 :=
+        zmod2_eq_one_of_ne_zero _ (hminimal hmem hrank)
+      have hneutral : TreeNeutralWins G (!seat) (scoreTranslate 1 s') :=
+        oddStrategy_subtree_one_translates_neutral hchild hmem hrank hminimal
+      have hm : m = .close := by
+        cases m with
+        | «open» v =>
+            have hscore := open_score hstep
+            rw [hs0] at hscore
+            exact False.elim (one_ne_zero (hs'1.symm.trans hscore))
+        | close => rfl
+        | pass =>
+            have hscore := pass_score hstep
+            rw [hs0] at hscore
+            exact False.elim (one_ne_zero (hs'1.symm.trans hscore))
+      subst m
+      obtain ⟨f, q, hqueue, hscore⟩ := close_score hstep
+      have hko : s.ko = false := by
+        cases hk : s.ko with
+        | false => rfl
+        | true => simp [step, hqueue, hk] at hstep
+      have hflip : flip G s.untouched f = 1 := by
+        rw [hs0, zero_add] at hscore
+        exact hscore.symm.trans hs'1
+      exact ⟨hplayer, f, q, s', hqueue, hko, hstep, hflip, hneutral⟩
+  | answer _ hseat hasMove hchildren =>
+      exfalso
+      by_cases hU : s.untouched = ∅
+      · obtain ⟨m, s', hstep⟩ := hasMove
+        have hsome : ∃ m t, step G s m = some t := ⟨m, s', hstep⟩
+        have hmem : InOddStrategy G seat
+            (OddWins.answer s hseat hsome hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hsome)
+            (hchildren := hchildren) (m := m) (hstep := hstep)
+            (InOddStrategy.root (hchildren m s' hstep))
+        have hrank : rank s' < rank s := rank_step_lt hstep
+        have hs'0 : s'.score = 0 := by
+          rw [step_score_eq_of_untouched_empty hU hstep, hs0]
+        exact hminimal hmem hrank hs'0
+      · obtain ⟨v, hv⟩ := Finset.nonempty_iff_ne_empty.mpr hU
+        let s' : State V := {
+          untouched := s.untouched.erase v
+          queue := s.queue ++ [v]
+          ko := s.queue.isEmpty
+          toMove := !s.toMove
+          score := s.score }
+        have hstep : step G s (.open v) = some s' := by
+          simp [step, s', hv]
+        have hmem : InOddStrategy G seat
+            (OddWins.answer s hseat hasMove hchildren) s' :=
+          InOddStrategy.answer (hseat := hseat) (hasMove := hasMove)
+            (hchildren := hchildren) (m := .open v) (hstep := hstep)
+            (InOddStrategy.root (hchildren (.open v) s' hstep))
+        have hrank : rank s' < rank s := rank_step_lt hstep
+        have hs'0 : s'.score = 0 := by simp [s', hs0]
+        exact hminimal hmem hrank hs'0
+
+/-- Every zero-sheet odd strategy contains a rank-minimal zero-sheet node.
+At that node the preceding theorem gives the selected charged CLOSE followed
+by a neutral translated tail.  Minimality is taken only over nodes of the
+given strategy tree. -/
+theorem oddStrategy_extract_minimalCloseNeutral
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {seat : Bool} {root : State V}
+    (hroot : OddWins G seat root) (hroot0 : root.score = 0) :
+    ∃ s, InOddStrategy G seat hroot s ∧ s.score = 0 ∧
+      s.toMove = !seat ∧
+      ∃ f q s', s.queue = f :: q ∧ s.ko = false ∧
+        step G s .close = some s' ∧ flip G s.untouched f = 1 ∧
+          TreeNeutralWins G (!seat) (scoreTranslate 1 s') := by
+  classical
+  let P : Nat → Prop := fun n ↦ ∃ s,
+    InOddStrategy G seat hroot s ∧ s.score = 0 ∧ rank s = n
+  have hP : ∃ n, P n := by
+    exact ⟨rank root, root, InOddStrategy.root hroot, hroot0, rfl⟩
+  let n := Nat.find hP
+  obtain ⟨s, hmem, hs0, hrank⟩ := Nat.find_spec hP
+  have h : OddWins G seat s := hmem.oddWins
+  have hminimal : ∀ {t : State V}, InOddStrategy G seat h t →
+      rank t < rank s → t.score ≠ 0 := by
+    intro t hinner hlt ht0
+    have hglobal : InOddStrategy G seat hroot t := hmem.trans hinner
+    have hPt : P (rank t) := ⟨t, hglobal, ht0, rfl⟩
+    have hnle : n ≤ rank t := Nat.find_min' hP hPt
+    have hsle : rank s ≤ rank t := by simpa [n, hrank] using hnle
+    exact (Nat.not_lt_of_ge hsle) hlt
+  obtain ⟨hturn, f, q, s', hqueue, hko, hstep, hflip, hneutral⟩ :=
+    minimalOddStrategy_zeroNode_close_neutral h hs0 hminimal
+  exact ⟨s, hmem, hs0, hturn, f, q, s', hqueue, hko, hstep,
+    hflip, hneutral⟩
+
+/-- At an opponent-controlled node of a neutral strategy, every legal CLOSE
+has zero charge.  This is the local bridge from neutral tails to Eulerian
+degree parity. -/
+theorem TreeNeutralWins.opponent_close_flip_zero
+    {V : Type*} [DecidableEq V]
+    {G : SimpleGraph V} {player : Bool} {s : State V} {f : V} {q : List V}
+    (h : TreeNeutralWins G player s) (hturn : s.toMove ≠ player)
+    (hqueue : s.queue = f :: q) (hko : s.ko = false) :
+    flip G s.untouched f = 0 := by
+  let sc : State V := {
+    untouched := s.untouched
+    queue := q
+    ko := false
+    toMove := !s.toMove
+    score := s.score + flip G s.untouched f }
+  have hstep : step G s .close = some sc := by
+    simp [step, hqueue, hko, sc]
+  cases h with
+  | terminal _ hterminal _ =>
+      exact False.elim (terminal_no_step hterminal ⟨.close, sc, hstep⟩)
+  | choose _ hplayer _ _ _ _ _ => exact False.elim (hturn hplayer)
+  | answer _ _ _ hneutral _ =>
+      have heq := hneutral .close sc hstep
+      have hadd : s.score + flip G s.untouched f = s.score + 0 := by
+        simpa [sc] using heq
+      exact add_left_cancel hadd
+
+/-- A neutral tail after every puncture of `U`, with the puncturing vertex as
+the next opponent-controlled singleton front, forces even degree at every
+vertex of the induced graph on `U`. -/
+theorem treeNeutral_singletonTails_eulerian
+    {V : Type*} [DecidableEq V]
+    (G : SimpleGraph V) (player : Bool) (U : Finset V)
+    (htails : ∀ w ∈ U,
+      TreeNeutralWins G player {
+        untouched := U.erase w
+        queue := [w]
+        ko := false
+        toMove := !player
+        score := 0 }) :
+    ∀ w ∈ U, flip G (U.erase w) w = 0 := by
+  intro w hw
+  exact (htails w hw).opponent_close_flip_zero (by simp) rfl rfl
 
 /-- An edgeless graph is the fully proved base class: every close has charge
 zero, so either seat forces even parity regardless of its choices. -/
