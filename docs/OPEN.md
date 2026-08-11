@@ -456,6 +456,17 @@ absolute boundedness.
   epsilon/root-number factor is one. Thus conductor, discriminant, epsilon
   factor, and root number are blind; the only analytic datum that sees the
   target is the named Euler factor already containing it.
+  The complete global Artin package does not restore the missing bit. For the
+  augmentation representation of the odd-dihedral reflection field,
+  `L(s,Pi_0)=zeta_L(s)/zeta_(M_0)(s)` and the completed quotient has forced
+  sign `+1`. Its conductor is the relative discriminant; at every ramified
+  non-`ell` place the local induced representation is the direct sum of the
+  trivial and ramified quadratic characters, and the product
+  of the remaining `ell`-adic root numbers is forced to one. Multiplying all
+  Euler factors above two distinguishes split from inert only because that
+  product already contains `H`: it is `(1-T)^(-m*(ell-1))` on failure and
+  `((1-T)/(1-T^ell))^m` on success. Thus a functional equation, conductor,
+  or ramified Gauss package cannot reconstruct the named unramified factor.
   Its defining coefficient is already lower-ancestral:
   `W_n+W_n^(-1)=A_(n-1)^(-1)-2`, with
   `(W_n+W_n^(-1))^2-4=D_(n-1)/A_(n-1)^2`. The only selected datum is the
@@ -608,7 +619,16 @@ absolute boundedness.
   has dimension `2*3^(k-1)+1`, and that of `beta_k` has full dimension `3^k`.
   Hence even complete additive normality is present before the multiplicative
   primitivity question is asked; normal-basis or subspace-polynomial data cannot
-  close the selected order gap. Generic
+  close the selected order gap. At each immediate cubic edge its three
+  conjugates have trace Gram matrix `beta_(k-1)^2 I`, so after scaling they
+  form a self-dual normal basis, but their Moore determinant is only
+  `beta_(k-1)^3`. Absolutely, the multiplication matrix `M` of `beta_k`
+  satisfies `det f(M)=Res(Q_k,f)`. For a current prime,
+  `M^((2^(3^k)-1)/ell)-I` is either the zero matrix on failure or invertible
+  with determinant one on success; this is exactly the original Euler test,
+  with no intermediate rank. Norm-one Frobenius twists are conjugate to
+  untwisted Frobenius by Hilbert 90, so crossed circulant determinants are
+  blind as well. Generic
   Wendt factors and other trace fibres attain every structural value used by
   the obvious bounds.
   There is also an exact pure-radical reflection descent. With
@@ -657,6 +677,17 @@ absolute boundedness.
   the Popovych reflection normal form but supplies no new C-to-D constraint:
   it collapses exactly to the original selected `-2`-eigenspace symbol, while
   C occupies the disjoint `+2` current eigenspace.
+  This separation now holds for the actual global radicals, not just their
+  rational-point group orders. For a C-current prime `ell_+` and a D-current
+  prime `ell_-`, adjoining both root-of-unity groups preserves the two Kummer
+  degrees; the pure-radical subfields cannot collapse inside an abelian
+  cyclotomic compositum because they are non-Galois. The resulting compositum
+  has Galois group `C_(ell_+) x C_(ell_-)`, and the Conway-compatible prime
+  above two carries the two selected split/inert coordinates independently.
+  Hence field intersections, common quotients, reflection descent, and shared
+  reciprocity products cannot prove `C_k => D'_k`; only the special additive
+  Artin--Schreier coefficient in the exact selector bridge remains capable of
+  coupling the arms.
   Even the exact lower norm of the actual normalized root is automatically a
   current primary power downstairs. A coprime plus/minus decomposition now
   identifies the entire current primary order with the minus coordinate

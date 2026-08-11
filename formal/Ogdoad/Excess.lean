@@ -1565,6 +1565,74 @@ theorem reciprocal_cubic_inverse_relation
           ring
     _ = 0 := hrel
 
+section CubicNormalBasisCore
+
+variable {K : Type*} [CommRing K] [CharP K 2]
+
+/-- The trace Gram calculation for the three conjugates of the reciprocal
+cubic.  Once their sum is the lower inverse selector and their pair sum is
+zero, the diagonal trace is its square and the off-diagonal trace vanishes. -/
+theorem cubic_scaled_self_dual_core (x y z a : K)
+    (hsum : x + y + z = a)
+    (hpair : x * y + y * z + z * x = 0) :
+    x ^ 2 + y ^ 2 + z ^ 2 = a ^ 2 ∧
+      x * y + y * z + z * x = 0 := by
+  constructor
+  · rw [← hsum, add_pow_char, add_pow_char]
+  · exact hpair
+
+/-- The determinant of the immediate cubic Moore/circulant matrix is the
+cube of the lower inverse selector.  Thus the selected normal-basis
+determinant contains no new current multiplicative coordinate. -/
+theorem cubic_moore_det_core (x y z a : K)
+    (hsum : x + y + z = a)
+    (hpair : x * y + y * z + z * x = 0) :
+    x ^ 3 + y ^ 3 + z ^ 3 + x * y * z = a ^ 3 := by
+  have hfour : (4 : K) = 0 := by
+    change ((4 : Nat) : K) = 0
+    rw [CharP.cast_eq_mod K 2 4]
+    norm_num
+  calc
+    x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
+        (x + y + z) ^ 3 +
+          (x + y + z) * (x * y + y * z + z * x) := by
+            ring_nf
+            rw [show (9 : K) = 1 by
+              change ((9 : Nat) : K) = 1
+              rw [CharP.cast_eq_mod K 2 9]
+              norm_num]
+            simp [hfour]
+    _ = a ^ 3 := by rw [hpair, mul_zero, add_zero, hsum]
+
+end CubicNormalBasisCore
+
+section CubicFrobeniusTwistCore
+
+variable {E : Type*} [Field E]
+
+/-- Multiplicative Hilbert--90 twists of Frobenius are conjugate to
+Frobenius itself. -/
+theorem frobenius_twist_conjugacy_core
+    (φ : E ≃+* E) (u x : E) :
+    u⁻¹ * φ (u * x) = (u⁻¹ * φ u) * φ x := by
+  rw [map_mul]
+  ring
+
+/-- A norm-one multiplicative twist of an order-three Frobenius still has
+cube one. -/
+theorem norm_one_twist_cube_core
+    (φ : E ≃+* E) (θ x : E)
+    (hφ3 : φ (φ (φ x)) = x)
+    (hnorm : θ * φ θ * φ (φ θ) = 1) :
+    θ * φ (θ * φ (θ * φ x)) = x := by
+  simp only [map_mul]
+  calc
+    θ * (φ θ * (φ (φ θ) * φ (φ (φ x)))) =
+        (θ * φ θ * φ (φ θ)) * φ (φ (φ x)) := by ring
+    _ = x := by rw [hnorm, one_mul, hφ3]
+
+end CubicFrobeniusTwistCore
+
 section CubicFrobeniusProjectors
 
 variable {F V : Type*} [Field F] [AddCommGroup V] [Module F V]
@@ -2395,6 +2463,27 @@ theorem weighted_frobenius_euler_eq_one_iff (x : G) (r d ell : Nat)
     ((∏ i ∈ s, (x ^ (r ^ i)) ^ (w i)) ^ d = 1) ↔ x ^ d = 1 := by
   rw [weighted_frobenius_euler]
   exact pow_eq_one_iff_of_coprime (x ^ d) hell hcop
+
+/-- Torsion classes of coprime exponents cannot cancel in one
+multiplicative reciprocity product.  This is the abstract group core of the
+paper's C/D Kummer-field separation: a product relation can be trivial only
+when its two primary coordinates are separately trivial. -/
+theorem coprime_torsion_product_eq_one_iff
+    (x y : G) {a b : Nat}
+    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
+    x * y = 1 ↔ x = 1 ∧ y = 1 := by
+  constructor
+  · intro hxy
+    have hxb : x ^ b = 1 := by
+      rw [eq_inv_of_mul_eq_one_left hxy]
+      simp [hy]
+    have hxone : x = 1 :=
+      (pow_eq_one_iff_of_coprime x hx hab).mp hxb
+    constructor
+    · exact hxone
+    · simpa [hxone] using hxy
+  · rintro ⟨rfl, rfl⟩
+    simp
 
 end CoprimePowerDetection
 

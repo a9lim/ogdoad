@@ -5337,6 +5337,123 @@ polynomial, whose root is \(\beta_k\), is therefore completely normal
 \cite[Corollary~1]{Scheerhorn96}.
 \end{proof}
 
+\begin{proposition}[self-dual inverse basis and determinant collapse]
+\label{prop:cubic-inverse-determinant-collapse}
+Retain Proposition~\ref{prop:cubic-inverse-completely-normal}.  For
+\(k\geq1\), put
+\[
+ q=2^{3^{k-1}},\qquad E=L_k,\qquad F=L_{k-1},
+\]
+and write
+\[
+ x=\beta_k,\qquad y=x^q,\qquad z=x^{q^2},\qquad
+ a=\beta_{k-1}.
+\]
+Then
+\[
+ x+y+z=a,\qquad xy+yz+zx=0,\qquad xyz=a.             \tag{\(\mathsf{CN}_4\)}
+\]
+Consequently the relative trace Gram matrix is diagonal:
+\[
+ \bigl(\operatorname{Tr}_{E/F}(x^{q^i}x^{q^j})\bigr)_{0\leq i,j<3}
+   =a^2 I_3.                                         \tag{\(\mathsf{CN}_5\)}
+\]
+Thus \((x/a,y/a,z/a)\) is a self-dual normal basis of \(E/F\), and
+the immediate Moore determinant contains only the lower selector:
+\[
+ \det\!\begin{pmatrix}x&y&z\\y&z&x\\z&x&y\end{pmatrix}
+ =x^3+y^3+z^3+xyz=a^3.                               \tag{\(\mathsf{CN}_6\)}
+\]
+
+There is likewise no intermediate absolute determinant invariant.  Put
+\(n=3^k\), \(b_i=\beta_k^{2^i}\), let
+\(\mathcal C=(b_{i+j})_{i,j\in\mathbb Z/n\mathbb Z}\), and let
+\(\mathcal M\) be the \(\F_2\)-matrix of multiplication by \(\beta_k\)
+in the normal basis \((b_j)\).  Then
+\[
+ \det\mathcal C=1,\qquad
+ \mathcal C\mathcal M
+  =\operatorname{diag}(b_0,\ldots,b_{n-1})\mathcal C. \tag{\(\mathsf{CN}_7\)}
+\]
+If \(Q_k\) is the reciprocal minimal polynomial of \(\beta_k\), then
+for every \(f\in\F_2[X]\),
+\[
+ \det f(\mathcal M)
+ =\prod_{i=0}^{n-1}f(b_i)
+ =\Norm_{L_k/\F_2}(f(\beta_k))
+ =\operatorname{Res}(Q_k,f).                        \tag{\(\mathsf{CN}_8\)}
+\]
+In particular, for a current prime
+\(\ell\mid\Phi_n(2)\) and \(t=(2^n-1)/\ell\),
+\[
+ \det(\mathcal M^t-I)=0
+ \iff \beta_k^t=1
+ \iff \text{the \(\ell\)-primary condition in \(C_k\) fails}. \tag{\(\mathsf{CN}_9\)}
+\]
+On failure \(\mathcal M^t-I=0\); on success it is invertible and its
+determinant is one.  Hence rank, determinant, resultant, and dual-basis
+coordinates provide no state strictly between the original selected Euler
+test's zero and nonzero outcomes.
+
+Finally this collapse persists for crossed Frobenius determinants.  Let
+\(S(u)=u^q\), put \(\vartheta=\beta_k^t\), and let \(A\) be multiplication
+by \(\vartheta\).  Since
+\(\Norm_{E/F}(\vartheta)=1\), Hilbert 90 gives
+\(\vartheta=v^{q-1}\), and therefore
+\[
+ M_v^{-1}SM_v=AS.                                   \tag{\(\mathsf{CN}_{10}\)}
+\]
+Thus every characteristic-polynomial or determinant invariant of the
+twisted Frobenius \(AS\) is the corresponding invariant of \(S\), whether
+or not \(\vartheta=1\).  The only untwisted discriminator
+\(\det(A-I)\) is precisely \((\mathsf{CN}_9)\).
+\end{proposition}
+
+\begin{proof}
+Equation~\((\mathsf{CN}_3)\) is the relative minimal polynomial
+\[
+ X^3+aX^2+a
+\]
+of \(x\), so its elementary symmetric coefficients give
+\((\mathsf{CN}_4)\).  The diagonal Gram entry is
+\[
+ \operatorname{Tr}_{E/F}(x^2)=x^2+y^2+z^2=a^2,
+\]
+whereas every off-diagonal entry is
+\(xy+yz+zx=0\).  Complete normality supplies the basis assertion.
+In characteristic two,
+\[
+ x^3+y^3+z^3+xyz
+ =(x+y+z)^3+(x+y+z)(xy+yz+zx)=a^3,
+\]
+which proves \((\mathsf{CN}_5)\)--\((\mathsf{CN}_6)\).  These two
+polynomial calculations are independently kernel-checked in
+\texttt{Ogdoad.Excess}.
+
+The matrix \(\mathcal C\) is invertible because \((b_i)\) is a normal
+basis.  Squaring every entry cyclically permutes its rows, so
+\((\det\mathcal C)^2=\det\mathcal C\); nonvanishing over \(\F_2\) gives
+\(\det\mathcal C=1\).  Evaluating multiplication by \(\beta_k\) in
+each Frobenius embedding gives the second identity in
+\((\mathsf{CN}_7)\), and taking determinants proves
+\((\mathsf{CN}_8)\).  Since multiplication by a nonzero field element
+is invertible, \(\mathcal M^t-I\) is either the zero matrix when
+\(\beta_k^t=1\), or invertible otherwise.  Its nonzero determinant lies
+in \(\F_2^\times=\{1\}\), proving \((\mathsf{CN}_9)\).
+
+For the final assertion,
+\(\ell\mid q^2+q+1\), so
+\(\Norm_{E/F}(\vartheta)=\vartheta^{q^2+q+1}=1\).
+Hilbert 90 and the direct calculation
+\[
+ v^{-1}S(vu)=v^{q-1}S(u)=\vartheta S(u)
+\]
+give \((\mathsf{CN}_{10})\).  Lean checks this generic conjugacy and
+the corresponding norm-one order-three twist identity.  The
+normal-basis, finite-field norm, Hilbert--90, and resultant
+interpretations remain paper-level.
+\end{proof}
+
 \begin{proposition}[Singer-orbit sieve]\label{prop:singer-sieve}
 Let $k\geq1$.  Put $n=3^k$, $q=2^{n/3}$, and
 $N=q^2+q+1=|U_k|$.  If a prime $\ell\mid N$ satisfies
@@ -13106,6 +13223,112 @@ With geometric Frobenius, \(H\) is replaced by \(H^{-1}\), leaving every
 split/nontrivial dichotomy unchanged.
 \end{proof}
 
+\begin{proposition}[the full Artin package leaves the named factor free]
+\label{prop:selected-global-artin}
+Retain Proposition~\ref{prop:selected-euler-factor}, put
+\[
+ F=M'=\mathcal K_{n-1}(\zeta_\ell),\qquad
+ K=M=\mathcal K_n(\zeta_\ell),\qquad
+ m=\frac{\ell-1}{2},\qquad d=[F:\Q].
+\]
+For a nontrivial character \(\chi\) of
+\(\operatorname{Gal}(\mathcal E/K)\), the augmentation representation
+has the exact decomposition
+\[
+ \Pi_0\simeq
+ \bigoplus_{a\in\F_\ell^\times/\{\mathord\pm1\}}
+   \operatorname{Ind}_{K/F}\chi^a.                  \tag{\(\mathsf{GAF}_1\)}
+\]
+Consequently
+\[
+ \boxed{
+ L_F(s,\Pi_0)=\frac{\zeta_L(s)}{\zeta_F(s)}
+ =\prod_{a\in\F_\ell^\times/\{\mathord\pm1\}}
+    L_K(s,\chi^a).}                                  \tag{\(\mathsf{GAF}_2\)}
+\]
+Both \(F\) and \(L\) are totally imaginary.  With
+\(\Gamma_{\mathbb C}(s)=2(2\pi)^{-s}\Gamma(s)\), the completed quotient is
+\[
+ \Lambda_F(s,\Pi_0)=
+ \left(\frac{|D_L|}{|D_F|}\right)^{s/2}
+ \Gamma_{\mathbb C}(s)^{md}L_F(s,\Pi_0),            \tag{\(\mathsf{GAF}_3\)}
+\]
+and satisfies
+\[
+ \boxed{\Lambda_F(s,\Pi_0)=\Lambda_F(1-s,\Pi_0),
+ \qquad W(\Pi_0)=+1.}                               \tag{\(\mathsf{GAF}_4\)}
+\]
+Thus the global sign is independent of \(H\).
+
+Let \(\mathfrak f_W\) be the common conductor of the nonzero powers
+\(\chi^a\).  It is supported above \(\ell\), and
+\[
+ \mathfrak f_F(\Pi_0)=\mathfrak d_{L/F}
+ =\bigl(\mathfrak d_{K/F}\,
+       \Norm_{K/F}\mathfrak f_W\bigr)^m.            \tag{\(\mathsf{GAF}_5\)}
+\]
+If \(v\nmid\ell\) is ramified in \(K/F\), then for every \(a\)
+the local induced representation is
+\(\mathbf1\oplus\eta_v\), where \(\eta_v\) is the ramified quadratic
+character of \(K_v/F_v\).  Hence
+\[
+ L_v(T_v,\Pi_0)=(1-T_v)^{-m},\qquad W_v(\Pi_0)=1.   \tag{\(\mathsf{GAF}_6\)}
+\]
+The remaining \(\ell\)-adic Gauss factors have global product one by
+\((\mathsf{GAF}_4)\); none contains the unramified value \(H\).
+
+By contrast, there are \(m\) primes of \(F\) above two, and multiplying
+their augmentation factors gives
+\[
+ \prod_{\mathfrak r\mid2}L_{\mathfrak r}(T,\Pi_0)
+ =\begin{cases}
+   (1-T)^{-m(\ell-1)},&H=1,\\[1mm]
+   \left(\dfrac{1-T}{1-T^\ell}\right)^m,&H\ne1.
+  \end{cases}                                       \tag{\(\mathsf{GAF}_7\)}
+\]
+This product distinguishes success from failure only because it already
+contains the named unknown Frobenius.  Conductor, discriminant, gamma
+factor, ramified local constants, and the functional-equation sign do not
+select between its two rows.
+\end{proposition}
+
+\begin{proof}
+The nontrivial characters of the rotation subgroup occur in inverse pairs
+under the reflection, which gives \((\mathsf{GAF}_1)\).  Artin formalism
+for the reflection permutation representation gives
+\((\mathsf{GAF}_2)\).  Since
+\[
+ r_2(L)-r_2(F)=\frac{\ell d-d}{2}=md,
+\]
+the quotient of the completed Dedekind zeta functions is exactly
+\((\mathsf{GAF}_3)\), and the two zeta functional equations prove
+\((\mathsf{GAF}_4)\).
+
+Every nonzero power of \(\chi\) has the same kernel and conductor.
+The conductor--discriminant formula, followed by induction from \(K\) to
+\(F\), proves \((\mathsf{GAF}_5)\).  At a finite
+\(v\nmid\ell\) ramified in \(K/F\), the Kummer extension is unramified.
+Quadratic inertia is a reflection in the odd dihedral group and is normal
+in its decomposition group.  A reflection subgroup is self-normalizing,
+so the decomposition group is that reflection subgroup itself; the
+rotation extension therefore splits locally.  This gives
+\(\mathbf1\oplus\eta_v\) and the Euler factor in
+\((\mathsf{GAF}_6)\).  A quadratic local root number has fourth power one,
+while Fermat divisors satisfy \(\ell\equiv1\pmod8\), so \(4\mid m\) and
+\(W(\eta_v)^m=1\).  Deligne's induction and epsilon-factor formalism
+supplies the standard local normalization~\cite{Deligne73}.
+
+Finally, the primes above two are indexed by
+\(a\in\F_\ell^\times/\{\mathord\pm1\}\).  At each one the Frobenius is
+the translation represented by \(H^a\).  It is the identity for every
+\(a\) exactly when \(H=1\); otherwise it is one \(\ell\)-cycle.
+Multiplying the two cases of \((\mathsf{EF}_3)\) over the \(m\) primes
+proves \((\mathsf{GAF}_7)\).  The representation-theoretic and
+number-field identities in this proposition remain paper-level; Lean
+checks only the underlying odd-dihedral abelianization and local
+split/inert permutation cores recorded earlier.
+\end{proof}
+
 \begin{corollary}[only the top generator carries the Brauer obstruction]
 \label{cor:fermat-top-brauer}
 Retain Corollary~\ref{cor:fermat-hasse-dihedral}, put
@@ -18038,6 +18261,109 @@ rational-point groups is trivial.  The common antiunit formalism does
 not transfer a current primary order assertion from one arm to the
 other; the two selected Kummer classes require separate evaluations.
 \end{remark}
+
+\begin{proposition}[the actual \(C\) and \(D\) Kummer fields are disjoint]
+\label{prop:cd-kummer-disjoint}
+Let \(k\geq2\), \(h=3^k\), and let \(\xi\) be a primitive
+\(3^{k+1}\)-st root of unity.  Put
+\[
+ F=\Q(\xi+\xi^{-1}),\qquad K=F(\sqrt5),
+\]
+and retain the actual selected radicals
+\[
+ c_k=(1+\xi)(1+\xi^{-1})\in F^\times,
+ \qquad
+ d_k=\frac{x-s}{x-s'}\in K^\times
+\]
+from Propositions~\ref{prop:cubic-reflection-descent} and
+\ref{prop:dk-reflection-descent}.  Choose current primes
+\[
+ \ell_+\mid\Phi_h(2),\qquad \ell_-\mid\Psi_k.
+\]
+Then
+\[
+ \ord_{\ell_+}(2)=h,\qquad \ord_{\ell_-}(2)=2h,
+ \qquad \ell_+\ne\ell_-.                            \tag{\(\mathsf{KID}_1\)}
+\]
+More precisely, for \(Q=2^{h/3}\),
+\[
+ \gcd\!\left(Q^2+Q+1,\frac{Q^2-Q+1}{3}\right)=1.   \tag{\(\mathsf{KID}_2\)}
+\]
+
+Assume both reflection constructions are nondegenerate, and put
+\[
+ \Omega=K(\mu_{\ell_+},\mu_{\ell_-}).
+\]
+For roots \(u^{\ell_+}=c_k\) and \(v^{\ell_-}=d_k\), one has
+\[
+ [\Omega(u):\Omega]=\ell_+,
+ \qquad [\Omega(v):\Omega]=\ell_-,                  \tag{\(\mathsf{KID}_3\)}
+\]
+and hence
+\[
+ \boxed{
+ \operatorname{Gal}(\Omega(u,v)/\Omega)
+   \simeq C_{\ell_+}\times C_{\ell_-}.}
+                                                               \tag{\(\mathsf{KID}_4\)}
+\]
+
+At a Conway-compatible prime of \(\Omega\) above two, the two
+Frobenius coordinates detect exactly the selected \(C\)- and \(D\)-failure
+bits: the \(C\)-coordinate is an invertible power of its original Euler
+value after the quadratic residue-field base change, and the \(D\)-coordinate
+is the value in \((\mathsf{DHR}_5)\).  Thus the local product structure
+admits independently the four split/inert patterns.  Chebotarev realizes
+every pair of translation coordinates at infinitely many other unramified
+primes of \(\Omega\).
+
+Consequently no implication \(C_k\Rightarrow D'_k\) can follow solely
+from an intersection or common quotient of the actual Kummer fields, an
+abelian reflection-field descent, or cancellation in one shared reciprocity
+product.  Any such implication must use the special additive
+Artin--Schreier coupling of Proposition~\ref{prop:cd-selector-bridge}, not
+only the two global Kummer extensions.
+\end{proposition}
+
+\begin{proof}
+The order assertions are the cyclotomic-divisor criteria in the two arms.
+Also
+\[
+ \gcd(Q^2+Q+1,Q^2-Q+1)\mid2Q.
+\]
+Both displayed factors are odd and coprime to \(Q\), so their gcd is one;
+division of the second by three preserves this conclusion.
+
+The field \(\Omega\) lies in an abelian cyclotomic compositum over
+\(\Q\), hence \(\Omega/F\) and \(\Omega/K\) are abelian.  Suppose that
+\(c_k\) became an \(\ell_+\)-th power in \(\Omega\).  Nondegeneracy makes
+\(X^{\ell_+}-c_k\) irreducible over \(F\), so \(F(u)/F\) has prime degree
+\(\ell_+\).  It is not Galois: \(F\) is totally real and contains no
+nontrivial \(\ell_+\)-th roots of unity, while the other roots are
+\(\zeta_{\ell_+}^j u\).  But \(F(u)\subset\Omega\) would be an intermediate
+field of an abelian extension and therefore Galois, a contradiction.
+This proves the first equality in \((\mathsf{KID}_3)\).  The same argument
+over the totally real field \(K\), using \(d_k\), proves the second.
+The two cyclic Kummer extensions over \(\Omega\) have distinct prime
+degrees, so they are linearly disjoint, proving \((\mathsf{KID}_4)\).
+
+The residue field of the selected prime of \(K\) above two is
+\(\F_{2^{2h}}\), which contains both root-of-unity groups by
+\((\mathsf{KID}_1)\).  Therefore the added cyclotomic base splits
+completely there.  Base change squares the \(C\)-Frobenius coordinate,
+an automorphism of its odd prime-order group, and leaves the exact
+\(D\)-coordinate described in \((\mathsf{DHR}_5)\).  This proves the
+selected-place assertion.  The product Galois group gives the remaining
+structural and Chebotarev claims.
+
+Finally, if \(r_+\in\mu_{\ell_+}\) and
+\(r_-\in\mu_{\ell_-}\), then
+\[
+ r_+r_-=1\iff r_+=r_-=1
+\]
+because their orders are coprime.  This abstract product-separation lemma
+is kernel-checked in \texttt{Ogdoad.Excess}; the number-field Kummer,
+local-Frobenius, and Chebotarev interpretations remain paper-level.
+\end{proof}
 
 \begin{proposition}[partition regulator sieve for the exceptional arm]
 \label{prop:dk-partition-regulator}

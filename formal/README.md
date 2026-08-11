@@ -134,6 +134,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   at `W^(F_n/ell)` vanishes exactly when the desired selected residue is
   nontrivial; the global ray-class and local Hilbert-symbol interpretation
   remains paper-level;
+- the abstract coprime-torsion separation: two classes of coprime exponents
+  cannot cancel in one multiplicative reciprocity product.  The paper applies
+  this only after proving, at number-field level, that the actual C and D
+  Kummer extensions remain linearly disjoint over their common cyclotomic
+  base;
 - the affine mixed-selector algebra: a nonzero affine coefficient isolates one
   cyclotomic coordinate, its relative quadratic norm is `A + R + R^2`, the two
   orientations carry reciprocal Conway-unit values, and relative norm two is
@@ -183,12 +188,16 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   `rho*j(rho)=(z/a)*rho^2` underlying the cubic and ordinary
   reflection normal forms; the corresponding number fields, local norm
   equivalences, and global selectivity boundary remain paper-level;
-- the reciprocal cubic relation for `beta_k=gamma_k^-1`, the abstract
+- the reciprocal cubic relation for `beta_k=gamma_k^-1`, the immediate
+  trace-Gram and Moore-determinant polynomial identities proving scaled
+  self-duality, the generic Hilbert--90 Frobenius-twist conjugacy and
+  norm-one order-three identity, the abstract
   cumulative/exact cubic Frobenius projectors and their successive-value
   identity, and the characteristic-two derivative induction preserving
   `X*P'=P+1` under `P -> P^3+P^2+1`.  The irreducible
-  cyclotomic-block decomposition, exact orbit ranks, and Scheerhorn
-  completely-normal conclusion remain paper-level;
+  cyclotomic-block decomposition, exact orbit ranks, Scheerhorn
+  completely-normal conclusion, absolute Moore diagonalization, resultant,
+  and finite-field Hilbert--90 instantiation remain paper-level;
 - the denominator-free first-Witt recurrence for the lifted Conway unit,
   including its selected terminal numerator and the next-discriminant relative
   norm; identifying these expressions with a local Fermat quotient requires
