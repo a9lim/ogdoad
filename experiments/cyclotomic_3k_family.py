@@ -76,8 +76,9 @@ are PRP-local; factordb marks them proven). The small factors 39367, 209953,
 
 from __future__ import annotations
 
+import hashlib
 import random
-from math import gcd
+from math import gcd, prod
 
 # ---------------------------------------------------------------------------
 # GF(2)[x] arithmetic; ints as coefficient bit-vectors, modulus x^(2h)+x^h+1.
@@ -419,9 +420,144 @@ def actual_selector_transfer_countermodel() -> None:
     )
 
 
+def selected_trace_norm_fibre_countermodel() -> None:
+    """Certify the sharp k=4 selected-trace-and-norm C/D countermodel.
+
+    The witness keeps C-primitivity, the literal rational D-selector, and the
+    selected lower trace and norm of ``g = gamma^2 + gamma + 1``.  Its
+    Artin--Schreier root is nevertheless a 163rd power.  The witness changes
+    only the middle elementary-symmetric coefficient of the three relative
+    conjugates of ``g``; complete Conway ancestry fixes that coefficient and
+    is therefore still outside this countermodel.
+    """
+
+    h = 81
+    t = 1 << 27
+    q = t**3
+    t_squared = t * t
+    ell = 163
+    z = 2
+    z_inverse = (1 << 161) ^ (1 << 80)
+    gamma_4 = z ^ z_inverse
+    a = fpow(gamma_4, 3, h) ^ gamma_4
+    constant = fmul(a, a, h) ^ a ^ 1
+    middle = 0x8240041049041000209009000249201249000241
+    gamma = (
+        0x1040240208041241041049240040048008009249,
+        0x1049040201240249208000001000249000200001,
+        0x9200009201008249049241040201008209248,
+    )
+    selector = (
+        0x8040209049241209208048049209000241248048,
+        0x9208049040200048048040049248000049248009,
+        0x1001009208201048248001201009249240201200,
+    )
+
+    Triple = tuple[int, int, int]
+    Pair = tuple[Triple, Triple]
+
+    def triple_add(x: Triple, y: Triple) -> Triple:
+        return tuple(u ^ v for u, v in zip(x, y, strict=True))
+
+    def triple_mul(x: Triple, y: Triple) -> Triple:
+        coefficients = [0] * 5
+        for i, u in enumerate(x):
+            for j, v in enumerate(y):
+                coefficients[i + j] ^= fmul(u, v, h)
+        # X^3 = X^2 + middle*X + constant in characteristic two.
+        for degree in (4, 3):
+            value = coefficients[degree]
+            coefficients[degree] = 0
+            if value:
+                coefficients[degree - 1] ^= value
+                coefficients[degree - 2] ^= fmul(value, middle, h)
+                coefficients[degree - 3] ^= fmul(value, constant, h)
+        return tuple(coefficients[:3])
+
+    def triple_pow(x: Triple, exponent: int) -> Triple:
+        result = (1, 0, 0)
+        while exponent:
+            if exponent & 1:
+                result = triple_mul(result, x)
+            exponent >>= 1
+            if exponent:
+                x = triple_mul(x, x)
+        return result
+
+    def pair_add(x: Pair, y: Pair) -> Pair:
+        return triple_add(x[0], y[0]), triple_add(x[1], y[1])
+
+    def pair_mul(x: Pair, y: Pair) -> Pair:
+        high = triple_mul(x[1], y[1])
+        return (
+            triple_add(triple_mul(x[0], y[0]), triple_mul(high, selector)),
+            triple_add(
+                triple_add(triple_mul(x[0], y[1]), triple_mul(x[1], y[0])),
+                high,
+            ),
+        )
+
+    def pair_pow(x: Pair, exponent: int) -> Pair:
+        result = ((1, 0, 0), (0, 0, 0))
+        while exponent:
+            if exponent & 1:
+                result = pair_mul(result, x)
+            exponent >>= 1
+            if exponent:
+                x = pair_mul(x, x)
+        return result
+
+    def absolute_trace(x: Triple) -> Triple:
+        result = (0, 0, 0)
+        for _ in range(h):
+            result = triple_add(result, x)
+            x = triple_mul(x, x)
+        return result
+
+    zero = (0, 0, 0)
+    one = (1, 0, 0)
+    g = (0, 1, 0)
+    assert fpow(middle, t, h) == middle
+    assert fpow(a, t, h) == a and fpow(constant, t, h) == constant
+
+    g_t = triple_pow(g, t)
+    g_t_squared = triple_pow(g, t_squared)
+    assert g_t != g and g_t_squared != g and triple_pow(g, q) == g
+    assert triple_add(triple_add(g, g_t), g_t_squared) == one
+    assert triple_mul(triple_mul(g, g_t), g_t_squared) == (constant, 0, 0)
+    e2 = triple_add(
+        triple_add(triple_mul(g, g_t), triple_mul(g, g_t_squared)),
+        triple_mul(g_t, g_t_squared),
+    )
+    assert e2 == (middle, 0, 0) and middle != (a ^ 1)
+
+    assert triple_add(triple_mul(gamma, gamma), gamma) == triple_add(g, one)
+    factors = [7, 73, 2593, 71119, 262657, 97685839]
+    assert prod(factors) == q - 1
+    for factor in factors:
+        assert triple_pow(gamma, (q - 1) // factor) != one
+    assert triple_pow(gamma, q - 1) == one
+    assert triple_pow(g, t_squared - 2) == selector
+    assert absolute_trace(selector) == one
+
+    root = (zero, one)
+    assert pair_pow(root, (q * q - 1) // ell) == (one, zero)
+    assert pair_add(pair_mul(root, root), root) == (selector, zero)
+
+    blob = "|".join(hex(x) for x in (a, constant, middle, *gamma, *selector)).encode()
+    assert hashlib.sha256(blob).hexdigest() == (
+        "6d3366ea5cc7a3a0b42a1f0cb4a48adf19eef95892b3a21c32786e88cf7424b0"
+    )
+    print(
+        "selected trace/norm C/D countermodel (k=4): primitive gamma and literal "
+        "selector; selected trace/norm retained, root is a 163rd power; only e2 differs"
+    )
+
+
 def main() -> None:
     term_algebra_cross_check()
     actual_selector_transfer_countermodel()
+    selected_trace_norm_fibre_countermodel()
     # factorization audit: exact products, squarefreeness, primality
     for k in FULLY_FACTORED_LEVELS:
         prod = 1

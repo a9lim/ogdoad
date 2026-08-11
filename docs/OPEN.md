@@ -373,7 +373,18 @@ absolute boundedness.
   of `H`; ordering the exceptional label merely reads the original selected
   phase. Lower multiplicative characters pulled back through the norm either
   cancel that phase in weight-zero Jacobi quotients or retain exactly the same
-  unknown. The natural mixed element
+  unknown. The same one-phase collapse holds on the complete literal Conway
+  bit basis: every lower bit has trivial `ell`-character, every upper bit has
+  one common value `C`, and the selected symbol is `H=C^(-2)`. Consequently
+  a multiplicative monomial in the full actual bit ancestry either has zero
+  upper-block weight and is tautologically trivial, or retains an invertible
+  power of the same unknown `H`; evaluating every bit twist adds no independent
+  Kummer coordinate. The full literal first upper interval is equally rigid:
+  its `ell` labels have histogram `d-1,d,...,d`, every nontrivial power moment
+  is `-1`, and its labelled factors multiply to `X^q+X`. The trivial-labelled
+  factor is exactly `S_d(X^2+X+a)`. Its value at the marked endpoint is
+  `S_d(a)`, so all aggregate factor data are fixed and the only missing
+  incidence is the original selected Fibonacci zero. The natural mixed element
   `W_n^(F_n/ell)-zeta_ell` has support above two exactly when
   `w_n^(F_n/ell) != 1`, so even its existence as a selector is the original
   target. That circularity can now be removed: affine interpolation writes
@@ -629,6 +640,16 @@ absolute boundedness.
   Thus the selected current subgroup already contains a normal translate of
   the same order, but its normal-basis determinants again transport only lower
   data. Complete normality of `epsilon_k` is not claimed.
+  More sharply, the completely normal inverse coordinate `beta_k` and the
+  absolutely normal translate `epsilon_k` differ by an explicit
+  determinant-one Frobenius circulant: `beta=D(sigma)epsilon`, where `D`
+  contains every cyclic exponent except `0,-1`, and the inverse is a canonical
+  alternating half-block sum. Their full absolute orbits lie in the current
+  Kummer kernel simultaneously and exactly on failure. Thus the two normal
+  bases, their half-block incidences, Moore determinants, and subspace
+  polynomials encode only the original selected character value, not a second
+  obstruction. A nonlinear additive--multiplicative correlation remains
+  logically possible.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -699,8 +720,16 @@ absolute boundedness.
   finds nine failures among 432 primitive scalars, all in one Frobenius orbit,
   but zero failures among the 60 points with the selected lower norm and zero
   among the nine points satisfying both selected norm and trace. This is exact
-  finite evidence, not a universal implication. It isolates the selected norm
-  ancestry as the remaining possible C-to-D coupling.
+  finite evidence, not a universal implication. A stronger exact `k=4`
+  countermodel now keeps C-primitivity, the literal rational selector, and
+  both selected lower trace and norm, yet its Artin--Schreier root is a
+  `163`rd power. It changes only the middle elementary-symmetric coefficient
+  `e2(g,g^t,g^(t^2))`: actual Conway ancestry forces `e2=a+1`, while the
+  witness has a different value. Thus the complete selected cubic coefficient,
+  not trace or norm alone or together, is the remaining possible C-to-D
+  coupling. The trace--norm fibre is a smooth genus-one curve, whereas fixing
+  this middle coefficient cuts it to the selected Frobenius orbit; generic
+  point counts on the fibre cannot evaluate that marked divisor.
   The conductor-five antiunit now gives a second exact reflection descent.
   With `x=alpha+alpha^(-1)`, `F=Q(x)`, `K=F(sqrt(5))`, and
   `d_k=(x-s)/(x-s')`, the conductor-five involution sends `d_k` to its

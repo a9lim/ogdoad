@@ -125,6 +125,16 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   exceptional label.  The quadratic finite-field trace-line decomposition and
   identification of that label with the selected Fermat symbol remain
   paper-level;
+- the abstract one-phase Conway-basis core: multiplying an entire upper block
+  by one fixed element gives one common character value, every basis monomial
+  remembers only its upper-block weight, and inverse squaring detects the
+  identity on an odd-order target.  It also checks the finite counting core
+  obtained by deleting the uniquely trivial base line from a uniformly
+  labelled projective set, and the characteristic-two norm collapse used in
+  the labelled first-upper-block factorization.  The literal nim multiplication
+  `e_(m+i)=c_n*e_i`, triviality on the lower finite-field block, and the
+  projective-line/cyclotomic-product specialization identifying
+  `H=C^(-2)` and `B_1(0)=S_d(a)` remain paper-level;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -208,9 +218,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the translated selected Singer cubic for
   `epsilon_k=eta_k+1`, its symmetric-coefficient Moore identity, the exact
   constant-off-diagonal trace-Gram determinant, and preservation of element
-  order by a coprime power.  The paper proves from the cyclotomic Frobenius
-  projectors that `epsilon_k` is absolutely normal and that `eta_k` spans the
-  trace-zero hyperplane; it does not claim complete normality for
+  order by a coprime power.  Lean also checks the three-term characteristic-two
+  square-root bridge from `epsilon_k` to `beta_k` and its Singer exponent
+  identity.  The paper proves the universal determinant-one half-circulant
+  inverse in the group algebra.  From the cyclotomic Frobenius projectors it
+  also proves that `epsilon_k` is absolutely normal and that `eta_k` spans
+  the trace-zero hyperplane; it does not claim complete normality for
   `epsilon_k`;
 - the denominator-free first-Witt recurrence for the lifted Conway unit,
   including its selected terminal numerator and the next-discriminant relative
@@ -249,6 +262,14 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   `experiments/cyclotomic_3k_family.py`; Lean checks only this naturality core,
   not the bit certificate, its exhaustive degree-nine fibre census, or its
   deliberately missing selected lower norm;
+- the selected cubic's three auxiliary symmetric coordinates: Lean checks
+  that `g=x^2+x+1` has relative trace one, middle coefficient `a+1`, and
+  norm `a^2+a+1`.  The exact `k=4` countermodel in
+  `experiments/cyclotomic_3k_family.py` retains primitivity, the literal
+  rational selector, and the selected trace and norm while changing only the
+  middle coefficient and making the Artin--Schreier root a `163`rd power;
+  Lean does not check that finite-field witness, its irreducibility,
+  primitivity, or power tests;
 - the characteristic-two Mobius trace identity
   `M + M^(-1) = (w^2+w)^(-1)` behind the exceptional arm's selected
   one-variable Dickson critical value;

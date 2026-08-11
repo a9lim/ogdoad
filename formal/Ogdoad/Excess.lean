@@ -1068,6 +1068,48 @@ theorem cubic_auxiliary_norm_coherence
       rw [h₁, h₂, h₃, hchar]
       ring
 
+/-- The same selected cubic ancestry forces the relative trace of
+`g = x^2+x+1` to be one. -/
+theorem cubic_auxiliary_trace_coherence
+    (x y z : R) (hchar : (2 : R) = 0) (h₁ : x + y + z = 0) :
+    (x ^ 2 + x + 1) + (y ^ 2 + y + 1) + (z ^ 2 + z + 1) = 1 := by
+  calc
+    _ = (x + y + z) ^ 2 + (x + y + z) + 1 +
+          2 * (1 - (x * y + x * z + y * z)) := by ring
+    _ = 1 := by rw [h₁, hchar]; simp
+
+/-- The middle elementary-symmetric coordinate of the three auxiliary
+conjugates is `t+1`.  The paper's exact `k=4` countermodel retains their
+selected trace and norm but changes precisely this coordinate. -/
+theorem cubic_auxiliary_e2_coherence
+    (x y z t : R) (hchar : (2 : R) = 0)
+    (h₁ : x + y + z = 0) (h₂ : x * y + x * z + y * z = 1)
+    (h₃ : x * y * z = t) :
+    (x ^ 2 + x + 1) * (y ^ 2 + y + 1) +
+      (x ^ 2 + x + 1) * (z ^ 2 + z + 1) +
+      (y ^ 2 + y + 1) * (z ^ 2 + z + 1) = t + 1 := by
+  have hthree : (3 : R) = 1 := by
+    calc
+      (3 : R) = 2 + 1 := by norm_num
+      _ = 1 := by rw [hchar]; simp
+  have hneg (u : R) : -u = u := by
+    rw [neg_eq_iff_add_eq_zero]
+    calc
+      u + u = 2 * u := by ring
+      _ = 0 := by rw [hchar]; simp
+  calc
+    _ = 2 * (x + y + z) ^ 2 +
+        (x + y + z) * (x * y + x * z + y * z) -
+        2 * (x + y + z) * (x * y * z) +
+        2 * (x + y + z) +
+        (x * y + x * z + y * z) ^ 2 -
+        3 * (x * y + x * z + y * z) -
+        3 * (x * y * z) + 3 := by ring
+    _ = t + 1 := by
+      rw [h₁, h₂, h₃, hchar, hthree]
+      ring_nf
+      rw [sub_eq_add_neg, hneg]
+
 variable {F : Type*} [Field F] [CharP F 2]
 
 /-- Denominator-free algebra behind the tower-faithful exceptional
@@ -1869,6 +1911,175 @@ theorem trivial_label_is_exceptional_iff
   · simp [h, hne.symm]
 
 end FermatSemiprimitiveGauss
+
+section ConwayBitKummer
+
+/-- If an upper block is obtained by multiplying every lower basis vector by
+one fixed element, and a multiplicative character is trivial on the lower
+block, then its value is constant on the upper block. -/
+theorem upper_basis_has_one_phase
+    {L M I : Type*} [CommGroup L] [CommGroup M]
+    (chi : L →* M) (c : L) (lower upper : I → L)
+    (hupper : ∀ i, upper i = c * lower i)
+    (hlower : ∀ i, chi (lower i) = 1) :
+    ∀ i, chi (upper i) = chi c := by
+  intro i
+  rw [hupper i, map_mul, hlower i, mul_one]
+
+/-- Every multiplicative monomial in lower and upper basis vectors remembers
+only the number of upper factors. -/
+theorem basis_monomial_has_only_upper_weight
+    {L M I J : Type*} [CommGroup L] [CommGroup M]
+    (chi : L →* M) (c : L) (lower : I → L) (upper : J → L)
+    (s : Finset I) (t : Finset J)
+    (hlower : ∀ i, chi (lower i) = 1)
+    (hupper : ∀ j, chi (upper j) = chi c) :
+    chi ((∏ i ∈ s, lower i) * (∏ j ∈ t, upper j)) =
+      (chi c) ^ t.card := by
+  classical
+  rw [map_mul, map_prod, map_prod]
+  simp only [hlower, Finset.prod_const_one, one_mul, hupper]
+  exact Finset.prod_const (chi c)
+
+/-- On an odd-order cyclic target, inverse-squaring detects the identity.
+Writing the odd exponent as `2*k+1` avoids any primality machinery. -/
+theorem inv_square_eq_one_iff_of_odd_torsion
+    {G : Type*} [CommGroup G] (C H : G) (k : Nat)
+    (htors : C ^ (2 * k + 1) = 1)
+    (hphase : H = C⁻¹ * C⁻¹) :
+    H = 1 ↔ C = 1 := by
+  constructor
+  · intro hH
+    have hsquare : C ^ 2 = 1 := by
+      calc
+        C ^ 2 = (C⁻¹ * C⁻¹)⁻¹ := by group
+        _ = H⁻¹ := by rw [hphase]
+        _ = 1 := by rw [hH, inv_one]
+    have hodd : C ^ (2 * k + 1) = C := by
+      calc
+        C ^ (2 * k + 1) = C ^ (2 * k) * C ^ 1 := by rw [pow_add]
+        _ = (C ^ 2) ^ k * C ^ 1 := by rw [pow_mul]
+        _ = C := by rw [hsquare]; simp
+    rw [hodd] at htors
+    exact htors
+  · intro hC
+    simp [hphase, hC]
+
+/-- Combining the two cores: the selected phase is trivial exactly when all
+upper basis vectors have trivial character. -/
+theorem selected_phase_trivial_iff_all_upper_trivial
+    {L M I : Type*} [CommGroup L] [CommGroup M] [Nonempty I]
+    (chi : L →* M) (c : L) (lower upper : I → L)
+    (C H : M) (k : Nat)
+    (hC : C = chi c)
+    (htors : C ^ (2 * k + 1) = 1)
+    (hphase : H = C⁻¹ * C⁻¹)
+    (hupper : ∀ i, upper i = c * lower i)
+    (hlower : ∀ i, chi (lower i) = 1) :
+    H = 1 ↔ ∀ i, chi (upper i) = 1 := by
+  rw [inv_square_eq_one_iff_of_odd_torsion C H k htors hphase]
+  constructor
+  · intro h i
+    rw [upper_basis_has_one_phase chi c lower upper hupper hlower i, ← hC, h]
+  · intro h
+    let i : I := Classical.choice inferInstance
+    have hi := h i
+    rw [upper_basis_has_one_phase chi c lower upper hupper hlower i, ← hC] at hi
+    exact hi
+
+/-- Deleting one point from a uniformly labelled finite set decreases only
+the fibre carrying that point.  This is the counting core of the first-upper-
+Conway-block histogram. -/
+theorem deleted_uniform_fiber_card
+    {Q M : Type*} [Fintype Q] [DecidableEq Q] [DecidableEq M]
+    (label : Q → M) (base : Q) (one : M) (r : Nat)
+    (hbase : label base = one)
+    (huniform : ∀ ξ, (Finset.univ.filter fun x => label x = ξ).card = r)
+    (ξ : M) :
+    ((Finset.univ.erase base).filter fun x => label x = ξ).card =
+      if ξ = one then r - 1 else r := by
+  rw [Finset.filter_erase]
+  by_cases hξ : ξ = one
+  · subst ξ
+    rw [Finset.card_erase_of_mem]
+    · rw [huniform]
+      simp
+    · simp [hbase]
+  · have hnot : base ∉ Finset.univ.filter (fun x => label x = ξ) := by
+      simp [hbase, Ne.symm hξ]
+    rw [Finset.erase_eq_self.mpr hnot, huniform]
+    simp [hξ]
+
+/-- The two Frobenius-norm terms in the first-upper-block factorization
+collapse to the additive polynomial in characteristic two. -/
+theorem upper_block_norm_collapse
+    {R : Type*} [CommRing R] [CharP R 2] (c x xq : R) :
+    (c + xq) * (c + x + 1) + (c + 1 + xq) * (c + x) = xq + x := by
+  ring_nf
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  rw [htwo]
+  simp
+
+end ConwayBitKummer
+
+section CubicNormalBridge
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- In characteristic two, two elements with the same square agree; this
+packages the square-root step in the beta/epsilon normal-basis bridge. -/
+theorem cubicNormal_square_root_bridge (ε s h : K)
+    (hs : s ^ 2 = ε) (hh : h ^ 2 = ε ^ 2 + ε) : h = ε + s := by
+  have heq : h ^ 2 = (ε + s) ^ 2 := by
+    rw [hh]
+    calc
+      ε ^ 2 + ε = ε ^ 2 + s ^ 2 := by rw [hs]
+      _ = (ε + s) ^ 2 := by
+        have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+        ring_nf
+        rw [htwo]
+        ring
+  rcases (sq_eq_sq_iff_eq_or_eq_neg.mp heq) with heq | heq
+  · exact heq
+  · have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+    have hneg (t : K) : -t = t := by
+      rw [neg_eq_iff_add_eq_zero, ← two_mul, htwo, zero_mul]
+    simpa only [hneg] using heq
+
+/-- Load-bearing three-term identity behind the canonical half-circulant
+change from the epsilon normal basis to the beta normal basis. -/
+theorem cubicNormal_beta_three_term (β ε s h : K)
+    (hs : s ^ 2 = ε) (hh : h ^ 2 = ε ^ 2 + ε) (hβ : h = 1 + β) :
+    β = 1 + ε + s := by
+  have hb := cubicNormal_square_root_bridge ε s h hs hh
+  rw [hβ] at hb
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have h11 : (1 : K) + 1 = 0 := by
+    calc
+      (1 : K) + 1 = 2 := by norm_num
+      _ = 0 := htwo
+  calc
+    β = (1 + β) + 1 := by
+      symm
+      calc
+        (1 + β) + 1 = β + (1 + 1) := by ring
+        _ = β := by rw [h11, add_zero]
+    _ = (ε + s) + 1 := by rw [hb]
+    _ = 1 + ε + s := by ring
+
+variable {R : Type*} [CommRing R]
+
+/-- The Singer exponent identity used before taking the characteristic-two
+square root in the normal-basis bridge. -/
+theorem singer_square_identity (η : R) (q : Nat)
+    (h : η ^ (q + 1) = η + 1) : η ^ (q + 2) = η ^ 2 + η := by
+  calc
+    η ^ (q + 2) = η ^ (q + 1) * η := by
+      rw [show q + 2 = (q + 1) + 1 by omega, pow_succ]
+    _ = (η + 1) * η := by rw [h]
+    _ = η ^ 2 + η := by ring
+
+end CubicNormalBridge
 
 section CubicFrobeniusTwistCore
 
