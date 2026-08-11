@@ -134,6 +134,25 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   at `W^(F_n/ell)` vanishes exactly when the desired selected residue is
   nontrivial; the global ray-class and local Hilbert-symbol interpretation
   remains paper-level;
+- the affine mixed-selector algebra: a nonzero affine coefficient isolates one
+  cyclotomic coordinate, its relative quadratic norm is `A + R + R^2`, the two
+  orientations carry reciprocal Conway-unit values, and relative norm two is
+  equivalent to a shifted-discriminant square.  It also checks that every
+  nonsymmetric element can be rescaled by an involution-fixed scalar into the
+  affine anti-trace normalization, and that the local oriented residue has a
+  rational `ell`-power parametrization.  Finally, an abstract anti-invariant
+  character kills every norm divisor while its oriented quotient retains the
+  square of the selected value, and the abstract Jacobi-collapse lemma shows
+  that a residual symbol inverse to the distinguished one makes the oriented
+  half-resultant exactly its square.  Simultaneous approximation, the
+  valuation-one selector, elimination of every `ell`-adic pairing, preservation
+  of the oriented ray character under fractional rescaling, and the resulting
+  global reciprocity and Jacobi-symbol identities remain paper-level;
+- the finite additive translation identity behind the paper's exact saturation
+  theorem: translating a finite fibre through a finite additive group covers
+  every point with constant multiplicity.  Its specialization to the selected
+  trace-one polynomial and the distinctness of the fibotomic translates remain
+  paper-level;
 - the abstract mixed-ray character no-go: weight-one equivariance permits
   both zero and nonzero distinguished values, while every fixed source class
   is annihilated, and every abelian quotient of an odd dihedral group kills

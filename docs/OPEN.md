@@ -319,7 +319,12 @@ absolute boundedness.
   `h = 2^(2^n-t) (mod delta_n)` on every order-`delta_n` fibotomic stratum.
   Descending that forced ratio through the actual tower sends each relative
   trace to the lower level's unconditional full-Fermat ratio, so full trace
-  ancestry gives no contradiction. The classical binary `Q`-transform
+  ancestry gives no contradiction. In fact the full additive attack is now
+  exact: under failure, translating the selected `ell`-root polynomial by
+  every trace-zero element multiplies to the `ell`-th power of the complete
+  trace-one polynomial. Every trace-one point is covered exactly `ell` times,
+  so additive averaging is saturated rather than merely too weak. The
+  classical binary `Q`-transform
   identifies the minimal polynomial of `(c_n+1)/c_n` exactly and proves its
   degree and self-reciprocal irreducibility, but every nontrivial divisor of
   `F_n` satisfies the same order-degree condition. The literal-top-bit
@@ -353,7 +358,33 @@ absolute boundedness.
   Gauss/Jacobi/Stickelberger principalizers. The natural mixed element
   `W_n^(F_n/ell)-zeta_ell` has support above two exactly when
   `w_n^(F_n/ell) != 1`, so even its existence as a selector is the original
-  target. At an unramified/étale prime above `ell`, the first ramified local
+  target. That circularity can now be removed: affine interpolation writes
+  the selected residue `c_n=u+v*eta` over the lower residue field and lifts
+  `x=C_n-U-V*zeta_ell` so that it has a simple zero at the distinguished
+  prime above two and no zero at any conjugate. Simultaneous approximation
+  also kills every pairing above `ell`, independently of the unknown symbol.
+  Global reciprocity therefore gives the exact noncircular formula
+  `H=T_R^(-1)`, where `T_R` is the oriented tame residue over the remaining
+  divisor of `x`. Its relative norm is the explicit scalar
+  `A_(n-1)+R+R^2`, but the two split orientations carry reciprocal values of
+  `W_n`; the ordinary norm/resultant erases precisely the half selected by
+  `x`. The exact norm-two choice `A_(n-1)+R+R^2=2` is impossible by the
+  unique-quadratic-subfield and two-adic square-class comparison, while a
+  general `{2,ell}`-unit value remains a genuine constrained S-unit problem.
+  Classical power reciprocity now evaluates that half-resultant exactly:
+  `T_R=(R/r)^2` and `H=(R/r)^(-2)`, with `R mod r=c_n`. Every lower
+  ancestral unit cancels separately. Thus the affine selector is a
+  noncircular principal representative but the resulting Jacobi formula is
+  an exact normal form for the original selected Conway symbol, not a new
+  nonvanishing invariant. The local oriented residue cover is rational,
+  `r=-1/(1+z^ell)`, so its shape alone supplies no positive-genus Weil
+  obstruction. Nor is the affine form an extra restriction at the
+  ray-class level: every nonsymmetric principal element can be rescaled by
+  an involution-fixed scalar into `C_n-R`; the added symmetric fractional
+  divisor has reciprocal orientations and zero character. This normalization
+  need not preserve integrality or local support, so it sharpens the identity
+  without solving its nonvanishing.
+  At an unramified/étale prime above `ell`, the first ramified local
   coefficient is now explicit: it is a recursively selected second-Witt
   polynomial built from the Teichmuller defects
   `D(c)=([c]+1-[c+1])/ell`. Its nonvanishing proves that the local Kummer

@@ -10297,6 +10297,40 @@ There are exactly \(q/2=Q^2/2\) such elements, proving
 \((\mathsf{AS}_5)\).
 \end{proof}
 
+\begin{corollary}[full trace-kernel translation is exactly saturated]
+\label{cor:fermat-full-translate-saturation}
+Retain Proposition~\ref{prop:fermat-additive-saturation}, and put
+\[
+ \mathcal T_0=\ker\bigl(\operatorname{Tr}_{K/\F_2}\bigr),\qquad
+ \mathcal H=\{z\in K:\operatorname{Tr}_{K/\F_2}(z)=1\}.
+\]
+Under the hypothetical failure,
+\[
+ \boxed{\qquad
+ \prod_{t\in\mathcal T_0}P_{\ell,a}(Z+t)=H_m(Z)^\ell.
+ \qquad}                                            \tag{\(\mathsf{AS}_6\)}
+\]
+The \(|\mathcal T_0|\) translated polynomials in this product are pairwise
+distinct.  Thus the full additive translation attack is exactly saturated:
+each point of the trace-one hyperplane occurs with multiplicity \(\ell\), so
+averaging over the whole trace kernel cannot yield a counting inequality or
+any Fourier coefficient beyond the two characters forced by the affine
+trace hyperplane.
+\end{corollary}
+
+\begin{proof}
+Let \(S\subset\mathcal H\) be the \(\ell\)-element root set of
+\(P_{\ell,a}\).  Interchanging finite products gives
+\[
+ \prod_{t\in\mathcal T_0}P_{\ell,a}(Z+t)
+ =\prod_{s\in S}\prod_{t\in\mathcal T_0}(Z+t+s).
+\]
+For each fixed \(s\in\mathcal H\), translation by \(s\) is a bijection
+from \(\mathcal T_0\) to \(\mathcal H\), so the inner product is
+\(H_m(Z)\).  This proves \(\mathsf{AS}_6\).  Distinctness follows from
+\(\mathsf{AS}_2\).  Lean checks the underlying generic finite-group
+product identity; the trace-hyperplane specialization is paper-level.
+\end{proof}
 \begin{proposition}[relative-trace collision factorization]
 \label{prop:fermat-relative-trace-axes}
 Retain Proposition~\ref{prop:fermat-additive-saturation}, and put
@@ -11588,7 +11622,7 @@ two identities \((\mathsf{GL}_2)\), and the corresponding odd-Kummer
 square-class equivalence in \texttt{Ogdoad.Excess}.
 \end{proof}
 
-\begin{proposition}[weighted reciprocity and the circular mixed selector]
+\begin{proposition}[weighted reciprocity and a circular cyclotomic-difference selector]
 \label{prop:fermat-weighted-selector}
 Retain Proposition~\ref{prop:fermat-canonical-global-lift}, put
 \(\Delta=(\mathbf Z/\ell\mathbf Z)^\times\), and label the primes above two
@@ -11708,8 +11742,337 @@ inverse-pair/coset first-moment cancellation and this odd geometric-sum
 dichotomy.
 \end{proof}
 
-The explicit-reciprocity literature does not presently evaluate this mixed
-coefficient.  Iwasawa's formula~\cite{Iwasawa68} computes a local symbol
+\begin{proposition}[an affine mixed selector and its oriented tame residue]
+\label{prop:fermat-affine-selector}
+Retain Proposition~\ref{prop:fermat-weighted-selector}, assume \(n\geq2\), put
+\[
+ q=2^{2^n},\qquad
+ M_0=\mathcal K_{n-1}(\zeta_\ell),\qquad
+ \mathfrak r=\mathfrak q_1\cap M_0,\qquad
+ \eta=\zeta_\ell\bmod\mathfrak r\in\F_{q^2}.
+\]
+There are algebraic integers \(U,V\in\mathcal O_{\mathcal K_{n-1}}\)
+such that, for
+\[
+ R=U+V\zeta_\ell\in M_0,\qquad x=C_n-R\in M,
+\]
+one has
+\[
+ v_{\mathfrak q_1}(x)=1,\qquad
+ v_{\mathfrak q_a}(x)=0\quad(a\ne1),\qquad
+ (W_n,x)_{\lambda,\ell}=1\quad(\lambda\mid\ell).
+                                                               \tag{\(\mathsf{AFS}_1\)}
+\]
+In particular \(\mathcal E_2(x)=1\).  Define the finite oriented tame
+residue
+\[
+ \mathcal T_R=
+ \prod_{\mathfrak v\nmid2\ell}
+ \left(\overline{W_n}^{\,v_{\mathfrak v}(x)}\right)^{
+             (|k(\mathfrak v)|-1)/\ell}\in\mu_\ell.
+                                                               \tag{\(\mathsf{AFS}_2\)}
+\]
+Here inverse reduction identifies the copy of \(\mu_\ell\) in each residue
+field with the fixed global \(\mu_\ell\subset M\).
+Then global reciprocity evaluates the selected symbol exactly as
+\[
+ \boxed{\qquad H=\mathcal T_R^{-1}.\qquad}           \tag{\(\mathsf{AFS}_3\)}
+\]
+Moreover
+\[
+ \Norm_{M/M_0}(x)
+ =\mathcal A_{n-1}+R+R^2.                            \tag{\(\mathsf{AFS}_4\)}
+\]
+At conjugate components of a divisor of the right side, the two values of
+\(W_n\) are reciprocal.  Consequently the ordinary norm or resultant
+forgets \(\mathcal T_R\): equation \(\mathsf{AFS}_3\) is an oriented
+half-resultant rather than an unweighted norm formula.
+\end{proposition}
+
+\begin{proof}
+Since \(\ell\mid q+1\) and \(\ell\nmid q-1\), the reduction
+\(\eta\) does not lie in \(\F_q\).  Hence
+\(\{1,\eta\}\) is an \(\F_q\)-basis of \(\F_{q^2}\), and there
+are unique \(u,v\in\F_q\), with \(v\ne0\), such that
+\[
+ c_n=u+v\eta.
+\]
+For every sufficiently large integer \(N\), simultaneous Chinese
+remaindering in \(\mathcal O_{\mathcal K_{n-1}}\) chooses initial lifts
+\(U\equiv u\) and \(V\equiv v\) at the prime above two while putting
+both in \(\mathfrak l^N\) at every prime
+\(\mathfrak l\mid\ell\).  With the convention
+\(\mathfrak q_a=\tau_a\mathfrak q_1\), comparison through
+\(\tau_a^{-1}\) gives
+\[
+ \zeta_\ell\bmod\mathfrak q_a=\eta^{a^{-1}},\qquad
+ x\bmod\mathfrak q_a
+ =v(\eta-\eta^{a^{-1}}).
+\]
+Because \(\eta\) has order \(\ell\), this vanishes exactly for \(a=1\).
+The extension at two is unramified, so two is a uniformizer.  Replacing
+\(U\) by \(U+2T\) changes \(x/2\bmod\mathfrak q_1\) by
+\(-\overline T\in\F_q\).  Choose the residue of \(T\) to avoid the
+single forbidden value, and simultaneously impose
+\(T\in\mathfrak l^N\) at every \(\mathfrak l\mid\ell\).
+This proves the first two assertions of \(\mathsf{AFS}_1\) without
+changing any reduction modulo two.
+
+For \(\lambda\mid\ell\), put \(y=C_n-U\in\mathcal K_n^\times\).
+The chosen \(U\) is \(\ell\)-adically deep and \(C_n\) is a global unit, so
+\(y\) is a local unit.  Taking \(N\) beyond the finitely many local
+\(\ell\)-th-power thresholds makes
+\[
+ \frac{x}{y}=1-\frac{V\zeta_\ell}{y}
+ \in M_\lambda^{\times\ell}
+\]
+at every such \(\lambda\).  The pointwise identity
+\(\mathsf{GL}_{7a}\) gives
+\((W_n,y)_{\lambda,\ell}=1\), and bilinearity proves the last assertion
+of \(\mathsf{AFS}_1\).  Notice that this kills the pairing; it does not
+assert that \(x\) itself is an \(\ell\)-th power.
+
+At \(\mathfrak q_1\), the tame formula and
+\(v_{\mathfrak q_1}(x)=1\) give
+\((W_n,x)_{\mathfrak q_1,\ell}=H\).  Every other prime above two
+contributes one, every prime above \(\ell\) contributes one by
+\(\mathsf{AFS}_1\), and the remaining finite factors are exactly
+\(\mathsf{AFS}_2\).  The Hilbert product formula proves
+\(\mathsf{AFS}_3\).
+
+The top conjugation fixes \(R\) and sends \(C_n\) to \(-1-C_n\).  Hence
+\[
+ (C_n-R)(-1-C_n-R)=\mathcal A_{n-1}+R+R^2,
+\]
+which proves \(\mathsf{AFS}_4\).  If a split oriented component has
+\(C_n\equiv r\), then
+\(\mathcal A_{n-1}+r+r^2=0\) and
+\[
+ W_n\equiv\frac{\mathcal A_{n-1}}{r^2}
+ =-\frac{r+1}{r}.
+\]
+The conjugate component has \(C_n\equiv-1-r\) and sees the reciprocal
+value.  At a ramified component \(r=-1/2\), this value is one.  Thus the
+full norm combines and cancels the two orientations, whereas the divisor
+of \(x\) retains only one.  Lean independently checks the affine
+interpolation, quadratic norm, and reciprocal-orientation identities; the
+simultaneous approximation, valuation statements, Hilbert symbols, and
+global reciprocity remain paper-level.
+\end{proof}
+
+\begin{corollary}[affine normalization loses no oriented ray data]
+\label{cor:fermat-affine-normalization}
+Let \(s\) be the top involution of \(M/M_0\) and put
+\(Y=2C_n+1\), so \(s(Y)=-Y\).  For any
+\(x_0\in M^\times\) with \(x_0\ne s(x_0)\), define
+\[
+ z=\frac{Y}{x_0-s(x_0)},\qquad x=zx_0.
+\]
+Then \(z\in M_0^\times\), \(x-s(x)=Y\), and
+\[
+ x=C_n-R\qquad\text{for some }R\in M_0.             \tag{\(\mathsf{AFS}_{4a}\)}
+\]
+The fractional divisor added by \(z\) is \(s\)-invariant.  Its two
+oriented tame values are reciprocal, so it contributes trivially to the
+anti-invariant \(W_n\)-character.  Hence every nonsymmetric oriented
+principal divisor has an affine representative carrying the same oriented
+Artin value.
+
+This is a fractional-divisor normalization, not an integral principalizer
+theorem: \(z\) can have poles or nonunit components at two or \(\ell\).
+It need not preserve the simple-zero conditions, the vanishing
+\(\ell\)-adic pairings, or \(S\)-unit support in
+Proposition~\ref{prop:fermat-affine-selector}.
+\end{corollary}
+
+\begin{proof}
+The denominator \(x_0-s(x_0)\) is anti-invariant, as is \(Y\); therefore
+\(s(z)=z\).  It follows that
+\[
+ x-s(x)=z\bigl(x_0-s(x_0)\bigr)=Y.
+\]
+Since \(C_n-s(C_n)=2C_n+1=Y\), the element
+\(R=C_n-x\) is fixed by \(s\), proving \(\mathsf{AFS}_{4a}\).
+The divisor of an element of \(M_0^\times\) has equal multiplicities on
+each split pair.  Top conjugation sends \(W_n\) to \(W_n^{-1}\), so the
+two residue values cancel.  Lean checks the fixed-scalar and anti-trace
+identities; the divisor-character interpretation is paper-level.
+\end{proof}
+
+\begin{corollary}[the local oriented residue cover is rational]
+\label{cor:fermat-oriented-residue-rational}
+At a split tame support prime, write \(r=R\bmod\mathfrak p\) for the
+orientation selected by \(x=C_n-R\).  Then
+\[
+ W_n=-\frac{r+1}{r},\qquad
+ z^\ell=W_n
+ \iff
+ r=-\frac{1}{1+z^\ell}.                            \tag{\(\mathsf{AFS}_{4b}\)}
+\]
+Thus the local Kummer cover of the oriented residue is rational.  In
+particular no positive-genus Weil bound applied only to this residue equation
+can force its value to be a nonpower; the remaining datum is which global
+oriented divisor the selected principal element carries.
+\end{corollary}
+
+\begin{proof}
+Substitution gives
+\[
+ -\frac{(-1/(1+z^\ell))+1}{-1/(1+z^\ell)}=z^\ell.
+\]
+Conversely solving \(z^\ell=-(r+1)/r\) for \(r\) gives the displayed
+formula whenever the denominators are nonzero.  Lean checks this rational
+parametrization over an arbitrary field.
+\end{proof}
+
+\begin{proposition}[Jacobi collapse of the affine half-resultant]
+\label{prop:fermat-affine-jacobi-collapse}
+Retain Proposition~\ref{prop:fermat-affine-selector}, put
+\[
+ A=\mathcal A_{n-1},\qquad g=A+R+R^2,
+ \qquad \mathfrak a_R=(g)\mathfrak r^{-1},
+\]
+and take the approximation depth there sufficiently large that
+\(g/A\) is an \(\ell\)-th power at every prime above \(\ell\).
+For \(z\in M_0^\times\) and an integral ideal \(\mathfrak b\) prime to
+\(\ell\) such that \(z\) is a unit at every
+\(\mathfrak p\mid\mathfrak b\), write
+\[
+ \left(\frac{z}{\mathfrak b}\right)_\ell
+ =\prod_{\mathfrak p\mid\mathfrak b}
+   \overline z^{\,v_{\mathfrak p}(\mathfrak b)
+      (|k(\mathfrak p)|-1)/\ell}\in\mu_\ell.
+\]
+Then \(\mathfrak a_R\) is integral and prime to \(2\ell\), and
+\begin{align}
+ \mathcal T_R
+ &=\left(\frac{AR^{-2}}{\mathfrak a_R}\right)_\ell
+  =\left(\frac{R}{\mathfrak a_R}\right)_\ell^{-2}
+  =\left(\frac{R}{\mathfrak r}\right)_\ell^2,       \tag{\(\mathsf{AJ}_1\)}\\
+ H&=\left(\frac{R}{\mathfrak r}\right)_\ell^{-2}.  \tag{\(\mathsf{AJ}_2\)}
+\end{align}
+More generally,
+\[
+ \left(\frac{B}{\mathfrak a_R}\right)_\ell=1       \tag{\(\mathsf{AJ}_3\)}
+\]
+for every global unit \(B\in\mathcal O_{\mathcal K_{n-1}}^\times\), so
+every lower \(C_i\) and \(\mathcal A_i\) cancels separately.  Since
+\(R\bmod\mathfrak r=c_n\),
+\[
+ \mathcal T_R=c_n^{\,2(q^2-1)/\ell},\qquad
+ H=c_n^{-2(q^2-1)/\ell}.                            \tag{\(\mathsf{AJ}_4\)}
+\]
+Consequently the half-resultant is nontrivial exactly when the original
+selected Conway--Fermat symbol is nontrivial.  The affine selector is a
+noncircular principal representative, but its Jacobi evaluation is an exact
+normal form for the original obstruction, not a proof of nonvanishing.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:fermat-affine-selector} gives
+\(v_{\mathfrak r}(g)=1\), makes \(g\) a unit at every other prime above
+two, and makes it a unit at every prime above \(\ell\).  Hence
+\(\mathfrak a_R\) is integral and prime to \(2\ell\).  At a prime in its
+support, the selected top orientation has \(C_n\equiv R\), and therefore
+\(W_n\equiv AR^{-2}\); at a ramified collision the same residue is one.
+The norm multiplicities agree, proving the first equality of
+\(\mathsf{AJ}_1\).
+
+For any lower global unit \(B\), reciprocity for \((B,g)_{\ell}\) has no
+contribution away from the divisor of \(g\) and the primes above \(\ell\).
+At the latter primes, \(g/A\) is an \(\ell\)-th power, so
+\((B,g)=(B,A)\).  The product of these remaining symbols is one by applying
+reciprocity to the two global units \(B,A\).  Thus
+\((B/(g))_\ell=1\).  At \(\mathfrak r\), the residue of \(B\) lies in
+\(\F_q^\times\), while \(\ell\mid q+1\) and \(\ell\nmid q-1\); hence
+\((B/\mathfrak r)_\ell=1\).  Since
+\((g)=\mathfrak r\mathfrak a_R\), this proves \(\mathsf{AJ}_3\), and
+the case \(B=A\) gives
+\[
+ \mathcal T_R=\left(\frac{R}{\mathfrak a_R}\right)_\ell^{-2}.
+                                                               \tag{\(\mathsf{AJ}_5\)}
+\]
+
+It remains to locate the \(R\)-symbol.  Let \(\mathfrak b\) be the
+prime-to-\(\ell\) part of the principal divisor \((R)\), and put
+\[
+ K_\ell=\prod_{\lambda\mid\ell}(A,R)_{\lambda,\ell}.
+\]
+Reciprocity for \((A,R)\), with \(A\) a global unit, gives
+\[
+ 1=\left(\frac{A}{\mathfrak b}\right)_\ell K_\ell. \tag{\(\mathsf{AJ}_6\)}
+\]
+The ideals \((R)\) and \((g)\) are coprime, since a common prime would
+divide the global unit \(A=g-R-R^2\).  In reciprocity for \((R,g)\), the
+primes of \(g\) contribute \((R/(g))_\ell\); the primes of
+\(\mathfrak b\) contribute \((A/\mathfrak b)_\ell^{-1}\), because
+\(g\equiv A\pmod R\); and the primes above \(\ell\) contribute
+\(K_\ell^{-1}\), because \(g/A\) is an \(\ell\)-th power and the Hilbert
+symbol is alternating.  Equation \(\mathsf{AJ}_6\) therefore yields
+\[
+ \left(\frac{R}{(g)}\right)_\ell=1.
+\]
+Using \((g)=\mathfrak r\mathfrak a_R\) gives
+\((R/\mathfrak a_R)_\ell=(R/\mathfrak r)_\ell^{-1}\), which with
+\(\mathsf{AJ}_5\) proves \(\mathsf{AJ}_1\).  Equation
+\(\mathsf{AFS}_3\) proves \(\mathsf{AJ}_2\).  Finally
+\(R\bmod\mathfrak r=c_n\) and \(|k(\mathfrak r)|=q^2\), proving
+\(\mathsf{AJ}_4\).  The multiplicative reduction from
+\(\mathsf{AJ}_3\) and the product-one relation to
+\(\mathsf{AJ}_1\)--\(\mathsf{AJ}_2\) is independently checked in Lean;
+the Jacobi and Hilbert reciprocity argument is paper-level.
+\end{proof}
+
+\begin{corollary}[there is no norm-two affine principalizer]
+\label{cor:fermat-no-norm-two-affine-selector}
+Under the hypotheses of Proposition~\ref{prop:fermat-affine-selector}, no
+\(R\in M_0\) satisfies
+\[
+ \mathcal A_{n-1}+R+R^2=2.                           \tag{\(\mathsf{AFS}_5\)}
+\]
+Thus the simplest possible attempt to remove the oriented tame divisor by
+making the relative norm exactly two is impossible.  This does not exclude
+a general \(\{2,\ell\}\)-unit value on the left of \(\mathsf{AFS}_5\).
+\end{corollary}
+
+\begin{proof}
+Put \(D=1-4\mathcal A_{n-1}\).  A solution of
+\(\mathsf{AFS}_5\) would give
+\[
+ (2R+1)^2=D+8.                                       \tag{\(\mathsf{AFS}_6\)}
+\]
+At the unique two-adic completion of \(\mathcal K_{n-1}\), the unit \(D\)
+defines the unramified quadratic extension
+\(\mathcal K_n/\mathcal K_{n-1}\), and
+\((D+8)/D\in1+8\mathcal O\) is a square.  Thus \(D+8\) has the same
+nontrivial unramified local square class as \(D\).  Consequently
+\[
+ L=\mathcal K_{n-1}(\sqrt{D+8})
+\]
+is a quadratic subfield of \(M_0\) whose base-two localization is the
+unramified quadratic field.
+
+On the other hand, \(\mathsf{GL}_4\) makes
+\(M_0/\mathcal K_{n-1}\) cyclic of degree \(\ell-1\).  Its unique
+quadratic subfield is
+\(\mathcal K_{n-1}(\sqrt{\ell})\), because
+\(\ell\equiv1\pmod4\).  In fact every
+\(\ell\mid F_n\), \(n\geq2\), satisfies
+\(\ell\equiv1\pmod8\), so \(\ell\) is a square in
+\(\mathbf Q_2\); hence
+\(\mathcal K_{n-1}(\sqrt\ell)/\mathcal K_{n-1}\) splits at the chosen
+prime above two.  It therefore cannot equal \(L\), contradicting uniqueness
+of the quadratic subfield of \(M_0/\mathcal K_{n-1}\).  Lean checks the
+algebraic equivalence between \(\mathsf{AFS}_5\) and
+\(\mathsf{AFS}_6\); the local and global square-class argument is
+paper-level.
+\end{proof}
+Classical power reciprocity does evaluate the oriented tame half-resultant:
+Proposition~\ref{prop:fermat-affine-jacobi-collapse} collapses it to the
+single base-field symbol \((R/\mathfrak r)_\ell^2\).  No cited theorem proves
+that symbol nontrivial; because \(R\bmod\mathfrak r=c_n\), doing so is exactly
+the original selected Conway--Fermat problem.  Iwasawa's
+formula~\cite{Iwasawa68} computes a local symbol
 from a critical unit coefficient but is an equality, not a nonvanishing
 theorem.  Rohrlich's Jacobi-sum characters~\cite{Rohrlich86} and Helou's
 cyclotomic-unit formulas~\cite{Helou95} remain in the pure cyclotomic factor
@@ -11722,9 +12085,8 @@ Dasgupta--Kakde~\cite{DK24} has the same structural scope.  Here
 \(M/\mathcal K_n\) has the required split
 prime but \(\mathcal K_n\supset\mathbf Q(\zeta_3)\) is not totally real,
 whereas the cyclotomic presentation over \(\mathbf Q\) is CM but two has
-residue degree \(2^{n+1}\), not one.  Thus none of these theorems supplies
-the genuinely mixed, inverse-pair-breaking coefficient required by
-\((\mathsf{FWS}_3)\).
+residue degree \(2^{n+1}\), not one.  Thus none of these theorems proves the
+remaining named symbol nontrivial.
 
 \begin{proposition}[the first selected \(\ell\)-ray coefficient is an explicit
 Witt polynomial]

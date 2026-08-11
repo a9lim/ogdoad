@@ -436,6 +436,174 @@ theorem even_weight_first_moment_eq_zero
 
 end FermatWeightedSelector
 
+section FermatAffineMixedSelector
+
+/-- Affine interpolation against a nonzero coefficient isolates exactly one
+value of the cyclotomic coordinate.  This is the finite-field algebra behind
+the paper's principal selector with weighted two-adic moment one. -/
+theorem affine_selector_eq_iff
+    {F : Type*} [Field F]
+    (u v eta z : F) (hv : v ≠ 0) :
+    u + v * z = u + v * eta ↔ z = eta := by
+  constructor
+  · intro h
+    have h' : v * z = v * eta := add_left_cancel h
+    exact mul_left_cancel₀ hv h'
+  · rintro rfl
+    rfl
+
+/-- Relative norm of the affine selector `C - r` across one lifted Conway
+quadratic. -/
+theorem quadratic_affine_selector_norm
+    {R : Type*} [CommRing R]
+    (C A r : R) (hC : C ^ 2 + C + A = 0) :
+    (C - r) * (-1 - C - r) = A + r + r ^ 2 := by
+  have hA : A = -(C ^ 2 + C) := by
+    linear_combination hC
+  rw [hA]
+  ring
+
+/-- A hypothetical affine selector of relative norm two would make the
+shifted Conway discriminant a square.  The paper excludes this square by a
+global/local quadratic-subfield argument. -/
+theorem affine_selector_norm_two_iff_discriminant_square
+    {R : Type*} [Field R] [CharZero R] (A r : R) :
+    r ^ 2 + r + A = 2 ↔
+      (2 * r + 1) ^ 2 = (1 - 4 * A) + 8 := by
+  constructor
+  · intro h
+    linear_combination 4 * h
+  · intro h
+    have hfour : (4 : R) * (r ^ 2 + r + A - 2) = 0 := by
+      linear_combination h
+    have hzero : r ^ 2 + r + A - 2 = 0 :=
+      (mul_eq_zero.mp hfour).resolve_left (by norm_num)
+    exact sub_eq_zero.mp hzero
+
+/-- The two orientations over a root of `A + r + r^2` see reciprocal
+values of the norm-one Conway unit.  Consequently the full norm/resultant
+forgets the oriented tame residue retained by either affine factor. -/
+theorem affine_selector_oriented_values_mul_eq_one
+    {F : Type*} [Field F]
+    (A r : F) (hrel : A + r + r ^ 2 = 0)
+    (hr : r ≠ 0) (hr1 : r + 1 ≠ 0) :
+    (A / r ^ 2) * (A / (-1 - r) ^ 2) = 1 := by
+  have hA : A = -(r + r ^ 2) := by
+    linear_combination hrel
+  have hneg : -1 - r ≠ 0 := by
+    intro h
+    apply hr1
+    calc
+      r + 1 = -(-1 - r) := by ring
+      _ = 0 := by rw [h]; simp
+  calc
+    (A / r ^ 2) * (A / (-1 - r) ^ 2) =
+        (-(r + 1) / r) * (-r / (r + 1)) := by
+      rw [hA]
+      field_simp [hr, hr1, hneg]
+      ring
+    _ = 1 := by field_simp [hr, hr1]
+
+/-- Any nonsymmetric element can be rescaled by an involution-fixed scalar
+to have a prescribed anti-invariant additive trace.  With `Y = 2*C+1`, this
+puts every oriented fractional divisor into the affine form `C - R`; the
+paper separately tracks the integrality and local-unit conditions lost by
+the rescaling. -/
+theorem affine_antiTrace_normalization
+    {K : Type*} [Field K]
+    (sigma : K ≃+* K) (hsigma : Function.Involutive sigma)
+    (Y x : K) (hY : sigma Y = -Y) (hd : x - sigma x ≠ 0) :
+    let z := Y / (x - sigma x)
+    sigma z = z ∧ z * x - sigma (z * x) = Y := by
+  dsimp
+  have hden : sigma (x - sigma x) = -(x - sigma x) := by
+    rw [map_sub, hsigma x]
+    ring
+  have hz : sigma (Y / (x - sigma x)) = Y / (x - sigma x) := by
+    rw [map_div₀ sigma, hY, map_sub, hsigma]
+    have hd' : sigma x - x ≠ 0 := by
+      intro h
+      apply hd
+      linear_combination -h
+    field_simp [hd, hd']
+    ring
+  constructor
+  · exact hz
+  · rw [map_mul, hz]
+    field_simp [hd]
+
+/-- The local oriented Conway residue has a rational `ell`-power
+parametrization.  Thus the single split residue equation has no positive-genus
+obstruction; only the globally selected orientation can retain information. -/
+theorem oriented_residue_rational_parametrization
+    {K : Type*} [Field K]
+    (z : K) (ell : Nat) (hden : 1 + z ^ ell ≠ 0) :
+    let r := -1 / (1 + z ^ ell);
+    -(r + 1) / r = z ^ ell := by
+  dsimp
+  have hr : -1 / (1 + z ^ ell) ≠ 0 := div_ne_zero (by norm_num) hden
+  field_simp [hden, hr]
+  ring
+
+/-- An anti-invariant character kills the norm of every oriented divisor. -/
+theorem antiInvariantCharacter_norm_eq_one
+    {D Z : Type*} [CommGroup D] [CommGroup Z]
+    (chi : D →* Z) (iota : D →* D)
+    (hinv : ∀ d, chi (iota d) = (chi d)⁻¹) (d : D) :
+    chi (d * iota d) = 1 := by
+  rw [map_mul, hinv]
+  exact mul_inv_cancel _
+
+/-- The anti-invariant quotient retains exactly the square of the oriented
+character value; for odd Kummer order, this loses no information. -/
+theorem antiInvariantCharacter_ratio_eq_sq
+    {D Z : Type*} [CommGroup D] [CommGroup Z]
+    (chi : D →* Z) (iota : D →* D)
+    (hinv : ∀ d, chi (iota d) = (chi d)⁻¹) (d : D) :
+    chi (d / iota d) = (chi d) ^ 2 := by
+  rw [map_div, hinv]
+  simp [div_eq_mul_inv, pow_two]
+
+/-- Abstract multiplicative core of the affine selector's Jacobi collapse.
+Once reciprocity has killed the lower ancestral factor and shown that the
+distinguished and residual Jacobi symbols multiply to one, the oriented tame
+residue is exactly the square of the distinguished symbol. -/
+theorem jacobi_halfResultant_collapse
+    {G : Type*} [CommGroup G]
+    (Rr Ra Aa T H : G)
+    (hAa : Aa = 1) (hRg : Rr * Ra = 1)
+    (hT : T = Aa * (Ra⁻¹) ^ 2) (hH : H = T⁻¹) :
+    T = Rr ^ 2 ∧ H = (Rr ^ 2)⁻¹ := by
+  have hRa : Ra⁻¹ = Rr := by
+    exact (eq_inv_of_mul_eq_one_left hRg).symm
+  constructor
+  · rw [hT, hAa, one_mul, hRa]
+  · rw [hH, hT, hAa, one_mul, hRa]
+
+end FermatAffineMixedSelector
+
+section FermatTranslateSaturation
+
+variable {G M : Type*} [Fintype G] [AddCommGroup G] [CommMonoid M]
+
+/-- Translation permutes the product over a finite additive group. -/
+theorem prod_univ_add_right (f : G → M) (a : G) :
+    (∏ x : G, f (x + a)) = ∏ x : G, f x := by
+  let e : G ≃ G := Equiv.addRight a
+  simpa [e] using (Equiv.prod_comp e f)
+
+/-- Every point in a finite additive group occurs once for each element of
+the translating fibre.  Applied to a failed Conway--Fermat root set inside
+the trace-one hyperplane, this says that translation by the full trace
+kernel saturates the trace-one polynomial with exactly constant multiplicity. -/
+theorem prod_translate_saturation (s : Finset G) (f : G → M) :
+    (∏ t : G, ∏ x ∈ s, f (t + x)) = (∏ y : G, f y) ^ s.card := by
+  rw [Finset.prod_comm]
+  simp_rw [prod_univ_add_right]
+  exact Finset.prod_const _
+
+end FermatTranslateSaturation
+
 section FermatRayCharacter
 
 /-- A weight-one equivariant orbit map is determined by its value at the
