@@ -665,6 +665,52 @@ theorem dickson_cubic_depresses (a b δ U : R)
 
 end DepressedDicksonCubic
 
+section SelectedCriticalAlgebra
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- Denominator-free semiconjugacy behind the cubic arm's selected
+cyclotomic critical factor.  Under the selected inverse-square relation,
+the right side transports the actual Conway cubic. -/
+theorem cubic_collision_semiconjugacy (z Y : R) :
+    (1 + z * Y ^ 2) ^ 3 + (1 + z * Y ^ 2) ^ 2 +
+        (z ^ 2 + 1) * (1 + z * Y ^ 2) + 1 =
+      z ^ 3 * (Y ^ 3 + Y) ^ 2 + z ^ 2 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h4 : (4 : R) = 0 := by
+    calc
+      (4 : R) = 2 + 2 := by norm_num
+      _ = 0 := by rw [h2]; simp
+  ring_nf
+  simp [h2, h4]
+
+/-- Once the two cyclic cubic resolvents have the displayed sum and product,
+the selected one satisfies the denominator-free Artin--Schreier equation
+used by the exceptional terminal cubic. -/
+theorem cyclic_resolvent_artinSchreier (a K K' : R)
+    (hsum : K + K' = a) (hprod : K * K' = a ^ 2 + 1) :
+    K ^ 2 + a * K + a ^ 2 + 1 = 0 := by
+  rw [← hsum, ← hprod]
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+  simp [h2]
+
+/-- Denominator-free numerator identity showing that reversal of the
+exceptional cyclic orientation changes relative trace by an
+Artin--Schreier value. -/
+theorem exceptional_orientation_trace_shift (a : R) :
+    (a + 1) ^ 2 + (a + 1) * (a ^ 2 + a + 1) =
+      a ^ 2 * (a + 1) := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h4 : (4 : R) = 0 := by
+    calc
+      (4 : R) = 2 + 2 := by norm_num
+      _ = 0 := by rw [h2]; simp
+  ring_nf
+  simp [h2, h4]
+
+end SelectedCriticalAlgebra
+
 section DicksonTraceConstantFactorization
 
 variable {K : Type*} [Field K] [CharP K 2]

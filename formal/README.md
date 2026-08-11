@@ -101,8 +101,9 @@ does not yet re-formalize that general linear-algebra theorem.
 
 ## Lenstra excess
 
-[`Ogdoad/Excess.lean`](Ogdoad/Excess.lean) formalizes the theorem-level spine
-of the exceptional `2·3^k` column:
+[`Ogdoad/Excess.lean`](Ogdoad/Excess.lean) formalizes theorem-level algebraic
+ingredients used by the Lenstra-excess reductions, including the exceptional
+`2·3^k` column:
 
 - the first-non-`p`-th-power definition of finite excess;
 - the group-theoretic lower bound: a shared order class coprime to `p` makes
@@ -142,6 +143,11 @@ of the exceptional `2·3^k` column:
 - the denominator-free normalization of the selected Singer cubic to
   `tau^3 + d^2*tau^2 + 1 = 0`, together with the coefficient-ancestry identity
   `s_k^3 = s_(k-1)*tau_(k-1)^2`;
+- the characteristic-two semiconjugacy transporting the cubic arm's
+  cyclotomic critical factor back to the actual Conway cubic;
+- the denominator-free cyclic-resolvent Artin--Schreier equation and
+  orientation trace-shift identity behind the exceptional arm's explicit
+  terminal cubic;
 - the characteristic-two Berlekamp-numerator factorization and its literal
   vanishing on the selected reciprocal cubic;
 - the denominator-free characteristic-two identity that depresses every

@@ -171,7 +171,7 @@ four universal order assertions:
 | arm | assertion | exact remaining target |
 |---|---|---|
 | `Z` | the structural norm of `kappa_h` generates the primitive-support quotient for every non-ordinary component set | in the singleton-even chain prove the iterated quadratic-norm terminal bit is `1`; also prove generation for composite two-spine quotients and control the general synchronized phase |
-| `O` | the selected projective class of `kappa_(r^a)+1` has full primary order for every odd `r != 3` | exclude the selected full-conductor factor from the reduced reciprocal divisor, equivalently force a nonzero terminal selected section after dependency-norm descent |
+| `O` | the selected projective class of `kappa_(r^a)+1` has full primary order for every odd `r != 3` | exclude the selected full-conductor factor from the reduced reciprocal divisor, equivalently force a nonzero terminal selected section along every all-odd singleton dependency chain, stopping at each declared quadratic or synchronized boundary |
 | `C` | `gamma_k = zeta + zeta^(-1)` is primitive in `F_(2^(3^k))` | prove the fixed cubic-norm terminal bit of `hatDelta_(N/ell)` is `1`, equivalently `Omega_(k,ell) != 1`, for every current prime |
 | `D` | `Psi_k` divides `ord(M_k)`, where `Psi_k = Phi_(2*3^k)(2)/3` | prove the selected Dickson critical value at the reconstructed trace-one scalar is nonzero, equivalently the actual Artin--Schreier root is not a current primary power (`D'_k`) |
 
@@ -240,7 +240,11 @@ absolute boundedness.
   compresses that whole binary tree to one iterated norm bit. Its first layer
   satisfies an explicit order-four recurrence, but the terminal bit is `1`
   exactly when the original selected Fibonacci value is nonzero, so this is a
-  lossless normal form rather than a closure.
+  lossless normal form rather than a closure. As a word in the exponent, that
+  terminal bit is exactly the zero-at-multiples indicator for `delta_n`; its
+  least period, linear complexity plus one, and minimal binary-automaton state
+  count are all `delta_n`. Thus even the automatic-sequence complexity is the
+  unknown quotient order itself.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
@@ -259,6 +263,12 @@ absolute boundedness.
   sections also compress to one lower resultant whose selected evaluation is
   the relative norm of the selected value. Iteration gives one terminal scalar for each binary
   section, but its vanishing is exactly the original selected vanishing. The
+  individual selected sections now have explicit reduced rational generating
+  functions with denominator the reciprocal of the translated full-conductor
+  minimal polynomial. Each has least period `ord(1+x_a)`, while their Boolean
+  norm aggregate is exactly the zero-at-multiples word for the projective order
+  `d_(r,a)`. Its minimal recurrence and DFA therefore recover, rather than
+  bound, that unknown order. The
   full-conductor failure polynomial has a canonical monic self-reciprocal
   quotient; under hypothetical failure the selected factor occurs there
   simply, and its transverse
@@ -295,7 +305,14 @@ absolute boundedness.
   further: a single fixed cubic norm operator carries it through every actual
   lower edge to one terminal bit in `F_2`. The bit is `1` exactly on success,
   so this is the cubic analogue of the Fermat one-branch descent, not an
-  independent nonvanishing theorem.
+  independent nonvanishing theorem. The critical polynomial also has an exact
+  cyclotomic resultant factorization: its roots are the values attached to
+  reciprocal pairs in `mu_u`, and at the selected coefficient its collision
+  cubic is an affine/Frobenius transform of the actual Gaussian recursion.
+  This identifies the selected factor with multiplicity but again reconstructs
+  the same order class. A second normalization `h_k=1+gamma_k^(-1)` has the
+  trace-recursive cubic `X^3+h_(k-1)X^2+X+1` and the same order as `tau_k` and
+  `eta_k`; it is an invertible-power reparameterization, not an induction.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -341,7 +358,13 @@ absolute boundedness.
   coordinate up to inversion; the exact selected norm chooses one root for
   `k>=3`. The resulting one-variable Dickson critical value is again exactly
   the unresolved full-primary test, so this rigidity reconstructs rather than
-  estimates the selected order. The line
+  estimates the selected order. More explicitly, the actual inverse coefficient
+  has an irreducible cubic over the lower C field whose sole extra coefficient
+  is an oriented resolvent `chi` satisfying
+  `chi^2+chi=1+gamma_(k-1)^(-2)`. Its Dickson resultant is exactly the square
+  of the already-known selected trace terminal. Reversing orientation preserves
+  lower norm and absolute trace, proving those scalar shadows blind without
+  treating reversal as an ambiguity of the selected Conway datum. The line
   criterion gives the effective polynomial bound above but not the required
   fixed window.
 

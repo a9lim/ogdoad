@@ -1711,6 +1711,128 @@ vanishes.  Applying the two minimal-polynomial criteria proves
 \((\mathsf{DN}_3)\), and iteration proves the final assertions.
 \end{proof}
 
+\begin{proposition}[the universal order-indicator word]
+\label{prop:order-indicator-word}
+Let \(D>1\) be odd, and put
+\[
+ \epsilon_D(e)=
+ \begin{cases}
+  0,&D\mid e,\\
+  1,&D\nmid e.
+ \end{cases}
+\]
+Then \(\epsilon_D\) has least period \(D\), and its generating function over
+\(\F_2\) is
+\[
+ \sum_{e\geq0}\epsilon_D(e)T^e
+ =\frac{T+T^2+\cdots+T^{D-1}}{1+T^D}.
+                                                               \tag{\(\mathsf{OIW}_1\)}
+\]
+After cancellation this fraction has denominator
+\[
+ H_D(T)=1+T+\cdots+T^{D-1}.                           \tag{\(\mathsf{OIW}_2\)}
+\]
+Consequently the word has exact linear complexity \(D-1\).  Its
+\(2\)-kernel, and equivalently its minimal binary DFAO, has exactly \(D\)
+states.
+\end{proposition}
+
+\begin{proof}
+The zero set is exactly \(D\mathbb Z_{\geq0}\), which proves the least-period
+claim and the geometric-series formula.  A nontrivial \(D\)-th root of unity
+is not a root of the numerator: the complete geometric sum vanishes there,
+so the sum with the constant term removed is one.  At \(T=1\), the denominator
+has a simple root and the numerator vanishes.  Thus their greatest common
+divisor is exactly \(T+1\), and the reduced denominator is \(H_D\), proving
+the linear-complexity assertion.
+
+Every sequence in the \(2\)-kernel tests one residue class modulo \(D\),
+because multiplication by \(2\) is invertible modulo the odd integer \(D\).
+All \(D\) residue classes occur once the section depth satisfies \(2^j\geq D\),
+and they are distinguished by the location of their next zero.  The same
+residue transition \(r\mapsto2r+b\pmod D\) is the minimal DFAO.
+\end{proof}
+
+\begin{proposition}[closed ordinary section words and their aggregate]
+\label{prop:ordinary-section-word}
+Retain Proposition~\ref{prop:ordinary-binary-sections}, and put
+\[
+ R_0=r^a,\qquad K=\F_2(\alpha_r),\qquad
+ u_c(e)=R_{e,c}(\alpha_r)
+ \quad(0<c<R_0,\ r\nmid c).
+\]
+Then, in \(K[[T]]\), every individual selected section has the reduced
+rational generating function
+\[
+ \boxed{
+ \sum_{e\geq0}u_c(e)T^e
+ =\frac{T^c(1+T)^{R_0-c-1}}
+        {(1+T)^{R_0}+\alpha_rT^{R_0}}.}              \tag{\(\mathsf{OSW}_1\)}
+\]
+Its least period is \(\ord(1+x_a)\).
+
+Let
+\[
+ t_c(e)=\Norm_{K/\F_2}u_c(e),\qquad
+ \mathcal T_{r,a}(e)
+ =1+\prod_{\substack{0<c<R_0\\r\nmid c}}(1+t_c(e)),
+\]
+and let
+\[
+ d_{r,a}=\ord\bigl((1+x_a)F_{a-1}^{\times}\bigr)
+\]
+be the actual projective order.  Then the aggregate word is exactly
+\[
+ \boxed{\mathcal T_{r,a}(e)=\epsilon_{d_{r,a}}(e).}  \tag{\(\mathsf{OSW}_2\)}
+\]
+It therefore has least period \(d_{r,a}\), linear complexity
+\(d_{r,a}-1\), and \(d_{r,a}\) states in both its \(2\)-kernel and minimal
+binary DFAO.  In particular, for a current prime \(p\mid\mathcal L_{r,a}\),
+\[
+ \boxed{
+ \mathcal T_{r,a}(\mathcal L_{r,a}/p)=1
+ \iff
+ v_p(d_{r,a})=v_p(\mathcal L_{r,a}).}                \tag{\(\mathsf{OSW}_3\)}
+\]
+Thus the entire family of dependency-section terminal scalars has a closed
+automatic description, but its minimal state size is the unknown selected
+projective order itself.  The compression is an exact order oracle, not a
+smaller universal nonvanishing problem.
+\end{proposition}
+
+\begin{proof}
+The standard binomial generating function gives
+\[
+ \begin{aligned}
+ \sum_{e\geq0}u_c(e)T^e
+ &=\sum_{v\geq0}\alpha_r^v
+   \frac{T^{c+R_0v}}{(1+T)^{c+R_0v+1}}\\
+ &=\frac{T^c(1+T)^{R_0-c-1}}
+        {(1+T)^{R_0}+\alpha_rT^{R_0}}.
+ \end{aligned}
+\]
+The numerator can vanish only at zero or one, while the denominator is
+nonzero at both points.  Hence the fraction is reduced.  Its denominator is
+the reciprocal of the translated irreducible polynomial
+\[
+ (X+1)^{R_0}+\alpha_r
+\]
+up to a nonzero scalar; its roots are the inverses of the conjugates of
+\(1+x_a\).  It is separable because \(R_0\) is odd.  Therefore the least
+period of the reduced recurrence is the common multiplicative order
+\(\ord(1+x_a)\).
+
+The norm \(t_c(e)\) is zero precisely when the selected section vanishes.
+Hence \(\mathcal T_{r,a}(e)=0\) precisely when every nonconstant section
+vanishes.  Regrouping the binary expansion of \((1+x_a)^e\) modulo \(R_0\)
+shows that this happens exactly when \((1+x_a)^e\in F_{a-1}^{\times}\),
+equivalently \(d_{r,a}\mid e\).  This proves \((\mathsf{OSW}_2)\), and
+Proposition~\ref{prop:order-indicator-word} supplies the period, complexity,
+and automaton assertions.  Since \(d_{r,a}\mid\mathcal L_{r,a}\), evaluation
+at \(\mathcal L_{r,a}/p\) proves \((\mathsf{OSW}_3)\), including the full
+\(p\)-primary valuation.
+\end{proof}
+
 \begin{corollary}[norm and complement are automatic in the ordinary sections]
 \label{cor:ordinary-sections-no-go}
 Retain Proposition~\ref{prop:ordinary-binary-sections}.  Write
@@ -1789,7 +1911,9 @@ Consequently its reciprocal selected factor \(P_x^*\) also divides it, and
  P_x\ne P_x^*\quad\Longrightarrow\quad 2D\leq e-r. \tag{\(\mathsf{RD}_3\)}
 \]
 
-Assume failure for the remaining assertions.  It is nevertheless transverse.
+Assume failure for the remaining assertions.  Then \(E>1\), since \(E=1\)
+would make \(W_{r,E}=1\).  The hypothetical intersection is nevertheless
+transverse.
 With
 \(\theta=(1+A)^E\),
 \[
@@ -6836,6 +6960,67 @@ The product formula for the resultant proves
 \((\mathsf{NS}_{10})\).
 \end{proof}
 
+\begin{corollary}[trace-recursive reparameterization of the Singer class]
+\label{cor:cubic-trace-recursive-singer}
+Set \(\gamma_0=1\), \(h_0=0\), and, for \(k\geq1\),
+\[
+ h_k=1+\gamma_k^{-1}.
+\]
+Then \(h_k\) has the irreducible relative cubic
+\[
+ \boxed{X^3+h_{k-1}X^2+X+1}                        \tag{\(\mathsf{HTR}_1\)}
+\]
+over \(L_{k-1}\).  Consequently
+\[
+ \operatorname{Tr}(h_k)=h_{k-1},\qquad
+ \operatorname{Tr}(h_k^{-1})=1,\qquad
+ \Norm(h_k)=1.                                      \tag{\(\mathsf{HTR}_2\)}
+\]
+In the notation of Proposition~\ref{prop:cubic-normalized-singer},
+\[
+ \boxed{
+ \tau_k^3=h_k^4,\qquad
+ h_k=\frac{1+\zeta_k^3}{(1+\zeta_k)^3},\qquad
+ h_k^2=\eta_k^{q+2},\qquad
+ h_k=\eta_k^{q/2+1}.}                               \tag{\(\mathsf{HTR}_3\)}
+\]
+All exponents in the last line are invertible on the norm-one group:
+\[
+ \gcd(3,N)=\gcd(4,N)=\gcd(q/2+1,N)=1.
+\]
+Hence
+\[
+ \boxed{\ord(\tau_k)=\ord(h_k)=\ord(\eta_k).}        \tag{\(\mathsf{HTR}_4\)}
+\]
+Thus \(h_k\) gives a particularly sparse trace-recursive tower, but it is an
+invertible-power reparameterization of the same selected order coordinate,
+not an inductive order estimate.
+\end{corollary}
+
+\begin{proof}
+Substitute \(\gamma_k=(h_k+1)^{-1}\) into
+\(\gamma_k^3+\gamma_k+\gamma_{k-1}=0\), clear \((h_k+1)^3\), and use
+\(\gamma_{k-1}=(h_{k-1}+1)^{-1}\).  This gives
+\((\mathsf{HTR}_1)\).  The fractional-linear substitution preserves the
+relative degree, so the cubic is irreducible; its coefficients give
+\((\mathsf{HTR}_2)\).
+
+The identities \(\gamma_{k-1}=\gamma_k(\gamma_k+1)^2\) and
+\(z_j=\gamma_j^{-2}\) give
+\[
+ \tau_k^3=\frac{z_k^3}{z_{k-1}}
+ =\left(1+\gamma_k^{-1}\right)^4=h_k^4.
+\]
+The displayed formula in \(\zeta_k\) is a direct simplification of
+\(1+\gamma_k^{-1}\).  Using
+\(\eta_k=\gamma_k^{q-1}\) and
+\(\gamma_k^N=\gamma_{k-1}\) gives \(h_k^2=\eta_k^{q+2}\); injectivity of
+squaring gives the last formula.  The gcds are immediate except possibly the
+last: a common divisor of \(q/2+1\) and \(N=q^2+q+1\) divides three, while
+\(q/2+1\not\equiv0\pmod3\).  The order equalities now follow from
+\((\mathsf{HTR}_3)\).
+\end{proof}
+
 \begin{proposition}[one-branch norm descent of the cubic critical value]
 \label{prop:cubic-critical-norm-descent}
 Retain Proposition~\ref{prop:cubic-normalized-singer}.  For every positive
@@ -6905,6 +7090,101 @@ norms give \((\mathsf{CND}_4)\), using \(s_1=1\).  Finally
 \(\Delta_u(s_k)=0\); a finite-field norm vanishes exactly with its argument,
 and every nonzero element of \(\F_2\) is one.  This proves
 \((\mathsf{CND}_5)\).
+\end{proof}
+
+\begin{proposition}[cyclotomic factorization of the cubic critical value]
+\label{prop:cubic-critical-cyclotomic-factorization}
+Let \(u\geq1\) be odd and \(d=(u-1)/2\).  There is a unique monic
+\(H_u\in\F_2[X]\) such that
+\[
+ \mathcal D_u(X,1)=XH_u(X)^2,\qquad
+ \deg H_u=d,\qquad H_u(0)=1.                         \tag{\(\mathsf{CCF}_1\)}
+\]
+Its roots are the distinct nonzero elements
+\[
+ x_\rho=\rho+\rho^{-1},
+ \qquad
+ \{\rho,\rho^{-1}\}\subset\mu_u\setminus\{1\},   \tag{\(\mathsf{CCF}_2\)}
+\]
+where all nonidentity \(u\)-th roots, not only primitive roots, occur.  The
+critical compression in Proposition~\ref{prop:cubic-critical-norm-descent}
+has the exact factorization, with multiplicity,
+\[
+ \boxed{
+ \begin{aligned}
+ \widehat\Delta_u(V)
+ &=\operatorname{Res}_X\!\left(
+   H_u(X),VX+(X+1)^3
+  \right)\\
+ &=\prod_{\{\rho,\rho^{-1}\}}
+   \left(x_\rho V+(x_\rho+1)^3\right)\\
+ &=\prod_{\{\rho,\rho^{-1}\}}
+   \left(V+\frac{(x_\rho+1)^3}{x_\rho}\right).
+ \end{aligned}}                                    \tag{\(\mathsf{CCF}_3\)}
+\]
+The last equality uses \(\prod x_\rho=H_u(0)=1\).  The displayed critical
+values need not be distinct; for example
+\(\widehat\Delta_7(V)=(V+1)^3\).
+
+The selected specialization remembers the actual Conway cubic exactly.  For
+arbitrary \(z,Y\) in characteristic two, put
+\[
+ C_V(X)=X^3+X^2+(V+1)X+1.
+\]
+Then
+\[
+ \boxed{
+ C_{z^2}(1+zY^2)
+ =z^3(Y^3+Y)^2+z^2.}                                \tag{\(\mathsf{CCF}_4\)}
+\]
+At level \(k\), take
+\(z=z_{k-1}=\gamma_{k-1}^{-2}\) and
+\(V=s_k^3=z_{k-1}^2\).  Because \(z\gamma_{k-1}^2=1\), this becomes
+\[
+ C_V(1+zY^2)=z^3(Y^3+Y+\gamma_{k-1})^2.             \tag{\(\mathsf{CCF}_5\)}
+\]
+Consequently
+\[
+ \boxed{
+ \widehat\Delta_u(s_k^3)
+ =\Norm_{L_k/L_{k-1}}
+   H_u\!\left(1+z_{k-1}\gamma_k^2\right).}          \tag{\(\mathsf{CCF}_6\)}
+\]
+For \(u=N/\ell\), failure is equivalently that the selected cubic
+\(C_{s_k^3}\) shares a root with \(H_u\).  This reconstructs the exact
+cyclotomic collision behind the terminal bit; it does not force the resultant
+nonzero when \(u\) is composite.
+\end{proposition}
+
+\begin{proof}
+The standard Dickson factorization
+\(\mathcal D_u(\rho+\rho^{-1},1)=\rho^u+\rho^{-u}\), with reciprocal
+pairs grouped together, gives \((\mathsf{CCF}_1)\)--\((\mathsf{CCF}_2)\).
+Let \(t_1,t_2,t_3\) be the roots of
+\(T^3+ST^2+1\), so \(e_1=S,e_2=0,e_3=1\).  By the definitions in
+\((\mathsf{NS}_7)\),
+\[
+ \Delta_u(S)
+ =\prod_{i<j}(t_i^u+t_j^u).
+\]
+Factor each power difference over \(\mu_u\), remove the \(\rho=1\) layer,
+and pair \(\rho\) with \(\rho^{-1}\).  For
+\(x=\rho+\rho^{-1}\), the resulting symmetric product is
+\[
+ \prod_{i<j}(t_i^2+xt_it_j+t_j^2)=xS^3+(x+1)^3.
+\]
+Indeed \(e_2=0\) gives \(t_it_j=t_k(t_i+t_j)\); each factor is then
+\((S+t_k)(S+(x+1)t_k)\), and multiplication over \(k\) gives the displayed
+identity.  Taking the product over the roots of the monic \(H_u\) proves the
+resultant and both products in \((\mathsf{CCF}_3)\), including multiplicity.
+
+Expanding \(C_{z^2}(1+zY^2)\) proves \((\mathsf{CCF}_4)\).  The selected
+relation \(z\gamma_{k-1}^2=1\) gives \((\mathsf{CCF}_5)\).  The roots of the
+right-hand Conway cubic are the three relative conjugates of \(\gamma_k\),
+so its transported roots are precisely the roots of the monic \(C_V\).
+The root-product formula for the resultant now yields
+\((\mathsf{CCF}_6)\).  Finally \((\mathsf{NS}_8)\) identifies its vanishing
+with the original Euler obstruction.
 \end{proof}
 
 \begin{proposition}[the selected Singer trace is the whole remaining phase]
@@ -7882,6 +8162,42 @@ so their power-sum recurrence is exactly
 directly.  Finally \(S_d(a_{n-1})=0\) exactly when
 \(\delta_n\mid d\), by Proposition~\ref{prop:fermat-fibotomic};
 \((\mathsf{QN}_3)\) now proves \((\mathsf{QN}_5)\).
+\end{proof}
+
+\begin{corollary}[the Fermat terminal word is the order word]
+\label{cor:fermat-terminal-order-word}
+For every \(n\geq0\) and \(d\geq0\), put
+\[
+ T_n(d)=\mathcal N^{\circ n}(S_d)(1).
+\]
+Then
+\[
+ \boxed{T_n(d)=\epsilon_{\delta_n}(d).}              \tag{\(\mathsf{ZOW}_1\)}
+\]
+Consequently \(T_n\) has least period \(\delta_n\), exact linear complexity
+\(\delta_n-1\), and exactly \(\delta_n\) states in both its \(2\)-kernel and
+minimal binary DFAO.  Since \(\delta_n\mid F_n\), for every prime
+\(\ell\mid F_n\),
+\[
+ \boxed{
+ T_n(F_n/\ell)=1
+ \iff v_\ell(\delta_n)=v_\ell(F_n).}                \tag{\(\mathsf{ZOW}_2\)}
+\]
+Thus exact quadratic ancestry compression does not reduce the state
+complexity below the unknown Conway--Fermat quotient order.  It presents that
+order itself as the terminal binary word.
+\end{corollary}
+
+\begin{proof}
+Proposition~\ref{prop:fermat-norm-descent} gives
+\(T_n(d)=0\) exactly when \(S_d(a_{n-1})=0\), while
+Proposition~\ref{prop:fermat-fibotomic} identifies the latter condition with
+\(\delta_n\mid d\).  This proves \((\mathsf{ZOW}_1)\).
+Proposition~\ref{prop:order-indicator-word} supplies the period, complexity,
+and automaton assertions.  Finally, for divisors
+\(\delta_n\mid F_n\), the failure of \(\delta_n\mid F_n/\ell\) is equivalent
+to equality of the two \(\ell\)-adic valuations, proving
+\((\mathsf{ZOW}_2)\).
 \end{proof}
 
 \begin{proposition}[one-step maximality is not an inductive invariant]
@@ -11531,15 +11847,15 @@ For the actual normalized root \(w=w_k\), set
 Then
 \[
  R\in\ker\Norm_{K/E}=\mu_\Gamma,\qquad
- \gcd(A,B)=1,                                        \tag{\(\mathsf{DP}_1\)}
+ \gcd(A,B)=1,                                       \tag{\(\mathsf{DCP}_1\)}
 \]
 and its two coprime projections are exactly
 \[
- \boxed{R^A=P_k=M_k^{t+1},}                          \tag{\(\mathsf{DP}_2\)}
+ \boxed{R^A=P_k=M_k^{t+1},}                         \tag{\(\mathsf{DCP}_2\)}
 \]
 \[
  \boxed{R^B=Z_{D,k}^{\,t-1}
-       =g_k^{(Q-2)(t-1)}.}                           \tag{\(\mathsf{DP}_3\)}
+       =g_k^{(Q-2)(t-1)}.}                          \tag{\(\mathsf{DCP}_3\)}
 \]
 Thus \(P_k\) is literally the minus-torus coordinate of the relative
 coboundary \(R\); the complementary plus coordinate is the
@@ -11548,19 +11864,19 @@ coboundary \(R\); the complementary plus coordinate is the
 For every \(\ell^a\Vert\Psi_k\),
 \[
  v_\ell(\ord w)=v_\ell(\ord R)=v_\ell(\ord P_k),\qquad
- \ell\nmid\ord(R^B),                                 \tag{\(\mathsf{DP}_4\)}
+ \ell\nmid\ord(R^B),                                \tag{\(\mathsf{DCP}_4\)}
 \]
 and the exact full-primary criterion is
 \[
  v_\ell(\ord P_k)=a
  \iff P_k^{B/\ell}\ne1
- \iff w\notin(K^\times)^\ell.                        \tag{\(\mathsf{DP}_5\)}
+ \iff w\notin(K^\times)^\ell.                       \tag{\(\mathsf{DCP}_5\)}
 \]
 There is no squarefreeness assumption here.
 
 The lower norm has the exact compatibility
 \[
- \boxed{P_k^{B/3}=H^{(Q-1)/3}.}                      \tag{\(\mathsf{DP}_6\)}
+ \boxed{P_k^{B/3}=H^{(Q-1)/3}.}                     \tag{\(\mathsf{DCP}_6\)}
 \]
 By \((\mathsf D_9)\), this common value is \(\omega^2\) for odd \(k\)
 and one for even \(k\).  Hence the lower norm determines precisely
@@ -11571,12 +11887,12 @@ More generally, the map
  \Theta:K^\times\longrightarrow E^\times\times\mu_\Gamma,
  \qquad x\longmapsto
  \bigl(\Norm_{K/E}(x),x^{Q-1}\bigr)
-                                                               \tag{\(\mathsf{DP}_7\)}
+                                                              \tag{\(\mathsf{DCP}_7\)}
 \]
 has kernel \(\mu_3\), and its image is exactly
 \[
  \left\{(H_0,R_0):
- H_0^{(Q-1)/3}=R_0^{\Gamma/3}\right\}.               \tag{\(\mathsf{DP}_8\)}
+ H_0^{(Q-1)/3}=R_0^{\Gamma/3}\right\}.              \tag{\(\mathsf{DCP}_8\)}
 \]
 Consequently, after fixing \(H\) and \(R^B\), multiplication of \(R\)
 by an arbitrary current Sylow element of \(\mu_B\) preserves both
@@ -11589,14 +11905,14 @@ If \(x^{t^3}=x+1\), put \(Z=x^2+x\), and form \(H,R\) from \(x\) as
 above.  Then
 \[
  \Norm_{\F_{t^3}/\F_t}(Z)=H^{t+1},\qquad
- Z^{t-1}=R^B.                                        \tag{\(\mathsf{DP}_9\)}
+ Z^{t-1}=R^B.                                       \tag{\(\mathsf{DCP}_9\)}
 \]
 The map
 \[
  \Xi:\F_{t^3}^\times\longrightarrow\F_t^\times\times\mu_A,
  \qquad
  z\longmapsto\bigl(\Norm_{\F_{t^3}/\F_t}(z),z^{t-1}\bigr)
-                                                               \tag{\(\mathsf{DP}_{10}\)}
+                                                              \tag{\(\mathsf{DCP}_{10}\)}
 \]
 is a bijection.  Thus \(H^{t+1}\) and \(R^B\) reconstruct a unique
   \(Z\).  Such a reconstructed scalar comes from an Artin--Schreier
@@ -11615,14 +11931,14 @@ This reconstruction has an exact one-variable order form.  With
 one has
 \[
  M+M^{-1}=Z^{-1},\qquad
- \boxed{P+P^{-1}=\mathcal D_{t+1}(Z^{-1},1).}         \tag{\(\mathsf{DP}_{11}\)}
+ \boxed{P+P^{-1}=\mathcal D_{t+1}(Z^{-1},1).}        \tag{\(\mathsf{DCP}_{11}\)}
 \]
 Consequently, for every \(\ell^a\Vert\Psi_k\),
 \[
  \boxed{
  P^{B/\ell}=1
  \iff
- \mathcal D_{(t^3+1)/\ell}(Z^{-1},1)=0.}            \tag{\(\mathsf{DP}_{12}\)}
+ \mathcal D_{(t^3+1)/\ell}(Z^{-1},1)=0.}           \tag{\(\mathsf{DCP}_{12}\)}
 \]
 Thus the selected trace-one scalar determines the inverse pair
 \(\{P,P^{-1}\}\) and rewrites failure as one Dickson critical value;
@@ -11641,14 +11957,14 @@ If two such roots \(x,y\) satisfy
 \]
 then
 \[
- y\in\{x,x+1\},\qquad P_y\in\{P_x,P_x^{-1}\}.       \tag{\(\mathsf{DP}_{13}\)}
+ y\in\{x,x+1\},\qquad P_y\in\{P_x,P_x^{-1}\}.      \tag{\(\mathsf{DCP}_{13}\)}
 \]
 For the actual selected data, fixing the exact norm \(H\) sharpens this to
 \[
  \begin{array}{c|c}
  k=2&\{w,w+1\}\text{ have the same }(H,C_x),\\
  k\geq3&w\text{ is the unique Artin--Schreier root with the fixed }(H,C_x).
- \end{array}                                         \tag{\(\mathsf{DP}_{14}\)}
+ \end{array}                                        \tag{\(\mathsf{DCP}_{14}\)}
 \]
 This is a rigidity theorem, not a nonprimitive countermodel: once the exact
 Artin--Schreier coupling is imposed, the projection data reconstruct the
@@ -11662,7 +11978,7 @@ explicit reciprocal-quartic identity
  \boxed{
  \bigl(g_k^{t-1}\bigr)^2
  =\frac{\eta_k^4+\eta_k^3+1}
-        {\eta_k^4+\eta_k+1}.}                        \tag{\(\mathsf{DP}_{15}\)}
+        {\eta_k^4+\eta_k+1}.}                       \tag{\(\mathsf{DCP}_{15}\)}
 \]
  The denominator in the reciprocal-quartic identity is nonzero.  Indeed
  \(X^4+X+1\) is irreducible over \(\F_2\), while
@@ -11684,7 +12000,7 @@ Also
 \[
  (Q-1)A=(t^3-1)(t+1),
 \]
-and \(w^{t^3-1}=M_k\), proving \((\mathsf{DP}_2)\).
+and \(w^{t^3-1}=M_k\), proving \((\mathsf{DCP}_2)\).
 Using \(w^{t^3}=w+1\), one obtains
 \[
  \begin{split}
@@ -11696,28 +12012,28 @@ Using \(w^{t^3}=w+1\), one obtains
  \end{split}
 \]
 and \((\mathsf{CD}_5)\) gives the last expression in
-\((\mathsf{DP}_3)\).
+\((\mathsf{DCP}_3)\).
 
 A current \(\ell\) divides \(B/3\) and is coprime to
 \((Q-1)A\).  Raising to \(Q-1\) and then to \(A\) therefore preserves
 its full primary order, while \(R^B\) kills it.  The cyclic Euler
-criterion proves \((\mathsf{DP}_4)\)--\((\mathsf{DP}_5)\).
+criterion proves \((\mathsf{DCP}_4)\)--\((\mathsf{DCP}_5)\).
 Furthermore
 \[
  P_k^{B/3}=R^{\Gamma/3}
  =w^{(Q-1)\Gamma/3}=H^{(Q-1)/3},
 \]
-which proves \((\mathsf{DP}_6)\).
+which proves \((\mathsf{DCP}_6)\).
 
 The kernel of \(\Theta\) consists of the elements of \(E^\times\)
 whose cube is one, hence is \(\mu_3\).  Every image pair satisfies
-the compatibility in \((\mathsf{DP}_8)\).  Conversely, both the image
+the compatibility in \((\mathsf{DCP}_8)\).  Conversely, both the image
 and the compatible-pair set have
 \[
  \frac{(Q-1)\Gamma}{3}
 \]
 elements: the latter condition is the equality of two surjective
-maps to \(\mu_3\).  This proves \((\mathsf{DP}_8)\).  A current Sylow
+maps to \(\mu_3\).  This proves \((\mathsf{DCP}_8)\).  A current Sylow
 element \(c\in\mu_B\) satisfies \(c^B=c^{\Gamma/3}=1\), while
 \(c\mapsto c^A\) is an automorphism of its Sylow group, proving the
 variation assertion.
@@ -11727,8 +12043,8 @@ For an Artin--Schreier root, \(Z=x^{t^3+1}\).  Expanding exponents gives
  (t^3+1)(t^2+t+1)
  =(t+1)(t^4+t^2+1),
 \]
-which is the norm identity in \((\mathsf{DP}_9)\); the second is the
-same exponent calculation used in \((\mathsf{DP}_3)\).
+which is the norm identity in \((\mathsf{DCP}_9)\); the second is the
+same exponent calculation used in \((\mathsf{DCP}_3)\).
 Since
 \[
  |\F_{t^3}^\times|=(t-1)A,\qquad \gcd(t-1,A)=1,
@@ -11739,7 +12055,7 @@ the stated trace-one boundary and the two conjugate roots.  When the
 trace is zero the quadratic instead has two roots in \(\F_{t^3}\), so
 they do not satisfy the required nontrivial Frobenius translation.
 
-The first identity in \((\mathsf{DP}_{11})\) is a direct calculation, and
+The first identity in \((\mathsf{DCP}_{11})\) is a direct calculation, and
 the Dickson identity
 \(\mathcal D_n(u+u^{-1},1)=u^n+u^{-n}\) gives the second.  Since \(P\)
 has odd order,
@@ -11748,10 +12064,10 @@ has odd order,
  \iff P^{B/\ell}=1.
 \]
 Dickson composition and \((t+1)B=t^3+1\) prove
-\((\mathsf{DP}_{12})\).
+\((\mathsf{DCP}_{12})\).
 
-If \(x,y\) satisfy the hypotheses of \((\mathsf{DP}_{13})\), then
-\((\mathsf{DP}_9)\) and injectivity of \(\Xi\) give \(Z_x=Z_y\).
+If \(x,y\) satisfy the hypotheses of \((\mathsf{DCP}_{13})\), then
+\((\mathsf{DCP}_9)\) and injectivity of \(\Xi\) give \(Z_x=Z_y\).
 Thus \((x+y)^2+(x+y)=0\), so \(y=x\) or \(x+1\), and the displayed
 claim about \(P_y\) follows by inversion.  Moreover
 \[
@@ -11769,9 +12085,9 @@ Their equality is equivalent to
  =\eta^4+\omega^2\eta^3+\omega\eta+1=0.
 \]
 Since \(\eta\) has order \(3^k\), for \(k\geq2\) this occurs exactly
-when \(k=2\), proving \((\mathsf{DP}_{14})\).  The statement concerns
+when \(k=2\), proving \((\mathsf{DCP}_{14})\).  The statement concerns
 coordinates that actually arise from Artin--Schreier roots; an arbitrary
-ambient pair in \((\mathsf{DP}_8)\) need not do so.
+ambient pair in \((\mathsf{DCP}_8)\) need not do so.
 
 For the reciprocal-quartic identity, put \(y=\zeta_k^2\).  Directly from the
 selected period formulas,
@@ -11783,6 +12099,121 @@ selected period formulas,
 \]
 Substitution, followed by \(1+\omega+\omega^2=0\), gives the displayed
 reciprocal-quartic quotient.
+\end{proof}
+
+\begin{proposition}[the actual exceptional terminal resolvent]
+\label{prop:dk-terminal-resolvent}
+Retain \(k\geq2\), and write
+\[
+ t=2^{3^{k-1}},\qquad Q=t^2,\qquad q=t^3,\qquad
+ a=\gamma_{k-1},\qquad C=a^2+a+1.
+\]
+Put \(r_i=\gamma_k^{t^i}\), with indices modulo three, and define the
+oriented cyclic resolvents
+\[
+ \mathcal K=\sum_i r_i^2r_{i+1},\qquad
+ \mathcal K'=\sum_i r_ir_{i+1}^2,\qquad
+ \chi=\mathcal K/a.
+\]
+Then
+\[
+ \mathcal K+\mathcal K'=a,\qquad
+ \mathcal K\mathcal K'=a^2+1,\qquad
+ \boxed{\chi^2+\chi=1+a^{-2}.}                      \tag{\(\mathsf{DTR}_1\)}
+\]
+Reversing cyclic orientation sends \(\chi\) to \(\chi+1\).
+
+The actual selected scalar
+\[
+ Y=Z_{D,k}^{-1}=g_k^{\,2-Q}\in\F_q
+\]
+has the irreducible monic polynomial over \(\F_t\)
+\[
+ \boxed{
+ m_\chi(T)=T^3+
+ \frac{a^2\chi+a^2+1}{C}T^2+
+ \frac{a^2(a+1)\chi+a^3+a+1}{C}T+C.}               \tag{\(\mathsf{DTR}_2\)}
+\]
+Equivalently, its denominator-free equation is
+\[
+ CT^3+(a\mathcal K+a^2+1)T^2
+ +(a(a+1)\mathcal K+a^3+a+1)T+C^2=0.               \tag{\(\mathsf{DTR}_3\)}
+\]
+For every current prime \(\ell\mid\Psi_k\), with
+\(n=(q+1)/\ell\),
+\[
+ \boxed{
+ \text{failure at }\ell
+ \iff m_\chi(T)\mid\mathcal D_n(T,1).}             \tag{\(\mathsf{DTR}_4\)}
+\]
+
+This divisor has no independent norm shadow.  If
+\(V=\mathcal D_n(Y,1)\), then
+\[
+ \boxed{
+ \operatorname{Res}_T(m_\chi,\mathcal D_n)
+ =\Norm_{\F_q/\F_t}(V)
+ =\operatorname{Tr}_{\F_q/\F_t}(V)^2,}             \tag{\(\mathsf{DTR}_5\)}
+\]
+and these three quantities vanish exactly under failure.
+
+Finally, for \(Z=Y^{-1}\), orientation reversal changes its relative trace by
+\[
+ \frac{a^2(a+1)}{C^2}
+ =\left(\frac{a+1}{C}\right)^2+\frac{a+1}{C},       \tag{\(\mathsf{DTR}_6\)}
+\]
+and leaves its relative norm \(C^{-1}\) fixed.  Therefore absolute trace and
+lower norm cannot distinguish the two orientations.  The actual
+\(t\)-Frobenius does select one of them; the comparison proves blindness of
+these scalar invariants, not ambiguity of the Conway datum.
+\end{proposition}
+
+\begin{proof}
+The \(r_i\) are the roots of \(X^3+X+a\), so their elementary symmetric
+functions are \(e_1=0,e_2=1,e_3=a\).  The cyclic-resolvent identities give
+\[
+ \mathcal K+\mathcal K'=e_1e_2+e_3=a,\qquad
+ \mathcal K\mathcal K'=e_1^3e_3+e_2^3+e_3^2=1+a^2,
+\]
+which proves \((\mathsf{DTR}_1)\).
+
+Put \(x_i=r_i^2+r_i+1\).  Direct symmetric reduction gives
+\[
+ e_1(x)=1,\qquad e_2(x)=a+1,\qquad e_3(x)=C,\qquad
+ \mathcal K_x:=\sum_i x_i^2x_{i+1}=a\mathcal K+C.
+\]
+The three conjugates of \(Y\) are \(Y_i=x_i^2/x_{i-1}\).  Reducing their
+elementary symmetric functions over the common denominator
+\(C=x_0x_1x_2\) gives
+\[
+ \sum_iY_i=\frac{a\mathcal K+a^2+1}{C},\qquad
+ \sum_{i<j}Y_iY_j
+ =\frac{a(a+1)\mathcal K+a^3+a+1}{C},\qquad
+ \prod_iY_i=C.
+\]
+This proves \((\mathsf{DTR}_2)\)--\((\mathsf{DTR}_3)\).
+Here \(a,C\ne0\), and \(\gcd(Q-2,q-1)=1\).  Exponentiation by \(2-Q\)
+therefore recovers \(g_k\) from \(Y\), so \(Y\) has relative degree three and
+the polynomial is irreducible.  Proposition~\ref{prop:dk-coprime-projections},
+specifically \((\mathsf{DCP}_{12})\), and the minimal-polynomial criterion
+prove \((\mathsf{DTR}_4)\).
+
+Let \(M=M_k\) and \(\xi=M^n\in\mu_\ell\).  Since
+\(Y=M+M^{-1}\), Dickson's identity gives \(V=\xi+\xi^{-1}\).
+Moreover \(\ord_\ell(t)=6\), hence \(t^2-t+1\equiv0\pmod\ell\).  With
+\(x=\xi\) and \(y=\xi^t\), direct multiplication of the three relative
+conjugates gives
+\[
+ \Norm(V)=\operatorname{Tr}(V)^2,\qquad
+ xy\operatorname{Tr}(V)=(x+y)(x+1)(y+1).
+\]
+The second expression vanishes exactly when \(\xi=1\); thus both sides of
+\((\mathsf{DTR}_5)\) vanish exactly under failure.  The first equality in
+\((\mathsf{DTR}_5)\) is the root-product formula for the irreducible
+\(m_\chi\).  Finally take the reciprocal of \((\mathsf{DTR}_2)\) and replace
+\(\chi\) by \(\chi+1\).  The relative norm stays \(C^{-1}\), while the trace
+changes by the first term in \((\mathsf{DTR}_6)\); the displayed
+Artin--Schreier identity proves equality of the absolute traces.
 \end{proof}
 
 \begin{proposition}[translated-binomial form of $D'_k$]
