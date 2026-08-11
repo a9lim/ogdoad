@@ -328,7 +328,16 @@ absolute boundedness.
   exactly the original terminal bit. Multiplication trace and discriminant
   vanish in both branches. Thus terminal Euclidean/support-projector linear
   algebra adds no selector orientation; intermediate quotient-polynomial data
-  remain a possible ancestry-sensitive input. The unique lower
+  remain a possible ancestry-sensitive input. A complementary block-collapse
+  theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
+  failure at `d=(q+1)/ell`, every value satisfies
+  `S_(kd+r)(a)=b^k*S_r(a)`, where `b=S_(d+1)(a)` obeys `b^2=a^d`,
+  `b^ell=a`, and hence `b=(a^d)^(q/2)`. Polynomially the same identities
+  hold modulo `S_d`. Thus consecutive or shifted continued-fraction,
+  Cassini, and quotient-ring Euclidean data reproduce the already-known lower
+  Kummer root. Coefficient-sensitive intermediate Euclidean quotients before
+  reduction modulo `S_d`, and arbitrary subresultants against the actual
+  `A_(n-1)`, remain open. The unique lower
   `ell`-th root in the Dickson
   obstruction is now choice-free: with `d=(q+1)/ell`, it is
   `(a_(n-1)^d)^(q/2)`. This removes an auxiliary root but leaves the same
@@ -593,13 +602,25 @@ absolute boundedness.
   `{359,1}` row is an executed test of the literal mixed-radix element
   `[0,19580]=1+kappa_179` in the full component chain
   `{2,4,5,11,89,179}`; the row reports 177,379 seconds from the uncached-run
-  timing path. This is stronger provenance than the bare OEIS pin, but not a
-  locally replayable certificate because the final nonidentity residue was
+  timing path. Historical commit
+  `7a26543f11f5319d04da5402840beecc9e5b35fe` retains two complete runs of the
+  same exact sparse computation. They both finish all 3,504,812 exponent bits
+  with a 1,743,227-term result, at 177,379 and 177,717 seconds. The maintained
+  `experiments/ordinary_359_source_audit.py` verifies the two historical blob
+  hashes, endpoint pairs, and result rows. This is stronger provenance and a
+  repeatability check beyond the bare OEIS pin. The upstream traces remain
+  source-pinned corroboration because their final coefficient vectors were
   discarded; moreover the upstream component comparator ties the `2` and `4`
   components and relies on their published input order being preserved. A
-  monic degree-19,580 factor `g` of `P_359` over `F_(2^179)`
-  with `g(1)^((2^179-1)/359) != 1` would be a roughly 438-KB compact exact
-  certificate; no such factor artifact is currently available. At the
+  separate checked-in 438,103-byte Hilbert-root artifact now supplies the
+  equivalent compact factor implicitly. It satisfies `y^179=A` in the
+  selected degree-19,580 extension, and the maintained
+  `ordinary_359_hilbert_certificate.py --full` recomputes
+  `theta=Norm(1+y)` and checks
+  `theta^((2^179-1)/359) != 1`. Thus `m_359=1` is now backed by a locally
+  replayable exact finite computation as well as the two external runs. Quick
+  mode checks the root and stored phase but is explicitly not the authoritative
+  certificate because it does not recompute the norm. At the
   actual ordinary singleton step, even the canonical additive lower norm is
   current-Kummer blind: `Norm(1+x)=1+x^r`, while
   `ord_p(q_0)=r>1` makes `p`-powering an automorphism of the lower
@@ -827,10 +848,14 @@ absolute boundedness.
   top fibre has `0` points on success and `ell` points on failure. Under
   failure the Capelli composition splits into `ell` distinct irreducible
   cubics, all with the same complete norm-coherent lower root ancestry.
-  Moreover every root-choice-invariant Laurent or rational expression factors
-  through the original `ell`-th power. Thus unweighted discriminant,
-  resultant, and symmetric-coefficient attacks remain failure-compatible;
-  only a nontrivial Kummer eigenweight can add information. A coprime
+  Fourier transformation of the coefficient family has only six nonzero
+  modes and recovers exactly the chosen root, its conjugates, and their pair
+  products. Its normalized pseudonorm defect is the original Euler symbol.
+  More generally every pure nonzero Kummer eigenweight has monodromy an
+  invertible power of that same symbol, while weight zero factors through the
+  original `ell`-th power. Thus unweighted invariants and pure weighted
+  resolvents alike add no second condition. Mixed-weight cancellations and
+  independent arithmetic evaluations remain outside this boundary. A coprime
   plus/minus decomposition now
   identifies the entire current primary order with the minus coordinate
   `P_k=M_k^(t+1)`, while the plus coordinate is the explicit `g_k` coboundary.

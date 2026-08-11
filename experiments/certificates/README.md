@@ -1,0 +1,20 @@
+# Exact finite certificates
+
+`ordinary_359_hilbert_root_v1.bin` is the compact root-coordinate certificate
+for the selected ordinary-spine row `p=359`.
+
+- Size: 438,103 bytes.
+- SHA-256:
+  `c62433e428e6b0942c210b2df2543fcff6a9e444b835ceb5390db1c9e433bd9e`.
+- Encoding: raw little-endian bitstream. Bit `179*i+j` is the coefficient of
+  `z^j` in the `A^i` coefficient of `y`, for `0 <= i < 19580` and
+  `0 <= j < 179`. The final four padding bits are zero.
+- Ambient fields:
+  `k=F_2[z]/(z^179+z^4+z^2+z+1)` and
+  `E=k[A]/(F_179(A))`.
+
+The authoritative verifier is
+`../ordinary_359_hilbert_certificate.py --full`. It checks `y^179=A`,
+recomputes `theta=Norm_(E/k)(1+y)` as a degree-19,580 resultant, and verifies
+that `theta^((2^179-1)/359) != 1`. Default quick mode does not recompute the
+norm and is therefore only an integrity smoke test, not the full certificate.

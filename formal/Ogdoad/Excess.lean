@@ -1266,6 +1266,75 @@ theorem dk_twisted_fibre_target_numerator [CharP R 2]
 
 end DKTwistedFibre
 
+section DKWeightedFibre
+
+variable {G : Type*} [CommGroup G]
+
+/-- The pseudonorm of a power root is a power root of the selected lower
+norm. -/
+theorem dk_pseudonorm_is_lower_power_root
+    (v u uParent : G) (ell Q : Nat)
+    (hv : v ^ ell = u)
+    (hu : u ^ (1 + Q + Q ^ 2) = uParent) :
+    (v ^ (1 + Q + Q ^ 2)) ^ ell = uParent := by
+  calc
+    (v ^ (1 + Q + Q ^ 2)) ^ ell =
+        (v ^ ell) ^ (1 + Q + Q ^ 2) := by
+          rw [← pow_mul, ← pow_mul]
+          rw [Nat.mul_comm]
+    _ = u ^ (1 + Q + Q ^ 2) := by rw [hv]
+    _ = uParent := hu
+
+/-- The cubic pseudonorm is unchanged when the Kummer root is rescaled by a
+root of unity whose total cubic Frobenius exponent is trivial. -/
+theorem dk_pseudonorm_root_choice_invariant
+    (rho v : G) (a Q : Nat)
+    (hrho : rho ^ (1 + Q + Q ^ 2) = 1) :
+    ((rho ^ a) * v) ^ (1 + Q + Q ^ 2) =
+      v ^ (1 + Q + Q ^ 2) := by
+  rw [mul_pow]
+  calc
+    (rho ^ a) ^ (1 + Q + Q ^ 2) * v ^ (1 + Q + Q ^ 2) =
+        (rho ^ (1 + Q + Q ^ 2)) ^ a *
+          v ^ (1 + Q + Q ^ 2) := by
+            rw [← pow_mul, ← pow_mul]
+            rw [Nat.mul_comm]
+    _ = v ^ (1 + Q + Q ^ 2) := by simp [hrho]
+
+/-- The lower-root-normalized pseudonorm defect evaluates to the original
+selected Euler class. -/
+theorem dk_pseudonorm_defect_eq_euler
+    (v u vParent : G) (ell Q e : Nat)
+    (hv : v ^ ell = u)
+    (hParent : vParent ^ (Q - 1) = 1)
+    (hfactor : ell * e = (1 + Q + Q ^ 2) * (Q - 1)) :
+    (v ^ (1 + Q + Q ^ 2) / vParent) ^ (Q - 1) = u ^ e := by
+  rw [div_pow, hParent, div_one]
+  calc
+    (v ^ (1 + Q + Q ^ 2)) ^ (Q - 1) =
+        v ^ ((1 + Q + Q ^ 2) * (Q - 1)) := by
+          rw [pow_mul]
+    _ = v ^ (ell * e) := by rw [hfactor]
+    _ = (v ^ ell) ^ e := by rw [pow_mul]
+    _ = u ^ e := by rw [hv]
+
+/-- A pure Kummer eigenweight acquires exactly the corresponding power of the
+selected monodromy under the full cubic Frobenius. -/
+theorem dk_eigenweight_power_monodromy
+    (v omega a : G) (m N : Nat)
+    (hv : v ^ N = omega * v) (ha : a ^ N = a) :
+    (v ^ m * a) ^ N = omega ^ m * (v ^ m * a) := by
+  rw [mul_pow]
+  calc
+    (v ^ m) ^ N * a ^ N = (v ^ N) ^ m * a := by
+      rw [← pow_mul, ← pow_mul, Nat.mul_comm m N, ha]
+    _ = (omega * v) ^ m * a := by rw [hv]
+    _ = omega ^ m * (v ^ m * a) := by
+      rw [mul_pow]
+      ac_rfl
+
+end DKWeightedFibre
+
 variable {F : Type*} [Field F] [CharP F 2]
 
 /-- The quadratic auxiliary coordinate `x^2+x+1` determines `x` only up to
@@ -2972,6 +3041,110 @@ theorem fermat_complement_indices_not_dvd
     omega
 
 end FermatFibonacciCompression
+
+section FermatShiftBlockCore
+
+variable {R : Type*} [CommRing R]
+
+/-- Once a Fibonacci value vanishes, every shift by its index scales the
+sequence by the single following value. -/
+theorem fibPolyValue_add_zero_block
+    (a : R) (d r : Nat) (hd : fibPolyValue a d = 0) :
+    fibPolyValue a (d + r) =
+      fibPolyValue a (d + 1) * fibPolyValue a r := by
+  induction r using Nat.twoStepInduction with
+  | zero => simp [fibPolyValue, hd]
+  | one => simp [fibPolyValue]
+  | more r hr hr1 =>
+      rw [show d + (r + 2) = (d + r) + 2 by omega]
+      simp only [fibPolyValue]
+      rw [show d + r + 1 = d + (r + 1) by omega]
+      rw [hr, hr1]
+      ring
+
+/-- All blocks after a Fibonacci zero are scalar copies of the initial
+block. -/
+theorem fibPolyValue_mul_add_zero_block
+    (a : R) (d k r : Nat) (hd : fibPolyValue a d = 0) :
+    fibPolyValue a (k * d + r) =
+      (fibPolyValue a (d + 1)) ^ k * fibPolyValue a r := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+      rw [Nat.succ_mul]
+      rw [show k * d + d + r = d + (k * d + r) by omega]
+      rw [fibPolyValue_add_zero_block a d (k * d + r) hd]
+      rw [ih, pow_succ]
+      ring
+
+/-- Cassini's identity for the characteristic-two Fibonacci recurrence. -/
+theorem fibPolyValue_cassini
+    {R : Type*} [CommRing R] [CharP R 2] (a : R) (d : Nat) :
+    (fibPolyValue a (d + 1)) ^ 2 +
+        fibPolyValue a d * fibPolyValue a (d + 2) = a ^ d := by
+  induction d with
+  | zero => simp [fibPolyValue]
+  | succ d ih =>
+      have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+      have h3 : (3 : R) = 1 := by
+        calc
+          (3 : R) = 2 + 1 := by norm_num
+          _ = 1 := by rw [h2, zero_add]
+      calc
+        (fibPolyValue a (d + 1 + 1)) ^ 2 +
+            fibPolyValue a (d + 1) * fibPolyValue a (d + 1 + 2) =
+            a * ((fibPolyValue a (d + 1)) ^ 2 +
+              fibPolyValue a d * fibPolyValue a (d + 2)) := by
+                rw [show d + 1 + 1 = d + 2 by omega]
+                rw [show d + 1 + 2 = (d + 2) + 1 by omega]
+                rw [show fibPolyValue a ((d + 2) + 1) =
+                    fibPolyValue a (d + 2) +
+                      a * fibPolyValue a (d + 1) by
+                        simp only [fibPolyValue]]
+                rw [show fibPolyValue a (d + 2) =
+                    fibPolyValue a (d + 1) +
+                      a * fibPolyValue a d by
+                        simp only [fibPolyValue]]
+                ring_nf
+                simp [h2, h3]
+        _ = a * a ^ d := by rw [ih]
+        _ = a ^ (d + 1) := by rw [pow_succ]; ring
+
+/-- Cassini at a Fibonacci zero: the square of the block scalar is the
+corresponding power of the recurrence parameter. -/
+theorem fibPolyValue_succ_sq_of_zero
+    {R : Type*} [CommRing R] [CharP R 2]
+    (a : R) (d : Nat) (hd : fibPolyValue a d = 0) :
+    (fibPolyValue a (d + 1)) ^ 2 = a ^ d := by
+  simpa [hd] using fibPolyValue_cassini a d
+
+/-- At an index dividing a power-of-two-plus-one index, a zero forces the
+next Fibonacci value to be the canonical power root of the parameter. -/
+theorem fibPolyValue_zero_block_scalar_root
+    {R : Type*} [CommRing R] [CharP R 2]
+    (a : R) (m d ell : Nat)
+    (hindex : ell * d = 2 ^ m + 1)
+    (hd : fibPolyValue a d = 0) :
+    (fibPolyValue a (d + 1)) ^ ell = a := by
+  have hblock := fibPolyValue_mul_add_zero_block a d ell 1 hd
+  simp only [fibPolyValue, mul_one] at hblock
+  have hzero := fibPolyValue_mul_add_zero_block a d ell 0 hd
+  simp only [fibPolyValue, mul_zero] at hzero
+  have hzeroTop : fibPolyValue a (2 ^ m + 1) = 0 := by
+    rw [← hindex]
+    exact hzero
+  have hpow : fibPolyValue a (2 ^ m) = 1 := by
+    simpa [fibPolyValue] using fibPolyValue_pow_two_mul a m 1
+  calc
+    (fibPolyValue a (d + 1)) ^ ell =
+        fibPolyValue a (ell * d + 1) := hblock.symm
+    _ = fibPolyValue a (2 ^ m + 2) := by rw [hindex]
+    _ = fibPolyValue a (2 ^ m + 1) +
+          a * fibPolyValue a (2 ^ m) := by
+            simp only [fibPolyValue]
+    _ = a := by rw [hzeroTop, hpow, zero_add, mul_one]
+
+end FermatShiftBlockCore
 
 section FermatComplementaryCofactorCore
 

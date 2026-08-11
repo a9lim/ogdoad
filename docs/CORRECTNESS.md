@@ -113,6 +113,17 @@ claims retain their documented external provenance.  `DPrimeTarget` is only
 the open universal `D'_k` proposition: no declaration assumes that the
 distinguished `M_k` meets it.
 
+The ordinary `p=359` row now has two deliberately separated verification
+classes.  The checked-in 438,103-byte Hilbert-root artifact plus the maintained
+python-flint full verifier form a locally replayable exact finite certificate:
+the script checks the selected root equation, recomputes the degree-19,580
+resultant norm, and verifies its nontrivial 359-phase.  The generic
+root-to-factor deduction is proved in the paper, not Lean.  Separately, a
+stdlib provenance checker verifies the hashes and endpoint records of two
+complete historical runs of Peeters's pinned exact sparse calculator, both
+ending with the same nonidentity support size.  Those external runs are
+source-pinned corroboration, not part of the local certificate.
+
 `Ogdoad/GameExterior.lean` kernel-checks the algebraic core of the resolved
 `tisn` theorem.  From explicit roots `ny=t`, `nz=x` and the torsion relation
 `nt=0`, it proves in an arbitrary associative ring that an additive grade-one

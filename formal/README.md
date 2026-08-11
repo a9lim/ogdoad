@@ -146,14 +146,16 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   invariance of marked power status under a ring equivalence.  The maintained
   stdlib certificate constructs the complete sparse degree-3,504,820
   full-conductor polynomial and checks its term counts and coefficient hash.
-  The remaining dependency identifications, finite-field irreducibility, and
-  selected gcd/trace evaluation are paper-level; this does not prove
-  `m_359=1`.  The paper also isolates a compact uninstantiated certificate:
-  one degree-19,580 factor `g` of the full-conductor polynomial over
-  `F_(2^179)` and the 171-bit check
-  `g(1)^((2^179-1)/359) != 1`.  No such factor is present or kernel-checked;
-  the external exact calculator's recorded row remains source-pinned rather
-  than a local proof;
+  The finite-field dependency and root-to-factor deductions remain
+  paper-level.  A checked-in 438,103-byte Hilbert-root artifact and maintained
+  python-flint verifier now instantiate the compact certificate: full mode
+  verifies `y^179=A`, recomputes `theta=Norm(1+y)`, and checks its
+  nontrivial 359-phase, proving `m_359=1` by exact finite computation.
+  None of this finite-field computation is kernel-checked in Lean. Historical
+  git blobs also contain two complete external exact-run traces with the same
+  1,743,227-term nonidentity endpoint; the stdlib provenance checker verifies
+  their hashes and endpoints, so they are source-pinned corroboration rather
+  than the local proof;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -330,6 +332,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Conway--Fermat continued-fraction reduction; and the formal-derivative
   identities `S'_(2r)=0`, `S'_(2r+1)=S_r^2`, which show that an odd selected
   zero is simple whenever its half-index value is nonzero;
+- the hypothetical-failure Fibonacci block core: after `S_d(a)=0`, all blocks
+  satisfy `S_(kd+r)(a)=S_(d+1)(a)^k*S_r(a)`; Cassini gives
+  `S_(d+1)(a)^2=a^d`, and `ell*d=2^m+1` forces
+  `S_(d+1)(a)^ell=a`.  The selected-field and quotient-polynomial
+  interpretations remain paper-level;
 - the complementary factor/cofactor core: the power-of-two-plus-one Fibonacci
   derivative is one, while product zero plus the differentiated Bézout value
   one forces exactly one factor to vanish and makes the corresponding
@@ -342,6 +349,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   either scalar bit in characteristic two, and quadratic norm preserves an
   idempotent.  The polynomial CRT specialization, selected-resultant
   orientation, and characteristic-polynomial interpretation remain
+  paper-level;
+- the twisted-fibre weighted core: the cubic pseudonorm of a Kummer root is a
+  lower power root independent of the root choice, its normalized defect
+  raises to the original Euler class, and a pure eigenweight acquires exactly
+  the corresponding power of that monodromy.  The finite-field Fourier
+  transform and rational-eigenweight fixed-field interpretation remain
   paper-level;
 - partial Frobenius-trace additivity, Frobenius commutation, index splitting,
   and the exact conjugate descent

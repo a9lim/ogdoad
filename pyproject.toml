@@ -41,6 +41,9 @@ Repository = "https://github.com/a9lim/ogdoad"
 Documentation = "https://docs.rs/ogdoad"
 Issues = "https://github.com/a9lim/ogdoad/issues"
 
+[project.optional-dependencies]
+excess-certificate = ["python-flint==0.9.0"]
+
 [tool.maturin]
 features = ["python"]
 module-name = "ogdoad"

@@ -180,7 +180,8 @@ Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
 transport; canonical global lift, weighted reciprocity, selected
 first-Witt polynomial, named Artin-class and dihedral reflection-norm
 reductions, the complementary factor/cofactor resultant duality and its
-canonical CRT-projector/trace-annihilation boundary, and the
+canonical CRT-projector/trace-annihilation boundary, the hypothetical-failure
+shifted-Fibonacci block collapse, and the
 selected Euler-factor/root-number boundary &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
@@ -193,8 +194,8 @@ common-section no-go; uniform safe-prime trace detector;
 full-conductor truncated-log regulator and exact conductor-\(p^2\)
 ray/Jacobi reciprocity; invariant realification and selected local
 reflection norm; the exact sparse marked full-conductor polynomial at
-\(p=359\), its compact factor-certificate theorem, and a fixed-commit audit
-of the source-pinned execution &
+\(p=359\), its checked Hilbert-root certificate proving \(m_{359}=1\),
+and a fixed-history audit of two corroborating source-pinned executions &
 nondivisibility at the selected Conway polynomial for the remaining smaller
 primary factors \\
 \((C)\) &
@@ -224,7 +225,7 @@ parity obstruction, unweighted Hasse--Davenport flatness, and the exact
 \(C\)-ancestral selector \(Z=(\gamma_k^2+\gamma_k+1)^{2^{2h/3}-2}\)
 with its norm-coherent Artin--Schreier lift, together with the
 alternating translated-root norm chain, reduced twisted-cubic fibre and
-root-choice-invariant boundary, and the
+pure-eigenweight Fourier collapse, and the
 constant-extension line criterion with
 \(m_\ell<16(3^k)^4\) &
 nonvanishing of the selected antiunit index
@@ -3665,6 +3666,93 @@ identity or nonidentity of the right side of
 now identifies its nonidentity with \(m_{359}=1\).
 \end{proof}
 
+\begin{proposition}[a Hilbert-root certificate at the fixed \(p=359\) mark]
+\label{prop:ordinary-359-hilbert-certificate}
+Put
+\[
+ h(Z)=Z^{179}+Z^4+Z^2+Z+1,\qquad
+ k=\F_2[Z]/(h),
+\]
+let \(f(A)=F_{179}(A)\) be the degree-\(19580\) polynomial in
+\((\mathsf{OFC}_1)\), and set \(E=k[A]/(f)\).  Suppose \(y\in E\)
+satisfies
+\[
+ y^{179}=A,
+\]
+let \(\widetilde y(A)\in k[A]\) be its unique representative of degree
+less than \(19580\), and put
+\[
+ \theta=\operatorname{Res}_A(f(A),1+\widetilde y(A))
+        =\Norm_{E/k}(1+y).
+                                                        \tag{\(\mathsf{OHC}_1\)}
+\]
+Then the minimal polynomial \(g\) of \(y\) over \(k\) is an irreducible
+degree-\(19580\) factor of
+\[
+ \mathcal P_{359}(X)=f(X^{179}),
+\]
+\(\theta=g(1)\), and
+\[
+ \boxed{\quad
+ m_{359}=1
+ \iff
+ \theta^{(2^{179}-1)/359}\ne1.
+ \quad}                                                \tag{\(\mathsf{OHC}_2\)}
+\]
+
+The checked-in v1 certificate encodes \(y\) as a \(438103\)-byte
+little-endian bitstream.  Bit \(179i+j\) is the coefficient of \(Z^j\)
+in the \(A^i\)-coefficient of \(\widetilde y\); its SHA-256 digest is
+\[
+ \texttt{c62433e428e6b0942c210b2df2543fcff6a9e444b835ceb5390db1c9e433bd9e}.
+\]
+In the polynomial basis \(1,Z,\ldots,Z^{178}\) of \(k\), exact computation
+gives
+\begin{equation}
+ \begin{aligned}
+ \theta
+ &=\texttt{0x28494a54795638cf203b2404fe5133e2ae0e13c2ca4e6},\\
+ \theta^{(2^{179}-1)/359}
+ &=\texttt{0x7f81a92c0c3b04e42a5d3aa423e1bc4d0082a3522e87e}
+ \ne1.
+ \end{aligned}
+ \tag{\(\mathsf{OHC}_3\)}
+\end{equation}
+The latter element has order \(359\), and the safe-prime trace of it plus
+its inverse is one.  Therefore the selected value is
+\[
+ \boxed{m_{359}=1.}
+\]
+\end{proposition}
+
+\begin{proof}
+The polynomial \(h\) is irreducible by its two Rabin residues, which the
+maintained verifier checks.  Since
+\(\gcd(19580,179)=1\), the standard finite-field base-change theorem shows
+that \(f\) remains irreducible over \(k\).  Hence
+\([E:k]=19580\).  The identity \(A=y^{179}\) gives
+\[
+ k(A)\subseteq k(y)\subseteq E=k(A),
+\]
+so equality holds and \(y\) also has degree \(19580\) over \(k\).
+Moreover \(f(y^{179})=f(A)=0\), so its minimal polynomial \(g\) is one
+of the degree-\(19580\) factors of \(\mathcal P_{359}\) over \(k\).
+The norm identity in \((\mathsf{OHC}_1)\) gives
+\(\theta=g(1)\), and
+Proposition~\ref{prop:ordinary-359-factor-certificate} proves
+\((\mathsf{OHC}_2)\).
+
+The maintained verifier
+\path{experiments/ordinary_359_hilbert_certificate.py} reconstructs \(f\)
+from the full selected dependency chain, checks the certificate hash and
+\(y^{179}=A\), and in authoritative \texttt{--full} mode recomputes the
+\(19579\)-step Euclidean resultant in \((\mathsf{OHC}_1)\).  It then checks
+both masks in \((\mathsf{OHC}_3)\), nonidentity, order \(359\), and the
+safe-prime trace.  Its default quick mode checks the root and stored phase
+arithmetic but explicitly does not recompute the norm, so only full mode
+verifies the complete certificate.
+\end{proof}
+
 \medskip
 \noindent\emph{Source-pinned fixed-mark computation audit.}\par
 The independently maintained calculator of Peeters~\cite{Peeters}, at
@@ -3689,16 +3777,35 @@ Thus its candidate indices \texttt{[0,19580]} are literally
 \((2^{3504820}-1)/359\), records \texttt{\{359,1\}}, and reports
 \(177379\) seconds for that row.  Its timing control flow records this
 nonzero duration only for an uncached calculation.  This pins an executed
-exact computation, not merely the copied OEIS integer.  It is nevertheless
-not a local certificate in this checkout: the upstream repository retains
-neither the final nonidentity residue nor a factor \(g\) as in
-Proposition~\ref{prop:ordinary-359-factor-certificate}, and its calculation
-log is empty.  Its component comparator also ties the (2)- and
-(4)-components and therefore relies on the published input order being preserved;
+exact computation, not merely the copied OEIS integer.
+
+The audited current upstream commit has an empty calculation log, but the
+repository history retains substantially stronger evidence.  At historical commit
+\[
+ \texttt{7a26543f11f5319d04da5402840beecc9e5b35fe}
+\]
+two separate complete runs start from one
+result term and finish all \(3504812\) exponent bits with the same final
+support of \(1743227\) terms.  Their stored elapsed times are \(177379\) and
+\(177717\) seconds.  The maintained provenance checker
+\path{experiments/ordinary_359_source_audit.py} reads those historical git
+blobs, verifies their complete-file SHA-256 digests, and checks both endpoint
+pairs and both result rows.  Since basis one has support size one, the logged
+support size proves nonidentity inside the pinned exact sparse implementation;
+the repeat run is a reproducibility check of that implementation, not an
+independent backend.
+
+The upstream history itself retains neither the final coefficient vector nor
+a factor \(g\) as in
+Proposition~\ref{prop:ordinary-359-factor-certificate}.  Its component
+comparator also ties the (2)- and (4)-components and therefore relies on the
+published input order being preserved;
 the recorded GNU/Linux run has the stated order, but arbitrary source replay
-is not formally portable without pinning it.  Independent verification
-therefore still requires either an order-pinned long Euler replay or a new compact
-factor artifact.
+is not formally portable without pinning it.  This caveat does not affect the
+checked-in Hilbert-root certificate of
+Proposition~\ref{prop:ordinary-359-hilbert-certificate}; the historical runs
+now provide independent source-pinned corroboration of that local exact
+computation.
 
 \begin{proposition}[ordinary affine orbit and the marked scalar]
 \label{prop:ordinary-affine-marked-scalar}
@@ -3738,7 +3845,7 @@ Their product is one.  But the distinguished value transforms as
 so rescaling merely moves which nonzero scalar is called \(1\).
 
 For the actual \((Q,r,p)=(2^{19580},179,359)\), the bound
-\((\mathsf{KE})\) holds.  The source-pinned equality \(m_{359}=1\) makes
+\((\mathsf{KE})\) holds.  The locally certified equality \(m_{359}=1\) makes
 \(H(x)\ne1\), whereas Proposition~\ref{prop:kummer-eigenline-no-go}
 supplies a nonzero \(u\in k^\times\) with \(H(x_u)=1\).  By
 \((\mathsf{OAM}_1)\)--\((\mathsf{OAM}_2)\), these two marked Kummer lines
@@ -3773,12 +3880,14 @@ kernel-checks the denominator-cleared collapse from the two additive-polynomial
 terms to the right side of \((\mathsf{OAM}_1)\); the finite-field product
 and Kummer specialization remain paper-level.  In the \(359\)-instance,
 \(\sqrt Q=2^{9790}>(358)(178)+359\), so \((\mathsf{KE})\) applies; the
-source-pinned nontrivial line and the trivial rescaled line then give the
+certified nontrivial line and the trivial rescaled line then give the
 claimed opposite trace bits.
 \end{proof}
 
-\emph{Source-pinned datum.} The value \(m_{359}=1\) is present in A380496, but the
-trace in \((\mathsf{SPH}_1)\) is not independently evaluated here.
+\emph{Certified datum.} The value \(m_{359}=1\) is present in A380496,
+and Proposition~\ref{prop:ordinary-359-hilbert-certificate} now
+independently evaluates the trace in \((\mathsf{SPH}_1)\) by exact finite
+computation.
 Quadratic half-orbit norms do not decide it:
 $\sum_{h\in H}h=0$ in $\F_{359}$, so their symbol product is identically
 one.  Proposition~\ref{prop:kummer-eigenline-no-go} likewise shows why
@@ -10997,6 +11106,112 @@ As \(q=2Q\), Frobenius fixity then gives
 \]
 Substitution in \((\mathsf{RD})\) proves \((\mathsf{RD}')\).
 The two displayed identities are formalized in the companion Lean file.
+\end{proof}
+
+\begin{proposition}[hypothetical-failure Fibonacci blocks collapse]
+\label{prop:fermat-failure-block-collapse}
+Retain Corollary~\ref{cor:fermat-explicit-lower-root}.  Thus
+\[
+ q=2^{2^n},\qquad N=q+1,\qquad
+ d=\frac{N}{\ell},\qquad Q=\frac q2,\qquad
+ a=a_{n-1}.
+\]
+Assume the hypothetical selected failure
+\[
+ S_d(a)=0,
+\]
+and put \(b_F=S_{d+1}(a)\).  Then every shifted Fibonacci value is
+already determined by the initial length-\(d\) block and this one scalar:
+\[
+ \boxed{
+ S_{kd+r}(a)=b_F^{\,k}S_r(a)
+ \qquad(k,r\geq0).}                                  \tag{\(\mathsf{FBC}_1\)}
+\]
+Moreover
+\[
+ \boxed{
+ b_F^2=a^d,\qquad b_F^\ell=a,\qquad
+ b_F=(a^d)^Q.}                                       \tag{\(\mathsf{FBC}_2\)}
+\]
+Consequently \(b_F\) is exactly the choice-free lower
+\(\ell\)-th root \(b=r_{n-1}\) of
+Corollary~\ref{cor:fermat-explicit-lower-root}; the adjacent Fibonacci
+value does not supply a second Kummer coordinate.
+
+There is a universal polynomial form.  In \(\F_2[X]\),
+\[
+ \boxed{
+ \begin{aligned}
+ S_{kd+r}(X)
+   &\equiv S_{d+1}(X)^kS_r(X) \pmod{S_d(X)},\\
+ S_{d+1}(X)^2
+   &\equiv X^d \pmod{S_d(X)},\\
+ S_{d+1}(X)^\ell
+   &\equiv X \pmod{S_d(X)}.
+ \end{aligned}}                                      \tag{\(\mathsf{FBC}_3\)}
+\]
+Thus every selected consequence depending only on the residues of
+consecutive or \(d\)-shifted Fibonacci values modulo the hypothetical
+failure factor---including ring identities obtained from their continued
+fractions, Cassini relations, or Euclidean reductions after passage to that
+quotient---reduces to the initial block together with the already-known root
+\((a^d)^Q\).  It cannot create a new nonvanishing constraint.
+
+This does not determine whether \(A_{n-1}\mid S_d\).  In particular it
+does not eliminate coefficient- or degree-sensitive information in the
+intermediate Euclidean quotient polynomials before reduction modulo
+\(S_d\), nor arbitrary subresultants of \(A_{n-1}\) and \(S_d\).
+Those remain possible ancestry-sensitive inputs.
+\end{proposition}
+
+\begin{proof}
+For fixed \(d\), both sequences
+\[
+ r\longmapsto S_{d+r}(a),
+ \qquad
+ r\longmapsto S_{d+1}(a)S_r(a)
+\]
+satisfy \(T_{r+2}=T_{r+1}+aT_r\).  Under \(S_d(a)=0\), their initial
+values are respectively \((0,S_{d+1}(a))\) and
+\((0,S_{d+1}(a))\).  They are therefore equal.  Iterating this
+one-block identity proves \((\mathsf{FBC}_1)\).
+
+Cassini's identity in characteristic two is
+\[
+ S_{r+1}(X)^2+S_r(X)S_{r+2}(X)=X^r.
+\]
+At \(r=d\), the failure hypothesis gives \(b_F^2=a^d\).  Taking
+\(k=\ell,r=0\) in \((\mathsf{FBC}_1)\) gives \(S_N(a)=0\), while
+\(S_q(X)=1\) because \(q\) is a power of two.  The Fibonacci recurrence
+therefore gives
+\[
+ S_{N+1}(a)=S_{q+2}(a)
+ =S_{q+1}(a)+aS_q(a)=a.
+\]
+Taking \(k=\ell,r=1\) in \((\mathsf{FBC}_1)\) now yields
+\[
+ b_F^\ell=S_{\ell d+1}(a)=S_{N+1}(a)=a.
+\]
+Finally \(b_F\in\F_q\), so \(b_F^q=b_F\).  Since \(q=2Q\),
+\[
+ b_F=(b_F^2)^Q=(a^d)^Q.
+\]
+This proves \((\mathsf{FBC}_2)\) and identifies \(b_F\) with the unique
+lower \(\ell\)-th root.
+
+Apply the same recurrence argument in the quotient ring
+\(\F_2[X]/(S_d)\).  There \(S_d=0\), so the block identity and Cassini
+give the first two congruences of \((\mathsf{FBC}_3)\).  Taking
+\(k=\ell,r=1\), using \(\ell d=q+1\), \(S_q=1\), and
+\[
+ S_{q+2}=S_{q+1}+XS_q,
+\]
+gives the third congruence.
+
+Lean kernel-checks the recurrence block identity, its iteration, Cassini
+in characteristic two, and the forced \(\ell\)-th-root identity.  Their
+specialization to the selected Conway field and the polynomial-quotient
+interpretation remain paper-level.
 \end{proof}
 
 \begin{proposition}[Dickson all-or-nothing factorization]
@@ -19125,37 +19340,134 @@ theory, and Capelli's theorem makes \(P_k(X^\ell)\) irreducible over
 \(E_{k-1}\).
 \end{proof}
 
-\begin{corollary}[root-choice-invariant boundary]
-\label{cor:dk-root-choice-invariant}
-Retain Proposition~\ref{prop:dk-twisted-cubic-fibre}.  After adjoining
-\(\rho\), let \(\mu_\ell\) act on a formal Kummer root by
-\(V\mapsto\rho^rV\).  Then
+\begin{proposition}[Fourier diagonalization of the twisted Kummer fibre]
+\label{prop:dk-weighted-fibre}
+Retain Proposition~\ref{prop:dk-twisted-cubic-fibre}, put
 \[
- E_{k-1}(\rho)[V,V^{-1}]^{\mu_\ell}
-   =E_{k-1}(\rho)[V^\ell,V^{-\ell}],
- \qquad
- E_{k-1}(\rho)(V)^{\mu_\ell}
-   =E_{k-1}(\rho)(V^\ell).
+ K=E_{k-1},\qquad Q=|K|,\qquad
+ e=\frac{Q^3-1}{\ell},
 \]
-Consequently every universal Laurent-polynomial or rational expression
-in \(v_k\) and its Frobenius powers, with coefficients in the complete
-selected lower ancestry and independent of the choice
-\(v_k\mapsto\rho^rv_k\), factors through \(v_k^\ell=u_k\).
-Any subsequent unweighted trace, norm, determinant, or resultant is
-therefore determined by the original selected twisted cubic and cannot
-supply a second condition on the existence of a rational point of
-\(\mathcal X_k\).
+and choose, in an algebraic closure, \(v^\ell=u_k\) and a primitive
+\(\rho\in\mu_\ell\subset E_k\).  Define \(C_r,D_r\) by
+\((\mathsf{TF}_7)\), whether or not they are \(K\)-rational, and put
+\[
+ \widehat C_m=\sum_{r\bmod\ell}\rho^{-mr}C_r,\qquad
+ \widehat D_m=\sum_{r\bmod\ell}\rho^{-mr}D_r.
+\]
+All indices below are modulo \(\ell\).  The transforms have exactly six
+nonzero coordinates:
+\[
+ \widehat C_m=
+ \begin{cases}
+ v,&m=1,\\
+ v^Q,&m=Q,\\
+ v^{Q^2},&m=Q^2,\\
+ 0,&\text{otherwise},
+ \end{cases}                                         \tag{\(\mathsf{WF}_1\)}
+\]
+and
+\[
+ \widehat D_m=
+ \begin{cases}
+ v^{1+Q},&m=1+Q=-Q^2,\\
+ v^{Q+Q^2},&m=Q+Q^2=-1,\\
+ v^{Q^2+1},&m=Q^2+1=-Q,\\
+ 0,&\text{otherwise}.
+ \end{cases}                                         \tag{\(\mathsf{WF}_2\)}
+\]
+Thus the first weighted resolvent is literally
+\(\widehat C_1=v\); the three \(D\)-coordinates contain no further
+datum.
 
-This statement does not cover a chosen nontrivial
-\(\mu_\ell\)-eigenweight, such as a weighted Jacobi or regulator
-resolvent, nor accidental identities after specializing the formal
-variable to \(v_k\).
-\end{corollary}
+More precisely, put
+\[
+ n=v^{1+Q+Q^2},\qquad
+ \Delta=\frac{n}{v_{k-1}}\in\mu_\ell,\qquad
+ \Omega=u_k^e\in\mu_\ell.
+\]
+Then
+\[
+ n^\ell=u_{k-1},\qquad
+ \boxed{\Delta^{Q-1}=\Omega.}                         \tag{\(\mathsf{WF}_3\)}
+\]
+The element \(n\), and hence \(\Delta\), is unchanged under
+\(v\mapsto\rho^av\).  Since \(\gcd(Q-1,\ell)=1\),
+\[
+ \begin{split}
+ D'_k\text{ fails at }\ell
+ &\iff \Omega=1
+ \iff \Delta=1
+ \iff n=v_{k-1}\\
+ &\iff C_r,D_r\in K\quad\text{for every }r.
+ \end{split}                                         \tag{\(\mathsf{WF}_4\)}
+\]
+The last equality retains the complete lower ancestry exactly:
+\(v_{k-1}\) has the unique norm-coherent descendants
+\(v_{k-2},\ldots,v_0=c_0^2\).  No descent of the individual
+\(C_r,D_r\) is asserted.
+
+There is also a sharp rational-eigenweight boundary.  Let
+\(\mu_\ell\) act on \(E_k(V)\) by \(V\mapsto\rho V\).  For every
+\(m\in\mathbb Z/\ell\mathbb Z\),
+\[
+ \{F:F(\rho V)=\rho^mF(V)\}
+   =V^mE_k(V^\ell).                                  \tag{\(\mathsf{WF}_5\)}
+\]
+If \(F(V)=V^mR(V^\ell)\), with \(F(v)\) defined and nonzero, then
+\[
+ F(v)^{Q^3}=\Omega^mF(v).                            \tag{\(\mathsf{WF}_6\)}
+\]
+Consequently, for \(m\ne0\),
+\[
+ F(v)\in E_k\iff\Omega=1.
+\]
+Thus every nonzero pure Kummer eigenweight carries an invertible power
+of the original selected obstruction; it cannot supply a second
+condition.  Mixed-weight cancellations, vanishing specializations, and
+independently normalized characteristic-zero constructions lie outside
+this assertion.
+\end{proposition}
 
 \begin{proof}
-A Laurent monomial \(V^m\) has weight \(m\bmod\ell\), so the invariant
-part consists exactly of exponents divisible by \(\ell\).  The
-rational-function assertion is the corresponding fixed-field statement.
+The character orthogonality relation is
+\[
+ \sum_{r\bmod\ell}\rho^{r(a-m)}
+ =\begin{cases}1,&a=m,\\0,&a\ne m,\end{cases}
+\]
+because \(\ell=1\) in characteristic two.  Applying it termwise to
+\((\mathsf{TF}_7)\) proves \((\mathsf{WF}_1)\)--\((\mathsf{WF}_2)\).
+The congruence \(1+Q+Q^2=0\pmod\ell\) shows that
+\(n\) is independent of the chosen root \(v\).  The selected norm
+identity gives
+\[
+ n^\ell
+ =u_k^{1+Q+Q^2}
+ =\Norm_{E_k/K}(u_k)
+ =u_{k-1}.
+\]
+Therefore \(n/v_{k-1}\in\mu_\ell\), and
+\[
+ \Delta^{Q-1}
+ =v^{(1+Q+Q^2)(Q-1)}
+ =v^{Q^3-1}
+ =u_k^{(Q^3-1)/\ell}
+ =\Omega,
+\]
+which proves \((\mathsf{WF}_3)\).  Since \(Q-1\) is invertible modulo
+\(\ell\), the first four equivalences in \((\mathsf{WF}_4)\) follow.
+If all \(C_r\) lie in \(K\), Fourier inversion gives
+\(v=\widehat C_1\in E_k\); the converse follows because \(Q\)-Frobenius
+then cycles each displayed triple.  This proves the last equivalence.
+
+Finally, dividing a weight-\(m\) rational function by \(V^m\) gives a
+weight-zero function, proving \((\mathsf{WF}_5)\).  Since
+\(v^{Q^3}=\Omega v\), specialization gives
+\((\mathsf{WF}_6)\).
+
+Lean kernel-checks the pseudonorm root, root-choice invariance, normalized
+defect--Euler identity, and pure-eigenweight monodromy.  The finite-field
+Fourier transform, fixed-field description, and selected specialization
+remain paper-level.
 \end{proof}
 
 \begin{proposition}[conductor-five reflection descent]
@@ -21506,7 +21818,15 @@ ancestry kills both selected bits; every norm and multiplication determinant
 returns exactly the original bit; and multiplication trace and discriminant
 vanish in both branches.  Thus terminal Euclidean support-projector linear
 algebra carries no hidden orientation.  Intermediate quotient-polynomial
-data, before the support collapse, remain outside this no-go.  For
+data, before the support collapse, remain outside this no-go.
+Proposition~\ref{prop:fermat-failure-block-collapse} independently closes
+the shifted-Fibonacci variant.  Under failure every \(d\)-shifted block is
+a scalar copy of the initial block, and its scalar
+\(S_{d+1}(a)\) is exactly the existing choice-free lower \(\ell\)-th root.
+Thus coupled consecutive-value, Cassini, continued-fraction, and
+post-reduction Euclidean identities add no selected condition.
+Coefficient-sensitive intermediate quotients before passage to the failure
+factor remain outside this collapse.  For
 multicomponent zero sets,
 Proposition~\ref{prop:fermat-two-spine-support} proves that the Conway
 class is nontrivial in the primitive-support quotient under its stated
@@ -21594,13 +21914,25 @@ selected evaluation but does not decide it.
 Proposition~\ref{prop:ordinary-359-factor-certificate} makes a short
 independent verification target exact: one degree-\(19580\) factor over
 \(\F_{2^{179}}\), together with a 171-bit exponentiation at its value one,
-would give a roughly \(438\)-KB certificate.  The pinned Peeters commit can
+would give a roughly \(438\)-KB certificate.
+Proposition~\ref{prop:ordinary-359-hilbert-certificate} now instantiates
+that target in an equivalent root-coordinate form.  Its checked-in
+\(438103\)-byte element satisfies \(y^{179}=A\); an exact
+\(19579\)-step resultant computes
+\(\theta=\Norm(1+y)\), whose \(359\)-phase is nontrivial.  This proves the
+actual selected value \(m_{359}=1\) by a locally replayable finite
+calculation, with the algebraic reduction proved in the text.
+The pinned Peeters commit can
 be followed through its mixed-radix reductions to the literal marked element
 \(1+\kappa_{179}\); its \texttt{\{359,1\}} row and \(177379\)-second uncached
 timing are therefore evidence of an executed exact fixed-mark calculation,
-not merely a copied table entry.  Because no final residue or compact factor
-was retained upstream, this strengthens provenance rather than the local
-proof class.
+not merely a copied table entry.  The historical repository additionally
+retains two complete progress traces, with elapsed times \(177379\) and
+\(177717\) seconds, that both finish with a \(1743227\)-term nonidentity
+result.  The checkout's source-audit script verifies the historical blob
+hashes and both endpoint pairs.  Since no final coefficient vector was
+retained upstream, these runs corroborate rather than constitute the local
+certificate.
 Proposition~\ref{prop:ordinary-dependency-descent} then pushes any
 hypothetical failure through each odd-Kummer singleton
 \(0/1\)-excess dependency satisfying its hypotheses by taking all
@@ -21834,8 +22166,12 @@ numerator \(\gamma_{j-1}\) at every level, singleton lower rational fibres,
 and a top \(0/\ell\) rational-point dichotomy.  Under failure the Capelli
 composition splits into \(\ell\) distinct selected irreducible cubics, all
 carrying the same lower root chain.  Hence discriminant, resultant, and every
-root-choice-invariant rational construction remain compatible with failure;
-only a nontrivial Kummer eigenweight can add information.
+root-choice-invariant rational construction remain compatible with failure.
+Proposition~\ref{prop:dk-weighted-fibre} closes the formal Kummer-eigenweight
+escape as well: Fourier transformation recovers exactly the chosen root and
+its conjugates, while every pure nonzero weight has monodromy an invertible
+power of the original Euler symbol.  Mixed-weight cancellations or an
+independent arithmetic evaluation remain outside this boundary.
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
 Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}
@@ -21987,9 +22323,10 @@ The implementation vendors the complete OEIS A380496 b-file for the
 source-pinned copy.  These integer rows determine the implemented
 Kummer carries below the stated boundary; selected resulting ordinals
 receive independent value tests.  In particular \(m_{359}=1\) is a
-source-pinned table value.  Section~\ref{sec:ordinary} isolates the
-independent analytical trace whose unevaluated value would reprove that
-row.  The next unsupported carry is \(\alpha_{719}\), and the
+source-pinned table value and now also has the independent exact
+Hilbert-root certificate of
+Proposition~\ref{prop:ordinary-359-hilbert-certificate}.
+The next unsupported carry is \(\alpha_{719}\), and the
 implementation refuses to cross it.
 
 The contributor-linked extended A380496 auxiliary table~\cite{OEIS,Peeters}
