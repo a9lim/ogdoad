@@ -3998,9 +3998,110 @@ All factors are Frobenius conjugate over \(B_0\), so Frobenius preserves
 identity or nonidentity of the Euler phase.  This proves
 \((\mathsf{O719}_7)\).
 
-No new Lean declaration is claimed here: norm transitivity and the cyclic
-twist calculation are routine, while the load-bearing remaining step is the
-concrete degree-\(179\) factor evaluation.
+The finite-field factorization, norm shadows, and phase-blindness argument
+remain paper-level.  The compact crossed-tower construction below supplies a
+smaller exact certificate route, but the load-bearing remaining step is still
+a concrete selected evaluation.
+\end{proof}
+
+\begin{proposition}[a compact crossed-tower certificate for the fixed
+\(p=719\) mark]
+\label{prop:ordinary-719-crossed-certificate}
+Retain Proposition~\ref{prop:ordinary-719-nested-compression}, and put
+\[
+ r=179,\quad d=19580,\quad s=359,\quad p=719,
+ \quad D=\F_{2^r},\quad K=\F_{2^s}.
+\]
+Let \(B=D[A]/(f(A))\), where \(f=F_{179}\) has degree \(d\), and retain
+the checked \(p=359\) root \(x\in B\) with \(x^r=A\).  Put
+\(\beta=1+x\),
+\[
+ M=\frac{2^{rd}-1}{s},\qquad
+ \eta=\beta^M\in\mu_s(D),
+\]
+where the certificate proves \(\eta\ne1\).  The exact congruences
+\[
+ M\equiv241\pmod s,\qquad 241^{-1}\equiv216\pmod s
+\]
+allow us to set \(c=\eta^{216}\).  Then \(c^M=\eta\),
+\(c\notin(D^\times)^s\), and
+\[
+ H:=D[V]/(V^s+c)\cong\F_{2^{rs}}
+\]
+is a field; write \(v\) for the class of \(V\), and identify the unique
+subfield of \(H\) of order \(2^s\) with \(K\).  With compatible embeddings
+in an algebraic closure, this is the compositum \(H=DK\).
+
+Suppose that \(a\in B\) and a monic \(f_a(T)\in D[T]\) satisfy
+\[
+ a^s=\beta/c,\qquad \deg f_a=d,\qquad f_a(a)=0.
+                                                        \tag{\(\mathsf{O719C}_1\)}
+\]
+Then \(D(a)=B\), so \(f_a\) is the minimal polynomial of \(a\) over
+\(D\).  Put
+\[
+ W=v^d f_a(v^{-1})\in H.
+\]
+The fixed marked row has the exact compact test
+\[
+ \boxed{\quad
+ m_{719}=1\iff W^{(2^{rs}-1)/p}\ne1.
+ \quad}                                                \tag{\(\mathsf{O719C}_2\)}
+\]
+Thus an explicit pair \((a,f_a)\) satisfying
+\((\mathsf{O719C}_1)\) and the nonidentity in
+\((\mathsf{O719C}_2)\) is an exact certificate.  In the fixed polynomial
+bases, omitting the known monic coefficient, each of \(a\) and \(f_a\)
+occupies exactly \(rd=3504820\) bits, or \(438103\) bytes when separately
+byte-aligned; two such files total \(876206\) bytes.  A single continuously
+packed concatenation instead occupies \(876205\) bytes.  An optional stored
+\(H\)-element occupies \(rs=64261\) bits, or \(8033\) bytes.  No such
+payload or final \(719\)-phase is presently available.
+\end{proposition}
+
+\begin{proof}
+The direct checks modulo \(s^2\) give
+\(v_s(2^r-1)=1\).  Hence a nontrivial element of \(\mu_s(D)\) is not an
+\(s\)-th power, and the prime Kummer criterion gives the field \(H\).
+The two displayed congruences give \(c^M=\eta=\beta^M\), hence
+\((\beta/c)^M=1\).  Since \(\gcd(s,M)=1\), the \(s\)-th power image in
+\(B^\times\) is exactly the subgroup of order \(M\), so an \(a\) in
+\((\mathsf{O719C}_1)\) exists.
+
+From \(x=ca^s+1\) and \(A=x^r\) one obtains
+\[
+ D(A)\subseteq D(a)\subseteq B.
+\]
+The polynomial \(f\) remains irreducible over \(D\), because its degree
+\(d\) is coprime to \(r\).  Thus \([B:D]=d\), the inclusions are
+equalities, and the asserted \(f_a\) is the minimal polynomial.
+
+Put \(E=BH=B(DK)=BK\), the same field \(E\) as in
+Proposition~\ref{prop:ordinary-719-nested-compression}, and let \(y=av\).
+Then \(y^s=\beta\), so \(y\) is one of the
+marked equation's Frobenius-conjugate roots.  Since \(\gcd(d,s)=1\),
+\(f_a\) remains irreducible over \(H\), and in characteristic two
+\[
+ \Norm_{E/H}(1+y)
+ =\prod_{\sigma\in\operatorname{Gal}(B/D)}(1+v\sigma(a))
+ =v^d f_a(v^{-1})=W.                                \tag{\(\mathsf{O719C}_3\)}
+\]
+Norm transitivity and
+Proposition~\ref{prop:ordinary-719-nested-compression} give
+\[
+ \Norm_{E/K}(1+y)
+ =\Norm_{H/K}(W)
+ =W^{(2^{rs}-1)/(2^s-1)}.
+\]
+Raising to \((2^s-1)/p\) proves \((\mathsf{O719C}_2)\).
+Frobenius conjugation preserves identity or nonidentity, so the allowed
+choice of \(a\) does not change the test.
+
+Lean kernel-checks the scaled finite-product algebra underlying the last
+equality in \((\mathsf{O719C}_3)\) and conditional nested exponent
+multiplication.  The field identifications, Kummer construction,
+minimal-polynomial and norm specializations, numerical exponent
+factorization, and the still-open finite certificate remain paper-level.
 \end{proof}
 
 \begin{proposition}[ordinary affine orbit and the marked scalar]
@@ -12144,6 +12245,139 @@ quotient-window cancellation by a common unit, and the nilpotent
 trailing-zero identity.  The Fibonacci coefficient formula, Lucas window,
 completed-local-ring identification, and selected specialization remain
 paper-level.
+\end{proof}
+
+\begin{corollary}[the factor-sensitive endpoint boundary is exact]
+\label{cor:fermat-factor-sensitive-window}
+Retain Proposition~\ref{prop:fermat-higher-quotient-window-collapse}, and put
+\[
+ s=v_2(\ell-1),\qquad R=2^s.
+\]
+Then
+\[
+ \boxed{v_2(d-1)=s,\qquad R\geq4M,\qquad s<M.}        \tag{\(\mathsf{QW}_4\)}
+\]
+Under the hypothetical failure \(A\mid S_d\), the first coefficients beyond
+the factor-sensitive endpoint windows are exact:
+\[
+ \boxed{
+ Q_d+Q_N^{\mathrm{full}}
+   \equiv X^R\pmod{X^{R+1}},\qquad
+ Q_d^\vee+(Q_N^{\mathrm{full}})^\vee
+   \equiv X^{R/4}\pmod{X^{R/4+1}}.}                 \tag{\(\mathsf{QW}_5\)}
+\]
+Thus the quotients agree in their first \(R\) low coefficients and their
+first \(R/4\) leading coefficients, and differ by one at the next coefficient
+on each side.  Since \(R\geq4M\), this strictly sharpens
+\((\mathsf{QW}_1)\).
+
+Consequently even the first coefficient beyond either uniform window is not
+a new selected obstruction: its location is determined by
+\(v_2(\ell-1)\), and its defect is always one.  Relations involving later
+coefficients, the middle of the quotient, both endpoints simultaneously, or
+the fixed \(A\)-adic coordinate remain outside the conclusion.
+\end{corollary}
+
+\begin{proof}
+Since \(2^M\equiv-1\pmod\ell\) and \(M=2^n\), one has
+\(\ord_\ell(2)=2M\).  For \(n\geq2\), this first gives
+\(\ell\equiv1\pmod8\), so two is a quadratic residue modulo \(\ell\).
+Euler's criterion then shows that \(2M\mid(\ell-1)/2\), whence
+\[
+ 4M\mid\ell-1.
+\]
+Therefore \(R\geq4M\).
+
+Properness gives \(\ell<N=2^M+1\), hence
+\[
+ 2^s=R\leq\ell-1<2^M,
+\]
+so \(s<M\).  Write \(\ell-1=Ra\), with \(a\) odd.  From \(\ell d=N\),
+\[
+ \ell(d-1)
+ =N-\ell
+ =2^M-(\ell-1)
+ =R\bigl(2^{M-s}-a\bigr).
+\]
+The factor in parentheses is positive and odd, while \(\ell\) is odd.
+Thus \(v_2(d-1)=s\).  Write
+\[
+ d=1+Rg,\qquad g\ \text{odd}.
+\]
+
+The trailing-zero identity at the exact extracted power \(R=2^s\) gives
+\[
+ S_d=S_{g+1}^{\,R}+T_s(X)S_g^{\,R}.
+\]
+Both Fibonacci polynomials have constant coefficient one, so
+\[
+ S_d\equiv1+T_s(X)\pmod{X^R}.
+\]
+Moreover the second summand contributes nothing at degree \(R\), while
+\[
+ [X^R]S_{g+1}^{\,R}
+ =[X]S_{g+1}
+ =\binom{g-1}{1}=0
+ \quad\text{in }\F_2.
+\]
+On the other hand,
+\[
+ S_N=1+T_M(X)
+ =1+T_s(X)+T_{M-s}(X)^R.
+\]
+Since \(s<M\), the last term has coefficient one at \(X^R\).  Hence
+\[
+ S_d+S_N\equiv X^R\pmod{X^{R+1}}.                   \tag{\(\mathsf{QW}_6\)}
+\]
+
+For the leading boundary put
+\[
+ D=\deg S_d=\frac{d-1}{2}=\frac R2g.
+\]
+The Fibonacci coefficient formula gives
+\[
+ [X^{D-j}]S_d=\binom{D+j}{2j}\pmod2.
+\]
+If \(0<j<R/4\), the low \(s-1\) binary digits of \(D+j\) are those of
+\(j\), whereas the highest nonzero digit of \(2j\) lies one place above
+the highest digit of \(j\) and still below the \(R/2\)-place.  Lucas's
+theorem therefore makes the coefficient zero.  At \(j=R/4\), removing
+the common \(2^{s-2}\)-shift in Lucas's product gives
+\[
+ \binom{D+R/4}{R/2}
+ \equiv\binom{2g+1}{2}
+ =g(2g+1)
+ \equiv1\pmod2.
+\]
+Thus
+\[
+ S_d^\vee\equiv1+X^{R/4}\pmod{X^{R/4+1}}.
+\]
+The leading exponent of \(S_N\) is \(2^{M-1}\), and its next exponent is
+\(2^{M-2}\); hence the first reciprocal gap is \(2^{M-2}\).  Since
+\(s<M\),
+\[
+ R/4=2^{s-2}<2^{M-2},
+\]
+and therefore
+\[
+ S_N^\vee\equiv1\pmod{X^{R/4+1}}.                   \tag{\(\mathsf{QW}_7\)}
+\]
+
+Finally,
+\[
+ S_d=AQ_d,\qquad S_N=AQ_N^{\mathrm{full}},
+\]
+with \(A(0)=1\).  In \(\F_2[X]/(X^{R+1})\), multiplication by \(A\)
+fixes \(X^R\), so cancellation in \((\mathsf{QW}_6)\) gives the first
+congruence of \((\mathsf{QW}_5)\).  Reciprocal factorization uses the
+common factor \(A^\vee\), whose constant coefficient is one because \(A\)
+is monic.  The same argument applied to \((\mathsf{QW}_7)\) gives the
+second congruence.
+
+Lean kernel-checks the abstract common-factor boundary-defect transport.
+The Fermat-divisor valuation, Fibonacci boundary coefficients, and Lucas
+calculation remain paper-level.
 \end{proof}
 
 \begin{proposition}[Dickson all-or-nothing factorization]
@@ -21093,6 +21327,132 @@ length three.  Grouping the remaining roots in
 \((\mathsf{DS}_{10})\) proves \((\mathsf{DS}_9)\).
 \end{proof}
 
+\begin{proposition}[the exceptional phase normalizations are identical]
+\label{prop:dk-phase-identification}
+Retain Propositions~\ref{prop:dk-jacobi-top},
+\ref{prop:dk-half-block}, \ref{prop:dk-alternating-translate-chain},
+\ref{prop:dk-selected-sextic}, and
+\ref{prop:dk-cubic-phase-orbit}.  Put
+\[
+ h=3^k,\qquad t=2^{h/3},\qquad Q=t^2,\qquad
+ A_D=Q^3=2^{2h},\qquad e_c=\frac{A_D-1}{\ell}.
+\]
+In the mixed-Jacobi normalization choose
+\[
+ z=ab=\mathfrak g^{(A_D^2-1)/(15h)},\qquad
+ \xi_\ell=\mathfrak g^{(A_D^2-1)/\ell},\qquad
+ V=1+z,
+\]
+where \(\mathfrak g\) generates \(\F_{A_D^2}^{\times}\), and choose the
+conductor-five orientation so that \(c_k=b+b^{-1}\).  The residue indices
+\[
+ L(1),\qquad G_1^{-1}C_1,\qquad
+ 4^{-1}\operatorname{ind}_\ell(d_k),
+\]
+and hence the corresponding exponents of \(\xi_\ell\), are read in
+\(\F_\ell\); \(e_c\), \(d_s\), and \(t+1\) are ordinary integers.
+Then the selected weighted-fibre phase has the exact forms
+\[
+ \boxed{
+ \begin{aligned}
+ \Omega=u_k^{e_c}
+ &=\xi_\ell^{\,L(1)}
+  =\xi_\ell^{\,G_1^{-1}C_1}\\
+ &=\xi_\ell^{\,4^{-1}\operatorname{ind}_\ell(d_k)}
+  =\upsilon
+  =(r^{d_s})^{-1},
+ \end{aligned}}                                      \tag{\(\mathsf{PI}_1\)}
+\]
+where \(d_s=\Lambda/\ell\) is the exponent in
+Proposition~\ref{prop:dk-selected-sextic}.  In particular the inverse
+orientation of the selected reciprocal sextic is fixed, rather than only
+determined up to inversion.
+
+For
+\[
+ \mathcal S(x)=x+x^Q+x^{Q^2},
+\]
+the selected cubic recurrence has terminal value
+\[
+ \boxed{
+ P_{e_c}
+ =\mathcal S(\Omega)
+ =\mathcal S\!\left(\xi_\ell^{\,G_1^{-1}C_1}\right)
+ =\mathcal S\!\left((r^{d_s})^{-1}\right).}          \tag{\(\mathsf{PI}_2\)}
+\]
+Consequently
+\[
+ \boxed{
+ \begin{aligned}
+ D'_k\text{ holds at }\ell
+ &\iff L(1)\ne0
+ \iff C_1\ne0
+ \iff \operatorname{ind}_\ell(d_k)\ne0\\
+ &\iff r^{d_s}\ne1
+ \iff \Omega\ne1
+ \iff P_{e_c}^{\,t+1}\ne1.
+ \end{aligned}}                                      \tag{\(\mathsf{PI}_3\)}
+\]
+Thus the mixed Jacobi coefficient, conductor-five regulator, half-block
+phase, selected sextic, and cubic terminal recurrence are not independent
+constraints.  After fixing \(\mathfrak g\) and \(\xi_\ell\), they are all
+functions of the one selected scalar \(L(1)\), while the primitive root
+\(\xi_\ell\) makes \(\xi_\ell^{L(1)}\) recover that scalar.  The surviving
+theorem is still the direct nonvanishing \(L(1)\ne0\).
+\end{proposition}
+
+\begin{proof}
+The \(A_D\)-power Frobenius fixes the order-\(3h\) factor \(a\) and
+inverts the order-five factor \(b\).  Hence
+\[
+ U:=\Norm_{\F_{A_D^2}/\F_{A_D}}(V)
+ =(1+ab)(1+ab^{-1})
+ =a(a+a^{-1}+c_k)=a\,u_k.                           \tag{\(\mathsf{PI}_4\)}
+\]
+Both \(3h\) and \(\ell\) divide \(A_D-1\), and
+\(\gcd(3h,\ell)=1\), so
+\[
+ a^{e_c}=1.
+\]
+Since
+\[
+ (A_D+1)e_c=\frac{A_D^2-1}{\ell},
+\]
+the norm and the definition of the power-residue index give
+\[
+ \begin{aligned}
+ \Omega
+ &=u_k^{e_c}
+  =U^{e_c}
+  =V^{(A_D^2-1)/\ell}
+  =\xi_\ell^{\,L(1)}.
+ \end{aligned}                                      \tag{\(\mathsf{PI}_5\)}
+\]
+
+Equations \((\mathsf{DJ}_2)\)--\((\mathsf{DJ}_3)\) give
+\(L(1)=G_1^{-1}C_1\), while \((\mathsf{DJ}_5)\) gives
+\(L(1)=4^{-1}\operatorname{ind}_\ell(d_k)\).
+On the selected primitive conductor-\(15h\) component, the \(U\) in
+\((\mathsf{PI}_4)\) is exactly the half-block element \(w\), so
+\((\mathsf{PI}_5)\) is \(\Omega=\upsilon\).
+Finally \((\mathsf{DS}_1)\) gives
+\(\upsilon=(r^{d_s})^{-1}\).  This proves
+\((\mathsf{PI}_1)\).
+
+Equation \((\mathsf{ICT}_4)\) now gives
+\((\mathsf{PI}_2)\).  The first three equivalences in
+\((\mathsf{PI}_3)\) are \((\mathsf{DJ}_4)\)--\((\mathsf{DJ}_6)\);
+the sextic equivalence is \((\mathsf{DS}_5)\), and the final two are
+\((\mathsf{ICT}_1)\) and \((\mathsf{ICO}_7)\).
+
+Lean kernel-checks the abstract norm--Euler exponent transport, removal of
+the Euler-trivial ancestry factor, the antiunit quotient phase, and formal
+inversion of an assumed inverse-phase identity.  The finite-field norm
+identification, residue indices, and specialization to the selected Jacobi,
+cubic, and sextic coordinates---including the selected sextic orientation---
+remain paper-level.
+\end{proof}
+
 \begin{proposition}[the selected Dickson phase has trivial downward norm]
 \label{prop:dk-selected-norm-collapse}
 Retain Proposition~\ref{prop:dk-selected-sextic}.  Thus
@@ -23049,6 +23409,13 @@ All principal-ideal powers and unmarked completed-local invariants are
 therefore unchanged by a formal-coordinate automorphism.  Fixed-coordinate
 higher digits, middle/global quotient coefficients, and genuinely
 ancestry-sensitive relations remain outside this collapse.
+Corollary~\ref{cor:fermat-factor-sensitive-window} sharpens both endpoint
+windows to their exact factor-dependent boundaries.  If
+\(R=2^{v_2(\ell-1)}\), the quotients agree through the first \(R\) low
+and \(R/4\) leading coefficients, then differ by one at both next
+coefficients.  Thus even the first exposed endpoint defects encode only the
+two-adic valuation of the arithmetic factor; later, middle, cross-endpoint,
+and fixed-\(A\)-coordinate relations remain the genuine quotient frontier.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -23224,8 +23591,11 @@ one may take any degree-\(179\) factor of
 \((T^{359}+1)^{179}+(\kappa_{89}+1)\) over that field and evaluate it at
 one.  The two lower norm shadows are explicit, but twisting inside their
 fixed norm fibre realizes every \(719\)-phase, so they cannot decide the
-row.  No factor or phase artifact is presently available; \(m_{719}=1\)
-remains open.
+row.  Proposition~\ref{prop:ordinary-719-crossed-certificate} compresses a
+replayable certificate from a roughly \(158\)-MB factor over
+\(\F_{2^{7029220}}\) to two \(438103\)-byte payloads over \(\F_{2^{179}}\)
+and one final Euler test in \(\F_{2^{64261}}\).  Those payloads and the final
+phase are not presently available; \(m_{719}=1\) remains open.
 Proposition~\ref{prop:ordinary-dependency-descent} then pushes any
 hypothetical failure through each odd-Kummer singleton
 \(0/1\)-excess dependency satisfying its hypotheses by taking all
@@ -23515,6 +23885,17 @@ discriminant, irreducibility, and shifted power-sum periodicity all distinguish
 the binary failure condition on \(P_e\), not a determination of that value.
 The complete trace \(\mathcal S\) records the phase orbit, while the named
 binary tests do not refine the detector without evaluating it.
+Proposition~\ref{prop:dk-phase-identification} then closes the normalization
+gap between this detector and the earlier arithmetic constructions.  With
+the conductor-five orientation fixed, the weighted-fibre phase is exactly
+\(\xi_\ell^{L(1)}\), equivalently the \(G_1^{-1}C_1\) Jacobi phase, the
+\(4^{-1}\operatorname{ind}_\ell(d_k)\) antiunit phase, the half-block phase,
+and the inverse selected-sextic phase.  Its cubic trace is \(P_e\).
+Consequently these are exactly coordinated presentations of one scalar, not
+independent constraints: the phase-level presentations recover \(L(1)\),
+while \(P_e\) records its \(Q\)-Frobenius orbit and the reciprocal polynomial
+records the corresponding selected factor test.  The remaining assertion is
+still \(L(1)\ne0\).
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
 Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}

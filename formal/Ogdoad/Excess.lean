@@ -1640,6 +1640,66 @@ theorem cubic_power_sum_periodic_of_pow_eq_one
 
 end CubicPhaseOrbit
 
+section DKPhaseBridgeCore
+
+variable {G : Type*} [CommGroup G]
+
+/-- Raising the norm of a selected element to the downstairs Euler exponent
+is the same as raising the original element to the upstairs Euler exponent. -/
+theorem norm_euler_phase
+    (V U rho : G) (A e E L : Nat)
+    (hU : U = V ^ (A + 1)) (hE : (A + 1) * e = E)
+    (hphase : V ^ E = rho ^ L) :
+    U ^ e = rho ^ L := by
+  rw [hU, ← pow_mul, hE, hphase]
+
+/-- The norm phase and the selected cubic phase agree after removing the
+prime-to-ell cyclotomic factor. -/
+theorem selected_phase_bridge
+    (V U a u rho : G) (A e E L : Nat)
+    (hNorm : U = V ^ (A + 1)) (hE : (A + 1) * e = E)
+    (hV : V ^ E = rho ^ L)
+    (hFactor : U = a * u) (ha : a ^ e = 1) :
+    u ^ e = rho ^ L := by
+  have hPhase : U ^ e = rho ^ L :=
+    norm_euler_phase V U rho A e E L hNorm hE hV
+  rw [hFactor, mul_pow, ha, one_mul] at hPhase
+  exact hPhase
+
+/-- Multiplication by an Euler-trivial ancestry factor does not change the
+selected Euler phase. -/
+theorem ancestry_factor_phase
+    (a u U rho : G) (E L : Nat)
+    (hU : U = a * u) (ha : a ^ E = 1) (hphase : U ^ E = rho ^ L) :
+    u ^ E = rho ^ L := by
+  rw [hU, mul_pow, ha, one_mul] at hphase
+  exact hphase
+
+/-- If the invariant product of two oriented factors has trivial phase, their
+antiunit quotient carries the square of either oriented phase. -/
+theorem antiunit_quotient_phase
+    (U U' R rho : G) (E L : Nat)
+    (hR : R = U * U'⁻¹)
+    (hprod : (U * U') ^ E = 1)
+    (hU : U ^ E = rho ^ L) :
+    R ^ E = (rho ^ L) ^ 2 := by
+  have hprod' : U ^ E * U' ^ E = 1 := by
+    simpa [mul_pow] using hprod
+  have hU' : U' ^ E = (U ^ E)⁻¹ := by
+    exact eq_inv_of_mul_eq_one_right hprod'
+  rw [hR, mul_pow, inv_pow, hU', hU]
+  group
+
+/-- Formally reversing an assumed inverse-phase identity gives the
+corresponding oriented equality. -/
+theorem sextic_phase_orientation
+    (r Omega : G) (d : Nat) (h : Omega = (r ^ d)⁻¹) :
+    r ^ d = Omega⁻¹ := by
+  rw [h]
+  simp
+
+end DKPhaseBridgeCore
+
 section KummerPowerBasis
 
 variable {F V I : Type*} [Field F] [AddCommGroup V] [Module F V]
@@ -1943,6 +2003,24 @@ theorem quotient_window_eq_inverse
     Q = (Ainv * A) * Q := by rw [hInv, one_mul]
     _ = Ainv * (A * Q) := by ring
     _ = Ainv := by rw [hAQ, mul_one]
+
+/-- In a truncated endpoint ring, if the common factor acts trivially on
+the first surviving defect, then quotienting transports that defect without
+change. For the polynomial application `delta` is the boundary monomial. -/
+theorem quotient_boundary_defect_of_fixed
+    (A Ainv Q₁ Q₂ S₁ S₂ delta : R)
+    (hInv : Ainv * A = 1)
+    (h₁ : S₁ = A * Q₁) (h₂ : S₂ = A * Q₂)
+    (hdelta : A * delta = delta)
+    (hWindow : S₁ = S₂ + delta) :
+    Q₁ = Q₂ + delta := by
+  calc
+    Q₁ = (Ainv * A) * Q₁ := by rw [hInv, one_mul]
+    _ = Ainv * S₁ := by rw [h₁]; ring
+    _ = Ainv * (S₂ + delta) := by rw [hWindow]
+    _ = Ainv * (A * Q₂ + A * delta) := by rw [h₂, hdelta]
+    _ = (Ainv * A) * (Q₂ + delta) := by ring
+    _ = Q₂ + delta := by rw [hInv, one_mul]
 
 end FermatQuotientWindowCore
 
@@ -2878,6 +2956,33 @@ theorem ordinary_marked_power_status_equiv
     simpa using hz
 
 end Ordinary359FullConductor
+
+section Ordinary719CompactNorm
+
+variable {F I : Type*} [Field F]
+
+/-- Evaluating a monic root product after scalar multiplication needs only
+the original polynomial at the inverse scalar.  This is the algebraic core
+of `Norm(1 + a*v) = v^d * f_a(v⁻¹)`. -/
+theorem compact_scaled_root_product
+    (S : Finset I) (a : I → F) (v : F) (hv : v ≠ 0) :
+    (∏ i ∈ S, (1 + a i * v)) =
+      v ^ S.card * ∏ i ∈ S, (v⁻¹ + a i) := by
+  have hpoint (i : I) : 1 + a i * v = v * (v⁻¹ + a i) := by
+    field_simp
+  simp_rw [hpoint]
+  rw [Finset.prod_mul_distrib]
+  simp
+
+/-- Once two finite-field norm exponents multiply to the full Euler
+exponent, norm transitivity becomes an ordinary power identity. -/
+theorem compact_nested_euler_power
+    {G : Type*} [CommMonoid G] (x : G)
+    (relative small full : Nat) (hfull : full = relative * small) :
+    (x ^ relative) ^ small = x ^ full := by
+  rw [hfull, pow_mul]
+
+end Ordinary719CompactNorm
 
 section CubicNormalBridge
 

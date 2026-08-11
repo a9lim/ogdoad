@@ -127,9 +127,14 @@ source-pinned corroboration, not part of the local certificate.
 The next ordinary row `p=719` is a paper-level exact reduction, not a
 certificate.  Using the certified 359-class, the paper reduces it to a
 degree-179 factor of `(T^359+1)^179+(kappa_89+1)` over
-`F_(2^7029220)` and one Euler test at that factor's value at one.  Its lower
-norm identities and `mu_719` phase-blindness are proved in the paper, but no
-factor artifact or selected phase evaluation is checked in this repository;
+`F_(2^7029220)` and one Euler test at that factor's value at one.  A second,
+crossed-tower formulation compresses a replayable certificate to two
+438,103-byte payloads over `F_(2^179)` and an Euler test in
+`F_(2^64261)`.  Lean checks only the generic scaled-product identity and
+conditional exponent multiplication; all field, Kummer, norm, and numerical
+specializations remain paper-level.  Its lower norm identities and `mu_719`
+phase-blindness are proved in the paper, but no `(a,f_a)` payload, factor
+artifact, or selected phase evaluation is checked in this repository;
 `m_719=1` remains open.
 
 `Ogdoad/GameExterior.lean` kernel-checks the algebraic core of the resolved

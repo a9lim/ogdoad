@@ -158,9 +158,14 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   than the local proof;
 - the next `p=719` row has a paper-level nested reduction to one degree-179
   factor of `(T^359+1)^179+(kappa_89+1)` over `F_(2^7029220)` and one
-  selected Euler test on its value at one.  The two cheaper norm shadows and
-  their `mu_719` phase-blindness are also paper-level.  No factor artifact,
-  finite-field evaluation, or Lean theorem for this row is claimed;
+  selected Euler test on its value at one.  A crossed-tower reformulation
+  reduces a replayable certificate to two 438,103-byte payloads over
+  `F_(2^179)` and a final Euler test in `F_(2^64261)`.  Lean checks the
+  generic scaled-product and conditional nested-exponent cores; the
+  field/Kummer/norm and numerical-exponent specializations and all finite
+  payloads remain paper-level.  The two
+  cheaper norm shadows and their `mu_719` phase-blindness are also
+  paper-level.  No `p=719` payload or finite-field evaluation exists yet;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -375,6 +380,14 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   orbit-separation specialization, irreducibility statement, converse
   periodicity implication, and identification with the selected phase remain
   paper-level; the selected nonvanishing assertion remains open;
+- the exceptional phase-identification core: norm/Euler exponent transport,
+  removal of an Euler-trivial ancestry factor, the square carried by an
+  antiunit quotient, and formal inversion of an assumed inverse-phase
+  identity.  The
+  finite-field norm, residue-index, Jacobi, weighted-fibre, and selected
+  sextic identifications, including the selected inverse orientation, remain
+  paper-level, as does the still-open
+  nonvanishing of their common phase;
 - the selected reciprocal trace-fibre core: the universal Jacobian numerator
   at `(a,a+1)` is `a^2+a+1`, the characteristic-two discriminant of
   `X^3+C*X^2+D*X+1` is `(C*D+1)^2`, and injective lower
@@ -434,9 +447,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   dividends in a truncated coefficient ring forces equality of quotient
   windows, every positive Fibonacci value has constant term one, and the
   trailing-zero formula becomes independent of its positive cofactor when the
-  variable is nilpotent.  The Euler--Lucas endpoint windows, reciprocal
-  coefficient calculation, completed-local-ring coordinate, and selected
-  specialization remain paper-level;
+  variable is nilpotent.  Lean also checks that a first surviving boundary
+  monomial fixed by the common unit factor is transported unchanged to the
+  quotient.  The Euler--Lucas endpoint windows, Fermat-factor valuation,
+  reciprocal boundary calculation, completed-local-ring coordinate, and
+  selected specialization remain paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

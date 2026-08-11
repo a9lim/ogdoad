@@ -355,7 +355,14 @@ absolute boundedness.
   so every principal-ideal power and every unmarked completed-local invariant
   is unchanged after a formal-coordinate automorphism. Fixed-coordinate
   higher digits, middle/global quotient coefficients, and genuinely
-  ancestry-sensitive relations remain open.
+  ancestry-sensitive relations remain open. The factor-sensitive endpoint
+  boundary is exact. Writing `R=2^v_2(ell-1)`, one also has
+  `v_2(d-1)=v_2(ell-1)`. Under hypothetical failure, the quotient agrees with
+  the full-Fermat cofactor through the first `R` low and `R/4` leading
+  coefficients, then differs by one at both next coefficients. Thus even the
+  immediately exposed endpoint coefficients contain only the arithmetic
+  factor valuation, not a new selected obstruction. Later, middle,
+  cross-endpoint, and fixed-`A`-coordinate relations remain open.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -653,6 +660,13 @@ absolute boundedness.
   `z^((2^7029220-1)/719) != 1`. Equivalently, over that field choose any
   degree-179 factor `g` of
   `(T^359+1)^179+(kappa_89+1)` and test the same exponent on `g(1)`.
+  A crossed-tower norm identity gives a much smaller certificate format:
+  after adjoining a compatible `359`-root in `F_(2^(179*359))`, two
+  438,103-byte payloads over `F_(2^179)` determine
+  `W=v^19580*f_a(v^(-1))`, and the row is exactly
+  `W^((2^64261-1)/719) != 1`. This removes the earlier 158-MB
+  degree-179-factor payload, but the two compact payloads and final phase
+  have not been constructed.
   The cheap shadows are exact but phase-blind: `Norm(y)` is the unique
   359th root of `kappa_89` in `F_(2^19580)`, and
   `Norm(z)=kappa_89+1`, yet twisting `z` by `mu_719` preserves this lower
@@ -946,7 +960,15 @@ absolute boundedness.
   nonzero discriminant. Shifted power-sum periodicity is likewise exactly
   `P_e=1`. These norm, discriminant, irreducibility, and recurrence tests are
   equivalent presentations of the same selected bit, not a nonvanishing
-  proof.
+  proof. The normalization bridge is now exact as well. With compatible
+  conductor-five orientation, the weighted-fibre Euler phase is simultaneously
+  `xi_ell^L(1)`, `xi_ell^(G_1^(-1)*C_1)`,
+  `xi_ell^(4^(-1)*ind_ell(d_k))`, the half-block phase, and the inverse of
+  the oriented selected sextic phase. Its cubic trace is precisely `P_e`.
+  Thus these are exactly coordinated presentations of one scalar, not
+  independent conditions: the phase-level presentations recover `L(1)`,
+  while `P_e` records its `Q`-Frobenius orbit and the reciprocal factor records
+  the corresponding selected factor test.
   Only a direct selected evaluation of such a coefficient, in particular the
   original Euler phase, or genuinely external root orientation remains. A coprime
   plus/minus decomposition now
