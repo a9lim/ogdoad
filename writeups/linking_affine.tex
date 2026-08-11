@@ -408,6 +408,59 @@ proof may work with a Markov Bellman certificate, but it must retain the score
 sheet: two paths which reconverge after forgetting score can arrive on
 opposite sheets.
 
+This warning has an exact minimum-rank form.  For a score-forgotten public
+state
+\[
+ p=(U,Q,\mathsf{ko},\mathsf{turn}),
+\]
+write $p[a]$ for its lift to score sheet $a\in\F_2$, and call $p$
+\emph{flexible} in a positional winning region $\mathcal W$ when both $p[0]$
+and $p[1]$ belong to $\mathcal W$.
+
+\begin{proposition}[minimum flexible sheet]
+\label{prop:minimum-flexible-sheet}
+\PROVED{} Let $\mathcal W$ be the full-state winning region of a positional
+target-one attacker, and choose a flexible physical state $p$ of minimum
+remaining rank.  Then $p$ is attacker-controlled, and the selected winning
+moves on $p[0]$ and $p[1]$ are distinct.
+
+Suppose those two moves admit a legal reconvergence diamond: after the first
+selected edge, the defender may play the other move, and the two orders end at
+one score-forgotten state.  If $\kappa$ is the scalar holonomy of the diamond,
+then necessarily $\kappa=1$.  In particular, away from the singleton ko wall,
+a minimum flexible CLOSE--OPEN fork $C_f/O_z$ can occur only when
+$B(f,z)=1$.
+\end{proposition}
+
+\begin{proof}
+A flexible terminal state is impossible, since only its score-one lift is in
+$\mathcal W$.  If $p$ were defender-controlled, defender closure would put
+both score lifts of every legal child in $\mathcal W$: the same move adds the
+same charge to the two sheets.  Any child would therefore be a smaller
+flexible state.  Thus $p$ is attacker-controlled.  If its two selected moves
+were equal, their selected children would likewise be a smaller flexible
+state, so the moves are distinct.
+
+Now traverse the reconvergence diamond from the two selected edges.  The
+intermediate vertices are defender-controlled, hence their cross edges both
+belong to $\mathcal W$.  The two starting sheets differ by one, while the two
+path charges differ by $\kappa$; the endpoint sheets therefore differ by
+$1+\kappa$.  If $\kappa=0$, the common physical endpoint is flexible and has
+smaller rank, a contradiction.  Hence $\kappa=1$.  For $C_f/O_z$ with a
+non-singleton residual queue, Proposition~\ref{prop:universal-holonomy}
+identifies this holonomy with $B(f,z)$.  When the queue is a singleton the two
+orders differ in ko instead of reconverging, which is exactly the excluded
+wall.
+\end{proof}
+
+The proposition prevents a one-sheet no-retraction shortcut.  Odd-curvature
+CLOSE--OPEN diamonds are precisely the diamonds a minimum flexible region is
+allowed to absorb.  The other two irreducible possibilities are distinct
+OPEN selections, whose two orders leave different FIFO queue orders, and the
+singleton ko wall.  A global contraction must therefore couple those two
+cases through their full defender ancestry; finding public holonomy alone
+cannot close the score cover.
+
 Equivalently, one must select an odd-cardinality formal multiset of response
 histories whose disjointness vectors XOR to zero.  This is an
 $\F_2$-flow problem: attacker nodes route all incoming weight along the move
@@ -5329,15 +5382,19 @@ continuation moment, the initial-cut contraction, the stopped close-first
 theorem, and the obstruction results for the stronger local induction
 templates considered above.  The stopped close-first argument and its
 finite-fan absorbers are also kernel-checked in
-\path{formal/Ogdoad/Fifo.lean}.
+\path{formal/Ogdoad/Fifo.lean}.  The live-star potential, both-seat
+CLOSE-first exclusion, proof-indexed clear-deviation frontier, and the
+handshaking/balanced-front first-spoiler step are kernel-checked in
+\path{formal/Ogdoad/FifoNormalization.lean}.
 
 The remaining statement is Conjecture~\ref{q:contraction}: a causal affine
 contraction for an arbitrary conditioned tail.  Its difficulty is genuinely
 multibranch.  The response factor must transport four-cycle defects across a
 complete defender fan while allowing odd wall fans, front-cell deletion,
 matching-phase pivots, and frozen ko-wall edges.  The dual descent reduces a
-minimal counterexample to an even-$|U|$ singleton phase or an imbalanced
-multicell front, but neither ancestry type is yet contracted.
+minimal counterexample to the odd--odd CLOSE spike (A) or the post-dummy
+singleton ancestry (B$'$), but neither multibranch ancestry type is yet
+contracted.
 
 Exact minimax provides a finite check, not a proof: the conjecture holds on
 every graph isomorphism class through eight real vertices with an isolated
@@ -5354,6 +5411,7 @@ The following claims have different status and should not be flattened.
 \item \PROVED{} The interval/disjointness reduction, vector live-star identity,
       threshold schedule normal form, endpoint-controller boundary identity,
       affine separation equivalence and positional scalar reduction,
+      the minimum-flexible-sheet/odd-holonomy obstruction,
       homogeneous response recursion, parity-resolved continuation
       convolution and its decorated-frontier decomposition, the virtual-OPEN
       common-close identity and exact pruning obstruction, dual obstruction
@@ -5410,6 +5468,11 @@ The following claims have different status and should not be flattened.
       \texttt{stoppedCloseFirstEmptyRootTheorem}.  It also checks score
       translation through arbitrary transitions and strategy trees, and the
       exact singleton-wall reconvergence square after the next real OPEN.
+      The companion \path{formal/Ogdoad/FifoNormalization.lean}
+      kernel-checks the universal live-star trace law, both-seat exclusion of
+      CLOSE-first odd strategies at the isolated-dummy root, the resulting
+      proof-indexed existence of a clear-node deviation in every hypothetical
+      odd strategy, and the same-degree/balanced-front first-spoiler package.
       Finally, its abstract closure-phase strategy trees kernel-check the
       scalar no-separation recurrence behind
       Theorem~\ref{thm:complete-fixed-front-prefix} and the opposite-sheet
@@ -5489,9 +5552,11 @@ The following claims have different status and should not be flattened.
       fans, front-cell deletion, matching-phase pivots, and frozen ko-wall
       edges to share their transported four-cycle defects across the complete
       defender fan.  Proposition~\ref{prop:dual-descent} reduces any
-      counterexample to an even-$|U|$ singleton phase or an imbalanced
-      multicell front, but neither multibranch ancestry phase has yet been
-      contracted.
+      counterexample to the odd--odd spike (A) or the post-dummy singleton
+      ancestry (B$'$), but neither multibranch ancestry phase has yet been
+      contracted.  Proposition~\ref{prop:minimum-flexible-sheet} also shows
+      why passing to the score-forgotten public graph cannot remove these
+      cases: odd-curvature CLOSE--OPEN forks may absorb the missing sheet.
 \end{itemize}
 
 \begin{thebibliography}{9}

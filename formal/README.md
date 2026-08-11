@@ -227,6 +227,29 @@ root-level sibling coupling is still open.  The Lean development therefore
 hardens the semantics and the proved reduction spine without laundering the
 finite census through `k = 8` into a proof for all finite graphs.
 
+[`Ogdoad/FifoNormalization.lean`](Ogdoad/FifoNormalization.lean) checks the
+current normalization frontier rather than assuming it:
+
+- a universal live-star vector and its graph-evaluation map, with a telescoped
+  trace theorem saying that OPEN adds the current live star while CLOSE and PASS
+  preserve the scalar queue-cut potential;
+- exclusion of a CLOSE-first terminal-score-one strategy from the
+  isolated-dummy initial root for either attacker seat;
+- a proof-indexed dichotomy saying that every explicit odd strategy is either
+  CLOSE-first at all clear attacker nodes or contains a genuine clear-node
+  deviation, and hence that every hypothetical initial odd strategy contains
+  such a deviation; and
+- the handshaking and balanced-front part of the least-root odd corridor:
+  same-degree mates form an odd set, balance the twice-punctured front, and
+  force the selected move of any odd strategy to be an OPEN while the smaller
+  isolated-dummy root is even-winning.
+
+The last theorem deliberately stops before the unresolved step.  If the
+selected OPEN touches the dummy, the remaining real reply fan has even
+cardinality; neither the same-degree induction nor the local balanced-front
+lemmas provide an even-winning child.  The required same-eta corridor and
+global `(A)/(B')` ancestry contraction remain mathematical obligations.
+
 [`Ogdoad/FifoMatching.lean`](Ogdoad/FifoMatching.lean) closes the exact
 subclass needed by the resolved Gold construction:
 

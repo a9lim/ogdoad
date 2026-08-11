@@ -98,6 +98,11 @@ not a scalar parity identity.
 - Complete schedules admit an exact permutation-threshold normal form, and
   pass-free histories admit a response-factor normal form. Both expose the
   same missing causal extension rather than proving it.
+- The CLOSE-first attacker is contracted for both seats. Lean now rules out a
+  CLOSE-first terminal-score-one strategy at the isolated-dummy root and proves
+  that every hypothetical odd strategy contains a genuine clear-node OPEN
+  deviation. The same module checks the live-star potential and the
+  same-degree/balanced-front first-spoiler step of the least-root corridor.
 - Every fixed-front attacker phase has zero in the affine hull of its remainder
   vectors, but the corresponding distinguished-leaf statement is false. The
   exact replacement is a relative-spine quotient together with a finite
@@ -111,6 +116,12 @@ not a scalar parity identity.
   front star, leaving a canonical Schur class supported strictly away from that
   front. Exact response trees show that neither descendants alone nor the next
   two-bit coefficient kills this class.
+- On the full two-sheet positional winning region, a minimum-rank flexible
+  physical state is attacker-controlled and selects different moves on the two
+  sheets. Any reconvergent CLOSE/OPEN fork there must have odd edge curvature.
+  Thus a score-forgotten no-retraction proof is invalid: the remaining coupled
+  cases are a neighbour CLOSE/OPEN fork, two distinct OPENs, and the singleton
+  ko wall.
 - Exact minimax verifies the conjecture for every graph isomorphism class
   through eight real vertices plus the isolated dummy, for either designated
   seat. This is certified finite evidence only.
@@ -153,6 +164,7 @@ the stated target.
 
 - [`writeups/linking_affine.tex`](../writeups/linking_affine.tex)
 - [`formal/Ogdoad/Fifo.lean`](../formal/Ogdoad/Fifo.lean)
+- [`formal/Ogdoad/FifoNormalization.lean`](../formal/Ogdoad/FifoNormalization.lean)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`experiments/linking_game.py`](../experiments/linking_game.py)
 

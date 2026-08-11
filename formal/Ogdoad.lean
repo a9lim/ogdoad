@@ -1,5 +1,6 @@
 import Ogdoad.Off
 import Ogdoad.Fifo
+import Ogdoad.FifoNormalization
 import Ogdoad.FifoMatching
 import Ogdoad.GoldSemantics
 import Ogdoad.GoldMatchingAlgebra
