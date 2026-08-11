@@ -347,6 +347,15 @@ absolute boundedness.
   `A`-adic digits or a global
   coefficient relation in the unreduced quotient, or directly force one
   parity block nonzero.
+  The endpoint windows and completed local ring now collapse as well. Under
+  hypothetical failure at a proper Fermat factor, the first `4*2^n` low
+  coefficients and first `2^n` leading coefficients of `S_d/A_(n-1)` agree
+  with the unconditional full-Fermat cofactor. In the `A_(n-1)`-adic
+  completion, `S_d=A_(n-1)*Q_d` differs from the local parameter by a unit,
+  so every principal-ideal power and every unmarked completed-local invariant
+  is unchanged after a formal-coordinate automorphism. Fixed-coordinate
+  higher digits, middle/global quotient coefficients, and genuinely
+  ancestry-sensitive relations remain open.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -637,7 +646,20 @@ absolute boundedness.
   `theta^((2^179-1)/359) != 1`. Thus `m_359=1` is now backed by a locally
   replayable exact finite computation as well as the two external runs. Quick
   mode checks the root and stored phase but is explicitly not the authoritative
-  certificate because it does not recompute the norm. At the
+  certificate because it does not recompute the norm.
+  The next unsupported row `p=719` now has an exact nested reduction. Using
+  the certified `359`-class, one adjoins `y^359=1+kappa_179`, takes the inner
+  degree-179 norm `z=Norm(1+y)` into `F_(2^7029220)`, and tests
+  `z^((2^7029220-1)/719) != 1`. Equivalently, over that field choose any
+  degree-179 factor `g` of
+  `(T^359+1)^179+(kappa_89+1)` and test the same exponent on `g(1)`.
+  The cheap shadows are exact but phase-blind: `Norm(y)` is the unique
+  359th root of `kappa_89` in `F_(2^19580)`, and
+  `Norm(z)=kappa_89+1`, yet twisting `z` by `mu_719` preserves this lower
+  norm and realizes every 719-phase. Thus the row is reduced to a concrete
+  equal-degree factor evaluation, but it is not yet certified; `m_719=1`
+  remains open.
+  At the
   actual ordinary singleton step, even the canonical additive lower norm is
   current-Kummer blind: `Norm(1+x)=1+x^r`, while
   `ord_p(q_0)=r>1` makes `p`-powering an automorphism of the lower
@@ -785,6 +807,15 @@ absolute boundedness.
   invariants return to `L_k`. What remains is a genuinely nonzero-weight
   correlation uniform over that torsor, or an external additive--multiplicative
   estimate---not another selected radical class.
+  The regular chosen-root algebra now closes this loophole more sharply.
+  Every evaluated pure weight `a*t^m` has full-field monodromy
+  `Omega^(m*(q-1))`, so its field-of-definition test is exactly an invertible
+  power of the original Euler bit. For a mixed polynomial `P`, the product
+  over every root orientation is `Res(X^ell-tau_k,P)`: a weight-zero scalar
+  which detects whether some branch vanishes but forgets which branch. Thus
+  pure weights add no second condition, while mixed regular expressions
+  reduce the question to a selected weight-zero resultant that still has to
+  be evaluated.
   There is also an exact pure-radical reflection descent. With
   `K=Q(zeta_(3^(k+1))+zeta_(3^(k+1))^(-1))`,
   `B=K(zeta_ell+zeta_ell^(-1))`, and `theta^ell=c_k`, the reflection field
@@ -906,6 +937,16 @@ absolute boundedness.
   `e=(Q^3-1)/ell`. This shortens the earlier six-term trace detector to the
   immediate cubic extension but does not evaluate `P_e`; that evaluation is
   the same selected terminal Dickson obstruction.
+  The three-term coordinate is lossless on the entire current phase orbit.
+  For `S(z)=z+z^Q+z^(Q^2)`, the pair `S(z),S(z)^t` determines the
+  `Q`-Frobenius orbit of `z`, and
+  `S(z)^(t+1)+1=(z+z^Q)(z+z^(Q^2))(z^Q+z^(Q^2))`.
+  Hence its quadratic norm is one exactly at failure; equivalently the orbit
+  cubic degenerates to `(X+1)^3`, while on success it is irreducible with
+  nonzero discriminant. Shifted power-sum periodicity is likewise exactly
+  `P_e=1`. These norm, discriminant, irreducibility, and recurrence tests are
+  equivalent presentations of the same selected bit, not a nonvanishing
+  proof.
   Only a direct selected evaluation of such a coefficient, in particular the
   original Euler phase, or genuinely external root orientation remains. A coprime
   plus/minus decomposition now

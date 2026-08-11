@@ -156,6 +156,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   1,743,227-term nonidentity endpoint; the stdlib provenance checker verifies
   their hashes and endpoints, so they are source-pinned corroboration rather
   than the local proof;
+- the next `p=719` row has a paper-level nested reduction to one degree-179
+  factor of `(T^359+1)^179+(kappa_89+1)` over `F_(2^7029220)` and one
+  selected Euler test on its value at one.  The two cheaper norm shadows and
+  their `mu_719` phase-blindness are also paper-level.  No factor artifact,
+  finite-field evaluation, or Lean theorem for this row is claimed;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -361,9 +366,15 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   statement, and split-factor orientation boundary remain paper-level;
 - the cubic selected-phase trace core: in characteristic two, norm one
   together with trace and inverse trace one forces the phase to be one, since
-  its orbit cubic is `X^3+X^2+X+1=(X+1)^3`.  The finite-field Frobenius
-  specialization identifying the inverse trace remains paper-level; the
-  selected nonvanishing assertion remains open;
+  its orbit cubic is `X^3+X^2+X+1=(X+1)^3`.  The strengthened phase-orbit
+  core checks the characteristic-two half-discriminant/root-difference
+  factorization and collision criterion, distinguished-root membership from
+  equal norm-one trace and inverse trace, and the forward periodicity of every
+  shifted power sum once the powered roots are one.  The polynomial
+  discriminant identity, finite-field Frobenius specialization,
+  orbit-separation specialization, irreducibility statement, converse
+  periodicity implication, and identification with the selected phase remain
+  paper-level; the selected nonvanishing assertion remains open;
 - the selected reciprocal trace-fibre core: the universal Jacobian numerator
   at `(a,a+1)` is `a^2+a+1`, the characteristic-two discriminant of
   `X^3+C*X^2+D*X+1` is `(C*D+1)^2`, and injective lower
@@ -376,6 +387,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   reduces to one residue weight in the same Kummer algebra.  The finite-field
   Kummer-class, common-compositum, lower-root uniqueness, and invariant-ring
   interpretations remain paper-level;
+- the current cubic weight core: Lean checks the factorization
+  `q^3=1+ell*(q-1)*u`, the resulting monodromy of a chosen root of
+  `V^ell=tau_k`, and the corresponding monodromy of every pure nonzero
+  weight.  The finite-field fixed-point criterion, Kummer/Euler equivalence,
+  separable resultant product, and invariant-ring interpretation remain
+  paper-level;
 - partial Frobenius-trace additivity, Frobenius commutation, index splitting,
   and the exact conjugate descent
   `Tr(1+T_s(a))=T_s(A)` when `a^(2^d)=a+A`, which underlies the paper's
@@ -412,6 +429,14 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   the selected factor under exact divisibility.  Their specialization to
   polynomial derivatives, odd/even coefficient blocks, and the first
   `A`-adic digit remains paper-level;
+- the Fermat quotient-window core: multiplication of a local parameter by an
+  explicit unit preserves divisibility by every ideal power, equality of
+  dividends in a truncated coefficient ring forces equality of quotient
+  windows, every positive Fibonacci value has constant term one, and the
+  trailing-zero formula becomes independent of its positive cofactor when the
+  variable is nilpotent.  The Euler--Lucas endpoint windows, reciprocal
+  coefficient calculation, completed-local-ring coordinate, and selected
+  specialization remain paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

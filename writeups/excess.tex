@@ -3807,6 +3807,202 @@ Proposition~\ref{prop:ordinary-359-hilbert-certificate}; the historical runs
 now provide independent source-pinned corroboration of that local exact
 computation.
 
+\begin{proposition}[nested compression of the next carry \(p=719\)]
+\label{prop:ordinary-719-nested-compression}
+Put
+\[
+ d=19580,\qquad r=179,\qquad s=359,\qquad p=719,\qquad b=rd,
+\]
+and retain the selected fields
+\[
+ a_0=\kappa_{89}+1,\qquad
+ B_0=\F_{2^d},\qquad B=B_0(x)=\F_{2^b},\qquad x^r=a_0.
+\]
+Let
+\[
+ K=\F_{2^s},\qquad
+ C=B_0K=\F_{2^{ds}},\qquad
+ E=BK=C(x)=\F_{2^{bs}}.
+\]
+The relevant degrees are
+\[
+ [B:B_0]=r,\quad [C:B_0]=s,\quad [E:C]=r,\quad
+ [E:B]=s,\quad [C:K]=d.                              \tag{\(\mathsf{O719}_1\)}
+\]
+
+Write \(\beta=1+x=\alpha_{359}\).  The certified \(p=359\) phase is
+\[
+ \eta=\beta^{(2^b-1)/s}\ne1.
+\]
+Consequently \(T^s+\beta\) is irreducible over \(B\).  If
+\(y^s=\beta\), then \(B(y)=E\), and every such \(y\) is a relative
+Frobenius conjugate of the Conway-marked \(\kappa_{359}\).  Put
+\[
+ z=\Norm_{E/C}(1+y),\qquad
+ \theta=\Norm_{C/K}(z)=\Norm_{E/K}(1+y).
+\]
+Then the next excess row has the exact tests
+\[
+ \boxed{
+ m_{719}=1
+ \iff \theta^{(2^s-1)/p}\ne1
+ \iff z^{(2^{ds}-1)/p}\ne1.}                         \tag{\(\mathsf{O719}_2\)}
+\]
+
+The construction has two exact lower norm shadows.  If
+\(w=\Norm_{E/C}(y)\), then
+\[
+ \boxed{
+ w^s=\kappa_{89},\qquad
+ w=\kappa_{89}^{e_0}\in B_0,\qquad
+ e_0=\frac{r(2^d-1)+1}{s}.}                          \tag{\(\mathsf{O719}_3\)}
+\]
+Moreover
+\[
+ \boxed{\Norm_{C/B_0}(z)=a_0=\kappa_{89}+1.}         \tag{\(\mathsf{O719}_4\)}
+\]
+Neither shadow determines the target.  If \(G=2^{ds}-1\), then
+\(\mu_p\subset K\subset C\), and for every \(\zeta\in\mu_p\),
+\[
+ \Norm_{C/B_0}(\zeta)=1,
+ \qquad
+ (z\zeta)^{G/p}=z^{G/p}\zeta^{G/p}.                  \tag{\(\mathsf{O719}_5\)}
+\]
+Here \(v_p(G)=1\), so \(\zeta\mapsto\zeta^{G/p}\) permutes
+\(\mu_p\).  Thus, for every \(z\) in the fixed fibre
+\(\Norm_{C/B_0}^{-1}(a_0)\), its \(\mu_p\)-twist orbit contains exactly
+one element with trivial \(p\)-phase and \(p-1\) with nontrivial phase.
+This is a no-go
+for the scalar norm shadows only; it does not vary the selected Conway
+factor.
+
+There is nevertheless an exact finite certificate route.  The polynomial
+\[
+ \mathcal P_{719}^{\mathrm{nest}}(T)
+ =(T^s+1)^r+a_0\in B_0[T]                            \tag{\(\mathsf{O719}_6\)}
+\]
+is irreducible of degree \(rs=64261\) over \(B_0\).  Over \(C\) it is
+the product of \(s\) irreducible factors of degree \(r\).  For any one
+monic factor \(g\),
+\[
+ z_g=g(1)=\Norm_{C(y_g)/C}(1+y_g)
+\]
+and
+\[
+ \boxed{
+ m_{719}=1
+ \iff g(1)^{(2^{7029220}-1)/719}\ne1.}               \tag{\(\mathsf{O719}_7\)}
+\]
+The factors are \(B_0\)-Galois conjugate, so identity or nonidentity is
+independent of the chosen factor.  A naive packed table of all \(180\)
+coefficients of \(g\) would occupy \(158157450\) bytes before framing
+(the known monic coefficient may of course be omitted).
+
+Thus the next unsupported carry is reduced from a direct
+degree-\(1258230380\) Euler test to one degree-\(179\) factor and one
+Euler test in \(C=\F_{2^{7029220}}\).  The proposition supplies the
+equivalence and a concrete exact algorithm, but it does not evaluate
+\(g(1)\); \(m_{719}=1\) remains open.
+\end{proposition}
+
+\begin{proof}
+The gcds
+\[
+ \gcd(d,r)=\gcd(d,s)=\gcd(b,s)=1
+\]
+give \((\mathsf{O719}_1)\).  Since \(\ord_s(2)=r\), one has
+\(\mu_s\subset B\).  Proposition~\ref{prop:ordinary-359-hilbert-certificate}
+identifies the displayed \(\eta\) with the certified nontrivial
+\(s\)-residue of \(\beta\).  As \(s\) is prime, the Kummer criterion
+makes \(T^s+\beta\) irreducible over \(B\), and gives all assertions
+about \(y\).
+
+For completeness, \(y\) also has a Hilbert--90 construction from the
+certified phase.  Choose a normal element \(t\) of \(K/\F_2\), let
+\(\sigma=\Frob^b\), and set
+\[
+ v=\sum_{i=0}^{s-1}\eta^{-i}\sigma^i(t).
+\]
+Linear disjointness makes the conjugates of \(t\) \(B\)-linearly
+independent, so \(v\ne0\), while \(\sigma(v)=\eta v\).  Hence
+\(c=v^s\in B\).  With
+\[
+ M=\frac{2^b-1}{s},
+\]
+one has \(c^M=v^{2^b-1}=\eta=\beta^M\).  The direct check
+\(2^{179}\not\equiv1\pmod{359^2}\), together with \(s\nmid d\), gives
+\(\gcd(s,M)=1\).  If \(se\equiv1\pmod M\), then
+\[
+ y=(\beta/c)^e v
+\]
+satisfies \(y^s=\beta\).
+
+The singleton transverse criterion at \(p=719\) gives the first
+equivalence in \((\mathsf{O719}_2)\).  Norm transitivity gives
+\[
+ \theta^{(2^s-1)/p}
+ =z^{(2^{ds}-1)/(2^s-1)\cdot(2^s-1)/p}
+ =z^{(2^{ds}-1)/p},
+\]
+which gives the second.  The direct congruence
+\[
+ 2^{359}\equiv1+696\cdot719\pmod{719^2}              \tag{\(\mathsf{O719}_8\)}
+\]
+shows that this Euler test also has the full \(719\)-primary strength.
+
+For the first shadow,
+\[
+ w^s=\Norm_{E/C}(y^s)
+     =\Norm_{E/C}(1+x)
+     =1+a_0=\kappa_{89}.
+\]
+Because \(r\nmid ds\), \(s\)-powering is bijective on \(C^\times\);
+it is also bijective on \(B_0^\times\).  The root is therefore unique
+and belongs to \(B_0\).  The congruence \(2^d\equiv3\pmod s\) gives
+\[
+ se_0=r(2^d-1)+1,
+\]
+which proves \((\mathsf{O719}_3)\).  In the other tower direction,
+\[
+ \Norm_{E/B}(1+y)=1+y^s=x,
+\]
+and therefore
+\[
+ \Norm_{C/B_0}(z)
+ =\Norm_{E/B_0}(1+y)
+ =\Norm_{B/B_0}(x)=a_0,
+\]
+proving \((\mathsf{O719}_4)\).
+
+Since \(p\nmid2^d-1\) but \(p\mid2^{ds}-1\), the relative norm exponent
+\((2^{ds}-1)/(2^d-1)\) is divisible by \(p\), proving the first identity
+in \((\mathsf{O719}_5)\).  Applying the lifting-the-exponent formula to
+\((\mathsf{O719}_8)\) gives
+\[
+ v_p(G)=v_p(2^s-1)+v_p(d)=1.
+\]
+Thus \(p\nmid G/p\), which proves the permutation and the exact
+phase-blindness assertion.
+
+Finally \(x=y^s+1\), so \(y\) is a root of
+\(\mathcal P_{719}^{\mathrm{nest}}\).  Since
+\([B_0(y):B_0]=rs\), that polynomial is its minimal polynomial.
+The standard finite-field base-change theorem, with extension degree
+\(s\), splits it over \(C\) into
+\(\gcd(rs,s)=s\) irreducible factors of degree \(r\).  For a root
+\(y_g\) of any factor \(g\), the monic evaluation formula gives
+\[
+ g(1)=\Norm_{C(y_g)/C}(1+y_g).
+\]
+All factors are Frobenius conjugate over \(B_0\), so Frobenius preserves
+identity or nonidentity of the Euler phase.  This proves
+\((\mathsf{O719}_7)\).
+
+No new Lean declaration is claimed here: norm transitivity and the cyclic
+twist calculation are routine, while the load-bearing remaining step is the
+concrete degree-\(179\) factor evaluation.
+\end{proof}
+
 \begin{proposition}[ordinary affine orbit and the marked scalar]
 \label{prop:ordinary-affine-marked-scalar}
 Let \(Q\) be a power of two, let \(r\) be an odd prime with
@@ -7993,6 +8189,101 @@ All lower selected roots are coefficients in \(L\), while \(e\) and
 the summands \(LT^m\) prove \((\mathsf{RK}_8)\).
 \end{proof}
 
+\begin{proposition}[every nonzero cubic weight carries the Euler monodromy]
+\label{prop:cubic-current-weight-collapse}
+Retain Propositions~\ref{prop:cubic-coupled-radicals} and
+\ref{prop:cubic-normalized-singer}.  Put
+\[
+ L=L_k=\F_{q^3},\qquad N=q^2+q+1=\ell u,\qquad
+ \tau=\tau_k,\qquad \Omega=\tau^u,
+\]
+and choose \(v\in\overline L\) with \(v^\ell=\tau\).  Then
+\[
+ \boxed{v^{q^3}=\Omega^{q-1}v.}                       \tag{\(\mathsf{CWG}_1\)}
+\]
+For \(a\in L^\times\) and \(0<m<\ell\), the evaluated pure weight
+\(F=a v^m\) satisfies
+\[
+ \boxed{F^{q^3}=\Omega^{m(q-1)}F.}                    \tag{\(\mathsf{CWG}_2\)}
+\]
+Since \(\ord_\ell(q)=3\), both \(m\) and \(q-1\) are units modulo
+\(\ell\), and therefore
+\[
+ \boxed{
+ F\in L
+ \iff \Omega=1
+ \iff C\text{-failure at }\ell.}                    \tag{\(\mathsf{CWG}_3\)}
+\]
+The nonvanishing of \(F\) itself is automatic.  Equivalently, on the
+radical torsor a nonzero homogeneous regular function \(aV^m\) vanishes
+nowhere.
+
+The universal Kummer algebra is
+\[
+ \mathcal B=L[V]/(V^\ell-\tau)
+ =\bigoplus_{m\bmod\ell}LV^m.
+\]
+For \(P(X)\in L[X]\) with \(\deg P<\ell\), separability gives the exact
+orientation-free branch product
+\[
+ \boxed{
+ \operatorname{Res}_X(X^\ell-\tau,P(X))
+ =\prod_{\rho\in\mu_\ell}P(\rho v).}                 \tag{\(\mathsf{CWG}_4\)}
+\]
+It is independent of the chosen root \(v\), and is nonzero exactly when
+\(P\) vanishes on no root branch.  In particular, for \(a,b\in L\) and
+\(0<m<\ell\),
+\[
+ \boxed{
+ \operatorname{Res}_X(X^\ell-\tau,a+bX^m)
+ =a^\ell+b^\ell\tau^m.}                             \tag{\(\mathsf{CWG}_5\)}
+\]
+
+The coefficients may be any everywhere-defined ancestry expressions in
+\(L\).  Pure nonzero weights therefore provide only an invertible power of
+the original Euler bit, while root-choice-invariant regular functions reduce
+to weight-zero arithmetic; the orbit product of one mixed evaluation is the
+resultant above and forgets which branch could vanish.  This does not evaluate
+a special selected weight-zero resultant and therefore does not prove \(C_k\).
+External character sums, inequalities, and direct weight-zero evaluations
+remain outside the conclusion.
+\end{proposition}
+
+\begin{proof}
+Since \(q^3-1=(q-1)N=\ell(q-1)u\),
+\[
+ v^{q^3}
+ =v^{1+\ell(q-1)u}
+ =v\,\tau^{(q-1)u}
+ =\Omega^{q-1}v,
+\]
+proving \((\mathsf{CWG}_1)\); coefficients in \(L\) are fixed by
+\(q^3\)-powering, so \((\mathsf{CWG}_2)\) follows.  If \(F\in L\), then
+\((\mathsf{CWG}_2)\) and \(F\ne0\) give
+\(\Omega^{m(q-1)}=1\).  The exponent is a unit modulo \(\ell\), while
+\(\Omega\in\mu_\ell\), so \(\Omega=1\).  Conversely
+\((\mathsf{CWG}_1)\) shows that \(\Omega=1\) makes \(v\) fixed by the
+\(q^3\)-power Frobenius, hence \(v\in L\).  This proves
+\((\mathsf{CWG}_3)\).
+
+The power basis gives the weight decomposition of \(\mathcal B\).  Its
+geometric roots are the distinct \(\rho v\), and the first polynomial in
+the resultant is monic; the product formula for the resultant proves
+\((\mathsf{CWG}_4)\).  Finally \(\rho\mapsto\rho^m\) permutes
+\(\mu_\ell\), and characteristic two gives
+\[
+ \prod_{\rho\in\mu_\ell}(a+b\rho^mv^m)
+ =a^\ell+b^\ell v^{m\ell}
+ =a^\ell+b^\ell\tau^m,
+\]
+which proves \((\mathsf{CWG}_5)\).
+
+Lean kernel-checks the full-exponent factorization and both monodromy
+identities.  The finite-field fixed-point and Kummer/Euler criteria,
+together with separability, the resultant formula, and the invariant-ring
+interpretation, remain paper-level.
+\end{proof}
+
 \begin{proposition}[the top cubic fibre is one Kummer coordinate]
 \label{prop:cubic-torus-torsor}
 Retain Proposition~\ref{prop:cubic-iterated-fibre}, and put
@@ -11734,6 +12025,125 @@ Evaluation at \(a\) gives
 \]
 because \(S_d(a)=0\).  Hence \(S_d'(a)=b_F/a\), and evaluation of
 \((\mathsf{FQD}_9)\) gives \((\mathsf{FQD}_{10})\).
+\end{proof}
+
+\begin{proposition}[local uniformizers and quotient endpoint windows collapse]
+\label{prop:fermat-higher-quotient-window-collapse}
+Fix \(n\geq2\), and put
+\[
+ M=2^n,\qquad q=2^M,\qquad N=q+1,\qquad A=A_{n-1}.
+\]
+Let \(\ell\) be a proper prime divisor of \(N\), put \(d=N/\ell>1\),
+and assume the hypothetical failure \(A\mid S_d\).  Write
+\[
+ Q_d=\frac{S_d}{A},\qquad
+ Q_N^{\mathrm{full}}=\frac{S_N}{A}.
+\]
+The second quotient is unconditional, since
+\(S_N(a_{n-1})=1+\operatorname{Tr}(a_{n-1})=0\).
+
+For a nonzero polynomial \(P\), write
+\[
+ P^\vee(X)=X^{\deg P}P(X^{-1}).
+\]
+Then the two endpoint coefficient windows satisfy
+\[
+ \boxed{
+ Q_d\equiv Q_N^{\mathrm{full}}\pmod{X^{4M}},\qquad
+ Q_d^\vee\equiv (Q_N^{\mathrm{full}})^\vee\pmod{X^M}.}
+                                                               \tag{\(\mathsf{QW}_1\)}
+\]
+Thus the first \(4M\) low coefficients and the first \(M\) leading
+coefficients of the hypothetical quotient are exactly those of the
+unconditional full-Fermat cofactor; neither window depends on \(\ell\).
+
+There is also an all-order local statement.  Let
+\[
+ \widehat{\mathcal O}_A
+ =\widehat{\F_2[X]_{(A)}}
+\]
+be the \(A\)-adic completion.  The factorization \(S_d=AQ_d\) has
+\(Q_d\in\widehat{\mathcal O}_A^\times\), and for every \(r\geq1\),
+\[
+ \boxed{(S_d^r)=(A^r)\quad\text{in }\widehat{\mathcal O}_A.}
+                                                               \tag{\(\mathsf{QW}_2\)}
+\]
+Choose a coefficient-field identification
+\(\widehat{\mathcal O}_A\simeq\F_q[[T]]\), with \(A\mapsto T\).  Then
+\[
+ S_d\longmapsto T\,U_d(T),\qquad
+ U_d(0)=Q_d(a_{n-1})
+       =\frac{b_F}{a_{n-1}A'(a_{n-1})}\ne0,             \tag{\(\mathsf{QW}_3\)}
+\]
+and substitution \(T\mapsto T\,U_d(T)\) is a continuous
+\(\F_q\)-algebra automorphism.
+
+Consequently no argument depending only on the unmarked completed local
+ring, its principal-ideal filtration, or the two endpoint windows in
+\((\mathsf{QW}_1)\) can exclude failure.  This does not erase the higher
+digits in the fixed \(A\)-coordinate: a relation coupling them to the global
+coordinate \(X\), to middle coefficients of \(Q_d\), or to lower Conway
+generators is not invariant under this reparametrization and remains a
+possible ancestry-sensitive input.
+\end{proposition}
+
+\begin{proof}
+The Euler--Lucas congruence gives
+\[
+ \ell\equiv1\pmod{2^{n+2}}.
+\]
+Since \(N\equiv1\pmod{2^{n+2}}\), also
+\[
+ d=1+4Mh
+\]
+for an integer \(h\geq1\).  The trailing-zero identity gives
+\[
+ S_d
+ =S_{h+1}^{\,4M}+T_{n+2}(X)S_h^{\,4M}.
+\]
+Every positive-index Fibonacci polynomial has constant coefficient one.
+Hence, modulo \(X^{4M}\), both displayed Frobenius powers are one, and
+\[
+ S_d\equiv1+T_{n+2}(X)\pmod{X^{4M}}.
+\]
+On the other hand
+\[
+ S_N=1+T_M(X)
+ \equiv1+T_{n+2}(X)\pmod{X^{4M}},
+\]
+because \(M\geq n+2\).  Therefore
+\(A(Q_d-Q_N^{\mathrm{full}})\) is divisible by \(X^{4M}\).  Since \(A(0)=1\),
+\(A\) is a unit modulo \(X^{4M}\), proving the first congruence.
+
+Put \(D=\deg S_d=(d-1)/2=2Mh\).  The standard coefficient formula is
+\[
+ [X^{D-j}]S_d=\binom{D+j}{2j}\pmod2.
+\]
+For \(0<j<M\), the low \(n+1\) binary digits of \(D+j\) are those of
+\(j\), while the highest nonzero digit of \(2j\) is one position above
+the highest nonzero digit of \(j\).  Lucas's theorem therefore makes the
+displayed coefficient zero.  Hence
+\(S_d^\vee\equiv1\pmod{X^M}\).  The sparse formula for \(S_N\) likewise
+gives \(S_N^\vee\equiv1\pmod{X^M}\).  Reciprocal factorization yields
+\[
+ S_d^\vee=A^\vee Q_d^\vee,\qquad
+ S_N^\vee=A^\vee(Q_N^{\mathrm{full}})^\vee.
+\]
+Since \(A^\vee(0)=1\), cancellation modulo \(X^M\) proves the second
+congruence.
+
+Finally \(S_d\) is squarefree, so \(A\nmid Q_d\); hence \(Q_d\) is a
+unit in the \(A\)-adic completion, proving \((\mathsf{QW}_2)\).
+The residue in \((\mathsf{QW}_3)\) is
+Corollary~\ref{cor:fermat-first-quotient-digit}.  A formal series
+\(T\,U_d(T)\) with nonzero linear coefficient has a unique compositional
+inverse, which proves the automorphism assertion.
+
+Lean kernel-checks the unit-rescaling statement for every ideal power,
+quotient-window cancellation by a common unit, and the nilpotent
+trailing-zero identity.  The Fibonacci coefficient formula, Lucas window,
+completed-local-ring identification, and selected specialization remain
+paper-level.
 \end{proof}
 
 \begin{proposition}[Dickson all-or-nothing factorization]
@@ -20181,7 +20591,7 @@ of \(x,y,z\) are one.  Their cubic is therefore
  =(X+1)^3.
 \]
 Since \(E_k\) is a field, \(x=\Omega=1\).  Conversely,
-\(\mathcal S(1)=1+1+1=1\) in characteristic two.  Proposition
+\(\mathcal S(1)=1+1+1=1\) in characteristic two.
 Proposition~\ref{prop:dk-weighted-fibre} identifies \(\Omega=1\) with failure,
 proving \((\mathsf{ICT}_1)\)--\((\mathsf{ICT}_2)\).
 
@@ -20190,6 +20600,115 @@ Finally, summing the selected cubic equation over the three
 \((\mathsf{ICT}_3)\), with its initial values obtained from the first
 two power sums.  Since \(\Omega=u^e\), equation
 \((\mathsf{ICT}_4)\) follows.
+\end{proof}
+
+\begin{proposition}[the immediate cubic phase trace is lossless]
+\label{prop:dk-cubic-phase-orbit}
+Retain Proposition~\ref{prop:dk-cubic-phase-trace}.  For
+\(z\in\mu_\ell\), put
+\[
+ \mathcal S(z)=z+z^Q+z^{Q^2}\in\F_Q.
+\]
+The congruences
+\[
+ t\equiv-Q^2,\qquad Qt\equiv-1,\qquad Q^2t\equiv-Q\pmod\ell
+\]
+give
+\[
+ \boxed{
+ \mathcal S(z)^t=\mathcal S(z^{-1})
+ =z^{-1}+z^{-Q}+z^{-Q^2}.}                          \tag{\(\mathsf{ICO}_1\)}
+\]
+Consequently the trace separates complete \(Q\)-Frobenius orbits:
+\[
+ \boxed{
+ \mathcal S(z)=\mathcal S(w)
+ \iff w\in\{z,z^Q,z^{Q^2}\}.}                       \tag{\(\mathsf{ICO}_2\)}
+\]
+Indeed the orbit polynomial is
+\[
+ \boxed{
+ \prod_{i=0}^2(X+z^{Q^i})
+ =X^3+\mathcal S(z)X^2+\mathcal S(z)^tX+1.}          \tag{\(\mathsf{ICO}_3\)}
+\]
+
+The quadratic norm of this lossless coordinate has the exact factorization
+\[
+ \boxed{
+ \mathcal S(z)^{t+1}+1
+ =(z+z^Q)(z+z^{Q^2})(z^Q+z^{Q^2}).}                 \tag{\(\mathsf{ICO}_4\)}
+\]
+Because \(\ord_\ell(Q)=3\), it follows that
+\[
+ \boxed{
+ \Norm_{\F_Q/\F_t}(\mathcal S(z))=1
+ \iff z=1.}                                         \tag{\(\mathsf{ICO}_5\)}
+\]
+For \(z\ne1\), the cubic in \((\mathsf{ICO}_3)\) is irreducible over
+\(\F_Q\) and has nonzero discriminant
+\[
+ \operatorname{disc}
+ \bigl(X^3+\mathcal S(z)X^2+\mathcal S(z)^tX+1\bigr)
+ =\bigl(\mathcal S(z)^{t+1}+1\bigr)^2.              \tag{\(\mathsf{ICO}_6\)}
+\]
+For \(z=1\), it is \((X+1)^3\).
+
+Specializing \(z=\Omega=u_k^e\) and
+\(P_e=\mathcal S(\Omega)\) gives
+\[
+ \boxed{
+ D'_k\text{ fails at }\ell
+ \iff P_e^{t+1}=1.}                                  \tag{\(\mathsf{ICO}_7\)}
+\]
+Moreover the complete shifted power-sum recurrence supplies no further
+condition:
+\[
+ \boxed{
+ P_e=1
+ \iff P_{n+e}=P_n\quad\text{for every }n\geq0.}      \tag{\(\mathsf{ICO}_8\)}
+\]
+Thus \(\mathcal S\) is a complete invariant of the \(Q\)-Frobenius orbit.
+The named norm, discriminant, irreducibility, and shifted-periodicity
+conditions are equivalent tests only for the binary event \(\Omega=1\).
+Any phase-only orbit invariant factors through \(\mathcal S\), but need not
+itself be injective.  None of these tests evaluates \(P_e\), and hence none
+proves the selected nonvanishing.  Nonlinear expressions involving \(u_k\)
+before Euler projection or genuinely external ancestry input remain outside
+this phase-saturation statement.
+\end{proposition}
+
+\begin{proof}
+The congruences preceding \((\mathsf{ICO}_1)\) follow from
+\(t^2-t+1\equiv0\pmod\ell\), and give that identity after raising the
+three summands to the \(t\)-th power.  The three conjugates have product
+one.  If \(\mathcal S(z)=\mathcal S(w)\), then
+\((\mathsf{ICO}_1)\) also gives equality of their inverse traces, so the
+two norm-one triples have all three elementary symmetric functions equal.
+Their orbit cubics coincide, proving \((\mathsf{ICO}_2)\); the converse is
+immediate.
+
+Expansion in characteristic two gives
+\((\mathsf{ICO}_4)\).  The right side vanishes exactly when two members of
+the \(Q\)-orbit coincide.  Since \(Q\) has order three modulo \(\ell\), this
+happens exactly at \(z=1\), proving \((\mathsf{ICO}_5)\).  The same
+root-difference product is the square root of the cubic discriminant, which
+proves \((\mathsf{ICO}_6)\); for \(z\ne1\), the three-element Frobenius orbit
+also proves irreducibility.
+
+Proposition~\ref{prop:dk-cubic-phase-trace} gives
+\(P_e=1\iff\Omega=1\), and \((\mathsf{ICO}_5)\) gives
+\((\mathsf{ICO}_7)\).  If \(P_e=1\), then \(\Omega=u_k^e=1\), so every
+conjugate of \(u_k\) has \(e\)-th power one and
+\(P_{n+e}=P_n\) for every \(n\).  Conversely the case \(n=0\) gives
+\(P_e=P_0=1\).  This proves \((\mathsf{ICO}_8)\).
+
+Lean kernel-checks the characteristic-two half-discriminant/root-difference
+factorization and collision criterion, distinguished-root membership from
+equal norm-one trace and inverse trace, and the forward shifted power-sum
+periodicity once all powered roots are one.  The polynomial-discriminant
+identity, finite-field Frobenius congruences, orbit-separation specialization,
+irreducibility, converse periodicity implication, and identification with the
+selected phase remain paper-level.
 \end{proof}
 
 \begin{remark}[the cubic trace is a compression, not an evaluation]
@@ -22521,6 +23040,15 @@ that under failure the first \(A\)-adic quotient digit is the existing
 choice-free Kummer root divided by \(aA'(a)\).  A surviving coefficient
 proof must use higher \(A\)-adic digits, a genuinely global relation in the
 unreduced quotient, or directly force one parity block nonzero.
+Proposition~\ref{prop:fermat-higher-quotient-window-collapse} now makes
+that remaining local boundary exact.  The first \(4M\) low coefficients
+and first \(M\) leading coefficients of the hypothetical quotient agree
+with the unconditional full-Fermat cofactor, while in the completed
+local ring \(S_d\) is merely the parameter \(A\) multiplied by a unit.
+All principal-ideal powers and unmarked completed-local invariants are
+therefore unchanged by a formal-coordinate automorphism.  Fixed-coordinate
+higher digits, middle/global quotient coefficients, and genuinely
+ancestry-sensitive relations remain outside this collapse.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -22688,6 +23216,16 @@ result.  The checkout's source-audit script verifies the historical blob
 hashes and both endpoint pairs.  Since no final coefficient vector was
 retained upstream, these runs corroborate rather than constitute the local
 certificate.
+Proposition~\ref{prop:ordinary-719-nested-compression} gives the exact
+next-row boundary.  The certified \(359\)-class constructs a root
+\(y^{359}=1+\kappa_{179}\); its inner degree-\(179\) norm reduces
+\(m_{719}=1\) to one Euler test in \(\F_{2^{7029220}}\).  Equivalently,
+one may take any degree-\(179\) factor of
+\((T^{359}+1)^{179}+(\kappa_{89}+1)\) over that field and evaluate it at
+one.  The two lower norm shadows are explicit, but twisting inside their
+fixed norm fibre realizes every \(719\)-phase, so they cannot decide the
+row.  No factor or phase artifact is presently available; \(m_{719}=1\)
+remains open.
 Proposition~\ref{prop:ordinary-dependency-descent} then pushes any
 hypothetical failure through each odd-Kummer singleton
 \(0/1\)-excess dependency satisfying its hypotheses by taking all
@@ -22826,6 +23364,15 @@ units modulo \(\ell\), and
 all root-choice invariants return to the coefficient field.  What remains is
 a nonzero-weight correlation uniform on that one torsor, an external
 character-sum estimate, or a direct weight-zero evaluation.
+Proposition~\ref{prop:cubic-current-weight-collapse} closes the regular
+pure-weight version of that escape.  Every evaluated nonzero weight has
+full-field monodromy an invertible power of the original Euler phase, so
+its field-of-definition test is precisely the same failure bit.  The
+root-orbit product of a mixed polynomial is the weight-zero resultant
+\(\operatorname{Res}(X^\ell-\tau_k,P)\): it detects whether some branch
+vanishes but forgets which one.  Thus a mixed regular construction can
+only move the problem to a selected weight-zero resultant that still
+requires direct evaluation.
 Proposition~\ref{prop:cubic-torus-torsor} identifies the top fibre with
 one \(T[\ell]\)-torsor and its complete unresolved coordinate with
 \[
@@ -22961,6 +23508,13 @@ selected twisted cubic this trace is the terminal value of an explicit
 third-order recurrence with coefficients \(c_k,c_k,u_{k-1}\).  This replaces
 the earlier six-term detector by three terms but does not evaluate the
 terminal recurrence value; it is the same selected Dickson obstruction.
+Proposition~\ref{prop:dk-cubic-phase-orbit} proves that this compression is
+lossless on the entire current phase orbit.  Its quadratic norm, orbit-cubic
+discriminant, irreducibility, and shifted power-sum periodicity all distinguish
+\(\Omega=1\) from \(\Omega\ne1\), but each is an equivalent restatement of
+the binary failure condition on \(P_e\), not a determination of that value.
+The complete trace \(\mathcal S\) records the phase orbit, while the named
+binary tests do not refine the detector without evaluating it.
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
 Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}
@@ -23115,8 +23669,10 @@ receive independent value tests.  In particular \(m_{359}=1\) is a
 source-pinned table value and now also has the independent exact
 Hilbert-root certificate of
 Proposition~\ref{prop:ordinary-359-hilbert-certificate}.
-The next unsupported carry is \(\alpha_{719}\), and the
-implementation refuses to cross it.
+The next unsupported carry is \(\alpha_{719}\), and the implementation
+refuses to cross it.  Proposition~\ref{prop:ordinary-719-nested-compression}
+reduces that row to one explicit degree-\(179\) factor evaluation, but no
+factor or phase certificate is currently present.
 
 The contributor-linked extended A380496 auxiliary table~\cite{OEIS,Peeters}
 also records

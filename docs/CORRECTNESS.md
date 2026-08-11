@@ -124,6 +124,14 @@ complete historical runs of Peeters's pinned exact sparse calculator, both
 ending with the same nonidentity support size.  Those external runs are
 source-pinned corroboration, not part of the local certificate.
 
+The next ordinary row `p=719` is a paper-level exact reduction, not a
+certificate.  Using the certified 359-class, the paper reduces it to a
+degree-179 factor of `(T^359+1)^179+(kappa_89+1)` over
+`F_(2^7029220)` and one Euler test at that factor's value at one.  Its lower
+norm identities and `mu_719` phase-blindness are proved in the paper, but no
+factor artifact or selected phase evaluation is checked in this repository;
+`m_719=1` remains open.
+
 `Ogdoad/GameExterior.lean` kernel-checks the algebraic core of the resolved
 `tisn` theorem.  From explicit roots `ny=t`, `nz=x` and the torsion relation
 `nt=0`, it proves in an arbitrary associative ring that an additive grade-one

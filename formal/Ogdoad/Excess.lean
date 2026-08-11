@@ -1491,6 +1491,155 @@ theorem cubic_phase_of_trace_inverse_trace_eq_one
 
 end CubicPhaseTrace
 
+section CubicPhaseOrbit
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- In characteristic two, the reciprocal-cubic half-discriminant coordinate
+is the product of the three pairwise root differences, which are sums. -/
+theorem cubic_phase_discriminant_factorization (x y z : F) :
+    (x + y + z) * (x * y + x * z + y * z) + x * y * z =
+      (x + y) * (x + z) * (y + z) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  linear_combination (x * y * z) * htwo
+
+/-- The half-discriminant coordinate vanishes exactly when two roots collide. -/
+theorem cubic_phase_discriminant_eq_zero_iff
+    (x y z : F) :
+    (x + y + z) * (x * y + x * z + y * z) + x * y * z = 0 ↔
+      x = y ∨ x = z ∨ y = z := by
+  rw [cubic_phase_discriminant_factorization]
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hself (a : F) : a + a = 0 := by
+    calc
+      a + a = (2 : F) * a := by ring
+      _ = 0 := by rw [htwo]; simp
+  have hneg (a : F) : -a = a := by
+    rw [neg_eq_iff_add_eq_zero]
+    exact hself a
+  constructor
+  · intro h
+    rcases mul_eq_zero.mp h with hleft | hyz
+    · rcases mul_eq_zero.mp hleft with hxy | hxz
+      · left
+        exact (eq_neg_of_add_eq_zero_left hxy).trans (hneg y)
+      · right; left
+        exact (eq_neg_of_add_eq_zero_left hxz).trans (hneg z)
+    · right; right
+      exact (eq_neg_of_add_eq_zero_left hyz).trans (hneg z)
+  · rintro (rfl | rfl | rfl)
+    · rw [hself]; simp
+    · rw [hself]; simp
+    · rw [hself]; simp
+
+/-- Equality of all three elementary symmetric coordinates forces one root
+of the second cubic to lie among the roots of the first cubic. -/
+theorem cubic_root_mem_of_symmetric_eq
+    (x₀ x₁ x₂ y₀ y₁ y₂ : F)
+    (htrace : x₀ + x₁ + x₂ = y₀ + y₁ + y₂)
+    (hpair : x₀ * x₁ + x₀ * x₂ + x₁ * x₂ =
+      y₀ * y₁ + y₀ * y₂ + y₁ * y₂)
+    (hnorm : x₀ * x₁ * x₂ = y₀ * y₁ * y₂) :
+    y₀ = x₀ ∨ y₀ = x₁ ∨ y₀ = x₂ := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hself (a : F) : a + a = 0 := by
+    calc
+      a + a = (2 : F) * a := by ring
+      _ = 0 := by rw [htwo]; simp
+  have hneg (a : F) : -a = a := by
+    rw [neg_eq_iff_add_eq_zero]
+    exact hself a
+  have hprod : (y₀ + x₀) * (y₀ + x₁) * (y₀ + x₂) = 0 := by
+    calc
+      (y₀ + x₀) * (y₀ + x₁) * (y₀ + x₂) =
+          y₀ ^ 3 + (x₀ + x₁ + x₂) * y₀ ^ 2 +
+            (x₀ * x₁ + x₀ * x₂ + x₁ * x₂) * y₀ +
+              x₀ * x₁ * x₂ := by
+                simpa using dk_cubic_from_roots y₀ x₀ x₁ x₂
+      _ = y₀ ^ 3 + (y₀ + y₁ + y₂) * y₀ ^ 2 +
+            (y₀ * y₁ + y₀ * y₂ + y₁ * y₂) * y₀ +
+              y₀ * y₁ * y₂ := by rw [htrace, hpair, hnorm]
+      _ = (y₀ + y₀) * (y₀ + y₁) * (y₀ + y₂) := by
+            symm
+            simpa using dk_cubic_from_roots y₀ y₀ y₁ y₂
+      _ = 0 := by rw [hself]; simp
+  rcases mul_eq_zero.mp hprod with h01 | h02
+  · rcases mul_eq_zero.mp h01 with h0 | h1
+    · left
+      exact (eq_neg_of_add_eq_zero_left h0).trans (hneg x₀)
+    · right; left
+      exact (eq_neg_of_add_eq_zero_left h1).trans (hneg x₁)
+  · right; right
+    exact (eq_neg_of_add_eq_zero_left h02).trans (hneg x₂)
+
+/-- For norm-one triples, equality of trace and inverse trace puts a
+distinguished root of the second triple among the roots of the first.  This is
+the algebraic membership core used in the Frobenius-orbit separation. -/
+theorem cubic_phase_orbit_mem_of_trace_inverse_trace_eq
+    (x₀ x₁ x₂ y₀ y₁ y₂ : F)
+    (hxnorm : x₀ * x₁ * x₂ = 1)
+    (hynorm : y₀ * y₁ * y₂ = 1)
+    (htrace : x₀ + x₁ + x₂ = y₀ + y₁ + y₂)
+    (hinvtrace : x₀⁻¹ + x₁⁻¹ + x₂⁻¹ =
+      y₀⁻¹ + y₁⁻¹ + y₂⁻¹) :
+    y₀ = x₀ ∨ y₀ = x₁ ∨ y₀ = x₂ := by
+  have x₀ne : x₀ ≠ 0 := by
+    intro h
+    rw [h] at hxnorm
+    simp at hxnorm
+  have x₁ne : x₁ ≠ 0 := by
+    intro h
+    rw [h] at hxnorm
+    simp at hxnorm
+  have x₂ne : x₂ ≠ 0 := by
+    intro h
+    rw [h] at hxnorm
+    simp at hxnorm
+  have y₀ne : y₀ ≠ 0 := by
+    intro h
+    rw [h] at hynorm
+    simp at hynorm
+  have y₁ne : y₁ ≠ 0 := by
+    intro h
+    rw [h] at hynorm
+    simp at hynorm
+  have y₂ne : y₂ ≠ 0 := by
+    intro h
+    rw [h] at hynorm
+    simp at hynorm
+  have hxpair : x₀ * x₁ + x₀ * x₂ + x₁ * x₂ =
+      x₀⁻¹ + x₁⁻¹ + x₂⁻¹ := by
+    calc
+      x₀ * x₁ + x₀ * x₂ + x₁ * x₂ =
+          (x₀⁻¹ + x₁⁻¹ + x₂⁻¹) * (x₀ * x₁ * x₂) := by
+            field_simp [x₀ne, x₁ne, x₂ne]
+            all_goals ring
+      _ = x₀⁻¹ + x₁⁻¹ + x₂⁻¹ := by rw [hxnorm]; simp
+  have hypair : y₀ * y₁ + y₀ * y₂ + y₁ * y₂ =
+      y₀⁻¹ + y₁⁻¹ + y₂⁻¹ := by
+    calc
+      y₀ * y₁ + y₀ * y₂ + y₁ * y₂ =
+          (y₀⁻¹ + y₁⁻¹ + y₂⁻¹) * (y₀ * y₁ * y₂) := by
+            field_simp [y₀ne, y₁ne, y₂ne]
+            all_goals ring
+      _ = y₀⁻¹ + y₁⁻¹ + y₂⁻¹ := by rw [hynorm]; simp
+  apply cubic_root_mem_of_symmetric_eq x₀ x₁ x₂ y₀ y₁ y₂ htrace
+  · rw [hxpair, hypair, hinvtrace]
+  · rw [hxnorm, hynorm]
+
+omit [CharP F 2] in
+/-- Once the powered conjugates are one, the entire cubic power-sum sequence
+returns with that period. -/
+theorem cubic_power_sum_periodic_of_pow_eq_one
+    (x y z : F) (e n : Nat)
+    (hx : x ^ e = 1) (hy : y ^ e = 1) (hz : z ^ e = 1) :
+    x ^ (n + e) + y ^ (n + e) + z ^ (n + e) =
+      x ^ n + y ^ n + z ^ n := by
+  rw [pow_add, pow_add, pow_add, hx, hy, hz]
+  simp
+
+end CubicPhaseOrbit
+
 section KummerPowerBasis
 
 variable {F V I : Type*} [Field F] [AddCommGroup V] [Module F V]
@@ -1746,6 +1895,56 @@ theorem quotient_defects_of_exact_factor
         (by simpa using hS) (by simpa using hderiv) hnext
 
 end FermatFibonacciQuotientDefectCore
+
+section FermatQuotientWindowCore
+
+variable {R : Type*} [CommRing R]
+
+/-- Multiplying a local parameter by an invertible factor preserves every
+power of its principal ideal.  The explicit inverse keeps the statement
+independent of localization APIs. -/
+theorem unit_rescaling_power_dvd_iff
+    (A U V S z : R) (j : Nat) (hS : S = A * U) (hUV : U * V = 1) :
+    S ^ j ∣ z ↔ A ^ j ∣ z := by
+  constructor
+  · rintro ⟨c, rfl⟩
+    refine ⟨U ^ j * c, ?_⟩
+    rw [hS, mul_pow]
+    ring
+  · rintro ⟨c, rfl⟩
+    refine ⟨V ^ j * c, ?_⟩
+    rw [hS, mul_pow]
+    calc
+      A ^ j * c = A ^ j * ((U * V) ^ j * c) := by rw [hUV, one_pow, one_mul]
+      _ = (A ^ j * U ^ j) * (V ^ j * c) := by rw [mul_pow]; ring
+
+/-- Equality of two dividends in a truncated coefficient ring, together
+with invertibility of their common factor, forces equality of the quotient
+windows. -/
+theorem quotient_window_eq_of_inverse
+    (A Ainv Q₁ Q₂ S₁ S₂ : R)
+    (hInv : Ainv * A = 1)
+    (h₁ : S₁ = A * Q₁) (h₂ : S₂ = A * Q₂)
+    (hWindow : S₁ = S₂) :
+    Q₁ = Q₂ := by
+  calc
+    Q₁ = (Ainv * A) * Q₁ := by rw [hInv, one_mul]
+    _ = Ainv * S₁ := by rw [h₁]; ring
+    _ = Ainv * S₂ := by rw [hWindow]
+    _ = (Ainv * A) * Q₂ := by rw [h₂]; ring
+    _ = Q₂ := by rw [hInv, one_mul]
+
+/-- The high-coefficient-window core: a quotient whose product with a unit
+is one is the inverse of that unit. -/
+theorem quotient_window_eq_inverse
+    (A Ainv Q : R) (hInv : Ainv * A = 1) (hAQ : A * Q = 1) :
+    Q = Ainv := by
+  calc
+    Q = (Ainv * A) * Q := by rw [hInv, one_mul]
+    _ = Ainv * (A * Q) := by ring
+    _ = Ainv := by rw [hAQ, mul_one]
+
+end FermatQuotientWindowCore
 
 variable {R : Type*} [CommRing R]
 
@@ -2799,6 +2998,56 @@ theorem cubic_coupled_root_scaling
 
 end CubicCoupledKummerRoots
 
+section CubicCurrentWeight
+
+/-- Removing a current factor `q^2+q+1 = ell*u` from the cubic full-field
+exponent gives the monodromy exponent used below. -/
+theorem cubic_current_full_exponent_factorization
+    (q ell u : Nat) (hq : 1 ≤ q)
+    (hN : q ^ 2 + q + 1 = ell * u) :
+    q ^ 3 = 1 + ell * ((q - 1) * u) := by
+  have hq' : q - 1 + 1 = q := Nat.sub_add_cancel hq
+  nlinarith
+
+variable {G : Type*} [CommGroup G]
+
+/-- A chosen `ell`-th root of the normalized Singer coordinate has
+full-field Frobenius monodromy equal to the `(q-1)`-st power of the
+selected Euler phase `Omega = tau^u`. -/
+theorem cubic_current_root_monodromy
+    (v tau Omega : G) (ell q u : Nat)
+    (hv : v ^ ell = tau) (hOmega : Omega = tau ^ u)
+    (hfactor : q ^ 3 = 1 + ell * ((q - 1) * u)) :
+    v ^ (q ^ 3) = Omega ^ (q - 1) * v := by
+  rw [hfactor, pow_add, pow_one]
+  calc
+    v * v ^ (ell * ((q - 1) * u)) =
+        v * (v ^ ell) ^ ((q - 1) * u) := by rw [pow_mul]
+    _ = v * tau ^ ((q - 1) * u) := by rw [hv]
+    _ = v * (tau ^ u) ^ (q - 1) := by
+      congr 1
+      rw [← pow_mul, Nat.mul_comm (q - 1) u]
+    _ = Omega ^ (q - 1) * v := by rw [← hOmega]; ac_rfl
+
+/-- Every pure nonzero Kummer weight carries the corresponding invertible
+power of the same current Euler monodromy. -/
+theorem cubic_current_pure_weight_monodromy
+    (v Omega coeff : G) (m q : Nat)
+    (hv : v ^ (q ^ 3) = Omega ^ (q - 1) * v)
+    (hcoeff : coeff ^ (q ^ 3) = coeff) :
+    (v ^ m * coeff) ^ (q ^ 3) =
+      Omega ^ (m * (q - 1)) * (v ^ m * coeff) := by
+  calc
+    (v ^ m * coeff) ^ (q ^ 3) =
+        (Omega ^ (q - 1)) ^ m * (v ^ m * coeff) := by
+          exact dk_eigenweight_power_monodromy
+            v (Omega ^ (q - 1)) coeff m (q ^ 3) hv hcoeff
+    _ = Omega ^ (m * (q - 1)) * (v ^ m * coeff) := by
+          congr 1
+          rw [← pow_mul, Nat.mul_comm (q - 1) m]
+
+end CubicCurrentWeight
+
 section CubicFrobeniusTwistCore
 
 variable {E : Type*} [Field E]
@@ -3408,6 +3657,46 @@ theorem fermat_complement_indices_not_dvd
     omega
 
 end FermatFibonacciCompression
+
+section FermatQuotientWindowFibonacciCore
+
+variable {R : Type*} [CommRing R]
+
+/-- Every positive-index Fibonacci value has constant coefficient one:
+abstractly it is `1 + x*z`. -/
+theorem fibPolyValue_eq_one_add_mul (x : R) (r : Nat) :
+    ∃ z : R, fibPolyValue x (r + 1) = 1 + x * z := by
+  induction r with
+  | zero =>
+      refine ⟨0, ?_⟩
+      simp [fibPolyValue]
+  | succ r ih =>
+      obtain ⟨z, hz⟩ := ih
+      refine ⟨z + fibPolyValue x r, ?_⟩
+      rw [show r + 1 + 1 = r + 2 by omega]
+      rw [show fibPolyValue x (r + 2) =
+          fibPolyValue x (r + 1) + x * fibPolyValue x r by
+            simp only [fibPolyValue]]
+      rw [hz]
+      ring
+
+variable [CharP R 2]
+
+/-- If `x^(2^t)=0`, the exact trailing-zero formula loses all dependence on
+the positive cofactor index. -/
+theorem fibPolyValue_trailing_zero_of_nilpotent
+    (x : R) (t r : Nat) (hx : x ^ (2 ^ t) = 0) :
+    fibPolyValue x ((2 ^ t) * (r + 1) + 1) =
+      1 + partialFrobeniusTrace x t := by
+  obtain ⟨u, hu⟩ := fibPolyValue_eq_one_add_mul x r
+  obtain ⟨v, hv⟩ := fibPolyValue_eq_one_add_mul x (r + 1)
+  have hpow (z : R) : (1 + x * z) ^ (2 ^ t) = 1 := by
+    rw [add_pow_expChar_pow, one_pow, mul_pow, hx]
+    simp
+  rw [fibPolyValue_trailing_zero_compression, hu, hv, hpow, hpow]
+  ring
+
+end FermatQuotientWindowFibonacciCore
 
 section FermatShiftBlockCore
 
