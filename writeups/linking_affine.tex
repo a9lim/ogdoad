@@ -129,7 +129,9 @@ actual odd-CLOSE ancestry step.  The zero-charge/even-$U$ half of (A) is now
 excluded by feeding every delayed front close into the complete fixed-front
 contraction; universality on the even untouched set would contradict the
 selected odd next front.  At the remaining odd--odd (A) spike or at a (B$'$)
-predecessor, however, the frozen
+predecessor, every off-spine puncture is now known to carry a completely
+neutral strategy tree.  A three-real explicit response tree shows that the
+odd-spike coefficient is nevertheless not descendant-local, so the frozen
 ko-wall defect can require cancellation across the entire defender fan.  An
 exact secondary-star strategy also rules out the tempting repair which uses
 every immediate (B$'$) OPEN face once; several faces individually contain
@@ -1101,6 +1103,103 @@ legal close has charge
 If $B(x,v)=0$, that close creates a bad child after deleting the real front
 $x$, with fewer live real vertices than $h$.  Primary minimality excludes
 this, so $B(x,v)=1$ as claimed.
+\end{proof}
+
+The same argument extends from the first response to every transition in an
+off-spine subtree.
+
+\begin{proposition}[the odd spike exports neutral punctured trees]
+\label{prop:a-neutral-punctures}
+\PROVED{} In the remaining case~(A),
+\[
+ r_g=0\xrightarrow{C_y,1}r_h=1\xrightarrow{C_x,1}0,
+ \qquad \deg_U(y)=\deg_U(x)=1,
+\]
+fix any $v\in U$ and let $q_v$ be the child of $g$ after the defender OPEN
+$O_v$.  The entire strategy subtree below $q_v$ is scalar-neutral: every
+prescribed attacker transition and every legal defender transition has
+$B$-charge zero, and every terminal residual is zero.
+
+Consequently, if the first prescribed move below $q_v$ is $C_y$, then
+$B(y,v)=B(x,v)=1$.  If it is $O_w$, then
+\[
+ B(y,v)+B(y,w)=1.
+\]
+More generally, at every later defender checkpoint before $y$ closes its
+untouched $y$-degree is zero.  Once $y$ closes, the remaining subtree is
+still completely neutral.  If the attacker closes $y$ after an odd OPEN word
+with opened set $P$, the defender's legal next $C_x$ gives in addition
+$B(x,P)=1$.
+\end{proposition}
+
+\begin{proof}
+OPEN has charge zero, so $r_{q_v}=r_g=0$.  Until $y$ closes the FIFO front
+remains $y$ and every preceding move is an OPEN.  At any eventual delayed
+$C_y$, at least $v$ has moved from the untouched set to the queue.  The close
+removes the real vertex $y$, so its child has the same active-real count as
+$h$ and strictly smaller $\rho$.  A unit charge would change residual zero
+to residual one and produce a lexicographically smaller bad node.  Hence
+every such $C_y$ has charge zero.  Its child has residual zero, and every
+strict descendant has no more active real vertices and smaller rank than
+$h$.  Any later unit transition would therefore create a smaller bad node.
+Thus all later transitions and terminal residuals are zero, proving
+neutrality of the whole punctured subtree.
+
+For an immediate $C_y$ after $O_v$, zero charge says
+$1+B(y,v)=0$.  The next node is defender-controlled with front $x$; its
+legal $C_x$ must also have charge zero, so $1+B(x,v)=0$.  If the attacker
+instead opens $w$, the defender may immediately close $y$, and neutrality
+gives $1+B(y,v)+B(y,w)=0$.  The same argument at an arbitrary later defender
+checkpoint gives zero untouched $y$-degree.  Finally, when the attacker
+itself closes $y$ after opening $P$, the resulting node is
+defender-controlled and neutral; its legal $C_x$ has charge
+$\deg_{U-P}(x)=1+B(x,P)$, which must vanish.
+\end{proof}
+
+This is the strongest possible descendant-only statement: even these entire
+neutral trees do not force the selected relative coefficient.
+
+\begin{proposition}[the odd-spike coefficient is not descendant-local]
+\label{prop:a-descendant-no-go}
+\PROVED{} Proposition~\ref{prop:a-neutral-punctures}, even together with the
+complete fixed-front subtree and the neutral selected tail, does not imply
+$b_h\in M_h$.  This fails on three real vertices plus the isolated dummy by
+an explicit legal response tree.
+\end{proposition}
+
+\begin{proof}
+Take real vertices $y,x,a$, isolated dummy $d$, support edges $ya,xa$, and
+the defender state
+\[
+ g:\qquad U=\{a,d\},\qquad Q=(y,x),\qquad \mathsf{ko}=0.
+\]
+On the selected branch the defender plays $C_y$, the attacker plays $C_x$,
+and thereafter use any strategy on the edgeless residual board $\{a,d\}$.
+Both closes have charge one and every later transition has charge zero.  Thus
+$g$ has residual zero, the intermediate node $h$ has residual one, and the
+child of $C_x$ is completely neutral.
+
+After the off-spine reply $O_a$, prescribe $C_y$.  The only untouched vertex
+is the isolated dummy, so this close and every later close have charge zero.
+After the other reply $O_d$, prescribe $O_a$; the untouched set is then empty
+and again every later close has charge zero.  Hence both punctured trees are
+completely neutral and $h$ is the only bad node in this local response tree.
+
+Now use the universal real edge space, not merely the scalar support.  At the
+relative frontier $\{h,q_a,q_d\}$, every terminal below $h$ has moment
+$ya+xa$: $C_y$ separates $y$ from the still-untouched $a$, $C_x$ separates
+$x$ from $a$, and the residual board has only one real vertex.  Every
+terminal below either off-spine child has moment zero: in the $O_a$ branch
+$a$ overlaps both old fronts, and in the $O_d,O_a$ branch all real vertices
+are open before any closes.  Therefore
+\[
+ b_h=ya+xa,\qquad b_{q_a}=b_{q_d}=0,
+ \qquad W_h=W_{q_a}=W_{q_d}=0.
+\]
+The even off-spine space is zero, so $M_h=0$ and $b_h\notin M_h$.
+Absolute contraction at $g$ still holds by either zero off-spine leaf.  Thus
+the missing odd-spike relation must use at least one sibling strictly earlier
+than $g$; no theorem over $g$ and its descendants can suffice.
 \end{proof}
 
 \begin{proposition}[the mandatory (B$'$) OPEN fan is false]
@@ -5396,8 +5495,9 @@ The following claims have different status and should not be flattened.
       strategy-tree charged-close/neutral-tail extraction, the resulting
       dual-minimum neutral fan and unconditional (B) Eulerian consequence,
       the exclusion of the zero-charge/even-$U$ branch of (A) and of an
-      immediate
-      off-spine unit close, the sharp reachable neutral (B$'$) cap, the
+      immediate off-spine unit close, the odd-spike neutral punctured trees
+      and their sharp descendant-local failure, the sharp reachable neutral
+      (B$'$) cap, the
       both-seat star-plus-dummy root strategy, the relative live-star
       incidence and its two-bit joint-obstruction reduction, the sharp
       response-tree-local failure of that joint coefficient, and the exact

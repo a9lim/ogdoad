@@ -961,7 +961,11 @@ Closure of the former progress targets:
   hypothetical counterexample to two predecessor forms.  The zero-charge,
   even-untouched half of the CLOSE predecessor is now ruled out by the
   complete fixed-front contraction, leaving only its odd/odd CLOSE spike and
-  the after-dummy ko-protected universal-neighbour singleton.  The current exact
+  the after-dummy ko-protected universal-neighbour singleton.  Every off-spine
+  child of the odd/odd spike now has a completely neutral strategy subtree,
+  but a three-real response tree proves that its selected relative coefficient
+  cannot be recovered from those descendants alone; an earlier defender
+  sibling is genuinely necessary.  The current exact
   target remains the global affine-contraction/causal-factor-extension lemma
   of `writeups/linking_affine.tex`, with the FIFO cut-space filtration as a
   coordinate system rather than a childwise induction.
