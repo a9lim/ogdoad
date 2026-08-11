@@ -958,8 +958,10 @@ Closure of the former progress targets:
   complete close-first contraction are now proved.  Strategy-tree-relative
   minimum extraction and its neutral-tail/Eulerian consequence are now
   kernel-checked as well.  Dual descent reduces a
-  hypothetical counterexample to an isolated odd/odd CLOSE spike or an
-  after-dummy ko-protected universal-neighbour singleton, but the current exact
+  hypothetical counterexample to two predecessor forms.  The zero-charge,
+  even-untouched half of the CLOSE predecessor is now ruled out by the
+  complete fixed-front contraction, leaving only its odd/odd CLOSE spike and
+  the after-dummy ko-protected universal-neighbour singleton.  The current exact
   target remains the global affine-contraction/causal-factor-extension lemma
   of `writeups/linking_affine.tex`, with the FIFO cut-space filtration as a
   coordinate system rather than a childwise induction.

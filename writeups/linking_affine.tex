@@ -125,7 +125,11 @@ draft-and-switch move, while fixed-history deletion reverses one controller
 interval and has at most one labelled ko-wall repair.  These reductions
 sharpen the boundary but do not turn the nonempty drafted prefix into an
 empty root.  Thus the stopped theorem closes its empty-root base, but not the
-actual odd-CLOSE ancestry step: at an (A)/(B$'$) predecessor the frozen
+actual odd-CLOSE ancestry step.  The zero-charge/even-$U$ half of (A) is now
+excluded by feeding every delayed front close into the complete fixed-front
+contraction; universality on the even untouched set would contradict the
+selected odd next front.  At the remaining odd--odd (A) spike or at a (B$'$)
+predecessor, however, the frozen
 ko-wall defect can require cancellation across the entire defender fan.  An
 exact secondary-star strategy also rules out the tempting repair which uses
 every immediate (B$'$) OPEN face once; several faces individually contain
@@ -1000,11 +1004,73 @@ contradicts the primary minimality of $h$.  Hence $q_y=1$ and $r_e=0$,
 proving (B$'$).
 \end{proof}
 
+The zero-charge half of the CLOSE-predecessor alternative can now be removed
+entirely.  This is a genuine use of the complete fixed-front theorem rather
+than another local degree comparison.
+
+\begin{proposition}[the even-$U$ branch of (A) is impossible]
+\label{prop:a-even-u-impossible}
+\PROVED{} The alternative $q_y=0$ in normal form~(A) cannot occur.  Hence
+every minimum-bad CLOSE predecessor of type~(A) is the odd--odd spike
+$q_y=1$.
+\end{proposition}
+
+\begin{proof}
+First $y$ is real.  If $y=d$ were the isolated dummy, then after any defender
+OPEN $O_v$ at $g$ the child would still be bad (OPEN has charge zero), would
+have the same number of active real vertices as $h$, and would have smaller
+$\rho$: relative to $g$, $C_y$ lowers $\rho$ by one whereas $O_v$ lowers it
+by two.  This contradicts the choice of $h$.
+
+Fix $v\in U$.  We claim that after the defender plays $O_v$, the attacker
+cannot answer with another OPEN $O_w$.  Such an answer reaches a
+defender-controlled state with the same fixed clear front $y$ and untouched
+set $S=U-\{v,w\}$.  Stop every continuation when $y$ closes.  The queue was
+already nonempty before either OPEN, so ko remains clear; $C_y$ is legal
+throughout, every branch reaches this frontier, and no pass occurs.  All
+moves before the frontier are OPENs and hence have charge zero, so the
+inherited dual bit immediately before each terminal $C_y$ is still $r_g=1$.
+If $R\subseteq S$ is its untouched remainder, the close has charge
+\[
+ c_y(R)=\deg_R(y)=\sum_{u\in R}B(y,u).
+\]
+Because $y$ is real, the state after this delayed $C_y$ has the same
+active-real count as $h$; because at least $v,w$ were opened first, its
+$\rho$ is strictly smaller.  Minimality of $h$ therefore makes it good.  The
+dual recurrence
+$r_{\rm after}=r_{\rm before}+c_y(R)$ forces $c_y(R)=1$ on every leaf.
+
+This is impossible by Theorem~\ref{thm:complete-fixed-front-prefix}: apply it
+at the displayed defender root and pair its odd zero-remainder flow with the
+linear functional $R\mapsto\deg_R(y)$.  Equivalently, the kernel-checked
+theorem \texttt{not\_closureDefenderForces\_one} says directly that no
+attacker policy from a defender-rooted fixed-front deletion game can put
+every leaf on sheet one.  Thus the attacker must answer every $O_v$ by
+$C_y$.
+
+That immediate close has charge $B(y,v)$ because $\deg_U(y)=0$.  Its child
+has dual bit $1+B(y,v)$, the same active-real count as $h$, and smaller
+$\rho$; hence $B(y,v)=1$.  The child is good and defender-controlled with
+clear front $x$.  Its legal $C_x$ has charge
+\[
+ \deg_{U-\{v\}}(x)=1+B(x,v).
+\]
+If this were one, its child would be bad after deleting the real vertex $x$,
+with fewer active real vertices than $h$.  Hence $B(x,v)=1$.  Since $v$ was
+arbitrary, every member of $U$ lies in the joint $11$ fibre of the two front
+rows.  But $|U|$ is even in the $q_y=0$ subcase, so
+\[
+ \deg_U(x)=\sum_{v\in U}B(x,v)=|U|=0,
+\]
+contradicting the defining condition $\deg_U(x)=1$ of~(A).
+\end{proof}
+
 The ancestry statement cannot be strengthened by requiring one odd unit from
 every immediate OPEN child.  The following counterexample is entirely
 strategy-theoretic; no computed force set is used.
 
-The CLOSE-predecessor alternative has a parallel first-response restriction.
+The remaining CLOSE-predecessor alternative has a parallel first-response
+restriction.
 
 \begin{proposition}[(A) immediate-close fibre]
 \label{prop:a-immediate-close-fibre}
@@ -5329,7 +5395,8 @@ The following claims have different status and should not be flattened.
       spine quotient and finite one-front-offset ladder, together with the
       strategy-tree charged-close/neutral-tail extraction, the resulting
       dual-minimum neutral fan and unconditional (B) Eulerian consequence,
-      the exclusion of an immediate
+      the exclusion of the zero-charge/even-$U$ branch of (A) and of an
+      immediate
       off-spine unit close, the sharp reachable neutral (B$'$) cap, the
       both-seat star-plus-dummy root strategy, the relative live-star
       incidence and its two-bit joint-obstruction reduction, the sharp
