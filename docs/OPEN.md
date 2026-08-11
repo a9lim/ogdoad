@@ -448,6 +448,14 @@ absolute boundedness.
   witness add no obstruction. Its classical Dickson discriminant is already
   a square in `M_0`, so discriminant parity and the quadratic resolvent cannot
   distinguish complete splitting from the nontrivial `ell`-cycle either.
+  The local analytic package is equally sharp and equally circular: the
+  reflection Euler factor is `(1-T)^(-ell)` on failure and
+  `(1-T^ell)^(-1)` on success, so it sees exactly the original split/inert
+  bit. Both cases are unramified, however, and with the conductor-zero
+  additive character every Artin conductor exponent is zero and every local
+  epsilon/root-number factor is one. Thus conductor, discriminant, epsilon
+  factor, and root number are blind; the only analytic datum that sees the
+  target is the named Euler factor already containing it.
   Its defining coefficient is already lower-ancestral:
   `W_n+W_n^(-1)=A_(n-1)^(-1)-2`, with
   `(W_n+W_n^(-1))^2-4=D_(n-1)/A_(n-1)^2`. The only selected datum is the
@@ -541,6 +549,18 @@ absolute boundedness.
   coefficients. Neither factor is known to be universally nonzero; if every
   local regulator vanishes, the resulting everywhere-unramified Kummer
   extension is either trivial or, if nontrivial, a `p`-class-group character.
+  Simultaneous complex conjugation now gives an exact local reflection normal
+  form. For the relative unit `rho`, the invariant realification is
+  `u=rho*j(rho)=zeta_N^(1-q_0)*rho^2`; the root-of-unity factor is a global
+  `p`-th power, so `u` and `rho` have the same Kummer class. The selected
+  ordinary failure is therefore equivalent to `2` being a local norm from a
+  degree-`p` reflection algebra at the named two-adic prime. The corresponding
+  global norm equation is too coarse: it holds only when every prime of
+  `Q(mu_N)` above two satisfies the power condition, hence detects simultaneous
+  failure on every irreducible conductor-`N` factor rather than the selected
+  one. Descending to the two-decomposition field erases `rho`, whose relative
+  norm is one. Thus realification supplies a precise local norm formulation but
+  cannot replace the missing mixed prime selector.
 - **`C`.** The first three levels are proved analytically. Norm recursion,
   cyclic parity, primitive-CRT isolation, mixed Jacobi expansion,
   Singer–Wendt factorization, `S_3` descent, and the prescribed-trace character
@@ -581,9 +601,27 @@ absolute boundedness.
   by contrast the powered cubic's discriminant is precisely the critical
   obstruction above. None supplies an independent exclusion. Both distinguished
   period coordinates have absolute trace zero and are not normal, so
-  primitive-normal and normal-Gaussian-period theorems do not apply. Generic
+  primitive-normal and normal-Gaussian-period theorems do not apply. The inverse
+  selector `beta_k=gamma_k^(-1)` behaves in the opposite extreme: it is
+  unconditionally completely normal over `F_2`. More precisely the Frobenius
+  orbit span of `gamma_k` has dimension `2*3^(k-1)`, that of `gamma_k+1`
+  has dimension `2*3^(k-1)+1`, and that of `beta_k` has full dimension `3^k`.
+  Hence even complete additive normality is present before the multiplicative
+  primitivity question is asked; normal-basis or subspace-polynomial data cannot
+  close the selected order gap. Generic
   Wendt factors and other trace fibres attain every structural value used by
   the obvious bounds.
+  There is also an exact pure-radical reflection descent. With
+  `K=Q(zeta_(3^(k+1))+zeta_(3^(k+1))^(-1))`,
+  `B=K(zeta_ell+zeta_ell^(-1))`, and `theta^ell=c_k`, the reflection field
+  `L_C=B(theta)` satisfies
+  `C`-failure at `ell` iff `2 in Norm(L_C/B)`. Its norm torus satisfies the
+  Hasse norm principle and weak approximation; every place above two is split
+  on failure and unramified of degree `ell` on success, while every away-from-two
+  condition for the element `2` is automatic. If `c_k` is already a global
+  `ell`-th power the construction degenerates and failure is automatic. Thus the
+  global norm equation is again exactly the original selected local splitting
+  bit and creates no hidden class-group obstruction.
 - **`D`.** The corrected norm, current-factor formulation, quadratic-twist
   antiunit, mixed-Jacobi and binary-parity criteria, reciprocal sextic, and
   Dickson factorization reduce the arm to one selected cubic. The surviving

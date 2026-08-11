@@ -178,6 +178,17 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   exceptional-arm reflection field.  The cyclotomic number-field extension,
   local Hilbert-symbol inventory, and Hasse/weak-approximation consequences
   remain paper-level;
+- the two realification identities
+  `(1+x)(1+x^-1)=2+x+x^-1` and
+  `rho*j(rho)=(z/a)*rho^2` underlying the cubic and ordinary
+  reflection normal forms; the corresponding number fields, local norm
+  equivalences, and global selectivity boundary remain paper-level;
+- the reciprocal cubic relation for `beta_k=gamma_k^-1`, the abstract
+  cumulative/exact cubic Frobenius projectors and their successive-value
+  identity, and the characteristic-two derivative induction preserving
+  `X*P'=P+1` under `P -> P^3+P^2+1`.  The irreducible
+  cyclotomic-block decomposition, exact orbit ranks, and Scheerhorn
+  completely-normal conclusion remain paper-level;
 - the denominator-free first-Witt recurrence for the lifted Conway unit,
   including its selected terminal numerator and the next-discriminant relative
   norm; identifying these expressions with a local Fermat quotient requires

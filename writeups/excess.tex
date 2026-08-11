@@ -178,7 +178,8 @@ all-or-\(\ell\)-quartic Kummer dichotomy; an exact one-step
 countermodel whose predecessor and successor retain every earlier
 Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
 transport; canonical global lift, weighted reciprocity, selected
-first-Witt polynomial, and named Artin-class reduction &
+first-Witt polynomial, named Artin-class and dihedral reflection-norm
+reductions, and the selected Euler-factor/root-number boundary &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -188,7 +189,8 @@ signed-ball factor range; weighted-selector and mixed-Jacobi formulas;
 projective minimal polynomial and binary-section ancestry; tower-faithful
 common-section no-go; uniform safe-prime trace detector;
 full-conductor truncated-log regulator and exact conductor-\(p^2\)
-ray/Jacobi reciprocity &
+ray/Jacobi reciprocity; invariant realification and selected local
+reflection norm &
 nondivisibility at the selected Conway polynomial for the remaining smaller
 primary factors \\
 \((C)\) &
@@ -197,7 +199,8 @@ proof for \(k\leq3\); partition order bounds; exact derivative
 regulator, exceptional ray-character quotient, real-square resultant,
 reciprocity boundary, cyclic-parity obstruction, and
 augmentation-ideal and block normalization; Singer--Wendt factorization
-and selected \(S_3\)-trace quotient; absolute trace-zero and non-normality;
+and selected \(S_3\)-trace quotient; exact Frobenius orbit ranks and the
+complete normality of \(\gamma_k^{-1}\); pure-radical reflection norm;
 reciprocal order seam and
 prescribed-trace character boundary &
 exclusion of the selected Wendt/trace fibre at the remaining current
@@ -1429,6 +1432,96 @@ Raising an element of \(\mu_p\) to \(q_0-1\), equivalently to
 \((\mathsf{RU}_3)\).
 \end{proof}
 
+\begin{proposition}[ordinary realification and the selected local reflection]
+\label{prop:ordinary-local-reflection}
+Retain Proposition~\ref{prop:singleton-relative-unit}, put
+\[
+ E=\Q(\mu_N,\mu_p),
+\]
+and let \(j\) be simultaneous complex conjugation on \(E\).  If
+\[
+ \rho=\frac{1-\zeta_N^{q_0}}{1-\zeta_N},
+ \qquad
+ u=\rho j(\rho),
+\]
+then
+\[
+ j(\rho)=\zeta_N^{1-q_0}\rho,
+ \qquad
+ \boxed{u=\zeta_N^{1-q_0}\rho^2.}                 \tag{\(\mathsf{OR}_1\)}
+\]
+Since \(p\nmid N\), the root-of-unity factor in
+\((\mathsf{OR}_1)\) is a global \(p\)-th power.  Hence \(u\) and
+\(\rho\) have the same \(p\)-Kummer class, globally and after every
+completion.
+
+Put \(B=E^{\langle j\rangle}\).  In the nondegenerate case
+\(u\notin(E^\times)^p\), choose \(\theta^p=u\), extend \(j\) by
+\(j(\theta)=\theta\), and put
+\[
+ L_O=B(\theta).
+\]
+Then \(E(\theta)/B\) is dihedral of order \(2p\), and at the
+contraction \(\mathfrak r\) of the Conway-selected prime
+\(\mathfrak P\mid2\),
+\[
+ \boxed{
+ \text{ordinary failure at }\mathfrak P
+ \iff
+ 2\in\Norm_{(L_O\otimes_BB_{\mathfrak r})/B_{\mathfrak r}}
+       \bigl((L_O\otimes_BB_{\mathfrak r})^\times\bigr).}
+                                                               \tag{\(\mathsf{OR}_2\)}
+\]
+The global norm equation is strictly less selective:
+\[
+ 2\in\Norm_{L_O/B}(L_O^\times)                         \tag{\(\mathsf{OR}_3\)}
+\]
+holds exactly when the corresponding \(p\)-power condition holds at
+every prime of \(\Q(\mu_N)\) above two.  Thus it detects simultaneous
+failure on every irreducible conductor-\(N\) cyclotomic factor, not the
+one Conway-selected factor.  Passing to the decomposition field does
+not repair this loss: its decomposition group contains
+\(\langle q_0\rangle\), while
+\(\Norm_{\langle q_0\rangle}(\rho)=1\).  Isolating one two-adic prime
+would require precisely the mixed principal/ray selector already left
+open by the ordinary arm.
+\end{proposition}
+
+\begin{proof}
+Direct simplification gives
+\[
+ \frac{1-\zeta_N^{-q_0}}{1-\zeta_N^{-1}}
+ =\zeta_N^{1-q_0}
+   \frac{1-\zeta_N^{q_0}}{1-\zeta_N},
+\]
+and hence \((\mathsf{OR}_1)\).  Because \(\gcd(p,N)=1\),
+exponentiation by \(p\) is an automorphism of \(\mu_N\); because \(p\)
+is odd, squaring is an automorphism of every exponent-\(p\) Kummer
+quotient.  This proves the Kummer-class assertion.  Both algebraic steps
+are kernel-checked in \texttt{Ogdoad.Excess}.
+
+If \(\sigma(\theta)=\zeta_p\theta\), then
+\(j\sigma j^{-1}=\sigma^{-1}\), so the stated fixed field is the
+degree-\(p\) reflection field.  The completionwise norm equivalence
+\((\mathsf{HD}_5)\) below applies verbatim.  At
+\(\mathfrak P\), local Kummer theory says that the cyclic algebra is
+split exactly when the selected residue of \(\rho\), equivalently of
+\(u\), is a \(p\)-th power.  In the other case it is the unramified
+degree-\(p\) field, whose norm valuations are divisible by \(p\); since
+\(v_{\mathfrak r}(2)=1\), this proves \((\mathsf{OR}_2)\).
+
+For the global assertion, every place away from \(2p\) is tame-unit
+trivial.  At a place over \(p\), the totally ramified cyclotomic group
+fixes \(u\), \(2\), and the place while acting faithfully on \(\mu_p\),
+so covariance forces the Hilbert symbol to one.  Cyclic Hasse and the
+reflection symmetrization therefore turn \((\mathsf{OR}_3)\) into the
+conjunction of the local conditions over two.  Generally
+\(\varphi(N)>\ord_N(2)=r^ab\), so these include several distinct
+cyclotomic factors.  Finally the telescoping relative norm of \(\rho\)
+is one by Proposition~\ref{prop:singleton-relative-unit}; hence descent
+to the two-decomposition field erases rather than isolates its class.
+\end{proof}
+
 \begin{proposition}[ordinary projective polynomial and binary sections]
 \label{prop:ordinary-binary-sections}
 Retain Proposition~\ref{prop:singleton-relative-unit}, and write
@@ -2550,10 +2643,14 @@ If every \(A_\lambda\) vanishes, the Kummer extension is everywhere
 unramified; it is then either trivial or, if nontrivial, defines a
 \(p\)-class-group character.  If some \(A_\lambda\) is nonzero, reciprocity gives a
 conductor-\(p^2\) ray equation but still requires the selected Jacobi
-phase.  This is precisely the separation between ideal factorization
-and the additional local Hilbert coefficient in the Jacobi-sum Hecke
-character analysis of Rohrlich~\cite{Rohrlich86}; no uniform theorem
-there evaluates \((\mathsf{MR}_1)\) on the Conway conductor.
+phase.  Rohrlich reduced the ramified Jacobi local component to an
+explicit Hilbert-symbol coefficient, and Coleman--McCallum subsequently
+computed the odd-prime local components and conductors
+\cite{Rohrlich86,ColemanMcCallum88}.  Those formulas solve Rohrlich's
+stated local-component problem, but do not evaluate the separate
+Conway-selected regulator \((\mathsf{MR}_1)\): applying them here still
+requires isolating the compatible prime above two, equivalently the
+missing mixed ray-class coordinate.
 \end{remark}
 
 \subsection{Unconditional projective order bounds}
@@ -3806,6 +3903,109 @@ coboundary $\tau(c_k)/c_k$ telescopes to $1$.  Modulo $2$ it is
 $\gamma_k^q/\gamma_k=\eta_k$.
 \end{proof}
 
+\begin{proposition}[cubic pure-radical reflection descent]
+\label{prop:cubic-reflection-descent}
+Put \(h=3^k\), let \(\xi=\zeta_{3^{k+1}}\), and retain
+\[
+ K=F_k=\Q(\xi+\xi^{-1}),\qquad
+ c_k=(1+\xi)(1+\xi^{-1}).
+\]
+For a prime \(\ell\mid\Phi_h(2)\), put
+\[
+ B=K(\zeta_\ell+\zeta_\ell^{-1}),
+ \qquad M=K(\zeta_\ell).
+\]
+The conductors are coprime, so
+\(K\cap\Q(\zeta_\ell)=\Q\) and \(M/B\) is quadratic.  The element
+\(c_k\) is a global unit fixed by the nontrivial involution
+\(j\in\operatorname{Gal}(M/B)\), and its reduction at the unique prime
+of \(K\) above two is \(\gamma_k\).
+
+Assume first that \(c_k\notin(M^\times)^\ell\).  Choose
+\(\theta^\ell=c_k\), extend \(j\) by \(j(\theta)=\theta\), and put
+\[
+ E_C=M(\theta),\qquad L_C=E_C^{\langle j\rangle}=B(\theta).
+                                                               \tag{\(\mathsf{CRD}_1\)}
+\]
+Then \(E_C/B\) is dihedral of order \(2\ell\), while \(L_C/B\) has
+degree \(\ell\).  The selected condition has the exact norm form
+\[
+ \boxed{\quad
+ \text{the \(\ell\)-primary condition in \(C_k\) fails}
+ \iff
+ 2\in\Norm_{L_C/B}(L_C^\times).
+ \quad}                                                       \tag{\(\mathsf{CRD}_2\)}
+\]
+Moreover \(L_C/B\) satisfies the Hasse norm principle, and its norm-one
+torus satisfies weak approximation.  At every prime of \(B\) above two,
+\[
+ \begin{array}{c|c}
+ \text{\(\ell\)-primary failure}&
+ L_C\otimes_BB_{\mathfrak r}\simeq B_{\mathfrak r}^{\,\ell},\\
+ \text{\(\ell\)-primary success}&
+ L_C\otimes_BB_{\mathfrak r}\text{ is the unramified degree-\(\ell\) field}.
+ \end{array}                                                  \tag{\(\mathsf{CRD}_3\)}
+\]
+Every local norm condition for the element two away from the primes above
+two is automatic.  Thus the reflection norm equation has no hidden
+class-group, Tate--Shafarevich, or Brauer--Manin obstruction: it is exactly
+the original selected residue condition.
+
+If \(c_k\in(M^\times)^\ell\), then \(c_k\in(B^\times)^\ell\) as well,
+the selected condition fails, and the construction degenerates to
+\(L_C=B\); in this convention \((\mathsf{CRD}_2)\) remains true.
+\end{proposition}
+
+\begin{proof}
+Since \(\ord_\ell(2)=h\), one has \(\ell\nmid3^{k+1}\).  Coprimality of
+cyclotomic conductors gives the field-intersection assertion.  Also
+\(\Norm_{\Q(\xi)/\Q}(1+\xi)=\Phi_{3^{k+1}}(-1)=1\), so \(c_k\) is a
+global unit.  The identity and reduction claim are
+\[
+ c_k=2+\xi+\xi^{-1},
+ \qquad
+ \overline{c_k}=\zeta+\zeta^{-1}=\gamma_k;
+\]
+the first algebraic identity is kernel-checked in
+\texttt{Ogdoad.Excess}.
+
+Let \(\sigma(\theta)=\zeta_\ell\theta\).  Since \(j\) fixes \(\theta\)
+and inverts \(\zeta_\ell\), one has
+\(j\sigma j^{-1}=\sigma^{-1}\), proving the dihedral and fixed-field
+assertions.  The completionwise reflection-norm equivalence
+\((\mathsf{HD}_5)\) applies to this dihedral extension.
+
+The unique completion \(K_{\mathfrak p}/\Q_2\) is unramified of degree
+\(h\) and already contains \(\mu_\ell\), because
+\(\ord_\ell(2)=h\).  Hence \(\mathfrak p\) splits completely in both
+\(B/K\) and \(M/K\), and \(M/B\) splits at every prime above two.
+At each such completion, local Kummer theory says that adjoining an
+\(\ell\)-th root of \(c_k\) is split exactly when
+\(\gamma_k\) is an \(\ell\)-th power; otherwise it is the unramified
+degree-\(\ell\) field.  Its norm valuations are then divisible by
+\(\ell\), whereas \(v_{\mathfrak r}(2)=1\).  This proves
+\((\mathsf{CRD}_3)\) and the two-adic part of
+\((\mathsf{CRD}_2)\).
+
+At every finite place away from \(2\ell\), the entries \(c_k\) and two
+are tame units.  At a place above \(\ell\), the totally ramified group
+\(\operatorname{Gal}(M/K)\) fixes \(c_k\), two, and the place while
+acting faithfully on \(\mu_\ell\); Hilbert-symbol covariance therefore
+forces \((c_k,2)_{\lambda,\ell}=1\).  The archimedean places of \(M\)
+are complex.  Cyclic Hasse for \(E_C/M\), followed by the
+completionwise reflection equivalence, proves
+\((\mathsf{CRD}_2)\) and the Hasse norm principle for \(L_C/B\).
+Independently, the metacyclic norm-torus theorem of
+Hoshi--Yamasaki gives both the Hasse norm principle and weak
+approximation for this odd-dihedral reflection field
+\cite[Theorem~3.2 and Example~4.6]{HoshiYamasaki25}.
+
+Finally, if \(c_k=y^\ell\) in \(M\), then
+\(c_k^2=\Norm_{M/B}(y)^\ell\).  Since \(2\) is invertible modulo the odd
+prime \(\ell\), this implies \(c_k\in(B^\times)^\ell\).  Its residue is
+an \(\ell\)-th power and the degenerate convention follows.
+\end{proof}
+
 \begin{proposition}[the exceptional residue character is the Kummer regulator]
 \label{prop:cubic-ray-exceptional-character}
 Retain Proposition~\ref{prop:circular-ray}, and put
@@ -5040,6 +5240,101 @@ If either element were normal, its full absolute-Frobenius orbit would be
 an $\F_2$-basis of $L_k$.  The sum of that orbit is the absolute trace, so
 trace zero would give the nontrivial all-ones linear relation among the
 basis vectors.  This is impossible.
+\end{proof}
+
+\begin{proposition}[the inverse selector is completely normal]
+\label{prop:cubic-inverse-completely-normal}
+Put \(\gamma_0=\beta_0=1\) and, for \(k\geq1\),
+\[
+ \beta_k=\gamma_k^{-1}\in L_k=\F_{2^{3^k}}.
+\]
+Then \(\beta_k\) is completely normal over \(\F_2\): for every
+\(0\leq s<k\), its \(2^{3^s}\)-Frobenius orbit is an
+\(L_s\)-basis of \(L_k\).  In particular,
+\[
+ \dim_{\F_2}\langle\beta_k^{2^i}:0\leq i<3^k\rangle=3^k.       \tag{\(\mathsf{CN}_1\)}
+\]
+By contrast, the exact Frobenius-orbit ranks of the original coordinate
+and its translate are
+\[
+ \begin{aligned}
+ \dim_{\F_2}\langle\gamma_k^{2^i}:0\leq i<3^k\rangle
+   &=2\cdot3^{k-1},\\
+ \dim_{\F_2}\langle(\gamma_k+1)^{2^i}:0\leq i<3^k\rangle
+   &=2\cdot3^{k-1}+1.
+ \end{aligned}
+ \tag{\(\mathsf{CN}_2\)}
+\]
+The inverse selector is also the derivative coordinate:
+\[
+ X P_k'(X)=P_k(X)+1,\qquad P_k'(\gamma_k)=\beta_k.      \tag{\(\mathsf{CN}_{2a}\)}
+\]
+Thus complete additive normality is unconditional after inversion.
+It supplies no criterion for multiplicative primitivity in \(C_k\).
+\end{proposition}
+
+\begin{proof}
+The relation
+\(\gamma_k^3+\gamma_k+\gamma_{k-1}=0\) gives, on inversion,
+\[
+ \beta_k^3+\beta_{k-1}\beta_k^2+\beta_{k-1}=0.          \tag{\(\mathsf{CN}_3\)}
+\]
+Consequently
+\[
+ \operatorname{Tr}_{L_k/L_{k-1}}(\beta_k)=\beta_{k-1},
+\]
+and transitivity gives
+\(\operatorname{Tr}_{L_k/L_j}(\beta_k)=\beta_j\) for every \(j<k\).
+The denominator-cleared algebra in \((\mathsf{CN}_3)\) is
+kernel-checked in \texttt{Ogdoad.Excess}.
+
+The base case of \((\mathsf{CN}_{2a})\) is immediate from
+\(P_1=X^3+X+1\).  Differentiating
+\(P_{k+1}=P_k^3+P_k^2+1\) in characteristic two shows that
+\(XP_{k+1}'=P_{k+1}+1\) whenever \(XP_k'=P_k+1\).  Evaluation at
+\(\gamma_k\) gives the second identity.  The generic derivative induction
+step is also kernel-checked in \texttt{Ogdoad.Excess}.
+
+For the absolute rank calculation, let \(\sigma(x)=x^2\), and define the
+trace projectors
+\[
+ T_j=\sum_{r=0}^{3^{k-j}-1}\sigma^{r3^j}
+     =\operatorname{Tr}_{L_k/L_j},
+ \qquad
+ E_0=T_0,\quad E_j=T_j+T_{j-1}\quad(1\leq j\leq k).
+\]
+Because
+\[
+ X^{3^k}-1=\prod_{j=0}^k\Phi_{3^j}(X)
+\]
+and
+\(\ord_{3^j}(2)=\varphi(3^j)\), every factor
+\(\Phi_{3^j}\) is irreducible over \(\F_2\).  Hence \(E_j\) is the
+projector onto one simple Frobenius block.  Now
+\[
+ E_0(\beta_k)=1,\qquad
+ E_j(\beta_k)=\beta_j+\beta_{j-1}\ne0.
+\]
+Thus every simple block occurs, proving \((\mathsf{CN}_1)\) and absolute
+normality.
+
+For \(\gamma_k\), the missing quadratic coefficient in
+\(X^3+X+\gamma_{k-1}\) gives
+\(T_j(\gamma_k)=0\) for every \(j<k\).  It therefore occupies exactly the
+top \(\Phi_{3^k}\)-block, of dimension
+\(\varphi(3^k)=2\cdot3^{k-1}\).  Adding one supplies exactly the
+one-dimensional invariant block as well, proving
+\((\mathsf{CN}_2)\).
+
+Finally, Scheerhorn's completely-normal Dickson criterion applies
+directly to every intermediate extension: \(3^k\) is a power of the odd
+prime dividing \(2+1\), and
+\[
+ P_k(X)=D_{3^k}(X,1)+1
+\]
+is irreducible by Proposition~\ref{prop:dickson-iterate}.  The reciprocal
+polynomial, whose root is \(\beta_k\), is therefore completely normal
+\cite[Corollary~1]{Scheerhorn96}.
 \end{proof}
 
 \begin{proposition}[Singer-orbit sieve]\label{prop:singer-sieve}
@@ -12730,6 +13025,87 @@ degenerates; that case is itself a stronger global failure and is not covered
 by \(\mathsf{HD}_3\)--\(\mathsf{HD}_7\).
 \end{proof}
 
+\begin{proposition}[the unramified Euler factor is the selected datum]
+\label{prop:selected-euler-factor}
+Retain Corollary~\ref{cor:fermat-hasse-dihedral}, assume
+\([\mathcal E:M]=\ell\), and put
+\[
+ Q=|k(\mathfrak q_1)|=|k(\mathfrak r)|,\qquad T=Q^{-s}.
+\]
+Use arithmetic Frobenius and write
+\(\chi(\operatorname{Frob}_{\mathfrak q_1})=H\) for the local cyclic
+Kummer character.  Then
+\[
+ L_{\mathfrak q_1}(T,\chi^a)=(1-H^aT)^{-1}.          \tag{\(\mathsf{EF}_1\)}
+\]
+Let
+\[
+ G=D_{2\ell}=\langle\sigma,\iota:
+ \sigma^\ell=\iota^2=1,
+ \iota\sigma\iota^{-1}=\sigma^{-1}\rangle,
+ \qquad
+ \Pi=\operatorname{Ind}_{\langle\iota\rangle}^{G}\mathbf1.
+\]
+At \(\mathfrak r\), the Frobenius \(\sigma^h\), where
+\(H=\zeta_\ell^h\), acts on the \(\ell\) reflection cosets by
+translation.  Consequently
+\[
+ L_{\mathfrak r}(T,\Pi)=
+ \begin{cases}
+  (1-T)^{-\ell},&H=1,\\
+  (1-T^\ell)^{-1},&H\ne1,
+ \end{cases}                                          \tag{\(\mathsf{EF}_2\)}
+\]
+and, for the augmentation quotient \(\Pi_0=\Pi/\mathbf1\),
+\[
+ L_{\mathfrak r}(T,\Pi_0)=
+ \prod_{a=1}^{\ell-1}L_{\mathfrak q_1}(T,\chi^a)
+ =
+ \begin{cases}
+  (1-T)^{-(\ell-1)},&H=1,\\[1mm]
+  \dfrac{1-T}{1-T^\ell},&H\ne1.
+ \end{cases}                                          \tag{\(\mathsf{EF}_3\)}
+\]
+Thus the named Euler factor sees failure exactly, but only by containing
+the original unknown \(H\).
+
+All standard conductor and normalized local-root-number data at this
+prime are blind.  If \(\psi\) has conductor zero and the Haar measure is
+self-dual, then
+\[
+ a(\chi^a)=a(\Pi)=a(\Pi_0)=0,\qquad
+ \varepsilon_{\mathfrak r}(s,\chi^a,\psi)
+ =\varepsilon_{\mathfrak r}(s,\Pi,\psi)
+ =\varepsilon_{\mathfrak r}(s,\Pi_0,\psi)=1.          \tag{\(\mathsf{EF}_4\)}
+\]
+The same local statement applies to the ordinary, cubic, and
+conductor-five reflection fields above: at the selected prime they are
+likewise split or unramified of odd prime degree.  Hence discriminant,
+Artin conductor, epsilon factor, and local root number cannot evaluate
+any of the selected \(Z/O/C/D\) Frobenius values.  This is a local
+no-go only; a new global ancestry identity could in principle correlate
+ramified factors elsewhere with \(H\).
+\end{proposition}
+
+\begin{proof}
+Equation~\((\mathsf{EF}_1)\) is the definition of the unramified local
+factor.  Translation by zero fixes all reflection cosets, whereas a
+nonzero translation of the prime-order group is one \(\ell\)-cycle.
+This gives \((\mathsf{EF}_2)\).  Removing the invariant line gives
+\((\mathsf{EF}_3)\), equivalently
+\[
+ \prod_{a=0}^{\ell-1}(1-H^aT)=1-T^\ell
+ \quad(H\ne1).
+\]
+Every representation in the statement is unramified.  Deligne's
+conductor-zero normalization gives epsilon factor one for an unramified
+one-dimensional character; multiplicativity over its complex
+eigencharacters proves \((\mathsf{EF}_4)\)
+\cite[\S\S3.4--3.6 and Theorem~4.1(1)]{Deligne73}.
+With geometric Frobenius, \(H\) is replaced by \(H^{-1}\), leaving every
+split/nontrivial dichotomy unchanged.
+\end{proof}
+
 \begin{corollary}[only the top generator carries the Brauer obstruction]
 \label{cor:fermat-top-brauer}
 Retain Corollary~\ref{cor:fermat-hasse-dihedral}, put
@@ -19482,6 +19858,10 @@ a finite field}, Quart.~J.~Math. Oxford (2) \textbf{4} (1953), 4--10.
 \bibitem{CHS25} L.~Cagliero, A.~Herman, and F.~Szechtman,
 \emph{Artin--Schreier towers of finite fields}, Finite Fields Appl.\
 \textbf{106} (2025), 102606; arXiv:2405.10159.
+\bibitem{ColemanMcCallum88} R.~Coleman and W.~McCallum,
+\emph{Stable reduction of Fermat curves and Jacobi sum Hecke characters},
+J.~Reine Angew. Math.\ \textbf{385} (1988), 41--101;
+\url{https://doi.org/10.1515/crll.1988.385.41}.
 \bibitem{Conway76} J.~H.~Conway, \emph{On Numbers and Games}, Academic
 Press, 1976.
 \bibitem{DFRR19} L.~De~Feo, H.~Randriam, \'E.~Rousseau, \emph{Standard
@@ -19494,6 +19874,11 @@ arXiv:1906.00870.
 \emph{Brumer--Stark units and explicit class field theory},
 Duke Math.~J.\ \textbf{173} (2024), 1477--1555;
 \url{https://doi.org/10.1215/00127094-2023-0039}.
+\bibitem{Deligne73} P.~Deligne,
+\emph{Les constantes des \'equations fonctionnelles des fonctions \(L\)},
+in \emph{Modular Functions of One Variable II},
+Lecture Notes in Math.\ \textbf{349}, Springer, 1973, 501--597;
+\url{https://publications.ias.edu/sites/default/files/Number20.pdf}.
 \bibitem{DiMuro} J.~DiMuro, \emph{On $\mathrm{On}_p$}, arXiv:1108.0962.
 \bibitem{GV95} S.~Gao, S.~A.~Vanstone, \emph{On orders of optimal basis
 generators}, Math.\ Comp.\ \textbf{64} (1995), 1227--1233.
@@ -19571,6 +19956,11 @@ Compos.\ Math.\ \textbf{60} (1986), 97--114;
 \emph{An introduction to \(p\)-adic \(L\)-functions}, Essential Number
 Theory \textbf{4} (2025), 101--216;
 \url{https://doi.org/10.2140/ent.2025.4.101}; arXiv:2309.15692.
+\bibitem{Scheerhorn96} A.~Scheerhorn,
+\emph{Dickson polynomials, completely normal polynomials and the cyclic
+module structure of specific extensions of finite fields},
+Des.\ Codes Cryptogr.\ \textbf{9} (1996), 193--202;
+\url{https://doi.org/10.1007/BF00124593}.
 \bibitem{Vega26} G.~Vega,
 \emph{A characterization and an explicit description of all primitive
 polynomials of degree two}, Finite Fields Appl.\

@@ -1525,6 +1525,109 @@ theorem isPthPower_mul_sq_iff
 
 end OddKummerSquare
 
+section CyclotomicReflectionAlgebra
+
+/-- The real circular unit used in the cubic arm is the product of a
+cyclotomic unit with its inverse conjugate. -/
+theorem real_cyclotomic_unit_identity
+    {F : Type*} [Field F] (x : F) (hx : x ≠ 0) :
+    (1 + x) * (1 + x⁻¹) = 2 + x + x⁻¹ := by
+  field_simp
+  ring
+
+/-- A relative cyclotomic unit and its complex conjugate multiply to a
+known root-of-unity factor times its square.  Since that factor is a known
+odd Kummer power in the paper's ordinary arm, realification preserves the
+selected Kummer class. -/
+theorem relative_unit_realification
+    {F : Type*} [Field F] (a z : F)
+    (ha : a ≠ 0) (hz : z ≠ 0) (ha1 : a ≠ 1) (hz1 : z ≠ 1) :
+    ((1 - a) / (1 - z)) * ((1 - a⁻¹) / (1 - z⁻¹)) =
+      (z / a) * (((1 - a) / (1 - z)) ^ 2) := by
+  field_simp
+  ring
+
+/-- Inverting the cubic tower generator turns the cubic relation into
+the reciprocal relation whose quadratic coefficient is the inverse parent.
+This is the algebraic core of the unconditional normal-basis theorem for
+the cubic inverse selector. -/
+theorem reciprocal_cubic_inverse_relation
+    {F : Type*} [Field F] (g a : F) (hg : g ≠ 0) (ha : a ≠ 0)
+    (hrel : g ^ 3 + g + a = 0) :
+    (g⁻¹) ^ 3 + a⁻¹ * (g⁻¹) ^ 2 + a⁻¹ = 0 := by
+  apply (mul_eq_zero.mp ?_).resolve_left
+    (mul_ne_zero ha (pow_ne_zero 3 hg))
+  calc
+    (a * g ^ 3) *
+        ((g⁻¹) ^ 3 + a⁻¹ * (g⁻¹) ^ 2 + a⁻¹) =
+        g ^ 3 + g + a := by
+          field_simp [hg, ha]
+          ring
+    _ = 0 := hrel
+
+section CubicFrobeniusProjectors
+
+variable {F V : Type*} [Field F] [AddCommGroup V] [Module F V]
+
+/-- Cumulative trace-shaped projector for the cubic Frobenius tower. -/
+def cubicCumulativeProjector (σ : V →ₗ[F] V) (k j : Nat) : V →ₗ[F] V :=
+  ∑ r ∈ Finset.range (3 ^ (k - j)), σ ^ (r * 3 ^ j)
+
+/-- Exact cubic Frobenius block obtained from two successive cumulative
+projectors. In characteristic two the subtraction is their sum. -/
+def cubicExactProjector (σ : V →ₗ[F] V) (k j : Nat) : V →ₗ[F] V :=
+  if j = 0 then cubicCumulativeProjector σ k 0
+  else cubicCumulativeProjector σ k j -
+    cubicCumulativeProjector σ k (j - 1)
+
+theorem cubicExactProjector_zero (σ : V →ₗ[F] V) (k : Nat) :
+    cubicExactProjector σ k 0 = cubicCumulativeProjector σ k 0 := by
+  simp [cubicExactProjector]
+
+theorem cubicExactProjector_succ_apply
+    (σ : V →ₗ[F] V) (k j : Nat) (v : V) :
+    cubicExactProjector σ k (j + 1) v =
+      cubicCumulativeProjector σ k (j + 1) v -
+        cubicCumulativeProjector σ k j v := by
+  simp [cubicExactProjector]
+
+theorem cubicExactProjector_succ_value
+    (σ : V →ₗ[F] V) (k j : Nat) (v bnext bprev : V)
+    (hnext : cubicCumulativeProjector σ k (j + 1) v = bnext)
+    (hprev : cubicCumulativeProjector σ k j v = bprev) :
+    cubicExactProjector σ k (j + 1) v = bnext - bprev := by
+  rw [cubicExactProjector_succ_apply, hnext, hprev]
+
+end CubicFrobeniusProjectors
+
+section CubicDerivativeRecurrence
+
+open Polynomial
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- The logarithmic derivative identity is preserved by the cubic Conway
+coefficient recurrence in characteristic two. -/
+theorem cubicDerivativeRecurrenceStep (P : R[X])
+    (h : X * derivative P = P + 1) :
+    X * derivative (P ^ 3 + P ^ 2 + 1) =
+      (P ^ 3 + P ^ 2 + 1) + 1 := by
+  simp only [derivative_add, derivative_pow, derivative_one]
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hthree : (3 : R) = 1 := by
+    rw [show (3 : R) = 2 + 1 by norm_num, htwo, zero_add]
+  simp [htwo, hthree]
+  rw [show X * (P ^ 2 * derivative P) =
+      P ^ 2 * (X * derivative P) by ring]
+  rw [h]
+  ring_nf
+  have htwoPoly : (2 : R[X]) = 0 := CharP.cast_eq_zero R[X] 2
+  rw [htwoPoly, zero_add]
+
+end CubicDerivativeRecurrence
+
+end CyclotomicReflectionAlgebra
+
 section KummerTailTransport
 
 variable {A B : Type*} [AddCommGroup A] [AddCommGroup B]
