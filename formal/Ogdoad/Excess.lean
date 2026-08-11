@@ -208,6 +208,34 @@ theorem maximal_order_iff_all_prime_power_obstructions {G : Type*}
     exact (not_isPthPower_iff_not_orderOf_dvd_card_div hpcard a).mp
       (h p hp hpcard)
 
+section FermatLocalSymbol
+
+variable {K : Type*} [Field K]
+
+/-- If `c^q = c*w`, then the Euler power of `c` in the new norm-one
+factor is exactly the corresponding power of `w`.  In the Conway
+application, `w = (c+1)/c`, `h = (q+1)/ell`, and the left exponent is
+`(q^2-1)/ell`. -/
+theorem conwayUnit_eulerSymbol
+    (c w : K) (q h : Nat) (hc : c ≠ 0) (hq : 0 < q)
+    (hcq : c ^ q = c * w) :
+    c ^ ((q - 1) * h) = w ^ h := by
+  have hqsplit : q - 1 + 1 = q := Nat.sub_add_cancel hq
+  have hpow : c ^ q = c ^ (q - 1) * c := by
+    calc
+      c ^ q = c ^ (q - 1 + 1) := by rw [hqsplit]
+      _ = c ^ (q - 1) * c := by rw [pow_succ]
+  have hstep : c ^ (q - 1) * c = w * c := by
+    calc
+      c ^ (q - 1) * c = c ^ q := hpow.symm
+      _ = c * w := hcq
+      _ = w * c := mul_comm _ _
+  have hbase : c ^ (q - 1) = w := by
+    exact mul_right_cancel₀ hc hstep
+  rw [pow_mul, hbase]
+
+end FermatLocalSymbol
+
 /-- If a primary factor `r` divides `a` but is coprime to a divisor `b`, then
 the whole factor survives in the quotient `a / b`.  Applied to
 `a = 2^N - 1` and `b = 2^d - 1`, this is the arithmetic reason every proper
@@ -973,6 +1001,73 @@ theorem fibCompanionIter_scalar_iff
     simp
 
 end ConwayTopBitCompanion
+
+section ConwayResultantParametrization
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- The Artin--Schreier projection in the rational normalization of the
+Conway resultant correspondence. -/
+def conwayAlpha (c : R) : R := c ^ 2 + c
+
+/-- The successor projection in the rational normalization of the Conway
+resultant correspondence. -/
+def conwayBeta (c : R) : R := c ^ 3 + c ^ 2
+
+omit [CharP R 2] in
+/-- The successor projection is the parameter times its Artin--Schreier
+parent. -/
+theorem conwayBeta_eq_mul_alpha (c : R) :
+    conwayBeta c = c * conwayAlpha c := by
+  simp only [conwayAlpha, conwayBeta]
+  ring
+
+/-- Translation by one fixes the parent projection. -/
+theorem conwayAlpha_add_one (c : R) :
+    conwayAlpha (c + 1) = conwayAlpha c := by
+  have hsquare : (c + 1) ^ 2 = c ^ 2 + 1 := by
+    simpa using (add_pow_expChar_pow c (1 : R) 2 1)
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  simp only [conwayAlpha]
+  rw [hsquare]
+  ring_nf
+  simp [h2]
+
+/-- The two successor values above one parent differ by that parent. -/
+theorem conwayBeta_add_one (c : R) :
+    conwayBeta (c + 1) = conwayBeta c + conwayAlpha c := by
+  rw [conwayBeta_eq_mul_alpha, conwayAlpha_add_one,
+    conwayBeta_eq_mul_alpha]
+  ring
+
+/-- The rational parameterization lies on
+`X^2 + Y*X + Y^3 = 0`. -/
+theorem conwayResultant_parametrized (c : R) :
+    conwayBeta c ^ 2 + conwayAlpha c * conwayBeta c +
+        conwayAlpha c ^ 3 = 0 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hzero : c ^ 2 + c + conwayAlpha c = 0 := by
+    simp only [conwayAlpha]
+    ring_nf
+    simp [h2]
+  rw [conwayBeta_eq_mul_alpha]
+  linear_combination (conwayAlpha c) ^ 2 * hzero
+
+/-- The product of the two successor values is the cube of their parent;
+this is the exact relative norm used by the unique-parent test. -/
+theorem conwayResultant_pair_product (c : R) :
+    conwayBeta c * conwayBeta (c + 1) = conwayAlpha c ^ 3 := by
+  calc
+    conwayBeta c * conwayBeta (c + 1) =
+        (c * conwayAlpha c) * ((c + 1) * conwayAlpha (c + 1)) := by
+      rw [conwayBeta_eq_mul_alpha, conwayBeta_eq_mul_alpha]
+    _ = (c * conwayAlpha c) * ((c + 1) * conwayAlpha c) := by
+      rw [conwayAlpha_add_one]
+    _ = conwayAlpha c ^ 3 := by
+      simp only [conwayAlpha]
+      ring
+
+end ConwayResultantParametrization
 
 section CubeFibotomicIntersection
 

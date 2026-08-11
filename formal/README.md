@@ -115,6 +115,9 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   `p`-th power, including the prime-order shortcut used at Fermat-prime levels
   and the equivalence between maximal order and simultaneous non-`p`-power at
   every prime divisor of the ambient cyclic-group order;
+- the Conway-unit Euler-symbol identity
+  `c^((q-1)h)=w^h` from `c^q=c*w`, which is the finite-field core of the
+  paper's exact cyclotomic lift of the selected Fermat residue symbol;
 - the exact quotient-order factorization used by relative-order products, with
   maximality of the individual quotient factors deliberately left as an input;
 - the finite-level Popovych primitive-product equivalence: the selected
@@ -158,6 +161,10 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Fibonacci companion, including the equivalence between scalar return and
   `S_r(a)=0`; this identifies the hidden projective/Singer order with the
   original Conway--Fermat first-zero target rather than proving maximality;
+- the algebraic parametrization identities underlying the paper's rational
+  normalization of the Conway resultant correspondence by
+  `alpha(c)=c^2+c` and `beta(c)=c^3+c^2`, including translation of the two
+  child values and their exact product `beta(c)*beta(c+1)=alpha(c)^3`;
 - the cubic map on the norm-one fibotomic coordinate
   `Phi(x^3)=Phi(x)^3/(1+Phi(x))^2`, its cube-class form, and the explicit
   cube forced by the preceding Conway driver; these show that old maximal

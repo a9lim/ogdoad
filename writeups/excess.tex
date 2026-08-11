@@ -8249,6 +8249,122 @@ Therefore $a_i$ has full degree $2^{i+1}=2\deg A_{i-1}$, so the
 resultant is its minimal polynomial.
 \end{proof}
 
+\begin{proposition}[rational normalization, unique parents, and finite-field collapse]
+\label{prop:fermat-resultant-dynamics}
+For a monic polynomial \(A\in\F_2[Y]\), write
+\[
+ \mathcal T(A)(X)=\operatorname{Res}_Y
+   \bigl(A(Y),X^2+YX+Y^3\bigr).
+\]
+The correspondence \(X^2+YX+Y^3=0\) has rational normalization
+\(\mathbf P^1_c\), with
+\[
+ Y=\alpha(c):=c^2+c,
+ \qquad
+ X=\beta(c):=c^3+c^2.                              \tag{\(\mathsf{RDy}_1\)}
+\]
+Consequently, after base change to \(\overline{\F}_2\), its transform
+on effective zero-cycles on the \(X\)-line is
+\[
+ \operatorname{div}_0\mathcal T(A)
+ =\beta_*\alpha^*\operatorname{div}_0(A).           \tag{\(\mathsf{RDy}_2\)}
+\]
+
+If \(A\) is irreducible of degree \(m\) and a root of \(A\) has
+absolute trace one, then \(\mathcal T(A)\) is irreducible of degree
+\(2m\), and its roots again have trace one.  On this locus
+\(\mathcal T\) is injective.  More precisely, if
+\(B=\mathcal T(A)\), \(x\) is a root of \(B\), and \(q=2^m\), then
+the parent root and hence its minimal polynomial are recovered by
+\[
+ y=x^q+x.                                           \tag{\(\mathsf{RDy}_3\)}
+\]
+
+Conversely, let \(B\) be an irreducible trace-one polynomial of degree
+\(2m\), let \(x\) be one of its roots, and put \(y=x^{2^m}+x\).
+Then \(B\) has a parent under \(\mathcal T\) if and only if
+\[
+ \boxed{x^{2^m+1}=y^3.}                             \tag{\(\mathsf{RDy}_4\)}
+\]
+When this holds, the parent is unique.
+
+The rational dynamics adds no shorter selector.  If
+\(H\in\overline{\F}_2(t)\) satisfies
+\[
+ H\circ\alpha=H\circ\beta,
+\]
+then \(H\) is constant; neither \(\alpha\) nor \(\beta\) factors
+rationally through the other.  Their critical portrait is likewise
+universal: \(\alpha\) branches only at infinity, \(\beta\) has critical
+values \(0,\infty\), and that two-point set is invariant.  Every
+trace-one orbit avoids it.  Thus all trace-one seeds of the same degree
+\(m\) have iterates irreducible of degrees \(2^rm\), with common
+splitting fields \(\F_{2^{2^rm}}\).
+
+In the norm-one coordinates
+\[
+ \Phi(v)=\frac{v}{(v+1)^2},\qquad
+ \Psi(v)=\frac{v}{(v+1)^3},
+\]
+the transition is \(\Phi(w)=\Psi(v)\).  There is no rational selection
+\(w=R(v)\), since it would force \(2\deg R=3\).  Hence critical-orbit,
+splitting-field, degree, and rational-first-integral data do not select
+the full Fermat stratum.  The actual \(A_i\) is instead the unique node
+whose repeated parent chain ends at \(A_{-1}=X+1\); applying
+\((\mathsf{RDy}_4)\) along that chain is exactly the existing full
+trace--norm ancestry, not a new nonvanishing invariant.
+\end{proposition}
+
+\begin{proof}
+In the function field of the correspondence put \(c=X/Y\).  Then
+\(c^2+c+Y=0\), which gives \((\mathsf{RDy}_1)\); the defining property
+of the resultant gives \((\mathsf{RDy}_2)\).
+
+Let \(y\) be a trace-one root of \(A\), choose
+\(c^2+c=y\), and put \(x=yc\).  The Artin--Schreier criterion makes
+\(Z^2+Z+y\) irreducible over \(\F_{2^m}\), so
+\[
+ c^{2^m}=c+1,\qquad x^{2^m}=x+y.
+\]
+Therefore \(y=x^{2^m}+x\) and \(c=x/y\) both belong to
+\(\F_2(x)\), whence \(x\) has degree \(2m\).  The monic degree-
+\(2m\) resultant is its minimal polynomial, and trace transitivity
+gives \(\operatorname{Tr}_{2m/1}(x)=\operatorname{Tr}_{m/1}(y)=1\).
+This also proves parent recovery and injectivity.
+
+For a child, the two relative conjugates are \(x,x+y\), so a parent
+necessarily gives
+\[
+ x^{2^m+1}=x(x+y)=y^3.
+\]
+Conversely assume \((\mathsf{RDy}_4)\) and put \(c=x/y\).  Then
+\[
+ c^2+c=\frac{x(x+y)}{y^2}=y.
+\]
+The element \(y\) cannot lie in a proper subfield of \(\F_{2^m}\):
+otherwise \(\F_2(y,c)\), and hence \(\F_2(x)\), would have degree
+strictly less than \(2m\).  Thus its minimal polynomial has degree
+\(m\).  Moreover trace transitivity and the trace-one hypothesis on
+\(B\) give
+\(\operatorname{Tr}_{m/1}(y)=\operatorname{Tr}_{2m/1}(x)=1\).
+The preceding construction therefore shows that its transform is \(B\).
+This proves \((\mathsf{RDy}_4)\) and uniqueness.
+
+Degrees of nonconstant rational maps multiply.  Hence
+\(H\circ\alpha=H\circ\beta\) would give
+\(2\deg H=3\deg H\), while a factorization of either projection
+through the other would give \(2=3\deg R\) or \(3=2\deg R\).
+The derivative and pole calculations for \(c^2+c\) and
+\(c^2(c+1)\) give the stated critical portrait.  Iterating the first
+part proves the common finite-field tower.  Finally
+\(\Phi(R(v))=\Psi(v)\) has the same impossible degree equation, and
+the unique-parent conclusion follows from \((\mathsf{RDy}_3)\).
+Lean independently checks \(\beta=c\alpha\),
+\(\alpha(c+1)=\alpha(c)\),
+\(\beta(c+1)=\beta(c)+\alpha(c)\), the curve equation, and
+\(\beta(c)\beta(c+1)=\alpha(c)^3\) in \texttt{Ogdoad.Excess}.
+\end{proof}
+
 \begin{proposition}[the top-bit block is the same projective-order problem]
 \label{prop:fermat-top-bit-companion}
 Fix one Conway edge, put
@@ -10690,6 +10806,104 @@ criterion proves the equivalence with irreducibility of
 $X^\ell-c_n$.
 \end{proof}
 
+\begin{proposition}[exact cyclotomic lift of the selected Fermat symbol]
+\label{prop:fermat-cyclotomic-symbol}
+Put \(m=2^n\), \(q=2^m\), and \(N=q+1=F_n\).  Choose a generator
+\(\omega\) of the norm-one group
+\[
+ U_n=\ker\!\left(\Norm_{\F_{q^2}/\F_q}\right)
+\]
+independently of the Conway element, and write
+\[
+ w_n=\frac{c_n+1}{c_n}=\omega^{r_n},
+ \qquad r_n\in\mathbf Z/N\mathbf Z.                 \tag{\(\mathsf{CS}_1\)}
+\]
+Let \(\mathfrak P_\omega\mid2\) be the prime of
+\(\mathbf Q(\zeta_N)\) specified by
+\(\zeta_N\bmod\mathfrak P_\omega=\omega\), and define the
+cyclotomic unit
+\[
+ \varepsilon_{r_n}=(1+\zeta_N^{r_n})^{-1}.
+\]
+Its residue is \(c_n\).  For every prime \(\ell\mid N\), the
+\(\ell\)-th power-residue symbol, identified with its reduction in
+\(\mu_\ell\subset\F_{q^2}^{\times}\), is
+\[
+ \boxed{
+ \left(\frac{\varepsilon_{r_n}}{\mathfrak P_\omega}\right)_\ell
+   =\omega^{r_nN/\ell}=w_n^{N/\ell}.}               \tag{\(\mathsf{CS}_2\)}
+\]
+Consequently
+\[
+ \left(\frac{\varepsilon_{r_n}}{\mathfrak P_\omega}\right)_\ell
+ \ne1
+ \iff \ell\nmid r_n
+ \iff v_\ell(\delta_n)=v_\ell(N)
+ \iff A_{n-1}\nmid S_{N/\ell}.                     \tag{\(\mathsf{CS}_3\)}
+\]
+Thus the all-level Popovych problem is exactly the assertion that the
+Conway-selected discrete logarithm \(r_n\) is a unit modulo \(F_n\) at
+every level.
+
+This description is noncircular only with the independent generator
+\(\omega\).  Defining the prime above two by
+\(\zeta_N\bmod\mathfrak P=w_n\) would already assume that \(w_n\) has
+order \(N\).  With an honest primitive \(\omega\), the undetermined
+coordinate \(r_n\bmod\ell\) remains exactly the original obstruction.
+The ambient presentation in \(\mathbf Q(\zeta_N)\), the local logarithm,
+and the principal ideal of the circular unit do not determine it.  The
+minimal odd cyclotomic conductor is not blind: since
+\[
+ \zeta_N^{r_n}=\varepsilon_{r_n}^{-1}-1,
+ \qquad
+ \mathbf Q(\varepsilon_{r_n})
+   =\mathbf Q(\zeta_{\delta_n}),
+ \qquad
+ \delta_n=\frac{N}{\gcd(N,r_n)},
+\]
+proving that this conductor is \(N\) is equivalent to the original
+maximal-order assertion.  Under \(\ell\)-failure it drops to a divisor
+of \(N/\ell\), but every nontrivial divisor \(d\mid F_n\) still has
+\(\ord_d(2)=2m\), so residue-field degree does not exclude that drop.
+The principal-unit part at two is uniquely \(\ell\)-divisible and the
+logarithm kills the Teichmuller torsion where \((\mathsf{CS}_2)\) lives;
+every \(\varepsilon_{r_n}\) also has unit principal ideal.  Circular-unit
+distribution and reciprocity can transport the value in
+\((\mathsf{CS}_2)\), but without an additional ancestry-sensitive
+congruence they do not determine \(r_n\bmod\ell\).
+\end{proposition}
+
+\begin{proof}
+The elementary Fermat congruence gives \(\ord_N(2)=2m\), so
+\(\mathfrak P_\omega\) has residue field \(\F_{q^2}\).  The element
+\(w_n\ne1\).  Put
+\(d=\ord(w_n)=N/\gcd(N,r_n)\).  Then \(d>1\) is odd,
+\(\zeta_N^{r_n}\) is a primitive \(d\)-th root, and
+\(\Phi_d(-1)=1\).  Hence \(1+\zeta_N^{r_n}\) is a cyclotomic unit of
+absolute norm one.  Reduction gives
+\[
+ \varepsilon_{r_n}\bmod\mathfrak P_\omega
+  =(1+w_n)^{-1}=c_n.
+\]
+Put \(h=N/\ell\).  In the residue field \(w_n^q=w_n^{-1}\), and hence
+\[
+ (1+w_n)^{q-1}
+   =\frac{1+w_n^q}{1+w_n}=w_n^{-1}.
+\]
+Euler's definition of the power-residue symbol now gives
+\[
+ \varepsilon_{r_n}^{(q^2-1)/\ell}
+  =(1+w_n)^{-(q-1)h}
+  =w_n^h,
+\]
+which is \((\mathsf{CS}_2)\).  In the cyclic group of order \(N\),
+\(\omega^{r_nN/\ell}\ne1\) exactly when \(\ell\nmid r_n\), and this
+is equivalent to retaining the full \(\ell\)-primary part of the
+order.  Proposition~\ref{prop:fermat-fibotomic} supplies the last
+equivalence in \((\mathsf{CS}_3)\).  The Euler-exponent identity used
+here is independently kernel-checked in \texttt{Ogdoad.Excess}.
+\end{proof}
+
 \begin{proposition}[four-point saturation of a Fermat failure]
 \label{prop:fermat-four-plane}
 Fix \(n\geq2\), put
@@ -11557,8 +11771,27 @@ a square root of two has order \(2^{n+2}\); hence
 \(d\mid F_n\) already satisfies
 
 \[
- d\equiv1\pmod{2^{n+2}},\qquad \ord_d(2)=2^{n+1}.
+d\equiv1\pmod{2^{n+2}},\qquad \ord_d(2)=2^{n+1}.
 \]
+
+There is also an exact bridge to the current primitive-quadratic
+classification.  Assume \(n\geq2\) and the lower Fermat levels are maximal, so that
+\(a=a_{n-1}\) has order \((q-1)/3\) in \(\F_q^\times\), where
+\(q=2^{2^n}\).  Since \(v_3(q-1)=1\), the element \(c_0^2a\) is
+primitive, while \(x=c_0c_n\) has irreducible polynomial
+\[
+ X^2+c_0X+c_0^2a.                                   \tag{\(\mathsf{VQ}\)}
+\]
+Vega's theorem~\cite{Vega26} makes every irreducible quadratic with
+nonzero trace coefficient and primitive constant term primitive when
+\(q+1\) is prime, a power of two, or twice a prime.  His converse
+classification~\cite{VegaNec26} proves that these are exactly the
+universal field sizes.  Here \(q+1=F_n\) is odd, so the theorem closes
+precisely the already-easy Fermat-prime levels; every composite Fermat
+level lies outside the universal classification.  Vega's general
+coefficient recurrence specializes in \((\mathsf{VQ})\) to
+\(h_i=c_0^{i-1}S_i(a)\), and therefore returns the same selected first
+zero rather than bounding it.
 
 The newer first-zero theorem of Zhu--Wu~\cite[Theorem~4.1]{ZhuWu26}
 identifies the binomial and multiplicative orders of an irreducible
@@ -11567,10 +11800,9 @@ recovers exactly the reverse-Dickson/Lucas criterion already isolated
 above; it does not prove that the first zero is \(F_n\).  Their later
 primitive-coefficient criterion assumes both that the constant term is
 primitive and that \(q+1=2^m\pi\) with \(m>0\) and \(\pi\) an odd prime.
-The Conway quadratic has constant term of order \((q-1)/3\) under the
-full preceding hypothesis, while \(q+1=F_n\) is odd and may be
-composite.  Thus that theorem does not cover the selected Conway
-polynomial.
+Although the rescaling \((\mathsf{VQ})\) supplies the primitive constant,
+\(q+1=F_n\) is odd and may be composite.  Thus that theorem does not
+cover the selected composite-Fermat polynomial.
 
 Thus the Euler--Lucas congruence is automatic from
 \(1<\delta_n\mid F_n\).  No all-level proof or counterexample is presently
@@ -17190,6 +17422,15 @@ Compos.\ Math.\ \textbf{60} (1986), 97--114;
 \emph{An introduction to \(p\)-adic \(L\)-functions}, Essential Number
 Theory \textbf{4} (2025), 101--216;
 \url{https://doi.org/10.2140/ent.2025.4.101}; arXiv:2309.15692.
+\bibitem{Vega26} G.~Vega,
+\emph{A characterization and an explicit description of all primitive
+polynomials of degree two}, Finite Fields Appl.\
+\textbf{109} (2026), 102716; arXiv:2409.17147;
+\url{https://doi.org/10.1016/j.ffa.2025.102716}.
+\bibitem{VegaNec26} G.~Vega,
+\emph{Necessary and sufficient conditions on the order of a finite field
+for the easy identification of primitive polynomials of degree 2},
+arXiv:2607.01542 (2026).
 \bibitem{vzGS92} J.~von~zur~Gathen, V.~Shoup, \emph{Computing Frobenius
 maps and factoring polynomials}, Comput.\ Complexity \textbf{2} (1992),
 187--224.

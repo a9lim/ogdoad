@@ -128,7 +128,9 @@ not a scalar parity identity.
   nonadjacent to `z`.  Every strict descendant is cold zero for both players
   and every strict legal edge is neutral.  This minimum-hot singleton-wall
   theorem is now kernel-checked in `FifoNormalization.lean`.  It classifies
-  the primitive wall but does not make it strategy-reachable from a bad root.
+  the primitive wall but does not make it strategy-reachable from a bad root;
+  the unpruned global minimum and the minimum dual bit inside one fixed pruned
+  strategy tree are different quantifiers.
 - Exact minimax verifies the conjecture for every graph isomorphism class
   through eight real vertices plus the isolated dummy, for either designated
   seat. This is certified finite evidence only.
@@ -310,7 +312,23 @@ absolute boundedness.
   its first projective return is exactly `delta_n`, while its characteristic
   polynomial is exactly the existing Conway resultant. Thus neither a hidden
   Singer conjugacy nor a characteristic-polynomial recursion is an independent
-  maximality proof. At a hypothetical first failure the old coefficient's
+  maximality proof. The selected Kummer symbol now has an exact cyclotomic
+  lift: after choosing an independent generator `omega` of the norm-one group
+  and writing `w_n=omega^(r_n)`, its `ell`-th residue symbol at the associated
+  prime above two is exactly `omega^(r_n*F_n/ell)`. Thus the conjecture is
+  precisely `ell` not dividing the Conway-selected discrete logarithm `r_n`.
+  The unit's minimal odd cyclotomic conductor is exactly
+  `delta_n=F_n/gcd(F_n,r_n)`, so proving full conductor is equivalent to
+  maximality rather than an independent route.
+  Choosing the prime by sending a root of unity directly to `w_n` would assume
+  maximality; local logarithms, principal-ideal/Stickelberger data, and
+  circular-unit distribution do not determine the remaining residue of `r_n`.
+  The resultant correspondence itself has rational normalization
+  `Y=c^2+c`, `X=c^3+c^2` and a unique parent on trace-one irreducibles, but
+  its critical portrait, degree growth, and cyclic splitting fields are
+  universal. Hence its exact parent chain retains full Conway ancestry while
+  supplying no shorter dynamical selector. At a hypothetical first failure
+  the old coefficient's
   maximal order only makes it a generator of the cube subgroup; exact Conway
   ancestry already makes that coefficient an explicit cube, and tripling on
   the fibotomic torus merely transports its cubic character to a translate-one
@@ -482,6 +500,12 @@ absolute boundedness.
   Chance*, MSRI Publications 42 (2002), 49–58.
 - Rohrlich, “Jacobi sums and explicit reciprocity laws,” *Compositio
   Mathematica* 60 (1986), 97–114.
+- Vega, “A characterization and an explicit description of all primitive
+  polynomials of degree two,” *Finite Fields and Their
+  Applications* 109 (2026), 102716.
+- Vega, “Necessary and sufficient conditions on the order of a finite field
+  for the easy identification of primitive polynomials of degree 2,”
+  arXiv:2607.01542 (2026).
 - Wall, “Quadratic forms on finite groups, and related topics,” *Topology* 2
   (1963), 281–298.
 - Zhu and Wu, “On binomial order and primitivity of irreducible quadratic
