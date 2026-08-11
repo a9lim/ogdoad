@@ -673,6 +673,71 @@ theorem partialFrobeniusTrace_eq_sum (a : R) (t : Nat) :
         congr 1
       · simp
 
+/-- Partial Frobenius traces are additive in characteristic two. -/
+theorem partialFrobeniusTrace_additive (a b : R) (s : Nat) :
+    partialFrobeniusTrace (a + b) s =
+      partialFrobeniusTrace a s + partialFrobeniusTrace b s := by
+  simp only [partialFrobeniusTrace_eq_sum]
+  rw [← Finset.sum_add_distrib]
+  apply Finset.sum_congr rfl
+  intro j hj
+  exact add_pow_expChar_pow a b 2 j
+
+/-- Frobenius powering commutes with a partial Frobenius trace. -/
+theorem partialFrobeniusTrace_pow_two (a : R) (s d : Nat) :
+    (partialFrobeniusTrace a s) ^ (2 ^ d) =
+      partialFrobeniusTrace (a ^ (2 ^ d)) s := by
+  simp only [partialFrobeniusTrace_eq_sum]
+  rw [sum_pow_char_pow]
+  apply Finset.sum_congr rfl
+  intro j hj
+  rw [← pow_mul, ← pow_mul]
+  congr 1
+  ac_rfl
+
+/-- Splitting the index of a partial Frobenius trace. -/
+theorem partialFrobeniusTrace_add_index (a : R) (d r : Nat) :
+    partialFrobeniusTrace a (d + r) =
+      partialFrobeniusTrace a d +
+        (partialFrobeniusTrace a r) ^ (2 ^ d) := by
+  simp only [partialFrobeniusTrace_eq_sum]
+  rw [Finset.sum_range_add]
+  congr 1
+  rw [sum_pow_char_pow]
+  apply Finset.sum_congr rfl
+  intro j hj
+  calc
+    a ^ 2 ^ (d + j) = a ^ (2 ^ j * 2 ^ d) := by
+      congr 1
+      rw [pow_add]
+      ac_rfl
+    _ = (a ^ 2 ^ j) ^ 2 ^ d := by rw [pow_mul]
+
+/-- The index split becomes ordinary addition when the coefficient is fixed
+by the relevant Frobenius power. -/
+theorem partialFrobeniusTrace_add_index_of_fixed
+    (A : R) (d r : Nat) (hA : A ^ (2 ^ d) = A) :
+    partialFrobeniusTrace A (d + r) =
+      partialFrobeniusTrace A d + partialFrobeniusTrace A r := by
+  rw [partialFrobeniusTrace_add_index]
+  rw [partialFrobeniusTrace_pow_two, hA]
+
+/-- Exact relative-trace descent for the compressed Conway--Fermat ratio:
+if the relative conjugate of `a` is `a + A`, the relative trace of
+`1 + T_s(a)` is `T_s(A)`. -/
+theorem partialFrobeniusTrace_conjugate_descent
+    (a A : R) (s d : Nat) (ha : a ^ (2 ^ d) = a + A) :
+    (1 + partialFrobeniusTrace a s) ^ (2 ^ d) +
+        (1 + partialFrobeniusTrace a s) =
+      partialFrobeniusTrace A s := by
+  rw [add_pow_expChar_pow]
+  rw [one_pow]
+  rw [partialFrobeniusTrace_pow_two, ha]
+  rw [partialFrobeniusTrace_additive]
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+  simp [h2]
+
 /-- Characteristic-two doubling for the selected Fibonacci recurrence. -/
 theorem fibPolyValue_double (a : R) (r : Nat) :
     fibPolyValue a (2 * r) = (fibPolyValue a r) ^ 2 ∧
@@ -833,6 +898,148 @@ theorem fermat_complement_indices_not_dvd
     omega
 
 end FermatFibonacciCompression
+
+section ConwayTopBitCompanion
+
+variable {R : Type*} [CommRing R]
+
+/-- Coordinate identity behind the literal-top-bit multiplication block
+`[[0, M^2], [M, M]]`. -/
+theorem conwayTopBit_mul_coords
+    (A c x₀ x₁ : R) (hc : c ^ 2 = c + A) :
+    (A * c) * (x₀ + c * x₁) =
+      A ^ 2 * x₁ + c * (A * x₀ + A * x₁) := by
+  calc
+    (A * c) * (x₀ + c * x₁) =
+        A * c * x₀ + A * c ^ 2 * x₁ := by ring
+    _ = A * c * x₀ + A * (c + A) * x₁ := by rw [hc]
+    _ = A ^ 2 * x₁ + c * (A * x₀ + A * x₁) := by ring
+
+/-- Iteration of the Fibonacci companion `C_a(x,y)=(a*y,x+y)`. -/
+def fibCompanionIter (a : R) : Nat → R × R → R × R
+  | 0, v => v
+  | r + 1, v =>
+      let w := fibCompanionIter a r v
+      (a * w.2, w.1 + w.2)
+
+/-- Exact entries of every positive power of the Fibonacci companion. -/
+theorem fibCompanionIter_succ_formula
+    (a x y : R) (r : Nat) :
+    fibCompanionIter a (r + 1) (x, y) =
+      (a * fibPolyValue a r * x + a * fibPolyValue a (r + 1) * y,
+       fibPolyValue a (r + 1) * x + fibPolyValue a (r + 2) * y) := by
+  induction r with
+  | zero => simp [fibCompanionIter, fibPolyValue]
+  | succ r ih =>
+      rw [show r + 1 + 1 = (r + 1) + 1 by rfl]
+      rw [fibCompanionIter]
+      rw [ih]
+      simp only
+      rw [show fibPolyValue a (r + 3) =
+          fibPolyValue a (r + 2) + a * fibPolyValue a (r + 1) by
+            simp only [fibPolyValue]]
+      rw [show fibPolyValue a (r + 2) =
+          fibPolyValue a (r + 1) + a * fibPolyValue a r by
+            simp only [fibPolyValue]]
+      ring_nf
+
+/-- A positive companion power is scalar exactly at a Fibonacci zero.
+Thus its first projective return is the first zero of `S_r(a)`. -/
+theorem fibCompanionIter_scalar_iff
+    (a scalar : R) (r : Nat) :
+    (∀ x y : R, fibCompanionIter a (r + 1) (x, y) =
+      (scalar * x, scalar * y)) ↔
+      fibPolyValue a (r + 1) = 0 ∧
+        scalar = fibPolyValue a (r + 2) := by
+  constructor
+  · intro h
+    have hs : fibPolyValue a (r + 1) = 0 := by
+      have hv := congrArg Prod.snd (h 1 0)
+      rw [fibCompanionIter_succ_formula] at hv
+      simpa using hv
+    refine ⟨hs, ?_⟩
+    have hv := congrArg Prod.fst (h 1 0)
+    rw [fibCompanionIter_succ_formula] at hv
+    simp only [mul_one, mul_zero, add_zero] at hv
+    rw [show fibPolyValue a (r + 2) =
+        fibPolyValue a (r + 1) + a * fibPolyValue a r by
+          simp only [fibPolyValue], hs, zero_add]
+    exact hv.symm
+  · rintro ⟨hs, rfl⟩ x y
+    rw [fibCompanionIter_succ_formula]
+    rw [show fibPolyValue a (r + 2) =
+        fibPolyValue a (r + 1) + a * fibPolyValue a r by
+          simp only [fibPolyValue], hs, zero_add]
+    simp
+
+end ConwayTopBitCompanion
+
+section CubeFibotomicIntersection
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- The inversion-quotient coordinate on the norm-one torus. -/
+def torusPhi (x : K) : K := x / (x + 1) ^ 2
+
+/-- Tripling on the norm-one torus descends to a fixed rational map on
+the fibotomic coordinate. -/
+theorem torusPhi_cube
+    (x : K) (hx1 : x + 1 ≠ 0) (hxq : x ^ 2 + x + 1 ≠ 0) :
+    torusPhi (x ^ 3) = (torusPhi x) ^ 3 / (1 + torusPhi x) ^ 2 := by
+  have hxq' : x ^ 2 + x + 1 ≠ 0 := hxq
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have h3 : (3 : K) = 1 := by
+    calc
+      (3 : K) = 2 + 1 := by norm_num
+      _ = 1 := by rw [h2]; simp
+  have hfac : x ^ 3 + 1 = (x + 1) * (x ^ 2 + x + 1) := by
+    ring_nf
+    simp [h2]
+  have hplus : 1 + torusPhi x =
+      (x ^ 2 + x + 1) / (x + 1) ^ 2 := by
+    simp only [torusPhi]
+    field_simp [hx1]
+    ring_nf
+    simp [h3]
+  rw [hplus]
+  simp only [torusPhi]
+  rw [hfac]
+  field_simp [hx1, hxq']
+
+/-- Consequently `Phi(x^3)` and `1 + Phi(x)` have the same class modulo
+cubes.  Thus a cubic fibotomic character is transported to a translate-one
+character rather than being forced nontrivial. -/
+theorem torusPhi_cubeClass
+    (x : K) (hx1 : x + 1 ≠ 0) (hxq : x ^ 2 + x + 1 ≠ 0) :
+    torusPhi (x ^ 3) =
+      (1 + torusPhi x) * (torusPhi x / (1 + torusPhi x)) ^ 3 := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have h3 : (3 : K) = 1 := by
+    calc
+      (3 : K) = 2 + 1 := by norm_num
+      _ = 1 := by rw [h2]; simp
+  have hplus : 1 + torusPhi x =
+      (x ^ 2 + x + 1) / (x + 1) ^ 2 := by
+    simp only [torusPhi]
+    field_simp [hx1]
+    ring_nf
+    simp [h3]
+  have hphi : 1 + torusPhi x ≠ 0 := by
+    rw [hplus]
+    exact div_ne_zero hxq (pow_ne_zero _ hx1)
+  rw [torusPhi_cube x hx1 hxq]
+  field_simp
+
+omit [CharP K 2] in
+/-- The previous Conway driver already makes its successor coefficient
+an explicit cube; cubic-residue membership is automatic ancestry data. -/
+theorem conwayDriver_explicitCube
+    (w rho : K) (hrho : rho ^ 3 = w) :
+    w / (w + 1) ^ 3 = (rho / (w + 1)) ^ 3 := by
+  rw [← hrho]
+  field_simp
+
+end CubeFibotomicIntersection
 
 section NormalizedSingerAlgebra
 

@@ -150,6 +150,18 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   `S_(2^t*h+1)=S_(h+1)^(2^t)+T_t(a)*S_h^(2^t)`, including its exact ratio
   form and the complementary-index nondivisibility used in the
   Conway--Fermat continued-fraction reduction;
+- partial Frobenius-trace additivity, Frobenius commutation, index splitting,
+  and the exact conjugate descent
+  `Tr(1+T_s(a))=T_s(A)` when `a^(2^d)=a+A`, which underlies the paper's
+  full-ancestry trace no-go;
+- the literal-top-bit multiplication identity and exact powers of its
+  Fibonacci companion, including the equivalence between scalar return and
+  `S_r(a)=0`; this identifies the hidden projective/Singer order with the
+  original Conway--Fermat first-zero target rather than proving maximality;
+- the cubic map on the norm-one fibotomic coordinate
+  `Phi(x^3)=Phi(x)^3/(1+Phi(x))^2`, its cube-class form, and the explicit
+  cube forced by the preceding Conway driver; these show that old maximal
+  cube-subgroup order is automatic ancestry data, not a new nonresidue;
 - the denominator-free quadratic-remainder norm
   `(U+xV)(U+x'V) = U^2 + YUV + Y^3V^2` used by the paper's one-branch
   Conway--Fermat descent;
@@ -247,13 +259,23 @@ current normalization frontier rather than assuming it:
 - the handshaking and balanced-front part of the least-root odd corridor:
   same-degree mates form an odd set, balance the twice-punctured front, and
   force the selected move of any odd strategy to be an OPEN while the smaller
-  isolated-dummy root is even-winning.
+  isolated-dummy root is even-winning; and
+- the exact unpruned minimum-hot normal form.  `Hot` means that one physical
+  player can force either absolute score, while `ColdAtOwnScore` means that
+  both physical players can preserve the score already accumulated.  Below a
+  rank-minimal hot state Lean proves every state cold at its own score and
+  every legal edge score-neutral; `minHotState_is_singletonWall` then forces
+  the minimum hot state to have one untouched vertex `z`, a clear front `f`,
+  and adjacency bit `fz = 1`.
 
 The last theorem deliberately stops before the unresolved step.  If the
 selected OPEN touches the dummy, the remaining real reply fan has even
 cardinality; neither the same-degree induction nor the local balanced-front
-lemmas provide an even-winning child.  The required same-eta corridor and
-global `(A)/(B')` ancestry contraction remain mathematical obligations.
+lemmas provide an even-winning child.  Likewise, the minimum-hot theorem
+classifies primitive flexible walls but does not show that a fixed root
+counterstrategy can reach one on the required sheet.  The required same-eta
+corridor and global `(A)/(B')` ancestry contraction remain mathematical
+obligations.
 
 [`Ogdoad/FifoMatching.lean`](Ogdoad/FifoMatching.lean) closes the exact
 subclass needed by the resolved Gold construction:

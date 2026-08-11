@@ -7729,6 +7729,67 @@ by \((\mathsf{PP}_1)\), and this order is divisible by
 \(5\nmid F_{n-1}\) for \(n\geq3\), a contradiction.
 \end{proof}
 
+\begin{proposition}[the classical \(Q\)-transform stops at irreducibility]
+\label{prop:fermat-q-transform}
+Retain Proposition~\ref{prop:fermat-arm}, put \(m=2^n\), let
+\(A_{n-1}\) be the minimal polynomial of \(a=a_{n-1}\), and set
+
+\[
+ f(X)=X^mA_{n-1}(X^{-1}),\qquad
+ u=\frac{c_n+1}{c_n}.
+\]
+
+Then \(f\) is the minimal polynomial of \(a^{-1}\), and the minimal
+polynomial of \(u\) is exactly the classical binary \(Q\)-transform
+\[
+ f^Q(U)=U^m f(U+U^{-1}).                              \tag{\(\mathsf{QT}_1\)}
+\]
+It is irreducible of degree \(2m\).  If \(e=\ord(u)\), the complete
+self-reciprocal order information supplied by this transformation is
+\[
+ e\mid F_n,\qquad
+ \min\{j>0:2^j\equiv\pm1\pmod e\}=m.                 \tag{\(\mathsf{QT}_2\)}
+\]
+Every nontrivial divisor \(e\mid F_n\) satisfies
+\((\mathsf{QT}_2)\).  Thus the full \(Q\)-transform and
+self-reciprocal irreducibility theorems do not distinguish
+\(e=F_n\) from any proper fibotomic stratum.
+
+Nor is the Conway tower obtained by iterating the \(Q\)-transform.  After
+the quadratic lift one has
+\[
+ a_n=\frac{u}{(u+1)^3},\qquad
+ a_n^{-1}=\frac{(u+1)^3}{u},                      \tag{\(\mathsf{QT}_3\)}
+\]
+so the next step is a cubic pushforward followed by another quadratic
+preimage, not a second application of \(U\mapsto U+U^{-1}\).
+\end{proposition}
+
+\begin{proof}
+The identity \((\mathsf{WW}_1)\) gives
+\[
+ u+u^{-1}=a^{-1},
+\]
+so \(u\) is a root of \((\mathsf{QT}_1)\).  The constant and
+linear coefficients of \(A_{n-1}\) are one by
+Proposition~\ref{prop:fermat-reciprocal-trace}.  More specifically,
+Proposition~\ref{prop:fermat-ancestry-exhaustion} gives
+\(\operatorname{Tr}(a)=1\), so the coefficient of \(X^{m-1}\) in
+\(A_{n-1}\), equivalently \(f'(0)\), is one.  The
+Varshamov--Garakov criterion in the form of
+Meyn and G\"otz~\cite{MeynGotz89} therefore proves that \(f^Q\) is
+irreducible of degree \(2m\).
+
+The order classification of self-reciprocal irreducibles
+\cite{YucasMullen04} gives \((\mathsf{QT}_2)\).  Conversely, if
+\(1<e\mid2^m+1\), then \(2^m\equiv-1\pmod e\).  The order of two
+modulo \(e\) divides \(2m\), does not divide \(m\), and \(m\) is a power
+of two; hence it is \(2m\), and the first exponent giving either sign is
+\(m\).  This proves the exact limitation.  Finally
+\(a=u/(u+1)^2\) and \(c_n=(u+1)^{-1}\), which gives
+\((\mathsf{QT}_3)\).
+\end{proof}
+
 \begin{proposition}[two-step quartic and exact Kummer dichotomy]
 \label{prop:fermat-two-step-quartic}
 Let \(n\geq2\), put \(B=a_{n-2}\), \(K_0=E_{n-2}\), and
@@ -8069,6 +8130,61 @@ select the Conway ancestry.  Conversely
 compression is exact but supplies no independent nonvanishing invariant.
 \end{proof}
 
+\begin{proposition}[full-ancestry trace descent is the lower tautology]
+\label{prop:fermat-compressed-trace-descent}
+For \(i\geq0\), put \(d=2^i\),
+\(K_0=E_{i-1}=\F_{2^d}\), and
+\(K=E_i=\F_{2^{2d}}\).  Write \(A=a_{i-1}\in K_0\),
+\(a=a_i\in K\), and suppose \(0\leq t\leq d\).  Thus
+\[
+ a^{2^d}=a+A,\qquad T_d(A)=1.
+\]
+For every integer \(D\geq t\), put
+\[
+ C_{D,t}(x)=1+T_{D-t}(x).
+\]
+Then
+\[
+ \boxed{
+ \operatorname{Tr}_{K/K_0}\bigl(C_{2d,t}(a)\bigr)
+   =C_{d,t}(A).}                                      \tag{\(\mathsf{CT}_1\)}
+\]
+The value on the right is exactly the lower full-Fermat continued
+fraction:
+\[
+ C_{d,t}(A)
+ =\frac{S_{2^{d-t}+1}(A)}{S_{2^{d-t}}(A)}.            \tag{\(\mathsf{CT}_2\)}
+\]
+Consequently, when the hypothetical ratio in
+\((\mathsf{TZ}_4)\) is descended through the actual quadratic
+ancestry, every eligible relative trace lands on the lower level's
+unconditional full-Fermat zero identity.  Relative trace therefore
+preserves all ancestry but produces no contradiction to a proper top
+order.
+\end{proposition}
+
+\begin{proof}
+Partial Frobenius traces are additive and commute with Frobenius
+powering.  Hence \(a^{2^d}=a+A\) gives
+\[
+\begin{split}
+ \operatorname{Tr}_{K/K_0}\bigl(1+T_{2d-t}(a)\bigr)
+ &=T_{2d-t}(A)\\
+ &=T_d(A)+T_{d-t}(A)
+  =1+T_{d-t}(A),
+\end{split}
+\]
+which is \((\mathsf{CT}_1)\).  The doubling formulas used in
+Proposition~\ref{prop:fermat-trailing-zero} give
+\[
+ S_{2^r}(A)=1,\qquad S_{2^r+1}(A)=1+T_r(A).
+\]
+Taking \(r=d-t\) proves \((\mathsf{CT}_2)\).  The formal
+identities---additivity, Frobenius commutation, index splitting, and
+the first displayed relative-trace calculation---are independently
+kernel-checked in \texttt{Ogdoad.Excess}.
+\end{proof}
+
 \subsection{The selected factor and the limits of one-step induction}
 
 \begin{proposition}[coarse top-step data cannot force maximality]
@@ -8131,6 +8247,154 @@ But $E_i/\F_2$ has degree $2^{i+1}$, and every proper subfield of
 $E_i$ is contained in its unique index-two subfield $E_{i-1}$.
 Therefore $a_i$ has full degree $2^{i+1}=2\deg A_{i-1}$, so the
 resultant is its minimal polynomial.
+\end{proof}
+
+\begin{proposition}[the top-bit block is the same projective-order problem]
+\label{prop:fermat-top-bit-companion}
+Fix one Conway edge, put
+\[
+ A=a_{i-1},\qquad c=c_i,\qquad a_i=Ac,\qquad c^2=c+A,
+\]
+and let \(M\) be the regular multiplication matrix of \(A\) on
+\(E_{i-1}\).  In the \(E_{i-1}\)-decomposition
+\(E_i=E_{i-1}\oplus cE_{i-1}\), multiplication by the literal top
+Conway bit \(a_i\) has block matrix
+\[
+ M_i=\begin{pmatrix}0&M^2\\ M&M\end{pmatrix}.          \tag{\(\mathsf{CB}_1\)}
+\]
+Put
+\[
+ D=\operatorname{diag}(M,M),\qquad
+ C_M=\begin{pmatrix}0&M\\ I&I\end{pmatrix}.
+\]
+Then \(M_i=DC_M=C_MD\), and for \(r\geq1\),
+\[
+ C_M^r=
+ \begin{pmatrix}
+  MS_{r-1}(M)&MS_r(M)\\
+  S_r(M)&S_{r+1}(M)
+ \end{pmatrix}.                                      \tag{\(\mathsf{CB}_2\)}
+\]
+Consequently
+\[
+ C_M^r\text{ is a lower-field scalar}
+ \iff S_r(A)=0,
+\]
+where a lower-field scalar means
+\(\operatorname{diag}(N_b,N_b)\), with \(N_b\) regular multiplication
+by some \(b\in E_{i-1}\).  Equivalently, this is a scalar in
+\(\operatorname{GL}_2(E_{i-1})\) after restriction of scalars.  The
+first return of either \(C_M\) or \(M_i\) in
+\(\operatorname{PGL}_2(E_{i-1})\) is exactly \(\delta_i\).  Moreover
+\[
+\begin{split}
+ \det(XI-M_i)
+ &=\det(X^2I+XM+M^3)\\
+ &=\operatorname{Res}_Y
+   \bigl(A_{i-1}(Y),X^2+YX+Y^3\bigr).
+\end{split}                                           \tag{\(\mathsf{CB}_3\)}
+\]
+Thus the nested multiplication matrix retains the complete Conway
+ancestry, but its characteristic polynomial is the existing selected
+resultant and its Singer/projective order is the existing Fibonacci
+first zero.  A conjugacy to a Singer generator would already prove the
+Conway--Fermat conjecture; it is not an independent route to it.
+\end{proposition}
+
+\begin{proof}
+For \(x_0,x_1\in E_{i-1}\),
+\[
+ (Ac)(x_0+cx_1)
+ =A^2x_1+c(Ax_0+Ax_1),
+\]
+which proves \((\mathsf{CB}_1)\).  The factorization by \(D\) is
+immediate, and its factors commute because every block is a polynomial
+in \(M\).  Induction using
+\(S_{r+2}=S_{r+1}+XS_r\) proves \((\mathsf{CB}_2)\).
+Its off-diagonal blocks vanish exactly when \(S_r(M)=0\); evaluating
+regular multiplication at \(A\) identifies this with \(S_r(A)=0\).
+The Fibonacci criterion now gives the projective order.
+
+Finally the commuting-block determinant formula gives the first line
+of \((\mathsf{CB}_3)\), and regular multiplication turns that
+determinant into the displayed field norm and resultant.  The
+coordinate identity, companion-power formula, and scalar equivalence
+are independently kernel-checked in \texttt{Ogdoad.Excess}.
+\end{proof}
+
+\begin{proposition}[the first-failure cube character is automatic]
+\label{prop:fermat-cube-no-go}
+Assume \(n\geq2\), put
+\[
+ q=2^{2^n},\qquad Q=\sqrt q,
+\]
+and let \(v=u_{n-1}\) be the previous norm-one driver.  Exact Conway
+ancestry gives
+\[
+ a_{n-1}=\frac{v}{(v+1)^3}.                           \tag{\(\mathsf{CU}_1\)}
+\]
+Since \(v\) lies in the torus of order \(Q+1\) and
+\(3\nmid Q+1\), choose \(\rho\) in that torus with \(\rho^3=v\).
+Then
+\[
+ \boxed{
+ a_{n-1}=
+ \left(\frac{\rho}{v+1}\right)^3.}                    \tag{\(\mathsf{CU}_2\)}
+\]
+Thus the old coefficient is automatically a cube before its
+multiplicative order is used.  If \(n\) is a first failed level, the
+earlier maximalities give
+\[
+ \ord(a_{n-1})=\frac{q-1}{3};
+\]
+this says only that the already cubic element generates the cube
+subgroup.
+
+The fibotomic coordinate has an exact compatible transport.  Put
+\(\Phi(x)=x/(x+1)^2\).  Whenever the denominators are nonzero,
+\[
+ \boxed{
+ \Phi(x^3)
+ =\frac{\Phi(x)^3}{(1+\Phi(x))^2}
+ =(1+\Phi(x))
+   \left(\frac{\Phi(x)}{1+\Phi(x)}\right)^3.}          \tag{\(\mathsf{CU}_3\)}
+\]
+For every \(e>1\) dividing \(q+1=F_n\), \(3\nmid e\), so cubing
+permutes the exact-order-\(e\) norm-one elements.  Consequently, for
+every cubic character \(\chi:\F_q^\times\to\mu_3\),
+\[
+ \sum_{\ord(u)=e}\chi(\Phi(u))
+ =\sum_{\ord(x)=e}\chi(1+\Phi(x)).                    \tag{\(\mathsf{CU}_4\)}
+\]
+The cube character therefore transports bijectively to a translate-one
+character on the same fibotomic stratum.  By itself this excludes no
+proper stratum: it supplies no nonvanishing or emptiness theorem for the
+translate-one character.  Old maximal order and cubic-subgroup
+membership supply no first-failure contradiction by themselves beyond
+the selected prime-factor divisibilities
+\(A_{n-1}\mid S_{F_n/\ell}\), for primes \(\ell\mid F_n\).
+\end{proposition}
+
+\begin{proof}
+Equation \((\mathsf{CU}_1)\) is the lower expression for \(a_{n-1}\)
+in \((\mathsf E)\).  The group of order \(Q+1\) has no three-torsion,
+so cubing is bijective and \((\mathsf{CU}_2)\) follows directly.
+Corollary~\ref{cor:fermat-popovych-equivalence} gives the displayed
+first-failure order, and a cyclic group of order \(q-1\) has a cube
+subgroup of order \((q-1)/3\).
+
+In characteristic two,
+\[
+ x^3+1=(x+1)(x^2+x+1),\qquad
+ 1+\Phi(x)=\frac{x^2+x+1}{(x+1)^2}.
+\]
+Substitution proves both forms in \((\mathsf{CU}_3)\).  If \(x\) has
+exact order \(e\), the excluded denominators would force order one or
+three, which cannot divide a Fermat number.  Substitute \(u=x^3\) in
+the left side of \((\mathsf{CU}_4)\); the last factor in
+\((\mathsf{CU}_3)\) is a cube and disappears under \(\chi\).
+The three rational identities used here are independently
+kernel-checked in \texttt{Ogdoad.Excess}.
 \end{proof}
 
 \begin{proposition}[exact quadratic remainder descent]
@@ -10237,6 +10501,125 @@ The fibres of $z\mapsto z/(z+1)^2$ are the inverse-pairs
 $\{z,z^{-1}\}$.  The first coordinate of $\Frob_Q(P_n)$ is therefore
 either $\mathcal A_u(P_n)$ or its inverse, while the second coordinate
 is $v^{-1}$, proving \((\mathsf Q)\).
+\end{proof}
+
+\begin{remark}[\(X_0(11)\) reduction, but not a modular tower]
+\label{rem:fermat-x011}
+The elliptic curve \(\mathcal E\) is the good reduction modulo two of
+\[
+ y^2+y=x^3-x^2-10x-20,
+\]
+the standard \(X_0(11)\) model (Cremona \(11\mathrm{a}1\), LMFDB
+\(11.\mathrm{a}2\))~\cite{LMFDB11}.  Its discriminant is \(-11^5\),
+and reduction gives \((\mathsf W)\).  This observation does not turn
+the Conway recursion into a modular-curve tower.  The two Conway
+coordinate maps have degrees two and three, whereas
+\(X_0(11)\to X(1)\) has degree twelve and the standard degeneracy maps
+\(X_0(11^{r+1})\to X_0(11^r)\), \(r\geq1\), have degree eleven.
+Moreover
+\[
+ j=-\frac{2^{12}31^3}{11^5}
+\]
+is nonintegral, so the characteristic-zero curve has no complex
+multiplication.  The order-four endomorphism \(i=\pi+1\) in
+Proposition~\ref{prop:fermat-elliptic-kummer} is extra supersingular
+structure created after reduction; it does not lift to an endomorphism
+of this characteristic-zero \(X_0(11)\) model.
+\end{remark}
+
+\begin{proposition}[the successive-point overlap has zero CM component]
+\label{prop:fermat-overlap-zero}
+On \(\mathcal E\), the two Conway coordinates are
+\[
+ u=\frac{x^2+y}{x},\qquad v=\frac{y+1}{x},
+\]
+of degrees three and two respectively.  Let
+\[
+ \mathcal C=
+ \widetilde{\mathcal E\times_{v,\mathbf P^1,u}\mathcal E}
+\]
+be the normalization of the fibre product, and write
+\(p,q:\mathcal C\to\mathcal E\) for the first and second
+projections.  Then \(\mathcal C\) is integral,
+\[
+ \deg p=3,\qquad \deg q=2,                             \tag{\(\mathsf{OV}_1\)}
+\]
+and the correspondence induced on \(\operatorname{Pic}^0(\mathcal E)\)
+vanishes in both directions:
+\[
+ q_*p^*=0,\qquad p_*q^*=0.                            \tag{\(\mathsf{OV}_2\)}
+\]
+Equivalently, its numerical class has bidegree \((3,2)\) and zero
+\(\operatorname{End}(\mathcal E)\)-component.  In particular the
+overlap, when specialized to \(n\geq2\),
+\[
+ v(P_n)=u(P_{n-1})
+\]
+is not the graph of an isogeny and has no nonzero isogeny or CM
+component; in particular it is not a Hecke correspondence acting
+nontrivially on \(\operatorname{Pic}^0(\mathcal E)\).
+
+This failure persists at the Kummer level.  Put
+\[
+ \mathfrak c=\frac1{u+1},\qquad
+ \mathfrak d=\frac1{v+1}.
+\]
+On \(\mathcal C\),
+\[
+ q^*\mathfrak c=p^*\mathfrak d,                       \tag{\(\mathsf{OV}_3\)}
+\]
+For \(n\geq2\), put
+\(\widetilde P_n=(P_n,P_{n-1})\in\mathcal C\).  Then
+\[
+ (p^*\mathfrak c)(\widetilde P_n)=c_n,\qquad
+ (q^*\mathfrak c)(\widetilde P_n)
+  =(p^*\mathfrak d)(\widetilde P_n)=c_{n-1}.
+\]
+For every prime \(\ell>3\), the class of \(p^*\mathfrak c\) is not in the span
+of \(p^*\mathfrak d\) in
+\(\overline{\F}_2(\mathcal C)^\times/
+ \overline{\F}_2(\mathcal C)^{\times\ell}\).
+Thus the correspondence yields no monomial Kummer relation between the
+new function \(p^*\mathfrak c\) and the transported old function
+\(p^*\mathfrak d=q^*\mathfrak c\).  This global divisor statement does
+not decide the specialized class \([c_n]\), including when
+\(\ell\mid F_n\).
+\end{proposition}
+
+\begin{proof}
+The \(v\)-map is the separable Galois double cover whose deck
+involution is \(P\mapsto T-P\); the \(u\)-map is separable of odd
+degree three.  Their function fields over
+\(\overline{\F}_2(\mathbf P^1)\) have coprime degrees and hence are
+linearly disjoint.  This proves integrality and
+\((\mathsf{OV}_1)\).  Norm--conorm compatibility in the compositum of
+these function fields gives
+\[
+ q_*p^*=u^*v_*
+\]
+on degree-zero divisor classes.  But
+\(\operatorname{Pic}^0(\mathbf P^1)=0\), so this map vanishes; the
+transpose argument proves the other equality in
+\((\mathsf{OV}_2)\).
+
+Equation \((\mathsf{OV}_3)\) is the defining equality
+\(v\circ p=u\circ q\).  The divisors on \(\mathcal E\) are
+\[
+\begin{split}
+ \operatorname{div}(\mathfrak c)
+   &=[-T]+2[O]-3[-2T],\\
+ \operatorname{div}(\mathfrak d)
+   &=[O]+[T]-2[-2T].
+\end{split}
+\]
+At a point of \(\mathcal C\) above \(-T\) under \(p\), the valuation
+of \(p^*\mathfrak c\) is the ramification index, hence one, two, or
+three, while the valuation of \(p^*\mathfrak d\) is zero.  Since every
+prime divisor of \(F_n\), \(n\geq1\), is larger than three, no relation
+\[
+ p^*\mathfrak c=(p^*\mathfrak d)^r h^\ell
+\]
+is possible.  This proves the Kummer assertion.
 \end{proof}
 
 \begin{proposition}[new-prime character neutrality and the exact Kummer target]
@@ -16769,6 +17152,10 @@ two}, Indag.\ Math.\ \textbf{39} (1977), 389--396;
 \url{https://pub.math.leidenuniv.nl/~lenstrahw/PUBLICATIONS/1977e/art.pdf}.
 \bibitem{Lenstra78} H.~W.~Lenstra, Jr., \emph{Nim multiplication},
 S\'eminaire de Th\'eorie des Nombres de Bordeaux, 1977--1978.
+\bibitem{LMFDB11} The LMFDB Collaboration,
+\emph{Elliptic curve with LMFDB label \(11.\mathrm{a}2\)
+(Cremona label \(11\mathrm{a}1\))},
+\url{https://www.lmfdb.org/EllipticCurve/Q/11/a/2}.
 \bibitem{MM05} R.~C.~Mullin, A.~Mahalanobis, \emph{Dickson bases and
 finite fields}, CACR Technical Report 2005--03, University of Waterloo,
 2005.
@@ -16778,6 +17165,11 @@ arXiv:1908.05591 (2019).
 \bibitem{Meinardus54} G.~Meinardus,
 \emph{Asymptotische Aussagen \"uber Partitionen},
 Math.\ Z.\ \textbf{59} (1954), 388--398.
+\bibitem{MeynGotz89} H.~Meyn, W.~G\"otz,
+\emph{Self-reciprocal polynomials over finite fields},
+S\'eminaire Lotharingien de Combinatoire \textbf{21} (1989), B21d,
+8~pp.;
+\url{https://www.mat.univie.ac.at/~slc/opapers/s21meyn.html}.
 \bibitem{OEIS} OEIS Foundation Inc., entry A380496,
 \emph{The On-Line Encyclopedia of Integer Sequences},
 \url{https://oeis.org/A380496}.
@@ -16803,6 +17195,10 @@ maps and factoring polynomials}, Comput.\ Complexity \textbf{2} (1992),
 187--224.
 \bibitem{Wiedemann88} D.~Wiedemann, \emph{An iterated quadratic
 extension of $GF(2)$}, Fibonacci Quart.\ \textbf{26} (1988), 290--295.
+\bibitem{YucasMullen04} J.~L.~Yucas, G.~L.~Mullen,
+\emph{Self-reciprocal irreducible polynomials over finite fields},
+Des.\ Codes Cryptogr.\ \textbf{33} (2004), 275--281;
+\url{https://doi.org/10.1023/B:DESI.0000036251.41345.1f}.
 \bibitem{Washington97} L.~C.~Washington, \emph{Introduction to
 Cyclotomic Fields}, 2nd ed., Graduate Texts in Mathematics 83,
 Springer, 1997.

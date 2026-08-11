@@ -122,6 +122,13 @@ not a scalar parity identity.
   Thus a score-forgotten no-retraction proof is invalid: the remaining coupled
   cases are a neighbour CLOSE/OPEN fork, two distinct OPENs, and the singleton
   ko wall.
+- On the unpruned force sets, a globally rank-minimal state at which one
+  physical player can force both bits has an exact form: one untouched real
+  vertex `z`, a ko-clear front `f` with `fz` an edge, and a queue tail
+  nonadjacent to `z`.  Every strict descendant is cold zero for both players
+  and every strict legal edge is neutral.  This minimum-hot singleton-wall
+  theorem is now kernel-checked in `FifoNormalization.lean`.  It classifies
+  the primitive wall but does not make it strategy-reachable from a bad root.
 - Exact minimax verifies the conjecture for every graph isomorphism class
   through eight real vertices plus the isolated dummy, for either designated
   seat. This is certified finite evidence only.
@@ -140,6 +147,9 @@ premises:
   a second graph;
 - each opening permutation can be contracted independently;
 - symplectic rank or Witt class determines the FIFO outcome.
+- an unweighted parity, cut-space, or four-strategy rectangle of minimum-hot
+  wall labels contracts the ancestry.  Exact six-real witnesses leave a
+  single non-cut edge or an order-dependent critical-tree moment.
 
 The paper gives explicit finite witnesses for each failure. These witnesses do
 not refute the FIFO linking conjecture; they locate the information that a
@@ -155,6 +165,15 @@ coupling earlier siblings with descendant continuation cosets. In the
 response-factor language, this is a **causal charge-balanced factor-extension
 theorem** simultaneously cancelling cut, continuation, pruning-frontier, and
 frozen ko-wall moments while preserving odd augmentation.
+
+The latest local descent makes the endpoint especially small.  A primitive
+hot leaf is the last-untouched edge switch `C_f` versus `O_z`; tracing a
+strategy-relevant occurrence backward yields either an odd-odd CLOSE spike or
+the protected `B'` seed whose remaining live graph is the three-vertex star.
+Busy-block analysis transports the latter through pendant odd closes but does
+not kill it: the first unavoidable cancellation lies in an earlier universal
+ko fan choosing the dummy versus real replies.  Coupling that whole fan, not
+the terminal wall or one busy block, is the remaining proof obligation.
 
 This is the only missing mathematical step. More exhaustive enumeration or a
 new scalar queue invariant would be useful for falsification, but neither is
@@ -281,6 +300,25 @@ absolute boundedness.
   Fermat divisor forces `S_(h+1)/S_h = 1 + T_(2^n-t)`. This too is exact but
   circular: Binet and Cassini reduce it to the automatic congruence
   `h = 2^(2^n-t) (mod delta_n)` on every order-`delta_n` fibotomic stratum.
+  Descending that forced ratio through the actual tower sends each relative
+  trace to the lower level's unconditional full-Fermat ratio, so full trace
+  ancestry gives no contradiction. The classical binary `Q`-transform
+  identifies the minimal polynomial of `(c_n+1)/c_n` exactly and proves its
+  degree and self-reciprocal irreducibility, but every nontrivial divisor of
+  `F_n` satisfies the same order-degree condition. The literal-top-bit
+  multiplication matrix is a nested `2 by 2` Fibonacci companion block:
+  its first projective return is exactly `delta_n`, while its characteristic
+  polynomial is exactly the existing Conway resultant. Thus neither a hidden
+  Singer conjugacy nor a characteristic-polynomial recursion is an independent
+  maximality proof. At a hypothetical first failure the old coefficient's
+  maximal order only makes it a generator of the cube subgroup; exact Conway
+  ancestry already makes that coefficient an explicit cube, and tripling on
+  the fibotomic torus merely transports its cubic character to a translate-one
+  character on the same stratum. The elliptic curve happens to be the good
+  mod-2 reduction of `X_0(11)`, but successive Conway points are joined by an
+  integral bidegree `(3,2)` fibre-product correspondence with zero elliptic/CM
+  component. Its Kummer pullback transports only `c_(n-1)` and admits no
+  monomial function-class relation with the new class `[c_n]`.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
