@@ -65,6 +65,50 @@ def digest(poly: int) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def poly_mod(value: int, modulus: int) -> int:
+    """Reduce one binary polynomial modulo another."""
+
+    modulus_degree = modulus.bit_length() - 1
+    while value.bit_length() - 1 >= modulus_degree:
+        value ^= modulus << (value.bit_length() - 1 - modulus_degree)
+    return value
+
+
+def poly_mul_mod(left: int, right: int, modulus: int) -> int:
+    """Multiply binary polynomials modulo ``modulus``."""
+
+    result = 0
+    while right:
+        if right & 1:
+            result ^= left
+        right >>= 1
+        left <<= 1
+        if left.bit_length() >= modulus.bit_length():
+            left ^= modulus
+    return poly_mod(result, modulus)
+
+
+def poly_pow_mod(base: int, exponent: int, modulus: int) -> int:
+    """Exponentiate a binary polynomial modulo ``modulus``."""
+
+    result = 1
+    while exponent:
+        if exponent & 1:
+            result = poly_mul_mod(result, base, modulus)
+        exponent >>= 1
+        if exponent:
+            base = poly_mul_mod(base, base, modulus)
+    return result
+
+
+def poly_gcd(left: int, right: int) -> int:
+    """Return the monic gcd of two binary polynomials."""
+
+    while right:
+        left, right = right, poly_mod(left, right)
+    return left
+
+
 def report(
     name: str,
     poly: int,
@@ -84,6 +128,15 @@ def report(
 
 
 def main() -> None:
+    # Deterministic coefficient field for the compact degree-19,580 factor
+    # certificate described in the paper.  Since 179 is prime, these are the
+    # complete Rabin irreducibility checks.
+    certificate_field_modulus = (
+        (1 << 179) | (1 << 4) | (1 << 2) | (1 << 1) | 1
+    )
+    assert poly_pow_mod(2, 1 << 179, certificate_field_modulus) == 2
+    assert poly_gcd(certificate_field_modulus, (1 << 2) | (1 << 1)) == 1
+
     p_alpha_5 = (1 << 4) | (1 << 1) | 1
     p_alpha_11 = compose_sparse(p_alpha_5, one_plus_x_pow(5))
     p_alpha_89 = compose_sparse(p_alpha_11, one_plus_x_pow(11))
@@ -124,6 +177,10 @@ def main() -> None:
         3_504_820,
         3_447,
         "7f1d6d5cb36c2c233b5b67282540ef1a238f0b2374b81171e9b726cc2c559978",
+    )
+    print(
+        "certificate_field: degree=179, modulus="
+        f"{certificate_field_modulus:#x}, rabin=ok"
     )
 
 

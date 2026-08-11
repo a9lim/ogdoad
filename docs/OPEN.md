@@ -320,7 +320,15 @@ absolute boundedness.
   actual selected resultants sum to one, and the derivative supplies an
   inverse on whichever factor does not vanish. It does not determine which
   factor vanishes; the position of the unique zero in the full fibotomic
-  factorization is the same unknown order `delta_n`. The unique lower
+  factorization is the same unknown order `delta_n`. The differentiated
+  factors canonically give the two complementary CRT support projectors.
+  Every final Bezout or subresultant certificate gives the same projectors;
+  every proper additive trace through the literal quadratic ancestry kills
+  both selected bits, while every norm and multiplication determinant returns
+  exactly the original terminal bit. Multiplication trace and discriminant
+  vanish in both branches. Thus terminal Euclidean/support-projector linear
+  algebra adds no selector orientation; intermediate quotient-polynomial data
+  remain a possible ancestry-sensitive input. The unique lower
   `ell`-th root in the Dickson
   obstruction is now choice-free: with `d=(q+1)/ell`, it is
   `(a_(n-1)^d)^(q/2)`. This removes an auxiliary root but leaves the same
@@ -579,7 +587,19 @@ absolute boundedness.
   `359`-power gcd, Capelli irreducibility, or safe-prime trace test. Preserving
   both this polynomial and the mark leaves no countermodel freedom, because
   finite-field isomorphisms preserve marked `359`-power status. The sparse
-  construction is therefore an exact normal form, not an evaluation. At the
+  construction is therefore an exact normal form, not an evaluation. A pinned
+  audit of Peeters's exact calculator at commit
+  `427d0db3d40fdfaf4345deb14b160a00cf5250a1` shows that its recorded
+  `{359,1}` row is an executed test of the literal mixed-radix element
+  `[0,19580]=1+kappa_179` in the full component chain
+  `{2,4,5,11,89,179}`; the row reports 177,379 seconds from the uncached-run
+  timing path. This is stronger provenance than the bare OEIS pin, but not a
+  locally replayable certificate because the final nonidentity residue was
+  discarded; moreover the upstream component comparator ties the `2` and `4`
+  components and relies on their published input order being preserved. A
+  monic degree-19,580 factor `g` of `P_359` over `F_(2^179)`
+  with `g(1)^((2^179-1)/359) != 1` would be a roughly 438-KB compact exact
+  certificate; no such factor artifact is currently available. At the
   actual ordinary singleton step, even the canonical additive lower norm is
   current-Kummer blind: `Norm(1+x)=1+x^r`, while
   `ord_p(q_0)=r>1` makes `p`-powering an automorphism of the lower
@@ -801,7 +821,17 @@ absolute boundedness.
   value in `F_4`. Thus even full recursive ancestry cannot close the arm by
   norms or Kummer corestriction alone; a surviving proof must use a nonlinear
   additive-multiplicative relation involving the top root and the twisted
-  cubics. A coprime plus/minus decomposition now
+  cubics. The corresponding fixed-constant cubic-power fibre is nevertheless
+  finite reduced etale of degree `ell^2` with nonzero Jacobian numerator at
+  every selected level. Its lower rational fibres are singletons, while the
+  top fibre has `0` points on success and `ell` points on failure. Under
+  failure the Capelli composition splits into `ell` distinct irreducible
+  cubics, all with the same complete norm-coherent lower root ancestry.
+  Moreover every root-choice-invariant Laurent or rational expression factors
+  through the original `ell`-th power. Thus unweighted discriminant,
+  resultant, and symmetric-coefficient attacks remain failure-compatible;
+  only a nontrivial Kummer eigenweight can add information. A coprime
+  plus/minus decomposition now
   identifies the entire current primary order with the minus coordinate
   `P_k=M_k^(t+1)`, while the plus coordinate is the explicit `g_k` coboundary.
   The lower norm fixes only the already-known 3-part. Among ambient

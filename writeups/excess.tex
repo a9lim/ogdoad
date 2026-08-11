@@ -179,7 +179,8 @@ countermodel whose predecessor and successor retain every earlier
 Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
 transport; canonical global lift, weighted reciprocity, selected
 first-Witt polynomial, named Artin-class and dihedral reflection-norm
-reductions, the complementary factor/cofactor resultant duality, and the
+reductions, the complementary factor/cofactor resultant duality and its
+canonical CRT-projector/trace-annihilation boundary, and the
 selected Euler-factor/root-number boundary &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
@@ -192,7 +193,8 @@ common-section no-go; uniform safe-prime trace detector;
 full-conductor truncated-log regulator and exact conductor-\(p^2\)
 ray/Jacobi reciprocity; invariant realification and selected local
 reflection norm; the exact sparse marked full-conductor polynomial at
-\(p=359\) &
+\(p=359\), its compact factor-certificate theorem, and a fixed-commit audit
+of the source-pinned execution &
 nondivisibility at the selected Conway polynomial for the remaining smaller
 primary factors \\
 \((C)\) &
@@ -221,7 +223,8 @@ explicit wild truncated-log regulator, mixed-character semiprimitive
 parity obstruction, unweighted Hasse--Davenport flatness, and the exact
 \(C\)-ancestral selector \(Z=(\gamma_k^2+\gamma_k+1)^{2^{2h/3}-2}\)
 with its norm-coherent Artin--Schreier lift, together with the
-alternating translated-root norm chain and the
+alternating translated-root norm chain, reduced twisted-cubic fibre and
+root-choice-invariant boundary, and the
 constant-extension line criterion with
 \(m_\ell<16(3^k)^4\) &
 nonvanishing of the selected antiunit index
@@ -3606,6 +3609,96 @@ a ring equivalence.  The full finite-field dependency chain, degree
 identifications, and gcd/trace evaluation remain paper-level; in particular
 this proposition packages but does not prove \(m_{359}=1\).
 \end{proof}
+
+\begin{proposition}[a compact factor certificate at the fixed \(p=359\) mark]
+\label{prop:ordinary-359-factor-certificate}
+Let \(h(Z)\in\F_2[Z]\) be irreducible of degree \(179\), put
+\(k=\F_2[Z]/(h)\), and regard \(\mathcal P_{359}\) as a polynomial in
+\(k[X]\).  Suppose that a monic polynomial \(g(X)\in k[X]\) satisfies
+\[
+ \deg g=19580,\qquad g\mid\mathcal P_{359}.
+ \tag{\(\mathsf{OFCert}_1\)}
+\]
+Put
+\[
+ \theta=g(1),\qquad c=\frac{2^{179}-1}{359}.
+\]
+Then \(g\) is one of the irreducible degree-\(19580\) factors of
+\(\mathcal P_{359}\) over \(k\), and
+\[
+ m_{359}=1
+ \quad\Longleftrightarrow\quad
+ \theta^c\ne1.
+ \tag{\(\mathsf{OFCert}_2\)}
+\]
+Consequently, an explicit pair \((h,g)\) satisfying
+\((\mathsf{OFCert}_1)\) and \(g(1)^c\ne1\) is a compact exact certificate
+for the fixed-mark assertion.  Packed coefficient bits for \(g\) require
+only \(19581\cdot179=3504999\) bits, or \(438125\) bytes, before framing.
+One deterministic coefficient-field choice is
+\[
+ h(Z)=Z^{179}+Z^4+Z^2+Z+1;
+\]
+the Rabin equalities \(Z^{2^{179}}\equiv Z\pmod h\) and
+\(\gcd(h,Z^2+Z)=1\) certify its irreducibility.
+\end{proposition}
+
+\begin{proof}
+Write \(r=179\), \(d=19580\), and \(F=\F_{2^{rd}}\).  Since
+\(\mathcal P_{359}\) is irreducible of degree \(rd\) over \(\F_2\),
+the standard finite-field base-change theorem factors it over
+\(k=\F_{2^r}\) into exactly \(r\) irreducible factors, each of degree
+\(d\).  Thus \((\mathsf{OFCert}_1)\) makes \(g\) one such factor.  If
+\(y\) is a root of \(g\), then
+\[
+ g(1)=\Norm_{F/k}(1+y)
+      =(1+y)^{(2^{rd}-1)/(2^r-1)}.
+\]
+Therefore
+\[
+ g(1)^c=(1+y)^{(2^{rd}-1)/359}.                 \tag{\(\mathsf{OFCert}_3\)}
+\]
+Every root of \(\mathcal P_{359}\) is an absolute-Frobenius conjugate of
+the Conway-marked root \(\kappa_{179}\).  Frobenius preserves the
+identity or nonidentity of the right side of
+\((\mathsf{OFCert}_3)\).  Proposition~\ref{prop:ordinary-359-full-conductor}
+now identifies its nonidentity with \(m_{359}=1\).
+\end{proof}
+
+\medskip
+\noindent\emph{Source-pinned fixed-mark computation audit.}\par
+The independently maintained calculator of Peeters~\cite{Peeters}, at
+commit
+\texttt{427d0db3d40fdfaf4345}\allowbreak
+\texttt{deb14b160a00cf5250a1}, performs this exact
+fixed-mark test in the mixed-radix algebra with components
+\[
+ \{2,4,5,11,89,179\},\qquad
+ (1,2,4,20,220,19580,3504820)
+\]
+as basis strides.  Its defining reductions are
+\[
+ u_2^2=u_2+1,\quad u_4^2=u_4+u_2,\quad u_5^5=u_4,
+ \quad u_{11}^{11}=u_5+1,\quad
+ u_{89}^{89}=u_{11}+1,\quad
+ u_{179}^{179}=u_{89}+1.
+\]
+Thus its candidate indices \texttt{[0,19580]} are literally
+\(1+\kappa_{179}\), with the complete ancestry of
+\((\mathsf{OFC}_1)\).  The code computes the exact exponent
+\((2^{3504820}-1)/359\), records \texttt{\{359,1\}}, and reports
+\(177379\) seconds for that row.  Its timing control flow records this
+nonzero duration only for an uncached calculation.  This pins an executed
+exact computation, not merely the copied OEIS integer.  It is nevertheless
+not a local certificate in this checkout: the upstream repository retains
+neither the final nonidentity residue nor a factor \(g\) as in
+Proposition~\ref{prop:ordinary-359-factor-certificate}, and its calculation
+log is empty.  Its component comparator also ties the (2)- and
+(4)-components and therefore relies on the published input order being preserved;
+the recorded GNU/Linux run has the stated order, but arbitrary source replay
+is not formally portable without pinning it.  Independent verification
+therefore still requires either an order-pinned long Euler replay or a new compact
+factor artifact.
 
 \begin{proposition}[ordinary affine orbit and the marked scalar]
 \label{prop:ordinary-affine-marked-scalar}
@@ -9867,6 +9960,174 @@ abstract product-zero/differentiated-B\'ezout-one implication, including the
 complementary-bit conclusion over \(\F_2\), in \texttt{Ogdoad.Excess}.  The
 Fibonacci divisibility, selected finite-field specialization, and resultant
 identification remain paper-level.
+\end{proof}
+
+\begin{proposition}[selected CRT projectors and ancestry trace annihilation]
+\label{prop:fermat-selected-crt-projectors}
+Retain the notation of
+Proposition~\ref{prop:fermat-complementary-resultant}, and put
+\[
+ \mathcal T_N=\F_2[X]/(S_N),\qquad
+ r=\deg S_d=\frac{d-1}{2},\qquad
+ s=\deg J_{N,d}=\frac{N-d}{2}.
+\]
+In \(\mathcal T_N\), define
+\[
+ e_{\mathrm{fail}}=[S_d'J_{N,d}],
+ \qquad
+ e_{\mathrm{succ}}=[S_dJ_{N,d}'].
+\]
+Then
+\[
+ e_{\mathrm{fail}}+e_{\mathrm{succ}}=1,\qquad
+ e_{\mathrm{fail}}e_{\mathrm{succ}}=0,\qquad
+ e_{\mathrm{fail}}^2=e_{\mathrm{fail}},\qquad
+ e_{\mathrm{succ}}^2=e_{\mathrm{succ}}.              \tag{\(\mathsf{QNP}_1\)}
+\]
+Under the canonical Chinese-remainder isomorphism
+\[
+ \mathcal T_N
+ \simeq
+ \F_2[X]/(S_d)\times\F_2[X]/(J_{N,d}),
+\]
+their orientations are
+\[
+ e_{\mathrm{fail}}=(1,0),\qquad
+ e_{\mathrm{succ}}=(0,1).                             \tag{\(\mathsf{QNP}_2\)}
+\]
+Moreover, every B\'ezout certificate
+\[
+ U S_d+VJ_{N,d}=1
+\]
+produces the same projectors:
+\[
+ [VJ_{N,d}]=e_{\mathrm{fail}},\qquad
+ [US_d]=e_{\mathrm{succ}}.                            \tag{\(\mathsf{QNP}_3\)}
+\]
+Thus the terminal support information returned by the Euclidean algorithm,
+or by any normalized final subresultant certificate, is canonical.
+
+Evaluation at the actual selected Conway element \(a=a_{n-1}\) gives
+\[
+ \bigl(e_{\mathrm{fail}}(a),e_{\mathrm{succ}}(a)\bigr)
+ =
+ \begin{cases}
+  (1,0),&S_d(a)=0,\\
+  (0,1),&J_{N,d}(a)=0.
+ \end{cases}                                         \tag{\(\mathsf{QNP}_4\)}
+\]
+In particular the orientation relative to the desired resultants is
+\[
+ \boxed{
+ e_{\mathrm{succ}}(a)=\operatorname{Res}(A,S_d),\qquad
+ e_{\mathrm{fail}}(a)=\operatorname{Res}(A,J_{N,d}).} \tag{\(\mathsf{QNP}_5\)}
+\]
+
+This orientation is destroyed by every proper additive descent through the
+literal Conway ancestry.  For \(-1\leq j\leq n-2\),
+\[
+ \boxed{
+ \operatorname{Tr}_{E_{n-1}/E_j}
+   \bigl(e_{\mathrm{fail}}(a)\bigr)
+ =
+ \operatorname{Tr}_{E_{n-1}/E_j}
+   \bigl(e_{\mathrm{succ}}(a)\bigr)
+ =0,}                                                \tag{\(\mathsf{QNP}_6\)}
+\]
+whereas
+\[
+ \boxed{
+ \operatorname{Norm}_{E_{n-1}/E_j}
+   \bigl(e_\star(a)\bigr)=e_\star(a)
+ \quad(\star\in\{\mathrm{fail},\mathrm{succ}\}).}      \tag{\(\mathsf{QNP}_7\)}
+\]
+Thus norm descent retains exactly the original endpoint bit and trace descent
+retains none of it.
+
+The ambient multiplication characteristic polynomials are
+\[
+ \chi_{\mu_{e_{\mathrm{fail}}}}(T)
+   =T^s(T+1)^r,\qquad
+ \chi_{\mu_{e_{\mathrm{succ}}}}(T)
+   =T^r(T+1)^s.                                      \tag{\(\mathsf{QNP}_8\)}
+\]
+For \(d=N/\ell\), with \(\ell\mid N\) prime, one has
+\(N\equiv d\equiv1\pmod4\), so \(r\) and \(s\) are even and both ambient
+traces vanish.  On the selected quotient
+\(E_{n-1}=\F_2(a)\), whose degree is \(m=2^n\), multiplication by either
+selected projector has
+\[
+ \chi_{\mu_{e_\star(a)}}(T)
+   =(T+e_\star(a))^m
+   =T^m+e_\star(a).                                  \tag{\(\mathsf{QNP}_9\)}
+\]
+Hence for \(n\geq1\) its trace and multiplication-characteristic-polynomial
+discriminant vanish in both branches, while its determinant is
+\(e_\star(a)\), again exactly the original selected resultant.
+
+Consequently terminal Euclidean quotients only through their final support
+projector, final B\'ezout or subresultant certificates, proper additive
+ancestry traces, and multiplication trace or discriminant cannot decide which
+fibotomic factor vanishes.  This does not rule out an identity involving
+intermediate Euclidean quotient polynomials before support collapse, a
+polynomial outside the factorization of \(S_N\), or any identity that directly
+evaluates \(e_{\mathrm{succ}}(a)\).
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:fermat-complementary-resultant} gives
+\[
+ S_dJ_{N,d}=S_N=0\quad\text{in }\mathcal T_N
+\]
+and
+\[
+ S_d'J_{N,d}+S_dJ_{N,d}'=S_N'=1.
+\]
+Their two summands therefore add to one and have product
+\(S_d'S_dJ_{N,d}J_{N,d}'=0\).  Multiplying their sum by either
+summand proves idempotence, giving \((\mathsf{QNP}_1)\).
+Reduction modulo the two coprime factors proves \((\mathsf{QNP}_2)\).
+The same reductions send \(VJ_{N,d}\) to \((1,0)\) and \(US_d\) to
+\((0,1)\), proving the uniqueness assertion \((\mathsf{QNP}_3)\).
+
+Since \(S_N(a)=0\), evaluation defines a map
+\(\mathcal T_N\to E_{n-1}\).  The differentiated identity and the fact that
+exactly one of \(S_d(a)\) and \(J_{N,d}(a)\) vanishes give
+\((\mathsf{QNP}_4)\).  Both projectors evaluate in \(\F_2\).  A selected
+resultant is the norm of the corresponding selected value to \(\F_2\), hence
+is zero exactly when that value is zero and otherwise equals one.  This proves
+the orientation in \((\mathsf{QNP}_5)\).
+
+For \(-1\leq j\leq n-2\),
+\[
+ [E_{n-1}:E_j]=2^{\,n-1-j}
+\]
+is even.  The relative trace of either scalar bit is therefore zero in
+characteristic two, while its relative norm is that bit raised to a positive
+power and hence is unchanged.  This proves
+\((\mathsf{QNP}_6)\)--\((\mathsf{QNP}_7)\).
+
+The CRT decomposition makes multiplication by \(e_{\mathrm{fail}}\) the
+identity on the degree-\(r\) factor and zero on the degree-\(s\) factor;
+the roles reverse for \(e_{\mathrm{succ}}\).  This gives
+\((\mathsf{QNP}_8)\).  A prime divisor \(\ell\) of
+\(2^{2^n}+1\) has \(\operatorname{ord}_\ell(2)=2^{n+1}\), so for \(n\geq1\)
+one has \(\ell\equiv1\pmod4\), and consequently
+\(d=N/\ell\equiv1\pmod4\).  Finally, on the degree-\(m\) selected field,
+multiplication by \(e_\star(a)\in\F_2\) is scalar.  Since \(m\) is a power
+of two,
+\[
+ (T+e_\star(a))^m=T^m+e_\star(a).
+\]
+For \(m>1\) this has zero trace and zero discriminant, while its constant
+term, equivalently its determinant in characteristic two, is
+\(e_\star(a)\).
+
+The abstract complementary-idempotent identities, selected field branches,
+uniqueness of B\'ezout support projectors, and the quadratic trace/norm core
+are kernel-checked in \texttt{Ogdoad.Excess}.  The polynomial CRT
+specialization, resultant orientation, and characteristic-polynomial
+interpretation remain paper-level.
 \end{proof}
 
 \begin{proposition}[one-step maximality is not an inductive invariant]
@@ -18683,6 +18944,220 @@ the norm-of-a-power-root uniqueness step.  The finite-field tower,
 order, and Kummer interpretation remain paper-level.
 \end{proof}
 
+\begin{proposition}[alternating twisted-cubic Kummer fibre]
+\label{prop:dk-twisted-cubic-fibre}
+Retain Proposition~\ref{prop:dk-alternating-translate-chain}, and let
+\(\ell\mid\Psi_k\) be current.  For \(0\leq i<k\), let
+\(v_i\in E_i^\times\) be the unique element satisfying
+\[
+ v_i^\ell=u_i.
+\]
+Thus \(v_0=u_0=c_0^2\), and
+\[
+ \Norm_{E_i/E_{i-1}}(v_i)=v_{i-1}\qquad(1\leq i<k).
+ \tag{\(\mathsf{TF}_1\)}
+\]
+Use the generalized cubic power map of
+Proposition~\ref{prop:cubic-iterated-fibre},
+\[
+ \Psi_{\ell,E}(C,D)
+ =
+ \bigl(T_\ell(C,D,E),T_\ell(D,EC,E^2)\bigr).
+\]
+For \(1\leq j\leq k\), put \(K_j=E_{j-1}\) and define the fixed-constant
+coefficient fibre
+\[
+ \mathcal X_j
+ =
+ \Psi_{\ell,v_{j-1}}^{-1}(c_j,c_j)
+ \subset\mathbb A^2_{K_j}.                            \tag{\(\mathsf{TF}_2\)}
+\]
+Then \(\mathcal X_j\) is finite reduced \'etale of geometric degree
+\(\ell^2\).  Every \(K_j\)-rational point \((C,D)\) gives an
+irreducible cubic
+\[
+ X^3+CX^2+DX+v_{j-1}.                                \tag{\(\mathsf{TF}_3\)}
+\]
+If \(J\) denotes the Jacobian determinant of
+\(\Psi_{\ell,v_{j-1}}\), then at every geometric point of
+\(\mathcal X_j\),
+\[
+ \boxed{\qquad
+ (CD+v_{j-1})J
+ =c_j^2+u_{j-1}
+ =\gamma_{j-1}\ne0.
+ \qquad}                                             \tag{\(\mathsf{TF}_4\)}
+\]
+Its rational-point counts are
+\[
+ \#\mathcal X_j(K_j)=1\qquad(1\leq j<k),              \tag{\(\mathsf{TF}_5\)}
+\]
+where the unique point is the coefficient pair of the minimal
+polynomial of \(v_j\), while
+\[
+ \#\mathcal X_k(E_{k-1})
+ =
+ \begin{cases}
+ 0,&u_k\notin(E_k^\times)^\ell,\\
+ \ell,&u_k\in(E_k^\times)^\ell.
+ \end{cases}                                         \tag{\(\mathsf{TF}_6\)}
+\]
+
+More explicitly, put
+\[
+ Q=|E_{k-1}|=2^{2\cdot3^{k-1}},\qquad
+ P_k(X)=X^3+c_kX^2+c_kX+u_{k-1}.
+\]
+Under failure choose \(v_k^\ell=u_k\) and a primitive
+\(\rho\in\mu_\ell\subset E_k\).  For \(r\in\mathbb Z/\ell\mathbb Z\)
+set
+\[
+ \begin{aligned}
+ C_r={}&
+ \rho^rv_k+\rho^{rQ}v_k^Q+\rho^{rQ^2}v_k^{Q^2},\\
+ D_r={}&
+ \rho^{r(1+Q)}v_k^{1+Q}
+ +\rho^{r(Q+Q^2)}v_k^{Q+Q^2}
+ +\rho^{r(Q^2+1)}v_k^{Q^2+1}.
+ \end{aligned}                                       \tag{\(\mathsf{TF}_7\)}
+\]
+Then \(C_r,D_r\in E_{k-1}\), the resulting cubics are pairwise
+distinct and irreducible, and
+\[
+ \boxed{\quad
+ P_k(X^\ell)
+ =
+ \prod_{r\bmod\ell}
+ \left(X^3+C_rX^2+D_rX+v_{k-1}\right).
+ \quad}                                               \tag{\(\mathsf{TF}_8\)}
+\]
+On success \(P_k(X^\ell)\) is irreducible of degree \(3\ell\).
+Every factor in \((\mathsf{TF}_8)\) has constant coefficient
+\(v_{k-1}\), whose unique norm-coherent descendants are precisely
+\(v_{k-2},\ldots,v_0=c_0^2\).  Thus every bad top lift retains the
+same complete selected lower Kummer ancestry.
+\end{proposition}
+
+\begin{proof}
+For \(i<k\), the order identity
+\(\ord_\ell(2)=2\cdot3^k\) gives
+\(\ell\nmid|E_i^\times|\), so \(\ell\)-powering is bijective on
+\(E_i^\times\).  This proves existence and uniqueness of \(v_i\);
+the norm identity in
+Proposition~\ref{prop:dk-alternating-translate-chain} then proves
+\((\mathsf{TF}_1)\).
+
+Let \(y_1,y_2,y_3\) be the three roots of
+\[
+ X^3+c_jX^2+c_jX+u_{j-1}.
+\]
+Choose independently an \(\ell\)-th root \(x_1\) of \(y_1\) and an
+\(\ell\)-th root \(x_2\) of \(y_2\), and set
+\[
+ x_3=\frac{v_{j-1}}{x_1x_2}.
+\]
+Since \(y_1y_2y_3=u_{j-1}=v_{j-1}^{\ell}\), one has
+\(x_3^\ell=y_3\).  Hence there are exactly \(\ell^2\) geometric source
+triples with product \(v_{j-1}\).  The distinct target roots recover
+the labels after powering, so two such triples give the same coefficient
+point only when they agree.  This proves the geometric degree.
+
+The universal identity
+\[
+ (CD+E)J=AB+E^\ell
+\]
+from Proposition~\ref{prop:cubic-iterated-fibre}, specialized to
+\(A=B=c_j\) and \(E=v_{j-1}\), gives
+\[
+ (CD+v_{j-1})J
+ =c_j^2+v_{j-1}^{\ell}
+ =c_j^2+u_{j-1}.
+\]
+But
+\[
+ u_{j-1}=\gamma_{j-1}+c_{j-1}
+         =\gamma_{j-1}+c_j^2,
+\]
+so the right-hand side is \(\gamma_{j-1}\).  This is nonzero:
+\(\gamma_{j-1}=a_{j-1}+a_{j-1}^{-1}=0\) would imply
+\(a_{j-1}^2=1\), contradicting its primitive \(3^j\)-order.
+Thus both \(CD+v_{j-1}\) and \(J\) are nonzero at every point, proving
+reducedness and \'etaleness.
+
+A reducible cubic \((\mathsf{TF}_3)\) over the finite field \(K_j\)
+would have a \(K_j\)-root.  Its \(\ell\)-th power would be a
+\(K_j\)-root of the irreducible selected target cubic, which is
+impossible.  Hence every rational point is irreducible.
+
+For \(j<k\), \(\ell\)-powering is bijective on \(E_j^\times\), so the
+three target roots have one Frobenius orbit of unique preimages.  Their
+common coefficient pair is therefore the sole \(K_j\)-rational point.
+Its constant coefficient is \(v_{j-1}\), because its norm has
+\(\ell\)-th power \(u_{j-1}\) and powering is injective on
+\(K_j^\times\).  This proves \((\mathsf{TF}_5)\).
+
+At \(j=k\), a rational point supplies an \(\ell\)-th root in \(E_k\)
+of a conjugate of \(u_k\), hence, after Frobenius conjugation, an
+\(\ell\)-th root of \(u_k\).  Thus there are no rational points on
+success.  Under failure the \(\ell\) elements
+\(\rho^rv_k\) are exactly the roots above the chosen root \(u_k\).
+Two of them could give the same coefficient pair only if
+\(\rho^rv_k\) were a \(Q\)-Frobenius conjugate of
+\(\rho^sv_k\).  Raising to the \(\ell\)-th power would give
+\(u_k=u_k^{Q^i}\), forcing \(i=0\) by the selected cubic's
+irreducibility, and then \(r=s\).  This proves
+\((\mathsf{TF}_6)\).
+
+Finally \(\ord_\ell(Q)=3\), so
+\(1+Q+Q^2\equiv0\pmod\ell\).  Frobenius cycles the three roots
+\[
+ \rho^rv_k,\quad \rho^{rQ}v_k^Q,\quad
+ \rho^{rQ^2}v_k^{Q^2},
+\]
+and their product is
+\[
+ \rho^{r(1+Q+Q^2)}\Norm_{E_k/E_{k-1}}(v_k)=v_{k-1}.
+\]
+Their elementary coefficients are exactly
+\((\mathsf{TF}_7)\), proving \((\mathsf{TF}_8)\).
+On success, \(X^\ell-u_k\) is irreducible over \(E_k\) by Kummer
+theory, and Capelli's theorem makes \(P_k(X^\ell)\) irreducible over
+\(E_{k-1}\).
+\end{proof}
+
+\begin{corollary}[root-choice-invariant boundary]
+\label{cor:dk-root-choice-invariant}
+Retain Proposition~\ref{prop:dk-twisted-cubic-fibre}.  After adjoining
+\(\rho\), let \(\mu_\ell\) act on a formal Kummer root by
+\(V\mapsto\rho^rV\).  Then
+\[
+ E_{k-1}(\rho)[V,V^{-1}]^{\mu_\ell}
+   =E_{k-1}(\rho)[V^\ell,V^{-\ell}],
+ \qquad
+ E_{k-1}(\rho)(V)^{\mu_\ell}
+   =E_{k-1}(\rho)(V^\ell).
+\]
+Consequently every universal Laurent-polynomial or rational expression
+in \(v_k\) and its Frobenius powers, with coefficients in the complete
+selected lower ancestry and independent of the choice
+\(v_k\mapsto\rho^rv_k\), factors through \(v_k^\ell=u_k\).
+Any subsequent unweighted trace, norm, determinant, or resultant is
+therefore determined by the original selected twisted cubic and cannot
+supply a second condition on the existence of a rational point of
+\(\mathcal X_k\).
+
+This statement does not cover a chosen nontrivial
+\(\mu_\ell\)-eigenweight, such as a weighted Jacobi or regulator
+resolvent, nor accidental identities after specializing the formal
+variable to \(v_k\).
+\end{corollary}
+
+\begin{proof}
+A Laurent monomial \(V^m\) has weight \(m\bmod\ell\), so the invariant
+part consists exactly of exponents divisible by \(\ell\).  The
+rational-function assertion is the corresponding fixed-field statement.
+\end{proof}
+
 \begin{proposition}[conductor-five reflection descent]
 \label{prop:dk-reflection-descent}
 Retain Proposition~\ref{prop:dk-antiunit}, put
@@ -21022,7 +21497,16 @@ has exactly one zero selected resultant.  Its position is the same unknown
 order \(\delta_n\); factor/cofactor splitting and derivative resultants
 therefore add the opposite terminal bit, not a second constraint.  This
 rules out that proof class while leaving open an ancestry-sensitive identity
-involving a polynomial outside the factorization.  For
+involving a polynomial outside the factorization.
+Proposition~\ref{prop:fermat-selected-crt-projectors} strengthens this
+terminal boundary.  The differentiated factors are the two canonical CRT
+support idempotents, independent of the chosen final B\'ezout or subresultant
+certificate.  Every proper additive trace through the literal quadratic
+ancestry kills both selected bits; every norm and multiplication determinant
+returns exactly the original bit; and multiplication trace and discriminant
+vanish in both branches.  Thus terminal Euclidean support-projector linear
+algebra carries no hidden orientation.  Intermediate quotient-polynomial
+data, before the support collapse, remain outside this no-go.  For
 multicomponent zero sets,
 Proposition~\ref{prop:fermat-two-spine-support} proves that the Conway
 class is nontrivial in the primitive-support quotient under its stated
@@ -21107,6 +21591,16 @@ Capelli composition, and safe-prime trace.  Preserving that polynomial and
 the mark leaves no countermodel freedom: marked power status is invariant
 under every finite-field isomorphism.  Sparsity therefore packages the
 selected evaluation but does not decide it.
+Proposition~\ref{prop:ordinary-359-factor-certificate} makes a short
+independent verification target exact: one degree-\(19580\) factor over
+\(\F_{2^{179}}\), together with a 171-bit exponentiation at its value one,
+would give a roughly \(438\)-KB certificate.  The pinned Peeters commit can
+be followed through its mixed-radix reductions to the literal marked element
+\(1+\kappa_{179}\); its \texttt{\{359,1\}} row and \(177379\)-second uncached
+timing are therefore evidence of an executed exact fixed-mark calculation,
+not merely a copied table entry.  Because no final residue or compact factor
+was retained upstream, this strengthens provenance rather than the local
+proof class.
 Proposition~\ref{prop:ordinary-dependency-descent} then pushes any
 hypothetical failure through each odd-Kummer singleton
 \(0/1\)-excess dependency satisfying its hypotheses by taking all
@@ -21333,6 +21827,15 @@ consistent terminal root \(c_0^2\in\F_4\).  Hence even full recursive
 ancestry cannot close the arm through norms or corestriction alone; any
 surviving proof must use a nonlinear interaction between the top Kummer root
 and the twisted cubic equations.
+Proposition~\ref{prop:dk-twisted-cubic-fibre} exhausts the resulting
+unweighted nonlinear coefficient route.  The complete alternating ancestry
+defines a reduced \'etale degree-\(\ell^2\) fibre with nonzero Jacobian
+numerator \(\gamma_{j-1}\) at every level, singleton lower rational fibres,
+and a top \(0/\ell\) rational-point dichotomy.  Under failure the Capelli
+composition splits into \(\ell\) distinct selected irreducible cubics, all
+carrying the same lower root chain.  Hence discriminant, resultant, and every
+root-choice-invariant rational construction remain compatible with failure;
+only a nontrivial Kummer eigenweight can add information.
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
 Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}

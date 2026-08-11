@@ -148,7 +148,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   full-conductor polynomial and checks its term counts and coefficient hash.
   The remaining dependency identifications, finite-field irreducibility, and
   selected gcd/trace evaluation are paper-level; this does not prove
-  `m_359=1`;
+  `m_359=1`.  The paper also isolates a compact uninstantiated certificate:
+  one degree-19,580 factor `g` of the full-conductor polynomial over
+  `F_(2^179)` and the 171-bit check
+  `g(1)^((2^179-1)/359) != 1`.  No such factor is present or kernel-checked;
+  the external exact calculator's recorded row remains source-pinned rather
+  than a local proof;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -299,6 +304,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   the uniqueness step forcing a norm-coherent chain of lower power roots.
   The finite-field tower, irreducibility after constant extension, current
   order calculation, and Kummer interpretation remain paper-level;
+- the alternating twisted-fibre algebra: root-of-unity scaling preserves an
+  `ell`-th power, the scaled cubic Frobenius orbit preserves its constant
+  product, the characteristic-two cubic coefficient expansion is exact, and
+  the universal Jacobian numerator specializes to the selected lower
+  `gamma`.  Fibre degree, etaleness, rational-point counts, Capelli
+  factorization, and the invariant-ring specialization remain paper-level;
 - the characteristic-two Mobius trace identity
   `M + M^(-1) = (w^2+w)^(-1)` behind the exceptional arm's selected
   one-variable Dickson critical value;
@@ -324,6 +335,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   one forces exactly one factor to vanish and makes the corresponding
   `ZMod 2` resultants sum to one.  Fibonacci divisibility, the selected
   finite-field specialization, and the resultant/norm identification remain
+  paper-level;
+- the selected CRT-projector core: the differentiated factorization gives two
+  complementary idempotents, their branch orientation is exact over a field,
+  every Bézout support certificate gives the same pair, quadratic trace kills
+  either scalar bit in characteristic two, and quadratic norm preserves an
+  idempotent.  The polynomial CRT specialization, selected-resultant
+  orientation, and characteristic-polynomial interpretation remain
   paper-level;
 - partial Frobenius-trace additivity, Frobenius commutation, index splitting,
   and the exact conjugate descent

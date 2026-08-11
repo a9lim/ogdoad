@@ -1210,6 +1210,62 @@ theorem norm_of_power_root
   apply huniq
   rw [← hNu, ← hv, map_pow]
 
+section DKTwistedFibre
+
+variable {G : Type*} [CommMonoid G]
+
+/-- Changing an `ell`-th root by an `ell`-th root of unity does not
+change its `ell`-th power. -/
+theorem dk_scaled_power_root
+    (z v : G) (r ell : Nat) (hz : z ^ ell = 1) :
+    (z ^ r * v) ^ ell = v ^ ell := by
+  rw [mul_pow]
+  calc
+    (z ^ r) ^ ell * v ^ ell = (z ^ ell) ^ r * v ^ ell := by
+      rw [← pow_mul, ← pow_mul, Nat.mul_comm r ell]
+    _ = v ^ ell := by simp [hz]
+
+/-- The cubic Frobenius orbit of a scaled Kummer root has unchanged
+constant coefficient when the total scaling exponent is trivial. -/
+theorem dk_scaled_cubic_product
+    (z x₀ x₁ x₂ : G) (r A : Nat)
+    (hz : z ^ (r * (1 + A + A ^ 2)) = 1) :
+    (z ^ r * x₀) * (z ^ (r * A) * x₁) *
+        (z ^ (r * A ^ 2) * x₂) = x₀ * x₁ * x₂ := by
+  calc
+    (z ^ r * x₀) * (z ^ (r * A) * x₁) *
+        (z ^ (r * A ^ 2) * x₂) =
+        z ^ (r + r * A + r * A ^ 2) * (x₀ * x₁ * x₂) := by
+          rw [pow_add, pow_add]
+          ac_rfl
+    _ = z ^ (r * (1 + A + A ^ 2)) * (x₀ * x₁ * x₂) := by
+          congr 2
+          ring
+    _ = x₀ * x₁ * x₂ := by simp [hz]
+
+variable {R : Type*} [CommRing R]
+
+/-- Elementary coefficients of a monic cubic, in the plus-sign
+normalization appropriate to characteristic two. -/
+theorem dk_cubic_from_roots [CharP R 2]
+    (X x y z : R) :
+    (X + x) * (X + y) * (X + z) =
+      X ^ 3 + (x + y + z) * X ^ 2 +
+        (x * y + x * z + y * z) * X + x * y * z := by
+  ring
+
+/-- For the alternating translate, the universal cubic-power-map
+Jacobian numerator specializes to the nonzero selected quantity `gamma`. -/
+theorem dk_twisted_fibre_target_numerator [CharP R 2]
+    (c gamma uParent : R) (hu : uParent = gamma + c ^ 2) :
+    c * c + uParent = gamma := by
+  rw [hu]
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+  simp [h2]
+
+end DKTwistedFibre
+
 variable {F : Type*} [Field F] [CharP F 2]
 
 /-- The quadratic auxiliary coordinate `x^2+x+1` determines `x` only up to
@@ -2983,6 +3039,111 @@ theorem complementary_bits_sum_one
     simp [hr1]
 
 end FermatComplementaryCofactorCore
+
+section FermatSelectedCrtProjectorCore
+
+/-- A product-zero factorization with differentiated Bezout value one gives
+the two complementary CRT idempotents. -/
+theorem complementary_crt_idempotents
+    {R : Type*} [CommRing R] (s q ds dq : R)
+    (hprod : s * q = 0) (hbez : ds * q + s * dq = 1) :
+    let failure := ds * q
+    let success := s * dq
+    failure + success = 1 ∧
+      failure * success = 0 ∧
+      failure ^ 2 = failure ∧
+      success ^ 2 = success := by
+  dsimp
+  have horth : (ds * q) * (s * dq) = 0 := by
+    calc
+      (ds * q) * (s * dq) = (ds * dq) * (s * q) := by ring
+      _ = 0 := by rw [hprod, mul_zero]
+  refine ⟨hbez, horth, ?_, ?_⟩
+  · calc
+      (ds * q) ^ 2 = (ds * q) * ((ds * q) + (s * dq)) := by
+        rw [mul_add, horth, add_zero, pow_two]
+      _ = ds * q := by rw [hbez, mul_one]
+  · have horth' : (s * dq) * (ds * q) = 0 := by
+      rw [mul_comm]
+      exact horth
+    calc
+      (s * dq) ^ 2 = (s * dq) * ((ds * q) + (s * dq)) := by
+        rw [mul_add, horth', zero_add, pow_two]
+      _ = s * dq := by rw [hbez, mul_one]
+
+/-- On a field quotient, the failure projector is one exactly on the
+factor-zero branch and the success projector is one exactly on the
+cofactor-zero branch. -/
+theorem selected_crt_projector_branches
+    {K : Type*} [Field K] (s q ds dq : K)
+    (hprod : s * q = 0) (hbez : ds * q + s * dq = 1) :
+    (s = 0 ∧ ds * q = 1 ∧ s * dq = 0) ∨
+      (q = 0 ∧ ds * q = 0 ∧ s * dq = 1) := by
+  rcases mul_eq_zero.mp hprod with hs | hq
+  · left
+    refine ⟨hs, ?_, by simp [hs]⟩
+    simpa [hs] using hbez
+  · right
+    refine ⟨hq, by simp [hq], ?_⟩
+    simpa [hq] using hbez
+
+/-- Every Bezout certificate for the same product-zero factorization gives
+the same two support projectors. -/
+theorem bezout_support_projectors_unique
+    {R : Type*} [CommRing R] (s q ds dq u v : R)
+    (hprod : s * q = 0)
+    (hderiv : ds * q + s * dq = 1)
+    (hbez : u * s + v * q = 1) :
+    v * q = ds * q ∧ u * s = s * dq := by
+  constructor
+  · calc
+      v * q = (v * q) * (ds * q + s * dq) := by
+        rw [hderiv, mul_one]
+      _ = (ds * q) * (u * s + v * q) := by
+        rw [mul_add, mul_add]
+        rw [show (v * q) * (s * dq) = 0 by
+          calc
+            (v * q) * (s * dq) = (v * dq) * (s * q) := by ring
+            _ = 0 := by rw [hprod, mul_zero]]
+        rw [show (ds * q) * (u * s) = 0 by
+          calc
+            (ds * q) * (u * s) = (ds * u) * (s * q) := by ring
+            _ = 0 := by rw [hprod, mul_zero]]
+        ring
+      _ = ds * q := by rw [hbez, mul_one]
+  · calc
+      u * s = (u * s) * (ds * q + s * dq) := by
+        rw [hderiv, mul_one]
+      _ = (s * dq) * (u * s + v * q) := by
+        rw [mul_add, mul_add]
+        rw [show (u * s) * (ds * q) = 0 by
+          calc
+            (u * s) * (ds * q) = (u * ds) * (s * q) := by ring
+            _ = 0 := by rw [hprod, mul_zero]]
+        rw [show (s * dq) * (v * q) = 0 by
+          calc
+            (s * dq) * (v * q) = (dq * v) * (s * q) := by ring
+            _ = 0 := by rw [hprod, mul_zero]]
+        ring
+      _ = s * dq := by rw [hbez, mul_one]
+
+/-- A quadratic trace kills either selected scalar bit in characteristic
+two. -/
+theorem quadratic_trace_of_scalar_bit
+    {R : Type*} [CommRing R] [CharP R 2] (e : R) :
+    e + e = 0 := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    e + e = 2 * e := by ring
+    _ = 0 := by rw [htwo, zero_mul]
+
+/-- A quadratic norm returns an idempotent scalar unchanged. -/
+theorem quadratic_norm_of_idempotent
+    {R : Type*} [CommRing R] (e : R) (he : e ^ 2 = e) :
+    e * e = e := by
+  simpa [pow_two] using he
+
+end FermatSelectedCrtProjectorCore
 
 section ConwayTopBitCompanion
 
