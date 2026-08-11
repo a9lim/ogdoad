@@ -268,6 +268,11 @@ current normalization frontier rather than assuming it:
 - a universal live-star vector and its graph-evaluation map, with a telescoped
   trace theorem saying that OPEN adds the current live star while CLOSE and PASS
   preserve the scalar queue-cut potential;
+- list-faithful live-degree handshaking and the complete pair-response
+  identities: `sum_queueCut_after_two_opens` proves that the full second-OPEN
+  fan sums to `|U|` copies of the post-first-OPEN cut, its even-cardinality
+  corollary is zero, and the odd-cardinality theorem adjoins the translated
+  old-front CLOSE representative to obtain an odd zero aggregate;
 - exclusion of a CLOSE-first terminal-score-one strategy from the
   isolated-dummy initial root for either attacker seat;
 - a proof-indexed dichotomy saying that every explicit odd strategy is either
@@ -286,10 +291,11 @@ current normalization frontier rather than assuming it:
   the minimum hot state to have one untouched vertex `z`, a clear front `f`,
   adjacency bit `fz = 1`, and a queue tail wholly nonadjacent to `z`.
 
-The last theorem deliberately stops before the unresolved step.  If the
-selected OPEN touches the dummy, the remaining real reply fan has even
-cardinality; neither the same-degree induction nor the local balanced-front
-lemmas provide an even-winning child.  Likewise, the minimum-hot theorem
+These theorems deliberately stop before the unresolved step.  If the selected
+OPEN touches the dummy at the initial empty root, the remaining real reply fan
+has even cardinality and ko blocks the CLOSE term which completes every
+ordinary odd-cardinality fan; neither the same-degree induction nor the local
+balanced-front lemmas provide an even-winning child.  Likewise, the minimum-hot theorem
 classifies primitive flexible walls but does not show that a fixed root
 counterstrategy can reach one on the required sheet: its unpruned global
 minimum is not the same object as the minimum dual bit in one pruned strategy

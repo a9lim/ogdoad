@@ -92,6 +92,12 @@ not a scalar parity identity.
 - The initial cut moment contracts affinely, and a two-bit
   `(degree parity, odd-neighbour parity)` handshake controls the next FIFO cell.
   Neither invariant propagates through arbitrary later attacker pruning.
+- The complete pair-response potential is now kernel-checked.  For a
+  well-formed state, after `OPEN x` the sum of the queue cuts over every second
+  `OPEN y` is `|U|` copies of the post-`x` queue cut.  Thus an even untouched
+  set gives an odd zero-sum OPEN fan; for odd `|U|` and a pre-existing queue,
+  adjoining the translated CLOSE reply gives the same contraction.  The sole
+  local exception is the nontrivial odd empty-queue ko fan.
 - In the Eulerian quotient, harmlessness is exactly intersection of the
   response affine space with the cut space. Eulerian graphs carry an odd-triple
   curvature `3`-oik, but the attacker can prune its ordinary wall pairing.
@@ -178,7 +184,13 @@ pendant-to-star step by an explicit arbitrary-policy sibling strategy; a
 longer broom can still rotate into the online draft-and-stop endpoint.  The
 first unresolved cancellation lies in the earlier universal ko fan choosing
 the dummy versus real replies.  Coupling that whole fan, not the terminal wall
-or one busy block, is the remaining proof obligation.
+or one busy block, is the remaining proof obligation.  The new complete-fan
+identity makes its quotient form exact: outside the all-odd real-degree locus
+the canonical immediate representatives already admit an odd zero selection;
+on the all-odd locus the needed correction belongs to the sum of the child
+continuation spaces iff the universal-full-row/common-coset obstruction
+vanishes.  Lifting the canonical selection through attacker-pruned child
+cosets, even outside that locus, is still the causal factor-extension step.
 
 This is the only missing mathematical step. More exhaustive enumeration or a
 new scalar queue invariant would be useful for falsification, but neither is

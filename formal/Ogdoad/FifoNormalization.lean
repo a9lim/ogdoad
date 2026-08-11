@@ -8,6 +8,8 @@ from an arbitrary odd strategy to a CLOSE-first one:
 
 * a graph-independent live-star vector whose evaluation gives the scalar
   queue-cut potential increment of an OPEN;
+* list-faithful live-degree handshaking and the complete second-OPEN reply-fan
+  identity, including the translated CLOSE term for odd untouched order;
 * the already checked stopped empty-root theorem and conditioned tail theorem
   together rule out a CLOSE-first odd strategy from the initial root, for
   either attacker seat;
@@ -213,6 +215,245 @@ theorem liveDegree_eq_flip_liveSet
   rw [liveDegree, queueCut_singleton_eq_flip_toFinset G v hnodup,
     liveSet, flip_eq_sum_adjacencyBit, flip_eq_sum_adjacencyBit,
     flip_eq_sum_adjacencyBit, Finset.sum_union hdisjoint]
+
+omit [Fintype V] in
+/-- Handshaking on the public live graph: the sum of the live degrees of all
+untouched vertices is exactly the queue-to-untouched cut.  Edges internal to
+the untouched set occur twice, while every queue--untouched edge occurs once.
+
+The list induction keeps this statement valid at the level of the FIFO
+semantics without silently replacing the queue by a set; `Nodup` is used only
+to identify the already-open vertices. -/
+theorem sum_flip_union_queue_eq_queueCut (G : SimpleGraph V) :
+    ∀ {U : Finset V} {q : List V}, q.Nodup → Disjoint q.toFinset U →
+      (∑ v ∈ U, flip G (U ∪ q.toFinset) v) = queueCut G U q := by
+  intro U q hq hdisjoint
+  induction q generalizing U with
+  | nil =>
+      simpa [queueCut] using sum_flip_self_eq_zero G U
+  | cons f q ih =>
+      obtain ⟨hfq, hq⟩ := List.nodup_cons.mp hq
+      have hfU : f ∉ U := by
+        intro hf
+        exact (Finset.disjoint_left.mp hdisjoint) (by simp) hf
+      have hqU : Disjoint q.toFinset U := by
+        exact Finset.disjoint_left.mpr fun v hvq hvU ↦
+          (Finset.disjoint_left.mp hdisjoint) (by simp [hvq]) hvU
+      have hfLive : f ∉ U ∪ q.toFinset := by simp [hfU, hfq]
+      have hcross :
+          (∑ v ∈ U, adjacencyBit G v f) = flip G U f := by
+        rw [flip_eq_sum_adjacencyBit]
+        apply Finset.sum_congr rfl
+        intro v hv
+        exact adjacencyBit_comm G v f
+      simp only [List.toFinset_cons, queueCut, List.map_cons, List.sum_cons]
+      rw [Finset.union_insert]
+      simp_rw [flip_insert_of_not_mem hfLive]
+      rw [Finset.sum_add_distrib, ih hq hqU, hcross]
+      simp [queueCut, add_comm]
+
+omit [Fintype V] in
+/-- State form of `sum_flip_union_queue_eq_queueCut`: on a well-formed FIFO
+state, the untouched live-degree sum is its scalar queue cut. -/
+theorem sum_liveDegree_untouched_eq_queueCut
+    {G : SimpleGraph V} {s : State V} (hs : WellFormed s) :
+    (∑ v ∈ s.untouched, liveDegree G s v) =
+      queueCut G s.untouched s.queue := by
+  rcases hs with ⟨hnodup, hdisjoint⟩
+  simp_rw [liveDegree_eq_flip_liveSet ⟨hnodup, hdisjoint⟩]
+  exact sum_flip_union_queue_eq_queueCut G hnodup hdisjoint.symm
+
+omit [Fintype V] in
+/-- The scalar live degree of every remaining vertex is unchanged by an
+OPEN.  The deleted untouched edge and the newly appended queue edge occur
+twice in characteristic two. -/
+theorem liveDegree_data_after_open
+    (G : SimpleGraph V) (U : Finset V) (q : List V) (x y : V)
+    (hx : x ∈ U) :
+    flip G (U.erase x) y + queueCut G {y} (q ++ [x]) =
+      flip G U y + queueCut G {y} q := by
+  rw [flip_erase_eq_add hx, queueCut_append_singleton,
+    flip_singleton_eq_adjacencyBit, adjacencyBit_comm G y x]
+  calc
+    flip G U y + adjacencyBit G x y +
+        (queueCut G {y} q + adjacencyBit G x y) =
+        flip G U y + queueCut G {y} q +
+          (adjacencyBit G x y + adjacencyBit G x y) := by abel
+    _ = flip G U y + queueCut G {y} q := by
+      rw [CharTwo.add_self_eq_zero, add_zero]
+
+omit [Fintype V] in
+/-- Queue-cut form of one OPEN: the new cut is the old cut plus the opened
+vertex's live degree.  This is the score-free content of
+`open_adds_liveDegree_to_potential`. -/
+theorem queueCut_after_open
+    (G : SimpleGraph V) (U : Finset V) (q : List V) (x : V)
+    (hx : x ∈ U) :
+    queueCut G (U.erase x) (q ++ [x]) =
+      queueCut G U q + (flip G U x + queueCut G {x} q) := by
+  rw [queueCut_append_singleton, queueCut_erase_eq_add hx,
+    flip_erase_eq_add hx, adjacencyBit_self]
+  abel
+
+omit [Fintype V] in
+/-- Two successive OPENs add the two live degrees measured before the first
+OPEN.  In particular the response vertex may be chosen from the original
+live-degree parity class. -/
+theorem queueCut_after_two_opens
+    (G : SimpleGraph V) (U : Finset V) (q : List V) (x y : V)
+    (hx : x ∈ U) (hy : y ∈ U.erase x) :
+    queueCut G ((U.erase x).erase y) (q ++ [x, y]) =
+      queueCut G U q +
+        (flip G U x + queueCut G {x} q) +
+        (flip G U y + queueCut G {y} q) := by
+  rw [show q ++ [x, y] = (q ++ [x]) ++ [y] by simp]
+  rw [queueCut_after_open G (U.erase x) (q ++ [x]) y hy,
+    queueCut_after_open G U q x hx,
+    liveDegree_data_after_open G U q x y hx]
+
+omit [Fintype V] in
+/-- On an even untouched set, the complete family of possible second OPENs
+has aggregate live-degree increment equal to the old queue cut.  This is the
+scalar handshaking law behind the odd pair-response fan. -/
+theorem sum_secondOpen_liveDegrees_eq_queueCut
+    {G : SimpleGraph V} {s : State V} (hs : WellFormed s)
+    {x : V} (hx : x ∈ s.untouched)
+    (hcard : (s.untouched.card : ZMod 2) = 0) :
+    (∑ y ∈ s.untouched.erase x,
+      (liveDegree G s x + liveDegree G s y)) =
+        queueCut G s.untouched s.queue := by
+  have hcardNat := Finset.card_erase_add_one hx
+  have hcast := congrArg (fun n : Nat ↦ (n : ZMod 2)) hcardNat
+  simp only [Nat.cast_add, Nat.cast_one] at hcast
+  rw [hcard] at hcast
+  have hodd : ((s.untouched.erase x).card : ZMod 2) = 1 := by
+    calc
+      ((s.untouched.erase x).card : ZMod 2) =
+          (((s.untouched.erase x).card : ZMod 2) + 1) + 1 := by
+            rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+      _ = 0 + 1 := by rw [hcast]
+      _ = 1 := by simp
+  rw [Finset.sum_add_distrib]
+  have hconst :
+      (∑ _y ∈ s.untouched.erase x, liveDegree G s x) =
+        liveDegree G s x := by simp [hodd]
+  rw [hconst]
+  have herase :=
+    s.untouched.sum_erase_add (fun y ↦ liveDegree G s y) hx
+  have hsum := sum_liveDegree_untouched_eq_queueCut (G := G) hs
+  calc
+    liveDegree G s x +
+        ∑ y ∈ s.untouched.erase x, liveDegree G s y =
+        ∑ y ∈ s.untouched, liveDegree G s y := by
+          rw [add_comm]
+          exact herase
+    _ = queueCut G s.untouched s.queue := hsum
+
+omit [Fintype V] in
+/-- General pair-response formula, before specializing the untouched-cardinality
+parity.  The sum of all queue cuts after `OPEN x; OPEN y` is `|U|` copies of
+the cut after the first OPEN. -/
+theorem sum_queueCut_after_two_opens
+    {G : SimpleGraph V} {s : State V} (hs : WellFormed s)
+    {x : V} (hx : x ∈ s.untouched) :
+    (∑ y ∈ s.untouched.erase x,
+      queueCut G ((s.untouched.erase x).erase y)
+        (s.queue ++ [x, y])) =
+      s.untouched.card •
+        queueCut G (s.untouched.erase x) (s.queue ++ [x]) := by
+  let px := queueCut G (s.untouched.erase x) (s.queue ++ [x])
+  have hafter : px =
+      queueCut G s.untouched s.queue + liveDegree G s x := by
+    dsimp [px]
+    rw [queueCut_after_open G s.untouched s.queue x hx]
+    simp only [liveDegree]
+  have herase :=
+    s.untouched.sum_erase_add (fun y ↦ liveDegree G s y) hx
+  have hsum := sum_liveDegree_untouched_eq_queueCut (G := G) hs
+  have hsumErase :
+      (∑ y ∈ s.untouched.erase x, liveDegree G s y) = px := by
+    calc
+      (∑ y ∈ s.untouched.erase x, liveDegree G s y) =
+          (∑ y ∈ s.untouched, liveDegree G s y) +
+            liveDegree G s x := by
+              calc
+                (∑ y ∈ s.untouched.erase x, liveDegree G s y) =
+                    ((∑ y ∈ s.untouched.erase x, liveDegree G s y) +
+                      liveDegree G s x) + liveDegree G s x := by
+                        rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
+                _ = (∑ y ∈ s.untouched, liveDegree G s y) +
+                    liveDegree G s x := by rw [herase]
+      _ = queueCut G s.untouched s.queue + liveDegree G s x := by
+            rw [hsum]
+      _ = px := hafter.symm
+  have hpoint : ∀ y ∈ s.untouched.erase x,
+      queueCut G ((s.untouched.erase x).erase y)
+          (s.queue ++ [x, y]) = px + liveDegree G s y := by
+    intro y hy
+    rw [queueCut_after_two_opens G s.untouched s.queue x y hx hy,
+      hafter]
+    simp only [liveDegree]
+  have hcardNat := Finset.card_erase_add_one hx
+  have hnsmul := congrArg
+    (fun n : Nat ↦ n • px) hcardNat
+  calc
+    (∑ y ∈ s.untouched.erase x,
+        queueCut G ((s.untouched.erase x).erase y)
+          (s.queue ++ [x, y])) =
+        ∑ y ∈ s.untouched.erase x,
+          (px + liveDegree G s y) := by
+            apply Finset.sum_congr rfl
+            intro y hy
+            exact hpoint y hy
+    _ = (s.untouched.erase x).card • px +
+        ∑ y ∈ s.untouched.erase x, liveDegree G s y := by
+          rw [Finset.sum_add_distrib]
+          simp
+    _ = (s.untouched.erase x).card • px + px := by rw [hsumErase]
+    _ = ((s.untouched.erase x).card + 1) • px := by
+      rw [add_nsmul, one_nsmul]
+    _ = s.untouched.card • px := hnsmul
+    _ = s.untouched.card •
+        queueCut G (s.untouched.erase x) (s.queue ++ [x]) := rfl
+
+omit [Fintype V] in
+/-- Complete pair-response identity.  From a well-formed state with an even
+untouched set, fix the first OPEN `x` and sum the queue cuts after every legal
+second OPEN.  The result is zero.
+
+This is genuinely a full-fan statement: each individual response may have
+either parity, but the odd family cancels by handshaking on the unchanged live
+graph.  A strategy proof still has to transport the corresponding descendant
+continuations through attacker pruning. -/
+theorem sum_queueCut_after_two_opens_eq_zero
+    {G : SimpleGraph V} {s : State V} (hs : WellFormed s)
+    {x : V} (hx : x ∈ s.untouched)
+    (hcard : (s.untouched.card : ZMod 2) = 0) :
+    (∑ y ∈ s.untouched.erase x,
+      queueCut G ((s.untouched.erase x).erase y)
+        (s.queue ++ [x, y])) = 0 := by
+  rw [sum_queueCut_after_two_opens hs hx]
+  rw [nsmul_eq_mul, hcard, zero_mul]
+
+omit [Fintype V] in
+/-- Odd-cardinality companion to the OPEN-only identity.  If the old queue is
+nonempty, the defender's replies after `OPEN x` consist of all second OPENs
+and the now-legal CLOSE of the old front.  Translating that CLOSE child back
+by its charge makes the complete reply fan odd and its aggregate cut zero. -/
+theorem sum_openReplies_add_closeRepresentative_eq_zero
+    {G : SimpleGraph V} {s : State V} (hs : WellFormed s)
+    {x f : V} {q : List V} (hx : x ∈ s.untouched)
+    (hqueue : s.queue = f :: q)
+    (hcard : (s.untouched.card : ZMod 2) = 1) :
+    (∑ y ∈ s.untouched.erase x,
+      queueCut G ((s.untouched.erase x).erase y)
+        (s.queue ++ [x, y])) +
+      (flip G (s.untouched.erase x) f +
+        queueCut G (s.untouched.erase x) (q ++ [x])) = 0 := by
+  rw [sum_queueCut_after_two_opens hs hx, nsmul_eq_mul, hcard, one_mul]
+  rw [hqueue]
+  simp only [List.cons_append, queueCut, List.map_cons, List.sum_cons]
+  exact CharTwo.add_self_eq_zero _
 
 /-- Universal binary edge space used by the vector live-star identity. -/
 abbrev EdgeVector (V : Type*) := Sym2 V →₀ ZMod 2
@@ -976,7 +1217,7 @@ theorem coldAtOwnScore_below_minHot
               hcoldT.oddWins ht1 s.toMove
             exact ⟨
               EvenWins.choose s rfl (.open v) so hopen hevenO,
-              OddWins.choose s (Bool.eq_not_iff.mpr rfl) m t hstep hoddT⟩
+              OddWins.choose s (by simp) m t hstep hoddT⟩
           · have hs1 : s.score = 1 :=
               zmod2_eq_one_of_ne_zero _ hs0
             have ht0 : t.score = 0 := by
@@ -990,7 +1231,7 @@ theorem coldAtOwnScore_below_minHot
               hcoldO.oddWins (by simp [so, hs0]) s.toMove
             exact ⟨
               EvenWins.choose s rfl m t hstep hevenT,
-              OddWins.choose s (Bool.eq_not_iff.mpr rfl)
+              OddWins.choose s (by simp)
                 (.open v) so hopen hoddO⟩
         exact hnohot s.toMove s hsbound hhot
       by_cases hterminal : Terminal s
@@ -1026,11 +1267,11 @@ theorem coldAtOwnScore_below_minHot
                 (lt_trans (rank_step_lt hstep) hsbound)
             refine OddWins.choose s ?_ m t hstep
               (hcold.oddWins ?_ player)
-            · simpa using Bool.eq_not_iff.mpr hplayer
+            · simp [hplayer]
             · intro ht0
               exact hs0 ((hscorePreserved hstep).symm.trans ht0)
           · have hseat : s.toMove = !player :=
-              Bool.eq_not_iff.mp hplayer
+              Bool.eq_not_iff.mpr hplayer
             refine OddWins.answer s hseat hasMove ?_
             intro m t hstep
             have hcold : ColdAtOwnScore G t :=
@@ -1164,7 +1405,7 @@ theorem minHotState_is_singletonWall
     cases hodd with
     | terminal _ _ hscore => exact hscore hs0
     | choose _ hseat _ _ _ _ =>
-        exact hseat (Bool.eq_not_iff.mp hturn)
+        exact hseat (Bool.eq_not_iff.mpr hturn)
     | answer _ _ hasMove hchildren =>
         obtain ⟨m, t, hstep⟩ := hasMove
         have hevenT : EvenWins G player t :=
@@ -1177,7 +1418,7 @@ theorem minHotState_is_singletonWall
     | terminal _ _ hscore => exact False.elim (hscore hs0)
     | choose _ _ m t hstep hwin => exact ⟨m, t, hstep, hwin⟩
     | answer _ hseat _ _ =>
-        exact False.elim ((Bool.eq_not_iff.mpr hturn) hseat)
+        exact False.elim ((Bool.eq_not_iff.mp hseat) hturn)
   obtain ⟨mOne, tOne, hstepOne, hoddOne⟩ := hoddChoice
   have htOne : tOne.score = 1 := by
     have htne : tOne.score ≠ 0 := by
@@ -1254,7 +1495,7 @@ theorem minHotState_is_singletonWall
       toMove := s.toMove
       score := s.score + flip G (s.untouched.erase w) f }
     have hclose : step G so .close = some soc := by
-      simp [step, so, soc, hqueue, hko]
+      simp [step, so, soc, hqueue]
     have hscoreEq := step_score_eq_below_minHot G (rank s) hminimal
       (rank_step_lt hopen) hclose
     simpa [so, soc, hs0] using hscoreEq
@@ -1264,7 +1505,7 @@ theorem minHotState_is_singletonWall
     · intro hw
       by_contra hwz
       have hwErase : w ∈ s.untouched.erase z :=
-        Finset.mem_erase.mpr ⟨hwz, hw⟩
+        Finset.mem_erase.mpr ⟨by simpa using hwz, hw⟩
       let soz : State V := {
         untouched := s.untouched.erase z
         queue := s.queue ++ [z]
@@ -1288,7 +1529,7 @@ theorem minHotState_is_singletonWall
         toMove := !s.toMove
         score := s.score + flip G ((s.untouched.erase z).erase w) f }
       have hclose : step G sozw .close = some sc := by
-        simp [step, sozw, sc, hqueue, hko]
+        simp [step, sozw, sc, hqueue]
       have hdouble : flip G ((s.untouched.erase z).erase w) f = 0 := by
         have hscoreEq := step_score_eq_below_minHot G (rank s) hminimal
           (lt_trans (rank_step_lt hopenw) (rank_step_lt hopenz)) hclose

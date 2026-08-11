@@ -3152,6 +3152,121 @@ $R=Q\cup U$, direct edge accounting gives
 \]
 The middle term is the actual flip.
 
+There is a stronger full-fan identity which does not require choosing a
+matching reply.  It is useful precisely because it separates the local
+handshaking from the unresolved continuation transport.
+
+\begin{proposition}[complete pair-response potential]
+\label{prop:complete-pair-response}
+\PROVED{} Let $x\in U$, put $n=|U|$, and write
+\[
+ P_x=P(Qx,U-x),\qquad
+ P_{xy}=P(Qxy,U-\{x,y\})\quad(y\in U-x).
+\]
+Then
+\begin{equation}\label{eq:complete-pair-response}
+ P_{xy}=P(Q,U)+\deg_{Q\sqcup U}(x)+\deg_{Q\sqcup U}(y),
+ \qquad
+ \sum_{y\in U-x}P_{xy}=nP_x.
+\end{equation}
+In particular, if $n$ is even, the $n-1$ second-OPEN replies form an odd
+family whose queue-cut sum is zero.
+
+If $n$ is odd and $Q\ne()$, adjoining the now-legal CLOSE reply
+again gives an odd affine family of sum zero: if its charge is $c$, its child
+queue cut is $P_x+c$, so its representative translated back to the pre-CLOSE
+score sheet is $c+(P_x+c)=P_x$.
+\end{proposition}
+
+\begin{proof}
+OPEN does not change the live set $L=Q\sqcup U$, so opening $x$ and then $y$
+adds the two live degrees displayed in
+\eqref{eq:complete-pair-response}.  Handshaking on $L$ gives
+\[
+ \sum_{u\in U}\deg_L(u)=e(U,Q)=P(Q,U).
+\]
+Since $|U-x|=n-1$, summing the first identity yields
+\[
+ (n-1)(P+\deg_Lx)+
+ \sum_{y\in U-x}\deg_Ly
+ = (n-1)P_x+(P+\deg_Lx)=nP_x.
+\]
+For even $n$ this is zero and the reply family has odd size.  For odd $n$
+the OPEN family has even size and sums to $P_x$; the translated CLOSE
+representative is another $P_x$, proving the last claim.
+
+The Lean proof is list-faithful: it first proves that the sum of the untouched
+live degrees is exactly \texttt{queueCut}, proves that every remaining live
+degree is invariant under OPEN, and derives both the general formula and its
+even-cardinality corollary without identifying the FIFO queue with a set.
+\end{proof}
+
+Apart from the one-vertex forced-PASS base case, the only local failure of
+this odd zero-fan construction is
+\begin{equation}\label{eq:pair-response-ko-exception}
+ |U|>1\text{ odd},\qquad Q=(),\qquad
+ O_x\text{ sets ko and blocks CLOSE}.
+\end{equation}
+At the initial isolated-dummy root this is exactly the first-response fan.
+If $x$ is real, the real replies $y\in R-x$ alone form an odd zero-sum fan;
+the isolated dummy contributes no edge coordinate.  If $x=d$, the replies
+are the even set $R$.  A real vertex of even degree gives a singleton
+zero-cut reply, while an all-odd real graph is the sharp bare-potential
+obstruction.  On $K_2+d$ both dummy-first reply cuts are one.
+
+Proposition~\ref{prop:complete-pair-response} is not yet a strategy theorem.
+A target-one strategy below each chosen child supplies a terminal moment in
+an affine continuation coset, not the bare queue cut at that child.  The
+missing factor-extension statement must choose those terminal
+representatives simultaneously so that their correction sum is a cut.  An
+independent choice can add an Euler cycle, and the explicit zipper
+counterexamples above show that this strengthening is genuinely false for
+one path at a time.  The local calculation therefore contracts every
+ordinary reply fan but leaves the dummy-first ko fan and the same
+multibranch common-coset problem.
+
+The equivalence is exact on the residual all-odd locus.  For a fixed pruned
+attacker policy below $O_d$, write the affine continuation coset below reply
+$O_y$ as $C_y=b_y+W_y$ and put $W=\sum_yW_y$.  A root contraction is a vector
+$\epsilon\in\F_2^R$ satisfying
+\begin{equation}\label{eq:dummy-coset-quotient}
+ \sum_y\epsilon_y=1,
+ \qquad
+ \sum_y\epsilon_y[b_y]=0\quad\text{in }\mathcal E_R/W.
+\end{equation}
+The canonical queue-cut image of $[b_y]$ is
+$\deg_R(y)\,\omega$.  If some $y_0$ has even degree, the elementary choice
+$\epsilon=1_{R-y_0}$ has odd augmentation and zero canonical sum.  If every
+degree is odd, every odd $\epsilon$ has canonical image $\omega$; hence
+\eqref{eq:dummy-coset-quotient} requires the strategy-compatible correction
+$\omega\in W$.  Failure of that inclusion is separated by a graph functional
+which annihilates every $W_y$ and takes value one on every $C_y$---exactly the
+all-children target-one, universal-full-row counterstrategy.  Thus the
+all-odd dummy-first lift is not merely similar to the common-coset lemma; it
+is its quotient form.
+
+Complementing does not remove this residual.  On even $R$, put $J=K_R$ and
+$\bar B=B+J$.  For every prefix $h$, linearity gives
+\[
+ g_B(h)+g_{\bar B}(h)=g_J(h),\qquad
+ P_B(Q,U)+P_{\bar B}(Q,U)=|Q\cap R|\,|U|.
+\]
+Thus an all-odd $B$ does become Eulerian after complementation, but the missing
+bit moves into the complete-graph timing score.  For a terminal word, order
+the real OPENs as $v_1,\ldots,v_n$, let $c_i$ be the one-based position of
+$C_{v_i}$ among all real events, and use FIFO to write $c_i=a_i+i$, where
+$a_i$ real vertices have opened by that close.  Then, for even $n$,
+\begin{equation}\label{eq:complete-timing-cocycle}
+ g_J=|D_R|=\sum_i(n-a_i)=\sum_i c_i+n/2\pmod2.
+\end{equation}
+This action-word cocycle is not constant: already on $K_2+d$, after
+$O_d,O_0,C_d$, the replies $O_1$ and $C_0$ give its two values.  Hence an
+Euler strategy for $\bar B$ supplies no canonical timing choice for $J$.
+Parity-cell certificates do not improve under this complement either, since
+$e_{\bar B}(A,C)=e_B(A,C)+|A||C|=e_B(A,C)$ for two-element cells.  The
+complement route therefore asks for a causal joint $(\bar B,J)$ strategy,
+which is the same correlated continuation problem.
+
 \begin{proposition}[charge-matching and the poison state]
 Suppose $P=0$, $|U|$ is even, and the position is nonterminal.
 After an opponent open, there is always a distinct legal open with the same
@@ -5583,7 +5698,9 @@ The following claims have different status and should not be flattened.
       translation through arbitrary transitions and strategy trees, and the
       exact singleton-wall reconvergence square after the next real OPEN.
       The companion \path{formal/Ogdoad/FifoNormalization.lean}
-      kernel-checks the universal live-star trace law, both-seat exclusion of
+      kernel-checks the universal live-star trace law, the list-faithful
+      live-degree handshake, the general complete pair-response formula and
+      its even-OPEN/odd-OPEN-plus-CLOSE zero-fan corollaries, both-seat exclusion of
       CLOSE-first odd strategies at the isolated-dummy root, the resulting
       proof-indexed existence of a clear-node deviation in every hypothetical
       odd strategy, and the same-degree/balanced-front first-spoiler package.
