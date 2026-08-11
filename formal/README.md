@@ -119,10 +119,20 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   `c^((q-1)h)=w^h` from `c^q=c*w`, which is the finite-field core of the
   paper's exact cyclotomic lift of the selected Fermat residue symbol;
 - the characteristic-free canonical-lift reparametrization
-  `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, its denominator-free discriminant
-  recursion, and the odd-Kummer square-class equivalence used in the paper's
-  global-reciprocity torsor no-go; the number-field ramification and Hilbert-
-  symbol deductions themselves remain paper-level;
+  `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
+  discriminant recursion, and the odd-Kummer square-class equivalence used in
+  the paper's global-reciprocity torsor no-go; the number-field ramification
+  and Hilbert-symbol deductions themselves remain paper-level;
+- the denominator-free quadratic-tail Kummer transport
+  `2*[c_j]=i([a_(j-1)])` and `2*[a_j]=3*i([a_(j-1)])`, which underlies the
+  paper's exact `3/2` propagation of a Fermat-prime obstruction through every
+  later Conway level; the finite-field quotient identifications and Capelli
+  factorization corollary remain paper-level;
+- the weighted-selector algebra: inverse-pair and decomposition-coset first
+  moments vanish for unmixed cyclotomic divisors, while the odd geometric sum
+  at `W^(F_n/ell)` vanishes exactly when the desired selected residue is
+  nontrivial; the global ray-class and local Hilbert-symbol interpretation
+  remains paper-level;
 - the exact quotient-order factorization used by relative-order products, with
   maximality of the individual quotient factors deliberately left as an input;
 - the finite-level Popovych primitive-product equivalence: the selected

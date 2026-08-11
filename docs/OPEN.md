@@ -344,8 +344,26 @@ absolute boundedness.
   `ell`-th power at three. Yet the prime above two splits into a full
   cyclotomic torsor after adjoining `mu_ell`; its local Hilbert symbols are
   `H^a` and their product is one for every `H`. Unweighted global reciprocity
-  therefore leaves the selected symbol completely free and only moves the
-  obstruction to a genuinely new weighted `ell`-adic ray coefficient.
+  therefore leaves the selected symbol completely free. The exact weighted
+  product formula says that a principal selector `x` would recover
+  `H^(sum_a a*v_(q_a)(x))` from its local symbols above `ell`. But every
+  element from either unmixed factor has weighted exponent zero: on the
+  cyclotomic side `-1` lies in the decomposition group of two, so the `a` and
+  `-a` valuation contributions cancel. This rules out ordinary
+  Gauss/Jacobi/Stickelberger principalizers. The natural mixed element
+  `W_n^(F_n/ell)-zeta_ell` has support above two exactly when
+  `w_n^(F_n/ell) != 1`, so even its existence as a selector is the original
+  target. What remains is a genuinely mixed `ell`-adic ray-class coefficient,
+  not supplied by classical cyclotomic reciprocity.
+  A complementary cross-level theorem shows that this Kummer coordinate is
+  born only once. If `M=ell^e || F_n`, then the `M`-Kummer quotients vanish
+  below `E_n`, are cyclic of order `M` from `E_n` onward, and every later
+  inclusion is an isomorphism. Writing `kappa_j=[a_j]_M`, the exact transport
+  is `kappa_j=(3/2)kappa_(j-1)`. Since `3/2` is a unit modulo `M`, success or
+  failure persists unchanged through the infinite tail. Equivalently, for
+  every `j>=n`, `A_j(X^ell)` is irreducible in the success case and splits
+  into exactly `ell` full-degree factors in the failure case. Future ancestry
+  therefore copies rather than constrains the missing birth coordinate.
   The resultant correspondence itself has rational normalization
   `Y=c^2+c`, `X=c^3+c^2` and a unique parent on trace-one irreducibles, but
   its critical portrait, degree growth, and cyclic splitting fields are

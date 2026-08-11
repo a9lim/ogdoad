@@ -10981,6 +10981,117 @@ criterion proves the equivalence with irreducibility of
 $X^\ell-c_n$.
 \end{proof}
 
+\begin{proposition}[a Fermat Kummer coordinate is born once and transported by \(3/2\)]
+\label{prop:fermat-kummer-tail}
+Fix \(n\geq1\), let \(M=\ell^e\parallel F_n\), and, in additive
+notation, put
+\[
+ \mathcal H_j=E_j^\times/(E_j^\times)^M.
+\]
+Then
+\[
+ \mathcal H_j=0\quad(j<n),\qquad
+ \mathcal H_j\cong\mathbf Z/M\mathbf Z\quad(j\geq n).       \tag{\(\mathsf{KT}_1\)}
+\]
+For \(j>n\), inclusion induces an isomorphism
+\(\iota_j:\mathcal H_{j-1}\xrightarrow{\sim}\mathcal H_j\).
+If
+\[
+ \kappa_j=[a_j]_M,
+\]
+then
+\[
+ \kappa_n=[c_n]_M=-\frac12[w_n]_M,
+ \qquad
+ 2[c_j]_M=\iota_j(\kappa_{j-1}),
+ \qquad
+ \boxed{\ \kappa_j=\frac32\,\iota_j(\kappa_{j-1})\ }
+ \quad(j>n).                                           \tag{\(\mathsf{KT}_2\)}
+\]
+Thus, under the canonical identifications along the tail,
+\[
+ \boxed{\ \kappa_j=(3/2)^{j-n}\kappa_n\quad(j\geq n).\ } \tag{\(\mathsf{KT}_3\)}
+\]
+The multiplier \(3/2\) is a unit modulo \(M\).  Consequently the exact
+\(\ell\)-adic divisibility of the selected class is invariant along the
+whole future tower, and for every \(j\geq n\),
+\[
+ c_n\in(E_n^\times)^\ell
+ \iff a_j\in(E_j^\times)^\ell.                         \tag{\(\mathsf{KT}_4\)}
+\]
+
+For \(j>n\), the current driver \(w_j\) has order dividing \(F_j\), which
+is coprime to \(M\), and hence
+\[
+ [w_j]_M=0,
+ \qquad
+ [w_j+1]_M=-\frac12\,\iota_j(\kappa_{j-1}).             \tag{\(\mathsf{KT}_5\)}
+\]
+In particular a failure born at \((n,\ell)\) is equivalent to every---or
+any---future selected translate \(w_j+1\) being an \(\ell\)-th power.
+These are not independent future conditions.
+
+Let \(A_j\) be the minimal polynomial of \(a_j\) over \(\F_2\).  The same
+transport has the exact arboreal form
+\[
+\begin{split}
+ \kappa_n\notin\ell\mathcal H_n
+ &\iff A_j(X^\ell)\text{ is irreducible over }\F_2,\\
+ \kappa_n\in\ell\mathcal H_n
+ &\iff A_j(X^\ell)\text{ is a product of exactly \(\ell\) distinct
+ irreducibles of degree }[E_j:\F_2]
+\end{split}                                             \tag{\(\mathsf{KT}_6\)}
+\]
+for one, equivalently every, \(j\geq n\).  Hence the infinite future
+resultant tree supplies no accumulating obstruction: its irreducible or
+completely split behavior is an exact copy of the single Kummer coordinate
+born at level \(n\).
+\end{proposition}
+
+\begin{proof}
+The cyclic group \(E_j^\times\) has order
+\(\prod_{r=0}^jF_r\).  Pairwise coprimality of the Fermat numbers gives
+\((\mathsf{KT}_1)\).  For \(j>n\), suppose that a lower element \(x\)
+becomes an \(M\)-th power in \(E_j\).  Taking the quadratic norm shows that
+\(x^2\) is an \(M\)-th power in \(E_{j-1}\).  Since \(M\) is odd,
+multiplication by two is invertible on \(\mathcal H_{j-1}\), so \(x\) was
+already an \(M\)-th power.  Thus \(\iota_j\) is injective; its source and
+target both have order \(M\), so it is an isomorphism.
+
+At the birth edge every lower element is uniquely \(M\)-divisible, whence
+\(\kappa_n=[c_n]_M\).  The relation
+\(c_n(c_n+1)=a_{n-1}\) gives
+\([w_n]_M=[c_n+1]_M-[c_n]_M=-2[c_n]_M\).
+For \(j>n\), the norm identity
+\[
+ \Norm_{E_j/E_{j-1}}(c_j)=a_{j-1}
+\]
+and the fact that norm of an included lower element is its square imply
+\(2[c_j]_M=\iota_j(\kappa_{j-1})\).  Since
+\(a_j=a_{j-1}c_j\), multiplying its class by two gives
+\[
+ 2\kappa_j
+ =2\iota_j(\kappa_{j-1})+2[c_j]_M
+ =3\iota_j(\kappa_{j-1}),
+\]
+which proves \((\mathsf{KT}_2)\)--\((\mathsf{KT}_3)\).  No Fermat number
+\(F_n\), \(n\geq1\), is divisible by two or three, so both denominators and
+the multiplier are units modulo \(M\).  This proves \((\mathsf{KT}_4)\).
+For \(j>n\), \(w_j\) lies in the norm-one group of order \(F_j\), coprime
+to \(M\), while \(w_j+1=c_j^{-1}\); this proves \((\mathsf{KT}_5)\).
+
+Finally \(\mu_\ell\subset E_j\) for \(j\geq n\).  Prime-degree Kummer
+theory and Capelli's lemma say that \(A_j(X^\ell)\) is irreducible exactly
+when \(a_j\) is not an \(\ell\)-th power in \(E_j\).  In the power case
+\(X^\ell-a_j\) splits into \(\ell\) distinct linear factors over \(E_j\).
+Every root retains full absolute degree, because its \(\ell\)-th power is
+the full-degree element \(a_j\).  This gives exactly \(\ell\) distinct
+irreducible factors of degree \([E_j:\F_2]\), proving
+\((\mathsf{KT}_6)\).  Lean independently checks the denominator-free
+transport identities \(2[c_j]=\iota_j(\kappa_{j-1})\) and
+\(2\kappa_j=3\iota_j(\kappa_{j-1})\).
+\end{proof}
+
 \begin{proposition}[exact cyclotomic lift of the selected Fermat symbol]
 \label{prop:fermat-cyclotomic-symbol}
 Put \(m=2^n\), \(q=2^m\), and \(N=q+1=F_n\).  Choose a generator
@@ -11245,6 +11356,142 @@ Lean independently checks the characteristic-free reparametrization, the
 two identities \((\mathsf{GL}_2)\), and the corresponding odd-Kummer
 square-class equivalence in \texttt{Ogdoad.Excess}.
 \end{proof}
+
+\begin{proposition}[weighted reciprocity and the circular mixed selector]
+\label{prop:fermat-weighted-selector}
+Retain Proposition~\ref{prop:fermat-canonical-global-lift}, put
+\(\Delta=(\mathbf Z/\ell\mathbf Z)^\times\), and label the primes above two
+by \(\mathfrak q_a=\tau_a\mathfrak q_1\).  For \(x\in M^\times\) define its
+weighted two-adic first moment
+\[
+ \mathcal E_2(x)=
+ \sum_{a\in\Delta}a\,v_{\mathfrak q_a}(x)
+ \pmod\ell.                                           \tag{\(\mathsf{FWS}_1\)}
+\]
+Then
+\[
+ \prod_{\mathfrak q\mid2}(W_n,x)_{\mathfrak q,\ell}
+   =H^{\mathcal E_2(x)}.                              \tag{\(\mathsf{FWS}_2\)}
+\]
+Consequently, if the principal divisor \((x)\) is supported only above
+\(2\ell\),
+global reciprocity gives the exact single-orbit identity
+\[
+ H^{\mathcal E_2(x)}
+   =\prod_{\lambda\mid\ell}(W_n,x)_{\lambda,\ell}^{-1}. \tag{\(\mathsf{FWS}_3\)}
+\]
+A proof of \(H\ne1\) could therefore come from a mixed element with
+\(\mathcal E_2(x)\ne0\), together with an independently evaluated
+right-hand side.
+
+Neither unmixed factor can provide such an element.  One has
+\[
+ \mathcal E_2(x)=0
+ \quad\text{for every }x\in\mathcal K_n^\times
+ \text{ and every }x\in\mathbf Q(\zeta_\ell)^\times.  \tag{\(\mathsf{FWS}_4\)}
+\]
+In particular this excludes classical Gauss, Jacobi, and Stickelberger
+principalizers lying in the cyclotomic factor.  Indeed, if
+\(D=\langle2\rangle\subset\Delta\) is the decomposition group at two, then
+\(-1\in D\), because \(2^{2^n}\equiv-1\pmod\ell\).  Hence a divisor from
+the cyclotomic factor has
+\[
+ v_{\mathfrak q_a}(x)=v_{\mathfrak q_{-a}}(x),
+\]
+and the \(a,-a\) contributions to \((\mathsf{FWS}_1)\) cancel.  A usable
+selector must break this inverse-pair symmetry with genuinely
+\(\mathcal K_n\)-specific data.
+
+The lifted recursion also contributes no hidden compensator.  It gives
+\[
+ W_n=\mathcal A_{n-1}C_n^{-2}
+    =\left(\prod_{j<n}C_j\right)C_n^{-2}.             \tag{\(\mathsf{FWS}_{4a}\)}
+\]
+For \(j<n\), the two-adic residue of \(C_j\) has order prime to \(\ell\),
+so \(C_j\) is a local \(\ell\)-th power above two.  Applying reciprocity
+to each lower \(C_j\) therefore gives, for every \(x\) as above,
+\[
+ \prod_{\lambda\mid\ell}(C_j,x)_{\lambda,\ell}=1,
+\qquad
+ \prod_{\lambda\mid\ell}(W_n,x)_{\lambda,\ell}
+ =\left(\prod_{\lambda\mid\ell}
+        (C_n,x)_{\lambda,\ell}\right)^{-2}.           \tag{\(\mathsf{FWS}_{4b}\)}
+\]
+Thus complete lower ancestry cancels from the \(\ell\)-adic compensator:
+the right side of \((\mathsf{FWS}_3)\) is again the current selected
+\(C_n\)-character, up to the invertible scalar \(-2\).
+
+The most natural mixed principal element is already exactly circular.  Put
+\[
+ h=F_n/\ell,\qquad T=W_n^h,\qquad x=T-\zeta_\ell.
+\]
+Then
+\[
+ \Norm_{M/\mathcal K_n}(x)=\Phi_\ell(T),               \tag{\(\mathsf{FWS}_5\)}
+\]
+and, after reduction at the prime above two,
+\[
+ \Phi_\ell(w_n^h)=0
+ \iff w_n^h\ne1
+ \iff H\ne1.                                          \tag{\(\mathsf{FWS}_6\)}
+\]
+Thus \((x)\) has any divisor support above two exactly when the desired
+maximal-order condition is already true; in the failure case
+\(w_n^h=1\) and \(\Phi_\ell(1)=\ell\equiv1\pmod2\).  The pure id\`ele with
+component two at \(\mathfrak q_1\) and one at the other primes does have
+first moment one and evaluates to \(H\), but it is not principal.  Making it
+into a principal selector whose divisor is supported above \(2\ell\) would
+require an \(\ell\)-adic ray-class compensator.  Its existence and the
+evaluation of the right side of \((\mathsf{FWS}_3)\) are precisely the
+remaining selected relative ray-class problem.  The lifted Conway norm
+recursion neither forces that coefficient to vanish nor proves it nonzero.
+\end{proposition}
+
+\begin{proof}
+At \(\mathfrak q_a\), tame bilinearity and
+Proposition~\ref{prop:fermat-canonical-global-lift} give
+\[
+ (W_n,x)_{\mathfrak q_a,\ell}
+ =H^{a v_{\mathfrak q_a}(x)}.
+\]
+Multiplication proves \((\mathsf{FWS}_2)\), and the Hilbert product formula
+proves \((\mathsf{FWS}_3)\).  Valuations of an element of \(\mathcal K_n\)
+are constant on the full orbit.  For an element of
+\(\mathbf Q(\zeta_\ell)\), they are constant on the decomposition cosets
+of \(D\); pairing \(a\) with \(-a\) proves \((\mathsf{FWS}_4)\).
+The first identity in \((\mathsf{FWS}_{4a})\) is
+\(W_n=\mathcal A_{n-1}C_n^{-2}\), and the second follows by expanding
+\(\mathcal A_{n-1}\).  At two, every lower residue has order dividing
+\(\prod_{r<n}F_r\), which is coprime to \(\ell\); the principal-unit
+part is also uniquely \(\ell\)-divisible.  Its local symbols are therefore
+trivial.  At places away from \(2\ell\), both entries are units and the tame
+symbol is trivial.  The product formula applied to each \(C_j\), followed
+by multiplicativity, proves \((\mathsf{FWS}_{4b})\).
+
+Equation \((\mathsf{FWS}_5)\) is the defining product for
+\(\Phi_\ell\).  The reduction \(t=w_n^h\) satisfies \(t^\ell=1\).  In
+characteristic two and for odd \(\ell\), the geometric sum
+\(\Phi_\ell(t)=1+t+\cdots+t^{\ell-1}\) vanishes exactly when \(t\ne1\),
+which proves \((\mathsf{FWS}_6)\).  Lean independently checks the
+inverse-pair/coset first-moment cancellation and this odd geometric-sum
+dichotomy.
+\end{proof}
+
+The explicit-reciprocity literature does not presently evaluate this mixed
+coefficient.  Iwasawa's formula~\cite{Iwasawa68} computes a local symbol
+from a critical unit coefficient but is an equality, not a nonvanishing
+theorem.  Rohrlich's Jacobi-sum characters~\cite{Rohrlich86} and Helou's
+cyclotomic-unit formulas~\cite{Helou95} remain in the pure cyclotomic factor
+annihilated by \((\mathsf{FWS}_4)\); the latter reduces orthogonality to
+additional Fermat-quotient congruences rather than excluding it universally.
+The integral Brumer--Stark theorem of
+Dasgupta--Kakde--Silliman--Wang~\cite{DKSW23} assumes a totally real base and
+an abelian CM extension.  Here \(M/\mathcal K_n\) has the required split
+prime but \(\mathcal K_n\supset\mathbf Q(\zeta_3)\) is not totally real,
+whereas the cyclotomic presentation over \(\mathbf Q\) is CM but two has
+residue degree \(2^{n+1}\), not one.  Thus none of these theorems supplies
+the genuinely mixed, inverse-pair-breaking coefficient required by
+\((\mathsf{FWS}_3)\).
 
 \begin{proposition}[four-point saturation of a Fermat failure]
 \label{prop:fermat-four-plane}
@@ -12147,7 +12394,15 @@ Although the rescaling \((\mathsf{VQ})\) supplies the primitive constant,
 cover the selected composite-Fermat polynomial.
 
 Thus the Euler--Lucas congruence is automatic from
-\(1<\delta_n\mid F_n\).  No all-level proof or counterexample is presently
+\(1<\delta_n\mid F_n\).  Proposition~\ref{prop:fermat-kummer-tail} further
+shows that the missing \(\ell\)-primary class is born at one edge and merely
+propagated by \(3/2\) through every future edge.
+Proposition~\ref{prop:fermat-weighted-selector} proves that all unmixed classical
+cyclotomic principalizers have zero selector weight and that the natural
+mixed principal element has two-adic support exactly when the target is
+already true.  Hence the remaining proof obligation is sharply the
+nonvanishing of the genuinely mixed \(\ell\)-adic ray coefficient in
+\((\mathsf{FWS}_3)\).  No all-level proof or counterexample is presently
 known.
 
 \subsection{Comparison with the cubic arm}
@@ -17711,9 +17966,15 @@ Press, 1976.
 \bibitem{DFRR19} L.~De~Feo, H.~Randriam, \'E.~Rousseau, \emph{Standard
 lattices of compatibly embedded finite fields}, Proc.\ ISSAC 2019;
 arXiv:1906.00870.
+\bibitem{DKSW23} S.~Dasgupta, M.~Kakde, J.~Silliman, and J.~Wang,
+\emph{The Brumer--Stark conjecture over \(\mathbf Z\)}, arXiv:2310.16399
+(2023).
 \bibitem{DiMuro} J.~DiMuro, \emph{On $\mathrm{On}_p$}, arXiv:1108.0962.
 \bibitem{GV95} S.~Gao, S.~A.~Vanstone, \emph{On orders of optimal basis
 generators}, Math.\ Comp.\ \textbf{64} (1995), 1227--1233.
+\bibitem{Helou95} C.~Helou, \emph{Norm residue symbol and cyclotomic units},
+Acta Arith.\ \textbf{73} (1995), 147--188;
+\url{https://doi.org/10.4064/aa-73-2-147-188}.
 \bibitem{Iwasawa68} K.~Iwasawa, \emph{On explicit formulas for the norm
 residue symbol}, J.~Math. Soc. Japan \textbf{20} (1968), 151--165.
 \bibitem{Katz89} N.~M.~Katz, \emph{An estimate for character sums},

@@ -373,6 +373,94 @@ theorem odd_torsion_conjugate_product_eq_one {G : Type*} [CommGroup G]
 
 end ReciprocityOrbit
 
+section FermatWeightedSelector
+
+variable {k : Type*} [Field k]
+
+/-- A valuation which is constant on a nontrivial multiplicative coset has
+zero cyclotomic weighted sum.  This is the algebraic core of the fact that
+selectors coming from either unmixed factor of the canonical compositum
+cannot isolate one prime above two. -/
+theorem geometric_coset_weight_sum_eq_zero
+    (x a weight : k) (f : Nat) (hx : x ≠ 1) (hxf : x ^ f = 1) :
+    ∑ j ∈ Finset.range f, (a * x ^ j) * weight = 0 := by
+  have hgeom : ∑ j ∈ Finset.range f, x ^ j = 0 := by
+    apply mul_right_cancel₀ (sub_ne_zero.mpr hx)
+    rw [geom_sum_mul, hxf]
+    simp
+  calc
+    ∑ j ∈ Finset.range f, (a * x ^ j) * weight =
+        (a * weight) * ∑ j ∈ Finset.range f, x ^ j := by
+          rw [Finset.mul_sum]
+          apply Finset.sum_congr rfl
+          intro j hj
+          ring
+    _ = 0 := by rw [hgeom]; simp
+
+/-- Orbitwise-constant weights vanish whenever every orbit has zero sum. -/
+theorem constant_coset_weighted_sum_eq_zero
+    {I : Type*} (s : Finset I) (orbit : I → Finset k)
+    (weight : I → k)
+    (horbit : ∀ i ∈ s, ∑ x ∈ orbit i, x = 0) :
+    ∑ i ∈ s, ∑ x ∈ orbit i, x * weight i = 0 := by
+  apply Finset.sum_eq_zero
+  intro i hi
+  rw [← Finset.sum_mul, horbit i hi, zero_mul]
+
+/-- An even cyclotomic divisor weight has zero first moment.  In the
+Conway--Fermat compositum, `-1` lies in the decomposition group of two, so
+every divisor descending from the pure cyclotomic factor has exactly this
+symmetry and cannot distinguish the selected prime from its inverse. -/
+theorem even_weight_first_moment_eq_zero
+    {F : Type*} [Field F] [Fintype F]
+    (h2 : (2 : F) ≠ 0) (w : F → F) (hw : ∀ x, w (-x) = w x) :
+    (∑ x : F, x * w x) = 0 := by
+  let S : F := ∑ x : F, x * w x
+  have hneg : S = -S := by
+    calc
+      S = ∑ x : F, (-x) * w (-x) := by
+        simpa [S] using
+          (Equiv.sum_comp (Equiv.neg F) (fun x : F => x * w x)).symm
+      _ = ∑ x : F, -(x * w x) := by
+        apply Finset.sum_congr rfl
+        intro x _
+        rw [hw]
+        exact neg_mul x (w x)
+      _ = -S := by simp [S]
+  have hsum : S + S = 0 := by
+    calc
+      S + S = S + (-S) := congrArg (fun x => S + x) hneg
+      _ = 0 := add_neg_cancel S
+  have hmul : (2 : F) * S = 0 := by simpa [two_mul] using hsum
+  exact (mul_eq_zero.mp hmul).resolve_left h2
+
+end FermatWeightedSelector
+
+section FermatMixedNormDetector
+
+variable {k : Type*} [Field k] [CharP k 2]
+
+/-- For an odd-order element in characteristic two, its geometric sum
+vanishes exactly away from the identity.  Applied to `T = W^(F_n/ell)`,
+this says that the apparent mixed principal selector `T - zeta_ell` has
+support above two exactly when the desired Kummer symbol is nontrivial. -/
+theorem odd_geom_sum_eq_zero_iff_ne_one
+    (t : k) (s : Nat) (ht : t ^ (2 * s + 1) = 1) :
+    (∑ j ∈ Finset.range (2 * s + 1), t ^ j) = 0 ↔ t ≠ 1 := by
+  constructor
+  · intro hsum ht1
+    subst t
+    simp at hsum
+    have htwo : (2 : k) = 0 := CharP.cast_eq_zero k 2
+    rw [htwo, zero_mul, zero_add] at hsum
+    exact one_ne_zero hsum
+  · intro ht1
+    apply mul_right_cancel₀ (sub_ne_zero.mpr ht1)
+    rw [geom_sum_mul, ht]
+    simp
+
+end FermatMixedNormDetector
+
 /-- The parity obstruction preventing a semiprimitive Gauss-sum evaluation
 of the exceptional arm's surviving mixed character.  At a current prime,
 the `ℓ`-component forces a minus-one Frobenius exponent to be congruent to
@@ -702,6 +790,16 @@ theorem canonicalLift_normOne_reparam
   rw [hA]
   constructor <;> field_simp
 
+/-- The lifted norm-one ratio is the lower ancestral unit times the inverse
+square of the new quadratic generator. -/
+theorem canonicalLift_normOne_eq_parent_mul_inv_sq
+    (C A : K) (hC : C ≠ 0) (hrel : C ^ 2 + C + A = 0) :
+    -(C + 1) / C = A * (C⁻¹) ^ 2 := by
+  have hA : A = -(C ^ 2 + C) := by
+    linear_combination hrel
+  rw [hA]
+  field_simp
+
 end FermatCanonicalLift
 
 section FermatCanonicalDiscriminant
@@ -753,6 +851,36 @@ theorem isPthPower_mul_sq_iff
     rw [mul_pow, hx, hy2, ← hrel]
 
 end OddKummerSquare
+
+section KummerTailTransport
+
+variable {A B : Type*} [AddCommGroup A] [AddCommGroup B]
+
+/-- Across a quadratic tower edge whose Kummer quotients are identified by
+inclusion, norm makes the new root class one half of the old class.  Hence
+the product of the included old element and the new root is transported by
+the scalar `3/2`: the denominator-free identity is
+`2 * kappaNext = 3 * i(kappa)`. -/
+theorem quadratic_kummer_tail_transport
+    (i : A ≃+ B) (N : B →+ A)
+    (hNi : ∀ x, N (i x) = 2 • x)
+    (c : B) (kappa : A) (hc : N c = kappa) :
+    2 • c = i kappa ∧ 2 • (i kappa + c) = 3 • i kappa := by
+  have hcHalf : 2 • i.symm c = kappa := by
+    calc
+      2 • i.symm c = N (i (i.symm c)) := (hNi _).symm
+      _ = N c := by simp
+      _ = kappa := hc
+  have hcDouble : 2 • c = i kappa := by
+    calc
+      2 • c = i (2 • i.symm c) := by simp
+      _ = i kappa := by rw [hcHalf]
+  refine ⟨hcDouble, ?_⟩
+  rw [nsmul_add, hcDouble]
+  simp only [three_nsmul, two_nsmul]
+  ac_rfl
+
+end KummerTailTransport
 
 section FermatFibonacciCompression
 
