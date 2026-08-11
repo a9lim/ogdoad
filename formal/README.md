@@ -353,8 +353,17 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the twisted-fibre weighted core: the cubic pseudonorm of a Kummer root is a
   lower power root independent of the root choice, its normalized defect
   raises to the original Euler class, and a pure eigenweight acquires exactly
-  the corresponding power of that monodromy.  The finite-field Fourier
-  transform and rational-eigenweight fixed-field interpretation remain
+  the corresponding power of that monodromy.  The mixed core checks that all
+  three complementary Fourier products equal the same pseudonorm, every
+  exponent divisible by `ell` collapses through `v^ell=u`, and a scalar in
+  a power basis has no nonzero-weight coordinates.  The monic
+  Kummer-algebra grading, finite-field Fourier identification, invariant-ring
+  statement, and split-factor orientation boundary remain paper-level;
+- the selected reciprocal trace-fibre core: the universal Jacobian numerator
+  at `(a,a+1)` is `a^2+a+1`, the characteristic-two discriminant of
+  `X^3+C*X^2+D*X+1` is `(C*D+1)^2`, and injective lower
+  `ell`-powering forces the norm of a reciprocal power root to be one.  The
+  actual edgewise finite-etale fibres and their rational-point counts remain
   paper-level;
 - partial Frobenius-trace additivity, Frobenius commutation, index splitting,
   and the exact conjugate descent
@@ -380,6 +389,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the denominator-free quadratic-remainder norm
   `(U+xV)(U+x'V) = U^2 + YUV + Y^3V^2` used by the paper's one-branch
   Conway--Fermat descent;
+- the monic quotient/remainder independence core: every prescribed quotient
+  and degree-bounded remainder occurs uniquely, while an additive coordinate
+  equivalence reflects zero, realizes every coordinate pattern uniquely, and
+  remains independent of a freely prescribed quotient.  The actual Conway
+  tree coordinate equivalence and Euclidean/subresultant interpretation remain
+  paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

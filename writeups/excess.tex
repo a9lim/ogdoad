@@ -7740,6 +7740,119 @@ failure.  Their norms all equal \(r_{k-1}\) by the same injectivity
 argument in \(K^\times\), proving \((\mathsf{IF}_5)\).
 \end{proof}
 
+\begin{proposition}[the full selected trace-coefficient flag]
+\label{prop:cubic-trace-fibre-flag}
+Retain Proposition~\ref{prop:eta-tower}, fix \(k\geq1\), and let
+\(\ell\mid\Phi_{3^k}(2)\) be prime.  For the generalized cubic power map
+of Proposition~\ref{prop:cubic-iterated-fibre}, define, for
+\(1\leq j\leq k\),
+\[
+ \mathcal Y_j=\Psi_{\ell,1}^{-1}
+   \bigl(\eta_{j-1},\eta_{j-1}+1\bigr)
+ \subset\mathbb A^2_{L_{j-1}}.                       \tag{\(\mathsf{TA}_1\)}
+\]
+Thus \((C,D)\in\mathcal Y_j\) means that the \(\ell\)-th powers of
+the roots of
+\[
+ X^3+CX^2+DX+1                                      \tag{\(\mathsf{TA}_2\)}
+\]
+have the selected reciprocal cubic
+\[
+ X^3+\eta_{j-1}X^2+(\eta_{j-1}+1)X+1.               \tag{\(\mathsf{TA}_3\)}
+\]
+
+Each \(\mathcal Y_j\) is finite reduced \'etale of geometric degree
+\(\ell^2\), and every \(L_{j-1}\)-rational point gives an irreducible
+reciprocal cubic.  If \(J\) is the Jacobian determinant of
+\(\Psi_{\ell,1}\), then at every geometric point,
+\[
+ \boxed{
+ (CD+1)J
+ =\eta_{j-1}(\eta_{j-1}+1)+1
+ =z_{j-1}\ne0.}                                      \tag{\(\mathsf{TA}_4\)}
+\]
+In particular the source cubic has nonzero discriminant
+\[
+ \operatorname{disc}(X^3+CX^2+DX+1)=(CD+1)^2.        \tag{\(\mathsf{TA}_5\)}
+\]
+
+For \(j<k\), let \(b_j\in L_j^\times\) be the unique element satisfying
+\(b_j^\ell=\eta_j\).  Then
+\[
+ \Norm_{L_j/L_{j-1}}(b_j)=1,
+ \qquad
+ \#\mathcal Y_j(L_{j-1})=1\quad(1\leq j<k),          \tag{\(\mathsf{TA}_6\)}
+\]
+and the unique point is the coefficient pair of the minimal polynomial
+of \(b_j\).  At the top,
+\[
+ \#\mathcal Y_k(L_{k-1})
+ =
+ \begin{cases}
+ 0,&\eta_k\notin(L_k^\times)^\ell,\\
+ \ell,&\eta_k\in(L_k^\times)^\ell.
+ \end{cases}                                         \tag{\(\mathsf{TA}_7\)}
+\]
+Consequently the complete edgewise flag
+\(\mathcal Y_{\leq k}=\prod_{j=1}^k\mathcal Y_j(L_{j-1})\) has
+\[
+ \boxed{
+ \#\mathcal Y_{\leq k}
+ =
+ \begin{cases}
+ 0,&\eta_k^{(2^{3^k}-1)/\ell}\ne1,\\
+ \ell,&\eta_k^{(2^{3^k}-1)/\ell}=1.
+ \end{cases}}                                        \tag{\(\mathsf{TA}_8\)}
+\]
+Thus the complete recursively selected trace ancestry, together with all
+symmetric source coefficients, Jacobians, cubic discriminants, and their
+ordinary lower-field norms, is compatible with failure.  Its sole
+rationality obstruction is the original top Euler class.  This does not
+exclude a nonsymmetric cross-edge construction using a chosen top root or a
+mixed additive--multiplicative character correlation not determined by the
+edge coefficient fibres.
+\end{proposition}
+
+\begin{proof}
+Let \(y_1,y_2,y_3\) be the roots of \((\mathsf{TA}_3)\).  Choose
+\(\ell\)-th roots \(x_1,x_2\) independently and put
+\(x_3=(x_1x_2)^{-1}\).  Since \(y_1y_2y_3=1\), one has
+\(x_3^\ell=y_3\).  The target roots recover the labels after powering, so
+this gives exactly \(\ell^2\) geometric coefficient points.
+
+The universal identity
+\[
+ (CD+E)J=AB+E^\ell
+\]
+specializes at \(E=1\), \(A=\eta_{j-1}\), and
+\(B=\eta_{j-1}+1\) to \((\mathsf{TA}_4)\).
+Here \(z_{j-1}=\eta_{j-1}^2+\eta_{j-1}+1\ne0\).  Hence both
+\(CD+1\) and \(J\) are nonzero, proving reducedness, \'etaleness, and
+\((\mathsf{TA}_5)\).
+
+A reducible source cubic over \(L_{j-1}\) would have a base-field root
+whose \(\ell\)-th power was a root of the irreducible target cubic, an
+impossibility.  For \(j<k\), one has
+\(\ell\nmid|L_j^\times|\), so \(\ell\)-powering is bijective on
+\(L_j^\times\).  The target roots therefore have one Frobenius orbit of
+unique preimages, giving one coefficient pair.  Moreover
+\[
+ \Norm(b_j)^\ell=\Norm(\eta_j)=1,
+\]
+and injectivity of \(\ell\)-powering downstairs gives \(\Norm(b_j)=1\).
+
+At \(j=k\), a rational point supplies an \(\ell\)-th root in \(L_k\)
+of a conjugate of \(\eta_k\), hence one of \(\eta_k\) after Frobenius
+conjugation.  Conversely, under failure the \(\ell\) roots of \(\eta_k\)
+give \(\ell\) distinct coefficient pairs, as in
+Proposition~\ref{prop:cubic-kummer-descent}.  This proves
+\((\mathsf{TA}_7)\); all lower factors are singletons, so
+\((\mathsf{TA}_8)\) follows.  Lean kernel-checks the selected Jacobian
+numerator, the characteristic-two reciprocal-cubic discriminant, and the
+norm-one uniqueness step.  The finite-field fibre count and \'etale
+interpretation remain paper-level.
+\end{proof}
+
 \begin{proposition}[the top cubic fibre is one Kummer coordinate]
 \label{prop:cubic-torus-torsor}
 Retain Proposition~\ref{prop:cubic-iterated-fibre}, and put
@@ -9845,6 +9958,113 @@ The extension
 \((\mathsf{QR}_3)\) vanishes exactly when both lower coefficients
 vanish.  The minimal-polynomial criterion gives
 \((\mathsf{QR}_2)\), and iteration proves the final assertion.
+\end{proof}
+
+\begin{proposition}[complete remainder coordinates and Euclidean-tail exhaustion]
+\label{prop:fermat-remainder-coordinate-exhaustion}
+Retain Proposition~\ref{prop:fermat-remainder-descent}.  For \(i\geq-1\),
+write
+\[
+ \mathcal R_i=\{R\in\F_2[X]:\deg R<2^{i+1}\},
+ \qquad \mathcal R_{-1}=\F_2.
+\]
+For \(i\geq0\), let
+\[
+ R(X)\equiv U_R(Y)+XV_R(Y)\pmod{X^2+YX+Y^3}
+\]
+and define
+\[
+ \sigma_i:\mathcal R_i\longrightarrow
+ \mathcal R_{i-1}\times\mathcal R_{i-1},\qquad
+ \sigma_i(R)=
+ \bigl(U_R\bmod A_{i-1},V_R\bmod A_{i-1}\bigr),     \tag{\(\mathsf{RCE}_1\)}
+\]
+using the unique reduced representatives.  Then every \(\sigma_i\) is an
+\(\F_2\)-linear isomorphism.  Iteration gives a canonical isomorphism
+\[
+ \boxed{\mathbf C_n:\mathcal R_{n-1}
+   \xrightarrow{\ \sim\ }\F_2^{\,2^n}.}              \tag{\(\mathsf{RCE}_2\)}
+\]
+For every \(R\in\F_2[X]\), the vector
+\(\mathbf C_n(R\bmod A_{n-1})\) is exactly the ordered leaf vector of
+the complete binary quadratic-remainder descent.  Consequently
+\[
+ \boxed{
+ A_{n-1}\mid R
+ \iff R\bmod A_{n-1}=0
+ \iff \mathbf C_n(R\bmod A_{n-1})=0.}                \tag{\(\mathsf{RCE}_3\)}
+\]
+Every binary leaf pattern occurs for exactly one reduced polynomial.
+
+Write the first monic division as
+\[
+ R=Q_RA_{n-1}+\rho_R,\qquad \deg\rho_R<2^n.
+\]
+Then
+\[
+ \boxed{
+ R\longmapsto\bigl(Q_R,\mathbf C_n(\rho_R)\bigr)}
+                                                               \tag{\(\mathsf{RCE}_4\)}
+\]
+is a bijection
+\[
+ \F_2[X]\xrightarrow{\ \sim\ }
+ \F_2[X]\times\F_2^{\,2^n},
+ \qquad
+ (Q,\mathbf c)\longmapsto
+ A_{n-1}Q+\mathbf C_n^{-1}(\mathbf c).               \tag{\(\mathsf{RCE}_5\)}
+\]
+Thus the raw first quotient and the complete ancestry-coordinate vector are
+independent for unrestricted input polynomials, even with the literal Conway
+chain held fixed.
+
+After the first division, the monic Euclidean remainder sequence for
+\((R,A_{n-1})\) is the sequence for \((A_{n-1},\rho_R)\).  Its entire tail,
+and every subresultant polynomial remainder sequence derived from that tail,
+is a deterministic function of \(\rho_R\); conversely the first tail entry
+recovers \(\rho_R\).  For \(R=S_d\),
+\[
+ \gcd(A_{n-1},S_d)=
+ \begin{cases}A_{n-1},&\rho_{S_d}=0,\\1,&\rho_{S_d}\ne0,
+ \end{cases}
+ \qquad
+ \operatorname{Res}(A_{n-1},S_d)=
+ \begin{cases}0,&\rho_{S_d}=0,\\1,&\rho_{S_d}\ne0.
+ \end{cases}                                         \tag{\(\mathsf{RCE}_6\)}
+\]
+Therefore the complete intermediate remainder tree and the complete
+Euclidean/subresultant tail are information-equivalent to the original
+selected residue \(S_d\bmod A_{n-1}\); they are not an additional ancestry
+invariant.  The independence in \((\mathsf{RCE}_4)\) does not require its
+free input to be a Fibonacci polynomial.  Hence it does not exclude a special
+coefficient identity relating the actual quotient \(Q_{S_d}\) to
+\(\rho_{S_d}\), nor a direct proof that one coordinate of \(\rho_{S_d}\)
+is nonzero.  Those are the surviving coefficient-sensitive routes.
+\end{proposition}
+
+\begin{proof}
+Evaluation identifies \(\mathcal R_i\) with \(E_i\), since \(A_i\) is the
+degree-\(2^{i+1}\) minimal polynomial of \(a_i\).  Under these
+identifications, \(\sigma_i\) is the coordinate map
+\[
+ E_i\xrightarrow{\ \sim\ }E_{i-1}\times E_{i-1},
+ \qquad u+a_iv\longmapsto(u,v),
+\]
+by \((\mathsf{QR}_3)\) and the basis \(1,a_i\).  This proves
+\((\mathsf{RCE}_2)\)--\((\mathsf{RCE}_3)\), including unique realization
+of every leaf vector.  Monic division gives unique \(Q_R,\rho_R\), and
+combining that bijection with \(\mathbf C_n\) proves
+\((\mathsf{RCE}_4)\)--\((\mathsf{RCE}_5)\).
+
+The Euclidean algorithm discards \(Q_R\) after its first step and continues
+from \((A_{n-1},\rho_R)\).  Finally \(A_{n-1}\) is irreducible.  A nonzero
+\(\rho_R\) has smaller degree and is therefore coprime to \(A_{n-1}\);
+the resultant lies in \(\F_2\), so it is one in that case and zero otherwise.
+This proves \((\mathsf{RCE}_6)\).  Lean kernel-checks the monic
+quotient--remainder uniqueness and free-realization core, together with zero
+reflection and product independence for an abstract additive coordinate
+equivalence.  Its identification with the actual Conway tree and the
+Euclidean/subresultant interpretation remain paper-level.
 \end{proof}
 
 \begin{proposition}[one-branch norm descent for the Fermat arm]
@@ -19470,6 +19690,93 @@ Fourier transform, fixed-field description, and selected specialization
 remain paper-level.
 \end{proof}
 
+\begin{proposition}[mixed-weight saturation of the twisted Kummer fibre]
+\label{prop:dk-mixed-weight-collapse}
+Retain Proposition~\ref{prop:dk-weighted-fibre}, put
+\[
+ F=E_k,\qquad u=u_k,\qquad
+ \mathcal A=F[T]/(T^\ell-u),
+\]
+and let \(t\) be the class of \(T\).  Root scaling
+\(\tau(t)=\rho t\) gives the exact grading
+\[
+ \mathcal A=\bigoplus_{m\bmod\ell}\mathcal A_m,\qquad
+ \mathcal A_m=Ft^m,\qquad
+ \mathcal A^{\langle\tau\rangle}=F.                 \tag{\(\mathsf{MW}_1\)}
+\]
+Under the Fourier identification of \((\mathsf{WF}_1)\)--\((\mathsf{WF}_2)\),
+the six nonzero modes are
+\[
+ t,\ t^Q,\ t^{Q^2},\
+ t^{1+Q},\ t^{Q+Q^2},\ t^{Q^2+1}.                  \tag{\(\mathsf{MW}_2\)}
+\]
+They generate \(\mathcal A\), and the quadratic modes are just products
+of the linear ones:
+\[
+ \widehat D_{1+Q}=\widehat C_1\widehat C_Q,\quad
+ \widehat D_{Q+Q^2}=\widehat C_Q\widehat C_{Q^2},\quad
+ \widehat D_{Q^2+1}=\widehat C_{Q^2}\widehat C_1.    \tag{\(\mathsf{MW}_3\)}
+\]
+The three complementary mixed products all equal the pseudonorm
+\[
+ \boxed{
+ \widehat C_1\widehat D_{Q+Q^2}
+ =\widehat C_Q\widehat D_{Q^2+1}
+ =\widehat C_{Q^2}\widehat D_{1+Q}
+ =n=t^{1+Q+Q^2}.}                                   \tag{\(\mathsf{MW}_4\)}
+\]
+Writing \(s=(1+Q+Q^2)/\ell\), one has \(n=u^s\); its normalized defect is
+the \(\Delta\) of \((\mathsf{WF}_3)\), with
+\(\Delta^{Q-1}=\Omega\).
+
+More generally, if a monomial has total exponent
+\(W=\ell a+m\), \(0\leq m<\ell\), then
+\[
+ t^W=u^at^m.                                        \tag{\(\mathsf{MW}_5\)}
+\]
+Every polynomial expression in the coefficient family therefore has a
+unique weight decomposition \(\sum_m a_mt^m\), and every expression
+invariant under the choice \(t\mapsto\rho t\) has weight zero.  The statement
+is unchanged after adjoining the exact Artin--Schreier coefficient
+\(g_k=u^2+u\) and all lower \(v_i,c_i,g_i\), since they are fixed
+coefficients in \(F\).  It also covers rational expressions regular on the
+whole Kummer fibre, because their denominators are units of \(\mathcal A\).
+
+If \(D'_k\) holds, \(X^\ell-u\) is irreducible and evaluation into the
+Kummer field is injective, so an \(F\)-valued mixed specialization forces
+every nonzero-weight coefficient to vanish separately.  If \(D'_k\) fails,
+\(\mathcal A\simeq\prod_{r\bmod\ell}F\), and evaluation at one root is a
+projection.  A cross-weight cancellation then lies in the kernel of a
+chosen projection and depends on selecting one \(\ell\)-th root, a choice
+absent from the Conway ancestry.  Hence mixed Fourier resolvents, adjacent
+twisted cubics, and \(g_k\) supply no second root-choice-invariant
+condition.  A surviving proof must directly evaluate a weight-zero
+arithmetic function of \(u\), in particular \(\Omega=u^{(Q^3-1)/\ell}\),
+or provide genuinely external \(\ell\)-root orientation.
+\end{proposition}
+
+\begin{proof}
+Monicity of \(T^\ell-u\) gives the basis \(1,t,\ldots,t^{\ell-1}\).
+The scaling action has the distinct eigenvalues \(1,\rho,\ldots,\rho^{\ell-1}\),
+which proves \((\mathsf{MW}_1)\).  Substitution from
+\((\mathsf{WF}_1)\)--\((\mathsf{WF}_2)\) proves
+\((\mathsf{MW}_2)\)--\((\mathsf{MW}_4)\).  Euclidean division of \(W\)
+and \(t^\ell=u\) give \((\mathsf{MW}_5)\), and uniqueness follows from
+the power basis.  Fourier inversion identifies expressions in
+\((C_r,D_r)_r\) with expressions in the six modes.  Fixed ancestry
+scalars do not alter weights.  The final field/split alternatives are the
+prime Kummer criterion.
+
+The assertion covers polynomial expressions and rational expressions regular
+on every branch.  A rational expression with poles on other branches is not
+covered: its domain has already selected a factor.  Nor does the proposition
+evaluate a special coefficient \(a_m(u,g_k)\); proving one nonzero would be
+direct selected arithmetic.  Lean kernel-checks the three complementary
+products, the collapse \(t^{\ell a}=u^a\), and the abstract power-basis
+no-cancellation step.  The quotient-algebra grading and invariant-ring
+specialization remain paper-level.
+\end{proof}
+
 \begin{proposition}[conductor-five reflection descent]
 \label{prop:dk-reflection-descent}
 Retain Proposition~\ref{prop:dk-antiunit}, put
@@ -21766,6 +22073,15 @@ actual path.
 However, the resulting leaf nonvanishing is equivalent to the original
 selected Conway--Fermat obstruction; the descent itself supplies no
 coprimality.
+Proposition~\ref{prop:fermat-remainder-coordinate-exhaustion} makes the
+remaining Euclidean boundary exact.  Recursive coordinate splitting is an
+\(\F_2\)-linear isomorphism from the reduced residue to all \(2^n\) leaf
+bits, and the complete Euclidean/subresultant tail after the first division
+is information-equivalent to that residue.  Across unrestricted polynomials
+the raw first quotient and the complete leaf vector are independent.  Thus a
+surviving quotient argument must use a special Fibonacci coefficient identity
+relating the actual quotient \(Q_{S_d}\) to its residue, rather than formal
+division or ancestry alone.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -21843,9 +22159,9 @@ prove its full projective order.  This includes the \(11\)-chain and
 the \(23,29,47,179,\ldots\) components.  The relative-unit formulation
 and Proposition~\ref{prop:singleton-conjugate-ball} prove every primary
 factor above its sharper explicit signed-ball threshold, so the unresolved
-content is confined to the smaller factors.  The source-pinned
-\(m_{359}=1\) row is a concrete instance whose independent trace
-evaluation remains open.  Proposition~\ref{prop:safe-prime-trace-detector}
+content is confined to the smaller factors.  The formerly source-pinned
+\(m_{359}=1\) row is now independently certified by the exact Hilbert-root
+calculation below.  Proposition~\ref{prop:safe-prime-trace-detector}
 generalizes its last reduction to every safe-prime component:
 nontriviality is one absolute trace bit, but the selected Conway norm
 still has to be evaluated.  Remark~\ref{rem:base-selector-cancel} shows
@@ -21888,7 +22204,7 @@ mark cannot be recovered from the surrounding affine orbit.  Rescaling a
 Kummer generator permutes the complete translate set and its full character
 histogram, while moving the distinguished value from \(\chi(1+x)\) to
 \(\chi(1+ux)\).  Hence every symmetric affine-orbit invariant is blind;
-the source-pinned \(p=359\) trace bit is precisely the missing mark
+the now-certified \(p=359\) trace bit is precisely the missing mark
 \(u=1\) fixed by Conway ancestry.
 Proposition~\ref{prop:ordinary-fixed-translate-countermodel} removes even
 fixed translation and ordinal-minimal labeling as generic escape routes:
@@ -22052,6 +22368,16 @@ the entire selected lower tower.  The unique lower \(\ell\)-th roots
 are norm coherent; after fixing that norm, every geometric coefficient
 fibre has \(\ell^2\) reduced points, each lower rational fibre is a
 singleton, and the top rational fibre has zero or \(\ell\) points.
+Proposition~\ref{prop:cubic-trace-fibre-flag} gives the complementary
+literal-trace version at every edge.  Its target is the actual reciprocal
+coefficient pair
+\((\eta_{j-1},\eta_{j-1}+1)\); the Jacobian numerator is
+\(z_{j-1}\ne0\), every lower rational fibre is again a singleton, and the
+top fibre has size zero or \(\ell\) according to the same Euler bit.
+Thus the full trace recursion, symmetric source coefficients, discriminants,
+and their ordinary norms are jointly failure-compatible.  A surviving
+full-ancestry argument must be nonsymmetric across edges or introduce a
+mixed additive--multiplicative correlation not fixed by these fibres.
 Proposition~\ref{prop:cubic-torus-torsor} identifies the top fibre with
 one \(T[\ell]\)-torsor and its complete unresolved coordinate with
 \[
@@ -22170,8 +22496,17 @@ root-choice-invariant rational construction remain compatible with failure.
 Proposition~\ref{prop:dk-weighted-fibre} closes the formal Kummer-eigenweight
 escape as well: Fourier transformation recovers exactly the chosen root and
 its conjugates, while every pure nonzero weight has monodromy an invertible
-power of the original Euler symbol.  Mixed-weight cancellations or an
-independent arithmetic evaluation remain outside this boundary.
+power of the original Euler symbol.
+Proposition~\ref{prop:dk-mixed-weight-collapse} closes the formal
+mixed-weight escape too.  The six Fourier modes generate only the standard
+Kummer algebra and its root-scaling grading separates all weights.
+Complementary mixed products recover the pseudonorm, while every weight-zero
+monomial reduces to a power of \(u_k\).  Since the Artin--Schreier coefficient
+and the complete lower root chain are fixed scalars, they do not couple
+distinct weights.  Cancellation at one bad rational root is projection to a
+chosen split factor and imports exactly the missing \(\ell\)-root
+orientation.  The remaining theorem is direct nonvanishing of a selected
+weight-zero phase, not another Fourier or ancestry relation.
 Proposition~\ref{prop:dk-jacobi-flatness} adds an exact first-order
 boundary: failure is simultaneous \(\pi^2\)-flatness of all mixed
 Jacobi sums of conductor \(15h\).  Proposition~\ref{prop:dk-jacobi-top}

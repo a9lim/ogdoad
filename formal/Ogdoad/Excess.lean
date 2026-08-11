@@ -1110,6 +1110,59 @@ theorem cubic_auxiliary_e2_coherence
       ring_nf
       rw [sub_eq_add_neg, hneg]
 
+section CubicTraceFibre
+
+/-- On the selected reciprocal target pair `(a,a+1)`, the universal
+cubic-power-map Jacobian numerator is the selected inverse-period
+coordinate `a^2+a+1`. -/
+theorem cubic_trace_fibre_target_numerator (a : R) :
+    a * (a + 1) + 1 = a ^ 2 + a + 1 := by
+  ring
+
+/-- In characteristic two the discriminant polynomial of a monic
+reciprocal cubic `X^3 + C X^2 + D X + 1` is `(C*D+1)^2`. -/
+theorem reciprocal_cubic_discriminant_charTwo [CharP R 2]
+    (C D : R) :
+    C ^ 2 * D ^ 2 - 4 * D ^ 3 - 4 * C ^ 3 - 27 + 18 * C * D =
+      (C * D + 1) ^ 2 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h4 : (4 : R) = 0 := by
+    calc
+      (4 : R) = 2 + 2 := by norm_num
+      _ = 0 := by rw [h2]; simp
+  have h18 : (18 : R) = 0 := by
+    calc
+      (18 : R) = 9 * 2 := by norm_num
+      _ = 0 := by rw [h2]; simp
+  have h27 : (27 : R) = 1 := by
+    calc
+      (27 : R) = 13 * 2 + 1 := by norm_num
+      _ = 1 := by rw [h2]; simp
+  have hneg : (-1 : R) = 1 := by
+    rw [neg_eq_iff_add_eq_zero]
+    norm_num
+    exact h2
+  rw [h4, h18, h27]
+  simp only [zero_mul, sub_zero, add_zero]
+  rw [sub_eq_add_neg, hneg]
+  ring_nf
+  simp [h2]
+
+/-- If an `ell`-th root has target norm one and `ell`-powering is
+injective in the base group, its source norm is forced to be one. -/
+theorem reciprocal_power_root_norm_one
+    {G H : Type*} [CommMonoid G] [CommMonoid H]
+    (N : G →* H) (b eta : G) (ell : Nat)
+    (hb : b ^ ell = eta) (hNorm : N eta = 1)
+    (hinj : Function.Injective fun x : H ↦ x ^ ell) :
+    N b = 1 := by
+  apply hinj
+  change (N b) ^ ell = (1 : H) ^ ell
+  rw [← map_pow, hb, hNorm]
+  simp
+
+end CubicTraceFibre
+
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
 theorem dk_twisted_translate_recursion
@@ -1333,7 +1386,49 @@ theorem dk_eigenweight_power_monodromy
       rw [mul_pow]
       ac_rfl
 
+/-- The complementary Fourier modes all multiply to the same
+root-choice-invariant cubic pseudonorm. -/
+theorem mixed_fourier_complementary_products (v : G) (Q : Nat) :
+    v * v ^ (Q + Q ^ 2) = v ^ (1 + Q + Q ^ 2) ∧
+      v ^ Q * v ^ (Q ^ 2 + 1) = v ^ (1 + Q + Q ^ 2) ∧
+      v ^ (Q ^ 2) * v ^ (1 + Q) = v ^ (1 + Q + Q ^ 2) := by
+  constructor
+  · calc
+      v * v ^ (Q + Q ^ 2) = v ^ 1 * v ^ (Q + Q ^ 2) := by simp
+      _ = v ^ (1 + (Q + Q ^ 2)) := (pow_add v 1 (Q + Q ^ 2)).symm
+      _ = v ^ (1 + Q + Q ^ 2) := by congr 1; omega
+  constructor
+  · rw [← pow_add]
+    congr 1
+    omega
+  · rw [← pow_add]
+    congr 1
+    omega
+
+/-- A monomial whose Kummer weight is zero is a coefficient-field power
+of the fixed radical `u`. -/
+theorem zero_weight_monomial_collapses
+    (v u : G) (ell W a : Nat)
+    (hv : v ^ ell = u) (hW : W = ell * a) :
+    v ^ W = u ^ a := by
+  rw [hW, pow_mul, hv]
+
 end DKWeightedFibre
+
+section KummerPowerBasis
+
+variable {F V I : Type*} [Field F] [AddCommGroup V] [Module F V]
+
+/-- In a power-basis-shaped decomposition, a scalar multiple of the
+weight-zero basis vector has no nonzero-weight coordinate. -/
+theorem nonzero_weight_coordinate_eq_zero
+    (b : Module.Basis I F V) (i0 i : I) (c : F)
+    (hi : i ≠ i0) :
+    b.repr (c • b i0) i = 0 := by
+  rw [map_smul, Module.Basis.repr_self]
+  simp [hi]
+
+end KummerPowerBasis
 
 variable {F : Type*} [Field F] [CharP F 2]
 
@@ -1439,6 +1534,73 @@ theorem map_power_root_eq_of_injective
   apply hinj
   change (N x) ^ ell = r ^ ell
   rw [← map_pow, hx, hz, hr]
+
+section FermatRemainderCoordinateCore
+
+open Polynomial
+
+/-- A prescribed quotient and every degree-bounded remainder occur exactly
+under division by a fixed monic polynomial. -/
+theorem monic_div_rem_of_prescribed_pair
+    {F : Type*} [Field F]
+    (A Q rho : F[X]) (hA : A.Monic) (hrho : rho.degree < A.degree) :
+    (rho + A * Q) /ₘ A = Q ∧ (rho + A * Q) %ₘ A = rho := by
+  exact Polynomial.div_modByMonic_unique Q rho hA ⟨rfl, hrho⟩
+
+/-- The quotient/remainder presentation under a monic polynomial is unique
+once the remainder degrees are bounded. -/
+theorem monic_div_rem_pair_unique
+    {F : Type*} [Field F]
+    (A Q₁ Q₂ rho₁ rho₂ : F[X])
+    (hA : A.Monic)
+    (hρ₁ : rho₁.degree < A.degree)
+    (hρ₂ : rho₂.degree < A.degree)
+    (h : rho₁ + A * Q₁ = rho₂ + A * Q₂) :
+    Q₁ = Q₂ ∧ rho₁ = rho₂ := by
+  have h₁ := monic_div_rem_of_prescribed_pair A Q₁ rho₁ hA hρ₁
+  have h₂ := monic_div_rem_of_prescribed_pair A Q₂ rho₂ hA hρ₂
+  constructor
+  · calc
+      Q₁ = (rho₁ + A * Q₁) /ₘ A := h₁.1.symm
+      _ = (rho₂ + A * Q₂) /ₘ A := by rw [h]
+      _ = Q₂ := h₂.1
+  · calc
+      rho₁ = (rho₁ + A * Q₁) %ₘ A := h₁.2.symm
+      _ = (rho₂ + A * Q₂) %ₘ A := by rw [h]
+      _ = rho₂ := h₂.2
+
+/-- An additive coordinate equivalence neither loses nor creates a zero. -/
+theorem coordinate_zero_iff
+    {E C : Type*} [AddCommGroup E] [AddCommGroup C]
+    (coords : E ≃+ C) (x : E) :
+    coords x = 0 ↔ x = 0 := by
+  exact coords.map_eq_zero_iff
+
+/-- Every complete coordinate pattern is realized by one and only one
+residue. -/
+theorem every_coordinate_pattern_unique
+    {E C : Type*} [AddCommGroup E] [AddCommGroup C]
+    (coords : E ≃+ C) (c : C) :
+    ∃! x : E, coords x = c := by
+  refine ⟨coords.symm c, ?_, ?_⟩
+  · simp
+  · intro y hy
+    exact coords.injective (hy.trans (by simp))
+
+/-- A freely chosen quotient and a freely chosen coordinate pattern remain
+independent product coordinates. -/
+theorem quotient_and_coordinates_independent
+    {Q E C : Type*} [AddCommGroup E] [AddCommGroup C]
+    (coords : E ≃+ C) (q : Q) (c : C) :
+    ∃! z : Q × E, z.1 = q ∧ coords z.2 = c := by
+  refine ⟨(q, coords.symm c), ⟨rfl, by simp⟩, ?_⟩
+  rintro ⟨q', x⟩ ⟨hq, hx⟩
+  simp only [Prod.mk.injEq]
+  constructor
+  · exact hq
+  · exact coords.injective (hx.trans (by simp))
+
+end FermatRemainderCoordinateCore
 
 variable {R : Type*} [CommRing R]
 

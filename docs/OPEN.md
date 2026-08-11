@@ -327,17 +327,25 @@ absolute boundedness.
   both selected bits, while every norm and multiplication determinant returns
   exactly the original terminal bit. Multiplication trace and discriminant
   vanish in both branches. Thus terminal Euclidean/support-projector linear
-  algebra adds no selector orientation; intermediate quotient-polynomial data
-  remain a possible ancestry-sensitive input. A complementary block-collapse
+  algebra adds no selector orientation. The complete recursive remainder tree
+  is now exhausted too: successive Conway-coordinate splitting is an
+  `F_2`-linear isomorphism from `F_2[X]/(A_(n-1))` to its `2^n` leaf bits,
+  so every leaf pattern occurs uniquely and the all-zero pattern is precisely
+  the selected divisibility. After the first division
+  `S_d=Q_d*A_(n-1)+rho_d`, the complete Euclidean/subresultant tail is
+  information-equivalent to `rho_d`; over unrestricted input polynomials the
+  raw quotient `Q` and the ancestry leaf vector are independent with the
+  actual Conway chain fixed. The surviving route is strictly
+  coefficient-sensitive: it must use a special Fibonacci identity tying the
+  actual `Q_d` to `rho_d`, or force one coordinate of `rho_d` nonzero.
+  A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
   `S_(kd+r)(a)=b^k*S_r(a)`, where `b=S_(d+1)(a)` obeys `b^2=a^d`,
   `b^ell=a`, and hence `b=(a^d)^(q/2)`. Polynomially the same identities
   hold modulo `S_d`. Thus consecutive or shifted continued-fraction,
   Cassini, and quotient-ring Euclidean data reproduce the already-known lower
-  Kummer root. Coefficient-sensitive intermediate Euclidean quotients before
-  reduction modulo `S_d`, and arbitrary subresultants against the actual
-  `A_(n-1)`, remain open. The unique lower
+  Kummer root. The unique lower
   `ell`-th root in the Dickson
   obstruction is now choice-free: with `d=(q+1)/ell`, it is
   `(a_(n-1)^d)^(q/2)`. This removes an auxiliary root but leaves the same
@@ -750,6 +758,16 @@ absolute boundedness.
   blind as well. Generic
   Wendt factors and other trace fibres attain every structural value used by
   the obvious bounds.
+  The literal full trace flag is now equally exact. At every selected cubic
+  edge the fibre of source reciprocal cubics over the actual coefficient pair
+  `(eta_(j-1),eta_(j-1)+1)` is reduced etale of geometric degree `ell^2`;
+  every lower rational fibre is a singleton, while the top fibre has size zero
+  on success and `ell` on failure. Its Jacobian numerator is the nonzero
+  selected `z_(j-1)` and its discriminant is `(CD+1)^2`. Thus all edgewise
+  symmetric coefficients, Jacobians, discriminants, and ordinary lower norms
+  retain full trace ancestry yet leave exactly the original top Euler bit.
+  Only nonsymmetric cross-edge or additive--multiplicative data not determined
+  by these coefficient fibres remain outside this boundary.
   There is also an exact pure-radical reflection descent. With
   `K=Q(zeta_(3^(k+1))+zeta_(3^(k+1))^(-1))`,
   `B=K(zeta_ell+zeta_ell^(-1))`, and `theta^ell=c_k`, the reflection field
@@ -852,10 +870,18 @@ absolute boundedness.
   modes and recovers exactly the chosen root, its conjugates, and their pair
   products. Its normalized pseudonorm defect is the original Euler symbol.
   More generally every pure nonzero Kummer eigenweight has monodromy an
-  invertible power of that same symbol, while weight zero factors through the
-  original `ell`-th power. Thus unweighted invariants and pure weighted
-  resolvents alike add no second condition. Mixed-weight cancellations and
-  independent arithmetic evaluations remain outside this boundary. A coprime
+  invertible power of that same symbol. The mixed route closes as well: the six
+  modes generate exactly `E_k[T]/(T^ell-u_k)` with its direct `Z/ell` weight
+  decomposition; the three complementary mixed products are the same
+  pseudonorm, and every zero-weight monomial is a power of `u_k`. The exact
+  Artin--Schreier coefficient `g_k=u_k^2+u_k` and every lower twisted-cubic
+  ancestor have weight zero, so they cannot cancel distinct weights. On
+  success the power basis is linearly independent; on failure a cancellation
+  after evaluation depends on choosing one split factor, an `ell`-root
+  orientation absent from the Conway data. Thus all regular
+  root-choice-invariant mixed resolvents collapse to weight-zero arithmetic.
+  Only a direct selected evaluation of such a coefficient, in particular the
+  original Euler phase, or genuinely external root orientation remains. A coprime
   plus/minus decomposition now
   identifies the entire current primary order with the minus coordinate
   `P_k=M_k^(t+1)`, while the plus coordinate is the explicit `g_k` coboundary.
