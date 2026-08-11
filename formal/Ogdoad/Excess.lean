@@ -1415,6 +1415,82 @@ theorem zero_weight_monomial_collapses
 
 end DKWeightedFibre
 
+section CubicPhaseTrace
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- If all three elementary symmetric functions of a triple are one in
+characteristic two, a distinguished member of the triple is one.  This is
+the elementary-symmetric core of the cubic relative-trace detector. -/
+theorem cubic_phase_of_symmetric_eq_one
+    (x y z : F)
+    (htrace : x + y + z = 1)
+    (hpair : x * y + x * z + y * z = 1)
+    (hnorm : x * y * z = 1) :
+    x = 1 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 3)
+  have hxx : x + x = 0 := by
+    calc
+      x + x = (2 : F) * x := by ring
+      _ = 0 := by rw [htwo]; simp
+  have hpoly : x ^ 3 + x ^ 2 + x + 1 = 0 := by
+    calc
+      x ^ 3 + x ^ 2 + x + 1 =
+          x ^ 3 + (x + y + z) * x ^ 2 +
+            (x * y + x * z + y * z) * x + x * y * z := by
+              rw [htrace, hpair, hnorm]
+              ring
+      _ = (x + x) * (x + y) * (x + z) := by ring
+      _ = 0 := by rw [hxx]; simp
+  have hcube : (x + 1) ^ 3 = 0 := by
+    calc
+      (x + 1) ^ 3 = x ^ 3 + (3 : F) * x ^ 2 + (3 : F) * x + 1 := by ring
+      _ = x ^ 3 + x ^ 2 + x + 1 := by rw [hthree]; simp
+      _ = 0 := hpoly
+  have hxadd : x + 1 = 0 := by
+    by_contra hx
+    exact (pow_ne_zero 3 hx) hcube
+  have hneg (u : F) : -u = u := by
+    rw [neg_eq_iff_add_eq_zero]
+    calc
+      u + u = (2 : F) * u := by ring
+      _ = 0 := by rw [htwo]; simp
+  exact (eq_neg_of_add_eq_zero_left hxadd).trans (hneg 1)
+
+/-- Norm one plus trace one and inverse-trace one force the first phase to
+be trivial.  Multiplying the inverse trace by the norm supplies the missing
+second elementary symmetric function. -/
+theorem cubic_phase_of_trace_inverse_trace_eq_one
+    (x y z : F)
+    (htrace : x + y + z = 1)
+    (hinvtrace : x⁻¹ + y⁻¹ + z⁻¹ = 1)
+    (hnorm : x * y * z = 1) :
+    x = 1 := by
+  have hx : x ≠ 0 := by
+    intro hx
+    rw [hx] at hnorm
+    simp at hnorm
+  have hy : y ≠ 0 := by
+    intro hy
+    rw [hy] at hnorm
+    simp at hnorm
+  have hz : z ≠ 0 := by
+    intro hz
+    rw [hz] at hnorm
+    simp at hnorm
+  have hpair : x * y + x * z + y * z = 1 := by
+    calc
+      x * y + x * z + y * z =
+          (x⁻¹ + y⁻¹ + z⁻¹) * (x * y * z) := by
+            field_simp [hx, hy, hz]
+            all_goals ring
+      _ = 1 := by rw [hinvtrace, hnorm]; simp
+  exact cubic_phase_of_symmetric_eq_one x y z htrace hpair hnorm
+
+end CubicPhaseTrace
+
 section KummerPowerBasis
 
 variable {F V I : Type*} [Field F] [AddCommGroup V] [Module F V]
@@ -1601,6 +1677,75 @@ theorem quotient_and_coordinates_independent
   · exact coords.injective (hx.trans (by simp))
 
 end FermatRemainderCoordinateCore
+
+section FermatFibonacciQuotientDefectCore
+
+/-- The odd/even quotient defects reconstruct the original Fibonacci
+polynomial when `Snext = S + X*dS`. -/
+theorem quotient_defects_reconstruct
+    {R : Type*} [CommRing R] [CharP R 2]
+    (S Snext dS dA Q X : R)
+    (hnext : Snext = S + X * dS) :
+    (Snext + X * dA * Q) + X * (dS + dA * Q) = S := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  rw [hnext]
+  ring_nf
+  simp [h2]
+
+/-- After differentiating `S = A*Q + rho`, the odd defect is the derivative
+of the remainder modulo `A`. -/
+theorem quotient_odd_defect
+    {R : Type*} [CommRing R] [CharP R 2]
+    (dS A dA Q dQ drho : R)
+    (hderiv : dS = dA * Q + A * dQ + drho) :
+    dS + dA * Q = A * dQ + drho := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  rw [hderiv]
+  ring_nf
+  simp [h2]
+
+/-- The even defect is the even part `rho + X*drho` modulo `A`. -/
+theorem quotient_even_defect
+    {R : Type*} [CommRing R] [CharP R 2]
+    (S Snext dS A dA Q dQ rho drho X : R)
+    (hS : S = A * Q + rho)
+    (hderiv : dS = dA * Q + A * dQ + drho)
+    (hnext : Snext = S + X * dS) :
+    Snext + X * dA * Q =
+      A * (Q + X * dQ) + (rho + X * drho) := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  rw [hnext, hS, hderiv]
+  ring_nf
+  simp [h2]
+
+/-- The two parity pieces are an invertible encoding of the original
+remainder. -/
+theorem parity_defects_reconstruct
+    {R : Type*} [CommRing R] [CharP R 2]
+    (rho drho X : R) :
+    (rho + X * drho) + X * drho = rho := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+  simp [h2]
+
+/-- Under exact divisibility, both special quotient defects are themselves
+divisible by the selected factor. -/
+theorem quotient_defects_of_exact_factor
+    {R : Type*} [CommRing R] [CharP R 2]
+    (S Snext dS A dA Q dQ X : R)
+    (hS : S = A * Q)
+    (hderiv : dS = dA * Q + A * dQ)
+    (hnext : Snext = S + X * dS) :
+    (∃ u, dS + dA * Q = A * u) ∧
+      (∃ v, Snext + X * dA * Q = A * v) := by
+  refine ⟨⟨dQ, ?_⟩, ⟨Q + X * dQ, ?_⟩⟩
+  · simpa using
+      quotient_odd_defect dS A dA Q dQ 0 (by simpa using hderiv)
+  · simpa using quotient_even_defect
+      S Snext dS A dA Q dQ 0 0 X
+        (by simpa using hS) (by simpa using hderiv) hnext
+
+end FermatFibonacciQuotientDefectCore
 
 variable {R : Type*} [CommRing R]
 
@@ -2593,6 +2738,66 @@ theorem singer_square_identity (η : R) (q : Nat)
     _ = η ^ 2 + η := by ring
 
 end CubicNormalBridge
+
+section CubicCoupledKummerRoots
+
+variable {G : Type*} [CommGroup G]
+
+/-- The Singer identity transports a chosen `ell`-th root of `eta` to a
+chosen `ell`-th root of `epsilon = eta^(q+1)`. -/
+theorem cubic_eta_root_to_epsilon_root
+    (t eta epsilon : G) (ell q : Nat)
+    (ht : t ^ ell = eta) (hepsilon : epsilon = eta ^ (q + 1)) :
+    (t ^ (q + 1)) ^ ell = epsilon := by
+  calc
+    (t ^ (q + 1)) ^ ell = (t ^ ell) ^ (q + 1) := by
+      rw [← pow_mul, ← pow_mul]
+      rw [Nat.mul_comm]
+    _ = eta ^ (q + 1) := by rw [ht]
+    _ = epsilon := hepsilon.symm
+
+/-- Bezout transport of a chosen `eta` root to a chosen `beta` root.
+The hypotheses are the exact selected identity
+`beta^(q-1) = eta^-1` and `A*(q-1) = 1 + ell*B`. -/
+theorem cubic_eta_root_to_beta_root
+    (t eta beta : G) (ell q A B : Nat)
+    (ht : t ^ ell = eta)
+    (hbeta : beta ^ (q - 1) = eta⁻¹)
+    (hbezout : A * (q - 1) = 1 + ell * B) :
+    ((t⁻¹) ^ A * (beta⁻¹) ^ B) ^ ell = beta := by
+  have hetaA : (eta⁻¹) ^ A = beta ^ (1 + ell * B) := by
+    calc
+      (eta⁻¹) ^ A = (beta ^ (q - 1)) ^ A := by rw [hbeta]
+      _ = beta ^ ((q - 1) * A) := by rw [pow_mul]
+      _ = beta ^ (A * (q - 1)) := by rw [Nat.mul_comm]
+      _ = beta ^ (1 + ell * B) := by rw [hbezout]
+  rw [mul_pow]
+  calc
+    ((t⁻¹) ^ A) ^ ell * ((beta⁻¹) ^ B) ^ ell =
+        ((t⁻¹) ^ ell) ^ A * ((beta⁻¹) ^ ell) ^ B := by
+          rw [← pow_mul, ← pow_mul, ← pow_mul, ← pow_mul]
+          congr 1 <;> rw [Nat.mul_comm]
+    _ = (eta⁻¹) ^ A * ((beta⁻¹) ^ ell) ^ B := by
+          rw [inv_pow, ht]
+    _ = beta ^ (1 + ell * B) * ((beta⁻¹) ^ ell) ^ B := by
+          rw [hetaA]
+    _ = beta := by
+          rw [pow_add, pow_one, pow_mul, inv_pow]
+          group
+
+/-- Scaling the chosen `eta` root by `rho` scales the transported
+`epsilon` and `beta` roots by their exact Kummer weights. -/
+theorem cubic_coupled_root_scaling
+    (rho t beta : G) (q A B : Nat) :
+    ((rho * t) ^ (q + 1) = rho ^ (q + 1) * t ^ (q + 1)) ∧
+      (((rho * t)⁻¹) ^ A * (beta⁻¹) ^ B =
+        (rho⁻¹) ^ A * ((t⁻¹) ^ A * (beta⁻¹) ^ B)) := by
+  constructor
+  · rw [mul_pow]
+  · rw [mul_inv_rev, mul_pow]
+    ac_rfl
+
+end CubicCoupledKummerRoots
 
 section CubicFrobeniusTwistCore
 
@@ -3808,6 +4013,41 @@ theorem weighted_frobenius_euler (x : G) (r d : Nat)
   exact Nat.mul_comm _ _
 
 end WeightedFrobeniusWords
+
+section CubicChosenRootAncestry
+
+variable {G : Type*} [CommMonoid G]
+
+/-- Every monomial in a chosen Kummer root has its exact residue-weight
+normal form. -/
+theorem cubic_kummer_monomial_normal_form
+    (t eta : G) (ell a m : Nat) (ht : t ^ ell = eta) :
+    t ^ (ell * a + m) = eta ^ a * t ^ m := by
+  rw [pow_add, pow_mul, ht]
+
+/-- A product of arbitrary Frobenius conjugates of the chosen root reduces
+to one Kummer weight; all selected lower ancestry may be absorbed into its
+coefficient. -/
+theorem cubic_kummer_frobenius_word_normal_form
+    (t eta : G) (ell a m : Nat)
+    (s : Finset Nat) (w : Nat → Nat)
+    (ht : t ^ ell = eta)
+    (hweight : ∑ i ∈ s, w i * 2 ^ i = ell * a + m) :
+    (∏ i ∈ s, (t ^ (2 ^ i)) ^ (w i)) = eta ^ a * t ^ m := by
+  rw [weighted_frobenius_word, hweight]
+  exact cubic_kummer_monomial_normal_form t eta ell a m ht
+
+variable {H : Type*} [CommGroup H]
+
+/-- A coefficient-fixed pure weight has precisely the corresponding power
+of the original Kummer monodromy under full Frobenius. -/
+theorem cubic_kummer_weight_monodromy
+    (t omega coeff : H) (m N : Nat)
+    (ht : t ^ N = omega * t) (hcoeff : coeff ^ N = coeff) :
+    (t ^ m * coeff) ^ N = omega ^ m * (t ^ m * coeff) := by
+  exact dk_eigenweight_power_monodromy t omega coeff m N ht hcoeff
+
+end CubicChosenRootAncestry
 
 section CoprimePowerDetection
 

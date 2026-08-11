@@ -335,9 +335,18 @@ absolute boundedness.
   `S_d=Q_d*A_(n-1)+rho_d`, the complete Euclidean/subresultant tail is
   information-equivalent to `rho_d`; over unrestricted input polynomials the
   raw quotient `Q` and the ancestry leaf vector are independent with the
-  actual Conway chain fixed. The surviving route is strictly
-  coefficient-sensitive: it must use a special Fibonacci identity tying the
-  actual `Q_d` to `rho_d`, or force one coordinate of `rho_d` nonzero.
+  actual Conway chain fixed. The first genuinely special quotient coupling
+  also has an exact reduction. For `S_d=A*Q_d+rho_d`, the defects
+  `O_d=S_d'+A'*Q_d` and `E_d=S_(d+1)+X*A'*Q_d` reduce modulo `A` to the
+  shifted odd and even coefficient blocks of `rho_d`, and
+  `rho_d=E_d+X*O_d mod A`. Under failure, the class of the first `A`-adic
+  quotient digit is
+  `[Q_d]=(A')^(-1)S_d'=(X*A')^(-1)S_(d+1)` in `F_2[X]/(A)`; under the
+  identification with `F_q`, its value at `a` is the existing choice-free
+  Kummer root divided by `a*A'(a)`. A remaining proof must use higher
+  `A`-adic digits or a global
+  coefficient relation in the unreduced quotient, or directly force one
+  parity block nonzero.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -766,8 +775,16 @@ absolute boundedness.
   selected `z_(j-1)` and its discriminant is `(CD+1)^2`. Thus all edgewise
   symmetric coefficients, Jacobians, discriminants, and ordinary lower norms
   retain full trace ancestry yet leave exactly the original top Euler bit.
-  Only nonsymmetric cross-edge or additive--multiplicative data not determined
-  by these coefficient fibres remain outside this boundary.
+  The apparent chosen-root escape lies on one Kummer line as well. If
+  `t^ell=eta_k`, the selected identities transport it compatibly to
+  `t^(q+1)`, an `ell`-th root of `epsilon_k`, and to
+  `t^(-r)*beta_k^(-s)`, an `ell`-th root of `beta_k`, where
+  `r(q-1)=1+ell*s`. All lower selected radicals are already unique in their
+  lower fields. Thus the full selected radical compositum is the single
+  extension `L_k(t)`, with diagonal weights `1,q+1,-r`; root-choice
+  invariants return to `L_k`. What remains is a genuinely nonzero-weight
+  correlation uniform over that torsor, or an external additive--multiplicative
+  estimate---not another selected radical class.
   There is also an exact pure-radical reflection descent. With
   `K=Q(zeta_(3^(k+1))+zeta_(3^(k+1))^(-1))`,
   `B=K(zeta_ell+zeta_ell^(-1))`, and `theta^ell=c_k`, the reflection field
@@ -880,6 +897,15 @@ absolute boundedness.
   after evaluation depends on choosing one split factor, an `ell`-root
   orientation absent from the Conway data. Thus all regular
   root-choice-invariant mixed resolvents collapse to weight-zero arithmetic.
+  The surviving weight-zero phase has an exact immediate-field compression.
+  With `Q=2^(2*3^(k-1))`, `Omega=1` iff
+  `Tr_(E_k/E_(k-1))(Omega)=Omega+Omega^Q+Omega^(Q^2)=1`. Along the selected
+  twisted cubic this trace is the terminal value `P_e` of `P_0=1`,
+  `P_1=c_k`, `P_2=c_k^2`, and
+  `P_n=c_k*P_(n-1)+c_k*P_(n-2)+u_(k-1)*P_(n-3)`, where
+  `e=(Q^3-1)/ell`. This shortens the earlier six-term trace detector to the
+  immediate cubic extension but does not evaluate `P_e`; that evaluation is
+  the same selected terminal Dickson obstruction.
   Only a direct selected evaluation of such a coefficient, in particular the
   original Euler phase, or genuinely external root orientation remains. A coprime
   plus/minus decomposition now
