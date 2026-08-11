@@ -9028,6 +9028,47 @@ Taking the unique \(\ell\)-th root preserves this order because
 \(\ell\) is coprime to \(q-1\).
 \end{proof}
 
+\begin{corollary}[choice-free lower root]
+\label{cor:fermat-explicit-lower-root}
+Retain Proposition~\ref{prop:fermat-root-ancestry}, and put
+\[
+ q=|E_{n-1}|,\qquad d=\frac{q+1}{\ell},\qquad Q=\frac q2,
+ \qquad a=a_{n-1},\qquad b=r_{n-1}.
+\]
+Then the unique lower \(\ell\)-th root occurring in the Dickson
+obstruction is determined without any root choice:
+\[
+ b^2=a^d,
+ \qquad
+ b=(a^d)^Q.                                           \tag{\(\mathsf{RE}\)}
+\]
+Consequently the exact failure criterion \((\mathsf{RD})\) is
+\[
+ c_n\in(E_n^\times)^\ell
+ \iff
+ \text{there exists }s\in E_{n-1}\text{ such that }
+ \mathcal D_\ell\!\left(s,(a^d)^Q\right)=1.           \tag{\(\mathsf{RD}'\)}
+\]
+Thus the descent contains no auxiliary choice of a compatible lower root.
+It still asks whether one selected Dickson value vanishes, so
+\((\mathsf{RE})\) is a lossless normalization rather than a
+nonvanishing theorem.
+\end{corollary}
+
+\begin{proof}
+Since \(b\in\mathbb F_q\), one has \(b^q=b\).  The identities
+\(b^\ell=a\) and \(\ell d=q+1\) give
+\[
+ b^2=b^{q+1}=b^{\ell d}=a^d.
+\]
+As \(q=2Q\), Frobenius fixity then gives
+\[
+ b=b^q=(b^2)^Q=(a^d)^Q.
+\]
+Substitution in \((\mathsf{RD})\) proves \((\mathsf{RD}')\).
+The two displayed identities are formalized in the companion Lean file.
+\end{proof}
+
 \begin{proposition}[Dickson all-or-nothing factorization]
 \label{prop:fermat-dickson-dichotomy}
 Retain Proposition~\ref{prop:fermat-root-ancestry}.  Thus \(n\geq2\),
@@ -15969,7 +16010,12 @@ boundary-character data are circular.  Proposition~\ref{prop:fermat-root-ancestr
 pushes the minimal-counterexample hypothesis through unique
 \(\ell\)-th roots: every lower trace, norm, and maximal-order identity
 survives automatically, while top failure is exactly one Dickson
-power-sum equation.  Proposition~\ref{prop:fermat-dickson-dichotomy}
+power-sum equation.  Corollary~\ref{cor:fermat-explicit-lower-root}
+removes even the auxiliary root choice: for
+\(d=(q+1)/\ell\) the lower coefficient is
+\((a_{n-1}^d)^{q/2}\).  The resulting equation is still the same
+selected nonvanishing target, rather than a lower-level contradiction.
+Proposition~\ref{prop:fermat-dickson-dichotomy}
 proves that its Dickson polynomial has no intermediate factorization:
 failure is complete splitting and success is irreducibility, with the
 same Kummer scalar appearing in the exact resultant.

@@ -115,6 +115,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   `p`-th power, including the prime-order shortcut used at Fermat-prime levels
   and the equivalence between maximal order and simultaneous non-`p`-power at
   every prime divisor of the ambient cyclic-group order;
+- the exact quotient-order factorization used by relative-order products, with
+  maximality of the individual quotient factors deliberately left as an input;
+- the finite-level Popovych primitive-product equivalence: the selected
+  product is primitive exactly when every positive relative Fermat divisor is
+  the full Fermat number, leaving those universal relative equalities visible;
 - the full-primary quotient lemma behind the norm-blindness obstruction, and
   the simple-zero theorem showing that the cubic norm discards the current
   Kummer coordinate while its first transverse derivative survives;
@@ -137,6 +142,9 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   a multiplicative map when powering is injective, plus the symmetric
   pair-product coefficients (D, C*E, E^2) behind the iterated cubic Dickson
   fibre;
+- the choice-free Conway--Fermat root elimination: if `b^ell=a`,
+  `ell*d=q+1`, and `b^q=b`, then `b^2=a^d`, and for `q=2Q` the selected root
+  is explicitly `b=(a^d)^Q`;
 - the denominator-free quadratic-remainder norm
   `(U+xV)(U+x'V) = U^2 + YUV + Y^3V^2` used by the paper's one-branch
   Conway--Fermat descent;

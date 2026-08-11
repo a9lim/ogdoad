@@ -87,6 +87,69 @@ theorem isPthPower_iff_orderOf_dvd_card_div {G : Type*}
   rw [isPthPower_iff_pow_card_div_eq_one hp]
   exact orderOf_dvd_iff_pow_eq_one.symm
 
+/-- Exact factorization of an element's order into its order in a quotient and
+the residual order after raising by that quotient order.  This is the abstract
+order bridge behind the relative-order products in a finite field tower; it
+does not assert that either relative factor is maximal. -/
+theorem orderOf_eq_quotient_order_mul_orderOf_pow
+    {G : Type*} [Group G] [Finite G]
+    (H : Subgroup G) [H.Normal] (x : G) :
+    orderOf x =
+      orderOf ((QuotientGroup.mk' H) x) *
+        orderOf (x ^ orderOf ((QuotientGroup.mk' H) x)) := by
+  let m := orderOf ((QuotientGroup.mk' H) x)
+  have hm : m ∣ orderOf x := orderOf_map_dvd (QuotientGroup.mk' H) x
+  have hm0 : m ≠ 0 := ((isOfFinOrder_of_finite _).orderOf_pos).ne'
+  rw [orderOf_pow_of_dvd hm0 hm]
+  exact (Nat.mul_div_cancel' hm).symm
+
+/-- Finite-level form of Popovych's primitive-product equivalence.  Once the
+selected order is factored into positive relative divisors of the Fermat
+numbers, multiplying by the order-three base element is primitive exactly
+when every relative divisor is the full Fermat number.  The theorem exposes,
+rather than assumes, the universal equalities still needed from the Conway
+tower. -/
+theorem popovych_primitive_product_iff
+    {n : Nat} {G : Type*} [CommGroup G] [Fintype G]
+    (c0 cn : G) (δ : Nat → Nat)
+    (hc0 : orderOf c0 = 3)
+    (hcn : orderOf cn = ∏ j ∈ Finset.Icc 1 n, δ j)
+    (hcop : (orderOf c0).Coprime (orderOf cn))
+    (hδpos : ∀ j ∈ Finset.Icc 1 n, 0 < δ j)
+    (hδ : ∀ j ∈ Finset.Icc 1 n, δ j ∣ Nat.fermatNumber j)
+    (hcard : Fintype.card G =
+      3 * ∏ j ∈ Finset.Icc 1 n, Nat.fermatNumber j) :
+    orderOf (c0 * cn) = Fintype.card G ↔
+      ∀ j ∈ Finset.Icc 1 n, δ j = Nat.fermatNumber j := by
+  have hordmul :
+      orderOf (c0 * cn) = orderOf c0 * orderOf cn :=
+    (Commute.all c0 cn).orderOf_mul_eq_mul_orderOf_of_coprime hcop
+  have hle :
+      ∀ j ∈ Finset.Icc 1 n, δ j ≤ Nat.fermatNumber j := by
+    intro j hj
+    exact Nat.le_of_dvd
+      (Nat.zero_lt_of_lt (Nat.two_lt_fermatNumber j))
+      (hδ j hj)
+  rw [hordmul, hc0, hcn, hcard]
+  constructor
+  · intro hprod j hj
+    have hprod' :
+        (∏ j ∈ Finset.Icc 1 n, δ j) =
+          ∏ j ∈ Finset.Icc 1 n, Nat.fermatNumber j := by
+      exact Nat.eq_of_mul_eq_mul_left (by norm_num) hprod
+    apply le_antisymm (hle j hj)
+    by_contra hnot
+    have hlt : δ j < Nat.fermatNumber j :=
+      Nat.lt_of_not_ge hnot
+    have hproducts_lt :
+        (∏ j ∈ Finset.Icc 1 n, δ j) <
+          ∏ j ∈ Finset.Icc 1 n, Nat.fermatNumber j := by
+      exact Finset.prod_lt_prod hδpos hle ⟨j, hj, hlt⟩
+    exact (ne_of_lt hproducts_lt) hprod'
+  · intro hpoint
+    congr 1
+    exact Finset.prod_congr rfl hpoint
+
 /-- Negated order form used by a Kummer certificate: nonexistence of a
 `p`-th root is exactly failure of the selected order to divide the
 index-`p` quotient. -/
@@ -414,7 +477,9 @@ theorem artinSchreier_mobius_trace
     (w : K) (hw : w ≠ 0) (hw1 : w + 1 ≠ 0) (hchar : (2 : K) = 0) :
     (w + 1) / w + ((w + 1) / w)⁻¹ = (w ^ 2 + w)⁻¹ := by
   field_simp [hw, hw1]
-  linear_combination hchar * w
+  ring_nf
+  rw [hchar]
+  simp
 
 /-- Algebraic core of the exceptional selector projection.  If the
 coboundary is Nbar / N, then its fibotomic projection is the norm N*Nbar
@@ -481,6 +546,36 @@ end SelectorBridgeAlgebra
 section KummerNormCoherence
 
 variable {G H : Type*} [CommMonoid G] [CommMonoid H]
+
+/-- If `b` is an `ell`-th root of `a`, `ell * d = q + 1`, and `b` is
+fixed by `q`-powering, then the selected root has the choice-free square
+`b^2 = a^d`.  This is the algebraic compression used in the
+Conway--Fermat Dickson descent. -/
+theorem power_root_square_of_complementary_exponent
+    (a b : G) (ell d q : Nat)
+    (hroot : b ^ ell = a) (hfactor : ell * d = q + 1)
+    (hfrob : b ^ q = b) :
+    b ^ 2 = a ^ d := by
+  calc
+    b ^ 2 = b ^ (q + 1) := by rw [pow_two, pow_succ, hfrob]
+    _ = b ^ (ell * d) := by rw [hfactor]
+    _ = (b ^ ell) ^ d := by rw [pow_mul]
+    _ = a ^ d := by rw [hroot]
+
+/-- When `q = 2 * Q`, Frobenius fixity also makes the selected lower
+`ell`-th root itself explicit: `b = (a^d)^Q`. -/
+theorem power_root_eq_complementary_frobenius
+    (a b : G) (ell d q Q : Nat)
+    (hroot : b ^ ell = a) (hfactor : ell * d = q + 1)
+    (hfrob : b ^ q = b) (hq : 2 * Q = q) :
+    b = (a ^ d) ^ Q := by
+  have hsquare := power_root_square_of_complementary_exponent
+    a b ell d q hroot hfactor hfrob
+  calc
+    b = b ^ q := hfrob.symm
+    _ = b ^ (2 * Q) := by rw [hq]
+    _ = (b ^ 2) ^ Q := by rw [pow_mul]
+    _ = (a ^ d) ^ Q := by rw [hsquare]
 
 /-- If `ell`-th powering is injective in the target, a multiplicative map
 must send an `ell`-th root to the unique compatible `ell`-th root.  Applied
@@ -681,8 +776,12 @@ theorem cubic_collision_semiconjugacy (z Y : R) :
     calc
       (4 : R) = 2 + 2 := by norm_num
       _ = 0 := by rw [h2]; simp
+  have h6 : (6 : R) = 0 := by
+    calc
+      (6 : R) = 3 * 2 := by norm_num
+      _ = 0 := by rw [h2]; simp
   ring_nf
-  simp [h2, h4]
+  simp [h2, h4, h6]
 
 /-- Once the two cyclic cubic resolvents have the displayed sum and product,
 the selected one satisfies the denominator-free Artin--Schreier equation
@@ -690,10 +789,11 @@ used by the exceptional terminal cubic. -/
 theorem cyclic_resolvent_artinSchreier (a K K' : R)
     (hsum : K + K' = a) (hprod : K * K' = a ^ 2 + 1) :
     K ^ 2 + a * K + a ^ 2 + 1 = 0 := by
-  rw [← hsum, ← hprod]
   have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
-  ring_nf
-  simp [h2]
+  calc
+    K ^ 2 + a * K + a ^ 2 + 1 =
+        K ^ 2 + (K + K') * K + K * K' := by rw [hsum, hprod]; ring
+    _ = 0 := by ring_nf; simp [h2]
 
 /-- Denominator-free numerator identity showing that reversal of the
 exceptional cyclic orientation changes relative trace by an
@@ -706,8 +806,12 @@ theorem exceptional_orientation_trace_shift (a : R) :
     calc
       (4 : R) = 2 + 2 := by norm_num
       _ = 0 := by rw [h2]; simp
+  have h3 : (3 : R) = 1 := by
+    calc
+      (3 : R) = 2 + 1 := by norm_num
+      _ = 1 := by rw [h2]; simp
   ring_nf
-  simp [h2, h4]
+  simp [h2, h3, h4]
 
 end SelectedCriticalAlgebra
 

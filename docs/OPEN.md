@@ -258,8 +258,11 @@ absolute boundedness.
   lossless normal form rather than a closure. As a word in the exponent, that
   terminal bit is exactly the zero-at-multiples indicator for `delta_n`; its
   least period, linear complexity plus one, and minimal binary-automaton state
-  count are all `delta_n`. Thus even the automatic-sequence complexity is the
-  unknown quotient order itself.
+  count are all `delta_n`. The unique lower `ell`-th root in the Dickson
+  obstruction is now choice-free: with `d=(q+1)/ell`, it is
+  `(a_(n-1)^d)^(q/2)`. This removes an auxiliary root but leaves the same
+  selected Dickson nonvanishing. Thus even the automatic-sequence complexity
+  is the unknown quotient order itself.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
