@@ -407,6 +407,15 @@ section SelectorBridgeAlgebra
 
 variable {K : Type*} [Field K]
 
+/-- Denominator-free core of the exceptional arm's one-variable Dickson
+coordinate.  For the Artin--Schreier pair `w,w+1`, the norm-one quotient
+`M=(w+1)/w` satisfies `M+M⁻¹=(w²+w)⁻¹` in characteristic two. -/
+theorem artinSchreier_mobius_trace
+    (w : K) (hw : w ≠ 0) (hw1 : w + 1 ≠ 0) (hchar : (2 : K) = 0) :
+    (w + 1) / w + ((w + 1) / w)⁻¹ = (w ^ 2 + w)⁻¹ := by
+  field_simp [hw, hw1]
+  linear_combination hchar * w
+
 /-- Algebraic core of the exceptional selector projection.  If the
 coboundary is Nbar / N, then its fibotomic projection is the norm N*Nbar
 divided by the square of the trace N+Nbar. -/
@@ -488,6 +497,18 @@ theorem map_power_root_eq_of_injective
 
 variable {R : Type*} [CommRing R]
 
+/-- Algebraic core of the one-branch quadratic norm descent.  If x and x'
+have sum Y and product Y³, the norm of the linear remainder U + X V
+is U² + Y U V + Y³ V². -/
+theorem quadratic_remainder_norm
+    (x x' U V Y : R) (hsum : x + x' = Y) (hprod : x * x' = Y ^ 3) :
+    (U + x * V) * (U + x' * V) =
+      U ^ 2 + Y * U * V + Y ^ 3 * V ^ 2 := by
+  calc
+    (U + x * V) * (U + x' * V) =
+        U ^ 2 + (x + x') * U * V + (x * x') * V ^ 2 := by ring
+    _ = U ^ 2 + Y * U * V + Y ^ 3 * V ^ 2 := by rw [hsum, hprod]
+
 /-- The three pair-products of roots of a monic cubic have elementary
 coefficients `(D, C * E, E²)`.  This is the symmetric-algebra input to the
 second generalized Dickson recurrence in the cubic Kummer descent. -/
@@ -509,6 +530,40 @@ theorem cubic_pair_product_coefficients
       _ = E ^ 2 := by rw [h₃]
 
 end KummerNormCoherence
+
+section NormalizedSingerAlgebra
+
+variable {F : Type*} [Field F]
+
+/-- Denominator-free normalization of the selected reciprocal cubic.
+Substituting z = d * τ and zPrev = d³ into
+z³ + zPrev*z² + zPrev = 0 gives τ³ + d²*τ² + 1 = 0. -/
+theorem normalized_singer_cubic
+    (z d τ : F) (hd : d ≠ 0)
+    (hz : z ^ 3 + d ^ 3 * z ^ 2 + d ^ 3 = 0)
+    (hzt : z = d * τ) :
+    τ ^ 3 + d ^ 2 * τ ^ 2 + 1 = 0 := by
+  rw [hzt] at hz
+  have hmul : d ^ 3 * (τ ^ 3 + d ^ 2 * τ ^ 2 + 1) = 0 := by
+    linear_combination hz
+  exact (mul_eq_zero.mp hmul).resolve_left (pow_ne_zero 3 hd)
+
+variable {R : Type*} [CommRing R]
+
+/-- Algebraic core of the normalized coefficient ancestry
+s_k³ = s_(k-1) * τ_(k-1)². -/
+theorem normalized_singer_coefficient_ancestry
+    (d dPrev τPrev s sPrev zPrev : R)
+    (hd : d ^ 3 = zPrev) (hz : zPrev = dPrev * τPrev)
+    (hs : s = d ^ 2) (hsPrev : sPrev = dPrev ^ 2) :
+    s ^ 3 = sPrev * τPrev ^ 2 := by
+  calc
+    s ^ 3 = (d ^ 3) ^ 2 := by rw [hs]; ring
+    _ = zPrev ^ 2 := by rw [hd]
+    _ = (dPrev * τPrev) ^ 2 := by rw [hz]
+    _ = sPrev * τPrev ^ 2 := by rw [hsPrev]; ring
+
+end NormalizedSingerAlgebra
 
 section WeightedFrobeniusWords
 

@@ -170,10 +170,10 @@ four universal order assertions:
 
 | arm | assertion | exact remaining target |
 |---|---|---|
-| `Z` | the structural norm of `kappa_h` generates the primitive-support quotient for every non-ordinary component set | prove a nonzero leaf in the exact Conway quadratic-remainder tree, generation for composite two-spine quotients, and control the general synchronized phase |
-| `O` | the selected projective class of `kappa_(r^a)+1` has full primary order for every odd `r != 3` | exclude the actual full-conductor factor after exact odd-Kummer singleton dependency-section descent at every remaining small primary factor |
-| `C` | `gamma_k = zeta + zeta^(-1)` is primitive in `F_(2^(3^k))` | prove `Omega_(k,ell) != 1` for the single selected norm-one-torus torsor class at every current prime |
-| `D` | `Psi_k` divides `ord(M_k)`, where `Psi_k = Phi_(2*3^k)(2)/3` | prove the actual selected Artin--Schreier root is not a current primary power; equivalently exclude its reciprocal cubic / prove the Capelli--antiunit condition `D'_k` |
+| `Z` | the structural norm of `kappa_h` generates the primitive-support quotient for every non-ordinary component set | in the singleton-even chain prove the iterated quadratic-norm terminal bit is `1`; also prove generation for composite two-spine quotients and control the general synchronized phase |
+| `O` | the selected projective class of `kappa_(r^a)+1` has full primary order for every odd `r != 3` | exclude the selected full-conductor factor from the reduced reciprocal divisor, equivalently force a nonzero terminal selected section after dependency-norm descent |
+| `C` | `gamma_k = zeta + zeta^(-1)` is primitive in `F_(2^(3^k))` | prove the fixed cubic-norm terminal bit of `hatDelta_(N/ell)` is `1`, equivalently `Omega_(k,ell) != 1`, for every current prime |
+| `D` | `Psi_k` divides `ord(M_k)`, where `Psi_k = Phi_(2*3^k)(2)/3` | prove the selected Dickson critical value at the reconstructed trace-one scalar is nonzero, equivalently the actual Artin--Schreier root is not a current primary power (`D'_k`) |
 
 The equivalence is a theorem. None of the four assertions is proved
 universally.
@@ -236,7 +236,11 @@ absolute boundedness.
   selected divisibility through every actual Conway resultant edge to a binary
   tree at `A_(-1)=Y+1`; this prevents a wrong predecessor from certifying the
   actual path but leaves a leaf nonvanishing equivalent to the original
-  selected Conway--Fermat obstruction.
+  selected Conway--Fermat obstruction. Taking the quadratic resultant instead
+  compresses that whole binary tree to one iterated norm bit. Its first layer
+  satisfies an explicit order-four recurrence, but the terminal bit is `1`
+  exactly when the original selected Fibonacci value is nonzero, so this is a
+  lossless normal form rather than a closure.
 - **`O`.** The selected class is a relative Hilbert–90 unit. An
   absolute-Frobenius signed-ball argument proves every primary factor above an
   explicit threshold. Mixed Jacobi sums and binary sections isolate the
@@ -251,7 +255,16 @@ absolute boundedness.
   pushes it through every actual odd-Kummer singleton `0/1` Lenstra edge
   satisfying its hypotheses. Two-primary nodes use their separate quadratic
   ancestry; multicomponent and excess-4 nodes still require synchronized orbit
-  resultants. The final selected section nondivisibility remains open. A truncated-log Fermat
+  resultants. At each odd-Kummer singleton edge the simultaneous dependency
+  sections also compress to one lower resultant whose selected evaluation is
+  the relative norm of the selected value. Iteration gives one terminal scalar for each binary
+  section, but its vanishing is exactly the original selected vanishing. The
+  full-conductor failure polynomial has a canonical monic self-reciprocal
+  quotient; under hypothetical failure the selected factor occurs there
+  simply, and its transverse
+  derivative has terminal norm bit `1`. This proves the hypothetical
+  intersection reduced, not empty. The final selected section nondivisibility
+  remains open. A truncated-log Fermat
   regulator detects exactly whether
   the relative cyclotomic unit is locally a `p`-th power. Its nonzero values
   give conductor exactly `p^2`, and global reciprocity is an exact bilinear
@@ -269,12 +282,28 @@ absolute boundedness.
   after fixing the selected lower norm, their geometric fibre is reduced etale
   of size `ell^2`, with a singleton rational fibre at every lower level and
   exactly zero or `ell` rational points at the top. The top fibre is a
-  `T[ell]`-torsor whose sole class has the exact representative
-  `Omega = z_k^((q^2+q+1)/ell)/r_(k-1)`; its complete extension-field point
-  counts differ only by affine translation along one Frobenius-fixed line.
-  Its Jacobian, discriminant, and Berlekamp trace are blind, while its
-  reciprocal obstruction is the same selected Kummer class; none supplies an
-  exclusion. Both distinguished
+  `T[ell]`-torsor; its class is trivial exactly when the Euler representative
+  `Omega = z_k^((q^2+q+1)/ell)/r_(k-1)` is one. Its complete extension-field
+  point counts differ only by affine translation along one Frobenius-fixed line.
+  After the unique cubic normalization `tau_k = z_k/d_k`, all current-prime
+  torsors are the preimages `[ell]^(-1)(tau_k)` of this single norm-one
+  element; `tau_k^((q^2+q+1)/ell)` is their mod-`ell` Euler obstruction. It
+  has sparse cubic `X^3+s_k X^2+1`, and the coefficients
+  obey the exact nonlinear ancestry `s_k^3=s_(k-1) tau_(k-1)^2`. The current
+  obstruction is equivalently one selected critical resultant over `F_2`.
+  Weighted homogeneity and the nonlinear ancestry compress that resultant
+  further: a single fixed cubic norm operator carries it through every actual
+  lower edge to one terminal bit in `F_2`. The bit is `1` exactly on success,
+  so this is the cubic analogue of the Fermat one-branch descent, not an
+  independent nonvanishing theorem.
+  Keeping the full recursion reconstructs every finite Conway truncation up
+  to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
+  dropping it admits primitive-coefficient countermodels, so the normalization
+  isolates but does not prove primitivity.
+  The unpowered source cubic's Jacobian, discriminant, and Berlekamp trace are
+  blind, while its reciprocal obstruction is the same selected Kummer class;
+  by contrast the powered cubic's discriminant is precisely the critical
+  obstruction above. None supplies an independent exclusion. Both distinguished
   period coordinates have absolute trace zero and are not normal, so
   primitive-normal and normal-Gaussian-period theorems do not apply. Generic
   Wendt factors and other trace fibres attain every structural value used by
@@ -301,8 +330,20 @@ absolute boundedness.
   D-primary factor. This does not rule out an actual implication `C_k => D'_k`;
   any such implication remains open and must use the special coefficient above.
   Even the exact lower norm of the actual normalized root is automatically a
-  current primary power downstairs. The line criterion gives the effective
-  polynomial bound above but not the required fixed window.
+  current primary power downstairs. A coprime plus/minus decomposition now
+  identifies the entire current primary order with the minus coordinate
+  `P_k=M_k^(t+1)`, while the plus coordinate is the explicit `g_k` coboundary.
+  The lower norm fixes only the already-known 3-part. Among ambient
+  `Theta`-compatible pairs, norm and plus data can be held fixed while the
+  current Sylow coordinate varies, but these variations need not remain on the
+  trace-one Artin--Schreier locus. That locus is the remaining selected
+  coupling. On the locus, aggregate norm and plus data determine the minus
+  coordinate up to inversion; the exact selected norm chooses one root for
+  `k>=3`. The resulting one-variable Dickson critical value is again exactly
+  the unresolved full-primary test, so this rigidity reconstructs rather than
+  estimates the selected order. The line
+  criterion gives the effective polynomial bound above but not the required
+  fixed window.
 
 ### Evidence boundary
 
