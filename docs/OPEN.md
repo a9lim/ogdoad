@@ -384,7 +384,14 @@ absolute boundedness.
   is `-1`, and its labelled factors multiply to `X^q+X`. The trivial-labelled
   factor is exactly `S_d(X^2+X+a)`. Its value at the marked endpoint is
   `S_d(a)`, so all aggregate factor data are fixed and the only missing
-  incidence is the original selected Fibonacci zero. The natural mixed element
+  incidence is the original selected Fibonacci zero. After translating every
+  labelled factor by the same `c`, the whole family is universal:
+  `F_xi(Y)=(Y+1)^d+xi*Y^d` and `prod_xi F_xi=Y^q+Y+1`.
+  Its discriminants, pairwise resultants, Frobenius/translation symmetries,
+  and root-difference data are selector-blind. Individual coefficients are
+  exactly `binom(d,j)*S_(d-j)(a)`, so their norms through the actual ancestry
+  are only shifted versions of the same selected resultant; the constant
+  coefficient is the original target. The natural mixed element
   `W_n^(F_n/ell)-zeta_ell` has support above two exactly when
   `w_n^(F_n/ell) != 1`, so even its existence as a selector is the original
   target. That circularity can now be removed: affine interpolation writes
@@ -554,7 +561,13 @@ absolute boundedness.
   countermodel now also matches full Kummer degree, all binary sections,
   norm-one reciprocity, and literal least-nonresidue labeling; it differs
   exactly in the lower ancestor's multiplicative order and cyclotomic
-  conductor, isolating full Conway ancestry as indispensable. At the actual
+  conductor, isolating full Conway ancestry as indispensable. More exactly,
+  the complete affine translate set `1+F_q*x` has polynomial
+  `Y^q+lambda*Y+(1+lambda)` and is unchanged by every rescaling
+  `x -> u*x`, `u in F_q^x`; its entire labelled multiset and every
+  symmetric statistic are therefore blind to which nonzero scalar is marked
+  as `1`. The `p=359` safe-prime trace bit is precisely that marked scalar,
+  not an invariant of the affine orbit. At the actual
   ordinary singleton step, even the canonical additive lower norm is
   current-Kummer blind: `Norm(1+x)=1+x^r`, while
   `ord_p(q_0)=r>1` makes `p`-powering an automorphism of the lower
@@ -648,8 +661,14 @@ absolute boundedness.
   Kummer kernel simultaneously and exactly on failure. Thus the two normal
   bases, their half-block incidences, Moore determinants, and subspace
   polynomials encode only the original selected character value, not a second
-  obstruction. A nonlinear additive--multiplicative correlation remains
-  logically possible.
+  obstruction. This compatibility is now exact at the actual degree `81`
+  and current prime `2593`: a fixed finite-field certificate retains the
+  Singer, normalized-inverse, and half-circulant identities, absolute
+  normality of epsilon, and complete normality of beta, while all three
+  coordinates lie in the
+  index-2593 Kummer kernel. It fails exactly at the next lower selected trace
+  equation. A nonlinear additive--multiplicative correlation using the full
+  recursive trace ancestry remains logically possible.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -729,7 +748,14 @@ absolute boundedness.
   not trace or norm alone or together, is the remaining possible C-to-D
   coupling. The trace--norm fibre is a smooth genus-one curve, whereas fixing
   this middle coefficient cuts it to the selected Frobenius orbit; generic
-  point counts on the fibre cannot evaluate that marked divisor.
+  point counts on the fibre cannot evaluate that marked divisor. A still
+  stronger fixed `k=4` witness takes both the lower `a` and its cubic child
+  `gamma` primitive, imposes the literal selected equation
+  `gamma^3+gamma=a`, and therefore matches trace, middle coefficient, and
+  norm simultaneously; its exact D root is nevertheless a `163`rd power.
+  Its sole mismatch is that `a` is not the Conway-selected lower ancestor.
+  Thus even one complete selected cubic step does not transfer C to D; only
+  continuation through the full lower recursion remains available.
   The conductor-five antiunit now gives a second exact reflection descent.
   With `x=alpha+alpha^(-1)`, `F=Q(x)`, `K=F(sqrt(5))`, and
   `d_k=(x-s)/(x-s')`, the conductor-five involution sends `d_k` to its
@@ -798,6 +824,7 @@ absolute boundedness.
 - [`formal/Ogdoad/Excess.lean`](../formal/Ogdoad/Excess.lean)
 - [`experiments/ordinal_excess_probe.py`](../experiments/ordinal_excess_probe.py)
 - [`experiments/cyclotomic_3k_family.py`](../experiments/cyclotomic_3k_family.py)
+- [`experiments/cubic_two_normal_countermodel.py`](../experiments/cubic_two_normal_countermodel.py)
 - [`experiments/exception_column_m4.py`](../experiments/exception_column_m4.py)
 - [`experiments/fermat_selected_screen.py`](../experiments/fermat_selected_screen.py)
 - [`experiments/fermat_selected_screen_results.md`](../experiments/fermat_selected_screen_results.md)

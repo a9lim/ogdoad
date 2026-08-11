@@ -3515,6 +3515,83 @@ sign, and $1+a=\kappa_{89}\ne0$; its norm lies in
 $\F_2^\times=\{1\}$.  Hence \((\mathsf{SPH}_3)\) follows.
 \end{proof}
 
+\begin{proposition}[ordinary affine orbit and the marked scalar]
+\label{prop:ordinary-affine-marked-scalar}
+Let \(Q\) be a power of two, let \(r\) be an odd prime with
+\(r\mid Q-1\), and let
+\[
+ k=\F_Q,\qquad K=\F_{Q^r},\qquad x^r=a\in k^\times,
+\]
+where \(X^r-a\) is irreducible over \(k\).  Put
+\[
+ \lambda=x^{Q-1}=a^{(Q-1)/r}\in\mu_r(k).
+\]
+Then \(\lambda\) has order \(r\), \(x^Q=\lambda x\), and the complete
+affine translate orbit has the exact polynomial
+\[
+ \boxed{\quad
+ \prod_{c\in k}\bigl(Y+1+cx\bigr)
+   =Y^Q+\lambda Y+(1+\lambda).\quad}                 \tag{\(\mathsf{OAM}_1\)}
+\]
+
+For every \(u\in k^\times\), the rescaled root \(x_u=ux\) has the same
+Frobenius multiplier \(\lambda\), and
+\[
+ \{1+cx_u:c\in k\}=\{1+cx:c\in k\}.                 \tag{\(\mathsf{OAM}_2\)}
+\]
+Let \(p\mid(Q^r-1)/(Q-1)\), assume \(p\nmid Q-1\), and let
+\(\chi:K^\times\to\mu_p\) have exact order \(p\).  Then \(\chi\) is
+trivial on \(k^\times\), so the complete multiset of labels
+\[
+ \{\chi(1+cx):c\in k\}
+\]
+and every symmetric invariant of it are unchanged by \(x\mapsto ux\).
+Their product is one.  But the distinguished value transforms as
+\[
+ H(x)=\chi(1+x),\qquad H(x_u)=\chi(1+ux),             \tag{\(\mathsf{OAM}_3\)}
+\]
+so rescaling merely moves which nonzero scalar is called \(1\).
+
+For the actual \((Q,r,p)=(2^{19580},179,359)\), the bound
+\((\mathsf{KE})\) holds.  The source-pinned equality \(m_{359}=1\) makes
+\(H(x)\ne1\), whereas Proposition~\ref{prop:kummer-eigenline-no-go}
+supplies a nonzero \(u\in k^\times\) with \(H(x_u)=1\).  By
+\((\mathsf{OAM}_1)\)--\((\mathsf{OAM}_2)\), these two marked Kummer lines
+have the same affine-orbit polynomial, labelled histogram, and every
+symmetric translate statistic; by \((\mathsf{SPH}_0)\), their trace bits
+are opposite.  Hence those aggregate data cannot evaluate the bit in
+\((\mathsf{SPH}_1)\).  The actual lower multiplicative ancestry fixes the
+mark \(c=1\); discarding it restores this rescaling freedom.
+\end{proposition}
+
+\begin{proof}
+Irreducibility implies \(x\ne0\), and
+\[
+ x^{Q-1}=(x^r)^{(Q-1)/r}=a^{(Q-1)/r}\in\mu_r(k).
+\]
+Because \(r\) is prime, a smaller order would make \(\lambda=1\), hence
+\(x^Q=x\), contrary to \([k(x):k]=r\).  The standard additive-polynomial identity
+\(\prod_{c\in k}(Z+c)=Z^Q+Z\), applied to \(Z=(Y+1)/x\), gives
+\[
+ \prod_{c\in k}(Y+1+cx)
+ =(Y+1)^Q+x^{Q-1}(Y+1),
+\]
+which is \((\mathsf{OAM}_1)\).  Multiplication by \(u\) permutes \(k\),
+proving \((\mathsf{OAM}_2)\); it also leaves \(\lambda\) unchanged because
+\(u^{Q-1}=1\).
+
+The hypothesis \(p\nmid Q-1\) makes \(\chi\)
+trivial on \(k^\times\).  Taking \(\chi\) of the constant term in
+\((\mathsf{OAM}_1)\) gives product one because \(1+\lambda\in k^\times\).
+The reindexing statement and \((\mathsf{OAM}_3)\) are immediate.  Lean
+kernel-checks the denominator-cleared collapse from the two additive-polynomial
+terms to the right side of \((\mathsf{OAM}_1)\); the finite-field product
+and Kummer specialization remain paper-level.  In the \(359\)-instance,
+\(\sqrt Q=2^{9790}>(358)(178)+359\), so \((\mathsf{KE})\) applies; the
+source-pinned nontrivial line and the trivial rescaled line then give the
+claimed opposite trace bits.
+\end{proof}
+
 \emph{Source-pinned datum.} The value \(m_{359}=1\) is present in A380496, but the
 trace in \((\mathsf{SPH}_1)\) is not independently evaluated here.
 Quadratic half-orbit norms do not decide it:
@@ -5570,6 +5647,96 @@ This exhausts linear Frobenius-equivariant normal-basis invariants.  It does
 not rule out a nonlinear additive--multiplicative correlation tailored to
 the selected half-block incidence, although current character bounds allow
 the \(n\) prescribed orbit points.
+\end{proof}
+
+\begin{proposition}[an actual-degree two-normal-basis countermodel]
+\label{prop:cubic-two-normal-countermodel}
+The complete incidence package in
+Proposition~\ref{prop:cubic-two-normal-bases} is compatible with current
+Kummer failure, even at an actual cubic-tower degree and an actual current
+prime.
+
+Use the polynomial-bit convention in which bit \(i\) is the coefficient of
+\(X^i\), put
+\[
+ p(X)=\mathtt{0x329341f8b47dd7938af63},\qquad
+ E=\F_2[X]/(p),\qquad q=2^{27},
+\]
+\[
+ N=q^2+q+1=18014398643699713,\qquad \ell=2593,
+\]
+and in the polynomial basis set
+\[
+ \begin{aligned}
+ \eta&=1629469875507523981620540,\\
+ \varepsilon&=1629469875507523981620541,\\
+ \beta&=2293671573472151973449566.
+ \end{aligned}
+\]
+Then \(p\) is irreducible of degree \(81\), \(\ell\) is a prime divisor
+of \(N\), and
+\[
+ \eta^{q+1}=\eta+1,\qquad \eta^N=1,\qquad
+ \eta^{N/\ell}=1.                                    \tag{\(\mathsf{NBC}_1\)}
+\]
+Moreover,
+\[
+ \varepsilon=\eta+1=\eta^{q+1},\qquad
+ \beta^{q-1}=\eta^{-1},\qquad
+ \beta=1+\eta^{q/2+1}
+      =\sum_{i=1}^{79}\varepsilon^{2^i}.             \tag{\(\mathsf{NBC}_2\)}
+\]
+Thus the exact Singer, normalized inverse, and half-circulant identities
+all hold, while \(\eta,\varepsilon,\beta\) lie in the
+index-\(2593\) Kummer kernel of \(E^\times\).
+
+The normality data are equally strong.  The absolute Moore determinant of
+\(\varepsilon\) is one.  The relative Moore determinants of \(\beta\)
+over the subfields of degrees \(1,3,9,27\) are respectively
+\[
+ 1,\quad
+ 996154457819232351242539,\quad
+ 1913091018644430508445588,\quad
+ 1836908266524337706399502,                           \tag{\(\mathsf{NBC}_3\)}
+\]
+all nonzero.  Hence \(\varepsilon\) is normal over \(\F_2\) and
+\(\beta\) is completely normal.
+
+The missing datum is exactly the selected lower recursion.  If
+\[
+ a=\operatorname{Tr}_{E/\F_{2^{27}}}(\eta)
+   =\eta+\eta^q+\eta^{q^2},
+\]
+then
+\[
+ a^{2^9+1}+a+1\ne0.                                  \tag{\(\mathsf{NBC}_4\)}
+\]
+Thus the model exits the Conway-selected trace ancestry immediately below
+the top step.  It proves that the two full Frobenius orbits, their nonlinear
+kernel incidence, all Moore/subspace determinants, and the canonical
+half-circulant relation add no obstruction independent of that ancestry.
+\end{proposition}
+
+\begin{proof}
+The exact maintained verifier in \path{experiments/},
+\path{cubic_two_normal_countermodel.py}, performs carryless
+polynomial arithmetic modulo \(p\).  Rabin's criterion is certified by
+\[
+ X^{2^{81}}\equiv X\pmod p,\qquad
+ \gcd(p,X^{2^{27}}-X)=1,
+\]
+which suffices because the only prime divisor of \(81\) is three.  It then
+checks \((\mathsf{NBC}_1)\), \((\mathsf{NBC}_2)\), the three full-field
+\(2593\)-power identities, the Moore determinants
+\((\mathsf{NBC}_3)\), and the strict inequality
+\((\mathsf{NBC}_4)\).
+
+Lean independently kernel-checks the Rabin residues, the Singer, norm,
+failure, normalized-\(\beta\), and half-circulant identities, all three
+full Kummer-kernel memberships, and the selected-ancestry break in
+\texttt{Ogdoad.Excess}.  The standard interpretation of the script's
+nonzero Moore determinants as relative normality remains paper-level
+linear algebra.
 \end{proof}
 
 \begin{proposition}[self-dual inverse basis and determinant collapse]
@@ -12566,6 +12733,108 @@ cyclotomic product, projective-line identification, and Binet specialization
 remain paper-level.
 \end{proof}
 
+\begin{proposition}[universal translation and marked-endpoint exhaustion]
+\label{prop:fermat-upper-block-universal-translate}
+Retain Corollary~\ref{cor:fermat-upper-block-factorization} and put
+\[
+ F_\xi(Y)=(Y+1)^d+\xi Y^d.
+\]
+Then
+\[
+ B_\xi(X)=F_\xi(X+c),\qquad
+ \prod_{\xi\in\mu_\ell}F_\xi(Y)=Y^q+Y+1.             \tag{\(\mathsf{CBK}_9\)}
+\]
+Thus the complete labelled factor family modulo common translation is
+universal: the Conway ancestry occurs only in the marked evaluation point
+\(Y=c\).  More precisely, if \(C=\chi(c)\), then
+\[
+ F_\xi(c)=c^d(C+\xi),\qquad
+ F_1(c)=c^d(C+1)=S_d(a).                              \tag{\(\mathsf{CBK}_{10}\)}
+\]
+Hence the unique factor vanishing at the marked endpoint has label \(C\),
+the failure assertion is that this label is one, and the desired
+maximal-order assertion is that it is not one.
+
+All simultaneous-translation invariants are selector-blind.  If \(d=1\),
+then \(B_1=1\) and the desired nonvanishing is automatic.  Assume \(d>1\).
+In the raw factor normalization above one has
+\[
+ \operatorname{disc}(B_1)=1,                         \tag{\(\mathsf{CBK}_{11}\)}
+\]
+and, for distinct labels,
+\[
+ \operatorname{Res}(B_1,B_\eta)=(1+\eta)^{d-1}
+ \quad(\eta\ne1),
+ \qquad
+ \operatorname{Res}(B_\xi,B_\eta)=(\xi+\eta)^d
+ \quad(\xi,\eta\ne1).                                \tag{\(\mathsf{CBK}_{12}\)}
+\]
+The factor symmetries likewise contain no marked information:
+\[
+ B_\xi(X+1)=\xi B_{\xi^{-1}}(X),
+ \qquad \operatorname{Frob}_q^{\mathrm{coeff}}(B_\xi)
+   =\xi^{-1}B_\xi.                                  \tag{\(\mathsf{CBK}_{13}\)}
+\]
+
+The individual coefficients may retain the translation, but exhaust to the
+same Fibonacci word:
+\[
+ [X^j]B_1=\binom dj S_{d-j}(a)\qquad(0\leq j<d).      \tag{\(\mathsf{CBK}_{14}\)}
+\]
+If \(\binom dj\) is odd and \(A_{n-1}\) is the selected minimal
+polynomial of \(a\), then
+\[
+ \Norm_{E_{n-1}/\F_2}([X^j]B_1)
+   =\operatorname{Res}_T(A_{n-1}(T),S_{d-j}(T)).      \tag{\(\mathsf{CBK}_{15}\)}
+\]
+When \(\binom dj\) is odd, equivalently, coefficient vanishing says
+\(\ord(w)\mid d-j\).  The norm of the constant coefficient \(j=0\) is
+the original selected resultant.  Thus these data supply no
+selector-blind second invariant: every single coefficient or Hasse jet is
+a shifted selected divisibility problem.  Any gain must add genuinely
+ancestry-sensitive input, possibly through a relation involving one or
+more shifted values.
+\end{proposition}
+
+\begin{proof}
+The first identity is the definition after the common translation.  The
+cyclotomic product gives
+\[
+ \prod_{\xi\in\mu_\ell}\bigl((Y+1)^d+\xi Y^d\bigr)
+ =(Y+1)^{q+1}+Y^{q+1}=Y^q+Y+1,
+\]
+proving \((\mathsf{CBK}_9)\).  Since
+\((c+1)/c=w\) and \(w^d=C\), evaluation at \(c\) proves
+\((\mathsf{CBK}_{10})\).
+
+Translation does not change discriminants or resultants, so compute with
+the \(F_\xi\).  At a root \(y\) of \(F_1\),
+\[
+ F_1'(y)=\frac{y^{d-1}}{y+1},\qquad
+ \prod y=F_1(0)=1,\qquad \prod(y+1)=F_1(1)=1.
+\]
+This proves \((\mathsf{CBK}_{11})\).  At a root of \(F_1\), the first
+resultant in \((\mathsf{CBK}_{12})\) follows directly from
+\(F_\eta(y)=(1+\eta)y^d\) and \(\prod y=1\).  For \(\xi\ne1\), the raw
+leading coefficient is \(1+\xi\) and
+\(\prod y=(1+\xi)^{-1}\); the same root evaluation gives the second
+resultant exactly.  Direct substitution and \(c^q=c+1\) give
+\((\mathsf{CBK}_{13})\), where the Frobenius acts coefficientwise.
+
+Finally the binomial theorem gives
+\[
+ [X^j]B_1
+ =\binom dj\bigl((c+1)^{d-j}+c^{d-j}\bigr)
+ =\binom dj S_{d-j}(a),
+\]
+the last equality being the same characteristic-two Binet identity as in
+\((\mathsf{CBK}_7)\).  Taking the norm over the selected Frobenius orbit
+is the monic resultant in \((\mathsf{CBK}_{15})\).  Lean kernel-checks the
+universal trace-one collapse and the marked phase-defect identity; the
+cyclotomic product, resultant products, and selected finite-field
+specialization remain paper-level.
+\end{proof}
+
 \begin{proposition}[weighted reciprocity and a circular cyclotomic-difference selector]
 \label{prop:fermat-weighted-selector}
 Retain Proposition~\ref{prop:fermat-canonical-global-lift}, put
@@ -15681,7 +15950,7 @@ one has
  \operatorname{Tr}_{K/\F_2}(Z)=1,\qquad
  w^{(q^2-1)/163}=1.                                 \tag{\(\mathsf{STN}_2\)}
 \]
-Thus the exact \(D\)-selector is a \(163\)-rd power even though its
+Thus the selected Artin--Schreier root \(w\) is a \(163\)-rd power even though its
 \(C\)-antecedent is primitive and both selected lower coordinates in
 \((\mathsf{STN}_2)\) agree with the Conway tower.
 
@@ -15712,8 +15981,8 @@ the three symmetric identities in \((\mathsf{STN}_2)\) and
 \]
 and one nonidentity power for each prime factor certify
 \(\ord(\gamma)=q-1\).  Absolute trace one makes the quadratic for \(w\)
-irreducible, and the final displayed power certifies the \(163\)-rd-power
-failure.  The concatenated fixed witness has SHA--256 fingerprint
+irreducible, and the final displayed power certifies that \(w\) is a
+\(163\)-rd power.  The concatenated fixed witness has SHA--256 fingerprint
 \[
  \mathtt{6d3366ea5cc7a3a0b42a1f0cb4a48adf19eef95892b3a21c32786e88cf7424b0}.
 \]
@@ -15734,6 +16003,90 @@ Lean kernel-checks the symmetric identities forcing trace one, middle
 coefficient \(a+1\), and norm \(a^2+a+1\) from the selected cubic ancestry.
 The explicit finite-field witness and its primitivity and power tests remain
 script-level exact computation.
+\end{proof}
+
+\begin{proposition}[one selected cubic step still does not transfer]
+\label{prop:dk-one-step-countermodel}
+Even the complete one-step cubic coefficient, together with primitivity on
+both sides, does not imply the exceptional \(D\)-condition without the
+full lower Conway ancestry.
+
+Put \(t=2^{27}\), \(q=t^3=2^{81}\), and use the same cyclotomic ambient
+field \(\F_2[z]/(z^{162}+z^{81}+1)\) as in
+Proposition~\ref{prop:dk-selected-fibre-countermodel}.  There is a primitive
+element
+\[
+ a=\mathtt{0x9209240041201241041008008040048008040040}
+ \in\F_t
+\]
+such that \(X^3+X+a\) is irreducible over \(\F_t\).  In
+\[
+ K=\F_t[X]/(X^3+X+a)
+\]
+put \(\gamma=X\).  Then both \(a\) and \(\gamma\) are primitive in their
+respective multiplicative groups and
+\[
+ \boxed{\ \gamma^3+\gamma=a.\ }                      \tag{\(\mathsf{OSC}_1\)}
+\]
+For \(g=\gamma^2+\gamma+1=(1,1,1)\) in the basis
+\((1,\gamma,\gamma^2)\), its three relative conjugates satisfy the complete
+selected symmetric fingerprint
+\[
+ \operatorname{Tr}_{K/\F_t}(g)=1,\qquad
+ e_2(g,g^t,g^{t^2})=a+1,\qquad
+ \Norm_{K/\F_t}(g)=a^2+a+1.                          \tag{\(\mathsf{OSC}_2\)}
+\]
+Nevertheless, with \(Z=g^{t^2-2}\) and
+\[
+ L=K[w]/(w^2+w+Z),
+\]
+one has
+\[
+ \operatorname{Tr}_{K/\F_2}(Z)=1,\qquad
+ w^{(q^2-1)/163}=1.                                  \tag{\(\mathsf{OSC}_3\)}
+\]
+Thus a primitive lower ancestor, a primitive selected cubic child, the
+literal rational \(D\)-selector, and all three exact one-step coefficients
+remain compatible with \(163\)-failure.
+
+This is not a counterexample to \(C_4\Rightarrow D'_4\).  The element \(a\)
+is not the Conway-selected \(\gamma_3\); it does not continue the recursive
+ancestry below this step.  Conversely, for a fixed actual lower
+\(a=\gamma_{k-1}\), the three equations in
+\((\mathsf{OSC}_2)\) give the single cubic
+\[
+ T^3+T^2+(a+1)T+(a^2+a+1),                           \tag{\(\mathsf{OSC}_4\)}
+\]
+so the slice consists only of the selected Frobenius orbit.  Any
+division-polynomial, Jacobi, or character evaluation on that zero-dimensional
+slice is therefore exactly the original \(D\)-evaluation.
+\end{proposition}
+
+\begin{proof}
+The maintained verifier
+\path{experiments/cyclotomic_3k_family.py} checks the fixed witness.  The
+factorizations
+\[
+ t-1=7\cdot73\cdot262657,
+\]
+\[
+ q-1=7\cdot73\cdot2593\cdot71119\cdot262657\cdot97685839
+\]
+and the corresponding nonidentity powers certify primitivity of \(a\) and
+\(\gamma\).  The equalities \(\gamma^q=\gamma\) and \(\gamma^t\ne\gamma\)
+certify irreducibility of \(X^3+X+a\), while
+\(\operatorname{Tr}_{K/\F_2}(Z)=1\) makes the Artin--Schreier quadratic
+irreducible.  It checks \((\mathsf{OSC}_1)\)--\((\mathsf{OSC}_3)\)
+directly; the fixed witness has SHA--256 fingerprint
+\[
+ \mathtt{5c5b45506d7f0b94c9b58727bdc1d38112f9f3c8f9f61dc5000d17724360e032}.
+\]
+The generic symmetric calculations giving \((\mathsf{OSC}_2)\) are already
+kernel-checked in \texttt{Ogdoad.Excess}.  Lean now also checks that
+\(x^2+x+1\) has only the pair \(x,x+1\) in each fibre and that the three
+selected symmetric coordinates expand to \((\mathsf{OSC}_4)\).  The fixed
+finite-field primitivity and \(163\)-power certificates remain exact
+script-level computation.
 \end{proof}
 
 \begin{proposition}[\(C\)-tower-faithful exceptional countermodel]
@@ -20293,6 +20646,17 @@ divisor, all Moore-span bounds, and the adjoint trace identities.  Such a
 labeling need not respect Conway multiplication, so the construction is
 not a counterexample; it proves that additive linearization cannot replace
 the missing multiplicative-ancestry argument.
+Corollary~\ref{cor:fermat-upper-block-factorization} and
+Proposition~\ref{prop:fermat-upper-block-universal-translate} retain the
+literal least upper Conway interval.  Its complete character histogram,
+factor degrees, discriminants, pairwise resultants, and root-difference
+data are universal after one common translation.  The marked endpoint is
+the only remaining datum: its trivial-label test is
+\(B_1(0)=S_d(a_{n-1})\).  Every individual coefficient or Hasse-jet test
+is a shifted Fibonacci value, and its selected norm is the corresponding
+shifted resultant.  Thus the entire labelled block supplies no
+selector-blind second invariant; any gain must add genuinely
+ancestry-sensitive input, possibly through a relation among shifted values.
 Proposition~\ref{prop:fermat-two-step-quartic} keeps two consecutive
 selected levels at once: its sparse quartic composition is irreducible
 on success and splits into exactly \(\ell\) irreducible quartics on
@@ -20415,6 +20779,13 @@ irreducible factors while preserving the complete \(r\)-power ancestry,
 smooth degree, multiplicative orders, and full \(p\)-primary test.  They
 also occur among scalings inside any fixed bottom Kummer coset.  Only the
 actual Conway scaling \(c=1\) remains unevaluated.
+Proposition~\ref{prop:ordinary-affine-marked-scalar} proves that this
+mark cannot be recovered from the surrounding affine orbit.  Rescaling a
+Kummer generator permutes the complete translate set and its full character
+histogram, while moving the distinguished value from \(\chi(1+x)\) to
+\(\chi(1+ux)\).  Hence every symmetric affine-orbit invariant is blind;
+the source-pinned \(p=359\) trace bit is precisely the missing mark
+\(u=1\) fixed by Conway ancestry.
 Proposition~\ref{prop:ordinary-fixed-translate-countermodel} removes even
 fixed translation and ordinal-minimal labeling as generic escape routes:
 one exact degree-twenty model has \(c=1\), full Kummer degree, simultaneous
@@ -20573,6 +20944,19 @@ lower-level primitivity do not single out the selected fibre.  The full
 cubic recursion remains rigid up to absolute Frobenius, so this is a
 sharp obstruction to one-step descent rather than a recursive
 countermodel.
+Propositions~\ref{prop:singer-normal-translate} and
+\ref{prop:cubic-two-normal-bases} nevertheless supply two selected normal
+coordinates joined by an explicit determinant-one half-circulant.  Their
+full Frobenius orbits lie in the current Kummer kernel simultaneously, so
+normal-basis, Moore, and subspace-polynomial data again carry only the
+original selected phase.  Proposition~\ref{prop:cubic-two-normal-countermodel}
+makes this compatibility exact at the actual degree (81) and current
+prime \(2593\): the Singer, normalized inverse, and half-circulant identities,
+absolute normality of \(\varepsilon\), and complete normality of \(\beta\)
+all survive failure.  The model breaks exactly
+at the next lower selected trace equation.  Thus a proof must use the full
+recursive Conway ancestry, not the nonlinear incidence of these two normal
+bases alone.
 
 \item \emph{Exceptional arm.}
 Prove \(D'_k\) for every \(k\), equivalently
@@ -20605,6 +20989,16 @@ actual \(C\)-period ancestry, and is primitive under \(C_k\), yet its
 Artin--Schreier root misses the entire current \(\ell\)-primary factor.
 This does not disprove a special-form implication \(C_k\Rightarrow D'_k\);
 such an implication remains open and must use the actual formula for \(Z\).
+Proposition~\ref{prop:dk-one-step-countermodel} strengthens that boundary.
+At the actual \(k=4\) degrees and current prime \(163\), both a lower
+coordinate and its cubic child are primitive, the exact equation
+\(\gamma^3+\gamma=a\) holds, and consequently all three selected symmetric
+coordinates of \(g=\gamma^2+\gamma+1\) have the exact one-step selected
+form; nevertheless the resulting Artin--Schreier root is a \(163\)-rd power.
+The sole mismatch is that \(a\) is not the Conway-selected preceding
+coordinate.  Hence even one exact recursive step plus primitivity cannot
+transfer \(C\) to \(D\);
+the complete lower ancestry is indispensable.
 Proposition~\ref{prop:dk-reflection-descent} puts that actual formula into
 the same non-Galois reflection-norm normal form as the singleton-even arm:
 \[
@@ -20873,10 +21267,12 @@ direct power test on the smallest factor of each checked level.
 
 \subsection{Reproducibility}
 
-The three maintained entry points are
+The four maintained entry points are
 \path{experiments/ordinal_excess_probe.py},
 \path{experiments/cyclotomic_3k_family.py}, and
-\path{experiments/exception_column_m4.py}.  The additional programs
+\path{experiments/exception_column_m4.py}, together with the focused
+certificate \path{experiments/cubic_two_normal_countermodel.py}.  The
+additional programs
 under \path{experiments/excess/} are exploratory and are not evidence
 for the theorem statements in this paper.  Those statements depend only
 on the displayed proofs and cited results; the maintained programs serve

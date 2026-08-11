@@ -436,6 +436,7 @@ def selected_trace_norm_fibre_countermodel() -> None:
     q = t**3
     t_squared = t * t
     ell = 163
+    assert is_prime(ell)[0] and (q * q - 1) % ell == 0
     z = 2
     z_inverse = (1 << 161) ^ (1 << 80)
     gamma_4 = z ^ z_inverse
@@ -554,10 +555,145 @@ def selected_trace_norm_fibre_countermodel() -> None:
     )
 
 
+def selected_one_step_ancestry_countermodel() -> None:
+    """Certify the stronger k=4 one-step-ancestry C/D countermodel.
+
+    Both the lower coefficient ``a`` and its cubic child ``gamma`` are
+    primitive, and the literal Conway equation ``gamma^3 + gamma = a`` fixes
+    all three symmetric coordinates of ``g = gamma^2 + gamma + 1``.  The
+    Artin--Schreier root of the exact D-selector is nevertheless a 163rd
+    power.  The one remaining mismatch is global: ``a`` is not the
+    Conway-selected ``gamma_3`` and does not continue the complete lower
+    recursive ancestry.
+    """
+
+    h = 81
+    t = 1 << 27
+    q = t**3
+    t_squared = t * t
+    ell = 163
+    z = 2
+    z_inverse = (1 << 161) ^ (1 << 80)
+    selected_4 = z ^ z_inverse
+    selected_3 = fpow(selected_4, 3, h) ^ selected_4
+    a = 0x9209240041201241041008008040048008040040
+    constant = fmul(a, a, h) ^ a ^ 1
+    selector = (
+        0x48001000201248240001049248201049248201,
+        0x249049208041209048008200008048040001041,
+        0x200049009041049200001249209000241249201,
+    )
+
+    Triple = tuple[int, int, int]
+    Pair = tuple[Triple, Triple]
+
+    def triple_add(x: Triple, y: Triple) -> Triple:
+        return tuple(u ^ v for u, v in zip(x, y, strict=True))
+
+    def triple_mul(x: Triple, y: Triple) -> Triple:
+        coefficients = [0] * 5
+        for i, u in enumerate(x):
+            for j, v in enumerate(y):
+                coefficients[i + j] ^= fmul(u, v, h)
+        # X^3 = X + a in characteristic two.
+        for degree in (4, 3):
+            value = coefficients[degree]
+            coefficients[degree] = 0
+            if value:
+                coefficients[degree - 2] ^= value
+                coefficients[degree - 3] ^= fmul(value, a, h)
+        return tuple(coefficients[:3])
+
+    def triple_pow(x: Triple, exponent: int) -> Triple:
+        result = (1, 0, 0)
+        while exponent:
+            if exponent & 1:
+                result = triple_mul(result, x)
+            exponent >>= 1
+            if exponent:
+                x = triple_mul(x, x)
+        return result
+
+    def pair_add(x: Pair, y: Pair) -> Pair:
+        return triple_add(x[0], y[0]), triple_add(x[1], y[1])
+
+    def pair_mul(x: Pair, y: Pair) -> Pair:
+        high = triple_mul(x[1], y[1])
+        return (
+            triple_add(triple_mul(x[0], y[0]), triple_mul(high, selector)),
+            triple_add(
+                triple_add(triple_mul(x[0], y[1]), triple_mul(x[1], y[0])),
+                high,
+            ),
+        )
+
+    def pair_pow(x: Pair, exponent: int) -> Pair:
+        result = ((1, 0, 0), (0, 0, 0))
+        while exponent:
+            if exponent & 1:
+                result = pair_mul(result, x)
+            exponent >>= 1
+            if exponent:
+                x = pair_mul(x, x)
+        return result
+
+    def absolute_trace(x: Triple) -> Triple:
+        result = (0, 0, 0)
+        for _ in range(h):
+            result = triple_add(result, x)
+            x = triple_mul(x, x)
+        return result
+
+    zero = (0, 0, 0)
+    one = (1, 0, 0)
+    gamma = (0, 1, 0)
+    assert fpow(a, t, h) == a and a != selected_3
+    for factor in (7, 73, 262657):
+        assert fpow(a, (t - 1) // factor, h) != 1
+    assert fpow(a, t - 1, h) == 1
+
+    assert triple_pow(gamma, q) == gamma and triple_pow(gamma, t) != gamma
+    assert triple_add(triple_pow(gamma, 3), gamma) == (a, 0, 0)
+    factors = [7, 73, 2593, 71119, 262657, 97685839]
+    assert prod(factors) == q - 1
+    for factor in factors:
+        assert triple_pow(gamma, (q - 1) // factor) != one
+    assert triple_pow(gamma, q - 1) == one
+
+    g = triple_add(triple_add(triple_mul(gamma, gamma), gamma), one)
+    assert g == (1, 1, 1)
+    g_t = triple_pow(g, t)
+    g_t_squared = triple_pow(g, t_squared)
+    assert triple_add(triple_add(g, g_t), g_t_squared) == one
+    assert triple_mul(triple_mul(g, g_t), g_t_squared) == (constant, 0, 0)
+    e2 = triple_add(
+        triple_add(triple_mul(g, g_t), triple_mul(g, g_t_squared)),
+        triple_mul(g_t, g_t_squared),
+    )
+    assert e2 == (a ^ 1, 0, 0)
+
+    assert triple_pow(g, t_squared - 2) == selector
+    assert absolute_trace(selector) == one
+    root = (zero, one)
+    assert pair_pow(root, (q * q - 1) // ell) == (one, zero)
+    assert pair_add(pair_mul(root, root), root) == (selector, zero)
+
+    blob = "|".join(hex(x) for x in (a, constant, *selector)).encode()
+    assert hashlib.sha256(blob).hexdigest() == (
+        "5c5b45506d7f0b94c9b58727bdc1d38112f9f3c8f9f61dc5000d17724360e032"
+    )
+    print(
+        "one-step-ancestry C/D countermodel (k=4): primitive lower a and "
+        "primitive cubic child; exact selector root is a 163rd power; only "
+        "the complete lower Conway ancestry differs"
+    )
+
+
 def main() -> None:
     term_algebra_cross_check()
     actual_selector_transfer_countermodel()
     selected_trace_norm_fibre_countermodel()
+    selected_one_step_ancestry_countermodel()
     # factorization audit: exact products, squarefreeness, primality
     for k in FULLY_FACTORED_LEVELS:
         prod = 1

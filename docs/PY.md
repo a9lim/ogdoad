@@ -213,8 +213,9 @@ back third (≈line 860 on) shows accretion fatigue:
 
 ### The other top-level experiments
 
-Mostly clean (this tier is genuinely well-kept — `cyclotomic_3k_family.py` and
-`misere_kernel.py` survived review with only nits). Remaining:
+Mostly clean (this tier is genuinely well-kept — `cyclotomic_3k_family.py`,
+`cubic_two_normal_countermodel.py`, and `misere_kernel.py` survived review
+with only nits). Remaining:
 
 - `linking_game.py:419` — stage dispatch via raw `sys.argv` **silently no-ops
   on a typo** (misspelled stage → nothing runs, exit 0). Its siblings use

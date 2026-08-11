@@ -131,10 +131,17 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   identity on an odd-order target.  It also checks the finite counting core
   obtained by deleting the uniquely trivial base line from a uniformly
   labelled projective set, and the characteristic-two norm collapse used in
-  the labelled first-upper-block factorization.  The literal nim multiplication
+  the labelled first-upper-block factorization.  It now also checks the
+  trace-one universal-translation collapse and the identity making the marked
+  constant term exactly the one-phase defect.  The literal nim multiplication
   `e_(m+i)=c_n*e_i`, triviality on the lower finite-field block, and the
   projective-line/cyclotomic-product specialization identifying
   `H=C^(-2)` and `B_1(0)=S_d(a)` remain paper-level;
+- the denominator-cleared ordinary affine-orbit identity reducing
+  `(Y+1)^Q+lambda*(Y+1)` to `Y^Q+lambda*Y+(1+lambda)`.  The additive
+  polynomial product over `F_Q`, rescaling invariance of the complete
+  translate set, and the marked-scalar Kummer interpretation remain
+  paper-level;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -224,7 +231,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   inverse in the group algebra.  From the cyclotomic Frobenius projectors it
   also proves that `epsilon_k` is absolutely normal and that `eta_k` spans
   the trace-zero hyperplane; it does not claim complete normality for
-  `epsilon_k`;
+  `epsilon_k`.  A separate exact degree-81 bit-polynomial certificate uses
+  kernel `decide` to check the Singer, normalized-beta, half-circulant,
+  current-failure, full Kummer-kernel, Rabin-residue, and selected-ancestry
+  break identities at the actual current prime `2593`.  The standard
+  Moore-determinant interpretation of the maintained script remains
+  paper-level linear algebra;
 - the denominator-free first-Witt recurrence for the lifted Conway unit,
   including its selected terminal numerator and the next-discriminant relative
   norm; identifying these expressions with a local Fermat quotient requires
@@ -268,8 +280,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   `experiments/cyclotomic_3k_family.py` retains primitivity, the literal
   rational selector, and the selected trace and norm while changing only the
   middle coefficient and making the Artin--Schreier root a `163`rd power;
-  Lean does not check that finite-field witness, its irreducibility,
-  primitivity, or power tests;
+  the stronger fixed witness in the same script retains primitive lower and
+  upper coordinates and the literal selected cubic equation, hence all three
+  symmetric coordinates, while still failing at `163`.  Lean additionally
+  checks the two-point fibre of `x^2+x+1` and that the three selected
+  symmetric coordinates expand to one rigid cubic.  It does not check either
+  finite-field witness, its irreducibility, primitivity, or power tests;
 - the characteristic-two Mobius trace identity
   `M + M^(-1) = (w^2+w)^(-1)` behind the exceptional arm's selected
   one-variable Dickson critical value;

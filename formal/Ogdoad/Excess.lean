@@ -1112,6 +1112,49 @@ theorem cubic_auxiliary_e2_coherence
 
 variable {F : Type*} [Field F] [CharP F 2]
 
+/-- The quadratic auxiliary coordinate `x^2+x+1` determines `x` only up to
+the Artin--Schreier pair `x, x+1`. -/
+theorem auxiliary_fiber_eq_or_add_one (x y : F) :
+    x ^ 2 + x + 1 = y ^ 2 + y + 1 ↔ x = y ∨ x = y + 1 := by
+  have hchar : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hneg (u : F) : -u = u := by
+    rw [neg_eq_iff_add_eq_zero]
+    calc
+      u + u = 2 * u := by ring
+      _ = 0 := by rw [hchar]; simp
+  constructor
+  · intro h
+    have hfac : (x + y) * (x + y + 1) = 0 := by
+      linear_combination h + (x * y + y + y ^ 2) * hchar
+    rcases mul_eq_zero.mp hfac with hzero | hone
+    · left
+      exact (eq_neg_of_add_eq_zero_left hzero).trans (hneg y)
+    · right
+      have hzero : x + (y + 1) = 0 := by simpa [add_assoc] using hone
+      exact (eq_neg_of_add_eq_zero_left hzero).trans (hneg (y + 1))
+  · rintro (rfl | rfl)
+    · rfl
+    · calc
+        (y + 1) ^ 2 + (y + 1) + 1 =
+            y ^ 2 + y + 1 + 2 * (y + 1) := by ring
+        _ = y ^ 2 + y + 1 := by rw [hchar]; simp
+
+variable {S : Type*} [CommRing S]
+
+/-- Once trace, middle coefficient and norm are all fixed, the three
+auxiliary conjugates are exactly the roots of one selected cubic. -/
+theorem selected_auxiliary_slice_polynomial
+    (T G₀ G₁ G₂ a C : S)
+    (h₁ : G₀ + G₁ + G₂ = 1)
+    (h₂ : G₀ * G₁ + G₀ * G₂ + G₁ * G₂ = a + 1)
+    (h₃ : G₀ * G₁ * G₂ = C) :
+    (T + G₀) * (T + G₁) * (T + G₂) =
+      T ^ 3 + T ^ 2 + (a + 1) * T + C := by
+  calc
+    _ = T ^ 3 + (G₀ + G₁ + G₂) * T ^ 2 +
+        (G₀ * G₁ + G₀ * G₂ + G₁ * G₂) * T + G₀ * G₁ * G₂ := by ring
+    _ = T ^ 3 + T ^ 2 + (a + 1) * T + C := by rw [h₁, h₂, h₃]; ring
+
 /-- Denominator-free algebra behind the tower-faithful exceptional
 countermodel.  For `w = 1 / (z + 1)`, the Artin--Schreier coefficient is
 the inverse of `z + z⁻¹`, while the associated norm-one quotient is exactly
@@ -2020,7 +2063,39 @@ theorem upper_block_norm_collapse
   rw [htwo]
   simp
 
+/-- After translating the first upper Conway block to the trace-one model,
+the two norm terms collapse to the universal polynomial `Y^q+Y+1`. -/
+theorem universal_trace_one_collapse
+    {R : Type*} [CommRing R] [CharP R 2] (y yq : R) :
+    (yq + 1) * (y + 1) + yq * y = yq + y + 1 := by
+  ring_nf
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  rw [htwo]
+  simp
+
+/-- The translated factor's value at the Conway-marked endpoint is exactly
+the defect of its one Kummer phase. -/
+theorem marked_constant_is_phase_defect
+    {R : Type*} [CommRing R] (c w C : R) (d : Nat)
+    (hc : c + 1 = c * w) (hC : w ^ d = C) :
+    (c + 1) ^ d + c ^ d = c ^ d * (C + 1) := by
+  rw [hc, mul_pow, hC]
+  ring
+
 end ConwayBitKummer
+
+section OrdinaryAffineTranslate
+
+variable {R : Type*} [CommRing R]
+
+/-- Algebraic core of the ordinary affine-translate orbit polynomial.  The
+finite-field product `prod_(c in F_q) (Y+1+c*x)` supplies the two terms on
+the left after `x^q=lambda*x`. -/
+theorem ordinary_affine_translate_collapse (Y Yq lambda : R) :
+    (Yq + 1) + lambda * (Y + 1) = Yq + lambda * Y + (1 + lambda) := by
+  ring
+
+end OrdinaryAffineTranslate
 
 section CubicNormalBridge
 
@@ -2170,6 +2245,121 @@ theorem cubicDerivativeRecurrenceStep (P : R[X])
 end CubicDerivativeRecurrence
 
 end CyclotomicReflectionAlgebra
+
+namespace CubicTwoNormalCounterexample
+
+/-! Exact bit-polynomial arithmetic for the paper's degree-81 countermodel.
+Bit `i` is the coefficient of `X^i`; the modulus has degree 81. -/
+
+def modulus : Nat := 0x329341f8b47dd7938af63
+def degree : Nat := 81
+def q : Nat := 2 ^ 27
+def fieldOrder : Nat := 2 ^ degree
+def multOrder : Nat := fieldOrder - 1
+def torusOrder : Nat := q ^ 2 + q + 1
+def ell : Nat := 2593
+def eta : Nat := 1629469875507523981620540
+def epsilon : Nat := 1629469875507523981620541
+def beta : Nat := 2293671573472151973449566
+
+def mulAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, b, acc =>
+      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
+      let a2 := Nat.shiftLeft a 1
+      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
+      mulAux fuel a' (b / 2) acc'
+
+def mul (a b : Nat) : Nat := mulAux degree a b 0
+
+def powAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, e, acc =>
+      if e = 0 then acc
+      else
+        let acc' := if e % 2 = 1 then mul acc a else acc
+        powAux fuel (mul a a) (e / 2) acc'
+
+def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+
+def etaTrace27 : Nat :=
+  Nat.xor eta (Nat.xor (fpow eta q) (fpow eta (q ^ 2)))
+
+theorem current_prime : Nat.Prime ell := by norm_num [ell]
+
+theorem current_factor : ell ∣ torusOrder := by
+  norm_num [ell, torusOrder, q]
+
+def halfCirculant : Nat :=
+  (List.range 79).foldl
+    (fun acc j => Nat.xor acc (fpow epsilon (2 ^ (j + 1)))) 0
+
+def polyModAux : Nat → Nat → Nat → Nat
+  | 0, a, _ => a
+  | fuel + 1, a, b =>
+      if b = 0 ∨ Nat.log2 a < Nat.log2 b then a
+      else polyModAux fuel
+        (Nat.xor a (Nat.shiftLeft b (Nat.log2 a - Nat.log2 b))) b
+
+def polyMod (a b : Nat) : Nat := polyModAux 200 a b
+
+def polyGcdAux : Nat → Nat → Nat → Nat
+  | 0, a, _ => a
+  | fuel + 1, a, b =>
+      if b = 0 then a else polyGcdAux fuel b (polyMod a b)
+
+def polyGcd (a b : Nat) : Nat := polyGcdAux 200 a b
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem singer_equation : fpow eta (q + 1) = Nat.xor eta 1 := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem torus_norm : fpow eta torusOrder = 1 := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem current_failure : fpow eta (torusOrder / ell) = 1 := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem translate_identities :
+    epsilon = Nat.xor eta 1 ∧ epsilon = fpow eta (q + 1) := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem beta_eta_identity : mul (fpow beta (q - 1)) eta = 1 := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem beta_normalized_identity :
+    beta = Nat.xor 1 (fpow eta (q / 2 + 1)) := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem half_circulant_identity : halfCirculant = beta := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem full_kummer_kernel :
+    fpow eta (multOrder / ell) = 1 ∧
+    fpow epsilon (multOrder / ell) = 1 ∧
+    fpow beta (multOrder / ell) = 1 := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem selected_trace_ancestry_breaks :
+    Nat.xor (fpow etaTrace27 (2 ^ 9 + 1))
+      (Nat.xor etaTrace27 1) ≠ 0 := by decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+theorem rabin_certificate :
+    fpow 2 (2 ^ 81) = 2 ∧
+    polyGcd modulus (Nat.xor (fpow 2 (2 ^ 27)) 2) = 1 := by decide
+
+end CubicTwoNormalCounterexample
 
 section KummerTailTransport
 
