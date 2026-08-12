@@ -12,6 +12,7 @@ import Ogdoad.FifoMixedCross
 import Ogdoad.FifoSameOpenBraid
 import Ogdoad.FifoDummyExitCarrier
 import Ogdoad.FifoCrossExitIncidence
+import Ogdoad.FifoOuterFan
 import Ogdoad.FifoNeutralPair
 import Ogdoad.FifoMinHotCurvature
 import Ogdoad.FifoMatching
