@@ -410,6 +410,14 @@ absolute boundedness.
   their orders, and their relative norms cannot close Z. A surviving proof
   must add an ancestry-sensitive additive quantity before this multiplicative
   normalization.
+  The first such additive quantity is now exact. Under minimal hypothetical
+  failure the extracted value has relative trace
+  `A^K*S_K(A) != 0` at the preceding Conway edge, and its linear remainder
+  coefficient is `A^(K-1)*S_K(A) != 0`. The arithmetic identity defining `K`
+  proves globally that the preceding zero period `Q+1` does not divide `K`.
+  Thus failure cannot force trace zero or descent to the lower field; it is
+  instead one exact cancellation between two nonzero lower selected values.
+  Proving those values unequal is the surviving additive-ancestry target.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -784,6 +792,16 @@ absolute boundedness.
   one. Descending to the two-decomposition field erases `rho`, whose relative
   norm is one. Thus realification supplies a precise local norm formulation but
   cannot replace the missing mixed prime selector.
+  The entire future odd-Kummer tail is now saturated as well. Once a current
+  prime `p | L_(r,a)` is born, the Euler phase of every descendant
+  `1+x_j` is exactly the original phase at level `a`; restriction from a
+  later field merely raises it by `r^(J-j)`. Every multiplicative Laurent
+  word in future selectors therefore gives a power of the same phase. The
+  norm identity `Norm(x_n+c)=x_(n-1)+c^r` also pushes every two-ancestor sum
+  into a finite packet of additive phases in the birth field. Thus climbing
+  the ordinary tower creates no new current Kummer coordinate. The surviving
+  proof must evaluate that finite birth packet or the selected ray coordinate
+  before Euler projection.
 - **`C`.** The first three levels are proved analytically. Norm recursion,
   cyclic parity, primitive-CRT isolation, mixed Jacobi expansion,
   Singer–Wendt factorization, `S_3` descent, and the prescribed-trace character
@@ -871,7 +889,13 @@ absolute boundedness.
   levels therefore give only powers of the birth phase. Even every two-point
   sum `gamma_n+gamma_t` descends to that phase or to one of finitely many
   birth-edge sums. Climbing the tower creates no new current Kummer
-  coordinate; only a genuinely additive birth-edge correlation remains.
+  coordinate. The literal birth-edge secants are now saturated too: every
+  `chi(gamma_k^(2^a)+gamma_s^(2^b))` is an invertible power of
+  `chi(gamma_k)`, while the complete lower Frobenius-orbit product has total
+  weight zero and lands in the lower field. Hence norm, resultant, and
+  Hasse--Davenport products erase the phase, and nonsymmetric products merely
+  reparameterize it. A surviving additive correlation must go beyond these
+  literal two-ancestor secants.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -1095,6 +1119,14 @@ absolute boundedness.
   `(1+A)/3`. Thus the marked Hilbert, selected sextic, Jacobi, half-block,
   and cubic-recurrence presentations are mutually lossless
   reparametrizations of the same still-unevaluated scalar.
+  The full current-primary support cube makes the global product boundary
+  exact. For composite `Psi_k`, every nonempty pattern of successful current
+  primes occurs among full-degree norm-one reciprocal antiunits with the same
+  Dickson cubic shape and selected three-primary projection. Thus those
+  ambient properties, and bare nontriviality of the product of all primary
+  phases, imply only that some coordinate succeeds—not that every coordinate
+  succeeds. The missing input is the literal marked coefficient `L(1)` (or an
+  equivalent selected value), not another unweighted cross-prime product.
   Below Euler projection there is now an exact adjacent-value compression in
   the original corrected-norm field. Put `D=zeta^4+zeta` in `K=F_(4^h)`.
   The full `F_16` translate table and injectivity of the quadratic

@@ -121,6 +121,15 @@ Hilbert coefficient identities used by the marked `D` phase bridge.  Their
 selected finite-field specializations remain paper-level, and none of these
 declarations asserts any of the four universal nonvanishings.
 
+The next global frontier cores sharpen that boundary without changing it.
+Lean checks the `Z` first-additive-edge power coordinates, trace identity, and
+factor-parameter obstruction; the `C` birth-secant factorization, phase-weight
+algebra, and coprime-primary projection; and the `D` sixth-root and
+coprime-primary noncancellation used by the current-support cube.  The selected
+finite-field ancestry, orbit-product, and support realizations are paper-level.
+These are all-level reductions and route exclusions, not a proof of the
+remaining selected nonvanishing assertions.
+
 The ordinary `p=359` row now has two deliberately separated verification
 classes.  The checked-in 438,103-byte Hilbert-root artifact plus the maintained
 python-flint full verifier form a locally replayable exact finite certificate:

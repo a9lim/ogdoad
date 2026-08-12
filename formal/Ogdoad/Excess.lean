@@ -1385,6 +1385,40 @@ theorem cubic_phase_swap_square
 
 end CubicSingerIncidence
 
+section NormCoherentEulerTail
+
+variable {G : Type*} [CommMonoid G]
+
+/-- A norm-coherent sequence carries one fixed Euler phase along its whole
+tail.  The theorem isolates the formal core common to the ordinary Kummer
+spines and the cubic selector tower: the later Euler exponent is the relative
+norm exponent times the earlier Euler exponent. -/
+theorem norm_coherent_euler_phase_tail
+    (x : Nat → G) (E S : Nat → Nat) (k : Nat)
+    (hnorm : ∀ j, k < j → x j ^ S j = x (j - 1))
+    (hexp : ∀ j, k < j → E j = S j * E (j - 1)) :
+    ∀ j, k ≤ j → x j ^ E j = x k ^ E k := by
+  intro j hkj
+  induction j, hkj using Nat.le_induction with
+  | base => rfl
+  | succ j hkj ih =>
+      have hlt : k < j + 1 := Nat.lt_succ_iff.mpr hkj
+      rw [hexp (j + 1) hlt, pow_mul, hnorm (j + 1) hlt]
+      simpa using ih
+
+/-- Any affine family with the same norm/exponent recursion has the identical
+tail collapse.  In the finite-field applications `z j` is a translate or a
+two-ancestor sum rather than the distinguished selector itself. -/
+theorem norm_coherent_affine_phase_tail
+    (z : Nat → G) (E S : Nat → Nat) (k : Nat)
+    (hnorm : ∀ j, k < j → z j ^ S j = z (j - 1))
+    (hexp : ∀ j, k < j → E j = S j * E (j - 1))
+    (j : Nat) (hkj : k ≤ j) :
+    z j ^ E j = z k ^ E k := by
+  exact norm_coherent_euler_phase_tail z E S k hnorm hexp j hkj
+
+end NormCoherentEulerTail
+
 section CubicPhaseTail
 
 variable {G : Type*} [CommMonoid G]
@@ -1522,6 +1556,104 @@ theorem cubic_tail_translate_has_same_phase
 
 end CubicPhaseTail
 
+section CubicBirthSecants
+
+variable {K : Type*} [Field K]
+
+/-- A sum of two real cyclotomic coordinates factors into the two secants
+joining their oriented endpoints. -/
+theorem real_cyclotomic_pair_factorization
+    (x y : K) (hx : x ≠ 0) (hy : y ≠ 0) :
+    (x + x⁻¹) + (y + y⁻¹) = (x + y) * (1 + (x * y)⁻¹) := by
+  field_simp
+  ring
+
+variable {H : Type*} [CommGroup H]
+
+/-- If the two active secants have Frobenius weights `2^i` and `2^j`,
+their product is one power of the selected real-period phase `u^2`. -/
+theorem birth_secant_phase_is_selected_power
+    (u theta phi : H) (i j w : Nat)
+    (htheta : theta = u ^ 2)
+    (hphi : phi = u ^ (2 ^ i) * u ^ (2 ^ j))
+    (hw : 2 * w = 2 ^ i + 2 ^ j) :
+    phi = theta ^ w := by
+  calc
+    phi = u ^ (2 ^ i + 2 ^ j) := by rw [hphi, pow_add]
+    _ = u ^ (2 * w) := by rw [hw]
+    _ = (u ^ 2) ^ w := by rw [pow_mul]
+    _ = theta ^ w := by rw [htheta]
+
+/-- Torsion-corrected form of the birth-secant phase transport.  It accepts
+the exponent congruence modulo `ell` used by the cyclotomic specialization,
+rather than requiring an exact equality of the displayed natural exponents. -/
+theorem birth_secant_phase_is_selected_power_mod_torsion
+    (u theta phi : H) (ell i j w : Nat)
+    (hu : u ^ ell = 1)
+    (htheta : theta = u ^ 2)
+    (hphi : phi = u ^ (2 ^ i) * u ^ (2 ^ j))
+    (hw : 2 * w ≡ 2 ^ i + 2 ^ j [MOD ell]) :
+    phi = theta ^ w := by
+  calc
+    phi = u ^ (2 ^ i + 2 ^ j) := by rw [hphi, pow_add]
+    _ = u ^ (2 * w) := pow_eq_pow_of_modEq hw.symm hu
+    _ = (u ^ 2) ^ w := by rw [pow_mul]
+    _ = theta ^ w := by rw [htheta]
+
+/-- An invertible birth weight detects exactly the original selected phase;
+it cannot supply an independent nonvanishing condition. -/
+theorem birth_secant_phase_eq_one_iff_selected
+    (theta phi : H) (ell w : Nat)
+    (hphase : phi = theta ^ w)
+    (htors : theta ^ ell = 1)
+    (hcop : ell.Coprime w) :
+    phi = 1 ↔ theta = 1 := by
+  rw [hphase]
+  constructor
+  · intro hpow
+    exact (pow_eq_one_iff_of_coprime hcop).mp ⟨htors, hpow⟩
+  · rintro rfl
+    simp
+
+/-- A finite multiplicative formula in birth phases again has one total
+selected weight. -/
+theorem birth_phase_finset_product_has_one_weight
+    {ι : Type*} (s : Finset ι) (theta : H)
+    (phi : ι → H) (w : ι → Nat)
+    (hphase : ∀ i ∈ s, phi i = theta ^ (w i)) :
+    ∏ i ∈ s, phi i = theta ^ (∑ i ∈ s, w i) := by
+  calc
+    ∏ i ∈ s, phi i = ∏ i ∈ s, theta ^ (w i) :=
+      Finset.prod_congr rfl hphase
+    _ = theta ^ (∑ i ∈ s, w i) := Finset.prod_pow_eq_pow_sum s w theta
+
+/-- A global product of two coprime-primary phases is nontrivial exactly
+when at least one primary phase is nontrivial. -/
+theorem coprime_phase_product_ne_one_iff
+    (x y : H) {a b : Nat}
+    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
+    x * y ≠ 1 ↔ x ≠ 1 ∨ y ≠ 1 := by
+  have hprod : x * y = 1 ↔ x = 1 ∧ y = 1 := by
+    constructor
+    · intro hxy
+      have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
+      have hxb : x ^ b = 1 := by
+        have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
+        simpa only [inv_pow, inv_eq_one] using this
+      have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
+      have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
+      have ho : orderOf x = 1 := by
+        apply Nat.eq_one_of_dvd_one
+        simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
+      have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
+      exact ⟨hx1, by simpa [hx1] using hxy⟩
+    · rintro ⟨rfl, rfl⟩
+      simp
+  rw [ne_eq, hprod]
+  tauto
+
+end CubicBirthSecants
+
 section MarkedPhaseBridge
 
 variable {G : Type*} [CommGroup G]
@@ -1583,6 +1715,83 @@ theorem sixth_root_adjacent_inverse_factor (A : R)
   linear_combination -hA
 
 end SixthRootCoefficient
+
+section SixthRootSupportArithmetic
+
+variable {R : Type*} [Field R]
+
+/-- The quadratic current-factor relation forces cubic Frobenius to act by
+inversion. -/
+theorem sixth_root_cube_eq_neg_one (A : R)
+    (hA : A ^ 2 - A + 1 = 0) :
+    A ^ 3 = -1 := by
+  have hfactor : A ^ 3 + 1 = (A + 1) * (A ^ 2 - A + 1) := by ring
+  have hzero : A ^ 3 + 1 = 0 := by rw [hfactor, hA, mul_zero]
+  linear_combination hzero
+
+/-- The same relation makes the sixth Frobenius the identity. -/
+theorem sixth_root_six_eq_one (A : R)
+    (hA : A ^ 2 - A + 1 = 0) :
+    A ^ 6 = 1 := by
+  have hcube := sixth_root_cube_eq_neg_one A hA
+  calc
+    A ^ 6 = (A ^ 3) ^ 2 := by ring
+    _ = (-1 : R) ^ 2 := by rw [hcube]
+    _ = 1 := by ring
+
+/-- Away from residue characteristic three, the current quadratic root does
+not have order two. -/
+theorem sixth_root_square_ne_one (A : R)
+    (hA : A ^ 2 - A + 1 = 0)
+    (hthree : (3 : R) ≠ 0) :
+    A ^ 2 ≠ 1 := by
+  intro hsquare
+  have hAeq : A = 2 := by
+    linear_combination -(hA - hsquare)
+  rw [hAeq] at hA
+  norm_num at hA
+  exact hthree hA
+
+/-- In odd residue characteristic, cubic Frobenius is genuinely inversion
+rather than the identity. -/
+theorem sixth_root_cube_ne_one (A : R)
+    (hA : A ^ 2 - A + 1 = 0)
+    (htwo : (2 : R) ≠ 0) :
+    A ^ 3 ≠ 1 := by
+  rw [sixth_root_cube_eq_neg_one A hA]
+  intro h
+  have : (2 : R) = 0 := by linear_combination -h
+  exact htwo this
+
+end SixthRootSupportArithmetic
+
+section CurrentPrimarySupport
+
+variable {G : Type*} [CommGroup G]
+
+/-- Phases of coprime primary orders cannot cancel.  Hence a product detects
+only the union of their supports, not that each coordinate is nontrivial. -/
+theorem current_primary_product_eq_one_iff
+    (x y : G) {a b : Nat}
+    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
+    x * y = 1 ↔ x = 1 ∧ y = 1 := by
+  constructor
+  · intro hxy
+    have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
+    have hxb : x ^ b = 1 := by
+      have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
+      simpa only [inv_pow, inv_eq_one] using this
+    have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
+    have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
+    have ho : orderOf x = 1 := by
+      apply Nat.eq_one_of_dvd_one
+      simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
+    have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
+    exact ⟨hx1, by simpa [hx1] using hxy⟩
+  · rintro ⟨rfl, rfl⟩
+    simp
+
+end CurrentPrimarySupport
 
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
@@ -4829,6 +5038,162 @@ theorem fermat_complement_indices_not_dvd
     omega
 
 end FermatFibonacciCompression
+
+section FermatAdditiveEdgeArithmetic
+
+/-- A proper odd factorization of `Q^2+1` cannot have the factor parameter
+`L = (ell-1)/R` divisible by `Q+1`.  This is the arithmetic step which keeps
+the exact semiconjugacy exponent off the preceding Fibonacci zero period. -/
+theorem fermat_factor_parameter_not_dvd_half_period
+    (Q R L ell d : Nat)
+    (hQ : 2 ≤ Q) (hR : 2 ≤ R) (hL : 0 < L)
+    (hd : 1 < d) (hdodd : d % 2 = 1)
+    (hell : ell = 1 + R * L)
+    (hfactor : ell * d = Q ^ 2 + 1) :
+    ¬Q + 1 ∣ L := by
+  intro hdiv
+  obtain ⟨u, rfl⟩ := hdiv
+  have hu : 0 < u := by
+    by_contra hu0
+    have : u = 0 := Nat.eq_zero_of_not_pos hu0
+    simp [this] at hL
+  have hq : Q ^ 2 + 1 = (Q + 1) * (Q - 1) + 2 := by
+    calc
+      Q ^ 2 + 1 = ((Q - 1) + 1) ^ 2 + 1 := by
+        rw [show Q - 1 + 1 = Q by omega]
+      _ = (((Q - 1) + 1) + 1) * (Q - 1) + 2 := by ring
+      _ = (Q + 1) * (Q - 1) + 2 := by
+        rw [show Q - 1 + 1 = Q by omega]
+  have heq :
+      d + (Q + 1) * (R * u * d) = (Q + 1) * (Q - 1) + 2 := by
+    rw [← hq, ← hfactor, hell]
+    ring
+  have heq' : (d - 2) + (Q + 1) * (R * u * d) =
+      (Q + 1) * (Q - 1) := by omega
+  have hmulLeft : Q + 1 ∣ (Q + 1) * (R * u * d) := dvd_mul_right _ _
+  have hmulRight : Q + 1 ∣ (Q + 1) * (Q - 1) := dvd_mul_right _ _
+  have hsum : Q + 1 ∣ (d - 2) + (Q + 1) * (R * u * d) := by
+    rw [heq']
+    exact hmulRight
+  have hdvd : Q + 1 ∣ d - 2 :=
+    (Nat.dvd_add_iff_right hmulLeft).mpr (by
+      simpa [add_comm] using hsum)
+  obtain ⟨t, htEq⟩ := hdvd
+  have hddecomp : 2 + (Q + 1) * t = d := by omega
+  have ht : 0 < t := by
+    by_contra ht0
+    have : t = 0 := Nat.eq_zero_of_not_pos ht0
+    have hd2 : d = 2 := by simpa [this] using hddecomp.symm
+    omega
+  have hellLower : 2 * Q + 3 ≤ ell := by
+    rw [hell]
+    nlinarith
+  have hdLower : Q + 3 ≤ d := by
+    nlinarith
+  have hprodLower : (2 * Q + 3) * (Q + 3) ≤ ell * d :=
+    Nat.mul_le_mul hellLower hdLower
+  rw [hfactor] at hprodLower
+  nlinarith
+
+/-- If `Q+1` divides `D` and `ell*K + L = H*D`, the preceding lemma
+immediately excludes divisibility of the extracted exponent `K` by `Q+1`. -/
+theorem fermat_exact_exponent_not_dvd_half_period
+    (Q R L ell d D H K : Nat)
+    (hQ : 2 ≤ Q) (hR : 2 ≤ R) (hL : 0 < L)
+    (hd : 1 < d) (hdodd : d % 2 = 1)
+    (hell : ell = 1 + R * L)
+    (hfactor : ell * d = Q ^ 2 + 1)
+    (hD : Q + 1 ∣ D)
+    (hK : ell * K + L = H * D) :
+    ¬Q + 1 ∣ K := by
+  intro hperiod
+  apply fermat_factor_parameter_not_dvd_half_period
+    Q R L ell d hQ hR hL hd hdodd hell hfactor
+  have hleft : Q + 1 ∣ ell * K := dvd_mul_of_dvd_right hperiod ell
+  have hright : Q + 1 ∣ H * D := dvd_mul_of_dvd_right hD H
+  rw [← hK] at hright
+  exact (Nat.dvd_add_iff_right hleft).mpr hright
+
+end FermatAdditiveEdgeArithmetic
+
+section FermatAdditiveEdge
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+omit [CharP R 2] in
+/-- Powers along one selected Conway quadratic edge have Fibonacci
+coordinates over the preceding field.  The Conway relation is written as
+`x^2 = A*x + A^3`. -/
+theorem conwayQuadratic_pow_fib_coords
+    (x A : R) (hx : x ^ 2 = A * x + A ^ 3) (r : Nat) :
+    x ^ (r + 1) =
+      A ^ (r + 2) * fibPolyValue A r +
+        x * A ^ r * fibPolyValue A (r + 1) := by
+  induction r with
+  | zero => simp [fibPolyValue]
+  | succ r ih =>
+      rw [show r + 1 + 1 = (r + 1) + 1 by omega, pow_succ, ih]
+      rw [show fibPolyValue A (r + 2) =
+          fibPolyValue A (r + 1) + A * fibPolyValue A r by
+            simp only [fibPolyValue]]
+      calc
+        (A ^ (r + 2) * fibPolyValue A r +
+              x * A ^ r * fibPolyValue A (r + 1)) * x =
+            A ^ (r + 2) * fibPolyValue A r * x +
+              x ^ 2 * A ^ r * fibPolyValue A (r + 1) := by ring
+        _ = A ^ (r + 1 + 2) * fibPolyValue A (r + 1) +
+              x * A ^ (r + 1) *
+                (fibPolyValue A (r + 1) + A * fibPolyValue A r) := by
+            rw [hx]
+            simp only [pow_succ]
+            ring
+
+/-- The additive trace of the same power across the Conway quadratic is an
+explicit lower Fibonacci value. -/
+theorem conwayQuadratic_pow_additive_trace
+    (x A : R) (hx : x ^ 2 = A * x + A ^ 3) (r : Nat) :
+    x ^ (r + 1) + (x + A) ^ (r + 1) =
+      A ^ (r + 1) * fibPolyValue A (r + 1) := by
+  have hx' : (x + A) ^ 2 = A * (x + A) + A ^ 3 := by
+    rw [add_sq, hx]
+    have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+    simp only [htwo, zero_mul, add_zero]
+    ring
+  rw [conwayQuadratic_pow_fib_coords x A hx r]
+  rw [conwayQuadratic_pow_fib_coords (x + A) A hx' r]
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  linear_combination htwo *
+    (A ^ (r + 2) * fibPolyValue A r) + htwo *
+    (x * A ^ r * fibPolyValue A (r + 1))
+
+/-- Hence equality with a selected Fibonacci value transports its additive
+trace to the explicit lower Fibonacci coordinate.  In the finite-field
+application the second equality is the preceding-field Frobenius conjugate
+of the first. -/
+theorem fermat_exact_monomial_additive_trace
+    (x A : R) (g r : Nat)
+    (hx : x ^ 2 = A * x + A ^ 3)
+    (h : fibPolyValue x g = x ^ (r + 1))
+    (hconj : fibPolyValue (x + A) g = (x + A) ^ (r + 1)) :
+    fibPolyValue x g + fibPolyValue (x + A) g =
+      A ^ (r + 1) * fibPolyValue A (r + 1) := by
+  rw [h, hconj]
+  exact conwayQuadratic_pow_additive_trace x A hx r
+
+/-- The exact lower trace is nonzero whenever the preceding parameter and
+the corresponding lower Fibonacci value are nonzero. -/
+theorem fermat_exact_monomial_additive_trace_ne_zero
+    {K : Type*} [Field K] [CharP K 2]
+    (x A : K) (g r : Nat)
+    (hx : x ^ 2 = A * x + A ^ 3)
+    (h : fibPolyValue x g = x ^ (r + 1))
+    (hconj : fibPolyValue (x + A) g = (x + A) ^ (r + 1))
+    (hA : A ≠ 0) (hSK : fibPolyValue A (r + 1) ≠ 0) :
+    fibPolyValue x g + fibPolyValue (x + A) g ≠ 0 := by
+  rw [fermat_exact_monomial_additive_trace x A g r hx h hconj]
+  exact mul_ne_zero (pow_ne_zero _ hA) hSK
+
+end FermatAdditiveEdge
 
 
 section FermatQuotientWindowFibonacciCore

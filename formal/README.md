@@ -418,6 +418,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   and the primitive-sixth-root coefficient and inverse-factor formulas. The
   selected finite-field Hilbert, sextic, Jacobi, and Euler identifications
   remain paper-level;
+- the current-primary support core: Lean checks the primitive-sixth-root
+  arithmetic and that phases of coprime primary orders cannot cancel. The
+  cyclic-torus realization of every nonempty support profile, its finite-field
+  degree and norm calculations, Dickson cubic shape, and selected
+  interpretation remain paper-level;
 - the exceptional four-block core: Lean checks the alternating base-`q`
   decomposition of the Euler exponent and its cross-multiplied
   commutative-group quotient identity.  The binary-complement calculation,
@@ -457,11 +462,22 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   matrix Lean proves `I^2=q Id+J`, its restriction `I^2=q` on zero-sum
   vectors, and the two-step phase-swap identity. Projective-plane incidence
   counts and finite-field character/Gauss specializations remain paper-level;
+- the norm-coherent Euler-tail core: Lean proves abstractly that a sequence
+  whose relative norms and Euler exponents factor compatibly has one constant
+  phase along its whole tail, including the same statement for an affine
+  family. The ordinary Kummer and cubic finite-field specializations remain
+  paper-level;
 - the fixed-prime cubic-tail core: Lean checks relative-norm Euler transport,
   the additive--multiplicative selector identity, affine-translate phase
   descent, restriction of Euler phases, the birth-edge inverse-square
   relation, and equality of odd-torsion phases with the same square. The
   finite-field exponent specializations and literal Conway tower remain
+  paper-level;
+- the cubic birth-secant core: Lean checks the exact two-secant factorization,
+  transport of two Frobenius weights to one selected phase both exactly and
+  modulo the current torsion order, finite-product aggregation, and
+  coprime-primary noncancellation. The cyclotomic weight parametrization,
+  shell cancellation, and selected finite-field specialization remain
   paper-level;
 - the selected cubic coupled-root core: one chosen `ell`-th root of `eta_k`
   transports explicitly to compatible roots of `epsilon_k` and `beta_k`, with
@@ -546,6 +562,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   monomial from equal Frobenius powers, and the abstract order formula. The
   minimal-counterexample Conway specialization and gcd/LTE arithmetic remain
   paper-level;
+- the first additive-edge core: Lean checks the Fibonacci coordinates of every
+  power across one Conway quadratic, the resulting additive trace, transport
+  of the exact monomial equality together with its conjugate, and the
+  arithmetic exclusion `Q+1 ∤ K`. The minimal-failure specialization,
+  derivation of the conjugate equality by finite-field Frobenius, and lower
+  Fibonacci zero-period interpretation remain paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

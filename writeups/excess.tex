@@ -185,7 +185,8 @@ shifted-Fibonacci block collapse, and the
 selected Euler-factor/root-number boundary; a nonlinear lower-semiconjugacy
 resultant flag for the surviving odd Hasse collision, with a degree-range
 exclusion, and complete pointwise-semiconjugacy/Frobenius-coboundary
-saturation &
+saturation, with the first nonzero additive-edge trace and exact lower
+cancellation &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -194,6 +195,7 @@ transverse norm and relative-unit formulas; nontrivial order; absolute-Frobenius
 signed-ball factor range; weighted-selector and mixed-Jacobi formulas;
 projective minimal polynomial and binary-section ancestry; tower-faithful
 common-section no-go; uniform safe-prime trace detector;
+fixed-prime full-tail phase conservation and two-ancestor birth reduction;
 full-conductor truncated-log regulator and exact conductor-\(p^2\)
 ray/Jacobi reciprocity; invariant realification and selected local
 reflection norm; the exact sparse marked full-conductor polynomial at
@@ -214,7 +216,8 @@ reciprocal order seam and
 prescribed-trace character boundary; complete lower trace--Fourier flag
 collapse, ancestral coordinate presentation, and the selected self-polar
 trace-hyperplane character ratio, together with complete self-polar
-incidence-algebra saturation and fixed-prime full-tail phase conservation &
+incidence-algebra saturation, fixed-prime full-tail phase conservation, and
+birth-secant/orbit-product saturation &
 exclusion of the selected Wendt/trace fibre at the remaining current
 factors \\
 \((D)\) &
@@ -237,7 +240,7 @@ constant-extension line criterion with
 \(m_\ell<16(3^k)^4\), and the selected adjacent-quartic translate/Capelli
 reduction, adjacent Hilbert-pair/maximal-Fermat saturation, and exact
 quadratic-norm rigidity, together with the lossless marked
-Hilbert--sextic phase bridge &
+Hilbert--sextic phase bridge and the complete current-primary support cube &
 nonvanishing of the selected antiunit index
 \(\operatorname{ind}_\ell(d_k)\) at the remaining current factors \\
 \bottomrule
@@ -1222,6 +1225,102 @@ to \(|F_a^\times|\) therefore lies in the projective quotient.
 The exact power criterion now identifies non-\(p\)-power of \(y_a\),
 equivalently \(m_p=1\), with the full \(p\)-primary order of its
 projective class.  This proves \((\mathsf P_4)\).
+\end{proof}
+
+\begin{proposition}[the ordinary current phase is conserved along its full tail]
+\label{prop:ordinary-fixed-prime-tail}
+Retain Proposition~\ref{prop:singleton-projective-spine}.  Fix
+\(a\geq1\), a prime \(p\ne r\) dividing
+\(\mathcal L_{r,a}\), and put, for \(j\geq a\),
+\[
+ q_j=2^{r^jb},\qquad E_j=\frac{q_j-1}{p},\qquad
+ \Theta_j=(1+x_j)^{E_j}\in\mu_p.
+\]
+Then the selected Euler phase is exactly conserved at every descendant:
+\[
+ \boxed{\Theta_j=\Theta_a\quad(j\geq a).}             \tag{\(\mathsf{OPT}_1\)}
+\]
+Consequently the ordinary assertion at \((a,p)\) succeeds if and only if
+\(\Theta_j\ne1\) at one, equivalently every, later level.
+
+More generally, embed all lower fields in \(F_J\).  For \(J\geq j\geq a\),
+\[
+ \boxed{(1+x_j)^{E_J}=\Theta_a^{\,r^{J-j}}.}          \tag{\(\mathsf{OPT}_2\)}
+\]
+Absolute Frobenius sends this to the corresponding \(2^u\)-th power.
+Thus every multiplicative Laurent word in all future selectors
+\(1+x_j\) and their Frobenius conjugates has top Euler value
+\(\Theta_a^w\) for an explicit \(w\bmod p\).  If \(w=0\), the word is
+identically flat; if \(w\ne0\), its triviality is exactly the original
+condition \(\Theta_a=1\).
+
+The additive ancestry also reduces to a finite birth packet.  For
+\(n\geq1\) and \(c\in F_{n-1}\), one has
+\[
+ \Norm_{F_n/F_{n-1}}(x_n+c)=x_{n-1}+c^r.             \tag{\(\mathsf{OPT}_3\)}
+\]
+Hence, for \(n\geq a\), the phase of \(x_n+x_t\) descends by applying
+\((u,v)\mapsto(u-1,v^r)\) until the upper index reaches \(a\).  Its
+exact value is
+\[
+ (x_n+x_t)^{E_n}
+ =
+ \begin{cases}
+   (x_a+x_{t-(n-a)})^{E_a},&t\geq n-a,\\
+   (x_a+\alpha_r^{r^{n-a-t}})^{E_a},&t<n-a.
+ \end{cases}                                         \tag{\(\mathsf{OPT}_4\)}
+\]
+The second line ranges through the finite power orbit of \(\alpha_r\).
+Therefore all two-ancestor sums in the infinite ordinary tail reduce to
+finitely many Euler phases at the literal birth field \(F_a\).
+
+This is a full-tail route-exclusion theorem.  Passing to later Kummer
+levels, mixing their multiplicative coordinates, or norming two-ancestor
+sums back down creates no new current \(p\)-Kummer coordinate.  It does
+not evaluate \(\Theta_a\), and therefore does not prove arm \((O)\); a
+successful uniform proof must act on the finite additive birth packet or
+on the selected ray coordinate before Euler projection.
+\end{proposition}
+
+\begin{proof}
+For \(j>a\), Proposition~\ref{prop:singleton-projective-spine} gives
+\[
+ \Norm_{F_j/F_{j-1}}(1+x_j)=1+x_{j-1}.
+\]
+The relative norm exponent is
+\[
+ S_j=1+q_{j-1}+\cdots+q_{j-1}^{r-1},
+ \qquad E_j=S_jE_{j-1}.
+\]
+Therefore
+\[
+ \Theta_j
+ =\bigl((1+x_j)^{S_j}\bigr)^{E_{j-1}}
+ =(1+x_{j-1})^{E_{j-1}}
+ =\Theta_{j-1},
+\]
+and induction proves \((\mathsf{OPT}_1)\).
+
+The quotient \(E_J/E_j\) is the product of the relative geometric sums
+\(S_{j+1},\ldots,S_J\).  Since \(q_j\equiv1\pmod p\), each factor is
+congruent to \(r\pmod p\).  Combining this with
+\((\mathsf{OPT}_1)\) proves \((\mathsf{OPT}_2)\); multiplicativity and
+Frobenius covariance prove the Laurent-word statement.
+
+Finally the conjugates of \(x_n\) over \(F_{n-1}\) are
+\(\xi x_n\), \(\xi\in\mu_r\).  Since \(r\) is odd and the
+characteristic is two,
+\[
+ \prod_{\xi\in\mu_r}(c+\xi x_n)=c^r+x_n^r=c^r+x_{n-1},
+\]
+which is \((\mathsf{OPT}_3)\).  Repeated application gives
+\((\mathsf{OPT}_4)\).  The power orbit of \(\alpha_r\) is finite
+because \(F_0^\times\) is finite, completing the proof.
+
+Lean kernel-checks the abstract norm-coherent Euler-tail induction, both
+for the selected coordinate and for an affine family.  The finite-field
+norm formula, exponent specialization, and literal Conway tower remain
+paper-level.
 \end{proof}
 
 \begin{proposition}[exact two-half decomposition of the cubic projective quotient]
@@ -9871,6 +9970,190 @@ defining birth phase \(\Phi_{k-(n-t)}\).  This proves
 \((\mathsf{CPT}_5)\).
 \end{proof}
 
+\begin{proposition}[birth-edge secant rank one and orbit-product flatness]
+\label{prop:cubic-birth-secant-rank-one}
+Put
+\[
+ n=3^k,\qquad m=3n=3^{k+1},\qquad
+ U=\Phi_{3^k}(2),
+\]
+let \(\zeta\) be a primitive \(m\)-th root in
+\(K=\F_{2^{2n}}\), and fix a prime \(\ell\mid U\).
+Let \(\chi:K^\times\to\mu_\ell\) have exact order \(\ell\), and put
+\[
+ u=\chi(1+\zeta),\qquad
+ \theta=\chi(\gamma_k)=u^2,
+ \qquad \gamma_k=\zeta+\zeta^{-1}.
+\]
+The equality \(\theta=u^2\) uses that \(\chi\) kills the
+\(m\)-torsion factor in
+\(\gamma_k=\zeta^{-1}(1+\zeta)^2\).
+
+For \(0\leq s<k\), an upper Frobenius index \(a\), and a lower
+Frobenius index \(b\), put
+\[
+ A=2^a,\qquad D=3^{k-s}2^b,
+\]
+with exponents read modulo \(m\).  Both \(D-A\) and \(D+A\) are
+units modulo \(m\).  Choose \(i_-,i_+\) so that
+\[
+ D-A\equiv\mathord\pm2^{i_-},
+ \qquad D+A\equiv\mathord\pm2^{i_+}\pmod m,
+\]
+and define \(w_{s,a,b}\in\F_\ell\) by
+\[
+ 2w_{s,a,b}=2^{i_-}+2^{i_+}.                       \tag{\(\mathsf{BS}_1\)}
+\]
+Then
+\[
+ \boxed{
+ \chi\!\left(\gamma_k^{2^a}+\gamma_s^{2^b}\right)
+ =\theta^{w_{s,a,b}},\qquad w_{s,a,b}\ne0.}       \tag{\(\mathsf{BS}_2\)}
+\]
+In particular every literal birth-edge phase, not only the translate by one,
+is an invertible power of the original selected phase.  Hence
+\[
+ \gamma_k^{2^a}+\gamma_s^{2^b}\in(K^\times)^\ell
+ \iff \gamma_k\in(K^\times)^\ell.                \tag{\(\mathsf{BS}_3\)}
+\]
+
+The complete lower Frobenius-orbit product is nevertheless identically flat.
+For every \(1\leq s<k\),
+\[
+ \boxed{
+ \prod_{b=0}^{3^s-1}
+   \left(\gamma_k+\gamma_s^{2^b}\right)
+ =P_s(\gamma_k)=\gamma_{k-s}+1\in L_{k-1}^\times,} \tag{\(\mathsf{BS}_4\)}
+\]
+and therefore
+\[
+ \prod_{b=0}^{3^s-1}
+ \chi\!\left(\gamma_k+\gamma_s^{2^b}\right)=1.   \tag{\(\mathsf{BS}_5\)}
+\]
+More sharply, the corresponding weights cancel before the selected phase is
+evaluated:
+\[
+ \boxed{\sum_{b=0}^{3^s-1}w_{s,0,b}=0
+        \quad\text{in }\F_\ell.}                  \tag{\(\mathsf{BS}_6\)}
+\]
+
+Consequently every multiplicative product of these birth phases has the form
+\(\theta^W\).  If \(W=0\), it is an unconditional flat product such as
+\((\mathsf{BS}_5)\); if \(W\ne0\), its nontriviality is equivalent to
+\(\theta\ne1\).  Thus unweighted norm, resultant, and
+Hasse--Davenport products over a complete lower orbit erase the marked phase,
+while a nonsymmetric weighted product merely reparameterizes it.
+\end{proposition}
+
+\begin{proof}
+For nonzero \(x,y\) in any field,
+\[
+ (x+x^{-1})+(y+y^{-1})
+ =(x+y)\bigl(1+(xy)^{-1}\bigr).                    \tag{*}
+\]
+Apply this with \(x=\zeta^A\) and \(y=\zeta^D\).  It gives
+\[
+ \gamma_k^{2^a}+\gamma_s^{2^b}
+ =\zeta^A(1+\zeta^{D-A})
+   \bigl(1+\zeta^{-(A+D)}\bigr).
+\]
+The character kills every \(m\)-torsion factor.  Since
+\(1+\zeta^{2^i}=(1+\zeta)^{2^i}\) and
+\(1+\zeta^{-2^i}=\zeta^{-2^i}(1+\zeta^{2^i})\), taking \(\chi\)
+proves the first equality in \((\mathsf{BS}_2)\).
+
+The exponent in \((\mathsf{BS}_1)\) is nonzero.  Otherwise
+\(2^{i_-}=-2^{i_+}\pmod\ell\), so \(-1\) lies in the subgroup
+generated by \(2\).  But
+\(\ord_\ell(2)=n=3^k\) is odd, so its generated subgroup cannot contain the
+element \(-1\) of order two.  Division by two is valid because \(\ell\) is
+odd.  This proves \((\mathsf{BS}_2)\) and \((\mathsf{BS}_3)\).
+
+The roots of
+\(P_s(X)=f^{\circ s}(X)+1\), \(f(X)=X^3+X\), are precisely the
+\(3^s\) Frobenius conjugates of \(\gamma_s\).  Evaluation at
+\(\gamma_k\), together with
+\(f^{\circ s}(\gamma_k)=\gamma_{k-s}\), proves
+\((\mathsf{BS}_4)\).  Since \(\ell\nmid|L_{k-1}^\times|\), the
+character is trivial on its right side, proving \((\mathsf{BS}_5)\).
+
+For the coefficient-level cancellation, let
+\(\lambda:(\mathbb Z/m\mathbb Z)^\times\to\F_\ell^\times\)
+be the primitive even character determined by
+\(\lambda(\mathord\pm2^i)=2^i\).  Put
+\(r=3^s\), \(d=3^{k-s}\).  Twice the left side of
+\((\mathsf{BS}_6)\) is the half-range sum of the numerators in
+\((\mathsf{BS}_1)\).  The corresponding full-range sum is
+\[
+ \sum_{b=0}^{2r-1}
+ \bigl(\lambda(d2^b-1)+\lambda(d2^b+1)\bigr).      \tag{**}
+\]
+Indeed \(2^r=-1\pmod{3^{s+1}}\), and evenness of \(\lambda\) makes
+the terms indexed by \(b\) and \(b+r\) equal.  Thus \((**)\) is four
+times the left side of \((\mathsf{BS}_6)\).
+
+As \(b\) runs through this full range, \(2^b\) runs through all units
+modulo \(3^{s+1}\).  Hence the two sums in \((**)\) are the
+\(\lambda\)-sums over the two signed shells
+\[
+ v_3(c-1)=k-s,
+ \qquad v_3(c+1)=k-s.
+\]
+Let \(H_t=\{c\in(\mathbb Z/m\mathbb Z)^\times:c\equiv1\pmod{3^t}\}\).
+For \(t=k-s\), each shell sum is, up to the harmless sign,
+\[
+ \sum_{c\in H_t}\lambda(c)-
+ \sum_{c\in H_{t+1}}\lambda(c).
+\]
+Because \(1\leq s<k\), both subgroups are nontrivial, and the primitive
+character \(\lambda\), whose kernel is \(\{\mathord\pm1\}\), restricts
+nontrivially to both.  Both subgroup character sums are therefore zero.
+Thus \((**)\) vanishes.  Since \(2\ne0\) in \(\F_\ell\), this proves
+\((\mathsf{BS}_6)\).  The final dichotomy follows by multiplicativity and
+the fact that every nonzero exponent modulo the prime \(\ell\) is invertible.
+
+The restriction \(s\geq1\) is sharp: for \(s=0\), the second subgroup is
+\(H_{k+1}=\{1\}\), so the shell subtraction has a surviving endpoint.
+That endpoint is exactly the nonzero translate weight already encoded by
+\(\chi(\gamma_k+1)\), not a missing term in the cancellation.
+
+Lean kernel-checks the secant factorization, the single-weight phase
+transport, finite product aggregation, and coprime-primary product boundary.
+The cyclotomic parametrization, shell sums, and selected finite-field
+specialization remain paper-level.
+\end{proof}
+
+\begin{corollary}[a product across current primes is only CRT packaging]
+\label{cor:cubic-current-prime-product-no-go}
+Fix a level \(k\), and for each distinct current prime
+\(\ell\mid\Phi_{3^k}(2)\) choose a selected phase
+\(\theta_\ell\in\mu_\ell\).  In a common group of roots of unity put
+\(\Theta=\prod_\ell\theta_\ell\).  Then
+\[
+ \boxed{\Theta=1\iff\theta_\ell=1\text{ for every }\ell.}    \tag{\(\mathsf{BP}_1\)}
+\]
+Moreover every \(\theta_\ell\) is recovered from \(\Theta\) by the usual
+CRT power projector.  Hence \(\Theta\ne1\) proves only that at least one
+current primary test succeeds.  Proving that every test succeeds requires
+every CRT projection of \(\Theta\) to be nontrivial, which is exactly the
+original family of marked phase evaluations.
+
+Changing the generator of an exact order-\(\ell\) character replaces
+\(\theta_\ell\) by an arbitrary invertible power.  Therefore an exact scalar
+value for the mixed product is not normalization invariant; only the support
+of its nontrivial primary components is intrinsic.  A global product formula
+cannot make distinct current primes cancel, but neither can it turn one
+nonidentity assertion into all-primary nonvanishing.
+\end{corollary}
+
+\begin{proof}
+Torsion elements of pairwise coprime prime orders cannot cancel.  Equivalently,
+if \(R\) is the product of the current primes, then raising \(\Theta\) to
+\((R/\ell)c_\ell\), where
+\(c_\ell(R/\ell)\equiv1\pmod\ell\), kills every other primary factor
+and returns \(\theta_\ell\).  This proves all assertions.
+\end{proof}
+
 \begin{proposition}[exact one-step lifting of the previous Singer set]
 \label{prop:cubic-previous-singer-lift}
 Let \(j\geq2\), put \(r=2^{3^{j-2}}\), \(q=r^3\), and fix
@@ -13890,6 +14173,107 @@ equivalence, the normalized coboundary, selected monomial extraction from
 equal Frobenius powers, nontriviality, and the abstract order formula.  The
 Conway specialization, minimal-counterexample order, and gcd/LTE arithmetic
 remain paper-level.
+\end{proof}
+
+\begin{proposition}[the first additive edge survives hypothetical failure]
+\label{prop:fermat-first-additive-flag}
+Retain the minimal-failure notation and exact monomial extraction of
+Proposition~\ref{prop:fermat-semiconjugacy-saturation}.  Thus
+\[
+ M=2^n,\quad q=2^M=Q^2,\quad Q=2^{M/2},\quad
+ a=a_{n-1},\quad A=a_{n-2},\quad D=\frac{q-1}{3},
+\]
+and, for a failed proper factor \(\ell d=q+1\),
+\[
+ s=v_2(d-1),\quad R=2^s,\quad
+ L=\frac{\ell-1}{R},\quad g=\frac{d-1}{R},\quad
+ H=\frac{\ell-3L}{2},\quad K=\frac{HD-L}{\ell},
+\]
+with \(0<K<D\) and
+\[
+ S_g(a)=a^K.                                        \tag{\(\mathsf{AE}_1\)}
+\]
+Then the first relative additive trace is explicitly nonzero:
+\[
+ \boxed{
+ \operatorname{Tr}_{E_{n-1}/E_{n-2}}\!\left(S_g(a)\right)
+ =A^KS_K(A)\ne0.}                                  \tag{\(\mathsf{AE}_2\)}
+\]
+In particular, the extracted value does not descend to \(E_{n-2}\).
+
+More precisely, write the canonical quadratic remainder
+\[
+ S_g(X)\equiv U_g(Y)+XV_g(Y)\pmod{X^2+YX+Y^3}.
+\]
+Its two selected coefficients are
+\[
+ \boxed{
+ U_g(A)=A^{K+1}S_{K-1}(A),\qquad
+ V_g(A)=A^{K-1}S_K(A)\ne0.}                        \tag{\(\mathsf{AE}_3\)}
+\]
+Thus the vanishing of the \(X\)-coordinate of
+\(S_g(X)+X^K\) is the exact cancellation
+\[
+ \boxed{V_g(A)=A^{K-1}S_K(A),}                     \tag{\(\mathsf{AE}_4\)}
+\]
+between two nonzero lower selected values.
+
+This is an all-level ancestry statement, not a maximal-order proof.  It
+excludes any argument in which hypothetical failure makes the extracted
+value have relative trace zero or descend to the preceding field.  The
+surviving target is the inequality opposite to \((\mathsf{AE}_4)\); lower
+maximality proves both sides nonzero but does not distinguish them.
+\end{proposition}
+
+\begin{proof}
+The selected quadratic relation is
+\[
+ a^2=Aa+A^3,
+\]
+and its other root is \(a+A=a^Q\).  Induction with the Fibonacci recurrence
+gives, for every \(r\geq1\),
+\[
+ a^r=A^{r+1}S_{r-1}(A)+aA^{r-1}S_r(A).             \tag{*}
+\]
+Adding this identity for the two roots gives
+\[
+ a^r+(a+A)^r=A^rS_r(A).                            \tag{**}
+\]
+Taking \(r=K\) in \((**)\), then using \((\mathsf{AE}_1)\) and its
+\(Q\)-Frobenius conjugate, proves the equality in
+\((\mathsf{AE}_2)\).  Comparing the canonical remainder coordinates of
+\((\mathsf{AE}_1)\) with \((*)\) at \(r=K\) proves
+\((\mathsf{AE}_3)\); its linear-coordinate equality is
+\((\mathsf{AE}_4)\).
+
+It remains to prove nonvanishing.  Minimality of the failed level gives the
+full preceding Fibonacci zero period \(Q+1\), so
+\[
+ S_K(A)=0\iff Q+1\mid K.                            \tag{***}
+\]
+But \(Q+1\mid D=(Q^2-1)/3\), and the definition of \(K\) is the integral
+identity
+\[
+ \ell K+L=HD.                                       \tag{****}
+\]
+If \(Q+1\mid K\), then \((****)\) forces \(Q+1\mid L\).  Writing
+\(L=(Q+1)u\), one gets
+\[
+ \ell=1+RL\equiv1\pmod{Q+1},
+ \qquad d\equiv2\pmod{Q+1}.
+\]
+The proper cofactor \(d\) is odd and greater than one, so
+\(d\geq Q+3\); and \(R\geq2\) gives \(\ell\geq2Q+3\).  This contradicts
+\[
+ Q^2+1=\ell d\geq(2Q+3)(Q+3)>Q^2+1.
+\]
+Hence \(Q+1\nmid K\).  Equation \((***)\) and \(A\ne0\) prove both
+nonvanishing assertions.
+
+Lean kernel-checks the Fibonacci power coordinates, their additive trace,
+transport of the exact monomial equality, and the complete arithmetic lemma
+excluding \(Q+1\mid K\).  The minimal-counterexample specialization and
+finite-field Fibonacci zero period remain paper-level.
 \end{proof}
 
 The fast \texttt{--jet-only} mode of
@@ -23467,6 +23851,135 @@ coefficient identities.  The selected finite-field identifications remain
 paper-level.
 \end{proof}
 
+\begin{proposition}[the current-primary support cube is complete]
+\label{prop:dk-primary-support-cube}
+Let \(k\geq2\), and put
+\[
+ s=3^{k-1},\qquad A=2^s,\qquad
+ \Lambda=A^2-A+1=3\Psi_k,
+ \qquad K=\F_{A^6},\qquad E=\F_A,
+\]
+and let \(T=\mu_\Lambda\subset K^\times\).  Write
+\[
+ \Psi_k=\prod_{i=1}^m\ell_i^{a_i}.
+\]
+For every profile
+\[
+ 0\leq b_i\leq a_i\quad(1\leq i\leq m),
+ \qquad \varepsilon\in\{0,1\},
+\]
+there is \(t_{\mathbf b,\varepsilon}\in T\) of exact order
+\[
+ d_{\mathbf b,\varepsilon}
+ =3^\varepsilon\prod_{i=1}^m\ell_i^{b_i}.           \tag{\(\mathsf{PSC}_1\)}
+\]
+If at least one \(b_i\) is positive, then
+\[
+ [E(t_{\mathbf b,\varepsilon}):E]=6,
+ \qquad t_{\mathbf b,\varepsilon}^{A^3}
+       =t_{\mathbf b,\varepsilon}^{-1},             \tag{\(\mathsf{PSC}_2\)}
+\]
+and consequently
+\[
+ \Norm_{K/\F_{A^3}}(t_{\mathbf b,\varepsilon})=1,
+ \qquad \Norm_{K/E}(t_{\mathbf b,\varepsilon})=1.  \tag{\(\mathsf{PSC}_3\)}
+\]
+Moreover
+\[
+ y_{\mathbf b,\varepsilon}
+ =t_{\mathbf b,\varepsilon}+t_{\mathbf b,\varepsilon}^{-1}
+ \in\F_{A^3}
+\]
+has degree three over \(E\), and its irreducible cubic has the universal
+Dickson shape
+\[
+ Y^3+cY^2+dY+c^2.                                    \tag{\(\mathsf{PSC}_4\)}
+\]
+
+The current primary coordinates are exactly the entries of the profile:
+\[
+ t_{\mathbf b,\varepsilon}\in T^{\ell_i}
+ \iff b_i<a_i,                                       \tag{\(\mathsf{PSC}_5\)}
+\]
+while
+\[
+ \ord\!\left(t_{\mathbf b,\varepsilon}^{\Lambda/\ell_i}\right)
+ =
+ \begin{cases}
+  1,&b_i<a_i,\\
+  \ell_i,&b_i=a_i.
+ \end{cases}                                         \tag{\(\mathsf{PSC}_6\)}
+\]
+Thus every nonempty Boolean success pattern occurs among full-degree
+norm-one reciprocal antiunits.  Every positive intermediate primary valuation
+also occurs in full degree, either by itself or together with another positive
+current coordinate.  Choosing \(\varepsilon=1\) for odd \(k\) and \(0\) for
+even \(k\) also matches the proved parity of the selected three-primary
+projection.
+
+In particular, if \(\Psi_k\) has at least two distinct prime divisors, a
+proper nonempty support has full degree and all the displayed norm and
+reciprocity data while some current coordinates succeed and others fail.  If
+\(\Psi_k=\ell^a\) with \(a>1\), any \(1\leq b<a\) gives the same conclusion
+with a deficient primary valuation.  Only the already settled case in which
+\(\Psi_k\) is prime is forced by degree alone.
+
+Consequently the displayed uniform ambient properties---Frobenius, norms,
+full degree, reciprocal-Dickson shape, and the three-primary
+projection---do not imply \(D'_k\) when \(\Psi_k\) is composite.  Nor does
+bare nontriviality of the product of the current Euler phases: primary
+projection shows that it detects only that at least one coordinate is
+nontrivial, whereas \(D'_k\) requires every coordinate to be nontrivial.  A
+universal proof must add information that distinguishes the literal marked
+coefficient of \(P_k\), equivalently the selected value \(L(1)\), from the
+other points of the same ambient current torus.
+\end{proposition}
+
+\begin{proof}
+The multiplicative group of \(K\) is cyclic.  Since
+\(d_{\mathbf b,\varepsilon}\mid\Lambda\), its unique subgroup \(T\)
+contains an element of that exact order, proving \((\mathsf{PSC}_1)\).
+
+For every current prime \(\ell_i\),
+\[
+ \ord_{\ell_i}(A)
+ =\frac{\ord_{\ell_i}(2)}{\gcd(\ord_{\ell_i}(2),s)}=6.
+\]
+The same conclusion holds modulo every positive power
+\(\ell_i^{b_i}\): its order is a multiple of six after reduction modulo
+\(\ell_i\), while
+\[
+ A^3+1=(A+1)\Lambda
+\]
+makes that order divide six.  The optional factor three also has order two
+for \(A\), so \(\ord_{d_{\mathbf b,\varepsilon}}(A)=6\) as soon as one
+\(b_i>0\).  This proves the degree assertion, and the same factorization
+gives \(t^{A^3}=t^{-1}\).  The two norm identities follow by pairing
+Frobenius exponents separated by three.
+
+The inverse-pair sum \(y=t+t^{-1}\) is fixed by \(A^3\)-Frobenius, hence
+lies in \(\F_{A^3}\).  Since \(t\) is at most quadratic over \(E(y)\)
+and has degree six over \(E\), the element \(y\) has degree three.  The
+trace--constant identity for inverse-pair cubics gives
+\((\mathsf{PSC}_4)\).
+
+The image \(T^{\ell_i}\) is the unique subgroup of order
+\(\Lambda/\ell_i\).  An element of exact order
+\(d_{\mathbf b,\varepsilon}\) lies there precisely when
+\(b_i<a_i\), proving \((\mathsf{PSC}_5)\).  Finally
+\[
+ \ord(t^u)=\frac{\ord(t)}{\gcd(\ord(t),u)}
+\]
+with \(u=\Lambda/\ell_i\) gives \((\mathsf{PSC}_6)\).  Distinct Euler
+phases have pairwise coprime primary orders, so every multiplicative equality
+projects coordinatewise; the realized profiles prove the stated boundary.
+
+Lean kernel-checks the sixth-root arithmetic and coprime-primary
+noncancellation.  The finite-field
+cyclicity, degree calculation, inverse-pair cubic, and selected interpretation
+remain paper-level.
+\end{proof}
+
 \begin{proposition}[the selected Dickson phase has trivial downward norm]
 \label{prop:dk-selected-norm-collapse}
 Retain Proposition~\ref{prop:dk-selected-sextic}.  Thus
@@ -25478,6 +25991,13 @@ images of one another.  Pointwise semiconjugacy, normalized coboundaries,
 orders, and relative norms therefore furnish no second condition.  The
 remaining Z route must couple the selected coordinate additively to an
 independent ancestry value before this normalization.
+Proposition~\ref{prop:fermat-first-additive-flag} reaches the first such
+quantity.  Under minimal hypothetical failure its relative trace is
+\(A^KS_K(A)\ne0\), and the exact lower linear coordinate is the nonzero
+value \(A^{K-1}S_K(A)\).  Thus failure cannot force trace zero or descent to
+the preceding field; it is an equality between two nonzero lower selected
+values.  Proving those values unequal is the precise surviving
+additive-ancestry target.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -25569,6 +26089,14 @@ family escapes both cancellations, but
 Corollary~\ref{cor:ordinary-mixed-jacobi} identifies the target with one
 inverse-Fourier coordinate of its first local phase.  Proving that
 coordinate nonzero remains the theorem.
+Proposition~\ref{prop:ordinary-fixed-prime-tail} closes the descendant
+escape globally.  Once a current prime is born, the Euler phase of every
+future \(1+x_j\) is exactly conserved, and restriction from a later field
+only raises it by a known power of \(r\).  The affine norm formula also
+pushes every two-ancestor sum into a finite packet of phases in the birth
+field.  Thus later Kummer levels and cross-level multiplicative words do
+not add an ordinary coordinate; the surviving content is already present
+in the additive birth packet and the named ray coordinate.
 Proposition~\ref{prop:ordinary-mirimanoff-ray} computes the previously
 implicit wild side at the actual full conductor.  Its truncated-log
 regulator \(A_\lambda\) vanishes exactly when the relative cyclotomic
@@ -25897,6 +26425,13 @@ later translates have the same phase, and all two-point ancestry sums descend
 to that phase or to finitely many birth-edge phases.  Thus neither climbing
 the Conway tower nor mixing future levels creates a second Kummer coordinate.
 Only genuinely additive birth-edge data remain capable of proving C.
+Proposition~\ref{prop:cubic-birth-secant-rank-one} closes the literal
+two-ancestor part of that packet.  Each birth secant is an invertible power of
+the original selected phase, while the complete lower Frobenius-orbit product
+has total weight zero and lands in the lower field.  Hence complete-orbit norm,
+resultant, and Hasse--Davenport products erase the mark, and nonsymmetric
+products merely reparameterize it.  A surviving additive argument must use
+data beyond these literal secants.
 Propositions~\ref{prop:singer-normal-translate} and
 \ref{prop:cubic-two-normal-bases} nevertheless supply two selected normal
 coordinates joined by an explicit determinant-one half-circulant.  Their
@@ -26166,6 +26701,14 @@ selected sextic/Jacobi phase and \(A=2^{3^{k-1}}\bmod\ell\).  The inverse
 exponent is \((1+A)/3\), so the two evaluations determine one another rather
 than constrain one another.  The D frontier is consequently direct
 nonvanishing of this one selected birth phase.
+Proposition~\ref{prop:dk-primary-support-cube} makes the cross-primary
+boundary exact.  When \(\Psi_k\) is composite, every nonempty support pattern
+occurs among full-degree norm-one reciprocal antiunits with the same universal
+Dickson shape and selected three-primary projection.  Thus those ambient
+identities, and bare nontriviality of the product of all current phases, prove
+only that some primary coordinate succeeds.  They cannot force every
+coordinate without the literal marked value \(L(1)\) or equivalent selected
+input.
 Remark~\ref{rem:plus-minus-tori} also shows that the cubic and
 exceptional current groups have coprime orders, so no rational-point
 homomorphism can transfer arm \((C)\) to arm \((D)\).
@@ -26193,16 +26736,22 @@ mechanism by which Lenstra excess escapes $\{0,1,4\}$.
 
 The all-level saturation results sharpen where a uniform proof can live.
 In the Fermat arm, pointwise semiconjugacy and every normalized relative-torus
-coboundary factor back to the original selected zero.  In the cubic arm, a
-fixed current phase is conserved through the entire future tower, including
-all tail translates and two-point ancestry descents.  In the exceptional arm,
-the marked Hilbert and selected sextic/Jacobi evaluations are mutually
-invertible powers of one phase.  Together with primary-coordinate separation
-across arms, these results rule out a proof obtained by climbing the tower,
-taking more norms, or combining the existing Euler presentations.  The live
-global target is an additive identity at the literal birth edge which uses
-Conway ancestry before Euler projection.  No such identity is proved here;
-the four universal assertions, and hence the (0/1/4) rule, remain open.
+coboundary factor back to the original selected zero; the first surviving
+additive trace is nonzero and leaves an equality between two nonzero lower
+selected values.  In the ordinary and cubic arms, a fixed current phase is
+conserved through the entire future tower, and two-point ancestry sums descend
+to finite additive packets at the birth field.  In the cubic birth packet,
+every literal secant is already an invertible power of the same phase and
+complete orbit products are flat.  In the exceptional arm, the marked
+Hilbert and selected sextic/Jacobi evaluations are mutually invertible powers
+of one phase, while the ambient current-primary support cube realizes every
+nonempty partial-success pattern when \(\Psi_k\) is composite.
+Together with primary-coordinate separation across arms, these results rule
+out a proof obtained by climbing the tower, taking more norms, or combining
+the existing Euler presentations.  The live global target is an additive
+identity at the literal birth edge which uses Conway ancestry before Euler
+projection.  No such identity is proved here; the four universal assertions,
+and hence the (0/1/4) rule, remain open.
 
 \appendix
 \section{Computational Evidence and Reproducibility}\label{sec:provenance}
