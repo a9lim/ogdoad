@@ -6242,6 +6242,137 @@ theorem fermat_quarter_jacobi_largeR_reductions (X T : ℤ) :
   · use T
     ring
 
+/-- Quotient-ring algebra for the remaining negative selected quarter class
+on the balanced offset `R = P`. -/
+theorem fermat_quarter_negative_forces_two_mul
+    {S : Type*} [CommRing S] (P L ell eta : S)
+    (hP2 : P ^ 2 + 1 = 0)
+    (hell : ell = 1 + P * L)
+    (heta : eta = 2)
+    (hinv : ell * eta = 1) :
+    2 * L = P := by
+  rw [hell, heta] at hinv
+  linear_combination 2 * L * hP2 - P * hinv
+
+/-- On an upper offset `R = P*T`, the positive selected quarter class
+forces `(T-1)L=P` in the cyclotomic quotient. -/
+theorem fermat_quarter_upper_positive_forces
+    {S : Type*} [CommRing S] (P T L ell eta I : S)
+    (hP2 : P ^ 2 + 1 = 0)
+    (hunit : I * (P * T) = 1)
+    (hell : ell = 1 + P * T * L)
+    (heta : eta = 1 + P * T * P)
+    (hinv : ell * eta = 1) :
+    T * L = P + L := by
+  rw [hell, heta] at hinv
+  have hmul : (P * T) * (T * L - (P + L)) = 0 := by
+    linear_combination P * T ^ 2 * L * hP2 - hinv
+  have hd : T * L - (P + L) = 0 := by
+    calc
+      T * L - (P + L) = (I * (P * T)) * (T * L - (P + L)) := by
+        rw [hunit, one_mul]
+      _ = I * ((P * T) * (T * L - (P + L))) := by ring
+      _ = 0 := by rw [hmul, mul_zero]
+  exact sub_eq_zero.mp hd
+
+/-- On an upper offset `R = P*T`, the negative selected quarter class
+forces `(T+1)L=P` in the cyclotomic quotient. -/
+theorem fermat_quarter_upper_negative_forces
+    {S : Type*} [CommRing S] (P T L ell eta I : S)
+    (hP2 : P ^ 2 + 1 = 0)
+    (hunit : I * (P * T) = 1)
+    (hell : ell = 1 + P * T * L)
+    (heta : eta = 1 - P * T * P)
+    (hinv : ell * eta = 1) :
+    T * L + L = P := by
+  rw [hell, heta] at hinv
+  have hmul : (P * T) * ((T * L + L) - P) = 0 := by
+    linear_combination P * T ^ 2 * L * hP2 + hinv
+  have hd : (T * L + L) - P = 0 := by
+    calc
+      (T * L + L) - P = (I * (P * T)) * ((T * L + L) - P) := by
+        rw [hunit, one_mul]
+      _ = I * ((P * T) * ((T * L + L) - P)) := by ring
+      _ = 0 := by rw [hmul, mul_zero]
+  exact sub_eq_zero.mp hd
+
+/-- The bounded parity contradiction excluding the negative selected quarter
+class when `R = P`, `P` is divisible by four, and `L` is odd. -/
+theorem fermat_quarter_balanced_parity_contradiction
+    (P L m p l : Nat)
+    (hP : P = 4 * p)
+    (hL : L = 2 * l + 1)
+    (hm : m = P ^ 2 + 1)
+    (hLlt : L < P ^ 2)
+    (hmod : 2 * L ≡ P [MOD m]) : False := by
+  have hPm : P < m := by
+    rw [hm, hP]
+    nlinarith
+  have htwolt : 2 * L < 2 * m := by
+    rw [hm]
+    omega
+  have heqmod : (2 * L) % m = P := by
+    change (2 * L) % m = P % m at hmod
+    rwa [Nat.mod_eq_of_lt hPm] at hmod
+  by_cases hsmall : 2 * L < m
+  · rw [Nat.mod_eq_of_lt hsmall] at heqmod
+    rw [hP, hL] at heqmod
+    omega
+  · have hlarge : m ≤ 2 * L := Nat.le_of_not_gt hsmall
+    have hrem_lt : 2 * L - m < m := by omega
+    rw [Nat.mod_eq_sub_mod hlarge, Nat.mod_eq_of_lt hrem_lt] at heqmod
+    have hsum : 2 * L = P + m := by omega
+    have hmOdd : m = 2 * (8 * p ^ 2) + 1 := by
+      rw [hm, hP]
+      ring
+    rw [hP, hL, hmOdd] at hsum
+    omega
+
+/-- Once both representatives lie below the modulus, an odd product cannot
+be congruent to a positive even representative. -/
+theorem fermat_quarter_below_modulus_odd_ne_even
+    (m P q L p r l : Nat)
+    (hP : P = 2 * p)
+    (hq : q = 2 * r + 1)
+    (hL : L = 2 * l + 1)
+    (hprod : q * L < m)
+    (hPm : P < m)
+    (hmod : q * L ≡ P [MOD m]) : False := by
+  have heq : q * L = P := by
+    change (q * L) % m = P % m at hmod
+    rwa [Nat.mod_eq_of_lt hprod, Nat.mod_eq_of_lt hPm] at hmod
+  have hqmod : q % 2 = 1 := by rw [hq]; omega
+  have hLmod : L % 2 = 1 := by rw [hL]; omega
+  have hPmod : P % 2 = 0 := by rw [hP]; omega
+  have hprodmod : (q * L) % 2 = 1 := by
+    rw [Nat.mul_mod, hqmod, hLmod]
+  rw [heq, hPmod] at hprodmod
+  omega
+
+/-- Equal nonzero quarter fingerprints both fail when their common sign is
+opposite to the selected FI sign. -/
+theorem fermat_quarter_equal_sign_excludes_both
+    (jPlus jMinus sigma epsilon : ℤ)
+    (hjPlus : jPlus = epsilon) (hjMinus : jMinus = epsilon)
+    (hne : epsilon ≠ sigma) :
+    jPlus ≠ sigma ∧ jMinus ≠ sigma := by
+  constructor <;> omega
+
+/-- If two Jacobi fingerprints and the required FI fingerprint are signs,
+and the first two multiply to `-1`, exactly one conditional quarter class
+survives the sign test. -/
+theorem fermat_quarter_opposite_signs_leave_one
+    (jPlus jMinus sigma : ℤ)
+    (hjPlus : jPlus = 1 ∨ jPlus = -1)
+    (hjMinus : jMinus = 1 ∨ jMinus = -1)
+    (hsigma : sigma = 1 ∨ sigma = -1)
+    (hprod : jPlus * jMinus = -1) :
+    (jPlus = sigma ∧ jMinus ≠ sigma) ∨
+      (jPlus ≠ sigma ∧ jMinus = sigma) := by
+  rcases hjPlus with rfl | rfl <;>
+    rcases hjMinus with rfl | rfl <;>
+      rcases hsigma with rfl | rfl <;> omega
+
 end FermatQuarterJacobiCore
 
 

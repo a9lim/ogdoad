@@ -166,7 +166,16 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   identification remain paper-level. The two Euclidean modular reductions
   behind the selected quarter-class Jacobi fingerprints are kernel-checked;
   the Mobius/Artin--Schreier equivalences, fibre count, finite-field
-  specialization, and Jacobi reciprocity remain paper-level.
+  specialization, and Jacobi reciprocity remain paper-level. For the
+  upper-offset range, it also checks the quotient-ring reductions of both
+  selected quarter classes, the bounded modular/parity contradiction at
+  equality, and the below-modulus odd/even core above equality; the
+  minimal-first-failure and factor-size specializations remain paper-level.
+  For lower offsets, it also checks the downstream sign classification used
+  by the Euclidean quarter sieve: an opposite common sign excludes both
+  selected classes, while two sign-valued fingerprints with product `-1`
+  leave exactly one. The exponent-Euclidean Jacobi evaluation, its
+  power-of-two specialization, and the QFS identification remain paper-level.
   Literal ordinal labeling, recursive
   Frobenius-orbit selection, and finite-field period specialization remain
   paper-level;

@@ -487,8 +487,23 @@ absolute boundedness.
   them. The FI5 Jacobi sign nevertheless gives a conditional sieve on the
   selected quarter-Frobenius classes `K=+/-P mod (P^2+1)`: an explicit
   smaller Jacobi symbol must match FI5, and a mismatch excludes that class.
+  The full-lower inverse eliminates both selected quarter classes throughout
+  the upper-offset range `R>=P`. At equality, `K=-P` would force
+  `2L=P mod (P^2+1)`, incompatible with odd `L<P^2`, while `K=+P` makes
+  `eta` noninvertible. For `R=PT>P`, the two classes force the below-modulus
+  odd equalities `(T-1)L=P` and `(T+1)L=P`. Thus every canonical quarter
+  survivor has `R<P`.
+  Euclidean evaluation makes the remaining lower-offset sieve exact. Write
+  `R=2^x`, `P=2^H`, and `T=2^(H-x)`. If `x=0 mod 4`, both selected
+  quarter fingerprints are `+1`; if `x=2 mod 4`, both are `-1`; and if
+  `x` is odd, their product is `-1`, so exactly one class fails the required
+  FI5 sign. Consequently both selected quarter classes are excluded at the
+  minimal offset `R=B` when `n=2 mod 4`, and at every nonminimal lower
+  offset with `x=2 mod 4`; an odd `x` leaves at most one. The matched even
+  cases leave both conditional classes.
   The remaining noncanonical fibre points still require literal
-  discrete-log information.
+  discrete-log information; lower-offset selected classes whose Jacobi
+  fingerprints match FI5 also remain open.
   Nor is the selected minimal polynomial coefficient-lex extremal: at the first
   composite Fermat level it is bracketed in both coefficient orientations by
   two one-step descendants of full-order parents lying in the same proper

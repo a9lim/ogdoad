@@ -15814,6 +15814,220 @@ The M\"obius/Artin--Schreier equivalences, fibre count, finite-field
 specialization, and Jacobi reciprocity calculation remain paper-level.
 \end{proof}
 
+\begin{corollary}[the upper-offset quarter orbit is excluded]
+\label{cor:fermat-quarter-upper-offset}
+Retain Proposition~\ref{prop:fermat-quarter-jacobi-sieve}.  On the
+upper-offset range \(R\geq P\), neither selected quarter class can occur:
+\[
+ \boxed{\qquad K\not\equiv P\pmod{P^2+1},\qquad
+ K\not\equiv-P\pmod{P^2+1}.\qquad}                  \tag{\(\mathsf{QFS}_3\)}
+\]
+Thus every canonical quarter survivor has \(R<P\).  In particular, the one
+\(R=P\) class left compatible with the aggregate Jacobi
+sign in \(\mathsf{QFS}_2\) is eliminated by the exact full-lower inverse,
+not by a character estimate.
+
+This excludes a complete all-level range of the selected quarter-Frobenius
+orbit.  It does not exclude the \(P-2\) noncanonical points in either
+Artin--Schreier fibre, nor the canonical classes on lower-offset branches
+whose reduced Jacobi fingerprint agrees with
+\(\mathsf{FI}_5\).
+\end{corollary}
+
+\begin{proof}
+Put \(m=P^2+1\).  First suppose \(R=P\).  If \(K\equiv P\pmod m\), then
+\[
+ \eta=1+PK\equiv1+P^2\equiv0\pmod m,
+\]
+contrary to \(\gcd(\eta,D)=1\), since \(m\mid D\).
+
+Suppose instead that \(K\equiv-P\pmod m\).  Then
+\(\eta=1+PK\equiv2\pmod m\).  The full-lower inverse
+\(\ell\eta\equiv1\pmod D\), reduced modulo \(m\), gives
+\(2\ell\equiv1\pmod m\).  Since \(\ell=1+PL\) and
+\(P^2\equiv-1\pmod m\), multiplication by \(P\) yields
+\[
+ 2L\equiv P\pmod m.                                  \tag{*}
+\]
+Here \(L\) is positive and odd.  Also \(d=1+Pg\geq P+1\), while
+\(\ell d=P^4+1\), so
+\[
+ \ell\leq\frac{P^4+1}{P+1}<P^3,
+ \qquad L=\frac{\ell-1}{P}<P^2.
+\]
+Therefore \(0<2L<2m\).  Congruence~\((*)\) leaves only
+\[
+ 2L=P\qquad\text{or}\qquad2L=P+m.
+\]
+The first is impossible because \(4\mid P\) and \(L\) is odd; the second
+is impossible because its left side is even while \(P+m=P^2+P+1\) is odd.
+
+It remains to treat \(R>P\).  Since \(R\mid P^2\), write
+\[
+ R=PT,\qquad P=XT,
+\]
+where \(T\geq2\) and \(X\) is a power of two.  If
+\(K\equiv P\pmod m\), the inverse congruence and \(\ell=1+RL\) give
+\[
+ 0\equiv L+P\ell
+   \equiv P-(T-1)L\pmod m.                            \tag{**}
+\]
+Indeed, expansion of \(\ell(1+RP)\equiv1\) first gives
+\(R(L+P\ell)\equiv0\), and \(R\) is a unit modulo the odd number \(m\).
+If \(K\equiv-P\pmod m\), the same calculation gives
+\[
+ 0\equiv P\ell-L
+   \equiv P-(T+1)L\pmod m.                            \tag{***}
+\]
+
+The factorization supplies the decisive range.  If \(L\geq X^2\), then
+\[
+ \ell=1+PTL\geq1+PTX^2=1+P^3/T,
+ \qquad d\geq PT+1,
+\]
+and hence
+\[
+ \ell d\geq(1+P^3/T)(1+PT)>P^4+1,
+\]
+impossible.  Thus \(L<X^2\).  Since \(T+1\leq T^2\), both
+\((T-1)L\) and \((T+1)L\) lie strictly below
+\(T^2X^2=P^2<m\).  Congruences~\((**)\) and~\((***)\) therefore become
+the respective integer equalities
+\[
+ (T-1)L=P,\qquad (T+1)L=P.
+\]
+Their left sides are odd because \(T\) is even and \(L\) is odd, whereas
+\(P\) is even.  This is the required contradiction.
+
+Lean kernel-checks the quotient-ring identities in both upper ranges.  It also
+checks the bounded modular/parity contradiction at \(R=P\) and the
+below-modulus odd/even core used when \(R>P\).  The minimal-first-failure and
+factor-size specializations remain paper-level.
+\end{proof}
+
+\begin{corollary}[Euclidean Jacobi pruning of the lower-offset quarter classes]
+\label{cor:fermat-quarter-euclid-pruning}
+Retain Proposition~\ref{prop:fermat-quarter-jacobi-sieve}, and suppose
+\(R<P\).  Write
+\[
+ P=2^H,\qquad R=2^x,\qquad T=2^t,
+ \qquad H=2^{n-2},\qquad t=H-x,
+\]
+so \(H>x\geq n+2\), and put
+\[
+ J^{(+)}=\left(\frac{R^2+1}{T-1}\right)_J,
+ \qquad
+ J^{(-)}=\left(\frac{R^2+1}{T+1}\right)_J.
+\]
+Thus \(J^{(+)}\) is the fingerprint of \(K\equiv P\pmod m\), whereas
+\(J^{(-)}\) is the fingerprint of \(K\equiv-P\pmod m\).  If \(x\) is even,
+then
+\[
+ \boxed{
+ \begin{array}{c|c}
+  x\bmod4 & (J^{(+)},J^{(-)})\\ \hline
+  0 &(+1,+1)\\
+  2 &(-1,-1)
+ \end{array}}
+ \tag{\(\mathsf{QFE}_1\)}
+\]
+while, if \(x\) is odd,
+\[
+ \boxed{J^{(+)}J^{(-)}=-1.}                        \tag{\(\mathsf{QFE}_2\)}
+\]
+In the latter case the symbols are nonzero and opposite, so exactly one
+selected quarter class is excluded by \(\mathsf{FI}_5\).
+
+Since the required sign is \(\sigma=-1\) for \(R=B\) and
+\(\sigma=+1\) for \(R>B\), the exact survivor table in the range \(R<P\)
+is
+\[
+ \boxed{
+ \begin{array}{c|c}
+ \text{offset} & \text{selected quarter classes surviving}\\ \hline
+ R=B,\ n\equiv2\pmod4 & 0\\
+ R=B,\ n\equiv0\pmod4 & 2\\
+ R=B,\ n\text{ odd} & 1\\
+ R>B,\ x\equiv2\pmod4 & 0\\
+ R>B,\ 4\mid x & 2\\
+ R>B,\ x\text{ odd} & 1
+ \end{array}}
+ \tag{\(\mathsf{QFE}_3\)}
+\]
+Here ``surviving'' means only that the Jacobi sign does not exclude the
+conditional class; it does not assert that the class occurs.
+
+Together with Corollary~\ref{cor:fermat-quarter-upper-offset}, this gives
+the complete pruning table for the two selected quarter classes at every
+offset.  It still does not prove CSDU: those classes are only two marked
+points in the two size-\(P\) fibres of \(\mathsf{QFS}_1\).
+\end{corollary}
+
+\begin{proof}
+We use the following elementary Euclidean--Jacobi lemma.  Let \(4\mid\rho\),
+let \(r,s\geq1\) be coprime, and let
+\(\alpha,\beta\in\{\pm1\}\).  Whenever \(\rho^r+\alpha\) and
+\(\rho^s+\beta\) are coprime,
+\[
+ \left(\frac{\rho^r+\alpha}{\rho^s+\beta}\right)_J
+ =\left(\frac2{\rho-1}\right)_J
+ =\left(\frac2{\rho+1}\right)_J
+ =(-1)^{\rho/4}.                                    \tag{*}
+\]
+Prove this by induction on \(r+s\).  If \(r=s\), then \(r=s=1\), and
+coprimality forces \(\alpha=-\beta\); reduction modulo \(\rho\mp1\) gives
+one of the two middle symbols.  If \(r<s\), quadratic reciprocity
+interchanges numerator and denominator without a sign: the sole signed case
+\(\alpha=\beta=-1\) is impossible because \(\rho-1\) divides both entries.
+If \(r>s\), write \(r=ks+u\), \(0\leq u<s\), and set
+\(\delta=(-\beta)^k\).  Modulo \(\rho^s+\beta\),
+\[
+ \rho^r+\alpha\equiv\delta\rho^u+\alpha.
+\]
+For \(u>0\), this is \(\rho^u+\alpha\), or the negative of
+\(\rho^u-\alpha\).  In the latter case \(\delta=-1\) forces
+\(\beta=+1\), so the denominator is \(1\bmod4\) and the minus sign has
+Jacobi symbol one.  Induction applies because Euclidean reduction preserves
+the relevant coprimalities.  For \(u=0\), exponent coprimality gives \(s=1\),
+while entry coprimality forces \(\delta=\alpha\); the residue is \(\pm2\).
+The negative case again forces \(\beta=+1\), so it has the same symbol as
+two.  The supplementary law at \(\rho\pm1\) completes \((*)\).
+
+Assume first that \(x\) is even.  Put
+\[
+ d_0=\gcd(x,t)=\gcd(x,H)=2^{v_2(x)},\qquad
+ \rho=2^{d_0},\qquad a=x/d_0,\qquad b=t/d_0.
+\]
+Because \(x<H\) and \(H\) is a power of two, \(a,b\) are odd and coprime.
+Thus \(R^2+1=\rho^{2a}+1\) and \(T\mp1=\rho^b\mp1\).  Both pairs are
+coprime: a common odd prime would make the order of \(\rho\) divide both
+\(4a\) and \(b\) in the minus case, or both \(4a\) and \(2b\) in the plus
+case; the latter gcd is two, and order two would force the prime to divide
+two.  Lemma~\((*)\) gives
+\[
+ J^{(+)}=J^{(-)}=(-1)^{2^{d_0-2}}.
+\]
+This is \(-1\) exactly when \(x\equiv2\pmod4\), proving
+\(\mathsf{QFE}_1\).
+
+If \(x\) is odd, then \(t=H-x\) is odd and \(\gcd(x,t)=1\).  The entries
+\(4^x+1\) and \(4^t-1\) are coprime, since the order of four modulo a
+common odd prime would divide both \(2x\) and \(t\).  Multiplicativity in
+the denominator and Lemma~\((*)\), now with base four, give
+\[
+ J^{(+)}J^{(-)}
+ =\left(\frac{4^x+1}{4^t-1}\right)_J=-1,
+\]
+which proves \(\mathsf{QFE}_2\).  Substitution of the required FI signs,
+and \(x=n+2\) when \(R=B\), gives \(\mathsf{QFE}_3\).
+
+Lean kernel-checks the downstream sign classification: equal fingerprints
+with the opposite required sign exclude both classes, while two
+\(\{\pm1\}\)-valued fingerprints with product \(-1\) leave exactly one.
+The Euclidean--Jacobi induction \((*)\), exponent specialization, and
+finite-field/QFS identification remain paper-level.
+\end{proof}
+
 \begin{corollary}[the smallest proper lower stratum is excluded]
 \label{cor:fermat-additive-size-obstruction}
 Retain Corollary~\ref{cor:fermat-additive-cross-level}, put
@@ -28627,8 +28841,18 @@ Proposition~\ref{prop:fermat-quarter-jacobi-sieve} identifies the two M\"obius
 equations as disjoint size-\(P\) Artin--Schreier fibres, each containing
 primitive points, and gives exact conditional Jacobi fingerprints for the
 selected \(v\)-orbit quarter classes \(K\equiv\pm P\).  A fingerprint mismatch
-excludes that class, but the noncanonical fibre points remain compatible with
-failure.
+excludes that class.  Corollary~\ref{cor:fermat-quarter-upper-offset}
+removes the entire selected quarter orbit throughout \(R\geq P\): at equality
+the full-lower inverse gives noninvertibility or an impossible odd factor
+window, while above it the two classes force below-modulus odd products to
+equal the even number \(P\).  The noncanonical fibre points, and
+matching-symbol selected classes with \(R<P\), remain compatible with failure.
+Corollary~\ref{cor:fermat-quarter-euclid-pruning} evaluates the residual
+lower-offset Jacobi fingerprints exactly: according to the offset exponent
+modulo four, both selected classes fail, exactly one fails, or both survive
+the sign test.  Together these two corollaries completely prune the two
+selected quarter classes at every offset; they do not constrain the other
+points in the two Artin--Schreier fibres.
 Corollary~\ref{cor:fermat-additive-size-obstruction} then excludes the
 smallest proper lower stratum.  In the proper-loss branch, the complementary
 order \(e\) obeys \(e\geq4M+1\), together with

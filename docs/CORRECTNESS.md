@@ -183,6 +183,18 @@ the Euclidean modular reductions underlying the conditional Jacobi
 fingerprints of the selected quarter-Frobenius classes. The
 Mobius/Artin--Schreier equivalences, fibre count, finite-field specialization,
 and Jacobi-reciprocity calculation remain paper-level.
+For the upper-offset range, Lean additionally checks the quotient-ring
+reductions of both selected quarter classes, the bounded modular/parity core
+at equality, and the below-modulus odd/even core above equality. The
+minimal-first-failure and factor-size specializations remain paper-level.
+For lower offsets, the paper proves an exponent-Euclidean Jacobi lemma and
+uses it to evaluate both selected quarter fingerprints when the offset
+exponent is even, and their product when it is odd. Lean checks the downstream
+sign logic: opposite required and common signs exclude both classes, while two
+sign-valued fingerprints with product `-1` leave exactly one. The
+Euclidean--Jacobi induction, exponent specialization, and QFS identification
+remain paper-level. These results prune only the two conditional selected
+quarter classes and do not prove CSDU.
 The minimal-failure arithmetic and finite-field Fibonacci-period
 specialization remain paper-level.  The paper iterates those coordinates to
 show that recursive ancestry selects a Frobenius orbit while literal order only
