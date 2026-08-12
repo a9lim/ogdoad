@@ -369,7 +369,14 @@ absolute boundedness.
   `X^R H=S_d+(1+T_s)S_d'`. The first jet not collapsed by this identity is
   order `2R`, a provably nonzero prefactor times an explicit half-index
   Fibonacci value. That value is automatically nonzero in the even
-  half-index branch; only the odd branch, later fixed-`A` digits,
+  half-index branch. In the odd branch its vanishing is now equivalent,
+  under hypothetical failure, to the unknown selected order dividing
+  `Gamma_(n,ell)=gcd(d,3R+1)=gcd(d,2^(M-s)-3)`. Every prime in this short
+  gcd has order `2M` for base two and lands in the smaller generalized
+  Fermat number `3^(2^(n-v_2(s)))+1`. The gcd is one for every published
+  factor in the pinned `F_12,...,F_18` screen, so the first uncollapsed jet
+  is nonzero for all those coordinates. This remains only a higher-jet
+  result: odd-branch gcds at untested levels, later fixed-`A` digits,
   middle/global coefficients, and cross-endpoint relations remain open.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
@@ -673,14 +680,17 @@ absolute boundedness.
   438,103-byte payloads over `F_(2^179)` determine
   `W=v^19580*f_a(v^(-1))`, and the row is exactly
   `W^((2^64261-1)/719) != 1`. This removes the earlier 158-MB
-  degree-179-factor payload, but the two compact payloads and final phase
-  have not been constructed.
+  degree-179-factor payload. The first compact payload has now been
+  constructed and checked in: a 438,103-byte element `a` satisfying
+  `a^359=(1+x)/c`, verified exactly against the existing `p=359` artifact.
+  The second payload `f_a`, the resulting `W`, and the final phase have not
+  been constructed.
   The cheap shadows are exact but phase-blind: `Norm(y)` is the unique
   359th root of `kappa_89` in `F_(2^19580)`, and
   `Norm(z)=kappa_89+1`, yet twisting `z` by `mu_719` preserves this lower
   norm and realizes every 719-phase. Thus the row is reduced to a concrete
-  equal-degree factor evaluation, but it is not yet certified; `m_719=1`
-  remains open.
+  equal-degree factor evaluation and now has its first exact crossed payload,
+  but the row itself is not yet certified; `m_719=1` remains open.
   At the
   actual ordinary singleton step, even the canonical additive lower norm is
   current-Kummer blind: `Norm(1+x)=1+x^r`, while
@@ -819,6 +829,15 @@ absolute boundedness.
   blind as well. Generic
   Wendt factors and other trace fibres attain every structural value used by
   the obvious bounds.
+  The complete derivative ancestry collapses on the same line. Every partial
+  square-root Jacobian `H_(3^m)(gamma_k)` is `(gamma_k+1)` times a nonzero
+  lower-field scalar, and its square is `gamma_(k-m)/gamma_k`. Consequently
+  every nonzero lower-ancestry-coefficient homogeneous expression in all
+  partial roots or Jacobians has either automatic current weight zero or an
+  invertible power of the original Euler phase. This covers nonsymmetric
+  homogeneous combinations of separate lower ancestors, but not zero
+  evaluations, mixed total degrees, or correlations using different top-point
+  data.
   The literal full trace flag is now equally exact. At every selected cubic
   edge the fibre of source reciprocal cubics over the actual coefficient pair
   `(eta_(j-1),eta_(j-1)+1)` is reduced etale of geometric degree `ell^2`;

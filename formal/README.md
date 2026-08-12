@@ -162,10 +162,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   reduces a replayable certificate to two 438,103-byte payloads over
   `F_(2^179)` and a final Euler test in `F_(2^64261)`.  Lean checks the
   generic scaled-product and conditional nested-exponent cores; the
-  field/Kummer/norm and numerical-exponent specializations and all finite
-  payloads remain paper-level.  The two
+  field/Kummer/norm and numerical-exponent specializations remain paper-level.
+  The first crossed payload is now checked in: a maintained python-flint
+  verifier reconstructs it together with the `p=359` artifact and checks
+  `a^359=(1+x)/c` exactly.  This finite computation is not Lean-checked.  The two
   cheaper norm shadows and their `mu_719` phase-blindness are also
-  paper-level.  No `p=719` payload or finite-field evaluation exists yet;
+  paper-level.  No `f_a`, inner-norm `W`, or final 719-phase exists yet;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -246,6 +248,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   cyclotomic-block decomposition, exact orbit ranks, Scheerhorn
   completely-normal conclusion, absolute Moore diagonalization, resultant,
   and finite-field Hilbert--90 instantiation remain paper-level;
+- the cubic ancestral-Jacobian core: Lean checks the derivative of the cubic
+  edge, the full iterated factorization through the canonical product of
+  translated iterates, its lower-tail line factorization, lower-coefficient
+  linear combinations on that line, and the canonical-root square ratio in a
+  field.  Its identification with the full iterated derivative, the selected
+  tower specialization, and the current-prime homogeneous Kummer-weight
+  interpretation remain paper-level;
 - the translated selected Singer cubic for
   `epsilon_k=eta_k+1`, its symmetric-coefficient Moore identity, the exact
   constant-off-diagonal trace-Gram determinant, and preservation of element
@@ -465,9 +474,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   selected specialization remain paper-level;
 - the fixed-`A` Hasse-jet ring core: Lean checks the second-digit
   rearrangement, the exact first-escape identity and quotient specialization,
-  and the order-`2R` normal form.  The Hasse block bookkeeping, canonical-digit
-  recursion, selected polynomial specialization, and finite-field proof that
-  the displayed partial-trace prefactors are nonzero remain paper-level;
+  the order-`2R` normal form, the odd-branch quotient-ring collision, and the
+  linear equivalence of its two arithmetic forms.  The Hasse block bookkeeping,
+  canonical-digit recursion, selected polynomial specialization, finite-field
+  order calculation, and proof that the displayed partial-trace prefactors are
+  nonzero remain paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

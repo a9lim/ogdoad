@@ -35,6 +35,10 @@ latter is, for example,
 
 This is a falsification/primary-coordinate harness, not a proof of all-level
 maximality.  The paper and Lean ledger retain that boundary explicitly.
+The dependency-free ``--jet-only`` mode skips field construction and evaluates
+the paper's factor-sensitive arithmetic obstruction for the first Hasse jet
+not forced by the selected quotient residue.  That is a conditional higher-jet
+screen, not a substitute for the primary-coordinate computation.
 """
 
 from __future__ import annotations
@@ -42,6 +46,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib
+import math
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -88,6 +93,81 @@ PUBLISHED_FACTORS = {
         81_274_690_703_860_512_587_777,
     ),
 }
+
+
+@dataclass(frozen=True)
+class FactorSensitiveJetScreen:
+    """Cheap arithmetic obstruction for the first uncollapsed Hasse jet.
+
+    Conditional on the hypothetical primary failure, the odd branch can
+    vanish only if the unknown selected order divides ``arithmetic_gcd``.
+    Thus gcd one certifies that higher jet nonzero under failure.  This is not
+    the selected Fibonacci residue test and cannot certify maximal order.
+    """
+
+    valuation: int
+    block: int
+    reduced_quotient: int
+    half_index_parity: str
+    odd_collision_gcd: int
+    arithmetic_gcd: int
+    nonzero_by_arithmetic: bool
+
+
+def factor_sensitive_jet_screen(
+    level: int, factor: int
+) -> FactorSensitiveJetScreen:
+    """Return the exact factor-sensitive order-``2R`` jet pre-screen."""
+
+    if level < 2:
+        raise ValueError("the factor-sensitive jet screen requires level >= 2")
+    fermat_number = (1 << (1 << level)) + 1
+    quotient, remainder = divmod(fermat_number, factor)
+    if factor <= 1 or factor >= fermat_number or remainder:
+        raise ValueError(f"{factor} is not a proper divisor of F_{level}")
+
+    valuation = ((factor - 1) & -(factor - 1)).bit_length() - 1
+    block = 1 << valuation
+    reduced_quotient, reduced_remainder = divmod(quotient - 1, block)
+    if reduced_remainder or reduced_quotient % 2 == 0:
+        raise AssertionError("Fermat quotient has the wrong extracted 2-adic block")
+
+    half_index = (reduced_quotient - 1) // 2
+    half_index_parity = "odd" if half_index % 2 else "even"
+    odd_collision_gcd = math.gcd(quotient, 3 * block + 1)
+    multiplier = 3 if half_index_parity == "odd" else 1
+    arithmetic_gcd = math.gcd(quotient, multiplier * block + 1)
+    if half_index_parity == "odd":
+        exponent_gap = (1 << level) - valuation
+        alternate_gcd = math.gcd(quotient, (1 << exponent_gap) - 3)
+        if alternate_gcd != odd_collision_gcd:
+            raise AssertionError("the two odd-branch collision forms disagree")
+    return FactorSensitiveJetScreen(
+        valuation=valuation,
+        block=block,
+        reduced_quotient=reduced_quotient,
+        half_index_parity=half_index_parity,
+        odd_collision_gcd=odd_collision_gcd,
+        arithmetic_gcd=arithmetic_gcd,
+        nonzero_by_arithmetic=arithmetic_gcd == 1,
+    )
+
+
+def print_factor_sensitive_jet_screen(level: int, factor: int) -> None:
+    """Print the fast arithmetic jet screen without finite-field arithmetic."""
+
+    result = factor_sensitive_jet_screen(level, factor)
+    print(f"level={level}")
+    print(f"factor={factor}")
+    print(f"jet_factor_valuation={result.valuation}")
+    print(f"jet_block={result.block}")
+    print(f"jet_half_index_parity={result.half_index_parity}")
+    print(f"jet_odd_collision_gcd={result.odd_collision_gcd}")
+    print(f"jet_arithmetic_gcd={result.arithmetic_gcd}")
+    print(
+        "jet_nonzero_under_failure_by_arithmetic="
+        f"{result.nonzero_by_arithmetic}"
+    )
 
 
 SQUARE_BYTE = tuple(
@@ -340,6 +420,12 @@ def screen(
     if factor <= 1 or remainder:
         raise ValueError(f"{factor} does not divide F_{level}")
 
+    jet_screen = (
+        factor_sensitive_jet_screen(level, factor)
+        if level >= 2 and factor < fermat_number
+        else None
+    )
+
     started = time.perf_counter()
     modulus = selected_minimal_polynomial(level)
     built = time.perf_counter()
@@ -367,6 +453,16 @@ def screen(
     print(f"factor={factor}")
     print(f"factor_bits={factor.bit_length()}")
     print(f"quotient_bits={quotient.bit_length()}")
+    print(f"jet_screen_applicable={jet_screen is not None}")
+    if jet_screen is not None:
+        print(f"jet_factor_valuation={jet_screen.valuation}")
+        print(f"jet_half_index_parity={jet_screen.half_index_parity}")
+        print(f"jet_odd_collision_gcd={jet_screen.odd_collision_gcd}")
+        print(f"jet_arithmetic_gcd={jet_screen.arithmetic_gcd}")
+        print(
+            "jet_nonzero_under_failure_by_arithmetic="
+            f"{jet_screen.nonzero_by_arithmetic}"
+        )
     print(f"modulus_degree={expected_degree}")
     print(f"modulus_weight={modulus.bit_count()}")
     print(f"residue_nonzero={residue != 0}")
@@ -383,7 +479,10 @@ def screen(
 
 
 def screen_published(
-    level: int, backend: str = "stdlib", flint_threads: int = 1
+    level: int,
+    backend: str = "stdlib",
+    flint_threads: int = 1,
+    jet_only: bool = False,
 ) -> int:
     """Screen every currently published prime factor at a supported level."""
 
@@ -397,7 +496,10 @@ def screen_published(
     status = 0
     for position, factor in enumerate(factors, start=1):
         print(f"published_factor={position}/{len(factors)}")
-        status = max(status, screen(level, factor, backend, flint_threads))
+        if jet_only:
+            print_factor_sensitive_jet_screen(level, factor)
+        else:
+            status = max(status, screen(level, factor, backend, flint_threads))
     return status
 
 
@@ -423,6 +525,9 @@ def self_test() -> None:
         residue, _ = fibonacci_residue(quotient, BinaryFieldReducer.build(modulus))
         if residue == 0:
             raise AssertionError(f"unexpected F_5 failure at factor {factor}")
+        jet_screen = factor_sensitive_jet_screen(5, factor)
+        if jet_screen.arithmetic_gcd != 1 or not jet_screen.nonzero_by_arithmetic:
+            raise AssertionError(f"unexpected F_5 jet obstruction at factor {factor}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -447,6 +552,11 @@ def parse_args() -> argparse.Namespace:
         type=int,
         help="screen the pinned, incomplete FermatSearch factor list",
     )
+    parser.add_argument(
+        "--jet-only",
+        action="store_true",
+        help="run only the fast factor-sensitive higher-jet arithmetic screen",
+    )
     return parser.parse_args()
 
 
@@ -465,10 +575,16 @@ def main() -> int:
                 "--published-level cannot be combined with --level/--factor"
             )
         return screen_published(
-            args.published_level, args.backend, args.flint_threads
+            args.published_level,
+            args.backend,
+            args.flint_threads,
+            args.jet_only,
         )
     if args.level is None or args.factor is None:
         raise SystemExit("--level and --factor must be supplied together")
+    if args.jet_only:
+        print_factor_sensitive_jet_screen(args.level, args.factor)
+        return 0
     return screen(args.level, args.factor, args.backend, args.flint_threads)
 
 

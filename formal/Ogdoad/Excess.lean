@@ -2119,6 +2119,60 @@ theorem quotient_boundary_defect_of_fixed
 
 end FermatQuotientWindowCore
 
+section FermatOddJetArithmeticCore
+
+/-- In any quotient where `d = 0` and `4R` is a unit, the odd-branch
+relation `d = 1 + R(4t+3)` makes `t = 0` exactly the residual collision
+`3R+1 = 0`.  The paper applies this in `ZMod delta`. -/
+theorem odd_branch_zero_iff_collision
+    {K : Type*} [CommRing K] (d R t : K)
+    (hd : d = 1 + R * (4 * t + 3))
+    (hd0 : d = 0)
+    (hunit : IsUnit (4 * R)) :
+    t = 0 ↔ 3 * R + 1 = 0 := by
+  have hsplit : (3 * R + 1) + (4 * R) * t = 0 := by
+    calc
+      (3 * R + 1) + (4 * R) * t = d := by rw [hd]; ring
+      _ = 0 := hd0
+  constructor
+  · intro ht
+    simpa [ht] using hsplit
+  · intro hcollision
+    have hprod : (4 * R) * t = 0 := by
+      simpa [hcollision] using hsplit
+    exact hunit.mul_left_cancel (by simpa using hprod)
+
+/-- The two integer presentations of the collision differ by combinations
+of the Fermat relation `N = P*R + 1`. -/
+theorem collision_linear_combinations
+    {K : Type*} [CommRing K] (N R C P : K)
+    (hN : N = P * R + 1)
+    (hC : C = P - 3) :
+    R * C = N - (3 * R + 1) := by
+  rw [hN, hC]
+  ring
+
+/-- Modulo any odd divisor of the Fermat number, the two collision forms
+`3R+1` and `P-3` are equivalent when `P*R+1` is the Fermat relation. -/
+theorem collision_forms_iff
+    {K : Type*} [CommRing K] (N R C P : K)
+    (hN : N = P * R + 1)
+    (hC : C = P - 3)
+    (hN0 : N = 0)
+    (hR : IsUnit R) :
+    3 * R + 1 = 0 ↔ C = 0 := by
+  have hlin := collision_linear_combinations N R C P hN hC
+  constructor
+  · intro hB
+    have hprod : R * C = 0 := by simpa [hN0, hB] using hlin
+    exact hR.mul_left_cancel (by simpa using hprod)
+  · intro hC0
+    calc
+      3 * R + 1 = N - R * C := by rw [hlin]; ring
+      _ = 0 := by rw [hN0, hC0, mul_zero, sub_zero]
+
+end FermatOddJetArithmeticCore
+
 section FermatFixedAdicJetCore
 
 variable {K : Type*} [CommRing K] [CharP K 2]
@@ -3401,6 +3455,115 @@ theorem cubicDerivativeRecurrenceStep (P : R[X])
   rw [htwoPoly, zero_add]
 
 end CubicDerivativeRecurrence
+
+section CubicAncestralJacobian
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+open Polynomial
+
+/-- The derivative of the selected cubic edge is the square of its
+translated coordinate. -/
+theorem cubicMap_derivative :
+    derivative ((X : R[X]) ^ 3 + X) = (X + 1) ^ 2 := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hthree : (3 : R) = 1 := by
+    rw [show (3 : R) = 2 + 1 by norm_num, htwo, zero_add]
+  have htwoPoly : (2 : R[X]) = 0 := CharP.cast_eq_zero R[X] 2
+  simp [derivative_add, derivative_pow, hthree]
+  ring_nf
+  rw [htwoPoly, mul_zero, add_zero]
+
+/-- The selected cubic map `x |-> x^3+x`, iterated `m` times. -/
+def cubicIterate (x : R) : Nat → R
+  | 0 => x
+  | m + 1 => cubicIterate x m ^ 3 + cubicIterate x m
+
+/-- The canonical square root of the first `m` edge Jacobians. -/
+def cubicAncestralRoot (x : R) : Nat → R
+  | 0 => 1
+  | m + 1 => cubicAncestralRoot x m * (cubicIterate x m + 1)
+
+/-- In characteristic two, one cubic step is the input times the square of
+its translated input. -/
+theorem cubicStep_eq_mul_translate_sq (x : R) :
+    x ^ 3 + x = x * (x + 1) ^ 2 := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    x ^ 3 + x = x ^ 3 + (2 : R) * x ^ 2 + x := by rw [htwo, zero_mul, add_zero]
+    _ = x * (x + 1) ^ 2 := by ring
+
+/-- Full iterated factorization: the `m`-fold selected cubic iterate is the
+top input times the square of the product of all preceding translates. -/
+theorem cubicIterate_eq_mul_ancestralRoot_sq (x : R) :
+    ∀ m, cubicIterate x m = x * cubicAncestralRoot x m ^ 2 := by
+  intro m
+  induction m with
+  | zero => simp [cubicIterate, cubicAncestralRoot]
+  | succ m ih =>
+      rw [cubicIterate, cubicStep_eq_mul_translate_sq, ih]
+      simp only [cubicAncestralRoot]
+      simp only [ih]
+      ring_nf
+
+omit [CharP R 2] in
+/-- The canonical roots themselves satisfy the expected prefix-product
+recursion. -/
+theorem cubicAncestralRoot_succ (x : R) (m : Nat) :
+    cubicAncestralRoot x (m + 1) =
+      cubicAncestralRoot x m * (cubicIterate x m + 1) := by
+  rfl
+
+/-- Product of the genuinely lower ancestral translates, with the top
+translate omitted. -/
+def cubicAncestralTail (x : R) : Nat → R
+  | 0 => 1
+  | m + 1 => cubicAncestralTail x m * (cubicIterate x (m + 1) + 1)
+
+omit [CharP R 2] in
+/-- Exact algebra behind the lower-field-line collapse: every nonempty
+ancestral root is the same top translate times a product involving only
+strictly lower iterates. -/
+theorem cubicAncestralRoot_succ_eq_translate_mul_tail (x : R) :
+    ∀ m, cubicAncestralRoot x (m + 1) =
+      (x + 1) * cubicAncestralTail x m := by
+  intro m
+  induction m with
+  | zero => simp [cubicAncestralRoot, cubicAncestralTail, cubicIterate]
+  | succ m ih =>
+      rw [cubicAncestralRoot_succ, ih]
+      simp only [cubicAncestralTail]
+      ring
+
+omit [CharP R 2] in
+/-- Every lower-coefficient linear combination of nonempty ancestral roots
+still lies on the single line generated by the top translate. -/
+theorem sum_cubicAncestralRoot_succ_eq_translate_mul_sum
+    (x : R) (s : Finset Nat) (a : Nat → R) :
+    ∑ m ∈ s, a m * cubicAncestralRoot x (m + 1) =
+      (x + 1) * ∑ m ∈ s, a m * cubicAncestralTail x m := by
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro m hm
+  rw [cubicAncestralRoot_succ_eq_translate_mul_tail]
+  ring
+
+end CubicAncestralJacobian
+
+section CubicAncestralJacobianField
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- Ratio form used at the selected tower point: the canonical ancestral
+root square is the lower iterate divided by the top coordinate. -/
+theorem cubicAncestralRoot_sq_eq_iterate_div (x : K) (m : Nat)
+    (hx : x ≠ 0) :
+    cubicAncestralRoot x m ^ 2 = cubicIterate x m / x := by
+  apply (eq_div_iff hx).2
+  rw [mul_comm]
+  exact (cubicIterate_eq_mul_ancestralRoot_sq x m).symm
+
+end CubicAncestralJacobianField
 
 end CyclotomicReflectionAlgebra
 

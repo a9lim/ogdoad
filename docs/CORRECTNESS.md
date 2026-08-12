@@ -130,11 +130,14 @@ degree-179 factor of `(T^359+1)^179+(kappa_89+1)` over
 `F_(2^7029220)` and one Euler test at that factor's value at one.  A second,
 crossed-tower formulation compresses a replayable certificate to two
 438,103-byte payloads over `F_(2^179)` and an Euler test in
-`F_(2^64261)`.  Lean checks only the generic scaled-product identity and
-conditional exponent multiplication; all field, Kummer, norm, and numerical
+`F_(2^64261)`.  The first payload `a` is now checked in with a maintained
+python-flint verifier that reconstructs the certified `p=359` root and checks
+`a^359=(1+x)/c` exactly.  This is an exact finite computation, not a Lean
+theorem.  Lean checks only the generic scaled-product identity and conditional
+exponent multiplication; the field, Kummer, norm, and numerical
 specializations remain paper-level.  Its lower norm identities and `mu_719`
-phase-blindness are proved in the paper, but no `(a,f_a)` payload, factor
-artifact, or selected phase evaluation is checked in this repository;
+phase-blindness are proved in the paper, but no `f_a`, inner-norm `W`, or
+selected phase evaluation is checked in this repository;
 `m_719=1` remains open.
 
 `Ogdoad/GameExterior.lean` kernel-checks the algebraic core of the resolved

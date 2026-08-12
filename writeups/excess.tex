@@ -4055,8 +4055,10 @@ bases, omitting the known monic coefficient, each of \(a\) and \(f_a\)
 occupies exactly \(rd=3504820\) bits, or \(438103\) bytes when separately
 byte-aligned; two such files total \(876206\) bytes.  A single continuously
 packed concatenation instead occupies \(876205\) bytes.  An optional stored
-\(H\)-element occupies \(rs=64261\) bits, or \(8033\) bytes.  No such
-payload or final \(719\)-phase is presently available.
+\(H\)-element occupies \(rs=64261\) bits, or \(8033\) bytes.  The first
+payload \(a\) is now instantiated below.  The minimal-polynomial payload
+\(f_a\), the crossed norm \(W\), and the final \(719\)-phase remain
+unavailable.
 \end{proposition}
 
 \begin{proof}
@@ -4102,6 +4104,40 @@ equality in \((\mathsf{O719C}_3)\) and conditional nested exponent
 multiplication.  The field identifications, Kummer construction,
 minimal-polynomial and norm specializations, numerical exponent
 factorization, and the still-open finite certificate remain paper-level.
+\end{proof}
+
+\begin{proposition}[checked first crossed payload for the fixed \(p=719\)
+mark]
+\label{prop:ordinary-719-crossed-root-certificate}
+Retain Proposition~\ref{prop:ordinary-719-crossed-certificate}.  In its
+fixed polynomial bases there is an explicitly stored element \(a\in B\)
+satisfying
+\[
+ a^{359}=\frac{1+x}{c},\qquad ca^{359}+1=x,
+ \qquad (ca^{359}+1)^{179}=A.
+\]
+Its continuously packed little-endian coefficient payload has
+\(3504820\) bits, hence \(438103\) bytes, and SHA-256
+\[
+\texttt{c7385164fedcbb971ff2bb239ef9e0a0d1ccb81b16edd81eee2a139030ba8758}.
+\]
+Consequently \(D(a)=B\), so the minimal polynomial of \(a\) over \(D\)
+has degree \(19580\).  The maintained exact verifier reconstructs \(x\)
+and \(c\) from the checked \(p=359\) artifact and verifies the displayed
+equations.  Its full-upstream mode additionally recomputes
+\(\Norm_{B/D}(1+x)\).
+
+This constructs the first payload required by
+\((\mathsf{O719C}_1)\).  It does not construct the minimal polynomial
+\(f_a\), the crossed norm \(W=v^{19580}f_a(v^{-1})\), or the final
+\(719\)-phase.  In particular, it does not prove \(m_{719}=1\).
+\end{proposition}
+
+\begin{proof}
+The finite computation is exactly the maintained artifact verifier described
+above.  From \(x=ca^{359}+1\) and \(A=x^{179}\) one gets
+\(D(A)\subseteq D(a)\subseteq B\).  Since \(B=D(A)\), equality follows.
+The finite computation is not kernel-checked in Lean.
 \end{proof}
 
 \begin{proposition}[ordinary affine orbit and the marked scalar]
@@ -8942,6 +8978,158 @@ The root-product formula for the resultant now yields
 with the original Euler obstruction.
 \end{proof}
 
+\begin{proposition}[the full ancestral Jacobian line collapses]
+\label{prop:cubic-ancestral-jacobian-line}
+Retain Proposition~\ref{prop:dickson-iterate}, put
+\(f(X)=X^3+X\), and extend its notation by
+\(P_0(X)=X+1\), so that
+\(P_i(X)=f^{\circ i}(X)+1\) for every \(i\geq0\).
+For \(m\geq0\), the Dickson square root from
+Proposition~\ref{prop:cubic-critical-cyclotomic-factorization} has the
+exact factorization
+\[
+ \boxed{
+ \begin{gathered}
+ f^{\circ m}(X)=XH_{3^m}(X)^2,
+ \qquad H_{3^m}(X)=\prod_{i=0}^{m-1}P_i(X),\\
+ (f^{\circ m})'(X)=H_{3^m}(X)^2.
+ \end{gathered}}                                    \tag{\(\mathsf{AJ}_1\)}
+\]
+
+Put \(\gamma_0=1\).  For \(1\leq m\leq k\), define
+\[
+ R_{k,m}:=H_{3^m}(\gamma_k),
+ \qquad J_{k,m}:=(f^{\circ m})'(\gamma_k).
+\]
+Then the complete selected ancestry gives
+\[
+ \boxed{
+ \begin{aligned}
+ R_{k,m}
+   &=\prod_{i=0}^{m-1}(\gamma_{k-i}+1)
+     =(\gamma_k+1)c_{k,m},\\
+ c_{k,m}
+   &:=\prod_{i=1}^{m-1}(\gamma_{k-i}+1)
+     \in L_{k-1}^{\times},\\
+ J_{k,m}=R_{k,m}^2
+   &=\frac{\gamma_{k-m}}{\gamma_k}.
+ \end{aligned}}                                      \tag{\(\mathsf{AJ}_2\)}
+\]
+In particular, all nonempty ancestral square roots span the one-dimensional
+\(L_{k-1}\)-space \((\gamma_k+1)L_{k-1}\), and all partial Jacobians span
+\((\gamma_k+1)^2L_{k-1}\).  At the full depth,
+\[
+ R_{k,k}=\prod_{j=1}^{k}(\gamma_j+1),
+ \qquad J_{k,k}=\gamma_k^{-1}=\beta_k.              \tag{\(\mathsf{AJ}_3\)}
+\]
+
+Now let \(\ell\mid\Phi_{3^k}(2)\) be prime, put
+\(q=2^{3^{k-1}}\), and define
+\[
+ \mathcal E_\ell(x)
+ :=x^{(2^{3^k}-1)/\ell}\in\mu_\ell.
+\]
+For every \(1\leq m\leq k\),
+\[
+ \boxed{
+ \mathcal E_\ell(J_{k,m})
+   =\mathcal E_\ell(\gamma_k)^{-1},
+ \qquad
+ \mathcal E_\ell(R_{k,m})^2
+   =\mathcal E_\ell(\gamma_k)^{-1}.}                \tag{\(\mathsf{AJ}_4\)}
+\]
+Since \(\ell\) is odd and
+\(\eta_k=\gamma_k^{q-1}\), with
+\(\gcd(q-1,\ell)=1\), this gives the exact equivalence
+\[
+ \boxed{
+ \mathcal E_\ell(R_{k,m})=1
+ \iff \mathcal E_\ell(J_{k,m})=1
+ \iff \mathcal E_\ell(\eta_k)=1.}                 \tag{\(\mathsf{AJ}_5\)}
+\]
+
+More generally, let
+\(F\in L_{k-1}[T_1,\ldots,T_k]\) be homogeneous of total degree \(d\).
+Whenever the displayed evaluations are nonzero, homogeneity and
+\((\mathsf{AJ}_2)\) give
+\[
+ \boxed{
+ \begin{aligned}
+ \mathcal E_\ell\bigl(F(R_{k,1},\ldots,R_{k,k})\bigr)
+   &=\mathcal E_\ell(\gamma_k+1)^d,\\
+ \mathcal E_\ell\bigl(F(J_{k,1},\ldots,J_{k,k})\bigr)
+   &=\mathcal E_\ell(\gamma_k)^{-d}.
+ \end{aligned}}                                      \tag{\(\mathsf{AJ}_6\)}
+\]
+Thus if \(\ell\nmid d\), either residue test is one exactly on the
+original current failure; if \(\ell\mid d\), it is identically one.
+The coefficients of \(F\) may depend nonsymmetrically on every separate
+lower selected ancestor.  Therefore partial iterated Jacobians, their
+canonical Dickson square roots, lower-ancestry linear combinations, and
+homogeneous determinants supply no second current Kummer coordinate.
+
+This is a homogeneous residue-class collapse only.  It does not evaluate
+whether a selected homogeneous expression is zero, does not cover sums of
+different total degrees, and does not exclude a correlation using other
+top-point data.  In particular it does not prove the required
+\(\mathcal E_\ell(\eta_k)\ne1\).
+\end{proposition}
+
+\begin{proof}
+In characteristic two,
+\[
+ f(Y)=Y^3+Y=Y(Y+1)^2,
+ \qquad f'(Y)=Y^2+1=(Y+1)^2.
+\]
+Starting with \(f^{\circ0}(X)=X\), induction therefore gives
+\[
+ f^{\circ(m+1)}(X)
+ =f^{\circ m}(X)\bigl(f^{\circ m}(X)+1\bigr)^2
+ =X\left(\prod_{i=0}^{m}P_i(X)\right)^2.
+\]
+The product is monic with constant term one, so uniqueness in
+\((\mathsf{CCF}_1)\) identifies it with \(H_{3^{m+1}}\).
+Differentiating \(XH_{3^m}^2\) in characteristic two proves the last
+identity in \((\mathsf{AJ}_1)\).
+
+The selected recursion says
+\(f^{\circ i}(\gamma_k)=\gamma_{k-i}\) for \(0\leq i\leq k\).
+Evaluation of \((\mathsf{AJ}_1)\) gives the product formulas in
+\((\mathsf{AJ}_2)\); division of
+\(\gamma_{k-m}=\gamma_kR_{k,m}^2\) gives its last equality.
+All factors are nonzero.  Separating the \(i=0\) factor puts every remaining
+factor in \(L_{k-1}^{\times}\), proving the line assertions and
+\((\mathsf{AJ}_3)\).
+
+For a current prime, \(\ord_\ell(2)=3^k\).  Hence
+\(\ell\nmid|L_{k-1}^{\times}|\), so every nonzero lower-field coefficient
+is an \(\ell\)-th power in \(L_k\) and has \(\mathcal E_\ell\)-value one.
+Applying \(\mathcal E_\ell\) to \((\mathsf{AJ}_2)\) proves
+\((\mathsf{AJ}_4)\).  The square map on \(\mu_\ell\) is injective, and
+\[
+ \mathcal E_\ell(\eta_k)
+ =\mathcal E_\ell(\gamma_k)^{q-1}
+\]
+with \(q-1\) invertible modulo \(\ell\), proving
+\((\mathsf{AJ}_5)\).
+
+Finally, \((\mathsf{AJ}_2)\) and homogeneity give the exact factorizations
+\[
+ \begin{aligned}
+ F(R_{k,1},\ldots,R_{k,k})
+   &=(\gamma_k+1)^dF(1,c_{k,2},\ldots,c_{k,k}),\\
+ F(J_{k,1},\ldots,J_{k,k})
+   &=(\gamma_k+1)^{2d}
+     F(1,c_{k,2}^2,\ldots,c_{k,k}^2).
+ \end{aligned}
+\]
+The remaining factors lie in \(L_{k-1}\).  Applying
+\(\mathcal E_\ell\), and using
+\(\mathcal E_\ell(\gamma_k+1)^2
+ =\mathcal E_\ell(\gamma_k)^{-1}\), proves
+\((\mathsf{AJ}_6)\) and the stated dichotomy.
+\end{proof}
+
 \begin{proposition}[the selected Singer trace is the whole remaining phase]
 \label{prop:cubic-prescribed-trace}
 Retain Proposition~\ref{prop:cubic-wendt-singer}.  For \(a\in\F_q\)
@@ -12685,6 +12873,145 @@ Lean kernel-checks the second-digit rearrangement, the exact identity
 normalization in \((\mathsf{QJ}_5)\).  The Hasse block bookkeeping and
 the specialization to the selected Conway polynomial remain paper-level.
 \end{proof}
+
+\begin{proposition}[the odd fixed jet is an exact cofactor--Pierpont collision]
+\label{prop:fermat-odd-jet-collision}
+Retain Proposition~\ref{prop:fermat-fixed-adic-jet-blocks}, assume the
+hypothetical failure \(A\mid S_d\), and suppose
+\[
+ r=2t+1.
+\]
+Put
+\[
+ \Gamma_{n,\ell}
+ :=\gcd(d,3R+1)
+ =\gcd\bigl(d,2^{M-s}-3\bigr).
+\]
+Then
+\[
+ \boxed{
+ \begin{aligned}
+ S_d^{[2R]}(a)=0
+ &\iff S_t(a)=0
+ \iff \delta_n\mid t\\
+ &\iff \delta_n\mid\Gamma_{n,\ell}.
+ \end{aligned}}                                      \tag{\(\mathsf{QJ}_8\)}
+\]
+In particular, \(\Gamma_{n,\ell}=1\) is a sufficient arithmetic
+certificate that the odd order-\(2R\) jet is nonzero.
+
+Every prime \(p\mid\Gamma_{n,\ell}\) satisfies
+\[
+ \boxed{
+ \ord_p(2)=2M,\qquad
+ 2^{M-s}\equiv3\pmod p.}                              \tag{\(\mathsf{QJ}_9\)}
+\]
+If \(v=v_2(s)\), then \(v<n\) and
+\[
+ \boxed{
+ \ord_p(3)=2^{n+1-v},\qquad
+ p\mid3^{2^{n-v}}+1,\qquad
+ p\equiv1\pmod{12}.}                                 \tag{\(\mathsf{QJ}_{10}\)}
+\]
+Thus a surviving prime is simultaneously a primitive Fermat divisor for
+base two and a primitive generalized-Fermat divisor for base three, with
+the additional oriented discrete-log condition in
+\((\mathsf{QJ}_9)\).
+
+There is a sharp small-window dichotomy.  If
+\[
+ 3R+1<(4M+1)^2,
+\]
+then
+\[
+ \boxed{\Gamma_{n,\ell}\in\{1,3R+1\}.}                \tag{\(\mathsf{QJ}_{11}\)}
+\]
+In the nontrivial case \(3R+1\) is prime.  Consequently, in this window,
+\[
+ S_d^{[2R]}(a)=0
+ \quad\Longrightarrow\quad
+ \Gamma_{n,\ell}=\delta_n=3R+1.
+\]
+In particular this applies whenever \(s=n+2\), when
+\(R=4M\) and \(3R+1=12M+1\).
+
+Using the cofactor \(d=F_n/\ell\) gives the sharp factor-sensitive screen.
+The weaker full-Fermat gcd can retain the selected factor \(\ell\) itself
+and therefore fail to certify nonvanishing when \(\Gamma_{n,\ell}=1\).
+The proposition does not prove \(\Gamma_{n,\ell}=1\), nor does a nontrivial
+\(\Gamma_{n,\ell}\) determine the selected order \(\delta_n\).
+\end{proposition}
+
+\begin{proof}
+The first equivalence in \((\mathsf{QJ}_8)\) is
+\((\mathsf{QJ}_6)\), and the Fibonacci zero-set criterion gives
+\[
+ S_t(a)=0\iff\delta_n\mid t.
+\]
+Under hypothetical failure one also has \(\delta_n\mid d\).  Since
+\(g=4t+3\),
+\[
+ d=1+R(4t+3)=(3R+1)+4Rt.
+\]
+Thus \(\delta_n\mid t\) implies \(\delta_n\mid3R+1\).
+Conversely, if \(\delta_n\mid3R+1\), then
+\(\delta_n\mid4Rt\); and
+\(\gcd(\delta_n,4R)=1\), because \(\delta_n\mid F_n\) is odd.
+Hence \(\delta_n\mid t\).  This proves \((\mathsf{QJ}_8)\).
+
+Since \(d\mid N=2^M+1\), the identities
+\[
+ \begin{aligned}
+ 2^{M-s}(3R+1)-3N&=2^{M-s}-3,\\
+ N-R(2^{M-s}-3)&=3R+1
+ \end{aligned}
+\]
+prove the two gcd presentations of \(\Gamma_{n,\ell}\).
+
+Let \(p\mid\Gamma_{n,\ell}\) be prime.  Then \(p\mid F_n\), so
+\(2^M\equiv-1\pmod p\).  Because \(M=2^n\), this forces
+\(\ord_p(2)=2M\).  The second gcd presentation gives
+\(2^{M-s}\equiv3\pmod p\).  Since \(0<s<M\),
+\[
+ \gcd(2M,M-s)=2^{v_2(s)}.
+\]
+Therefore
+\[
+ \ord_p(3)
+ =\frac{2M}{\gcd(2M,M-s)}
+ =2^{n+1-v_2(s)},
+\]
+which proves the primitive base-three assertion.  Also \(p\equiv1\pmod8\),
+so two is a quadratic residue modulo \(p\); hence so is three.
+Quadratic reciprocity then gives \(p\equiv1\pmod{12}\).
+
+Finally every nontrivial divisor of \(F_n\) is congruent to one modulo
+\(4M\), while \(R\geq4M\) gives \(3R+1\equiv1\pmod{4M}\).  If
+\(1<\Gamma_{n,\ell}<3R+1\), then
+\(\Gamma_{n,\ell}\equiv1\pmod{4M}\); from
+\(3R+1=\Gamma_{n,\ell}((3R+1)/\Gamma_{n,\ell})\), the complementary
+quotient is also congruent to one modulo \(4M\).
+They are therefore at least \(4M+1\), contradicting
+\(3R+1<(4M+1)^2\).  Hence
+\(\Gamma_{n,\ell}\) is either one or \(3R+1\).  If the latter were
+composite, the same argument applied to a proper factor and its
+complement would give the same contradiction.  This proves
+\((\mathsf{QJ}_{11})\).
+
+Lean kernel-checks the quotient-ring collision equivalence, the linear
+combination relating the two collision forms, and the cancellation by the
+power-of-two unit.  The Fibonacci zero-set, finite-field order calculations,
+and small-window specialization remain paper-level.
+\end{proof}
+
+The fast \texttt{--jet-only} mode of
+\path{experiments/fermat_selected_screen.py} evaluates
+\(\Gamma_{n,\ell}\) and the branch-appropriate gcd without constructing the
+selected field.  Both are one on every published prime-factor row in the
+pinned \(F_{12},\ldots,F_{18}\) table, so the first uncollapsed Hasse jet is
+nonzero for all those coordinates even under hypothetical failure.  This is
+an exact integer screen of a higher jet, not a replacement for the selected
+residue computation and not an all-level proof.
 
 \begin{proposition}[Dickson all-or-nothing factorization]
 \label{prop:fermat-dickson-dichotomy}
@@ -23832,8 +24159,14 @@ digit: the apparent order-\(R\) escape folds back through the unconditional
 identity \(X^RH=S_d+(1+T_s)S_d'\).  The first term not reduced by this
 identity occurs at Hasse order \(2R\) and is a provably nonzero partial-trace
 prefactor times an explicit half-index Fibonacci value.  That value is
-automatically nonzero in the even half-index branch; only the odd branch,
-later digits, and global relations remain open.
+automatically nonzero in the even half-index branch.  In the odd branch its
+vanishing is equivalent to the unknown selected order dividing
+\(\Gamma_{n,\ell}=\gcd(d,3R+1)\); each prime in this gcd is also a primitive
+divisor of an explicit smaller base-three generalized Fermat number.  The gcd
+is one for every published factor in the pinned \(F_{12},\ldots,F_{18}\)
+screen, so this first free jet is nonzero there even under hypothetical
+failure.  This is still only higher-jet information: odd-branch gcds at
+untested levels, later digits, and global relations remain open.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -24012,8 +24345,11 @@ fixed norm fibre realizes every \(719\)-phase, so they cannot decide the
 row.  Proposition~\ref{prop:ordinary-719-crossed-certificate} compresses a
 replayable certificate from a roughly \(158\)-MB factor over
 \(\F_{2^{7029220}}\) to two \(438103\)-byte payloads over \(\F_{2^{179}}\)
-and one final Euler test in \(\F_{2^{64261}}\).  Those payloads and the final
-phase are not presently available; \(m_{719}=1\) remains open.
+and one final Euler test in \(\F_{2^{64261}}\).  The first payload \(a\) is
+now checked exactly by
+Proposition~\ref{prop:ordinary-719-crossed-root-certificate}; the
+minimal-polynomial payload \(f_a\), crossed norm, and final phase remain
+unavailable.  Thus \(m_{719}=1\) remains open.
 Proposition~\ref{prop:ordinary-dependency-descent} then pushes any
 hypothetical failure through each odd-Kummer singleton
 \(0/1\)-excess dependency satisfying its hypotheses by taking all
@@ -24143,6 +24479,14 @@ Thus the full trace recursion, symmetric source coefficients, discriminants,
 and their ordinary norms are jointly failure-compatible.  A surviving
 full-ancestry argument must be nonsymmetric across edges or introduce a
 mixed additive--multiplicative correlation not fixed by these fibres.
+Proposition~\ref{prop:cubic-ancestral-jacobian-line} closes the homogeneous
+part of that nonsymmetric derivative escape.  Every partial canonical
+square-root Jacobian lies on the single lower-field line generated by
+\(\gamma_k+1\), and every partial Jacobian lies on its square.  Hence any
+nonzero homogeneous expression with arbitrary separate lower-ancestry
+coefficients has either trivial current weight or an invertible power of the
+original Euler phase.  Only zero evaluations, mixed degrees, or correlations
+using genuinely different top-point data remain outside this collapse.
 Proposition~\ref{prop:cubic-coupled-radicals} closes the algebraic
 chosen-root escape.  Compatible roots of
 \(\eta_k,\varepsilon_k,\beta_k,\gamma_k\), together with every lower
@@ -24487,7 +24831,11 @@ Proposition~\ref{prop:ordinary-359-hilbert-certificate}.
 The next unsupported carry is \(\alpha_{719}\), and the implementation
 refuses to cross it.  Proposition~\ref{prop:ordinary-719-nested-compression}
 reduces that row to one explicit degree-\(179\) factor evaluation, but no
-factor or phase certificate is currently present.
+such factor or final phase certificate is currently present.  The crossed
+construction of
+Proposition~\ref{prop:ordinary-719-crossed-root-certificate} does provide its
+first exact root payload, but not the minimal-polynomial payload or selected
+Euler evaluation.
 
 The contributor-linked extended A380496 auxiliary table~\cite{OEIS,Peeters}
 also records

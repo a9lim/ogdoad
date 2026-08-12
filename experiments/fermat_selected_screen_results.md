@@ -50,3 +50,13 @@ respectively, so none of these levels is fully certified. The database
 supplies primality of the displayed factors; the script checks their exact
 divisibility but does not vendor primality certificates. Hashes are
 reproducibility fingerprints, not standalone formal proof certificates.
+
+The script's dependency-free `--jet-only` mode also computes the exact
+factor-sensitive arithmetic obstruction
+`Gamma_(n,ell)=gcd(F_n/ell, 3*2^v2(ell-1)+1)` in the odd half-index branch
+(and the corresponding coefficient-one expression in the even branch).
+Every factor in the table above has arithmetic gcd one. Conditional on a
+hypothetical selected failure, this proves the first Hasse jet not already
+forced by the quotient residue is nonzero at all displayed coordinates. It
+does not prove the selected residue nonzero, maximal order, or any unlisted
+factor.
