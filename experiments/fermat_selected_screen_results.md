@@ -51,6 +51,25 @@ supplies primality of the displayed factors; the script checks their exact
 divisibility but does not vendor primality certificates. Hashes are
 reproducibility fingerprints, not standalone formal proof certificates.
 
+The same exact computation was also applied to each complete residual
+cofactor from `F_15` through `F_18`, formed as the exact quotient of `F_n` by
+the product of the published factors above:
+
+| n | residual block | residue degree | residue SHA-256 |
+|---:|:---|---:|:---|
+| 15 | `C9808` | 32765 | 67de3b858a5f2373bb687e36bf539fc51925403da0825b0469c321d8c40ce69a |
+| 16 | `C19694` | 65534 | 112b3411586c9466974e2de94379efb23bc66e2262f7aa577bde9dfcc9a515ae |
+| 17 | `C39395` | 131071 | c851b53bdd40ae1dfb4d71707c019b492216add315fdd148b165eeae1e9e6d6c |
+| 18 | `C78884` | 262143 | 2b4cbf133c1716b0be03b08cf9b3afdba283ece90483eba93b894f1db19e05af |
+
+All four residues are nonzero. Together with the individual published-factor
+tests, this excludes every proper divisor assembled as a product of the
+available pairwise-coprime blocks: 14 products at level 15 and six at each of
+levels 16--18. It proves that the selected logarithm is not divisible by any
+complete displayed residual cofactor. A proper unknown divisor of a residual
+cofactor can still divide the selected logarithm, so this does not certify an
+unknown prime coordinate or any complete level.
+
 The script's dependency-free `--jet-only` mode also computes the exact
 factor-sensitive arithmetic obstruction
 `Gamma_(n,ell)=gcd(F_n/ell, 3*2^v2(ell-1)+1)` in the odd half-index branch

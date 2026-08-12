@@ -291,6 +291,46 @@ theorem isSelectedLogUnit_generator_independent {G : Type*}
   rw [isSelectedLogUnit_iff_maximal_order omega r homega,
     isSelectedLogUnit_iff_maximal_order omega' r' homega', hselected]
 
+/-- Arithmetic core of the factorization barrier for power-test order
+certificates.  If a proper exponent test vanishes on the maximal subgroup of
+index `p`, then its gcd with the ambient order is exactly the corresponding
+cofactor.  Thus the test itself recovers `p`. -/
+theorem gcd_eq_prime_cofactor_of_covered_test
+    {C p e : Nat} (hp : p.Prime) (hpC : p ∣ C)
+    (hcover : C / p ∣ e) (hproper : ¬C ∣ e) :
+    Nat.gcd C e = C / p := by
+  let d := C / p
+  obtain ⟨k, hk⟩ := hcover
+  have hC : C = d * p := by
+    dsimp [d]
+    exact (Nat.div_mul_cancel hpC).symm
+  have he : e = d * k := by
+    simpa [d] using hk
+  have hpk : ¬p ∣ k := by
+    intro hdiv
+    apply hproper
+    rw [hC, he]
+    exact Nat.mul_dvd_mul_left d hdiv
+  calc
+    Nat.gcd C e = Nat.gcd (d * p) (d * k) := by rw [hC, he]
+    _ = d * Nat.gcd p k := Nat.gcd_mul_left d p k
+    _ = d := by rw [(hp.coprime_iff_not_dvd.mpr hpk).gcd_eq_one, mul_one]
+    _ = C / p := rfl
+
+/-- A nontrivial power relation is an exact factorization-free disproof of
+maximal order.  This is the asymmetric certificate boundary for CSDU: a
+single relation below the ambient order disproves a level, whereas a family
+of nonvanishing power tests must meet every maximal subgroup. -/
+theorem pow_eq_one_disproves_maximal_order {G : Type*}
+    [Group G] [Fintype G] (a : G) (e : Nat)
+    (hepos : 0 < e) (he : e < Fintype.card G) (hpow : a ^ e = 1) :
+    orderOf a ≠ Fintype.card G := by
+  intro hmax
+  have hdvd : Fintype.card G ∣ e := by
+    rw [← hmax]
+    exact orderOf_dvd_iff_pow_eq_one.mpr hpow
+  exact (Nat.not_le_of_gt he) (Nat.le_of_dvd hepos hdvd)
+
 section FermatLocalSymbol
 
 variable {K : Type*} [Field K]
@@ -3266,6 +3306,27 @@ theorem signedDicksonLucas_birthEdge_iff
         (T * U) ^ ell = A) ↔
       (T ^ ell + U ^ ell = -1 ∧ T ^ ell * U ^ ell = A) := by
   rw [signedDicksonLucas_eq_add_powers, mul_pow]
+
+/-- Exact integral norm of a powered norm-one coboundary.  In the canonical
+Conway lift, substitute `S = A⁻¹ - 2` and the two relative conjugates
+`W, W⁻¹`; the remaining parity of the absolute norm is precisely the selected
+CSDU bit. -/
+theorem signedDicksonLucas_normOne_difference
+    {K : Type*} [Field K] (W : K) (h : Nat) (hW : W ≠ 0) :
+    (W ^ h - 1) * ((W⁻¹) ^ h - 1) =
+      2 - signedDicksonLucas (W + W⁻¹) 1 h := by
+  have hprod : W * W⁻¹ = 1 := mul_inv_cancel₀ hW
+  have hbinet : signedDicksonLucas (W + W⁻¹) 1 h =
+      W ^ h + (W⁻¹) ^ h := by
+    simpa only [hprod] using signedDicksonLucas_eq_add_powers W W⁻¹ h
+  rw [hbinet]
+  have hpowprod : W ^ h * (W⁻¹) ^ h = 1 := by
+    rw [← mul_pow, hprod, one_pow]
+  calc
+    (W ^ h - 1) * ((W⁻¹) ^ h - 1) =
+        W ^ h * (W⁻¹) ^ h - W ^ h - (W⁻¹) ^ h + 1 := by ring
+    _ = 2 - W ^ h - (W⁻¹) ^ h := by rw [hpowprod]; ring
+    _ = 2 - (W ^ h + (W⁻¹) ^ h) := by ring
 
 end SignedDicksonLucasLift
 
@@ -6370,6 +6431,139 @@ theorem qf_parent_product_iff_AE4_value
   · intro h
     rw [h]
     exact hcanon
+
+/-- Norm of a quadratic coordinate written with its upper coefficient
+scaled by `C`.  In the Conway specialization `A ^ 2 = C*A + C^3`, so
+conjugation sends `A` to `A+C`; the scale makes the norm's three terms
+`y₀² + y₀*β + C*β²`. -/
+theorem quadratic_scaled_coord_norm
+    {F : Type*} [Field F] [CharP F 2]
+    (C A y₀ β : F) (hC : C ≠ 0)
+    (hA : A ^ 2 = C * A + C ^ 3) :
+    (y₀ + A / C * β) * (y₀ + (A + C) / C * β) =
+      y₀ ^ 2 + y₀ * β + C * β ^ 2 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  calc
+    (y₀ + A / C * β) * (y₀ + (A + C) / C * β) =
+        y₀ ^ 2 + y₀ * β + ((A ^ 2 + C * A) / C ^ 2) * β ^ 2 := by
+          field_simp [hC]
+          ring_nf
+          simp [htwo]
+    _ = y₀ ^ 2 + y₀ * β + C * β ^ 2 := by
+          rw [hA]
+          field_simp [hC]
+          ring_nf
+          simp [htwo]
+
+/-- Relative trace of a quotient in the same scaled quadratic coordinates.
+The two denominator hypotheses are automatic when the displayed conjugation
+is a field automorphism and the first denominator is nonzero; they are kept
+explicit here so the lemma needs no finite-field API. -/
+theorem quadratic_scaled_coord_trace_div
+    {F : Type*} [Field F] [CharP F 2]
+    (C A x₀ x₁ y₀ β : F) (hC : C ≠ 0)
+    (hA : A ^ 2 = C * A + C ^ 3)
+    (hy : y₀ + A / C * β ≠ 0)
+    (hy' : y₀ + (A + C) / C * β ≠ 0) :
+    (x₀ + A * x₁) / (y₀ + A / C * β) +
+        (x₀ + (A + C) * x₁) /
+          (y₀ + (A + C) / C * β) =
+      (x₀ * β + C * x₁ * y₀) /
+        (y₀ ^ 2 + y₀ * β + C * β ^ 2) := by
+  have hnorm := quadratic_scaled_coord_norm C A y₀ β hC hA
+  have hden : y₀ ^ 2 + y₀ * β + C * β ^ 2 ≠ 0 := by
+    rw [← hnorm]
+    exact mul_ne_zero hy hy'
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hnum :
+      (x₀ + A * x₁) * (y₀ + (A + C) / C * β) +
+          (y₀ + A / C * β) * (x₀ + (A + C) * x₁) =
+        x₀ * β + C * x₁ * y₀ := by
+    field_simp [hC]
+    ring_nf
+    simp [htwo]
+  rw [div_add_div _ _ hy hy', hnorm, hnum]
+
+/-- Exact algebraic fourth-coordinate equation at the oriented QF seam.
+The two product hypotheses are the normalized AE4 product and its quadratic
+conjugate.  The conclusion evaluates their relative trace in the literal
+`(1,A)` coordinates.  Thus it kernel-checks the marked coefficient formula
+without assuming a concrete finite-field Frobenius implementation. -/
+theorem qf_oriented_marked_coord_sq
+    {F : Type*} [Field F] [CharP F 2]
+    (C A w₀ w₁ b₀ β : F) (r : Nat) (hC : C ≠ 0)
+    (hA : A ^ 2 = C * A + C ^ 3)
+    (hprod :
+      (b₀ + A / C * β) * (w₀ + A * w₁) ^ 2 = A ^ (r + 1))
+    (hprod' :
+      (b₀ + (A + C) / C * β) *
+          (w₀ + (A + C) * w₁) ^ 2 = (A + C) ^ (r + 1)) :
+    (C * w₁) ^ 2 * (b₀ ^ 2 + b₀ * β + C * β ^ 2) =
+      C ^ (r + 1) *
+        (C * fibPolyValue C r * β + fibPolyValue C (r + 1) * b₀) := by
+  have hA' : (A + C) ^ 2 = C * (A + C) + C ^ 3 := by
+    have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+    rw [add_sq, hA]
+    rw [htwo]
+    ring
+  have hpow := conwayQuadratic_pow_fib_coords A C hA r
+  have hpow' := conwayQuadratic_pow_fib_coords (A + C) C hA' r
+  have hnorm := quadratic_scaled_coord_norm C A b₀ β hC hA
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hwtrace :
+      (w₀ + A * w₁) + (w₀ + (A + C) * w₁) = C * w₁ := by
+    ring_nf
+    rw [htwo]
+    ring
+  have hwsq :
+      (C * w₁) ^ 2 =
+        (w₀ + A * w₁) ^ 2 + (w₀ + (A + C) * w₁) ^ 2 := by
+    rw [← hwtrace, add_sq, htwo]
+    ring
+  have hBsum :
+      (b₀ + (A + C) / C * β) + (b₀ + A / C * β) = β := by
+    field_simp [hC]
+    ring_nf
+    simp [htwo]
+  have hBweighted :
+      (b₀ + (A + C) / C * β) * A +
+          (b₀ + A / C * β) * (A + C) = C * b₀ := by
+    field_simp [hC]
+    ring_nf
+    simp [htwo]
+  calc
+    (C * w₁) ^ 2 * (b₀ ^ 2 + b₀ * β + C * β ^ 2) =
+        ((w₀ + A * w₁) ^ 2 +
+          (w₀ + (A + C) * w₁) ^ 2) *
+          ((b₀ + A / C * β) * (b₀ + (A + C) / C * β)) := by
+            rw [hwsq, hnorm]
+    _ = (b₀ + (A + C) / C * β) *
+          ((b₀ + A / C * β) * (w₀ + A * w₁) ^ 2) +
+        (b₀ + A / C * β) *
+          ((b₀ + (A + C) / C * β) *
+            (w₀ + (A + C) * w₁) ^ 2) := by ring
+    _ = (b₀ + (A + C) / C * β) * A ^ (r + 1) +
+        (b₀ + A / C * β) * (A + C) ^ (r + 1) := by
+          rw [hprod, hprod']
+    _ = (b₀ + (A + C) / C * β) *
+          (C ^ (r + 2) * fibPolyValue C r +
+            A * C ^ r * fibPolyValue C (r + 1)) +
+        (b₀ + A / C * β) *
+          (C ^ (r + 2) * fibPolyValue C r +
+            (A + C) * C ^ r * fibPolyValue C (r + 1)) := by
+              rw [hpow, hpow']
+    _ = (C ^ (r + 2) * fibPolyValue C r) *
+          ((b₀ + (A + C) / C * β) + (b₀ + A / C * β)) +
+        (C ^ r * fibPolyValue C (r + 1)) *
+          ((b₀ + (A + C) / C * β) * A +
+            (b₀ + A / C * β) * (A + C)) := by ring
+    _ = (C ^ (r + 2) * fibPolyValue C r) * β +
+        (C ^ r * fibPolyValue C (r + 1)) * (C * b₀) := by
+          rw [hBsum, hBweighted]
+    _ = C ^ (r + 1) *
+        (C * fibPolyValue C r * β + fibPolyValue C (r + 1) * b₀) := by
+          rw [pow_succ]
+          ring
 
 omit [CharP F 2] in
 /-- First-order trace correction when a Teichmueller lift is multiplied by

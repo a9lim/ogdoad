@@ -15593,6 +15593,160 @@ Fibonacci-state induction \(\mathsf{QFC}_3\), its selected specialization
 \(\mathsf{QFC}_4\), and the QF/AE4 identification remain paper-level.
 \end{proof}
 
+\begin{proposition}[the oriented fourth-coordinate seam is a full fibre]
+\label{prop:fermat-qfc-oriented-fibre}
+Work over a finite field tower
+\[
+ F=\mathbb F_P\subset E=\mathbb F_{P^2}\subset L=\mathbb F_{P^4}
+\]
+of characteristic two.  Let \(C\in F^\times\), and suppose
+\[
+ A^2=CA+C^3,\qquad a^2=Aa+A^3.
+\]
+For \(K\geq1\), assume \(S_K(A)\ne0\), and write
+\[
+ \begin{split}
+ W&=A^{K-1}S_K(A)=w_0+Aw_1,\\
+ r&=\frac{A S_{K-1}(A)}{S_K(A)}
+      =r_0+\frac AC r_1,
+ \end{split}
+ \qquad w_i,r_i\in F.
+\]
+Put
+\[
+ N=3K-2,\qquad
+ \beta=C+r_1^2+r_1,\qquad
+ b_0=r_0(r_0+1)+Cr_1^2,
+\]
+and \(B=A+r(r+1)\).  Then
+\[
+ B=\frac{A^K}{S_K(A)^2}=b_0+\frac AC\beta,
+ \qquad
+ \Norm_{E/F}(B)=b_0^2+b_0\beta+C\beta^2,             \tag{\(\mathsf{OMF}_1\)}
+\]
+and the marked lower coefficient has the exact square
+\[
+ \boxed{
+ (Cw_1)^2=
+ \frac{C^N\bigl(CS_{N-1}(C)\beta+S_N(C)b_0\bigr)}
+ {b_0^2+b_0\beta+C\beta^2}.}                         \tag{\(\mathsf{OMF}_2\)}
+\]
+Consequently, with
+\(t=(A+C)/A=A^P/A\),
+\[
+ \boxed{
+ w_1=0
+ \iff CS_{N-1}(C)\beta+S_N(C)b_0=0
+ \iff \frac{B^P}{B}=t^N.}                           \tag{\(\mathsf{OMF}_3\)}
+\]
+Equality of this coefficient with the QF upper coefficient is equally
+explicit:
+\[
+ Cw_1=\beta
+ \iff
+ C^N\bigl(CS_{N-1}(C)\beta+S_N(C)b_0\bigr)
+ =\beta^2(b_0^2+b_0\beta+C\beta^2).                 \tag{\(\mathsf{OMF}_4\)}
+\]
+
+This condition is not sparse.  More generally, assume \(t\) has order
+\(P+1\), choose any \(A\in E^\times\) with \(A^P/A=t\), and define
+\[
+ \mathcal Z_J=\left\{B\in E^\times:
+  \operatorname{Tr}_{E/\mathbb F_2}(B)=1,
+  \ \frac{B^P}{B}=t^J\right\}.
+\]
+Then
+\[
+ \boxed{
+ |\mathcal Z_J|=
+ \begin{cases}
+ 0,&t^J=1,\\
+ P/2,&t^J\ne1.
+ \end{cases}}                                       \tag{\(\mathsf{OMF}_5\)}
+\]
+Every trace-one \(B\) has exactly two inverse preimages under
+\[
+ \Phi(u)=\frac{u}{(1+u)^2},\qquad
+ u\in\ker(\Norm_{L/E})\setminus\{1\}.
+\]
+Thus, when \(t^J\ne1\), exactly \(P\) top-torus points satisfy the
+marked-zero equation in \((\mathsf{OMF}_3)\).  The oriented QF condition
+is a full fibre of the same scale as the earlier endpoint fibres, not an
+exceptional locus that can be removed by counting.
+
+In the minimal-failure specialization,
+\(e_g=\mathcal M_C^Ke_1\) gives \(w_1=s_g\), so
+\((\mathsf{OMF}_2)\) is precisely the fourth projection of
+\(\mathsf{AE}_4\).  The full-lower inverse does not add another phase.
+Indeed, if \(u=v^K\), \(\eta=1+RK\), \(h=v^\eta\), and
+\(j=t^\eta\), then
+\[
+ h^\ell=v,\qquad j^\ell=t,
+\]
+and the marked-zero equation is exactly
+\[
+ \boxed{
+ \frac{\Phi(h^P/v^P)}{\Phi(h/v)}
+   =j^3t^{-3-2R}.}                                   \tag{\(\mathsf{OMF}_6\)}
+\]
+Every term is a rational function of the same two adjacent selected phases.
+Thus \((\mathsf{OMF}_6)\) is the precise genuinely nonhomogeneous residual
+equation; proving it false on the distinguished Conway point still requires
+new cross-edge ancestry information.
+\end{proposition}
+
+\begin{proof}
+Cassini and the Fibonacci recurrence give
+\[
+ A+r(r+1)
+ =\frac{A\bigl(S_K^2+A S_{K-1}^2+S_{K-1}S_K\bigr)}{S_K^2}
+ =\frac{A^K}{S_K^2}.
+\]
+Expanding in the basis \((1,A/C)\) proves the second expression for \(B\)
+and its norm in \((\mathsf{OMF}_1)\).  For
+\(x=x_0+Ax_1\) and \(y=y_0+Ay_1\), direct multiplication by the conjugate
+of \(y\) gives
+\[
+ \operatorname{Tr}_{E/F}(x/y)
+ =\frac{C(x_0y_1+x_1y_0)}
+ {y_0^2+Cy_0y_1+C^3y_1^2}.                           \tag{*}
+\]
+Now \(BW^2=A^N\), while the lower quadratic power coordinates give
+\[
+ A^N=C^{N+1}S_{N-1}(C)+AC^{N-1}S_N(C).
+\]
+Apply \((*)\) to \(A^N/B\), and use
+\(\operatorname{Tr}(W^2)=\operatorname{Tr}(W)^2=(Cw_1)^2\), to obtain
+\((\mathsf{OMF}_2)\).  Its denominator is the nonzero norm of \(B\).
+This proves the first equivalence in \((\mathsf{OMF}_3)\).  Since
+\(W^2=A^N/B\), relative Frobenius gives the second; the same formula with
+\(Cw_1=\beta\) proves \((\mathsf{OMF}_4)\).
+
+For \((\mathsf{OMF}_5)\), Hilbert theorem 90 makes
+\(B\mapsto B^P/B\) onto the norm-one torus, with kernel \(F^\times\).
+If \(t^J\ne1\), a fibre is \(B_*F^\times\), and
+\(T=\operatorname{Tr}_{E/F}(B_*)\ne0\), because in this quadratic characteristic-two
+extension the relative trace kernel is exactly \(F\).  Hence
+\[
+ \operatorname{Tr}_{E/\mathbb F_2}(fB_*)=
+ \operatorname{Tr}_{F/\mathbb F_2}(fT)
+\]
+equals one for exactly \(P/2\) values \(f\in F^\times\).  If
+\(t^J=1\), the fibre is \(F^\times\), and every element has absolute trace
+zero from \(E\).  Finally, for a trace-one \(B\), the two roots
+\(z,z+1\) of \(z^2+z=B\) lie in \(L\); the elements
+\(u=(z+1)/z\) are inverse, have norm one, and satisfy \(\Phi(u)=B\).
+
+For \((\mathsf{OMF}_6)\), raise
+\(\Phi((v^P)^K)/\Phi(v^K)=t^{3K-2}\) to the \(R\)-th power and use
+\(h=vu^R\) and \(RK=\eta-1\).  The congruence
+\(\ell\eta\equiv1\pmod D\), together with the orders of \(v\) and \(t\)
+dividing \(D\), gives the two unique-root identities.  Lean kernel-checks
+the scaled quadratic norm and quotient-trace identities and the resulting
+marked-coordinate square.  The finite-field Hilbert--90 count and the full
+minimal-failure specialization remain paper-level.
+\end{proof}
+
 \begin{proposition}[canonical-lift trace comparison and its marked graph]
 \label{prop:fermat-qfc-canonical-lift-trace}
 Retain Propositions~\ref{prop:fermat-literal-quarter-orientation}
@@ -20496,6 +20650,179 @@ on the dihedral translation subgroup is the same identity in its
 permutation representation.
 \end{proof}
 
+\begin{proposition}[integral ancestry and pre-Kummer exhaustion]
+\label{prop:fermat-integral-pre-kummer-exhaustion}
+Retain the canonical lift of
+Proposition~\ref{prop:fermat-canonical-global-lift}, and write
+\(\mathcal N_i=\Norm_{\mathcal K_i/\mathcal K_{i-1}}\).  Then
+\[
+ \mathcal N_i(\mathcal A_i)=\mathcal A_{i-1}^3,
+ \qquad
+ W_i=\frac{\mathcal A_{i-1}^3}{\mathcal A_i^2},
+\]
+and the exact integral coboundaries telescope to
+\[
+ \boxed{
+ \mathcal A_n^{2^{n+1}}
+ \prod_{i=0}^nW_i^{3^{n-i}2^i}=1.}                 \tag{\(\mathsf{IPK}_1\)}
+\]
+
+There is no nonzero norm-compatible monomial hidden behind this identity.
+Let
+\[
+ \Lambda_i=\bigoplus_{r=0}^i\mathbb Z e_r,
+\]
+and model relative norm on the free ancestry exponents by
+\[
+ T_i(e_r)=2e_r\quad(r<i),
+ \qquad T_i(e_i)=3e_{i-1}.
+\]
+Then
+\[
+ \boxed{\varprojlim_i(\Lambda_i,T_i)=0.}             \tag{\(\mathsf{IPK}_2\)}
+\]
+Adjoining symbols for \(W_i=3e_{i-1}-2e_i\) does not change the result.
+Thus the displayed norm identities alone cannot construct a nontrivial
+integral norm-coherent ancestry unit; one would need an additional
+multiplicative relation among the actual global units.
+
+The apparent two-adic escape deletes the selected residue phase.  Write
+\[
+ \mathcal A_i=[a_i]\langle\mathcal A_i\rangle
+\]
+for the Teichmuller/principal-unit decomposition at the selected prime above
+two.  Since \(3\in\mathbb Z_2^\times\), define
+\[
+ B_i=\langle\mathcal A_i\rangle^{3^{-i}},
+ \qquad z_i=3^{-i}\log\langle\mathcal A_i\rangle.
+\]
+Then
+\[
+ \boxed{
+ \mathcal N_i(B_i)=B_{i-1},
+ \qquad 3^{-i}\log W_i=z_{i-1}-2z_i.}               \tag{\(\mathsf{IPK}_3\)}
+\]
+Every \(B_i\) reduces to one, and the logarithm kills the entire
+Teichmuller factor.  Coleman series, logarithmic derivatives, and regulators
+built from this normalized principal-unit system therefore contain no copy
+of the selected phase \(H\).  Retaining the \(\ell\)-primary Teichmuller
+component instead gives exactly the rank-one Kummer tail below.  At three,
+division by three is unavailable as a continuous exponent, while every
+\(W_i\) is already a local \(\ell\)-th power.  Hence there is no single
+normalization supplied by \((\mathsf{IPK}_1)\) that couples the two marked
+places.
+
+There is nevertheless one exact integral selected resultant.  Put
+\[
+ h=F_n/\ell,
+\]
+and let \(D^-_0(X)=2\), \(D^-_1(X)=X\),
+\[
+ D^-_{r+2}(X)=X D^-_{r+1}(X)-D^-_r(X).
+\]
+Then
+\[
+ W_n+W_n^{-1}=\mathcal A_{n-1}^{-1}-2,
+\]
+and
+\[
+ \boxed{
+ \mathcal N_n(W_n^h-1)
+  =2-D^-_h(\mathcal A_{n-1}^{-1}-2).}                \tag{\(\mathsf{IPK}_4\)}
+\]
+Consequently
+\[
+ \mathcal R_{n,\ell}
+ =\Norm_{\mathcal K_n/\mathbb Q}(W_n^h-1)
+ \in\mathbb Z\setminus\{0\}
+\]
+satisfies
+\[
+ \boxed{
+ v_3(\mathcal R_{n,\ell})=1,
+ \qquad
+ 2\mid\mathcal R_{n,\ell}\iff H=1.}                \tag{\(\mathsf{IPK}_5\)}
+\]
+The marked prime above three therefore contributes one fixed simple factor,
+while proving the remaining factor odd is exactly the desired selected
+nonvanishing, not an independent norm evaluation.
+
+Nor do discriminants or higher norm-residue symbols recover the missing bit.
+Over \(M=\mathcal K_n(\zeta_\ell)\),
+\[
+ \operatorname{disc}(X^\ell-W_n)
+ =(-1)^{\ell(\ell-1)/2}\ell^\ell W_n^{\ell-1}.       \tag{\(\mathsf{IPK}_6\)}
+\]
+Thus the field different of \(M(W_n^{1/\ell})/M\) is supported only above
+\(\ell\).  Above two the extension is either split or unramified of degree
+\(\ell\), according as \(H=1\) or not, and its different exponent is zero
+in both cases; above three it is split.  Since a number field containing
+\(\mu_\ell\) has \(\ell\)-cohomological dimension two, the norm-residue
+theorem gives
+\[
+ K_r^M(M)/\ell=0\qquad(r\ge3).                       \tag{\(\mathsf{IPK}_7\)}
+\]
+Degree two is the ordinary Hilbert-symbol layer, and for
+\(b\in M^\times\),
+\[
+ \boxed{
+ (W_n,b)_{\mathfrak q_a,\ell}
+   =H^{a v_{\mathfrak q_a}(b)},
+ \qquad
+ \prod_{\mathfrak q_a\mid2}(W_n,b)_{\mathfrak q_a,\ell}
+   =H^{\sum_a a v_{\mathfrak q_a}(b)}.}             \tag{\(\mathsf{IPK}_8\)}
+\]
+An unmixed lower or cyclotomic argument has weight zero and erases \(H\);
+a mixed argument of nonzero weight returns an invertible power of the same
+unknown value.  Thus integral norms, Coleman normalization, differents, and
+ordinary Milnor symbols do not supply the missing marked evaluation.  A
+surviving global route would need a genuinely new mixed secondary class with
+a canonical Conway defining system and an independently computable value.
+\end{proposition}
+
+\begin{proof}
+The quadratic equation gives \(\mathcal N_i(C_i)=\mathcal A_{i-1}\).
+Since \(\mathcal A_i=\mathcal A_{i-1}C_i\), this proves the first norm
+identity.  The second is the characteristic-free coboundary formula
+\(W_i=\mathcal A_{i-1}C_i^{-2}\).  The exponents in
+\((\mathsf{IPK}_1)\) now cancel pairwise; the only surviving lower term is
+\(\mathcal A_{-1}^{3^{n+1}}=1\).
+
+For \((\mathsf{IPK}_2)\), let \((x^{(i)})\) be compatible.  Fix \(j\)
+and \(r<j\).  Projection from any higher \(\Lambda_i\) to \(\Lambda_j\)
+makes the \(e_r\)-coordinate divisible by \(2^{i-j}\); hence it is zero.
+Thus \(x^{(j)}=c_je_j\).  Compatibility gives
+\(c_{j-1}=3c_j\), so \(c_0\) is divisible by every power of three and is
+zero; then every \(c_j\) is zero.
+
+Taking principal-unit parts in
+\(\mathcal N_i(\mathcal A_i)=\mathcal A_{i-1}^3\) proves the first identity
+in \((\mathsf{IPK}_3)\); logarithms and the coboundary formula prove the
+second.  For \((\mathsf{IPK}_4)\), the signed Dickson--Lucas recurrence has
+the Binet identity
+\[
+ D^-_h(W+W^{-1})=W^h+W^{-h},
+\]
+and multiplying the two conjugates of \(W^h-1\) gives the result.  This
+algebraic identity is kernel-checked in \texttt{Ogdoad.Excess}.
+
+At three, write \(W_n=(1+Y_n)/(1-Y_n)\), where \(Y_n\) is a uniformizer.
+Since \(3\nmid h\),
+\[
+ W_n^h-1=2hY_n+O(Y_n^3)
+\]
+has valuation one.  Total ramification and residue degree one prove the
+first half of \((\mathsf{IPK}_5)\).  At the unique prime above two,
+\(W_n^h-1\) is divisible precisely when its reduction \(w_n^h\) is one;
+because this value has odd order, that is equivalent to \(H=1\).
+
+The polynomial discriminant formula and tame Kummer theory prove
+\((\mathsf{IPK}_6)\) and the local different assertions.  Finally
+\((\mathsf{IPK}_7)\) is the standard norm-residue/cohomological-dimension
+vanishing, while \((\mathsf{IPK}_8)\) is the tame Hilbert-symbol formula and
+the equivariance \(\mathfrak q_a=\tau_a\mathfrak q_1\).
+\end{proof}
+
 \begin{proposition}[vertical Kummer and Coleman exhaustion]
 \label{prop:fermat-vertical-kummer-exhaustion}
 Fix \(n\ge1\), let \(M=\ell^e\parallel F_n\), and put
@@ -22036,6 +22363,66 @@ a square root of two has order \(2^{n+2}\); hence
 d\equiv1\pmod{2^{n+2}},\qquad \ord_d(2)=2^{n+1}.
 \]
 
+\begin{proposition}[power-test certificates cannot hide factor support]
+\label{prop:fermat-power-test-factorization-barrier}
+Let \(G=\langle g\rangle\) be cyclic of order \(C\), and let
+\(e_1,\ldots,e_s\) satisfy \(C\nmid e_i\).  Suppose the tests
+\[
+ x^{e_i}\ne1\qquad(1\leq i\leq s)                  \tag{\(\mathsf{PTC}_1\)}
+\]
+are universally sound for maximal order: every \(x\in G\) satisfying all
+of them has order \(C\).  Then, for every prime \(p\mid C\), some test
+recovers that prime exactly:
+\[
+ \boxed{
+ \frac Cp\mid e_i,\qquad
+ \gcd(C,e_i)=\frac Cp,
+ \qquad p=\frac C{\gcd(C,e_i)}.}                    \tag{\(\mathsf{PTC}_2\)}
+\]
+One proper test cannot cover two distinct primes.  Hence a certificate made
+only of group powers, nonidentity tests, addition chains, or norm-one
+group-ring words must expose the complete prime support of \(C\).  A
+Frobenius group-ring word gives no escape: on the cyclic group it is one
+power, with exponent \(\sum_j a_j2^j\bmod C\).
+
+The asymmetry for disproof is exact.  For any \(z\in G\), a single relation
+\[
+ \boxed{0<e<C,\qquad z^e=1}                         \tag{\(\mathsf{PTC}_3\)}
+\]
+proves \(\ord(z)<C\), without factoring \(C\).  In the selected Conway
+coordinate this is the compact polynomial identity
+\[
+ A_{n-1}\mid S_e.
+\]
+Equivalently, any composite divisor \(d>1\) of \(F_n\) for which
+\(S_{F_n/d}(a_{n-1})=0\) is already a complete counterexample; no primality
+claim about \(d\) is needed.
+
+Thus an all-level proof can avoid factorization only by adding structure not
+contained in ordinary power tests: for example an independently certified
+primitive comparison element, or a Pocklington-type lower bound
+\(\ord(z)>C/p_{\min}\), where \(p_{\min}\) is the least prime divisor of
+\(C\).  Existing Conway order bounds are far below this threshold.
+\end{proposition}
+
+\begin{proof}
+Fix \(p\mid C\) prime and apply universal soundness to \(x=g^p\), which has
+order \(C/p<C\).  At least one test must vanish on \(x\), and
+\[
+ (g^p)^{e_i}=1\iff C/p\mid e_i.
+\]
+The gcd is a divisor of \(C\) divisible by \(C/p\); since the quotient is
+prime, it is either \(C/p\) or \(C\).  The latter is excluded by
+\(C\nmid e_i\), proving \((\mathsf{PTC}_2)\).  If the same proper test
+covered distinct primes \(p,q\), then
+\(\operatorname{lcm}(C/p,C/q)=C\) would divide \(e_i\), a contradiction.
+Finally, \(\ord(z)\mid e<C\) proves \((\mathsf{PTC}_3)\).
+
+Lean kernel-checks the gcd-recovery core and the factorization-free
+disproof implication in \texttt{Ogdoad.Excess}.  The finite-family cyclic
+group packaging remains paper-level.
+\end{proof}
+
 \paragraph{Exact selected-factor screen.}
 The companion script \path{experiments/fermat_selected_screen.py}
 reconstructs the selected polynomial without a precomputed Conway table:
@@ -22076,8 +22463,14 @@ bit-for-bit with the dependency-free reducer at the orientation gate and
 records the complete per-factor fingerprints in
 \path{experiments/fermat_selected_screen_results.md}.  Thus no selected
 counterexample occurs at any currently published prime from \(F_{12}\) through
-\(F_{18}\), but none of these levels is proved maximal and the all-level problem
-remains open.
+\(F_{18}\).  Exact whole-residual-cofactor tests are also nonzero for
+\(C_{9808},C_{19694},C_{39395},C_{78884}\).  Together with the individual
+published factors, these exclude every proper divisor assembled from the
+available pairwise-coprime blocks: fourteen at level (15), and six at each
+of levels (16,17,18).  In particular, the selected logarithm is not divisible
+by any complete tested residual cofactor.  A proper unknown divisor of that
+same cofactor can still divide the selected logarithm, so no unknown prime
+coordinate, none of these levels, and no all-level statement is certified.
 
 There is also an exact bridge to the current primitive-quadratic
 classification.  Assume \(n\geq2\) and the lower Fermat levels are maximal, so that
@@ -22125,9 +22518,18 @@ literal coefficient vector, multiplication matrix, companion defect, resultant,
 and quadratic-remainder ancestry are lossless charts of that same selected
 phase rather than additional obstructions.
 Proposition~\ref{prop:fermat-failure-moore-saturation} goes further:
-hypothetical failure makes the complete reverse endpoint block a normal basis
+hypothetical failure makes the complete reverse endpoint block an
+\(\mathbb F_2\)-basis
 with Moore determinant one, while all homogeneous Frobenius minors transport
 to the initial block by an explicit nonzero scalar.
+Proposition~\ref{prop:fermat-qfc-oriented-fibre} computes the first genuinely
+nonhomogeneous fourth-coordinate equation and proves that its zero locus is a
+full Hilbert--90 fibre of (P) top-torus points; the all-lower inverse rewrites
+it as the unique-root equation \(\mathsf{OMF}_6\) without adding a phase.
+Proposition~\ref{prop:fermat-power-test-factorization-barrier} proves that
+ordinary nonidentity power certificates for success necessarily recover every
+prime in the ambient order, whereas one short power relation would be a
+factorization-free exact disproof.
 Proposition~\ref{prop:fermat-weighted-selector} proves that all unmixed classical
 cyclotomic principalizers have zero selector weight and that the natural
 mixed principal element has two-adic support exactly when the target is
@@ -22141,6 +22543,11 @@ Proposition~\ref{prop:fermat-marked-place-exhaustion} then proves that the
 marked prime above three, reflection norms and differents, integral equivariant
 ray operators, and fixed auxiliary base changes either kill this value or carry
 exactly the same success/failure bit.
+Proposition~\ref{prop:fermat-integral-pre-kummer-exhaustion} proves that the
+integral ancestry norm lattice has zero inverse limit, that two-adic Coleman
+normalization deletes the Teichmuller phase, and that the exact global
+resultant has fixed three-adic valuation one but is even exactly on failure.
+Its different and norm-residue layers are therefore selector-blind.
 Proposition~\ref{prop:fermat-vertical-kummer-exhaustion} proves that the
 fixed-\(\ell\) future tower is a rank-one norm system and that its prime-to-two
 Iwasawa augmentation ideal is idempotent, eliminating vertical determinant,

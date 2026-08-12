@@ -431,7 +431,22 @@ absolute boundedness.
   `C39395`, and `C78884` are proved composite but remain unfactored, so no level nor the
   all-level conjecture is certified. The optional FLINT backend agrees
   bit-for-bit with the dependency-free reducer at the orientation gate, and
-  the per-factor hashes are only reproducibility fingerprints. In that chain, absolute
+  the per-factor hashes are only reproducibility fingerprints. Exact tests of
+  the whole residual blocks `C9808`, `C19694`, `C39395`, and `C78884` are
+  nonzero as well. Together with the published-prime tests this excludes every
+  proper divisor assembled from the available blocks (14 at level 15 and six
+  at each of levels 16--18), and proves that the selected logarithm does not
+  contain the full residual cofactor. A proper unknown divisor of the same
+  cofactor may still divide it, so this does not certify any unknown prime
+  coordinate or a level.
+  There is a sharp proof-theoretic reason ordinary factorization-free success
+  certificates stop here. Any universally sound family of nonidentity power
+  tests must meet every maximal subgroup; the test meeting the subgroup of
+  index `p` has `gcd(C,e)=C/p` and therefore recovers `p`. Such tests expose the
+  complete prime support. Disproof is asymmetric: one exact relation
+  `0<e<F_n` and `w_n^e=1`, equivalently `A_(n-1)|S_e`, is a complete compact
+  counterexample without factoring `F_n`. No such relation was found.
+  In that chain, absolute
   trace is exactly the top binary coordinate, the selected ancestry is the least
   trace-one nimber, and failure is equivalent to a centered reverse-Dickson
   divisor of the trace-zero linearized polynomial. Adapted-basis countermodels
@@ -620,6 +635,17 @@ absolute boundedness.
   Cayley--Hamilton and Frobenius recover `AE4` without adding a second
   constraint. The abstract normalized-product uniqueness core likewise
   becomes only a re-encoding after the paper-level QF/AE4 identification.
+  The oriented fourth coordinate now has a closed formula: its square is an
+  explicit quotient of two lower Fibonacci-coordinate expressions, and zero
+  is equivalent to `B^P/B=t^(3K-2)` for the rerouted parent `B`. Hilbert 90
+  makes this limitation sharp. Whenever the right side is nontrivial, exactly
+  `P/2` trace-one parents, hence exactly `P` inverse-paired top-torus points,
+  satisfy the marked-zero equation. After the full-lower inverse is inserted,
+  the residual condition is
+  `Phi(h^P/v^P)/Phi(h/v)=j^3*t^(-3-2R)`, with `h^ell=v` and `j^ell=t` the
+  unique adjacent selected roots. Thus the genuinely nonhomogeneous seam is a
+  full oriented fibre and still contains only the same two adjacent selected
+  phases; the four-state recurrence and inverse congruence do not evaluate it.
   The canonical characteristic-zero lift now resolves the next Witt bit of the
   fourth-coordinate-zero branch. Its mod-four trace has a nonzero
   Teichmuller carry plus one explicit lift correction. For even `K` those
@@ -894,6 +920,22 @@ absolute boundedness.
   linear ray/Jacobi/Stickelberger operators, invariant differents, and
   H-independent base change therefore add no independent selector; only a
   genuinely nonlinear ancestry identity remains outside this no-go. The
+  integral pre-Kummer route is exhausted more sharply. The exact lift obeys
+  `Norm(A_i)=A_(i-1)^3` and `W_i=A_(i-1)^3/A_i^2`, which telescope to one
+  explicit integral coboundary. But the inverse limit of the free integral
+  ancestry exponent lattices under the formal norm maps is zero: lower
+  coordinates become divisible by every power of two and the remaining top
+  coordinate by every power of three. Two-adic normalization by `3^(-i)`
+  exists only on principal units; its logarithm kills the Teichmuller phase.
+  The exact integral resultant
+  `R_(n,ell)=Norm(W_n^(F_n/ell)-1)` has `v_3(R)=1`, while `R` is even exactly
+  when `H=1`. Hence proving its oddness is CSDU itself. Polynomial
+  discriminants and field differents are blind because the prime above two is
+  unramified in both the split and inert cases, while Milnor symbols above
+  degree two vanish and degree two returns the same weighted Hilbert phase.
+  A surviving integral-global route needs a new canonically normalized mixed
+  secondary class, not an ordinary norm, Coleman derivative, different, or
+  norm-residue symbol. The
   vertical nonlinear route collapses after fixed-`ell` Kummer projection.
   For `ell^e || F_n`, every future quotient
   `V_j=E_j^x/(E_j^x)^(ell^e)` is free of rank one over

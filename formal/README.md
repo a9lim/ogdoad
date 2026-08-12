@@ -161,9 +161,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   coefficient recurrence proving the four-periodic orientation, remain
   paper-level. It further checks the sparse two-edge Conway quartic, the
   four-coordinate multiplication identity, its induced scalar power
-  recurrence, and the abstract normalized product-uniqueness lemma. The
-  Fibonacci-state induction, selected specialization, and QF/AE4
-  identification remain paper-level. It additionally checks the residue-field
+  recurrence, and the abstract normalized product-uniqueness lemma. It now
+  also checks the scaled lower norm and quotient-trace formulas and the exact
+  cross-multiplied oriented fourth-coordinate square from the normalized AE4
+  product and its quadratic conjugate. The Fibonacci-state induction,
+  selected specialization, QF/AE4 identification, and finite-field Hilbert--90
+  fibre count remain paper-level. It additionally checks the residue-field
   correction polynomial identities, the first-Witt relative-trace polynomial,
   the abstract even-branch mismatch, and the odd marked-graph equation with its
   unique remaining coordinate. The Teichmuller passage modulo four, the `e2`
@@ -252,9 +255,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   remaining ordinary target is the uniform theorem;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
-  discriminant recursion, and the odd-Kummer square-class equivalence used in
-  the paper's global-reciprocity torsor no-go; the number-field ramification
-  and Hilbert-symbol deductions themselves remain paper-level;
+  discriminant recursion, the signed Dickson--Lucas norm of `W^h-1`, and the
+  odd-Kummer square-class equivalence used in the paper's global-reciprocity
+  torsor no-go; the integral telescoping norm, number-field ramification,
+  valuation, Coleman, different, and Hilbert-symbol deductions themselves
+  remain paper-level;
 - the denominator-free quadratic-tail Kummer transport
   `2*[c_j]=i([a_(j-1)])` and `2*[a_j]=3*i([a_(j-1)])`, which underlies the
   paper's exact `3/2` propagation of a Fermat-prime obstruction through every
