@@ -522,7 +522,7 @@ pub(crate) fn arf_ordinal_at_degree(
 /// finite subfields use the same generic symplectic reduction plus the absolute
 /// trace from their minimal common `F_{2^m}`. Coefficients outside the staged
 /// finite-subfield detector return `None`. Over ideal full
-/// algebraically closed `On₂`, every regular form is hyperbolic and the Arf/Witt
+/// algebraically closed `On₂`, every nonsingular form is hyperbolic and the Arf/Witt
 /// class vanishes (`writeups/transfinite_arf.tex`); this function deliberately
 /// reports only the checked, degree-relative finite-field class and does not claim
 /// an executable full-field isometry witness.
