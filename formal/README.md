@@ -138,7 +138,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the literal-ancestry coordinate core: Lean checks the quadratic Conway
   trace and norm coordinates, the endpoint-orbit criterion, normalization of
   the surviving additive-edge point into the first trace-one block, and its
-  Cassini norm-defect factorization.  It also checks the adjacent-exponent
+  Cassini norm-defect factorization. It also checks the normalized torus-point
+  algebra, denominator-free sum/ratio/product identities for its formal pair,
+  the inversion-quotient's exact inverse-pair fibres, and the algebraic
+  inverse-factor identity. The Binet-to-torus displacement, finite-field
+  conjugacy and trace-block bijection, and additive Fourier specialization
+  remain paper-level. It also checks the adjacent-exponent
   modular signs, the two quotient-ring cofactor identities, and the short
   modular-window and terminal divisibility cores used by the paper to
   exclude both endpoint period classes.

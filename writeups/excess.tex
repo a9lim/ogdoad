@@ -191,8 +191,9 @@ resultant flag for the surviving odd Hasse collision, with a degree-range
 exclusion, literal-ancestry orbit/ordering saturation, non-Latt\`es
 rational-dynamics boundary, and complete pointwise-semiconjugacy/Frobenius-coboundary
 saturation, with the first nonzero additive-edge trace and exact lower
-cancellation, cross-level gcd identity, and exclusion of the smallest proper
-lower fibotomic stratum &
+cancellation, cross-level gcd identity, exclusion of the smallest proper
+lower fibotomic stratum, and the exact full-trace-block torus coordinate with
+its inverse-factor exponent &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -14914,6 +14915,156 @@ minimal-failure specialization and finite-field zero-period implication
 remain paper-level.
 \end{proof}
 
+\begin{proposition}[the normalized additive edge is the full selected trace block]
+\label{prop:fermat-ae4-torus-block}
+Retain the minimal-first-failure notation of
+Propositions~\ref{prop:fermat-first-additive-flag} and
+\ref{prop:fermat-literal-ancestry-orbit}.  Thus
+\[
+ K_0=E_{n-2}=\mathbb F_Q,\qquad K_1=E_{n-1}=\mathbb F_{Q^2},
+ \qquad A=a_{n-2},\qquad a=a_{n-1},
+\]
+and let
+\[
+ v=w_{n-1}=\frac{c_{n-1}+1}{c_{n-1}}\in
+ U:=\ker\!\left(\operatorname{Norm}_{K_1/K_0}\right).
+\]
+Minimality gives \(\operatorname{ord}(v)=Q+1\), while exact Conway
+ancestry gives
+\[
+ A=\Phi(v):=\frac{v}{(1+v)^2},\qquad
+ c:=c_{n-1}=\frac1{1+v},\qquad a=Ac.                \tag{\(\mathsf{ATB}_1\)}
+\]
+For the exponent \(K\) of Proposition~\ref{prop:fermat-first-additive-flag},
+put \(z_K=(1+v^K)^{-1}\).  Then the normalized point of
+Proposition~\ref{prop:fermat-literal-ancestry-orbit} has the exact form
+\[
+ \boxed{\quad y=\frac A{1+v^K}=Az_K.\quad}          \tag{\(\mathsf{ATB}_2\)}
+\]
+Moreover
+\[
+ \boxed{
+ \begin{aligned}
+  \operatorname{Tr}_{K_1/K_0}(y)&=A,\\
+  y^{Q-1}&=v^K,\\
+  \operatorname{Norm}_{K_1/K_0}(y)&=A^2\Phi(v^K).
+ \end{aligned}}                                    \tag{\(\mathsf{ATB}_3\)}
+\]
+In particular
+\[
+ \operatorname{ord}(yK_0^\times)
+ =\frac{Q+1}{\gcd(Q+1,K)},                           \tag{\(\mathsf{ATB}_4\)}
+\]
+and the selected endpoint norm occurs exactly in the two already excluded
+classes:
+\[
+ \operatorname{Norm}_{K_1/K_0}(y)=A^3
+ \iff K\equiv\pm1\pmod{Q+1}.                       \tag{\(\mathsf{ATB}_5\)}
+\]
+
+More generally, the map
+\[
+ U\setminus\{1\}\longrightarrow
+ \{x\in K_1:\operatorname{Tr}_{K_1/K_0}(x)=A\},
+ \qquad u\longmapsto\frac A{1+u}                  \tag{\(\mathsf{ATB}_6\)}
+\]
+is a bijection, with inverse \(x\mapsto x^{Q-1}\).  Since \(v\) generates
+\(U\), the exponent map
+\[
+ j\longmapsto\frac A{1+v^j},\qquad
+ j\in\mathbb Z/(Q+1)\mathbb Z\setminus\{0\},      \tag{\(\mathsf{ATB}_7\)}
+\]
+enumerates the complete literal first trace block.  Conjugation is
+\(j\mapsto-j\), and its ancestry endpoints are \(j=\pm1\).
+
+The arithmetic exponent is not arbitrary.  The definitions imply
+\[
+ 2K=D-Ld,
+\]
+and consequently
+\[
+ \boxed{\quad \ell(1+RK)\equiv1\pmod{Q+1}.\quad}   \tag{\(\mathsf{ATB}_8\)}
+\]
+Equivalently,
+\[
+ K\equiv R^{-1}(\ell^{-1}-1)\pmod{Q+1},
+\]
+where both inverses exist modulo the odd number \(Q+1\).
+
+Thus the normalized failure point is the explicitly indexed member of the
+complete trace block, not a new trace or difference-set exception.  Indeed,
+for the absolute additive character
+\(\psi_b(x)=(-1)^{\operatorname{Tr}_{K_1/\mathbb F_2}(bx)}\),
+\[
+ \sum_{j=1}^{Q}\psi_b\!\left(\frac A{1+v^j}\right)
+ =\begin{cases}
+ Q(-1)^{\operatorname{Tr}_{K_0/\mathbb F_2}(bA)},&b\in K_0,\\
+ 0,&b\notin K_0.
+ \end{cases}                                       \tag{\(\mathsf{ATB}_9\)}
+\]
+This is the Fourier transform of an affine trace fibre.  A closure through
+\((\mathsf{ATB}_2)\) must therefore use nonaveraged arithmetic of the single
+inverse-factor exponent in \((\mathsf{ATB}_8)\), or deeper oriented Conway
+ancestry.  The proposition does not exclude that exponent and hence does not
+prove CSDU.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:fermat-wiedemann-separation}, at level \(n-1\), gives
+\(v+v^{-1}=A^{-1}\), which is equivalent to \(A=\Phi(v)\).  The definition
+of \(v\) gives \(c=(1+v)^{-1}\), and Conway ancestry gives \(a=Ac\).
+
+The Binet identity gives
+\[
+ A\frac{S_{K-1}(A)}{S_K(A)}
+ =\frac{v+v^K}{(1+v)(1+v^K)}
+ =c+z_K.
+\]
+Since the displacement in Proposition~\ref{prop:fermat-literal-ancestry-orbit}
+is \(\lambda=A^2S_{K-1}(A)/S_K(A)\), characteristic two yields
+\[
+ y=a+\lambda=Ac+A(c+z_K)=Az_K,
+\]
+proving \((\mathsf{ATB}_2)\).
+
+Now \(v^Q=v^{-1}\), hence
+\[
+ z_K^Q=\frac1{1+v^{-K}}=\frac{v^K}{1+v^K}=z_K+1.
+\]
+The identities in \((\mathsf{ATB}_3)\) follow immediately, and the standard
+quotient-to-norm-one isomorphism gives \((\mathsf{ATB}_4)\).  The identity
+\[
+ \Phi(r)=\Phi(s)\iff(r+s)(1+rs)=0
+\]
+shows that \(\Phi(v^K)=\Phi(v)\) exactly for
+\(K\equiv\pm1\pmod{Q+1}\), proving \((\mathsf{ATB}_5)\).
+
+For \((\mathsf{ATB}_6)\), the forward calculation applies to every
+\(u\in U\setminus\{1\}\).  Conversely, if \(\operatorname{Tr}(x)=A\),
+then \(u=x^{Q-1}=(x+A)/x\) lies in \(U\setminus\{1\}\) and
+\(A/(1+u)=x\).  This proves the bijection and \((\mathsf{ATB}_7)\).
+
+Finally, \(2H=\ell-3L\), \(3D=Q^2-1\), \(\ell d=Q^2+1\), and
+\(\ell K=HD-L\) give
+\[
+ 2\ell K=(\ell-3L)D-2L
+ =\ell D-L(3D+2)=\ell(D-Ld),
+\]
+and hence \(2K=D-Ld\).  Modulo \(Q+1\), one has
+\(D=(Q+1)(Q-1)/3\equiv0\), since \(3\mid Q-1\).  Therefore
+\(2RK\equiv-RLd\equiv d-2\), so \(2(1+RK)\equiv d\).  Multiplication
+by \(\ell\), using \(\ell d\equiv2\), proves \((\mathsf{ATB}_8)\).
+The trace fibre is a coset of the additive subgroup \(K_0\), and additive
+orthogonality proves \((\mathsf{ATB}_9)\).
+
+Lean kernel-checks the characteristic-two normalization conditional on the
+displayed displacement, the denominator-free sum/ratio/product identities for
+the formal pair, the exact inverse-pair fibres of \(\Phi\), and the algebraic
+inverse-factor identity.  The Binet-to-\(z_K\) displacement, finite-field
+conjugacy and Frobenius specialization, trace-fibre bijection, and
+additive-character orthogonality remain paper-level.
+\end{proof}
+
 \begin{remark}[coefficient order is not ancestry order]
 Even retaining one exact ancestry edge does not make the selected factor
 lexicographically extremal.  At the first composite Fermat level the
@@ -27732,9 +27883,24 @@ minimality does not supply that inequality.  Recursive trace and norm select
 exactly the Frobenius orbit of \(a_{n-1}\); literal order merely chooses the
 lower-coordinate-zero representative.  The normalized additive-edge point
 lies in the same first trace-one block and is never earlier than the selected
-point; it returns to the endpoint orbit only in two adjacent-period cases. Since
-fibotomic membership is Frobenius invariant, least-label ordering creates no
-new order obstruction.
+point.  Corollary~\ref{cor:fermat-additive-endpoint-exclusion} excludes both
+adjacent-period endpoint cases, so the point is strictly later and its relative
+norm is not the selected value \(A^3\).  This is a genuine first-failure
+restriction, but not a contradiction: the normalization was never known to
+preserve the selected norm, and \((\mathsf{AE}_4)\) remains the unnormalized
+target.  Since fibotomic membership is Frobenius invariant, least-label
+ordering creates no new order obstruction.
+Proposition~\ref{prop:fermat-ae4-torus-block} identifies the surviving
+normalized point exactly:
+\[
+ y=\frac{A}{1+v^K},\qquad
+ \ell(1+RK)\equiv1\pmod{Q+1}.
+\]
+As \(u\mapsto A/(1+u)\) bijects the preceding norm-one torus minus one
+onto the complete first trace block, every full-block additive Fourier or
+difference-set average is already forced.  Thus the endpoint exclusion does
+not leave a hidden trace statistic: a proof must use nonaveraged arithmetic
+of this selected inverse-factor class or deeper oriented ancestry.
 Corollary~\ref{cor:fermat-additive-cross-level} makes its period loss
 arithmetic:
 \[

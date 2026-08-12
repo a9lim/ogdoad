@@ -5691,6 +5691,89 @@ theorem normalized_displacement_norm_defect
   field_simp
   ring
 
+/-- Algebraic core of the exact torus parametrization of the normalized
+additive-edge point. Once the selected point is `a = A*c` and the Binet
+displacement is `A*(c+z)`, characteristic two leaves the single lift `A*z`. -/
+theorem fermat_AE4_normalized_torus_point
+    (A c z a lambda y : F)
+    (ha : a = A * c)
+    (hlambda : lambda = A * (c + z))
+    (hy : y = a + lambda) :
+    y = A * z := by
+  rw [hy, ha, hlambda]
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  linear_combination (A * c) * htwo
+
+omit [CharP F 2] in
+/-- Denominator-free sum, ratio, and product coordinates of the formal pair
+`A/(1+u)` and `A*u/(1+u)`.  Their specialization as a finite-field conjugate
+pair is paper-level. -/
+theorem fermat_AE4_torus_point_coordinates
+    (A u : F) (hA : A ≠ 0) (hu : u ≠ 0) (hu1 : u + 1 ≠ 0) :
+    let y := A / (u + 1)
+    let ybar := A * u / (u + 1)
+    y + ybar = A /\
+      ybar / y = u /\
+      y * ybar = A ^ 2 * (u / (u + 1) ^ 2) := by
+  dsimp
+  constructor
+  · field_simp [hu1]
+    ring
+  constructor
+  · field_simp [hA, hu1]
+  · field_simp [hu1]
+
+/-- The inversion-quotient coordinate has precisely inverse-pair fibres.
+This factorization is the load-bearing endpoint calculation. -/
+theorem fermat_AE4_torusPhi_add_factorization
+    (r s : F) (hr : r + 1 ≠ 0) (hs : s + 1 ≠ 0) :
+    r / (r + 1) ^ 2 + s / (s + 1) ^ 2 =
+      (r + s) * (1 + r * s) / ((r + 1) ^ 2 * (s + 1) ^ 2) := by
+  field_simp [hr, hs]
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  linear_combination (2 * r * s) * htwo
+
+/-- Equality of two inversion-quotient coordinates is exactly equality or
+inversion of the original torus coordinates. -/
+theorem fermat_AE4_torusPhi_eq_iff_inverse_pair
+    (r s : F) (hr : r + 1 ≠ 0) (hs : s + 1 ≠ 0) :
+    r / (r + 1) ^ 2 = s / (s + 1) ^ 2 ↔
+      r = s ∨ r * s = 1 := by
+  rw [← sub_eq_zero, CharTwo.sub_eq_add,
+    fermat_AE4_torusPhi_add_factorization r s hr hs]
+  have hden : (r + 1) ^ 2 * (s + 1) ^ 2 ≠ 0 :=
+    mul_ne_zero (pow_ne_zero _ hr) (pow_ne_zero _ hs)
+  rw [div_eq_zero_iff, mul_eq_zero]
+  simp only [hden, or_false]
+  constructor
+  · rintro (hrs | hrs)
+    · left
+      exact eq_neg_of_add_eq_zero_left hrs |>.trans (CharTwo.neg_eq s)
+    · exact Or.inr
+        (((eq_neg_of_add_eq_zero_left hrs).trans
+          (CharTwo.neg_eq (r * s))).symm)
+  · rintro (rfl | hrs)
+    · left
+      have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+      linear_combination r * htwo
+    · right
+      rw [hrs]
+      exact CharTwo.add_self_eq_zero 1
+
+/-- Pure algebra behind the inverse-factor exponent congruence
+`ell * (1 + R*K) = 1`.  The explicit injectivity hypothesis is the exact
+property used by the paper modulo the odd number `Q+1`; no primality or field
+hypothesis on that modulus is required. -/
+theorem fermat_AE4_inverse_factor_core
+    {S : Type*} [CommRing S]
+    (ell d R K : S)
+    (htwo : Function.Injective fun x : S => (2 : S) * x)
+    (hprod : ell * d = 2)
+    (hK : 2 * R * K = d - 2) :
+    ell * (1 + R * K) = 1 := by
+  apply htwo
+  linear_combination ell * hK + hprod
+
 /-- At the first composite Fermat level the selected degree-thirty-two
 polynomial is bracketed, in both coefficient orientations, by the two
 already certified parentable proper-stratum factors. -/

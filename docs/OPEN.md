@@ -436,6 +436,14 @@ absolute boundedness.
   This is a strict new consequence of first failure, but not a contradiction:
   the normalized point was not known to have the selected norm, and the
   original nonzero equality `AE4` survives.
+  The normalized point now has a complete torus coordinate:
+  `y=A/(1+v^K)`, where `v=w_(n-1)` generates the preceding norm-one torus.
+  The map `u |-> A/(1+u)` bijects that torus minus one onto the entire first
+  trace-one block, while the failure exponent satisfies the sharper selected
+  congruence `ell*(1+R*K)=1 mod (Q+1)`. Thus trace-fibre Fourier sums and
+  difference-set averages are saturated; a surviving argument must use
+  nonaveraged arithmetic of this inverse-factor exponent or its deeper
+  oriented Conway ancestry.
   Nor is the selected minimal polynomial coefficient-lex extremal: at the first
   composite Fermat level it is bracketed in both coefficient orientations by
   two one-step descendants of full-order parents lying in the same proper
