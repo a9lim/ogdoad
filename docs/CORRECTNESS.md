@@ -113,6 +113,14 @@ claims retain their documented external provenance.  `DPrimeTarget` is only
 the open universal `D'_k` proposition: no declaration assumes that the
 distinguished `M_k` meets it.
 
+The newer global saturation cores have the same ingredient-level boundary.
+Lean checks the Fibonacci factorization, two-branch, and normalized-coboundary
+algebra used by the `Z` semiconjugacy argument; the norm, translate, and torsion
+phase transport used by the fixed-prime `C` tail; and the Kummer-quotient and
+Hilbert coefficient identities used by the marked `D` phase bridge.  Their
+selected finite-field specializations remain paper-level, and none of these
+declarations asserts any of the four universal nonvanishings.
+
 The ordinary `p=359` row now has two deliberately separated verification
 classes.  The checked-in 438,103-byte Hilbert-root artifact plus the maintained
 python-flint full verifier form a locally replayable exact finite certificate:

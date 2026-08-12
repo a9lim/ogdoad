@@ -1385,6 +1385,205 @@ theorem cubic_phase_swap_square
 
 end CubicSingerIncidence
 
+section CubicPhaseTail
+
+variable {G : Type*} [CommMonoid G]
+
+/-- A relative cubic norm transports the lower Euler phase without any
+loss.  In the finite-field application `S = Q^2 + Q + 1`, `d =
+(Q-1)/ell`, and `d*S = (Q^3-1)/ell`. -/
+theorem cubic_norm_euler_phase_transport
+    (top lower : G) (S d : Nat) (hnorm : top ^ S = lower) :
+    top ^ (d * S) = lower ^ d := by
+  calc
+    top ^ (d * S) = top ^ (S * d) := by rw [Nat.mul_comm]
+    _ = (top ^ S) ^ d := by rw [pow_mul]
+    _ = lower ^ d := by rw [hnorm]
+
+/-- The arithmetic factorization behind one step of phase conservation.
+Writing `Q = 1 + ell*d` avoids truncated subtraction in `Nat`. -/
+theorem cubic_euler_exponent_factor
+    (Q ell d : Nat) (hQ : Q = 1 + ell * d) :
+    Q ^ 3 = 1 + ell * (d * (Q ^ 2 + Q + 1)) := by
+  rw [hQ]
+  ring
+
+variable {R : Type*} [CommSemiring R]
+
+/-- For the literal cubic selector, the additive recursion and the
+multiplicative norm give the same transported phase. -/
+theorem cubic_selector_additive_multiplicative_phase
+    (top lower : R) (Q d : Nat)
+    (hadd : top ^ 3 + top = lower)
+    (hnorm : top ^ (Q ^ 2 + Q + 1) = lower) :
+    (top ^ 3 + top) ^ d = top ^ (d * (Q ^ 2 + Q + 1)) := by
+  rw [hadd]
+  exact (cubic_norm_euler_phase_transport top lower
+    (Q ^ 2 + Q + 1) d hnorm).symm
+
+/-- The exact descent for an affine translate.  In the cubic finite-field
+application the norm polynomial is
+`Norm(top + c) = c^3 + c + lower`; hence every later translate phase is
+an earlier translate phase, rather than a new current character value. -/
+theorem cubic_affine_translate_phase_descent
+    (top c lower : R) (S d : Nat)
+    (hnorm : (top + c) ^ S = c ^ 3 + c + lower) :
+    (top + c) ^ (d * S) = (c ^ 3 + c + lower) ^ d := by
+  exact cubic_norm_euler_phase_transport (top + c)
+    (c ^ 3 + c + lower) S d hnorm
+
+variable {H : Type*} [CommGroup H]
+
+/-- Restricting a later Euler character to an earlier field raises the
+earlier phase by the relative geometric-series quotient. -/
+theorem euler_phase_restrict
+    (x theta : H) (E r : Nat) (hphase : x ^ E = theta) :
+    x ^ (E * r) = theta ^ r := by
+  rw [pow_mul, hphase]
+
+/-- At the birth edge of `ell`, the lower selector is automatically flat.
+The translated selector is therefore the unique odd-torsion square root of
+the inverse top phase. -/
+theorem cubic_birth_translate_phase_square
+    (top lower shift theta : H) (E : Nat)
+    (hselector : lower = top * shift ^ 2)
+    (htop : top ^ E = theta)
+    (hlower : lower ^ E = 1) :
+    (shift ^ E) ^ 2 = theta⁻¹ := by
+  have hrel : 1 = theta * (shift ^ E) ^ 2 := by
+    calc
+      1 = lower ^ E := hlower.symm
+      _ = (top * shift ^ 2) ^ E := by rw [hselector]
+      _ = top ^ E * (shift ^ 2) ^ E := by rw [mul_pow]
+      _ = theta * (shift ^ E) ^ 2 := by
+        rw [htop]
+        congr 1
+        rw [← pow_mul, ← pow_mul, Nat.mul_comm]
+  exact eq_inv_of_mul_eq_one_right hrel.symm
+
+/-- Two `ell`-torsion phases with the same square are equal when `ell` is
+odd. -/
+theorem odd_torsion_eq_of_sq_eq
+    (a b : H) (ell : Nat)
+    (ha : a ^ ell = 1) (hb : b ^ ell = 1)
+    (hodd : Odd ell) (hsq : a ^ 2 = b ^ 2) :
+    a = b := by
+  have hzEll : (a * b⁻¹) ^ ell = 1 := by
+    rw [mul_pow, ha, inv_pow, hb]
+    simp
+  have hzSq : (a * b⁻¹) ^ 2 = 1 := by
+    rw [mul_pow, hsq, inv_pow]
+    simp
+  have hcop : ell.Coprime 2 := hodd.coprime_two_right
+  have hordEll : orderOf (a * b⁻¹) ∣ ell :=
+    orderOf_dvd_iff_pow_eq_one.mpr hzEll
+  have hordTwo : orderOf (a * b⁻¹) ∣ 2 :=
+    orderOf_dvd_iff_pow_eq_one.mpr hzSq
+  have hordOne : orderOf (a * b⁻¹) ∣ 1 := by
+    simpa [hcop.gcd_eq_one] using Nat.dvd_gcd hordEll hordTwo
+  have hz : a * b⁻¹ = 1 := by
+    exact orderOf_eq_one_iff.mp (Nat.eq_one_of_dvd_one hordOne)
+  exact (mul_inv_eq_one.mp hz)
+
+/-- After the birth level of `ell`, the literal selector and its translate
+have the same Euler phase.  `S = ell*c + 3` is the reduction of the cubic
+norm exponent modulo `ell`. -/
+theorem cubic_tail_translate_has_same_phase
+    (top lower shift theta : H) (E S ell c : Nat)
+    (hselector : lower = top * shift ^ 2)
+    (htop : top ^ E = theta)
+    (hlower : lower ^ E = theta ^ S)
+    (hS : S = ell * c + 3)
+    (hshiftTors : (shift ^ E) ^ ell = 1)
+    (hthetaTors : theta ^ ell = 1)
+    (hodd : Odd ell) :
+    shift ^ E = theta := by
+  have hsq : (shift ^ E) ^ 2 = theta ^ 2 := by
+    have hrel : theta ^ S = theta * (shift ^ E) ^ 2 := by
+      calc
+        theta ^ S = lower ^ E := hlower.symm
+        _ = (top * shift ^ 2) ^ E := by rw [hselector]
+        _ = top ^ E * (shift ^ 2) ^ E := by rw [mul_pow]
+        _ = theta * (shift ^ E) ^ 2 := by
+          rw [htop]
+          congr 1
+          rw [← pow_mul, ← pow_mul, Nat.mul_comm]
+    have hthetaS : theta ^ S = theta ^ 3 := by
+      rw [hS, pow_add, pow_mul, hthetaTors]
+      simp
+    rw [hthetaS] at hrel
+    have hcube : theta ^ 3 = theta * theta ^ 2 := by
+      simp [pow_succ, mul_comm]
+    have hcancel : theta * theta ^ 2 = theta * (shift ^ E) ^ 2 :=
+      hcube.symm.trans hrel
+    exact (mul_left_cancel hcancel).symm
+  exact odd_torsion_eq_of_sq_eq (shift ^ E) theta ell
+    hshiftTors hthetaTors hodd hsq
+
+end CubicPhaseTail
+
+section MarkedPhaseBridge
+
+variable {G : Type*} [CommGroup G]
+
+/-- Passing from an equality in an `ell`-Kummer quotient to the Euler phase:
+the hidden `ell`-th power dies after the complementary exponent. -/
+theorem quotient_phase_transport
+    (W N Y : G) (c ell E : ℕ)
+    (hW : W = N ^ c * Y ^ ell)
+    (hY : Y ^ (ell * E) = 1) :
+    W ^ E = (N ^ E) ^ c := by
+  have hy : (Y ^ ell) ^ E = 1 := by
+    rw [← pow_mul]
+    exact hY
+  rw [hW, mul_pow]
+  rw [hy, mul_one]
+  simp only [← pow_mul]
+  rw [Nat.mul_comm c E]
+
+/-- If the two adjacent Hilbert coordinates come from `W = D+1`, while
+`W` and the corrected norm `N` differ in the Kummer quotient by the unit
+`c`, then their Euler phases differ by precisely the same power `c`. -/
+theorem adjacent_hilbert_phase_transport
+    (W N Y : G) (c ell q e : ℕ)
+    (hW : W = N ^ c * Y ^ ell)
+    (hqe : ell * e = q + 1)
+    (hY : Y ^ ((q - 1) * (q + 1)) = 1) :
+    (W ^ (q - 1)) ^ e = ((N ^ (q - 1)) ^ e) ^ c := by
+  have hphase := quotient_phase_transport W N Y c ell ((q - 1) * e) hW
+  have hexp : ell * ((q - 1) * e) = (q - 1) * (q + 1) := by
+    calc
+      ell * ((q - 1) * e) = (q - 1) * (ell * e) := by ac_rfl
+      _ = (q - 1) * (q + 1) := by rw [hqe]
+  have hkill : Y ^ (ell * ((q - 1) * e)) = 1 := by
+    rw [hexp]
+    exact hY
+  specialize hphase hkill
+  simpa [pow_mul, Nat.mul_comm e (q - 1)] using hphase
+
+end MarkedPhaseBridge
+
+section SixthRootCoefficient
+
+variable {R : Type*} [CommRing R]
+
+/-- The adjacent-quartic coefficient `1+A^5` is the linear unit `2-A`
+on the primitive sixth-root locus `A^2-A+1=0`. -/
+theorem sixth_root_adjacent_coefficient (A : R)
+    (hA : A ^ 2 - A + 1 = 0) :
+    1 + A ^ 5 = 2 - A := by
+  linear_combination (A ^ 3 + A ^ 2 - 1) * hA
+
+/-- The inverse multiplier is equally explicit: `(2-A)(1+A)=3` on the
+same sixth-root locus.  Modulo a current prime, division by three therefore
+recovers the original selected phase from the marked adjacent phase. -/
+theorem sixth_root_adjacent_inverse_factor (A : R)
+    (hA : A ^ 2 - A + 1 = 0) :
+    (2 - A) * (1 + A) = 3 := by
+  linear_combination -hA
+
+end SixthRootCoefficient
+
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
 theorem dk_twisted_translate_recursion
@@ -2549,7 +2748,6 @@ theorem fermat_collision_degree_exclusion
   omega
 
 end FermatCollisionNorm
-
 
 section FermatFixedAdicJetCore
 
@@ -4632,6 +4830,7 @@ theorem fermat_complement_indices_not_dvd
 
 end FermatFibonacciCompression
 
+
 section FermatQuotientWindowFibonacciCore
 
 variable {R : Type*} [CommRing R]
@@ -4775,6 +4974,159 @@ theorem fibPolyValue_zero_block_scalar_root
     _ = a := by rw [hzeroTop, hpow, zero_add, mul_one]
 
 end FermatShiftBlockCore
+
+section FermatSemiconjugacySaturation
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- The denominator-cleared power-of-two semiconjugacy equation is exactly
+the product of the two adjacent Fibonacci values.  Thus its two branches are
+the original zero index and the adjacent zero index; it is not a third
+selected condition. -/
+theorem fibPolyValue_semiconjugacy_factor
+    (a : K) (t g : Nat) (hg : 0 < g) :
+    a ^ ((2 ^ t) * g) +
+        a * (fibPolyValue a g) ^ (2 * (2 ^ t)) =
+      a * fibPolyValue a ((2 ^ t) * g - 1) *
+        fibPolyValue a ((2 ^ t) * g + 1) := by
+  let n := (2 ^ t) * g
+  have hn : 0 < n := mul_pos (pow_pos (by omega) _) hg
+  have hc := fibPolyValue_cassini a (n - 1)
+  have hn0 : n - 1 + 1 = n := by omega
+  have hn1 : n - 1 + 2 = n + 1 := by omega
+  rw [hn0, hn1] at hc
+  have hpow : fibPolyValue a n = (fibPolyValue a g) ^ (2 ^ t) := by
+    simpa [n] using fibPolyValue_pow_two_mul a t g
+  rw [hpow] at hc
+  have hsq : ((fibPolyValue a g) ^ (2 ^ t)) ^ 2 =
+      (fibPolyValue a g) ^ (2 * (2 ^ t)) := by
+    calc
+      ((fibPolyValue a g) ^ (2 ^ t)) ^ 2 =
+          (fibPolyValue a g) ^ ((2 ^ t) * 2) := by rw [pow_mul]
+      _ = (fibPolyValue a g) ^ (2 * (2 ^ t)) := by
+        congr 1
+        omega
+  rw [hsq] at hc
+  have ha : a * a ^ (n - 1) = a ^ n := by
+    rw [← pow_succ']
+    congr 1
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  calc
+    a ^ ((2 ^ t) * g) +
+        a * (fibPolyValue a g) ^ (2 * (2 ^ t)) =
+      a * (a ^ (n - 1) +
+        (fibPolyValue a g) ^ (2 * (2 ^ t))) := by
+          rw [show (2 ^ t) * g = n by rfl, ← ha]
+          ring
+    _ = a * (fibPolyValue a (n - 1) *
+        fibPolyValue a (n + 1)) := by
+          rw [← hc]
+          ring_nf
+          simp [h2]
+    _ = a * fibPolyValue a ((2 ^ t) * g - 1) *
+        fibPolyValue a ((2 ^ t) * g + 1) := by
+          simp only [n]
+          ring
+
+/-- Over a field and away from zero, the semiconjugacy equation therefore
+has exactly the two adjacent Fibonacci branches. -/
+theorem fibPolyValue_semiconjugacy_eq_iff
+    (a : K) (t g : Nat) (ha : a ≠ 0) (hg : 0 < g) :
+    a * (fibPolyValue a g) ^ (2 * (2 ^ t)) =
+        a ^ ((2 ^ t) * g) ↔
+      fibPolyValue a ((2 ^ t) * g - 1) = 0 ∨
+        fibPolyValue a ((2 ^ t) * g + 1) = 0 := by
+  have hf := fibPolyValue_semiconjugacy_factor a t g hg
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  constructor
+  · intro h
+    have hz : a ^ ((2 ^ t) * g) +
+        a * (fibPolyValue a g) ^ (2 * (2 ^ t)) = 0 := by
+      rw [h]
+      ring_nf
+      simp [h2]
+    rw [hf] at hz
+    rcases mul_eq_zero.mp hz with hap | hright
+    · rcases mul_eq_zero.mp hap with ha0 | hleft
+      · exact (ha ha0).elim
+      · exact Or.inl hleft
+    · exact Or.inr hright
+  · intro hz
+    have hp : a * fibPolyValue a ((2 ^ t) * g - 1) *
+        fibPolyValue a ((2 ^ t) * g + 1) = 0 := by
+      rcases hz with hleft | hright
+      · simp [hleft]
+      · simp [hright]
+    rw [← hf] at hp
+    apply eq_of_sub_eq_zero
+    rw [sub_eq_add_neg]
+    have hneg : -(a ^ ((2 ^ t) * g)) = a ^ ((2 ^ t) * g) := by
+      apply eq_of_sub_eq_zero
+      ring_nf
+      simp [h2]
+    rw [hneg]
+    simpa [add_comm] using hp
+
+omit [CharP K 2] in
+/-- In the odd branch `g = 2e+1`, normalizing by `a^e` turns the
+pointwise semiconjugacy relation into a pure Frobenius coboundary. -/
+theorem fermat_semiconjugacy_normalized_coboundary
+    (a S : K) (R e : Nat) (ha : a ≠ 0)
+    (h : a * S ^ (2 * R) = a ^ (R * (2 * e + 1))) :
+    a * (S / a ^ e) ^ (2 * R) = a ^ R := by
+  have hae : a ^ e ≠ 0 := pow_ne_zero _ ha
+  rw [div_pow]
+  field_simp
+  have hexp : e * (2 * R) + R = R * (2 * e + 1) := by ring
+  calc
+    a * S ^ (2 * R) = a ^ (R * (2 * e + 1)) := h
+    _ = a ^ (e * (2 * R) + R) := by rw [hexp]
+    _ = (a ^ e) ^ (2 * R) * a ^ R := by rw [pow_add, pow_mul]
+
+omit [CharP K 2] in
+/-- A non-fixed Frobenius coordinate makes the normalized remainder
+nontrivial.  This is the exact pointwise nonvanishing left after the cyclic
+norm has collapsed to one. -/
+theorem fermat_normalized_coboundary_ne_one
+    (a z : K) (R : Nat)
+    (h : a * z ^ (2 * R) = a ^ R) (hmove : a ^ R ≠ a) :
+    z ≠ 1 := by
+  intro hz
+  rw [hz, one_pow, mul_one] at h
+  exact hmove h.symm
+
+/-- Powering by `2 * 2^t` is an iterated Frobenius and is injective in
+every reduced characteristic-two ring. -/
+theorem pow_two_mul_injective
+    {R : Type*} [CommRing R] [IsReduced R] [CharP R 2]
+    (t : Nat) : Function.Injective (fun x : R => x ^ (2 * (2 ^ t))) := by
+  intro x y hxy
+  apply iterateFrobenius_inj R 2 (t + 1)
+  simpa [iterateFrobenius_def, pow_succ, Nat.mul_comm] using hxy
+
+/-- Once the arithmetic exponent congruence has identified the two
+Frobenius powers, the selected Fibonacci value is the corresponding
+monomial itself, not merely an element with the same norm. -/
+theorem fermat_selected_monomial_of_power_eq
+    (a S : K) (t k : Nat)
+    (h : S ^ (2 * (2 ^ t)) = (a ^ k) ^ (2 * (2 ^ t))) :
+    S = a ^ k := by
+  exact pow_two_mul_injective t h
+
+omit [CharP K 2] in
+/-- Abstract order formula behind the relative-torus strengthening: when
+the even Frobenius exponent is coprime to the order of `z`, the normalized
+remainder has exactly the order of `a^(R-1)`. -/
+theorem fermat_normalized_coboundary_order
+    {G : Type*} [Group G] [Finite G] (a z : G) (R : Nat)
+    (hz : z ^ (2 * R) = a ^ (R - 1))
+    (hcop : (orderOf z).Coprime (2 * R)) :
+    orderOf z = orderOf a / Nat.gcd (orderOf a) (R - 1) := by
+  have hord := congrArg orderOf hz
+  rw [orderOf_pow, orderOf_pow, hcop.gcd_eq_one, Nat.div_one] at hord
+  exact hord
+
+end FermatSemiconjugacySaturation
 
 section FermatComplementaryCofactorCore
 

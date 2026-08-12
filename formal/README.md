@@ -413,6 +413,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   sextic identifications, including the selected inverse orientation, remain
   paper-level, as does the still-open
   nonvanishing of their common phase;
+- the marked Hilbert--sextic bridge core: Lean checks transport of a Kummer
+  quotient equality to Euler phases, the adjacent-Hilbert exponent identity,
+  and the primitive-sixth-root coefficient and inverse-factor formulas. The
+  selected finite-field Hilbert, sextic, Jacobi, and Euler identifications
+  remain paper-level;
 - the exceptional four-block core: Lean checks the alternating base-`q`
   decomposition of the Euler exponent and its cross-multiplied
   commutative-group quotient identity.  The binary-complement calculation,
@@ -452,6 +457,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   matrix Lean proves `I^2=q Id+J`, its restriction `I^2=q` on zero-sum
   vectors, and the two-step phase-swap identity. Projective-plane incidence
   counts and finite-field character/Gauss specializations remain paper-level;
+- the fixed-prime cubic-tail core: Lean checks relative-norm Euler transport,
+  the additive--multiplicative selector identity, affine-translate phase
+  descent, restriction of Euler phases, the birth-edge inverse-square
+  relation, and equality of odd-torsion phases with the same square. The
+  finite-field exponent specializations and literal Conway tower remain
+  paper-level;
 - the selected cubic coupled-root core: one chosen `ell`-th root of `eta_k`
   transports explicitly to compatible roots of `epsilon_k` and `beta_k`, with
   their exact diagonal weights.  Every Frobenius monomial in the chosen root
@@ -529,6 +540,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   exclusion. The Binet specialization, identification of the
   `Frob^s` orbit with `E_(n-1)/E_(v_2(s)-1)`, and iterated-resultant
   degree bookkeeping remain paper-level;
+- the pointwise Fermat-saturation core: Lean checks the universal Fibonacci
+  factorization and its exact two-branch zero criterion, the normalized
+  Frobenius coboundary and its nontriviality, extraction of the selected
+  monomial from equal Frobenius powers, and the abstract order formula. The
+  minimal-counterexample Conway specialization and gcd/LTE arithmetic remain
+  paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

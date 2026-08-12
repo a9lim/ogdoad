@@ -184,7 +184,8 @@ canonical CRT-projector/trace-annihilation boundary, the hypothetical-failure
 shifted-Fibonacci block collapse, and the
 selected Euler-factor/root-number boundary; a nonlinear lower-semiconjugacy
 resultant flag for the surviving odd Hasse collision, with a degree-range
-exclusion &
+exclusion, and complete pointwise-semiconjugacy/Frobenius-coboundary
+saturation &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -213,7 +214,7 @@ reciprocal order seam and
 prescribed-trace character boundary; complete lower trace--Fourier flag
 collapse, ancestral coordinate presentation, and the selected self-polar
 trace-hyperplane character ratio, together with complete self-polar
-incidence-algebra saturation &
+incidence-algebra saturation and fixed-prime full-tail phase conservation &
 exclusion of the selected Wendt/trace fibre at the remaining current
 factors \\
 \((D)\) &
@@ -235,7 +236,8 @@ pure-eigenweight Fourier collapse, and the
 constant-extension line criterion with
 \(m_\ell<16(3^k)^4\), and the selected adjacent-quartic translate/Capelli
 reduction, adjacent Hilbert-pair/maximal-Fermat saturation, and exact
-quadratic-norm rigidity &
+quadratic-norm rigidity, together with the lossless marked
+Hilbert--sextic phase bridge &
 nonvanishing of the selected antiunit index
 \(\operatorname{ind}_\ell(d_k)\) at the remaining current factors \\
 \bottomrule
@@ -9715,6 +9717,160 @@ of \(\theta^r,\theta^{-r}\).  All displayed identities remain valid at
 \(\theta=1\), which proves the stated boundary.
 \end{proof}
 
+\begin{proposition}[the fixed-prime cubic tail has one conserved phase]
+\label{prop:cubic-fixed-prime-tail}
+Put \(M_j=2^{3^j}-1\), and retain the literal Conway selectors
+\(\gamma_j\in L_j^\times\), so that
+\[
+ \operatorname{Norm}_{L_j/L_{j-1}}(\gamma_j)
+ =\gamma_j^{\,1+Q_j+Q_j^2}
+ =\gamma_j^3+\gamma_j
+ =\gamma_{j-1},
+ \qquad Q_j=2^{3^{j-1}}.
+\]
+Fix \(k\geq1\) and a current prime
+\(\ell\mid\Phi_{3^k}(2)\).  For \(j\geq k\), define
+\[
+ \Theta_j=\gamma_j^{M_j/\ell}\in\mu_\ell.
+\]
+Then the selected Euler phase is exactly conserved along the whole
+future cubic tower:
+\[
+ \boxed{\Theta_j=\Theta_k\quad(j\geq k).}             \tag{\(\mathsf{CPT}_1\)}
+\]
+Consequently the \(\ell\)-primary Euler test fails at \(k\) if and only
+if \(\Theta_j=1\) at one, equivalently every, later level.
+
+Write \(\Theta=\Theta_k\).  At every tail edge \(j>k\), the literal
+translate has the same phase:
+\[
+ \boxed{(\gamma_j+1)^{M_j/\ell}=\Theta.}             \tag{\(\mathsf{CPT}_2\)}
+\]
+At the birth edge, if
+\(\Phi=(\gamma_k+1)^{M_k/\ell}\), then
+\[
+ \boxed{\Phi^2=\Theta^{-1},\qquad
+        \Phi=\Theta^{(\ell-1)/2}.}                  \tag{\(\mathsf{CPT}_3\)}
+\]
+
+More generally, fix \(J\geq k\), embed every lower field in \(L_J\), and
+apply the top Euler character \(x\mapsto x^{M_J/\ell}\).  If \(j\geq k\),
+then
+\[
+ \gamma_j^{M_J/\ell}
+ =\Theta^{\,3^{J-j}},                                \tag{\(\mathsf{CPT}_4\)}
+\]
+and absolute Frobenius sends the right side to the corresponding
+\(2^a\)-th power.  The same formula holds for \(\gamma_j+1\) when
+\(j>k\), while the birth translate uses the fixed exponent in
+\((\mathsf{CPT}_3)\).  Hence every cross-level multiplicative Laurent
+word in all future literal selectors, translates, and their Frobenius
+conjugates has Euler value
+\[
+ \Theta^w
+\]
+for an explicit \(w\bmod\ell\).  If \(w=0\), the word is identically
+flat; if \(w\neq0\), its triviality is exactly the original condition
+\(\Theta=1\).
+
+There is also an exact additive tail reduction.  Put
+\[
+ \Phi_s=(\gamma_k+\gamma_s)^{M_k/\ell}
+ \qquad(0\leq s<k),
+\]
+where \(\gamma_0=1\), so \(\Phi_0=\Theta^{(\ell-1)/2}\).  For every
+\(n>t\geq0\) with \(n\geq k\), one has
+\[
+ (\gamma_n+\gamma_t)^{M_n/\ell}
+ =
+ \begin{cases}
+   \Theta,&n-t>k,\\
+   \Theta^{(\ell-1)/2},&n-t=k,\\
+   \Phi_{k-(n-t)},&n-t<k.
+ \end{cases}                                          \tag{\(\mathsf{CPT}_5\)}
+\]
+Thus the infinite family of two-point selected-ancestry sums introduces
+no tail coordinate: it reduces exactly to the finite birth-edge vector
+\((\Phi_1,\ldots,\Phi_{k-1})\) together with \(\Theta\).  Those remaining
+birth-edge phases are not evaluated here.
+
+This is a full-tail route-exclusion theorem.  Climbing to descendants,
+mixing levels, or adjoining all literal translates does not create a second
+current Kummer coordinate.  The result does not evaluate \(\Theta\), and
+therefore does not prove \(C_k\); a successful global proof must use a
+genuinely additive correlation not determined by these multiplicative
+Euler images.
+\end{proposition}
+
+\begin{proof}
+For \(j>k\), the divisibility \(\ell\mid M_{j-1}\) gives
+\[
+ \frac{M_j}{\ell}
+ =\frac{M_{j-1}}\ell(1+Q_j+Q_j^2).
+\]
+Therefore
+\[
+ \Theta_j
+ =\left(\gamma_j^{1+Q_j+Q_j^2}\right)^{M_{j-1}/\ell}
+ =\gamma_{j-1}^{M_{j-1}/\ell}
+ =\Theta_{j-1},
+\]
+which proves \((\mathsf{CPT}_1)\) by induction.  This is also the exact
+additive--multiplicative identity
+\[
+ (\gamma_j^3+\gamma_j)^{M_{j-1}/\ell}
+ =\gamma_j^{M_j/\ell}.
+\]
+
+Put \(E_j=M_j/\ell\), \(S_j=1+Q_j+Q_j^2\), and
+\(\Psi_j=(\gamma_j+1)^{E_j}\).  Since
+\(\gamma_{j-1}=\gamma_j(\gamma_j+1)^2\), raising to \(E_j\) gives
+\[
+ \Theta^{S_j}=\Theta\Psi_j^2.
+\]
+For \(j>k\), one has \(Q_j\equiv1\pmod\ell\), hence
+\(S_j\equiv3\pmod\ell\).  Both \(\Theta\) and \(\Psi_j\) are
+\(\ell\)-torsion, so \(\Psi_j^2=\Theta^2\).  Squaring is injective on
+the odd-order group \(\mu_\ell\), proving \((\mathsf{CPT}_2)\).  At
+\(j=k\), \(E_k\) is a multiple of \(M_{k-1}\), because
+\(\ell\mid S_k\) and \(\ell\nmid M_{k-1}\).  Thus
+\(\gamma_{k-1}^{E_k}=1\), and the same selector identity gives
+\(\Phi^2=\Theta^{-1}\).  Since \(\Phi,\Theta\in\mu_\ell\), raising this
+identity to \((\ell+1)/2\) gives
+\(\Phi=\Theta^{(\ell-1)/2}\), proving \((\mathsf{CPT}_3)\).
+
+Finally
+\[
+ \frac{M_J/\ell}{M_j/\ell}
+ =1+2^{3^j}+\cdots+(2^{3^j})^{3^{J-j}-1}
+ \equiv3^{J-j}\pmod\ell.
+\]
+Together with \((\mathsf{CPT}_1)\), this proves
+\((\mathsf{CPT}_4)\).  Multiplicativity and Frobenius covariance give the
+word statement.  Since \(\ell\) is prime, every nonzero exponent modulo
+\(\ell\) is invertible, proving the final dichotomy.
+
+For the additive statement, the cubic minimal polynomial gives, for
+\(c\in L_{n-1}\),
+\[
+ \operatorname{Norm}_{L_n/L_{n-1}}(\gamma_n+c)
+ =c^3+c+\gamma_{n-1}.
+\]
+When \(n>k\), exponent factorization therefore gives
+\[
+ (\gamma_n+c)^{M_n/\ell}
+ =(c^3+c+\gamma_{n-1})^{M_{n-1}/\ell}.       \tag{*}
+\]
+Taking \(c=\gamma_t\) and using
+\(\gamma_t^3+\gamma_t=\gamma_{t-1}\) moves both indices down by one.
+Iterate \((*)\) until either the lower index reaches zero or the upper
+index reaches \(k\).  In the first case the endpoint is
+\(\gamma_{n-t}+\gamma_0=\gamma_{n-t}+1\), which is evaluated by
+\((\mathsf{CPT}_2)\) or \((\mathsf{CPT}_3)\); in the second it is the
+defining birth phase \(\Phi_{k-(n-t)}\).  This proves
+\((\mathsf{CPT}_5)\).
+\end{proof}
+
 \begin{proposition}[exact one-step lifting of the previous Singer set]
 \label{prop:cubic-previous-singer-lift}
 Let \(j\geq2\), put \(r=2^{3^{j-2}}\), \(q=r^3\), and fix
@@ -13621,6 +13777,118 @@ cyclic-product reindexing, cancellation to the exact half power in
 characteristic two, the selected quadratic-edge norm formula, and the
 final degree-divisibility exclusion.  The Binet specialization,
 finite-field orbit identification, and resultant degree bookkeeping
+remain paper-level.
+\end{proof}
+
+
+
+\begin{proposition}[pointwise semiconjugacy saturation]
+\label{prop:fermat-semiconjugacy-saturation}
+Assume a minimal failed Conway--Fermat level \(n\geq2\), and put
+\[
+ M=2^n,\quad q=2^M,\quad a=a_{n-1},\quad
+ D=\ord(a)=\frac{q-1}{3},\quad d=\frac{q+1}{\ell}.
+\]
+For \(1\leq t\leq v_2(d-1)\), put
+\[
+ R=2^t,\qquad g=\frac{d-1}{R},
+\]
+choose \(e_t\bmod D\) with \(2e_t\equiv g-1\pmod D\), and define
+\[
+ z_t=\frac{S_g(a)}{a^{e_t}}.
+\]
+Then
+\[
+ \boxed{z_t^{2R}=a^{R-1}.}                          \tag{\(\mathsf{ZS}_1\)}
+\]
+If \(v=v_2(t)\geq1\), then
+\[
+ \boxed{\ord(z_t)=\frac{q-1}{2^{2^v}-1}.}           \tag{\(\mathsf{ZS}_2\)}
+\]
+Thus \(z_t\) generates the relative norm-one torus for
+\(E_{n-1}/E_{v-1}\).  If \(v=0\), then
+\(\ord(z_t)=(q-1)/3\).  In either case
+\[
+ \boxed{S_g(a)+a^{e_t}\ne0.}                        \tag{\(\mathsf{ZS}_3\)}
+\]
+
+For the exact extraction \(s=v_2(d-1)\), write
+\[
+ R=2^s,\quad L=\frac{\ell-1}{R},\quad
+ H=\frac{\ell-3L}{2},\quad K=\frac{HD-L}{\ell}.
+\]
+Then \(K\) is an integer with \(0<K<D\), and
+\[
+ \boxed{S_g(a)=a^K.}                                \tag{\(\mathsf{ZS}_{3a}\)}
+\]
+
+Nevertheless the pointwise route is saturated.  For every \(R=2^t\)
+and \(N=Rg>0\),
+\[
+ \boxed{X^N+XS_g(X)^{2R}
+ =XS_{N-1}(X)S_{N+1}(X).}                           \tag{\(\mathsf{ZS}_4\)}
+\]
+At \(N=d-1\), this has exactly the branches
+\(S_{d-2}(a)=0\) and \(S_d(a)=0\).  The former is incompatible with
+the standing failure because the odd \(\delta_n>1\) divides \(d\) but
+not \(d-2\).  Hence the full pointwise semiconjugacy is equivalent to the
+original failure branch.  Varying \(t\) only applies Frobenius doubling to
+the exact odd branch.  Thus pointwise semiconjugacy, its normalized
+coboundary, and every relative norm or order derived from them cannot prove
+\(S_d(a)\ne0\); a surviving argument needs an additive ancestry quantity
+not generated by this Fibonacci coboundary.
+\end{proposition}
+
+\begin{proof}
+Write
+\[
+ w=\frac{c_n+1}{c_n},\qquad
+ \phi(u)=\frac{u}{(u+1)^2},\qquad a=\phi(w).
+\]
+The Binet semiconjugacy is
+\[
+ S_r(\phi(u))=\frac{1+u^r}{(1+u)^r},\qquad
+ \phi(u^r)=\frac{\phi(u)^r}{S_r(\phi(u))^2}.
+\]
+Failure gives \(w^d=1\), hence \(w^{Rg}=w^{-1}\).  Since
+\(\phi(w^{-1})=\phi(w)=a\), semiconjugacy and Frobenius covariance give
+\[
+ aS_g(a)^{2R}=a^{Rg}.
+\]
+Dividing by \(a^{2Re_t+1}\) proves \((\mathsf{ZS}_1)\).  All
+multiplicative orders in \(E_{n-1}\) are odd, so
+\[
+ \ord(z_t)=\ord(a^{R-1})=\frac{D}{\gcd(D,R-1)}.
+\]
+The identity
+\(\gcd(2^M-1,2^t-1)=2^{2^v}-1\), with the exact factor of three on
+both sides when \(v\geq1\), proves \((\mathsf{ZS}_2)\); the case
+\(v=0\) is immediate.  The orders are greater than one, proving
+\((\mathsf{ZS}_3)\).
+
+For the closed exponent, \(3D=q-1\), \(q\equiv-1\pmod\ell\), and
+\(2H=\ell-3L\), so \(\ell\mid HD-L\).  Also
+\[
+ \ell(d-2)=3D-2RL,
+\]
+hence \(2RK\equiv d-2\pmod D\).  The pointwise equation says
+\(S_g(a)^{2R}=(a^K)^{2R}\); injectivity of Frobenius powering proves
+\((\mathsf{ZS}_{3a})\).  Its exponent is near \(D/2\), so it is not a
+hidden low-degree remainder.
+
+Finally, repeated doubling gives \(S_N=S_g^R\), while Cassini at
+\(N-1\) gives
+\[
+ S_N^2+S_{N-1}S_{N+1}=X^{N-1}.
+\]
+Multiplication by \(X\) proves \((\mathsf{ZS}_4)\); the Fibonacci
+zero set and the doubling identity give the stated branch and saturation
+conclusions.
+
+Lean kernel-checks \((\mathsf{ZS}_4)\), its exact two-branch zero
+equivalence, the normalized coboundary, selected monomial extraction from
+equal Frobenius powers, nontriviality, and the abstract order formula.  The
+Conway specialization, minimal-counterexample order, and gcd/LTE arithmetic
 remain paper-level.
 \end{proof}
 
@@ -23124,6 +23392,81 @@ cubic, and sextic coordinates---including the selected sextic orientation---
 remain paper-level.
 \end{proof}
 
+\begin{proposition}[marked Hilbert--sextic phase bridge]
+\label{prop:dk-marked-hilbert-sextic-bridge}
+Retain Propositions~\ref{prop:dk-adjacent-quartic},
+\ref{prop:dk-adjacent-hilbert-pairs}, and
+\ref{prop:dk-phase-identification}.  Put
+\[
+ h=3^k,\qquad s=h/3,\qquad q=2^h,\qquad A=2^s\pmod\ell,
+\]
+and write
+\[
+ \Xi=M_k^{(q+1)/\ell},\qquad
+ \Sigma=\mathfrak s(D)^{(q+1)/\ell}\in\mu_\ell,
+\]
+where \(\mathfrak s(D)\) is the second marked Hilbert coordinate.  Then
+\[
+ \boxed{\Sigma=\Xi^{1+A^5}=\Xi^{2-A}.}             \tag{\(\mathsf{MHS}_1\)}
+\]
+With the conductor-five orientation of
+Proposition~\ref{prop:dk-phase-identification},
+\[
+ \boxed{
+ \Xi=\Omega=(r^{\Lambda/\ell})^{-1}=\xi_\ell^{L(1)},
+ \quad \Sigma=\Omega^{2-A},
+ \quad \Omega=\Sigma^{(1+A)/3}.}                  \tag{\(\mathsf{MHS}_2\)}
+\]
+Here the last exponent is read modulo \(\ell\).  The exponent \(2-A\)
+is nonzero, so it is an automorphism of \(\mu_\ell\), and
+\[
+ \Sigma=1\iff\Omega=1\iff D'_k\text{ fails at }\ell. \tag{\(\mathsf{MHS}_3\)}
+\]
+Thus the marked Hilbert evaluation and the selected sextic/Jacobi phase
+determine each other exactly.  Combining them supplies no independent
+constraint; proving either nontrivial remains the exceptional arm.
+\end{proposition}
+
+\begin{proof}
+Put \(N=\zeta^2+\zeta+\omega\) and \(W=D+1\).  In additive notation
+for \(K^\times/(K^\times)^\ell\),
+Proposition~\ref{prop:dk-adjacent-quartic} gives
+\[
+ [W]=(1+A^5)[N].
+\]
+Hence \(W=N^cY^\ell\) for an integer
+\(c\equiv1+A^5\pmod\ell\).  Raising to
+\(E=(q^2-1)/\ell\) kills the last factor and gives
+\[
+ W^E=(N^E)^c.
+\]
+Since \(\mathfrak s(D)=W^{q-1}\) and \(M_k=N^{q-1}\), this is the
+first equality in \((\mathsf{MHS}_1)\).  The primitive sixth-root relation
+\(A^2-A+1=0\) gives \(A^5=1-A\), hence \(1+A^5=2-A\).
+
+For completeness, with \(a=\zeta^{h+1}\) and the selected
+\(c_0=\omega\in\F_4\setminus\F_2\),
+\[
+ N=\omega(a^2+c_0a+1)=\omega a(\gamma_k+c_0)=\omega a u_k.
+\]
+The factors \(\omega\) and \(a\) have order dividing \(3h\), while
+\(3h\mid E\).  They die under \(E\), and
+Proposition~\ref{prop:dk-phase-identification} identifies the resulting
+Euler phase with
+\(\Omega=(r^{\Lambda/\ell})^{-1}=\xi_\ell^{L(1)}\).
+This proves \((\mathsf{MHS}_2)\).
+
+If \(2-A=0\), the sixth-root relation would give \(3=0\pmod\ell\),
+impossible for a current prime.  Finally
+\((2-A)(1+A)=3\), so the inverse exponent is exactly
+\((1+A)/3\).  This proves \((\mathsf{MHS}_3)\).
+
+Lean kernel-checks passage from a Kummer-quotient equality to its Euler
+phase, the adjacent Hilbert exponent transport, and the two sixth-root
+coefficient identities.  The selected finite-field identifications remain
+paper-level.
+\end{proof}
+
 \begin{proposition}[the selected Dickson phase has trivial downward norm]
 \label{prop:dk-selected-norm-collapse}
 Retain Proposition~\ref{prop:dk-selected-sextic}.  Thus
@@ -25126,6 +25469,15 @@ This excludes the collision whenever \(3^{n-v}\leq2^v\).  It is a genuine
 lower selected-ancestry obstruction, not a maximal-order theorem: a nonzero
 Hasse jet remains compatible with \(A_{n-1}\mid S_d\), and the descended
 condition is automatic when \(v=0\).
+Proposition~\ref{prop:fermat-semiconjugacy-saturation} closes the stronger
+pointwise variant globally.  Its normalized Fibonacci value generates the
+entire appropriate relative norm-one torus, but the unnormalized relation
+factors exactly as \(XS_{d-2}S_d\); under failure only the original
+\(S_d\)-branch survives, and all power-of-two extractions are Frobenius
+images of one another.  Pointwise semiconjugacy, normalized coboundaries,
+orders, and relative norms therefore furnish no second condition.  The
+remaining Z route must couple the selected coordinate additively to an
+independent ancestry value before this normalization.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -25539,6 +25891,12 @@ lower-level primitivity do not single out the selected fibre.  The full
 cubic recursion remains rigid up to absolute Frobenius, so this is a
 sharp obstruction to one-step descent rather than a recursive
 countermodel.
+Proposition~\ref{prop:cubic-fixed-prime-tail} strengthens this to the whole
+future tower.  A fixed current Euler phase is conserved at every descendant;
+later translates have the same phase, and all two-point ancestry sums descend
+to that phase or to finitely many birth-edge phases.  Thus neither climbing
+the Conway tower nor mixing future levels creates a second Kummer coordinate.
+Only genuinely additive birth-edge data remain capable of proving C.
 Propositions~\ref{prop:singer-normal-translate} and
 \ref{prop:cubic-two-normal-bases} nevertheless supply two selected normal
 coordinates joined by an explicit determinant-one half-circulant.  Their
@@ -25802,6 +26160,12 @@ norm: together with the first Hilbert coordinate it determines \(x\) uniquely.
 Thus a full-norm-preserving countermodel is impossible, and the unresolved
 input is precisely the marked identity \(D=\zeta^4+\zeta\), equivalently the
 second Hilbert coordinate of that point.
+Proposition~\ref{prop:dk-marked-hilbert-sextic-bridge} then identifies that
+marked Hilbert phase exactly with \(\Omega^{2-A}\), where \(\Omega\) is the
+selected sextic/Jacobi phase and \(A=2^{3^{k-1}}\bmod\ell\).  The inverse
+exponent is \((1+A)/3\), so the two evaluations determine one another rather
+than constrain one another.  The D frontier is consequently direct
+nonvanishing of this one selected birth phase.
 Remark~\ref{rem:plus-minus-tori} also shows that the cubic and
 exceptional current groups have coprime orders, so no rational-point
 homomorphism can transfer arm \((C)\) to arm \((D)\).
@@ -25826,6 +26190,19 @@ Conway-compatible selector in each family.  Proving those four
 nonvanishing assertions would establish the observed rule and hence a
 uniform bound.  Conversely, a failure in any arm would identify the first
 mechanism by which Lenstra excess escapes $\{0,1,4\}$.
+
+The all-level saturation results sharpen where a uniform proof can live.
+In the Fermat arm, pointwise semiconjugacy and every normalized relative-torus
+coboundary factor back to the original selected zero.  In the cubic arm, a
+fixed current phase is conserved through the entire future tower, including
+all tail translates and two-point ancestry descents.  In the exceptional arm,
+the marked Hilbert and selected sextic/Jacobi evaluations are mutually
+invertible powers of one phase.  Together with primary-coordinate separation
+across arms, these results rule out a proof obtained by climbing the tower,
+taking more norms, or combining the existing Euler presentations.  The live
+global target is an additive identity at the literal birth edge which uses
+Conway ancestry before Euler projection.  No such identity is proved here;
+the four universal assertions, and hence the (0/1/4) rule, remain open.
 
 \appendix
 \section{Computational Evidence and Reproducibility}\label{sec:provenance}

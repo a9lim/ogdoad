@@ -399,6 +399,17 @@ absolute boundedness.
   but not maximality: a nonzero Hasse jet is compatible with
   `A_(n-1)|S_d`, and for `v=0` the descended condition at
   `A_(-1)=X+1` is automatic.
+  The stronger pointwise semiconjugacy route is now saturated globally.
+  After normalizing every extracted Fibonacci value by its forced monomial,
+  the result generates the complete appropriate relative norm-one torus and
+  is therefore nontrivial; nevertheless the denominator-cleared identity
+  factors exactly as `X*S_(d-2)*S_d`. Under hypothetical failure the
+  `S_(d-2)` branch is impossible, so the pointwise equation is equivalent to
+  the original `S_d` zero, and varying the power-of-two extraction only
+  applies Frobenius. Thus pointwise identities, normalized coboundaries,
+  their orders, and their relative norms cannot close Z. A surviving proof
+  must add an ancestry-sensitive additive quantity before this multiplicative
+  normalization.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -853,6 +864,14 @@ absolute boundedness.
   `rho(gamma)^r` and `rho(gamma)^(-r)`. Thus the entire self-polar incidence
   algebra is compatible with failure and supplies no independent nonvanishing
   relation.
+  The whole future selected tower is likewise phase-saturated. For a fixed
+  current prime, the Euler phases of every descendant `gamma_j` are equal;
+  every later `gamma_j+1` has the same phase, and the birth translate is its
+  unique inverse square root. Multiplicative Laurent words across all future
+  levels therefore give only powers of the birth phase. Even every two-point
+  sum `gamma_n+gamma_t` descends to that phase or to one of finitely many
+  birth-edge sums. Climbing the tower creates no new current Kummer
+  coordinate; only a genuinely additive birth-edge correlation remains.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -1070,6 +1089,12 @@ absolute boundedness.
   independent conditions: the phase-level presentations recover `L(1)`,
   while `P_e` records its `Q`-Frobenius orbit and the reciprocal factor records
   the corresponding selected factor test.
+  The marked Hilbert coordinate does not add a second phase either. With
+  `A=2^(3^(k-1)) mod ell`, its Euler phase is exactly
+  `Omega^(2-A)`, while `Omega` is recovered by the inverse exponent
+  `(1+A)/3`. Thus the marked Hilbert, selected sextic, Jacobi, half-block,
+  and cubic-recurrence presentations are mutually lossless
+  reparametrizations of the same still-unevaluated scalar.
   Below Euler projection there is now an exact adjacent-value compression in
   the original corrected-norm field. Put `D=zeta^4+zeta` in `K=F_(4^h)`.
   The full `F_16` translate table and injectivity of the quadratic
