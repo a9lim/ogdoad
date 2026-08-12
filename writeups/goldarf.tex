@@ -18,6 +18,7 @@
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \newtheorem{remark}{Remark}
+\newtheorem{conditional}[nogo]{Conditional statement}
 
 \newcommand{\No}{\mathbf{No}}
 \newcommand{\On}{\mathrm{On}_2}
@@ -40,7 +41,8 @@
 \newcommand{\mex}{\operatorname{mex}}
 \newcommand{\Stab}{\operatorname{Stab}}
 
-\title{Gold--Arf Normal Play and the Observation Boundary}
+\title{Quadratic Refinements in Normal Play:\\
+Realization and the Observation Boundary}
 \author{a9lim}
 \date{August 2026}
 
@@ -48,39 +50,91 @@
 \maketitle
 
 \begin{abstract}
-The Gold trace forms
-\[
-  Q_a(x)=\Tr(x\,x^{2^a})
-\]
-are quadratic forms over fields of characteristic $2$. In the nimber setting
-they are also composites of combinatorial-game operations:
-nim-product via Turning Corners, Frobenius squaring via the diagonal product,
-and XOR via disjunctive sum. We construct a uniform finite normal-play game
-whose $P$-positions are exactly $\{x:Q_a(x)=0\}$. A public,
-refinement-blind Witt frame turns the polar support into a matching. Each
-active original coordinate contributes a matched source pair whose overlap
-has the corresponding diagonal weight. A FIFO strategy forces zero correction
-parity for either seat on every matching-plus-isolates board, and a phase-aware
-terminal claim compiles the forced charge to ordinary normal play. The Arf
-invariant, together with radical data in the singular case, therefore gives
-the exact second-player win bias.
+Classical coin-turning games decompose into nim heaps, and their
+$P$-positions are therefore $\F_2$-linear; the same linear-kernel phenomenon
+underlies anncodes, Mock Turtles, and Mogul.  We construct, to our knowledge,
+the first uniform normal-play family that strategically forces a genuinely
+quadratic $P$-set and proves the matching observation boundary.  The theorem
+is not Gold-specific: for every finite-dimensional $\F_2$-space, every
+alternating form $B$, every quadratic refinement $Q$ of $B$, and every loaded
+input $x$, the root is $P$ exactly when $Q(x)=0$.
 
-The construction is accompanied by two sharp boundaries. First, any
-transcript-stable exact realizer must observe vectors spanning the input; with
-weight-$w$ observations, a weight-$t$ input needs at least $t/w$ observations.
-Thus a constant total observation budget is impossible, and the construction's
-singleton source pairs attain the sharp bound. Second, outcome-preserving
-terminal padding gives every finite normal-play tree a refinement-sensitive
-winning fork, so fork-based extensional tests cannot certify naturality. The
-paper also identifies the quadratic datum with the squaring map of an
-extraspecial central extension and proves linear, symmetric, commutative, and
-bounded-oracle no-go results that explain why the matching lift is necessary.
+The statement includes its access class.  The arena obeys F1--F3/N1--N2:
+its statics are refinement-blind, each transition makes at most one
+weight-one refinement observation, the semantics is ordinary normal play,
+and exactness is uniform over the full torsor of refinements.  A public Witt
+frame reduces the polar support to a matching; singleton-weighted source
+pairs transport the diagonal data; a FIFO strategy forces every potential
+pair to overlap; and a phase-aware terminal claim compiles the resulting
+charge.  The phase $\phi$ is the mover field, so the compiled arena is
+partizan.  Whether an impartial uniform realizer exists remains open.
+
+The Gold--Arf family
+$Q_a(x)=\Tr(x\,x^{2^a})$ is the motivating game-built instance: nim-product,
+Frobenius, trace, and XOR source its coefficients, and the Arf invariant with
+radical data gives the exact second-player bias.  For the general theorem,
+transcript stability forces the observed directions to span $x$; hence
+weight-$w$ observations require at least $\wt(x)/w$ queries.  This is attained
+by the construction at $w=1$; no matching upper bound is claimed for $w>1$.
+The Lean supplement checks five independent ingredients of the realization
+and lower bound, rather than one end-to-end arena theorem.  A separate
+kernel-checked padding result shows why extensional winning-fork tests cannot
+certify naturality.
 \end{abstract}
 
 \section{Introduction and scope}\label{sec:scope}
 
+The linear ceiling of established coin-turning constructions is unusually
+rigid.  Ferguson's decomposition expresses every such terminating ruleset as
+a disjunctive sum of nim heaps~\cite{ferguson-notes}; Fraenkel's annihilation
+games consequently produce linear error-correcting codes
+(``anncodes'')~\cite{fraenkel1996}.  Mock Turtles and Mogul fit the same
+pattern, the latter recovering the binary Golay code.  Thus their $P$-sets
+are kernels of $\F_2$-linear maps.  The present result crosses that ceiling:
+it forces $\{Q=0\}$ for every quadratic refinement of every alternating
+form, while proving exactly how much refinement data any transcript-stable
+rule must expose.
+
+The access condition is essential.  Any prescribed finite subset can be made
+the $P$-set of an ad hoc acyclic digraph, so a realization theorem without a
+uniformity and information contract is vacuous.  Definition~\ref{def:criterion}
+fixes that contract as F1--F3/N1--N2.  The headline construction meets it with
+$(w_0,c)=(1,1)$: public $B$-data may organize the board, but a transition sees
+at most one singleton value of the refinement.  It works uniformly for all
+$Q$, not merely for the Gold trace forms that led to it.
+
+The closest neighboring constructions have different input semantics.
+Johnson's input-setting games let the players choose the Boolean input,
+whereas here $x$ is loaded data and play must reveal its quadratic value
+under a fixed local rule~\cite{johnson2011wt}.  Brandenburg's algebraic games
+play directly on presented groups and rings rather than compile a quadratic
+predicate~\cite{brandenburg2018}.  The invariant-games program asks whether a
+position-independent subtraction rule has a prescribed $P$-set
+\cite{duchene-rigo}; our Definition~\ref{def:criterion} is an explicit
+stateful analogue of that invariance question, allowing FIFO memory while
+fixing the loading, statics, and oracle budget.  Literal move-digraph
+invariance is too rigid here (Theorem~\ref{thm:E}), so the positive theorem
+uses covariant public preprocessing instead.
+
+There is also a classical graph-theoretic ancestor of the charge mechanism.
+The Cohn--Lempel equality, Bouchet's isotropic systems, and the modern
+interlacement-matroid formulation show how chord intersections and
+interlacement parity produce quadratic forms over $\F_2$
+\cite{cohn-lempel1972,bouchet1987,brijder2015}.  What is new here is not that
+overlap parity is quadratic, but that normal play can force the required
+overlaps strategically under a bounded-access contract.
+
+The arena is partizan only through its mover bit $\phi$, which assigns the
+terminal claim to the correct seat.  An impartial uniform realization with
+the same access discipline is open.  The Lean supplement checks five
+independent ingredients: the diagonal trace identities, the matching FIFO
+strategy, the adapted-basis expansion, the phase-aware claim compiler, and
+the transcript-span bound.  It also checks the separate fork-padding no-go.
+As Section~\ref{sec:status} records, these are ingredient theorems; no single
+Lean statement constructs the complete arena.
+
 A short partizan game is built recursively as $\{L\mid R\}$, and games form a
-partially ordered abelian group under disjunctive sum~\cite{Conway76,WW}. They
+partially ordered abelian group under disjunctive sum~\cite{conway1976,WW}. They
 do not form a ring: Conway multiplication is defined on the number subclass,
 not on arbitrary games. Since a Clifford algebra needs a commutative scalar
 ring, the phrase ``Clifford over games'' has to be interpreted through scalar
@@ -150,7 +204,8 @@ The polar entry is part of the form.
 \section{Gold forms from game operations}\label{sec:gold}
 
 Nim-addition is XOR, and XOR is the disjunctive sum of impartial game values.
-Nim-multiplication is also game-theoretic: Conway's Turning-Corners product has
+Nim-multiplication is also game-theoretic: Conway's Turning-Corners product
+\cite{conway1976,lenstra1978} has
 the mex recurrence
 \begin{equation}\label{eq:tc}
   x\nimmul y
@@ -194,7 +249,7 @@ quadratic-form theory.
 
 \subsection{Rank check}
 
-The polar rank of Gold forms is known. In the tested regime
+The polar rank of Gold forms is known~\cite{helleseth1998}. In the tested regime
 $m=2^k$ and $1\leq a\leq k$, the general formula
 \[
   \operatorname{rank} B_{Q_a}=m-\gcd(2a,m)
@@ -388,7 +443,8 @@ Remark~\ref{rem:vacuous}).
 \item A bounded misere quotient computer tests small quotient P-sets. The octal
 sweep checked $292$ octal codes, heap cutoff at most $4$, and found quotient
 orders $2,6,10,12,14$, with no elementary abelian $2$-group of rank at least
-$2$. Theorem~\ref{thm:C} below shows this emptiness is forced, not a sampling
+$2$. Conditional statement~\ref{thm:C} below shows this emptiness is forced,
+subject to its cited regularity hypothesis, rather than a sampling
 accident.
 \item \texttt{experiments/misere\_kernel.py} checks the kernel obstruction on
 the smallest wild misere quotient $R_8$: the canonical group/kernel shadow is
@@ -483,49 +539,117 @@ $m=4,8,16,32$ via the trace-pairing uniqueness of the dual element
 This gives a game-native, tower-uniform, commutative source for the $a=1$
 diagonal: one nim-squaring, one XOR, one trace -- all inside the licensed
 operation chain of Section~\ref{sec:gold}. The following theorem closes the
-same sourcing question for every exponent, including even $a$.
+same sourcing question for every exponent, including even $a$, and identifies
+the exact obstruction for a general scale.
 
-\begin{theorem}[all-exponent diagonal source]\label{thm:all-diagonal-source}
-Let $m=2^k\ge2$ and let $\lambda_{a,c}^{(m)}$ be the unique trace-dual of the
-scaled diagonal
-\[
+For $c\in K_m=\F_{2^m}$, let $\lambda_{a,c}^{(m)}$ be the unique trace-dual
+of the scaled canonical-basis diagonal:
+\begin{equation}\label{eq:golddual}
  \Tr_m(\lambda_{a,c}^{(m)}e_i)
-   =\Tr_m(c e_i\Fr^a(e_i)).
-\]
-For $m=2M$, write $\F_{2^m}=\F_{2^M}(u)$ with
-$u=e_M$ and $u^{2^M}=u+1$. Put
+   =\Tr_m(c e_i\Fr^a(e_i))\qquad(0\leq i<m).
+\end{equation}
+
+\begin{theorem}[sharp diagonal-source criterion]\label{thm:all-diagonal-source}
+For every admitted power-of-two degree $m$ and every $a\geq0$,
 \[
- d_0=\Tr_{m/M}(c),\qquad
- d_1=\Tr_{m/M}(c u\Fr^a(u)),\qquad
- L_j=\lambda_{a,d_j}^{(M)}.
-\]
-Then
-\[
- \lambda_{a,c}^{(2M)}=(L_0+L_1)+uL_0.
-\]
-In particular, for $c=1$ one has $L_0=0$, so
-$\lambda_{a,1}^{(2M)}\in\F_{2^M}$ and
-$\Tr_m(\lambda_{a,1}^{(2M)})=0$. Consequently there is a
-$w\in\F_{2^m}$ with
-\[
- \lambda_{a,1}^{(m)}=w^2+w,
+ \Tr_m(\lambda_{a,c}^{(m)})=\Tr_m(c),
  \qquad
- Q_a(e_i)=\Tr_m((w^2+w)e_i)
+ \lambda_{a,c}^{(m)}\in\wp(K_m)
+       \Longleftrightarrow \Tr_m(c)=0.
 \]
-for every $i$ and every $a$.
+In particular, if $m=2^k\geq2$ and $c=1$, there is a
+$w_a^{(m)}\in K_m$ such that
+\[
+ \lambda_{a,1}^{(m)}=(w_a^{(m)})^2+w_a^{(m)},
+ \qquad
+ Q_a(e_i)=\Tr_m(((w_a^{(m)})^2+w_a^{(m)})e_i)
+\]
+for every canonical basis coin $e_i$.
 \end{theorem}
 
-The proof is the quadratic-tower trace calculation in
-\path{writeups/gold_diagonal_source.tex}.  The implementation follows the
-same recursion and solves the final Artin--Schreier equation by exact
-finite-field linear algebra.  The tower block identities and absolute-trace
-descent are kernel-checked in \path{formal/Ogdoad/GoldDiagonal.lean}. Thus
-the variation across tower levels is the recursive dual rather than an
-obstruction: every unscaled dual has a uniform constructive preimage. The
-claim is deliberately unscaled; a general coefficient $c$ need not descend
-or have trace zero. The source $w$ is selected by exact finite-field linear
-algebra, not by a simple Fermat-coin formula as in Proposition~\ref{prop:wp};
-this is a uniform constructive source, not yet a strategic naturality result.
+\begin{proof}
+Put $e_0=1$ in the defining duality~\eqref{eq:golddual}:
+\[
+ \Tr_m(\lambda_{a,c}^{(m)})
+   =Q_{a,c}(1)=\Tr_m(c).
+\]
+The Artin--Schreier image of a finite characteristic-two field is exactly
+the absolute-trace kernel~\cite[Thm.~2.25]{lidl1997}.  This proves the
+equivalence.  For the unscaled form, $\Tr_m(1)=m\bmod2=0$ whenever the
+power-of-two degree satisfies $m\geq2$.
+\end{proof}
+
+The one-line proof is basis-independent: it works in any basis containing
+$1$.  The stronger descent and recursion below are special to Conway's bit
+basis.  Write $m=2M$, $K_m=K_M(u)=K_M\oplus uK_M$, where $u=e_M$.
+Conway's Fermat-power rules give
+\[
+ \sigma(u)=u+1,\qquad ue_j=e_{M+j},
+ \qquad \sigma=\Fr^M
+\]
+\cite[Ch.~6]{conway1976}.  If $e_j^{*,(M)}$ denotes the trace-dual of
+$e_j$ in $K_M$, then the trace-dual bit basis upstairs has the closed form
+\begin{equation}\label{eq:dualbasisblocks}
+ e_{M+j}^{*,(2M)}=e_j^{*,(M)},\qquad
+ e_j^{*,(2M)}=(1+u)e_j^{*,(M)}.
+\end{equation}
+Indeed, for $A,B,e\in K_M$ the relative trace $T=1+\sigma$ satisfies
+\begin{equation}\label{eq:traceblocks}
+ T((A+uB)e)=Be,\qquad T((A+uB)ue)=(A+B)e.
+\end{equation}
+Substitution of $A=0,B=e_j^{*,(M)}$ and then
+$A=B=e_j^{*,(M)}$ gives the two dualities in
+\eqref{eq:dualbasisblocks}, including the vanishing cross blocks.
+
+Two consequences now take one line each.  Let
+\[
+ d_0=T(c),\qquad d_1=T(cu\Fr^a(u)),\qquad
+ L_s=\lambda_{a,d_s}^{(M)}.
+\]
+The lower and upper diagonal blocks have duals $L_0,L_1$, so
+\begin{equation}\label{eq:golddualrecursion}
+ \lambda_{a,c}^{(2M)}=(1+u)L_0+L_1=(L_0+L_1)+uL_0.
+\end{equation}
+For $c=1$, the lower block is zero because its entries lie in $K_M$ and
+have zero trace upstairs; hence $L_0=0$ and
+\begin{equation}\label{eq:golddescent}
+ \lambda_{a,1}^{(2M)}=L_1\in K_M.
+\end{equation}
+Thus the closed dual basis simultaneously explains the scaled recursion and
+the unscaled descent.  Equations~\eqref{eq:traceblocks} and the finite-field
+Artin--Schreier exact sequence are kernel-checked in
+\path{formal/Ogdoad/GoldDiagonal.lean}.
+
+The source itself may also be constructed tower-recursively, with no final
+linear-algebra fallback.  Write the quadratic extension as
+\[
+ K_{2M}=K_M(u),\qquad u^2+u=\delta,\qquad \Tr_M(\delta)=1.
+\]
+The last equality is the Artin--Schreier irreducibility criterion.  Given a
+trace-zero target $\mu=A+uB$, seek $w=X+uY$.  Expanding gives
+\begin{equation}\label{eq:assolver}
+ w^2+w=(X^2+X+\delta Y^2)+u(Y^2+Y).
+\end{equation}
+Because
+$\Tr_M(B)=\Tr_{2M}(\mu)=0$, first solve $Y^2+Y=B$ downstairs.  The two
+choices are $Y$ and $Y+1$; replacing one by the other toggles the trace of
+$A+\delta Y^2$ by $\Tr_M(\delta)=1$.  Choose the one for which that trace
+vanishes, and solve
+\[
+ X^2+X=A+\delta Y^2
+\]
+downstairs.  Recursing to $K_1$ constructs $w$ throughout the Conway tower.
+The two final sources differ by $1$; normalize by requiring the $e_0$
+coordinate to vanish.  At $a=1$ this normalized source is exactly the
+Fermat-coin source of Proposition~\ref{prop:wp}, giving
+\[
+ m=8:20,\qquad m=16:276,\qquad m=32:65812.
+\]
+The uniqueness of the normalized source makes this identification immediate
+from Proposition~\ref{prop:wp}; the displayed tower recursion makes it
+constructive for every exponent.  The case $a=0$ is included algebraically,
+but $Q_0(x)=\Tr(x^2)$ is linear and has zero polar form, so it is not a
+genuinely quadratic Gold instance~\cite{gold1968}.
 
 \begin{remark}[subfield vanishing; standard math]
 $q_i^{(m,a)}=0$ for all $i<m/2$: the Fermat basis elements at lower indices,
@@ -972,11 +1096,11 @@ Immediate from Lemma~\ref{lem:abelian}: commutativity gives
 $(mn)^2=m^2n^2$, so the squaring form is additive and $B\equiv0$.
 \end{proof}
 
-\begin{nogo}[group misère quotients are tiny; conditional]\label{thm:C}
+\begin{conditional}[group misère quotients are tiny]\label{thm:C}
 Assume \cite[Thm.~6.4]{PS} with its regularity hypothesis. If the misère
 indistinguishability quotient $\mathcal{Q}(\mathcal{A})$ of a set of
 impartial games is a group, then $|\mathcal{Q}(\mathcal{A})|\leq 2$.
-\end{nogo}
+\end{conditional}
 
 \begin{proof}[Proof sketch]
 Doubling lemma: in a group quotient every element is cancellable, and any
@@ -986,14 +1110,15 @@ then pins the quotient to at most $\{1,a\}$.
 \end{proof}
 
 \begin{remark}[scope and a probe caveat]\label{rem:thmC}
-Theorem~\ref{thm:C} is conditional on the Plambeck--Siegel structure
+Conditional statement~\ref{thm:C} depends on the Plambeck--Siegel structure
 theorem as cited; the regularity hypothesis is quoted from the repository's
 \path{experiments/misere_kernel.py} docstring, and the JCTA 2008 paper has
 \emph{not} been independently re-verified within this program (closing that
 gate is a listed next move). Two consequences for the probe map: the
 $(\mathbb{Z}/2)^k$ ($k\geq2$) target of \texttt{examples/octal\_hunt.rs} is
 empty a priori -- its empirical negatives (quotient orders
-$2,6,10,12,14$) are a theorem, not a sampling accident -- and any future
+$2,6,10,12,14$) are a consequence under the quoted hypothesis, not merely a
+sampling accident -- and any future
 ``hit'' from that sweep would be a labeling artifact, since the helper
 \texttt{p\_set\_as\_f2} checks only that the subset labeling is a bijection,
 not that it is a monoid homomorphism. The hunt's target should be reframed
@@ -1014,12 +1139,23 @@ admits even one affine automorphism outside $\AO(Q)$ has $P$-set
 $\neq\Sigma$.
 \end{nogo}
 
-\noindent\emph{Verification.} An exhaustive check covers all $322{,}560$
-affine maps of $\F_2^4$ at $m=4$ in both Arf classes.  The linear-part
-identification follows from Witt extension.
+\begin{proof}
+A Boolean-valued quadratic form is determined as a function by its zero set.
+Thus an affine map stabilizes $\Sigma$ exactly when it preserves $Q$, which
+after polarization forces its linear part to preserve $B$.  This proves
+$\Stab_{\AGL(V)}(\Sigma)=\AO(Q)$.  If the pure translation
+$x\mapsto x+c$ preserves $Q$, evaluation at $x=0$ gives $Q(c)=0$, and then
+\[
+ 0=Q(x+c)+Q(x)=B(x,c)\qquad\text{for every }x.
+\]
+Hence $c\in\rad(B)=0$.  With $c=0$, preserving $Q$ is precisely membership
+in $\Orth(Q)$.
+\end{proof}
 
 \begin{nogo}[the symmetry dial has no middle]\label{thm:E}
-$\Orth(Q)$ is maximal in $\Sp(B)$, and the $\Orth(Q)$-orbitals on $V\times V$
+The classical Dye--Dieudonn\'e maximality theorem gives that
+$\Orth(Q)$ is maximal in $\Sp(B)$~\cite{dye1980,dieudonne1971}, and the
+$\Orth(Q)$-orbitals on $V\times V$
 are exactly the Gram classes $(Q(u),Q(w),B(u,w))$ together with the
 degeneracy flags (Witt extension; see \cite[\S8]{EKM08}). Hence a rule
 invariant under any group strictly larger than $\Orth(Q)$ is dead by
@@ -1030,7 +1166,7 @@ between dead (too coarse) and Gram-factoring (an evaluator): $E$-naturality
 must be \emph{covariance}, not invariance.
 \end{nogo}
 
-\noindent\emph{Verification.} Maximality verified at $m=4$: every one of
+\noindent\emph{Corroboration.} At $m=4$, every one of
 the $648$ (resp.\ $600$) elements of $\Sp(4,2)$ outside $\Orth^{+}(4,2)$
 (resp.\ $\Orth^{-}(4,2)$) generates $\Sp(4,2)$ together with the orthogonal
 group; orbitals enumerated exhaustively at $m=4$
@@ -1041,7 +1177,7 @@ Access model: legality of a move is decided from XOR combinations of the
 two positions and $t$ fixed constant vectors, with oracle access to $B$
 only. If $t\leq 2r-3$, then for \emph{every} quadratic refinement $Q'$ of
 $B$ simultaneously there is a nonzero $Q'$-singular vector in the
-complement of the constant span; the transvection it induces is a digraph
+orthogonal complement of the constant span; the transvection it induces is a digraph
 automorphism lying outside $\Orth(Q')$, and Theorem~\ref{thm:D} kills the
 $P$-set. The bound is tight: at $t=2r-2$ with anisotropic complement the
 argument fails. Hence the Gold diagonal framing $q_i=Q_a(e_i)$, which
@@ -1049,9 +1185,25 @@ supplies $2r$ frame constants, is within two dimensions of
 information-theoretically forced.
 \end{nogo}
 
-\noindent\emph{Verification.} Transvection step and the exact escape
-boundary $t=2r-2$ machine-checked at $m=4$; end-to-end spot check on $50$
-random $t=1$ $B$-oracle rules, retrograde-solved
+\begin{proof}
+Let $W$ be the span of the $t$ constants.  Since
+$\dim W^\perp\geq3$, the restriction of $Q'$ to $W^\perp$ has a nonzero
+singular vector $v$ (a totally anisotropic binary quadratic space has
+dimension at most two).  The symplectic transvection
+$T_vx=x+B(x,v)v$ fixes every constant.  Writing $b=B(x,v)$ and using
+$Q'(v)=0$ gives
+\[
+ Q'(T_vx)=Q'(x)+bQ'(v)+bB(x,v)=Q'(x)+B(x,v).
+\]
+Thus $T_v$ preserves $B$ and every allowed oracle expression but does not
+preserve $Q'$; nonsingularity of $B$ supplies an $x$ with $B(x,v)=1$.
+Theorem~\ref{thm:D} applies.  When $\dim W^\perp=2$, its restriction may be
+anisotropic, explaining the stated sharp boundary of this argument.
+\end{proof}
+
+\noindent\emph{Corroboration.} The exact escape boundary $t=2r-2$ was
+machine-checked at $m=4$; an end-to-end spot check retrograde-solved $50$
+random $t=1$ $B$-oracle rules
 (\path{experiments/gold/skeptic_nogo_check.py},
 \path{nogo_verify.py}).
 
@@ -1096,15 +1248,17 @@ $(8,1,\lambda=2)$ extraspecial group
 \subsection{Normal-play rigidity and the synthesis}
 
 The strongest constraint is not any single architecture kill but a rigidity
-statement inside a declared access class. Call a rule \emph{in-class} if the
-quadratic refinement is quarantined behind a weight-bounded oracle (the
-$(w_0,c)$ metering of Definition~\ref{def:criterion} below) and the rule is
+statement inside a declared access class.  For this subsection, call a rule
+\emph{in-class} only if it is a \emph{single-board vector-position rule}: its
+positions are exactly the vectors of $V$.  In addition, the quadratic
+refinement is quarantined behind a weight-bounded oracle (the $(w_0,c)$
+metering of Definition~\ref{def:criterion} below), and the rule is
 \emph{refinement-uniform}: it realizes the target for every refinement $q$
 of $B$ in the declared family, not just the Gold one.
 
 \begin{theorem}[normal-play rigidity, in-class]\label{thm:rigidity}
 Under the bounded-framing oracle model with refinement uniformity, every
-legal edge between positions of Hamming weight $>c\,w_0$ must flip $Q$ --
+legal edge between vector positions of Hamming weight $>c\,w_0$ must flip $Q$ --
 in normal, misère, and loopy-Loss semantics alike. Consequently every
 in-class realizer of $\Sigma$ in those semantics is a \emph{$Q$-alternating
 ender}: play telescopes $Q$, and the outcome is the parity of $Q(x)$.
@@ -1121,7 +1275,7 @@ edge becomes a forbidden $0$-to-$0$ edge.
 
 \begin{theorem}[no live middle, relative to the quarantine]\label{thm:nolivemiddle}
 Let $Q$ have nonsingular core of rank $2r\geq4$. No fixed uniform
-single-board rule satisfying
+single-board vector-position rule satisfying
 \begin{enumerate}[label=(\Alph*),leftmargin=*,itemsep=0pt]
 \item[(S)] no affine digraph automorphism outside $\AO(Q)$,
 \item[(A)] legality from $B$-oracle queries at $t\leq 2r-3$ frame constants,
@@ -1131,8 +1285,8 @@ single-board rule satisfying
 \end{enumerate}
 has $P$/Loss/Draw target equal to $\Sigma$ with any bulk strategic
 content: under (R), every legal edge between dense positions flips $Q$, all
-strategic content is confined to a Hamming ball of radius $c\,w_0$, and no
-bulk-decision-live realizer exists.
+non-alternating strategic content is confined to a Hamming ball of radius
+$c\,w_0$.
 \end{theorem}
 
 \begin{remark}[scope of the no-go theorem]\label{rem:hatches}
@@ -1146,15 +1300,17 @@ Theorem~\ref{thm:F} at the symmetry level.
 \item \emph{Frobenius-aware access}: the Galois group lies inside
 $\Orth(Q_a)$, so all symmetry methods are silent;
 Theorem~\ref{thm:F}'s model explicitly excludes Frobenius-twisted queries.
-\item \emph{Non-quarantined rules using the game-native $\wp(w)$ diagonal
-source} (Proposition~\ref{prop:wp}): once $q$ is game-built, refinement
-uniformity holds trivially and class (R) says nothing.
+\item \emph{State-extended rules}: the weighted-source construction has FIFO
+positions $(U,\mathcal Q,\mathrm{ko},\sigma,\phi)$ rather than positions in
+$V$.  This is its escape from the single-board hypothesis; it still satisfies
+N1 uniformly over every refinement, so game-built Gold sourcing is not an
+escape from torsor uniformity.
 \item \emph{Rank $r=1$ and radical-anisotropic degenerate layers}: the
 character-sum count in Theorem~\ref{thm:H} vanishes, and small extraspecial
 groups can be realized.
 \end{enumerate}
-The main construction uses the fourth route: a game-built diagonal source and
-a public Witt-frame lift. Section~\ref{sec:criterion} replaces vocabulary
+The main construction uses the fourth route: a public Witt-frame lift with a
+genuinely larger FIFO state space. Section~\ref{sec:criterion} replaces vocabulary
 quarantine by the invariant transcript-span boundary, and
 Section~\ref{sec:wittfifo} attains that boundary with an explicit local rule.
 The list therefore records the theorem's scope, not unresolved premises of the
@@ -1198,9 +1354,8 @@ $m$, every $B$ in the declared family, and every refinement $q$ of $B$:
 $\mathrm{outcome}(\iota(x))=\text{target}$ iff $Q_q(x)=0$;
 \item[\textbf{N2}] (\emph{locality budget}) the $(w_0,c)$ metering of F2;
 \end{enumerate}
-A rule with a reachable position having both a winning and a losing move is
-called \emph{decision-nondegenerate}. These are objective properties of a
-declared rule and oracle interface. They do not, by themselves, turn the
+These are objective properties of a declared rule and oracle interface. They
+do not, by themselves, turn the
 informal adjective ``natural'' into a semantic invariant.
 \end{definition}
 
@@ -1212,6 +1367,21 @@ $Q(x)$. Hence no in-class rule's move predicate factors through $Q(x)$ at
 dense positions -- by theorem, not stipulation.
 \end{theorem}
 
+\begin{definition}[transcript stability]\label{def:transcriptstable}
+Let $E(q,z)$ be the evaluation returned by refinement oracle $q$, let
+$S(q,x)$ be the finite set of observations selected at $(q,x)$, and let
+$R(q,x)$ be the rooted result.  The triple $(E,S,R)$ is
+\emph{transcript-stable} if, for every $q,q'$ and $x$,
+\[
+ \bigl(E(q,z)=E(q',z)\text{ for every }z\in S(q,x)\bigr)
+ \quad\Longrightarrow\quad R(q,x)=R(q',x).
+\]
+The observation set may depend adaptively on the original oracle $q$; the
+definition says that agreement on the resulting transcript fixes the result.
+This is the definition formalized in
+\path{formal/Ogdoad/GoldNoEvaluator.lean}.
+\end{definition}
+
 \begin{definition}[bounded outcome certificate]\label{def:certificate}
 Write $\mathrm{N2cert}(C,w)$ when, for every refinement $q$ and input $x$,
 there is a finite observation set $S(q,x)$ with $|S(q,x)|\leq C$ and
@@ -1221,7 +1391,15 @@ chosen adaptively from $q$; what is bounded is the complete certificate for
 the outcome, not the number of queries made by one transition.
 \end{definition}
 
-\begin{theorem}[sharp observation lower bound]\label{thm:certificate}
+The algebra behind the next bound is standard: quadratic Boolean functions
+with a fixed polar form differ by linear functions, and agreement on queried
+linear directions is controlled by the annihilator of their span, the usual
+linear-structures viewpoint~\cite{carlet2021}.  Linear queries are likewise
+the primitive of parity decision trees~\cite{zhang2010}.  The novel point here
+is transporting that characterization to an adaptive game transcript through
+Definition~\ref{def:transcriptstable}.
+
+\begin{theorem}[transcript-span observation lower bound]\label{thm:certificate}
 Let the refinement family at fixed $B$ be closed under addition of every
 linear functional. If a transcript-stable rooted result is exact at $x$, then
 \[
@@ -1245,6 +1423,10 @@ vectors has size at most $|S|w$ and must cover the support of $x$.
 Both forms are kernel-checked in
 \path{formal/Ogdoad/GoldNoEvaluator.lean}.
 \end{proof}
+
+At weight $w=1$, Proposition~\ref{prop:wittfifonatural} attains the bound
+exactly with the singleton support of $x$.  For $w>1$ the theorem is only a
+lower bound; no matching construction is claimed.
 
 \begin{theorem}[fork padding obstruction]\label{thm:forkpadding}
 The properties ``there exists a refinement-sensitive winning fork at a
@@ -1280,8 +1462,9 @@ naturality.
 \section{The weighted-source Witt--FIFO construction}
 \label{sec:wittfifo}
 
-The arbitrary-graph linking theorem above is stronger than the Gold problem
-requires. The polar form is public data, so it may be put into a deterministic
+The arbitrary-graph isolated-dummy linking conjecture is studied separately
+as an open problem in \path{writeups/linking_affine.tex}; it is stronger than
+the present realization requires. The polar form is public data, so it may be put into a deterministic
 Witt frame before play. This changes the strategic support graph from an
 arbitrary induced graph to a matching. A naive version would attach the dense
 value $Q(f_i)$ to a Witt-basis coin $f_i$, violating N2 in the original
@@ -1320,7 +1503,12 @@ terminates after one dimension drop for a radical step or two for a
 hyperbolic-plane step.
 
 \begin{quote}
-\textbf{Rule (weighted-source \textsc{witt-fifo}).}
+\textbf{Rule} (weighted-source \textsc{witt-fifo}).
+The public state is $(U,\mathcal Q,\mathrm{ko},\sigma,\phi)$: the untouched
+coin set, a FIFO queue of open coins, a Boolean ko bit, the accumulated
+charge, and the mover-parity bit.  Initially $\mathcal Q$ is empty,
+$\mathrm{ko}=\mathrm{false}$, and $\sigma=\phi=0$.
+
 Load a strategic coin $F_i$ for each $y_i=1$, with fixed public diagonal
 charge $p_i$. Join $F_{a_h}$ to $F_{b_h}$ exactly when both are loaded.
 Every loaded strategic Witt edge has weight one.
@@ -1329,27 +1517,37 @@ $S_j^0,S_j^1$. Its potential edge has local weight
 $q_j=O_q(e_j)$: opening one endpoint while its mate is already queued xors
 $q_j$ into the charge. Source closes have charge zero.
 
-Every loaded coin must be touched twice. An untouched coin may be opened;
-only the FIFO front may close; opening onto an empty queue sets the one-move
-ko; and a player passes exactly when no open or close is legal, clearing ko.
-Initialize $\sigma=0$. When a coin $v$ opens, update $\sigma$ by the weight
-of its already-open mate, if any. Thus every strategic or source edge is
-charged exactly when its two touch intervals overlap. When a strategic front
-$F_i$ closes, update
+Every loaded coin must be touched twice, first by OPEN and then by CLOSE.
+OPEN$(v)$ is legal exactly when $v\in U$; it removes $v$ from $U$, appends it
+to $\mathcal Q$, and sets ko to true exactly when the old queue was empty.
+Thus ko protects the newly opened front by forbidding CLOSE for one move.  A
+subsequent OPEN clears ko because its old queue is nonempty.  CLOSE is legal
+exactly when $\mathcal Q$ is nonempty and ko is false; it removes the FIFO
+front.  PASS is forced exactly when $U=\varnothing$, $\mathcal Q\ne\varnothing$,
+and ko is true; it only clears ko.  These are all FIFO moves.
+
+When a coin $v$ opens, xor into $\sigma$ the weight of its already-open mate,
+if any. Thus every strategic or source edge is charged exactly when its two
+touch intervals overlap. When a strategic front $F_i$ closes, update
 \[
  \sigma\mathrel{\oplus{=}}p_i.
 \]
-All other closes and all passes leave $\sigma$ unchanged.
-After the queue is drained, add one ordinary normal-play claim move exactly
-when $\sigma=1\oplus\phi$, where $\phi$ is the current move-parity bit
-initialized to $0$ and toggled after every move.
+All other closes and all passes leave $\sigma$ unchanged. Toggle $\phi$ after
+every FIFO move. Each FIFO move strictly decreases
+\[
+ 4|U|+2|\mathcal Q|+[\mathrm{ko}],
+\]
+so play is finite. Once $U=\varnothing=\mathcal Q$, add one ordinary
+normal-play claim move exactly when $\sigma=1\oplus\phi$. Taking that move
+ends the game at an optionless position; if it is absent, the drained state
+is already terminal.
 \end{quote}
 
 For a Gold form, Theorem~\ref{thm:all-diagonal-source} supplies
 $q_j=\Tr((w_a^2+w_a)e_j)$ for the source-pair weight. Definition~\ref{def:criterion}
 counts this as one weight-one oracle observation on an overlapping source
-OPEN. It does not claim that constructing $w_a$ by exact finite-field linear
-algebra, or evaluating its trace, is itself one primitive game move.
+OPEN. It does not claim that running the tower recursion for $w_a$, or
+evaluating its trace, is itself one primitive game move.
 
 The move-parity bit is not an evaluator or form oracle; it is already the
 mover field of the FIFO state. It is necessary for an identity-valued payoff
@@ -1360,8 +1558,13 @@ lantern'', not an inspection of $x$, $B$, or $Q(x)$.
 \begin{theorem}[FIFO matching theorem]\label{thm:matchingfifo}
 Let every component of $G$ be $K_1$ or $K_2$. From the empty-queue root,
 either designated seat has a strategy forcing the sum of all close charges
-$\deg_U(f)$ to be zero. In fact the strategy makes every close charge zero
-individually. The theorem holds for every finite board and needs no dummy.
+$\deg_U(f)$ to be zero, where
+\[
+ \deg_U(f):=|\{u\in U:\{f,u\}\in E(G)\}|\pmod2
+\]
+is the live degree of the FIFO front. In fact the strategy makes every close
+charge zero individually. The theorem holds for every finite board and needs
+no dummy.
 \end{theorem}
 
 \begin{proof}
@@ -1400,12 +1603,18 @@ pointwise in the scoring submatching, while its proof branches choose moves
 only from the public matching. Since \texttt{EvenWins} does not reify a
 first-class policy or complete play traces, the literal single-policy
 quantifier and the per-close-zero observation are the explicit argument above,
-not separate theorem statements in Lean.
+not separate theorem statements in Lean.  This per-close-zero strengthening is
+the one load-bearing step of the exactness proof that is not itself
+kernel-checked; Section~\ref{sec:status} records it as the next Lean follow-up.
+
+A \emph{charge stance} is the choice of which initial seat is designated by
+Boolean charge $1$ (equivalently, which charge that seat seeks in the payoff
+tree).  The phase-aware claim compiler works for either choice.
 
 \begin{theorem}[weighted-source exactness]\label{thm:wittfifo}
 For every $\F_2$-valued quadratic refinement $Q_q$ on a finite-dimensional
 $\F_2$-space, every input $x$, and either charge stance, weighted-source
-\textsc{witt-fifo}
+\textnormal{\textsc{witt-fifo}}
 forces terminal charge $\sigma=Q_q(x)$. Consequently its charge-lantern
 normal-play root is $P$ if and only if $Q_q(x)=0$.
 \end{theorem}
@@ -1504,22 +1713,30 @@ The original isolated-dummy arbitrary-graph linking conjecture remains an
 interesting strict generalization, but it is no longer load-bearing for Gold:
 the public Witt frame reduces precisely the required boards to the proved
 matching class, while weighted source pairs preserve fixed-frame locality.
+Its proof frontier and affine-response reductions belong to the separate
+open-problem paper \path{writeups/linking_affine.tex}.
 
 \section{Formal boundary and extensions}\label{sec:status}
 
-The construction separates into six independently checked components:
+The headline realization and observation bound separate into five independently
+checked components; a sixth module checks the auxiliary padding obstruction:
 \begin{itemize}[leftmargin=*]
 \item \path{formal/Ogdoad/GoldDiagonal.lean}: trace blocks and the
       Artin--Schreier identities behind the all-exponent source;
-\item \path{FifoMatching.lean}: the both-seat matching strategy;
-\item \path{GoldMatchingAlgebra.lean}: the adapted-basis expansion;
-\item \path{GoldSemantics.lean}: the phase-aware claim compiler;
-\item \path{GoldNoEvaluator.lean}: the observation lower bound;
-\item \path{GoldForkPadding.lean}: outcome-preserving padding.
+\item \path{formal/Ogdoad/FifoMatching.lean}: the both-seat matching strategy;
+\item \path{formal/Ogdoad/GoldMatchingAlgebra.lean}: the adapted-basis expansion;
+\item \path{formal/Ogdoad/GoldSemantics.lean}: the phase-aware claim compiler;
+\item \path{formal/Ogdoad/GoldNoEvaluator.lean}: the observation lower bound;
+\item \path{formal/Ogdoad/GoldForkPadding.lean}: outcome-preserving padding.
 \end{itemize}
 The paper supplies the concrete Witt basis, the original-frame coefficient
 transport, and the synthesis of those components. There is no single
 end-to-end Lean theorem constructing the complete arena.
+In particular, the paper's strategy-relative statement that one public policy
+makes every potential close degree zero is stronger than the pointwise
+submatching theorem presently encoded in Lean. Formalizing that single-policy,
+per-close-zero strengthening is the explicit follow-up; it is the only
+non-kernel-checked step used by the exactness synthesis.
 
 The arbitrary-graph isolated-dummy FIFO theorem remains open and is studied in
 \path{writeups/linking_affine.tex}. It would strengthen FIFO combinatorics but
@@ -1527,14 +1744,210 @@ does not strengthen Theorem~\ref{thm:wittfifo}, whose boards are matchings plus
 isolates. The all-exponent diagonal source is supplied by
 Theorem~\ref{thm:all-diagonal-source}; it is not an additional hypothesis.
 
+\section{Brown phases as intrinsic partizan outcomes}
+\label{sec:brown-selector}
+
+Let $V$ be a finite $\F_2$-space and let
+\[
+ q(x+y)=q(x)+q(y)+2b(x,y),\qquad q\colon V\longrightarrow
+ \mathbb{Z}/4,
+\]
+where $b$ is symmetric bilinear.  Write
+\[
+ G(q)=\sum_{x\in V}i^{q(x)}.
+\]
+Whenever $G(q)\ne0$, define $\beta(q)\in\mathbb{Z}/8$ by
+$G(q)/|G(q)|=\exp(\pi i\beta(q)/4)$.  This definition includes singular
+$b$ when its Gauss sum is nonzero; when the sum vanishes there is no phase,
+and the radical is retained as separate data.
+
+The next result is a convenient coordinate form of standard Brown-form
+material: Brown's relation $2Q(u)=jB(u,u)$, Wood's classification, and the
+same two-digit decomposition in the generalized-bent literature
+\cite{brown1972,wood1993,schmidt2009}.  The correlated Walsh formula is the
+$q=4$ case of the $2$-adic generalized-bent decomposition
+\cite{sole2009,sok2016}.
+
+\begin{theorem}[canonical Brown split]
+\label{thm:brown-split}
+There are unique maps $\ell\colon V\to\F_2$ and
+$Q\colon V\to\F_2$ such that
+\[
+ q=\widehat{\ell}+2Q,
+ \qquad B_Q=b+\ell\otimes\ell,
+\]
+where $\widehat0=0$ and $\widehat1=1$ in $\mathbb{Z}/4$.  Here $\ell$ is
+linear and $Q$ is an ordinary characteristic-$2$ quadratic form with
+alternating polar form $B_Q$.  Conversely, these data recover $q$ and $b$.
+Moreover, with $W(R)=\sum_x(-1)^{R(x)}$,
+\begin{equation}
+\label{eq:brown-correlated-walsh}
+ G(q)=\frac{1+i}{2}W(Q)+\frac{1-i}{2}W(Q+\ell).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Reduction modulo $2$ makes $\ell=q\bmod2$ linear, and the two binary digits
+of $q(x)$ define $Q(x)$.  Comparing the two expressions for $q(x+y)$, using
+$\widehat{a+c}=\widehat a+\widehat c+2ac$, gives
+$B_Q=b+\ell\otimes\ell$.  Finally,
+$i^{\ell}=(1+i)/2+(1-i)(-1)^{\ell}/2$, which gives
+\eqref{eq:brown-correlated-walsh}.
+\end{proof}
+
+Pointwise, the two coordinates and the Brown weight are
+\[
+\begin{array}{c|cccc}
+ q(x) & 0&1&2&3\\ \hline
+ \ell(x)&0&1&0&1\\
+ Q(x)&0&0&1&1\\
+ i^{q(x)}&1&i&-1&-i.
+\end{array}
+\]
+Thus \eqref{eq:brown-correlated-walsh} is a correlated, rather than
+factorized, pair of quadratic censuses.  In particular, the Brown phase is
+not recovered from a marginal count for $\ell$ and an independent Arf count
+for $Q$.
+
+\begin{remark}[singular boundary]
+\label{rem:brown-singular}
+Let $D=\operatorname{rad}b$.  The diagonal identity
+$b(r,r)=q(r)\bmod2$ gives $\ell|_D=0$ and $q|_D=2Q|_D$.  If some
+$r\in D$ has $Q(r)=1$, translation by $r$ reverses every summand of $G(q)$,
+so $G(q)=0$.  If $Q|_D=0$, the pair $(\ell,Q)$ descends to $V/D$, and the
+definition of $\beta$ above is exactly the phase on that nonsingular
+quotient.  This is why a zero Gauss sum is not assigned an artificial Brown
+octant.
+\end{remark}
+
+\begin{proposition}[Brown phase in quadratic coordinates]
+\label{prop:brown-phase}
+Suppose that $b$ is nondegenerate.  This is a re-coordinatization of the
+classification formulas of Wood~\cite{wood1993}.
+
+\begin{enumerate}
+\item If $\dim V$ is even, then $B_Q$ is nondegenerate.  If
+      $\ell(x)=B_Q(a,x)$, then
+      \[
+        \beta(q)=4\Arf(Q)+2Q(a)\pmod 8.
+      \]
+\item If $\dim V$ is odd, then $\operatorname{rad}B_Q=\langle w\rangle$,
+      $\ell(w)=1$, and $B_Q$ is nondegenerate on $H=\ker\ell$.  Then
+      \[
+        \beta(q)=4\Arf(Q|_H)+
+        \begin{cases}
+          1,&Q(w)=0,\\
+          7,&Q(w)=1
+        \end{cases}
+        \pmod 8.
+      \]
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+In even dimension, translation by $a$ gives
+$W(Q+\ell)=(-1)^{Q(a)}W(Q)$, while
+$W(Q)=(-1)^{\Arf(Q)}2^{\dim V/2}$; substitute these in
+\eqref{eq:brown-correlated-walsh}.  In odd dimension, sum over the pairs
+$h,h+w$ for $h\in H$.  The Gauss sum factors as
+\[
+ (-1)^{\Arf(Q|_H)}2^{(\dim V-1)/2}
+ \bigl(1+i(-1)^{Q(w)}\bigr),
+\]
+whose two possible final factors have octants $1$ and $7$.
+\end{proof}
+
+For every ordinary quadratic form $R$ on $V$, let $\mathcal A_R(x)$ be the
+finite normal-play arena of Theorem~\ref{thm:wittfifo}.  The only interface
+used here is
+\[
+ o(\mathcal A_R(x))\in\{\mathcal P,\mathcal N\},
+ \qquad
+ o(\mathcal A_R(x))=\mathcal P\ \Longleftrightarrow\ R(x)=0.
+\]
+In particular, no impartiality assertion about this arena is needed.
+
+\begin{theorem}[intrinsic Brown selector]
+\label{thm:brown-selector}
+For $q=\widehat\ell+2Q$, the single partizan game
+\[
+ \mathcal B_q(x)=
+ \bigl\{\mathcal A_{Q+\ell}(x)\mathbin\mid\mathcal A_Q(x)\bigr\}
+\]
+has the outcome table
+\[
+\begin{array}{c|c|c|c|c|c|c}
+ q(x)&\ell(x)&Q(x)&Q(x)+\ell(x)&
+ o(\mathcal A_{Q+\ell}(x))&o(\mathcal A_Q(x))&o(\mathcal B_q(x))\\ \hline
+ 0&0&0&0&\mathcal P&\mathcal P&\mathcal N\\
+ 1&1&0&1&\mathcal N&\mathcal P&\mathcal R\\
+ 2&0&1&1&\mathcal N&\mathcal N&\mathcal P\\
+ 3&1&1&0&\mathcal P&\mathcal N&\mathcal L.
+\end{array}
+\]
+Thus the fixed decoder
+$\mathcal N,\mathcal R,\mathcal P,\mathcal L\mapsto0,1,2,3$ recovers
+$q(x)$.
+\end{theorem}
+
+\begin{proof}
+If Left starts, her sole move enters $\mathcal A_{Q+\ell}(x)$ with Right to
+move, so Left wins exactly when $Q(x)+\ell(x)=0$.  If Right starts, his sole
+move enters $\mathcal A_Q(x)$ with Left to move, so Right wins exactly when
+$Q(x)=0$.  These two starter bits give the displayed four rows.
+\end{proof}
+
+The four outcome classes are, by definition, the two truth values
+$(G\geq0,G\leq0)$: $\mathcal P=(1,1)$, $\mathcal L=(1,0)$,
+$\mathcal R=(0,1)$, and $\mathcal N=(0,0)$.  Hence the selector packages the
+correlated pair $(Q+\ell,Q)$ into the two starter faces of one game tree; it
+is not an additional algebraic invariant.  The decoder is only a label
+bijection, and outcomes do not compose under disjunctive sum.  Indeed, if
+the followers are replaced by the simplest games with their stated outcomes,
+then $\mathcal B_q(x)$ is respectively
+\[
+ *,\quad \downarrow,\quad 0,\quad \uparrow
+ \qquad(q(x)=0,1,2,3),
+\]
+and $\uparrow+\downarrow=0\ne *$ displays the failure of additivity.
+The construction does not synchronize two plays: after the root move, exactly
+one follower is entered and ordinary normal play determines the winner.
+
+\begin{corollary}[outcome census]
+\label{cor:brown-outcome-census}
+If $n_{\mathcal C}$ counts the inputs with selector outcome $\mathcal C$,
+then
+\[
+ G(q)=n_{\mathcal N}+i n_{\mathcal R}
+      -n_{\mathcal P}-i n_{\mathcal L}.
+\]
+Thus the four-outcome census retains exactly the correlated Walsh data and,
+when defined, the Brown phase.
+\end{corollary}
+
+\begin{proof}
+Group the terms $i^{q(x)}$ by the table in
+Theorem~\ref{thm:brown-selector}.
+\end{proof}
+
+\begin{remark}[the global boundary]
+This is a finite-space construction.  Ambient-coherent Brown data on all
+short-game values vanish by two-divisibility; the stronger game-exterior
+statement and its exact coherence hypothesis are recorded in
+Appendix~\ref{sec:game-exterior}.  The section/framing issue for a bare
+$\mathbb{Z}/4$ central extension is separate; its algebraic core is
+kernel-checked in \texttt{formal/Ogdoad/}\allowbreak\texttt{BrownGame.lean}.
+\end{remark}
+
 \section{Conclusion}
 
-Gold trace forms therefore have a uniform normal-play semantics built from
-nimber operations and local interactions. A public Witt frame makes the polar
-graph a matching, weighted source pairs preserve original-frame singleton
-locality, the safe-front theorem forces the exact charge in every dimension,
-and the phase-aware claim compiles that charge to a $P/N$ outcome. The Arf
-invariant and radical data give the resulting zero-set bias.
+Every quadratic refinement of every finite alternating binary space therefore
+has a uniform bounded-access normal-play realization. A public Witt frame
+makes the polar graph a matching, weighted source pairs preserve original-frame
+singleton locality, the safe-front theorem forces the exact charge in every
+dimension, and the phase-aware claim compiles that charge to a $P/N$ outcome.
+For the motivating Gold trace forms, nimber operations source the diagonal and
+the Arf invariant with radical data gives the resulting zero-set bias.
 
 The surrounding negative results make the access boundary sharp. Linear
 coin-turning reaches the lexicode floor but not a genuine quadratic zero set;
@@ -1545,31 +1958,251 @@ Weighted-source Witt--FIFO meets the necessary observation span with singleton
 support. The remaining arbitrary-graph FIFO contraction is a separate
 combinatorial conjecture, not a gap in the Gold theorem.
 
-\begin{thebibliography}{9}
+\appendix
+
+\section{The game-exterior obstruction}
+\label{sec:game-exterior}
+
+Altman and Lipparini ask whether Clifford algebras can be constructed
+game-theoretically~\cite[Problem~5.3(j)]{altman2026}.  Their
+Remark~3.5 also isolates the basic boundary: Conway equivalence makes games
+an abelian group under disjunctive sum, but does not make Conway product
+well-defined on arbitrary game values.  The theorem below gives a negative
+answer to that question for a precise and natural Clifford interpretation:
+an additive grade-one realization with coefficient-faithful square and polar
+relations that is coherent under adjoining short-game roots.  It does not
+rule out a different multiplication or a different naturality contract.
+
+Write $\operatorname{ShUg}$ for the additive group of short partizan games.
+An ambient-coherent datum must mean either one datum on all of
+$\operatorname{ShUg}$, or a compatible system over \emph{every} finitely
+generated subgroup (equivalently, over a cofinal directed subsystem).  In the
+latter formulation, inclusion maps must inject the coefficient rings and
+algebras and preserve the grade-one maps, squares, and anticommutators.  The
+filtered colimits of those rings, algebras, and groups glue such a system to
+the former global datum, and restriction gives the converse.  This quantifier
+is essential: a family confined to selected subgroups need not see an actual
+root.  In particular, the nonzero Gold forms on finite nimber subgroups would
+otherwise be counterexamples to the theorem.
+
+Let $R$ be a commutative ring, $C$ an $R$-algebra, and
+$\iota\colon R\hookrightarrow C$ an injective coefficient map.  A
+coefficient-faithful datum consists of an additive map
+$i\colon\operatorname{ShUg}\to C$ and functions $Q,B$ satisfying
+\[
+ i(x)^2=\iota(Q(x)),\qquad
+ i(x)i(y)+i(y)i(x)=\iota(B(x,y)).
+\]
+The equations and additivity already force the usual polarization and
+biadditivity identities.  In particular, the diagonal anticommutator gives
+\begin{equation}
+\label{eq:game-exterior-diagonal}
+ \iota(B(y,y))=2i(y)^2=\iota(2Q(y)),
+ \qquad B(y,y)=2Q(y),
+\end{equation}
+and hence $Q(2y)=4Q(y)$.
+
+\begin{theorem}[ambient-coherent game-exterior obstruction]
+\label{thm:game-exterior-obstruction}
+In every ambient-coherent coefficient-faithful Clifford datum on
+$\operatorname{ShUg}$,
+\[
+ Q(x),\ B(x,y)\ \in\bigcap_{k\geq0}4^kR
+ \qquad(x,y\in\operatorname{ShUg}).
+\]
+Moreover, for every torsion game $t$ and every short game $x$,
+\[
+ Q(t)=0,\qquad B(t,x)=B(x,t)=0.
+\]
+Consequently the quadratic datum factors through the torsion-free quotient.
+\end{theorem}
+
+\begin{proof}
+Moews's proof of his structure theorem uses Norton halving, and gives
+$2$-divisibility of $\operatorname{ShUg}$; all finite orders are powers of
+$2$ by Conway's Theorem~92~\cite[Theorem~92]{conway1976}, as quoted by
+Moews~\cite{moews2002}.  Thus, for every $k$, write
+$x=2^ku$ and $y=2^kv$.  Iterating \eqref{eq:game-exterior-diagonal} gives
+\[
+ Q(x)=4^kQ(u),\qquad B(x,y)=4^kB(u,v),
+\]
+where the second equality uses the forced biadditivity of $B$.  This proves
+the intersection assertion.
+
+For the torsion assertion, let $nt=0$, with $n$ a power of $2$.  Choose
+$y$ with $ny=t$.  Since $n i(t)=i(nt)=0$,
+\[
+ i(t)^2=i(t)i(ny)=(n i(t))i(y)=0,
+\]
+so coefficient faithfulness gives $Q(t)=0$.  To kill the polar value, choose
+$z$ with $nz=x$; no root of $t$ is needed here:
+\[
+ \begin{aligned}
+ i(t)i(x)+i(x)i(t)
+ &=i(t)i(nz)+i(nz)i(t)\\
+ &=(n i(t))i(z)+i(z)(n i(t))=0.
+ \end{aligned}
+\]
+Injectivity gives $B(t,x)=0$, and symmetry gives $B(x,t)=0$.
+\end{proof}
+
+The diagonal identity in \eqref{eq:game-exterior-diagonal} is where
+coefficient faithfulness is indispensable: it equates two elements of $C$,
+then uses injectivity of $\iota$ to recover an equality in $R$.  The torsion
+anticommutator argument itself uses only additivity of $i$ and bilinearity of
+multiplication.
+
+\begin{corollary}[coefficient consequences]
+\label{cor:game-exterior-coefficients}
+Over $\mathbb{Z}$, in characteristic $2$, or over $\mathbb{Z}/4$, the
+quadratic and polar data are identically zero.  In every coefficient ring,
+all torsion generators are exterior/nilpotent and polar-orthogonal to every
+grade-one generator.
+\end{corollary}
+
+\begin{proof}
+In each of the three named targets, $\bigcap_{k\geq0}4^kR=0$.
+The remaining statement is the torsion part of
+Theorem~\ref{thm:game-exterior-obstruction}.
+\end{proof}
+
+There is a concrete root behind the abstract input.  In Moews's notation,
+if $N_H$ is the least nonnegative integer with $H+2N_H>0$, Norton
+multiplication gives
+\[
+ \phi(H)=\tfrac12\mathbin{\cdot}(H+2N_H)-N_H,
+ \qquad 2\phi(H)=H.
+\]
+For $H=*$, $N_*=1$, so
+\[
+ \phi(*)=\tfrac12\mathbin{\cdot}(*+2)-1,
+ \qquad 2\phi(*)=(*+2)-2=*.
+\]
+Indeed, the defining Norton rule is additive in its real multiplier, so
+$2(\tfrac12\mathbin{\cdot}U)=1\mathbin{\cdot}U=U$; this verifies the displayed
+halving identity directly.  This is the step used inside Moews's proof of
+Theorem~9, and is independently recorded in
+\cite[Corollary~6.2.5]{johnson2011thesis}.
+
+\paragraph{What remains.}
+Over $\mathbb{Z}$ even the torsion-free dyadic directions admit no nonzero
+additive scalar readout, since
+$\operatorname{Hom}(\mathbb{Z}[1/2],\mathbb{Z})=0$.  The mean-value
+homomorphism does survive after passing to a target containing the relevant
+dyadic values (in particular, one in which $2$ is invertible); its square and
+polarization give the usual free-direction examples.  Nor is
+the obstruction a claim about every quotient: for example,
+\[
+  \mathbb{Z}[1/2]/3\mathbb{Z}[1/2]\cong\mathbb{Z}/3
+\]
+carries ordinary quadratic data over $\F_3$.  These elementary divisible/torsion distinctions
+belong to the standard abelian-group calculus
+\cite{fuchs2015,kaplansky1954}; Wall's quadratic and linking forms on finite
+groups are the classical contrasting setting~\cite{wall1963}.
+
+Three escapes are therefore real but deliberately outside the theorem.
+First, a hand-supplied table on a root-incomplete subgroup is the existing
+engineering API.  Second, the Gold forms in the nimber core are game-native
+for a different, operation-based naturality condition: they use that core's
+addition, nim-product, Frobenius, and trace.  Requiring extension across all
+short-game inclusions is one naturality condition, not the weakest possible
+one; it is chosen here because it asks whether a value-level Clifford datum
+survives adjoining the actual partizan roots of its generators.  Under that
+condition those Gold forms cannot extend.  Finally, a construction without an
+additive grade-one map is not constrained by this theorem, but is no longer
+the Clifford datum just defined.
+
+The algebraic root-collapse and coefficient-faithfulness core is
+kernel-checked in \texttt{formal/Ogdoad/}\allowbreak\texttt{GameExterior.lean}.  The passage from
+a cofinal family to its colimit, and the sharpened
+$\bigcap_k4^kR$ conclusion, are paper-level arguments here.
+
+\begin{thebibliography}{99}
+% REF: H. Altman and P. Lipparini, A Ring structure on the Class of Combinatorial Games, arXiv:2604.27847, 2026. ID and Problem 5.3(j)/Remark 3.5 verified against the preprint PDF, 2026-08-12.
+\bibitem{altman2026} H.~Altman, P.~Lipparini, \emph{A ring structure on the
+class of combinatorial games}, arXiv:2604.27847 (2026).
 \bibitem{Arf41} C.~Arf, \emph{Untersuchungen \"uber quadratische Formen in
 K\"orpern der Charakteristik~2, I}, J.\ Reine Angew.\ Math.\ \textbf{183}
 (1941), 148--167.
-\bibitem{Bouton} C.~L.~Bouton, \emph{Nim, a game with a complete mathematical
-theory}, Ann.\ of Math.\ \textbf{3} (1901/02), 35--39.
+% REF: A. Bouchet, Isotropic systems, European Journal of Combinatorics 8(3) (1987), 231-244, doi:10.1016/S0195-6698(87)80027-6.
+\bibitem{bouchet1987} A.~Bouchet, \emph{Isotropic systems}, European J.\
+Combin.\ \textbf{8} (1987), 231--244.
+% REF: M. Brandenburg, Algebraic games--playing with groups and rings, International Journal of Game Theory 47(2) (2018), 417-450, doi:10.1007/s00182-017-0577-7.
+\bibitem{brandenburg2018} M.~Brandenburg, \emph{Algebraic games--playing with
+groups and rings}, Internat.\ J.\ Game Theory \textbf{47} (2018), 417--450.
+% REF: R. Brijder and L. Traldi, Isotropic matroids II: Circle graphs, Electronic Journal of Combinatorics 23(4) (2016), P4.2, arXiv:1504.04299, doi:10.37236/5223.
+\bibitem{brijder2015} R.~Brijder, L.~Traldi, \emph{Isotropic matroids II:
+Circle graphs}, Electron.\ J.\ Combin.\ \textbf{23} (2016), Paper~4.2;
+arXiv:1504.04299.
+% REF: E. H. Brown, Jr., Generalizations of the Kervaire invariant, Annals of Mathematics 95 (1972), 368-383, doi:10.2307/1970804.
+\bibitem{brown1972} E.~H.~Brown, Jr., \emph{Generalizations of the Kervaire
+invariant}, Ann.\ of Math.\ \textbf{95} (1972), 368--383.
+% REF: C. Carlet, Boolean Functions for Cryptography and Coding Theory, Cambridge University Press, 2021, doi:10.1017/9781108606806.
+\bibitem{carlet2021} C.~Carlet, \emph{Boolean Functions for Cryptography and
+Coding Theory}, Cambridge University Press, 2021.
+% REF: M. Cohn and A. Lempel, Cycle decomposition by disjoint transpositions, Journal of Combinatorial Theory Series A 13(1) (1972), 83-89, doi:10.1016/0097-3165(72)90010-6.
+\bibitem{cohn-lempel1972} M.~Cohn, A.~Lempel, \emph{Cycle decomposition by
+disjoint transpositions}, J.\ Combin.\ Theory Ser.\ A \textbf{13} (1972),
+83--89.
 \bibitem{WW} E.~R.~Berlekamp, J.~H.~Conway, R.~K.~Guy, \emph{Winning Ways for
 Your Mathematical Plays}, 2nd ed., A~K Peters, 2001--2004.
-\bibitem{Conway76} J.~H.~Conway, \emph{On Numbers and Games}, Academic Press,
+\bibitem{conway1976} J.~H.~Conway, \emph{On Numbers and Games}, Academic Press,
 1976.
 \bibitem{ConwaySloane86} J.~H.~Conway, N.~J.~A.~Sloane, \emph{Lexicographic
 codes: error-correcting codes from game theory}, IEEE Trans.\ Inform.\
 Theory \textbf{32} (1986), 337--348.
 \bibitem{Dickson01} L.~E.~Dickson, \emph{Linear Groups, with an Exposition of
 the Galois Field Theory}, Teubner, 1901.
+% REF: J. Dieudonne, La geometrie des groupes classiques, 3rd ed., Ergebnisse der Mathematik 5, Springer, 1971.
+\bibitem{dieudonne1971} J.~Dieudonn\'e, \emph{La g\'eom\'etrie des groupes
+classiques}, 3rd ed., Ergebnisse der Mathematik~\textbf{5}, Springer, 1971.
+% REF: E. Duchene, A. Parreau, and M. Rigo, Deciding game invariance, arXiv:1408.5274, 2014.
+\bibitem{duchene-rigo} E.~Duch\^ene, A.~Parreau, M.~Rigo,
+\emph{Deciding game invariance}, arXiv:1408.5274 (2014).
+% REF: R. H. Dye, On the maximality of the orthogonal groups in the symplectic groups in characteristic two, Mathematische Zeitschrift 172(3) (1980), 203-212.
+\bibitem{dye1980} R.~H.~Dye, \emph{On the maximality of the orthogonal groups
+in the symplectic groups in characteristic two}, Math.\ Z.\ \textbf{172}
+(1980), 203--212.
 \bibitem{EKM08} R.~Elman, N.~Karpenko, A.~Merkurjev, \emph{The Algebraic and
 Geometric Theory of Quadratic Forms}, AMS Colloquium Publications
 \textbf{56}, American Mathematical Society, 2008.
-\bibitem{Gold68} R.~Gold, \emph{Maximal recursive sequences with $3$-valued
+% REF: T. S. Ferguson, Game Theory, Part I, Chapter 5: Coin Turning Games, UCLA online lecture notes.
+\bibitem{ferguson-notes} T.~S.~Ferguson, \emph{Game Theory}, Part~I,
+Ch.~5: Coin Turning Games, UCLA online lecture notes.
+% REF: A. S. Fraenkel, Error-correcting codes derived from combinatorial games, in Games of No Chance, MSRI Publications 29, Cambridge University Press, 1996, 417-431; arXiv:math/9504211.
+\bibitem{fraenkel1996} A.~S.~Fraenkel, \emph{Error-correcting codes derived
+from combinatorial games}, in \emph{Games of No Chance}, MSRI Publ.~\textbf{29},
+Cambridge University Press, 1996, 417--431; arXiv:math/9504211.
+% REF: L. Fuchs, Abelian Groups, Springer Monographs in Mathematics, Springer, 2015.
+\bibitem{fuchs2015} L.~Fuchs, \emph{Abelian Groups}, Springer Monographs in
+Mathematics, Springer, 2015.
+\bibitem{gold1968} R.~Gold, \emph{Maximal recursive sequences with $3$-valued
 recursive cross-correlation functions}, IEEE Trans.\ Inform.\ Theory
 \textbf{14} (1968), 154--156.
 \bibitem{Gorenstein80} D.~Gorenstein, \emph{Finite Groups}, 2nd ed.,
 Chelsea Publishing, New York, 1980.
-\bibitem{LN} R.~Lidl, H.~Niederreiter, \emph{Finite Fields}, 2nd ed.,
+% REF: T. Helleseth and P. V. Kumar, Sequences with low correlation, in Handbook of Coding Theory, Vol. II, Elsevier, 1998, 1765-1853.
+\bibitem{helleseth1998} T.~Helleseth, P.~V.~Kumar, \emph{Sequences with low
+correlation}, in \emph{Handbook of Coding Theory}, Vol.~II, Elsevier, 1998,
+1765--1853.
+% REF: W. Johnson, The combinatorial game theory of well-tempered scoring games, arXiv:1112.3610, 2011.
+\bibitem{johnson2011wt} W.~Johnson, \emph{The combinatorial game theory of
+well-tempered scoring games}, arXiv:1112.3610 (2011).
+% REF: W. Johnson, Combinatorial Game Theory, Well-Tempered Scoring Games, and a Knot Game, arXiv:1107.5092, 2011. Norton multiplication is Ch. 6; the halving identity is Cor. 6.2.5.
+\bibitem{johnson2011thesis} W.~Johnson, \emph{Combinatorial game theory,
+well-tempered scoring games, and a knot game}, arXiv:1107.5092 (2011).
+% REF: I. Kaplansky, Infinite Abelian Groups, University of Michigan Press, 1954.
+\bibitem{kaplansky1954} I.~Kaplansky, \emph{Infinite Abelian Groups},
+University of Michigan Press, 1954.
+% REF: H. W. Lenstra, Jr., Nim multiplication, Seminaire de Theorie des Nombres de Bordeaux, 1977-1978.
+\bibitem{lenstra1978} H.~W.~Lenstra, Jr., \emph{Nim multiplication},
+S\'eminaire de Th\'eorie des Nombres de Bordeaux, 1977--1978.
+\bibitem{lidl1997} R.~Lidl, H.~Niederreiter, \emph{Finite Fields}, 2nd ed.,
 Cambridge University Press, 1997.
+% REF: D. Moews, The abstract structure of the group of games, in More Games of No Chance, MSRI Publications 42, Cambridge University Press, 2002, 49-57. Page range verified against the PDF footers (49-57, not 49-58).
+\bibitem{moews2002} D.~Moews, \emph{The abstract structure of the group of
+games}, in \emph{More Games of No Chance}, MSRI Publ.~\textbf{42}, Cambridge
+University Press, 2002, 49--57.
 \bibitem{Ovsienko16} V.~Ovsienko, \emph{Real Clifford algebras and quadratic
 forms over $\F_2$: two old problems become one}, The Mathematical Intelligencer
 \textbf{38} (2016); arXiv:1601.07664.
@@ -1578,11 +2211,32 @@ games}, J.\ Combin.\ Theory Ser.\ A \textbf{115} (2008), 593--622.
 \bibitem{Quillen71} D.~Quillen, \emph{The mod~$2$ cohomology rings of
 extra-special $2$-groups and the spectra of quadratic forms}, Math.\ Ann.\
 \textbf{194} (1971), 197--212.
+% REF: K.-U. Schmidt, Z4-valued quadratic forms and quaternary sequence families, IEEE Transactions on Information Theory 55(12) (2009), 5803-5810, doi:10.1109/TIT.2009.2032818. Carries the z = a + 2b two-digit decomposition and the rank/alternating classification.
+\bibitem{schmidt2009} K.-U.~Schmidt, \emph{$\mathbb{Z}_4$-valued quadratic
+forms and quaternary sequence families}, IEEE Trans.\ Inform.\ Theory
+\textbf{55} (2009), 5803--5810.
+% REF: L. Sok, M. Shi, and P. Sole, Decomposition of bent generalized Boolean functions, arXiv:1611.06357, 2016. Three authors, not "Sok-Sole".
+\bibitem{sok2016} L.~Sok, M.~Shi, P.~Sol\'e, \emph{Decomposition of bent
+generalized Boolean functions}, arXiv:1611.06357 (2016).
+% REF: P. Sole and N. Tokareva, Connections between quaternary and binary bent functions, Cryptology ePrint Archive, Report 2009/544, 2009.
+\bibitem{sole2009} P.~Sol\'e, N.~Tokareva, \emph{Connections between
+quaternary and binary bent functions}, Cryptology ePrint Archive,
+Report~2009/544 (2009).
 \bibitem{Taylor} D.~E.~Taylor, \emph{The Geometry of the Classical Groups},
 Sigma Series in Pure Mathematics~\textbf{9}, Heldermann Verlag, 1992.
+% REF: C. T. C. Wall, Quadratic forms on finite groups, and related topics, Topology 2 (1963), 281-298, doi:10.1016/0040-9383(63)90012-0.
+\bibitem{wall1963} C.~T.~C.~Wall, \emph{Quadratic forms on finite groups, and
+related topics}, Topology \textbf{2} (1963), 281--298.
 \bibitem{Winter72} D.~L.~Winter, \emph{The automorphism group of an
 extraspecial $p$-group}, Rocky Mountain J.\ Math.\ \textbf{2} (1972),
 159--168.
+% REF: J. A. Wood, Witt's extension theorem for mod four valued quadratic forms, Transactions of the American Mathematical Society 336(1) (1993), 445-461, doi:10.2307/2154355.
+\bibitem{wood1993} J.~A.~Wood, \emph{Witt's extension theorem for mod four
+valued quadratic forms}, Trans.\ Amer.\ Math.\ Soc.\ \textbf{336} (1993),
+445--461.
+% REF: Z. Zhang and Y. Shi, On the parity complexity measures of Boolean functions, arXiv:1004.0436, 2010.
+\bibitem{zhang2010} Z.~Zhang, Y.~Shi, \emph{On the parity complexity measures
+of Boolean functions}, arXiv:1004.0436 (2010).
 \end{thebibliography}
 
 \end{document}
