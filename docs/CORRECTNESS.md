@@ -151,7 +151,12 @@ universal cardinality one remains open.
 
 The literal-order and rational-dynamics refinements are also boundary
 theorems, not CSDU.  Lean checks the quadratic trace/norm coordinates and the
-one-step endpoint-orbit criterion.  The paper iterates those coordinates to
+one-step endpoint-orbit criterion.  Lean also checks the adjacent-exponent
+modular signs, the two quotient-ring cofactor identities, and the short
+modular-window and terminal divisibility cores used by the paper to
+exclude both adjacent period classes.
+The minimal-failure arithmetic and finite-field Fibonacci-period
+specialization remain paper-level.  The paper iterates those coordinates to
 show that recursive ancestry selects a Frobenius orbit while literal order only
 selects its first representative.  Lean also checks the left-right Dickson
 identity, the forward affine identity from the

@@ -428,6 +428,14 @@ absolute boundedness.
   only in the two explicit adjacent-period cases. Since fibotomic membership is
   Frobenius invariant, neither least-label minimality nor this in-block
   displacement yields a new order obstruction.
+  The two residual endpoint cases are now excluded globally. The exact
+  exponent relation and current-factor arithmetic force
+  `Q+1 ∤ K-1` and `Q+1 ∤ K+1`; hence the normalized additive-edge value is
+  strictly later than the selected point and lies outside its two-point
+  trace--norm ancestry orbit. Equivalently, its relative norm is not `A^3`.
+  This is a strict new consequence of first failure, but not a contradiction:
+  the normalized point was not known to have the selected norm, and the
+  original nonzero equality `AE4` survives.
   Nor is the selected minimal polynomial coefficient-lex extremal: at the first
   composite Fermat level it is bracketed in both coefficient orientations by
   two one-step descendants of full-order parents lying in the same proper

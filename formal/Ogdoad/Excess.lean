@@ -5701,6 +5701,85 @@ theorem selected_polynomial_not_coefficient_lex_extremal :
     (0x1b8b2b417 : Nat) < 0x1cbbf7777 := by
   native_decide
 
+/-- Exact signs of the two adjacent exponent classes after reduction by a
+divisor of `D`. Cancellation of `ell` is the paper-level coprime step. -/
+theorem adjacent_exponent_shift_core
+    {Rng : Type*} [CommRing Rng]
+    (ell K L H D : Rng)
+    (hD : D = 0) (hrel : ell * K + L = H * D) :
+    ell * (K - 1) = -(ell + L) ∧
+      ell * (K + 1) = ell - L := by
+  constructor <;> rw [hD] at hrel <;> linear_combination hrel
+
+/-- Modular algebra for the `K-1` endpoint. -/
+theorem endpoint_minus_one_cofactor_residue
+    {Rng : Type*} [CommRing Rng]
+    (R L ell d : Rng)
+    (hell : ell = 1 + R * L)
+    (hprod : ell * d = 2)
+    (hend : ell + L = 0) :
+    d = 2 * (R + 1) := by
+  have hLd : L * d = -2 := by
+    linear_combination d * hend - hprod
+  rw [hell] at hend hprod
+  linear_combination d * hend - (R + 1) * hLd
+
+/-- Modular algebra for the `K+1` endpoint. -/
+theorem endpoint_plus_one_cofactor_residue
+    {Rng : Type*} [CommRing Rng]
+    (R L ell d : Rng)
+    (hell : ell = 1 + R * L)
+    (hprod : ell * d = 2)
+    (hend : ell - L = 0) :
+    d + 2 * (R - 1) = 0 := by
+  have hLd : L * d = 2 := by
+    linear_combination hprod - d * hend
+  rw [hell] at hend hprod
+  linear_combination d * hend - (R - 1) * hLd
+
+/-- The short modular window on the `K-1` endpoint contains no odd
+cofactor: the only possible wrap is the residue one. -/
+theorem endpoint_minus_one_window_contradiction
+    (m d t : Nat)
+    (hm : 0 < m) (hd3 : 3 ≤ d) (hdlt : d < m)
+    (ht : t ≤ m + 1) (hmod : d ≡ t [MOD m])
+    (hdodd : Odd d) (hteven : Even t) (hmodd : Odd m) : False := by
+  rw [Nat.ModEq, Nat.mod_eq_of_lt hdlt] at hmod
+  by_cases htlt : t < m
+  · rw [Nat.mod_eq_of_lt htlt] at hmod
+    rcases hdodd with ⟨u, hu⟩
+    rcases hteven with ⟨v, hv⟩
+    omega
+  · have hcases : t = m ∨ t = m + 1 := by omega
+    rcases hcases with rfl | rfl
+    · rcases hteven with ⟨v, hv⟩
+      rcases hmodd with ⟨u, hu⟩
+      omega
+    · have hone : 1 < m := by omega
+      have hone_mod : 1 % m = 1 := Nat.mod_eq_of_lt hone
+      rw [Nat.add_mod, Nat.mod_self, zero_add,
+        hone_mod] at hmod
+      omega
+
+/-- Last divisibility contradiction on the `K+1` endpoint. -/
+theorem endpoint_plus_one_divisibility_contradiction
+    (Q R d g : Nat)
+    (hR4 : 4 ≤ R) (hRdiv : R ∣ Q)
+    (hdDef : d = 1 + R * g)
+    (hend : d + 2 * (R - 1) = Q + 1) : False := by
+  have hlinear : Q + 2 = R * g + 2 * R := by
+    rw [hdDef] at hend
+    omega
+  have hReq : R * (g + 2) = Q + 2 := by
+    calc
+      R * (g + 2) = R * g + 2 * R := by ring
+      _ = Q + 2 := hlinear.symm
+  have hRq2 : R ∣ Q + 2 := ⟨g + 2, hReq.symm⟩
+  have hR2 : R ∣ 2 := by
+    simpa using Nat.dvd_sub hRq2 hRdiv
+  have hRle : R ≤ 2 := Nat.le_of_dvd (by norm_num) hR2
+  omega
+
 end FermatLiteralAncestryCoordinates
 
 

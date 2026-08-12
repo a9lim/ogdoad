@@ -14813,6 +14813,107 @@ the Cassini norm-defect factorization.  The literal Conway-label and
 finite-field period specializations remain paper-level.
 \end{proof}
 
+\begin{corollary}[the normalized additive edge misses both ancestry endpoints]
+\label{cor:fermat-additive-endpoint-exclusion}
+Retain Proposition~\ref{prop:fermat-first-additive-flag} and
+Proposition~\ref{prop:fermat-literal-ancestry-orbit}, and put
+\[
+ m=Q+1.
+\]
+Then neither adjacent period class in \((\mathsf{LA}_4)\) occurs:
+\[
+ \boxed{m\nmid K-1,\qquad m\nmid K+1.}               \tag{\(\mathsf{LA}_5\)}
+\]
+Consequently
+\[
+ S_{K-1}(A)S_{K+1}(A)\ne0,
+ \qquad
+ \operatorname{Norm}_{E_{n-1}/E_{n-2}}(y)\ne A^3.   \tag{\(\mathsf{LA}_6\)}
+\]
+In particular the normalized additive-edge point is strictly later than
+the selected point in the first trace-one block and does not belong to its
+two-point trace--norm ancestry orbit.
+
+This is a strict strengthening of the first-additive-edge reduction, but it
+does not prove CSDU: hypothetical failure never asserted that the normalized
+point \(y=(A/T)a^K\) has selected relative norm \(A^3\).  The surviving
+equality \((\mathsf{AE}_4)\) still couples two nonzero lower selected values.
+\end{corollary}
+
+\begin{proof}
+Recall
+\[
+ \ell d=Q^2+1,\qquad
+ \ell=1+RL,\qquad d=1+Rg,\qquad
+ \ell K+L=HD,
+\]
+where \(R\) is a power of two, \(L,g,\ell,d,m\) are odd,
+\(R\mid Q\), \(4\le R<Q\), and \(m\mid D\).  In particular
+\(R\le Q/2\), \(L<\ell\), and
+\[
+ \ell d\equiv2\pmod m.                              \tag{*}
+\]
+
+Suppose first that \(m\mid K-1\).  Subtracting
+\(\ell(K-1)\) from \(\ell K+L\) gives
+\[
+ m\mid\ell+L.                                       \tag{**}
+\]
+The positive quotient \((\ell+L)/m\) is even, since its numerator is even
+and \(m\) is odd.  Hence \(\ell+L\ge2m\); because \(L<\ell\), this gives
+\(\ell>m=Q+1\).  The product \(\ell d=Q^2+1\) then forces
+\(3\le d<Q<m\).
+
+Modulo \(m\), equations \((**)\) and \(\ell=1+RL\) give
+\[
+ (R+1)\ell=1+R(\ell+L)\equiv1.
+\]
+Together with \((*)\), this yields
+\[
+ d\equiv2(R+1)\pmod m.                              \tag{***}
+\]
+Now \(2(R+1)\le Q+2=m+1\).  Since \(3\le d<m\), the absolute
+difference between \(d\) and \(2(R+1)\) is strictly smaller than \(m\).
+Congruence \((***)\) therefore forces equality, impossible because \(d\)
+is odd and \(2(R+1)\) is even.
+
+Suppose instead that \(m\mid K+1\).  Subtracting \(\ell K+L\) from
+\(\ell(K+1)\) gives
+\[
+ m\mid\ell-L.                                       \tag{****}
+\]
+Here \(\ell-L>0\), and again its quotient by the odd number \(m\) is
+positive and even.  Thus \(\ell-L\ge2m\), so \(\ell>m\), and the same
+product comparison gives \(d<Q\).  The exact identity
+\[
+ (R-1)\ell+1=R(\ell-L)
+\]
+and \((*)\) imply
+\[
+ d+2(R-1)\equiv0\pmod m.                            \tag{*****}
+\]
+The positive left side is less than
+\(Q+(Q-2)=2Q-2<2m\), because \(d<Q\) and \(2R\le Q\).
+It must therefore equal \(m\).  Substituting \(d=1+Rg\) gives
+\[
+ R(g+2)=Q+2.
+\]
+Since \(R\mid Q\), this forces \(R\mid2\), contradicting \(R\ge4\).
+This proves \((\mathsf{LA}_5)\).
+
+The exact preceding zero period is \(m\), so \((\mathsf{LA}_5)\) gives
+the first assertion of \((\mathsf{LA}_6)\).  Formula
+\((\mathsf{LA}_4)\), together with \(A\ne0\) and \(S_K(A)\ne0\), gives
+the norm inequality.  Finally \((\mathsf{LA}_3)\) has
+\(\lambda\ne0,A\), proving the strict-order and orbit statements.
+
+Lean kernel-checks the adjacent-exponent signs, the two quotient-ring
+identities producing \((***)\) and \((*****)\), the short modular-window
+contradiction, and the terminal divisibility contradiction.  The
+minimal-failure specialization and finite-field zero-period implication
+remain paper-level.
+\end{proof}
+
 \begin{remark}[coefficient order is not ancestry order]
 Even retaining one exact ancestry edge does not make the selected factor
 lexicographically extremal.  At the first composite Fermat level the
