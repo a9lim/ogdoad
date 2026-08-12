@@ -9004,6 +9004,148 @@ whole relative orbit lies in \(H\), so its trace fibre has
 \(\Theta_\chi=3\).
 \end{proof}
 
+\begin{proposition}[the recursive trace--Fourier flag collapses at the top edge]
+\label{prop:cubic-trace-fourier-flag-collapse}
+Retain Propositions~\ref{prop:eta-tower},
+\ref{prop:cubic-wendt-factor}, and
+\ref{prop:cubic-prescribed-trace}.  Put
+\[
+ L_j=\F_{2^{3^j}},\qquad q=2^{3^{k-1}},\qquad
+ N=q^2+q+1,
+\]
+and write
+\[
+ D_k=\{x\in L_k^\times:x^{1+q+q^2}=1,\ x^{q+1}+x+1=0\}.
+\]
+For \(0\leq j<k\), let
+\(\operatorname{Tr}_{k/j}=\operatorname{Tr}_{L_k/L_j}\) and define the
+complete lower trace flag
+\[
+ \mathfrak T_k(x)=\bigl(\operatorname{Tr}_{k/j}(x)\bigr)_{0\leq j<k}.
+\]
+Trace transitivity gives the exact factorization
+\[
+ \boxed{
+ \mathfrak T_k(x)
+ =\Bigl(
+   \operatorname{Tr}_{L_{k-1}/L_j}
+     \bigl(\operatorname{Tr}_{k/(k-1)}(x)\bigr)
+   \Bigr)_{0\leq j<k}.}                              \tag{\(\mathsf{RTF}_1\)}
+\]
+Consequently the literal full-ancestry fibre is already the immediate
+trace fibre:
+\[
+ \boxed{
+ \begin{aligned}
+ \mathcal F_k
+ &:=\{x\in D_k:\operatorname{Tr}_{k/j}(x)=\eta_j
+                  \text{ for every }0\leq j<k\}\\
+ &=\{x\in D_k:\operatorname{Tr}_{k/(k-1)}(x)=\eta_{k-1}\}\\
+ &=\{\eta_k,\eta_k^q,\eta_k^{q^2}\}.
+ \end{aligned}}                                      \tag{\(\mathsf{RTF}_2\)}
+\]
+
+This collapse holds before choosing a multiplicative character and is exact
+for every weighting which depends only on the iterated trace tuple
+\(\mathfrak T_k(x)\).  Its additive Fourier form is especially sharp.  Put
+\[
+ \psi_j(y)=(-1)^{\operatorname{Tr}_{L_j/\F_2}(y)}.
+\]
+For arbitrary \(b_j\in L_j\), embedded in \(L_{k-1}\), one has
+\[
+ \boxed{
+ \prod_{j=0}^{k-1}
+ \psi_j\!\left(b_j\operatorname{Tr}_{k/j}(x)\right)
+ =\psi_{k-1}\!\left(
+   \left(\sum_{j=0}^{k-1}b_j\right)
+   \operatorname{Tr}_{k/(k-1)}(x)
+ \right).}                                           \tag{\(\mathsf{RTF}_3\)}
+\]
+Thus stacking additive Fourier modes from every lower trace level creates
+no mode beyond the single immediate-edge additive character in
+\((\mathsf{ST}_3)\).
+
+Let \(\ell\mid N\) be prime, put \(u=N/\ell\), let
+\(\chi:U_k\to\mu_\ell\) have exact order \(\ell\), and write
+\(\theta=\chi(\eta_k)\).  Then
+\[
+ \boxed{
+ \sum_{x\in\mathcal F_k}\chi(x)
+ =\theta+\theta^q+\theta^{q^2}
+ =\Theta_\chi(\eta_{k-1}).}                          \tag{\(\mathsf{RTF}_4\)}
+\]
+Moreover
+\[
+ \boxed{
+ \begin{aligned}
+ C\text{-failure at }(k,\ell)
+ &\iff \theta=1
+ \iff \mathcal F_k\subset\ker\chi\\
+ &\iff \sum_{x\in\mathcal F_k}\chi(x)=3
+ \iff P_{\eta,k}\mid G_u.
+ \end{aligned}}                                      \tag{\(\mathsf{RTF}_5\)}
+\]
+Hence the complete literal lower trace ancestry, its arbitrary additive
+multi-Fourier projectors, and the distinguished Wendt incidence all return
+to the same selected three-point phase orbit.  This does not cover a weight
+which depends on the top point through data other than its iterated traces,
+a nonsymmetric chosen-root expression, or a genuinely mixed
+additive--multiplicative correlation between the top point and separate
+lower ancestors.  Nor does it evaluate
+\(\Theta_\chi(\eta_{k-1})\); the selected nonvanishing remains open.
+\end{proposition}
+
+\begin{proof}
+For \(j<k\), trace transitivity is
+\[
+ \operatorname{Tr}_{k/j}
+ =\operatorname{Tr}_{L_{k-1}/L_j}
+    \circ\operatorname{Tr}_{k/(k-1)},
+\]
+which proves \((\mathsf{RTF}_1)\).  The selected tower satisfies
+\(\operatorname{Tr}_{L_i/L_{i-1}}(\eta_i)=\eta_{i-1}\) at every edge.
+Therefore the immediate equality
+\(\operatorname{Tr}_{k/(k-1)}(x)=\eta_{k-1}\) forces every lower
+equality in the first line of \((\mathsf{RTF}_2)\), and the converse is
+immediate.
+
+For \(x\in D_k\) with relative trace \(a\), its relative orbit has cubic
+\[
+ X^3+aX^2+(a+1)X+1.
+\]
+At \(a=\eta_{k-1}\), this is the selected irreducible cubic of
+Proposition~\ref{prop:eta-tower}; its roots are
+\(\eta_k,\eta_k^q,\eta_k^{q^2}\).  This proves
+\((\mathsf{RTF}_2)\).
+
+For the Fourier assertion, trace transitivity and \(L_j\)-linearity give
+\[
+ \operatorname{Tr}_{L_j/\F_2}\!\left(
+   b_j\operatorname{Tr}_{k/j}(x)\right)
+ =\operatorname{Tr}_{L_k/\F_2}(b_jx)
+ =\operatorname{Tr}_{L_{k-1}/\F_2}\!\left(
+   b_j\operatorname{Tr}_{k/(k-1)}(x)
+ \right).
+\]
+Summing over \(j\) and exponentiating by \(-1\) proves
+\((\mathsf{RTF}_3)\).
+
+Finally multiplicativity gives
+\(\chi(\eta_k^{q^i})=\theta^{q^i}\), proving
+\((\mathsf{RTF}_4)\).  Since
+\(\ker\chi=U_k^\ell\), failure is \(\theta=1\).  Equality of the
+three-term sum with three forces the three complex unit summands to be one,
+by equality in the triangle inequality.  Proposition~\ref{prop:cubic-wendt-factor}
+identifies the same failure with \(P_{\eta,k}\mid G_u\), proving
+\((\mathsf{RTF}_5)\).
+
+Lean kernel-checks the abstract compatible-fibre equality, factorization of
+a full flag weight through its immediate coordinate, and summation of linear
+Fourier functionals after composition with one top map.  Finite-field trace
+transitivity, the Singer-fibre specialization, and the character/Wendt
+identifications remain paper-level.
+\end{proof}
+
 \begin{proposition}[exact one-step lifting of the previous Singer set]
 \label{prop:cubic-previous-singer-lift}
 Let \(j\geq2\), put \(r=2^{3^{j-2}}\), \(q=r^3\), and fix
@@ -12378,6 +12520,151 @@ second congruence.
 Lean kernel-checks the abstract common-factor boundary-defect transport.
 The Fermat-divisor valuation, Fibonacci boundary coefficients, and Lucas
 calculation remain paper-level.
+\end{proof}
+
+\begin{proposition}[two fixed-coordinate quotient-jet blocks collapse]
+\label{prop:fermat-fixed-adic-jet-blocks}
+Retain Corollary~\ref{cor:fermat-factor-sensitive-window}.  Thus
+\[
+ d=1+Rg,\qquad R=2^s,\qquad g\ \text{odd},\qquad
+ T=T_s(X)=\sum_{i=0}^{s-1}X^{2^i}.
+\]
+For a polynomial \(P\), write \(P^{[j]}\) for its \(j\)-th Hasse
+derivative.  Put
+\[
+ r=\frac{g-1}{2},\qquad B=S_g,\qquad C=S_{g+1},\qquad
+ H=S_r^{\,2R}.
+\]
+Then, as identities in \(\F_2[X]\),
+\[
+ \boxed{
+ S_d^{[j]}=
+ \begin{cases}
+   S_d',&j=2^i,\quad 0\leq i<s,\\
+   TH,&j=R,\\
+   H,&j=R+2^i,\quad 0\leq i<s,\\
+   0,&1\leq j<2R\ \text{otherwise},
+ \end{cases}}
+                                                               \tag{\(\mathsf{QJ}_1\)}
+\]
+and the apparent new scalar \(H\) satisfies the exact global identity
+\[
+ \boxed{X^R H=S_d+(1+T)S_d'.}                         \tag{\(\mathsf{QJ}_2\)}
+\]
+
+Assume now the hypothetical failure \(A\mid S_d\), and write the unique
+finite \(A\)-adic expansion, extended by zero digits, as
+\[
+ Q_d=\frac{S_d}{A}=\sum_{\nu\geq0}A^\nu q_\nu,
+ \qquad \deg q_\nu<M.
+\]
+Then every fixed-coordinate digit
+\[
+ \boxed{q_0,q_1,\ldots,q_{2R-2}}                    \tag{\(\mathsf{QJ}_3\)}
+\]
+is determined recursively by \(A\), the fixed arithmetic parameter \(s\),
+and the already-known first digit
+\(q_0\equiv(A')^{-1}S_d'\pmod A\).  The second digit is explicitly
+\[
+ \boxed{
+ (A')^2q_1\equiv(A'+A^{[2]})q_0+A'q_0'\pmod A.}       \tag{\(\mathsf{QJ}_4\)}
+\]
+
+The first Hasse jet not eliminated by these identities occurs at order
+\(2R\).  With \(U=S_{r+1}\) and \(V=S_r\), it is
+\[
+ \boxed{
+ S_d^{[2R]}=(1+T)(U')^{2R}+TX^R(V')^{2R}.}            \tag{\(\mathsf{QJ}_5\)}
+\]
+Equivalently, if \(r=2t\) this is
+\((1+T)S_t^{4R}\), while if \(r=2t+1\) it is
+\(TX^RS_t^{4R}\).  At the selected root \(a=a_{n-1}\), both displayed
+prefactors are nonzero, and therefore
+\[
+ \boxed{
+ S_d^{[2R]}(a)=0
+ \iff S_{\lfloor r/2\rfloor}(a)=0.}                 \tag{\(\mathsf{QJ}_6\)}
+\]
+Thus the first term not reduced to the old quotient residue is exactly a
+smaller selected Fibonacci value.  The proposition does not prove that value
+nonzero, and hence does not prove the Conway--Fermat maximal-order assertion.
+\end{proposition}
+
+\begin{proof}
+For \(R=2^s\), the Hasse--Frobenius rule is
+\[
+ (F^R)^{[j]}=0\quad(R\nmid j),\qquad
+ (F^R)^{[Rm]}=(F^{[m]})^R.                            \tag{\(\ast\)}
+\]
+Moreover \(T^{[j]}=1\) when \(j=2^i\), \(0\leq i<s\), and is zero
+for every other \(0<j<R\).  The trailing-zero compression and the
+characteristic-two doubling identities give
+\[
+ S_d=C^R+TB^R,\qquad
+ C=S_{2r+2}=S_{r+1}^2,\qquad
+ B=S_{2r+1}=S_{r+1}^2+XS_r^2.
+\]
+In particular \(S_d'=B^R\), \(C'=0\), and \(B'=S_r^2\).  Applying
+\((\ast)\) and the Hasse product rule gives \((\mathsf{QJ}_1)\).
+Also
+\[
+ X^RH=(XS_r^2)^R=(B+C)^R=B^R+C^R
+             =S_d+(1+T)S_d',
+\]
+which proves \((\mathsf{QJ}_2)\).
+
+Let \(a=a_{n-1}\).  Since \(A\) is separable, \(A'(a)\ne0\).  For every
+\(m\geq0\), repeated Hasse product expansion gives a triangular identity
+\[
+ Q_d^{[m]}(a)
+  =(A'(a))^m q_m(a)
+   +\Phi_m\bigl(A;q_0,\ldots,q_{m-1}\bigr)(a),        \tag{\(\dagger\)}
+\]
+where \(\Phi_m\) is explicit: a term from \(A^\nu q_\nu\) can survive at
+\(a\) only if \(\nu\leq m\), and for \(\nu=m\) every one of the \(m\)
+copies of \(A\) must receive Hasse order one.  Likewise \(S_d=AQ_d\)
+gives
+\[
+ S_d^{[m+1]}(a)
+ =A'(a)Q_d^{[m]}(a)
+  +\sum_{i=2}^{m+1}A^{[i]}(a)Q_d^{[m+1-i]}(a).        \tag{\(\ddagger\)}
+\]
+Thus the coefficient of \(q_m(a)\) in \((\ddagger)\) is
+\((A'(a))^{m+1}\ne0\).  Reduction of \((\mathsf{QJ}_2)\) modulo \(A\),
+together with \(A(0)=1\), determines \(H\bmod A\) from
+\(S_d'\bmod A\).  Hence \((\mathsf{QJ}_1)\), \((\dagger)\), and
+\((\ddagger)\) determine \(q_m(a)\), and therefore the unique degree-
+\(<M\) polynomial \(q_m\), successively for \(0\leq m\leq2R-2\).
+
+For \(m=1\), \(S_d^{[2]}=S_d'\) because \(2<R\), and reduction modulo
+\(A\) gives
+\[
+ A^{[2]}q_0+A'(q_0'+A'q_1)\equiv A'q_0,
+\]
+which is \((\mathsf{QJ}_4)\) in characteristic two.
+
+Finally, \((\ast)\) at order \(2R\) gives
+\[
+ S_d^{[2R]}=(C^{[2]})^R+T(B^{[2]})^R.
+\]
+Writing \(U=S_{r+1}\), \(V=S_r\), the doubling formulas give
+\(C^{[2]}=(U')^2\) and
+\(B^{[2]}=(U')^2+X(V')^2\), proving \((\mathsf{QJ}_5)\).
+The two parity specializations follow from
+\(S_{2t}'=0\) and \(S_{2t+1}'=S_t^2\).  Finally
+\[
+ T_s(a)^2+T_s(a)=a^{2^s}+a.
+\]
+If \(T_s(a)\) were zero or one, then \(a^{2^s}=a\).  The exact degree
+\([\F_2(a):\F_2]=M\) would force \(M\mid s\), contrary to
+\(0<s<M\) in \((\mathsf{QW}_4)\).  Thus both \(T_s(a)\) and
+\(1+T_s(a)\) are nonzero; also \(a\ne0\) because \(A(0)=1\).
+This proves \((\mathsf{QJ}_6)\).
+
+Lean kernel-checks the second-digit rearrangement, the exact identity
+\((\mathsf{QJ}_2)\) and its quotient specialization, and the ring
+normalization in \((\mathsf{QJ}_5)\).  The Hasse block bookkeeping and
+the specialization to the selected Conway polynomial remain paper-level.
 \end{proof}
 
 \begin{proposition}[Dickson all-or-nothing factorization]
@@ -20219,6 +20506,109 @@ one-dimensional regulator coordinate and does not evaluate \(d_k\) in
 that coordinate.
 \end{proof}
 
+\begin{proposition}[the four binary Euler blocks are the antiunit phase]
+\label{prop:dk-four-block-antiunit}
+Retain Propositions~\ref{prop:dk-cyclic-parity} and
+\ref{prop:dk-antiunit}.  Put
+\[
+ q=2^h,\qquad Q=q^4,\qquad
+ d=\frac{q+1}{\ell},\qquad E=\frac{Q-1}{\ell},
+\]
+and define
+\[
+ A_0=q-d,\qquad B_0=d-1.
+\]
+Then \(A_0+B_0=q-1\), so \(A_0\) and \(B_0\) are complementary
+\(h\)-bit words, and
+\[
+ \boxed{
+ E=A_0+B_0q+A_0q^2+B_0q^3,\qquad
+ \operatorname{wt}_2(E)=2h.}                         \tag{\(\mathsf{DB}_1\)}
+\]
+Thus the complete binary expansion of the exceptional Euler exponent has
+four alternating blocks.
+
+Use the residue notation from \((\mathsf{QT}_3)\): in
+\(L=\F_{q^4}\), write
+\[
+ \rho=ab,\qquad
+ \ord(a)=3h,\qquad \ord(b)=5,
+\]
+and let \(R_k=\overline{d_k}\in K=\F_{q^2}\).  Then the four-block
+factorization has the exact oriented value
+\[
+ \boxed{
+ \begin{aligned}
+ (1+\rho)^E
+ &= (1+\rho)^{A_0}(1+\rho^q)^{B_0}
+    (1+\rho^{q^2})^{A_0}(1+\rho^{q^3})^{B_0}\\
+ &=\left(
+   \frac{(1+\rho^q)(1+\rho^{q^3})}
+        {(1+\rho)(1+\rho^{q^2})}
+   \right)^d
+ =R_k^{-d}.
+ \end{aligned}}                                      \tag{\(\mathsf{DB}_2\)}
+\]
+Consequently
+\[
+ \boxed{
+ D'_k\text{ holds at }\ell
+ \iff (1+\rho)^E\ne1
+ \iff R_k^d\ne1.}                                   \tag{\(\mathsf{DB}_3\)}
+\]
+Hence the four binary submask blocks in
+Proposition~\ref{prop:dk-cyclic-parity} and the conductor-five antiunit in
+Proposition~\ref{prop:dk-antiunit} are inverse presentations of the same
+selected phase, not independent constraints.  The identity does not prove
+that this phase is nontrivial.
+\end{proposition}
+
+\begin{proof}
+The order identity \(\ord_\ell(2)=2h\) gives \(\ell\mid q+1\).
+Since \(q+1=\ell d\), direct algebra gives
+\[
+ \frac{q^4-1}{\ell}
+ =d(q-1)(1+q^2)
+ =A_0+B_0q+A_0q^2+B_0q^3,
+\]
+which is \((\mathsf{DB}_1)\).  The equality
+\(q-d=(q-1)-(d-1)\) says exactly that the two \(h\)-bit blocks are
+bitwise complements, proving the weight assertion.
+
+In characteristic two, Frobenius and \((\mathsf{DB}_1)\) give the first
+line of \((\mathsf{DB}_2)\).  Put
+\[
+ D_0=(1+\rho)(1+\rho^{q^2}),\qquad
+ N_0=(1+\rho^q)(1+\rho^{q^3}).
+\]
+These are nonzero because \(\rho\) has order \(15h\), and
+\(D_0^q=N_0\).  Therefore
+\[
+ D_0^{q-d}N_0^{d-1}=(N_0/D_0)^d,
+\]
+which proves the middle equality.
+
+Now \(a^q=a^{-1}\), \(a^{q^2}=a\), and
+\(b^q\in\{b^2,b^{-2}\}\), while
+\(b^{q^2}=b^{-1}\).  Hence
+\[
+ D_0=U_k,\qquad N_0=a^{-2}U'_k,\qquad
+ \frac{N_0}{D_0}=a^{-2}R_k^{-1}.
+\]
+Also \(3h\mid q+1\), and \(\ell\nmid3h\), so \(3h\mid d\).
+Thus \(a^{-2d}=1\), proving the last equality in
+\((\mathsf{DB}_2)\).
+
+Finally \(R_k^q=R_k^{-1}\), so \(R_k\) lies in the cyclic norm-one
+group of order \(q+1=\ell d\).  Its Kummer class is trivial exactly when
+\(R_k^d=1\).  Equations \((\mathsf{DP}_3)\) and
+\((\mathsf{QT}_4)\) now give \((\mathsf{DB}_3)\).
+
+Lean kernel-checks the four-block exponent identity and its
+cross-multiplied commutative-group form.  The finite-field Frobenius,
+binary-complement, and antiunit specializations remain paper-level.
+\end{proof}
+
 \begin{proposition}[alternating translated root chain and the full-norm boundary]
 \label{prop:dk-alternating-translate-chain}
 Put \(E_j=\F_{2^{2\cdot3^j}}\), choose compatible primitive
@@ -23416,6 +23806,14 @@ and \(R/4\) leading coefficients, then differ by one at both next
 coefficients.  Thus even the first exposed endpoint defects encode only the
 two-adic valuation of the arithmetic factor; later, middle, cross-endpoint,
 and fixed-\(A\)-coordinate relations remain the genuine quotient frontier.
+Proposition~\ref{prop:fermat-fixed-adic-jet-blocks} resolves the first two
+fixed-coordinate Hasse blocks as well.  Every canonical digit through
+\(q_{2R-2}\) is forced by \(A\), the factor valuation, and the existing first
+digit: the apparent order-\(R\) escape folds back through the unconditional
+identity \(X^RH=S_d+(1+T_s)S_d'\).  The first term not reduced by this
+identity occurs at Hasse order \(2R\) and is a provably nonzero partial-trace
+prefactor times an explicit half-index Fibonacci value.  Nonvanishing of that
+smaller value, later digits, and global relations remain open.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -23757,6 +24155,16 @@ Proposition~\ref{prop:cubic-prescribed-trace} makes the last coordinate
 one extremal value \(\Theta_\chi(\eta_{k-1})=3\).  Other Singer trace
 fibres genuinely attain \(3\), so uniform character bounds cannot close
 the selected fibre.
+Proposition~\ref{prop:cubic-trace-fourier-flag-collapse} shows that this
+conclusion is unchanged after retaining every literal lower trace in the
+Conway chain.  The complete selected flag is exactly the same three-point
+immediate trace fibre, and arbitrary additive multi-Fourier weights formed
+from those iterated trace coordinates collapse to one immediate-edge
+character.  Combined with the Wendt criterion, failure remains the single
+equality \(\Theta_\chi(\eta_{k-1})=3\), equivalently
+\(P_{\eta,k}\mid G_{N/\ell}\).  This closes recursive trace-projector
+refinements, but not top-point weights depending on non-trace data or
+genuinely mixed nonsymmetric correlations with separate lower ancestors.
 Proposition~\ref{prop:cubic-trace-zero} also proves that both selected
 period coordinates have absolute trace zero and are not normal.  Thus
 primitive-normal and normal-Gaussian-period theorems do not apply to the
@@ -23944,6 +24352,12 @@ Proposition~\ref{prop:dk-cyclic-parity} gives the parallel
 characteristic-two boundary: failure is a complement-of-zero submask
 parity pattern modulo \(15h\), while its \(\ell\)-th-power consequence
 is an unconditional idempotent identity.
+Proposition~\ref{prop:dk-four-block-antiunit} identifies the complete
+binary exponent before cyclic reduction.  Its four alternating
+\(h\)-bit blocks evaluate at the selected conductor root to
+\(R_k^{-d}\), exactly the inverse antiunit phase.  Thus the binary submask
+and conductor-five regulator routes retain the same selected scalar and
+cannot constrain one another; their common nontriviality is still open.
 Proposition~\ref{prop:dk-half-block} splits the exponent into two
 Frobenius-related blocks and proves that the resulting quadratic norm
 equation, its Hilbert--90 condition, and its involution-fixed

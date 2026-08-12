@@ -361,8 +361,16 @@ absolute boundedness.
   the full-Fermat cofactor through the first `R` low and `R/4` leading
   coefficients, then differs by one at both next coefficients. Thus even the
   immediately exposed endpoint coefficients contain only the arithmetic
-  factor valuation, not a new selected obstruction. Later, middle,
-  cross-endpoint, and fixed-`A`-coordinate relations remain open.
+  factor valuation, not a new selected obstruction. At fixed `A`,
+  Hasse--Frobenius sparsity and the Fibonacci doubling identities determine
+  the first `2R-1` canonical `A`-adic digits
+  `q_0,...,q_(2R-2)` from `A`, `s`, and the existing first digit: the
+  apparent order-`R` escape folds back through
+  `X^R H=S_d+(1+T_s)S_d'`. The first jet not collapsed by this identity is
+  order `2R`, a provably nonzero prefactor times an explicit half-index
+  Fibonacci value. Its remaining Fibonacci nonvanishing,
+  later fixed-`A` digits, middle/global coefficients, and cross-endpoint
+  relations remain open.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -773,8 +781,16 @@ absolute boundedness.
   normality of epsilon, and complete normality of beta, while all three
   coordinates lie in the
   index-2593 Kummer kernel. It fails exactly at the next lower selected trace
-  equation. A nonlinear additive--multiplicative correlation using the full
-  recursive trace ancestry remains logically possible.
+  equation. The purely trace-recursive part of that escape is now closed
+  exactly. For one top Singer point, every lower trace is a function of its
+  immediate trace, so the complete selected trace flag is still just the
+  three-point relative orbit above `eta_(k-1)`. More generally, every product
+  of additive Fourier characters formed solely from the iterated traces
+  collapses to one immediate-edge additive character; the full selected sum
+  remains `Theta_chi(eta_(k-1))`. Thus stacking lower trace projectors cannot
+  refine the selected Wendt/Euler test. A surviving correlation must depend
+  on the top point through data beyond its iterated trace tuple, or couple it
+  nonsymmetrically to separate lower ancestors or a chosen radical.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -849,8 +865,14 @@ absolute boundedness.
   on the conductor-five phases. Quadratic-relative descent identifies that
   tangent with a two-by-two Eisenstein determinant; the first-order
   order-five Hasse--Davenport relation controls only the complementary
-  symmetric coordinate and cannot force the target's nonvanishing. The ambient
-  Dickson polynomial contains many cubics with the same depressed equation;
+  symmetric coordinate and cannot force the target's nonvanishing. The
+  binary-parity presentation now collapses to that same antiunit phase before
+  any discrete logarithm is chosen. Writing `d=(2^h+1)/ell`, its Euler
+  exponent has four complementary `h`-bit blocks and
+  `(1+rho)^((2^(4h)-1)/ell)=R_k^(-d)`. Thus the complete four-block submask
+  coordinate is exactly the inverse conductor-five residue phase, not a
+  second constraint; its nontriviality remains the same open assertion. The
+  ambient Dickson polynomial contains many cubics with the same depressed equation;
   an exact nonselected countermodel also matches the selected two-trace
   fingerprint. The selected fibotomic coefficient is now transported exactly
   through the C ancestry:

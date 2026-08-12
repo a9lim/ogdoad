@@ -388,12 +388,23 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   sextic identifications, including the selected inverse orientation, remain
   paper-level, as does the still-open
   nonvanishing of their common phase;
+- the exceptional four-block core: Lean checks the alternating base-`q`
+  decomposition of the Euler exponent and its cross-multiplied
+  commutative-group quotient identity.  The binary-complement calculation,
+  finite-field Frobenius specialization, and identification with the inverse
+  conductor-five residue phase remain paper-level;
 - the selected reciprocal trace-fibre core: the universal Jacobian numerator
   at `(a,a+1)` is `a^2+a+1`, the characteristic-two discriminant of
   `X^3+C*X^2+D*X+1` is `(C*D+1)^2`, and injective lower
   `ell`-powering forces the norm of a reciprocal power root to be one.  The
   actual edgewise finite-etale fibres and their rational-point counts remain
   paper-level;
+- the recursive trace-flag core: a compatible full lower flag has the same
+  fibre as its immediate coordinate, every weighting formed only from that
+  flag factors through the immediate coordinate, and a sum of linear Fourier
+  functionals composed with one top trace is the corresponding summed
+  downstairs functional.  Finite-field trace transitivity, the selected
+  Singer fibre, and the character/Wendt identifications remain paper-level;
 - the selected cubic coupled-root core: one chosen `ell`-th root of `eta_k`
   transports explicitly to compatible roots of `epsilon_k` and `beta_k`, with
   their exact diagonal weights.  Every Frobenius monomial in the chosen root
@@ -452,6 +463,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   quotient.  The Euler--Lucas endpoint windows, Fermat-factor valuation,
   reciprocal boundary calculation, completed-local-ring coordinate, and
   selected specialization remain paper-level;
+- the fixed-`A` Hasse-jet ring core: Lean checks the second-digit
+  rearrangement, the exact first-escape identity and quotient specialization,
+  and the order-`2R` normal form.  The Hasse block bookkeeping, canonical-digit
+  recursion, selected polynomial specialization, and finite-field proof that
+  the displayed partial-trace prefactors are nonzero remain paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

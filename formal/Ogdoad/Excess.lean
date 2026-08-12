@@ -758,6 +758,58 @@ theorem conductorFive_antiunit_trace
   field_simp
   simpa [mul_comm, mul_left_comm, mul_assoc] using hnum'
 
+/-- The four alternating base-`q` blocks of the exceptional Euler exponent
+collapse algebraically to one quotient exponent. -/
+theorem exceptional_four_block_exponent_algebra
+    {R : Type*} [CommRing R]
+    (q ell d a b : R)
+    (hq : q + 1 = ell * d)
+    (ha : a + d = q)
+    (hb : b + 1 = d) :
+    ell * (a + b * q + a * q ^ 2 + b * q ^ 3) = q ^ 4 - 1 := by
+  have hab : a + b * q = d * (q - 1) := by
+    linear_combination ha + q * hb
+  calc
+    ell * (a + b * q + a * q ^ 2 + b * q ^ 3) =
+        ell * (a + b * q) * (1 + q ^ 2) := by ring
+    _ = ell * d * (q - 1) * (1 + q ^ 2) := by
+      rw [hab]
+      ring
+    _ = (q + 1) * (q - 1) * (1 + q ^ 2) := by rw [hq]
+    _ = q ^ 4 - 1 := by ring
+
+/-- Cross-multiplied commutative-group form of the four-block quotient
+identity.  The paper specializes the two paired powers to the
+conductor-five antiunit and its inverse. -/
+theorem exceptional_four_block_group_balance
+    {G : Type*} [CommGroup G]
+    (v : G) (q d a b : Nat)
+    (ha : a + d = q) (hb : b + 1 = d) :
+    v ^ (a + b * q + a * q ^ 2 + b * q ^ 3) *
+        (v * v ^ (q ^ 2)) ^ d =
+      (v ^ q * v ^ (q ^ 3)) ^ d := by
+  have hexp :
+      a + b * q + a * q ^ 2 + b * q ^ 3 + d * (1 + q ^ 2) =
+        d * (q + q ^ 3) := by
+    have hq' : q = a + d := ha.symm
+    subst q
+    have hd' : d = b + 1 := hb.symm
+    subst d
+    ring
+  calc
+    v ^ (a + b * q + a * q ^ 2 + b * q ^ 3) *
+          (v * v ^ (q ^ 2)) ^ d =
+        v ^ (a + b * q + a * q ^ 2 + b * q ^ 3 +
+          d * (1 + q ^ 2)) := by
+            simp only [mul_pow, ← pow_add, ← pow_mul]
+            congr 1
+            ring
+    _ = v ^ (d * (q + q ^ 3)) := by rw [hexp]
+    _ = (v ^ q * v ^ (q ^ 3)) ^ d := by
+      simp only [← pow_add, ← pow_mul]
+      congr 1
+      ring
+
 /-- Abstract algebra of the reflection-norm descent.  If `N(y) = a`, the
 reflection has the same norm, and base elements have degree-`ell` norm, then
 the symmetrized witness `((y * s y)^r) / a` is reflection-fixed and still has
@@ -1162,6 +1214,49 @@ theorem reciprocal_power_root_norm_one
   simp
 
 end CubicTraceFibre
+
+section CubicTraceFlagCore
+
+open scoped BigOperators
+
+/-- A stack of additive Fourier exponents which all factor through one top
+trace has only the sum of the downstairs Fourier coefficients. -/
+theorem sum_comp_linearMap
+    {ι V W S : Type*} [Fintype ι] [Semiring S]
+    [AddCommMonoid V] [AddCommMonoid W]
+    [Module S V] [Module S W]
+    (T : V →ₗ[S] W) (g : ι → W →ₗ[S] S) :
+    (∑ i, g i).comp T = ∑ i, (g i).comp T := by
+  ext x
+  simp
+
+/-- A complete compatible lower flag is already forced by its immediate
+coordinate. -/
+theorem compatible_flag_fibre_eq_immediate
+    {ι X Y : Type*} {Z : ι → Type*}
+    (top : X → Y) (down : ∀ i, Y → Z i) (a : Y) :
+    {x | top x = a ∧ ∀ i, down i (top x) = down i a} =
+      {x | top x = a} := by
+  ext x
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · exact And.left
+  · intro hx
+    refine ⟨hx, ?_⟩
+    intro i
+    rw [hx]
+
+/-- Every weighting of a compatible full flag factors through the immediate
+coordinate. -/
+theorem flag_weight_factors_through_immediate
+    {ι X Y T : Type*} {Z : ι → Type*}
+    (top : X → Y) (down : ∀ i, Y → Z i)
+    (weight : (∀ i, Z i) → T) :
+    (fun x => weight (fun i => down i (top x))) =
+      (fun x => (fun y => weight (fun i => down i y)) (top x)) := by
+  rfl
+
+end CubicTraceFlagCore
 
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
@@ -2023,6 +2118,72 @@ theorem quotient_boundary_defect_of_fixed
     _ = Q₂ + delta := by rw [hInv, one_mul]
 
 end FermatQuotientWindowCore
+
+section FermatFixedAdicJetCore
+
+variable {K : Type*} [CommRing K] [CharP K 2]
+
+/-- Algebraic core of the second fixed-`A` digit.  At a root of `A`, the
+second Hasse product rule has the displayed left-hand side; if the second
+Fibonacci Hasse jet equals the first derivative, the next digit is already
+forced by the residue digit. -/
+theorem fermat_second_fixed_adic_digit
+    (A1 A2 R0 dR0 R1 : K)
+    (hjet : A2 * R0 + A1 * (dR0 + A1 * R1) = A1 * R0) :
+    A1 ^ 2 * R1 = (A1 + A2) * R0 + A1 * dR0 := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have h := congrArg (fun z => z + A2 * R0 + A1 * dR0) hjet
+  ring_nf at h ⊢
+  simpa [h2] using h
+
+/-- Exact polynomial identity behind the apparent first Hasse escape.  In the
+application `S = S_d`, `B+C = X*V`, `Sp = B^R = S_d'`, and `H = V^R`.
+After reducing by a hypothetical factor of `S`, it forces `H` from `Sp`. -/
+theorem fermat_first_hasse_escape_identity
+    (X T B C V S Sp H : K) (s : Nat)
+    (hS : S = C ^ (2 ^ s) + T * B ^ (2 ^ s))
+    (hsum : B + C = X * V)
+    (hSp : Sp = B ^ (2 ^ s))
+    (hH : H = V ^ (2 ^ s)) :
+    X ^ (2 ^ s) * H = S + (1 + T) * Sp := by
+  rw [hH, ← mul_pow, ← hsum, add_pow_expChar_pow, hS, hSp]
+  ring_nf
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  rw [h2]
+  simp
+
+/-- Conditional quotient-factor specialization of
+`fermat_first_hasse_escape_identity`. -/
+theorem fermat_first_hasse_escape_forced
+    (X T B C V S Sp H : K) (s : Nat)
+    (hS : S = C ^ (2 ^ s) + T * B ^ (2 ^ s))
+    (hsum : B + C = X * V)
+    (hSp : Sp = B ^ (2 ^ s))
+    (hH : H = V ^ (2 ^ s))
+    (hzero : S = 0) :
+    X ^ (2 ^ s) * H = (1 + T) * Sp := by
+  rw [fermat_first_hasse_escape_identity X T B C V S Sp H s hS hsum hSp hH,
+    hzero, zero_add]
+
+/-- At Hasse order `2R`, doubling the odd cofactor writes the first genuinely
+new block-start in terms of derivatives of the two half-index Fibonacci
+polynomials.  This is only the load-bearing ring normalization; identifying
+the terms with Hasse derivatives is the paper-level specialization. -/
+theorem fermat_second_hasse_escape_normal_form
+    (T X dU dV : K) (s : Nat) :
+    dU ^ (2 * (2 ^ s)) +
+        T * (dU ^ 2 + X * dV ^ 2) ^ (2 ^ s) =
+      (1 + T) * dU ^ (2 * (2 ^ s)) +
+        T * X ^ (2 ^ s) * dV ^ (2 * (2 ^ s)) := by
+  rw [add_pow_expChar_pow, mul_pow]
+  have hu : (dU ^ 2) ^ (2 ^ s) = dU ^ (2 * (2 ^ s)) := by
+    rw [← pow_mul]
+  have hv : (dV ^ 2) ^ (2 ^ s) = dV ^ (2 * (2 ^ s)) := by
+    rw [← pow_mul]
+  rw [hu, hv]
+  ring
+
+end FermatFixedAdicJetCore
 
 variable {R : Type*} [CommRing R]
 
