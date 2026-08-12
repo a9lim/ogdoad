@@ -4867,6 +4867,90 @@ proof is known.  Pairwise dummy diamonds are insufficient: the checker has a
 root for which a real-spoiler child crossed with $d$ is itself unsafe, although
 other real replies make the actual $O_d$ branch safe.
 
+The complete defender fan at a dummy exit nevertheless has one exact affine
+contraction which is stronger than any pairwise diamond.  It removes the
+apparent need to choose a distinguished real reply.
+
+\begin{proposition}[dummy-exit parent--even-fan carrier]
+\label{prop:dummy-exit-carrier}
+\PROVED{} Let $q$ be a defender node of one fixed attacker strategy.  Choose
+one distinguished legal child $q_0$ and an even list $E$ of other legal
+children.  Write $b_0$ and $b_i$ for arbitrary lifted odd continuation
+points of these children.  Then
+\[
+ a_q=b_0+\sum_{i\in E}b_i
+\]
+is an odd continuation point at $q$.  If $p$ is the common ancestry prefix
+from the root to $q$, then all terms remain in the same strategy tree and
+\begin{equation}\label{eq:dummy-exit-carrier}
+ (p+a_q)+\sum_{i\in E}(p+b_i)=p+b_0.
+\end{equation}
+The identity remains true after projection away from dummy-incident and
+diagonal coordinates.
+
+At an exit $O_d$ of Proposition~\ref{prop:root-corridor}, take $E$ to be
+all real OPEN replies and $q_0$ to be the legal front CLOSE $C_x$.  Thus the
+dummy parent together with its complete even real fan reduces canonically to
+the actual $C_x$ continuation; no transversal of the real replies remains.
+Over the odd family of corridor exits, any projected prefix ledger which
+cancels the parent and real-fan prefixes therefore leaves an odd family of
+root-lifted $C_x$ continuation points.
+\end{proposition}
+
+\begin{proof}
+There are $1+|E|$ child points, an odd number, so parity-resolved defender
+convolution puts their sum in the parent affine space.  Adding the parent
+point to all ordinary child points cancels each $b_i$ twice.  In the decorated
+identity the even list contributes an even number of copies of $p$, leaving
+one copy from the parent.  Applying the real-edge quotient is linear.  After
+$O_d$ the residual real set has even order, so its complete real OPEN fan is
+even, while $C_x$ is the distinguished additional legal child.
+\end{proof}
+
+The strategy-indexed affine identity, its decorated same-root form, and its
+real-edge projection are kernel-checked in
+\path{formal/Ogdoad/FifoDummyExitCarrier.lean}.  The cross-exit prefix ledger
+is deliberately an explicit hypothesis there; the present paper-level
+corridor construction has not been reified as one finite Lean index type.
+
+This sharpens rather than finishes the corridor reduction.  After
+$O_d,C_x$, the dummy is queued at the tail rather than untouched, only $y$
+remains from the old balanced pair, and the attacker controls whether the
+next move is $C_y$.  The one-front-offset ladder compares the parent with
+this child and therefore produces only even response directions.  It cannot
+cancel the odd affine base left by the family in
+\eqref{eq:dummy-exit-carrier}.  The complete fixed-front prefix theorem also
+cannot be made to carry the immediate $C_y$ leaf, by
+Proposition~\ref{prop:fixed-front-relative-failure}.  The exact residual is
+therefore to combine the odd $C_x$ family with an even family of strictly
+earlier decorated sibling points and continuation directions.  Constructing
+that cross-exit incidence is the same relative-spine equation
+$b_h\in M_h$, now restricted to the canonical least-root corridor.
+The parity assertion is not heuristic: an even list of decorated root points
+is a homogeneous response direction, while a projected equality between an
+odd decorated list and homogeneous directions would itself give a forbidden
+projected-zero root point.  This augmentation lock and the sufficiency of the
+displayed odd-CLOSE/even-sibling incidence equation are kernel-checked in
+\path{formal/Ogdoad/FifoCrossExitIncidence.lean}; the file does not construct
+the incidence equation.
+
+There is one further constructive exchange inside that file.  If the
+canonical $C_x$ child selects $O_z$, then its $C_x,O_z$ continuation and the
+earlier universal $O_z$ sibling are the exact one-front-offset pair; their
+prefix curvature is the unit edge $xz$.  In the even real fan, their two
+decorated points equal the dummy parent plus all real children other than
+$O_z$.  The replacement family is automatically even.  This solves the local
+sibling selection and leaves the aggregate problem in the sharp form
+\begin{equation}\label{eq:cross-exit-residual}
+ \sum_{\ell\ \mathrm{CLOSE\text{-}selected}} c_\ell
+   +\sum_{\ell\ \mathrm{OPEN\text{-}selected}} xz_\ell
+   \in W_{\mathrm{corridor}}+E_{\mathrm{earlier}},
+\end{equation}
+with odd total affine augmentation carried by the canonical exits.  Neither
+term may be discarded: even an edgeless four-real corridor with a
+deterministic least-label OPEN policy can leave one uncancelled unit $xz$,
+while the fixed-front relative failure prevents prescribing a CLOSE leaf.
+
 One unbounded attacker class can nevertheless be contracted completely.  It
 is the class used below to generate the causal simplex caps, so the result is
 not a bounded-support statement in disguise.  Call an attacker

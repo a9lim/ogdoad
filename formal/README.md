@@ -910,6 +910,36 @@ scalar update is the two-edge curvature incident to the active reversed
 cell. This is an augmentation-zero carrier: it organizes the same-OPEN case
 but cannot itself supply the odd third ancestry term required for contraction.
 
+[`Ogdoad/FifoDummyExitCarrier.lean`](Ogdoad/FifoDummyExitCarrier.lean) checks
+the positive carrier at the marked-dummy exits of the least-root corridor.
+At a defender node, a distinguished legal child together with an even list
+of ordinary children defines an odd parent affine point; adding that parent
+back to all ordinary lifted child points cancels them exactly and leaves the
+distinguished point. The strategy-prefix version keeps all terms inside one
+Type-valued strategy tree, and the projected ledger records the aggregate
+prefix cancellation needed at isolated-dummy exits. The corridor ledger is
+an explicit hypothesis: the module neither constructs the corridor nor
+contracts the resulting odd family of distinguished front-CLOSE
+continuations.
+
+[`Ogdoad/FifoCrossExitIncidence.lean`](Ogdoad/FifoCrossExitIncidence.lean)
+fixes the augmentation of the residual equation. Bare ancestry prefixes have
+graph evaluation equal to the change in public potential; only a prefix plus
+an odd continuation representative is uniformly a root affine point. An even
+list of such decorated points is a response direction, and descendant
+directions lift through a strategy prefix. Consequently the canonical
+front-CLOSE exits carry the odd augmentation, while any compensating family
+of earlier decorated siblings must be even. The final theorem proves that an
+odd canonical family, an even earlier-sibling family, and homogeneous ladder
+directions contract the projected root under an explicit incidence equality.
+For an OPEN-selected CLOSE child, the operational `C_x; O_z` branch and the
+earlier universal `O_z` sibling form the exact one-front-offset pair and
+differ by the unit edge `xz`. The selected-complement identity exchanges this
+pair for the parent plus all other real children, automatically an even
+decorated family. It removes the local sibling-choice obstruction but leaves
+the aggregate unit holonomies and CLOSE-selected exits to be coupled. The
+module does not construct that final cross-exit equality from the corridor.
+
 [`Ogdoad/FifoMinHotCurvature.lean`](Ogdoad/FifoMinHotCurvature.lean) checks
 the sharp cross-target obstruction at the rank-minimal hot singleton wall.
 Every actual Type-valued target-one policy selects the charged front CLOSE,

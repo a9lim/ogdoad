@@ -188,6 +188,26 @@ not a scalar parity identity.
   return to a smaller braid, with exact two-edge curvature. Every such square
   has even augmentation, so this organizes the last pairwise branch but does
   not create the required odd ancestry certificate.
+- `formal/Ogdoad/FifoDummyExitCarrier.lean` contracts the complete defender
+  fan at each dummy exit without choosing a real-reply transversal. One
+  distinguished front-CLOSE child plus the even list of real OPEN children
+  gives an odd parent point; the parent together with every real child then
+  cancels exactly to the distinguished child, inside the same Type-valued
+  strategy and after real-edge projection. The cross-exit prefix ledger is an
+  explicit hypothesis, and the surviving odd family of front-CLOSE
+  continuations is not contracted locally.
+- `formal/Ogdoad/FifoCrossExitIncidence.lean` proves the augmentation lock on
+  the residual equation. Bare prefixes have variable graph evaluation; after
+  decorating by continuation points, the canonical CLOSE family is odd and
+  every compensating family of earlier sibling points must be even. An odd
+  canonical family plus even siblings and homogeneous ladder directions
+  contracts the projected root under one explicit incidence equality. The
+  `C_x; OPEN z` continuation and the earlier universal `OPEN z` sibling are
+  an exact one-front-offset pair with unit `xz` curvature; a selected-
+  complement identity replaces that pair by the parent plus every other real
+  child, an automatically even family. The file proves this local exchange,
+  sufficiency, and parity, not cancellation of the aggregate unit holonomies
+  together with the CLOSE-selected exits.
 - `formal/Ogdoad/FifoMinHotCurvature.lean` proves that the two target sheets
   at a minimum-hot singleton wall select opposite CLOSE/OPEN sides for every
   actual policy. Their two-step schedules differ by one real edge coordinate,
@@ -278,6 +298,21 @@ non-real coordinates. Local Bellman target-one status supplies no extra
 identity beyond attacker pruning and defender completeness, so the list must
 couple several siblings and, in general, several front levels.
 
+The least-root corridor now gives the smallest positive carrier for that
+list. At every marked-dummy exit, parent-plus-even-fan cancellation leaves one
+canonical root-lifted `C_x` point. The paper-level corridor ledger identifies
+the projected prefix cancellation needed to aggregate the odd exit family;
+the Lean carrier keeps that cross-exit equality as an explicit hypothesis.
+The remaining equation must add an
+even family of strictly earlier decorated siblings and descendant directions
+to cancel this odd CLOSE family. The one-front-offset ladder supplies only
+even directions, and the fixed-front relative no-go forbids prescribing the
+next immediate CLOSE. Thus the unresolved statement is the cross-exit
+incidence needed for this restricted relative-spine equation: prove that a
+nonzero aggregate local holonomy forces a strictly earlier safe sibling, or
+equivalently construct the required even family of earlier decorated points.
+It is not a choice of one reply inside each dummy fan.
+
 This is the only missing mathematical step. More exhaustive enumeration or a
 new scalar queue invariant would be useful for falsification, but neither is
 the stated target.
@@ -297,6 +332,8 @@ the stated target.
 - [`formal/Ogdoad/FifoCrossClose.lean`](../formal/Ogdoad/FifoCrossClose.lean)
 - [`formal/Ogdoad/FifoMixedCross.lean`](../formal/Ogdoad/FifoMixedCross.lean)
 - [`formal/Ogdoad/FifoSameOpenBraid.lean`](../formal/Ogdoad/FifoSameOpenBraid.lean)
+- [`formal/Ogdoad/FifoDummyExitCarrier.lean`](../formal/Ogdoad/FifoDummyExitCarrier.lean)
+- [`formal/Ogdoad/FifoCrossExitIncidence.lean`](../formal/Ogdoad/FifoCrossExitIncidence.lean)
 - [`formal/Ogdoad/FifoMinHotCurvature.lean`](../formal/Ogdoad/FifoMinHotCurvature.lean)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`experiments/linking_game.py`](../experiments/linking_game.py)
