@@ -173,6 +173,16 @@ equivalences. The paper supplies the minimal-failure specialization, identifies
 the triangular pair sum with the selected minimal polynomial's second
 coefficient, and proves the resultant coefficient recurrence that fixes the
 literal quarter-Frobenius orientation with period four.
+Lean additionally checks the sparse quartic obtained from two literal Conway
+edges, the four-coordinate multiplication identity, the induced scalar power
+recurrence, and the product-uniqueness theorem showing that the normalized QF
+equation has a unique abstract right-hand coordinate. The Fibonacci-state
+induction, its selected specialization, and the QF/AE4 identification remain
+paper-level. Lean also checks
+the Euclidean modular reductions underlying the conditional Jacobi
+fingerprints of the selected quarter-Frobenius classes. The
+Mobius/Artin--Schreier equivalences, fibre count, finite-field specialization,
+and Jacobi-reciprocity calculation remain paper-level.
 The minimal-failure arithmetic and finite-field Fibonacci-period
 specialization remain paper-level.  The paper iterates those coordinates to
 show that recursive ancestry selects a Frobenius orbit while literal order only

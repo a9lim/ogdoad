@@ -6045,7 +6045,204 @@ theorem endpoint_plus_one_divisibility_contradiction
   have hRle : R ≤ 2 := Nat.le_of_dvd (by norm_num) hR2
   omega
 
+/-- Eliminating two consecutive selected Conway quadratics gives the
+literal sparse quartic over the second lower field. -/
+theorem conway_two_edge_sparse_quartic
+    {F : Type*} [Field F] [CharP F 2]
+    (C A a : F)
+    (hA : A ^ 2 = C * A + C ^ 3)
+    (ha : a ^ 2 = A * a + A ^ 3) :
+    a ^ 4 + C * a ^ 3 + C ^ 4 * a ^ 2 + C ^ 5 * a + C ^ 9 = 0 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo, zero_add]
+  have hA3 : A ^ 3 = (C ^ 2 + C ^ 3) * A + C ^ 4 := by
+    calc
+      A ^ 3 = A * A ^ 2 := by ring
+      _ = A * (C * A + C ^ 3) := by rw [hA]
+      _ = C * A ^ 2 + C ^ 3 * A := by ring
+      _ = C * (C * A + C ^ 3) + C ^ 3 * A := by rw [hA]
+      _ = (C ^ 2 + C ^ 3) * A + C ^ 4 := by ring
+  let P0 := a ^ 2 + C ^ 4
+  let P1 := a + C ^ 2 + C ^ 3
+  have hp : P0 + A * P1 = 0 := by
+    dsimp [P0, P1]
+    rw [ha, hA3]
+    ring_nf
+    simp [htwo]
+  have hprod : (P0 + A * P1) * (P0 + (A + C) * P1) = 0 := by
+    rw [hp, zero_mul]
+  have hexpand :
+      (P0 + A * P1) * (P0 + (A + C) * P1) =
+        a ^ 4 + C * a ^ 3 + C ^ 4 * a ^ 2 + C ^ 5 * a + C ^ 9 := by
+    calc
+      (P0 + A * P1) * (P0 + (A + C) * P1) =
+          P0 ^ 2 + C * P0 * P1 + (A ^ 2 + C * A) * P1 ^ 2 := by
+            ring_nf
+            simp [htwo]
+      _ = P0 ^ 2 + C * P0 * P1 + C ^ 3 * P1 ^ 2 := by
+            rw [hA]
+            ring_nf
+            simp [htwo]
+      _ = a ^ 4 + C * a ^ 3 + C ^ 4 * a ^ 2 + C ^ 5 * a + C ^ 9 := by
+            dsimp [P0, P1]
+            ring_nf
+            rw [hthree, hfour, htwo]
+            ring
+  rw [← hexpand]
+  exact hprod
+
+/-- Multiplication by the selected top element in the literal
+`(1,A,a,Aa)` coordinates over the second lower field. -/
+theorem conway_two_edge_mul_coords
+    {F : Type*} [Field F] [CharP F 2]
+    (C A a p q r s : F)
+    (hA : A ^ 2 = C * A + C ^ 3)
+    (ha : a ^ 2 = A * a + A ^ 3) :
+    a * (p + A * q + a * r + A * a * s) =
+      (C ^ 4 * r + (C ^ 5 + C ^ 6) * s) +
+      A * ((C ^ 2 + C ^ 3) * r + C ^ 3 * s) +
+      a * (p + C ^ 3 * s) +
+      A * a * (q + r + C * s) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hA3 : A ^ 3 = (C ^ 2 + C ^ 3) * A + C ^ 4 := by
+    calc
+      A ^ 3 = A * A ^ 2 := by ring
+      _ = A * (C * A + C ^ 3) := by rw [hA]
+      _ = C * A ^ 2 + C ^ 3 * A := by ring
+      _ = C * (C * A + C ^ 3) + C ^ 3 * A := by rw [hA]
+      _ = (C ^ 2 + C ^ 3) * A + C ^ 4 := by ring
+  have hA4 : A ^ 4 = C ^ 3 * A + C ^ 5 + C ^ 6 := by
+    calc
+      A ^ 4 = (A ^ 2) ^ 2 := by ring
+      _ = (C * A + C ^ 3) ^ 2 := by rw [hA]
+      _ = C ^ 2 * A ^ 2 + C ^ 6 := by
+        rw [add_sq, mul_pow]
+        simp [htwo]
+        ring
+      _ = C ^ 2 * (C * A + C ^ 3) + C ^ 6 := by rw [hA]
+      _ = C ^ 3 * A + C ^ 5 + C ^ 6 := by ring
+  calc
+    a * (p + A * q + a * r + A * a * s) =
+        a * p + A * a * q + a ^ 2 * r + A * a ^ 2 * s := by ring
+    _ = a * p + A * a * q + (A * a + A ^ 3) * r +
+          (A ^ 2 * a + A ^ 4) * s := by rw [ha]; ring
+    _ = a * p + A * a * q +
+        (A * a + ((C ^ 2 + C ^ 3) * A + C ^ 4)) * r +
+          ((C * A + C ^ 3) * a +
+            (C ^ 3 * A + C ^ 5 + C ^ 6)) * s := by
+          rw [hA, hA3, hA4]
+    _ = (C ^ 4 * r + (C ^ 5 + C ^ 6) * s) +
+        A * ((C ^ 2 + C ^ 3) * r + C ^ 3 * s) +
+        a * (p + C ^ 3 * s) +
+        A * a * (q + r + C * s) := by ring_nf
+
+/-- Cayley--Hamilton for the four-state recurrence: every power coordinate
+obeys the sparse quartic recurrence supplied by the two literal edges. -/
+theorem conway_two_edge_power_recurrence
+    {F : Type*} [Field F] [CharP F 2]
+    (C A a : F) (j : Nat)
+    (hA : A ^ 2 = C * A + C ^ 3)
+    (ha : a ^ 2 = A * a + A ^ 3) :
+    a ^ (j + 4) = C * a ^ (j + 3) + C ^ 4 * a ^ (j + 2) +
+      C ^ 5 * a ^ (j + 1) + C ^ 9 * a ^ j := by
+  have hquartic := conway_two_edge_sparse_quartic C A a hA ha
+  have hbase : a ^ 4 =
+      C * a ^ 3 + C ^ 4 * a ^ 2 + C ^ 5 * a + C ^ 9 := by
+    have hre : a ^ 4 +
+        (C * a ^ 3 + C ^ 4 * a ^ 2 + C ^ 5 * a + C ^ 9) = 0 := by
+      simpa only [add_assoc] using hquartic
+    exact (eq_neg_of_add_eq_zero_left hre).trans (CharTwo.neg_eq _)
+  calc
+    a ^ (j + 4) = a ^ j * a ^ 4 := pow_add a j 4
+    _ = a ^ j * (C * a ^ 3 + C ^ 4 * a ^ 2 + C ^ 5 * a + C ^ 9) := by
+      rw [hbase]
+    _ = C * (a ^ j * a ^ 3) + C ^ 4 * (a ^ j * a ^ 2) +
+          C ^ 5 * (a ^ j * a) + C ^ 9 * a ^ j := by ring
+    _ = C * a ^ (j + 3) + C ^ 4 * a ^ (j + 2) +
+          C ^ 5 * a ^ (j + 1) + C ^ 9 * a ^ j := by
+      rw [pow_add, pow_add, pow_add]
+      simp
+
+omit [CharP F 2] in
+/-- The normalized QF parent and the AE4 right-hand value determine one
+another: this identity is why QF3 alone supplies no independent constraint. -/
+theorem qf_parent_times_AE4_value_sq
+    {F : Type*} [Field F]
+    (A S : F) (K : Nat) (hS : S ≠ 0) (hK : 1 ≤ K) :
+    (A ^ K / S ^ 2) * (A ^ (K - 1) * S) ^ 2 = A ^ (3 * K - 2) := by
+  field_simp [hS]
+  rw [← pow_mul, ← pow_add]
+  have hexp : K + (K - 1) * 2 = 3 * K - 2 := by omega
+  rw [hexp]
+
+/-- Exact saturation boundary: once the normalized QF parent is fixed,
+its product equation has the AE4 right-hand value as its unique solution. -/
+theorem qf_parent_product_iff_AE4_value
+    {F : Type*} [Field F] [CharP F 2]
+    (A S W : F) (K : Nat) (hA : A ≠ 0) (hS : S ≠ 0) (hK : 1 ≤ K) :
+    (A ^ K / S ^ 2) * W ^ 2 = A ^ (3 * K - 2) ↔
+      W = A ^ (K - 1) * S := by
+  let W0 := A ^ (K - 1) * S
+  have hB : A ^ K / S ^ 2 ≠ 0 :=
+    div_ne_zero (pow_ne_zero _ hA) (pow_ne_zero _ hS)
+  have hcanon : (A ^ K / S ^ 2) * W0 ^ 2 = A ^ (3 * K - 2) := by
+    dsimp [W0]
+    exact qf_parent_times_AE4_value_sq A S K hS hK
+  constructor
+  · intro h
+    have hsquares : W ^ 2 = W0 ^ 2 := by
+      apply (mul_left_cancel₀ hB)
+      exact h.trans hcanon.symm
+    rcases eq_or_eq_neg_of_sq_eq_sq W W0 hsquares with hw | hw
+    · exact hw
+    · exact hw.trans (CharTwo.neg_eq W0)
+  · intro h
+    rw [h]
+    exact hcanon
+
 end FermatLiteralAncestryCoordinates
+
+section FermatQuarterJacobiCore
+
+/-- Euclidean reductions behind the quarter-class Jacobi fingerprints when
+`R < P` and `P = R*T`. -/
+theorem fermat_quarter_jacobi_smallR_reductions (R T : ℤ) :
+    let P := R * T
+    let m := P ^ 2 + 1
+    let aPlus := 1 + R * P
+    let aMinus := R * P - 1
+    m ≡ 1 - T [ZMOD aPlus] ∧
+      m ≡ T + 1 [ZMOD aMinus] := by
+  dsimp
+  constructor <;> rw [Int.modEq_iff_dvd]
+  · use -T
+    ring
+  · use -T
+    ring
+
+/-- Euclidean reductions behind the quarter-class Jacobi fingerprints when
+`R > P`, written `R = P*T`, `P = X*T`. -/
+theorem fermat_quarter_jacobi_largeR_reductions (X T : ℤ) :
+    let P := X * T
+    let R := P * T
+    let m := P ^ 2 + 1
+    1 + R * P ≡ 1 - T [ZMOD m] ∧
+      1 - R * P ≡ T + 1 [ZMOD m] := by
+  dsimp
+  constructor <;> rw [Int.modEq_iff_dvd]
+  · use -T
+    ring
+  · use T
+    ring
+
+end FermatQuarterJacobiCore
 
 
 section FermatQuotientWindowFibonacciCore

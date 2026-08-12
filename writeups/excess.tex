@@ -15237,6 +15237,104 @@ sum with the second polynomial coefficient and the resultant coefficient
 recurrence remain paper-level.
 \end{proof}
 
+\begin{proposition}[the two-edge Conway remainder has a four-state recurrence]
+\label{prop:fermat-two-edge-coefficient-recurrence}
+Retain the minimal-first-failure notation and put
+\[
+ C=a_{n-3},\qquad A=a_{n-2},\qquad a=a_{n-1}.
+\]
+Thus
+\[
+ A^2=CA+C^3,\qquad a^2=Aa+A^3.
+\]
+Eliminating the intermediate quadratic gives the sparse literal quartic
+\[
+ \boxed{a^4+Ca^3+C^4a^2+C^5a+C^9=0.}              \tag{\(\mathsf{QFC}_1\)}
+\]
+In the ordered \(E_{n-3}\)-basis \((1,A,a,Aa)\), multiplication by \(a\)
+is the four-state operator
+\[
+ \mathcal M_C(p,q,r,s)=
+ \left(
+ \begin{array}{c}
+ C^4r+(C^5+C^6)s\\
+ (C^2+C^3)r+C^3s\\
+ p+C^3s\\
+ q+r+Cs
+ \end{array}
+ \right).                                           \tag{\(\mathsf{QFC}_2\)}
+\]
+Set \(e_0=0\), \(e_1=(1,0,0,0)\), and
+\[
+ e_{j+2}=e_{j+1}+\mathcal M_Ce_j.
+\]
+For every (j), define the canonical quadratic remainder by
+\[
+ S_j(X)\equiv U_j(Y)+XV_j(Y)\pmod{X^2+YX+Y^3}.
+\]
+If \(e_j=(p_j,q_j,r_j,s_j)\), then
+\[
+ \boxed{
+ S_j(a)=p_j+Aq_j+ar_j+Aa s_j,
+ \qquad V_j(A)=r_j+A s_j.}                         \tag{\(\mathsf{QFC}_3\)}
+\]
+Consequently the next literal \(c_{n-2}\)-coordinate of \(V_g(A)\) is
+\(Cs_g\).  The proposed closure inequality at the QF seam is therefore an
+explicit inequality between fourth components of this recurrence.
+
+This reformulation does not itself supply that inequality.  Under
+hypothetical failure, \(S_g(a)=a^K\) is exactly the complete state equality
+\[
+ e_g=\mathcal M_C^K e_1,                            \tag{\(\mathsf{QFC}_4\)}
+\]
+so comparing fourth components is a projection of the original equality,
+not a second condition.  The normalized QF parent has the same saturation.
+Writing
+\[
+ S=S_K(A),\qquad W=A^{K-1}S,qquad B=\frac{A^K}{S^2},
+\]
+one has
+\[
+ \boxed{BW^2=A^{3K-2},}                             \tag{\(\mathsf{QFC}_5\)}
+\]
+and, because \(B\ne0\) and squaring is injective, this abstract product
+equation determines \(W\) uniquely.  The paper-level QF/AE4 identification
+specializes this product core to the four literal coordinates; it recovers the
+\(\mathsf{AE}_4\) right-hand value but does not constrain \(V_g(A)\)
+independently.  A proof must establish a genuinely new
+inequality for the selected fourth-coordinate recurrence, rather than apply
+Cayley--Hamilton or Frobenius once more.
+\end{proposition}
+
+\begin{proof}
+Substituting \(A^2=CA+C^3\) into \(A^3\) gives
+\[
+ A^3=(C^2+C^3)A+C^4.
+\]
+Taking the coefficient norm/resultant
+\[
+ (X^2+AX+A^3)(X^2+(A+C)X+(A+C)^3)
+\]
+from \(E_{n-2}\) to \(E_{n-3}\), and then evaluating at \(X=a\), gives
+\(\mathsf{QFC}_1\).  A direct reduction of
+\(a(p+Aq+ar+Aa s)\) by the two displayed quadratic relations gives
+\(\mathsf{QFC}_2\).  The Fibonacci recurrence then proves
+\(\mathsf{QFC}_3\) by induction.  The equality
+\(S_g(a)=a^K\) gives \(\mathsf{QFC}_4\).
+
+Finally, cancellation of \(S^2\) gives
+\[
+ \frac{A^K}{S^2}(A^{K-1}S)^2=A^{3K-2}.
+\]
+Conversely, multiplication by \(B\ne0\) and injectivity of Frobenius in the
+field show that any other solution of the same square equation equals \(W\).
+Lean kernel-checks the sparse quartic, the multiplication-coordinate identity,
+the induced scalar quartic recurrence for powers of the top element, the
+abstract normalized-product identity, and its uniqueness equivalence.  The
+Fibonacci-state induction \(\mathsf{QFC}_3\), its selected specialization
+\(\mathsf{QFC}_4\), and the QF/AE4 identification remain paper-level.
+\end{proof}
+
 \begin{remark}[coefficient order is not ancestry order]
 Even retaining one exact ancestry edge does not make the selected factor
 lexicographically extremal.  At the first composite Fermat level the
@@ -15591,6 +15689,129 @@ contrary to \(R\geq8\).  This proves \((\mathsf{HI}_2)\).
 Lean kernel-checks \((\mathsf{HI}_1)\) and the complete mixed-involution
 contradiction.  The minimal-first-failure specialization remains
 paper-level.
+\end{proof}
+
+\begin{proposition}[quarter fibres and their selected Jacobi fingerprints]
+\label{prop:fermat-quarter-jacobi-sieve}
+Let \(P\geq4\) be a power of two, put \(Q=P^2\), \(m=Q+1\), and work in
+\[
+ k_0=\mathbb F_P\subset k_1=\mathbb F_{P^2}
+ \subset k_2=\mathbb F_{P^4}.
+\]
+Let \(\theta\in k_1^\times\) have order \(P+1\), put
+\(b=(1+\theta)^{-1}\), and let
+\[
+ U=\{u\in k_2^\times:u^{P^2+1}=1\}.
+\]
+For \(u\ne1\), set \(z=(1+u)^{-1}\).  Then
+\[
+ \boxed{
+ \begin{aligned}
+ u^P(\theta+u)=1+\theta u
+   &\iff z^P+z=b,\\
+ u^P(1+\theta u)=\theta+u
+   &\iff z^P+z=b+1.
+ \end{aligned}}                                      \tag{\(\mathsf{QFS}_1\)}
+\]
+Each line has exactly \(P\) solutions \(u\ne1\), all lying in \(U\), and
+the two solution sets are disjoint.  If a primitive \(v\in U\) satisfies
+the first line, that line contains \(v^{\pm1}\), while the second contains
+\(v^{\pm P}\).  Thus both endpoint equations contain primitive points;
+multiplicative order alone cannot select one.
+
+Now retain the live minimal-first-failure notation of
+Propositions~\ref{prop:fermat-literal-quarter-orientation} and
+\ref{prop:fermat-ae4-full-lower-inverse}.  A proper Fermat factor forces
+\(n\geq5\).  Here
+\[
+ P=2^{2^{n-2}}>B=2^{n+2},\qquad B\leq R<P^2,
+ \qquad \eta=1+RK,
+\]
+and \(\mathsf{FI}_5\) fixes
+\[
+ \left(\frac{\eta}{m}\right)_J=\sigma,
+ \qquad \sigma=(-1)^{(\ell-1)/B}\in\{\pm1\}.
+\]
+Suppose \(R\ne P\).  Define powers of two \(X,T\) by \(XT=P\) and
+\[
+ (X,T)=
+ \begin{cases}
+  (R,P/R),&R<P,\\
+  (P^2/R,R/P),&R>P.
+ \end{cases}
+\]
+Then \(T\geq2\), and the selected \(v\)-orbit quarter-Frobenius classes
+have the exact conditional fingerprints
+\[
+ \boxed{
+ \begin{aligned}
+ K\equiv P\pmod m
+ &\Longrightarrow
+ \sigma=\left(\frac{X^2+1}{T-1}\right)_J,\\
+ K\equiv-P\pmod m
+ &\Longrightarrow
+ \sigma=\left(\frac{X^2+1}{T+1}\right)_J.
+ \end{aligned}}                                      \tag{\(\mathsf{QFS}_2\)}
+\]
+We use the convention \((\frac c1)_J=1\).  A mismatch with
+\(\mathsf{FI}_5\), including a zero right-hand symbol, excludes the
+corresponding quarter class.  If \(R=P\), the class \(K\equiv P\pmod m\)
+is impossible because \(\eta\equiv0\pmod m\), whereas
+\(K\equiv-P\pmod m\) gives \(\eta\equiv2\pmod m\) and
+\((\frac2m)_J=1=\sigma\), so \(\mathsf{FI}_5\) does not exclude it.
+
+This is an exact conditional ancestry-sensitive sieve, not CSDU.  The first
+fibre in \(\mathsf{QFS}_1\) has \(P\) nontrivial points and the second has
+another \(P\).  Equation~\(\mathsf{QFS}_2\) treats only the selected
+quarter-Frobenius classes \(v^{\pm P}\); the adjacent-class theorem already
+excludes \(v^{\pm1}\).  The other \(P-2\) points in each fibre require
+literal discrete-log information beyond order, norm, and the aggregate
+Jacobi character.
+\end{proposition}
+
+\begin{proof}
+Since \(\theta^P=\theta^{-1}\), one has \(b^P+b=1\).  Substitution of
+\(u=(z+1)/z\) proves \(\mathsf{QFS}_1\).  The kernel of
+\(x\mapsto x^P+x\) on \(k_2\) is \(k_0\), and its image is the kernel of
+\(\operatorname{Tr}_{k_2/k_0}\).  Both \(b\) and \(b+1\) have zero
+\(k_2/k_0\)-trace, so each fibre has \(P\) elements.  Neither right-hand
+side is zero.  Moreover \(z^{P^2}=z+1\), hence \(u^{P^2}=u^{-1}\).
+The live orientation \(\mathsf{QF}_2\) places \(v\) in the first fibre;
+inversion preserves that fibre and \(P\)-Frobenius swaps the two, proving
+the assertions about \(v^{\pm1}\) and \(v^{\pm P}\).
+
+In the live setting, \(\ell,d\geq R+1\), so
+\((R+1)^2\leq\ell d=P^4+1\), which gives \(R<P^2\).  If \(R<P\), write
+\(P=RT\).  Quadratic reciprocity and
+\[
+ m+T-1=T(1+RP),\qquad
+ m=T(RP-1)+(T+1)
+\]
+give
+\[
+ \left(\frac{1+RP}{m}\right)_J
+ =\left(\frac{R^2+1}{T-1}\right)_J,
+ \qquad
+ \left(\frac{1-RP}{m}\right)_J
+ =\left(\frac{R^2+1}{T+1}\right)_J.
+\]
+The reciprocity signs in the second equality cancel; this also covers
+\(T=2\), while the first symbol then has denominator one.
+
+If \(R>P\), write \(R=PT\) and \(P=XT\).  Modulo \(m\),
+\[
+ 1+RP\equiv1-T,\qquad 1-RP\equiv1+T,
+\]
+and a second reciprocity reduction, using
+\(P^2+1\equiv X^2+1\pmod{T\mp1}\), gives the same formulas.
+Since \(\eta\equiv1+RK\pmod m\), these are precisely
+\(\mathsf{QFS}_2\).  The \(R=P\) conclusions follow from
+\(P^2\equiv-1\pmod m\), \(m\equiv1\pmod8\), and
+\(\mathsf{FI}_5\).
+
+Lean kernel-checks the Euclidean modular reductions in the two ranges.
+The M\"obius/Artin--Schreier equivalences, fibre count, finite-field
+specialization, and Jacobi reciprocity calculation remain paper-level.
 \end{proof}
 
 \begin{corollary}[the smallest proper lower stratum is excluded]
@@ -28397,6 +28618,17 @@ the selected next coefficient is now two explicit M\"obius equations.  Neither
 is forced by hypothetical failure, so the remaining additive target is to
 compare that oriented coefficient with the quadratic remainder coefficient of
 \(V_g(A)\).
+Proposition~\ref{prop:fermat-two-edge-coefficient-recurrence} makes that target
+literal: two Conway edges give a sparse quartic and a four-state recurrence
+whose fourth component is the desired next coefficient.  The complete state
+equality under failure, and the normalized QF product, show at the same time
+that Cayley--Hamilton and Frobenius merely re-encode \(\mathsf{AE}_4\).
+Proposition~\ref{prop:fermat-quarter-jacobi-sieve} identifies the two M\"obius
+equations as disjoint size-\(P\) Artin--Schreier fibres, each containing
+primitive points, and gives exact conditional Jacobi fingerprints for the
+selected \(v\)-orbit quarter classes \(K\equiv\pm P\).  A fingerprint mismatch
+excludes that class, but the noncanonical fibre points remain compatible with
+failure.
 Corollary~\ref{cor:fermat-additive-size-obstruction} then excludes the
 smallest proper lower stratum.  In the proper-loss branch, the complementary
 order \(e\) obeys \(e\geq4M+1\), together with

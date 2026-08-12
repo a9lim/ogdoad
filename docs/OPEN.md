@@ -472,6 +472,23 @@ absolute boundedness.
   next coefficient to be selected. The surviving target is the actual
   oriented coefficient versus the quadratic remainder coefficient of
   `V_g(A)`.
+  That target now has an exact four-state form. Two consecutive Conway
+  quadratics eliminate to
+  `a^4+C*a^3+C^4*a^2+C^5*a+C^9=0`, and multiplication by `a` in the
+  literal basis `(1,A,a,A*a)` gives a sparse recurrence whose fourth
+  component, multiplied by `C`, is precisely the next lower coefficient of
+  `V_g(A)`. Under failure, however, the complete four-state equality is just
+  `S_g(a)=a^K`;
+  Cayley--Hamilton and Frobenius recover `AE4` without adding a second
+  constraint. The abstract normalized-product uniqueness core likewise
+  becomes only a re-encoding after the paper-level QF/AE4 identification.
+  The two QF endpoint equations are also exact Artin--Schreier fibres of
+  size `P`. Both contain primitive points, so order cannot choose between
+  them. The FI5 Jacobi sign nevertheless gives a conditional sieve on the
+  selected quarter-Frobenius classes `K=+/-P mod (P^2+1)`: an explicit
+  smaller Jacobi symbol must match FI5, and a mismatch excludes that class.
+  The remaining noncanonical fibre points still require literal
+  discrete-log information.
   Nor is the selected minimal polynomial coefficient-lex extremal: at the first
   composite Fermat level it is bracketed in both coefficient orientations by
   two one-step descendants of full-order parents lying in the same proper

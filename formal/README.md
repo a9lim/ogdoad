@@ -159,7 +159,14 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   quarter-Frobenius proposition. Identifying the triangular pair sum with the
   second coefficient of the selected minimal polynomial, and the resultant
   coefficient recurrence proving the four-periodic orientation, remain
-  paper-level.
+  paper-level. It further checks the sparse two-edge Conway quartic, the
+  four-coordinate multiplication identity, its induced scalar power
+  recurrence, and the abstract normalized product-uniqueness lemma. The
+  Fibonacci-state induction, selected specialization, and QF/AE4
+  identification remain paper-level. The two Euclidean modular reductions
+  behind the selected quarter-class Jacobi fingerprints are kernel-checked;
+  the Mobius/Artin--Schreier equivalences, fibre count, finite-field
+  specialization, and Jacobi reciprocity remain paper-level.
   Literal ordinal labeling, recursive
   Frobenius-orbit selection, and finite-field period specialization remain
   paper-level;
