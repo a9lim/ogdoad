@@ -210,6 +210,87 @@ theorem maximal_order_iff_all_prime_power_obstructions {G : Type*}
     exact (not_isPthPower_iff_not_orderOf_dvd_card_div hpcard a).mp
       (h p hp hpcard)
 
+/-- The generator-coordinate form of the Conway--Popovych selected-discrete-
+log condition: the selected exponent is a unit modulo the ambient cyclic
+group order.  This definition does not assert that a concrete Conway exponent
+has the property. -/
+def IsSelectedLogUnit (N r : Nat) : Prop :=
+  r.Coprime N
+
+/-- The selected-discrete-log unit condition can be read directly from the
+prime support of the exponent: no prime divisor of the ambient order may
+divide the selected exponent. -/
+theorem isSelectedLogUnit_iff_not_prime_dvd (N r : Nat) :
+    IsSelectedLogUnit N r ↔
+      ∀ p, p.Prime → p ∣ N → ¬p ∣ r := by
+  constructor
+  · intro h p hp hpN hpr
+    exact (Nat.not_coprime_of_dvd_of_dvd hp.one_lt hpN hpr) h.symm
+  · intro h
+    exact (Nat.coprime_of_dvd h).symm
+
+/-- Abstract all-level selected-discrete-log target.  Supplying the actual
+Conway functions `N` and `r` is deliberately separate: this definition makes
+the universal quantifier kernel-visible without asserting its open instances. -/
+def SelectedLogUnitTarget (N r : Nat → Nat) : Prop :=
+  ∀ n, IsSelectedLogUnit (N n) (r n)
+
+/-- Prime-by-prime form of the abstract all-level target. -/
+theorem selectedLogUnitTarget_iff_not_prime_dvd (N r : Nat → Nat) :
+    SelectedLogUnitTarget N r ↔
+      ∀ n p, p.Prime → p ∣ N n → ¬p ∣ r n := by
+  simp only [SelectedLogUnitTarget, isSelectedLogUnit_iff_not_prime_dvd]
+
+/-- Exact order formula for a selected discrete logarithm.  If `omega`
+generates the finite cyclic group and `w = omega ^ r`, then the order lost by
+`w` is precisely `gcd(N,r)`. -/
+theorem orderOf_generator_pow_eq_card_div_gcd {G : Type*}
+    [Group G] [Fintype G] (omega : G) (r : Nat)
+    (homega : orderOf omega = Fintype.card G) :
+    orderOf (omega ^ r) =
+      Fintype.card G / Nat.gcd (Fintype.card G) r := by
+  rw [orderOf_pow, homega]
+
+/-- The selected exponent is a unit exactly when its selected group element
+has maximal order.  This is the formal core of the Conway--Popovych CSDU
+reduction; proving the left side for the recursively selected Conway exponent
+is the still-open arithmetic input. -/
+theorem isSelectedLogUnit_iff_maximal_order {G : Type*}
+    [Group G] [Fintype G] (omega : G) (r : Nat)
+    (homega : orderOf omega = Fintype.card G) :
+    IsSelectedLogUnit (Fintype.card G) r ↔
+      orderOf (omega ^ r) = Fintype.card G := by
+  rw [IsSelectedLogUnit, Nat.coprime_iff_gcd_eq_one, Nat.gcd_comm,
+    orderOf_generator_pow_eq_card_div_gcd omega r homega, Nat.div_eq_self]
+  simp only [Fintype.card_ne_zero, false_or]
+
+/-- Prime-by-prime Kummer form of the selected-discrete-log unit condition.
+It retains the full primary order: the test is non-`p`-power status for every
+prime divisor of the complete group order, not merely divisibility of the
+selected order by `p`. -/
+theorem isSelectedLogUnit_iff_all_prime_power_obstructions {G : Type*}
+    [CommGroup G] [Fintype G] [IsCyclic G] (omega : G) (r : Nat)
+    (homega : orderOf omega = Fintype.card G) :
+    IsSelectedLogUnit (Fintype.card G) r ↔
+      ∀ p, p.Prime → p ∣ Fintype.card G →
+        ¬IsPthPower p (omega ^ r) := by
+  rw [isSelectedLogUnit_iff_maximal_order omega r homega,
+    maximal_order_iff_all_prime_power_obstructions]
+
+/-- Unit status of a selected discrete logarithm is independent of the chosen
+cyclic generator.  Equality of the represented selected elements transports
+both exponent tests through their common maximal-order statement. -/
+theorem isSelectedLogUnit_generator_independent {G : Type*}
+    [Group G] [Fintype G]
+    (omega omega' : G) (r r' : Nat)
+    (homega : orderOf omega = Fintype.card G)
+    (homega' : orderOf omega' = Fintype.card G)
+    (hselected : omega ^ r = omega' ^ r') :
+    IsSelectedLogUnit (Fintype.card G) r ↔
+      IsSelectedLogUnit (Fintype.card G) r' := by
+  rw [isSelectedLogUnit_iff_maximal_order omega r homega,
+    isSelectedLogUnit_iff_maximal_order omega' r' homega', hselected]
+
 section FermatLocalSymbol
 
 variable {K : Type*} [Field K]

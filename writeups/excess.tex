@@ -18382,6 +18382,82 @@ expansion, splitting and orbit count, and cyclotomic norm specialization
 remain paper-level.
 \end{proof}
 
+\begin{proposition}[odd roots preserve the selected transversality]
+\label{prop:fermat-root-transversality-no-go}
+Let \(K/\mathbf Q_2\) be unramified, let \(L/K\) be its unramified
+quadratic extension, and let \(\ell\) be odd.  Reduction induces an
+isomorphism
+\[
+ \mathcal O_L^\times/(\mathcal O_L^\times)^\ell
+ \simeq k_L^\times/(k_L^\times)^\ell.              \tag{\(\mathsf{RT}_1\)}
+\]
+Consequently a hypothetical finite-field failure
+\(c_n\in(E_n^\times)^\ell\) lifts automatically to
+\(C_n\in(L^\times)^\ell\).  If the cyclotomic lift
+\(\varepsilon_{r_n}\) is an \(\ell\)-th power as well, choose roots
+\(T^\ell=C_n\) and \(R^\ell=\varepsilon_{r_n}\) with the same nonzero
+residue.  Then
+\[
+ v(T^\ell-R^\ell)=v(T-R).                           \tag{\(\mathsf{RT}_2\)}
+\]
+In particular the valuation-one intersection in
+\((\mathsf{SPT}_1)\) becomes a valuation-one intersection of the chosen
+roots; it does not contradict failure.
+
+There is also an exact characteristic-zero form of the selected birth-edge
+equation.  Suppose \(C\in L\setminus K\) satisfies
+\[
+ C^2+C+A=0,\qquad A\in K^\times,\qquad L=K(C),
+\]
+and define the signed Dickson--Lucas polynomials by
+\[
+ D^-_0(S,B)=2,\qquad D^-_1(S,B)=S,\qquad
+ D^-_{j+2}=S D^-_{j+1}-B D^-_j.
+\]
+Then
+\[
+ \boxed{
+ C\in(L^\times)^\ell
+ \iff
+ \exists S,B\in K:\quad B^\ell=A,\quad
+ D^-_\ell(S,B)=-1.}                                \tag{\(\mathsf{RT}_3\)}
+\]
+Reduction modulo two is precisely the existing Dickson equation
+\(\mathcal D_\ell(s,b)=1\).  Thus neither higher two-adic precision nor
+the lifted additive trace supplies an independent condition: both retain
+exactly the residue-field Kummer obstruction.
+\end{proposition}
+
+\begin{proof}
+Odd powering is an automorphism of \(1+2\mathcal O_L\), by Hensel's
+lemma applied to \(X^\ell-u\); the Teichm\"uller decomposition of
+\(\mathcal O_L^\times\) proves \((\mathsf{RT}_1)\).  If two units are
+\(\ell\)-th powers with the same residue, their roots may be adjusted by a
+Teichm\"uller \(\ell\)-th root of unity to have the same residue.  The
+factorization
+\[
+ T^\ell-R^\ell=(T-R)
+   \sum_{j=0}^{\ell-1}T^{\ell-1-j}R^j
+\]
+then proves \((\mathsf{RT}_2)\), because the second factor reduces to
+\(\ell\bar R^{\ell-1}=\bar R^{\ell-1}\ne0\) in characteristic two.
+
+For \((\mathsf{RT}_3)\), if \(C=T^\ell\), put
+\(S=T+\sigma(T)\) and \(B=T\sigma(T)\), where \(\sigma\) is the
+nontrivial element of \(\operatorname{Gal}(L/K)\).  The recurrence gives
+\[
+ D^-_j(S,B)=T^j+\sigma(T)^j,
+\]
+so \(B^\ell=A\) and \(D^-_\ell=C+\sigma(C)=-1\).
+Conversely, take a root \(T\) of \(X^2-SX+B\).  The two displayed
+equalities make \(T^\ell\) a root of \(X^2+X+A\).  Since that quadratic
+is irreducible and has splitting field \(L\), its quadratic root field
+is \(L\); hence \(T\in L\) and either \(T^\ell=C\) or
+\(T^\ell=\sigma(C)\).  Applying \(\sigma\) in the latter case makes
+\(C\) an \(\ell\)-th power as well.  Modulo two, the sign and the value
+\(-1\) both become plus and one, giving the stated Dickson equation.
+\end{proof}
+
 \begin{corollary}[gap and residue class of the selected splitting packet]
 \label{cor:fermat-selected-packet-gap}
 Retain Proposition~\ref{prop:fermat-selected-prime-transversality} and

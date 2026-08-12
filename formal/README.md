@@ -403,6 +403,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the finite-level Popovych primitive-product equivalence: the selected
   product is primitive exactly when every positive relative Fermat divisor is
   the full Fermat number, leaving those universal relative equalities visible;
+- the exact generator-coordinate formulation of the selected-discrete-log
+  condition, including its all-level predicate, prime-support form, maximal-
+  order equivalence, full-primary Kummer criterion, and independence of the
+  chosen cyclic generator.  The recursively selected Conway exponents
+  themselves are not constructed here, so their universal unit status remains
+  the paper-level conjectural input;
 - the full-primary quotient lemma behind the norm-blindness obstruction, and
   the simple-zero theorem showing that the cubic norm discards the current
   Kummer coordinate while its first transverse derivative survives;

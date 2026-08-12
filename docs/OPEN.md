@@ -658,6 +658,14 @@ absolute boundedness.
   and writing `w_n=omega^(r_n)`, its `ell`-th residue symbol at the associated
   prime above two is exactly `omega^(r_n*F_n/ell)`. Thus the conjecture is
   precisely `ell` not dividing the Conway-selected discrete logarithm `r_n`.
+  “Conway–Popovych selected-discrete-log unit conjecture” is project
+  nomenclature for Popovych's all-level maximal-relative-order condition, not
+  a historical theorem name. Popovych proved the conditional primitive-product
+  theorem and checked the condition only through level 11; the 2025
+  Cagliero–Herman–Szechtman order formula still leaves each selected relative
+  order undetermined. The 2026 Vega and Zhu–Wu quadratic criteria specialize
+  at composite Fermat levels to this same selected first-zero test, rather than
+  deciding it. No all-level proof or counterexample is presently known.
   The unit's minimal odd cyclotomic conductor is exactly
   `delta_n=F_n/gcd(F_n,r_n)`, so proving full conductor is equivalent to
   maximality rather than an independent route.
@@ -669,7 +677,14 @@ absolute boundedness.
   proves their difference has valuation one. Across the full conductor, the vanishing
   primes are precisely the stabilizer congruence
   `a=1 (mod delta_n)`, and every one is simple. Hence CSDU is exactly the
-  assertion that this support has cardinality one. In fact the packet size
+  assertion that this support has cardinality one. This packet cannot be
+  reduced by taking compatible odd roots: odd powering is an
+  automorphism on the principal two-units, and for roots with the same residue
+  one has `v(T^ell-R^ell)=v(T-R)`. Thus the valuation-one intersection remains
+  valuation one after lifting a hypothetical failure. The lifted quadratic
+  gives the signed Dickson–Lucas condition `D^-_ell(S,B)=-1`, whose reduction
+  is exactly the existing characteristic-two failure equation; it is a
+  lossless restatement, not an independent constraint. In fact the packet size
   `t=phi(F_n)/phi(delta_n)` has a uniform gap: for `n>=2`, either `t=1` or
   `t>=2^(n+2)`; modulo `2^(n+2)` it is `1` when only prime exponents drop and
   `0` when a prime disappears from the conductor. A global Fermat-factor
@@ -1525,6 +1540,9 @@ Kummer-field intersection or an unweighted product of arm symbols.
 - Berlekamp, Conway, and Guy, *Winning Ways for Your Mathematical Plays*.
 - Brown, “Generalizations of the Kervaire invariant,” *Annals of Mathematics*
   95 (1972), 368–383.
+- Cagliero, Herman, and Szechtman, “Artin–Schreier towers of finite fields,”
+  *Finite Fields and Their Applications* 106 (2025), 102606;
+  arXiv:2405.10159.
 - Conway, *On Numbers and Games*.
 - DiMuro, “On `On_p`,” arXiv:1108.0962.
 - Iwasawa, “On explicit formulas for the norm residue symbol,” *Journal of the
@@ -1533,6 +1551,9 @@ Kummer-field intersection or an unweighted product of arm symbols.
   (1977), 389–396.
 - Moews, “The Abstract Structure of the Group of Games,” in *More Games of No
   Chance*, MSRI Publications 42 (2002), 49–58.
+- Popovych, “Multiplicative orders of elements in Conway's towers of finite
+  fields,” *Algebra and Discrete Mathematics* 25 (2018), 137–146;
+  arXiv:1509.01958.
 - Rohrlich, “Jacobi sums and explicit reciprocity laws,” *Compositio
   Mathematica* 60 (1986), 97–114.
 - Vega, “A characterization and an explicit description of all primitive
