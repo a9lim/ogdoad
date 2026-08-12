@@ -3134,6 +3134,47 @@ theorem canonicalLift_normOne_eq_parent_mul_inv_sq
 
 end FermatCanonicalLift
 
+section FermatSelectedPrimeTransversality
+
+variable {F : Type*} [CommRing F] [CharP F 2]
+
+/-- Algebraic core of the first Witt-coordinate calculation comparing the
+canonical Conway Hensel lift with its selected cyclotomic lift. -/
+theorem fermat_firstWitt_difference_simplifies (c x s : F) :
+    ((c + 1) * s + (c + 1) + x) + (c + x) = (c + 1) * s + 1 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  calc
+    ((c + 1) * s + (c + 1) + x) + (c + x) =
+        (c + 1) * s + 1 + 2 * (c + x) := by ring
+    _ = (c + 1) * s + 1 := by rw [htwo]; simp
+
+end FermatSelectedPrimeTransversality
+
+section FermatSelectedPrimeAncestry
+
+variable {K L : Type*} [Field K] [Field L] [Algebra K L]
+
+/-- If `c` is genuinely born in the quadratic extension, the simplified
+first Witt coordinate cannot vanish: otherwise it solves for `c` over the
+preceding field. -/
+theorem fermat_markedWittCoefficient_ne_zero
+    (c : L) (s : K)
+    (hc : c ∉ Set.range (algebraMap K L)) :
+    (c + 1) * algebraMap K L s + 1 ≠ 0 := by
+  intro h
+  have hs : s ≠ 0 := by
+    intro hs0
+    subst s
+    simp at h
+  apply hc
+  refine ⟨(-1 - s) / s, ?_⟩
+  rw [map_div₀, map_sub, map_neg, map_one]
+  have hsL : algebraMap K L s ≠ 0 := (map_ne_zero (algebraMap K L)).2 hs
+  apply (div_eq_iff hsL).2
+  linear_combination -1 * h
+
+end FermatSelectedPrimeAncestry
+
 section FermatCanonicalDiscriminant
 
 variable {R : Type*} [CommRing R]

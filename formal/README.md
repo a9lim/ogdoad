@@ -118,6 +118,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the Conway-unit Euler-symbol identity
   `c^((q-1)h)=w^h` from `c^q=c*w`, which is the finite-field core of the
   paper's exact cyclotomic lift of the selected Fermat residue symbol;
+- the selected-prime transversality core: the first Witt coordinate of the
+  difference between the canonical Conway Hensel lift and its cyclotomic lift
+  simplifies to `(c+1)s+1`, and Lean proves this is nonzero when `c` is born
+  in the quadratic extension.  The Teichmuller expansion, complete splitting
+  above two, stabilizer-orbit count, and cyclotomic norm formula remain
+  paper-level;
 - the abstract semiprimitive Gauss-table core: the nontrivial additive
   character sum on field units, multiplicative change of variables, the
   one-exceptional-line evaluation, denominator-cleared large and small period

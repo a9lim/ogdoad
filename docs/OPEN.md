@@ -463,6 +463,16 @@ absolute boundedness.
   Choosing the prime by sending a root of unity directly to `w_n` would assume
   maximality; local logarithms, principal-ideal/Stickelberger data, and
   circular-unit distribution do not determine the remaining residue of `r_n`.
+  The canonical and cyclotomic lifts nevertheless meet transversely at the
+  selected prime: for every nontrivial level, an exact mod-four calculation
+  proves their difference has valuation one. Across the full conductor, the vanishing
+  primes are precisely the stabilizer congruence
+  `a=1 (mod delta_n)`, and every one is simple. Hence CSDU is exactly the
+  assertion that this support has cardinality one. A bad order would produce
+  several distinct simple primes over two, not a repeated selected root. The
+  full cyclotomic norm is identically the simple base factor raised to that
+  support cardinality, so norm bounds and mod-four congruences derived from
+  the product alone repeat the unknown packet size rather than excluding it.
   The canonical characteristic-zero Hensel lift makes this failure exact:
   two is inert and unramified through the lifted Conway chain, three is
   totally ramified, and the lifted norm-one ratio is a global unit already an

@@ -178,7 +178,8 @@ all-or-\(\ell\)-quartic Kummer dichotomy; an exact one-step
 countermodel whose predecessor and successor retain every earlier
 Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
 transport; canonical global lift, weighted reciprocity, selected
-first-Witt polynomial, named Artin-class and dihedral reflection-norm
+first-Witt polynomial, selected-prime mod-four transversality and exact
+simple-intersection support, named Artin-class and dihedral reflection-norm
 reductions, the complementary factor/cofactor resultant duality and its
 canonical CRT-projector/trace-annihilation boundary, the hypothetical-failure
 shifted-Fibonacci block collapse, and the
@@ -16721,6 +16722,131 @@ The symbol has prime order dividing \(\ell\), so it is one.
 Lean independently checks the characteristic-free reparametrization, the
 two identities \((\mathsf{GL}_2)\), and the corresponding odd-Kummer
 square-class equivalence in \texttt{Ogdoad.Excess}.
+\end{proof}
+
+\begin{proposition}[the selected cyclotomic intersection is transversely simple]
+\label{prop:fermat-selected-prime-transversality}
+Retain Propositions~\ref{prop:fermat-cyclotomic-symbol} and
+\ref{prop:fermat-canonical-global-lift}, and suppose \(n\geq1\); the
+level \(n=0\) target is immediate.  Put
+\[
+ N=2^{2^n}+1,\qquad
+ L_n=\mathcal K_n\mathbf Q(\zeta_N),\qquad
+ \delta_n=\ord(w_n)=\frac{N}{\gcd(N,r_n)}.
+\]
+Let \(\mathfrak q_1\) be the prime above two at which
+\(\zeta_N\) reduces to the independent generator \(\omega\).  Then
+\[
+ \boxed{v_{\mathfrak q_1}(C_n-\varepsilon_{r_n})=1.}
+                                                               \tag{\(\mathsf{SPT}_1\)}
+\]
+The unique prime \(\mathfrak p_2\mid2\) of
+\(\mathcal K_n\) splits completely in \(L_n/\mathcal K_n\).  Index its
+primes by \(a\in(\mathbf Z/N\mathbf Z)^\times\), so that
+\(\zeta_N\bmod\mathfrak q_a=\omega^a\).  Then
+\[
+ \boxed{
+ v_{\mathfrak q_a}(C_n-\varepsilon_{r_n})=
+ \begin{cases}
+ 1,&a\equiv1\pmod{\delta_n},\\
+ 0,&a\not\equiv1\pmod{\delta_n}.
+ \end{cases}}                                             \tag{\(\mathsf{SPT}_2\)}
+\]
+Consequently
+\[
+ \boxed{
+ v_{\mathfrak p_2}\!\left(
+   \Norm_{L_n/\mathcal K_n}(C_n-\varepsilon_{r_n})\right)
+ =\frac{\varphi(N)}{\varphi(\delta_n)}.}                  \tag{\(\mathsf{SPT}_3\)}
+\]
+Thus the Conway--Popovych selected-discrete-log unit conjecture is
+equivalent to this norm having valuation one: since \(\delta_n\mid N\) and
+both are odd, Euler's \(\varphi\) is strictly increasing under proper
+divisibility here.  Every possible intersection
+is already reduced: a hypothetical failure can occur only as several
+distinct simple primes over two, never as tangency or higher multiplicity at
+the selected prime.
+
+More explicitly, put
+\[
+ Q_\delta(T)=T^{\varphi(\delta)}
+  \Phi_\delta\!\left(\frac{1-T}{T}\right).
+\]
+The cyclotomic norm is the exact power
+\[
+ \Norm_{L_n/\mathcal K_n}(C_n-\varepsilon_{r_n})
+ =Q_{\delta_n}(C_n)^{\varphi(N)/\varphi(\delta_n)},
+ \qquad
+ v_{\mathfrak p_2}(Q_{\delta_n}(C_n))=1.             \tag{\(\mathsf{SPT}_4\)}
+\]
+Hence a direct proof that the full norm is nonzero modulo four---equivalently,
+that its \(\mathfrak p_2\)-valuation is one---would prove the conjecture, but
+the cyclotomic product itself cannot do so: it repeats the same simple factor
+exactly as many times as the missing conductor.  The new theorem reduces the
+remaining global problem to excluding that splitting packet; it does not
+exclude it.
+\end{proposition}
+
+\begin{proof}
+Work modulo four in the common unramified completion and write
+\[
+ C_i=[c_i](1+2[b_i]),\qquad
+ \mathcal A_i=[a_i](1+2[s_i]),\qquad s_{-1}=0.
+\]
+For Teichmuller representatives in an unramified two-adic ring,
+\[
+ [x]+[y]=[x+y]+2[\sqrt{xy}]\pmod4.                  \tag{*}
+\]
+Multiplication gives \(s_i=s_{i-1}+b_i\).  Applying \((*)\) to
+\(C_i^2+C_i+\mathcal A_{i-1}=0\), and using
+\(a_{i-1}=c_i^2+c_i\), gives
+\[
+ b_i=(c_i+1)s_{i-1}+(c_i+1)+\sqrt{c_i}.
+\]
+On the other hand, \(w_i=(c_i+1)/c_i\) and \(1+w_i=c_i^{-1}\), so
+\[
+ (1+[w_i])^{-1}=[c_i](1+2[e_i])\pmod4,
+ \qquad e_i=\sqrt{a_{i-1}}=c_i+\sqrt{c_i}.
+\]
+The first Witt coordinate of the difference is therefore
+\[
+ d_i=b_i+e_i=(c_i+1)s_{i-1}+1.                     \tag{**}
+\]
+It is nonzero: otherwise
+\(s_{i-1}=(c_i+1)^{-1}\in E_{i-1}\), which would put
+\(c_i\) in \(E_{i-1}\), contradicting the selected irreducible quadratic.
+The two lifts agree modulo two but not modulo four, proving
+\((\mathsf{SPT}_1)\).
+
+Every nontrivial subfield of \(\mathcal K_n\) is ramified
+at three, whereas \(3\nmid N\); hence
+\(\mathcal K_n\cap\mathbf Q(\zeta_N)=\mathbf Q\).  Both selected
+two-adic completions are the unramified extension of degree
+\(2^{n+1}=\ord_N(2)\), so \(\mathfrak p_2\) splits completely in the
+compositum.  At \(\mathfrak q_a\), reduction of the difference vanishes
+exactly when
+\[
+ (1+\omega^{ar_n})^{-1}=(1+\omega^{r_n})^{-1},
+\]
+or equivalently \(a\equiv1\pmod{\delta_n}\).  In that case the same
+cyclotomic unit is fixed by the corresponding stabilizer and the simple
+local calculation above transports to \(\mathfrak q_a\); otherwise the
+valuation is zero.  The reduction map
+\((\mathbf Z/N\mathbf Z)^\times\to
+ (\mathbf Z/\delta_n\mathbf Z)^\times\) is surjective with kernel of
+order \(\varphi(N)/\varphi(\delta_n)\), proving
+\((\mathsf{SPT}_2)\) and \((\mathsf{SPT}_3)\).
+
+Finally the elements \(\zeta_N^{ar_n}\) run through the primitive
+\(\delta_n\)-th roots \(u\), so the conjugates of
+\(\varepsilon_{r_n}\) run through \((1+u)^{-1}\), each with that same
+kernel multiplicity.  Direct multiplication, using
+\(\Phi_{\delta_n}(-1)=1\), gives
+\((\mathsf{SPT}_4)\).  Lean kernel-checks the characteristic-two
+simplification in \((**)\) and the load-bearing conclusion that its
+vanishing would force \(c_i\) into the preceding field.  The Teichmuller
+expansion, splitting and orbit count, and cyclotomic norm specialization
+remain paper-level.
 \end{proof}
 
 \begin{proposition}[the semiprimitive Gauss table remembers only the selected label]

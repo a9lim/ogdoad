@@ -121,6 +121,16 @@ Hilbert coefficient identities used by the marked `D` phase bridge.  Their
 selected finite-field specializations remain paper-level, and none of these
 declarations asserts any of the four universal nonvanishings.
 
+For the `Z` arm, the selected-prime transversality theorem is an all-level
+paper proof with a small kernel-checked core.  Lean verifies the first-Witt
+coefficient simplification and its nonvanishing from genuine quadratic birth.
+The paper proves that every conjugate intersection above two is simple and
+that their support has cardinality
+`phi(F_n)/phi(delta_n)`.  Thus CSDU is exactly support cardinality one, not a
+multiplicity assertion; the two-adic splitting, orbit count, and cyclotomic
+norm identification are paper-level, and universal cardinality one remains
+open.
+
 The next global frontier cores sharpen that boundary without changing it.
 Lean checks the `Z` first-additive-edge power coordinates, trace identity, and
 factor-parameter obstruction, together with the exact cross-level gcd identity;
