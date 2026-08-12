@@ -1474,6 +1474,14 @@ strategy tree rather than over all public states.  This removes a subtle but
 important quantifier error: a smaller residual-one state elsewhere in the
 game graph says nothing about the fixed counterstrategy.
 
+Here and below a fixed strategy is an existential/universal tree valued in
+\texttt{Type}, not a proof of the Bellman predicate \texttt{OddWins} in
+\texttt{Prop}.  Proof irrelevance identifies all proofs of \texttt{OddWins}
+at one state, so a relation indexed by those proofs cannot retain policy
+identity.  The Type-valued \texttt{OddStrategy} erases to \texttt{OddWins} and
+is nonempty exactly when \texttt{OddWins} holds; all fixed-policy response and
+ancestry objects below use \texttt{OddStrategy}.
+
 \begin{proposition}[strategy-tree charged-close extraction]
 \label{prop:strategy-tree-neutral-tail}
 \PROVED{} Suppose a fixed player has a strategy forcing terminal score one
@@ -1500,11 +1508,10 @@ close the dummy, whose charge is always zero.  Every strict descendant of the ch
 has score one: a score-zero descendant would be a smaller selected/universal
 node of the original strategy tree.  Translating all those score sheets by
 one therefore makes every transition score-neutral and every terminal score
-zero.  The membership relation in the explicit existential/universal
-strategy tree, this proof, and the neutral translated subtree are
-kernel-checked by
-\texttt{oddStrategy\_extract\_minimalCloseNeutral} in
-\path{formal/Ogdoad/Fifo.lean}.
+zero.  The fixed-policy membership relation, this proof, and the neutral
+translated subtree are kernel-checked by
+\path{OddStrategy.extract_minimalCloseNeutral} in
+\path{formal/Ogdoad/FifoNeutralPair.lean}.
 \end{proof}
 
 The strategy-tree extraction aligns exactly with the scalar minimum; no
@@ -4508,7 +4515,7 @@ $12,13,23$, exact recursion gives the two open-child continuation hulls
 They are disjoint.  Exhaustive recursion over the smaller states with two real
 open children shows that this is the first such childwise failure.
 
-There is now an exact proof-indexed interface for the positive statement.
+There is now an exact strategy-indexed interface for the positive statement.
 For a node $q$ of one fixed attacker-pruned odd strategy tree, write
 $A_q=a_q+W_q$ for its universal live-star response affine space, and write
 $p_q$ for the sum of the live-star labels on its root-to-$q$ path.  All edge
@@ -4516,9 +4523,9 @@ vectors in the following proposition are projected away from coordinates
 incident to the isolated dummy and from diagonal coordinates, neither of
 which represents a real edge.
 
-\begin{proposition}[proof-indexed ancestry factor interface]
+\begin{proposition}[strategy-indexed ancestry factor interface]
 \label{prop:ancestry-factor-interface}
-\PROVED{} Let $q_i$ be an odd finite list of proof-indexed nodes, allowed to
+\PROVED{} Let $q_i$ be an odd finite list of strategy-indexed nodes, allowed to
 lie in different defender siblings and at different front levels.  Choose
 $a_i\in A_{q_i}$ and $d_i\in W_{q_i}$.  If
 \begin{equation}\label{eq:ancestry-factor}
@@ -4549,6 +4556,39 @@ ancestry lifting, real-edge quotient, both implications, and the equivalence wit
 the unrestricted certificate are kernel-checked in
 \path{formal/Ogdoad/FifoAffine.lean}.
 \end{proof}
+
+One may instead saturate at every state over all odd-winning attacker choices.
+This does enlarge a fixed-policy response space and can repair a local
+incompatibility between two selected moves.  It does not weaken the root
+problem: the saturated relation is exactly the affine hull of the union of
+all Type-valued fixed-strategy response spaces, still lies in the same graph
+evaluation hyperplane, and contains zero at the initial root if and only if
+the defender already has an even-winning strategy.  These equivalences are
+kernel-checked in \path{formal/Ogdoad/FifoWinningRegion.lean}.  Thus diagonal
+policy switching either stays inside the scalar separator or must retain the
+target phase and ancestry, returning to
+Proposition~\ref{prop:ancestry-factor-interface}.
+
+A smaller causal step does survive.  If two nodes of one Type-valued strategy
+have the same public data except that every consecutive FIFO response cell is
+reversed, and their stored attacker moves are distinct OPENs $O_z,O_w$, then
+following the crossed universal replies $O_w,O_z$ produces two strict-rank
+descendants with one further reversed cell.  The descendants remain holes of
+the same root strategy.  This crossed-OPEN descent is kernel-checked in
+\path{formal/Ogdoad/FifoCrossDescent.lean}; it is an induction carrier, not a
+contraction, because it stops at a same-OPEN or mixed OPEN/CLOSE boundary.
+
+The complementary cross-target endpoint is also exact.  At a rank-minimal
+hot score-zero state, every Type-valued target-one policy selects the charged
+front CLOSE and every score-translated target-zero policy selects the unique
+singleton OPEN.  Commuting those moves leaves the unit coordinate $fz$; on an
+isolated-dummy board its image in the real-edge quotient is nonzero.  If a
+queue tail remains the endpoints differ only by score translation; if the
+tail is empty, the ko mismatch drains deterministically to opposite terminal
+phases without adding another live star.  These statements are kernel-checked
+in \path{formal/Ogdoad/FifoMinHotCurvature.lean}.  Hence a two-sheet diagonal
+switch does not erase the wall curvature: an earlier defender-ancestry term
+must cancel it.
 
 Even a complete defender fan inside a genuine all-terminal-one policy need not
 contract locally.  This makes the multilevel qualification in
@@ -5706,7 +5746,7 @@ theorem, and the obstruction results for the stronger local induction
 templates considered above.  The stopped close-first argument and its
 finite-fan absorbers are also kernel-checked in
 \path{formal/Ogdoad/Fifo.lean}.  The live-star potential, both-seat
-CLOSE-first exclusion, proof-indexed clear-deviation frontier, and the
+CLOSE-first exclusion, Bellman-level clear-deviation existence, and the
 handshaking/balanced-front first-spoiler step are kernel-checked in
 \path{formal/Ogdoad/FifoNormalization.lean}.
 
@@ -5796,22 +5836,24 @@ The following claims have different status and should not be flattened.
       live-degree handshake, the general complete pair-response formula and
       its even-OPEN/odd-OPEN-plus-CLOSE zero-fan corollaries, both-seat exclusion of
       CLOSE-first odd strategies at the isolated-dummy root, the resulting
-      proof-indexed existence of a clear-node deviation in every hypothetical
-      odd strategy, and the same-degree/balanced-front first-spoiler package.
+      Bellman-level existence of a clear-node deviation whenever the initial
+      state is odd-winning, and the same-degree/balanced-front first-spoiler
+      package.
       Finally, its abstract closure-phase strategy trees kernel-check the
       scalar no-separation recurrence behind
       Theorem~\ref{thm:complete-fixed-front-prefix} and the opposite-sheet
       policy behind Proposition~\ref{prop:fixed-front-relative-failure}; the
       finite-dimensional affine-separation step itself remains the paper
-      bridge.  The same file now also kernel-checks explicit membership in an
-      displayed \texttt{OddWins} constructor tree, extraction of its minimum charged CLOSE
+      bridge.  The same file now also kernel-checks constructor-sensitive
+      membership in a displayed \texttt{OddWins} witness, Bellman-level
+      extraction of its minimum charged CLOSE
       and translated neutral tail, and the conditional implication from all
       punctured neutral singleton tails to an Eulerian untouched remainder.
       The companion \path{formal/Ogdoad/FifoCausal.lean} checks the direct
       charged-CLOSE/neighbor-OPEN transport away from the singleton wall, its
-      one-further-OPEN ko repair at that wall, and the resulting causal
-      neighbour alternative extracted from every zero-sheet odd strategy off
-      the wall.  Because \texttt{OddWins} lives in \texttt{Prop}, the new
+      one-further-OPEN ko repair at that wall, and the resulting Bellman-level
+      causal neighbour witness for every zero-sheet odd-winning state off the
+      wall.  Because \texttt{OddWins} lives in \texttt{Prop}, the new
       \path{formal/Ogdoad/FifoStrategy.lean} supplies the equivalent
       Type-valued \texttt{OddStrategy} used whenever fixed-policy identity is
       load-bearing.  The companion \path{formal/Ogdoad/FifoNeutralPair.lean}
@@ -5823,11 +5865,22 @@ The following claims have different status and should not be flattened.
       mover/seat conjugacy, its target-swapping composition with score
       translation, and the rank obstruction to realizing that conjugacy by a
       nonempty legal macro.  The companion \path{formal/Ogdoad/FifoAffine.lean} checks the
-      proof-indexed response affine space, continuation directions, odd-list
+      strategy-indexed response affine space, continuation directions, odd-list
       and ancestry-factor composition, the quotient by dummy-incident and
       diagonal coordinates, and Proposition~\ref{prop:ancestry-factor-interface},
       including the fact that its unrestricted certificate language is
       equivalent to the projected root target rather than a proof of it.
+      The companion \path{formal/Ogdoad/FifoWinningRegion.lean} checks that
+      saturation over all policies is the affine hull of their union, remains
+      scalar-separated, and gives an initial zero target equivalent to FIFO
+      rather than a smaller contraction theorem.
+      The companion \path{formal/Ogdoad/FifoCrossDescent.lean} checks the
+      strict-rank same-tree descent through crossed OPEN choices and records
+      explicitly that the mixed OPEN/CLOSE boundary remains untreated.
+      The companion \path{formal/Ogdoad/FifoMinHotCurvature.lean} checks the
+      forced cross-target CLOSE/OPEN choices at a minimum-hot wall, its exact
+      ko split and drainage, and nonvanishing of the residual unit curvature
+      in the real-edge quotient.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is

@@ -107,14 +107,27 @@ stronger prefix-safe STOP normalization.
 across the ordinary OPEN/CLOSE square and across the repaired singleton ko
 wall. `Ogdoad/FifoSymmetry.lean` kernel-checks mover/seat conjugacy, its
 composition with score translation, and the rank obstruction to realizing
-that conjugacy by a nonempty legal macro. `Ogdoad/FifoAffine.lean`
-kernel-checks proof-indexed response affine spaces, continuation directions,
-odd ancestry-factor composition, and the
+that conjugacy by a nonempty legal macro. `Ogdoad/FifoStrategy.lean` provides
+the Type-valued policy data needed because `OddWins` itself lives in `Prop`;
+`Ogdoad/FifoNeutralPair.lean` ports the minimum charged-CLOSE and causal
+neighbour extraction to that fixed-policy interface and pins the one-OPEN ko
+defect. `Ogdoad/FifoAffine.lean` kernel-checks strategy-indexed response affine
+spaces, continuation directions, odd ancestry-factor composition, and the
 quotient by dummy-incident and diagonal coordinates. It proves that a projected
 factor certificate would imply pointwise linking, and also proves that the
 unrestricted certificate statement is equivalent to the projected root
 target. These are formal proof interfaces and local consequences, not a
 construction of the missing global certificate.
+
+`Ogdoad/FifoWinningRegion.lean` proves that saturating over every odd-winning
+policy is exactly the affine hull of their fixed-strategy response spaces and
+that its initial zero target is equivalent to the original winner statement.
+`Ogdoad/FifoCrossDescent.lean` proves strict-rank same-tree descent through
+crossed OPEN choices. `Ogdoad/FifoMinHotCurvature.lean` proves that the
+cross-target minimum-hot CLOSE/OPEN diamond leaves one nonzero real-edge
+coordinate, including the exact empty-tail ko drain. Together these sharpen
+the causal boundary but leave same-OPEN and mixed OPEN/CLOSE ancestry
+absorption open.
 
 `Ogdoad/Excess.lean` kernel-checks the exceptional-column reduction: coprime
 order classes supply the four lower translates, the corrected sparse norm is

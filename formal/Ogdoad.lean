@@ -4,8 +4,11 @@ import Ogdoad.FifoCausal
 import Ogdoad.FifoSymmetry
 import Ogdoad.FifoNormalization
 import Ogdoad.FifoStrategy
-import Ogdoad.FifoNeutralPair
 import Ogdoad.FifoAffine
+import Ogdoad.FifoWinningRegion
+import Ogdoad.FifoCrossDescent
+import Ogdoad.FifoNeutralPair
+import Ogdoad.FifoMinHotCurvature
 import Ogdoad.FifoMatching
 import Ogdoad.GoldSemantics
 import Ogdoad.GoldMatchingAlgebra

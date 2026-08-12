@@ -1,9 +1,9 @@
 import Ogdoad.FifoStrategy
 
 /-!
-# Proof-indexed affine response spaces for FIFO linking
+# Strategy-indexed affine response spaces for FIFO linking
 
-This module formalizes the proof-indexed affine object at the remaining
+This module formalizes the strategy-indexed affine object at the remaining
 boundary of the arbitrary-graph FIFO linking problem.  It does **not** prove
 the causal factor-extension hypothesis.
 
@@ -25,7 +25,7 @@ The checked results are:
   continuation spaces (the theorem does not assert that the list is complete);
 * the unprojected continuation-coset condition
   `sum (prefix_i + base_i) = sum correction_i` implies root moment zero;
-* proof-indexed ancestry paths let that cancellation couple different
+* strategy-indexed ancestry paths let that cancellation couple different
   defender siblings and different FIFO-front levels; and
 * a projected ancestry factor certificate in the real-edge quotient is
   sufficient for pointwise FIFO linking.
@@ -36,7 +36,7 @@ labelled as a stronger sufficient condition.  The exact affine target used
 for an isolated-dummy graph is `RealEdgeQuotient V d`, the quotient by the
 span of all dummy-incident and diagonal coordinates.
 
-The missing theorem is to construct such an odd proof-indexed ancestry factor
+The missing theorem is to construct such an odd strategy-indexed ancestry factor
 certificate from an arbitrary attacker-pruned strategy tree on a board with
 an isolated dummy.  None of the definitions or theorems below assumes that
 construction.
@@ -494,7 +494,7 @@ theorem AffineResponseMoment.answer_factor_extension
     (hseat := hseat) (hasMove := hasMove) (hchildren := hchildren)
     is m t hstep (fun i ↦ a i + d i) had hodd hzero
 
-/-- A proof-indexed ancestry path in one fixed odd strategy tree, carrying the
+/-- A strategy-indexed ancestry path in one fixed odd strategy tree, carrying the
 sum of universal live-star charges on its root-to-node prefix. -/
 inductive StrategyPrefix (G : SimpleGraph V) (seat : Bool)
     {root : State V} (hroot : OddStrategy G seat root) :
@@ -540,8 +540,8 @@ theorem StrategyPrefix.lift
           (hchildren := hchildren) (hstep := hstep) hz
       simpa only [add_assoc] using ih hparent
 
-/-- One proof-indexed ancestry hole, retaining the exact descendant strategy
-proof and its prefix moment.  No antichain or closure condition is imposed. -/
+/-- One strategy-indexed ancestry hole, retaining the exact descendant strategy
+tree and its prefix moment.  No antichain or closure condition is imposed. -/
 structure StrategyHole (G : SimpleGraph V) (seat : Bool)
     {root : State V} (hroot : OddStrategy G seat root) where
   state : State V
@@ -550,7 +550,7 @@ structure StrategyHole (G : SimpleGraph V) (seat : Bool)
   ancestry : StrategyPrefix G seat hroot tree moment
 
 omit [Fintype V] in
-/-- Full-edge proof-indexed ancestry factor extension.  The selected holes may lie in
+/-- Full-edge strategy-indexed ancestry factor extension.  The selected holes may lie in
 different defender siblings and at different FIFO-front levels.  If their
 aggregate prefix-plus-base defect belongs to the sum of their continuation
 direction spaces, the root response affine space contains zero. -/
@@ -598,7 +598,7 @@ theorem StrategyHole.factor_extension_zero
   rw [← hzero]
   exact AffineResponseMoment.odd_list_sum _ hoddMap hmem
 
-/-- A finite ancestry factor term: one proof-indexed hole, one continuation
+/-- A finite ancestry factor term: one strategy-indexed hole, one continuation
 base representative, and one available direction in that continuation. -/
 structure StrategyFactorTerm (G : SimpleGraph V) (seat : Bool)
     {root : State V} (hroot : OddStrategy G seat root) where
@@ -631,7 +631,7 @@ theorem StrategyFactorCertificate.zero
     (fun t _ ↦ t.base_mem) (fun t _ ↦ t.correction_mem) h.odd h.factor
 
 /-- The exact real-edge factor certificate.  Its balance equation is imposed
-only after quotienting by non-real coordinates; all proof-indexed
+only after quotienting by non-real coordinates; all strategy-indexed
 continuation membership data remain in the universal edge space. -/
 structure ProjectedStrategyFactorCertificate (G : SimpleGraph V) (d : V)
     (seat : Bool) {root : State V} (hroot : OddStrategy G seat root) where

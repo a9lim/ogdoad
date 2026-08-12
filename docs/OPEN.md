@@ -106,9 +106,11 @@ not a scalar parity identity.
   same missing causal extension rather than proving it.
 - The CLOSE-first attacker is contracted for both seats. Lean now rules out a
   CLOSE-first terminal-score-one strategy at the isolated-dummy root and proves
-  that every hypothetical odd strategy contains a genuine clear-node OPEN
-  deviation. The same module checks the live-star potential and the
-  same-degree/balanced-front first-spoiler step of the least-root corridor.
+  that, if the initial state is odd-winning, some `OddWins` constructor witness
+  has a genuine clear-node OPEN deviation. This is a Bellman-level existence
+  statement, not membership in every fixed policy. The same module checks the
+  live-star potential and the same-degree/balanced-front first-spoiler step of
+  the least-root corridor.
 - Every fixed-front attacker phase has zero in the affine hull of its remainder
   vectors, but the corresponding distinguished-leaf statement is false. The
   exact replacement is a relative-spine quotient together with a finite
@@ -144,7 +146,7 @@ not a scalar parity identity.
   extraction and its causal-neighbour alternative to this fixed-policy type,
   and pins both the one-OPEN ko mismatch and a reachable conditioned state
   where every odd policy must select the charged CLOSE.
-- `formal/Ogdoad/FifoAffine.lean` kernel-checks the proof-indexed affine
+- `formal/Ogdoad/FifoAffine.lean` kernel-checks the strategy-indexed affine
   response space of one explicit Type-valued `OddStrategy`, its continuation directions,
   odd-list closure, supplied odd-branch lifting, and cross-level ancestry factor
   composition. It also quotients the universal live-star space by all
@@ -153,6 +155,24 @@ not a scalar parity identity.
   unrestricted certificate language is explicitly proved equivalent to the
   projected root affine target: it is an exact interface for the missing
   construction, not a proof or a smaller theorem by itself.
+- `formal/Ogdoad/FifoWinningRegion.lean` kernel-checks the complementary
+  choice-saturated relaxation. It is exactly the affine hull of the union of
+  all fixed-policy response spaces at one state and remains scalar-sound, but
+  initial zero in this larger space is equivalent to FIFO linking itself.
+  Choice saturation can repair local policy incompatibility; it does not
+  remove the causal ancestry obligation.
+- `formal/Ogdoad/FifoCrossDescent.lean` isolates one genuinely causal
+  same-tree induction step. Two cell-swapped attacker holes whose stored moves
+  are distinct OPENs cross through the following universal replies to smaller
+  cell-swapped holes in the same Type-valued strategy. The descent is
+  conditional and stops at the unresolved same-OPEN or mixed OPEN/CLOSE
+  boundary.
+- `formal/Ogdoad/FifoMinHotCurvature.lean` proves that the two target sheets
+  at a minimum-hot singleton wall select opposite CLOSE/OPEN sides for every
+  actual policy. Their two-step schedules differ by one real edge coordinate,
+  which survives the isolated-dummy quotient; when the queue tail is empty,
+  forced drainage preserves the same phase defect. Thus diagonal
+  strategy-prism switching cannot supply the missing zero by itself.
 - On the full two-sheet positional winning region, a minimum-rank flexible
   physical state is attacker-controlled and selects different moves on the two
   sheets. Any reconvergent CLOSE/OPEN fork there must have odd edge curvature.
@@ -231,7 +251,7 @@ continuation spaces iff the universal-full-row/common-coset obstruction
 vanishes.  Lifting the canonical selection through attacker-pruned child
 cosets, even outside that locus, is still the causal factor-extension step.
 No theorem may force all branches of one fan to participate: the precise
-formal target is an odd, proof-indexed, strategy-dependent list of holes
+formal target is an odd, strategy-indexed list of holes
 whose prefix-plus-continuation sum is a continuation direction modulo the
 non-real coordinates. Local Bellman target-one status supplies no extra
 identity beyond attacker pruning and defender completeness, so the list must
@@ -248,7 +268,12 @@ the stated target.
 - [`formal/Ogdoad/FifoCausal.lean`](../formal/Ogdoad/FifoCausal.lean)
 - [`formal/Ogdoad/FifoSymmetry.lean`](../formal/Ogdoad/FifoSymmetry.lean)
 - [`formal/Ogdoad/FifoNormalization.lean`](../formal/Ogdoad/FifoNormalization.lean)
+- [`formal/Ogdoad/FifoStrategy.lean`](../formal/Ogdoad/FifoStrategy.lean)
+- [`formal/Ogdoad/FifoNeutralPair.lean`](../formal/Ogdoad/FifoNeutralPair.lean)
 - [`formal/Ogdoad/FifoAffine.lean`](../formal/Ogdoad/FifoAffine.lean)
+- [`formal/Ogdoad/FifoWinningRegion.lean`](../formal/Ogdoad/FifoWinningRegion.lean)
+- [`formal/Ogdoad/FifoCrossDescent.lean`](../formal/Ogdoad/FifoCrossDescent.lean)
+- [`formal/Ogdoad/FifoMinHotCurvature.lean`](../formal/Ogdoad/FifoMinHotCurvature.lean)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`experiments/linking_game.py`](../experiments/linking_game.py)
 

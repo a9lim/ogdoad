@@ -727,10 +727,11 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 - its explicit odd-forcing dual, kernel-checked finite determinacy and
   incompatibility (`EvenWins` iff no `OddWins` counterstrategy);
 - constructor-sensitive membership under an `OddWins` proof and a minimum
-  theorem at that propositional level; the separate Type-valued
+  theorem at that propositional, Bellman level; the separate Type-valued
   `OddStrategy` interface described below is authoritative whenever fixed
-  policy identity matters. Every zero-sheet odd counterstrategy
-  contains a selected charge-one CLOSE whose translated child has a fully
+  policy identity matters. At the propositional level, every zero-sheet
+  odd-winning state has a constructor witness containing a selected charge-one
+  CLOSE whose translated child has a fully
   score-neutral continuation tree; more generally, an explicit score-one
   subtree translates directly to a neutral tree.  Opponent-controlled
   moves have score-neutral child trees (`TreeNeutralWins.answer_child`), and
@@ -773,14 +774,14 @@ current normalization frontier rather than assuming it:
   old-front CLOSE representative to obtain an odd zero aggregate;
 - exclusion of a CLOSE-first terminal-score-one strategy from the
   isolated-dummy initial root for either attacker seat;
-- a proof-indexed dichotomy saying that every explicit odd strategy is either
-  CLOSE-first at all clear attacker nodes or contains a genuine clear-node
-  deviation, and hence that every hypothetical initial odd strategy contains
-  such a deviation; and
+- a constructor-sensitive dichotomy saying that, if the initial state is
+  odd-winning, some `OddWins` witness is either CLOSE-first at all clear
+  attacker nodes or contains a genuine clear-node deviation; this is a
+  Bellman-level existence statement, not membership in every fixed policy; and
 - the handshaking and balanced-front part of the least-root odd corridor:
   same-degree mates form an odd set, balance the twice-punctured front, and
-  force the selected move of any odd strategy to be an OPEN while the smaller
-  isolated-dummy root is even-winning; and
+  supply an odd-winning OPEN child while the smaller isolated-dummy root is
+  even-winning; and
 - the exact unpruned minimum-hot normal form.  `Hot` means that one physical
   player can force either absolute score, while `ColdAtOwnScore` means that
   both physical players can preserve the score already accumulated.  Below a
@@ -810,8 +811,9 @@ content of the minimum charged-CLOSE extraction:
   `OPEN; CLOSE` branch;
 - at the singleton wall, one specified further distinct OPEN repairs the ko
   discrepancy and gives the corresponding three-event transport; and
-- every zero-sheet `OddWins` tree therefore exposes either that singleton wall
-  or a concrete neighbour alternative carrying a neutral strategy.
+- every zero-sheet odd-winning state therefore has a Bellman witness exposing
+  either that singleton wall or a concrete neighbour alternative carrying a
+  neutral strategy.
 
 This is not an ancestry theorem.  The alternative branch need not occur in the
 attacker-pruned odd strategy, and choosing compatible alternatives across the
@@ -841,11 +843,11 @@ but a reachable three-label state with an active isolated interval is still
 odd-winning, and every explicit odd policy there must choose the charged real
 CLOSE. Root ancestry and sibling coupling therefore remain essential.
 
-[`Ogdoad/FifoAffine.lean`](Ogdoad/FifoAffine.lean) gives a proof-indexed Lean
+[`Ogdoad/FifoAffine.lean`](Ogdoad/FifoAffine.lean) gives a strategy-indexed Lean
 interface for that step.  It defines the affine hull of universal live-star
 terminal moments below one explicit Type-valued `OddStrategy`, proves its graph-evaluation
 law, nonemptiness, continuation-direction translation, supplied odd-branch
-lifting, and factor composition across proof-indexed ancestry
+lifting, and factor composition across strategy-indexed ancestry
 holes.  The exact isolated-dummy target is taken after quotienting by the span
 of dummy-incident and diagonal coordinates; isolated simple-graph evaluation
 kills that subspace, so a projected zero moment contradicts an initial odd
@@ -856,7 +858,35 @@ equivalent to the projected root affine target: a one-term certificate may use
 the root itself as its hole.  Thus the module kernel-checks the algebra and the
 exact proof boundary, but it does not disguise the missing causal selection as
 a reduction.  A complete proof still has to construct a certificate from a
-genuinely restricted odd family of proof-indexed defender branches.
+genuinely restricted odd family of strategy-indexed defender branches.
+
+[`Ogdoad/FifoWinningRegion.lean`](Ogdoad/FifoWinningRegion.lean) checks the
+all-policy Bellman relaxation. Its `WinningRegionAffineMoment` is exactly the
+ternary affine hull of the union of all Type-valued fixed-strategy response
+spaces at one state, and it obeys the same graph-evaluation law. At the
+initial root, however, asking this saturated space to contain zero is
+equivalent to `EvenWins`: the forward odd-winning case is still separated by
+the graph functional and the even-winning case is vacuous. Thus policy
+saturation is a useful local closure operation, not a smaller proof target.
+
+[`Ogdoad/FifoCrossDescent.lean`](Ogdoad/FifoCrossDescent.lean) checks a
+same-tree causal descent that the Bellman relaxation cannot express. Its
+`CellSwap` relation reverses consecutive FIFO response cells; crossed OPEN
+choices and universal replies preserve this relation, produce two strict-rank
+descendants, and retain both as `StrategyPrefix` holes of the same explicit
+`OddStrategy`. The theorem is conditional: it neither constructs the initial
+paired holes nor absorbs the same-OPEN or mixed OPEN/CLOSE escape.
+
+[`Ogdoad/FifoMinHotCurvature.lean`](Ogdoad/FifoMinHotCurvature.lean) checks
+the sharp cross-target obstruction at the rank-minimal hot singleton wall.
+Every actual Type-valued target-one policy selects the charged front CLOSE,
+whereas every translated target-zero policy selects the unique OPEN. The two
+orders differ by one universal edge coordinate; it remains nonzero in the
+isolated-dummy real-edge quotient. With a nonempty queue tail the endpoints
+agree after score translation, while with an empty tail the ko mismatch has
+an exact forced drain to opposite terminal phases. This rules out a bare
+diagonal strategy-prism contraction but does not rule out cancellation from
+earlier defender ancestry.
 
 [`Ogdoad/FifoMatching.lean`](Ogdoad/FifoMatching.lean) closes the exact
 subclass needed by the resolved Gold construction:
