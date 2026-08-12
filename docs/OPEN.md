@@ -6,19 +6,20 @@ questions and their exact theorem boundaries are indexed in
 [`DONE.md`](DONE.md). Work that does not require new mathematics belongs in
 [`COMPLETENESS.md`](COMPLETENESS.md) or [`CONTINUATIONS.md`](CONTINUATIONS.md).
 
-Four research problems are live:
+Three research problems are live:
 
 | problem | present reduction | authoritative paper |
 |---|---|---|
 | arbitrary-graph FIFO linking | a causal affine-contraction problem in the edge space of a complete graph | [`linking_affine.tex`](../writeups/linking_affine.tex) |
 | finite excess in transfinite nim multiplication | prove the universal `0/1/4` rule through four exact order-theoretic arms | [`excess.tex`](../writeups/excess.tex) |
-| impartial uniform realizer | a pass-free or pass-parity-pinned matching forcing theorem compiling charge to play-length parity | [`impartial_realizer.tex`](../writeups/impartial_realizer.tex) |
 | game-native extraspecial model | produce the diagonal `q_i = Q_a(e_i)` as squares in a noncommutative game-built model of `E_(Q_a)` | [`extraspecial_model.tex`](../writeups/extraspecial_model.tex) |
 
 (The observation-width question above weight one closed on 2026-08-12: the
 block-compression corollary attains the integral transcript-span bound
 exactly at every fixed width. See [`CLOSED.md`](CLOSED.md) and the
-flagship's `cor:blocks`.)
+flagship's `cor:blocks`. The impartial uniform realizer also closed
+affirmatively the same day via the pass-free matching theorem and is recorded
+in the same ledger.)
 
 The evidence vocabulary is fixed throughout this file:
 
@@ -1674,66 +1675,7 @@ Kummer-field intersection or an unweighted product of arm symbols.
 - [`src/scalar/big/ordinal/tower.rs`](../src/scalar/big/ordinal/tower.rs)
 - [`src/scalar/big/ordinal/b380496.txt`](../src/scalar/big/ordinal/b380496.txt)
 
-## 3. Impartial uniform realizer
-
-### Problem
-
-The weighted-source witt-fifo arena of the flagship realization theorem is
-partizan through exactly one bit. Every OPEN, CLOSE, and PASS is
-seat-symmetric; only the terminal claim move is keyed by the accumulated
-charge `sigma` together with the mover phase `phi`, so which player may claim
-depends on whose turn it is.
-
-**Question.** Does an impartial rule — every legal move available to both
-players, outcomes read by ordinary normal play — satisfy the same access
-contract F1–F3/N1–N2 at bounded `(w_0, c)` and have root outcome `P` exactly
-when `Q(x) = 0`, uniformly over every quadratic refinement `Q` of every
-alternating form `B` in every finite dimension?
-
-### Proved boundary
-
-- The partizan compilation is exact at `(w_0, c) = (1, 1)`. The phase-aware
-  claim compiler and the charge-game/normal-play root equivalence are proved
-  in [`GoldSemantics.lean`](../formal/Ogdoad/GoldSemantics.lean); the forcing
-  strategy is the refinement-blind safe-front policy of
-  [`FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean).
-- The linear ceiling is proved: any ruleset decomposing as a disjunctive sum
-  of terminating coin-turning heaps has a linear `P`-set (Ferguson
-  decomposition). An impartial realizer cannot be a coin-turning sum.
-- The abelian obstruction is proved: once `B != 0`, no commutative
-  game-value monoid carries the refinement, and misère-quotient kernels are
-  excluded. An impartial candidate therefore cannot factor through its
-  Sprague–Grundy (or any commutative quotient) values; the refinement must
-  enter intensionally, through the move relation. Impartial play does retain
-  the one asymmetry the paper identifies as available — the
-  first-/second-player asymmetry of whose turn it is — even though its move
-  sets are equal.
-- The observation boundary applies unchanged: any transcript-stable exact
-  impartial rule must observe refinement directions spanning the input, so
-  weight-one interfaces still need the full `wt(x)` singleton support.
-
-### Present reduction
-
-The frontier note records the rigid-tempo compilation lemma (standard: an
-impartial arena in which every maximal play has the same length parity has
-strategy-independent outcome) and reduces the design problem to a
-pass-controlled analogue of the matching forcing theorem: either eliminate
-PASS and keep the safe-front forcing with rigid length, or pin pass parity
-strategically, so total play-length parity rather than claim rights compiles
-the charge. The ko rule is the immediate obstruction — in the FIFO transition
-system a forced pass is what clears ko, and the kernel-checked matching
-strategy uses it. A negative answer must engage the move relation directly:
-by the abelian obstruction it cannot proceed through value quotients.
-
-### Verification surfaces
-
-- [`writeups/impartial_realizer.tex`](../writeups/impartial_realizer.tex)
-- [`writeups/goldarf.tex`](../writeups/goldarf.tex) (realization theorem,
-  locality proposition, conclusion)
-- [`formal/Ogdoad/GoldSemantics.lean`](../formal/Ogdoad/GoldSemantics.lean)
-- [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
-
-## 4. A game-native extraspecial extension model
+## 3. A game-native extraspecial extension model
 
 ### Problem
 

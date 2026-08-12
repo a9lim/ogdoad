@@ -317,19 +317,21 @@ and the obstruction has simply walked from the Integral shore to the Clifford on
 
 The exact research boundary is split between two current-only ledgers:
 
-- `docs/OPEN.md` contains the two unsolved fronts: arbitrary-graph FIFO
-  linking and the universal Lenstra excess `0/1/4` rule.
+- `docs/OPEN.md` contains the three unsolved fronts: arbitrary-graph FIFO
+  linking, the universal Lenstra excess `0/1/4` rule, and the game-native
+  extraspecial extension model.
 - `docs/CLOSED.md` states the solved questions as theorems, with their proof,
   formalization, implementation, and non-claim boundaries.
 
 The central closed result is the Gold--Arf normal-play theorem. Turning-Corners
 realizes nim multiplication; Frobenius and trace are built from nim operations;
 and a public Witt frame reduces every finite quadratic refinement to a matching
-with singleton-weighted source pairs. The both-seat FIFO matching strategy
-forces the exact charge, and a phase-aware terminal claim compiles it to
-ordinary normal play. Consequently the `P`-set is precisely the quadratic zero
-set. A transcript theorem proves that the support-sized observation interface
-is optimal. A separate quadratic-tower theorem supplies a constructive
+with singleton-weighted source pairs. A pass-free both-seat FIFO matching
+strategy forces the exact charge, the core has fixed even tempo, and one
+seat-symmetric tail move at charge one compiles it to ordinary normal play.
+Consequently this impartial arena has `P`-set precisely the quadratic zero set.
+A transcript theorem proves that the support-sized observation interface is
+optimal. A separate quadratic-tower theorem supplies a constructive
 Artin--Schreier source for the diagonal of every Gold exponent.
 
 The other closed results delimit the scalar and game boundaries. Ambient

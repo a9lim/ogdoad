@@ -2,7 +2,7 @@
 
 This file records solved research questions as mathematical results, not as a
 development chronology. Implementation milestones remain in [`DONE.md`](DONE.md),
-while the two unsolved fronts remain in [`OPEN.md`](OPEN.md).
+while the three unsolved fronts remain in [`OPEN.md`](OPEN.md).
 
 Since 2026-08-12, five of the seven results share one flagship paper:
 [`goldarf.tex`](../writeups/goldarf.tex), "Quadratic Refinements in Normal
@@ -17,7 +17,7 @@ history.
 
 | solved question | answer | authoritative paper |
 |---|---|---|
-| Gold quadratic zero sets in normal play | every finite characteristic-two quadratic refinement has a uniform normal-play realization, with an optimal observation bound | [`goldarf.tex`](../writeups/goldarf.tex) |
+| Gold quadratic zero sets in impartial normal play | every finite characteristic-two quadratic refinement has a uniform impartial normal-play realization, with an optimal observation bound | [`goldarf.tex`](../writeups/goldarf.tex) |
 | diagonal sources for every Gold exponent | every unscaled Gold diagonal in the canonical quadratic nim tower is an Artin--Schreier value | [`goldarf.tex`](../writeups/goldarf.tex), diagonal-source section (`thm:all-diagonal-source`) |
 | a game-native Clifford deformation on short-game values | ambient coherence forces all quadratic and polar values into `⋂ₖ4ᵏR` — identically zero over `ℤ`, in characteristic 2, and over `ℤ/4` — and every torsion square and polar pairing to vanish over every coefficient ring | [`goldarf.tex`](../writeups/goldarf.tex), game-exterior appendix (`sec:game-exterior`) |
 | quadratic classification over the full nimber field | the nonsingular Witt and Brauer--Wall classes vanish; `(dim V, dim rad B, dim rad Q)` is the complete singular invariant — standard math applied to a new scalar world | [`transfinite_arf.tex`](../writeups/transfinite_arf.tex) |
@@ -25,10 +25,10 @@ history.
 | thermography versus Newton polygons | positive numeric Norton units obey the exact thermic law `temp(G.u) = u·temp(G) + (u − δ_u)` with a classified composition defect; the shared shadow is tropical but no faithful full-dyadic graded ring exists | [`thermo_newton.tex`](../writeups/thermo_newton.tex) |
 | observation width above weight one | block aggregation of the weighted-source rule attains the integral transcript-span bound `ceil(wt(x)/w)` exactly at every fixed width, under the same access contract at `(w_0, c) = (w, 1)` | [`goldarf.tex`](../writeups/goldarf.tex), block-compression corollary (`cor:blocks`) |
 
-## 1. Gold quadratic zero sets have a normal-play realization
+## 1. Gold quadratic zero sets have an impartial normal-play realization
 
 Let `V` be a finite `F_2`-space, let `B` be alternating, and let `Q` be any
-quadratic refinement of `B`. There is a uniform finite normal-play game whose
+quadratic refinement of `B`. There is a uniform finite impartial normal-play game whose
 `P`-set is exactly
 
 ```text
@@ -37,9 +37,9 @@ quadratic refinement of `B`. There is a uniform finite normal-play game whose
 
 A deterministic public Witt frame turns the polar support into a matching plus
 isolates. Active original coordinates contribute matched source pairs carrying
-their singleton diagonal weights. The both-seat FIFO matching strategy forces
-zero correction charge, and a phase-aware terminal claim compiles the resulting
-bit to ordinary normal play. The Arf invariant and radical data therefore give
+their singleton diagonal weights. The pass-free both-seat FIFO matching strategy
+forces zero correction charge, the core has exact even tempo, and one impartial
+tail at charge one compiles the resulting bit to ordinary normal play. The Arf invariant and radical data therefore give
 the exact second-player zero-set bias.
 
 The construction is optimal at its access boundary. Any transcript-stable exact
@@ -58,7 +58,7 @@ Proof surfaces:
 - [`writeups/goldarf.tex`](../writeups/goldarf.tex)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`formal/Ogdoad/GoldMatchingAlgebra.lean`](../formal/Ogdoad/GoldMatchingAlgebra.lean)
-- [`formal/Ogdoad/GoldSemantics.lean`](../formal/Ogdoad/GoldSemantics.lean)
+- [`formal/Ogdoad/ImpartialRealizer.lean`](../formal/Ogdoad/ImpartialRealizer.lean)
 - [`formal/Ogdoad/GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean)
 - [`formal/Ogdoad/GoldForkPadding.lean`](../formal/Ogdoad/GoldForkPadding.lean)
 
@@ -272,14 +272,61 @@ Proof surfaces:
 - [`formal/Ogdoad/GoldBlockCompression.lean`](../formal/Ogdoad/GoldBlockCompression.lean)
 - [`formal/Ogdoad/GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean)
 
+## Impartial uniform realization
+
+**Closed 2026-08-12, affirmative.** Every finite binary quadratic refinement
+has an impartial exact local normal-play realizer at the optimal
+`(w_0, c) = (1, 1)` budget.
+
+The construction is the pass-free weighted-source Witt--FIFO arena. Delete
+PASS and allow CLOSE through ko exactly when the untouched set is empty. Ko
+still forces the public matching: for either designated seat, the deterministic
+safe-front policy opens the front's untouched public mate when present and an
+arbitrary fixed least coin otherwise. Every opponent CLOSE then has zero public
+live degree, including the newly legal ko-CLOSE because its untouched set is
+empty. Hence every public Witt/source pair overlaps and the terminal charge is
+
+```text
+sum_i y_i p_i + sum_h y_a_h y_b_h + sum_j x_j Q(e_j) = Q(x).
+```
+
+The exact clock `2*|U| + |queue|` decreases by one on every core move, never
+stalls, and starts even. At drainage it is again the first player's turn. If
+`Q(x)=1`, the first player forces charge one and takes the unique impartial
+tail; if `Q(x)=0`, the second player forces charge zero and leaves the first
+player at an optionless state. Thus the root is `P` exactly at `Q(x)=0`.
+All moves are seat-symmetric, and only an overlapping source OPEN uses one
+weight-one oracle query.
+
+The proof also identifies a contract boundary: because F2 meters each
+transition rather than total play, a forced singleton-scanning path is already
+a distributed-evaluator solution. The pass-free theorem is stronger and is the
+intended intensional resolution: one refinement-blind public policy forces the
+quadratic overlap law across the full torsor.
+
+Proof surfaces:
+
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex), pass-free weighted-source
+  theorem and access proof
+- [`writeups/impartial_realizer.tex`](../writeups/impartial_realizer.tex),
+  standalone theorem note
+- [`formal/Ogdoad/ImpartialRealizer.lean`](../formal/Ogdoad/ImpartialRealizer.lean),
+  exact transition/clock, both-seat safe-front induction, and impartial tail
+- [`formal/Ogdoad/GoldMatchingAlgebra.lean`](../formal/Ogdoad/GoldMatchingAlgebra.lean),
+  adapted-basis charge identity
+
+The Lean module abstracts the final charge as a supplied binary score and is
+pointwise in an edge-deleted submatching. Weighted source OPEN charges, the
+literal one-policy quantifier across all submatchings, and the end-to-end access
+synthesis remain explicit paper-level steps, not hidden kernel claims.
+
 ## The remaining open fronts
 
 Only the following research questions remain open:
 
 1. the arbitrary-graph causal affine-contraction theorem for FIFO linking;
 2. the universal Lenstra excess `0/1/4` rule;
-3. the impartial uniform realizer;
-4. the game-native extraspecial extension model.
+3. the game-native extraspecial extension model.
 
 Their exact current formulations and evidence boundaries are in
 [`OPEN.md`](OPEN.md).

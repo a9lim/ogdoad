@@ -51,9 +51,12 @@ behind the all-exponent Gold diagonal source;
 matching-plus-isolates board, formalizes the public-matching induction
 parameterized over all edge-deleted submatchings, and connects it to adapted
 hyperbolic coordinates;
+`Ogdoad/ImpartialRealizer.lean` proves the pass-free matching transition, exact
+even core clock, both-seat safe-front induction, and impartial charge-tail
+compiler resolving the uniform realizer problem;
 `Ogdoad/GoldMatchingAlgebra.lean` proves the adapted-basis quadratic expansion;
-`Ogdoad/GoldSemantics.lean` proves the forced-charge-to-normal-play winner
-equivalence; `Ogdoad/GoldNoEvaluator.lean` proves the sharp transcript-span and
+`Ogdoad/GoldSemantics.lean` preserves the earlier phase-aware partizan compiler
+as a comparison surface; `Ogdoad/GoldNoEvaluator.lean` proves the sharp transcript-span and
 query-weight lower bounds; `Ogdoad/GoldBlockCompression.lean` proves the
 induced-instance algebra behind the every-width block-compression attainment;
 `Ogdoad/GoldForkPadding.lean` proves that unavoidable
@@ -114,8 +117,8 @@ grundy/tests/conformance.rs, the corpus runner),
 and `writeups/`
 (`goldarf.tex` — the unified flagship paper, "Quadratic Refinements in Normal
 Play: Realization and the Observation Boundary" (merged 2026-08-12): the
-resolved Gold/Arf normal-play theorem with the Tier-2 no-go history and
-weighted-source Witt--FIFO construction, the absorbed sharp all-exponent
+resolved impartial Gold/Arf normal-play theorem with the Tier-2 no-go history
+and pass-free weighted-source Witt--FIFO construction, the absorbed sharp all-exponent
 diagonal-source criterion with closed trace-dual basis and tower-recursive
 Artin--Schreier solver, the Brown-selector section (intrinsic partizan
 outcomes for all four `Z/4` residues), and the game-exterior appendix
@@ -134,13 +137,11 @@ filtrations, the correlated cut/continuation moment, initial cut contraction,
 the two-bit handshake refinement, two-switch tail, the false
 childwise/full-fan/bounded-support inductions, and the exact still-open global
 odd-flow lemma;
-`impartial_realizer.tex`, `extraspecial_model.tex` — the two
-flagship-residual frontier notes (2026-08-12), each the authoritative home
-of one open question from goldarf's conclusion, to be folded back into the
-flagship when resolved: the impartial uniform realizer (reduced to a
-pass-free or pass-parity-pinned matching forcing theorem compiling charge to
-play-length parity) and the game-native extraspecial `E_{Q_a}` model
-(structural demands fixed; ordinal-sum/`Q_8` quotient probe named); a third
+`impartial_realizer.tex` — the resolved standalone theorem note for the
+pass-free impartial construction, folded into the flagship the same day;
+`extraspecial_model.tex` — the remaining flagship-residual frontier note for
+the game-native extraspecial `E_{Q_a}` model (structural demands fixed;
+ordinal-sum/`Q_8` quotient probe named); a third
 note, `observation_width.tex`, lived hours — its block-compression
 proposition survived a sol-tier adversarial consult the same day and was
 absorbed into goldarf as the every-width attainment corollary `cor:blocks`
@@ -166,16 +167,16 @@ Use these labels when changing prose, papers, examples, or comments:
   reciprocity, and Conway-Sloane lattice theory.
 - **Implemented and tested**: statements backed by the Rust tests, examples, Python
   experiments, or the `demo.py` tour in this checkout.
-- **Proved synthesis**: the weighted-source Witt--FIFO theorem makes "Arf is a
-  win-bias" literal for its normal-play P-set; the transcript-span theorem gives
+- **Proved synthesis**: the pass-free weighted-source Witt--FIFO theorem makes
+  "Arf is a win-bias" literal for its impartial normal-play P-set; the transcript-span theorem gives
   the sharp observation boundary, while the standard Arf zero-count is external
   math and the formal files check independent proof ingredients rather than one
   end-to-end arena theorem.
 - **Open**: transfinite nim multiplication beyond the source-verified excess
   table, the now-optional arbitrary-graph FIFO strengthening, and the
-  flagship's two residual opens (impartial uniform realizer, a game-native
-  `E_{Q_a}` model — the third, observation width above weight one, closed
-  2026-08-12 via the block-compression corollary). These live in `docs/OPEN.md`; the
+  flagship's game-native `E_{Q_a}` model. These live in `docs/OPEN.md`; the
+  impartial uniform realizer and observation width above weight one both closed
+  2026-08-12. The
   game-native `GameExterior` deformation question was resolved negatively under
   ambient subgroup coherence on 2026-08-09.
 
@@ -359,14 +360,15 @@ Q_a(x)     = Tr(x * x^(2^a))
 Implemented probes verify Gold ranks, Arf zero-count bias, literal Turning-Corners
 reconstruction on small fields, frame-obstruction experiments, misère-kernel
 obstruction examples, loopy Draw/Loss-set experiments, and bent Gold-component route
-probes. The weighted-source Witt--FIFO rule now makes the Arf interpretation
-unconditional: its ordinary normal-play P-set is `{Q = 0}` for every finite
+probes. The pass-free weighted-source Witt--FIFO rule now makes the Arf interpretation
+unconditional: its impartial normal-play P-set is `{Q = 0}` for every finite
 `F_2`-valued quadratic refinement. A deterministic public Witt frame makes the
 strategic graph a matching, public adapted coins carry the triangular
 `B`-correction, and one matched source pair per active original coordinate uses
 its singleton `q_i` as a local overlap weight. Either seat forces zero correction parity on every such board by a
-rank-inductive safe-front strategy; a local terminal claim move keyed by charge
-and mover phase compiles the forced bit to normal play. Loading is q-blind,
+rank-inductive safe-front strategy. PASS is absent; CLOSE may cross ko only
+after the untouched set empties, so the core has exact even tempo and one
+seat-symmetric tail at charge one compiles the forced bit to normal play. Loading is q-blind,
 transition access is `(w0,c)=(1,1)`, and its distinct observations are exactly
 the active singleton directions. Any transcript-stable exact rule must observe
 vectors spanning the input, so this support is optimal and a constant total
@@ -376,7 +378,7 @@ unavoidable fork padding proves that
 the basic reachable, optimal, and unavoidable fork properties do not certify
 naturality. Lean checks these
 independent ingredients in the `GoldDiagonal`, `FifoMatching`,
-`GoldMatchingAlgebra`, `GoldSemantics`, `GoldNoEvaluator`,
+`ImpartialRealizer`, `GoldMatchingAlgebra`, `GoldNoEvaluator`,
 `GoldBlockCompression`, and
 `GoldForkPadding` formal modules.
 

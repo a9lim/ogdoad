@@ -103,6 +103,17 @@ The exhaustive graph census through eight real coins remains machine evidence,
 not a formal proof of the missing global affine-contraction lemma or of the
 stronger prefix-safe STOP normalization.
 
+`Ogdoad/ImpartialRealizer.lean` kernel-checks the resolved pass-free matching
+arena independently of that open arbitrary-graph theorem: CLOSE is legal
+through ko exactly after the untouched set empties; every core move consumes
+one unit of the exact clock `2*|U|+|queue|`; nonterminal states cannot stall;
+the public-matching safe-front induction works for either seat and every
+edge-deleted submatching; and an impartial one-move tail at score one gives a
+P-root exactly at score zero. The module begins from a supplied score and its
+submatching theorem is pointwise; weighted source OPEN charges, the literal
+single policy across all refinements, and F1--F3/N1--N2 composition remain the
+explicit synthesis in `writeups/goldarf.tex`.
+
 `Ogdoad/FifoCausal.lean` additionally kernel-checks charged-CLOSE transport
 across the ordinary OPEN/CLOSE square and across the repaired singleton ko
 wall. `Ogdoad/FifoSymmetry.lean` kernel-checks mover/seat conjugacy, its

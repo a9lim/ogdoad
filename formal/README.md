@@ -977,6 +977,29 @@ subclass needed by the resolved Gold construction:
 This does **not** prove the arbitrary-graph isolated-dummy conjecture.  It
 shows instead that the conjecture is an unnecessary strengthening for Gold.
 
+[`Ogdoad/ImpartialRealizer.lean`](Ogdoad/ImpartialRealizer.lean) closes the
+separate impartial-realizer question on the matching boards actually used by
+Gold:
+
+- its pass-free transition has only OPEN and CLOSE, with CLOSE allowed through
+  ko exactly when the untouched set is empty;
+- `remaining = 2*|U| + |queue|` decreases by exactly one on every move, and
+  every nonterminal state has a successor, giving a fixed even root tempo;
+- `forcesScore_initial_of_every_submatching` ports the both-seat safe-front
+  induction to every submatching of one public matching, including the new
+  ko-CLOSE branch where the live degree vanishes because `U` is empty;
+- `TailWins` formalizes the impartial one-move tail present exactly at score
+  one, proves the two seats' winning strategies incompatible, and derives
+  `root_isP_iff_charge_zero`.
+
+The formal boundary is exact. The module starts from a supplied binary score
+and its public-matching theorem is pointwise `forall H, exists strategy`; it
+does not reify a single policy polymorphic over all `H`, encode weighted source
+OPEN charges, or compose the arena with the adapted-basis loading and oracle
+contract. The paper fixes the literal least-choice policy on the full public
+potential matching, proves every CLOSE has zero public live degree, and makes
+that end-to-end synthesis.
+
 ## Gold normal-play semantics
 
 [`Ogdoad/GoldMatchingAlgebra.lean`](Ogdoad/GoldMatchingAlgebra.lean)
@@ -992,7 +1015,9 @@ concrete public correction is `P_B(f_i)`; that elementary polarization step
 remains in the paper.
 
 [`Ogdoad/GoldSemantics.lean`](Ogdoad/GoldSemantics.lean) proves the semantic
-compiler independently of the FIFO mechanism:
+compiler for the earlier phase-aware partizan tail independently of the FIFO
+mechanism. It remains a checked comparison surface but is no longer
+load-bearing for the current impartial theorem:
 
 - a recursive winning-status compiler models retaining every move and adding
   one terminal claim exactly when the current seat is designated by the charge;

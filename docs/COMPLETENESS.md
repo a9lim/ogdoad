@@ -226,14 +226,15 @@ central construction and the only theorem at this level with no Rust surface —
 the 2026-08-12 referee had to re-implement the Rule box from the printed text.
 Build the arena as a `games/` module (or research example): the public Witt
 frame, matched source pairs carrying their singleton `q_i` weights,
-OPEN/CLOSE/PASS with ko forbidding CLOSE, and the phase-aware terminal claim
-move; the decreasing rank `4|U| + 2|𝒬| + [ko]` gives termination. Oracle test:
+pass-free OPEN/CLOSE with ko forbidding CLOSE only while untouched coins
+remain, and the impartial one-move tail at charge one; the exact clock
+`2|U| + |𝒬|` gives termination and fixed even core tempo. Oracle test:
 exhaustive minimax on small dimensions asserting root outcome `P ⟺ Q(x) = 0`
 for every quadratic refinement `Q` of every alternating `B` (the referee's
 160-instance zero-mismatch sweep at `n = 2,3,4` is the shape to reproduce).
 This upgrades the flagship headline to "implemented and tested" in the repo's
 own vocabulary; the strategy and exactness proofs stay in the paper and the
-`FifoMatching`/`GoldSemantics` Lean modules — the crate item is the rule and
+`FifoMatching`/`ImpartialRealizer` Lean modules — the crate item is the rule and
 the oracle, not a new claim.
 
 ### ½·(e_g∧e_f): `brown-selector`

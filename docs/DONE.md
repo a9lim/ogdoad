@@ -113,9 +113,9 @@ coordinate diagonal in the canonical nim tower.
   weighted-source Witt--FIFO theorem below closes the natural play-rule and
   P-set realization questions without requiring a general scaled descent.
 
-### tis·(e_g∧e_f): `gold-witt-fifo-normal-play`
+### tis·(e_g∧e_f): `gold-witt-fifo-impartial-normal-play`
 **Completed:** 2026-08-09
-**Summary:** a fixed, singleton-local normal-play rule has P-set exactly the
+**Summary:** a fixed, singleton-local impartial normal-play rule has P-set exactly the
 zero quadric of every finite `F_2`-valued refinement, while a sharp transcript
 theorem identifies the exact observation cost that no torsor-uniform rule can
 beat.
@@ -133,9 +133,11 @@ beat.
   potential matching, this makes every close individually zero, so every
   potential pair overlaps. The same strategy works for every refinement and
   every dimension, without a dummy.
-- normal semantics: a unique terminal claim move enabled by `sigma xor phase`
-  compiles any finite forced-charge tree to ordinary normal play; with stance
-  one the root is P exactly when the forced charge is zero.
+- impartial semantics: PASS is deleted and a ko-protected front may CLOSE once
+  the untouched set is empty. The exact clock `2*|U|+|queue|` gives every core
+  play even length; one seat-symmetric tail at `sigma=1` makes the first player
+  win when `Q(x)=1`, while the second-seat forcing policy leaves a P-root when
+  `Q(x)=0`.
 - observation boundary: q-blind loading and `(w0,c)=(1,1)` transition access
   satisfy N1--N2. Exactness plus transcript stability forces every observation
   certificate to span `x`, hence `wt(x) <= #queries*w0`; the rule's active
@@ -145,9 +147,10 @@ beat.
   a refinement-sensitive two-action fork preserves every root outcome. Thus
   the basic reachable, optimal, and unavoidable fork properties cannot define non-tautology; the
   rule's weighted-interaction syntax and access discipline are stated directly.
-- formal core: `formal/Ogdoad/FifoMatching.lean` proves the both-seat matching
-  strategy; `GoldMatchingAlgebra.lean` proves abstract adapted identities;
-  `GoldSemantics.lean` proves the claim-compiler winner recursion;
+- formal core: `formal/Ogdoad/FifoMatching.lean` proves the original both-seat
+  matching strategy; `ImpartialRealizer.lean` proves the pass-free transition,
+  exact clock, both-seat safe-front induction, and impartial tail;
+  `GoldMatchingAlgebra.lean` proves abstract adapted identities;
   `GoldNoEvaluator.lean` proves the span/support bounds; and
   `GoldForkPadding.lean` proves the padding obstruction. They are sorry-free
   ingredient proofs, not one end-to-end encoded arena theorem.

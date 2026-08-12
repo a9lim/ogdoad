@@ -15,6 +15,7 @@ import Ogdoad.FifoCrossExitIncidence
 import Ogdoad.FifoNeutralPair
 import Ogdoad.FifoMinHotCurvature
 import Ogdoad.FifoMatching
+import Ogdoad.ImpartialRealizer
 import Ogdoad.GoldSemantics
 import Ogdoad.GoldMatchingAlgebra
 import Ogdoad.GoldNoEvaluator
