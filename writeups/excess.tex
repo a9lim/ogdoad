@@ -12585,9 +12585,15 @@ prefactors are nonzero, and therefore
  S_d^{[2R]}(a)=0
  \iff S_{\lfloor r/2\rfloor}(a)=0.}                 \tag{\(\mathsf{QJ}_6\)}
 \]
+If \(r=2t\) is even, this value is automatically nonzero:
+\[
+ \boxed{r\equiv0\pmod2\quad\Longrightarrow\quad
+        S_d^{[2R]}(a)\ne0.}                          \tag{\(\mathsf{QJ}_7\)}
+\]
 Thus the first term not reduced to the old quotient residue is exactly a
-smaller selected Fibonacci value.  The proposition does not prove that value
-nonzero, and hence does not prove the Conway--Fermat maximal-order assertion.
+smaller selected Fibonacci value, and only the odd-\(r\) branch can retain a
+zero there.  The proposition does not prove that remaining value nonzero, and
+hence does not prove the Conway--Fermat maximal-order assertion.
 \end{proposition}
 
 \begin{proof}
@@ -12660,6 +12666,19 @@ If \(T_s(a)\) were zero or one, then \(a^{2^s}=a\).  The exact degree
 \(0<s<M\) in \((\mathsf{QW}_4)\).  Thus both \(T_s(a)\) and
 \(1+T_s(a)\) are nonzero; also \(a\ne0\) because \(A(0)=1\).
 This proves \((\mathsf{QJ}_6)\).
+
+For \((\mathsf{QJ}_7)\), suppose \(r=2t\) and the displayed value
+vanishes.  Proposition~\ref{prop:fermat-fibotomic} then gives
+\(\delta_n\mid t\).  The hypothetical failure gives \(\delta_n\mid d\),
+while \(g=4t+1\), so
+\[
+ \delta_n\mid d-4Rt=R+1.
+\]
+Choose a prime \(p\mid\delta_n\).  Since also
+\(p\mid N=2^M+1\), and \(M\) is a power of two, one has
+\(\ord_p(2)=2M\).  But \(p\mid R+1=2^s+1\) also gives
+\(\ord_p(2)\mid2s\), hence \(M\mid s\), contrary to \(0<s<M\) in
+\((\mathsf{QW}_4)\).  This proves \((\mathsf{QJ}_7)\).
 
 Lean kernel-checks the second-digit rearrangement, the exact identity
 \((\mathsf{QJ}_2)\) and its quotient specialization, and the ring
@@ -23812,8 +23831,9 @@ fixed-coordinate Hasse blocks as well.  Every canonical digit through
 digit: the apparent order-\(R\) escape folds back through the unconditional
 identity \(X^RH=S_d+(1+T_s)S_d'\).  The first term not reduced by this
 identity occurs at Hasse order \(2R\) and is a provably nonzero partial-trace
-prefactor times an explicit half-index Fibonacci value.  Nonvanishing of that
-smaller value, later digits, and global relations remain open.
+prefactor times an explicit half-index Fibonacci value.  That value is
+automatically nonzero in the even half-index branch; only the odd branch,
+later digits, and global relations remain open.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn

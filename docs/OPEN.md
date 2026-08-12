@@ -368,9 +368,9 @@ absolute boundedness.
   apparent order-`R` escape folds back through
   `X^R H=S_d+(1+T_s)S_d'`. The first jet not collapsed by this identity is
   order `2R`, a provably nonzero prefactor times an explicit half-index
-  Fibonacci value. Its remaining Fibonacci nonvanishing,
-  later fixed-`A` digits, middle/global coefficients, and cross-endpoint
-  relations remain open.
+  Fibonacci value. That value is automatically nonzero in the even
+  half-index branch; only the odd branch, later fixed-`A` digits,
+  middle/global coefficients, and cross-endpoint relations remain open.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
