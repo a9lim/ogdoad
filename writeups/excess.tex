@@ -21325,6 +21325,94 @@ With geometric Frobenius, \(H\) is replaced by \(H^{-1}\), leaving every
 split/nontrivial dichotomy unchanged.
 \end{proof}
 
+\begin{proposition}[mixed secondary and nilpotent descent exhaustion]
+\label{prop:fermat-secondary-exhaustion}
+Retain Corollary~\ref{cor:fermat-hasse-dihedral}, identify
+\(\mu_\ell\simeq\F_\ell\), and put
+\[
+ \alpha=\kappa(W_n),\qquad \beta=\kappa(2)
+ \quad\hbox{in }H^1(G_M,\F_\ell).
+\]
+Then the selected obstruction is already their primary cup product:
+\[
+ \boxed{\qquad \alpha\smile\beta=0\iff H=1.\qquad} \tag{\(\mathsf{SE}_1\)}
+\]
+Consequently
+\[
+ \langle\alpha,\beta,\alpha\rangle,
+ \qquad
+ \langle\beta,\alpha,\beta\rangle                 \tag{\(\mathsf{SE}_2\)}
+\]
+are defined exactly under hypothetical failure \(H=1\), and whenever
+defined both contain zero.  At the selected completion the two products
+have the sharper values
+\[
+ \boxed{
+ \langle\alpha,\beta,\alpha\rangle_{\mathfrak q_1}=\{0\},
+ \qquad
+ \langle\beta,\alpha,\beta\rangle_{\mathfrak q_1}
+   =H^2(M_{\mathfrak q_1},\F_\ell).}                \tag{\(\mathsf{SE}_3\)}
+\]
+Thus ordinary triple Massey theory accommodates failure rather than
+contradicting it.  A single-valued selected Massey symbol would require
+extra Conway-specific defining-cochain data.
+
+There is no such secondary value inside the lower dihedral closure.  In the
+nontrivial Kummer case write
+\[
+ D=\operatorname{Gal}(\mathcal E/M')
+ =\langle\sigma,\iota:\sigma^\ell=\iota^2=1,
+   \ \iota\sigma\iota^{-1}=\sigma^{-1}\rangle.
+\]
+Every homomorphism from \(D\) to a finite nilpotent group kills the
+translation:
+\[
+ \boxed{\qquad \varphi(\sigma)=1.\qquad}             \tag{\(\mathsf{SE}_4\)}
+\]
+In particular every unipotent, prime-primary Massey, quadratic, or
+R\'edei quotient internal to this dihedral extension erases the selected
+Frobenius \(\sigma^h\).  Combined with
+Proposition~\ref{prop:selected-euler-factor}, this closes the ordinary
+secondary/functional-equation route: conductors and epsilon factors are
+constant, the Euler polynomial contains exactly the old split--inert bit,
+and nilpotent refinements kill that bit.  A secondary proof would need a
+larger global extension and an independently normalized mixed defining
+system.
+\end{proposition}
+
+\begin{proof}
+Kummer theory identifies \(\alpha\smile\beta\) with the cyclic algebra
+\((W_n,2)_\ell\).  Its vanishing says exactly that two is a norm from
+\(\mathcal E/M\), so \((\mathsf{SE}_1)\) is
+\((\mathsf{HD}_1)\).  Since \(\ell\) is odd, graded commutativity makes
+the two adjacent cup conditions for either product in
+\((\mathsf{SE}_2)\) equivalent to \(\alpha\smile\beta=0\).  The theorem
+of Efrat--Matzri says that every defined triple Massey product in the
+mod-\(\ell\) cohomology of an absolute Galois group containing
+\(\mu_\ell\) contains zero~\cite{EfratMatzri17}.
+
+Under failure, \(\alpha_{\mathfrak q_1}=0\), so the indeterminacy of the
+first localized product vanishes.  The class
+\(\beta_{\mathfrak q_1}\ne0\), because two has valuation one.  Local Tate
+duality makes cup product a perfect pairing, and hence
+\[
+ \beta_{\mathfrak q_1}\smile H^1(M_{\mathfrak q_1},\F_\ell)
+ =H^2(M_{\mathfrak q_1},\F_\ell),
+\]
+which proves \((\mathsf{SE}_3)\).
+
+Finally let \(\varphi:D\to P\) with \(P\) finite nilpotent.  Such a group
+is the direct product of its Sylow subgroups.  The element
+\(\varphi(\sigma)\) has order dividing \(\ell\), while
+\(\varphi(\iota)\) has order dividing two, so they commute.  Applying
+\(\varphi\) to the dihedral relation gives
+\(\varphi(\sigma)=\varphi(\sigma)^{-1}\).  Its order divides both two and
+the odd prime \(\ell\), proving \((\mathsf{SE}_4)\).  Lean kernel-checks
+this last implication from commutation, inversion conjugacy, and odd order;
+the nilpotent Sylow decomposition and Galois-cohomological statements remain
+paper-level.
+\end{proof}
+
 \begin{proposition}[the full Artin package leaves the named factor free]
 \label{prop:selected-global-artin}
 Retain Proposition~\ref{prop:selected-euler-factor}, put
@@ -22555,6 +22643,11 @@ Coleman-derivative, and Massey refinements after Kummer projection.
 Corollary~\ref{cor:fermat-hasse-dihedral} equivalently asks that two not be a
 global norm from the associated cyclic Kummer extension and proves that every
 abelian descent of its lower dihedral closure kills the selected translation.
+Proposition~\ref{prop:fermat-secondary-exhaustion} strengthens this to every
+finite nilpotent quotient and proves that the relevant ordinary triple Massey
+products are defined only under failure, when they contain zero.  Thus neither
+prime-primary nonabelian quotients nor unnormalized secondary products add a
+selected obstruction.
 No all-level proof or counterexample is presently known.
 
 \subsection{Comparison with the cubic arm}
@@ -22591,6 +22684,10 @@ two is a norm from the explicit degree-\(\ell\) reflection field
 \]
 This non-Galois norm form is the sharpest lower-field target retained by the
 full dihedral ancestry; its abelian quotients erase the marked Frobenius.
+In fact every finite nilpotent quotient erases it, and the natural adjacent
+triple Massey products exist only after assuming failure and then contain
+zero.  Hence an ordinary secondary-cohomology refinement does not recover the
+lost rotation.
 However, the explicit symmetrization is valid over every completion and
 proves the Hasse norm principle for this reflection field.  The norm-two
 equation fails locally exactly when the named prime above two has nontrivial
@@ -31067,6 +31164,10 @@ in \emph{Modular Functions of One Variable II},
 Lecture Notes in Math.\ \textbf{349}, Springer, 1973, 501--597;
 \url{https://publications.ias.edu/sites/default/files/Number20.pdf}.
 \bibitem{DiMuro} J.~DiMuro, \emph{On $\mathrm{On}_p$}, arXiv:1108.0962.
+\bibitem{EfratMatzri17} I.~Efrat, E.~Matzri,
+\emph{Triple Massey products and absolute Galois groups},
+J.~Eur. Math. Soc.\ \textbf{19} (2017), 3629--3640;
+\url{https://doi.org/10.4171/JEMS/748}.
 \bibitem{GV95} S.~Gao, S.~A.~Vanstone, \emph{On orders of optimal basis
 generators}, Math.\ Comp.\ \textbf{64} (1995), 1227--1233.
 \bibitem{Gras98} G.~Gras, \emph{Th\'eor\`emes de r\'eflexion},

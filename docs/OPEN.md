@@ -937,7 +937,15 @@ absolute boundedness.
   degree two vanish and degree two returns the same weighted Hilbert phase.
   A surviving integral-global route needs a new canonically normalized mixed
   secondary class, not an ordinary norm, Coleman derivative, different, or
-  norm-residue symbol. The
+  norm-residue symbol. Ordinary mixed secondary classes do not supply it:
+  the relevant cup product vanishes exactly under hypothetical failure, so
+  the adjacent triple Massey products are defined only in that branch, and
+  the absolute-Galois triple-Massey theorem then makes them contain zero.
+  At the selected completion one is uniquely zero and the other has maximal
+  indeterminacy. Every finite nilpotent quotient of the lower odd-dihedral
+  closure also kills its selected rotation. Thus a surviving secondary route
+  requires a Conway-specific defining-cochain normalization in a larger
+  extension, not an ordinary Massey product or nilpotent quotient. The
   vertical nonlinear route collapses after fixed-`ell` Kummer projection.
   For `ell^e || F_n`, every future quotient
   `V_j=E_j^x/(E_j^x)^(ell^e)` is free of rank one over

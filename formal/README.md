@@ -330,7 +330,10 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   both zero and nonzero distinguished values, while every fixed source class
   is annihilated.  An invariant homomorphism evaluates every finite integral
   group-ring product through its augmentation alone, and every abelian
-  quotient of an odd dihedral group kills its translation subgroup; the
+  quotient of an odd dihedral group kills its translation subgroup.  Lean
+  also checks the sharper core under mere commutation of the reflection and
+  translation images, which finite nilpotent targets supply by their
+  coprime-primary decomposition; the
   anti-invariant coboundary is `-2*x` and vanishes exactly with `x` in odd
   characteristic.  The reflection-symmetrization identity also constructs a
   fixed norm witness `((y*s(y))^r)/a` when `2*r=ell+1`, the algebraic core of
@@ -338,8 +341,8 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   resulting ordinary-witness/fixed-witness equivalence under equivariance of
   the norm. The Artin map, finite-etale base-change interpretation, cyclic
   Hasse theorem and resulting Hasse norm principle for the reflection field,
-  Brauer projection/corestriction, and class-field interpretation remain
-  paper-level;
+  Brauer projection/corestriction, Galois-cohomological Massey products, and
+  class-field interpretation remain paper-level;
 - the global split-ray algebraic core: Lean checks descent of an `ell`-th
   root through a degree-`(ell-1)` norm equation, propagation of one marked
   zero through a rank-one orbit, the three exact integer inequalities used with

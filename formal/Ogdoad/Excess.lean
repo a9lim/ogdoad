@@ -998,6 +998,39 @@ theorem dihedral_translation_killed_in_abelian_target
   rw [hell] at hodd
   simpa [pow_add, pow_mul, htwo] using hodd
 
+/-- The abelian hypothesis in the preceding lemma can be weakened to the
+single commutation relation forced on the images of coprime-primary
+elements in a finite nilpotent group.  This is the algebraic core of the
+paper's nilpotent-dihedral no-go: once the reflection image commutes with
+the odd translation image, inversion conjugacy kills the translation. -/
+theorem dihedral_translation_killed_of_commuting_images
+    {G A : Type*} [Group G] [Group A]
+    (f : G →* A) (sigma s : G) (ell k : Nat)
+    (hell : ell = 2 * k + 1)
+    (horder : sigma ^ ell = 1)
+    (hconj : s * sigma * s⁻¹ = sigma⁻¹)
+    (hcomm : Commute (f s) (f sigma)) :
+    f sigma = 1 := by
+  have hmapped := congrArg f hconj
+  have hleft : f s * f sigma * (f s)⁻¹ = f sigma := by
+    calc
+      f s * f sigma * (f s)⁻¹ = f sigma * f s * (f s)⁻¹ := by
+        rw [hcomm.eq]
+      _ = f sigma := by simp
+  have hinv : f sigma = (f sigma)⁻¹ := by
+    calc
+      f sigma = f s * f sigma * (f s)⁻¹ := hleft.symm
+      _ = (f sigma)⁻¹ := by
+        simpa only [map_mul, map_inv] using hmapped
+  have htwo : (f sigma) ^ 2 = 1 := by
+    calc
+      (f sigma) ^ 2 = (f sigma)⁻¹ * f sigma := by rw [pow_two, ← hinv]
+      _ = 1 := inv_mul_cancel _
+  have hodd : (f sigma) ^ ell = 1 := by
+    rw [← map_pow, horder, map_one]
+  rw [hell] at hodd
+  simpa [pow_add, pow_mul, htwo] using hodd
+
 /-- An anti-invariant class has coboundary equal to minus twice the class.
 This is the additive algebra behind the paper's top-generator Brauer
 reduction. -/
