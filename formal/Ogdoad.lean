@@ -14,6 +14,7 @@ import Ogdoad.FifoDummyExitCarrier
 import Ogdoad.FifoCrossExitIncidence
 import Ogdoad.FifoOuterFan
 import Ogdoad.FifoProtectedFan
+import Ogdoad.FifoInterlace
 import Ogdoad.FifoNeutralPair
 import Ogdoad.FifoMinHotCurvature
 import Ogdoad.FifoMatching
