@@ -3215,6 +3215,89 @@ theorem canonicalLift_normOne_eq_parent_mul_inv_sq
 
 end FermatCanonicalLift
 
+section SignedDicksonLucasLift
+
+variable {R : Type*} [CommRing R]
+
+/-- Characteristic-zero signed Dickson--Lucas power sum.  At a quadratic
+pair with sum S and product B, this recurrence evaluates the sum of the
+two n-th powers. -/
+def signedDicksonLucas (S B : R) : Nat → R
+  | 0 => 2
+  | 1 => S
+  | n + 2 =>
+      S * signedDicksonLucas S B (n + 1) -
+        B * signedDicksonLucas S B n
+
+@[simp]
+theorem signedDicksonLucas_zero (S B : R) :
+    signedDicksonLucas S B 0 = 2 := by
+  rfl
+
+@[simp]
+theorem signedDicksonLucas_one (S B : R) :
+    signedDicksonLucas S B 1 = S := by
+  rfl
+
+theorem signedDicksonLucas_add_two (S B : R) (n : Nat) :
+    signedDicksonLucas S B (n + 2) =
+      S * signedDicksonLucas S B (n + 1) -
+        B * signedDicksonLucas S B n := by
+  rfl
+
+/-- Binet identity for the signed recurrence, proved without division or a
+quadratic formula. -/
+theorem signedDicksonLucas_eq_add_powers (T U : R) (n : Nat) :
+    signedDicksonLucas (T + U) (T * U) n = T ^ n + U ^ n := by
+  induction n using Nat.twoStepInduction with
+  | zero => norm_num
+  | one => simp
+  | more n hn hn1 =>
+      rw [signedDicksonLucas_add_two, hn, hn1]
+      ring
+
+/-- Symmetric algebra behind the lifted Conway birth-edge criterion.
+The signed Dickson--Lucas equation and the norm equation are exactly the
+sum and product equations for the two ell-th powers; they add no second
+condition beyond that powered quadratic pair. -/
+theorem signedDicksonLucas_birthEdge_iff
+    (T U A : R) (ell : Nat) :
+    (signedDicksonLucas (T + U) (T * U) ell = -1 ∧
+        (T * U) ^ ell = A) ↔
+      (T ^ ell + U ^ ell = -1 ∧ T ^ ell * U ^ ell = A) := by
+  rw [signedDicksonLucas_eq_add_powers, mul_pow]
+
+end SignedDicksonLucasLift
+
+section QuadraticTraceDualSeed
+
+variable {K L : Type*} [CommRing K] [CommRing L] [Algebra K L]
+
+/-- One-edge seed for the literal Conway trace-dual basis.  A trace-like
+additive map which kills the base and sends the Artin--Schreier generator to
+one pairs `(1,c)` dually with `(c+1,1)`.  Trace transitivity tensors this seed
+through the concrete quadratic tower in the paper. -/
+theorem quadratic_trace_dual_seed
+    (tr : L →+ K) (c : L) (A : K)
+    (hbase : ∀ x : K, tr (algebraMap K L x) = 0)
+    (hc : tr c = 1)
+    (hprod : c * (c + 1) = algebraMap K L A) :
+    tr ((c + 1) * 1) = 1 ∧
+      tr ((c + 1) * c) = 0 ∧
+      tr (1 * 1) = 0 ∧
+      tr (1 * c) = 1 := by
+  have hone : tr (1 : L) = 0 := by
+    simpa using hbase (1 : K)
+  constructor
+  · simp only [mul_one, map_add, hc, hone, add_zero]
+  constructor
+  · rw [mul_comm, hprod, hbase]
+  constructor
+  · simpa using hone
+  · simpa using hc
+
+end QuadraticTraceDualSeed
+
 section FermatSelectedPrimeTransversality
 
 variable {F : Type*} [CommRing F] [CharP F 2]
@@ -6625,6 +6708,46 @@ section FermatShiftBlockCore
 
 variable {R : Type*} [CommRing R]
 
+/-- Continuant determinant identity for the characteristic-two Fibonacci
+recurrence.  It is the subtraction-free form of
+`S_m*S_(n+1) + S_(m+1)*S_n = a^m*S_(n-m)`. -/
+theorem fibPolyValue_shift_determinant
+    (a : R) (m k : Nat) [CharP R 2] :
+    fibPolyValue a m * fibPolyValue a (m + k + 1) +
+        fibPolyValue a (m + 1) * fibPolyValue a (m + k) =
+      a ^ m * fibPolyValue a k := by
+  induction m with
+  | zero =>
+      simp [fibPolyValue]
+  | succ m ih =>
+      have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+      rw [show m + 1 + k + 1 = (m + k + 1) + 1 by omega]
+      rw [show m + 1 + k = m + k + 1 by omega]
+      rw [show fibPolyValue a ((m + k + 1) + 1) =
+          fibPolyValue a (m + k + 1) +
+            a * fibPolyValue a (m + k) by
+              simp only [fibPolyValue]]
+      rw [show fibPolyValue a (m + 1 + 1) =
+          fibPolyValue a (m + 1) + a * fibPolyValue a m by
+            simp only [fibPolyValue]]
+      rw [pow_succ]
+      linear_combination a * ih +
+        htwo * (fibPolyValue a (m + 1) *
+          fibPolyValue a (m + k + 1))
+
+/-- Reverse transport from a Fibonacci zero.  If the vanished endpoint is
+`m+k+1`, every value `k` steps from the beginning is, up to `a^m`, the
+corresponding value before the endpoint times the common predecessor.
+This is the algebraic core of the paper's failure-endpoint Moore saturation. -/
+theorem fibPolyValue_reverse_of_zero
+    (a : R) (m k : Nat) [CharP R 2]
+    (hd : fibPolyValue a (m + k + 1) = 0) :
+    a ^ m * fibPolyValue a k =
+      fibPolyValue a (m + k) * fibPolyValue a (m + 1) := by
+  have hdet := fibPolyValue_shift_determinant a m k
+  rw [hd, mul_zero, zero_add] at hdet
+  simpa [mul_comm] using hdet.symm
+
 /-- Once a Fibonacci value vanishes, every shift by its index scales the
 sequence by the single following value. -/
 theorem fibPolyValue_add_zero_block
@@ -6696,6 +6819,31 @@ theorem fibPolyValue_succ_sq_of_zero
     (a : R) (d : Nat) (hd : fibPolyValue a d = 0) :
     (fibPolyValue a (d + 1)) ^ 2 = a ^ d := by
   simpa [hd] using fibPolyValue_cassini a d
+
+/-- A zero at index `r+2` forces the square of the preceding value to be
+`a^r`; in particular the predecessor cannot vanish when `a` is nonzero.
+This form avoids truncated subtraction in the endpoint-saturation theorem. -/
+theorem fibPolyValue_pred_sq_of_zero
+    {R : Type*} [Field R] [CharP R 2]
+    (a : R) (r : Nat) (ha : a ≠ 0)
+    (hd : fibPolyValue a (r + 2) = 0) :
+    (fibPolyValue a (r + 1)) ^ 2 = a ^ r := by
+  have hcassini := fibPolyValue_cassini a (r + 1)
+  have hnext : fibPolyValue a (r + 3) =
+      a * fibPolyValue a (r + 1) := by
+    rw [show r + 3 = (r + 1) + 2 by omega]
+    change fibPolyValue a (r + 2) + a * fibPolyValue a (r + 1) = _
+    rw [hd, zero_add]
+  rw [show r + 1 + 1 = r + 2 by omega,
+    show r + 1 + 2 = r + 3 by omega, hd, zero_pow (by norm_num),
+    zero_add, hnext, pow_succ] at hcassini
+  apply (mul_left_cancel₀ ha)
+  calc
+    a * (fibPolyValue a (r + 1)) ^ 2 =
+        fibPolyValue a (r + 1) *
+          (a * fibPolyValue a (r + 1)) := by ring
+    _ = a ^ r * a := hcassini
+    _ = a * a ^ r := by ring
 
 /-- At an index dividing a power-of-two-plus-one index, a zero forces the
 next Fibonacci value to be the canonical power root of the parameter. -/
@@ -7122,6 +7270,28 @@ theorem fibCompanionIter_scalar_iff
         fibPolyValue a (r + 1) + a * fibPolyValue a r by
           simp only [fibPolyValue], hs, zero_add]
     simp
+
+/-- In characteristic two the entire defect from the candidate scalar return
+has one common Fibonacci factor.  Thus the literal two-coordinate companion
+block has no hidden second obstruction: every entry of its defect vanishes
+exactly with the same selected value `S_(r+1)(a)`. -/
+theorem fibCompanionIter_scalar_defect_factor [CharP R 2]
+    (a x y : R) (r : Nat) :
+    let s := fibPolyValue a (r + 1)
+    let scalar := fibPolyValue a (r + 2)
+    let v := fibCompanionIter a (r + 1) (x, y)
+    (v.1 + scalar * x, v.2 + scalar * y) =
+      (s * (x + a * y), s * x) := by
+  dsimp
+  rw [fibCompanionIter_succ_formula]
+  rw [show fibPolyValue a (r + 2) =
+      fibPolyValue a (r + 1) + a * fibPolyValue a r by
+        simp only [fibPolyValue]]
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  apply Prod.ext <;> dsimp
+  · linear_combination htwo * (a * fibPolyValue a r * x)
+  · linear_combination htwo *
+      ((fibPolyValue a (r + 1) + a * fibPolyValue a r) * y)
 
 end ConwayTopBitCompanion
 

@@ -747,7 +747,32 @@ absolute boundedness.
   is `-1`, and its labelled factors multiply to `X^q+X`. The trivial-labelled
   factor is exactly `S_d(X^2+X+a)`. Its value at the marked endpoint is
   `S_d(a)`, so all aggregate factor data are fixed and the only missing
-  incidence is the original selected Fibonacci zero. After translating every
+  incidence is the original selected Fibonacci zero. Literal additive
+  extraction is now exhausted too. For the monomial basis
+  `b_S=prod_(i in S)c_i`, the trace-dual basis is
+  `b_S^vee=prod_(i notin S)(c_i+1)`, so every literal coefficient and every
+  multiplication-matrix entry is a weighted absolute trace of the same
+  element `S_d(a)=(1+w_n^d)/(1+w_n)^d`. The complete companion defect factors
+  as `S_d(a)*[[1,a],[1,0]]`, and its restricted determinant is exactly the
+  old resultant `Res(A_(n-1),S_d)`. Downward literal coordinates differ from
+  the complete quadratic-remainder leaves only by invertible ancestral
+  rescalings. Thus coefficient extraction is a lossless phase chart, not a
+  second condition; a proof must still identify and force a particular
+  nonzero coordinate by new structure. The strongest natural nonlinear
+  coefficient test is now exhausted as well. Under hypothetical failure
+  `S_d(a)=0`, put `t=S_(d-1)(a)`. Then
+  `t^2=a^(d-2)` and
+  `a^(r-1)*S_(d-r)(a)=t*S_r(a)`. Since the selected `a` has degree
+  `m=2^n`, the reverse block
+  `S_(d-1)(a),...,S_(d-m)(a)` is an `F_2`-basis: a relation would give a
+  nonzero polynomial of degree below `m` vanishing at `a`. Its full Moore
+  determinant is exactly one. Every homogeneous Frobenius minor transports
+  to the initial Fibonacci block by an explicit nonzero power of `t`, and
+  Lucas parity exposes only isolated nonzero Hasse jets. Thus failure
+  maximally satisfies Moore-rank, exterior-product, norm, and homogeneous
+  multi-jet tests; any surviving local argument must couple distinct
+  Frobenius weights nonhomogeneously or use additional literal ancestry.
+  After translating every
   labelled factor by the same `c`, the whole family is universal:
   `F_xi(Y)=(Y+1)^d+xi*Y^d` and `prod_xi F_xi=Y^q+Y+1`.
   Its discriminants, pairwise resultants, Frobenius/translation symmetries,
@@ -812,6 +837,34 @@ absolute boundedness.
   class. What remains is therefore one genuinely mixed Artin pairing; even
   after proving the ray character nontrivial, its value at the named class is
   still required, and classical cyclotomic reciprocity does not supply it.
+  The marked-place possibilities are now exhausted at the linear equivariant
+  level. The unique prime above three is fixed by cyclotomic Frobenius `tau_3`,
+  so its ray value and every Hilbert pairing with a descended scalar are
+  trivial. For an integral orbit operator `Theta`, equivariance gives
+  `chi_W(x^Theta)=chi_W(x)^wt(Theta)`: weight zero erases `H`, while nonzero
+  weight returns an invertible power of exactly `H`. Reflection-fixed norm or
+  different classes are killed, and anti-invariant orientation merely squares
+  the same phase. Under an auxiliary compositum of residue degree `f`, the
+  inherited selected Frobenius becomes `H^f`, hence is preserved when
+  `ell` does not divide `f` and erased when it does. Marked three-adic data,
+  linear ray/Jacobi/Stickelberger operators, invariant differents, and
+  H-independent base change therefore add no independent selector; only a
+  genuinely nonlinear ancestry identity remains outside this no-go. The
+  vertical nonlinear route collapses after fixed-`ell` Kummer projection.
+  For `ell^e || F_n`, every future quotient
+  `V_j=E_j^x/(E_j^x)^(ell^e)` is free of rank one over
+  `Z/ell^e`, inclusion and norm are isomorphisms, and the selected classes
+  satisfy `N(kappa_j)=3*kappa_(j-1)`. Their inverse limit is exactly the
+  birth module and has vanishing derived limit and higher exterior powers.
+  Locally at two the future Galois group is `Z_2`; continuous positive
+  cohomology with finite `ell`-primary coefficients vanishes by averaging.
+  In `(Z/ell^e)[[Z_2]]` the compatible Haar idempotent splits augmentation,
+  so its augmentation ideal obeys `I^2=I` and every positive associated
+  graded piece vanishes. Hence vertical determinant regulators,
+  Coleman augmentation derivatives, exceptional-zero layers, and internal
+  Massey products add no coordinate beyond `H`. A surviving global relation
+  must be imposed before Kummer projection and mix the marked prime over two
+  with ramified ancestry outside the future pro-two direction.
   Equivalently, failure says that `2` is a global norm from the cyclic Kummer
   extension `M(W_n^(1/ell))/M`. If `y` is such a norm witness, then
   `Norm(y^P)=2^aug(P)` for every integral group-ring operation `P` in the

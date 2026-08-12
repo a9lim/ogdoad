@@ -12207,6 +12207,263 @@ equivalence.  Its identification with the actual Conway tree and the
 Euclidean/subresultant interpretation remain paper-level.
 \end{proof}
 
+\begin{proposition}[literal coefficient extraction is a lossless phase chart]
+\label{prop:fermat-literal-phase-chart}
+Let
+\[
+ \F_2=E_{-1}\subset E_0\subset\cdots\subset E_{n-1},
+ \qquad E_i=E_{i-1}(c_i),\qquad
+ c_i^2+c_i=a_{i-1},
+\]
+be the literal Conway quadratic chain.  For
+\(S\subseteq\{0,\ldots,n-1\}\), put
+\[
+ b_S=\prod_{i\in S}c_i,\qquad
+ b_S^\vee=\prod_{i\notin S}(c_i+1).
+\]
+Then the two Conway monomial bases are trace-dual:
+\[
+ \boxed{\quad
+ \operatorname{Tr}_{E_{n-1}/\F_2}(b_S^\vee b_T)
+   =\begin{cases}1,&S=T,\\0,&S\ne T.\end{cases}\quad}       \tag{\(\mathsf{LPC}_1\)}
+\]
+Consequently the literal coefficient of \(x\in E_{n-1}\) at \(b_S\) is
+\[
+ \lambda_S(x)=\operatorname{Tr}_{E_{n-1}/\F_2}(b_S^\vee x), \tag{\(\mathsf{LPC}_2\)}
+\]
+and the regular multiplication matrix satisfies
+\[
+ [m_x]_{S,T}=\operatorname{Tr}_{E_{n-1}/\F_2}
+                    (b_S^\vee b_Tx).                       \tag{\(\mathsf{LPC}_3\)}
+\]
+
+This literal chart is an invertible rescaling of the complete remainder
+chart in Proposition~\ref{prop:fermat-remainder-coordinate-exhaustion}.
+Indeed, at the \(i\)-th edge put \(A=a_{i-1}\), so \(a_i=Ac_i\).
+If
+\[
+ R(X)\equiv U_R(Y)+XV_R(Y)\pmod {X^2+YX+Y^3},
+\]
+then
+\[
+ R(a_i)=U_R(A)+c_i\,A V_R(A).                       \tag{\(\mathsf{LPC}_4\)}
+\]
+Thus, ordering coordinates first without and then with the newest
+Conway generator,
+\[
+ \boxed{\quad
+ \operatorname{coord}_i(R(a_i))
+ =\bigl(\operatorname{coord}_{i-1}(U_R(A)),
+        \operatorname{coord}_{i-1}(A V_R(A))\bigr).\quad}    \tag{\(\mathsf{LPC}_5\)}
+\]
+Multiplication by \(A\ne0\) is invertible, so the full literal vector,
+the complete quadratic-remainder leaves, the reduced residue
+\(R\bmod A_i\), and the regular multiplication matrix determine one
+another exactly.
+
+The top companion contains no second coefficient either.  Write
+\[
+ S_0=0,\qquad S_1=1,\qquad S_{j+2}=S_{j+1}+XS_j,
+ \qquad
+ C_a=\begin{pmatrix}0&a\\1&1\end{pmatrix}.
+\]
+For \(d\ge1\),
+\[
+ C_a^d=
+ \begin{pmatrix}
+  aS_{d-1}(a)&aS_d(a)\\
+  S_d(a)&S_{d+1}(a)
+ \end{pmatrix},
+\]
+and hence, in characteristic two,
+\[
+ \boxed{\quad
+ C_a^d+S_{d+1}(a)I
+ =S_d(a)\begin{pmatrix}1&a\\1&0\end{pmatrix}.\quad}          \tag{\(\mathsf{LPC}_6\)}
+\]
+For \(a=a_{n-1}\ne0\), every literal entry of this projective-return
+defect is therefore a trace coordinate of \(S_d(a)\) or \(aS_d(a)\).
+Moreover
+\[
+ \det_{E_{n-1}}\!\left(C_a^d+S_{d+1}(a)I\right)
+   =aS_d(a)^2,
+\]
+so restriction of scalars gives
+\[
+ \boxed{\quad
+ \det_{\F_2}(\text{projective defect})
+ =\Norm_{E_{n-1}/\F_2}(S_d(a))
+ =\operatorname{Res}(A_{n-1},S_d).\quad}                    \tag{\(\mathsf{LPC}_7\)}
+\]
+Here the equality in \(\F_2\) uses
+\(\Norm(a)=1\) and \(z^2=z\).
+
+Finally, for \(a=w_n/(1+w_n)^2\), the binary Binet identity gives
+\[
+ S_d(a)=\frac{1+w_n^d}{(1+w_n)^d}.                   \tag{\(\mathsf{LPC}_8\)}
+\]
+Thus every genuinely nonaveraged multiplication-matrix entry is a
+weighted trace coordinate of the original selected phase defect, and the
+complete matrix vanishes exactly when \(w_n^d=1\).  Literal coefficient
+extraction is a lossless chart, not an independent obstruction.  A
+coefficient proof of CSDU would still have to select an index \(S\) and
+prove \(\lambda_S(S_d(a))\ne0\) from a new structural law; the tower
+identities alone provide only the equivalent existential assertion that
+some coefficient is nonzero.
+\end{proposition}
+
+\begin{proof}
+At one quadratic edge \(F\subset F(c)\),
+\[
+ \operatorname{Tr}_{F(c)/F}(1)=0,\qquad
+ \operatorname{Tr}_{F(c)/F}(c)=1,\qquad
+ c(c+1)\in F.
+\]
+Hence \((c+1,1)\) is dual to \((1,c)\): the matched pairings
+have trace one, while the crossed pairings have trace zero.  Tensor
+this relative dual pair with the lower trace-dual bases and use trace
+transitivity.  Induction proves \((\mathsf{LPC}_1)\), and ordinary
+dual-basis coefficient extraction gives
+\((\mathsf{LPC}_2)\)--\((\mathsf{LPC}_3)\).
+
+Equation \((\mathsf{LPC}_4)\) is \((\mathsf{QR}_3)\) together with
+\(a_i=Ac_i\).  Splitting in the basis \(1,c_i\) proves
+\((\mathsf{LPC}_5)\); its iterated rescalings are invertible because
+every \(a_i\) is nonzero.
+
+The displayed formula for \(C_a^d\) follows by induction from the
+Fibonacci recurrence.  Since
+\[
+ S_{d+1}(a)=S_d(a)+aS_{d-1}(a)
+\]
+in characteristic two, adding its scalar matrix gives
+\((\mathsf{LPC}_6)\).  The right matrix has determinant \(a\).
+Taking its two-dimensional determinant, then the field norm under
+restriction of scalars, proves \((\mathsf{LPC}_7)\); the last equality
+is the standard resultant--norm identity.  Substituting
+\(a=w_n/(1+w_n)^2\) in the Fibonacci Binet formula proves
+\((\mathsf{LPC}_8)\).  The companion defect factorization is independently
+kernel-checked in \texttt{Ogdoad.Excess}; the concrete trace-dual tower
+and restriction-of-scalars identifications remain paper-level.
+\end{proof}
+
+\begin{proposition}[a failed endpoint has maximal Moore rank]
+\label{prop:fermat-failure-moore-saturation}
+Let \(K=\F_{2^m}\), let \(a\in K^\times\) have degree \(m\) over
+\(\F_2\), and retain the Fibonacci recurrence \(S_j=S_j(a)\).  Suppose
+
+\[
+ d\ge2,\qquad S_d=0,
+ \qquad t=S_{d-1}.
+\]
+Then
+\[
+ \boxed{\quad t^2=a^{d-2}\ne0,\qquad
+ a^{r-1}S_{d-r}=tS_r\quad(1\le r\le d).\quad}       \tag{\(\mathsf{FMS}_1\)}
+\]
+For every \(k\le m\) with \(k<d\), the reverse endpoint block
+\[
+ S_{d-1},S_{d-2},\ldots,S_{d-k}
+\]
+is linearly independent over \(\F_2\).  Equivalently its Moore determinant
+satisfies
+\[
+ \boxed{\quad
+ \mathcal M_k=
+ \det\!\left(S_{d-j}^{\,2^i}\right)_{
+       0\le i<k,\ 1\le j\le k}\ne0.
+ \quad}                                               \tag{\(\mathsf{FMS}_2\)}
+\]
+If \(m<d\), the first \(m\) reverse values form an \(\F_2\)-basis of
+\(K\), and
+\[
+ \boxed{\qquad \mathcal M_m=1.\qquad}                \tag{\(\mathsf{FMS}_3\)}
+\]
+More generally, for \(1\le r_1,\ldots,r_k\le d\),
+\[
+ \det\!\left(S_{d-r_j}^{\,2^i}\right)_{i,j}
+ =t^{\,2^k-1}
+ \det\!\left(
+   \left(\frac{S_{r_j}}{a^{r_j-1}}\right)^{2^i}
+ \right)_{i,j}.                                      \tag{\(\mathsf{FMS}_4\)}
+\]
+Thus every homogeneous Frobenius minor of the reverse block is an
+explicit nonzero rescaling of the corresponding initial-block minor.
+
+This applies directly to a hypothetical failed CSDU coordinate
+\(d=F_n/\ell\), \(a=a_{n-1}\).  Here every nontrivial divisor of \(F_n\)
+is at least \(2^{n+2}+1=4m+1\), so \(m<d\).  Failure therefore forces the
+strongest possible nonlinear Moore condition: the \(m\) entries immediately
+before the zero form a basis and have full determinant one.
+
+The Hasse jets do not expose a contradiction.  For the labelled upper
+factor \(B_1\),
+\[
+ B_1^{[j]}(0)=\binom djS_{d-j}
+  =\binom dj\,t\frac{S_j}{a^{j-1}}.                 \tag{\(\mathsf{FMS}_5\)}
+\]
+If \(d=1+Rg\), where \(R\) is a power of two and \(g\) is odd, Lucas's
+theorem says that the active indices are
+\[
+ j=Re+\epsilon,qquad \epsilon\in\{0,1\},qquad
+ e\mathbin{\&}\neg g=0.                             \tag{\(\mathsf{FMS}_6\)}
+\]
+At a failed Fermat coordinate \(R\ge4m\).  Below \(R\), the only active
+jets are the zero constant term and
+\(B_1'(0)=t\ne0\); the next is
+\(B_1^{[R]}(0)=t/a^{R-1}\ne0\).  Hasse filtering therefore hides the
+full reverse basis except for isolated nonzero members.  Moore rank,
+exterior products, norms, and homogeneous multi-jet determinants are
+saturated by failure rather than opposed to it.  A surviving local proof
+must use a nonhomogeneous relation coupling distinct Frobenius weights or
+additional literal ancestry outside the Fibonacci recurrence.
+\end{proposition}
+
+\begin{proof}
+The recurrence at the zero gives \(S_{d+1}=aS_{d-1}=at\).  Cassini's
+identity at \(d-1\) gives
+\[
+ S_d^2+S_{d-1}S_{d+1}=a^{d-1},
+\]
+and cancellation of \(a\ne0\) proves \(t^2=a^{d-2}\).
+The continuant determinant identity
+\[
+ S_uS_{u+v+1}+S_{u+1}S_{u+v}=a^uS_v              \tag{\(\mathsf{FMS}_7\)}
+\]
+follows by induction on \(u\).  Put \(u=r-1\), \(v=d-r\), and use
+\(S_d=0\) to obtain the reverse formula in
+\((\mathsf{FMS}_1)\).
+
+Suppose \(k\le m\), \(k<d\), and
+\(\sum_{r=1}^k\epsilon_rS_{d-r}=0\), with
+\(\epsilon_r\in\F_2\).  Multiply by \(a^{k-1}\), use
+\((\mathsf{FMS}_1)\), and cancel \(t\) to obtain \(P(a)=0\), where
+\[
+ P(X)=\sum_{r=1}^k\epsilon_rX^{k-r}S_r(X).
+\]
+Every \(S_r(X)\), \(r\ge1\), has constant coefficient one and degree
+\(\lfloor(r-1)/2\rfloor\).  The summands have distinct \(X\)-adic
+orders \(k-r\); hence a nonempty sum is nonzero.  On the other hand,
+\[
+ \deg\bigl(X^{k-r}S_r(X)\bigr)
+ =k-r+\lfloor(r-1)/2\rfloor\le k-1<m.
+\]
+No such nonzero polynomial can vanish at the degree-\(m\) element \(a\).
+This proves independence, and the Moore criterion proves
+\((\mathsf{FMS}_2)\).
+
+For \(k=m\), squaring the Moore determinant cyclically permutes its
+Frobenius rows because \(x^{2^m}=x\) in \(K\).  Signs disappear in
+characteristic two, so \(\mathcal M_m^2=\mathcal M_m\).  Its nonvanishing
+forces \(\mathcal M_m=1\).  Finally
+\((\mathsf{FMS}_1)\) contributes \(t^{2^i}\) from row \(i\) of the
+determinant, proving \((\mathsf{FMS}_4)\); the Hasse conclusions follow
+from Lucas's theorem.  Lean kernel-checks \((\mathsf{FMS}_7)\), its
+reverse-zero specialization, and the predecessor-square identity in
+\texttt{Ogdoad.Excess}.  The polynomial-degree and Moore-determinant
+completion remain paper-level.
+\end{proof}
+
 \begin{proposition}[Fibonacci quotient defects recover the endpoint]
 \label{prop:fermat-quotient-parity-defects}
 Fix \(n\geq1\), put
@@ -20113,6 +20370,278 @@ enlargement, have exactly the rank/counting scope just described and do not
 evaluate the named Artin class.
 \end{proof}
 
+\begin{proposition}[marked-place and base-change exhaustion]
+\label{prop:fermat-marked-place-exhaustion}
+Retain Proposition~\ref{prop:fermat-ray-character}, assume \(n\ge1\),
+and put
+\[
+ \Delta=\operatorname{Gal}(M/\mathcal K_n)
+       \simeq(\mathbf Z/\ell\mathbf Z)^\times,
+ \qquad H=\chi_W([\mathfrak q_1]).
+\]
+The marked prime above three cannot evaluate \(H\).  Indeed,
+\(\ell\ne3\), and for every prime
+\(\mathfrak q_3\) of \(M\) above the unique prime
+\(\mathfrak p_3\mid3\) of \(\mathcal K_n\),
+\[
+ \boxed{\qquad \chi_W([\mathfrak q_3])=1.\qquad}     \tag{\(\mathsf{MPE}_1\)}
+\]
+The nonunit \(u_n=(1-C_n)/C_n\) is ramified at \(\mathfrak q_3\), so
+its divisor is not a ray ideal there.  Nevertheless, for every
+\(b\in\mathcal K_n^\times\),
+\[
+ (u_n,b)_{\mathfrak q_3,\ell}=1.                    \tag{\(\mathsf{MPE}_2\)}
+\]
+Thus the genuine tame inertia at three proves that the Kummer character
+exists, but no lower, different-derived, or rational second argument
+pairs it with the selected Frobenius above two.
+
+More generally, let \(x\) be a class in the ray-class source of
+\(\chi_W\), and for
+\[
+ \Theta=\sum_{a\in\Delta}m_a\tau_a\in\mathbf Z[\Delta]
+\]
+write \(x^\Theta=\prod_a\tau_a(x)^{m_a}\).  Then
+\[
+ \boxed{\qquad
+ \chi_W(x^\Theta)
+   =\chi_W(x)^{\,\operatorname{wt}(\Theta)},\qquad
+ \operatorname{wt}(\Theta)=\sum_a m_a a\pmod\ell.
+ \qquad}                                             \tag{\(\mathsf{MPE}_3\)}
+\]
+In particular, on \(x=[\mathfrak q_1]\), a weight-zero operator is
+identically blind for every \(H\), whereas any nonzero weight detects
+nontriviality exactly when \(H\ne1\).  Linear weighted ray,
+Jacobi, and Stickelberger operations therefore either erase the selected
+value or rename it; proving their value nontrivial requires an independent
+identity.
+
+Put \(M_0=\mathcal K_{n-1}(\zeta_\ell)\), and let \(s\) be the top
+involution of \(M/M_0\).  It sends \(W_n\) to \(W_n^{-1}\), extends to
+\(\mathcal E\) by \(s(\theta)=\theta^{-1}\), and gives
+\[
+ \chi_W(sx)=\chi_W(x)^{-1}.                          \tag{\(\mathsf{MPE}_4\)}
+\]
+Hence \(s\)-fixed classes and reflection norms are killed, while
+\(x/(sx)\) has value \(\chi_W(x)^2\), which is nontrivial exactly when
+\(\chi_W(x)\) is.  Invariant prime-to-conductor different classes are
+therefore blind.  Conductor-supported different terms are local constants,
+not unramified Artin classes; in particular the local different exponent
+above two is zero in both the split and inert cases.
+
+Finally this dichotomy is stable under every auxiliary compositum chosen
+independently of \(H\).  If \(B/M\) is finite, \(\mathfrak Q\mid
+\mathfrak q_1\) has residue degree \(f\), and the base-changed Kummer
+extension is read at \(\mathfrak Q\), then
+\[
+ \boxed{\qquad
+ \operatorname{Frob}_{\mathfrak Q}|_{\mathcal E}
+   =\operatorname{Frob}_{\mathfrak q_1}^{\,f},
+ \qquad
+ \chi_{W,B}([\mathfrak Q])=H^f.
+ \qquad}                                             \tag{\(\mathsf{MPE}_5\)}
+\]
+If \(\ell\nmid f\), this preserves the original success/failure bit;
+if \(\ell\mid f\), it erases it.  The same multiplication by \(f\)
+holds for the translation coordinate in the non-Galois reflection
+permutation.  Consequently a fixed auxiliary compositum, a different,
+or a linear equivariant ray operator supplies no second marked condition.
+A surviving global proof must use a genuinely nonlinear ancestry identity
+whose value is known independently of \(H\).
+\end{proposition}
+
+\begin{proof}
+For \(n\ge1\),
+\[
+ F_n=2^{2^n}+1\equiv2\pmod3,
+\]
+so \(\ell\ne3\).  Proposition~\ref{prop:fermat-canonical-global-lift}
+makes \(\mathfrak p_3\) unique with residue field \(\F_3\).
+The cyclotomic Frobenius \(\tau_3\) therefore lies in the decomposition
+group of every \(\mathfrak q_3\).  Since the conductor of \(\chi_W\) is
+supported above \(\ell\), \([\mathfrak q_3]\) is an admissible ray class.
+Equivariance gives
+\[
+ \chi_W([\mathfrak q_3])
+ =\chi_W(\tau_3[\mathfrak q_3])
+ =\chi_W([\mathfrak q_3])^3.
+\]
+Its value has odd order dividing \(\ell\), proving
+\((\mathsf{MPE}_1)\).  The same local equivariance applies to
+\((u_n,b)_{\mathfrak q_3,\ell}\), because \(u_n,b\) are fixed by
+\(\tau_3\), and proves \((\mathsf{MPE}_2)\).
+
+Multiplicativity and \((\mathsf{RCF}_2)\) give
+\[
+ \chi_W(x^\Theta)
+ =\prod_a\chi_W(\tau_a x)^{m_a}
+ =\prod_a\chi_W(x)^{am_a},
+\]
+which is \((\mathsf{MPE}_3)\).  For the top involution, if
+\(\operatorname{Art}(x)(\theta)=\chi_W(x)\theta\), then
+\(\operatorname{Art}(sx)=s\operatorname{Art}(x)s^{-1}\) acts on
+\(\theta\) by multiplication by \(\chi_W(x)^{-1}\).  This proves
+\((\mathsf{MPE}_4)\) and all assertions about invariant and
+anti-invariant classes.  Differents are supported only where the
+extension ramifies; the selected prime above two is unramified whether
+its Frobenius is trivial or nontrivial, so it contributes no different
+exponent.
+
+The standard arithmetic-Frobenius base-change identity says that
+restriction of \(\operatorname{Frob}_{\mathfrak Q}\) to the original
+unramified extension is
+\(\operatorname{Frob}_{\mathfrak q_1}^{f}\).  Applying it to the
+Kummer radical proves \((\mathsf{MPE}_5)\).  Multiplication by \(f\)
+on the dihedral translation subgroup is the same identity in its
+permutation representation.
+\end{proof}
+
+\begin{proposition}[vertical Kummer and Coleman exhaustion]
+\label{prop:fermat-vertical-kummer-exhaustion}
+Fix \(n\ge1\), let \(M=\ell^e\parallel F_n\), and put
+\[
+ R=\mathbf Z/M\mathbf Z,\qquad
+ V_j=E_j^\times/(E_j^\times)^M
+\]
+in additive notation.  For \(j>n\), let
+\[
+ \iota_j:V_{j-1}\longrightarrow V_j,\qquad
+ N_j:V_j\longrightarrow V_{j-1}
+\]
+be inclusion and relative norm.  Then \(V_j\) is a free rank-one
+\(R\)-module for every \(j\ge n\), both maps are isomorphisms, and
+\[
+ \boxed{\qquad N_j=2\iota_j^{-1}.\qquad}             \tag{\(\mathsf{VKC}_1\)}
+\]
+For the selected classes \(\kappa_j=[a_j]_M\),
+\[
+ \boxed{\qquad N_j(\kappa_j)=3\kappa_{j-1}.\qquad}   \tag{\(\mathsf{VKC}_2\)}
+\]
+Since three is a unit modulo \(M\), the normalized classes
+\[
+ \widetilde\kappa_j=(3^{-1})^{j-n}\kappa_j
+\]
+form a norm-compatible system:
+\[
+ N_j(\widetilde\kappa_j)=\widetilde\kappa_{j-1}.     \tag{\(\mathsf{VKC}_3\)}
+\]
+Consequently projection to the birth level is an isomorphism
+\[
+ \boxed{\qquad
+ \varprojlim_{j\ge n,N_j}V_j\xrightarrow{\sim}V_n,
+ \qquad
+ \varprojlim\nolimits^1_{j\ge n,N_j}V_j=0.
+ \qquad}                                             \tag{\(\mathsf{VKC}_4\)}
+\]
+Thus the entire fixed-\(\ell\) vertical Kummer system contains exactly
+one \(R\)-coordinate, already present at birth.  In particular,
+\[
+ \bigwedge_R^r\!\left(\varprojlim_N V_j\right)=0
+ \qquad(r\ge2).                                      \tag{\(\mathsf{VKC}_5\)}
+\]
+Every alternating determinant or regulator formed solely from
+norm-compatible Kummer classes therefore vanishes.  A rank-one regulator
+can only return a scalar multiple of the birth coordinate; its
+nonvanishing does not decide that scalar.
+
+The same boundary has an exact Iwasawa-algebra form.  Let \(K_j\) be the
+completion of the canonical lift \(\mathcal K_j\) at its unique prime
+above two, and put
+\[
+ K_\infty=\bigcup_{j\ge n}K_j,\qquad
+ \Gamma=\operatorname{Gal}(K_\infty/K_n)\simeq\mathbf Z_2.
+\]
+For every finite discrete \(\ell\)-primary continuous
+\(\Gamma\)-module \(A\),
+\[
+ \boxed{\qquad H^r_{\mathrm{cont}}(\Gamma,A)=0
+                    \quad(r>0).\qquad}               \tag{\(\mathsf{VKC}_6\)}
+\]
+Moreover, in the completed group algebra
+\[
+ \Lambda_R=R[[\Gamma]]
+   =\varprojlim_U R[\Gamma/U],
+\]
+the finite-level Haar idempotents
+\[
+ e_U=\frac1{|\Gamma/U|}
+       \sum_{g\in\Gamma/U}g
+\]
+are defined because \(|\Gamma/U|\) is a power of two and hence a unit in
+\(R\).  They are compatible under quotient maps and define
+\(e\in\Lambda_R\).  If
+\[
+ \varepsilon:\Lambda_R\longrightarrow R,\qquad I=\ker\varepsilon,
+\]
+then
+\[
+ e^2=e,\qquad xe=\varepsilon(x)e,\qquad
+ \boxed{\qquad I=(1-e)\Lambda_R,\qquad I^2=I.\qquad} \tag{\(\mathsf{VKC}_7\)}
+\]
+Hence
+\[
+ I/I^2=0,\qquad I^r/I^{r+1}=0\quad(r\ge1).           \tag{\(\mathsf{VKC}_8\)}
+\]
+After fixed-\(\ell\) Kummer projection there is therefore no vertical
+Coleman augmentation derivative, exceptional-zero layer, or higher
+augmentation-graded coefficient.  The degree-zero specialization is the
+birth coordinate, whose selected Artin evaluation is \(H\).
+Likewise every vertical Massey construction with entries in
+\(H^1_{\mathrm{cont}}(\Gamma,A)\) is trivial.
+
+This exhausts norm-compatible determinant regulators and
+Coleman--Iwasawa or Massey operations internal to the future pro-two
+tower after fixed-\(\ell\) Kummer projection.  It does not exclude an
+integral two-adic identity whose reduction uses extra global arithmetic,
+a mixed global Massey symbol involving other ramified places, or a
+nonlinear identity imposed before Kummer projection.
+\end{proposition}
+
+\begin{proof}
+The cyclic group \(E_j^\times\) has order
+\[
+ |E_j^\times|=\prod_{r=0}^jF_r.
+\]
+Pairwise coprimality of the Fermat numbers and \(M\mid F_n\) show that
+\(V_j\) is cyclic of order \(M\) for \(j\ge n\), hence free of rank one
+over \(R\).  Proposition~\ref{prop:fermat-kummer-tail} proves that every
+\(\iota_j\) is an isomorphism.  For \(x\in E_{j-1}^\times\),
+\[
+ N_j(\iota_j[x])=[x^2]=2[x].
+\]
+Because \(\iota_j\) is onto, this proves
+\((\mathsf{VKC}_1)\).  The selected transport identity
+\[
+ \kappa_j=\frac32\,\iota_j(\kappa_{j-1})
+\]
+then gives \((\mathsf{VKC}_2)\), and normalization by the unit
+\((3^{-1})^{j-n}\) gives \((\mathsf{VKC}_3)\).
+
+An inverse system whose transition maps are isomorphisms projects
+isomorphically onto every term.  It is Mittag--Leffler, so its first
+derived inverse limit vanishes, proving \((\mathsf{VKC}_4)\).
+The inverse limit is free of rank one over \(R\), which proves
+\((\mathsf{VKC}_5)\).
+
+Every finite quotient through which the \(\Gamma\)-action factors is a
+two-group.  Its order acts invertibly on \(A\), so the standard averaging
+homotopy kills all positive cohomology.  Passing to the filtered colimit
+proves \((\mathsf{VKC}_6)\).
+
+For \(U'\subset U\), every element of \(\Gamma/U\) has
+\(|U/U'|\) inverse images in \(\Gamma/U'\).  The quotient map therefore
+sends \(e_{U'}\) to \(e_U\), producing \(e\).  At every finite level,
+\[
+ xe_U=\varepsilon(x)e_U.
+\]
+Passing to the inverse limit gives the same identity in \(\Lambda_R\).
+Thus \(e\Lambda_R\simeq R\), every augmentation-zero element lies in
+\((1-e)\Lambda_R\), and conversely every element of
+\((1-e)\Lambda_R\) has augmentation zero.  Since
+\((1-e)^2=1-e\), equations
+\((\mathsf{VKC}_7)\)--\((\mathsf{VKC}_8)\) follow.
+\end{proof}
+
 \begin{corollary}[Hasse norm and dihedral descent boundary]
 \label{cor:fermat-hasse-dihedral}
 Retain Proposition~\ref{prop:fermat-ray-character} with \(n\geq2\).  Then
@@ -21591,6 +22120,14 @@ shows that the missing \(\ell\)-primary class is born at one edge and merely
 propagated by \(3/2\) through every future edge, while
 Proposition~\ref{prop:fermat-dickson-conway-resultant} proves that even the
 complete compatible root tower is one torsor of parallel rays.
+Proposition~\ref{prop:fermat-literal-phase-chart} proves that the complete
+literal coefficient vector, multiplication matrix, companion defect, resultant,
+and quadratic-remainder ancestry are lossless charts of that same selected
+phase rather than additional obstructions.
+Proposition~\ref{prop:fermat-failure-moore-saturation} goes further:
+hypothetical failure makes the complete reverse endpoint block a normal basis
+with Moore determinant one, while all homogeneous Frobenius minors transport
+to the initial block by an explicit nonzero scalar.
 Proposition~\ref{prop:fermat-weighted-selector} proves that all unmixed classical
 cyclotomic principalizers have zero selector weight and that the natural
 mixed principal element has two-adic support exactly when the target is
@@ -21600,6 +22137,14 @@ at every \'etale contracted prime, but local nontriviality does not evaluate the
 selected prime above two.  Proposition~\ref{prop:fermat-ray-character}
 identifies the remaining obligation exactly as
 \(\chi_W([\mathfrak q_1])\ne1\) in one mixed ray class group.
+Proposition~\ref{prop:fermat-marked-place-exhaustion} then proves that the
+marked prime above three, reflection norms and differents, integral equivariant
+ray operators, and fixed auxiliary base changes either kill this value or carry
+exactly the same success/failure bit.
+Proposition~\ref{prop:fermat-vertical-kummer-exhaustion} proves that the
+fixed-\(\ell\) future tower is a rank-one norm system and that its prime-to-two
+Iwasawa augmentation ideal is idempotent, eliminating vertical determinant,
+Coleman-derivative, and Massey refinements after Kummer projection.
 Corollary~\ref{cor:fermat-hasse-dihedral} equivalently asks that two not be a
 global norm from the associated cyclic Kummer extension and proves that every
 abelian descent of its lower dihedral closure kills the selected translation.
