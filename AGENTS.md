@@ -133,7 +133,8 @@ retired `gold_diagonal_source.tex`, `brown_game_semantics.tex`,
 every-width attainment corollary `cor:blocks`), `impartial_realizer.tex`
 (the pass-free impartial realization section), and `extraspecial_model.tex`
 (the game-native Gold--Heisenberg model, `thm:goldheisenberg`); authors
-sol, fable, a9lim as of the 2026-08-12 harmonization pass;
+`gpt-5.6-sol`, `claude-fable-5`, `a9lim` as of the 2026-08-12
+harmonization pass;
 `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `linking_affine.tex` — the proof-frontier note for the general FIFO linking
