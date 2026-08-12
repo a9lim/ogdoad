@@ -3175,6 +3175,142 @@ theorem fermat_markedWittCoefficient_ne_zero
 
 end FermatSelectedPrimeAncestry
 
+section FermatPrimitiveRay
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+omit [CharP F 2] in
+/-- The first principal coefficient of the shifted canonical nonunit is
+nonzero whenever the marked Witt coefficient is nonzero. -/
+theorem fermat_rayCoefficient_ne_zero
+    (c s : F) (hc1 : c + 1 ≠ 0)
+    (hmarked : (c + 1) * s + 1 ≠ 0) :
+    s + (c + 1)⁻¹ ≠ 0 := by
+  intro h
+  apply hmarked
+  calc
+    (c + 1) * s + 1 = (c + 1) * (s + (c + 1)⁻¹) := by field_simp
+    _ = 0 := by rw [h, mul_zero]
+
+/-- If top conjugation sends `c` to `c+1` and fixes the lower coefficient,
+the scaled first ray coefficient has relative trace one. -/
+theorem fermat_scaledRayCoefficient_trace_one
+    (a c s : F) (ha : a = c * (c + 1))
+    (hc : c ≠ 0) (hc1 : c + 1 ≠ 0) :
+    a * (s + (c + 1)⁻¹) + a * (s + c⁻¹) = 1 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  rw [ha]
+  field_simp
+  calc
+    c * ((c + 1) * s + 1) + (c + 1) * (c * s + 1) =
+        2 * (c * (c + 1) * s + c) + 1 := by ring
+    _ = 1 := by rw [htwo]; simp
+
+/-- The normalized selected intersection itself lies in the affine
+trace-one coset. -/
+theorem fermat_normalizedIntersection_trace_one (a c s : F) :
+    (a * s + c) + (a * s + (c + 1)) = 1 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  linear_combination htwo * (a * s + c)
+
+end FermatPrimitiveRay
+
+section FermatPacketGapCore
+
+/-- Dropping an entire prime-power conductor contributes at least `p-1`
+to the corresponding Euler-totient quotient. -/
+theorem fermat_totient_prime_pow_zero_gap
+    {p a B : ℕ} (hp : p.Prime) (ha : 0 < a) (hB : B ≤ p - 1) :
+    B ≤ Nat.totient (p ^ a) := by
+  rw [Nat.totient_prime_pow hp ha]
+  exact le_trans hB (Nat.le_mul_of_pos_left (p - 1) (pow_pos hp.pos _))
+
+/-- If a positive amount of a prime-power conductor remains, lowering its
+exponent contributes the exact prime-power quotient. -/
+theorem fermat_totient_prime_pow_drop
+    {p a b : ℕ} (hp : p.Prime) (hb : 0 < b) (hba : b ≤ a) :
+    Nat.totient (p ^ a) = p ^ (a - b) * Nat.totient (p ^ b) := by
+  rw [Nat.totient_prime_pow hp (lt_of_lt_of_le hb hba)]
+  rw [Nat.totient_prime_pow hp hb]
+  have hexp : a - 1 = (a - b) + (b - 1) := by omega
+  rw [hexp, pow_add]
+  ac_rfl
+
+/-- A nonzero prime-power conductor drop contributes at least the prime. -/
+theorem fermat_prime_pow_drop_gap
+    {p a b B : ℕ} (hp : p.Prime) (hb : 0 < b) (hba : b < a)
+    (hB : B ≤ p) :
+    B * Nat.totient (p ^ b) ≤ Nat.totient (p ^ a) := by
+  rw [fermat_totient_prime_pow_drop hp hb hba.le]
+  have hpow : p ≤ p ^ (a - b) := by
+    obtain ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.sub_ne_zero_of_lt hba)
+    rw [hk, pow_succ]
+    simpa [Nat.mul_comm] using Nat.le_mul_of_pos_right p (pow_pos hp.pos k)
+  exact Nat.mul_le_mul_right _ (le_trans hB hpow)
+
+end FermatPacketGapCore
+
+section FermatHigherWittSaturation
+
+variable {R : Type*} [CommRing R]
+
+/-- Universal two-adic binomial divisibility: the `2^m`-th power of a
+principal two-unit is one modulo `2^(m+1)`. -/
+theorem principalTwoUnit_pow_two_expansion (z : R) :
+    ∀ m : ℕ, ∃ h : R,
+      (1 + 2 * z) ^ (2 ^ m) = 1 + (2 : R) ^ (m + 1) * h := by
+  intro m
+  induction m with
+  | zero =>
+      refine ⟨z, ?_⟩
+      norm_num
+  | succ m ih =>
+      obtain ⟨h, hh⟩ := ih
+      refine ⟨h + (2 : R) ^ m * h ^ 2, ?_⟩
+      rw [pow_succ, pow_mul, hh]
+      ring
+
+/-- Hence the Fermat exponent `1+2^m` acts identically on a principal
+two-unit modulo `2^(m+1)`. -/
+theorem fermatExponent_principalTwoUnit_expansion (z : R) (m : ℕ) :
+    ∃ h : R,
+      (1 + 2 * z) ^ (2 ^ m + 1) =
+        (1 + 2 * z) + (2 : R) ^ (m + 1) * h := by
+  obtain ⟨h, hh⟩ := principalTwoUnit_pow_two_expansion z m
+  refine ⟨(1 + 2 * z) * h, ?_⟩
+  rw [pow_add, hh]
+  ring
+
+/-- Exact numerator reparametrization for the product over all nontrivial
+odd-order torsion coordinates. -/
+theorem canonical_allTorsion_numerator
+    {K : Type*} [Field K]
+    (C W : K) (N : ℕ) (hC : C ≠ 0) (hW : W = -(C + 1) / C) :
+    (C - 1) ^ N + C ^ N = C ^ N * ((W + 2) ^ N + 1) := by
+  have hshift : C * (W + 2) = C - 1 := by
+    rw [hW]
+    field_simp
+    ring
+  calc
+    (C - 1) ^ N + C ^ N = (C * (W + 2)) ^ N + C ^ N := by rw [hshift]
+    _ = C ^ N * (W + 2) ^ N + C ^ N := by rw [mul_pow]
+    _ = C ^ N * ((W + 2) ^ N + 1) := by ring
+
+/-- Exact relative norm of the shifted canonical nonunit
+`U=(1-C)/C`; its first-order term forces the trace-one ray coefficient. -/
+theorem canonical_shiftedUnit_relativeNorm
+    {K : Type*} [Field K]
+    (C A : K) (hC : C ≠ 0) (hC1 : C + 1 ≠ 0)
+    (hrel : C ^ 2 + C + A = 0) :
+    ((1 - C) / C) * ((C + 2) / (-(C + 1))) = 1 + 2 / A := by
+  have hA : A = -(C * (C + 1)) := by
+    linear_combination hrel
+  rw [hA]
+  field_simp
+  ring
+
+end FermatHigherWittSaturation
+
 section FermatCanonicalDiscriminant
 
 variable {R : Type*} [CommRing R]

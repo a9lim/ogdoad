@@ -178,8 +178,9 @@ all-or-\(\ell\)-quartic Kummer dichotomy; an exact one-step
 countermodel whose predecessor and successor retain every earlier
 Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
 transport; canonical global lift, weighted reciprocity, selected
-first-Witt polynomial, selected-prime mod-four transversality and exact
-simple-intersection support, named Artin-class and dihedral reflection-norm
+first-Witt polynomial, selected-prime mod-four transversality, exact
+simple-intersection support and packet gap, oriented primitive-ray trace, and
+higher-Witt saturation boundary, named Artin-class and dihedral reflection-norm
 reductions, the complementary factor/cofactor resultant duality and its
 canonical CRT-projector/trace-annihilation boundary, the hypothetical-failure
 shifted-Fibonacci block collapse, and the
@@ -16847,6 +16848,229 @@ simplification in \((**)\) and the load-bearing conclusion that its
 vanishing would force \(c_i\) into the preceding field.  The Teichmuller
 expansion, splitting and orbit count, and cyclotomic norm specialization
 remain paper-level.
+\end{proof}
+
+\begin{corollary}[gap and residue class of the selected splitting packet]
+\label{cor:fermat-selected-packet-gap}
+Retain Proposition~\ref{prop:fermat-selected-prime-transversality} and
+suppose \(n\geq2\).  Put
+\[
+ t_n=\#\{a\in(\mathbf Z/N\mathbf Z)^\times:
+                 a\equiv1\pmod{\delta_n}\}
+     =\frac{\varphi(N)}{\varphi(\delta_n)},
+ \qquad B_n=2^{n+2}.
+\]
+Then
+\[
+ t_n\equiv
+ \begin{cases}
+  1\pmod {B_n},&\operatorname{rad}(\delta_n)=\operatorname{rad}(N),\\
+  0\pmod {B_n},&\operatorname{rad}(\delta_n)\ne\operatorname{rad}(N).
+ \end{cases}                                           \tag{\(\mathsf{SPT}_5\)}
+\]
+In particular
+\[
+ \boxed{\qquad t_n=1\quad\hbox{or}\quad t_n\geq B_n.\qquad}
+                                                               \tag{\(\mathsf{SPT}_6\)}
+\]
+Consequently
+\[
+ \boxed{
+ \delta_n=N
+ \iff t_n<B_n
+ \iff v_{\mathfrak p_2}\!\left(
+   \Norm_{L_n/\mathcal K_n}(C_n-\varepsilon_{r_n})\right)<B_n.}
+                                                               \tag{\(\mathsf{SPT}_7\)}
+\]
+Thus an all-level upper bound strictly below \(2^{n+2}\) for the selected
+norm valuation would prove the Conway--Popovych conjecture; valuation one
+need not be established directly.
+\end{corollary}
+
+\begin{proof}
+Write
+\[
+ N=\prod_p p^{\alpha_p},\qquad
+ \delta_n=\prod_p p^{\beta_p},\qquad
+ 0\leq\beta_p\leq\alpha_p.
+\]
+Every prime divisor \(p\) of \(F_n\), for \(n\geq2\), satisfies
+\(p\equiv1\pmod {B_n}\).  Indeed \(\ord_p(2)=2^{n+1}\) and
+\(p\equiv1\pmod8\), so \(2\) is a square modulo \(p\).  If \(x^2=2\),
+then \(x\) has order \(2^{n+2}\): an order dividing \(2^{n+1}\) would give
+\(2^{2^n}=1\pmod p\), contrary to \(2^{2^n}=-1\pmod p\).  Thus
+\(2^{n+2}\mid p-1\).  If \(\beta_p>0\), its local contribution to
+the totient quotient is
+\[
+ \frac{\varphi(p^{\alpha_p})}{\varphi(p^{\beta_p})}
+ =p^{\alpha_p-\beta_p}\equiv1\pmod {B_n}.
+\]
+If \(\beta_p=0<\alpha_p\), its local contribution is
+\[
+ \varphi(p^{\alpha_p})=p^{\alpha_p-1}(p-1)
+ \equiv0\pmod {B_n}.
+\]
+Multiplying the local contributions proves \((\mathsf{SPT}_5)\).  If
+\(\delta_n<N\) and their radicals agree, some exponent drops and the
+positive integer \(t_n\equiv1\pmod {B_n}\) is larger than one, hence at
+least \(B_n+1\).  If their radicals differ, the positive integer
+\(t_n\equiv0\pmod {B_n}\) is at least \(B_n\).  This proves
+\((\mathsf{SPT}_6)\); Proposition~\ref{prop:fermat-selected-prime-transversality}
+identifies \(t_n\) with the displayed valuation and proves
+\((\mathsf{SPT}_7)\).
+\end{proof}
+
+\begin{proposition}[oriented primitive ray and the higher-Witt boundary]
+\label{prop:fermat-oriented-primitive-ray}
+Retain the preceding notation, put \(m=2^n\), and define
+\[
+ u_n=\frac{1-C_n}{C_n},\qquad
+ \alpha_n=\frac{u_n^{\delta_n}-1}{2}\bmod\mathfrak p_2\in E_n,
+\]
+where \(v_{\mathfrak p_2}(2)=1\).  The selected prime is an oriented
+simple primitive divisor:
+\[
+ \boxed{
+ v_{\mathfrak p_2}(u_n^{\delta_n}-1)=1,\qquad
+ \mathfrak p_2\nmid u_n^d-1\quad(1\leq d<\delta_n),}
+                                                               \tag{\(\mathsf{SPR}_1\)}
+\]
+and its first ray coefficient satisfies
+\[
+ \boxed{
+ \operatorname{Tr}_{E_n/E_{n-1}}(\alpha_n)=a_{n-1}^{-1},\qquad
+ \operatorname{Tr}_{E_n/E_{n-1}}(a_{n-1}\alpha_n)=1.}
+                                                               \tag{\(\mathsf{SPR}_2\)}
+\]
+Equivalently the normalized selected intersection obeys
+\[
+ \frac{C_n-\varepsilon_{r_n}}2\bmod\mathfrak q_1
+   =a_{n-1}s_{n-1}+c_n,
+ \qquad
+ \operatorname{Tr}_{E_n/E_{n-1}}(a_{n-1}s_{n-1}+c_n)=1.
+                                                               \tag{\(\mathsf{SPR}_3\)}
+\]
+
+This ray is globally nontrivial.  At the unique prime
+\(\mathfrak p_3\mid3\) of \(\mathcal K_n\),
+\[
+ v_{\mathfrak p_3}(u_n)=1.                         \tag{\(\mathsf{SPR}_4\)}
+\]
+Thus for every prime \(\ell\mid F_n\), if
+\(M=\mathcal K_n(\zeta_\ell)\), then
+\(M(u_n^{1/\ell})/M\) is a genuine cyclic degree-\(\ell\) extension,
+totally tamely ramified at the primes over three.  Failure of the
+\(\ell\)-coordinate is exactly complete splitting of the primes over two
+in this extension.  In particular failure cannot be hidden in a globally
+trivial Kummer class.
+
+Higher two-adic precision does not by itself resolve that splitting.
+For every commutative ring and every \(z\),
+\[
+ (1+2z)^{2^m}=1+2^{m+1}h_m(z)                      \tag{\(\mathsf{SPR}_5\)}
+\]
+for a polynomial \(h_m(z)\).  Hence the Fermat exponent
+\(N=1+2^m\) acts as the identity on principal two-units modulo
+\(2^{m+1}\).  Writing locally \(u_n=[w_n]V_n\), with
+\(V_n\in1+2\mathcal O\), gives
+\[
+ u_n^N\equiv V_n\pmod {2^{m+1}}                   \tag{\(\mathsf{SPR}_6\)}
+\]
+for every possible \(\delta_n\mid N\).  The complete nontrivial
+\(N\)-torsion product
+\[
+ P_N(C_n)=\prod_{\substack{\zeta^N=1\\\zeta\ne1}}
+ \left(C_n-(1+\zeta)^{-1}\right)
+ =\frac{C_n^N(u_n^N-1)}{1-2C_n}                   \tag{\(\mathsf{SPR}_7\)}
+\]
+therefore has \(v_{\mathfrak p_2}(P_N(C_n))=1\) unconditionally,
+even when \(\delta_n<N\).  The trace-one coefficient in
+\((\mathsf{SPR}_2)\) is the first-order shadow of the exact relative norm
+\[
+ \Norm_{\mathcal K_n/\mathcal K_{n-1}}(u_n)
+ =1+\frac2{\mathcal A_{n-1}}.                     \tag{\(\mathsf{SPR}_8\)}
+\]
+Thus the primitive-ray orientation is genuine ancestry-sensitive data,
+but \(N\)-powering merely reproduces \(V_n\) through the first \(m\)
+nonconstant principal-unit digits.  This congruence alone is
+conductor-insensitive; it does not assert that the reproduced digits of
+\(V_n\) contain no further ancestry information.  A proof still needs an
+upper bound below the packet gap in \((\mathsf{SPT}_6)\), or different
+arithmetic that distinguishes the selected conductor from the complete
+torsion product.
+
+The trace-one orientation does not couple to the packet size either.  If
+\[
+ H=\ker\!\left((\mathbf Z/N\mathbf Z)^\times\longrightarrow
+                    (\mathbf Z/\delta_n\mathbf Z)^\times\right),
+\]
+then \(\varepsilon_{hr_n}=\varepsilon_{r_n}\) for every \(h\in H\).
+The selected intersection is already defined over the conductor-drop field
+\(\mathcal K_n\mathbf Q(\zeta_{\delta_n})\), where its prime is simple;
+base change merely splits that prime into the \(t_n\) members of the packet.
+Its first coefficient is repeated diagonally, rather than acted on by a
+nontrivial residue-field automorphism.  The additive semilocal trace therefore
+multiplies its residue trace by \(t_n\): it vanishes when a prime disappears
+from the conductor and remains the same in the pure exponent-drop case, as
+the parity shadow of \((\mathsf{SPT}_5)\) predicts.  This is trace
+transitivity, not a contradiction.
+\end{proposition}
+
+\begin{proof}
+In the mod-four coordinates of the preceding proposition, direct inversion
+gives
+\[
+ u_n=[w_n](1+2[\alpha_n])\pmod4,
+ \qquad
+ \alpha_n=s_{n-1}+(c_n+1)^{-1}
+          =\frac{(c_n+1)s_{n-1}+1}{c_n+1}\ne0.     \tag{*}
+\]
+Since \([w_n]^{\delta_n}=1\) and \(\delta_n\) is odd,
+\(u_n^{\delta_n}=1+2[\alpha_n]\pmod4\).  This proves the first
+assertion of \((\mathsf{SPR}_1)\); the second is the definition of the
+residual order \(\delta_n\).  Top conjugation fixes \(s_{n-1}\) and sends
+\(c_n\) to \(c_n+1\), so
+\[
+ \alpha_n+\alpha_n^{2^m}
+ =(c_n+1)^{-1}+c_n^{-1}=a_{n-1}^{-1}.
+\]
+Multiplying by \(a_{n-1}=c_n(c_n+1)\) proves
+\((\mathsf{SPR}_2)\), and multiplying the numerator in \((*)\) by
+\(c_n\) gives \((\mathsf{SPR}_3)\).
+
+The identity \(Y_n=2C_n+1\) and the ramification calculation in
+Proposition~\ref{prop:fermat-canonical-global-lift} give
+\(v_{\mathfrak p_3}(C_n-1)=1\), while \(C_n\) is a unit; hence
+\((\mathsf{SPR}_4)\).  Its valuation is not divisible by \(\ell\), proving
+the Kummer extension nontrivial and totally tamely ramified at three.
+At two, the principal-unit factor is uniquely \(\ell\)-divisible, so local
+splitting is exactly the residual \(\ell\)-power condition on \(w_n\).
+
+Squaring proves \((\mathsf{SPR}_5)\) by induction.  Multiplying once more
+by \(1+2z\) proves the Fermat-exponent assertion and hence
+\((\mathsf{SPR}_6)\).  Finally
+\(\prod_{\zeta\ne1}(1+\zeta)=1\), and multiplying the numerators of the
+factors in \((\mathsf{SPR}_7)\) gives
+\[
+ P_N(C_n)=\frac{(C_n-1)^N+C_n^N}{2C_n-1}
+         =\frac{C_n^N(u_n^N-1)}{1-2C_n}.
+\]
+Its normalized residue is the nonzero trace-one coefficient in
+\((\mathsf{SPR}_3)\).  Direct multiplication of the two relative
+conjugates of \(u_n\) proves \((\mathsf{SPR}_8)\).
+
+Finally the stabilizer \(H\) fixes \(\zeta_N^{r_n}\) and hence
+\(\varepsilon_{r_n}\) exactly.  The selected factor descends to the fixed
+field and its simple prime splits completely on base change, proving the
+stated transfer boundary.
+
+Lean kernel-checks the ray-coefficient nonvanishing and the conjugate-sum
+algebra underlying the trace-one identities,
+the prime-power totient-gap algebra, the universal principal-unit congruence,
+the torsion-numerator reparametrization, and the product identity underlying
+the relative norm.  Finite-field trace, number-field norm, conjugation,
+ramification, the Teichmuller expansions, local splitting, packet orbit,
+roots-of-unity product, and finite-field specializations remain paper-level.
 \end{proof}
 
 \begin{proposition}[the semiprimitive Gauss table remembers only the selected label]

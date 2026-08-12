@@ -468,11 +468,27 @@ absolute boundedness.
   proves their difference has valuation one. Across the full conductor, the vanishing
   primes are precisely the stabilizer congruence
   `a=1 (mod delta_n)`, and every one is simple. Hence CSDU is exactly the
-  assertion that this support has cardinality one. A bad order would produce
-  several distinct simple primes over two, not a repeated selected root. The
+  assertion that this support has cardinality one. In fact the packet size
+  `t=phi(F_n)/phi(delta_n)` has a uniform gap: for `n>=2`, either `t=1` or
+  `t>=2^(n+2)`; modulo `2^(n+2)` it is `1` when only prime exponents drop and
+  `0` when a prime disappears from the conductor. Thus it would suffice to
+  prove the selected norm valuation is strictly below `2^(n+2)`. A bad order
+  would produce several distinct simple primes over two, not a repeated selected root. The
   full cyclotomic norm is identically the simple base factor raised to that
   support cardinality, so norm bounds and mod-four congruences derived from
   the product alone repeat the unknown packet size rather than excluding it.
+  The nonunit `(1-C_n)/C_n` sharpens the selected intersection to a simple
+  primitive ray whose normalized first coefficient has relative trace one;
+  every failed primary coordinate therefore defines a genuinely nontrivial
+  degree-`ell` Kummer extension, tamely ramified at three and completely split
+  at two. This still does not force nonsplitting. The Fermat exponent acts as
+  the identity on every principal two-unit modulo `2^(2^n+1)`, so the natural
+  full-torsion product has valuation one unconditionally at every possible
+  residual order. The exponentiation itself merely reproduces the principal
+  unit through those digits; that congruence is conductor-insensitive, though
+  the reproduced unit may retain further ancestry information. A surviving
+  proof needs the sub-gap upper bound for the repeated selected-conductor norm
+  or different marked arithmetic.
   The canonical characteristic-zero Hensel lift makes this failure exact:
   two is inert and unramified through the lifted Conway chain, three is
   totally ramified, and the lifted norm-one ratio is a global unit already an

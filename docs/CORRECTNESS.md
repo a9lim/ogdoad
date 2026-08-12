@@ -128,8 +128,17 @@ The paper proves that every conjugate intersection above two is simple and
 that their support has cardinality
 `phi(F_n)/phi(delta_n)`.  Thus CSDU is exactly support cardinality one, not a
 multiplicity assertion; the two-adic splitting, orbit count, and cyclotomic
-norm identification are paper-level, and universal cardinality one remains
-open.
+norm identification are paper-level.  For `n>=2` it further proves the packet
+gap `1` or at least `2^(n+2)` (the levels `n=0,1` are immediate), and
+identifies the selected nonunit as an
+oriented simple primitive ray with trace-one first coefficient and a
+nontrivial Kummer extension ramified at three.  Lean checks the prime-power
+totient-gap algebra, the ray coefficient and conjugate-sum identity underlying
+the trace calculation, the universal principal-two-unit congruence, and the
+product identity underlying the shifted-unit norm.  Finite-field trace,
+number-field norm, conjugation, local ramification, splitting, the
+roots-of-unity product, and the finite-field specialization remain paper-level;
+universal cardinality one remains open.
 
 The next global frontier cores sharpen that boundary without changing it.
 Lean checks the `Z` first-additive-edge power coordinates, trace identity, and
