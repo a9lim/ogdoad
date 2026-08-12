@@ -196,10 +196,10 @@ theorem hyperbolic_pair_of_polar_eq_one (Q : QuadraticForm K V) {e f : V}
     exact ⟨e', f', ⟨hQe', hQf', he'f'⟩,
       pairSpan_eq_of_mem he'mem hf'mem hemem hfmem⟩
 
-/-- A simultaneous version of `hyperbolic_pair_of_polar_eq_one`.  Applied to
-the symplectic planes of the standard alternating-form decomposition, this is
-the regular part of the `off` classification.  Preserving each plane span also
-preserves all cross-plane orthogonality and the total direct sum. -/
+/-- Pointwise conversion of each supplied symplectic pair into a hyperbolic
+pair, preserving that pair's span.  No relationship between different indices
+is assumed or proved here: cross-plane orthogonality, direct-sum assembly, and
+the classification theorem itself remain paper-level. -/
 theorem hyperbolic_family_of_symplectic_family {I : Type*} (Q : QuadraticForm K V)
     (e f : I → V) (hef : ∀ i, Q.polarBilin (e i) (f i) = 1) :
     ∃ e' f' : I → V, ∀ i,
