@@ -1,0 +1,342 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+\emergencystretch=2em
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\On}{\mathrm{On}_2}
+\newcommand{\rad}{\operatorname{rad}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\Cl}{\operatorname{Cl}}
+\newcommand{\Wq}{W_q}
+\newcommand{\wpmap}{\wp}
+
+\title{Quadratic Forms over the Full Nimber Field}
+\author{a9lim}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let $K$ be a perfect field of characteristic $2$ for which the
+Artin--Schreier map $x\mapsto x^2+x$ is surjective.  Every nonsingular
+finite-dimensional quadratic form over $K$ is hyperbolic, and therefore
+$W_q(K)=0$.  More generally, every quadratic form is classified by
+\[
+  \bigl(\dim V,\dim\rad B,\dim\rad Q\bigr),
+\]
+where $B$ is the polar form and
+$\rad Q=\{x\in\rad B:Q(x)=0\}$.  Conway's full field of nimbers
+$\On$ is algebraically closed of characteristic $2$, so the theorem applies
+to $\On$: there is no transfinite Arf coordinate, and the Clifford class of
+every nonsingular form is split.  Finite-field Arf invariants remain valid
+relative invariants over a declared finite nim-subfield, but scalar extension
+from $\F_{2^d}$ to $\F_{2^{2d}}$ kills them.  We conclude by separating this
+full-field theorem from computations in a partial ordinal-nimber backend,
+which neither represents all of $\On$ nor constructs every required root.
+\end{abstract}
+
+\section{Introduction}
+
+Nim addition and nim multiplication make the class of ordinals into
+Conway's algebraically closed field $\On$ of characteristic $2$
+\cite{conway1976,lenstra1978}.  Quadratic-form invariants over finite nimber
+fields therefore raise a natural base-change question: what remains of the
+Arf invariant after extension to the full nimber field?  The answer is that
+the nonsingular invariant vanishes.  The singular theory retains only polar
+rank and one radical flag.
+
+This conclusion is an application of standard characteristic-$2$ quadratic
+form theory \cite{arf1941,baeza1978,elmankarpenkomerkurjev2008}.  Its role
+here is to identify the correct ground field and to separate two assertions
+that should not be conflated:
+\begin{enumerate}
+\item over full $\On$, every required square root and Artin--Schreier root
+      exists, so the classification is complete;
+\item a finite implementation of ordinal nim arithmetic may classify a form
+      over a certified finite subfield without being able to construct the
+      isometry over $\On$.
+\end{enumerate}
+Set-sized quadratically closed initial segments of the nimbers have also been
+studied in \cite{lenstra1977,risnoveanu2026}; the theorem below
+requires only the field hypotheses stated explicitly and then uses algebraic
+closure for the full-$\On$ corollary.
+
+\section{Quadratic forms in characteristic two}
+
+Let $K$ be a field of characteristic $2$ and $V$ a finite-dimensional
+$K$-vector space.  A quadratic form is a map $Q:V\to K$ satisfying
+\[
+  Q(av)=a^2Q(v),\qquad
+  B(u,v)=Q(u+v)+Q(u)+Q(v),
+\]
+where the polar form $B$ is bilinear.  The form $B$ is alternating.  We put
+\[
+  R=\rad B=\{v:B(v,w)=0\text{ for all }w\in V\},
+  \qquad
+  \rad Q=\{r\in R:Q(r)=0\}.
+\]
+The quadratic form is \emph{nonsingular} when $R=0$.  This is the standard
+characteristic-$2$ convention \cite[Chapter II, Section 7]
+{elmankarpenkomerkurjev2008}.
+
+Write
+\[
+  \wpmap:K\longrightarrow K,\qquad \wpmap(t)=t^2+t.
+\]
+For a nonsingular form and a symplectic basis $(e_i,f_i)_{i=1}^r$, its Arf
+class is represented by
+\[
+  \sum_{i=1}^r Q(e_i)Q(f_i)\pmod{\wpmap(K)}.
+\]
+Over a finite field, absolute trace identifies $K/\wpmap(K)$ with $\F_2$.
+Over a field on which $\wpmap$ is surjective, the quotient is zero.
+
+Let $H$ denote the hyperbolic plane, with basis $e,f$ satisfying
+\[
+  Q(e)=Q(f)=0,\qquad B(e,f)=1.
+\]
+
+\begin{lemma}[Splitting a symplectic plane]\label{lem:plane}
+If $\wpmap$ is surjective, every nonsingular quadratic plane over $K$ is
+hyperbolic.
+\end{lemma}
+
+\begin{proof}
+Choose $e,f$ with $B(e,f)=1$ and write $a=Q(e)$ and $b=Q(f)$.  If $a=0$,
+then $e$ is isotropic.  If $a\ne0$, choose $t$ with $t^2+t=ab$ and put
+$v=(t/a)e+f$.  Then
+\[
+  Q(v)=\frac{t^2+t+ab}{a}=0.
+\]
+Thus in either case there is a nonzero isotropic vector $v$.  Choose $w_0$
+with $B(v,w_0)=1$ and set $w=w_0+Q(w_0)v$.  Since $Q(v)=0$,
+\[
+  Q(w)=Q(w_0)+Q(w_0)B(w_0,v)=0,
+  \qquad B(v,w)=1.
+\]
+Hence $(v,w)$ is a hyperbolic basis.
+\end{proof}
+
+\begin{proposition}\label{prop:nonsingular}
+If $\wpmap$ is surjective, every nonsingular quadratic space of dimension
+$2r$ is isometric to $H^{\perp r}$.  Consequently $W_q(K)=0$.
+\end{proposition}
+
+\begin{proof}
+A nondegenerate alternating form has a symplectic plane.  By
+Lemma~\ref{lem:plane}, the restriction of $Q$ to that plane is hyperbolic.
+Its polar-orthogonal complement is nonsingular, so induction splits off all
+$r$ planes.  Every nonsingular form is therefore Witt-trivial.
+\end{proof}
+
+The remaining information lies on the polar radical.  Perfection is used
+precisely here.
+
+\begin{lemma}[Zero-polar forms]\label{lem:radical}
+Suppose $K$ is perfect and $R$ is an $s$-dimensional space on which the polar
+form of $Q$ vanishes.  There is a unique linear functional
+$\ell:R\to K$ such that $Q(r)=\ell(r)^2$.  Up to isometry,
+\[
+  Q|_R\cong
+  \begin{cases}
+    0^{\perp s},&\ell=0,\\
+    \langle x^2\rangle\perp0^{\perp(s-1)},&\ell\ne0.
+  \end{cases}
+\]
+\end{lemma}
+
+\begin{proof}
+For a basis $r_1,\dots,r_s$, perfection gives unique $c_i$ with
+$c_i^2=Q(r_i)$.  Define
+$\ell(\sum_i x_i r_i)=\sum_i c_i x_i$.  Since the polar form vanishes,
+\[
+  Q\left(\sum_i x_i r_i\right)
+    =\sum_i x_i^2Q(r_i)
+    =\ell\left(\sum_i x_i r_i\right)^2.
+\]
+Injectivity of Frobenius gives uniqueness.  If $\ell\ne0$, choose a basis in
+which $\ell$ is the first coordinate.
+\end{proof}
+
+\section{Classification over an Artin--Schreier-surjective field}
+
+\begin{theorem}\label{thm:classification}
+Let $K$ be a perfect field of characteristic $2$ with surjective
+Artin--Schreier map.  Let $Q$ be a quadratic form on $V$, let $B$ be its
+polar form, and write
+\[
+  \rank B=2r,\qquad \dim\rad B=s.
+\]
+Then exactly one of the following normal forms holds:
+\[
+ (V,Q)\cong
+ \begin{cases}
+  H^{\perp r}\perp0^{\perp s},
+    &Q|_{\rad B}=0,\\
+  H^{\perp r}\perp\langle x^2\rangle\perp0^{\perp(s-1)},
+    &Q|_{\rad B}\ne0.
+ \end{cases}
+\]
+In the second case $s\ge1$.  Two such forms are isometric if and only if
+their triples
+\[
+  \bigl(\dim V,\dim\rad B,\dim\rad Q\bigr)
+\]
+agree.
+\end{theorem}
+
+\begin{proof}
+Choose a vector-space complement $W$ to $R=\rad B$.  The restriction
+$B|_W$ is nondegenerate: a vector in its radical is orthogonal to both $W$
+and $R$, hence lies in $W\cap R=0$.  Therefore
+\[
+  (V,Q)=(W,Q|_W)\perp(R,Q|_R).
+\]
+Proposition~\ref{prop:nonsingular} identifies the first summand with
+$H^{\perp r}$, and Lemma~\ref{lem:radical} gives the two radical summands.
+In the notation of that lemma, $\rad Q=\ker\ell$, so its dimension is $s$
+in the first case and $s-1$ in the second.  These dimensions recover the
+normal form and are invariant under isometry.
+\end{proof}
+
+\begin{corollary}[The full nimber field]\label{cor:on2}
+Every nonsingular finite-dimensional quadratic form over $\On$ is
+hyperbolic, and
+\[
+  W_q(\On)=0.
+\]
+Every singular form over $\On$ has exactly one of the two normal forms in
+Theorem~\ref{thm:classification}.  In particular, no additional transfinite
+Arf invariant occurs.
+\end{corollary}
+
+\begin{proof}
+The field $\On$ is algebraically closed of characteristic $2$
+\cite{conway1976,lenstra1978}.  Algebraic closure makes both Frobenius and
+$x\mapsto x^2+x$ surjective, so Theorem~\ref{thm:classification} applies.
+\end{proof}
+
+\begin{remark}[Set-sized reduction]
+Only finitely many coefficients and finitely many roots occur in the proof of
+a finite-dimensional instance.  They lie in a set-sized algebraically closed
+subfield of $\On$.  Thus the corollary does not require performing linear
+algebra over a proper-class carrier.
+\end{remark}
+
+\section{Finite nim-subfields and the Arf invariant}
+
+Let $K_d=\F_{2^d}\subset\On$.  For a nonsingular quadratic form over $K_d$,
+the Arf class lies in
+\[
+  K_d/\wpmap(K_d)\cong\F_2,
+\]
+with the isomorphism given by absolute trace.  This is a relative invariant:
+it depends on the ground field over which changes of basis are allowed.
+
+\begin{proposition}\label{prop:finite-extension}
+Scalar extension from $K_d$ to $K_{2d}$ induces the zero map
+\[
+  W_q(K_d)\longrightarrow W_q(K_{2d}).
+\]
+Consequently the directed colimit of the finite-field quadratic Witt groups
+inside $\On$ is zero.
+\end{proposition}
+
+\begin{proof}
+For $c\in K_d$, the polynomial $X^2+X+c$ either splits over $K_d$ or is an
+irreducible quadratic, in which case it splits over $K_{2d}$.  Thus every
+class in $K_d/\wpmap(K_d)$ becomes zero in
+$K_{2d}/\wpmap(K_{2d})$.  The finite-field classification by the Arf class
+\cite{arf1941,dickson1901} gives the Witt-group statement.  Every element
+at every finite stage therefore dies at a later stage, which is exactly the
+vanishing of the colimit.
+\end{proof}
+
+For example, the plane with $Q(e)=Q(f)=B(e,f)=1$ is anisotropic over $\F_2$.
+If $t^2+t+1=0$ in $\F_4$, then $te+f$ is isotropic, so the same plane is
+hyperbolic over $\F_4$.  The original Arf bit correctly records failure to
+split over $\F_2$; it is not invariant under unrestricted scalar extension.
+
+\section{Clifford consequence}
+
+\begin{corollary}\label{cor:clifford}
+For every nonsingular finite-dimensional quadratic form $Q$ over $\On$, the
+graded Morita class of $\Cl(Q)$ is split on the characteristic-$2$
+Clifford--Brauer--Wall surface.
+\end{corollary}
+
+\begin{proof}
+By Corollary~\ref{cor:on2}, $Q\cong H^{\perp r}$.  Orthogonal sum corresponds
+to graded tensor product of Clifford algebras
+\cite[Chapter~IX]{elmankarpenkomerkurjev2008}.  For a hyperbolic basis $e,f$,
+\[
+  e^2=f^2=0,\qquad ef+fe=1,
+\]
+so $\Cl(H)$ is a graded matrix algebra and is graded Morita-trivial.  Hence
+$[\Cl(Q)]=0$.
+\end{proof}
+
+This statement concerns Clifford algebras of nonsingular quadratic forms.
+For singular $Q$, the full Clifford algebra need not be graded central simple,
+so the singular radical flag in Theorem~\ref{thm:classification} is
+quadratic-form data rather than a Brauer--Wall coordinate.
+
+\section{Executable and formal boundary}
+
+The mathematical theorem concerns full $\On$.  Ogdoad's executable
+\texttt{Ordinal} scalar is instead a partial, checked representation of an
+initial Kummer region.  Its multiplication rejects computations that leave
+the verified window.  For a finite metric, the routine
+\texttt{ordinal\_common\_finite\_}\allowbreak
+\texttt{subfield\_degree} returns a common finite
+degree only when the necessary excess data and checked degree arithmetic are
+available.  The finite-field Arf and Brauer--Wall reports are then relative
+to that recorded degree, exactly as Proposition~\ref{prop:finite-extension}
+requires.
+
+None of these routines asserts that the represented scalar is algebraically
+closed.  Nor do they promise to construct the square roots and
+Artin--Schreier roots used by Theorem~\ref{thm:classification}.  A failure to
+produce an in-window witness is therefore an implementation boundary, not a
+third mathematical isometry class.
+
+The companion Lean module \texttt{formal/Ogdoad/Off.lean}, distributed with
+Ogdoad \cite{ogdoad2026}, checks the following algebraic ingredients
+over a set-sized algebraically
+closed characteristic-$2$ field: surjectivity of Frobenius and the
+Artin--Schreier map, conversion of a normalized symplectic pair to a
+hyperbolic pair, simultaneous conversion of a supplied symplectic family,
+and the zero-polar normal form $Q=\ell^2$.  It uses the standard symplectic
+decomposition of a finite alternating form as an interface and does not
+encode Conway's proper-class field or the partial Rust arithmetic.
+
+\section{Conclusion}
+
+Perfectness and Artin--Schreier surjectivity remove the nonsingular
+characteristic-$2$ obstruction completely.  Over full $\On$, every
+nonsingular quadratic form is hyperbolic, $W_q(\On)=0$, and its associated
+Clifford class is split.  A singular form retains only the dimensions of its
+polar and quadratic radicals.  Finite-field Arf bits remain meaningful when
+their finite ground field is recorded, but they vanish after a quadratic
+field extension and hence in the directed limit.  This field-theoretic
+classification is independent of whether a partial ordinal backend can
+construct the corresponding change of basis.
+
+\bibliographystyle{plain}
+\bibliography{transfinite_arf}
+
+\end{document}

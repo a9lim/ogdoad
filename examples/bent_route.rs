@@ -1,11 +1,11 @@
-//! The bent route to the open question.
+//! Bent Gold components as a stress test for local spin-flip rules.
 //!   cargo run --example bent_route
 //!
-//! Bent (nondegenerate) game-realizable forms are a clean Tier-2 target. The
+//! Bent (nondegenerate) game-realizable forms isolate the diagonal-data issue. The
 //! polar form B then has trivial radical R(B) = {0}, so:
 //!   (i)  the symmetric-B loopy rule whose Loss-set is R(B) (loopy_quadric.rs)
 //!        collapses to {0} — the radical route is empty, no coincidence can fake a
-//!        hit (cf. the (m,a)=(4,1) artifact where R(B) happened to equal {Q=0});
+//!        hit (at `(m,a)=(4,1)`, `R(B)` happens to equal `{Q=0}`);
 //!   (ii) the frame-blind Sp(B) no-go applies without a degenerate radical layer.
 //!        So any candidate rule in this setting must use more than B alone.
 //!
@@ -16,10 +16,10 @@
 //! game-realizable). {Q=0} is the even-energy set; bent ⇔ B nondegenerate.
 //!
 //! The decisive new probe is a LOCAL SPIN-FLIP rule: flip a single coin i when the
-//! local energy change ΔQ_i(v) = q_i ⊕ B(v,e_i) is 1. It reads ONLY the couplings
-//! B and the per-coin field q_i — Tier-2 data (B + a diagonal frame), never the
-//! global Q. If its P-set is {Q=0}, the open question reduces to whether "pairwise
-//! coupling + per-coin field, played as spin flips" counts as natural. We use a
+//! local energy change ΔQ_i(v) = q_i ⊕ B(v,e_i) is 1. It reads only the couplings
+//! B and the per-coin field q_i, never the global Q. The probe asks whether
+//! pairwise coupling plus per-coin field, played as spin flips, realizes the
+//! zero set. We use a
 //! bent Gold COMPONENT Tr(λ x^{1+2^a}) (bent for 2/3 of λ; see gold_family_survey).
 
 use ogdoad::forms::fit_f2_quadratic;
@@ -121,7 +121,7 @@ fn main() {
     let (pa, da) = p_set(&ra);
     describe("A local spin-flip (B+field)", &pa, &zero, da, m);
 
-    // Rule B — B-only single-bit (the old Tier-1.5 baseline, no diagonal field).
+    // Rule B — B-only single-bit baseline, with no diagonal field.
     let rb: Vec<Vec<usize>> = (0..n)
         .map(|v| {
             (0..m)
@@ -166,6 +166,7 @@ fn main() {
     println!("   per-coin field q_i to B. It does NOT align B's quadric to {{Q=0}}; it leaves");
     println!("   the quadric variety entirely. So the naive local-field assembly fails: the");
     println!("   diagonal framing must enter some other way than a per-coin spin-flip gate.");
-    println!("This sharpens the open question on this bent case: B+frame can reach a");
-    println!("right-Arf quadric class, but aligning to the specific Gold quadric remains open.");
+    println!("This pins why the naive bent routes fail: B+frame reaches a right-Arf");
+    println!("quadric class but not the specific Gold quadric; weighted-source Witt--FIFO");
+    println!("resolves the global play question by a different stateful construction.");
 }

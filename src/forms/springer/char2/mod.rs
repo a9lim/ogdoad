@@ -50,12 +50,11 @@
 //! Elman–Karpenko–Merkurjev §§7, 13; oracles cross-checked via Codex — see the
 //! tests.)
 //!
-//! **Oracle boundary (accepted, 2026-07-02):** this leg has no independent second
+//! **Oracle boundary:** this leg has no independent second
 //! engine by structure — the odd-residue Springer engine rejects residue
 //! characteristic 2, so the expected values here are paper-derived worked examples
 //! rather than a cross-implementation check. That is the *accepted* documented
-//! boundary (a9's call, closing the `aj-second-engine` switch in
-//! `docs/CORRECTNESS.md`), not a TODO: a test-only brute-force verifier would be
+//! boundary, not a TODO: a test-only brute-force verifier would be
 //! welcome if one is ever wanted, but the hand-worked oracles are the contract.
 //!
 //! # Global isotropy over `F_q(t)` (Hasse–Minkowski)

@@ -1,5 +1,9 @@
 # Rust
 /target
+/node_modules
+
+# Lean
+/formal/.lake/
 
 # Python
 __pycache__/
@@ -15,6 +19,8 @@ dist/
 # LaTeX: keep .tex and the compiled .pdf; ignore the local tectonic binary + aux
 writeups/tectonic
 writeups/*.aux
+writeups/*.bbl
+writeups/*.blg
 writeups/*.log
 writeups/*.out
 writeups/*.synctex.gz
@@ -22,3 +28,9 @@ writeups/*.fls
 writeups/*.fdb_latexmk
 .mypy_cache/
 .ruff_cache/
+
+# Local research scratch space
+/tmp/
+
+# Local reference-PDF library (downloaded citations, not repo content)
+/ref/

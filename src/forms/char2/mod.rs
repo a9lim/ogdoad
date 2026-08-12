@@ -39,8 +39,8 @@ pub use field::*;
 
 #[cfg(test)]
 mod coverage_gap_tests {
-    // CORRECTNESS.md `char2-decomp-coverage`. Two of the three named gaps land
-    // here rather than at their home files: `isometric_finite_char2` lives in
+    // These coverage tests live here rather than at their home files:
+    // `isometric_finite_char2` lives in
     // `equivalence.rs`, and the equal-degree splitter lives in `poly_factor.rs`
     // (`pub(crate)`, so it's reachable crate-wide without editing that file).
 

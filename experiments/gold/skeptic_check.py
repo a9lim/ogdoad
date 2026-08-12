@@ -9,7 +9,7 @@
 
 Note: the nim/Gold arithmetic below is a deliberate ogdoad-independent
 implementation kept for adversarial-oracle provenance (fuzz-verified against
-the Rust engine per docs/PY.md §5) — not an accidental duplicate of common.py.
+the Rust engine as an independent oracle, not an accidental duplicate of common.py.
 """
 import random
 from functools import lru_cache

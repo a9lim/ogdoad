@@ -1,40 +1,30 @@
-"""Broadening the form: a game-realizable quadratic trace family, and where it
-goes BENT in the sampled cases.
+"""Survey trace-presented quadratic forms and their bent components.
 
-docs/OPEN.md starts from one form, the Gold form Q_a(x) = Tr(x^{1+2^a}), and hunts for a
-natural game with P-set {Q_a=0}. This probe broadens the *form* side. The general
-quadratic Boolean function on F_{2^m} has the trace representation (Carlet; e.g.
-arXiv:1305.3700)
+The general quadratic Boolean function on ``F_{2^m}`` has a trace
+representation (Carlet; e.g. arXiv:1305.3700)
 
     Q_c(x) = Σ_{i=1}^{m/2-1} Tr_1^m(c_i · x^{1+2^i})   [ + a half-trace middle term ]
 
-— and each displayed term is game-realizable: x^{1+2^i} = x ⊗ x^{2^i} is a
-Turning-Corners product of x with its i-fold Frobenius image, the coefficient c_i
-is one more nim-product, and the sum/trace are XOR. This script does not implement
-the affine bookkeeping or the half-trace middle term; it probes a large
+Each displayed term is game-realizable: ``x^{1+2^i} = x times x^{2^i}`` is a
+Turning-Corners product of ``x`` with its iterated Frobenius image, the
+coefficient is one further nim-product, and sum/trace are XOR. This script
+omits affine bookkeeping and the half-trace middle term; it probes a large
 trace-presented family, not every Boolean quadratic form.
 
-WHY THIS MATTERS FOR THE OPEN QUESTION. A form's zero set {Q=0} is farthest from
-any XOR-subspace exactly when the form is BENT — nondegenerate polar form, rank m,
-trivial radical (m even). Bent is the maximal-nonlinearity case: the hardest P-set
-for a normal-play disjunctive sum (whose P-sets are subspaces) and the cleanest
-Tier-2 target. Two facts this probe pins down:
+A form is bent exactly when its polar form is nondegenerate (for even ``m``).
+The survey checks two facts:
 
   * the UNSCALED Gold form Tr(x^{1+2^a}) is NEVER bent: its radical is
     F_{2^{gcd(2a,m)}}, dim ≥ 1, so rank = m - gcd(2a,m) < m (see trace_form_arf.py);
   * but its COMPONENTS Tr(λ·x^{1+2^a}) ARE bent for 2/3 of λ when gcd(a,m)=1 — the
-    classical Walsh count 2(2^m-1)/3 of bent components of a Gold (APN) power map —
-    and λ is just one more nim-product. So a single extra game-realizable
-    multiplication already unlocks nondegenerate forms.
+    classical Walsh count ``2(2^m-1)/3`` of bent components of a Gold (APN)
+    power map.
 
-The conclusion reshapes the route question (the "& route" half of the thread):
-on a bent form the radical is {0}, so the symmetric-B loopy rule (whose Loss-set
-is exactly R(B), see loopy_quadric.rs) collapses to Loss = {0} — useless — and the
-frame-blind Sp(B) no-go applies without a degenerate radical layer. Bent
-game-realizable forms are therefore a clean stress test for the open question:
-no radical coincidence (the m=4 (m,a)=(4,1) artifact) can masquerade as a hit.
+On a bent form the radical is ``{0}``, so the symmetric polar-only loopy rule
+has Loss-set ``{0}``. This makes bent components a clean stress test for rules
+that claim to recover a quadratic zero set from polar data alone.
 
-Honest scope: the i = m/2 half-trace middle term is omitted here (it needs a
+Scope: the ``i = m/2`` half-trace middle term is omitted here (it needs a
 sub-field coefficient and a Tr_1^{m/2}); the i = 1..m/2-1 full-trace monomials
 already reach bent, so nothing in the bent thesis depends on it. Runs on m = 8
 (F_256) exhaustively; m a power of two only (nim-mult = F_{2^m} only on initial
@@ -146,10 +136,9 @@ def part3_sums_and_route(m):
                   for d in range(1 << m))]
     print(f"  bent witness λ={c}: radical R(B) = {rad}  (|R(B)|={len(rad)})")
     print("  ⇒ symmetric-B loopy Loss-set = R(B) = {0}: the radical route is empty here.")
-    print("  ⇒ bent forms are a clean Tier-2 target: no radical can fake a {Q=0} hit")
+    print("  ⇒ bent forms are a clean polar-only stress test: no radical can fake a {Q=0} hit")
     print("    (the (m,a)=(4,1) coincidence in loopy_quadric.rs cannot recur), and the")
-    print("    frame-blind Sp(B) no-go applies in full. The next route probe should feed")
-    print("    a bent {Q=0} into the interactive/misère instruments, where it is hardest.")
+    print("    frame-blind Sp(B) obstruction applies without a radical exception.")
 
 
 if __name__ == "__main__":

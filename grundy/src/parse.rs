@@ -42,7 +42,7 @@ fn conditional_words_error(span: Span) -> GrundyError {
         span,
         "`?` and `:` are not conditional-expression syntax",
     )
-    .with_hint("conditionals are words now: `if a then b else c`")
+    .with_hint("write conditionals as `if a then b else c`")
 }
 
 fn statement_to_block_expr(stmt: Statement) -> GrundyResult<Expr> {

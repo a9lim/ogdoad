@@ -1,7 +1,5 @@
 [package]
-# The language name is provisional until the 0.3.8 rung (renamed from ogham
-# 2026-07-15); `publish = false` keeps the name internal, so nothing named
-# grundy enters any published artifact until the language ships at 0.4.0.
+# `publish = false` keeps the language internal until its public-release gate.
 name = "grundy"
 version = "0.3.6"
 edition = "2021"

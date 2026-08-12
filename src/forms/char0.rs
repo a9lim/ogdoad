@@ -426,11 +426,9 @@ mod tests {
         assert_eq!(classify_complex(128, 0).matrix_dim, 1u128 << 64);
     }
 
-    // CONSISTENCY.md `partiality-outliers`: `classify_real`/`classify_complex`
-    // used to be unbounded `pub fn`s whose `p2()` panicked past dimension 127
-    // with an incidental `checked_shl` overflow message. They now assert the
-    // crate's named `MAX_BASIS_DIM` boundary (matching `CliffordAlgebra::new`'s
-    // `metric.rs` convention) instead of failing incidentally one layer down.
+    // The classifiers assert the crate's named `MAX_BASIS_DIM` boundary,
+    // matching `CliffordAlgebra::new`, rather than relying on a lower-level
+    // shift overflow.
     #[test]
     #[should_panic(expected = "MAX_BASIS_DIM")]
     fn classify_real_rejects_dimension_past_max_basis_dim() {

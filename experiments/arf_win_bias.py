@@ -16,10 +16,10 @@ zero-count matches the count predicted from the form's Arf classification
 (handling the radical). Restricted to nim-subfields F_{2^{2^k}} (the only m for
 which the nimbers below 2^m are field-closed).
 
-This does NOT exhibit a game whose P-positions are {Q=0}; disjunctive sums have
-XOR-linear (not quadratic) outcomes, so any such game must be interactive, and
-whether a natural one exists is the open problem. What it does pin down: the
-Arf invariant *is* the win-bias, exactly, in the counting sense.
+This script isolates the zero-count ingredient used by the proved
+weighted-source Witt--FIFO construction. It does not itself build that arena:
+it checks the independent claim that the Arf invariant is exactly the sign of
+the resulting P-position bias.
 """
 
 import ogdoad as pl

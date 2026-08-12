@@ -1,6 +1,6 @@
 """Pure-Python nim arithmetic / Arf invariant stack: a deliberate independent
 port of the Rust engine, kept separate as a cross-check oracle (declared
-independent-oracle note, per docs/PY.md §5)."""
+independent-oracle note)."""
 import itertools, random, functools
 
 # ---------------- nim arithmetic ----------------

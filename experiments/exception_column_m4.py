@@ -67,6 +67,14 @@ RESULTS (this script; claim levels per the excess.tex convention):
   per-level. (Derivation: sigma(zeta) = omega^a * zeta for the level-3 Galois
   group, expand the three-factor product; machine-checked at k = 2, 3, 4.)
 
+  EXACT COUNTERMODEL TO THE TWO-TRACE FINGERPRINT: at k = 4, project M_4 to
+  its current factor P_4 and put t = P_4^(163*7).  The inverse-pair orbit of t
+  gives a nonselected irreducible Dickson cubic whose two absolute coefficient
+  traces are (1, 0), exactly the selected pair (1, k mod 2).  The harness checks
+  the full symbolic order decomposition, relative orbit, cubic coefficient
+  shape, and both traces.  This rules out that proposed proof invariant; it is
+  not evidence against D_k itself.
+
   CONJECTURE D_k (the column analogue of C_k): the prime-to-3 part of ord(M_k)
   is full, i.e. ((2^h+1)/3^(k+1)) | ord(M_k). Equivalent (given the audits) to
   m_p = 4 for every prime with f(p) = 2*3^k. Status: certified k <= 6,
@@ -336,6 +344,62 @@ def twisted_norm_lemma(k: int) -> None:
     assert nrm == g, f"twisted norm lemma fails at k={k}"
 
 
+def absolute_trace(a: int, degree: int, h: int) -> int:
+    """Absolute trace of an element known to lie in F_{2^degree}."""
+    start = a
+    out = 0
+    for _ in range(degree):
+        out ^= a
+        a = fsq(a, h)
+    assert a == start, "element does not lie in the asserted subfield"
+    assert out in (0, 1), "absolute trace did not land in F_2"
+    return out
+
+
+def fingerprint_countermodel() -> None:
+    """Exact k=4 witness that the two selected trace bits do not isolate G_4."""
+    k = 4
+    h = 3**k
+    s = 3 ** (k - 1)
+    a_size = 1 << s
+    psi = 163 * 135433 * 272010961
+
+    # Project M_4 onto the current A^2-A+1 torus.  Its order is exactly Psi_4.
+    projected = fpow_f(m_element(h), a_size + 1, h)
+    assert fpow_f(projected, psi, h) == 1
+    for p in COLUMN_PRIMES[k]:
+        assert fpow_f(projected, psi // p, h) != 1
+
+    # Delete the 163-primary part while retaining a relative orbit of length 3.
+    t = fpow_f(projected, 163 * 7, h)
+    t_order = 135433 * 272010961
+    assert fpow_f(t, t_order, h) == 1
+    for p in (135433, 272010961):
+        assert fpow_f(t, t_order // p, h) != 1
+    lam = a_size * a_size - a_size + 1
+    assert lam == 3 * psi and fpow_f(t, lam // 163, h) == 1
+
+    y = t ^ finv(t, h)
+    ys = [frob(y, i * s, h) for i in range(3)]
+    assert len(set(ys)) == 3 and frob(y, 3 * s, h) == y
+    trace_coeff = ys[0] ^ ys[1] ^ ys[2]
+    pair_coeff = (
+        fmul(ys[0], ys[1], h)
+        ^ fmul(ys[0], ys[2], h)
+        ^ fmul(ys[1], ys[2], h)
+    )
+    constant_coeff = fmul(fmul(ys[0], ys[1], h), ys[2], h)
+    assert constant_coeff == fsq(trace_coeff, h)
+    assert frob(trace_coeff, s, h) == trace_coeff
+    assert frob(pair_coeff, s, h) == pair_coeff
+    assert absolute_trace(trace_coeff, s, h) == 1
+    assert absolute_trace(pair_coeff, s, h) == 0
+    print(
+        "k=4 fingerprint countermodel: nonselected irreducible Dickson cubic "
+        "has selected traces (1,0)"
+    )
+
+
 def verify_level(k: int) -> list[int]:
     h = 3**k
     u = (1 << h) + 1
@@ -408,6 +472,8 @@ def main() -> None:
     for k in (2, 3, 4):
         twisted_norm_lemma(k)
     print("twisted norm lemma Norm(N_k) = eta^2 + omega^2*eta + 1 verified (k=2,3,4)\n")
+    fingerprint_countermodel()
+    print()
 
     any_failures = False
     for k in (2, 3, 4, 5, 6, 7, 8):

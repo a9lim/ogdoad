@@ -1,18 +1,11 @@
-//! Misère play: where disjunctive sums stop being linear.
+//! Misère play and bounded indistinguishability quotients.
 //!
-//! docs/OPEN.md's open question needs a game whose P-positions are the *quadric*
-//! `{Q=0}` of a Gold form. Normal-play disjunctive sums can't supply one: their
-//! outcomes are XOR-linear (P ⟺ ⊕ of Grundy values = 0), so the P-set is always
-//! a *subspace*. The two escape routes are interactive games and **misère** play
-//! (last player to move loses), where sums are genuinely non-linear — Grundy
-//! values no longer determine the outcome of a sum.
-//!
-//! This module is the instrument for the misère route: a memoised misère-outcome
-//! evaluator for finite acyclic impartial games (given a `moves` function), plus
-//! the canonical witness that misère is non-linear — misère Nim, whose P-set is
-//! provably *not* `{⊕ = 0}` and not even a coset. That clears the bar normal play
-//! fails. Whether a misère game's P-set is an actual Gold quadric is the part
-//! that stays open; this gives the tooling to test candidates.
+//! Under misère play the player making the last move loses, so Grundy values do
+//! not determine the outcome of a disjunctive sum. This module provides a
+//! memoized outcome evaluator for finite acyclic impartial games, the misère-Nim
+//! criterion, and bounded Plambeck--Siegel quotient machinery. The quotient and
+//! quadric probes are independent instruments; the Gold--Arf realization uses
+//! the separate normal-play weighted-source FIFO construction.
 
 use std::collections::{HashMap, HashSet};
 use std::fmt;

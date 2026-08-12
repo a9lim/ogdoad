@@ -14,7 +14,7 @@ sigma-valued rule lives in `fifo_value`/`ko_value` and the `fifo2-*`/`ko2`
 stages.
 
 This is the decisive-experiment harness for the `echo-solver` task (successor
-`echo-family-sweep` in `docs/COMPLETENESS.md`) and
+`echo-family-sweep` in `docs/ROADMAP.md`) and
 `writeups/goldarf.tex` SS8-9, ranked move 1: an independent re-derivation of the
 echo-fifo+dummy m=8 exactness claim (391,680 checks / 765 scaled Gold forms),
 which was produced by a decomposition-plus-isomorphism-caching solver validated

@@ -1,3 +1,0 @@
-// ogham conformance staging provenance — v0.3.5
-// Fully merged into conformance.txt through stage E on 2026-07-10.
-// No staging vectors remain; this file is retained as release provenance.

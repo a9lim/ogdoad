@@ -47,9 +47,11 @@
 //! Its runtime-prime cell [`LocalQp`] fills the const-generic gap the table
 //! otherwise cannot represent.
 //!
-//! `Ordinal` On₂ (the transfinite nimbers, [`big::ordinal`]) is algebraically
-//! closed of characteristic 2, not a local field — so its ring-of-integers cell is
-//! "(itself)", honestly vacuous, exactly as for the finite fields.
+//! The ideal full On₂ world motivating `Ordinal` (the transfinite nimbers,
+//! [`big::ordinal`]) is algebraically closed of characteristic 2, not a local field —
+//! so its ring-of-integers cell is "(itself)", honestly vacuous, exactly as for the
+//! finite fields. The Rust backend itself remains checked and partial at the verified
+//! Kummer boundary.
 //!
 //! The **equal-characteristic local** cell — `F_q((t))` over `F_q[[t]]`, the
 //! char-`p` mirror of the `Qp`/`Zp` row — is filled by the [`Laurent`] functor

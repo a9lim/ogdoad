@@ -1,9 +1,10 @@
 """The framing obstruction probe: why the Gold quadric needs more than B alone.
 
-This probe stress-tests the structure of docs/OPEN.md's open question — "a game whose
-moves are built from B (coin-turning) alone, not from Q itself, with P-set the
-Gold quadric {Q=0}" — by organizing the obstruction into a symmetry-breaking
-ladder, using two classical facts:
+This probe explains why a frame-blind rule built from the polar form alone
+cannot produce a prescribed Gold quadric. It organizes the obstruction into a
+symmetry-breaking ladder and records why the proved weighted-source
+Witt--FIFO construction exposes a public frame and diagonal data. It uses two
+classical facts:
 
   (i)  the quadratic refinements of a fixed symplectic form B form a torsor under the
        linear duals V* (two forms share a polar form iff they differ by a linear
@@ -26,7 +27,7 @@ The diagonal q_i = Q(e_i) = Tr(e_i^{1+2^a}) is the single-coin self-Gold value �
 FRAMING in the Arf-Kervaire sense. And empirically (Part 3) it always carries Arf 1:
 Q_frame is split (O+) in the standard basis, the framing flips it to the Gold O-.
 
-So the probe supports this structural reading:
+The probe supports this structural reading:
   * frame-blind (Sp(B)-equivariant) games provably cannot realize ANY quadric;
   * a deliberately framed B+frame rule realizes the split frame quadric, not by
     natural play semantics but by directly reading Q_frame;

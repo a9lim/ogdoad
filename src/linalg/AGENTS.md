@@ -1,41 +1,26 @@
-# AGENTS.md — `src/linalg/`
+# `src/linalg/` editing guide
 
-Crate-private shared linear algebra, deliberately placed BELOW the mathematical
-pillars rather than exposed as a public API. `mod.rs` is `pub(crate)` only.
+Crate-private algebraic and unit-pivot linear algebra shared by Clifford and
+forms code. Results are exact when the scalar backend is exact and inherit a
+precision backend's semantics otherwise.
 
-Fixed-width arithmetic payloads here are `u128`/`i128`; `usize` is only for matrix
-dimensions and indices. Keep relation rows, Smith/Hermite pivots, and integer
-solver data on the repo-wide width contract.
+| file | responsibility |
+| --- | --- |
+| `f2.rs` | bitmask rank, nullspaces, and solves over `F_2`/nim coordinates |
+| `field.rs` | generic unit-pivot solves, inverse matrices, and nullspaces |
+| `integer.rs` | exact integer HNF/Smith-style operations |
+| `mod.rs` | crate-private exports |
 
-- **`field.rs`** — Gaussian `solve` / `inverse_matrix` / `unit_pivot_nullspace` over
-  any `Scalar` (a field, a local ring, or a precision model): the kernels pivot only on
-  entries whose `Scalar::inv` exists, so over a field it is ordinary Gauss-Jordan and
-  over a ring they return `None` when a required nonunit pivot appears. The crate's
-  generic linear solver: used by the Clifford GA solves (`clifford::multivector_inverse`,
-  blade analysis, `inverse_outermorphism`, the spinor builder) and the
-  integral-lattice/symplectic/ramified layers.
-- **`f2.rs`** — `nim_rank`: Gauss-Jordan row rank over `F_{2^128}` (concrete `u128`
-  nimbers), the characteristic-2 row-kernel primitive.
-- **`integer.rs`** — exact integer linear algebra over ℤ:
-  - `normalize_relation_rows` (the crate's row **Hermite normal form**: increasing
-    leading columns, positive pivots, zeros below each pivot, above-pivot entries
-    reduced mod the pivot) + `reduce_integer_vector`. `normalize_relation_rows` is
-    consumed by the integral-lattice layer (`forms/integral/`); `reduce_integer_vector`
-    by the game exterior algebra's lattice quotient (`games/game_exterior/`).
-  - `gcd`/`gcd_u128` — the crate's one integer gcd, exported here beside `ext_gcd`
-    (the integral/Niemeier layers consume these rather than carrying per-file copies).
-  - `prime_factors` — the crate's one integer factorizer (distinct primes by trial
-    division; membership, not multiplicity), consumed
-    by `forms/integral/fqm_witt.rs`, `forms/integral/genus.rs`, and
-    `scalar/finite_field/fpn.rs`.
-  - `ext_gcd` (Bézout `a·x + b·y = gcd`) and `smith_normal_form` (invariant factors
-    `d₀ | d₁ | …` via unimodular `ext_gcd`-based row/column combines; `∏ dᵢ = |det|`,
-    cokernel `ℤⁿ/Mℤⁿ ≅ ⨁ ℤ/dᵢ`). Used by the integral-lattice layer:
-    `forms/integral/lattice/` reads invariant factors off SNF;
-    `forms/integral/discriminant/` enumerates `Z^n/GZ^n` representatives via the
-    normalized relation rows.
+Rules:
 
-This module is matrix-heavy and walks index-parallel arrays; the crate-level
-`#![allow(clippy::needless_range_loop)]` in `lib.rs` covers it (explicit indices
-read clearer than iterator adapters when the body indexes several arrays by the
-same `i`).
+- Keep this module crate-private; public APIs return domain-specific records.
+- Validate rectangular dimensions before indexing.
+- Use backend-native scalar operations and explicit nonunit-pivot failure.
+  Never introduce floating tolerances or silent rank guesses into generic
+  elimination.
+- Preserve row/column transformation witnesses when an algorithm promises
+  them.
+- `usize` is appropriate for dimensions and indices; mathematical integer
+  entries and public invariants follow the repository's `u128`/`i128` rule.
+- Add a small independent matrix oracle or reconstruction test for every new
+  elimination path, then run the workspace test and Clippy gates.

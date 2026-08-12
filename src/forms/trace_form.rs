@@ -30,7 +30,8 @@
 use crate::clifford::{Metric, MAX_BASIS_DIM};
 use crate::forms::ArfInvariants;
 use crate::scalar::{
-    nim_square, nim_trace, CyclicGaloisExtension, FieldExtension, Fp, Nimber, Scalar,
+    nim_frobenius_iter, nim_mul, nim_relative_trace, nim_solve_artin_schreier, nim_trace,
+    CyclicGaloisExtension, FieldExtension, Fp, Nimber, Scalar,
 };
 use std::collections::BTreeMap;
 
@@ -228,6 +229,107 @@ where
         .ok()
 }
 
+fn assert_nim_subfield_degree(m: usize) {
+    assert!(
+        m.is_power_of_two() && m <= 128,
+        "the nimbers < 2^m form a subfield only for m a power of two <= 128"
+    );
+}
+
+fn assert_in_nim_subfield(x: u128, m: usize) {
+    assert!(
+        m == 128 || x < (1u128 << m),
+        "the scale must lie in the selected nim subfield"
+    );
+}
+
+/// The trace-dual of the canonical-basis diagonal of the scaled Gold component
+///
+/// ```text
+/// Q_{a,c}(x) = Tr(c * x^(1 + 2^a)).
+/// ```
+///
+/// More precisely, if `e_i = 2^i` is the canonical bit basis of
+/// `F_{2^m} ⊂ Nimber`, the returned `lambda` is the unique element satisfying
+///
+/// ```text
+/// Tr(lambda * e_i) = Tr(c * e_i * e_i^(2^a))     for every i < m.
+/// ```
+///
+/// The construction is tower-recursive and does not evaluate the right-hand
+/// side one coordinate at a time.  Write `F_{2^(2M)} = F_{2^M}(u)` in the
+/// canonical nim tower, with top-half basis `u*e_j`.  If `c = c0 + u*c1`, the
+/// relative traces of `c` and `c*u^(1+2^a)` are the two smaller scaled
+/// components.  The trace-pairing block identities
+///
+/// ```text
+/// Tr_rel((A + u*B) * e)     = B*e,
+/// Tr_rel((A + u*B) * u*e)   = (A+B)*e
+/// ```
+///
+/// then reconstruct the dual as `(lambda0+lambda1) + u*lambda0`.
+///
+/// `m` must be a power of two at most 128 and `c` must lie in that subfield.
+pub fn gold_component_diagonal_dual(m: usize, a: usize, c: u128) -> u128 {
+    assert_nim_subfield_degree(m);
+    assert_in_nim_subfield(c, m);
+
+    fn recurse(m: usize, a: usize, c: u128) -> u128 {
+        if m == 1 {
+            return c & 1;
+        }
+
+        let half = m / 2;
+        let u = 1u128 << half;
+        let low_scale = nim_relative_trace(c, m as u128, half as u128);
+        let u_twisted = nim_frobenius_iter(u, a % m);
+        let top_scale =
+            nim_relative_trace(nim_mul(c, nim_mul(u, u_twisted)), m as u128, half as u128);
+        let low_dual = recurse(half, a, low_scale);
+        let top_dual = recurse(half, a, top_scale);
+
+        (low_dual ^ top_dual) ^ (low_dual << half)
+    }
+
+    recurse(m, a, c)
+}
+
+/// The trace-dual `lambda_a^(m)` of the unscaled Gold diagonal
+/// `Q_a(e_i) = Tr(e_i^(1+2^a))` in the canonical nim basis.
+///
+/// This is [`gold_component_diagonal_dual`] with scale `c = 1`.
+pub fn gold_diagonal_dual(m: usize, a: usize) -> u128 {
+    gold_component_diagonal_dual(m, a, 1)
+}
+
+/// A tower-uniform Artin--Schreier source for every Gold diagonal.
+///
+/// Returns `w in F_{2^m}` such that, with `lambda = w^2 + w`,
+///
+/// ```text
+/// Tr(lambda * e_i) = Tr(e_i^(1+2^a))     for every canonical basis coin e_i.
+/// ```
+///
+/// For every even power-of-two degree `m`, the first step of the dual recursion
+/// has zero low block, so [`gold_diagonal_dual`] lies in the half-field
+/// `F_{2^(m/2)}`.  Its absolute trace from the quadratic extension is therefore
+/// zero, which is exactly the Artin--Schreier solvability criterion.  The returned
+/// root is selected by the exact nim-field solver; its companion is `w ^ 1`.
+///
+/// This closes the *diagonal-sourcing* lemma for all Gold exponents, including
+/// even `a`.  It does not by itself turn the sourced diagonal into a normal-,
+/// misere-, or loopy-outcome game rule.
+pub fn gold_diagonal_artin_schreier_source(m: usize, a: usize) -> u128 {
+    assert!(
+        m >= 2,
+        "the Artin--Schreier source needs an even extension degree"
+    );
+    let lambda = gold_diagonal_dual(m, a);
+    debug_assert!(lambda < (1u128 << (m / 2)));
+    nim_solve_artin_schreier(lambda, m as u128)
+        .expect("the Gold diagonal dual lies in the Artin--Schreier image")
+}
+
 /// The **Gold form** `Q_a(x) = Tr_{F_{2^m}/F_2}(x^{1+2^a})` over the nim subfield
 /// `F_{2^m} ⊂ Nimber`, as a [`Metric`]`<Nimber>` (already `F_2`-valued, ready for
 /// `.classify()` → [`ArfInvariants`]). This is the central object of the game-built
@@ -239,20 +341,13 @@ where
 /// subfield (`F_{2^{2^k}}`) closed under nim-multiplication. The Gold-rank theorem
 /// gives `rank = m − gcd(2a, m)`.
 pub fn gold_form(m: usize, a: usize) -> Metric<Nimber> {
-    assert!(
-        m.is_power_of_two() && m <= 128,
-        "the nimbers < 2^m form a subfield only for m a power of two ≤ 128"
-    );
+    assert_nim_subfield_degree(m);
     let basis: Vec<Nimber> = (0..m).map(|i| Nimber(1u128 << i)).collect();
     assemble_twisted_form(
         &basis,
         |x| {
             // σ^a = the a-fold nim-Frobenius x ↦ x^{2^a}
-            let mut t = x.0;
-            for _ in 0..a {
-                t = nim_square(t);
-            }
-            Nimber(t)
+            Nimber(nim_frobenius_iter(x.0, a % m))
         },
         |x| Nimber(nim_trace(x.0, m as u128)),
     )
@@ -392,6 +487,64 @@ mod tests {
         // a higher Gold exponent: m=8, a=3 ⇒ gcd(6,8)=2 ⇒ rank 6.
         let arf = gold_form(8, 3).classify().unwrap();
         assert_eq!((arf.rank, arf.radical_dim), (6, 2));
+
+        // Frobenius has period m; huge public exponents must not trigger a
+        // literal a-step loop.
+        assert_eq!(gold_form(8, usize::MAX), gold_form(8, usize::MAX % 8));
+    }
+
+    #[test]
+    fn scaled_gold_diagonal_dual_matches_the_trace_pairing() {
+        // Exhaust every scale in the small canonical nim towers.  This is an
+        // independent direct-coordinate oracle for the tower recursion: the
+        // implementation never assembles these m diagonal equations.
+        for m in [1usize, 2, 4, 8] {
+            let scales = if m == 1 { 2 } else { 1u128 << m };
+            for a in 0..m {
+                for c in 0..scales {
+                    let lambda = gold_component_diagonal_dual(m, a, c);
+                    for i in 0..m {
+                        let e = 1u128 << i;
+                        let twisted = nim_frobenius_iter(e, a);
+                        let direct = nim_trace(nim_mul(c, nim_mul(e, twisted)), m as u128);
+                        let paired = nim_trace(nim_mul(lambda, e), m as u128);
+                        assert_eq!(paired, direct, "m={m}, a={a}, c={c}, i={i}");
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn unscaled_gold_dual_descends_and_has_artin_schreier_source() {
+        for m in [2usize, 4, 8, 16, 32, 64, 128] {
+            for a in [0usize, 1, 2, 3, 4, 7, m - 1, m] {
+                let lambda = gold_diagonal_dual(m, a);
+                assert!(
+                    lambda < (1u128 << (m / 2)),
+                    "unscaled dual did not descend: m={m}, a={a}, lambda={lambda}"
+                );
+                let w = gold_diagonal_artin_schreier_source(m, a);
+                assert_eq!(nim_mul(w, w) ^ w, lambda, "m={m}, a={a}");
+
+                for i in 0..m {
+                    let e = 1u128 << i;
+                    let sourced = nim_trace(nim_mul(nim_mul(w, w) ^ w, e), m as u128);
+                    let gold = nim_trace(nim_mul(e, nim_frobenius_iter(e, a % m)), m as u128);
+                    assert_eq!(sourced, gold, "m={m}, a={a}, i={i}");
+                }
+            }
+        }
+
+        // Pin the previously reported drifting even-a values.  Drift is real,
+        // but the recursive source handles it rather than requiring one fixed
+        // lambda across every tower level.
+        assert_eq!(gold_diagonal_dual(4, 2), 0);
+        assert_eq!(gold_diagonal_dual(8, 2), 6);
+        assert_eq!(gold_diagonal_dual(16, 2), 102);
+        assert_eq!(gold_diagonal_dual(32, 2), 24_582);
+        assert_eq!(gold_diagonal_dual(16, 4), 31);
+        assert_eq!(gold_diagonal_dual(32, 4), 8_030);
     }
 
     #[test]

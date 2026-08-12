@@ -273,7 +273,7 @@ mod tests {
 
     #[test]
     fn eisenstein_constants_derive_from_the_shared_bernoulli_source() {
-        // The docs/TABLES.md discipline: the curated literals 240 / −504 are pinned equal
+        // The docs/VERIFY.md discipline: the oracle literals 240 / −504 are pinned equal
         // to the values derived from the single Bernoulli source the mass formula uses.
         assert_eq!(eisenstein_constant(2), 240, "c₄ = −8/B₄");
         assert_eq!(eisenstein_constant(3), -504, "c₆ = −12/B₆");

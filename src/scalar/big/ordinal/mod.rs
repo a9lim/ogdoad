@@ -47,15 +47,16 @@
 //!   the monomial and the reduced monomial is nim-multiplied back by `α_u`. This recurses
 //!   **strictly downward by place** (every `α_{p(m)}` is built from generators at places
 //!   `< m`), bottoming out at `α_3 = 2` in the finite field. We carry the finite excess
-//!   integers `m_u` from OEIS A380496 (the b-file's 126 known rows, odd primes `3..=709`);
+//!   integers `m_u` from OEIS A380496 (the b-file's 126 known rows, odd primes
+//!   `3..=709`) plus the locally certified rows `m_719=m_727=1`;
 //!   `α_u` itself is assembled from `ord_u(2)`, `Q(f(u))`, and `m_u`. A product is exact
-//!   whenever its Kummer carries stay at primes `≤ 709`; a carry needing `m_719` (the
-//!   first OEIS-unknown row) or beyond returns `None`, as does anything `≥ ω^(ω^ω)` (an
+//!   whenever its Kummer carries stay at primes `≤ 727`; a carry needing `m_733` (the
+//!   first unsupported row) or beyond returns `None`, as does anything `≥ ω^(ω^ω)` (an
 //!   infinite exponent place). (The Artin–Schreier `x²+x+1` relation is the separate
 //!   `u = 2` Fermat-tower
 //!   case — DiMuro Thm 3.1.7 / Cor 3.11 — handled inside the finite nimber field
 //!   [`finite_field::nimber`](crate::scalar::finite_field).) See `docs/OPEN.md` for
-//!   the table provenance and current open boundary.
+//!   the current proof boundary.
 
 mod cantor;
 mod nim;

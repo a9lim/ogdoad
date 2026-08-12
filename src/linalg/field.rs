@@ -175,8 +175,8 @@ mod tests {
         assert!(unit_pivot_nullspace(m, 3).is_none());
     }
 
-    // CORRECTNESS.md `nullspace-skip`: column 0 has no unit pivot (2 is not a
-    // unit in `Integer`), but skipping it and pivoting on column 1's unit `1`
+    // Column 0 has no unit pivot (2 is not a unit in `Integer`), but skipping
+    // it and pivoting on column 1's unit `1`
     // finds the kernel without ever dividing by the nonunit.
     #[test]
     fn nullspace_skips_a_nonunit_column_when_a_later_column_pivots() {

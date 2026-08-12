@@ -15,8 +15,7 @@ fn grundy_conformance_corpus() {
     run_corpus(corpus);
 }
 
-// The 0.3.6 staging corpus is merged into conformance.txt; the staging file
-// is retained as provenance beside conformance_v0.2/0.3/0.3.5.txt.
+// conformance.txt is the single authoritative corpus.
 
 #[test]
 fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {
@@ -75,7 +74,7 @@ fn word_conditionals_have_minimal_unambiguous_parentheses() {
         assert_eq!(err.kind, GrundyErrorKind::Parse);
         assert_eq!(
             err.hint.as_deref(),
-            Some("conditionals are words now: `if a then b else c`")
+            Some("write conditionals as `if a then b else c`")
         );
     }
 }
@@ -346,7 +345,7 @@ fn wrong_world_teaching_lives_in_hint_fields() {
         .eval_line("canon(on)")
         .expect_err("loopy canon is outside the envelope");
     assert_eq!(canon.kind, GrundyErrorKind::Loopy);
-    assert!(!canon.message.contains("0.3.0"));
+    assert_eq!(canon.message, "`canon` is not defined on loopy games");
     assert_eq!(
         canon.hint.as_deref(),
         Some("graph fusion is not yet in the envelope")
@@ -442,7 +441,7 @@ fn stage_b_parse_guidance_is_carried_by_hints() {
             .eval_line(&format!("{name}()"))
             .expect_err("call spelling was removed for literal atoms");
         assert_eq!(literal.kind, GrundyErrorKind::UnknownFn);
-        let expected = format!("`{name}` is a literal now");
+        let expected = format!("write the literal `{name}` without parentheses");
         assert_eq!(literal.hint.as_deref(), Some(expected.as_str()));
     }
 
@@ -451,7 +450,10 @@ fn stage_b_parse_guidance_is_carried_by_hints() {
         .eval_line("dim()")
         .expect_err("dim call spelling was removed");
     assert_eq!(dim.kind, GrundyErrorKind::UnknownFn);
-    assert_eq!(dim.hint.as_deref(), Some("`dim` is a literal now"));
+    assert_eq!(
+        dim.hint.as_deref(),
+        Some("write the literal `dim` without parentheses")
+    );
 
     let function = integer
         .eval_line("id(x) := x")
@@ -849,7 +851,7 @@ fn grundy_game_form_equality_is_multiset_structural() {
 
     let factorial = session
         .eval_line("!5")
-        .expect_err("factorial prefix was removed in 0.3.5");
+        .expect_err("factorial prefix is not valid syntax");
     assert_eq!(factorial.kind, GrundyErrorKind::Parse);
 
     session

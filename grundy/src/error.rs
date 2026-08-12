@@ -223,7 +223,7 @@ pub(crate) fn literal_call_error(name: &str) -> GrundyError {
         Span::point(0),
         format!("unknown function `{name}`"),
     )
-    .with_hint(format!("`{name}` is a literal now"))
+    .with_hint(format!("write the literal `{name}` without parentheses"))
 }
 
 pub(crate) fn renamed_function_error(old: &str, new: &str) -> GrundyError {
@@ -275,7 +275,7 @@ pub(crate) fn kummer_escape(span: Span) -> GrundyError {
         span,
         "ordinal nim-product escaped beyond the source-verified tower below ω^(ω^ω)",
     )
-    .with_hint("below ω^(ω^ω), primes <= 709 — see docs/OPEN.md")
+    .with_hint("below ω^(ω^ω), primes <= 727 — see docs/OPEN.md")
 }
 
 pub(crate) fn overflow(message: impl Into<String>) -> GrundyError {

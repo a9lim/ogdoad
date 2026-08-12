@@ -1,13 +1,12 @@
-//! The loopy route to the open question — and what it reveals.
+//! Loopy polar-only rules compared with the Gold zero set.
 //!   cargo run --example loopy_quadric
 //!
 //! `interactive_kernel` orients moves strictly downward so the game terminates —
 //! an acyclic graph, hence no Draws, a Win/Loss bit per position. A *loopy* rule
 //! keeps both flip directions, so positions sit on cycles and a third outcome
-//! appears: **Draw**. docs/OPEN.md's Tier-2 obstruction is that normal-play P-sets are
-//! XOR-linear; the Draw-set of a cyclic rule is a new degree of freedom, not bound
-//! by that linearity. `loopy_decision_sets` exposes both the Loss-set and the
-//! Draw-set; `fit_f2_quadratic` names each.
+//! appears: **Draw**. The Draw-set of a cyclic rule need not be an XOR kernel.
+//! `loopy_decision_sets` exposes both the Loss-set and the
+//! Draw-set; `fit_f2_quadratic` classifies each bounded set.
 //!
 //! What the sweep actually finds is instructive, and honest: a *symmetric* B-only
 //! rule (B is symmetric, so the move graph is undirected) collapses to detecting
@@ -15,10 +14,9 @@
 //! isolated vertices — and `v` is isolated exactly when `B(v,·) ≡ 0`, i.e.
 //! `v ∈ R(B)`. So Loss-set = R(B) and Draw-set = its complement, regardless of Q.
 //! At `(m,a)=(4,1)` it *happens* that `R(B) = {Q=0}` (both 4 points), which looks
-//! like a Tier-2 hit but is a coincidence of the radical — it breaks at `m=8`. And
-//! R(B) is exactly the degenerate part where the frame-blind no-go is *silent*. So
-//! the loopy B-only rule confirms the obstruction from a new angle rather than
-//! breaking it; a genuine witness must hit `{Q=0}` where it is NOT the radical.
+//! like a hit but is a coincidence of the radical — it breaks at `m=8`.
+//! Thus a polar-only loopy rule cannot supply the uniform target; the
+//! weighted-source FIFO construction retains diagonal refinement data.
 
 use ogdoad::forms::{fit_f2_quadratic, QuadricFit};
 use ogdoad::games::loopy_decision_sets;
@@ -96,6 +94,6 @@ fn main() {
     println!("\nConclusion. The symmetric B-only loopy rule detects R(B), the radical — at");
     println!("(4,1) that equals {{Q=0}} (4 points each), at (8,1) it does not (|R(B)|=4 vs");
     println!("|{{Q=0}}|=112). R(B) is precisely where the Sp(B) frame-blind no-go is silent, so");
-    println!("the loopy instrument reproduces the obstruction rather than escaping it. The open");
-    println!("question stands; the Draw-set is now a first-class target the probes can sweep.");
+    println!("the loopy instrument reproduces the polar-only obstruction. The weighted-source");
+    println!("FIFO construction succeeds by retaining the diagonal refinement data.");
 }

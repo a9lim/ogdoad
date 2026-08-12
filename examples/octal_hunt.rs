@@ -1,11 +1,11 @@
 //! Hunt octal games for a misère quotient that hosts a Gold-style quadric.
 //!   cargo run --release --example octal_hunt
 //!
-//! The target shape (the one that would *close* the open question): a misère
-//! quotient that is an elementary abelian 2-group `(ℤ/2)^k` — so its elements
+//! The target is a misère quotient that is an elementary abelian 2-group
+//! `(ℤ/2)^k` — so its elements
 //! coordinatise as `F₂^k` — whose P-set is a *genuine* quadric (Arf-rank ≥ 2).
-//! Among the tame games tried earlier none had it. Octal games include the wild
-//! ones, so we sweep a range of octal codes, compute each bounded misère
+//! Octal games include wild quotient behavior, so this bounded sweep computes
+//! a range of codes and their misère
 //! quotient over single-heap atoms, and (when the quotient is `(ℤ/2)^k`) run the
 //! P-set through `fit_f2_quadratic`. Any hit is printed loudly; otherwise the
 //! summary records how close anything got.
@@ -91,7 +91,9 @@ fn main() {
     }
     if hits == 0 {
         println!("\nNo octal game in this range has a (ℤ/2)^k misère quotient whose P-set is a");
-        println!("genuine quadric. The open question survives the hunt: the quadric P-set, if it");
-        println!("exists, lives outside the elementary-2-abelian octal quotients reachable here.");
+        println!("genuine quadric. This bounded route found no witness; the later weighted-source");
+        println!(
+            "FIFO solution lies outside the elementary-2-abelian octal quotients searched here."
+        );
     }
 }

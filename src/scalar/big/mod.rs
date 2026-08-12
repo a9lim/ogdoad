@@ -9,8 +9,6 @@
 //!   * [`ordinal`] — transfinite (ordinal) **nimbers**: the char-2 sibling of
 //!     [`surreal`]. Same CNF representation, but coefficients combine by XOR
 //!     (nim-addition) — `surreal : nimber :: No : On₂` extended to the ordinals.
-//!     (Was `onag`, after Conway's *On Numbers and Games*; renamed for the same
-//!     name-by-object convention as its siblings — the object is the `Ordinal`.)
 //!
 //! `surreal` and `ordinal` share the descending-CNF *shape* (a `Vec<(exponent,
 //! coeff)>` recursing on exponents) and exactly one piece of *code*: the

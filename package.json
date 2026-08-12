@@ -1,0 +1,7 @@
+{
+  "name": "ogdoad-documentation",
+  "private": true,
+  "devDependencies": {
+    "katex": "0.18.4"
+  }
+}

@@ -520,8 +520,12 @@ pub(crate) fn arf_ordinal_at_degree(
 /// Arf invariant for finite ordinal-nimber windows represented by the `Ordinal`
 /// backend. Purely finite entries delegate to [`arf_nimber`]. All other detected
 /// finite subfields use the same generic symplectic reduction plus the absolute
-/// trace from their minimal common `F_{2^m}`. Genuinely transfinite coefficients
-/// return `None`; choosing a classifier there remains open.
+/// trace from their minimal common `F_{2^m}`. Coefficients outside the staged
+/// finite-subfield detector return `None`. Over ideal full
+/// algebraically closed `On₂`, every nonsingular form is hyperbolic and the Arf/Witt
+/// class vanishes (`writeups/transfinite_arf.tex`); this function deliberately
+/// reports only the checked, degree-relative finite-field class and does not claim
+/// an executable full-field isometry witness.
 pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfInvariants> {
     if !metric.a.is_empty() {
         return None;
@@ -780,8 +784,8 @@ mod tests {
         }
     }
 
-    // `arf_f2` and `brown_f2` are declared to mirror each other field-for-field
-    // (CONSISTENCY.md `micro-naming-2`); `brown_f2` already asserts these input
+    // `arf_f2` and `brown_f2` mirror each other field-for-field;
+    // `brown_f2` already asserts these input
     // shapes (`forms/char2/brown.rs`), so `arf_f2` must too.
     #[test]
     #[should_panic(expected = "at most 128")]
