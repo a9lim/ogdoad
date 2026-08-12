@@ -7731,6 +7731,120 @@ theorem fermat_AE4_cross_level_gcd
 
 end FermatAdditiveCrossLevel
 
+section FermatAE4FullLower
+
+/-- The selected inverse-factor exponent is an inverse modulo the entire
+lower multiplicative period, not merely modulo its final Fermat factor. -/
+theorem fermat_AE4_full_inverse_exact
+    {S : Type*} [CommRing S]
+    (ell R K L H D : S)
+    (hell : ell = 1 + R * L)
+    (hrel : ell * K + L = H * D) :
+    ell * (1 + R * K) = 1 + R * H * D := by
+  linear_combination R * hrel + hell
+
+/-- A second exact expression for the selected inverse exponent, obtained
+from the complementary factor. -/
+theorem fermat_AE4_full_inverse_complement
+    {S : Type*} [CommRing S]
+    (ell d R K L D : S)
+    (hell : ell = 1 + R * L)
+    (hprod : ell * d = 3 * D + 2)
+    (hK : 2 * K = D - L * d) :
+    2 * (1 + R * K) = d + (R - 3) * D := by
+  linear_combination R * hK - hprod + d * hell
+
+/-- An exact Bezout-form inverse makes the selected exponent a unit modulo
+the whole lower period. -/
+theorem fermat_AE4_full_inverse_coprime
+    (ell R K H D : Nat)
+    (hinv : ell * (1 + R * K) = 1 + R * H * D) :
+    (1 + R * K).Coprime D := by
+  apply Nat.coprime_of_mul_modEq_one ell
+  have heq : (1 + R * K) * ell = D * (R * H) + 1 := by
+    calc
+      (1 + R * K) * ell = ell * (1 + R * K) := by ring
+      _ = 1 + R * H * D := hinv
+      _ = D * (R * H) + 1 := by ring
+  rw [heq]
+  exact Nat.ModEq.modulus_mul_add
+
+/-- The cross-level gcd packet extends from `Q + 1` to every divisor of the
+full lower period `D`. -/
+theorem fermat_AE4_full_lower_gcd
+    (D ell d R L K H : Nat)
+    (hDodd : D.Coprime 2)
+    (hell : 1 ≤ ell) (hd : 2 ≤ d)
+    (hprod : ell * d = 3 * D + 2)
+    (hellDef : ell = 1 + R * L)
+    (hcopR : D.Coprime R)
+    (hcopEll : D.Coprime ell)
+    (hrel : ell * K + L = H * D) :
+    D.gcd K = D.gcd (ell - 1) ∧
+      D.gcd K = D.gcd (d - 2) := by
+  have hKL := exact_exponent_gcd_period
+    D ell K L H D hcopEll (dvd_refl D) hrel
+  have hellSub : ell - 1 = R * L := by omega
+  have hLEll : D.gcd L = D.gcd (ell - 1) := by
+    rw [hellSub, gcd_mul_of_right_coprime D R L hcopR]
+  have htop : ell * d ≡ 2 [MOD D] := by
+    rw [hprod]
+    rw [Nat.mul_comm 3 D]
+    exact Nat.ModEq.modulus_mul_add
+  have hcross := cross_gcd_of_product_mod_two
+    D ell d hDodd hell hd htop
+  exact ⟨hKL.trans hLEll, hKL.trans (hLEll.trans hcross)⟩
+
+variable {Rng : Type*} [CommRing Rng] [CharP Rng 2]
+
+/-- Under a Fibonacci failure, the extracted monomial identifies the
+existing following-block scalar with the full inverse exponent. -/
+theorem fermat_AE4_existing_root_exponent
+    (a : Rng) (d R g K s : Nat)
+    (hR : R = 2 ^ s)
+    (hd : d = R * g + 1)
+    (hzero : fibPolyValue a d = 0)
+    (hmon : fibPolyValue a g = a ^ K) :
+    fibPolyValue a (d + 1) = a ^ (1 + R * K) := by
+  have hstep :
+      fibPolyValue a (d + 1) =
+        fibPolyValue a d + a * fibPolyValue a (R * g) := by
+    rw [hd]
+    simp only [fibPolyValue]
+  rw [hstep, hzero, zero_add, hR,
+    fibPolyValue_pow_two_mul, hmon]
+  rw [← pow_mul]
+  rw [show 1 + 2 ^ s * K = K * 2 ^ s + 1 by
+    simp [Nat.add_comm, Nat.mul_comm], pow_succ]
+  ring
+
+/-- Proper Fermat factors lie strictly inside the two endpoint residues of
+the full lower period. The modest hypotheses `ell, d ≥ 5` are all the
+argument uses. -/
+theorem proper_fermat_factor_inside_full_lower_endpoints
+    (D ell d : Nat) (hell : 5 ≤ ell) (hd : 5 ≤ d)
+    (hprod : ell * d = 3 * D + 2) :
+    ell + 1 < D := by
+  nlinarith [Nat.mul_le_mul_left ell hd]
+
+/-- In a modular coefficient ring, an inverse exponent at either ancestry
+endpoint forces the current factor into the matching endpoint. -/
+theorem full_inverse_endpoint_factor_core
+    {S : Type*} [CommRing S] (ell eta : S)
+    (hinv : ell * eta = 1) :
+    (eta = 1 → ell = 1) ∧ (eta = -1 → ell = -1) := by
+  constructor
+  · intro heta
+    rw [heta, mul_one] at hinv
+    exact hinv
+  · intro heta
+    rw [heta] at hinv
+    calc
+      ell = -(ell * (-1)) := by ring
+      _ = -1 := by rw [hinv]
+
+end FermatAE4FullLower
+
 section FermatAE4SizeObstruction
 
 /-- Two proper factors with the same exact two-adic offset force that offset

@@ -141,9 +141,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Cassini norm-defect factorization. It also checks the normalized torus-point
   algebra, denominator-free sum/ratio/product identities for its formal pair,
   the inversion-quotient's exact inverse-pair fibres, and the algebraic
-  inverse-factor identity. The Binet-to-torus displacement, finite-field
-  conjugacy and trace-block bijection, and additive Fourier specialization
-  remain paper-level. It also checks the adjacent-exponent
+  inverse-factor identity. It also checks the two exact full-lower inverse
+  identities, their Bezout coprimality consequence, the endpoint-size and
+  modular endpoint cores, the bridge to the existing Fibonacci root, and the
+  full-period gcd packet. The Fermat-product and
+  Jacobi-reciprocity specializations remain paper-level. The Binet-to-torus
+  displacement, finite-field conjugacy and trace-block bijection, and additive
+  Fourier specialization remain paper-level. It also checks the adjacent-exponent
   modular signs, the two quotient-ring cofactor identities, and the short
   modular-window and terminal divisibility cores used by the paper to
   exclude both endpoint period classes.

@@ -193,7 +193,7 @@ rational-dynamics boundary, and complete pointwise-semiconjugacy/Frobenius-cobou
 saturation, with the first nonzero additive-edge trace and exact lower
 cancellation, cross-level gcd identity, exclusion of the smallest proper
 lower fibotomic stratum, and the exact full-trace-block torus coordinate with
-its inverse-factor exponent &
+its inverse-factor exponent and full-lower unit/Jacobi packet &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -15132,11 +15132,216 @@ so \(\ell\equiv1\pmod e\) if and only if
 \((\mathsf{AE}_6)\).
 \end{proof}
 
+\begin{proposition}[the inverse-factor class is a full lower-period unit]
+\label{prop:fermat-ae4-full-lower-inverse}
+Retain the minimal-first-failure notation of
+Proposition~\ref{prop:fermat-first-additive-flag}.  Thus
+\[
+ q=2^M=Q^2,\qquad D=\frac{q-1}{3},\qquad
+ \ell d=q+1=3D+2,
+\]
+\[
+ \ell=1+RL,\qquad d=1+Rg,\qquad
+ \ell K+L=HD,
+\]
+where \(\ell\) is prime, \(R=2^s\), and \(L,g\) are odd.  Put
+\[
+ \eta=1+RK.
+\]
+Then the congruence modulo \(Q+1\) of
+Proposition~\ref{prop:fermat-ae4-torus-block} extends to the entire
+lower multiplicative period:
+\[
+ \boxed{\quad
+ \ell\eta=1+RHD,\qquad
+ 2\eta=d+(R-3)D.
+ \quad}                                                \tag{\(\mathsf{FI}_1\)}
+\]
+Consequently
+\[
+ \boxed{\quad
+ \eta\equiv\ell^{-1}\equiv2^{-1}d\pmod D,\qquad
+ \gcd(\eta,D)=1.
+ \quad}                                                \tag{\(\mathsf{FI}_2\)}
+\]
+In fact this unit is strictly away from both ancestry endpoints:
+\[
+ \boxed{\quad \eta\not\equiv\pm1\pmod D.\quad}        \tag{\(\mathsf{FI}_{2a}\)}
+\]
+For every divisor \(h\mid D\), one moreover has
+\[
+ \boxed{\quad
+ \gcd(h,K)=\gcd(h,L)=\gcd(h,\ell-1)=\gcd(h,d-2).
+ \quad}                                                \tag{\(\mathsf{FI}_3\)}
+\]
+Since
+\[
+ D=\prod_{j=1}^{n-1}F_j,
+\]
+\((\mathsf{FI}_2)\)--\((\mathsf{FI}_3)\) simultaneously control every
+earlier Fermat layer, rather than only \(F_{n-1}=Q+1\).  Let
+\(b_F=S_{d+1}(a)=r_{n-1}\) be the existing choice-free lower
+\(\ell\)-th root of
+Propositions~\ref{prop:fermat-root-ancestry} and
+\ref{prop:fermat-failure-block-collapse}.  Then hypothetical failure and
+\(S_g(a)=a^K\) identify its exact exponent:
+\[
+ \boxed{\quad
+ b_F=S_{d+1}(a)=aS_{d-1}(a)=aS_g(a)^R
+     =a^\eta,\qquad
+ \operatorname{ord}(b_F)=D.
+ \quad}                                                \tag{\(\mathsf{FI}_4\)}
+\]
+
+There is also a finer quadratic-character sieve.  Put
+\[
+ m=Q+1=F_{n-1},\qquad B=4M=2^{n+2},
+\]
+and write \((\frac{\cdot}{\cdot})_J\) for the Jacobi symbol.  Then
+\[
+ \boxed{\quad
+ \left(\frac{\eta}{m}\right)_J
+ =\left(\frac{\ell}{m}\right)_J
+ =(-1)^{(\ell-1)/B}
+ =
+ \begin{cases}
+  -1,&R=B,\\
+  +1,&R>B.
+ \end{cases}
+ \quad}                                                \tag{\(\mathsf{FI}_5\)}
+\]
+On the whole lower period,
+\[
+ \boxed{\quad
+ \left(\frac{\eta}{D}\right)_J
+ =\left(\frac{\ell}{D}\right)_J
+ =\left(\frac{\ell}{3}\right).
+ \quad}                                                \tag{\(\mathsf{FI}_6\)}
+\]
+Writing \(D_-=D/m=(Q-1)/3\), the newest layer and the earlier tail
+therefore split as
+\[
+ \boxed{\quad
+ \left(\frac{\eta}{D_-}\right)_J
+ =\left(\frac{\ell}{3}\right)(-1)^{(\ell-1)/B}.
+ \quad}                                                \tag{\(\mathsf{FI}_7\)}
+\]
+Thus the selected affine exponent \(K\) lies in one prescribed Jacobi
+coset of the units \(1+RK\bmod m\), and its aggregate character over all
+earlier Fermat layers is fixed by \(\ell\bmod3\).  This is strictly
+stronger than the endpoint and gcd/order screens, but it is not a
+contradiction.  Indeed \(\eta\) is odd and, for every unit \(u\),
+\[
+ \frac{u^\eta}{u}=\left(u^{RK/2}\right)^2,
+ \qquad
+ \frac{(u^\eta)^\ell}{u}=u^{RHD};
+\]
+the Jacobi signs describe the permutation of the cyclic lower torsion,
+not a second quadratic Kummer class.  Moreover the multiplicative value
+in \((\mathsf{FI}_4)\) is the already-known \(b_F\).  An all-level proof
+still needs an additive ancestry invariant sensitive inside the surviving
+quadratic coset.
+\end{proposition}
+
+\begin{proof}
+The first identity in \((\mathsf{FI}_1)\) is exact:
+\[
+ \ell(1+RK)-1
+ =(\ell-1)+R\ell K
+ =RL+R(HD-L)=RHD.
+\]
+The identities \(2H=\ell-3L\), \(3D=q-1\), and
+\(\ell d=q+1\) give \(2K=D-Ld\).  Multiplying this by \(R\) and using
+\[
+ RLd=(\ell-1)d=3D+2-d
+\]
+gives the second identity in \((\mathsf{FI}_1)\).
+
+Both \(D\) and \(d\) are odd, and
+\[
+ \gcd(D,d)=1,
+\]
+because \(3D=q-1\), \(d\mid q+1\), and \(3\nmid d\).  Thus either
+identity in \((\mathsf{FI}_1)\) proves \((\mathsf{FI}_2)\).
+Both proper odd factors \(\ell,d\) are at least five, so
+\[
+ 3D+2=\ell d\geq5\ell,
+ \qquad\text{and hence}\qquad \ell+1<D.
+\]
+If \(\eta\equiv1\pmod D\), the inverse congruence in
+\((\mathsf{FI}_2)\) would give \(\ell\equiv1\pmod D\), impossible in
+the displayed range.  If \(\eta\equiv-1\pmod D\), it would give
+\(\ell\equiv-1\pmod D\), equally impossible.  This proves
+\((\mathsf{FI}_{2a})\).
+
+Now let \(h\mid D\).  Since \(h\) is coprime to \(\ell R\), reduction
+of \(\ell K+L=HD\) modulo \(h\) gives
+\[
+ \gcd(h,K)=\gcd(h,L)=\gcd(h,\ell-1).
+\]
+Also \(\ell d\equiv2\pmod h\).  For every divisor \(t\mid h\),
+\(\ell\equiv1\pmod t\) if and only if \(d\equiv2\pmod t\), since two
+and \(\ell\) are units modulo the odd number \(t\).  Taking the largest
+such divisor proves \((\mathsf{FI}_3)\).  The Fermat product identity
+gives the displayed factorization of \(D\).  Finally the Fibonacci
+recurrence and failure give
+\(S_{d+1}(a)=aS_{d-1}(a)\), while repeated doubling gives
+\(S_{d-1}=S_g^R\).  The monomial extraction, the existing identification
+\(b_F=r_{n-1}\), and \((\mathsf{FI}_2)\) prove
+\((\mathsf{FI}_4)\).
+
+For \((\mathsf{FI}_5)\), every prime divisor \(\ell\mid F_n\) satisfies
+\(\ell\equiv1\pmod B\).  Quadratic reciprocity applies without a sign
+because both \(\ell\) and \(m\) are \(1\bmod4\).  Put
+\(t=(\ell-1)/B\).  Since \(Q^2=q\equiv-1\pmod\ell\) and
+\((Q+1)^2\equiv2Q\pmod\ell\), Euler's criterion gives
+\[
+ \left(\frac{m}{\ell}\right)
+ =(-1)^t.
+\]
+Indeed, the criterion reduces the left side modulo \(\ell\) to
+\[
+ m^{(\ell-1)/2}=(2Q)^{Mt}=(-1)^t:
+\]
+here \(2^{Mt}=q^t=(-1)^t\), while \(Q^{Mt}=1\) because
+\(\operatorname{ord}_\ell(Q)=4\) and \(4\mid M\).
+The first identity of \((\mathsf{FI}_1)\) gives
+\((\frac\eta m)_J=(\frac\ell m)_J\).  Finally
+\[
+ t=\frac RB\,L,
+\]
+with \(L\) odd and \(R/B\) a power of two, so \(t\) is odd exactly
+when \(R=B\).
+
+For \((\mathsf{FI}_6)\), one has \(D\equiv1\pmod4\), so reciprocity
+again has no sign.  Modulo \(\ell\),
+\[
+ D\equiv-\frac23.
+\]
+As \(\ell\equiv1\pmod8\), \((\frac{-2}{\ell})=1\), and hence
+\[
+ \left(\frac{\ell}{D}\right)_J
+ =\left(\frac{D}{\ell}\right)
+ =\left(\frac3\ell\right)
+ =\left(\frac\ell3\right).
+\]
+The inverse congruence in \((\mathsf{FI}_2)\) transfers this equality
+from \(\ell\) to \(\eta\).  Finally \(D=mD_-\), so multiplicativity of
+the Jacobi symbol and \((\mathsf{FI}_5)\)--\((\mathsf{FI}_6)\) give
+\((\mathsf{FI}_7)\).
+
+Lean kernel-checks the two exact identities, coprimality from the
+Bezout-form identity, the endpoint-size and modular endpoint cores, the
+bridge to the existing Fibonacci root, and the full-\(D\) gcd packet.  The
+Fermat-product specialization and
+quadratic-reciprocity calculations remain paper-level.
+\end{proof}
+
 \begin{corollary}[the smallest proper lower stratum is excluded]
 \label{cor:fermat-additive-size-obstruction}
 Retain Corollary~\ref{cor:fermat-additive-cross-level}, put
 \[
- h=\gcd(Q+1,K),\qquad e=\frac{Q+1}{h},qquad
+ h=\gcd(Q+1,K),\qquad e=\frac{Q+1}{h},\qquad
  t=\frac{d-2}{h},
 \]
 and consider the proper-loss branch \(h>1\).  Then
@@ -27910,6 +28115,16 @@ A proper lower fibotomic stratum is therefore equivalent to a common factor
 of the preceding Fermat number and either adjacent factor offset.  This is
 an all-level screen, but even gcd one does not contradict the unnormalized
 coordinate equality.
+Proposition~\ref{prop:fermat-ae4-full-lower-inverse} extends this arithmetic
+from the newest factor to every divisor of the full lower period
+\(D=\prod_{j<n}F_j\).  The exponent \(\eta=1+RK\) is the inverse of
+\(\ell\) modulo \(D\), misses both endpoint classes \(\pm1\), its gcd
+packet agrees simultaneously with the offsets \(\ell-1\) and \(d-2\),
+and its newest and aggregate Jacobi signs are explicit.  Yet \(a^\eta\)
+is exactly the existing choice-free root \(b_F\), while odd \(\eta\)
+preserves every quadratic Kummer class.  Thus
+the all-lower/Jacobi packet is a strict survivor sieve, not an independent
+nonvanishing condition.
 Corollary~\ref{cor:fermat-additive-size-obstruction} then excludes the
 smallest proper lower stratum.  In the proper-loss branch, the complementary
 order \(e\) obeys \(e\geq4M+1\), together with

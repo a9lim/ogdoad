@@ -444,6 +444,19 @@ absolute boundedness.
   difference-set averages are saturated; a surviving argument must use
   nonaveraged arithmetic of this inverse-factor exponent or its deeper
   oriented Conway ancestry.
+  The inverse-factor arithmetic now extends through the entire lower period
+  `D=product_(j<n) F_j`. With `eta=1+R*K`, one has
+  `ell*eta=1+R*H*D`, `2*eta=d+(R-3)*D`, and `gcd(eta,D)=1`; for every
+  `h|D`, the four gcds with `K`, `L`, `ell-1`, and `d-2` agree. The same
+  exponent is not congruent to either endpoint `+1` or `-1` modulo `D`
+  and identifies `a^eta` with the existing choice-free lower root `b_F`,
+  so it supplies no second Kummer coordinate. Quadratic reciprocity
+  fixes its Jacobi signs on the newest factor and on the aggregate lower
+  tail, but these are permutation signs of the cyclic exponent: because
+  `eta` is odd, raising a unit to `eta` preserves its quadratic Kummer
+  class. Thus the full-lower packet is a sharper survivor sieve, not a
+  contradiction; additive oriented ancestry inside the surviving Jacobi
+  coset remains the live route.
   Nor is the selected minimal polynomial coefficient-lex extremal: at the first
   composite Fermat level it is bracketed in both coefficient orientations by
   two one-step descendants of full-order parents lying in the same proper

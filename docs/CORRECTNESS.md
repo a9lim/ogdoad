@@ -154,9 +154,13 @@ theorems, not CSDU.  Lean checks the quadratic trace/norm coordinates and the
 one-step endpoint-orbit criterion.  It also checks the normalized torus-point
 algebra, the denominator-free sum/ratio/product identities underlying its
 finite-field coordinates, the inverse-pair fibre identity, and the
-inverse-factor congruence core.  The Binet-to-torus displacement, finite-field
-conjugacy and trace-block bijection, and Fourier specialization remain
-paper-level. Lean
+inverse-factor congruence core. It additionally checks the two exact
+full-lower inverse identities, their Bezout coprimality consequence, the
+endpoint-size and modular endpoint cores, the bridge to the existing
+Fibonacci root, and the full-period gcd packet. The Fermat-product and
+Jacobi-reciprocity specializations remain paper-level.
+The Binet-to-torus displacement, finite-field conjugacy and trace-block
+bijection, and Fourier specialization remain paper-level. Lean
 also checks the adjacent-exponent
 modular signs, the two quotient-ring cofactor identities, and the short
 modular-window and terminal divisibility cores used by the paper to
