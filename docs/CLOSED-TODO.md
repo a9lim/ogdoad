@@ -17,7 +17,7 @@ Current state:
 
 | paper | state | destination |
 |---|---|---|
-| `goldarf.tex` (flagship) | revised, merged, compiles clean | INTEGERS, games section |
+| `goldarf.tex` (flagship) | publication rewrite done 2026-08-12 (theorem-first, INTEGERS format), compiles clean | INTEGERS, games section |
 | `thermo_newton.tex` | restructured theorem-first | INTEGERS (or TCS), **gated on the novelty check below** |
 | `transfinite_arf.tex` | revised | stays internal; the mathlib PR is the outlet |
 
@@ -35,10 +35,18 @@ poor CGT fit; INTEGERS' games section is the natural home for both submissions.)
 
 ## Submission prep
 
-- **goldarf**: a9 read-through of the merged paper (the structure changed
-  substantially: retitled, diagonal-source section absorbed, Brown-selector
-  section + game-exterior appendix spliced in); then cover letter, final
-  formatting pass, arXiv posting.
+- **goldarf**: publication rewrite landed 2026-08-12 (verified by a fresh
+  codex sol consult; zero content loss found, two findings in the one
+  newly written proof paragraph, both fixed): theorem-first reorder
+  (contract §4 → construction §5 → boundary §6 → Gold--Arf §7 → Brown §8 →
+  obstruction landscape §9), repo paths routed through a companion-repository
+  citation, INTEGERS house format applied (references before appendix,
+  `\footnotesize` alphabetical bibliography, Equation-prose refs,
+  MSC/keywords, tightened abstract). `thm:nolivemiddle` now states
+  normal-play $P$ / misère $P$ / loopy Loss (the unproved Draw claim was
+  dropped, matching its own scope remark) with a corrected proof paragraph.
+  Remaining: a9 read-through of the rewritten paper; cover letter; pin the
+  `\cite{ogdoad}` entry to an exact tag/commit; arXiv posting.
 - **thermo**: after the novelty gate clears — bounded re-run of the deeper
   stress harness for citable counts (the original second run died to a laptop
   OOM, not a failure). Standing verified counts, quotable now: 3,360 regrade
