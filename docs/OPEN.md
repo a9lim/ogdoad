@@ -384,6 +384,21 @@ absolute boundedness.
   a later nonzero jet is compatible with hypothetical divisibility, while
   odd-branch gcds at untested levels, later fixed-`A` digits,
   middle/global coefficients, and cross-endpoint relations remain open.
+  The surviving odd collision also has a nonlinear lower-ancestry flag.
+  Put `v=v_2(s)` and `rho=n-v`. Under hypothetical failure,
+  cyclic semiconjugacy of the actual norm-one driver gives
+  `Norm_(E_(n-1)/E_(v-1))(S_g(a_(n-1)))
+   =Norm_(E_(n-1)/E_(v-1))(a_(n-1))^((g-1)/2)`;
+  equivalently, the actual lower selected polynomial `A_(v-1)` divides
+  one explicit iterated quadratic resultant. If the odd order-`2R` jet
+  vanishes, this specializes to
+  `A_(v-1) | D_(n-v)`, where `P_0=X+1`,
+  `P_(j+1)=N(P_j)`, and `D_j=P_j+X^(3^j)`. Since `D_j` is nonzero of
+  degree below `3^j`, the collision is impossible whenever
+  `3^(n-v)<=2^v`. This is a genuine lower selected-ancestry exclusion,
+  but not maximality: a nonzero Hasse jet is compatible with
+  `A_(n-1)|S_d`, and for `v=0` the descended condition at
+  `A_(-1)=X+1` is automatic.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -695,6 +710,17 @@ absolute boundedness.
   full mode includes the dense `f_a(a)=0` check. Thus `m_719=1` is now a
   locally replayable exact finite computation, with the crossed-tower
   implication proved in the paper rather than Lean.
+  The next row is much smaller.  For `p=727`, one has
+  `ord_727(2)=121=11^2`, and the literal selected polynomial is the five-term
+  degree-2420 lift `P_alpha_11(X^121)`.  The self-contained stdlib checker
+  `experiments/ordinary_727_certificate.py` proves that polynomial irreducible,
+  verifies that `kappa_121` is a 727-th power, and obtains a nontrivial
+  727-torsion phase for `kappa_121+1`.  Hence `m_727=1` is locally certified
+  and the operational boundary moves to `p=733`.  This is the deliberate
+  endpoint of the row-by-row certification program: `733` remains an explicit
+  runtime refusal boundary, not the next research target.  Further work on the
+  ordinary arm is the uniform selected-Conway nondivisibility theorem, not a
+  continuation of the prime census.
   The cheap shadows are exact but phase-blind: `Norm(y)` is the unique
   359th root of `kappa_89` in `F_(2^19580)`, and
   `Norm(z)=kappa_89+1`, yet twisting `z` by `mu_719` preserves this lower
@@ -811,6 +837,15 @@ absolute boundedness.
   refine the selected Wendt/Euler test. A surviving correlation must depend
   on the top point through data beyond its iterated trace tuple, or couple it
   nonsymmetrically to separate lower ancestors or a chosen radical.
+  A genuinely mixed projective-line refinement is now exact as well. For
+  `H_a={x:Tr(ax)=0}`, the current-character sum `Sigma_a` over
+  `H_a^x/F_q^x` equals `q^(-1)rho(a)^(-1)G(rho)` and has magnitude
+  `sqrt(q)`. The selected cubic is self-polar:
+  `H_(gamma_k)=L_(k-1)+L_(k-1)gamma_k`. Hence
+  `Sigma_gamma/Sigma_1=rho(gamma_k)^(-1)`, and failure is precisely equality
+  of the two line sums. Every lower-ancestry affine translate spans the same
+  line, so this mixed additive--multiplicative route exactly recovers, but
+  does not evaluate, the selected phase.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -1028,6 +1063,21 @@ absolute boundedness.
   independent conditions: the phase-level presentations recover `L(1)`,
   while `P_e` records its `Q`-Frobenius orbit and the reciprocal factor records
   the corresponding selected factor test.
+  Below Euler projection there is now an exact adjacent-value compression in
+  the original corrected-norm field. Put `D=zeta^4+zeta` in `K=F_(4^h)`.
+  The full `F_16` translate table and injectivity of the quadratic
+  constant-extension map on the current Kummer quotient show that `D` is
+  always an `ell`-th power, whereas `[D+1]=(1+A^5)[N]`, with
+  `A=2^(h/3) mod ell` and `N=zeta^2+zeta+omega`; the scalar `1+A^5` is
+  nonzero. Hence `D'_k` is equivalent to each of the three nonzero translates
+  `D+c` being a non-`ell`-th-power; on failure the complete affine line
+  `D+F_4` consists of `ell`-th powers. Over `K_-=F_(4^(h/3))`, with
+  `a=zeta^3`, this marked value has irreducible cubic
+  `T^3+T^2+T+Phi_5(a)`, so `D'_k` is equivalently irreducibility of
+  `X^(3*ell)+X^(2*ell)+X^ell+Phi_5(a)`. On failure it splits into exactly
+  `ell` irreducible cubics. Its downward norm is automatically an `ell`-th
+  power, so this is a strict selected reduction rather than a nonvanishing
+  proof: it isolates the missing additive coupling between `D` and `D+1`.
   Only a direct selected evaluation of such a coefficient, in particular the
   original Euler phase, or genuinely external root orientation remains. A coprime
   plus/minus decomposition now
@@ -1054,8 +1104,10 @@ absolute boundedness.
 ### Evidence boundary
 
 - All 126 OEIS A380496 rows for odd primes `3 <= p <= 709` are vendored and
-  diffed. These integer excesses are source-pinned; `m_719=1` is separately
-  locally certified, and the next unsupported carry is `alpha_727`.
+  diffed. These integer excesses are source-pinned; `m_719=m_727=1` are
+  separately locally certified.  This is the intended finite-certification
+  cutoff; the next unsupported carry `alpha_733` is a runtime guardrail while
+  the research frontier is the global theorem.
 - The extended values at the two known base-2 Wieferich primes are
   source-pinned external computations, not local certificates.
 - `C_1,C_2,C_3` are proved; `C_4,C_5` are certified; `C_6` is

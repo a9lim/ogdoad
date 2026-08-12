@@ -182,7 +182,9 @@ first-Witt polynomial, named Artin-class and dihedral reflection-norm
 reductions, the complementary factor/cofactor resultant duality and its
 canonical CRT-projector/trace-annihilation boundary, the hypothetical-failure
 shifted-Fibonacci block collapse, and the
-selected Euler-factor/root-number boundary &
+selected Euler-factor/root-number boundary; a nonlinear lower-semiconjugacy
+resultant flag for the surviving odd Hasse collision, with a degree-range
+exclusion &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -195,9 +197,10 @@ full-conductor truncated-log regulator and exact conductor-\(p^2\)
 ray/Jacobi reciprocity; invariant realification and selected local
 reflection norm; the exact sparse marked full-conductor polynomial at
 \(p=359\), its checked Hilbert-root certificate proving \(m_{359}=1\),
-and a fixed-history audit of two corroborating source-pinned executions &
-nondivisibility at the selected Conway polynomial for the remaining smaller
-primary factors \\
+the exact crossed-tower computation proving \(m_{719}=1\), the direct sparse
+certificate proving \(m_{727}=1\), and a fixed-history audit of two
+corroborating source-pinned executions &
+uniform selected-Conway nondivisibility across the ordinary spine \\
 \((C)\) &
 \(\gamma_k\) primitive &
 proof for \(k\leq3\); partition order bounds; exact derivative
@@ -207,7 +210,9 @@ augmentation-ideal and block normalization; Singer--Wendt factorization
 and selected \(S_3\)-trace quotient; exact Frobenius orbit ranks and the
 complete normality of \(\gamma_k^{-1}\); pure-radical reflection norm;
 reciprocal order seam and
-prescribed-trace character boundary &
+prescribed-trace character boundary; complete lower trace--Fourier flag
+collapse, ancestral coordinate presentation, and the selected self-polar
+trace-hyperplane character ratio &
 exclusion of the selected Wendt/trace fibre at the remaining current
 factors \\
 \((D)\) &
@@ -227,7 +232,8 @@ with its norm-coherent Artin--Schreier lift, together with the
 alternating translated-root norm chain, reduced twisted-cubic fibre and
 pure-eigenweight Fourier collapse, and the
 constant-extension line criterion with
-\(m_\ell<16(3^k)^4\) &
+\(m_\ell<16(3^k)^4\), and the selected adjacent-quartic translate/Capelli
+reduction &
 nonvanishing of the selected antiunit index
 \(\operatorname{ind}_\ell(d_k)\) at the remaining current factors \\
 \bottomrule
@@ -4190,6 +4196,80 @@ This is a locally replayable exact finite computation plus the paper-level
 crossed-tower deduction.  The payload evaluation and finite-field
 specialization are not kernel-checked in Lean; the Lean development checks
 only the generic scaled-product and nested-exponent algebra used above.
+\end{proof}
+
+\begin{proposition}[the exact ordinary carry at \(p=727\)]
+\label{prop:ordinary-727-certificate}
+One has
+\[
+ \ord_{727}(2)=121=11^2,
+ \qquad Q(121)=\{121\},
+ \qquad \alpha_{727}=\kappa_{121}+1.
+\]
+More precisely, the actual selected full-conductor polynomial is
+\[
+ \begin{aligned}
+ P_{\alpha_{11}}(X)
+   &=X^{20}+X^{16}+X^5+X+1,\\
+ P_{\kappa_{121}}(X)
+   &=P_{\alpha_{11}}(X^{121})
+     =X^{2420}+X^{1936}+X^{605}+X^{121}+1.
+ \end{aligned}                                      \tag{\(\mathsf{O727}_1\)}
+\]
+The second polynomial is irreducible over \(\F_2\).  In its quotient field,
+with \(x\) the class of \(X\), exact binary arithmetic gives
+\[
+ x^{(2^{2420}-1)/727}=1,
+ \qquad
+ (x+1)^{(2^{2420}-1)/727}\ne1,
+ \qquad
+ \left((x+1)^{(2^{2420}-1)/727}\right)^{727}=1.
+                                                        \tag{\(\mathsf{O727}_2\)}
+\]
+Consequently
+\[
+ \boxed{m_{727}=1.}                                  \tag{\(\mathsf{O727}_3\)}
+\]
+The canonical fixed-width SHA--256 fingerprints of the modulus and the
+nontrivial phase in the polynomial basis are, respectively,
+\[
+ \begin{split}
+ &\texttt{a10b35b0caf07945af6d71c0f3fccb7b3e67c3f5ae3124e19b5482e960cec852},\\
+ &\texttt{1b95861258bcf45a90c284011c3337561996e5cc70ee6e05374b121515103e57}.
+ \end{split}
+                                                        \tag{\(\mathsf{O727}_4\)}
+\]
+\end{proposition}
+
+\begin{proof}
+Direct modular arithmetic gives \(2^{121}=1\pmod{727}\) but
+\(2^{11}\ne1\pmod{727}\), proving the order assertion.  The selected
+dependency \(\alpha_{11}=\kappa_5+1\) and
+\(P_{\alpha_5}(T)=T^4+T+1\) give
+\[
+ P_{\alpha_{11}}(X)
+ =P_{\alpha_5}((X+1)^5)
+ =X^{20}+X^{16}+X^5+X+1.
+\]
+Proposition~\ref{prop:ordinary-full-conductor} at the \(11^2\)-Kummer
+step gives the second polynomial in \((\mathsf{O727}_1)\) and its
+irreducibility.  Independently, the maintained checker verifies the complete
+Rabin criterion: \(X^{2^{2420}}=X\) modulo the displayed polynomial and
+\[
+ \gcd\!\left(P_{\kappa_{121}},
+             X^{2^{2420/r}}+X\right)=1
+ \qquad(r=2,5,11).
+\]
+It then evaluates the two exact Euler powers in
+\((\mathsf{O727}_2)\).  The first equality proves that translate zero still
+has a \(727\)-th root; the nonidentity at translate one proves that translate
+one does not.  Hence the least finite translate is one.
+
+The stdlib verifier is
+\path{experiments/ordinary_727_certificate.py}.  Lean kernel-checks that
+727 is prime, the order arithmetic above, and the selected degree 2420.
+The irreducibility and Euler evaluations are exact finite computation, not a
+kernel theorem.
 \end{proof}
 
 \begin{proposition}[ordinary affine orbit and the marked scalar]
@@ -9474,6 +9554,96 @@ transitivity, the Singer-fibre specialization, and the character/Wendt
 identifications remain paper-level.
 \end{proof}
 
+\begin{proposition}[the selected trace hyperplane is self-polar]
+\label{prop:cubic-self-polar-hyperplane}
+Retain Proposition~\ref{prop:eta-tower}.  Put
+\[
+ F=L_{k-1}=\F_q,\qquad E=L_k=\F_{q^3},\qquad
+ q=2^{3^{k-1}},\qquad \gamma=\gamma_k,
+\]
+and let \(\rho:E^\times\to\mu_\ell\subset\mathbb C^\times\) be the exact
+current character of Proposition~\ref{prop:character-test}.  Thus \(\rho\)
+is nontrivial and \(\rho|_{F^\times}=1\).  For \(a\in E^\times\), put
+\[
+ H_a=\{x\in E:\operatorname{Tr}_{E/F}(ax)=0\},\qquad
+ \Sigma_a(\rho)=\sum_{[x]\in H_a^\times/F^\times}\rho(x).
+ \tag{\(\mathsf{CPH}_1\)}
+\]
+The summand is independent of the representative because \(\rho\) is
+trivial on \(F^\times\).  If \(\psi:F\to\mathbb C^\times\) is any nontrivial
+additive character and
+\[
+ G_\psi(\rho)=\sum_{x\in E^\times}\rho(x)
+       \psi\!\left(\operatorname{Tr}_{E/F}(x)\right),
+\]
+then
+\[
+ \boxed{\Sigma_a(\rho)=q^{-1}\rho(a)^{-1}G_\psi(\rho),
+ \qquad |\Sigma_a(\rho)|=\sqrt q.}
+ \tag{\(\mathsf{CPH}_2\)}
+\]
+In particular the orientation is inverse in \(a\).
+
+The selected depressed cubic implies
+\[
+ \operatorname{Tr}_{E/F}(\gamma)=\operatorname{Tr}_{E/F}(\gamma^2)=0,
+ \qquad
+ \boxed{H_\gamma=F+F\gamma.}
+ \tag{\(\mathsf{CPH}_3\)}
+\]
+Consequently
+\[
+ \boxed{
+ \frac{\Sigma_\gamma(\rho)}{\Sigma_1(\rho)}=\rho(\gamma)^{-1},
+ \qquad
+ C\text{-failure at }(k,\ell)
+ \iff \Sigma_\gamma(\rho)=\Sigma_1(\rho).}
+ \tag{\(\mathsf{CPH}_4\)}
+\]
+Moreover \(F+F(\gamma+c)=F+F\gamma\) for every \(c\in F\).  Hence every
+projective-line correlation obtained by translating the selected top
+coordinate by an arbitrary lower-ancestry scalar gives the same
+\(\Sigma_\gamma\).  The mixed additive--multiplicative hyperplane method
+therefore recovers the selected Euler phase exactly, but does not evaluate it.
+\end{proposition}
+
+\begin{proof}
+Since every \(F^\times\)-orbit in \(H_a^\times\) has size \(q-1\),
+\[
+ \Sigma_a(\rho)=\frac1{q-1}\sum_{x\in E^\times}
+ \rho(x)\,\mathbf1_{\operatorname{Tr}(ax)=0}.
+\]
+Additive orthogonality gives
+\[
+ \mathbf1_{\operatorname{Tr}(ax)=0}=\frac1q\sum_{u\in F}
+ \psi\!\left(u\operatorname{Tr}(ax)\right).
+\]
+The \(u=0\) term vanishes because \(\rho\) is nontrivial.  For
+\(u\in F^\times\), substituting \(y=uax\) and using \(\rho(u)=1\) gives
+\[
+ \sum_{x\in E^\times}\rho(x)\psi(\operatorname{Tr}(uax))
+ =\rho(a)^{-1}G_\psi(\rho).
+\]
+There are \(q-1\) such values of \(u\), proving the first identity in
+\((\mathsf{CPH}_2)\).  The lifted additive character
+\(x\mapsto\psi(\operatorname{Tr}(x))\) is nontrivial; the standard finite-field Gauss-sum
+identity therefore gives \(|G_\psi(\rho)|=|E|^{1/2}=q^{3/2}\), proving the
+absolute value.
+
+The relative minimal polynomial of \(\gamma\) is
+\(X^3+X+\gamma_{k-1}\).  Its zero quadratic coefficient gives
+\(\operatorname{Tr}(\gamma)=0\), and
+\(\operatorname{Tr}(\gamma^2)=\operatorname{Tr}(\gamma)^2=0\).  Thus
+\(F+F\gamma\subseteq H_\gamma\).  The left side has \(F\)-dimension two
+because \(\gamma\notin F\); the right side has dimension two because the
+finite-field trace pairing is nondegenerate and \(\gamma\ne0\).  This proves
+\((\mathsf{CPH}_3)\).  Dividing the two nonzero instances of
+\((\mathsf{CPH}_2)\), with \(a=\gamma,1\), gives
+\((\mathsf{CPH}_4)\).  Proposition~\ref{prop:character-test} identifies
+\(\rho(\gamma)=1\) with current failure.  Finally
+\(F+F(\gamma+c)=F+F\gamma\) is immediate.
+\end{proof}
+
 \begin{proposition}[exact one-step lifting of the previous Singer set]
 \label{prop:cubic-previous-singer-lift}
 Let \(j\geq2\), put \(r=2^{3^{j-2}}\), \(q=r^3\), and fix
@@ -13241,6 +13411,146 @@ Hasse-composition coefficient, and nonvanishing of the recovered product.
 The selected Fibonacci identities and their Hasse specialization remain
 paper-level, as in Propositions~\ref{prop:fermat-fixed-adic-jet-blocks}
 and~\ref{prop:fermat-odd-jet-collision}.
+\end{proof}
+
+\begin{proposition}[a failed Fermat factor has a lower semiconjugacy flag]
+\label{prop:fermat-semiconjugacy-flag}
+Retain the notation of
+Proposition~\ref{prop:fermat-odd-jet-recovery}.  Thus
+\[
+ d=1+Rg,\qquad R=2^s,\qquad g\ \hbox{odd},
+\]
+and assume the hypothetical failure \(A_{n-1}\mid S_d\).  Put
+\[
+ v=v_2(s),\qquad \rho=n-v,\qquad e=(g-1)/2,
+\]
+and let \(\mathcal N\) be the quadratic resultant operator of
+Proposition~\ref{prop:fermat-norm-descent}.  Then
+\[
+ \boxed{
+ \Norm_{E_{n-1}/E_{v-1}}\!\bigl(S_g(a_{n-1})\bigr)
+ =\Norm_{E_{n-1}/E_{v-1}}(a_{n-1})^e.}
+                                                        \tag{\(\mathsf{QJ}_{16}\)}
+\]
+Equivalently, the actual lower selected polynomial obeys
+\[
+ \boxed{
+ A_{v-1}\mid
+ \mathcal F_{n,\ell}(X):=
+ \mathcal N^{\circ\rho}(S_g)(X)
+       +X^{3^\rho e}.}
+                                                        \tag{\(\mathsf{QJ}_{17}\)}
+\]
+Thus a single nonzero remainder
+\(\mathcal F_{n,\ell}\bmod A_{v-1}\) excludes the original failure;
+the test lives at degree \(2^v\), not at the top degree \(2^n\).
+
+The odd-jet collision has a factor-independent specialization.  Define
+\[
+ P_0=X+1,\qquad P_{j+1}=\mathcal N(P_j),\qquad
+ D_j=P_j+X^{3^j}.
+\]
+If \(S_d^{[2R]}(a_{n-1})=0\), then
+\[
+ \boxed{A_{v-1}\mid D_\rho.}
+                                                        \tag{\(\mathsf{QJ}_{18}\)}
+\]
+Here \(P_j\) is monic of degree \(3^j\) with constant coefficient one.
+Consequently \(D_j\ne0\), \(\deg D_j<3^j\), and
+\[
+ \boxed{
+ 3^{n-v}\leq2^v
+ \quad\Longrightarrow\quad S_d^{[2R]}(a_{n-1})\ne0.}
+                                                        \tag{\(\mathsf{QJ}_{19}\)}
+\]
+The implication in \((\mathsf{QJ}_{19})\) is an unconditional exclusion
+of the surviving odd collision, under the standing hypothetical-failure
+context.  It is not a proof that \(A_{n-1}\nmid S_d\): a nonzero Hasse jet
+is compatible with divisibility.  If \(v=0\), then
+\(E_{v-1}=E_{-1}=\F_2\) and \(A_{v-1}=A_{-1}=X+1\);
+both nonzero relative norms are one, so
+\((\mathsf{QJ}_{18})\) is automatic and carries no new information.
+\end{proposition}
+
+\begin{proof}
+Write
+\[
+ w=w_n=\frac{c_n+1}{c_n},\qquad
+ \phi(z)=\frac{z}{(z+1)^2},
+\]
+so that \(\ord(w)=\delta_n\) and \(a_{n-1}=\phi(w)\).
+For every odd \(m\), the Binet formula gives
+\[
+ S_m(\phi(z))=\frac{1+z^m}{(1+z)^m},\qquad
+ \phi(z^m)=\frac{\phi(z)^m}{S_m(\phi(z))^2}.          \tag{*}
+\]
+Failure gives \(\delta_n\mid d\), hence
+\(Rg\equiv-1\pmod{\delta_n}\).  Let \(L=2^\rho\) and
+\[
+ x_j=a_{n-1}^{R^j}=\phi(w^{R^j})
+ \qquad(j\in\mathbf Z/L\mathbf Z).
+\]
+Because \(s=2^v s_0\) with \(s_0\) odd, Frobenius \(z\mapsto z^R\)
+has order \(L\) on \(E_{n-1}/E_{v-1}\); the \(x_j\) are exactly the
+relative conjugates.  Since \(\gcd(R,\delta_n)=1\) and \(\delta_n>1\),
+the denominators below are nonzero.  Moreover \(\phi(z^{-1})=\phi(z)\),
+so \(Rg\equiv-1\pmod{\delta_n}\) gives
+\[
+ \phi\bigl((w^{R^{j+1}})^g\bigr)=\phi(w^{-R^j})=x_j.
+\]
+Applying \((*)\) to \(z=w^{R^{j+1}}\) gives
+\[
+ x_jS_g(x_{j+1})^2=x_{j+1}^g.
+\]
+Multiplication around the cycle yields
+\[
+ \Norm(a_{n-1})\Norm(S_g(a_{n-1}))^2
+   =\Norm(a_{n-1})^g,
+\]
+where all three norms are from \(E_{n-1}\) to \(E_{v-1}\).
+The first norm is nonzero.  Cancelling it and using injectivity of the
+square map in a finite field proves \((\mathsf{QJ}_{16})\).
+
+Propositions~\ref{prop:fermat-norm-descent} and
+\ref{prop:fermat-ancestry-exhaustion} give
+\[
+ \mathcal N^{\circ\rho}(S_g)(a_{v-1})
+ =\Norm(S_g(a_{n-1})),\qquad
+ \Norm(a_{n-1})=a_{v-1}^{3^\rho},
+\]
+which proves \((\mathsf{QJ}_{17})\).
+
+If the odd order-\(2R\) jet vanishes, \((\mathsf{QJ}_8)\) gives
+\(\delta_n\mid3R+1\).  Repeating the cyclic argument with \(m=3\),
+rather than \(m=g\), uses \(3R\equiv-1\pmod{\delta_n}\) and
+\(S_3=X+1\); it gives
+\[
+ \Norm(a_{n-1}+1)=\Norm(a_{n-1}).
+\]
+The same selected norm descent is exactly
+\(P_\rho(a_{v-1})=a_{v-1}^{3^\rho}\), proving
+\((\mathsf{QJ}_{18})\).
+
+Finally, if \(P\) is monic of degree \(h\) and \(P(0)=1\), then
+\(\mathcal N(P)\) is monic of degree \(3h\), while
+\(\mathcal N(P)(0)=P(0)^2=1\).  For the degree assertion, if
+\(y,y'\) are the roots of
+\(Y^2+XY+X^3\), then \(yy'=X^3\).  The leading product
+\((yy')^h=X^{3h}\) is unique: every paired cross-term
+\(y^iy'^j+y^jy'^i\), with \(i\leq h\), \(j<h\), has degree at most
+\(2i+j\leq3h-1\).  At \(X=0\), the resultant is
+\(\operatorname{Res}_Y(Y^2,P(Y))=P(0)^2\).
+Induction gives the assertions about \(P_j,D_j\).  If
+\(3^\rho\leq2^v=\deg A_{v-1}\), the nonzero polynomial \(D_\rho\)
+has degree strictly below \(A_{v-1}\), contradicting
+\((\mathsf{QJ}_{18})\).  This proves \((\mathsf{QJ}_{19})\).
+
+Lean kernel-checks the denominator-cleared cubic identity, the general
+cyclic-product reindexing, cancellation to the exact half power in
+characteristic two, the selected quadratic-edge norm formula, and the
+final degree-divisibility exclusion.  The Binet specialization,
+finite-field orbit identification, and resultant degree bookkeeping
+remain paper-level.
 \end{proof}
 
 The fast \texttt{--jet-only} mode of
@@ -19535,6 +19845,174 @@ conversely equality with the positive real number sixteen forces every
 unit-modulus summand to be one by equality in the triangle inequality.
 \end{proof}
 
+\begin{proposition}[adjacent quartic Kummer reduction]
+\label{prop:dk-adjacent-quartic}
+Retain Proposition~\ref{prop:dk-line-saturation}.  Thus
+\[
+ h=3^k,\quad s=h/3,\quad
+ K=\mathbb F_{4^h}=\mathbb F_4(\zeta),\quad
+ L=\mathbb F_{16^h},\quad A=2^s\pmod\ell,
+\]
+where \(\ell\mid\Psi_k\), and choose \(u\in\mathbb F_{16}\) of
+order fifteen with \(u^5=\omega=\zeta^h\).  Put
+\[
+ N=\zeta^2+\zeta+\omega,\qquad
+ N'=\zeta^2+\zeta+\omega^2,\qquad
+ D=\zeta^4+\zeta,\qquad W=D+1.
+\]
+Then \(D\) is unconditionally an \(\ell\)-th power in \(K\), while
+in the cyclic Kummer quotient \(K^\times/(K^\times)^\ell\) one has
+\[
+ \boxed{[W]=(1+A^5)[N].}                              \tag{\(\mathsf{AQ}_1\)}
+\]
+The scalar \(1+A^5\) is nonzero modulo \(\ell\).  Consequently
+\[
+ \boxed{
+ D'_k\text{ holds at }\ell
+ \iff W\notin(K^\times)^\ell.}                      \tag{\(\mathsf{AQ}_2\)}
+\]
+Thus the selected exceptional assertion is equivalently the adjacent-value
+exclusion
+\[
+ D\in(K^\times)^\ell,
+ \qquad D+1\notin(K^\times)^\ell.                   \tag{\(\mathsf{AQ}_3\)}
+\]
+In fact every nonzero translate gives an equivalent detector:
+\[
+ D'_k\text{ holds at }\ell
+ \iff D+c\notin(K^\times)^\ell
+ \quad\text{for any (equivalently every) }c\in\mathbb F_4^\times.
+                                                               \tag{\(\mathsf{AQ}_{3'}\)}
+\]
+On failure the complete affine line
+\(D+\mathbb F_4\) lies in \((K^\times)^\ell\).
+
+This criterion has an immediate cubic form.  Put
+\[
+ K_-=\mathbb F_{4^s},\qquad a=\zeta^3\in K_-.
+\]
+The element \(W\) has irreducible minimal polynomial
+\[
+ \boxed{
+ m_W(T)=T^3+T^2+T+\Phi_5(a)}                         \tag{\(\mathsf{AQ}_4\)}
+\]
+over \(K_-\), and
+\[
+ \Norm_{K/K_-}(W)=\Phi_5(a)\in(K_-^\times)^\ell.    \tag{\(\mathsf{AQ}_5\)}
+\]
+Hence Capelli's criterion gives the sparse exact target
+\[
+ \boxed{
+ D'_k\text{ holds at }\ell
+ \iff
+ X^{3\ell}+X^{2\ell}+X^\ell+\Phi_5(a)
+ \text{ is irreducible over }K_-.}                  \tag{\(\mathsf{AQ}_6\)}
+\]
+On failure the displayed polynomial is a product of exactly \(\ell\)
+distinct irreducible cubics.  Equations
+\((\mathsf{AQ}_1)\)--\((\mathsf{AQ}_6)\) are exact reductions, not a
+nonvanishing proof: the norm in \((\mathsf{AQ}_5)\) is automatically an
+\(\ell\)-th power, so the new form isolates rather than resolves the
+selected additive coupling between \(D\) and \(D+1\).
+\end{proposition}
+
+\begin{proof}
+Use additive notation in
+\(\mathcal C_L=L^\times/(L^\times)^\ell\), and retain
+\(v(c)=[\zeta+c]\) from
+Proposition~\ref{prop:dk-line-saturation}.  For every
+\(b\in\mathbb F_{16}\),
+\[
+ \prod_{c\in b+\mathbb F_4}(\zeta+c)
+ = (\zeta+b)^4+(\zeta+b)=D+b^4+b.                   \tag{\(\mathsf{AQ}_7\)}
+\]
+The four affine \(\mathbb F_4\)-cosets, together with the orbit table
+\((\mathsf L_{16,3})\), therefore give
+\[
+\begin{array}{c|c|c}
+b+\mathbb F_4&\prod_{c\in b+\mathbb F_4}(\zeta+c)
+ &\text{class in }\mathcal C_L\\ \hline
+\mathbb F_4&D&0\\
+u+\mathbb F_4&D+1&2(1+A^5)v(u)\\
+u^3+\mathbb F_4&D+\omega^2&2(A+A^2)v(u)\\
+u^6+\mathbb F_4&D+\omega&2(A^3+A^4)v(u).
+\end{array}                                         \tag{\(\mathsf{AQ}_8\)}
+\]
+Here, for example,
+\(u+\mathbb F_4=\{u,u^2,u^4,u^8\}\); the other two rows follow from
+\(u^3+\mathbb F_4=\{u^3,u^{11},u^{12},u^{14}\}\) and
+\(u^6+\mathbb F_4=\{u^6,u^7,u^9,u^{13}\}\).
+
+The quadratic constant-field norm gives
+\[
+ N=(\zeta+u)(\zeta+u^4),\qquad
+ N'=(\zeta+u^2)(\zeta+u^8),
+\]
+so the same table gives
+\[
+ [N]_L=2v(u),\qquad [N']_L=2A^5v(u).
+\]
+Direct multiplication in characteristic two gives
+\[
+ NN'=(\zeta^2+\zeta+\omega)
+      (\zeta^2+\zeta+\omega^2)
+    =\zeta^4+\zeta+1=W.                              \tag{\(\mathsf{AQ}_9\)}
+\]
+Restriction
+\[
+ K^\times/(K^\times)^\ell
+ \longrightarrow L^\times/(L^\times)^\ell
+\]
+is injective: norm after restriction is multiplication by
+\([L:K]=2\), which is invertible modulo the odd prime \(\ell\).
+Thus \((\mathsf{AQ}_8)\)--\((\mathsf{AQ}_9)\) descend to
+\((\mathsf{AQ}_1)\), and the first row of
+\((\mathsf{AQ}_8)\) shows that \(D\) is an \(\ell\)-th power already
+in \(K\).  Since \(A\) has exact order six modulo \(\ell\), the equality
+\(1+A^5=0\) would give \(A^5=A^3\), hence \(A^2=1\), a contradiction.
+Likewise \(1+A\ne0\), so the other two coefficients
+\(2A(1+A)\) and \(2A^3(1+A)\) in
+\((\mathsf{AQ}_8)\) are nonzero.
+Proposition~\ref{prop:dk-current-level} identifies
+\([N]\ne0\) with \(D'_k\), proving
+\((\mathsf{AQ}_2)\)--\((\mathsf{AQ}_3)\).  Together with the other two
+nonzero coefficients and injectivity, this also proves
+\((\mathsf{AQ}_{3'})\) and its failure statement.
+
+The degree-three Frobenius of \(K/K_-\) sends
+\(\zeta\) to \(\zeta^{4^s}=\omega\zeta\), hence sends
+\(D\) successively to \(\omega D\) and \(\omega^2D\).  Since
+\(D\ne0\), the three conjugates
+\[
+ 1+D,\qquad1+\omega D,\qquad1+\omega^2D
+\]
+are distinct.  Their product polynomial is
+\[
+ \prod_{i=0}^2\bigl(T+(1+\omega^iD)\bigr)
+ =T^3+T^2+T+(1+D^3).
+\]
+With \(a=\zeta^3\), one has \(D=\zeta(a+1)\), and therefore
+\[
+ 1+D^3=1+a(a+1)^3
+ =a^4+a^3+a^2+a+1=\Phi_5(a).                        \tag{\(\mathsf{AQ}_{10}\)}
+\]
+This proves \((\mathsf{AQ}_4)\).  It also proves the norm identity in
+\((\mathsf{AQ}_5)\).  The value is nonzero because \(a\) has
+\(3\)-power order \(h\), whereas a root of \(\Phi_5\) has order five;
+it is an \(\ell\)-th power because
+\(\operatorname{ord}_\ell(4)=h\), so
+\(\ell\nmid|K_-^\times|=4^s-1\).
+
+Finally \(\mu_\ell\subset K\).  For the prime \(\ell\), Kummer theory
+says that \(X^\ell-W\) is irreducible over \(K\) exactly when \(W\)
+is not an \(\ell\)-th power.  Capelli's lemma applied to the irreducible
+cubic \(m_W\) proves \((\mathsf{AQ}_6)\).  If
+\(W=y^\ell\) in \(K\), every \(\rho^ry\), \(\rho\in\mu_\ell\), has
+degree exactly three over \(K_-\), because its \(\ell\)-th power has
+degree three.  The composition therefore splits into exactly \(\ell\)
+distinct irreducible cubics.  This proves the final assertion.
+\end{proof}
+
 \begin{proposition}[exceptional gap and Conway-block product blindness]
 \label{prop:dk-gap}
 Retain Proposition~\ref{prop:dk-line-saturation}, so \(k\geq2\),
@@ -24413,6 +24891,16 @@ screen, so this first free jet is nonzero there even under hypothetical
 failure.  This is still only higher-jet information: the later nonzero jet
 does not contradict divisibility, and odd-branch gcds at untested levels,
 later digits, and global relations remain open.
+Proposition~\ref{prop:fermat-semiconjugacy-flag} pushes the surviving odd
+collision through the complete selected ancestry to a lower exact resultant.
+Writing \(v=v_2(s)\), hypothetical failure forces one explicit iterated
+quadratic resultant to vanish modulo \(A_{v-1}\); a vanished odd
+order-\(2R\) jet forces the factor-independent divisibility
+\(A_{v-1}\mid D_{n-v}\), with \(D_j\ne0\) and \(\deg D_j<3^j\).
+This excludes the collision whenever \(3^{n-v}\leq2^v\).  It is a genuine
+lower selected-ancestry obstruction, not a maximal-order theorem: a nonzero
+Hasse jet remains compatible with \(A_{n-1}\mid S_d\), and the descended
+condition is automatic when \(v=0\).
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -24599,6 +25087,18 @@ minimal-polynomial payload, recomputes the crossed norm, and obtains a
 nontrivial \(719\)-phase.  Thus \(m_{719}=1\) is now proved by a locally
 replayable exact finite computation together with the paper-level crossed
 tower reduction.
+Proposition~\ref{prop:ordinary-727-certificate} advances the exact runtime
+boundary once more without a large payload.  Here
+\(\ord_{727}(2)=121=11^2\), so the actual selected polynomial
+\(P_{\alpha_{11}}(X^{121})\) has degree only \(2420\) and five terms.  A
+self-contained binary-polynomial calculation proves it irreducible, checks
+that translate zero is still a \(727\)-th power, and gives a nontrivial
+\(727\)-phase at translate one.  Hence \(m_{727}=1\); this finite row does
+not alter the still-open universal ordinary-spine assertion.  It is also the
+deliberate endpoint of row-by-row certification: the implementation keeps
+\(p=733\) as an explicit refusal boundary, but the mathematical target from
+here is a uniform selected-Conway nondivisibility proof, not the next finite
+row.
 Proposition~\ref{prop:ordinary-dependency-descent} then pushes any
 hypothetical failure through each odd-Kummer singleton
 \(0/1\)-excess dependency satisfying its hypotheses by taking all
@@ -24787,6 +25287,13 @@ equality \(\Theta_\chi(\eta_{k-1})=3\), equivalently
 \(P_{\eta,k}\mid G_{N/\ell}\).  This closes recursive trace-projector
 refinements, but not top-point weights depending on non-trace data or
 genuinely mixed nonsymmetric correlations with separate lower ancestors.
+Proposition~\ref{prop:cubic-self-polar-hyperplane} makes one genuinely mixed
+additive--multiplicative correlation exact.  The selected trace hyperplane is
+the projective line spanned by \(1,\gamma_k\), and the ratio of its character
+sum to the unshifted hyperplane sum is precisely
+\(\rho(\gamma_k)^{-1}\).  Thus equality of the two line sums is exactly the
+original failure condition; all lower-ancestry affine translates span the
+same line.  This recovers the selected phase without evaluating it.
 Proposition~\ref{prop:cubic-trace-zero} also proves that both selected
 period coordinates have absolute trace zero and are not normal.  Thus
 primitive-normal and normal-Gaussian-period theorems do not apply to the
@@ -25038,6 +25545,18 @@ still requires uniform nonextremality of that selected moment.  The
 complete-line product is unavailable as a substitute because
 Proposition~\ref{prop:dk-gap} proves it is unconditionally an
 \(\ell\)-th power.
+Proposition~\ref{prop:dk-adjacent-quartic} additionally reduces the D arm,
+below Euler projection and in the original corrected-norm field, to the
+selected adjacent-power assertion
+\[
+ D=\zeta^4+\zeta\in(K^\times)^\ell,
+ \qquad D+1\notin(K^\times)^\ell.
+\]
+Equivalently,
+\(X^{3\ell}+X^{2\ell}+X^\ell+\Phi_5(\zeta^3)\) is irreducible over
+\(\mathbb F_{4^{3^{k-1}}}\).  Its norm is automatically an
+\(\ell\)-th power, so this exact full-mark compression still does not prove
+the required nonvanishing.
 Remark~\ref{rem:plus-minus-tori} also shows that the cubic and
 exceptional current groups have coprime orders, so no rational-point
 homomorphism can transfer arm \((C)\) to arm \((D)\).
@@ -25086,12 +25605,17 @@ receive independent value tests.  In particular \(m_{359}=1\) is a
 source-pinned table value and now also has the independent exact
 Hilbert-root certificate of
 Proposition~\ref{prop:ordinary-359-hilbert-certificate}.
-The first row beyond that b-file, \(m_{719}=1\), is independently backed by
-the crossed certificate of
+The first two rows beyond that b-file are independently certified.  The value
+\(m_{719}=1\) is backed by the crossed certificate of
 Propositions~\ref{prop:ordinary-719-crossed-root-certificate} and
-\ref{prop:ordinary-719-crossed-evaluation}.  The implementation includes
-that row separately and therefore crosses \(\alpha_{719}\).  The next
-unsupported carry is \(\alpha_{727}\), where it refuses to continue.
+\ref{prop:ordinary-719-crossed-evaluation}; the self-contained
+degree-\(2420\) binary-field certificate of
+Proposition~\ref{prop:ordinary-727-certificate} gives \(m_{727}=1\).
+The implementation includes both rows separately and therefore crosses
+\(\alpha_{727}\).  The next unsupported carry is \(\alpha_{733}\), where
+it refuses to continue.  This is an intentional computational cutoff rather
+than an invitation to extend the table prime by prime; the remaining ordinary
+arm is the global assertion in the main-results table.
 
 The contributor-linked extended A380496 auxiliary table~\cite{OEIS,Peeters}
 also records

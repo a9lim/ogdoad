@@ -578,7 +578,7 @@ unparser).
 
 | operation | behavior |
 |---|---|
-| `ordinal` mul/inv past the verified Kummer tower | `E_KummerEscape` ("below ω^(ω^ω), primes ≤ 719 — see docs/OPEN.md") |
+| `ordinal` mul/inv past the verified Kummer tower | `E_KummerEscape` ("below ω^(ω^ω), primes ≤ 727 — see docs/OPEN.md") |
 | `surreal` inverse of a non-monomial | `E_NotInvertible` ("only CNF monomials invert exactly; 1/(ω+1) is an infinite Hahn series") |
 | `integer`/`omnific` non-unit inverse, non-exact division | `E_NotInvertible`, remainder named |
 | `/0`, `% 0`, zero-denominator fraction literal | `E_DivisionByZero` |
@@ -1191,7 +1191,7 @@ message tail** (this is a checked build invariant — see
 | `E_BareOrdinal` | bare `ω` in ordinal world | "values are starred here: `*ω`" |
 | `E_WrongWorld` | literal/operator foreign to the session world; unknown world name | unknown `:world` lists the menu and near-matches |
 | `E_CnfOrder` | star-literal exponents not descending | "CNF indices are structural: `*(ω + 1)`, not `*(1 + ω)`" |
-| `E_KummerEscape` | ordinal mul/inv past the tower | "below ω^(ω^ω), primes ≤ 719 — see docs/OPEN.md" |
+| `E_KummerEscape` | ordinal mul/inv past the tower | "below ω^(ω^ω), primes ≤ 727 — see docs/OPEN.md" |
 | `E_NotInvertible` | failed inverse/exact division | per-world math; remainder named |
 | `E_DivisionByZero` | `/0`, `% 0`, ratfunc pole, zero-denominator fraction literal | |
 | `E_BladeIndex` | `e‹i›`/`coef` with `i ≥ dim` | |

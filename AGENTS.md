@@ -196,7 +196,7 @@ The scalar landscape is broad, but not all backends have the same exactness clai
 | `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss` | local-field-style backends/functors, mostly capped-relative precision models |
 | `Adele`, `LocalQp` | runtime-prime adelic precision model over `Q` |
 | `RationalFunction` | exact global function field `F_q(t)` over `Poly = F_q[t]` |
-| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through Kummer carries `α_u` assembled from `ord_u(2)`, `Q(f(u))`, and the finite `m_u` rows below `ω^(ω^ω)` — the 126 OEIS A380496 b-file rows for odd primes `3..=709` are source-pinned and diffed in full, `m_719=1` is separately locally certified, and the first unsupported carry is `727`; the resulting `α_u` *ordinal* is independently value-checked only at a named subset (`docs/OPEN.md`) |
+| `Ordinal` | staged transfinite nimbers; a checked/panic-on-escape `Scalar` for Clifford metrics; nim-addition on represented CNF terms, nim-multiplication through Kummer carries `α_u` assembled from `ord_u(2)`, `Q(f(u))`, and the finite `m_u` rows below `ω^(ω^ω)` — the 126 OEIS A380496 b-file rows for odd primes `3..=709` are source-pinned and diffed in full, `m_719=m_727=1` are separately locally certified, and the first unsupported carry is `733`; the resulting `α_u` *ordinal* is independently value-checked only at a named subset (`docs/OPEN.md`) |
 
 The ideal full-field semantics motivating the `Ordinal` classifier is now proved
 rather than open (`writeups/transfinite_arf.tex`, 2026-08-07).  Every finite metric in the supported

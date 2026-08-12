@@ -171,6 +171,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Euler phase.  This proves `m_719=1` by exact finite computation plus the
   paper-level crossed-tower deduction, not by Lean.  The two cheaper norm
   shadows and their `mu_719` phase-blindness are also paper-level;
+- the locally certified `p=727` row: Lean checks that 727 is prime, the exact
+  order arithmetic `ord_727(2)=121`, and the selected degree
+  `20*121=2420`.  The maintained stdlib certificate constructs and proves
+  irreducible the literal polynomial `P_alpha_11(X^121)` and evaluates its two
+  Euler classes, obtaining `m_727=1`; that binary finite-field computation is
+  not kernel-checked in Lean.  This is the deliberate finite-row cutoff; the
+  remaining ordinary target is the uniform theorem;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -411,6 +418,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   commutative-group quotient identity.  The binary-complement calculation,
   finite-field Frobenius specialization, and identification with the inverse
   conductor-five residue phase remain paper-level;
+- the exceptional adjacent-quartic core: the four-point `F_4` coset product
+  is `x^4+x+1`, the two oriented corrected norms multiply to that same
+  quartic, its three selected conjugates have cubic
+  `T^3+T^2+T+Phi_5(a)`, and its downward norm is exactly `Phi_5(a)`.
+  The finite-field Kummer-quotient injection, use of the full `F_16` orbit
+  table, Capelli specialization, and the still-open nonpower assertion for
+  the selected adjacent value remain paper-level;
 - the selected reciprocal trace-fibre core: the universal Jacobian numerator
   at `(a,a+1)` is `a^2+a+1`, the characteristic-two discriminant of
   `X^3+C*X^2+D*X+1` is `(C*D+1)^2`, and injective lower
@@ -423,6 +437,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   functionals composed with one top trace is the corresponding summed
   downstairs functional.  Finite-field trace transitivity, the selected
   Singer fibre, and the character/Wendt identifications remain paper-level;
+- the cubic affine-line core: translating the top cubic coordinate by a
+  lower-field scalar preserves its lower affine line, and the selected line is
+  contained in the trace-annihilator once the trace kills the top coordinate
+  and its square.  Trace-pairing dimension, projective character sums, Gauss
+  magnitude, and the finite-field self-polar equality remain paper-level;
 - the selected cubic coupled-root core: one chosen `ell`-th root of `eta_k`
   transports explicitly to compatible roots of `epsilon_k` and `beta_k`, with
   their exact diagonal weights.  Every Frobenius monomial in the chosen root
@@ -493,6 +512,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   contradiction, the relevant Lucas parity and Hasse-composition coefficient,
   and nonvanishing of the recovered product.  The selected Fibonacci/Hasse
   specialization remains paper-level;
+- the Fermat lower-semiconjugacy core: Lean checks the
+  denominator-cleared cubic semiconjugacy, cyclic product reindexing,
+  exact odd half-power cancellation in characteristic two, the selected
+  quadratic-edge norm formula, and the final degree-divisibility
+  exclusion. The Binet specialization, identification of the
+  `Frob^s` orbit with `E_(n-1)/E_(v_2(s)-1)`, and iterated-resultant
+  degree bookkeeping remain paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

@@ -367,8 +367,10 @@ Scope boundaries, stated plainly:
   `Scalar` for Clifford experiments inside the checked Kummer boundary.
   Nim-multiplication works below `ω^(ω^ω)` whenever every carry uses a verified finite
   Lenstra excess row (126 OEIS A380496 rows through 709 plus the locally certified
-  `m_719=1` row); a carry needing a prime past those rows (the first unsupported prime
-  is `727`) returns `None`. Finite
+  `m_719=m_727=1` rows); a carry needing a prime past those rows (the first unsupported
+  prime is `733`) returns `None`.  The 727 row is the deliberate finite-certification
+  cutoff; further research targets the global ordinary-spine theorem rather than
+  extending the table one prime at a time. Finite
   ordinal-nimber metrics classify relative to their detected `F_{2^m}`. Metrics outside
   the checked finite-subfield detector stay outside the executable classifier; over ideal
   full `On₂`, regular classes are theorem-level split (`writeups/transfinite_arf.tex`).

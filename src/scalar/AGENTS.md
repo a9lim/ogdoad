@@ -212,7 +212,7 @@ and const-generic sizes that are inherently indices.
     branch a carry into a *sum*, recursed in by descending place. Carries are assembled
     from `ord_u(2)`, DiMuro's `Q(f(u))`, and the finite `m_u` rows from OEIS A380496
     (the b-file's 126 known rows, odd primes `3..=709`) plus the locally certified
-    `m_719=1`; a carry needing `m_727` (the first unsupported row) returns `None`, as
+    `m_719=m_727=1`; a carry needing `m_733` (the first unsupported row) returns `None`, as
     does anything `≥ ω^(ω^ω)` (see
     `docs/OPEN.md`). The table extends reach, not feasibility: large primes are in the
     table but their `q_set`/finite-subfield reconstruction over the huge component field

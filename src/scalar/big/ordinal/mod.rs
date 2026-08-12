@@ -48,9 +48,9 @@
 //!   **strictly downward by place** (every `α_{p(m)}` is built from generators at places
 //!   `< m`), bottoming out at `α_3 = 2` in the finite field. We carry the finite excess
 //!   integers `m_u` from OEIS A380496 (the b-file's 126 known rows, odd primes
-//!   `3..=709`) plus the locally certified row `m_719=1`;
+//!   `3..=709`) plus the locally certified rows `m_719=m_727=1`;
 //!   `α_u` itself is assembled from `ord_u(2)`, `Q(f(u))`, and `m_u`. A product is exact
-//!   whenever its Kummer carries stay at primes `≤ 719`; a carry needing `m_727` (the
+//!   whenever its Kummer carries stay at primes `≤ 727`; a carry needing `m_733` (the
 //!   first unsupported row) or beyond returns `None`, as does anything `≥ ω^(ω^ω)` (an
 //!   infinite exponent place). (The Artin–Schreier `x²+x+1` relation is the separate
 //!   `u = 2` Fermat-tower

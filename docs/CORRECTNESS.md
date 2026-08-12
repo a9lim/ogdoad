@@ -138,6 +138,17 @@ The payload computation is not a Lean theorem: Lean checks only the generic
 scaled-product identity and conditional exponent multiplication, while the
 field, Kummer, norm, and numerical specializations remain paper-level.
 
+The next ordinary singleton row `p=727` is independently locally certified by
+`experiments/ordinary_727_certificate.py`.  The stdlib checker constructs the
+literal five-term degree-2420 polynomial `P_alpha_11(X^121)`, proves it
+irreducible by the complete Rabin checks, verifies that `kappa_121` itself is a
+727-th power, and obtains a nonidentity 727-torsion Euler phase for
+`kappa_121+1`.  This proves `m_727=1`.  Lean checks the prime, order, and degree
+arithmetic; the binary finite-field evaluation remains exact computation rather
+than a kernel theorem.  This is the deliberate endpoint of finite-row
+certification; the next unsupported carry is retained only as a runtime
+guardrail while the open mathematical target is uniform.
+
 `Ogdoad/GameExterior.lean` kernel-checks the algebraic core of the resolved
 `tisn` theorem.  From explicit roots `ny=t`, `nz=x` and the torsion relation
 `nt=0`, it proves in an arbitrary associative ring that an additive grade-one

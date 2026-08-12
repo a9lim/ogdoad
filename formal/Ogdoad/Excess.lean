@@ -1260,6 +1260,62 @@ theorem flag_weight_factors_through_immediate
 
 end CubicTraceFlagCore
 
+section CubicSelfPolarAffineLine
+
+variable {F K : Type*} [Field F] [Field K] [Algebra F K]
+
+def cubicAffineLine (gamma : K) : Set K :=
+  Set.range fun p : F × F =>
+    algebraMap F K p.1 + algebraMap F K p.2 * gamma
+
+/-- Translating a top cubic coordinate by any lower-field scalar does not
+change the lower-field affine line that it spans with one. -/
+theorem cubicAffineLine_add_algebraMap (gamma : K) (c : F) :
+    cubicAffineLine (F := F) (gamma + algebraMap F K c) =
+      cubicAffineLine (F := F) gamma := by
+  ext x
+  constructor
+  · rintro ⟨⟨a, b⟩, rfl⟩
+    refine ⟨(a + b * c, b), ?_⟩
+    simp only [map_add, map_mul]
+    ring
+  · rintro ⟨⟨a, b⟩, rfl⟩
+    refine ⟨(a - b * c, b), ?_⟩
+    simp only [map_sub, map_mul]
+    ring
+
+/-- Algebraic core of self-polarity: if a lower-linear trace functional kills
+`gamma` and `gamma^2`, then it kills `gamma` times the whole affine line
+spanned by `1,gamma`. -/
+theorem cubicTrace_mul_affineLine_eq_zero
+    (tr : K →ₗ[F] F) (gamma : K)
+    (hgamma : tr gamma = 0) (hgammaSq : tr (gamma ^ 2) = 0)
+    (a b : F) :
+    tr (gamma *
+      (algebraMap F K a + algebraMap F K b * gamma)) = 0 := by
+  rw [mul_add]
+  have hfirst : gamma * algebraMap F K a = a • gamma := by
+    simp [Algebra.smul_def, mul_comm]
+  have hsecond : gamma * (algebraMap F K b * gamma) =
+      b • (gamma ^ 2) := by
+    simp [Algebra.smul_def, pow_two]
+    ring
+  rw [hfirst, hsecond]
+  simp [hgamma, hgammaSq]
+
+/-- Set-theoretic self-polar containment.  Dimension three and nondegeneracy
+of the finite-field trace upgrade it to the equality used in the paper. -/
+theorem cubicAffineLine_subset_traceKernel
+    (tr : K →ₗ[F] F) (gamma : K)
+    (hgamma : tr gamma = 0) (hgammaSq : tr (gamma ^ 2) = 0) :
+    cubicAffineLine (F := F) gamma ⊆
+      {x : K | tr (gamma * x) = 0} := by
+  rintro x ⟨⟨a, b⟩, rfl⟩
+  exact cubicTrace_mul_affineLine_eq_zero
+    tr gamma hgamma hgammaSq a b
+
+end CubicSelfPolarAffineLine
+
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
 theorem dk_twisted_translate_recursion
@@ -2281,6 +2337,150 @@ theorem recovered_hasse_value_ne_zero
   exact mul_ne_zero (mul_ne_zero hT (pow_ne_zero _ ha)) (pow_ne_zero _ hD)
 
 end FermatOddJetRecoveryCore
+
+open scoped BigOperators
+open Polynomial
+
+section FermatCollisionNorm
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- The rational semiconjugacy used after the congruence `3R = -1`.
+This is the denominator-cleared identity
+`phi(z^3) = phi(z)^3 / (1 + phi(z)^2)` for
+`phi(z) = z / (z+1)^2`. -/
+theorem fermat_phi_cube_cleared (z : K)
+    (hz : z + 1 ≠ 0) (hz3 : z ^ 3 + 1 ≠ 0) :
+    (z ^ 3 / (z ^ 3 + 1) ^ 2) *
+        (1 + (z / (z + 1) ^ 2) ^ 2) =
+      (z / (z + 1) ^ 2) ^ 3 := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have h6 : (6 : K) = 0 := by
+    calc (6 : K) = 3 * 2 := by norm_num
+      _ = 0 := by rw [h2, mul_zero]
+  have h16 : (16 : K) = 0 := by
+    calc (16 : K) = 8 * 2 := by norm_num
+      _ = 0 := by rw [h2, mul_zero]
+  have h22 : (22 : K) = 0 := by
+    calc (22 : K) = 11 * 2 := by norm_num
+      _ = 0 := by rw [h2, mul_zero]
+  field_simp
+  ring_nf
+  rw [h2, h6, h16, h22]
+  ring
+
+omit [CharP K 2] in
+/-- Product of a local semiconjugacy relation around a finite Frobenius
+cycle.  The equivalence `sigma` is used only to reindex both products. -/
+theorem fermat_semiconjugacy_cycle_general
+    {ι : Type*} [Fintype ι] (sigma : ι ≃ ι) (x y : ι → K) (g : ℕ)
+    (hstep : ∀ i, x i * (y (sigma i)) ^ 2 = (x (sigma i)) ^ g) :
+    Finset.univ.prod x *
+        (Finset.univ.prod y) ^ 2 =
+      (Finset.univ.prod x) ^ g := by
+  have hp :
+      Finset.univ.prod (fun i : ι => x i * (y (sigma i)) ^ 2) =
+        Finset.univ.prod (fun i : ι => (x (sigma i)) ^ g) := by
+    apply Fintype.prod_congr
+    exact hstep
+  have hshift2 := Equiv.prod_comp sigma
+    (fun i : ι => (y i) ^ 2)
+  have hshiftg := Equiv.prod_comp sigma (fun i : ι => x i ^ g)
+  have hpow2 :
+      Finset.univ.prod (fun i : ι => (y i) ^ 2) =
+        (Finset.univ.prod y) ^ 2 := by
+    exact Finset.prod_pow Finset.univ 2 y
+  have hpowg : Finset.univ.prod (fun i : ι => x i ^ g) =
+      (Finset.univ.prod x) ^ g := by
+    exact Finset.prod_pow Finset.univ g x
+  rw [Finset.prod_mul_distrib, hshift2, hshiftg] at hp
+  rwa [hpow2, hpowg] at hp
+
+omit [CharP K 2] in
+/-- The cubic collision is the specialization `y = 1 + x`, `g = 3`. -/
+theorem fermat_semiconjugacy_cycle
+    {ι : Type*} [Fintype ι] (sigma : ι ≃ ι) (x : ι → K)
+    (hstep : ∀ i, x i * (1 + x (sigma i)) ^ 2 = (x (sigma i)) ^ 3) :
+    Finset.univ.prod x *
+        (Finset.univ.prod (fun i : ι => (1 : K) + x i)) ^ 2 =
+      (Finset.univ.prod x) ^ 3 := by
+  exact fermat_semiconjugacy_cycle_general sigma x
+    (fun i => (1 : K) + x i) 3 hstep
+
+/-- Cancelling the first relative norm and using injectivity of Frobenius
+turns an odd-power cyclic product into the precise half-power equality. -/
+theorem fermat_norm_semiconjugacy_cancel (A B : K) (e : ℕ)
+    (hA : A ≠ 0) (h : A * B ^ 2 = A ^ (2 * e + 1)) :
+    B = A ^ e := by
+  have hs : B ^ 2 = (A ^ e) ^ 2 := by
+    apply (mul_left_cancel₀ hA)
+    calc
+      A * B ^ 2 = A ^ (2 * e + 1) := h
+      _ = A * (A ^ e) ^ 2 := by
+        rw [pow_succ', ← pow_mul]
+        congr 2
+        omega
+  have hzero : (B + A ^ e) ^ 2 = 0 := by
+    have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+    rw [pow_two]
+    calc
+      (B + A ^ e) * (B + A ^ e) = B ^ 2 + (A ^ e) ^ 2 := by
+        rw [pow_two, pow_two]
+        ring_nf
+        simp [h2]
+      _ = 0 := by rw [hs]; ring_nf; simp [h2]
+  have hsum : B + A ^ e = 0 := by
+    exact mul_self_eq_zero.mp (by simpa [pow_two] using hzero)
+  calc
+    B = (B + A ^ e) + A ^ e := by
+      have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+      ring_nf
+      simp [h2]
+    _ = A ^ e := by rw [hsum, zero_add]
+
+/-- Cubic specialization of `fermat_norm_semiconjugacy_cancel`. -/
+theorem fermat_norm_collision_cancel (A B : K)
+    (hA : A ≠ 0) (h : A * B ^ 2 = A ^ 3) :
+    B = A := by
+  simpa using fermat_norm_semiconjugacy_cancel A B 1 hA (by simpa using h)
+
+/-- One selected Conway quadratic edge sends a linear remainder to its
+explicit norm polynomial. -/
+theorem fermat_selected_edge_norm (x y U V : K)
+    (hy : y ^ 2 + x * y + x ^ 3 = 0) :
+    (U + y * V) * (U + (y + x) * V) =
+      U ^ 2 + x * U * V + x ^ 3 * V ^ 2 := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hy' : y ^ 2 = x * y + x ^ 3 := by
+    calc
+      y ^ 2 = y ^ 2 + (y ^ 2 + x * y + x ^ 3) := by rw [hy]; simp
+      _ = x * y + x ^ 3 := by ring_nf; simp [h2]
+  calc
+    (U + y * V) * (U + (y + x) * V) =
+        U ^ 2 + x * U * V + (y ^ 2 + x * y) * V ^ 2 := by
+      ring_nf
+      simp [h2]
+    _ = U ^ 2 + x * U * V + x ^ 3 * V ^ 2 := by
+      rw [hy']
+      ring_nf
+      simp [h2]
+
+omit [CharP K 2] in
+/-- Degree-theoretic last step of the lower collision flag: a nonzero
+polynomial of degree below `3^rho` cannot contain the selected polynomial
+of degree `2^v` once `3^rho ≤ 2^v`. -/
+theorem fermat_collision_degree_exclusion
+    (A D : K[X]) (v rho : ℕ)
+    (hAdeg : A.natDegree = 2 ^ v)
+    (hD0 : D ≠ 0) (hDdeg : D.natDegree < 3 ^ rho)
+    (hbound : 3 ^ rho ≤ 2 ^ v) :
+    ¬ A ∣ D := by
+  apply Polynomial.not_dvd_of_natDegree_lt hD0
+  rw [hAdeg]
+  omega
+
+end FermatCollisionNorm
+
 
 section FermatFixedAdicJetCore
 
@@ -3307,6 +3507,23 @@ theorem compact_nested_euler_power
   rw [hfull, pow_mul]
 
 end Ordinary719CompactNorm
+
+section Ordinary727Certificate
+
+/-- The first row after the crossed `p=719` certificate is again prime. -/
+theorem ordinary727_prime : Nat.Prime 727 := by norm_num
+
+/-- Exact multiplicative-order arithmetic behind `ord_727(2)=121`.  Since
+`121=11^2`, checking the only proper prime quotient `11` is sufficient. -/
+theorem ordinary727_order_arithmetic :
+    2 ^ 121 % 727 = 1 ∧ 2 ^ 11 % 727 ≠ 1 := by
+  norm_num
+
+/-- The selected full-conductor polynomial is
+`P_alpha_11(X^121)` and has degree `20*121=2420`. -/
+theorem ordinary727_selected_degree : 20 * 121 = 2420 := by norm_num
+
+end Ordinary727Certificate
 
 section CubicNormalBridge
 
@@ -5387,6 +5604,136 @@ theorem corrected_norm_of_conjugate {F : Type*} [Field F] [CharP F 2]
   exact corrected_norm_identity κ a
 
 end CorrectedNorm
+
+section DQuarticCoset
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+private theorem f4_coset_product (y omega : R)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    y * (y + 1) * (y + omega) * (y + omega ^ 2) = y ^ 4 + y := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h4 : (4 : R) = 0 := by
+    calc (4 : R) = 2 + 2 := by norm_num
+         _ = 0 := by rw [h2]; simp
+  have hsum : omega ^ 2 + omega = 1 := by
+    linear_combination homega - h2
+  have hprod : omega * omega ^ 2 = 1 := by
+    linear_combination
+      (omega + 1) * homega - (omega ^ 2 + omega + 1) * h2
+  calc
+    y * (y + 1) * (y + omega) * (y + omega ^ 2) =
+        (y ^ 2 + y) * ((y + omega) * (y + omega ^ 2)) := by ring
+    _ = (y ^ 2 + y) * (y ^ 2 + y + 1) := by
+      rw [show (y + omega) * (y + omega ^ 2) = y ^ 2 + y + 1 by
+        calc
+          (y + omega) * (y + omega ^ 2) =
+              y ^ 2 + y * (omega ^ 2 + omega) + omega * omega ^ 2 := by ring
+          _ = y ^ 2 + y + 1 := by rw [hsum, hprod]; ring]
+    _ = y ^ 4 + y := by ring_nf; simp [h2]
+
+/-- The four-point F4 coset containing the conductor-five translate compresses
+to the primitive quartic evaluated at the selected cyclotomic coordinate. -/
+theorem exceptional_F4_coset_product (x u omega : R)
+    (homega : omega ^ 2 + omega + 1 = 0)
+    (hu : u ^ 2 + u = omega) :
+    (x + u) * (x + u + 1) * (x + u + omega) *
+        (x + u + omega ^ 2) = x ^ 4 + x + 1 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hu_sq : u ^ 4 + u ^ 2 = omega ^ 2 := by
+    have := congrArg (fun z : R => z ^ 2) hu
+    ring_nf at this ⊢
+    simpa [h2] using this
+  have hu4 : u ^ 4 + u = 1 := by
+    linear_combination hu_sq + hu + homega - (u ^ 2 + 1) * h2
+  calc
+    (x + u) * (x + u + 1) * (x + u + omega) *
+        (x + u + omega ^ 2) = (x + u) ^ 4 + (x + u) :=
+      f4_coset_product (x + u) omega homega
+    _ = x ^ 4 + x + (u ^ 4 + u) := by
+      have h4 : (4 : R) = 0 := by
+        calc (4 : R) = 2 + 2 := by norm_num
+             _ = 0 := by rw [h2]; simp
+      have h6 : (6 : R) = 0 := by
+        calc (6 : R) = 3 * 2 := by norm_num
+             _ = 0 := by rw [h2]; simp
+      ring_nf
+      simp [h4, h6]
+    _ = x ^ 4 + x + 1 := by rw [hu4]
+
+/-- The quartic representative is the product of the two oriented corrected
+norms obtained from the two nontrivial F4 constants. -/
+theorem exceptional_correctedNorm_pair (x omega : R)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    (x ^ 2 + x + omega) * (x ^ 2 + x + omega ^ 2) =
+      x ^ 4 + x + 1 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hsum : omega ^ 2 + omega = 1 := by
+    linear_combination homega - h2
+  have hprod : omega * omega ^ 2 = 1 := by
+    linear_combination
+      (omega + 1) * homega - (omega ^ 2 + omega + 1) * h2
+  calc
+    (x ^ 2 + x + omega) * (x ^ 2 + x + omega ^ 2) =
+        (x ^ 2 + x) ^ 2 + (x ^ 2 + x) * (omega ^ 2 + omega) +
+          omega * omega ^ 2 := by ring
+    _ = (x ^ 2 + x) ^ 2 + (x ^ 2 + x) + 1 := by
+      rw [hsum, hprod, mul_one]
+    _ = x ^ 4 + x + 1 := by ring_nf; simp [h2]
+
+/-- The sparse quartic representative has a symmetric trace-one cubic over
+the preceding cubic field. -/
+theorem exceptional_quartic_orbit_cubic (T D omega : R)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    (T + (1 + D)) * (T + (1 + omega * D)) *
+        (T + (1 + omega ^ 2 * D)) =
+      T ^ 3 + T ^ 2 + T + (1 + D ^ 3) := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h3 : (3 : R) = 1 := by
+    calc (3 : R) = 2 + 1 := by norm_num
+         _ = 1 := by rw [h2]; simp
+  have hsum : omega ^ 2 + omega = 1 := by
+    linear_combination homega - h2
+  have hprod : omega * omega ^ 2 = 1 := by
+    linear_combination
+      (omega + 1) * homega - (omega ^ 2 + omega + 1) * h2
+  have hzero1 : 1 + omega + omega ^ 2 = 0 := by
+    linear_combination homega
+  have hzero2 : omega + omega ^ 2 + omega * omega ^ 2 = 0 := by
+    linear_combination hsum + hprod + h2
+  have horbit (Y : R) :
+      (Y + D) * (Y + omega * D) * (Y + omega ^ 2 * D) = Y ^ 3 + D ^ 3 := by
+    calc
+      (Y + D) * (Y + omega * D) * (Y + omega ^ 2 * D) =
+          Y ^ 3 + (1 + omega + omega ^ 2) * D * Y ^ 2 +
+            (omega + omega ^ 2 + omega * omega ^ 2) * D ^ 2 * Y +
+              omega * omega ^ 2 * D ^ 3 := by ring
+      _ = Y ^ 3 + D ^ 3 := by rw [hzero1, hzero2, hprod]; ring
+  calc
+    (T + (1 + D)) * (T + (1 + omega * D)) *
+        (T + (1 + omega ^ 2 * D)) = (T + 1) ^ 3 + D ^ 3 := by
+      simpa [add_assoc, add_left_comm, add_comm] using horbit (T + 1)
+    _ = T ^ 3 + T ^ 2 + T + (1 + D ^ 3) := by
+      ring_nf
+      simp [h3]
+
+/-- Substituting `D=x*(a+1)` and `x^3=a` identifies the cubic norm with
+the fifth cyclotomic polynomial at the lower selected root. -/
+theorem exceptional_quartic_norm (x a : R) (hx : x ^ 3 = a) :
+    1 + (x ^ 4 + x) ^ 3 = a ^ 4 + a ^ 3 + a ^ 2 + a + 1 := by
+  have h2 : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have h3 : (3 : R) = 1 := by
+    calc (3 : R) = 2 + 1 := by norm_num
+         _ = 1 := by rw [h2]; simp
+  calc
+    1 + (x ^ 4 + x) ^ 3 = 1 + (x * (x ^ 3 + 1)) ^ 3 := by ring
+    _ = 1 + (x * (a + 1)) ^ 3 := by rw [hx]
+    _ = a ^ 4 + a ^ 3 + a ^ 2 + a + 1 := by
+      rw [mul_pow, hx]
+      ring_nf
+      simp [h3]
+
+end DQuarticCoset
 
 section PowerCriterion
 
