@@ -233,8 +233,6 @@ with only nits). Remaining:
   `str()`/`Fraction()` instead of the structured dyadic/rational accessors;
   line 30 builds a 10-positional-arg dataclass (5 same-typed Fractions —
   transposition bait). Use keywords.
-- `ordinal_excess_probe.py:52` — dead `Q_SET[359]` row for an unbuilt p=719
-  probe.
 
 ### generate_stubs.py and the stub
 

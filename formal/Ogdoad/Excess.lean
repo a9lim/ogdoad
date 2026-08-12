@@ -1,4 +1,6 @@
 import Mathlib
+import Mathlib.Algebra.Polynomial.HasseDeriv
+import Mathlib.Data.Nat.Choose.Lucas
 
 /-!
 # Lenstra-excess reductions
@@ -2173,6 +2175,113 @@ theorem collision_forms_iff
 
 end FermatOddJetArithmeticCore
 
+section FermatOddJetRecoveryCore
+
+open Polynomial
+
+/-- Once a factor and its complement are both either `1` or at least `L`, a
+product below `L^2` has no proper nontrivial factorization.  In the paper
+`L = 12*M+1`, `B = 3*R+1`, and `G = Gamma_(n,ell)`. -/
+theorem short_factor_window
+    {B G H L : ℕ}
+    (hB : B = G * H)
+    (hG : G = 1 ∨ L ≤ G)
+    (hH : H = 1 ∨ L ≤ H)
+    (hshort : B < L ^ 2) :
+    G = 1 ∨ H = 1 := by
+  rcases hG with hG | hG
+  · exact Or.inl hG
+  rcases hH with hH | hH
+  · exact Or.inr hH
+  exfalso
+  rw [hB, pow_two] at hshort
+  exact (not_lt_of_ge (Nat.mul_le_mul hG hH)) hshort
+
+/-- A divisor at least `L` cannot divide a positive collision residue below
+`L`.  This is the arithmetic core of the upper-end exclusion
+`M-s ≤ n+3`. -/
+theorem no_large_divisor_of_small_positive
+    {p C L : ℕ}
+    (hC0 : 0 < C)
+    (hCL : C < L)
+    (hpL : L ≤ p)
+    (hpC : p ∣ C) : False := by
+  have hpC' : p ≤ C := Nat.le_of_dvd hC0 hpC
+  omega
+
+/-- If `delta > 1` divides an odd index `h = 2*m+1`, it cannot also divide
+the derivative index `m`.  Applied to `S_h' = S_m^2`, this makes the recovered
+Hasse jet nonzero. -/
+theorem odd_index_derivative_coprime
+    {delta h m : ℕ}
+    (hdelta : 1 < delta)
+    (hh : h = 2 * m + 1)
+    (hdh : delta ∣ h) :
+    ¬ delta ∣ m := by
+  intro hdm
+  have hd2m : delta ∣ 2 * m := dvd_mul_of_dvd_right hdm 2
+  have hd1 : delta ∣ 1 := by
+    have := Nat.dvd_sub hdh hd2m
+    simpa [hh] using this
+  exact (ne_of_gt hdelta) (Nat.dvd_one.mp hd1)
+
+/-- Lucas parity for the composition coefficient in the recovered jet:
+`I = 2^(s+1)`, `W = 2^(s+u+2)`, so `choose (I+W) I` is odd. -/
+theorem recovered_hasse_choose_odd (s u : ℕ) :
+    (((2 ^ s) * (2 + 2 ^ (u + 2))).choose ((2 ^ s) * 2)) % 2 = 1 := by
+  have hscale := @Choose.choose_pow_mul_pow_mul_modEq_choose_nat s
+      (2 + 2 ^ (u + 2)) 2 2 (inferInstance)
+  change (((2 ^ s) * (2 + 2 ^ (u + 2))).choose ((2 ^ s) * 2)) % 2 = 1
+  rw [hscale]
+  have hbase := Choose.choose_modEq_choose_mod_mul_choose_div_nat
+      (n := 2 + 2 ^ (u + 2)) (k := 2) (p := 2)
+  rw [hbase]
+  simp [pow_succ]
+
+/-- The symmetric composition coefficient is also odd. -/
+theorem recovered_hasse_choose_odd_symm (s u : ℕ) :
+    (((2 ^ s) * 2 + (2 ^ s) * 2 ^ (u + 2)).choose
+      ((2 ^ s) * 2 ^ (u + 2))) % 2 = 1 := by
+  rw [← Nat.choose_symm_add]
+  simpa [Nat.mul_add] using recovered_hasse_choose_odd s u
+
+/-- In characteristic two the iterated-Hasse composition coefficient is one,
+so differentiating first at order `I=2R` and then at
+`W=2^(u+2)R` recovers the single jet at order `I+W`. -/
+theorem recovered_hasse_comp
+    {K : Type*} [CommRing K] [CharP K 2]
+    (P : K[X]) (s u : ℕ) :
+    (@Polynomial.hasseDeriv K _ ((2 ^ s) * 2 ^ (u + 2)))
+        ((@Polynomial.hasseDeriv K _ ((2 ^ s) * 2)) P) =
+      (@Polynomial.hasseDeriv K _
+        ((2 ^ s) * 2 ^ (u + 2) + (2 ^ s) * 2)) P := by
+  let W := (2 ^ s) * 2 ^ (u + 2)
+  let I := (2 ^ s) * 2
+  have hchooseNat : ((W + I).choose W) % 2 = 1 := by
+    dsimp [W, I]
+    simpa [add_comm] using recovered_hasse_choose_odd_symm s u
+  have hchooseK : (((W + I).choose W : ℕ) : K) = 1 := by
+    rw [CharP.cast_eq_mod K 2, hchooseNat, Nat.cast_one]
+  have hcomp := Polynomial.hasseDeriv_comp (R := K) W I
+  have hsmul :
+      (W + I).choose W • (@Polynomial.hasseDeriv K _ (W + I)) =
+        @Polynomial.hasseDeriv K _ (W + I) := by
+    rw [← Nat.cast_smul_eq_nsmul K, hchooseK, one_smul]
+  rw [hsmul] at hcomp
+  have happ := LinearMap.congr_fun hcomp P
+  simpa [LinearMap.comp_apply, W, I] using happ
+
+/-- The explicit recovered value is nonzero once its three selected factors
+are nonzero. -/
+theorem recovered_hasse_value_ne_zero
+    {K : Type*} [Field K]
+    (T a D : K) (R W : ℕ)
+    (hT : T ≠ 0) (ha : a ≠ 0) (hD : D ≠ 0) :
+    T * a ^ R * D ^ W ≠ 0 := by
+  exact mul_ne_zero (mul_ne_zero hT (pow_ne_zero _ ha)) (pow_ne_zero _ hD)
+
+end FermatOddJetRecoveryCore
+
 section FermatFixedAdicJetCore
 
 variable {K : Type*} [CommRing K] [CharP K 2]
@@ -3564,6 +3673,156 @@ theorem cubicAncestralRoot_sq_eq_iterate_div (x : K) (m : Nat)
   exact (cubicIterate_eq_mul_ancestralRoot_sq x m).symm
 
 end CubicAncestralJacobianField
+
+section CubicMixedAncestralCoordinates
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- Translating the selected Conway cubic by one gives the cubic relation
+used by the inhomogeneous ancestral-coordinate normal form. -/
+theorem translated_selected_cubic (gamma gammaPrev : R)
+    (hgamma : gamma ^ 3 + gamma = gammaPrev) :
+    (gamma + 1) ^ 3 + (gamma + 1) ^ 2 + gammaPrev = 0 := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hfour : (4 : R) = 0 := by
+    rw [show (4 : R) = 2 + 2 by norm_num, htwo, zero_add]
+  have hfive : (5 : R) = 1 := by
+    rw [show (5 : R) = 4 + 1 by norm_num, hfour, zero_add]
+  rw [show (gamma + 1) ^ 3 + (gamma + 1) ^ 2 + gammaPrev =
+      gamma ^ 3 + gamma + gammaPrev by
+    ring_nf
+    rw [htwo, hfour, hfive]
+    ring]
+  rw [hgamma]
+  have : gammaPrev + gammaPrev = (2 : R) * gammaPrev := by ring
+  rw [this, htwo, zero_mul]
+
+/-- Multiplication by the translated top coordinate preserves the quadratic
+normal form, using `z^3 = z^2 + gammaPrev` in characteristic two. -/
+theorem cubic_normal_form_mul (z gammaPrev a0 a1 a2 : R)
+    (hz : z ^ 3 + z ^ 2 + gammaPrev = 0) :
+    (a0 + a1 * z + a2 * z ^ 2) * z =
+      a2 * gammaPrev + a0 * z + (a1 + a2) * z ^ 2 := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hz' : z ^ 3 = z ^ 2 + gammaPrev := by
+    calc
+      z ^ 3 = z ^ 3 + (z ^ 3 + z ^ 2 + gammaPrev) := by rw [hz, add_zero]
+      _ = z ^ 2 + gammaPrev := by
+        ring_nf
+        rw [htwo]
+        ring
+  rw [show (a0 + a1 * z + a2 * z ^ 2) * z =
+      a0 * z + a1 * z ^ 2 + a2 * z ^ 3 by ring, hz']
+  ring
+
+/-- Coefficients of the canonical quadratic remainder of `X^n` modulo
+`X^3 + X^2 + gammaPrev`. -/
+def cubicPowerCoeffs (gammaPrev : R) : Nat → R × R × R
+  | 0 => (1, 0, 0)
+  | n + 1 =>
+      let a := cubicPowerCoeffs gammaPrev n
+      (a.2.2 * gammaPrev, a.1, a.2.1 + a.2.2)
+
+/-- Every power of the translated selected coordinate has the canonical
+quadratic normal form supplied by `cubicPowerCoeffs`. -/
+theorem pow_eq_cubicPowerCoeffs (z gammaPrev : R)
+    (hz : z ^ 3 + z ^ 2 + gammaPrev = 0) :
+    ∀ n, let a := cubicPowerCoeffs gammaPrev n
+      z ^ n = a.1 + a.2.1 * z + a.2.2 * z ^ 2 := by
+  intro n
+  induction n with
+  | zero => simp [cubicPowerCoeffs]
+  | succ n ih =>
+      rw [pow_succ, ih,
+        cubic_normal_form_mul z gammaPrev
+          (cubicPowerCoeffs gammaPrev n).1
+          (cubicPowerCoeffs gammaPrev n).2.1
+          (cubicPowerCoeffs gammaPrev n).2.2 hz]
+      rfl
+
+omit [CharP R 2] in
+/-- The actual ancestral roots and Jacobians are respectively one linear
+coordinate and its square, up to fixed coefficients. -/
+theorem ancestral_root_jacobian_coordinates {ι : Type*}
+    (z : R) (c roots jacobians : ι → R)
+    (hroots : ∀ i, roots i = c i * z)
+    (hjacobians : ∀ i, jacobians i = roots i ^ 2) (i : ι) :
+    roots i = c i * z ∧ jacobians i = c i ^ 2 * z ^ 2 := by
+  constructor
+  · exact hroots i
+  · rw [hjacobians i, hroots i]
+    ring
+
+omit [CharP R 2] in
+/-- Once one ancestral coefficient is one, the root/Jacobian family already
+contains the full quadratic normal-form coordinate. -/
+theorem quadratic_normal_form_is_mixed_ancestral {ι : Type*}
+    (z a0 a1 a2 : R) (c roots jacobians : ι → R) (i0 : ι)
+    (hc : c i0 = 1) (hroots : roots i0 = c i0 * z)
+    (hjacobians : jacobians i0 = roots i0 ^ 2) :
+    a0 + a1 * z + a2 * z ^ 2 =
+      a0 + a1 * roots i0 + a2 * jacobians i0 := by
+  rw [hjacobians, hroots, hc, one_mul]
+
+omit [CharP R 2] in
+/-- Every generator appearing in the formal mixed ancestral presentation
+evaluates to zero. The reverse ideal containment remains paper-level. -/
+theorem ancestral_presentation_generators_vanish {ι : Type*}
+    (gammaPrev z : R) (c roots jacobians : ι → R)
+    (hroots : ∀ i, roots i = c i * z)
+    (hjacobians : ∀ i, jacobians i = roots i ^ 2)
+    (hz : z ^ 3 + z ^ 2 + gammaPrev = 0) (i : ι) :
+    roots i - c i * z = 0 ∧
+      jacobians i - roots i ^ 2 = 0 ∧
+      z ^ 3 + z ^ 2 + gammaPrev = 0 := by
+  simp [hroots i, hjacobians i, hz]
+
+omit [CharP R 2] in
+/-- The translated relative cubic is an explicit nonzero formal mixed-degree
+relation that vanishes at the selected ancestral root coordinate. -/
+theorem ancestral_mixed_kernel_witness {ι : Type*}
+    (z gammaPrev : R) (c roots : ι → R) (i0 : ι)
+    (hc : c i0 = 1) (hroots : roots i0 = c i0 * z)
+    (hz : z ^ 3 + z ^ 2 + gammaPrev = 0) :
+    roots i0 ^ 3 + roots i0 ^ 2 + gammaPrev = 0 := by
+  rw [hroots, hc, one_mul]
+  exact hz
+
+/-- The degree-one ancestral root already recovers the original selected top
+coordinate after translating back by one. -/
+theorem selected_top_coordinate_recovered {ι : Type*}
+    (gamma : R) (c roots : ι → R) (i0 : ι)
+    (hc : c i0 = 1) (hroots : roots i0 = c i0 * (gamma + 1)) :
+    roots i0 + 1 = gamma := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  rw [hroots, hc, one_mul]
+  have : (1 : R) + 1 = 2 := by norm_num
+  rw [add_assoc, this, htwo, add_zero]
+
+end CubicMixedAncestralCoordinates
+
+section CubicMixedAncestralField
+
+variable {K L : Type*} [Field K] [Field L] [Algebra K L]
+
+/-- Relative degree three makes the quadratic normal form unique. -/
+theorem quadratic_normal_form_eq_zero_iff (z : L)
+    (hdeg : (minpoly K z).natDegree = 3) (a0 a1 a2 : K) :
+    algebraMap K L a0 + algebraMap K L a1 * z +
+        algebraMap K L a2 * z ^ 2 = 0 ↔
+      a0 = 0 ∧ a1 = 0 ∧ a2 = 0 := by
+  constructor
+  · intro h
+    have hli := linearIndependent_pow (K := K) z
+    rw [hdeg] at hli
+    have hs : ∑ i : Fin 3, (![a0, a1, a2] i) • z ^ (i : Nat) = 0 := by
+      simpa [Fin.sum_univ_succ, Algebra.smul_def, add_assoc] using h
+    have hc := Fintype.linearIndependent_iff.mp hli ![a0, a1, a2] hs
+    exact ⟨hc 0, hc 1, hc 2⟩
+  · rintro ⟨rfl, rfl, rfl⟩
+    simp
+
+end CubicMixedAncestralField
 
 end CyclotomicReflectionAlgebra
 

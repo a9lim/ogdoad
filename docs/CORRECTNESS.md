@@ -124,21 +124,19 @@ complete historical runs of Peeters's pinned exact sparse calculator, both
 ending with the same nonidentity support size.  Those external runs are
 source-pinned corroboration, not part of the local certificate.
 
-The next ordinary row `p=719` is a paper-level exact reduction, not a
-certificate.  Using the certified 359-class, the paper reduces it to a
-degree-179 factor of `(T^359+1)^179+(kappa_89+1)` over
-`F_(2^7029220)` and one Euler test at that factor's value at one.  A second,
-crossed-tower formulation compresses a replayable certificate to two
-438,103-byte payloads over `F_(2^179)` and an Euler test in
-`F_(2^64261)`.  The first payload `a` is now checked in with a maintained
-python-flint verifier that reconstructs the certified `p=359` root and checks
-`a^359=(1+x)/c` exactly.  This is an exact finite computation, not a Lean
-theorem.  Lean checks only the generic scaled-product identity and conditional
-exponent multiplication; the field, Kummer, norm, and numerical
-specializations remain paper-level.  Its lower norm identities and `mu_719`
-phase-blindness are proved in the paper, but no `f_a`, inner-norm `W`, or
-selected phase evaluation is checked in this repository;
-`m_719=1` remains open.
+The ordinary row `p=719` is now also locally exact-computation-backed.  The
+paper first reduces it to a degree-179 factor of
+`(T^359+1)^179+(kappa_89+1)` over `F_(2^7029220)`, then uses a crossed tower
+to compress the certificate to two 438,103-byte payloads over `F_(2^179)`
+and two 8,033-byte checkpoints in `F_(2^64261)`.  The maintained
+python-flint verifier reconstructs the certified `p=359` root and phase,
+checks `a^359=(1+x)/c`, verifies the stored monic degree-19,580 polynomial at
+`a` in authoritative full mode, recomputes
+`W=v^19580*f_a(v^(-1))`, and obtains a nonidentity 719-torsion Euler phase.
+Together with the paper's crossed-tower deduction this proves `m_719=1`.
+The payload computation is not a Lean theorem: Lean checks only the generic
+scaled-product identity and conditional exponent multiplication, while the
+field, Kummer, norm, and numerical specializations remain paper-level.
 
 `Ogdoad/GameExterior.lean` kernel-checks the algebraic core of the resolved
 `tisn` theorem.  From explicit roots `ny=t`, `nz=x` and the torsion relation

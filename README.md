@@ -366,8 +366,9 @@ Scope boundaries, stated plainly:
 - `Ordinal` nim-addition is general on the represented CNF terms, and it implements
   `Scalar` for Clifford experiments inside the checked Kummer boundary.
   Nim-multiplication works below `ω^(ω^ω)` whenever every carry uses a verified finite
-  Lenstra excess row (OEIS A380496 b-file, 126 rows, odd primes `3..=709`); a carry
-  needing a prime past that table (the first unknown is `719`) returns `None`. Finite
+  Lenstra excess row (126 OEIS A380496 rows through 709 plus the locally certified
+  `m_719=1` row); a carry needing a prime past those rows (the first unsupported prime
+  is `727`) returns `None`. Finite
   ordinal-nimber metrics classify relative to their detected `F_{2^m}`. Metrics outside
   the checked finite-subfield detector stay outside the executable classifier; over ideal
   full `On₂`, regular classes are theorem-level split (`writeups/transfinite_arf.tex`).

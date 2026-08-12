@@ -211,8 +211,9 @@ and const-generic sizes that are inherently indices.
     reduces with the Kummer carries `χ_u^u = α_u`. Non-scalar `α_u` (`α_7=ω+1`, …)
     branch a carry into a *sum*, recursed in by descending place. Carries are assembled
     from `ord_u(2)`, DiMuro's `Q(f(u))`, and the finite `m_u` rows from OEIS A380496
-    (the b-file's 126 known rows, odd primes `3..=709`); a carry needing `m_719` (the
-    first OEIS-unknown row)+ returns `None`, as does anything `≥ ω^(ω^ω)` (see
+    (the b-file's 126 known rows, odd primes `3..=709`) plus the locally certified
+    `m_719=1`; a carry needing `m_727` (the first unsupported row) returns `None`, as
+    does anything `≥ ω^(ω^ω)` (see
     `docs/OPEN.md`). The table extends reach, not feasibility: large primes are in the
     table but their `q_set`/finite-subfield reconstruction over the huge component field
     (`e_p` in the millions) is costly.

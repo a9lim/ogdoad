@@ -156,18 +156,21 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   1,743,227-term nonidentity endpoint; the stdlib provenance checker verifies
   their hashes and endpoints, so they are source-pinned corroboration rather
   than the local proof;
-- the next `p=719` row has a paper-level nested reduction to one degree-179
+- the first row beyond the vendored table, `p=719`, has a paper-level nested
+  reduction to one degree-179
   factor of `(T^359+1)^179+(kappa_89+1)` over `F_(2^7029220)` and one
   selected Euler test on its value at one.  A crossed-tower reformulation
   reduces a replayable certificate to two 438,103-byte payloads over
   `F_(2^179)` and a final Euler test in `F_(2^64261)`.  Lean checks the
   generic scaled-product and conditional nested-exponent cores; the
   field/Kummer/norm and numerical-exponent specializations remain paper-level.
-  The first crossed payload is now checked in: a maintained python-flint
-  verifier reconstructs it together with the `p=359` artifact and checks
-  `a^359=(1+x)/c` exactly.  This finite computation is not Lean-checked.  The two
-  cheaper norm shadows and their `mu_719` phase-blindness are also
-  paper-level.  No `f_a`, inner-norm `W`, or final 719-phase exists yet;
+  All four crossed payloads are now checked in.  The maintained python-flint
+  verifier reconstructs them together with the `p=359` artifact, checks
+  `a^359=(1+x)/c`, verifies `f_a(a)=0` in authoritative full mode,
+  recomputes `W=v^19580*f_a(v^(-1))`, and obtains a nontrivial 719-torsion
+  Euler phase.  This proves `m_719=1` by exact finite computation plus the
+  paper-level crossed-tower deduction, not by Lean.  The two cheaper norm
+  shadows and their `mu_719` phase-blindness are also paper-level;
 - the characteristic-free canonical-lift reparametrization
   `A=W/(W+1)^2`, `A*C=-W/(W+1)^3`, `W=A*C^(-2)`, its denominator-free
   discriminant recursion, and the odd-Kummer square-class equivalence used in
@@ -255,6 +258,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   field.  Its identification with the full iterated derivative, the selected
   tower specialization, and the current-prime homogeneous Kummer-weight
   interpretation remain paper-level;
+- the mixed ancestral-coordinate core: Lean checks the translated cubic
+  relation, recursive quadratic reduction, uniqueness of a quadratic normal
+  form at relative degree three, the explicit mixed vanishing witness, and
+  recovery of the top selected coordinate.  The multivariable kernel-ideal
+  equality, selected finite-field specialization, and Euler interpretation
+  remain paper-level;
 - the translated selected Singer cubic for
   `epsilon_k=eta_k+1`, its symmetric-coefficient Moore identity, the exact
   constant-off-diagonal trace-Gram determinant, and preservation of element
@@ -479,6 +488,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   canonical-digit recursion, selected polynomial specialization, finite-field
   order calculation, and proof that the displayed partial-trace prefactors are
   nonzero remain paper-level;
+- the odd fixed-jet recovery core: Lean checks the strengthened short-factor
+  window, the opposite-end size exclusion, the odd-index divisibility
+  contradiction, the relevant Lucas parity and Hasse-composition coefficient,
+  and nonvanishing of the recovered product.  The selected Fibonacci/Hasse
+  specialization remains paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement
