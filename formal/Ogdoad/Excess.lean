@@ -6677,6 +6677,101 @@ theorem marked_evaluation_ne_zero
     marked * evaluation ≠ 0 ↔ marked ≠ 0 ∧ evaluation ≠ 0 := by
   exact mul_ne_zero_iff
 
+/-! The complete cubic conjugate lattice produces a multikummer, rather than
+merely rank-one, split-ray obstruction.  The number-field unit lattice,
+circular-unit index theorem, Kummer theory, and Artin reciprocity remain
+paper-level; these lemmas check the exact linear-algebra accounting. -/
+
+/-- If the relation space of a linear realization has dimension at most
+`r`, its realized image has codimension at most `r`. -/
+theorem finrank_sub_relation_bound_le_image
+    {F V W : Type*} [Field F]
+    [AddCommGroup V] [Module F V] [AddCommGroup W] [Module F W]
+    [FiniteDimensional F V] [FiniteDimensional F W]
+    (f : V →ₗ[F] W) (r : Nat)
+    (hker : Module.finrank F (LinearMap.ker f) ≤ r) :
+    Module.finrank F V - r ≤ Module.finrank F (LinearMap.range f) := by
+  have hrank := f.finrank_range_add_finrank_ker
+  omega
+
+/-- A surjection onto an elementary Kummer quotient transfers its dimension
+as a lower bound on the split ray space. -/
+theorem finrank_le_of_surjective_linearMap
+    {F V W : Type*} [Field F]
+    [AddCommGroup V] [Module F V] [AddCommGroup W] [Module F W]
+    [FiniteDimensional F V] [FiniteDimensional F W]
+    (f : V →ₗ[F] W) (hsurj : Function.Surjective f) :
+    Module.finrank F W ≤ Module.finrank F V := by
+  exact LinearMap.finrank_le_finrank_of_surjective hsurj
+
+/-- Combining a bounded power-relation kernel with a split-ray surjection
+gives the complete conjugate-lattice rank bound in one step. -/
+theorem multikummer_split_ray_rank_bound
+    {F L R Q : Type*} [Field F]
+    [AddCommGroup L] [Module F L]
+    [AddCommGroup R] [Module F R]
+    [AddCommGroup Q] [Module F Q]
+    [FiniteDimensional F L] [FiniteDimensional F R] [FiniteDimensional F Q]
+    (kummer : L →ₗ[F] R) (artin : Q →ₗ[F] R) (r : Nat)
+    (hker : Module.finrank F (LinearMap.ker kummer) ≤ r)
+    (hartin : Function.Surjective artin) :
+    Module.finrank F L - r ≤ Module.finrank F Q := by
+  calc
+    Module.finrank F L - r ≤ Module.finrank F (LinearMap.range kummer) :=
+      finrank_sub_relation_bound_le_image kummer r hker
+    _ ≤ Module.finrank F R := (LinearMap.range kummer).finrank_le
+    _ ≤ Module.finrank F Q := finrank_le_of_surjective_linearMap artin hartin
+
+/-- Iterating a covariance relation along the decomposition orbit. -/
+theorem covariant_orbit_iterate
+    {G F : Type*} [CommGroup G] [Field F]
+    (L : G → F) (t : G) (q : F)
+    (hcov : ∀ a, L (t * a) = q * L a) :
+    ∀ (n : ℕ) (a : G), L (t ^ n * a) = q ^ n * L a := by
+  intro n
+  induction n with
+  | zero =>
+      intro a
+      simp
+  | succ n ih =>
+      intro a
+      calc
+        L (t ^ (n + 1) * a) = L (t * (t ^ n * a)) := by
+          congr 1
+          simp [pow_succ, mul_comm, mul_left_comm]
+        _ = q * L (t ^ n * a) := hcov _
+        _ = q * (q ^ n * L a) := by rw [ih]
+        _ = q ^ (n + 1) * L a := by
+          simp [pow_succ, mul_comm, mul_left_comm]
+
+/-- If an even marked functional meets complex conjugation in the
+decomposition orbit with the wrong eigenvalue, it vanishes identically. -/
+theorem even_covariant_collision_forces_zero
+    {G F : Type*} [CommGroup G] [Field F]
+    (L : G → F) (t j : G) (q : F) (n : ℕ)
+    (hcov : ∀ a, L (t * a) = q * L a)
+    (heven : ∀ a, L (j * a) = L a)
+    (hcollision : t ^ n = j)
+    (hscalar : q ^ n ≠ 1) :
+    ∀ a, L a = 0 := by
+  intro a
+  have horbit := covariant_orbit_iterate L t q hcov n a
+  rw [hcollision, heven] at horbit
+  have hmul : (q ^ n - 1) * L a = 0 := by
+    calc
+      (q ^ n - 1) * L a = q ^ n * L a - L a := by ring
+      _ = 0 := by rw [← horbit]; simp
+  exact (mul_eq_zero.mp hmul).resolve_left (sub_ne_zero.mpr hscalar)
+
+/-- A marked decomposition-prime coordinate can detect only the eigenspace
+whose eigenvalue matches arithmetic Frobenius. -/
+theorem marked_eigenvalue_must_match
+    {F : Type*} [Field F] (marked chi omega : F)
+    (hcompat : chi * marked = omega * marked)
+    (hmarked : marked ≠ 0) :
+    chi = omega := by
+  exact mul_right_cancel₀ hmarked hcompat
+
 end GlobalSplitRayReduction
 
 section FermatAdditiveCrossLevel
@@ -6792,6 +6887,89 @@ theorem fermat_AE4_cross_level_gcd
   exact ⟨hKL.trans hLEll, hKL.trans (hLEll.trans hcross)⟩
 
 end FermatAdditiveCrossLevel
+
+section FermatAE4SizeObstruction
+
+/-- Two proper factors with the same exact two-adic offset force that offset
+below the square root of the current Fermat power. -/
+theorem fermat_common_offset_lt_sqrt
+    (Q ell d R L g : Nat)
+    (hR : 0 < R) (hL : 0 < L) (hg : 0 < g)
+    (hell : ell = 1 + R * L) (hd : d = 1 + R * g)
+    (hprod : ell * d = Q ^ 2 + 1) :
+    R < Q := by
+  have hleL : R + 1 ≤ ell := by rw [hell]; nlinarith
+  have hleD : R + 1 ≤ d := by rw [hd]; nlinarith
+  have hlower : (R + 1) ^ 2 ≤ ell * d := by
+    simpa [pow_two] using Nat.mul_le_mul hleL hleD
+  rw [hprod] at hlower
+  nlinarith
+
+/-- The exact offset congruence couples the two complementary lower
+quotients by a divisibility relation. -/
+theorem fermat_cross_exact_offset_sum_dvd
+    (Q d R g u h e t : Nat)
+    (hd : h * t + 2 = d)
+    (hdR : d = 1 + R * g)
+    (hQR : Q = R * u)
+    (hfactor : h * e = Q + 1)
+    (hcop : R.Coprime h) :
+    R ∣ t + e := by
+  have heq : h * (t + e) = R * (g + u) := by
+    rw [Nat.mul_add, Nat.mul_add]
+    omega
+  have hdiv : R ∣ h * (t + e) := by
+    rw [heq]
+    exact dvd_mul_right R (g + u)
+  exact hcop.dvd_of_dvd_mul_left hdiv
+
+/-- The two current factors and the preceding factorization force the exact
+offset product `R*t` below the square of the complementary lower order. -/
+theorem fermat_cross_exact_offset_product
+    (Q ell d R h e t : Nat)
+    (hR : 0 < R) (hh : 0 < h)
+    (hell : R * h + 1 ≤ ell)
+    (hd : h * t + 2 = d)
+    (hprod : ell * d = Q ^ 2 + 1)
+    (hfactor : h * e = Q + 1) :
+    R * t < e ^ 2 := by
+  have hdlower : h * t + 2 ≤ d := hd.le
+  have hlower : (R * h + 1) * (h * t + 2) ≤ ell * d :=
+    Nat.mul_le_mul hell hdlower
+  have hcross : h ^ 2 * (R * t) < (R * h + 1) * (h * t + 2) := by
+    have hpos : 0 < 2 * R * h := by positivity
+    nlinarith
+  have hQupper : Q ^ 2 + 1 ≤ h ^ 2 * e ^ 2 := by
+    calc
+      Q ^ 2 + 1 ≤ (Q + 1) ^ 2 := by nlinarith
+      _ = h ^ 2 * e ^ 2 := by rw [← hfactor]; ring
+  have hscaled : h ^ 2 * (R * t) < h ^ 2 * e ^ 2 := by
+    calc
+      h ^ 2 * (R * t) < (R * h + 1) * (h * t + 2) := hcross
+      _ ≤ ell * d := hlower
+      _ = Q ^ 2 + 1 := hprod
+      _ ≤ h ^ 2 * e ^ 2 := hQupper
+  rw [show h ^ 2 * e ^ 2 = h ^ 2 * (e ^ 2) by ring] at hscaled
+  exact (Nat.mul_lt_mul_left (Nat.pow_pos hh)).mp hscaled
+
+/-- The product and divisibility constraints prevent the common two-adic
+offset from being twice the surviving complementary lower order. -/
+theorem fermat_cross_exact_offset_lt_twice_complement
+    (R e t : Nat) (he : 0 < e)
+    (hdiv : R ∣ t + e) (hproduct : R * t < e ^ 2) :
+    R < 2 * e := by
+  have hsumPos : 0 < t + e := by omega
+  have hRle : R ≤ t + e := Nat.le_of_dvd hsumPos hdiv
+  by_contra hnot
+  have htwo : 2 * e ≤ R := Nat.le_of_not_gt hnot
+  have het : e ≤ t := by omega
+  have hmulOne : R * e ≤ R * t := Nat.mul_le_mul_left R het
+  have hmulTwo : e ^ 2 < R * e := by
+    have : e < R := by omega
+    nlinarith
+  omega
+
+end FermatAE4SizeObstruction
 
 section PowerCriterion
 

@@ -124,6 +124,7 @@ declarations asserts any of the four universal nonvanishings.
 The next global frontier cores sharpen that boundary without changing it.
 Lean checks the `Z` first-additive-edge power coordinates, trace identity, and
 factor-parameter obstruction, together with the exact cross-level gcd identity;
+the associated exact-offset product, divisibility, and size inequalities;
 the `C` birth-secant factorization, phase-weight
 algebra, and coprime-primary projection; and the `D` sixth-root and
 coprime-primary noncancellation used by the current-support cube.  The selected
@@ -141,6 +142,17 @@ that the `O`, `C`, and `D` Kummer extensions are globally nontrivial and turn
 hypothetical failure into complete splitting at the selected primes. They do
 not prove the arms: the unprojected split-ray quotients have unavoidable
 current-primary rank, leaving marked eigenspace/Frobenius nonvanishing.
+For the cubic arm, the complete conjugate-lattice refinement is also split at
+the proof boundary: Lean checks the multikummer rank accounting, while the
+paper uses the circular-unit index theorem, local conductor calculation, and
+Artin reciprocity.  Subject to the real class-number term, this identifies
+failure with a jump from the unconditional `n-2` split character lines to all
+`n-1` nontrivial lines; it does not prove that the jump is impossible.
+Lean also checks the decomposition-orbit covariance, the conjugation/eigenvalue
+collision which forces a marked functional to vanish, and compatibility of a
+nonzero marked coordinate with its unique Frobenius eigenvalue.  The paper's
+cyclotomic unit-representation multiplicity and reflected-character
+specializations remain paper-level.
 
 The ordinary `p=359` row now has two deliberately separated verification
 classes.  The checked-in 438,103-byte Hilbert-root artifact plus the maintained

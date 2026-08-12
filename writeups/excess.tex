@@ -186,7 +186,8 @@ selected Euler-factor/root-number boundary; a nonlinear lower-semiconjugacy
 resultant flag for the surviving odd Hasse collision, with a degree-range
 exclusion, and complete pointwise-semiconjugacy/Frobenius-coboundary
 saturation, with the first nonzero additive-edge trace and exact lower
-cancellation &
+cancellation, cross-level gcd identity, and exclusion of the smallest proper
+lower fibotomic stratum &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -198,7 +199,9 @@ common-section no-go; uniform safe-prime trace detector;
 fixed-prime full-tail phase conservation and two-ancestor birth reduction;
 full-conductor truncated-log regulator and exact conductor-\(p^2\)
 ray/Jacobi reciprocity; invariant realification and selected local
-reflection norm; the exact sparse marked full-conductor polynomial at
+reflection norm; exact localization to the Frobenius-\(2\) decomposition
+character and its decomposition-trivial reflection mirror; the exact sparse
+marked full-conductor polynomial at
 \(p=359\), its checked Hilbert-root certificate proving \(m_{359}=1\),
 the exact crossed-tower computation proving \(m_{719}=1\), the direct sparse
 certificate proving \(m_{727}=1\), and a fixed-history audit of two
@@ -217,7 +220,8 @@ prescribed-trace character boundary; complete lower trace--Fourier flag
 collapse, ancestral coordinate presentation, and the selected self-polar
 trace-hyperplane character ratio, together with complete self-polar
 incidence-algebra saturation, fixed-prime full-tail phase conservation, and
-birth-secant/orbit-product saturation &
+birth-secant/orbit-product saturation; global Kummer nondegeneracy and the
+complete conjugate circular-unit multikummer rank jump &
 exclusion of the selected Wendt/trace fibre at the remaining current
 factors \\
 \((D)\) &
@@ -240,7 +244,8 @@ constant-extension line criterion with
 \(m_\ell<16(3^k)^4\), and the selected adjacent-quartic translate/Capelli
 reduction, adjacent Hilbert-pair/maximal-Fermat saturation, and exact
 quadratic-norm rigidity, together with the lossless marked
-Hilbert--sextic phase bridge and the complete current-primary support cube &
+Hilbert--sextic phase bridge, the complete current-primary support cube, and
+one-dimensional Frobenius-\(2\) decomposition localization &
 nonvanishing of the selected antiunit index
 \(\operatorname{ind}_\ell(d_k)\) at the remaining current factors \\
 \bottomrule
@@ -5933,6 +5938,148 @@ The nonzero Artin character of \(L_c/M\) therefore factors through the
 displayed quotient under failure, proving \((\mathsf{CSR}_2)\).  Artin
 equivariance gives \(\chi_c(a x)=\chi_c(x)^a\) for \(a\in\Gamma\);
 transitivity of the prime orbit proves the final formulation.
+\end{proof}
+
+\begin{proposition}[the complete cubic conjugate lattice forces a large split ray quotient]
+\label{prop:cubic-multikummer-split-ray}
+Retain Proposition~\ref{prop:cubic-split-ray-reduction}.  Put
+\[
+ \Delta=\operatorname{Gal}(K^+/\mathbb Q)=\langle\sigma\rangle,
+ \qquad \mathcal E=\mathcal O_{K^+}^{\times},
+ \qquad
+ \mathcal L=\langle\sigma^j(c):0\leq j<n\rangle\subset\mathcal E.
+\]
+Thus Proposition~\ref{prop:cubic-circulant-no-go} gives
+\[
+ \mathcal L\simeq\mathbb Z[\Delta]/\mathbb Z\nu,
+ \qquad \nu=1+\sigma+\cdots+\sigma^{n-1},             \tag{\(\mathsf{CMSR}_1\)}
+\]
+so \(\mathcal L/\mathcal L^\ell\) has \(\mathbb F_\ell\)-dimension
+\(n-1\).  Define
+\[
+ r_{k,\ell}
+ =\dim_{\mathbb F_\ell}
+       \bigl((\mathcal E/\mathcal L)[\ell]\bigr),
+ \qquad
+ d_{k,\ell}
+ =\dim_{\mathbb F_\ell}
+ \operatorname{im}\!\left(
+   \mathcal L/\mathcal L^\ell\longrightarrow
+   M^\times/(M^\times)^\ell\right).                 \tag{\(\mathsf{CMSR}_2\)}
+\]
+Let \(R_{k,\ell}\) denote that image, and let
+\[
+ \operatorname{red}_2:R_{k,\ell}\longrightarrow
+ \mathbb F_{2^n}^{\times}/(\mathbb F_{2^n}^{\times})^\ell,
+ \qquad
+ s_{k,\ell}=\dim_{\mathbb F_\ell}\ker(\operatorname{red}_2).
+                                                               \tag{\(\mathsf{CMSR}_{2'}\)}
+\]
+Then
+\[
+\boxed{d_{k,\ell}\geq n-1-r_{k,\ell}
+        \geq n-1-v_\ell\bigl(|\operatorname{Cl}(K^+)|\bigr),}
+                                                               \tag{\(\mathsf{CMSR}_3\)}
+\]
+and, because the reduction target is one-dimensional,
+\[
+ \boxed{s_{k,\ell}\geq d_{k,\ell}-1
+        \geq n-2-r_{k,\ell}.}                       \tag{\(\mathsf{CMSR}_{3'}\)}
+\]
+Let
+\[
+ \mathcal K=M\left(
+   \sqrt[\ell]{\sigma^j(c)}:0\leq j<n\right).
+                                                               \tag{\(\mathsf{CMSR}_4\)}
+\]
+Then \(\mathcal K/M\) is elementary abelian of degree
+\(\ell^{d_{k,\ell}}\), unramified away from \(\ell\), with conductor
+dividing \(\mathfrak m_\ell\).  Even without failure, the subextension cut
+out by \(\ker(\operatorname{red}_2)\) is split at every prime above two, so
+\[
+ \operatorname{rank}_\ell\!\left(
+   \operatorname{Cl}_{\mathfrak m_\ell}(M)/B_2\right)
+ \geq s_{k,\ell}\geq n-2-r_{k,\ell}.                \tag{\(\mathsf{CMSR}_5\)}
+\]
+If the current \(\ell\)-condition in \(C_k\) fails, every prime above two
+splits in all of \(\mathcal K\), and the first bound sharpens to
+\[
+ \operatorname{rank}_\ell\!\left(
+   \operatorname{Cl}_{\mathfrak m_\ell}(M)/B_2\right)
+ \geq d_{k,\ell}\geq n-1-r_{k,\ell}.                \tag{\(\mathsf{CMSR}_6\)}
+\]
+Here, in multiplicative notation,
+\(\operatorname{rank}_\ell A=\dim_{\mathbb F_\ell}(A/A^\ell)\).
+
+In particular, if \(\ell\nmid|\operatorname{Cl}(K^+)|\), then the radical is
+the full augmentation module
+\[
+ \mathbb F_\ell[\Delta]/\mathbb F_\ell\nu,
+                                                               \tag{\(\mathsf{CMSR}_7\)}
+\]
+the direct sum of all \(n-1\) nontrivial \(\Delta\)-characters.  Reduction
+modulo two is supported only on the line on which \(\sigma\) acts as two.
+The other \(n-2\) lines lie in the split packet unconditionally; success maps
+the \(\sigma=2\) line isomorphically to the residue quotient, while failure
+kills it and raises the split packet from rank \(n-2\) to \(n-1\).
+
+This is a stronger global obstruction, not a proof of \(C_k\).  The rank jump
+isolates the final selected Frobenius line exactly, but neither uniform
+exclusion of \(\ell\)-torsion in the real class group nor exclusion of that
+last split line is presently known.
+\end{proposition}
+
+\begin{proof}
+If \(x\in(K^+)^\times\) becomes an \(\ell\)-th power after adjoining
+\(\mu_\ell\), norm descent through the degree \(\ell-1\) extension puts an
+\(\ell\)-th root already in \(K^+\).  Hence the natural map of Kummer
+quotients from \(K^+\) to \(M\) is injective.
+
+The kernel of
+\[
+ \mathcal L/\mathcal L^\ell\longrightarrow
+ \mathcal E/\mathcal E^\ell                            \tag{\(\mathsf{CMSR}_8\)}
+\]
+injects into \((\mathcal E/\mathcal L)[\ell]\): if
+\(x=y^\ell\in\mathcal L\) with \(y\in\mathcal E\), send the class of
+\(x\) to that of \(y\).  The root is unique because \(K^+\) contains no
+nontrivial \(\ell\)-th roots of unity.  Thus rank--nullity and
+\((\mathsf{CMSR}_1)\) give
+\(d_{k,\ell}\geq n-1-r_{k,\ell}\).  In fact the conjugates of \(c\)
+generate exactly the square subgroup of the real circular units.  Since that
+group is \(\{\pm1\}\times\mathbb Z^{n-1}\), its index is \(2^n\), while
+the prime-power circular-unit index theorem identifies the remaining index
+with the ordinary class number of \(K^+\)
+\cite[Lem.~8.1 and Thm.~8.2]{Washington97}.  Therefore
+\[
+ r_{k,\ell}\leq v_\ell([\mathcal E:\mathcal L])
+ =v_\ell(|\operatorname{Cl}(K^+)|),                  \tag{\(\mathsf{CMSR}_9\)}
+\]
+proving \((\mathsf{CMSR}_3)\).  Rank--nullity for the one-dimensional
+reduction target gives \((\mathsf{CMSR}_{3'})\).
+
+Kummer theory applied to the displayed radical gives \(\mathcal K\) and its
+degree.  Every radicand is a global unit.  The same local Hilbert-filtration
+calculation as in Proposition~\ref{prop:cubic-split-ray-reduction} bounds each
+conductor exponent by two, and hence bounds the conductor of their compositum.
+The subradical \(\ker(\operatorname{red}_2)\) consists of local
+\(\ell\)-th powers at the unique prime of \(K^+\) above two.  That prime
+splits in \(M/K^+\), so Artin reciprocity gives \((\mathsf{CMSR}_5)\).
+
+The reductions of the full conjugate family are
+\(\gamma_k^{2^j}\).  Under failure they are all \(\ell\)-th powers, so all
+primes above two split completely in \(\mathcal K/M\).  Artin reciprocity
+then gives a quotient \((\mathbb Z/\ell\mathbb Z)^{d_{k,\ell}}\) and proves
+\((\mathsf{CMSR}_6)\).
+
+If \(\ell\) does not divide the real class number, then \(r_{k,\ell}=0\).
+Maschke semisimplicity applies because \(n\mid\ell-1\), so
+\((\mathsf{CMSR}_7)\) splits into its \(n-1\) nontrivial character lines.
+The equivariant reduction target is the \(\sigma=2\) line and vanishes on
+all others.  The class of \(c\) is a cyclic generator and has nonzero
+projection on every nontrivial line; its reduction on the remaining line is
+the selected Kummer class of \(\gamma_k\).  This proves the rank-jump
+description and the stated boundary.
 \end{proof}
 
 \subsection{Kernel tower and quantitative order bounds}
@@ -14463,6 +14610,71 @@ so \(\ell\equiv1\pmod e\) if and only if
 \((\mathsf{AE}_6)\).
 \end{proof}
 
+\begin{corollary}[the smallest proper lower stratum is excluded]
+\label{cor:fermat-additive-size-obstruction}
+Retain Corollary~\ref{cor:fermat-additive-cross-level}, put
+\[
+ h=\gcd(Q+1,K),\qquad e=\frac{Q+1}{h},qquad
+ t=\frac{d-2}{h},
+\]
+and consider the proper-loss branch \(h>1\).  Then
+\[
+ \boxed{R<Q,\qquad Rt<e^2,\qquad R\mid(t+e),\qquad R<2e.}
+                                                               \tag{\(\mathsf{AE}_7\)}
+\]
+Moreover
+\[
+ \boxed{4M(2M-1)<e^2,\qquad e\geq4M+1.}             \tag{\(\mathsf{AE}_8\)}
+\]
+Thus a hypothetical first failure cannot place the normalized invariant in
+the smallest proper preceding fibotomic stratum \(e=2M+1\).  Either
+\(h=1\) and its lower order is the full \(Q+1\), or a proper lower order
+survives only from \(4M+1\) onward and obeys the exact coupling
+\((\mathsf{AE}_7)\).
+
+This remains an obstruction rather than a contradiction.  The full-order
+branch does not contradict the unnormalized equality \((\mathsf{AE}_4)\),
+and larger proper strata are not excluded.  Minimality cannot be applied to
+the normalized point as though it were the preceding Conway selector: its
+order is controlled, but no selected trace/norm ancestry or selected
+Frobenius orbit has been proved for it.
+\end{corollary}
+
+\begin{proof}
+Write \(\ell=1+RL\) and \(d=1+Rg\), with \(L,g\) positive and odd.
+The two proper factors give
+\((R+1)^2\leq\ell d=Q^2+1\), hence \(R<Q\); since both are powers of
+two, \(R\mid Q\).  Corollary~\ref{cor:fermat-additive-cross-level} gives
+\(h\mid L\) and \((R,h)=1\).  Now
+\[
+ \ell\geq Rh+1,\qquad d=ht+2,
+ \qquad Q+1=he.
+\]
+Therefore
+\[
+ (Rh+1)(ht+2)\leq Q^2+1=(he-1)^2+1\leq h^2e^2.
+\]
+The left side is strictly larger than \(h^2Rt\), proving \(Rt<e^2\).
+Also
+\[
+ h(t+e)=(d-2)+(Q+1)=d+Q-1.
+\]
+The right side is divisible by \(R\); coprimality with \(h\) gives
+\(R\mid(t+e)\).  If \(R\geq2e\), this divisibility and positivity force
+\(t\geq e\), contradicting \(Rt<e^2\).  Thus \(R<2e\).
+
+Standard Fermat-divisor congruences give \(R\geq4M\),
+\(2M\mid h-1\), and \(2M\mid e-1\).  Since \((h,4M)=1\), one has
+\[
+ \ell\geq4Mh+1,\qquad d\geq h(2M-1)+2.
+\]
+Multiplying these bounds and comparing with \(Q^2+1=(he-1)^2+1\)
+gives \(4M(2M-1)<e^2\).  A nontrivial divisor \(e\mid Q+1\) is
+\(1\pmod{2M}\); below \(4M+1\), the sole possibility is \(2M+1\), whose
+square is smaller than \(4M(2M-1)\) for \(M\geq3\).  This proves
+\((\mathsf{AE}_8)\) and the boundary.
+\end{proof}
+
 The fast \texttt{--jet-only} mode of
 \path{experiments/fermat_selected_screen.py} evaluates
 \(\Gamma_{n,\ell}\) and the branch-appropriate gcd without constructing the
@@ -21622,8 +21834,11 @@ shows that it has unavoidable \(\ell\)-torsion.
 \begin{proof}
 The element \(\varepsilon\) is a unit because \(\Phi_M(1)=1\).
 Kummer theory gives a cyclic extension of degree one or \(\ell\),
-unramified away from \(\ell\); the standard local unit filtration at
-\(\lambda\mid\ell\) bounds the conductor exponent by two.
+unramified away from \(\ell\).  At \(\lambda\mid\ell\), the field
+\(F_\lambda\) is unramified over \(\mathbb Q_\ell\): after removing the
+Teichm\"uller factor, a unit class lies in the critical principal-unit
+step \(U_{\ell-1}\), whose Kummer orthogonal contains \(U_2\).  Thus the
+local conductor exponent is at most two~\cite{Iwasawa68}.
 
 Every completion of \(F\) above two already contains \(\mu_\ell\), since
 \(\operatorname{ord}_M(2)=4h\) and
@@ -22129,8 +22344,12 @@ Dirichlet's unit theorem gives
  \dim_{\mathbb F_\ell}
  \mathcal O_F^\times/(\mathcal O_F^\times)^\ell=d/2-1.
 \]
-Each local splitting condition is one linear Kummer functional, so their
-common kernel has dimension at least \(d/2-1-|S|\).  A nonzero unit class
+Each local splitting condition has codimension at most one in the unit
+Kummer space, so their common kernel has dimension at least
+\(d/2-1-|S|\).  Because \(\mu_\ell\subset F_{\mathfrak s}\) for
+\(\mathfrak s\in S\), the prime \(\mathfrak s\) splits in \(E/F\), and
+one \(F\)-prime condition kills the local Kummer symbol at every prime of
+\(E\) above it.  A nonzero unit class
 in this kernel stays nonzero over \(E\): otherwise norm descent through
 \([E:F]=\ell-1\) would make it an \(\ell\)-th power in \(F\).  Its Kummer
 extension is unramified away from \(\ell\), has conductor dividing
@@ -22144,10 +22363,15 @@ two primes above two.  This gives \(4h-3\).  Taking
 bound.
 \end{proof}
 
-\begin{proposition}[the exact characterwise frontier for \(D\) and \(O\)]
+\subsection{Common split-ray boundary for the ordinary and exceptional arms}
+
+\begin{proposition}[a first characterwise frontier for \(D\) and \(O\)]
 \label{prop:split-ray-character-frontier}
-The rank obstruction disappears only after projecting to the character
-containing the marked cyclotomic unit.
+The unprojected rank obstruction can be narrowed by projecting to a character
+containing the marked cyclotomic unit.  The exceptional projection below is
+already the full two-decomposition character; the ordinary \(H\)-projection
+is a first, generally coarser localization, sharpened in
+Proposition~\ref{prop:marked-decomposition-character}.
 
 For \(D\), let \(\lambda\) be the primitive even character of
 Proposition~\ref{prop:dk-jacobi-top}.  Its unit eigenspace
@@ -22170,10 +22394,9 @@ and therefore
  \quad\text{and}\quad
  \operatorname{ev}_2|_{U_\lambda}\ne0.}             \tag{\(\mathsf{CRF}_2\)}
 \]
-The first condition is the corresponding circular-unit plus-class
-obstruction; the second is the one-dimensional selected Frobenius
-evaluation.  The classical Stickelberger element has zero even projection
-and forces neither.
+The first condition is the projected circular-unit divisibility obstruction;
+the second is the one-dimensional selected Frobenius evaluation.  The
+classical Stickelberger element has zero even projection and forces neither.
 
 For \(O\), put
 \[
@@ -22216,10 +22439,93 @@ For the ordinary cyclic extension \(F/F_0\), the relative unit rank is
  =(r-1)\frac{\varphi(N/r)}2.
 \]
 The \(r-1\) nontrivial \(H\)-characters occur equally, proving
-\((\mathsf{CRF}_3)\).  The selected local Kummer quotient is precisely
-the \(\lambda\)-component, which proves \((\mathsf{CRF}_4)\);
-rank--nullity supplies the remaining bound.
+\((\mathsf{CRF}_3)\).  Frobenius covariance gives
+\(\operatorname{ev}_{\mathfrak q_{\rm C}}(\sigma_{2^i}u)
+=2^i\operatorname{ev}_{\mathfrak q_{\rm C}}(u)\), so the selected local
+Kummer quotient factors through this \(\lambda\)-component.  This proves
+\((\mathsf{CRF}_4)\); rank--nullity supplies the remaining bound.
 \end{proof}
+
+The next proposition replaces this first ordinary \(H\)-projection by the
+exact character of the complete two-decomposition group.  In the exceptional
+specialization \(N=15h\), one has
+\(|G|=8h\), \(|D_2|=4h\), and \(-1\notin D_2\), so
+\((\mathsf{MDC}_2)\) is one-dimensional and recovers the exceptional line
+above.  In the ordinary specialization it sharpens
+\((\mathsf{CRF}_3)\) to \([G:\langle D_2,-1\rangle]\).
+
+\begin{proposition}[decomposition-character localization at two]
+\label{prop:marked-decomposition-character}
+Let \(N\) be odd, put
+\[
+ F=\mathbb Q(\mu_N),\qquad
+ G=(\mathbb Z/N\mathbb Z)^\times,\qquad
+ D_2=\langle2\rangle\leq G,qquad |D_2|=f,
+\]
+and let \(\ell\nmid2Nf\) be an odd prime such that
+\(e=\ord_\ell(2)>1\) divides \(f\).  Fix a prime
+\(\mathfrak q\mid2\) of \(F\), and write
+\[
+ \operatorname{ev}_{\mathfrak q}:
+ \mathcal O_F^\times\otimes\mathbb F_\ell\longrightarrow\mathbb F_\ell
+\]
+for the \(\ell\)-power residue index.  The rule
+\(\psi(2^i)=2^i\pmod\ell\) defines a nontrivial character of \(D_2\).
+For its idempotent
+\[
+ e_\psi=\frac1f\sum_{d\in D_2}\psi(d)^{-1}d
+\]
+one has
+\[
+ \boxed{
+ \operatorname{ev}_{\mathfrak q}
+ =\operatorname{ev}_{\mathfrak q}\circ e_\psi.}     \tag{\(\mathsf{MDC}_1\)}
+\]
+Thus every other decomposition character is invisible at the marked prime.
+
+Put \(j=-1\in G\) and \(U_\psi=e_\psi
+(\mathcal O_F^\times\otimes\mathbb F_\ell)\).  If \(j\in D_2\) but
+\(\psi(j)\ne1\), then \(U_\psi=0\) and the marked residue functional
+vanishes on every global unit.  Otherwise
+\[
+ \boxed{\dim_{\mathbb F_\ell}U_\psi
+   =[G:\langle D_2,j\rangle].}                     \tag{\(\mathsf{MDC}_2\)}
+\]
+For any marked unit class \(c\), its selected residue is therefore nonzero
+exactly when
+\[
+ \operatorname{ev}_{\mathfrak q}(e_\psi c)\ne0.     \tag{\(\mathsf{MDC}_3\)}
+\]
+The reflected Kummer character is
+\(\psi^*=\omega\psi^{-1}\), where \(\omega\) is cyclotomic, and
+\[
+ \psi^*(2)=2\psi(2)^{-1}=1.                         \tag{\(\mathsf{MDC}_4\)}
+\]
+Thus reflection moves the surviving class into the decomposition-trivial
+component; it does not force the marked Frobenius to be nonidentity.
+\end{proposition}
+
+\begin{proof}
+For \(d=2^i\in D_2\), reduction commutes with Frobenius, so
+\[
+ \operatorname{ev}_{\mathfrak q}(d u)
+ =2^i\operatorname{ev}_{\mathfrak q}(u)
+ =\psi(d)\operatorname{ev}_{\mathfrak q}(u).
+\]
+Averaging proves \((\mathsf{MDC}_1)\).  Complex conjugation acts trivially
+on the odd-primary unit module, so an occurrence of \(j\) in \(D_2\) with
+the wrong \(\psi\)-value forces that eigenspace to vanish.
+
+After scalar extension, the cyclotomic unit representation contains each
+nontrivial even \(G\)-character once.  The multiplicity of \(\psi\) on
+restriction to \(D_2\) is therefore the number of even \(G\)-characters
+extending it.  When compatible with \(j\), finite abelian character extension
+and Maschke semisimplicity give \((\mathsf{MDC}_2)\).  Equation
+\((\mathsf{MDC}_3)\) follows from \((\mathsf{MDC}_1)\), and the standard
+Kummer conjugation formula gives \((\mathsf{MDC}_4)\).
+\end{proof}
+
+\subsection{Return to the exceptional local regulator}
 
 \begin{proposition}[the wild regulator is explicit but homogeneous]
 \label{prop:dk-wild-regulator-no-go}
@@ -26407,6 +26713,12 @@ A proper lower fibotomic stratum is therefore equivalent to a common factor
 of the preceding Fermat number and either adjacent factor offset.  This is
 an all-level screen, but even gcd one does not contradict the unnormalized
 coordinate equality.
+Corollary~\ref{cor:fermat-additive-size-obstruction} then excludes the
+smallest proper lower stratum.  In the proper-loss branch, the complementary
+order \(e\) obeys \(e\geq4M+1\), together with
+\(Rt<e^2\), \(R\mid(t+e)\), and \(R<2e\).  This removes a complete
+all-level failure mode, while leaving the full-order branch and larger proper
+strata compatible with \((\mathsf{AE}_4)\).
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -26849,6 +27161,13 @@ nontrivial degree-\(\ell\) ray extension of conductor dividing
 \(\mathfrak m_\ell\).  The
 remaining assertion is nontriviality of this fixed weight-one Artin character
 on the transitive two-adic prime orbit.
+Proposition~\ref{prop:cubic-multikummer-split-ray} upgrades that single line
+to the complete conjugate lattice.  Away from current-prime torsion in the
+real class group, the radical is the full augmentation module: the other
+\(n-2\) nontrivial characters already form split-at-two ray extensions, and
+failure is exactly the jump which adds the final Frobenius-\(2\) line and
+raises the packet to rank \(n-1\).  This isolates a genuinely global rank
+jump, but does not exclude it uniformly.
 Propositions~\ref{prop:singer-normal-translate} and
 \ref{prop:cubic-two-normal-bases} nevertheless supply two selected normal
 coordinates joined by an explicit determinant-one half-circulant.  Their

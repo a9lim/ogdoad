@@ -627,6 +627,13 @@ absolute boundedness.
   preceding Fermat number divides both adjacent factor offsets. This is a
   global screen, not closure: even gcd one does not contradict the remaining
   unnormalized coefficient equality.
+  The proper-loss branch is now quantitatively narrower. Writing
+  `h=gcd(Q+1,K)`, `e=(Q+1)/h`, `R=2^v2(d-1)`, and `t=(d-2)/h`, every first
+  failure with `h>1` must satisfy `R<Q`, `R*t<e^2`, `R|(t+e)`, and `R<2e`.
+  In particular `e>=4M+1`: the smallest proper preceding fibotomic stratum
+  `e=2M+1` is impossible. The full-order branch and larger proper strata
+  remain, because the normalized point has no proved selected Conway
+  ancestry to which minimality could be applied.
   A complementary cross-level theorem shows that this Kummer coordinate is
   born only once. If `M=ell^e || F_n`, then the `M`-Kummer quotients vanish
   below `E_n`, are cyclic of order `M` from `E_n` onward, and every later
@@ -792,9 +799,13 @@ absolute boundedness.
   Thus failure really produces a nonzero ray character split at the
   Conway-selected prime above two. This still does not close the arm. The
   unprojected split ray quotient has unavoidable large `p`-rank from global
-  units, while the selected `C_r` eigenspace has dimension `phi(N/r)/2`;
-  the remaining assertion is nonvanishing of the selected Frobenius
-  functional on the one marked vector in that space.
+  units. Projecting by the full two-decomposition character sharpens the
+  selected space from the earlier `C_r` bound `phi(N/r)/2` to
+  `[G:<-1,2>]`; every other character is invisible at the marked prime.
+  The remaining assertion is nonvanishing of the selected Frobenius
+  functional on the one marked vector in that exact space. Reflection moves
+  it to the decomposition-trivial mirror and therefore does not decide that
+  named Frobenius value.
   Simultaneous complex conjugation now gives an exact local reflection normal
   form. For the relative unit `rho`, the invariant realification is
   `u=rho*j(rho)=zeta_N^(1-q_0)*rho^2`; the root-of-unity factor is a global
@@ -922,6 +933,15 @@ absolute boundedness.
   prove nonfailure: the weight-one Artin character
   exists unconditionally, and the remaining assertion is that its restriction
   to the transitive two-adic prime orbit is nontrivial.
+  Keeping the complete conjugate circular-unit lattice makes this a precise
+  rank jump. Away from current-prime torsion in the real class group, its
+  multikummer radical is the full `(n-1)`-dimensional augmentation module.
+  All `n-2` character lines other than the Frobenius-`2` line already define
+  split-at-two ray extensions unconditionally; cubic failure is exactly the
+  event that the final line joins them, raising the split packet to rank
+  `n-1`. Thus a global proof may target this one rank jump, but neither the
+  required uniform class-number exclusion nor non-splitting of the final line
+  is currently known.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -1163,6 +1183,11 @@ absolute boundedness.
   separates into nonvanishing of the projected weighted circular unit and
   nonvanishing of its selected Frobenius evaluation. Classical Stickelberger
   data have zero even projection and force neither.
+  More generally the marked residue functional factors through the exact
+  Frobenius-`2` decomposition character. In this exceptional field that
+  eigenspace is one-dimensional; its reflected Kummer character is
+  decomposition-trivial. Thus the character projection is now exact, but the
+  one marked Frobenius value remains open.
   Below Euler projection there is now an exact adjacent-value compression in
   the original corrected-norm field. Put `D=zeta^4+zeta` in `K=F_(4^h)`.
   The full `F_16` translate table and injectivity of the quadratic
