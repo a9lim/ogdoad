@@ -4,13 +4,16 @@ This file records solved research questions as mathematical results, not as a
 development chronology. Implementation milestones remain in [`DONE.md`](DONE.md),
 while the two unsolved fronts remain in [`OPEN.md`](OPEN.md).
 
-Since 2026-08-12, four of the six results share one flagship paper:
+Since 2026-08-12, five of the seven results share one flagship paper:
 [`goldarf.tex`](../writeups/goldarf.tex), "Quadratic Refinements in Normal
 Play: Realization and the Observation Boundary", absorbed the former
 `gold_diagonal_source.tex` (as its diagonal-source section),
-`brown_game_semantics.tex` (as its Brown-selector section), and the
+`brown_game_semantics.tex` (as its Brown-selector section), the
 `game_exterior_deformation.tex`/`game_exterior_divisibility.tex` pair (as its
-game-exterior appendix). The retired standalones survive in git history.
+game-exterior appendix), and — same day, after an adversarial consult pass —
+the block-compression note `observation_width.tex` (as its every-width
+attainment corollary `cor:blocks`). The retired standalones survive in git
+history.
 
 | solved question | answer | authoritative paper |
 |---|---|---|
@@ -20,6 +23,7 @@ game-exterior appendix). The retired standalones survive in git history.
 | quadratic classification over the full nimber field | the nonsingular Witt and Brauer--Wall classes vanish; `(dim V, dim rad B, dim rad Q)` is the complete singular invariant — standard math applied to a new scalar world | [`transfinite_arf.tex`](../writeups/transfinite_arf.tex) |
 | Brown game semantics | one partizan selector realizes all four local Brown residues; every ambient-coherent Brown colour on all short games is zero | [`goldarf.tex`](../writeups/goldarf.tex), Brown-selector section (`sec:brown-selector`) |
 | thermography versus Newton polygons | positive numeric Norton units obey the exact thermic law `temp(G.u) = u·temp(G) + (u − δ_u)` with a classified composition defect; the shared shadow is tropical but no faithful full-dyadic graded ring exists | [`thermo_newton.tex`](../writeups/thermo_newton.tex) |
+| observation width above weight one | block aggregation of the weighted-source rule attains the integral transcript-span bound `ceil(wt(x)/w)` exactly at every fixed width, under the same access contract at `(w_0, c) = (w, 1)` | [`goldarf.tex`](../writeups/goldarf.tex), block-compression corollary (`cor:blocks`) |
 
 ## 1. Gold quadratic zero sets have a normal-play realization
 
@@ -232,12 +236,50 @@ Proof surfaces:
 - [`src/games/heating.rs`](../src/games/heating.rs)
 - [`src/scalar/newton.rs`](../src/scalar/newton.rs)
 
+## 7. The observation boundary is attained at every width
+
+Let `B` be alternating on a finite `F_2`-space, `Q` any quadratic refinement,
+`x` any input, and `w >= 1` a fixed width. Partition `supp(x)` into
+`k = ceil(wt(x)/w)` blocks of size at most `w` with indicator vectors `z_i`;
+the Gram data `B(z_i, z_j)` is an alternating form on `F_2^k` and the
+restriction of `Q` along the block embedding is one of its quadratic
+refinements, with diagonal `Q(z_i)` and all-ones value exactly `Q(x)`.
+Playing the weighted-source rule on this induced instance, with each induced
+singleton query implemented as the original-frame query `Q(z_i)`, satisfies
+the F1–F3/N1–N2 access contract at `(w_0, c) = (w, 1)`, has root outcome `P`
+exactly when `Q(x) = 0`, and has possible oracle support exactly the `k`
+block vectors — total weight `wt(x)`, cardinality `ceil(wt(x)/w)`.
+
+Since certificate cardinality is integral, the transcript-span lower bound
+already forces `ceil(wt(x)/w)` observations, so the bound is attained
+exactly, not merely up to a ceiling: the observation complexity of exact
+transcript-stable realization under the contract is `ceil(wt(x)/w)` at every
+fixed width, with the weight-one singleton support of the original rule as
+the `w = 1` case. Overlapping observation geometries cannot beat the
+partition count within the uniform contract, and a width-tagged disjoint
+union serves every width at once.
+
+The question was posed as the flagship's second residual open on 2026-08-12
+and closed the same day: the reduction survived a sol-tier adversarial
+consult, whose corrections (original-interface disjoint-union framing,
+possible-oracle-support phrasing, the explicit `x = 0` case, and the integral
+strengthening) are incorporated in the folded corollary.
+
+Proof surfaces:
+
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex), block-compression
+  corollary (`cor:blocks`)
+- [`formal/Ogdoad/GoldBlockCompression.lean`](../formal/Ogdoad/GoldBlockCompression.lean)
+- [`formal/Ogdoad/GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean)
+
 ## The remaining open fronts
 
 Only the following research questions remain open:
 
 1. the arbitrary-graph causal affine-contraction theorem for FIFO linking;
-2. the universal Lenstra excess `0/1/4` rule.
+2. the universal Lenstra excess `0/1/4` rule;
+3. the impartial uniform realizer;
+4. the game-native extraspecial extension model.
 
 Their exact current formulations and evidence boundaries are in
 [`OPEN.md`](OPEN.md).

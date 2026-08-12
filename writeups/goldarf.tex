@@ -65,11 +65,13 @@ most one weight-one value of the refinement, and exactness is uniform over
 the full torsor of refinements of $B$.  Conversely, any transcript-stable
 exact rule must observe directions spanning the input, so weight-$w$
 observations require at least $\wt(x)/w$ of them; the construction attains
-the bound at $w=1$.  The Gold trace family $Q_a(x)=\Tr(x\,x^{2^a})$ over
+the bound at $w=1$, and block aggregation of the same rule attains the
+integral bound $\lceil\wt(x)/w\rceil$ exactly at every fixed width.  The
+Gold trace family $Q_a(x)=\Tr(x\,x^{2^a})$ over
 nimber fields is the motivating game-built instance, with the Arf
 invariant as the exact second-player win-bias, and a closing construction
 reads the $\mathbb{Z}/4$-valued Brown refinement off four partizan outcome
-classes.  Six ingredients of these results are formally verified in
+classes.  Seven ingredients of these results are formally verified in
 Lean~4.
 \end{abstract}
 
@@ -132,12 +134,15 @@ compiles the accumulated charge to a $P/N$ outcome.  The phase is the mover
 bit, so the compiled arena is partizan; whether an impartial uniform
 realizer exists under the same access discipline is open.
 \item \emph{The observation boundary}
-(Theorem~\ref{thm:certificate}, Corollary~\ref{cor:attain}).  Any
+(Theorem~\ref{thm:certificate}, Corollaries~\ref{cor:attain}
+and~\ref{cor:blocks}).  Any
 transcript-stable exact rule must observe refinement values at directions
 spanning the input, so weight-$w$ observations require at least $\wt(x)/w$
-of them.  The construction attains the bound at $w=1$ with observation
-support exactly the singleton directions of the input; no matching upper
-bound is claimed for $w>1$.
+of them -- hence, integrally, at least $\lceil\wt(x)/w\rceil$.  The
+construction attains the bound at $w=1$ with observation support exactly
+the singleton directions of the input, and block aggregation of the same
+rule attains the integral bound exactly at every fixed width, closing the
+boundary at all widths.
 \item \emph{Fork padding} (Theorem~\ref{thm:forkpadding}).  Extensional
 winning-fork tests -- ``there is a refinement-sensitive winning fork on
 every optimal play'' -- cannot certify that a realizer is non-evaluative:
@@ -205,10 +210,11 @@ required overlaps strategically under a bounded-access contract.
 
 \subsection{Verification}
 
-Six independent ingredients of the realization and the boundary are
+Seven independent ingredients of the realization and the boundary are
 kernel-checked in Lean~4 with mathlib: the diagonal trace identities, the
 matching FIFO strategy, the adapted-basis expansion, the phase-aware claim
-compiler, the transcript-span bound, and the fork-padding obstruction;
+compiler, the transcript-span bound, the block-aggregation algebra, and
+the fork-padding obstruction;
 further modules check the algebraic cores of the Brown-selector section
 and the game-exterior appendix.
 These are ingredient theorems: no single Lean statement constructs the
@@ -226,7 +232,7 @@ Section~\ref{sec:criterion} states the access contract.
 Section~\ref{sec:wittfifo} gives the weighted-source \textsc{witt-fifo}
 construction and proves the realization theorem;
 Section~\ref{sec:boundary} proves the observation lower bound, its
-attainment, and the fork-padding obstruction.
+attainment at every width, and the fork-padding obstruction.
 Section~\ref{sec:goldarf} works out the Gold--Arf instance, including the
 all-exponent diagonal source and the win-bias reading.
 Section~\ref{sec:brown-selector} packages the $\mathbb{Z}/4$ Brown
@@ -824,8 +830,77 @@ Theorem~\ref{thm:certificate} every transcript-stable exact weight-one
 interface must cover the same support.
 \end{corollary}
 
-For $w>1$ Theorem~\ref{thm:certificate} is only a lower bound; no matching
-construction is claimed.
+Block aggregation extends the attainment to every fixed width.  Since
+$|S(q,x)|$ is an integer, Theorem~\ref{thm:certificate} in fact forces
+$|S(q,x)|\geq\lceil\wt(x)/w\rceil$; the following corollary attains that
+integral bound exactly, so no gap remains at any width.
+
+\begin{corollary}[block compression]\label{cor:blocks}
+Fix $w\geq1$.  For an input $x$, partition $\operatorname{supp}(x)$ into
+$k=\lceil\wt(x)/w\rceil$ blocks of size at most $w$ by greedy chunking in
+coordinate order, and write $z_1,\dots,z_k$ for the block indicator
+vectors.  Let $B'$ on $\F_2^k$ be the Gram data
+$B'(e'_i,e'_j)=B(z_i,z_j)$ and let $Q'$ be the restriction of $Q$ along
+$s\mapsto\sum_{i\in s}z_i$, so that $Q'$ is a quadratic refinement of
+$B'$ with diagonal $Q'(e'_i)=Q(z_i)$.  The rule that plays the
+weighted-source \textsc{witt-fifo} arena of Theorem~\ref{thm:wittfifo}
+on $(\F_2^k,B',Q')$ at loaded input $\mathbf{1}$, implementing each
+induced singleton query $Q'(e'_i)$ as the original-frame query $Q(z_i)$,
+satisfies F1--F3/N1--N2 at $(w_0,c)=(w,1)$; its root outcome is $P$ iff
+$Q(x)=0$; and its possible oracle directions at input $x$ are exactly
+$z_1,\dots,z_k$: pairwise disjointly supported, linearly independent,
+summing to $x$, of total weight exactly $\wt(x)$, and of cardinality
+exactly $\lceil\wt(x)/w\rceil$.
+\end{corollary}
+
+\begin{proof}
+Polarization iterates to
+\[
+ Q\Bigl(\sum_{i\in s}z_i\Bigr)
+ =\sum_{i\in s}Q(z_i)+\sum_{\substack{i<j\\ i,j\in s}}B(z_i,z_j),
+\]
+so $Q'$ is the quadratic map on $\F_2^k$ with diagonal $Q(z_i)$ and
+polar form $B'$, which is alternating because $B$ is; and
+$Q'(\mathbf{1})=Q(z_1+\dots+z_k)=Q(x)$.  The induced-instance algebra --
+the diagonal, the Gram polar form, alternation, and the all-ones
+identity -- together with the indicator-block bookkeeping (disjoint
+nonempty blocks sum to the indicator of their union and are linearly
+independent) is kernel-checked in
+\path{formal/Ogdoad/GoldBlockCompression.lean}.
+
+For the contract, define one rule on the original oracle interface as
+the $q$-blind disjoint union of the induced arenas indexed by the
+immutable header $(x,\,Z_1,\dots,Z_k,\,B')$.  The header -- hence the
+position set, loading map, and terminal set -- is computed from $(B,x)$
+and the fixed frame only, so F1 holds.  Each transition of the induced
+arena consults the refinement through at most one singleton value
+$Q'(e'_i)=Q(z_i)$, one oracle query at an original-frame point of weight
+$|Z_i|\leq w$, giving F2 and N2 at $(w,1)$; the semantics is the
+unchanged normal-play claim convention, giving F3.  Exactness is
+Theorem~\ref{thm:wittfifo} applied to the induced instance -- $B'$ is
+alternating, $Q'$ is one of its refinements, and $\mathbf{1}$ is a
+loaded input, so the instance lies inside the theorem's quantified
+family -- combined with $Q'(\mathbf{1})=Q(x)$; this holds for every
+refinement $Q$ of every $B$ at every $x$, giving N1.  At $x=0$ the
+header has $k=0$, the possible observation set is empty, and the
+optionless root is $P$, matching $Q(0)=0$.
+
+By Proposition~\ref{prop:wittfifonatural} the set of possible oracle
+directions of the induced arena at $\mathbf{1}$ is exactly
+$\{e'_1,\dots,e'_k\}$, which the implementation reads at exactly
+$\{z_1,\dots,z_k\}$.  The support, independence, total-weight, and
+cardinality claims are immediate from disjointness of the blocks.
+\end{proof}
+
+Together with the integral form of Theorem~\ref{thm:certificate}, the
+observation complexity of exact transcript-stable realization under the
+contract is therefore exactly $\lceil\wt(x)/w\rceil$ at every fixed
+width $w$; Corollary~\ref{cor:attain} is the $w=1$ case.  Overlapping
+observation geometries cannot beat the partition count within the
+declared uniform contract, and a single width-tagged disjoint union of
+these rules serves every width at once; only genuinely cross-width
+compatibility conditions, none of which are imposed here, would pose a
+further question.
 
 \begin{theorem}[fork padding obstruction]\label{thm:forkpadding}
 The properties ``there exists a refinement-sensitive winning fork at a
@@ -2038,8 +2113,8 @@ theorem's scope, not unresolved premises of the realization.
 \end{remark}
 \section{The formal boundary}\label{sec:status}
 
-The headline realization and observation bound separate into five
-independently checked components; a sixth module checks the auxiliary
+The headline realization and observation bound separate into six
+independently checked components; a seventh module checks the auxiliary
 padding obstruction:
 \begin{itemize}[leftmargin=*]
 \item \path{formal/Ogdoad/GoldDiagonal.lean}: trace blocks and the
@@ -2052,6 +2127,8 @@ padding obstruction:
       compiler;
 \item \path{formal/Ogdoad/GoldNoEvaluator.lean}: the observation lower
       bound;
+\item \path{formal/Ogdoad/GoldBlockCompression.lean}: the induced-instance
+      algebra behind the every-width attainment;
 \item \path{formal/Ogdoad/GoldForkPadding.lean}: outcome-preserving
       padding.
 \end{itemize}
@@ -2098,16 +2175,16 @@ set; the extraspecial extension identifies the missing noncommutative
 datum; symmetric, commutative, and bounded-total-observation architectures
 cannot carry it uniformly; and extensional fork tests cannot define
 naturality.  Weighted-source Witt--FIFO meets the necessary observation
-span with singleton support.
+span with singleton support, and its block aggregation
+(Corollary~\ref{cor:blocks}) closes the boundary at every fixed width.
 
-Four questions remain open.  First, an impartial uniform realizer: the
+Three questions remain open.  First, an impartial uniform realizer: the
 arena is partizan only through its mover bit $\phi$, and whether an
 impartial rule with the same access discipline exists is open.  Second,
-matching upper bounds above weight one:
-Theorem~\ref{thm:certificate} is only a lower bound for $w>1$.  Third, the
+the
 arbitrary-graph isolated-dummy FIFO linking conjecture -- a strict
 strengthening of Theorem~\ref{thm:matchingfifo}, no longer load-bearing
-here -- remains a separate combinatorial problem.  Fourth, a game-native
+here -- remains a separate combinatorial problem.  Third, a game-native
 model of the extraspecial extension $E_{Q_a}$ (the open question of
 Section~\ref{sec:nogos}) would upgrade the covariant realization to a
 structural one.

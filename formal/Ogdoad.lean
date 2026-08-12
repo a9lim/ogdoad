@@ -18,6 +18,7 @@ import Ogdoad.FifoMatching
 import Ogdoad.GoldSemantics
 import Ogdoad.GoldMatchingAlgebra
 import Ogdoad.GoldNoEvaluator
+import Ogdoad.GoldBlockCompression
 import Ogdoad.GoldForkPadding
 import Ogdoad.Excess
 import Ogdoad.GameExterior

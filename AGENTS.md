@@ -54,7 +54,9 @@ hyperbolic coordinates;
 `Ogdoad/GoldMatchingAlgebra.lean` proves the adapted-basis quadratic expansion;
 `Ogdoad/GoldSemantics.lean` proves the forced-charge-to-normal-play winner
 equivalence; `Ogdoad/GoldNoEvaluator.lean` proves the sharp transcript-span and
-query-weight lower bounds; `Ogdoad/GoldForkPadding.lean` proves that unavoidable
+query-weight lower bounds; `Ogdoad/GoldBlockCompression.lean` proves the
+induced-instance algebra behind the every-width block-compression attainment;
+`Ogdoad/GoldForkPadding.lean` proves that unavoidable
 strategic-fork padding cannot certify non-tautology; and
 `Ogdoad/GameExterior.lean` kernel-checks the root-collapse lemma and the
 coefficient-faithful quadratic/polar consequences resolving `tisn`; and
@@ -120,7 +122,9 @@ outcomes for all four `Z/4` residues), and the game-exterior appendix
 (ambient-coherent obstruction, `⋂ₖ4ᵏR` sharpening, framed as the negative
 answer to Altman--Lipparini Problem 5.3(j)) — this one file absorbed the
 retired `gold_diagonal_source.tex`, `brown_game_semantics.tex`,
-`game_exterior_deformation.tex`, and `game_exterior_divisibility.tex`;
+`game_exterior_deformation.tex`, `game_exterior_divisibility.tex`, and
+(2026-08-12) the block-compression note `observation_width.tex` (as the
+every-width attainment corollary `cor:blocks`);
 `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `linking_affine.tex` — the proof-frontier note for the general FIFO linking
@@ -130,15 +134,18 @@ filtrations, the correlated cut/continuation moment, initial cut contraction,
 the two-bit handshake refinement, two-switch tail, the false
 childwise/full-fan/bounded-support inductions, and the exact still-open global
 odd-flow lemma;
-`impartial_realizer.tex`, `observation_width.tex`, `extraspecial_model.tex` —
-the three flagship-residual frontier notes (2026-08-12), each the
-authoritative home of one open question from goldarf's conclusion, to be
-folded back into the flagship when resolved: the impartial uniform realizer
-(reduced to a pass-free or pass-parity-pinned matching forcing theorem
-compiling charge to play-length parity), observation width above `w = 1`
-(carries the block-compression proposition that would close it positively —
-awaiting adversarial review), and the game-native extraspecial `E_{Q_a}`
-model (structural demands fixed; ordinal-sum/`Q_8` quotient probe named);
+`impartial_realizer.tex`, `extraspecial_model.tex` — the two
+flagship-residual frontier notes (2026-08-12), each the authoritative home
+of one open question from goldarf's conclusion, to be folded back into the
+flagship when resolved: the impartial uniform realizer (reduced to a
+pass-free or pass-parity-pinned matching forcing theorem compiling charge to
+play-length parity) and the game-native extraspecial `E_{Q_a}` model
+(structural demands fixed; ordinal-sum/`Q_8` quotient probe named); a third
+note, `observation_width.tex`, lived hours — its block-compression
+proposition survived a sol-tier adversarial consult the same day and was
+absorbed into goldarf as the every-width attainment corollary `cor:blocks`
+(kernel-checked algebra in `formal/Ogdoad/GoldBlockCompression.lean`; note
+retired, survives in git history);
 `thermo_newton.tex` — restructured 2026-08-12 as a theorem-first note centered
 on the Norton thermic law `temp(G.u) = u·temp(G) + (u−δ_u)` with its
 composition-defect classification, the tropical-shadow no-go demoted to a
@@ -166,8 +173,9 @@ Use these labels when changing prose, papers, examples, or comments:
   end-to-end arena theorem.
 - **Open**: transfinite nim multiplication beyond the source-verified excess
   table, the now-optional arbitrary-graph FIFO strengthening, and the
-  flagship's three residual opens (impartial uniform realizer, observation
-  upper bounds above weight one, a game-native `E_{Q_a}` model). These live in `docs/OPEN.md`; the
+  flagship's two residual opens (impartial uniform realizer, a game-native
+  `E_{Q_a}` model — the third, observation width above weight one, closed
+  2026-08-12 via the block-compression corollary). These live in `docs/OPEN.md`; the
   game-native `GameExterior` deformation question was resolved negatively under
   ambient subgroup coherence on 2026-08-09.
 
@@ -362,11 +370,14 @@ and mover phase compiles the forced bit to normal play. Loading is q-blind,
 transition access is `(w0,c)=(1,1)`, and its distinct observations are exactly
 the active singleton directions. Any transcript-stable exact rule must observe
 vectors spanning the input, so this support is optimal and a constant total
-budget is impossible. Outcome-preserving unavoidable fork padding proves that
+budget is impossible; block aggregation attains the integral
+`ceil(wt(x)/w)` bound exactly at every fixed width. Outcome-preserving
+unavoidable fork padding proves that
 the basic reachable, optimal, and unavoidable fork properties do not certify
 naturality. Lean checks these
 independent ingredients in the `GoldDiagonal`, `FifoMatching`,
-`GoldMatchingAlgebra`, `GoldSemantics`, `GoldNoEvaluator`, and
+`GoldMatchingAlgebra`, `GoldSemantics`, `GoldNoEvaluator`,
+`GoldBlockCompression`, and
 `GoldForkPadding` formal modules.
 
 The earlier σ-valued echo-fifo+dummy realizer remains **verified**

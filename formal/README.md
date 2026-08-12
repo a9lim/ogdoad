@@ -1011,6 +1011,16 @@ and rules out uniform exactness under a bounded total certificate. The paper's
 weighted-source rule uses exactly the active singleton directions and attains
 this support bound.
 
+[`Ogdoad/GoldBlockCompression.lean`](Ogdoad/GoldBlockCompression.lean) proves
+the algebraic core of the block-compression corollary attaining that bound at
+every width: aggregating coordinates into blocks induces a well-formed
+quadratic refinement on block coordinates — diagonal the block values, polar
+the Gram data, alternating over the `F₂` target — whose value at the all-ones
+input is the original value at the block sum, and disjoint nonempty indicator
+blocks sum to the indicator of their union and are linearly independent. The
+access-contract bookkeeping and the composition with the weighted-source
+arena are the paper's synthesis, not encoded here.
+
 [`Ogdoad/GoldForkPadding.lean`](Ogdoad/GoldForkPadding.lean) proves generic
 Bool-parameter fork padding. It replaces every terminal P-node of an arbitrary
 finite normal-play tree by an outcome-equivalent forced wrapper leading to an

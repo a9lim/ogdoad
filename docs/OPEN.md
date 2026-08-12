@@ -6,15 +6,19 @@ questions and their exact theorem boundaries are indexed in
 [`DONE.md`](DONE.md). Work that does not require new mathematics belongs in
 [`COMPLETENESS.md`](COMPLETENESS.md) or [`CONTINUATIONS.md`](CONTINUATIONS.md).
 
-Five research problems are live:
+Four research problems are live:
 
 | problem | present reduction | authoritative paper |
 |---|---|---|
 | arbitrary-graph FIFO linking | a causal affine-contraction problem in the edge space of a complete graph | [`linking_affine.tex`](../writeups/linking_affine.tex) |
 | finite excess in transfinite nim multiplication | prove the universal `0/1/4` rule through four exact order-theoretic arms | [`excess.tex`](../writeups/excess.tex) |
 | impartial uniform realizer | a pass-free or pass-parity-pinned matching forcing theorem compiling charge to play-length parity | [`impartial_realizer.tex`](../writeups/impartial_realizer.tex) |
-| observation upper bounds above weight one | block compression attains `ceil(wt(x)/w)`; the proposition awaits adversarial review | [`observation_width.tex`](../writeups/observation_width.tex) |
 | game-native extraspecial model | produce the diagonal `q_i = Q_a(e_i)` as squares in a noncommutative game-built model of `E_(Q_a)` | [`extraspecial_model.tex`](../writeups/extraspecial_model.tex) |
+
+(The observation-width question above weight one closed on 2026-08-12: the
+block-compression corollary attains the integral transcript-span bound
+exactly at every fixed width. See [`CLOSED.md`](CLOSED.md) and the
+flagship's `cor:blocks`.)
 
 The evidence vocabulary is fixed throughout this file:
 
@@ -1687,71 +1691,7 @@ by the abelian obstruction it cannot proceed through value quotients.
 - [`formal/Ogdoad/GoldSemantics.lean`](../formal/Ogdoad/GoldSemantics.lean)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 
-## 4. Observation upper bounds above weight one
-
-### Problem
-
-The transcript-span theorem proves that a transcript-stable rooted result
-exact at `x` observes refinement values at directions spanning `x`; in the
-original frame, if every observed vector has weight at most `w`, then
-
-```text
-|S(q, x)| >= wt(x) / w.
-```
-
-At `w = 1` the weighted-source rule attains the bound with observation
-support exactly the singleton directions `{e_j : x_j = 1}`. For `w > 1` the
-theorem is only a lower bound and no matching construction is claimed.
-
-**Question.** For fixed `w > 1`, is certificate size on the order of
-`wt(x)/w` attainable by a rule under the same F1–F3/N1–N2 contract — genuine
-query compression from higher-weight observations — or does a stronger lower
-bound force order-`wt(x)` observations regardless of `w`?
-
-### Proved boundary
-
-- Both forms of the lower bound — the span statement and the coordinate
-  count — and the bounded-budget evaluator exclusion are proved in
-  [`GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean).
-- No constants `(C, w)` admit an exact torsor-uniform family with complete
-  outcome certificates of size `C` at weight `w` in unbounded dimension
-  (proved). The open content is the exact growth rate at fixed `w > 1`.
-- Standard math sharpens what is actually open: for any decomposition
-  `x = z_1 + ... + z_k` into weight-`<= w` blocks, polarization gives
-  `Q(x) = sum_i Q(z_i) + sum_(i<j) B(z_i, z_j)`, and `B` is public. So
-  `ceil(wt(x)/w)` block queries always determine `Q(x)`
-  information-theoretically; the problem is strategic realization — a
-  uniform arena whose per-transition access stays within the contract while
-  play forces the block certificate — not certificate existence.
-
-### Candidate resolution
-
-The frontier note proves a block-compression proposition: partition
-`supp(x)` into blocks of size at most `w`, take the block indicators `z_i`
-as new coordinates, the Gram data `B(z_i, z_j)` as the induced alternating
-form, and `Q(z_i)` as the induced diagonal; running the flagship
-weighted-source rule on the induced instance at input all-ones is exact for
-`Q(x)`, satisfies the contract at `(w_0, c) = (w, 1)`, and observes exactly
-the `ceil(wt(x)/w)` block vectors. This attains the transcript-span lower
-bound up to the integer ceiling at every width, and the total observed
-weight is exactly `wt(x)`. The proof is a three-step reduction to the
-flagship realization and locality theorems plus the polarization expansion.
-**It has not passed the adversarial review gate**; the note lists the three
-points a referee should press (frame-relative weight metering, per-input
-block partitions under F1, uniformity of the induced family under N1). If
-it stands, this entry closes positively and folds into the flagship as a
-corollary beside the weight-one attainment; the residual questions — a
-uniform-in-width interface and non-partition observation geometries — are
-recorded in the note.
-
-### Verification surfaces
-
-- [`writeups/observation_width.tex`](../writeups/observation_width.tex)
-- [`writeups/goldarf.tex`](../writeups/goldarf.tex) (observation-boundary
-  section)
-- [`formal/Ogdoad/GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean)
-
-## 5. A game-native extraspecial extension model
+## 4. A game-native extraspecial extension model
 
 ### Problem
 
