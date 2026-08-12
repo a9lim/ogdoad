@@ -124,12 +124,15 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   in the quadratic extension.  Lean also checks the induced primitive-ray
   coefficient and the conjugate-sum algebra underlying its scaled trace-one
   identity, the local prime-power
-  totient gaps behind the `1` versus `2^(n+2)` packet dichotomy, the universal
+  totient gaps behind the `1` versus `2^(n+2)` packet dichotomy, the local
+  prime-power/product algebra and square threshold behind the stronger
+  `kappa_n*2^(n+2)` Fermat-factor sieve, the universal
   principal-two-unit congruence through Fermat precision, and the exact
   product identity underlying the shifted-unit relative norm.  Finite-field
   trace, number-field norm, conjugation, the Teichmuller expansion, complete
   splitting above two, stabilizer-orbit count, roots-of-unity product, local
-  ramification, and finite-field specializations remain paper-level;
+  ramification, Lucas and cubic-reciprocity divisor sieve, and finite-field
+  specializations remain paper-level;
 - the abstract semiprimitive Gauss-table core: the nontrivial additive
   character sum on field units, multiplicative change of variables, the
   one-exceptional-line evaluation, denominator-cleared large and small period

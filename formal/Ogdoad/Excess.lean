@@ -3248,6 +3248,125 @@ theorem fermat_prime_pow_drop_gap
     simpa [Nat.mul_comm] using Nat.le_mul_of_pos_right p (pow_pos hp.pos k)
   exact Nat.mul_le_mul_right _ (le_trans hB hpow)
 
+/-- At a prime power, any proper exponent drop contributes a local packet
+factor at least `G`, provided `G ≤ p - 1`.  The two branches are exactly
+the removed-prime and retained-prime factors in a totient quotient. -/
+theorem fermat_local_packet_factor_gap
+    {p a b G : ℕ}
+    (hp : p.Prime)
+    (ha : 0 < a)
+    (hba : b < a)
+    (hG : G ≤ p - 1) :
+    G ≤ if b = 0 then Nat.totient (p ^ a) else p ^ (a - b) := by
+  by_cases hb : b = 0
+  · simp only [hb, if_pos]
+    exact fermat_totient_prime_pow_zero_gap hp ha hG
+  · simp only [hb]
+    have hGp : G ≤ p := hG.trans (Nat.sub_le p 1)
+    have hpow : p ≤ p ^ (a - b) := by
+      obtain ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero
+        (Nat.sub_ne_zero_of_lt hba)
+      rw [hk, pow_succ]
+      simpa [Nat.mul_comm] using
+        Nat.le_mul_of_pos_right p (pow_pos hp.pos k)
+    exact hGp.trans hpow
+
+/-- Once one local factor is at least `G`, multiplying by the remaining
+positive local factors preserves the gap.  This is the product step in the
+prime-power factorization of `φ(N) / φ(δ)`. -/
+theorem packet_gap_of_local_factor
+    (G q rest t : ℕ)
+    (hfactor : q * rest = t)
+    (hlocal : G ≤ q)
+    (hrest : 0 < rest) :
+    G ≤ t := by
+  calc
+    G ≤ q := hlocal
+    _ = q * 1 := by simp
+    _ ≤ q * rest := Nat.mul_le_mul_left q hrest
+    _ = t := hfactor
+
+/-- Abstract exact threshold: a full conductor has packet one, while every
+proper conductor has packet at least `G`. -/
+theorem csdu_full_iff_packet_lt_gap
+    (delta N G t : ℕ)
+    (hG : 1 < G)
+    (hfull : delta = N → t = 1)
+    (hproper : delta ≠ N → G ≤ t) :
+    delta = N ↔ t < G := by
+  constructor
+  · intro hdelta
+    rw [hfull hdelta]
+    exact hG
+  · intro ht
+    by_contra hdelta
+    exact (not_le_of_gt ht) (hproper hdelta)
+
+/-- A single retained prime with `p - 1 ≥ cB` already forces the same
+lower bound on the totient of the selected conductor. -/
+theorem totient_lower_of_large_prime_divisor
+    (B c p delta : ℕ)
+    (hp : p.Prime)
+    (hpd : p ∣ delta)
+    (hdelta : 0 < delta)
+    (hgap : c * B + 1 ≤ p) :
+    c * B ≤ delta.totient := by
+  have hdvd : p.totient ∣ delta.totient := Nat.totient_dvd_of_dvd hpd
+  have hle : p.totient ≤ delta.totient :=
+    Nat.le_of_dvd (Nat.totient_pos.mpr hdelta) hdvd
+  rw [Nat.totient_prime hp] at hle
+  omega
+
+/-- The load-bearing inequality behind the global packet sieve.  Once every
+prime retained by the selected conductor forces `c * B ≤ φ(δ)`, the exact
+packet identity `t * φ(δ) = φ(N)` gives the advertised upper bound without
+division or rounding conventions. -/
+theorem csdu_packet_upper_of_totient_lower
+    (B c t phiN phiDelta : ℕ)
+    (hfactor : t * phiDelta = phiN)
+    (hphi : c * B ≤ phiDelta) :
+    t * (c * B) ≤ phiN := by
+  calc
+    t * (c * B) ≤ t * phiDelta := Nat.mul_le_mul_left t hphi
+    _ = phiN := hfactor
+
+/-- The same bound after replacing the ambient totient by any explicit
+upper bound, e.g. `φ(F_n) ≤ F_n - 1 = 2^(2^n)`. -/
+theorem csdu_packet_upper_of_ambient_bound
+    (B c t phiN phiDelta Q : ℕ)
+    (hfactor : t * phiDelta = phiN)
+    (hphi : c * B ≤ phiDelta)
+    (hambient : phiN ≤ Q) :
+    t * (c * B) ≤ Q :=
+  (csdu_packet_upper_of_totient_lower
+    B c t phiN phiDelta hfactor hphi).trans hambient
+
+/-- The strengthened packet gap and the retained-conductor totient bound
+force the square lower bound `G² ≤ φ(N)`. -/
+theorem csdu_failure_forces_totient_square
+    (G t phiN phiDelta : ℕ)
+    (hpacket : G ≤ t)
+    (hfactor : t * phiDelta = phiN)
+    (hphi : G ≤ phiDelta) :
+    G * G ≤ phiN := by
+  calc
+    G * G ≤ t * phiDelta := Nat.mul_le_mul hpacket hphi
+    _ = phiN := hfactor
+
+/-- Division-free closure form of the square threshold. -/
+theorem csdu_closes_below_totient_square
+    (G t phiN phiDelta : ℕ)
+    (hfactor : t * phiDelta = phiN)
+    (hphi : G ≤ phiDelta)
+    (hsmall : phiN < G * G) :
+    t < G := by
+  by_contra h
+  have hpacket : G ≤ t := Nat.le_of_not_gt h
+  have hlarge : G * G ≤ phiN :=
+    csdu_failure_forces_totient_square
+      G t phiN phiDelta hpacket hfactor hphi
+  omega
+
 end FermatPacketGapCore
 
 section FermatHigherWittSaturation

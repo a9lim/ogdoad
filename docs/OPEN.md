@@ -471,8 +471,13 @@ absolute boundedness.
   assertion that this support has cardinality one. In fact the packet size
   `t=phi(F_n)/phi(delta_n)` has a uniform gap: for `n>=2`, either `t=1` or
   `t>=2^(n+2)`; modulo `2^(n+2)` it is `1` when only prime exponents drop and
-  `0` when a prime disappears from the conductor. Thus it would suffice to
-  prove the selected norm valuation is strictly below `2^(n+2)`. A bad order
+  `0` when a prime disappears from the conductor. A global Fermat-factor
+  sieve strengthens this for `n>=3`. With `B=2^(n+2)` and
+  `kappa=(7,5,6,3)` for `n mod 4=(0,1,2,3)`, every prime divisor of `F_n`
+  is at least `kappa*B+1`; hence a proper conductor forces
+  `t>=kappa*B`, while full conductor is exactly `t<kappa*B`. Failure also
+  forces `phi(F_n)>=(kappa*B)^2`. This is still exponentially short of a
+  universal contradiction. A bad order
   would produce several distinct simple primes over two, not a repeated selected root. The
   full cyclotomic norm is identically the simple base factor raised to that
   support cardinality, so norm bounds and mod-four congruences derived from
@@ -487,7 +492,7 @@ absolute boundedness.
   residual order. The exponentiation itself merely reproduces the principal
   unit through those digits; that congruence is conductor-insensitive, though
   the reproduced unit may retain further ancestry information. A surviving
-  proof needs the sub-gap upper bound for the repeated selected-conductor norm
+  proof needs an upper bound below the strengthened packet gap for the repeated selected-conductor norm
   or different marked arithmetic.
   The canonical characteristic-zero Hensel lift makes this failure exact:
   two is inert and unramified through the lifted Conway chain, three is

@@ -129,11 +129,17 @@ that their support has cardinality
 `phi(F_n)/phi(delta_n)`.  Thus CSDU is exactly support cardinality one, not a
 multiplicity assertion; the two-adic splitting, orbit count, and cyclotomic
 norm identification are paper-level.  For `n>=2` it further proves the packet
-gap `1` or at least `2^(n+2)` (the levels `n=0,1` are immediate), and
+gap `1` or at least `2^(n+2)` (the levels `n=0,1` are immediate).  For
+`n>=3`, Lucas's divisor congruence, Gauss's cubic-residue criterion, and
+elementary congruences sharpen this to `1` or at least
+`kappa_n*2^(n+2)`, with `kappa_n=(7,5,6,3)` according to `n mod 4`; failure
+then forces `phi(F_n)>=(kappa_n*2^(n+2))^2`.  The Fermat-divisor and cubic
+reciprocity specialization is paper-level, while Lean checks the local
+prime-power factors, abstract threshold, and square inequality.  The paper also
 identifies the selected nonunit as an
 oriented simple primitive ray with trace-one first coefficient and a
-nontrivial Kummer extension ramified at three.  Lean checks the prime-power
-totient-gap algebra, the ray coefficient and conjugate-sum identity underlying
+nontrivial Kummer extension ramified at three.  Lean checks the ray coefficient
+and conjugate-sum identity underlying
 the trace calculation, the universal principal-two-unit congruence, and the
 product identity underlying the shifted-unit norm.  Finite-field trace,
 number-field norm, conjugation, local ramification, splitting, the

@@ -179,7 +179,8 @@ countermodel whose predecessor and successor retain every earlier
 Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
 transport; canonical global lift, weighted reciprocity, selected
 first-Witt polynomial, selected-prime mod-four transversality, exact
-simple-intersection support and packet gap, oriented primitive-ray trace, and
+simple-intersection support, packet gap, and global Fermat-factor sieve,
+oriented primitive-ray trace, and
 higher-Witt saturation boundary, named Artin-class and dihedral reflection-norm
 reductions, the complementary factor/cofactor resultant duality and its
 canonical CRT-projector/trace-annihilation boundary, the hypothetical-failure
@@ -16920,6 +16921,148 @@ identifies \(t_n\) with the displayed valuation and proves
 \((\mathsf{SPT}_7)\).
 \end{proof}
 
+\begin{corollary}[global Fermat-factor sieve for the selected packet]
+\label{cor:fermat-selected-packet-global-sieve}
+Retain Corollary~\ref{cor:fermat-selected-packet-gap}, put
+\[
+ B_n=2^{n+2},\qquad
+ \kappa_n=
+ \begin{cases}
+  7,&n\equiv0\pmod4,\\
+  5,&n\equiv1\pmod4,\\
+  6,&n\equiv2\pmod4,\\
+  3,&n\equiv3\pmod4,
+ \end{cases}
+\]
+and suppose \(n\geq3\).  Every prime divisor \(p\mid F_n\) satisfies
+\[
+ \boxed{\qquad p\geq \kappa_nB_n+1.\qquad}             \tag{\(\mathsf{SPT}_8\)}
+\]
+Put \(G_n=\kappa_nB_n\).  A proper selected conductor has the stronger
+packet gap
+\[
+ \boxed{\qquad
+ t_n=1\quad\hbox{or}\quad t_n\geq G_n,
+ \qquad
+ \delta_n=F_n\iff t_n<G_n.
+ \qquad}                                                \tag{\(\mathsf{SPT}_9\)}
+\]
+The last inequality may equivalently be imposed on the selected norm
+valuation in \((\mathsf{SPT}_7)\).  Moreover, since \(\delta_n>1\),
+\[
+ \varphi(\delta_n)\geq G_n,
+ \qquad
+ \boxed{\quad
+   G_nt_n\leq\varphi(F_n),\qquad
+   t_n\leq\left\lfloor
+       \frac{\varphi(F_n)}{G_n}\right\rfloor
+   \leq\left\lfloor
+       \frac{2^{2^n-n-2}}{\kappa_n}\right\rfloor .\quad}       \tag{\(\mathsf{SPT}_{10}\)}
+\]
+In particular a hypothetical failure forces the square lower bound
+\[
+ \boxed{\qquad
+   \varphi(F_n)\geq G_n^2=\kappa_n^2B_n^2.
+ \qquad}                                                \tag{\(\mathsf{SPT}_{11}\)}
+\]
+This is a genuine all-level divisor sieve on the splitting packet.  It is
+still exponentially too weak to prove \(t_n<G_n\) for arbitrary \(n\).
+\end{corollary}
+
+\begin{proof}
+Lucas's congruence writes every prime divisor as
+\(p=1+kB_n\), with \(k\geq1\).  The cases \(k=1,2,4\) are impossible
+for \(n\geq3\).  Indeed then \(p=1+2^a\), where
+\(a\in\{n+2,n+3,n+4\}\).  If this number is prime, \(a\) is a power of
+two, so \(p\) is a Fermat prime.  Distinct Fermat numbers are coprime,
+whereas \(a<2^n\), so it cannot divide \(F_n\).
+
+It remains to remove \(k=3\) when \(n\) is even.  Write
+\(n+2=2s\).  Then
+\[
+ p=1+3(2^s)^2.
+\]
+Gauss's cubic-residue criterion says that two is a cube modulo a prime
+\(p\equiv1\pmod3\) exactly when
+\(p=X^2+27Y^2=X^2+3(3Y)^2\)~\cite[Thm.~4.15]{Cox13}.
+Both \((1,2^s)\) and, under cubic residuacity, \((X,3Y)\) are primitive
+opposite-parity representations of \(p\) by \(x^2+3y^2\).  Uniqueness
+of that representation up to independent signs would force
+\(|X|=1\) and \(|3Y|=2^s\), which is impossible.  Thus two is not a
+cube modulo \(p\).  But if \(p\mid F_n\), then
+\[
+ 2^{(p-1)/3}=2^{B_n}=(2^{2^n})^4\equiv1\pmod p,
+\]
+which says that two is a cube, a contradiction.
+
+The remaining improvements are elementary congruences.  If
+\(n\equiv1\pmod4\), then \(3B_n+1\) is divisible by five.  If \(n\) is
+even, then \(5B_n+1\) is divisible by three; and if
+\(n\equiv0\pmod4\), then \(6B_n+1\) is divisible by five.  These numbers
+are larger than their displayed divisors.  Together with the already
+excluded \(k=4\), this gives respectively
+\(k\geq5,6,7,3\) in the four residue classes of \(n\) modulo four,
+proving \((\mathsf{SPT}_8)\).
+
+Write
+\[
+ F_n=\prod_p p^{\alpha_p},\qquad
+ \delta_n=\prod_p p^{\beta_p},\qquad
+ 0\leq\beta_p\leq\alpha_p.
+\]
+If \(\delta_n<F_n\), choose \(p\) with \(\beta_p<\alpha_p\).  Its local
+factor in \(t_n=\varphi(F_n)/\varphi(\delta_n)\) is
+\[
+ q_p=
+ \begin{cases}
+  \varphi(p^{\alpha_p}),&\beta_p=0,\\
+  p^{\alpha_p-\beta_p},&\beta_p>0.
+ \end{cases}
+\]
+In the first case \(q_p\geq p-1\geq G_n\); in the second
+\(q_p\geq p>G_n\).  Every other local factor is a positive integer, so
+\(t_n\geq q_p\geq G_n\).  If \(\delta_n=F_n\), then \(t_n=1<G_n\).
+This proves \((\mathsf{SPT}_9)\), including the equivalence; the norm
+valuation formulation follows from \((\mathsf{SPT}_3)\).
+
+Choose a prime \(p\mid\delta_n\).  Since \(p\mid F_n\), the first part
+gives \(p-1\geq G_n\).  Totient divisibility under divisibility gives
+\[
+ p-1=\varphi(p)\mid\varphi(\delta_n),
+\]
+and hence \(\varphi(\delta_n)\geq G_n\).  Multiplying by the exact
+packet identity
+\(t_n\varphi(\delta_n)=\varphi(F_n)\) proves
+the first two parts of \((\mathsf{SPT}_{10})\).  The last follows from
+\(\varphi(F_n)\leq F_n-1=2^{2^n}\) and \(B_n=2^{n+2}\).
+Under failure, \((\mathsf{SPT}_9)\) gives \(t_n\geq G_n\); combining
+this with \(\varphi(\delta_n)\geq G_n\) and the exact packet identity
+proves \((\mathsf{SPT}_{11})\).
+\end{proof}
+
+\begin{remark}[why homogeneous resultant-height bounds cancel the packet]
+Put \(x_n=Q_{\delta_n}(C_n)\).  Equation \((\mathsf{SPT}_4)\) is the
+exact identity
+\[
+ \Norm_{L_n/\mathcal K_n}(C_n-\varepsilon_{r_n})=x_n^{t_n},
+ \qquad v_{\mathfrak p_2}(x_n)=1.
+\]
+Therefore both the selected valuation and every homogeneous global size
+attached to this element scale by the same factor:
+\begin{align*}
+ v_{\mathfrak p_2}(x_n^{t_n})&=t_n,
+ &h(x_n^{t_n})&=t_n h(x_n),\\
+ \log\left|\Norm_{\mathcal K_n/\mathbf Q}(x_n^{t_n})\right|
+ &=t_n\log\left|\Norm_{\mathcal K_n/\mathbf Q}(x_n)\right|.
+\end{align*}
+Thus a norm, resultant, divisor-degree, or Weil-height estimate homogeneous
+under powering cannot by itself prove \(t_n<G_n\): the unknown packet
+multiplicity cancels exactly.  A successful height argument must introduce
+a conductor-dependent estimate not inherited from the descended factor
+\(x_n\).  Corollary~\ref{cor:fermat-selected-packet-global-sieve} does so
+only through the independent arithmetic of prime divisors of \(F_n\).
+\end{remark}
+
 \begin{proposition}[oriented primitive ray and the higher-Witt boundary]
 \label{prop:fermat-oriented-primitive-ray}
 Retain the preceding notation, put \(m=2^n\), and define
@@ -27090,6 +27233,18 @@ divisor, all Moore-span bounds, and the adjoint trace identities.  Such a
 labeling need not respect Conway multiplication, so the construction is
 not a counterexample; it proves that additive linearization cannot replace
 the missing multiplicative-ancestry argument.
+Proposition~\ref{prop:fermat-selected-prime-transversality} and
+Corollaries~\ref{cor:fermat-selected-packet-gap} and
+\ref{cor:fermat-selected-packet-global-sieve} turn that missing order into
+the cardinality \(t_n=\varphi(F_n)/\varphi(\delta_n)\) of a packet of
+distinct simple intersections above two.  For \(n\geq3\), with
+\(G_n=\kappa_n2^{n+2}\) and
+\(\kappa_n=7,5,6,3\) according to \(n\bmod4=0,1,2,3\), full conductor is
+equivalent to \(t_n<G_n\), while failure forces both \(t_n\geq G_n\) and
+\(\varphi(F_n)\geq G_n^2\).  This is a sharper uniform divisor sieve on the
+selected packet, but it remains exponentially too weak; homogeneous norm
+and height estimates cancel \(t_n\) and cannot supply the required upper
+bound without conductor-sensitive input.
 Corollary~\ref{cor:fermat-upper-block-factorization} and
 Proposition~\ref{prop:fermat-upper-block-universal-translate} retain the
 literal least upper Conway interval.  Its complete character histogram,
@@ -28187,6 +28342,9 @@ J.~Reine Angew. Math.\ \textbf{385} (1988), 41--101;
 \url{https://doi.org/10.1515/crll.1988.385.41}.
 \bibitem{Conway76} J.~H.~Conway, \emph{On Numbers and Games}, Academic
 Press, 1976.
+\bibitem{Cox13} D.~A.~Cox,
+\emph{Primes of the Form \(x^2+ny^2\): Fermat, Class Field Theory, and
+Complex Multiplication}, 2nd ed., Wiley, 2013.
 \bibitem{DFRR19} L.~De~Feo, H.~Randriam, \'E.~Rousseau, \emph{Standard
 lattices of compatibly embedded finite fields}, Proc.\ ISSAC 2019;
 arXiv:1906.00870.
