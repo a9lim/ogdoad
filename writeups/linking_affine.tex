@@ -4297,51 +4297,75 @@ ancestry problem.
 For a general history, deleting the dummy has one further, exactly localized
 defect.
 
-\begin{proposition}[dummy deletion and the unique ko wall]
+\begin{proposition}[dummy deletion and the two adjacent ko walls]
 \label{prop:dummy-deletion-wall}
 Let $h$ be a complete legal history with isolated dummy $d$.  Form
 the raw projected event word by deleting $O_d,C_d$ and any pass, while
-retaining the real events in order.  Then:
+retaining the real events in order.  Write the opening order as
+$\pi_1,\ldots,\pi_N$, let $r_b$ be the number of CLOSEs before
+$O_{\pi_b}$, and suppose $d=\pi_j$.  The projected threshold sequence is
+\begin{equation}\label{eq:dummy-erased-threshold}
+ r'_b=
+ \begin{cases}
+ r_b,&b<j,\\
+ r_{b+1}-[j\le r_{b+1}],&b\ge j.
+ \end{cases}
+\end{equation}
+Consequently:
 \begin{enumerate}[leftmargin=*,itemsep=1pt]
 \item every real CLOSE has the same charge before and after deletion;
 \item relative to the raw projected positions, the controller parity of
       precisely the real events strictly between $O_d$ and $C_d$ is
       reversed;
-\item after inserting the unique forced pass exactly when required at a
-      terminal singleton, the projected word is a legal real FIFO history
-      except possibly at one internal ko wall; and
-\item if that wall occurs, its consecutive real events are
-      $O_v,C_v,O_w$.  Replacing them by $O_v,O_w,C_v$ gives a legal real
-      history $\widetilde h$ and
+\item the raw projected threshold can violate the ko implication only at
+      the two adjacent opening ranks $j-1,j$, and both violations can occur;
+      and
+\item repairing the earlier exposed wall (or the sole wall) replaces
+      consecutive real events $O_v,C_v,O_w$ by $O_v,O_w,C_v$.  After
+      inserting the forced terminal pass if required, this gives a legal
+      real history $\widetilde h$ and
       \[
         D_R(\widetilde h)=D_R(h)+vw,
         \qquad
         F_G(\widetilde h)=F_G(h)+B(v,w).
       \]
+      If both adjacent walls occur, this one earlier exchange repairs both.
 \end{enumerate}
-The wall occurs exactly when $d$ is the sole open vertex immediately before
-$O_v$, and both $C_d$ and $C_v$ occur before the next real OPEN $O_w$.
+The bound is sharp: the legal threshold word
+$r=(0,0,1,3)$ with opening order $(a,d,b,c)$ projects to
+$r'=(0,1,2)$, exposing both $O_a,C_a,O_b$ and $O_b,C_b,O_c$.
 \end{proposition}
 
 \begin{proof}
 Because $d$ is isolated, removing it from the untouched set changes no real
 CLOSE charge.  Deleting two event positions preserves controller parity
-outside their open interval and reverses it inside.
+outside their open interval and reverses it inside.  Deleting opening rank
+$j$ also deletes the $j$th FIFO CLOSE.  Before $j$ no threshold changes;
+afterwards the old opening index is $b+1$, and its CLOSE count drops by one
+exactly when the deleted $j$th CLOSE already occurred.  This is
+\eqref{eq:dummy-erased-threshold}.
 
-Deletion preserves the real opening order, closing order, and FIFO condition.
-Suppose nevertheless that a projected $O_v$ opens an empty real queue and is
-followed by $C_v$ while another real vertex remains untouched.  The original
-$O_v$ could not have opened an actually empty queue, since its ko would have
-made $C_v$ illegal.  Thus $d$ was the unique open vertex before $O_v$.
-FIFO then forces $C_d$ before $C_v$, and no other real event can intervene
-before the next real OPEN $O_w$.  Once this happens $d$ is closed, so there
-can be no second internal wall.  If no such $w$ exists, the projected block
-is terminal and inserting its forced pass is the unique repair.
+The original thresholds satisfy
+$0=r_1\le\cdots\le r_N$, $r_b\le b-1$, and
+$r_b=b-1\Rightarrow r_{b+1}=b-1$ away from the terminal rank.  Substituting
+\eqref{eq:dummy-erased-threshold} shows that a failure
+$r'_b=b-1$, $r'_{b+1}\ne b-1$ forces $j=b$ or $j=b+1$.
+Thus only the two displayed adjacent ranks can fail.  The stated four-rank
+word satisfies the original conditions, and direct substitution gives
+$(0,1,2)$, so both failures really occur.
 
-In the internal case, moving $O_w$ immediately before $C_v$ clears ko and
-preserves FIFO legality.  The adjacent exchange changes no real interval
-relation except that of $v,w$: their intervals were disjoint and now overlap.
-This proves both displayed identities and the characterization of the wall.
+At a failed rank the raw event block is $O_v,C_v,O_w$.  Moving $O_w$ before
+$C_v$ lowers the one corresponding threshold from its maximal value by one.
+For a sole wall this restores its ko implication.  If both walls occur,
+repairing the earlier one supplies the required successor at the earlier
+rank and makes the later rank nonmaximal, so the later implication becomes
+vacuous.  All other thresholds are unchanged.  The exchange changes no real
+interval relation except that of $v,w$: their intervals were disjoint and
+now overlap.  This proves the two moment identities.  Any remaining empty-
+queue delay is terminal and is repaired by its forced pass.  These threshold
+claims, the simultaneous two-wall witness, the one-exchange repair, the
+single-edge change, and the controller-interval parity are kernel-checked in
+\path{formal/Ogdoad/FifoDummyDeletion.lean}.
 \end{proof}
 
 Consequently the dummy cannot simply be erased to make a shadow copycat game.
@@ -4405,7 +4429,7 @@ closing orders is $O_0O_1C_0C_1$, whose disjointness score is zero.  A virtual
 pass cannot repair the former word while vertex $1$ remains untouched.
 Thus bubbling or deleting the dummy cannot be made both causal and
 label-preserving by retaining only a role-switch or ko marker:
-Proposition~\ref{prop:dummy-deletion-wall} shows that repairing the ko wall
+Proposition~\ref{prop:dummy-deletion-wall} shows that repairing the ko walls
 necessarily transports its labelled edge moment.  The global odd flow may
 cancel such terms across several histories, but neither the exact
 draft-and-switch reduction nor a single-history dummy normalization proves
@@ -5948,7 +5972,8 @@ The following claims have different status and should not be flattened.
       poison descent, together with the front-signature no-go, pass-free
       reversal identity, its local causal obstruction, the dummy-first
       draft-and-switch normal form, fixed-history dummy deletion with its
-      unique labelled ko-wall repair, the label-essential dummy ko wall, and
+      two adjacent ko walls and single labelled repair, the label-essential
+      dummy ko wall, and
       the mandatory (B$'$) all-OPEN-fan counterexample together with the
       first-response forest criterion and its odd ungrounded-component
       obstruction, the complete fixed-front prefix contraction, and the sharp
@@ -6033,6 +6058,20 @@ The following claims have different status and should not be flattened.
       two-phase carrier and exact two-edge curvature for the same-OPEN branch;
       it is deliberately an even-chain comparison rather than an odd
       contraction.
+      The outer real fan, protected post-dummy fan, cross-exit augmentation
+      ledger, and selected-complement exchange are checked in
+      \path{formal/Ogdoad/FifoOuterFan.lean},
+      \path{formal/Ogdoad/FifoProtectedFan.lean}, and
+      \path{formal/Ogdoad/FifoCrossExitIncidence.lean}; they expose but do not
+      contract the protected continuation class.  The companion
+      \path{formal/Ogdoad/FifoInterlace.lean} confines the rooted
+      interlacement $\kappa$-transform to the two-switch corridor.
+      \path{formal/Ogdoad/FifoDummyDeletion.lean} checks the corrected two-wall
+      deletion formula, one-exchange legalization, exact unit-edge correction,
+      and controller-interval reversal.  Finally,
+      \path{formal/Ogdoad/FifoRootSelector.lean} checks the universal
+      first-seat same-degree selector; its second-seat existential half remains
+      open.
       The companion \path{formal/Ogdoad/FifoMinHotCurvature.lean} checks the
       forced cross-target CLOSE/OPEN choices at a minimum-hot wall, its exact
       ko split and drainage, and nonvanishing of the residual unit curvature

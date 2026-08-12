@@ -214,6 +214,28 @@ not a scalar parity identity.
   child, an automatically even family. The file proves this local exchange,
   sufficiency, and parity, not cancellation of the aggregate unit holonomies
   together with the CLOSE-selected exits.
+- `formal/Ogdoad/FifoOuterFan.lean` and
+  `formal/Ogdoad/FifoProtectedFan.lean` kernel-check the two exact fan
+  boundaries at the root and protected dummy branch. The all-real second-OPEN
+  convolution differs from the dummy child by a response direction; after
+  `OPEN x; OPEN d; OPEN z`, the remaining real-OPEN-plus-front-CLOSE fan has
+  odd cardinality and zero full-vector prefix. These expose rather than
+  contract the protected `B'` continuation class.
+- `formal/Ogdoad/FifoInterlace.lean` proves that a rooted word-level kappa
+  transform preserves FIFO order exactly when its reversed interval contains
+  at most one OPEN and one CLOSE. Thus local complementation reaches only the
+  two-switch corridor and cannot couple a general strategy-pruned fan.
+- `formal/Ogdoad/FifoDummyDeletion.lean` corrects fixed-history dummy deletion:
+  the raw projection may expose two adjacent ko violations. They are the only
+  possible violations, one exchange at the earliest wall repairs all of them
+  and changes exactly one real separation coordinate, while controller parity
+  reverses throughout the dummy interval. Consequently the legal projection
+  is not a fixed-policy induction on the smaller board.
+- `formal/Ogdoad/FifoRootSelector.lean` proves the first-seat half of the
+  same-degree root selector. On an even real carrier, handshaking supplies a
+  same-degree real mate, and the opponent-controlled post-first-OPEN node
+  inherits every such legal child. The load-bearing second-seat existential
+  selector remains open.
 - `formal/Ogdoad/FifoMinHotCurvature.lean` proves that the two target sheets
   at a minimum-hot singleton wall select opposite CLOSE/OPEN sides for every
   actual policy. Their two-step schedules differ by one real edge coordinate,
@@ -340,6 +362,11 @@ the stated target.
 - [`formal/Ogdoad/FifoSameOpenBraid.lean`](../formal/Ogdoad/FifoSameOpenBraid.lean)
 - [`formal/Ogdoad/FifoDummyExitCarrier.lean`](../formal/Ogdoad/FifoDummyExitCarrier.lean)
 - [`formal/Ogdoad/FifoCrossExitIncidence.lean`](../formal/Ogdoad/FifoCrossExitIncidence.lean)
+- [`formal/Ogdoad/FifoOuterFan.lean`](../formal/Ogdoad/FifoOuterFan.lean)
+- [`formal/Ogdoad/FifoProtectedFan.lean`](../formal/Ogdoad/FifoProtectedFan.lean)
+- [`formal/Ogdoad/FifoInterlace.lean`](../formal/Ogdoad/FifoInterlace.lean)
+- [`formal/Ogdoad/FifoDummyDeletion.lean`](../formal/Ogdoad/FifoDummyDeletion.lean)
+- [`formal/Ogdoad/FifoRootSelector.lean`](../formal/Ogdoad/FifoRootSelector.lean)
 - [`formal/Ogdoad/FifoMinHotCurvature.lean`](../formal/Ogdoad/FifoMinHotCurvature.lean)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`experiments/linking_game.py`](../experiments/linking_game.py)

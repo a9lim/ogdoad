@@ -851,6 +851,13 @@ tree.  The required same-eta
 corridor and global `(A)/(B')` ancestry contraction remain mathematical
 obligations.
 
+[`Ogdoad/FifoRootSelector.lean`](Ogdoad/FifoRootSelector.lean) checks the
+universal half of the even-real root selector. Handshaking makes every
+opener's same-degree real mate class nonempty. When the even player owns the
+first seat, the post-first-OPEN node is opponent-controlled, so every legal
+same-degree second OPEN is inherited by its `EvenWins` answer tree. The
+second-seat selector is existential rather than universal and remains open.
+
 [`Ogdoad/FifoCausal.lean`](Ogdoad/FifoCausal.lean) checks the direct causal
 content of the minimum charged-CLOSE extraction:
 
@@ -982,6 +989,31 @@ pair for the parent plus all other real children, automatically an even
 decorated family. It removes the local sibling-choice obstruction but leaves
 the aggregate unit holonomies and CLOSE-selected exits to be coupled. The
 module does not construct that final cross-exit equality from the corridor.
+
+[`Ogdoad/FifoOuterFan.lean`](Ogdoad/FifoOuterFan.lean) proves the exact
+projected root OPEN-fan identity and its strategy-relative form: the odd
+convolution of all real second-OPEN children differs from the protected dummy
+child by a lifted response direction. [`Ogdoad/FifoProtectedFan.lean`](Ogdoad/FifoProtectedFan.lean)
+proves that after `OPEN x; OPEN d; OPEN z`, the complete fan consisting of
+`CLOSE x` and every remaining real OPEN has odd cardinality and zero
+full-vector prefix. Both results expose the protected `B'` continuation class;
+neither contracts it.
+
+[`Ogdoad/FifoInterlace.lean`](Ogdoad/FifoInterlace.lean) gives the exact
+word-level boundary for an interlacement/local-complementation proof. Reversing
+the endpoints between `OPEN v` and `CLOSE v` preserves FIFO opening/closing
+order exactly when that interval contains at most one OPEN and at most one
+CLOSE. Thus the kappa transform is confined to the already isolated
+two-switch corridor.
+
+[`Ogdoad/FifoDummyDeletion.lean`](Ogdoad/FifoDummyDeletion.lean) corrects the
+raw dummy-deletion normal form. Deletion can expose two adjacent ko
+violations, not one. Lean proves that violations occur only at the two ranks
+adjacent to the dummy opening, that repairing the earliest one removes all of
+them, and that this single exchange changes exactly one separation edge. It
+also proves that controller parity reverses exactly between the dummy OPEN and
+CLOSE, which prevents the legalized projection from being a fixed-policy
+induction on the smaller board.
 
 [`Ogdoad/FifoMinHotCurvature.lean`](Ogdoad/FifoMinHotCurvature.lean) checks
 the sharp cross-target obstruction at the rank-minimal hot singleton wall.
