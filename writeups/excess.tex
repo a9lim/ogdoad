@@ -2791,6 +2791,69 @@ requires isolating the compatible prime above two, equivalently the
 missing mixed ray-class coordinate.
 \end{remark}
 
+\begin{proposition}[ordinary failure is a selected split ray character]
+\label{prop:ordinary-split-ray-reduction}
+Retain Proposition~\ref{prop:singleton-relative-unit}, with \(r\ne3\), and
+write
+\[
+ F=\mathbb Q(\mu_N),\qquad E=F(\mu_p),\qquad
+ \rho=\frac{1-\zeta_N^{q_0}}{1-\zeta_N},\qquad
+ L_\rho=E(\sqrt[p]{\rho}).
+\]
+Let \(\mathfrak q_{\rm C}\mid2\) be the Conway-selected prime of \(F\),
+let \(B_{\rm C}\) be generated in the ray class group by all primes of \(E\)
+above \(\mathfrak q_{\rm C}\), and put
+\[
+ \mathfrak n=\prod_{\lambda\mid p}\lambda^2,\qquad
+ \mathrm{Cl}_{\mathfrak n}^{({\rm C}\text{-split})}(E)
+ =\mathrm{Cl}_{\mathfrak n}(E)/B_{\rm C}.
+\]
+Then \(L_\rho/E\) is a nontrivial cyclic extension of degree \(p\),
+unramified away from \(p\), with conductor dividing \(\mathfrak n\).  Under
+ordinary failure all primes above \(\mathfrak q_{\rm C}\) split completely,
+and hence
+\[
+ \boxed{
+ p\mid\#\mathrm{Cl}_{\mathfrak n}^{({\rm C}\text{-split})}(E).}
+                                                               \tag{\(\mathsf{OSR}_1\)}
+\]
+The converse does not follow from the order of this unprojected quotient;
+Proposition~\ref{prop:split-ray-rank-obstruction} shows that it has
+unavoidable \(p\)-torsion.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:ordinary-mirimanoff-ray} proves the conductor bound
+and identifies ordinary failure with local \(p\)-power status at the
+Conway-selected two-adic completion.  That completion already contains
+\(\mu_p\), so every prime of \(E\) above \(\mathfrak q_{\rm C}\) then splits
+in \(L_\rho\).
+
+Suppose \(v^p=\rho\) in \(E\).  Since \([E:F]=p-1\), norm descent gives
+\[
+ \bigl(\rho\Norm_{E/F}(v)^{-1}\bigr)^p=\rho.          \tag{\(\mathsf{OSR}_2\)}
+\]
+Thus \(\rho\) would already be a \(p\)-th power in the abelian field \(F\).
+But
+\[
+ h(\rho)\leq h(1-\zeta_N^{q_0})+h(1-\zeta_N)\leq2\log2. \tag{\(\mathsf{OSR}_3\)}
+\]
+It is not a root of unity: \(q_0\) has exact odd order \(r>1\) modulo \(N\),
+and a primitive embedding has
+\[
+ |\rho|=\frac{|\sin(\pi q_0/N)|}{|\sin(\pi/N)|}\ne1.
+\]
+The Amoroso--Dvornicich bound~\cite{AD00} would therefore give
+\(h(\rho)\geq p\log5/12\).  Since
+\(\operatorname{ord}_p(2^b)=r^a\), the odd number \(r^a\) divides \(p-1\)
+with even quotient, so \(p\geq2r^a+1\geq11\).  The inequality
+\(5^{11}>2^{24}\) contradicts \((\mathsf{OSR}_3)\).  Thus
+\([L_\rho:E]=p\).
+
+Under failure its nonzero Artin character modulo \(\mathfrak n\) annihilates
+\(B_{\rm C}\), and factors through the quotient with image of order \(p\).
+\end{proof}
+
 \subsection{Unconditional projective order bounds}
 
 \begin{proposition}[unconditional nontrivial projective order]
@@ -5788,6 +5851,88 @@ group and splits in \(M/F_k\).  The local statements now follow from
 class-number hypothesis fails, the first alternative in
 \((\mathsf{RF}_2)\) holds; otherwise the preceding construction proves
 the second.
+\end{proof}
+
+\begin{proposition}[cubic failure forces a split-at-two ray quotient]
+\label{prop:cubic-split-ray-reduction}
+Let \(k\geq1\), put
+\[
+ n=3^k,\qquad m=3^{k+1},\qquad
+ K^+=\mathbb Q(\xi+\xi^{-1}),\qquad \xi=\zeta_m,
+\]
+and let \(\ell\mid\Phi_n(2)\) be prime.  For the selected circular unit
+\[
+ c=(1+\xi)(1+\xi^{-1})\in(K^+)^\times
+\]
+put
+\[
+ M=K^+(\mu_\ell),\qquad L_c=M(\sqrt[\ell]{c}),\qquad
+ \mathfrak m_\ell=\prod_{\lambda\mid\ell}\lambda^2.
+\]
+Then
+\[
+ \boxed{c\notin(M^\times)^\ell,}                    \tag{\(\mathsf{CSR}_1\)}
+\]
+so \(L_c/M\) is cyclic of degree \(\ell\).  It is unramified away
+from \(\ell\), with conductor dividing \(\mathfrak m_\ell\), and the
+current \(\ell\)-primary condition in \(C_k\) fails if and only if every
+prime of \(M\) above two splits completely in \(L_c/M\).
+
+Let \(B_2\) be generated in \(\operatorname{Cl}_{\mathfrak m_\ell}(M)\)
+by all prime classes above two.  Failure therefore gives
+\[
+ \boxed{
+ \ell\mid
+ \#\bigl(\operatorname{Cl}_{\mathfrak m_\ell}(M)/B_2\bigr).}
+                                                               \tag{\(\mathsf{CSR}_2\)}
+\]
+More precisely, the nonzero Artin--Kummer character \(\chi_c\) has
+cyclotomic weight one under
+\(\Gamma=\operatorname{Gal}(M/K^+)\), and the primes above two form one
+\(\Gamma\)-orbit.  Failure is exactly triviality of \(\chi_c\) on that
+  orbit.  This replaces the class-number alternative by an unconditional,
+different split-ray obstruction; it does not remove the class-number
+hypothesis from Proposition~\ref{prop:cubic-ray-extension}, nor prove the
+selected restriction nontrivial.
+\end{proposition}
+
+\begin{proof}
+The real conjugates of \(c\) are
+\[
+ c_a=4\cos^2(\pi a/m),
+ \qquad 1\leq a<m/2,\quad (a,3)=1.
+\]
+Among the \(n\) representatives, precisely \(2n/3\) have \(a<m/3=n\)
+and hence \(c_a>1\); every conjugate is less than four.  Therefore
+\[
+ h(c)<\frac23\log4=\frac43\log2.                   \tag{\(\mathsf{CSR}_3\)}
+\]
+If \(c=v^\ell\) in \(M\), norm descent through
+\([M:K^+]=\ell-1\) would put an \(\ell\)-th root of \(c\) already in
+the abelian field \(K^+\).  The element \(c\) is not torsion, and the
+Amoroso--Dvornicich bound~\cite{AD00} would give
+\[
+ h(c)\geq\ell\frac{\log5}{12}.
+\]
+Here \(\operatorname{ord}_\ell(2)=n\), so
+\(\ell\geq2n+1\geq7\).  The inequality \(5^7>2^{16}\) contradicts
+\((\mathsf{CSR}_3)\), proving \((\mathsf{CSR}_1)\).
+
+The unit \(c\) gives a Kummer extension unramified away from \(\ell\).
+At \(\lambda\mid\ell\), its Teichmuller part is an \(\ell\)-th
+power and its principal part lies in \(U_{\ell-1}\); the critical
+Kummer pairing is trivial against \(U_2\), giving conductor exponent at
+most two~\cite{Iwasawa68}.  The unique completion of \(K^+\) above two is the unramified
+degree-\(n\) extension of \(\mathbb Q_2\), hence already contains
+\(\mu_\ell\).  Its primes split in \(M/K^+\), and the residue of \(c\)
+is \(\gamma_k\).  Since the \(\ell\)-power map is an automorphism on
+two-adic principal units, local \(\ell\)-power status is exactly the
+finite-field failure condition and exactly complete splitting in \(L_c\).
+
+The nonzero Artin character of \(L_c/M\) therefore factors through the
+displayed quotient under failure, proving \((\mathsf{CSR}_2)\).  Artin
+equivariance gives \(\chi_c(a x)=\chi_c(x)^a\) for \(a\in\Gamma\);
+transitivity of the prime orbit proves the final formulation.
 \end{proof}
 
 \subsection{Kernel tower and quantitative order bounds}
@@ -14276,6 +14421,48 @@ excluding \(Q+1\mid K\).  The minimal-counterexample specialization and
 finite-field Fibonacci zero period remain paper-level.
 \end{proof}
 
+\begin{corollary}[the first additive edge has an exact cross-level period]
+\label{cor:fermat-additive-cross-level}
+Retain Proposition~\ref{prop:fermat-first-additive-flag}, and put
+\(m=Q+1\).
+Then the exponent relations satisfy
+\[
+ \boxed{
+ \gcd(m,K)=\gcd(m,L)=\gcd(m,\ell-1)=\gcd(m,d-2).}
+                                                               \tag{\(\mathsf{AE}_5\)}
+\]
+Consequently, if \(v\) has order \(Q+1\), then
+\[
+ \boxed{
+ \operatorname{ord}(v^K)
+ =\frac{Q+1}{\gcd(Q+1,\ell-1)}
+ =\frac{Q+1}{\gcd(Q+1,d-2)}.}                     \tag{\(\mathsf{AE}_6\)}
+\]
+Thus loss to a proper lower fibotomic stratum occurs exactly when a nontrivial divisor
+of the preceding Fermat number divides \(\ell-1\), equivalently \(d-2\).
+This exposes a new all-level arithmetic screen, but does not close the arm:
+even gcd one would place the normalized invariant in the full lower stratum
+without contradicting the unnormalized equality \((\mathsf{AE}_4)\).
+\end{corollary}
+
+\begin{proof}
+One has \(Q+1\mid D\) and \((Q+1,\ell)=1\).  Reducing
+\(\ell K+L=HD\) modulo \(Q+1\) and cancelling \(\ell\) gives
+\(\gcd(Q+1,K)=\gcd(Q+1,L)\).  Since
+\(\ell-1=RL\), while \(R\) is a power of two and \(Q+1\) is odd, the
+second gcd equals \(\gcd(Q+1,\ell-1)\).
+
+Finally
+\[
+ \ell d=Q^2+1\equiv2\pmod{Q+1}.
+\]
+For every divisor \(e\mid Q+1\), the oddness of \(e\) makes two invertible,
+so \(\ell\equiv1\pmod e\) if and only if
+\(d\equiv2\pmod e\).  Taking the largest such divisor proves
+\((\mathsf{AE}_5)\); the standard order formula gives
+\((\mathsf{AE}_6)\).
+\end{proof}
+
 The fast \texttt{--jet-only} mode of
 \path{experiments/fermat_selected_screen.py} evaluates
 \(\Gamma_{n,\ell}\) and the branch-appropriate gcd without constructing the
@@ -21394,6 +21581,87 @@ trivial under the quadratic character modulo five, so both factors of
 follow because four and \(G_1\) are nonzero modulo \(\ell\).
 \end{proof}
 
+\begin{proposition}[exceptional failure is a split-at-two ray character]
+\label{prop:dk-split-ray-reduction}
+Let \(k\geq2\), put
+\[
+ h=3^k,\qquad M=15h,\qquad
+ F=\mathbb Q(\mu_M),\qquad E=F(\mu_\ell),
+\]
+and let \(\ell\mid\Psi_k\).  Choose the primitive \(M\)-th root
+\(\widetilde\rho\) whose selected reduction is the element \(\rho\) of
+Corollary~\ref{cor:dk-cyclotomic-unit}, and set
+\[
+ \varepsilon=1-\widetilde\rho,\qquad
+ L_\varepsilon=E(\sqrt[\ell]{\varepsilon}),\qquad
+ \mathfrak m=\prod_{\lambda\mid\ell}\lambda^2.
+\]
+Then \(L_\varepsilon/E\) is a nontrivial cyclic extension of degree
+\(\ell\), unramified away from \(\ell\), with conductor dividing
+\(\mathfrak m\).  Moreover,
+\[
+\boxed{
+ D'_k\text{ fails at }\ell
+ \iff
+ \text{every prime of \(E\) above two splits completely in }
+ L_\varepsilon.}                                    \tag{\(\mathsf{SR}_1\)}
+\]
+If \(B_2\) is generated in \(\operatorname{Cl}_{\mathfrak m}(E)\) by
+all primes above two, failure therefore implies
+\[
+ \boxed{
+ \ell\mid
+ \#\bigl(\operatorname{Cl}_{\mathfrak m}(E)/B_2\bigr).}
+                                                               \tag{\(\mathsf{SR}_2\)}
+\]
+This is a genuine global obstruction, but the order of the unprojected
+quotient cannot prove success: Proposition~\ref{prop:split-ray-rank-obstruction}
+shows that it has unavoidable \(\ell\)-torsion.
+\end{proposition}
+
+\begin{proof}
+The element \(\varepsilon\) is a unit because \(\Phi_M(1)=1\).
+Kummer theory gives a cyclic extension of degree one or \(\ell\),
+unramified away from \(\ell\); the standard local unit filtration at
+\(\lambda\mid\ell\) bounds the conductor exponent by two.
+
+Every completion of \(F\) above two already contains \(\mu_\ell\), since
+\(\operatorname{ord}_M(2)=4h\) and
+\(\operatorname{ord}_\ell(2)=2h\).  Its residues of \(\varepsilon\) are
+\(1-z^a\) for \(a\in(\mathbb Z/M\mathbb Z)^\times\).
+Proposition~\ref{prop:dk-jacobi-top} gives
+\[
+ \operatorname{ind}_\ell(1-z^a)=\lambda(a)L(1),
+ \qquad \lambda(a)\ne0.
+\]
+Because the \(\ell\)-power map is an automorphism on the two-adic
+principal units, all these primes split exactly when \(L(1)=0\), which
+Corollary~\ref{cor:dk-cyclotomic-unit} identifies with failure.
+
+It remains to exclude the degree-one Kummer case.  If
+\(v^\ell=\varepsilon\) in \(E\), norm descent through
+\([E:F]=\ell-1\) gives
+\[
+ \bigl(\varepsilon\Norm_{E/F}(v)^{-1}\bigr)^\ell
+ =\varepsilon.
+\]
+Thus \(\varepsilon\) would be an \(\ell\)-th power already in the
+abelian field \(F\).  It is nontorsion because, at the standard primitive
+embedding,
+\[
+ |1-\exp(2\pi i/M)|=2\sin(\pi/M)<1.
+\]
+Moreover
+\(h(\varepsilon)\leq\log2\), whereas the
+Amoroso--Dvornicich bound~\cite{AD00} would give
+\[
+ h(\varepsilon)\geq\ell\frac{\log5}{12}.
+\]
+Here \(\ell\geq2h+1\geq19\), and \(5^{19}>2^{12}\), a contradiction.
+Hence \([L_\varepsilon:E]=\ell\).  Under failure its nonzero Artin
+character annihilates \(B_2\), proving \((\mathsf{SR}_2)\).
+\end{proof}
+
 \begin{proposition}[canonical four-Jacobi detector]
 \label{prop:dk-four-jacobi}
 Retain Proposition~\ref{prop:dk-jacobi-top}.  Write the primitive
@@ -21819,6 +22087,138 @@ pairing \(a\) with \(M-a\) in
 and using \(\sum_a\chi(a)=0\) gives \(B_{1,\chi}=0\).  Apply this to
 \(\chi=\widetilde\lambda^{-1}\).  This proves
 \((\mathsf{ED}_4)\) and the final separation.
+\end{proof}
+
+\begin{proposition}[the unprojected split ray quotient is necessarily large]
+\label{prop:split-ray-rank-obstruction}
+Let \(F/\mathbb Q\) be a totally imaginary abelian field of degree \(d\),
+let \(\ell\nmid\#\mu(F)\) be odd, assume
+\(F\cap\mathbb Q(\mu_\ell)=\mathbb Q\), assume \(F/\mathbb Q\) is
+unramified at \(\ell\), and put
+\[
+ E=F(\mu_\ell),\qquad
+ \mathfrak m=\prod_{\lambda\mid\ell}\lambda^2.
+\]
+Let \(S\) be a finite set of primes of \(F\), away from \(\ell\), whose
+completions contain \(\mu_\ell\), and let \(B_S\) be generated by all
+primes of \(E\) above \(S\).  Then
+\[
+ \boxed{
+ \dim_{\mathbb F_\ell}\operatorname{Hom}\!\left(
+   \operatorname{Cl}_{\mathfrak m}(E)/B_S,\mu_\ell\right)
+ \geq\frac d2-1-|S|.}                               \tag{\(\mathsf{RR}_1\)}
+\]
+Consequently the exceptional and ordinary quotients above satisfy
+\[
+\begin{aligned}
+ \dim_{\mathbb F_\ell}\operatorname{Hom}\!\left(
+   \operatorname{Cl}_{\mathfrak m}^{(2\text{-split})}(E),\mu_\ell\right)
+ &\geq4h-3,\\
+ \dim_{\mathbb F_p}\operatorname{Hom}\!\left(
+   \operatorname{Cl}_{\mathfrak n}^{({\rm C}\text{-split})}(E),\mu_p\right)
+ &\geq\frac{\varphi(N)}2-2.
+\end{aligned}                                       \tag{\(\mathsf{RR}_2\)}
+\]
+Thus proving either full quotient prime-to-current is structurally
+impossible.
+\end{proposition}
+
+\begin{proof}
+Dirichlet's unit theorem gives
+\[
+ \dim_{\mathbb F_\ell}
+ \mathcal O_F^\times/(\mathcal O_F^\times)^\ell=d/2-1.
+\]
+Each local splitting condition is one linear Kummer functional, so their
+common kernel has dimension at least \(d/2-1-|S|\).  A nonzero unit class
+in this kernel stays nonzero over \(E\): otherwise norm descent through
+\([E:F]=\ell-1\) would make it an \(\ell\)-th power in \(F\).  Its Kummer
+extension is unramified away from \(\ell\), has conductor dividing
+\(\mathfrak m\), and is split over \(S\).  Artin reciprocity therefore
+injects the common kernel into the displayed character group.
+
+For \(F=\mathbb Q(\mu_{15h})\), one has
+\(\varphi(15h)=8h\) and \(\operatorname{ord}_{15h}(2)=4h\), so there are
+two primes above two.  This gives \(4h-3\).  Taking
+\(F=\mathbb Q(\mu_N)\) and only the selected prime gives the ordinary
+bound.
+\end{proof}
+
+\begin{proposition}[the exact characterwise frontier for \(D\) and \(O\)]
+\label{prop:split-ray-character-frontier}
+The rank obstruction disappears only after projecting to the character
+containing the marked cyclotomic unit.
+
+For \(D\), let \(\lambda\) be the primitive even character of
+Proposition~\ref{prop:dk-jacobi-top}.  Its unit eigenspace
+\[
+ U_\lambda=e_\lambda
+   (\mathcal O_{\mathbb Q(\mu_{15h})}^\times\otimes\mathbb F_\ell)
+\]
+has dimension one.  If \(c_\lambda\) is the projection of the weighted
+circular unit in \((\mathsf{ED}_3)\), and
+\(\operatorname{ev}_2\) is the Conway-selected residue index, then
+\[
+ \operatorname{ev}_2(c_\lambda)=8hL(1),             \tag{\(\mathsf{CRF}_1\)}
+\]
+and therefore
+\[
+ \boxed{
+ D'_k\text{ at }\ell
+ \iff
+ c_\lambda\ne0
+ \quad\text{and}\quad
+ \operatorname{ev}_2|_{U_\lambda}\ne0.}             \tag{\(\mathsf{CRF}_2\)}
+\]
+The first condition is the corresponding circular-unit plus-class
+obstruction; the second is the one-dimensional selected Frobenius
+evaluation.  The classical Stickelberger element has zero even projection
+and forces neither.
+
+For \(O\), put
+\[
+ F=\mathbb Q(\mu_N),\qquad F_0=\mathbb Q(\mu_{N/r}),\qquad
+ H=\operatorname{Gal}(F/F_0),
+\]
+and project to the \(H\)-character \(\lambda=q_0\pmod p\).  Its unit
+eigenspace has dimension
+\[
+ \dim_{\mathbb F_p}U_\lambda
+ =\frac{\varphi(N)}{2r}
+ =\frac{\varphi(N/r)}2.                              \tag{\(\mathsf{CRF}_3\)}
+\]
+For the marked vector \(c_{\rm O}=e_\lambda[\rho]\),
+\[
+ \boxed{
+ O(r,a,p)
+ \iff
+ \operatorname{ev}_{\mathfrak q_{\rm C}}(c_{\rm O})\ne0.}
+                                                               \tag{\(\mathsf{CRF}_4\)}
+\]
+One selected Frobenius condition leaves a kernel of dimension at least
+\(\varphi(N/r)/2-1\).  Further Dirichlet decomposition does not prevent
+cancellation in the selected sum \(c_{\rm O}\).
+\end{proposition}
+
+\begin{proof}
+The complex unit representation of a cyclotomic CM field contains every
+nontrivial even Dirichlet character once and no odd character.
+Semisimplicity modulo \(\ell\nmid\varphi(15h)\) gives
+\(\dim U_\lambda=1\), while \((\mathsf{ED}_3)\) gives
+\((\mathsf{CRF}_1)\).  On a line, evaluation of a marked vector is
+nonzero exactly when the vector and functional are both nonzero, proving
+\((\mathsf{CRF}_2)\).
+
+For the ordinary cyclic extension \(F/F_0\), the relative unit rank is
+\[
+ \left(\frac{\varphi(N)}2-1\right)
+ -\left(\frac{\varphi(N/r)}2-1\right)
+ =(r-1)\frac{\varphi(N/r)}2.
+\]
+The \(r-1\) nontrivial \(H\)-characters occur equally, proving
+\((\mathsf{CRF}_3)\).  The selected local Kummer quotient is precisely
+the \(\lambda\)-component, which proves \((\mathsf{CRF}_4)\);
+rank--nullity supplies the remaining bound.
 \end{proof}
 
 \begin{proposition}[the wild regulator is explicit but homogeneous]
@@ -25998,6 +26398,15 @@ value \(A^{K-1}S_K(A)\).  Thus failure cannot force trace zero or descent to
 the preceding field; it is an equality between two nonzero lower selected
 values.  Proving those values unequal is the precise surviving
 additive-ancestry target.
+Corollary~\ref{cor:fermat-additive-cross-level} makes its period loss
+arithmetic:
+\[
+ \gcd(Q+1,K)=\gcd(Q+1,\ell-1)=\gcd(Q+1,d-2).
+\]
+A proper lower fibotomic stratum is therefore equivalent to a common factor
+of the preceding Fermat number and either adjacent factor offset.  This is
+an all-level screen, but even gcd one does not contradict the unnormalized
+coordinate equality.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn
@@ -26432,6 +26841,14 @@ has total weight zero and lands in the lower field.  Hence complete-orbit norm,
 resultant, and Hasse--Davenport products erase the mark, and nonsymmetric
 products merely reparameterize it.  A surviving additive argument must use
 data beyond these literal secants.
+Proposition~\ref{prop:cubic-split-ray-reduction} gives a genuinely global
+reformulation.  The selected real circular unit is never a global current
+\(\ell\)-th power, by norm descent and the Amoroso--Dvornicich height gap.
+Consequently failure is complete splitting of every prime above two in a
+nontrivial degree-\(\ell\) ray extension of conductor dividing
+\(\mathfrak m_\ell\).  The
+remaining assertion is nontriviality of this fixed weight-one Artin character
+on the transitive two-adic prime orbit.
 Propositions~\ref{prop:singer-normal-translate} and
 \ref{prop:cubic-two-normal-bases} nevertheless supply two selected normal
 coordinates joined by an explicit determinant-one half-circulant.  Their
@@ -26709,6 +27126,15 @@ identities, and bare nontriviality of the product of all current phases, prove
 only that some primary coordinate succeeds.  They cannot force every
 coordinate without the literal marked value \(L(1)\) or equivalent selected
 input.
+Propositions~\ref{prop:dk-split-ray-reduction} and
+\ref{prop:split-ray-character-frontier} isolate the corresponding global
+obstruction.  The exceptional Kummer extension is always nontrivial, and
+failure forces complete splitting at both primes above two.  The unprojected
+split ray quotient nevertheless has current rank at least \(4h-3\).  After
+projection to the primitive even character, the unit space is
+one-dimensional and the target separates exactly into nonvanishing of the
+marked circular-unit vector and of its selected Frobenius functional.
+Stickelberger has zero even projection and forces neither.
 Remark~\ref{rem:plus-minus-tori} also shows that the cubic and
 exceptional current groups have coprime orders, so no rational-point
 homomorphism can transfer arm \((C)\) to arm \((D)\).
@@ -26896,6 +27322,10 @@ on the displayed proofs and cited results; the maintained programs serve
 finite certification, falsification, and audit.
 
 \begin{thebibliography}{99}
+\bibitem{AD00} F.~Amoroso and R.~Dvornicich,
+\emph{A lower bound for the height in abelian extensions},
+J.~Number Theory \textbf{80} (2000), 260--272;
+\url{https://doi.org/10.1006/jnth.1999.2451}.
 \bibitem{Arul21} V.~Arul,
 \emph{On the \(\ell\)-adic valuation of certain Jacobi sums},
 J.~Th\'eor. Nombres Bordeaux \textbf{33} (2021), 607--625;

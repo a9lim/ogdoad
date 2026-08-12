@@ -238,6 +238,19 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Hasse theorem and resulting Hasse norm principle for the reflection field,
   Brauer projection/corestriction, and class-field interpretation remain
   paper-level;
+- the global split-ray algebraic core: Lean checks descent of an `ell`-th
+  root through a degree-`(ell-1)` norm equation, propagation of one marked
+  zero through a rank-one orbit, the three exact integer inequalities used with
+  the Amoroso--Dvornicich height bound, the rank--nullity lower bound after
+  imposing local splitting conditions, and separation of marked-vector and
+  selected-functional nonvanishing on a one-dimensional eigenspace.  For the
+  cubic arm it additionally checks the direct circular-unit numerical height
+  gap and propagation
+  of a weight-one character across a transitive prime orbit.  The
+  cyclotomic heights, unit-representation multiplicities, unramified-base
+  hypotheses and local conductor
+  calculation, Kummer extensions, ray class characters, and Artin reciprocity
+  specializations remain paper-level;
 - the two denominator-free conductor-five identities and their quotient form
   `d + d^-1 = 2 + 5/(x^2+x-1)`, the algebraic coefficient in the paper's
   exceptional-arm reflection field.  The cyclotomic number-field extension,
@@ -568,6 +581,10 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   arithmetic exclusion `Q+1 ∤ K`. The minimal-failure specialization,
   derivation of the conjugate equality by finite-field Frobenius, and lower
   Fibonacci zero-period interpretation remain paper-level;
+- the cross-level additive-edge arithmetic: Lean checks the exact equality
+  between the common divisors of Q+1 with ell-1 and d-2, and transport of
+  that gcd through the selected exponent relation. The lower
+  fibotomic-stratum interpretation remains paper-level;
 - the exact square and odd fast-doubling updates for a linear remainder
   `U+xV` under the Conway relation `x^2=A*x+A^3`, which underlie the
   paper's ancestry-filtration degeneration; the Gröbner-basis statement

@@ -123,12 +123,24 @@ declarations asserts any of the four universal nonvanishings.
 
 The next global frontier cores sharpen that boundary without changing it.
 Lean checks the `Z` first-additive-edge power coordinates, trace identity, and
-factor-parameter obstruction; the `C` birth-secant factorization, phase-weight
+factor-parameter obstruction, together with the exact cross-level gcd identity;
+the `C` birth-secant factorization, phase-weight
 algebra, and coprime-primary projection; and the `D` sixth-root and
 coprime-primary noncancellation used by the current-support cube.  The selected
 finite-field ancestry, orbit-product, and support realizations are paper-level.
 These are all-level reductions and route exclusions, not a proof of the
 remaining selected nonvanishing assertions.
+
+The global split-ray layer has the same strict division. Lean checks norm
+descent through a degree-`(ell-1)` extension, the exact integer inequalities
+used with the Amoroso--Dvornicich height theorem, rank--nullity for imposed
+local splitting conditions, and the one-dimensional marked-evaluation core.
+The paper supplies the cyclotomic heights, unramified-base hypotheses, local conductor calculations,
+Kummer/Artin reciprocity, and character multiplicities. Together these prove
+that the `O`, `C`, and `D` Kummer extensions are globally nontrivial and turn
+hypothetical failure into complete splitting at the selected primes. They do
+not prove the arms: the unprojected split-ray quotients have unavoidable
+current-primary rank, leaving marked eigenspace/Frobenius nonvanishing.
 
 The ordinary `p=359` row now has two deliberately separated verification
 classes.  The checked-in 438,103-byte Hilbert-root artifact plus the maintained

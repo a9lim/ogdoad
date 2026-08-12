@@ -621,6 +621,12 @@ absolute boundedness.
   class `alpha={C_n,2}`. Corestriction kills that class, so this formulation
   isolates the obstruction at the top edge but supplies no inductive
   nonvanishing.
+  At the first additive edge, the exact period loss is now arithmetic:
+  `gcd(Q+1,K)=gcd(Q+1,ell-1)=gcd(Q+1,d-2)`. Thus a proper lower
+  fibotomic stratum occurs precisely when a nontrivial divisor of the
+  preceding Fermat number divides both adjacent factor offsets. This is a
+  global screen, not closure: even gcd one does not contradict the remaining
+  unnormalized coefficient equality.
   A complementary cross-level theorem shows that this Kummer coordinate is
   born only once. If `M=ell^e || F_n`, then the `M`-Kummer quotients vanish
   below `E_n`, are cyclic of order `M` from `E_n` onward, and every later
@@ -780,6 +786,15 @@ absolute boundedness.
   coefficients. Neither factor is known to be universally nonzero; if every
   local regulator vanishes, the resulting everywhere-unramified Kummer
   extension is either trivial or, if nontrivial, a `p`-class-group character.
+  The global extension is now proved nontrivial at every current prime:
+  degree-`(p-1)` norm descent followed by the uniform Amoroso--Dvornicich
+  height gap excludes the relative unit from being a global `p`-th power.
+  Thus failure really produces a nonzero ray character split at the
+  Conway-selected prime above two. This still does not close the arm. The
+  unprojected split ray quotient has unavoidable large `p`-rank from global
+  units, while the selected `C_r` eigenspace has dimension `phi(N/r)/2`;
+  the remaining assertion is nonvanishing of the selected Frobenius
+  functional on the one marked vector in that space.
   Simultaneous complex conjugation now gives an exact local reflection normal
   form. For the relative unit `rho`, the invariant realification is
   `u=rho*j(rho)=zeta_N^(1-q_0)*rho^2`; the root-of-unity factor is a global
@@ -896,6 +911,17 @@ absolute boundedness.
   Hasse--Davenport products erase the phase, and nonsymmetric products merely
   reparameterize it. A surviving additive correlation must go beyond these
   literal two-ancestor secants.
+  The associated characteristic-zero Kummer extension is now proved
+  nondegenerate for every level and current prime. Norm descent and the
+  Amoroso--Dvornicich height gap exclude the selected real circular unit
+  from being a global current-prime power. Hence cubic failure
+  is exactly complete splitting of every prime above two in one nontrivial
+  degree-`ell` ray extension. This replaces the earlier class-number
+  alternative by a different unconditional split-ray obstruction, without
+  removing that older theorem's class-number hypothesis. It still does not
+  prove nonfailure: the weight-one Artin character
+  exists unconditionally, and the remaining assertion is that its restriction
+  to the transitive two-adic prime orbit is nontrivial.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -1127,6 +1153,16 @@ absolute boundedness.
   phases, imply only that some coordinate succeeds—not that every coordinate
   succeeds. The missing input is the literal marked coefficient `L(1)` (or an
   equivalent selected value), not another unweighted cross-prime product.
+  The composite-conductor Kummer extension is also proved globally
+  nontrivial: norm descent and the same abelian height gap exclude
+  `1-rho` from being a global current-prime power. Exceptional failure
+  therefore gives a genuine nonzero ray character split at every prime above
+  two. The full split ray quotient cannot be the answer—it always has
+  current-prime rank at least `4h-3`. After projection to the primitive even
+  character, the unit eigenspace is one-dimensional and the exact frontier
+  separates into nonvanishing of the projected weighted circular unit and
+  nonvanishing of its selected Frobenius evaluation. Classical Stickelberger
+  data have zero even projection and force neither.
   Below Euler projection there is now an exact adjacent-value compression in
   the original corrected-norm field. Put `D=zeta^4+zeta` in `K=F_(4^h)`.
   The full `F_16` translate table and injectivity of the quadratic

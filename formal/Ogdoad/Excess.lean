@@ -6593,6 +6593,206 @@ theorem adjacent_count_is_maximal_fermat
 
 end AdjacentHilbert
 
+section GlobalSplitRayReduction
+
+/-! Algebraic cores for the paper's global split-ray reduction.  The
+number-field height bound, local conductor calculation, and Artin reciprocity
+specialization remain paper-level. -/
+
+variable {G : Type*} [CommGroup G]
+
+/-- Descent through an extension of degree `ell - 1`: the norm equation for an
+`ell`-th root produces an `ell`-th root already in the base group. -/
+theorem ell_minus_one_power_descent
+    (u normWitness : G) (ell : ℕ) (hell : 0 < ell)
+    (hNorm : normWitness ^ ell = u ^ (ell - 1)) :
+    (u * normWitness⁻¹) ^ ell = u := by
+  calc
+    (u * normWitness⁻¹) ^ ell = u ^ ell * (normWitness ^ ell)⁻¹ := by
+      rw [mul_pow, inv_pow]
+    _ = u ^ ell * (u ^ (ell - 1))⁻¹ := by rw [hNorm]
+    _ = u := by
+      obtain ⟨m, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hell)
+      simp [pow_succ]
+
+/-- A rank-one conductor orbit vanishes everywhere exactly when its marked
+coefficient vanishes, provided every orbit multiplier is nonzero. -/
+theorem marked_zero_iff_orbit_zero
+    {F I : Type*} [Field F] [Nonempty I]
+    (L : F) (lambda : I → F) (hlambda : ∀ i, lambda i ≠ 0) :
+    L = 0 ↔ ∀ i, lambda i * L = 0 := by
+  constructor
+  · rintro rfl i
+    simp
+  · intro h
+    by_contra hL
+    let i := Classical.choice (inferInstance : Nonempty I)
+    exact (mul_ne_zero (hlambda i) hL) (h i)
+
+/-- A weight-one character on a transitive orbit is trivial on the entire
+orbit as soon as it is trivial at the selected base point. -/
+theorem weight_one_orbit_trivial_of_base
+    {A X : Type*} (act : A → X → X) (weight : A → Nat)
+    (chi : X → G) (base : X)
+    (horbit : ∀ x : X, ∃ a : A, x = act a base)
+    (hequiv : ∀ (a : A) (x : X), chi (act a x) = (chi x) ^ weight a)
+    (hbase : chi base = 1) :
+    ∀ x, chi x = 1 := by
+  intro x
+  obtain ⟨a, rfl⟩ := horbit x
+  rw [hequiv, hbase, one_pow]
+
+/-- Numerical core of the exceptional height contradiction:
+`19 * log 5 / 12 > log 2`. -/
+theorem exceptional_abelian_height_gap : 2 ^ 12 < 5 ^ 19 := by
+  norm_num
+
+/-- Numerical core of the ordinary height contradiction:
+`11 * log 5 / 12 > 2 * log 2`. -/
+theorem ordinary_abelian_height_gap : 2 ^ 24 < 5 ^ 11 := by
+  norm_num
+
+/-- Numerical core of the direct cubic circular-unit height contradiction. -/
+theorem cubic_abelian_height_gap : 2 ^ 16 < 5 ^ 7 := by
+  norm_num
+
+/-- Imposing `g` scalar local conditions leaves a kernel of codimension at
+most `g`.  This is the linear-algebra core of the split-ray rank obstruction. -/
+theorem finrank_sub_le_finrank_ker
+    {F V W : Type*} [Field F]
+    [AddCommGroup V] [Module F V] [AddCommGroup W] [Module F W]
+    [FiniteDimensional F V] [FiniteDimensional F W]
+    (f : V →ₗ[F] W) :
+    Module.finrank F V - Module.finrank F W ≤
+      Module.finrank F (LinearMap.ker f) := by
+  have hrank := f.finrank_range_add_finrank_ker
+  have hrange : Module.finrank F (LinearMap.range f) ≤ Module.finrank F W :=
+    (LinearMap.range f).finrank_le
+  omega
+
+/-- On a one-dimensional selected eigenspace, the marked vector and the
+selected local functional are the two separate nonvanishing inputs. -/
+theorem marked_evaluation_ne_zero
+    {F : Type*} [Field F] (marked evaluation : F) :
+    marked * evaluation ≠ 0 ↔ marked ≠ 0 ∧ evaluation ≠ 0 := by
+  exact mul_ne_zero_iff
+
+end GlobalSplitRayReduction
+
+section FermatAdditiveCrossLevel
+
+/-- If an odd modulus sees the product congruent to two, the congruences
+for the two adjacent factors have the same common-divisor content. -/
+theorem cross_gcd_of_product_mod_two
+    (m ell d : Nat) (hodd : m.Coprime 2)
+    (hell : 1 ≤ ell) (hd : 2 ≤ d)
+    (htop : ell * d ≡ 2 [MOD m]) :
+    m.gcd (ell - 1) = m.gcd (d - 2) := by
+  apply Nat.dvd_antisymm
+  · let k := m.gcd (ell - 1)
+    have hkm : k ∣ m := Nat.gcd_dvd_left m (ell - 1)
+    have hkell : k ∣ ell - 1 := Nat.gcd_dvd_right m (ell - 1)
+    have htopk : ell * d ≡ 2 [MOD k] := htop.of_dvd hkm
+    have hellk : ell ≡ 1 [MOD k] :=
+      ((Nat.modEq_iff_dvd' hell).mpr hkell).symm
+    have hprodk : ell * d ≡ d [MOD k] := by
+      simpa using hellk.mul (Nat.ModEq.refl d)
+    have hdk : d ≡ 2 [MOD k] := hprodk.symm.trans htopk
+    exact Nat.dvd_gcd hkm ((Nat.modEq_iff_dvd' hd).mp hdk.symm)
+  · let k := m.gcd (d - 2)
+    have hkm : k ∣ m := Nat.gcd_dvd_left m (d - 2)
+    have hkd : k ∣ d - 2 := Nat.gcd_dvd_right m (d - 2)
+    have htopk : ell * d ≡ 2 [MOD k] := htop.of_dvd hkm
+    have hdk : d ≡ 2 [MOD k] :=
+      ((Nat.modEq_iff_dvd' hd).mpr hkd).symm
+    have htwok : ell * 2 ≡ 1 * 2 [MOD k] := by
+      simpa using ((Nat.ModEq.refl ell).mul hdk).symm.trans htopk
+    have hkodd : k.Coprime 2 := Nat.Coprime.of_dvd_left hkm hodd
+    have hellk : ell ≡ 1 [MOD k] :=
+      Nat.ModEq.cancel_right_of_coprime hkodd.gcd_eq_one htwok
+    exact Nat.dvd_gcd hkm ((Nat.modEq_iff_dvd' hell).mp hellk.symm)
+
+/-- Adjacent Fermat factors satisfy the exact cross-level gcd identity. -/
+theorem fermat_adjacent_factor_cross_gcd
+    (Q ell d : Nat) (hQ : 1 ≤ Q) (hQeven : Even Q)
+    (hell : 1 ≤ ell) (hd : 2 ≤ d)
+    (hprod : ell * d = Q ^ 2 + 1) :
+    (Q + 1).gcd (ell - 1) = (Q + 1).gcd (d - 2) := by
+  have hdecomp : Q ^ 2 + 1 = (Q + 1) * (Q - 1) + 2 := by
+    obtain ⟨r, rfl⟩ := Nat.exists_eq_add_of_le hQ
+    norm_num [pow_two]
+    ring
+  have htop : ell * d ≡ 2 [MOD Q + 1] := by
+    rw [hprod, hdecomp]
+    exact Nat.ModEq.modulus_mul_add
+  have hodd : (Q + 1).Coprime 2 := by
+    obtain ⟨r, hr⟩ := hQeven
+    subst Q
+    simp [Nat.Coprime]
+  exact cross_gcd_of_product_mod_two (Q + 1) ell d hodd hell hd htop
+
+/-- The exact exponent relation determines the lower period loss. -/
+theorem exact_exponent_gcd_period
+    (m ell K L H D : Nat)
+    (hcop : m.Coprime ell) (hmD : m ∣ D)
+    (hrel : ell * K + L = H * D) :
+    m.gcd K = m.gcd L := by
+  have hsum_m : m ∣ ell * K + L := by
+    rw [hrel]
+    exact dvd_mul_of_dvd_right hmD H
+  apply Nat.dvd_antisymm
+  · let k := m.gcd K
+    have hkm : k ∣ m := Nat.gcd_dvd_left m K
+    have hkK : k ∣ K := Nat.gcd_dvd_right m K
+    have hsum_k : k ∣ ell * K + L := dvd_trans hkm hsum_m
+    have hprod : k ∣ ell * K := dvd_mul_of_dvd_right hkK ell
+    exact Nat.dvd_gcd hkm ((Nat.dvd_add_iff_right hprod).mpr hsum_k)
+  · let k := m.gcd L
+    have hkm : k ∣ m := Nat.gcd_dvd_left m L
+    have hkL : k ∣ L := Nat.gcd_dvd_right m L
+    have hsum_k : k ∣ ell * K + L := dvd_trans hkm hsum_m
+    have hprod : k ∣ ell * K := (Nat.dvd_add_iff_left hkL).mpr hsum_k
+    have hkcop : k.Coprime ell := Nat.Coprime.of_dvd_left hkm hcop
+    exact Nat.dvd_gcd hkm (hkcop.dvd_of_dvd_mul_left hprod)
+
+/-- Removing a factor coprime to the modulus does not change the gcd of the
+remaining factor. -/
+theorem gcd_mul_of_right_coprime
+    (m R L : Nat) (hcop : m.Coprime R) :
+    m.gcd (R * L) = m.gcd L := by
+  apply Nat.dvd_antisymm
+  · let k := m.gcd (R * L)
+    have hkm : k ∣ m := Nat.gcd_dvd_left m (R * L)
+    have hkRL : k ∣ R * L := Nat.gcd_dvd_right m (R * L)
+    have hkcop : k.Coprime R := Nat.Coprime.of_dvd_left hkm hcop
+    exact Nat.dvd_gcd hkm (hkcop.dvd_of_dvd_mul_left hkRL)
+  · simpa [Nat.mul_comm] using Nat.gcd_dvd_gcd_mul_right_right m L R
+
+/-- Full cross-level identity for the exponent loss exposed by the first
+additive edge. -/
+theorem fermat_AE4_cross_level_gcd
+    (Q ell d R L K H D : Nat)
+    (hQ : 1 ≤ Q) (hQeven : Even Q)
+    (hell : 1 ≤ ell) (hd : 2 ≤ d)
+    (hprod : ell * d = Q ^ 2 + 1)
+    (hellDef : ell = 1 + R * L)
+    (hcopR : (Q + 1).Coprime R)
+    (hcopEll : (Q + 1).Coprime ell)
+    (hmD : Q + 1 ∣ D)
+    (hrel : ell * K + L = H * D) :
+    (Q + 1).gcd K = (Q + 1).gcd (ell - 1) ∧
+      (Q + 1).gcd K = (Q + 1).gcd (d - 2) := by
+  have hKL := exact_exponent_gcd_period
+    (Q + 1) ell K L H D hcopEll hmD hrel
+  have hellSub : ell - 1 = R * L := by omega
+  have hLEll : (Q + 1).gcd L = (Q + 1).gcd (ell - 1) := by
+    rw [hellSub, gcd_mul_of_right_coprime (Q + 1) R L hcopR]
+  have hcross := fermat_adjacent_factor_cross_gcd
+    Q ell d hQ hQeven hell hd hprod
+  exact ⟨hKL.trans hLEll, hKL.trans (hLEll.trans hcross)⟩
+
+end FermatAdditiveCrossLevel
+
 section PowerCriterion
 
 variable {F : Type*} [Field F] [Fintype F]
