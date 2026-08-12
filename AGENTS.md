@@ -129,8 +129,11 @@ outcomes for all four `Z/4` residues), and the game-exterior appendix
 answer to Altman--Lipparini Problem 5.3(j)) — this one file absorbed the
 retired `gold_diagonal_source.tex`, `brown_game_semantics.tex`,
 `game_exterior_deformation.tex`, `game_exterior_divisibility.tex`, and
-(2026-08-12) the block-compression note `observation_width.tex` (as the
-every-width attainment corollary `cor:blocks`);
+(2026-08-12) the three frontier notes `observation_width.tex` (the
+every-width attainment corollary `cor:blocks`), `impartial_realizer.tex`
+(the pass-free impartial realization section), and `extraspecial_model.tex`
+(the game-native Gold--Heisenberg model, `thm:goldheisenberg`); authors
+sol, fable, a9lim as of the 2026-08-12 harmonization pass;
 `excess.tex` — the
 consolidated note on the transfinite nim excess problem;
 `linking_affine.tex` — the proof-frontier note for the general FIFO linking
@@ -140,17 +143,6 @@ filtrations, the correlated cut/continuation moment, initial cut contraction,
 the two-bit handshake refinement, two-switch tail, the false
 childwise/full-fan/bounded-support inductions, and the exact still-open global
 odd-flow lemma;
-`impartial_realizer.tex` — the resolved standalone theorem note for the
-pass-free impartial construction, folded into the flagship the same day;
-`extraspecial_model.tex` — the resolved game-native Gold--Heisenberg theorem:
-the oriented trace half is a game-built cocycle whose squares are `Q_a`, whose
-commutators are `B_a`, and whose canonical power-of-two radical quotient is
-extraspecial (the `(4,1)` cell is `Q_8`); a third
-note, `observation_width.tex`, lived hours — its block-compression
-proposition survived a sol-tier adversarial consult the same day and was
-absorbed into goldarf as the every-width attainment corollary `cor:blocks`
-(kernel-checked algebra in `formal/Ogdoad/GoldBlockCompression.lean`; note
-retired, survives in git history);
 `thermo_newton.tex` — restructured 2026-08-12 as a theorem-first note centered
 on the Norton thermic law `temp(G.u) = u·temp(G) + (u−δ_u)` with its
 composition-defect classification, the tropical-shadow no-go demoted to a

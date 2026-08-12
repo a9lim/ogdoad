@@ -16,7 +16,6 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
 \newtheorem{observation}{Observation}
-\newtheorem*{question}{Open question}
 \newtheorem{nogo}{Theorem}
 \renewcommand{\thenogo}{\Alph{nogo}}
 \theoremstyle{definition}
@@ -47,7 +46,9 @@
 
 \title{Quadratic Refinements in Normal Play:\\
 Realization and the Observation Boundary}
-\author{a9lim\\[2pt] \small\texttt{mx@a9l.im}}
+\author{sol\thanks{\texttt{gpt-5.6-sol} (OpenAI Codex).}
+ \and fable\thanks{\texttt{claude-fable-5} (Anthropic Claude).}
+ \and a9lim\thanks{Corresponding author: \texttt{mx@a9l.im}.}}
 \date{August 2026}
 
 \begin{document}
@@ -163,6 +164,13 @@ game-native Artin--Schreier source for every exponent $a$, with a closed
 trace-dual basis and a tower recursion in Conway's bit basis.  Realized by
 the main theorem, the Arf invariant with radical data becomes the exact
 second-player win-bias.
+\item \emph{Brown phases as intrinsic partizan outcomes}
+(Theorem~\ref{thm:brown-selector}).  For a $\mathbb{Z}/4$-valued
+quadratic refinement $q=\widehat{\ell}+2Q$, a single partizan game with
+the two realized arenas as its left and right options has outcome class
+$\mathcal N,\mathcal R,\mathcal P,\mathcal L$ according to
+$q(x)=0,1,2,3$: the Brown residue is read off by outcome observation
+alone, with no external product or terminal evaluator.
 \item \emph{The game-native Gold--Heisenberg extension}
 (Theorem~\ref{thm:goldheisenberg}).  The oriented half-polar term
 $\phi_{\lambda,a}(x,y)=\Tr(\lambda x y^{2^a})$ is a bilinear cocycle.
@@ -174,13 +182,6 @@ quotienting the trace-cocycle group by the canonical polar radical gives
 the genuine extraspecial core, including the $Q_8$ first cell.  Thus the
 structural extension problem closes without a diagonal table or unary
 $Q_a$ oracle.
-\item \emph{Brown phases as intrinsic partizan outcomes}
-(Theorem~\ref{thm:brown-selector}).  For a $\mathbb{Z}/4$-valued
-quadratic refinement $q=\widehat{\ell}+2Q$, a single partizan game with
-the two realized arenas as its left and right options has outcome class
-$\mathcal N,\mathcal R,\mathcal P,\mathcal L$ according to
-$q(x)=0,1,2,3$: the Brown residue is read off by outcome observation
-alone, with no external product or terminal evaluator.
 \item \emph{The obstruction landscape}
 (Theorems~\ref{thm:A}--\ref{thm:H}, \ref{thm:rigidity},
 \ref{thm:nolivemiddle}).  Coin-turning sums, commutative value-worlds
@@ -231,8 +232,8 @@ kernel-checked in Lean~4 with mathlib: the diagonal trace identities, the
 matching FIFO strategy, the pass-free matching/tempo compiler, the
 adapted-basis expansion, the transcript-span bound, the block-aggregation
 algebra, and the fork-padding obstruction;
-further modules check the algebraic cores of the Brown-selector section
-and the game-exterior appendix.
+further modules check the algebraic cores of the Brown-selector section,
+the Gold--Heisenberg model, and the game-exterior appendix.
 These are ingredient theorems: no single Lean statement constructs the
 complete arena, and Section~\ref{sec:status} records the one load-bearing
 step of the exactness synthesis that is not yet kernel-checked.  The Lean
@@ -256,7 +257,9 @@ refinement into a partizan outcome selector.
 Section~\ref{sec:nogos} develops the obstruction landscape -- the
 extraspecial dictionary, the equivariance screen, and the lettered no-go
 theorems -- that delimits every architecture short of the positive
-construction.  Section~\ref{sec:status} states the formal-verification
+construction, and closes the structural question those obstructions carve
+out with the game-native Gold--Heisenberg model.
+Section~\ref{sec:status} states the formal-verification
 boundary.  Appendix~\ref{sec:game-exterior} proves the game-exterior
 obstruction and answers Altman--Lipparini Problem~5.3(j).
 \section{Preliminaries}\label{sec:prelim}
@@ -1456,7 +1459,8 @@ Appendix~\ref{sec:game-exterior}.  The section/framing issue for a bare
 $\mathbb{Z}/4$ central extension is separate; its algebraic core is
 kernel-checked in \texttt{formal/Ogdoad/}\allowbreak\texttt{BrownGame.lean}.
 \end{remark}
-\section{Obstructions: delimiting the middle tier}\label{sec:nogos}
+\section{The middle tier: obstructions and the structural model}
+\label{sec:nogos}
 
 The positive theorem's shape -- covariant public preprocessing, a genuinely
 larger FIFO state space, play-dependent source interactions -- is forced.
@@ -2117,7 +2121,18 @@ to zero there; that is consistent with the global divisibility no-go of
 Appendix~\ref{sec:game-exterior}.  Nor can any section of
 $\mathcal E_a\to K$ be fixed by all extension automorphisms, since central
 twists exchange its two lifts.  Neither stronger condition belonged to the
-question.  Finally, ``without a $Q_a$ evaluator'' cannot coherently forbid
+question.  The faithful context action of
+Theorem~\ref{thm:goldheisenberg}(iv) likewise does not collide with the
+$E$-translation no-go (Theorem~\ref{thm:H} below): it represents the
+structural multiplication, not a play rule with moves $g\to gn$ for a
+fixed move set; once the extension is built, the play layer is the
+automorphism-equivariant squaring rule of
+Proposition~\ref{prop:between}(iii).  A stronger demand -- that the
+carrier be one untagged Conway value under a single pre-existing binary
+compound -- would be a different problem: ordinal sum does not descend to
+game values, while unrestricted quotients of literal game trees can
+import any finite presentation and are therefore too permissive.
+Finally, ``without a $Q_a$ evaluator'' cannot coherently forbid
 multiplication from revealing $Q_a$ on a square -- every model of $E_{Q_a}$
 does exactly that.  The meaningful and met condition is that multiplication
 not import $Q_a$ or its diagonal as an oracle.
@@ -2375,8 +2390,12 @@ in the scoring submatching, and does not reify the one public policy across
 all submatchings or encode weighted source OPEN charges.  The displayed
 safe-front proof fixes that policy on the full public potential matching and
 proves every CLOSE clean; the adapted-basis identity then supplies the
-paper-level weighted-source composition.  These are the exact remaining
-formalization boundaries, not open mathematical premises.
+paper-level weighted-source composition.  Similarly,
+\path{formal/Ogdoad/GoldExtraspecial.lean} is universal in an abstract
+biadditive $\phi$; the concrete nimber-field trace specialization of
+Theorem~\ref{thm:goldheisenberg} is the paper-level step, independently
+exercised by the repository's tested arithmetic surface.  These are the
+exact remaining formalization boundaries, not open mathematical premises.
 
 The arbitrary-graph isolated-dummy FIFO theorem remains open and is
 studied in the companion note cited in Section~\ref{sec:wittfifo}.  It

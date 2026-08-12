@@ -4,16 +4,18 @@ This file records solved research questions as mathematical results, not as a
 development chronology. Implementation milestones remain in [`DONE.md`](DONE.md),
 while the two unsolved fronts remain in [`OPEN.md`](OPEN.md).
 
-Since 2026-08-12, six of the eight results share one flagship paper:
+Since 2026-08-12, seven of the nine results share one flagship paper:
 [`goldarf.tex`](../writeups/goldarf.tex), "Quadratic Refinements in Normal
 Play: Realization and the Observation Boundary", absorbed the former
 `gold_diagonal_source.tex` (as its diagonal-source section),
 `brown_game_semantics.tex` (as its Brown-selector section), the
 `game_exterior_deformation.tex`/`game_exterior_divisibility.tex` pair (as its
-game-exterior appendix), and — same day, after an adversarial consult pass —
-the block-compression note `observation_width.tex` (as its every-width
-attainment corollary `cor:blocks`). The retired standalones survive in git
-history.
+game-exterior appendix), and — same day — the three frontier notes:
+`observation_width.tex` (as the every-width attainment corollary
+`cor:blocks`, after an adversarial consult pass), `impartial_realizer.tex`
+(as the rewritten pass-free realization section), and
+`extraspecial_model.tex` (as the game-native Gold--Heisenberg subsection,
+`thm:goldheisenberg`). The retired standalones survive in git history.
 
 | solved question | answer | authoritative paper |
 |---|---|---|
@@ -24,6 +26,7 @@ history.
 | Brown game semantics | one partizan selector realizes all four local Brown residues; every ambient-coherent Brown colour on all short games is zero | [`goldarf.tex`](../writeups/goldarf.tex), Brown-selector section (`sec:brown-selector`) |
 | thermography versus Newton polygons | positive numeric Norton units obey the exact thermic law `temp(G.u) = u·temp(G) + (u − δ_u)` with a classified composition defect; the shared shadow is tropical but no faithful full-dyadic graded ring exists | [`thermo_newton.tex`](../writeups/thermo_newton.tex) |
 | observation width above weight one | block aggregation of the weighted-source rule attains the integral transcript-span bound `ceil(wt(x)/w)` exactly at every fixed width, under the same access contract at `(w_0, c) = (w, 1)` | [`goldarf.tex`](../writeups/goldarf.tex), block-compression corollary (`cor:blocks`) |
+| impartial uniform realizer | the pass-free weighted-source arena is impartial and exact at `(w_0, c) = (1, 1)`: delete PASS, allow the ko-CLOSE once the untouched set empties, and one seat-symmetric charge tail compiles the forced bit | [`goldarf.tex`](../writeups/goldarf.tex) (`thm:wittfifo`, `thm:matchingfifo`) |
 | game-native Gold extraspecial model | the oriented trace half `phi_a(x,y) = Tr(x*y^(2^a))` gives a game-built cocycle extension whose squares are `Q_a`; the canonical power-of-two radical quotient is genuinely extraspecial | [`goldarf.tex`](../writeups/goldarf.tex), Gold--Heisenberg theorem (`thm:goldheisenberg`) |
 
 ## 1. Gold quadratic zero sets have an impartial normal-play realization
@@ -273,7 +276,7 @@ Proof surfaces:
 - [`formal/Ogdoad/GoldBlockCompression.lean`](../formal/Ogdoad/GoldBlockCompression.lean)
 - [`formal/Ogdoad/GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean)
 
-## Impartial uniform realization
+## 8. Impartial uniform realization
 
 **Closed 2026-08-12, affirmative.** Every finite binary quadratic refinement
 has an impartial exact local normal-play realizer at the optimal
@@ -321,7 +324,7 @@ pointwise in an edge-deleted submatching. Weighted source OPEN charges, the
 literal one-policy quantifier across all submatchings, and the end-to-end access
 synthesis remain explicit paper-level steps, not hidden kernel claims.
 
-## 8. The Gold--Heisenberg extension has a game-native model
+## 9. The Gold--Heisenberg extension has a game-native model
 
 **Closed 2026-08-12, affirmative with a terminology correction.** For
 `K = F_(2^m)` and scale `lambda`, the oriented half-polar map
