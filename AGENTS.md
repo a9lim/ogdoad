@@ -130,6 +130,15 @@ filtrations, the correlated cut/continuation moment, initial cut contraction,
 the two-bit handshake refinement, two-switch tail, the false
 childwise/full-fan/bounded-support inductions, and the exact still-open global
 odd-flow lemma;
+`impartial_realizer.tex`, `observation_width.tex`, `extraspecial_model.tex` —
+the three flagship-residual frontier notes (2026-08-12), each the
+authoritative home of one open question from goldarf's conclusion, to be
+folded back into the flagship when resolved: the impartial uniform realizer
+(reduced to a pass-free or pass-parity-pinned matching forcing theorem
+compiling charge to play-length parity), observation width above `w = 1`
+(carries the block-compression proposition that would close it positively —
+awaiting adversarial review), and the game-native extraspecial `E_{Q_a}`
+model (structural demands fixed; ordinal-sum/`Q_8` quotient probe named);
 `thermo_newton.tex` — restructured 2026-08-12 as a theorem-first note centered
 on the Norton thermic law `temp(G.u) = u·temp(G) + (u−δ_u)` with its
 composition-defect classification, the tropical-shadow no-go demoted to a
@@ -156,7 +165,9 @@ Use these labels when changing prose, papers, examples, or comments:
   math and the formal files check independent proof ingredients rather than one
   end-to-end arena theorem.
 - **Open**: transfinite nim multiplication beyond the source-verified excess
-  table, plus the now-optional arbitrary-graph FIFO strengthening. These live in `docs/OPEN.md`; the
+  table, the now-optional arbitrary-graph FIFO strengthening, and the
+  flagship's three residual opens (impartial uniform realizer, observation
+  upper bounds above weight one, a game-native `E_{Q_a}` model). These live in `docs/OPEN.md`; the
   game-native `GameExterior` deformation question was resolved negatively under
   ambient subgroup coherence on 2026-08-09.
 

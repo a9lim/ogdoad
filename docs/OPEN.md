@@ -6,12 +6,15 @@ questions and their exact theorem boundaries are indexed in
 [`DONE.md`](DONE.md). Work that does not require new mathematics belongs in
 [`COMPLETENESS.md`](COMPLETENESS.md) or [`CONTINUATIONS.md`](CONTINUATIONS.md).
 
-Two research problems are live:
+Five research problems are live:
 
 | problem | present reduction | authoritative paper |
 |---|---|---|
 | arbitrary-graph FIFO linking | a causal affine-contraction problem in the edge space of a complete graph | [`linking_affine.tex`](../writeups/linking_affine.tex) |
 | finite excess in transfinite nim multiplication | prove the universal `0/1/4` rule through four exact order-theoretic arms | [`excess.tex`](../writeups/excess.tex) |
+| impartial uniform realizer | a pass-free or pass-parity-pinned matching forcing theorem compiling charge to play-length parity | [`impartial_realizer.tex`](../writeups/impartial_realizer.tex) |
+| observation upper bounds above weight one | block compression attains `ceil(wt(x)/w)`; the proposition awaits adversarial review | [`observation_width.tex`](../writeups/observation_width.tex) |
+| game-native extraspecial model | produce the diagonal `q_i = Q_a(e_i)` as squares in a noncommutative game-built model of `E_(Q_a)` | [`extraspecial_model.tex`](../writeups/extraspecial_model.tex) |
 
 The evidence vocabulary is fixed throughout this file:
 
@@ -1587,6 +1590,189 @@ Kummer-field intersection or an unweighted product of arm symbols.
 - [`experiments/fermat_selected_screen_results.md`](../experiments/fermat_selected_screen_results.md)
 - [`src/scalar/big/ordinal/tower.rs`](../src/scalar/big/ordinal/tower.rs)
 - [`src/scalar/big/ordinal/b380496.txt`](../src/scalar/big/ordinal/b380496.txt)
+
+## 3. Impartial uniform realizer
+
+### Problem
+
+The weighted-source witt-fifo arena of the flagship realization theorem is
+partizan through exactly one bit. Every OPEN, CLOSE, and PASS is
+seat-symmetric; only the terminal claim move is keyed by the accumulated
+charge `sigma` together with the mover phase `phi`, so which player may claim
+depends on whose turn it is.
+
+**Question.** Does an impartial rule — every legal move available to both
+players, outcomes read by ordinary normal play — satisfy the same access
+contract F1–F3/N1–N2 at bounded `(w_0, c)` and have root outcome `P` exactly
+when `Q(x) = 0`, uniformly over every quadratic refinement `Q` of every
+alternating form `B` in every finite dimension?
+
+### Proved boundary
+
+- The partizan compilation is exact at `(w_0, c) = (1, 1)`. The phase-aware
+  claim compiler and the charge-game/normal-play root equivalence are proved
+  in [`GoldSemantics.lean`](../formal/Ogdoad/GoldSemantics.lean); the forcing
+  strategy is the refinement-blind safe-front policy of
+  [`FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean).
+- The linear ceiling is proved: any ruleset decomposing as a disjunctive sum
+  of terminating coin-turning heaps has a linear `P`-set (Ferguson
+  decomposition). An impartial realizer cannot be a coin-turning sum.
+- The abelian obstruction is proved: once `B != 0`, no commutative
+  game-value monoid carries the refinement, and misère-quotient kernels are
+  excluded. An impartial candidate therefore cannot factor through its
+  Sprague–Grundy (or any commutative quotient) values; the refinement must
+  enter intensionally, through the move relation. Impartial play does retain
+  the one asymmetry the paper identifies as available — the
+  first-/second-player asymmetry of whose turn it is — even though its move
+  sets are equal.
+- The observation boundary applies unchanged: any transcript-stable exact
+  impartial rule must observe refinement directions spanning the input, so
+  weight-one interfaces still need the full `wt(x)` singleton support.
+
+### Present reduction
+
+The frontier note records the rigid-tempo compilation lemma (standard: an
+impartial arena in which every maximal play has the same length parity has
+strategy-independent outcome) and reduces the design problem to a
+pass-controlled analogue of the matching forcing theorem: either eliminate
+PASS and keep the safe-front forcing with rigid length, or pin pass parity
+strategically, so total play-length parity rather than claim rights compiles
+the charge. The ko rule is the immediate obstruction — in the FIFO transition
+system a forced pass is what clears ko, and the kernel-checked matching
+strategy uses it. A negative answer must engage the move relation directly:
+by the abelian obstruction it cannot proceed through value quotients.
+
+### Verification surfaces
+
+- [`writeups/impartial_realizer.tex`](../writeups/impartial_realizer.tex)
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex) (realization theorem,
+  locality proposition, conclusion)
+- [`formal/Ogdoad/GoldSemantics.lean`](../formal/Ogdoad/GoldSemantics.lean)
+- [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
+
+## 4. Observation upper bounds above weight one
+
+### Problem
+
+The transcript-span theorem proves that a transcript-stable rooted result
+exact at `x` observes refinement values at directions spanning `x`; in the
+original frame, if every observed vector has weight at most `w`, then
+
+```text
+|S(q, x)| >= wt(x) / w.
+```
+
+At `w = 1` the weighted-source rule attains the bound with observation
+support exactly the singleton directions `{e_j : x_j = 1}`. For `w > 1` the
+theorem is only a lower bound and no matching construction is claimed.
+
+**Question.** For fixed `w > 1`, is certificate size on the order of
+`wt(x)/w` attainable by a rule under the same F1–F3/N1–N2 contract — genuine
+query compression from higher-weight observations — or does a stronger lower
+bound force order-`wt(x)` observations regardless of `w`?
+
+### Proved boundary
+
+- Both forms of the lower bound — the span statement and the coordinate
+  count — and the bounded-budget evaluator exclusion are proved in
+  [`GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean).
+- No constants `(C, w)` admit an exact torsor-uniform family with complete
+  outcome certificates of size `C` at weight `w` in unbounded dimension
+  (proved). The open content is the exact growth rate at fixed `w > 1`.
+- Standard math sharpens what is actually open: for any decomposition
+  `x = z_1 + ... + z_k` into weight-`<= w` blocks, polarization gives
+  `Q(x) = sum_i Q(z_i) + sum_(i<j) B(z_i, z_j)`, and `B` is public. So
+  `ceil(wt(x)/w)` block queries always determine `Q(x)`
+  information-theoretically; the problem is strategic realization — a
+  uniform arena whose per-transition access stays within the contract while
+  play forces the block certificate — not certificate existence.
+
+### Candidate resolution
+
+The frontier note proves a block-compression proposition: partition
+`supp(x)` into blocks of size at most `w`, take the block indicators `z_i`
+as new coordinates, the Gram data `B(z_i, z_j)` as the induced alternating
+form, and `Q(z_i)` as the induced diagonal; running the flagship
+weighted-source rule on the induced instance at input all-ones is exact for
+`Q(x)`, satisfies the contract at `(w_0, c) = (w, 1)`, and observes exactly
+the `ceil(wt(x)/w)` block vectors. This attains the transcript-span lower
+bound up to the integer ceiling at every width, and the total observed
+weight is exactly `wt(x)`. The proof is a three-step reduction to the
+flagship realization and locality theorems plus the polarization expansion.
+**It has not passed the adversarial review gate**; the note lists the three
+points a referee should press (frame-relative weight metering, per-input
+block partitions under F1, uniformity of the induced family under N1). If
+it stands, this entry closes positively and folds into the flagship as a
+corollary beside the weight-one attainment; the residual questions — a
+uniform-in-width interface and non-partition observation geometries — are
+recorded in the note.
+
+### Verification surfaces
+
+- [`writeups/observation_width.tex`](../writeups/observation_width.tex)
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex) (observation-boundary
+  section)
+- [`formal/Ogdoad/GoldNoEvaluator.lean`](../formal/Ogdoad/GoldNoEvaluator.lean)
+
+## 5. A game-native extraspecial extension model
+
+### Problem
+
+The flagship paper's stated open question: does any game-native construction
+realize the extraspecial extension `E_(Q_a)` — positions built from game
+values, multiplication from game constructions — equivalently, produce the
+diagonal data `q_i = Q_a(e_i)` as squares in a noncommutative game-built
+structure, without an evaluation circuit for `Q_a`?
+
+A positive answer upgrades the covariant weighted-source realization to a
+structural one: given a model of the extension, the rule layer is canonical,
+because the squaring rule is the extraspecial squaring map read as a
+one-move relation.
+
+### Proved boundary
+
+- The extraspecial dictionary is proved in the paper (standard math):
+  quadratic maps `Q` on `V = F_2^n` biject with central extensions of `V` by
+  `Z/2`, with squaring form `Q` and commutator pairing the polar form `B`;
+  `E_Q` is extraspecial iff `B` is nondegenerate.
+- The sharp constraint on the search is proved: `E_Q` is abelian iff
+  `B = 0`, so no commutative value-world — in particular no misère-quotient
+  kernel — can host `E` once `B != 0`. The noncommutative datum must enter
+  from a structurally available asymmetry that the symmetric polar form
+  discards; the candidate the paper names is the first-/second-player
+  asymmetry of the move relation.
+- The equivariance screen is satisfiable over the abstract group by the
+  squaring rule, so equivariance is not the obstruction; that rule consults
+  the multiplication of `E` directly, which is exactly what a game-native
+  model must supply rather than assume.
+- Literal move-digraph invariance admits no live middle (proved), so the
+  `E`-structure must enter covariantly, in the dynamics.
+- The finite Heisenberg/Pauli representation of the char-2 extraspecial
+  surface is implemented over its `F_2` bitmask boundary in
+  [`extraspecial.rs`](../src/forms/char2/extraspecial.rs) — experiment
+  infrastructure, not a game-native model.
+
+### Demands and candidate directions
+
+The frontier note fixes two structural demands (standard math): any model
+with `B != 0` is noncommutative, and any model with some `Q(v) = 1` carries
+4-torsion — so disjunctive impartial sum fails both at once (commutative and
+elementary abelian). Candidate directions, all marked speculation in the
+note: the central involution as a tempo token, with lifted noncommutativity
+`[x~, y~] = z^B(x,y)` read as a move-order holonomy; noncommutative game
+compounds (ordinal sum, sequential join) as multiplication carriers, with
+the concrete first probe being indistinguishability quotients of small
+ordinal-sum position algebras over the anisotropic plane, where the target
+`E_Q = Q_8` makes the search finite; and the Brown-selector precedent that
+partizan outcome classes already host central `Z/4` data — values without a
+composition law.
+
+### Verification surfaces
+
+- [`writeups/extraspecial_model.tex`](../writeups/extraspecial_model.tex)
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex) (extraspecial
+  dictionary, equivariance screen, and the stated open question)
+- [`src/forms/char2/extraspecial.rs`](../src/forms/char2/extraspecial.rs)
 
 ## References
 

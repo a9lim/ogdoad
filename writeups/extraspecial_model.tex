@@ -1,0 +1,256 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Orth}{\mathrm{O}}
+\newcommand{\Sp}{\mathrm{Sp}}
+\newcommand{\Aut}{\operatorname{Aut}}
+\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
+\newcommand{\PROVED}{\taglabel{PROVED}}
+\newcommand{\STANDARD}{\taglabel{STANDARD MATH}}
+\newcommand{\SPECULATION}{\taglabel{SPECULATION}}
+\newcommand{\OPEN}{\taglabel{OPEN}}
+
+\title{A Game-Native Model of the\\ Extraspecial Extension}
+\author{a9lim}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The flagship paper's extraspecial dictionary identifies quadratic
+refinements $Q$ of alternating forms $B$ on $V=\F_2^n$ with central
+extensions $1\to\mathbb{Z}/2\to E_Q\to V\to1$: squares in $E_Q$ read the
+diagonal, commutators read the polar form.  Its equivariance screen shows
+that once the extension is available as an object, the realizing rule
+layer is canonical -- the squaring rule is the extraspecial squaring map
+read as a one-move relation -- and its no-go theorems show the screen
+cannot be met by commutative value-worlds, by symmetry classes beyond the
+orthogonal group, or by $E$-translation dynamics.  The flagship's fourth
+residual open question is therefore structural: exhibit a
+\emph{game-native} model of $E_{Q_a}$ -- positions built from game
+values, multiplication from game constructions -- producing the Gold
+diagonal $q_i=Q_a(e_i)$ as squares, without an evaluation circuit for
+$Q_a$.  A positive answer upgrades the flagship's covariant realization
+to a structural one.  This note fixes the demands such a model must
+meet, collects the proved fence, and records candidate directions: the
+mover-bit asymmetry as the central involution, noncommutative game
+compounds (ordinal sum and sequential join) as multiplication carriers,
+and the Brown-selector precedent that partizan outcome classes can host
+central data.
+\end{abstract}
+
+\section{The dictionary and the problem}
+
+Throughout, $V=\F_2^n$, $B$ alternating, $Q$ a quadratic refinement of
+$B$, and $Q_a(x)=\Tr(x\,x^{2^a})$ the Gold trace family on nimber fields
+that motivates everything~\cite{goldarf}.
+
+\begin{theorem}[extraspecial dictionary]\label{thm:dict}
+\STANDARD~(proved self-contained in \cite{goldarf}; classical:
+\cite{Quillen71,Gorenstein80})
+Central extensions $1\to Z\to E\to V\to1$ with $Z=\{1,z\}\cong\mathbb{Z}/2$
+correspond bijectively to quadratic maps $Q\colon V\to\F_2$: lifted
+squares are central and well defined, giving $\tilde x^2=z^{Q(x)}$, and
+lifted commutators give $[\tilde x,\tilde y]=z^{B(x,y)}$ with $B$ the
+polar form of $Q$.  $E_Q$ is abelian iff $B=0$, and extraspecial iff $B$
+is nondegenerate.
+\end{theorem}
+
+Two structural consequences fix what any model must contain.
+
+\begin{lemma}[demands]\label{lem:demands}
+\STANDARD\
+Any model $(N,Z,\pi)$ of $E_Q$ -- a monoid $N$ with central two-element
+subgroup $Z$ and surjection $\pi\colon N\to V$ with fibers the
+$Z$-cosets -- satisfies:
+\begin{enumerate}[label=(\roman*),leftmargin=*,itemsep=1pt]
+\item if $B\neq0$, $N$ is noncommutative;
+\item if $Q(v)=1$ for some $v$, any lift $\tilde v$ has order four, so
+$N$ contains $4$-torsion.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) is the dictionary: commutators read $B$.  (ii): $\tilde v^2=z\neq1$
+and $\tilde v^4=z^2=1$.
+\end{proof}
+
+\begin{question}[game-native extraspecial model]\label{q:model}
+\OPEN~(the flagship's stated open question)
+Does any game-native construction realize $E_{Q_a}$ -- positions built
+from game values, multiplication from game constructions -- equivalently,
+produce the diagonal data $q_i=Q_a(e_i)$ as squares in a noncommutative
+game-built structure, without an evaluation circuit for $Q_a$?
+\end{question}
+
+The payoff is canonicity: over the abstract group the flagship's
+equivariance screen is already satisfiable by the squaring rule, which
+consults only the multiplication of $E$.  A game-native $E_{Q_a}$ would
+therefore upgrade the weighted-source realization, which is covariant
+(public preprocessing transported along the orthogonal group), to a
+structural one, where the arena \emph{is} the extension.
+
+\section{The proved fence}
+
+\begin{theorem}[commutative squaring collapse]\label{thm:abelian}
+\PROVED~\cite[Lem.~abelian, Thm.~B]{goldarf}
+In any commutative monoid, squaring is an endomorphism, so any model as
+in Lemma~\ref{lem:demands} inside a commutative monoid has linear
+squaring form: $B\equiv0$.  No commutative game-value monoid --
+Sprague--Grundy values under disjunctive sum, mis\`ere quotients,
+turn-parity counters, coin-turning configuration sums -- hosts $E_Q$
+once $B\neq0$.
+\end{theorem}
+
+In concrete game terms the two demands of Lemma~\ref{lem:demands} fail
+separately for the default operations: disjunctive sum of impartial
+games is commutative \emph{and} elementary abelian ($G+G$ is a
+$P$-position for every impartial $G$), so it lacks both the
+noncommutativity and the $4$-torsion.  The model needs a genuinely
+different multiplication.
+
+\begin{theorem}[the symmetry dial has no middle]\label{thm:E}
+\PROVED~\cite[Thm.~E]{goldarf}
+By Dye--Dieudonn\'e maximality of $\Orth(Q)$ in $\Sp(B)$ and the Witt
+orbital classification, a rule invariant under any group strictly larger
+than $\Orth(Q)$ has dead $P$-set, while a fully $\Orth(Q)$- or
+$\Aut(E)$-equivariant rule factors extensionally through pointwise $Q$-
+and $B$-evaluation.  $E$-naturality must be covariance, not invariance.
+\end{theorem}
+
+\begin{theorem}[$E$-translation no-go]\label{thm:H}
+\PROVED~\cite[Thm.~H]{goldarf}
+For polar rank $\geq4$, no left-$E$-equivariant rule on $E_Q$ with moves
+$g\to gn$ for a fixed nonempty move set $N\subseteq E_Q$ has $P$-set the
+involution locus $\pi^{-1}(\{Q=0\})$.
+\end{theorem}
+
+So the model cannot be reached by making play \emph{more} symmetric: the
+extension must be built, not imposed, and once built its group structure
+must drive the dynamics covariantly.  The search space is exactly the
+noncommutative resources games natively possess.
+
+\begin{remark}[adjacent negative: the game-exterior collapse]\label{rem:exterior}
+\PROVED~\cite[game-exterior appendix]{goldarf}
+For ambient-coherent coefficient-faithful Clifford data on the additive
+group of short partizan games, two-divisibility forces all quadratic and
+polar values into $\bigcap_k4^kR$, hence zero over $\mathbb{Z}$, in
+characteristic $2$, and over $\mathbb{Z}/4$.  This kills the
+\emph{additive, algebra-valued} route: one cannot source the extension's
+quadratic data from a Clifford structure carried by the full game group.
+The extension target is group-theoretic rather than algebra-theoretic,
+so the collapse does not decide Question~\ref{q:model}; it does warn
+that ambient coherence over the whole game group is fatal, and that a
+model should be sought over bounded-birthday or otherwise restricted
+position sets.
+\end{remark}
+
+\section{Resources and candidate directions}
+
+\begin{remark}[the available asymmetry]\label{rem:asymmetry}
+The flagship identifies the one asymmetry that normal, mis\`ere, and
+partizan play all possess and that the symmetric polar form discards:
+the first-/second-player asymmetry of the move
+relation~\cite[equivariance-screen remark]{goldarf}.  The central
+involution $z$ is the natural tenant: a tempo token whose consumption
+commutes with everything (centrality) but whose \emph{presence} records
+one bit.  Under this reading, lifted noncommutativity
+$[\tilde x,\tilde y]=z^{B(x,y)}$ says that interchanging the order of
+two position-building operations costs a tempo exactly when their polar
+pairing is on -- a move-order holonomy.  The FIFO charge mechanism of
+the flagship realization is precisely such a holonomy read
+\emph{covariantly}; the model question asks for it \emph{structurally}.
+\SPECULATION
+\end{remark}
+
+\begin{remark}[noncommutative game compounds]\label{rem:compounds}
+\SPECULATION\
+Theorem~\ref{thm:abelian} bars commutative operations, not game
+constructions as such.  Games natively carry noncommutative compounds:
+ordinal sum $G:H$ (moves in $H$ vanish when $G$ is moved), sequential
+join, and side-conditional compounds.  None is a group operation on
+values, so a model would quotient a compound-generated position monoid
+by an indistinguishability relation tuned so that the quotient is a
+finite $2$-group with the right center -- the analogue, one level up, of
+mis\`ere quotient construction, which Theorem~\ref{thm:abelian} shows
+must \emph{not} collapse the compound to a commutative value world.
+The first concrete probe: compute indistinguishability quotients of
+small ordinal-sum position algebras over the anisotropic plane
+($n=2$, $q_1=q_2=b_{12}=1$, $E_Q=Q_8$) and check which quotients contain
+$Q_8$; the quaternion target makes the search finite and sharp.
+\end{remark}
+
+\begin{remark}[the Brown-selector precedent]\label{rem:brown}
+The flagship's Brown-selector theorem reads the $\mathbb{Z}/4$-valued
+refinement off four partizan outcome classes
+$\mathcal{N},\mathcal{R},\mathcal{P},\mathcal{L}$ with no external
+product or terminal evaluator~\cite[Brown-selector theorem]{goldarf}.
+This is evidence that partizan outcome observation has the capacity to
+host exactly the kind of central, order-four data the extension carries
+(Lemma~\ref{lem:demands}(ii)): the selector's outcome lattice is a
+$\mathbb{Z}/4$ readout obtained from game structure alone.  What the
+selector does not provide is multiplication -- it reads residues, it
+does not compose them.  A model would need the composition law; the
+selector suggests where its values can live.  \SPECULATION
+\end{remark}
+
+\begin{remark}[implemented infrastructure]\label{rem:infra}
+The repository implements the finite Heisenberg/Pauli representation of
+the char-$2$ extraspecial surface over its $\F_2$ bitmask boundary
+(\path{src/forms/char2/extraspecial.rs}): $E_Q$ as explicit matrices,
+projective symplectic-transvection intertwiners, and the squaring/
+commutator readouts.  This is experiment infrastructure -- a concrete
+target to compare candidate game quotients against -- not a game-native
+model.
+\end{remark}
+
+\section{Target}
+
+Exhibit a set of positions generated by game constructions, a
+game-built composition law on them, a central two-element subgroup, and
+a surjection to the coordinate space, such that the squaring form is
+$Q_a$ -- with the diagonal produced by the structure, not queried -- or
+prove a further no-go narrowing ``game-native'' (for instance: no
+finitely presented quotient of an ordinal-sum position monoid on
+game-value generators contains $Q_8$ compatibly with its Grundy
+projection).  By Theorem~\ref{thm:abelian} the source cannot be any
+commutative game-value monoid; by Lemma~\ref{lem:demands} it must carry
+$4$-torsion; by Theorems~\ref{thm:E} and~\ref{thm:H} neither extra
+symmetry nor translation dynamics can substitute for the construction.
+
+This note is the authoritative statement of the problem and will be
+folded into the flagship paper when resolved.
+
+\begin{thebibliography}{9}\footnotesize
+\bibitem{goldarf} a9lim, \emph{Quadratic refinements in normal play:
+realization and the observation boundary}, companion flagship paper,
+\path{writeups/goldarf.tex} in the ogdoad repository, 2026.
+\bibitem{Gorenstein80} D.~Gorenstein, \emph{Finite Groups}, 2nd ed.,
+Chelsea Publishing, New York, 1980.
+\bibitem{PS} T.~E.~Plambeck, A.~N.~Siegel, \emph{Misere quotients for
+impartial games}, J.\ Combin.\ Theory Ser.\ A \textbf{115} (2008),
+593--622.
+\bibitem{Quillen71} D.~Quillen, \emph{The mod~$2$ cohomology rings of
+extra-special $2$-groups and the spectra of quadratic forms}, Math.\
+Ann.\ \textbf{194} (1971), 197--212.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,241 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\wt}{\operatorname{wt}}
+\newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
+\newcommand{\PROVED}{\taglabel{PROVED}}
+\newcommand{\STANDARD}{\taglabel{STANDARD MATH}}
+\newcommand{\OPEN}{\taglabel{OPEN}}
+
+\title{The Impartial Realizer Problem:\\
+One Mover Bit from Symmetry}
+\author{a9lim}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The weighted-source \textsc{witt-fifo} theorem of the companion flagship
+paper realizes $\{Q=0\}$ as a normal-play $P$-set for every quadratic
+refinement $Q$ of every alternating form on $\F_2^n$, under a bounded
+$(w_0,c)=(1,1)$ access contract.  The compiled arena is partizan through
+exactly one bit: the terminal claim move is keyed to the accumulated
+charge \emph{and the mover phase}, so which seat may claim depends on
+whose turn it is; every other move is seat-symmetric.  This note isolates
+the flagship's first residual open question: does an \emph{impartial}
+rule -- identical move sets for both players, ordinary normal play --
+meet the same access contract and realize the same $P$-sets uniformly?
+We collect the proved fence (the coin-turning linear ceiling, the abelian
+obstruction, the transcript-span bound), record the trivial rigid-tempo
+compilation lemma, and reduce the design problem to a pass-free or
+pass-parity-pinned analogue of the matching forcing theorem, which is the
+open technical content.
+\end{abstract}
+
+\section{The problem}
+
+Throughout, $V=\F_2^n$, $B$ is an alternating bilinear form on $V$, and
+$Q$ is a quadratic refinement of $B$, i.e.\ $Q(u+v)=Q(u)+Q(v)+B(u,v)$
+with $Q(0)=0$.  The access contract F1--F3/N1--N2, the loading map, and
+the realization theorem are those of the flagship
+paper~\cite{goldarf}: statics are refinement-blind (F1), each move
+predicate and transition observes $Q$ through at most $c$ oracle queries
+at points of Hamming weight at most $w_0$, with $(w_0,c)$ independent of
+dimension (F2), the semantics is one declared outcome convention (F3),
+and exactness holds uniformly over the full torsor of refinements of
+every form in the family (N1) within the stated budget (N2).
+
+The \textsc{witt-fifo} arena satisfies the contract at $(w_0,c)=(1,1)$
+and has root outcome $P$ iff $Q(x)=0$ for every loaded input
+$x$~\cite[weighted-source theorem]{goldarf}.  Its state carries a coin set, a
+FIFO queue of open coins, a Boolean ko bit, the accumulated charge
+$\sigma$, and the mover phase $\phi$; the moves are OPEN, CLOSE, PASS,
+and one terminal claim.  OPEN, CLOSE, and PASS are available to whichever
+player moves.  Only the claim is partizan: at a terminal board of charge
+$\sigma$, the unique claim exists exactly when the player to move is the
+seat designated by $\sigma$.  The arena is therefore partizan through the
+single bit $\phi$, consumed at one move.
+
+\begin{question}[impartial uniform realizer]\label{q:impartial}
+\OPEN\ Does there exist an impartial rule -- every legal move available
+to both players, outcomes read by ordinary normal play (last player to
+move wins) -- satisfying F1--F3/N1--N2 at some bounded $(w_0,c)$, whose
+root outcome at loaded input $x$ is $P$ exactly when $Q(x)=0$, uniformly
+over every quadratic refinement $Q$ of every alternating form $B$ in
+every finite dimension?
+\end{question}
+
+The question is aesthetically loaded for the motivating instance: the
+Gold trace data $Q_a(x)=\Tr(x\,x^{2^a})$ is built entirely from
+\emph{impartial} game arithmetic (nim addition, the Turning-Corners
+product, its Frobenius diagonal), yet the only known realizer consumes
+one partizan bit.  An affirmative answer would close the loop --
+impartial data realized by impartial play; a negative answer would prove
+the mover bit is the price of the quadric.
+
+\section{The proved fence}
+
+Three flagship results bound any candidate from below; none decides
+Question~\ref{q:impartial}.
+
+\begin{theorem}[coin-turning linear ceiling]\label{thm:ceiling}
+\PROVED~\cite[Thm.~A]{goldarf}
+Every Winning Ways coin-turning game has configuration $P$-set equal to
+the kernel of an $\F_2$-linear nimber-valued map; no coin-turning $P$-set
+is a quadric of positive polar rank.
+\end{theorem}
+
+An impartial realizer therefore cannot be a disjunctive sum of
+coin-turning heaps, and more generally cannot present its positions as
+configurations whose Grundy value is XOR-additive over independent
+components.  Whatever forces the quadric must entangle the coordinates
+dynamically, as the FIFO queue does.
+
+\begin{theorem}[abelian obstruction]\label{thm:abelian}
+\PROVED~\cite[Lem.~abelian, Thm.~B]{goldarf}
+In any commutative monoid, squaring is an endomorphism, so any quadratic
+datum read through homomorphic coordinates has polarization identically
+zero.  In particular no commutative game-value monoid -- Sprague--Grundy
+values under disjunctive sum, mis\`ere quotients, turn-parity counters --
+carries a quadratic refinement with $B\neq0$.
+\end{theorem}
+
+This does \emph{not} exclude impartial realizers.  It excludes
+factorizations: an impartial candidate cannot read $Q$ off any
+commutative value quotient of its positions.  The refinement must enter
+intensionally, through the move relation.  Impartial play retains the one
+asymmetry the flagship identifies as structurally
+available~\cite[Rem.~screen]{goldarf} -- the first-/second-player
+asymmetry of whose turn it is -- even though its move \emph{sets} are
+equal.  Normal play is precisely the reading of that asymmetry.
+
+\begin{theorem}[transcript-span bound]\label{thm:span}
+\PROVED~\cite[transcript-span theorem]{goldarf}
+Any transcript-stable exact rule observes refinement values at directions
+spanning the input; in the original frame, weight-$\leq w$ observations
+number at least $\wt(x)/w$.
+\end{theorem}
+
+The bound is seat-blind: an impartial realizer at $w_0=1$ still needs the
+full singleton support $\{e_j : x_j=1\}$.  No information discount is
+available for symmetry.
+
+\section{Tempo compilation}
+
+The elementary mechanism by which impartial normal play converts a bit
+into an outcome is play-length parity.
+
+\begin{lemma}[rigid tempo]\label{lem:tempo}
+\STANDARD\
+Let $A$ be a finite impartial arena under normal play in which every
+maximal play from the root has the same length parity $p\in\F_2$.  Then
+the root outcome is strategy-independent: $N$ if $p=1$ and $P$ if $p=0$.
+\end{lemma}
+
+\begin{proof}
+The winner of a maximal play of length $\ell$ is the player who made move
+$\ell$, namely the first player iff $\ell$ is odd.  If every maximal play
+has $\ell\equiv p$, the winner's identity does not depend on either
+player's choices.
+\end{proof}
+
+\begin{corollary}[tempo compilation]\label{cor:tempo}
+\STANDARD\
+Suppose for each $(B,Q,x)$ an impartial arena with refinement-blind
+statics and $(w_0,c)$-metered transitions has the property that every
+maximal play from the loaded root has length $\equiv Q(x) \pmod 2$.
+Then it is an impartial uniform realizer in the sense of
+Question~\ref{q:impartial}.
+\end{corollary}
+
+The content is thus a \emph{forced-length} theorem: the total move count
+parity must equal the charge under both players' arbitrary play, while
+transitions stay inside the oracle meter.  The flagship arena is close
+to length-rigid already -- every loaded coin is touched exactly twice
+(one OPEN, one CLOSE), contributing a fixed even base -- and its charge
+$\sigma$ is public state accumulated during play, so a terminal tail of
+forced length $\sigma\bmod 2$ is a legal impartial gadget (its legality
+reads the position, not the oracle).  Two mechanisms break rigidity:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+\item \emph{PASS.}  The flagship strategy uses PASS at opponent
+checkpoints and as ko relief; each PASS flips play-length parity.  The
+partizan claim is precisely the device that makes pass parity harmless:
+keying the claim to the mover phase $\phi$ hands the last move to the
+correct seat regardless of how many passes occurred.
+\item \emph{The claim itself.}  As a partizan right it consumes $\phi$;
+as an impartial move (``claim legal iff $\sigma=1$, for whoever moves'')
+it hands the win to whichever player \emph{reaches} the terminal board on
+their turn, which reintroduces the tempo battle the claim was compiled to
+avoid.
+\end{enumerate}
+
+\begin{remark}[the crux]\label{rem:crux}
+\OPEN\
+The open technical content of Question~\ref{q:impartial} is therefore a
+pass-controlled analogue of the flagship's matching forcing theorem
+\cite[matching FIFO theorem]{goldarf}: a both-seat strategy theorem on
+matching-plus-isolates boards in which either (i) PASS is eliminated and
+the safe-front forcing survives with rigid length, or (ii) pass parity is
+itself strategically pinned, so that total length parity, not claim
+rights, compiles the charge.  The ko rule is the immediate obstruction to
+(i): in the FIFO transition system a forced pass is what clears ko, and
+the kernel-checked strategy semantics of the matching theorem uses it.
+Any replacement must re-prove termination, the queue invariants, and the
+overlap-forcing lemma under the modified move set -- the analogues of
+what \path{formal/Ogdoad/FifoMatching.lean} and
+\path{formal/Ogdoad/GoldSemantics.lean} check for the partizan compilation.
+\end{remark}
+
+\begin{remark}[weaker targets]\label{rem:weaker}
+Two retreats would still be informative.  A realizer at larger but
+bounded $(w_0,c)$ would separate the impartial question from the
+weight-one optimality question.  A negative result -- no impartial rule
+in the declared access class realizes the torsor uniformly -- would
+prove the mover bit necessary and give the flagship's access contract a
+genuinely partizan floor; by Theorem~\ref{thm:abelian} such a proof
+cannot proceed through value quotients and must engage the move relation
+directly, plausibly through a parity-transport invariant of impartial
+transition systems.
+\end{remark}
+
+\section{Status}
+
+Everything in Section~2 is proved in the flagship paper; the lemmas of
+Section~3 are trivial and included to fix the compilation target.
+Question~\ref{q:impartial} is open in both directions.  This note is the
+authoritative statement of the problem and will be folded into the
+flagship paper when resolved.
+
+\begin{thebibliography}{9}\footnotesize
+\bibitem{goldarf} a9lim, \emph{Quadratic refinements in normal play:
+realization and the observation boundary}, companion flagship paper,
+\path{writeups/goldarf.tex} in the ogdoad repository, 2026.
+\bibitem{WW} E.~R.~Berlekamp, J.~H.~Conway, R.~K.~Guy, \emph{Winning Ways
+for Your Mathematical Plays}, 2nd ed., A~K Peters, 2001--2004.
+\bibitem{ferguson-notes} T.~S.~Ferguson, \emph{Game Theory}, Part~I,
+Ch.~5: Coin Turning Games, UCLA online lecture notes.
+\bibitem{PS} T.~E.~Plambeck, A.~N.~Siegel, \emph{Misere quotients for
+impartial games}, J.\ Combin.\ Theory Ser.\ A \textbf{115} (2008),
+593--622.
+\end{thebibliography}
+
+\end{document}
