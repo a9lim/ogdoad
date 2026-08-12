@@ -189,7 +189,11 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   recurrence, and the abstract normalized product-uniqueness lemma. It now
   also checks the scaled lower norm and quotient-trace formulas and the exact
   cross-multiplied oriented fourth-coordinate square from the normalized AE4
-  product and its quadratic conjugate. The Fibonacci-state induction,
+  product and its quadratic conjugate. It further checks Frobenius covariance
+  and inverse-pair invariance of the torus quotient, proves that the
+  inverse-normalized equation is equivalent to its original marked equation,
+  and verifies the exact adjacent degree-four Conway model showing that this
+  equation is not independently contradictory. The Fibonacci-state induction,
   selected specialization, QF/AE4 identification, and finite-field Hilbert--90
   fibre count remain paper-level. It additionally checks the residue-field
   correction polynomial identities, the first-Witt relative-trace polynomial,
@@ -210,6 +214,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   selected classes, while two sign-valued fingerprints with product `-1`
   leave exactly one. The exponent-Euclidean Jacobi evaluation, its
   power-of-two specialization, and the QFS identification remain paper-level.
+  The degree-thirty-two relative-trace countermodel is also checked by exact
+  bit-polynomial arithmetic: both reverse-Dickson root equations, the common
+  relative trace, and the nonzero Frobenius-fixed displacement are certified.
+  Its resultant construction, irreducibility, stratum identification, and
+  scope as a one-edge rather than distinguished-ancestry model remain
+  paper-level.
   Literal ordinal labeling, recursive
   Frobenius-orbit selection, and finite-field period specialization remain
   paper-level;

@@ -5305,6 +5305,71 @@ theorem rabin_certificate :
 
 end CubicTwoNormalCounterexample
 
+namespace FermatRelativeTraceCountermodel
+
+/-! Exact bit-polynomial arithmetic for the paper's degree-32 relative-trace
+collision.  Bit `i` is the coefficient of `X^i`; the modulus is the selected
+Conway resultant `B` in the proper `F₅ / 641` stratum. -/
+
+def modulus : Nat := 0x1c019c923
+def degree : Nat := 32
+def q : Nat := 2 ^ 16
+def z : Nat := 0x5ddbf713
+def z' : Nat := 0x4198613b
+
+def mulAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, b, acc =>
+      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
+      let a2 := Nat.shiftLeft a 1
+      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
+      mulAux fuel a' (b / 2) acc'
+
+def mul (a b : Nat) : Nat := mulAux degree a b 0
+
+def powAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, e, acc =>
+      if e = 0 then acc
+      else
+        let acc' := if e % 2 = 1 then mul acc a else acc
+        powAux fuel (mul a a) (e / 2) acc'
+
+def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+
+def fibAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, s₀, _ => s₀
+  | fuel + 1, a, s₀, s₁ =>
+      fibAux fuel a s₁ (Nat.xor s₁ (mul a s₀))
+
+def fib (r a : Nat) : Nat := fibAux r a 0 1
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+/-- The five quotient-ring reductions displayed in RTC1, including both
+reverse-Dickson root equations and the relative-trace collision. -/
+theorem exact_collision_table :
+    fib 641 z = 0x79ad4ff4 ∧
+    fib 641 z' = 0xd41015b0 ∧
+    fpow z 641 = 0x96a7ac28 ∧
+    fpow z' 641 = 0xdb4c2359 ∧
+    mul 2 (mul (fib 641 z) (fib 641 z)) = 0x96a7ac28 ∧
+    mul 2 (mul (fib 641 z') (fib 641 z')) = 0xdb4c2359 ∧
+    Nat.xor (fpow z q) z = 0xa3949c46 ∧
+    Nat.xor (fpow z' q) z' = 0xa3949c46 := by
+  native_decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+/-- The nonzero collision displacement is fixed by the relative
+`2^16`-Frobenius, so it lies in the exact lower subfield. -/
+theorem collision_displacement_fixed :
+    Nat.xor z z' = 0x1c439628 ∧
+    fpow 0x1c439628 q = 0x1c439628 := by
+  native_decide
+
+end FermatRelativeTraceCountermodel
+
 section KummerTailTransport
 
 variable {A B : Type*} [AddCommGroup A] [AddCommGroup B]
@@ -6597,6 +6662,104 @@ theorem qf_oriented_marked_coord_sq
         (C * fibPolyValue C r * β + fibPolyValue C (r + 1) * b₀) := by
           rw [pow_succ]
           ring
+
+/-- The inversion-quotient map `u ↦ u/(u+1)²` commutes with
+characteristic-two squaring. -/
+theorem torusPhi_sq
+    {F : Type*} [Field F] [CharP F 2] (u : F) :
+    u ^ 2 / (u ^ 2 + 1) ^ 2 = (u / (u + 1) ^ 2) ^ 2 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  rw [div_pow]
+  congr 2
+  rw [add_sq, htwo]
+  ring
+
+/-- The inversion-quotient map commutes with every iterated
+characteristic-two Frobenius power. -/
+theorem torusPhi_pow_two
+    {F : Type*} [Field F] [CharP F 2] (u : F) (r : Nat) :
+    u ^ (2 ^ r) / (u ^ (2 ^ r) + 1) ^ 2 =
+      (u / (u + 1) ^ 2) ^ (2 ^ r) := by
+  induction r with
+  | zero => simp
+  | succ r ih =>
+      rw [pow_succ]
+      rw [show u ^ (2 ^ r * 2) = (u ^ (2 ^ r)) ^ 2 by rw [pow_mul]]
+      rw [torusPhi_sq, ih]
+      rw [pow_mul]
+
+/-- Applying a common iterated Frobenius to an inversion-quotient ratio
+adds no equation: equality after Frobenius is equivalent to the original
+equality.  This is the algebraic core of the paper's OMF6-to-OMF3 collapse. -/
+theorem torusPhi_ratio_pow_two_eq_iff
+    {F : Type*} [Field F] [CharP F 2]
+    (x y target : F) (r : Nat) :
+    (x ^ (2 ^ r) / (x ^ (2 ^ r) + 1) ^ 2) /
+          (y ^ (2 ^ r) / (y ^ (2 ^ r) + 1) ^ 2) =
+        target ^ (2 ^ r) ↔
+      (x / (x + 1) ^ 2) / (y / (y + 1) ^ 2) = target := by
+  rw [torusPhi_pow_two, torusPhi_pow_two, ← div_pow]
+  constructor
+  · intro h
+    apply iterateFrobenius_inj F 2 r
+    simpa only [iterateFrobenius_def] using h
+  · intro h
+    rw [h]
+
+/-- The inversion-quotient map identifies a nonzero point with its inverse. -/
+theorem torusPhi_inv
+    {F : Type*} [Field F] (u : F) (hu : u ≠ 0) :
+    u⁻¹ / (u⁻¹ + 1) ^ 2 = u / (u + 1) ^ 2 := by
+  field_simp [hu]
+  ring
+
+/-- Algebraic core of the first actual-Conway countermodel to excluding the
+inverse-normalized cross-edge equation by adjacent selection alone.  In the
+degree-four selected field `A` has order five, the next norm-one driver `v`
+has order seventeen, and `Phi(v)=A`.  The two exponents are the reductions of
+`(h/v)^P` and `h/v` for `(ell,R,K,eta)=(257,4,53,213)`.
+
+The proper-cofactor identities are deliberately absent: at this genuine
+current Fermat prime the complementary divisor is one. -/
+theorem qf_inverse_normalized_degree_four_countermodel_core
+    {F : Type*} [Field F] [CharP F 2]
+    (A v : F) (hA : A ^ 5 = 1) (hv : v ^ 17 = 1)
+    (hphi : v / (v + 1) ^ 2 = A) :
+    (v ^ 15 / (v ^ 15 + 1) ^ 2) /
+        (v ^ 8 / (v ^ 8 + 1) ^ 2) = A ^ 4 := by
+  have hA0 : A ≠ 0 := by
+    intro h
+    rw [h, zero_pow (by norm_num : 5 ≠ 0)] at hA
+    norm_num at hA
+  have hv0 : v ≠ 0 := by
+    intro h
+    rw [h, zero_pow (by norm_num : 17 ≠ 0)] at hv
+    norm_num at hv
+  have hphi2 : v ^ 2 / (v ^ 2 + 1) ^ 2 = A ^ 2 := by
+    rw [torusPhi_sq v, hphi]
+  have hphi4 : v ^ 4 / (v ^ 4 + 1) ^ 2 = A ^ 4 := by
+    rw [show v ^ 4 = (v ^ 2) ^ 2 by ring, torusPhi_sq, hphi2]
+    ring
+  have hphi8 : v ^ 8 / (v ^ 8 + 1) ^ 2 = A ^ 3 := by
+    rw [show v ^ 8 = (v ^ 4) ^ 2 by ring, torusPhi_sq, hphi4]
+    have hreduce : A ^ 8 = A ^ 3 := by
+      calc
+        A ^ 8 = A ^ 5 * A ^ 3 := by ring
+        _ = A ^ 3 := by rw [hA, one_mul]
+    calc
+      (A ^ 4) ^ 2 = A ^ 8 := by ring
+      _ = A ^ 3 := hreduce
+  have hv15 : v ^ 15 = (v ^ 2)⁻¹ := by
+    field_simp [hv0]
+    exact hv
+  have hphi15 : v ^ 15 / (v ^ 15 + 1) ^ 2 = A ^ 2 := by
+    rw [hv15, torusPhi_inv (v ^ 2) (pow_ne_zero 2 hv0), hphi2]
+  rw [hphi15, hphi8]
+  have hinv : (A ^ 3)⁻¹ = A ^ 2 := by
+    field_simp [hA0]
+    simpa [← pow_add] using hA.symm
+  rw [div_eq_mul_inv, hinv]
+  ring
 
 omit [CharP F 2] in
 /-- First-order trace correction when a Teichmueller lift is multiplied by

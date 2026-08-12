@@ -11976,6 +11976,91 @@ coordinate identity, companion-power formula, and scalar equivalence
 are independently kernel-checked in \texttt{Ogdoad.Excess}.
 \end{proof}
 
+\begin{proposition}[the invariant-\(\mathrm{PGL}_2\) order bound cannot amplify]
+\label{prop:fermat-pgl2-order-ceiling}
+Assume \(n\geq2\).  Put
+\[
+ M=2^n,\qquad q=2^M,\qquad
+ w=w_n=\frac{c_n+1}{c_n}.
+\]
+Then
+\[
+ w^q=w^{-1},\qquad [\F_2(w):\F_2]=2M.              \tag{\(\mathsf{PC}_1\)}
+\]
+Let \(K=\F_{2^u}\subset\F_{2^{2M}}\), and suppose that \(w\) admits a
+generic invariant-polynomial presentation in the sense of
+Brochero Mart\'inez--Garefalakis--Reis--Tzanaki:
+\[
+ w^{(2^u)^s}=A\circ w,\qquad
+ A\in\operatorname{PGL}_2(K),\qquad
+ [K(w):K]=Ds>2,
+\]
+where \(D=\ord([A])\) and \([A]\ne[I]\).  Then necessarily
+\[
+ \boxed{\qquad D=2,\qquad us=M,\qquad
+ A\circ X=X^{-1}.\qquad}                            \tag{\(\mathsf{PC}_2\)}
+\]
+Thus every such presentation is only the existing half-Frobenius inversion,
+and rebasing to a larger Conway subfield decreases \(s\).
+
+In particular, over \(\F_2\) the applicable branch of the high-order theorem
+in~\cite{BMGRT17} is the dependent-row branch with
+\(A=\left(\begin{smallmatrix}0&1\\1&0\end{smallmatrix}\right)\).  Its
+published lower bound specializes to
+\[
+\begin{split}
+ L(M)={}&\frac{\sqrt2}{2\pi}\sqrt{\frac{M}{M+1}}
+ \frac{4(M+1)^{M+1}}{M^M}\\
+ &{}\times
+ \exp\!\left(-\frac{5M^2+5M+2}{24(M^2+M)}\right)
+ \sim\frac{2\sqrt2}{\pi}e^{19/24}M.
+\end{split}                                           \tag{\(\mathsf{PC}_3\)}
+\]
+For \(M\ge4\), this is below the elementary degree bound
+\(\delta_n\ge2M+1\), hence also below the Fermat-divisor bound
+\(\delta_n\ge4M+1\).  The invariant-\(\mathrm{PGL}_2\) machinery supplies
+no new order information for the selected Conway unit.
+
+The tempting shifted coordinate \(\theta=c_n^{-1}=w+1\) does not evade this
+ceiling.  Although \(\theta^q=\theta/(\theta+1)\) is represented before
+translation by an upper-unipotent matrix, the theorem's own change of
+variable conjugates it back to the inversion matrix.  Testing row
+independence before that change would select the wrong branch.
+\end{proposition}
+
+\begin{proof}
+The first identity in \((\mathsf{PC}_1)\) is the norm-one relation.
+Every nontrivial divisor \(\delta\mid 2^M+1\) satisfies
+\(\ord_\delta(2)=2M\), proving the degree assertion independently of CSDU.
+
+Since \(u\mid2M\) and both are powers of two,
+\([K(w):K]=2M/u\) is a power of two.  Hence \(D\) is a power of two.
+Every element of two-power order in
+\(\operatorname{PGL}_2\) over characteristic two has order at most two:
+over the algebraic closure its eigenvalue ratio has two-power order and is
+therefore one, so after scaling its matrix is \(I+N\) with \(N^2=0\).
+The generic degree is greater than two, so \(D\ne1\), proving \(D=2\) and
+\(us=M\).  The displayed Frobenius relation is now
+\(A\circ w=w^{2^M}=w^{-1}\).  Two distinct M\"obius maps agreeing at an
+element of degree greater than two would give a nonzero quadratic equation
+for that element; hence \(A\circ X=X^{-1}\).
+
+Substituting \(D=2\) and \(s=M\) into the dependent-row bound of
+\cite[Theorem~1.1]{BMGRT17} gives \((\mathsf{PC}_3)\).  Its asymptotic is
+immediate.  Since
+\[
+ \left(1+\frac1M\right)^M<e,
+ \qquad
+ \frac{5M^2+5M+2}{24(M^2+M)}>\frac5{24},
+\]
+the displayed formula gives
+\[
+ L(M)<\frac{2\sqrt2}{\pi}e^{19/24}\sqrt{M(M+1)}
+ <2\sqrt{M(M+1)}<2M+1
+\]
+for \(M\ge4\).
+\end{proof}
+
 \begin{proposition}[the first-failure cube character is automatic]
 \label{prop:fermat-cube-no-go}
 Assume \(n\geq2\), put
@@ -12405,7 +12490,7 @@ factor \(B_1\),
 If \(d=1+Rg\), where \(R\) is a power of two and \(g\) is odd, Lucas's
 theorem says that the active indices are
 \[
- j=Re+\epsilon,qquad \epsilon\in\{0,1\},qquad
+ j=Re+\epsilon,\qquad \epsilon\in\{0,1\},\qquad
  e\mathbin{\&}\neg g=0.                             \tag{\(\mathsf{FMS}_6\)}
 \]
 At a failed Fermat coordinate \(R\ge4m\).  Below \(R\), the only active
@@ -15549,7 +15634,7 @@ so comparing fourth components is a projection of the original equality,
 not a second condition.  The normalized QF parent has the same saturation.
 Writing
 \[
- S=S_K(A),\qquad W=A^{K-1}S,qquad B=\frac{A^K}{S^2},
+ S=S_K(A),\qquad W=A^{K-1}S,\qquad B=\frac{A^K}{S^2},
 \]
 one has
 \[
@@ -15690,9 +15775,97 @@ and the marked-zero equation is exactly
    =j^3t^{-3-2R}.}                                   \tag{\(\mathsf{OMF}_6\)}
 \]
 Every term is a rational function of the same two adjacent selected phases.
-Thus \((\mathsf{OMF}_6)\) is the precise genuinely nonhomogeneous residual
-equation; proving it false on the distinguished Conway point still requires
-new cross-edge ancestry information.
+In fact it is not a new residual equation.  Since
+\(h/v=u^R\), Frobenius covariance of \(\Phi\) gives
+\[
+ \frac{\Phi(h^P/v^P)}{\Phi(h/v)}
+ =\left(\frac{\Phi((v^P)^K)}{\Phi(v^K)}\right)^R,
+ \qquad
+ j^3t^{-3-2R}=(t^{3K-2})^R.
+\]
+The \(R\)-power map is injective, so
+\[
+ \boxed{\ (\mathsf{OMF}_6)
+ \iff \frac{\Phi((v^P)^K)}{\Phi(v^K)}=t^{3K-2}.\ } \tag{\(\mathsf{OMF}_7\)}
+\]
+Thus all-lower inversion merely applies Frobenius to
+\((\mathsf{OMF}_3)\); it contributes no second phase or equation.
+
+This saturation occurs on genuine adjacent Conway data.  In the tower through
+\(E_2\), put \(P=4\), \(A=a_1\), \(t=w_1\), and \(v=w_2\).  Then
+\[
+ \ord(A)=\ord(t)=5,\qquad \ord(v)=17,\qquad \Phi(v)=A.
+\]
+Take \(\ell=257\), \(R=4\), \(K=53\), \(\eta=213\), and
+\(D=85\).  The exact congruence
+\[
+ 257\cdot213=1+644D
+\]
+makes \(h=v^\eta\) and \(j=t^\eta\) the unique \(257\)-th roots of
+\(v\) and \(t\) on their lower periods.  Nevertheless
+\((\mathsf{OMF}_6)\) holds: \(h/v=v^8\), while
+\[
+ \Phi(v^8)=A^8=A^3,\qquad
+ \Phi(v^{15})=\Phi(v^{-2})=\Phi(v^2)=A^2,
+\]
+so its left side is \(A^4\); its right side is
+\(t^{-2}=t^3=A^4\).  This is not a CSDU counterexample: the current
+complementary cofactor is one, so the proper-factor identities that define a
+minimal failure are absent.  It proves exactly that adjacent Conway selection,
+the current Fermat prime, and the full-lower inverse congruence cannot exclude
+the cross-edge equation.  Any surviving contradiction must use the
+proper-cofactor arithmetic, not \((\mathsf{OMF}_6)\) itself.
+
+Even restoring that arithmetic does not make the marked equation itself
+contradictory.  There is an exact two-edge model
+\[
+ \F_{2^{12}}\subset E=\F_2[x]/(x^{24}+x^4+x^3+x+1)
+ \subset L=\F_{2^{48}}
+\]
+with
+\[
+\begin{gathered}
+ \ell=193,\quad d=1458419568449,\quad R=64,\quad L_0=3,\\
+ D=93824992236885,\quad H=92,\quad
+ K=44724866765769,\quad \eta=2862391473009217,
+\end{gathered}
+\]
+satisfying all exact proper-cofactor and inverse identities.  In hexadecimal
+coordinates of \(E\), take
+\[
+ t=\mathtt{3481b0},\qquad C=\mathtt{182934},\qquad
+ A=\mathtt{201cb5}.
+\]
+Then \(t\) has order \(4097\), \(C=\Phi(t)\), and
+\[
+ C^{4096}=C,\qquad A^{4096}=At,\qquad A^2=CA+C^3.
+\]
+If \(L=E(z)\), \(z^2+z=A\), and \(v=(z+1)/z\), then \(v\) has full
+order \(2^{24}+1=97\cdot257\cdot673\).  Nevertheless
+\[
+\begin{gathered}
+ S_K(A)=\mathtt{64cdf9},\qquad
+ W=A^{K-1}S_K(A)=\mathtt{a7e4dc}\in\F_{4096},\\
+ B=A^K/S_K(A)^2=\mathtt{2401ef},\qquad
+ B^{4096}/B=t^{3K-2}=\mathtt{8aa93d}.
+\end{gathered}
+\]
+Thus \((\mathsf{OMF}_3)\), hence \((\mathsf{OMF}_6)\), is compatible
+with proper \(d>1\), exact adjacent quadratic edges, maximal adjacent torus
+orders, and the full inverse/parity/Jacobi/trace packet.
+
+The model deliberately exposes what is still missing: with
+\(a=Az\), its full failure-state equality is false,
+\[
+\begin{split}
+ S_g(a)&=\mathtt{3da681}+\mathtt{956747}\,a,\\
+ a^K&=\mathtt{78e411}+\mathtt{a7e4dc}\,a.
+\end{split}
+\]
+Hence this is not a generalized CSDU counterexample.  It proves that the
+marked equation and all arithmetic consequences surrounding it cannot replace
+\(\mathsf{QFC}_4\); the complete selected four-state equality is genuinely
+the remaining content.
 \end{proposition}
 
 \begin{proof}
@@ -15741,10 +15914,39 @@ For \((\mathsf{OMF}_6)\), raise
 \(\Phi((v^P)^K)/\Phi(v^K)=t^{3K-2}\) to the \(R\)-th power and use
 \(h=vu^R\) and \(RK=\eta-1\).  The congruence
 \(\ell\eta\equiv1\pmod D\), together with the orders of \(v\) and \(t\)
-dividing \(D\), gives the two unique-root identities.  Lean kernel-checks
-the scaled quadratic norm and quotient-trace identities and the resulting
-marked-coordinate square.  The finite-field Hilbert--90 count and the full
-minimal-failure specialization remain paper-level.
+dividing \(D\), gives the two unique-root identities.  Conversely,
+write \(x=h/v=u^R\).  Then
+\[
+ \frac{\Phi(h^P/v^P)}{\Phi(h/v)}
+ =\frac{\Phi(x^P)}{\Phi(x)}
+ =\left(\frac{\Phi((v^P)^K)}{\Phi(v^K)}\right)^R,
+\]
+and \(3\eta-3-2R=R(3K-2)\).  Injectivity of Frobenius proves
+\((\mathsf{OMF}_7)\).  The displayed degree-four calculation follows from
+Frobenius covariance and inversion invariance of \(\Phi\), together with the
+three stated orders.
+
+For the degree-forty-eight model, fast doubling for \(S_r\) modulo the
+displayed irreducible polynomial gives
+\[
+ S_{172961}(A)=\mathtt{004c78},\quad
+ S_{65281}(A)=\mathtt{17d402},\quad
+ S_{24929}(A)=\mathtt{8b1773},
+\]
+all nonzero.  Together with \(S_{2^{24}+1}(A)=0\), these certify the full
+order of \(v\).  Direct square-and-multiply gives the remaining displayed
+field values and the unequal two-coordinate states.  Rabin's criterion for
+the modulus is certified by
+\[
+ x^{2^{24}}=x,\qquad
+ \gcd(f,x^{2^8}+x)=\gcd(f,x^{2^{12}}+x)=1.
+\]
+
+Lean kernel-checks the scaled quadratic norm and quotient-trace identities,
+the resulting marked-coordinate square, both elementary symmetries of
+\(\Phi\), and the algebraic core of the degree-four example.  The
+finite-field Hilbert--90 count, the full minimal-failure specialization, and
+the general \((\mathsf{OMF}_7)\) exponent bookkeeping remain paper-level.
 \end{proof}
 
 \begin{proposition}[canonical-lift trace comparison and its marked graph]
@@ -17504,6 +17706,102 @@ element of \(K\) has exactly the inverse pair of lifts under
 one outside, put \(w'=y^\ell\), and center the pair \(y/s,ys\).
 It consists of distinct members of the same \(\mu_\ell\)-coset and
 has a collision by \((\mathsf{AX}_2)\), completing the construction.
+\end{proof}
+
+\begin{proposition}[an exact Conway-edge collision with successful predecessor]
+\label{prop:fermat-relative-trace-countermodel}
+The relative-trace collision of
+Proposition~\ref{prop:fermat-relative-trace-axes} does not, even across an
+exact Conway resultant edge, imply failure of the preceding phase.
+Specifically, take the polynomials \(C\) and \(B\) of
+Proposition~\ref{prop:fermat-nine-moment-no-go}.  Thus \(C\) is an
+irreducible full-stratum factor in \(\mathfrak F_{65537}\), whereas
+\[
+ B(X)=\operatorname{Res}_Y
+ \bigl(C(Y),X^2+YX+Y^3\bigr)
+\]
+is irreducible in the proper stratum
+\(\mathfrak F_{6700417}\), with
+\[
+ 2^{32}+1=641\cdot6700417.
+\]
+Put
+\[
+ K=\F_2[A]/(B(A)),\qquad a=A\bmod B,\qquad Q=2^{16},
+\]
+and let
+\[
+ T_0(Z)=0,\qquad T_1(Z)=1,\qquad
+ T_{r+2}(Z)=T_{r+1}(Z)+ZT_r(Z).
+\]
+Then the two distinct elements
+\[
+ z=\mathtt{5ddbf713},\qquad z'=\mathtt{4198613b}
+\]
+of \(K\), where hexadecimal bit \(j\) denotes the coefficient of \(a^j\),
+satisfy
+\[
+ \boxed{
+ z^{641}+aT_{641}(z)^2
+ =(z')^{641}+aT_{641}(z')^2=0,
+ \qquad z^Q+z=(z')^Q+z'.}                           \tag{\(\mathsf{RTC}_1\)}
+\]
+In particular \(\Theta_{641,a}\) is inseparable, so the two-axis collision
+\((\mathsf{AX}_4)\) occurs although the predecessor has maximal phase.
+
+The exact lower shadow does not restore recursion.  If \(y\) is the
+compatible root of \(C\), the Conway edge gives
+\[
+ a^2+ya+y^3=0,\qquad
+ \operatorname{Tr}_{K/\F_{2^{16}}}(a)=y,\qquad
+ \operatorname{Norm}_{K/\F_{2^{16}}}(a)=y^3.
+\]
+Consequently \(J(a)=y\), and \((\mathsf{AX}_5)\) merely recovers this
+successful lower selected value.  It does not transport the current
+\(641\)-divisibility failure to the lower phase.
+
+This is an exact one-edge countermodel, not a CSDU counterexample on the
+distinguished full ancestry path: \(C\ne A_3\).  It retains irreducibility
+and full degree at both levels, lower maximality, the exact Conway
+trace--norm transition, current prime-primary failure, and the nine absolute
+moments recorded in Proposition~\ref{prop:fermat-nine-moment-no-go}.  Thus
+none of those hypotheses can prove relative-trace descent.  The only
+surviving recursive statement must use the complete distinguished ancestry
+chain, which Proposition~\ref{prop:fermat-ancestry-exhaustion} shows would
+force \(C\) back into the Frobenius orbit of \(A_3\).
+\end{proposition}
+
+\begin{proof}
+The earlier proposition supplies the irreducibility, resultant, and exact
+fibotomic-stratum certificates for \(C\) and \(B\).  The remaining finite
+polynomial reductions modulo \(B\) are
+\[
+\begin{array}{c|cc}
+ &z&z'\\ \hline
+T_{641}(\,\cdot\,)
+ &\mathtt{79ad4ff4}&\mathtt{d41015b0}\\
+(\,\cdot\,)^{641}
+ &\mathtt{96a7ac28}&\mathtt{db4c2359}\\
+aT_{641}(\,\cdot\,)^2
+ &\mathtt{96a7ac28}&\mathtt{db4c2359}\\
+(\,\cdot\,)^Q
+ &\mathtt{fe4f6b55}&\mathtt{e20cfd7d}\\
+(\,\cdot\,)^Q+(\,\cdot\,)
+ &\mathtt{a3949c46}&\mathtt{a3949c46}.
+\end{array}
+\]
+The equal middle rows prove the two root equations in
+\((\mathsf{RTC}_1)\), while the final row proves the collision.  Also
+\[
+ z+z'=\mathtt{1c439628},\qquad
+ \mathtt{1c439628}^{\,2^{16}}=\mathtt{1c439628}\pmod B,
+\]
+so their nonzero difference lies in the relative base field.  Finally the
+displayed Conway quadratic gives the trace, norm, and \(J(a)=y\) identities.
+Lean kernel-checks the complete quotient-ring table and the fixed-displacement
+identity by exact bit-polynomial reduction.  The earlier resultant,
+irreducibility, and fibotomic-stratum certificates retain their stated
+paper-level boundary.
 \end{proof}
 
 \begin{proposition}[the reverse-Dickson divisor is a transported Kummer coset]
@@ -21413,6 +21711,158 @@ the nilpotent Sylow decomposition and Galois-cohomological statements remain
 paper-level.
 \end{proof}
 
+\begin{proposition}[multiplicative ancestry has only one anti-invariant line]
+\label{prop:fermat-ancestry-kummer-exhaustion}
+Retain the nontrivial Kummer case of
+Corollary~\ref{cor:fermat-hasse-dihedral}.  In
+\(M^\times/(M^\times)^\ell\), write classes additively, let
+\(U_{<n}\) be the span of all lifted Conway ancestry units below the top
+edge, and let \(U_n\) also include
+\(C_n,C_n+1,\mathcal A_n,W_n\).  If \(s\) is the top reflection, then
+\[
+ \boxed{\quad U_n=U_{<n}\oplus\F_\ell[W_n],\qquad
+ s|_{U_{<n}}=1,\quad s[W_n]=-[W_n].\quad}          \tag{\(\mathsf{AK}_1\)}
+\]
+More explicitly, with \(a=[\mathcal A_{n-1}]\) and \(w=[W_n]\),
+\[
+ [C_n]=\frac{a-w}{2},\qquad
+ [C_n+1]=\frac{a+w}{2},\qquad
+ [\mathcal A_n]=\frac{3a-w}{2}.                   \tag{\(\mathsf{AK}_2\)}
+\]
+
+Let \(\mathcal E=M(W_n^{1/\ell})\), and adjoin the radical of any
+additional ancestry class independent of \(w\).  Modulo the radical already
+adjoined, that class is represented by a lower unit \(X\in\mathcal K_{n-1}\).
+If it remains nontrivial, the Galois group over the lower reflection base is
+\[
+ \boxed{\quad D_{2\ell}\times C_\ell.\quad}        \tag{\(\mathsf{AK}_3\)}
+\]
+The new \(C_\ell\)-factor splits at every selected prime above two: the
+residue of \(X\) lies in \(\F_q^\times\), whose order \(q-1\) is coprime to
+\(\ell\mid q+1\), and \(\ell\)-powering is an automorphism of the pro-two
+principal units.  Thus no second selected Frobenius coordinate exists inside
+the complete multiplicative ancestry span.
+
+The extension-class calculation is equally rigid.  If
+\(\F_\ell^+\) and \(\F_\ell^-\) denote respectively the trivial and
+reflection-sign \(D_{2\ell}\)-modules, then
+\[
+ H^2(D_{2\ell},\F_\ell^+)=0,
+ \qquad
+ H^2(D_{2\ell},\F_\ell^-)=\F_\ell.                \tag{\(\mathsf{AK}_4\)}
+\]
+The unique nonsplit sign direction is the lift
+\(D_{2\ell^2}\to D_{2\ell}\); it lengthens the same \(W_n\)-rotation and
+does not add an independent ancestry bit.  Moreover every such
+\(\ell\)-kernel embedding obstruction restricts to zero at the selected
+unramified completion, whose procyclic quotient has
+\(\ell\)-cohomological dimension one.  Hence a larger multiplicative
+extension can help only by importing a class outside Conway ancestry.
+\end{proposition}
+
+\begin{proof}
+The exact identities
+\[
+ \mathcal A_{n-1}=C_n(C_n+1),\qquad
+ W_n=(C_n+1)/C_n,
+ \qquad \mathcal A_n=\mathcal A_{n-1}C_n
+\]
+give \((\mathsf{AK}_2)\), because two is invertible modulo the odd prime
+\(\ell\).  Every lower class is fixed by \(s\), whereas
+\(s(W_n)=W_n^{-1}\).  If the line of \(w\ne0\) met the fixed subspace, then
+\(w=-w\), hence \(w=0\), proving \((\mathsf{AK}_1)\).
+
+After adjoining \(w^{1/\ell}\), subtracting its component from any other
+ancestry class leaves a lower class.  An independent lower radical is fixed by
+the reflection, so its cyclic Kummer group commutes with both the reflection
+and the original rotation; disjointness gives \((\mathsf{AK}_3)\).  The local
+splitting is the stated residue-order and principal-unit calculation.
+
+For \((\mathsf{AK}_4)\), apply Lyndon--Hochschild--Serre to
+\(C_\ell\triangleleft D_{2\ell}\).  In degree two, inversion acts by
+minus one on \(H^2(C_\ell,\F_\ell)\).  Tensoring with the coefficient sign
+therefore leaves no invariant in the plus case and one invariant line in the
+minus case.  That line is represented by the cyclic lift of the rotation from
+order \(\ell\) to order \(\ell^2\).  Finally \(H^2\) of the selected
+unramified procyclic quotient vanishes.  The cohomological and number-field
+specializations remain paper-level.
+\end{proof}
+
+\begin{proposition}[the natural additive torus module is acyclic]
+\label{prop:fermat-additive-module-exhaustion}
+Put \(q=2^{2^n}\), \(k_0=\F_q\), \(k=\F_{q^2}\), and let
+\(\zeta\in k\) have prime order \(\ell\mid q+1\).  On the additive group
+\(V=(k,+)\), define
+\[
+ \sigma x=\zeta x,\qquad \iota x=x^q.
+\]
+These operators give the natural \(D_{2\ell}\)-module, irreducible of
+dimension two over \(k_0\) and irreducible over \(\F_2\), and
+\[
+ \boxed{\qquad H^r(D_{2\ell},V)=0\quad(r\geq0).\qquad} \tag{\(\mathsf{AM}_1\)}
+\]
+
+Let \(c=c_n\in k\), so \(c^q=c+1\) and
+\(a=c(c+1)=a_{n-1}\in k_0\).  The most literal selected affine class is
+only the coboundary
+\[
+ z_c(g)=g\mathbin{\cdot}c-c.
+\]
+If the selected Frobenius is \(\sigma^h\) and \(H=\zeta^h\), then
+\[
+ z_c(\iota)=1,\qquad z_c(\sigma^h)=(H-1)c,          \tag{\(\mathsf{AM}_2\)}
+\]
+and even its strongest natural lower determinant is exactly
+\[
+ \boxed{\quad
+ \Norm_{k/k_0}\!\left(z_c(\sigma^h)\right)
+   =a\,(H+H^{-1}).\quad}                           \tag{\(\mathsf{AM}_3\)}
+\]
+It is nonzero exactly when \(H\ne1\); the determinant is the original
+selected phase test, not a new invariant.
+
+At the selected unramified place, let the procyclic Frobenius act on \(V\)
+by \(H\).  Then
+\[
+ H^0_{\mathrm{unr}}=\ker(H-1),\qquad
+ H^1_{\mathrm{unr}}=V/(H-1)V,\qquad
+ H^r_{\mathrm{unr}}=0\quad(r\geq2).               \tag{\(\mathsf{AM}_4\)}
+\]
+For \(H\ne1\), both displayed degree-zero and degree-one groups vanish;
+for hypothetical failure \(H=1\), both equal \(V\).  Equivalently, in the
+semidirect product \(V\rtimes\langle\sigma^h\rangle\), every lift
+\((v,\sigma^h)\) is conjugate to \((0,\sigma^h)\) when \(H\ne1\), whereas
+all additive translations survive when \(H=1\).  Thus the natural
+characteristic-two nonsemisimple enlargement accommodates failure rather
+than obstructing it.  A surviving additive route needs a ramified or
+nonsemisimple module with an independently normalized rotation-fixed
+quotient.
+\end{proposition}
+
+\begin{proof}
+The relation \(\zeta^q=\zeta^{-1}\) gives
+\(\iota\sigma\iota^{-1}=\sigma^{-1}\).  A \(k_0\)-line stable under
+\(\sigma\) would put \(\zeta\) in \(k_0\), which is impossible because
+\(\ell\nmid q-1\).  Moreover
+\(\ord_\ell(2)=2^{n+1}=[k:\F_2]\), proving absolute irreducibility.
+Since \(V^{C_\ell}=0\) and \(\ell\) is invertible in characteristic two,
+all cohomology of \(C_\ell\) with coefficients in \(V\) vanishes.  The
+Lyndon--Hochschild--Serre sequence proves \((\mathsf{AM}_1)\).
+
+Equation \((\mathsf{AM}_2)\) is the definition of a coboundary.  Conjugating
+its second value by \(q\)-Frobenius and using \(c^q=c+1\) gives
+\[
+ ((H-1)c)^{q+1}
+ =(H-1)(H^{-1}-1)c(c+1)=a(H+H^{-1}),
+\]
+where minus equals plus in characteristic two.  Because \(\ell\) is odd,
+\(H+H^{-1}=0\) exactly when \(H=1\), proving \((\mathsf{AM}_3)\).
+The standard two-term complex for procyclic cohomology gives
+\((\mathsf{AM}_4)\); conjugation in the semidirect product is the same
+linear equation \((H-1)x=v\).  These module and cohomology statements remain
+paper-level.
+\end{proof}
+
 \begin{proposition}[the full Artin package leaves the named factor free]
 \label{prop:selected-global-artin}
 Retain Proposition~\ref{prop:selected-euler-factor}, put
@@ -22612,8 +23062,16 @@ with Moore determinant one, while all homogeneous Frobenius minors transport
 to the initial block by an explicit nonzero scalar.
 Proposition~\ref{prop:fermat-qfc-oriented-fibre} computes the first genuinely
 nonhomogeneous fourth-coordinate equation and proves that its zero locus is a
-full Hilbert--90 fibre of (P) top-torus points; the all-lower inverse rewrites
-it as the unique-root equation \(\mathsf{OMF}_6\) without adding a phase.
+full Hilbert--90 fibre of \(P\) top-torus points; the all-lower inverse rewrites
+it as the unique-root equation \(\mathsf{OMF}_6\), but
+\(\mathsf{OMF}_6\) is exactly the Frobenius power of the original marked
+equation.  Explicit genuine-adjacent and proper-cofactor models show that
+neither inversion nor its parity/Jacobi/trace packet replaces the complete
+selected four-state equality.
+Proposition~\ref{prop:fermat-pgl2-order-ceiling} proves that every generic
+invariant-\(\operatorname{PGL}_2\) presentation of the Conway unit is the
+same half-Frobenius inversion and gives a lower bound weaker than the
+elementary degree bound.
 Proposition~\ref{prop:fermat-power-test-factorization-barrier} proves that
 ordinary nonidentity power certificates for success necessarily recover every
 prime in the ambient order, whereas one short power relation would be a
@@ -22648,6 +23106,15 @@ finite nilpotent quotient and proves that the relevant ordinary triple Massey
 products are defined only under failure, when they contain zero.  Thus neither
 prime-primary nonabelian quotients nor unnormalized secondary products add a
 selected obstruction.
+Propositions~\ref{prop:fermat-ancestry-kummer-exhaustion}
+and~\ref{prop:fermat-additive-module-exhaustion} close the next natural
+larger extensions: multiplicative ancestry has only the original
+anti-invariant \(W_n\)-line, while the irreducible additive torus module is
+cohomologically acyclic and its determinant is exactly the old phase test.
+Finally Proposition~\ref{prop:fermat-relative-trace-countermodel} gives an
+exact Conway-resultant edge with a maximal predecessor, a proper current
+phase, and a relative-trace collision.  Hence collision descent also requires
+the complete distinguished ancestry chain.
 No all-level proof or counterexample is presently known.
 
 \subsection{Comparison with the cubic arm}
@@ -25829,7 +26296,7 @@ Let \(N\) be odd, put
 \[
  F=\mathbb Q(\mu_N),\qquad
  G=(\mathbb Z/N\mathbb Z)^\times,\qquad
- D_2=\langle2\rangle\leq G,qquad |D_2|=f,
+ D_2=\langle2\rangle\leq G,\qquad |D_2|=f,
 \]
 and let \(\ell\nmid2Nf\) be an odd prime such that
 \(e=\ord_\ell(2)>1\) divides \(f\).  Fix a prime
@@ -28531,7 +28998,7 @@ and the logarithmic-derivative identity
 \]
 apply.  Since
 \[
- f(c)=b+c^2,\quad f(c^2)=b+c,quad
+ f(c)=b+c^2,\quad f(c^2)=b+c,\quad
  f'(c)=c,\quad f'(c^2)=c^2,
 \]
 direct simplification gives \((\mathsf{CF}_1)\).
@@ -31134,6 +31601,12 @@ the Gras conjecture for ray class groups}, Acta Arith.\ \textbf{178}
 \bibitem{Breuer21} F.~Breuer, \emph{Multiplicative orders of Gauss
 periods and the arithmetic of real quadratic fields}, Finite Fields
 Appl.\ \textbf{73} (2021), 101848.
+\bibitem{BMGRT17} F.~E.~Brochero Mart\'inez, T.~Garefalakis,
+L.~Reis, and E.~Tzanaki,
+\emph{On the multiplicative order of the roots of
+\(bX^{q^r+1}-aX^{q^r}+dX-c\)}, Finite Fields Appl.\
+\textbf{47} (2017), 33--45;
+\url{https://doi.org/10.1016/j.ffa.2017.05.002}; arXiv:1611.10220.
 \bibitem{Carlitz53} L.~Carlitz, \emph{Distribution of primitive roots in
 a finite field}, Quart.~J.~Math. Oxford (2) \textbf{4} (1953), 4--10.
 \bibitem{CHS25} L.~Cagliero, A.~Herman, and F.~Szechtman,
