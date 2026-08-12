@@ -150,7 +150,16 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   Fourier specialization remain paper-level. It also checks the adjacent-exponent
   modular signs, the two quotient-ring cofactor identities, and the short
   modular-window and terminal divisibility cores used by the paper to
-  exclude both endpoint period classes.
+  exclude both endpoint period classes. It further checks the two
+  short-order divisibilities and the complete contradiction excluding a
+  CRT-mixed involution of the full-lower inverse. Finally, it checks the
+  partial-Frobenius product identity, the selected-edge cubic trace identity,
+  the next quadratic-coordinate expansion, and the two denominator-cleared
+  Mobius endpoint equivalences used by the four-periodic literal
+  quarter-Frobenius proposition. Identifying the triangular pair sum with the
+  second coefficient of the selected minimal polynomial, and the resultant
+  coefficient recurrence proving the four-periodic orientation, remain
+  paper-level.
   Literal ordinal labeling, recursive
   Frobenius-orbit selection, and finite-field period specialization remain
   paper-level;

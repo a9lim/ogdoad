@@ -5774,6 +5774,188 @@ theorem fermat_AE4_inverse_factor_core
   apply htwo
   linear_combination ell * hK + hprod
 
+/-- The lower triangular pair sum occurring when a selected product is
+partially traced through the absolute Frobenius orbit. -/
+def orientedPairSum (b : F) (t : Nat) : F :=
+  ∑ r ∈ Finset.range t,
+    partialFrobeniusTrace b r * b ^ (2 ^ r)
+
+/-- Every Frobenius iterate of an Artin--Schreier root differs from that
+root by the corresponding partial trace of its parent. -/
+theorem artinSchreier_frobenius_iter
+    (b c : F) (hc : c ^ 2 + c = b) :
+    ∀ r, c ^ (2 ^ r) = c + partialFrobeniusTrace b r := by
+  intro r
+  induction r with
+  | zero => simp [partialFrobeniusTrace]
+  | succ r ih =>
+      rw [pow_succ, pow_mul, ih, add_pow_expChar]
+      rw [partialFrobeniusTrace_succ]
+      have hc' : c ^ 2 = c + b := by
+        calc
+          c ^ 2 = b - c := (eq_sub_iff_add_eq).2 hc
+          _ = b + c := CharTwo.sub_eq_add b c
+          _ = c + b := add_comm b c
+      rw [hc']
+      ring
+
+/-- Exact literal quarter-trace formula.  At the Conway specialization,
+`b=a_(i-1)`, `c=c_i`, and `b*c=a_i`; the remaining pair sum is the
+second elementary symmetric coefficient of the full orbit of `b`. -/
+theorem selected_product_partial_trace
+    (b c : F) (t : Nat) (hc : c ^ 2 + c = b) :
+    partialFrobeniusTrace (b * c) t =
+      c * partialFrobeniusTrace b t + orientedPairSum b t := by
+  simp only [partialFrobeniusTrace_eq_sum, orientedPairSum]
+  rw [Finset.mul_sum]
+  rw [← Finset.sum_add_distrib]
+  apply Finset.sum_congr rfl
+  intro r hr
+  rw [mul_pow, artinSchreier_frobenius_iter b c hc r]
+  rw [partialFrobeniusTrace_eq_sum]
+  ring
+
+/-- Cubing across one selected quadratic edge has relative trace
+`b^3+b^4`.  This controls the recurrence of the second coefficient. -/
+theorem selected_edge_relative_trace_cube
+    (b x : F) (hx : x ^ 2 + b * x + b ^ 3 = 0) :
+    x ^ 3 + (x + b) ^ 3 = b ^ 3 + b ^ 4 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  have hx' : x ^ 2 = b * x + b ^ 3 := by
+    have hsum : x ^ 2 + b * x = b ^ 3 := by
+      calc
+        x ^ 2 + b * x = -b ^ 3 := eq_neg_of_add_eq_zero_left hx
+        _ = b ^ 3 := CharTwo.neg_eq (b ^ 3)
+    calc
+      x ^ 2 = b ^ 3 - b * x := (eq_sub_iff_add_eq).2 hsum
+      _ = b ^ 3 + b * x := CharTwo.sub_eq_add (b ^ 3) (b * x)
+      _ = b * x + b ^ 3 := add_comm _ _
+  rw [show (x + b) ^ 3 = x ^ 3 + x ^ 2 * b + x * b ^ 2 + b ^ 3 by
+    ring_nf
+    rw [hthree]
+    ring]
+  rw [hx']
+  ring_nf
+  simp [htwo]
+
+/-- If the lower displacement has a quadratic coordinate, its
+Artin--Schreier coboundary has an explicit lower coordinate. -/
+theorem artinSchreier_coboundary_quadratic_coords
+    (B c u v : F) (hc : c ^ 2 + c = B) :
+    (u + c * v) * (u + c * v + 1) =
+      (u * (u + 1) + B * v ^ 2) + c * (v ^ 2 + v) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hc' : c ^ 2 = c + B := by
+    calc
+      c ^ 2 = (c ^ 2 + c) + c := by
+        ring_nf
+        simp [htwo]
+      _ = c + B := by rw [hc]; ring
+  rw [show (u + c * v) * (u + c * v + 1) =
+      u * (u + 1) + c ^ 2 * v ^ 2 + c * v by
+        ring_nf
+        simp [htwo], hc']
+  ring
+
+/-- One level farther down, a selected parent `C*c` rerouted by
+`r = r0 + c*r1` has completely explicit quadratic coordinates. -/
+theorem rerouted_parent_second_edge_coords
+    (C c r0 r1 : F) (hc : c ^ 2 + c = C) :
+    C * c + (r0 + c * r1) * (r0 + c * r1 + 1) =
+      (r0 * (r0 + 1) + C * r1 ^ 2) +
+        c * (C + r1 ^ 2 + r1) := by
+  rw [artinSchreier_coboundary_quadratic_coords C c r0 r1 hc]
+  ring
+
+/-- The half-Frobenius transform of the norm-one driver, conditional on
+the oriented Conway identity, is this Mobius transform. -/
+theorem conway_half_frobenius_driver_mobius
+    (v t : F) (hv : v + 1 ≠ 0) (ht : t + 1 ≠ 0)
+    (hvt : v + t ≠ 0) :
+    ((1 / (v + 1) + 1 / (t + 1)) + 1) /
+        (1 / (v + 1) + 1 / (t + 1)) =
+      (1 + v * t) / (v + t) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hsum : 1 / (v + 1) + 1 / (t + 1) =
+      (v + t) / ((v + 1) * (t + 1)) := by
+    field_simp [hv, ht]
+    linear_combination htwo
+  rw [hsum]
+  field_simp [hv, ht, hvt]
+  ring_nf
+  simp [htwo]
+
+/-- Common numerator of three reciprocal factors in characteristic two. -/
+theorem three_reciprocal_numerator_char_two (t u w : F) :
+    (u + 1 + (t + 1)) * (w + 1) + (t + 1) * (u + 1) =
+      w * (t + u) + (1 + t * u) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  ring_nf
+  rw [hthree, htwo]
+  ring
+
+/-- Product of the three reciprocal denominators in characteristic two. -/
+theorem three_reciprocal_denominator_char_two (t u w : F) :
+    (t + 1) * (u + 1) * (w + 1) =
+      w * (1 + t * u) + (t + u) +
+        (w * (t + u) + (1 + t * u)) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  ring_nf
+
+/-- Vanishing of the next lower displacement coefficient is exactly the
+positive oriented Mobius semiconjugacy equation. -/
+theorem second_displacement_coord_zero_iff_mobius
+    (t u w : F) (ht : t + 1 ≠ 0) (hu : u + 1 ≠ 0)
+    (hw : w + 1 ≠ 0) :
+    1 / (t + 1) + 1 / (u + 1) + 1 / (w + 1) = 0 ↔
+      w * (t + u) = 1 + t * u := by
+  field_simp [ht, hu, hw]
+  simp only [mul_zero]
+  rw [three_reciprocal_numerator_char_two]
+  constructor
+  · intro h
+    exact (eq_neg_of_add_eq_zero_left h).trans
+      (CharTwo.neg_eq (1 + t * u))
+  · intro h
+    rw [h]
+    exact CharTwo.add_self_eq_zero (1 + t * u)
+
+/-- The other Artin--Schreier endpoint for the next lower displacement
+coefficient is the inverse oriented Mobius semiconjugacy equation. -/
+theorem second_displacement_coord_one_iff_mobius_inverse
+    (t u w : F) (ht : t + 1 ≠ 0) (hu : u + 1 ≠ 0)
+    (hw : w + 1 ≠ 0) :
+    1 / (t + 1) + 1 / (u + 1) + 1 / (w + 1) = 1 ↔
+      w * (1 + t * u) = t + u := by
+  field_simp [ht, hu, hw]
+  rw [three_reciprocal_numerator_char_two,
+    three_reciprocal_denominator_char_two]
+  constructor
+  · intro h
+    let N := w * (t + u) + (1 + t * u)
+    let C := w * (1 + t * u) + (t + u)
+    have hNC : N = C + N := by
+      simpa [N, C, add_assoc] using h
+    have hz : C = 0 := by
+      have hz' : (0 : F) = C := by
+        apply add_left_cancel (a := N)
+        simpa [add_comm, add_left_comm, add_assoc] using hNC
+      exact hz'.symm
+    exact add_eq_zero_iff_eq_neg.mp hz |>.trans (CharTwo.neg_eq (t + u))
+  · intro h
+    have hz : w * (1 + t * u) + (t + u) = 0 := by
+      rw [h]
+      exact CharTwo.add_self_eq_zero (t + u)
+    rw [hz, zero_add]
+
 /-- At the first composite Fermat level the selected degree-thirty-two
 polynomial is bracketed, in both coefficient orientations, by the two
 already certified parentable proper-stratum factors. -/
@@ -7844,6 +8026,188 @@ theorem full_inverse_endpoint_factor_core
       _ = -1 := by rw [hinv]
 
 end FermatAE4FullLower
+
+section FermatAE4HigherSieve
+
+/-- Any finite order of the selected inverse exponent forces the same
+cyclotomic divisor into the short current prime power, with the entire
+common two-adic offset attached. -/
+theorem fermat_AE4_short_order_divisibility
+    (D ell R L eta t : Nat)
+    (hcop : D.Coprime R)
+    (hell : ell = 1 + R * L)
+    (hinv : ell * eta ≡ 1 [MOD D])
+    (heta : eta ^ t ≡ 1 [MOD D]) :
+    D * R ∣ ell ^ t - 1 := by
+  have hellpowD : ell ^ t ≡ 1 [MOD D] := by
+    have hpow := hinv.pow t
+    rw [mul_pow] at hpow
+    norm_num at hpow
+    calc
+      ell ^ t = ell ^ t * 1 := by simp
+      _ ≡ ell ^ t * eta ^ t [MOD D] :=
+        (Nat.ModEq.refl (ell ^ t)).mul heta.symm
+      _ ≡ 1 [MOD D] := hpow
+  have hellmodR : ell ≡ 1 [MOD R] := by
+    rw [hell]
+    calc
+      1 + R * L = R * L + 1 := by omega
+      _ ≡ 1 [MOD R] := Nat.ModEq.modulus_mul_add
+  have hellpowR : ell ^ t ≡ 1 [MOD R] := by
+    simpa using hellmodR.pow t
+  have hone : 1 ≤ ell ^ t := by
+    have hellpos : 0 < ell := by rw [hell]; omega
+    exact Nat.one_le_iff_ne_zero.mpr (pow_ne_zero t (by omega))
+  have hD : D ∣ ell ^ t - 1 :=
+    (Nat.modEq_iff_dvd' hone).mp hellpowD.symm
+  have hR : R ∣ ell ^ t - 1 :=
+    (Nat.modEq_iff_dvd' hone).mp hellpowR.symm
+  exact hcop.mul_dvd_of_dvd_of_dvd hD hR
+
+/-- The complementary coordinate supplies the opposite size constraint for
+any proposed finite order of the inverse exponent. -/
+theorem fermat_AE4_short_order_complement
+    (D d eta t : Nat)
+    (hd : 2 ≤ d)
+    (hcoord : 2 * eta ≡ d [MOD D])
+    (heta : eta ^ t ≡ 1 [MOD D]) :
+    D ∣ d ^ t - 2 ^ t := by
+  have hpow := hcoord.pow t
+  rw [mul_pow] at hpow
+  have hmod : 2 ^ t ≡ d ^ t [MOD D] := by
+    calc
+      2 ^ t = 2 ^ t * 1 := by simp
+      _ ≡ 2 ^ t * eta ^ t [MOD D] :=
+        (Nat.ModEq.refl (2 ^ t)).mul heta.symm
+      _ ≡ d ^ t [MOD D] := hpow
+  exact (Nat.modEq_iff_dvd' (Nat.pow_le_pow_left hd t)).mp hmod
+
+/-- Arithmetic core excluding a CRT-mixed involution.  In the paper,
+an assumed involution supplies the displayed square quotient; the inverse
+and common-offset congruences supply divisibility of `C` by `R`. -/
+theorem fermat_AE4_full_inverse_not_involution_core
+    (D ell d R L C : Nat)
+    (hR : 8 ≤ R)
+    (hL : 0 < L)
+    (hell : ell = 1 + R * L)
+    (hellD : ell < D)
+    (hprod : ell * d = 3 * D + 2)
+    (hC : ell ^ 2 = 1 + C * D)
+    (hRdvdC : R ∣ C) :
+    False := by
+  obtain ⟨c, rfl⟩ := hRdvdC
+  have hCpos : 0 < R * c := by
+    by_contra hzero
+    simp only [not_lt, Nat.le_zero] at hzero
+    have hRLpos : 0 < R * L := Nat.mul_pos (by omega) hL
+    have hEll : 2 ≤ ell := by rw [hell]; omega
+    rw [hzero, zero_mul, add_zero] at hC
+    nlinarith
+  have hCell : R * c < ell := by
+    by_contra hnot
+    have hle : ell ≤ R * c := Nat.le_of_not_gt hnot
+    have hmul : ell * ell < (R * c) * D :=
+      Nat.mul_lt_mul_of_le_of_lt hle hellD hCpos
+    have hgreater : (R * c) * D < ell * ell := by
+      rw [pow_two] at hC
+      omega
+    exact (Nat.not_lt_of_ge (Nat.le_of_lt hgreater)) hmul
+  have heq :
+      2 * (R * c) + 3 * ell ^ 2 =
+        3 + ell * (R * c) * d := by
+    nlinarith [hC, hprod]
+  have hmodEll : 2 * (R * c) ≡ 3 [MOD ell] := by
+    have hleftZero : 3 * ell ^ 2 ≡ 0 [MOD ell] :=
+      Nat.modEq_zero_iff_dvd.mpr ⟨3 * ell, by ring⟩
+    have hrightZero : ell * (R * c) * d ≡ 0 [MOD ell] :=
+      Nat.modEq_zero_iff_dvd.mpr ⟨(R * c) * d, by ring⟩
+    calc
+      2 * (R * c) = 2 * (R * c) + 0 := by omega
+      _ ≡ 2 * (R * c) + 3 * ell ^ 2 [MOD ell] :=
+        (Nat.ModEq.refl (2 * (R * c))).add hleftZero.symm
+      _ = 3 + ell * (R * c) * d := heq
+      _ ≡ 3 + 0 [MOD ell] := (Nat.ModEq.refl 3).add hrightZero
+      _ = 3 := by omega
+  have hc : 0 < c := Nat.pos_of_mul_pos_left hCpos
+  have hRleC : R ≤ R * c := Nat.le_mul_of_pos_right R hc
+  have hthree : 3 ≤ 2 * (R * c) := by omega
+  obtain ⟨J, hJ⟩ :=
+    (Nat.modEq_iff_exists_eq_add hthree).mp hmodEll.symm
+  have hJpos : 0 < J := by
+    by_contra hzero
+    simp only [not_lt, Nat.le_zero] at hzero
+    subst J
+    simp at hJ
+    omega
+  have hmulJ : ell * J < ell * 2 := by omega
+  have hJlt : J < 2 := Nat.lt_of_mul_lt_mul_left hmulJ
+  have hJone : J = 1 := by omega
+  rw [hJone, mul_one] at hJ
+  have hzeroFour : 0 ≡ 4 [MOD R] := by
+    calc
+      0 ≡ 2 * (R * c) [MOD R] := by
+        symm
+        exact Nat.modEq_zero_iff_dvd.mpr ⟨2 * c, by ring⟩
+      _ = 3 + ell := hJ
+      _ ≡ 4 [MOD R] := by
+        rw [hell]
+        calc
+          3 + (1 + R * L) = R * L + 4 := by omega
+          _ ≡ 4 [MOD R] := Nat.ModEq.modulus_mul_add
+  have hRdvd4 : R ∣ 4 := Nat.modEq_zero_iff_dvd.mp hzeroFour.symm
+  have hRle4 : R ≤ 4 := Nat.le_of_dvd (by norm_num) hRdvd4
+  omega
+
+/-- The selected inverse exponent has order strictly larger than two in
+the unit group modulo the complete lower period. -/
+theorem fermat_AE4_full_inverse_not_involution
+    (D ell d R L eta : Nat)
+    (hR : 8 ≤ R)
+    (hL : 0 < L)
+    (hell : ell = 1 + R * L)
+    (hcop : D.Coprime R)
+    (hellD : ell < D)
+    (hprod : ell * d = 3 * D + 2)
+    (hinv : ell * eta ≡ 1 [MOD D]) :
+    ¬ eta ^ 2 ≡ 1 [MOD D] := by
+  intro heta
+  have hellmodR : ell ≡ 1 [MOD R] := by
+    rw [hell]
+    calc
+      1 + R * L = R * L + 1 := by omega
+      _ ≡ 1 [MOD R] := Nat.ModEq.modulus_mul_add
+  have hellsqD : ell ^ 2 ≡ 1 [MOD D] := by
+    have hsquare := hinv.pow 2
+    have hreplace : (ell * eta) ^ 2 = ell ^ 2 * eta ^ 2 := by ring
+    rw [hreplace] at hsquare
+    norm_num at hsquare
+    calc
+      ell ^ 2 = ell ^ 2 * 1 := by simp
+      _ ≡ ell ^ 2 * eta ^ 2 [MOD D] :=
+        (Nat.ModEq.refl (ell ^ 2)).mul heta.symm
+      _ ≡ 1 [MOD D] := hsquare
+  have hEll : 2 ≤ ell := by
+    rw [hell]
+    have hRLpos : 0 < R * L := Nat.mul_pos (by omega) hL
+    omega
+  have honele : 1 ≤ ell ^ 2 := by nlinarith
+  obtain ⟨C, hCraw⟩ :=
+    (Nat.modEq_iff_exists_eq_add honele).mp hellsqD.symm
+  have hC : ell ^ 2 = 1 + C * D := by
+    simpa [Nat.mul_comm] using hCraw
+  have hCDmodR : C * D ≡ 0 [MOD R] := by
+    have hsquare := hellmodR.pow 2
+    rw [hC] at hsquare
+    norm_num at hsquare
+    have hadd : 1 + C * D ≡ 1 + 0 [MOD R] := by simpa using hsquare
+    exact Nat.ModEq.add_left_cancel (Nat.ModEq.refl 1) hadd
+  have hRdvdC : R ∣ C :=
+    hcop.symm.dvd_of_dvd_mul_right
+      (Nat.modEq_zero_iff_dvd.mp hCDmodR)
+  exact fermat_AE4_full_inverse_not_involution_core
+    D ell d R L C hR hL hell hellD hprod hC hRdvdC
+
+end FermatAE4HigherSieve
 
 section FermatAE4SizeObstruction
 

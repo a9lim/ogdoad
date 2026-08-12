@@ -165,6 +165,14 @@ also checks the adjacent-exponent
 modular signs, the two quotient-ring cofactor identities, and the short
 modular-window and terminal divisibility cores used by the paper to
 exclude both adjacent period classes.
+Lean now also checks the two short-order divisibilities, the arithmetic core
+excluding every CRT-mixed involution of the full-lower inverse, the
+partial-Frobenius product and selected-edge cubic-trace identities, the next
+quadratic-coordinate expansion, and the denominator-cleared Mobius endpoint
+equivalences. The paper supplies the minimal-failure specialization, identifies
+the triangular pair sum with the selected minimal polynomial's second
+coefficient, and proves the resultant coefficient recurrence that fixes the
+literal quarter-Frobenius orientation with period four.
 The minimal-failure arithmetic and finite-field Fibonacci-period
 specialization remain paper-level.  The paper iterates those coordinates to
 show that recursive ancestry selects a Frobenius orbit while literal order only

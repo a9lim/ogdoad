@@ -193,7 +193,9 @@ rational-dynamics boundary, and complete pointwise-semiconjugacy/Frobenius-cobou
 saturation, with the first nonzero additive-edge trace and exact lower
 cancellation, cross-level gcd identity, exclusion of the smallest proper
 lower fibotomic stratum, and the exact full-trace-block torus coordinate with
-its inverse-factor exponent and full-lower unit/Jacobi packet &
+its inverse-factor exponent, full-lower unit/Jacobi and short-order packets,
+mixed-involution exclusion, and four-periodic literal quarter-Frobenius
+orientation &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -15065,6 +15067,176 @@ conjugacy and Frobenius specialization, trace-fibre bijection, and
 additive-character orthogonality remain paper-level.
 \end{proof}
 
+\begin{proposition}[the literal Conway quarter-Frobenius has a four-periodic orientation]
+\label{prop:fermat-literal-quarter-orientation}
+For \(i\geq1\), put \(N_i=2^i\) and
+\(P_i=2^{N_i}=\lvert E_{i-1}\rvert\).  Then the previously ambiguous
+quarter-Frobenius orientation is exact:
+\[
+ \boxed{
+ c_{i+1}^{P_i}=c_{i+1}+c_i+\epsilon_i,
+ \qquad
+ \epsilon_i=
+ \begin{cases}
+  1,&i\equiv1,2\pmod4,\\
+  0,&i\equiv0,3\pmod4.
+ \end{cases}}
+ \tag{\(\mathsf{QF}_1\)}
+\]
+Thus literal Conway ancestry, rather than the field equations alone,
+chooses one of the two roots \(c_i,c_i+1\) of
+\(X^2+X+a_{i-1}\), and the choice is four-periodic.
+
+Now assume \(n\geq3\) and retain the notation of
+Proposition~\ref{prop:fermat-ae4-torus-block}.  Put
+\[
+ P=\lvert E_{n-3}\rvert,
+ \qquad C=a_{n-3},
+ \qquad c_0=c_{n-2},
+ \qquad t=\frac{c_0+1}{c_0},
+\]
+and define
+\[
+ \theta_n=
+ \begin{cases}
+  t^{-1},&n\equiv0,3\pmod4,\\
+  t,&n\equiv1,2\pmod4.
+ \end{cases}
+\]
+Then, without an orientation hypothesis,
+\[
+ \boxed{
+ c_{n-1}^{P}=c_{n-1}+\frac1{1+\theta_n},
+ \qquad
+ v^P=\frac{1+\theta_n v}{\theta_n+v}.}
+ \tag{\(\mathsf{QF}_2\)}
+\]
+
+Let \(u=v^K\), \(w=(v^P)^K\), \(z=(1+u)^{-1}\), and
+\(r=c_{n-1}+z\in E_{n-2}\).  Write its literal next-lower coordinates
+as \(r=r_0+c_0r_1\), with \(r_0,r_1\in E_{n-3}\).  Then
+\[
+ \boxed{
+ r_1=\frac1{1+\theta_n}+\frac1{1+u}+\frac1{1+w}.}
+ \tag{\(\mathsf{QF}_3\)}
+\]
+For the rerouted parent \(B=\Phi(u)=A+r(r+1)\), one has
+\[
+ \boxed{
+ B=\bigl(r_0(r_0+1)+Cr_1^2\bigr)
+   +c_0\bigl(C+r_1^2+r_1\bigr).}
+ \tag{\(\mathsf{QF}_4\)}
+\]
+In particular, its next upper coefficient equals the selected coefficient
+\(C\) precisely in the two explicit oriented branches
+\[
+ \boxed{
+ \begin{aligned}
+ r_1=0&\iff w(\theta_n+u)=1+\theta_nu,\\
+ r_1=1&\iff w(1+\theta_nu)=\theta_n+u.
+ \end{aligned}}
+ \tag{\(\mathsf{QF}_5\)}
+\]
+
+This removes the quarter-Frobenius ambiguity and excludes the wrong
+orientation at every level.  It does not yet contradict hypothetical
+failure: neither \(\mathsf{AE}_4\) nor the full-lower unit/Jacobi packet
+asserts \(r_1\in\{0,1\}\).  Full-lower arithmetic fixes the exponent
+class of \(u=v^K\), but supplies no additive equality forcing either line
+of \(\mathsf{QF}_5\).  A closure at this seam must prove directly that the
+actual value in \(\mathsf{QF}_3\) is incompatible with the oriented
+quadratic coefficient of \(V_g(A)\), not merely with the selected endpoint.
+\end{proposition}
+
+\begin{proof}
+Write
+\[
+ T_j(x)=\sum_{r=0}^{j-1}x^{2^r}.
+\]
+From \(c_i^2+c_i=a_{i-1}\), induction gives
+\[
+ c_i^{2^r}=c_i+T_r(a_{i-1}).
+\]
+Since \(a_i=c_i a_{i-1}\), summing the first \(N_i\) Frobenius
+conjugates gives
+\[
+ T_{N_i}(a_i)
+ =c_iT_{N_i}(a_{i-1})+
+   \sum_{r=0}^{N_i-1}T_r(a_{i-1})a_{i-1}^{2^r}.
+ \tag{*}
+\]
+The first partial trace on the right is the absolute trace of the
+selected element \(a_{i-1}\), hence is one.  Expanding the second sum
+shows that it is
+\[
+ \sum_{0\leq j<r<N_i}
+ a_{i-1}^{2^j}a_{i-1}^{2^r},
+\]
+the second elementary symmetric function of the full Frobenius orbit of
+\(a_{i-1}\).  Denote this bit, equivalently the coefficient of
+\(X^{N_i-2}\) in \(A_{i-1}\), by \(s_{i-1}\in\mathbb F_2\).  Thus
+\[
+ T_{N_i}(a_i)=c_i+s_{i-1}.                           \tag{**}
+\]
+
+It remains to determine \(s_j\).  Put
+\[
+ \tau_j=\operatorname{Tr}_{E_j/\mathbb F_2}(a_j^3).
+\]
+Taking the two highest nonleading coefficients in
+\[
+ A_j(X)=\prod_{b\sim a_{j-1}}(X^2+bX+b^3)
+\]
+gives
+\[
+ s_j=s_{j-1}+\tau_{j-1}.                            \tag{***}
+\]
+If \(x^2+bx+b^3=0\), then in characteristic two
+\[
+ x^3+(x+b)^3=b^3+b^4.
+\]
+Trace transitivity and
+\(\operatorname{Tr}(b^4)=\operatorname{Tr}(b)^4=1\) therefore give
+\[
+ \tau_j=\tau_{j-1}+1.
+\]
+The initial polynomial is \(A_0=X^2+X+1\), so \(s_0=1\), while
+\(a_0^3=1\) has trace zero from \(E_0=\mathbb F_4\), so
+\(\tau_0=0\).  Equation~\((***)\) yields
+\[
+ (s_j)_{j\geq0}=1,1,0,0,1,1,0,0,\ldots.
+\]
+Finally
+\[
+ c_{i+1}^{P_i}+c_{i+1}=T_{N_i}(a_i),
+\]
+so \((**)\) proves \(\mathsf{QF}_1\).
+
+For the specialization, take \(i=n-2\), which is at least one because
+\(n\geq3\).  If the bit in \(\mathsf{QF}_1\) is zero, then
+\(c_i=(1+t)^{-1}\); if it is one, then
+\(c_i+1=(1+t^{-1})^{-1}\).  This proves the first identity in
+\(\mathsf{QF}_2\), and substituting it into
+\(v=(c_{n-1}+1)/c_{n-1}\) proves the second.  All displayed denominators
+are nonzero: lower-driver primitivity gives \(1+\theta_n\ne0\);
+the nonvanishing \(S_K(A)\ne0\) and the exact lower zero period give
+\(1+u\ne0\); since \(w=u^P\) and \(P\) is coprime to \(Q+1\), also
+\(1+w\ne0\); finally \(\theta_n\) lies in the lower field whereas \(v\)
+has order \(Q+1\), so \(\theta_n+v\ne0\).  Relative trace through
+\(E_{n-2}/E_{n-3}\) reads off \(r_1\), giving
+\(\mathsf{QF}_3\).  Expanding \(A+r(r+1)\) with
+\(A=Cc_0\) and \(c_0^2+c_0=C\) gives
+\(\mathsf{QF}_4\).  Clearing the three nonzero denominators in
+\(r_1=0\) and \(r_1=1\) gives the two lines of
+\(\mathsf{QF}_5\).
+
+Lean kernel-checks the partial-trace product identity, the cubic trace at the
+selected edge, the quadratic-coordinate expansion, the M\"obius transform,
+and both denominator-cleared endpoint equivalences.  Identifying the pair
+sum with the second polynomial coefficient and the resultant coefficient
+recurrence remain paper-level.
+\end{proof}
+
 \begin{remark}[coefficient order is not ancestry order]
 Even retaining one exact ancestry edge does not make the selected factor
 lexicographically extremal.  At the first composite Fermat level the
@@ -15335,6 +15507,90 @@ Bezout-form identity, the endpoint-size and modular endpoint cores, the
 bridge to the existing Fibonacci root, and the full-\(D\) gcd packet.  The
 Fermat-product specialization and
 quadratic-reciprocity calculations remain paper-level.
+\end{proof}
+
+\begin{proposition}[the full-lower inverse is not a mixed involution]
+\label{prop:fermat-ae4-higher-sieve}
+Retain Proposition~\ref{prop:fermat-ae4-full-lower-inverse}.  Thus
+\[
+ \ell d=3D+2,\qquad \ell=1+RL,\qquad
+ \eta=1+RK,\qquad \ell\eta\equiv1\pmod D,
+\]
+where \(R\geq8\), \(\gcd(D,R)=1\), and \(\ell<D\).
+If \(t\geq1\) and
+\[
+ \eta^t\equiv1\pmod D,
+\]
+then
+\[
+\boxed{\quad
+ RD\mid\ell^t-1,\qquad D\mid d^t-2^t.
+\quad}                                               \tag{\(\mathsf{HI}_1\)}
+\]
+In particular,
+\[
+ \boxed{\quad \eta^2\not\equiv1\pmod D.\quad}       \tag{\(\mathsf{HI}_2\)}
+\]
+Thus \(\eta\) is not merely different from the two global residues
+\(\pm1\): it cannot be any CRT-mixed involution obtained by choosing
+independent signs on the prime-power components of \(D\), hence in
+particular on the earlier Fermat factors.  On the minimal-offset
+branch \(R=4M\), \((\mathsf{FI}_5)\) gives
+\((\frac{\eta}{Q+1})_J=-1\), so the order of \(\eta\) modulo \(D\) is
+even; together with \((\mathsf{HI}_2)\), it is at least four.
+
+More generally, \((\mathsf{HI}_1)\) is a short-order sieve:
+\[
+ \eta^t\equiv1\pmod D
+ \quad\Longrightarrow\quad
+ \begin{cases}
+  3(\ell^t-1)\geq R(\ell d-2),\\
+  3(d^t-2^t)\geq \ell d-2.
+ \end{cases}                                        \tag{\(\mathsf{HI}_3\)}
+\]
+This excludes every proposed small-order branch that violates the displayed
+inequality.  It does not prove CSDU: hypothetical failure requires only that
+\(\eta\) be a unit exponent taking \(a\) to the already-known root \(b_F\);
+it imposes no bounded order on that exponent.
+\end{proposition}
+
+\begin{proof}
+If \(\eta^t\equiv1\pmod D\), then
+\(\ell\eta\equiv1\pmod D\) gives
+\[
+ \ell^t\equiv1\pmod D.
+\]
+Also \(\ell\equiv1\pmod R\), so
+\(\ell^t\equiv1\pmod R\).  Coprimality of \(D\) and \(R\) proves
+the first divisibility in \((\mathsf{HI}_1)\).  The other full-lower
+coordinate \(2\eta\equiv d\pmod D\) gives
+\(d^t\equiv2^t\pmod D\), proving the second.  Formula
+\(3D=\ell d-2\) now gives \((\mathsf{HI}_3)\).
+
+Suppose now that \(\eta^2\equiv1\pmod D\).  Write
+\[
+ \ell^2=1+CD.
+\]
+The preceding argument gives \(R\mid C\).  Since \(\ell<D\), one has
+\(0<C<\ell\).  The two product identities imply
+\[
+ 2C+3\ell^2=3+\ell Cd,
+\]
+and hence
+\[
+ 2C\equiv3\pmod\ell.
+\]
+Because \(R\mid C\), one has \(C\geq R\geq8\), while
+\(0<2C-3<2\ell\).  Therefore \(2C-3=\ell\).  Reducing this equality
+modulo \(R\), using \(R\mid C\) and \(\ell\equiv1\pmod R\), gives
+\[
+ 0\equiv4\pmod R,
+\]
+contrary to \(R\geq8\).  This proves \((\mathsf{HI}_2)\).
+
+Lean kernel-checks \((\mathsf{HI}_1)\) and the complete mixed-involution
+contradiction.  The minimal-first-failure specialization remains
+paper-level.
 \end{proof}
 
 \begin{corollary}[the smallest proper lower stratum is excluded]
@@ -20617,10 +20873,15 @@ zero rather than bounding it.
 
 The newer first-zero theorem of Zhu--Wu~\cite[Theorem~4.1]{ZhuWu26}
 identifies the binomial and multiplicative orders of an irreducible
-quadratic from its first vanishing Lucas coefficient.  Applied here, it
-recovers exactly the reverse-Dickson/Lucas criterion already isolated
-above; it does not prove that the first zero is \(F_n\).  Their later
-primitive-coefficient criterion assumes both that the constant term is
+quadratic from its first vanishing Lucas coefficient.  Applied here, its
+Lucas sequence is exactly
+\[
+ U_i=c_0^{i-1}S_i(a),
+\]
+so it recovers the reverse-Dickson/Lucas criterion already isolated
+above; it does not prove that the first zero is \(F_n\).  Their
+Section~7 exceptional-polynomial criterion
+\cite[Theorem~7.7]{ZhuWu26} assumes both that the constant term is
 primitive and that \(q+1=2^m\pi\) with \(m>0\) and \(\pi\) an odd prime.
 Although the rescaling \((\mathsf{VQ})\) supplies the primitive constant,
 \(q+1=F_n\) is odd and may be composite.  Thus that theorem does not
@@ -28125,6 +28386,17 @@ is exactly the existing choice-free root \(b_F\), while odd \(\eta\)
 preserves every quadratic Kummer class.  Thus
 the all-lower/Jacobi packet is a strict survivor sieve, not an independent
 nonvanishing condition.
+Proposition~\ref{prop:fermat-ae4-higher-sieve} strengthens this to a genuine
+branch exclusion: the inverse exponent cannot be a CRT-mixed involution modulo
+the full lower period, and every proposed finite order obeys simultaneous
+current-factor and cofactor divisibility bounds.  Independently,
+Proposition~\ref{prop:fermat-literal-quarter-orientation} proves that literal
+Conway ancestry fixes the formerly ambiguous quarter-Frobenius orientation
+with period four and gives the exact next rerouted coefficient.  Equality with
+the selected next coefficient is now two explicit M\"obius equations.  Neither
+is forced by hypothetical failure, so the remaining additive target is to
+compare that oriented coefficient with the quadratic remainder coefficient of
+\(V_g(A)\).
 Corollary~\ref{cor:fermat-additive-size-obstruction} then excludes the
 smallest proper lower stratum.  In the proper-loss branch, the complementary
 order \(e\) obeys \(e\geq4M+1\), together with

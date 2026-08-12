@@ -457,6 +457,21 @@ absolute boundedness.
   class. Thus the full-lower packet is a sharper survivor sieve, not a
   contradiction; additive oriented ancestry inside the surviving Jacobi
   coset remains the live route.
+  Two stricter global restrictions now sharpen that route. First, if
+  `eta^t=1 mod D`, then `R*D | ell^t-1` and `D | d^t-2^t`; in particular
+  `eta^2 != 1 mod D`, so even CRT-mixed involutions across the prime-power
+  components of `D` are excluded. Second,
+  literal Conway ancestry removes the remaining quarter-Frobenius ambiguity:
+  `c_(i+1)^(|E_(i-1)|)=c_(i+1)+c_i+epsilon_i`, where `epsilon_i` is one
+  for `i=1,2 mod 4` and zero for `i=0,3 mod 4`. For every minimal-failure
+  level `n>=3`, the next lower coefficient of the rerouted parent `Phi(v^K)`
+  therefore has one explicit orientation-sensitive formula, and equality
+  with the selected next coefficient is equivalent to one of two exact
+  Mobius semiconjugacy equations. The wrong quarter-turn branch is excluded,
+  but CSDU remains open: neither `AE4` nor the full-lower packet forces that
+  next coefficient to be selected. The surviving target is the actual
+  oriented coefficient versus the quadratic remainder coefficient of
+  `V_g(A)`.
   Nor is the selected minimal polynomial coefficient-lex extremal: at the first
   composite Fermat level it is bracketed in both coefficient orientations by
   two one-step descendants of full-order parents lying in the same proper
