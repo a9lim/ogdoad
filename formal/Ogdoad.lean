@@ -3,6 +3,8 @@ import Ogdoad.Fifo
 import Ogdoad.FifoCausal
 import Ogdoad.FifoSymmetry
 import Ogdoad.FifoNormalization
+import Ogdoad.FifoStrategy
+import Ogdoad.FifoNeutralPair
 import Ogdoad.FifoAffine
 import Ogdoad.FifoMatching
 import Ogdoad.GoldSemantics

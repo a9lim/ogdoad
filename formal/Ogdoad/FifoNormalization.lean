@@ -682,13 +682,13 @@ theorem no_closeFirstOddStrategy_initial
 
 /-! ## Exact strategy-level normalization frontier
 
-The following proof-indexed predicates distinguish a genuinely CLOSE-first
-odd strategy from one which contains a clear-node deviation.  This keeps the
-quantifiers inside one explicit `OddWins` tree; it does not replace the tree
-by a positional state predicate.
+The following proof-indexed predicates distinguish the CLOSE-first and
+clear-deviation constructors of a displayed `OddWins` proof.  They do not
+retain fixed-policy identity, because `OddWins` lives in `Prop`; use the
+Type-valued `OddStrategy` interface when that distinction is load-bearing.
 -/
 
-/-- Every attacker-controlled clear node in this particular odd strategy
+/-- Every attacker-controlled clear node in the displayed constructor tree
 selects FIFO CLOSE. -/
 inductive OddStrategyCloseFirst {G : SimpleGraph V} {seat : Bool} :
     {s : State V} → OddWins G seat s → Prop

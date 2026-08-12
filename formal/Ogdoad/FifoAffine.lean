@@ -1,4 +1,4 @@
-import Ogdoad.FifoNormalization
+import Ogdoad.FifoStrategy
 
 /-!
 # Proof-indexed affine response spaces for FIFO linking
@@ -9,7 +9,7 @@ the causal factor-extension hypothesis.
 
 `AffineResponseMoment G seat h z` says that `z` belongs to the affine hull of
 the terminal universal live-star moments compatible with one explicit
-`OddWins` strategy tree `h`.  At an attacker node only the strategy's selected
+Type-valued `OddStrategy` tree `h`.  At an attacker node only the strategy's selected
 child is retained; at a defender node every legal child may enter the hull.
 Ternary closure is affine closure over `ZMod 2`.
 
@@ -173,23 +173,23 @@ theorem graphEvaluation_eq_zero_of_realEdgeProjection_eq_zero
 /-- The affine hull of terminal universal live-star moments compatible with
 one fixed explicit odd strategy. -/
 inductive AffineResponseMoment (G : SimpleGraph V) (seat : Bool) :
-    {s : State V} → OddWins G seat s → EdgeVector V → Prop
+    {s : State V} → OddStrategy G seat s → EdgeVector V → Prop
   | terminal (s : State V) (ht : Terminal s) (hs : s.score ≠ 0) :
-      AffineResponseMoment G seat (OddWins.terminal s ht hs) 0
+      AffineResponseMoment G seat (OddStrategy.terminal s ht hs) 0
   | choose {s s' : State V} {hseat : s.toMove ≠ seat}
       {m : Move V} {hstep : step G s m = some s'}
-      {hchild : OddWins G seat s'} {z : EdgeVector V}
+      {hchild : OddStrategy G seat s'} {z : EdgeVector V}
       (tail : AffineResponseMoment G seat hchild z) :
       AffineResponseMoment G seat
-        (OddWins.choose s hseat m s' hstep hchild) (moveLiveStar s m + z)
+        (OddStrategy.choose s hseat m s' hstep hchild) (moveLiveStar s m + z)
   | answerChild {s s' : State V} {hseat : s.toMove = seat}
       {hasMove : ∃ m u, step G s m = some u}
-      {hchildren : ∀ m u, step G s m = some u → OddWins G seat u}
+      {hchildren : ∀ m u, step G s m = some u → OddStrategy G seat u}
       {m : Move V} {hstep : step G s m = some s'} {z : EdgeVector V}
       (tail : AffineResponseMoment G seat (hchildren m s' hstep) z) :
       AffineResponseMoment G seat
-        (OddWins.answer s hseat hasMove hchildren) (moveLiveStar s m + z)
-  | ternary {s : State V} {h : OddWins G seat s}
+        (OddStrategy.answer s hseat hasMove hchildren) (moveLiveStar s m + z)
+  | ternary {s : State V} {h : OddStrategy G seat s}
       {x y z : EdgeVector V}
       (hx : AffineResponseMoment G seat h x)
       (hy : AffineResponseMoment G seat h y)
@@ -201,7 +201,7 @@ omit [Fintype V] in
 defect relative to the current queue-cut potential. -/
 theorem AffineResponseMoment.graphEvaluation_eq
     {G : SimpleGraph V} {seat : Bool} {s : State V}
-    {h : OddWins G seat s} {z : EdgeVector V}
+    {h : OddStrategy G seat s} {z : EdgeVector V}
     (hr : AffineResponseMoment G seat h z) (hs : WellFormed s) :
     graphEvaluation G z = 1 + potential G s := by
   induction hr with
@@ -249,7 +249,7 @@ theorem AffineResponseMoment.graphEvaluation_eq
 strategy on the initial board: graph evaluation would send it to one. -/
 theorem no_zero_affineResponseMoment_initial
     {G : SimpleGraph V} {seat : Bool}
-    {h : OddWins G seat (initial (V := V))} :
+    {h : OddStrategy G seat (initial (V := V))} :
     ¬AffineResponseMoment G seat h 0 := by
   intro hz
   have heval := hz.graphEvaluation_eq wellFormed_initial
@@ -257,14 +257,14 @@ theorem no_zero_affineResponseMoment_initial
 
 /-- The affine response space after forgetting non-real coordinates. -/
 def ProjectedAffineResponseMoment (d : V) (G : SimpleGraph V) (seat : Bool)
-    {s : State V} (h : OddWins G seat s) (q : RealEdgeQuotient V d) : Prop :=
+    {s : State V} (h : OddStrategy G seat s) (q : RealEdgeQuotient V d) : Prop :=
   ∃ z, AffineResponseMoment G seat h z ∧ realEdgeProjection d z = q
 
 /-- Zero cannot lie in the exact real-edge response affine space of an odd
 counterstrategy on an isolated-dummy initial board. -/
 theorem no_zero_projectedAffineResponseMoment_initial
     {G : SimpleGraph V} {d : V} {seat : Bool} (hd : IsDummy G d)
-    {h : OddWins G seat (initial (V := V))} :
+    {h : OddStrategy G seat (initial (V := V))} :
     ¬ProjectedAffineResponseMoment d G seat h 0 := by
   rintro ⟨z, hz, hproj⟩
   have heval := hz.graphEvaluation_eq wellFormed_initial
@@ -276,7 +276,7 @@ theorem no_zero_projectedAffineResponseMoment_initial
 /-- Differences of two moments in one fixed continuation affine space.  Over
 `ZMod 2`, subtraction is addition. -/
 def ResponseDirection (G : SimpleGraph V) (seat : Bool)
-    {s : State V} (h : OddWins G seat s) (d : EdgeVector V) : Prop :=
+    {s : State V} (h : OddStrategy G seat s) (d : EdgeVector V) : Prop :=
   ∃ x y, AffineResponseMoment G seat h x ∧
     AffineResponseMoment G seat h y ∧ d = x + y
 
@@ -285,7 +285,7 @@ omit [Fintype V] in
 contains zero. -/
 theorem ResponseDirection.zero
     {G : SimpleGraph V} {seat : Bool} {s : State V}
-    (h : OddWins G seat s) : ResponseDirection G seat h 0 := by
+    (h : OddStrategy G seat s) : ResponseDirection G seat h 0 := by
   induction h with
   | terminal s ht hs =>
       exact ⟨(0 : EdgeVector V), 0, .terminal s ht hs, .terminal s ht hs,
@@ -293,11 +293,11 @@ theorem ResponseDirection.zero
   | choose s hseat m s' hstep hchild ih =>
       obtain ⟨x, y, hx, hy, hxy⟩ := ih
       have hpx : AffineResponseMoment G seat
-          (OddWins.choose s hseat m s' hstep hchild)
+          (OddStrategy.choose s hseat m s' hstep hchild)
           (moveLiveStar s m + x) :=
         .choose (hseat := hseat) (hstep := hstep) hx
       have hpy : AffineResponseMoment G seat
-          (OddWins.choose s hseat m s' hstep hchild)
+          (OddStrategy.choose s hseat m s' hstep hchild)
           (moveLiveStar s m + y) :=
         .choose (hseat := hseat) (hstep := hstep) hy
       refine ⟨_, _, hpx, hpy, ?_⟩
@@ -315,12 +315,12 @@ theorem ResponseDirection.zero
       obtain ⟨m, s', hstep⟩ := hasMove'
       obtain ⟨x, y, hx, hy, hxy⟩ := ih m s' hstep
       have hpx : AffineResponseMoment G seat
-          (OddWins.answer s hseat hasMove hchildren)
+          (OddStrategy.answer s hseat hasMove hchildren)
           (moveLiveStar s m + x) :=
         .answerChild (hseat := hseat) (hasMove := hasMove)
           (hchildren := hchildren) (hstep := hstep) hx
       have hpy : AffineResponseMoment G seat
-          (OddWins.answer s hseat hasMove hchildren)
+          (OddStrategy.answer s hseat hasMove hchildren)
           (moveLiveStar s m + y) :=
         .answerChild (hseat := hseat) (hasMove := hasMove)
           (hchildren := hchildren) (hstep := hstep) hy
@@ -341,7 +341,7 @@ representative.  The open issue is their correlated selection, not
 inhabitation of any one child affine space. -/
 theorem exists_affineResponseMoment
     {G : SimpleGraph V} {seat : Bool} {s : State V}
-    (h : OddWins G seat s) :
+    (h : OddStrategy G seat s) :
     ∃ z, AffineResponseMoment G seat h z := by
   obtain ⟨x, _, hx, _, _⟩ := ResponseDirection.zero h
   exact ⟨x, hx⟩
@@ -351,7 +351,7 @@ omit [Fintype V] in
 functional, since its two endpoints have the same odd terminal defect. -/
 theorem ResponseDirection.graphEvaluation_eq_zero
     {G : SimpleGraph V} {seat : Bool} {s : State V}
-    {h : OddWins G seat s} {d : EdgeVector V}
+    {h : OddStrategy G seat s} {d : EdgeVector V}
     (hd : ResponseDirection G seat h d) (hs : WellFormed s) :
     graphEvaluation G d = 0 := by
   obtain ⟨x, y, hx, hy, rfl⟩ := hd
@@ -363,7 +363,7 @@ omit [Fintype V] in
 in the same affine response space. -/
 theorem AffineResponseMoment.add_direction
     {G : SimpleGraph V} {seat : Bool} {s : State V}
-    {h : OddWins G seat s} {a d : EdgeVector V}
+    {h : OddStrategy G seat s} {a d : EdgeVector V}
     (ha : AffineResponseMoment G seat h a)
     (hd : ResponseDirection G seat h d) :
     AffineResponseMoment G seat h (a + d) := by
@@ -375,7 +375,7 @@ omit [Fintype V] in
 space is again a representative. -/
 theorem AffineResponseMoment.odd_list_sum
     {G : SimpleGraph V} {seat : Bool} {s : State V}
-    {h : OddWins G seat s} :
+    {h : OddStrategy G seat s} :
     ∀ (zs : List (EdgeVector V)),
       zs.length % 2 = 1 →
       (∀ z ∈ zs, AffineResponseMoment G seat h z) →
@@ -415,7 +415,7 @@ theorem AffineResponseMoment.answer_odd_fan_zero
     {G : SimpleGraph V} {seat : Bool} {s : State V}
     {hseat : s.toMove = seat}
     {hasMove : ∃ m u, step G s m = some u}
-    {hchildren : ∀ m u, step G s m = some u → OddWins G seat u}
+    {hchildren : ∀ m u, step G s m = some u → OddStrategy G seat u}
     {I : Type*} (is : List I) (m : I → Move V) (t : I → State V)
     (hstep : ∀ i ∈ is, step G s (m i) = some (t i))
     (z : I → EdgeVector V)
@@ -424,8 +424,8 @@ theorem AffineResponseMoment.answer_odd_fan_zero
     (hodd : is.length % 2 = 1)
     (hsum : (is.map fun i ↦ moveLiveStar s (m i) + z i).sum = 0) :
     AffineResponseMoment G seat
-      (OddWins.answer s hseat hasMove hchildren) 0 := by
-  let parent := OddWins.answer s hseat hasMove hchildren
+      (OddStrategy.answer s hseat hasMove hchildren) 0 := by
+  let parent := OddStrategy.answer s hseat hasMove hchildren
   have hlift : ∀ w ∈ (is.map fun i ↦ moveLiveStar s (m i) + z i),
       AffineResponseMoment G seat parent w := by
     intro w hw
@@ -461,7 +461,7 @@ theorem AffineResponseMoment.answer_factor_extension
     {G : SimpleGraph V} {seat : Bool} {s : State V}
     {hseat : s.toMove = seat}
     {hasMove : ∃ m u, step G s m = some u}
-    {hchildren : ∀ m u, step G s m = some u → OddWins G seat u}
+    {hchildren : ∀ m u, step G s m = some u → OddStrategy G seat u}
     {I : Type*} (is : List I) (m : I → Move V) (t : I → State V)
     (hstep : ∀ i ∈ is, step G s (m i) = some (t i))
     (a d : I → EdgeVector V)
@@ -473,7 +473,7 @@ theorem AffineResponseMoment.answer_factor_extension
     (hfactor : (is.map fun i ↦ moveLiveStar s (m i) + a i).sum =
       (is.map d).sum) :
     AffineResponseMoment G seat
-      (OddWins.answer s hseat hasMove hchildren) 0 := by
+      (OddStrategy.answer s hseat hasMove hchildren) 0 := by
   have had : ∀ i (hi : i ∈ is),
       AffineResponseMoment G seat
         (hchildren (m i) (t i) (hstep i hi)) (a i + d i) := by
@@ -497,21 +497,21 @@ theorem AffineResponseMoment.answer_factor_extension
 /-- A proof-indexed ancestry path in one fixed odd strategy tree, carrying the
 sum of universal live-star charges on its root-to-node prefix. -/
 inductive StrategyPrefix (G : SimpleGraph V) (seat : Bool)
-    {root : State V} (hroot : OddWins G seat root) :
-    {s : State V} → OddWins G seat s → EdgeVector V → Prop
+    {root : State V} (hroot : OddStrategy G seat root) :
+    {s : State V} → OddStrategy G seat s → EdgeVector V → Prop
   | root : StrategyPrefix G seat hroot hroot 0
   | choose {s s' : State V} {hseat : s.toMove ≠ seat}
       {m : Move V} {hstep : step G s m = some s'}
-      {hchild : OddWins G seat s'} {p : EdgeVector V}
+      {hchild : OddStrategy G seat s'} {p : EdgeVector V}
       (parent : StrategyPrefix G seat hroot
-        (OddWins.choose s hseat m s' hstep hchild) p) :
+        (OddStrategy.choose s hseat m s' hstep hchild) p) :
       StrategyPrefix G seat hroot hchild (p + moveLiveStar s m)
   | answer {s s' : State V} {hseat : s.toMove = seat}
       {hasMove : ∃ m u, step G s m = some u}
-      {hchildren : ∀ m u, step G s m = some u → OddWins G seat u}
+      {hchildren : ∀ m u, step G s m = some u → OddStrategy G seat u}
       {m : Move V} {hstep : step G s m = some s'} {p : EdgeVector V}
       (parent : StrategyPrefix G seat hroot
-        (OddWins.answer s hseat hasMove hchildren) p) :
+        (OddStrategy.answer s hseat hasMove hchildren) p) :
       StrategyPrefix G seat hroot (hchildren m s' hstep)
         (p + moveLiveStar s m)
 
@@ -520,7 +520,7 @@ omit [Fintype V] in
 adding the prefix live-star moment. -/
 theorem StrategyPrefix.lift
     {G : SimpleGraph V} {seat : Bool} {root s : State V}
-    {hroot : OddWins G seat root} {h : OddWins G seat s}
+    {hroot : OddStrategy G seat root} {h : OddStrategy G seat s}
     {p z : EdgeVector V} (hp : StrategyPrefix G seat hroot h p)
     (hz : AffineResponseMoment G seat h z) :
     AffineResponseMoment G seat hroot (p + z) := by
@@ -528,13 +528,13 @@ theorem StrategyPrefix.lift
   | root => simpa using hz
   | @choose s s' hseat m hstep hchild p parent ih =>
       have hparent : AffineResponseMoment G seat
-          (OddWins.choose s hseat m s' hstep hchild)
+          (OddStrategy.choose s hseat m s' hstep hchild)
           (moveLiveStar s m + z) :=
         .choose (hseat := hseat) (hstep := hstep) hz
       simpa only [add_assoc] using ih hparent
   | @answer s s' hseat hasMove hchildren m hstep p parent ih =>
       have hparent : AffineResponseMoment G seat
-          (OddWins.answer s hseat hasMove hchildren)
+          (OddStrategy.answer s hseat hasMove hchildren)
           (moveLiveStar s m + z) :=
         .answerChild (hseat := hseat) (hasMove := hasMove)
           (hchildren := hchildren) (hstep := hstep) hz
@@ -543,9 +543,9 @@ theorem StrategyPrefix.lift
 /-- One proof-indexed ancestry hole, retaining the exact descendant strategy
 proof and its prefix moment.  No antichain or closure condition is imposed. -/
 structure StrategyHole (G : SimpleGraph V) (seat : Bool)
-    {root : State V} (hroot : OddWins G seat root) where
+    {root : State V} (hroot : OddStrategy G seat root) where
   state : State V
-  tree : OddWins G seat state
+  tree : OddStrategy G seat state
   moment : EdgeVector V
   ancestry : StrategyPrefix G seat hroot tree moment
 
@@ -556,7 +556,7 @@ aggregate prefix-plus-base defect belongs to the sum of their continuation
 direction spaces, the root response affine space contains zero. -/
 theorem StrategyHole.factor_extension_zero
     {G : SimpleGraph V} {seat : Bool} {root : State V}
-    {hroot : OddWins G seat root} {I : Type*}
+    {hroot : OddStrategy G seat root} {I : Type*}
     (is : List I) (hole : I → StrategyHole G seat hroot)
     (a d : I → EdgeVector V)
     (ha : ∀ i ∈ is, AffineResponseMoment G seat (hole i).tree (a i))
@@ -601,7 +601,7 @@ theorem StrategyHole.factor_extension_zero
 /-- A finite ancestry factor term: one proof-indexed hole, one continuation
 base representative, and one available direction in that continuation. -/
 structure StrategyFactorTerm (G : SimpleGraph V) (seat : Bool)
-    {root : State V} (hroot : OddWins G seat root) where
+    {root : State V} (hroot : OddStrategy G seat root) where
   hole : StrategyHole G seat hroot
   base : EdgeVector V
   correction : EdgeVector V
@@ -612,7 +612,7 @@ structure StrategyFactorTerm (G : SimpleGraph V) (seat : Bool)
 dummy-incident and diagonal coordinates, this is stronger than the exact real-edge
 certificate below. -/
 structure StrategyFactorCertificate (G : SimpleGraph V) (seat : Bool)
-    {root : State V} (hroot : OddWins G seat root) where
+    {root : State V} (hroot : OddStrategy G seat root) where
   terms : List (StrategyFactorTerm G seat hroot)
   odd : terms.length % 2 = 1
   factor : (terms.map fun t ↦ t.hole.moment + t.base).sum =
@@ -623,7 +623,7 @@ omit [Fintype V] in
 response affine space to zero. -/
 theorem StrategyFactorCertificate.zero
     {G : SimpleGraph V} {seat : Bool} {root : State V}
-    {hroot : OddWins G seat root}
+    {hroot : OddStrategy G seat root}
     (h : StrategyFactorCertificate G seat hroot) :
     AffineResponseMoment G seat hroot 0 := by
   exact StrategyHole.factor_extension_zero h.terms
@@ -634,7 +634,7 @@ theorem StrategyFactorCertificate.zero
 only after quotienting by non-real coordinates; all proof-indexed
 continuation membership data remain in the universal edge space. -/
 structure ProjectedStrategyFactorCertificate (G : SimpleGraph V) (d : V)
-    (seat : Bool) {root : State V} (hroot : OddWins G seat root) where
+    (seat : Bool) {root : State V} (hroot : OddStrategy G seat root) where
   terms : List (StrategyFactorTerm G seat hroot)
   odd : terms.length % 2 = 1
   factor :
@@ -647,7 +647,7 @@ certificate.  The converse is not assumed: the quotient intentionally forgets
 non-real coordinates. -/
 def StrategyFactorCertificate.toProjected
     {G : SimpleGraph V} {seat : Bool} {root : State V}
-    {hroot : OddWins G seat root}
+    {hroot : OddStrategy G seat root}
     (h : StrategyFactorCertificate G seat hroot) (d : V) :
     ProjectedStrategyFactorCertificate G d seat hroot where
   terms := h.terms
@@ -659,7 +659,7 @@ omit [Fintype V] in
 to zero in the real-edge quotient. -/
 theorem ProjectedStrategyFactorCertificate.zero
     {G : SimpleGraph V} {d : V} {seat : Bool} {root : State V}
-    {hroot : OddWins G seat root}
+    {hroot : OddStrategy G seat root}
     (h : ProjectedStrategyFactorCertificate G d seat hroot) :
     ProjectedAffineResponseMoment d G seat hroot 0 := by
   have had : ∀ t ∈ h.terms,
@@ -710,7 +710,7 @@ ancestry holes may be used, certificate existence is an exact repackaging of
 the projected affine target rather than a smaller construction theorem. -/
 theorem ProjectedAffineResponseMoment.nonempty_strategyFactorCertificate
     {G : SimpleGraph V} {d : V} {seat : Bool} {root : State V}
-    {hroot : OddWins G seat root}
+    {hroot : OddStrategy G seat root}
     (h : ProjectedAffineResponseMoment d G seat hroot 0) :
     Nonempty (ProjectedStrategyFactorCertificate G d seat hroot) := by
   obtain ⟨z, hz, hprojection⟩ := h
@@ -738,7 +738,7 @@ construct one from a genuinely restricted causal frontier for this language
 to reduce the open theorem. -/
 theorem nonempty_projectedStrategyFactorCertificate_iff
     {G : SimpleGraph V} {d : V} {seat : Bool} {root : State V}
-    {hroot : OddWins G seat root} :
+    {hroot : OddStrategy G seat root} :
     Nonempty (ProjectedStrategyFactorCertificate G d seat hroot) ↔
       ProjectedAffineResponseMoment d G seat hroot 0 := by
   constructor
@@ -750,7 +750,7 @@ theorem nonempty_projectedStrategyFactorCertificate_iff
 /-- Strong full-edge form of the still-open construction. -/
 def InitialAncestryFactorExtensionAt
     (G : SimpleGraph V) (d : V) (seat : Bool) : Prop :=
-  IsDummy G d → ∀ h : OddWins G seat (initial (V := V)),
+  IsDummy G d → ∀ h : OddStrategy G seat (initial (V := V)),
     Nonempty (StrategyFactorCertificate G seat h)
 
 /-- The strong full-edge ancestry factor-extension statement is sufficient
@@ -762,7 +762,8 @@ theorem initialAncestryFactorExtensionAt_implies_linking
     (hd : IsDummy G d) : EvenWins G seat (initial (V := V)) := by
   rw [linking_at_iff_noOddCounterstrategy hd]
   intro hodd
-  obtain ⟨hcertificate⟩ := hfactor hd hodd
+  obtain ⟨strategy⟩ := hodd.nonempty_oddStrategy
+  obtain ⟨hcertificate⟩ := hfactor hd strategy
   exact no_zero_affineResponseMoment_initial hcertificate.zero
 
 /-- Exact real-edge form of the still-open construction: every explicit odd
@@ -770,7 +771,7 @@ strategy at an isolated-dummy root admits a projected ancestry factor
 certificate. -/
 def InitialProjectedAncestryFactorExtensionAt
     (G : SimpleGraph V) (d : V) (seat : Bool) : Prop :=
-  IsDummy G d → ∀ h : OddWins G seat (initial (V := V)),
+  IsDummy G d → ∀ h : OddStrategy G seat (initial (V := V)),
     Nonempty (ProjectedStrategyFactorCertificate G d seat h)
 
 /-- The projected ancestry factor-extension statement is sufficient for the
@@ -781,7 +782,8 @@ theorem initialProjectedAncestryFactorExtensionAt_implies_linking
     (hd : IsDummy G d) : EvenWins G seat (initial (V := V)) := by
   rw [linking_at_iff_noOddCounterstrategy hd]
   intro hodd
-  obtain ⟨hcertificate⟩ := hfactor hd hodd
+  obtain ⟨strategy⟩ := hodd.nonempty_oddStrategy
+  obtain ⟨hcertificate⟩ := hfactor hd strategy
   exact no_zero_projectedAffineResponseMoment_initial hd hcertificate.zero
 
 /-- At a fixed isolated-dummy board, the unrestricted projected certificate
@@ -797,7 +799,7 @@ theorem initialProjectedAncestryFactorExtensionAt_iff_linking
   · intro heven _ hodd
     have hno : ¬OddWins G seat (initial (V := V)) :=
       (linking_at_iff_noOddCounterstrategy hd seat).mp heven
-    exact False.elim (hno hodd)
+    exact False.elim (hno hodd.toOddWins)
 
 end
 

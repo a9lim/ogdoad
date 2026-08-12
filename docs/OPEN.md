@@ -114,7 +114,7 @@ not a scalar parity identity.
   exact replacement is a relative-spine quotient together with a finite
   one-front-offset ladder whose holonomy is an explicit sum of token-opening
   edges.
-- Minimum extraction inside an odd strategy tree produces a charged close with
+- Minimum extraction inside a Type-valued odd strategy tree produces a charged close with
   a translated neutral tail. The full family of punctured singleton tails
   makes the even untouched remainder Eulerian and excludes the
   zero-charge/even-untouched predecessor branch. At the remaining odd-odd spike,
@@ -137,8 +137,15 @@ not a scalar parity identity.
   mover and score one, and no nonempty legal macro can reach a state's own
   score-and-turn conjugate because every move lowers rank. Thus the dummy is
   not a legal pass implementing the missing root symmetry.
+- `formal/Ogdoad/FifoStrategy.lean` separates existence from policy identity:
+  `OddWins` remains the proposition used for determinacy, while the equivalent
+  nonempty `OddStrategy` type retains the attacker's selected move at every
+  node. `formal/Ogdoad/FifoNeutralPair.lean` ports the minimum charged-CLOSE
+  extraction and its causal-neighbour alternative to this fixed-policy type,
+  and pins both the one-OPEN ko mismatch and a reachable conditioned state
+  where every odd policy must select the charged CLOSE.
 - `formal/Ogdoad/FifoAffine.lean` kernel-checks the proof-indexed affine
-  response space of one explicit `OddWins` tree, its continuation directions,
+  response space of one explicit Type-valued `OddStrategy`, its continuation directions,
   odd-list closure, supplied odd-branch lifting, and cross-level ancestry factor
   composition. It also quotients the universal live-star space by all
   dummy-incident and diagonal coordinates and proves that a projected factor

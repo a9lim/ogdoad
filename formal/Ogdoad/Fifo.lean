@@ -3914,15 +3914,17 @@ theorem evenWins_singletonTail (G : SimpleGraph V) (seat : Bool) (b : V) :
 
 The local score-sheet transport lemmas above do not by themselves contradict
 determinacy: the same physical player can sometimes force either target from
-one public state.  The useful object is therefore the actual subtree of a
-fixed odd strategy.  A rank-minimal zero-sheet node in that subtree has a
+one public state.  The constructor-sensitive object below follows a displayed
+odd proof.  A rank-minimal zero-sheet node in that relation has a
 rigid operational form: the odd-seeking player selects an odd CLOSE, and the
 opposite score sheet of its child admits a strategy all of whose moves are
 score-neutral. -/
 
-/-- Membership in the explicit finite strategy tree carried by an `OddWins`
-proof.  At a `choose` node only the strategy's selected child belongs; at an
-`answer` node every legal child belongs. -/
+/-- Constructor-sensitive membership under the displayed `OddWins` proof.
+At a `choose` constructor only its displayed child belongs; at an `answer`
+constructor every legal child belongs.  Since `OddWins` lives in `Prop`, proof
+irrelevance can identify different displayed trees at one state; use the
+Type-valued `OddStrategy` interface when fixed-policy identity is essential. -/
 inductive InOddStrategy {V : Type*} [DecidableEq V]
     (G : SimpleGraph V) (seat : Bool) :
     {s : State V} → OddWins G seat s → State V → Prop

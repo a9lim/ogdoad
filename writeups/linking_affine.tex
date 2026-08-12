@@ -5804,14 +5804,22 @@ The following claims have different status and should not be flattened.
       policy behind Proposition~\ref{prop:fixed-front-relative-failure}; the
       finite-dimensional affine-separation step itself remains the paper
       bridge.  The same file now also kernel-checks explicit membership in an
-      \texttt{OddWins} strategy tree, extraction of its minimum charged CLOSE
+      displayed \texttt{OddWins} constructor tree, extraction of its minimum charged CLOSE
       and translated neutral tail, and the conditional implication from all
       punctured neutral singleton tails to an Eulerian untouched remainder.
       The companion \path{formal/Ogdoad/FifoCausal.lean} checks the direct
       charged-CLOSE/neighbor-OPEN transport away from the singleton wall, its
       one-further-OPEN ko repair at that wall, and the resulting causal
       neighbour alternative extracted from every zero-sheet odd strategy off
-      the wall.  The companion \path{formal/Ogdoad/FifoSymmetry.lean} checks
+      the wall.  Because \texttt{OddWins} lives in \texttt{Prop}, the new
+      \path{formal/Ogdoad/FifoStrategy.lean} supplies the equivalent
+      Type-valued \texttt{OddStrategy} used whenever fixed-policy identity is
+      load-bearing.  The companion \path{formal/Ogdoad/FifoNeutralPair.lean}
+      ports the minimum charged-CLOSE and causal-neighbour extraction to that
+      type, proves exact dummy deletion after two drafted OPENs and the sharp
+      one-OPEN ko defect, and pins a reachable conditioned state where every
+      explicit odd policy selects the charged CLOSE despite an active isolated
+      interval.  The companion \path{formal/Ogdoad/FifoSymmetry.lean} checks
       mover/seat conjugacy, its target-swapping composition with score
       translation, and the rank obstruction to realizing that conjugacy by a
       nonempty legal macro.  The companion \path{formal/Ogdoad/FifoAffine.lean} checks the

@@ -726,8 +726,10 @@ for the reduced odd-close parity game from `experiments/linking_game.py`:
 - an explicit existential/universal finite strategy tree;
 - its explicit odd-forcing dual, kernel-checked finite determinacy and
   incompatibility (`EvenWins` iff no `OddWins` counterstrategy);
-- explicit membership in one fixed `OddWins` strategy tree and a
-  strategy-relative minimum theorem: every zero-sheet odd counterstrategy
+- constructor-sensitive membership under an `OddWins` proof and a minimum
+  theorem at that propositional level; the separate Type-valued
+  `OddStrategy` interface described below is authoritative whenever fixed
+  policy identity matters. Every zero-sheet odd counterstrategy
   contains a selected charge-one CLOSE whose translated child has a fully
   score-neutral continuation tree; more generally, an explicit score-one
   subtree translates directly to a neutral tree.  Opponent-controlled
@@ -823,9 +825,25 @@ has both the opposite mover and score one.  Every legal move strictly lowers
 rank while this conjugacy preserves rank, so no nonempty legal dummy macro (or
 any legal macro) realizes the missing root identification.
 
+[`Ogdoad/FifoStrategy.lean`](Ogdoad/FifoStrategy.lean) introduces the
+Type-valued strategy tree required for policy-relative constructions.
+`OddStrategy` has the same existential/universal constructors as `OddWins`,
+erases to `OddWins`, and is nonempty exactly when `OddWins` holds. This avoids
+silently using a proof in `Prop` as if it retained one chosen policy.
+
+[`Ogdoad/FifoNeutralPair.lean`](Ogdoad/FifoNeutralPair.lean) builds the exact
+fixed-policy ancestry relation on `OddStrategy`, ports minimum charged-CLOSE
+and causal-neighbour extraction to it, and checks the neutral-pair boundary:
+after two drafted real OPENs, closing an isolated dummy gives exactly the
+dummy-deleted two-OPEN state; after one OPEN the ko bits differ. An isolated
+front CLOSE commutes through later fresh OPENs away from that singleton wall,
+but a reachable three-label state with an active isolated interval is still
+odd-winning, and every explicit odd policy there must choose the charged real
+CLOSE. Root ancestry and sibling coupling therefore remain essential.
+
 [`Ogdoad/FifoAffine.lean`](Ogdoad/FifoAffine.lean) gives a proof-indexed Lean
 interface for that step.  It defines the affine hull of universal live-star
-terminal moments below one explicit `OddWins` tree, proves its graph-evaluation
+terminal moments below one explicit Type-valued `OddStrategy`, proves its graph-evaluation
 law, nonemptiness, continuation-direction translation, supplied odd-branch
 lifting, and factor composition across proof-indexed ancestry
 holes.  The exact isolated-dummy target is taken after quotienting by the span
