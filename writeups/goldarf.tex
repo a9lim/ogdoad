@@ -2,6 +2,7 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathrsfs}
 \usepackage{array,booktabs}
 \usepackage{enumitem}
 \usepackage{microtype}
@@ -39,6 +40,7 @@
 \newcommand{\Inn}{\operatorname{Inn}}
 \newcommand{\Out}{\operatorname{Out}}
 \newcommand{\rad}{\operatorname{rad}}
+\newcommand{\rank}{\operatorname{rank}}
 \newcommand{\wt}{\operatorname{wt}}
 \newcommand{\mex}{\operatorname{mex}}
 \newcommand{\Stab}{\operatorname{Stab}}
@@ -56,10 +58,11 @@ Classical coin-turning games decompose into nim heaps, so their $P$-sets
 are kernels of $\F_2$-linear maps; the same linear-kernel phenomenon
 underlies Fraenkel's anncodes, Mock Turtles, and Mogul.  We construct, to
 our knowledge, the first uniform normal-play family that strategically
-forces a genuinely \emph{quadratic} $P$-set, and we prove the matching
-observation boundary.  For every finite-dimensional $\F_2$-space, every
-alternating form $B$, every quadratic refinement $Q$ of $B$, and every
-loaded input $x$, an explicit local rule has root outcome $P$ exactly when
+forces a genuinely \emph{quadratic} $P$-set by impartial play, and we prove
+the matching observation boundary.  For every finite-dimensional
+$\F_2$-space, every alternating form $B$, every quadratic refinement $Q$
+of $B$, and every loaded input $x$, an explicit impartial local rule has
+root outcome $P$ exactly when
 $Q(x)=0$: its statics are refinement-blind, each transition observes at
 most one weight-one value of the refinement, and exactness is uniform over
 the full torsor of refinements of $B$.  Conversely, any transcript-stable
@@ -120,19 +123,19 @@ sees at most one singleton value of the refinement.
 The positive and negative results pair off as follows.
 
 \begin{enumerate}[leftmargin=*,itemsep=2pt]
-\item \emph{Realization}
+\item \emph{Impartial realization}
 (Theorem~\ref{thm:wittfifo},
 Proposition~\ref{prop:wittfifonatural}).  The weighted-source
-\textsc{witt-fifo} rule satisfies F1--F3/N1--N2 with $(w_0,c)=(1,1)$, and
+\textsc{witt-fifo} rule is impartial and satisfies F1--F3/N1--N2 with
+$(w_0,c)=(1,1)$, and
 for every finite-dimensional $\F_2$-space, every alternating form $B$,
 every quadratic refinement $Q$ of $B$, and every loaded input $x$, its
 normal-play root is $P$ if and only if $Q(x)=0$.  A public Witt frame
 reduces the polar support graph to a matching; singleton-weighted source
-pairs transport the diagonal data; a FIFO strategy forces every potential
-pair of touch intervals to overlap; and a phase-aware terminal claim
-compiles the accumulated charge to a $P/N$ outcome.  The phase is the mover
-bit, so the compiled arena is partizan; whether an impartial uniform
-realizer exists under the same access discipline is open.
+pairs transport the diagonal data; a pass-free FIFO strategy forces every
+potential pair of touch intervals to overlap; every core play has fixed even
+length; and one seat-symmetric tail move, present exactly at charge one,
+compiles the accumulated charge to a $P/N$ outcome.
 \item \emph{The observation boundary}
 (Theorem~\ref{thm:certificate}, Corollaries~\ref{cor:attain}
 and~\ref{cor:blocks}).  Any
@@ -212,9 +215,9 @@ required overlaps strategically under a bounded-access contract.
 
 Seven independent ingredients of the realization and the boundary are
 kernel-checked in Lean~4 with mathlib: the diagonal trace identities, the
-matching FIFO strategy, the adapted-basis expansion, the phase-aware claim
-compiler, the transcript-span bound, the block-aggregation algebra, and
-the fork-padding obstruction;
+matching FIFO strategy, the pass-free matching/tempo compiler, the
+adapted-basis expansion, the transcript-span bound, the block-aggregation
+algebra, and the fork-padding obstruction;
 further modules check the algebraic cores of the Brown-selector section
 and the game-exterior appendix.
 These are ingredient theorems: no single Lean statement constructs the
@@ -527,11 +530,13 @@ unchanged in the singular case, and terminates after one dimension drop for
 a radical step or two for a hyperbolic-plane step.
 
 \begin{quote}
-\textbf{Rule} (weighted-source \textsc{witt-fifo}).
-The public state is $(U,\mathcal Q,\mathrm{ko},\sigma,\phi)$: the untouched
-coin set, a FIFO queue of open coins, a Boolean ko bit, the accumulated
-charge, and the mover-parity bit.  Initially $\mathcal Q$ is empty,
-$\mathrm{ko}=\mathrm{false}$, and $\sigma=\phi=0$.
+\textbf{Rule} (pass-free weighted-source \textsc{witt-fifo}).
+The core state is $(U,\mathcal Q,\mathrm{ko},\sigma)$: the untouched coin
+set, a FIFO queue of open coins, a Boolean ko bit, and the accumulated
+charge.  The refinement-blind position universe contains the coherent core
+states for both values of $\sigma$ together with one optionless sink.
+Initially $\mathcal Q$ is empty, $\mathrm{ko}=\mathrm{false}$, and
+$\sigma=0$.
 
 Load a strategic coin $F_i$ for each $y_i=1$, with fixed public diagonal
 charge $p_i$.  Join $F_{a_h}$ to $F_{b_h}$ exactly when both are loaded.
@@ -544,12 +549,13 @@ $q_j$ into the charge.  Source closes have charge zero.
 Every loaded coin must be touched twice, first by OPEN and then by CLOSE.
 OPEN$(v)$ is legal exactly when $v\in U$; it removes $v$ from $U$, appends
 it to $\mathcal Q$, and sets ko to true exactly when the old queue was
-empty.  Thus ko protects the newly opened front by forbidding CLOSE for one
-move.  A subsequent OPEN clears ko because its old queue is nonempty.
-CLOSE is legal exactly when $\mathcal Q$ is nonempty and ko is false; it
-removes the FIFO front.  PASS is forced exactly when $U=\varnothing$,
-$\mathcal Q\ne\varnothing$, and ko is true; it only clears ko.  These are
-all FIFO moves.
+empty.  Thus ko protects the newly opened front while another untouched
+coin remains available.  A subsequent OPEN clears ko because its old queue
+is nonempty.  CLOSE is legal exactly when $\mathcal Q$ is nonempty and
+either ko is false or $U=\varnothing$; it removes the FIFO front and clears
+ko.  There is no PASS.  The exhausted-board disjunct is the only change from
+the earlier FIFO transition: once no untouched coin remains, the protected
+front has live degree zero and may drain immediately.
 
 When a coin $v$ opens, xor into $\sigma$ the weight of its already-open
 mate, if any.  Thus every strategic or source edge is charged exactly when
@@ -558,15 +564,17 @@ update
 \[
  \sigma\mathrel{\oplus{=}}p_i.
 \]
-All other closes and all passes leave $\sigma$ unchanged.  Toggle $\phi$
-after every FIFO move.  Each FIFO move strictly decreases
+All other closes leave $\sigma$ unchanged.  Each FIFO move decreases the
+exact clock
 \[
- 4|U|+2|\mathcal Q|+[\mathrm{ko}],
+ 2|U|+|\mathcal Q|
 \]
-so play is finite.  Once $U=\varnothing=\mathcal Q$, add one ordinary
-normal-play claim move exactly when $\sigma=1\oplus\phi$.  Taking that move
-ends the game at an optionless position; if it is absent, the drained state
-is already terminal.
+by one.  If $U\ne\varnothing$, an OPEN is available; if
+$U=\varnothing\ne\mathcal Q$, a CLOSE is available even when ko is set.
+Thus the core cannot stall and has exactly two moves per loaded coin.  At a
+drained state add one impartial move to the fixed sink exactly when
+$\sigma=1$; a drained state with $\sigma=0$ is already terminal.  This move
+is available to whichever player is to move.
 \end{quote}
 
 For a Gold form, Theorem~\ref{thm:all-diagonal-source} in
@@ -576,76 +584,74 @@ weight-one oracle observation on an overlapping source OPEN.  It does not
 claim that running the tower recursion for $w_a$, or evaluating its trace,
 is itself one primitive game move.
 
-The mover-parity bit is not an evaluator or form oracle; it is already the
-mover field of the FIFO state.  It is necessary for an identity-valued
-payoff compiler: a phase-free terminal leaf assigns opposite initial-seat
-winners at even and odd depths.  The final claim is therefore a two-state
-local ``charge lantern'', not an inspection of $x$, $B$, or $Q(x)$.
+The sink edge reads only the accumulated state coordinate $\sigma$, not the
+oracle.  The position universe and the terminal subset (the sink together
+with drained charge-zero states) are fixed before any oracle answer is
+known.  It is therefore a local impartial charge tail, not an inspection of
+$x$, $B$, or $Q(x)$.
 
-\begin{theorem}[FIFO matching theorem]\label{thm:matchingfifo}
-Let every component of $G$ be $K_1$ or $K_2$.  From the empty-queue root,
-either designated seat has a strategy forcing the sum of all close charges
-$\deg_U(f)$ to be zero, where
+\begin{theorem}[pass-free FIFO matching theorem]\label{thm:matchingfifo}
+Let every component of a public graph $G_0$ be $K_1$ or $K_2$.  From the
+empty-queue root, either designated seat has one deterministic
+$G_0$-dependent strategy which, for every edge-deleted scoring submatching,
+makes every core CLOSE have zero public live degree
+$\deg^{G_0}_U(f)$, where
 \[
- \deg_U(f):=|\{u\in U:\{f,u\}\in E(G)\}|\pmod2
+ \deg^{G_0}_U(f):=|\{u\in U:\{f,u\}\in E(G_0)\}|\pmod2.
 \]
-is the live degree of the FIFO front.  In fact the strategy makes every
-close charge zero individually.  The theorem holds for every finite board
-and needs no dummy.
+Consequently every public edge has overlapping touch intervals.  The
+theorem holds for every finite board and needs no dummy.
 \end{theorem}
 
 \begin{proof}
-Call a FIFO front \emph{safe} when either ko is set or its unique mate is
-not untouched; equivalently, every legal close at that checkpoint has
-charge zero.  Induct on $4|U|+2|\mathcal Q|+[\mathrm{ko}]$.  We show that a
-designated seat forces terminal score zero whenever it moves from score
-zero, and whenever its opponent receives a score-zero safe state.
+Fix the least coin in the public order whenever an arbitrary coin is needed.
+The designated seat follows one rule: while $U\ne\varnothing$, it never
+closes; if the queue is empty it opens the least untouched coin; otherwise
+it opens the untouched public mate of the front when that mate exists, and
+opens the least untouched coin when it does not.  Once $U=\varnothing$ it
+closes.  Call an opponent checkpoint \emph{safe} when every legal CLOSE has
+public live degree zero.  Induct on $2|U|+|\mathcal Q|$.
 
-If the designated seat moves with $U\ne\varnothing$ and the queue is empty,
-OPEN any $z\in U$; ko makes the next checkpoint safe.  If the front $f$ has
-charge one, its unique mate $u$ lies in $U$; OPEN $u$, which erases the
-only possible live neighbour of $f$.  If $f$ has charge zero, OPEN any
-$z\in U$; maximum degree one implies that erasure preserves the zero front.
-When $U=\varnothing$, all later closes have charge zero and the forced
-PASS, when present, is harmless.
+If the queue is empty, the designated OPEN sets ko.  When untouched coins
+remain, this forbids CLOSE; when none remain, every live degree is already
+zero.  If the queue has front $f$ and its unique public mate $u$ is
+untouched, OPEN $u$, erasing the only possible live neighbour of $f$.  If
+no such mate exists, erasing any untouched coin preserves that fact.  Thus
+the opponent always receives a safe checkpoint.
 
-At an opponent checkpoint, OPEN and PASS preserve the score and return the
-turn.  A legal CLOSE rules out ko, so safety makes its charge zero and
-likewise returns a score-zero state.  Every branch has smaller rank.
-Initially the queue is empty: the second seat receives a vacuously safe
-root, while the first seat uses the empty-queue OPEN.  The designated seat
-itself never closes while an untouched coin remains, and after the
-untouched set is empty every close has charge zero.  Thus the constructed
-strategy makes each close charge zero, not only their total.  This proves
-both seats.
+At a safe opponent checkpoint, an OPEN preserves the accumulated public
+close degree and returns the turn; a CLOSE has live degree zero by safety
+and likewise returns the turn.  The new ko-set CLOSE branch causes no gap:
+its legality implies $U=\varnothing$, hence degree zero.  Initially the
+queue is empty: the second seat receives a vacuously safe root, while the
+first seat uses the empty-queue OPEN.  The designated seat itself never
+closes while an untouched coin remains, and after the untouched set is
+empty every close has degree zero.  This proves the both-seat claim with one
+strategy depending only on $G_0$.
+
+Finally, if a public edge $\{a,b\}$ did not overlap, the endpoint opened
+first would close while the other endpoint was still untouched.  Since
+$G_0$ is a matching, that CLOSE would have public live degree one, a
+contradiction.  Conversely an overlapping pair is charged exactly once,
+when its second endpoint opens.
 \end{proof}
 
-The exact transition-system proof is kernel-checked as
-\texttt{evenWins\_initial\_of\_matching} in
-\path{formal/Ogdoad/FifoMatching.lean}~\cite{ogdoad}.  The finite matching
-census helped find the policy but is not used in the theorem.  Its
-refinement-blind strengthening, with a public potential matching and an
-arbitrary edge-deleted scoring submatching, is kernel-checked as
-\path{evenWins_initial_of_every_submatching}.  The proposition is
-pointwise in the scoring submatching, while its proof branches choose moves
-only from the public matching.  Since \texttt{EvenWins} does not reify a
-first-class policy or complete play traces, the literal single-policy
-quantifier and the per-close-zero observation are the explicit argument
-above, not separate theorem statements in Lean.  This per-close-zero
-strengthening is the one load-bearing step of the exactness proof that is
-not itself kernel-checked; Section~\ref{sec:status} records it as the next
-Lean follow-up.
-
-A \emph{charge stance} is the choice of which initial seat is designated by
-Boolean charge $1$ (equivalently, which charge that seat seeks in the
-payoff tree).  The phase-aware claim compiler works for either choice.
+The pass-free transition, its exact clock, the newly legal exhausted-board
+CLOSE, the both-seat safe-front induction for every public submatching, and
+the impartial charge-tail compiler are kernel-checked in
+\path{formal/Ogdoad/ImpartialRealizer.lean}~\cite{ogdoad}.  Its theorem is
+pointwise in the scoring submatching, while the displayed proof fixes the
+literal public policy and proves every CLOSE clean in the full potential
+matching.  The weighted OPEN charges and their end-to-end composition with
+the adapted-basis identity remain the paper-level synthesis recorded in
+Section~\ref{sec:status}.
 
 \begin{theorem}[weighted-source exactness]\label{thm:wittfifo}
 For every $\F_2$-valued quadratic refinement $Q_q$ on a finite-dimensional
-$\F_2$-space, every input $x$, and either charge stance, weighted-source
-\textnormal{\textsc{witt-fifo}}
-forces terminal charge $\sigma=Q_q(x)$.  Consequently its charge-lantern
-normal-play root is $P$ if and only if $Q_q(x)=0$.
+$\F_2$-space and every input $x$, pass-free weighted-source
+\textnormal{\textsc{witt-fifo}} is an impartial normal-play arena.  Either
+designated seat can force terminal charge $\sigma=Q_q(x)$ by the same public
+policy.  Its root is $P$ if and only if $Q_q(x)=0$.
 \end{theorem}
 
 \begin{proof}
@@ -684,16 +690,18 @@ directly
 with no refinement-dependent auxiliary graph or strategy.
 Every active strategic $F_i$ closes exactly once and supplies
 $\sum_i y_ip_i$.  Equation~\eqref{eq:splitsource} therefore gives forced
-terminal charge $Q_q(x)$ at both stances.
+terminal charge $Q_q(x)$ for either designated seat.
 
-For the final assertion, retain the finite charge game tree.  At a leaf of
-charge $\sigma$ and phase $\phi$, the unique claim exists exactly when the
-player to move is the seat designated by $\sigma$.  Backward induction says
-that the compiled normal-play winner equals the charge-game winner at every
-subtree and phase.  At the root, seat zero plays for charge one, so the
-root is $N$ for $Q_q(x)=1$ and $P$ for $Q_q(x)=0$.  The general compiler
-and root equivalence are kernel-checked in
-\path{formal/Ogdoad/GoldSemantics.lean}.
+If $N$ coins are loaded, the exact core clock starts at $2N$, decreases by
+one on every move, and reaches zero only at drainage.  Hence it is again the
+first player's turn after the core.  If $Q_q(x)=1$, the first player uses
+the public policy, forces $\sigma=1$, and takes the unique impartial tail to
+win.  If $Q_q(x)=0$, the second player uses the same policy, forces
+$\sigma=0$, and leaves the first player at an optionless drained state.
+Thus the root is respectively $N$ or $P$.  Notice that this is a strategy
+statement, not a claim that off-policy maximal plays all have charge
+$Q_q(x)$.  The exact clock and the two normal-play strategy directions are
+kernel-checked in \path{formal/Ogdoad/ImpartialRealizer.lean}.
 \end{proof}
 
 \begin{proposition}[locality and observation support]
@@ -705,14 +713,17 @@ $\{e_j:x_j=1\}$; they are linearly independent and sum to $x$.
 
 \begin{proof}
 The basis algorithm, $x\mapsto y$, both loaded support sets, the matching
-potential edges, public charges $p_i$, and terminal board condition use
-only $B,x$ and the fixed frame.  Thus F1 holds.  An OPEN involving a source
-pair needs at most the one singleton value $O_q(e_j)$, and only when its
-mate is already queued; every other move predicate and transition is
-refinement-blind.  Even the forcing strategy is refinement-blind: it is the
-safe-front policy on the public potential matching $P$.  This proves F2 and
-N2 with $(1,1)$.  The semantics is the single normal-play claim rule,
-giving F3, and Theorem~\ref{thm:wittfifo} is N1 for every refinement of
+potential edges, public charges $p_i$, the core-state universe, the sink,
+and the terminal subset use only $B,x$, the fixed frame, and the stored
+state coordinates.  Both values of $\sigma$ occur in the position universe,
+so reachability may depend on $q$ while the statics do not.  Thus F1 holds.
+An OPEN involving a source pair needs at most the one singleton value
+$O_q(e_j)$, and only when its mate is already queued; every other move
+predicate and transition, including the tail, is refinement-blind.  Even
+the forcing strategy is refinement-blind: it is the safe-front policy on
+the public potential matching $P$.  This proves F2 and N2 with $(1,1)$.
+Every move is available to either seat and the semantics is ordinary normal
+play, giving F3; Theorem~\ref{thm:wittfifo} is N1 for every refinement of
 $B$.
 
 There is one source pair exactly when $x_j=1$, so the set of possible
@@ -722,7 +733,8 @@ independent and sum to $x$; no proper subset spans $x$.
 
 The oracle notation is accounting, not hidden information: $q$ is a public
 parameter of the perfect-information game.  The play-dependent source-pair
-repair is essential.  A rule using only invariant source charges would make
+repair is essential to the theorem's \emph{intensional} content, though not
+to the bare F1--F3/N1--N2 contract.  A rule using only invariant source charges would make
 every complete history have the form
 \[
  \sigma_q(h)=c_{B,x}(h)+\sum_{j:x_j=1}q_j,
@@ -735,6 +747,19 @@ history-independent terminal bit.  This is an intensional design fact, not
 an outcome-only certification: Theorem~\ref{thm:forkpadding} proves that
 the reachable and unavoidable fork properties do not provide such a
 certification.
+
+Indeed the per-transition meter admits a deliberately extensional shortcut.
+Order the support of $x$ and make a forced path which queries one singleton
+$q_j$ per move while accumulating
+$P_B(x)+\sum_{j:x_j=1}q_j=Q_q(x)$; append a fixed parity correction and then
+one tail move exactly when required.  This is already a formal-contract
+realizer at $(1,1)$ and meets the transcript-span bound.  It is a distributed
+evaluation circuit, not the strategic realization sought here.  Thus the
+access contract proves the information boundary but does not, by itself,
+axiomatize ``non-evaluative.''  The pass-free construction is stronger: the
+same public matching policy works for the entire refinement torsor, and the
+queried bits enter as play-dependent overlap weights in the same interaction
+law as the polar edges.
 
 The rank-zero boundary is left undecorated.  The same weighted-source rule
 still realizes the linear refinement exactly; there simply are no strategic
@@ -876,7 +901,7 @@ and the fixed frame only, so F1 holds.  Each transition of the induced
 arena consults the refinement through at most one singleton value
 $Q'(e'_i)=Q(z_i)$, one oracle query at an original-frame point of weight
 $|Z_i|\leq w$, giving F2 and N2 at $(w,1)$; the semantics is the
-unchanged normal-play claim convention, giving F3.  Exactness is
+unchanged pass-free impartial tail convention, giving F3.  Exactness is
 Theorem~\ref{thm:wittfifo} applied to the induced instance -- $B'$ is
 alternating, $Q'$ is one of its refinements, and $\mathbf{1}$ is a
 loaded input, so the instance lies inside the theorem's quantified
@@ -2096,7 +2121,7 @@ Theorem~\ref{thm:F} at the symmetry level.
 $\Orth(Q_a)$, so all symmetry methods are silent;
 Theorem~\ref{thm:F}'s model explicitly excludes Frobenius-twisted queries.
 \item \emph{State-extended rules}: the weighted-source construction has
-FIFO positions $(U,\mathcal Q,\mathrm{ko},\sigma,\phi)$ rather than
+FIFO positions $(U,\mathcal Q,\mathrm{ko},\sigma)$ rather than
 positions in $V$.  This is its escape from the single-board hypothesis; it
 still satisfies N1 uniformly over every refinement, so game-built Gold
 sourcing is not an escape from torsor uniformity.
@@ -2119,12 +2144,12 @@ padding obstruction:
 \begin{itemize}[leftmargin=*]
 \item \path{formal/Ogdoad/GoldDiagonal.lean}: trace blocks and the
       Artin--Schreier identities behind the all-exponent source;
-\item \path{formal/Ogdoad/FifoMatching.lean}: the both-seat matching
-      strategy;
+\item \path{formal/Ogdoad/FifoMatching.lean}: the original both-seat
+      matching strategy;
+\item \path{formal/Ogdoad/ImpartialRealizer.lean}: the pass-free transition,
+      exact even clock, both-seat safe-front induction, and impartial tail;
 \item \path{formal/Ogdoad/GoldMatchingAlgebra.lean}: the adapted-basis
       expansion;
-\item \path{formal/Ogdoad/GoldSemantics.lean}: the phase-aware claim
-      compiler;
 \item \path{formal/Ogdoad/GoldNoEvaluator.lean}: the observation lower
       bound;
 \item \path{formal/Ogdoad/GoldBlockCompression.lean}: the induced-instance
@@ -2145,11 +2170,13 @@ repository~\cite{ogdoad}.
 The paper supplies the concrete Witt basis, the original-frame coefficient
 transport, and the synthesis of those components.  There is no single
 end-to-end Lean theorem constructing the complete arena.  In particular,
-the paper's strategy-relative statement that one public policy makes every
-potential close degree zero is stronger than the pointwise submatching
-theorem presently encoded in Lean.  Formalizing that single-policy,
-per-close-zero strengthening is the explicit follow-up; it is the only
-non-kernel-checked step used by the exactness synthesis.
+the pass-free Lean theorem begins from a supplied binary score, is pointwise
+in the scoring submatching, and does not reify the one public policy across
+all submatchings or encode weighted source OPEN charges.  The displayed
+safe-front proof fixes that policy on the full public potential matching and
+proves every CLOSE clean; the adapted-basis identity then supplies the
+paper-level weighted-source composition.  These are the exact remaining
+formalization boundaries, not open mathematical premises.
 
 The arbitrary-graph isolated-dummy FIFO theorem remains open and is
 studied in the companion note cited in Section~\ref{sec:wittfifo}.  It
@@ -2161,11 +2188,13 @@ Theorem~\ref{thm:all-diagonal-source}; it is not an additional hypothesis.
 \section{Conclusion}\label{sec:conclusion}
 
 Every quadratic refinement of every finite alternating binary space
-therefore has a uniform bounded-access normal-play realization.  A public
+therefore has a uniform bounded-access \emph{impartial} normal-play
+realization.  A public
 Witt frame makes the polar graph a matching, weighted source pairs
 preserve original-frame singleton locality, the safe-front theorem forces
-the exact charge in every dimension, and the phase-aware claim compiles
-that charge to a $P/N$ outcome.  For the motivating Gold trace forms,
+the exact charge in every dimension, the pass-free core has fixed even
+tempo, and one impartial charge tail compiles that bit to a $P/N$ outcome.
+For the motivating Gold trace forms,
 nimber operations source the diagonal and the Arf invariant with radical
 data gives the resulting zero-set bias.
 
@@ -2178,13 +2207,9 @@ naturality.  Weighted-source Witt--FIFO meets the necessary observation
 span with singleton support, and its block aggregation
 (Corollary~\ref{cor:blocks}) closes the boundary at every fixed width.
 
-Three questions remain open.  First, an impartial uniform realizer: the
-arena is partizan only through its mover bit $\phi$, and whether an
-impartial rule with the same access discipline exists is open.  Second,
-the
-arbitrary-graph isolated-dummy FIFO linking conjecture -- a strict
+The arbitrary-graph isolated-dummy FIFO linking conjecture -- a strict
 strengthening of Theorem~\ref{thm:matchingfifo}, no longer load-bearing
-here -- remains a separate combinatorial problem.  Third, a game-native
+here -- remains a separate combinatorial problem.  A game-native
 model of the extraspecial extension $E_{Q_a}$ (the open question of
 Section~\ref{sec:nogos}) would upgrade the covariant realization to a
 structural one.
