@@ -163,7 +163,13 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   four-coordinate multiplication identity, its induced scalar power
   recurrence, and the abstract normalized product-uniqueness lemma. The
   Fibonacci-state induction, selected specialization, and QF/AE4
-  identification remain paper-level. The two Euclidean modular reductions
+  identification remain paper-level. It additionally checks the residue-field
+  correction polynomial identities, the first-Witt relative-trace polynomial,
+  the abstract even-branch mismatch, and the odd marked-graph equation with its
+  unique remaining coordinate. The Teichmuller passage modulo four, the `e2`
+  tower specialization, the absolute-trace and nonzero-base values, the
+  finite-field tower specialization, and Lucas power-sum evaluation remain
+  paper-level. The two Euclidean modular reductions
   behind the selected quarter-class Jacobi fingerprints are kernel-checked;
   the Mobius/Artin--Schreier equivalences, fibre count, finite-field
   specialization, and Jacobi reciprocity remain paper-level. For the

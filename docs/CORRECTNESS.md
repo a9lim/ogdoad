@@ -191,7 +191,12 @@ edges, the four-coordinate multiplication identity, the induced scalar power
 recurrence, and the product-uniqueness theorem showing that the normalized QF
 equation has a unique abstract right-hand coordinate. The Fibonacci-state
 induction, its selected specialization, and the QF/AE4 identification remain
-paper-level. Lean also checks
+paper-level. Lean also checks the residue-field correction polynomial
+identities, the first-Witt relative-trace polynomial, the abstract even-branch
+trace mismatch, the odd cancellation equation, and uniqueness of its remaining
+coordinate. The Teichmuller passage modulo four, the `e2` tower specialization,
+the absolute-trace and nonzero-base values, the characteristic-zero/finite-field
+tower specialization, and Lucas power-sum evaluation remain paper-level. Lean also checks
 the Euclidean modular reductions underlying the conditional Jacobi
 fingerprints of the selected quarter-Frobenius classes. The
 Mobius/Artin--Schreier equivalences, fibre count, finite-field specialization,

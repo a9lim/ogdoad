@@ -195,7 +195,8 @@ cancellation, cross-level gcd identity, exclusion of the smallest proper
 lower fibotomic stratum, and the exact full-trace-block torus coordinate with
 its inverse-factor exponent, full-lower unit/Jacobi and short-order packets,
 mixed-involution exclusion, and four-periodic literal quarter-Frobenius
-orientation &
+ orientation; the two-edge four-state recurrence, conditional quarter-class
+ sieves, and canonical-lift mod-four marked-graph classification &
 generation for composite two-spine quotients, the general synchronized
 phase, and the singleton-even Conway--Fermat quotient \\
 \((O)\) &
@@ -15268,7 +15269,7 @@ Set \(e_0=0\), \(e_1=(1,0,0,0)\), and
 \[
  e_{j+2}=e_{j+1}+\mathcal M_Ce_j.
 \]
-For every (j), define the canonical quadratic remainder by
+For every \(j\), define the canonical quadratic remainder by
 \[
  S_j(X)\equiv U_j(Y)+XV_j(Y)\pmod{X^2+YX+Y^3}.
 \]
@@ -15333,6 +15334,192 @@ the induced scalar quartic recurrence for powers of the top element, the
 abstract normalized-product identity, and its uniqueness equivalence.  The
 Fibonacci-state induction \(\mathsf{QFC}_3\), its selected specialization
 \(\mathsf{QFC}_4\), and the QF/AE4 identification remain paper-level.
+\end{proof}
+
+\begin{proposition}[canonical-lift trace comparison and its marked graph]
+\label{prop:fermat-qfc-canonical-lift-trace}
+Retain Propositions~\ref{prop:fermat-literal-quarter-orientation}
+and~\ref{prop:fermat-two-edge-coefficient-recurrence}, and
+let
+\[
+ F=E_{n-3}\subset E=E_{n-2}\subset L=E_{n-1},\qquad
+ z=\frac{a^K}{A},\qquad
+ W=A^{K-1}S_K(A)=\operatorname{Tr}_{L/E}(z).
+\]
+Let \(\mathcal F\subset\mathcal K_{n-2}\subset\mathcal K_{n-1}\)
+be the corresponding unramified two-adic completions of the canonical global
+lift.  Write
+\[
+ \mathcal A_i=[a_i](1+2[s_i])\pmod4,
+ \qquad
+ Z_0=\frac{\mathcal A_{n-1}^{K}}{\mathcal A_{n-2}}
+     =[z](1+2[h])\pmod4,
+\]
+where
+\[
+ h=(K\bmod2)s_{n-1}+s_{n-2}.                       \tag{\(\mathsf{CLT}_1\)}
+\]
+Suppose that the marked fourth QFC coordinate vanishes:
+\[
+ \operatorname{Tr}_{L/F}(z)=Cs_g=0.
+\]
+Then
+\[
+ \operatorname{Tr}_{\mathcal K_{n-1}/\mathcal F}(Z_0)
+ \equiv2[\omega+\chi]\pmod4,                      \tag{\(\mathsf{CLT}_2\)}
+\]
+where
+\[
+ \omega^2=e_2(z)=W^2(1+C+r_1^2+r_1)\ne0,           \tag{\(\mathsf{CLT}_3\)}
+\]
+and
+\[
+ \boxed{\quad
+ \chi=\operatorname{Tr}_{L/F}(zh)
+ =\operatorname{Tr}_{L/F}\!\left(
+   \frac{a^K}{A}\bigl((K\bmod2)s_{n-1}+s_{n-2}\bigr)
+  \right).
+ \quad}                                             \tag{\(\mathsf{CLT}_4\)}
+\]
+Consequently
+\[
+ \operatorname{Tr}(Z_0)\equiv0\pmod4
+ \iff \chi=\omega.                                 \tag{\(\mathsf{CLT}_5\)}
+\]
+The exact characteristic-zero quadratic recurrence evaluates the left side
+as
+\[
+ \boxed{\quad
+ \operatorname{Tr}_{\mathcal K_{n-1}/\mathcal F}(Z_0)
+ =\operatorname{Tr}_{\mathcal K_{n-2}/\mathcal F}
+   \left(\frac{P_K(\mathcal A_{n-2})}{\mathcal A_{n-2}}\right),
+ \quad}                                             \tag{\(\mathsf{CLT}_6\)}
+\]
+where
+\[
+ P_0=2,\qquad P_1=-X,\qquad
+ P_{j+2}=-XP_{j+1}-X^3P_j.                          \tag{\(\mathsf{CLT}_7\)}
+\]
+Modulo four, \((\mathsf{CLT}_6)\) is exactly
+\((\mathsf{CLT}_2)\); it supplies no second evaluation of \(\chi\).
+
+The literal lift ancestry nevertheless sharpens the correction.  Its first
+Witt coefficients obey
+\[
+ s_i=c_i s_{i-1}+1+\sqrt{a_{i-1}},
+ \qquad
+ \operatorname{Tr}_{E_i/E_{i-1}}(s_i)=s_{i-1}.     \tag{\(\mathsf{CLT}_8\)}
+\]
+With the base convention \(s_{-1}=0\), the one-edge formula gives
+\(s_0=0\) and \(s_1=1+\sqrt{a_0}\ne0\).  Trace transitivity therefore
+gives absolute trace zero for every \(s_i\), while the same relative-trace
+identity propagates nonvanishing from \(s_1\).  Put
+\(\sigma=s_{n-3}\), and write the QF displacement as
+\(r=r_0+c_0r_1\).  Then
+\[
+ \boxed{
+ \begin{array}{ll}
+ K\text{ even}:&\chi=W\sigma,\\[2mm]
+ K\text{ odd}:&
+ \displaystyle\chi=W\bigl(\sqrt C+\sigma r_0+
+                  (\sigma+1+\sqrt C)r_1\bigr).
+ \end{array}}                                      \tag{\(\mathsf{CLT}_9\)}
+\]
+In the even branch cancellation is impossible: \(\chi=\omega\) would imply
+\[
+ \sigma=\sqrt{1+C+r_1^2+r_1},
+\]
+but the two sides have absolute traces zero and one respectively.  Therefore
+\[
+ \boxed{Cs_g=0, K\text{ even}
+ \Longrightarrow v_2\!\left(\operatorname{Tr}(Z_0)\right)=1.}
+                                                               \tag{\(\mathsf{CLT}_{10}\)}
+\]
+This is compatible with the exact Lucas trace and hence does not exclude
+\(Cs_g=0\).
+
+In the odd branch, cancellation is equivalent to the single explicit seam
+\[
+ \boxed{
+ \sigma(r_0+r_1)+\sqrt C\,r_1+1+\sqrt{r_1}=0.}     \tag{\(\mathsf{CLT}_{11}\)}
+\]
+For \(n\geq4\), one has \(\sigma\ne0\).  Thus, for each
+\(r_1\in E_{n-3}\), \((\mathsf{CLT}_{11})\) has exactly one solution
+\[
+ r_0=r_1+\sigma^{-1}
+       (\sqrt C\,r_1+1+\sqrt{r_1}).                 \tag{\(\mathsf{CLT}_{12}\)}
+\]
+The odd cancellation locus is therefore a graph of size
+\(|E_{n-3}|\) inside the \(|E_{n-2}|\)-point displacement plane.  It forces neither
+\(r_1\in\{0,1\}\), nor \(K\equiv\pm P\pmod{P^2+1}\), nor any of the
+quarter-Jacobi exclusions.  Attempting to recover the actual \(r_0\) through
+the separate top-field identity \(b_F=a^\eta\) is the circular selected-power
+bridge.  More importantly, neither membership nor nonmembership in
+\((\mathsf{CLT}_{11})\) contradicts hypothetical failure: the graph only
+distinguishes whether the already-compatible lifted trace is zero modulo four
+or has valuation one.  A CSDU argument would need an independent
+characteristic-zero trace congruence before this partition could exclude a
+branch.
+\end{proposition}
+
+\begin{proof}
+Equation \((\mathsf{CLT}_1)\) is Teichmuller multiplicativity and
+\((1+2[s])^{-1}=1+2[s]\pmod4\).  If \(z_0,\ldots,z_3\) are the four
+\(F\)-conjugates of \(z\), then repeated Teichmuller addition gives, because
+\(\sum z_i=0\),
+\[
+ \sum_i[z_i]\equiv2\left[\sqrt{\sum_{i<j}z_iz_j}\right]\pmod4.
+\]
+Multiplying each term by its conjugate factor \(1+2[h_i]\) adds
+\(2[\sum_i z_ih_i]\), which proves
+\((\mathsf{CLT}_2)\)--\((\mathsf{CLT}_4)\).  The tower identity for the
+second elementary symmetric coefficient gives
+\[
+ e_2(z)=\Norm_{E/F}(W)+\operatorname{Tr}_{E/F}(A^{3K-2}).
+\]
+Under \(Cs_g=0\), the trace kernel in the quadratic extension is \(F\),
+so \(W\in F\).  Proposition~\ref{prop:fermat-literal-quarter-orientation}
+gives
+\(\operatorname{Tr}_{E/F}(A^K/S_K(A)^2)=C+r_1^2+r_1\), proving
+\((\mathsf{CLT}_3)\).  Its final factor is nonzero because its absolute
+trace is one.  Characteristic two now gives \((\mathsf{CLT}_5)\).
+
+For \((\mathsf{CLT}_6)\), the conjugate of a root of
+\(X^2+\mathcal A_{n-2}X+\mathcal A_{n-2}^3\) is
+\(-\mathcal A_{n-2}-X\).  Its power sums obey
+\((\mathsf{CLT}_7)\).  Dividing their sum by
+\(\mathcal A_{n-2}\) and taking the next relative trace proves the formula.
+
+The one-edge lift calculation gives
+\[
+ s_i=s_{i-1}+(c_i+1)s_{i-1}+(c_i+1)+\sqrt{c_i}
+     =c_i s_{i-1}+1+\sqrt{a_{i-1}}.
+\]
+Conjugating proves \((\mathsf{CLT}_8)\).  If \(K\) is even, then
+\(h=s_{n-2}\), and two successive relative traces give
+\(\chi=W\sigma\).  The asserted trace mismatch proves
+\((\mathsf{CLT}_{10})\).
+
+If \(K\) is odd, write
+\[
+ z=x+c_{n-1}W,\qquad x/W=r=r_0+c_0r_1.
+\]
+Tracing the product with \(h=s_{n-1}+s_{n-2}\) first across the top edge
+and then the lower edge gives the second line of
+\((\mathsf{CLT}_9)\).  Comparing it with
+\[
+ \omega/W=1+\sqrt C+r_1+\sqrt{r_1}
+\]
+gives \((\mathsf{CLT}_{11})\).  Finally \(\sigma\ne0\) makes that equation
+linear with the unique solution \((\mathsf{CLT}_{12})\).
+
+Lean kernel-checks the residue-field correction identities, the first-Witt
+recurrence and relative-trace polynomial, the abstract even-branch mismatch,
+the odd-branch coordinate reduction, and uniqueness of the remaining graph.
+The Teichmuller addition and multiplication passage modulo four, the
+\(e_2\)-tower specialization, the absolute-trace and nonzero-base values,
+the finite-field tower specialization, and the Lucas power-sum evaluation
+remain paper-level.
 \end{proof}
 
 \begin{remark}[coefficient order is not ancestry order]
@@ -28837,6 +29024,15 @@ literal: two Conway edges give a sparse quartic and a four-state recurrence
 whose fourth component is the desired next coefficient.  The complete state
 equality under failure, and the normalized QF product, show at the same time
 that Cayley--Hamilton and Frobenius merely re-encode \(\mathsf{AE}_4\).
+Proposition~\ref{prop:fermat-qfc-canonical-lift-trace} lifts the hypothetical
+zero fourth coordinate one Witt layer further.  In the even-exponent branch
+the canonical trace has valuation exactly one, while in the odd branch its
+possible mod-four cancellation is confined to an explicit graph of size
+\(|E_{n-3}|\) inside the \(|E_{n-2}|\)-point QF plane.  Both the graph and
+its complement remain compatible with failure, so this is an exact
+mod-four partition rather than an exclusion.  It could become a sieve only
+after an independent characteristic-zero trace congruence; the lift alone
+does not prove CSDU.
 Proposition~\ref{prop:fermat-quarter-jacobi-sieve} identifies the two M\"obius
 equations as disjoint size-\(P\) Artin--Schreier fibres, each containing
 primitive points, and gives exact conditional Jacobi fingerprints for the

@@ -523,6 +523,16 @@ absolute boundedness.
   Cayley--Hamilton and Frobenius recover `AE4` without adding a second
   constraint. The abstract normalized-product uniqueness core likewise
   becomes only a re-encoding after the paper-level QF/AE4 identification.
+  The canonical characteristic-zero lift now resolves the next Witt bit of the
+  fourth-coordinate-zero branch. Its mod-four trace has a nonzero
+  Teichmuller carry plus one explicit lift correction. For even `K` those
+  terms cannot cancel, so the lifted trace has valuation exactly one. For odd
+  `K`, cancellation is one explicit graph `r0=f(r1)` of size `P` inside the
+  `P^2` lower-coordinate plane. This is an exact mod-four partition, not a
+  CSDU sieve: both the graph and its complement are compatible with failure,
+  and it forces neither a quarter endpoint nor a Jacobi mismatch. An
+  independent characteristic-zero trace congruence would be needed before
+  the partition could exclude a branch.
   The two QF endpoint equations are also exact Artin--Schreier fibres of
   size `P`. Both contain primitive points, so order cannot choose between
   them. The FI5 Jacobi sign nevertheless gives a conditional sieve on the

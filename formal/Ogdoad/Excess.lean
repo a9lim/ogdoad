@@ -6207,6 +6207,130 @@ theorem qf_parent_product_iff_AE4_value
     rw [h]
     exact hcanon
 
+omit [CharP F 2] in
+/-- First-order trace correction when a Teichmueller lift is multiplied by
+`1 + 2[h]`.  This is the residue-field coefficient remaining after the
+Teichmueller carry is separated. -/
+theorem qfc_lifted_trace_correction
+    (z₀ z₁ z₂ z₃ h₀ h₁ h₂ h₃ : F) :
+    z₀ * h₀ + z₁ * h₁ + z₂ * h₂ + z₃ * h₃ =
+      ((z₀ * h₀ + z₁ * h₁) + (z₂ * h₂ + z₃ * h₃)) := by
+  ring
+
+/-- A mod-four canonical trace vanishes exactly when its Teichmueller carry
+and its lift correction agree in characteristic two. -/
+theorem qfc_canonical_trace_zero_iff (omega chi : F) :
+    omega + chi = 0 ↔ chi = omega := by
+  constructor
+  · intro h
+    have hw : omega = -chi := eq_neg_of_add_eq_zero_left h
+    exact (hw.trans (CharTwo.neg_eq chi)).symm
+  · intro h
+    rw [h]
+    exact CharTwo.add_self_eq_zero omega
+
+/-- Simplified first Witt coefficient of one canonical Conway lift edge. -/
+theorem qfc_globalLift_firstWitt_simplifies (c q s : F) :
+    s + ((c + 1) * s + (c + 1) + q) = c * s + 1 + (c + q) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  ring_nf
+  simp [htwo]
+
+/-- Under the quadratic conjugation `c |-> c+1`, with `c+q` fixed, the
+relative trace of the next canonical first-Witt coefficient is the preceding
+coefficient. -/
+theorem qfc_globalLift_firstWitt_relativeTrace (c q s : F) :
+    (c * s + 1 + (c + q)) +
+      ((c + 1) * s + 1 + ((c + 1) + (q + 1))) = s := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  ring_nf
+  simp [htwo, hfour]
+
+omit [CharP F 2] in
+/-- In the even-exponent branch the canonical-lift correction descends to
+`W * sigma`, where `sigma` is the first-Witt coefficient two levels down. -/
+theorem qfc_even_liftCorrection
+    (z zbar zc zbarc s sc W sigma : F)
+    (htop : z + zbar = W)
+    (htopc : zc + zbarc = W)
+    (hlower : s + sc = sigma) :
+    (z * s + zbar * s) + (zc * sc + zbarc * sc) = W * sigma := by
+  rw [← add_mul, htop, ← add_mul, htopc, ← mul_add, hlower]
+
+omit [CharP F 2] in
+/-- The absolute-trace mismatch rules out cancellation in the even branch. -/
+theorem qfc_even_liftCorrection_ne_carry
+    (tr : F →+ F) (W sigma rho : F)
+    (hW : W ≠ 0) (htr_sigma : tr sigma = 0) (htr_rho : tr rho = 1) :
+    W * sigma ≠ W * rho := by
+  intro h
+  have hsr : sigma = rho := (mul_left_cancel₀ hW) h
+  have ht := congrArg tr hsr
+  rw [htr_sigma, htr_rho] at ht
+  exact zero_ne_one ht
+
+/-- Top-edge computation in the odd-exponent branch. -/
+theorem qfc_odd_top_liftCorrection (c q t x W : F) :
+    (x + c * W) * ((c + 1) * t + c + 1 + q) +
+      (x + (c + 1) * W) * (c * t + c + 1 + q) =
+        W * (c + q + 1) + t * x := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  ring_nf
+  simp [htwo, hthree]
+
+/-- Lower-edge trace of the product of the canonical first-Witt coefficient
+with the QF displacement. -/
+theorem qfc_lower_liftCorrection
+    (c sigma p r₀ r₁ : F) :
+    (c * sigma + 1 + p) * (r₀ + c * r₁) +
+      ((c + 1) * sigma + 1 + p) * (r₀ + (c + 1) * r₁) =
+        sigma * r₀ + (sigma + 1 + p) * r₁ := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  ring_nf
+  simp [htwo]
+
+/-- Exact odd-branch cancellation seam after writing `p=sqrt C` and
+`q=sqrt r₁`. -/
+theorem qfc_odd_carry_cancellation_iff
+    (sigma p q r₀ r₁ : F) :
+    p + sigma * r₀ + (sigma + 1 + p) * r₁ =
+        1 + p + r₁ + q ↔
+      sigma * (r₀ + r₁) + p * r₁ + 1 + q = 0 := by
+  constructor <;> intro h
+  · have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+    linear_combination h + (1 + q) * htwo
+  · have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+    linear_combination h - (1 + q) * htwo
+
+/-- The odd cancellation seam has a unique lower QF coordinate whenever
+the descended lift coefficient is nonzero.  This is a coordinate sieve, not
+a Conway failure witness. -/
+theorem qfc_odd_seam_existsUnique
+    (sigma p q r₁ : F) (hsigma : sigma ≠ 0) :
+    ∃! r₀ : F,
+      sigma * (r₀ + r₁) + p * r₁ + 1 + q = 0 := by
+  let root := r₁ + (p * r₁ + 1 + q) / sigma
+  have hroot : sigma * (root + r₁) + p * r₁ + 1 + q = 0 := by
+    dsimp [root]
+    field_simp
+    have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+    ring_nf
+    simp [htwo]
+  refine ⟨root, hroot, ?_⟩
+  intro y hy
+  have heq : sigma * (y + r₁) = sigma * (root + r₁) := by
+    linear_combination hy - hroot
+  apply (mul_left_cancel₀ hsigma)
+  linear_combination heq
+
 end FermatLiteralAncestryCoordinates
 
 section FermatQuarterJacobiCore
