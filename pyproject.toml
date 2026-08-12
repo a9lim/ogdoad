@@ -7,7 +7,7 @@ name = "ogdoad"
 # Version is dynamic: maturin reads it from Cargo.toml, the one source of truth
 # (the release workflow's guard reads the same field).
 dynamic = ["version"]
-description = "Clifford algebras (with nilpotents) over the field-like subclasses of combinatorial games"
+description = "Clifford algebras and quadratic forms over exact, finite, local, transfinite, and game-adjacent scalar backends"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "AGPL-3.0-or-later"
@@ -57,7 +57,7 @@ target-version = "py39"
 select = ["E4", "E7", "E9", "F", "W605"]
 
 [tool.ruff.lint.per-file-ignores]
-# The rescued research archive (see docs/PY.md §0) keeps its dense one-liner
+# The exploratory research archive (see docs/VERIFY.md) keeps its dense one-liner
 # idiom: multiple-statements/ambiguous-names/late-imports are the house style
 # there, not defects.
 "experiments/gold/**" = ["E701", "E702", "E741", "E401", "E402", "E731"]

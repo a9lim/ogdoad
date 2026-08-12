@@ -81,7 +81,7 @@ FUNCTION_OVERRIDES: dict[str, str] = {
     "nim_moves": "(pos: Sequence[builtins.int]) -> list[list[builtins.int]]",
     "nim_lexicode_naive": "(base_exp: builtins.int, n: builtins.int, d: builtins.int) -> NimLexicode | None",
     "nim_lexicode_naive_bounded": "(base_exp: builtins.int, n: builtins.int, d: builtins.int, node_budget: builtins.int) -> NimLexicode | None",
-    # Gold/Arf headline surface (src/py/forms.rs; demo.py + docs/PY.md name these)
+    # Gold/Arf headline surface (src/py/forms.rs; exercised by demo.py)
     "arf_f2": "(n: builtins.int, qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> ArfInvariants",
     "brown_f2": "(n: builtins.int, q4: Sequence[builtins.int], bmat: Sequence[builtins.int]) -> BrownInvariants",
     "double_f2": "(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> BrownInvariants",
@@ -153,8 +153,7 @@ from typing import Any
 """
 
 
-# Wording verified against pyo3 0.28.3 (pinned in Cargo.lock; Cargo.toml selects
-# "0.28"). A class without `#[new]` raises `TypeError: cannot create '<name>'
+# A PyO3 class without `#[new]` raises `TypeError: cannot create '<name>'
 # instances`; a class *with* `#[new]` called with too few args raises the usual
 # CPython `__new__() missing N required positional argument(s): ...` wording. If
 # a future PyO3 bump changes either wording, `_is_constructible` would silently

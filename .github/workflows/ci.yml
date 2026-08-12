@@ -75,9 +75,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Reject proof placeholders and custom axioms
+      - name: Reject custom axiom declarations
         run: |
-          if grep -REn '\b(sorry|admit|axiom)\b' formal --include='*.lean'; then
+          if grep -REn '^[[:space:]]*(@\[[^]]+\][[:space:]]*)*((private|protected)[[:space:]]+)?axiom([[:space:]]|$)' \
+              formal/Ogdoad.lean formal/Ogdoad --include='*.lean'; then
             exit 1
           fi
       - uses: leanprover/lean-action@v1

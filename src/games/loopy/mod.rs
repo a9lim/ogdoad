@@ -1,11 +1,8 @@
 //! Loopy combinatorial games — games whose move graph may contain cycles, so
-//! play need not terminate. This is the third escape (beside the interactive
-//! [`kernel`](crate::games::kernel) route and the [`misere`](crate::games::misere)
-//! route) from the XOR-linear P-sets of normal-play disjunctive sums: a cyclic
-//! rule admits a **Draw** outcome — a position from which neither player can force
-//! a win — and the Draw-set is a genuinely new degree of freedom. The historical
-//! Gold probe is retained as a contrast with the resolved normal-play
-//! weighted-source Witt--FIFO rule in `writeups/goldarf.tex`.
+//! play need not terminate. A cyclic rule admits a **Draw** outcome: a position
+//! from which neither player can force a win. The module exposes exact finite
+//! graph evaluators and bounded recognition certificates; it does not identify
+//! loopy outcomes with the acyclic normal-play Gold--Arf construction.
 //!
 //! Five layers, re-exported flat so every public path is unchanged:
 //!
@@ -23,8 +20,8 @@
 //!   * [`nim_values`] — [`LoopyNimber`], [`LoopyNimCertificate`],
 //!     [`loopy_nim_values`], and [`loopy_nim_values_certified`]: impartial loopy
 //!     nim-values with certificates (including the checked recovery condition).
-//!   * [`research`] — [`loopy_decision_sets`] and [`loopy_quadric_probe`]: the
-//!     Loss-set / Draw-set research instrument.
+//!   * [`research`] — [`loopy_decision_sets`] and [`loopy_quadric_probe`]:
+//!     Loss-set / Draw-set instruments.
 //!
 //! Deliberately **out of scope** here: [`Game`](crate::games::Game) stays an acyclic
 //! `Arc` tree (it cannot represent cycles, by construction), and

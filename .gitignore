@@ -1,5 +1,6 @@
 # Rust
 /target
+/node_modules
 
 # Lean
 /formal/.lake/
@@ -18,6 +19,8 @@ dist/
 # LaTeX: keep .tex and the compiled .pdf; ignore the local tectonic binary + aux
 writeups/tectonic
 writeups/*.aux
+writeups/*.bbl
+writeups/*.blg
 writeups/*.log
 writeups/*.out
 writeups/*.synctex.gz

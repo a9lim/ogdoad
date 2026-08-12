@@ -1,20 +1,17 @@
 //! Misère quotients, and whether their P-sets are quadrics.
 //!   cargo run --example misere_quotient
 //!
-//! This historical probe asked for a game whose P-set is a Gold *quadric*
-//! `{Q=0}`. The misère route was promising because misère sums are non-linear (see
-//! `misere.rs`). This probe computes the misère indistinguishability quotient of
+//! Misère sums are nonlinear, so their P-sets need not be XOR kernels. This
+//! probe computes the misère indistinguishability quotient of
 //! several small games and asks of each P-set: when the quotient is an elementary
 //! abelian 2-group `(ℤ/2)^k` (so its elements coordinatise as `F₂^k`), is the
 //! P-set a quadric, and is it *genuinely* quadratic (nonzero Arf-rank) or merely
 //! affine/linear?
 //!
-//! Honest expectation: the small / tame quotients here are either `ℤ/2` (a
+//! The small/tame quotients here are either `ℤ/2` (a
 //! rank-0, linear P-set) or non-group monoids where the F₂-quadric framing does
-//! not even apply. A genuine quadric P-set would need a `(ℤ/2)^k` quotient with
-//! `k ≥ 2` and Arf-rank `≥ 2`. Weighted-source Witt--FIFO later resolved the
-//! global normal-play question by a different route; this instrument retains
-//! the exact misère boundary it found.
+//! not even apply. A genuine quadric P-set needs a `(ℤ/2)^k` quotient with
+//! `k ≥ 2` and Arf-rank `≥ 2`. The output is bounded computational evidence.
 
 use ogdoad::forms::fit_f2_quadratic;
 use ogdoad::games::{misere_quotient, AbstractGame};

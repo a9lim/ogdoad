@@ -1,18 +1,18 @@
-//! A historical interactive route toward a B-coupled game with P-set {Q=0}.
+//! Downward B-coupled rules compared with the Gold zero set `{Q=0}`.
 //!   cargo run --example interactive_kernel
 //!
 //! Normal-play disjunctive sums give XOR-linear (subspace) P-sets, so they can't
 //! produce the Gold quadric {Q=0}. The escape is an *interactive* game whose move
-//! graph is not a disjunctive sum. Two facts frame the search:
+//! graph is not a disjunctive sum. Two facts frame this probe:
 //!
 //!  (a) ANY set S is the P-set of *some* acyclic game — trivially: send every
 //!      v∉S to a fixed loss in S, and every v∈S only to wins. So existence is
-//!      free; the question at the time was whether a *natural*, uniform,
-//!      B-coupled rule did it. The weighted-source FIFO rule now does; this
-//!      example records why the simpler downward rules did not.
+//!      free; the relevant constraint is whether a uniform B-coupled rule does
+//!      it. The weighted-source FIFO theorem gives one construction, while this
+//!      example tests simpler downward rules.
 //!
 //!  (b) A natural candidate couples moves through the polar form B of Q (the
-//!      exact obstruction identified earlier). We orient moves downward (to
+//!      polar form B of Q. We orient moves downward (to
 //!      strictly smaller integers) so the game terminates, gate them by B or Q,
 //!      compute the P-set with the kernel solver, and compare it to {Q=0} — using
 //!      `fit_f2_quadratic` to say what the P-set actually *is*.

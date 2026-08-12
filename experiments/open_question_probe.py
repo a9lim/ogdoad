@@ -1,10 +1,9 @@
-"""Probing the open question: what a P-position game for {Q=0} must look like.
+"""Diagnostic for the polar obstruction behind a quadratic P-set.
 
-docs/OPEN.md asks: is there a NATURAL game whose P-positions (second-player wins)
-are exactly the zero set {v : Q_a(v)=0} of a game-built Gold form? Normal-play
-disjunctive sums have XOR-linear outcomes — their P-positions are {XOR of Grundy
-values = 0}, a SUBSPACE — so the question is whether an interactive/misère game
-can instead produce the quadratic zero set.
+Normal-play disjunctive sums have XOR-linear outcomes: their P-positions are
+subspaces. The proved weighted-source Witt--FIFO arena instead uses interactive
+coupling to realize the zero set {v : Q_a(v)=0} of a game-built Gold form. This
+probe isolates the obstruction that makes such coupling necessary.
 
 This probe pins down the precise obstruction via the polar form. In char 2,
 
@@ -16,19 +15,17 @@ so for u, v already in the zero set (Q(u)=Q(v)=0):
 
 Therefore {Q=0} fails to be a subspace EXACTLY by the polar form B — and B is the
 coin-turning / nim-product bilinear form, which *is* game-realizable (the Product
-Theorem / Tartan games). The picture this gives of any candidate game:
+Theorem / Tartan games). The picture explains the construction's ingredients:
 
   • the linear part is Grundy/XOR                — game-realizable (Sprague–Grundy);
   • the obstruction to {Q=0} being XOR-closed is exactly B — game-realizable
     (coin-turning products);
-  • the ONLY genuinely missing ingredient is a PLAY RULE that turns the bilinear
-    coupling B into the quadratic outcome Q.
+  • the play rule must turn the bilinear coupling B into the quadratic outcome Q.
 
-So the open problem is now sharp: a candidate game must couple component positions
-through exactly the polar form B (interactive or misère, since normal-play sums
-can't), and have its outcome be the quadratic Q rather than the bilinear B. This
-script confirms the obstruction is exactly B and measures how far {Q=0} is from a
-subspace, for the game-built Gold forms.
+The shipped theorem supplies such an interactive rule through a public Witt
+frame, weighted sources, and a pass-free tail. This script independently
+confirms that the obstruction is exactly B and measures how far {Q=0} is from
+a subspace for the game-built Gold forms.
 """
 
 from common import gold, polar
@@ -66,6 +63,5 @@ if __name__ == "__main__":
     print("and its failure to be closed under ⊕ is governed EXACTLY by the polar form B")
     print(f"(the game-realizable coin-turning form): {all_obstruction_is_B}")
     print()
-    print("Open, now sharper: find a play rule that couples positions through B and")
-    print("reads out the quadratic Q. Candidates must be interactive or misère —")
-    print("normal-play sums give the (ruled-out) XOR-linear, subspace P-sets.")
+    print("The realized rule must be interactive: ordinary disjunctive sums give")
+    print("only the ruled-out XOR-linear, subspace P-sets.")

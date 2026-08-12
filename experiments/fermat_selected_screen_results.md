@@ -1,8 +1,7 @@
 # Conway–Fermat selected screens
 
 Exact FQ_NMOD runs of
-[fermat_selected_screen.py](fermat_selected_screen.py), performed
-2026-08-11. Each row evaluates the selected Fibonacci residue
+[fermat_selected_screen.py](fermat_selected_screen.py). Each row evaluates the selected Fibonacci residue
 `S_(F_n / ell)(X)` modulo `A_(n-1)(X)` in the literal selected Conway
 polynomial basis. The degree and SHA-256 columns fingerprint the nonzero
 residue encoded as the minimal big-endian byte string of its coefficient
@@ -43,8 +42,8 @@ uv run --no-project --with python-flint python \
 
 Every displayed residue is nonzero. This certifies only the listed primary
 coordinates. [FermatSearch's factor list](https://www.fermatsearch.org/factors/faclist.php)
-and [compositeness table](https://www.fermatsearch.org/factors/composite.php),
-accessed 2026-08-11, list exact composite residual cofactors `C1133`,
+and [compositeness table](https://www.fermatsearch.org/factors/composite.php)
+list exact composite residual cofactors `C1133`,
 `C2391`, `C4880`, `C9808`, `C19694`, `C39395`, and `C78884` at levels 12 through 18,
 respectively, so none of these levels is fully certified. The database
 supplies primality of the displayed factors; the script checks their exact

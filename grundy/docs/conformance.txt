@@ -1,14 +1,13 @@
-// grundy conformance corpus — v0.3.6 (hand-verified and fully merged)
-// Format: docs/grundy/spec.md §16, plus `>>` continuation lines for joined
+// grundy conformance corpus — current contract
+// Format: grundy/docs/spec.md §16, plus `>>` continuation lines for joined
 // open-paren/open-bracket/open-brace inputs.
 //   @world ‹args as after ":world"›   resets bindings
 //   @fuel ‹u128›                      sets the per-statement μ-step budget
 //   @graph ‹u128›                     sets the materialized-graph node budget
 //   > input        ~ canonical echo (optional)        = value display
 //   ! E_Kind: message-substring
-// Every vector below was hand-verified against its governing spec and standard
-// mathematics, then run against the shipped engine. This corpus is maintained by
-// reviewed edits only; the harness never rewrites or appends vectors.
+// This is the authoritative current corpus. It is maintained manually; the
+// harness is read-only and never rewrites or appends vectors.
 
 // ---------------------------------------------------------------- nimber, scalars
 @world nimber 0
@@ -465,7 +464,7 @@
 > deg(t)
 ! E_WrongWorld: rational-function
 
-// ============================================================ v0.2.0 — booleans
+// ============================================================ booleans
 @world integer 0
 
 > 3 < 5
@@ -511,7 +510,7 @@
 > 1 < 2 < 3
 ! E_Parse:
 
-// ------------------------------------------------------------ v0.2.0 — ternary
+// ------------------------------------------------------------ ternary
 > if 0 = 0 then 1 else 1/0
 = 1
 
@@ -528,7 +527,7 @@
 > if 1 = 1 then 1 else if 1 = 0 then 2 else 3
 = 1
 
-// ===================================== v0.2.0 — lambdas, capture, application
+// ===================================== lambdas, capture, application
 @world integer 0
 
 > abs := u ~ (if u < 0 then -u else u)
@@ -596,7 +595,7 @@
 > fct := n ↦ (if n = 0 then 1 else n⋅fct@(n-1))
 ! E_Unbound:
 
-// ------------------------------------------- v0.2.0 — composition, tuples, arity
+// ------------------------------------------- composition, tuples, arity
 > inc := a ↦ a + 1
 
 > sqr := b ↦ b⋅b
@@ -640,7 +639,7 @@
 > mux@(5 < 3, 10, 20)
 = 20
 
-// ------------------------------------------------------- v0.2.0 — sort errors
+// ------------------------------------------------------- sort errors
 @world integer 0
 
 > f := u ↦ u + 1
@@ -670,7 +669,7 @@
 > bad := a ↦ a + 2↑a
 ! E_IndexSort:
 
-// ------------------------------------------------------- v0.2.0 — t released
+// ------------------------------------------------------- t released
 @world integer 0
 
 > t
@@ -681,7 +680,7 @@
 > t + 1
 = 4
 
-// ====================================== v0.2.0 — Index binders, the Gold chain
+// ====================================== Index binders, the Gold chain
 @world f4 0
 
 > gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))
@@ -704,7 +703,7 @@
 > b@(x, x + 1)
 = 0
 
-// ====================================== v0.2.0 — poly worlds: t is the binder
+// ====================================== poly worlds: t is the binder
 @world poly2
 
 > f := t ↦ t
@@ -718,7 +717,7 @@
 > f@t
 = t↑2 + t
 
-// Element ∘ Function and Function @ Element (v0.1.1 coherence, §17.3)
+// Element ∘ Function and Function @ Element (current application coherence, §17.3)
 > inc := u ↦ u + 1
 
 > (t↑2)@inc
@@ -730,7 +729,7 @@
 > inc@(t↑2)
 = t↑2 + 1
 
-// ------------------------------------------- v0.2.0 — Index bindings/relations
+// ------------------------------------------- Index bindings/relations
 @world poly5
 
 > n := deg(t↑2 + 1)
@@ -746,7 +745,7 @@
 > deg(t↑2) > deg(t)
 = true
 
-// ================================================= v0.2.0 — nim-world honesty
+// ================================================= nim-world honesty
 @world nimber 0
 
 // < is identically false here and -u = u: abs is the identity, twice over
@@ -770,7 +769,7 @@
 > bad := u ↦ u + 3
 ! E_BareInt: did you mean
 
-// ------------------------------------------- v0.2.0 — multivector-valued binders
+// ------------------------------------------- multivector-valued binders
 @world nimber 2 q=[*1,*1]
 
 > refl := v ↦ e0⋅v⋅e0
@@ -784,13 +783,13 @@
 > refl@(e0 + e1)
 = e0 + e1
 
-// ---------------------------------------- v0.2.0 — definition-time world checks
+// ---------------------------------------- definition-time world checks
 @world fp5 0
 
 > h := u ↦ (if u < 0 then 0 else 1)
 ! E_WrongWorld: order
 
-// ------------------------------------------- v0.2.0 — reserved syntax, revisited
+// ------------------------------------------- reserved syntax, revisited
 @world nimber 0
 
 > *2 ~ *3
@@ -811,7 +810,7 @@
 > and := 5
 ! E_Reserved:
 
-// ====================================================== v0.2.1 — sequences
+// ====================================================== sequences
 @world integer 0
 
 > a := 5; a + 1
@@ -833,7 +832,7 @@
 > 1 + 1; 2
 ! E_SeqValue:
 
-// ------------------------------------------------------- v0.2.1 — let-bodies
+// ------------------------------------------------------- let-bodies
 > f1 := u ↦ (d := u + 1; d⋅d)
 
 > f1@2
@@ -870,7 +869,7 @@
 > f3 := u ↦ (d := u)
 ! E_SeqValue:
 
-// ------------------------------------------------- v0.2.1 — line continuation
+// ------------------------------------------------- line continuation
 > norm1 := (u, v) ↦ (
 >>   s := u + v;
 >>   d := u - v;
@@ -1308,7 +1307,7 @@
 > m =: m + 1
 ! E_Unfounded:
 
-// ---- the 0.3.5 loopy envelope
+// ---- loopy envelope
 > ones = ones
 = true
 
@@ -1338,7 +1337,7 @@
 > len@ones
 ! E_Fuel:
 
-// ============================================================ migrated 0.3.5-B — comments
+// ============================================================ comments
 @world integer 0
 
 > 1 + 2 // trailing line comment
@@ -1355,7 +1354,7 @@
 ~ 1 + 2
 = 3
 
-// ============================================================ migrated 0.3.5-B — Index literals and marks
+// ============================================================ Index literals and marks
 @world poly5
 
 > n := deg(t↑2)
@@ -1380,7 +1379,7 @@
 > deg(t↑(f@0))
 = #2
 
-// ============================================================ migrated 0.3.5-B — fuzzy `!` and factorial removal
+// ============================================================ fuzzy `!` and factorial removal
 @world game
 
 > *1 ! *2
@@ -1393,7 +1392,7 @@
 > !5
 ! E_Parse:
 
-// ============================================================ migrated 0.3.5-B — full-expression ternary
+// ============================================================ full-expression ternary
 @world integer 0
 
 > sign := u ↦ if u < 0 then -1 else if u = 0 then 0 else 1
@@ -1407,7 +1406,7 @@
 > sign@7
 = 1
 
-// ============================================================ migrated 0.3.5-B — containers and literal atoms
+// ============================================================ containers and literal atoms
 @world fp7 3 q=[1,1,1]
 
 > dim
@@ -1482,7 +1481,7 @@
 > tl@[7, 8]
 = [8]
 
-// ============================================================ migrated 0.3.5-B — parse-side teaching hints
+// ============================================================ parse-side teaching hints
 @world poly5
 
 > t * t
@@ -1493,7 +1492,7 @@
 > id(x) := x
 ! E_Parse:
 
-// ============================================================ migrated 0.3.5-C — recognition and delights
+// ============================================================ recognition and delights
 @world game
 
 > [0]
@@ -1538,7 +1537,7 @@
 > canon(1 + 1)
 = 2
 
-// ============================================================ migrated 0.3.5-C — multiset form equality and canon
+// ============================================================ multiset form equality and canon
 > {1, 2 | 0} ≡ {2, 1 | 0}
 = true
 
@@ -1563,7 +1562,7 @@
 > canon({-1 | 1}) = {-1 | 1}
 = true
 
-// ============================================================ migrated 0.3.5-C — right-lazy append
+// ============================================================ right-lazy append
 > ones =: {1 | ones}
 
 > ones ⧺ canon(ones)
@@ -1578,7 +1577,7 @@
 > {0 |} ⧺ canon(ones)
 ! E_Improper:
 
-// ============================================================ migrated 0.3.5-C — hasdraw surface
+// ============================================================ hasdraw surface
 > hasdraw([1, 2])
 = false
 
@@ -1603,14 +1602,14 @@
 > hasdraw(ones)
 = false
 
-// ============================================================ migrated 0.3.5-C — guardedness respellings
+// ============================================================ guardedness spellings
 > h =: [] ⧺ h
 ! E_Unfounded:
 
 > k =: k ⧺ [1]
 ! E_Unfounded:
 
-// ============================================================ migrated 0.3.5-E — outcome doubles and finite corners
+// ============================================================ outcome doubles and finite corners
 @world game
 
 // finite forms occupy only the four no-draw corners
@@ -1765,7 +1764,7 @@
 > 0 >> rr
 = true
 
-// ============================================================ migrated 0.3.5-E — stoppers and projected singles
+// ============================================================ stoppers and projected singles
 > over =: {0 | over}
 
 > under =: {under | 0}
@@ -1827,7 +1826,7 @@
 > dud ‿‿ 0
 = true
 
-// ============================================================ migrated 0.3.5-E — total loopy arithmetic and display
+// ============================================================ total loopy arithmetic and display
 > -on
 = g1 =: {| g1}
 
@@ -1865,7 +1864,7 @@
 > m =: m + 1
 ! E_Unfounded:
 
-// ============================================================ migrated 0.3.5-E — relation teaching sites
+// ============================================================ relation teaching sites
 > outcome(0)
 ! E_Unbound: relations against 0
 
@@ -1883,7 +1882,7 @@
 > stopper(0)
 ! E_WrongWorld: game
 
-// ---------------------------------------------------------------- 0.3.6: the second adversarial pass (merged from conformance_v0.3.6.txt)
+// ---------------------------------------------------------------- current display, totality, and binder obligations
 
 // The stopper gate passes for both operands; only the difference product is over budget.
 @world game
@@ -2055,7 +2054,7 @@
 > l + on
 = (g3 =: {g3 |}; g2 =: {g3, g2 |}; g7 =: {g7 |}; g6 =: {g7, g6 |}; g5 =: {g6, g5 |}; g1 =: {g2, g1 | g4}; g4 =: {g5, g4 | g1}; g1)
 
-// Rebinding history never aliases two distinct cycles through stale provenance.
+// Rebinding never aliases two distinct cycles through reused source names.
 @world game
 
 > a =: {a |}
@@ -2219,10 +2218,10 @@
 ! E_BoolSort:
 
 > 1 ? 2 : 3
-! E_Parse: conditionals are words now: `if a then b else c`
+! E_Parse: write conditionals as `if a then b else c`
 
 > :
-! E_Parse: conditionals are words now: `if a then b else c`
+! E_Parse: write conditionals as `if a then b else c`
 
 // Signed powers ignore token adjacency and retain one canonical spelling.
 @world surreal 0
@@ -2404,7 +2403,7 @@
 > *1
 = *1
 
-// Display v4: descending powers, elided units, and sign-aware joins.
+// Canonical display: descending powers, elided units, and sign-aware joins.
 @world integer[t]
 
 > [1, -1, 1]

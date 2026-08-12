@@ -18,7 +18,7 @@ closed under products up to a class cap; congruence is spot-checked on in-bound
 element pairs (violations counted, quotient flagged).  Coarser-than-true
 quotients are possible; anything interesting gets re-examined, not trusted.
 
-NOTE (docs/PY.md §1.6): octal_moves/make_outcome/closed_quotient/anf_quadric_fit
+NOTE: octal_moves/make_outcome/closed_quotient/anf_quadric_fit
 reimplement the bound ogdoad.octal_misere_quotient / ogdoad.octal_moves /
 ogdoad.fit_f2_quadratic; kept as-is for archival provenance -- no independent-oracle
 rationale was recorded.

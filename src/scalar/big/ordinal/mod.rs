@@ -56,7 +56,7 @@
 //!   `u = 2` Fermat-tower
 //!   case — DiMuro Thm 3.1.7 / Cor 3.11 — handled inside the finite nimber field
 //!   [`finite_field::nimber`](crate::scalar::finite_field).) See `docs/OPEN.md` for
-//!   the table provenance and current open boundary.
+//!   the current proof boundary.
 
 mod cantor;
 mod nim;

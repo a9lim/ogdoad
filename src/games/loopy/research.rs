@@ -1,11 +1,8 @@
-//! The research instrument: [`loopy_decision_sets`] and [`loopy_quadric_probe`].
+//! Quadric-fitting instruments for finite loopy decision sets.
 //!
-//! These are the payoff functions for the project's open Tier-2 question: take an
-//! arbitrary cyclic move rule on positions `F₂^k` and read off **both** its
-//! Loss-set and its Draw-set, fitting each with
-//! [`fit_f2_quadratic`]. A B-coupled cyclic rule
-//! whose *Draw-set* is `{Q=0}` would be a Tier-2 witness even if its Loss-set is
-//! not — structurally impossible for the acyclic `interactive_kernel` probe.
+//! An arbitrary cyclic rule on `F₂^k` has both a Loss-set and a Draw-set. These
+//! functions extract both sets and fit each with [`fit_f2_quadratic`]. They are
+//! bounded diagnostic tools, not a universal game-realization theorem.
 
 use crate::forms::{fit_f2_quadratic, QuadricFit};
 
@@ -28,8 +25,8 @@ pub fn loopy_decision_sets<F: Fn(usize) -> Vec<usize>>(
 /// Draw-set: returns `(loss_fit, draw_fit)`, each the
 /// [`fit_f2_quadratic`] of the corresponding set
 /// (or `None` if that set is not the zero-set of any `F₂` quadratic form). A
-/// genuinely-quadratic Draw-set ([`QuadricFit::is_genuinely_quadratic`]) is the
-/// Tier-2 target.
+/// genuinely quadratic fit is reported by
+/// [`QuadricFit::is_genuinely_quadratic`].
 pub fn loopy_quadric_probe<F: Fn(usize) -> Vec<usize>>(
     k: usize,
     moves: F,

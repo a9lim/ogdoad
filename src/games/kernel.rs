@@ -1,13 +1,10 @@
-//! Outcomes of a finite impartial game graph — the instrument for the
-//! historical "interactive" route to the Gold-quadric question.
+//! Outcomes of finite impartial game graphs and finite scoring games.
 //!
-//! Normal-play disjunctive sums give XOR-linear P-sets (subspaces); the escape is
-//! an *interactive* game whose move graph is not a disjunctive sum. For any such
-//! game on a finite position set, this computes the normal-play outcome of every
-//! position by retrograde analysis (Win / Loss / Draw), where the **Loss
-//! positions are the P-positions** (the player to move loses). With that we can
-//! take any candidate move rule — e.g. one coupled through a quadratic form's
-//! polar — and ask whether its P-set is the quadric `{Q=0}`.
+//! Retrograde analysis computes Win/Loss/Draw labels for an arbitrary finite
+//! move graph, including coupled rules that are not disjunctive sums. Loss
+//! positions are the normal-play P-positions. The scoring surface separately
+//! computes optimal Left-first and Right-first terminal scores on acyclic
+//! graphs.
 //!
 //! Convention (normal play): a position with no moves is a **Loss** (the player to
 //! move cannot move and loses). A position is a **Win** if some move leads to a

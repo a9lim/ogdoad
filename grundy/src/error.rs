@@ -223,7 +223,7 @@ pub(crate) fn literal_call_error(name: &str) -> GrundyError {
         Span::point(0),
         format!("unknown function `{name}`"),
     )
-    .with_hint(format!("`{name}` is a literal now"))
+    .with_hint(format!("write the literal `{name}` without parentheses"))
 }
 
 pub(crate) fn renamed_function_error(old: &str, new: &str) -> GrundyError {

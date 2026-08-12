@@ -13,8 +13,7 @@
 //! formally-real ℝ has level `∞` (no finite `n`), `u(ℝ) = ∞`, Pythagoras number
 //! `1`; and `u(Q_p) = 4`.
 //!
-//! **Contract note (CONSISTENCY.md `idiom-splits`).** These entry points guard
-//! `P` by returning `Option::None` for an unsupported modulus rather than
+//! These entry points guard `P` by returning `Option::None` for an unsupported modulus rather than
 //! panicking — a deliberate, different contract from `oddchar`'s internal
 //! `assert_odd_prime` helper, which panics on the same underlying check. The
 //! split is by call-site position, not inconsistency: this module's functions

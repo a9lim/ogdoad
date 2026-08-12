@@ -784,8 +784,8 @@ mod tests {
         }
     }
 
-    // `arf_f2` and `brown_f2` are declared to mirror each other field-for-field
-    // (CONSISTENCY.md `micro-naming-2`); `brown_f2` already asserts these input
+    // `arf_f2` and `brown_f2` mirror each other field-for-field;
+    // `brown_f2` already asserts these input
     // shapes (`forms/char2/brown.rs`), so `arf_f2` must too.
     #[test]
     #[should_panic(expected = "at most 128")]

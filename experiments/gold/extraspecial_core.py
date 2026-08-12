@@ -1,7 +1,7 @@
 """Core: standalone nim arithmetic + Gold forms + correct ECHO-ko solver.
 
 Deliberate ogdoad-independent oracle: the family's shared reimplementation,
-not reuse debt (see docs/PY.md §5).
+not reuse debt.
 
 Validated against ogdoad's pinned values:
   nim products 2*2=3, 2*4=8, 16*16=24

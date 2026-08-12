@@ -2,18 +2,18 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \urlstyle{same}
+\emergencystretch=2em
 
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}
-\newtheorem{proposition}{Proposition}
-\newtheorem{lemma}{Lemma}
-\newtheorem{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
-\newtheorem{remark}{Remark}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
 
 \newcommand{\temp}{\operatorname{temp}}
 \newcommand{\mean}{\operatorname{mean}}
@@ -22,445 +22,314 @@
 \newcommand{\Games}{\mathcal G}
 \newcommand{\Numbers}{\mathcal N}
 \newcommand{\Inf}{\mathcal I}
-\newcommand{\Q}{\mathbb Q}
 
-\title{The Thermic Degree of a Norton Product}
+\title{Thermic Regrading under Norton Multiplication}
 \author{a9lim}
-\date{August 2026}
+\date{}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Let $G.u$ denote Norton multiplication of a short game by a positive dyadic
-number $u=m/2^k$ in canonical form.  Put
-$\delta_u=1/\den(u)=2^{-k}$ and $a_u=u-\delta_u$.  We prove the exact
-thermic law
+Let $A_u(G)=G.u$ be Norton multiplication of a short partizan game by a
+positive dyadic number $u=m/2^k$ in canonical form.  Put
+$\delta_u=2^{-k}$, with $\delta_u=1$ for integral $u$, and
+$a_u=u-\delta_u$.  For every nonnumeric short game,
 \[
-  \mean(G.u)=u\mean(G),\qquad
-  \temp(G.u)=u\temp(G)+a_u
+  \mean(A_u(G))=u\mean(G),\qquad
+  \temp(A_u(G))=u\temp(G)+a_u.
 \]
-for every nonnumeric game in the ordinary finite thermographic domain.  For a
-number $x$, whose canonical mesh is $\epsilon_x=1/\den(x)$, the second formula
-is replaced by
+For a number $x$ with canonical mesh $\epsilon_x=1/\den(x)$, the image has
+mean $ux$ and temperature $-1$ or $a_u-u\epsilon_x$, according as the latter
+quantity is negative or nonnegative.  Hence each positive numeric Norton
+operator induces an additive transport between thermic residue groups.
+These transports do not form an action of the multiplicative dyadics: their
+exact degree defect is
 \[
- \temp(x.u)=
- \begin{cases}
- -1,&a_u-u\epsilon_x<0,\\
- a_u-u\epsilon_x,&a_u-u\epsilon_x\geq0.
- \end{cases}
+ \Delta(u,v)=v(1-\delta_u)-\delta_v+\delta_{uv}\ge0,
 \]
-Thus every positive numeric Norton operator descends to an additive transport
-from thermic degree $\tau$ to degree $u\tau+a_u$.
-
-These transports do not form a dyadic action.  Their exact degree defect is
-\[
- \Delta(u,v)=v(1-\delta_u)-\delta_v+\delta_{uv}\geq0,
-\]
-and we classify all pairs for which it vanishes.  The formula, its numeric
-branch, and the complete defect classification are the main results.  We end
-by locating them inside the more modest tropical comparison: temperature is a
-filtration degree and thermographic option folds use max-plus and min-plus,
-but the freeze step is not tropical.  Moreover the degree-zero residue is the
-group of infinitesimals and contains $[*]\neq0$ with $2[*]=0$, so no faithful
-lift-compatible action of full dyadic coefficients can turn the filtration
-into a Newton-style graded ring.
+and we classify all pairs for which it vanishes.  Temperature thus supplies
+a useful filtered, tropical-like shadow of Norton multiplication, but not a
+Newton-polygon-style graded ring.  The freezing step is not tropical,
+nonnumeric Norton units do not descend modulo colder games, and the
+temperature-zero residue retains nonzero $2$-torsion.
 \end{abstract}
+
+\section{Introduction}
+
+Temperature is the filtration parameter of thermography: it measures the
+amount of cooling required before a short game freezes to a number.  Norton
+multiplication $G.U$ is an additive operation in $G$ attached to a positive
+game $U$ \cite[Chapter 8]{berlekampconwayguy1982}; modern accounts and
+related applications appear in \cite{johnson2011b,mesdal2009}.
+This paper determines exactly how the thermic filtration transforms when the
+unit $U$ is a positive number.
+
+The result is affine rather than homogeneous.  If $u$ is a canonical
+positive dyadic and $G$ is nonnumeric, then the thermic degree changes by
+\[
+  \tau\longmapsto r_u(\tau)=u\tau+u-\delta_u.
+\]
+The denominator mesh $\delta_u$ is essential.  It also produces an exact
+composition defect, proving that these additive transports cannot be the
+scalar maps of an associative graded algebra whose dyadic coefficients
+multiply ordinarily.
+
+The final section compares this result with Newton polygons.  The comparison
+is deliberately limited: both theories have filtrations and extremal
+piecewise-linear envelopes, but game thermography includes a nontropical
+freezing operation and has no compatible internal product on Conway values.
+This sharpens, rather than identifies, the analogy suggested by the standard
+temperature and valuation formalisms \cite{bandokenmorikawa2020,dumas1906}.
 
 \section{Norton and thermographic conventions}
 
-We work with short normal-play partizan games.  Numbers are assigned
-temperature $-1$; every game discussed below is in the ordinary finite
-thermographic domain.  The recursive definition and the standard order and
-additivity properties of Norton multiplication may be found in
-\cite[Ch.~8]{berlekamp2001}, \cite[\S6.2]{johnson2011}, and
-\cite[Prop.~13]{mesdal2009}.
+We work with short normal-play partizan games modulo Conway equality.  Numbers
+have temperature $-1$.  For every nonnumber $G$, its left and right
+thermographic walls meet at a finite height $\temp(G)\ge0$ and then freeze to
+the common mast $\mean(G)$.  We use the standard thermographic conventions of
+\cite{siegel2013,bandokenmorikawa2020}.
 
-There is a form convention to make explicit.  Norton multiplication is
-independent of the chosen form of its first argument, but its definition uses
-the selected Left and Right options of the positive unit
-\cite{moews2002}.  Different presentations of the same unit can therefore
-give different recurrences: in the usual notation, for example,
-$(1/2).\{1*\mid\}=\{1\mid0\}$ whereas
-$(1/2).\{0\mid\}=1/2$.  Throughout this paper a numeric unit means its
-\emph{canonical short-game form}.  This is also the convention of the shipped
-implementation, which canonicalizes the unit before extracting its
-incentives.
-
-Let $u=m/2^k>0$ be in lowest terms, and define
-\begin{equation}\label{eq:mesh-shift}
- \delta_u=\frac1{\den(u)}=2^{-k},
- \qquad a_u=u-\delta_u.
+Norton multiplication depends on the selected form of its positive unit, so
+throughout a numeric unit is taken in its canonical short-game form.  Write a
+positive dyadic in lowest terms as $u=m/2^k$ and set
+\begin{equation}
+  \delta_u=\frac{1}{\den(u)}=2^{-k},\qquad a_u=u-\delta_u.
 \end{equation}
-For $k=0$ this says $\delta_u=1$.  The canonical options of a nonintegral $u$
-are $u-\delta_u$ and $u+\delta_u$; a positive integer has the sole Left
-option $u-1$.  Every Norton increment is consequently the same number $a_u$:
-a Left option contributes $u-\delta_u$, and a Right option contributes
-$2u-(u+\delta_u)$.  Writing $A_u(G)=G.u$, the defining recurrence reduces to
-\begin{equation}\label{eq:norton-recursion}
- A_u(n)=nu\quad(n\in\mathbb Z),
- \qquad
+For an integer $u$, this gives $\delta_u=1$.  A nonintegral canonical dyadic
+has options $u-\delta_u$ and $u+\delta_u$, while a positive integer has the
+sole left option $u-1$.  Every Norton incentive is consequently $a_u$, and
+the defining recursion becomes
+\begin{equation}
+ A_u(n)=nu\quad(n\in\mathbb Z),\qquad
  A_u(G)=\{A_u(G^L)+a_u\mid A_u(G^R)-a_u\}
  \quad(G\notin\mathbb Z).
 \end{equation}
 
-We next fix the thermographic notation used in the proof.  For a number $x$,
-set $LS_t(x)=RS_t(x)=x$.  For a nonnumber $G$, form the raw option envelopes
-\begin{equation}\label{eq:raw-walls}
- L_G^{\rm raw}(t)=\max_{G^L}RS_t(G^L),
- \qquad
- R_G^{\rm raw}(t)=\min_{G^R}LS_t(G^R).
+For a number $x$, put $LS_t(x)=RS_t(x)=x$.  For a nonnumber $G$, let
+\begin{align}
+ L_G^{\mathrm{raw}}(t)&=\max_{G^L}RS_t(G^L),&
+ R_G^{\mathrm{raw}}(t)&=\min_{G^R}LS_t(G^R),\\
+ LS_t^{\mathrm{sc}}(G)&=L_G^{\mathrm{raw}}(t)-t,&
+ RS_t^{\mathrm{sc}}(G)&=R_G^{\mathrm{raw}}(t)+t.
+\end{align}
+The scaffold walls are followed until their first meeting, after which both
+are replaced by the common constant mast.  The raw gap is
+\begin{equation}
+ D_G(t)=L_G^{\mathrm{raw}}(t)-R_G^{\mathrm{raw}}(t)-2t.
 \end{equation}
-Before freezing, the left and right scaffold walls are
-\begin{equation}\label{eq:scaffold-walls}
- LS_t^{\rm sc}(G)=L_G^{\rm raw}(t)-t,
- \qquad
- RS_t^{\rm sc}(G)=R_G^{\rm raw}(t)+t.
-\end{equation}
-They are followed until their first meeting and are then replaced by the
-common constant mast.  The resulting frozen walls are denoted $LS_t(G)$ and
-$RS_t(G)$; at $t=0$ they give the ordinary stops $LS(G)$ and $RS(G)$.  Thus
-\begin{equation}\label{eq:gap}
- D_G(t)=L_G^{\rm raw}(t)-R_G^{\rm raw}(t)-2t
-       =LS_t^{\rm sc}(G)-RS_t^{\rm sc}(G),
-\end{equation}
-and $\temp(G)$ is the least $t\geq0$ at which this raw gap closes.  Wall slopes
-give that $D_G$ is nonincreasing, $LS_t$ is nonincreasing, and $RS_t$ is
-nondecreasing.
+It is nonincreasing, and $\temp(G)$ is its first zero.  We shall also use the
+standard facts that left walls are nonincreasing, right walls are
+nondecreasing, and wall slopes lie between $-1$ and $1$.
 
-For later use, if $X$ is a Left option in \eqref{eq:norton-recursion}, define
-its \emph{transformed right wall at height $s$} by
-\begin{equation}\label{eq:transformed-walls}
- \mathcal T^R_X(s)=RS_s(A_u(X))+a_u-s.
-\end{equation}
-This is exactly the candidate that $X$ contributes to the left scaffold of
-$A_u(G)$.  Dually, a Right option $Y$ contributes the transformed left wall
-\[
- \mathcal T^L_Y(s)=LS_s(A_u(Y))-a_u+s.
-\]
-The terminology will never refer merely to $RS_s(A_u(X))$ or
-$LS_s(A_u(Y))$; the parent shift in \eqref{eq:transformed-walls} is part of the
-definition.
+\section{The exact thermic law}
 
-We use number avoidance in its standard form: in a sum $H+x$ with $x$ a
-number and $H$ a nonnumber, any player with an optimal move has one in the
-$H$ component.  In particular, comparisons with a number can be proved by
-giving the option-wise strategy in the nonnumeric component
-\cite[Part~II]{siegel2013}.  We will also use the standard stop implication
-\begin{equation}\label{eq:stop-implication}
- RS(H)<m\Longrightarrow H\not\geq m,
-\end{equation}
-which says equivalently that Right wins $H-m$ when moving first; the mirror
-statement uses $LS(H)>m$.
+The recursion stops at integers, not at all numbers.  Numeric inputs therefore
+form a separate branch of the theorem.
 
-\section{The exact positive-dyadic law}
-
-The thermic formula appears not to have been located in the literature.
-\footnote{The electronically accessible accounts in
-\cite[\S6.2]{johnson2011} and \cite[Prop.~13]{mesdal2009} give Norton
-multiplication and its standard algebraic properties, but not this affine
-thermic law.  Two print-only loci remain to be checked by hand before any
-stronger novelty claim is made: \emph{Winning Ways}, Chapter~8, and
-Siegel, \S III.3.  Accordingly, ``not located'' is meant literally, not as a
-claim of absolute novelty.}
-The proof needs a separate numeric branch because Norton recursion stops at
-integers, not at arbitrary numbers.
-
-\begin{lemma}[numeric images]\label{lem:numeric-images}
-Let $x$ be a short-game number and put
-$\epsilon_x=1/\den(x)$.  Then
+\begin{lemma}[Numeric inputs]\label{lem:numbers}
+Let $x$ be a short-game number and put $\epsilon_x=1/\den(x)$.  Then
 \[
  \mean(A_u(x))=ux,
  \qquad
  \temp(A_u(x))=
  \begin{cases}
- -1,&a_u-u\epsilon_x<0,\\
- a_u-u\epsilon_x,&a_u-u\epsilon_x\geq0.
+   -1,&a_u-u\epsilon_x<0,\\
+   a_u-u\epsilon_x,&a_u-u\epsilon_x\ge0.
  \end{cases}
 \]
-In particular $\temp(A_u(x))<a_u$.
+In particular, $\temp(A_u(x))<a_u$.
 \end{lemma}
 
 \begin{proof}
 Induct on the exponent of the exact dyadic denominator of $x$.  Integers are
-the base clause of \eqref{eq:norton-recursion}, so their images are the numbers
-$ux$ and have temperature $-1$.  If $x$ is nonintegral with canonical mesh
-$\epsilon=\epsilon_x$, then
+the base case of the Norton recursion.  If $x$ is nonintegral, then
+$x=\{x-\epsilon\mid x+\epsilon\}$ with
+$\epsilon=\epsilon_x$.  The option images have means
+$u(x-\epsilon)$ and $u(x+\epsilon)$ and, by induction, freeze strictly below
+$a_u-u\epsilon$ whenever that value is nonnegative.  At
+$c=a_u-u\epsilon\ge0$, the parent scaffold values are
 \[
- x=\{x-\epsilon\mid x+\epsilon\}.
-\]
-The two option meshes are $2\epsilon$ (unless an option is already integral),
-so their candidate temperatures are
-$a_u-2u\epsilon<a_u-u\epsilon$.  By induction the option images have masts
-$u(x-\epsilon)$ and $u(x+\epsilon)$ and freeze strictly before the height
-$c=a_u-u\epsilon$ whenever $c\geq0$.  At height $c$ the two parent scaffold
-values are therefore
-\[
- u(x-\epsilon)+a_u-c=ux,
- \qquad
+ u(x-\epsilon)+a_u-c=ux,\qquad
  u(x+\epsilon)-a_u+c=ux.
 \]
-On the terminal interval immediately below $c$ their gap is $2(c-s)>0$.
-Since the raw gap is nonincreasing, it could not have closed earlier.  Hence
-the first meeting is at $c$ and its mast is $ux$.
-
-If $c<0$, every lower-denominator option image is a number.  The two numeric
-bounds in \eqref{eq:norton-recursion} are
-$ux+c<ux<ux-c$; the simplicity rule selects the number $ux$.  This is the
-temperature-$-1$ branch.  In both cases the displayed temperature is strictly
-below $a_u$, since $u\epsilon>0$.
+Immediately below $c$ their gap is $2(c-t)>0$, so the first meeting is at
+$c$ and has mast $ux$.  If $c<0$, the two numeric bounds in the Norton
+recursion lie on opposite sides of $ux$; the simplicity rule selects
+the number $ux$.
 \end{proof}
 
-The next identity is the algebraic center of the proof.  It is stated for the
-raw gap because that is where the two parent shifts cancel exactly.
+The central wall identity is affine covariance of the raw gap.
 
-\begin{lemma}[affine raw-gap transport]\label{lem:raw-gap}
-Let $G$ be nonintegral, and suppose that for every option $X$ of $G$ and every
-$t\geq0$,
+\begin{lemma}[Raw-gap transport]\label{lem:gap}
+Suppose the wall formula
 \[
- LS_{a_u+ut}(A_u(X))=uLS_t(X),
- \qquad
- RS_{a_u+ut}(A_u(X))=uRS_t(X).
+ LS_{a_u+ut}(A_u(X))=uLS_t(X),\qquad
+ RS_{a_u+ut}(A_u(X))=uRS_t(X)
 \]
-Then
+holds for every option $X$ of a nonintegral game $G$.  Then
 \begin{align}
- L_{A_u(G)}^{\rm raw}(a_u+ut)
-   &=uL_G^{\rm raw}(t)+a_u,\label{eq:left-raw-transform}\\
- R_{A_u(G)}^{\rm raw}(a_u+ut)
-   &=uR_G^{\rm raw}(t)-a_u,\label{eq:right-raw-transform}
+ L_{A_u(G)}^{\mathrm{raw}}(a_u+ut)
+   &=uL_G^{\mathrm{raw}}(t)+a_u,\\
+ R_{A_u(G)}^{\mathrm{raw}}(a_u+ut)
+   &=uR_G^{\mathrm{raw}}(t)-a_u,
 \end{align}
-and, in particular,
-\begin{equation}\label{eq:D-transform}
- \boxed{D_{A_u(G)}(a_u+ut)=uD_G(t).}
+and therefore
+\begin{equation}
+ D_{A_u(G)}(a_u+ut)=uD_G(t).
 \end{equation}
 \end{lemma}
 
 \begin{proof}
-By \eqref{eq:norton-recursion}, a Left option of $A_u(G)$ is
-$A_u(G^L)+a_u$.  Numeric translation shifts both of its walls by $a_u$.
-Therefore \eqref{eq:raw-walls} and the induction hypothesis give
-\[
- \max_{G^L}\bigl(RS_{a_u+ut}(A_u(G^L))+a_u\bigr)
- =\max_{G^L}\bigl(uRS_t(G^L)+a_u\bigr)
- =uL_G^{\rm raw}(t)+a_u.
-\]
-The Right-option calculation is the same with minimum and the shift $-a_u$,
-giving \eqref{eq:right-raw-transform}.  Substitute both identities and
-$s=a_u+ut$ into the definition \eqref{eq:gap}:
-\begin{align*}
- D_{A_u(G)}(s)
- &=\bigl(uL_G^{\rm raw}(t)+a_u\bigr)
-   -\bigl(uR_G^{\rm raw}(t)-a_u\bigr)-2(a_u+ut)\\
- &=u\bigl(L_G^{\rm raw}(t)-R_G^{\rm raw}(t)-2t\bigr).
-\end{align*}
-This is \eqref{eq:D-transform}.
+A left option of $A_u(G)$ is $A_u(G^L)+a_u$, and numeric translation shifts
+both walls by $a_u$.  Taking the maximum in the definition of the raw left
+wall proves its displayed transform; the right-option minimum gives the raw
+right transform.  Substitution into the raw-gap definition, with
+$s=a_u+ut$, cancels the two parent shifts and yields the displayed covariance.
 \end{proof}
 
-At positive input temperature, \eqref{eq:D-transform} immediately excludes a
-meeting below $a_u$.  Temperature zero is subtler: both sides of
-\eqref{eq:D-transform} vanish at $t=0$, so one must rule out a terminal mast
-already present below $a_u$.  The following strategy lemma does exactly that.
+When $\temp(G)>0$, raw-gap covariance immediately locates the
+first meeting.  The only subtle case is $\temp(G)=0<a_u$: one must exclude a
+premature mast below $a_u$.  We isolate the strategy argument needed for that
+case.
 
-\begin{lemma}[full-slope corridor]\label{lem:corridor}
-Assume $a_u>0$.  Let $X$ be a canonical nonnumber, let $m$ be a number, and
-assume that every proper follower $Z$ of $X$ already satisfies the endpoint
-identities
+\begin{lemma}[No premature mast]\label{lem:corridor}
+Let $X$ be a canonical nonnumber and $m$ a number.  Assume the wall formula of
+Lemma~\ref{lem:gap} for every proper follower of $X$.  If, for some
+$b<a_u$,
 \[
- LS_{a_u}(A_u(Z))=uLS(Z),
- \qquad RS_{a_u}(A_u(Z))=uRS(Z).
+ RS_s(A_u(X))=um-a_u+s\qquad(b\le s\le a_u),
 \]
-Suppose that for some $b<a_u$,
-\begin{equation}\label{eq:right-corridor}
- RS_s(A_u(X))=um-a_u+s
- \qquad(b\leq s\leq a_u).
-\end{equation}
-Equivalently, the transformed wall $\mathcal T_X^R(s)$ is the constant $um$
-on that interval.  Then Right wins $X-m$ moving first.  The mirror statement
-holds when
-$LS_s(A_u(X))=um+a_u-s$: Left wins $X-m$ moving first.
+then Right wins $X-m$ moving first.  Dually, if
+$LS_s(A_u(X))=um+a_u-s$ on the same interval, then Left wins $X-m$ moving
+first.
 \end{lemma}
 
 \begin{proof}
-We prove the Right statement by induction on the birthday of $X$; negation
-gives the mirror.  Since the wall in \eqref{eq:right-corridor} has the maximal
-allowed slope $+1$, it is an unfrozen right scaffold on $[b,a_u)$.
-Using \eqref{eq:norton-recursion} there gives
-\begin{equation}\label{eq:min-left-walls}
- \min_{Y\in X^R}LS_s(A_u(Y))=um
- \qquad(b\leq s\leq a_u).
-\end{equation}
-Choose a Right option $Y$ attaining the minimum at $s=b$.  Every left wall is
-nonincreasing, while \eqref{eq:min-left-walls} says that each such wall is at
-least $um$ throughout the interval.  Hence the chosen wall cannot fall:
-\begin{equation}\label{eq:chosen-flat}
- LS_s(A_u(Y))=um\qquad(b\leq s\leq a_u).
-\end{equation}
-
-If $Y$ is numeric, Lemma~\ref{lem:numeric-images} says it has already frozen
-strictly below $a_u$, and its mast at $a_u$ is $uY$.  Equation
-\eqref{eq:chosen-flat} therefore forces $Y=m$.  Right moves from $X-m$ to
-$Y-m=0$ and wins.
-
-Suppose $Y$ is nonnumeric.  Let $Z$ be any Left option of $Y$.  Its transformed
-right wall is one of the candidates under the flat left wall
-\eqref{eq:chosen-flat}; consequently
-\begin{equation}\label{eq:reply-bound}
- RS_s(A_u(Z))+a_u-s\leq um
- \qquad(b\leq s\leq a_u).
-\end{equation}
-At $s=a_u$, the endpoint hypothesis gives
-$RS_{a_u}(A_u(Z))=uRS(Z)$.  Thus $RS(Z)\leq m$.
-
-If $RS(Z)<m$, \eqref{eq:stop-implication} says that Right wins $Z-m$ moving
-first.  If $RS(Z)=m$, then the right wall's slope bound $+1$ and its endpoint
-$um$ give
+We prove the right-wall statement by birthday induction; negation gives the
+dual statement.  The displayed wall has maximal slope $1$, so it is an
+unfrozen right scaffold on $[b,a_u)$.  By the Norton recursion,
 \[
- RS_s(A_u(Z))\geq um-a_u+s.
+  \min_{Y\in X^R}LS_s(A_u(Y))=um
+  \qquad(b\le s\le a_u).
 \]
-Together with \eqref{eq:reply-bound}, this is equality on $[b,a_u]$.
-The induction hypothesis applied to the lower-birthday game $Z$ again says
-that Right wins $Z-m$ moving first.
+Choose a right option $Y$ attaining this minimum at $b$.  Left walls are
+nonincreasing and every candidate is at least $um$ throughout the interval,
+so $LS_s(A_u(Y))=um$ on $[b,a_u]$.
 
-Right therefore begins $X-m$ by moving $X$ to $Y$.  After every Left reply
-$Y\to Z$, the preceding paragraph supplies Right's winning continuation from
-$Z-m$.  Number avoidance says that Left gains nothing by moving in the numeric
-component $-m$ instead.  This completes the explicit reply strategy and the
-birthday induction.
+If $Y$ is numeric, Lemma~\ref{lem:numbers} shows that it has frozen below
+$a_u$ with mast $uY$, hence $Y=m$.  Otherwise, for every left option $Z$ of
+$Y$, the parent scaffold inequality gives
+\[
+ RS_s(A_u(Z))+a_u-s\le um.
+\]
+At $s=a_u$, the induction hypothesis implies $RS(Z)\le m$.  If the inequality
+is strict, the standard stop criterion says that Right wins $Z-m$ moving
+first.  If equality holds, the corridor equality excludes numeric $Z$ by
+Lemma~\ref{lem:numbers}: a numeric image is frozen strictly below $a_u$,
+whereas this wall has slope one on a nontrivial interval.  The slope bound
+therefore forces equality throughout the corridor, and birthday induction
+gives the same conclusion.  Right moves
+from $X-m$ to $Y-m$ and answers every left reply using this strategy.  Number
+avoidance shows that a move in the numeric component is no better
+\cite[Part II]{siegel2013}.
 \end{proof}
 
-\begin{theorem}[exact thermic law]\label{thm:thermic-law}
-Let $u>0$ be a dyadic number in canonical form, with $\delta_u$ and $a_u$ as
-in \eqref{eq:mesh-shift}.  For every nonnumeric short game $G$ in the finite
-thermographic domain,
-\begin{equation}\label{eq:main-law}
- \mean(A_u(G))=u\mean(G),
- \qquad
+\begin{theorem}[Thermic regrading]\label{thm:thermic}
+For every positive canonical dyadic $u$ and every nonnumeric short game $G$,
+\begin{equation}
+ \mean(A_u(G))=u\mean(G),\qquad
  \temp(A_u(G))=u\temp(G)+a_u.
 \end{equation}
-More strongly, for every $t\geq0$ the frozen walls obey
-\begin{equation}\label{eq:wall-law}
- LS_{a_u+ut}(A_u(G))=uLS_t(G),
- \qquad
+More strongly, for every $t\ge0$,
+\begin{equation}
+ LS_{a_u+ut}(A_u(G))=uLS_t(G),\qquad
  RS_{a_u+ut}(A_u(G))=uRS_t(G).
 \end{equation}
-For numeric $G=x$, Lemma~\ref{lem:numeric-images} is the exact replacement.
+For numeric $G$, Lemma~\ref{lem:numbers} is the exact replacement.
 \end{theorem}
 
 \begin{proof}
-We prove \eqref{eq:main-law} and \eqref{eq:wall-law} simultaneously by birthday
-induction.  Numeric subpositions are supplied by Lemma~\ref{lem:numeric-images};
-for nonnumeric options, use the birthday induction.  Thus the hypotheses of
-Lemma~\ref{lem:raw-gap} hold for $G$, and the raw-gap identity
-\eqref{eq:D-transform} is available.
+Proceed by birthday induction, using Lemma~\ref{lem:numbers} for numeric
+followers.  Lemma~\ref{lem:gap} then applies to $G$.  Put
+$\tau=\temp(G)$.  If $\tau>0$, then
+$D_{A_u(G)}(a_u)=uD_G(0)>0$, so monotonicity excludes an earlier meeting;
+raw-gap covariance places the first zero at
+$a_u+u\tau$.  If $\tau=0=a_u$, the same identity places it at zero.
 
-Put $\tau=\temp(G)$.  If $\tau>0$, then $D_G(0)>0$, hence
+Suppose $\tau=0<a_u$, and write
+$LS(G)=RS(G)=m$.  Raw-gap covariance makes the transformed
+scaffolds meet at $(a_u,um)$.  If $A_u(G)$ had frozen at some $b<a_u$, its
+walls would equal $um$ on $[b,a_u]$.  For each left option $X$ of $G$, either
+$RS(X)<m$, in which case Right wins $X-m$ by the stop criterion, or the slope
+bound forces
 \[
- D_{A_u(G)}(a_u)=uD_G(0)>0.
-\]
-Because the raw gap is nonincreasing, it cannot have closed at any smaller
-height.  Equation \eqref{eq:D-transform} then says that its first zero at or
-above $a_u$ occurs exactly at $a_u+u\tau$.
-
-If $\tau=0$ and $a_u=0$, the same identity locates the first meeting at zero.
-It remains only to treat $\tau=0<a_u$.  Here
-$LS(G)=RS(G)=m$ for a number $m$, and \eqref{eq:D-transform} locates a meeting
-of the transformed raw scaffolds at $a_u$ with value $um$.  Suppose for a
-contradiction that $A_u(G)$ had already frozen at some $b<a_u$.  Its two walls
-would then be the constant mast $um$ throughout $[b,a_u]$.
-
-Consider an arbitrary Left option $X$ of $G$.  At $s=a_u$, the induction
-hypothesis gives
-\[
- RS_{a_u}(A_u(X))=uRS(X),
- \qquad
- \max_{G^L}RS(X)=LS(G)=m.
-\]
-If $RS(X)<m$, then Right wins $X-m$ moving first by
-\eqref{eq:stop-implication}.  If $RS(X)=m$, the candidate
-$\mathcal T_X^R(s)$ lies below the frozen parent mast $um$ on $[b,a_u]$ and
-equals it at $a_u$.  Since $RS_s(A_u(X))$ has slope at most $+1$,
-$\mathcal T_X^R$ is nonincreasing; going backwards from its endpoint shows it
-cannot be strictly smaller.  Therefore
-\[
- \mathcal T_X^R(s)=um,
- \quad\text{or equivalently}\quad
  RS_s(A_u(X))=um-a_u+s
- \quad(b\leq s\leq a_u).
 \]
-The endpoint hypotheses of Lemma~\ref{lem:corridor} are exactly the already
-proved birthday-induction statements for the proper followers of $X$; the
-lemma therefore says that Right wins $X-m$ moving first.
+on the corridor, and Lemma~\ref{lem:corridor} gives the same conclusion.
+Thus Right wins $G-m$ playing second.  The dual argument for every right
+option shows that Left also wins $G-m$ playing second, whence $G=m$, contrary
+to the assumption that $G$ is nonnumeric.  Premature freezing is impossible.
 
-The quantifier is the point: the argument has been applied to \emph{every}
-Left option $X=G^L$.  Hence every Left first move in the $G$ component of
-$G-m$ loses to Right.  By number avoidance, a move in the number component is
-not better.  Right therefore wins $G-m$ playing second, which proves $G\leq m$.
-The mirror argument, applied option by option to every Right option $G^R$ and
-the left-wall half of Lemma~\ref{lem:corridor}, proves $G\geq m$.  Thus $G=m$,
-contrary to the hypothesis that $G$ is nonnumeric.  No premature meeting below
-$a_u$ is possible.
-
-We have proved in all cases that the first meeting is
-$s=a_u+u\tau$.  At $s=a_u+ut$ before that meeting,
-\eqref{eq:left-raw-transform} and \eqref{eq:scaffold-walls} give
+Before the first meeting, the raw left-wall transform and the scaffold
+definition give
 \[
- LS_s^{\rm sc}(A_u(G))
- =uL_G^{\rm raw}(t)+a_u-(a_u+ut)
- =uLS_t^{\rm sc}(G),
+ LS_{a_u+ut}^{\mathrm{sc}}(A_u(G))
+ =uL_G^{\mathrm{raw}}(t)+a_u-(a_u+ut)
+ =uLS_t^{\mathrm{sc}}(G),
 \]
-and the right-wall calculation is identical.  At the meeting, their common
-value is $u\mean(G)$; above it both sides freeze to that mast.  This proves
-\eqref{eq:wall-law} and both formulas in \eqref{eq:main-law}.
+and similarly on the right.  At and above the meeting both sides freeze to
+the mast $u\mean(G)$.  This proves both assertions.
 \end{proof}
 
-\begin{corollary}[thermic residue transport]\label{cor:transport}
-Let $F_{<0}=\Numbers$ be the subgroup of short numbers and, for $\tau\geq0$,
-let $F_{\leq\tau}$ be the subgroup of games of temperature at most $\tau$,
-including $F_{<0}$.  Then $A_u$ induces an additive map
-\begin{equation}\label{eq:graded-transport}
- \overline A_{u,\tau}:
- F_{\leq\tau}/F_{<\tau}
- \longrightarrow
- F_{\leq u\tau+a_u}/F_{<u\tau+a_u}.
+\section{Thermic residue transport}
+
+Let $F_{<0}=\Numbers$ be the subgroup of short numbers.  For $\tau\ge0$, let
+$F_{\le\tau}$ be the subgroup of games of temperature at most $\tau$, including
+$F_{<0}$, and let $F_{<\tau}$ be the union of lower layers.  The standard
+inequality
+\begin{equation}
+  \temp(G+H)\le\max\{\temp(G),\temp(H)\}
 \end{equation}
-It is the generalized overheating operator $\int_u^{a_u}$.  For a positive
-integer $n$, the shifted thermal height $h=\tau+1$ scales exactly:
-$h(A_n(G))=nh(G)$ on nonnumeric layers.
+shows that this is an additive filtration
+\cite[Theorem II.5.18]{siegel2013}.
+
+\begin{corollary}\label{cor:residue}
+For every $\tau\ge0$, Norton multiplication by $u$ induces an additive map
+\[
+ \overline A_{u,\tau}:
+ F_{\le\tau}/F_{<\tau}
+ \longrightarrow
+ F_{\le u\tau+a_u}/F_{<u\tau+a_u}.
+\]
+For a positive integer $n$, the shifted thermal height
+$h(G)=\temp(G)+1$ satisfies $h(A_n(G))=nh(G)$ on nonnumeric layers.
 \end{corollary}
 
 \begin{proof}
 Norton multiplication by a fixed positive unit is additive
-\cite[Prop.~13]{mesdal2009}.  If $G-H$ is nonnumeric of temperature
-$\sigma<\tau$, Theorem~\ref{thm:thermic-law} gives
-$\temp(A_u(G-H))=u\sigma+a_u<u\tau+a_u$.  If $G-H$ is numeric,
-Lemma~\ref{lem:numeric-images} puts its image strictly below $a_u$, hence below
-the target layer.  Thus \eqref{eq:graded-transport} is independent of the
-representative.  Recurrence \eqref{eq:norton-recursion} is precisely
-$\int_u^{a_u}$.  Finally $a_n=n-1$, so
-$\temp(A_n(G))+1=n(\temp(G)+1)$.
+\cite{berlekampconwayguy1982,mesdal2009}.  If $G-H$ has temperature
+$\sigma<\tau$, Theorem~\ref{thm:thermic} sends it to temperature
+$u\sigma+a_u<u\tau+a_u$.  If $G-H$ is numeric,
+Lemma~\ref{lem:numbers} puts its image strictly below $a_u$.  Hence the map is
+well defined on the quotient.  For integral $n$, $a_n=n-1$.
 \end{proof}
 
-\section{The exact composition defect}
+\section{The composition defect}
 
-Write
-\[
- r_u(\tau)=u\tau+a_u
-            =u\tau+u-\delta_u.
-\]
-Corollary~\ref{cor:transport} says that $A_u$ carries thermic degree $\tau$ to
-$r_u(\tau)$.  The discrepancy between successive transports and transport by
-the ordinary dyadic product is completely arithmetic.
+Write $r_u(\tau)=u\tau+u-\delta_u$.  Successive thermic transports differ
+from transport by the ordinary dyadic product by a degree-independent term.
 
-\begin{theorem}[composition defect]\label{thm:defect}
-For positive dyadics $u,v$ and every $\tau\geq0$,
-\begin{equation}\label{eq:defect}
+\begin{theorem}\label{thm:defect}
+For positive dyadics $u,v$ and every $\tau\ge0$,
+\begin{equation}
  r_v(r_u(\tau))=r_{uv}(\tau)+\Delta(u,v),
  \qquad
- \Delta(u,v)=v(1-\delta_u)-\delta_v+\delta_{uv}\geq0.
+ \Delta(u,v)=v(1-\delta_u)-\delta_v+\delta_{uv}\ge0.
 \end{equation}
-The defect vanishes exactly in the following cases:
-\begin{enumerate}[label=(\roman*),itemsep=0pt]
-\item $u$ is nonintegral and $v=2^{-\ell}$ for some $\ell\geq0$;
+The defect is zero exactly in the following cases:
+\begin{enumerate}
+\item $u$ is nonintegral and $v=2^{-\ell}$ for some $\ell\ge0$;
 \item $u$ is an odd positive integer and $v$ is arbitrary;
 \item $u$ is an even positive integer and $v$ is an integer.
 \end{enumerate}
@@ -468,302 +337,143 @@ The defect vanishes exactly in the following cases:
 
 \begin{proof}
 Expanding the affine maps gives
-\begin{align*}
+\[
  r_v(r_u(\tau))-r_{uv}(\tau)
- &=v(u\tau+u-\delta_u)+v-\delta_v
-   -(uv\tau+uv-\delta_{uv})\\
- &=v(1-\delta_u)-\delta_v+\delta_{uv}.
-\end{align*}
-
-If $u$ is integral, $\delta_u=1$ and
+ =v(1-\delta_u)-\delta_v+\delta_{uv}.
+\]
+If $u$ is integral, then $\delta_u=1$ and
 $\Delta=\delta_{uv}-\delta_v$.  Multiplication by an integer cannot increase
-a dyadic denominator.  It preserves the denominator of every $v$ exactly when
-$u$ is odd; if $u$ is even and $v$ nonintegral, it cancels at least one factor
-of two.  Integral $v$ always has $\delta_{uv}=\delta_v=1$.  This gives (ii),
-(iii), and nonnegativity in the integral-$u$ case.
+a dyadic denominator.  It preserves every denominator when $u$ is odd; for
+even $u$, it preserves the denominator exactly when $v$ is integral.  This
+proves the integral cases and their nonnegativity.
 
-Now write $u=m/2^k$ in lowest terms with $k>0$.  If $v$ is nonintegral, both
-numerators are odd and $\delta_{uv}=\delta_u\delta_v$.  Hence
+Now let $u=m/2^k$ in lowest terms with $k>0$.  If $v$ is nonintegral, then
+$\delta_{uv}=\delta_u\delta_v$, and
 \[
- \Delta=(1-\delta_u)(v-\delta_v)\geq0,
+  \Delta=(1-\delta_u)(v-\delta_v)\ge0.
 \]
-with equality exactly when $v$ has numerator $1$, that is,
-$v=2^{-\ell}$.  If $v=n$ is integral, write $n=2^sq$ with $q$ odd.  For
-$s\geq k$, one has $\delta_{uv}=1$ and
-$\Delta=n(1-2^{-k})>0$ unless $n=1$.  For $s<k$,
+Equality holds precisely when the numerator of $v$ is $1$.  If $v=n$ is an
+integer, write $n=2^sq$ with $q$ odd.  For $s\ge k$,
+$\delta_{uv}=1$ and the defect is positive unless $n=1$.  For $s<k$,
 \[
- \Delta=n-1-\frac{n-2^s}{2^k}.
+  \Delta=n-1-\frac{n-2^s}{2^k},
 \]
-This is zero at $n=1$ and positive at every $n>1$: for $s=0$ it is
-$(n-1)(1-2^{-k})$, while for $s>0$ the subtracted fraction is at most
-$(n-2^s)/2<n-1$.  This proves (i) and completes the classification.
+which is zero at $n=1$ and positive for $n>1$.  This completes the
+classification.
 \end{proof}
 
-\begin{corollary}[not a dyadic action]\label{cor:not-action}
-No temperature-preserving residue refinement can make all numeric Norton
-transports into the scalar action of an associative algebra whose positive
-dyadic coefficients multiply ordinarily.
+\begin{corollary}\label{cor:no-action}
+The residue transports of Corollary~\ref{cor:residue} cannot be the scalar
+maps of an associative action whose positive dyadic coefficients multiply
+ordinarily and whose equivalence preserves thermic degree.
 \end{corollary}
 
 \begin{proof}
 Take $u=1/2$, $v=2$, and $G=*$.  Theorem~\ref{thm:defect} gives
-$\Delta(1/2,2)=1$, hence
+$\Delta(1/2,2)=1$, so
 \[
- \temp(A_2A_{1/2}(*))=1,
+ \temp(A_2(A_{1/2}(*)))=1,
  \qquad
- \temp(A_1(*))=\temp(*)=0.
+ \temp(A_1(*))=0.
 \]
-Associativity would identify the two outputs, but a refinement preserving exact
-thermic degree cannot identify classes in different degrees.
+Associativity would identify these two classes, but an equivalence preserving
+thermic degree cannot do so.
 \end{proof}
-
-\section{Machine verification in this repository}
-
-The proof above is mathematical; the implementation supplies independent
-regression oracles for its formulas.  The following helpers live in
-\path{src/games/heating.rs}:
-\begin{center}
-\small
-\path{numeric_norton_regrade}\qquad
-\path{numeric_norton_mean_temperature}.
-\end{center}
-The first returns $(u,a_u)$; the second evaluates both branches of
-Theorem~\ref{thm:thermic-law} without materializing the recursive product.
-Source tests compare those helpers with actual Norton products on integers,
-nonintegral numbers, all-small games, switches, and a nested hot game, using
-eight units from $1/4$ through $3$.  A separately transcribed recursive Norton
-oracle checks the noninteger-game/noninteger-unit branch.
-
-The maintained probe \path{experiments/under_descent.py} uses a $35$-game
-catalogue and six units.  It checks $210$ exact mean/temperature predictions,
-$24$ representative-pair descent tests for Norton multiplication, and $24$ for
-the matching overheating operator.  Its arithmetic defect scan checks $2{,}304$
-positive-dyadic pairs for nonnegativity and the complete zero classification,
-then compares five selected defects with recursively materialized game
-products.  It also records the explicit nonnumeric-unit failures discussed
-below.  These are bounded machine checks, not substitutes for the universal
-proofs.
 
 \section{The tropical shadow and its limits}
 
-\subsection{What is genuinely tropical}
+The filtration inequality above is analogous to the nonarchimedean
+inequality, and the raw option operators are
+pointwise max-plus and min-plus folds.  Cooling adds the affine terms
+$-t$ and $+t$.  This is the exact tropical content of thermography.
 
-Temperature satisfies the standard maximum inequality
-\begin{equation}\label{eq:max-inequality}
- \temp(G+H)\leq\max(\temp(G),\temp(H)),
-\end{equation}
-with numbers colder than every infinitesimal or hot game
-\cite[Thm.~II.5.18]{siegel2013}; see also the cooling-homomorphism treatment in
-\cite{bando2020}.  Consequently the $F_{\leq\tau}$ above are additive
-subgroups and define
+The subsequent freeze is different: one compares the two envelopes, finds
+the first zero of $D_G$, and replaces both walls by one constant mast.  Nor is
+the thermograph a congruence for disjunctive sum.  The games
+$*=\{0\mid0\}$ and $\uparrow=\{0\mid *\}$ have the same constant-zero walls,
+but $*+*=0$ is numeric while $\uparrow+*$ is a nonnumber of temperature zero.
+Thus no binary operation on thermographs alone recovers the thermograph of
+every sum.
+
+Newton polygons, by contrast, arise from valuations of coefficients and
+transform functorially under polynomial multiplication; Dumas's theorem is a
+classical form of this product behavior \cite{dumas1906}.  The game side has
+an additive filtration and the external transports of
+Corollary~\ref{cor:residue}, but no analogous internal product on all Conway
+game values.
+
+The restriction to numeric Norton units is also necessary.  At degree zero,
+$*$ and $*+1$ differ by the cold number $1$.  For the positive nonnumeric
+unit $U=\uparrow$, additivity gives
 \[
- \gr_T(\Games)=\bigoplus_{\tau\geq0}F_{\leq\tau}/F_{<\tau}.
+ A_U(*+1)-A_U(*)=A_U(1)=\uparrow,
 \]
-Equal leading temperatures may cancel to a lower layer, just as equal
-valuations may cancel in a valued field.
+whose temperature-zero class is nonzero.  Thus $A_U$ does not descend modulo
+cold numbers.  Finding coarser equivalences compatible with Norton
+multiplication is a separate problem of the kind posed by
+\cite[Problem 6.10]{altmanlipparini2026}.
 
-There is also an exact max-plus/min-plus observation inside the wall recursion:
-$L_G^{\rm raw}$ is the pointwise maximum of the Left options' right walls, and
-$R_G^{\rm raw}$ is the pointwise minimum of the Right options' left walls.
-Cooling shifts wall values by ordinary addition.  These are dual tropical
-folds.  The subsequent operation is not tropical, however: one subtracts the
-two envelopes and $2t$, finds the first zero of $D_G$, and freezes both walls
-to a common mast.  The module
-\path{src/games/tropical_thermography.rs} deliberately reuses this ordinary
-freeze tail; it only names the two option folds.  Thus thermography contains
-tropical operations but is not, as a whole, a semiring tropicalization.
-
-The valuation-theoretic comparison remains useful.  A Newton polygon takes the
-lower convex hull of $(i,v(a_i))$, and Dumas's theorem makes the polygon of a
-product the appropriate sum of the factor polygons \cite{dumas1906}.  The game
-side has the filtration inequality \eqref{eq:max-inequality} and the external
-regradings \eqref{eq:graded-transport}, but no corresponding internal product
-on Conway game values.
-
-Two terminological distinctions prevent predictable misreadings.  First,
-``tropical games'' often means the algorithmic equivalence between tropical
-polyhedra and finite mean-payoff games established by
-Akian--Gaubert--Guterman \cite{akian2012}.  Those are weighted graph
-optimization games, not Conway values or thermographs.  Second, ``temperature''
-in idempotent analysis commonly denotes the Maslov dequantization parameter
-whose zero limit turns log-sum-exp into max-plus arithmetic
-\cite{viro2010}.  Combinatorial-game temperature instead measures the urgency
-at which cooling freezes a game.  The shared words do not identify the two
-constructions.
-
-\subsection{Thermographs and nonnumeric units do not descend}
-
-The exact thermograph is not a congruence for disjunctive sum.  Indeed,
-$*=\{0\mid0\}$ and $\uparrow=\{0\mid*\}$ have the same constant-zero walls,
-mast zero, and temperature zero.  Yet $*+*=0$ has temperature $-1$, whereas
-$\uparrow+*$ is a nonnumber of temperature zero.  Hence no binary operation on
-thermographs alone can recover the thermograph of every sum.
-
-Nor does arbitrary Norton multiplication descend to $\gr_T$.  At degree zero,
-$*$ and $*+1$ differ by the cold number $1$.  For the positive nonnumeric unit
-$U=\uparrow$, additivity and the integer clause give the two-line obstruction
+Finally,
 \[
- A_U(*+1)-A_U(*)=A_U(1)=U=\uparrow.
+ \gr_0(\Games)=F_{\le0}/F_{<0}\cong\Inf,
 \]
-The output difference has a nonzero temperature-zero class.  Thus numericity
-of $u$ in Corollary~\ref{cor:transport} is a real boundary, not a proof
-convenience.
+the additive group of infinitesimals \cite{calistrate1996,moews2002}.  It
+contains $[*]\ne0$ with $2[*]=0$.
 
-\subsection{The degree-zero torsion remark}
-
-The degree-zero group is already familiar.  Every temperature-zero game is a
-number plus an infinitesimal, and quotienting by the cold numbers gives
-\begin{equation}\label{eq:gr0-inf}
- \gr_0(\Games)=F_{\leq0}/F_{<0}\cong\Inf,
-\end{equation}
-the additive group of infinitesimals.  Calistrate's decomposition
-$\Games=\Inf\oplus\mathrm{Rcf}$ places this group inside the classical
-structure theory \cite{calistrate1996}.  Its torsion is not created by the
-temperature filtration: $[*]\neq0$ and $2[*]=0$ reflect the pre-existing
-additive group of games, studied abstractly by Moews \cite{moews2002}.
-Once \eqref{eq:gr0-inf} is stated, the coefficient obstruction is the elementary
-fact that inverting $2$ kills nonzero $2$-torsion.  We record the precise
-contract only to prevent a grading loophole.
-
-\begin{definition}[full-dyadic lift-compatible action]\label{def:full-dyadic}
-Such an action consists of the following data.
-\begin{enumerate}[label=(\roman*),itemsep=1pt]
-\item An abelian grading group $\Gamma$, a degree map
-      $\iota_T:\Q_{\geq0}\to\Gamma$, and a $\Gamma$-graded additive group
-      $R=\bigoplus_{\gamma\in\Gamma}R_\gamma$.
-\item Injective homomorphisms
-      $j_\tau:F_{\leq\tau}/F_{<\tau}\hookrightarrow
-      R_{\iota_T(\tau)}$ for every thermic degree $\tau$.
-\item A graded unital ring $C=\bigoplus_d C_d$ acting associatively and
-      distributively on $R$, with
-      $C_dR_\gamma\subseteq R_{d+\gamma}$.
-\item Mutually inverse homogeneous elements
-      $\pi_2\in C_d$ and $\pi_{1/2}\in C_{-d}$ representing the full dyadic
-      coefficients $2$ and $1/2$.
-\item A common $\Gamma$-filtered lift of the game group extending the thermic
-      filtration, such that $j_\tau([G]_\tau)$ is the
-      $\iota_T(\tau)$-initial class of $G$ and, in the single component
-      $R_{\iota_T(\tau)+d}$,
-      \begin{equation}\label{eq:compatibility}
-       \pi_2j_\tau([G]_\tau)
-       =\operatorname{in}_{\iota_T(\tau)+d}(G+G).
-      \end{equation}
-      The right side is zero when $G+G$ lies strictly below that common target
-      degree, and in particular when $G+G=0$.
-\end{enumerate}
-The common group $\Gamma$ and the component declaration in
-\eqref{eq:compatibility} are part of the data; neither side may be silently
-regraded into a different group.
-\end{definition}
-
-\begin{proposition}[dyadic torsion no-go]\label{prop:torsion}
-No faithful full-dyadic lift-compatible action exists.
+\begin{proposition}[Dyadic torsion obstruction]\label{prop:torsion}
+There is no faithful module containing $\gr_0(\Games)$ for which multiplication
+by a coefficient $2$ agrees with game doubling and $2$ has a multiplicative
+inverse representing $1/2$.
 \end{proposition}
 
 \begin{proof}
-Let $s=j_0([*])\neq0$.  Since $*+*=0$, compatibility gives $\pi_2s=0$.
-But $\pi_2$ is invertible, so
-\[
- s=(\pi_{1/2}\pi_2)s=\pi_{1/2}(\pi_2s)=0,
-\]
-a contradiction.
+Let $s$ be the image of $[*]$.  Compatibility with game doubling gives
+$2s=0$.  If $2$ is invertible, then $s=(1/2)(2s)=0$, contradicting
+faithfulness.
 \end{proof}
 
-This does not forbid three alternatives: integer or valuation-ring coefficients
-in which $2$ is not inverted; a characteristic-$2$ quotient that kills the
-incompatible coefficient data; or a ring built from a finer equivalence
-relation rather than Conway equality.  The recent construction of
-Altman--Lipparini belongs to the last category \cite{altman2026}.  It is
-adjacent to, but does not contradict, Proposition~\ref{prop:torsion}.
+This obstruction does not exclude integer coefficients, quotients that kill
+the incompatible torsion, or finer game equivalences.  It excludes the
+specific faithful full-dyadic graded-ring reading.
+
+\section{Implementation and verification boundary}
+
+The Ogdoad implementation contains the standard recursive operations
+\texttt{norton\_multiply} and \texttt{overheat}, together with three exact
+closed-form routines:
+\begin{itemize}
+\item \texttt{numeric\_norton\_regrade};
+\item \texttt{numeric\_norton\_mean\_temperature};
+\item \texttt{numeric\_norton\_composition\_defect}.
+\end{itemize}
+Unit tests compare the
+closed formulas with recursively materialized products over bounded families
+of short games and positive dyadic units, and an independent transcription of
+the Norton recursion checks its noninteger branches.  These are regression
+oracles for the universal proofs above, not their premises.  The source is
+distributed with Ogdoad \cite{ogdoad2026}.
+
+The implementation also exposes the tropical folds and the ordinary freeze
+tail separately.  It therefore encodes the same boundary as the paper: the
+max-plus/min-plus structure belongs to the option envelopes, while the meeting
+and freezing operation remains ordinary thermography.
 
 \section{Conclusion}
 
-The positive theorem is the durable bridge.  A canonical positive dyadic unit
-$u$ sends every nonnumeric thermic degree by the exact affine rule
-$\tau\mapsto u\tau+u-\delta_u$, while numeric inputs occupy a strictly lower
-branch.  This yields honest additive maps between thermic residue groups.  The
-composition defect then gives the exact limit: these maps form a family of
-external regradings, not an action of the multiplicative dyadics.
+Positive numeric Norton multiplication acts on thermic degree by the exact
+affine map
+\[
+  \tau\longmapsto u\tau+u-\delta_u,
+\]
+with a strictly lower numeric branch.  It consequently induces additive maps
+between thermic residue groups.  The nonnegative defect
+$\Delta(u,v)$ measures exactly why those maps fail to form a multiplicative
+dyadic action.  The tropical comparison is therefore a filtered one:
+thermography has extremal envelopes and a nonarchimedean temperature
+inequality, but its freeze, its nonnumeric Norton operators, and its
+temperature-zero torsion prevent a faithful Newton-style graded ring.
 
-The Newton-polygon comparison should be kept at that scale.  Temperature obeys
-a nonarchimedean maximum inequality; the raw thermograph recursion contains
-dual tropical folds.  The freeze operation is not tropical, the complete
-thermograph is not a sum congruence, and the degree-zero residual group retains
-the old infinitesimal torsion.  The game and place sides therefore share a
-filtered shadow, not one faithful full-dyadic graded ring.
-
-% REF: berlekamp2001 = Elwyn R. Berlekamp, John H. Conway, Richard K. Guy, Winning Ways for Your Mathematical Plays, 2nd ed., 4 vols., A K Peters, 2001-2004.
-% REF: siegel2013 = Aaron N. Siegel, Combinatorial Game Theory, Graduate Studies in Mathematics 146, American Mathematical Society, 2013.
-% REF: johnson2011 = Will Johnson, Combinatorial Game Theory, Well-Tempered Scoring Games, and a Knot Game, arXiv:1107.5092, 2011.
-% REF: mesdal2009 = G. A. Mesdal III, Partizan Splittles, Games of No Chance 3, MSRI Publications 56, Cambridge University Press, 2009, 447-462.
-% REF: bando2020 = Katsuyuki Bando, Eitetsu Ken, Kota Morikawa, Foundations of Temperature Theory, arXiv:2009.02876, 2020.
-% REF: calistrate1996 = Dan Calistrate, The Reduced Canonical Form of a Game, Games of No Chance, MSRI Publications 29, Cambridge University Press, 1996, 409-416.
-% REF: moews2002 = David Moews, The Abstract Structure of the Group of Games, More Games of No Chance, MSRI Publications 42, Cambridge University Press, 2002, 49-57.
-% REF: dumas1906 = Gustave Dumas, Sur quelques cas d'irreductibilite des polynomes a coefficients rationnels, Journal de Mathematiques Pures et Appliquees, serie 6, 2 (1906), 191-258.
-% REF: akian2012 = Marianne Akian, Stephane Gaubert, Alexander Guterman, Tropical polyhedra are equivalent to mean payoff games, International Journal of Algebra and Computation 22:1 (2012), 1250001.
-% REF: viro2010 = Oleg Viro, Hyperfields for tropical geometry I: Hyperfields and dequantization, arXiv:1006.3034, 2010.
-% REF: altman2026 = Harry Altman, Paolo Lipparini, A Ring structure on the Class of Combinatorial Games, arXiv:2604.27847, 2026.
-
-\footnotesize
-\begin{thebibliography}{99}
-
-\bibitem{akian2012}
-Marianne Akian, St\'ephane Gaubert, and Alexander Guterman,
-``Tropical polyhedra are equivalent to mean payoff games,''
-\emph{International Journal of Algebra and Computation} 22:1 (2012), 1250001.
-
-\bibitem{altman2026}
-Harry Altman and Paolo Lipparini,
-``A Ring structure on the Class of Combinatorial Games,''
-arXiv:2604.27847 (2026).
-
-\bibitem{bando2020}
-Katsuyuki Bando, Eitetsu Ken, and Kota Morikawa,
-``Foundations of Temperature Theory,'' arXiv:2009.02876 (2020).
-
-\bibitem{berlekamp2001}
-Elwyn R. Berlekamp, John H. Conway, and Richard K. Guy,
-\emph{Winning Ways for Your Mathematical Plays}, 2nd ed., 4 vols.,
-A K Peters, 2001--2004.
-
-\bibitem{calistrate1996}
-Dan Calistrate,
-``The Reduced Canonical Form of a Game,'' in
-\emph{Games of No Chance}, MSRI Publications 29,
-Cambridge University Press, 1996, 409--416.
-
-\bibitem{dumas1906}
-Gustave Dumas,
-``Sur quelques cas d'irr\'eductibilit\'e des polyn\^omes \`a coefficients
-rationnels,'' \emph{Journal de Math\'ematiques Pures et Appliqu\'ees},
-6e s\'erie, 2 (1906), 191--258.
-
-\bibitem{johnson2011}
-Will Johnson,
-\emph{Combinatorial Game Theory, Well-Tempered Scoring Games, and a Knot Game},
-arXiv:1107.5092 (2011).
-
-\bibitem{mesdal2009}
-G. A. Mesdal III,
-``Partizan Splittles,'' in \emph{Games of No Chance 3},
-MSRI Publications 56, Cambridge University Press, 2009, 447--462.
-
-\bibitem{moews2002}
-David Moews,
-``The Abstract Structure of the Group of Games,'' in
-\emph{More Games of No Chance}, MSRI Publications 42,
-Cambridge University Press, 2002, 49--57.
-
-\bibitem{siegel2013}
-Aaron N. Siegel,
-\emph{Combinatorial Game Theory}, Graduate Studies in Mathematics 146,
-American Mathematical Society, 2013.
-
-\bibitem{viro2010}
-Oleg Viro,
-``Hyperfields for tropical geometry I: Hyperfields and dequantization,''
-arXiv:1006.3034 (2010).
-
-\end{thebibliography}
+\bibliographystyle{plain}
+\bibliography{thermo_newton}
 
 \end{document}

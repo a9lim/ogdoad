@@ -7,16 +7,14 @@ on a "looks right" basis.
 ## Read the working notes first
 
 `AGENTS.md` is the map: the four pillars (`scalar/`, `clifford/`, `forms/`,
-`games/`) plus the PyO3 bindings, and each pillar has its own `AGENTS.md` with the
-file-by-file breakdown and the layer-specific "things that look like bugs but
-aren't". `docs/OPEN.md` is the genuine open problems — read it before touching
-`forms/char2/`, `games/`, the `experiments/`, or the open-question example probes,
-so you don't file a research question as a bug or a solved theorem.
+`games/`) plus the PyO3 bindings. Each layer has a short local `AGENTS.md` with its
+module map and invariants. Read `docs/OPEN.md` before changing research claims or
+the open-question probes.
 
 ## The non-negotiables
 
-These are the invariants the whole thing rests on (full list in AGENTS.md → Hard
-rules):
+These are the invariants the whole thing rests on (full list in
+`AGENTS.md` under “Non-negotiable mathematical invariants”):
 
 - **The math core is generic over `Scalar` and pure Rust.** PyO3 lives behind the
   `python` feature — never `use pyo3` outside `src/py/`, never make it
@@ -35,21 +33,26 @@ rules):
 
 ```sh
 cargo test --workspace                      # the math core + grundy — source of truth, no Python
-cargo clippy --workspace --all-targets      # kept warning-clean
+cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --all --check
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace   # run COLD (rm -rf target/doc first)
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
+(cd formal && lake build --wfail)
+npm ci
+python scripts/check_writeups.py
 ```
 
 `cargo test` does **not** compile the `python` feature. After touching `src/py/` or
 any core API the bindings call:
 
 ```sh
-cargo check --features python
-cargo clippy --features python --all-targets
+cargo check -p ogdoad --features python
+cargo clippy -p ogdoad --features python --all-targets -- -D warnings
+python scripts/generate_stubs.py --check
 ```
 
-After touching `clifford/` or `scalar/big/surreal/`, rebuild and run the tour —
-Display changes (`e0e1`, `*n`, CNF) don't surface in `cargo test`:
+After touching `clifford/`, `scalar/big/surreal/`, or their bindings, rebuild
+and run the Python tour to verify the bound surface, including canonical
+displays such as `e0∧e1`, `*n`, and CNF:
 
 ```sh
 python -m maturin build --profile dev -i python
@@ -59,11 +62,9 @@ python demo.py
 
 ## Claim levels
 
-When you change prose, comments, examples, or the writeup, label the claim:
-**standard math** (external fact) · **implemented and tested** (backed by this
-checkout) · **interpretation** (a conditional bridge) · **open** (lives in
-`docs/OPEN.md`). A new "X is true" statement is backed by a test or a citation, not
-asserted.
+When you change prose, comments, examples, or a paper, separate **standard and
+cited**, **implemented and tested**, **proved here**, and **open** claims. A new
+mathematical assertion needs a proof, a source, or an explicit open label.
 
 ## Releasing
 

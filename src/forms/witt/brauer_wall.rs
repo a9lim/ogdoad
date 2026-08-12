@@ -1166,7 +1166,7 @@ mod tests {
     }
 
     // ── clifford_correction_ff: the function-field mirror of
-    // brauer_rational::tests's correction-table sweep (CORRECTNESS.md `bw-ff-sweep`).
+    // brauer_rational::tests's correction-table sweep.
     // `clifford_correction_ff` was previously only ever exercised at n ∈ {2,3,4} by
     // the tests above; the `n mod 8 ∈ {0,5,6,7}` match arms had zero coverage.
 

@@ -258,7 +258,7 @@ mod tests {
     /// `leg_neg1` factor in `second_residue_at`'s signed-discriminant twist is `+1`,
     /// so multiplying by it is a no-op — a mis-encoded twist would go undetected.
     /// `p = 3` has `leg_neg1 = -1` (`kappa = 1`), so this is the first Springer
-    /// cross-check that actually exercises the twist (CORRECTNESS.md `one-line-pins`).
+    /// cross-check that actually exercises the twist.
     fn springer_residue_q3(entries: &[i128]) -> WittClassG {
         type Q3 = Qp<3, 6>;
         let metric = Metric::diagonal(entries.iter().map(|&a| Q3::from_int(a)).collect());

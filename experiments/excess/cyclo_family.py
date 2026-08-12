@@ -136,7 +136,7 @@ def verify_level(k: int, factors: dict[int, int], check_irred=True) -> None:
     gamma = x ^ xinv
     # (a draft `beta^N*beta^2 == gamma*beta` check sat here, neutered with `or True`;
     #  the identity as written is false — one side multiplied by beta — and the live
-    #  check below is the verified norm identity. See docs/PY.md §1.5.)
+    #  check below is the verified norm identity.)
     assert fmul(beta, fpow(beta, 1 << h, h), h) == gamma, "norm identity FAILS"
     # (half-angle) beta = zeta^{1/2} * (zeta^{1/2} + zeta^{-1/2})
     half = pow(2, -1, 3 ** (k + 1))

@@ -1,198 +1,63 @@
-# AGENTS.md — `src/forms/integral/`
+# `src/forms/integral/` editing guide
 
-The **arithmetic view** of the forms pillar. The classifiers in the parent work
-over a *field* (square classes / Witt / Arf). An **integral lattice** is the
-complementary object: a free ℤ-module with an integer Gram matrix. Its invariants
-are arithmetic (det, level, minimum, kissing number, |Aut|), and the coarse
-classification is the **genus** (local equivalence at every place), which reuses
-the `local_global/padic.rs` + `local_global/adelic.rs` primitives.
+This directory joins integral lattices, finite quadratic modules, codes,
+modular forms, and Clifford/Weyl constructions. Integral/rational arithmetic
+and algebraic phase classifiers are exact unless an API explicitly returns a
+checked failure; complex Gauss sums and Weil matrices are numerical and use
+documented tolerances.
 
-`mod.rs` re-exports flat. This is the visible meeting point of the char-0 mod-8
-spine (`BW(ℝ)=ℤ/8`, Bott, the 8-fold table) and the lattice world — `E₈` is the
-unique rank-8 even unimodular lattice. Convention: **norm** `Q(x) = xᵀGx` (a
-"norm-2 root" has `Q=2`).
+## Map
 
-- **`lattice/`** (split from `lattice.rs`) — three-file subdirectory:
-  - **`lattice/core.rs`** — `IntegralForm { gram: Vec<Vec<i128>> }` (private Gram, built
-    via `new` (square+symmetric-checked) / `diagonal`, never a struct literal).
-    `determinant` (fraction-free **Bareiss**, exact), `is_even`/`is_unimodular`,
-    `is_positive_definite` (Sylvester leading-minors via Bareiss), `signature` (exact
-    rational diagonalization), `invariant_factors` (SNF → discriminant group `L#/L`),
-    `level` (smallest `N` with `N·G⁻¹` even-integral, via the exact `Rational` inverse),
-    `clifford_metric` (rational Clifford metric), `clifford_metric_f2` (even-lattice
-    mod-2 char-2 metric), `direct_sum`. Integer gcd comes from `linalg::integer::gcd`; the internal
-    helpers `lcm_i128`, `bareiss_det`, `matvec`, `dot` are `pub(super)` for
-    `geometry.rs`.
-  - **`lattice/geometry.rs`** — the positive-definite geometry: `short_vectors`
-    (two-stage: an exact rational ellipsoid enumeration first for small boxes — up to
-    `SHORT_VECTOR_EXACT_ENUM_LIMIT = 2_000_000` candidates via `short_vectors_exact_bounded`
-    — else unimodular size-reduction + **Fincke–Pohst**: float LDLᵀ bounds the search box,
-    exact i128 norm filters the leaves, vectors mapped back to the original basis — false
-    positives from the float bound are removed; `ldl()` returns `None` on a non-positive
-    pivot and that raw search falls back to `None` rather than silently omitting vectors),
-    `minimum`/`minimal_vectors`/`kissing_number`, and
-    `automorphism_group_order` (closed-form diagonal/ADE/root-system fast paths, else
-    backtracking over basis-vector images — every complete assignment is an
-    automorphism, so the count is exact). **Looks like a bug, isn't:** (a) the geometry
-    methods return `None` for indefinite lattices on purpose (infinitely many vectors of
-    each norm); (b) |Aut| is bounded by an explicit node budget (`AUTO_NODE_BUDGET`) and
-    returns `None` past it (`automorphism_group_order_bounded` exposes the budget) — an
-    honest `None`, not silent truncation; (c) `level(⟨1⟩)=2`, not 1 — `ℤ` is odd.
-  - **`lattice/mod.rs`** — hub: declares and re-exports; tests with Oracles:
-    `A_2`/`A_3`/`D_4`/`E_8` det, kissing (6/12/24/240), |Aut| (12/48/1152), level (3/·/·/1),
-    `Z^n` (|Aut| `2ⁿ·n!`).
-- **`diagonal.rs`** — `pub(crate)` exact-rational diagonalization helpers shared by
-  `lattice`, `genus`, and `discriminant` (signature, Sylvester minors, p-adic
-  Gram–Schmidt). Not a public surface.
-- **`root_lattices.rs`** — the ADE catalogue: `a_n` (Cartan matrix), `d_n` (`B·Bᵀ`
-  from the geometric basis `{eᵢ−e_{i+1}}∪{e_{n-2}+e_{n-1}}`), `e_6`/`e_7`/`e_8` (Dynkin
-  edge lists). `coxeter_number = #roots/rank` (computed). `is_root_lattice` (min 2 +
-  roots generate `L`, index off the HNF pivots). Det/kissing/Coxeter oracles protect
-  every construction; |Aut| oracles include `A_n`→`2(n+1)!` (n≥2; `A_1`→2), `D_4`→1152,
-  `D_5`→3840, and the named constant `E8_WEYL_GROUP_ORDER = 696729600`.
-- **`discriminant/`** (split from `discriminant.rs`) — five-file subdirectory:
-  - **`discriminant/complex.rs`** — hand-rolled `Complex64` (dependency-free;
-    deliberately shadows `num_complex::Complex64`).
-  - **`discriminant/gauss_sum.rs`** — `GaussSum` and matrix helpers (`mat_identity`,
-    `mat_mul`, `mat_pow`, `mat_scale`, `mat_approx_eq`); all matrix helpers
-    `pub(super)`.
-  - **`discriminant/form.rs`** — `DiscriminantForm { group, reps, gram_inv }` representing
-    the even-lattice `A_L = L#/L` as `Z^n/GZ^n`; `quadratic_value_mod2`,
-    `bilinear_value_mod1`, `GaussSum::phase_mod8`, and the p-primary `FqmGaussPhase` /
-    `FqmPrimaryPhase` projection (`milgram_signature_mod8_fqm`); `verify_milgram`;
-    `Complex64`, `weil_t`, `weil_s`, `weil_s_prefactor_phase_mod8`,
-    `weil_s_recovers_milgram_phase_mod8`, and `verify_weil_relations`.
-    `is_isomorphic`/`is_isomorphic_bounded` (Nikulin's criterion). The odd-lattice
-    sibling is `OddDiscriminantForm`, with `q_L(y)=y^T G^{-1}y mod Z`,
-    `OddMilgramInvariants`, and `verify_odd_milgram` for the Conway-Sloane
-    oddity-corrected congruence `signature ≡ oddity - p_excess (mod 8)`.
-    `pub(crate)` surface: `IsoTables`, `phase_mod8_from_q_values` (used by
-    `fqm_witt.rs`). **Looks like a bug, isn't:** the standard Weil `S` prefactor is the
-    conjugate of the positive Milgram phase stored by `GaussSum`; the verifier checks
-    `S² = σ²·(γ↦−γ)`, `S⁴ = σ⁴·I`, and `(ST)³ = S²`, not the oversimplified `S⁴ = I`.
-    The Weil/Brown/Nikulin discriminant-form surfaces remain even-lattice only.
-  - **`discriminant/phases.rs`** — `FqmPrimaryPhase` and `FqmGaussPhase`: the p-primary
-    Milgram/Brown Gauss-sum phase projection of a finite quadratic module. Separated
-    from `form.rs` so that type records don't pull in cyclotomic arithmetic.
-  - **`discriminant/mod.rs`** — hub: re-exports public surface + `pub(crate)` items
-    `IsoTables`/`phase_mod8_from_q_values`; tests.
-- **`fqm_witt.rs`** — finite-quadratic-module Witt classes: `FiniteQuadraticModule`
-  gives a native cyclic-product presentation, while `DiscriminantForm::fqm_witt_class`
-  and `is_fqm_witt_equivalent` reduce p-primary modules by isotropic cyclic quotients
-  to canonical anisotropic cores. This is the exact Wall/Nikulin Witt class up to the
-  explicit finite table budget (`None`, never truncation, past it); the older
-  `FqmGaussPhase` is now only the phase projection. The same bounded table surface
-  also carries Nikulin theorem 1.10.1 via
-  `nikulin_existence_report` / `nikulin_even_lattice_exists`, deciding which
-  `(signature, FQM)` pairs are realized by even lattices without enumerating them.
-- **`genus.rs`** — the **genus** = (signature, det, per-prime Conway–Sloane symbol).
-  Engine: the p-adic Jordan decomposition (`jordan_blocks`, exact over `Rational`):
-  odd `p` diagonalizes (valuation-ordered Gram–Schmidt); `p=2` peels 1-dim type-I lines
-  and 2-dim even type-II planes by Schur complement. Per scale: `(dim, det mod 8, type,
-  oddity = trace mod 8)` at `p=2`; odd `p` uses `(dim, det square class)`. `Genus::from_lattice` /
-  `are_in_same_genus`. **Looks like a bug, isn't:** the comparison is **exact for odd
-  `p`** (no sign-walking) and uses the full Conway–Sloane/Allcock fine-symbol reduction
-  at `p=2` (normalize det residues, fuse compartment oddities, sign-walk left along
-  trains adding `4` to crossed compartment oddities). The `Z⁸` (`1₀^{+8}`, type I) vs
-  `E_8` (`1_{II}^{+8}`, type II), Sage canonical-symbol examples, and randomised `Uᵀ G U`
-  isometry invariance pin the engine.
-- **`kneser.rs`** — explicit Kneser `p`-neighbors for integral lattices:
-  `isotropic_lines_mod_p`, `kneser_neighbor`, and `kneser_neighbors` build
-  `pM + Zv` in integer coordinates and divide the Gram by `p^2`, so integrality is
-  checked rather than assumed. The even-unimodular mass report `KneserMassInvariants`
-  (each enumerated genus member a `KneserMassRecord`, a static catalogue record with no
-  group law) is bounded to the explicit rank-8/rank-16 representatives (`E8`, `E8+E8`,
-  `D16+`) and verifies the mass sum; it exposes the discovered representatives through
-  `generated_class_labels()` (a method, not a field). Rank 24 remains with the Niemeier
-  catalogue because the 23 rooted glued Gram representatives are not shipped.
-- **`weyl_versors.rs`** — the ADE roots-as-Pin bridge: simple roots in the rational
-  Clifford algebra act by `twisted_sandwich` as the Cartan simple reflections,
-  each determinant is checked as `-1` through the outermorphism determinant, and
-  `weyl_coxeter_versor` has the expected Coxeter order for the supported
-  `A_n`/`D_n`/`E_{6,7,8}` components. The `WeylVersorInvariants` record reports the
-  Weyl-group order from the root-system formulas (it dropped its tautological
-  `simple_reflection_count` field — that count is just the rank); it does not enumerate
-  large Weyl groups element-by-element.
-- **`mass_formula.rs`** — the **Minkowski–Siegel mass** of the even-unimodular genus,
-  `mass_even_unimodular(n)` = `|B_{n/2}|/n · ∏_{j<n/2} |B_{2j}|/(4j)`, returned as a
-  reduced `(num, den)` `i128` fraction (Bernoulli by exact recurrence; hard cap `n > 24`
-  ⇒ `None`, the i128 model reaching exactly to 24). `mass_even_unimodular(8) =
-  (1, 696729600) = 1/|W(E_8)|` — the formula *recovers* the `E_8` automorphism order the
-  brute-force counter refuses; `n = 16` matches the two-class genus and `n = 24` is
-  checked against the Niemeier catalogue. Plus the
-  **Leech lattice** `leech()`: a `√8·Λ₂₄ ⊂ ℤ²⁴` spanning set (the crate-private Golay
-  `[24,12,8]` generator rows `[I₁₂|A]`, the `4(e₀+eᵢ)` glue vectors, and the odd
-  `(−3, 1²³)` vector) → HNF basis `B` → `Gram = B·Bᵀ/8`. **Validated, not trusted:** rank-24 even unimodular with
-  no roots *is* Leech (Niemeier), so the test checks `det=1`, even, `short_vectors(2)`
-  empty (cheap; the full kissing 196560 is not enumerated). `|Aut(Λ₂₄)| = |Co₀|` is the
-  factorized constant `LEECH_AUT_ORDER`.
-- **`niemeier.rs`** — the 24-class Niemeier catalogue (each class a `NiemeierRecord`,
-  a static catalogue record carrying no group law): root-system components,
-  finite glue-code indices `[N:R]`, and the quotient `Aut(N)/W(R)` from the
-  Conway-Sloane table. It constructs the root sublattice `R` for each rooted class
-  and uses Venkov's weight-12 formula `theta_N = E4^3 + (#roots - 720) Delta`; it
-  deliberately does **not** ship 23 explicit glued Gram matrices. The component type
-  `NiemeierComponentKind` names the exceptional roots explicitly (`E6`/`E7`/`E8`
-  variants, not a single `E(usize)`), and `coxeter_number`/`determinant`/
-  `root_lattice`/`root_count` all return `Option` uniformly — matching
-  `weyl_group_order` — instead of panicking out of domain. `checked_factorial`/
-  `checked_pow2` are shared from the lattice module (no per-file copies; the wider
-  substrate — `linalg::integer::gcd`/`gcd_u128`, `scalar::is_prime_u128`, the shared
-  `is_prime_power` in `integral/mod.rs` — serves `kneser.rs`, `fqm_witt.rs`, and
-  `discriminant/form.rs`, not this file). Oracles:
-  `glue^2 = det(R)`, anchor automorphism orders (Leech, `A_1^24`, `E_8^3`),
-  `Σ 1/|Aut(N)| = mass_even_unimodular(24)`, and the exact weighted identity
-  `(Σ theta_N/|Aut(N)|)/mass(24) = E12`.
-- **`codes.rs`** — finite linear codes and Constructions A/B/D: `BinaryCode` stores a checked
-  row-reduced F₂ generator matrix; `PrimeCode<P>` stores a checked row-reduced odd
-  prime-field generator matrix. `dual`, `is_self_dual`, `is_self_orthogonal`,
-  `contains`, `minimum_distance`, `weight_enumerator`, and the Hamming/Krawtchouk
-  `macwilliams_transform` are exact; `PrimeCode::complete_weight_enumerator` exposes
-  raw integer composition counts (the full complete-WE transform is cyclotomic, not an
-  `i128` table). `construction_a` uses the `1/sqrt(p)` scaling (HNF basis of
-  `{x ∈ Z^n : x mod p ∈ C}`, dot products /p); returns `None` when the scaled Gram is
-  not integral.
-  `construction_b` is the classical doubly-even sublattice
-  `(1/sqrt(2)){x : x mod 2 in C, Σx_i ≡ 0 mod 4}`; `B(Golay)` is pinned as the
-  determinant-4 rootless half-Leech lattice with minimum 4. `construction_d` is the
-  scaled increasing tower `(C0 + 2C1 + ... + 2^(a-1)C_{a-1} + 2^a Z^n)/sqrt(2^a)`;
-  one level recovers Construction A, non-nested towers return `None`, and the
-  `0 <= H_8` two-level tower is pinned by determinant/minimum. `reed_muller_code`
-  generates `RM(r,m)` from squarefree monomial evaluations; under this scaled
-  convention `barnes_wall_16()` uses `RM(0,4) <= RM(2,4)` and is pinned by
-  determinant 256, minimum 4, and kissing number 4320, while
-  `RM(1,4) <= RM(2,4)` is the even unimodular rank-16 normalization.
-  `theta_series_via_weight_enumerator` builds the Construction A theta series straight
-  from the Hamming weight enumerator (`None` outside the doubly-even boundary). Type I
-  witnesses are `repetition_code(2)` / `type_i_z2_code` (Construction A gives an odd
-  unimodular rank-2 lattice isometric to `Z^2`) and `type_i_z2_plus_e8_code`; `direct_sum`
-  composes code blocks. Shipped Type II constructors: `hamming_code`,
-  `extended_hamming_code`, `golay_code`, `type_ii_e8_sum_code`, `type_ii_len16_code`,
-  `d16_plus` (the factorized `D16_PLUS_AUT_ORDER` pins its automorphism count). Shipped
-  odd-prime constructor: `ternary_golay_code`; plain `Z` Construction A gives an odd
-  unimodular rank-12 lattice with minimum 2 and kissing number 264.
-  **Looks like a bug, isn't:**
-  bare binary Golay Construction A is even unimodular rank 24 **with roots**; it is not
-  Leech. Plain ternary Golay Construction A is **not** Coxeter-Todd `K12`; `K12` needs
-  the Eisenstein/CM-lattice lift.
-- **`clifford_lattices.rs`** — the Clifford→integral `BW16` certificate. It builds
-  integer numerator rows from the real spinor weight basis indexed by `F_2^4`: the
-  zero phase, sign rows `1 - 2q` for an `RM(2,4)` row basis, and the `4e_x`
-  coordinate weight rows, then divides the Gram by 4. The resulting lattice is pinned
-  equal to `barnes_wall_16()` from Construction D (determinant 256, minimum 4, kissing
-  4320). It records `|Aut(BW16)| = 89,181,388,800` and the full real Clifford group
-  order `178,362,777,600` separately because the usual BW16 automorphism group is the
-  index-2 Clifford/BRW subgroup, not the full `2_+^(1+8).O^+(8,2)` group.
-- **`theta.rs` / `modular.rs`** — exact theta and modular-form bridge.
-  `IntegralForm::theta_series(terms)` buckets short vectors by `Q/2`, `None` outside the
-  positive-definite even-lattice boundary. `theta_series_level4(terms)` buckets by `Q`
-  for positive-definite odd or even lattices; it is the honest integer-exponent level-4
-  head, not a level-`N` modular-form identifier. `eisenstein_e4`, `eisenstein_e6`,
-  `eisenstein_e12`, `delta`,
-  `mk_basis`, `as_modular_form` identify q-expansions exactly in `ℂ[E4,E6]`. Oracles pin
-  `theta_E8 = E4`, `theta_{E8+E8} = theta_{D16+} = E4²`, Leech's rootless `q^1`
-  coefficient in `E4³ - 720·Δ`, and the rank-16 Siegel–Weil identity
-  `1/|Aut(E8⊕E8)| + 1/|Aut(D16+)| = mass_even_unimodular(16)` with
-  `|Aut(E8⊕E8)| = 2·|W(E8)|²` (the factor 2 from the swap automorphism),
-  verified by exact cross-multiplication in `siegel_weil_rank16_mass_identity_is_exact`;
-  rank 24 is checked in `niemeier.rs` against `E12 = 1 + (65520/691)Σσ11(n)q^n`.
+| path | responsibility |
+| --- | --- |
+| `lattice/` | Gram matrices, duals, determinant, signature, minima, roots |
+| `diagonal.rs` | integral diagonal and parity data |
+| `discriminant/` | finite quadratic modules, Gauss phases, and Weil matrices |
+| `fqm_witt.rs` | bounded Witt reduction for finite quadratic modules |
+| `genus.rs` | canonical p-adic symbols and Nikulin criteria |
+| `mass_formula.rs` | exact mass and Bernoulli/Eisenstein constants |
+| `kneser.rs` | denominator-checked p-neighbors and mass closure |
+| `codes.rs` | binary/p-ary codes and Constructions A, B, and D |
+| `theta.rs`, `modular.rs` | exact theta coefficients and modular-form identities |
+| `root_lattices.rs`, `niemeier.rs` | ADE and Niemeier catalogues |
+| `clifford_lattices.rs` | Clifford/spinor certificates for Barnes--Wall data |
+| `weyl_versors.rs` | roots and Weyl reflections realized by Pin versors |
+
+## Invariants
+
+- Integral Gram matrices are symmetric and dimension-checked at construction.
+- Scaling conventions in Constructions A/B/D are part of the API. Return
+  `None` when the requested scaled Gram is not integral; do not round.
+- Discriminant-form arithmetic and algebraic phase classification are exact.
+  Complex Gauss sums and `Complex64` Weil matrices are numerical realizations
+  with explicit tolerances. The Weil `S` prefactor uses the conjugate positive
+  Milgram phase, and verification checks the metaplectic relations rather than
+  the false shortcut `S^4 = I`.
+- Odd lattices require the oddity correction. Do not apply the even-lattice
+  Milgram formula unchanged.
+- Canonical 2-adic symbols require train, compartment, sign-walking, and oddity
+  normalization. Preserve equivalent-symbol tests when editing reduction.
+- Kneser neighbors must validate denominators and isotropic lines before
+  constructing an integral Gram matrix.
+- Catalogue data are standard/source-backed inputs. Separate catalogue checks
+  from generated theorem claims.
+- Automorphism-group orders, counts, discriminants, and other fixed-width
+  mathematical data use `u128`/`i128`.
+
+## Cross-pillar boundaries
+
+- `IntegralForm` may export rational and mod-two Clifford metrics, but the
+  Clifford engine remains generic and owns geometric multiplication.
+- Brown invariants of 2-elementary discriminant forms and real signatures meet
+  through Milgram's relation; they are computed by different exact paths.
+- Code-to-lattice and Clifford-to-lattice constructors must retain explicit
+  witnesses rather than asserting an isomorphism from matching headline
+  invariants alone.
+- Rank-24 Niemeier statements may be catalogue-backed even when lower-rank
+  genera have explicit neighbor enumeration. State that distinction.
+
+## Verification
+
+Use focused determinant, parity, theta, mass, and Weil-relation tests for the
+changed object, then `cargo test --workspace` and Clippy. New catalogue rows
+need a cited source and a test of every consumed field.

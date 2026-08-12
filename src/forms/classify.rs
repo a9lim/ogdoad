@@ -891,8 +891,8 @@ mod tests {
         }
     }
 
-    // CORRECTNESS.md `char2-decomp-coverage`: `Char2WittDecomp`'s documented
-    // `radical_anisotropic: true` caveat — that `witt_index`/`core_anisotropic_dim`/
+    // Exercise `Char2WittDecomp`'s `radical_anisotropic: true` caveat: its
+    // `witt_index`/`core_anisotropic_dim`/
     // `arf` describe the *chosen* symplectic complement, not an isometry
     // invariant of the whole form — was never constructed by any test. Build the
     // same defective-radical pair `equivalence.rs`'s
