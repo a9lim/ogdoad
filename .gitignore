@@ -28,3 +28,6 @@ writeups/*.fdb_latexmk
 
 # Local research scratch space
 /tmp/
+
+# Local reference-PDF library (downloaded citations, not repo content)
+/ref/

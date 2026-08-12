@@ -110,11 +110,19 @@ merged blessing/provenance, plus grundy/tests/laws.rs — the seeded law
 tests (display round-trips, projection oracle, rotation laws) — and
 grundy/tests/conformance.rs, the corpus runner),
 and `writeups/`
-(`goldarf.tex` — the resolved Gold/Arf normal-play/observation-boundary theorem,
-including the Tier-2 no-go history and weighted-source Witt--FIFO construction; `excess.tex` — the
+(`goldarf.tex` — the unified flagship paper, "Quadratic Refinements in Normal
+Play: Realization and the Observation Boundary" (merged 2026-08-12): the
+resolved Gold/Arf normal-play theorem with the Tier-2 no-go history and
+weighted-source Witt--FIFO construction, the absorbed sharp all-exponent
+diagonal-source criterion with closed trace-dual basis and tower-recursive
+Artin--Schreier solver, the Brown-selector section (intrinsic partizan
+outcomes for all four `Z/4` residues), and the game-exterior appendix
+(ambient-coherent obstruction, `⋂ₖ4ᵏR` sharpening, framed as the negative
+answer to Altman--Lipparini Problem 5.3(j)) — this one file absorbed the
+retired `gold_diagonal_source.tex`, `brown_game_semantics.tex`,
+`game_exterior_deformation.tex`, and `game_exterior_divisibility.tex`;
+`excess.tex` — the
 consolidated note on the transfinite nim excess problem;
-`gold_diagonal_source.tex` — the complete quadratic-tower proof that every Gold
-exponent has a constructive Artin--Schreier coordinate-diagonal source;
 `linking_affine.tex` — the proof-frontier note for the general FIFO linking
 theorem: vector live-star score, affine-response equivalence, parity-cell
 subclass, homogeneous response recursion, cut-space/two-graph and poison
@@ -122,16 +130,15 @@ filtrations, the correlated cut/continuation moment, initial cut contraction,
 the two-bit handshake refinement, two-switch tail, the false
 childwise/full-fan/bounded-support inductions, and the exact still-open global
 odd-flow lemma;
-`game_exterior_deformation.tex` — the checked game-generator Clifford deformation;
-`game_exterior_divisibility.tex` — the resolved global game-native deformation
-question: power-of-two roots in the short-game group force all torsion squares
-and polar pairings to vanish in every ambient-coherent faithful Clifford datum;
-`thermo_newton.tex` — the resolved thermography/Newton separation theorem: one
-filtered shadow, but no faithful dyadic-unital tropical ring;
-`transfinite_arf.tex` — the resolved full-`On₂` quadratic-classification theorem:
-the Artin--Schreier/Witt class vanishes over the algebraically closed nimber field,
-with polar rank, radical dimension, and radical anisotropy the complete singular
-normal-form data).
+`thermo_newton.tex` — restructured 2026-08-12 as a theorem-first note centered
+on the Norton thermic law `temp(G.u) = u·temp(G) + (u−δ_u)` with its
+composition-defect classification, the tropical-shadow no-go demoted to a
+closing section;
+`transfinite_arf.tex` — the resolved quadratic-classification theorem, revised
+2026-08-12 to state the result over any perfect Artin--Schreier-surjective
+characteristic-2 field with full `On₂` as corollary: every nonsingular form is
+hyperbolic, the quadratic Witt group vanishes, and
+`(dim V, dim rad B, dim rad Q)` is the complete singular invariant).
 
 ## Claim levels and non-claims
 
@@ -295,7 +302,7 @@ synchronized-charge boundary: `q=lift(ell)+2Q`, with phase the correlated Walsh
 pair of `Q` and `Q+ell`; ambient Brown colours of full `ShUg` vanish, while a
 single partizan selector `{A_(Q+ell) | A_Q}` realizes residues `0,1,2,3` as
 intrinsic outcomes `N,R,P,L` without an external product or terminal evaluator
-(`writeups/brown_game_semantics.tex`). The
+(the Brown-selector section of `writeups/goldarf.tex`). The
 fifth-wave Bridge K is shipped too: the full `ℚ/ℤ` ungraded Brauer invariant
 (`witt/cyclic.rs`: `BrauerClass` + `cyclic_algebra_invariant` = `v(a)/n` for the
 unramified local cyclic class over the `Qq` leg, plus `tame_symbol_exponent` /
@@ -315,7 +322,8 @@ structure theorem makes the short-game group power-of-two divisible with
 power-of-two torsion, so adjoining roots of `nt=0` forces `Q(t)=B(t,x)=0` over
 every coefficient ring in any ambient-coherent faithful Clifford datum.  Thus
 nonzero local torsion tables are necessarily root-incomplete and ambient-dependent;
-the proof is in `writeups/game_exterior_divisibility.tex` and its algebraic core is
+the proof is the game-exterior appendix of `writeups/goldarf.tex` (with the
+sharper `⋂ₖ4ᵏR` conclusion) and its algebraic core is
 kernel-checked in `formal/Ogdoad/GameExterior.lean`.
 
 The game-built Gold-form bridge and its normal-play rule are proved. The
@@ -352,11 +360,13 @@ independent ingredients in the `GoldDiagonal`, `FifoMatching`,
 
 The earlier σ-valued echo-fifo+dummy realizer remains **verified**
 (2026-06-10, adversarial review:
-`experiments/echo_solver.py`, 391,680/391,680 m=8 checks, zero misses — record in
-`writeups/goldarf.tex` §8). Its arbitrary-graph mechanism is a strict
+`experiments/echo_solver.py`, 391,680/391,680 m=8 checks, zero misses — the
+harness and `docs/PY.md` carry the record; the flagship paper no longer
+narrates the superseded mechanism). Its arbitrary-graph mechanism is a strict
 generalization, no longer a premise of Gold exactness. The
 realizer's *mechanism* is reduced (2026-06-10 second pass,
-`experiments/linking_game.py`, goldarf §8 `sec:linking`): the σ-game is the
+`experiments/linking_game.py`; frontier note `writeups/linking_affine.tex`):
+the σ-game is the
 odd-close parity game on the support graph, and the linking theorem — an isolated
 coin forces flips even, hence exactness for all m — is machine-verified on every
 graph class through k = 8 real coins plus dummy (12,346 classes at k = 8, both

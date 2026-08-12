@@ -51,6 +51,42 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### ~4·(e_f∧e_g∧e_c): `flagship-merge-2026-08-12` (the publication revision pass)
+**Completed:** 2026-08-12
+**Summary:** the six-referee publishability review (verdicts in
+`CLOSED-TODO.md`) implemented: four resolved papers merged into one flagship,
+the other two revised in place; every referee-supplied formula independently
+re-derived before printing, none failed.
+**Pillars:** forms ↔ games ↔ scalar    **Claim level:** editorial/structural — no new theorems; two claim-level corrections
+- flagship: `writeups/goldarf.tex` retitled "Quadratic Refinements in Normal
+  Play: Realization and the Observation Boundary"; absorbed
+  `gold_diagonal_source.tex` (one-line trace proof + closed trace-dual basis +
+  tower-recursive AS solver), `brown_game_semantics.tex` (Brown-selector
+  section), and the `game_exterior_{deformation,divisibility}.tex` pair
+  (appendix, sharpened to `⋂ₖ4ᵏR`, framed as the negative answer to
+  Altman–Lipparini Problem 5.3(j)); the four standalones retired to git
+  history. Referee repairs: rigidity no-go scoped to single-board vector
+  rules, transcript-stability defined in-paper, Rule box completed with
+  ko/PASS/claim semantics and the decreasing rank, former Theorem C demoted
+  to explicitly-conditional on Plambeck–Siegel regularity.
+- thermo: `thermo_newton.tex` restructured theorem-first around the Norton
+  thermic law `temp(G.u) = u·temp(G) + (u−δ_u)` with the raw-wall lemma
+  `D_{A_u(G)}(a_u+ut) = u·D_G(t)` proved by simultaneous birthday induction;
+  the referee's non sequitur (option-wise corridor application) repaired;
+  no-go demoted to a closing section.
+- transfinite: `transfinite_arf.tex` promoted to perfect AS-surjective
+  char-2 fields with `On₂` as corollary, "regular" → "nonsingular"
+  (EKM convention), invariant recast as `(dim V, dim rad B, dim rad Q)`,
+  `Off.lean` docstring narrowed to its actual pointwise statement.
+- sourcing: all arXiv identifiers verified against the actual PDFs
+  (Altman–Lipparini 2604.27847 including Problem 5.3(j)/6.10 text;
+  Risnoveanu 2606.28414; Moews pages 49–57, not 49–58); local reference
+  library in gitignored `ref/` with `refs.bib`.
+- boundaries: publishability verdicts and remaining submission work tracked
+  in `CLOSED-TODO.md` (a9's print-only checks: Winning Ways ch. 8, Siegel
+  §III.3; Lean follow-ups deliberately unscheduled); a bounded re-run of the
+  thermo stress harness belongs at submission time.
+
 ### tis·(e_f∧e_g): `all-exponent-gold-diagonal-source`
 **Completed:** 2026-08-09
 **Summary:** at every power-of-two degree `m ≥ 2`, every Gold exponent,
@@ -67,7 +103,9 @@ coordinate diagonal in the canonical nim tower.
 - surface: `gold_component_diagonal_dual`, `gold_diagonal_dual`, and
   `gold_diagonal_artin_schreier_source` in `src/forms/trace_form.rs`, with all
   supported tower degrees through 128 covered by the tests.
-- proof: `writeups/gold_diagonal_source.{tex,pdf}`; formal core:
+- proof: the diagonal-source section of `writeups/goldarf.tex` (absorbed from
+  the retired `gold_diagonal_source.tex` at the 2026-08-12 flagship merge);
+  formal core:
   `formal/Ogdoad/GoldDiagonal.lean` checks the tower trace, dual reconstruction,
   absolute-trace descent, and the full Artin–Schreier image-equals-trace-kernel
   theorem without axioms.
@@ -142,7 +180,8 @@ values vanishes by two-divisibility.
 - sharpness/correction: the abelian extension `Z/4 -> Z/8 -> Z/2` carries the
   odd Brown line only relative to a chosen section; a bare central extension
   neither fixes `q` nor supports a verbatim extraspecial abelian obstruction.
-- artifact: `writeups/brown_game_semantics.{tex,pdf}`.
+- artifact: the Brown-selector section of `writeups/goldarf.tex` (absorbed from
+  the retired `brown_game_semantics.tex` at the 2026-08-12 flagship merge).
 - formal core: `formal/Ogdoad/BrownGame.lean` kernel-checks the split,
   corrected polar, converse/round trip, two-divisible collapse, `Z/8` model,
   partizan starter-profile table, and exact outcome decoder.  Moews's
@@ -167,7 +206,9 @@ commutative coefficient target.
   `Sym(M/2M)` vanishes globally because `ShUg=2ShUg`; nonzero nimber Gold forms
   cannot extend coherently to all short games; free-direction mean/atomic-weight
   squares survive through the torsion-free quotient.
-- artifact: `writeups/game_exterior_divisibility.{tex,pdf}`.
+- artifact: the game-exterior appendix of `writeups/goldarf.tex` (absorbed from
+  the retired `game_exterior_divisibility.tex` at the 2026-08-12 flagship
+  merge, with the sharpened `intersection of 4^k R` conclusion).
 - formal core: `formal/Ogdoad/GameExterior.lean` kernel-checks the abstract ring
   proof from explicit roots and the coefficient-valued corollaries.  Moews's
   short-game group theorem is an explicit external input, not a Lean axiom.

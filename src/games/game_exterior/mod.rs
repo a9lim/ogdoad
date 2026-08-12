@@ -19,8 +19,8 @@
 //! [`Game`](crate::games::Game) group is not a ring, but it *is* a `ℤ`-module,
 //! and that is enough for `Λ`. A nonzero torsion quadratic datum can exist on a
 //! chosen root-incomplete subgroup, but the power-of-two divisibility theorem in
-//! `writeups/game_exterior_divisibility.tex` proves that none extends coherently
-//! and coefficient-faithfully to all short games.
+//! the game-exterior appendix of `writeups/goldarf.tex` proves that none extends
+//! coherently and coefficient-faithfully to all short games.
 
 pub mod clifford;
 pub mod lambda;

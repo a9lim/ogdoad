@@ -93,6 +93,10 @@ These are the findings that gate citing the archive's printed output.
    "hypothesis to re-test". Fixed: goldarf's parenthetical now notes the rescued
    snapshot predates the memo-key fix, and the file's SUPERSEDED header says the
    same. Lesson for future greps: match TeX-escaped names.
+   **Update (2026-08-12):** the flagship merge dropped goldarf's superseded
+   echo-mechanism narrative entirely, so the paper no longer cites
+   `echo_charge_probe` at all; this ledger and the experiment headers are now
+   the sole carriers of that provenance record.
 
 3. **`experiments/audit/fp_full.py:3` — cannot run, at all, as checked in.**
    `exec(open('/tmp/fp_emulate.py').read().split('# scan')[0])` — an `exec` of

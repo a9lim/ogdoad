@@ -4,14 +4,22 @@ This file records solved research questions as mathematical results, not as a
 development chronology. Implementation milestones remain in [`DONE.md`](DONE.md),
 while the two unsolved fronts remain in [`OPEN.md`](OPEN.md).
 
+Since 2026-08-12, four of the six results share one flagship paper:
+[`goldarf.tex`](../writeups/goldarf.tex), "Quadratic Refinements in Normal
+Play: Realization and the Observation Boundary", absorbed the former
+`gold_diagonal_source.tex` (as its diagonal-source section),
+`brown_game_semantics.tex` (as its Brown-selector section), and the
+`game_exterior_deformation.tex`/`game_exterior_divisibility.tex` pair (as its
+game-exterior appendix). The retired standalones survive in git history.
+
 | solved question | answer | authoritative paper |
 |---|---|---|
 | Gold quadratic zero sets in normal play | every finite characteristic-two quadratic refinement has a uniform normal-play realization, with an optimal observation bound | [`goldarf.tex`](../writeups/goldarf.tex) |
-| diagonal sources for every Gold exponent | every unscaled Gold diagonal in the canonical quadratic nim tower is an Artin--Schreier value | [`gold_diagonal_source.tex`](../writeups/gold_diagonal_source.tex) |
-| a game-native Clifford deformation on short-game values | ambient coherence forces every torsion square and polar pairing to vanish | [`game_exterior_divisibility.tex`](../writeups/game_exterior_divisibility.tex) |
-| quadratic classification over the full nimber field | the regular Witt and Brauer--Wall classes vanish; singular forms retain only polar-radical data | [`transfinite_arf.tex`](../writeups/transfinite_arf.tex) |
-| Brown game semantics | one partizan selector realizes all four local Brown residues; every ambient-coherent Brown colour on all short games is zero | [`brown_game_semantics.tex`](../writeups/brown_game_semantics.tex) |
-| thermography versus Newton polygons | they share a filtered tropical shadow but cannot form one faithful full-dyadic graded ring | [`thermo_newton.tex`](../writeups/thermo_newton.tex) |
+| diagonal sources for every Gold exponent | every unscaled Gold diagonal in the canonical quadratic nim tower is an Artin--Schreier value | [`goldarf.tex`](../writeups/goldarf.tex), diagonal-source section (`thm:all-diagonal-source`) |
+| a game-native Clifford deformation on short-game values | ambient coherence forces all quadratic and polar values into `⋂ₖ4ᵏR` — identically zero over `ℤ`, in characteristic 2, and over `ℤ/4` — and every torsion square and polar pairing to vanish over every coefficient ring | [`goldarf.tex`](../writeups/goldarf.tex), game-exterior appendix (`sec:game-exterior`) |
+| quadratic classification over the full nimber field | the nonsingular Witt and Brauer--Wall classes vanish; `(dim V, dim rad B, dim rad Q)` is the complete singular invariant — standard math applied to a new scalar world | [`transfinite_arf.tex`](../writeups/transfinite_arf.tex) |
+| Brown game semantics | one partizan selector realizes all four local Brown residues; every ambient-coherent Brown colour on all short games is zero | [`goldarf.tex`](../writeups/goldarf.tex), Brown-selector section (`sec:brown-selector`) |
+| thermography versus Newton polygons | positive numeric Norton units obey the exact thermic law `temp(G.u) = u·temp(G) + (u − δ_u)` with a classified composition defect; the shared shadow is tropical but no faithful full-dyadic graded ring exists | [`thermo_newton.tex`](../writeups/thermo_newton.tex) |
 
 ## 1. Gold quadratic zero sets have a normal-play realization
 
@@ -73,7 +81,10 @@ separately.
 
 Proof surfaces:
 
-- [`writeups/gold_diagonal_source.tex`](../writeups/gold_diagonal_source.tex)
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex), diagonal-source section
+  (`thm:all-diagonal-source`): the one-line trace proof, the closed
+  trace-dual bit basis, the scaled recursion and unscaled descent, and the
+  tower-recursive Artin--Schreier solver
 - [`formal/Ogdoad/GoldDiagonal.lean`](../formal/Ogdoad/GoldDiagonal.lean)
 - [`src/forms/trace_form.rs`](../src/forms/trace_form.rs)
 
@@ -84,39 +95,56 @@ finitely generated subgroup may satisfy the required null and polar-radical
 relation checks. They do not define a quadratic datum intrinsic to game values.
 
 Moews's structure theorem makes the additive group of short games
-power-of-two divisible with power-of-two torsion. If `nt = 0`, choose roots
-`ny = t` and `nz = x`. In any coefficient-faithful additive grade-one
-realization, `n^2 y = 0` forces
+power-of-two divisible with power-of-two torsion (finite orders are powers of
+two by Conway's Theorem 92). Divisibility alone forces, in any
+coefficient-faithful additive grade-one realization,
+
+```text
+Q(x), B(x,y) in the intersection of all 4^k R,
+```
+
+which is identically zero over `Z`, in characteristic 2, and over `Z/4`.
+On torsion, if `nt = 0`, rooting `t` and `x` separately (`ny = t`, `nz = x`)
+forces
 
 ```text
 Q(t) = 0,
-B(t,x) = 0.
+B(t,x) = 0
 ```
 
-Thus every global datum, and every inclusion-coherent family of finite-subgroup
-data, factors through the torsion-free quotient. Characteristic two and torsion
+over every coefficient ring. Thus every global datum, and every family
+coherent over all finitely generated subgroups (the quantifier is essential),
+factors through the torsion-free quotient. Characteristic two and torsion
 coefficient rings do not evade the conclusion. Nonzero Gold forms remain valid
 on the nimber field-like core because its multiplication and trace are extra
 structure; they cannot extend coherently to all partizan games.
 
 Proof surfaces:
 
-- [`writeups/game_exterior_deformation.tex`](../writeups/game_exterior_deformation.tex)
-- [`writeups/game_exterior_divisibility.tex`](../writeups/game_exterior_divisibility.tex)
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex), game-exterior appendix
+  (`sec:game-exterior`): the sharpened `⋂ₖ4ᵏR` conclusion, the corrected
+  root-x torsion anticommutator proof, the all-f.g.-subgroups coherence
+  quantifier, and the framing as a negative answer to Altman--Lipparini
+  Problem 5.3(j)
 - [`formal/Ogdoad/GameExterior.lean`](../formal/Ogdoad/GameExterior.lean)
 
 ## 4. The full nimber field has no Arf or Witt bit
 
-The full nimber field `On_2` is algebraically closed of characteristic two.
-Every regular finite-dimensional quadratic form is hyperbolic, so
+Over every perfect characteristic-two field with surjective Artin--Schreier
+map, every nonsingular finite-dimensional quadratic form is hyperbolic. The
+full nimber field `On_2` is algebraically closed of characteristic two, so
+this applies there:
 
 ```text
 W_q(On_2) = 0
 ```
 
-and every regular quadratic Clifford/Brauer--Wall class is split. A possibly
-singular form is classified by the rank of its polar form, the radical
-dimension, and whether the quadratic form is nonzero on the radical.
+and every nonsingular quadratic Clifford/Brauer--Wall class is split. A
+possibly singular form is classified by the dimension triple
+`(dim V, dim rad B, dim rad Q)`. Claim level: standard math (Arf, EKM,
+Hoffmann--Laghribi) applied to a new scalar world; the note's contribution is
+the application and the corrective observation that an Arf bit is relative to
+a declared subfield and dies in the colimit.
 
 The finite-field Arf bit remains correct relative to a declared finite nimber
 subfield. It vanishes after scalar extension to a sufficiently large field and
@@ -165,15 +193,27 @@ insufficient to recover a Brown phase without a chosen section.
 
 Proof surfaces:
 
-- [`writeups/brown_game_semantics.tex`](../writeups/brown_game_semantics.tex)
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex), Brown-selector section
+  (`sec:brown-selector`): the canonical split, the correlated Walsh
+  identity, Wood-coordinate phase formulas with the singular boundary, the
+  intrinsic selector with the `*, ↓, 0, ↑` normalized forms, and the
+  outcome census
 - [`formal/Ogdoad/BrownGame.lean`](../formal/Ogdoad/BrownGame.lean)
 
 ## 6. Thermography and Newton polygons are two tropical objects
 
-Temperature obeys a non-Archimedean maximum inequality, exact thermograph
-recursion is a dual max-plus/min-plus fold, and every positive numeric Norton
-unit gives an exact external affine regrading of the temperature filtration.
-This is the shared tropical shadow.
+The paper's center (post the 2026-08-12 restructure) is the positive result:
+every positive numeric Norton unit `u` obeys the exact thermic law
+
+```text
+temp(G.u) = u * temp(G) + (u - delta_u)
+```
+
+proved by a simultaneous birthday induction on raw wall identities
+(`D_{A_u(G)}(a_u + u t) = u * D_G(t)`), with the composition defect
+`Delta(u,v) >= 0` fully classified at zero. Temperature also obeys a
+non-Archimedean maximum inequality, and exact thermograph recursion is a dual
+max-plus/min-plus fold. This is the shared tropical shadow.
 
 It cannot be upgraded to one faithful full-dyadic graded ring. The degree-zero
 game residue contains the nonzero order-two class `[*]`; any invertible

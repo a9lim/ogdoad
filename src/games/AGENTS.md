@@ -54,7 +54,8 @@ lengths, and the `Quotient` class machinery (indices, not payloads).
     pairings with ⋆). The global game-native question is now resolved negatively:
     ambient coherence across short-game subgroups plus coefficient faithfulness
     forces every torsion game to be square-zero and polar-radical, over every
-    coefficient ring (`writeups/game_exterior_divisibility.tex`, kernel-checked in
+    coefficient ring (the game-exterior appendix of `writeups/goldarf.tex`,
+    kernel-checked in
     `formal/Ogdoad/GameExterior.lean`). Local root-incomplete hand tables remain this
     API's deliberate engineering scope.
   - `game_exterior/mod.rs` — hub; re-exports everything flat so `games::GameExterior`

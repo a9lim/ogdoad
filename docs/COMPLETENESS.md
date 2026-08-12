@@ -32,7 +32,9 @@ scalar-grade (no blade).
 
 Reference items by **slug**. The ledger's total value is the disjunctive sum; play it
 in any order. (`echo-solver`, the formerly hottest cold item, was played 2026-06-10
-with outcome **CONFIRM** — see `writeups/goldarf.tex` §8; its former
+with outcome **CONFIRM** — the harness `experiments/echo_solver.py` and
+`docs/PY.md` carry the record; the flagship `writeups/goldarf.tex` no longer
+narrates the superseded mechanism. Its former
 σ-recasting successor was resolved by the later claim-lantern theorem.)
 
 ---
@@ -104,8 +106,10 @@ finishing the char-2 half of `classify_versor` that the doc repair leaves honest
 open.
 
 ### 1·(e_g∧e_f): `echo-family-sweep`
-**The remaining pre-registered family axes** (`writeups/goldarf.tex` §§8–9, ranked
-move 2), on the shipped harness `experiments/echo_solver.py`: ko-memory window
+**The remaining pre-registered family axes** (pre-registered in the pre-merge
+goldarf research phase, ranked move 2; the axes list survives here now that the
+flagship dropped the superseded mechanism narrative), on the shipped harness
+`experiments/echo_solver.py`: ko-memory window
 `w ∈ {1,2,3}`, pass semantics (clears-ko / forbidden / loses), single-coin plus pair
 touches (the tartan-companion axis), and no-dummy controls — mapping which disciplines
 besides fifo+dummy are exact. No longer decisive for existence (the fifo+dummy verdict
@@ -113,7 +117,7 @@ is in); it bounds the *mechanism* and finally puts the bounded-window blocker
 conjecture on valid data. (Partially advanced by the 2026-06-10 `linking-reduction`
 pass: the no-dummy controls are fully mapped at the abstract-graph
 level — the Bad census — and the fifo+dummy mechanism is identified
-(`experiments/linking_game.py`, goldarf §8 `sec:linking`); the `w ≥ 2` ko-window and
+(`experiments/linking_game.py`; frontier note `writeups/linking_affine.tex`); the `w ≥ 2` ko-window and
 pass/pair axes remain unswept. The arbitrary-graph general-n linking proof remains
 an optional research generalization, while the Gold problem itself is closed by
 the proved Witt-matching route recorded in `DONE.md`.)
@@ -283,8 +287,10 @@ Worth a design read before code: how much of the 2-adic structure becomes a clea
 
 ### ↑: `ps-regularity`
 Verify the regularity hypothesis of Plambeck–Siegel Thm 6.4 against the published
-JCTA 2008 paper — load-bearing for goldarf Theorem C, flagged there as the cheap gate
-(ranked move 5a). Literature work, no code.
+JCTA 2008 paper — load-bearing for goldarf's conditional statement `thm:C`
+(demoted from theorem to explicitly-conditional at the 2026-08-12 flagship
+merge precisely because this hypothesis is unverified), flagged there as the
+cheap gate (ranked move 5a). Literature work, no code.
 
 ### ↑: `functor-compose`
 The 2×2 functor table (`Surcomplex`/`Ramified`/`Gauss`/`Laurent`) is "all four corners
@@ -300,7 +306,9 @@ test it as a field.)
 
 ### ↑: `octal-hunt-reframe`
 `examples/octal_hunt.rs` hunts `(ℤ/2)^k` misère quotients with `k ≥ 2` — a target
-goldarf Theorem C proves **empty** (group misère quotients have order ≤ 2). Retarget
+goldarf's conditional statement `thm:C` proves **empty conditional on the
+Plambeck–Siegel regularity hypothesis** (group misère quotients have order ≤ 2;
+see `ps-regularity`). Retarget
 the probe at non-group monoids / kernels where the quadric framing can still apply,
 and have `p_set_as_f2` check its labeling is a monoid homomorphism.
 
