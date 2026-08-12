@@ -846,6 +846,13 @@ absolute boundedness.
   of the two line sums. Every lower-ancestry affine translate spans the same
   line, so this mixed additive--multiplicative route exactly recovers, but
   does not evaluate, the selected phase.
+  The saturation is operator-level: on the full projective plane the polarity
+  incidence operator satisfies `I^2=q Id+J`. Each nontrivial current-character
+  pair `{rho^r,rho^(-r)}` is one exact two-dimensional block, and at the
+  selected point all iterated incidences are universal combinations of
+  `rho(gamma)^r` and `rho(gamma)^(-r)`. Thus the entire self-polar incidence
+  algebra is compatible with failure and supplies no independent nonvanishing
+  relation.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -1078,6 +1085,17 @@ absolute boundedness.
   `ell` irreducible cubics. Its downward norm is automatically an `ell`-th
   power, so this is a strict selected reduction rather than a nonvanishing
   proof: it isolates the missing additive coupling between `D` and `D+1`.
+  The adjacent coupling itself has a lossless Hilbert-pair coordinate. Off the
+  quadratic base field, `x -> (x^(q-1),(x+1)^(q-1))` bijects with ordered
+  distinct nonidentity pairs in the norm-one torus. Restricting both
+  coordinates to `ell`-powers gives exactly the maximal Fermat-curve count.
+  For the selected quartic the first coordinate is `zeta^(-5)` and failure is
+  membership of the explicit second coordinate in `U^ell`. Fixing the full
+  cyclotomic ancestry and first orientation still leaves `(q+1)/ell-2` bad
+  ambient pairs; fixing the exact quadratic norm removes all freedom. Thus
+  global Fermat/Jacobi saturation cannot prove the arm, while a
+  full-norm-preserving countermodel is impossible: the unresolved datum is
+  exactly the marked quartic evaluation.
   Only a direct selected evaluation of such a coefficient, in particular the
   original Euler phase, or genuinely external root orientation remains. A coprime
   plus/minus decomposition now
@@ -1100,6 +1118,13 @@ absolute boundedness.
   treating reversal as an ambiguity of the selected Conway datum. The line
   criterion gives the effective polynomial bound above but not the required
   fixed window.
+
+Across arms, pairwise distinct current primes cannot cancel one another in a
+mixed principalizer. After adjoining the relevant roots of unity, the
+nondegenerate Kummer layers have pairwise coprime prime degrees, so mixed
+reciprocity decomposes primary-coordinatewise. A global escape must therefore
+couple the literal Conway selectors additively; it cannot come from a common
+Kummer-field intersection or an unweighted product of arm symbols.
 
 ### Evidence boundary
 

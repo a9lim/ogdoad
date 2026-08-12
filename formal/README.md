@@ -425,6 +425,12 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   The finite-field Kummer-quotient injection, use of the full `F_16` orbit
   table, Capelli specialization, and the still-open nonpower assertion for
   the selected adjacent value remain paper-level;
+- the adjacent Hilbert-pair core: Lean checks the characteristic-two
+  Möbius add-one and recovery identities, inverse-unit Frobenius ratio,
+  ratio-plus-norm rigidity, selected quartic orientation, and the
+  maximal-Fermat count identity. The finite-field bijection, power-subgroup
+  criterion, rational-point count, and selected Kummer interpretation remain
+  paper-level;
 - the selected reciprocal trace-fibre core: the universal Jacobian numerator
   at `(a,a+1)` is `a^2+a+1`, the characteristic-two discriminant of
   `X^3+C*X^2+D*X+1` is `(C*D+1)^2`, and injective lower
@@ -442,6 +448,10 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   contained in the trace-annihilator once the trace kills the top coordinate
   and its square.  Trace-pairing dimension, projective character sums, Gauss
   magnitude, and the finite-field self-polar equality remain paper-level;
+- the projective incidence core: from the projective-plane intersection
+  matrix Lean proves `I^2=q Id+J`, its restriction `I^2=q` on zero-sum
+  vectors, and the two-step phase-swap identity. Projective-plane incidence
+  counts and finite-field character/Gauss specializations remain paper-level;
 - the selected cubic coupled-root core: one chosen `ell`-th root of `eta_k`
   transports explicitly to compatible roots of `epsilon_k` and `beta_k`, with
   their exact diagonal weights.  Every Frobenius monomial in the chosen root

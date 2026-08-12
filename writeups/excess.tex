@@ -212,7 +212,8 @@ complete normality of \(\gamma_k^{-1}\); pure-radical reflection norm;
 reciprocal order seam and
 prescribed-trace character boundary; complete lower trace--Fourier flag
 collapse, ancestral coordinate presentation, and the selected self-polar
-trace-hyperplane character ratio &
+trace-hyperplane character ratio, together with complete self-polar
+incidence-algebra saturation &
 exclusion of the selected Wendt/trace fibre at the remaining current
 factors \\
 \((D)\) &
@@ -233,7 +234,8 @@ alternating translated-root norm chain, reduced twisted-cubic fibre and
 pure-eigenweight Fourier collapse, and the
 constant-extension line criterion with
 \(m_\ell<16(3^k)^4\), and the selected adjacent-quartic translate/Capelli
-reduction &
+reduction, adjacent Hilbert-pair/maximal-Fermat saturation, and exact
+quadratic-norm rigidity &
 nonvanishing of the selected antiunit index
 \(\operatorname{ind}_\ell(d_k)\) at the remaining current factors \\
 \bottomrule
@@ -9642,6 +9644,75 @@ finite-field trace pairing is nondegenerate and \(\gamma\ne0\).  This proves
 \((\mathsf{CPH}_4)\).  Proposition~\ref{prop:character-test} identifies
 \(\rho(\gamma)=1\) with current failure.  Finally
 \(F+F(\gamma+c)=F+F\gamma\) is immediate.
+\end{proof}
+
+\begin{proposition}[self-polar incidence saturation]
+\label{prop:cubic-incidence-saturation}
+Retain Proposition~\ref{prop:cubic-self-polar-hyperplane}, and put
+\[
+ \mathcal P=E^\times/F^\times,
+ \qquad
+ (\mathcal I f)([a])=
+ \sum_{[x]\in H_a^\times/F^\times}f([x]).
+\]
+Then, for every function \(f:\mathcal P\to\mathbb C\) and every
+\([a]\in\mathcal P\),
+\[
+ \boxed{\mathcal I^2f([a])=qf([a])+\sum_{[x]\in\mathcal P}f([x]).}
+ \tag{\(\mathsf{CPH}_5\)}
+\]
+For \(r\in\mathbb Z/\ell\mathbb Z\), write
+\(\chi_r([x])=\rho(x)^r\).  If \(r\ne0\), put
+\[
+ c_r=q^{-1}G_\psi(\rho^r).
+\]
+Then
+\[
+ \boxed{\mathcal I\chi_r=c_r\chi_{-r},\qquad
+        c_rc_{-r}=q,\qquad \mathcal I^2\chi_r=q\chi_r.}
+ \tag{\(\mathsf{CPH}_6\)}
+\]
+Thus the span of the nontrivial powers of the current character is the direct
+sum of the two-dimensional blocks
+\(\langle\chi_r,\chi_{-r}\rangle\).  Adjoining every character power and
+iterating the complete polarity incidence operator creates no further
+coordinate.  At the selected point, if \(\theta=\rho(\gamma)\), every value
+in the \(r\)-block is a universal linear combination of
+\(\theta^r\) and \(\theta^{-r}\).  In particular \(\theta=1\) is compatible
+with the whole incidence algebra.  Hence the full projective-plane incidence
+calculus, including repeated self-polar line sums, recovers only the original
+selected Euler phase and does not prove its nontriviality.
+\end{proposition}
+
+\begin{proof}
+For \([a],[b]\in\mathcal P\), the two projective lines
+\(H_a^\times/F^\times\) and \(H_b^\times/F^\times\) coincide when
+\([a]=[b]\), and then have \(q+1\) points.  Otherwise their defining
+independent linear forms have a one-dimensional common kernel, hence the two
+lines meet in exactly one projective point.  Expanding \(\mathcal I^2\) and
+collecting the coefficient of \(f([b])\) therefore gives
+\[
+ \mathcal I^2f([a])=(q+1)f([a])+
+ \sum_{[b]\ne[a]}f([b])
+ =qf([a])+\sum_{[b]}f([b]),
+\]
+which proves \((\mathsf{CPH}_5)\).  For \(r\ne0\), character orthogonality
+gives \(\sum_{\mathcal P}\chi_r=0\), so
+\((\mathsf{CPH}_5)\) gives \(\mathcal I^2\chi_r=q\chi_r\).
+
+The calculation of Proposition~\ref{prop:cubic-self-polar-hyperplane},
+applied to \(\rho^r\), gives
+\[
+ (\mathcal I\chi_r)([a])
+ =q^{-1}G_\psi(\rho^r)\rho(a)^{-r}
+ =c_r\chi_{-r}([a]).
+\]
+Applying \(\mathcal I\) once more and comparing with
+\(\mathcal I^2\chi_r=q\chi_r\) gives \(c_rc_{-r}=q\).  Since \(\ell\) is
+odd, the nonzero indices pair as \(\{r,-r\}\), proving the block
+decomposition.  Evaluating that block at \([\gamma]\) gives exactly the span
+of \(\theta^r,\theta^{-r}\).  All displayed identities remain valid at
+\(\theta=1\), which proves the stated boundary.
 \end{proof}
 
 \begin{proposition}[exact one-step lifting of the previous Singer set]
@@ -20013,6 +20084,153 @@ degree three.  The composition therefore splits into exactly \(\ell\)
 distinct irreducible cubics.  This proves the final assertion.
 \end{proof}
 
+\begin{proposition}[adjacent Hilbert-pair saturation]
+\label{prop:dk-adjacent-hilbert-pairs}
+Retain Proposition~\ref{prop:dk-adjacent-quartic}, and write
+\[
+ q=2^h,\qquad K=\F_{q^2},\qquad
+ U=\{z\in K^\times:z^{q+1}=1\},
+\]
+\[
+ H=(K^\times)^\ell,\qquad V=U^\ell,\qquad
+ m=|V|=\frac{q+1}{\ell}.
+\]
+For \(x\in K\setminus\{0,1\}\), define its two adjacent Hilbert coordinates
+\[
+ r(x)=x^{q-1},\qquad s(x)=(x+1)^{q-1}.
+                                                        \tag{\(\mathsf{AH}_1\)}
+\]
+Then \(r(x),s(x)\in U\).  The base-field points
+\(x\in\F_q\setminus\{0,1\}\) all map to \((1,1)\), while restriction to
+\(K\setminus\F_q\) is a bijection
+\[
+ \boxed{
+ K\setminus\F_q
+ \longrightarrow
+ \{(r,s)\in(U\setminus\{1\})^2:r\ne s\},\qquad
+ x\longmapsto(r(x),s(x)),}
+                                                        \tag{\(\mathsf{AH}_2\)}
+\]
+whose inverse is
+\[
+ \boxed{x=\frac{1+s}{r+s},\qquad x+1=\frac{1+r}{r+s}.}
+                                                        \tag{\(\mathsf{AH}_3\)}
+\]
+Moreover
+\[
+ \boxed{x\in H\iff r(x)\in V,\qquad
+        x+1\in H\iff s(x)\in V.}                       \tag{\(\mathsf{AH}_4\)}
+\]
+Consequently
+\[
+ \#\{x\in K\setminus\{0,1\}:x,x+1\in H\}
+ =q-2+(m-1)(m-2).                                    \tag{\(\mathsf{AH}_5\)}
+\]
+Equivalently, the smooth Fermat curve
+\[
+ X^\ell+Y^\ell=Z^\ell
+\]
+has
+\[
+ q^2+1+(\ell-1)(\ell-2)q                             \tag{\(\mathsf{AH}_6\)}
+\]
+\(K\)-rational points, attaining the Hasse--Weil upper bound.
+
+For the actual adjacent quartic
+\[
+ D=\zeta^4+\zeta,\qquad W=D+1,
+\]
+one has
+\[
+ \boxed{
+ r(D)=\zeta^{-5},\qquad
+ s(D)=
+ \frac{1+\zeta^{-4}+\zeta^{-1}}
+      {1+\zeta^4+\zeta},\qquad
+ D'_k\text{ at }\ell\iff s(D)\notin V.}               \tag{\(\mathsf{AH}_7\)}
+\]
+Here \(r(D)\in V\setminus\{1\}\).  Holding this exact selected cyclotomic
+orientation fixed still leaves
+\[
+ m-2\geq3(2^{h/3}+1)-2                              \tag{\(\mathsf{AH}_8\)}
+\]
+ambient points \(x\) for which \(r(x)=r(D)\) and both \(x,x+1\) are
+\(\ell\)-th powers.
+
+This saturation is sharp.  If
+\(n(x)=\Norm_{K/\F_q}(x)\), then
+\[
+ n(x)=r(x)x^2.                                       \tag{\(\mathsf{AH}_9\)}
+\]
+Thus \(r(x)\) and \(n(x)\) determine \(x\) uniquely; for the selected
+quartic,
+\[
+ n(D)=\zeta^3+\zeta^{-3}.                             \tag{\(\mathsf{AH}_{10}\)}
+\]
+Hence the family in \((\mathsf{AH}_8)\) preserves the complete selected
+root-of-unity ancestry and the exact quadratic Frobenius orientation, but
+cannot also preserve the selected quadratic norm unless \(x=D\).
+Maximal-curve point counts, the semiprimitive Jacobi table, and the orientation
+alone therefore cannot prove \(D'_k\); the remaining input is precisely the
+marked additive identity \(D=\zeta^4+\zeta\), or an equivalent direct
+evaluation of \(s(D)\).
+\end{proposition}
+
+\begin{proof}
+For nonzero \(x\), \(x^{q-1}=x^q/x\) has norm one, proving the first
+assertion.  If \(x\notin\F_q\), then neither Hilbert coordinate is one.
+Equality \(r(x)=s(x)\), after cross-multiplication, would give \(x^q=x\),
+so the coordinates are distinct.
+
+Conversely take \(r,s\in U\setminus\{1\}\), \(r\ne s\), and define \(x\)
+by \((\mathsf{AH}_3)\).  Since \(r^q=r^{-1}\) and \(s^q=s^{-1}\),
+\[
+ x^q
+ =\frac{1+s^{-1}}{r^{-1}+s^{-1}}
+ =r\frac{1+s}{r+s}=rx.
+\]
+The second formula in \((\mathsf{AH}_3)\) similarly gives
+\((x+1)^q=s(x+1)\).  This proves the bijection.
+
+The quotient \(K^\times/H\) has order \(\ell\).  On it the map
+\(x\mapsto x^{q-1}\) is an automorphism because
+\(q-1\equiv-2\not\equiv0\pmod\ell\).  Also
+\(U\cap H=U^\ell\), since \(\ell\nmid q-1\).  This proves
+\((\mathsf{AH}_4)\).  The \(q-2\) nonzero adjacent base-field points all lie
+in \(H\), while the transverse locus is indexed by ordered distinct
+nonidentity pairs in \(V\), proving \((\mathsf{AH}_5)\).
+
+Every point counted in \((\mathsf{AH}_5)\) has exactly \(\ell^2\) nonzero
+affine lifts to the Fermat curve.  Its three coordinate hyperplanes contribute
+\(3\ell\) points.  Since \(q+1=\ell m\),
+\[
+ \ell^2\bigl(q-2+(m-1)(m-2)\bigr)+3\ell
+ =q^2+1+(\ell-1)(\ell-2)q,
+\]
+which proves \((\mathsf{AH}_6)\).
+
+The relation \(\zeta^q=\zeta^{-1}\) gives
+\[
+ D^q=\zeta^{-4}+\zeta^{-1}=\zeta^{-5}D,
+\]
+and the formula for \(s(D)\) follows identically.
+Proposition~\ref{prop:dk-adjacent-quartic} gives \(D\in H\) and
+\(D'_k\iff W\notin H\); applying \((\mathsf{AH}_4)\) proves
+\((\mathsf{AH}_7)\).  Since
+\[
+ q+1=(2^{h/3}+1)\,3\Psi_k,\qquad \ell\leq\Psi_k,
+\]
+one has \(m\geq3(2^{h/3}+1)\), proving \((\mathsf{AH}_8)\).
+
+Finally \(x^q=r(x)x\), so
+\(\Norm(x)=x^{q+1}=r(x)x^2\).  Squaring is injective in \(K\), proving the
+rigidity statement, and
+\[
+ \Norm(D)=\zeta^{-5}(\zeta^4+\zeta)^2
+ =\zeta^3+\zeta^{-3}.
+\]
+\end{proof}
+
 \begin{proposition}[exceptional gap and Conway-block product blindness]
 \label{prop:dk-gap}
 Retain Proposition~\ref{prop:dk-line-saturation}, so \(k\geq2\),
@@ -24495,6 +24713,13 @@ coefficient is one and whose root is therefore a global unit.  That
 lift is noncanonical and the resulting mixed local coordinate is still
 unevaluated.  No claim here replaces the separate synchronized-phase
 problem for zero arms with three or more components.
+
+Mixing pairwise distinct current row primes from different arms cannot create
+cancellation.  After adjoining all roots of unity, the corresponding
+nondegenerate Kummer layers have pairwise coprime prime degrees and any mixed
+reciprocity identity projects primary-coordinatewise.  An escape must
+therefore be an additive relation between the literal Conway selectors, not a
+common principalizer or Kummer-field intersection.
 \end{corollary}
 
 \begin{proof}
@@ -25294,6 +25519,14 @@ sum to the unshifted hyperplane sum is precisely
 \(\rho(\gamma_k)^{-1}\).  Thus equality of the two line sums is exactly the
 original failure condition; all lower-ancestry affine translates span the
 same line.  This recovers the selected phase without evaluating it.
+Proposition~\ref{prop:cubic-incidence-saturation} closes the whole incidence
+algebra generated by that polarity.  On the full projective plane,
+\(\mathcal I^2=q\operatorname{Id}+J\), and each nontrivial current-character
+pair \(\{\rho^r,\rho^{-r}\}\) is one exact two-dimensional block.  At the
+selected point every iterated incidence is therefore a universal combination
+of \(\rho(\gamma_k)^{\pm r}\); the failure value one satisfies the entire
+operator algebra.  Repeated self-polar incidence creates no second
+nonvanishing relation.
 Proposition~\ref{prop:cubic-trace-zero} also proves that both selected
 period coordinates have absolute trace zero and are not normal.  Thus
 primitive-normal and normal-Gaussian-period theorems do not apply to the
@@ -25557,6 +25790,18 @@ Equivalently,
 \(\mathbb F_{4^{3^{k-1}}}\).  Its norm is automatically an
 \(\ell\)-th power, so this exact full-mark compression still does not prove
 the required nonvanishing.
+Proposition~\ref{prop:dk-adjacent-hilbert-pairs} shows that the global
+adjacent-power geometry is already saturated.  Off the quadratic base field,
+the Hilbert pair
+\(x\mapsto(x^{q-1},(x+1)^{q-1})\) parametrizes all ordered distinct
+nonidentity pairs in the norm-one torus, and restricting both entries to
+current \(\ell\)-powers gives exactly the maximal Fermat-curve count.  Fixing
+the selected cyclotomic orientation still leaves many ambient bad pairs, so
+that count cannot prove the arm.  The sharp boundary is the exact quadratic
+norm: together with the first Hilbert coordinate it determines \(x\) uniquely.
+Thus a full-norm-preserving countermodel is impossible, and the unresolved
+input is precisely the marked identity \(D=\zeta^4+\zeta\), equivalently the
+second Hilbert coordinate of that point.
 Remark~\ref{rem:plus-minus-tori} also shows that the cubic and
 exceptional current groups have coprime orders, so no rational-point
 homomorphism can transfer arm \((C)\) to arm \((D)\).

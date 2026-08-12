@@ -1316,6 +1316,75 @@ theorem cubicAffineLine_subset_traceKernel
 
 end CubicSelfPolarAffineLine
 
+section CubicSingerIncidence
+
+open scoped BigOperators
+
+variable {P K : Type*} [Fintype P] [DecidableEq P]
+  [CommSemiring K]
+
+def cubicIncidence (M : P → P → K) (f : P → K) (a : P) : K :=
+  ∑ x, M a x * f x
+
+/-- Algebraic core of the projective-plane identity `I² = q Id + J`.
+The geometric input is exactly the displayed matrix-square hypothesis. -/
+theorem cubic_incidence_square
+    (M : P → P → K) (q : K)
+    (hsquare : ∀ a b, ∑ x, M a x * M x b = if a = b then q + 1 else 1)
+    (f : P → K) (a : P) :
+    cubicIncidence M (cubicIncidence M f) a = q * f a + ∑ x, f x := by
+  simp only [cubicIncidence, Finset.mul_sum]
+  rw [Finset.sum_comm]
+  calc
+    ∑ x, ∑ y, M a y * (M y x * f x) =
+        ∑ x, (∑ y, M a y * M y x) * f x := by
+          apply Finset.sum_congr rfl
+          intro x _
+          rw [Finset.sum_mul]
+          apply Finset.sum_congr rfl
+          intro y _
+          ring
+    _ = ∑ x, (if a = x then q + 1 else 1) * f x := by
+          apply Finset.sum_congr rfl
+          intro x _
+          rw [hsquare]
+    _ = ∑ x, ((if a = x then q else 0) + 1) * f x := by
+          apply Finset.sum_congr rfl
+          intro x _
+          by_cases h : a = x <;> simp [h]
+    _ = (∑ x, (if a = x then q * f x else 0)) + ∑ x, f x := by
+          simp_rw [add_mul, one_mul, ite_mul, zero_mul]
+          exact Finset.sum_add_distrib
+    _ = q * f a + ∑ x, f x := by simp
+
+/-- On a zero-sum vector the polarity-incidence operator squares to the
+universal scalar `q`. -/
+theorem cubic_incidence_square_of_sum_zero
+    (M : P → P → K) (q : K)
+    (hsquare : ∀ a b, ∑ x, M a x * M x b = if a = b then q + 1 else 1)
+    (f : P → K) (hsum : ∑ x, f x = 0) :
+    cubicIncidence M (cubicIncidence M f) = fun a ↦ q * f a := by
+  funext a
+  rw [cubic_incidence_square M q hsquare f a, hsum, add_zero]
+
+omit [Fintype P] [DecidableEq P] in
+/-- Once incidence swaps a character and its inverse, a second incidence
+step only multiplies by the universal scalar. -/
+theorem cubic_phase_swap_square
+    (I : (P → K) → (P → K)) (chi chiInv : P → K)
+    (c d q : K)
+    (hchi : I chi = fun a ↦ c * chiInv a)
+    (hchiInv : I chiInv = fun a ↦ d * chi a)
+    (hlinear : ∀ (r : K) (f : P → K),
+      I (fun a ↦ r * f a) = fun a ↦ r * I f a)
+    (hcd : c * d = q) :
+    I (I chi) = fun a ↦ q * chi a := by
+  rw [hchi, hlinear, hchiInv]
+  funext a
+  rw [← mul_assoc, hcd]
+
+end CubicSingerIncidence
+
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
 theorem dk_twisted_translate_recursion
@@ -5734,6 +5803,78 @@ theorem exceptional_quartic_norm (x a : R) (hx : x ^ 3 = a) :
       simp [h3]
 
 end DQuarticCoset
+
+section AdjacentHilbert
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- The characteristic-two Möbius coordinate sends an ordered pair `(r,s)`
+to adjacent values with the displayed common denominator. -/
+theorem adjacent_mobius_add_one (r s : K) (hrs : r + s ≠ 0) :
+    (1 + s) / (r + s) + 1 = (1 + r) / (r + s) := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  field_simp [hrs]
+  linear_combination h2 * s
+
+/-- Cross-multiplication recovers the Möbius coordinate from its two
+Frobenius-ratio equations. -/
+theorem adjacent_mobius_of_ratio_equation
+    (x r s : K) (hrs : r + s ≠ 0)
+    (h : s * (x + 1) = r * x + 1) :
+    x = (1 + s) / (r + s) := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  apply (eq_div_iff hrs).2
+  linear_combination h + h2 * (r * x - s)
+
+omit [CharP K 2] in
+/-- The inverse-unit identities behind the Hilbert-pair parametrization. -/
+theorem adjacent_mobius_inverse_ratio
+    (r s : K) (hr : r ≠ 0) (hs : s ≠ 0) (hrs : r + s ≠ 0) :
+    (1 + s⁻¹) / (r⁻¹ + s⁻¹) = r * ((1 + s) / (r + s)) := by
+  have hsr : s + r ≠ 0 := by simpa [add_comm] using hrs
+  field_simp [hr, hs, hrs, hsr]
+  ring
+
+/-- A nonzero ratio and the corresponding quadratic norm determine an
+element uniquely in characteristic two. -/
+theorem adjacent_ratio_norm_rigid
+    (x y r n : K) (hr : r ≠ 0)
+    (hx : r * x ^ 2 = n) (hy : r * y ^ 2 = n) :
+    x = y := by
+  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hsq : x ^ 2 = y ^ 2 := by
+    apply (mul_left_cancel₀ hr)
+    rw [hx, hy]
+  have hzero : (x + y) ^ 2 = 0 := by
+    rw [add_sq, h2]
+    simpa [hsq] using (CharTwo.add_self_eq_zero (y ^ 2))
+  have hxy : x + y = 0 := by
+    exact mul_self_eq_zero.mp (by simpa [pow_two] using hzero)
+  have hneg : -y = y := by
+    exact (eq_neg_of_add_eq_zero_left (CharTwo.add_self_eq_zero y)).symm
+  calc
+    x = -y := eq_neg_of_add_eq_zero_left hxy
+    _ = y := hneg
+
+omit [CharP K 2] in
+/-- The selected quartic's inverse-Frobenius orientation is `zeta^-5`. -/
+theorem adjacent_quartic_inverse_orientation
+    (zeta : K) (hzeta : zeta ≠ 0) :
+    zeta⁻¹ ^ 4 + zeta⁻¹ = zeta⁻¹ ^ 5 * (zeta ^ 4 + zeta) := by
+  field_simp [hzeta]
+  ring
+
+/-- The elementary adjacent-power count is exactly the maximal Fermat-curve
+count once `q+1 = ell*m`.  Integers avoid truncated-subtraction noise. -/
+theorem adjacent_count_is_maximal_fermat
+    (q ell m : ℤ) (h : q + 1 = ell * m) :
+    ell ^ 2 * (q - 2 + (m - 1) * (m - 2)) + 3 * ell =
+      q ^ 2 + 1 + (ell - 1) * (ell - 2) * q := by
+  have hq : q = ell * m - 1 := by linarith
+  rw [hq]
+  ring
+
+end AdjacentHilbert
 
 section PowerCriterion
 
