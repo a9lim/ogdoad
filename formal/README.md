@@ -126,13 +126,26 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
   identity, the local prime-power
   totient gaps behind the `1` versus `2^(n+2)` packet dichotomy, the local
   prime-power/product algebra and square threshold behind the stronger
-  `kappa_n*2^(n+2)` Fermat-factor sieve, the universal
+  `kappa_n*2^(n+2)` Fermat-factor sieve, the odd-totient square bound and
+  exponential comparison proving that sieve's square consequence automatic
+  for `n>=6`, the universal
   principal-two-unit congruence through Fermat precision, and the exact
   product identity underlying the shifted-unit relative norm.  Finite-field
   trace, number-field norm, conjugation, the Teichmuller expansion, complete
   splitting above two, stabilizer-orbit count, roots-of-unity product, local
   ramification, Lucas and cubic-reciprocity divisor sieve, and finite-field
   specializations remain paper-level;
+- the literal-ancestry coordinate core: Lean checks the quadratic Conway
+  trace and norm coordinates, the endpoint-orbit criterion, normalization of
+  the surviving additive-edge point into the first trace-one block, and its
+  Cassini norm-defect factorization.  Literal ordinal labeling, recursive
+  Frobenius-orbit selection, and finite-field period specialization remain
+  paper-level;
+- the Conway rational-dynamics boundary: Lean checks the left-right Dickson
+  identity, the forward affine identity from the elliptic model, and
+  preservation of an `ell`-torsion residue phase under coprime cubing.
+  Smooth normalization, supersingularity, critical portraits, projection
+  degrees, and the non-Lattès curve argument remain paper-level;
 - the abstract semiprimitive Gauss-table core: the nontrivial additive
   character sum on field units, multiplicative change of variables, the
   one-exceptional-line evaluation, denominator-cleared large and small period

@@ -3369,6 +3369,123 @@ theorem csdu_closes_below_totient_square
 
 end FermatPacketGapCore
 
+section FermatPacketTotientSaturation
+
+/-- An odd prime is at most the square of its totient. -/
+theorem odd_prime_le_totient_sq
+    {p : ℕ} (hp : p.Prime) (hpodd : Odd p) :
+    p ≤ p.totient * p.totient := by
+  rw [Nat.totient_prime hp]
+  have hpne2 : p ≠ 2 := by
+    intro h
+    subst p
+    exact hpodd.not_two_dvd_nat (dvd_refl 2)
+  have hp3 : 3 ≤ p := by
+    have hp2 := hp.two_le
+    omega
+  have hpred2 : 2 ≤ p - 1 := by omega
+  calc
+    p ≤ 2 * (p - 1) := by omega
+    _ ≤ (p - 1) * (p - 1) := by
+      simpa [Nat.mul_comm] using Nat.mul_le_mul_right (p - 1) hpred2
+
+/-- For every positive odd integer, Euler's totient is at least its square
+root, in the division-free form `N ≤ φ(N)²`. -/
+theorem odd_le_totient_sq :
+    ∀ N : ℕ, Odd N → N ≤ N.totient * N.totient := by
+  intro N
+  induction N using Nat.strong_induction_on with
+  | h N ih =>
+      intro hNodd
+      by_cases hN1 : N = 1
+      · simp [hN1]
+      obtain ⟨p, hp, hpdvd⟩ := Nat.exists_prime_and_dvd hN1
+      let M := N / p
+      have hMdiv : M ∣ N := Nat.div_dvd_of_dvd hpdvd
+      have hModd : Odd M := hNodd.of_dvd_nat hMdiv
+      have hNpos : 0 < N := hNodd.pos
+      have hMlt : M < N := Nat.div_lt_self hNpos hp.one_lt
+      have hMind : M ≤ M.totient * M.totient := ih M hMlt hModd
+      have hpodd : Odd p := hNodd.of_dvd_nat hpdvd
+      have hpbound : p ≤ p.totient * p.totient :=
+        odd_prime_le_totient_sq hp hpodd
+      have hmul : p * M = N := Nat.mul_div_cancel' hpdvd
+      have hsuper : p.totient * M.totient ≤ N.totient := by
+        rw [← hmul]
+        exact Nat.totient_super_multiplicative p M
+      calc
+        N = p * M := hmul.symm
+        _ ≤ (p.totient * p.totient) * (M.totient * M.totient) :=
+          Nat.mul_le_mul hpbound hMind
+        _ = (p.totient * M.totient) * (p.totient * M.totient) := by ring
+        _ ≤ N.totient * N.totient := Nat.mul_le_mul hsuper hsuper
+
+/-- Any proposed square-totient obstruction `φ(N) < G²` is already
+impossible once the odd ambient integer exceeds `G²` squared. -/
+theorem odd_totient_square_threshold_vacuous
+    (N G : ℕ)
+    (hNodd : Odd N)
+    (hsize : G * G * (G * G) ≤ N) :
+    G * G ≤ N.totient := by
+  have htot : N ≤ N.totient * N.totient := odd_le_totient_sq N hNodd
+  by_contra h
+  have hlt : N.totient < G * G := Nat.lt_of_not_ge h
+  have hsquares : N.totient * N.totient < G * G * (G * G) :=
+    Nat.mul_self_lt_mul_self hlt
+  omega
+
+/-- Elementary tail comparison used for Fermat conductors. -/
+theorem four_mul_add_five_le_two_pow
+    (n : ℕ) (hn : 6 ≤ n) :
+    4 * (n + 5) ≤ 2 ^ n := by
+  induction n, hn using Nat.le_induction with
+  | base => norm_num
+  | succ n hn ih =>
+      rw [pow_succ]
+      have hfour : 4 ≤ 2 ^ n := by
+        have := Nat.pow_le_pow_right (by norm_num : 0 < 2)
+          (show 2 ≤ n by omega)
+        norm_num at this ⊢
+        exact this
+      omega
+
+/-- For `n ≥ 6`, the square-totient necessary condition produced by the
+`G = κ 2^(n+2)` packet sieve is automatic for every `κ ≤ 7`; it therefore
+cannot contradict failure anywhere in the tail. -/
+theorem fermat_totient_packet_square_automatic
+    (n kappa : ℕ)
+    (hn : 6 ≤ n)
+    (hkappa : kappa ≤ 7) :
+    let B := 2 ^ (n + 2)
+    let G := kappa * B
+    let F := 2 ^ (2 ^ n) + 1
+    G * G ≤ F.totient := by
+  dsimp only
+  let G := kappa * 2 ^ (n + 2)
+  let H := 2 ^ (n + 5)
+  have hG : G ≤ H := by
+    dsimp [G, H]
+    calc
+      kappa * 2 ^ (n + 2) ≤ 8 * 2 ^ (n + 2) :=
+        Nat.mul_le_mul_right _ (hkappa.trans (by norm_num))
+      _ = 2 ^ (n + 5) := by ring_nf
+  have hG2 : G * G ≤ H * H := Nat.mul_le_mul hG hG
+  have hG4 : G * G * (G * G) ≤ H * H * (H * H) :=
+    Nat.mul_le_mul hG2 hG2
+  have hexp : 4 * (n + 5) ≤ 2 ^ n := four_mul_add_five_le_two_pow n hn
+  have hH4 : H * H * (H * H) ≤ 2 ^ (2 ^ n) := by
+    dsimp [H]
+    calc
+      2 ^ (n + 5) * 2 ^ (n + 5) *
+          (2 ^ (n + 5) * 2 ^ (n + 5)) = 2 ^ (4 * (n + 5)) := by ring
+      _ ≤ 2 ^ (2 ^ n) := Nat.pow_le_pow_right (by norm_num) hexp
+  apply odd_totient_square_threshold_vacuous
+  · exact (Nat.even_pow.mpr
+      ⟨even_two, pow_ne_zero _ (by norm_num)⟩).add_one
+  · exact hG4.trans (hH4.trans (Nat.le_add_right _ _))
+
+end FermatPacketTotientSaturation
+
 section FermatHigherWittSaturation
 
 variable {R : Type*} [CommRing R]
@@ -5491,6 +5608,101 @@ theorem fermat_exact_monomial_additive_trace_ne_zero
 
 end FermatAdditiveEdge
 
+section FermatLiteralAncestryCoordinates
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- In a characteristic-two quadratic coordinate `c²+c=A`, conjugation
+`c ↦ c+1` reads off the upper Conway coordinate as relative trace. -/
+theorem conway_coord_trace (A c x₀ x₁ : F)
+    (_hc : c ^ 2 + c = A) :
+    (x₀ + c * x₁) + (x₀ + (c + 1) * x₁) = x₁ := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  calc
+    (x₀ + c * x₁) + (x₀ + (c + 1) * x₁) =
+        2 * x₀ + 2 * (c * x₁) + x₁ := by ring
+    _ = x₁ := by rw [htwo]; simp
+
+/-- The corresponding relative norm in Conway coordinates. -/
+theorem conway_coord_norm (A c x₀ x₁ : F)
+    (hc : c ^ 2 + c = A) :
+    (x₀ + c * x₁) * (x₀ + (c + 1) * x₁) =
+      x₀ ^ 2 + x₀ * x₁ + A * x₁ ^ 2 := by
+  calc
+    (x₀ + c * x₁) * (x₀ + (c + 1) * x₁) =
+        x₀ ^ 2 + x₀ * x₁ + (c ^ 2 + c) * x₁ ^ 2 := by
+          have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+          linear_combination (x₀ * c * x₁) * htwo
+    _ = x₀ ^ 2 + x₀ * x₁ + A * x₁ ^ 2 := by rw [hc]
+
+/-- Once the upper coordinate is the selected parent `A`, imposing the
+selected norm `A³` leaves exactly the two conjugate lower coordinates.
+Thus trace--norm ancestry selects an orbit, while literal ordering only
+selects its lower-coordinate-zero representative. -/
+theorem selected_norm_iff_lower_endpoint (A c x₀ : F)
+    (hc : c ^ 2 + c = A) :
+    (x₀ + c * A) * (x₀ + (c + 1) * A) = A ^ 3 ↔
+      x₀ = 0 ∨ x₀ = A := by
+  rw [conway_coord_norm A c x₀ A hc]
+  constructor
+  · intro h
+    have hx : x₀ * (x₀ + A) = 0 := by
+      calc
+        x₀ * (x₀ + A) = x₀ ^ 2 + x₀ * A := by ring
+        _ = 0 := by linear_combination h
+    rcases mul_eq_zero.mp hx with hx | hx
+    · exact Or.inl hx
+    · right
+      have hneg : x₀ = -A := eq_neg_of_add_eq_zero_left hx
+      have hnegA : -A = A := CharTwo.neg_eq A
+      exact hneg.trans hnegA
+  · rintro (hx | hx)
+    · rw [hx]
+      ring
+    · rw [hx]
+      have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+      linear_combination A ^ 2 * htwo
+
+omit [CharP F 2] in
+/-- Normalizing an element by its selected nonzero relative trace puts it
+in the first trace block. In the additive-edge specialization `U,V` are
+the Fibonacci coordinates of the extracted power. -/
+theorem normalized_power_lies_in_first_block
+    (A x U V T : F) (hA : A ≠ 0) (hV : V ≠ 0)
+    (hT : T = A * V) :
+    A * (U + x * V) / T = x + A * U / T := by
+  subst T
+  field_simp
+  ring
+
+omit [CharP F 2] in
+/-- The norm defect of the normalized additive-edge point factors into
+the two adjacent lower Fibonacci values. -/
+theorem normalized_displacement_norm_defect
+    (A : F) (r : Nat) (hS : fibPolyValue A (r + 1) ≠ 0) :
+    let lambda := A ^ 2 * fibPolyValue A r / fibPolyValue A (r + 1)
+    lambda * (lambda + A) =
+      A ^ 3 * fibPolyValue A r * fibPolyValue A (r + 2) /
+        (fibPolyValue A (r + 1)) ^ 2 := by
+  dsimp
+  rw [show fibPolyValue A (r + 2) =
+      fibPolyValue A (r + 1) + A * fibPolyValue A r by
+        simp only [fibPolyValue]]
+  field_simp
+  ring
+
+/-- At the first composite Fermat level the selected degree-thirty-two
+polynomial is bracketed, in both coefficient orientations, by the two
+already certified parentable proper-stratum factors. -/
+theorem selected_polynomial_not_coefficient_lex_extremal :
+    (0x1c019c923 : Nat) < 0x1d05a9a3b ∧
+    (0x1d05a9a3b : Nat) < 0x1ddddfba7 ∧
+    (0x189273007 : Nat) < 0x1b8b2b417 ∧
+    (0x1b8b2b417 : Nat) < 0x1cbbf7777 := by
+  native_decide
+
+end FermatLiteralAncestryCoordinates
+
 
 section FermatQuotientWindowFibonacciCore
 
@@ -6155,6 +6367,83 @@ theorem conwayResultant_pair_product (c : R) :
       ring
 
 end ConwayResultantParametrization
+
+section ConwayRationalDynamicsBoundary
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- The cubic Conway driver is left--right equivalent to the third
+Dickson polynomial, but the source and target Möbius maps are different. -/
+theorem conway_driver_dickson_left_right
+    (w : F) (hw : w ≠ 0) (hw1 : w + 1 ≠ 0) :
+    ((w + 1) ^ 3 / w) *
+        ((w / (w + 1)) ^ 3 + w / (w + 1)) = 1 := by
+  field_simp
+  ring_nf
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  rw [htwo]
+  simp
+
+/-- Forward affine coordinate identity from the fixed elliptic model of one
+Conway transition. Smooth normalization and supersingularity are paper-level. -/
+theorem conway_elliptic_parametrizes_transition
+    (x y : F)
+    (hx : x ≠ 0)
+    (hE : y ^ 2 + y = x ^ 3 + x ^ 2) :
+    let u := (x ^ 2 + y) / x
+    let v := (y + 1) / x
+    u * (v + 1) ^ 3 = v * (u + 1) ^ 2 := by
+  dsimp only
+  field_simp
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  have hsix : (6 : F) = 0 := by
+    calc
+      (6 : F) = 2 + 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have hseven : (7 : F) = 1 := by
+    calc
+      (7 : F) = 2 + 2 + 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  ring_nf
+  rw [hthree, hsix, hseven]
+  have hrel : y ^ 2 + y + x ^ 3 + x ^ 2 = 0 := by
+    calc
+      y ^ 2 + y + x ^ 3 + x ^ 2 =
+          (y ^ 2 + y) + (x ^ 3 + x ^ 2) := by ring
+      _ = (y ^ 2 + y) - (x ^ 3 + x ^ 2) := by
+        rw [CharTwo.sub_eq_add]
+      _ = 0 := sub_eq_zero.mpr hE
+  linear_combination
+    (x ^ 2 * y + x + y ^ 2 + 1) * hrel -
+      (x * y ^ 2 + x ^ 2 * y ^ 2 + x ^ 3 + x ^ 5 * y) * htwo -
+      (x ^ 2 * y + x ^ 2 * y ^ 2 + x ^ 3 * y ^ 2 +
+        x ^ 4 + x ^ 4 * y) * htwo
+
+/-- Cubing is invertible on an `ell`-torsion coordinate when
+`gcd(3,ell)=1`; the auxiliary Dickson multiplication therefore preserves
+the trivial/nontrivial residue-phase dichotomy. -/
+theorem cube_eq_one_iff_of_order_coprime_three
+    {G : Type*} [CommGroup G]
+    (z : G) (ell : ℕ)
+    (hz : z ^ ell = 1)
+    (hcop : Nat.Coprime 3 ell) :
+    z ^ 3 = 1 ↔ z = 1 := by
+  constructor
+  · intro hz3
+    have hdiv3 : orderOf z ∣ 3 := orderOf_dvd_iff_pow_eq_one.mpr hz3
+    have hdivell : orderOf z ∣ ell := orderOf_dvd_iff_pow_eq_one.mpr hz
+    have hdiv : orderOf z ∣ Nat.gcd 3 ell := Nat.dvd_gcd hdiv3 hdivell
+    rw [hcop.gcd_eq_one] at hdiv
+    exact orderOf_eq_one_iff.mp (Nat.dvd_one.mp hdiv)
+  · intro hz1
+    rw [hz1]
+    simp
+
+end ConwayRationalDynamicsBoundary
 
 section CubeFibotomicIntersection
 

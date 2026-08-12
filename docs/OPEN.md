@@ -418,6 +418,20 @@ absolute boundedness.
   Thus failure cannot force trace zero or descent to the lower field; it is
   instead one exact cancellation between two nonzero lower selected values.
   Proving those values unequal is the surviving additive-ancestry target.
+  Literal ordering does not separate them. Quadratic Conway coordinates give
+  `Tr(x0+c*x1)=x1` and
+  `Norm(x0+c*x1)=x0^2+x0*x1+A*x1^2`; the full recursive trace-norm ancestry
+  therefore selects precisely the Frobenius orbit of `a_(n-1)`, while the
+  least-label rule merely chooses its lower-coordinate-zero representative.
+  The normalized additive-edge value lies in that same first trace-one block
+  and is never earlier than the selected point; it joins the endpoint orbit
+  only in the two explicit adjacent-period cases. Since fibotomic membership is
+  Frobenius invariant, neither least-label minimality nor this in-block
+  displacement yields a new order obstruction.
+  Nor is the selected minimal polynomial coefficient-lex extremal: at the first
+  composite Fermat level it is bracketed in both coefficient orientations by
+  two one-step descendants of full-order parents lying in the same proper
+  fibotomic stratum.
   A complementary block-collapse
   theorem eliminates the coupled shifted-Fibonacci route: under hypothetical
   failure at `d=(q+1)/ell`, every value satisfies
@@ -452,8 +466,15 @@ absolute boundedness.
   its first projective return is exactly `delta_n`, while its characteristic
   polynomial is exactly the existing Conway resultant. Thus neither a hidden
   Singer conjugacy nor a characteristic-polynomial recursion is an independent
-  maximality proof. The selected Kummer symbol now has an exact cyclotomic
-  lift: after choosing an independent generator `omega` of the norm-one group
+  maximality proof. The rational dynamics is likewise exact but non-Lattès:
+  its driver is only left-right Dickson equivalent, the selected transition is
+  a two-valued degree-two/degree-three correspondence, and it admits no
+  one-coordinate presentation `(pi,pi∘psi)` by an isogeny. The separate
+  successive-fibre-product theorem has zero `End(E)` component. Cubing is
+  invertible on every current `ell`-torsion residue phase, so auxiliary Dickson
+  multiplication preserves failure rather than resolving it. The selected
+  Kummer symbol now has an exact cyclotomic lift: after choosing an independent
+  generator `omega` of the norm-one group
   and writing `w_n=omega^(r_n)`, its `ell`-th residue symbol at the associated
   prime above two is exactly `omega^(r_n*F_n/ell)`. Thus the conjecture is
   precisely `ell` not dividing the Conway-selected discrete logarithm `r_n`.
@@ -477,7 +498,12 @@ absolute boundedness.
   is at least `kappa*B+1`; hence a proper conductor forces
   `t>=kappa*B`, while full conductor is exactly `t<kappa*B`. Failure also
   forces `phi(F_n)>=(kappa*B)^2`. This is still exponentially short of a
-  universal contradiction. A bad order
+  universal contradiction, and its exact tail boundary is now proved: for
+  every odd `M`, `M<=phi(M)^2`, so the square-totient consequence is already
+  automatic for every `n>=6`. Stronger ambient factor congruences of the same
+  shape cannot close CSDU until their gap reaches beyond the fourth-root scale;
+  every nontrivial divisor of `F_n` already has the same order of two, so an
+  ancestry-sensitive selector is indispensable. A bad order
   would produce several distinct simple primes over two, not a repeated selected root. The
   full cyclotomic norm is identically the simple base factor raised to that
   support cardinality, so norm bounds and mod-four congruences derived from

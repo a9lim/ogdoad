@@ -179,7 +179,8 @@ countermodel whose predecessor and successor retain every earlier
 Fermat order factor; exact \(3/2\) Kummer-tail and parallel-ray
 transport; canonical global lift, weighted reciprocity, selected
 first-Witt polynomial, selected-prime mod-four transversality, exact
-simple-intersection support, packet gap, and global Fermat-factor sieve,
+simple-intersection support, packet gap, global Fermat-factor sieve and its
+tail-vacuity theorem,
 oriented primitive-ray trace, and
 higher-Witt saturation boundary, named Artin-class and dihedral reflection-norm
 reductions, the complementary factor/cofactor resultant duality and its
@@ -187,7 +188,8 @@ canonical CRT-projector/trace-annihilation boundary, the hypothetical-failure
 shifted-Fibonacci block collapse, and the
 selected Euler-factor/root-number boundary; a nonlinear lower-semiconjugacy
 resultant flag for the surviving odd Hasse collision, with a degree-range
-exclusion, and complete pointwise-semiconjugacy/Frobenius-coboundary
+exclusion, literal-ancestry orbit/ordering saturation, non-Latt\`es
+rational-dynamics boundary, and complete pointwise-semiconjugacy/Frobenius-coboundary
 saturation, with the first nonzero additive-edge trace and exact lower
 cancellation, cross-level gcd identity, and exclusion of the smallest proper
 lower fibotomic stratum &
@@ -14728,6 +14730,114 @@ excluding \(Q+1\mid K\).  The minimal-counterexample specialization and
 finite-field Fibonacci zero period remain paper-level.
 \end{proof}
 
+\begin{proposition}[literal ancestry selects an orbit, not an order stratum]
+\label{prop:fermat-literal-ancestry-orbit}
+For \(n\geq1\), put
+\(K_0=E_{n-2}\), \(K_1=E_{n-1}=K_0(c)\), and
+\(A=a_{n-2}\), with the level-zero conventions understood.  Thus
+\(c^2+c=A\), and every \(x\in K_1\) has unique coordinates
+\(x=x_0+cx_1\), \(x_0,x_1\in K_0\).  If \(Q=\lvert K_0\rvert\),
+the literal Conway label and the relative trace and norm are
+\[
+\begin{split}
+ \operatorname{label}(x)&=\operatorname{label}(x_0)
+      +Q\operatorname{label}(x_1),\\
+ \operatorname{Tr}_{K_1/K_0}(x)&=x_1,\\
+ \operatorname{Norm}_{K_1/K_0}(x)&=x_0^2+x_0x_1+Ax_1^2.
+\end{split}                                             \tag{\(\mathsf{LA}_1\)}
+\]
+Consequently the absolute-trace-one half is partitioned into consecutive
+blocks \(cy+K_0\), indexed in literal order by the trace-one elements
+\(y\in K_0\).  Its first block has \(y=A\), and its first point is
+\(cA=a_{n-1}\).  Within that block,
+\[
+ \boxed{\quad
+ \operatorname{Norm}_{K_1/K_0}(x_0+cA)=A^3
+ \iff x_0\in\{0,A\}.\quad}                            \tag{\(\mathsf{LA}_2\)}
+\]
+The two surviving points are relative Frobenius conjugates.  Iterating
+\((\mathsf{LA}_1)\)--\((\mathsf{LA}_2)\) shows that complete recursive
+trace--norm ancestry selects the Frobenius orbit of \(a_{n-1}\), while
+literal order only chooses the lower-coordinate-zero representative of
+that already selected orbit.  Since membership in every fibotomic stratum
+is Frobenius invariant, the least-label property adds no order obstruction
+after full ancestry is imposed.
+
+The same boundary is visible at the first additive edge.  Retain
+Proposition~\ref{prop:fermat-first-additive-flag}, put
+\[
+ T=\operatorname{Tr}_{E_{n-1}/E_{n-2}}(a^K)=A^KS_K(A),
+ \qquad y=\frac A T a^K,
+\]
+and use \(T\ne0\).  Then
+\[
+ y=a+\lambda,\qquad
+ \lambda=\frac{A^2S_{K-1}(A)}{S_K(A)}\in E_{n-2},     \tag{\(\mathsf{LA}_3\)}
+\]
+so \(y\) lies in the same first trace-one block and is never earlier than
+\(a\).  Moreover Cassini gives
+\[
+ \operatorname{Norm}(y)+A^3
+ =\lambda(\lambda+A)
+ =\frac{A^3S_{K-1}(A)S_{K+1}(A)}{S_K(A)^2}.          \tag{\(\mathsf{LA}_4\)}
+\]
+Thus \(y\) belongs to the selected endpoint orbit precisely when
+\(Q+1\mid K-1\) or \(Q+1\mid K+1\); otherwise it is a different point
+inside the same first block.  Literal minimality therefore turns the
+surviving additive-edge equality into an in-block displacement, not a
+contradiction.
+\end{proposition}
+
+\begin{proof}
+The nontrivial relative conjugation sends \(c\) to \(c+1\).  Adding and
+multiplying \(x_0+cx_1\) with its conjugate proves the last two identities
+in \((\mathsf{LA}_1)\).  The label identity is the disjoint-support binary
+decomposition.  Proposition~\ref{prop:fermat-top-bit-trace}, applied
+inductively in \(K_0\), identifies \(A\) as its first trace-one element,
+and hence identifies the first block and its first point.  At \(x_1=A\),
+equality of the norm with \(A^3\) reduces to
+\(x_0(x_0+A)=0\), proving \((\mathsf{LA}_2)\).
+
+The power-coordinate formula in the proof of
+Proposition~\ref{prop:fermat-first-additive-flag} gives
+\[
+ a^K=A^{K+1}S_{K-1}(A)+aA^{K-1}S_K(A).
+\]
+Multiplying by \(A/T\) proves \((\mathsf{LA}_3)\).  Substitution in
+\((\mathsf{LA}_1)\), followed by the Fibonacci Cassini identity, proves
+\((\mathsf{LA}_4)\).  Minimality gives the exact preceding zero period
+\(Q+1\), so its two factors vanish precisely in the two displayed period
+classes.  Lean kernel-checks the quadratic trace and norm coordinates,
+the endpoint-orbit equivalence, normalization into the first block, and
+the Cassini norm-defect factorization.  The literal Conway-label and
+finite-field period specializations remain paper-level.
+\end{proof}
+
+\begin{remark}[coefficient order is not ancestry order]
+Even retaining one exact ancestry edge does not make the selected factor
+lexicographically extremal.  At the first composite Fermat level the
+selected degree-thirty-two polynomial has coefficient word
+\[
+ A_4=\mathtt{1d05a9a3b}.
+\]
+The two already certified one-step descendants \(B\) and \(B_1\) of
+Propositions~\ref{prop:fermat-one-step-no-go} and
+\ref{prop:fermat-reciprocal-trace} satisfy
+\[
+ \mathtt{1c019c923}<A_4<\mathtt{1ddddfba7}.
+\]
+Both parents are full-order degree-sixteen factors, while both descendants
+belong to the same proper stratum \(\mathfrak F_{6700417}\).  The reversed
+coefficient words obey the same strict bracketing.  Thus neither leading-
+nor trailing-coefficient lex order distinguishes the selected factor even
+inside the one-step-parentable, full-order-parent locus.  Imposing the
+complete ancestry chain selects a singleton, at which point
+``least among full-ancestry factors'' is tautological and comparison with
+proper fibotomic factors is CSDU itself.  A finite bit-polynomial Lean
+certificate checks the displayed inequalities; the surrounding factor and
+parentage certificates are the earlier propositions.
+\end{remark}
+
 \begin{corollary}[the first additive edge has an exact cross-level period]
 \label{cor:fermat-additive-cross-level}
 Retain Proposition~\ref{prop:fermat-first-additive-flag}, and put
@@ -15934,6 +16044,92 @@ either $\mathcal A_u(P_n)$ or its inverse, while the second coordinate
 is $v^{-1}$, proving \((\mathsf Q)\).
 \end{proof}
 
+\begin{proposition}[Dickson left--right equivalence, but no Latt\`es dynamics]
+\label{prop:fermat-driver-not-lattes}
+Retain Proposition~\ref{prop:fermat-elliptic}, and put
+\[
+ \begin{gathered}
+ w_i=u_i=\frac{c_i+1}{c_i},\qquad
+ J(z)=z+z^{-1},\qquad R(z)=\frac{(z+1)^3}{z},\\
+ M(z)=\frac z{z+1},\qquad D_3(X)=X^3+X.
+ \end{gathered}
+\]
+The exact Conway transition is the two-valued correspondence
+\[
+                    J(w_{n+1})=R(w_n),               \tag{\(\mathsf{DL}_1\)}
+\]
+and its cubic driver is Dickson only in the left--right sense
+\[
+ \boxed{\qquad R=I\circ D_3\circ M,\qquad I(X)=X^{-1}.\qquad}
+                                                               \tag{\(\mathsf{DL}_2\)}
+\]
+It is not iteration of \(R\) in a single coordinate.  Moreover \(R\) is
+neither an exceptional permutation map nor M\"obius-conjugate to \(D_3\)
+or the cube map.
+
+The supersingular elliptic normalization does not turn the transition
+into a Latt\`es correspondence.  Its maps to the old and new lines have
+degrees two and three.  A representation
+\[
+ P\longmapsto\bigl(\pi(P),\pi(\psi P)\bigr)           \tag{\(\mathsf{DL}_3\)}
+\]
+for one quotient coordinate on a one-dimensional algebraic group and a
+nonconstant isogeny would require
+\(3=2\deg\psi\), or \(2=3\deg\psi\) in the opposite orientation.
+Both are impossible.  Thus multiplication, Chebyshev--Dickson,
+exceptional-map, and Latt\`es maximality theorems do not apply through
+such a conjugacy or one-coordinate Latt\`es presentation.
+\end{proposition}
+
+\begin{proof}
+Reciprocating equation \((\mathsf E)\) of
+Proposition~\ref{prop:fermat-elliptic} gives
+\[
+ J(u_n)=\frac{(u_{n-1}+1)^3}{u_{n-1}}=R(u_{n-1}),
+\]
+which is \((\mathsf{DL}_1)\) after the displayed identification.
+In characteristic two,
+\[
+ D_3(M(z))
+ =\left(\frac z{z+1}\right)^3+\frac z{z+1}
+ =\frac z{(z+1)^3},
+\]
+which proves \((\mathsf{DL}_2)\).  The map \(R\) has local degree three
+at \(1\) and sends
+\[
+                 1\longmapsto0\longmapsto\infty
+                   \longmapsto\infty,
+\]
+whereas the local-degree-three point of \(D_3\) is the fixed point at
+infinity.  A conjugacy would have to send both \(1\) and \(0\) to
+infinity.  The cube map has two local-degree-three critical points, while
+\(R\) also has a local-degree-two point at infinity.  Finally
+\(R(0)=R(\infty)=\infty\), so it is never a permutation map.
+
+The projection degrees are those of
+Proposition~\ref{prop:fermat-elliptic}; degrees of finite maps multiply,
+proving the Latt\`es obstruction.
+\end{proof}
+
+\begin{remark}[where the selected phase survives]
+Dickson's identity \(D_3(s+s^{-1})=s^3+s^{-3}\) exposes only cubing on
+an auxiliary torus.  For \(n\geq1\), every prime \(\ell\mid F_n\) is
+larger than three, so cubing is an automorphism of the
+\(\ell\)-torsion residue phase and preserves its triviality.
+
+On the elliptic normalization the target remains the Kummer value of the
+non-group function \(\mathfrak c=1/(u+1)\).
+Propositions~\ref{prop:fermat-overlap-zero} and
+\ref{prop:fermat-elliptic-kummer} already show respectively that the
+successive-point fibre product has zero
+\(\operatorname{End}(\mathcal E)\)-component and that the ramified Kummer
+cover does not inherit the quarter-turn.  The group law controls the base
+correspondence, not the marked function value.  Lean checks
+\((\mathsf{DL}_2)\), the elliptic parametrization identity, and the
+coprime-to-three phase core; the critical portrait and curve-degree
+argument remain paper-level.
+\end{remark}
+
 \begin{remark}[\(X_0(11)\) reduction, but not a modular tower]
 \label{rem:fermat-x011}
 The elliptic curve \(\mathcal E\) is the good reduction modulo two of
@@ -17039,6 +17235,64 @@ Under failure, \((\mathsf{SPT}_9)\) gives \(t_n\geq G_n\); combining
 this with \(\varphi(\delta_n)\geq G_n\) and the exact packet identity
 proves \((\mathsf{SPT}_{11})\).
 \end{proof}
+
+\begin{proposition}[the square-totient packet threshold is tail-vacuous]
+\label{prop:fermat-packet-totient-saturation}
+For every odd positive integer \(M\),
+\[
+                  M\leq\varphi(M)^2.                 \tag{\(\mathsf{TV}_1\)}
+\]
+Retain Corollary~\ref{cor:fermat-selected-packet-global-sieve}.  For every
+\(n\geq6\), its unconditional ambient arithmetic already gives
+\[
+ \boxed{\qquad
+ G_n^2=\kappa_n^2B_n^2\leq\varphi(F_n).
+ \qquad}                                               \tag{\(\mathsf{TV}_2\)}
+\]
+Consequently the failure consequence \((\mathsf{SPT}_{11})\) is automatic
+throughout the tail: it cannot exclude a proper selected conductor at any
+level \(n\geq6\).  Further fixed-coefficient exclusions for prime divisors
+\(p=1+kB_n\) can improve the packet gap but cannot close CSDU through the
+same square-totient comparison unless their resulting bound grows beyond
+the fourth-root scale of \(F_n\).
+\end{proposition}
+
+\begin{proof}
+For an odd prime power \(p^a\), \(p\geq3\), one has
+\[
+ \varphi(p^a)^2=p^{2a-2}(p-1)^2\geq p^a.
+\]
+For \(a=1\), this is \((p-1)^2\geq p\); for \(a\geq2\), it follows
+from \(2a-2\geq a\).  Multiplication over the distinct prime powers of
+\(M\) proves \((\mathsf{TV}_1)\).
+
+Now \(\kappa_n\leq7<8\), so \(G_n<2^{n+5}\).  For \(n\geq6\),
+induction gives \(4(n+5)\leq2^n\), starting from \(44\leq64\).
+Hence
+\[
+ G_n^4<2^{4(n+5)}\leq2^{2^n}<F_n.
+\]
+Since \(F_n\) is odd, \((\mathsf{TV}_1)\) gives
+\(F_n\leq\varphi(F_n)^2\).  Taking nonnegative square roots proves
+\((\mathsf{TV}_2)\).
+\end{proof}
+
+\begin{remark}[exact boundary of the arithmetic route]
+Every nontrivial divisor \(d\mid F_n\) already has
+\(\operatorname{ord}_d(2)=2^{n+1}\): the congruence
+\(2^{2^n}\equiv-1\pmod d\) gives order dividing \(2^{n+1}\), while an
+order dividing \(2^n\) would turn the same power into \(+1\).
+Thus primitive-divisor order arguments apply equally to a proper candidate
+\(\delta_n\) and cannot force it to contain every prime-power factor of
+\(F_n\).  Reciprocity restrictions on the coefficients \(k\) constrain
+the ambient factors but do not select which occur in \(\delta_n\).
+Closing CSDU requires ancestry-sensitive information about \(w_n\), not
+a stronger lower bound for the ambient Fermat factors alone.
+
+Lean checks \((\mathsf{TV}_1)\), the elementary exponential comparison,
+and the division-free implication \((\mathsf{TV}_2)\).  The
+multiplicative-order specialization remains paper-level.
+\end{remark}
 
 \begin{remark}[why homogeneous resultant-height bounds cancel the packet]
 Put \(x_n=Q_{\delta_n}(C_n)\).  Equation \((\mathsf{SPT}_4)\) is the
@@ -27242,9 +27496,12 @@ distinct simple intersections above two.  For \(n\geq3\), with
 \(\kappa_n=7,5,6,3\) according to \(n\bmod4=0,1,2,3\), full conductor is
 equivalent to \(t_n<G_n\), while failure forces both \(t_n\geq G_n\) and
 \(\varphi(F_n)\geq G_n^2\).  This is a sharper uniform divisor sieve on the
-selected packet, but it remains exponentially too weak; homogeneous norm
-and height estimates cancel \(t_n\) and cannot supply the required upper
-bound without conductor-sensitive input.
+selected packet, but Proposition~\ref{prop:fermat-packet-totient-saturation}
+proves its exact ceiling: the square-totient consequence is automatic for
+every \(n\geq6\).  Every proper divisor of \(F_n\) also has the same order of
+two.  Thus ambient factor congruences of this shape cannot select the Conway
+conductor; homogeneous norm and height estimates cancel \(t_n\) and cannot
+supply the required upper bound without ancestry-sensitive input.
 Corollary~\ref{cor:fermat-upper-block-factorization} and
 Proposition~\ref{prop:fermat-upper-block-universal-translate} retain the
 literal least upper Conway interval.  Its complete character histogram,
@@ -27369,6 +27626,14 @@ value \(A^{K-1}S_K(A)\).  Thus failure cannot force trace zero or descent to
 the preceding field; it is an equality between two nonzero lower selected
 values.  Proving those values unequal is the precise surviving
 additive-ancestry target.
+Proposition~\ref{prop:fermat-literal-ancestry-orbit} proves that ordinal
+minimality does not supply that inequality.  Recursive trace and norm select
+exactly the Frobenius orbit of \(a_{n-1}\); literal order merely chooses the
+lower-coordinate-zero representative.  The normalized additive-edge point
+lies in the same first trace-one block and is never earlier than the selected
+point; it returns to the endpoint orbit only in two adjacent-period cases. Since
+fibotomic membership is Frobenius invariant, least-label ordering creates no
+new order obstruction.
 Corollary~\ref{cor:fermat-additive-cross-level} makes its period loss
 arithmetic:
 \[
@@ -27384,6 +27649,13 @@ order \(e\) obeys \(e\geq4M+1\), together with
 \(Rt<e^2\), \(R\mid(t+e)\), and \(R<2e\).  This removes a complete
 all-level failure mode, while leaving the full-order branch and larger proper
 strata compatible with \((\mathsf{AE}_4)\).
+Proposition~\ref{prop:fermat-driver-not-lattes} also closes the direct
+algebraic-dynamics shortcut.  The driver is left--right Dickson equivalent
+but not conjugate to an exceptional map, and the elliptic correspondence has
+incompatible projection degrees two and three rather than a Latt\`es/isogeny
+form.  Cubing is an automorphism on every current primary phase.  These
+structures preserve the selected failure event; they do not force maximality
+of its inverse branch.
 Proposition~\ref{prop:fermat-equivariant-kummer-countermodel} makes the
 generalized-Jacobian boundary sharp at the actual \(n=9\) ordinal
 degree: a connected four-function Kummer cover and its quarter-turn

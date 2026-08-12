@@ -135,7 +135,10 @@ elementary congruences sharpen this to `1` or at least
 `kappa_n*2^(n+2)`, with `kappa_n=(7,5,6,3)` according to `n mod 4`; failure
 then forces `phi(F_n)>=(kappa_n*2^(n+2))^2`.  The Fermat-divisor and cubic
 reciprocity specialization is paper-level, while Lean checks the local
-prime-power factors, abstract threshold, and square inequality.  The paper also
+prime-power factors, abstract threshold, and square inequality.  The paper
+also proves that this square-totient consequence is automatic for every
+`n>=6`; Lean checks the odd-totient square bound and the full tail comparison.
+Thus the sieve is a real packet gap, not a tail contradiction.  The paper also
 identifies the selected nonunit as an
 oriented simple primitive ray with trace-one first coefficient and a
 nontrivial Kummer extension ramified at three.  Lean checks the ray coefficient
@@ -145,6 +148,17 @@ product identity underlying the shifted-unit norm.  Finite-field trace,
 number-field norm, conjugation, local ramification, splitting, the
 roots-of-unity product, and the finite-field specialization remain paper-level;
 universal cardinality one remains open.
+
+The literal-order and rational-dynamics refinements are also boundary
+theorems, not CSDU.  Lean checks the quadratic trace/norm coordinates and the
+one-step endpoint-orbit criterion.  The paper iterates those coordinates to
+show that recursive ancestry selects a Frobenius orbit while literal order only
+selects its first representative.  Lean also checks the left-right Dickson
+identity, the forward affine identity from the
+elliptic model, and the coprime-cubing core for an `ell`-torsion phase.  The
+finite-field ancestry specialization, smooth normalization, supersingularity,
+critical portraits, projection degrees, and non-Lattès argument are
+paper-level; none supplies the missing selected-order inequality.
 
 The next global frontier cores sharpen that boundary without changing it.
 Lean checks the `Z` first-additive-edge power coordinates, trace identity, and
