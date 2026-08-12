@@ -200,7 +200,8 @@ fixed-prime full-tail phase conservation and two-ancestor birth reduction;
 full-conductor truncated-log regulator and exact conductor-\(p^2\)
 ray/Jacobi reciprocity; invariant realification and selected local
 reflection norm; exact localization to the Frobenius-\(2\) decomposition
-character and its decomposition-trivial reflection mirror; the exact sparse
+character and decomposition-triviality of every reflected extension on that
+group; the exact sparse
 marked full-conductor polynomial at
 \(p=359\), its checked Hilbert-root certificate proving \(m_{359}=1\),
 the exact crossed-tower computation proving \(m_{719}=1\), the direct sparse
@@ -221,7 +222,8 @@ collapse, ancestral coordinate presentation, and the selected self-polar
 trace-hyperplane character ratio, together with complete self-polar
 incidence-algebra saturation, fixed-prime full-tail phase conservation, and
 birth-secant/orbit-product saturation; global Kummer nondegeneracy and the
-complete conjugate circular-unit multikummer rank jump &
+complete conjugate circular-unit multikummer rank jump, together with the
+exact Chebotarev fibre showing both final-line states are globally admissible &
 exclusion of the selected Wendt/trace fibre at the remaining current
 factors \\
 \((D)\) &
@@ -6080,6 +6082,161 @@ all others.  The class of \(c\) is a cyclic generator and has nonzero
 projection on every nontrivial line; its reduction on the remaining line is
 the selected Kummer class of \(\gamma_k\).  This proves the rank-jump
 description and the stated boundary.
+\end{proof}
+
+\begin{proposition}[the cubic Frobenius fibre contains both final-line states]
+\label{prop:cubic-chebotarev-fibre}
+Retain Proposition~\ref{prop:cubic-multikummer-split-ray}.  Unconditionally,
+if \(g_{2,k,\ell}\) is an arithmetic Frobenius above two in
+\(\operatorname{Gal}(\mathcal K/\mathbb Q)\), then
+\[
+ \boxed{
+ \gamma_k\notin(\F_{2^n}^{\times})^\ell
+ \quad\Longleftrightarrow\quad
+ g_{2,k,\ell}^{n}\ne1.}                          \tag{\(\mathsf{CBF}_0\)}
+\]
+
+Assume now that \(\ell\nmid |\operatorname{Cl}(K^+)|\).  Thus the complete
+conjugate Kummer radical is the augmentation module
+\[
+ R=\mathbb F_\ell[\Delta]/\mathbb F_\ell\nu,
+ \qquad \dim_{\mathbb F_\ell}R=n-1,
+\]
+and, writing
+\[
+ A=\operatorname{Gal}(\mathcal K/M),
+\]
+Kummer duality identifies \(A\) with
+\(\operatorname{Hom}(R,\mu_\ell)\).
+
+Put
+\[
+ H=\operatorname{Gal}(M/\mathbb Q)
+   \simeq\Delta\times\Gamma,
+ \qquad \Gamma\simeq\mathbb F_\ell^\times,
+ \qquad h=(\sigma,2)\in H.
+\]
+Then \(h\) has order \(n\), and its fixed space on \(A\) is exactly
+one-dimensional.  It is the Kummer-dual line corresponding to the radical
+character
+\[
+ \chi_2(\sigma)=2.                                  \tag{\(\mathsf{CBF}_1\)}
+\]
+For every other nontrivial character \(\chi\) of \(\Delta\), the orbit norm
+\(N_h=1+h+\cdots+h^{n-1}\) vanishes on the dual \(\chi\)-line, whereas it
+acts as multiplication by \(n\) on the line in \((\mathsf{CBF}_1)\).
+
+The extension \(\mathcal K/\mathbb Q\) is Galois.  After choosing a
+Schur--Zassenhaus complement, write
+\[
+ \operatorname{Gal}(\mathcal K/\mathbb Q)=A\rtimes H.
+\]
+If an unramified rational prime \(p\) has Frobenius image \(h\) in
+\(H\), and a lift of its Frobenius is written \(g=(a,h)\), then
+\[
+ g^n=(N_h a,1)=\bigl(n\,\operatorname{pr}_2(a),1\bigr),     \tag{\(\mathsf{CBF}_2\)}
+\]
+where \(\operatorname{pr}_2:A\to A^h\) is the selected-line projection.
+Consequently the primes of \(M\) above \(p\) split completely in
+\(\mathcal K/M\) if and only if
+\[
+ \operatorname{pr}_2(a)=0.                           \tag{\(\mathsf{CBF}_3\)}
+\]
+The coordinate in \((\mathsf{CBF}_3)\) is independent of the chosen
+Schur--Zassenhaus complement.
+
+Both alternatives in \((\mathsf{CBF}_3)\) occur for infinitely many rational
+primes with exactly the same Frobenius image \(h\) in \(M/\mathbb Q\).
+More precisely, the Chebotarev densities are
+\[
+ \begin{array}{c|c}
+ \operatorname{Frob}_p(M/\mathbb Q)=h
+ \text{ and complete splitting in }\mathcal K/M
+   &\displaystyle\frac1{\ell|H|},\\[6pt]
+ \operatorname{Frob}_p(M/\mathbb Q)=h
+ \text{ and nonsplitting in the selected line}
+   &\displaystyle\frac{\ell-1}{\ell|H|}.
+ \end{array}                                             \tag{\(\mathsf{CBF}_4\)}
+\]
+Equivalently, conditional on the base Frobenius \(h\), the final selected
+coordinate is zero with density \(1/\ell\) and nonzero with density
+\((\ell-1)/\ell\).
+
+For the distinguished prime two, its Frobenius in \(M/\mathbb Q\) is exactly
+\(h\), and \((\mathsf{CBF}_2)\) is the rank jump of
+Proposition~\ref{prop:cubic-multikummer-split-ray}: all \(n-2\) nonselected
+lines split automatically, while cubic failure is precisely the zero value
+of the remaining coordinate.  Formula \((\mathsf{CBF}_4)\) proves that this
+zero is not forbidden by the global Galois group, conductor, circular-unit
+index, character multiplicities, or the base decomposition law.  Any proof
+of \(C_k\) must use arithmetic which distinguishes the literal prime two
+inside its Chebotarev fibre; an argument invariant under replacing two by
+another prime with the same image \(h\) cannot close the arm.
+\end{proposition}
+
+\begin{proof}
+The equivalence \((\mathsf{CBF}_0)\) is the local Kummer criterion from
+Proposition~\ref{prop:cubic-multikummer-split-ray}: \(g_{2,k,\ell}^n\) is
+the relative Frobenius over \(M\), and it is trivial exactly when all
+conjugates of \(c\), equivalently all Frobenius conjugates of \(\gamma_k\),
+are local \(\ell\)-th powers.
+
+The conductors \(3^{k+1}\) and \(\ell\) are coprime, so
+\(H\simeq\Delta\times\Gamma\).  On
+\(A=\operatorname{Hom}(R,\mu_\ell)\), an element
+\((\delta,u)\in\Delta\times\Gamma\) acts by
+\[
+ ((\delta,u)\varphi)(r)=u\,\varphi(\delta^{-1}r).
+                                                               \tag{\(\mathsf{CBF}_5\)}
+\]
+Thus, on the dual of the radical \(\chi\)-line, \(h=(\sigma,2)\)
+acts by the scalar
+\[
+ 2\chi(\sigma)^{-1}.                                  \tag{\(\mathsf{CBF}_6\)}
+\]
+The nontrivial characters of \(\Delta\) take all nonidentity
+\(n\)-th-root values in \(\mathbb F_\ell\), and two itself has exact order
+\(n\) modulo \(\ell\).  Hence the scalar in
+\((\mathsf{CBF}_6)\) is one exactly for \(\chi=\chi_2\).  On every other
+line it is a nontrivial \(n\)-th root, so its geometric sum is zero; on the
+fixed line the sum is \(n\ne0\pmod\ell\).  This proves
+\((\mathsf{CBF}_1)\) and the assertion about \(N_h\).  This linear-algebra
+step is kernel-checked in \texttt{Ogdoad/Excess.lean}.
+
+The full conjugate radical is stable under \(H\), so
+\(\mathcal K/\mathbb Q\) is Galois.  Since \(A\) is an \(\ell\)-group and
+\(\ell\nmid|H|=n(\ell-1)\), Schur--Zassenhaus splits the exact sequence
+\[
+ 1\longrightarrow A\longrightarrow
+ \operatorname{Gal}(\mathcal K/\mathbb Q)
+ \longrightarrow H\longrightarrow1.
+\]
+In the resulting semidirect product,
+\[
+ (a,h)^n=(a+ha+\cdots+h^{n-1}a,1),
+\]
+which is \((\mathsf{CBF}_2)\).  The order of \(h\) is \(n\), so a prime
+of \(M\) above \(p\) has residue degree \(n\); its relative Frobenius in
+\(\mathcal K/M\) is precisely \(g^n\).  This proves
+\((\mathsf{CBF}_3)\).  Replacing the complement by an \(A\)-conjugate changes
+\(a\) by an element of \((1-h)A\), whose projection to \(A^h\) is zero,
+so the selected coordinate is intrinsic.
+
+It remains to count the Chebotarev fibre.  The set of elements above \(h\)
+with zero selected coordinate has \(\ell^{n-2}\) elements; its complement
+has \((\ell-1)\ell^{n-2}\).  Each is one conjugacy class:
+\(A\)-conjugation traverses the full nonfixed summand
+\((1-h)A\), while \(\Gamma\)-conjugation acts transitively on the nonzero
+vectors of the one-dimensional fixed line.  Chebotarev's density theorem
+therefore gives their cardinalities divided by
+\[
+ |\operatorname{Gal}(\mathcal K/\mathbb Q)|
+   =\ell^{n-1}|H|,
+\]
+which is \((\mathsf{CBF}_4)\).  Finally, two is unramified in
+\(\mathcal K\), its images in \(\Delta\) and \(\Gamma\) are respectively
+\(\sigma\) and two, and hence its base Frobenius is \(h\).  The stated
+boundary follows.
 \end{proof}
 
 \subsection{Kernel tower and quantitative order bounds}
@@ -22496,13 +22653,16 @@ exactly when
 \[
  \operatorname{ev}_{\mathfrak q}(e_\psi c)\ne0.     \tag{\(\mathsf{MDC}_3\)}
 \]
-The reflected Kummer character is
-\(\psi^*=\omega\psi^{-1}\), where \(\omega\) is cyclotomic, and
+On the decomposition group, the reflected Kummer character is
+\(\psi^*=\omega|_{D_2}\psi^{-1}\), where \(\omega\) is cyclotomic, and
 \[
- \psi^*(2)=2\psi(2)^{-1}=1.                         \tag{\(\mathsf{MDC}_4\)}
+ \psi^*(d)=d\psi(d)^{-1}=1\qquad(d\in D_2).         \tag{\(\mathsf{MDC}_4\)}
 \]
-Thus reflection moves the surviving class into the decomposition-trivial
-component; it does not force the marked Frobenius to be nonidentity.
+Thus every global reflected extension of \(\psi\) restricts trivially to
+the decomposition group; reflection does not force the marked Frobenius to
+be nonidentity.  In the exceptional specialization the compatible even
+global extension is unique, whereas the ordinary case may have several
+global extensions with this same trivial restriction.
 \end{proposition}
 
 \begin{proof}
@@ -27168,6 +27328,14 @@ real class group, the radical is the full augmentation module: the other
 failure is exactly the jump which adds the final Frobenius-\(2\) line and
 raises the packet to rank \(n-1\).  This isolates a genuinely global rank
 jump, but does not exclude it uniformly.
+Proposition~\ref{prop:cubic-chebotarev-fibre} makes that limitation exact.
+Among replacement primes with the same base Frobenius as two, the zero and
+nonzero final-line states both occur, with conditional densities
+\(1/\ell\) and \((\ell-1)/\ell\).  Hence the global group, conductor,
+circular-unit index, character multiplicities, and decomposition law cannot
+decide the jump.  The surviving global target is the literal-prime inequality
+\(g_{2,k,\ell}^{3^k}\ne1\), which is exactly the selected Kummer
+nonvanishing and requires arithmetic that marks two itself.
 Propositions~\ref{prop:singer-normal-translate} and
 \ref{prop:cubic-two-normal-bases} nevertheless supply two selected normal
 coordinates joined by an explicit determinant-one half-circulant.  Their

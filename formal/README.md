@@ -254,15 +254,17 @@ ingredients used by the Lenstra-excess reductions, including the exceptional
 - the complete cubic multikummer rank core: Lean checks that a bounded
   power-relation kernel gives the advertised lower bound on the realized
   conjugate lattice, that a split-ray surjection transfers this dimension,
-  and the combined rank inequality.  The circular-unit lattice and index
-  theorem, its character decomposition, local conductors, and the selected
+  the combined rank inequality, and the orbit-norm linear algebra which
+  detects exactly the final fixed Frobenius line.  The circular-unit lattice
+  and index theorem, its character decomposition, local conductors, the
+  semidirect Galois group, Chebotarev densities, and the selected
   Artin-reciprocity specialization remain paper-level;
 - the marked decomposition-character core: Lean checks iteration of the
   Frobenius covariance relation, vanishing forced by a conflicting
   complex-conjugation eigenvalue, and the necessity of matching the unique
   eigenvalue seen by a nonzero marked coordinate.  The cyclotomic projector,
-  unit-representation multiplicity, and reflected Kummer character remain
-  paper-level;
+  unit-representation multiplicity, and restriction of reflected Kummer
+  extensions to the decomposition group remain paper-level;
 - the two denominator-free conductor-five identities and their quotient form
   `d + d^-1 = 2 + 5/(x^2+x-1)`, the algebraic coefficient in the paper's
   exceptional-arm reflection field.  The cyclotomic number-field extension,

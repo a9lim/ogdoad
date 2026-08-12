@@ -147,7 +147,11 @@ the proof boundary: Lean checks the multikummer rank accounting, while the
 paper uses the circular-unit index theorem, local conductor calculation, and
 Artin reciprocity.  Subject to the real class-number term, this identifies
 failure with a jump from the unconditional `n-2` split character lines to all
-`n-1` nontrivial lines; it does not prove that the jump is impossible.
+`n-1` nontrivial lines.  Lean additionally checks the orbit-norm algebra which
+isolates the last fixed line.  The paper-level semidirect-product and
+Chebotarev calculation proves that replacement primes with the same base
+Frobenius realize both final-line states; it does not evaluate the literal
+prime two or prove that the jump is impossible there.
 Lean also checks the decomposition-orbit covariance, the conjugation/eigenvalue
 collision which forces a marked functional to vanish, and compatibility of a
 nonzero marked coordinate with its unique Frobenius eigenvalue.  The paper's

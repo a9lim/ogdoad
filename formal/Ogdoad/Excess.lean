@@ -6722,6 +6722,102 @@ theorem multikummer_split_ray_rank_bound
     _ ≤ Module.finrank F R := (LinearMap.range kummer).finrank_le
     _ ≤ Module.finrank F Q := finrank_le_of_surjective_linearMap artin hartin
 
+/-! The complete cubic multikummer extension also has an exact Frobenius-fibre
+boundary.  The number-field Kummer extension, semidirect Galois group, and
+Chebotarev theorem remain paper-level.  These lemmas check that the `n`-th
+power of a lift of the diagonal base Frobenius sees exactly its coordinate on
+the one fixed character line. -/
+
+/-- Additive part of the `n`-th power in a semidirect product. -/
+def cubicOrbitSum {F A : Type*} [Field F]
+    [AddCommGroup A] [Module F A]
+    (T : A →ₗ[F] A) (n : Nat) (x : A) : A :=
+  ∑ i ∈ Finset.range n, (T ^ i) x
+
+/-- A covariant projection fixed by `T` is fixed by every iterate. -/
+theorem cubic_project_iterate
+    {F A S : Type*} [Field F]
+    [AddCommGroup A] [Module F A]
+    [AddCommGroup S] [Module F S]
+    (T : A →ₗ[F] A) (project : A →ₗ[F] S)
+    (hproject : ∀ x, project (T x) = project x) :
+    ∀ (i : Nat) (x : A), project ((T ^ i) x) = project x := by
+  intro i
+  induction i with
+  | zero =>
+      intro x
+      simp
+  | succ i ih =>
+      intro x
+      rw [pow_succ]
+      simp only [Module.End.mul_apply]
+      rw [ih, hproject]
+
+/-- The orbit sum projects to `n` copies of the selected coordinate. -/
+theorem cubic_project_orbitSum
+    {F A S : Type*} [Field F]
+    [AddCommGroup A] [Module F A]
+    [AddCommGroup S] [Module F S]
+    (T : A →ₗ[F] A) (project : A →ₗ[F] S)
+    (hproject : ∀ x, project (T x) = project x)
+    (n : Nat) (x : A) :
+    project (cubicOrbitSum T n x) = n • project x := by
+  simp only [cubicOrbitSum, map_sum,
+    cubic_project_iterate T project hproject]
+  simp
+
+/-- If the orbit norm kills the kernel of the selected projection, it
+vanishes exactly when the selected coordinate does. -/
+theorem cubic_orbitSum_eq_zero_iff_selected_eq_zero
+    {F A S : Type*} [Field F]
+    [AddCommGroup A] [Module F A]
+    [AddCommGroup S] [Module F S]
+    (T : A →ₗ[F] A) (project : A →ₗ[F] S)
+    (hproject : ∀ x, project (T x) = project x)
+    (n : Nat) (hn : (n : F) ≠ 0)
+    (hkill : ∀ x, project x = 0 → cubicOrbitSum T n x = 0)
+    (x : A) :
+    cubicOrbitSum T n x = 0 ↔ project x = 0 := by
+  constructor
+  · intro horbit
+    have hprojzero : n • project x = 0 := by
+      rw [← cubic_project_orbitSum T project hproject n x, horbit]
+      simp
+    have hscalar : (n : F) • project x = 0 := by
+      simpa only [Nat.cast_smul_eq_nsmul F] using hprojzero
+    exact (smul_eq_zero.mp hscalar).resolve_left hn
+  · exact hkill x
+
+/-- On an eigenline, the orbit sum is its geometric sum times the vector. -/
+theorem cubic_orbitSum_eigenvector
+    {F A : Type*} [Field F] [AddCommGroup A] [Module F A]
+    (T : A →ₗ[F] A) (q : F) (n : Nat) (x : A)
+    (heigen : T x = q • x) :
+    cubicOrbitSum T n x = (∑ i ∈ Finset.range n, q ^ i) • x := by
+  have hiter : ∀ i : Nat, (T ^ i) x = q ^ i • x := by
+    intro i
+    induction i with
+    | zero => simp
+    | succ i ih =>
+        rw [pow_succ]
+        simp only [Module.End.mul_apply, heigen, map_smul, ih]
+        simp [pow_succ, smul_smul, mul_comm]
+  simp only [cubicOrbitSum, hiter, Finset.sum_smul]
+
+/-- Every nontrivial `n`-th-root eigenline is killed by the orbit norm. -/
+theorem cubic_orbitSum_eigenvector_eq_zero
+    {F A : Type*} [Field F] [AddCommGroup A] [Module F A]
+    (T : A →ₗ[F] A) (q : F) (n : Nat) (x : A)
+    (heigen : T x = q • x) (hqpow : q ^ n = 1) (hq : q ≠ 1) :
+    cubicOrbitSum T n x = 0 := by
+  rw [cubic_orbitSum_eigenvector T q n x heigen]
+  have hgeom : (∑ i ∈ Finset.range n, q ^ i) = 0 := by
+    have hmul := geom_sum_mul q n
+    rw [hqpow] at hmul
+    exact (mul_eq_zero.mp (by simpa using hmul)).resolve_right
+      (sub_ne_zero.mpr hq)
+  simp [hgeom]
+
 /-- Iterating a covariance relation along the decomposition orbit. -/
 theorem covariant_orbit_iterate
     {G F : Type*} [CommGroup G] [Field F]

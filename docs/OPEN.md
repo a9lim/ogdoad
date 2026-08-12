@@ -803,9 +803,11 @@ absolute boundedness.
   selected space from the earlier `C_r` bound `phi(N/r)/2` to
   `[G:<-1,2>]`; every other character is invisible at the marked prime.
   The remaining assertion is nonvanishing of the selected Frobenius
-  functional on the one marked vector in that exact space. Reflection moves
-  it to the decomposition-trivial mirror and therefore does not decide that
-  named Frobenius value.
+  functional on the one marked vector in that exact space. Every reflected
+  global extension restricts trivially to the two-decomposition group and
+  therefore does not decide that named Frobenius value; unlike the
+  one-dimensional exceptional specialization, the ordinary global extension
+  need not be unique.
   Simultaneous complex conjugation now gives an exact local reflection normal
   form. For the relative unit `rho`, the invariant realification is
   `u=rho*j(rho)=zeta_N^(1-q_0)*rho^2`; the root-of-unity factor is a global
@@ -939,9 +941,16 @@ absolute boundedness.
   All `n-2` character lines other than the Frobenius-`2` line already define
   split-at-two ray extensions unconditionally; cubic failure is exactly the
   event that the final line joins them, raising the split packet to rank
-  `n-1`. Thus a global proof may target this one rank jump, but neither the
-  required uniform class-number exclusion nor non-splitting of the final line
-  is currently known.
+  `n-1`. The exact Chebotarev fibre makes the boundary sharp. Subject to the
+  same class-number hypothesis, replacement primes with the identical base
+  Frobenius as two realize the zero and nonzero final-line states with
+  conditional densities `1/ell` and `(ell-1)/ell`. Thus the abstract Galois
+  group, conductor, circular-unit index, character multiplicities, and base
+  decomposition law cannot exclude the jump. The final global target is the
+  literal-prime inequality `g_(2,k,ell)^(3^k) != 1`; only arithmetic which
+  marks the actual prime two can prove it. Neither the required uniform
+  class-number exclusion nor that marked Frobenius nonvanishing is currently
+  known.
   Keeping the full recursion reconstructs every finite Conway truncation up
   to Frobenius, and an infinite chain up to the corresponding pro-Frobenius;
   dropping it admits primitive-coefficient countermodels, so the normalization
@@ -1185,9 +1194,9 @@ absolute boundedness.
   data have zero even projection and force neither.
   More generally the marked residue functional factors through the exact
   Frobenius-`2` decomposition character. In this exceptional field that
-  eigenspace is one-dimensional; its reflected Kummer character is
-  decomposition-trivial. Thus the character projection is now exact, but the
-  one marked Frobenius value remains open.
+  eigenspace is one-dimensional; its reflected Kummer character restricts
+  trivially to the decomposition group. Thus the character projection is now
+  exact, but the one marked Frobenius value remains open.
   Below Euler projection there is now an exact adjacent-value compression in
   the original corrected-norm field. Put `D=zeta^4+zeta` in `K=F_(4^h)`.
   The full `F_16` translate table and injectivity of the quadratic
