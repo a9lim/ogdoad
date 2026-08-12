@@ -51,6 +51,35 @@ derivation alongside the code or in a `writeups/` note.
 
 ## completed items
 
+### over·(e_g∧e_f): `gold-heisenberg-game-model`
+**Completed:** 2026-08-12
+**Summary:** the oriented Gold trace half is a game-built two-cocycle whose
+group multiplication produces the quadratic diagonal as squares and the polar
+form as commutators; the power-of-two radical quotient is genuinely extraspecial.
+**Pillars:** games ↔ forms ↔ scalar    **Claim level:** proved synthesis, standard finite-field input, kernel-checked algebra
+- construction: on `F_2 x F_(2^m)`,
+  `(s,x)*(t,y)=(s+t+Tr(lambda*x*y^(2^a)),x+y)`. Bilinearity is the cocycle
+  identity; squares are `Q_(lambda,a)` and factor swaps read its polar form.
+- game surface: represent the registers by `(0 or *, *x)`. Disjunctive sum,
+  Turning-Corners nim multiplication, diagonal Frobenius, and trace are one
+  fixed binary game term; no basis diagonal, unary `Q` oracle, outcome test, or
+  input-dependent rule is imported.
+- faithful composition: signed translations on finite bundles of short-game
+  values satisfy `T_x*T_y=z^phi(x,y)*T_(x+y)` and distinguish every extension
+  element.
+- correction/core: the full unscaled Gold extension is extraspecial-type, not
+  extraspecial, because `rad(B_a)=F_(2^gcd(2a,m))`. In the power-of-two nimber
+  tower, `Q_a` and the cocycle vanish on that radical; quotienting its canonical
+  central lift gives an extraspecial group of order
+  `2^(1+m-gcd(2a,m))`. The `(4,1)` quotient is `Q_8`.
+- artifacts: the Gold--Heisenberg section of `writeups/goldarf.tex`, the
+  standalone `writeups/extraspecial_model.{tex,pdf}`, and
+  `formal/Ogdoad/GoldExtraspecial.lean`.
+- formal boundary: Lean checks the generic biadditive cocycle group, central
+  retagging, square/swap/center laws, noncommutativity, and order-four lifts.
+  The concrete nim field, trace/radical specialization, signed game-bundle
+  action, and quotient synthesis remain proved paper-level mathematics.
+
 ### ~4·(e_f∧e_g∧e_c): `flagship-merge-2026-08-12` (the publication revision pass)
 **Completed:** 2026-08-12
 **Summary:** the six-referee publishability review (verdicts in

@@ -31,6 +31,31 @@ implemented and exhaustively tested in `src/forms/trace_form.rs`. Lean proves
 the abstract identities and the finite-field existence theorem from the stated
 hypotheses; it does not encode the `u128` nim multiplication implementation.
 
+## Gold--Heisenberg extension
+
+[`Ogdoad/GoldExtraspecial.lean`](Ogdoad/GoldExtraspecial.lean) kernel-checks
+the universal algebra behind the game-native extension model:
+
+- any biadditive half-polar map `phi : V -> V -> ZMod 2` is a normalized
+  two-cocycle and defines a group on `ZMod 2 x V`;
+- the distinguished central bit has order two and retags the two lifts of
+  each quotient vector;
+- squaring reads the diagonal `phi(x,x)`, while swapping two factors costs
+  the symmetrization `phi(x,y)+phi(y,x)`;
+- an element is central exactly when its vector coordinate lies in the
+  radical of that symmetrization;
+- a nonzero polar value forces noncommutativity, and a diagonal-one lift has
+  order four.
+
+The paper specializes `phi` to
+`phi_a(x,y) = Tr(x * y^(2^a))` on a finite nimber field. Turning-Corners
+multiplication, diagonal Frobenius, and disjunctive trace supply the concrete
+game term. Lean proves the full generic cocycle implication without encoding
+the `u128` nim field, its trace implementation, or the finite-field radical
+formula. The power-of-two radical quotient and the signed action on bundles of
+short-game values are paper-level synthesis; they are not hidden assumptions
+or numerical evidence.
+
 ## Brown game semantics
 
 [`Ogdoad/BrownGame.lean`](Ogdoad/BrownGame.lean) kernel-checks the algebraic

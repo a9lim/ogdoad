@@ -92,6 +92,19 @@ and the fixed decoder to the Brown residue.  The shipped weighted-source
 theorem supplies the follower contract; Lean does not duplicate that complete
 arena construction here.
 
+`Ogdoad/GoldExtraspecial.lean` kernel-checks the algebraic core of the
+game-native Gold--Heisenberg model. For an arbitrary biadditive
+`phi : V -> V -> ZMod 2`, it constructs the cocycle group on the central bit
+and vector coordinate, proves associativity and inversion, proves that squares
+read `phi(x,x)` and factor swaps read `phi(x,y)+phi(y,x)`, characterizes the
+center by the radical of that symmetrization, and derives noncommutativity and
+order-four lifts. The specialization
+`phi_a(x,y) = Tr(x * y^(2^a))`, the concrete nim-game term, the finite-field
+radical formula, the canonical power-of-two radical quotient, and the faithful
+signed action on game-value bundles are proved in the paper from standard
+finite-field facts; Lean does not encode the `u128` nim backend or present a
+finite computation as the structural theorem.
+
 `Ogdoad/Fifo.lean` kernel-checks the exact reduced game semantics, strict
 termination rank, queue invariant, strategy quantifiers, queue-cut conservation,
 the edgeless base theorem, and the dummy-free conditioned close-first theorem.

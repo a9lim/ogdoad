@@ -2,9 +2,9 @@
 
 This file records solved research questions as mathematical results, not as a
 development chronology. Implementation milestones remain in [`DONE.md`](DONE.md),
-while the three unsolved fronts remain in [`OPEN.md`](OPEN.md).
+while the two unsolved fronts remain in [`OPEN.md`](OPEN.md).
 
-Since 2026-08-12, five of the seven results share one flagship paper:
+Since 2026-08-12, six of the eight results share one flagship paper:
 [`goldarf.tex`](../writeups/goldarf.tex), "Quadratic Refinements in Normal
 Play: Realization and the Observation Boundary", absorbed the former
 `gold_diagonal_source.tex` (as its diagonal-source section),
@@ -24,6 +24,7 @@ history.
 | Brown game semantics | one partizan selector realizes all four local Brown residues; every ambient-coherent Brown colour on all short games is zero | [`goldarf.tex`](../writeups/goldarf.tex), Brown-selector section (`sec:brown-selector`) |
 | thermography versus Newton polygons | positive numeric Norton units obey the exact thermic law `temp(G.u) = u·temp(G) + (u − δ_u)` with a classified composition defect; the shared shadow is tropical but no faithful full-dyadic graded ring exists | [`thermo_newton.tex`](../writeups/thermo_newton.tex) |
 | observation width above weight one | block aggregation of the weighted-source rule attains the integral transcript-span bound `ceil(wt(x)/w)` exactly at every fixed width, under the same access contract at `(w_0, c) = (w, 1)` | [`goldarf.tex`](../writeups/goldarf.tex), block-compression corollary (`cor:blocks`) |
+| game-native Gold extraspecial model | the oriented trace half `phi_a(x,y) = Tr(x*y^(2^a))` gives a game-built cocycle extension whose squares are `Q_a`; the canonical power-of-two radical quotient is genuinely extraspecial | [`goldarf.tex`](../writeups/goldarf.tex), Gold--Heisenberg theorem (`thm:goldheisenberg`) |
 
 ## 1. Gold quadratic zero sets have an impartial normal-play realization
 
@@ -320,13 +321,67 @@ pointwise in an edge-deleted submatching. Weighted source OPEN charges, the
 literal one-policy quantifier across all submatchings, and the end-to-end access
 synthesis remain explicit paper-level steps, not hidden kernel claims.
 
+## 8. The Gold--Heisenberg extension has a game-native model
+
+**Closed 2026-08-12, affirmative with a terminology correction.** For
+`K = F_(2^m)` and scale `lambda`, the oriented half-polar map
+
+```text
+phi_(lambda,a)(x,y) = Tr(lambda*x*y^(2^a))
+```
+
+is biadditive. On `F_2 x K`, the fixed product
+
+```text
+(s,x)*(t,y) = (s+t+phi_(lambda,a)(x,y), x+y)
+```
+
+is associative, has central involution `z=(1,0)`, and fits into a central
+extension of `K^+` by `<z>`. Its square and commutator laws are exactly
+
+```text
+(s,x)^2 = z^Q_(lambda,a)(x)
+[(s,x),(t,y)] = z^B_(lambda,a)(x,y).
+```
+
+Representing the two coordinates by `(0 or *, *x)` makes this one fixed
+game construction: XOR is disjunctive sum, multiplication is Turning Corners,
+Frobenius is its diagonal iterate, and trace is a disjunctive sum. No basis
+diagonal, unary `Q` oracle, outcome test, or input-dependent rule is supplied.
+A faithful signed-translation action on finite bundles of short-game values
+makes the multiplication literal context composition.
+
+The earlier name needed correction. The full unscaled Gold polar form has
+radical `F_(2^gcd(2a,m))`, so its full extension is extraspecial-type rather
+than extraspecial. In the power-of-two nimber tower, when the polar rank is
+positive, `Q` and `phi` vanish on that radical. Its canonical central lift can
+therefore be quotiented out, producing a genuine extraspecial group of order
+`2^(1+m-gcd(2a,m))`. The first `(m,a)=(4,1)` quotient is `Q_8`. For general
+scaled forms or an anisotropic radical, a nonsingular complement supplies the
+extraspecial core and its choice boundary remains explicit.
+
+Proof surfaces:
+
+- [`writeups/goldarf.tex`](../writeups/goldarf.tex), Gold--Heisenberg theorem
+  and canonical radical quotient
+- [`writeups/extraspecial_model.tex`](../writeups/extraspecial_model.tex),
+  standalone proof note
+- [`formal/Ogdoad/GoldExtraspecial.lean`](../formal/Ogdoad/GoldExtraspecial.lean),
+  generic cocycle group, squares, swap defect, center, and order-four lifts
+- [`src/forms/char2/extraspecial.rs`](../src/forms/char2/extraspecial.rs),
+  independently tested finite target surface
+
+The Lean module checks the universal algebra for any biadditive half-polar
+map. The concrete nimber field, finite-field radical theorem, signed game-bundle
+action, and power-of-two quotient are paper-level proofs, not numerical
+substitutes or hidden axioms.
+
 ## The remaining open fronts
 
 Only the following research questions remain open:
 
 1. the arbitrary-graph causal affine-contraction theorem for FIFO linking;
-2. the universal Lenstra excess `0/1/4` rule;
-3. the game-native extraspecial extension model.
+2. the universal Lenstra excess `0/1/4` rule.
 
 Their exact current formulations and evidence boundaries are in
 [`OPEN.md`](OPEN.md).

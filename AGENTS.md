@@ -59,6 +59,9 @@ compiler resolving the uniform realizer problem;
 as a comparison surface; `Ogdoad/GoldNoEvaluator.lean` proves the sharp transcript-span and
 query-weight lower bounds; `Ogdoad/GoldBlockCompression.lean` proves the
 induced-instance algebra behind the every-width block-compression attainment;
+`Ogdoad/GoldExtraspecial.lean` proves the generic biadditive cocycle group,
+diagonal square law, symmetrized commutator defect, center criterion, and
+order-four lifts behind the game-native Gold--Heisenberg model;
 `Ogdoad/GoldForkPadding.lean` proves that unavoidable
 strategic-fork padding cannot certify non-tautology; and
 `Ogdoad/GameExterior.lean` kernel-checks the root-collapse lemma and the
@@ -139,9 +142,10 @@ childwise/full-fan/bounded-support inductions, and the exact still-open global
 odd-flow lemma;
 `impartial_realizer.tex` — the resolved standalone theorem note for the
 pass-free impartial construction, folded into the flagship the same day;
-`extraspecial_model.tex` — the remaining flagship-residual frontier note for
-the game-native extraspecial `E_{Q_a}` model (structural demands fixed;
-ordinal-sum/`Q_8` quotient probe named); a third
+`extraspecial_model.tex` — the resolved game-native Gold--Heisenberg theorem:
+the oriented trace half is a game-built cocycle whose squares are `Q_a`, whose
+commutators are `B_a`, and whose canonical power-of-two radical quotient is
+extraspecial (the `(4,1)` cell is `Q_8`); a third
 note, `observation_width.tex`, lived hours — its block-compression
 proposition survived a sol-tier adversarial consult the same day and was
 absorbed into goldarf as the every-width attainment corollary `cor:blocks`
@@ -173,10 +177,9 @@ Use these labels when changing prose, papers, examples, or comments:
   math and the formal files check independent proof ingredients rather than one
   end-to-end arena theorem.
 - **Open**: transfinite nim multiplication beyond the source-verified excess
-  table, the now-optional arbitrary-graph FIFO strengthening, and the
-  flagship's game-native `E_{Q_a}` model. These live in `docs/OPEN.md`; the
-  impartial uniform realizer and observation width above weight one both closed
-  2026-08-12. The
+  table and the now-optional arbitrary-graph FIFO strengthening. These live in
+  `docs/OPEN.md`; the impartial uniform realizer, observation width above weight
+  one, and game-native `E_{Q_a}` model all closed 2026-08-12. The
   game-native `GameExterior` deformation question was resolved negatively under
   ambient subgroup coherence on 2026-08-09.
 
@@ -379,7 +382,7 @@ the basic reachable, optimal, and unavoidable fork properties do not certify
 naturality. Lean checks these
 independent ingredients in the `GoldDiagonal`, `FifoMatching`,
 `ImpartialRealizer`, `GoldMatchingAlgebra`, `GoldNoEvaluator`,
-`GoldBlockCompression`, and
+`GoldBlockCompression`, `GoldExtraspecial`, and
 `GoldForkPadding` formal modules.
 
 The earlier σ-valued echo-fifo+dummy realizer remains **verified**

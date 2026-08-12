@@ -74,7 +74,9 @@ Gold trace family $Q_a(x)=\Tr(x\,x^{2^a})$ over
 nimber fields is the motivating game-built instance, with the Arf
 invariant as the exact second-player win-bias, and a closing construction
 reads the $\mathbb{Z}/4$-valued Brown refinement off four partizan outcome
-classes.  Seven ingredients of these results are formally verified in
+classes.  A basis-free Gold--Heisenberg multiplication on pairs of nimber
+values supplies the missing structural extension: its squares are $Q_a$ and
+its commutators are the Gold polar form.  Ten ingredients of these results are formally verified in
 Lean~4.
 \end{abstract}
 
@@ -161,6 +163,17 @@ game-native Artin--Schreier source for every exponent $a$, with a closed
 trace-dual basis and a tower recursion in Conway's bit basis.  Realized by
 the main theorem, the Arf invariant with radical data becomes the exact
 second-player win-bias.
+\item \emph{The game-native Gold--Heisenberg extension}
+(Theorem~\ref{thm:goldheisenberg}).  The oriented half-polar term
+$\phi_{\lambda,a}(x,y)=\Tr(\lambda x y^{2^a})$ is a bilinear cocycle.
+On the two-register game-value positions $\F_2\times\F_{2^m}$ it defines
+one fixed noncommutative multiplication whose squares are
+$Q_{\lambda,a}$ and whose commutators are its polar form.  For the
+unscaled power-of-two Gold family the full form is necessarily singular;
+quotienting the trace-cocycle group by the canonical polar radical gives
+the genuine extraspecial core, including the $Q_8$ first cell.  Thus the
+structural extension problem closes without a diagonal table or unary
+$Q_a$ oracle.
 \item \emph{Brown phases as intrinsic partizan outcomes}
 (Theorem~\ref{thm:brown-selector}).  For a $\mathbb{Z}/4$-valued
 quadratic refinement $q=\widehat{\ell}+2Q$, a single partizan game with
@@ -1909,8 +1922,10 @@ discards -- is the first-/second-player asymmetry of the move relation.
 The proposition is standard mathematics; treating $E$-equivariance as
 \emph{the} naturality criterion is interpretation.  The weighted-source
 rule resolves the P-set problem covariantly without first constructing the
-entire abstract extension as a game object; such a full model remains a
-stricter optional generalization.  (For $r=1$ the screen degenerates: on
+  entire abstract extension as a game object.  Theorem~\ref{thm:goldheisenberg}
+  now supplies that stronger model by an oriented trace cocycle; the
+  weighted-source theorem remains the play-semantic construction with the
+  sharp access contract.  (For $r=1$ the screen degenerates: on
 the anisotropic plane $\Sigma=\{0\}$ and $\Orth(Q)=\Sp(B)$, so the
 statement is vacuous there; the Gold targets of interest have $r\geq2$
 cores.)  Theorem~\ref{thm:E} below sharpens the screen further: read as
@@ -1918,13 +1933,195 @@ cores.)  Theorem~\ref{thm:E} below sharpens the screen further: read as
 must enter \emph{covariantly}, in the dynamics.
 \end{remark}
 
-\begin{question}
-Does any game-native construction realize the extraspecial extension
-$E_{Q_a}$ -- equivalently, produce the diagonal data $q_i=Q_a(e_i)$ as
-squares in a noncommutative game-built structure -- without an evaluation
-circuit for $Q_a$?  By Lemma~\ref{lem:abelian} the source cannot be any
-commutative game-value monoid.
-\end{question}
+\subsection{The game-native Gold--Heisenberg model}
+
+The preceding question has a basis-free answer hidden in the Gold monomial
+itself.  The symmetric polar form is not the multiplication carrier; one
+must retain its oriented bilinear half.
+
+Let $K=\F_{2^m}$ be represented by its nimber values, let $a\geq0$, and
+allow a scale $\lambda\in K$.  Put
+\begin{equation}\label{eq:goldhalf}
+ \phi_{\lambda,a}(x,y)=\Tr_{K/\F_2}(\lambda x y^{2^a}),
+ \qquad
+ Q_{\lambda,a}(x)=\phi_{\lambda,a}(x,x).
+\end{equation}
+The scale $\lambda=1$ is the Gold form $Q_a$ used throughout the paper.
+
+\begin{theorem}[game-native Gold--Heisenberg extension]
+\label{thm:goldheisenberg}
+On
+\[
+ \mathcal E_{\lambda,a}=\F_2\times K
+\]
+define
+\begin{equation}\label{eq:goldproduct}
+ (s,x)\diamond(t,y)
+ =\bigl(s+t+\phi_{\lambda,a}(x,y),\ x+y\bigr).
+\end{equation}
+Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item $\mathcal E_{\lambda,a}$ is a group, and with
+$z=(1,0)$ and $\pi(s,x)=x$,
+\[
+ 1\longrightarrow\langle z\rangle\longrightarrow
+ \mathcal E_{\lambda,a}\xrightarrow{\ \pi\ }K^+
+ \longrightarrow1
+\]
+is a central extension whose fibers are the two $\langle z\rangle$-cosets.
+Its inverse is
+$(s,x)^{-1}=(s+Q_{\lambda,a}(x),x)$.
+\item Squares and commutators are exactly
+\begin{align}
+ (s,x)^2&=z^{Q_{\lambda,a}(x)},\label{eq:goldsquare}\\
+ [(s,x),(t,y)]&=
+ z^{B_{\lambda,a}(x,y)},\qquad
+ B_{\lambda,a}(x,y)=
+ \phi_{\lambda,a}(x,y)+\phi_{\lambda,a}(y,x).
+ \label{eq:goldcomm}
+\end{align}
+Consequently this is the extension $E_{Q_{\lambda,a}}$ of
+Lemma~\ref{lem:extdict}; the diagonal constants are the squares of the
+basis lifts, rather than supplied data.
+\item The product is one fixed game construction on two registered game
+values.  Represent $s$ by $0$ or $\ast$ and $x$ by the nimber game
+$\ast x$.  Equation~\eqref{eq:goldproduct} becomes
+\begin{equation}\label{eq:gameproduct}
+ (C,X)\diamond(D,Y)=
+ \left(C\oplus D\oplus
+ \Tr_{\rm game}\!\left(
+ (\ast\lambda)\nimmul X\nimmul\operatorname{Frob}^{a}(Y)\right),\ X\oplus Y\right),
+\end{equation}
+where $\ast\lambda=\ast1$ in the unscaled case.  Thus it uses only disjunctive sum, Turning Corners,
+diagonal Frobenius, and their trace iterate.  It contains no $q_i$ table,
+unary $Q_{\lambda,a}$ oracle, outcome test, or input-dependent rule.
+\item The multiplication acts faithfully by game-built contexts.  If
+$\mathscr G$ is the additive group of short partizan game values and
+$\mathscr C=\mathscr G^K$, set
+\begin{equation}\label{eq:signedtranslations}
+ (zF)(u)=-F(u),\qquad
+ (T_xF)(u)=(-1)^{\phi_{\lambda,a}(u,x)}F(u+x).
+\end{equation}
+Then
+$T_xT_y=z^{\phi_{\lambda,a}(x,y)}T_{x+y}$, and
+$(s,x)\mapsto z^sT_x$ embeds
+$\mathcal E_{\lambda,a}$ into $\Aut(\mathscr C)$.
+\item The center is
+\[
+ Z(\mathcal E_{\lambda,a})=
+ \{(s,r):s\in\F_2,\ r\in\rad B_{\lambda,a}\}.
+\]
+Hence the group is extraspecial exactly when the polar form is
+nondegenerate of positive rank.  More generally, every positive-rank
+nonsingular complement $W$ of the radical gives an extraspecial subgroup
+$\F_2\times W$ with squaring form
+$Q_{\lambda,a}|_W$ and order
+$2^{1+\rank B_{\lambda,a}}$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Frobenius is additive and trace is linear, so
+$\phi=\phi_{\lambda,a}$ is biadditive.  Therefore
+\[
+ \phi(x,y)+\phi(x+y,w)
+ =\phi(y,w)+\phi(x,y+w),
+\]
+the normalized cocycle identity.  Expanding both bracketings of
+\eqref{eq:goldproduct} proves associativity.  The identity and displayed
+inverse follow directly (the additive groups have exponent two), and
+$\langle z\rangle$ is central with quotient $K^+$ and two-point fibers.
+
+Putting the same input in both slots gives
+\[
+ (s,x)^2=(\phi(x,x),0)=(Q_{\lambda,a}(x),0).
+\]
+Swapping two factors in~\eqref{eq:goldproduct} changes only the central
+coordinate, by $\phi(x,y)+\phi(y,x)$.  This proves
+\eqref{eq:goldsquare}--\eqref{eq:goldcomm} and identifies the extension by
+Lemma~\ref{lem:extdict}.
+
+Equation~\eqref{eq:gameproduct} is simply the same formula with each field
+operation written in the game realization of Section~\ref{sec:games}; in
+particular the trace value lands in the central nimber pair $\{0,\ast\}$.
+For the context model, biadditivity gives
+\begin{align*}
+ (T_xT_yF)(u)
+ &=(-1)^{\phi(u,x)+\phi(u+x,y)}F(u+x+y)\\
+ &=(-1)^{\phi(u,x+y)+\phi(x,y)}F(u+x+y),
+\end{align*}
+which is the claimed multiplication.  Let $\delta_0\in\mathscr C$ take
+the integer-game value $1$ at $0$ and $0$ elsewhere.  The support of
+$z^sT_x\delta_0$ is the singleton $\{x\}$, and its nonzero value has sign
+$(-1)^{s+Q_{\lambda,a}(x)}$; hence the action is faithful.
+
+Finally, $(s,x)$ commutes with every $(t,y)$ exactly when
+$B_{\lambda,a}(x,y)=0$ for every $y$, proving the center formula.
+On a nonsingular complement the center is $\langle z\rangle$, a nonzero
+commutator generates that center, and
+$\Phi(G)=G^2[G,G]=\langle z\rangle$; this is precisely extraspeciality.
+\end{proof}
+
+The theorem also corrects a harmless but real naming defect in the earlier
+question.  The full unscaled Gold group is generally an
+\emph{extraspecial-type extension}, not itself extraspecial, because the
+unscaled Gold polar form is singular.  In the power-of-two nimber tower the
+repair is canonical rather than a choice of Witt complement.
+
+\begin{proposition}[canonical Gold radical quotient]
+\label{prop:goldradicalquotient}
+Let $\lambda=1$, put $d=\gcd(2a,m)$, and let
+$R=\F_{2^d}\subseteq K$.  Then
+\[
+ \rad B_a=R,
+ \qquad \rank B_a=m-d.
+\]
+If $m$ is a power of two and $d<m$, then $Q_a|_R=0$ and
+$\phi_a|_{R\times R}=0$.  Thus
+$H=\{(0,r):r\in R\}$ is central and elementary abelian, and
+\[
+ \mathcal E_a/H\longrightarrow K/R
+\]
+is a canonical extraspecial extension of order $2^{1+m-d}$ whose
+squaring form is the induced nonsingular Gold core.  For $(m,a)=(4,1)$
+this quotient has order eight and, by the Arf-$1$ classification of the
+core, is $Q_8$.
+\end{proposition}
+
+\begin{proof}
+Trace adjointness and Frobenius invariance give
+\[
+ B_a(x,y)=\Tr\!\left(
+ (x^{2^{m-a}}+x^{2^a})y\right),
+\]
+with exponents read modulo $m$.  The trace pairing is nondegenerate, so
+$x$ is radical exactly when $x^{2^{2a}}=x$; the fixed field is
+$\F_{2^{\gcd(2a,m)}}$.  This proves the rank formula.
+
+When $m$ is a power of two and $d<m$, the relative degree $m/d$ is even.
+For $r,s\in R$, both $rs^{2^a}$ and $r^{1+2^a}$ lie in $R$, and absolute
+trace from $K$ restricts to $(m/d)$ times trace from $R$, hence vanishes.
+This proves both restrictions.  Since $R$ is the polar radical, $H$ is
+central; the vanishing of $\phi$ on $R\times R$ makes it a subgroup, and
+the quotient quadratic form is well defined.  Its polar form on $K/R$ is
+nondegenerate, so Theorem~\ref{thm:goldheisenberg}(v) makes the quotient
+extraspecial.  The last identification follows from its order and the
+already established Arf-$1$ core row.
+\end{proof}
+
+\begin{remark}[exact naturality boundary]\label{rem:goldextensionboundary}
+This is a per-field, Frobenius-covariant structural model:
+$\phi_a(x^{2^j},y^{2^j})=\phi_a(x,y)$.  It cannot be ambient-coherent
+through even-degree subfield inclusions, because absolute trace restricts
+to zero there; that is consistent with the global divisibility no-go of
+Appendix~\ref{sec:game-exterior}.  Nor can any section of
+$\mathcal E_a\to K$ be fixed by all extension automorphisms, since central
+twists exchange its two lifts.  Neither stronger condition belonged to the
+question.  Finally, ``without a $Q_a$ evaluator'' cannot coherently forbid
+multiplication from revealing $Q_a$ on a square -- every model of $E_{Q_a}$
+does exactly that.  The meaningful and met condition is that multiplication
+not import $Q_a$ or its diagonal as an oracle.
+\end{remark}
 
 \subsection{Symmetry budgets}
 
@@ -2157,13 +2354,16 @@ padding obstruction:
 \item \path{formal/Ogdoad/GoldForkPadding.lean}: outcome-preserving
       padding.
 \end{itemize}
-Two further modules support the closing sections:
+Three further modules support the closing sections:
 \path{formal/Ogdoad/BrownGame.lean} kernel-checks the algebraic core of
 Section~\ref{sec:brown-selector} -- the Brown split with its converse, the
 two-divisible global collapse, and the selector outcome table with its
 decoder, each arena abstracted through its outcome-bit contract -- and
 \path{formal/Ogdoad/GameExterior.lean} kernel-checks the root-collapse and
-coefficient-faithfulness core of Appendix~\ref{sec:game-exterior}.  All
+coefficient-faithfulness core of Appendix~\ref{sec:game-exterior}; and
+\path{formal/Ogdoad/GoldExtraspecial.lean} kernel-checks the biadditive
+cocycle group, square and commutator laws, center criterion, and order-four
+lifts of Theorem~\ref{thm:goldheisenberg}.  All
 modules build against mathlib and live in the companion
 repository~\cite{ogdoad}.
 
@@ -2196,7 +2396,10 @@ the exact charge in every dimension, the pass-free core has fixed even
 tempo, and one impartial charge tail compiles that bit to a $P/N$ outcome.
 For the motivating Gold trace forms,
 nimber operations source the diagonal and the Arf invariant with radical
-data gives the resulting zero-set bias.
+data gives the resulting zero-set bias.  The oriented trace half
+$\phi_a(x,y)=\Tr(xy^{2^a})$ simultaneously gives a structural multiplication
+on two nimber-game registers: squares recover $Q_a$, commutators recover
+$B_a$, and the canonical power-of-two radical quotient is extraspecial.
 
 The surrounding negative results make the access boundary sharp.  Linear
 coin-turning reaches the lexicode floor but not a genuine quadratic zero
@@ -2209,10 +2412,10 @@ span with singleton support, and its block aggregation
 
 The arbitrary-graph isolated-dummy FIFO linking conjecture -- a strict
 strengthening of Theorem~\ref{thm:matchingfifo}, no longer load-bearing
-here -- remains a separate combinatorial problem.  A game-native
-model of the extraspecial extension $E_{Q_a}$ (the open question of
-Section~\ref{sec:nogos}) would upgrade the covariant realization to a
-structural one.
+here -- remains a separate combinatorial problem.  The game-native
+extension question is closed by Theorem~\ref{thm:goldheisenberg}: the
+covariant play realization and the structural group model are now distinct
+proved faces of the same Gold quadratic datum.
 
 \begin{thebibliography}{99}\footnotesize
 % REF: Companion repository: Rust library + Python bindings + experiment scripts + Lean 4 formal supplement. Pin the exact tag/commit at submission time.
@@ -2315,7 +2518,7 @@ Mathematical Intelligencer \textbf{38} (2016); arXiv:1601.07664.
 impartial games}, J.\ Combin.\ Theory Ser.\ A \textbf{115} (2008),
 593--622.
 \bibitem{Quillen71} D.~Quillen, \emph{The mod~$2$ cohomology rings of
-extra-special $2$-groups and the spectra of quadratic forms}, Math.\ Ann.\
+extra-special $2$-groups and the spinor groups}, Math.\ Ann.\
 \textbf{194} (1971), 197--212.
 % REF: K.-U. Schmidt, Z4-valued quadratic forms and quaternary sequence families, IEEE Transactions on Information Theory 55(12) (2009), 5803-5810, doi:10.1109/TIT.2009.2032818. Carries the z = a + 2b two-digit decomposition and the rank/alternating classification.
 \bibitem{schmidt2009} K.-U.~Schmidt, \emph{$\mathbb{Z}_4$-valued quadratic

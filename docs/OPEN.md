@@ -6,20 +6,21 @@ questions and their exact theorem boundaries are indexed in
 [`DONE.md`](DONE.md). Work that does not require new mathematics belongs in
 [`COMPLETENESS.md`](COMPLETENESS.md) or [`CONTINUATIONS.md`](CONTINUATIONS.md).
 
-Three research problems are live:
+Two research problems are live:
 
 | problem | present reduction | authoritative paper |
 |---|---|---|
 | arbitrary-graph FIFO linking | a causal affine-contraction problem in the edge space of a complete graph | [`linking_affine.tex`](../writeups/linking_affine.tex) |
 | finite excess in transfinite nim multiplication | prove the universal `0/1/4` rule through four exact order-theoretic arms | [`excess.tex`](../writeups/excess.tex) |
-| game-native extraspecial model | produce the diagonal `q_i = Q_a(e_i)` as squares in a noncommutative game-built model of `E_(Q_a)` | [`extraspecial_model.tex`](../writeups/extraspecial_model.tex) |
 
 (The observation-width question above weight one closed on 2026-08-12: the
 block-compression corollary attains the integral transcript-span bound
 exactly at every fixed width. See [`CLOSED.md`](CLOSED.md) and the
 flagship's `cor:blocks`. The impartial uniform realizer also closed
 affirmatively the same day via the pass-free matching theorem and is recorded
-in the same ledger.)
+in the same ledger. The game-native extraspecial model closed the same day via
+the oriented Gold trace cocycle and its canonical power-of-two radical
+quotient; see [`CLOSED.md`](CLOSED.md).)
 
 The evidence vocabulary is fixed throughout this file:
 
@@ -1674,66 +1675,6 @@ Kummer-field intersection or an unweighted product of arm symbols.
 - [`experiments/fermat_selected_screen_results.md`](../experiments/fermat_selected_screen_results.md)
 - [`src/scalar/big/ordinal/tower.rs`](../src/scalar/big/ordinal/tower.rs)
 - [`src/scalar/big/ordinal/b380496.txt`](../src/scalar/big/ordinal/b380496.txt)
-
-## 3. A game-native extraspecial extension model
-
-### Problem
-
-The flagship paper's stated open question: does any game-native construction
-realize the extraspecial extension `E_(Q_a)` — positions built from game
-values, multiplication from game constructions — equivalently, produce the
-diagonal data `q_i = Q_a(e_i)` as squares in a noncommutative game-built
-structure, without an evaluation circuit for `Q_a`?
-
-A positive answer upgrades the covariant weighted-source realization to a
-structural one: given a model of the extension, the rule layer is canonical,
-because the squaring rule is the extraspecial squaring map read as a
-one-move relation.
-
-### Proved boundary
-
-- The extraspecial dictionary is proved in the paper (standard math):
-  quadratic maps `Q` on `V = F_2^n` biject with central extensions of `V` by
-  `Z/2`, with squaring form `Q` and commutator pairing the polar form `B`;
-  `E_Q` is extraspecial iff `B` is nondegenerate.
-- The sharp constraint on the search is proved: `E_Q` is abelian iff
-  `B = 0`, so no commutative value-world — in particular no misère-quotient
-  kernel — can host `E` once `B != 0`. The noncommutative datum must enter
-  from a structurally available asymmetry that the symmetric polar form
-  discards; the candidate the paper names is the first-/second-player
-  asymmetry of the move relation.
-- The equivariance screen is satisfiable over the abstract group by the
-  squaring rule, so equivariance is not the obstruction; that rule consults
-  the multiplication of `E` directly, which is exactly what a game-native
-  model must supply rather than assume.
-- Literal move-digraph invariance admits no live middle (proved), so the
-  `E`-structure must enter covariantly, in the dynamics.
-- The finite Heisenberg/Pauli representation of the char-2 extraspecial
-  surface is implemented over its `F_2` bitmask boundary in
-  [`extraspecial.rs`](../src/forms/char2/extraspecial.rs) — experiment
-  infrastructure, not a game-native model.
-
-### Demands and candidate directions
-
-The frontier note fixes two structural demands (standard math): any model
-with `B != 0` is noncommutative, and any model with some `Q(v) = 1` carries
-4-torsion — so disjunctive impartial sum fails both at once (commutative and
-elementary abelian). Candidate directions, all marked speculation in the
-note: the central involution as a tempo token, with lifted noncommutativity
-`[x~, y~] = z^B(x,y)` read as a move-order holonomy; noncommutative game
-compounds (ordinal sum, sequential join) as multiplication carriers, with
-the concrete first probe being indistinguishability quotients of small
-ordinal-sum position algebras over the anisotropic plane, where the target
-`E_Q = Q_8` makes the search finite; and the Brown-selector precedent that
-partizan outcome classes already host central `Z/4` data — values without a
-composition law.
-
-### Verification surfaces
-
-- [`writeups/extraspecial_model.tex`](../writeups/extraspecial_model.tex)
-- [`writeups/goldarf.tex`](../writeups/goldarf.tex) (extraspecial
-  dictionary, equivariance screen, and the stated open question)
-- [`src/forms/char2/extraspecial.rs`](../src/forms/char2/extraspecial.rs)
 
 ## References
 

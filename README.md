@@ -317,9 +317,8 @@ and the obstruction has simply walked from the Integral shore to the Clifford on
 
 The exact research boundary is split between two current-only ledgers:
 
-- `docs/OPEN.md` contains the three unsolved fronts: arbitrary-graph FIFO
-  linking, the universal Lenstra excess `0/1/4` rule, and the game-native
-  extraspecial extension model.
+- `docs/OPEN.md` contains the two unsolved fronts: arbitrary-graph FIFO
+  linking and the universal Lenstra excess `0/1/4` rule.
 - `docs/CLOSED.md` states the solved questions as theorems, with their proof,
   formalization, implementation, and non-claim boundaries.
 
@@ -330,6 +329,12 @@ with singleton-weighted source pairs. A pass-free both-seat FIFO matching
 strategy forces the exact charge, the core has fixed even tempo, and one
 seat-symmetric tail move at charge one compiles it to ordinary normal play.
 Consequently this impartial arena has `P`-set precisely the quadratic zero set.
+The structural companion is closed too: the oriented trace half
+`phi_a(x,y)=Tr(x*y^(2^a))` defines one game-built cocycle multiplication on
+two nimber registers, with Gold values as squares and the polar form as
+commutators. The full unscaled extension retains its polar radical; in the
+power-of-two tower, quotienting its canonical central lift gives the genuine
+extraspecial core (the first `(4,1)` cell is `Q_8`).
 A transcript theorem proves that the support-sized observation interface is
 optimal. A separate quadratic-tower theorem supplies a constructive
 Artin--Schreier source for the diagonal of every Gold exponent.

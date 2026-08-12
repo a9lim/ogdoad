@@ -2,6 +2,7 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathrsfs}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \urlstyle{same}
@@ -14,20 +15,17 @@
 \newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
-\newtheorem{question}[theorem]{Question}
 
 \newcommand{\F}{\mathbb{F}}
 \newcommand{\Tr}{\operatorname{Tr}}
-\newcommand{\Orth}{\mathrm{O}}
-\newcommand{\Sp}{\mathrm{Sp}}
 \newcommand{\Aut}{\operatorname{Aut}}
+\newcommand{\nimmul}{\mathbin{\mathop{\otimes}\limits_{\mathrm{nim}}}}
 \newcommand{\taglabel}[1]{\textnormal{\textbf{[#1]}}}
 \newcommand{\PROVED}{\taglabel{PROVED}}
 \newcommand{\STANDARD}{\taglabel{STANDARD MATH}}
-\newcommand{\SPECULATION}{\taglabel{SPECULATION}}
-\newcommand{\OPEN}{\taglabel{OPEN}}
+\newcommand{\BOUNDARY}{\taglabel{BOUNDARY}}
 
-\title{A Game-Native Model of the\\ Extraspecial Extension}
+\title{A Game-Native Model of the\\ Gold--Heisenberg Extension}
 \author{a9lim}
 \date{August 2026}
 
@@ -35,209 +33,320 @@
 \maketitle
 
 \begin{abstract}
-The flagship paper's extraspecial dictionary identifies quadratic
-refinements $Q$ of alternating forms $B$ on $V=\F_2^n$ with central
-extensions $1\to\mathbb{Z}/2\to E_Q\to V\to1$: squares in $E_Q$ read the
-diagonal, commutators read the polar form.  Its equivariance screen shows
-that once the extension is available as an object, the realizing rule
-layer is canonical -- the squaring rule is the extraspecial squaring map
-read as a one-move relation -- and its no-go theorems show the screen
-cannot be met by commutative value-worlds, by symmetry classes beyond the
-orthogonal group, or by $E$-translation dynamics.  The flagship's fourth
-residual open question is therefore structural: exhibit a
-\emph{game-native} model of $E_{Q_a}$ -- positions built from game
-values, multiplication from game constructions -- producing the Gold
-diagonal $q_i=Q_a(e_i)$ as squares, without an evaluation circuit for
-$Q_a$.  A positive answer upgrades the flagship's covariant realization
-to a structural one.  This note fixes the demands such a model must
-meet, collects the proved fence, and records candidate directions: the
-mover-bit asymmetry as the central involution, noncommutative game
-compounds (ordinal sum and sequential join) as multiplication carriers,
-and the Brown-selector precedent that partizan outcome classes can host
-central data.
+The extraspecial dictionary identifies quadratic maps $Q$ on an
+$\F_2$-space with central extensions whose squares read $Q$ and whose
+commutators read its polar form.  The remaining structural question for
+the Gold trace family asked for such an extension built from game values
+and game operations, without importing the diagonal $Q_a(e_i)$ or a unary
+$Q_a$ oracle.  We give a basis-free answer.  The oriented half-polar term
+\[
+ \phi_{\lambda,a}(x,y)=\Tr(\lambda x y^{2^a})
+\]
+is a bilinear two-cocycle.  Its cocycle group on
+$\F_2\times\F_{2^m}$ is represented by two nimber-game registers; the
+product uses only disjunctive sum, Turning-Corners nim multiplication,
+Frobenius, and trace.  Its squares are the scaled Gold form and its
+commutators are the Gold polar form.  A signed-translation action on
+finite bundles of short-game values makes the composition literal and
+faithful.  We also correct the target's terminology: an unscaled Gold
+form has a polar radical, so its full extension is extraspecial-type, not
+extraspecial.  In the power-of-two nimber tower the radical has a
+canonical central lift; quotienting by it yields the genuine extraspecial
+core, with the first $(m,a)=(4,1)$ cell equal to $Q_8$.  The universal
+cocycle algebra is kernel-checked in Lean~4.
 \end{abstract}
 
-\section{The dictionary and the problem}
+\section{The target and the oriented half}
 
-Throughout, $V=\F_2^n$, $B$ alternating, $Q$ a quadratic refinement of
-$B$, and $Q_a(x)=\Tr(x\,x^{2^a})$ the Gold trace family on nimber fields
-that motivates everything~\cite{goldarf}.
+Let $K=\F_{2^m}$ be represented by its normal-play nimber values.  Fix
+$a\geq0$ and $\lambda\in K$.  The scaled Gold trace form is
+\[
+ Q_{\lambda,a}(x)=\Tr_{K/\F_2}(\lambda x^{1+2^a}).
+\]
+Its polar form is
+\[
+ B_{\lambda,a}(x,y)=Q_{\lambda,a}(x+y)+Q_{\lambda,a}(x)
+ +Q_{\lambda,a}(y).
+\]
+The structural extension problem is not solved by the symmetric form
+$B$ alone: characteristic two keeps the diagonal independent.  The
+missing datum is already present before symmetrization.
 
-\begin{theorem}[extraspecial dictionary]\label{thm:dict}
-\STANDARD~(proved self-contained in \cite{goldarf}; classical:
-\cite{Quillen71,Gorenstein80})
-Central extensions $1\to Z\to E\to V\to1$ with $Z=\{1,z\}\cong\mathbb{Z}/2$
-correspond bijectively to quadratic maps $Q\colon V\to\F_2$: lifted
-squares are central and well defined, giving $\tilde x^2=z^{Q(x)}$, and
-lifted commutators give $[\tilde x,\tilde y]=z^{B(x,y)}$ with $B$ the
-polar form of $Q$.  $E_Q$ is abelian iff $B=0$, and extraspecial iff $B$
-is nondegenerate.
-\end{theorem}
+\begin{definition}[Gold half-polar cocycle]\label{def:phi}
+Define
+\[
+ \phi_{\lambda,a}(x,y)=\Tr_{K/\F_2}(\lambda x y^{2^a}).
+\]
+Then
+\begin{align*}
+ \phi_{\lambda,a}(x,x)&=Q_{\lambda,a}(x),\\
+ \phi_{\lambda,a}(x,y)+\phi_{\lambda,a}(y,x)
+ &=B_{\lambda,a}(x,y).
+\end{align*}
+\end{definition}
 
-Two structural consequences fix what any model must contain.
+Frobenius is additive and trace is linear, so $\phi$ is biadditive.  This
+one observation supplies both the construction and its associativity.
 
-\begin{lemma}[demands]\label{lem:demands}
-\STANDARD\
-Any model $(N,Z,\pi)$ of $E_Q$ -- a monoid $N$ with central two-element
-subgroup $Z$ and surjection $\pi\colon N\to V$ with fibers the
-$Z$-cosets -- satisfies:
-\begin{enumerate}[label=(\roman*),leftmargin=*,itemsep=1pt]
-\item if $B\neq0$, $N$ is noncommutative;
-\item if $Q(v)=1$ for some $v$, any lift $\tilde v$ has order four, so
-$N$ contains $4$-torsion.
+\section{The game-native extension}
+
+\begin{theorem}[Gold--Heisenberg game model]\label{thm:model}
+\PROVED{}
+On
+\[
+ \mathcal E_{\lambda,a}=\F_2\times K
+\]
+put
+\begin{equation}\label{eq:product}
+ (s,x)\diamond(t,y)=
+ \bigl(s+t+\phi_{\lambda,a}(x,y),\ x+y\bigr).
+\end{equation}
+Let $z=(1,0)$ and $\pi(s,x)=x$.  Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item $\mathcal E_{\lambda,a}$ is a group, and
+\[
+ 1\longrightarrow\langle z\rangle\longrightarrow
+ \mathcal E_{\lambda,a}\xrightarrow{\ \pi\ }K^+
+ \longrightarrow1
+\]
+is a central extension with two-point fibers.  The identity is $(0,0)$
+and
+\[
+ (s,x)^{-1}=(s+Q_{\lambda,a}(x),x).
+\]
+\item Its squares and commutators are
+\begin{align}
+ (s,x)^2&=z^{Q_{\lambda,a}(x)},\label{eq:square}\\
+ [(s,x),(t,y)]&=z^{B_{\lambda,a}(x,y)}.\label{eq:comm}
+\end{align}
+Thus $\mathcal E_{\lambda,a}$ is exactly the extension
+$E_{Q_{\lambda,a}}$; every coordinate value $Q_{\lambda,a}(e_i)$ is
+produced as the square of the lift $(0,e_i)$.
+\item The product is one fixed game construction.  Represent $s$ by the
+impartial value $0$ or $\ast$, and $x$ by the nimber game $\ast x$.  In
+these two registers,\footnote{The first register is restricted to the
+prime subfield $\{0,\ast\}$; the trace expression lands there
+structurally.}
+\begin{equation}\label{eq:gameproduct}
+ (C,X)\diamond(D,Y)=
+ \left(C\oplus D\oplus
+ \Tr_{\rm game}\!\left(
+ (\ast\lambda)\nimmul X\nimmul\operatorname{Frob}^{a}(Y)\right),
+ X\oplus Y\right).
+\end{equation}
+Here $\oplus$ is disjunctive sum of impartial values,
+$\nimmul$ is Conway's Turning-Corners product, Frobenius is repeated
+diagonal Turning Corners, and trace is the disjunctive sum of the
+Frobenius iterates.  The formula contains no diagonal table, unary
+$Q_{\lambda,a}$ call, outcome test, or input-dependent branch.
+\item The center is
+\[
+ Z(\mathcal E_{\lambda,a})=
+ \{(s,r):s\in\F_2,\ r\in\operatorname{rad}B_{\lambda,a}\}.
+\]
+Consequently the group is extraspecial exactly when the polar form is
+nondegenerate and has positive rank.  Every positive-rank nonsingular
+complement $W$ of the radical gives an extraspecial subgroup
+$\F_2\times W$ of order $2^{1+\dim W}$, with squaring form
+$Q_{\lambda,a}|_W$.
 \end{enumerate}
-\end{lemma}
+\end{theorem}
 
 \begin{proof}
-(i) is the dictionary: commutators read $B$.  (ii): $\tilde v^2=z\neq1$
-and $\tilde v^4=z^2=1$.
+Biadditivity gives the normalized cocycle identity
+\[
+ \phi(x,y)+\phi(x+y,w)=\phi(y,w)+\phi(x,y+w).
+\]
+The two bracketings of three factors in~\eqref{eq:product} have the same
+vector coordinate, and this identity makes their central coordinates
+equal.  Thus the product is associative.  The asserted identity and
+inverse follow directly because both additive coordinates have exponent
+two.  The element $z$ is central of order two, $\pi$ is onto, and each
+fiber is the pair $(s,x)$, $z\diamond(s,x)$.
+
+Putting the same input in both slots gives
+\[
+ (s,x)^2=(\phi(x,x),0)=(Q_{\lambda,a}(x),0),
+\]
+which proves~\eqref{eq:square}.  Swapping the order of two factors
+changes only the central coordinate, by
+$\phi(x,y)+\phi(y,x)=B_{\lambda,a}(x,y)$, proving~\eqref{eq:comm}.
+The standard central-extension dictionary now identifies the group with
+$E_{Q_{\lambda,a}}$.
+
+Every operation in~\eqref{eq:gameproduct} is the displayed game
+realization of the corresponding field operation, so the same calculation
+proves the game-register statement.  Finally, $(s,x)$ commutes with every
+$(t,y)$ exactly when $B(x,y)=0$ for every $y$, which is the center
+formula.  On a positive-rank nonsingular complement the center is
+$\langle z\rangle$, a nonzero commutator generates it, and the finite
+$2$-group identity $\Phi(G)=G^2[G,G]$ gives
+$Z(G)=[G,G]=\Phi(G)=\langle z\rangle$.
 \end{proof}
 
-\begin{question}[game-native extraspecial model]\label{q:model}
-\OPEN~(the flagship's stated open question)
-Does any game-native construction realize $E_{Q_a}$ -- positions built
-from game values, multiplication from game constructions -- equivalently,
-produce the diagonal data $q_i=Q_a(e_i)$ as squares in a noncommutative
-game-built structure, without an evaluation circuit for $Q_a$?
-\end{question}
+The fixed binary half $\phi$ is essential.  Squaring a lift necessarily
+reveals $Q$ in every model of $E_Q$, so ``without a $Q$ evaluator'' cannot
+coherently forbid multiplication from computing the diagonal of its own
+product.  The nonvacuous condition is the one Theorem~\ref{thm:model}
+meets: multiplication must not import $Q$, its basis diagonal, or an
+outcome-labelled lookup table.
 
-The payoff is canonicity: over the abstract group the flagship's
-equivariance screen is already satisfiable by the squaring rule, which
-consults only the multiplication of $E$.  A game-native $E_{Q_a}$ would
-therefore upgrade the weighted-source realization, which is covariant
-(public preprocessing transported along the orthogonal group), to a
-structural one, where the arena \emph{is} the extension.
+\section{A literal composition on game-valued contexts}
 
-\section{The proved fence}
+The registered product already answers the stated question.  There is
+also a faithful operator model showing that its multiplication is actual
+composition of game-built contexts rather than an abstract group law with
+game labels attached.
 
-\begin{theorem}[commutative squaring collapse]\label{thm:abelian}
-\PROVED~\cite[Lem.~abelian, Thm.~B]{goldarf}
-In any commutative monoid, squaring is an endomorphism, so any model as
-in Lemma~\ref{lem:demands} inside a commutative monoid has linear
-squaring form: $B\equiv0$.  No commutative game-value monoid --
-Sprague--Grundy values under disjunctive sum, mis\`ere quotients,
-turn-parity counters, coin-turning configuration sums -- hosts $E_Q$
-once $B\neq0$.
+Let $\mathscr G$ be the additive group of short partizan game values and
+$\mathscr C=\mathscr G^K$, the finite bundle of game values indexed by
+the nimber field.  Define
+\begin{equation}\label{eq:contexts}
+ (zF)(u)=-F(u),\qquad
+ (T_xF)(u)=(-1)^{\phi_{\lambda,a}(u,x)}F(u+x).
+\end{equation}
+The coordinate translation uses nim addition; the sign is ordinary game
+negation.
+
+\begin{proposition}[faithful signed translations]\label{prop:contexts}
+\PROVED{}
+With composition ordered as $T_xT_y=T_x\circ T_y$,
+\[
+ T_xT_y=z^{\phi_{\lambda,a}(x,y)}T_{x+y}.
+\]
+Hence $(s,x)\mapsto z^sT_x$ is a faithful homomorphism
+\[
+ \mathcal E_{\lambda,a}\hookrightarrow\Aut(\mathscr C).
+\]
+\end{proposition}
+
+\begin{proof}
+Biadditivity gives
+\begin{align*}
+ (T_xT_yF)(u)
+ &=(-1)^{\phi(u,x)+\phi(u+x,y)}F(u+x+y)\\
+ &=(-1)^{\phi(u,x+y)+\phi(x,y)}F(u+x+y),
+\end{align*}
+which is the multiplication law.  For faithfulness, let $\delta_0$ take
+the integer-game value $1$ at $0$ and $0$ elsewhere.  The support of
+$z^sT_x\delta_0$ is the singleton $\{x\}$, and its value there has sign
+$(-1)^{s+Q_{\lambda,a}(x)}$.  Thus the image determines both $x$ and
+$s$.
+\end{proof}
+
+This is a representation of the structural multiplication, not the
+forbidden Cayley move rule $g\to gn$ with fixed $n$: play still uses the
+flagship paper's automorphism-equivariant squaring rule once the extension
+is built.
+
+\section{Radical discipline and the genuine extraspecial core}
+
+The phrase ``extraspecial $E_{Q_a}$'' hid a mathematical defect.  The
+full unscaled Gold polar form is always singular.  The central extension
+above is canonical on the full field; extraspeciality belongs to its
+nonsingular core.
+
+\begin{proposition}[Gold radical]\label{prop:radical}
+\STANDARD{}
+For the unscaled form $Q_a$ on $K=\F_{2^m}$, put
+$d=\gcd(2a,m)$.  Then
+\[
+ \operatorname{rad}B_a=\F_{2^d},\qquad
+ \operatorname{rank}B_a=m-d.
+\]
+In particular every unscaled Gold extension has center larger than
+$\langle z\rangle$; when $m=2^k$ and $a\geq1$, it is never itself
+extraspecial.
+\end{proposition}
+
+\begin{proof}
+Frobenius invariance and trace adjointness give, with exponents read modulo
+$m$,
+\[
+ B_a(x,y)=\Tr\!\left(
+ (x^{2^{m-a}}+x^{2^a})y\right).
+\]
+The trace pairing is nondegenerate.  Hence $x$ is radical exactly when
+$x^{2^{m-a}}=x^{2^a}$, equivalently $x^{2^{2a}}=x$.  The fixed field is
+$\F_{2^{\gcd(2a,m)}}$.
+\end{proof}
+
+For a general degree, if $Q_a$ is nonzero on the radical then no quadratic
+form descends to the quotient; one must choose a nonsingular complement,
+and its Arf type may depend on that choice.  The power-of-two tower used by
+the project lies in the cleaner case.
+
+\begin{theorem}[canonical power-of-two radical quotient]\label{thm:quotient}
+\PROVED{}
+Assume $m$ is a power of two, $a\geq1$, and
+$d=\gcd(2a,m)<m$.  Put $R=\F_{2^d}$ and
+\[
+ H=\{(0,r):r\in R\}\subseteq\mathcal E_a.
+\]
+Then $Q_a|_R=0$ and $\phi_a|_{R\times R}=0$.  The subgroup $H$ is central
+and elementary abelian, and
+\[
+ 1\longrightarrow\langle\bar z\rangle\longrightarrow
+ \mathcal E_a/H\longrightarrow K/R\longrightarrow1
+\]
+is a genuine extraspecial extension of order $2^{1+m-d}$ with the induced
+nonsingular Gold quadratic form.  For $(m,a)=(4,1)$ it is $Q_8$.
 \end{theorem}
 
-In concrete game terms the two demands of Lemma~\ref{lem:demands} fail
-separately for the default operations: disjunctive sum of impartial
-games is commutative \emph{and} elementary abelian ($G+G$ is a
-$P$-position for every impartial $G$), so it lacks both the
-noncommutativity and the $4$-torsion.  The model needs a genuinely
-different multiplication.
+\begin{proof}
+The relative degree $m/d$ is even.  For $r,s\in R$, both
+$rs^{2^a}$ and $r^{1+2^a}$ lie in $R$, while absolute trace from $K$
+restricts on $R$ to $(m/d)$ times the absolute trace of $R$.  It therefore
+vanishes, proving both restrictions.  Proposition~\ref{prop:radical}
+makes $H$ central, and $\phi|_{R\times R}=0$ makes it a subgroup.  The
+quotient quadratic form is well defined because $Q|_R=B(R,K)=0$; its
+polar form has zero radical by construction.  Theorem~\ref{thm:model}
+therefore makes the quotient extraspecial and gives its order.  At
+$(4,1)$ the rank is two and the already established Gold core has Arf
+invariant one, so the order-eight group is the minus cell $Q_8$.
+\end{proof}
 
-\begin{theorem}[the symmetry dial has no middle]\label{thm:E}
-\PROVED~\cite[Thm.~E]{goldarf}
-By Dye--Dieudonn\'e maximality of $\Orth(Q)$ in $\Sp(B)$ and the Witt
-orbital classification, a rule invariant under any group strictly larger
-than $\Orth(Q)$ has dead $P$-set, while a fully $\Orth(Q)$- or
-$\Aut(E)$-equivariant rule factors extensionally through pointwise $Q$-
-and $B$-evaluation.  $E$-naturality must be covariance, not invariance.
-\end{theorem}
+Thus the proposed $Q_8$ ordinal-sum search is unnecessary: the quaternion
+cell is the first canonical radical quotient of the trace-cocycle model.
+On any anisotropic plane more directly, lifts $i,j$ satisfy
+$i^2=j^2=z$ and $ij=zji$, which is the standard presentation of $Q_8$;
+hyperbolic planes give $D_8$.
 
-\begin{theorem}[$E$-translation no-go]\label{thm:H}
-\PROVED~\cite[Thm.~H]{goldarf}
-For polar rank $\geq4$, no left-$E$-equivariant rule on $E_Q$ with moves
-$g\to gn$ for a fixed nonempty move set $N\subseteq E_Q$ has $P$-set the
-involution locus $\pi^{-1}(\{Q=0\})$.
-\end{theorem}
+\section{Exact boundary and formal status}
 
-So the model cannot be reached by making play \emph{more} symmetric: the
-extension must be built, not imposed, and once built its group structure
-must drive the dynamics covariantly.  The search space is exactly the
-noncommutative resources games natively possess.
-
-\begin{remark}[adjacent negative: the game-exterior collapse]\label{rem:exterior}
-\PROVED~\cite[game-exterior appendix]{goldarf}
-For ambient-coherent coefficient-faithful Clifford data on the additive
-group of short partizan games, two-divisibility forces all quadratic and
-polar values into $\bigcap_k4^kR$, hence zero over $\mathbb{Z}$, in
-characteristic $2$, and over $\mathbb{Z}/4$.  This kills the
-\emph{additive, algebra-valued} route: one cannot source the extension's
-quadratic data from a Clifford structure carried by the full game group.
-The extension target is group-theoretic rather than algebra-theoretic,
-so the collapse does not decide Question~\ref{q:model}; it does warn
-that ambient coherence over the whole game group is fatal, and that a
-model should be sought over bounded-birthday or otherwise restricted
-position sets.
+\begin{remark}[naturality boundary]
+\BOUNDARY{}
+For the unscaled form, the construction is basis-free and Frobenius
+covariant:
+\[
+ \phi_a(x^{2^j},y^{2^j})=\phi_a(x,y).
+\]
+It is not ambient-coherent under even-degree subfield inclusions, because
+absolute trace restricts to zero there.  This agrees with, rather than
+evades, the flagship paper's divisibility no-go for one coefficient-faithful
+datum on the full additive group of short games.  Nor can a lift section
+be fixed by every extension automorphism: central twists exchange its two
+lifts.  Neither stronger condition belonged to the model problem.
 \end{remark}
 
-\section{Resources and candidate directions}
+Theorem~\ref{thm:model} satisfies the stated target literally: its
+positions are pairs of game values, its multiplication is a fixed
+composition of named game constructions, and its diagonal is produced by
+squaring.  A stronger demand that the carrier be one untagged Conway value
+under one pre-existing binary compound would be a different problem.  It
+would also require a precise congruence: ordinal sum does not descend to
+ordinary game values, while arbitrary quotients of literal game forms can
+import any finite presentation and are therefore too permissive.
 
-\begin{remark}[the available asymmetry]\label{rem:asymmetry}
-The flagship identifies the one asymmetry that normal, mis\`ere, and
-partizan play all possess and that the symmetric polar form discards:
-the first-/second-player asymmetry of the move
-relation~\cite[equivariance-screen remark]{goldarf}.  The central
-involution $z$ is the natural tenant: a tempo token whose consumption
-commutes with everything (centrality) but whose \emph{presence} records
-one bit.  Under this reading, lifted noncommutativity
-$[\tilde x,\tilde y]=z^{B(x,y)}$ says that interchanging the order of
-two position-building operations costs a tempo exactly when their polar
-pairing is on -- a move-order holonomy.  The FIFO charge mechanism of
-the flagship realization is precisely such a holonomy read
-\emph{covariantly}; the model question asks for it \emph{structurally}.
-\SPECULATION
-\end{remark}
-
-\begin{remark}[noncommutative game compounds]\label{rem:compounds}
-\SPECULATION\
-Theorem~\ref{thm:abelian} bars commutative operations, not game
-constructions as such.  Games natively carry noncommutative compounds:
-ordinal sum $G:H$ (moves in $H$ vanish when $G$ is moved), sequential
-join, and side-conditional compounds.  None is a group operation on
-values, so a model would quotient a compound-generated position monoid
-by an indistinguishability relation tuned so that the quotient is a
-finite $2$-group with the right center -- the analogue, one level up, of
-mis\`ere quotient construction, which Theorem~\ref{thm:abelian} shows
-must \emph{not} collapse the compound to a commutative value world.
-The first concrete probe: compute indistinguishability quotients of
-small ordinal-sum position algebras over the anisotropic plane
-($n=2$, $q_1=q_2=b_{12}=1$, $E_Q=Q_8$) and check which quotients contain
-$Q_8$; the quaternion target makes the search finite and sharp.
-\end{remark}
-
-\begin{remark}[the Brown-selector precedent]\label{rem:brown}
-The flagship's Brown-selector theorem reads the $\mathbb{Z}/4$-valued
-refinement off four partizan outcome classes
-$\mathcal{N},\mathcal{R},\mathcal{P},\mathcal{L}$ with no external
-product or terminal evaluator~\cite[Brown-selector theorem]{goldarf}.
-This is evidence that partizan outcome observation has the capacity to
-host exactly the kind of central, order-four data the extension carries
-(Lemma~\ref{lem:demands}(ii)): the selector's outcome lattice is a
-$\mathbb{Z}/4$ readout obtained from game structure alone.  What the
-selector does not provide is multiplication -- it reads residues, it
-does not compose them.  A model would need the composition law; the
-selector suggests where its values can live.  \SPECULATION
-\end{remark}
-
-\begin{remark}[implemented infrastructure]\label{rem:infra}
-The repository implements the finite Heisenberg/Pauli representation of
-the char-$2$ extraspecial surface over its $\F_2$ bitmask boundary
-(\path{src/forms/char2/extraspecial.rs}): $E_Q$ as explicit matrices,
-projective symplectic-transvection intertwiners, and the squaring/
-commutator readouts.  This is experiment infrastructure -- a concrete
-target to compare candidate game quotients against -- not a game-native
-model.
-\end{remark}
-
-\section{Target}
-
-Exhibit a set of positions generated by game constructions, a
-game-built composition law on them, a central two-element subgroup, and
-a surjection to the coordinate space, such that the squaring form is
-$Q_a$ -- with the diagonal produced by the structure, not queried -- or
-prove a further no-go narrowing ``game-native'' (for instance: no
-finitely presented quotient of an ordinal-sum position monoid on
-game-value generators contains $Q_8$ compatibly with its Grundy
-projection).  By Theorem~\ref{thm:abelian} the source cannot be any
-commutative game-value monoid; by Lemma~\ref{lem:demands} it must carry
-$4$-torsion; by Theorems~\ref{thm:E} and~\ref{thm:H} neither extra
-symmetry nor translation dynamics can substitute for the construction.
-
-This note is the authoritative statement of the problem and will be
-folded into the flagship paper when resolved.
+The universal algebra is kernel-checked in
+\path{formal/Ogdoad/GoldExtraspecial.lean}.  For an arbitrary biadditive
+$\phi:V\to V\to\F_2$, Lean constructs the group, proves cocycle
+associativity, central retagging, the diagonal square identity, the
+symmetrized swap/commutator defect, the exact center criterion,
+noncommutativity from nonzero polar value, and order-four lifts from a
+diagonal-one input.  It does not encode the concrete $u128$ nimber field,
+Turning-Corners implementation, or finite-field trace; those are the
+paper-level specialization and the independently tested Rust surface.
 
 \begin{thebibliography}{9}\footnotesize
 \bibitem{goldarf} a9lim, \emph{Quadratic refinements in normal play:
@@ -245,12 +354,9 @@ realization and the observation boundary}, companion flagship paper,
 \path{writeups/goldarf.tex} in the ogdoad repository, 2026.
 \bibitem{Gorenstein80} D.~Gorenstein, \emph{Finite Groups}, 2nd ed.,
 Chelsea Publishing, New York, 1980.
-\bibitem{PS} T.~E.~Plambeck, A.~N.~Siegel, \emph{Misere quotients for
-impartial games}, J.\ Combin.\ Theory Ser.\ A \textbf{115} (2008),
-593--622.
-\bibitem{Quillen71} D.~Quillen, \emph{The mod~$2$ cohomology rings of
-extra-special $2$-groups and the spectra of quadratic forms}, Math.\
-Ann.\ \textbf{194} (1971), 197--212.
+\bibitem{Quillen71} D.~Quillen, \emph{The mod~2 cohomology rings of
+extra-special 2-groups and the spinor groups}, Math. Ann. \textbf{194}
+(1971), 197--212.
 \end{thebibliography}
 
 \end{document}
