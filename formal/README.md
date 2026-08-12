@@ -793,6 +793,47 @@ tree.  The required same-eta
 corridor and global `(A)/(B')` ancestry contraction remain mathematical
 obligations.
 
+[`Ogdoad/FifoCausal.lean`](Ogdoad/FifoCausal.lean) checks the direct causal
+content of the minimum charged-CLOSE extraction:
+
+- a unit front charge has an actual untouched neighbour;
+- away from the singleton queue wall, commuting that neighbour OPEN across the
+  charged CLOSE transports the translated neutral continuation to the
+  `OPEN; CLOSE` branch;
+- at the singleton wall, one specified further distinct OPEN repairs the ko
+  discrepancy and gives the corresponding three-event transport; and
+- every zero-sheet `OddWins` tree therefore exposes either that singleton wall
+  or a concrete neighbour alternative carrying a neutral strategy.
+
+This is not an ancestry theorem.  The alternative branch need not occur in the
+attacker-pruned odd strategy, and choosing compatible alternatives across the
+earlier universal defender fans is still the open step.
+
+[`Ogdoad/FifoSymmetry.lean`](Ogdoad/FifoSymmetry.lean) kernel-checks the exact
+strategy-stealing boundary.  Complementing both the mover and distinguished
+seat is a game-tree conjugacy; composing it with score translation exchanges
+the odd and even targets.  At the initial state, however, the conjugate root
+has both the opposite mover and score one.  Every legal move strictly lowers
+rank while this conjugacy preserves rank, so no nonempty legal dummy macro (or
+any legal macro) realizes the missing root identification.
+
+[`Ogdoad/FifoAffine.lean`](Ogdoad/FifoAffine.lean) gives a proof-indexed Lean
+interface for that step.  It defines the affine hull of universal live-star
+terminal moments below one explicit `OddWins` tree, proves its graph-evaluation
+law, nonemptiness, continuation-direction translation, supplied odd-branch
+lifting, and factor composition across proof-indexed ancestry
+holes.  The exact isolated-dummy target is taken after quotienting by the span
+of dummy-incident and diagonal coordinates; isolated simple-graph evaluation
+kills that subspace, so a projected zero moment contradicts an initial odd
+counterstrategy.
+
+The unrestricted projected factor certificate is deliberately proved
+equivalent to the projected root affine target: a one-term certificate may use
+the root itself as its hole.  Thus the module kernel-checks the algebra and the
+exact proof boundary, but it does not disguise the missing causal selection as
+a reduction.  A complete proof still has to construct a certificate from a
+genuinely restricted odd family of proof-indexed defender branches.
+
 [`Ogdoad/FifoMatching.lean`](Ogdoad/FifoMatching.lean) closes the exact
 subclass needed by the resolved Gold construction:
 

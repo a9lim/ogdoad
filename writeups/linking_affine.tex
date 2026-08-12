@@ -4352,6 +4352,29 @@ Proposition~\ref{prop:dummy-deletion-wall}.  Hence dummy deletion preserves
 neither legality, turn ownership, nor the pass boundary; it is not a game-tree
 morphism.
 
+There is nevertheless an exact abstract turn conjugacy, and it shows why a
+strategy-stealing proof needs more than the dummy.  Let
+$\vartheta(U,Q,\mathsf{ko},\mathsf{turn},g)$ complement only
+$\mathsf{turn}$.  The transition relation commutes with $\vartheta$, so
+simultaneously complementing the distinguished seat and the mover transports
+both even- and odd-forcing strategy trees.  Composing with score translation
+gives
+\[
+ \operatorname{OddWins}(P,s)
+ \quad\Longleftrightarrow\quad
+ \operatorname{EvenWins}
+   (P,\,\operatorname{scoreTranslate}_1(\vartheta s)).
+\]
+At the initial root the state on the right has the same untouched board and
+empty queue but the opposite mover and score one.  It is not the actual root.
+Moreover every nonempty legal path strictly lowers
+$4|U|+2|Q|+1_{\mathsf{ko}}$, whereas turn and score translation preserve that
+rank.  Therefore no fixed legal macro---dummy-based or otherwise---can carry a
+state to its score-and-turn conjugate.  These facts are kernel-checked in
+\path{formal/Ogdoad/FifoSymmetry.lean}.  A successful shadow coupling must
+instead compare distinct lower-rank histories and cancel the labelled ko-wall
+defect across their ancestry.
+
 The failure is concentrated at an exact ko wall.  Suppose $d$ is untouched,
 $Q=(f,Q_0)$ has real front $f$, and ko is clear.  The adjacent words
 \[
@@ -4484,6 +4507,77 @@ $12,13,23$, exact recursion gives the two open-child continuation hulls
 \]
 They are disjoint.  Exhaustive recursion over the smaller states with two real
 open children shows that this is the first such childwise failure.
+
+There is now an exact proof-indexed interface for the positive statement.
+For a node $q$ of one fixed attacker-pruned odd strategy tree, write
+$A_q=a_q+W_q$ for its universal live-star response affine space, and write
+$p_q$ for the sum of the live-star labels on its root-to-$q$ path.  All edge
+vectors in the following proposition are projected away from coordinates
+incident to the isolated dummy and from diagonal coordinates, neither of
+which represents a real edge.
+
+\begin{proposition}[proof-indexed ancestry factor interface]
+\label{prop:ancestry-factor-interface}
+\PROVED{} Let $q_i$ be an odd finite list of proof-indexed nodes, allowed to
+lie in different defender siblings and at different front levels.  Choose
+$a_i\in A_{q_i}$ and $d_i\in W_{q_i}$.  If
+\begin{equation}\label{eq:ancestry-factor}
+ \sum_i(p_{q_i}+a_i)=\sum_i d_i,
+\end{equation}
+then the projected root response affine space contains zero.  Conversely, if
+the projected root response affine space contains zero, then such a
+certificate exists with one term, namely the root itself.  Thus unrestricted
+certificate existence is equivalent to the original affine target; it becomes
+a proof reduction only after the allowed holes are restricted by a causal
+construction.
+\end{proposition}
+
+\begin{proof}
+Because $d_i$ is a difference of two points of $A_{q_i}$, affine closure in
+characteristic two gives $a_i+d_i\in A_{q_i}$.  Lifting along the actual
+root-to-$q_i$ ancestry gives
+$p_{q_i}+a_i+d_i\in A_{\rm root}$.  The sum of an odd number of points of one
+affine space remains in that affine space, while
+\eqref{eq:ancestry-factor} makes their sum zero.  For the converse, use the
+root as the sole hole, with zero prefix and zero continuation direction.  A
+representative of the projected zero root moment supplies its base.  The
+real-edge quotient is legitimate because an isolated simple-graph functional
+annihilates every generator incident to the dummy and every diagonal generator.
+
+The response-space constructors, direction translation, odd-list closure,
+ancestry lifting, real-edge quotient, both implications, and the equivalence with
+the unrestricted certificate are kernel-checked in
+\path{formal/Ogdoad/FifoAffine.lean}.
+\end{proof}
+
+Even a complete defender fan inside a genuine all-terminal-one policy need not
+contract locally.  This makes the multilevel qualification in
+Proposition~\ref{prop:ancestry-factor-interface} essential rather than
+cosmetic.
+
+\begin{proposition}[a complete target-one fan needs earlier ancestry]
+\label{prop:complete-target-one-fan}
+\PROVED{} Take real vertices $0,1,2,3$, an isolated dummy $d$, and real edges
+$01,02$.  The legal zero-charge prefix
+\[
+ O_3,O_d,C_3,C_d,O_0
+\]
+reaches the defender state
+\[
+ U=\{1,2\},\qquad Q=(0),\qquad \mathsf{ko}=1,qquad g=0.
+\]
+Its complete legal fan consists of $O_1,O_2$.  One attacker policy forces
+terminal score one below both children.
+\end{proposition}
+
+\begin{proof}
+After $O_1$ prescribe $C_0$, whose charge is $B(0,2)=1$; after $O_2$
+prescribe $C_0$, whose charge is $B(0,1)=1$.  Once $0$ has closed, the only
+real edge among a queued or untouched vertex is absent, so every later CLOSE
+has charge zero.  Any fixed drain policy therefore completes both branches at
+score one.  The contradiction at the initial root must use an earlier
+defender sibling; it cannot be obtained from this full fan or its descendants.
+\end{proof}
 
 Thus a valid contraction must transport nonzero target cosets and cancel them
 \emph{across} defender children; it cannot solve every projected child as an
@@ -5713,6 +5807,19 @@ The following claims have different status and should not be flattened.
       \texttt{OddWins} strategy tree, extraction of its minimum charged CLOSE
       and translated neutral tail, and the conditional implication from all
       punctured neutral singleton tails to an Eulerian untouched remainder.
+      The companion \path{formal/Ogdoad/FifoCausal.lean} checks the direct
+      charged-CLOSE/neighbor-OPEN transport away from the singleton wall, its
+      one-further-OPEN ko repair at that wall, and the resulting causal
+      neighbour alternative extracted from every zero-sheet odd strategy off
+      the wall.  The companion \path{formal/Ogdoad/FifoSymmetry.lean} checks
+      mover/seat conjugacy, its target-swapping composition with score
+      translation, and the rank obstruction to realizing that conjugacy by a
+      nonempty legal macro.  The companion \path{formal/Ogdoad/FifoAffine.lean} checks the
+      proof-indexed response affine space, continuation directions, odd-list
+      and ancestry-factor composition, the quotient by dummy-incident and
+      diagonal coordinates, and Proposition~\ref{prop:ancestry-factor-interface},
+      including the fact that its unrestricted certificate language is
+      equivalent to the projected root target rather than a proof of it.
 \item \TESTED{} Exact minimax verifies the general linking theorem on every
       isomorphism class through eight real vertices plus dummy, both seats, and
       verifies the two local-strategy witnesses.  The parity-cell census is

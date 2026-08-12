@@ -1,6 +1,9 @@
 import Ogdoad.Off
 import Ogdoad.Fifo
+import Ogdoad.FifoCausal
+import Ogdoad.FifoSymmetry
 import Ogdoad.FifoNormalization
+import Ogdoad.FifoAffine
 import Ogdoad.FifoMatching
 import Ogdoad.GoldSemantics
 import Ogdoad.GoldMatchingAlgebra

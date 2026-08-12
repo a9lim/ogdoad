@@ -122,6 +122,30 @@ not a scalar parity identity.
   front star, leaving a canonical Schur class supported strictly away from that
   front. Exact response trees show that neither descendants alone nor the next
   two-bit coefficient kills this class.
+- The charged-close extraction now has a direct operational refinement in
+  `formal/Ogdoad/FifoCausal.lean`. Away from the singleton queue wall, a
+  charged front has an untouched neighbour `z` whose alternative
+  `OPEN z; CLOSE front` branch inherits the translated neutral strategy. At
+  the singleton wall the same transport holds after any specified further
+  distinct OPEN which repairs ko. This is a local square theorem: it neither
+  puts the alternative inside the original odd strategy nor selects compatible
+  alternatives across its earlier defender ancestry.
+- `formal/Ogdoad/FifoSymmetry.lean` kernel-checks the exact strategy-stealing
+  symmetry and its limit. Simultaneously complementing mover and distinguished
+  seat preserves either strategy predicate; composing this with score
+  translation swaps the target. The conjugate initial root has the opposite
+  mover and score one, and no nonempty legal macro can reach a state's own
+  score-and-turn conjugate because every move lowers rank. Thus the dummy is
+  not a legal pass implementing the missing root symmetry.
+- `formal/Ogdoad/FifoAffine.lean` kernel-checks the proof-indexed affine
+  response space of one explicit `OddWins` tree, its continuation directions,
+  odd-list closure, supplied odd-branch lifting, and cross-level ancestry factor
+  composition. It also quotients the universal live-star space by all
+  dummy-incident and diagonal coordinates and proves that a projected factor
+  certificate contradicts an isolated-dummy odd counterstrategy. The
+  unrestricted certificate language is explicitly proved equivalent to the
+  projected root affine target: it is an exact interface for the missing
+  construction, not a proof or a smaller theorem by itself.
 - On the full two-sheet positional winning region, a minimum-rank flexible
   physical state is attacker-controlled and selects different moves on the two
   sheets. Any reconvergent CLOSE/OPEN fork there must have odd edge curvature.
@@ -158,6 +182,14 @@ premises:
 - an unweighted parity, cut-space, or four-strategy rectangle of minimum-hot
   wall labels contracts the ancestry.  Exact six-real witnesses leave a
   single non-cut edge or an order-dependent critical-tree moment.
+- coefficient one on every branch of a complete defender frontier gives the
+  required factor equation. The paper's mandatory-OPEN-fan example already
+  has a complete fan whose prescribed transversal does not contract; the
+  valid target must choose a strategy-dependent odd profile.
+- every complete defender fan inside an actual terminal-score-one policy has a
+  local odd-profile contraction. A reachable two-child fan on the graph with
+  real edges `01,02` has a single policy which scores one below both children.
+  Its contradiction can only use still earlier defender siblings.
 
 The paper gives explicit finite witnesses for each failure. These witnesses do
 not refute the FIFO linking conjecture; they locate the information that a
@@ -191,6 +223,12 @@ on the all-odd locus the needed correction belongs to the sum of the child
 continuation spaces iff the universal-full-row/common-coset obstruction
 vanishes.  Lifting the canonical selection through attacker-pruned child
 cosets, even outside that locus, is still the causal factor-extension step.
+No theorem may force all branches of one fan to participate: the precise
+formal target is an odd, proof-indexed, strategy-dependent list of holes
+whose prefix-plus-continuation sum is a continuation direction modulo the
+non-real coordinates. Local Bellman target-one status supplies no extra
+identity beyond attacker pruning and defender completeness, so the list must
+couple several siblings and, in general, several front levels.
 
 This is the only missing mathematical step. More exhaustive enumeration or a
 new scalar queue invariant would be useful for falsification, but neither is
@@ -200,7 +238,10 @@ the stated target.
 
 - [`writeups/linking_affine.tex`](../writeups/linking_affine.tex)
 - [`formal/Ogdoad/Fifo.lean`](../formal/Ogdoad/Fifo.lean)
+- [`formal/Ogdoad/FifoCausal.lean`](../formal/Ogdoad/FifoCausal.lean)
+- [`formal/Ogdoad/FifoSymmetry.lean`](../formal/Ogdoad/FifoSymmetry.lean)
 - [`formal/Ogdoad/FifoNormalization.lean`](../formal/Ogdoad/FifoNormalization.lean)
+- [`formal/Ogdoad/FifoAffine.lean`](../formal/Ogdoad/FifoAffine.lean)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`experiments/linking_game.py`](../experiments/linking_game.py)
 

@@ -103,6 +103,19 @@ The exhaustive graph census through eight real coins remains machine evidence,
 not a formal proof of the missing global affine-contraction lemma or of the
 stronger prefix-safe STOP normalization.
 
+`Ogdoad/FifoCausal.lean` additionally kernel-checks charged-CLOSE transport
+across the ordinary OPEN/CLOSE square and across the repaired singleton ko
+wall. `Ogdoad/FifoSymmetry.lean` kernel-checks mover/seat conjugacy, its
+composition with score translation, and the rank obstruction to realizing
+that conjugacy by a nonempty legal macro. `Ogdoad/FifoAffine.lean`
+kernel-checks proof-indexed response affine spaces, continuation directions,
+odd ancestry-factor composition, and the
+quotient by dummy-incident and diagonal coordinates. It proves that a projected
+factor certificate would imply pointwise linking, and also proves that the
+unrestricted certificate statement is equivalent to the projected root
+target. These are formal proof interfaces and local consequences, not a
+construction of the missing global certificate.
+
 `Ogdoad/Excess.lean` kernel-checks the exceptional-column reduction: coprime
 order classes supply the four lower translates, the corrected sparse norm is
 an identity in every characteristic-two commutative ring, and the
