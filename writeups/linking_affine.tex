@@ -4578,6 +4578,66 @@ the same root strategy.  This crossed-OPEN descent is kernel-checked in
 \path{formal/Ogdoad/FifoCrossDescent.lean}; it is an induction carrier, not a
 contraction, because it stops at a same-OPEN or mixed OPEN/CLOSE boundary.
 
+The crossed CLOSE/CLOSE case has an equally exact but asymmetric answer.  If
+the two front charges agree, closing the two entries of the reversed response
+cell restores the cell-swap relation at strict lower rank on the same score
+sheet.  If the charges differ, both score-zero nodes instead descend to
+score-one nodes.  The removed-cell vector
+\[
+ C(U;x,y)=\operatorname{star}_U(x)+\operatorname{star}_U(y)
+\]
+has graph evaluation one and therefore nonzero real-edge projection on an
+isolated-dummy board.  The two endpoint continuation spaces have equal graph
+evaluation, so no pair of endpoint representatives can sum to $C(U;x,y)$.
+One earlier ancestry representative is the minimum possible affine repair:
+if its full prefix-plus-continuation moment equals the sum of the two endpoint
+moments, ternary affine closure gives root zero.  These descent, no-go, and
+conditional three-hole statements are kernel-checked in
+\path{formal/Ogdoad/FifoCrossClose.lean}.  The file deliberately does not
+construct the earlier hole or the required equality.
+
+The mixed OPEN/CLOSE boundary also has a precise local formula but no
+pairwise absorption.  Suppose the first swapped queue is
+$(f,g,Q_A)$ and selects $O_z$, while the second is $(g,f,Q_B)$ and selects
+$C_g$.  Crossing through the universal replies $C_f$ and $O_z$ leaves
+queues
+\[
+ (g,Q_A,z),\qquad (f,Q_B,z)
+\]
+and score difference
+\[
+ \kappa_{\rm mix}=B(f,U\setminus\{z\})+B(g,U).
+\]
+Both descendants remain strict-rank holes of the same root strategy, but they
+are no longer cell-swapped.  Universally, $\kappa_{\rm mix}$ is the graph
+evaluation of
+\[
+ \operatorname{star}_{U\setminus\{z\}}(f)+
+ \operatorname{star}_{U}(g);
+\]
+when it is one, this vector remains nonzero in the isolated-dummy real-edge
+quotient.  These exact statements are kernel-checked in
+\path{formal/Ogdoad/FifoMixedCross.lean}.  Hence score-zero minimality does
+not absorb a mixed cross: it merely exposes the curvature that an earlier odd
+ancestry term must cancel.
+
+The same selected OPEN does not preserve the bare cell-swap relation, but it
+does preserve a two-phase braid.  In the even phase the queues are a
+cell-swapped core followed by one common suffix.  Closing the first members
+of the active reversed cell $(a,b)$ gives a half phase.  If both histories
+then OPEN the same $w$ and close the second active fronts, they return to an
+even phase at strict lower rank, while their vector difference changes by
+\[
+ aw+bw.
+\]
+Its graph evaluation is exactly the XOR of the paired CLOSE-score changes.
+The queue carrier, vector identity, scalar identity, and a complete
+four-ply even--half--even path are kernel-checked in
+\path{formal/Ogdoad/FifoSameOpenBraid.lean}.  This resolves the bookkeeping
+of the same-OPEN escape, not its augmentation: every braid square compares
+two histories and hence generates an even chain.  A third earlier ancestry
+term remains necessary for an odd factor certificate.
+
 The complementary cross-target endpoint is also exact.  At a rank-minimal
 hot score-zero state, every Type-valued target-one policy selects the charged
 front CLOSE and every score-translated target-zero policy selects the unique
@@ -5877,6 +5937,18 @@ The following claims have different status and should not be flattened.
       The companion \path{formal/Ogdoad/FifoCrossDescent.lean} checks the
       strict-rank same-tree descent through crossed OPEN choices and records
       explicitly that the mixed OPEN/CLOSE boundary remains untreated.
+      The companion \path{formal/Ogdoad/FifoCrossClose.lean} classifies crossed
+      CLOSE choices: equal charges descend on the same sheet, unequal charges
+      leave a nonzero projected phase vector, and an explicit conditional
+      ternary lemma identifies the earlier ancestry term needed to repair it.
+      The companion \path{formal/Ogdoad/FifoMixedCross.lean} computes the
+      mixed OPEN/CLOSE cross: both descendants stay in the same strategy at
+      lower rank, but an unmatched queue phase and possibly nonzero projected
+      curvature remain.
+      The companion \path{formal/Ogdoad/FifoSameOpenBraid.lean} supplies the
+      two-phase carrier and exact two-edge curvature for the same-OPEN branch;
+      it is deliberately an even-chain comparison rather than an odd
+      contraction.
       The companion \path{formal/Ogdoad/FifoMinHotCurvature.lean} checks the
       forced cross-target CLOSE/OPEN choices at a minimum-hot wall, its exact
       ko split and drainage, and nonvanishing of the residual unit curvature

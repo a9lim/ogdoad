@@ -123,7 +123,16 @@ construction of the missing global certificate.
 policy is exactly the affine hull of their fixed-strategy response spaces and
 that its initial zero target is equivalent to the original winner statement.
 `Ogdoad/FifoCrossDescent.lean` proves strict-rank same-tree descent through
-crossed OPEN choices. `Ogdoad/FifoMinHotCurvature.lean` proves that the
+crossed OPEN choices. `Ogdoad/FifoCrossClose.lean` proves same-sheet descent
+for equal-charge crossed CLOSEs, the nonzero projected phase obstruction for
+unequal charges, and the sufficiency of a conditional earlier third hole.
+`Ogdoad/FifoMixedCross.lean` proves exact same-tree rank descent through a
+mixed OPEN/CLOSE cross and identifies its explicit, potentially nonzero
+projected curvature rather than asserting a false cell-swap endpoint.
+`Ogdoad/FifoSameOpenBraid.lean` proves the exact two-phase operational carrier
+and two-edge curvature for a common selected OPEN; it explicitly remains an
+even-chain comparison, not an odd contraction.
+`Ogdoad/FifoMinHotCurvature.lean` proves that the
 cross-target minimum-hot CLOSE/OPEN diamond leaves one nonzero real-edge
 coordinate, including the exact empty-tail ko drain. Together these sharpen
 the causal boundary but leave same-OPEN and mixed OPEN/CLOSE ancestry

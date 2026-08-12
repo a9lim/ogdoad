@@ -167,6 +167,24 @@ not a scalar parity identity.
   cell-swapped holes in the same Type-valued strategy. The descent is
   conditional and stops at the unresolved same-OPEN or mixed OPEN/CLOSE
   boundary.
+- `formal/Ogdoad/FifoCrossClose.lean` classifies the crossed CLOSE/CLOSE
+  boundary. Equal front charges give a strict same-sheet descent. Unequal
+  charges instead move both descendants to score one and produce a cut vector
+  with nonzero real-edge projection. The two endpoint continuation spaces
+  cannot absorb that phase defect; an explicit ternary theorem shows that one
+  earlier ancestry hole would suffice if its full moment balanced the endpoint
+  pair, but no such hole or balance is constructed.
+- `formal/Ogdoad/FifoMixedCross.lean` computes the mixed OPEN/CLOSE cross
+  inside one fixed strategy. Both crossed descendants remain same-root holes
+  at strict lower rank, but their queues have unmatched phase offsets and
+  their score difference is the graph evaluation of an explicit mixed
+  curvature vector. Unit curvature survives the isolated-dummy quotient, so
+  this case is not another cell-swap descent and still needs earlier ancestry.
+- `formal/Ogdoad/FifoSameOpenBraid.lean` supplies the two-phase queue carrier
+  for a common selected OPEN. Paired front closes and a second common OPEN
+  return to a smaller braid, with exact two-edge curvature. Every such square
+  has even augmentation, so this organizes the last pairwise branch but does
+  not create the required odd ancestry certificate.
 - `formal/Ogdoad/FifoMinHotCurvature.lean` proves that the two target sheets
   at a minimum-hot singleton wall select opposite CLOSE/OPEN sides for every
   actual policy. Their two-step schedules differ by one real edge coordinate,
@@ -273,6 +291,9 @@ the stated target.
 - [`formal/Ogdoad/FifoAffine.lean`](../formal/Ogdoad/FifoAffine.lean)
 - [`formal/Ogdoad/FifoWinningRegion.lean`](../formal/Ogdoad/FifoWinningRegion.lean)
 - [`formal/Ogdoad/FifoCrossDescent.lean`](../formal/Ogdoad/FifoCrossDescent.lean)
+- [`formal/Ogdoad/FifoCrossClose.lean`](../formal/Ogdoad/FifoCrossClose.lean)
+- [`formal/Ogdoad/FifoMixedCross.lean`](../formal/Ogdoad/FifoMixedCross.lean)
+- [`formal/Ogdoad/FifoSameOpenBraid.lean`](../formal/Ogdoad/FifoSameOpenBraid.lean)
 - [`formal/Ogdoad/FifoMinHotCurvature.lean`](../formal/Ogdoad/FifoMinHotCurvature.lean)
 - [`formal/Ogdoad/FifoMatching.lean`](../formal/Ogdoad/FifoMatching.lean)
 - [`experiments/linking_game.py`](../experiments/linking_game.py)

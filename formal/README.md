@@ -877,6 +877,33 @@ descendants, and retain both as `StrategyPrefix` holes of the same explicit
 `OddStrategy`. The theorem is conditional: it neither constructs the initial
 paired holes nor absorbs the same-OPEN or mixed OPEN/CLOSE escape.
 
+[`Ogdoad/FifoCrossClose.lean`](Ogdoad/FifoCrossClose.lean) classifies the
+crossed CLOSE/CLOSE case. Closing both entries of a reversed response cell
+restores the cell-swap relation at strict lower rank. Equal front charges stay
+on the same score sheet; unequal charges move both descendants from score zero
+to score one and leave a cut vector whose real-edge projection is nonzero on
+an isolated-dummy board. Two endpoint continuation spaces cannot absorb that
+phase vector by themselves. A third earlier ancestry representative is
+sufficient under an explicit ternary balance, but the module does not
+construct that earlier hole or prove its balance equation.
+
+[`Ogdoad/FifoMixedCross.lean`](Ogdoad/FifoMixedCross.lean) computes the
+remaining OPEN/CLOSE cross exactly inside one fixed strategy tree. The crossed
+universal replies remain same-root ancestry holes and strictly lower rank, but
+their queues acquire unmatched phase offsets and their score difference is a
+mixed curvature. Unit mixed curvature has nonzero real-edge projection on an
+isolated-dummy board. The theorem therefore rules out treating the mixed case
+as another cell-swap descent; it does not construct the earlier branch needed
+to cancel the curvature.
+
+[`Ogdoad/FifoSameOpenBraid.lean`](Ogdoad/FifoSameOpenBraid.lean) enlarges
+cell swapping to the two queue phases needed by a common selected OPEN. A
+common OPEN, paired first-front CLOSEs, another common OPEN, and paired
+second-front CLOSEs return to a smaller even braid. The exact vector and
+scalar update is the two-edge curvature incident to the active reversed
+cell. This is an augmentation-zero carrier: it organizes the same-OPEN case
+but cannot itself supply the odd third ancestry term required for contraction.
+
 [`Ogdoad/FifoMinHotCurvature.lean`](Ogdoad/FifoMinHotCurvature.lean) checks
 the sharp cross-target obstruction at the rank-minimal hot singleton wall.
 Every actual Type-valued target-one policy selects the charged front CLOSE,

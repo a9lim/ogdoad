@@ -7,6 +7,9 @@ import Ogdoad.FifoStrategy
 import Ogdoad.FifoAffine
 import Ogdoad.FifoWinningRegion
 import Ogdoad.FifoCrossDescent
+import Ogdoad.FifoCrossClose
+import Ogdoad.FifoMixedCross
+import Ogdoad.FifoSameOpenBraid
 import Ogdoad.FifoNeutralPair
 import Ogdoad.FifoMinHotCurvature
 import Ogdoad.FifoMatching
