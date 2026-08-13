@@ -338,8 +338,9 @@ component information can lose it.
   map is explicitly Möbius-conjugate to cubing. The resulting marked root is
   exactly the square of the selected primitive `3^(k+1)`-st root; this exposes
   rather than evaluates its cyclotomic-unit phase. That phase is equivalently
-  constrained by a selected Singer sieve: if a current prime `ell` is missing,
-  then `N/ell >= h(h-1)+1`, so every prime
+  constrained by a selected Singer sieve: unconditionally
+  `ord(eta_k) >= h(h-1)+1`; if a current prime `ell` is missing, then
+  `N/ell >= h(h-1)+1`, so every prime
   `ell > N/(h(h-1)+1)` occurs with its full valuation. This is a genuine
   ancestry-sensitive range, but its polynomial bound does not close the
   remaining factors. The phase is also equivalently
