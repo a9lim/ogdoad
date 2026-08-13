@@ -712,6 +712,8 @@ Put
 and set \(\eta_0=0\).  Then
 \[
  |U_k|=q_k^2+q_k+1=\Phi_{3^k}(2),
+\qquad
+\mathbb F_2(\eta_k)=\mathbb F_{2^{3^k}},
 \]
 and \(\eta_k\) is the selected root of the irreducible cubic
 \[
@@ -741,12 +743,49 @@ calculation from \(\zeta_k^{q_k}\) gives its displayed cubic; its symmetric
 coefficients give the norm, trace, and second elementary symmetric function.
 It cannot lie in the base field, since a base-field element of \(U_k\) has
 order dividing \(\gcd(q_k-1,3)=1\).  Hence the cubic is irreducible.
+Since its quadratic coefficient recovers \(\eta_{k-1}\), induction from
+\(\eta_0=0\) gives
+\(\mathbb F_2(\eta_k)=\mathbb F_{2^{3^k}}\).
 
 The cyclic group \(\mathbb F_{q_k^3}^{\times}\) splits as the product of
 \(\mathbb F_{q_k}^{\times}\) and \(U_k\), whose orders are coprime because
 \(q_k\equiv2\pmod3\).  The norm determines the old factor of \(\gamma_k\),
 while exponentiation by \(q_k-1\) detects the new \(U_k\)-factor without
 changing its order.  This proves the last equivalence.
+\end{proof}
+
+\begin{proposition}[exact Capelli dichotomy]\label{prop:c-capelli-dichotomy}
+Let \(Q_k\in\mathbb F_2[X]\) be the minimal polynomial of \(\eta_k\),
+and let \(\ell\) be a prime divisor of
+\(N_k=\Phi_{3^k}(2)\).  Exactly one of the following occurs:
+\begin{enumerate}
+\item \(\eta_k\notin(\mathbb F_{2^{3^k}}^\times)^\ell\), and
+\(Q_k(X^\ell)\) is irreducible of degree \(3^k\ell\);
+\item \(\eta_k\in(\mathbb F_{2^{3^k}}^\times)^\ell\), and
+\(Q_k(X^\ell)\) is the product of exactly \(\ell\) distinct irreducible
+polynomials, each of degree \(3^k\).
+\end{enumerate}
+In particular, both the successful and failed cases have an odd number of
+irreducible factors.  Factor-count parity, and hence any criterion which sees
+only that parity, cannot decide the current \(C\)-coordinate.
+\end{proposition}
+
+\begin{proof}
+Put \(h=3^k\).  The preceding proposition gives
+\(\mathbb F_2(\eta_k)=\mathbb F_{2^h}\), while
+\(\ell\mid2^h-1\) gives
+\(\mu_\ell\subset\mathbb F_{2^h}\).  Capelli's lemma and the prime-degree
+Kummer criterion therefore say that \(Q_k(X^\ell)\) is irreducible exactly
+when \(\eta_k\) is not an \(\ell\)-th power.
+
+Suppose instead that \(b^\ell=\eta_k\) in \(\mathbb F_{2^h}\).  Every root
+of \(Q_k(X^\ell)\) is an \(\ell\)-th root of a Frobenius conjugate of
+\(\eta_k\), hence belongs to \(\mathbb F_{2^h}\), because that field also
+contains \(\mu_\ell\).  Such a root has degree at least \(h\) over
+\(\mathbb F_2\), since its \(\ell\)-th power has degree \(h\), and therefore
+has degree exactly \(h\).  The composition is separable and has degree
+\(h\ell\), so it has exactly \(\ell\) distinct irreducible factors, all of
+degree \(h\).  Finally \(\ell\) is odd because it divides \(2^h-1\).
 \end{proof}
 
 For a prime \(\ell\mid |U_k|\), put
@@ -870,6 +909,16 @@ members in each residue class modulo \(h\).  Both are impossible for a
 nonempty union of triples.  The support is therefore empty, forcing
 \(a=1\).  Thus \(A_k\) has Frobenius orbit length \(2h\), and the displayed
 resultant is its irreducible minimal polynomial.
+
+This also verifies the defining field used in
+Proposition~\ref{prop:d-norm}.  Put \(\beta=\zeta+4\).  The identity
+\(A_k=\operatorname{N}(\beta)\) puts \(A_k\) in
+\(\mathbb F_2(\beta)\), so the degree just proved shows that
+\(\mathbb F_{2^{2h}}\subseteq\mathbb F_2(\beta)\).  On the other hand
+\(\beta\notin\mathbb F_{2^{2h}}\): otherwise
+\(4=\beta+\zeta\) would belong to that field, contrary to
+\(\mathbb F_{16}\cap\mathbb F_{2^{2h}}=\mathbb F_4\).  Hence
+\(\mathbb F_2(\beta)=\mathbb F_{2^{4h}}\).
 
 Writing \(a_0=2^{3^{k-1}}\), one has
 \[
