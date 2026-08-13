@@ -8080,6 +8080,18 @@ nonidentity arguments. -/
 
 variable {F : Type*} [Field F] [CharP F 2]
 
+/-- The two-prime cubical coboundary is the relative quotient followed by
+the other Frobenius difference.  This is the algebraic identity used to put
+the exceptional arm in the same primitive-support coordinate as the zero
+arm. -/
+theorem twoPrime_coboundary_eq
+    {G : Type*} [CommGroup G] (x : G) (q r : ℕ) :
+    (x * x ^ (q * r)) / (x ^ q * x ^ r) =
+      ((x ^ q / x) ^ r) / (x ^ q / x) := by
+  rw [pow_mul]
+  simp only [div_eq_mul_inv, mul_pow, inv_pow]
+  group
+
 /-- The two-face multiplicative coboundary of an additive two-block element.
 Its difference from one factors as the product of the two edge differences. -/
 theorem additive_crossRatio_add_one
