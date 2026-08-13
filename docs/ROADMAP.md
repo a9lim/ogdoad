@@ -26,14 +26,9 @@ public API.
 
 ## API and maintenance
 
-- Finish canonical Python `repr` coverage.
-- Keep Python parity focused on already public Rust surfaces: finite quadratic
-  modules, extraspecial/Heisenberg--Weil objects, function-field Brauer--Wall,
-  Niemeier data, characteristic-two Witt decomposition, lexicode games, CGA
-  accessors, and ordinal finite-subfield degree.
-
-Every binding change must preserve per-backend type separation and update the
-generated stub in the same commit.
+No unfinished API-maintenance work is currently tracked. New Python bindings
+must preserve per-backend type separation and update the generated stub in the
+same commit.
 
 ## Grundy language
 

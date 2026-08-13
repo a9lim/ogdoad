@@ -1084,3 +1084,45 @@ print("  constant-extension reciprocity:",
 print("  tame-symbol reciprocity      :",
       pl.tame_symbol_invariants_ff(5, 4, ff_t, ([2], [1])),
       pl.tame_symbol_invariant_sum_ff(5, 4, ff_t, ([2], [1])))
+
+section("Python parity — typed reports, representation theory, and checked joins")
+fqm = pl.FiniteQuadraticModule.cyclic(2, pl.Rational(1, 2))
+fqm_witt = fqm.witt_class()
+nikulin = fqm.nikulin_existence_report((1, 0))
+print("  FQM Witt/Nikulin              :", fqm_witt, nikulin)
+assert fqm_witt.order == 2 and nikulin.exists()
+
+extra = pl.extraspecial_group_f2([False, False], [0b10, 0b01])
+x0, x1 = extra.generator(0), extra.generator(1)
+weil = extra.heisenberg_weil_representation()
+print("  extraspecial / Heisenberg-Weil:", extra, weil,
+      extra.commutator(x0, x1), weil.matrix(x0))
+assert extra.commutator(x0, x1).central and weil.hilbert_dim_u128() == 2
+
+ff_alg = pl.Fp3RationalFunctionAlgebra(q=[pl.Fp3RationalFunction.one()])
+ff_bw = pl.bw_class_function_field(ff_alg)
+print("  BW(F₃(t))                    :", ff_bw, ff_bw.signed_discriminant)
+assert ff_bw.field_order == 3
+
+niemeier = pl.niemeier_classes()
+print("  Niemeier catalogue            :", len(niemeier), niemeier[0], niemeier[-1])
+assert len(niemeier) == 24
+assert pl.niemeier_weighted_theta_average(4) == pl.eisenstein_e12(4)
+
+f4_decomp = pl.witt_decompose_finite_algebra(
+    pl.F4Algebra(q=[0, 0], b={(0, 1): 1}))
+turning = pl.lexicode_turning_game(4, 3)
+print("  char-2 Witt / turning game    :", f4_decomp, turning,
+      turning.p_positions_bounded())
+assert f4_decomp.witt_index == 1 and turning.p_positions_bounded() == [0, 7]
+
+qcga = pl.RationalCga(2)
+p0, p1 = qcga.up([0, 0]), qcga.up([1, 0])
+print("  CGA algebra / IPNS meet       :", qcga.alg(), qcga.meet_ipns(p0, p1))
+assert qcga.meet(p0, p1) == qcga.meet_ipns(p0, p1) == qcga.outer_join(p0, p1)
+
+omega_ord = pl.Ordinal.omega()
+print("  ordinal finite subfield       :", omega_ord.finite_subfield_degree(),
+      pl.ordinal_common_finite_subfield_degree([omega_ord, pl.Ordinal(16)]))
+assert omega_ord.finite_subfield_degree() == 6
+assert omega_ord.checked_sqrt() * omega_ord.checked_sqrt() == omega_ord

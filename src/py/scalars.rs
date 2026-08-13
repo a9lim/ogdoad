@@ -6052,6 +6052,15 @@ impl PyOrdinal {
     fn checked_inv(&self) -> Option<PyOrdinal> {
         self.inner.checked_inv().map(|inner| PyOrdinal { inner })
     }
+    /// Checked nim-square root on the same represented finite-subfield window.
+    fn checked_sqrt(&self) -> Option<PyOrdinal> {
+        self.inner.checked_sqrt().map(|inner| PyOrdinal { inner })
+    }
+    /// Minimal `m` such that this represented ordinal nimber lies in `F_{2^m}`.
+    /// `None` marks the staged Kummer/excess boundary.
+    fn finite_subfield_degree(&self) -> Option<u128> {
+        self.inner.finite_subfield_degree()
+    }
     /// **Ordinary** (Cantor) ordinal addition — NOT nim: `1 + ω = ω` but
     /// `ω + ω = ω·2` (coefficients add as naturals, not XOR).
     fn ord_add(&self, other: &PyOrdinal) -> PyOrdinal {
@@ -6095,6 +6104,18 @@ impl PyOrdinal {
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
     }
+}
+
+/// Minimal finite-subfield degree of one represented ordinal nimber.
+#[pyfunction]
+fn ordinal_finite_subfield_degree(x: &PyOrdinal) -> Option<u128> {
+    crate::scalar::ordinal_finite_subfield_degree(&x.inner)
+}
+
+/// Minimal common finite-subfield degree containing all represented values.
+#[pyfunction]
+fn ordinal_common_finite_subfield_degree(values: Vec<PyOrdinal>) -> Option<u128> {
+    crate::scalar::ordinal_common_finite_subfield_degree(values.iter().map(|x| &x.inner))
 }
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -6217,6 +6238,8 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(nim_is_primitive, m)?)?;
     m.add_function(wrap_pyfunction!(nim_primitive_element, m)?)?;
     m.add_function(wrap_pyfunction!(nim_discrete_log, m)?)?;
+    m.add_function(wrap_pyfunction!(ordinal_finite_subfield_degree, m)?)?;
+    m.add_function(wrap_pyfunction!(ordinal_common_finite_subfield_degree, m)?)?;
     m.add_function(wrap_pyfunction!(adele_prec, m)?)?;
     m.add_function(wrap_pyfunction!(min_coeff_valuation, m)?)?;
     m.add_function(wrap_pyfunction!(newton_polygon, m)?)?;
