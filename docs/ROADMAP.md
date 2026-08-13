@@ -65,23 +65,10 @@ Gauss phases, constructive Weyl versors, and the Laurent constructor name.
 | `thermo_newton` | before asserting literature novelty, manually check *Winning Ways* Chapter 8 and Siegel Section III.3; rerun the bounded deep stress harness for publication counts |
 | game-exterior appendix | record the exact theorem number for the cited Moews structure theorem in Siegel's *Combinatorial Game Theory* |
 | misere-quotient corollary | verify the regularity hypothesis of Plambeck--Siegel Theorem 6.4 before relying on the conditional group-quotient bound |
-| `transfinite_arf` | prepare the characteristic-two generalization for Mathlib after the symplectic-basis prerequisite is available |
+| `transfinite_arf` | prepare the proved reusable characteristic-two classification for an upstream Mathlib contribution |
 
 Reference files need not be vendored, but every cited result must have complete,
 checked bibliographic metadata.
-
-## Lean formalization
-
-| slug | missing formal join |
-| --- | --- |
-| `gold-arena` | reify one safe-front policy, generalize the matching score to weighted charges, construct the deterministic Witt basis/loading map, and state the end-to-end root theorem |
-| `gold-extraspecial-trace` | specialize the universal cocycle group to the nimber-trace Gold cocycle and identify the order-eight cell |
-| `brown-selector-pgame` | replace the abstract starter-profile decoder with an actual `PGame` selector and derive its four outcomes |
-| `game-exterior-intersection` | formalize the `intersection_k 4^k R` sharpening and remove the redundant torsion-root hypothesis |
-| `algclosed-char2` | build a reusable symplectic-basis theorem and use it to state the full perfect Artin--Schreier-surjective classification in Mathlib form |
-
-The symplectic-basis result is shared by `gold-arena` and `algclosed-char2` and
-should be implemented once in a reusable form.
 
 ## Grundy language
 

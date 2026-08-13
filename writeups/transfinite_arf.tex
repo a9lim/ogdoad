@@ -314,15 +314,25 @@ Artin--Schreier roots used by Theorem~\ref{thm:classification}.  A failure to
 produce an in-window witness is therefore an implementation boundary, not a
 third mathematical isometry class.
 
-The companion Lean module \texttt{formal/Ogdoad/Off.lean}, distributed with
-Ogdoad \cite{ogdoad2026}, checks the following algebraic ingredients
-over a set-sized algebraically
-closed characteristic-$2$ field: surjectivity of Frobenius and the
-Artin--Schreier map, conversion of a normalized symplectic pair to a
-hyperbolic pair, simultaneous conversion of a supplied symplectic family,
-and the zero-polar normal form $Q=\ell^2$.  It uses the standard symplectic
-decomposition of a finite alternating form as an interface and does not
-encode Conway's proper-class field or the partial Rust arithmetic.
+The companion Lean development, distributed with Ogdoad
+\cite{ogdoad2026}, checks the full finite-dimensional theorem over a
+set-sized field.  \texttt{Off.lean} proves the exact plane and radical
+lemmas.  \texttt{SymplecticBasis.lean} constructs the recursive orthogonal
+basis.  \texttt{CharTwoClassification.lean} assembles an explicit
+\texttt{QuadraticMap.IsometryEquiv} from the original form to the coordinate
+normal form.
+The formal hypotheses are exactly perfection and Artin--Schreier
+surjectivity.  Every nondegenerate plane is hyperbolized within the same span,
+and the terminal polar radical is proved to be either $0^{\perp s}$ or
+$\langle x^2\rangle\perp0^{\perp(s-1)}$.  The returned object contains
+every direct-sum witness and every basis change.  It computes the dimensions
+of the polar and quadratic radicals of the coordinate form, proves those
+dimensions invariant under isometry, and kernel-checks the converse in
+\texttt{equivalent\_iff\_dimension\_radicals\_eq}; hence the final iff clause
+of Theorem~\ref{thm:classification} is formalized as stated.  The
+algebraically closed theorem is an immediate specialization.  The development does not encode
+Conway's proper-class field or identify Mathlib field operations with the
+partial Rust arithmetic.
 
 \section{Conclusion}
 

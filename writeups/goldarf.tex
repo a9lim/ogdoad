@@ -59,8 +59,9 @@ $\mathbb Z/4$-valued Brown refinement is decoded by the four outcome classes
 of one intrinsic partizan selector.  Conversely, an ambient-coherent,
 coefficient-faithful Clifford datum on all short-game values collapses on
 torsion and, over common coefficient rings, vanishes entirely.  Lean checks
-the independent algebraic and game-semantic ingredients; the concrete arena
-and the end-to-end composition are proved in this paper.
+the complete finite theorem chain: deterministic Witt framing and loading,
+the weighted-source root, the trace Gold extension and quaternion cell, the
+intrinsic partizan selector, and the ambient game-exterior obstruction.
 \end{abstract}
 
 \section{Introduction}
@@ -735,40 +736,66 @@ theorem therefore address different naturality conditions.
 
 \section{Formal and executable boundary}\label{sec:formal}
 
-The companion Lean development checks the following independent ingredients:
+The companion Lean development checks the construction end to end:
 \begin{itemize}
 \item \texttt{GoldDiagonal.lean}: quadratic-tower trace blocks, trace-dual
       reconstruction, and the finite-field Artin--Schreier exact sequence;
-\item \texttt{FifoMatching.lean} and \texttt{ImpartialRealizer.lean}: the
-      matching-plus-isolates strategy, pass-free transition, exact clock, and
-      impartial tail compiler;
-\item \texttt{GoldMatchingAlgebra.lean}: the adapted-basis expansion and
-      transported diagonal identity;
+\item \texttt{SymplecticBasis.lean} and \texttt{WittFrame.lean}: a
+      complete recursive orthogonal decomposition, flattened to an actual
+      deterministic basis with a certified public partial matching;
+\item \texttt{FifoMatching.lean} and \texttt{ImpartialRealizer.lean}:
+      the matching safe-front strategy, exact even clock, and impartial tail;
+\item \texttt{PhysicalDeferred.lean} and \texttt{GoldArena.lean}:
+      active-coordinate loading, the public and refinement-weighted
+      matchings, literal second-opening and close charges, two ledger
+      conjugacies, and the literal-root P-position theorem;
+\item \texttt{GoldMatchingAlgebra.lean}: the independent adapted-basis
+      expansion and transported diagonal identity;
 \item \texttt{GoldNoEvaluator.lean} and
       \texttt{GoldBlockCompression.lean}: the span lower bound and the induced
       block instance attaining it;
 \item \texttt{GoldForkPadding.lean}: outcome-preserving unavoidable fork
       padding;
-\item \texttt{GoldExtraspecial.lean}: the generic biadditive cocycle group,
-      square and commutator laws, center criterion, and order-four lifts;
-\item \texttt{BrownGame.lean}: the Brown split, converse, ambient
-      two-divisibility collapse, and four-class starter-profile decoder;
-\item \texttt{GameExterior.lean}: torsion square and anticommutator collapse
-      under explicit roots and coefficient faithfulness.
+\item \texttt{GoldExtraspecial.lean} and
+      \texttt{GoldExtraspecialTrace.lean}: the generic cocycle group, the
+      actual field-trace/Frobenius Gold specialization, the cocycle-preserving
+      \((c,1)\) basis for every trace-one cardinality-four field, and the
+      resulting multiplicative equivalence from that Gold extension to
+      Mathlib's quaternion group; the endpoint is instantiated on Mathlib's
+      canonical \(\operatorname{GF}(4)\), with trace-one existence discharged;
+\item \texttt{BrownGame.lean} and
+      \texttt{BrownSelectorPGame.lean}: the Brown split and one finite
+      partizan game tree whose four recursively derived outcomes give the
+      displayed decoder;
+\item \texttt{GameExterior.lean}: the
+      \(\bigcap_k4^kR\) coefficient theorem, root-free two-primary
+      torsion collapse, and the named vanishing consequences.
 \end{itemize}
+Moews's two-divisibility and two-primary torsion theorem for the additive
+group of short games remains the cited external input to
+\texttt{GameExterior.lean}; Lean proves every subsequent coefficient and
+vanishing implication from that hypothesis.
 The phase-aware compiler in \texttt{GoldSemantics.lean} is an
 independent comparison theorem but is not needed for the impartial tail used
 here.  The Lean sources and executable implementation are distributed with
 Ogdoad \cite{ogdoad2026}.
 
-There is no single Lean theorem constructing the complete arena.  The paper
-supplies the deterministic concrete Witt basis, the original-frame
-coefficient transport, the one public matching policy across all source
-weights, and the composition of weighted openings with the normal-play tail.
-Likewise, Lean proves the generic cocycle theorem while the finite-nimber trace
-specialization is a paper-level step exercised by the tested Rust arithmetic.
-The formal files therefore check the load-bearing components, and the
-end-to-end theorem remains the proved synthesis above.
+Lean contains both transition systems.  The literal root has score zero;
+OPEN charges an edge exactly when its second endpoint opens and CLOSE charges
+the displayed public label.  Two involutive state encodings move respectively
+the remaining close labels and the unresolved edge weights into the deferred
+ledger.  Their step-conjugacy theorems transport complete normal-play strategy
+trees in both directions.  A separate ordered-edge calculation proves that
+the root potential is exactly the strategic cross term plus the singleton
+source term, while the close potential is exactly the adapted diagonal term.
+Thus \texttt{gold\_literal\_root\_isP\_iff} includes the concrete basis,
+original-frame transport, physical move rules, one public policy across all
+source weights, and the normal-play tail rather than assuming any composition.
+
+Mathlib's abstract finite fields are not definitionally identified with the
+Rust finite-nimber backend.  The Lean trace specialization proves the
+field-level theorem, while implementation agreement remains an executable
+cross-backend check rather than a premise of the mathematics.
 
 The arbitrary-graph isolated-dummy FIFO proposition remains open.  It is a
 strict strengthening of Theorem~\ref{thm:matching}, not a missing hypothesis

@@ -48,16 +48,27 @@ The scalar and Clifford property suites live in `tests/`. Increase
 ## Lean boundary
 
 `formal/` contains no `sorry`, `admit`, or custom `axiom`. Its modules fall into
-three groups:
+four groups:
 
-- `Off`, `BrownGame`, and `GameExterior` prove algebraic cores while external
-  theorems about full nimbers or the additive group of short games remain cited
-  paper inputs.
-- `GoldDiagonal`, `FifoMatching`, `ImpartialRealizer`,
-  `GoldMatchingAlgebra`, `GoldNoEvaluator`, `GoldBlockCompression`,
-  `GoldExtraspecial`, `GoldForkPadding`, and `GoldSemantics` prove independent
-  ingredients of the Gold/Brown/game-exterior paper. There is no single Lean
-  theorem constructing the full weighted arena from finite-field data.
+- `Off`, `SymplecticBasis`, and `CharTwoClassification` construct an explicit
+  isometry to the complete finite-dimensional perfect
+  Artin--Schreier-surjective normal form and prove the iff classification by
+  the ambient, polar-radical, and quadratic-radical dimensions.
+- `BrownGame`, `BrownSelectorPGame`, and `GameExterior` prove the intrinsic
+  partizan decoder and the full coefficient/torsion obstruction; Moews's
+  structure theorem for the additive group of short games remains a cited
+  external input.
+- `GoldDiagonal`, `FifoMatching`, `ImpartialRealizer`, `PhysicalDeferred`,
+  `GoldMatchingAlgebra`, `WittFrame`, `GoldArena`, `GoldNoEvaluator`,
+  `GoldBlockCompression`, `GoldExtraspecial`, `GoldExtraspecialTrace`,
+  `GoldForkPadding`, and `GoldSemantics` prove the Gold theorem chain.
+  `GoldArena.gold_literal_root_isP_iff` is the single literal loaded-root
+  realization theorem; `gold_root_isP_iff` is its deferred compiler endpoint.
+  The trace specialization proves that `(c,1)` carries its actual Gold cocycle
+  to the coordinate anisotropic cocycle, then composes this identification
+  with an actual multiplicative equivalence to Mathlib's quaternion group. A
+  final definition instantiates the result on Mathlib's canonical `GF(4)` and
+  a proved-existing trace-one scale.
 - `Fifo*` formalizes the open FIFO transition system, reductions, local
   contractions, and obstructions. `FifoLinkingTheorem` remains a proposition.
   `Excess` proves reduction algebra and exact finite criteria;

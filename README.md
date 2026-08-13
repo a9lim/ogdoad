@@ -163,8 +163,11 @@ are:
   perfect Artin--Schreier-surjective characteristic-two fields and full
   `On_2`.
 
-Lean checks independent algebraic and combinatorial ingredients. It does not
-replace the paper-level synthesis with a single end-to-end arena theorem; see
+Lean checks the complete finite Gold--Arf realization from the literal
+zero-score OPEN/CLOSE root through its normal-play outcome, together with the
+finite-tree Brown selector, game-exterior obstruction, trace Gold extension,
+and the explicit characteristic-two isometry classification. The two research
+fronts above remain explicitly unproved; see
 [`formal/README.md`](formal/README.md).
 
 ## Verification

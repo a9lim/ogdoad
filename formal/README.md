@@ -18,11 +18,11 @@ below states its boundary.
 
 | module | checked content | external or paper-level boundary |
 | --- | --- | --- |
-| `Off.lean` | Frobenius/Artin--Schreier surjectivity consequences, hyperbolization of symplectic planes, and the polar-radical normal form | a set-sized algebraically closed characteristic-two field is the finite-form proxy for full `On_2`; the general symplectic decomposition is a standard input |
-| `BrownGame.lean` | canonical `q = lift(ell)+2Q` split and converse, corrected polar form, two-divisible collapse, framed `Z/8` sharpness, and an exact four-class starter-profile decoder | Moews's short-game group theorem and the ordinary quadratic followers are external/paper inputs; the decoder is not yet an actual `PGame` construction |
-| `GameExterior.lean` | root-collapse, square-zero and polar-zero consequences for torsion, polarization, and torsion-coset invariance | the short-game divisibility/torsion structure is supplied by Moews's theorem |
+| `Off.lean`, `SymplecticBasis.lean`, `CharTwoClassification.lean` | exact Frobenius/Artin--Schreier plane lemmas, a complete recursive orthogonal symplectic basis, an explicit `QuadraticMap.IsometryEquiv` to the two coordinate normal forms, and the iff classification by ambient, polar-radical, and quadratic-radical dimensions | a set-sized algebraically closed characteristic-two field is the finite-form proxy for full `On_2`; Conway's proper-class field is not a Lean type |
+| `BrownGame.lean`, `BrownSelectorPGame.lean` | canonical `q = lift(ell)+2Q` split and converse, corrected polar form, two-divisible collapse, and one directly defined finite partizan game tree whose four normal-play outcomes decode `Z/4` | Moews's short-game group theorem remains an external cited input |
+| `GameExterior.lean` | the `intersection_k 4^k R` coefficient theorem, root-free two-primary torsion collapse, polarization, torsion-coset invariance, and the named four-zero and integral vanishing consequences | two-divisibility and two-primary torsion for short games are supplied by Moews's theorem |
 | `GoldDiagonal.lean` | quadratic-tower trace blocks, trace-dual reconstruction, Artin--Schreier lifting, and image-equals-trace-kernel over finite fields | concrete nim arithmetic and basis recursion remain in Rust |
-| `GoldExtraspecial.lean` | biadditive cocycle group, square/commutator laws, center criterion, and order-four lifts | specialization to the Gold trace cocycle and game terms is composed in the paper |
+| `GoldExtraspecial.lean`, `GoldExtraspecialTrace.lean` | biadditive cocycle group, its actual field-trace/Frobenius Gold specialization, square/commutator/center laws, the `(c,1)` cocycle-preserving basis for every trace-one cardinality-four field, and an explicit multiplicative equivalence from the resulting Gold extension to Mathlib's quaternion group, instantiated on Mathlib's canonical `GF(4)` | identifying Mathlib finite-field operations with the Rust/nimber implementation is an executable cross-backend question |
 
 ## Gold--Arf realization ingredients
 
@@ -30,16 +30,30 @@ below states its boundary.
 | --- | --- |
 | `FifoMatching.lean` | both-seat zero-flip strategy for matching-plus-isolates boards |
 | `ImpartialRealizer.lean` | pass-free transition, exact even clock, safe-front induction, and one-move charge tail |
+| `PhysicalDeferred.lean` | literal second-opening and close-charge transitions, two involutive ledger conjugacies, and bidirectional transport of complete normal-play strategy trees |
 | `GoldMatchingAlgebra.lean` | quadratic expansion in an adapted public Witt frame |
+| `WittFrame.lean` | deterministic flattening of the symplectic decomposition to an actual basis with a certified public partial matching |
+| `GoldArena.lean` | original-frame source, active-coordinate loading, public and weighted matching graphs, exact edge/close ledger totals, and `gold_literal_root_isP_iff` |
 | `GoldNoEvaluator.lean` | transcript-span and observation-weight lower bounds |
 | `GoldBlockCompression.lean` | induced block quadratic form and independent block indicators |
 | `GoldForkPadding.lean` | outcome-preserving unavoidable-fork padding |
 | `GoldSemantics.lean` | independent phase-aware terminal compiler retained as a comparison surface |
 
-These modules prove independent ingredients. They do not construct one
-end-to-end object combining finite-field arithmetic, a concrete Witt basis,
-weighted source loading, the arena, and its observation contract. That
-composition is proved in `writeups/goldarf.tex`.
+`GoldArena.gold_literal_root_isP_iff` is the end-to-end realization theorem: for every
+finite binary quadratic refinement, ordered public basis, and input, the
+constructed loaded root is a `P`-position exactly when the quadratic value is
+zero. Its root score is zero; OPEN charges a weighted edge exactly when its
+second endpoint opens, and CLOSE charges the public strategic label. Lean
+proves that this literal tree is conjugate, state by state and strategy tree by
+strategy tree, to the deferred safe-front compiler, and separately proves that
+the root edge and close potentials are exactly the three quadratic ledgers.
+The public graph is independent of the refinement, and refinement-sensitive
+source edges read only the active original-basis singleton values.
+
+The Rust finite-field/nimber implementation is not definitionally equated to
+Mathlib's abstract finite fields. `GoldDiagonal.lean` checks the field-theoretic
+source construction, while runtime agreement remains covered by the separate
+executable verification surface.
 
 ## Open FIFO linking frontier
 
