@@ -745,6 +745,17 @@ cycle argument would be sufficient only if its prefix cancellation can be
 lifted through the branch-dependent continuation cosets; this is a specialized
 form of the same factor-extension problem below.
 
+More precisely, attach to a selected arc $x\to f(x)$ the universal prefix
+$S_V(x)+S_V(f(x))$, where $S_V(v)$ is the full live star.  The sources and
+targets of a directed cycle are the same multiset, so these prefixes sum to
+zero.  If the cycle length is odd, any chosen continuation representatives
+lift to an odd affine point at the common root; the isolated-dummy augmentation
+lock then says that their sum has nonzero real-edge projection.  If the cycle
+length is even, the same sum is only a homogeneous response direction.  Thus
+neither parity contracts the counterstrategy.  One must add an in-tree branch
+or another earlier sibling to obtain both odd augmentation and zero projected
+moment.
+
 Assume for contradiction that the affine condition of
 Theorem~\ref{thm:affine} fails.  Choose a separating graph $B$ and a positional
 attacker policy forcing terminal score one.  Along its response tree, label a

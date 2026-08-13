@@ -99,6 +99,13 @@ front quotients while respecting the chosen strategy tree.
   first physical player wins precisely when some initial OPEN has a complete
   winning fan over every legal second OPEN. The stronger claim that every
   ordered initial pair is winning is sufficient, but remains unproved.
+  `FifoFirstSeatStrategy.lean` extracts from one hypothetical odd root strategy
+  its fixed-point-free selected second-opener map, exact common-root ancestry,
+  and a nontrivial periodic orbit. `FifoBadArcCycle.lean` proves that every
+  selected cycle has zero aggregate two-OPEN prefix. For an odd cycle the
+  continuation sum has nonzero real-edge projection; for an even cycle it is
+  only a homogeneous response direction. Thus the cycle alone does not
+  contract the root strategy.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.
@@ -125,6 +132,14 @@ strategy ancestry. Proving that this selected first-two-OPEN fan has a safe
 branch would settle the first-seat half. Treating the pair states as unrelated
 conditioned games discards exactly this common ancestry and has not produced a
 proof.
+
+Finiteness does force a directed cycle in the selected reply map, and its
+two-OPEN live-star prefixes cancel exactly. This does not finish the argument:
+an odd cycle has the right affine augmentation but its continuation sum is
+provably nonzero after real-edge projection, whereas an even cycle has only
+the augmentation of a direction. A successful first-seat contraction must
+therefore incorporate an in-tree branch or another earlier sibling in
+addition to the cycle.
 
 Purely graph-local parity, fixed pairings, bounded-support affine circuits,
 childwise continuation arguments, dummy deletion, and turn/score symmetry do

@@ -31,6 +31,8 @@ import Ogdoad.FifoOutcome
 import Ogdoad.FifoOutcomeBlock
 import Ogdoad.FifoPairState
 import Ogdoad.FifoFirstSeatRoot
+import Ogdoad.FifoBadArcCycle
+import Ogdoad.FifoFirstSeatStrategy
 import Ogdoad.FifoMatching
 import Ogdoad.ImpartialRealizer
 import Ogdoad.GoldSemantics

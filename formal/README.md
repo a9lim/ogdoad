@@ -84,6 +84,7 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoTreeTrace`, `FifoQPotential` | kernel-checked obstructions to the raw complete-leaf sum and to pointwise queue-cut-potential normalization |
 | `FifoPairState` | every score-zero mover failure with an OPEN available yields a lower minimum-hot singleton wall whose charged endpoints are real; ancestry from the original strategy is not supplied |
 | `FifoFirstSeatRoot` | exact first-seat Bellman normal form: one chosen initial OPEN followed by the complete universal second-OPEN fan; the existence of such a winning opener remains open |
+| `FifoBadArcCycle`, `FifoFirstSeatStrategy` | one first-seat odd strategy supplies a fixed-point-free selected reply map with common-root ancestry; cycle prefixes cancel, but continuation augmentation still obstructs contraction |
 
 Every theorem in these modules is subsidiary. None supplies either the full
 strategy-relative minimum-bad ancestry classification or the subsequent
