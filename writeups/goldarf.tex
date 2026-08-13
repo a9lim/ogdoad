@@ -66,10 +66,16 @@ graphs is not used.
 Classical impartial constructions often realize linear losing sets: coin
 turning decomposes into nim heaps, kernels of Grundy maps produce codes, and
 lexicographic codes admit game-theoretic models
-\cite{berlekampconwayguy1982,fraenkel1996}.  We study the quadratic analogue.
-Given a quadratic refinement $Q$ of an alternating binary form, the objective
-is a single uniform normal-play rule whose losing loadings are exactly the
-quadric $\{x:Q(x)=0\}$.
+\cite{berlekampconwayguy1982,conwaysloane1986,fraenkel1996}.  More generally,
+impartial $P/N$ recursion can emulate arbitrary Boolean update rules in
+modular and invariant heap games \cite{larssonwastlund2013}; there the Boolean
+function is compiled into the rules.  Binary quadratic forms also organize
+the orbit structure of lit-only sigma-games on nondegenerate graphs
+\cite{huang2015}, but those are configuration-reachability puzzles rather
+than alternating normal-play realizations.  We study a different quadratic
+analogue.  Given a quadratic refinement $Q$ of an alternating binary form,
+the objective is a single uniform normal-play rule whose losing loadings are
+exactly the quadric $\{x:Q(x)=0\}$.
 
 Uniformity needs an information model.  An arbitrary finite set could be
 declared terminal in a purpose-built acyclic graph, so the arena here is
@@ -84,11 +90,13 @@ The principal examples are the Gold trace forms
 \]
 When $\F_{2^m}$ is identified with a finite nimber subfield, addition,
 multiplication, Frobenius, and trace are all built from nim operations
-\cite{conway1976,lenstra1978}.  Gold functions originate in sequence design
-\cite{gold1968}, and their ranks and Walsh spectra are classical finite-field
-invariants \cite{hellesethkumar1998}.  The realization therefore connects
-normal-play outcomes directly to Arf statistics and to a trace-defined
-central extension.
+\cite{conway1976,lenstra1978}.  Gold monomials originate in sequence design
+\cite{gold1968}.  Their trace components are binary quadratic forms, whose
+polar ranks and Walsh spectra have been studied by quadratic-form and
+Weil-sum methods
+\cite{coulter1999,hellesethkumar1998,lahtonenmcguireward2007}.  The realization
+therefore connects normal-play outcomes directly to Arf statistics and to a
+trace-defined central extension.
 
 Sections~\ref{sec:access}--\ref{sec:wittfifo} define the access model and
 prove the realization theorem.  Section~\ref{sec:observation} establishes
@@ -359,8 +367,10 @@ $|S|w$ coordinates.  Their span cannot contain $x$ unless their union covers
 the support of $x$.  Therefore $\wt(x)\le |S|w$.
 \end{proof}
 
-The theorem is the usual annihilator argument for the linear torsor of
-quadratic refinements, transported to adaptive transcripts; compare the
+Viewed on the affine torsor, the observations are adaptive linear, or parity,
+queries in the sense of parity decision trees \cite{zhangshi2010}.  The
+theorem is the usual annihilator argument for the linear torsor of quadratic
+refinements, transported to adaptive transcripts; compare also the
 linear-structures framework for Boolean functions in \cite{carlet2021}.
 
 \begin{corollary}[Attainment at every width]\label{cor:block}
@@ -414,6 +424,8 @@ $a\ge0$ and $c\in K_m$, define
  Q_{a,c}(x)=\Tr_m(c x^{1+2^a}),
  \qquad Q_a=Q_{a,1}.
 \end{equation}
+We call $Q_{a,c}$ a scaled Gold trace form, using ``Gold'' for the monomial
+shape without imposing the APN convention $\gcd(a,m)=1$.
 Its polar form is
 \begin{equation}
  B_{a,c}(x,y)=\Tr_m\bigl(c(xy^{2^a}+yx^{2^a})\bigr).
@@ -434,6 +446,10 @@ $\lambda_{a,c}^{(m)}\in K_m$ satisfying
  =\Tr_m(c e_i e_i^{2^a})
  \qquad(0\le i<m).
 \end{equation}
+Thus $\lambda_{a,c}^{(m)}$ packages the entire basis diagonal into one
+trace-linear field element.  This is structural compression specific to the
+Gold datum, not a contradiction of the full-torsor observation lower bound of
+Section~\ref{sec:observation}.
 
 \begin{theorem}[Diagonal source criterion]\label{thm:diagonal}
 For every $m,a,c$ as above,
@@ -513,12 +529,18 @@ For the unscaled Gold form,
 \]
 by trace adjointness and the fixed-field equation
 $x^{2^{2a}}=x$; this is the standard Gold rank calculation
-\cite{hellesethkumar1998}.  Thus the rank fixes the possible magnitude of
-the bias, the restriction to the radical decides whether that bias vanishes,
-and the Arf class fixes its sign.  Parameter-specific Walsh evaluations
-refine this invariant-level statement.
+\cite{coulter1999,hellesethkumar1998}.  Thus the rank fixes the possible
+magnitude of the bias, the restriction to the radical decides whether that
+bias vanishes, and the Arf class fixes its sign.  Parameter-specific Walsh
+evaluations refine this invariant-level statement.
 
 \section{The Gold--Heisenberg extension}\label{sec:heisenberg}
+
+The correspondence between binary quadratic forms, central extensions of
+elementary abelian $2$-groups, and extraspecial $2$-groups is classical: the
+square map supplies the quadratic form and commutators supply its polar form
+\cite[Sections~4--5]{quillen1971}.  Here the oriented Gold trace monomial
+gives an explicit cocycle.
 
 The same trace monomial defines a structural multiplication without a unary
 quadratic oracle.  Put
@@ -617,7 +639,8 @@ Let $q:V\to\mathbb Z/4$ satisfy
 \end{equation}
 where $b:V\times V\to\F_2$ is symmetric bilinear.  Such forms underlie the
 Brown invariant and the associated fourth-root Gauss sums
-\cite{brown1972,wood1993,schmidt2009}.
+\cite{brown1972,brumfielmorgan1973}; their algebraic classification and coding
+applications are developed in \cite{wood1993,schmidt2009}.
 
 \begin{proposition}[Canonical binary split]\label{prop:brown-split}
 There are unique maps $\ell:V\to\F_2$ and $Q:V\to\F_2$ such that
@@ -644,8 +667,9 @@ $B_Q=b+\ell\otimes\ell$.  Finally,
 \[
  i^{\ell}=\frac{1+i}{2}+\frac{1-i}{2}(-1)^\ell,
 \]
-which yields the Walsh decomposition.  This is the two-component decomposition used
-for generalized Boolean functions; compare \cite{sok2016}.
+which yields the Walsh decomposition.  This is the two-component transform
+decomposition used for generalized Boolean functions; compare
+\cite[Lemma~17]{stanicamartinsengangopadhyaysingh2013}.
 \end{proof}
 
 For an ordinary binary quadratic form $R$, let $\mathcal A_R(x)$ denote the
@@ -733,9 +757,9 @@ $R$ has characteristic $2$, or when $R=\mathbb Z/4$.
 \end{theorem}
 
 \begin{proof}
-Moews's structure theorem makes $\mathcal S$ two-divisible and gives only
-power-of-two finite orders \cite{moews2002}; halving is also described
-explicitly in \cite{johnson2011b}.  For every $k$, write
+Moews's structure theorem makes $\mathcal S$ two-divisible, constructs
+halves explicitly, and gives only power-of-two finite orders
+\cite[Theorems~8--9]{moews2002}.  For every $k$, write
 $x=2^ku$ and $y=2^kv$.  Additivity of $j$ and the defining Clifford identities
 give
 \[
