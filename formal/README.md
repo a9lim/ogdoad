@@ -88,6 +88,7 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoBadArcCycle`, `FifoFirstSeatStrategy` | one first-seat odd strategy supplies a fixed-point-free selected reply map with common-root ancestry; cycle prefixes cancel, but continuation augmentation still obstructs contraction |
 | `FifoDummyFront` | exact neutral dummy-front commuting diamond and the necessary consumed-pair selector; opening the dummy first relocates rather than removes the real-pair obligation |
 | `FifoDummyFrontAffine` | the odd-order dummy-front legal fan is even and its projected OPEN-prefix sum is the surviving real star, which no local odd response point can equal; earlier ancestry is necessary |
+| `FifoStrategyInteraction`, `FifoSelfPlay` | complementary-seat odd policies share a compatible odd terminal, whereas same-seat policies at score-and-turn-conjugate states are impossible; dummy timing supplies only the controller phase and real-front curvature leaves a one-front/edge defect, so two-copy self-play still needs an earlier sibling |
 
 Every theorem in these modules is subsidiary. None supplies either the full
 strategy-relative minimum-bad ancestry classification or the subsequent

@@ -1170,6 +1170,30 @@ even-winning and the second is odd-winning.  Hence the complete root outcome
 sheet forgets both dummy order and the branchwise ownership needed for a
 splice.
 
+The direct two-policy interaction has an equally exact boundary.  Odd
+strategies for complementary designated seats at the same state can be
+played against one another: at each nonterminal node one selects a move and
+the other contains its universal child.  The recursion ends at a terminal
+state lying in both trees, and both require score one.  Thus this diagonal is
+compatible, not contradictory.
+
+The genuinely contradictory target is instead a pair of odd strategies for
+the same designated seat at states
+\[
+  s\qquad\hbox{and}\qquad
+  \operatorname{scoreTranslate}_1(\operatorname{turnTranslate}(s)).
+\]
+Turn--score conjugacy converts the first into an even strategy at the second
+root.  Dummy timing cannot manufacture this pair.  An isolated-dummy OPEN or
+front CLOSE preserves score exactly.  At a dynamic cross exit, the companion
+histories retain a one-front queue lag, so they cannot be turn--score
+conjugate even when a charged real CLOSE supplies a unit score defect.  The
+same square carries the real-edge curvature attached to that lag.  Therefore
+two-copy self-play again requires a strictly earlier universal sibling to
+remove the queue/edge defect and align the branch-dependent continuation
+cosets; it is another derivation of the causal factor-extension obligation,
+not a proof of the conjecture.
+
 \subsection{The exact factor interface}
 
 For a node $q$ in one fixed attacker strategy, retain the affine continuation
@@ -1252,6 +1276,11 @@ but does not prove its scalar/parity block premises.  The modules
 to the raw complete-leaf sum and to pointwise queue-cut normalization.  These
 negative interfaces narrow the required ancestry construction; they do not
 settle the root conjecture.
+The modules \texttt{FifoStrategyInteraction} and \texttt{FifoSelfPlay}
+kernel-check the two-policy diagonal and the score--turn-conjugate
+contradiction target.  They also certify that neutral dummy moves lack the
+required score defect and that a one-front-offset pair cannot be conjugate;
+these are self-play boundary theorems, not an end-to-end contraction.
 Finally, \texttt{FifoPairState} proves that every score-zero mover failure
 with an OPEN available forces a lower minimum-hot singleton wall with two real
 charged endpoints.  Its minimum is global in rank, not yet a descendant in

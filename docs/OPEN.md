@@ -121,6 +121,14 @@ front quotients while respecting the chosen strategy tree.
   projected OPEN-prefix sum is the surviving real star of the second opener,
   not zero. No local odd response point can have that projection, so an
   earlier-ancestry affine point is genuinely required.
+  `FifoStrategyInteraction.lean` proves that complementary-seat odd policies
+  at the same state interact to a common odd terminal, so the direct diagonal
+  is compatible rather than contradictory. `FifoSelfPlay.lean` isolates the
+  exact contradictory target--same-seat odd subtrees at score-and-turn-
+  conjugate states--and proves that neutral dummy moves cannot supply its
+  score bit, while the dynamic cross-exit comparison retains a one-front
+  queue lag. Thus two-copy strategy stealing also stops at the earlier-sibling
+  factor extension.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.
@@ -196,6 +204,19 @@ endpoints. Even a both-even no-dummy root does not make the opposite-seat
 strategy available at a state selected by the first strategy. The three-label
 active-interval example proves this failure exactly; interval order and
 strategy ancestry are indispensable.
+
+Direct self-interaction has the same sharp boundary. Two odd policies for
+complementary designated seats at one public state can be played against each
+other to a terminal node belonging to both trees; both require odd score, so
+there is no contradiction. A contradiction would instead follow from two
+same-seat odd subtrees rooted at `s` and at the score-and-turn conjugate of
+`s`. An isolated dummy can reverse the controller phase inside its active
+interval but never changes the score. At the singleton wall it leaves a ko
+defect, and a charged real-front repair supplies a score bit only together
+with a one-front queue lag and the corresponding real-edge curvature. Hence
+two-copy self-play reproduces the causal factor gap: a strictly earlier
+universal sibling must absorb the lag/edge defect and align the two
+continuation cosets.
 
 The apparent topological shortcut is also excluded. With history occurrences
 retained, an attacker-pruned policy is a tree, so its edge-boundary map is

@@ -37,6 +37,8 @@ import Ogdoad.FifoBadArcCycle
 import Ogdoad.FifoFirstSeatStrategy
 import Ogdoad.FifoDummyFront
 import Ogdoad.FifoDummyFrontAffine
+import Ogdoad.FifoStrategyInteraction
+import Ogdoad.FifoSelfPlay
 import Ogdoad.FifoMatching
 import Ogdoad.ImpartialRealizer
 import Ogdoad.GoldSemantics
