@@ -1,9 +1,8 @@
-"""The abstract linking game: reductions, screens, and the verified strategy.
+"""The abstract FIFO linking game, its reductions, and finite screens.
 
-The general-m linking-theorem chase (2026-06-10) for the echo-fifo+dummy
-realizer (writeups/goldarf.tex SS8.3): abstract the verified sigma-valued
-FIFO+ko+pass+dummy rule away from Gold forms to arbitrary support graphs,
-and reduce the m-uniform exactness claim to one combinatorial statement.
+This module separates the sigma-valued FIFO/ko/pass/dummy rule from Gold
+forms and evaluates it on arbitrary support graphs.  Its universal theorem
+remains open; every bounded result below is executable evidence only.
 
 THE REDUCED GAME.  Board: a finite graph on "coins"; state (U, q, ko) with
 U = untouched coins, q = FIFO queue of open coins, ko = last-touched coin.
@@ -30,7 +29,7 @@ dummy), the flip count is forced even -- both seats, every graph.  Hence
 sigma is forced = |E| mod 2, which on a Gold board is Q(x): m-uniform
 exactness of the echo-fifo+dummy realizer.
 
-STATUS (2026-08-08), machine-verified by this file:
+CURRENT VERIFIED SURFACE:
   * Rigidity holds for ALL graph iso classes with k <= 8 real coins +
     dummy, both seats (k=8: 12,346 classes, supplied by nauty ``geng``) --
     far beyond the Gold-arising boards of the m=8 sweep.
@@ -54,23 +53,15 @@ STATUS (2026-08-08), machine-verified by this file:
     even-front closes) plus debt_D3 is strictly complete on all 12,346 k=8
     classes, both seats.  Menu semantics remain EXISTENTIAL: a winning move
     is always present, not every admitted move wins.
-  * General-n proof: OPEN.  A second pass exposed two additional exact
-    reductions.  Queue-empty turns always belong to the initial mover: a
+  * General-n proof: OPEN.  Queue-empty turns always belong to the initial mover: a
     maximal nonempty-queue block on b coins consumes exactly 2b moves.
     Also, if L is the still-unclosed vertex set when x opens, total flip
     parity equals sum_x deg_L(x): for P = e(queue, U), closes change P by
     the flip bit and opens change it by deg_L(x).  This degree-pairing form
-    is the current proof route.  An earlier architecture (Codex spar, thread
-    019eb4ff-695b-7762-97e8-c0bea66c4e7e) segments the queue at firewall
-    coins (deg_U == 0; the opened dummy is permanent, the untouched dummy
-    virtual), mutual induction E (no debt) / O (one debt) per segment;
-    certificates bounded by game-tree depth.  The hard obligation is the
-    poison transition E -> O (recursive repair-potential), which is also
-    exactly where parity-local invariants provably fail (the safe/unsafe
-    label is NOT a function of 13 natural parity features; minimal
-    distinguishing pairs differ in E(U) repair structure).  The two k=8
-    menu witnesses now show that any such induction must admit proactive
-    debt before the parity-local trap appears.
+    is the current proof route.  Parity-local invariants fail because the
+    safe/unsafe label is not determined by the natural local parity features;
+    any viable induction must retain the repair structure and permit
+    proactive debt.
   * The proof-frontier note ``writeups/linking_affine.tex`` now replaces that
     local induction by the exact affine target 0 in Aff{D(h)}.  Front deletion
     is a two-graph/Seidel quotient, but its cut and continuation moments remain
@@ -140,8 +131,8 @@ STATUS (2026-08-08), machine-verified by this file:
     a zero CLOSE as its unique response to an attacker OPEN.  ``validate``
     checks all three with the shared operational checkpoint solver.
 
-The old description of the empty-queue domination device as the unique
-local obstruction was too strong.  A nonempty queue can squeeze too: on
+The empty-queue domination device is not the unique local obstruction.  A
+nonempty queue can squeeze too: on
 the path z-f-y-h, queue (f,h), U={y,z}, and an even front f, either open
 makes f odd while closing f exposes the odd front h.  The dummy defeats
 this squeeze while untouched, but a proof must track the queued case.

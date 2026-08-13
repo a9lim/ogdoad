@@ -17,8 +17,7 @@
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
-\title{The Isolated-Dummy FIFO Linking Conjecture:\\
-Affine Response and the Causal Frontier}
+\title{Affine Response in the Isolated-Dummy FIFO Parity Game}
 \author{a9lim}
 \date{}
 
@@ -26,328 +25,288 @@ Affine Response and the Causal Frontier}
 \maketitle
 
 \begin{abstract}
-Let a finite simple graph be played by opening its vertices into a FIFO queue
-and later closing the queue front.  Closing a vertex toggles a binary score
-exactly when it has odd degree into the untouched set.  The isolated-dummy
-FIFO linking conjecture asserts that adjoining one isolated vertex lets either
-designated player force terminal score zero.  The conjecture remains open.
+Let a finite simple graph be played by opening each vertex into a queue and
+later closing the queue front.  Closing a vertex toggles a binary score by
+its degree into the untouched set.  We study the conjecture that adjoining
+one isolated dummy vertex lets either designated player force terminal score
+zero.  The statement remains open.
 
-We give a graph-free formulation of the problem.  Every complete history has
-a disjointness vector in the binary edge space on the real vertices.  For a
-fixed odd-seeking strategy, the zero-seeking responses are successful for
-every graph if and only if zero belongs to the affine hull of their terminal
-disjointness vectors.  Equivalently, the responses must support an odd formal
-flow of zero edge moment.  At the score-erased public-policy level this
-affine assertion is exactly equivalent to the original linking conjecture:
-an omitted zero has a linear separator, and every separator is represented by
-a simple graph with the distinguished dummy isolated.  FIFO front deletion
-yields a canonical cut-space filtration, but prefix cuts and descendant
-continuation spaces remain correlated.
+The legal schedule is graph-independent.  We associate to every complete
+schedule a vector in the binary edge space whose pairing with the adjacency
+vector is the terminal score.  For a fixed opposing strategy, universal
+success is therefore equivalent to zero lying in the affine hull of the
+compatible terminal vectors.  A score-erased public-policy formulation is
+proved equivalent to the original graph problem by finite-field separation.
+FIFO order further gives a triangular cut-space filtration and exact affine
+recursions for complete reply fans.
 
-The paper records the proved part of this reduction: live-star and complete
-reply-fan identities, parity-cell and matching subclasses, complete exclusion
-of close-first counterstrategies, fixed-front contraction, and a
-strategy-relative minimal-bad theorem reducing every hypothetical
-counterstrategy to charged-CLOSE-spike or protected-singleton ancestry.  A
-rank-minimal public separator has a complete zero-sheet fan but leaves one
-unit of separator debt in the old FIFO queue.  Canonical full-state
-positionalization, state-DAG cycles, the last charged close, and
-score-coupled controlled-state descent sharpen this normal form without yet
-discharging that queued debt.
-Explicit
-families show that childwise contraction and uniformly bounded affine
-certificates are false.  The remaining assertion is a causal factor-extension
-theorem coupling earlier defender siblings to descendant continuation cosets.
-We prove that three tempting globalizations cannot supply that theorem:
-the pruned history tree has no nonzero one-cycles, commuting OPEN/CLOSE
-squares carry a genuine unit-edge curvature, and erasing the dummy is not a
-map between fixed strategy trees because the required ko-wall exchange
-reverses the controller.  A nine-real-vertex root fan in which eight of the
-nine replies lose shows how sharply the surviving same-parity selector is
-being used.
-An exhaustive census through eight real vertices plus the isolated dummy,
-and bounded nonexhaustive tests at the next two total orders, are consistent
-with the conjecture for both designated seats, but are not a universal proof.
+We prove or record the strongest current reductions: matching-plus-isolates
+boards are solved for either seat; close-first counterstrategies are
+excluded; every separated public policy has a rank-minimal selected open
+whose complete reply fan is unseparated but leaves a unit of parity debt in
+the old queue; and strategy-relative minimization reduces a counterstrategy
+to two ancestry patterns, a charged-close spike or a protected singleton.
+The unresolved step is a causal factor extension: prefix cancellations must
+be lifted through branch-dependent continuation cosets using strictly earlier
+defender siblings.  Exact countermodels show why positionality, local fan
+identities, unlabelled state-graph cycles, and unrestricted pair descent do
+not provide that extension.  Lean checks the game semantics and the stated
+subsidiary reductions, but neither assumes nor proves the conjecture.  Exact
+minimax through eight real vertices is consistent with it and has no
+universal force.
 \end{abstract}
 
 \section{Introduction}
 
-Queue layouts place graph edges under a nonnesting FIFO discipline
-\cite{heathrosenberg1992}.  The game studied here instead puts the
-\emph{vertices} in a FIFO queue and lets play construct their activity
-intervals.  Those intervals are proper---none properly contains another---in
-the standard interval-graph sense \cite{klavik2016}, but their endpoints are
-chosen adversarially.  This distinction is decisive: the payoff depends on
-which graph edges join disjoint activity intervals, while the legal schedule
-does not depend on the graph.
+Queue layouts constrain graph edges by a FIFO discipline
+\cite{heathrosenberg1992}.  The game considered here instead places the
+vertices themselves in a FIFO queue.  Play determines a family of proper
+activity intervals in the sense of interval graph theory
+\cite{klavik2016}; graph edges only evaluate the resulting schedule.
 
-Let $R$ be a finite set of real vertices, let $G$ be a simple graph on $R$,
-and adjoin an isolated vertex $d$.  Two players alternate legal moves.  One
-designated player, called the \emph{defender}, seeks terminal score $0$ in
-$\mathbb F_2$; the other, called the \emph{attacker}, seeks score $1$.  Either
-physical seat may be designated defender.  The central statement is the
-following.
+Let $R$ be a finite set of \emph{real} vertices, let $G$ be a simple graph
+on $R$, and adjoin an isolated vertex $d$.  Two players alternate moves.  A
+designated \emph{defender} seeks terminal score $0\in\mathbb F_2$, while the
+other player seeks score $1$.  Either physical seat may be designated the
+defender.
 
-\begin{conjecture}[FIFO linking]\label{conj:fifo}
-For every finite simple graph $G$ and isolated dummy $d$, the defender has a
-strategy forcing terminal score zero, whichever seat is designated defender.
+\begin{conjecture}[isolated-dummy FIFO linking]\label{conj:fifo}
+For every finite simple graph $G$ and isolated dummy $d$, the defender can
+force terminal score zero from the initial state, whichever physical seat is
+designated defender.
 \end{conjecture}
 
-The conjecture is a strict combinatorial strengthening of the application
-that motivated it.  In the Gold--Arf normal-play construction, a public Witt
-frame reduces the support graph to a matching plus isolates.  That subclass
-is proved independently and does not require Conjecture~\ref{conj:fifo}.
-Nothing below upgrades the matching theorem to arbitrary graphs.
+This conjecture is stronger than the theorem needed for the Gold--Arf game
+construction.  That application first chooses a public Witt frame, reducing
+the support graph to a matching plus isolated vertices.  The matching case is
+proved independently; no application elsewhere in Ogdoad depends on
+Conjecture~\ref{conj:fifo}.
 
-The purpose of this paper is to state the current theorem frontier.
-Sections~\ref{sec:game}--
-\ref{sec:cut} develop the exact affine formulation.  Section~\ref{sec:proved}
-collects the strongest proved regimes used by the reduction.  Section
-\ref{sec:frontier} gives the candidate minimal obstruction and the remaining
-causal obligations.
-Section~\ref{sec:evidence} separates formal proof from finite computation.
+The purpose of this article is twofold.  First, it gives a self-contained
+affine formulation of the game and the FIFO contraction calculus.  Second,
+it states the precise remaining theorem after the strongest known local and
+strategy-relative reductions.  Proof, formal verification, exact finite
+evidence, and open assertions are kept separate throughout.
 
-\section{The FIFO parity game}\label{sec:game}
+\section{The game and its universal edge moment}\label{sec:game}
 
 Put $V=R\sqcup\{d\}$ and extend $G$ by declaring $d$ isolated.  A state is
 \[
-  (U,Q,k,t,g),
+  s=(U,Q,k,t,g),
 \]
-where $U\subseteq V$ is the untouched set, $Q$ is an ordered list of distinct
-open vertices, $k\in\{0,1\}$ is the ko bit, $t$ is the player to move, and
-$g\in\mathbb F_2$ is the accumulated score.  Reachable states satisfy
-$U\cap Q=\varnothing$.
+where $U\subseteq V$ is the untouched set, $Q$ is a list of distinct open
+vertices, $k\in\{0,1\}$ is a ko bit, $t$ is the player to move, and
+$g\in\mathbb F_2$ is the score.  Reachable states have $U\cap Q=\varnothing$.
 
-\begin{definition}[moves]
+\begin{definition}[moves]\label{def:moves}
 The legal transitions are as follows.
 \begin{enumerate}
-\item $\operatorname{OPEN}(x)$, for $x\in U$, removes $x$ from $U$, appends
-      it to $Q$, and sets $k=1$ exactly when the old queue was empty.
-\item $\operatorname{CLOSE}$ is legal when $Q=(f,Q_0)$ and $k=0$.  It removes
-      $f$ and changes the score by
+\item $\operatorname{OPEN}(x)$, for $x\in U$, removes $x$ from $U$ and
+      appends it to $Q$.  It sets $k=1$ exactly when the old queue was empty.
+\item $\operatorname{CLOSE}$, when $Q=(f,Q_0)$ and $k=0$, removes $f$ and
+      changes the score by
       \[
-        \chi_G(f,U)=\deg_G(f,U)\pmod 2.
+        \chi_G(f,U)=\deg_G(f,U)\pmod2.
       \]
-\item If neither an open nor a close is legal, a forced pass clears $k$ and
-      changes nothing else.
+\item If neither an open nor a close is legal, a forced pass clears $k$.
 \end{enumerate}
 Every transition changes the player to move.  The initial state is
 $(V,(),0,t_0,0)$, and a state is terminal when $U=\varnothing$ and $Q=()$.
 \end{definition}
 
-On a reachable state, ko is set only on a singleton queue created by opening
-onto an empty queue.  Consequently a forced pass occurs only after
-$U=\varnothing$; no subsequent close can score.  The rank
-\[
-  4|U|+2|Q|+k
-\]
-strictly decreases on every open, close, and forced pass.  Thus the game tree
-is finite and ordinary backward induction gives determinacy for either
-designated target.
+The rank $4|U|+2|Q|+k$ strictly decreases at every transition.  The game is
+therefore finite and determined by backward induction.  On a reachable
+nonterminal state, ko is set only on a singleton queue created by opening
+onto an empty queue.  A forced pass can occur only after $U$ is empty, so no
+later close can change the score.
 
-For a complete history $h$, write $o_x$ and $c_x$ for the times at which $x$
-opens and closes, and put $I_x=[o_x,c_x]$.  FIFO makes the opening and closing
-orders identical.  Hence the intervals $I_x$ are pairwise nonnesting.
-
-Let
+For a complete history $h$, let $o_x$ and $c_x$ be the opening and closing
+times of $x$, and put $I_x=[o_x,c_x]$.  FIFO order makes the opening and
+closing orders identical, hence the intervals are pairwise nonnesting.  Let
 \[
-  \mathcal E_R=\mathbb F_2^{\binom{R}{2}}
+  \mathcal E_R=\mathbb F_2^{\binom R2}
 \]
-be the binary vector space with one coordinate $xy$ for each unordered real
-pair.  Define the \emph{disjointness vector}
+be the binary edge space with basis $xy$ for unordered pairs
+$\{x,y\}\subseteq R$, and define
 \[
   D(h)=\sum_{\{x,y\}\subseteq R}
-       [I_x\cap I_y=\varnothing]\,xy\in\mathcal E_R.
+       [I_x\cap I_y=\varnothing],xy.
 \]
-If $A_G\in\mathcal E_R$ is the adjacency vector of $G$, use the standard
-coordinate pairing $\langle-,-\rangle$.
+Write $A_G\in\mathcal E_R$ for the adjacency vector of $G$.
 
 \begin{proposition}[interval accounting]\label{prop:interval}
-For every complete history,
+For every complete history $h$,
 \[
   g(h)=\langle A_G,D(h)\rangle.
 \]
 \end{proposition}
 
 \begin{proof}
-Fix an edge $xy$ and suppose $x$ opens before $y$.  The edge contributes to a
-close charge exactly when $x$ closes while $y$ is untouched.  By FIFO this is
-equivalent to $c_x<o_y$, hence to $I_x\cap I_y=\varnothing$.  Summing over
-the edges of $G$ proves the identity.
+Fix an edge $xy$ and suppose that $x$ opens before $y$.  This edge
+contributes to a close charge precisely when $x$ closes while $y$ remains
+untouched.  By FIFO order this is equivalent to $c_x<o_y$, hence to
+$I_x\cap I_y=\varnothing$.  Summing over the edges proves the formula.
 \end{proof}
 
-The graph affects only the final linear functional.  Move legality and the
-vector $D(h)$ depend solely on the schedule.
+Thus the graph does not affect legal play; it is a linear functional applied
+to a universal schedule invariant.
 
-\section{Affine response}\label{sec:affine}
+\section{Affine duality}\label{sec:affine}
 
 Fix an attacker seat and a deterministic attacker strategy $S$ in the
-schedule tree.  The strategy may depend on the complete history.  Let
-$\mathcal H_S$ be the set of terminal histories compatible with $S$ and with
-arbitrary defender choices.
+graph-independent schedule tree.  The strategy may depend on the complete
+history.  Let $\mathcal H_S$ be the terminal histories compatible with $S$
+and arbitrary defender choices.
 
 \begin{theorem}[affine separation]\label{thm:affine}
 The strategy $S$ forces score one for some graph on $R$ if and only if
 \[
   0\notin\operatorname{Aff}_{\mathbb F_2}
-     \{D(h):h\in\mathcal H_S\}.
+       \{D(h):h\in\mathcal H_S\}.
 \]
-Consequently, Conjecture~\ref{conj:fifo} is equivalent, for both attacker
-seats, to
+Consequently, Conjecture~\ref{conj:fifo} is equivalent, for both choices of
+attacker seat, to
 \[
   0\in\operatorname{Aff}_{\mathbb F_2}
-     \{D(h):h\in\mathcal H_S\}
+       \{D(h):h\in\mathcal H_S\}
   \qquad\text{for every deterministic }S.
 \]
 \end{theorem}
 
 \begin{proof}
-If $S$ forces score one on $G$, Proposition~\ref{prop:interval} places every
+If $S$ forces score one on $G$, Proposition~\ref{prop:interval} puts every
 $D(h)$ in the affine hyperplane $\langle A_G,z\rangle=1$, which excludes
 zero.  Conversely, write the affine hull as $a+W$.  If it excludes zero,
-then $a\notin W$, so linear separation over $\mathbb F_2$ gives a functional
-$\ell$ with $\ell(W)=0$ and $\ell(a)=1$.  Every functional on
-$\mathcal E_R$ is pairing with the adjacency vector of a simple graph on
-$R$.  For that graph, $S$ forces score one.
+then $a\notin W$, so finite-dimensional separation over $\mathbb F_2$
+gives a linear functional $\ell$ satisfying $\ell(W)=0$ and $\ell(a)=1$.
+Every functional on $\mathcal E_R$ is pairing with the adjacency vector of
+a simple graph on $R$.  The strategy $S$ forces score one on that graph.
 \end{proof}
 
-Over $\mathbb F_2$, membership in the affine hull has an especially concrete
-form.
-
-\begin{corollary}[odd response flow]\label{cor:odd-flow}
-The affine condition in Theorem~\ref{thm:affine} holds for $S$ if and only if
-there is an odd-cardinality formal family of compatible terminal histories
-whose disjointness vectors sum to zero.
+\begin{corollary}[odd response flow]\label{cor:flow}
+The affine condition holds for $S$ if and only if there is an odd formal
+sum of compatible terminal histories whose disjointness vectors sum to zero.
 \end{corollary}
 
-At attacker nodes all incoming flow follows the move selected by $S$; at
-defender nodes it may split among an odd number of children.  This is an
-algebraic response flow, not a randomized strategy.
+\begin{proof}
+An affine combination over $\mathbb F_2$ is exactly a linear combination
+whose coefficient sum is one.
+\end{proof}
 
-The same statement is exact before a graph is chosen.  A score-erased
-public policy has a projected affine response space in the quotient by
-dummy-incident edge coordinates.  These response sets are genuine affine
-subspaces.  If one omits zero, finite-dimensional separation produces a
-linear functional; evaluating edge coordinates by that functional produces
-a simple graph in which the distinguished dummy is isolated, and the same
-public policy lifts to an odd strategy.  Conversely, an odd strategy on such
-a graph forgets its score coordinate to give a separated public policy.
-Thus the universal public-policy affine assertion is equivalent to
-Conjecture~\ref{conj:fifo}, rather than merely a necessary condition.  This
-duality is kernel-checked as
-\texttt{universalPublicPolicyAffine\_iff\_fifoLinking}.
+At attacker nodes such a flow follows the child selected by $S$; at defender
+nodes it may split among an odd number of children.  It is an algebraic
+certificate, not a randomized strategy.
 
-If affine contraction fails, Theorem~\ref{thm:affine} supplies a separating
-graph.  On the finite public-state graph for that fixed scalar game, backward
-induction lets the attacker choose one winning child at each attacker node.
-Thus a counterexample may be taken positional in the full state
-$(U,Q,k,t,g)$.  The score coordinate cannot be dropped: two schedule paths
-may reconverge publicly on opposite score sheets.
+There is also an exact score-erased formulation.  A \emph{public policy}
+remembers the schedule state and the attacker's selected moves but forgets
+the graph and score.  Its leaf vectors are projected away from coordinates
+incident to $d$.
 
-\subsection{Universal move vectors}
+\begin{theorem}[public-policy duality]\label{thm:public-duality}
+The following statements are equivalent.
+\begin{enumerate}
+\item Conjecture~\ref{conj:fifo} holds.
+\item For either attacker seat, the projected affine response space of every
+      initial public policy contains zero.
+\end{enumerate}
+\end{theorem}
 
-For a live real set $L$ and $x\in L$, define its complete-graph star
+\begin{proof}
+An odd strategy for an isolated-dummy graph forgets its score coordinate to
+give a public policy separated by that graph's adjacency functional.
+Conversely, if the projected affine response space of a public policy omits
+zero, separation supplies a functional on the real edge space.  Regard its
+coordinates as the adjacency vector of a simple graph and declare $d$
+isolated.  The policy lifts, by backward recursion, to an odd strategy for
+that graph.  The two constructions are inverse at the level of existence.
+\end{proof}
+
+Theorem~\ref{thm:public-duality} is useful because it shows that the affine
+problem is not merely a relaxation of the game.  Proving projected affine
+zero for public policies is exactly the original theorem.
+
+\section{The FIFO contraction calculus}\label{sec:calculus}
+
+\subsection{Live stars and complete reply fans}
+
+For a live real set $L$ and $x\in L$, put
 \[
   s_L(x)=\sum_{y\in L\setminus\{x\}}xy\in\mathcal E_R.
 \]
-The dummy star is zero.  Give an open of $x$ the vector $s_L(x)$, measured
-just before the open, and give closes and passes vector zero.
+The dummy star is zero.  Assign $s_L(x)$ to an open of $x$, measured just
+before the open, and assign zero to closes and passes.
 
-\begin{proposition}[live-star identity]\label{prop:live-star}
+\begin{proposition}[live-star identity]\label{prop:star}
 For every complete history,
 \[
   D(h)=\sum_{x\text{ opened}}s_{L_x}(x),
 \]
-where $L_x$ is the real live set when $x$ opens.
+where $L_x$ is the real live set immediately before $x$ opens.
 \end{proposition}
 
 \begin{proof}
-Suppose $x$ opens before $y$.  The coordinate $xy$ appears once when $x$
-opens.  It appears a second time when $y$ opens exactly if $x$ is still live,
-that is, exactly if the intervals overlap.  The two copies then cancel.  If
-the intervals are disjoint there is no second copy, so the displayed sum has
-the coordinate prescribed by $D(h)$.
+Suppose $x$ opens before $y$.  The coordinate $xy$ appears when $x$ opens
+and appears again when $y$ opens exactly if $x$ remains live.  The two copies
+then cancel.  It appears once precisely when the activity intervals are
+disjoint.
 \end{proof}
 
-There is a dual close-based description.  A close of front $f$ while the real
-untouched set is $U$ contributes the cut star
+For a queue $Q$ and untouched set $U$, write
 \[
-  c(f,U)=\sum_{u\in U}fu.
+  P_G(Q,U)=e_G(Q,U)\pmod2
 \]
-The sum of these close vectors is also $D(h)$.  Evaluating either description
-on $A_G$ gives Proposition~\ref{prop:interval}.
+for the scalar queue cut.  Closing the front changes both $P_G$ and the score
+by the same bit.  Let $P_x$ be the queue cut after opening $x\in U$, and
+$P_{xy}$ the cut after subsequently opening $y\ne x$.
 
-\subsection{The complete reply fan}
-
-For a state with untouched set $U$ and queue $Q$, define the scalar queue cut
-\[
-  P_G(Q,U)=e_G(Q,U)\pmod2.
-\]
-Closing the front changes both $P_G$ and the accumulated score by the same
-bit.  Opening a vertex $x$ changes $P_G$ by the degree of $x$ in the current
-live graph.
-
-Fix $x\in U$.  Let $P_x$ be the queue cut after $\operatorname{OPEN}(x)$,
-and let $P_{xy}$ be the cut after the two successive opens $x,y$.
-
-\begin{proposition}[complete pair-response identity]
-\label{prop:pair-response}
+\begin{proposition}[complete reply-fan identity]\label{prop:fan}
 For every well-formed state,
 \[
   \sum_{y\in U\setminus\{x\}}P_{xy}=|U|P_x
-  \quad\text{in }\mathbb F_2.
+  \qquad\text{in }\mathbb F_2.
 \]
-If $|U|$ is even, the $|U|-1$ second-open replies are an odd family with
-zero aggregate cut.  If $|U|$ is odd and the old queue is nonempty, adjoining
-the now-legal front close, translated back by its score charge, again gives
-an odd family with zero aggregate cut.
+If $|U|$ is even, the second-open replies form an odd family with zero
+aggregate cut.  If $|U|$ is odd and the old queue is nonempty, adjoining the
+legal front close, translated by its score charge, again gives an odd family
+with zero aggregate cut.
 \end{proposition}
 
 \begin{proof}
-Opening does not change the live set.  If $\deg_L$ denotes live degree, then
+If $\deg_L$ is degree in the live graph, then
 \[
   P_{xy}=P_G(Q,U)+\deg_L(x)+\deg_L(y).
 \]
-Handshaking on the live graph gives
-\[
-  \sum_{u\in U}\deg_L(u)=P_G(Q,U).
-\]
-Summing the first identity over $y\ne x$ and eliminating the full degree sum
-gives the displayed identity.  For odd $|U|$, the open family has even
-cardinality and sum $P_x$; the translated close representative contributes
-the same $P_x$.
+Handshaking gives $\sum_{u\in U}\deg_L(u)=P_G(Q,U)$.  Summing the first
+identity over $y\ne x$ gives the formula.  The parity consequences follow by
+counting the replies; in the odd case the translated close contributes the
+missing copy of $P_x$.
 \end{proof}
 
-The sole nonterminal local exception is an odd untouched set with an empty
-queue: the first open sets ko and there is no close representative.  At the
-isolated-dummy root this is precisely the protected universal fan.  More
-importantly, Proposition~\ref{prop:pair-response} concerns prefix cuts.
-Below each reply the fixed attacker strategy supplies a generally different
-continuation coset.  Transporting the prefix cancellation through those
-cosets is the unresolved issue.
+The only nonterminal local exception is an odd untouched set with empty
+queue: the first open sets ko and there is no close reply.  More importantly,
+Proposition~\ref{prop:fan} cancels only prefix cuts.  Below its children the
+attacker chooses different continuation cosets.
 
 \subsection{Continuation cosets}
 
-At a node $q$ of one fixed attacker strategy, let $\Lambda_q$ be its
-compatible terminal leaves.  For $\epsilon\in\mathbb F_2$, define
+At a node $q$ of a fixed attacker strategy, let $\Lambda_q$ be the compatible
+terminal leaves.  For $\epsilon\in\mathbb F_2$, define
 \[
   \mathcal C_q^\epsilon=
   \left\{\sum_{\lambda\in\Lambda_q}e_\lambda D_q(\lambda):
-  \sum_\lambda e_\lambda=\epsilon\right\},
+          \sum_\lambda e_\lambda=\epsilon\right\}.
 \]
-where $D_q(\lambda)$ is the future edge moment from $q$ to $\lambda$.
-Then $W_q=\mathcal C_q^0$ is a linear space and
+Then $W_q=\mathcal C_q^0$ is a vector space and
 $A_q=\mathcal C_q^1$ is a nonempty affine $W_q$-coset.
 
-\begin{proposition}[parity convolution]\label{prop:convolution}
-Suppose a defender node $q$ has children $q_m$ and move vectors $c_m$.  Choose
-$a_m\in A_{q_m}$ and fix one child $m_0$.  Then
+\begin{proposition}[affine Bellman recursion]\label{prop:convolution}
+Suppose a defender node $q$ has children $q_m$ with move vectors $c_m$.
+Choose $a_m\in A_{q_m}$ and one child $m_0$.  Then
 \[
 \begin{aligned}
-  W_q&=\sum_m W_{q_m}+
-       \operatorname{span}\{(c_m+a_m)+(c_{m_0}+a_{m_0}):m\ne m_0\},
-       \\
-  A_q&=c_{m_0}+a_{m_0}+W_q.
+W_q&=\sum_mW_{q_m}+
+ \operatorname{span}\{(c_m+a_m)+(c_{m_0}+a_{m_0}):m\ne m_0\},\\
+A_q&=c_{m_0}+a_{m_0}+W_q.
 \end{aligned}
 \]
 At an attacker node with selected child $q'$ and move vector $c$,
@@ -355,35 +314,31 @@ $W_q=W_{q'}$ and $A_q=c+A_{q'}$.
 \end{proposition}
 
 \begin{proof}
-A formal leaf family splits uniquely among the disjoint child leaf sets.
-Its augmentation and moment are the sums of the child augmentations and
-translated child moments.  Every odd child-parity profile is obtained from
-the profile supported on $m_0$ by toggling pairs of child parities.  Internal
-even corrections give $\sum_mW_{q_m}$; toggling $m_0$ together with $m$ gives
-the displayed generators.  This proves both formulas.
+A leaf family splits uniquely among the child leaf sets.  Internal even
+families give $\sum_mW_{q_m}$.  Relative to the odd profile supported at
+$m_0$, every other odd child-parity profile is obtained by toggling $m_0$
+with another child.  These toggles give the displayed generators.  The
+attacker formula is immediate because only one child remains.
 \end{proof}
 
-Let $\mathcal F$ be an antichain meeting every terminal branch below a root
-exactly once.  Write $\Gamma_q$ for the prefix moment from the root to
-$q\in\mathcal F$.  Iterating Proposition~\ref{prop:convolution} gives
+If an antichain $\mathcal F$ meets every terminal branch below a root once,
+and $\Gamma_q$ is the root-to-$q$ prefix moment, iteration gives
 \[
   A_{\mathrm{root}}=
   \operatorname{Aff}\{\Gamma_q+a_q:q\in\mathcal F\}
   +\sum_{q\in\mathcal F}W_q.
 \]
-This frontier decomposition is the exact place where prefix
-cuts and continuation directions meet.
+This is the exact interface between local prefix cancellation and correlated
+future play.
 
-\section{The FIFO cut filtration}\label{sec:cut}
+\subsection{Front deletion}
 
-Let $L\subseteq R$ be the current live real set and let $f\in L$ be the FIFO
-front.  Write
+For a current live set $L$ and real queue front $f\in L$, put
 \[
-  \operatorname{Cut}(L)=
-  \operatorname{span}\{s_L(x):x\in L\}\subseteq\mathcal E_L.
+  \operatorname{Cut}(L)=\operatorname{span}\{s_L(x):x\in L\}.
 \]
 
-\begin{theorem}[front splitting]\label{thm:front-splitting}
+\begin{theorem}[front splitting]\label{thm:front}
 There is a canonical direct sum
 \[
   \mathcal E_L=\operatorname{Cut}(L)\oplus
@@ -391,1193 +346,354 @@ There is a canonical direct sum
 \]
 The projection to the second summand is
 \[
-  (T_fz)_{ij}=z_{ij}+z_{fi}+z_{fj},\qquad i,j\ne f.
+  (T_fz)_{ij}=z_{ij}+z_{fi}+z_{fj},
+  \qquad i,j\ne f.
 \]
-It kills every live star and is the identity on vectors supported away from
-$f$.
+It kills every live star and fixes vectors supported away from $f$.
 \end{theorem}
 
 \begin{proof}
-The formula for $T_f$ kills $s_L(f)$ because its two incident terms cancel.
-For $x\ne f$, the $ij$ and $fi$ coordinates of $s_L(x)$ cancel.  It plainly
-fixes $\mathcal E_{L\setminus\{f\}}$.  The only relation among the live
-stars is $\sum_{x\in L}s_L(x)=0$: in any relation, the coordinate $ij$ says
-that the coefficients of $s_L(i)$ and $s_L(j)$ agree.  Hence
-$\dim\operatorname{Cut}(L)=|L|-1$, and finally
-\[
-  \dim\operatorname{Cut}(L)+
-  \dim\mathcal E_{L\setminus\{f\}}
-  =(|L|-1)+\binom{|L|-1}{2}=\binom{|L|}{2}.
-\]
+The formula kills $s_L(f)$ and, for $x\ne f$, cancels the $ij$ and $fi$
+coordinates of $s_L(x)$.  It plainly fixes
+$\mathcal E_{L\setminus\{f\}}$.  The only relation among the live stars is
+$\sum_{x\in L}s_L(x)=0$, so
+$\dim\operatorname{Cut}(L)=|L|-1$.  The dimensions add to
+$\binom{|L|}{2}$, proving the direct sum.
 \end{proof}
 
-If $z$ is regarded as a simplicial $1$-cochain on the full simplex, then
-\[
-  (\delta z)_{fij}=z_{fi}+z_{fj}+z_{ij}=(T_fz)_{ij}.
-\]
-Thus $T_f$ is the chart at $f$ of the associated two-graph; this is the
-standard switching/coboundary correspondence \cite{mallows1975}.  Successive
-front charts satisfy the absorption identity $T_gT_f=T_g$ after both fronts
-are deleted.
+The operator $T_f$ is the $f$-chart of the usual switching/coboundary
+correspondence for two-graphs \cite{mallows1975}.  While $f$ remains at the
+front, every open contributes a cut vector; after $f$ closes, all later
+contributions lie in the smaller edge space.  FIFO order therefore gives a
+triangular filtration.  It does not let one choose continuation
+representatives independently of the prefixes: doing so would replace the
+correlated affine set in the preceding frontier formula by a larger Cartesian product.
 
-While $f$ stays at the queue front, every open contributes a current live
-star and therefore lies in the first summand of
-the displayed direct sum.  After $f$ closes, every later contribution lies
-in the smaller edge space.  FIFO therefore gives a triangular filtration by
-successive front deletions.  The dummy is exceptional: its star is zero, but
-closing it does not reduce the real edge space.
+\section{Proved regimes}\label{sec:proved}
 
-The filtration does not by itself prove contraction.  A prefix cut can
-cancel only together with a continuation representative from the same
-strategy branch.  Projecting first and choosing continuations later silently
-replaces the correlated set in the frontier decomposition by a larger
-Cartesian product.  Explicit examples in Section~\ref{sec:frontier} show that
-this replacement is false.
+\subsection{Paired boards}
 
-The correlation has an exact local form.  Fix a real front $f$.  For a
-terminal continuation $\lambda$, let $p_f(\lambda)$ be the indicator of the
-real vertices still untouched when $f$ closes, and let $W_f(\lambda)$ be the
-part of its relative disjointness vector supported away from $f$.  If
-$\delta p$ denotes the cut with coordinates $(\delta p)_{ij}=p_i+p_j$, then
-\[
-  D_f(\lambda)=\sum_i p_f(\lambda)_i\,fi+W_f(\lambda),
-  \qquad
-  T_fD_f(\lambda)=W_f(\lambda)+\delta p_f(\lambda).
-\]
-By the direct sum in Theorem~\ref{thm:front-splitting}, every formal leaf
-family $c$ satisfies
-\[
-  D_f(c)=0
-  \quad\Longleftrightarrow\quad
-  p_f(c)=0\ \text{ and }\ W_f(c)=0.
-\]
-Thus front projection replaces one edge moment by a joint cut/continuation
-moment; it does not decouple the two coordinates.
-
-One half of this joint target contracts at the initial front.
-
-\begin{proposition}[initial cut contraction]\label{prop:initial-cut}
-Suppose the attacker opens a real initial front $f$, leaving the isolated
-dummy untouched.  For every fixed attacker strategy up to the close of $f$,
-zero lies in the affine hull of the compatible vectors $p_f(\lambda)$.
-\end{proposition}
-
-\begin{proof}
-If not, a linear functional with vertex weights $a_i$ would take value one
-on every compatible remainder.  Give the dummy weight zero, and let $s$ be
-the total weight of the vertices still available to open.  On the
-ko-protected first response, the defender opens the dummy when $s=0$ and a
-weight-one real vertex when $s=1$; either choice leaves total available
-weight zero.  Thereafter, whenever the defender moves before $f$ closes, it
-closes $f$ if $s=0$ and otherwise opens a weight-one vertex.  If the attacker
-opens a weight-one vertex from total zero, a second such vertex remains
-because their number was positive and even.  Hence $s=0$ whenever the
-attacker closes $f$, contradicting the separating functional.
-\end{proof}
-
-\section{Proved regimes and reductions}\label{sec:proved}
-
-\subsection{Parity cells and matchings}
-
-\begin{theorem}[parity-cell pairing]\label{thm:parity-cell}
-Suppose $V$ has a perfect partition $\mathcal M$ into two-element cells such
-that
+\begin{theorem}[parity-cell pairing]\label{thm:cells}
+Suppose $V$ has a partition $\mathcal M$ into two-element cells satisfying
 \[
   e_G(A,B)=0\pmod2
-  \qquad(A,B\in\mathcal M,\ A\ne B).
+  \qquad(A,B\in\mathcal M, A\ne B).
 \]
-Then the second player forces terminal score zero.
+Then the second player can force terminal score zero.
 \end{theorem}
 
 \begin{proof}
-When the first player opens one member of a cell, the second opens its mate.
-When the first closes the front member of a cell, its mate is the next front
-and the second closes it.  Hence the untouched set is always a union of
-cells and the queue is a concatenation of cells.  Ko causes no exception,
-because the response to an open onto the empty queue is the mate open.
-
-If $A=\{a,a'\}$ closes while the untouched set is a union of cells, its two
-charges sum to
+After the first player opens one member of a cell, open its mate; after the
+first player closes the front member of a cell, close the next front.  The
+untouched set remains a union of cells and the queue a concatenation of
+cells.  Ko causes no exception because an open onto an empty queue is
+answered by the mate open.  If $A=\{a,a'\}$ closes while the untouched set
+is a union of cells, its total charge is
 \[
   \deg_U(a)+\deg_U(a')=
   \sum_{B\subseteq U}e_G(A,B)=0.
 \]
-Every close belongs to one such pair.
+Every close occurs in one such pair.
 \end{proof}
 
-This condition strictly extends literal twin pairing but is not universal.
-The separately proved matching-plus-isolates theorem is stronger in a
-different direction: it gives either-seat strategies, without requiring an
-isolated dummy, for every matching graph.  That theorem is the one used by
-the Gold--Arf construction; Theorem~\ref{thm:parity-cell} and the matching
-theorem do not settle arbitrary support graphs.
+There is a separate constructive theorem for matching-plus-isolates boards:
+either physical seat, when designated defender, can force score zero.  Its
+safe-front induction is the exact theorem used by the Gold--Arf realization.
+Theorem~\ref{thm:cells} is neither needed to strengthen that application nor
+sufficient for arbitrary graphs.
 
-The first cell may also be balanced by a two-bit form of the handshake
-lemma.  For a finite graph $H$, put
-\[
-  p_v=\deg_H(v)\pmod2,
-  \qquad
-  b_v=\sum_{u\sim_Hv}p_u\pmod2,
-  \qquad c(v)=(p_v,b_v).
-\]
+\subsection{Close-first strategies}
 
-\begin{lemma}[two-bit handshake]\label{lem:two-bit}
-If $H$ has even order, every fibre of
-$c\colon V(H)\to\mathbb F_2^2$ has even cardinality.  Hence every vertex has
-a distinct vertex of the same colour.  Moreover, if $c(v)=c(w)$ and
-$A=\{v,w\}$, then each fibre of
-\[
-  x\longmapsto
-  \bigl(p_x,e_H(x,A)\bmod2\bigr),
-  \qquad x\in V(H)\setminus A,
-\]
-also has even cardinality.
-\end{lemma}
-
-\begin{proof}
-Let $O=\{v:p_v=1\}$.  Handshaking gives $|O|=0$ in $\mathbb F_2$, while
-$\sum_{v\in O}b_v=2e_H(O)=0$.  Thus both $b$-fibres in $O$ are even.
-Furthermore
-$e_H(O,V(H)\setminus O)=\sum_{v\in O}\deg_H(v)=|O|=0$, so the same is true
-in the complement.  For the second assertion, the four moments of the pair
-$(p_x,r_x)$, where $r_x=e_H(x,A)$, vanish:
-\[
-  \sum_x1=\sum_xp_x=\sum_xr_x=\sum_xp_xr_x=0.
-\]
-The last two identities are respectively $p_v+p_w=0$ and $b_v+b_w=0$;
-the possible edge $vw$ cancels because $p_v=p_w$.  The four fibre
-indicators are the four polynomials
-$(1+p)(1+r),(1+p)r,p(1+r),pr$.
-\end{proof}
-
-If an attacker opens $v$, opening a same-colour $w$ matches the first pair's
-close charges.  If the attacker instead opens another vertex $x$, the second
-part of Lemma~\ref{lem:two-bit} supplies a compatible second mate.  This is a
-two-round refinement, not an induction: later play may split the balanced
-fibres and require a close response.
-
-\subsection{The zero-second-moment pair boundary}
-
-For a same-degree pair $x,y$, the second colour condition is the vanishing
-of
-\[
-  q_R(x,y)=b_x+b_y,
-\]
-where the degree parities and neighbour-degree sums are computed on the
-current carrier $R$.  It is natural to ask whether every initial pair with
-equal degree parity and $q_R(x,y)=0$ is even-winning for either designated
-seat.  That unrestricted assertion is false.  In the star $K_{1,4}$, with
-centre $0$ and leaves $1,2,3,4$, the initial queue $(1,2)$ satisfies both
-scalar conditions, but exact Bellman evaluation gives an odd win when the
-distinguished even seat is $1$.  Every exact odd strategy closes $1$ first;
-the defender's legal close of $2$ reaches a strict score-zero descendant with
-empty queue.  Thus even the weaker proposal that some adjacent current
-zero-moment pair must survive a zero-score descent fails.  This graph has no
-isolated vertex, so it does not refute a dummy-conditioned pair theorem.
-
-Adjoining an isolated vertex $5$ to the same star reverses this selected
-pair: the state with queue $(1,2)$ is kernel-checked even-winning.  One exact
-first response is
-\[
-\begin{array}{c|ccccc}
-\text{attacker move}&O_0&O_3&O_4&O_5&C_1\\ \hline
-\text{even reply}&C_1&O_0&O_0&O_0&C_2.
-\end{array}
-\]
-Every displayed two-ply endpoint is itself even-winning.  The four OPEN
-branches return to a state whose queue begins with a same-degree,
-zero-second-moment pair; the CLOSE branch reaches a score-zero empty root on
-the four vertices $\{0,3,4,5\}$.  Without the dummy, the same two CLOSEs leave
-the odd three-vertex root $\{0,3,4\}$, which is odd-winning.  This identifies
-a plausible two-mode invariant---a front zero-moment pair or an even
-empty-root residual retaining the dummy---but proves neither its closure for
-arbitrary graphs nor the dummy-conditioned pair assertion.
-
-\subsection{Fixed-front contraction}
-
-The following elementary game is the local prefix model at a fixed real
-front $y$.  Let $S$ be the vertices which may still be opened before $y$
-closes.  A leaf is labelled by the remainder $T\subseteq S$ left untouched
-at that close.
-
-\begin{theorem}[fixed-front prefix contraction]\label{thm:fixed-front}
-From a defender-controlled root, for every deterministic attacker policy the
-affine hull of the attainable remainder indicators contains zero.
-\end{theorem}
-
-\begin{proof}
-It is enough to exclude affine separation.  Let $\ell$ be a linear functional
-on $\mathbb F_2^S$.  For $T\subseteq S$, let $A(T)$ mean that an attacker to
-move can force $\ell$ to equal one at the eventual close of $y$, and let
-$D(T)$ denote the same assertion with the defender to move.  Before $y$
-closes, an open only deletes its label from $T$, so
-\begin{align*}
-  A(T)&\Longleftrightarrow
-  \ell(T)=1\ \text{ or }\
-  \bigl(\exists w\in T:\ D(T\setminus\{w\})\bigr),\\
-  D(T)&\Longleftrightarrow
-  \ell(T)=1\ \text{ and }\
-  \bigl(\forall v\in T:\ A(T\setminus\{v\})\bigr).
-\end{align*}
-Simultaneous induction on $|T|$ gives $D(T)=\mathrm{false}$ and
-$A(T)\Longleftrightarrow\ell(T)=1$.  Indeed, the smaller $D$ terms vanish.
-If $D(T)$ held, then $\ell(T)=\ell(T\setminus\{v\})=1$ for every $v\in T$.
-Writing $a_v=\ell(\{v\})$ would give $a_v=0$ for every $v$ and also
-$\ell(T)=1$, a contradiction.  Hence no affine hyperplane separates every
-defender response leaf from zero.
-\end{proof}
-
-The distinguished immediate-close leaf cannot in general be prescribed in
-the affine relation.  Thus Theorem~\ref{thm:fixed-front} contracts the
-absolute prefix, not the relative spine needed after a particular charged
-close has been selected.
-
-One exact endgame corridor permits the required change of action type.  Write
-$B(u,v)\in\mathbb F_2$ for adjacency.
-
-\begin{lemma}[two-switch tail]\label{lem:two-switch}
-Suppose the defender moves just after an attacker close, the residual score
-target is zero, and
-\[
-  U=\{x,y\},\qquad Q=(v_1,\ldots,v_{2r+1}).
-\]
-If
-\[
-  B(v_{2i-1},y)=B(v_{2i},y)\quad(1\le i\le r),
-  \qquad B(v_{2r+1},y)=B(x,y),
-\]
-then the defender forces future score zero with at most two changes between
-opening and closing relative to the attacker's preceding move.
-\end{lemma}
-
-\begin{proof}
-Open $x$.  The even queue is then paired as
-$(v_1,v_2),\ldots,(v_{2r+1},x)$, and the two members of each pair have equal
-adjacency to the sole untouched vertex $y$.  While the attacker closes, close
-the next front; each pair contributes equal charges.  If the attacker opens
-$y$, close the front, after which every remaining close has charge zero.  If
-$y$ is never opened before the pairs drain, it is the harmless terminal
-singleton.  Only the initial close/open and the possible later open/close are
-action-type switches.
-\end{proof}
-
-\subsection{Close-first attackers}
-
-Call an attacker \emph{close-first} if it closes whenever the queue is
+Call an attacker \emph{close-first} when it closes whenever the queue is
 nonempty and ko is clear, and opens only when a close is unavailable.
 
-\begin{theorem}[conditioned close-first contraction]
-\label{thm:conditioned-close-first}
-Let the defender move from a well-formed state with nonempty queue and clear
-ko.  Against a close-first attacker, the defender can force future score
-increment zero.  No dummy and no parity hypothesis are required.
-\end{theorem}
-
-\begin{proof}
-Assume a counterexample of minimum remaining rank and write the queue as
-$(f,Q_0)$.  The cases $|U|\le1$ drain directly.  For every $x\in U$, let the
-defender open $x$; the attacker closes $f$.  Minimality forces
-\[
-  \deg_{U\setminus\{x\}}(f)=1
-  \qquad(x\in U),
-\]
-since a zero charge would leave a smaller counterexample.  Therefore $f$ is
-adjacent to every member of $U$, $|U|$ is even, and $\deg_U(f)=0$.
-
-If $Q_0=()$, close $f$ at charge zero.  The attacker's next open creates a
-ko-protected singleton; a second open makes the first new front available.
-Applying the same minimum condition to all choices forces a vertex to be
-simultaneously adjacent and nonadjacent to that front, a contradiction.
-If $Q_0=(h,Q_1)$, compare the prefixes
-\[
-  \operatorname{OPEN}(x),C_f,
-  \operatorname{OPEN}(y),C_h
-  \qquad(x\ne y).
-\]
-Minimality forces every twice-punctured $h$-degree to vanish.  Comparing
-pairs with one common vertex makes the $h$-row constant on $U$; even $|U|$
-then gives $\deg_U(h)=0$.  Closing $f,h$ reaches a smaller counterexample,
-possibly after the two ko-clearing opens when $Q_1=()$.  This is impossible.
-The remaining two-point case is the same calculation without a third vertex:
-opening either point and then draining the original queue gives two equations
-whose sum makes the direct drain neutral.
-\end{proof}
-
-At an empty root one needs a stopped version because a normalization argument
-may expose score one before termination.  Permit a close-first attacker to
-stop and win at a clear score-one node.  The defender still has all ordinary
-moves.
-
-\begin{theorem}[stopped empty-root contraction]
-\label{thm:stopped-root}
-From a score-zero empty-queue root with the defender to move, no stopped
-close-first attacker can force a stop or terminal score one, on any finite
-graph and without a dummy.
+\begin{theorem}[close-first exclusion]\label{thm:close-first}
+The following statements hold for every finite graph.
+\begin{enumerate}
+\item From a clear state with nonempty queue and the defender to move, the
+      defender can force future score increment zero against a close-first
+      attacker.
+\item From a score-zero empty-queue root with the defender to move, the same
+      remains true if the attacker may stop and claim a win at a clear
+      score-one state.
+\end{enumerate}
+No dummy or cardinality hypothesis is required.
 \end{theorem}
 
 \begin{proof}[Proof outline]
-The proof is a simultaneous strong induction on the vertex set.  Call an
-ordered pair $x\to y$ bad when the stopped attacker wins from the defender
-state with queue $(x,y)$ and untouched set
-$U=V\setminus\{x,y\}$.  Put
-\[
-  \alpha=\deg_U(x),\qquad \beta=\deg_U(y),
-\]
-let $p_v$ be the full degree parity, and put
-$b_v=\sum_{w\sim v}p_w$.  Three explicit zero-charge absorbers---a direct
-double close, one inserted open followed by three closes, and the complete
-zero-charge open fan---give, for every bad pair,
-\[
-  \beta=1,\qquad b_x=1,qquad
-  \alpha=1\Longrightarrow |V|=1\pmod2.
-\]
-The same parity calculation gives the moment identity
-\[
-  b_x+b_y=(1+\alpha+\beta)|V|+
-           [xy](\alpha+\beta).
-\]
+For the first assertion, choose a counterexample of minimum remaining rank
+and write the front as $f$.  Opening each $x\in U$ before the forced close
+shows that every punctured charge
+$\deg_{U\setminus\{x\}}(f)$ must equal one.  Hence $f$ is adjacent to every
+member of $U$, $|U|$ is even, and $\deg_U(f)=0$.  Comparing two-open
+prefixes at the next front makes its row constant on $U$ and neutral as
+well.  Closing the neutral fronts produces a smaller counterexample, a
+contradiction.  The cases $|U|\le1$ and a queue of length one are the direct
+endgames of the same calculation.
 
-If the empty-root theorem failed, every first defender open $x$ would have a
-winning attacker reply $y$, so every vertex would have an outgoing bad arc.
-Give a vertex rank $2,1,0$ according as
-$(p_v,b_v)=(0,1),(1,1)$, or $b_v=0$.  The three displayed constraints and
-the moment identity show that every bad arc
-strictly decreases this rank.  A finite directed graph of positive
-outdegree has a directed cycle, contradicting strict descent.  The three
-absorbers and the rank argument are uniform in the smaller induced graphs,
-which closes the simultaneous induction.
+For the stopped empty-root statement, call an ordered pair $x\to y$ bad when
+the stopped attacker wins from the queue $(x,y)$.  Three zero-charge
+absorbers and the handshaking identities attach to every vertex a rank in
+$\{0,1,2\}$ which strictly decreases along each bad arc.  If the root were
+bad, every possible first open would have an outgoing bad reply, so the
+finite bad-arc graph would contain a directed cycle.  Strict rank descent
+forbids such a cycle.  Strong induction on the remaining carrier closes the
+absorber argument.
 \end{proof}
 
-\begin{corollary}[close-first root exclusion]\label{cor:close-first-root}
-On an isolated-dummy initial board, a close-first attacker cannot force score
-one from either seat.
-\end{corollary}
+Thus every hypothetical counterstrategy at the isolated-dummy root contains
+a node at which it opens although a close is legal.  This fact is global
+only after the actual strategy ancestry is retained.
 
-\begin{proof}
-If the defender moves first, Theorem~\ref{thm:stopped-root} is stronger.  If
-the attacker moves first and opens $v$, the defender can open a second vertex
-$w$ for which
-$\deg_{V\setminus\{v,w\}}(v)=0$.  When the once-punctured degree of $v$ is
-even, take the isolated dummy if available; when it is odd, take a neighbour
-whose removal toggles the degree.  The attacker's forced close of $v$ is
-therefore neutral and leaves a clear defender checkpoint covered by
-Theorem~\ref{thm:conditioned-close-first}.  The one-vertex terminal case is
-immediate.
-\end{proof}
+\section{Normal form of a hypothetical counterstrategy}\label{sec:normal}
 
-Consequently every hypothetical odd counterstrategy at the isolated-dummy
-root contains a clear attacker node at which it selects an open although a
-close is legal.  Eliminating a leafmost such deviation requires its complete
-defender ancestry; conditioned close-first contraction alone does not do so.
+Two complementary minima describe the current frontier.  One is dual and
+graph-free; the other is taken inside a fixed odd strategy on its separating
+graph.
 
-\section{The sharp frontier}\label{sec:frontier}
+\subsection{The public separator minimum}
 
-The first-seat orientation has an especially economical root normal form.
-Write $s_{xy}$ for the state after the two legal initial moves
-$\operatorname{OPEN}(x),\operatorname{OPEN}(y)$, with $x\ne y$.
+Suppose an initial public policy omits projected zero.  Choose a separating
+functional $\ell$, and evaluate every live-star prefix by $\ell$.  A policy
+occurrence lies on \emph{sheet} $b\in\mathbb F_2$ when its prefix value plus
+the constant affine value of its continuation coset is $b$.
 
-\begin{proposition}[first-seat two-open Bellman form]
-\label{prop:first-seat-bellman}
-Suppose the carrier has at least two vertices.  The first physical player can
-force score zero from the initial root if and only if there is a vertex $x$
-such that it can force score zero from $s_{xy}$ for every $y\ne x$.
-Consequently it is sufficient to prove that every ordered pair $x\ne y$ gives
-a winning state $s_{xy}$.
-\end{proposition}
-
-\begin{proof}
-At the empty root the first player controls the move and must open some $x$.
-The resulting queue is the protected singleton $(x)$ and the untouched set is
-nonempty.  The opponent therefore cannot close or pass and its legal moves are
-exactly the opens $y\ne x$.  Bellman recursion now gives the displayed
-existential--universal condition.  The converse splices the assumed winning
-continuation below every such second open.
-\end{proof}
-
-This normal form does not assert that the required $x$ exists.  Its main value
-is causal: in a hypothetical first-seat counterstrategy, every first open is a
-defender branch of one strategy, and the attacker selects one second opener
-$f(x)\ne x$ below each branch.  Thus the selected ordered pairs form a
-fixed-point-free functional digraph with genuine common root ancestry.  A
-cycle argument would be sufficient only if its prefix cancellation can be
-lifted through the branch-dependent continuation cosets; this is a specialized
-form of the same factor-extension problem below.
-
-More precisely, attach to a selected arc $x\to f(x)$ the universal prefix
-$S_V(x)+S_V(f(x))$, where $S_V(v)$ is the full live star.  The sources and
-targets of a directed cycle are the same multiset, so these prefixes sum to
-zero.  If the cycle length is odd, any chosen continuation representatives
-lift to an odd affine point at the common root; the isolated-dummy augmentation
-lock then says that their sum has nonzero real-edge projection.  If the cycle
-length is even, the same sum is only a homogeneous response direction.  Thus
-neither parity contracts the counterstrategy.  One must add an in-tree branch
-or another earlier sibling to obtain both odd augmentation and zero projected
-moment.
-
-The whole functional digraph does not repair this by incidence alone.  There
-is a fixed-point-free map on seven labels with two even cycles and genuine
-feeding in-trees, together with a graph having an isolated dummy, for which
-the graph functional evaluates every selected two-OPEN arc prefix to one.
-Consequently every odd arc subfamily---including arbitrary combinations of
-cycle and in-tree arcs---has nonzero real-edge projection.  Any successful
-functional-digraph argument must use correlations among the continuation
-cosets, not only the source--target incidence matrix.
-
-Elementary congruence of the alternating adjacency matrix is also an exact
-reduction boundary rather than a free invariance.  FIFO legality is
-graph-independent, so an even strategy on $G$ and an odd strategy on an
-elementary shear $G'$ can be interacted to a common public terminal word and
-a common live-star moment $D$.  Their opposite scores force the shear row
-functional to satisfy
-\[
-  \rho_{G,i,j}(D)=1.
-\]
-Thus a proof of root invariance under graph congruence would have to exclude
-or neutralize precisely these strategy-correlated moments; public-state
-equivariance alone yields the unit defect instead.
-
-Opening the isolated dummy first is another tempting specialization, but it
-only relocates the selector.  From the pair state with queue $(d,y)$, for every
-remaining real $z$ the neutral square
-\[
- C_d;\operatorname{OPEN}(z)
- =\operatorname{OPEN}(z);C_d
-\]
-reconverges at the same score-zero state with queue $(y,z)$.  If every such
-dummy-consumed real-pair state is odd-winning, the odd player responds to
-either defender move by taking the other side of the square.  Consequently an
-even win at $(d,y)$ already forces an even-winning consumed pair $(y,z)$ for
-some $z$.  The isolated front therefore supplies exact schedule transport but
-not the missing continuation selector.
-
-The affine ledger makes the same boundary sharp.  On an odd total carrier the
-complete legal fan $C_d$ together with all remaining opens has even
-cardinality.  After forgetting dummy-incident coordinates, the sum of its
-open prefixes is not zero but the full real star $S_V(y)$.  Every odd response
-point at the pair state evaluates to one plus the current potential, whereas
-$S_V(y)$ evaluates to the potential itself.  Thus no local response point can
-have that projected value.  An additional affine point from earlier root
-ancestry is necessary even in the dummy-first specialization.
-
-\subsection{Public separator minimum and queued debt}
-
-The public-policy duality gives a precise normal form for any omitted zero.
-Fix a separating functional $\ell$ and minimize the remaining rank of a
-sheet-one occurrence inside the actual public policy.  Its selected move is a
-real OPEN $O_v$ of separator increment one.  The selected child lies on sheet
-zero, and every legal move in its complete defender fan has increment zero
-and remains on sheet zero; in particular, a still-untouched dummy gives a
-silent zero-sheet sibling rather than a smaller separated occurrence.
-
-Handshaking does produce a second separator-odd vertex, but it lies in the
-old queue and is therefore not a legal OPEN sibling.  If $L$ is the current
-live real carrier and $Q$ is the queue before $O_v$, the exact residual
-equation is
-\[
-  \sum_{q\in Q}\ell\bigl(\pi_d s_L(q)\bigr)=1.
-\]
-Consequently $Q$ is nonempty, so the complete child fan contains a legal
-CLOSE sibling.  That sibling enters a selected zero-sheet policy, and every
-later selected edge in a proper zero-sheet descendant has separator
-increment zero.  This is a strategy-relative queue-debt theorem, not a
-contradiction: the parity partner exists, but FIFO ancestry has placed it
-outside the available OPEN fan.
-
-\subsection{Positional, causal, and controlled boundaries}
-
-Every odd-winning state admits a canonical rank-recursive strategy depending
-only on the full Bellman state $(U,Q,k,t,g)$.  Equal full states therefore
-have identical Type-valued continuation trees.  This removes countermodels
-which assign unrelated futures after an exact state join, but it does not
-identify merely public joins: a real OPEN/CLOSE square with unit curvature
-reconverges on opposite score sheets.  An isolated-dummy square does merge in
-full state, but positionality only identifies the continuations when both
-complementary paths already occur; it does not force the selected edges.
-Moreover, quotienting a positional policy by equal full states creates
-one-cycles without making their labels vanish.  A four-edge square in an
-exact positional odd policy has zero incidence boundary but nonzero real-edge
-label.  Thus neither canonical positionalization nor state-DAG homology alone
-supplies the missing affine moment.
-
-There is also a sharp causal obstruction to charging the queued debt to one
-distinguished earlier edge.  Every path from the score-zero initial root to a
-score-one occurrence has a last score-changing move; it is a unit-charged
-CLOSE, followed by a pointwise score-neutral suffix.  A queued debt vertex at
-the occurrence either survived behind that charged front or was opened in
-the neutral suffix.  Both cases occur in exact six-label histories with an
-isolated dummy.  In the survivor model the last charged front is $4$, its
-charging neighbour is $5$, and the queued separator debt is the earlier
-vertex $0$.  Commuting $O_0$ to after the close crosses the protected
-singleton ko wall, while moving $O_5$ before the close removes its charge and
-changes the separator sheet.  Legality and the last-close decomposition
-therefore do not identify the debt vertex with the charging neighbour.
-
-Score-coupled odd policies do yield a different positive descent mechanism.
-Their two outcome classes are mover-controlled and nonmover-controlled; at a
-reachable rank-minimal controlled state, exact commuting-fork analysis shows
-that an isolated dummy cannot remain untouched.  The bridge from a minimal
-separator to such a controlled state is nevertheless false.  A four-label
-noninitial policy has a sheet-one selected OPEN and a complete zero-sheet fan
-with the dummy still live, yet both that fan and its CLOSE sibling are cold
-\emph{BothOdd}, hence neither is controlled; score translation makes the fan
-\emph{BothEven}, not the required companion odd policy.  This controlled
-cold model refutes the local bridge only, not Conjecture~\ref{conj:fifo}.
-
-\subsection{The strategy-relative scalar minimum}
-
-Assume for contradiction that the affine condition of
-Theorem~\ref{thm:affine} fails, and fix the resulting exact odd strategy.
-Among its score-zero nodes choose one of minimum remaining rank, and among
-those one with minimum untouched-carrier size.  This strategy-relative choice
-repairs the ancestry defect in a global minimum-hot argument: every node used
-below remains an actual descendant of the same root policy.
-
-\begin{theorem}[strategy-relative bad-predecessor trichotomy]
-\label{thm:bad-predecessor}
-The chosen node $s$ is attacker-controlled and has score zero.  Its selected
-move is a charge-one close of a real front $f$; translating the selected
-continuation by one gives a neutral winning subtree.  Moreover $s$ has an
-immediate defender parent $p$, an exact root-to-$p$ prefix, and the complete
-legal fan at $p$.  Exactly one of the following shapes occurs.
+\begin{theorem}[separator normal form]\label{thm:separator}
+In a constantly-one initial public policy, choose a sheet-one occurrence of
+minimum remaining rank while the dummy is live.  Then:
 \begin{enumerate}
-\item The incoming move is a charged close.  For some $y$,
-$Q_p=(y,f,Q_0)$, the score at $p$ is one, and $C_y$ has charge one.
-\item The incoming move is an open from a protected singleton:
-$Q_p=(f)$, the ko bit is set, and opening $x$ produces
-$Q_s=(f,x)$.
-\item The incoming move is an open from a clear nonempty queue.  The old
-front is $f$, its charge before the open is zero, the untouched carrier has
-even cardinality, and $f$ is adjacent to every untouched vertex.  Opening
-$x$ removes one such neighbour and makes the selected $C_f$ charged.
+\item it is an attacker occurrence and its selected move is a real open
+      $\operatorname{OPEN}(v)$ of separator increment one;
+\item the selected child and every edge in its complete defender reply fan
+      lie on sheet zero and have separator increment zero;
+\item the old queue $Q$ is nonempty and
+      \[
+        \sum_{q\in Q}\ell\bigl(\pi_d s_L(q)\bigr)=1,
+      \]
+      where $L$ is the current live real set and $\pi_d$ deletes
+      dummy-incident coordinates;
+\item the resulting legal close sibling enters a selected sheet-zero
+      continuation, but need not select another close.
 \end{enumerate}
-The putative fourth case---a zero-charge predecessor close followed by the
-selected charged close---is impossible.
 \end{theorem}
 
-\begin{proof}
-At a minimum-rank score-zero node, an attacker-selected open or pass would
-leave a smaller score-zero descendant.  Hence the selected move is a charged
-close, and isolation makes its front real.  The immediate-parent decomposition
-retains the full defender fan and its root prefixes.  A charged incoming close
-gives the first case.  If the incoming close were neutral, an OPEN sibling at
-the same remaining rank would still have score zero but a strictly smaller
-untouched carrier, contradicting the secondary minimum.
-
-For an incoming open, coherence splits on the parent's ko bit.  A set ko bit
-forces the singleton queue in the second case.  In the clear case, apply the
-same minimum-rank selected-close argument to every alternative OPEN sibling.
-The old front therefore has charge one after deleting each possible opened
-vertex.  The elementary flip identity forces its charge on the old carrier to
-be zero and makes it adjacent to every untouched vertex; handshaking then
-gives even carrier size.  These deductions, including the strategy prefixes
-and neutral translated continuation, are kernel-checked in
-\texttt{FifoStrategyBadAncestry}.
+\begin{proof}[Proof outline]
+Rank minimality excludes a sheet-one selected child.  A selected close or
+pass has zero live-star increment, so the selected move must be a real open
+of increment one.  Every defender child must be present in the policy; a
+sheet-one child would contradict minimality, giving the complete zero sheet.
+The dummy open is among these zero-increment children while the dummy is
+live.  Summing the live-star evaluations over the complete open fan and using
+handshaking moves the odd partner of $v$ into the already open queue, giving
+the displayed debt relation.  In particular $Q$ is nonempty and close is legal.  Sheet
+recursion gives the last statement, but imposes no action-type constraint on
+the next selected move.
 \end{proof}
 
-\begin{theorem}[clear-OPEN exclusion]
-\label{thm:clear-open-exclusion}
-The third alternative of Theorem~\ref{thm:bad-predecessor} cannot occur in an
-initial isolated-dummy odd strategy.  Hence every strategy-relative minimal
-bad node has either charged-CLOSE-spike or protected-singleton ancestry.
+The theorem locates the missing parity partner exactly: it is FIFO debt,
+not another legal open sibling.
+
+\subsection{The strategy-relative minimum}
+
+On a fixed separating graph, minimize a score-zero failure inside one exact
+odd strategy while retaining its root prefix and its complete immediate
+defender fan.
+
+\begin{theorem}[minimal-bad ancestry]\label{thm:bad}
+Every such minimum has one of two predecessor forms:
+\begin{enumerate}
+\item a unit-charged close followed by a score-neutral selected suffix
+      (the \emph{charged-close spike});
+\item an open onto an empty queue, producing a ko-protected singleton.
+\end{enumerate}
+A neutral-close predecessor and a clear-open predecessor are impossible.
 \end{theorem}
 
-\begin{proof}
-Let the clear parent have queue $(f,r)$ and untouched carrier $U$.  Its
-complete fan contains the neutral sibling $C_f$, which has score zero and the
-same remaining rank as the chosen bad node.  Rank minimality forces $r$ to be
-nonempty, say $r=(y,r_0)$, and forces the attacker in this sibling to select a
-unit close of $y$.  Thus
-\[
-  c(y,U)=1.
-\]
-For every $z\in U$, the same parent fan also contains the score-zero sibling
-$O_z$.  Its queue begins $(f,y)$ and it has the same minimal rank.  The
-attacker selects $C_f$; the following defender node universally contains
-$C_y$.  If $C_y$ had unit charge, those two closes would return to score zero
-at smaller rank.  Therefore
-\[
-  c(y,U\setminus\{z\})=0\qquad(z\in U).
-\]
-Comparing the two displayed equations shows that $y$ is adjacent to every
-$z\in U$.  But Theorem~\ref{thm:bad-predecessor} gives $|U|=0$ in
-$\mathbb F_2$, so universality gives $c(y,U)=|U|=0$, contradicting the first
-display.  The exact same-root prefixes, sibling subtrees, and rank comparisons
-are kernel-checked in \texttt{FifoStrategyBadAncestryClear}.
+\begin{proof}[Proof outline]
+Score translation identifies the odd continuation below a unit-charged close
+with a neutral continuation on the opposite sheet.  Choosing a rank-minimal
+score-zero occurrence forces every proper selected descendant on that sheet
+to be pointwise score-neutral.  A neutral close would therefore expose a
+strictly smaller failure.  For a clear open, combine the close sibling with
+the complete family of open siblings.  The queue-cut and live-star fan
+identities cancel the common prefix, while the fixed-front contraction
+eliminates the remaining local leaf.  This again gives a smaller failure.
+The only open not covered by that fan is the ko-protected opening onto an
+empty queue, and the only surviving close is unit charged.
 \end{proof}
 
-This completes the predecessor classification inside the actual
-counterstrategy.  The two surviving cases still require the causal factor
-extension below; the theorem does not by itself select compatible
-continuations across their earlier siblings.
+Every score-one root prefix also has a last unit-charged close followed by a
+neutral suffix.  The queued separator-debt vertex from
+Theorem~\ref{thm:separator} can either survive behind that front or be opened
+inside the suffix.  Ko legality and score parity do not identify it with the
+charging neighbor in either order.  Relating the two minima therefore
+requires their common initial-root ancestry.
 
-Independently of that remaining exclusion, the selected unit close has a
-useful strategy-relative consequence.  Every strict descendant of its
-selected child lies on score sheet one; translating that subtree by one gives
-a strategy in which every transition is score-neutral.  In a protected
-singleton fan, applying the same minimum-rank argument to every forced open
-$z\in U$ gives neutral tails with queue $(z)$ and untouched set
-$U\setminus\{z\}$.  The defender may close $z$ immediately, so
-\[
-  \deg_{U\setminus\{z\}}(z)=0\qquad(z\in U).
-\]
-Thus the graph induced by $U$ is Eulerian.  This is a genuine reduction, not
-a contradiction: a cone from $x$ over any even Eulerian graph has exactly
-these local parities.
+\section{The causal factor extension}\label{sec:factor}
 
-\subsection{Why descendants do not suffice}
+For a node $q$ in the fixed attacker strategy, retain the continuation coset
+$A_q=a_q+W_q$ of Section~\ref{sec:calculus}.  Let $\Gamma_q$ be the
+root-to-$q$ prefix moment, projected away from dummy coordinates.
 
-Even under this candidate normal form, the proof cannot be finished inside
-the selected subtree.
-
-\begin{proposition}[odd-spike descendant obstruction]
-\label{prop:odd-spike-no-go}
-There is a legal odd--odd spike for which the selected child and every
-off-spine descendant continuation are scalar-neutral, but the selected
-relative edge moment is not generated by the descendant continuation
-spaces.
-\end{proposition}
-
-\begin{proof}
-Take real vertices $y,x,a$, isolated dummy $d$, and edges $ya,xa$.  At the
-defender state
-\[
-  U=\{a,d\},\qquad Q=(y,x),\qquad k=0,
-\]
-select $C_y,C_x$.  Both closes have charge one, and the residual board is
-edgeless.  On the off-spine reply $\operatorname{OPEN}(a)$, let the attacker
-play $C_y$; only $d$ remains untouched, so all future charges vanish.  On
-$\operatorname{OPEN}(d)$, let it play $\operatorname{OPEN}(a)$; again all
-future charges vanish.
-
-In the universal real edge space, every selected-spike terminal has relative
-moment $ya+xa$, whereas every off-spine terminal has moment zero.  All three
-even continuation spaces are zero.  Hence the selected coefficient cannot be
-cancelled by descendants.  An earlier defender sibling is necessary.
-\end{proof}
-
-Even a complete defender fan inside an actual target-one policy need not
-contract locally.
-
-\begin{proposition}[complete-fan obstruction]\label{prop:complete-fan}
-Let the real edges be $01,02$ and let $d$ be isolated.  The zero-charge prefix
-\[
-  O_3,O_d,C_3,C_d,O_0
-\]
-reaches the defender state
-\[
-  U=\{1,2\},\qquad Q=(0),\qquad k=1,
-\]
-whose complete legal fan is $O_1,O_2$.  One attacker policy forces terminal
-score one below both children.
-\end{proposition}
-
-\begin{proof}
-After $O_1$, play $C_0$, whose charge is the edge $02$; after $O_2$, play
-$C_0$, whose charge is $01$.  Once $0$ closes, no edge remains between a
-queued and an untouched real vertex, so every later close has charge zero.
-\end{proof}
-
-The contradiction at the initial root must therefore couple this fan to
-strictly earlier defender siblings.
-
-There is also no uniform bound on the number of response histories in a
-valid local certificate, even after quotienting by cuts.
-
-\begin{proposition}[causal simplex caps]\label{prop:simplex-cap}
-For every $r\ge4$, a reachable defender node under a fixed close-first
-attacker has terminal labels which project onto
-\[
-  \mathcal C_r=\{\mathbf 1\}\cup
-  \{\mathbf 1+e_i:1\le i\le r\}\subseteq\mathbb F_2^r.
-\]
-The set contains neither zero nor three distinct elements summing to zero.
-Its unique nonempty linear dependence has support $r$ when $r$ is odd and
-$r+1$ when $r$ is even.  In particular, odd zero-moment certificate size is
-unbounded.
-\end{proposition}
-
-\begin{proof}
-Take real vertices $0,v$, an $r$-set $U$, and isolated dummy $d$.  Use the
-prefix
-\[
-  O_0,O_d,C_0,O_v,C_d,
-\]
-after which $Q=(v)$, $U$ is untouched, and the defender moves.  Let the
-attacker subsequently close whenever possible.  Apply $T_0$ and retain only
-the coordinates $vi$, $i\in U$.  If the defender first closes $v$, the label
-is $\mathbf 1$.  If it first opens $i$, the attacker immediately closes $v$,
-so the label is $\mathbf 1+e_i$.  Later play cannot change these coordinates.
-
-Write $a=\mathbf 1$ and $b_i=\mathbf 1+e_i$.  A relation
-$\alpha a+\sum_i\beta_i b_i=0$ gives, in coordinate $j$,
-\[
-  \alpha+\sum_i\beta_i+\beta_j=0.
-\]
-Thus all $\beta_j$ equal one bit.  The only nontrivial relation uses every
-$b_i$ and uses $a$ exactly when $r$ is even.  Its support is therefore the
-stated odd number.  For $r\ge4$, pairwise sums have weight one or two, while
-members of $\mathcal C_r$ have weight $r-1$ or $r$, excluding a zero-sum
-triple.
-\end{proof}
-
-Propositions~\ref{prop:odd-spike-no-go}--\ref{prop:simplex-cap} rule out a
-childwise common-coset induction, a fixed bounded-support certificate, and a
-proof that chooses one distinguished reply in each fan.  They do not refute
-Conjecture~\ref{conj:fifo}; every displayed node has additional ancestry
-available at the root.
-
-\subsection{Why ordinary topology and dummy deletion do not fill the gap}
-
-The affine-flow language can suggest a boundary-of-boundary or oik argument.
-On the actual attacker-pruned object this suggestion is false for a simple
-reason.  Retain each history occurrence, even when two histories have the
-same public state, and let $T_S$ be the resulting finite rooted strategy
-tree.  Give every oriented tree edge $e$ its universal move vector
-$\lambda(e)$.
-
-\begin{proposition}[history-tree obstruction]\label{prop:history-tree}
-The boundary map
-\[
-  \partial_1:C_1(T_S;\mathbb F_2)\longrightarrow
-  C_0(T_S;\mathbb F_2)
-\]
-is injective.  More precisely, for every odd terminal chain $c$ there is a
-unique edge chain $x$ satisfying
-\[
-  \partial_1x=[\mathrm{root}]+c,
-\]
-and
-\[
-  \sum_e x_e\lambda(e)=\sum_h c_hD(h).
-\]
-Consequently the FIFO affine target is a labelled cokernel condition on
-$(\partial_1,\lambda)$, not a consequence of $\partial^2=0$ on the history
-tree.
-\end{proposition}
-
-\begin{proof}
-For an edge $e$, let $T_e$ be the component below it.  In any solution the
-coefficient of $e$ is forced to be $\sum_{h\in T_e}c_h$ by summing the vertex
-boundary equation over $T_e$.  These coefficients give a solution because
-every internal nonroot vertex occurs once from its incoming edge and once
-for each selected outgoing subtree, while the odd augmentation leaves the
-root coefficient one.  The same subtree formula proves uniqueness and hence
-injectivity.  Finally each selected edge is counted once for every selected
-leaf below it; interchanging the two sums gives the path-moment identity.
-\end{proof}
-
-Attaching commuting schedule squares does not repair the argument.  Let
-$m$ be the edge-space-valued one-cochain which assigns an OPEN its current
-live star and assigns CLOSE and PASS zero.  In a legal diamond with clear
-front $f$ and untouched $z$, the schedules
-\[
-  O_z;C_f \qquad\hbox{and}\qquad C_f;O_z
-\]
-reconverge publicly but their move moments differ by the basis edge $fz$.
-Thus the square has curvature $\delta m=fz$, not zero.  Moreover a
-history-dependent attacker may choose different continuations at the two
-occurrences of the reconvergent state.  Quotienting them would identify
-different continuation cosets; retaining them removes the square.  Even the
-unlabelled carrier need not be Eulerian: after an attacker OPEN $O_f$ on four
-vertices, the defender has three OPEN alternatives $O_a,O_d,O_e$; a
-history-dependent attacker may select $C_f$ immediately after each.  The
-resulting pre-close carrier consists of three isolated frontier points and no
-pair-faces.  Its augmented boundary is the root, not zero.
-
-There is an independent obstruction to induction by erasing the isolated
-dummy.  Deleting a dummy interval can create a ko-illegal adjacent
-CLOSE/OPEN pair.  The unique local repair exchanges the pair, changes the
-universal moment by one real edge, and reverses which player controls the
-repaired OPEN.  If different defender branches open different real vertices,
-their repaired histories can reach the same dummy-free attacker node while
-requiring different selected moves.  Hence the repaired leaves do not belong
-to one deterministic target policy.  The correct object is a
-policy-indexed mapping cone whose repair-edge defects must be filled by
-earlier decorated siblings---precisely the ancestry term in
-Conjecture~\ref{conj:factor-extension}.
-
-\subsection{First-return blocks and outcome-valued debt}
-
-Another natural attempt is to stop whenever the FIFO queue first returns to
-empty and induct on the untouched carrier.  The bookkeeping is exact, but it
-does not reduce the continuation to one score bit.
-
-\begin{proposition}[first-return factorization]
-\label{prop:first-return-factorization}
-Let $b$ be a nonempty legal prefix from an empty queue to the first later
-empty queue, and suppose its endpoint is nonterminal.  If $B$ is the set of
-vertices opened in $b$, then $b$ has $|B|$ OPENs, $|B|$ CLOSEs, no PASS, and
-length $2|B|$.  In particular, the same physical player moves at the two
-empty-queue endpoints.
-
-There is a prefix vector $P_b$ such that every continuation $h$ on the
-residual carrier satisfies
-\[
-  D(bh)=P_b+\iota_bD(h).
-\]
-On a real edge $uv$, the coefficient of $P_b$ is zero if both endpoints are
-residual, one if exactly one lies in $B$, and, if both lie in $B$, their
-interval-disjointness bit inside $b$.
-\end{proposition}
-
-\begin{proof}
-Queue length changes by $+1$ on OPEN, by $-1$ on CLOSE, and not at all on
-PASS, so the endpoint equation gives equally many OPENs and CLOSEs.  A legal
-PASS requires the untouched set to be empty, which remains true thereafter;
-the nonterminal endpoint therefore excludes PASS.  Every opened vertex is
-opened once, giving the length and mover statements.
-
-For the vector identity, inspect one real edge.  Two residual endpoints
-contribute only in $h$.  If just one endpoint belongs to $B$, it opens while
-the residual endpoint is live and closes before that endpoint opens, so the
-edge occurs exactly once in the prefix live-star sum.  If both endpoints lie
-in $B$, their whole interval relation has already been decided inside $b$.
-These three cases are exactly the displayed definition of $P_b$.
-\end{proof}
-
-For one fixed attacker strategy, truncate at all first returns.  If the
-continuation coset below an exit $b$ is $A_b=a_b+W_b$, Proposition
-\ref{prop:first-return-factorization} gives the exact recursion
-\[
- A_{\rm root}=\operatorname{Aff}
- \bigcup_b\bigl(P_b+\iota_bA_b\bigr).
-\]
-Thus first-return grouping merely repackages the factor-extension problem:
-the different exits carry different prefix decorations and different
-continuation cosets.
-
-Even the apparently weaker scalar induction, ``return with score zero while
-the dummy remains, or terminate with score zero'', is false in both seat
-orientations.
-
-\begin{proposition}[dummy-retention obstruction]
-\label{prop:dummy-retention-obstruction}
-For $K_3$ together with an isolated dummy, the player seeking odd score can
-defeat the stated stopped target when that player opens the block.  For
-$K_4$ together with an isolated dummy, the same is true when the player
-seeking even score opens the block.
-\end{proposition}
-
-\begin{proof}
-On $K_3+d$, the odd player opens $d$.  Up to symmetry the reply is $O_a$;
-play $C_d$.  The even player now sees
-\[
- U=\{b,c\},\qquad Q=(a),\qquad s=0.
-\]
-The move $C_a$ is an immediate neutral first return with the dummy consumed.
-After $O_b$, answer $C_a$, which has charge one.  The replies are $C_b$,
-which has charge one and gives another neutral first return with the dummy
-consumed, or $O_c$, after which the queue drains terminally at score one.
-The $O_c$ branch at the displayed state is symmetric.  These are all legal
-moves.
-
-On $K_4+d$, let the even player open the block.  If it first opens $d$, open
-a real vertex.  At the resulting even turn, $C_d$ followed by a real OPEN,
-or a real OPEN followed by $C_d$, reaches
-\[
-  |U\cap K_4|=2,\qquad Q=(a,b),\qquad s=0.
-\]
-Here an even CLOSE/CLOSE gives a neutral first return with $d$ consumed;
-a real OPEN is answered by $C_a$, reaching score one with one real vertex
-untouched and queue length two.  A CLOSE then followed by CLOSE returns
-empty at score one, while opening the last vertex drains terminally at score
-one.
-
-If instead the first move is real, open a second real vertex.  From the even
-turn with two real vertices and $d$ untouched, exchange the replies $C_a$
-and $O_d$: either order reaches two untouched real vertices, queue $(b,d)$,
-and score zero.  There, $C_b,C_d$ is a neutral consumed-dummy return; a real
-OPEN followed by $C_b$ reaches score one with one real vertex untouched and
-queue $(d,c)$, from which closing $d$ or opening the last vertex drains at
-score one.  The remaining even option is to open a third real vertex before
-touching $d$; answer $C_a$.  At score one, with one real vertex and $d$
-untouched and queue length two, two CLOSEs give an empty score-one state with
-$d$ untouched, while opening $d$ or the last real vertex is answered by
-opening the other and drains terminally at score one.  Symmetry exhausts all
-choices.
-\end{proof}
-
-The correct residual summary after a consumed-dummy return is already
-outcome-valued.  For a no-dummy residual graph $H$, let
-$e(H)=(e_0,e_1)$, where $e_s$ says that physical seat $s$ can force terminal
-score zero from the score-zero empty root.  If the same mover returns at
-current score $c$, designated seat $s$ is safe exactly when
-\[
-  (c=0\ \wedge\ e_s)\quad\text{or}\quad
-  (c=1\ \wedge\ \neg e_{1-s}).
-\]
-For $c=0$ this is the definition.  For $c=1$, score translation changes the
-target to one, and finite determinacy says that seat $s$ can force one exactly
-when the opposing seat cannot force zero.  Hence a valid block induction must
-carry at least this two-seat outcome pair, or more canonically the affine
-continuation coset.  Dummy presence and residual cardinality alone do not
-close the recursion.
-
-Even that four-valued root sheet is not contextual under an active dummy
-interval.  Deleting the dummy reverses the controller of precisely the real
-events strictly between $O_d$ and $C_d$.  Thus a strategy interaction must use
-the no-dummy strategy for seat $s$ outside the interval and for the opposite
-seat inside it.  The root outcome pair does not ensure that the second
-strategy is winning at a state selected by the first.
-
-This failure already occurs on three labels.  Take the real edge $0$--$2$ and
-isolated dummy $d=1$.  The dummy-deleted empty root on $\{0,2\}$ is winning
-for either designated seat.  The prefixes $O_d,O_0$ and $O_0,O_d$ have the
-same untouched real vertex, the same real queue after erasing $d$, the same
-turn, and the same score.  Nevertheless for one fixed seat the first state is
-even-winning and the second is odd-winning.  Hence the complete root outcome
-sheet forgets both dummy order and the branchwise ownership needed for a
-splice.
-
-The direct two-policy interaction has an equally exact boundary.  Odd
-strategies for complementary designated seats at the same state can be
-played against one another: at each nonterminal node one selects a move and
-the other contains its universal child.  The recursion ends at a terminal
-state lying in both trees, and both require score one.  Thus this diagonal is
-compatible, not contradictory.
-
-The genuinely contradictory target is instead a pair of odd strategies for
-the same designated seat at states
-\[
-  s\qquad\hbox{and}\qquad
-  \operatorname{scoreTranslate}_1(\operatorname{turnTranslate}(s)).
-\]
-Turn--score conjugacy converts the first into an even strategy at the second
-root.  Dummy timing cannot manufacture this pair.  An isolated-dummy OPEN or
-front CLOSE preserves score exactly.  At a dynamic cross exit, the companion
-histories retain a one-front queue lag, so they cannot be turn--score
-conjugate even when a charged real CLOSE supplies a unit score defect.  The
-same square carries the real-edge curvature attached to that lag.  Therefore
-two-copy self-play again requires a strictly earlier universal sibling to
-remove the queue/edge defect and align the branch-dependent continuation
-cosets; it is another derivation of the causal factor-extension obligation,
-not a proof of the conjecture.
-
-There is a dual conservation law behind this failure.  For an odd family of
-children at one defender node, suppose the lifted ancestry-and-move prefixes
-have zero value under the separating graph.  Then the sum of the child
-continuations has value one, even after adding an arbitrary homogeneous root
-direction.  In the one-dimensional quotient this is simply
-\[
-  A_{\mathrm{root}}=\{1\},\qquad W_{\mathrm{root}}=\{0\}.
-\]
-Thus an odd zero-prefix fan transports the affine unit into its continuation
-residue; complete-fan and curvature identities alone cannot destroy it.
-
-Nor does immediate fan completeness force a single favorable third sibling.
-There is an exact policy on an edgeless score-one state with front $0$ and
-untouched set $\{1,2\}$ in which the front-CLOSE child selects $O_1$, while
-the immediate $O_1$ child selects $O_2$ and the immediate $O_2$ child selects
-$O_1$.  All three are children of the same universal node, but neither OPEN
-sibling selects the lag-removing CLOSE.  The example is not an initial-root
-counterexample; it proves that the missing repair must be an odd incidence
-across correlated continuation cosets, rather than one more immediate
-sibling.
-
-\subsection{The exact factor interface}
-
-For a node $q$ in one fixed attacker strategy, retain the affine continuation
-coset $A_q=a_q+W_q$ from Section~\ref{sec:affine}, and let $\Gamma_q$ be its
-root-to-$q$ prefix moment, projected away from dummy-incident coordinates.
-
-\begin{proposition}[ancestry factor interface]\label{prop:factor-interface}
-Let $q_1,\ldots,q_{2k+1}$ be an odd list of nodes in the same strategy tree.
-Choose $a_i\in A_{q_i}$ and $d_i\in W_{q_i}$.  If
+\begin{proposition}[ancestry factor interface]\label{prop:factor}
+Let $q_1,\ldots,q_{2r+1}$ be occurrences in the same strategy tree.  Choose
+$a_i\in A_{q_i}$ and $d_i\in W_{q_i}$.  If
 \[
   \sum_i(\Gamma_{q_i}+a_i)=\sum_i d_i,
 \]
-then the projected root affine response space contains zero.
+then the projected affine response space at the root contains zero.
 \end{proposition}
 
 \begin{proof}
-Since $d_i$ is an even continuation direction, $a_i+d_i\in A_{q_i}$.
-Lifting along the actual ancestry gives
-$\Gamma_{q_i}+a_i+d_i\in A_{\mathrm{root}}$.  An odd sum of points of one
-affine space remains in that affine space, and
-the displayed factor identity makes this sum zero.
+Because $d_i$ is an even continuation direction,
+$a_i+d_i\in A_{q_i}$.  Lifting each point through its actual ancestry gives
+$\Gamma_{q_i}+a_i+d_i$ in the root affine response space.  An odd sum of
+points in one affine space remains in that space, and
+the displayed factor identity makes the sum zero.
 \end{proof}
 
-Without restrictions on the nodes, the converse is tautological: one may use
-the root itself.  The content is to construct the list causally from the
-complete defender fans exposed by Theorems~\ref{thm:bad-predecessor}
-and~\ref{thm:clear-open-exclusion}.  The local
-identities already prove the required equations for prefix cuts, fixed-front
-remainders, and close-first descendants.  What remains is to lift those
-equations through the attacker-pruned child cosets while preserving odd
-augmentation.
+Without restrictions on the $q_i$, Proposition~\ref{prop:factor} is
+tautological: one may choose the root.  Its content is to build the odd family
+causally from the complete defender fans exposed by
+Theorems~\ref{thm:separator} and~\ref{thm:bad}.
 
-\begin{conjecture}[causal factor extension]\label{conj:factor-extension}
-For every separating attacker strategy, the odd--odd spike or protected
-singleton frontier of Theorems~\ref{thm:bad-predecessor}
-and~\ref{thm:clear-open-exclusion} admits an odd ancestry
-factor satisfying the displayed identity of
-Proposition~\ref{prop:factor-interface}, using descendant continuation
-directions together with strictly earlier defender siblings.
+\begin{conjecture}[causal factor extension]\label{conj:factor}
+For every separated initial public policy, the charged-close-spike or
+protected-singleton frontier admits an odd family of occurrences satisfying
+that factor identity, using descendant continuation directions together with
+strictly earlier defender siblings.
 \end{conjecture}
 
-Conjecture~\ref{conj:factor-extension} is the remaining proof obligation for
-Conjecture~\ref{conj:fifo}.  In the relative-spine language, if $h$ is the
-selected minimal bad node, $b_h=\Gamma_h+a_h$, and $M_h$ is the sum of all
-frontier continuation spaces and all even sums of off-spine decorated points,
-the assertion is simply
+\begin{theorem}[reduction to causal factor extension]\label{thm:reduction}
+Conjecture~\ref{conj:factor} implies
+Conjecture~\ref{conj:fifo}.
+\end{theorem}
+
+\begin{proof}
+If FIFO linking failed, Theorem~\ref{thm:public-duality} would give a
+separated initial public policy.  Theorems~\ref{thm:separator} and
+\ref{thm:bad} reduce it to one of the two stated frontiers.
+Conjecture~\ref{conj:factor} and Proposition~\ref{prop:factor} would put zero
+in its root response space, contradicting separation.
+\end{proof}
+
+Equivalently, if $h$ is the selected minimal-bad occurrence,
+$b_h=\Gamma_h+a_h$, and $M_h$ is generated by frontier continuation spaces
+and even sums of off-spine decorated points, the remaining membership is
 \[
   b_h\in M_h.
 \]
 The separating graph pairs to one with $b_h$ and annihilates $M_h$ in a
-hypothetical counterexample.  Theorems~\ref{thm:bad-predecessor}
-and~\ref{thm:clear-open-exclusion} leave exactly the two candidate ancestry
-patterns to be contradicted; Proposition
-\ref{prop:odd-spike-no-go} shows why the strictly earlier siblings cannot be
-omitted.
+hypothetical counterexample.  The issue is therefore not another scalar
+parity identity; it is compatible selection across correlated continuations.
 
-\section{Formal and computational evidence}\label{sec:evidence}
+\subsection{Sharp limits of local globalization}
 
-The game semantics and subsidiary results are formalized in Lean~4
-\cite{demouraullrich2021} using Mathlib \cite{mathlib2020}.  The file
-\texttt{formal/Ogdoad/Fifo.lean} defines the transition system, proves rank
-descent, determinacy, score translation, the singleton and edgeless bases,
-the conditioned close-first theorem, and the stopped empty-root theorem.  It
-also states \texttt{FifoLinkingTheorem} as a proposition; that declaration is
-not a proof of the proposition.
+The following statements are proved by explicit finite games or exact affine
+models.  They delimit, but do not refute, Conjecture~\ref{conj:factor}.
+\begin{enumerate}
+\item Every odd-winning state has a canonical full-state positional strategy.
+      Nevertheless, equal public states may lie on opposite score sheets,
+      and cycles in the quotient state graph can carry a nonzero edge label.
+\item The history-occurrence tree is acyclic and has injective edge boundary.
+      Hence an unlabelled tree or state-DAG cycle supplies no zero moment by
+      itself.
+\item A neutral isolated-dummy open/close square transports schedules exactly,
+      but deleting the dummy reverses the controller of the intervening real
+      events.  Root outcome values do not contain enough contextual data to
+      splice the two sides.
+\item A complete zero-prefix fan transports the affine unit into its
+      continuation residue.  Immediate fan completeness does not force an
+      earlier sibling to select the lag-removing close.
+\item Unrestricted equal-degree, zero-second-moment pair descent is false on
+      $K_{1,4}$.  This graph has no isolated vertex; adjoining an isolated
+      dummy repairs the displayed pair, but no dummy-conditioned induction is
+      known.
+\item No uniformly bounded number of terminal response vectors can witness
+      every required affine zero: causal simplex examples have unbounded
+      minimal odd support.
+\end{enumerate}
+Each item removes a tempting loss of information.  None constructs an
+arbitrary-order counterexample to FIFO linking.
 
-The file \texttt{formal/Ogdoad/FifoNormalization.lean} proves the queue-cut
-potential, live-star evaluation, the general two-open sum and its even/odd
-reply-fan corollaries, exclusion of close-first odd strategies at the
-isolated-dummy root, and the minimum-hot singleton-wall normal form.  Related
-modules formalize fixed-policy affine spaces and individual causal transports.
-These are subsidiary lemmas, not a single kernel-checked proof of
-Conjecture~\ref{conj:fifo}.
+\section{Formal verification and finite evidence}\label{sec:evidence}
 
-The exact graph-free Lean development proves that public-policy response sets
-are affine, that linear separators are represented by isolated-dummy graphs,
-and that the universal public-policy assertion is equivalent to the original
-conjecture.  The public-separator development proves the rank-minimal
-one-sheet recurrence, complete zero fan, live-dummy sibling, queued odd
-partner, legal CLOSE sibling, and the zero-increment law for later selected
-descendants.  These results isolate the queued-debt obstruction but do not
-eliminate it.
+The formal development uses Lean~4 \cite{demouraullrich2021} and Mathlib
+\cite{mathlib2020}.  Its mathematical boundary is summarized in
+Table~\ref{tab:formal}.
 
-The modules \texttt{FifoHub}, \texttt{FifoEmptyQueue}, \texttt{FifoOutcome},
-and \texttt{FifoOutcomeBlock} check the score-erased relabelling, live-star
-transport, exact block counts, four-valued debt involution, and circularity of
-stopping at already favorable complete-outcome exits.
-\texttt{FifoBlockInduction} checks a conditional strategy-splicing interface
-but does not prove its scalar/parity block premises.  The modules
-\texttt{FifoTreeTrace} and \texttt{FifoQPotential} certify small obstructions
-to the raw complete-leaf sum and to pointwise queue-cut normalization.  These
-negative interfaces narrow the required ancestry construction; they do not
-settle the root conjecture.
-The modules \texttt{FifoStrategyInteraction} and \texttt{FifoSelfPlay}
-kernel-check the two-policy diagonal and the score--turn-conjugate
-contradiction target.  They also certify that neutral dummy moves lack the
-required score defect and that a one-front-offset pair cannot be conjugate;
-these are self-play boundary theorems, not an end-to-end contraction.
-\texttt{FifoSeparatorFlow} proves that an odd zero-prefix fan retains
-separator value one in its continuation residue, and
-\nolinkurl{FifoThreeSiblingBoundary} gives the exact same-tree countermodel to
-the naive immediate third-sibling selector.
-\nolinkurl{FifoFunctionalDigraphBoundary} shows that adding genuine feeding
-in-trees to the selected first-seat cycles does not make incidence sufficient:
-an isolated-dummy separator evaluates every selected arc prefix to one.
-\texttt{FifoRootCongruence} proves the common-public-trace interaction across
-graphs and the resulting unit elementary-congruence row defect; it does not
-prove root-value invariance.
-The canonical-positional and state-DAG modules respectively prove full-state
-memoization and the nonzero-labelled positional square, so neither
-history-dependent continuation choice nor state-DAG incidence is being used
-as an unproved shortcut.  The last-charged-close module proves the exact
-decomposition and the survivor/neutral-suffix debt models.  The controlled
-descent modules eliminate a live dummy at a reachable rank-minimal controlled
-state, while a separate cold \emph{BothOdd}/\emph{BothEven} model refutes the
-inference from a separator minimum to such a controlled state.
-Finally, \texttt{FifoPairState} proves that every score-zero mover failure
-with an OPEN available forces a lower minimum-hot singleton wall with two real
-charged endpoints.  \nolinkurl{FifoStrategyBadAncestry} performs the minimum
-inside the supplied strategy, retains the exact root ancestry and complete
-parent fan, and kernel-excludes the neutral-CLOSE predecessor.
-\nolinkurl{FifoStrategyBadAncestryClear} excludes the clear-OPEN predecessor by
-combining its CLOSE sibling with every OPEN sibling.  The only surviving
-minimal-bad ancestries are the charged-CLOSE spike and protected singleton.
-The pair-Gaussian and zero-moment boundary modules formalize the two-bit
-selector and second moment.  Their kernel-transparent finite evaluations
-refute unrestricted zero-moment pair safety on $K_{1,4}$, show that this graph
-has no isolated dummy, and certify the displayed winning replies after
-adjoining one.  These results leave the isolated-dummy-conditioned pair
-assertion open.
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{p{0.27\textwidth}p{0.63\textwidth}}
+\hline
+Formal group & Kernel-checked content \\
+\hline
+Game semantics & Legal transitions, rank descent, determinacy, score
+translation, terminal and singleton tails, and edgeless boards. \\
+Affine/public duality & Strategy-indexed affine spaces, public-policy
+response spaces, separator reconstruction by isolated-dummy graphs, and the
+equivalence in Theorem~\ref{thm:public-duality}. \\
+Local contraction & Live-star and queue-cut identities, complete reply fans,
+front normalization, matching-plus-isolates, and close-first exclusion. \\
+Counterstrategy normal form & Public separator minimality, queued debt,
+canonical positional strategies, last-charged-close decomposition, and the
+two surviving cases of Theorem~\ref{thm:bad}. \\
+Boundary models & The exact failures of unlabelled state-DAG incidence,
+unrestricted pair descent, local third-sibling selection, score-only block
+splicing, and dummy deletion. \\
+\hline
+\end{tabular}
+\caption{Lean-checked content relevant to the FIFO frontier.}
+\label{tab:formal}
+\end{table}
 
-The executable oracle \texttt{experiments/linking\_game.py} implements the
-same state transition.  Exact minimax verifies Conjecture~\ref{conj:fifo} for
-every isomorphism class through eight real vertices after adjoining the
-isolated dummy, for either defender seat.  At eight real vertices this is
-$12{,}346$ graph classes, enumerated with the nauty toolchain whose algorithms
-are described in \cite{mckaypiperno2014}.  The script also checks the
-live-degree identities and the explicit obstruction schedules in this paper.
+The proposition named \texttt{FifoLinkingTheorem} in the formal development
+is a definition of the open target.  It is neither an axiom nor a theorem.
+No collection of the subsidiary modules is presented as a kernel-checked
+proof of Conjecture~\ref{conj:fifo}.  The formal project contains no
+\texttt{sorry}, \texttt{admit}, or custom axiom for this problem.
 
-A separate bounded five-minute exact-minimax run tested, but did not
-exhaust, the next two total orders.  On ten total vertices (nine real plus the
-dummy), it completed $3{,}742$ distinct labelled graphs: the sharp
-nine-real seed, all $36$ one-edge flips, all $7\cdot256$ one-new-real
-attachment extensions of seven order-eight no-dummy anti-mover seeds after
-global deduplication, and local mutations by one through four edges.  Every
-completed root was even-winning for both designated seats; none was
-both-seat odd-winning.  On eleven total vertices it completed $346$ of the
-$512$ sharp-seed-plus-one-real attachment patterns; four computations
-interrupted at the deadline were excluded.  Again every completed root was
-even-winning for both seats, and the most rigid cases were independently
-re-evaluated with \texttt{rigid\_values} equal to $[0,0]$.  No replay artifact
-or Lean certificate was retained for this bounded run, so these counts are
-reported only as tested evidence and carry no theorem status.
+The executable model performs exact minimax on the same transition system.
+With one isolated dummy adjoined, every nonisomorphic graph through eight
+real vertices is even-winning for either designated seat.  At eight real
+vertices the exhaustive layer contains $12{,}346$ graph classes, enumerated
+with the nauty toolchain \cite{mckaypiperno2014}.  This is an exact finite
+census, not a proof for arbitrary order.
 
-A separate exact root search found the following sharp selector witness on
-real vertices $0,\ldots,8$ with isolated dummy $d$:
+One exact nine-real-vertex example shows the sharpness of the first-seat
+selector.  On real vertices $0,\ldots,8$ take
 \[
 \begin{split}
 E=\{&01,02,03,04,05,06,07,08,13,15,25,28,34,35,36,37,38,\\
     &46,57,67,68,78\}.
 \end{split}
 \]
-After the attacker opens $0$, each real reply $1,\ldots,8$ is losing under
-unrestricted exact minimax; only the dummy reply wins.  Here $0$ has even
-degree, every other real vertex has odd degree, and the dummy is its unique
-same-parity mate.  The winning dummy child also has a direct certificate:
-the cells
+After the attacker opens $0$, every real reply loses under exact minimax;
+only the dummy reply wins.  That winning child also has the direct parity-cell
+certificate
 \[
-  \{0,d\},\ \{1,2\},\ \{3,8\},\ \{4,5\},\ \{6,7\}
+  \{0,d\},\quad\{1,2\},\quad\{3,8\},\quad\{4,5\},\quad\{6,7\}.
 \]
-have even edge count between every two distinct cells, so
-Theorem~\ref{thm:parity-cell} applies.  This is an exact finite witness, not a
-proof of the remaining root selector or of Conjecture~\ref{conj:fifo}.
-
-The census is a finite theorem about the tested orders only.  It neither
-constructs the causal factor extension nor bounds its support.  Proposition
-\ref{prop:simplex-cap} in fact proves that a uniformly bounded-support version
-is false.
+Thus even the first local selector can depend essentially on the dummy.  The
+example is not an arbitrary-order obstruction.
 
 \section{Conclusion}
 
-The isolated-dummy FIFO problem is exactly an affine response problem in a
-binary edge space, including at the graph-free public-policy level.  The
-scalar score, interval disjointness, live-star sum, and front-cut filtration
-are four forms of the same invariant.  Local reply fans contract, parity-cell
-and matching boards are solved, and close-first counterstrategies are
-excluded.  A rank-minimal public separator now exposes a complete zero-sheet
-fan and an exact unit debt in the old queue.  Independently,
-strategy-relative minimization proves the complete immediate-parent
-trichotomy and eliminates both the neutral-CLOSE and clear-OPEN cases.  The
-remaining reduction asks whether the resulting charged-CLOSE-spike or
-protected-singleton ancestry factor can always be extended.
+The isolated-dummy FIFO linking problem is exactly an affine response problem
+in the real binary edge space.  Interval disjointness, live-star sums,
+queue-cut parity, and front deletion are compatible descriptions of the same
+invariant.  They solve paired boards, exclude close-first strategies, and
+reduce any hypothetical counterstrategy to a precise ancestry-sensitive
+normal form.
 
-The remaining difficulty is not another parity identity.  It is causal:
-prefix cancellations must be lifted through branch-dependent continuation
-cosets, and explicit examples require several defender siblings and
-unbounded affine support.  Canonical full-state positionality does not erase
-the nonzero labels on state-DAG cycles; the last charged close need not name
-the queued debt; and a cold separator child need not enter the controlled
-descent class.  Zero-second-moment pair safety is likewise false without a
-dummy, while its isolated-dummy restriction has only a checked positive star
-instance and no closure theorem.  Proving the causal factor-extension
-conjecture, or constructing an arbitrary-order obstruction, is the complete
-current frontier.
+The remaining theorem is the causal factor extension.  A rank-minimal public
+separator leaves its parity partner as debt in the old queue, while a
+strategy-relative minimum leaves either a charged-close spike or a protected
+singleton.  The task is to select an odd family of strictly earlier defender
+siblings whose decorated prefixes and continuation directions cancel that
+debt.  Until such a factor is proved, or an arbitrary-order separated policy
+is constructed, Conjecture~\ref{conj:fifo} remains open.
 
 \bibliographystyle{plainnat}
 \bibliography{linking_affine}

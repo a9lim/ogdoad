@@ -24,81 +24,82 @@
 \newcommand{\wt}{\operatorname{wt}}
 \newcommand{\Span}{\operatorname{span}}
 
-\title{Quadratic Refinements in Normal Play:\\
-Realization and the Observation Boundary}
-\author{gpt-5.6-sol \and claude-fable-5 \and a9lim}
+\title{Quadratic Refinements in Combinatorial Games:\\
+Impartial Realization, Gold Forms, and Coherence Limits}
+\author{a9lim}
 \date{}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Let $V$ be a finite-dimensional vector space over $\F_2$, let $B$ be an
-alternating form, and let $Q$ be a quadratic refinement of $B$.  We construct
-an impartial normal-play arena whose loaded position at $x\in V$ is a
-$P$-position exactly when $Q(x)=0$.  The board and loading are independent of
-the refinement; each transition consults at most one value of $Q$ on a fixed
-coordinate vector.  A deterministic public Witt frame reduces the strategic
-graph to a matching, while weighted source pairs transport the diagonal of
-$Q$.  A pass-free FIFO strategy available to either seat forces every matched
-pair to overlap, and an impartial one-move tail compiles the resulting charge
-to normal play.
+Let $Q$ be a quadratic refinement of an alternating form on a finite
+$\F_2$-space.  We construct a uniform impartial normal-play arena whose
+loaded root at $x$ is a $P$-position precisely when $Q(x)=0$.  Its static
+board and loading depend only on the polar form and the input; each
+refinement-sensitive transition reads one coordinate value of $Q$.  A
+deterministic Witt frame reduces the interaction graph to a matching,
+weighted source pairs encode the diagonal, and a pass-free FIFO strategy
+forces the resulting charge before a one-move normal-play tail.
 
-The construction has optimal information complexity.  Any transcript-stable
-exact rule must observe directions spanning $x$.  If observations have
-coordinate weight at most $w$, at least $\lceil\wt(x)/w\rceil$ are necessary;
-block compression attains this bound for every $w\ge1$.  For the Gold forms
-$Q_a(x)=\Tr(x^{1+2^a})$ over finite nimber fields, nim multiplication,
-Frobenius, and trace supply the complete quadratic datum.  The Arf invariant
-is then the sign of the second-player win bias.  The oriented trace cocycle
-also gives a game-built Gold--Heisenberg extension whose squares recover
-$Q_a$ and whose commutators recover its polar form.
+The observation cost is optimal.  Every exact transcript-stable rule must
+query directions spanning $x$, and weight-$w$ queries therefore require at
+least $\lceil\wt(x)/w\rceil$ observations; block compression attains this
+bound.  For Gold trace forms over finite nimber fields, the construction is
+expressible through nim addition, nim multiplication, Frobenius, and trace,
+and the Arf invariant gives the exact bias of the losing set.  The same trace
+monomial defines a central Gold--Heisenberg extension whose squares and
+commutators recover the quadratic and polar forms.
 
-Two companion results delimit the construction.  Every
-$\mathbb Z/4$-valued Brown refinement is decoded by the four outcome classes
-of one intrinsic partizan selector.  Conversely, an ambient-coherent,
-coefficient-faithful Clifford datum on all short-game values collapses on
-torsion and, over common coefficient rings, vanishes entirely.  Lean checks
-the complete finite theorem chain: deterministic Witt framing and loading,
-the weighted-source root, the trace Gold extension and quaternion cell, the
-intrinsic partizan selector, and the ambient game-exterior obstruction.
+We also place the construction between two sharp boundaries.  A single
+partizan selector decodes every $\mathbb Z/4$-valued Brown refinement through
+its four outcome classes, whereas any coefficient-faithful Clifford datum
+coherent on all short-game values vanishes on torsion and collapses over the
+usual coefficient rings.  The finite realization and these boundary
+theorems are formalized in Lean.  The stronger FIFO statement for arbitrary
+graphs is not used.
 \end{abstract}
 
 \section{Introduction}
 
-Many classical impartial constructions produce linear losing sets.  Coin
-turning decomposes into nim heaps, error-correcting codes arise as kernels of
-Grundy maps, and lexicographic codes admit game-theoretic constructions
-\cite{berlekampconwayguy1982,fraenkel1996}.  The present problem is the
-quadratic analogue: given a quadratic refinement $Q$ of an alternating binary
-form, construct one uniform impartial rule whose $P$-set is the quadric
-$\{x:Q(x)=0\}$.
+Classical impartial constructions often realize linear losing sets: coin
+turning decomposes into nim heaps, kernels of Grundy maps produce codes, and
+lexicographic codes admit game-theoretic models
+\cite{berlekampconwayguy1982,fraenkel1996}.  We study the quadratic analogue.
+Given a quadratic refinement $Q$ of an alternating binary form, the objective
+is a single uniform normal-play rule whose losing loadings are exactly the
+quadric $\{x:Q(x)=0\}$.
 
-Without an access condition the problem is empty, since any finite subset can
-be made the set of sinks of an ad hoc acyclic game graph.  We therefore require
-the static arena and loading to be independent of the refinement and meter all
-refinement observations.  The construction meets the smallest per-transition
-budget: one query at one coordinate vector.  Its total observation support is
-also optimal, and the optimum persists when queries of larger coordinate
-weight are permitted.
+Uniformity needs an information model.  An arbitrary finite set could be
+declared terminal in a purpose-built acyclic graph, so the arena here is
+required to be independent of the refinement and every access to $Q$ is
+counted.  The construction uses one singleton query per
+refinement-sensitive transition.  Its complete query set is also optimal:
+exactness forces the observed directions to span the input.
 
-The motivating examples are the Gold trace forms
+The principal examples are the Gold trace forms
 \[
   Q_a(x)=\Tr_{\F_{2^m}/\F_2}(x^{1+2^a}).
 \]
-On a nimber field, addition is disjunctive sum, multiplication is Conway's nim
-product, Frobenius is diagonal multiplication, and trace is an iterated sum
-\cite{conway1976,lenstra1978}.  Thus both the input space and its quadratic
-form are assembled from game operations.  Gold functions originate in
-sequence design \cite{gold1968}; their ranks and Walsh spectra are standard
-objects in finite-field and coding theory \cite{hellesethkumar1998}.
+Over a finite nimber field, addition, multiplication, Frobenius, and trace
+are all built from nim operations \cite{conway1976,lenstra1978}.  Gold
+functions originate in sequence design \cite{gold1968}, and their ranks and
+Walsh spectra are classical finite-field invariants
+\cite{hellesethkumar1998}.  The realization therefore connects normal-play
+outcomes directly to Arf statistics and to a trace-defined central
+extension.
 
-The main theorem is a synthesis of finite-dimensional linear algebra, a
-matching strategy, and a fixed-tempo normal-play compiler.  The stronger
-isolated-dummy FIFO conjecture for arbitrary graphs is neither assumed nor
-proved: a Witt frame places every board used here in the matching-plus-isolates
-class.  This distinction is essential both mathematically and for the formal
-verification boundary recorded in Section~\ref{sec:formal}.
+Sections~\ref{sec:access}--\ref{sec:wittfifo} define the access model and
+prove the realization theorem.  Section~\ref{sec:observation} establishes
+the sharp observation lower bound.  Sections~\ref{sec:gold} and
+\ref{sec:heisenberg} specialize the construction to Gold forms.  The Brown
+selector of Section~\ref{sec:brown} extends the outcome encoding from one bit
+to $\mathbb Z/4$, while Section~\ref{sec:exterior} proves the obstruction to
+extending such finite constructions coherently across all short games.
+
+Only matching-plus-isolates boards occur in the proof.  The arbitrary-graph
+isolated-dummy FIFO conjecture is strictly stronger and plays no role in the
+realization theorem.
 
 \section{Quadratic and game-theoretic preliminaries}
 
@@ -734,96 +735,68 @@ finite nimber core and are not asserted to extend through all short-game
 inclusions.  The positive finite-field construction and the negative ambient
 theorem therefore address different naturality conditions.
 
-\section{Formal and executable boundary}\label{sec:formal}
+\section{Formalization and computational scope}\label{sec:formal}
 
-The companion Lean development checks the construction end to end:
+The Lean development accompanying Ogdoad \cite{ogdoad2026} formalizes the
+finite theorem chain at the following boundaries.
 \begin{itemize}
-\item \texttt{GoldDiagonal.lean}: quadratic-tower trace blocks, trace-dual
-      reconstruction, and the finite-field Artin--Schreier exact sequence;
-\item \texttt{SymplecticBasis.lean} and \texttt{WittFrame.lean}: a
-      complete recursive orthogonal decomposition, flattened to an actual
-      deterministic basis with a certified public partial matching;
-\item \texttt{FifoMatching.lean} and \texttt{ImpartialRealizer.lean}:
-      the matching safe-front strategy, exact even clock, and impartial tail;
-\item \texttt{PhysicalDeferred.lean} and \texttt{GoldArena.lean}:
-      active-coordinate loading, the public and refinement-weighted
-      matchings, literal second-opening and close charges, two ledger
-      conjugacies, and the literal-root P-position theorem;
-\item \texttt{GoldMatchingAlgebra.lean}: the independent adapted-basis
-      expansion and transported diagonal identity;
-\item \texttt{GoldNoEvaluator.lean} and
-      \texttt{GoldBlockCompression.lean}: the span lower bound and the induced
-      block instance attaining it;
-\item \texttt{GoldForkPadding.lean}: outcome-preserving unavoidable fork
-      padding;
-\item \texttt{GoldExtraspecial.lean} and
-      \texttt{GoldExtraspecialTrace.lean}: the generic cocycle group, the
-      actual field-trace/Frobenius Gold specialization, the cocycle-preserving
-      \((c,1)\) basis for every trace-one cardinality-four field, and the
-      resulting multiplicative equivalence from that Gold extension to
-      Mathlib's quaternion group; the endpoint is instantiated on Mathlib's
-      canonical \(\operatorname{GF}(4)\), with trace-one existence discharged;
-\item \texttt{BrownGame.lean} and
-      \texttt{BrownSelectorPGame.lean}: the Brown split and one finite
-      partizan game tree whose four recursively derived outcomes give the
-      displayed decoder;
-\item \texttt{GameExterior.lean}: the
-      \(\bigcap_k4^kR\) coefficient theorem, root-free two-primary
-      torsion collapse, and the named vanishing consequences.
+\item \texttt{SymplecticBasis}, \texttt{WittFrame}, and
+      \texttt{GoldMatchingAlgebra} prove the deterministic orthogonal
+      decomposition, its flattened public matching, and the
+      adapted-coordinate quadratic identity.
+\item \texttt{FifoMatching}, \texttt{ImpartialRealizer},
+      \texttt{PhysicalDeferred}, and \texttt{GoldArena} prove the safe-front
+      strategy, exact clock and tail, ledger conjugacies, and the literal-root
+      equivalence \texttt{gold\_literal\_root\_isP\_iff}.
+\item \texttt{GoldNoEvaluator}, \texttt{GoldBlockCompression}, and
+      \texttt{GoldForkPadding} prove the span lower bound, its sharp block
+      construction, and outcome-preserving fork padding.
+\item \texttt{GoldDiagonal}, \texttt{GoldExtraspecial}, and
+      \texttt{GoldExtraspecialTrace} prove the finite-field diagonal source,
+      the cocycle extension and its trace specialization, and the quaternion
+      cell over Mathlib's $\operatorname{GF}(4)$.
+\item \texttt{BrownGame}, \texttt{BrownSelectorPGame}, and
+      \texttt{GameExterior} prove the binary Brown split, intrinsic selector,
+      coefficient divisibility, and torsion-collapse consequences.
 \end{itemize}
-Moews's two-divisibility and two-primary torsion theorem for the additive
-group of short games remains the cited external input to
-\texttt{GameExterior.lean}; Lean proves every subsequent coefficient and
-vanishing implication from that hypothesis.
-The phase-aware compiler in \texttt{GoldSemantics.lean} is an
-independent comparison theorem but is not needed for the impartial tail used
-here.  The Lean sources and executable implementation are distributed with
-Ogdoad \cite{ogdoad2026}.
 
-Lean contains both transition systems.  The literal root has score zero;
-OPEN charges an edge exactly when its second endpoint opens and CLOSE charges
-the displayed public label.  Two involutive state encodings move respectively
-the remaining close labels and the unresolved edge weights into the deferred
-ledger.  Their step-conjugacy theorems transport complete normal-play strategy
-trees in both directions.  A separate ordered-edge calculation proves that
-the root potential is exactly the strategic cross term plus the singleton
-source term, while the close potential is exactly the adapted diagonal term.
-Thus \texttt{gold\_literal\_root\_isP\_iff} includes the concrete basis,
-original-frame transport, physical move rules, one public policy across all
-source weights, and the normal-play tail rather than assuming any composition.
+The literal realization theorem includes the computed Witt basis,
+transport from the displayed coordinate frame, the OPEN and CLOSE transition
+rules, a single public policy valid for every source weighting, and the
+normal-play tail.  It is therefore an end-to-end theorem about the concrete
+loaded root, not merely a collection of algebraic ingredients.  The
+phase-aware compiler in \texttt{GoldSemantics.lean} is an independent
+comparison surface and is not required by this proof.
 
-Mathlib's abstract finite fields are not definitionally identified with the
-Rust finite-nimber backend.  The Lean trace specialization proves the
-field-level theorem, while implementation agreement remains an executable
-cross-backend check rather than a premise of the mathematics.
+Two interfaces remain deliberately external.  Moews's theorem on the
+two-divisible, two-primary-torsion structure of the short-game group is a
+cited hypothesis of the game-exterior formalization.  Mathlib's abstract
+finite fields are not definitionally identified with the Rust finite-nimber
+backend, so agreement of concrete arithmetic representations is tested rather
+than assumed in Lean.
 
-The arbitrary-graph isolated-dummy FIFO proposition remains open.  It is a
-strict strengthening of Theorem~\ref{thm:matching}, not a missing hypothesis
-of Theorem~\ref{thm:realization}.  No finite computation or formal statement of
-that conjecture is used as a universal proof.
+Finally, \texttt{Fifo.lean} states but does not prove the isolated-dummy FIFO
+theorem for arbitrary graphs.  The present construction uses the proved
+matching-plus-isolates theorem only; no bounded census or open proposition is
+a premise of Theorem~\ref{thm:realization}.
 
 \section{Conclusion}
 
-Every finite binary quadratic refinement admits a uniform impartial
-normal-play realization with refinement-blind statics and one singleton query
-per refinement-sensitive transition.  A public Witt frame reduces the polar
-interaction to a matching, weighted source pairs transport the diagonal, a
-safe-front FIFO strategy forces the quadratic charge, and a fixed-tempo tail
-turns that charge into the $P/N$ distinction.  Exact transcript-stable
-realization requires observations spanning the input; the construction and
-its block compression attain the resulting
-$\lceil\wt(x)/w\rceil$ bound at every width.
+Finite binary quadratic refinements admit a uniform impartial realization
+with refinement-independent statics and one singleton query per sensitive
+transition.  The construction is exact, and its observation complexity is
+best possible at every permitted query width.  For Gold forms, nimber
+arithmetic supplies the full datum, the Arf invariant measures the losing-set
+bias, and the associated trace cocycle realizes the same form through group
+squares and commutators.
 
-For Gold forms, the entire datum is built from nimber operations.  A
-trace-dual Artin--Schreier source supplies every unscaled diagonal in even
-degree, the Arf invariant gives the exact zero-set bias, and the oriented trace
-cocycle gives a structural extension whose squares and commutators recover the
-quadratic and polar forms.  The Brown selector packages a mod-$4$ refinement
-into the four intrinsic partizan outcome classes.  At the opposite scale,
-ambient coherence across all short-game values forces coefficient-faithful
-Clifford data to collapse.  These results identify the viable finite-field
-construction and its precise global boundary without invoking the open
-arbitrary-graph FIFO conjecture.
+The partizan Brown selector and the ambient-coherence obstruction describe
+the two natural extensions of this result.  Modulo $4$, one game carries both
+binary components through its four outcomes.  Across the entire short-game
+group, however, divisibility and torsion force coefficient-faithful quadratic
+data to collapse.  The resulting picture is therefore sharp: finite-field
+quadratic structure has an exact game realization, while unrestricted
+value-level coherence does not.
 
 \small
 \bibliographystyle{plain}

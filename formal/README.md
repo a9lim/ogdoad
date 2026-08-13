@@ -1,167 +1,115 @@
 # Lean formalization
 
-`formal/` is a standalone Lean 4 project pinned by `lean-toolchain` and
-`lake-manifest.json`. It kernel-checks load-bearing algebraic and combinatorial
-ingredients from the live papers. It contains no `sorry`, `admit`, or custom
-`axiom` declarations.
+`formal/` is a standalone Lean 4 project pinned to Lean and Mathlib `v4.32.2`.
+`Ogdoad.lean` is the umbrella import. The imported development contains no
+`sorry`, `admit`, or custom `axiom` declarations.
 
 ```sh
 cd formal
 lake build --wfail
 ```
 
-The Rust implementation, finite-field arithmetic, external academic theorems,
-and paper-level compositions are not silently imported into Lean. Each group
-below states its boundary.
+Lean checks only the declarations in this project. Rust implementations,
+finite computations, source-backed data, cited theorems, and paper-level
+compositions are separate evidence unless a theorem below explicitly connects
+them. In particular, a declaration ending in `Target` or `Theorem` may merely
+*define* a proposition; inspect whether it is followed by a proof.
 
-## Closed algebraic results
+## Closed results
 
-| module | checked content | external or paper-level boundary |
+| area | modules | kernel-checked result and boundary |
 | --- | --- | --- |
-| `Off.lean`, `SymplecticBasis.lean`, `CharTwoClassification.lean` | exact Frobenius/Artin--Schreier plane lemmas, a complete recursive orthogonal symplectic basis, an explicit `QuadraticMap.IsometryEquiv` to the two coordinate normal forms, and the iff classification by ambient, polar-radical, and quadratic-radical dimensions | a set-sized algebraically closed characteristic-two field is the finite-form proxy for full `On_2`; Conway's proper-class field is not a Lean type |
-| `BrownGame.lean`, `BrownSelectorPGame.lean` | canonical `q = lift(ell)+2Q` split and converse, corrected polar form, two-divisible collapse, and one directly defined finite partizan game tree whose four normal-play outcomes decode `Z/4` | Moews's short-game group theorem remains an external cited input |
-| `GameExterior.lean` | the `intersection_k 4^k R` coefficient theorem, root-free two-primary torsion collapse, polarization, torsion-coset invariance, and the named four-zero and integral vanishing consequences | two-divisibility and two-primary torsion for short games are supplied by Moews's theorem |
-| `GoldDiagonal.lean` | quadratic-tower trace blocks, trace-dual reconstruction, Artin--Schreier lifting, and image-equals-trace-kernel over finite fields | concrete nim arithmetic and basis recursion remain in Rust |
-| `GoldExtraspecial.lean`, `GoldExtraspecialTrace.lean` | biadditive cocycle group, its actual field-trace/Frobenius Gold specialization, square/commutator/center laws, the `(c,1)` cocycle-preserving basis for every trace-one cardinality-four field, and an explicit multiplicative equivalence from the resulting Gold extension to Mathlib's quaternion group, instantiated on Mathlib's canonical `GF(4)` | identifying Mathlib finite-field operations with the Rust/nimber implementation is an executable cross-backend question |
+| characteristic-two quadratic forms | `Off`, `SymplecticBasis`, `WittFrame`, `CharTwoClassification` | Frobenius and Artin--Schreier plane reductions, a recursive orthogonal symplectic decomposition, a deterministic adapted basis, explicit canonical-form isometries, and classification by ambient, polar-radical, and quadratic-radical dimensions. A set-sized algebraically closed field is the formal proxy for each finite piece of Conway's proper-class `On_2`. |
+| game-valued obstructions and Brown selectors | `GameExterior`, `BrownGame`, `BrownSelectorPGame` | Root-divisibility forces the stated exterior/Clifford coefficients to vanish; Brown refinements split as `lift(ell) + 2Q`; one explicit finite partizan tree realizes the four Brown outcome classes. Moews's structure theorem for short games is a cited external input, not a Lean axiom. |
+| Gold sources and extensions | `GoldDiagonal`, `GoldExtraspecial`, `GoldExtraspecialTrace` | Quadratic-tower trace reconstruction, Artin--Schreier lifting and trace-kernel exactness, the universal cocycle group, the trace/Frobenius Gold specialization, and the order-eight quaternion cell over the canonical `GF(4)`. Lean's abstract finite fields are not definitionally identified with the Rust nimber backend. |
+| Gold--Arf arena | `FifoMatching`, `ImpartialRealizer`, `PhysicalDeferred`, `GoldMatchingAlgebra`, `GoldArena` | Both seats force zero on matching-plus-isolates boards; the pass-free compiler has exact tempo and charge semantics; literal and deferred ledgers are conjugate with strategy trees transported both ways. `GoldArena.gold_literal_root_isP_iff` is the end-to-end literal-root theorem for every finite binary quadratic refinement, public basis, and input. It does not use arbitrary-graph FIFO linking. |
+| realization bounds and comparison surfaces | `GoldNoEvaluator`, `GoldBlockCompression`, `GoldForkPadding`, `GoldSemantics` | Transcript-span and observation-weight lower bounds, induced block refinements, an outcome-preserving fork-padding obstruction, and an independent payoff-to-normal-play compiler. These are auxiliary theorems, not alternate end-to-end arena constructions. |
 
-## Gold--Arf realization ingredients
+## Arbitrary-graph FIFO linking: open
 
-| module | checked content |
-| --- | --- |
-| `FifoMatching.lean` | both-seat zero-flip strategy for matching-plus-isolates boards |
-| `ImpartialRealizer.lean` | pass-free transition, exact even clock, safe-front induction, and one-move charge tail |
-| `PhysicalDeferred.lean` | literal second-opening and close-charge transitions, two involutive ledger conjugacies, and bidirectional transport of complete normal-play strategy trees |
-| `GoldMatchingAlgebra.lean` | quadratic expansion in an adapted public Witt frame |
-| `WittFrame.lean` | deterministic flattening of the symplectic decomposition to an actual basis with a certified public partial matching |
-| `GoldArena.lean` | original-frame source, active-coordinate loading, public and weighted matching graphs, exact edge/close ledger totals, and `gold_literal_root_isP_iff` |
-| `GoldNoEvaluator.lean` | transcript-span and observation-weight lower bounds |
-| `GoldBlockCompression.lean` | induced block quadratic form and independent block indicators |
-| `GoldForkPadding.lean` | outcome-preserving unavoidable-fork padding |
-| `GoldSemantics.lean` | independent phase-aware terminal compiler retained as a comparison surface |
-
-`GoldArena.gold_literal_root_isP_iff` is the end-to-end realization theorem: for every
-finite binary quadratic refinement, ordered public basis, and input, the
-constructed loaded root is a `P`-position exactly when the quadratic value is
-zero. Its root score is zero; OPEN charges a weighted edge exactly when its
-second endpoint opens, and CLOSE charges the public strategic label. Lean
-proves that this literal tree is conjugate, state by state and strategy tree by
-strategy tree, to the deferred safe-front compiler, and separately proves that
-the root edge and close potentials are exactly the three quadratic ledgers.
-The public graph is independent of the refinement, and refinement-sensitive
-source edges read only the active original-basis singleton values.
-
-The Rust finite-field/nimber implementation is not definitionally equated to
-Mathlib's abstract finite fields. `GoldDiagonal.lean` checks the field-theoretic
-source construction, while runtime agreement remains covered by the separate
-executable verification surface.
-
-## Open FIFO linking frontier
-
-`Fifo.lean` defines the authoritative transition system, proves termination,
-strategy determinacy interfaces, queue and cut invariants, score translation,
-singleton tails, the edgeless case, and close-first contractions. It defines
+`Fifo.lean` defines the terminating FIFO game and proves its basic Bellman,
+rank, score-translation, queue-cut, singleton-tail, and stopped CLOSE-first
+theorems. It also defines
 
 ```lean
 FifoLinkingTheorem : Prop
 ```
 
-but does not prove or assume it.
-
-The companion modules isolate the exact remaining causal obstruction:
-
-| modules | role |
-| --- | --- |
-| `FifoStrategy`, `FifoAffine`, `FifoWinningRegion` | data-carrying policies, strategy-indexed affine response spaces, and exact Bellman saturation |
-| `FifoNormalization`, `FifoRootSelector` | complete local reply fans, close-first exclusion, and the asymmetric root-selector boundary |
-| `FifoCausal`, `FifoNeutralPair` | charged-close transport, dummy intervals, and ko-wall repair |
-| `FifoCrossDescent`, `FifoCrossClose`, `FifoMixedCross` | OPEN/OPEN, CLOSE/CLOSE, and mixed crossed descendants with their phase defects |
-| `FifoSameOpenBraid`, `FifoMinHotCurvature` | same-OPEN carrier and the surviving minimum-hot curvature |
-| `FifoDummyDeletion`, `FifoDummyExitCarrier` | exact dummy-deletion walls and the parent-plus-even-children carrier |
-| `FifoOuterFan`, `FifoProtectedFan`, `FifoCrossExitIncidence` | prefix-free fans and the residual continuation-incidence target |
-| `FifoInterlace`, `FifoSymmetry` | endpoint-word/local-complementation and turn/score symmetry limits |
-| `FifoHub` | score-erased schedule relabelling, live-star transport, transposition defects, and graph-congruence algebra; no root-value conjugacy |
-| `FifoEmptyQueue`, `FifoBlockInduction`, `FifoOutcome`, `FifoOutcomeBlock` | empty-to-empty block parity, conditional first-return splicing, exact four-valued score-debt transport, and the proof that stopping at complete favorable outcome sheets is equivalent to the original game; the scalar/parity mover premise is false |
-| `FifoOutcomeAlgebra`, `FifoOutcomeSwitch` | the four-valued sheet is not contextual under a ko-locked neutral pair; even a both-even dummy-free root has reversed active dummy orders with opposite outcomes for one seat |
-| `FifoTreeTrace`, `FifoQPotential` | kernel-checked obstructions to the raw complete-leaf sum and to pointwise queue-cut-potential normalization |
-| `FifoPairState` | every score-zero mover failure with an OPEN available yields a lower minimum-hot singleton wall whose charged endpoints are real; ancestry from the original strategy is not supplied |
-| `FifoStrategyBadAncestry`, `FifoStrategyBadAncestryClear` | minimize the residual target inside one exact odd strategy, retain root prefixes and the complete immediate parent fan, and reduce every minimal bad predecessor to the charged-CLOSE spike or protected-singleton case; the neutral-CLOSE and clear-OPEN cases are impossible |
-| `FifoFirstSeatRoot` | exact first-seat Bellman normal form: one chosen initial OPEN followed by the complete universal second-OPEN fan; the existence of such a winning opener remains open |
-| `FifoBadArcCycle`, `FifoFirstSeatStrategy` | one first-seat odd strategy supplies a fixed-point-free selected reply map with common-root ancestry; cycle prefixes cancel, but continuation augmentation still obstructs contraction |
-| `FifoFunctionalDigraphBoundary` | even cycles plus genuine feeding in-trees still admit an isolated-dummy separator evaluating every selected arc prefix to one; functional-digraph incidence alone cannot supply the odd contraction |
-| `FifoDummyFront` | exact neutral dummy-front commuting diamond and the necessary consumed-pair selector; opening the dummy first relocates rather than removes the real-pair obligation |
-| `FifoDummyFrontAffine` | the odd-order dummy-front legal fan is even and its projected OPEN-prefix sum is the surviving real star, which no local odd response point can equal; earlier ancestry is necessary |
-| `FifoStrategyInteraction`, `FifoSelfPlay` | complementary-seat odd policies share a compatible odd terminal, whereas same-seat policies at score-and-turn-conjugate states are impossible; dummy timing supplies only the controller phase and real-front curvature leaves a one-front/edge defect, so two-copy self-play still needs an earlier sibling |
-| `FifoSeparatorFlow`, `FifoThreeSiblingBoundary` | an odd zero-prefix fan retains separator value one in its continuation residue, and immediate fan completeness does not force any earlier OPEN sibling to select the lag-removing CLOSE; the missing repair must be an odd cross-coset incidence |
-| `FifoRootCongruence` | cross-graph strategy interaction produces one common public trace and moment; a winner change under an elementary graph congruence forces the exact row-defect functional to evaluate to one, rather than proving root-value invariance |
-| `FifoGaussianElimination`, `FifoPairGaussian` | exact elementary-congruence debt laws and a constructive parity mate behind a balanced FIFO pair; target-row timing, the dummy-first branch, and recursive moment closure remain unresolved |
-| `FifoPublicSeparatorAutomaton`, `FifoPublicSeparatorAncestry`, `FifoPublicSeparatorQueueDebt` | exact separator-sheet recurrence, a rank-minimal selected real OPEN while the dummy is live, and the resulting parity partner trapped in the existing queue rather than available in the child OPEN fan |
-| `FifoCanonicalPositionalOdd`, `FifoPositionalSelectedEdgeBoundary`, `FifoPositionalStateDAGBoundary` | canonical full-state positional odd strategies and their exact limit: equal concrete states share continuations, but Bellman optimality need not select either crossing edge, and quotient-DAG cycles can carry nonzero real-edge label |
-| `FifoLastChargedCloseBoundary` | every score-zero-to-one root prefix has a last unit-charged CLOSE and neutral suffix; exact initial-root public-policy occurrences realize both queued-debt interval orders, while ko legality or loss of the charge prevents same-score reconvergence; the whole initial policy is not asserted to be separator-one |
-
-Every theorem in these modules is subsidiary. None yet supplies the selection
-of compatible earlier siblings and continuation cosets in the two surviving
-minimal-bad ancestries. That causal factor extension is the mathematical
-frontier summarized in `docs/OPEN.md` and proved up to its exact boundary in
-`writeups/linking_affine.tex`.
-
-## Open Lenstra-excess frontier
-
-`Excess.lean` checks algebraic ingredients of the four-arm reduction:
-
-- the first-non-`p`-th-power interface and group-theoretic lower bound;
-- the corrected characteristic-two sparse norm;
-- exact cyclic-group and finite-field power criteria;
-- finite primality/order/factor screens used by replayable certificates;
-- two-face cross-ratio and three-face parity identities for the cubical
-  primitive-support coordinate in the multicomponent zero arm;
-- the two-prime coboundary identity placing the exceptional arm in that same
-  cubical primitive-support coordinate;
-- the polynomial common-root obstruction separating the cubic and exceptional
-  current characters, and the vanishing of the norm operator on a faithful
-  cubic character;
-- the Sidon-subset subgroup-cardinality bound underlying the selected Singer
-  large-factor sieve in the cubic arm;
-- the substitution and norm identities for the deterministic child of a
-  singleton-even primitive-order packet, together with its reciprocal
-  child-image equation;
-- the diagonal derivative of the singleton-even ancestry edge, which is the
-  algebraic core of the paper's etale-Jacobian calculation;
-- the signed Dickson--Lucas factorization underlying the exact tangency
-  obstruction for missing-prime extraction in that packet recursion;
-- the finite modular dot products modulo `23` and `23²` of the supplied
-  grouped half-sum coefficients, plus the supplied nonvanishing Euler-factor
-  product, for the actual-conductor `r = 11, a = 1, p = 23`
-  Stickelberger obstruction; the supplied binary cyclotomic-unit residue is
-  separately checked to have nontrivial phase `zeta23^4`, and the complete
-  unit product plus its `23`-adic primarity are replayed by the exact Python
-  certificate;
-- the distinct cubic and quadratic Laurent identities underlying the Conway
-  and Wiedemann symmetric-block recursions;
-- the denominator-free two-binomial power criterion underlying the selected
-  cubic M\"obius resultant;
-- polynomial, trace, norm, Frobenius, Kummer, and recurrence identities used
-  to reduce the selected `Z`, `O`, `C`, and `D` coordinates.
-
-It defines
+for arbitrary finite graphs with an isolated dummy. The proposition is not
+proved or assumed. `FifoPublicPolicyAffine` defines the graph-free target
+`UniversalPublicPolicyAffine`; `FifoPublicPolicyDuality` proves
 
 ```lean
-DPrimeTarget ... : Prop
+UniversalPublicPolicyAffine ↔ FifoLinkingTheorem
 ```
 
-as the universal exceptional-column target. The declaration is neither an
-axiom nor a proof. More generally, the Lean reductions recover selected order
-coordinates but do not prove their universal nonvanishing. External finite
-certificates and source-backed rows remain explicitly separate from kernel
-theorems. See `writeups/excess.tex` and `docs/OPEN.md`.
+so the public-policy affine problem is an exact reformulation, not a weaker
+sufficient condition. `FifoMatching` proves the matching-plus-isolates case
+used by `GoldArena`.
 
-## Build and review rules
+The FIFO modules are grouped below by their current role. Modules ending in
+`Boundary`, together with the small explicit countermodel modules, prove that
+a proposed inference fails; none is a counterexample to the initial
+isolated-dummy conjecture.
 
+| role | modules | checked content |
+| --- | --- | --- |
+| semantics and affine targets | `Fifo`, `FifoStrategy`, `FifoAffine`, `FifoPublicPolicyAffine`, `FifoPublicPolicyDuality` | Exact game semantics; data-carrying fixed policies; strategy-indexed and graph-free public affine response spaces; projection away from dummy coordinates; affine separation by an isolated-dummy graph. |
+| local causal calculus | `FifoCausal`, `FifoNormalization`, `FifoSymmetry`, `FifoCrossDescent`, `FifoCrossClose`, `FifoMixedCross`, `FifoSameOpenBraid`, `FifoDummyDeletion`, `FifoNeutralPair`, `FifoInterlace`, `FifoHub`, `FifoBlockReversalBoundary` | Live-star and queue-cut identities, stopped CLOSE-first exclusion, OPEN/OPEN and CLOSE/CLOSE transport, mixed and same-OPEN curvature, the exact two-wall dummy-deletion law, dummy-interval timing, relabelling, and the limits of local complementation or time reversal. |
+| fan and factor geometry | `FifoDummyExitCarrier`, `FifoCrossExitIncidence`, `FifoOuterFan`, `FifoProtectedFan`, `FifoRootSelector`, `FifoMinHotCurvature`, `FifoSeparatorFlow`, `FifoThreeSiblingBoundary`, `FifoProtectedFactorBoundary`, `FifoGlobalSpliceBoundary` | Prefix cancellation for complete fans, augmentation bookkeeping, the proved first-seat root selector, minimum-hot curvature, and exact local obstructions showing why a further earlier continuation coset is required. |
+| outcome and minimal-ancestry reductions | `FifoEmptyQueue`, `FifoBlockInduction`, `FifoOutcome`, `FifoOutcomeBlock`, `FifoOutcomeSwitch`, `FifoPairState`, `FifoStrategyBadAncestry`, `FifoStrategyBadAncestryClear`, `FifoProtectedBlockBoundary`, `FifoOddSpikeFactor`, `FifoOddSpikeDummyReply` | Empty-to-empty block parity, four-valued score-debt transport, exact stopped-strategy splicing, and minimization inside one odd policy. The clear-OPEN and neutral-CLOSE predecessors are excluded; the charged-CLOSE spike and protected-singleton predecessors retain a nonlocal factor obligation. |
+| root, parity, and controlled-policy routes | `FifoFirstSeatRoot`, `FifoFirstSeatStrategy`, `FifoBadArcCycle`, `FifoFunctionalDigraphBoundary`, `FifoDummyFront`, `FifoDummyFrontAffine`, `FifoParitySeat`, `FifoParitySeatCloseFirst`, `FifoParityCounterNormal`, `FifoParitySeatDeviationBoundary`, `FifoParityControlledRoot`, `FifoControlledDivergence`, `FifoSingletonForkBoundary`, `FifoLiveDummyOpenFork`, `FifoCommonDummyEventBoundary` | Exact first-seat Bellman form and common-root reply map, parity-seat fan reductions, score-coupled policy divergence, and elimination of local singleton or distinct-OPEN minima. Functional-digraph, dummy-front, and leafmost-deviation data do not select the missing correlated sibling. |
+| Gaussian and pair routes | `FifoRootCongruence`, `FifoGaussianElimination`, `FifoPairGaussian`, `FifoPairZeroMomentSafety`, `FifoPairZeroMomentNormal`, `FifoPairZeroMomentAdjacentBoundary`, `FifoCongruenceOutcomeBoundary`, `FifoConsumedDummyShearBoundary` | Exact graph-shear debt laws and constructive parity mates. Every alleged zero-moment-pair counterstrategy has a smaller score-zero descendant, but the condition is not recursively preserved; FIFO outcome is not an alternating-form congruence invariant. |
+| positional and separator normal forms | `FifoCanonicalPositionalOdd`, `FifoPositionalSelectedEdgeBoundary`, `FifoPositionalStateDAGBoundary`, `FifoPublicPolicyTopologyBoundary`, `FifoPublicSeparatorAutomaton`, `FifoPublicSeparatorAncestry`, `FifoPublicSeparatorQueueDebt`, `FifoSeparatorBadSynchronizationBoundary`, `FifoSeparatorControlledBridgeBoundary`, `FifoLastChargedCloseBoundary` | Canonical full-state positional policies, exact one-bit separator recurrence, and the rank-minimal selected real OPEN. Its parity partner is already queued debt; history trees, state-DAG cycles, and controlled-outcome descent do not by themselves cancel it or synchronize it with the last charged CLOSE. |
+| additional exact route limits | `FifoTreeTrace`, `FifoPublicPrefixQueueCutBoundary`, `FifoPublicQueueCutCounterexample`, `FifoCellSwapOutcomeBoundary`, `FifoConsumedDummyBoundary`, `FifoDistinctOpenForkBoundary`, `FifoRootGadgetBoundary`, `FifoPrivateLeafBoundary` | Exact finite Bellman certificates and structural no-go theorems rule out a raw complete-leaf sum, ancestry-local queue-cut targets, cell-swap outcome transport, reachability-only controlled descent, and purely local root-gadget or private-leaf repairs. |
+
+The remaining theorem is global and ancestry-sensitive. At a rank-minimal
+separator-one occurrence, the selected real `OPEN` enters a complete
+separator-zero fan while its separator-odd partner is trapped in the existing
+queue. A proof must relate that debt to the last charged `CLOSE` on the path
+from the initial root and select an odd family of earlier defender siblings
+whose prefixes and continuation cosets cancel the residual real-edge class.
+It must cover both FIFO orders: the debt vertex may survive behind the charged
+front or may open in the later neutral suffix. No current module supplies that
+selection. See `../docs/OPEN.md` and `../writeups/linking_affine.tex`.
+
+## Finite Lenstra excess: open
+
+The module `Excess` (`Excess.lean`) proves algebraic ingredients of the
+four-arm `Z/O/C/D` reduction, including:
+
+- exact finite-cyclic-group and finite-field power/order criteria;
+- the corrected characteristic-two sparse norm;
+- trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, and cubical-support
+  identities used by the selected-order reductions;
+- transparent finite primality, factor, modular, and order screens for the
+  rows explicitly encoded in the file.
+
+The file defines `SelectedLogUnitTarget`, `ExceptionalColumnTarget`, and
+`DPrimeTarget`. These declarations expose universal propositions; they do not
+assume or prove them. `DPrimeTarget` is the exceptional `2 * 3^k`-column
+divisibility target, not the full universal `0/1/4` theorem. Source-assisted
+factor data and Python certificates remain external evidence.
+
+For a nonzero element of a finite field, the relevant obstruction is the
+exact Euler test
+
+```text
+beta^((|F^×|)/p) != 1.
+```
+
+Merely proving `p | order(beta)` loses the required primary valuation when
+the ambient order contains a higher power of `p`. The selected Conway phase
+is still the missing datum in each universal arm. See `../docs/OPEN.md` and
+`../writeups/excess.tex`.
+
+## Review contract
+
+- Keep `Ogdoad.lean` synchronized with the intended build surface.
 - Keep the project warning-clean and placeholder-free.
-- Prefer transparent definitions and ordinary `decide` when finite evaluation
-  remains practical; use stronger evaluators only with a documented reason.
-- State external inputs as theorem parameters or paper assumptions, not custom
-  axioms.
-- When a paper claim changes, update this theorem map and the paper's formal
-  verification section together.
-- A passing `lake build` verifies only the declarations actually present. It
-  does not validate a prose composition that has not been encoded.
+- Prefer transparent definitions and ordinary `decide` for finite proofs when
+  practical; document any stronger evaluator.
+- State cited inputs as theorem parameters or paper hypotheses, never as
+  custom axioms.
+- Update this map when a theorem boundary changes. A successful build proves
+  only the declarations present, not an unencoded prose synthesis.

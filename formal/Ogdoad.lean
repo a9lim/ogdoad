@@ -8,7 +8,6 @@ import Ogdoad.FifoSymmetry
 import Ogdoad.FifoNormalization
 import Ogdoad.FifoStrategy
 import Ogdoad.FifoAffine
-import Ogdoad.FifoWinningRegion
 import Ogdoad.FifoCrossDescent
 import Ogdoad.FifoCrossClose
 import Ogdoad.FifoMixedCross
@@ -25,11 +24,9 @@ import Ogdoad.FifoMinHotCurvature
 import Ogdoad.FifoHub
 import Ogdoad.FifoEmptyQueue
 import Ogdoad.FifoTreeTrace
-import Ogdoad.FifoQPotential
 import Ogdoad.FifoBlockInduction
 import Ogdoad.FifoOutcome
 import Ogdoad.FifoOutcomeBlock
-import Ogdoad.FifoOutcomeAlgebra
 import Ogdoad.FifoOutcomeSwitch
 import Ogdoad.FifoPairState
 import Ogdoad.FifoStrategyBadAncestry
@@ -40,8 +37,6 @@ import Ogdoad.FifoFirstSeatStrategy
 import Ogdoad.FifoFunctionalDigraphBoundary
 import Ogdoad.FifoDummyFront
 import Ogdoad.FifoDummyFrontAffine
-import Ogdoad.FifoStrategyInteraction
-import Ogdoad.FifoSelfPlay
 import Ogdoad.FifoSeparatorFlow
 import Ogdoad.FifoThreeSiblingBoundary
 import Ogdoad.FifoRootCongruence

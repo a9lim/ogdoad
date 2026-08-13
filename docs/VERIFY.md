@@ -1,121 +1,101 @@
-# Verification and evidence contract
+# Verification and evidence
 
 ## Claim classes
 
-Every mathematical statement in code or prose should be identifiable as one
-of:
-
-| class | acceptable support |
+| class | required support |
 | --- | --- |
-| standard/cited | an academic source cited at the point of use |
-| implemented and tested | deterministic tests, property tests, or exact replayable certificates |
-| proved here | a complete paper proof, with the Lean-covered subset stated separately |
-| open | an explicit statement in `OPEN.md` |
+| standard/cited | an academic source cited where the result is used |
+| implemented and tested | deterministic tests, property tests, or a replayable exact certificate |
+| proved here | a complete mathematical proof, with the Lean-covered subset stated separately |
+| open | an exact statement in [`OPEN.md`](OPEN.md) |
 
-A finite census, experiment, source-backed table, or Lean definition of a
-conjecture never moves a statement into the proved class.
+Finite censuses, bounded searches, external tables, and Lean definitions of
+propositions do not prove universal claims.
 
-## Authoritative gates
+## Repository gates
 
 ```sh
 cargo fmt --all --check
 cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
+```
+
+For changes to `src/py/` or a core API used by Python:
+
+```sh
 cargo check -p ogdoad --features python
 cargo clippy -p ogdoad --features python --all-targets -- -D warnings
 python scripts/generate_stubs.py --check
+```
+
+For Lean or load-bearing proof claims:
+
+```sh
 (cd formal && lake build --wfail)
+```
+
+For papers or bibliographies:
+
+```sh
 npm ci
 python scripts/check_writeups.py
 ```
 
-The scalar and Clifford property suites live in `tests/`. Increase
-`OGDOAD_PROPTEST_CASES` for deeper fuzzing. Product changes must exercise the
-`associativity_*` tests and the independent word-reduction oracle.
+`check_writeups.py` compiles each paper, rejects unresolved citations and
+overfull boxes, converts it to standalone HTML, and renders every math fragment
+with the pinned KaTeX version. The `.tex` source is authoritative; tracked PDFs
+are regenerated artifacts and must also receive page-level visual review.
 
-## Exactness and representation
+## Representation contracts
 
-| surface | contract |
+| surface | exact boundary |
 | --- | --- |
-| exact scalar markers | full ring/field laws within fixed-width overflow limits |
-| `Qp`, `Qq`, Laurent, ramified, Gauss, `Adele`, and runtime `LocalQp` | capped precision; cancellation can lose associativity at the represented boundary |
-| `Surreal` | exact finite-support expressions; unrepresentable infinite expansions return `None` |
-| `Nimber` | exact `F_{2^128}` arithmetic |
-| `Ordinal` | exact within the checked Kummer window; checked `nim_mul` returns `None` outside it, while `Scalar::mul` panics on ignored escape |
-| bounded searches | report budget/exhaustion separately from mathematical truth |
+| exact scalar markers | full laws within fixed-width overflow limits |
+| valued/local models | capped precision; cancellation may lose represented associativity at the boundary |
+| `Surreal` | exact finite-support expressions only |
+| `Nimber` | exact `F_(2^128)` arithmetic |
+| `Ordinal` | exact inside the checked Kummer window; checked multiplication refuses escape |
+| bounded search | budget and exhaustion are reported separately from mathematical truth |
+
+The `associativity_*` tests and
+`general_product_reproduces_reduce_word_when_a_empty` are the independent
+product oracles. New generic operations should add a focused test before broad
+suite verification.
 
 ## Lean boundary
 
-`formal/` contains no `sorry`, `admit`, or custom `axiom`. Its modules fall into
-four groups:
+The standalone `formal/` project contains no `sorry`, `admit`, or custom
+`axiom`. It proves named finite constructions and algebraic reductions. It does
+not prove `FifoLinkingTheorem`, the universal excess rule, or an end-to-end
+theorem merely by defining their propositions. The current theorem and module
+map is [`../formal/README.md`](../formal/README.md).
 
-- `Off`, `SymplecticBasis`, and `CharTwoClassification` construct an explicit
-  isometry to the complete finite-dimensional perfect
-  Artin--Schreier-surjective normal form and prove the iff classification by
-  the ambient, polar-radical, and quadratic-radical dimensions.
-- `BrownGame`, `BrownSelectorPGame`, and `GameExterior` prove the intrinsic
-  partizan decoder and the full coefficient/torsion obstruction; Moews's
-  structure theorem for the additive group of short games remains a cited
-  external input.
-- `GoldDiagonal`, `FifoMatching`, `ImpartialRealizer`, `PhysicalDeferred`,
-  `GoldMatchingAlgebra`, `WittFrame`, `GoldArena`, `GoldNoEvaluator`,
-  `GoldBlockCompression`, `GoldExtraspecial`, `GoldExtraspecialTrace`,
-  `GoldForkPadding`, and `GoldSemantics` prove the Gold theorem chain.
-  `GoldArena.gold_literal_root_isP_iff` is the single literal loaded-root
-  realization theorem; `gold_root_isP_iff` is its deferred compiler endpoint.
-  The trace specialization proves that `(c,1)` carries its actual Gold cocycle
-  to the coordinate anisotropic cocycle, then composes this identification
-  with an actual multiplicative equivalence to Mathlib's quaternion group. A
-  final definition instantiates the result on Mathlib's canonical `GF(4)` and
-  a proved-existing trace-one scale.
-- `Fifo*` formalizes the open FIFO transition system, reductions, local
-  contractions, and obstructions. `FifoLinkingTheorem` remains a proposition.
-  `Excess` proves reduction algebra and exact finite criteria;
-  `DPrimeTarget` remains a proposition.
+## Maintained experiments
 
-See `formal/README.md` for the per-module map.
+The maintained scripts have narrow roles:
 
-## Python and experiments
+- `linking_game.py` and `echo_solver.py`: FIFO executable oracle, minimax, and
+  cross-checks;
+- `gold_form_from_games.py`, `trace_form_arf.py`, and `under_descent.py`:
+  independent checks for the solved Gold and thermic constructions;
+- `ordinal_excess_probe.py`, `cyclotomic_3k_family.py`,
+  `exception_column_m4.py`, `fermat_selected_screen.py`, and
+  `cubic_two_normal_countermodel.py`: bounded excess screens or explicit
+  non-Conway countermodels;
+- `ordinary_*_certificate.py` and `ordinary_359_full_conductor.py`: exact
+  named-row certificates, with resource requirements stated in each script;
+- `experiments/certificates/`: versioned binary payloads consumed by those
+  certificate verifiers.
 
-The maintained Python surface is:
+These programs support only the claims documented in their module docstrings.
 
-- `demo.py` and `scripts/generate_stubs.py`;
-- top-level `experiments/*.py`, each with its own guards and documented budget;
-- exact certificate payloads and their local verifiers under
-  `experiments/certificates/`.
+## Curated data
 
-`experiments/gold/`, `experiments/excess/`, and `experiments/audit/` are
-exploratory archives. They are not imported by the package, not run by CI, and
-not authoritative for current theorem statements. Promote a useful result by
-moving a guarded, documented implementation to the maintained top level and
-adding a test or paper reference.
-
-## Curated production data
-
-These tables are intentional because they encode named finite objects,
-factored arithmetic, or compile-time API vocabulary:
-
-| data | source |
-| --- | --- |
-| factors of `2^128-1` used for nimber orders | `src/scalar/finite_field/nimber/galois.rs` |
-| finite Lenstra excess rows and certified extensions | `src/scalar/big/ordinal/tower.rs` |
-| named binary and ternary code generators | `src/forms/integral/codes.rs` |
-| exceptional ADE diagrams, determinants, Coxeter and Weyl orders | `src/forms/integral/root_lattices.rs`, `src/forms/integral/niemeier.rs` |
-| Niemeier root/glue/automorphism catalogue | `src/forms/integral/niemeier.rs` |
-| exceptional lattice/Clifford automorphism orders | `src/forms/integral/` |
-| real Clifford and rational Brauer--Wall mod-eight cases | `src/forms/char0.rs`, `src/forms/witt/` |
-| finite loopy-value names | `src/games/loopy/` |
-| Python const-generic dispatch cells and aliases | `src/py/catalog.rs`, `src/py/forms.rs`, `src/py/games.rs` |
-
-Closed-form Hilbert factors, generated Reed--Muller matrices, Bernoulli-derived
-Eisenstein constants, blade signs, and linear-algebra reductions are not
-curated tables and should remain computed.
-
-## Paper artifacts
-
-Each live `writeups/<name>.tex` has a matching `<name>.bib`. The TeX source is
-the authority; the tracked PDF is regenerated from it. `check_writeups.py`
-also creates untracked standalone HTML in `target/writeups/html/` with
-Pandoc's citation processor and `--katex`, then rejects unresolved citations,
-LaTeX errors, and raw unsupported math commands.
+Named finite objects and source-backed arithmetic tables remain data when
+recomputing them is either meaningless or prohibitively expensive. Current
+examples include nimber-order factors, finite Lenstra rows and certificates,
+named code and lattice catalogues, ADE and Niemeier data, real Clifford and
+Brauer--Wall cases, finite loopy values, and Python dispatch cells. Generated
+matrix reductions, blade signs, Hilbert factors, and closed-form coefficients
+should remain computed rather than copied into tables.

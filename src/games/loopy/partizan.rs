@@ -773,7 +773,7 @@ mod tests {
     // This test-side oracle deliberately does not call the production retrograde
     // solver. It enumerates both players' memoryless strategies, plays each pair
     // to a terminal state or repeated turn-state, and applies the force-win
-    // quantifiers directly (the Rust port of the loopy_audit2.py lineage).
+    // quantifiers directly, independently of the production solver.
     #[test]
     fn retrograde_matches_independent_strategy_oracle_on_seeded_small_graphs() {
         const GRAPH_COUNT: usize = 256;

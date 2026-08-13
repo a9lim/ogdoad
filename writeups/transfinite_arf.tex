@@ -31,49 +31,44 @@
 \maketitle
 
 \begin{abstract}
-Let $K$ be a perfect field of characteristic $2$ for which the
-Artin--Schreier map $x\mapsto x^2+x$ is surjective.  Every nonsingular
-finite-dimensional quadratic form over $K$ is hyperbolic, and therefore
-$W_q(K)=0$.  More generally, every quadratic form is classified by
+Let $K$ be a perfect field of characteristic $2$ with surjective
+Artin--Schreier map.  Every nonsingular finite-dimensional quadratic form over
+$K$ is hyperbolic, so $W_q(K)=0$.  More generally, every quadratic form is
+classified by
 \[
   \bigl(\dim V,\dim\rad B,\dim\rad Q\bigr),
 \]
 where $B$ is the polar form and
-$\rad Q=\{x\in\rad B:Q(x)=0\}$.  Conway's full field of nimbers
-$\On$ is algebraically closed of characteristic $2$, so the theorem applies
-to $\On$: there is no transfinite Arf coordinate, and the Clifford class of
-every nonsingular form is split.  Finite-field Arf invariants remain valid
-relative invariants over a declared finite nim-subfield, but scalar extension
-from $\F_{2^d}$ to $\F_{2^{2d}}$ kills them.  We conclude by separating this
-full-field theorem from computations in a partial ordinal-nimber backend,
-which neither represents all of $\On$ nor constructs every required root.
+$\rad Q=\{x\in\rad B:Q(x)=0\}$.  Conway's full nimber field $\On$ satisfies
+these hypotheses.  Consequently it has no additional transfinite Arf
+coordinate, and the Clifford--Brauer--Wall class of every nonsingular form is
+split.  Over a declared finite nim-subfield, the ordinary Arf invariant
+remains meaningful, but it vanishes after scalar extension from
+$\F_{2^d}$ to $\F_{2^{2d}}$.  The classification is formalized in Lean over
+set-sized fields; computations in the partial ordinal backend retain an
+explicitly finite-subfield-relative meaning.
 \end{abstract}
 
 \section{Introduction}
 
-Nim addition and nim multiplication make the class of ordinals into
-Conway's algebraically closed field $\On$ of characteristic $2$
+Nim addition and nim multiplication make the ordinals Conway's
+algebraically closed field $\On$ of characteristic $2$
 \cite{conway1976,lenstra1978}.  Quadratic-form invariants over finite nimber
 fields therefore raise a natural base-change question: what remains of the
 Arf invariant after extension to the full nimber field?  The answer is that
-the nonsingular invariant vanishes.  The singular theory retains only polar
-rank and one radical flag.
+every nonsingular form becomes hyperbolic.  A singular form retains only its
+polar rank and the distinction between zero and nonzero restriction to the
+polar radical.
 
-This conclusion is an application of standard characteristic-$2$ quadratic
-form theory \cite{arf1941,baeza1978,elmankarpenkomerkurjev2008}.  Its role
-here is to identify the correct ground field and to separate two assertions
-that should not be conflated:
-\begin{enumerate}
-\item over full $\On$, every required square root and Artin--Schreier root
-      exists, so the classification is complete;
-\item a finite implementation of ordinal nim arithmetic may classify a form
-      over a certified finite subfield without being able to construct the
-      isometry over $\On$.
-\end{enumerate}
-Set-sized quadratically closed initial segments of the nimbers have also been
-studied in \cite{lenstra1977,risnoveanu2026}; the theorem below
-requires only the field hypotheses stated explicitly and then uses algebraic
-closure for the full-$\On$ corollary.
+The proof is a direct form of standard characteristic-$2$ quadratic-form
+theory \cite{arf1941,baeza1978,elmankarpenkomerkurjev2008}.  Artin--Schreier
+surjectivity hyperbolizes every nonsingular plane, while perfection turns the
+quadratic restriction to the polar radical into the square of a linear
+functional.  These two observations yield the complete normal form in
+Section~3.  Section~4 explains the base change from finite nimber fields, and
+Section~5 records the Clifford consequence.  Set-sized quadratically closed
+nimber fields are studied in \cite{lenstra1977,risnoveanu2026}; only the two
+displayed field hypotheses are needed for the classification itself.
 
 \section{Quadratic forms in characteristic two}
 
@@ -172,7 +167,7 @@ Injectivity of Frobenius gives uniqueness.  If $\ell\ne0$, choose a basis in
 which $\ell$ is the first coordinate.
 \end{proof}
 
-\section{Classification over an Artin--Schreier-surjective field}
+\section{The classification theorem}
 
 \begin{theorem}\label{thm:classification}
 Let $K$ be a perfect field of characteristic $2$ with surjective
@@ -237,7 +232,7 @@ subfield of $\On$.  Thus the corollary does not require performing linear
 algebra over a proper-class carrier.
 \end{remark}
 
-\section{Finite nim-subfields and the Arf invariant}
+\section{Finite nim-subfields and base change}
 
 Let $K_d=\F_{2^d}\subset\On$.  For a nonsingular quadratic form over $K_d$,
 the Arf class lies in
@@ -268,7 +263,7 @@ vanishing of the colimit.
 
 For example, the plane with $Q(e)=Q(f)=B(e,f)=1$ is anisotropic over $\F_2$.
 If $t^2+t+1=0$ in $\F_4$, then $te+f$ is isotropic, so the same plane is
-hyperbolic over $\F_4$.  The original Arf bit correctly records failure to
+hyperbolic over $\F_4$.  Its Arf bit correctly records failure to
 split over $\F_2$; it is not invariant under unrestricted scalar extension.
 
 \section{Clifford consequence}
@@ -295,56 +290,44 @@ For singular $Q$, the full Clifford algebra need not be graded central simple,
 so the singular radical flag in Theorem~\ref{thm:classification} is
 quadratic-form data rather than a Brauer--Wall coordinate.
 
-\section{Executable and formal boundary}
+\section{Formalization and computational scope}
 
-The mathematical theorem concerns full $\On$.  Ogdoad's executable
-\texttt{Ordinal} scalar is instead a partial, checked representation of an
-initial Kummer region.  Its multiplication rejects computations that leave
-the verified window.  For a finite metric, the routine
-\texttt{ordinal\_common\_finite\_}\allowbreak
-\texttt{subfield\_degree} returns a common finite
-degree only when the necessary excess data and checked degree arithmetic are
-available.  The finite-field Arf and Brauer--Wall reports are then relative
-to that recorded degree, exactly as Proposition~\ref{prop:finite-extension}
-requires.
+The companion Lean development \cite{ogdoad2026} proves the
+finite-dimensional classification over an arbitrary set-sized field with the
+hypotheses of Theorem~\ref{thm:classification}.  The division of work is:
+\begin{itemize}
+\item \texttt{Off.lean} proves the plane-splitting and zero-polar lemmas;
+\item \texttt{SymplecticBasis.lean} constructs a recursive orthogonal
+      symplectic basis;
+\item \texttt{CharTwoClassification.lean} assembles the basis changes into
+      explicit quadratic isometries and proves the converse classification by
+      the two radical dimensions.
+\end{itemize}
+Thus the two normal forms, their direct-sum witnesses, and the converse
+classification by radical dimensions are kernel-checked.  Algebraic closure
+is used only to specialize the field hypotheses.  Lean does not encode the
+proper-class carrier of all nimbers or identify Mathlib field operations with
+Ogdoad's concrete arithmetic.
 
-None of these routines asserts that the represented scalar is algebraically
-closed.  Nor do they promise to construct the square roots and
-Artin--Schreier roots used by Theorem~\ref{thm:classification}.  A failure to
-produce an in-window witness is therefore an implementation boundary, not a
-third mathematical isometry class.
-
-The companion Lean development, distributed with Ogdoad
-\cite{ogdoad2026}, checks the full finite-dimensional theorem over a
-set-sized field.  \texttt{Off.lean} proves the exact plane and radical
-lemmas.  \texttt{SymplecticBasis.lean} constructs the recursive orthogonal
-basis.  \texttt{CharTwoClassification.lean} assembles an explicit
-\texttt{QuadraticMap.IsometryEquiv} from the original form to the coordinate
-normal form.
-The formal hypotheses are exactly perfection and Artin--Schreier
-surjectivity.  Every nondegenerate plane is hyperbolized within the same span,
-and the terminal polar radical is proved to be either $0^{\perp s}$ or
-$\langle x^2\rangle\perp0^{\perp(s-1)}$.  The returned object contains
-every direct-sum witness and every basis change.  It computes the dimensions
-of the polar and quadratic radicals of the coordinate form, proves those
-dimensions invariant under isometry, and kernel-checks the converse in
-\texttt{equivalent\_iff\_dimension\_radicals\_eq}; hence the final iff clause
-of Theorem~\ref{thm:classification} is formalized as stated.  The
-algebraically closed theorem is an immediate specialization.  The development does not encode
-Conway's proper-class field or identify Mathlib field operations with the
-partial Rust arithmetic.
+The executable \texttt{Ordinal} scalar is a checked partial representation of
+an initial Kummer region, not an algebraically closed field.  For a finite
+metric, \texttt{ordinal\_common\_finite\_subfield\_degree} returns a common
+finite degree only when the necessary excess data and degree arithmetic are
+available.  Arf and Brauer--Wall reports are then relative to that recorded
+finite field, as Proposition~\ref{prop:finite-extension} requires.  Rejection
+outside the verified arithmetic window does not define an additional
+quadratic-form class.
 
 \section{Conclusion}
 
-Perfectness and Artin--Schreier surjectivity remove the nonsingular
-characteristic-$2$ obstruction completely.  Over full $\On$, every
-nonsingular quadratic form is hyperbolic, $W_q(\On)=0$, and its associated
-Clifford class is split.  A singular form retains only the dimensions of its
-polar and quadratic radicals.  Finite-field Arf bits remain meaningful when
-their finite ground field is recorded, but they vanish after a quadratic
-field extension and hence in the directed limit.  This field-theoretic
-classification is independent of whether a partial ordinal backend can
-construct the corresponding change of basis.
+Perfectness and Artin--Schreier surjectivity remove every nonsingular
+characteristic-$2$ obstruction.  Over $\On$, all nonsingular forms are
+hyperbolic, $W_q(\On)=0$, and their Clifford classes split.  Singular forms
+retain exactly the polar- and quadratic-radical dimensions.  Finite-field Arf
+bits are valid relative invariants, but every such class dies after a
+quadratic extension and hence in the directed limit.  The full-field theorem
+and the finite executable interface therefore agree once their different
+ground-field scopes are kept explicit.
 
 \bibliographystyle{plain}
 \bibliography{transfinite_arf}

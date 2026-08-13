@@ -25,8 +25,7 @@ def nim_mul(a: int, b: int) -> int:
 def gold_lam(v: int, a: int, m: int, lam: int = 1) -> int:
     """Lam-generalized Gold form Q_a(v) = Tr(lam * v^(1+2^a)) over F_{2^m}.
 
-    lam multiplies the product before the trace (matches
-    experiments/gold/octal_attack.py's convention).
+    ``lam`` multiplies the product before the trace.
     """
     x = pl.Nimber(v)
     return nim_trace((pl.Nimber(lam) * x * frob(x, a)).value, m)
