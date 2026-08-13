@@ -52,7 +52,9 @@ principal ray kernel and a class-number-controlled circular-unit quotient.
 An exact full-parent/proper-child packet witness rules out conductor-only
 induction, while an actual \(r=11,p=23\) Conway conductor has a vanishing
 Stickelberger character scalar of exact \(23\)-adic valuation one, hence an
-actual cyclic order-\(23\) irregular class component, despite its successful
+actual cyclic order-\(23\) irregular class component.  An exact local/global
+Kummer certificate further proves that every prime over two, including the
+Conway-selected prime, generates this irregular line, despite the successful
 ordinary row.
 These structures sharpen the selected phase which remains to be evaluated;
 they do not force its nonvanishing.
@@ -1122,11 +1124,49 @@ represents multiplication by
  \Omega(B_i)^2+\operatorname{diag}(B_i,B_i)+I
  =\begin{pmatrix}B_i^2+B_i&B_i\\B_i&B_i\end{pmatrix}.
 \]
+Writing \(C=\Omega(B)\), one has the exact identities
+\[
+ C^{-1}=\begin{pmatrix}0&I\\I&B\end{pmatrix},
+ \qquad
+ \Psi(B)=C^{-1}(C+I)^3,
+\]
+and
+\[
+ \begin{pmatrix}I&I\\0&I\end{pmatrix}
+ \Psi(B)
+ \begin{pmatrix}I&0\\I&I\end{pmatrix}
+ =\operatorname{diag}(B^2,B).
+\]
+Thus the Conway word inserts the cubic Laurent map
+\(z\mapsto(z+1)^3/z\), whereas the \(Q\)-transform word uses
+\(z\mapsto z+z^{-1}=(z+1)^2/z\).  Their rational degrees are different,
+so no fractional-linear conjugacy identifies the two recursions.  The
+congruence to \(\operatorname{diag}(B^2,B)\) records only the bilinear-form
+class; every nonsingular symmetric trace-one packet realization over
+\(\mathbb F_2\) has the same nonalternating class.
+
 For an eigenvalue \(s\) of \(B_i\), the new eigenvalue satisfies
 \(X^2+s^2X+s^3=0\), exactly the reciprocal Conway child equation.  The two
 block recursions already differ in degree eight: their characteristic
 polynomial bitmasks are respectively \(\mathtt{0x1d7}\) and
-\(\mathtt{0x18b}\).  The stabilizer \(\Omega(B_i)\) is a regular irreducible
+\(\mathtt{0x18b}\).  Moreover
+\[
+ \Omega(B)^m=
+ \begin{pmatrix}
+  S_{m+1}(B)&S_m(B)\\
+  S_m(B)&S_{m-1}(B)
+ \end{pmatrix},
+\]
+so for the literal Conway matrices
+\[
+ \delta_n
+ =\operatorname{ord}\!\left(\Omega(\Psi^n([1]))\right)
+ =\operatorname{fibind}\!\left(\chi_{\Psi^n([1])}\right).
+\]
+The analogous maximal-index assertion for the literal iterated
+\(\Omega\)-word is precisely Wiedemann's conjecture, not a proved theorem of
+Seyfarth--Ranade \cite{wiedemann1988,seyfarthranade2012}.  The stabilizer
+\(\Omega(B_i)\) is a regular irreducible
 symplectic element in a cyclic nonsplit torus of order \(2^d+1\), but this
 forces only \(\operatorname{ord}_e(2)=2d\), not \(e=2^d+1\).  Choose a
 symmetric realization \(B\) of the reciprocal of \(P^{(1)}\).
@@ -1801,10 +1841,131 @@ value field here is \(\mathbb Q_{23}\), so that component has order \(23\).
 \end{proof}
 
 This is not an \(O\)-counterexample: the literal row has \(m_{23}=1\).
-Rather, it proves that even a nonzero irregular component does not by itself
-determine the Conway-selected prime class in that component.  The remaining
-datum is still the projection of the marked prime over two, or equivalently
-its selected Artin value.
+The class line and its marked prime can in fact both be determined exactly.
+
+\begin{proposition}[marked Artin certificate in the irregular block]
+\label{prop:o-actual-artin}
+Retain the notation of Proposition~\ref{prop:o-actual-irregular}, put
+\(K_0=\mathbb Q(\zeta_{363})\),
+\(E=K_0(\mu_{23})=\mathbb Q(\mu_{8349})\), and let
+\(e_a\in\{1,\ldots,22\}\) satisfy
+\[
+ e_a\overline\theta(a)\equiv1\pmod {23}
+ \qquad(a\in(\mathbb Z/363\mathbb Z)^\times).
+\]
+Then the global unit
+\[
+ \varepsilon=\prod_{a\in(\mathbb Z/363\mathbb Z)^\times}
+                 (1-\zeta_{363}^a)^{e_a}
+\]
+defines a nontrivial everywhere-unramified degree-\(23\) Kummer extension
+of \(E\).  It descends to an unramified cyclic degree-\(23\) extension
+\(H/L\) in the \(\Theta\)-component.  Every prime
+\(\mathfrak q\mid2\) of \(L\), and in particular the prime obtained from
+the Conway-selected ray, has nontrivial Artin symbol in \(H/L\).
+Consequently its class generates the order-\(23\) component of
+Proposition~\ref{prop:o-actual-irregular}.
+\end{proposition}
+
+\begin{proof}
+Since \(\Phi_{363}(1)=1\), the displayed element is a global unit.
+Reindexing the product gives
+\[
+ \sigma_b(\varepsilon)\equiv
+ \varepsilon^{\theta(b)}\pmod {E^{\times23}}.
+\]
+If \(\alpha^{23}=\varepsilon\) and
+\(\tau(\alpha)=\zeta_{23}\alpha\), conjugation on
+\(\langle\tau\rangle\) is therefore through
+\(\omega\theta^{-1}=\Theta\).
+
+It remains to certify primarity at \(23\) and nontriviality at two.  Over
+\(\mathbb F_{23}\),
+\[
+ h_1(X)=X^{22}+2X^{11}+4
+\]
+is irreducible by Rabin's criterion.  The polynomial
+\[
+ h_2(X)=X^{22}+255X^{11}+487\pmod {23^2}
+\]
+is a Hensel lift dividing \(\Phi_{363}\).  In
+\(R=(\mathbb Z/23^2\mathbb Z)[T]/(h_2)\), direct evaluation of the displayed
+product gives, in increasing coefficient order,
+\[
+ \begin{split}
+ \bar\varepsilon={}&(344,186,101,283,348,493,134,197,425,138,469,424,\\
+                    &133,435,387,355,122,446,153,13,122,226),
+ \end{split}
+\]
+and exact exponentiation gives
+\[
+ \bar\varepsilon^{23^{22}-1}=1.
+\]
+For an unramified extension \(F/\mathbb Q_{23}\) of residue size \(Q\),
+write \(x=[\bar x]\langle x\rangle\) with
+\(\langle x\rangle\in1+23\mathcal O_F\).  The Teichmuller factor is a
+\(23\)-rd power, and the \(23\)-adic logarithm gives
+\[
+ x\in F^{\times23}
+ \quad\Longleftrightarrow\quad
+ x^{Q-1}\equiv1\pmod {23^2}.
+\]
+Thus \(\varepsilon\) is a local \(23\)-rd power at every prime above
+\(23\).  Away from \(23\), adjoining a \(23\)-rd root of a unit is
+unramified, so \(M=E(\varepsilon^{1/23})/E\) is everywhere unramified.
+
+For nontriviality, work in the exact binary field
+\[
+ \mathbb F_2[X]/(X^{110}+X^{33}+1).
+\]
+The modulus is Rabin-certified irreducible.  If
+\[
+ z=(1+X+X^2)^{(2^{110}-1)/8349},
+\]
+then exact prime-quotient screens give \(\operatorname{ord}(z)=8349\).
+Reducing \(\zeta_{363}\) to \(z^{23}\) gives
+\[
+ \bar\varepsilon=\mathtt{0x533a83d1770ba6987acd705100a},
+\]
+and
+\[
+ \bar\varepsilon^{(2^{110}-1)/23}
+ =\mathtt{0x230624ca45da272928c1ab2181d1}
+ =(z^{363})^4\ne1.
+\]
+Hence \(M/E\) has degree \(23\), and the displayed prime
+\(\mathfrak Q\mid2\) has Artin symbol \(\zeta_{23}^4\).
+
+Let \(U=\ker\Theta\); then \(|U|=220\) is prime to \(23\), and \(U\)
+acts trivially on \(\operatorname{Gal}(M/E)\).  The preimage of \(U\) in
+\(\operatorname{Gal}(M/\mathbb Q)\) has a unique complement to its central
+order-\(23\) subgroup: existence is Schur--Zassenhaus, and uniqueness follows
+from \(\operatorname{Hom}(U,C_{23})=0\).  Its fixed field gives the claimed
+Galois descent \(H/L\).  Ramification of order \(23\) could not disappear
+after the prime-to-\(23\) base change \(E/L\), so \(H/L\) is unramified.
+
+For \(\mathfrak q=\mathfrak Q\cap L\), one has
+\(f(\mathfrak Q/\mathfrak q)=110\), since
+\(\Theta(2)=1\).  Base change of Frobenius gives
+\[
+ \operatorname{Art}_{\mathfrak Q}(M/E)
+ =\operatorname{Art}_{\mathfrak q}(H/L)^{110}.
+\]
+As \(23\nmid110\), the right-hand Artin symbol is nontrivial (its exponent
+is \(13\), since \(110\cdot13\equiv4\pmod {23}\)).  Galois conjugacy
+multiplies this nonzero coordinate by values of \(\Theta\), proving the same
+for every prime over two.  Finally Proposition~\ref{prop:o-actual-irregular}
+shows that the whole \(\Theta\)-component has order \(23\), so any such
+prime generates it.
+\end{proof}
+
+This is still not an \(O\)-counterexample.  Rather, it proves something
+sharper about the obstruction: the unramified term in
+Proposition~\ref{prop:o-ray-split} is genuinely nonzero at the selected
+prime, while the literal row succeeds.  The ramified local contribution
+therefore does not vanish and does not cancel it.  Decomposition invariance,
+Stickelberger annihilation, or an assertion that ancestry makes the selected
+prime principal cannot prove \(O\) uniformly.
 
 \begin{proposition}[phase conservation above the birth level]
 \label{prop:o-tail}
@@ -2263,6 +2424,47 @@ Conversely, arm \(C\) does not imply class-number one.  Thus ordinary
 circular-unit index theorems sharpen the location of the obstruction but do
 not supply its missing selected ray coordinate.
 
+\begin{proposition}[finite-field circular defect]\label{prop:c-defect}
+For \(j\geq0\), put
+\[
+ L_j=\mathbb Q(\zeta_{3^{j+1}})^+,\qquad
+ d_j=[(\mathcal O_{L_j}/2)^\times:\overline C_{L_j}].
+\]
+Then
+\[
+ d_j=\frac{2^{3^j}-1}
+ {\operatorname{ord}(\zeta_j+\zeta_j^{-1})},
+ \qquad
+ [U_k:\langle\eta_k\rangle]=\frac{d_k}{d_{k-1}}.
+\]
+Consequently the all-level cubic assertion is equivalent to primitivity of
+the specific composite-conductor periods
+\(\zeta_j+\zeta_j^{-1}\) for every \(j\).
+\end{proposition}
+
+\begin{proof}
+The conjugates of \(\gamma_j=\zeta_j+\zeta_j^{-1}\) generate \(C_{L_j}\)
+modulo signs, as in the proof of
+Proposition~\ref{prop:c-circular-ray}.  After reduction modulo two, signs
+vanish and Galois conjugation is Frobenius, so
+\(\overline C_{L_j}=\langle\gamma_j\rangle\).  This proves the first formula.
+The norm on residue units and on reduced circular units is onto, with kernels
+respectively \(U_k\) and \(\langle\eta_k\rangle\).  Taking the ratio of the
+orders in these two exact rows gives the second formula.  Since \(d_0=1\),
+all relative indices are one exactly when every \(d_j\) is one.
+\end{proof}
+
+This is the same finite-field circular-unit defect studied by Hoechsmann
+\cite{hoechsmann1995} in the prime-conductor setting.  That setting also
+supplies a sharp warning against a class-number-only proof: for
+\(\mathbb Q(\zeta_{37})^+\), two is inert and the real class number is one,
+yet Hoechsmann computes defect \(d_2=3\).  Thus inertness, circular generation
+of the global units, and class number one still permit a nontrivial principal
+\(2\)-ray kernel.  Proposition~\ref{prop:c-defect} shows that the present
+\(3\)-power problem requires a theorem about its recursively marked periods,
+not merely those coarse invariants.
+
+\medskip
 \begin{proposition}[exact Capelli dichotomy]\label{prop:c-capelli-dichotomy}
 Let \(Q_k\in\mathbb F_2[X]\) be the minimal polynomial of \(\eta_k\),
 and let \(\ell\) be a prime divisor of
@@ -3182,12 +3384,20 @@ kernel-check the exact \(C/D\) orthogonality and the norm-blindness statement.
 The signed Dickson--Lucas factorization underlying
 Proposition~\ref{prop:z-dickson-tangency} is kernel-checked, as is the
 diagonal derivative used in the \'{e}tale ancestry-scheme calculation.  The
+distinct cubic and quadratic Laurent maps in the Conway/Wiedemann matrix
+comparison are kernel-checked.  The
 modular half-sum values modulo \(23\) and \(23^2\), and the Euler-factor
 values in
 Proposition~\ref{prop:o-actual-irregular} are checked from the supplied
 grouped coefficients and factors; the formalization does not derive those
-inputs, the packet bitmasks, or the character construction from first
-principles.  It also checks the recorded factorizations of \(\Psi_k\) for
+inputs or the character construction from first principles.  It additionally
+checks the supplied binary residue phase in
+Proposition~\ref{prop:o-actual-artin}; the exact Python certificate
+\texttt{experiments/ordinary\_23\_artin\_certificate.py} reconstructs the
+defining cyclotomic-unit product and checks both its binary residue and its
+\(23\)-adic primarity.  Neither finite checker proves the class-field
+descent, which is the paper argument.  The formalization also does not derive
+the packet bitmasks.  It checks the recorded factorizations of \(\Psi_k\) for
 \(2\leq k\leq6\), the
 primality of the modest factors through \(k=4\), and exact order-of-two
 screens for the recorded factors.

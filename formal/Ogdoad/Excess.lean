@@ -4838,6 +4838,110 @@ theorem ordinary23_stickelberger_conductor_arithmetic :
 
 end Ordinary23StickelbergerCertificate
 
+namespace Ordinary23MarkedArtinCertificate
+
+/-! Exact binary-field arithmetic for the marked Artin certificate in the
+actual ordinary r = 11, p = 23 block.  Bit i is the coefficient of X^i; the
+modulus is X^110 + X^33 + 1.  The full product defining the supplied epsilon
+and its separate 23-adic primarity certificate are replayed by the exact
+Python experiment. -/
+
+def modulus : Nat := 0x4000000000000000000200000001
+def degree : Nat := 110
+
+def mulAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, b, acc =>
+      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
+      let a2 := Nat.shiftLeft a 1
+      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
+      mulAux fuel a' (b / 2) acc'
+
+def mul (a b : Nat) : Nat := mulAux degree a b 0
+
+def powAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, e, acc =>
+      if e = 0 then acc
+      else
+        let acc' := if e % 2 = 1 then mul acc a else acc
+        powAux fuel (mul a a) (e / 2) acc'
+
+def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+
+def polyModAux : Nat → Nat → Nat → Nat
+  | 0, a, _ => a
+  | fuel + 1, a, b =>
+      if b = 0 ∨ Nat.log2 a < Nat.log2 b then a
+      else polyModAux fuel
+        (Nat.xor a (Nat.shiftLeft b (Nat.log2 a - Nat.log2 b))) b
+
+def polyMod (a b : Nat) : Nat := polyModAux 300 a b
+
+def polyGcdAux : Nat → Nat → Nat → Nat
+  | 0, a, _ => a
+  | fuel + 1, a, b =>
+      if b = 0 then a else polyGcdAux fuel b (polyMod a b)
+
+def polyGcd (a b : Nat) : Nat := polyGcdAux 300 a b
+
+def epsilon : Nat := 0x533a83d1770ba6987acd705100a
+def zeta23 : Nat := 0x244532b647a337388955260d12d1
+def phase : Nat := 0x230624ca45da272928c1ab2181d1
+def eulerExponent : Nat := (2 ^ degree - 1) / 23
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+/-- Rabin's irreducibility checks for the binary degree-110 modulus. -/
+theorem binary_rabin_certificate :
+    fpow 2 (2 ^ 110) = 2 ∧
+      polyGcd modulus (Nat.xor (fpow 2 (2 ^ 55)) 2) = 1 ∧
+      polyGcd modulus (Nat.xor (fpow 2 (2 ^ 22)) 2) = 1 ∧
+      polyGcd modulus (Nat.xor (fpow 2 (2 ^ 10)) 2) = 1 := by
+  native_decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+/-- The supplied cyclotomic unit has nontrivial selected residue zeta23^4;
+after degree-110 descent the Artin exponent is 13. -/
+theorem marked_phase_certificate :
+    fpow epsilon eulerExponent = phase ∧
+      phase = fpow zeta23 4 ∧ phase ≠ 1 ∧ fpow phase 23 = 1 ∧
+      110 * 13 % 23 = 4 := by
+  native_decide
+
+end Ordinary23MarkedArtinCertificate
+
+section ConwayWiedemannLaurentBoundary
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- The scalar map inserted by the Conway symmetric-block recursion is the
+cubic Laurent map `z⁻¹ * (z + 1)^3`. -/
+theorem conway_laurent_step (z : F) (hz : z ≠ 0) :
+    z⁻¹ * (z + 1) ^ 3 = z ^ 2 + z + 1 + z⁻¹ := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  field_simp [hz]
+  ring_nf
+  rw [hthree]
+  ring
+
+/-- The Wiedemann/Q-transform scalar map is the genuinely quadratic Laurent
+map `z⁻¹ * (z + 1)^2 = z + z⁻¹`. -/
+theorem wiedemann_laurent_step (z : F) (hz : z ≠ 0) :
+    z⁻¹ * (z + 1) ^ 2 = z + z⁻¹ := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  field_simp [hz]
+  ring_nf
+  rw [htwo]
+  ring
+
+end ConwayWiedemannLaurentBoundary
+
 section CubicNormalBridge
 
 variable {K : Type*} [Field K] [CharP K 2]

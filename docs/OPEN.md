@@ -362,10 +362,15 @@ component information can lose it.
   Euler factor is nonzero. Its generalized Bernoulli number has exact
   `23`-adic valuation one; Solomon's class-component theorem therefore
   gives an actual cyclic order-`23` irregular component in the associated
-  degree-`22` field. The literal row nevertheless has `m_23 = 1`, so
-  the still-missing datum is the projection of the marked prime into this
-  now-proved class line, not uniform Bernoulli nonvanishing or existence of
-  the irregular component.
+  degree-`22` field. An exact Hensel/Kummer certificate now proves more:
+  the mirror cyclotomic unit defines the corresponding everywhere-unramified
+  degree-`23` extension, and every prime over `2`, including the
+  Conway-selected prime, has nontrivial Artin symbol and generates this
+  class line. The literal row nevertheless has `m_23 = 1`. Thus a successful
+  row can have both a nonzero ramified local term and a nonzero unramified
+  marked-class term; the unresolved universal assertion is their actual
+  selected sum, not principality of the marked prime or uniform Bernoulli
+  nonvanishing.
 - For every residue degree `h`, an explicit cubical Frobenius coboundary has
   kernel equal to the product of all maximal proper subfield unit groups and
   image of exact order `Phi_h(2)`. It therefore gives a canonical coordinate
@@ -405,15 +410,26 @@ component information can lose it.
   shows why low Hasse jets cannot repair it: the first term distinguishing a
   missing-prime extraction appears only beyond the whole unreduced child
   basis. The familiar Wiedemann/Q-transform block recursion is also not the
-  Conway block recursion; the latter is a different nested symmetric map, and
-  symplectic torus type alone again permits the proper child. The finite
-  witness is exactly replayed by the selected-screen self-test; it is not
+  Conway block recursion: if `Omega(B)=[[B,I],[I,0]]`, the Conway step is
+  exactly `Psi(B)=Omega(B)^(-1)(Omega(B)+I)^3`, a cubic Laurent map rather
+  than the quadratic Q-transform. Its maximal Fibonacci-index assertion is
+  therefore a distinct literal-word conjecture; Seyfarth--Ranade leave the
+  analogous Wiedemann word open. Symplectic torus type alone again permits
+  the proper child. The finite witness is exactly replayed by the
+  selected-screen self-test; it is not
   promoted to a literal ancestry counterexample.
 - In the cubic arm, the exact index of the selected subgroup in the norm-one
   torus factors as a relative principal `2`-ray kernel times a reduced
   unit/circular-unit kernel. The latter divides a relative real class-number
   quotient; even class number one would leave the principal ray factor, so
-  ordinary circular-unit index theorems do not prove `C`.
+  ordinary circular-unit index theorems do not prove `C`. If `d_k` is the
+  finite-field index of the reduced circular units in
+  `Q(zeta_(3^(k+1)))^+`, then exactly
+  `[U_k:<eta_k>]=d_k/d_(k-1)` and
+  `d_k=(2^(3^k)-1)/ord(zeta_k+zeta_k^(-1))`. Thus `C` is equivalent to
+  primitivity of these marked composite-conductor periods. Hoechsmann’s
+  prime-conductor example at `37` has inert `2` and real class number one
+  but defect `3`, proving those coarse hypotheses cannot kill the ray term.
 - In the exceptional arm, the literal translate by four is the reduction of
   a marked conductor-`5` cyclotomic unit. An abelian height bound proves this
   unit is not a current-prime power anywhere in `Q^ab`, while an exact
@@ -467,8 +483,10 @@ component information can lose it.
   power tests, toric semiconjugacy, alternating two-step cubic conjugacy,
   supersingular coordinate symmetry, cubical `C/D` orthogonality and
   faithful-character norm blindness, the Dickson tangency factorization, the
-  supplied `p = 23` grouped-coefficient dot product and Euler-factor product,
-  finite screens, and algebraic lemmas used by the four reductions.
+  Conway/Wiedemann Laurent distinction, the supplied `p = 23`
+  grouped-coefficient dot product and Euler-factor product, and the supplied
+  nontrivial binary Artin phase, finite screens, and algebraic lemmas used by
+  the four reductions.
   `DPrimeTarget` is deliberately only a definition of the open universal
   target.
 - The exceptional column has an unconditional effective bound depending on
