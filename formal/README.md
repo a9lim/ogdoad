@@ -82,6 +82,7 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoHub` | score-erased schedule relabelling, live-star transport, transposition defects, and graph-congruence algebra; no root-value conjugacy |
 | `FifoEmptyQueue`, `FifoBlockInduction`, `FifoOutcome`, `FifoOutcomeBlock` | empty-to-empty block parity, conditional first-return splicing, exact four-valued score-debt transport, and the proof that stopping at complete favorable outcome sheets is equivalent to the original game; the scalar/parity mover premise is false |
 | `FifoTreeTrace`, `FifoQPotential` | kernel-checked obstructions to the raw complete-leaf sum and to pointwise queue-cut-potential normalization |
+| `FifoPairState` | every score-zero mover failure with an OPEN available yields a lower minimum-hot singleton wall whose charged endpoints are real; ancestry from the original strategy is not supplied |
 
 Every theorem in these modules is subsidiary. None supplies either the full
 strategy-relative minimum-bad ancestry classification or the subsequent

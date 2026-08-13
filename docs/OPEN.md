@@ -91,6 +91,10 @@ front quotients while respecting the chosen strategy tree.
   `FifoTreeTrace.lean` and
   `FifoQPotential.lean` give small checked obstructions to the raw all-leaf
   sum and to maintaining the queue-cut potential pointwise.
+  `FifoPairState.lean` proves that any score-zero mover failure with an OPEN
+  available forces a lower minimum-hot singleton wall whose charged endpoints
+  are real; it deliberately does not identify that globally minimal wall with
+  a descendant of the original counterstrategy.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.

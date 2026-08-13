@@ -29,6 +29,7 @@ import Ogdoad.FifoQPotential
 import Ogdoad.FifoBlockInduction
 import Ogdoad.FifoOutcome
 import Ogdoad.FifoOutcomeBlock
+import Ogdoad.FifoPairState
 import Ogdoad.FifoMatching
 import Ogdoad.ImpartialRealizer
 import Ogdoad.GoldSemantics
