@@ -106,6 +106,16 @@ front quotients while respecting the chosen strategy tree.
   continuation sum has nonzero real-edge projection; for an even cycle it is
   only a homogeneous response direction. Thus the cycle alone does not
   contract the root strategy.
+  `FifoDummyFront.lean` proves the exact neutral diamond
+  `CLOSE d; OPEN z = OPEN z; CLOSE d` below an initial dummy-first pair. It
+  also proves that an even win there requires some even-winning
+  dummy-consumed real-pair child. Thus opening the dummy first moves the
+  selector obligation to a no-dummy pair rather than solving it.
+  `FifoDummyFrontAffine.lean` proves that on the conjecture's odd total
+  carrier, the complete dummy-front legal fan has even cardinality and its
+  projected OPEN-prefix sum is the surviving real star of the second opener,
+  not zero. No local odd response point can have that projection, so an
+  earlier-ancestry affine point is genuinely required.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.
@@ -140,6 +150,21 @@ provably nonzero after real-edge projection, whereas an even cycle has only
 the augmentation of a direction. A successful first-seat contraction must
 therefore incorporate an in-tree branch or another earlier sibling in
 addition to the cycle.
+
+Choosing the isolated dummy as the first opener does not avoid this boundary.
+At the resulting pair `[d,y]`, closing `d` before a real open `z` and opening
+`z` before closing `d` reach the same score-zero state `[y,z]`. If every such
+dummy-consumed child is odd-winning, the odd player uses the opposite side of
+this diamond against either defender move and wins `[d,y]`. Hence a successful
+dummy-first strategy already needs a winning consumed real pair; neutrality
+alone is not a strategy steal.
+
+The affine obstruction agrees exactly. On odd total order the legal fan
+consisting of `CLOSE d` and every remaining `OPEN z` is even, while the sum of
+the OPEN prefixes projects to the full real star of `y`. Graph evaluation
+shows that no response point at `[d,y]` can project to that star. Hence the
+missing repair cannot be manufactured inside the local dummy-front fan; it
+must arrive from the common initial ancestry.
 
 Purely graph-local parity, fixed pairings, bounded-support affine circuits,
 childwise continuation arguments, dummy deletion, and turn/score symmetry do
@@ -207,9 +232,9 @@ assertions. None is known universally.
 
 | arm | structural case | remaining selected assertion |
 | --- | --- | --- |
-| `Z` | non-singleton component support, including the singleton-even Conway--Fermat chain | the structural norm generates the primitive-support quotient; on the literal supersingular curve, the fixed function `(y+1)/y` has full next-Fermat order at the recursively selected point |
+| `Z` | non-singleton component support, including the singleton-even Conway--Fermat chain | the cubical Frobenius coboundary of the structural norm has full primary order in the canonical primitive-support quotient; on the literal supersingular curve, the fixed function `(y+1)/y` has full next-Fermat order at the recursively selected point |
 | `O` | singleton odd prime power with prime different from `3` | the marked cyclotomic unit has full primary order at the unique inert prime ray over `2` selected by Conway ancestry |
-| `C` | the cubic `3^k` chain | the unique Frobenius orbit recursively selected inside the Singer trace set has full norm-one order; the Möbius coordinate is exactly the square of the selected primitive `3^(k+1)`-st root, so this is the order of one explicit marked cyclotomic unit |
+| `C` | the cubic `3^k` chain | the unique Frobenius orbit recursively selected inside the Singer trace set has full norm-one order; equivalently, both the relative principal `2`-ray kernel and the relative reduced unit/circular-unit kernel are trivial |
 | `D` | the exceptional `2*3^k` chain | the reconstructed selected Artin--Schreier/Dickson value is not a current-primary power; its auxiliary ancestry is toric, while `DPrimeTarget` records the distinct actual target |
 
 If nonzero `beta` lies in `F_(2^E)` and `p` divides `2^E-1`, the exact
@@ -243,6 +268,18 @@ component information can lose it.
   recursion is an affine form of the same toric Dickson system, not a direct
   Drinfeld or smooth elliptic division tower; this does not identify the
   auxiliary value with the actual `D` target.
+- For every residue degree `h`, an explicit cubical Frobenius coboundary has
+  kernel equal to the product of all maximal proper subfield unit groups and
+  image of exact order `Phi_h(2)`. It therefore gives a canonical coordinate
+  on the primitive-support quotient and preserves every primary factor tested
+  by `Z`. Separated additive cubes are nontrivial in this coordinate, but the
+  selected structural norm is synchronized and can erase that raw class;
+  nonidentity also does not imply full primary order.
+- In the cubic arm, the exact index of the selected subgroup in the norm-one
+  torus factors as a relative principal `2`-ray kernel times a reduced
+  unit/circular-unit kernel. The latter divides a relative real class-number
+  quotient; even class number one would leave the principal ray factor, so
+  ordinary circular-unit index theorems do not prove `C`.
 - A two-block tensor-rank obstruction proves the multicomponent zero arm at
   `h = 12, 15, 24, 36, 40`. The `h = 15` proof retains the full synchronized
   norm phase, while `h = 36` checks both prime factors of `Phi_36(2)` by

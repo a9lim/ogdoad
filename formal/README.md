@@ -85,6 +85,8 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoPairState` | every score-zero mover failure with an OPEN available yields a lower minimum-hot singleton wall whose charged endpoints are real; ancestry from the original strategy is not supplied |
 | `FifoFirstSeatRoot` | exact first-seat Bellman normal form: one chosen initial OPEN followed by the complete universal second-OPEN fan; the existence of such a winning opener remains open |
 | `FifoBadArcCycle`, `FifoFirstSeatStrategy` | one first-seat odd strategy supplies a fixed-point-free selected reply map with common-root ancestry; cycle prefixes cancel, but continuation augmentation still obstructs contraction |
+| `FifoDummyFront` | exact neutral dummy-front commuting diamond and the necessary consumed-pair selector; opening the dummy first relocates rather than removes the real-pair obligation |
+| `FifoDummyFrontAffine` | the odd-order dummy-front legal fan is even and its projected OPEN-prefix sum is the surviving real star, which no local odd response point can equal; earlier ancestry is necessary |
 
 Every theorem in these modules is subsidiary. None supplies either the full
 strategy-relative minimum-bad ancestry classification or the subsequent
@@ -100,6 +102,8 @@ boundary in `writeups/linking_affine.tex`.
 - the corrected characteristic-two sparse norm;
 - exact cyclic-group and finite-field power criteria;
 - finite primality/order/factor screens used by replayable certificates;
+- two-face cross-ratio and three-face parity identities for the cubical
+  primitive-support coordinate in the multicomponent zero arm;
 - polynomial, trace, norm, Frobenius, Kummer, and recurrence identities used
   to reduce the selected `Z`, `O`, `C`, and `D` coordinates.
 

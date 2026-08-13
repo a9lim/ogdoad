@@ -756,6 +756,29 @@ neither parity contracts the counterstrategy.  One must add an in-tree branch
 or another earlier sibling to obtain both odd augmentation and zero projected
 moment.
 
+Opening the isolated dummy first is another tempting specialization, but it
+only relocates the selector.  From the pair state with queue $(d,y)$, for every
+remaining real $z$ the neutral square
+\[
+ C_d;\operatorname{OPEN}(z)
+ =\operatorname{OPEN}(z);C_d
+\]
+reconverges at the same score-zero state with queue $(y,z)$.  If every such
+dummy-consumed real-pair state is odd-winning, the odd player responds to
+either defender move by taking the other side of the square.  Consequently an
+even win at $(d,y)$ already forces an even-winning consumed pair $(y,z)$ for
+some $z$.  The isolated front therefore supplies exact schedule transport but
+not the missing continuation selector.
+
+The affine ledger makes the same boundary sharp.  On an odd total carrier the
+complete legal fan $C_d$ together with all remaining opens has even
+cardinality.  After forgetting dummy-incident coordinates, the sum of its
+open prefixes is not zero but the full real star $S_V(y)$.  Every odd response
+point at the pair state evaluates to one plus the current potential, whereas
+$S_V(y)$ evaluates to the potential itself.  Thus no local response point can
+have that projected value.  An additional affine point from earlier root
+ancestry is necessary even in the dummy-first specialization.
+
 Assume for contradiction that the affine condition of
 Theorem~\ref{thm:affine} fails.  Choose a separating graph $B$ and a positional
 attacker policy forcing terminal score one.  Along its response tree, label a

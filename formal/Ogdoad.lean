@@ -33,6 +33,8 @@ import Ogdoad.FifoPairState
 import Ogdoad.FifoFirstSeatRoot
 import Ogdoad.FifoBadArcCycle
 import Ogdoad.FifoFirstSeatStrategy
+import Ogdoad.FifoDummyFront
+import Ogdoad.FifoDummyFrontAffine
 import Ogdoad.FifoMatching
 import Ogdoad.ImpartialRealizer
 import Ogdoad.GoldSemantics
