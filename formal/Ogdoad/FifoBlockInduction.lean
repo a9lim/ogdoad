@@ -8,9 +8,12 @@ combinatorics inside one positive FIFO block.  `EvenBlockWins` is a finite
 strategy tree which may stop at a certified, strictly smaller state.  The
 splicing theorem replaces every such exit by an ordinary `EvenWins` tree.
 
-Three first-block hypotheses then suffice:
+Four parity-aware first-block hypotheses then suffice:
 
-* the mover can end a zero-score block on every carrier;
+* on an even carrier, either player can end a zero-score block leaving even
+  residual order;
+* on an odd carrier containing the dummy, the mover can do so leaving either
+  even residual order or the dummy untouched;
 * the nonmover can do so on an even carrier while leaving even residual
   order;
 * the nonmover can do so on an odd carrier with an isolated dummy, leaving
@@ -19,11 +22,11 @@ Three first-block hypotheses then suffice:
 The corresponding full empty-root theorems follow by well-founded induction
 on the number of untouched vertices.  The last theorem specializes these
 abstract block hypotheses to both seats of an isolated-dummy initial board.
-No declaration below proves any of the three first-block hypotheses.  In
-fact, the mover property is a deliberately strong sufficient hypothesis and
-is false for arbitrary graphs (an eight-vertex counterexample is known); the
-point of the module is the exact splicing implication, not a claim that this
-particular block package settles FIFO linking.
+No declaration below proves any of the four first-block hypotheses.  The
+parity/dummy exit disjunction is essential: the stronger arbitrary-carrier
+mover property is false on an eight-vertex graph.  The point of the module is
+the exact splicing implication, not a claim that this package settles FIFO
+linking.
 -/
 
 namespace Ogdoad.Fifo
@@ -82,12 +85,21 @@ theorem EvenBlockWins.toEvenWins
       exact EvenWins.answer s hseat hasMove ih
 
 /-- First-block obligation for the physical player who owns the empty-root
-move.  The next empty root has the same mover and strictly fewer untouched
-vertices (the strict inequality is carried by `EvenBlockWins.exit`). -/
-def MoverFirstBlockProperty (G : SimpleGraph V) : Prop :=
-  ∀ (U : Finset V) (turn : Bool), U.Nonempty →
+move on an even carrier. -/
+def EvenMoverFirstBlockProperty (G : SimpleGraph V) : Prop :=
+  ∀ (U : Finset V) (turn : Bool), U.Nonempty → Even U.card →
     EvenBlockWins G turn U.card
-      (fun t ↦ t = emptyRoot t.untouched turn) (emptyRoot U turn)
+      (fun t ↦ t = emptyRoot t.untouched turn ∧ Even t.untouched.card)
+      (emptyRoot U turn)
+
+/-- First-block obligation for the physical player who owns the empty-root
+move on an odd carrier containing the isolated dummy. -/
+def OddDummyMoverFirstBlockProperty (G : SimpleGraph V) (d : V) : Prop :=
+  ∀ (U : Finset V) (turn : Bool), d ∈ U → Odd U.card →
+    EvenBlockWins G turn U.card
+      (fun t ↦ t = emptyRoot t.untouched turn ∧
+        (Even t.untouched.card ∨ d ∈ t.untouched))
+      (emptyRoot U turn)
 
 /-- First-block obligation for the physical player who does not own the
 empty-root move on an even carrier.  A nonterminal exit must again have even
@@ -110,12 +122,15 @@ def OddDummyNonmoverFirstBlockProperty (G : SimpleGraph V) (d : V) : Prop :=
       (emptyRoot U turn)
 
 omit [Fintype V] in
-/-- The mover first-block property iterates over successive empty-queue
-blocks and gives a full even strategy on every empty root. -/
-theorem mover_evenWins_emptyRoot
-    {G : SimpleGraph V} (hblock : MoverFirstBlockProperty G) :
-    ∀ (U : Finset V) (turn : Bool), EvenWins G turn (emptyRoot U turn) := by
-  intro U turn
+/-- Mutual parity handoff for the mover. -/
+theorem parityDummy_mover_evenWins_emptyRoot
+    {G : SimpleGraph V} {d : V}
+    (hEvenBlock : EvenMoverFirstBlockProperty G)
+    (hOddBlock : OddDummyMoverFirstBlockProperty G d) :
+    ∀ (U : Finset V) (turn : Bool),
+      Even U.card ∨ (d ∈ U ∧ Odd U.card) →
+      EvenWins G turn (emptyRoot U turn) := by
+  intro U turn hClass
   induction hcard : U.card using Nat.strong_induction_on generalizing U turn with
   | h n ih =>
       by_cases hU : U = ∅
@@ -123,11 +138,26 @@ theorem mover_evenWins_emptyRoot
         exact EvenWins.terminal (emptyRoot ∅ turn)
           (by simp [Terminal, emptyRoot]) (by simp [emptyRoot])
       · have hne : U.Nonempty := Finset.nonempty_iff_ne_empty.mpr hU
-        apply (hblock U turn hne).toEvenWins
-        intro t hsmall ht
-        rw [ht]
-        exact ih t.untouched.card (by simpa [hcard] using hsmall)
-          t.untouched turn rfl
+        rcases hClass with hEven | ⟨hdU, hOdd⟩
+        · apply (hEvenBlock U turn hne hEven).toEvenWins
+          intro t hsmall ht
+          rcases ht with ⟨ht, hResidualEven⟩
+          rw [ht]
+          exact ih t.untouched.card (by simpa [hcard] using hsmall)
+            t.untouched turn (Or.inl hResidualEven) rfl
+        · apply (hOddBlock U turn hdU hOdd).toEvenWins
+          intro t hsmall ht
+          rcases ht with ⟨ht, hResidualEven | hdResidual⟩
+          · rw [ht]
+            exact ih t.untouched.card (by simpa [hcard] using hsmall)
+              t.untouched turn (Or.inl hResidualEven) rfl
+          · rcases Nat.even_or_odd t.untouched.card with hResidualEven | hResidualOdd
+            · rw [ht]
+              exact ih t.untouched.card (by simpa [hcard] using hsmall)
+                t.untouched turn (Or.inl hResidualEven) rfl
+            · rw [ht]
+              exact ih t.untouched.card (by simpa [hcard] using hsmall)
+                t.untouched turn (Or.inr ⟨hdResidual, hResidualOdd⟩) rfl
 
 omit [Fintype V] in
 /-- The even-carrier nonmover first-block property iterates without needing
@@ -178,28 +208,32 @@ theorem oddDummy_nonmover_evenWins_emptyRoot
             t.untouched turn hdResidual hOddResidual rfl
 
 /-- Abstract conditional first-block reduction of isolated-dummy FIFO
-linking.  The global both-seat theorem is a formal consequence of the three
-stated local block obligations.  This implication remains useful as a
-bookkeeping boundary even though `MoverFirstBlockProperty` is too strong in
-general. -/
+linking.  The global both-seat theorem is a formal consequence of the four
+parity-aware local block obligations. -/
 theorem fifoLinking_of_firstBlockProperties
     {G : SimpleGraph V} {d : V} (_hd : IsDummy G d)
-    (hMover : MoverFirstBlockProperty G)
-    (hEvenBlock : EvenNonmoverFirstBlockProperty G)
-    (hOddBlock : OddDummyNonmoverFirstBlockProperty G d) :
+    (hEvenMover : EvenMoverFirstBlockProperty G)
+    (hOddMover : OddDummyMoverFirstBlockProperty G d)
+    (hEvenNonmover : EvenNonmoverFirstBlockProperty G)
+    (hOddNonmover : OddDummyNonmoverFirstBlockProperty G d) :
     ∀ seat, EvenWins G seat (initial (V := V)) := by
   intro seat
   cases seat with
   | false =>
-      simpa [initial, emptyRoot] using
-        mover_evenWins_emptyRoot hMover (Finset.univ : Finset V) false
+      rcases Nat.even_or_odd (Fintype.card V) with hEven | hOdd
+      · simpa [initial, emptyRoot, Finset.card_univ] using
+          parityDummy_mover_evenWins_emptyRoot hEvenMover hOddMover
+            (Finset.univ : Finset V) false (Or.inl hEven)
+      · simpa [initial, emptyRoot, Finset.card_univ] using
+          parityDummy_mover_evenWins_emptyRoot hEvenMover hOddMover
+            (Finset.univ : Finset V) false (Or.inr ⟨by simp, hOdd⟩)
   | true =>
       rcases Nat.even_or_odd (Fintype.card V) with hEven | hOdd
       · simpa [initial, emptyRoot, Finset.card_univ] using
-          even_nonmover_evenWins_emptyRoot hEvenBlock
+          even_nonmover_evenWins_emptyRoot hEvenNonmover
             (Finset.univ : Finset V) false hEven
       · simpa [initial, emptyRoot, Finset.card_univ] using
-          oddDummy_nonmover_evenWins_emptyRoot hEvenBlock hOddBlock
+          oddDummy_nonmover_evenWins_emptyRoot hEvenNonmover hOddNonmover
             (Finset.univ : Finset V) false (by simp) hOdd
 
 end
