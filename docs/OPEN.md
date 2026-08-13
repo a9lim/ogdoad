@@ -337,7 +337,11 @@ component information can lose it.
   selects one exact Frobenius orbit in a Singer difference set, and its trace
   map is explicitly Möbius-conjugate to cubing. The resulting marked root is
   exactly the square of the selected primitive `3^(k+1)`-st root; this exposes
-  rather than evaluates its cyclotomic-unit phase. The exceptional auxiliary
+  rather than evaluates its cyclotomic-unit phase. That phase is equivalently
+  parity of one explicit integer cyclotomic resultant; Lucas's theorem gives
+  its exact binary support, but proper candidate exponents exceed the
+  cyclotomic degree exponentially, so support and degree do not force oddness.
+  The exceptional auxiliary
   recursion is an affine form of the same toric Dickson system, not a direct
   Drinfeld or smooth elliptic division tower; this does not identify the
   auxiliary value with the actual `D` target.
@@ -346,6 +350,13 @@ component information can lose it.
   class-group character. The selected Artin exponent is exactly a ramified
   local term plus that character evaluated on the Conway-selected prime over
   `2`; the remaining assertion is noncancellation of these two marked terms.
+  The unramified class is a quotient of an explicit decomposition-invariant
+  Stickelberger module. Its semisimple obstruction is a generalized-Bernoulli
+  half-sum (with conductor Euler factors); decomposition at `2` forces neither
+  outcome, and nonsemisimple blocks retain higher augmentation data. Conway
+  ancestry forces each contributing character to retain the full current
+  `r`-part of the conductor, but leaves possible inherited Euler factors and
+  the irregular half-sum unresolved.
 - For every residue degree `h`, an explicit cubical Frobenius coboundary has
   kernel equal to the product of all maximal proper subfield unit groups and
   image of exact order `Phi_h(2)`. It therefore gives a canonical coordinate
@@ -360,7 +371,14 @@ component information can lose it.
   to the selected Conway minimal polynomial landing in that packet. Every
   packet factor has a unique irreducible child under the Conway resultant;
   trace one, relative trace/norm, residue degree, and unramifiedness hold for
-  proper packets just as they do for the full packet. Across all levels, a
+  proper packets just as they do for the full packet. The exact parent/child
+  conductor transition is a marked Dickson-word evaluation, and its image in
+  child torus coordinates is the cubic equation `(A*Aq)^2=(A+Aq)^3`; hence an
+  ambient proper-order child is irrelevant unless it lies in this recursively
+  selected image. Iterating the equation gives a top-only torsion system, but
+  its solution set is exactly the literal Frobenius/inverse packet, so meeting
+  a proper subgroup is equivalent to the original order failure rather than a
+  weaker dimension or Bezout question. Across all levels, a
   proper-order vector is equivalent to one marked prime over `2` satisfying
   the complete bivariate Conway resultant chain. The remaining conjecture is
   exclusion of every proper-conductor prime chain.

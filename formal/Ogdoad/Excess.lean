@@ -8141,6 +8141,18 @@ theorem fermat_packet_child_norm
   ring_nf
   simp [htwo]
 
+omit [CharP F 2] in
+/-- Reciprocal form of the deterministic packet-child equation.  With
+`A = y⁻¹` and `Aq = yq⁻¹`, the child norm relation
+`y*yq = (y+yq)^3` is exactly `(A*Aq)^2 = (A+Aq)^3`.
+This is the algebraic core of the marked conductor-transition image test. -/
+theorem fermat_packet_child_reciprocal_image
+    (y yq : F) (hy : y ≠ 0) (hyq : yq ≠ 0) :
+    y * yq = (y + yq) ^ 3 ↔
+      ((1 / y) * (1 / yq)) ^ 2 = ((1 / y) + (1 / yq)) ^ 3 := by
+  field_simp [hy, hyq]
+  ring_nf
+
 /-- The two-face multiplicative coboundary of an additive two-block element.
 Its difference from one factors as the product of the two edge differences. -/
 theorem additive_crossRatio_add_one
@@ -8687,6 +8699,54 @@ theorem singerMobius_selected_orientation [CharP F 2]
   simp only [singerMobius]
   rw [hetaOmega, hetaOmegaSq, div_div_div_cancel_right₀ hy]
   simp
+
+/-- The selected cubic-order test as a two-binomial vanishing condition.
+This is the denominator-free algebra behind the cyclotomic resultant
+criterion in the paper; it retains the marked Möbius phase exactly. -/
+theorem singer_selected_power_eq_one_iff [CharP F 2]
+    (eta y omega : F) (d : ℕ)
+    (homega : omega ^ 2 + omega + 1 = 0)
+    (hy : y + 1 ≠ 0)
+    (heta : eta = omega ^ 2 * (y + omega ^ 2) / (y + 1)) :
+    eta ^ d = 1 ↔
+      (y + omega ^ 2) ^ d + omega ^ d * (y + 1) ^ d = 0 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have homega3 : omega ^ 3 = 1 := by
+    linear_combination
+      (omega + 1) * homega - (omega ^ 2 + omega + 1) * htwo
+  have homegaProd : (omega ^ 2) ^ d * omega ^ d = 1 := by
+    rw [← mul_pow]
+    have : omega ^ 2 * omega = 1 := by
+      calc
+        omega ^ 2 * omega = omega ^ 3 := by ring
+        _ = 1 := homega3
+    rw [this, one_pow]
+  rw [heta, div_pow, mul_pow]
+  have hden : (y + 1) ^ d ≠ 0 := pow_ne_zero d hy
+  constructor
+  · intro h
+    have hmul :
+        (omega ^ 2) ^ d * (y + omega ^ 2) ^ d = (y + 1) ^ d := by
+      exact (div_eq_one_iff_eq hden).mp h
+    have hnum :
+        (y + omega ^ 2) ^ d = omega ^ d * (y + 1) ^ d := by
+      calc
+        (y + omega ^ 2) ^ d =
+            1 * (y + omega ^ 2) ^ d := by rw [one_mul]
+        _ = ((omega ^ 2) ^ d * omega ^ d) *
+              (y + omega ^ 2) ^ d := by rw [homegaProd]
+        _ = omega ^ d *
+              ((omega ^ 2) ^ d * (y + omega ^ 2) ^ d) := by ring
+        _ = omega ^ d * (y + 1) ^ d := by rw [hmul]
+    rw [hnum]
+    exact CharTwo.add_self_eq_zero _
+  · intro h
+    have hnum :
+        (y + omega ^ 2) ^ d = omega ^ d * (y + 1) ^ d :=
+      CharTwo.add_eq_zero.mp h
+    rw [hnum]
+    rw [← mul_assoc, homegaProd, one_mul]
+    exact div_self hden
 
 /-- Denominator-free normalization of the selected reciprocal cubic.
 Substituting z = d * τ and zPrev = d³ into

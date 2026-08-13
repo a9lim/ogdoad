@@ -116,7 +116,10 @@ frontier summarized in `docs/OPEN.md` and proved up to its exact boundary in
   current characters, and the vanishing of the norm operator on a faithful
   cubic character;
 - the substitution and norm identities for the deterministic child of a
-  singleton-even primitive-order packet;
+  singleton-even primitive-order packet, together with its reciprocal
+  child-image equation;
+- the denominator-free two-binomial power criterion underlying the selected
+  cubic M\"obius resultant;
 - polynomial, trace, norm, Frobenius, Kummer, and recurrence identities used
   to reduce the selected `Z`, `O`, `C`, and `D` coordinates.
 
