@@ -58,221 +58,119 @@ front quotients while respecting the chosen strategy tree.
 
 ### What is proved
 
-- `formal/Ogdoad/Fifo.lean` defines the exact terminating game, strategy
-  predicates, score translation, queue/cut invariants, singleton tails,
-  edgeless play, and close-first contractions. `FifoLinkingTheorem` is the open
-  proposition, not an axiom or theorem.
-- `formal/Ogdoad/FifoMatching.lean` proves the both-seat theorem for
-  matching-plus-isolates boards. `ImpartialRealizer.lean` supplies the
-  pass-free fixed-tempo compiler used by the Gold--Arf paper.
-- `FifoNormalization.lean` proves complete pair-response fan identities and
-  excludes close-first odd play at the isolated-dummy root.
-- `FifoStrategy.lean`, `FifoAffine.lean`, and `FifoWinningRegion.lean` make the
-  selected policy, its affine response space, and the Bellman-saturated region
-  precise.
-- The `FifoCross*`, `FifoCausal`, `FifoNeutralPair`, `FifoSameOpenBraid`,
-  `FifoDummy*`, `FifoOuterFan`, `FifoProtectedFan`, `FifoRootSelector`,
-  `FifoInterlace`, `FifoSymmetry`, and `FifoMinHotCurvature` modules prove local
-  transport, fan, deletion, symmetry, and obstruction lemmas. They expose the
-  surviving ancestry term rather than cancel it.
-- `FifoHub.lean` proves score-erased schedule equivariance, exact live-star
-  transport, transposition-defect identities, and the corresponding
-  characteristic-two graph-congruence formula. These are algebraic transport
-  statements, not a strategy or root-value conjugacy.
-- `FifoEmptyQueue.lean` proves that every nonterminal empty-to-empty block has
-  equally many OPENs and CLOSEs, no PASS, even length, and the same mover at
-  its two endpoints. `FifoBlockInduction.lean` kernel-checks an exact
-  first-return splicing interface, while explicitly recording that its
-  scalar/parity-only mover hypothesis is false. `FifoOutcome.lean` proves the
-  exact four-valued debt involution `(M,N) -> (not N,not M)` on the
-  mover/nonmover outcome sheet; `FifoOutcomeBlock.lean` proves that allowing
-  precisely the favorable complete-outcome exits is equivalent to the
-  original winning assertion, so that reformulation alone is circular.
-  `FifoOutcomeAlgebra.lean` proves abstractly that a ko-locked neutral pair is
-  not an operation on those four outcome classes. `FifoOutcomeSwitch.lean`
-  gives the FIFO-realized obstruction: a dummy-deleted root is both-even, yet
-  its front-dummy and rear-dummy active intervals have opposite outcomes for
-  the same seat despite identical deleted real public data.
-  `FifoTreeTrace.lean` and
-  `FifoQPotential.lean` give small checked obstructions to the raw all-leaf
-  sum and to maintaining the queue-cut potential pointwise.
-  `FifoPairState.lean` proves that any score-zero mover failure with an OPEN
-  available forces a lower minimum-hot singleton wall whose charged endpoints
-  are real; it deliberately does not identify that globally minimal wall with
-  a descendant of the original counterstrategy.
-  `FifoStrategyBadAncestry.lean` repairs that ancestry defect by minimizing
-  inside one supplied odd strategy. It retains exact root prefixes and the
-  complete immediate defender fan, proves that the selected bad move is a
-  charged CLOSE of a real front with a neutral translated continuation, and
-  excludes the neutral-CLOSE predecessor. `FifoStrategyBadAncestryClear.lean`
-  excludes the remaining clear-OPEN predecessor: its CLOSE sibling forces the
-  next front to have unit charge, while all OPEN siblings make that front
-  universal on the even carrier and hence give charge zero. Thus the exact
-  strategy-relative normal form has only the charged-CLOSE spike and
-  protected-singleton cases.
-  `FifoFirstSeatRoot.lean` proves the exact first-seat root normal form: the
-  first physical player wins precisely when some initial OPEN has a complete
-  winning fan over every legal second OPEN. The stronger claim that every
-  ordered initial pair is winning is sufficient, but remains unproved.
-  `FifoFirstSeatStrategy.lean` extracts from one hypothetical odd root strategy
-  its fixed-point-free selected second-opener map, exact common-root ancestry,
-  and a nontrivial periodic orbit. `FifoBadArcCycle.lean` proves that every
-  selected cycle has zero aggregate two-OPEN prefix. For an odd cycle the
-  continuation sum has nonzero real-edge projection; for an even cycle it is
-  only a homogeneous response direction. Thus the cycle alone does not
-  contract the root strategy. `FifoFunctionalDigraphBoundary.lean` shows that
-  adding the feeding in-trees does not create a graph-independent repair: an
-  isolated-dummy separator can evaluate every selected arc prefix to one, so
-  every odd arc subfamily still has nonzero real-edge projection.
-  `FifoDummyFront.lean` proves the exact neutral diamond
-  `CLOSE d; OPEN z = OPEN z; CLOSE d` below an initial dummy-first pair. It
-  also proves that an even win there requires some even-winning
-  dummy-consumed real-pair child. Thus opening the dummy first moves the
-  selector obligation to a no-dummy pair rather than solving it.
-  `FifoDummyFrontAffine.lean` proves that on the conjecture's odd total
-  carrier, the complete dummy-front legal fan has even cardinality and its
-  projected OPEN-prefix sum is the surviving real star of the second opener,
-  not zero. No local odd response point can have that projection, so an
-  earlier-ancestry affine point is genuinely required.
-  `FifoStrategyInteraction.lean` proves that complementary-seat odd policies
-  at the same state interact to a common odd terminal, so the direct diagonal
-  is compatible rather than contradictory. `FifoSelfPlay.lean` isolates the
-  exact contradictory target--same-seat odd subtrees at score-and-turn-
-  conjugate states--and proves that neutral dummy moves cannot supply its
-  score bit, while the dynamic cross-exit comparison retains a one-front
-  queue lag. Thus two-copy strategy stealing also stops at the earlier-sibling
-  factor extension.
-  `FifoSeparatorFlow.lean` proves the corresponding conservation law: an odd
-  zero-prefix fan has continuation residue of separator value one, even after
-  adding any homogeneous root direction. `FifoThreeSiblingBoundary.lean`
-  gives an exact same-tree countermodel to the naive repair: complete
-  immediate OPEN ancestry need not contain a sibling whose selected move is
-  the lag-removing CLOSE. The missing object is therefore an odd incidence
-  across correlated continuation cosets, not merely an additional immediate
-  branch.
-  `FifoRootCongruence.lean` gives the exact graph-shear boundary. Opposite
-  strategies on a graph and its elementary congruence interact to one common
-  public trace and live-star moment; if the root winner changes, the
-  congruence-row defect evaluates to one on that correlated moment. This is an
-  obstruction identity, not root-value invariance.
+- `formal/Ogdoad/Fifo.lean` defines the exact terminating game and the open
+  proposition `FifoLinkingTheorem`. Matching-plus-isolates boards are proved
+  both-seat even in `FifoMatching.lean`; this is sufficient for the Gold--Arf
+  construction and does not use the conjecture.
+- `FifoPublicPolicyAffine.lean` forgets graph scores while retaining the
+  attacker's selected moves, every defender reply, and the affine live-star
+  moments of compatible terminal histories. `FifoPublicPolicyDuality.lean`
+  proves the exact equivalence
+  `UniversalPublicPolicyAffine ↔ FifoLinkingTheorem`: if projected zero is
+  absent, affine separation is represented by an isolated-dummy graph and
+  reconstructs an odd counterstrategy. The graph-free affine target is
+  therefore the conjecture itself, not a weaker sufficient condition.
+- The strategy, affine, normalization, causal, cross-descent, dummy-deletion,
+  outcome, and symmetry modules prove the local response identities and their
+  exact failure surfaces. Minimizing a score-zero bad occurrence inside one
+  odd strategy leaves only a charged-CLOSE spike or protected-singleton
+  predecessor, with its actual root prefix and complete defender fan retained.
+  Descendant-only, local third-sibling, fixed-pairing, scalar block, and
+  graph-congruence arguments do not cancel the inherited continuation coset.
+- `FifoPublicSeparatorAutomaton.lean`,
+  `FifoPublicSeparatorAncestry.lean`, and
+  `FifoPublicSeparatorQueueDebt.lean` give the sharp dual normal form. In a
+  constantly-one public policy, a globally rank-minimal sheet-one occurrence
+  with the dummy still live is attacker-selected and chooses a real
+  separator-unit `OPEN v`. Its complete-fan child is sheet zero; every legal
+  edge of that fan has separator increment zero; the old queue is nonempty;
+  and handshaking supplies a distinct separator-odd vertex already in that
+  queue. Thus the parity partner is debt, not a legal OPEN sibling. The forced
+  CLOSE sibling enters a selected sheet-zero continuation but does not force
+  further CLOSEs.
+- `FifoCanonicalPositionalOdd.lean` proves that every odd-winning state has a
+  full-state positional strategy whose equal-state occurrences have literally
+  equal continuations. This closes the memoization gap but not the selection
+  gap. `FifoPublicPolicyTopologyBoundary.lean` proves that the
+  history-occurrence tree has injective edge boundary and no cycles.
+  `FifoPositionalSelectedEdgeBoundary.lean` gives a positional Bellman policy
+  which avoids both complementary edges of the relevant dummy diamond, while
+  `FifoPositionalStateDAGBoundary.lean` shows that quotienting by equal full
+  states can create a cycle whose live-star label still has nonzero real-edge
+  projection. Neither history-tree topology nor state-DAG incidence alone
+  yields the required zero moment.
+- The separator minimum and the concrete minimal-bad node are genuinely
+  different: separator sheet one minimizes potential
+  `score + queueCut`, whereas the bad-ancestry theorem minimizes score zero.
+  `FifoLastChargedCloseBoundary.lean` proves that every score-one occurrence
+  reached from the initial root has a last unit-charged CLOSE followed by a
+  pointwise score-neutral suffix. A queued separator-debt vertex either
+  survived behind that front or was opened in the suffix. An exact
+  initial-root public-policy occurrence realizes the survivor case with a
+  charging neighbour distinct from the debt; the ko wall blocks moving the
+  survivor opener later, while moving the charging neighbour earlier
+  neutralizes the CLOSE. Legality and parity therefore do not synchronize the
+  two minima.
+- Controlled-outcome descent requires two score-coupled odd policies, not one
+  sheet-zero continuation. The controlled-state modules prove that every
+  reachable rank-minimal controlled state on an isolated-dummy graph has
+  already consumed the dummy. However,
+  `FifoSeparatorControlledBridgeBoundary.lean` gives the exact local
+  obstruction to invoking that result at the separator minimum: the
+  separator-zero complete-fan child and its forced CLOSE sibling can both be
+  cold `BothOdd` with the dummy untouched, and score translation makes the
+  child `BothEven`. No coupled right odd policy, hence no controlled descent,
+  follows from separator minimality alone.
+- The dynamic Gaussian route has a real but limited invariant. On an even
+  carrier every opener has a distinct same-degree mate with zero second
+  moment, and every alleged odd strategy at such a pair contains a strictly
+  smaller score-zero descendant. The condition is not recursively preserved:
+  a checked third-moment example breaks the natural next pair, and the
+  five-vertex star gives an odd q=0 pair whose zero descendant has empty queue.
+  That counterexample has no isolated vertex. After adjoining an isolated
+  dummy, the displayed star pair is exactly even-winning. Thus the restricted
+  isolated-dummy q=0 safety statement remains open and is evidence, not a
+  proved induction.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
-  through eight real vertices plus the dummy, for both seats. This is tested
-  evidence only.
+  through eight real vertices plus the dummy, for both seats. A separate
+  five-minute targeted labelled search found no counterexample beyond that
+  census. At total order ten (nine real vertices plus the dummy), 3,742
+  distinct completed graphs all returned the fixed-even root value; the set
+  comprised the sharp selector seed, all 36 one-edge flips, all deduplicated
+  `7 × 256` one-new-real attachment extensions of seven order-eight
+  no-dummy anti-mover seeds, and local one-to-four-edge mutations up to the
+  time cap. At total order eleven, 346 completed sharp-seed-plus-one-real
+  attachment patterns out of 512 also returned fixed-even; four in-flight
+  cases at cutoff are excluded. These bounded results are tested evidence
+  only, not an exhaustive certificate at either order.
 
 ### Remaining theorem
 
-The local response fans contract, descendants of a critical charged close can
-be scalar-neutral, and the exact strategy-relative minimal-bad ancestry
-classification is now proved. The sole remaining theorem is the causal factor
-extension: in the charged-CLOSE spike and protected-singleton cases, select
-compatible earlier defender siblings across FIFO front levels so that their
-prefixes and continuation cosets cancel the residual real-edge class with odd
-augmentation. Descendant-only, immediate-third-sibling, cycle-only, and
-functional-digraph-incidence versions are all formally ruled out; the required
-factor must use correlated continuation cosets from strictly earlier ancestry.
+The exact task is to rule out a constantly-one initial public policy, or
+equivalently prove that every initial public policy has projected affine
+moment zero. At its rank-minimal sheet-one occurrence the local picture is
+fully determined: a selected real unit OPEN moves to a complete sheet-zero
+fan and leaves its parity partner as nonempty queued debt. The missing step is
+global and ancestry-sensitive.
 
-For the first-seat half there is also a sharper root-level target. A
-hypothetical odd root strategy contains every first OPEN and selects one
-second OPEN below each of them, so all of those bad ordered pairs share one
-strategy ancestry. Proving that this selected first-two-OPEN fan has a safe
-branch would settle the first-seat half. Treating the pair states as unrelated
-conditioned games discards exactly this common ancestry and has not produced a
-proof.
+A proof must use the occurrence's path from the initial root to relate that
+queued debt to the last charged CLOSE and then select an odd family of earlier
+defender siblings whose prefixes and continuation cosets cancel the residual
+real-edge class. It must handle both exact FIFO order branches: the debt may
+survive behind the charged front or may be opened in the neutral suffix.
+Neither branch can be reordered away using only ko legality and score parity.
 
-Finiteness does force a directed cycle in the selected reply map, and its
-two-OPEN live-star prefixes cancel exactly. This does not finish the argument:
-an odd cycle has the right affine augmentation but its continuation sum is
-provably nonzero after real-edge projection, whereas an even cycle has only
-the augmentation of a direction. A successful first-seat contraction must
-therefore incorporate an in-tree branch or another earlier sibling in
-addition to the cycle. Incidence alone is still insufficient even after all
-in-tree branches are included: the explicit seven-vertex functional-digraph
-separator evaluates each selected arc prefix to one, so every odd subfamily
-remains nonzero in the real-edge quotient.
-
-Choosing the isolated dummy as the first opener does not avoid this boundary.
-At the resulting pair `[d,y]`, closing `d` before a real open `z` and opening
-`z` before closing `d` reach the same score-zero state `[y,z]`. If every such
-dummy-consumed child is odd-winning, the odd player uses the opposite side of
-this diamond against either defender move and wins `[d,y]`. Hence a successful
-dummy-first strategy already needs a winning consumed real pair; neutrality
-alone is not a strategy steal.
-
-The affine obstruction agrees exactly. On odd total order the legal fan
-consisting of `CLOSE d` and every remaining `OPEN z` is even, while the sum of
-the OPEN prefixes projects to the full real star of `y`. Graph evaluation
-shows that no response point at `[d,y]` can project to that star. Hence the
-missing repair cannot be manufactured inside the local dummy-front fan; it
-must arrive from the common initial ancestry.
-
-Purely graph-local parity, fixed pairings, bounded-support affine circuits,
-childwise continuation arguments, dummy deletion, and turn/score symmetry do
-not supply this selection; explicit checked states delimit each route. A proof
-must use causal information from the selected strategy tree, not only the
-underlying graph or the set of terminal histories.
-
-Empty-queue blocking does not remove that requirement. Although a
-nonterminal first-return block preserves the physical mover, neither forcing
-every such block to score zero nor allowing only a residual-cardinality bit is
-a valid universal induction hypothesis. Even with an isolated dummy, the
-stronger demand that a neutral first return retain the dummy fails on
-`K_3 + d` and `K_4 + d`, in the two seat orientations. Once the dummy has
-been consumed, the exact residual datum is the two-seat outcome pair of the
-remaining no-dummy root, together with the current score. Equivalently, the
-next valid reduction must carry that outcome-valued debt or the full affine
-continuation coset; one scalar block charge is insufficient.
-
-The complete four-valued root sheet is still not a compositional substitute
-for those continuations. Deleting the dummy reverses the controller of every
-real event strictly inside its OPEN/CLOSE interval. A strategy interaction
-would therefore have to switch the designated no-dummy seat at both interval
-endpoints. Even a both-even no-dummy root does not make the opposite-seat
-strategy available at a state selected by the first strategy. The three-label
-active-interval example proves this failure exactly; interval order and
-strategy ancestry are indispensable.
-
-Direct self-interaction has the same sharp boundary. Two odd policies for
-complementary designated seats at one public state can be played against each
-other to a terminal node belonging to both trees; both require odd score, so
-there is no contradiction. A contradiction would instead follow from two
-same-seat odd subtrees rooted at `s` and at the score-and-turn conjugate of
-`s`. An isolated dummy can reverse the controller phase inside its active
-interval but never changes the score. At the singleton wall it leaves a ko
-defect, and a charged real-front repair supplies a score bit only together
-with a one-front queue lag and the corresponding real-edge curvature. Hence
-two-copy self-play reproduces the causal factor gap: a strictly earlier
-universal sibling must absorb the lag/edge defect and align the two
-continuation cosets.
-
-Even the phrase "an earlier sibling" must be interpreted as a multi-branch
-incidence, not as one favorable immediate reply. In a one-dimensional
-separator quotient the root affine space is `{1}` and its direction space is
-`{0}`. Every complete-fan and curvature identity survives, while an odd
-zero-prefix fan necessarily leaves continuation value one. A concrete
-same-tree FIFO policy on an edgeless score-one state realizes the operational
-counterpart: its CLOSE child selects an OPEN, but neither immediate OPEN
-sibling selects the CLOSE needed to remove the queue lag. Hence fan
-completeness plus homogeneous corrections cannot prove the conjecture; the
-new theorem must correlate an odd family of continuation cosets across more
-than one level of ancestry.
-
-The apparent topological shortcut is also excluded. With history occurrences
-retained, an attacker-pruned policy is a tree, so its edge-boundary map is
-injective and supplies no nonzero cycle. Identifying publicly reconvergent
-histories would add OPEN/CLOSE diamonds, but their live-star cochain has
-curvature equal to the crossed real edge, and the two occurrences can carry
-different continuation cosets. Similarly, deleting the dummy can require a
-ko-wall exchange that changes one real edge moment and reverses control of the
-repaired move. These facts force a history-indexed mapping-cone or equivalent
-ancestry construction; ordinary oik cancellation and policywise dummy
-deletion cannot prove the missing factor extension.
-
-An exact nine-real-vertex root witness makes the surviving selector boundary
-sharp: after one real opener, eight of the nine possible OPEN replies lose and
-only the isolated dummy wins. The dummy is the opener's unique same-degree-
-parity mate, and its child has an explicit parity-cell pairing certificate.
-This is finite evidence, not a counterexample, but it rules out replacing the
-existential root selector by a robust or universal reply claim.
+The available no-go theorems delimit what this comparison must contain.
+Canonical positionality does not force either edge of a commuting dummy
+square; history trees have no cycles; full-state quotient cycles can carry
+nonzero edge label; separator-zero children need not be controlled; and q=0
+pair descent can lose every queued pair without an isolated dummy. Hence the
+remaining factor cannot be a local Bellman tie-break, an unlabelled
+state-DAG cycle, score translation alone, or an unrestricted scalar pair
+induction. It must import a second correlated continuation from strictly
+earlier initial-root ancestry. The isolated-dummy q=0 safety statement is a
+possible auxiliary route, but it too requires a new invariant that survives
+the dummy branch and the smaller zero descendant.
 
 Authoritative paper: [`../writeups/linking_affine.tex`](../writeups/linking_affine.tex).
 Executable model: `experiments/linking_game.py`.
