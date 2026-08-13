@@ -42,6 +42,13 @@ exceptional arm becomes irreducibility of an explicit Capelli composition
 after a corrected quadratic norm.  In that exceptional column we also obtain
 the unconditional level-dependent bound
 \(m_\ell<16(3^k)^4\) when \(f(\ell)=2\cdot3^k\) and \(k\geq2\).
+We further identify the literal Conway--Fermat points on a fixed
+supersingular elliptic curve, prove that the ordinary marked primes form a
+unique inert cyclotomic ray, and show that the cubic recursion and the
+exceptional auxiliary ancestry are affine forms of one toric Dickson system.
+These structures
+sharpen the selected phase which remains to be evaluated; they do not force
+its nonvanishing.
 These are reductions, not proofs of the four universal assertions.  Formal
 verification establishes the general
 group, norm, and polynomial identities and several finite arithmetic
@@ -453,7 +460,101 @@ factorizations, trace identities, or automata derived only from this word
 reconstruct the selected order rather than force it to be \(F_n\).  The
 classical iterated quadratic tower of Wiedemann has a related norm-one form
 but a different recursion, so its order results do not transfer by a
-Frobenius identification \cite{wiedemann1988}.
+Frobenius identification \cite{wiedemann1988}.  The recent general
+Artin--Schreier tower theorem of Cagliero, Herman, and Szechtman proves the
+exact product of the relative orders, but its maximality condition remains
+precisely that every relative factor \(\delta_j\) be full; it does not prove
+\(\delta_j=F_j\) \cite{caglierohermanszechtman2025}.
+
+There is nevertheless an exact elliptic realization of this arm.  It is
+useful because it isolates, rather than removes, the remaining Kummer
+coordinate.
+
+\begin{proposition}[supersingular realization and pairing boundary]
+\label{prop:z-elliptic}
+On
+\[
+ \mathcal E:\quad y^2+y=x^3+x^2
+\]
+put \(P_n=(c_n,c_{n+1})\).  Then \(P_n\in\mathcal E\), and for \(n\geq2\)
+\[
+ [F_n]P_n=O.
+\]
+More precisely, if \(\pi\) is absolute Frobenius and
+\(\iota=\pi+[1]\), then
+\[
+ \iota(x,y)=(x+1,y+x+1),\qquad
+ \iota^2=[-1],\qquad
+ \pi^4=[-4].
+\]
+For
+\[
+ g=\frac{y+1}{y}
+\]
+one has
+\[
+ g(P_n)=\frac{c_{n+1}+1}{c_{n+1}},
+ \qquad \operatorname{ord}(g(P_n))=\delta_{n+1}.
+\]
+If \(T=(0,0)\), then \(T\) has order five and
+\[
+ \operatorname{div}(g)
+ =2[-T]+[2T]-2[T]-[-2T].
+\]
+Thus \(g\) is the quotient of the two fixed doubling Miller functions at
+\(-T\) and \(T\), but it is not a Weil or reduced-Tate pairing function
+attached to the \(F_n\)-torsion point \(P_n\).
+\end{proposition}
+
+\begin{proof}
+The Conway recursion gives
+\[
+ c_{n+1}^2+c_{n+1}=a_n
+ =c_n(c_n^2+c_n)=c_n^3+c_n^2,
+\]
+so \(P_n\) lies on \(\mathcal E\).  The displayed coordinate formula for
+\(\iota(P)=\pi(P)+P\) follows from the chord law; applying it twice gives
+the inverse \((x,y)\mapsto(x,y+1)\).  Hence
+\(\pi^2+2\pi+2=0\) in \(\operatorname{End}(\mathcal E)\), and squaring this
+relation gives \(\pi^4=[-4]\).
+
+Put \(H=2^{n+1}\).  The \(2^H\)-Frobenius fixes \(c_n\) and sends
+\(c_{n+1}\) to \(c_{n+1}+1\), so it sends \(P_n\) to \(-P_n\).
+For \(n\geq2\),
+\[
+ \pi^H=(\pi^4)^{2^{n-1}}=[2^{2^n}],
+\]
+and therefore \([2^{2^n}+1]P_n=O\).
+
+The formula for \(g(P_n)\) and Proposition~\ref{prop:z-fibonacci} give its
+order.  The five rational points of \(\mathcal E/\mathbb F_2\) show that
+\(T\) has order five.  Direct intersection with the two horizontal lines
+gives
+\[
+ \operatorname{div}(y)=2[T]+[-2T]-3[O],\qquad
+ \operatorname{div}(y+1)=2[-T]+[2T]-3[O],
+\]
+and subtraction gives the divisor of \(g\).  Equivalently,
+\(g=f_{2,-T}/f_{2,T}\) for the \(\mathbb F_2\)-rational functions normalized
+at \(O\).  Its divisor has coefficients \(2,1,-2,-1\) at fixed rational
+five-torsion, so it cannot be an \(F_n\)-Miller function attached to \(P_n\),
+even modulo an \(F_n\)-th power.  Any Weil or reduced Tate pairing on
+\(\mathcal E[F_n]\) takes values in \(\mu_{F_n}\), whereas \(g(P_n)\) has
+order dividing \(F_{n+1}\).
+The Fermat numbers are pairwise coprime and \(\delta_{n+1}>1\), so these
+values cannot agree.
+\end{proof}
+
+The proposition supplies exact CM annihilator control of the literal Conway
+point, but generator status still does not follow from annihilation by
+\(F_n\).  For \(n\geq3\), no elliptic endomorphism can carry \(P_n\) to
+\(P_{n-1}\): the order of such an image would divide both coprime numbers
+\(F_n\) and \(F_{n-1}\), although \(P_{n-1}\ne O\).  For \(n=2\), the same
+conclusion follows from \(\operatorname{ord}(P_1)=3\) and
+\(\operatorname{ord}(P_2)\mid17\).  The actual ancestry relation
+\(x(P_n)=y(P_{n-1})\) is therefore not an isogeny division tower.  The
+unresolved statement remains exactly the next-level value
+\(\operatorname{ord}(g(P_n))=F_{n+1}\).
 
 \begin{proposition}[two complete multicomponent levels]\label{prop:z-small}
 Assertion \(Z\) holds at \(h=12\) and \(h=24\).
@@ -603,6 +704,66 @@ theory identifies this symbol with the Frobenius action on a chosen
 This form explains the real difficulty of \(O\).  The conductor and the
 unmarked conjugate set are determined by the tower, but the conjecture asks
 for one residue symbol at the prime over two selected by Conway ancestry.
+
+\begin{proposition}[the selected prime is a unique inert ray]
+\label{prop:o-inert-ray}
+Put \(M=\operatorname{ord}(\alpha_r)\).  Choose compatible primitive roots
+\(\xi_{N_a}\) with \(\xi_{N_0}\mapsto\alpha_r\) and
+\(\xi_{N_a}^r=\xi_{N_{a-1}}\).  Then
+\[
+ N_a=\operatorname{ord}(x_a)=r^aM,
+ \qquad \operatorname{ord}_{N_a}(2)=br^a.
+\]
+Let \(K_a=\mathbb Q(\xi_{N_a})\), and let \(\mathfrak P_a\mid2\) be the
+prime selected by \(\xi_{N_a}\mapsto x_a\).  For \(a\geq1\),
+\(\mathfrak P_a\) is the unique prime of \(K_a\) above
+\(\mathfrak P_{a-1}\), with relative residue degree \(r\).  Moreover,
+\[
+ \operatorname{N}_{K_a/K_{a-1}}(1-\xi_{N_a})
+ =1-\xi_{N_{a-1}}.
+\]
+If \(p\ne r\) divides \(L_{r,a}\), then the lower residue field has
+trivial \(p\)-Kummer quotient.  Consequently the residue-field norm
+\[
+ F_a^\times/(F_a^\times)^p\longrightarrow
+ F_{a-1}^\times/(F_{a-1}^\times)^p,
+\]
+or equivalently the corresponding finite-field corestriction, sends the
+selected current class to zero and imposes no restriction on it.
+\end{proposition}
+
+\begin{proof}
+The irreducible Kummer steps \(X^r-x_{a-1}\) increase the \(r\)-primary
+part of the root order by one and preserve every other primary part.  This
+gives \(N_a=r^aM\).  The defining-field equality
+\(\mathbb F_2(x_a)=\mathbb F_{2^{br^a}}\) then gives
+\(\operatorname{ord}_{N_a}(2)=br^a\).
+
+The first irreducible binomial also forces \(r\mid M\).  Hence
+\([K_a:K_{a-1}]=r\), while the displayed orders show that the residue-degree
+ratio at the selected primes is also \(r\).  Since two is unramified in
+these odd-conductor cyclotomic fields, the fundamental identity forces one
+prime above \(\mathfrak P_{a-1}\), of residue degree \(r\).  Taking the
+product over the \(r\)-th roots of unity gives the norm identity.
+
+Finally,
+\(p\mid\Phi_{r^a}(2^b)\) but
+\(p\nmid2^{br^{a-1}}-1\).  Raising to the \(p\)-th power is therefore an
+automorphism of the lower residue-field multiplicative group, so its
+\(p\)-Kummer quotient is zero.  The last assertion follows after reduction
+at \(\mathfrak P_{a-1}\); no claim is made that the global cyclotomic-unit
+class has trivial number-field norm.
+\end{proof}
+
+Thus full ancestry leaves no hidden choice of a prime after the birth level:
+it determines one compatible inert ray.  What it does not determine is the
+new augmentation coordinate of the cyclotomic unit on that ray.  Global
+reciprocity only relates the product of the conjugate symbols, which is one,
+and ramified conductor formulas at primes above \(p\) determine a different
+local character.  A nontrivial ray character may still vanish on the fixed
+class of \(\mathfrak P_a\).  The missing theorem is therefore a
+selected-prime Artin-symbol nonvanishing statement, not a decomposition,
+norm, or conductor calculation.
 
 \begin{proposition}[phase conservation above the birth level]
 \label{prop:o-tail}
@@ -812,6 +973,15 @@ tower; primitivity is the open statement.  General lower bounds for
 multiplicative orders of Gaussian periods, such as
 \cite{ahmadishparlinskivoloch2010}, do not give maximal order for this
 recursively selected period.
+
+In fact degree is maximally insensitive here.  Every prime
+\(\ell\mid\Phi_{3^k}(2)\) satisfies
+\(\operatorname{ord}_{\ell}(2)=3^k\).  If \(z\ne1\) lies in \(U_k\), choose
+such a prime \(\ell\mid\operatorname{ord}(z)\).  Then
+\([\mathbb F_2(z):\mathbb F_2]\) is both divisible by
+\(\operatorname{ord}_{\ell}(2)=3^k\) and at most \(3^k\), hence equals
+\(3^k\).  Thus even an element of proper order in \(U_k\) has the same full
+field degree as a generator.
 
 The recursion in Proposition~\ref{prop:c-eta} is lossless.  It reconstructs
 every finite selected truncation up to Frobenius, and Frobenius preserves
@@ -1097,6 +1267,74 @@ recursion in the cubic tower cannot by itself transfer the missing order from
 one arm to the other.  Their common Conway ancestry is relevant only through
 the explicitly selected additive coefficients.
 
+\begin{proposition}[common toric cubic dynamics]
+\label{prop:cd-toric}
+Over a field of characteristic two, for \(z\ne0\) put
+\[
+ \varpi(z)=z+z^{-1},\qquad D(X)=X^3+X,
+ \qquad F_c(U)=U^3+cU^2+cU,
+\]
+where \(c^2+c=1\).  Then
+\[
+ D(\varpi(z))=\varpi(z^3),
+ \qquad
+ F_c(U)=D(U+c)+c^2,
+\]
+and
+\[
+ F_{c^2}(F_c(U))=D(D(U+c))+c.
+\]
+In the literal cubic tower choose alternating \(c_j\in\mathbb F_4\) with
+\(c_j^2+c_j=1\) and \(c_{j-1}=c_j^2\), and put
+\(u_j=\gamma_j+c_j\).  Then
+\[
+ F_{c_j}(u_j)=u_{j-1}.
+\]
+Consequently the selected \(C\) ancestry is the inversion quotient of the
+\(3\)-division tree on \(\mathbb G_m\), while this auxiliary recursion used
+in the analysis of \(D\) is a two-periodic affine coordinate on the same
+toric tree.  This does not identify \(u_k\) with the exceptional target
+\(A_k\), whose Kummer class remains the one in
+Theorem~\ref{prop:d-exact}.
+\end{proposition}
+
+\begin{proof}
+Expanding \((z+z^{-1})^3+(z+z^{-1})\) in characteristic two leaves
+\(z^3+z^{-3}\).  The second identity is another direct expansion using
+\(c^2+c=1\), which also gives \(c^3=1\).  Applying it first with \(c\) and
+then with \(c^2\), and using \(c^4=c\), gives the third identity.
+Finally, \(\gamma_j^3+\gamma_j=\gamma_{j-1}\), so the second identity gives
+\[
+ F_{c_j}(u_j)=D(\gamma_j)+c_j^2
+ =\gamma_{j-1}+c_{j-1}=u_{j-1}.
+\]
+\end{proof}
+
+This exact identification rules out direct identification with several
+tempting division systems.  The map
+\(D\) is not additive:
+\[
+ D(X+Y)-D(X)-D(Y)=XY(X+Y),
+\]
+and its degree is three, whereas a nonconstant Drinfeld or Carlitz
+endomorphism in characteristic two is an additive polynomial of
+power-of-two degree.  Nor is this a smooth elliptic Latt\`es system: infinity
+is a totally invariant exceptional point of the polynomial \(D\), while a
+finite quotient of a separable elliptic isogeny of degree greater than one has no
+exceptional point, since the inverse images upstairs grow with every
+iterate and quotient fibres stay bounded.  The relevant algebraic group is
+\(\mathbb G_m\), the smooth group of a nodal cubic, not a hidden smooth
+elliptic division tower.
+
+The natural characteristic-zero Dickson lift \(X^3-3X\) has the same
+semiconjugacy with cubing.  The selected \(C\)-preimages come from roots of
+unity and therefore are preperiodic and have canonical height zero.  The
+forward-orbit primitive-divisor theorem of Ingram and Silverman assumes an
+infinite orbit and therefore does not apply \cite{ingramsilverman2009}.
+More fundamentally, these viewpoints still end at the same selected values
+\(\Omega_{k,\ell}\); none evaluates them, and the exceptional target remains
+separate as stated above.
+
 \section{Boundedness and the remaining theorem}\label{sec:boundedness}
 
 Lenstra asked whether the finite excesses are absolutely bounded
@@ -1178,6 +1416,9 @@ proves the abstract cyclic-group power criterion, its
 full-primary order form, quotient-order factorization, the corrected norm
 identity, the exceptional lower-bound interface, and a collection of
 polynomial and finite arithmetic lemmas used by the reductions.  It also
+proves the torus/Dickson semiconjugacy, the alternating two-step cubic
+conjugacy, and the order-four coordinate symmetry of the supersingular
+Conway curve.  It
 checks the recorded factorizations of \(\Psi_k\) for \(2\leq k\leq6\), the
 primality of the modest factors through \(k=4\), and exact order-of-two
 screens for the recorded factors.

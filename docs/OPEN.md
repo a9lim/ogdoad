@@ -149,10 +149,10 @@ assertions. None is known universally.
 
 | arm | structural case | remaining selected assertion |
 | --- | --- | --- |
-| `Z` | non-singleton component support, including the singleton-even Conway--Fermat chain | the structural norm generates the primitive-support quotient; equivalently the terminal iterated norm/order coordinate is nonzero |
-| `O` | singleton odd prime power with prime different from `3` | the selected projective class of `kappa_(r^a)+1` has the full required primary order |
-| `C` | the cubic `3^k` chain | the selected Gaussian period `zeta + zeta^{-1}` is primitive, equivalently the final fixed cubic-norm coordinate is nontrivial |
-| `D` | the exceptional `2*3^k` chain | the reconstructed selected Artin--Schreier/Dickson value is not a current-primary power; `DPrimeTarget` records this target |
+| `Z` | non-singleton component support, including the singleton-even Conway--Fermat chain | the structural norm generates the primitive-support quotient; on the literal supersingular curve, the fixed function `(y+1)/y` has full next-Fermat order at the recursively selected point |
+| `O` | singleton odd prime power with prime different from `3` | the marked cyclotomic unit has full primary order at the unique inert prime ray over `2` selected by Conway ancestry |
+| `C` | the cubic `3^k` chain | the selected Gaussian period in the inversion quotient of the toric `3`-division tree is primitive, equivalently the final cubic norm-one coordinate is nontrivial |
+| `D` | the exceptional `2*3^k` chain | the reconstructed selected Artin--Schreier/Dickson value is not a current-primary power; its auxiliary ancestry is toric, while `DPrimeTarget` records the distinct actual target |
 
 If nonzero `beta` lies in `F_(2^E)` and `p` divides `2^E-1`, the exact
 obstruction is
@@ -173,11 +173,20 @@ component information can lose it.
 - The four-arm equivalence, exact power criteria, boundedness reformulation,
   norm identities, and many phase-preserving reductions are proved in the
   paper.
+- The singleton-even chain has an exact supersingular-curve realization:
+  its selected point has an exact Fermat annihilator, but the target value is
+  a fixed ramified Kummer function rather than a pairing value. The ordinary
+  cyclotomic primes form a unique inert ancestry ray, but residue-field
+  norm/corestriction kills the new current coordinate. The cubic ancestry and
+  the exceptional auxiliary recursion are exact affine forms of one toric
+  Dickson system, not direct Drinfeld or smooth elliptic division towers;
+  this does not identify the auxiliary value with the actual `D` target.
 - `formal/Ogdoad/Excess.lean` proves the first-non-power interface,
   group-theoretic lower bound, corrected sparse norm, exact cyclic/finite-field
-  power tests, finite arithmetic screens, and algebraic lemmas used by the four
-  reductions. `DPrimeTarget` is deliberately only a definition of the open
-  universal target.
+  power tests, toric semiconjugacy, alternating two-step cubic conjugacy,
+  supersingular coordinate symmetry, finite arithmetic screens, and algebraic
+  lemmas used by the four reductions. `DPrimeTarget` is deliberately only a
+  definition of the open universal target.
 - The exceptional column has an unconditional effective bound depending on
   `k`; it does not prove an absolute bound on all `m_p`.
 - The ordinary rows through the implementation cutoff include source-backed
@@ -190,10 +199,11 @@ component information can lose it.
 ### Remaining theorem
 
 Every arm has been reduced to a one-dimensional, recursively selected
-nonvanishing/order coordinate. A complete proof must control that literal
-coordinate uniformly along Conway ancestry. A generic statement about all
-points in the ambient finite field, or about an unordered orbit of candidate
-points, is not enough.
+nonvanishing/order coordinate. A complete proof must evaluate that literal
+coordinate uniformly along Conway ancestry. Degree, torsion, norm,
+corestriction, conductor, factor parity, or a generic statement about all
+points in the ambient field does not distinguish it from a proper-order or
+power-residue countermodel.
 
 Authoritative paper: [`../writeups/excess.tex`](../writeups/excess.tex).
 Implementation: `src/scalar/big/ordinal/tower.rs`.

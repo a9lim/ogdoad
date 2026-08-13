@@ -2020,6 +2020,101 @@ theorem dk_twisted_translate_product
     _ = a + (c + 1) := by ring
     _ = a + c ^ 2 := by rw [hc'']
 
+/-- The characteristic-two third Dickson polynomial.  In the Conway cubic
+arms it is the quotient of cubing on the multiplicative torus by inversion. -/
+def dicksonCubic {S : Type*} [Add S] [Pow S Nat] (x : S) : S :=
+  x ^ 3 + x
+
+/-- The alternating affine cubic occurring in the exceptional `D` tower. -/
+def dkTwistedCubic {S : Type*} [Add S] [Mul S] [Pow S Nat]
+    (c u : S) : S :=
+  u ^ 3 + c * u ^ 2 + c * u
+
+/-- Cubing on `G_m`, followed by the inversion quotient `z + z⁻¹`, is the
+third Dickson polynomial. -/
+theorem dicksonCubic_inversion_semiconjugacy
+    {F : Type*} [Field F] [CharP F 2]
+    (z : F) (hz : z ≠ 0) :
+    dicksonCubic (z + z⁻¹) = z ^ 3 + (z⁻¹) ^ 3 := by
+  simp only [dicksonCubic]
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo, zero_add]
+  field_simp
+  ring_nf
+  rw [hfour]
+  simp
+
+/-- One exceptional twisted cubic is an affine translate of the same
+Dickson map. -/
+theorem dkTwistedCubic_eq_translate
+    {S : Type*} [CommRing S] [CharP S 2]
+    (c u : S) (hc : c ^ 2 + c = 1) :
+    dkTwistedCubic c u = dicksonCubic (u + c) + c ^ 2 := by
+  simp only [dkTwistedCubic, dicksonCubic]
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  have hthree : (3 : S) = 1 := by
+    calc
+      (3 : S) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  have hc' : c ^ 2 = c + 1 := by
+    linear_combination hc - c * htwo
+  have hc3 : c ^ 3 = 1 := by
+    calc
+      c ^ 3 = c * c ^ 2 := by ring
+      _ = c * (c + 1) := by rw [hc']
+      _ = c ^ 2 + c := by ring
+      _ = 1 := hc
+  calc
+    u ^ 3 + c * u ^ 2 + c * u =
+        (u + c) ^ 3 + (u + c) + c ^ 2 := by
+          ring_nf
+          simp only [hthree, hc', hc3]
+          linear_combination -(u + c + 1) * htwo
+    _ = dicksonCubic (u + c) + c ^ 2 := by rfl
+
+/-- Two successive alternating twisted cubics are conjugate to two Dickson
+steps.  Thus the selected cubic ancestry and the exceptional auxiliary
+recursion live on the same toric 3-division tree; this identity neither
+identifies the auxiliary value with `A_k` nor decides the selected phase. -/
+theorem dkTwistedCubic_twoStep
+    {S : Type*} [CommRing S] [CharP S 2]
+    (c u : S) (hc : c ^ 2 + c = 1) :
+    dkTwistedCubic (c ^ 2) (dkTwistedCubic c u) =
+      dicksonCubic (dicksonCubic (u + c)) + c := by
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  have hself (w : S) : w + w = 0 := by
+    calc
+      w + w = (2 : S) * w := by ring
+      _ = 0 := by rw [htwo, zero_mul]
+  have hc' : c ^ 2 = c + 1 := by
+    linear_combination hc - c * htwo
+  have hc3 : c ^ 3 = 1 := by
+    calc
+      c ^ 3 = c * c ^ 2 := by ring
+      _ = c * (c + 1) := by rw [hc']
+      _ = c ^ 2 + c := by ring
+      _ = 1 := hc
+  have hc4 : c ^ 4 = c := by
+    calc
+      c ^ 4 = c * c ^ 3 := by ring
+      _ = c := by rw [hc3, mul_one]
+  have hc_sq : (c ^ 2) ^ 2 + c ^ 2 = 1 := by
+    rw [show (c ^ 2) ^ 2 = c ^ 4 by ring, hc4]
+    simpa [add_comm] using hc
+  rw [dkTwistedCubic_eq_translate (c ^ 2) (dkTwistedCubic c u) hc_sq]
+  rw [dkTwistedCubic_eq_translate c u hc]
+  rw [show (c ^ 2) ^ 2 = c ^ 4 by ring, hc4]
+  have hcancel :
+      dicksonCubic (u + c) + c ^ 2 + c ^ 2 = dicksonCubic (u + c) := by
+    calc
+      dicksonCubic (u + c) + c ^ 2 + c ^ 2 =
+          dicksonCubic (u + c) + (c ^ 2 + c ^ 2) := by ring
+      _ = dicksonCubic (u + c) := by rw [hself, add_zero]
+  rw [hcancel]
+
 /-- Multiplication by a known `ell`-th power does not change Kummer
 membership. -/
 theorem mul_power_isPthPower_iff
@@ -7808,6 +7903,32 @@ end ConwayResultantParametrization
 section ConwayRationalDynamicsBoundary
 
 variable {F : Type*} [Field F] [CharP F 2]
+
+/-- The order-four coordinate symmetry on the supersingular Conway curve
+`y² + y = x³ + x²`.  At paper level this is the endomorphism
+`absoluteFrobenius + 1`. -/
+def conwayCMQuarter (P : F × F) : F × F :=
+  (P.1 + 1, P.2 + P.1 + 1)
+
+/-- Squaring the quarter-turn gives the elliptic inverse coordinate
+`(x,y) ↦ (x,y+1)`. -/
+theorem conwayCMQuarter_sq (x y : F) :
+    conwayCMQuarter (conwayCMQuarter (x, y)) = (x, y + 1) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  apply Prod.ext
+  · dsimp only [conwayCMQuarter]
+    linear_combination htwo
+  · dsimp only [conwayCMQuarter]
+    linear_combination (x + 1) * htwo
+
+/-- The quarter-turn preserves the fixed supersingular Conway curve. -/
+theorem conwayCMQuarter_preserves_curve
+    (x y : F) (hE : y ^ 2 + y = x ^ 3 + x ^ 2) :
+    let P := conwayCMQuarter (x, y)
+    P.2 ^ 2 + P.2 = P.1 ^ 3 + P.1 ^ 2 := by
+  dsimp only [conwayCMQuarter]
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  linear_combination hE + (x * y + y - x ^ 2 - x) * htwo
 
 /-- The cubic Conway driver is left--right equivalent to the third
 Dickson polynomial, but the source and target Möbius maps are different. -/
