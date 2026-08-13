@@ -19,7 +19,11 @@ Three first-block hypotheses then suffice:
 The corresponding full empty-root theorems follow by well-founded induction
 on the number of untouched vertices.  The last theorem specializes these
 abstract block hypotheses to both seats of an isolated-dummy initial board.
-No declaration below proves any of the three first-block hypotheses.
+No declaration below proves any of the three first-block hypotheses.  In
+fact, the mover property is a deliberately strong sufficient hypothesis and
+is false for arbitrary graphs (an eight-vertex counterexample is known); the
+point of the module is the exact splicing implication, not a claim that this
+particular block package settles FIFO linking.
 -/
 
 namespace Ogdoad.Fifo
@@ -173,9 +177,11 @@ theorem oddDummy_nonmover_evenWins_emptyRoot
           exact ih t.untouched.card (by simpa [hcard] using hsmall)
             t.untouched turn hdResidual hOddResidual rfl
 
-/-- Abstract first-block reduction of isolated-dummy FIFO linking.  The
-global both-seat theorem is a formal consequence of the three stated local
-block obligations. -/
+/-- Abstract conditional first-block reduction of isolated-dummy FIFO
+linking.  The global both-seat theorem is a formal consequence of the three
+stated local block obligations.  This implication remains useful as a
+bookkeeping boundary even though `MoverFirstBlockProperty` is too strong in
+general. -/
 theorem fifoLinking_of_firstBlockProperties
     {G : SimpleGraph V} {d : V} (_hd : IsDummy G d)
     (hMover : MoverFirstBlockProperty G)
