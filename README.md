@@ -38,8 +38,9 @@ Representation limits are part of the API:
   surreal series.
 - valued and local models have explicit precision caps and do not silently
   claim exact field laws outside them.
-- `Ordinal::nim_mul` returns `None` outside the supported Kummer tower; the
-  `Scalar` wrapper panics if that checked boundary is ignored.
+- `Ordinal::nim_mul`, `nim_pow`, `checked_inv`, and `checked_sqrt` preserve the
+  supported Kummer-tower boundary through `Option`; the `Scalar` multiplication
+  wrapper panics if that checked boundary is ignored.
 - fixed-width mathematical payloads use `u128` or `i128`; `usize` is reserved
   for dimensions, indices, and ABI hooks.
 

@@ -65,7 +65,6 @@ pub mod hermitian;
 pub mod integral;
 pub mod local_global;
 pub mod oddchar;
-pub(crate) mod poly_factor;
 pub mod quadric_fit;
 pub mod springer;
 pub mod symplectic;

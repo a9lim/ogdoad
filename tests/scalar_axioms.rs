@@ -1,4 +1,5 @@
-//! Property-based commutative-ring axioms, run across every `Scalar` backend.
+//! Property-based commutative-ring axioms, run across every exact-scalar marker
+//! family, plus a separate checked-law harness for partial ordinal nim arithmetic.
 //!
 //! The Clifford engine is generic over `Scalar` and *assumes* a commutative
 //! ring; these proptests are the safety net under that assumption. One generic
@@ -7,7 +8,8 @@
 //! than as a mysterious geometric-product failure.
 
 use ogdoad::scalar::{
-    Fp, Integer, Nimber, Ordinal, Poly, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
+    ExactScalar, Fp, Fpn, Integer, Nimber, Omnific, Ordinal, Poly, Rational, RationalFunction,
+    Scalar, Surcomplex, Surreal, WittVec, Zp,
 };
 use proptest::prelude::*;
 
@@ -20,7 +22,7 @@ const FAST_CASES: u32 = 2;
 const HEAVY_CASES: u32 = 1;
 
 /// Every commutative-ring law, checked on one triple `(a, b, c)`.
-fn ring_axioms<S: Scalar>(a: &S, b: &S, c: &S) {
+fn ring_axioms<S: ExactScalar>(a: &S, b: &S, c: &S) {
     // (R, +) is an abelian group
     assert!(a.add(b).add(c) == a.add(&b.add(c)), "+ associative");
     assert!(a.add(b) == b.add(a), "+ commutative");
@@ -79,6 +81,19 @@ fn fp7() -> impl Strategy<Value = Fp<7>> {
     any::<i128>().prop_map(Fp::<7>::from_int)
 }
 
+fn f9() -> impl Strategy<Value = Fpn<3, 2>> {
+    (0u128..3, 0u128..3).prop_map(|(a, b)| Fpn::<3, 2>::from_coeffs(&[a, b]))
+}
+
+fn zp125() -> impl Strategy<Value = Zp<5, 3>> {
+    (0u128..Zp::<5, 3>::modulus()).prop_map(Zp::<5, 3>)
+}
+
+fn witt_f9() -> impl Strategy<Value = WittVec<3, 3, 2>> {
+    let modulus = WittVec::<3, 3, 2>::modulus();
+    (0u128..modulus, 0u128..modulus).prop_map(|(a, b)| WittVec::<3, 3, 2>([a, b]))
+}
+
 /// Small surreals: a handful of monomials `ω^e · (p/q)` with `e ∈ [−2,2]`.
 fn surreals() -> impl Strategy<Value = Surreal> {
     prop::collection::vec((-2i128..=2, -4i128..=4, 1i128..=4), 0..3).prop_map(|terms| {
@@ -93,6 +108,32 @@ fn surreals() -> impl Strategy<Value = Surreal> {
 
 fn surcomplexes() -> impl Strategy<Value = Surcomplex<Surreal>> {
     (surreals(), surreals()).prop_map(|(re, im)| Surcomplex::new(re, im))
+}
+
+/// Small omnific integers: an integral constant plus finitely many positive-power
+/// omega monomials. Rational coefficients on the infinite terms exercise the part
+/// of `Oz` that is larger than `Z[omega]` while preserving the exact marker's domain.
+fn omnifics() -> impl Strategy<Value = Omnific> {
+    (
+        -4i128..=4,
+        prop::collection::vec((1i128..=2, -4i128..=4, 1i128..=4), 0..3),
+    )
+        .prop_map(|(constant, terms)| {
+            let value =
+                terms
+                    .into_iter()
+                    .fold(Surreal::from_int(constant), |acc, (exp, numer, denom)| {
+                        acc.add(&Surreal::monomial(
+                            Surreal::from_int(exp),
+                            Rational::new(numer, denom),
+                        ))
+                    });
+            Omnific::from_surreal(value).expect("strategy constructs an omnific integer")
+        })
+}
+
+fn polynomials() -> impl Strategy<Value = Poly<Fp<7>>> {
+    prop::collection::vec(fp7(), 0..4).prop_map(Poly::new)
 }
 
 /// Small rational functions over `F_7`: `num/den` with `num, den` of degree < 3,
@@ -126,7 +167,16 @@ axiom_suite!(nimber_ring_axioms, Nimber, nimbers(), FAST_CASES);
 axiom_suite!(integer_ring_axioms, Integer, integers(), FAST_CASES);
 axiom_suite!(rational_ring_axioms, Rational, rationals(), FAST_CASES);
 axiom_suite!(fp7_field_axioms, Fp<7>, fp7(), FAST_CASES);
+axiom_suite!(f9_field_axioms, Fpn<3, 2>, f9(), FAST_CASES);
+axiom_suite!(zp125_ring_axioms, Zp<5, 3>, zp125(), FAST_CASES);
+axiom_suite!(
+    witt_f9_ring_axioms,
+    WittVec<3, 3, 2>,
+    witt_f9(),
+    FAST_CASES
+);
 axiom_suite!(surreal_ring_axioms, Surreal, surreals(), HEAVY_CASES);
+axiom_suite!(omnific_ring_axioms, Omnific, omnifics(), HEAVY_CASES);
 axiom_suite!(
     surcomplex_ring_axioms,
     Surcomplex<Surreal>,
@@ -138,6 +188,12 @@ axiom_suite!(
     RationalFunction<Fp<7>>,
     rational_functions(),
     HEAVY_CASES
+);
+axiom_suite!(
+    polynomial_ring_axioms,
+    Poly<Fp<7>>,
+    polynomials(),
+    FAST_CASES
 );
 
 #[test]

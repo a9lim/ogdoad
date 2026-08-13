@@ -24,8 +24,9 @@ that axis. Read `docs/OPEN.md` before changing a claim used by a live paper.
 | `quadric_fit.rs` | research instrument fitting Boolean P-sets to quadrics |
 | `integral/` | lattice wing; see `integral/AGENTS.md` |
 
-`mod.rs` re-exports the public surface. `poly_factor.rs` and shared matrix
-kernels remain crate-private.
+`mod.rs` re-exports the public surface. Shared matrix kernels remain
+crate-private; generic finite-field polynomial factorization belongs beside
+`scalar::Poly` and is consumed here through a crate-private path.
 
 ## Classification contract
 

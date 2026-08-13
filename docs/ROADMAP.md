@@ -26,11 +26,6 @@ public API.
 
 ## API and maintenance
 
-- Complete property-law coverage for every exact scalar marker.
-- Add Newton-polygon coverage over `Qq` and checked ordinal square roots within
-  the supported tower.
-- Consolidate ordinal-local factor helpers and colocate the crate-private
-  polynomial factorizer with polynomial arithmetic.
 - Finish canonical Python `repr` coverage.
 - Keep Python parity focused on already public Rust surfaces: finite quadratic
   modules, extraspecial/Heisenberg--Weil objects, function-field Brauer--Wall,

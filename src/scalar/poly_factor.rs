@@ -1,4 +1,4 @@
-//! Finite-field polynomial factorization shared by the function-field layers.
+//! Finite-field polynomial factorization beside the shared polynomial arithmetic.
 //!
 //! The public place APIs only need the square-free support: the distinct monic
 //! irreducible factors of a polynomial. This helper replaces the old monic

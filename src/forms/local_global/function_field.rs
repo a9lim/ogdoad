@@ -82,7 +82,7 @@ impl<S: Scalar> std::fmt::Display for FunctionFieldPlace<S> {
 /// The distinct monic irreducible factors of `f` over `F_q` (the square-free
 /// support — multiplicities dropped, which is all the place layer needs).
 pub fn monic_irreducible_factors<S: FiniteOddField>(f: &Poly<S>) -> Vec<Poly<S>> {
-    crate::forms::poly_factor::monic_irreducible_factor_support(
+    crate::scalar::poly_factor::monic_irreducible_factor_support(
         f,
         S::characteristic_prime(),
         S::field_order(),

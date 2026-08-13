@@ -55,7 +55,7 @@ are regenerated artifacts and must also receive page-level visual review.
 | valued/local models | capped precision; cancellation may lose represented associativity at the boundary |
 | `Surreal` | exact finite-support expressions only |
 | `Nimber` | exact `F_(2^128)` arithmetic |
-| `Ordinal` | exact inside the checked Kummer window; checked multiplication refuses escape |
+| `Ordinal` | exact inside the checked Kummer window; checked multiplication, inversion, and square roots refuse escape |
 | bounded search | budget and exhaustion are reported separately from mathematical truth |
 
 The `associativity_*` tests and

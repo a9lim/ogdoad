@@ -96,6 +96,7 @@ pub mod global;
 pub mod integrality;
 pub mod newton;
 pub mod poly;
+pub(crate) mod poly_factor;
 pub mod residue;
 pub mod small;
 pub mod tropical;

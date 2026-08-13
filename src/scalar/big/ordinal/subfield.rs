@@ -5,8 +5,9 @@
 //! that `m` from the represented generator support and then minimizes it by the
 //! Frobenius fixed-field test `x^(2^d) = x`.
 
+use super::support::{base_digits, checked_pow, place_prime};
 use super::Ordinal;
-use crate::linalg::integer::gcd_u128;
+use crate::linalg::integer::{gcd_u128, prime_factors};
 use crate::scalar::nim_degree;
 
 impl Ordinal {
@@ -49,8 +50,8 @@ fn degree_bound(x: &Ordinal) -> Option<u128> {
 fn degree_bound_for_exponent(exp: &Ordinal) -> Option<u128> {
     exp.terms().iter().try_fold(1u128, |acc, (place, coeff)| {
         let m = place.as_finite()?;
-        let p = super::tower::place_prime(m);
-        super::tower::base_digits(*coeff, p)
+        let p = place_prime(m);
+        base_digits(*coeff, p)
             .into_iter()
             .enumerate()
             .filter(|&(_, digit)| digit != 0)
@@ -63,7 +64,7 @@ fn degree_bound_for_exponent(exp: &Ordinal) -> Option<u128> {
 fn generator_degree(p: u128, level: u128) -> Option<u128> {
     let alpha = super::tower::alpha_ordinal(p)?;
     let alpha_degree = ordinal_finite_subfield_degree(&alpha)?;
-    alpha_degree.checked_mul(super::tower::checked_pow(p, level + 1)?)
+    alpha_degree.checked_mul(checked_pow(p, level + 1)?)
 }
 
 fn minimize_degree_by_frobenius(x: &Ordinal, bound: u128) -> Option<u128> {
@@ -94,24 +95,6 @@ fn lcm(a: u128, b: u128) -> Option<u128> {
         return Some(0);
     }
     (a / gcd_u128(a, b)).checked_mul(b)
-}
-
-fn prime_factors(mut n: u128) -> Vec<u128> {
-    let mut factors = Vec::new();
-    let mut d = 2u128;
-    while d <= n / d {
-        if n.is_multiple_of(d) {
-            factors.push(d);
-            while n.is_multiple_of(d) {
-                n /= d;
-            }
-        }
-        d += if d == 2 { 1 } else { 2 };
-    }
-    if n > 1 {
-        factors.push(n);
-    }
-    factors
 }
 
 #[cfg(test)]
