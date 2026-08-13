@@ -13,7 +13,7 @@
 //! three legs where a single Witt class exists (real char 0, odd char, char 2).
 //! `Rational`'s Witt invariant is the full Hasse–Minkowski datum and surcomplex's
 //! is `W(ℂ) = ℤ/2`; neither is a `WittClassG`, so those two backends implement
-//! [`ClassifyForm`] but not [`ClassifyWitt`] — honest, not a gap.
+//! [`ClassifyForm`] but not [`ClassifyWitt`].
 
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
@@ -103,7 +103,7 @@ impl Char2WittDecomp {
         }
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -130,7 +130,7 @@ impl std::fmt::Display for Char2WittDecomp {
 }
 
 impl FiniteFieldWittDecomp {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -146,7 +146,7 @@ impl std::fmt::Display for FiniteFieldWittDecomp {
 }
 
 impl FiniteFieldInvariants {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -177,8 +177,8 @@ impl std::fmt::Display for FiniteFieldInvariants {
 
 /// Reason a façade classifier or Witt/Brauer-Wall method returned `Err`.
 ///
-/// Only the façade entry points return `Result` — the underlying leg functions
-/// whose `None` is single-valued and mathematically honest stay `Option`.
+/// Façade entry points return `Result`; lower-level partial functions with one
+/// failure meaning return `Option`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ClassifyError {
@@ -264,7 +264,7 @@ impl From<crate::forms::WittClassError> for ClassifyError {
 }
 
 /// Failure diagnosis for the char-0 / odd legs: general-bilinear data first,
-/// then a diagonalizer probe, then the honest out-of-domain default.
+/// then a diagonalizer probe, then the out-of-domain default.
 fn char0_failure<S: crate::scalar::Scalar>(metric: &Metric<S>) -> ClassifyError {
     if metric.a().values().any(|v| !v.is_zero()) {
         return ClassifyError::GeneralBilinearMetric;
@@ -312,6 +312,7 @@ fn two_metric_failure<S: crate::scalar::Scalar>(
     }
 }
 
+/// Scalar capability for classifying the quadratic data of a metric.
 pub trait ClassifyForm: Scalar {
     /// The classification datum produced for this field's characteristic leg.
     type Class;
@@ -640,9 +641,9 @@ fn ordinal_char2_field_degree(metric: &Metric<Ordinal>) -> Option<u128> {
 /// `algebra.classify()` instead of `S::classify(&metric)`.
 ///
 /// These methods return `Result<_, ClassifyError>` so callers can distinguish
-/// *why* a classification failed (unsupported field, diagonalizer failure, …)
-/// without reading the AGENTS docs. The underlying trait methods stay `Option`
-/// for the single-valued partial-math cases.
+/// *why* a classification failed (unsupported field, diagonalizer failure, …).
+/// The underlying trait methods stay `Option` for partial operations with a
+/// single failure meaning.
 impl<S: ClassifyForm> Metric<S> {
     /// Classify the form (see [`ClassifyForm`]).
     pub fn classify(&self) -> Result<S::Class, ClassifyError> {

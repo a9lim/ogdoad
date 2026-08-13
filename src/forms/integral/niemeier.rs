@@ -28,14 +28,20 @@ use std::fmt;
 /// `usize`. [`rank`](Self::rank) is total.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NiemeierComponentKind {
+    /// Root system `A_n`.
     A(usize),
+    /// Root system `D_n`.
     D(usize),
+    /// Root system `E_6`.
     E6,
+    /// Root system `E_7`.
     E7,
+    /// Root system `E_8`.
     E8,
 }
 
 impl NiemeierComponentKind {
+    /// Rank of the root system.
     pub fn rank(self) -> usize {
         match self {
             NiemeierComponentKind::A(n) | NiemeierComponentKind::D(n) => n,
@@ -45,6 +51,7 @@ impl NiemeierComponentKind {
         }
     }
 
+    /// Coxeter number, or `None` for an invalid `A`/`D` rank.
     pub fn coxeter_number(self) -> Option<u128> {
         match self {
             NiemeierComponentKind::A(n) if n >= 1 => Some((n + 1) as u128),
@@ -56,10 +63,12 @@ impl NiemeierComponentKind {
         }
     }
 
+    /// Number of roots, or `None` outside the supported rank domain.
     pub fn root_count(self) -> Option<u128> {
         (self.rank() as u128).checked_mul(self.coxeter_number()?)
     }
 
+    /// Determinant of the root lattice.
     pub fn determinant(self) -> Option<u128> {
         match self {
             NiemeierComponentKind::A(n) if n >= 1 => Some((n + 1) as u128),
@@ -71,6 +80,7 @@ impl NiemeierComponentKind {
         }
     }
 
+    /// Order of the Weyl group.
     pub fn weyl_group_order(self) -> Option<u128> {
         match self {
             NiemeierComponentKind::A(n) if n >= 1 => checked_factorial(n + 1),
@@ -84,6 +94,7 @@ impl NiemeierComponentKind {
         }
     }
 
+    /// Construct the corresponding root lattice.
     pub fn root_lattice(self) -> Option<IntegralForm> {
         match self {
             NiemeierComponentKind::A(n) if n >= 1 => root_lattices::a_n(n),
@@ -113,7 +124,9 @@ impl fmt::Display for NiemeierComponentKind {
 /// A repeated irreducible component of a Niemeier root system.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NiemeierRootComponent {
+    /// Irreducible component type.
     pub kind: NiemeierComponentKind,
+    /// Number of copies of this component.
     pub multiplicity: usize,
 }
 
@@ -128,14 +141,17 @@ pub struct NiemeierRecord {
 }
 
 impl NiemeierRecord {
+    /// Catalogue label such as `E_8^3`.
     pub fn label(&self) -> &'static str {
         self.label
     }
 
+    /// Irreducible root-system components.
     pub fn components(&self) -> &'static [NiemeierRootComponent] {
         self.components
     }
 
+    /// Common Coxeter number of the nonempty root components.
     pub fn coxeter_number(&self) -> u128 {
         self.coxeter_number
     }
@@ -153,6 +169,7 @@ impl NiemeierRecord {
         self.automorphism_quotient_order
     }
 
+    /// Rank of the root sublattice.
     pub fn root_rank(&self) -> usize {
         self.components
             .iter()
@@ -160,6 +177,7 @@ impl NiemeierRecord {
             .sum()
     }
 
+    /// Total number of roots.
     pub fn root_count(&self) -> u128 {
         let mut out = 0u128;
         for component in self.components {
@@ -174,6 +192,7 @@ impl NiemeierRecord {
         out
     }
 
+    /// Determinant of the root sublattice, or `None` for the Leech class.
     pub fn root_discriminant(&self) -> Option<u128> {
         if self.components.is_empty() {
             return None;
@@ -187,6 +206,7 @@ impl NiemeierRecord {
         Some(out)
     }
 
+    /// Order of the Weyl reflection subgroup.
     pub fn reflection_group_order(&self) -> Option<u128> {
         let mut out = 1u128;
         for component in self.components {
@@ -197,6 +217,7 @@ impl NiemeierRecord {
         Some(out)
     }
 
+    /// Order of the full lattice automorphism group.
     pub fn automorphism_group_order(&self) -> Option<u128> {
         if self.components.is_empty() {
             return Some(super::LEECH_AUT_ORDER);
@@ -220,7 +241,7 @@ impl NiemeierRecord {
         out
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -487,10 +508,12 @@ pub const NIEMEIER_CLASSES: [NiemeierRecord; 24] = [
     },
 ];
 
+/// The 24 Niemeier catalogue records, including the Leech class.
 pub fn niemeier_classes() -> &'static [NiemeierRecord] {
     &NIEMEIER_CLASSES
 }
 
+/// Sum `1/|Aut(N)|` over the Niemeier classes.
 pub fn niemeier_mass_sum() -> Option<Rational> {
     let mut out = Rational::zero();
     for class in niemeier_classes() {
@@ -502,6 +525,7 @@ pub fn niemeier_mass_sum() -> Option<Rational> {
     Some(out)
 }
 
+/// Mass-normalized weighted average of the first `terms` theta coefficients.
 pub fn niemeier_weighted_theta_average(terms: usize) -> Option<Vec<Rational>> {
     let (mass_num, mass_den) = mass_even_unimodular(24)?;
     let mass_inv = Rational::new(mass_den, mass_num);

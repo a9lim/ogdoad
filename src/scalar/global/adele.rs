@@ -1,17 +1,15 @@
-//! The **adele ring** `A_Q` — modeled here as a scalar with components at every
-//! rational place at once.
+//! A finite-diagonal precision model of rational adeles.
 //!
-//! Where the rest of the "any number" table picks one place — `Rational` is the
-//! Archimedean place `ℝ`, each [`Qp`](crate::scalar::Qp) is one prime place — the
-//! adele ring is the **restricted product** `∏'_v Q_v` over *all* places of `ℚ`
-//! simultaneously (every prime `p`, plus `ℝ`), the elements `(x_∞; (x_p)_p)` with
-//! `x_p` a `p`-adic integer for all but finitely many `p`.
+//! The full adele ring is the restricted product of `ℝ` and all `Q_p`. This
+//! backend represents the smaller submodel whose finite components differ from
+//! one diagonal rational at only finitely many primes; its Archimedean component
+//! is also stored as a [`Rational`], not an arbitrary real number.
 //!
 //! Representation (the *global-diagonal + corrections* model): a global rational
 //! `principal` embedded **diagonally** (it is the local component at almost every
 //! place), a finite map of `p`-adic **deviations** from that diagonal, and an
-//! independent Archimedean component `real`. The diagonal copy of `ℚ` is the global
-//! field, and the almost-all-integral condition holds for free — a rational has
+//! independent represented Archimedean component `real`. The diagonal copy of
+//! `ℚ` is the global field, and the almost-all-integral condition holds because a rational has
 //! nonzero valuation at only finitely many primes. So the image of `q ∈ ℚ` is just
 //! `{ principal: q, real: q, finite: ∅ }`, and **principal adeles cost nothing**.
 //!
@@ -20,15 +18,14 @@
 //! [`Qp`](crate::scalar::Qp), it inherits capped-relative precision at each finite
 //! place, so addition is not associative across precision boundaries. It is
 //! therefore a *precision model*, **excluded from the exact-ring fuzz suite**.
-//! The tested facts are the diagonal embedding, the finite-place bookkeeping, the
-//! multiplicative idele behavior in represented cases, and the local–global
-//! routines in [`forms::adelic`](crate::forms).
+//! The API and local--global routines therefore make claims only about this
+//! represented submodel.
 //!
 //! Deliberately **not** [`Valued`](crate::scalar::Valued) (an adele has a whole
 //! family of valuations, no single canonical one — use [`Adele::local_at`] and
 //! [`Adele::absolute_value_at`]) and **not** in the integrality pairing (the
 //! integral adeles `∏ Z_p × ℝ` are a ring but not a separate backend type — use
-//! [`Adele::is_integral`]), honest gaps in the same spirit as `Laurent`.
+//! [`Adele::is_integral`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -103,7 +100,8 @@ fn p_pow_rational(p: u128, e: i128) -> Rational {
     }
 }
 
-/// An element of the adele ring `A_Q`.
+/// A represented rational adele: a diagonal rational plus finitely many local
+/// corrections and a rational Archimedean component.
 #[derive(Clone, PartialEq)]
 pub struct Adele {
     /// The global/diagonal rational — the local component at almost every place.

@@ -14,6 +14,7 @@
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// A normal-play outcome for the player to move.
 pub enum Outcome {
     /// The player to move loses — a **P-position**.
     Loss,
@@ -145,10 +146,9 @@ fn score_dfs(
 /// has a cycle (loopy scoring is out of scope — use [`outcomes`] for the
 /// Win/Loss/Draw analysis of cyclic games).
 ///
-/// This was the **scoring knob** for the Gold-quadric search: where [`outcomes`] returns a
-/// single Win/Loss bit, the scoring value is an integer, rich enough to *carry* a
-/// quadratic form's value `Q(v)` at a position rather than only its zero set — the
-/// extra structure a quadratic play rule would need.
+/// Unlike [`outcomes`], this preserves an integer terminal payoff rather than
+/// reducing a position to a Win/Loss/Draw class. It can therefore represent
+/// scoring rules whose terminal values encode data such as `Q(v)`.
 pub fn scoring_values(succ: &[Vec<usize>], terminal_score: &[i128]) -> Option<Vec<ScoreInterval>> {
     let n = succ.len();
     assert_eq!(n, terminal_score.len(), "one score per position");

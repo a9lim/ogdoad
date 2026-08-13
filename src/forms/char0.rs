@@ -1,7 +1,4 @@
-//! The characteristic-0 Clifford classifier — the symmetry-completing companion
-//! to [`char2`](crate::forms::char2). Where the Arf invariant returns the
-//! isomorphism class of a char-2 (nimber) Clifford algebra, this returns the
-//! isomorphism class of a char-0 one as a concrete matrix algebra over ℝ, ℂ, or ℍ.
+//! Characteristic-zero quadratic-form and Clifford-algebra classifiers.
 //!
 //! ## The two tables
 //!
@@ -46,9 +43,13 @@ use crate::scalar::{ExactRoots, Rational, Scalar};
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// A real division algebra occurring in the Clifford classification tables.
 pub enum BaseField {
+    /// The real numbers.
     R,
+    /// The complex numbers.
     C,
+    /// The quaternions.
     H,
 }
 
@@ -93,7 +94,7 @@ pub struct CliffordInvariants {
 
 impl CliffordInvariants {
     /// Human-readable name, e.g. `M_2(H)`, `M_4(R) ⊕ M_4(R)`, `C ⊗̂ Λ(R^1)`.
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -125,7 +126,9 @@ impl std::fmt::Display for CliffordInvariants {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+/// A Hasse invariant at one completion of `Q`.
 pub struct RationalPlaceInvariant {
+    /// The real or p-adic place.
     pub place: Place,
     /// Hasse invariant at this place: `+1` or `-1`.
     pub hasse: i128,
@@ -142,17 +145,22 @@ pub struct RationalPlaceInvariant {
 /// is not a full rational Brauer/Brauer-Wall class of the Clifford algebra.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RationalCliffordInvariants {
+    /// Dimension of the full form.
     pub dim: usize,
+    /// Dimension of the polar radical.
     pub radical_dim: usize,
     /// Canonical representative of the discriminant in `Q*/Q*²`.
     pub discriminant: i128,
+    /// Real signature of the nondegenerate part.
     pub signature: (usize, usize),
+    /// Hasse invariants at every potentially nontrivial place.
     pub local_hasse: Vec<RationalPlaceInvariant>,
+    /// Clifford class after scalar extension to `R`.
     pub real_closure: CliffordInvariants,
 }
 
 impl RationalCliffordInvariants {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -248,9 +256,8 @@ pub fn classify_complex(n: usize, r: usize) -> CliffordInvariants {
 }
 
 /// Signature over the implemented `Surreal` subdomain where every nonzero
-/// diagonal entry is exactly square-equivalent to ±1. The exact-square test is
-/// the [`ExactRoots`] square root (the helper that used to live here now lives at
-/// the scalar layer, shared with the surcomplex blanket).
+/// diagonal entry is exactly square-equivalent to ±1. The exact-square test uses
+/// [`ExactRoots`] from the scalar layer.
 pub(crate) fn surreal_signature(metric: &Metric<Surreal>) -> Option<(usize, usize, usize)> {
     let diag = crate::forms::as_diagonal(metric)?;
     let (mut p, mut q, mut r) = (0, 0, 0);

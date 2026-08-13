@@ -2,8 +2,8 @@
 //! zeros never stored) plus the metric-free operators (`+`, `-`, unary `-`,
 //! and `&` for the exterior/wedge product) that need no algebra context — see
 //! the type's own docs for the full operator-vs-context-method policy. Also
-//! carries the canonical `fmt::Display` implementation (grundy Display v4,
-//! `grundy/docs/spec.md` §12): wedge-blade labels, coefficient attachment,
+//! carries the canonical `fmt::Display` implementation described in
+//! `grundy/docs/spec.md` §12: wedge-blade labels, coefficient attachment,
 //! `1`/`-1` elision, the leading-`-` join rule, and the zero-render rule.
 
 use super::basis::bits;
@@ -62,13 +62,13 @@ impl<S: Scalar> Multivector<S> {
         &self.terms
     }
 
+    /// Whether this multivector has no nonzero terms.
     pub fn is_zero(&self) -> bool {
         self.terms.is_empty()
     }
 
-    /// Human-readable form, e.g. `3 + 2⋅e0 + e0∧e1` (canonical grundy, Display
-    /// v2 §9). A thin alias for the [`fmt::Display`] impl (kept because the
-    /// Python binding calls it).
+    /// Returns the canonical human-readable form, such as
+    /// `3 + 2⋅e0 + e0∧e1`. This is an alias for [`fmt::Display`].
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -80,7 +80,7 @@ impl<S: Scalar> Multivector<S> {
 /// output, so `{}` and `{:?}` agree crate-wide.
 impl<S: Scalar> fmt::Display for Multivector<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Display v4 (spec.md §12) zero rule: the empty multivector renders as the
+        // The empty multivector renders as the
         // scalar zero's own display (`*0` in nim-worlds, `0` elsewhere) — bare
         // `0` would not round-trip where bare integers are `E_BareInt`.
         if self.terms.is_empty() {
@@ -94,7 +94,7 @@ impl<S: Scalar> fmt::Display for Multivector<S> {
                 parts.push(format!("{coeff}"));
                 continue;
             }
-            // Display v4 (spec.md §12): blades are wedge expressions `e0∧e1` (a single
+            // Blades are wedge expressions `e0∧e1` (a single
             // basis vector stays `e0`).
             let label: String = bits(blade)
                 .iter()
@@ -110,7 +110,7 @@ impl<S: Scalar> fmt::Display for Multivector<S> {
                 parts.push(crate::scalar::poly::attach_coeff(coeff, &label));
             }
         }
-        // Display v4 (spec.md §12) join rule: a term whose rendering starts with `-`
+        // A term whose rendering starts with `-`
         // joins with ` - ` (the `-` stripped), string-level and char-agnostic
         // (no sign predicate on `Scalar` exists or is wanted).
         let mut out = String::new();

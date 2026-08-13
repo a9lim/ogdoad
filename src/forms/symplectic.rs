@@ -43,7 +43,7 @@ impl SymplecticInvariants {
         self.rank / 2
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -98,10 +98,12 @@ impl<S: Scalar> SymplecticForm<S> {
         SymplecticForm { gram }
     }
 
+    /// Dimension of the form.
     pub fn dim(&self) -> usize {
         self.gram.len()
     }
 
+    /// Alternating Gram matrix.
     pub fn gram(&self) -> &[Vec<S>] {
         &self.gram
     }

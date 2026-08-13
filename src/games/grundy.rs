@@ -1,21 +1,20 @@
 //! Sprague–Grundy theory: the normal-play impartial center.
 //!
-//! Every finite impartial game (normal play) has a **Grundy value** — a nimber
-//! — given by the *mex* (minimal excludant) of its options' Grundy values:
+//! Every finite acyclic impartial game under normal play has a **Grundy value**,
+//! the nimber given by the *mex* (minimal excludant) of its options' values:
 //!
 //!   g(G) = mex { g(G') : G' a move from G }.
 //!
 //! A position is a P-position (the player to move loses) iff `g(G) = 0`, so this
-//! is the impartial refinement of [`kernel::outcomes`](crate::games::outcomes):
-//! `outcomes` returns a Win/Loss/Draw *bit*, the Grundy value the full nimber.
+//! refines [`kernel::outcomes`](crate::games::outcomes): `outcomes` returns a
+//! Win/Loss/Draw label, while the Grundy value records the full finite nimber.
 //!
 //! The **Sprague–Grundy theorem** is then `g(G + H) = g(G) ⊕ g(H)`: under
 //! disjunctive sum every impartial game behaves as a single Nim heap of size
-//! `g(G)`. This module computes Grundy values two ways — over an explicit finite
-//! game graph ([`grundy_graph`], the mirror of `kernel::outcomes`) and over a
-//! move-generating closure ([`grundy`], the normal-play mirror of
-//! [`try_misere_is_n`](crate::games::try_misere_is_n)) — and the tests pin the
-//! theorem against Bouton's XOR for Nim.
+//! `g(G)`. This module computes Grundy values over an explicit finite game graph
+//! ([`grundy_graph`]) or a move-generating closure ([`grundy`], analogous to
+//! [`try_misere_is_n`](crate::games::try_misere_is_n)). Tests compare the two
+//! routes and verify the disjunctive-sum XOR law for Nim.
 
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;

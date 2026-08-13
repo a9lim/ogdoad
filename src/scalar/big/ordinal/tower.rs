@@ -1,11 +1,4 @@
-//! The transfinite nim-multiplication tower: ordinals `< ω^(ω^ω)` (Conway's
-//! algebraically closed field `\bar{F_2}`) as monomials in the prime-power
-//! generators `χ_{u^n}`, multiplied by generator-power-vector addition with the
-//! per-prime carry relations.
-//!
-//! This generalizes the degree-3 cube-root tower — the prime-3, exponent-place-`ω^0`
-//! special case — to all primes and places (Conway *ONAG* ch. 6; Lenstra *Nim
-//! multiplication* 1978; DiMuro *On Onp* arXiv:1108.0962, Thm 3.1 + Table 1).
+//! Checked Conway--Lenstra--DiMuro nim multiplication below `ω^(ω^ω)`.
 //!
 //! ## The uniform representation
 //!
@@ -20,8 +13,7 @@
 //! - so a pure monomial `ω^E` is `⊗_{m,k} χ_{p(m)^{k+1}}^{⊗ d_{m,k}}`, and a general
 //!   element is a finite nim-sum of such monomials with finite-nimber coefficients.
 //!
-//! We therefore key a monomial by its exponent's decomposition,
-//! [`GenKey`] = `place m ↦ base-p(m) digit vector`.
+//! A monomial is keyed by `place m ↦ base-p(m) digit vector`.
 //!
 //! ## Multiplication
 //!
@@ -34,8 +26,6 @@
 //! - `χ_u^u = α_u` (`k = 0`, the **Kummer** relation): a digit `≥ u` at level 0
 //!   consumes a factor of the *excess* `α_u`.
 //!
-//! ## The branching reduction (non-scalar `α_u`)
-//!
 //! The excess `α_u` is a finite nimber for some primes (`α_3=2`, `α_5=4`, `α_17=16`)
 //! and a genuine transfinite ordinal for others (`α_7=ω+1`, `α_11=ω^ω+1`, `α_13=ω+4`,
 //! …). A scalar `α_u` keeps a level-0 carry inside the coefficient — the product stays
@@ -43,25 +33,16 @@
 //! `χ_u^u = α_u` replaces a generator power by `α_u`, and the (reduced) monomial must be
 //! nim-multiplied by that sum, mixing across exponent places.
 //!
-//! This recursion **descends by place**: every `α_{p(m)}` is built from generators at
-//! places strictly `< m` (`α_7 = ω+1` uses `ω = χ_3`, place 0 < 2; `α_11 = ω^ω+1` uses
-//! `χ_5`, place 1 < 3; verified from DiMuro Table 1). So `base ⊗ excess` can never
-//! re-trigger a carry at the place that produced it, and the recursion bottoms out at
-//! `α_3 = 2` in the finite field — the crate's "recurse only on strictly-simpler
-//! exponents" discipline. Termination depth is bounded by the largest place index.
+//! Every `α_{p(m)}` uses only lower places, so branching recursion terminates.
 //!
-//! ## Staging (honest scope)
+//! ## Represented boundary
 //!
-//! We carry the finite Lenstra excess integers `m_u` from **OEIS A380496** ("Lenstra
-//! excess of the n-th odd prime"): the b-file's 126 known rows, the odd primes
-//! `3..=709`, plus the locally certified rows `m_719 = m_727 = 1` (see
-//! [`finite_excess`] and `docs/OPEN.md`). The ordinal expression is
-//! assembled in code: compute `f(u)=ord_u(2)`, compute DiMuro's `Q(f(u))`, form the
-//! `χ`-sum, then nim-add `m_u`. The product of any two ordinals `< ω^(ω^ω)` is
-//! therefore exact whenever every Kummer carry it triggers is at a prime `≤ 727`; a
-//! carry needing `m_733` (the first unsupported row) or beyond returns `None` — the
-//! honest operational boundary. (Anything `≥ ω^(ω^ω)`, an infinite exponent place, is
-//! out of range outright.)
+//! OEIS A380496 supplies 126 excess rows through prime `709`; locally replayable
+//! exact certificates supply `m_719 = m_727 = 1`. The ordinal excess is assembled
+//! from `f(u)=ord_u(2)`, DiMuro's `Q(f(u))`, and `m_u`. Multiplication returns
+//! `None` for operands at or above `ω^(ω^ω)` or when a carry requires the first
+//! unsupported row, `m_733`. These finite rows do not prove the universal excess
+//! conjecture in `docs/OPEN.md`.
 
 use super::support::{
     base_digits, checked_pow, odd_prime_place, place_prime, prime_power,
@@ -78,7 +59,7 @@ use std::collections::{BTreeMap, BTreeSet};
 type GenKey = BTreeMap<u128, Vec<u128>>;
 
 /// The excess `α_u` (`χ_u^u = α_u`, the Kummer relation) as an ordinal, or `None` for
-/// primes beyond the verified table (`u > 727` — the staged boundary). The only
+/// primes beyond the verified table (`u > 727`). The only
 /// hardcoded row datum is the finite excess integer `m_u` (see [`finite_excess`]); the
 /// ordinal expression is reconstructed from `f(u)=ord_u(2)` and DiMuro's recursive
 /// `Q(f(u))`. Every `α_u` is built from generators at strictly-lower places than
@@ -95,16 +76,15 @@ pub(super) fn alpha_ordinal(u: u128) -> Option<Ordinal> {
 /// ("Lenstra excess of the n-th odd prime") supplies the first 126 rows, covering the
 /// odd primes `3..=709`; separate locally replayable certificates supply
 /// `m_719 = m_727 = 1`.  The OEIS rows are indexed here by the 0-based odd-prime place
-/// (place 0 = prime 3), so `EXCESS[odd_prime_place(p)] = m_p`. `None` past prime 727 —
-/// the staged boundary, where the first unsupported row is `p = 733`. The place ↦
+/// (place 0 = prime 3), so `EXCESS[odd_prime_place(p)] = m_p`. It returns `None`
+/// past prime 727; the first unsupported row is `p = 733`. The place ↦
 /// prime map is the tower's own coordinate (`place_prime`, pinned by
 /// `place_primes_are_the_odd_primes`); the
 /// source values are pinned against the b-file in
 /// `excess_table_matches_vendored_b380496_in_full`; the 719 and 727 rows have their
 /// own exact certificate verifiers and tests.
-/// (Provenance: `a(1–3)` Conway, `a(4–13)` Lenstra, `a(14–18)` Le Bruyn, `a(19–59)`
-/// Siegel, `a(60–126)` Peeters, via CGSuite's Lenstra-excess calculator. The excess is
-/// `0` or `1` except `m_19 = m_163 = 4`. See `docs/OPEN.md` for the open boundary.)
+/// The excess is `0` or `1` except `m_19 = m_163 = 4`; see `docs/OPEN.md` for
+/// the open universal boundary.
 fn finite_excess(u: u128) -> Option<u128> {
     // The first row beyond the OEIS b-file is proved by the checked crossed-tower
     // certificate in `experiments/ordinary_719_crossed_certificate.py`.
@@ -518,7 +498,7 @@ mod tests {
 
     #[test]
     fn septic_kummer_landmark() {
-        // THE Stage-2 headline, from DiMuro Table 1 (NOT from the engine — non-circular):
+        // DiMuro Table 1 supplies this non-circular oracle:
         // χ_7 = ω^(ω²), and χ_7^⊗7 = α_7 = ω + 1. The 7th power is the first non-scalar
         // Kummer carry; it branches the monomial into the sum ω + 1.
         assert_eq!(chi7_pow(7), w().nim_add(&fin(1))); // ω + 1
@@ -559,7 +539,7 @@ mod tests {
     }
 
     #[test]
-    fn quintic_stage_field_axioms() {
+    fn quintic_tower_field_axioms() {
         // The prime-3/prime-5 (scalar-α) commutative-ring sweep on a sample of ordinals
         // < ω^(ω²) spanning both the place-ω⁰ and place-ω¹ towers, coeffs in F_4. Every
         // product is defined here; associativity is what a digit-carry bug would break.
@@ -584,8 +564,8 @@ mod tests {
     }
 
     #[test]
-    fn septic_stage_field_axioms() {
-        // The decisive Stage-2 check: the commutative-ring axioms on a sample built from
+    fn septic_tower_field_axioms() {
+        // Check the commutative-ring axioms on a sample built from
         // χ_7 = ω^(ω²) (the first non-scalar-α generator), its powers 1..6, ω (= χ_3,
         // which α_7 = ω+1 drags in), F_4 scalars, and mixed sums. Every pairwise product
         // stays within primes {3, 7} (well inside the verified range ⇒ all `Some`), and associativity /
@@ -625,8 +605,7 @@ mod tests {
     #[test]
     fn excess_table_matches_oeis_a380496() {
         // Spot-check named landmark rows against OEIS A380496. The first 14 rows are
-        // DiMuro Table 1 + m_47 — a cross-check that the OEIS import agrees with the old
-        // hardcoded values — then higher landmarks. The full 126-row diff against the
+        // DiMuro Table 1 + m_47, followed by higher landmarks. The full 126-row diff against the
         // vendored b-file lives in `excess_table_matches_vendored_b380496_in_full` below.
         for (u, m) in [
             (3, 0),
@@ -670,10 +649,9 @@ mod tests {
     #[test]
     fn excess_table_matches_vendored_b380496_in_full() {
         // OEIS A380496 b-file (a380496.txt / "Lenstra excess of the n-th odd prime"),
-        // fetched 2026-07-02 and vendored at `b380496.txt` beside this module. Each line
+        // vendored at `b380496.txt` beside this module. Each line
         // is `n a(n)`, 1-indexed (`a(1)` = the excess at the odd-prime place 0, i.e.
-        // prime 3). Diffs all 126 rows against `EXCESS`, closing the gap the old
-        // landmark-only test left (it never actually read the file).
+        // prime 3). This checks all 126 rows against `EXCESS`.
         let b_file = include_str!("b380496.txt");
         let mut rows = 0u128;
         for line in b_file.lines() {
@@ -728,10 +706,10 @@ mod tests {
 
     #[test]
     fn finite_excess_boundary_returns_none_past_prime_727() {
-        // The verified table now reaches prime 709 (OEIS A380496, 126 b-file rows). The
-        // old boundary case — a Kummer carry at place 14 (prime 53) — is now defined:
+        // The verified table reaches prime 709 (OEIS A380496, 126 b-file rows). A
+        // Kummer carry at place 14 (prime 53) is defined:
         // ω^(ω^14·50) = χ_53^⊗50; squaring drives the place-14 digit to 100 ≥ 53, owing
-        // α_53 = κ_{f(53)}+1, which is now in range. End-to-end carry resolution, so this
+        // α_53 = κ_{f(53)}+1 is represented. End-to-end carry resolution, so this
         // pins the table extension and not just the lookup. (f(53)=52=4·13 keeps the
         // reconstruction cheap; large primes like 709 are *in* the table but their
         // q_set/finite-subfield reconstruction over the huge component field is costly —
@@ -750,12 +728,12 @@ mod tests {
         assert_eq!(finite_excess(727), Some(1)); // local exact certificate
         assert_eq!(finite_excess(733), None);
 
-        // The previously unsupported carry at place 126 is now exact.
+        // The certified carry at place 126 is exact.
         let at719 = Ordinal::omega_pow(Ordinal::monomial(fin(126), 360));
         assert!(mul(&at719, &at719).is_some());
 
-        // The boundary moves to place 128 = prime 733.  We pin it at the lookup layer:
-        // reconstructing the newly supported `alpha_727` as a full runtime product
+        // The first unsupported row is place 128 = prime 733. We pin it at the lookup layer:
+        // reconstructing `alpha_727` as a full runtime product
         // traverses its degree-2420 subfield and is intentionally not a unit-test cost.
 
         // And anything ≥ ω^(ω^ω) (an infinite exponent place) is out of range outright.
@@ -765,8 +743,7 @@ mod tests {
 
     #[test]
     fn identity_preserves_large_valid_prime_digits() {
-        // p(53)=257, so digit 256 is legal. This used to truncate through `u128`
-        // storage and collapse the monomial to 1 even when multiplying by 1.
+        // p(53)=257, so digit 256 is legal and must survive `u128` storage.
         assert_eq!(place_prime(53), 257);
         let exp = Ordinal::monomial(fin(53), 256);
         let x = Ordinal::omega_pow(exp);

@@ -7,12 +7,11 @@
 //! order. Because the engine's `wedge` already carries the reordering sign
 //! through `S::neg()`, the lift is character-faithful for free — in particular
 //! the **determinant** computed here is the ordinary determinant in char 0 and
-//! the char-2 determinant (= permanent) over the nimbers, with no sign hardcoded.
+//! the characteristic-two determinant (equal to the permanent), with no sign
+//! hardcoded.
 //!
 //! The determinant is read off the top grade: `f(I) = det(f)·I` for the unit
-//! pseudoscalar `I` (Grassmann's original definition of the determinant). This
-//! is a structurally independent computation from cofactor expansion, so it
-//! doubles as a check on the engine's `wedge`.
+//! pseudoscalar `I`.
 
 use crate::clifford::engine::grade_k_masks;
 use crate::clifford::{bits, CliffordAlgebra, Multivector};
@@ -39,10 +38,11 @@ impl<S: Scalar> LinearMap<S> {
         &self.cols
     }
 
-    /// Build from columns `cols[i] = f(e_i)`; panics if not square `n×n`. The
-    /// sole constructor — every internal builder (`identity`, `compose`,
-    /// `inverse_outermorphism`) routes through this too, so the squareness
-    /// check is never bypassable even from within this module.
+    /// Builds a map from columns `cols[i] = f(e_i)`.
+    ///
+    /// # Panics
+    ///
+    /// Panics unless the columns form a square matrix.
     pub fn from_columns(cols: Vec<Vec<S>>) -> Self {
         let n = cols.len();
         assert!(

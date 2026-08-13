@@ -5,12 +5,12 @@
 ogdoad is a pure computational library — a Rust crate and an abi3 Python extension
 built from it. It has a deliberately small attack surface:
 
-- **No network, no daemon, no persistent state.** It computes in-process and
-  returns. There is no listener, no IPC, no background thread.
+- **No network, daemon, or external persistence.** It computes in-process and
+  returns. There is no listener or IPC.
 - **No file, credential, or environment access.** It reads no config and writes no
   files. The Python layer monomorphises the engine to one concrete scalar per
   backend and raises `TypeError` on world-mixing by construction.
-- **No untrusted deserialization.** serde is intentionally **not** shipped — the
+- **No untrusted deserialization.** serde is intentionally not included; the
   invariant-carrying types would need custom deserialization, not a derive — so
   there is no parser to feed a hostile blob to.
 - **Memory-safe by construction.** The crate contains **zero** `unsafe` — core and
@@ -20,8 +20,8 @@ built from it. It has a deliberately small attack surface:
 
 Several operations panic by design rather than return a wrong answer:
 
-- `Ordinal` nim-multiplication panics past the source-verified Kummer boundary
-  (`ω^(ω^ω)`) instead of guessing.
+- `Ordinal`'s `Scalar` multiplication panics when the corresponding checked
+  nim-product would leave the represented Kummer rows or reach `ω^(ω^ω)`.
 - Singular polar forms and general-bilinear metrics are rejected where a
   nonsingular Witt/Brauer-Wall class is required.
 - Malformed dimensions / out-of-range indices panic.

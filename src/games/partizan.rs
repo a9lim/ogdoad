@@ -1,10 +1,8 @@
 //! Short partizan combinatorial games.
 //!
-//! Conway's games `G = { G^L | G^R }` form, under disjunctive sum, a partially
-//! ordered abelian group — but *not a ring* (the product is only a congruence on
-//! the number/nimber subclasses). That is the obstruction the whole project lives
-//! around: a Clifford algebra needs a commutative scalar *ring*, so it only reaches
-//! the field-like cores (nimbers, surreals, surcomplex).
+//! Conway's games `G = { G^L | G^R }` form a partially ordered abelian group
+//! under disjunctive sum, but not a ring. Clifford coefficients therefore use
+//! commutative scalar subclasses rather than arbitrary games.
 //!
 //! This module ships the short-game engine — sum, negation, the recursive order,
 //! birthday, the number test, and the **canonical form** (dominated/reversible
@@ -14,9 +12,8 @@
 //! [`Surreal`] value with no infinite option tree lives in the sibling
 //! [`number_game`](crate::games::number_game) module.
 //!
-//! The exterior algebra of the game group — the one Clifford-adjacent structure
-//! that lives on *all* of game-world because it needs only the ℤ-module structure,
-//! not the game product — is the sibling module
+//! The exterior algebra of the game group needs only its ℤ-module structure and
+//! therefore applies to arbitrary short games; see
 //! [`game_exterior`](crate::games::game_exterior).
 
 use crate::scalar::{Scalar, Surreal};
@@ -36,13 +33,16 @@ struct GameData {
 }
 
 impl Game {
+    /// Construct a short game from its Left and Right options.
     pub fn new(left: Vec<Game>, right: Vec<Game>) -> Game {
         Game(Arc::new(GameData { left, right }))
     }
 
+    /// Left options.
     pub fn left(&self) -> &[Game] {
         &self.0.left
     }
+    /// Right options.
     pub fn right(&self) -> &[Game] {
         &self.0.right
     }
@@ -195,7 +195,7 @@ impl Game {
     }
 
     /// A readable structural form: `0` for `{|}`, else `{L|R}` recursively.
-    /// Alias for [`to_string`](std::fmt::Display) — kept for Python compatibility.
+    /// Python-visible alias for [`to_string`](std::fmt::Display).
     pub fn display(&self) -> String {
         self.to_string()
     }

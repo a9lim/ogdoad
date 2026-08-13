@@ -1028,8 +1028,8 @@ macro_rules! py_engine_backends {
             PyOmnific,
             wrap_omnific
         );
-        // Transfinite ordinal nimber backend: exact inside the source-verified checked
-        // Kummer tower, with Rust returning `None` / panicking on escapes depending on API.
+        // Transfinite ordinal nimber backend: partial within the represented
+        // Kummer tower, with checked APIs refusing escapes.
         $macro!(
             OrdinalAlgebra,
             "OrdinalAlgebra",

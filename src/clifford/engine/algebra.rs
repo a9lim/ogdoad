@@ -1,11 +1,6 @@
-//! `CliffordAlgebra<S>`: a metric plus the operations that build and combine
-//! multivectors over it — construction, the graded-tensor product and its
-//! `embed_first`/`embed_second` factor embeddings, the geometric product
-//! (`mul`), grade projection, reversion (including the antisymmetric-gauge
-//! transport that extends `reverse` to general-bilinear metrics in
-//! characteristic ≠ 2), and `pow` (repeated geometric multiplication via
-//! square-and-multiply). `dim()` is always derived from the metric, never
-//! stored separately.
+//! Algebra-context operations for constructing and combining multivectors.
+//! The context owns the metric; its dimension is always derived from that
+//! metric.
 
 use super::basis::{bits, grade, MAX_BASIS_DIM};
 use super::metric::Metric;
@@ -35,6 +30,7 @@ pub struct CliffordAlgebra<S: Scalar> {
 }
 
 impl<S: Scalar> CliffordAlgebra<S> {
+    /// Constructs an algebra after validating that `metric` has dimension `dim`.
     pub fn new(dim: usize, metric: Metric<S>) -> Self {
         metric.validate_for_dim(dim);
         CliffordAlgebra { metric }
@@ -96,12 +92,14 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
+    /// The additive identity.
     pub fn zero(&self) -> Multivector<S> {
         Multivector {
             terms: BTreeMap::new(),
         }
     }
 
+    /// Embeds a scalar as a grade-zero multivector.
     pub fn scalar(&self, s: S) -> Multivector<S> {
         let mut terms = BTreeMap::new();
         if !s.is_zero() {
@@ -110,9 +108,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
-    /// The basis vector `e_i` — named for the `e0∧e1` display language (and to
-    /// stay clear of the `gen` keyword reserved in Rust 2024). Python keeps
-    /// exposing this as `gen(i)`.
+    /// The basis vector `e_i`.
     pub fn e(&self, i: usize) -> Multivector<S> {
         assert!(i < self.dim(), "generator index {i} out of range");
         assert!(i < MAX_BASIS_DIM, "generator index {i} exceeds blade mask");
@@ -138,12 +134,14 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
+    /// Adds two multivectors.
     pub fn add(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut terms = a.terms.clone();
         merge(&mut terms, b.terms.clone());
         Multivector { terms }
     }
 
+    /// Multiplies a multivector by a scalar.
     pub fn scalar_mul(&self, s: &S, a: &Multivector<S>) -> Multivector<S> {
         Multivector {
             terms: scale(a.terms.clone(), s),
@@ -300,22 +298,9 @@ impl<S: Scalar> CliffordAlgebra<S> {
         v.terms.get(&0).cloned().unwrap_or_else(S::zero)
     }
 
-    /// Raise a multivector to a non-negative integer power using square-and-multiply.
-    ///
-    /// `pow(v, 0)` returns the scalar `1` (the algebra's multiplicative identity),
-    /// `pow(v, 1)` returns `v.clone()`, and higher powers are computed via repeated
-    /// geometric product — i.e. `self.mul`.
-    ///
-    /// **Why no `^` operator on `Multivector`?** The geometric product needs the
-    /// metric (stored here on the algebra), so iterated geometric multiplication is
-    /// not metric-free and cannot live as a bare operator on the `Multivector` type.
-    /// Scalar power (`x ^ k: u128` via `impl BitXor<u128>`) is total-product only,
-    /// so it CAN live on the scalar type without a metric context. grundy's `a ↑ k`
-    /// desugars to this method for multivectors.
-    ///
-    /// **Precedence caveat (§5 `grundy/docs/spec.md`):** Rust's `^` binds looser than `*`.
-    /// When using scalar `x ^ k`, parenthesize if the intended precedence differs
-    /// from grundy's power-tighter-than-product table.
+    /// Raises `v` to a nonnegative integer power under the geometric product.
+    /// `pow(v, 0)` is the scalar identity. The implementation uses binary
+    /// exponentiation.
     pub fn pow(&self, v: &Multivector<S>, k: u128) -> Multivector<S> {
         if k == 0 {
             return self.scalar(S::one());

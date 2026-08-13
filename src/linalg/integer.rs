@@ -119,11 +119,6 @@ fn ck_add(a: i128, b: i128) -> i128 {
         .expect("integer normal-form add exceeds i128")
 }
 
-// `normalize_relation_rows` above is the crate's row Hermite normal form (reduced
-// upper-triangular HNF: increasing leading columns, positive pivots, zeros below
-// each pivot, above-pivot entries reduced mod the pivot). The genus layer (M3)
-// will add a dedicated HNF entry point when it needs one.
-
 /// Extended Euclidean algorithm: returns `(g, x, y)` with `g = gcd(a, b) ≥ 0`
 /// and the Bézout identity `a·x + b·y = g`. `gcd(0, 0)` is `0` with `(x, y) =
 /// (1, 0)`.

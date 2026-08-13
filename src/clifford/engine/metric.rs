@@ -1,13 +1,7 @@
-//! The `Metric` type: the three independent pieces of bilinear-form data that
-//! define a Clifford algebra — `q` (the quadratic form, `e_i^2`), `b` (the
-//! symmetric polar/anticommutator form, `i<j`), and the optional `a` (the
-//! strictly-upper in-order contraction that lifts the engine to a general,
-//! non-symmetric bilinear form). Carries the checked constructors
-//! (`new`/`diagonal`/`grassmann`/`general`), `direct_sum` for the graded-tensor
-//! product, and `map` for coefficient base-change (e.g. lifting an `F_2` trace
-//! form into `Nimber` for the Arf classifier). `q` and `b` are independent —
-//! see the crate's hard rules — so this type never collapses them into one
-//! symmetric form.
+//! Metric data for the Clifford engine. [`Metric`] keeps the quadratic
+//! diagonal `q`, polar form `b`, and strictly upper contraction `a` distinct.
+//! This is essential in characteristic two, where `q` is not determined by
+//! the alternating polar form.
 
 use super::basis::MAX_BASIS_DIM;
 use crate::scalar::Scalar;
@@ -20,15 +14,12 @@ pub type MetricParts<S> = (
     BTreeMap<(usize, usize), S>,
 );
 
-/// The metric of a Clifford algebra of a (possibly general, possibly degenerate)
-/// bilinear form. We store the full bilinear form `B(e_i, e_j)` factored into
-/// three pieces so the common case is cheap and the general case is reachable:
+/// The metric of a possibly degenerate Clifford algebra.
 ///
-///   * `q[i]   = B(e_i, e_i) = e_i²`                  — the quadratic form (diagonal)
-///   * `b[(i,j)] = B(e_i,e_j) + B(e_j,e_i) = {e_i,e_j}`  (i<j) — the *polar* /
-///     anticommutator form.
-///   * `a[(i,j)] = B(e_i, e_j)` for i<j — the **strictly-upper / in-order
-///     contraction** part.
+/// For `i < j`, the stored data means
+/// `B(e_i,e_i) = q[i]`, `B(e_i,e_j) = a[(i,j)]`, and
+/// `B(e_j,e_i) = b[(i,j)] - a[(i,j)]`. Thus `b` is the polar or
+/// anticommutator form and `a` selects a general bilinear representative.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Metric<S: Scalar> {
     pub(crate) q: Vec<S>,
@@ -55,8 +46,8 @@ impl<S: Scalar> Metric<S> {
         }
     }
 
-    /// A symmetric-polar Clifford metric: squares `q` and anticommutators `b`
-    /// (i<j), with no in-order contraction (`a` empty). The ordinary case.
+    /// An ordinary Clifford metric with squares `q`, anticommutators `b`, and
+    /// no in-order contraction (`a` empty).
     ///
     /// `b` may be any `IntoIterator` of `((i, j), value)` pairs (a `BTreeMap`,
     /// a `Vec`, a slice, …) so call sites need not build the map explicitly.
@@ -137,9 +128,7 @@ impl<S: Scalar> Metric<S> {
         }
     }
 
-    /// True iff there is any in-order contraction (`a` data) — i.e. this is a
-    /// genuinely general bilinear form and takes the Chevalley product path
-    /// rather than the ordinary `(q, b)` Clifford product.
+    /// Whether any in-order contraction entry is nonzero.
     pub fn has_upper(&self) -> bool {
         self.a.values().any(|v| !v.is_zero())
     }
@@ -171,12 +160,9 @@ impl<S: Scalar> Metric<S> {
         self.q.get(i).cloned().unwrap_or_else(S::zero)
     }
 
-    /// Base-change the metric by applying `f` to every coefficient (`q`, `b`, `a`).
-    /// A form over `S` becomes the same form over `T` — e.g. lifting an `F_2`-valued
-    /// trace form (`Metric<Fp<2>>`) into `Metric<Nimber>` so the char-2 Arf
-    /// classifier can read it (`m.map(|x| Nimber(x.0))`). The structure (which
-    /// `(i,j)` entries are present) is preserved verbatim; the caller is responsible
-    /// for `f` being a ring map if the result is to mean anything.
+    /// Applies `f` to every coefficient while preserving all `q`, `b`, and `a`
+    /// indices. The caller is responsible for using a map compatible with the
+    /// intended algebraic structure.
     pub fn map<T: Scalar>(&self, f: impl Fn(&S) -> T) -> Metric<T> {
         Metric {
             q: self.q.iter().map(&f).collect(),
@@ -196,11 +182,6 @@ mod tests {
         Rational::from_int(n)
     }
 
-    /// `direct_sum`'s doc promises a block-diagonal metric: the right summand's
-    /// `b`/`a` keys shift by `left.dim()`, the left summand's are untouched, and
-    /// no cross-block entries appear. Exercise this with nonzero off-diagonal
-    /// `b` AND `a` on both summands — the existing coverage never sets a
-    /// nonzero off-diagonal entry on either side.
     #[test]
     fn direct_sum_shifts_right_bs_and_as_by_left_dim() {
         let mut bl = BTreeMap::new();

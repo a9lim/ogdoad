@@ -17,7 +17,7 @@
 //! from `Zp`, whose `characteristic()` is the modulus `p^k`. A Clifford algebra
 //! over `Q_p` is therefore semisimple — the companion
 //! [`forms::padic`](crate::forms) / `springer::padic` modules read their
-//! Hilbert-symbol / residue-form payoff off this backend.
+//! Hilbert-symbol and residue-form data from this backend.
 //!
 //! ## Precision contract (capped-relative — read this)
 //!
@@ -25,8 +25,9 @@
 //! of infinite p-adic support (`1/(p+1) = 1 − p + p² − …`), so any concrete
 //! backend truncates. This one uses the standard **capped-relative** model
 //! (as in SageMath's default p-adics): `k` significant mantissa digits relative
-//! to the valuation. Multiplication and inversion are **exact** (valuations add;
-//! the mantissa is a genuine unit of `Z/p^k`); **addition is not associative
+//! to the valuation. Multiplication and inversion preserve the represented
+//! relative-precision window (valuations add; the mantissa is a unit of
+//! `Z/p^k`); **addition is not associative
 //! across precision boundaries** — additive cancellation below the retained
 //! window reads as `0`, exactly like floating point. `Qp` is therefore a
 //! *precision model*, not an exact commutative ring: it is used at the forms
@@ -57,6 +58,7 @@ fn p_pow<const P: u128>(e: u128) -> u128 {
 }
 
 impl<const P: u128, const K: u128> Qp<P, K> {
+    /// Validate that `P` is prime, `K` is positive, and `P^K` fits the carrier.
     pub fn assert_supported_params() {
         assert!(
             Fp::<P>::modulus_is_prime() && K > 0,
@@ -298,7 +300,7 @@ mod tests {
         // mul_mod_u128 the product stays exact instead of panicking.
         type Q3Big = Qp<3, 80>; // K=80 is near the i128-fit ceiling (3^81 > i128::MAX)
         let x = Q3Big::from_int(-1); // -1 ≡ 3^80 - 1, a full-width mantissa
-        assert_eq!(x.mul(&x), Q3Big::one()); // (-1)² = 1, previously panicked
+        assert_eq!(x.mul(&x), Q3Big::one()); // (-1)² = 1
         let _ = x.mul(&Q3Big::from_int(7)); // a generic large product must not panic
         let _ = x.add(&x); // the addition mantissa-shift path is overflow-safe too
     }

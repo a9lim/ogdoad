@@ -1,8 +1,7 @@
-//! Bridge N.1 — Milnor's exact sequence: the Springer residues assembled globally.
+//! Milnor residue maps assembled as global Witt invariants.
 //!
-//! The shipped Springer engine (`springer/`) computes per-place residue buckets and
-//! the local–global layer decides per-form isotropy; this module assembles the
-//! Witt-**group**-level global statement. Milnor's exact sequence supplies it
+//! The Springer layer computes per-place residue buckets; this module assembles
+//! the Witt-group-level maps supplied by Milnor's exact sequence
 //! (Milnor–Husemoller, *Symmetric Bilinear Forms*, Ch. IV; Lam, GSM 67, Ch. IX):
 //!
 //! ```text
@@ -27,15 +26,15 @@
 //!
 //! [`global_residues_ff`] returns the `W(F_q)` summand from the even-valuation layer
 //! at the degree place `∞`, plus the nonzero second residues at finite monic
-//! irreducible places. This is exact on the shipped `RationalFunction`/`Poly`
+//! irreducible places. This is exact on the `RationalFunction`/`Poly`
 //! backend and uses the same `FunctionFieldPlace` arithmetic as the function-field Hilbert and
 //! Hasse–Minkowski layers.
 //!
-//! **Claim level:** standard math (Milnor; Lam GSM 67, Ch. IX) made computational.
 //! The residue is computed directly from the `i128` entries (`v_p`, the Legendre
 //! symbol, and the signed-discriminant square class), matching the
 //! [`finite_odd_witt`](crate::forms::finite_odd_witt) convention, so it is **exact**;
-//! `springer_decompose_qp` on the capped `Q_p` model is the cross-check oracle.
+//! `springer_decompose_qp` on the capped `Q_p` model supplies a computational
+//! cross-check.
 //!
 //! **The `∂₂` boundary (load-bearing).** `∂₂` (residue characteristic 2) is **not**
 //! Springer's second residue — Milnor defines it by hand in Ch. IV. This module uses
@@ -43,7 +42,7 @@
 //! `Char2 { field_degree: 1, arf }`, with `arf` the parity of odd dyadic valuation
 //! lines. The char-2 constant fields of `F_q(t)` are a separate matter (the
 //! Aravire–Jacob layer in `springer/char2.rs`), and tame/wild norm-residue symbols
-//! stay with the cyclic-Brauer follow-ons rather than this Witt-residue map.
+//! are outside this Witt-residue map.
 
 use crate::forms::{
     legendre, relevant_primes, try_chi_kappa, try_kappa_order, try_relevant_places_ff,

@@ -1,10 +1,8 @@
-//! The [`FieldExtension`] trait: a finite separable field extension `E/F` that
-//! knows its degree and the relative **trace** and **norm** down to a distinguished
-//! base.
+//! Finite field extensions with relative trace and norm.
 //!
 //! The [`FiniteField`](crate::scalar::FiniteField) trait already carries relative
 //! trace/norm — but only *within* the finite-field tower, and to any intermediate
-//! subfield. This trait is the orthogonal view: it fixes **one** distinguished base
+//! subfield. [`FieldExtension`] instead fixes **one** distinguished base
 //! `F` and gives the same `(degree, embed, trace, norm)` interface across the three
 //! kinds of finite separable extension the project builds, so the norm map that
 //! feeds Hilbert symbols, the Brauer/Brauer–Wall group, and Hermitian forms has a
@@ -16,28 +14,22 @@
 //! | [`Fpn`]`<P,N>` over [`Fp`]`<P>` | `N` | the finite-field tower | the Galois `Σσⁱ`, `Πσⁱ` |
 //! | [`Qq`]`<P,N,F>` over `Qq<P,N,1>` (= `Q_p`) | `F` | unramified local (char-0) | the Witt-Frobenius `Σσⁱ`, `Πσⁱ` |
 //!
-//! These are the three corners of "finite separable extension" the backends realise:
-//! the algebraic-closure functor (char 0), the finite tower (char `p`), and the
-//! unramified local extension (char-0 local). The `Fpn` impl **delegates to the
-//! existing, tested** [`FiniteField`](crate::scalar::FiniteField) relative trace/norm — this trait is a
-//! generalization of that machinery, not a parallel silo.
+//! The `Fpn` implementation delegates to the shared
+//! [`FiniteField`](crate::scalar::FiniteField) relative trace and norm.
 //!
-//! # Honest exclusions
+//! # Exclusions
 //!
-//! Two functors are deliberately left out, the same boundary
-//! [`analytic`](crate::scalar::analytic) draws for the very same types:
+//! Two functors are outside the implemented interface:
 //!
-//!   * [`Ramified`](crate::scalar::Ramified) — a *totally ramified* extension is
-//!     **not Galois** and has a **degenerate trace form** (worse in the wild case
-//!     `p | E`); its trace/norm are the trace/determinant of the
-//!     multiplication-by-`α` map, a different machine (a determinant over a
-//!     precision-model base), not the clean `Σσⁱ`/`Πσⁱ` of a Galois extension.
+//!   * [`Ramified`](crate::scalar::Ramified) — it is not generally Galois. Its
+//!     trace and norm require trace and determinant of multiplication, which are
+//!     not implemented over the capped-relative base models. Inseparable cases
+//!     (`p | E` in equal characteristic) also have degenerate trace.
 //!   * [`Gauss`](crate::scalar::Gauss) — a *transcendental* extension `S(t)` has
 //!     **infinite degree**; there is no finite trace/norm at all.
 //!
-//! Left out honestly rather than stubbed, like `analytic`'s `ExactRoots` exclusion
-//! of the same two. Not a [`Scalar`] supertrait (most worlds are not extensions of
-//! a distinguished base), same discipline as [`Valued`](crate::scalar::Valued).
+//! This is not a [`Scalar`] supertrait because most scalar worlds are not
+//! extensions of a distinguished base.
 
 use crate::scalar::{
     nim_square, nim_trace, Fp, Fpn, Nimber, Ordered, Qq, Scalar, Surcomplex, WittVec,
@@ -58,22 +50,19 @@ pub trait FieldExtension: Scalar {
     /// The canonical embedding `F ↪ E`.
     fn embed(base: &Self::Base) -> Self;
 
-    /// The relative trace `Tr_{E/F}(α) = Σ_σ σ(α) ∈ F` (the sum of the Galois
-    /// conjugates), as an element of the base.
+    /// The relative trace `Tr_{E/F}(α) ∈ F`, equivalently the trace of
+    /// multiplication by `α` (or the sum of conjugates in the separable case).
     fn trace(&self) -> Self::Base;
 
-    /// The relative norm `N_{E/F}(α) = Π_σ σ(α) ∈ F` (the product of the Galois
-    /// conjugates), as an element of the base.
+    /// The relative norm `N_{E/F}(α) ∈ F`, equivalently the determinant of
+    /// multiplication by `α` (or the product of conjugates in the separable case).
     fn norm(&self) -> Self::Base;
 }
 
 // ───────────────────────── Surcomplex<S> / S  (degree 2) ─────────────────────────
 //
-// The algebraic-closure functor as a field extension: adjoin `i` (a root of
-// `x²+1`). Bounded on `Ordered` — the same honest bound `analytic`'s Surcomplex
-// `ExactRoots` uses — so this is only claimed where `x²+1` is genuinely irreducible
-// (the char-0 ordered bases: ℚ → the Gaussian field, No → the surreal-complex
-// field), never the degenerate char-2 `Surcomplex<Nimber>`.
+// Adjoin `i`, a root of `x²+1`. The `Ordered` bound restricts this implementation
+// to characteristic-zero ordered bases, where `x²+1` is irreducible.
 
 impl<S: Ordered> FieldExtension for Surcomplex<S> {
     type Base = S;
@@ -95,9 +84,8 @@ impl<S: Ordered> FieldExtension for Surcomplex<S> {
 
 // ───────────────────────── Fpn<P,N> / Fp<P>  (degree N) ─────────────────────────
 //
-// The finite-field tower: F_{p^N} over its prime field. Delegates to the existing,
-// tested `FiniteField::relative_trace`/`relative_norm` to the degree-1 subfield —
-// this trait generalizes that machinery, it does not reimplement it.
+// The finite-field tower over its prime field delegates to the shared
+// `FiniteField::relative_trace` and `relative_norm` implementations.
 
 impl<const P: u128, const N: usize> FieldExtension for Fpn<P, N> {
     type Base = Fp<P>;
@@ -204,8 +192,7 @@ impl<const P: u128, const N: usize, const F: usize> FieldExtension for Qq<P, N, 
 // ───────────────────────── Nimber / Fp<2>  (degree 128) ─────────────────────────
 //
 // The project's main char-2 field, F_{2^128}, as an extension of its prime field
-// F_2 — the conspicuous gap in this trait until now (it carried `nim_trace` but was
-// absent from the interface). The Galois group is cyclic of order 128 generated by
+// F_2. The Galois group is cyclic of order 128 generated by
 // the nim-Frobenius `x ↦ x²` (`nim_square`); the absolute trace `nim_trace(·, 128)`
 // is the relative trace to F_2, and the norm map onto F_2* = {1} sends every
 // nonzero element to 1.
@@ -240,9 +227,9 @@ impl FieldExtension for Nimber {
 /// [`FieldExtension::trace`] — `σ` and `basis` are the only new data, which is why
 /// this is a thin subtrait rather than a reimplementation.
 ///
-/// `Surcomplex` (`σ = ` conjugation), the finite-field tower `Fpn` (`σ = ` the
-/// Frobenius), `Qq` (`σ = ` the Witt–Frobenius, with Teichmüller-lifted residue
-/// basis), and `Nimber` (`σ = ` the nim-Frobenius) implement it. `Ramified` and
+/// `Surcomplex` (`σ` is conjugation), the finite-field tower `Fpn` (`σ` is
+/// Frobenius), `Qq` (`σ` is Witt--Frobenius), and `Nimber` (`σ` is nim
+/// Frobenius) implement it. `Ramified` and
 /// `Gauss` stay out: the former is not generally Galois, and the latter has
 /// infinite degree.
 pub trait CyclicGaloisExtension: FieldExtension {

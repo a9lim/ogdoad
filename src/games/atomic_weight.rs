@@ -1,5 +1,4 @@
-//! **Atomic weight** of all-small games — the piece of temperature theory that
-//! [`thermography`](crate::games::thermography) explicitly deferred.
+//! **Atomic weight** of all-small games.
 //!
 //! For an *all-small* game `G` (every position has a Left move iff a Right move),
 //! the atomic weight measures its size in copies of `↑`. It is computed by

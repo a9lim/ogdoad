@@ -1,17 +1,7 @@
 //! Formal Laurent series `S((t))`: adjoin a transcendental `t` (with a valuation)
 //! to any scalar backend.
 //!
-//! This is the **second root-level functor**, the transcendental twin of
-//! [`Surcomplex`](crate::scalar::Surcomplex). The two are the two ways to grow a
-//! field:
-//!
-//!   * `Surcomplex<S>` adjoins an **algebraic** element — a root of `x²+1`.
-//!   * `Laurent<S, K>` adjoins a **transcendental** element `t` together with a
-//!     `t`-adic **valuation**.
-//!
-//! Both sit *orthogonal* to the "any number" table (they are functors, not
-//! concrete worlds). What `Laurent` does that nothing else in the table does is
-//! fill the **equal-characteristic local** cell: over a finite field
+//! Over a finite field,
 //! `Laurent<Fpn<P, N>, K>` is `F_{p^N}((t))`, the characteristic-`p` mirror of
 //! [`Qp`](crate::scalar::Qp) (the characteristic-0 / mixed-characteristic local
 //! field). Its ring of integers is the power-series ring `F_q[[t]]` (the
@@ -25,11 +15,11 @@
 //!
 //! There is no finite-memory *exact* model of `S((t))`: an inverse can have
 //! infinite `t`-adic support (`1/(1+t) = 1 − t + t² − …`), so any concrete
-//! backend truncates. Like [`Qp`](crate::scalar::Qp) this uses the standard
+//! represented backend truncates. Like [`Qp`](crate::scalar::Qp), this uses the standard
 //! **capped-relative** model — `K` significant coefficients relative to the
 //! valuation. It is in fact *cleaner* than the p-adic case: coefficients live in
 //! `S` independently, so there are no inter-digit carries. Multiplication and
-//! inversion are **exact** (valuations add; the unit series stays a unit);
+//! inversion preserve the represented relative-precision window;
 //! **addition is not associative across precision boundaries** — additive
 //! cancellation below the retained window reads as `0`, exactly like floating
 //! point and exactly like `Qp`. `Laurent` is therefore a *precision model*, not
@@ -53,6 +43,7 @@ pub struct Laurent<S: Scalar, const K: usize> {
 }
 
 impl<S: Scalar, const K: usize> Laurent<S, K> {
+    /// Validate that the relative precision `K` is positive.
     pub fn assert_supported_params() {
         assert!(K > 0, "Laurent<S,K> needs positive precision K, got K={K}");
     }
@@ -395,7 +386,7 @@ mod tests {
 
     #[test]
     fn equal_characteristic_local_field_over_finite_base() {
-        // The headline cell: F_{p^N}((t)) has characteristic p (not 0 like Qp).
+        // F_{p^N}((t)) has characteristic p.
         type F8t = Laurent<Fpn<2, 3>, 4>; // F_8((t))
         assert_eq!(F8t::characteristic(), 2);
         type F9t = Laurent<Fpn<3, 2>, 4>; // F_9((t))
@@ -436,10 +427,8 @@ mod tests {
 
     #[test]
     fn m2_huge_valuation_gap_does_not_panic_or_corrupt() {
-        // Regression (audit M-2): `(hi.val - lo.val) as usize` for a gap ≥ K (e.g.
-        // i128::MAX) previously overflowed the intermediate `d + hi.unit.len()`
-        // computation and could panic in debug mode or silently corrupt in release.
-        // The fix compares the gap as i128 against K before any usize cast.
+        // A valuation gap near i128::MAX must not overflow intermediate index
+        // arithmetic or corrupt the represented window.
         //
         // Mathematically: t^0·1 + t^{i128::MAX}·1 = 1 (hi is outside the K=6 window).
         let one = L::one();

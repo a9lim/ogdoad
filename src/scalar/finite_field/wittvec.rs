@@ -29,13 +29,6 @@
 //! tests pin this representation without claiming the untwisted coordinate
 //! polynomials.
 //!
-//! ## On-brand hook: Artin–Schreier–Witt
-//!
-//! `W(F₂)` length-`N` is `Z/2^N`, and the additive Frobenius/`℘` on Witt vectors
-//! generalises the `y² + y = c` Artin–Schreier solver in `scalar::nim_solve_artin_schreier` to
-//! `Z/p^n`-extensions (Artin–Schreier–Witt theory) — extending the Arf↔Artin–
-//! Schreier thread. (Documented as motivation; the solver itself is future work.)
-
 use crate::scalar::finite_field::fpn::reduction;
 use crate::scalar::{add_mod_u128, mul_mod_u128, reduce_i128_mod_u128, Fpn, Scalar};
 use std::fmt;
@@ -47,7 +40,7 @@ use std::fmt;
 pub struct WittVec<const P: u128, const N: usize, const F: usize>(pub [u128; F]);
 
 impl<const P: u128, const N: usize, const F: usize> WittVec<P, N, F> {
-    /// Whether this const-generic triple is supported: a supported residue field
+    /// Validate that this const-generic triple is supported: a residue field
     /// `F_{p^F}` (prime `P`, `F > 0`, field order `p^F` fitting `u128` — exactly
     /// [`Fpn::is_supported_field`]) plus a positive precision `N` whose modulus
     /// `p^N` fits `u128`.
@@ -467,9 +460,7 @@ mod tests {
 
     #[test]
     fn teichmuller_is_frobenius_fixed_for_f_greater_than_one() {
-        // τ(x)^q = τ(x) (equivalently τ(x) is Frobenius-fixed) was previously
-        // pinned only at F=1 (small/analytic.rs's Zp/Qp check, where q = p).
-        // W_3(F_9) exercises the genuine-extension case: q = p^F = 9, F = 2.
+        // W_3(F_9) exercises the extension-residue case q = p^F = 9, F = 2.
         type W = WittVec<3, 3, 2>;
         let q = W::residue_order(); // 9
         for c0 in 0..3u128 {

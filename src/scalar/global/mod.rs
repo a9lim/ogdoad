@@ -1,33 +1,24 @@
-//! **The global place** — the adele ring `A_Q`, the one scalar world that lives at
-//! *every* place of `ℚ` at once.
+//! Global-field and represented local--global scalar models.
 //!
-//! The rest of the "any number" table is organized *by place*: [`exact`] is the
-//! Archimedean place `ℝ`, [`small`] is one prime place `Q_p` at a time. The adele
-//! ring is modeled as the **restricted product** `∏'_v Q_v` over all of them
-//! simultaneously. In this repo it is a finite-precision scalar model for the
-//! local–global passage, not a complete exact implementation of the analytic
-//! adele ring.
+//! [`Adele`] is a finite-diagonal, capped-relative model of rational adeles. It
+//! is not the full analytic restricted product: finite components are eventually
+//! equal to one diagonal rational, and the Archimedean component is rational.
 //!
 //! Two types:
 //!   * [`LocalQp`] — a **runtime-prime** `p`-adic cell (the const-generic `Qp<P,K>`
 //!     can't sit in a prime-indexed map, so the adele needs this).
-//!   * [`Adele`] — the restricted-product [`Scalar`](crate::scalar::Scalar), with
-//!     the diagonal embedding `ℚ ↪ A_Q`, the idele group, and the product formula.
+//!   * [`Adele`] — the represented [`Scalar`](crate::scalar::Scalar), with a
+//!     diagonal `ℚ` embedding and represented idele/product-formula operations.
 //!
 //! The local–global *theorems* it carries (Hilbert reciprocity, adelic
 //! Hasse–Minkowski, the Brauer fundamental exact sequence) live one layer up in
 //! [`forms::adelic`](crate::forms), where the `forms::padic` Hilbert-symbol
 //! machinery is.
 //!
-//! Its equal-characteristic mirror also lives here: [`RationalFunction`] is the
-//! global function field `F_q(t)` — the char-`p` analogue of `ℚ` as a global field,
-//! carrying *all* its place valuations at once (so, like [`Adele`], it is not
-//! [`Valued`](crate::scalar::Valued)). It is the exact char-`p` mirror of the
-//! `ℚ`-adele, and feeds [`forms::function_field`](crate::forms) the way the adele
-//! feeds [`forms::adelic`](crate::forms).
-//!
-//! [`exact`]: crate::scalar::exact
-//! [`small`]: crate::scalar::small
+//! [`RationalFunction`] is the exact global function field `F_q(t)`. It has one
+//! valuation per place rather than a distinguished [`Valued`](crate::scalar::Valued)
+//! structure; [`forms::function_field`](crate::forms) supplies the place-specific
+//! arithmetic.
 
 pub mod adele;
 pub mod function_field;

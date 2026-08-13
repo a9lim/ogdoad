@@ -1,36 +1,16 @@
-//! Combinatorial game theory: the second column of the project, mostly
-//! independent of the scalar/Clifford stack.
+//! Combinatorial games and checked bridges to arithmetic and integral forms.
 //!
-//! * [`coin_turning`] — nim-multiplication as Conway's Turning-Corners mex
-//!   recurrence, general 1-D coin-turning, and the 2-D Tartan product.
-//! * [`grundy`](mod@grundy) — Sprague–Grundy values of any finite impartial game (the
-//!   normal-play impartial center; P-position ⟺ g = 0).
-//! * [`kernel`] — normal-play Win/Loss/Draw outcomes of a finite game graph
-//!   (retrograde analysis); P-positions = Loss.
-//! * [`loopy`] — loopy (cyclic) games: impartial and finite partizan
-//!   retrograde solvers, the canonical value catalogue
-//!   (on/off/over/under/dud/±/tis/tisn plus `s&t` tags), loopy nim-values, and
-//!   the Loss-set/Draw-set quadric research instrument.
-//! * [`misere`] — misère-play outcomes, indistinguishability quotients, and
-//!   octal games.
-//! * [`lexicode`](mod@lexicode) — the Conway-Sloane turning-game witness for binary lexicodes,
-//!   plus the optimized `mex → Golay → Construction A` bridge.
-//! * [`partizan`] — short partizan games (sum, order, canonical form, the
-//!   surreal-value bridge).
-//! * [`number_game`] — transfinite number-valued games carried by their surreal
-//!   value, without materializing infinite options.
-//! * [`nimber_game`] — its char-2 mirror: transfinite nimber-valued (impartial)
-//!   games — Nim heaps `⋆α` — carried by their ordinal Grundy value (`No ↔ On₂` at
-//!   the games layer).
-//! * [`thermography`] — temperature theory: stops, cooling, and the thermograph
-//!   (mean value + temperature) of a short game.
-//! * [`heating`] — game-valued heating, Berlekamp overheating, and Norton
-//!   multiplication by a positive unit game.
-//! * [`piecewise`] — the piecewise-linear rational scaffold machinery used by
-//!   thermography.
-//! * [`hackenbush`] — red/blue/green Hackenbush: the one structure whose value
-//!   reads out as surreal (blue–red), nimber (green), or a general partizan game
-//!   (mixed) — the unifier.
+//! [`grundy`](mod@grundy), [`kernel`], [`coin_turning`], and [`misere`] cover
+//! finite impartial play. [`partizan`], [`number_game`], and [`nimber_game`]
+//! provide short-game and represented transfinite value models; [`loopy`]
+//! handles finite cyclic graphs separately. [`thermography`], [`heating`], and
+//! [`tropical_thermography`] provide temperature-theoretic operations.
+//! [`hackenbush`], [`lexicode`](mod@lexicode), and [`game_exterior`] are explicit
+//! cross-pillar constructions.
+//!
+//! A [`Game`] is an acyclic short-game tree and supports only its additive
+//! group operations. Cyclic play belongs in [`loopy`], and no API treats an
+//! arbitrary partizan game as a Clifford scalar.
 
 pub mod atomic_weight;
 pub mod coin_turning;

@@ -22,9 +22,7 @@ pub(super) fn scale<S: Scalar>(mut terms: BTreeMap<u128, S>, s: &S) -> BTreeMap<
     terms
 }
 
-/// Fold `other` into `into` via [`add_term`] on every entry — the canonical
-/// term-map merge. `pub(crate)` alongside `add_term` (its sibling primitive),
-/// though only `add_term` currently has a consumer outside `engine`.
+/// Folds `other` into `into`, preserving the no-stored-zero invariant.
 pub(crate) fn merge<S: Scalar>(into: &mut BTreeMap<u128, S>, other: BTreeMap<u128, S>) {
     for (blade, coeff) in other {
         add_term(into, blade, coeff);
@@ -33,9 +31,7 @@ pub(crate) fn merge<S: Scalar>(into: &mut BTreeMap<u128, S>, other: BTreeMap<u12
 
 /// Insert `coeff` for `blade` into `out`, adding to any existing coefficient.
 /// If the result is zero it is removed, preserving the "zeros never stored"
-/// invariant. The canonical insert-and-drop-zero term-map primitive — shared
-/// infrastructure beyond this engine (e.g. `hopf::coproduct`'s tensor-square
-/// accumulation), hence `pub(crate)` rather than `pub(super)`.
+/// invariant.
 pub(crate) fn add_term<S: Scalar>(out: &mut BTreeMap<u128, S>, blade: u128, coeff: S) {
     let e = out.entry(blade).or_insert_with(S::zero);
     *e = e.add(&coeff);

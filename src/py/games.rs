@@ -1,6 +1,6 @@
-//! Python bindings for combinatorial game theory: partizan games, the exterior
-//! algebra and checked integer Clifford deformation of the game group generators,
-//! and nim-mult via the Turning-Corners game recurrence.
+//! Python bindings for short and transfinite combinatorial games, loopy and
+//! misère invariants, thermography, Hackenbush, graph kernels, lexicodes, and
+//! the checked exterior/Clifford realizations of game relations.
 
 use super::engine::{IntegerAlgebra, IntegerMV};
 use super::forms::{wrap_binary_code, wrap_quadric_fit, PyBinaryCode, PyQuadricFit};
@@ -1410,8 +1410,8 @@ impl PyGame {
     fn thermograph(&self) -> Option<PyThermograph> {
         thermography::thermograph(&self.inner).map(wrap_thermograph)
     }
-    /// The same thermograph, routed through the named tropical max-plus/min-plus
-    /// wall folds and pinned equal to `thermograph` in the Rust tests.
+    /// The same exact thermograph computed through tropical max-plus/min-plus
+    /// wall folds.
     fn thermograph_via_tropical(&self) -> Option<PyThermograph> {
         crate::games::tropical_thermography::thermograph_via_tropical(&self.inner)
             .map(wrap_thermograph)
@@ -1526,7 +1526,7 @@ impl PyHackenbush {
             .map(|&(u, v, c)| (u, v, wrap_color(c)))
             .collect()
     }
-    /// The partizan game value (the universal evaluator).
+    /// The partizan game represented by this Hackenbush position.
     fn to_game(&self) -> PyGame {
         PyGame {
             inner: self.inner.to_game(),
@@ -1914,9 +1914,8 @@ fn game_clifford_error(err: crate::games::GameCliffordError) -> PyErr {
     PyValueError::new_err(err.to_string())
 }
 
-/// A transfinite **number-valued** game, carried by its surreal value (e.g. the
-/// game `ω = {0,1,2,…|}`). The numbers-only honoring of transfinite birthdays —
-/// value/birthday/sum/order all delegate to the surreal.
+/// A transfinite number-valued game carried by its surreal value, including its
+/// represented birthday and sign expansion.
 #[pyclass(name = "NumberGame", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyNumberGame {
@@ -1974,7 +1973,8 @@ impl PyNumberGame {
         );
         NumberGame::from_sign_expansion(&se).map(|inner| PyNumberGame { inner })
     }
-    /// The short `Game`, if the value is dyadic; `None` for transfinite numbers.
+    /// The short `Game` when the value is dyadic; `None` for all nondyadic
+    /// values, including transfinite numbers.
     fn to_finite_game(&self) -> Option<PyGame> {
         self.inner.to_finite_game().map(|inner| PyGame { inner })
     }
@@ -1996,11 +1996,9 @@ impl PyNumberGame {
     }
 }
 
-/// A transfinite **nimber-valued** (impartial) game — the Nim heap `⋆α` (e.g.
-/// `⋆ω`) — carried by its ordinal Grundy value. The char-2 mirror of `NumberGame`:
-/// Grundy value / disjunctive sum (XOR) / Turning-Corners product all delegate to
-/// the `Ordinal` (`On₂`) backend, completing the `No ↔ On₂` symmetry at the games
-/// layer.
+/// A transfinite nimber-valued impartial game carried by its ordinal Grundy
+/// value. Disjunctive sum is total on represented ordinals; the Turning-Corners
+/// product inherits the ordinal backend's explicit partial boundary.
 #[pyclass(name = "NimberGame", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyNimberGame {
@@ -2035,8 +2033,9 @@ impl PyNimberGame {
     fn to_finite_game(&self) -> Option<PyGame> {
         self.inner.to_finite_game().map(|inner| PyGame { inner })
     }
-    /// The **Turning-Corners product** (nim-multiplication); `None` only past the
-    /// verified Kummer table or at `≥ ω^(ω^ω)`.
+    /// The Turning-Corners product (nim-multiplication). Returns `None` outside
+    /// `ω^(ω^ω)` or when a required Kummer carry exceeds the implemented prime
+    /// table through 727.
     fn turning_corners(&self, other: &PyNimberGame) -> Option<PyNimberGame> {
         self.inner
             .turning_corners(&other.inner)

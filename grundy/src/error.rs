@@ -1,18 +1,25 @@
+//! Structured errors produced by parsing and evaluation.
+
 use std::fmt;
 
 use super::ast::DataSort;
 
+/// Half-open byte range in the submitted source.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Span {
+    /// First byte in the range.
     pub start: usize,
+    /// First byte after the range.
     pub end: usize,
 }
 
 impl Span {
+    /// Construct a half-open byte range.
     pub fn new(start: usize, end: usize) -> Self {
         Span { start, end }
     }
 
+    /// Construct an empty range at one byte position.
     pub fn point(pos: usize) -> Self {
         Span {
             start: pos,
@@ -21,43 +28,77 @@ impl Span {
     }
 }
 
+/// Stable machine-readable error categories.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GrundyErrorKind {
+    /// Invalid token or grammar.
     Parse,
+    /// Syntax reserved by the grammar but unsupported.
     Reserved,
+    /// Invalid exponent sort.
     ExpSort,
+    /// Index sort mismatch.
     IndexSort,
+    /// Boolean sort mismatch.
     BoolSort,
+    /// Function used outside a permitted first-order position.
     FnSort,
+    /// Unsupported fixpoint sort.
     FixpointSort,
+    /// Invalid binder shadowing or duplication.
     Shadow,
+    /// Discarded value within a sequence.
     SeqValue,
+    /// Bare integer where a marked nimber is required.
     BareInt,
+    /// Bare omega where a marked ordinal is required.
     BareOrdinal,
+    /// Operation or literal unavailable in the active world.
     WrongWorld,
+    /// Noncanonical order in a Cantor-normal-form literal.
     CnfOrder,
+    /// Ordinal nim operation outside the supported Kummer tower.
     KummerEscape,
+    /// Missing multiplicative inverse or exact quotient.
     NotInvertible,
+    /// Division or remainder by zero.
     DivisionByZero,
+    /// Blade or coefficient index outside the active dimension.
     BladeIndex,
+    /// Container length does not match the Clifford dimension.
     DimMismatch,
+    /// Operation unavailable for a general bilinear metric.
     GeneralMetric,
+    /// Unbound identifier.
     Unbound,
+    /// Function arity mismatch.
     Arity,
+    /// Unknown built-in function.
     UnknownFn,
+    /// Non-scalar value where grade zero is required.
     Grade0,
+    /// Unsupported modulus.
     Modulus,
+    /// Fixed-width arithmetic overflow.
     Overflow,
+    /// Value outside an operation's mathematical domain.
     Domain,
+    /// Recursive unfolding exhausted its fuel budget.
     Fuel,
+    /// Evaluator recursion exceeded its host frame guard.
     StackDepth,
+    /// Append encountered an improper game spine.
     Improper,
+    /// Unguarded recursive game equation.
     Unfounded,
+    /// Operation outside the supported loopy-game envelope.
     Loopy,
+    /// Graph materialization exceeded its node budget.
     GraphBudget,
 }
 
 impl GrundyErrorKind {
+    /// Stable `E_*` code used by diagnostics and conformance vectors.
     pub fn code(self) -> &'static str {
         match self {
             GrundyErrorKind::Parse => "E_Parse",
@@ -96,15 +137,21 @@ impl GrundyErrorKind {
     }
 }
 
+/// One structured grundy diagnostic.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GrundyError {
+    /// Machine-readable category.
     pub kind: GrundyErrorKind,
+    /// Source span associated with the failure.
     pub span: Span,
+    /// Direct description of the failure.
     pub message: String,
+    /// Optional corrective guidance.
     pub hint: Option<String>,
 }
 
 impl GrundyError {
+    /// Construct an error without a hint.
     pub fn new(kind: GrundyErrorKind, span: Span, message: impl Into<String>) -> Self {
         GrundyError {
             kind,
@@ -114,6 +161,7 @@ impl GrundyError {
         }
     }
 
+    /// Attach corrective guidance.
     pub fn with_hint(mut self, hint: impl Into<String>) -> Self {
         self.hint = Some(hint.into());
         self
@@ -132,6 +180,7 @@ impl fmt::Display for GrundyError {
 
 impl std::error::Error for GrundyError {}
 
+/// Result type for grundy parsing and evaluation.
 pub type GrundyResult<T> = Result<T, GrundyError>;
 
 pub(crate) fn parse_error(message: impl Into<String>) -> GrundyError {
@@ -226,13 +275,13 @@ pub(crate) fn literal_call_error(name: &str) -> GrundyError {
     .with_hint(format!("write the literal `{name}` without parentheses"))
 }
 
-pub(crate) fn renamed_function_error(old: &str, new: &str) -> GrundyError {
+pub(crate) fn function_replacement_error(name: &str, replacement: &str) -> GrundyError {
     GrundyError::new(
         GrundyErrorKind::UnknownFn,
         Span::point(0),
-        format!("unknown function `{old}`"),
+        format!("unknown function `{name}`"),
     )
-    .with_hint(format!("`{old}` was renamed to `{new}`"))
+    .with_hint(format!("use `{replacement}`"))
 }
 
 pub(crate) fn element_fixpoint_error(name: &str) -> GrundyError {
@@ -273,9 +322,9 @@ pub(crate) fn kummer_escape(span: Span) -> GrundyError {
     GrundyError::new(
         GrundyErrorKind::KummerEscape,
         span,
-        "ordinal nim-product escaped beyond the source-verified tower below ω^(ω^ω)",
+        "ordinal nim-product escaped the represented Kummer tower below ω^(ω^ω)",
     )
-    .with_hint("below ω^(ω^ω), primes <= 727 — see docs/OPEN.md")
+    .with_hint("supported below ω^(ω^ω) when Kummer carries use primes <= 727")
 }
 
 pub(crate) fn overflow(message: impl Into<String>) -> GrundyError {

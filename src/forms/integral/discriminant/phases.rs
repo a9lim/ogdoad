@@ -24,7 +24,7 @@ pub struct FqmPrimaryPhase {
 }
 
 impl FqmPrimaryPhase {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -56,7 +56,7 @@ pub struct FqmGaussPhase {
 }
 
 impl FqmGaussPhase {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

@@ -1,18 +1,10 @@
 //! Gauss extensions: the rational function field `S(t)` with the **Gauss
 //! valuation**, over a [`Valued`] base `S`.
 //!
-//! This fills the **fourth and last corner** of the functor square (see
-//! [`functor`](crate::scalar::functor)) — the **transcendental,
-//! residue-extending** one, the twin the table was missing:
-//!
-//!   * [`Surcomplex`](crate::scalar::Surcomplex): algebraic, residue-extending.
-//!   * [`Ramified`](crate::scalar::Ramified): algebraic, value-group-extending.
-//!   * [`Laurent`](crate::scalar::Laurent): transcendental, *value*-group-extending
-//!     (a fresh valuation, `v(t) = 1`).
-//!   * `Gauss<S>`: transcendental, *residue*-extending — adjoin a transcendental
-//!     `t` of valuation **0** whose residue `t̄` is transcendental over the residue
-//!     field. The Gauss valuation `v(Σ aᵢ tⁱ) = minᵢ v_S(aᵢ)` keeps the value group
-//!     of `S` unchanged and grows the residue field `k → k(t̄)`.
+//! It adjoins a transcendental `t` of valuation zero whose residue `t̄` is
+//! transcendental over the base residue field. The Gauss valuation
+//! `v(Σ aᵢtⁱ) = minᵢ v_S(aᵢ)` keeps the value group unchanged and represents the
+//! residue extension `k → k(t̄)`.
 //!
 //! So `Laurent` and `Gauss` are the two transcendental adjunctions, distinguished
 //! by where the new generator lands: `Laurent`'s `t` is a uniformizer (extends the
@@ -32,13 +24,13 @@
 //!
 //! ## Precision contract
 //!
-//! Every in-crate [`Valued`] base (`Qp`/`Qq`/`Laurent`) is a capped-relative
+//! The in-crate [`Valued`] bases (`Qp`/`Qq`/`Laurent`) are capped-relative
 //! precision model, so `Gauss` over it inherits that contract and is **excluded
 //! from the exact-ring fuzz suite** (by omission, like `Laurent`/`Ramified`). The
 //! Gauss *valuation* is exact whenever the base valuation is. Its ring of integers
 //! — the `v ≥ 0` subring `S⟨t⟩` ([`Gauss::is_integral`]) — is the same-type
 //! valuation subring, so `Gauss` stays out of the [`HasRingOfIntegers`] pairing,
-//! the same honesty as `Laurent`/`Ramified`.
+//! alongside `Laurent` and `Ramified`.
 //!
 //! [`Poly`]: crate::scalar::Poly
 //! [`HasRingOfIntegers`]: crate::scalar::HasRingOfIntegers

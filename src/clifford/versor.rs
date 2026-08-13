@@ -56,7 +56,10 @@ impl<S: Scalar> CliffordAlgebra<S> {
         ))
     }
 
-    /// The spinor norm ⟨v ṽ⟩₀ (scalar part of `v * reverse(v)`).
+    /// The scalar part `⟨v reverse(v)⟩₀`.
+    ///
+    /// This method does not require the full product to be scalar or invertible;
+    /// use [`spinor_norm`](Self::spinor_norm) for that checked boundary.
     pub fn norm2(&self, v: &Multivector<S>) -> S {
         let rev = self.reverse(v);
         self.scalar_part(&self.mul(v, &rev))
@@ -87,25 +90,25 @@ impl<S: Scalar> CliffordAlgebra<S> {
         let vrev = self.mul(v, &rev);
         let n = self.scalar_part(&vrev);
         if self.scalar(n.clone()) != vrev {
-            return None; // v ṽ is not a pure scalar ⇒ not a simple versor
+            return None;
         }
         n.inv()?;
         Some(n)
     }
 
-    /// Inverse of a versor (a product of invertible vectors): v⁻¹ = ṽ / (v ṽ),
-    /// valid exactly when `v * reverse(v)` is a nonzero invertible scalar.
-    /// Returns `None` otherwise (null vector, non-versor, or scalar norm not
-    /// invertible in the backend).
+    /// The inverse formula `v⁻¹ = ṽ / (v ṽ)`, returned when
+    /// `v * reverse(v)` is a pure invertible scalar. Every invertible versor
+    /// satisfies this gate, but the gate alone does not prove versor membership.
     pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
         let n = self.pure_scalar_norm(v)?;
         let ninv = n.inv()?;
         Some(self.scalar_mul(&ninv, &self.reverse(v)))
     }
 
-    /// The (untwisted) sandwich product v x v⁻¹ — the rotor action. Correct for
-    /// *even* versors (rotors); for odd versors use `twisted_sandwich`. `None`
-    /// if v isn't invertible as a versor.
+    /// The untwisted sandwich expression `v x v⁻¹`. For an even witnessed
+    /// versor this is the rotor action; for an odd versor use
+    /// [`twisted_sandwich`](Self::twisted_sandwich). Returns `None` when the
+    /// reverse-norm inverse gate fails.
     pub fn sandwich(&self, v: &Multivector<S>, x: &Multivector<S>) -> Option<Multivector<S>> {
         let vinv = self.versor_inverse(v)?;
         Some(self.mul(&self.mul(v, x), &vinv))
@@ -115,8 +118,8 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// grade involution. This is the representation-theoretically correct versor
     /// action on Pin(Q): for an *odd* versor (e.g. a single vector) the α-sign is
     /// exactly what turns it into a genuine reflection in every signature; for an
-    /// *even* versor (rotor) α(v)=v, so it coincides with `sandwich`. `None` if v
-    /// isn't an invertible versor.
+    /// *even* versor (rotor) α(v)=v, so it coincides with `sandwich`. Returns
+    /// `None` when the reverse-norm inverse gate fails.
     pub fn twisted_sandwich(
         &self,
         v: &Multivector<S>,
@@ -127,9 +130,9 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Some(self.mul(&self.mul(&av, x), &vinv))
     }
 
-    /// Reflection of x in the hyperplane orthogonal to vector n. This is just the
-    /// twisted adjoint by the vector n: α(n) x n⁻¹ = −(n x n⁻¹), since n is odd.
-    /// Routing through `twisted_sandwich` keeps the single sign convention.
+    /// The twisted-adjoint expression by `n`. When `n` is an invertible
+    /// grade-one vector, this is reflection in the hyperplane orthogonal to
+    /// `n`. The method checks the reverse-norm inverse gate but not grade one.
     pub fn reflect(&self, n: &Multivector<S>, x: &Multivector<S>) -> Option<Multivector<S>> {
         self.twisted_sandwich(n, x)
     }
@@ -264,9 +267,9 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Some(self.mul(&one_minus_b, &inv))
     }
 
-    /// The inverse Cayley transform — a rotor `R` back to its bivector generator
-    /// `(1−R)(1+R)⁻¹`. Identical formula to [`cayley`](Self::cayley) (the map is
-    /// an involution); named for intent. `None` if `1+R` is not invertible.
+    /// The inverse Cayley expression `(1−R)(1+R)⁻¹`. It is the same formula as
+    /// [`cayley`](Self::cayley) because that map is involutive. Returns `None`
+    /// if `1+R` is not invertible.
     pub fn cayley_inverse(&self, r: &Multivector<S>) -> Option<Multivector<S>> {
         self.cayley(r)
     }
@@ -422,8 +425,6 @@ mod tests {
         let _ = alg.reverse(&alg.mul(&alg.e(0), &alg.e(1)));
     }
 
-    /// M-3 check: on a symmetric (b-only, a=0) non-orthogonal metric the
-    /// anti-automorphism `reverse(xy) = reverse(y)*reverse(x)` holds.
     #[test]
     fn reverse_is_anti_automorphism_on_symmetric_metric() {
         let mut b = std::collections::BTreeMap::new();
@@ -449,12 +450,6 @@ mod tests {
         );
     }
 
-    /// The documented "looks like a bug" contract: `versor_inverse` succeeds
-    /// iff `v ṽ` is a scalar AND a monomial (over surreals). `1/(ω+1)` is an
-    /// infinite Hahn series with no finite representation, so a vector whose
-    /// spinor norm is a genuine sum (not a single term) has no representable
-    /// inverse — `Surreal::inv` returns `None` on any non-monomial. Regression
-    /// for that `None`, with a monomial-norm case alongside as the contrast.
     #[test]
     fn versor_inverse_none_on_nonmonomial_surreal_norm() {
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Surreal::omega(), Surreal::one()]));

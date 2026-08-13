@@ -1,13 +1,7 @@
-//! Thermography **is** tropical arithmetic — named and machine-checked.
+//! Tropical operations on thermograph walls.
 //!
-//! The thermograph recursion in [`crate::games::thermography`] already *computes*
-//! a tropical structure without naming it. This module names it and pins the
-//! naming faithful against the existing (golden-tested) [`thermograph`](crate::games::thermograph).
-//!
-//! ## The correspondence (standard math, not a new theorem)
-//!
-//! For a short partizan game `G` the two scaffold walls are built by folding the
-//! options' walls:
+//! For a short partizan game, the thermograph recursion builds its scaffold
+//! walls by folding the options' walls:
 //!
 //! - the **left** raw wall is the pointwise `max` over Left options of each
 //!   option's *right* wall — that is tropical `⊕` in the **(max, +)** semiring
@@ -18,16 +12,12 @@
 //! - **cooling** by a temperature shifts a wall's value by `±t` — tropical `⊗`
 //!   (tropical multiplication is ordinary `+`), the named [`Pl::otimes`].
 //!
-//! The two walls genuinely live in **dual** semirings, which is why the scalar
-//! layer makes `Tropical<MaxPlus>` and `Tropical<MinPlus>` distinct types. This
-//! is the classical content of temperature theory (Berlekamp–Conway–Guy *Winning
-//! Ways*; Conway *ONAG*; Siegel *Combinatorial Game Theory*) made explicit at the
-//! type level — **claim level: standard math, implemented-and-tested**.
+//! The two walls use dual semirings, represented by the distinct
+//! `Tropical<MaxPlus>` and `Tropical<MinPlus>` scalar types.
 //!
-//! [`thermograph_via_tropical`] runs the shared thermograph recursion with the
-//! two option folds routed through the **named** [`Pl::oplus_max`]/[`Pl::oplus_min`]
-//! wrappers. Its sole job is to prove the `⊕`-naming is faithful, so it is pinned
-//! **equal** to [`thermograph`](crate::games::thermograph) — it is not a second implementation of cooling.
+//! [`thermograph_via_tropical`] routes the shared recursion through
+//! [`Pl::oplus_max`] and [`Pl::oplus_min`]. Tests require it to agree exactly
+//! with [`thermograph`](crate::games::thermograph).
 
 use crate::games::piecewise::{add_pl, combine, Pl};
 use crate::games::thermography::{walls_with, Thermograph};
@@ -59,9 +49,10 @@ impl Pl {
 }
 
 /// The thermograph of `g`, computed with the option folds named as tropical `⊕`
-/// in the dual `(max, +)`/`(min, +)` semirings. Pinned **equal** to
-/// [`thermograph`](crate::games::thermograph) (the inline tests are the proof); `None` on the same
-/// degenerate positions.
+/// in the dual `(max, +)`/`(min, +)` semirings.
+///
+/// Returns `None` on the same degenerate positions as
+/// [`thermograph`](crate::games::thermograph).
 pub fn thermograph_via_tropical(g: &Game) -> Option<Thermograph> {
     let (left_wall, right_wall, mast, temperature) = walls_with(g, |acc, wall, is_max| {
         if is_max {
@@ -88,7 +79,7 @@ mod tests {
 
     /// Two thermographs are equal iff their masts, temperatures, and both walls
     /// (as breakpoint lists) agree. The walls are byte-identical here because the
-    /// bridge runs the *same* `combine`/`freeze`, so structural `==` is exact.
+    /// implementation runs the same `combine`/`freeze`, so structural `==` is exact.
     fn same(a: &Thermograph, b: &Thermograph) -> bool {
         req(&a.mast, &b.mast)
             && req(&a.temperature, &b.temperature)

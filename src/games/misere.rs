@@ -136,6 +136,7 @@ pub fn misere_nim_p_predicted(heaps: &[u128]) -> bool {
 /// under disjunctive sum, with no moves); positions `1..moves.len()` carry option
 /// index-lists `moves[p]` (each option is a position index; 0 = move to empty).
 pub struct AbstractGame {
+    /// Adjacency lists; position `0` is the empty game.
     pub moves: Vec<Vec<usize>>,
 }
 
@@ -236,6 +237,7 @@ impl Quotient {
         self.class_rep.len()
     }
 
+    /// Product class for `a + b`, when the bounded table contains it.
     pub fn class_product(&self, a: usize, b: usize) -> Option<usize> {
         self.multiplication
             .as_ref()
@@ -256,7 +258,7 @@ impl Quotient {
         self.signatures.get(element_index).map(Vec::as_slice)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Python-visible rendering alias.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -650,7 +652,6 @@ mod tests {
     #[test]
     fn cyclic_abstract_game_returns_none_not_panic() {
         // A cyclic move graph: position 1 has a self-loop (1 → 1).
-        // Before the fix this panicked with expect(). Now it returns None.
         let game = AbstractGame {
             moves: vec![vec![], vec![1]], // pos 1 self-loops — cyclic
         };
@@ -664,10 +665,7 @@ mod tests {
 
     #[test]
     fn cyclic_abstract_game_quotient_builder_returns_none_not_panic() {
-        // Same cyclic AbstractGame as `cyclic_abstract_game_returns_none_not_panic`,
-        // but threaded through the *quotient builder* rather than `misere_outcome`
-        // directly. Before the fix `misere_quotient` called `.expect()` on this same
-        // partial primitive and panicked; now it returns None.
+        // The quotient builder propagates the same checked cyclic result.
         let game = AbstractGame {
             moves: vec![vec![], vec![1]], // pos 1 self-loops — cyclic
         };

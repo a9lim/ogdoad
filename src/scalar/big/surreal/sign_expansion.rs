@@ -311,10 +311,8 @@ mod tests {
 
     #[test]
     fn from_ordinal_rejects_coefficient_exceeding_i128() {
-        // Coefficients ≥ 2^127 cannot be represented as i128; the old `*c as i128`
-        // cast would silently wrap to a negative value, and an earlier `.expect()`
-        // panicked loudly instead. `from_ordinal` now reports the honest `None`,
-        // matching the `Option` boundary `as_ordinal` already draws.
+        // Coefficients ≥ 2^127 cannot be represented as i128, so the conversion
+        // reports `None`.
         let large_coeff: u128 = (1u128 << 127) + 1;
         let ord = Ordinal::monomial(Ordinal::from_u128(1), large_coeff);
         assert_eq!(Surreal::from_ordinal(&ord), None);

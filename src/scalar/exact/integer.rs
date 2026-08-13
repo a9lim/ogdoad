@@ -1,10 +1,8 @@
-//! The integers ℤ as a `Scalar`: the coefficient ring for the exterior algebra
-//! of the *game group* (`games/partizan.rs`). Games form an abelian group — a
-//! ℤ-module — but not a ring, so an exterior algebra (which needs only a
-//! commutative ring of coefficients and a module of generators) is exactly the
-//! Clifford-adjacent structure that lives on *all* of game-world, not only the
-//! field-like cores. Only `±1` are invertible, which is fine: the Grassmann
-//! product never calls `inv`.
+//! Fixed-width exact integers.
+//!
+//! [`Integer`] is the `i128` model of `ℤ`. Arithmetic is checked, and only
+//! `±1` are units. It is also the coefficient ring for constructions on the
+//! additive group of partizan games.
 
 use crate::scalar::Scalar;
 use std::cmp::Ordering;
@@ -94,6 +92,9 @@ mod tests {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
+/// An exact integer backed by `i128`.
+///
+/// Arithmetic panics on overflow.
 pub struct Integer(pub i128);
 
 impl Integer {

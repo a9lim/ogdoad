@@ -1,8 +1,6 @@
-//! Python bindings for the GA engine: the `backend!` macro that stamps out one
-//! `<World>Algebra` / `<World>MV` pyclass pair per scalar backend, the runtime
-//! invocations, and conformal GA (`Cga`). The generated structs and their
-//! fields are `pub(crate)` so the classifier bindings in [`super::forms`] and the
-//! game-exterior binding in [`super::games`] can read `.inner` / `.mv`.
+//! Monomorphic Python bindings for Clifford algebras, multivectors, linear
+//! maps, divided powers, and conformal geometric algebra. Each registered
+//! backend has its own Python classes; mixed-backend operations are rejected.
 
 use super::scalars::{
     parse_adele, parse_f16, parse_f25, parse_f27, parse_f4, parse_f8, parse_f9, parse_fp11,
@@ -491,6 +489,13 @@ macro_rules! backend_algebra {
 
         #[pymethods]
         impl $alg {
+            /// Constructs an algebra from metric data.
+            ///
+            /// `q[i] = e_i²`. For `i < j`, `b[(i,j)] = e_i e_j + e_j e_i`
+            /// and `a[(i,j)] = B(e_i,e_j)`, so
+            /// `B(e_j,e_i) = b[(i,j)] - a[(i,j)]`. Reversed `b` keys are
+            /// normalized; `a` keys must satisfy `i < j`. The dimension is at
+            /// most 128.
             #[new]
             #[pyo3(signature = (q, b=None, a=None))]
             fn new(
@@ -548,7 +553,8 @@ macro_rules! backend_algebra {
                 self.inner.dim()
             }
 
-            /// Rust-name constructor for a general-bilinear metric algebra.
+            /// Alias constructor accepting the same `q`, `b`, and `a` data as
+            /// the class constructor.
             #[staticmethod]
             #[pyo3(signature = (q, b=None, a=None))]
             fn general(
@@ -559,7 +565,7 @@ macro_rules! backend_algebra {
                 Self::new(q, b, a)
             }
 
-            /// Rust-name constructor for the fully-null Grassmann/exterior metric.
+            /// Constructs the fully null Grassmann/exterior algebra.
             #[staticmethod]
             fn grassmann(n: usize) -> PyResult<Self> {
                 if n > MAX_BASIS_DIM {
@@ -578,7 +584,8 @@ macro_rules! backend_algebra {
                 self.inner.metric.q.iter().cloned().map($wrap).collect()
             }
 
-            /// Nonzero polar entries `(i, j, value)` with `i < j`.
+            /// Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+            /// `b_ij = e_i e_j + e_j e_i`.
             fn b_terms(&self) -> Vec<(usize, usize, $scalar_py)> {
                 self.inner
                     .metric
@@ -589,7 +596,8 @@ macro_rules! backend_algebra {
                     .collect()
             }
 
-            /// Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`.
+            /// Nonzero entries `(i, j, a_ij)` with `i < j`, where
+            /// `a_ij = B(e_i,e_j)`.
             fn a_terms(&self) -> Vec<(usize, usize, $scalar_py)> {
                 self.inner
                     .metric
@@ -633,13 +641,12 @@ macro_rules! backend_algebra {
                 $wrap(self.inner.metric.q_val(i))
             }
 
-            /// Rust-name helper: whether the metric has any upper/in-order
-            /// contraction terms and therefore needs the general product path.
+            /// Whether the metric has any nonzero upper/in-order contraction.
             fn has_upper(&self) -> bool {
                 self.inner.metric.has_upper()
             }
 
-            /// Rust-name helper: whether this basis is orthogonal.
+            /// Whether all off-diagonal `b` and `a` entries are zero.
             fn is_orthogonal(&self) -> bool {
                 self.inner.metric.is_orthogonal()
             }
@@ -764,15 +771,15 @@ macro_rules! backend_algebra {
                 })
             }
 
-            /// The even subalgebra as a Clifford algebra one dimension smaller
-            /// (orthogonal metrics with a non-null generator only).
+            /// The even subalgebra as a Clifford algebra one dimension smaller.
+            /// Requires an orthogonal metric with an invertible generator square.
             fn even_subalgebra(&self) -> PyResult<$alg> {
                 self.inner
                     .even_subalgebra()
                     .map(|a| $alg { inner: Arc::new(a) })
                     .ok_or_else(|| {
                         PyValueError::new_err(
-                            "even subalgebra needs an orthogonal metric with a non-null generator",
+                            "even subalgebra needs an orthogonal metric with an invertible generator square",
                         )
                     })
             }
@@ -865,8 +872,8 @@ macro_rules! backend_algebra {
             }
 
             /// The determinant of a `LinearMap`: the scalar by which its
-            /// outermorphism scales the pseudoscalar. Char-faithful (the char-2
-            /// determinant over nimbers).
+            /// outermorphism scales the pseudoscalar. Signs collapse through the
+            /// scalar backend in characteristic two.
             fn determinant(&self, lm: &$lm) -> PyResult<$scalar_py> {
                 self.ensure_linear_map(&lm.inner)?;
                 Ok($wrap(scalar_boundary(|| {
@@ -922,8 +929,9 @@ macro_rules! backend_algebra {
             }
 
             /// Full concrete spinor data as a named `SpinorRep` record.
-            /// Supports nondegenerate characteristic-0 metrics and nonsingular
-            /// characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+            /// Supports nondegenerate characteristic-zero metrics and nonsingular
+            /// characteristic-two metrics over supported field-like backends.
+            /// Characteristic-zero general-bilinear
             /// metrics are transported through the antisymmetric `a` gauge;
             /// characteristic 2 keeps the no-`a` boundary.
             /// `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -1235,7 +1243,9 @@ macro_rules! backend_multivector {
                     mv: scalar_boundary(|| self.alg.grade_involution(&self.mv))?,
                 })
             }
-            /// Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor.
+            /// The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+            /// when the denominator is a pure invertible scalar; this gate does
+            /// not independently prove versor membership.
             fn versor_inverse(&self) -> PyResult<$mv> {
                 scalar_boundary(|| self.alg.versor_inverse(&self.mv))?
                     .map(|mv| $mv {
@@ -1255,9 +1265,10 @@ macro_rules! backend_multivector {
                     })
                     .ok_or_else(|| PyValueError::new_err("not invertible (zero divisor)"))
             }
-            /// The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-            /// rational map from the Lie algebra (bivectors) to the Spin group
-            /// (rotors). Errors if `1+B` is not invertible.
+            /// The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+            /// In simple or low-dimensional cases it yields a rotor; an arbitrary
+            /// higher-dimensional bivector need not yield a versor. Errors if
+            /// `1+B` is not invertible.
             fn cayley(&self) -> PyResult<$mv> {
                 scalar_boundary(|| self.alg.cayley(&self.mv))?
                     .map(|mv| $mv {
@@ -1266,8 +1277,8 @@ macro_rules! backend_multivector {
                     })
                     .ok_or_else(|| PyValueError::new_err("1+B not invertible"))
             }
-            /// The inverse Cayley transform — a rotor back to its bivector
-            /// generator (same involutive formula). Errors if `1+R` is singular.
+            /// The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+            /// involutive formula. Errors if `1+R` is singular.
             fn cayley_inverse(&self) -> PyResult<$mv> {
                 scalar_boundary(|| self.alg.cayley_inverse(&self.mv))?
                     .map(|mv| $mv {
@@ -1276,7 +1287,8 @@ macro_rules! backend_multivector {
                     })
                     .ok_or_else(|| PyValueError::new_err("1+R not invertible"))
             }
-            /// Sandwich self · x · self⁻¹ (rotor/versor action; untwisted).
+            /// The sandwich expression `self · x · self⁻¹`; for a witnessed
+            /// versor this is the untwisted versor action.
             fn sandwich(&self, x: &$mv) -> PyResult<$mv> {
                 self.ensure_same_algebra(x)?;
                 scalar_boundary(|| self.alg.sandwich(&self.mv, &x.mv))?
@@ -1286,8 +1298,8 @@ macro_rules! backend_multivector {
                     })
                     .ok_or_else(|| PyValueError::new_err("not an invertible versor"))
             }
-            /// Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-            /// versor action; for an odd versor it gives a genuine reflection.
+            /// The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+            /// versor this is the Pin/Spin action; an odd versor gives a reflection.
             fn twisted_sandwich(&self, x: &$mv) -> PyResult<$mv> {
                 self.ensure_same_algebra(x)?;
                 scalar_boundary(|| self.alg.twisted_sandwich(&self.mv, &x.mv))?
@@ -1333,9 +1345,10 @@ macro_rules! backend_multivector {
                     crate::clifford::counit(&self.alg, &self.mv)
                 })?))
             }
-            /// `exp(self)` for a nilpotent multivector — the terminating series
-            /// `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-            /// needing transcendental cos/sin).
+            /// A terminating exponential series `Σ selfᵏ/k!`, searched through
+            /// the implementation's finite cap. An error means the series did
+            /// not terminate within that cap or a factorial was not invertible;
+            /// it does not prove that the input is nonnilpotent.
             fn exp_nilpotent(&self) -> PyResult<$mv> {
                 scalar_boundary(|| crate::clifford::exp_nilpotent(&self.alg, &self.mv))?
                     .map(|mv| $mv {
@@ -1343,10 +1356,14 @@ macro_rules! backend_multivector {
                         mv,
                     })
                     .ok_or_else(|| {
-                        PyValueError::new_err("not nilpotent — would need a transcendental exp")
+                        PyValueError::new_err(
+                            "exponential did not terminate within the supported exact boundary",
+                        )
                     })
             }
-            /// Reflect x in the hyperplane ⊥ self (self must be an invertible vector).
+            /// Apply the twisted-adjoint expression to `x`. This is reflection
+            /// when `self` is an invertible grade-one vector; the method checks
+            /// the reverse-norm inverse gate but not grade one.
             fn reflect(&self, x: &$mv) -> PyResult<$mv> {
                 self.ensure_same_algebra(x)?;
                 scalar_boundary(|| self.alg.reflect(&self.mv, &x.mv))?
@@ -1354,7 +1371,7 @@ macro_rules! backend_multivector {
                         alg: self.alg.clone(),
                         mv,
                     })
-                    .ok_or_else(|| PyValueError::new_err("not an invertible vector"))
+                    .ok_or_else(|| PyValueError::new_err("reverse-norm inverse gate failed"))
             }
             fn left_contract(&self, other: &$mv) -> PyResult<$mv> {
                 self.ensure_same_algebra(other)?;
@@ -1481,18 +1498,30 @@ macro_rules! backend_multivector {
             fn versor_grade_parity(&self) -> Option<u128> {
                 crate::clifford::versor_grade_parity(&self.mv)
             }
-            /// Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-            /// invertible simple versor. Reduce this scalar modulo squares (char != 2)
-            /// or Artin-Schreier (char 2) in the caller's field when needed.
+            /// Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+            /// pure invertible scalar. This gate does not itself prove that `v`
+            /// belongs to the Clifford group. For a witnessed versor over a
+            /// field of characteristic other than two, its
+            /// class modulo squares is the classical spinor norm. In
+            /// characteristic two this raw product is not the additive
+            /// Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+            /// elements.
             fn spinor_norm(&self) -> PyResult<$scalar_py> {
                 scalar_boundary(|| self.alg.spinor_norm(&self.mv))?
                     .map($wrap)
-                    .ok_or_else(|| PyValueError::new_err("not an invertible simple versor"))
+                    .ok_or_else(|| {
+                        PyValueError::new_err("v * reverse(v) is not a pure invertible scalar")
+                    })
             }
-            /// Classify a versor as a named `VersorClass` record.
+            /// Bundle the raw norm and grade parity of a versor candidate.
+            /// Success does not independently prove Clifford-group membership.
             fn classify_versor(&self, py: Python<'_>) -> PyResult<PyVersorClass> {
-                let class = scalar_boundary(|| self.alg.classify_versor(&self.mv))?
-                    .ok_or_else(|| PyValueError::new_err("not an invertible simple versor"))?;
+                let class =
+                    scalar_boundary(|| self.alg.classify_versor(&self.mv))?.ok_or_else(|| {
+                        PyValueError::new_err(
+                            "candidate lacks homogeneous parity or a pure invertible norm",
+                        )
+                    })?;
                 Ok(PyVersorClass {
                     spinor_norm: $wrap(class.spinor_norm).into_py_any(py)?,
                     dickson: class.dickson,
@@ -1501,7 +1530,8 @@ macro_rules! backend_multivector {
             fn scalar_part(&self) -> PyResult<$scalar_py> {
                 Ok($wrap(scalar_boundary(|| self.alg.scalar_part(&self.mv))?))
             }
-            /// Division: by a scalar, or by a versor (multiply by its inverse).
+            /// Division by a scalar, or by a multivector whose reverse-norm
+            /// inverse gate succeeds.
             fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<$mv> {
                 if let Ok(o) = other.cast::<$mv>() {
                     let other = o.borrow();
@@ -1795,6 +1825,9 @@ macro_rules! cga_backend {
 
         #[pymethods]
         impl $py {
+            /// Constructs the conformal algebra on `n` unit-square coordinates.
+            /// Requires `n <= 126`; registered backends have characteristic zero
+            /// and an invertible `2`.
             #[new]
             fn new(n: usize) -> Self {
                 $py { inner: Cga::new(n) }
@@ -1807,17 +1840,20 @@ macro_rules! cga_backend {
             fn dim(&self) -> usize {
                 self.inner.alg().dim()
             }
-            /// The exact monomorphic Clifford algebra underlying this conformal model.
+            /// The monomorphic Clifford algebra underlying this conformal model.
             fn alg(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
                 <$scalar as PyAlgebraFor>::wrap_algebra(py, Arc::new(self.inner.alg().clone()))
             }
+            /// The null origin vector `n_o`.
             fn n_o(&self) -> $mv {
                 self.wrap(self.inner.n_o())
             }
+            /// The null infinity vector `n_∞`.
             fn n_inf(&self) -> $mv {
                 self.wrap(self.inner.n_inf())
             }
-            /// Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`.
+            /// Lift a coordinate vector to the null cone:
+            /// `up(p) = n_o + p + ½|p|² n_∞`.
             fn up(&self, p: Vec<Bound<'_, PyAny>>) -> PyResult<$mv> {
                 let mut pv = Vec::with_capacity(p.len());
                 for x in &p {
@@ -1825,13 +1861,14 @@ macro_rules! cga_backend {
                 }
                 Ok(self.wrap(self.inner.up(&pv)))
             }
-            /// Recover a Euclidean point from a null vector (`None` if not normalizable).
+            /// Recover a coordinate vector from a null vector (`None` if not normalizable).
             fn down(&self, x: &$mv) -> Option<Vec<$scalar_py>> {
                 self.inner
                     .down(&x.mv)
                     .map(|v| v.into_iter().map($wrap).collect())
             }
-            /// The conformal inner product `x · y` (= `−½|p−q|²` on lifted points).
+            /// The conformal inner product `x · y`, equal to
+            /// `−½|p−q|²` on lifted coordinate vectors.
             fn inner(&self, x: &$mv, y: &$mv) -> $scalar_py {
                 $wrap(self.inner.inner(&x.mv, &y.mv))
             }
@@ -1867,7 +1904,7 @@ macro_rules! cga_backend {
             fn meet_ipns(&self, x: &$mv, y: &$mv) -> $mv {
                 self.outer_join(x, y)
             }
-            /// Compatibility spelling for `meet_ipns`; operands are IPNS values.
+            /// Alias for `meet_ipns`; operands are IPNS values.
             fn meet(&self, x: &$mv, y: &$mv) -> $mv {
                 self.meet_ipns(x, y)
             }

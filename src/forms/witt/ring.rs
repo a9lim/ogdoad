@@ -2,7 +2,7 @@
 //! group, the fundamental ideal `Iⁿ`, Pfister forms, and the cohomological
 //! invariant staircase `eₙ`.
 //!
-//! `witt.rs` carries the additive group `W` (forms mod hyperbolics, under `⊥`).
+//! `class.rs` carries the additive group `W` (forms mod hyperbolics, under `⊥`).
 //! Tensor product of forms makes `W` a **ring**, and the powers of the
 //! **fundamental ideal** `I = ker(e₀)` (the even-dimensional classes) filter it:
 //! `W ⊇ I ⊇ I² ⊇ …`. The Milnor conjecture (Voevodsky) identifies
@@ -16,8 +16,7 @@
 //! | 1 | signed **discriminant**| [`oddchar::finite_odd_witt`] (the `sclass`) |
 //! | 2 | **Hasse**/Clifford     | [`oddchar::hasse_invariant_finite_odd`] |
 //!
-//! So this module is the *retro-unification*: discriminant and Hasse stop being
-//! separate functions and become `e₁`, `e₂` — successive steps of one staircase.
+//! Thus discriminant and Hasse appear as successive invariants `e₁` and `e₂`.
 //!
 //! ## Stabilization — where the staircase stops, per field
 //!
@@ -29,14 +28,14 @@
 //!     [`two_fold_pfister_is_hyperbolic`](self) demonstrates `I² = 0` directly.
 //!     `e₂` is identically trivial — the same fact `oddchar`'s Hasse `≡ +1` records.
 //!   * **`Q_p`** (`u = 4`): `I³ = 0`. The staircase reaches `(e₀, e₁, e₂)` with
-//!     **`e₂` = Hasse genuinely nontrivial** — the payoff that `forms/local_global/padic.rs`
-//!     supplies (over a finite field the Brauer group is trivial so `e₂` carries
-//!     nothing; over `Q_p` it does).
+//!     **`e₂` = Hasse genuinely nontrivial**, as computed by
+//!     `forms/local_global/padic.rs` (over a finite field the Brauer group is
+//!     trivial so `e₂` carries nothing; over `Q_p` it does).
 //!   * **`ℝ`** (surreal backend, `u = ∞`): the tower is **infinite**. `Iⁿ = 2ⁿℤ`
 //!     via the signature, and `eₙ` reads the 2-adic expansion of the signature —
 //!     see [`e_real`].
 //!
-//! ## The characteristic-2 caveat (pinned, not asserted)
+//! ## Characteristic-two boundary
 //!
 //! In characteristic 2 the staircase does **not** index-match the above. The Witt
 //! group of *quadratic* forms `W_q(F)` is a **module over** the Witt ring of

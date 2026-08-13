@@ -1,19 +1,17 @@
-//! The Hilbert symbol over `Q_p` and the Hasse–Minkowski local–global principle
-//! over `Q` — where the Hasse invariant finally does classifying work.
+//! Hilbert symbols over `Q_p` and Hasse--Minkowski isotropy over `Q`.
 //!
 //! `forms::oddchar`'s Hilbert symbol is identically `+1` (finite fields have trivial
 //! Brauer group, so no nontrivial quaternion algebras). Over `Q_p` the Hilbert
 //! symbol `(a, b)_p` is genuinely nontrivial — it detects the quaternion algebra
 //! `(a, b)` — and the **Hasse invariant** `∏_{i<j}(a_i, a_j)_v` it builds becomes a
-//! real classifying invariant. The payoff is **Hasse–Minkowski**: a quadratic form
+//! real classifying invariant. **Hasse–Minkowski** states that a quadratic form
 //! over `Q` is isotropic iff it is isotropic over `ℝ` and over every `Q_p` — a
 //! theorem this module makes executable ([`try_is_isotropic_q`]).
 //!
 //! Forms are integer diagonal forms `⟨a_1,…,a_n⟩` (a rational form scales to one
 //! without changing square classes). Everything depends only on square classes, so
-//! arguments are square-free-reduced internally — keeping the arithmetic small and
-//! exact. The gold-standard self-check is **Hilbert reciprocity**: `∏_v (a,b)_v = +1`
-//! over all places (`reciprocity_holds` in the tests).
+//! arguments are square-free-reduced internally. Arithmetic is exact and tests
+//! check Hilbert reciprocity `∏_v (a,b)_v = +1`.
 //!
 //! References: Serre, *A Course in Arithmetic*, Ch. III–IV (the Hilbert symbol
 //! formulas and the local isotropy criteria by rank).
@@ -30,7 +28,9 @@ use crate::scalar::{is_prime_u128, mul_mod_u128};
 /// ([`Brauer2Class`](crate::forms::Brauer2Class)) relies on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Place {
+    /// The real completion.
     Real,
+    /// The p-adic completion at the given prime.
     Prime(u128),
 }
 
@@ -441,7 +441,7 @@ mod tests {
 
     #[test]
     fn hilbert_reciprocity() {
-        // THE GOLD ORACLE: ∏_v (a,b)_v = +1 for all a,b — Hilbert's reciprocity law.
+        // Hilbert reciprocity: ∏_v (a,b)_v = +1 for all nonzero a and b.
         for a in -12i128..=12 {
             for b in -12i128..=12 {
                 if a == 0 || b == 0 {

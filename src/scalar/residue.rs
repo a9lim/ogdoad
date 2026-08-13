@@ -12,15 +12,9 @@
 //! k = 𝒪/𝔪  — the residue field       ← this module
 //! ```
 //!
-//! Until now `k` lived only in the "any number" table's *residue* column as a doc
-//! comment, while every other entry of the package had been promoted to the type
-//! system: the (field, ring-of-integers) pairing by
-//! [`integrality`](crate::scalar::integrality), the valuation + uniformizer by
-//! [`valued`](crate::scalar::valued), root-taking by
-//! [`analytic`](crate::scalar::analytic). This trait closes the column the same
-//! way, and it is what lets the discrete-valuation Springer decomposition
-//! ([`forms::springer_decompose_local`](crate::forms::springer_decompose_local)) be written **once**,
-//! generic over the residue field, instead of once per local field.
+//! The trait lets local-field algorithms, including
+//! [`forms::springer_decompose_local`](crate::forms::springer_decompose_local),
+//! operate generically over the residue field.
 //!
 //! # The two maps
 //!
@@ -35,7 +29,7 @@
 //!     defined for every nonzero `x` regardless of valuation (`None` only for `0`).
 //!     This is the per-layer square-class carrier the valuation filtration reads.
 //!
-//! # Honest boundaries
+//! # Scope
 //!
 //!   * Like [`Valued`], this is **not** a [`Scalar`]
 //!     supertrait and excludes the globals: [`Adele`](crate::scalar::Adele) and
@@ -43,15 +37,13 @@
 //!     places at once, so they have a residue field *per place*, not one — their
 //!     residues live at the forms layer
 //!     ([`forms::function_field`](crate::forms)), per place.
-//!   * The impls delegate to inherent methods of the same name (inherent shadows
-//!     trait in method-call position, so the delegation does not recurse), the same
-//!     discipline as [`valued`](crate::scalar::valued).
+//!   * Implementations delegate to the corresponding inherent local-field
+//!     operations.
 
 use crate::scalar::{ExactFieldScalar, Fp, Fpn, Laurent, Qp, Qq, Scalar, Valued};
 
-/// A discretely-valued field with a residue field `k = 𝒪/𝔪` and the canonical and
-/// angular-component reductions onto it. The piece of the local-field package
-/// `(K, 𝒪, 𝔪, k, Γ, ϖ)` that the rest of the trait layer left in doc comments.
+/// A discretely-valued field with residue field `k = 𝒪/𝔪`, canonical reduction,
+/// angular component, and a chosen residue section.
 pub trait ResidueField: Valued {
     /// The residue field `k = 𝒪/𝔪`.
     type Residue: ExactFieldScalar;
@@ -206,8 +198,7 @@ mod tests {
         assert_eq!(L::t().inv().unwrap().residue_unit(), Some(r(1)));
     }
 
-    /// The trait is usable generically — the whole point of promoting `k` to the
-    /// type system (mirrors `analytic`'s `exact_roots_is_generic`).
+    /// The trait supports residue-field-generic algorithms.
     #[test]
     fn residue_field_is_generic() {
         fn angular_is_some_for_nonzero<K: ResidueField>(x: &K) {

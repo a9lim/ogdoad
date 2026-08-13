@@ -1,10 +1,7 @@
-//! The (field, ring of integers) pairing, made **structural**.
+//! Structural relationships between fields and rings of integers.
 //!
-//! The "any number" table in [`scalar`](crate::scalar) is organised around one
-//! recurring relationship: almost every field ships beside its **ring of
-//! integers** — `ℚ`/`ℤ`, `No`/`Oz`, `Q_p`/`Z_p`, `Q_q`/`W_N(F_q)`. Until now
-//! that pairing lived only in doc comments. These two traits promote it to the
-//! type system, so the relationship is checkable rather than merely described:
+//! The implemented pairs are `ℤ ⊂ ℚ`, `Oz ⊂ No`, `Z_p ⊂ Q_p`,
+//! `W_N(F_q) ⊂ Q_q`, and `F_q[t] ⊂ F_q(t)`:
 //!
 //!   * [`HasFractionField`] — a ring `R` knows a section `to_fraction : R → Frac(R)`
 //!     that satisfies the round-trip law `to_integer(to_fraction(r)) = r`. On the
@@ -15,40 +12,35 @@
 //!   * [`HasRingOfIntegers`] — a field `K` knows its ring of integers (the
 //!     valuation / integrality subring) and the integrality test `K → R ∪ {⊥}`.
 //!
-//! They are linked: `HasRingOfIntegers::Int` is bounded by
+//! `HasRingOfIntegers::Int` is bounded by
 //! `HasFractionField<Frac = Self>`, so the ring of integers of `K` is a ring
-//! whose fraction field is `K` again. That closes the loop at the type level, and
-//! the generic round-trip law `frac ∘ int = id` (an embedded ring element is
-//! integral and recovers itself) is exercised in the `tests` module for every pair.
+//! whose fraction field is `K` again. The tests exercise the round-trip law
+//! `to_integer(to_fraction(r)) = r` for every pair.
 //!
 //! ## What is and isn't paired
 //!
-//! The four pairs above are exactly the table rows where the field and its ring
-//! of integers are **distinct backends**. The [`Laurent`](crate::scalar::Laurent)
+//! [`Laurent`](crate::scalar::Laurent)
 //! functor is the one case where they share a type: the ring of integers `F_q[[t]]`
 //! of `F_q((t))` is the valuation subring (`Laurent::is_integral`, valuation `≥ 0`)
-//! *inside* the same `Laurent<S, K>`, not a separate world — so it stays outside
-//! this trait pairing, honestly, rather than pointing `Int` at itself.
+//! *inside* the same `Laurent<S, K>`, not a separate backend, so it is outside
+//! this distinct-type pairing.
 //!
-//! ## Functors split on this exact line
-//!
-//! The two kinds of root-level functor differ precisely in how they treat this
-//! pairing, which is a clean structural dichotomy:
+//! ## Functors
 //!
 //!   * **Algebraic functors transport the distinct-type pairing.**
 //!     [`Surcomplex`] is `i`-adjunction; if the base `R`
 //!     has a fraction field, so does `R[i]` (componentwise), and if `K` has a ring
 //!     of integers `O_K`, then `K[i]` has the order `O_K[i]`. The blanket impls
-//!     below make this functorial: the `S = Rational` instance is the **Gaussian**
-//!     row `ℤ[i] ⊂ ℚ[i]`, the `S = Surreal` instance is `Omnific[i] ⊂ Surcomplex`,
-//!     all from one pair of impls. (For `ℚ(i)` the order `ℤ[i]` is the maximal
+//!     below make this functorial: `S = Rational` gives `ℤ[i] ⊂ ℚ[i]`, while
+//!     `S = Surreal` gives `Oz[i]` inside the represented surcomplex model.
+//!     (For `ℚ(i)` the order `ℤ[i]` is maximal;
 //!     order; over a general base it is `O_K[i]`, which we do not claim is maximal.)
 //!   * **Valuation functors keep a same-type subring.**
 //!     [`Laurent`](crate::scalar::Laurent) and
 //!     [`Ramified`](crate::scalar::Ramified) adjoin (a transcendental / a
 //!     ramified root with) a *valuation*; their ring of integers is the
-//!     valuation-`≥ 0` subring of the *same* type (`is_integral`), so they stay
-//!     out of the pairing — the same honesty as `Laurent` above.
+//!     valuation-`≥ 0` subring of the *same* type (`is_integral`), so they are
+//!     outside the distinct-type pairing.
 
 use crate::scalar::{
     mul_mod_u128, ExactFieldScalar, Integer, Omnific, Poly, Qp, Qq, Rational, RationalFunction,

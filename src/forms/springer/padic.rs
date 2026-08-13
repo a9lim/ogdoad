@@ -1,27 +1,18 @@
 //! Springer decomposition over the **mixed-characteristic** local fields `Q_p`
-//! (residue `F_p`) and its unramified extensions `Q_q` (residue `F_q`) — two named
-//! entry points into the generic engine
-//! [`springer_decompose_local`](crate::forms::springer_decompose_local), and the
-//! discretely-valued mirror of the surreal leg
-//! ([`springer_decompose`](crate::forms::springer_decompose)).
+//! (residue `F_p`) and unramified extensions `Q_q` (residue `F_q`). Both are
+//! named entry points into
+//! [`springer_decompose_local`](crate::forms::springer_decompose_local).
 //!
 //! `Q_p` is Henselian with residue field `F_p` and value group `ℤ`. Springer's
-//! theorem gives `W(Q_p) ≅ W(F_p) ⊕ (W(F_p) ⊗ ℤ/2ℤ)`. The genuine novelty against
-//! the surreal twin: there the value group `No` is **2-divisible**, so the second
-//! summand vanishes (`W(No) = W(ℝ)`); here `ℤ/2ℤ ≠ 0`, so **two residue layers
-//! survive** — the valuation-even and valuation-odd parts are independent residue
+//! theorem gives `W(Q_p) ≅ W(F_p) ⊕ (W(F_p) ⊗ ℤ/2ℤ)`. Since the value group is
+//! `Z`, two residue layers survive: the valuation-even and valuation-odd parts are independent residue
 //! summands. Scaling an entry by `p²` is a square in `Q_p`, so only the valuation
 //! *parity* matters for the Witt class, and the two parities give the two `W(F_p)`
 //! copies ([`LocalSpringerDecomp::parity_layer`]).
 //!
 //! `Q_q = Frac(W_N(F_q))`, the unramified extension of residue degree `F`, is the
-//! same story with residue field `F_q = F_{p^F}` in place of `F_p` — and `Q_q` with
-//! `F = 1` *is* `Q_p`. Adding it is what makes the mixed-characteristic leg reach
-//! general `F_q` residues, matching the equal-characteristic Laurent leg
-//! ([`springer_decompose_laurent`](crate::forms::springer_decompose_laurent)) which
-//! already did: the
-//! per-layer discriminant square-class then lives in `F_q*/(F_q*)²` and genuinely
-//! exercises the extension-field square-class, not just `F_p`.
+//! same story with residue field `F_q = F_{p^F}` in place of `F_p`; `F = 1`
+//! recovers `Q_p`. The per-layer discriminant square class is computed in `F_q`.
 //!
 //! Both read the filtration off a diagonal metric, bucketing entries by valuation;
 //! both require an **odd** residue characteristic (`p = 2`, resp. residue char 2,

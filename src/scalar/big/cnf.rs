@@ -1,4 +1,4 @@
-//! The one piece of machinery the two transfinite backends genuinely share.
+//! Descending-term canonicalization shared by the transfinite backends.
 //!
 //! `surreal` (`No`) and `ordinal` (`On₂`) both store a number as a descending
 //! Conway-normal-form / Hahn series — `Vec<(exponent, coeff)>` with *recursive*
@@ -6,21 +6,18 @@
 //! coefficients dropped. That merge is [`merge_descending`], parameterized by the
 //! **three** primitives where the two worlds actually differ:
 //!
-//!   1. **how exponents are ordered** — `No`'s *value* order (`a < b ⇔ b−a > 0`,
-//!      a field operation: `ω−1 < ω` even though it is structurally *longer*) vs
+//!   1. **how exponents are ordered** — `No`'s *value* order (`a < b ⇔ b−a > 0`;
+//!      `ω−1 < ω` even though it is structurally *longer*) vs
 //!      the ordinal *lexicographic* order (coefficients are positive naturals, so
 //!      structure and value agree);
 //!   2. **how like coefficients combine** — ordinary `ℚ` addition vs nim `XOR`;
 //!   3. **which coefficients are zero**.
 //!
-//! That is the whole of the `surreal : nimber :: No : On₂` analogy at the code
-//! level. It is deliberately *not* a shared `Cnf<C>` type: the exponent ordering
+//! This is deliberately not a shared `Cnf<C>` type: the exponent ordering
 //! is field-dependent for `No` and lexicographic for `On₂`, and everything built
-//! on top of it (comparison, equality, multiplication, negation) diverges
-//! accordingly — the implemented `Surreal` model is a finite-support char-0
-//! Hahn/CNF scalar world, while `On₂` is a characteristic-2 world with no
-//! negation. Sharing the *shape* without falsely sharing the *algebra* is the
-//! honest unification; this function is its locus.
+//! on top of it diverges accordingly. The ordinal-nimber backend has
+//! characteristic-two negation, while the surreal backend has ordinary additive
+//! inverses.
 
 use std::cmp::Ordering;
 

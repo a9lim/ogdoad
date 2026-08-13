@@ -1,27 +1,14 @@
-//! **Small** — the non-Archimedean (p-adic) local world, where the number is
-//! allowed to be infinitely *close*. The p-adic mirror of `exact/`, and the
-//! `Omnific ⊂ Surreal` relation reflected through a finite prime:
+//! Capped-relative non-Archimedean local models.
 //!
-//!   * [`qp`] — `Q_p`, the p-adic field (capped-relative precision model). The
-//!     "small" mirror of [`Rational`](crate::scalar::Rational): char 0, `inv`
-//!     total on nonzero, `1/p` exists. The empty cell the round-out pass filled.
+//!   * [`qp`] — `Q_p`, with signed valuation and `K` significant base-`p` digits.
 //!   * [`zp`] — `Z_p`, the p-adic integers to precision `k` (= `Z/p^k`): the ring
-//!     of integers of `Q_p`, a *local ring* (`p` is a non-unit). The "small"
-//!     mirror of [`Integer`](crate::scalar::Integer) / [`Omnific`](crate::scalar::Omnific).
+//!     of integers model, an exact finite local ring.
 //!   * [`qq`] — `Q_q = Frac(W_N(F_q))`, the **unramified extension** of `Q_p` of
-//!     residue degree `F`: the field of fractions of the Witt vectors. It is to
-//!     [`WittVec`](crate::scalar::WittVec) what `Q_p` is to `Z_p`, and `Q_q` for
-//!     `F = 1` is `Q_p`. Completes the (field, ring of integers) pairing on the
-//!     unramified leg.
+//!     residue degree `F`, represented through truncated Witt vectors.
 //!
-//! `(Q_p, Z_p)` is the third instance of the (field, ring of integers) pattern;
-//! `Z_p`'s residue field is `F_p`, linking this place to `finite_field/`. The
-//! unramified `(Q_q, W_N(F_q))` is its residue-degree-`F` lift, with residue field
-//! `F_q` — the ring of integers `WittVec` living over in `finite_field/`.
-//!
-//! [`analytic`] adds the **analytic layer** these worlds share with the surreals
-//! (the mirror of `big/surreal/analytic.rs`): Hensel-lifted `is_square`/`sqrt` and
-//! the Teichmüller representative `τ`, across all four backends.
+//! [`analytic`] provides checked square tests, Hensel-lifted roots, and
+//! Teichmüller representatives. `Qp` and `Qq` are precision models rather than
+//! exact rings; cancellation may lose terms beyond the retained window.
 
 pub mod analytic;
 pub mod qp;

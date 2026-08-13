@@ -9,9 +9,8 @@
 //! Clifford algebra over `Z/p^k` is a genuine zero-divisor / non-semisimple object —
 //! the engine's nilpotent path exercised at the *scalar* level.
 //!
-//! Where the companion [`forms::padic`](crate::forms) module supplies the
-//! quadratic-form payoff over `Q_p` (the Hilbert symbol, Hasse–Minkowski) at the
-//! forms layer, this is "the integers underneath" as an actual `Scalar` backend.
+//! The companion [`forms::padic`](crate::forms) module supplies Hilbert-symbol
+//! and Hasse--Minkowski operations over `Q_p`.
 //!
 //! ## The const-generic modulus, two parameters
 //!
@@ -30,6 +29,7 @@ use std::fmt;
 pub struct Zp<const P: u128, const K: u128>(pub u128);
 
 impl<const P: u128, const K: u128> Zp<P, K> {
+    /// Validate that `P` is prime, `K` is positive, and `P^K` fits the carrier.
     pub fn assert_supported_params() {
         assert!(
             Fp::<P>::modulus_is_prime() && K > 0,

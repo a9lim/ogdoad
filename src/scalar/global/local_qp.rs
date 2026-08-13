@@ -1,12 +1,9 @@
-//! A **runtime-prime** `p`-adic cell — the gap-filler that makes the
-//! [`Adele`](crate::scalar::Adele) ring possible.
+//! A runtime-prime capped-relative `p`-adic cell used by [`Adele`](crate::scalar::Adele).
 //!
 //! Every other p-adic backend ([`Qp`](crate::scalar::Qp), [`Zp`](crate::scalar::Zp),
 //! [`Qq`](crate::scalar::Qq)) carries its prime as a **const generic** — so `Qp<3,_>`
 //! and `Qp<5,_>` are distinct *types* and cannot share a `BTreeMap`. An adele is
-//! indexed by a runtime prime, so it needs a cell whose prime is a *field*, not a
-//! type parameter. `LocalQp` is exactly that: a near-verbatim port of `Qp`'s
-//! capped-relative arithmetic with `(p, k)` moved into the struct.
+//! indexed by a runtime prime, so `LocalQp` carries `(p, k)` in each value.
 //!
 //! Because its `(p, k)` arrive at construction, `LocalQp` deliberately does **not**
 //! implement [`Scalar`](crate::scalar::Scalar) — that trait's zero-argument

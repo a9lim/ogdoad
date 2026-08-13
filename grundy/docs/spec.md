@@ -8,8 +8,7 @@ architecture and resource guards live in
 
 Every observable semantic rule in this document is pinned by the
 **conformance suite** (§16): exact corpus vectors, law tests, or differential
-oracles. Implementing agents work until the suite is green; judgment calls go
-back to the spec, not into the code.
+oracles. The specification governs any behavior not selected by those tests.
 
 File extension `.og` (after Ogdoad, the crate that supplies its values). The
 name honors P. M. Grundy of the Sprague--Grundy theorem, for the value the
@@ -19,117 +18,40 @@ language deliberately keeps as user code rather than a primitive (§1).
 
 ## 1. Identity
 
-grundy is a **lisp for games with weird numbers**: a small language whose data
-model is Conway's ontology and whose computation model is as thin as the data
-model is rich. Most languages are the other way around — elaborate control,
-impoverished numbers. grundy inverts the profile. The values are the richest
-objects in the language (nimbers addressed by ordinals, Hahn-series surreals,
-multivectors over either, game forms over everything); computation is exactly
-three things — substitution you can see, one equation binder, and
-non-strictness exactly where the mathematics never looks. In the algebraic
-worlds grundy is a coordinate calculus over unusually rich scalars; in the game
-world it becomes a first-order recursive-equation language; the two faces
-share one fenced grammar, one canonical executable display, and explicit
-boundaries.
+grundy is a first-order expression language over Ogdoad's scalar, Clifford,
+polynomial, and game worlds. A world declaration fixes the value laws; the
+language never coerces between worlds or guesses a scalar backend.
 
-Because the values are rich, the language needs almost no machinery to be
-expressive: mex and Grundy are four lines of user code, not primitives.
-Because computation is thin, every construct can afford to coincide with a
-piece of mathematics. The coincidences are the language:
+The core constructs have direct semantic roles:
 
-- **The cons cell and the game form are one constructor.** `{h | t}` read
-  with singleton sides is Lisp's pair; nil is `{|}` = `0` — *list exhausted,
-  game ended, additive identity* are one object. This is a productive
-  structural coincidence, not a semantic identity: the
-  deeper true reading is that a proper list is a *polarized game* — Left
-  selects the head, Right advances the tail. Negation swaps the player
-  polarity **and negates the continuations**; proper spines are not closed
-  under it (`-[a, b] = {{0 | -b} | -a}`).
-- **The relation set is the outcome partition.** The four value relations
-  `= < > ∥` are the four cells of the finite CGT order; relate a game to `0`
-  and you have read out its outcome class. There is no `≠` because the
-  partition has no fifth cell. Where draws exist the partition grows to nine
-  cells and the notation grows with it — the outcome relations of §10.6,
-  whose glyphs *are* the 3×3 outcome grid.
-- **`=:` is the equation binder — one glyph, two polarities.** Written to a
-  function it unfolds inductively under fuel; written to a game Element it
-  closes coinductively into a finite cyclic graph — and an adjacent run of
-  such equations closes as one simultaneous system (§9.3), so Siegel's loopy
-  games are recursive equations and grundy writes them as such: `on =: {on |}`
-  directly executes Siegel's defining equation `on = {on |}`. Assignment `:=`
-  flows the past in; `=:` states an equation the name satisfies. The notation
-  mirror is the semantics; the polarity is decided by the sort.
-- **Non-strictness sits exactly where the mathematics never looks — and it
-  skips evaluation, never checking.** The branches of `if` and the right
-  operands of `and`/`or` (play one branch); the right operand of `⧺`
-  (coinduction never reaches it until the left spine ends). The list is exhaustive, and
-  every skipped operand is still sort-checked (§8.6): laziness is about
-  *work*, not about *meaning*.
-- **Partiality is attributable.** A program terminates or errors with the
-  mathematics in the message — `E_KummerEscape` naming the tower,
-  `E_NotInvertible` naming the remainder, `E_Fuel` naming the μ that struck
-  zero — never a silent hang, never a coerced answer. Where non-termination
-  *has* a mathematical value — loopy games, draws — it is a value, not an
-  error.
-- **One container glyph, three native shapes — fixed, graded, free.** `[…]`
-  is the world's native presentation of finite support: in the Clifford
-  worlds the world-fixed coordinate array (bulk algebra, random access); in
-  the polynomial worlds the graded coefficient spine (finite support over
-  degrees); in the game world the free cons spine (option descent,
-  μ/coinduction). The empty container is the additive zero in all three. The
-  repo's founding scope boundary — ring versus group — reappears as
-  shape-with-algebra versus shape-with-recursion. (An architectural rhyme,
-  not a theorem.)
+- `{h | t}` is both a game form with singleton option sets and the cons shape
+  used by game-world lists; `{|}` is nil, the zero game, and additive zero.
+- `= < > ∥` are the four finite-game value relations. The nine two-glyph
+  relations in §10.6 expose the starter-dependent outcome grid when draws are
+  possible.
+- `=:` unfolds recursive functions under fuel and closes guarded game equations
+  into finite cyclic graphs. Adjacent game equations form one simultaneous
+  system (§9.3).
+- Evaluation is non-strict only in conditional branches, the right operand of
+  `and`/`or`, and the right operand of game-spine append `⧺`. All operands are
+  still checked for sort and world legality (§8.6).
+- `[…]` is a fixed Clifford coordinate array, a graded polynomial coefficient
+  list, or a free game spine according to the active world (§7.8).
 
-The discipline serving the identity above:
+Two display laws govern the surface: `parse ∘ unparse = id` for parser-produced
+ASTs, and `eval ∘ parse ∘ display ≃ value` for runtime values. A displayed
+loopy value is a self-contained equation program, compared up to `≡` and
+α-renaming. Input accepts documented ASCII sugar; output uses canonical syntax.
+Display preserves a form as built and never performs `canon` implicitly.
 
-1. **Weird numbers first.** Scalar literals are the richest part of the
-   grammar. `*` belongs to nimbers, not to multiplication.
-2. **Two display laws.** `parse ∘ unparse = id` on parser-produced ASTs, and
-   `eval ∘ parse ∘ display ≃ value` — structural `≡` for game forms,
-   α-equivalence for recursive equations. Display emits canonical grundy; the
-   parser's input language is a superset. Every value's display is a
-   **self-contained program** that rebuilds it in a fresh session, up to and
-   including loopy values, which display as the equation systems that define
-   them (§10.8).
-3. **Two layers: canonical and sugar.** Canonical uses the unicode math
-   glyphs where ASCII is contested (`ω ↑ ∧ ⋅ ∥ ↦ ⧺ ≡ ‿`); ASCII stays
-   canonical where it is uncontested (`* e # + - / = := < > [ ] ( )` and the
-   four ASCII outcome corners `>> >< <> <<`, plus `|` as the structural
-   braceform bar — its only role). Sugar is input-only; the REPL echoes
-   canonical (the REPL is the tutor).
-4. **Context is fenced, never guessed.** A world declaration chooses the
-   laws; `*(…)` and `#(…)` and `{… | …}` visibly fence structural
-   subgrammars; sort positions are explicit in the grammar, and where
-   position is silent the rule is declared, not inferred (§6: the unmarked
-   binder *is* Element, by law). No juxtaposition anywhere, no coercions, no
-   inferred worlds.
-5. **One active world at a time.** Mixing is a parse/eval-time error, never a
-   coercion.
-6. **Display never canonicalizes.** Forms display as built (up to
-   presentation, §10.1); value identity is said with `=` or `canon`.
-7. **Errors are mathematical content.**
-8. **Pure Rust and no third-party runtime dependencies.** The crate depends
-   only on Ogdoad's public Rust API; PyO3 remains confined to `src/py/`.
-
-Non-goals, permanent: quote/macros (code-as-data would blur the
-structural/arithmetic fence the grammar fights hardest to keep); mutation,
-I/O, strings (rebinding is the only state, the REPL the only effect); floats;
-juxtaposition; coercions. Transfinite/ω-length games: out — the game world is
-the finite-graph pillar.
-
-**Domain and design boundaries:** no bare `#` (`#` alone has no referent — typographic symmetry
-with bare `*` would be empty); no `on`/`off`/`dud` literal atoms (they would
-erase the loopy-games-are-equations thesis); no value-dependent operator
-legality (no `⋅`/`/` in the game world "when the operands happen to be
-numbers" — dyadic *literals* obtain the useful part without moving the
-group/ring fence, §7.7); no `deg` on rational functions (map degree,
-num−den degree, and order at infinity are three inequivalent notions); no
-polynomial `⧺` (coefficient concatenation is no algebra operation); no
-`number(E)` yet (its stratum is genuinely ambiguous on stoppers); Norton
-multiplication never as `⋅` (an explicit call may join a later thermography
-tranche); misère play never as a mode toggle (it deserves a separately
-specified world with an explicit universe, §10.9).
+The language is first-order and pure. It has no macros, mutation, I/O, strings,
+floats, juxtaposition, implicit coercions, or transfinite game graphs. Arithmetic
+operators are legal by world, not by runtime value: arbitrary games remain an
+additive group even when a particular value is numeric. The following operations
+are deliberately absent because their mathematical meaning is not unique:
+`deg` on rational functions, polynomial append, value-level `number` on stoppers,
+and a global misère mode. Current extension work is listed in
+[`docs/ROADMAP.md`](../../docs/ROADMAP.md).
 
 ## 2. Symbols and codepoints
 
@@ -564,7 +486,7 @@ unparser).
 
 | operation | behavior |
 |---|---|
-| `ordinal` mul/inv past the verified Kummer tower | `E_KummerEscape` ("below ω^(ω^ω), primes ≤ 727 — see docs/OPEN.md") |
+| `ordinal` mul/inv past the represented Kummer tower | `E_KummerEscape` ("supported below ω^(ω^ω) when Kummer carries use primes ≤ 727") |
 | `surreal` inverse of a non-monomial | `E_NotInvertible` ("only CNF monomials invert exactly; 1/(ω+1) is an infinite Hahn series") |
 | `integer`/`omnific` non-unit inverse, non-exact division | `E_NotInvertible`, remainder named |
 | `/0`, `% 0`, zero-denominator fraction literal | `E_DivisionByZero` |
@@ -727,8 +649,7 @@ twos =: {2 | woes}; woes =: {2 | twos}   // a period-2 pair, mutually
 
 `:world game` — Elements are game forms over the games pillar
 (`games/partizan.rs::Game`) and, through Element-`=:`, finite cyclic game
-graphs (`games/loopy/`). No metric, no blades. CGT is the recursive subject;
-this is where the language and the repo's thesis converge.
+graphs (`games/loopy/`). No metric or blade operations are available.
 
 ### 10.1 The strata
 
@@ -746,8 +667,7 @@ contract:
   option counts, list structure, `birthday`, and the `stopper` predicate
   live here. Multiform operations are **not** congruences for `=`
   (`{-1 | 1} = 0` yet `{-1 | 1} ⧺ l` is `E_Improper`) — the form/value
-  distinction CGT itself is careful about, and the raw structure a future
-  misère world needs preserved (§10.9).
+  distinction CGT itself is careful about (§10.9).
 - **value** — the CGT quotient: `= < > ∥`, `canon`.
 - **outcome** — who wins under optimal play. Outcome is not a fourth
   quotient in a chain; it is a **pairwise observation**: the nine outcome
@@ -1046,14 +966,12 @@ name collisions, and rebinding histories.
 
 ### 10.9 Misère — the standing boundary
 
-The multiform stratum **preserves the raw move structure a future,
-separately specified misère world requires** — multiplicity, list structure,
-sums as built. No misère equality or canonical-form claim follows: misère
+This world uses normal play. Its multiform stratum preserves multiplicity,
+list structure, and sums as built, but no misère equality or canonical-form
+claim follows: misère
 changes the terminal observation (`{|}` is an N-position), misère equality
 is indistinguishability relative to a chosen universe, and normal-play
 domination, reversibility, order, and `canon` do not survive the crossing.
-When it comes, it comes as `:world game misere ‹universe›` with outcome
-relations available before any equality — never as a flag on this world.
 `0 = nil = {|} = additive identity` survives; "game ended = second player
 wins" does not.
 
@@ -1073,7 +991,7 @@ Reserved as identifiers (§3).
 | `frob(E)` | finite fields | Frobenius |
 | `deg(E)` | poly worlds | returns Index; `deg(0)` → `E_Domain`; ratfunc: `E_WrongWorld` (recorded refusal, §1) |
 | `gcd(E,E)` | poly worlds | monic / positive-primitive results |
-| `integral(E)` | `surreal`, `fp*(t)`; ring legs | the (K, 𝒪_K) spine's operator face beside `%`: membership in the ring of integers — `integral(ω)` true, `integral(1/2)` false in `surreal` (𝒪 = Oz); `integral(1/t)` false, `integral([1, 0, 1])` true in `fp2(t)` (𝒪 = F₂[t]). On the ring legs (`integer`, `omnific`, poly worlds) identically `true` — the ring answers yes about itself. Worlds with no shipped pairing (`nimber`, `ordinal`, `fp*`, `f*`, `game`): `E_WrongWorld` — the pairing is structure, not a default |
+| `integral(E)` | `surreal`, `fp*(t)`; ring legs | the (K, 𝒪_K) spine's operator face beside `%`: membership in the ring of integers — `integral(ω)` true, `integral(1/2)` false in `surreal` (𝒪 = Oz); `integral(1/t)` false, `integral([1, 0, 1])` true in `fp2(t)` (𝒪 = F₂[t]). On the ring legs (`integer`, `omnific`, poly worlds) identically `true` — the ring answers yes about itself. Worlds with no supported pairing (`nimber`, `ordinal`, `fp*`, `f*`, `game`): `E_WrongWorld` — the pairing is structure, not a default |
 | `nleft(E)` / `nright(E)` | game | option counts (Index) |
 | `left(E, I)` / `right(E, I)` | game | i-th option, 0-indexed; out of range → `E_Domain` |
 | `birthday(E)` | game | the **presented** (multiform-stratum) birthday: `0` for `{|}`, else `1 + max` over options — Conway's formation day, read off the form as built. Value birthday is said compositionally: `birthday(canon(g))`. The teaching pair: `birthday({0 \| 2}) = #3` but `birthday(canon({0 \| 2})) = #1` — `{0 \| 2}` *is* `1`, born on day 1; the form/value distinction in Conway's own vocabulary. Loopy: `E_Loopy` (no finite formation day) |
@@ -1145,8 +1063,8 @@ binder iff its occurrences do not force its sort.
 ### 12.5 Functions, Bools, sequences
 
 Functions print `binders ↦ body` (minimal parens; single spaces around `↦`
-and the word operators); inlining means composites display expanded (the
-REPL is the tutor; deep chains blow up — accepted). Bools print
+and the word operators); inlining means composites display expanded, so deep
+chains may produce large renderings. Bools print
 `true`/`false`. Sequences preserve the user's let-structure. Recursive
 functions echo their equation form; mutual Element systems echo as adjacent
 `=:` runs (§10.8).
@@ -1161,7 +1079,7 @@ message tail** (this is a checked build invariant — see
 | kind | trigger | canonical hint example |
 |---|---|---|
 | `E_Parse` | token/grammar violation | site-specific teaching hints: STAR after a complete operand — "`*` is the nimber prefix; the product is `⋅` (sugar `.`)"; `IDENT(args) :=` — "functions are lambdas: `name := x ↦ …`"; `!=` — "not-equal is `not (a = b)`; `!` is fuzzy `∥`"; lone `‿`/`_` — "mover-result atoms come in pairs"; barless braces — "`[a, b]` is the list; braces are game forms"; relop-tier `\|` — "the braceform bar is structural; fuzzy is `∥` (sugar `!`)"; chained relations — "relations don't chain; parenthesize the Bool"; `?`/`:` at expression tier — "write conditionals as `if a then b else c`" |
-| `E_Reserved` | `↑↑`, `O(` | "reserved for future precision syntax" |
+| `E_Reserved` | `↑↑`, `O(` | "this reserved syntax is unsupported" |
 | `E_ExpSort` | non-Index exponent | "`↑`/`^` is power; the wedge product is `∧`/`&`" |
 | `E_IndexSort`, `E_BoolSort`, `E_FnSort` | sort discipline (§6, §8.6) — definition-time conflicts, frame mismatches against declared defaults, and skipped-operand checks | frame mismatch: "declare the binder: `(#i, #j) ↦ …`" |
 | `E_FixpointSort` | Bool/Index `=:` with self-mention (§9.1) | "recursion is for Functions (unfolding) and game Elements (graphs)" |
@@ -1171,14 +1089,14 @@ message tail** (this is a checked build invariant — see
 | `E_BareOrdinal` | bare `ω` in ordinal world | "values are starred here: `*ω`" |
 | `E_WrongWorld` | literal/operator foreign to the session world; unknown world name | unknown `:world` lists the menu and near-matches |
 | `E_CnfOrder` | star-literal exponents not descending | "CNF indices are structural: `*(ω + 1)`, not `*(1 + ω)`" |
-| `E_KummerEscape` | ordinal mul/inv past the tower | "below ω^(ω^ω), primes ≤ 727 — see docs/OPEN.md" |
+| `E_KummerEscape` | ordinal mul/inv past the tower | "supported below ω^(ω^ω) when Kummer carries use primes ≤ 727" |
 | `E_NotInvertible` | failed inverse/exact division | per-world math; remainder named |
 | `E_DivisionByZero` | `/0`, `% 0`, ratfunc pole, zero-denominator fraction literal | |
 | `E_BladeIndex` | `e‹i›`/`coef` with `i ≥ dim` | |
 | `E_DimMismatch` | container length ≠ dim (Clifford) | |
 | `E_GeneralMetric` | `rev`/`dual` with `a ≠ ∅` | "reverse is undefined for the Chevalley construction" |
 | `E_Unbound` | unknown identifier | "did you mean `q := 5`?"; self-mention: "recursive definition? `=:`"; `omega`: "ω is `ω` (sugar `w`)"; `outcome`/`winner`/`who` as unknown calls: "outcomes are relations against 0: `g > 0` Left wins, `g < 0` Right, `g = 0` second player, `g ∥ 0` first player; draws: the `‿` doubles" |
-| `E_Arity`, `E_UnknownFn` | call errors | `up()`/`dim()`/`drawn()`: "write the literal `up` without parentheses" / "`hasdraw`" |
+| `E_Arity`, `E_UnknownFn` | call errors | `up()`/`dim()`/`drawn()`: "write the literal `up` without parentheses" / "use `hasdraw`" |
 | `E_Grade0` | grade > 0 where grade-0 required | |
 | `E_Modulus` | `%` modulus outside the world's scope | "moduli here are monic ω-powers: `% ω↑2` truncates the CNF below it" |
 | `E_Overflow` | payload past its carrier | |
@@ -1198,7 +1116,7 @@ version and world. Colon commands: `:world …`, `:fuel [n]`, `:graph [n]`,
 `:env`, `:help [topic]`, `:quit`. A failed `:world` preserves the current
 world, its bindings, and the worker.
 
-**The REPL earns the tutor principle**: `:help` is a task-first screen — the
+`:help` is a task-first screen: the
 world menu (§7.1) plus one seed line per family (a nim product, a game form +
 an outcome relation against 0, a `=:` function, a stream via `⧺`); `:help
 ‹topic›` (`game`, `nimber`, `functions`, `worlds`) goes one level deeper.

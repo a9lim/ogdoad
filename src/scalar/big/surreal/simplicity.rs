@@ -1,5 +1,5 @@
-//! The `{L|R}` / **simplicity** bridge for surreals: dyadic recognition,
-//! birthdays, the `simplest_*` cut selectors, and `floor`/`frac` (the bridge to
+//! The `{L|R}` / **simplicity** interface for surreals: dyadic recognition,
+//! birthdays, the `simplest_*` cut selectors, and `floor`/`frac` (the connection to
 //! the omnific integers `Oz`). All of it is the dyadic/finite-rational face of a
 //! surreal — the part a short partizan game can reach.
 //!

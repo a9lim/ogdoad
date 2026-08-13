@@ -1,28 +1,14 @@
-//! Numeric **field invariants** the Witt machinery implies but did not yet
-//! expose: the **level** (Stufe), the **Pythagoras number**, and the
-//! **u-invariant**. Computed honestly over the finite prime fields `F_p`
-//! (the textbook constants for the infinite fields are noted in the docs).
+//! Numeric field invariants: level, Pythagoras number, and u-invariant.
 //!
-//! These round out the Witt-ring picture (`witt_ring.rs` has `Iⁿ` and the `eₙ`
-//! staircase): where those are the *cohomological* invariants, these are the
-//! classical *numeric* ones, all reducible to sum-of-squares / isotropy
-//! questions, which over a finite field are finite computations.
+//! The functions compute these invariants over finite prime fields by exact
+//! finite searches.
 //!
 //! Reference values to check against: every finite field has level `1` or `2`
 //! and Pythagoras number `≤ 2`; `u(F_q) = 2` (odd `q`). For comparison,
 //! formally-real ℝ has level `∞` (no finite `n`), `u(ℝ) = ∞`, Pythagoras number
 //! `1`; and `u(Q_p) = 4`.
 //!
-//! These entry points guard `P` by returning `Option::None` for an unsupported modulus rather than
-//! panicking — a deliberate, different contract from `oddchar`'s internal
-//! `assert_odd_prime` helper, which panics on the same underlying check. The
-//! split is by call-site position, not inconsistency: this module's functions
-//! are arbitrary-`P` public entry points (a caller may probe any `P`, including
-//! a non-prime one, e.g. sweeping a range), so they must fail gracefully;
-//! `assert_odd_prime` guards internal helpers reached only after a
-//! `FiniteOddField` bound or `ensure_supported()` has already validated `P`, so
-//! a failure there is a programming-error invariant, not caller input, and
-//! panicking is honest.
+//! Public entry points return `None` when `P` is not prime.
 
 use crate::scalar::Fp;
 use std::collections::BTreeSet;

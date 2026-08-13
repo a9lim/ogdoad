@@ -1,6 +1,6 @@
 //! Finite-subfield detection for represented ordinal nimbers.
 //!
-//! Every element of the source-verified tower below `ω^(ω^ω)` is algebraic over
+//! Every element of the represented tower below `ω^(ω^ω)` is algebraic over
 //! `F_2`, hence belongs to a unique finite subfield `F_{2^m}`. This module detects
 //! that `m` from the represented generator support and then minimizes it by the
 //! Frobenius fixed-field test `x^(2^d) = x`.
@@ -13,7 +13,7 @@ use crate::scalar::nim_degree;
 impl Ordinal {
     /// Minimal `m` such that this represented ordinal nimber lies in `F_{2^m}`.
     ///
-    /// Returns `None` outside the staged segment (`>= ω^(ω^ω)`) or when the
+    /// Returns `None` outside the represented segment (`>= ω^(ω^ω)`) or when the
     /// needed Kummer excess is past the verified table.
     pub fn finite_subfield_degree(&self) -> Option<u128> {
         ordinal_finite_subfield_degree(self)
@@ -143,7 +143,7 @@ mod tests {
     }
 
     #[test]
-    fn outside_staged_segment_returns_none() {
+    fn outside_represented_segment_returns_none() {
         let outside = Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega()));
         assert_eq!(ordinal_finite_subfield_degree(&outside), None);
     }

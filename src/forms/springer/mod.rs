@@ -1,6 +1,4 @@
-//! Springer decomposition — the valuation-graded (local↔global) decomposition of
-//! a quadratic form across the complete valued fields, with one generic engine
-//! and the surreal odd-one-out.
+//! Springer decompositions over the supported valued fields.
 //!
 //! Over a complete discretely-valued field `K` with residue field `k`, a form
 //! splits by the valuation of its diagonal entries into residue layers; how many
@@ -26,10 +24,10 @@
 //!   [`springer_decompose_local_char2`]: the Aravire–Jacob `(φ₀, ψ, φ₁)`
 //!   three-layer decomposition (the wild `R_π` summand the naive `W = W(k)²`
 //!   grading misses), plus global isotropy over `F_q(t)` itself.
-//! * `surreal` — [`springer_decompose`] over the surreals (char 0, residue ℝ),
-//!   the ONE that does *not* fit the generic engine: its value group is
+//! * `surreal` — [`springer_decompose`] over the surreals (char 0, residue ℝ).
+//!   Its value group is
 //!   2-divisible, so the second residue map collapses and `W(No) = W(ℝ) = ℤ`. It
-//!   keeps its own engine; that mismatch *is* the local–global symmetry, not a gap.
+//!   therefore uses a separate implementation.
 //!
 //! Children are private modules re-exported flat, so the public API stays shallow
 //! (`forms::springer_decompose_qp`, `forms::springer_decompose_local`, …).

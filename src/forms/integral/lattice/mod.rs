@@ -7,11 +7,8 @@
 //! invariants are arithmetic, not just field-theoretic — the determinant, the
 //! level, the minimum and kissing number, the automorphism group order — and the
 //! coarse classification is the **genus** (local equivalence at every place),
-//! built on the same p-adic primitives `local_global/padic.rs` and
-//! `local_global/adelic.rs` already carry. This module is the M1 core (the
-//! geometry of one lattice); `integral/root_lattices.rs`, `integral/genus.rs`,
-//! and `integral/mass_formula.rs` build the A/D/E catalogue, the genus
-//! equivalence, and the Conway–Sloane mass formula on top.
+//! built from p-adic local data. The child modules separate basic arithmetic
+//! from bounded geometric searches.
 //!
 //! Conventions. The **norm** of `x ∈ L` is `Q(x) = xᵀ G x` (so a "norm-2 vector"
 //! has `Q = 2`, matching the root-lattice literature; this is twice the value of
@@ -19,12 +16,10 @@
 //! routines — [`IntegralForm::minimum`], [`minimal_vectors`](IntegralForm::minimal_vectors),
 //! [`kissing_number`](IntegralForm::kissing_number),
 //! [`automorphism_group_order`](IntegralForm::automorphism_group_order) — assume the
-//! lattice is **positive definite** and return `None` otherwise (an indefinite
-//! lattice has infinitely many vectors of every norm and an infinite
-//! automorphism group). Vectors are reported in lattice (basis) coordinates as
-//! integer vectors, both signs included.
+//! lattice is **positive definite** and return `None` otherwise. Vectors are
+//! reported in lattice coordinates as integer vectors, with both signs included.
 //!
-//! Honest cutoff. Short-vector enumeration first tries an exact rational ellipsoid
+//! Short-vector enumeration first tries an exact rational ellipsoid
 //! box from `G⁻¹` when the box is small enough; larger boxes apply a conservative
 //! unimodular size-reduction pass (integral shears/swaps, so the lattice is
 //! unchanged), then run Fincke–Pohst (an LDL-bounded box search with exact norm

@@ -1,9 +1,9 @@
-//! Characteristic-2 finite-field row kernels.
+//! Row-reduction kernels specialized to the finite nim field.
 
 use crate::scalar::{nim_add, nim_inv, nim_mul};
 
-/// Rank of a matrix over the nim-field `F_{2^128}`, stored as raw `u128`
-/// nimbers.
+/// Rank of a rectangular matrix over `F_{2^128}`, with entries stored as raw
+/// `u128` nimbers.
 pub(crate) fn nim_rank(mut rows: Vec<Vec<u128>>) -> usize {
     let nrows = rows.len();
     if nrows == 0 {

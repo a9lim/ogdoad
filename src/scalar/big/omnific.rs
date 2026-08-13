@@ -16,7 +16,7 @@
 //! This is the surreal mirror of the `Integer` backend: a **transfinite
 //! commutative ring**, not a field. A Clifford algebra needs only a commutative
 //! ring of scalars, so `Oz` supports the Clifford-with-nilpotents / exterior
-//! structure (the headline being the exterior algebra with *transfinite*
+//! structure, including the exterior algebra with *transfinite*
 //! coefficients) — while the clean Cl(p,q) classification, which needs a field,
 //! does not apply. Only `±1` are units, so `inv` returns `Some` only there
 //! (delegating to `Surreal::inv` would leave the ring: `ω ↦ ε`).

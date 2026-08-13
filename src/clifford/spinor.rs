@@ -41,8 +41,7 @@ use crate::scalar::Scalar;
 /// a 128-generator representation is materializable.
 const MAX_EXPLICIT_SPINOR_DIM: usize = 10;
 
-/// Owned [`SpinorRep`] storage, returned by [`SpinorRep::into_parts`] — mirrors
-/// the `Metric`/`MetricParts` pattern.
+/// Owned [`SpinorRep`] storage returned by [`SpinorRep::into_parts`].
 pub type SpinorRepParts<S> = (
     Multivector<S>,
     Vec<Multivector<S>>,
@@ -107,8 +106,7 @@ impl<S: Scalar> SpinorRep<S> {
         self.orthogonal_basis_in_original.as_deref()
     }
 
-    /// Consume into the raw parts (e.g. for the Python bindings, which move
-    /// every field out rather than clone through the accessors above).
+    /// Consumes the representation into its stored components.
     pub fn into_parts(self) -> SpinorRepParts<S> {
         (
             self.idempotent,
@@ -983,13 +981,6 @@ mod tests {
         radical_count.trailing_zeros() as usize
     }
 
-    /// `char2_metric_is_nonsingular`/`char2_polar_rank` are otherwise only
-    /// exercised at dim 2 in this file — the pop-and-pair elimination's
-    /// dim->=4 behavior (finding a partner, eliminating it from every other
-    /// remaining vector, and recursing) is untested elsewhere. This pattern
-    /// (path 0-1-2-3 plus a chord 0-2) is not block-diagonal, so the
-    /// elimination must actually interact across generators, not just peel
-    /// off disjoint pairs. Cross-checked against the brute-force radical count.
     #[test]
     fn char2_polar_rank_dim4_nontrivial_pairing_is_full_rank() {
         let metric = nimber_metric(&[1, 1, 1, 1], &[(0, 1), (1, 2), (2, 3), (0, 2)]);
@@ -1003,11 +994,6 @@ mod tests {
         assert!(char2_metric_is_nonsingular(&metric));
     }
 
-    /// A singular dim-4 case (rank < dim): the 4-cycle pairing 0-1-2-3-0 has
-    /// coincident rows (generators 0/2 and 1/3 pair identically with the
-    /// rest), so it is rank-deficient. This exercises the branch where
-    /// `vectors.pop()` finds no partner for some popped vector (it is
-    /// silently dropped into the radical rather than paired).
     #[test]
     fn char2_polar_rank_dim4_singular_pairing_is_rank_deficient() {
         let metric = nimber_metric(&[1, 1, 1, 1], &[(0, 1), (1, 2), (2, 3), (0, 3)]);

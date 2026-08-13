@@ -3,8 +3,7 @@
 //! The crate's shared polynomial primitive. It backs two clients:
 //!
 //!   * [`Gauss`](crate::scalar::Gauss) — the rational function field `S(t)` stores
-//!     `num/den` as a pair of `Poly`s (this type absorbed the private helpers that
-//!     used to live in `functor/gauss.rs`).
+//!     `num/den` as a pair of `Poly`s.
 //!   * the global **function field** `F_q(t)` and its place/Hilbert-symbol layer
 //!     in [`forms::function_field`](crate::forms) — which additionally needs
 //!     division, gcd, and modular powers (the residue quadratic character is
@@ -28,7 +27,8 @@ pub struct Poly<S: Scalar> {
     coeffs: Vec<S>,
 }
 
-/// Display v4 operational atomicity: a coefficient rendering attaches bare
+/// Whether a rendered coefficient can be attached to a monomial without
+/// parentheses. A coefficient attaches bare
 /// iff it contains no spaces and no operator character (`⋅ ∧ ↑ / + -`) outside
 /// balanced parentheses; otherwise it is wrapped so `coeff⋅t↑i` stays
 /// unambiguous (`(x + 1)⋅t↑2`, but `x⋅t↑2`).
@@ -163,6 +163,7 @@ impl<S: Scalar> Poly<S> {
         &self.coeffs
     }
 
+    /// Whether this is the zero polynomial.
     pub fn is_zero(&self) -> bool {
         self.coeffs.is_empty()
     }
@@ -182,6 +183,7 @@ impl<S: Scalar> Poly<S> {
         self.coeffs.get(i).cloned().unwrap_or_else(S::zero)
     }
 
+    /// Coefficientwise polynomial addition.
     pub fn add(&self, rhs: &Self) -> Self {
         let n = self.coeffs.len().max(rhs.coeffs.len());
         let mut out = Vec::with_capacity(n);
@@ -191,16 +193,19 @@ impl<S: Scalar> Poly<S> {
         Poly::new(out)
     }
 
+    /// Coefficientwise additive inverse.
     pub fn neg(&self) -> Self {
         Poly {
             coeffs: self.coeffs.iter().map(|c| c.neg()).collect(),
         }
     }
 
+    /// Polynomial subtraction.
     pub fn sub(&self, rhs: &Self) -> Self {
         self.add(&rhs.neg())
     }
 
+    /// Polynomial multiplication.
     pub fn mul(&self, rhs: &Self) -> Self {
         if self.is_zero() || rhs.is_zero() {
             return Poly::zero();
@@ -428,7 +433,7 @@ mod tests {
     }
 
     #[test]
-    fn display_v4_canonical_grundy() {
+    fn display_is_canonical_grundy() {
         use crate::scalar::Fpn;
         // Descending powers and atomic coefficients share the monomial family.
         assert_eq!(p(&[1, 2]).to_string(), "2⋅t + 1");

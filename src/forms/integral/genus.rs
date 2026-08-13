@@ -2,11 +2,8 @@
 //! every place.
 //!
 //! Two integral lattices are in the same genus iff they are isometric over `ℝ`
-//! (same signature) and over `ℤ_p` for every prime `p`. The genus is the natural
-//! arithmetic coarsening of the isometry class, and it is exactly the place where
-//! the local-global machinery the crate already carries
-//! (`local_global/padic.rs`'s square classes, `try_is_square_qp`) acts on a *lattice*
-//! rather than a field-level square class.
+//! (same signature) and over `ℤ_p` for every prime `p`. The genus is the
+//! arithmetic coarsening of the integral isometry class.
 //!
 //! The engine is the **p-adic Jordan decomposition**. Over `ℤ_p` a lattice splits
 //! orthogonally into scaled unimodular constituents `⊥_k p^k L_k`; for odd `p`
@@ -22,9 +19,8 @@
 //! canonicalised by the Allcock-corrected fine-symbol calculus: determinant
 //! residues are normalised to signs, oddities are fused within type-I
 //! compartments, and sign-walking moves signs left along trains, adding `4` to the
-//! oddity of any compartment the walk crosses. This is the same canonical
-//! reduction exposed by Sage's `canonical_2_adic_reduction`, and replaces the
-//! older conservative per-scale sign comparison.
+//! oddity of any compartment the walk crosses. This agrees with the canonical
+//! reduction exposed by Sage's `canonical_2_adic_reduction`.
 //!
 //! References: Conway–Sloane *SPLAG* Ch. 15 §7; Allcock, *On the classification of
 //! integral quadratic forms* (the corrected 2-adic sign-walking calculus).
@@ -48,11 +44,17 @@ use std::fmt;
 /// mod 8 of the type-I (odd) part. For odd `p`, `det_mod8` is informational only.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ScaleSymbol {
+    /// Exponent of `p` scaling this constituent.
     pub scale: u128,
+    /// Dimension of the constituent.
     pub dim: usize,
+    /// Determinant square-class sign.
     pub sign: i128,
+    /// Determinant unit modulo eight.
     pub det_mod8: i128,
+    /// Whether this is an even two-adic constituent.
     pub type_ii: bool,
+    /// Oddity modulo eight for a type-I constituent.
     pub oddity: i128,
 }
 
@@ -68,7 +70,7 @@ fn render_scale_symbol(base: impl fmt::Display, s: &ScaleSymbol) -> String {
 }
 
 impl ScaleSymbol {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -88,8 +90,11 @@ impl fmt::Display for ScaleSymbol {
 /// (`p | 2·det`).
 #[derive(Clone, Debug)]
 pub struct Genus {
+    /// Lattice dimension.
     pub dim: usize,
+    /// Real signature `(positive, negative)`.
     pub signature: (usize, usize),
+    /// Gram determinant.
     pub det: i128,
     symbols: BTreeMap<u128, Vec<ScaleSymbol>>,
 }
@@ -359,7 +364,7 @@ impl Genus {
         self.symbols.keys().copied().collect()
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

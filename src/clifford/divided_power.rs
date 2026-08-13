@@ -27,10 +27,7 @@
 //! ring's own arithmetic (repeated `+`, never a literal), so they reduce mod the
 //! characteristic. Hence `(γ_i^{[1]})² = \binom{2}{1} γ_i^{[2]} = 2·γ_i^{[2]}`
 //! **vanishes in characteristic 2** even though `γ_i^{[2]} ≠ 0`: the divided power
-//! is a genuine new element, not a square of the generator. This is the exact
-//! char-faithful analogue of the exterior `e_i² = 0`, and the reason `Γ` (not
-//! `Sym`, where `x_i²` is a nonzero basis element) is the right object in char `p`.
-//! (See the `divided_square_vanishes_in_char_two` test.)
+//! is a genuine new element, not a square of the generator.
 
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
@@ -144,6 +141,7 @@ fn embed_binom<S: Scalar>(n: u128, k: u128) -> S {
 }
 
 impl DividedPowerAlgebra {
+    /// Constructs the divided-power algebra on `dim` generators.
     pub fn new(dim: usize) -> Self {
         DividedPowerAlgebra { dim }
     }
@@ -208,6 +206,7 @@ impl DividedPowerAlgebra {
         DpVector { terms }
     }
 
+    /// Adds two divided-power vectors.
     pub fn add<S: Scalar>(&self, x: &DpVector<S>, y: &DpVector<S>) -> DpVector<S> {
         let mut terms = x.terms.clone();
         for (deg, c) in &y.terms {
@@ -220,6 +219,7 @@ impl DividedPowerAlgebra {
         DpVector { terms }
     }
 
+    /// Multiplies a divided-power vector by a scalar.
     pub fn scalar_mul<S: Scalar>(&self, s: &S, x: &DpVector<S>) -> DpVector<S> {
         let mut terms = BTreeMap::new();
         for (deg, c) in &x.terms {
@@ -453,13 +453,6 @@ mod tests {
         assert!(sq2.terms.is_empty(), "C(4,2)=6 ≡ 0 mod 2");
     }
 
-    /// H-1 regression: large exponents in char 2 must terminate quickly via
-    /// Lucas' theorem, not loop `binom(n,k)` times through `embed_int`.
-    ///
-    /// The old code computed `embed_int(binom(200, 100))` which would loop
-    /// ≈ 10⁵⁸ times — practically non-terminating. Lucas' theorem gives the
-    /// answer (0, since all binary digits of 100 fit inside 200's but the key
-    /// carries vanish) in O(log₂(200)) ≈ 8 iterations.
     #[test]
     fn large_exponent_in_char_two_terminates() {
         use crate::scalar::Nimber;
@@ -477,8 +470,6 @@ mod tests {
         );
     }
 
-    /// H-1 regression: in characteristic 0 (Rational), a moderately large
-    /// exponent still produces the correct non-zero binomial coefficient.
     #[test]
     fn moderate_exponent_in_char_zero_correct() {
         // γ_0^{[5]} · γ_0^{[5]} = C(10,5) γ_0^{[10]} = 252 γ_0^{[10]}.
@@ -488,8 +479,6 @@ mod tests {
         assert_eq!(product.terms.get(&vec![10]), Some(&r(252)));
     }
 
-    /// H-1 regression: `embed_binom` applies Lucas correctly for an odd prime
-    /// characteristic. Use `Fp<3>` to check C(4,2)=6≡0(mod 3).
     #[test]
     fn lucas_theorem_mod_three() {
         use crate::scalar::Fp;

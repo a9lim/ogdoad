@@ -1,44 +1,23 @@
-//! Bridge O — binary **lexicodes**: greedy = mex, the games ↔ integral edge.
+//! Binary and nim-alphabet lexicodes with explicit turning-game witnesses.
 //!
-//! The lexicode `L(n, d)`: scan `F₂ⁿ` in lexicographic order and greedily keep every
-//! vector at Hamming distance `≥ d` from all vectors kept so far. Conway–Sloane
-//! (*Lexicographic codes: error-correcting codes from game theory*, IEEE Trans.
-//! Inform. Theory **32** (1986) 337–348) prove the resulting set is **linear**, and
-//! the proof is game theory: the greedy scan is the **mex** rule, the codewords are
-//! the Grundy-value-0 positions of a turning game, and XOR-closure is Sprague–Grundy
-//! theory rather than coding theory. The celebrated instances are shipped codes —
-//! the `[7,4,3]` Hamming code, the `[8,4,4]` extended Hamming code, and the
-//! `[24,12,8]` extended binary **Golay** code are all lexicodes — so each acquires a
-//! second, game-theoretic construction. That makes a full chain executable:
+//! The binary lexicode `L(n,d)` scans `F₂ⁿ` in lexicographic order and keeps
+//! each vector whose Hamming distance from the accepted code is at least `d`.
+//! Conway--Sloane prove that the result is linear and is the P-set of a turning
+//! game. [`LexicodeTurningGame`] exposes that finite game, while [`lexicode`]
+//! constructs the same code incrementally as a [`BinaryCode`].
 //!
-//! ```text
-//! mex → lexicode → Golay → Construction A → even unimodular rank 24 (with roots) → theta
-//! ```
-//!
-//! Every link past the first is already shipped (Bridges H/E); this file supplies the
-//! first, closing the one pillar edge the bridge graph still lacked.
-//!
-//! **The mex step (executable, self-contained).** After keeping a code `C`, let
+//! After accepting a code `C`, let
 //! `Forbidden = ⋃_{c∈C} { m : d(m,c) < d }` be the union of radius-`(d−1)` Hamming
 //! balls. The next greedy codeword is exactly `mex(Forbidden)` — the least vector not
 //! excluded ([`crate::games::grundy::mex`]). The Conway–Sloane turning-game
-//! realization is executable too: [`LexicodeTurningGame`] has positions the binary
-//! words, legal moves to smaller words differing in a turning set of size `< d`, and
-//! bounded Sprague–Grundy computation whose `g = 0` positions are the lexicode.
+//! witness uses binary words as positions, with moves to smaller words differing
+//! in fewer than `d` coordinates; its bounded Grundy computation has the
+//! lexicode exactly at value zero.
 //!
-//! **Relation to `docs/OPEN.md` §1 (interpretation level).** `docs/OPEN.md` §1 records that
-//! normal-play P-sets are *linear* in Grundy coordinates. Lexicodes are the classical
-//! demonstration of the **solved** (degree-1) side of that line: a fixed, natural,
-//! non-tautological greedy rule whose P-set is a rich linear code. This bridge
-//! supplies that degree-1 case as executable context; it does **not** touch the open
-//! Gold-quadric question and must not be cited as progress on it.
-//!
-//! **Convention.** The lexicographic order is the standard digit order with
-//! **coordinate 0 the most significant digit**, so scanning integers `0,1,2,…`
-//! upward *is* the lexicographic scan. A permuted coordinate order gives a different
-//! (equivalent) code. The binary production path returns [`BinaryCode`]; the
-//! base-`2^k` nim-alphabet path returns [`NimLexicode`] and keeps the field-linearity
-//! question executable without pretending every base is a field.
+//! Coordinate `0` is the most significant digit, so packed integers increase in
+//! lexicographic order. The base-`2^k` path returns [`NimLexicode`] and reports
+//! additive and scalar closure explicitly; only Fermat-power alphabet sizes form
+//! represented nimber fields.
 
 use crate::forms::BinaryCode;
 use crate::scalar::nim_mul;
@@ -760,8 +739,8 @@ mod tests {
         assert_eq!((h.len(), h.dim(), h.minimum_distance()), (7, 4, Some(3)));
         let eh = lexicode(8, 4).unwrap();
         assert_eq!((eh.len(), eh.dim(), eh.minimum_distance()), (8, 4, Some(4)));
-        // Permutation-invariant identity bundle (the bit order may differ from the
-        // shipped constructors' — assert weight enumerator, the equivalence invariant).
+        // Compare the permutation-invariant weight enumerator because the bit
+        // order may differ between constructors.
         assert_eq!(h.weight_enumerator(), hamming_code().weight_enumerator());
         assert_eq!(
             eh.weight_enumerator(),
@@ -778,12 +757,10 @@ mod tests {
         assert_eq!(g.minimum_distance(), Some(8));
         assert!(g.is_doubly_even());
         assert!(g.is_self_dual());
-        // Uniqueness of the [24,12,8] Type II code (MacWilliams–Sloane; Pless) upgrades
-        // the bundle to "is the Golay code": equal weight enumerators ⇒ equivalent.
+        // Match the canonical Golay code's weight distribution.
         assert_eq!(g.weight_enumerator(), golay_code().weight_enumerator());
 
-        // The chain rung: Construction A of the length-24 lexicode is even unimodular
-        // rank 24 *with* roots (≠ Leech) — re-pinning Bridge H's boundary from games.
+        // Construction A is even unimodular of rank 24 and has roots.
         let lattice = g
             .construction_a()
             .expect("doubly-even self-dual ⇒ integral Gram");

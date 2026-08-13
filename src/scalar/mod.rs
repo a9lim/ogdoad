@@ -1,89 +1,22 @@
-//! The scalar interface every Clifford backend implements.
+//! Commutative coefficient rings and their optional algebraic capabilities.
 //!
-//! A Clifford algebra needs a *commutative ring* of scalars. The whole point of
-//! this project is that combinatorial games only supply such a ring on their
-//! field-like subclasses — nimbers, surreals, surcomplex — so each of those is a
-//! `Scalar` impl, and the multivector engine in `clifford/` is written once,
-//! generic over this trait.
+//! [`Scalar`] is the borrow-based ring interface used by the generic Clifford
+//! engine. Concrete backends are grouped by mathematical role and re-exported
+//! from this module:
 //!
-//! This module is the trait; every coefficient world is a descendant module,
-//! re-exported flat (`scalar::Nimber`, `scalar::Surreal`, …) so public paths stay
-//! shallow regardless of how deep the family tree goes.
+//! - [`exact`]: fixed-width `Integer` and `Rational` arithmetic;
+//! - [`finite_field`]: prime and extension fields, nimbers, and truncated Witt
+//!   vectors;
+//! - [`big`]: finite-support surreal, omnific, and checked ordinal-nimber models;
+//! - [`small`]: capped-relative `p`-adic and unramified local models;
+//! - [`global`]: rational-function and represented adele models;
+//! - [`functor`]: complex, Laurent, ramified, and Gauss adjunctions.
 //!
-//! # The "any number" table
-//!
-//! The backends are grouped by *place* — the kind of number — and almost every
-//! field ships with its **ring of integers**, the same (field, ring) pattern four
-//! times over:
-//!
-//! | place | field | ring of integers | residue |
-//! |---|---|---|---|
-//! | [`exact`]        — Archimedean        | `Rational` ℚ       | `Integer` ℤ   | — |
-//! | [`big`]          — transfinite        | `Surreal` No       | `Omnific` Oz  | ≈ℝ |
-//! | [`big`]          — transfinite char-2 | `Ordinal` On₂      | (itself)      | — |
-//! | [`small`]        — p-adic             | `Qp` Q_p           | `Zp` Z_p      | F_p |
-//! | [`small`]        — p-adic, unramified | `Qq` Q_q           | `WittVec` W_N | F_q |
-//! | [`finite_field`] — finite             | `Fp`/`Fpn` F_{p^n} | (itself)      | — |
-//! | [`finite_field`] — char-2 nim         | `Nimber` F_2¹²⁸    | (itself)      | — |
-//! | [`global`]       — all places at once | `Adele` A_Q model  | integral predicate | — |
-//!
-//! The **residue** column is itself structural, via [`residue`] ([`ResidueField`]):
-//! the discretely-valued local fields/functors know their residue field `k = 𝒪/𝔪`,
-//! the reduction `𝒪 → k`, the angular component, and the Teichmuller section
-//! (`Qp → F_p`, `Qq → F_q`, `Laurent → k`, `Ramified → k`, `Gauss → k(tbar)`). It is
-//! the last piece of the local-field package `(K, 𝒪, 𝔪, k, Γ, ϖ)` to leave the doc
-//! comments — joining [`integrality`] (the `𝒪`/`K` pairing), [`valued`] (`Γ`, `ϖ`),
-//! and [`analytic`] (roots). It is what lets the discrete Springer decomposition be
-//! written once.
-//!
-//! Exact-vs-capped arithmetic is named separately by [`exactness`]:
-//! [`ExactScalar`], [`ExactFieldScalar`], and [`PrecisionScalar`] are opt-in markers,
-//! not part of the base [`Scalar`] contract.
-//!
-//! The [`global`] family is the place-organized table's local-global row: every
-//! other row picks *one* place, while `Adele` is a finite-precision model of the
-//! restricted product over all rational places (product formula, Hilbert
-//! reciprocity, adelic Hasse–Minkowski; see [`forms::adelic`](crate::forms)).
-//! Its runtime-prime cell [`LocalQp`] fills the const-generic gap the table
-//! otherwise cannot represent.
-//!
-//! The ideal full On₂ world motivating `Ordinal` (the transfinite nimbers,
-//! [`big::ordinal`]) is algebraically closed of characteristic 2, not a local field —
-//! so its ring-of-integers cell is "(itself)", honestly vacuous, exactly as for the
-//! finite fields. The Rust backend itself remains checked and partial at the verified
-//! Kummer boundary.
-//!
-//! The **equal-characteristic local** cell — `F_q((t))` over `F_q[[t]]`, the
-//! char-`p` mirror of the `Qp`/`Zp` row — is filled by the [`Laurent`] functor
-//! (below), not a row of its own.
-//!
-//! The [`functor`] module sits *orthogonal* to the table — the ways to grow a
-//! field, by an algebraic root or a transcendental, residue- or value-extending
-//! (see [`functor`] for the full 2×2 square):
-//!   * [`Surcomplex`] is `Surcomplex<S>` — a generic *i-adjunction* functor
-//!     (adjoin a root of `x²+1`) over any backend, not a concrete world.
-//!   * [`Laurent`] is `Laurent<S, K>` — a generic *t-adjunction* functor (adjoin a
-//!     transcendental `t` with a valuation), the formal Laurent field `S((t))`.
-//!     Applied to a finite field it fills the **equal-characteristic local** cell
-//!     (`F_q((t))`, the char-`p` mirror of `Qp`); its ring of integers is `F_q[[t]]`.
-//!   * [`Ramified`] is `Ramified<S, E>` — a generic *ramified* `π`-adjunction
-//!     functor (adjoin a root of the Eisenstein polynomial `xᴱ − ϖ`) over a
-//!     [`Valued`] base. It fills the **ramified** local cell: `Q_p(p^{1/E})` over
-//!     `Qp`, the ramified twin of the unramified `Qq`. The valuation datum it
-//!     needs from the base is abstracted by the [`Valued`] trait.
-//!   * [`Gauss`] is `Gauss<S>` — a generic *t-adjunction* with the **Gauss
-//!     valuation** over a [`Valued`] base, the rational function field `S(t)` with
-//!     `v(t) = 0`. The residue-extending twin of `Laurent` (residue field `k(t̄)`,
-//!     value group unchanged); the fourth, last corner of the functor square.
-//!
-//! And [`ordinal`]'s nimbers are the **char-2 mirror of the
-//! surreals** — the transfinite "big" number in characteristic 2 — so they sit
-//! in [`big`] alongside `Surreal`/`Omnific`, not with the finite nim-field.
-//!
-//! The characteristic trichotomy that organises [`crate::forms`] cuts *across*
-//! this table (char 0 in `exact`/`big`/`small`, char 2 in `nimber`/`ordinal`, odd
-//! and even in `finite_field`); the two pillars are complementary views of the
-//! same backends.
+//! Exactness, valuations, residue fields, integral subrings, extensions, and
+//! root-taking are opt-in traits; they are not assumptions of [`Scalar`].
+//! [`Tropical`] is deliberately separate because an idempotent semiring has no
+//! additive inverses. Arbitrary partizan games likewise do not implement
+//! `Scalar`: they form an additive group, not a commutative ring.
 
 pub mod analytic;
 pub mod big;
@@ -349,11 +282,21 @@ macro_rules! impl_scalar_ops {
     };
 }
 
+/// Borrow-based interface for a commutative ring with a partial inverse operation.
+///
+/// Generic algebra code uses these methods instead of concrete operator impls.
+/// [`inv`](Self::inv) returns `None` for nonunits and for inverses outside a
+/// backend's represented domain.
 pub trait Scalar: Clone + PartialEq + Debug + Display {
+    /// The additive identity.
     fn zero() -> Self;
+    /// The multiplicative identity.
     fn one() -> Self;
+    /// Ring addition.
     fn add(&self, rhs: &Self) -> Self;
+    /// Additive inverse.
     fn neg(&self) -> Self;
+    /// Ring multiplication.
     fn mul(&self, rhs: &Self) -> Self;
 
     /// Ring characteristic: 0 for characteristic-0 domains, a positive additive
@@ -368,10 +311,12 @@ pub trait Scalar: Clone + PartialEq + Debug + Display {
     /// whose inverse is an infinite Hahn series).
     fn inv(&self) -> Option<Self>;
 
+    /// Whether this element is the additive identity.
     fn is_zero(&self) -> bool {
         *self == Self::zero()
     }
 
+    /// Ring subtraction.
     fn sub(&self, rhs: &Self) -> Self {
         self.add(&rhs.neg())
     }

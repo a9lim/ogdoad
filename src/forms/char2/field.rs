@@ -11,12 +11,12 @@
 //! Arf reduction already pushes through, and the same obstruction that decides
 //! Artin–Schreier solvability — one map, both roles.
 //!
-//! So `FiniteChar2Field` carries [`artin_schreier_class`](FiniteChar2Field::artin_schreier_class)
-//! where [`FiniteOddField`](crate::forms::FiniteOddField) carries `is_square_value`.
-//! It is the capability the (future) char-2 function-field layer over `F_{2^m}(t)`
-//! is generic over, exactly as the odd layer is generic over `FiniteOddField`.
+//! [`FiniteChar2Field`] exposes
+//! [`artin_schreier_class`](FiniteChar2Field::artin_schreier_class), the additive
+//! analogue of the odd-characteristic square-class predicate. The
+//! characteristic-two function-field and Springer layers use this capability.
 //!
-//! **Scope (honest):** implemented for the prime field [`Fp<2>`](crate::scalar::Fp)
+//! Implemented for the prime field [`Fp<2>`](crate::scalar::Fp)
 //! and its extensions [`Fpn<2, N>`](crate::scalar::Fpn) — the practical coefficient
 //! fields of a char-2 function field `F_{2^m}(t)`. [`Nimber`](crate::scalar::Nimber)
 //! is deliberately **excluded**, the same boundary `FiniteOddField` draws: it is the
@@ -30,8 +30,8 @@ use crate::scalar::{ExactFieldScalar, Fp, Fpn};
 /// Finite fields of characteristic 2, with the operations char-2 form theory needs:
 /// field-order metadata, an enumeration, and the **Artin–Schreier class** (the
 /// additive analogue of the odd-characteristic square class). Intentionally narrower
-/// than [`Scalar`](crate::scalar::Scalar) — a form-theory façade, not a new scalar-world requirement, the
-/// mirror of [`FiniteOddField`](crate::forms::FiniteOddField).
+/// than [`Scalar`](crate::scalar::Scalar): a form-theory capability parallel to
+/// [`FiniteOddField`](crate::forms::FiniteOddField).
 pub trait FiniteChar2Field: ExactFieldScalar + Copy {
     /// Characteristic prime — always `2` (provided; the trait is char-2 only).
     fn characteristic_prime() -> u128 {

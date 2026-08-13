@@ -1,27 +1,15 @@
-//! The **local–global** layer over the adele ring — where the reciprocity facts
-//! scattered through [`padic`](crate::forms) become structural statements
-//! about [`A_Q`](crate::scalar::Adele).
-//!
-//! Three theorems, one carrier (the adele/idele):
+//! Adelic forms of rational local--global invariants.
 //!
 //!   * **Hilbert reciprocity** `∏_v (a,b)_v = +1` ([`hilbert_product`]) — the
-//!     *multiplicative* product formula, the exact mirror of the additive
-//!     `∏_v |x|_v = 1` that [`Adele::idele_norm`](crate::scalar::Adele::idele_norm)
-//!     already carries. It was an oracle buried in a `padic` test; here it is a
-//!     function on the global field.
+//!     multiplicative product formula.
 //!   * **Adelic Hasse–Minkowski** ([`isotropy_over_adeles`]) — a quadratic form
-//!     over `ℚ` is isotropic iff it is isotropic over *every* completion `Q_v`. The
-//!     flat [`try_is_isotropic_q`](crate::forms::try_is_isotropic_q) verdict, factored into
-//!     its per-place breakdown so the "⇔ over `A_Q`" structure is visible.
+//!     over `Q` is isotropic iff it is isotropic over every completion.
 //!   * **The Brauer fundamental exact sequence** `0 → Br(ℚ) → ⊕_v Br(Q_v) → ℚ/ℤ → 0`
 //!     ([`brauer_local_invariants`] / [`brauer_invariant_sum`]) — the local
-//!     invariants of a quaternion algebra `(a,b)` are `0` or `½ ∈ ℚ/ℤ`, and their
-//!     **sum is `0`**. That sum-zero law *is* Hilbert reciprocity rephrased
-//!     additively (`∏ → +1` becomes `∑ → 0 mod ℤ`): an even number of ramified
-//!     places.
+//!     invariants of a quaternion algebra are `0` or `1/2`, with sum zero.
 //!
-//! Reuses the `padic` Hilbert-symbol / local-isotropy machinery verbatim; nothing
-//! here re-implements a symbol.
+//! Local arithmetic delegates to the rational Hilbert-symbol and isotropy
+//! routines in [`padic`](crate::forms).
 
 use std::collections::BTreeMap;
 
@@ -70,7 +58,7 @@ impl AdelicIsotropy {
         self.real && self.local.values().all(|&b| b)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

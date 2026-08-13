@@ -15,7 +15,7 @@
 //!
 //! The mass reports here are deliberately bounded. Rank 8 and rank 16 have
 //! explicit representatives in this crate (`E8`, `E8+E8`, `D16+`), so the
-//! neighbor surface can be paired with the already-shipped mass formula. Rank 24
+//! neighbor surface can be paired with the mass formula. Rank 24
 //! still routes through the Niemeier catalogue rather than generated glued Gram
 //! representatives; see [`super::niemeier`].
 
@@ -31,20 +31,25 @@ use std::fmt;
 /// One explicit Kneser neighbor, recording the projective line that generated it.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct KneserNeighbor {
+    /// Prime defining the neighbor relation.
     pub prime: u128,
+    /// Normalized projective isotropic line modulo `prime`.
     pub line: Vec<u128>,
+    /// Constructed neighbor lattice.
     pub lattice: IntegralForm,
 }
 
 /// One class used in a bounded mass-closure report.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct KneserMassRecord {
+    /// Catalogue label of the isometry class.
     pub label: &'static str,
+    /// Order of the class's automorphism group.
     pub automorphism_group_order: u128,
 }
 
 impl KneserMassRecord {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -63,9 +68,13 @@ impl fmt::Display for KneserMassRecord {
 /// A bounded Kneser/mass certificate for an explicit even-unimodular genus.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct KneserMassInvariants {
+    /// Rank of the genus.
     pub rank: usize,
+    /// Prime used for neighbor generation.
     pub prime: u128,
+    /// Label of the seed lattice.
     pub seed_label: &'static str,
+    /// Number of generated neighbors before class deduplication.
     pub generated_neighbor_count: usize,
     /// The sorted, de-duplicated set of class labels the Kneser neighbor search
     /// actually classified (via `generated_rank_labels`), independent of
@@ -75,21 +84,24 @@ pub struct KneserMassInvariants {
     /// a test cross-check "generation actually found it" against "the catalogue
     /// says it exists" instead of comparing the catalogue to itself.
     pub generated_labels: Vec<&'static str>,
+    /// Static class catalogue used in the mass sum.
     pub classes: Vec<KneserMassRecord>,
+    /// Expected genus mass as `(numerator, denominator)`.
     pub mass: (i128, i128),
+    /// Sum of reciprocal automorphism orders.
     pub mass_sum: (i128, i128),
+    /// Whether `mass_sum` equals `mass`.
     pub mass_closed: bool,
 }
 
 impl KneserMassInvariants {
     /// The class labels the neighbor search actually generated. Equal to
-    /// [`generated_labels`](Self::generated_labels); kept as a method for
-    /// backward-compatible call sites (incl. the Python binding).
+    /// [`generated_labels`](Self::generated_labels).
     pub fn generated_class_labels(&self) -> Vec<&'static str> {
         self.generated_labels.clone()
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

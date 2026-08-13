@@ -11,7 +11,9 @@ use super::catalogue::{LoopyPartizanOutcome, LoopyWinner, PartizanOutcome};
 /// The side whose move is next in a turn-expanded loopy graph.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LoopyMover {
+    /// Left is to move.
     Left,
+    /// Right is to move.
     Right,
 }
 
@@ -27,7 +29,9 @@ impl LoopyMover {
 /// One vertex of the turn-expanded graph used by stopper detection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct LoopyTurnState {
+    /// Current graph node.
     pub node: usize,
+    /// Player whose turn it is.
     pub mover: LoopyMover,
 }
 
@@ -37,37 +41,55 @@ pub struct LoopyTurnState {
 /// states follow a legal move and alternate the mover.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LoopyStopperWitness {
+    /// Closed alternating cycle witnessing nontermination.
     pub cycle: Vec<LoopyTurnState>,
 }
 
 /// The result of testing a presented loopy graph for the stopper property.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoopyStopperStatus {
+    /// Every play terminates.
     Stopper,
-    NonStopper { witness: LoopyStopperWitness },
+    /// A reachable alternating cycle permits infinite play.
+    NonStopper {
+        /// Cycle witnessing nontermination.
+        witness: LoopyStopperWitness,
+    },
 }
 
 /// A structural or resource error while constructing or combining partizan
 /// loopy graphs.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoopyPartizanGraphError {
+    /// Left and Right adjacency tables have different lengths.
     MismatchedNodeCounts {
+        /// Number of Left adjacency rows.
         left: usize,
+        /// Number of Right adjacency rows.
         right: usize,
     },
+    /// An adjacency entry points outside the graph.
     InvalidEdge {
+        /// Player whose move table contains the edge.
         mover: LoopyMover,
+        /// Source node containing the edge.
         source: usize,
+        /// Out-of-range target node.
         target: usize,
+        /// Number of nodes in the graph.
         node_count: usize,
     },
+    /// The selected root lies outside the graph.
     InvalidRoot {
+        /// Requested root node.
         root: usize,
+        /// Number of nodes in the graph.
         node_count: usize,
     },
     /// A reachable product graph would contain more than the allowed number of
     /// nodes. This is an operational resource signal, not a game-theory result.
     NodeBudgetExceeded {
+        /// Maximum allowed reachable nodes.
         budget: u128,
     },
 }

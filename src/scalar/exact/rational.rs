@@ -1,16 +1,15 @@
-//! Exact rational ℚ — *not* a game backend, just the char-0 scalar used to
-//! validate the geometric-product engine against the known Cl(p,q)
-//! classification before trusting the exotic backends. (The surreal backend is
-//! the real char-0 home.)
+//! Fixed-width exact rational arithmetic.
 
 use crate::linalg::integer::gcd_u128;
 use crate::scalar::Scalar;
 use std::cmp::Ordering;
 use std::fmt;
 
-/// Exact rational over i128, used only for engine validation. Overflow is a
-/// known limitation — fine for the small forms in the test suite, not meant
-/// for serious arithmetic. (The surreal backend is the real char-0 home.)
+/// A reduced rational number with `i128` numerator and positive `i128`
+/// denominator.
+///
+/// Trait arithmetic panics when an intermediate or result leaves the fixed-width
+/// carrier; the `checked_*` methods expose the same boundary as `Option`.
 #[derive(Clone)]
 pub struct Rational {
     num: i128,
@@ -74,6 +73,10 @@ fn inth_root_exact(n: i128, k: u128) -> Option<i128> {
 }
 
 impl Rational {
+    /// Construct `num / den` in lowest terms.
+    ///
+    /// Returns `None` for a zero denominator or if sign normalization cannot be
+    /// represented in `i128`.
     pub fn try_new(num: i128, den: i128) -> Option<Self> {
         if den == 0 {
             return None;
@@ -91,6 +94,10 @@ impl Rational {
         })
     }
 
+    /// Construct `num / den` in lowest terms.
+    ///
+    /// Panics for a zero denominator or unrepresentable sign normalization; use
+    /// [`try_new`](Self::try_new) for a checked result.
     pub fn new(num: i128, den: i128) -> Self {
         Self::try_new(num, den).expect("Rational::new received zero denominator or overflowed i128")
     }

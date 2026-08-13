@@ -1,9 +1,8 @@
-//! Python bindings for the scalar worlds: the per-backend scalar types
-//! (`Nimber`, finite fields, fixed p-adic slices, `Rational`, `Surreal`,
-//! `Surcomplex`, `Integer`, `Omnific`, `Ordinal`), their constructors, and the
-//! nim-field operations. `parse_*` / `wrap_*` are `pub(crate)` because the
-//! `backend!` macro in [`super::engine`] threads them in as the per-backend
-//! parse/wrap hooks.
+//! Python bindings for exact and represented-precision scalar worlds. The
+//! fixed catalog includes finite fields, polynomials and rational functions,
+//! local fields and their rings, Laurent and adelic approximations, tropical
+//! scalars, and the integer/rational/surreal/ordinal families. Each wrapper
+//! preserves its backend's refusal and precision boundaries.
 
 use crate::scalar::{
     is_prime_u128, Adele, AdelePlace, CyclicGaloisExtension, ExactFieldScalar, ExactRoots,
@@ -4544,8 +4543,8 @@ impl PySurreal {
     fn is_square(&self) -> bool {
         ExactRoots::is_square(&self.inner)
     }
-    /// The **exact** real square root (no precision argument): `Some` iff a finite
-    /// represented surreal squares back to this — `√ω = ω^{1/2}`, `√4 = 2`, but
+    /// The **exact** real square root (no precision argument): `Some` iff a
+    /// finite-support represented surreal squares back to this — `√ω = ω^{1/2}`, `√4 = 2`, but
     /// `√2` is `None`. The exact companion to [`sqrt_to_terms`](Self::sqrt_to_terms).
     fn exact_sqrt(&self) -> Option<PySurreal> {
         ExactRoots::sqrt(&self.inner).map(|inner| PySurreal { inner })
@@ -4737,10 +4736,9 @@ impl PySurcomplex {
     fn is_square(&self) -> bool {
         ExactRoots::is_square(&self.inner)
     }
-    /// The **exact algebraic-closure square root** `√(a+bi)`: the surcomplex field
-    /// is algebraically closed over its real-closed base, so a represented number
-    /// has a represented root. `None` outside the represented square subdomain
-    /// (e.g. `√2`). The functorial companion of `Surreal.exact_sqrt`.
+    /// An exact square root in the represented `Surcomplex<Surreal>` subdomain.
+    /// Returns `None` when the required base-field roots are not finitely
+    /// representable (for example `√2`).
     fn sqrt(&self) -> Option<PySurcomplex> {
         ExactRoots::sqrt(&self.inner).map(|inner| PySurcomplex { inner })
     }
@@ -5983,7 +5981,7 @@ impl PyOrdinal {
                 .map(|inner| PyOrdinal { inner })
                 .ok_or_else(|| {
                     PyValueError::new_err(
-                        "ordinal nim product escaped the source-verified Kummer boundary",
+                        "ordinal nim product escaped the represented Kummer boundary",
                     )
                 })?
                 .into_py_any(py),
@@ -5995,9 +5993,7 @@ impl PyOrdinal {
             .nim_mul(&self.inner)
             .map(|inner| PyOrdinal { inner })
             .ok_or_else(|| {
-                PyValueError::new_err(
-                    "ordinal nim product escaped the source-verified Kummer boundary",
-                )
+                PyValueError::new_err("ordinal nim product escaped the represented Kummer boundary")
             })
     }
     fn inv(&self) -> PyResult<PyOrdinal> {
@@ -6015,9 +6011,7 @@ impl PyOrdinal {
             .nim_mul(&rinv)
             .map(|inner| PyOrdinal { inner })
             .ok_or_else(|| {
-                PyValueError::new_err(
-                    "ordinal quotient escaped the source-verified Kummer boundary",
-                )
+                PyValueError::new_err("ordinal quotient escaped the represented Kummer boundary")
             })
     }
     fn __rtruediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyOrdinal> {
@@ -6029,9 +6023,7 @@ impl PyOrdinal {
             .nim_mul(&si)
             .map(|inner| PyOrdinal { inner })
             .ok_or_else(|| {
-                PyValueError::new_err(
-                    "ordinal quotient escaped the source-verified Kummer boundary",
-                )
+                PyValueError::new_err("ordinal quotient escaped the represented Kummer boundary")
             })
     }
     /// Nim-addition (complete and exact): XOR of like-`ω`-power coefficients.
@@ -6040,24 +6032,27 @@ impl PyOrdinal {
             inner: self.inner.nim_add(&other.inner),
         }
     }
-    /// Nim-multiplication (partial): exact on the verified Kummer window,
-    /// including finite operands and staged transfinite products such as
-    /// `ω ⊗ ω = ω²`; `None` beyond that represented boundary.
+    /// Partial ordinal nim-multiplication. It is exact below `ω^(ω^ω)` when all
+    /// required Kummer carries use the implemented primes through 727, and
+    /// returns `None` at the first unsupported carry or outside that ordinal
+    /// range.
     fn nim_mul(&self, other: &PyOrdinal) -> Option<PyOrdinal> {
         self.inner
             .nim_mul(&other.inner)
             .map(|o| PyOrdinal { inner: o })
     }
-    /// Alias for the represented inverse boundary.
+    /// The multiplicative inverse in the detected represented finite subfield;
+    /// `None` for zero or outside the detector's boundary.
     fn checked_inv(&self) -> Option<PyOrdinal> {
         self.inner.checked_inv().map(|inner| PyOrdinal { inner })
     }
-    /// Checked nim-square root on the same represented finite-subfield window.
+    /// The unique nim-square root in the detected represented finite subfield;
+    /// `None` outside the detector's boundary.
     fn checked_sqrt(&self) -> Option<PyOrdinal> {
         self.inner.checked_sqrt().map(|inner| PyOrdinal { inner })
     }
     /// Minimal `m` such that this represented ordinal nimber lies in `F_{2^m}`.
-    /// `None` marks the staged Kummer/excess boundary.
+    /// `None` marks the explicit Kummer/excess representation boundary.
     fn finite_subfield_degree(&self) -> Option<u128> {
         self.inner.finite_subfield_degree()
     }

@@ -2,15 +2,15 @@
 //!
 //! A nonzero surreal is uniquely
 //!     x = Σ_{i} ω^{y_i} · r_i ,   y_0 > y_1 > ... (surreal exponents),  r_i ≠ 0
-//! Here we keep **finite support**, take coefficients `r_i` in ℚ (the exact
-//! finite stand-in for ℝ — the honest truncation; true CNF allows any real),
-//! and let the exponents `y_i` be fully recursive `Surreal`s. So ω, ε = ω⁻¹,
+//! This backend keeps **finite support** and rational coefficients `r_i`, while
+//! allowing fully recursive `Surreal` exponents `y_i`. Full surreal normal form
+//! permits arbitrary real coefficients. Thus ω, ε = ω⁻¹,
 //! √ω = ω^{1/2}, and even ω^ω are all representable.
 //!
 //! ## Why it terminates
 //!
-//! Arithmetic realises the Hahn-series structure ℝ((ω^No)): the ω-map is a
-//! group homomorphism ω^a · ω^b = ω^{a+b}, so multiplication adds exponents
+//! Arithmetic follows the finite-support rational-coefficient Hahn-series laws.
+//! The ω-map is a group homomorphism ω^a · ω^b = ω^{a+b}, so multiplication adds exponents
 //! and convolves coefficients. Every operation (add, mul, compare) recurses
 //! only on the **exponents**, which are strictly simpler than the number
 //! itself — so for any finite-depth surreal the recursion bottoms out.
@@ -22,12 +22,12 @@
 //!
 //! ## Layout
 //!
-//! This module is the CNF **core** — the representation, the canonical form, and
-//! the ring/field arithmetic ([`Scalar`]). Three companion files carry the
+//! This module is the CNF **core** — the representation, canonical form, and
+//! represented ring operations ([`Scalar`]). Three companion files carry the
 //! theory built on top, all as further `impl Surreal` blocks:
 //!
 //!   * `simplicity` — the `{L|R}` / simplicity bridge (dyadic recognition,
-//!     birthdays, `simplest_*`) and `floor`/`frac` (the bridge to `Oz`).
+//!     birthdays, `simplest_*`) and `floor`/`frac` (the connection to `Oz`).
 //!   * `sign_expansion` — the sign-expansion encoding, finite and (Gonshor)
 //!     transfinite, plus the [`SignExpansion`] type and `as_ordinal`.
 //!   * `analytic` — the lazy/truncated field layer: Neumann-series inverse and
@@ -43,6 +43,10 @@ use crate::scalar::{Rational, Scalar};
 use std::cmp::Ordering;
 use std::fmt;
 
+/// A finite-support surreal Hahn/Conway normal form with rational coefficients.
+///
+/// Non-monomial inverses and many roots have infinite support; the exact
+/// [`Scalar`] operations return `None` when such a result is not representable.
 #[derive(Clone)]
 pub struct Surreal {
     /// (exponent, coefficient), strictly descending by exponent, coeffs ≠ 0.
@@ -50,7 +54,7 @@ pub struct Surreal {
 }
 
 /// Sort raw (exponent, coeff) terms into canonical form: descending by
-/// exponent **value** (the surreal order — a field operation, since `ω−1 < ω`
+/// exponent **value** (the surreal order, since `ω−1 < ω`
 /// despite being structurally longer), like exponents merged by ℚ-addition, zero
 /// coefficients dropped. The descending-merge recipe is shared with the ordinal
 /// backend via [`cnf::merge_descending`](super::cnf::merge_descending); only
@@ -120,6 +124,7 @@ impl Surreal {
         }
     }
 
+    /// Canonical terms `(exponent, coefficient)`, in descending exponent order.
     pub fn terms(&self) -> &[(Surreal, Rational)] {
         &self.terms
     }
@@ -180,9 +185,8 @@ impl PartialEq for Surreal {
     /// whole term vector is identical. This is the standard uniqueness theorem
     /// for Hahn series in reduced form applied to the finite-support case here.
     ///
-    /// Structural walk replaces the previous value-based `self.cmp(other) ==
-    /// Equal`, which required a subtraction and allocation. A proptest in
-    /// `tests/scalar_axioms.rs` pins the agreement.
+    /// The structural walk avoids subtraction and allocation. A proptest in
+    /// `tests/scalar_axioms.rs` pins its agreement with value comparison.
     fn eq(&self, other: &Self) -> bool {
         if self.terms.len() != other.terms.len() {
             return false;
@@ -286,7 +290,8 @@ impl Scalar for Surreal {
     }
 }
 
-/// Format `coeff⋅ω↑exp` (canonical grundy, Display v4 (spec.md §12)) for a *non-negative*
+/// Format `coeff⋅ω↑exp` in canonical grundy syntax
+/// (`grundy/docs/spec.md` §12) for a *non-negative*
 /// magnitude coefficient. The exponent renders bare iff it is a (possibly
 /// negative) integer (`ω↑-1`); any other exponent — a non-integer rational or a
 /// compound surreal — is parenthesized (`ω↑(1/2)`, `ω↑(ω)`).
@@ -415,7 +420,7 @@ mod tests {
     }
 
     #[test]
-    fn display_v2_canonical_grundy() {
+    fn display_is_canonical_grundy() {
         let w = Surreal::omega();
         // 3⋅ω↑2 - ω + 5 : explicit ⋅, ↑, first-term sign, ` - ` join kept.
         let x = Surreal::omega_pow(int(2)).mul(&int(3)).sub(&w).add(&int(5));
@@ -632,7 +637,7 @@ mod tests {
             Some(3)
         );
         assert_eq!(int(0).birthday_ordinal().unwrap().as_finite(), Some(0));
-        // ω now has a transfinite birthday (was None before P3): birthday(ω) = ω.
+        // The transfinite birthday of ω is ω.
         assert_eq!(Surreal::omega().birthday_ordinal(), Some(Ordinal::omega()));
     }
 

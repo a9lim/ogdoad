@@ -1,5 +1,5 @@
 [package]
-# `publish = false` keeps the language internal until its public-release gate.
+# The workspace language is not published as a separate crate.
 name = "grundy"
 version = "0.3.6"
 edition = "2021"

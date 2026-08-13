@@ -25,8 +25,9 @@
 //! Like [`Qp`](crate::scalar::Qp) (and for the same reason — `1/(p+1)` has
 //! infinite support) this is the standard **capped-relative** model: `N`
 //! significant `p`-adic digits relative to the valuation. Multiplication and
-//! inversion are **exact** (valuations add; the mantissa is a genuine unit of
-//! `W_N(F_q)`); **addition is not associative across precision boundaries** —
+//! inversion preserve the represented relative-precision window (valuations add;
+//! the mantissa is a unit of `W_N(F_q)`); **addition is not associative across
+//! precision boundaries** —
 //! cancellation below the retained window reads as `0`. `Qq` is therefore a
 //! *precision model*, not an exact ring, and is **excluded from the exact-ring
 //! fuzz suite**.

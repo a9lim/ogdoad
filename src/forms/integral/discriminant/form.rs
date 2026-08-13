@@ -650,10 +650,15 @@ pub struct OddDiscriminantForm {
 /// Gauss sum is handled by [`verify_milgram`].
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OddMilgramInvariants {
+    /// Real signature modulo eight.
     pub signature_mod8: i128,
+    /// Two-adic oddity modulo eight.
     pub oddity_mod8: i128,
+    /// Sum of odd-prime excesses modulo eight.
     pub p_excess_mod8: i128,
+    /// `oddity - p_excess` modulo eight.
     pub corrected_signature_mod8: i128,
+    /// Signature obtained from the complete genus computation.
     pub genus_signature_mod8: i128,
 }
 
@@ -664,7 +669,7 @@ impl OddMilgramInvariants {
             && self.genus_signature_mod8 == self.signature_mod8
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -745,7 +750,7 @@ impl DiscriminantForm {
     }
 
     /// The **Brown invariant** `β ∈ ℤ/8` of the discriminant form, on the
-    /// **2-elementary** slice (Bridge M). For `A_L ≅ (ℤ/2)^k`, `q_L` takes values
+    /// **2-elementary** slice. For `A_L ≅ (ℤ/2)^k`, `q_L` takes values
     /// in `½ℤ/2ℤ`, and `t ↦ 2t` identifies `(A_L, 2q_L)` with a `ℤ/4`-quadratic
     /// form whose Brown sum *is* the Milgram Gauss sum — so
     ///
@@ -846,8 +851,8 @@ impl DiscriminantForm {
     /// This is the `Z/8` phase seen by Milgram's formula, decomposed over the
     /// primary subgroups of `A_L`. It is **not** the full Wall/Nikulin/
     /// Kawauchi-Kojima normal form of the FQM Witt group: distinct Witt classes can
-    /// have the same phase. The old [`gauss_sum`](Self::gauss_sum) route remains as
-    /// a floating-point oracle; this method first checks the relevant cyclotomic
+    /// have the same phase. [`gauss_sum`](Self::gauss_sum) supplies a numerical
+    /// comparison; this method first checks the relevant cyclotomic
     /// equalities exactly and only then chooses the positive square-root branch in
     /// the principal embedding.
     pub fn fqm_gauss_phase(&self) -> Option<super::phases::FqmGaussPhase> {
@@ -920,8 +925,8 @@ impl DiscriminantForm {
     ///
     /// `Some(true)`/`Some(false)` is a decided answer; `None` only past the budget
     /// (group larger than `ISO_GROUP_CAP`, or the search exceeding the node budget)
-    /// — an honest unknown, never a wrong value. A cross-check of two shipped routes
-    /// (this and `are_in_same_genus`), not a p-adic-symbol reimplementation.
+    /// and does not silently guess. This is an FQM isomorphism search, not a
+    /// p-adic-symbol reimplementation.
     pub fn is_isomorphic(&self, other: &Self) -> Option<bool> {
         self.is_isomorphic_bounded(other, ISO_NODE_BUDGET)
     }
@@ -1156,8 +1161,8 @@ pub fn genus_signature_mod8(lattice: &IntegralForm) -> Option<i128> {
 }
 
 /// Verify Milgram/van der Blij for an even lattice, comparing the discriminant
-/// FQM phase against exact real signature, the legacy floating Gauss-sum route,
-/// and the genus oddity route.
+/// FQM phase against exact real signature, the numerical Gauss sum, and the
+/// genus oddity computation.
 pub fn verify_milgram(lattice: &IntegralForm) -> Option<bool> {
     let disc = DiscriminantForm::from_lattice(lattice)?;
     let phase = disc.milgram_signature_mod8_fqm()?;

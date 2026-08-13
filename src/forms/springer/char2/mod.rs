@@ -1,22 +1,17 @@
-//! The **characteristic-2 local Witt/Springer decomposition** over `F_q(t)` — the
-//! Aravire–Jacob structure theorem, and the rank-by-rank local isotropy it powers.
-//! This is the equal-characteristic-2 mirror of the odd-`q`
-//! [`springer_decompose_local`](crate::forms::springer_decompose_local) engine, but it is **not** the
-//! odd story at `p = 2`: in char 2 a third, *wild* summand appears that the
-//! `W = W(k) ⊕ W(k)` grading misses (see root AGENTS.md "the wild-term finding").
+//! Characteristic-two local Witt decomposition and isotropy over `F_q(t)`.
 //!
 //! # The decomposition
 //!
 //! At a place `v` of `F_q(t)` (completion `K_v = κ((π))`, residue field `κ`,
 //! canonical uniformizer `π = P` at a finite place, `π = 1/t` at `∞`), every
 //! nonsingular quadratic form `φ = ⊥ [a_i, b_i]` (`[a,b] = ax²+xy+by²`) decomposes
-//! **in the Witt group** `W_q(K_v)` as
+//! in the Witt group `W_q(K_v)` as
 //!
 //! ```text
 //! φ  ≅  φ₀  ⊥  ψ  ⊥  ⟨π⟩·φ₁,        φ₀, φ₁ ∈ W_q(κ),  ψ ∈ R_π,
 //! ```
 //!
-//! the Aravire–Jacob theorem (*Quadratic forms over `k(x)` in characteristic 2*,
+//! by the Aravire--Jacob theorem (*Quadratic forms over `k(x)` in characteristic 2*,
 //! Thm 1.3 / Cor 1.7). Here `W_q(κ) ≅ F₂` via the Arf class `Tr_{κ/F₂}`, and the
 //! **wild part** lives in
 //!
@@ -29,7 +24,7 @@
 //! `℘`** and cannot be absorbed into `φ₀`/`φ₁`. The decomposition depends on the
 //! choice of uniformizer (AJ Rem 1.8); we always use the canonical `π` above.
 //!
-//! ## The algorithm (`K = K² ⊕ πK²`, then AS-normal-form)
+//! # Algorithm
 //!
 //! Splitting a coefficient by Laurent-exponent parity, `a = a_ev + a_odd` with
 //! `a_ev ∈ K²`, `a_odd ∈ πK²` (`κ` perfect ⇒ even-power series are squares), the
@@ -41,43 +36,26 @@
 //! `R_π` coordinate). The `a_odd` half's wild part folds into `ψ` too, since
 //! `⟨π⟩[1, r] ≅ [1, r]` for `r ∈ R_π ⊂ πK²`.
 //!
-//! # Isotropy (rank-by-rank, `u(K_v) = 4`)
+//! # Isotropy
 //!
 //! `[a,b]` is isotropic iff `ab ∈ ℘(K_v)`; the Pfister/norm criterion routes ranks 3
-//! and 4 through the Part-A Artin–Schreier symbol [`artin_schreier_symbol_at`]
+//! and 4 through the Artin–Schreier symbol [`artin_schreier_symbol_at`]
 //! (`s_v(d, λ) = 0` ⟺ `[d, λ)` splits); `u(K_v) = 4` makes every rank `≥ 5` form
-//! isotropic. (A paper-derived worked example, from Aravire–Jacob and
-//! Elman–Karpenko–Merkurjev §§7, 13; oracles cross-checked via Codex — see the
-//! tests.)
-//!
-//! **Oracle boundary:** this leg has no independent second
-//! engine by structure — the odd-residue Springer engine rejects residue
-//! characteristic 2, so the expected values here are paper-derived worked examples
-//! rather than a cross-implementation check. That is the *accepted* documented
-//! boundary, not a TODO: a test-only brute-force verifier would be
-//! welcome if one is ever wanted, but the hand-worked oracles are the contract.
+//! isotropic. Tests include source-derived examples from Aravire--Jacob and
+//! Elman--Karpenko--Merkurjev; the odd-residue Springer engine is not an
+//! independent verifier because it rejects residue characteristic two.
 //!
 //! # Global isotropy over `F_q(t)` (Hasse–Minkowski)
 //!
-//! [`is_isotropic_global_char2`] decides isotropy over `F_q(t)` itself. Three
-//! ingredients beyond the per-place symbol, each a paper-derived worked example: the
+//! [`is_isotropic_global_char2`] decides isotropy over `F_q(t)`. It combines the
 //! global `℘`-membership test [`global_is_pe`] (`f ∈ ℘(F_q(t))` ⟺ `f ∈ ℘(K_v)` everywhere,
-//! a finite sweep of the poles of `f` plus `∞`) settles **rank 2** (`[a,b]` iso ⟺
-//! `ab ∈ ℘`); the elementary `[K : K²] = 2` square test `ff_is_square` settles the
-//! **totally-singular** part; and **Hasse–Minkowski** over the finite
-//! [`artin_schreier_form_places`] set settles **rank 3/4** (good places are isotropic by
-//! Chevalley–Warning). `u(F_q(t)) = 4` (`C₂`, Tsen–Lang) caps it: every `rank ≥ 5`
-//! form is isotropic. (Local isotropy itself is reported for the ranks the sources
-//! pin exactly — `≤ 4` in the standard block shapes, pure totally-singular tails
-//! via the two square classes of `K_v`, the rank-4 mixed case consisting of one
-//! binary block plus a two-class quasilinear tail, all nonsingular ranks via the AJ
-//! kernel, one-class singular tails via the odd-dimensional Clifford invariant, and
-//! `≥ 5` always isotropic.)
+//! using the poles of `f` plus `∞`), the square test [`ff_is_square`], and local
+//! checks at [`artin_schreier_form_places`]. The public function documents the
+//! supported rank and singularity cases.
 //!
 //! # Module layout
 //!
-//! - `asnf` — κ-local arithmetic helpers and the Artin–Schreier normal form
-//!   (the private crate layer that feeds the decomposition).
+//! - `asnf` — local arithmetic and Artin–Schreier normal form helpers.
 //! - `global` — global isotropy over `F_q(t)` ([`global_is_pe`], `ff_is_square`,
 //!   [`artin_schreier_form_places`], [`is_isotropic_global_char2`]).
 //! - This hub — `Char2QuadForm`, `Char2LocalDecomp`, the Aravire–Jacob decomposition
@@ -163,7 +141,7 @@ pub struct Char2LocalDecomp<S: FiniteChar2Field> {
 }
 
 impl<S: FiniteChar2Field> Char2LocalDecomp<S> {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -442,8 +420,8 @@ mod tests {
     fn p2(c: &[i128]) -> Poly<F2> {
         Poly::new(c.iter().map(|&n| F2::from_int(n)).collect())
     }
-    // The place P = t over F₂: κ = F₂, π = t. Codex's oracles are stated over the
-    // local field F_q((π)); identifying π = t realises each as a form over F_q(t).
+    // The place P = t over F₂: κ = F₂, π = t. The source examples are over
+    // F_q((π)); identifying π = t realizes them as forms over F_q(t).
     fn place_t() -> FunctionFieldPlace<F2> {
         FunctionFieldPlace::Finite(p2(&[0, 1]))
     }
@@ -455,7 +433,7 @@ mod tests {
         springer_decompose_local_char2(&Char2QuadForm::from_blocks(blocks.to_vec()), &place_t())
     }
 
-    // ── the Aravire–Jacob decomposition, against Codex's paper-derived worked-example oracles ──
+    // Aravire--Jacob decomposition examples.
     // (π = t; "π⁻¹" ↦ R_π map {1: 1}, "1" in φ₀/φ₁ ↦ the bit 1.)
 
     #[test]
@@ -551,7 +529,7 @@ mod tests {
         assert_eq!(d.psi, BTreeMap::from([(1usize, k2(1))]));
     }
 
-    // ── local isotropy, against Codex's rank-by-rank oracles (π = t) ──
+    // Local isotropy examples at π = t.
 
     fn form(blocks: &[(R2, R2)], singular: &[R2]) -> Char2QuadForm<F2> {
         Char2QuadForm::new(blocks.to_vec(), singular.to_vec())
@@ -942,9 +920,8 @@ mod tests {
         assert_eq!(local_is_isotropic_char2(&form, &place), Some(true));
     }
 
-    // ── global isotropy over F_q(t) (Hasse–Minkowski), paper-derived worked-example oracles ──
-    // (verified independently, then cross-checked via Codex; oracle 7 below is the
-    // corrected one — [1,1]⊥[t,t] is ISOTROPIC, vector (1,0,1,1).)
+    // Global isotropy examples over F_q(t). The form [1,1]⊥[t,t] is isotropic,
+    // witnessed by (1,0,1,1).
 
     fn gi(blocks: &[(R2, R2)], singular: &[R2]) -> Option<bool> {
         is_isotropic_global_char2(&form(blocks, singular))
