@@ -576,6 +576,121 @@ theorem graphEvaluation_edgeRelabelDefect_swap (G : SimpleGraph V)
   rw [edgeRelabelDefect, map_add, graphEvaluation_relabelEdgeVector,
     Equiv.symm_swap]
 
+/-! ## Elementary graph congruence -/
+
+/-- Add row and column `i` to row and column `j` over `𝔽₂`.  Equivalently,
+for every `k ≠ j`, the `j-k` adjacency is toggled exactly when `i-k` is an
+edge.  The diagonal is deleted so the result remains a simple graph. -/
+def elementaryCongruenceGraph (G : SimpleGraph V) (i j : V) : SimpleGraph V where
+  Adj x y := x ≠ y ∧ Xor (G.Adj x y)
+    ((x = j ∧ G.Adj i y) ∨ (y = j ∧ G.Adj i x))
+  symm := ⟨by
+    intro x y h
+    refine ⟨h.1.symm, ?_⟩
+    simpa only [G.adj_comm, or_comm] using h.2⟩
+  loopless := ⟨by
+    intro x h
+    exact h.1 rfl⟩
+
+omit [Fintype V] [DecidableEq V] in
+/-- Exact adjacency rule on the modified row. -/
+theorem elementaryCongruenceGraph_adj_j_iff (G : SimpleGraph V)
+    (i j k : V) (hkj : k ≠ j) :
+    (elementaryCongruenceGraph G i j).Adj j k ↔
+      Xor (G.Adj j k) (G.Adj i k) := by
+  simp [elementaryCongruenceGraph, hkj, hkj.symm]
+
+omit [Fintype V] [DecidableEq V] in
+/-- Every adjacency disjoint from the modified label is unchanged. -/
+theorem elementaryCongruenceGraph_adj_away_iff (G : SimpleGraph V)
+    (i j x y : V) (hxj : x ≠ j) (hyj : y ≠ j) :
+    (elementaryCongruenceGraph G i j).Adj x y ↔ G.Adj x y := by
+  constructor
+  · intro h
+    simpa [elementaryCongruenceGraph, hxj, hyj, Xor] using h.2
+  · intro h
+    exact ⟨G.ne_of_adj h,
+      by simpa [elementaryCongruenceGraph, hxj, hyj, Xor] using h⟩
+
+/-- The paired row functional on an unordered edge coordinate. -/
+def elementaryCongruenceRowWeight (G : SimpleGraph V) (i j : V) :
+    Sym2 V → ZMod 2 :=
+  Sym2.lift ⟨fun x y ↦
+      (if x = j then adjacencyBit G i y else 0) +
+        (if y = j then adjacencyBit G i x else 0),
+    by
+      intro x y
+      dsimp
+      abel⟩
+
+omit [Fintype V] in
+/-- Coordinate identity: the elementary-congruence graph defect is exactly
+the paired `i`-row functional attached to `j`. -/
+theorem adjacencyBit_elementaryCongruenceGraph_add (G : SimpleGraph V)
+    (i j x y : V) :
+    adjacencyBit (elementaryCongruenceGraph G i j) x y +
+      adjacencyBit G x y = elementaryCongruenceRowWeight G i j s(x, y) := by
+  classical
+  by_cases hxy : x = y
+  · subst y
+    simp [adjacencyBit, elementaryCongruenceGraph,
+      elementaryCongruenceRowWeight]
+    rw [CharTwo.add_self_eq_zero]
+  · by_cases hxj : x = j
+    · subst x
+      have hyj : y ≠ j := Ne.symm hxy
+      by_cases hg : G.Adj j y <;> by_cases ht : G.Adj i y <;>
+        simp [adjacencyBit, elementaryCongruenceGraph,
+          elementaryCongruenceRowWeight, hxy, hyj, hg, ht, Xor]
+      all_goals rw [CharTwo.add_self_eq_zero]
+    · by_cases hyj : y = j
+      · subst y
+        by_cases hg : G.Adj x j <;> by_cases ht : G.Adj i x <;>
+          simp [adjacencyBit, elementaryCongruenceGraph,
+            elementaryCongruenceRowWeight, hxy, hg, ht, Xor]
+        all_goals rw [CharTwo.add_self_eq_zero]
+      · by_cases hg : G.Adj x y <;>
+          simp [adjacencyBit, elementaryCongruenceGraph,
+            elementaryCongruenceRowWeight, hxy, hxj, hyj, hg, Xor]
+        all_goals rw [CharTwo.add_self_eq_zero]
+
+/-- Extension of the paired row weights to an additive functional on the
+universal binary edge space. -/
+noncomputable def elementaryCongruenceRowEvaluation (G : SimpleGraph V)
+    (i j : V) : EdgeVector V →+ ZMod 2 :=
+  Finsupp.liftAddHom fun e ↦
+    { toFun := fun a ↦ elementaryCongruenceRowWeight G i j e * a
+      map_zero' := mul_zero _
+      map_add' := fun a b ↦ mul_add _ a b }
+
+omit [Fintype V] in
+@[simp]
+theorem elementaryCongruenceRowEvaluation_single (G : SimpleGraph V)
+    (i j : V) (e : Sym2 V) (a : ZMod 2) :
+    elementaryCongruenceRowEvaluation G i j (Finsupp.single e a) =
+      elementaryCongruenceRowWeight G i j e * a := by
+  classical
+  simp [elementaryCongruenceRowEvaluation]
+
+omit [Fintype V] in
+/-- Evaluation identity for an elementary graph congruence: its defect from
+`G` on any edge vector is precisely the paired `i`-row functional at `j`. -/
+theorem graphEvaluation_elementaryCongruenceGraph_add (G : SimpleGraph V)
+    (i j : V) (c : EdgeVector V) :
+    graphEvaluation (elementaryCongruenceGraph G i j) c +
+      graphEvaluation G c = elementaryCongruenceRowEvaluation G i j c := by
+  have hhom :
+      graphEvaluation (elementaryCongruenceGraph G i j) + graphEvaluation G =
+        elementaryCongruenceRowEvaluation G i j := by
+    apply Finsupp.addHom_ext
+    intro e a
+    induction e using Sym2.inductionOn with
+    | _ x y =>
+        simp only [AddMonoidHom.add_apply, graphEvaluation_single,
+          elementaryCongruenceRowEvaluation_single]
+        rw [← add_mul, adjacencyBit_elementaryCongruenceGraph_add]
+  exact DFunLike.congr_fun hhom c
+
 end
 
 end Ogdoad.Fifo
