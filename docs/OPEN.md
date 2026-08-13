@@ -88,6 +88,11 @@ front quotients while respecting the chosen strategy tree.
   mover/nonmover outcome sheet; `FifoOutcomeBlock.lean` proves that allowing
   precisely the favorable complete-outcome exits is equivalent to the
   original winning assertion, so that reformulation alone is circular.
+  `FifoOutcomeAlgebra.lean` proves abstractly that a ko-locked neutral pair is
+  not an operation on those four outcome classes. `FifoOutcomeSwitch.lean`
+  gives the FIFO-realized obstruction: a dummy-deleted root is both-even, yet
+  its front-dummy and rear-dummy active intervals have opposite outcomes for
+  the same seat despite identical deleted real public data.
   `FifoTreeTrace.lean` and
   `FifoQPotential.lean` give small checked obstructions to the raw all-leaf
   sum and to maintaining the queue-cut potential pointwise.
@@ -182,6 +187,15 @@ been consumed, the exact residual datum is the two-seat outcome pair of the
 remaining no-dummy root, together with the current score. Equivalently, the
 next valid reduction must carry that outcome-valued debt or the full affine
 continuation coset; one scalar block charge is insufficient.
+
+The complete four-valued root sheet is still not a compositional substitute
+for those continuations. Deleting the dummy reverses the controller of every
+real event strictly inside its OPEN/CLOSE interval. A strategy interaction
+would therefore have to switch the designated no-dummy seat at both interval
+endpoints. Even a both-even no-dummy root does not make the opposite-seat
+strategy available at a state selected by the first strategy. The three-label
+active-interval example proves this failure exactly; interval order and
+strategy ancestry are indispensable.
 
 The apparent topological shortcut is also excluded. With history occurrences
 retained, an attacker-pruned policy is a tree, so its edge-boundary map is

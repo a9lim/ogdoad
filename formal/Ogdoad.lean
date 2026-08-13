@@ -29,6 +29,8 @@ import Ogdoad.FifoQPotential
 import Ogdoad.FifoBlockInduction
 import Ogdoad.FifoOutcome
 import Ogdoad.FifoOutcomeBlock
+import Ogdoad.FifoOutcomeAlgebra
+import Ogdoad.FifoOutcomeSwitch
 import Ogdoad.FifoPairState
 import Ogdoad.FifoFirstSeatRoot
 import Ogdoad.FifoBadArcCycle

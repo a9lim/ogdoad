@@ -1154,6 +1154,22 @@ carry at least this two-seat outcome pair, or more canonically the affine
 continuation coset.  Dummy presence and residual cardinality alone do not
 close the recursion.
 
+Even that four-valued root sheet is not contextual under an active dummy
+interval.  Deleting the dummy reverses the controller of precisely the real
+events strictly between $O_d$ and $C_d$.  Thus a strategy interaction must use
+the no-dummy strategy for seat $s$ outside the interval and for the opposite
+seat inside it.  The root outcome pair does not ensure that the second
+strategy is winning at a state selected by the first.
+
+This failure already occurs on three labels.  Take the real edge $0$--$2$ and
+isolated dummy $d=1$.  The dummy-deleted empty root on $\{0,2\}$ is winning
+for either designated seat.  The prefixes $O_d,O_0$ and $O_0,O_d$ have the
+same untouched real vertex, the same real queue after erasing $d$, the same
+turn, and the same score.  Nevertheless for one fixed seat the first state is
+even-winning and the second is odd-winning.  Hence the complete root outcome
+sheet forgets both dummy order and the branchwise ownership needed for a
+splice.
+
 \subsection{The exact factor interface}
 
 For a node $q$ in one fixed attacker strategy, retain the affine continuation

@@ -81,6 +81,7 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoInterlace`, `FifoSymmetry` | endpoint-word/local-complementation and turn/score symmetry limits |
 | `FifoHub` | score-erased schedule relabelling, live-star transport, transposition defects, and graph-congruence algebra; no root-value conjugacy |
 | `FifoEmptyQueue`, `FifoBlockInduction`, `FifoOutcome`, `FifoOutcomeBlock` | empty-to-empty block parity, conditional first-return splicing, exact four-valued score-debt transport, and the proof that stopping at complete favorable outcome sheets is equivalent to the original game; the scalar/parity mover premise is false |
+| `FifoOutcomeAlgebra`, `FifoOutcomeSwitch` | the four-valued sheet is not contextual under a ko-locked neutral pair; even a both-even dummy-free root has reversed active dummy orders with opposite outcomes for one seat |
 | `FifoTreeTrace`, `FifoQPotential` | kernel-checked obstructions to the raw complete-leaf sum and to pointwise queue-cut-potential normalization |
 | `FifoPairState` | every score-zero mover failure with an OPEN available yields a lower minimum-hot singleton wall whose charged endpoints are real; ancestry from the original strategy is not supplied |
 | `FifoFirstSeatRoot` | exact first-seat Bellman normal form: one chosen initial OPEN followed by the complete universal second-OPEN fan; the existence of such a winning opener remains open |
