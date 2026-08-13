@@ -2229,6 +2229,60 @@ cyclotomic unit.  In particular, the lower trace ancestry is nonlinear, while
 the relative norm of every element of \(\mathcal D_k\) is one; no multiplicative
 descent to the preceding level survives.
 
+The Singer geometry nevertheless gives a genuine ancestry-sensitive sieve.
+It is still far from a universal proof, but it forces the largest current
+prime factors into the selected order without evaluating their residue
+symbols individually.
+
+\begin{proposition}[selected Singer large-factor sieve]
+\label{prop:c-singer-large-factor}
+Let \(k\geq1\), \(h=3^k\), \(q=2^{h/3}\), and
+\(N=q^2+q+1\).  If \(\ell\mid N\) is prime and the selected element
+\(\eta_k\) does not have full \(\ell\)-primary order, then
+\[
+ \frac{N}{\ell}\geq h(h-1)+1.
+\]
+Consequently every prime divisor
+\[
+ \ell>\frac{N}{h(h-1)+1}
+\]
+occurs in \(\operatorname{ord}(\eta_k)\) with its full valuation in \(N\).
+\end{proposition}
+
+\begin{proof}
+The set \(\mathcal D_k\) is the classical Singer
+\((N,q+1,1)\) difference set.  Here is the short finite-field proof in the
+present normalization.  The map
+\[
+ \mathbb F_{q^3}^{\times}/\mathbb F_q^{\times}\longrightarrow U_k,
+ \qquad [y]\longmapsto y^{q-1},
+\]
+is an isomorphism, and the projective trace-zero line
+\(W=\ker\operatorname{Tr}_{\mathbb F_{q^3}/\mathbb F_q}\) maps precisely to
+\(\mathcal D_k\).  For a nonidentity coset \([g]\), the two-dimensional
+\(\mathbb F_q\)-subspaces \(W\) and \(gW\) are distinct: equality would make
+multiplication by \(g\) stabilize the trace hyperplane, and nondegeneracy of
+the trace pairing would then force \(g\in\mathbb F_q^{\times}\).  Their
+intersection is therefore one-dimensional.  Thus every nonidentity element
+of \(U_k\) occurs exactly once as an ordered quotient of two distinct elements
+of \(\mathcal D_k\).
+
+Proposition~\ref{prop:c-singer-ancestry} identifies the selected Frobenius
+orbit \(\mathcal A_k\subset\mathcal D_k\), and
+\(|\mathcal A_k|=h\).  If the full \(\ell\)-primary part is missing, then
+\(\eta_k^{N/\ell}=1\), so the entire orbit lies in the subgroup
+\(H=\mu_{N/\ell}\).  Its \(h(h-1)\) ordered off-diagonal quotients are distinct
+nonidentity elements of \(H\).  Hence
+\[
+ h(h-1)\leq |H|-1=\frac{N}{\ell}-1,
+\]
+which proves both assertions.
+\end{proof}
+
+The lower bound is polynomial in \(h\), whereas \(N\) is exponential.  It
+therefore removes a certified large-factor range but leaves the universal
+selected residue problem intact.
+
 The same marked phase has an exact integral resultant and an explicit binary
 support.  This turns a possible parity attack into a concrete polynomial
 problem without replacing the selected root by an average.

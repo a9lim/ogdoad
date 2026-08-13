@@ -115,6 +115,8 @@ frontier summarized in `docs/OPEN.md` and proved up to its exact boundary in
 - the polynomial common-root obstruction separating the cubic and exceptional
   current characters, and the vanishing of the norm operator on a faithful
   cubic character;
+- the Sidon-subset subgroup-cardinality bound underlying the selected Singer
+  large-factor sieve in the cubic arm;
 - the substitution and norm identities for the deterministic child of a
   singleton-even primitive-order packet, together with its reciprocal
   child-image equation;

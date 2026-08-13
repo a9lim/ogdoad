@@ -1537,6 +1537,48 @@ theorem cubic_phase_swap_square
   funext a
   rw [← mul_assoc, hcd]
 
+/-- A Sidon subset of a subgroup has at most one ordered off-diagonal pair
+for each nonidentity subgroup element.  This is the combinatorial core of the
+selected Singer large-factor sieve: the Singer difference property supplies
+`hinj`, while a missing current prime places the selected orbit inside `H`. -/
+theorem sidon_quotient_subgroup_card_bound
+    {G : Type*} [Group G] [Fintype G] [DecidableEq G]
+    (H : Subgroup G) [Fintype H] (A : Finset G)
+    (hA : ∀ x ∈ A, x ∈ H)
+    (hinj : Set.InjOn (fun p : G × G => p.1 / p.2)
+      (A.offDiag : Set (G × G))) :
+    A.card * (A.card - 1) + 1 ≤ Fintype.card H := by
+  let Hset : Set G := H
+  have hHfinite : Hset.Finite := Set.toFinite Hset
+  let target : Finset G := hHfinite.toFinset.erase 1
+  have hmaps : Set.MapsTo (fun p : G × G => p.1 / p.2)
+      (A.offDiag : Set (G × G)) (target : Set G) := by
+    intro p hp
+    have hp' := Finset.mem_offDiag.mp hp
+    have hmem : p.1 / p.2 ∈ H :=
+      H.div_mem (hA p.1 hp'.1) (hA p.2 hp'.2.1)
+    apply Finset.mem_erase.mpr
+    refine ⟨?_, ?_⟩
+    · exact div_ne_one.mpr hp'.2.2
+    · exact (hHfinite.mem_toFinset).mpr hmem
+  have hcard := Finset.card_le_card_of_injOn
+    (fun p : G × G => p.1 / p.2) hmaps hinj
+  have hone : (1 : G) ∈ hHfinite.toFinset := by
+    exact (hHfinite.mem_toFinset).mpr H.one_mem
+  rw [Finset.offDiag_card] at hcard
+  change A.card * A.card - A.card ≤ target.card at hcard
+  rw [show target.card = Fintype.card H - 1 by
+    simp only [target, Finset.card_erase_of_mem hone]
+    rw [Set.Finite.card_toFinset]
+    change Fintype.card H - 1 = Fintype.card H - 1
+    rfl] at hcard
+  have hoff : A.card * A.card - A.card = A.card * (A.card - 1) := by
+    rw [Nat.mul_sub_left_distrib]
+    simp
+  rw [hoff] at hcard
+  have hpos : 0 < Fintype.card H := Fintype.card_pos
+  omega
+
 end CubicSingerIncidence
 
 section NormCoherentEulerTail
