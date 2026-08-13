@@ -151,7 +151,7 @@ assertions. None is known universally.
 | --- | --- | --- |
 | `Z` | non-singleton component support, including the singleton-even Conway--Fermat chain | the structural norm generates the primitive-support quotient; on the literal supersingular curve, the fixed function `(y+1)/y` has full next-Fermat order at the recursively selected point |
 | `O` | singleton odd prime power with prime different from `3` | the marked cyclotomic unit has full primary order at the unique inert prime ray over `2` selected by Conway ancestry |
-| `C` | the cubic `3^k` chain | the unique Frobenius orbit recursively selected inside the Singer trace set has full norm-one order; under an explicit Möbius conjugacy of the trace map to cubing, this is the order of one marked cyclotomic unit |
+| `C` | the cubic `3^k` chain | the unique Frobenius orbit recursively selected inside the Singer trace set has full norm-one order; the Möbius coordinate is exactly the square of the selected primitive `3^(k+1)`-st root, so this is the order of one explicit marked cyclotomic unit |
 | `D` | the exceptional `2*3^k` chain | the reconstructed selected Artin--Schreier/Dickson value is not a current-primary power; its auxiliary ancestry is toric, while `DPrimeTarget` records the distinct actual target |
 
 If nonzero `beta` lies in `F_(2^E)` and `p` divides `2^E-1`, the exact
@@ -179,11 +179,17 @@ component information can lose it.
   cyclotomic primes form a unique inert ancestry ray, but residue-field
   norm/corestriction kills the new current coordinate. The cubic ancestry
   selects one exact Frobenius orbit in a Singer difference set, and its trace
-  map is explicitly Möbius-conjugate to cubing; this exposes rather than
-  evaluates the marked cyclotomic-unit phase. The exceptional auxiliary
+  map is explicitly Möbius-conjugate to cubing. The resulting marked root is
+  exactly the square of the selected primitive `3^(k+1)`-st root; this exposes
+  rather than evaluates its cyclotomic-unit phase. The exceptional auxiliary
   recursion is an affine form of the same toric Dickson system, not a direct
   Drinfeld or smooth elliptic division tower; this does not identify the
   auxiliary value with the actual `D` target.
+- A two-block tensor-rank obstruction proves the multicomponent zero arm at
+  `h = 12, 15, 24, 36, 40`. The `h = 15` proof retains the full synchronized
+  norm phase, while `h = 36` checks both prime factors of `Phi_36(2)` by
+  symbolic tensor minors. These are theorem-level finite advances, not a
+  universal generation argument.
 - `formal/Ogdoad/Excess.lean` proves the first-non-power interface,
   group-theoretic lower bound, corrected sparse norm, exact cyclic/finite-field
   power tests, toric semiconjugacy, alternating two-step cubic conjugacy,

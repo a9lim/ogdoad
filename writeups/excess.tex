@@ -556,8 +556,51 @@ conclusion follows from \(\operatorname{ord}(P_1)=3\) and
 unresolved statement remains exactly the next-level value
 \(\operatorname{ord}(g(P_n))=F_{n+1}\).
 
-\begin{proposition}[two complete multicomponent levels]\label{prop:z-small}
-Assertion \(Z\) holds at \(h=12\) and \(h=24\).
+\begin{proposition}[two-block tensor obstruction]\label{prop:z-two-block}
+Let \(h=r^a s^b\), where \(r\ne s\) are primes and \(a,b\geq1\), and put
+\[
+ M=\mathbb F_{2^h},\quad
+ A=\mathbb F_{2^{h/r}},\quad
+ B=\mathbb F_{2^{h/s}},\quad
+ J=\mathbb F_{2^{h/(rs)}}.
+\]
+If \(u\in A\setminus J\) and \(v\in B\setminus J\), then
+\[
+ u+v\notin A^\times B^\times.
+\]
+Moreover,
+\[
+ \left|M^\times/(A^\times B^\times)\right|=\Phi_h(2).
+\]
+Consequently, if \(\Phi_h(2)\) is prime, the class of \(u+v\) generates
+this quotient.
+\end{proposition}
+
+\begin{proof}
+One has \(A\cap B=J\), \([A:J]=s\), and \([B:J]=r\).  The relative
+degrees are coprime, so multiplication identifies
+\(A\otimes_J B\) with \(M\).  Choose \(J\)-bases of \(A\) and \(B\)
+beginning with \((1,u)\) and \((1,v)\).  The coefficient matrix of
+\(u\otimes1+1\otimes v\) has the anti-diagonal minor
+\[
+ \begin{pmatrix}0&1\\1&0\end{pmatrix},
+\]
+of nonzero determinant, whereas every element of \(A^\times B^\times\)
+is a pure tensor and has coefficient-matrix rank one.  This proves the
+first assertion.  Cyclotomic cancellation gives
+\[
+ \frac{(2^h-1)(2^{h/(rs)}-1)}
+      {(2^{h/r}-1)(2^{h/s}-1)}=\Phi_h(2),
+\]
+and the final assertion follows because a nonidentity element of a group of
+prime order generates it.
+\end{proof}
+
+\begin{proposition}[five complete multicomponent levels]\label{prop:z-small}
+Assertion \(Z\) holds at
+\[
+ h=12,\ 15,\ 24,\ 36,\ 40.
+\]
 \end{proposition}
 
 \begin{proof}
@@ -571,26 +614,94 @@ maximal proper support fields are
 \[
  (A,B,J)=(\mathbb F_{2^{12}},\mathbb F_{2^8},\mathbb F_{2^4}).
 \]
-The degree-six component lies in \(A\setminus J\), while the degree-eight
-component lies in \(B\setminus J\).  In both cases \([A:J]=3\) and
-\([B:J]=2\), so multiplication identifies \(A\otimes_JB\) with their
-compositum.  The selected sum corresponds to
-\(x\otimes1+1\otimes y\), a tensor of rank two, whereas every element of
-\(A^{\times}B^{\times}\) has tensor rank one.  Hence the selected class is
-nontrivial in
+The two selected components lie in \(A\setminus J\) and \(B\setminus J\),
+respectively.  Proposition~\ref{prop:z-two-block} makes the selected class
+nontrivial, and the prime quotient orders
 \[
- \mathbb F_{2^h}^{\times}/(A^{\times}B^{\times}).
+ \Phi_{12}(2)=13,
+ \qquad \Phi_{24}(2)=241
 \]
-The quotient orders are, respectively,
+make it a generator.
+
+The same proposition applies at \(h=40\).  Here the two selected components
+are \(u=\kappa_5\in\mathbb F_{2^{20}}\setminus\mathbb F_{2^4}\) and
+\(v=\kappa_8\in\mathbb F_{2^8}\setminus\mathbb F_{2^4}\), while
+\(\Phi_{40}(2)=61681\) is prime.  Hence the selected class again generates.
+
+At \(h=36\), put \(c=\kappa_3\), \(x=\kappa_4\),
+\(y=\kappa_9\), and \(z=x+y\).  Over
+\(J=\mathbb F_{2^6}\), the relations
 \[
- \frac{(2^{12}-1)(2^2-1)}{(2^6-1)(2^4-1)}
-   =\Phi_{12}(2)=13,
- \qquad
- \frac{(2^{24}-1)(2^4-1)}{(2^{12}-1)(2^8-1)}
-   =\Phi_{24}(2)=241.
+ c^6+c^3+1=0,\qquad x^2+x=c^3,\qquad y^3=c
 \]
-Both are prime, so a nontrivial class generates the complete primitive-support
-quotient.  Proposition~\ref{prop:z-support} gives \(Z\) at the two levels.
+identify \(\mathbb F_{2^{36}}\) with
+\(J(y)\otimes_J J(x)\).  In the row basis \((1,y,y^2)\) and column basis
+\((1,x)\), direct reduction gives
+\[
+ [z^{37}]=
+ \begin{pmatrix}
+  1+c^2+c^3&c^2\\
+  c^3+c^4&c+c^3+c^4\\
+  0&c
+ \end{pmatrix}
+\]
+and
+\[
+ [z^{109}]=
+ \begin{pmatrix}
+  1+c+c^3&1+c+c^2+c^4\\
+  c+c^3+c^4+c^5&c^2+c^3+c^4\\
+  1+c^2+c^3+c^5&c^2+c^3+c^4+c^5
+ \end{pmatrix}.
+\]
+The upper-left minors are respectively
+\(1+c^3+c^4\) and \(c^2+c^3+c^4+c^5\), both nonzero because
+\([\mathbb F_2(c):\mathbb F_2]=6\).  Thus neither power lies in
+\(J(y)^\times J(x)^\times\).  Since
+\(\Phi_{36}(2)=4033=37\cdot109\), the nonidentity of \([z^{37}]\) forces
+\(109\mid\operatorname{ord}([z])\), while that of \([z^{109}]\) forces
+\(37\mid\operatorname{ord}([z])\).  Thus \([z]\) has full order.
+
+Finally, the level \(h=15\) has a nontrivial synchronized norm.  Put
+\(a=\kappa_2\), \(c=\kappa_3\), \(b=\kappa_4\), and
+\(d=\kappa_5\), so that
+\[
+ a^2+a+1=0,\qquad c^3=a,\qquad b^2+b=a,\qquad d^5=b.
+\]
+The selected element is \(\kappa_{15}=c+d\) in
+\(\mathbb F_{2^{60}}\).  If \(\sigma\) is the \(2^{15}\)-Frobenius, put
+\[
+ u=c+\sigma(c)\in\mathbb F_{2^3},\qquad
+ v=d+\sigma(d)+\sigma^2(d)+\sigma^3(d)\in\mathbb F_{2^5}.
+\]
+Reduction with the four displayed tower relations gives
+\[
+ T_{15}=\operatorname N_{\mathbb F_{2^{60}}/\mathbb F_{2^{15}}}(c+d)
+ =1+v+v^2+v^3+u+u^2v+u^2v^3+u^2v^4.
+\]
+The same reduction gives
+\[
+ u=c+c^2+ac^2,
+ \quad
+ v=d+abd^2+(1+ab)d^3+a(1+b)d^4.
+\]
+Thus \(u^2+u=ac(c+1)\ne0\).  Also the coefficient of \(d^4\) in
+\(v^2+v\) is \(a+b\ne0\); since \(d\) has degree five over
+\(\mathbb F_{2^4}\), this proves \(v^2+v\ne0\).  Hence \(u\) and \(v\)
+have degrees three and five.  In the tensor bases \((1,u,u^2)\) and
+\((1,v,v^2,v^3,v^4)\), the coefficient matrix of \(T_{15}\) is
+\[
+ \begin{pmatrix}
+ 1&1&1&1&0\\
+ 1&0&0&0&0\\
+ 0&1&0&1&1
+ \end{pmatrix}.
+\]
+Its first two rows and columns have nonzero determinant, so
+\(T_{15}\notin\mathbb F_{2^3}^\times\mathbb F_{2^5}^\times\).  The
+quotient has prime order \(\Phi_{15}(2)=151\), hence the selected norm
+generates it.  Proposition~\ref{prop:z-support} now gives \(Z\) at all five
+levels.
 \end{proof}
 
 The universal arm \(Z\) therefore remains the simultaneous generation
@@ -954,6 +1065,11 @@ Then
  W(R(x))=W(x)^3.
 \]
 Consequently \(z_k=W(\eta_k)\) has exact order \(3^{k+1}\), and
+in fact the orientation fixed by the Conway root is
+\[
+ z_k=\zeta_k^2.
+\]
+In particular,
 \[
  \eta_k=\omega^2\frac{z_k+\omega^2}{z_k+1}.
 \]
@@ -994,7 +1110,22 @@ for \(j\geq1\), and
 \(\eta_j^2+\eta_j\) nor \(\eta_j+\omega^2\) vanishes.
 Since \(R^{\circ k}(\eta_k)=0\) and \(W(0)=\omega^2\), one has
 \(z_k^{3^k}=\omega^2\), hence \(z_k\) has exact order \(3^{k+1}\).
-Solving the M\"obius equation gives the formula for \(\eta_k\).  Finally,
+The selected orientation can be read without ambiguity.  If
+\(h=3^k\), then
+\[
+ q=2^{3^{k-1}}\equiv h-1\pmod{3h},
+\]
+where the congruence follows from the case \(2\equiv2\pmod9\) by successive
+cubing.  Therefore \(\zeta_k^q=\omega\zeta_k^{-1}\).  With
+\(y=\zeta_k^2\), direct substitution gives
+\[
+ \eta_k=\frac{\gamma_k^q}{\gamma_k}
+ =\frac{\omega+\omega^2y}{1+y}
+ =\omega^2\frac{y+\omega^2}{y+1}.
+\]
+Consequently \(\eta_k+\omega=y/(1+y)\) and
+\(\eta_k+\omega^2=1/(1+y)\), whence
+\(W(\eta_k)=y=\zeta_k^2\).  Finally,
 irreducibility of \(Q_k\), followed by the prime-divisor test in the cyclic
 group of order \(N\), gives the last equivalence.
 \end{proof}

@@ -8070,6 +8070,394 @@ theorem conwayDriver_explicitCube
 
 end CubeFibotomicIntersection
 
+section Z36SymbolicLevel
+
+/-! Exact characteristic-two reductions behind the complete multicomponent
+level h = 36.  These identities certify the two coefficient matrices and
+their decisive minors in Proposition z-small of the paper; the field-degree
+argument supplying the two nonzero low-degree polynomials remains in prose. -/
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+theorem z36_expansions
+    (c x y : F)
+    (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3)
+    (hy : y ^ 3 = c) :
+    (x + y) ^ 37 =
+      (1 + c ^ 2 + c ^ 3) + c ^ 2 * x +
+      (c ^ 3 + c ^ 4) * y +
+      (c + c ^ 3 + c ^ 4) * (y * x) +
+      c * (y ^ 2 * x) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
+    calc
+      c ^ 8 = c ^ 2 * c ^ 6 := by ring
+      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 5 + c ^ 2 := by ring
+  have hc9 : c ^ 9 = 1 := by
+    calc
+      c ^ 9 = c ^ 3 * c ^ 6 := by ring
+      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 6 + c ^ 3 := by ring
+      _ = 1 := by
+        rw [hc6]
+        linear_combination (c ^ 3) * htwo
+  have hx2 : x ^ 2 = x + c ^ 3 := by
+    calc
+      x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
+      _ = c ^ 3 + x := CharTwo.sub_eq_add _ _
+      _ = x + c ^ 3 := add_comm _ _
+  have hx4 : x ^ 4 = x + 1 := by
+    calc
+      x ^ 4 = (x ^ 2) ^ 2 := by ring
+      _ = (x + c ^ 3) ^ 2 := by rw [hx2]
+      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
+      _ = x + 1 := by ring_nf; simp [htwo]
+  have hx8 : x ^ 8 = x + c ^ 3 + 1 := by
+    calc
+      x ^ 8 = (x ^ 4) ^ 2 := by ring
+      _ = (x + 1) ^ 2 := by rw [hx4]
+      _ = x ^ 2 + 1 := by rw [add_sq, htwo]; ring
+      _ = x + c ^ 3 + 1 := by rw [hx2]
+  have hx16 : x ^ 16 = x := by
+    calc
+      x ^ 16 = (x ^ 8) ^ 2 := by ring
+      _ = (x + c ^ 3 + 1) ^ 2 := by rw [hx8]
+      _ = x ^ 2 + c ^ 6 + 1 := by
+        rw [show x + c ^ 3 + 1 = (x + c ^ 3) + 1 by ring]
+        rw [add_sq, add_sq, htwo]
+        ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) + 1 := by rw [hx2, hc6]
+      _ = x := by ring_nf; simp [htwo]
+  have hx32 : x ^ 32 = x + c ^ 3 := by
+    calc
+      x ^ 32 = (x ^ 16) ^ 2 := by ring
+      _ = x ^ 2 := by rw [hx16]
+      _ = x + c ^ 3 := hx2
+  have hy4 : y ^ 4 = c * y := by
+    calc
+      y ^ 4 = y ^ 3 * y := by ring
+      _ = c * y := by rw [hy]
+  have hy32 : y ^ 32 = c * y ^ 2 := by
+    calc
+      y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
+      _ = c ^ 10 * y ^ 2 := by rw [hy]
+      _ = (c ^ 9 * c) * y ^ 2 := by ring
+      _ = c * y ^ 2 := by rw [hc9]; ring
+  have hz4 : (x + y) ^ 4 = (x + 1) + c * y := by
+    calc
+      (x + y) ^ 4 = x ^ 4 + y ^ 4 := by
+        simpa using (add_pow_expChar_pow x y 2 2)
+      _ = (x + 1) + c * y := by rw [hx4, hy4]
+  have hz32 : (x + y) ^ 32 = (x + c ^ 3) + c * y ^ 2 := by
+    calc
+      (x + y) ^ 32 = x ^ 32 + y ^ 32 := by
+        simpa using (add_pow_expChar_pow x y 2 5)
+      _ = (x + c ^ 3) + c * y ^ 2 := by rw [hx32, hy32]
+  have hx3 : x ^ 3 = x + c ^ 3 + c ^ 3 * x := by
+    calc
+      x ^ 3 = x * x ^ 2 := by ring
+      _ = x * (x + c ^ 3) := by rw [hx2]
+      _ = x + c ^ 3 + c ^ 3 * x := by rw [show x * (x + c ^ 3) = x ^ 2 + c ^ 3 * x by ring, hx2]
+  rw [show (x + y) ^ 37 = (x + y) ^ 32 * (x + y) ^ 4 * (x + y) by ring]
+  rw [hz32, hz4]
+  ring_nf
+  rw [hy4, hy, hx3, hx2]
+  ring_nf
+  rw [hc6, hthree, hfour]
+  ring_nf
+  simp [htwo, hthree]
+
+theorem z36_expansion_109
+    (c x y : F)
+    (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3)
+    (hy : y ^ 3 = c) :
+    (x + y) ^ 109 =
+      (1 + c + c ^ 3) + (1 + c + c ^ 2 + c ^ 4) * x +
+      (c + c ^ 3 + c ^ 4 + c ^ 5) * y +
+      (c ^ 2 + c ^ 3 + c ^ 4) * (y * x) +
+      (1 + c ^ 2 + c ^ 3 + c ^ 5) * y ^ 2 +
+      (c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5) * (y ^ 2 * x) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
+    calc
+      c ^ 8 = c ^ 2 * c ^ 6 := by ring
+      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 5 + c ^ 2 := by ring
+  have hc9 : c ^ 9 = 1 := by
+    calc
+      c ^ 9 = c ^ 3 * c ^ 6 := by ring
+      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 6 + c ^ 3 := by ring
+      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
+  have hx2 : x ^ 2 = x + c ^ 3 := by
+    calc
+      x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
+      _ = c ^ 3 + x := CharTwo.sub_eq_add _ _
+      _ = x + c ^ 3 := add_comm _ _
+  have hx4 : x ^ 4 = x + 1 := by
+    calc
+      x ^ 4 = (x ^ 2) ^ 2 := by ring
+      _ = (x + c ^ 3) ^ 2 := by rw [hx2]
+      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
+      _ = x + 1 := by linear_combination (c ^ 3) * htwo
+  have hx5 : x ^ 5 = c ^ 3 := by
+    calc
+      x ^ 5 = x * x ^ 4 := by ring
+      _ = x * (x + 1) := by rw [hx4]
+      _ = x ^ 2 + x := by ring
+      _ = c ^ 3 := hx
+  have hx8 : x ^ 8 = x + c ^ 3 + 1 := by
+    calc
+      x ^ 8 = (x ^ 4) ^ 2 := by ring
+      _ = (x + 1) ^ 2 := by rw [hx4]
+      _ = x ^ 2 + 1 := by rw [add_sq, htwo]; ring
+      _ = x + c ^ 3 + 1 := by rw [hx2]
+  have hx16 : x ^ 16 = x := by
+    calc
+      x ^ 16 = (x ^ 8) ^ 2 := by ring
+      _ = (x + c ^ 3 + 1) ^ 2 := by rw [hx8]
+      _ = x ^ 2 + c ^ 6 + 1 := by
+        rw [show x + c ^ 3 + 1 = (x + c ^ 3) + 1 by ring]
+        rw [add_sq, add_sq, htwo]
+        ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) + 1 := by rw [hx2, hc6]
+      _ = x := by linear_combination (c ^ 3 + 1) * htwo
+  have hx32 : x ^ 32 = x + c ^ 3 := by
+    calc
+      x ^ 32 = (x ^ 16) ^ 2 := by ring
+      _ = x ^ 2 := by rw [hx16]
+      _ = x + c ^ 3 := hx2
+  have hx64 : x ^ 64 = x + 1 := by
+    calc
+      x ^ 64 = (x ^ 32) ^ 2 := by ring
+      _ = (x + c ^ 3) ^ 2 := by rw [hx32]
+      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
+      _ = x + 1 := by linear_combination (c ^ 3) * htwo
+  have hy4 : y ^ 4 = c * y := by
+    calc
+      y ^ 4 = y ^ 3 * y := by ring
+      _ = c * y := by rw [hy]
+  have hy5 : y ^ 5 = c * y ^ 2 := by
+    calc
+      y ^ 5 = y ^ 3 * y ^ 2 := by ring
+      _ = c * y ^ 2 := by rw [hy]
+  have hy6 : y ^ 6 = c ^ 2 := by
+    calc
+      y ^ 6 = (y ^ 3) ^ 2 := by ring
+      _ = c ^ 2 := by rw [hy]
+  have hy7 : y ^ 7 = c ^ 2 * y := by
+    calc
+      y ^ 7 = y ^ 6 * y := by ring
+      _ = c ^ 2 * y := by rw [hy6]
+  have hy8 : y ^ 8 = c ^ 2 * y ^ 2 := by
+    calc
+      y ^ 8 = (y ^ 3) ^ 2 * y ^ 2 := by ring
+      _ = c ^ 2 * y ^ 2 := by rw [hy]
+  have hy32 : y ^ 32 = c * y ^ 2 := by
+    calc
+      y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
+      _ = c ^ 10 * y ^ 2 := by rw [hy]
+      _ = (c ^ 9 * c) * y ^ 2 := by ring
+      _ = c * y ^ 2 := by rw [hc9]; ring
+  have hc21 : c ^ 21 = c ^ 3 := by
+    calc
+      c ^ 21 = (c ^ 9) ^ 2 * c ^ 3 := by ring
+      _ = c ^ 3 := by rw [hc9]; ring
+  have hc10 : c ^ 10 = c := by
+    calc
+      c ^ 10 = c ^ 9 * c := by ring
+      _ = c := by rw [hc9]; ring
+  have hc11 : c ^ 11 = c ^ 2 := by
+    calc
+      c ^ 11 = c ^ 9 * c ^ 2 := by ring
+      _ = c ^ 2 := by rw [hc9]; ring
+  have hc12 : c ^ 12 = c ^ 3 := by
+    calc
+      c ^ 12 = c ^ 9 * c ^ 3 := by ring
+      _ = c ^ 3 := by rw [hc9]; ring
+  have hy64 : y ^ 64 = c ^ 3 * y := by
+    calc
+      y ^ 64 = (y ^ 3) ^ 21 * y := by ring
+      _ = c ^ 21 * y := by rw [hy]
+      _ = c ^ 3 * y := by rw [hc21]
+  have hz4 : (x + y) ^ 4 = (x + 1) + c * y := by
+    calc
+      (x + y) ^ 4 = x ^ 4 + y ^ 4 := by
+        simpa using (add_pow_expChar_pow x y 2 2)
+      _ = (x + 1) + c * y := by rw [hx4, hy4]
+  have hz8 : (x + y) ^ 8 = (x + c ^ 3 + 1) + c ^ 2 * y ^ 2 := by
+    calc
+      (x + y) ^ 8 = x ^ 8 + y ^ 8 := by
+        simpa using (add_pow_expChar_pow x y 2 3)
+      _ = (x + c ^ 3 + 1) + c ^ 2 * y ^ 2 := by rw [hx8, hy8]
+  have hz32 : (x + y) ^ 32 = (x + c ^ 3) + c * y ^ 2 := by
+    calc
+      (x + y) ^ 32 = x ^ 32 + y ^ 32 := by
+        simpa using (add_pow_expChar_pow x y 2 5)
+      _ = (x + c ^ 3) + c * y ^ 2 := by rw [hx32, hy32]
+  have hz64 : (x + y) ^ 64 = (x + 1) + c ^ 3 * y := by
+    calc
+      (x + y) ^ 64 = x ^ 64 + y ^ 64 := by
+        simpa using (add_pow_expChar_pow x y 2 6)
+      _ = (x + 1) + c ^ 3 * y := by rw [hx64, hy64]
+  have hx3 : x ^ 3 = x + c ^ 3 + c ^ 3 * x := by
+    calc
+      x ^ 3 = x * x ^ 2 := by ring
+      _ = x * (x + c ^ 3) := by rw [hx2]
+      _ = x + c ^ 3 + c ^ 3 * x := by
+        rw [show x * (x + c ^ 3) = x ^ 2 + c ^ 3 * x by ring, hx2]
+  rw [show (x + y) ^ 109 =
+      (x + y) ^ 64 * (x + y) ^ 32 * (x + y) ^ 8 *
+        (x + y) ^ 4 * (x + y) by ring]
+  rw [hz64, hz32, hz8, hz4]
+  ring_nf
+  rw [hy7, hy6, hy5, hy4, hy, hx5, hx4, hx3, hx2]
+  ring_nf
+  rw [hc12, hc11, hc10, hc9, hc8, hc7, hc6]
+  ring_nf
+  have h3 : (3 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 3)
+  have h4 : (4 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 4)
+  have h5 : (5 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 5)
+  have h7 : (7 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 7)
+  have h8 : (8 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 8)
+  have h9 : (9 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 9)
+  have h10 : (10 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 10)
+  have h11 : (11 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 11)
+  have h12 : (12 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 12)
+  have h13 : (13 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 13)
+  have h14 : (14 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 14)
+  have h16 : (16 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 16)
+  have h20 : (20 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 20)
+  have h21 : (21 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 21)
+  have h22 : (22 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 22)
+  have h23 : (23 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 23)
+  have h24 : (24 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 24)
+  have h25 : (25 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 25)
+  have h27 : (27 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 27)
+  have h31 : (31 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 31)
+  have h32 : (32 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 32)
+  have h39 : (39 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 39)
+  have h42 : (42 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 42)
+  simp only [htwo, h3, h4, h5, h7, h8, h9, h10, h11, h12, h13, h14,
+    h16, h20, h21, h22, h23, h24, h25, h27, h31, h32, h39, h42]
+  ring
+
+theorem z36_minor_37
+    (c : F) (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hcdeg : 1 + c ^ 3 + c ^ 4 ≠ 0) :
+    (1 + c ^ 2 + c ^ 3) * (c + c ^ 3 + c ^ 4) +
+      c ^ 2 * (c ^ 3 + c ^ 4) ≠ 0 := by
+  intro h
+  apply hcdeg
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 3)
+  have hfive : (5 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 5)
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have heq :
+      (1 + c ^ 2 + c ^ 3) * (c + c ^ 3 + c ^ 4) +
+        c ^ 2 * (c ^ 3 + c ^ 4) = 1 + c ^ 3 + c ^ 4 := by
+    ring_nf
+    rw [hc7, hc6]
+    ring_nf
+    simp [htwo, hthree, hfive]
+  rw [heq] at h
+  exact h
+
+theorem z36_minor_109
+    (c : F) (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hcdeg : c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5 ≠ 0) :
+    (1 + c + c ^ 3) * (c ^ 2 + c ^ 3 + c ^ 4) +
+      (1 + c + c ^ 2 + c ^ 4) * (c + c ^ 3 + c ^ 4 + c ^ 5) ≠ 0 := by
+  intro h
+  apply hcdeg
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 3)
+  have hfour : (4 : F) = 0 := by
+    simpa using (CharP.cast_eq_mod F 2 4)
+  have hsix : (6 : F) = 0 := by
+    simpa using (CharP.cast_eq_mod F 2 6)
+  have hseven : (7 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 7)
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
+    calc
+      c ^ 8 = c ^ 2 * c ^ 6 := by ring
+      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 5 + c ^ 2 := by ring
+  have hc9 : c ^ 9 = 1 := by
+    calc
+      c ^ 9 = c ^ 3 * c ^ 6 := by ring
+      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 6 + c ^ 3 := by ring
+      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
+  have hc10 : c ^ 10 = c := by
+    calc
+      c ^ 10 = c ^ 9 * c := by ring
+      _ = c := by rw [hc9]; ring
+  have heq :
+      (1 + c + c ^ 3) * (c ^ 2 + c ^ 3 + c ^ 4) +
+        (1 + c + c ^ 2 + c ^ 4) * (c + c ^ 3 + c ^ 4 + c ^ 5) =
+      c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5 := by
+    ring_nf
+    rw [hc9, hc8, hc7, hc6]
+    ring_nf
+    simp [hthree, hfour, hseven]
+  rw [heq] at h
+  exact h
+
+end Z36SymbolicLevel
+
 section NormalizedSingerAlgebra
 
 variable {F : Type*} [Field F]
@@ -8089,22 +8477,41 @@ def singerMobius (omega x : F) : F :=
 `R(x) = (x^3+x+1)/(x^2+x)` and `W(x) = (x+omega)/(x+omega^2)`.
 This is the exact algebraic conjugacy behind the recursively selected Singer
 orbit; it does not assert that the resulting cyclotomic unit is primitive. -/
+theorem singer_trace_mobius_factor [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0) :
+    x ^ 3 + x + 1 + omega * (x ^ 2 + x) = (x + omega) ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  ring_nf
+  simp only [hthree, mul_one]
+  linear_combination
+    (x + omega + 1) * homega -
+      (x * omega ^ 2 + omega + omega ^ 2 + omega ^ 3) * htwo
+
+/-- The second factor identity needed for the Singer Möbius conjugacy. -/
+theorem singer_trace_mobius_factor_sq [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0) :
+    x ^ 3 + x + 1 + omega ^ 2 * (x ^ 2 + x) = (x + omega ^ 2) ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have homegaSq : (omega ^ 2) ^ 2 + omega ^ 2 + 1 = 0 := by
+    have hs := congrArg (fun t : F => t ^ 2) homega
+    ring_nf at hs
+    rw [htwo] at hs
+    ring_nf at hs
+    linear_combination hs - omega ^ 2 * htwo
+  exact singer_trace_mobius_factor x (omega ^ 2) homegaSq
+
+/-- Denominator-free cross multiplication for `W(R(x)) = W(x)^3`. -/
 theorem singer_trace_mobius_numerator_identity [CharP F 2]
     (x omega : F) (homega : omega ^ 2 + omega + 1 = 0) :
     (x ^ 3 + x + 1 + omega * (x ^ 2 + x)) * (x + omega ^ 2) ^ 3 =
       (x ^ 3 + x + 1 + omega ^ 2 * (x ^ 2 + x)) * (x + omega) ^ 3 := by
-  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
-  linear_combination
-    (omega ^ 5 * x ^ 2 + omega ^ 5 * x + omega ^ 4 * x ^ 3 -
-      omega ^ 4 * x ^ 2 + omega ^ 4 + 2 * omega ^ 3 * x ^ 3 +
-      2 * omega ^ 3 * x ^ 2 - 2 * omega ^ 3 * x - omega ^ 3 +
-      3 * omega ^ 2 * x ^ 4 - 6 * omega ^ 2 * x ^ 3 -
-      omega ^ 2 * x ^ 2 + 5 * omega ^ 2 * x - 3 * omega * x ^ 4 +
-      3 * omega * x ^ 3 - omega * x ^ 2 - 4 * omega * x +
-      2 * x ^ 5 - 4 * x ^ 4 + 6 * x ^ 3 + 2 * x ^ 2 - 4 * x) * homega +
-    (-2 * omega * x ^ 5 + 4 * omega * x ^ 4 - 6 * omega * x ^ 3 -
-      2 * omega * x ^ 2 + 4 * omega * x - x ^ 5 + 2 * x ^ 4 -
-      3 * x ^ 3 - x ^ 2 + 2 * x) * htwo
+  rw [singer_trace_mobius_factor x omega homega,
+    singer_trace_mobius_factor_sq x omega homega]
+  ring
 
 /-- On the open set where the two Möbius coordinates are defined, the
 selected Singer trace map is conjugate to cubing. -/
@@ -8134,6 +8541,32 @@ theorem singerMobius_traceMap [CharP F 2]
   rw [div_pow]
   apply (div_eq_div_iff hden (pow_ne_zero 3 hxomega)).2
   simpa [mul_comm] using hnum
+
+/-- The closed Singer coordinate has no residual orientation ambiguity: once
+`eta` is written using the marked cyclotomic coordinate `y`, the Möbius map
+recovers exactly `y` (in the application, `y = zeta_k^2`). -/
+theorem singerMobius_selected_orientation [CharP F 2]
+    (eta y omega : F) (homega : omega ^ 2 + omega + 1 = 0)
+    (hy : y + 1 ≠ 0)
+    (heta : eta = omega ^ 2 * (y + omega ^ 2) / (y + 1)) :
+    singerMobius omega eta = y := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have homega3 : omega ^ 3 = 1 := by
+    linear_combination
+      (omega + 1) * homega - (omega ^ 2 + omega + 1) * htwo
+  have hetaOmega : eta + omega = y / (y + 1) := by
+    rw [heta]
+    field_simp [hy]
+    linear_combination
+      y * homega + omega * homega3 + (omega - y) * htwo
+  have hetaOmegaSq : eta + omega ^ 2 = 1 / (y + 1) := by
+    rw [heta]
+    field_simp [hy]
+    linear_combination
+      homega + omega * homega3 + (omega ^ 2 * y - 1) * htwo
+  simp only [singerMobius]
+  rw [hetaOmega, hetaOmegaSq, div_div_div_cancel_right₀ hy]
+  simp
 
 /-- Denominator-free normalization of the selected reciprocal cubic.
 Substituting z = d * τ and zPrev = d³ into
