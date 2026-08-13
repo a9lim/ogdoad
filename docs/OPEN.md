@@ -100,6 +100,24 @@ not supply this selection; explicit checked states delimit each route. A proof
 must use causal information from the selected strategy tree, not only the
 underlying graph or the set of terminal histories.
 
+The apparent topological shortcut is also excluded. With history occurrences
+retained, an attacker-pruned policy is a tree, so its edge-boundary map is
+injective and supplies no nonzero cycle. Identifying publicly reconvergent
+histories would add OPEN/CLOSE diamonds, but their live-star cochain has
+curvature equal to the crossed real edge, and the two occurrences can carry
+different continuation cosets. Similarly, deleting the dummy can require a
+ko-wall exchange that changes one real edge moment and reverses control of the
+repaired move. These facts force a history-indexed mapping-cone or equivalent
+ancestry construction; ordinary oik cancellation and policywise dummy
+deletion cannot prove the missing factor extension.
+
+An exact nine-real-vertex root witness makes the surviving selector boundary
+sharp: after one real opener, eight of the nine possible OPEN replies lose and
+only the isolated dummy wins. The dummy is the opener's unique same-degree-
+parity mate, and its child has an explicit parity-cell pairing certificate.
+This is finite evidence, not a counterexample, but it rules out replacing the
+existential root selector by a robust or universal reply claim.
+
 Authoritative paper: [`../writeups/linking_affine.tex`](../writeups/linking_affine.tex).
 Executable model: `experiments/linking_game.py`.
 

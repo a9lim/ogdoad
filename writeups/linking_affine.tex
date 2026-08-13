@@ -50,6 +50,13 @@ families show that childwise contraction and uniformly bounded affine
 certificates are false.  The remaining assertions are the strategy-relative
 normal-form classification and a causal factor-extension theorem coupling
 earlier defender siblings to descendant continuation cosets.
+We prove that three tempting globalizations cannot supply that theorem:
+the pruned history tree has no nonzero one-cycles, commuting OPEN/CLOSE
+squares carry a genuine unit-edge curvature, and erasing the dummy is not a
+map between fixed strategy trees because the required ko-wall exchange
+reverses the controller.  A nine-real-vertex root fan in which eight of the
+nine replies lose shows how sharply the surviving same-parity selector is
+being used.
 An exhaustive census through eight real vertices plus the isolated dummy is
 consistent with the conjecture for both designated seats, but is not a
 universal proof.
@@ -895,6 +902,76 @@ proof that chooses one distinguished reply in each fan.  They do not refute
 Conjecture~\ref{conj:fifo}; every displayed node has additional ancestry
 available at the root.
 
+\subsection{Why ordinary topology and dummy deletion do not fill the gap}
+
+The affine-flow language can suggest a boundary-of-boundary or oik argument.
+On the actual attacker-pruned object this suggestion is false for a simple
+reason.  Retain each history occurrence, even when two histories have the
+same public state, and let $T_S$ be the resulting finite rooted strategy
+tree.  Give every oriented tree edge $e$ its universal move vector
+$\lambda(e)$.
+
+\begin{proposition}[history-tree obstruction]\label{prop:history-tree}
+The boundary map
+\[
+  \partial_1:C_1(T_S;\mathbb F_2)\longrightarrow
+  C_0(T_S;\mathbb F_2)
+\]
+is injective.  More precisely, for every odd terminal chain $c$ there is a
+unique edge chain $x$ satisfying
+\[
+  \partial_1x=[\mathrm{root}]+c,
+\]
+and
+\[
+  \sum_e x_e\lambda(e)=\sum_h c_hD(h).
+\]
+Consequently the FIFO affine target is a labelled cokernel condition on
+$(\partial_1,\lambda)$, not a consequence of $\partial^2=0$ on the history
+tree.
+\end{proposition}
+
+\begin{proof}
+For an edge $e$, let $T_e$ be the component below it.  In any solution the
+coefficient of $e$ is forced to be $\sum_{h\in T_e}c_h$ by summing the vertex
+boundary equation over $T_e$.  These coefficients give a solution because
+every internal nonroot vertex occurs once from its incoming edge and once
+for each selected outgoing subtree, while the odd augmentation leaves the
+root coefficient one.  The same subtree formula proves uniqueness and hence
+injectivity.  Finally each selected edge is counted once for every selected
+leaf below it; interchanging the two sums gives the path-moment identity.
+\end{proof}
+
+Attaching commuting schedule squares does not repair the argument.  Let
+$m$ be the edge-space-valued one-cochain which assigns an OPEN its current
+live star and assigns CLOSE and PASS zero.  In a legal diamond with clear
+front $f$ and untouched $z$, the schedules
+\[
+  O_z;C_f \qquad\hbox{and}\qquad C_f;O_z
+\]
+reconverge publicly but their move moments differ by the basis edge $fz$.
+Thus the square has curvature $\delta m=fz$, not zero.  Moreover a
+history-dependent attacker may choose different continuations at the two
+occurrences of the reconvergent state.  Quotienting them would identify
+different continuation cosets; retaining them removes the square.  Even the
+unlabelled carrier need not be Eulerian: after an attacker OPEN $O_f$ on four
+vertices, the defender has three OPEN alternatives $O_a,O_d,O_e$; a
+history-dependent attacker may select $C_f$ immediately after each.  The
+resulting pre-close carrier consists of three isolated frontier points and no
+pair-faces.  Its augmented boundary is the root, not zero.
+
+There is an independent obstruction to induction by erasing the isolated
+dummy.  Deleting a dummy interval can create a ko-illegal adjacent
+CLOSE/OPEN pair.  The unique local repair exchanges the pair, changes the
+universal moment by one real edge, and reverses which player controls the
+repaired OPEN.  If different defender branches open different real vertices,
+their repaired histories can reach the same dummy-free attacker node while
+requiring different selected moves.  Hence the repaired leaves do not belong
+to one deterministic target policy.  The correct object is a
+policy-indexed mapping cone whose repair-edge defects must be filled by
+earlier decorated siblings---precisely the ancestry term in
+Conjecture~\ref{conj:factor-extension}.
+
 \subsection{The exact factor interface}
 
 For a node $q$ in one fixed attacker strategy, retain the affine continuation
@@ -975,6 +1052,26 @@ $12{,}346$ graph classes, enumerated with the nauty toolchain whose algorithms
 are described in \cite{mckaypiperno2014}.  The script also checks the
 live-degree identities and the explicit obstruction schedules in this paper.
 
+A separate exact root search found the following sharp selector witness on
+real vertices $0,\ldots,8$ with isolated dummy $d$:
+\[
+\begin{split}
+E=\{&01,02,03,04,05,06,07,08,13,15,25,28,34,35,36,37,38,\\
+    &46,57,67,68,78\}.
+\end{split}
+\]
+After the attacker opens $0$, each real reply $1,\ldots,8$ is losing under
+unrestricted exact minimax; only the dummy reply wins.  Here $0$ has even
+degree, every other real vertex has odd degree, and the dummy is its unique
+same-parity mate.  The winning dummy child also has a direct certificate:
+the cells
+\[
+  \{0,d\},\ \{1,2\},\ \{3,8\},\ \{4,5\},\ \{6,7\}
+\]
+have even edge count between every two distinct cells, so
+Theorem~\ref{thm:parity-cell} applies.  This is an exact finite witness, not a
+proof of the remaining root selector or of Conjecture~\ref{conj:fifo}.
+
 The census is a finite theorem about the tested orders only.  It neither
 constructs the causal factor extension nor bounds its support.  Proposition
 \ref{prop:simplex-cap} in fact proves that a uniformly bounded-support version
@@ -994,9 +1091,11 @@ resulting ancestry factor can always be extended.
 The remaining difficulty is not another parity identity.  It is causal:
 prefix cancellations must be lifted through branch-dependent continuation
 cosets, and explicit examples require several defender siblings and
-unbounded affine support.  Proving the candidate normal-form classification
-and the causal factor-extension conjecture, or constructing an arbitrary-order
-obstruction, is the complete current frontier.
+unbounded affine support.  Ordinary chain cancellation has no cycle on the
+pruned history tree, schedule diamonds have nonzero curvature, and dummy
+deletion changes policy ownership.  Proving the candidate normal-form
+classification and the causal factor-extension conjecture, or constructing
+an arbitrary-order obstruction, is the complete current frontier.
 
 \bibliographystyle{plainnat}
 \bibliography{linking_affine}
