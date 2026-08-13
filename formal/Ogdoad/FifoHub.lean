@@ -342,6 +342,110 @@ theorem PublicRelated.terminal_iff {τ : Equiv.Perm V} {s t : State V}
     · rw [hq, hsq]
       rfl
 
+/-! ## Universal edge-moment equivariance -/
+
+/-- A vertex permutation acts on unordered edge coordinates. -/
+def sym2Relabel (τ : Equiv.Perm V) : Sym2 V ≃ Sym2 V where
+  toFun := Sym2.map τ
+  invFun := Sym2.map τ.symm
+  left_inv e := by
+    induction e using Sym2.inductionOn with
+    | _ x y => simp
+  right_inv e := by
+    induction e using Sym2.inductionOn with
+    | _ x y => simp
+
+/-- Push an edge vector forward along a vertex permutation. -/
+def relabelEdgeVector (τ : Equiv.Perm V) : EdgeVector V ≃+ EdgeVector V :=
+  Finsupp.domCongr (sym2Relabel τ)
+
+omit [Fintype V] [DecidableEq V] in
+@[simp]
+theorem relabelEdgeVector_single (τ : Equiv.Perm V) (x y : V)
+    (c : ZMod 2) :
+    relabelEdgeVector τ (Finsupp.single s(x, y) c) =
+      Finsupp.single s(τ x, τ y) c := by
+  simp [relabelEdgeVector, sym2Relabel, Finsupp.domCongr_apply]
+
+omit [Fintype V] in
+/-- Relabelling commutes with a complete-graph live-star vector. -/
+theorem relabelEdgeVector_liveStarVector (τ : Equiv.Perm V)
+    (L : Finset V) (v : V) :
+    relabelEdgeVector τ (liveStarVector L v) =
+      liveStarVector (L.map τ.toEmbedding) (τ v) := by
+  classical
+  rw [liveStarVector, map_sum]
+  simp only [relabelEdgeVector_single]
+  rw [liveStarVector]
+  apply Finset.sum_bij (fun w _ ↦ τ w)
+  · intro w hw
+    rw [Finset.mem_erase] at hw ⊢
+    exact ⟨τ.injective.ne hw.1,
+      Finset.mem_map.mpr ⟨w, hw.2, rfl⟩⟩
+  · intro w₁ hw₁ w₂ hw₂ h
+    exact τ.injective h
+  · intro w hw
+    rw [Finset.mem_erase] at hw
+    obtain ⟨x, hxL, hτx⟩ := Finset.mem_map.mp hw.2
+    refine ⟨x, Finset.mem_erase.mpr ⟨?_, hxL⟩, hτx⟩
+    intro hxv
+    subst x
+    exact hw.1 hτx.symm
+  · intro w hw
+    rfl
+
+omit [Fintype V] in
+/-- Publicly related states have relabelled live vertex sets. -/
+theorem PublicRelated.liveSet_eq {τ : Equiv.Perm V} {s t : State V}
+    (h : PublicRelated τ s t) :
+    liveSet t = (liveSet s).map τ.toEmbedding := by
+  simp only [PublicRelated, State.public, PublicState.relabel,
+    PublicState.mk.injEq] at h
+  rcases h with ⟨hU, hq, _, _⟩
+  simp only [liveSet]
+  rw [hU, hq]
+  ext w
+  simp only [Finset.mem_union, Finset.mem_map, List.mem_toFinset,
+    List.mem_map]
+  aesop
+
+omit [Fintype V] in
+/-- A move's universal live-star moment is equivariant under a fixed-graph
+public schedule pairing.  This statement is graph-independent and makes no
+claim about the two move charges. -/
+theorem moveLiveStar_publicRelated (τ : Equiv.Perm V) {s t : State V}
+    (hst : PublicRelated τ s t) (m : Move V) :
+    relabelEdgeVector τ (moveLiveStar s m) =
+      moveLiveStar t (relabelMove τ m) := by
+  cases m with
+  | «open» v =>
+      simp only [moveLiveStar, relabelMove]
+      rw [relabelEdgeVector_liveStarVector, hst.liveSet_eq]
+  | close => simp [moveLiveStar, relabelMove, relabelEdgeVector]
+  | pass => simp [moveLiveStar, relabelMove, relabelEdgeVector]
+
+omit [Fintype V] in
+/-- Paired fixed-graph traces have endpoint moments related by the induced
+domain permutation.  In the notation of the hub argument, this is the exact
+graph-independent identity `D(λ) = τ D(μ)`. -/
+theorem LiveStarTrace.relabel_fixedGraph (τ : Equiv.Perm V)
+    (G : SimpleGraph V) :
+    ∀ {s t u : State V} {z : EdgeVector V}, PublicRelated τ s t →
+      LiveStarTrace G s u z →
+      ∃ v, LiveStarTrace G t v (relabelEdgeVector τ z) ∧
+        PublicRelated τ u v := by
+  intro s t u z hst htrace
+  induction htrace generalizing t with
+  | refl s =>
+      exact ⟨t, by simpa [relabelEdgeVector] using LiveStarTrace.refl (G := G) t,
+        hst⟩
+  | @cons s s' u m z hstep htail ih =>
+      obtain ⟨t', htStep, hs't'⟩ := step_publicRelated τ G hst hstep
+      obtain ⟨v, hvTrace, huv⟩ := ih hs't'
+      refine ⟨v, ?_, huv⟩
+      have hcons := LiveStarTrace.cons htStep hvTrace
+      simpa [map_add, moveLiveStar_publicRelated τ hst m] using hcons
+
 end
 
 end Ogdoad.Fifo
