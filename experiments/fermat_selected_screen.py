@@ -248,6 +248,50 @@ def conway_resultant_step(poly: int) -> int:
     return result
 
 
+def poly_remainder(dividend: int, divisor: int) -> int:
+    """Return the exact remainder in ``F_2[X]``."""
+
+    if divisor == 0:
+        raise ZeroDivisionError("polynomial division by zero")
+    divisor_degree = divisor.bit_length() - 1
+    while dividend and dividend.bit_length() - 1 >= divisor_degree:
+        dividend ^= divisor << (dividend.bit_length() - 1 - divisor_degree)
+    return dividend
+
+
+def poly_gcd(left: int, right: int) -> int:
+    """Return the monic gcd in ``F_2[X]``."""
+
+    while right:
+        left, right = right, poly_remainder(left, right)
+    return left
+
+
+def is_irreducible_binary(poly: int) -> bool:
+    """Rabin irreducibility test for a monic binary polynomial."""
+
+    degree = poly.bit_length() - 1
+    if degree <= 0 or (poly >> degree) != 1:
+        return False
+    reducer = BinaryFieldReducer.build(poly)
+    x = 2
+    powers = [x]
+    for _ in range(degree):
+        powers.append(reducer.square(powers[-1]))
+    if powers[degree] != x:
+        return False
+    prime_divisors = {
+        prime
+        for prime in range(2, degree + 1)
+        if degree % prime == 0
+        and all(prime % divisor for divisor in range(2, math.isqrt(prime) + 1))
+    }
+    return all(
+        poly_gcd(poly, powers[degree // prime] ^ x) == 1
+        for prime in prime_divisors
+    )
+
+
 def selected_minimal_polynomial(level: int) -> int:
     """Return the minimal polynomial of ``a_(level-1)`` over ``F_2``."""
 
@@ -528,6 +572,40 @@ def self_test() -> None:
         jet_screen = factor_sensitive_jet_screen(5, factor)
         if jet_screen.arithmetic_gcd != 1 or not jet_screen.nonzero_by_arithmetic:
             raise AssertionError(f"unexpected F_5 jet obstruction at factor {factor}")
+
+    # A full marked parent conductor need not propagate to its deterministic
+    # child.  The first parent is literal; the second is an ambient full-packet
+    # factor with a proper child.  This is a route counterexample, not a
+    # Conway-ancestry counterexample.
+    parents = (0x18DCF, 0x18753)
+    children = (0x1D05A9A3B, 0x1DC43DBCF)
+    for parent, child in zip(parents, children, strict=True):
+        if not is_irreducible_binary(parent):
+            raise AssertionError(f"marked parent is reducible: {parent:#x}")
+        actual_child = conway_resultant_step(parent)
+        if actual_child != child:
+            raise AssertionError(
+                f"marked child mismatch: {actual_child:#x} != {child:#x}"
+            )
+        if not is_irreducible_binary(child):
+            raise AssertionError(f"marked child is reducible: {child:#x}")
+
+    expected_residues = (
+        (0x88F2EF2C, 0x1F3C2614),
+        (0xCAD49535, 0),
+    )
+    for child, expected_pair in zip(children, expected_residues, strict=True):
+        field = BinaryFieldReducer.build(child)
+        actual_pair = (
+            fibonacci_residue(641, field)[0],
+            fibonacci_residue(6_700_417, field)[0],
+        )
+        if actual_pair != expected_pair:
+            raise AssertionError(
+                f"marked child residue mismatch: {actual_pair} != {expected_pair}"
+            )
+        if fibonacci_residue((1 << 32) + 1, field)[0] != 0:
+            raise AssertionError("marked child does not lie in the F_5 packet")
 
 
 def parse_args() -> argparse.Namespace:

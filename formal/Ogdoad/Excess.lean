@@ -3424,6 +3424,23 @@ theorem signedDicksonLucas_eq_add_powers (T U : R) (n : Nat) :
       rw [signedDicksonLucas_add_two, hn, hn1]
       ring
 
+/-- Factorization behind the exact tangency of an odd Dickson trace word to
+the identity.  In characteristic two, taking `u = 1 + T` and
+`X = u + u⁻¹` turns the two factors on the right into the two independent
+`T`-adic contributions used by the paper's marked packet obstruction. -/
+theorem signedDicksonLucas_tangent_factor
+    {K : Type*} [Field K] (u : K) (hu : u ≠ 0) (k : Nat) :
+    signedDicksonLucas (u + u⁻¹) 1 (k + 1) + (u + u⁻¹) =
+      (u ^ k + 1) * (u + (u⁻¹) ^ (k + 1)) := by
+  have hprod : u * u⁻¹ = 1 := mul_inv_cancel₀ hu
+  have hbinet := signedDicksonLucas_eq_add_powers u u⁻¹ (k + 1)
+  rw [hprod] at hbinet
+  rw [hbinet]
+  have hpow : u ^ k * (u⁻¹) ^ (k + 1) = u⁻¹ := by
+    rw [pow_succ, ← mul_assoc, ← mul_pow, hprod, one_pow, one_mul]
+  rw [add_mul, one_mul, mul_add, ← pow_succ, hpow]
+  ac_rfl
+
 /-- Symmetric algebra behind the lifted Conway birth-edge criterion.
 The signed Dickson--Lucas equation and the norm equation are exactly the
 sum and product equations for the two ell-th powers; they add no second
@@ -4766,6 +4783,38 @@ theorem ordinary727_order_arithmetic :
 theorem ordinary727_selected_degree : 20 * 121 = 2420 := by norm_num
 
 end Ordinary727Certificate
+
+section Ordinary23StickelbergerCertificate
+
+/-- Exact finite arithmetic behind the actual-conductor `p = 23`
+Stickelberger obstruction in the ordinary arm.  The displayed coefficients
+are the externally derived grouped reciprocal-weight sums for the selected
+half-sum.  This checks their dot product only; it is not an ordinary excess
+counterexample. -/
+theorem ordinary23_stickelberger_halfSum_zero :
+    (22 : ZMod 23) * 5 ^ 0 +
+      2 * 5 ^ 1 + 12 * 5 ^ 2 + 12 * 5 ^ 3 +
+      21 * 5 ^ 4 + 13 * 5 ^ 5 + 18 * 5 ^ 6 + 20 * 5 ^ 7 +
+      5 * 5 ^ 8 + 8 * 5 ^ 9 + 1 * 5 ^ 10 + 10 * 5 ^ 11 +
+      18 * 5 ^ 12 + 8 * 5 ^ 13 + 6 * 5 ^ 14 + 6 * 5 ^ 15 +
+      20 * 5 ^ 16 + 21 * 5 ^ 17 + 3 * 5 ^ 18 + 15 * 5 ^ 19 +
+      0 * 5 ^ 20 + 11 * 5 ^ 21 = 0 := by
+  native_decide
+
+/-- The three omitted-conductor Euler factors do not account for the
+vanishing in `ordinary23_stickelberger_halfSum_zero`. -/
+theorem ordinary23_stickelberger_eulerFactor_nonzero :
+    (20 : ZMod 23) * 6 * 6 = 7 := by
+  native_decide
+
+/-- Conductor and semisimplicity arithmetic for the same certificate. -/
+theorem ordinary23_stickelberger_conductor_arithmetic :
+    11534325 = 3 * 5 ^ 2 * 11 ^ 2 * 31 * 41 ∧
+      5280000 % 23 ≠ 0 ∧
+      2 ^ 11 % 23 = 1 ∧ 2 % 23 ≠ 1 := by
+  norm_num
+
+end Ordinary23StickelbergerCertificate
 
 section CubicNormalBridge
 

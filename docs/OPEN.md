@@ -356,7 +356,12 @@ component information can lose it.
   outcome, and nonsemisimple blocks retain higher augmentation data. Conway
   ancestry forces each contributing character to retain the full current
   `r`-part of the conductor, but leaves possible inherited Euler factors and
-  the irregular half-sum unresolved.
+  the irregular half-sum unresolved. This is a genuine obstruction: at the
+  actual Conway conductor `r = 11, a = 1, p = 23`, one contributing
+  semisimple Stickelberger scalar vanishes while every omitted-conductor
+  Euler factor is nonzero. The literal row nevertheless has `m_23 = 1`, so
+  the still-missing datum is the marked prime-class projection, not uniform
+  Bernoulli nonvanishing.
 - For every residue degree `h`, an explicit cubical Frobenius coboundary has
   kernel equal to the product of all maximal proper subfield unit groups and
   image of exact order `Phi_h(2)`. It therefore gives a canonical coordinate
@@ -381,7 +386,16 @@ component information can lose it.
   weaker dimension or Bezout question. Across all levels, a
   proper-order vector is equivalent to one marked prime over `2` satisfying
   the complete bivariate Conway resultant chain. The remaining conjecture is
-  exclusion of every proper-conductor prime chain.
+  exclusion of every proper-conductor prime chain. An exact degree-16 witness
+  has full parent conductor but a deterministic degree-32 child of proper
+  conductor, so conductor-only induction is false. Uniform Dickson tangency
+  shows why low Hasse jets cannot repair it: the first term distinguishing a
+  missing-prime extraction appears only beyond the whole unreduced child
+  basis. The familiar Wiedemann/Q-transform block recursion is also not the
+  Conway block recursion; the latter is a different nested symmetric map, and
+  symplectic torus type alone again permits the proper child. The finite
+  witness is exactly replayed by the selected-screen self-test; it is not
+  promoted to a literal ancestry counterexample.
 - In the cubic arm, the exact index of the selected subgroup in the norm-one
   torus factors as a relative principal `2`-ray kernel times a reduced
   unit/circular-unit kernel. The latter divides a relative real class-number
@@ -403,7 +417,10 @@ component information can lose it.
   character is not semiprimitive; in the exceptional arm only the untwisted
   sum is semiprimitive, while evaluating the twisted sum is exactly the open
   residue symbol. The unavoidable conductor-five mixed Jacobi terms are not
-  semiprimitive either.
+  semiprimitive either. Jacobi congruence theorems identify the faithful
+  projection of the first oriented coefficient family with the selected
+  power-residue line, but inversion, Frobenius, and ancestry act homogeneously
+  on it; the zero coefficient obeys every such symmetry.
 - The current cubic and exceptional residue coordinates are orthogonal: their
   norm-one tori have coprime orders, the exceptional cubical operator kills
   the cubic subfield, and the local norm kills the exceptional torus. Thus
@@ -429,9 +446,11 @@ component information can lose it.
   group-theoretic lower bound, corrected sparse norm, exact cyclic/finite-field
   power tests, toric semiconjugacy, alternating two-step cubic conjugacy,
   supersingular coordinate symmetry, cubical `C/D` orthogonality and
-  faithful-character norm blindness, finite arithmetic screens, and algebraic
-  lemmas used by the four reductions. `DPrimeTarget` is deliberately only a
-  definition of the open universal target.
+  faithful-character norm blindness, the Dickson tangency factorization, the
+  supplied `p = 23` grouped-coefficient dot product and Euler-factor product,
+  finite screens, and algebraic lemmas used by the four reductions.
+  `DPrimeTarget` is deliberately only a definition of the open universal
+  target.
 - The exceptional column has an unconditional effective bound depending on
   `k`; it does not prove an absolute bound on all `m_p`.
 - The ordinary rows through the implementation cutoff include source-backed

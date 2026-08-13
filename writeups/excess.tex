@@ -49,6 +49,9 @@ exceptional auxiliary ancestry are affine forms of one toric Dickson system.
 We further identify exact proper-conductor packets and marked prime chains in
 the Conway--Fermat arm, and factor the exceptional selected index into a
 principal ray kernel and a class-number-controlled circular-unit quotient.
+An exact full-parent/proper-child packet witness rules out conductor-only
+induction, while an actual \(r=11,p=23\) Conway conductor has a vanishing
+Stickelberger character scalar despite its successful ordinary row.
 These structures sharpen the selected phase which remains to be evaluated;
 they do not force its nonvanishing.
 These are reductions, not proofs of the four universal assertions.  Formal
@@ -741,6 +744,84 @@ Under this relation, direct simplification gives
 \(\phi(A/A_q)=A^{-1}+A_q^{-1}\), completing the proof.
 \end{proof}
 
+There is a concrete marked witness to the distinction between conductor and
+ancestry.  Encode a binary polynomial \(\sum a_iX^i\) by the integer
+\(\sum a_i2^i\), and put
+\[
+ P^{(0)}=\mathtt{0x18dcf},\qquad
+ P^{(1)}=\mathtt{0x18753}.
+\]
+Both polynomials are irreducible of degree sixteen and have trace
+coefficient one.  Since \(F_4=65537\) is prime, both therefore belong to
+the full packet \(C_{65537}\): trace one makes the next
+Artin--Schreier polynomial irreducible, its quotient coordinate is a
+nonidentity element of \(\mu_{65537}\), and primality forces full order.
+The factor \(P^{(0)}\) is the literal selected factor at that level.
+Nevertheless their deterministic children
+are
+\[
+ R_{P^{(0)}}=\mathtt{0x1d05a9a3b},\qquad
+ R_{P^{(1)}}=\mathtt{0x1dc43dbcf},
+\]
+and exact Fibonacci reduction gives
+\[
+\begin{array}{c|cc}
+ &S_{641}&S_{6700417}\\ \hline
+ R_{P^{(0)}}&\mathtt{0x88f2ef2c}&\mathtt{0x1f3c2614}\\
+ R_{P^{(1)}}&\mathtt{0xcad49535}&0.
+\end{array}
+\]
+Both have \(S_{F_5}=0\), and \(641\) and \(6700417\) are prime.  Thus the
+first child has full conductor
+\(F_5=641\cdot6700417\), while the second has the proper conductor
+\(6700417\).  Since the selected degree-sixteen parent is \(P^{(0)}\ne
+P^{(1)}\), the second parent is not on the literal preceding ancestry.  Hence
+full parent conductor does not imply full child conductor, even for the
+marked deterministic child map.  What remains special is the entire iterated
+orbit from \(X+1\), not the conductor at one level.  The exact bit-polynomial
+resultants, Rabin irreducibility tests, and Fibonacci residues are replayed by
+the self-test in \texttt{experiments/fermat\_selected\_screen.py}.
+
+The corresponding failure of low-order descent is uniform.
+
+\begin{proposition}[Dickson tangency boundary]
+\label{prop:z-dickson-tangency}
+Let \(m>1\) be odd, put \(s=v_2(m-1)\), and assume \(s\geq2\).  For the
+characteristic-two Dickson word in
+Proposition~\ref{prop:z-packet-conductor-transition},
+\[
+ \operatorname{ord}_X\bigl(D_m(X)+X\bigr)=2^{s-1}+1.
+\]
+Equivalently,
+\[
+ D_m(X)=X+X^{2^{s-1}+1}U_m(X),\qquad U_m(0)=1.
+\]
+If \(\ell\mid F_{n+1}\) is prime, then
+\[
+ D_\ell(X)\equiv X\pmod {X^{2^{n+1}+1}}.
+\]
+The first coefficient which distinguishes extraction of an \(\ell\)-th
+root from the identity therefore lies beyond the unreduced basis of the
+degree-\(2^{n+1}\) marked child coordinate.  It becomes visible only after
+reduction by that exact marked child polynomial.
+\end{proposition}
+
+\begin{proof}
+Embed \(\mathbb F_2[X]\) into \(\mathbb F_2((T))\) by
+\[
+ u=1+T,\qquad X=u+u^{-1}=\frac{T^2}{1+T}.
+\]
+The Binet identity gives
+\[
+ D_m(X)+X=(u^{m-1}+1)(u+u^{-m}).
+\]
+The two factors have exact \(T\)-adic valuations \(2^s\) and \(2\),
+respectively, because \(v_2(m+1)=1\).  Since
+\(\operatorname{ord}_T(X)=2\), the asserted \(X\)-order follows.  Finally,
+\(\operatorname{ord}_\ell(2)=2^{n+2}\) implies
+\(v_2(\ell-1)\geq n+2\), giving the congruence.
+\end{proof}
+
 Iterating Proposition~\ref{prop:z-packet-conductor-transition} gives a
 top-only description, but not a new order bound.  Put \(Q_i=2^{2^i}\), set
 \(W_n=w_n\), and recursively define
@@ -891,10 +972,36 @@ sends the class of \(c\) to \(u\).  Thus
 The recurrence is a lossless encoding of the unknown order, not an order
 bound.  Its least zero period is already \(\delta_n\).  In particular,
 factorizations, trace identities, or automata derived only from this word
-reconstruct the selected order rather than force it to be \(F_n\).  The
-classical iterated quadratic tower of Wiedemann has a related norm-one form
-but a different recursion, so its order results do not transfer by a
-Frobenius identification \cite{wiedemann1988}.  The recent general
+reconstruct the selected order rather than force it to be \(F_n\).
+
+The matrix distinction can be made exact.  For a symmetric matrix \(B\), the
+Seyfarth--Ranade block
+\[
+ \Omega(B)=\begin{pmatrix}B&I\\I&0\end{pmatrix}
+\]
+implements the polynomial \(Q\)-transform and the Wiedemann recursion
+\cite{wiedemann1988,seyfarthranade2012}.  In the Conway tower, if \(B_i\)
+represents multiplication by
+\(s_i=a_{i-1}^{-1}=u_i+u_i^{-1}\), the literal recursion is instead
+\[
+ B_{i+1}=\Psi(B_i):=
+ \Omega(B_i)^2+\operatorname{diag}(B_i,B_i)+I
+ =\begin{pmatrix}B_i^2+B_i&B_i\\B_i&B_i\end{pmatrix}.
+\]
+For an eigenvalue \(s\) of \(B_i\), the new eigenvalue satisfies
+\(X^2+s^2X+s^3=0\), exactly the reciprocal Conway child equation.  The two
+block recursions already differ in degree eight: their characteristic
+polynomial bitmasks are respectively \(\mathtt{0x1d7}\) and
+\(\mathtt{0x18b}\).  The stabilizer \(\Omega(B_i)\) is a regular irreducible
+symplectic element in a cyclic nonsplit torus of order \(2^d+1\), but this
+forces only \(\operatorname{ord}_e(2)=2d\), not \(e=2^d+1\).  Choose a
+symmetric realization \(B\) of the reciprocal of \(P^{(1)}\).
+Then \(\Psi(B)\) is symmetric, and \(\Omega(\Psi(B))\) is an irreducible
+64-dimensional symplectic stabilizer of the proper order \(6700417\).  Thus
+matrix symmetry, torus type, and centralizer size cannot replace the complete
+nested \(\Psi\)-ancestry.
+
+The recent general
 Artin--Schreier tower theorem of Cagliero, Herman, and Szechtman proves the
 exact product of the relative orders, but its maximality condition remains
 precisely that every relative factor \(\delta_j\) be full; it does not prove
@@ -1474,6 +1581,75 @@ with \(J(\theta)=0\).  An omitted Euler factor vanishes exactly when
 \(\overline\theta(\ell)=\ell\); it is automatically nonzero if
 \(-1\in\langle2,\ell\rangle\) modulo \(pm\).  Neither this subgroup
 condition nor nonvanishing of the half-sum follows uniformly from ancestry.
+
+The half-sum can in fact vanish at an actual Conway conductor.
+
+\begin{proposition}[actual irregular marked-conductor block]
+\label{prop:o-actual-irregular}
+At the literal birth level \(r=11\), \(a=1\), \(p=23\), the selected
+ancestor has minimal polynomial
+\[
+ P_{\alpha_{11}}(X)=
+ P_{\alpha_5}\bigl((X+1)^5\bigr)=X^{20}+X^{16}+X^5+X+1,
+ \qquad P_{\alpha_5}(X)=X^4+X+1,
+\]
+and order \(M=2^{20}-1\).  Hence
+\[
+ N=11M=3\cdot5^2\cdot11^2\cdot31\cdot41=11534325,
+ \qquad \operatorname{ord}_N(2)=220,
+\]
+while \(23\mid\Phi_{11}(2^{20})\) and
+\(23\nmid\varphi(N)=5280000\).
+
+There is an even primitive character \(\theta\) of conductor
+\(363=3\cdot11^2\), inflated to modulus \(N\), with
+\(\overline\theta(2)=2\), for which the full projected Stickelberger scalar
+in \(J(\theta)\) is zero modulo \(23\).  None of its omitted-conductor Euler
+factors vanishes.  Thus uniform nonvanishing of the actual-conductor
+Bernoulli--Stickelberger scalar is false.
+\end{proposition}
+
+\begin{proof}
+Take \(z=5\in\mathbb F_{23}^{\times}\), and on the conductor-\(3\) and
+conductor-\(121\) components define, using discrete logarithms to the base
+two,
+\[
+ \overline\theta(a)=
+ z^{11\log_{2,3}(a)+13\log_{2,121}(a)}.
+\]
+Then \(\overline\theta(2)=z^{11+13}=z^2=2\).  Its conductor-\(3\)
+component is nontrivial because \(z^{11}=-1\ne1\).  The character is even
+because \(11+13\cdot55\equiv0\pmod{22}\), and it is primitive at \(121\) because
+\(\overline\theta(2^{10})=z^{20}\ne1\).  For
+\(\chi=\omega^{-1}\theta\), grouping the \(2420\) terms of the half-sum by
+\(\overline\theta(u)=5^e\) gives the coefficient vector
+\[
+ (22,2,12,12,21,13,18,20,5,8,1,10,18,8,6,6,20,21,3,15,0,11).
+\]
+Its integer dot product with the least nonnegative residues of
+\((5^e)_{e=0}^{21}\) modulo \(23\) is
+\(2737=23\cdot119\), so the \(\mathbb F_{23}\)-dot product is zero.  The
+omitted primes \(5,31,41\) contribute Euler
+factors \(20,6,6\), whose product is \(7\ne0\pmod{23}\).  The displayed
+minimal polynomial is the previously certified literal ancestor polynomial.
+In the polynomial basis of
+\(\mathbb F_2[X]/(X^{20}+X^{16}+X^5+X+1)\), with \(\alpha_{11}=X\), the five
+nonidentity bit encodings
+\[
+ \alpha_{11}^{M/q}=
+ \mathtt{0x536},\ \mathtt{0xfac8},\ \mathtt{0x6da4},\
+ \mathtt{0xc6a9e},\ \mathtt{0x19bc8}
+ \quad(q=3,5,11,31,41)
+\]
+certify \(\operatorname{ord}(\alpha_{11})=M\); the remaining conductor
+arithmetic is immediate.
+\end{proof}
+
+This is not an \(O\)-counterexample: the literal row has \(m_{23}=1\).
+Rather, it proves that vanishing of a projected Stickelberger scalar does
+not by itself put the Conway-selected prime class in that surviving block.
+The remaining datum is still the projection of the marked prime over two,
+or equivalently its selected Artin value.
 
 \begin{proposition}[phase conservation above the birth level]
 \label{prop:o-tail}
@@ -2556,6 +2732,21 @@ of two is minus one modulo this conductor, so the mixed terms are not
 semiprimitive either.  Explicit reciprocity therefore retains, rather than
 eliminates, the marked scalar.
 
+Arul's Jacobi congruence theorem makes this boundary exact
+\cite{arul2021}.  At the first nonautomatic order, the Jacobi congruence is
+equivalent to \(\ell\)-power residuacity of the finite oriented family
+\(\eta_{0,j}\).  Propositions~\ref{prop:c-circular-ray} and
+\ref{prop:d-circular-ray} collapse its faithful projection in the present
+arms to the single marked line.  More precisely, Arul's
+\(j\leftrightarrow f-j\) index relation is homogeneous for
+\(0\leq i\leq\ell-3\); its delta terms occur only at
+\(i=\ell-2,\ell-1\).  Thus the two conductor-five orientations in arm \(D\),
+and the inverse cubic orientations in arm \(C\), preserve a zero first
+coefficient.  Frobenius merely rescales it, while on the current character
+the ancestry norm has eigenvalue \(1+r+r^2=0\) in \(C\) and
+\(1+2^h=0\) in \(D\).  The Jacobi formalism therefore identifies the
+missing scalar but does not force it to be nonzero.
+
 \begin{proposition}[prime current factor]\label{prop:d-prime}
 Let \(k\geq2\), put
 \[
@@ -2784,8 +2975,14 @@ Conway curve.  The two-face, three-face, and two-prime cubical identities
 support the common primitive-support coordinate used in the zero and
 exceptional arms.  The common-root and faithful-character norm identities
 kernel-check the exact \(C/D\) orthogonality and the norm-blindness statement.
-It
-checks the recorded factorizations of \(\Psi_k\) for \(2\leq k\leq6\), the
+The signed Dickson--Lucas factorization underlying
+Proposition~\ref{prop:z-dickson-tangency} is kernel-checked.  The modular
+half-sum and Euler-factor values in
+Proposition~\ref{prop:o-actual-irregular} are checked from the supplied
+grouped coefficients and factors; the formalization does not derive those
+inputs, the packet bitmasks, or the character construction from first
+principles.  It also checks the recorded factorizations of \(\Psi_k\) for
+\(2\leq k\leq6\), the
 primality of the modest factors through \(k=4\), and exact order-of-two
 screens for the recorded factors.
 
