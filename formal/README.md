@@ -84,18 +84,21 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoOutcomeAlgebra`, `FifoOutcomeSwitch` | the four-valued sheet is not contextual under a ko-locked neutral pair; even a both-even dummy-free root has reversed active dummy orders with opposite outcomes for one seat |
 | `FifoTreeTrace`, `FifoQPotential` | kernel-checked obstructions to the raw complete-leaf sum and to pointwise queue-cut-potential normalization |
 | `FifoPairState` | every score-zero mover failure with an OPEN available yields a lower minimum-hot singleton wall whose charged endpoints are real; ancestry from the original strategy is not supplied |
+| `FifoStrategyBadAncestry`, `FifoStrategyBadAncestryClear` | minimize the residual target inside one exact odd strategy, retain root prefixes and the complete immediate parent fan, and reduce every minimal bad predecessor to the charged-CLOSE spike or protected-singleton case; the neutral-CLOSE and clear-OPEN cases are impossible |
 | `FifoFirstSeatRoot` | exact first-seat Bellman normal form: one chosen initial OPEN followed by the complete universal second-OPEN fan; the existence of such a winning opener remains open |
 | `FifoBadArcCycle`, `FifoFirstSeatStrategy` | one first-seat odd strategy supplies a fixed-point-free selected reply map with common-root ancestry; cycle prefixes cancel, but continuation augmentation still obstructs contraction |
+| `FifoFunctionalDigraphBoundary` | even cycles plus genuine feeding in-trees still admit an isolated-dummy separator evaluating every selected arc prefix to one; functional-digraph incidence alone cannot supply the odd contraction |
 | `FifoDummyFront` | exact neutral dummy-front commuting diamond and the necessary consumed-pair selector; opening the dummy first relocates rather than removes the real-pair obligation |
 | `FifoDummyFrontAffine` | the odd-order dummy-front legal fan is even and its projected OPEN-prefix sum is the surviving real star, which no local odd response point can equal; earlier ancestry is necessary |
 | `FifoStrategyInteraction`, `FifoSelfPlay` | complementary-seat odd policies share a compatible odd terminal, whereas same-seat policies at score-and-turn-conjugate states are impossible; dummy timing supplies only the controller phase and real-front curvature leaves a one-front/edge defect, so two-copy self-play still needs an earlier sibling |
 | `FifoSeparatorFlow`, `FifoThreeSiblingBoundary` | an odd zero-prefix fan retains separator value one in its continuation residue, and immediate fan completeness does not force any earlier OPEN sibling to select the lag-removing CLOSE; the missing repair must be an odd cross-coset incidence |
+| `FifoRootCongruence` | cross-graph strategy interaction produces one common public trace and moment; a winner change under an elementary graph congruence forces the exact row-defect functional to evaluate to one, rather than proving root-value invariance |
 
-Every theorem in these modules is subsidiary. None supplies either the full
-strategy-relative minimum-bad ancestry classification or the subsequent
-selection of compatible earlier siblings and continuation cosets. The
-mathematical frontier is summarized in `docs/OPEN.md` and proved up to that
-boundary in `writeups/linking_affine.tex`.
+Every theorem in these modules is subsidiary. None yet supplies the selection
+of compatible earlier siblings and continuation cosets in the two surviving
+minimal-bad ancestries. That causal factor extension is the mathematical
+frontier summarized in `docs/OPEN.md` and proved up to its exact boundary in
+`writeups/linking_affine.tex`.
 
 ## Open Lenstra-excess frontier
 

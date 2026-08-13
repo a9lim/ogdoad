@@ -100,6 +100,16 @@ front quotients while respecting the chosen strategy tree.
   available forces a lower minimum-hot singleton wall whose charged endpoints
   are real; it deliberately does not identify that globally minimal wall with
   a descendant of the original counterstrategy.
+  `FifoStrategyBadAncestry.lean` repairs that ancestry defect by minimizing
+  inside one supplied odd strategy. It retains exact root prefixes and the
+  complete immediate defender fan, proves that the selected bad move is a
+  charged CLOSE of a real front with a neutral translated continuation, and
+  excludes the neutral-CLOSE predecessor. `FifoStrategyBadAncestryClear.lean`
+  excludes the remaining clear-OPEN predecessor: its CLOSE sibling forces the
+  next front to have unit charge, while all OPEN siblings make that front
+  universal on the even carrier and hence give charge zero. Thus the exact
+  strategy-relative normal form has only the charged-CLOSE spike and
+  protected-singleton cases.
   `FifoFirstSeatRoot.lean` proves the exact first-seat root normal form: the
   first physical player wins precisely when some initial OPEN has a complete
   winning fan over every legal second OPEN. The stronger claim that every
@@ -110,7 +120,10 @@ front quotients while respecting the chosen strategy tree.
   selected cycle has zero aggregate two-OPEN prefix. For an odd cycle the
   continuation sum has nonzero real-edge projection; for an even cycle it is
   only a homogeneous response direction. Thus the cycle alone does not
-  contract the root strategy.
+  contract the root strategy. `FifoFunctionalDigraphBoundary.lean` shows that
+  adding the feeding in-trees does not create a graph-independent repair: an
+  isolated-dummy separator can evaluate every selected arc prefix to one, so
+  every odd arc subfamily still has nonzero real-edge projection.
   `FifoDummyFront.lean` proves the exact neutral diamond
   `CLOSE d; OPEN z = OPEN z; CLOSE d` below an initial dummy-first pair. It
   also proves that an even win there requires some even-winning
@@ -137,24 +150,26 @@ front quotients while respecting the chosen strategy tree.
   the lag-removing CLOSE. The missing object is therefore an odd incidence
   across correlated continuation cosets, not merely an additional immediate
   branch.
+  `FifoRootCongruence.lean` gives the exact graph-shear boundary. Opposite
+  strategies on a graph and its elementary congruence interact to one common
+  public trace and live-star moment; if the root winner changes, the
+  congruence-row defect evaluates to one on that correlated moment. This is an
+  obstruction identity, not root-value invariance.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.
 
 ### Remaining theorem
 
-The local response fans contract, and descendants of a critical charged close
-can be scalar-neutral. The missing causal contraction has two coupled parts:
-
-1. prove that a lexicographically minimal bad node has either the candidate
-   odd--odd charged-close ancestry or the protected-singleton/ko-wall ancestry;
-2. in that ancestry, select compatible earlier defender siblings across FIFO
-   front levels so that their prefixes and continuation cosets cancel the
-   residual real-edge class with odd augmentation.
-
-The paper proves the local ingredients of the proposed normal form but does
-not claim their strategy-relative composition. The second part is the
-multi-sibling factor extension.
+The local response fans contract, descendants of a critical charged close can
+be scalar-neutral, and the exact strategy-relative minimal-bad ancestry
+classification is now proved. The sole remaining theorem is the causal factor
+extension: in the charged-CLOSE spike and protected-singleton cases, select
+compatible earlier defender siblings across FIFO front levels so that their
+prefixes and continuation cosets cancel the residual real-edge class with odd
+augmentation. Descendant-only, immediate-third-sibling, cycle-only, and
+functional-digraph-incidence versions are all formally ruled out; the required
+factor must use correlated continuation cosets from strictly earlier ancestry.
 
 For the first-seat half there is also a sharper root-level target. A
 hypothetical odd root strategy contains every first OPEN and selects one
@@ -170,7 +185,10 @@ an odd cycle has the right affine augmentation but its continuation sum is
 provably nonzero after real-edge projection, whereas an even cycle has only
 the augmentation of a direction. A successful first-seat contraction must
 therefore incorporate an in-tree branch or another earlier sibling in
-addition to the cycle.
+addition to the cycle. Incidence alone is still insufficient even after all
+in-tree branches are included: the explicit seven-vertex functional-digraph
+separator evaluates each selected arc prefix to one, so every odd subfamily
+remains nonzero in the real-edge quotient.
 
 Choosing the isolated dummy as the first opener does not avoid this boundary.
 At the resulting pair `[d,y]`, closing `d` before a real open `z` and opening

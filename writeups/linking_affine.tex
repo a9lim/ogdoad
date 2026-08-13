@@ -43,13 +43,13 @@ correlated.
 
 The paper records the proved part of this reduction: live-star and complete
 reply-fan identities, parity-cell and matching subclasses, complete exclusion
-of close-first counterstrategies, and fixed-front contraction.  We also state
-a candidate odd--odd/ko-wall normal form, marking the missing ancestry
-classification explicitly.  Explicit
+of close-first counterstrategies, fixed-front contraction, and a
+strategy-relative minimal-bad theorem reducing every hypothetical
+counterstrategy to charged-CLOSE-spike or protected-singleton ancestry.
+Explicit
 families show that childwise contraction and uniformly bounded affine
-certificates are false.  The remaining assertions are the strategy-relative
-normal-form classification and a causal factor-extension theorem coupling
-earlier defender siblings to descendant continuation cosets.
+certificates are false.  The remaining assertion is a causal factor-extension
+theorem coupling earlier defender siblings to descendant continuation cosets.
 We prove that three tempting globalizations cannot supply that theorem:
 the pruned history tree has no nonzero one-cycles, commuting OPEN/CLOSE
 squares carry a genuine unit-edge curvature, and erasing the dummy is not a
@@ -756,6 +756,28 @@ neither parity contracts the counterstrategy.  One must add an in-tree branch
 or another earlier sibling to obtain both odd augmentation and zero projected
 moment.
 
+The whole functional digraph does not repair this by incidence alone.  There
+is a fixed-point-free map on seven labels with two even cycles and genuine
+feeding in-trees, together with a graph having an isolated dummy, for which
+the graph functional evaluates every selected two-OPEN arc prefix to one.
+Consequently every odd arc subfamily---including arbitrary combinations of
+cycle and in-tree arcs---has nonzero real-edge projection.  Any successful
+functional-digraph argument must use correlations among the continuation
+cosets, not only the source--target incidence matrix.
+
+Elementary congruence of the alternating adjacency matrix is also an exact
+reduction boundary rather than a free invariance.  FIFO legality is
+graph-independent, so an even strategy on $G$ and an odd strategy on an
+elementary shear $G'$ can be interacted to a common public terminal word and
+a common live-star moment $D$.  Their opposite scores force the shear row
+functional to satisfy
+\[
+  \rho_{G,i,j}(D)=1.
+\]
+Thus a proof of root invariance under graph congruence would have to exclude
+or neutralize precisely these strategy-correlated moments; public-state
+equivariance alone yields the unit defect instead.
+
 Opening the isolated dummy first is another tempting specialization, but it
 only relocates the selector.  From the pair state with queue $(d,y)$, for every
 remaining real $z$ the neutral square
@@ -780,84 +802,97 @@ have that projected value.  An additional affine point from earlier root
 ancestry is necessary even in the dummy-first specialization.
 
 Assume for contradiction that the affine condition of
-Theorem~\ref{thm:affine} fails.  Choose a separating graph $B$ and a positional
-attacker policy forcing terminal score one.  Along its response tree, label a
-node by the residual target $r\in\mathbb F_2$: $r=1$ means that its selected
-continuation must still contribute odd score, and a move of charge $c$
-changes the label to $r+c$.  Call an $r=1$ node \emph{bad}.
+Theorem~\ref{thm:affine} fails, and fix the resulting exact odd strategy.
+Among its score-zero nodes choose one of minimum remaining rank, and among
+those one with minimum untouched-carrier size.  This strategy-relative choice
+repairs the ancestry defect in a global minimum-hot argument: every node used
+below remains an actual descendant of the same root policy.
 
-The affine dual recursion and the cut filtration allow a bad node to be
-chosen lexicographically minimal in the number of live real vertices and
-then in the remaining game rank.  The complete reply fan and fixed-front
-contraction suggest the following normal form.  Its composite ancestry
-classification is an explicit open reduction step, not a proved theorem.
-
-\begin{conjecture}[minimal obstruction normal form]
-\label{conj:normal-form}
-A minimal bad node is attacker-controlled.  Its selected move is a
-charge-one close of a real front $x$, and the selected child has residual
-target zero.  Its defender ancestry reduces to one of two forms.
+\begin{theorem}[strategy-relative bad-predecessor trichotomy]
+\label{thm:bad-predecessor}
+The chosen node $s$ is attacker-controlled and has score zero.  Its selected
+move is a charge-one close of a real front $f$; translating the selected
+continuation by one gives a neutral winning subtree.  Moreover $s$ has an
+immediate defender parent $p$, an exact root-to-$p$ prefix, and the complete
+legal fan at $p$.  Exactly one of the following shapes occurs.
 \begin{enumerate}
-\item An odd--odd close spike
-\[
-  0\xrightarrow{C_y,\,1}1\xrightarrow{C_x,\,1}0,
-  \qquad Q=(y,x,Q_0).
-\]
-\item A protected singleton after the dummy has already been touched:
-\[
-  0\xrightarrow{C_y,\,1}1
-  \xrightarrow{\operatorname{OPEN}(x),\,0}1.
-\]
-At the final node the queue is $(x)$ with ko set, the untouched set $U$ is a
-nonempty even set of real vertices, and $x$ is adjacent to every vertex of
-$U$.  Every forced defender open $z\in U$ leads to a minimal bad child whose
-selected $C_x$ has charge one.
+\item The incoming move is a charged close.  For some $y$,
+$Q_p=(y,f,Q_0)$, the score at $p$ is one, and $C_y$ has charge one.
+\item The incoming move is an open from a protected singleton:
+$Q_p=(f)$, the ko bit is set, and opening $x$ produces
+$Q_s=(f,x)$.
+\item The incoming move is an open from a clear nonempty queue.  The old
+front is $f$, its charge before the open is zero, the untouched carrier has
+even cardinality, and $f$ is adjacent to every untouched vertex.  Opening
+$x$ removes one such neighbour and makes the selected $C_f$ charged.
 \end{enumerate}
-The apparent third case, a zero-charge predecessor close followed by the
-charge-one $C_x$, is impossible.
-\end{conjecture}
+The putative fourth case---a zero-charge predecessor close followed by the
+selected charged close---is impossible.
+\end{theorem}
 
-\begin{remark}[proved ingredients and missing step]
-At a minimal bad defender node, a legal open preserves the residual label and
-lowers rank, contradicting minimality.  Hence the node is attacker-controlled.
-Its selected child must have residual zero; opens and passes have charge zero,
-so the selected move is a unit close.  The isolated dummy cannot be that
-front.
+\begin{proof}
+At a minimum-rank score-zero node, an attacker-selected open or pass would
+leave a smaller score-zero descendant.  Hence the selected move is a charged
+close, and isolation makes its front real.  The immediate-parent decomposition
+retains the full defender fan and its root prefixes.  A charged incoming close
+gives the first case.  If the incoming close were neutral, an OPEN sibling at
+the same remaining rank would still have score zero but a strictly smaller
+untouched carrier, contradicting the secondary minimum.
 
-Inspect the preceding defender move.  A preceding close produces the first
-form, except potentially when its charge is zero.  In that potential branch,
-every defender open child is again bad.  If the attacker delays the old front
-close by another open, Theorem~\ref{thm:fixed-front} gives an odd zero-prefix
-flow and hence a smaller bad exit.  Thus every such child must close the old
-front immediately.  Minimality then forces every untouched vertex to be
-adjacent to both consecutive fronts.  The untouched set has even cardinality,
-contradicting the unit charge of $C_x$.
+For an incoming open, coherence splits on the parent's ko bit.  A set ko bit
+forces the singleton queue in the second case.  In the clear case, apply the
+same minimum-rank selected-close argument to every alternative OPEN sibling.
+The old front therefore has charge one after deleting each possible opened
+vertex.  The elementary flip identity forces its charge on the old carrier to
+be zero and makes it adjacent to every untouched vertex; handshaking then
+gives even carrier size.  These deductions, including the strategy prefixes
+and neutral translated continuation, are kernel-checked in
+\texttt{FifoStrategyBadAncestry}.
+\end{proof}
 
-If the preceding defender move is an open, summing its required unit-close
-conditions over all alternative opens forces an even real untouched set on
-which $x$ is universal.  A clear ko bit would permit the defender to close
-$x$ neutrally and descend, so the queue is the protected singleton.  An
-untouched dummy would violate universality, hence it has already been touched.
-Tracing the empty-queue open of $x$ back one more move gives the odd
-singleton-front close in the second display.  The pair-response identity is
-expected to exclude every other predecessor shape.
+\begin{theorem}[clear-OPEN exclusion]
+\label{thm:clear-open-exclusion}
+The third alternative of Theorem~\ref{thm:bad-predecessor} cannot occur in an
+initial isolated-dummy odd strategy.  Hence every strategy-relative minimal
+bad node has either charged-CLOSE-spike or protected-singleton ancestry.
+\end{theorem}
 
-The first paragraph and the local fan, fixed-front, charged-close, and
-singleton-wall ingredients are proved.  A complete proof must still transport
-the fixed-front contraction through the selected attacker tree to justify the
-two predecessor exclusions.  No single Lean declaration or complete paper
-argument currently supplies that transport; it belongs to the causal
-factor-extension frontier below.
-\end{remark}
+\begin{proof}
+Let the clear parent have queue $(f,r)$ and untouched carrier $U$.  Its
+complete fan contains the neutral sibling $C_f$, which has score zero and the
+same remaining rank as the chosen bad node.  Rank minimality forces $r$ to be
+nonempty, say $r=(y,r_0)$, and forces the attacker in this sibling to select a
+unit close of $y$.  Thus
+\[
+  c(y,U)=1.
+\]
+For every $z\in U$, the same parent fan also contains the score-zero sibling
+$O_z$.  Its queue begins $(f,y)$ and it has the same minimal rank.  The
+attacker selects $C_f$; the following defender node universally contains
+$C_y$.  If $C_y$ had unit charge, those two closes would return to score zero
+at smaller rank.  Therefore
+\[
+  c(y,U\setminus\{z\})=0\qquad(z\in U).
+\]
+Comparing the two displayed equations shows that $y$ is adjacent to every
+$z\in U$.  But Theorem~\ref{thm:bad-predecessor} gives $|U|=0$ in
+$\mathbb F_2$, so universality gives $c(y,U)=|U|=0$, contradicting the first
+display.  The exact same-root prefixes, sibling subtrees, and rank comparisons
+are kernel-checked in \texttt{FifoStrategyBadAncestryClear}.
+\end{proof}
 
-Assuming Conjecture~\ref{conj:normal-form}, its selected unit close has a useful
-strategy-relative consequence.  Choose the minimal score-zero node inside
-the explicit odd strategy tree.  Every strict descendant of its selected
-child lies on score sheet one; translating that subtree by one gives a
-strategy in which every transition is score-neutral.  In the protected
-singleton case, applying this to every forced open $z\in U$ gives neutral
-tails with queue $(z)$ and untouched set $U\setminus\{z\}$.  The defender may
-close $z$ immediately, so
+This completes the predecessor classification inside the actual
+counterstrategy.  The two surviving cases still require the causal factor
+extension below; the theorem does not by itself select compatible
+continuations across their earlier siblings.
+
+Independently of that remaining exclusion, the selected unit close has a
+useful strategy-relative consequence.  Every strict descendant of its
+selected child lies on score sheet one; translating that subtree by one gives
+a strategy in which every transition is score-neutral.  In a protected
+singleton fan, applying the same minimum-rank argument to every forced open
+$z\in U$ gives neutral tails with queue $(z)$ and untouched set
+$U\setminus\{z\}$.  The defender may close $z$ immediately, so
 \[
   \deg_{U\setminus\{z\}}(z)=0\qquad(z\in U).
 \]
@@ -1240,7 +1275,8 @@ the displayed factor identity makes this sum zero.
 
 Without restrictions on the nodes, the converse is tautological: one may use
 the root itself.  The content is to construct the list causally from the
-complete defender fans exposed by Conjecture~\ref{conj:normal-form}.  The local
+complete defender fans exposed by Theorems~\ref{thm:bad-predecessor}
+and~\ref{thm:clear-open-exclusion}.  The local
 identities already prove the required equations for prefix cuts, fixed-front
 remainders, and close-first descendants.  What remains is to lift those
 equations through the attacker-pruned child cosets while preserving odd
@@ -1248,14 +1284,14 @@ augmentation.
 
 \begin{conjecture}[causal factor extension]\label{conj:factor-extension}
 For every separating attacker strategy, the odd--odd spike or protected
-singleton frontier of Conjecture~\ref{conj:normal-form} admits an odd ancestry
+singleton frontier of Theorems~\ref{thm:bad-predecessor}
+and~\ref{thm:clear-open-exclusion} admits an odd ancestry
 factor satisfying the displayed identity of
 Proposition~\ref{prop:factor-interface}, using descendant continuation
 directions together with strictly earlier defender siblings.
 \end{conjecture}
 
-Together, Conjectures~\ref{conj:normal-form} and
-\ref{conj:factor-extension} are the two current proof obligations for
+Conjecture~\ref{conj:factor-extension} is the remaining proof obligation for
 Conjecture~\ref{conj:fifo}.  In the relative-spine language, if $h$ is the
 selected minimal bad node, $b_h=\Gamma_h+a_h$, and $M_h$ is the sum of all
 frontier continuation spaces and all even sums of off-spine decorated points,
@@ -1264,8 +1300,9 @@ the assertion is simply
   b_h\in M_h.
 \]
 The separating graph pairs to one with $b_h$ and annihilates $M_h$ in a
-hypothetical counterexample.  Conjecture~\ref{conj:normal-form} predicts that only
-the two displayed ancestry patterns need be contradicted; Proposition
+hypothetical counterexample.  Theorems~\ref{thm:bad-predecessor}
+and~\ref{thm:clear-open-exclusion} leave exactly the two candidate ancestry
+patterns to be contradicted; Proposition
 \ref{prop:odd-spike-no-go} shows why the strictly earlier siblings cannot be
 omitted.
 
@@ -1306,10 +1343,20 @@ these are self-play boundary theorems, not an end-to-end contraction.
 separator value one in its continuation residue, and
 \texttt{FifoThreeSiblingBoundary} gives the exact same-tree countermodel to
 the naive immediate third-sibling selector.
+\texttt{FifoFunctionalDigraphBoundary} shows that adding genuine feeding
+in-trees to the selected first-seat cycles does not make incidence sufficient:
+an isolated-dummy separator evaluates every selected arc prefix to one.
+\texttt{FifoRootCongruence} proves the common-public-trace interaction across
+graphs and the resulting unit elementary-congruence row defect; it does not
+prove root-value invariance.
 Finally, \texttt{FifoPairState} proves that every score-zero mover failure
 with an OPEN available forces a lower minimum-hot singleton wall with two real
-charged endpoints.  Its minimum is global in rank, not yet a descendant in
-the original counterstrategy; recovering that ancestry remains the gap.
+charged endpoints.  \texttt{FifoStrategyBadAncestry} performs the minimum
+inside the supplied strategy, retains the exact root ancestry and complete
+parent fan, and kernel-excludes the neutral-CLOSE predecessor.
+\texttt{FifoStrategyBadAncestryClear} excludes the clear-OPEN predecessor by
+combining its CLOSE sibling with every OPEN sibling.  The only surviving
+minimal-bad ancestries are the charged-CLOSE spike and protected singleton.
 
 The executable oracle \texttt{experiments/linking\_game.py} implements the
 same state transition.  Exact minimax verifies Conjecture~\ref{conj:fifo} for
@@ -1350,19 +1397,20 @@ The isolated-dummy FIFO problem is exactly an affine response problem in a
 binary edge space.  The scalar score, interval disjointness, live-star sum,
 and front-cut filtration are four forms of the same invariant.  Local reply
 fans contract, parity-cell and matching boards are solved, and close-first
-counterstrategies are excluded.  The remaining reduction first asks whether
-every hypothetical counterexample can be placed in the candidate odd--odd
-charged-close or protected-singleton normal form, and then whether the
-resulting ancestry factor can always be extended.
+counterstrategies are excluded.  Strategy-relative minimization now proves
+the complete immediate-parent trichotomy and eliminates both the neutral-CLOSE
+and clear-OPEN cases.  The remaining reduction asks whether the resulting
+charged-CLOSE-spike or protected-singleton ancestry factor can always be
+extended.
 
 The remaining difficulty is not another parity identity.  It is causal:
 prefix cancellations must be lifted through branch-dependent continuation
 cosets, and explicit examples require several defender siblings and
 unbounded affine support.  Ordinary chain cancellation has no cycle on the
 pruned history tree, schedule diamonds have nonzero curvature, and dummy
-deletion changes policy ownership.  Proving the candidate normal-form
-classification and the causal factor-extension conjecture, or constructing
-an arbitrary-order obstruction, is the complete current frontier.
+deletion changes policy ownership.  Proving the causal factor-extension
+conjecture, or constructing an arbitrary-order obstruction, is the complete
+current frontier.
 
 \bibliographystyle{plainnat}
 \bibliography{linking_affine}
