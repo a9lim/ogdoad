@@ -79,6 +79,9 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoDummyDeletion`, `FifoDummyExitCarrier` | exact dummy-deletion walls and the parent-plus-even-children carrier |
 | `FifoOuterFan`, `FifoProtectedFan`, `FifoCrossExitIncidence` | prefix-free fans and the residual continuation-incidence target |
 | `FifoInterlace`, `FifoSymmetry` | endpoint-word/local-complementation and turn/score symmetry limits |
+| `FifoHub` | score-erased schedule relabelling, live-star transport, transposition defects, and graph-congruence algebra; no root-value conjugacy |
+| `FifoEmptyQueue`, `FifoBlockInduction`, `FifoOutcome`, `FifoOutcomeBlock` | empty-to-empty block parity, conditional first-return splicing, exact four-valued score-debt transport, and the proof that stopping at complete favorable outcome sheets is equivalent to the original game; the scalar/parity mover premise is false |
+| `FifoTreeTrace`, `FifoQPotential` | kernel-checked obstructions to the raw complete-leaf sum and to pointwise queue-cut-potential normalization |
 
 Every theorem in these modules is subsidiary. None supplies either the full
 strategy-relative minimum-bad ancestry classification or the subsequent

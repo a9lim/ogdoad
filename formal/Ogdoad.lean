@@ -22,6 +22,13 @@ import Ogdoad.FifoDummyDeletion
 import Ogdoad.FifoRootSelector
 import Ogdoad.FifoNeutralPair
 import Ogdoad.FifoMinHotCurvature
+import Ogdoad.FifoHub
+import Ogdoad.FifoEmptyQueue
+import Ogdoad.FifoTreeTrace
+import Ogdoad.FifoQPotential
+import Ogdoad.FifoBlockInduction
+import Ogdoad.FifoOutcome
+import Ogdoad.FifoOutcomeBlock
 import Ogdoad.FifoMatching
 import Ogdoad.ImpartialRealizer
 import Ogdoad.GoldSemantics

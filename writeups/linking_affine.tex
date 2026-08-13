@@ -972,6 +972,123 @@ policy-indexed mapping cone whose repair-edge defects must be filled by
 earlier decorated siblings---precisely the ancestry term in
 Conjecture~\ref{conj:factor-extension}.
 
+\subsection{First-return blocks and outcome-valued debt}
+
+Another natural attempt is to stop whenever the FIFO queue first returns to
+empty and induct on the untouched carrier.  The bookkeeping is exact, but it
+does not reduce the continuation to one score bit.
+
+\begin{proposition}[first-return factorization]
+\label{prop:first-return-factorization}
+Let $b$ be a nonempty legal prefix from an empty queue to the first later
+empty queue, and suppose its endpoint is nonterminal.  If $B$ is the set of
+vertices opened in $b$, then $b$ has $|B|$ OPENs, $|B|$ CLOSEs, no PASS, and
+length $2|B|$.  In particular, the same physical player moves at the two
+empty-queue endpoints.
+
+There is a prefix vector $P_b$ such that every continuation $h$ on the
+residual carrier satisfies
+\[
+  D(bh)=P_b+\iota_bD(h).
+\]
+On a real edge $uv$, the coefficient of $P_b$ is zero if both endpoints are
+residual, one if exactly one lies in $B$, and, if both lie in $B$, their
+interval-disjointness bit inside $b$.
+\end{proposition}
+
+\begin{proof}
+Queue length changes by $+1$ on OPEN, by $-1$ on CLOSE, and not at all on
+PASS, so the endpoint equation gives equally many OPENs and CLOSEs.  A legal
+PASS requires the untouched set to be empty, which remains true thereafter;
+the nonterminal endpoint therefore excludes PASS.  Every opened vertex is
+opened once, giving the length and mover statements.
+
+For the vector identity, inspect one real edge.  Two residual endpoints
+contribute only in $h$.  If just one endpoint belongs to $B$, it opens while
+the residual endpoint is live and closes before that endpoint opens, so the
+edge occurs exactly once in the prefix live-star sum.  If both endpoints lie
+in $B$, their whole interval relation has already been decided inside $b$.
+These three cases are exactly the displayed definition of $P_b$.
+\end{proof}
+
+For one fixed attacker strategy, truncate at all first returns.  If the
+continuation coset below an exit $b$ is $A_b=a_b+W_b$, Proposition
+\ref{prop:first-return-factorization} gives the exact recursion
+\[
+ A_{\rm root}=\operatorname{Aff}
+ \bigcup_b\bigl(P_b+\iota_bA_b\bigr).
+\]
+Thus first-return grouping merely repackages the factor-extension problem:
+the different exits carry different prefix decorations and different
+continuation cosets.
+
+Even the apparently weaker scalar induction, ``return with score zero while
+the dummy remains, or terminate with score zero'', is false in both seat
+orientations.
+
+\begin{proposition}[dummy-retention obstruction]
+\label{prop:dummy-retention-obstruction}
+For $K_3$ together with an isolated dummy, the player seeking odd score can
+defeat the stated stopped target when that player opens the block.  For
+$K_4$ together with an isolated dummy, the same is true when the player
+seeking even score opens the block.
+\end{proposition}
+
+\begin{proof}
+On $K_3+d$, the odd player opens $d$.  Up to symmetry the reply is $O_a$;
+play $C_d$.  The even player now sees
+\[
+ U=\{b,c\},\qquad Q=(a),\qquad s=0.
+\]
+The move $C_a$ is an immediate neutral first return with the dummy consumed.
+After $O_b$, answer $C_a$, which has charge one.  The replies are $C_b$,
+which has charge one and gives another neutral first return with the dummy
+consumed, or $O_c$, after which the queue drains terminally at score one.
+The $O_c$ branch at the displayed state is symmetric.  These are all legal
+moves.
+
+On $K_4+d$, let the even player open the block.  If it first opens $d$, open
+a real vertex.  At the resulting even turn, $C_d$ followed by a real OPEN,
+or a real OPEN followed by $C_d$, reaches
+\[
+  |U\cap K_4|=2,\qquad Q=(a,b),\qquad s=0.
+\]
+Here an even CLOSE/CLOSE gives a neutral first return with $d$ consumed;
+a real OPEN is answered by $C_a$, reaching score one with one real vertex
+untouched and queue length two.  A CLOSE then followed by CLOSE returns
+empty at score one, while opening the last vertex drains terminally at score
+one.
+
+If instead the first move is real, open a second real vertex.  From the even
+turn with two real vertices and $d$ untouched, exchange the replies $C_a$
+and $O_d$: either order reaches two untouched real vertices, queue $(b,d)$,
+and score zero.  There, $C_b,C_d$ is a neutral consumed-dummy return; a real
+OPEN followed by $C_b$ reaches score one with one real vertex untouched and
+queue $(d,c)$, from which closing $d$ or opening the last vertex drains at
+score one.  The remaining even option is to open a third real vertex before
+touching $d$; answer $C_a$.  At score one, with one real vertex and $d$
+untouched and queue length two, two CLOSEs give an empty score-one state with
+$d$ untouched, while opening $d$ or the last real vertex is answered by
+opening the other and drains terminally at score one.  Symmetry exhausts all
+choices.
+\end{proof}
+
+The correct residual summary after a consumed-dummy return is already
+outcome-valued.  For a no-dummy residual graph $H$, let
+$e(H)=(e_0,e_1)$, where $e_s$ says that physical seat $s$ can force terminal
+score zero from the score-zero empty root.  If the same mover returns at
+current score $c$, designated seat $s$ is safe exactly when
+\[
+  (c=0\ \wedge\ e_s)\quad\text{or}\quad
+  (c=1\ \wedge\ \neg e_{1-s}).
+\]
+For $c=0$ this is the definition.  For $c=1$, score translation changes the
+target to one, and finite determinacy says that seat $s$ can force one exactly
+when the opposing seat cannot force zero.  Hence a valid block induction must
+carry at least this two-seat outcome pair, or more canonically the affine
+continuation coset.  Dummy presence and residual cardinality alone do not
+close the recursion.
+
 \subsection{The exact factor interface}
 
 For a node $q$ in one fixed attacker strategy, retain the affine continuation
@@ -1043,6 +1160,17 @@ isolated-dummy root, and the minimum-hot singleton-wall normal form.  Related
 modules formalize fixed-policy affine spaces and individual causal transports.
 These are subsidiary lemmas, not a single kernel-checked proof of
 Conjecture~\ref{conj:fifo}.
+
+The modules \texttt{FifoHub}, \texttt{FifoEmptyQueue}, \texttt{FifoOutcome},
+and \texttt{FifoOutcomeBlock} check the score-erased relabelling, live-star
+transport, exact block counts, four-valued debt involution, and circularity of
+stopping at already favorable complete-outcome exits.
+\texttt{FifoBlockInduction} checks a conditional strategy-splicing interface
+but does not prove its scalar/parity block premises.  The modules
+\texttt{FifoTreeTrace} and \texttt{FifoQPotential} certify small obstructions
+to the raw complete-leaf sum and to pointwise queue-cut normalization.  These
+negative interfaces narrow the required ancestry construction; they do not
+settle the root conjecture.
 
 The executable oracle \texttt{experiments/linking\_game.py} implements the
 same state transition.  Exact minimax verifies Conjecture~\ref{conj:fifo} for

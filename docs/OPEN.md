@@ -75,6 +75,22 @@ front quotients while respecting the chosen strategy tree.
   `FifoInterlace`, `FifoSymmetry`, and `FifoMinHotCurvature` modules prove local
   transport, fan, deletion, symmetry, and obstruction lemmas. They expose the
   surviving ancestry term rather than cancel it.
+- `FifoHub.lean` proves score-erased schedule equivariance, exact live-star
+  transport, transposition-defect identities, and the corresponding
+  characteristic-two graph-congruence formula. These are algebraic transport
+  statements, not a strategy or root-value conjugacy.
+- `FifoEmptyQueue.lean` proves that every nonterminal empty-to-empty block has
+  equally many OPENs and CLOSEs, no PASS, even length, and the same mover at
+  its two endpoints. `FifoBlockInduction.lean` kernel-checks an exact
+  first-return splicing interface, while explicitly recording that its
+  scalar/parity-only mover hypothesis is false. `FifoOutcome.lean` proves the
+  exact four-valued debt involution `(M,N) -> (not N,not M)` on the
+  mover/nonmover outcome sheet; `FifoOutcomeBlock.lean` proves that allowing
+  precisely the favorable complete-outcome exits is equivalent to the
+  original winning assertion, so that reformulation alone is circular.
+  `FifoTreeTrace.lean` and
+  `FifoQPotential.lean` give small checked obstructions to the raw all-leaf
+  sum and to maintaining the queue-cut potential pointwise.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.
@@ -99,6 +115,17 @@ childwise continuation arguments, dummy deletion, and turn/score symmetry do
 not supply this selection; explicit checked states delimit each route. A proof
 must use causal information from the selected strategy tree, not only the
 underlying graph or the set of terminal histories.
+
+Empty-queue blocking does not remove that requirement. Although a
+nonterminal first-return block preserves the physical mover, neither forcing
+every such block to score zero nor allowing only a residual-cardinality bit is
+a valid universal induction hypothesis. Even with an isolated dummy, the
+stronger demand that a neutral first return retain the dummy fails on
+`K_3 + d` and `K_4 + d`, in the two seat orientations. Once the dummy has
+been consumed, the exact residual datum is the two-seat outcome pair of the
+remaining no-dummy root, together with the current score. Equivalently, the
+next valid reduction must carry that outcome-valued debt or the full affine
+continuation coset; one scalar block charge is insufficient.
 
 The apparent topological shortcut is also excluded. With history occurrences
 retained, an attacker-pruned policy is a tree, so its edge-boundary map is
