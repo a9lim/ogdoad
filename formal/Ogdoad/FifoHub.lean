@@ -446,6 +446,136 @@ theorem LiveStarTrace.relabel_fixedGraph (τ : Equiv.Perm V)
       have hcons := LiveStarTrace.cons htStep hvTrace
       simpa [map_add, moveLiveStar_publicRelated τ hst m] using hcons
 
+/-! ## Transposition defects -/
+
+/-- The binary defect of an edge vector under a vertex permutation. -/
+def edgeRelabelDefect (τ : Equiv.Perm V) (c : EdgeVector V) : EdgeVector V :=
+  c + relabelEdgeVector τ c
+
+/-- An edge vector is paired along the orbits of `τ`. -/
+def EdgeOrbitPaired (τ : Equiv.Perm V) (c : EdgeVector V) : Prop :=
+  relabelEdgeVector τ c = c
+
+omit [Fintype V] [DecidableEq V] in
+/-- Coefficient form of the domain-permutation action. -/
+@[simp]
+theorem relabelEdgeVector_apply_map (τ : Equiv.Perm V) (c : EdgeVector V)
+    (e : Sym2 V) :
+    relabelEdgeVector τ c (Sym2.map τ e) = c e := by
+  change Finsupp.equivMapDomain (sym2Relabel τ) c
+      ((sym2Relabel τ) e) = c e
+  simp
+
+omit [Fintype V] in
+/-- Swapping the same two labels twice fixes every edge vector. -/
+theorem relabelEdgeVector_swap_twice (y z : V) (c : EdgeVector V) :
+    relabelEdgeVector (Equiv.swap y z)
+        (relabelEdgeVector (Equiv.swap y z) c) = c := by
+  ext e
+  have he : Sym2.map (Equiv.swap y z) (Sym2.map (Equiv.swap y z) e) = e := by
+    induction e using Sym2.inductionOn with
+    | _ x w => simp [Equiv.swap_apply_self]
+  calc
+    relabelEdgeVector (Equiv.swap y z)
+        (relabelEdgeVector (Equiv.swap y z) c) e =
+      relabelEdgeVector (Equiv.swap y z)
+        (relabelEdgeVector (Equiv.swap y z) c)
+          (Sym2.map (Equiv.swap y z) (Sym2.map (Equiv.swap y z) e)) := by
+            rw [he]
+    _ = relabelEdgeVector (Equiv.swap y z) c
+          (Sym2.map (Equiv.swap y z) e) :=
+      relabelEdgeVector_apply_map _ _ _
+    _ = c e := relabelEdgeVector_apply_map _ _ _
+
+omit [Fintype V] in
+/-- A transposition defect has paired coefficients on every nontrivial edge
+orbit.  This is the coordinate-free paired-star form of `(id + τ)c`. -/
+theorem edgeRelabelDefect_swap_paired (y z : V) (c : EdgeVector V) :
+    EdgeOrbitPaired (Equiv.swap y z)
+      (edgeRelabelDefect (Equiv.swap y z) c) := by
+  rw [EdgeOrbitPaired, edgeRelabelDefect, map_add,
+    relabelEdgeVector_swap_twice]
+  exact add_comm _ _
+
+omit [Fintype V] in
+/-- Explicit paired-coordinate consequence of the preceding invariant. -/
+theorem edgeRelabelDefect_swap_coordinate (y z : V) (c : EdgeVector V)
+    (e : Sym2 V) :
+    edgeRelabelDefect (Equiv.swap y z) c
+        (Sym2.map (Equiv.swap y z) e) =
+      edgeRelabelDefect (Equiv.swap y z) c e := by
+  let d := edgeRelabelDefect (Equiv.swap y z) c
+  have hpair : relabelEdgeVector (Equiv.swap y z) d = d :=
+    edgeRelabelDefect_swap_paired y z c
+  calc
+    d (Sym2.map (Equiv.swap y z) e) =
+        relabelEdgeVector (Equiv.swap y z) d
+          (Sym2.map (Equiv.swap y z) e) := by rw [hpair]
+    _ = d e := relabelEdgeVector_apply_map _ _ _
+
+omit [Fintype V] in
+/-- Fixed edge coordinates vanish in a transposition defect; all possible
+support is therefore carried by paired nontrivial transposition orbits. -/
+theorem edgeRelabelDefect_swap_fixed_eq_zero (y z : V) (c : EdgeVector V)
+    (e : Sym2 V) (hfix : Sym2.map (Equiv.swap y z) e = e) :
+    edgeRelabelDefect (Equiv.swap y z) c e = 0 := by
+  rw [edgeRelabelDefect]
+  change c e + relabelEdgeVector (Equiv.swap y z) c e = 0
+  nth_rewrite 2 [← hfix]
+  rw [relabelEdgeVector_apply_map]
+  exact CharTwo.add_self_eq_zero _
+
+omit [Fintype V] in
+/-- Every coordinate disjoint from the two swapped labels vanishes in the
+defect. -/
+theorem edgeRelabelDefect_swap_away_eq_zero (y z : V) (c : EdgeVector V)
+    (a b : V) (hay : a ≠ y) (haz : a ≠ z) (hby : b ≠ y) (hbz : b ≠ z) :
+    edgeRelabelDefect (Equiv.swap y z) c s(a, b) = 0 := by
+  apply edgeRelabelDefect_swap_fixed_eq_zero
+  simp [Equiv.swap_apply_of_ne_of_ne hay haz,
+    Equiv.swap_apply_of_ne_of_ne hby hbz]
+
+omit [Fintype V] in
+/-- The two star arms at the swapped labels have equal defect coefficients
+away from the hub pair. -/
+theorem edgeRelabelDefect_swap_star_pair (y z : V) (c : EdgeVector V)
+    (w : V) (hwy : w ≠ y) (hwz : w ≠ z) :
+    edgeRelabelDefect (Equiv.swap y z) c s(y, w) =
+      edgeRelabelDefect (Equiv.swap y z) c s(z, w) := by
+  have h := edgeRelabelDefect_swap_coordinate y z c s(y, w)
+  simpa [Equiv.swap_apply_left,
+    Equiv.swap_apply_of_ne_of_ne hwy hwz] using h.symm
+
+omit [Fintype V] [DecidableEq V] in
+/-- Evaluating a relabelled edge vector on `G` is evaluation of the original
+vector on the oppositely relabelled graph. -/
+theorem graphEvaluation_relabelEdgeVector (τ : Equiv.Perm V)
+    (G : SimpleGraph V) (c : EdgeVector V) :
+    graphEvaluation G (relabelEdgeVector τ c) =
+      graphEvaluation (relabelGraph τ.symm G) c := by
+  have hhom :
+      (graphEvaluation G).comp (relabelEdgeVector τ).toAddMonoidHom =
+        graphEvaluation (relabelGraph τ.symm G) := by
+    apply Finsupp.addHom_ext
+    intro e a
+    induction e using Sym2.inductionOn with
+    | _ x y =>
+        simp [relabelEdgeVector_single, graphEvaluation_single,
+          adjacencyBit, relabelGraph, SimpleGraph.comap_adj]
+        by_cases h : G.Adj (τ x) (τ y) <;> simp [h]
+  exact DFunLike.congr_fun hhom c
+
+omit [Fintype V] in
+/-- The scalar evaluation of a transposition defect is the sum of the two
+graph functionals related by that transposition. -/
+theorem graphEvaluation_edgeRelabelDefect_swap (G : SimpleGraph V)
+    (y z : V) (c : EdgeVector V) :
+    graphEvaluation G (edgeRelabelDefect (Equiv.swap y z) c) =
+      graphEvaluation G c +
+        graphEvaluation (relabelGraph (Equiv.swap y z) G) c := by
+  rw [edgeRelabelDefect, map_add, graphEvaluation_relabelEdgeVector,
+    Equiv.symm_swap]
+
 end
 
 end Ogdoad.Fifo
