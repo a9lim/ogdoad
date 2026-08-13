@@ -95,6 +95,10 @@ front quotients while respecting the chosen strategy tree.
   available forces a lower minimum-hot singleton wall whose charged endpoints
   are real; it deliberately does not identify that globally minimal wall with
   a descendant of the original counterstrategy.
+  `FifoFirstSeatRoot.lean` proves the exact first-seat root normal form: the
+  first physical player wins precisely when some initial OPEN has a complete
+  winning fan over every legal second OPEN. The stronger claim that every
+  ordered initial pair is winning is sufficient, but remains unproved.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.
@@ -113,6 +117,14 @@ can be scalar-neutral. The missing causal contraction has two coupled parts:
 The paper proves the local ingredients of the proposed normal form but does
 not claim their strategy-relative composition. The second part is the
 multi-sibling factor extension.
+
+For the first-seat half there is also a sharper root-level target. A
+hypothetical odd root strategy contains every first OPEN and selects one
+second OPEN below each of them, so all of those bad ordered pairs share one
+strategy ancestry. Proving that this selected first-two-OPEN fan has a safe
+branch would settle the first-seat half. Treating the pair states as unrelated
+conditioned games discards exactly this common ancestry and has not produced a
+proof.
 
 Purely graph-local parity, fixed pairings, bounded-support affine circuits,
 childwise continuation arguments, dummy deletion, and turn/score symmetry do

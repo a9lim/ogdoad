@@ -714,6 +714,37 @@ defender ancestry; conditioned close-first contraction alone does not do so.
 
 \section{The sharp frontier}\label{sec:frontier}
 
+The first-seat orientation has an especially economical root normal form.
+Write $s_{xy}$ for the state after the two legal initial moves
+$\operatorname{OPEN}(x),\operatorname{OPEN}(y)$, with $x\ne y$.
+
+\begin{proposition}[first-seat two-open Bellman form]
+\label{prop:first-seat-bellman}
+Suppose the carrier has at least two vertices.  The first physical player can
+force score zero from the initial root if and only if there is a vertex $x$
+such that it can force score zero from $s_{xy}$ for every $y\ne x$.
+Consequently it is sufficient to prove that every ordered pair $x\ne y$ gives
+a winning state $s_{xy}$.
+\end{proposition}
+
+\begin{proof}
+At the empty root the first player controls the move and must open some $x$.
+The resulting queue is the protected singleton $(x)$ and the untouched set is
+nonempty.  The opponent therefore cannot close or pass and its legal moves are
+exactly the opens $y\ne x$.  Bellman recursion now gives the displayed
+existential--universal condition.  The converse splices the assumed winning
+continuation below every such second open.
+\end{proof}
+
+This normal form does not assert that the required $x$ exists.  Its main value
+is causal: in a hypothetical first-seat counterstrategy, every first open is a
+defender branch of one strategy, and the attacker selects one second opener
+$f(x)\ne x$ below each branch.  Thus the selected ordered pairs form a
+fixed-point-free functional digraph with genuine common root ancestry.  A
+cycle argument would be sufficient only if its prefix cancellation can be
+lifted through the branch-dependent continuation cosets; this is a specialized
+form of the same factor-extension problem below.
+
 Assume for contradiction that the affine condition of
 Theorem~\ref{thm:affine} fails.  Choose a separating graph $B$ and a positional
 attacker policy forcing terminal score one.  Along its response tree, label a
