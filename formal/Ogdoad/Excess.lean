@@ -8074,6 +8074,67 @@ section NormalizedSingerAlgebra
 
 variable {F : Type*} [Field F]
 
+/-- The rational trace coordinate on the cubic Singer locus.  For
+`x^(q+1) + x + 1 = 0`, this is the relative trace of `x` over the preceding
+cubic field. -/
+def singerTraceMap (x : F) : F :=
+  (x ^ 3 + x + 1) / (x ^ 2 + x)
+
+/-- Möbius coordinate which identifies the selected cubic trace ancestry
+with the ordinary cubing map. -/
+def singerMobius (omega x : F) : F :=
+  (x + omega) / (x + omega ^ 2)
+
+/-- Denominator-free core of `W(R(x)) = W(x)^3`, where
+`R(x) = (x^3+x+1)/(x^2+x)` and `W(x) = (x+omega)/(x+omega^2)`.
+This is the exact algebraic conjugacy behind the recursively selected Singer
+orbit; it does not assert that the resulting cyclotomic unit is primitive. -/
+theorem singer_trace_mobius_numerator_identity [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0) :
+    (x ^ 3 + x + 1 + omega * (x ^ 2 + x)) * (x + omega ^ 2) ^ 3 =
+      (x ^ 3 + x + 1 + omega ^ 2 * (x ^ 2 + x)) * (x + omega) ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  linear_combination
+    (omega ^ 5 * x ^ 2 + omega ^ 5 * x + omega ^ 4 * x ^ 3 -
+      omega ^ 4 * x ^ 2 + omega ^ 4 + 2 * omega ^ 3 * x ^ 3 +
+      2 * omega ^ 3 * x ^ 2 - 2 * omega ^ 3 * x - omega ^ 3 +
+      3 * omega ^ 2 * x ^ 4 - 6 * omega ^ 2 * x ^ 3 -
+      omega ^ 2 * x ^ 2 + 5 * omega ^ 2 * x - 3 * omega * x ^ 4 +
+      3 * omega * x ^ 3 - omega * x ^ 2 - 4 * omega * x +
+      2 * x ^ 5 - 4 * x ^ 4 + 6 * x ^ 3 + 2 * x ^ 2 - 4 * x) * homega +
+    (-2 * omega * x ^ 5 + 4 * omega * x ^ 4 - 6 * omega * x ^ 3 -
+      2 * omega * x ^ 2 + 4 * omega * x - x ^ 5 + 2 * x ^ 4 -
+      3 * x ^ 3 - x ^ 2 + 2 * x) * htwo
+
+/-- On the open set where the two Möbius coordinates are defined, the
+selected Singer trace map is conjugate to cubing. -/
+theorem singerMobius_traceMap [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0)
+    (hx : x ^ 2 + x ≠ 0) (hxomega : x + omega ^ 2 ≠ 0)
+    (htraceomega : singerTraceMap x + omega ^ 2 ≠ 0) :
+    singerMobius omega (singerTraceMap x) = (singerMobius omega x) ^ 3 := by
+  have hnum := singer_trace_mobius_numerator_identity x omega homega
+  have htranslate (a : F) :
+      singerTraceMap x + a =
+        (x ^ 3 + x + 1 + a * (x ^ 2 + x)) / (x ^ 2 + x) := by
+    calc
+      singerTraceMap x + a = a + (x ^ 3 + x + 1) / (x ^ 2 + x) := by
+        simp only [singerTraceMap, add_comm]
+      _ = (a * (x ^ 2 + x) + (x ^ 3 + x + 1)) / (x ^ 2 + x) :=
+        add_div_eq_mul_add_div a (x ^ 3 + x + 1) hx
+      _ = (x ^ 3 + x + 1 + a * (x ^ 2 + x)) / (x ^ 2 + x) := by
+        congr 1
+        ring
+  have hden : x ^ 3 + x + 1 + omega ^ 2 * (x ^ 2 + x) ≠ 0 := by
+    rw [htranslate] at htraceomega
+    exact (div_ne_zero_iff.mp htraceomega).1
+  simp only [singerMobius]
+  rw [htranslate, htranslate]
+  rw [div_div_div_cancel_right₀ hx]
+  rw [div_pow]
+  apply (div_eq_div_iff hden (pow_ne_zero 3 hxomega)).2
+  simpa [mul_comm] using hnum
+
 /-- Denominator-free normalization of the selected reciprocal cubic.
 Substituting z = d * τ and zPrev = d³ into
 z³ + zPrev*z² + zPrev = 0 gives τ³ + d²*τ² + 1 = 0. -/

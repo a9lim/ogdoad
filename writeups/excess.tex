@@ -915,6 +915,97 @@ while exponentiation by \(q_k-1\) detects the new \(U_k\)-factor without
 changing its order.  This proves the last equivalence.
 \end{proof}
 
+The cubic ancestry admits a closed rational-dynamical form.  This makes the
+word ``selected'' in Proposition~\ref{prop:c-eta} completely explicit.
+
+\begin{proposition}[Singer trace ancestry and M\"obius conjugacy]
+\label{prop:c-singer-ancestry}
+Put \(q=2^{3^{k-1}}\), \(N=q^2+q+1\), and
+\[
+ \mathcal D_k=\{x\in U_k:x^{q+1}+x+1=0\}.
+\]
+For \(x\in\mathcal D_k\), define
+\[
+ R(x)=\operatorname{Tr}_{\mathbb F_{q^3}/\mathbb F_q}(x)
+     =\frac{x^3+x+1}{x^2+x}.
+\]
+If
+\(
+ \mathcal A_j=\{\eta_j^{2^i}:0\leq i<3^j\}
+\)
+and \(\mathcal A_0=\{0\}\), then
+\[
+ \mathcal D_k\cap R^{-1}(\mathcal A_{k-1})=\mathcal A_k.
+\]
+Thus the complete lower ancestry selects one unique absolute-Frobenius orbit
+inside the Singer set \(\mathcal D_k\).
+
+If \(Q_j\) is the minimal polynomial of \(\eta_j\), then, with
+\(A=X^2+X\) and \(B=X^3+X+1\),
+\[
+ Q_k(X)=A^{3^{k-1}}Q_{k-1}(B/A),\qquad Q_0(X)=X.
+\]
+Over \(\mathbb F_4\), choose \(\omega^2+\omega+1=0\) and put
+\[
+ W(x)=\frac{x+\omega}{x+\omega^2}.
+\]
+Then
+\[
+ W(R(x))=W(x)^3.
+\]
+Consequently \(z_k=W(\eta_k)\) has exact order \(3^{k+1}\), and
+\[
+ \eta_k=\omega^2\frac{z_k+\omega^2}{z_k+1}.
+\]
+The current order assertion is equivalent to the family of literal
+polynomial nondivisibilities
+\[
+ \operatorname{ord}(\eta_k)=N
+ \quad\Longleftrightarrow\quad
+ Q_k(X)\nmid X^{N/\ell}-1
+ \quad\hbox{for every prime }\ell\mid N.
+\]
+\end{proposition}
+
+\begin{proof}
+For \(x\in\mathcal D_k\), its defining equation gives
+\[
+ x^q=\frac{x+1}{x},\qquad x^{q^2}=\frac1{x+1}.
+\]
+Adding the three conjugates gives the displayed formula for \(R\).  The fibre
+over \(t\) is exactly the root set of
+\[
+ X^3+tX^2+(t+1)X+1.
+\]
+Proposition~\ref{prop:c-eta} therefore shows that the fibre over each
+\(\eta_{k-1}^{2^i}\) consists of the three conjugates
+\(\eta_k^{2^{i+a\,3^{k-1}}}\), \(0\leq a<3\).  These fibres exhaust
+\(\mathcal A_k\), proving the orbit identity.  Taking their product gives
+the denominator-cleared recursion for \(Q_k\).
+
+Direct expansion using \(\omega^2+\omega+1=0\) gives
+\[
+ \frac{R(x)+\omega}{R(x)+\omega^2}
+ =\frac{(x+\omega)^3}{(x+\omega^2)^3}.
+\]
+There are no poles along the selected iteration: \(\eta_j\notin\mathbb F_2\)
+for \(j\geq1\), and
+\(\mathbb F_{2^{3^j}}\cap\mathbb F_4=\mathbb F_2\), so neither denominator
+\(\eta_j^2+\eta_j\) nor \(\eta_j+\omega^2\) vanishes.
+Since \(R^{\circ k}(\eta_k)=0\) and \(W(0)=\omega^2\), one has
+\(z_k^{3^k}=\omega^2\), hence \(z_k\) has exact order \(3^{k+1}\).
+Solving the M\"obius equation gives the formula for \(\eta_k\).  Finally,
+irreducibility of \(Q_k\), followed by the prime-divisor test in the cyclic
+group of order \(N\), gives the last equivalence.
+\end{proof}
+
+This proposition identifies the literal selected orbit rather than an ambient
+degree or norm class.  It does not prove primitivity: the conjugacy turns the
+remaining assertion into the power-residue order of one marked M\"obius
+cyclotomic unit.  In particular, the lower trace ancestry is nonlinear, while
+the relative norm of every element of \(\mathcal D_k\) is one; no multiplicative
+descent to the preceding level survives.
+
 \begin{proposition}[exact Capelli dichotomy]\label{prop:c-capelli-dichotomy}
 Let \(Q_k\in\mathbb F_2[X]\) be the minimal polynomial of \(\eta_k\),
 and let \(\ell\) be a prime divisor of
