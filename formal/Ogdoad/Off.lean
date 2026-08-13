@@ -12,20 +12,21 @@ roots live in such a subfield.
 
 namespace Ogdoad.Off
 
-variable {K : Type*} [Field K] [CharP K 2] [IsAlgClosed K]
+variable {K : Type*} [Field K] [CharP K 2]
 
 open scoped CharTwo
 
 omit [CharP K 2] in
 /-- Frobenius is surjective over an algebraically closed field. -/
-theorem frobenius_surjective : Function.Surjective (fun x : K => x ^ 2) := by
+theorem frobenius_surjective [IsAlgClosed K] :
+    Function.Surjective (fun x : K => x ^ 2) := by
   intro a
   obtain ⟨x, hx⟩ := IsAlgClosed.exists_pow_nat_eq a (by decide : 0 < 2)
   exact ⟨x, hx⟩
 
 omit [CharP K 2] in
 /-- The Artin–Schreier map `x ↦ x² + x` is surjective. -/
-theorem artinSchreier_surjective :
+theorem artinSchreier_surjective [IsAlgClosed K] :
     Function.Surjective (fun x : K => x ^ 2 + x) := by
   intro a
   let p : Polynomial K := Polynomial.X ^ 2 + Polynomial.X - Polynomial.C a
@@ -51,17 +52,17 @@ one symplectic plane. -/
 def pairSpan (e f : V) : Submodule K V :=
   Submodule.span K ({e, f} : Set V)
 
-omit [CharP K 2] [IsAlgClosed K] in
+omit [CharP K 2] in
 private lemma left_mem_pairSpan (e f : V) : e ∈ pairSpan (K := K) e f := by
   rw [pairSpan, Submodule.mem_span_pair]
   exact ⟨1, 0, by simp⟩
 
-omit [CharP K 2] [IsAlgClosed K] in
+omit [CharP K 2] in
 private lemma right_mem_pairSpan (e f : V) : f ∈ pairSpan (K := K) e f := by
   rw [pairSpan, Submodule.mem_span_pair]
   exact ⟨0, 1, by simp⟩
 
-omit [CharP K 2] [IsAlgClosed K] in
+omit [CharP K 2] in
 private lemma pairSpan_eq_of_mem {e f v w : V}
     (hv : v ∈ pairSpan (K := K) e f) (hw : w ∈ pairSpan (K := K) e f)
     (he : e ∈ pairSpan (K := K) v w) (hf : f ∈ pairSpan (K := K) v w) :
@@ -80,7 +81,7 @@ private lemma pairSpan_eq_of_mem {e f v w : V}
     · have : x = f := Set.mem_singleton_iff.mp hx
       simpa [this] using hf
 
-omit [CharP K 2] [IsAlgClosed K] in
+omit [CharP K 2] in
 private lemma polarBilin_comm (Q : QuadraticForm K V) (x y : V) :
     Q.polarBilin x y = Q.polarBilin y x := by
   simpa only [QuadraticMap.polarBilin_apply_apply] using QuadraticMap.polar_comm Q x y
@@ -91,10 +92,11 @@ structure IsHyperbolicPair (Q : QuadraticForm K V) (e f : V) : Prop where
   right_isotropic : Q f = 0
   polar_eq_one : Q.polarBilin e f = 1
 
-/-- The load-bearing `off` lemma.  Over an algebraically closed field of
-characteristic two, every normalized symplectic pair can be changed, inside
-its own plane, into a hyperbolic pair. -/
-theorem hyperbolic_pair_of_polar_eq_one (Q : QuadraticForm K V) {e f : V}
+/-- The load-bearing plane lemma under exactly the paper hypothesis: a
+surjective Artin--Schreier map. -/
+theorem hyperbolic_pair_of_polar_eq_one_of_artinSchreier
+    (hAS : Function.Surjective (fun x : K => x ^ 2 + x))
+    (Q : QuadraticForm K V) {e f : V}
     (hef : Q.polarBilin e f = 1) :
     ∃ e' f', IsHyperbolicPair Q e' f' ∧
       pairSpan (K := K) e' f' = pairSpan (K := K) e f := by
@@ -138,7 +140,7 @@ theorem hyperbolic_pair_of_polar_eq_one (Q : QuadraticForm K V) {e f : V}
       simpa [f', e'] using this
     exact ⟨e', f', ⟨hQe', hQf', he'f'⟩,
       pairSpan_eq_of_mem he'mem hf'mem hemem hfmem⟩
-  · obtain ⟨t, ht⟩ := artinSchreier_surjective (K := K) (a * b)
+  · obtain ⟨t, ht⟩ := hAS (a * b)
     change t ^ 2 + t = a * b at ht
     let e' := (t / a) • e + f
     have hQe' : Q e' = 0 := by
@@ -196,11 +198,22 @@ theorem hyperbolic_pair_of_polar_eq_one (Q : QuadraticForm K V) {e f : V}
     exact ⟨e', f', ⟨hQe', hQf', he'f'⟩,
       pairSpan_eq_of_mem he'mem hf'mem hemem hfmem⟩
 
+/-- Algebraically closed specialization of the exact Artin--Schreier
+hypothesis. -/
+theorem hyperbolic_pair_of_polar_eq_one (Q : QuadraticForm K V) {e f : V}
+    [IsAlgClosed K]
+    (hef : Q.polarBilin e f = 1) :
+    ∃ e' f', IsHyperbolicPair Q e' f' ∧
+      pairSpan (K := K) e' f' = pairSpan (K := K) e f :=
+  hyperbolic_pair_of_polar_eq_one_of_artinSchreier
+    (artinSchreier_surjective (K := K)) Q hef
+
 /-- Pointwise conversion of each supplied symplectic pair into a hyperbolic
 pair, preserving that pair's span.  No relationship between different indices
-is assumed or proved here: cross-plane orthogonality, direct-sum assembly, and
-the classification theorem itself remain paper-level. -/
+is assumed or proved by this local lemma; `SymplecticBasis.lean` and
+`CharTwoClassification.lean` supply the orthogonal assembly and root theorem. -/
 theorem hyperbolic_family_of_symplectic_family {I : Type*} (Q : QuadraticForm K V)
+    [IsAlgClosed K]
     (e f : I → V) (hef : ∀ i, Q.polarBilin (e i) (f i) = 1) :
     ∃ e' f' : I → V, ∀ i,
       IsHyperbolicPair Q (e' i) (f' i) ∧
@@ -210,37 +223,68 @@ theorem hyperbolic_family_of_symplectic_family {I : Type*} (Q : QuadraticForm K 
     hyperbolic_pair_of_polar_eq_one Q (hef i)
   exact ⟨e', f', fun i ↦ ⟨hp i, hspan i⟩⟩
 
-/-- The canonical square root selected from algebraic closure. -/
-noncomputable def squareRoot (x : K) : K :=
-  Classical.choose (frobenius_surjective (K := K) x)
+/-- The canonical square root selected from an explicitly surjective
+Frobenius map.  This is the exact perfectness input used by the radical
+classification. -/
+noncomputable def squareRootOf
+    (hFrob : Function.Surjective (fun x : K => x ^ 2)) (x : K) : K :=
+  Classical.choose (hFrob x)
 
 omit [CharP K 2] in
-@[simp] theorem squareRoot_sq (x : K) : squareRoot x ^ 2 = x :=
-  Classical.choose_spec (frobenius_surjective (K := K) x)
+@[simp] theorem squareRootOf_sq
+    (hFrob : Function.Surjective (fun x : K => x ^ 2)) (x : K) :
+    squareRootOf hFrob x ^ 2 = x :=
+  Classical.choose_spec (hFrob x)
 
-/-- If the polar form vanishes, the unique square root of `Q` is a linear
-functional.  This is the structural content behind the two radical normal
-forms `Z^s` and `A ⊥ Z^(s-1)`. -/
-noncomputable def zeroPolarLinear (Q : QuadraticForm K V)
+/-- The canonical square root selected from algebraic closure. -/
+noncomputable def squareRoot [IsAlgClosed K] (x : K) : K :=
+  squareRootOf (frobenius_surjective (K := K)) x
+
+omit [CharP K 2] in
+@[simp] theorem squareRoot_sq [IsAlgClosed K] (x : K) : squareRoot x ^ 2 = x :=
+  squareRootOf_sq (frobenius_surjective (K := K)) x
+
+/-- If Frobenius is surjective and the polar form vanishes, the selected
+square root of `Q` is a linear functional. -/
+noncomputable def zeroPolarLinearOfFrobenius
+    (hFrob : Function.Surjective (fun x : K => x ^ 2))
+    (Q : QuadraticForm K V)
     (hpolar : ∀ x y, Q.polarBilin x y = 0) : V →ₗ[K] K where
-  toFun x := squareRoot (Q x)
+  toFun x := squareRootOf hFrob (Q x)
   map_add' x y := by
     apply CharTwo.sq_injective
-    change squareRoot (Q (x + y)) ^ 2 =
-      (squareRoot (Q x) + squareRoot (Q y)) ^ 2
-    rw [CharTwo.add_sq, squareRoot_sq, squareRoot_sq, squareRoot_sq]
+    change squareRootOf hFrob (Q (x + y)) ^ 2 =
+      (squareRootOf hFrob (Q x) + squareRootOf hFrob (Q y)) ^ 2
+    rw [CharTwo.add_sq, squareRootOf_sq, squareRootOf_sq, squareRootOf_sq]
     have hp : QuadraticMap.polar Q x y = 0 := by
       simpa only [QuadraticMap.polarBilin_apply_apply] using hpolar x y
     rw [QuadraticMap.map_add (⇑Q) x y, hp, add_zero]
   map_smul' a x := by
     apply CharTwo.sq_injective
-    change squareRoot (Q (a • x)) ^ 2 = (a * squareRoot (Q x)) ^ 2
-    rw [squareRoot_sq, mul_pow, squareRoot_sq]
+    change squareRootOf hFrob (Q (a • x)) ^ 2 =
+      (a * squareRootOf hFrob (Q x)) ^ 2
+    rw [squareRootOf_sq, mul_pow, squareRootOf_sq]
     rw [QuadraticMap.map_smul Q a x]
     simp only [smul_eq_mul]
     ring
 
+@[simp] theorem zeroPolarLinearOfFrobenius_sq
+    (hFrob : Function.Surjective (fun x : K => x ^ 2))
+    (Q : QuadraticForm K V)
+    (hpolar : ∀ x y, Q.polarBilin x y = 0) (x : V) :
+    zeroPolarLinearOfFrobenius hFrob Q hpolar x ^ 2 = Q x :=
+  squareRootOf_sq hFrob (Q x)
+
+/-- If the polar form vanishes, the unique square root of `Q` is a linear
+functional.  This is the structural content behind the two radical normal
+forms `Z^s` and `A ⊥ Z^(s-1)`. -/
+noncomputable def zeroPolarLinear (Q : QuadraticForm K V)
+    [IsAlgClosed K]
+    (hpolar : ∀ x y, Q.polarBilin x y = 0) : V →ₗ[K] K :=
+  zeroPolarLinearOfFrobenius (frobenius_surjective (K := K)) Q hpolar
+
 @[simp] theorem zeroPolarLinear_sq (Q : QuadraticForm K V)
+    [IsAlgClosed K]
     (hpolar : ∀ x y, Q.polarBilin x y = 0) (x : V) :
     zeroPolarLinear Q hpolar x ^ 2 = Q x :=
   squareRoot_sq (Q x)
@@ -249,6 +293,7 @@ noncomputable def zeroPolarLinear (Q : QuadraticForm K V)
 is `Z^s`; in the second branch the displayed vector is the `A` coordinate and
 the kernel has codimension one, hence is `Z^(s-1)`. -/
 theorem zero_polar_normal_form [FiniteDimensional K V] (Q : QuadraticForm K V)
+    [IsAlgClosed K]
     (hpolar : ∀ x y, Q.polarBilin x y = 0) :
     ∃ ℓ : V →ₗ[K] K,
       (∀ x, Q x = (ℓ x) ^ 2) ∧
@@ -256,6 +301,26 @@ theorem zero_polar_normal_form [FiniteDimensional K V] (Q : QuadraticForm K V)
         Module.finrank K (LinearMap.ker ℓ) + 1 = Module.finrank K V) := by
   let ℓ := zeroPolarLinear Q hpolar
   refine ⟨ℓ, fun x ↦ (zeroPolarLinear_sq Q hpolar x).symm, ?_⟩
+  by_cases hℓ : ℓ = 0
+  · exact Or.inl hℓ
+  · right
+    have hsurj : Function.Surjective ℓ :=
+      LinearMap.range_eq_top.mp (Module.Dual.range_eq_top_of_ne_zero hℓ)
+    obtain ⟨e, he⟩ := hsurj 1
+    exact ⟨e, he, Module.Dual.finrank_ker_add_one_of_ne_zero hℓ⟩
+
+/-- Complete radical normal form under the exact Frobenius-surjectivity
+hypothesis.  This is the perfect-field version of `zero_polar_normal_form`. -/
+theorem zero_polar_normal_form_of_frobenius [FiniteDimensional K V]
+    (hFrob : Function.Surjective (fun x : K => x ^ 2))
+    (Q : QuadraticForm K V)
+    (hpolar : ∀ x y, Q.polarBilin x y = 0) :
+    ∃ ℓ : V →ₗ[K] K,
+      (∀ x, Q x = (ℓ x) ^ 2) ∧
+      (ℓ = 0 ∨ ∃ e, ℓ e = 1 ∧
+        Module.finrank K (LinearMap.ker ℓ) + 1 = Module.finrank K V) := by
+  let ℓ := zeroPolarLinearOfFrobenius hFrob Q hpolar
+  refine ⟨ℓ, fun x ↦ (zeroPolarLinearOfFrobenius_sq hFrob Q hpolar x).symm, ?_⟩
   by_cases hℓ : ℓ = 0
   · exact Or.inl hℓ
   · right

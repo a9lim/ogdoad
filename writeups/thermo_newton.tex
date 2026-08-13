@@ -23,7 +23,8 @@
 \newcommand{\Numbers}{\mathcal N}
 \newcommand{\Inf}{\mathcal I}
 
-\title{Thermic Regrading under Norton Multiplication}
+\title{Thermic Regrading under Norton Multiplication\\
+and the Newton-Polygon Boundary}
 \author{a9lim}
 \date{}
 
@@ -31,58 +32,55 @@
 \maketitle
 
 \begin{abstract}
-Let $A_u(G)=G.u$ be Norton multiplication of a short partizan game by a
-positive dyadic number $u=m/2^k$ in canonical form.  Put
-$\delta_u=2^{-k}$, with $\delta_u=1$ for integral $u$, and
-$a_u=u-\delta_u$.  For every nonnumeric short game,
+Let $A_u(G)=G.u$ denote Norton multiplication of a short partizan game by a
+positive canonical dyadic $u=m/2^k$.  Set $\delta_u=2^{-k}$, with
+$\delta_u=1$ when $u$ is integral, and put $a_u=u-\delta_u$.  For every
+nonnumeric short game,
 \[
   \mean(A_u(G))=u\mean(G),\qquad
   \temp(A_u(G))=u\temp(G)+a_u.
 \]
-For a number $x$ with canonical mesh $\epsilon_x=1/\den(x)$, the image has
-mean $ux$ and temperature $-1$ or $a_u-u\epsilon_x$, according as the latter
-quantity is negative or nonnegative.  Hence each positive numeric Norton
-operator induces an additive transport between thermic residue groups.
-These transports do not form an action of the multiplicative dyadics: their
-exact degree defect is
+For a number $x$ of canonical mesh $\epsilon_x=1/\den(x)$, the mean is $ux$
+and the temperature is $-1$ or $a_u-u\epsilon_x$, according as the latter is
+negative or nonnegative.  Every positive numeric Norton operator therefore
+induces additive maps between thermic residue groups.  These maps do not form
+an action of the multiplicative dyadics: the exact degree defect is
 \[
  \Delta(u,v)=v(1-\delta_u)-\delta_v+\delta_{uv}\ge0,
 \]
-and we classify all pairs for which it vanishes.  Temperature thus supplies
-a useful filtered, tropical-like shadow of Norton multiplication, but not a
-Newton-polygon-style graded ring.  The freezing step is not tropical,
-nonnumeric Norton units do not descend modulo colder games, and the
-temperature-zero residue retains nonzero $2$-torsion.
+and we classify its zero set.  Thus thermography has a precise tropical
+shadow, but not a Newton-polygon-style graded ring: freezing is not a tropical
+operation, nonnumeric Norton units fail to descend modulo colder games, and
+the temperature-zero residue contains nonzero $2$-torsion.
 \end{abstract}
 
 \section{Introduction}
 
-Temperature is the filtration parameter of thermography: it measures the
-amount of cooling required before a short game freezes to a number.  Norton
-multiplication $G.U$ is an additive operation in $G$ attached to a positive
-game $U$ \cite[Chapter 8]{berlekampconwayguy1982}; modern accounts and
-related applications appear in \cite{johnson2011b,mesdal2009}.
-This paper determines exactly how the thermic filtration transforms when the
-unit $U$ is a positive number.
+Temperature measures the cooling required before a short partizan game
+freezes to a number.  It therefore filters the additive group of short games.
+Norton multiplication $G.U$ is additive in $G$ for each positive game $U$
+\cite[Chapter 8]{berlekampconwayguy1982}; further accounts and applications
+appear in \cite{johnson2011b,mesdal2009}.  We determine the induced map on the
+thermic filtration when $U$ is a positive number.
 
-The result is affine rather than homogeneous.  If $u$ is a canonical
-positive dyadic and $G$ is nonnumeric, then the thermic degree changes by
+The degree law is affine rather than homogeneous.  For a positive canonical
+dyadic $u$ and a nonnumeric game $G$, it is
 \[
   \tau\longmapsto r_u(\tau)=u\tau+u-\delta_u.
 \]
-The denominator mesh $\delta_u$ is essential.  It also produces an exact
-composition defect, proving that these additive transports cannot be the
-scalar maps of an associative graded algebra whose dyadic coefficients
-multiply ordinarily.
+The denominator mesh $\delta_u$ is essential and produces the composition
+defect $\Delta(u,v)$.  Sections~2 and~3 derive the complete wall transform,
+including the separate numeric branch.  Sections~4 and~5 pass to thermic
+residue groups and determine exactly when successive transports have the same
+degree as multiplication by $uv$.
 
-The final section compares this result with Newton polygons.  The comparison
-is deliberately limited: both theories have filtrations and extremal
-piecewise-linear envelopes, but game thermography includes a nontropical
-freezing operation and has no compatible internal product on Conway values.
-This sharpens, rather than identifies, the analogy suggested by the standard
-temperature and valuation formalisms \cite{bandokenmorikawa2020,dumas1906}.
+Section~6 compares this structure with Newton polygons.  Both theories use
+filtrations and extremal piecewise-linear envelopes, but thermographic
+freezing has no tropical analogue and the thermograph is not a congruence for
+disjunctive sum.  The comparison is therefore a precise limitation, not an
+identification \cite{bandokenmorikawa2020,dumas1906}.
 
-\section{Norton and thermographic conventions}
+\section{Norton multiplication and thermography}
 
 We work with short normal-play partizan games modulo Conway equality.  Numbers
 have temperature $-1$.  For every nonnumber $G$, its left and right
@@ -122,7 +120,7 @@ It is nonincreasing, and $\temp(G)$ is its first zero.  We shall also use the
 standard facts that left walls are nonincreasing, right walls are
 nondecreasing, and wall slopes lie between $-1$ and $1$.
 
-\section{The exact thermic law}
+\section{The thermic transformation law}
 
 The recursion stops at integers, not at all numbers.  Numeric inputs therefore
 form a separate branch of the theorem.
@@ -380,7 +378,7 @@ Associativity would identify these two classes, but an equivalence preserving
 thermic degree cannot do so.
 \end{proof}
 
-\section{The tropical shadow and its limits}
+\section{Comparison with Newton polygons}
 
 The filtration inequality above is analogous to the nonarchimedean
 inequality, and the raw option operators are
@@ -436,42 +434,35 @@ This obstruction does not exclude integer coefficients, quotients that kill
 the incompatible torsion, or finer game equivalences.  It excludes the
 specific faithful full-dyadic graded-ring reading.
 
-\section{Implementation and verification boundary}
+\section{Computational realization}
 
-The Ogdoad implementation contains the standard recursive operations
-\texttt{norton\_multiply} and \texttt{overheat}, together with three exact
-closed-form routines:
-\begin{itemize}
-\item \texttt{numeric\_norton\_regrade};
-\item \texttt{numeric\_norton\_mean\_temperature};
-\item \texttt{numeric\_norton\_composition\_defect}.
-\end{itemize}
-Unit tests compare the
-closed formulas with recursively materialized products over bounded families
-of short games and positive dyadic units, and an independent transcription of
-the Norton recursion checks its noninteger branches.  These are regression
-oracles for the universal proofs above, not their premises.  The source is
-distributed with Ogdoad \cite{ogdoad2026}.
+Ogdoad \cite{ogdoad2026} implements recursive Norton multiplication and
+overheating together with closed-form routines for numeric regrading,
+mean--temperature transport, and the composition defect.  Exact tests compare
+these formulas with recursively materialized products on bounded families of
+short games and canonical dyadic units.  A separate transcription of the
+Norton recursion checks the nonintegral-unit branches.  These computations are
+regression oracles for the proved formulas, not finite substitutes for the
+universal argument.
 
-The implementation also exposes the tropical folds and the ordinary freeze
-tail separately.  It therefore encodes the same boundary as the paper: the
-max-plus/min-plus structure belongs to the option envelopes, while the meeting
-and freezing operation remains ordinary thermography.
+The implementation exposes the max-plus/min-plus option folds separately
+from the ordinary meeting-and-freezing step.  It consequently realizes the
+same structural boundary as Section~6.
 
 \section{Conclusion}
 
-Positive numeric Norton multiplication acts on thermic degree by the exact
-affine map
+Positive numeric Norton multiplication transforms every nonnumeric thermic
+degree by the affine map
 \[
   \tau\longmapsto u\tau+u-\delta_u,
 \]
-with a strictly lower numeric branch.  It consequently induces additive maps
-between thermic residue groups.  The nonnegative defect
-$\Delta(u,v)$ measures exactly why those maps fail to form a multiplicative
-dyadic action.  The tropical comparison is therefore a filtered one:
-thermography has extremal envelopes and a nonarchimedean temperature
-inequality, but its freeze, its nonnumeric Norton operators, and its
-temperature-zero torsion prevent a faithful Newton-style graded ring.
+with a separate, strictly lower branch for numeric inputs.  The resulting
+maps on thermic residues are additive, and the nonnegative defect
+$\Delta(u,v)$ measures their exact failure to form a multiplicative dyadic
+action.  Thermography therefore supports a filtered tropical analogy through
+its extremal envelopes and nonarchimedean temperature inequality, but
+freezing, nonnumeric Norton operators, and temperature-zero torsion rule out a
+faithful Newton-style graded ring.
 
 \bibliographystyle{plain}
 \bibliography{thermo_newton}

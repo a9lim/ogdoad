@@ -1,14 +1,11 @@
-"""The 2*3^k exception column: the Lenstra excess is m_p = 4 exactly.
+"""Exact screens for the exceptional 2*3^k Lenstra-excess column.
 
-writeups/excess.tex section "The m=4 upper bound: the unexplored gap" asks whether
-m_p = 4 exactly (not merely >= 4) for every prime p with f(p) = ord_p(2) = 2*3^k.
-This probe carries the June 2026 answer: YES at every prime the factor tables can
-see — universally for k <= 6 (fully factored levels), and at every known prime for
-k = 7, 8.
+The target is m_p = 4 for every prime p with
+f(p) = ord_p(2) = 2*3^k. The script certifies every prime at the fully factored
+levels k <= 6 and every currently known prime at levels k = 7, 8.
 
-THE CORRECTED NORM. excess.tex section 4.3 stated
-Norm_{F_{2^(4h)}/F_{2^(2h)}}(kappa+4) = (kappa+4)(kappa+6); that is a slip. The
-norm conjugate is sigma(4) where sigma = Frob^(2h) restricted to F_16; since
+THE NORM. The norm conjugate is sigma(4), where sigma = Frob^(2h) restricted
+to F_16. Since
 F_16 ∩ F_{2^(2h)} = F_4 (gcd(4, 2*3^k) = 2), sigma|F_16 is the NONTRIVIAL element
 of Gal(F_16/F_4), which swaps the two roots {4, 5} of the Artin-Schreier minimal
 polynomial y^2 + y + 2 of nimber 4 over F_4. (Equivalently: 2h = 2 mod 4 and the
@@ -41,10 +38,10 @@ RESULTS (this script; claim levels per the excess.tex convention):
   CERTIFIED (k <= 6, fully factored levels — universal on the column):
     m_p = 4 for EVERY prime p with f(p) = 2*3^k, k = 2..6:
       k=2 (f=18):    19                                  [DiMuro anchor row]
-      k=3 (f=54):    87211                               [NEW: only >=4 known]
-      k=4 (f=162):   163 [calculator anchor], 135433, 272010961        [NEW]
+      k=3 (f=54):    87211
+      k=4 (f=162):   163, 135433, 272010961
       k=5 (f=486):   1459 [calculator anchor], 139483,
-                     10429407431911334611, 918125051602568899753       [NEW]
+                     10429407431911334611, 918125051602568899753
       k=6 (f=1458):  227862073, 3110690934667, 216892513252489863991753,
                      1102099161075964924744009, P78                    [NEW]
   CONSISTENT (k = 7, 8 — every KNOWN prime of the level; cofactors unfactored):
@@ -92,11 +89,10 @@ are reproduced, never assumed.
 
 FACTORIZATION PROVENANCE. Phi_{2*3^k}(2) = 2^(2*3^(k-1)) - 2^(3^(k-1)) + 1.
 k <= 4 factorizations are classical/small; k = 5, 6 are factordb "FF" entries
-(fetched 2026-06-12), re-verified here by exact product reconstruction and
+(accessed 2026-06-12), re-verified here by exact product reconstruction and
 primality tests (deterministic Miller-Rabin below 3.3e24, MR-64 PRP above; the
 P78 of Phi_{2*3^6}(2) is PRP-local, factordb marks it proven). k = 7, 8 known
-factors (factordb CF entries, same fetch; the second 43-digit k=7 prime added
-2026-06-12 after an adversarial review caught the first fetch dropping it) are
+factors (factordb CF entries, same access date) are
 verified individually by exact divisibility and order tests, and the small ones
 re-derived by direct sieve over p = 2*3^k*t + 1; the unfactored cofactors are
 composite (no universal claim is made at those levels). NOTE: these hardcoded

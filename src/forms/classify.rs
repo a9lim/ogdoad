@@ -90,7 +90,7 @@ pub struct Char2WittDecomp {
 }
 
 impl Char2WittDecomp {
-    fn from_arf(field_degree: u128, arf: &ArfInvariants) -> Self {
+    pub(crate) fn from_arf(field_degree: u128, arf: &ArfInvariants) -> Self {
         let core_anisotropic_dim = if arf.arf == 0 { 0 } else { 2 };
         let witt_index = arf.rank.saturating_sub(core_anisotropic_dim) / 2;
         Char2WittDecomp {

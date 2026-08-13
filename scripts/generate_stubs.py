@@ -81,6 +81,20 @@ FUNCTION_OVERRIDES: dict[str, str] = {
     "nim_moves": "(pos: Sequence[builtins.int]) -> list[list[builtins.int]]",
     "nim_lexicode_naive": "(base_exp: builtins.int, n: builtins.int, d: builtins.int) -> NimLexicode | None",
     "nim_lexicode_naive_bounded": "(base_exp: builtins.int, n: builtins.int, d: builtins.int, node_budget: builtins.int) -> NimLexicode | None",
+    "lexicode_turning_game": "(n: builtins.int, d: builtins.int) -> LexicodeTurningGame | None",
+    "ordinal_finite_subfield_degree": "(x: Ordinal) -> builtins.int | None",
+    "ordinal_common_finite_subfield_degree": "(values: Sequence[Ordinal]) -> builtins.int | None",
+    # finite quadratic modules, representation theory, and integral catalogue
+    "extraspecial_group_f2": "(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> Extraspecial2Group",
+    "extraspecial_group_nimber": "(alg: NimberAlgebra) -> Extraspecial2Group",
+    "heisenberg_weil_representation_f2": "(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> HeisenbergWeilRepresentation",
+    "heisenberg_weil_representation_nimber": "(alg: NimberAlgebra) -> HeisenbergWeilRepresentation",
+    "bw_class_function_field": "(alg: Any) -> FunctionFieldBrauerWallClass",
+    "witt_decompose_finite_algebra": "(alg: Any) -> OddWittDecomp | Char2WittDecomp",
+    "niemeier_classes": "() -> list[NiemeierRecord]",
+    "niemeier_mass_sum": "() -> Rational | None",
+    "niemeier_weighted_theta_average": "(terms: builtins.int) -> list[Rational] | None",
+    "eisenstein_e12": "(terms: builtins.int) -> list[Rational]",
     # Gold/Arf headline surface (src/py/forms.rs; exercised by demo.py)
     "arf_f2": "(n: builtins.int, qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> ArfInvariants",
     "brown_f2": "(n: builtins.int, q4: Sequence[builtins.int], bmat: Sequence[builtins.int]) -> BrownInvariants",
@@ -99,6 +113,11 @@ MEMBER_OVERRIDES: dict[str, str] = {
     "Integer.__init__": "(self, value: builtins.int) -> None",
     "Surcomplex.__init__": "(self, re: Any, im: Any | None = None) -> None",
     "Surreal.__init__": "(self, coeffs: Sequence[Any]) -> None",
+    "FiniteQuadraticModule.__init__": "(self, cyclic_factors: Sequence[builtins.int], q_values_mod2: Sequence[Any]) -> None",
+    "FiniteQuadraticModule.cyclic": "@staticmethod (order: builtins.int, generator_q: Any) -> FiniteQuadraticModule",
+    "ExtraspecialElement.__init__": "(self, central: builtins.bool, vector: builtins.int) -> None",
+    "Extraspecial2Group.__init__": "(self, qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> None",
+    "LexicodeTurningGame.__init__": "(self, word_len: builtins.int, min_distance: builtins.int) -> None",
     # games bridge (README quickstart)
     "Color.blue": "@staticmethod () -> Color",
     "Color.red": "@staticmethod () -> Color",
@@ -264,6 +283,14 @@ def _member_signature(cls_name: str, name: str, kind: str) -> str:
         mv = cls_name[: -len("Algebra")] + "MV"
         if hasattr(ogdoad, mv):
             return f"(self, i: builtins.int) -> {mv}"
+    if name == "alg" and cls_name.endswith("Cga"):
+        algebra = cls_name[: -len("Cga")] + "Algebra"
+        if not hasattr(ogdoad, algebra):
+            algebra = algebra.replace("_E", "E")
+        if not hasattr(ogdoad, algebra) and algebra.startswith("LaurentRational"):
+            algebra = algebra.replace("LaurentRational", "LaurentRational_", 1)
+        if hasattr(ogdoad, algebra):
+            return f"(self) -> {algebra}"
     if kind == "static":
         return "(*args: Any, **kwargs: Any) -> Any"
     if kind == "class":

@@ -1537,6 +1537,48 @@ theorem cubic_phase_swap_square
   funext a
   rw [← mul_assoc, hcd]
 
+/-- A Sidon subset of a subgroup has at most one ordered off-diagonal pair
+for each nonidentity subgroup element.  This is the combinatorial core of the
+selected Singer large-factor sieve: the Singer difference property supplies
+`hinj`, while a missing current prime places the selected orbit inside `H`. -/
+theorem sidon_quotient_subgroup_card_bound
+    {G : Type*} [Group G] [Fintype G] [DecidableEq G]
+    (H : Subgroup G) [Fintype H] (A : Finset G)
+    (hA : ∀ x ∈ A, x ∈ H)
+    (hinj : Set.InjOn (fun p : G × G => p.1 / p.2)
+      (A.offDiag : Set (G × G))) :
+    A.card * (A.card - 1) + 1 ≤ Fintype.card H := by
+  let Hset : Set G := H
+  have hHfinite : Hset.Finite := Set.toFinite Hset
+  let target : Finset G := hHfinite.toFinset.erase 1
+  have hmaps : Set.MapsTo (fun p : G × G => p.1 / p.2)
+      (A.offDiag : Set (G × G)) (target : Set G) := by
+    intro p hp
+    have hp' := Finset.mem_offDiag.mp hp
+    have hmem : p.1 / p.2 ∈ H :=
+      H.div_mem (hA p.1 hp'.1) (hA p.2 hp'.2.1)
+    apply Finset.mem_erase.mpr
+    refine ⟨?_, ?_⟩
+    · exact div_ne_one.mpr hp'.2.2
+    · exact (hHfinite.mem_toFinset).mpr hmem
+  have hcard := Finset.card_le_card_of_injOn
+    (fun p : G × G => p.1 / p.2) hmaps hinj
+  have hone : (1 : G) ∈ hHfinite.toFinset := by
+    exact (hHfinite.mem_toFinset).mpr H.one_mem
+  rw [Finset.offDiag_card] at hcard
+  change A.card * A.card - A.card ≤ target.card at hcard
+  rw [show target.card = Fintype.card H - 1 by
+    simp only [target, Finset.card_erase_of_mem hone]
+    rw [Set.Finite.card_toFinset]
+    change Fintype.card H - 1 = Fintype.card H - 1
+    rfl] at hcard
+  have hoff : A.card * A.card - A.card = A.card * (A.card - 1) := by
+    rw [Nat.mul_sub_left_distrib]
+    simp
+  rw [hoff] at hcard
+  have hpos : 0 < Fintype.card H := Fintype.card_pos
+  omega
+
 end CubicSingerIncidence
 
 section NormCoherentEulerTail
@@ -2019,6 +2061,101 @@ theorem dk_twisted_translate_product
     _ = a + c + 1 := by simp only [h1, h2, h3, hc3, mul_one, mul_zero, add_zero]
     _ = a + (c + 1) := by ring
     _ = a + c ^ 2 := by rw [hc'']
+
+/-- The characteristic-two third Dickson polynomial.  In the Conway cubic
+arms it is the quotient of cubing on the multiplicative torus by inversion. -/
+def dicksonCubic {S : Type*} [Add S] [Pow S Nat] (x : S) : S :=
+  x ^ 3 + x
+
+/-- The alternating affine cubic occurring in the exceptional `D` tower. -/
+def dkTwistedCubic {S : Type*} [Add S] [Mul S] [Pow S Nat]
+    (c u : S) : S :=
+  u ^ 3 + c * u ^ 2 + c * u
+
+/-- Cubing on `G_m`, followed by the inversion quotient `z + z⁻¹`, is the
+third Dickson polynomial. -/
+theorem dicksonCubic_inversion_semiconjugacy
+    {F : Type*} [Field F] [CharP F 2]
+    (z : F) (hz : z ≠ 0) :
+    dicksonCubic (z + z⁻¹) = z ^ 3 + (z⁻¹) ^ 3 := by
+  simp only [dicksonCubic]
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo, zero_add]
+  field_simp
+  ring_nf
+  rw [hfour]
+  simp
+
+/-- One exceptional twisted cubic is an affine translate of the same
+Dickson map. -/
+theorem dkTwistedCubic_eq_translate
+    {S : Type*} [CommRing S] [CharP S 2]
+    (c u : S) (hc : c ^ 2 + c = 1) :
+    dkTwistedCubic c u = dicksonCubic (u + c) + c ^ 2 := by
+  simp only [dkTwistedCubic, dicksonCubic]
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  have hthree : (3 : S) = 1 := by
+    calc
+      (3 : S) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  have hc' : c ^ 2 = c + 1 := by
+    linear_combination hc - c * htwo
+  have hc3 : c ^ 3 = 1 := by
+    calc
+      c ^ 3 = c * c ^ 2 := by ring
+      _ = c * (c + 1) := by rw [hc']
+      _ = c ^ 2 + c := by ring
+      _ = 1 := hc
+  calc
+    u ^ 3 + c * u ^ 2 + c * u =
+        (u + c) ^ 3 + (u + c) + c ^ 2 := by
+          ring_nf
+          simp only [hthree, hc', hc3]
+          linear_combination -(u + c + 1) * htwo
+    _ = dicksonCubic (u + c) + c ^ 2 := by rfl
+
+/-- Two successive alternating twisted cubics are conjugate to two Dickson
+steps.  Thus the selected cubic ancestry and the exceptional auxiliary
+recursion live on the same toric 3-division tree; this identity neither
+identifies the auxiliary value with `A_k` nor decides the selected phase. -/
+theorem dkTwistedCubic_twoStep
+    {S : Type*} [CommRing S] [CharP S 2]
+    (c u : S) (hc : c ^ 2 + c = 1) :
+    dkTwistedCubic (c ^ 2) (dkTwistedCubic c u) =
+      dicksonCubic (dicksonCubic (u + c)) + c := by
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  have hself (w : S) : w + w = 0 := by
+    calc
+      w + w = (2 : S) * w := by ring
+      _ = 0 := by rw [htwo, zero_mul]
+  have hc' : c ^ 2 = c + 1 := by
+    linear_combination hc - c * htwo
+  have hc3 : c ^ 3 = 1 := by
+    calc
+      c ^ 3 = c * c ^ 2 := by ring
+      _ = c * (c + 1) := by rw [hc']
+      _ = c ^ 2 + c := by ring
+      _ = 1 := hc
+  have hc4 : c ^ 4 = c := by
+    calc
+      c ^ 4 = c * c ^ 3 := by ring
+      _ = c := by rw [hc3, mul_one]
+  have hc_sq : (c ^ 2) ^ 2 + c ^ 2 = 1 := by
+    rw [show (c ^ 2) ^ 2 = c ^ 4 by ring, hc4]
+    simpa [add_comm] using hc
+  rw [dkTwistedCubic_eq_translate (c ^ 2) (dkTwistedCubic c u) hc_sq]
+  rw [dkTwistedCubic_eq_translate c u hc]
+  rw [show (c ^ 2) ^ 2 = c ^ 4 by ring, hc4]
+  have hcancel :
+      dicksonCubic (u + c) + c ^ 2 + c ^ 2 = dicksonCubic (u + c) := by
+    calc
+      dicksonCubic (u + c) + c ^ 2 + c ^ 2 =
+          dicksonCubic (u + c) + (c ^ 2 + c ^ 2) := by ring
+      _ = dicksonCubic (u + c) := by rw [hself, add_zero]
+  rw [hcancel]
 
 /-- Multiplication by a known `ell`-th power does not change Kummer
 membership. -/
@@ -3328,6 +3465,23 @@ theorem signedDicksonLucas_eq_add_powers (T U : R) (n : Nat) :
   | more n hn hn1 =>
       rw [signedDicksonLucas_add_two, hn, hn1]
       ring
+
+/-- Factorization behind the exact tangency of an odd Dickson trace word to
+the identity.  In characteristic two, taking `u = 1 + T` and
+`X = u + u⁻¹` turns the two factors on the right into the two independent
+`T`-adic contributions used by the paper's marked packet obstruction. -/
+theorem signedDicksonLucas_tangent_factor
+    {K : Type*} [Field K] (u : K) (hu : u ≠ 0) (k : Nat) :
+    signedDicksonLucas (u + u⁻¹) 1 (k + 1) + (u + u⁻¹) =
+      (u ^ k + 1) * (u + (u⁻¹) ^ (k + 1)) := by
+  have hprod : u * u⁻¹ = 1 := mul_inv_cancel₀ hu
+  have hbinet := signedDicksonLucas_eq_add_powers u u⁻¹ (k + 1)
+  rw [hprod] at hbinet
+  rw [hbinet]
+  have hpow : u ^ k * (u⁻¹) ^ (k + 1) = u⁻¹ := by
+    rw [pow_succ, ← mul_assoc, ← mul_pow, hprod, one_pow, one_mul]
+  rw [add_mul, one_mul, mul_add, ← pow_succ, hpow]
+  ac_rfl
 
 /-- Symmetric algebra behind the lifted Conway birth-edge criterion.
 The signed Dickson--Lucas equation and the norm equation are exactly the
@@ -4671,6 +4825,164 @@ theorem ordinary727_order_arithmetic :
 theorem ordinary727_selected_degree : 20 * 121 = 2420 := by norm_num
 
 end Ordinary727Certificate
+
+section Ordinary23StickelbergerCertificate
+
+/-- Exact finite arithmetic behind the actual-conductor `p = 23`
+Stickelberger obstruction in the ordinary arm.  The displayed coefficients
+are the externally derived grouped reciprocal-weight sums for the selected
+half-sum.  This checks their dot product only; it is not an ordinary excess
+counterexample. -/
+theorem ordinary23_stickelberger_halfSum_zero :
+    (22 : ZMod 23) * 5 ^ 0 +
+      2 * 5 ^ 1 + 12 * 5 ^ 2 + 12 * 5 ^ 3 +
+      21 * 5 ^ 4 + 13 * 5 ^ 5 + 18 * 5 ^ 6 + 20 * 5 ^ 7 +
+      5 * 5 ^ 8 + 8 * 5 ^ 9 + 1 * 5 ^ 10 + 10 * 5 ^ 11 +
+      18 * 5 ^ 12 + 8 * 5 ^ 13 + 6 * 5 ^ 14 + 6 * 5 ^ 15 +
+      20 * 5 ^ 16 + 21 * 5 ^ 17 + 3 * 5 ^ 18 + 15 * 5 ^ 19 +
+      0 * 5 ^ 20 + 11 * 5 ^ 21 = 0 := by
+  native_decide
+
+/-- The same externally grouped half-sum one digit deeper.  The Teichmuller
+lift of `5 mod 23` is `28 mod 23²`, and the value is exactly `23 * 18`
+modulo `23²`; hence the generalized Bernoulli value has valuation one. -/
+theorem ordinary23_teichmuller_lift :
+    28 % 23 = 5 ∧ 28 ^ 22 % 529 = 1 := by
+  norm_num
+
+theorem ordinary23_stickelberger_halfSum_mod_sq :
+    (459 : ZMod 529) * 28 ^ 0 +
+      140 * 28 ^ 1 + 334 * 28 ^ 2 + 127 * 28 ^ 3 +
+      320 * 28 ^ 4 + 105 * 28 ^ 5 + 41 * 28 ^ 6 + 20 * 28 ^ 7 +
+      143 * 28 ^ 8 + 445 * 28 ^ 9 + 116 * 28 ^ 10 + 33 * 28 ^ 11 +
+      202 * 28 ^ 12 + 376 * 28 ^ 13 + 351 * 28 ^ 14 + 466 * 28 ^ 15 +
+      112 * 28 ^ 16 + 228 * 28 ^ 17 + 463 * 28 ^ 18 + 130 * 28 ^ 19 +
+      115 * 28 ^ 20 + 494 * 28 ^ 21 = 414 := by
+  native_decide
+
+/-- The lifted value is divisible by `23` but not by `23²`. -/
+theorem ordinary23_stickelberger_valuation_one :
+    414 = 23 * 18 ∧ 414 % (23 ^ 2) ≠ 0 := by
+  norm_num
+
+/-- The three omitted-conductor Euler factors do not account for the
+vanishing in `ordinary23_stickelberger_halfSum_zero`. -/
+theorem ordinary23_stickelberger_eulerFactor_nonzero :
+    (20 : ZMod 23) * 6 * 6 = 7 := by
+  native_decide
+
+/-- Conductor and semisimplicity arithmetic for the same certificate. -/
+theorem ordinary23_stickelberger_conductor_arithmetic :
+    11534325 = 3 * 5 ^ 2 * 11 ^ 2 * 31 * 41 ∧
+      5280000 % 23 ≠ 0 ∧
+      2 ^ 11 % 23 = 1 ∧ 2 % 23 ≠ 1 := by
+  norm_num
+
+end Ordinary23StickelbergerCertificate
+
+namespace Ordinary23MarkedArtinCertificate
+
+/-! Exact binary-field arithmetic for the marked Artin certificate in the
+actual ordinary r = 11, p = 23 block.  Bit i is the coefficient of X^i; the
+modulus is X^110 + X^33 + 1.  The full product defining the supplied epsilon
+and its separate 23-adic primarity certificate are replayed by the exact
+Python experiment. -/
+
+def modulus : Nat := 0x4000000000000000000200000001
+def degree : Nat := 110
+
+def mulAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, b, acc =>
+      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
+      let a2 := Nat.shiftLeft a 1
+      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
+      mulAux fuel a' (b / 2) acc'
+
+def mul (a b : Nat) : Nat := mulAux degree a b 0
+
+def powAux : Nat → Nat → Nat → Nat → Nat
+  | 0, _, _, acc => acc
+  | fuel + 1, a, e, acc =>
+      if e = 0 then acc
+      else
+        let acc' := if e % 2 = 1 then mul acc a else acc
+        powAux fuel (mul a a) (e / 2) acc'
+
+def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+
+def polyModAux : Nat → Nat → Nat → Nat
+  | 0, a, _ => a
+  | fuel + 1, a, b =>
+      if b = 0 ∨ Nat.log2 a < Nat.log2 b then a
+      else polyModAux fuel
+        (Nat.xor a (Nat.shiftLeft b (Nat.log2 a - Nat.log2 b))) b
+
+def polyMod (a b : Nat) : Nat := polyModAux 300 a b
+
+def polyGcdAux : Nat → Nat → Nat → Nat
+  | 0, a, _ => a
+  | fuel + 1, a, b =>
+      if b = 0 then a else polyGcdAux fuel b (polyMod a b)
+
+def polyGcd (a b : Nat) : Nat := polyGcdAux 300 a b
+
+def epsilon : Nat := 0x533a83d1770ba6987acd705100a
+def zeta23 : Nat := 0x244532b647a337388955260d12d1
+def phase : Nat := 0x230624ca45da272928c1ab2181d1
+def eulerExponent : Nat := (2 ^ degree - 1) / 23
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+/-- Rabin's irreducibility checks for the binary degree-110 modulus. -/
+theorem binary_rabin_certificate :
+    fpow 2 (2 ^ 110) = 2 ∧
+      polyGcd modulus (Nat.xor (fpow 2 (2 ^ 55)) 2) = 1 ∧
+      polyGcd modulus (Nat.xor (fpow 2 (2 ^ 22)) 2) = 1 ∧
+      polyGcd modulus (Nat.xor (fpow 2 (2 ^ 10)) 2) = 1 := by
+  native_decide
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+/-- The supplied cyclotomic unit has nontrivial selected residue zeta23^4;
+after degree-110 descent the Artin exponent is 13. -/
+theorem marked_phase_certificate :
+    fpow epsilon eulerExponent = phase ∧
+      phase = fpow zeta23 4 ∧ phase ≠ 1 ∧ fpow phase 23 = 1 ∧
+      110 * 13 % 23 = 4 := by
+  native_decide
+
+end Ordinary23MarkedArtinCertificate
+
+section ConwayWiedemannLaurentBoundary
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- The scalar map inserted by the Conway symmetric-block recursion is the
+cubic Laurent map `z⁻¹ * (z + 1)^3`. -/
+theorem conway_laurent_step (z : F) (hz : z ≠ 0) :
+    z⁻¹ * (z + 1) ^ 3 = z ^ 2 + z + 1 + z⁻¹ := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  field_simp [hz]
+  ring_nf
+  rw [hthree]
+  ring
+
+/-- The Wiedemann/Q-transform scalar map is the genuinely quadratic Laurent
+map `z⁻¹ * (z + 1)^2 = z + z⁻¹`. -/
+theorem wiedemann_laurent_step (z : F) (hz : z ≠ 0) :
+    z⁻¹ * (z + 1) ^ 2 = z + z⁻¹ := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  field_simp [hz]
+  ring_nf
+  rw [htwo]
+  ring
+
+end ConwayWiedemannLaurentBoundary
 
 section CubicNormalBridge
 
@@ -7805,9 +8117,55 @@ theorem conwayResultant_pair_product (c : R) :
 
 end ConwayResultantParametrization
 
+section FermatAncestryEtaleCore
+
+open Polynomial
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- The polynomial for one edge of the singleton-even Conway ancestry
+scheme, with the parent coordinate held fixed. -/
+noncomputable def fermatAncestryEdge (x : R) : R[X] :=
+  X ^ 2 + C x * X + C (x ^ 3)
+
+/-- The diagonal Jacobian entry of one ancestry edge is exactly its parent.
+Thus a chain of nonzero parents has invertible lower-bidiagonal Jacobian. -/
+theorem fermatAncestryEdge_derivative (x : R) :
+    derivative (fermatAncestryEdge x) = C x := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  simp [fermatAncestryEdge, derivative_add, derivative_pow, htwo]
+
+end FermatAncestryEtaleCore
+
 section ConwayRationalDynamicsBoundary
 
 variable {F : Type*} [Field F] [CharP F 2]
+
+/-- The order-four coordinate symmetry on the supersingular Conway curve
+`y² + y = x³ + x²`.  At paper level this is the endomorphism
+`absoluteFrobenius + 1`. -/
+def conwayCMQuarter (P : F × F) : F × F :=
+  (P.1 + 1, P.2 + P.1 + 1)
+
+/-- Squaring the quarter-turn gives the elliptic inverse coordinate
+`(x,y) ↦ (x,y+1)`. -/
+theorem conwayCMQuarter_sq (x y : F) :
+    conwayCMQuarter (conwayCMQuarter (x, y)) = (x, y + 1) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  apply Prod.ext
+  · dsimp only [conwayCMQuarter]
+    linear_combination htwo
+  · dsimp only [conwayCMQuarter]
+    linear_combination (x + 1) * htwo
+
+/-- The quarter-turn preserves the fixed supersingular Conway curve. -/
+theorem conwayCMQuarter_preserves_curve
+    (x y : F) (hE : y ^ 2 + y = x ^ 3 + x ^ 2) :
+    let P := conwayCMQuarter (x, y)
+    P.2 ^ 2 + P.2 = P.1 ^ 3 + P.1 ^ 2 := by
+  dsimp only [conwayCMQuarter]
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  linear_combination hE + (x * y + y - x ^ 2 - x) * htwo
 
 /-- The cubic Conway driver is left--right equivalent to the third
 Dickson polynomial, but the source and target Möbius maps are different. -/
@@ -7949,9 +8307,683 @@ theorem conwayDriver_explicitCube
 
 end CubeFibotomicIntersection
 
+section CubicalPrimitiveQuotient
+
+/-! Algebraic faces of the cubical multiplicative coboundary used to
+identify the primitive-support quotient in the zero arm.  The general
+kernel/cardinality calculation is valuation-theoretic and remains in the
+paper; these identities kernel-check the separated two- and three-block
+nonidentity arguments. -/
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- The two-prime cubical coboundary is the relative quotient followed by
+the other Frobenius difference.  This is the algebraic identity used to put
+the exceptional arm in the same primitive-support coordinate as the zero
+arm. -/
+theorem twoPrime_coboundary_eq
+    {G : Type*} [CommGroup G] (x : G) (q r : ℕ) :
+    (x * x ^ (q * r)) / (x ^ q * x ^ r) =
+      ((x ^ q / x) ^ r) / (x ^ q / x) := by
+  rw [pow_mul]
+  simp only [div_eq_mul_inv, mul_pow, inv_pow]
+  group
+
+/-- The cubic and exceptional torus orders cannot share an odd residue
+character: a common root of `q^2 + q + 1` and `q^3 + 1` forces two to
+vanish.  This is the algebraic core of the `C/D` orthogonality argument in
+the paper. -/
+theorem cubic_exceptional_common_root_forces_two
+    {R : Type*} [CommRing R] (q : R)
+    (hc : q ^ 2 + q + 1 = 0)
+    (hd : q ^ 3 + 1 = 0) :
+    (2 : R) = 0 := by
+  linear_combination hd - (q - 1) * hc
+
+/-- On a faithful cubic character, the relative norm operator is zero.
+This records why norm and ambiguous-class arguments can miss a nonzero
+current character component. -/
+theorem faithful_cubic_character_norm_zero
+    {R : Type*} [CommRing R] (r v : R)
+    (hr : r ^ 2 + r + 1 = 0) :
+    v + r * v + r ^ 2 * v = 0 := by
+  linear_combination v * hr
+
+/-- The algebraic substitution behind the deterministic child of a Fermat
+order packet.  Finite-field trace one makes the Artin--Schreier equation
+irreducible; that field-theoretic step remains in the paper. -/
+theorem fermat_packet_child_root
+    (t c : F) (hc : c ^ 2 + c = t) :
+    (t * c) ^ 2 + t * (t * c) + t ^ 3 = 0 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hc2 : c ^ 2 = t + c := by
+    calc
+      c ^ 2 = t - c := (eq_sub_iff_add_eq).2 hc
+      _ = t + c := CharTwo.sub_eq_add _ _
+  rw [mul_pow, hc2]
+  ring_nf
+  simp [htwo]
+
+/-- The two explicit packet children have the required relative norm. -/
+theorem fermat_packet_child_norm
+    (t c : F) (hc : c ^ 2 + c = t) :
+    (t * c) * (t * (c + 1)) = t ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hc2 : c ^ 2 = t + c := by
+    calc
+      c ^ 2 = t - c := (eq_sub_iff_add_eq).2 hc
+      _ = t + c := CharTwo.sub_eq_add _ _
+  ring_nf
+  rw [hc2]
+  ring_nf
+  simp [htwo]
+
+omit [CharP F 2] in
+/-- Reciprocal form of the deterministic packet-child equation.  With
+`A = y⁻¹` and `Aq = yq⁻¹`, the child norm relation
+`y*yq = (y+yq)^3` is exactly `(A*Aq)^2 = (A+Aq)^3`.
+This is the algebraic core of the marked conductor-transition image test. -/
+theorem fermat_packet_child_reciprocal_image
+    (y yq : F) (hy : y ≠ 0) (hyq : yq ≠ 0) :
+    y * yq = (y + yq) ^ 3 ↔
+      ((1 / y) * (1 / yq)) ^ 2 = ((1 / y) + (1 / yq)) ^ 3 := by
+  field_simp [hy, hyq]
+  ring_nf
+
+/-- The two-face multiplicative coboundary of an additive two-block element.
+Its difference from one factors as the product of the two edge differences. -/
+theorem additive_crossRatio_add_one
+    (u u' v v' : F)
+    (h₁ : u + v' ≠ 0) (h₂ : u' + v ≠ 0) :
+    ((u + v) * (u' + v')) / ((u + v') * (u' + v)) + 1 =
+      ((u + u') * (v + v')) / ((u + v') * (u' + v)) := by
+  field_simp
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  ring_nf
+  simp [htwo]
+
+/-- Distinct edges make the two-face coboundary nontrivial. -/
+theorem additive_crossRatio_ne_one
+    (u u' v v' : F)
+    (hu : u ≠ u') (hv : v ≠ v')
+    (h₁ : u + v' ≠ 0) (h₂ : u' + v ≠ 0) :
+    ((u + v) * (u' + v')) / ((u + v') * (u' + v)) ≠ 1 := by
+  intro h
+  have hz :
+      ((u + u') * (v + v')) / ((u + v') * (u' + v)) = 0 := by
+    rw [← additive_crossRatio_add_one u u' v v' h₁ h₂, h]
+    exact CharTwo.add_self_eq_zero 1
+  have hnum : (u + u') * (v + v') = 0 := by
+    exact (div_eq_zero_iff).mp hz |>.resolve_right (mul_ne_zero h₁ h₂)
+  rcases mul_eq_zero.mp hnum with huu | hvv
+  · exact hu (CharTwo.add_eq_zero.mp huu)
+  · exact hv (CharTwo.add_eq_zero.mp hvv)
+
+/-- The parity products on an additive `2 × 2 × 2` cube differ by the
+product of the three edge differences and their sum. -/
+theorem additive_cube_parity_difference
+    (x₀ x₁ y₀ y₁ z₀ z₁ : F) :
+    (x₀ + y₀ + z₀) * (x₀ + y₁ + z₁) *
+        (x₁ + y₀ + z₁) * (x₁ + y₁ + z₀) +
+      (x₀ + y₀ + z₁) * (x₀ + y₁ + z₀) *
+        (x₁ + y₀ + z₀) * (x₁ + y₁ + z₁) =
+      (x₀ + x₁) * (y₀ + y₁) * (z₀ + z₁) *
+        ((x₀ + x₁) + (y₀ + y₁) + (z₀ + z₁)) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  ring_nf
+  simp [htwo, hfour]
+
+end CubicalPrimitiveQuotient
+
+section Z36SymbolicLevel
+
+/-! Exact characteristic-two reductions behind the complete multicomponent
+level h = 36.  These identities certify the two coefficient matrices and
+their decisive minors in Proposition z-small of the paper; the field-degree
+argument supplying the two nonzero low-degree polynomials remains in prose. -/
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+theorem z36_expansions
+    (c x y : F)
+    (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3)
+    (hy : y ^ 3 = c) :
+    (x + y) ^ 37 =
+      (1 + c ^ 2 + c ^ 3) + c ^ 2 * x +
+      (c ^ 3 + c ^ 4) * y +
+      (c + c ^ 3 + c ^ 4) * (y * x) +
+      c * (y ^ 2 * x) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
+    calc
+      c ^ 8 = c ^ 2 * c ^ 6 := by ring
+      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 5 + c ^ 2 := by ring
+  have hc9 : c ^ 9 = 1 := by
+    calc
+      c ^ 9 = c ^ 3 * c ^ 6 := by ring
+      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 6 + c ^ 3 := by ring
+      _ = 1 := by
+        rw [hc6]
+        linear_combination (c ^ 3) * htwo
+  have hx2 : x ^ 2 = x + c ^ 3 := by
+    calc
+      x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
+      _ = c ^ 3 + x := CharTwo.sub_eq_add _ _
+      _ = x + c ^ 3 := add_comm _ _
+  have hx4 : x ^ 4 = x + 1 := by
+    calc
+      x ^ 4 = (x ^ 2) ^ 2 := by ring
+      _ = (x + c ^ 3) ^ 2 := by rw [hx2]
+      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
+      _ = x + 1 := by ring_nf; simp [htwo]
+  have hx8 : x ^ 8 = x + c ^ 3 + 1 := by
+    calc
+      x ^ 8 = (x ^ 4) ^ 2 := by ring
+      _ = (x + 1) ^ 2 := by rw [hx4]
+      _ = x ^ 2 + 1 := by rw [add_sq, htwo]; ring
+      _ = x + c ^ 3 + 1 := by rw [hx2]
+  have hx16 : x ^ 16 = x := by
+    calc
+      x ^ 16 = (x ^ 8) ^ 2 := by ring
+      _ = (x + c ^ 3 + 1) ^ 2 := by rw [hx8]
+      _ = x ^ 2 + c ^ 6 + 1 := by
+        rw [show x + c ^ 3 + 1 = (x + c ^ 3) + 1 by ring]
+        rw [add_sq, add_sq, htwo]
+        ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) + 1 := by rw [hx2, hc6]
+      _ = x := by ring_nf; simp [htwo]
+  have hx32 : x ^ 32 = x + c ^ 3 := by
+    calc
+      x ^ 32 = (x ^ 16) ^ 2 := by ring
+      _ = x ^ 2 := by rw [hx16]
+      _ = x + c ^ 3 := hx2
+  have hy4 : y ^ 4 = c * y := by
+    calc
+      y ^ 4 = y ^ 3 * y := by ring
+      _ = c * y := by rw [hy]
+  have hy32 : y ^ 32 = c * y ^ 2 := by
+    calc
+      y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
+      _ = c ^ 10 * y ^ 2 := by rw [hy]
+      _ = (c ^ 9 * c) * y ^ 2 := by ring
+      _ = c * y ^ 2 := by rw [hc9]; ring
+  have hz4 : (x + y) ^ 4 = (x + 1) + c * y := by
+    calc
+      (x + y) ^ 4 = x ^ 4 + y ^ 4 := by
+        simpa using (add_pow_expChar_pow x y 2 2)
+      _ = (x + 1) + c * y := by rw [hx4, hy4]
+  have hz32 : (x + y) ^ 32 = (x + c ^ 3) + c * y ^ 2 := by
+    calc
+      (x + y) ^ 32 = x ^ 32 + y ^ 32 := by
+        simpa using (add_pow_expChar_pow x y 2 5)
+      _ = (x + c ^ 3) + c * y ^ 2 := by rw [hx32, hy32]
+  have hx3 : x ^ 3 = x + c ^ 3 + c ^ 3 * x := by
+    calc
+      x ^ 3 = x * x ^ 2 := by ring
+      _ = x * (x + c ^ 3) := by rw [hx2]
+      _ = x + c ^ 3 + c ^ 3 * x := by rw [show x * (x + c ^ 3) = x ^ 2 + c ^ 3 * x by ring, hx2]
+  rw [show (x + y) ^ 37 = (x + y) ^ 32 * (x + y) ^ 4 * (x + y) by ring]
+  rw [hz32, hz4]
+  ring_nf
+  rw [hy4, hy, hx3, hx2]
+  ring_nf
+  rw [hc6, hthree, hfour]
+  ring_nf
+  simp [htwo, hthree]
+
+theorem z36_expansion_109
+    (c x y : F)
+    (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3)
+    (hy : y ^ 3 = c) :
+    (x + y) ^ 109 =
+      (1 + c + c ^ 3) + (1 + c + c ^ 2 + c ^ 4) * x +
+      (c + c ^ 3 + c ^ 4 + c ^ 5) * y +
+      (c ^ 2 + c ^ 3 + c ^ 4) * (y * x) +
+      (1 + c ^ 2 + c ^ 3 + c ^ 5) * y ^ 2 +
+      (c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5) * (y ^ 2 * x) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
+    calc
+      c ^ 8 = c ^ 2 * c ^ 6 := by ring
+      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 5 + c ^ 2 := by ring
+  have hc9 : c ^ 9 = 1 := by
+    calc
+      c ^ 9 = c ^ 3 * c ^ 6 := by ring
+      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 6 + c ^ 3 := by ring
+      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
+  have hx2 : x ^ 2 = x + c ^ 3 := by
+    calc
+      x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
+      _ = c ^ 3 + x := CharTwo.sub_eq_add _ _
+      _ = x + c ^ 3 := add_comm _ _
+  have hx4 : x ^ 4 = x + 1 := by
+    calc
+      x ^ 4 = (x ^ 2) ^ 2 := by ring
+      _ = (x + c ^ 3) ^ 2 := by rw [hx2]
+      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
+      _ = x + 1 := by linear_combination (c ^ 3) * htwo
+  have hx5 : x ^ 5 = c ^ 3 := by
+    calc
+      x ^ 5 = x * x ^ 4 := by ring
+      _ = x * (x + 1) := by rw [hx4]
+      _ = x ^ 2 + x := by ring
+      _ = c ^ 3 := hx
+  have hx8 : x ^ 8 = x + c ^ 3 + 1 := by
+    calc
+      x ^ 8 = (x ^ 4) ^ 2 := by ring
+      _ = (x + 1) ^ 2 := by rw [hx4]
+      _ = x ^ 2 + 1 := by rw [add_sq, htwo]; ring
+      _ = x + c ^ 3 + 1 := by rw [hx2]
+  have hx16 : x ^ 16 = x := by
+    calc
+      x ^ 16 = (x ^ 8) ^ 2 := by ring
+      _ = (x + c ^ 3 + 1) ^ 2 := by rw [hx8]
+      _ = x ^ 2 + c ^ 6 + 1 := by
+        rw [show x + c ^ 3 + 1 = (x + c ^ 3) + 1 by ring]
+        rw [add_sq, add_sq, htwo]
+        ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) + 1 := by rw [hx2, hc6]
+      _ = x := by linear_combination (c ^ 3 + 1) * htwo
+  have hx32 : x ^ 32 = x + c ^ 3 := by
+    calc
+      x ^ 32 = (x ^ 16) ^ 2 := by ring
+      _ = x ^ 2 := by rw [hx16]
+      _ = x + c ^ 3 := hx2
+  have hx64 : x ^ 64 = x + 1 := by
+    calc
+      x ^ 64 = (x ^ 32) ^ 2 := by ring
+      _ = (x + c ^ 3) ^ 2 := by rw [hx32]
+      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
+      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
+      _ = x + 1 := by linear_combination (c ^ 3) * htwo
+  have hy4 : y ^ 4 = c * y := by
+    calc
+      y ^ 4 = y ^ 3 * y := by ring
+      _ = c * y := by rw [hy]
+  have hy5 : y ^ 5 = c * y ^ 2 := by
+    calc
+      y ^ 5 = y ^ 3 * y ^ 2 := by ring
+      _ = c * y ^ 2 := by rw [hy]
+  have hy6 : y ^ 6 = c ^ 2 := by
+    calc
+      y ^ 6 = (y ^ 3) ^ 2 := by ring
+      _ = c ^ 2 := by rw [hy]
+  have hy7 : y ^ 7 = c ^ 2 * y := by
+    calc
+      y ^ 7 = y ^ 6 * y := by ring
+      _ = c ^ 2 * y := by rw [hy6]
+  have hy8 : y ^ 8 = c ^ 2 * y ^ 2 := by
+    calc
+      y ^ 8 = (y ^ 3) ^ 2 * y ^ 2 := by ring
+      _ = c ^ 2 * y ^ 2 := by rw [hy]
+  have hy32 : y ^ 32 = c * y ^ 2 := by
+    calc
+      y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
+      _ = c ^ 10 * y ^ 2 := by rw [hy]
+      _ = (c ^ 9 * c) * y ^ 2 := by ring
+      _ = c * y ^ 2 := by rw [hc9]; ring
+  have hc21 : c ^ 21 = c ^ 3 := by
+    calc
+      c ^ 21 = (c ^ 9) ^ 2 * c ^ 3 := by ring
+      _ = c ^ 3 := by rw [hc9]; ring
+  have hc10 : c ^ 10 = c := by
+    calc
+      c ^ 10 = c ^ 9 * c := by ring
+      _ = c := by rw [hc9]; ring
+  have hc11 : c ^ 11 = c ^ 2 := by
+    calc
+      c ^ 11 = c ^ 9 * c ^ 2 := by ring
+      _ = c ^ 2 := by rw [hc9]; ring
+  have hc12 : c ^ 12 = c ^ 3 := by
+    calc
+      c ^ 12 = c ^ 9 * c ^ 3 := by ring
+      _ = c ^ 3 := by rw [hc9]; ring
+  have hy64 : y ^ 64 = c ^ 3 * y := by
+    calc
+      y ^ 64 = (y ^ 3) ^ 21 * y := by ring
+      _ = c ^ 21 * y := by rw [hy]
+      _ = c ^ 3 * y := by rw [hc21]
+  have hz4 : (x + y) ^ 4 = (x + 1) + c * y := by
+    calc
+      (x + y) ^ 4 = x ^ 4 + y ^ 4 := by
+        simpa using (add_pow_expChar_pow x y 2 2)
+      _ = (x + 1) + c * y := by rw [hx4, hy4]
+  have hz8 : (x + y) ^ 8 = (x + c ^ 3 + 1) + c ^ 2 * y ^ 2 := by
+    calc
+      (x + y) ^ 8 = x ^ 8 + y ^ 8 := by
+        simpa using (add_pow_expChar_pow x y 2 3)
+      _ = (x + c ^ 3 + 1) + c ^ 2 * y ^ 2 := by rw [hx8, hy8]
+  have hz32 : (x + y) ^ 32 = (x + c ^ 3) + c * y ^ 2 := by
+    calc
+      (x + y) ^ 32 = x ^ 32 + y ^ 32 := by
+        simpa using (add_pow_expChar_pow x y 2 5)
+      _ = (x + c ^ 3) + c * y ^ 2 := by rw [hx32, hy32]
+  have hz64 : (x + y) ^ 64 = (x + 1) + c ^ 3 * y := by
+    calc
+      (x + y) ^ 64 = x ^ 64 + y ^ 64 := by
+        simpa using (add_pow_expChar_pow x y 2 6)
+      _ = (x + 1) + c ^ 3 * y := by rw [hx64, hy64]
+  have hx3 : x ^ 3 = x + c ^ 3 + c ^ 3 * x := by
+    calc
+      x ^ 3 = x * x ^ 2 := by ring
+      _ = x * (x + c ^ 3) := by rw [hx2]
+      _ = x + c ^ 3 + c ^ 3 * x := by
+        rw [show x * (x + c ^ 3) = x ^ 2 + c ^ 3 * x by ring, hx2]
+  rw [show (x + y) ^ 109 =
+      (x + y) ^ 64 * (x + y) ^ 32 * (x + y) ^ 8 *
+        (x + y) ^ 4 * (x + y) by ring]
+  rw [hz64, hz32, hz8, hz4]
+  ring_nf
+  rw [hy7, hy6, hy5, hy4, hy, hx5, hx4, hx3, hx2]
+  ring_nf
+  rw [hc12, hc11, hc10, hc9, hc8, hc7, hc6]
+  ring_nf
+  have h3 : (3 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 3)
+  have h4 : (4 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 4)
+  have h5 : (5 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 5)
+  have h7 : (7 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 7)
+  have h8 : (8 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 8)
+  have h9 : (9 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 9)
+  have h10 : (10 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 10)
+  have h11 : (11 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 11)
+  have h12 : (12 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 12)
+  have h13 : (13 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 13)
+  have h14 : (14 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 14)
+  have h16 : (16 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 16)
+  have h20 : (20 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 20)
+  have h21 : (21 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 21)
+  have h22 : (22 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 22)
+  have h23 : (23 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 23)
+  have h24 : (24 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 24)
+  have h25 : (25 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 25)
+  have h27 : (27 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 27)
+  have h31 : (31 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 31)
+  have h32 : (32 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 32)
+  have h39 : (39 : F) = 1 := by simpa using (CharP.cast_eq_mod F 2 39)
+  have h42 : (42 : F) = 0 := by simpa using (CharP.cast_eq_mod F 2 42)
+  simp only [htwo, h3, h4, h5, h7, h8, h9, h10, h11, h12, h13, h14,
+    h16, h20, h21, h22, h23, h24, h25, h27, h31, h32, h39, h42]
+  ring
+
+theorem z36_minor_37
+    (c : F) (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hcdeg : 1 + c ^ 3 + c ^ 4 ≠ 0) :
+    (1 + c ^ 2 + c ^ 3) * (c + c ^ 3 + c ^ 4) +
+      c ^ 2 * (c ^ 3 + c ^ 4) ≠ 0 := by
+  intro h
+  apply hcdeg
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 3)
+  have hfive : (5 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 5)
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have heq :
+      (1 + c ^ 2 + c ^ 3) * (c + c ^ 3 + c ^ 4) +
+        c ^ 2 * (c ^ 3 + c ^ 4) = 1 + c ^ 3 + c ^ 4 := by
+    ring_nf
+    rw [hc7, hc6]
+    ring_nf
+    simp [htwo, hthree, hfive]
+  rw [heq] at h
+  exact h
+
+theorem z36_minor_109
+    (c : F) (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hcdeg : c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5 ≠ 0) :
+    (1 + c + c ^ 3) * (c ^ 2 + c ^ 3 + c ^ 4) +
+      (1 + c + c ^ 2 + c ^ 4) * (c + c ^ 3 + c ^ 4 + c ^ 5) ≠ 0 := by
+  intro h
+  apply hcdeg
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 3)
+  have hfour : (4 : F) = 0 := by
+    simpa using (CharP.cast_eq_mod F 2 4)
+  have hsix : (6 : F) = 0 := by
+    simpa using (CharP.cast_eq_mod F 2 6)
+  have hseven : (7 : F) = 1 := by
+    simpa using (CharP.cast_eq_mod F 2 7)
+  have hc6 : c ^ 6 = c ^ 3 + 1 := by
+    apply eq_of_sub_eq_zero
+    rw [CharTwo.sub_eq_add]
+    simpa [add_assoc] using hc
+  have hc7 : c ^ 7 = c ^ 4 + c := by
+    calc
+      c ^ 7 = c * c ^ 6 := by ring
+      _ = c * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 4 + c := by ring
+  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
+    calc
+      c ^ 8 = c ^ 2 * c ^ 6 := by ring
+      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 5 + c ^ 2 := by ring
+  have hc9 : c ^ 9 = 1 := by
+    calc
+      c ^ 9 = c ^ 3 * c ^ 6 := by ring
+      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
+      _ = c ^ 6 + c ^ 3 := by ring
+      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
+  have hc10 : c ^ 10 = c := by
+    calc
+      c ^ 10 = c ^ 9 * c := by ring
+      _ = c := by rw [hc9]; ring
+  have heq :
+      (1 + c + c ^ 3) * (c ^ 2 + c ^ 3 + c ^ 4) +
+        (1 + c + c ^ 2 + c ^ 4) * (c + c ^ 3 + c ^ 4 + c ^ 5) =
+      c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5 := by
+    ring_nf
+    rw [hc9, hc8, hc7, hc6]
+    ring_nf
+    simp [hthree, hfour, hseven]
+  rw [heq] at h
+  exact h
+
+end Z36SymbolicLevel
+
 section NormalizedSingerAlgebra
 
 variable {F : Type*} [Field F]
+
+/-- The rational trace coordinate on the cubic Singer locus.  For
+`x^(q+1) + x + 1 = 0`, this is the relative trace of `x` over the preceding
+cubic field. -/
+def singerTraceMap (x : F) : F :=
+  (x ^ 3 + x + 1) / (x ^ 2 + x)
+
+/-- Möbius coordinate which identifies the selected cubic trace ancestry
+with the ordinary cubing map. -/
+def singerMobius (omega x : F) : F :=
+  (x + omega) / (x + omega ^ 2)
+
+/-- Denominator-free core of `W(R(x)) = W(x)^3`, where
+`R(x) = (x^3+x+1)/(x^2+x)` and `W(x) = (x+omega)/(x+omega^2)`.
+This is the exact algebraic conjugacy behind the recursively selected Singer
+orbit; it does not assert that the resulting cyclotomic unit is primitive. -/
+theorem singer_trace_mobius_factor [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0) :
+    x ^ 3 + x + 1 + omega * (x ^ 2 + x) = (x + omega) ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo, zero_add]
+  ring_nf
+  simp only [hthree, mul_one]
+  linear_combination
+    (x + omega + 1) * homega -
+      (x * omega ^ 2 + omega + omega ^ 2 + omega ^ 3) * htwo
+
+/-- The second factor identity needed for the Singer Möbius conjugacy. -/
+theorem singer_trace_mobius_factor_sq [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0) :
+    x ^ 3 + x + 1 + omega ^ 2 * (x ^ 2 + x) = (x + omega ^ 2) ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have homegaSq : (omega ^ 2) ^ 2 + omega ^ 2 + 1 = 0 := by
+    have hs := congrArg (fun t : F => t ^ 2) homega
+    ring_nf at hs
+    rw [htwo] at hs
+    ring_nf at hs
+    linear_combination hs - omega ^ 2 * htwo
+  exact singer_trace_mobius_factor x (omega ^ 2) homegaSq
+
+/-- Denominator-free cross multiplication for `W(R(x)) = W(x)^3`. -/
+theorem singer_trace_mobius_numerator_identity [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0) :
+    (x ^ 3 + x + 1 + omega * (x ^ 2 + x)) * (x + omega ^ 2) ^ 3 =
+      (x ^ 3 + x + 1 + omega ^ 2 * (x ^ 2 + x)) * (x + omega) ^ 3 := by
+  rw [singer_trace_mobius_factor x omega homega,
+    singer_trace_mobius_factor_sq x omega homega]
+  ring
+
+/-- On the open set where the two Möbius coordinates are defined, the
+selected Singer trace map is conjugate to cubing. -/
+theorem singerMobius_traceMap [CharP F 2]
+    (x omega : F) (homega : omega ^ 2 + omega + 1 = 0)
+    (hx : x ^ 2 + x ≠ 0) (hxomega : x + omega ^ 2 ≠ 0)
+    (htraceomega : singerTraceMap x + omega ^ 2 ≠ 0) :
+    singerMobius omega (singerTraceMap x) = (singerMobius omega x) ^ 3 := by
+  have hnum := singer_trace_mobius_numerator_identity x omega homega
+  have htranslate (a : F) :
+      singerTraceMap x + a =
+        (x ^ 3 + x + 1 + a * (x ^ 2 + x)) / (x ^ 2 + x) := by
+    calc
+      singerTraceMap x + a = a + (x ^ 3 + x + 1) / (x ^ 2 + x) := by
+        simp only [singerTraceMap, add_comm]
+      _ = (a * (x ^ 2 + x) + (x ^ 3 + x + 1)) / (x ^ 2 + x) :=
+        add_div_eq_mul_add_div a (x ^ 3 + x + 1) hx
+      _ = (x ^ 3 + x + 1 + a * (x ^ 2 + x)) / (x ^ 2 + x) := by
+        congr 1
+        ring
+  have hden : x ^ 3 + x + 1 + omega ^ 2 * (x ^ 2 + x) ≠ 0 := by
+    rw [htranslate] at htraceomega
+    exact (div_ne_zero_iff.mp htraceomega).1
+  simp only [singerMobius]
+  rw [htranslate, htranslate]
+  rw [div_div_div_cancel_right₀ hx]
+  rw [div_pow]
+  apply (div_eq_div_iff hden (pow_ne_zero 3 hxomega)).2
+  simpa [mul_comm] using hnum
+
+/-- The closed Singer coordinate has no residual orientation ambiguity: once
+`eta` is written using the marked cyclotomic coordinate `y`, the Möbius map
+recovers exactly `y` (in the application, `y = zeta_k^2`). -/
+theorem singerMobius_selected_orientation [CharP F 2]
+    (eta y omega : F) (homega : omega ^ 2 + omega + 1 = 0)
+    (hy : y + 1 ≠ 0)
+    (heta : eta = omega ^ 2 * (y + omega ^ 2) / (y + 1)) :
+    singerMobius omega eta = y := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have homega3 : omega ^ 3 = 1 := by
+    linear_combination
+      (omega + 1) * homega - (omega ^ 2 + omega + 1) * htwo
+  have hetaOmega : eta + omega = y / (y + 1) := by
+    rw [heta]
+    field_simp [hy]
+    linear_combination
+      y * homega + omega * homega3 + (omega - y) * htwo
+  have hetaOmegaSq : eta + omega ^ 2 = 1 / (y + 1) := by
+    rw [heta]
+    field_simp [hy]
+    linear_combination
+      homega + omega * homega3 + (omega ^ 2 * y - 1) * htwo
+  simp only [singerMobius]
+  rw [hetaOmega, hetaOmegaSq, div_div_div_cancel_right₀ hy]
+  simp
+
+/-- The selected cubic-order test as a two-binomial vanishing condition.
+This is the denominator-free algebra behind the cyclotomic resultant
+criterion in the paper; it retains the marked Möbius phase exactly. -/
+theorem singer_selected_power_eq_one_iff [CharP F 2]
+    (eta y omega : F) (d : ℕ)
+    (homega : omega ^ 2 + omega + 1 = 0)
+    (hy : y + 1 ≠ 0)
+    (heta : eta = omega ^ 2 * (y + omega ^ 2) / (y + 1)) :
+    eta ^ d = 1 ↔
+      (y + omega ^ 2) ^ d + omega ^ d * (y + 1) ^ d = 0 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have homega3 : omega ^ 3 = 1 := by
+    linear_combination
+      (omega + 1) * homega - (omega ^ 2 + omega + 1) * htwo
+  have homegaProd : (omega ^ 2) ^ d * omega ^ d = 1 := by
+    rw [← mul_pow]
+    have : omega ^ 2 * omega = 1 := by
+      calc
+        omega ^ 2 * omega = omega ^ 3 := by ring
+        _ = 1 := homega3
+    rw [this, one_pow]
+  rw [heta, div_pow, mul_pow]
+  have hden : (y + 1) ^ d ≠ 0 := pow_ne_zero d hy
+  constructor
+  · intro h
+    have hmul :
+        (omega ^ 2) ^ d * (y + omega ^ 2) ^ d = (y + 1) ^ d := by
+      exact (div_eq_one_iff_eq hden).mp h
+    have hnum :
+        (y + omega ^ 2) ^ d = omega ^ d * (y + 1) ^ d := by
+      calc
+        (y + omega ^ 2) ^ d =
+            1 * (y + omega ^ 2) ^ d := by rw [one_mul]
+        _ = ((omega ^ 2) ^ d * omega ^ d) *
+              (y + omega ^ 2) ^ d := by rw [homegaProd]
+        _ = omega ^ d *
+              ((omega ^ 2) ^ d * (y + omega ^ 2) ^ d) := by ring
+        _ = omega ^ d * (y + 1) ^ d := by rw [hmul]
+    rw [hnum]
+    exact CharTwo.add_self_eq_zero _
+  · intro h
+    have hnum :
+        (y + omega ^ 2) ^ d = omega ^ d * (y + 1) ^ d :=
+      CharTwo.add_eq_zero.mp h
+    rw [hnum]
+    rw [← mul_assoc, homegaProd, one_mul]
+    exact div_self hden
 
 /-- Denominator-free normalization of the selected reciprocal cubic.
 Substituting z = d * τ and zPrev = d³ into

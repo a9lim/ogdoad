@@ -1,24 +1,15 @@
 #!/usr/bin/env python3
 """Fresh direct stateful solver for the echo rule family (adversarial review).
 
-VERDICT (2026-06-10): CONFIRM.  The echo-fifo+dummy m=8 exactness claim is
-re-derived in full -- 391,680/391,680 checks (765 scaled Gold forms x 256
-positions x both stances), zero misses -- by the direct full-state solver
-`fifo_value` below (stage `fifo2-all`), with no decomposition and no
-isomorphism caching.  Record and corrected rule description / verification
-record: `writeups/goldarf.tex` SS8.  NOTE: the EchoGame
-class and the `pin-ko`/`fifo-m4`/`fifo-m8` stages implement the OLD SS8.3
-prose readings, kept as the documented negative result (no reading of that
-prose is m=8-exact -- the prose misdescribed the rule); the faithful
-sigma-valued rule lives in `fifo_value`/`ko_value` and the `fifo2-*`/`ko2`
-stages.
+The direct full-state solver `fifo_value` rederives the echo-FIFO-plus-dummy
+`m=8` finite check: 391,680 cases (765 scaled Gold forms, 256 positions, and
+both stances) with no misses, without decomposition or isomorphism caching.
+The `EchoGame` class and the `pin-ko`/`fifo-m4`/`fifo-m8` stages remain negative
+controls for alternative rule readings; the maintained sigma-valued rule is
+implemented by `fifo_value`/`ko_value` and the `fifo2-*`/`ko2` stages.
 
-This is the decisive-experiment harness for the `echo-solver` task (successor
-`echo-family-sweep` in `docs/ROADMAP.md`) and
-`writeups/goldarf.tex` SS8-9, ranked move 1: an independent re-derivation of the
-echo-fifo+dummy m=8 exactness claim (391,680 checks / 765 scaled Gold forms),
-which was produced by a decomposition-plus-isomorphism-caching solver validated
-only at m=4 and was recorded in the writeup as unverified.
+This harness independently checks the finite echo-FIFO-plus-dummy result used
+to test the later symbolic matching construction in `writeups/goldarf.tex`.
 
 Design constraints (from the pre-registered experiment):
   * direct stateful solver -- NO decomposition, NO isomorphism caching;
@@ -26,13 +17,10 @@ Design constraints (from the pre-registered experiment):
   * validated against explicit (unmemoized) tree enumeration before being
     trusted at m=8.
 
-Clean-room provenance: the rules are implemented from the prose of
-goldarf.tex SS8 alone; the original probes in experiments/gold/ were NOT read
-before this harness produced numbers. Because the prose underdetermines a few
-conventions, each is an explicit parameter here, and the conventions are pinned
-by reproducing the *corrected* echo-ko results table of SS8.2 (16/16 at m=4 bent
-lambda in {2,12}; 255/256 at (8,2,1) with the unique miss x=224; 228/256 at
-(8,1,1); 212/256 at (8,1,2)).
+Each convention left variable by the experimental family is an explicit
+parameter. The negative-control modes reproduce the fixed comparison values:
+16/16 at `m=4`, 255/256 at `(8,2,1)`, 228/256 at `(8,1,1)`, and 212/256 at
+`(8,1,2)`.
 
 Rule (echo-ko, goldarf SS8.2): positions are x in F_{2^m}; the coins of x (the
 support bits) must each be touched twice (first touch opens, second closes);

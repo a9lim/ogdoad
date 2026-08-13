@@ -132,7 +132,7 @@ pub(crate) fn inverse_mod<S: Scalar>(e: &Poly<S>, m: &Poly<S>) -> Poly<S> {
 /// The char-2 twin of [`function_field::monic_irreducible_factors`]; the distinct
 /// name keeps the flat `forms::*` glob re-export unambiguous.
 pub(crate) fn char2_monic_irreducible_factors<S: FiniteChar2Field>(f: &Poly<S>) -> Vec<Poly<S>> {
-    crate::forms::poly_factor::monic_irreducible_factor_support(
+    crate::scalar::poly_factor::monic_irreducible_factor_support(
         f,
         S::characteristic_prime(),
         S::field_order(),

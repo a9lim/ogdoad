@@ -16,8 +16,10 @@ BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP: builtins.int
 BW16_REAL_CLIFFORD_GROUP_ORDER: builtins.int
 D16_PLUS_AUT_ORDER: builtins.int
 E8_WEYL_GROUP_ORDER: builtins.int
+HEISENBERG_WEIL_MATRIX_RANK_CAP: builtins.int
 LEECH_AUT_ORDER: builtins.int
 LEXICODE_NODE_BUDGET: builtins.int
+LEXICODE_TURNING_GAME_NODE_BUDGET: builtins.int
 NIM_LEXICODE_NODE_BUDGET: builtins.int
 
 class AbstractGame:
@@ -38,6 +40,7 @@ class AbstractGame:
         Raises `ValueError` if the bounded search reaches a position whose move
         graph has a directed cycle.
         """
+    def __repr__(self) -> builtins.str: ...
 
 class Adele:
     @property
@@ -211,14 +214,25 @@ class AdeleCga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> AdeleAlgebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -227,6 +241,7 @@ class AdeleCga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class AdeleDividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -689,6 +704,22 @@ class Char2PsiTerm:
     def pole_order(self) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
+class Char2WittDecomp:
+    @property
+    def arf(self) -> Any: ...
+    @property
+    def core_anisotropic_dim(self) -> Any: ...
+    @property
+    def field_degree(self) -> Any: ...
+    @property
+    def radical_anisotropic(self) -> Any: ...
+    @property
+    def radical_dim(self) -> Any: ...
+    @property
+    def witt_index(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
 class CliffordBarnesWall16Report:
     @property
     def automorphism_group_order(self) -> Any: ...
@@ -785,12 +816,16 @@ class DiscriminantForm:
     def reps(self) -> Any: ...
     def bilinear_value_mod1(self, *args: Any, **kwargs: Any) -> Any: ...
     def brown_invariant(self, *args: Any, **kwargs: Any) -> Any: ...
+    def fqm_witt_class(self, *args: Any, **kwargs: Any) -> Any: ...
     @staticmethod
     def from_lattice(*args: Any, **kwargs: Any) -> Any: ...
     def gauss_sum(self, *args: Any, **kwargs: Any) -> Any: ...
+    def is_fqm_witt_equivalent(self, *args: Any, **kwargs: Any) -> Any: ...
     def is_isomorphic(self, *args: Any, **kwargs: Any) -> Any: ...
     def is_isomorphic_bounded(self, *args: Any, **kwargs: Any) -> Any: ...
     def milgram_signature_mod8(self, *args: Any, **kwargs: Any) -> Any: ...
+    def nikulin_even_lattice_exists(self, *args: Any, **kwargs: Any) -> Any: ...
+    def nikulin_existence_report(self, *args: Any, **kwargs: Any) -> Any: ...
     def quadratic_value_mod2(self, *args: Any, **kwargs: Any) -> Any: ...
     def verify_weil_relations(self, *args: Any, **kwargs: Any) -> Any: ...
     def weil_s(self, *args: Any, **kwargs: Any) -> Any: ...
@@ -808,6 +843,53 @@ class EnStaircase:
     def e2(self) -> Any: ...
     @property
     def stabilizes_at(self) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class Extraspecial2Group:
+    def __init__(self, qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> None: ...
+    @property
+    def dim(self) -> Any: ...
+    def arf(self, *args: Any, **kwargs: Any) -> Any: ...
+    def central_generator(self, *args: Any, **kwargs: Any) -> Any: ...
+    def cocycle_value(self, *args: Any, **kwargs: Any) -> Any: ...
+    def commutator(self, *args: Any, **kwargs: Any) -> Any: ...
+    def contains(self, *args: Any, **kwargs: Any) -> Any: ...
+    def element(self, *args: Any, **kwargs: Any) -> Any: ...
+    def extraspecial_type(self, *args: Any, **kwargs: Any) -> Any: ...
+    @staticmethod
+    def from_nimber_algebra(*args: Any, **kwargs: Any) -> Any: ...
+    def generator(self, *args: Any, **kwargs: Any) -> Any: ...
+    def heisenberg_weil_representation(self, *args: Any, **kwargs: Any) -> Any: ...
+    def identity(self, *args: Any, **kwargs: Any) -> Any: ...
+    def inverse(self, *args: Any, **kwargs: Any) -> Any: ...
+    def multiply(self, *args: Any, **kwargs: Any) -> Any: ...
+    def order_exponent(self, *args: Any, **kwargs: Any) -> Any: ...
+    def order_u128(self, *args: Any, **kwargs: Any) -> Any: ...
+    def polar_value(self, *args: Any, **kwargs: Any) -> Any: ...
+    def q_value(self, *args: Any, **kwargs: Any) -> Any: ...
+    def square(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __repr__(self) -> builtins.str: ...
+
+class ExtraspecialElement:
+    def __init__(self, central: builtins.bool, vector: builtins.int) -> None: ...
+    @property
+    def central(self) -> Any: ...
+    @property
+    def vector(self) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
     def __repr__(self) -> builtins.str: ...
 
 class F16:
@@ -3252,6 +3334,29 @@ class FiniteHermitianInvariants:
     @property
     def rank(self) -> Any: ...
     def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class FiniteQuadraticModule:
+    def __init__(self, cyclic_factors: Sequence[builtins.int], q_values_mod2: Sequence[Any]) -> None: ...
+    @property
+    def cyclic_factors(self) -> Any: ...
+    @property
+    def order(self) -> Any: ...
+    @property
+    def q_values_mod2(self) -> Any: ...
+    @staticmethod
+    def cyclic(order: builtins.int, generator_q: Any) -> FiniteQuadraticModule: ...
+    def direct_sum(self, *args: Any, **kwargs: Any) -> Any: ...
+    def nikulin_even_lattice_exists(self, *args: Any, **kwargs: Any) -> Any: ...
+    def nikulin_existence_report(self, *args: Any, **kwargs: Any) -> Any: ...
+    def witt_class(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
     def __repr__(self) -> builtins.str: ...
 
 class Fp11:
@@ -9872,11 +9977,104 @@ class Fp7RationalFunctionMV:
     def __truediv__(self, other: Any) -> Any: ...
     def __xor__(self, other: Any) -> Any: ...
 
+class FqmPrimaryWittClass:
+    @property
+    def core_exponent(self) -> Any: ...
+    @property
+    def core_group(self) -> Any: ...
+    @property
+    def core_order(self) -> Any: ...
+    @property
+    def normal_form(self) -> Any: ...
+    @property
+    def order(self) -> Any: ...
+    @property
+    def phase_mod8(self) -> Any: ...
+    @property
+    def prime(self) -> Any: ...
+    @property
+    def q_value_counts(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class FqmValueCount:
+    @property
+    def count(self) -> Any: ...
+    @property
+    def denom(self) -> Any: ...
+    @property
+    def numer(self) -> Any: ...
+    def value(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class FqmWittClass:
+    @property
+    def order(self) -> Any: ...
+    @property
+    def phase_mod8(self) -> Any: ...
+    @property
+    def primary(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def is_trivial(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __repr__(self) -> builtins.str: ...
+
 class FunctionFieldAdelicIsotropy:
     @property
     def local(self) -> Any: ...
     def display(self, *args: Any, **kwargs: Any) -> Any: ...
     def is_global(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class FunctionFieldBrauer2Class:
+    @property
+    def field_order(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def is_split(self, *args: Any, **kwargs: Any) -> Any: ...
+    def ramified_places(self, *args: Any, **kwargs: Any) -> Any: ...
+    def satisfies_reciprocity(self, *args: Any, **kwargs: Any) -> Any: ...
+    @staticmethod
+    def split(*args: Any, **kwargs: Any) -> Any: ...
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class FunctionFieldBrauerWallClass:
+    @property
+    def clifford_brauer_class(self) -> Any: ...
+    @property
+    def dimension_parity(self) -> Any: ...
+    @property
+    def field_order(self) -> Any: ...
+    @property
+    def signed_discriminant(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def is_split(self, *args: Any, **kwargs: Any) -> Any: ...
+    @staticmethod
+    def split(*args: Any, **kwargs: Any) -> Any: ...
+    def zero_like(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __radd__(self, other: Any) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
 class FunctionFieldLocalIsotropy:
@@ -10051,6 +10249,7 @@ class GameClifford:
     def with_relation_bound(*args: Any, **kwargs: Any) -> Any: ...
     @staticmethod
     def with_relation_search(*args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
 
 class GameExterior:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
@@ -10089,6 +10288,7 @@ class GameExterior:
     def with_relation_search(*args: Any, **kwargs: Any) -> Any: ...
     @staticmethod
     def with_relations(*args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
 
 class GameRelation:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
@@ -10287,14 +10487,25 @@ class GaussQp11_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> GaussQp11_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -10303,6 +10514,7 @@ class GaussQp11_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class GaussQp11_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -10675,14 +10887,25 @@ class GaussQp13_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> GaussQp13_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -10691,6 +10914,7 @@ class GaussQp13_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class GaussQp13_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -11063,14 +11287,25 @@ class GaussQp2_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> GaussQp2_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -11079,6 +11314,7 @@ class GaussQp2_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class GaussQp2_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -11451,14 +11687,25 @@ class GaussQp3_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> GaussQp3_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -11467,6 +11714,7 @@ class GaussQp3_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class GaussQp3_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -11839,14 +12087,25 @@ class GaussQp5_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> GaussQp5_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -11855,6 +12114,7 @@ class GaussQp5_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class GaussQp5_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -12227,14 +12487,25 @@ class GaussQp7_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> GaussQp7_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -12243,6 +12514,7 @@ class GaussQp7_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class GaussQp7_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -12477,6 +12749,21 @@ class Hackenbush:
         """The partizan game value (the universal evaluator)."""
     def value(self) -> Surreal:
         """The surreal number value (`None` if the value is not a number)."""
+    def __repr__(self) -> builtins.str: ...
+
+class HeisenbergWeilRepresentation:
+    @property
+    def rank(self) -> Any: ...
+    def apply_to_basis_state(self, *args: Any, **kwargs: Any) -> Any: ...
+    def basis_coordinates(self, *args: Any, **kwargs: Any) -> Any: ...
+    def group(self, *args: Any, **kwargs: Any) -> Any: ...
+    def hilbert_dim_u128(self, *args: Any, **kwargs: Any) -> Any: ...
+    def matrix(self, *args: Any, **kwargs: Any) -> Any: ...
+    def quotient_dim(self, *args: Any, **kwargs: Any) -> Any: ...
+    def symplectic_basis(self, *args: Any, **kwargs: Any) -> Any: ...
+    def transvection_intertwiner(self, *args: Any, **kwargs: Any) -> Any: ...
+    def verify_transvection_intertwines(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
 
 class HermitianForm:
     @property
@@ -16303,14 +16590,25 @@ class LaurentRational6Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> LaurentRational_6Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -16319,6 +16617,7 @@ class LaurentRational6Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class LaurentRational_6:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
@@ -16702,6 +17001,22 @@ class LazySpinorRep:
         """Apply left multiplication by the vector `Σ coeffs[i] e_i`."""
     def __repr__(self) -> builtins.str: ...
 
+class LexicodeTurningGame:
+    def __init__(self, word_len: builtins.int, min_distance: builtins.int) -> None: ...
+    @property
+    def min_distance(self) -> Any: ...
+    def grundy_values_bounded(self, *args: Any, **kwargs: Any) -> Any: ...
+    def is_empty(self, *args: Any, **kwargs: Any) -> Any: ...
+    def is_legal_move(self, *args: Any, **kwargs: Any) -> Any: ...
+    def is_position(self, *args: Any, **kwargs: Any) -> Any: ...
+    def len(self, *args: Any, **kwargs: Any) -> Any: ...
+    def moves_bounded(self, *args: Any, **kwargs: Any) -> Any: ...
+    def p_positions_bounded(self, *args: Any, **kwargs: Any) -> Any: ...
+    def position_count(self, *args: Any, **kwargs: Any) -> Any: ...
+    def successors_bounded(self, *args: Any, **kwargs: Any) -> Any: ...
+    def turning_masks_bounded(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
 class LocalQp:
     @property
     def precision(self) -> Any: ...
@@ -16779,6 +17094,7 @@ class LoopyGraph:
         """The adjacency lists."""
     def win_set(self, *args: Any, **kwargs: Any) -> Any:
         """The Win positions = N-positions (the player to move wins)."""
+    def __repr__(self) -> builtins.str: ...
 
 class LoopyNimCertificate:
     @property
@@ -16831,6 +17147,7 @@ class LoopyPartizanGraph:
         """Classical partizan classes where available; mixed draw/win cases are `None`."""
     def right(self, *args: Any, **kwargs: Any) -> Any:
         """Right's adjacency lists."""
+    def __repr__(self) -> builtins.str: ...
 
 class LoopyPartizanOutcome:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
@@ -16976,6 +17293,89 @@ class NewtonPolygon:
     def slopes(self, *args: Any, **kwargs: Any) -> Any: ...
     def vertices(self, *args: Any, **kwargs: Any) -> Any: ...
     def zero_root_multiplicity(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class NiemeierRecord:
+    @property
+    def automorphism_quotient_order(self) -> Any: ...
+    @property
+    def components(self) -> Any: ...
+    @property
+    def coxeter_number(self) -> Any: ...
+    @property
+    def glue_code_order(self) -> Any: ...
+    @property
+    def label(self) -> Any: ...
+    def automorphism_group_order(self, *args: Any, **kwargs: Any) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def reflection_group_order(self, *args: Any, **kwargs: Any) -> Any: ...
+    def root_count(self, *args: Any, **kwargs: Any) -> Any: ...
+    def root_discriminant(self, *args: Any, **kwargs: Any) -> Any: ...
+    def root_lattice(self, *args: Any, **kwargs: Any) -> Any: ...
+    def root_rank(self, *args: Any, **kwargs: Any) -> Any: ...
+    def theta_series(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class NiemeierRootComponent:
+    @property
+    def family(self) -> Any: ...
+    @property
+    def kind(self) -> Any: ...
+    @property
+    def multiplicity(self) -> Any: ...
+    @property
+    def rank(self) -> Any: ...
+    def coxeter_number(self, *args: Any, **kwargs: Any) -> Any: ...
+    def determinant(self, *args: Any, **kwargs: Any) -> Any: ...
+    def root_count(self, *args: Any, **kwargs: Any) -> Any: ...
+    def root_lattice(self, *args: Any, **kwargs: Any) -> Any: ...
+    def weyl_group_order(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class NikulinExistenceInvariants:
+    @property
+    def module_phase_mod8(self) -> Any: ...
+    @property
+    def obstruction(self) -> Any: ...
+    @property
+    def primary(self) -> Any: ...
+    @property
+    def rank(self) -> Any: ...
+    @property
+    def signature(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def exists(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class NikulinExistenceObstruction:
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
+    def kind(self, *args: Any, **kwargs: Any) -> Any: ...
+    def length(self, *args: Any, **kwargs: Any) -> Any: ...
+    def module_phase_mod8(self, *args: Any, **kwargs: Any) -> Any: ...
+    def order(self, *args: Any, **kwargs: Any) -> Any: ...
+    def p_adic_discriminant(self, *args: Any, **kwargs: Any) -> Any: ...
+    def prime(self, *args: Any, **kwargs: Any) -> Any: ...
+    def rank(self, *args: Any, **kwargs: Any) -> Any: ...
+    def required_mod8(self, *args: Any, **kwargs: Any) -> Any: ...
+    def signed_order(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class NikulinPrimaryExistenceInvariants:
+    @property
+    def determinant_condition_holds(self) -> Any: ...
+    @property
+    def equality_case(self) -> Any: ...
+    @property
+    def even_two_primary(self) -> Any: ...
+    @property
+    def length(self) -> Any: ...
+    @property
+    def order(self) -> Any: ...
+    @property
+    def p_adic_discriminant(self) -> Any: ...
+    @property
+    def prime(self) -> Any: ...
+    def display(self, *args: Any, **kwargs: Any) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
 class NimLexicode:
@@ -18661,6 +19061,12 @@ class Ordinal:
     def characteristic(*args: Any, **kwargs: Any) -> Any: ...
     def checked_inv(self, *args: Any, **kwargs: Any) -> Any:
         """Alias for the represented inverse boundary."""
+    def checked_sqrt(self, *args: Any, **kwargs: Any) -> Any:
+        """Checked nim-square root on the same represented finite-subfield window."""
+    def finite_subfield_degree(self, *args: Any, **kwargs: Any) -> Any:
+        """Minimal `m` such that this represented ordinal nimber lies in `F_{2^m}`.
+        `None` marks the staged Kummer/excess boundary.
+        """
     @staticmethod
     def from_omega3_coeffs(*args: Any, **kwargs: Any) -> Any:
         """Build `ω²·c₂ + ω·c₁ + c₀` from `[c₀, c₁, c₂]`."""
@@ -19296,14 +19702,25 @@ class Qp11_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qp11_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -19312,6 +19729,7 @@ class Qp11_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qp11_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -19695,14 +20113,25 @@ class Qp13_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qp13_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -19711,6 +20140,7 @@ class Qp13_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qp13_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -20094,14 +20524,25 @@ class Qp2_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qp2_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -20110,6 +20551,7 @@ class Qp2_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qp2_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -20493,14 +20935,25 @@ class Qp3_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qp3_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -20509,6 +20962,7 @@ class Qp3_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qp3_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -20892,14 +21346,25 @@ class Qp5_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qp5_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -20908,6 +21373,7 @@ class Qp5_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qp5_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -21291,14 +21757,25 @@ class Qp7_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qp7_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -21307,6 +21784,7 @@ class Qp7_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qp7_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -21699,14 +22177,25 @@ class Qq2_4_2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qq2_4_2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -21715,6 +22204,7 @@ class Qq2_4_2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qq2_4_2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -22107,14 +22597,25 @@ class Qq2_4_3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qq2_4_3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -22123,6 +22624,7 @@ class Qq2_4_3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qq2_4_3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -22515,14 +23017,25 @@ class Qq2_4_4Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qq2_4_4Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -22531,6 +23044,7 @@ class Qq2_4_4Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qq2_4_4DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -22923,14 +23437,25 @@ class Qq3_4_2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qq3_4_2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -22939,6 +23464,7 @@ class Qq3_4_2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qq3_4_2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -23331,14 +23857,25 @@ class Qq3_4_3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qq3_4_3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -23347,6 +23884,7 @@ class Qq3_4_3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qq3_4_3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -23739,14 +24277,25 @@ class Qq5_4_2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> Qq5_4_2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -23755,6 +24304,7 @@ class Qq5_4_2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class Qq5_4_2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -24185,14 +24735,25 @@ class RamifiedQp11_4_E2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp11_4_E2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -24201,6 +24762,7 @@ class RamifiedQp11_4_E2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp11_4_E2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -24575,14 +25137,25 @@ class RamifiedQp11_4_E3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp11_4_E3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -24591,6 +25164,7 @@ class RamifiedQp11_4_E3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp11_4_E3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -24965,14 +25539,25 @@ class RamifiedQp13_4_E2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp13_4_E2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -24981,6 +25566,7 @@ class RamifiedQp13_4_E2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp13_4_E2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -25355,14 +25941,25 @@ class RamifiedQp13_4_E3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp13_4_E3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -25371,6 +25968,7 @@ class RamifiedQp13_4_E3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp13_4_E3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -25745,14 +26343,25 @@ class RamifiedQp2_4_E2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp2_4_E2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -25761,6 +26370,7 @@ class RamifiedQp2_4_E2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp2_4_E2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -26135,14 +26745,25 @@ class RamifiedQp2_4_E3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp2_4_E3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -26151,6 +26772,7 @@ class RamifiedQp2_4_E3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp2_4_E3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -26525,14 +27147,25 @@ class RamifiedQp3_4_E2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp3_4_E2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -26541,6 +27174,7 @@ class RamifiedQp3_4_E2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp3_4_E2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -26915,14 +27549,25 @@ class RamifiedQp3_4_E3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp3_4_E3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -26931,6 +27576,7 @@ class RamifiedQp3_4_E3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp3_4_E3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -27305,14 +27951,25 @@ class RamifiedQp5_4_E2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp5_4_E2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -27321,6 +27978,7 @@ class RamifiedQp5_4_E2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp5_4_E2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -27695,14 +28353,25 @@ class RamifiedQp5_4_E3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp5_4_E3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -27711,6 +28380,7 @@ class RamifiedQp5_4_E3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp5_4_E3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -28085,14 +28755,25 @@ class RamifiedQp7_4_E2Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp7_4_E2Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -28101,6 +28782,7 @@ class RamifiedQp7_4_E2Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp7_4_E2DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -28475,14 +29157,25 @@ class RamifiedQp7_4_E3Cga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RamifiedQp7_4_E3Algebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -28491,6 +29184,7 @@ class RamifiedQp7_4_E3Cga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp7_4_E3DividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -28889,14 +29583,25 @@ class RationalCga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> RationalAlgebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -28905,6 +29610,7 @@ class RationalCga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class RationalCliffordInvariants:
     @property
@@ -29455,14 +30161,25 @@ class SurcomplexCga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> SurcomplexAlgebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -29471,6 +30188,7 @@ class SurcomplexCga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class SurcomplexDividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -29923,14 +30641,25 @@ class SurrealCga:
     def dim(self) -> Any: ...
     @property
     def n(self) -> Any: ...
+    def alg(self) -> SurrealAlgebra:
+        """The exact monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
         """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
         """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """The IPNS meet (intersection) `x ∧ y`."""
+        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+    def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
+        """IPNS meet (intersection) `x ∧ y`.
+
+        Both operands must use the inner-product null-space (IPNS)
+        convention.  This method is deliberately not an OPNS meet,
+        which would require dualization and a nondegenerate pseudoscalar.
+        """
     def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
     def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def outer_join(self, *args: Any, **kwargs: Any) -> Any:
+        """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
         """The plane `{x : x·normal = d}`."""
     def point_pair(self, *args: Any, **kwargs: Any) -> Any:
@@ -29939,6 +30668,7 @@ class SurrealCga:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
         """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+    def __repr__(self) -> builtins.str: ...
 
 class SurrealDividedPowerAlgebra:
     def __init__(self, dim: builtins.int) -> None: ...
@@ -34778,6 +35508,9 @@ def bw_class_complex(*args: Any, **kwargs: Any) -> Any:
 
 def bw_class_finite_algebra(*args: Any, **kwargs: Any) -> Any: ...
 
+def bw_class_function_field(alg: Any) -> FunctionFieldBrauerWallClass:
+    """Brauer-Wall class of a fixed odd-characteristic function-field algebra."""
+
 def bw_class_nimber(alg: NimberAlgebra) -> BrauerWallClass:
     """The Brauer-Wall class of a nonsingular nimber Clifford algebra in
     `BW(F_{2^m}) ≅ W_q(F_{2^m}) ≅ Z/2` (the Arf/Witt class).
@@ -34904,6 +35637,8 @@ def e_real(*args: Any, **kwargs: Any) -> Any:
     staircase reads the 2-adic expansion of the signature (the infinite ℝ tower).
     """
 
+def eisenstein_e12(terms: builtins.int) -> list[Rational]: ...
+
 def eisenstein_e4(*args: Any, **kwargs: Any) -> Any: ...
 
 def eisenstein_e6(*args: Any, **kwargs: Any) -> Any: ...
@@ -34915,6 +35650,10 @@ def even_unimodular_kneser_report(*args: Any, **kwargs: Any) -> Any: ...
 def extended_golay_generator_rows(*args: Any, **kwargs: Any) -> Any: ...
 
 def extended_hamming_code(*args: Any, **kwargs: Any) -> Any: ...
+
+def extraspecial_group_f2(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> Extraspecial2Group: ...
+
+def extraspecial_group_nimber(alg: NimberAlgebra) -> Extraspecial2Group: ...
 
 def fit_f2_quadratic(*args: Any, **kwargs: Any) -> Any:
     """Fit an F₂ quadratic form to a subset of `F_2^k`, returning the recovered
@@ -34980,6 +35719,10 @@ def hasse_at_place(*args: Any, **kwargs: Any) -> Any:
 def hasse_brauer_class(*args: Any, **kwargs: Any) -> Any: ...
 
 def heat(*args: Any, **kwargs: Any) -> Any: ...
+
+def heisenberg_weil_representation_f2(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> HeisenbergWeilRepresentation: ...
+
+def heisenberg_weil_representation_nimber(alg: NimberAlgebra) -> HeisenbergWeilRepresentation: ...
 
 def hilbert_product(a: tuple[builtins.int, builtins.int], b: tuple[builtins.int, builtins.int]) -> builtins.int:
     """The Hilbert-symbol product `∏_v (a, b)_v` over all places of `ℚ`, for `a, b ∈
@@ -35087,6 +35830,8 @@ def lexicode_bounded(*args: Any, **kwargs: Any) -> Any: ...
 
 def lexicode_naive(*args: Any, **kwargs: Any) -> Any: ...
 
+def lexicode_turning_game(n: builtins.int, d: builtins.int) -> LexicodeTurningGame | None: ...
+
 def local_anisotropic_dim_char2(*args: Any, **kwargs: Any) -> Any:
     """Local anisotropic dimension of a characteristic-2 form at `place`."""
 
@@ -35165,6 +35910,12 @@ def monic_irreducible_factors(*args: Any, **kwargs: Any) -> Any:
     """
 
 def newton_polygon(*args: Any, **kwargs: Any) -> Any: ...
+
+def niemeier_classes() -> list[NiemeierRecord]: ...
+
+def niemeier_mass_sum() -> Rational | None: ...
+
+def niemeier_weighted_theta_average(terms: builtins.int) -> list[Rational] | None: ...
 
 def nim_add(a: builtins.int, b: builtins.int) -> builtins.int:
     """Nim addition, i.e. xor on the represented finite nimbers."""
@@ -35270,6 +36021,12 @@ def omnific(*args: Any, **kwargs: Any) -> Any:
 
 def omnific_omega(*args: Any, **kwargs: Any) -> Any:
     """`ω` as an omnific integer."""
+
+def ordinal_common_finite_subfield_degree(values: Sequence[Ordinal]) -> builtins.int | None:
+    """Minimal common finite-subfield degree containing all represented values."""
+
+def ordinal_finite_subfield_degree(x: Ordinal) -> builtins.int | None:
+    """Minimal finite-subfield degree of one represented ordinal nimber."""
 
 def ordinal_witt(*args: Any, **kwargs: Any) -> Any:
     """The unified Witt class of a nonsingular ordinal-nimber metric on the detected
@@ -35488,6 +36245,12 @@ def witt_class(*args: Any, **kwargs: Any) -> Any:
 
 def witt_class_error(*args: Any, **kwargs: Any) -> Any:
     """The typed Rust `WittClassError` for a nimber metric, or `None` if the class exists."""
+
+def witt_decompose_finite_algebra(alg: Any) -> OddWittDecomp | Char2WittDecomp:
+    """Constructive Witt decomposition for every fixed finite-field algebra.
+    Odd-characteristic inputs return `OddWittDecomp`; characteristic-two inputs
+    return `Char2WittDecomp` with the defective-form caveat preserved.
+    """
 
 def witt_decompose_real(*args: Any, **kwargs: Any) -> Any:
     """Witt decomposition of a surreal form on the exact-square real-table subdomain."""

@@ -70,6 +70,16 @@ use pyo3::IntoPyObjectExt;
 use std::collections::BTreeMap;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::Arc;
+
+/// Recover the concrete Python algebra wrapper associated with a scalar
+/// backend.  The implementation is stamped out with each monomorphic engine
+/// backend, so `Cga.alg()` can return the exact matching Python class without
+/// introducing a runtime-tagged any-scalar algebra.
+trait PyAlgebraFor: Scalar {
+    fn wrap_algebra(py: Python<'_>, inner: Arc<CliffordAlgebra<Self>>) -> PyResult<Py<PyAny>>
+    where
+        Self: Sized;
+}
 use std::sync::Mutex;
 
 static PANIC_HOOK_LOCK: Mutex<()> = Mutex::new(());
@@ -467,6 +477,15 @@ macro_rules! backend_algebra {
         #[derive(Clone)]
         pub(crate) struct $alg {
             pub(crate) inner: Arc<CliffordAlgebra<$scalar>>,
+        }
+
+        impl PyAlgebraFor for $scalar {
+            fn wrap_algebra(
+                py: Python<'_>,
+                inner: Arc<CliffordAlgebra<Self>>,
+            ) -> PyResult<Py<PyAny>> {
+                $alg { inner }.into_py_any(py)
+            }
         }
 
 
@@ -1788,6 +1807,10 @@ macro_rules! cga_backend {
             fn dim(&self) -> usize {
                 self.inner.alg().dim()
             }
+            /// The exact monomorphic Clifford algebra underlying this conformal model.
+            fn alg(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+                <$scalar as PyAlgebraFor>::wrap_algebra(py, Arc::new(self.inner.alg().clone()))
+            }
             fn n_o(&self) -> $mv {
                 self.wrap(self.inner.n_o())
             }
@@ -1832,9 +1855,24 @@ macro_rules! cga_backend {
             fn point_pair(&self, a: &$mv, b: &$mv) -> $mv {
                 self.wrap(self.inner.point_pair(&a.mv, &b.mv))
             }
-            /// The IPNS meet (intersection) `x ∧ y`.
-            fn meet(&self, x: &$mv, y: &$mv) -> $mv {
+            /// Exterior join `x ∧ y`; for IPNS operands this represents their intersection.
+            fn outer_join(&self, x: &$mv, y: &$mv) -> $mv {
                 self.wrap(self.inner.outer_join(&x.mv, &y.mv))
+            }
+            /// IPNS meet (intersection) `x ∧ y`.
+            ///
+            /// Both operands must use the inner-product null-space (IPNS)
+            /// convention.  This method is deliberately not an OPNS meet,
+            /// which would require dualization and a nondegenerate pseudoscalar.
+            fn meet_ipns(&self, x: &$mv, y: &$mv) -> $mv {
+                self.outer_join(x, y)
+            }
+            /// Compatibility spelling for `meet_ipns`; operands are IPNS values.
+            fn meet(&self, x: &$mv, y: &$mv) -> $mv {
+                self.meet_ipns(x, y)
+            }
+            fn __repr__(&self) -> String {
+                format!("{}(n={})", $name, self.inner.n())
             }
         }
     };

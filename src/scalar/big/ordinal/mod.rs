@@ -61,9 +61,10 @@
 mod cantor;
 mod nim;
 mod subfield;
+mod support;
 mod tower;
 
-use crate::scalar::{nim_inv, Scalar};
+use crate::scalar::{nim_inv, nim_sqrt, Scalar};
 use std::cmp::Ordering;
 use std::fmt;
 
@@ -191,6 +192,27 @@ impl Ordinal {
             base = base.nim_mul(&base)?;
         }
         Some(acc)
+    }
+
+    /// Checked square root on represented finite subfields.
+    ///
+    /// Every element of `F_{2^m}` has the unique square root `x^(2^(m-1))`, the
+    /// inverse of Frobenius. Finite nimbers delegate to the total `u128` backend;
+    /// transfinite values first detect their minimal represented finite subfield,
+    /// then apply checked Frobenius squaring `m - 1` times. `None` reports the same
+    /// honest boundary as [`finite_subfield_degree`](Self::finite_subfield_degree)
+    /// and [`nim_mul`](Self::nim_mul): an input outside the staged segment or an
+    /// intermediate Kummer carry beyond the certified excess table.
+    pub fn checked_sqrt(&self) -> Option<Ordinal> {
+        if let Some(x) = self.as_finite() {
+            return Some(Ordinal::from_u128(nim_sqrt(x)));
+        }
+        let degree = self.finite_subfield_degree()?;
+        let mut root = self.clone();
+        for _ in 1..degree {
+            root = root.nim_mul(&root)?;
+        }
+        (root.nim_mul(&root).as_ref() == Some(self)).then_some(root)
     }
 
     /// Checked multiplicative inverse on represented finite subfields. Finite
@@ -385,6 +407,31 @@ mod tests {
         let w_plus_1 = Ordinal::omega().nim_add(&fin(1));
         let inv = w_plus_1.inv().expect("ω+1 lies in the enumerated F_64");
         assert_eq!(w_plus_1.mul(&inv), Ordinal::one());
+    }
+
+    #[test]
+    fn checked_square_root_covers_finite_and_transfinite_subfields() {
+        for value in [0, 1, 2, 3, 16, u128::MAX] {
+            let x = fin(value);
+            let root = x.checked_sqrt().unwrap();
+            assert_eq!(root, fin(nim_sqrt(value)));
+            assert_eq!(root.nim_mul(&root), Some(x));
+        }
+
+        let omega = Ordinal::omega();
+        let chi5 = Ordinal::omega_pow(omega.clone());
+        for x in [omega.clone(), omega.nim_add(&fin(1)), chi5] {
+            let root = x
+                .checked_sqrt()
+                .expect("sample lies in the supported tower");
+            assert_eq!(root.nim_mul(&root), Some(x));
+        }
+    }
+
+    #[test]
+    fn checked_square_root_refuses_outside_staged_segment() {
+        let out_of_range = Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega()));
+        assert_eq!(out_of_range.checked_sqrt(), None);
     }
 
     #[test]

@@ -10,9 +10,9 @@ use super::scalars::{
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
     thermography, AbstractGame, Color, Game, GameClifford, GameExterior, GameRelation, Hackenbush,
-    LoopyGraph, LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph, LoopyPartizanOutcome,
-    LoopyValue, LoopyWinner, NimLexicode, NimberGame, NumberGame, Outcome, PartizanOutcome,
-    Quotient,
+    LexicodeTurningGame, LoopyGraph, LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph,
+    LoopyPartizanOutcome, LoopyValue, LoopyWinner, NimLexicode, NimberGame, NumberGame, Outcome,
+    PartizanOutcome, Quotient,
 };
 use crate::scalar::{Integer, Rational, SignExpansion, Surreal};
 use pyo3::basic::CompareOp;
@@ -1540,6 +1540,22 @@ impl PyHackenbush {
     fn grundy(&self) -> Option<u128> {
         self.inner.grundy()
     }
+    fn __repr__(&self) -> String {
+        let edges: Vec<(usize, usize, &str)> = self
+            .inner
+            .edges()
+            .iter()
+            .map(|&(u, v, color)| {
+                let name = match color {
+                    Color::Blue => "blue",
+                    Color::Red => "red",
+                    Color::Green => "green",
+                };
+                (u, v, name)
+            })
+            .collect();
+        format!("Hackenbush(edges={edges:?})")
+    }
 }
 
 #[pyclass(name = "GameExterior", module = "ogdoad")]
@@ -1662,6 +1678,14 @@ impl PyGameExterior {
         Ok(PyGame {
             inner: self.inner.value_of_grade1(&reduced),
         })
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "GameExterior(dim={}, relations={}, relation_search_complete={})",
+            self.inner.algebra().dim(),
+            self.inner.relations().len(),
+            self.inner.relation_search_complete()
+        )
     }
 }
 
@@ -1849,6 +1873,14 @@ impl PyGameClifford {
         Ok(PyGame {
             inner: self.inner.value_of_grade1(&reduced),
         })
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "GameClifford(dim={}, relations={}, relation_search_complete={})",
+            self.inner.algebra().dim(),
+            self.inner.relations().len(),
+            self.inner.relation_search_complete()
+        )
     }
 }
 
@@ -2152,6 +2184,9 @@ impl PyAbstractGame {
                 PyValueError::new_err("misere_quotient requires an acyclic bounded move graph")
             })
     }
+    fn __repr__(&self) -> String {
+        format!("AbstractGame(moves={:?})", self.inner.moves)
+    }
 }
 
 /// Rust-name module-level wrapper for `games::misere_quotient`; Python passes
@@ -2340,6 +2375,9 @@ impl PyLoopyGraph {
     fn classify(&self, v: usize) -> Option<PyLoopyValue> {
         self.inner.classify(v).map(|inner| PyLoopyValue { inner })
     }
+    fn __repr__(&self) -> String {
+        format!("LoopyGraph(succ={:?})", self.inner.succ())
+    }
 }
 
 #[pyclass(name = "LoopyPartizanGraph", module = "ogdoad")]
@@ -2405,6 +2443,75 @@ impl PyLoopyPartizanGraph {
     /// Positions outside the classical five outcome classes.
     fn nonclassical_set(&self) -> Vec<usize> {
         self.inner.nonclassical_set()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "LoopyPartizanGraph(left={:?}, right={:?})",
+            self.inner.left(),
+            self.inner.right()
+        )
+    }
+}
+
+#[pyclass(name = "LexicodeTurningGame", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyLexicodeTurningGame {
+    inner: LexicodeTurningGame,
+}
+
+#[pymethods]
+impl PyLexicodeTurningGame {
+    #[new]
+    fn new(word_len: usize, min_distance: usize) -> PyResult<Self> {
+        LexicodeTurningGame::new(word_len, min_distance)
+            .map(|inner| PyLexicodeTurningGame { inner })
+            .ok_or_else(|| PyValueError::new_err("LexicodeTurningGame needs 1 <= word_len < 32"))
+    }
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+    fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+    #[getter]
+    fn min_distance(&self) -> usize {
+        self.inner.min_distance()
+    }
+    fn position_count(&self) -> u128 {
+        self.inner.position_count()
+    }
+    fn is_position(&self, position: u32) -> bool {
+        self.inner.is_position(position)
+    }
+    fn is_legal_move(&self, from: u32, to: u32) -> bool {
+        self.inner.is_legal_move(from, to)
+    }
+    #[pyo3(signature = (node_budget=crate::games::LEXICODE_TURNING_GAME_NODE_BUDGET))]
+    fn turning_masks_bounded(&self, node_budget: u128) -> Option<Vec<u32>> {
+        self.inner.turning_masks_bounded(node_budget)
+    }
+    #[pyo3(signature = (from, node_budget=crate::games::LEXICODE_TURNING_GAME_NODE_BUDGET))]
+    fn moves_bounded(&self, from: u32, node_budget: u128) -> Option<Vec<u32>> {
+        self.inner.moves_bounded(from, node_budget)
+    }
+    #[pyo3(signature = (node_budget=crate::games::LEXICODE_TURNING_GAME_NODE_BUDGET))]
+    fn successors_bounded(&self, node_budget: u128) -> Option<Vec<Vec<usize>>> {
+        self.inner.successors_bounded(node_budget)
+    }
+    #[pyo3(signature = (node_budget=crate::games::LEXICODE_TURNING_GAME_NODE_BUDGET))]
+    fn grundy_values_bounded(&self, node_budget: u128) -> Option<Vec<u128>> {
+        self.inner.grundy_values_bounded(node_budget)
+    }
+    #[pyo3(signature = (node_budget=crate::games::LEXICODE_TURNING_GAME_NODE_BUDGET))]
+    fn p_positions_bounded(&self, node_budget: u128) -> Option<Vec<u32>> {
+        self.inner.p_positions_bounded(node_budget)
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "LexicodeTurningGame(word_len={}, min_distance={})",
+            self.inner.len(),
+            self.inner.min_distance()
+        )
     }
 }
 
@@ -2497,6 +2604,11 @@ fn nim_lexicode_naive_bounded(
         .map(|inner| PyNimLexicode { inner })
 }
 
+#[pyfunction]
+fn lexicode_turning_game(n: usize, d: usize) -> Option<PyLexicodeTurningGame> {
+    crate::games::lexicode_turning_game(n, d).map(|inner| PyLexicodeTurningGame { inner })
+}
+
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
     m.add_class::<PyOutcome>()?;
@@ -2523,10 +2635,15 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLoopyPartizanGraph>()?;
     m.add_class::<PyLoopyNimCertificate>()?;
     m.add_class::<PyNimLexicode>()?;
+    m.add_class::<PyLexicodeTurningGame>()?;
     m.add("LEXICODE_NODE_BUDGET", crate::games::LEXICODE_NODE_BUDGET)?;
     m.add(
         "NIM_LEXICODE_NODE_BUDGET",
         crate::games::NIM_LEXICODE_NODE_BUDGET,
+    )?;
+    m.add(
+        "LEXICODE_TURNING_GAME_NODE_BUDGET",
+        crate::games::LEXICODE_TURNING_GAME_NODE_BUDGET,
     )?;
     m.add_function(wrap_pyfunction!(nim_mul_mex, m)?)?;
     m.add_function(wrap_pyfunction!(lexicode, m)?)?;
@@ -2534,6 +2651,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lexicode_bounded, m)?)?;
     m.add_function(wrap_pyfunction!(nim_lexicode_naive, m)?)?;
     m.add_function(wrap_pyfunction!(nim_lexicode_naive_bounded, m)?)?;
+    m.add_function(wrap_pyfunction!(lexicode_turning_game, m)?)?;
     m.add_function(wrap_pyfunction!(coin_companions, m)?)?;
     m.add_function(wrap_pyfunction!(singleton_companions, m)?)?;
     m.add_function(wrap_pyfunction!(turtles_companions, m)?)?;

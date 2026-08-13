@@ -4,22 +4,25 @@
 //! These consume the `pub(crate)` algebra types stamped by [`super::engine`].
 
 use super::engine::{
-    F16Algebra, F25Algebra, F27Algebra, F4Algebra, F8Algebra, F9Algebra, Fp11Algebra, Fp13Algebra,
-    Fp2Algebra, Fp3Algebra, Fp5Algebra, Fp7Algebra, LaurentF25_6Algebra, LaurentF27_6Algebra,
-    LaurentF9_6Algebra, LaurentFp11_6Algebra, LaurentFp13_6Algebra, LaurentFp3_6Algebra,
-    LaurentFp5_6Algebra, LaurentFp7_6Algebra, NimberAlgebra, NimberMV, OrdinalAlgebra,
-    Qp11_4Algebra, Qp13_4Algebra, Qp2_4Algebra, Qp3_4Algebra, Qp5_4Algebra, Qp7_4Algebra,
-    Qq2_4_2Algebra, Qq2_4_3Algebra, Qq2_4_4Algebra, Qq3_4_2Algebra, Qq3_4_3Algebra, Qq5_4_2Algebra,
-    RamifiedQp11_4E2Algebra, RamifiedQp11_4E3Algebra, RamifiedQp13_4E2Algebra,
-    RamifiedQp13_4E3Algebra, RamifiedQp2_4E2Algebra, RamifiedQp2_4E3Algebra,
-    RamifiedQp3_4E2Algebra, RamifiedQp3_4E3Algebra, RamifiedQp5_4E2Algebra, RamifiedQp5_4E3Algebra,
-    RamifiedQp7_4E2Algebra, RamifiedQp7_4E3Algebra, RationalAlgebra, SurcomplexAlgebra,
-    SurrealAlgebra,
+    F16Algebra, F25Algebra, F27Algebra, F4Algebra, F8Algebra, F9Algebra, Fp11Algebra,
+    Fp11RationalFunctionAlgebra, Fp13Algebra, Fp13RationalFunctionAlgebra, Fp2Algebra, Fp3Algebra,
+    Fp3RationalFunctionAlgebra, Fp5Algebra, Fp5RationalFunctionAlgebra, Fp7Algebra,
+    Fp7RationalFunctionAlgebra, LaurentF25_6Algebra, LaurentF27_6Algebra, LaurentF9_6Algebra,
+    LaurentFp11_6Algebra, LaurentFp13_6Algebra, LaurentFp3_6Algebra, LaurentFp5_6Algebra,
+    LaurentFp7_6Algebra, NimberAlgebra, NimberMV, OrdinalAlgebra, Qp11_4Algebra, Qp13_4Algebra,
+    Qp2_4Algebra, Qp3_4Algebra, Qp5_4Algebra, Qp7_4Algebra, Qq2_4_2Algebra, Qq2_4_3Algebra,
+    Qq2_4_4Algebra, Qq3_4_2Algebra, Qq3_4_3Algebra, Qq5_4_2Algebra, RamifiedQp11_4E2Algebra,
+    RamifiedQp11_4E3Algebra, RamifiedQp13_4E2Algebra, RamifiedQp13_4E3Algebra,
+    RamifiedQp2_4E2Algebra, RamifiedQp2_4E3Algebra, RamifiedQp3_4E2Algebra, RamifiedQp3_4E3Algebra,
+    RamifiedQp5_4E2Algebra, RamifiedQp5_4E3Algebra, RamifiedQp7_4E2Algebra, RamifiedQp7_4E3Algebra,
+    RationalAlgebra, SurcomplexAlgebra, SurrealAlgebra,
 };
 use super::scalars::{
     parse_qp11_4, parse_qp13_4, parse_qp2_4, parse_qp3_4, parse_qp5_4, parse_qp7_4, parse_qq2_4_2,
     parse_qq2_4_3, parse_qq2_4_4, parse_qq3_4_2, parse_qq3_4_3, parse_qq5_4_2, parse_rational,
-    parse_surcomplex, parse_surreal, wrap_rational, wrap_surreal, PyRational, PySurreal,
+    parse_surcomplex, parse_surreal, wrap_fp11_rational_function, wrap_fp13_rational_function,
+    wrap_fp3_rational_function, wrap_fp5_rational_function, wrap_fp7_rational_function,
+    wrap_rational, wrap_surreal, PyRational, PySurreal,
 };
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
@@ -226,6 +229,258 @@ fn arf_f2(n: usize, qd: Vec<bool>, bmat: Vec<u128>) -> PyResult<PyArfInvariants>
     Ok(PyArfInvariants {
         inner: crate::forms::arf_f2(n, &qd, &bmat),
     })
+}
+
+fn extraspecial_error(err: crate::forms::ExtraspecialError) -> PyErr {
+    PyValueError::new_err(err.to_string())
+}
+
+#[pyclass(name = "ExtraspecialElement", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyExtraspecialElement {
+    inner: crate::forms::ExtraspecialElement,
+}
+
+#[pymethods]
+impl PyExtraspecialElement {
+    #[new]
+    fn new(central: bool, vector: u128) -> Self {
+        PyExtraspecialElement {
+            inner: crate::forms::ExtraspecialElement::new(central, vector),
+        }
+    }
+    #[getter]
+    fn central(&self) -> bool {
+        self.inner.central()
+    }
+    #[getter]
+    fn vector(&self) -> u128 {
+        self.inner.vector()
+    }
+    fn __eq__(&self, other: &PyExtraspecialElement) -> bool {
+        self.inner == other.inner
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "ExtraspecialElement(central={}, vector={})",
+            self.inner.central(),
+            self.inner.vector()
+        )
+    }
+}
+
+fn wrap_extraspecial_element(inner: crate::forms::ExtraspecialElement) -> PyExtraspecialElement {
+    PyExtraspecialElement { inner }
+}
+
+#[pyclass(name = "Extraspecial2Group", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyExtraspecial2Group {
+    inner: crate::forms::Extraspecial2Group,
+}
+
+#[pymethods]
+impl PyExtraspecial2Group {
+    #[new]
+    fn new(qd: Vec<bool>, bmat: Vec<u128>) -> PyResult<Self> {
+        crate::forms::Extraspecial2Group::from_f2(qd, bmat)
+            .map(|inner| PyExtraspecial2Group { inner })
+            .map_err(extraspecial_error)
+    }
+    #[staticmethod]
+    fn from_nimber_algebra(alg: &NimberAlgebra) -> PyResult<Self> {
+        crate::forms::Extraspecial2Group::from_nimber_metric(&alg.inner.metric)
+            .map(|inner| PyExtraspecial2Group { inner })
+            .map_err(extraspecial_error)
+    }
+    #[getter]
+    fn dim(&self) -> usize {
+        self.inner.dim()
+    }
+    fn order_exponent(&self) -> usize {
+        self.inner.order_exponent()
+    }
+    fn order_u128(&self) -> Option<u128> {
+        self.inner.order_u128()
+    }
+    fn arf(&self) -> PyArfInvariants {
+        PyArfInvariants {
+            inner: self.inner.arf().clone(),
+        }
+    }
+    fn extraspecial_type(&self) -> String {
+        self.inner.extraspecial_type().to_string()
+    }
+    fn heisenberg_weil_representation(&self) -> Option<PyHeisenbergWeilRepresentation> {
+        self.inner
+            .heisenberg_weil_representation()
+            .map(|inner| PyHeisenbergWeilRepresentation { inner })
+    }
+    fn identity(&self) -> PyExtraspecialElement {
+        wrap_extraspecial_element(self.inner.identity())
+    }
+    fn central_generator(&self) -> PyExtraspecialElement {
+        wrap_extraspecial_element(self.inner.central_generator())
+    }
+    fn generator(&self, i: usize) -> Option<PyExtraspecialElement> {
+        self.inner.generator(i).map(wrap_extraspecial_element)
+    }
+    fn element(&self, central: bool, vector: u128) -> Option<PyExtraspecialElement> {
+        self.inner
+            .element(central, vector)
+            .map(wrap_extraspecial_element)
+    }
+    fn contains(&self, x: &PyExtraspecialElement) -> bool {
+        self.inner.contains(&x.inner)
+    }
+    fn q_value(&self, vector: u128) -> Option<bool> {
+        self.inner.q_value(vector)
+    }
+    fn polar_value(&self, u: u128, v: u128) -> Option<bool> {
+        self.inner.polar_value(u, v)
+    }
+    fn cocycle_value(&self, u: u128, v: u128) -> Option<bool> {
+        self.inner.cocycle_value(u, v)
+    }
+    fn multiply(
+        &self,
+        x: &PyExtraspecialElement,
+        y: &PyExtraspecialElement,
+    ) -> Option<PyExtraspecialElement> {
+        self.inner
+            .multiply(&x.inner, &y.inner)
+            .map(wrap_extraspecial_element)
+    }
+    fn inverse(&self, x: &PyExtraspecialElement) -> Option<PyExtraspecialElement> {
+        self.inner.inverse(&x.inner).map(wrap_extraspecial_element)
+    }
+    fn square(&self, x: &PyExtraspecialElement) -> Option<PyExtraspecialElement> {
+        self.inner.square(&x.inner).map(wrap_extraspecial_element)
+    }
+    fn commutator(
+        &self,
+        x: &PyExtraspecialElement,
+        y: &PyExtraspecialElement,
+    ) -> Option<PyExtraspecialElement> {
+        self.inner
+            .commutator(&x.inner, &y.inner)
+            .map(wrap_extraspecial_element)
+    }
+    fn __eq__(&self, other: &PyExtraspecial2Group) -> bool {
+        self.inner == other.inner
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "Extraspecial2Group(dim={}, order_exponent={}, type={})",
+            self.inner.dim(),
+            self.inner.order_exponent(),
+            self.inner.extraspecial_type()
+        )
+    }
+}
+
+#[pyclass(
+    name = "HeisenbergWeilRepresentation",
+    module = "ogdoad",
+    from_py_object
+)]
+#[derive(Clone)]
+struct PyHeisenbergWeilRepresentation {
+    inner: crate::forms::HeisenbergWeilRepresentation,
+}
+
+fn wrap_complex_matrix(rows: Vec<Vec<crate::forms::Complex64>>) -> Vec<Vec<PyComplex64>> {
+    rows.into_iter()
+        .map(|row| row.into_iter().map(wrap_complex64).collect())
+        .collect()
+}
+
+#[pymethods]
+impl PyHeisenbergWeilRepresentation {
+    fn group(&self) -> PyExtraspecial2Group {
+        PyExtraspecial2Group {
+            inner: self.inner.group().clone(),
+        }
+    }
+    #[getter]
+    fn rank(&self) -> usize {
+        self.inner.rank()
+    }
+    fn quotient_dim(&self) -> usize {
+        self.inner.quotient_dim()
+    }
+    fn hilbert_dim_u128(&self) -> Option<u128> {
+        self.inner.hilbert_dim_u128()
+    }
+    fn symplectic_basis(&self) -> Vec<u128> {
+        self.inner.symplectic_basis().to_vec()
+    }
+    fn basis_coordinates(&self, vector: u128) -> Option<u128> {
+        self.inner.basis_coordinates(vector)
+    }
+    fn apply_to_basis_state(
+        &self,
+        x: &PyExtraspecialElement,
+        ket: u128,
+    ) -> Option<(PyComplex64, u128)> {
+        self.inner
+            .apply_to_basis_state(&x.inner, ket)
+            .map(|(phase, target)| (wrap_complex64(phase), target))
+    }
+    fn matrix(&self, x: &PyExtraspecialElement) -> Option<Vec<Vec<PyComplex64>>> {
+        self.inner.matrix(&x.inner).map(wrap_complex_matrix)
+    }
+    fn transvection_intertwiner(&self, a: u128) -> Option<Vec<Vec<PyComplex64>>> {
+        self.inner
+            .transvection_intertwiner(a)
+            .map(wrap_complex_matrix)
+    }
+    fn verify_transvection_intertwines(&self, a: u128) -> bool {
+        self.inner.verify_transvection_intertwines(a)
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "HeisenbergWeilRepresentation(quotient_dim={}, rank={}, hilbert_dim={})",
+            self.inner.quotient_dim(),
+            self.inner.rank(),
+            self.inner
+                .hilbert_dim_u128()
+                .map_or_else(|| "overflow".to_string(), |n| n.to_string())
+        )
+    }
+}
+
+#[pyfunction]
+fn extraspecial_group_f2(qd: Vec<bool>, bmat: Vec<u128>) -> PyResult<PyExtraspecial2Group> {
+    crate::forms::extraspecial_group_f2(qd, bmat)
+        .map(|inner| PyExtraspecial2Group { inner })
+        .map_err(extraspecial_error)
+}
+
+#[pyfunction]
+fn extraspecial_group_nimber(alg: &NimberAlgebra) -> PyResult<PyExtraspecial2Group> {
+    crate::forms::extraspecial_group_nimber(&alg.inner.metric)
+        .map(|inner| PyExtraspecial2Group { inner })
+        .map_err(extraspecial_error)
+}
+
+#[pyfunction]
+fn heisenberg_weil_representation_f2(
+    qd: Vec<bool>,
+    bmat: Vec<u128>,
+) -> PyResult<PyHeisenbergWeilRepresentation> {
+    crate::forms::heisenberg_weil_representation_f2(qd, bmat)
+        .map(|inner| PyHeisenbergWeilRepresentation { inner })
+        .map_err(extraspecial_error)
+}
+
+#[pyfunction]
+fn heisenberg_weil_representation_nimber(
+    alg: &NimberAlgebra,
+) -> PyResult<PyHeisenbergWeilRepresentation> {
+    crate::forms::heisenberg_weil_representation_nimber(&alg.inner.metric)
+        .map(|inner| PyHeisenbergWeilRepresentation { inner })
+        .map_err(extraspecial_error)
 }
 
 fn f2_domain_mask(n: usize, name: &str) -> PyResult<u128> {
@@ -3087,6 +3342,35 @@ macro_rules! witt_char2_finite_alg {
     };
 }
 
+macro_rules! witt_decompose_odd_finite_alg {
+    ($py:ident, $alg:ident, $ty:ty) => {
+        if let Ok(a) = $alg.cast::<$ty>() {
+            let a = a.borrow();
+            let inner = crate::forms::witt_decompose_finite_odd(&a.inner.metric).ok_or_else(|| {
+                PyValueError::new_err(
+                    "finite odd-characteristic Witt decomposition needs a diagonalizable metric",
+                )
+            })?;
+            return wrap_odd_witt_decomp(inner).into_py_any($py);
+        }
+    };
+}
+
+macro_rules! witt_decompose_char2_finite_alg {
+    ($py:ident, $alg:ident, $ty:ty, $field_degree:expr) => {
+        if let Ok(a) = $alg.cast::<$ty>() {
+            let a = a.borrow();
+            let arf = crate::forms::arf_char2(&a.inner.metric).ok_or_else(|| {
+                PyValueError::new_err(
+                    "finite characteristic-2 Witt decomposition needs a non-general-bilinear metric",
+                )
+            })?;
+            let inner = crate::forms::Char2WittDecomp::from_arf($field_degree, &arf);
+            return PyChar2WittDecomp { inner }.into_py_any($py);
+        }
+    };
+}
+
 macro_rules! bw_odd_finite_alg {
     ($alg:ident, $ty:ty) => {
         if let Ok(a) = $alg.cast::<$ty>() {
@@ -3186,6 +3470,22 @@ fn classify_finite_algebra_unified(alg: Bound<'_, PyAny>) -> PyResult<PyFiniteFi
 #[pyfunction]
 fn witt_finite_algebra(alg: Bound<'_, PyAny>) -> PyResult<PyWittClassG> {
     finite_algebra_cases!(witt_char2_finite_alg, witt_odd_finite_alg, alg,);
+    Err(PyTypeError::new_err(
+        "expected one of the fixed finite-field Algebra classes",
+    ))
+}
+
+/// Constructive Witt decomposition for every fixed finite-field algebra.
+/// Odd-characteristic inputs return `OddWittDecomp`; characteristic-two inputs
+/// return `Char2WittDecomp` with the defective-form caveat preserved.
+#[pyfunction]
+fn witt_decompose_finite_algebra(py: Python<'_>, alg: Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+    finite_algebra_cases!(
+        witt_decompose_char2_finite_alg,
+        witt_decompose_odd_finite_alg,
+        py,
+        alg,
+    );
     Err(PyTypeError::new_err(
         "expected one of the fixed finite-field Algebra classes",
     ))
@@ -3373,6 +3673,45 @@ impl PyWittClassG {
 #[pyclass(name = "RealWittDecomp", module = "ogdoad")]
 struct PyRealWittDecomp {
     inner: crate::forms::RealWittDecomp,
+}
+
+#[pyclass(name = "Char2WittDecomp", module = "ogdoad")]
+struct PyChar2WittDecomp {
+    inner: crate::forms::Char2WittDecomp,
+}
+
+#[pymethods]
+impl PyChar2WittDecomp {
+    #[getter]
+    fn field_degree(&self) -> u128 {
+        self.inner.field_degree
+    }
+    #[getter]
+    fn witt_index(&self) -> usize {
+        self.inner.witt_index
+    }
+    #[getter]
+    fn core_anisotropic_dim(&self) -> usize {
+        self.inner.core_anisotropic_dim
+    }
+    #[getter]
+    fn radical_dim(&self) -> usize {
+        self.inner.radical_dim
+    }
+    #[getter]
+    fn radical_anisotropic(&self) -> bool {
+        self.inner.radical_anisotropic
+    }
+    #[getter]
+    fn arf(&self) -> u128 {
+        self.inner.arf
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
 }
 
 #[pymethods]
@@ -4556,6 +4895,357 @@ impl PyRationalBrauerWallClass {
             self.inner.real_bott_index()
         )
     }
+}
+
+#[derive(Clone)]
+enum PyFunctionFieldBrauer2Inner {
+    F3(crate::forms::FunctionFieldBrauer2Class<Fp<3>>),
+    F5(crate::forms::FunctionFieldBrauer2Class<Fp<5>>),
+    F7(crate::forms::FunctionFieldBrauer2Class<Fp<7>>),
+    F11(crate::forms::FunctionFieldBrauer2Class<Fp<11>>),
+    F13(crate::forms::FunctionFieldBrauer2Class<Fp<13>>),
+}
+
+#[pyclass(name = "FunctionFieldBrauer2Class", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyFunctionFieldBrauer2Class {
+    inner: PyFunctionFieldBrauer2Inner,
+}
+
+macro_rules! ff_brauer2_match {
+    ($value:expr, |$inner:ident, $field:ident| $body:expr) => {
+        match $value {
+            PyFunctionFieldBrauer2Inner::F3($inner) => {
+                type $field = Fp<3>;
+                $body
+            }
+            PyFunctionFieldBrauer2Inner::F5($inner) => {
+                type $field = Fp<5>;
+                $body
+            }
+            PyFunctionFieldBrauer2Inner::F7($inner) => {
+                type $field = Fp<7>;
+                $body
+            }
+            PyFunctionFieldBrauer2Inner::F11($inner) => {
+                type $field = Fp<11>;
+                $body
+            }
+            PyFunctionFieldBrauer2Inner::F13($inner) => {
+                type $field = Fp<13>;
+                $body
+            }
+        }
+    };
+}
+
+#[pymethods]
+impl PyFunctionFieldBrauer2Class {
+    #[staticmethod]
+    fn split(field_order: u128) -> PyResult<Self> {
+        let inner = match field_order {
+            3 => PyFunctionFieldBrauer2Inner::F3(crate::forms::FunctionFieldBrauer2Class::split()),
+            5 => PyFunctionFieldBrauer2Inner::F5(crate::forms::FunctionFieldBrauer2Class::split()),
+            7 => PyFunctionFieldBrauer2Inner::F7(crate::forms::FunctionFieldBrauer2Class::split()),
+            11 => {
+                PyFunctionFieldBrauer2Inner::F11(crate::forms::FunctionFieldBrauer2Class::split())
+            }
+            13 => {
+                PyFunctionFieldBrauer2Inner::F13(crate::forms::FunctionFieldBrauer2Class::split())
+            }
+            _ => return Err(unsupported_odd_prime_field_err()),
+        };
+        Ok(PyFunctionFieldBrauer2Class { inner })
+    }
+    #[getter]
+    fn field_order(&self) -> u128 {
+        ff_brauer2_match!(&self.inner, |_inner, Field| Field::field_order())
+    }
+    fn is_split(&self) -> bool {
+        ff_brauer2_match!(&self.inner, |inner, _Field| inner.is_split())
+    }
+    fn ramified_places(&self) -> Vec<PyFunctionFieldPlace> {
+        ff_brauer2_match!(&self.inner, |inner, Field| inner
+            .ramified_places()
+            .iter()
+            .cloned()
+            .map(wrap_ff_place::<Field>)
+            .collect())
+    }
+    fn satisfies_reciprocity(&self) -> bool {
+        ff_brauer2_match!(&self.inner, |inner, _Field| inner.satisfies_reciprocity())
+    }
+    fn __add__(&self, other: &PyFunctionFieldBrauer2Class) -> PyResult<Self> {
+        let inner = match (&self.inner, &other.inner) {
+            (PyFunctionFieldBrauer2Inner::F3(a), PyFunctionFieldBrauer2Inner::F3(b)) => {
+                PyFunctionFieldBrauer2Inner::F3(a.add(b))
+            }
+            (PyFunctionFieldBrauer2Inner::F5(a), PyFunctionFieldBrauer2Inner::F5(b)) => {
+                PyFunctionFieldBrauer2Inner::F5(a.add(b))
+            }
+            (PyFunctionFieldBrauer2Inner::F7(a), PyFunctionFieldBrauer2Inner::F7(b)) => {
+                PyFunctionFieldBrauer2Inner::F7(a.add(b))
+            }
+            (PyFunctionFieldBrauer2Inner::F11(a), PyFunctionFieldBrauer2Inner::F11(b)) => {
+                PyFunctionFieldBrauer2Inner::F11(a.add(b))
+            }
+            (PyFunctionFieldBrauer2Inner::F13(a), PyFunctionFieldBrauer2Inner::F13(b)) => {
+                PyFunctionFieldBrauer2Inner::F13(a.add(b))
+            }
+            _ => {
+                return Err(PyTypeError::new_err(
+                    "function-field Brauer classes use different base fields",
+                ))
+            }
+        };
+        Ok(PyFunctionFieldBrauer2Class { inner })
+    }
+    fn __eq__(&self, other: &PyFunctionFieldBrauer2Class) -> bool {
+        match (&self.inner, &other.inner) {
+            (PyFunctionFieldBrauer2Inner::F3(a), PyFunctionFieldBrauer2Inner::F3(b)) => a == b,
+            (PyFunctionFieldBrauer2Inner::F5(a), PyFunctionFieldBrauer2Inner::F5(b)) => a == b,
+            (PyFunctionFieldBrauer2Inner::F7(a), PyFunctionFieldBrauer2Inner::F7(b)) => a == b,
+            (PyFunctionFieldBrauer2Inner::F11(a), PyFunctionFieldBrauer2Inner::F11(b)) => a == b,
+            (PyFunctionFieldBrauer2Inner::F13(a), PyFunctionFieldBrauer2Inner::F13(b)) => a == b,
+            _ => false,
+        }
+    }
+    fn display(&self) -> String {
+        ff_brauer2_match!(&self.inner, |inner, _Field| inner.display())
+    }
+    fn __repr__(&self) -> String {
+        self.display()
+    }
+}
+
+#[derive(Clone)]
+enum PyFunctionFieldBrauerWallInner {
+    F3(crate::forms::FunctionFieldBrauerWallClass<Fp<3>>),
+    F5(crate::forms::FunctionFieldBrauerWallClass<Fp<5>>),
+    F7(crate::forms::FunctionFieldBrauerWallClass<Fp<7>>),
+    F11(crate::forms::FunctionFieldBrauerWallClass<Fp<11>>),
+    F13(crate::forms::FunctionFieldBrauerWallClass<Fp<13>>),
+}
+
+#[pyclass(
+    name = "FunctionFieldBrauerWallClass",
+    module = "ogdoad",
+    from_py_object
+)]
+#[derive(Clone)]
+struct PyFunctionFieldBrauerWallClass {
+    inner: PyFunctionFieldBrauerWallInner,
+}
+
+macro_rules! ff_bw_match {
+    ($value:expr, |$inner:ident, $field:ident| $body:expr) => {
+        match $value {
+            PyFunctionFieldBrauerWallInner::F3($inner) => {
+                type $field = Fp<3>;
+                $body
+            }
+            PyFunctionFieldBrauerWallInner::F5($inner) => {
+                type $field = Fp<5>;
+                $body
+            }
+            PyFunctionFieldBrauerWallInner::F7($inner) => {
+                type $field = Fp<7>;
+                $body
+            }
+            PyFunctionFieldBrauerWallInner::F11($inner) => {
+                type $field = Fp<11>;
+                $body
+            }
+            PyFunctionFieldBrauerWallInner::F13($inner) => {
+                type $field = Fp<13>;
+                $body
+            }
+        }
+    };
+}
+
+#[pymethods]
+impl PyFunctionFieldBrauerWallClass {
+    #[staticmethod]
+    fn split(field_order: u128) -> PyResult<Self> {
+        let inner = match field_order {
+            3 => PyFunctionFieldBrauerWallInner::F3(
+                crate::forms::FunctionFieldBrauerWallClass::split(),
+            ),
+            5 => PyFunctionFieldBrauerWallInner::F5(
+                crate::forms::FunctionFieldBrauerWallClass::split(),
+            ),
+            7 => PyFunctionFieldBrauerWallInner::F7(
+                crate::forms::FunctionFieldBrauerWallClass::split(),
+            ),
+            11 => PyFunctionFieldBrauerWallInner::F11(
+                crate::forms::FunctionFieldBrauerWallClass::split(),
+            ),
+            13 => PyFunctionFieldBrauerWallInner::F13(
+                crate::forms::FunctionFieldBrauerWallClass::split(),
+            ),
+            _ => return Err(unsupported_odd_prime_field_err()),
+        };
+        Ok(PyFunctionFieldBrauerWallClass { inner })
+    }
+    #[getter]
+    fn field_order(&self) -> u128 {
+        ff_bw_match!(&self.inner, |_inner, Field| Field::field_order())
+    }
+    fn is_split(&self) -> bool {
+        ff_bw_match!(&self.inner, |inner, _Field| inner.is_split())
+    }
+    #[getter]
+    fn dimension_parity(&self) -> u128 {
+        ff_bw_match!(&self.inner, |inner, _Field| inner.dimension_parity())
+    }
+    #[getter]
+    fn signed_discriminant(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        match &self.inner {
+            PyFunctionFieldBrauerWallInner::F3(inner) => {
+                wrap_fp3_rational_function(inner.signed_discriminant().clone()).into_py_any(py)
+            }
+            PyFunctionFieldBrauerWallInner::F5(inner) => {
+                wrap_fp5_rational_function(inner.signed_discriminant().clone()).into_py_any(py)
+            }
+            PyFunctionFieldBrauerWallInner::F7(inner) => {
+                wrap_fp7_rational_function(inner.signed_discriminant().clone()).into_py_any(py)
+            }
+            PyFunctionFieldBrauerWallInner::F11(inner) => {
+                wrap_fp11_rational_function(inner.signed_discriminant().clone()).into_py_any(py)
+            }
+            PyFunctionFieldBrauerWallInner::F13(inner) => {
+                wrap_fp13_rational_function(inner.signed_discriminant().clone()).into_py_any(py)
+            }
+        }
+    }
+    #[getter]
+    fn clifford_brauer_class(&self) -> PyFunctionFieldBrauer2Class {
+        let inner = match &self.inner {
+            PyFunctionFieldBrauerWallInner::F3(inner) => {
+                PyFunctionFieldBrauer2Inner::F3(inner.clifford_brauer_class().clone())
+            }
+            PyFunctionFieldBrauerWallInner::F5(inner) => {
+                PyFunctionFieldBrauer2Inner::F5(inner.clifford_brauer_class().clone())
+            }
+            PyFunctionFieldBrauerWallInner::F7(inner) => {
+                PyFunctionFieldBrauer2Inner::F7(inner.clifford_brauer_class().clone())
+            }
+            PyFunctionFieldBrauerWallInner::F11(inner) => {
+                PyFunctionFieldBrauer2Inner::F11(inner.clifford_brauer_class().clone())
+            }
+            PyFunctionFieldBrauerWallInner::F13(inner) => {
+                PyFunctionFieldBrauer2Inner::F13(inner.clifford_brauer_class().clone())
+            }
+        };
+        PyFunctionFieldBrauer2Class { inner }
+    }
+    fn zero_like(&self) -> Self {
+        let inner = match &self.inner {
+            PyFunctionFieldBrauerWallInner::F3(inner) => {
+                PyFunctionFieldBrauerWallInner::F3(inner.zero_like())
+            }
+            PyFunctionFieldBrauerWallInner::F5(inner) => {
+                PyFunctionFieldBrauerWallInner::F5(inner.zero_like())
+            }
+            PyFunctionFieldBrauerWallInner::F7(inner) => {
+                PyFunctionFieldBrauerWallInner::F7(inner.zero_like())
+            }
+            PyFunctionFieldBrauerWallInner::F11(inner) => {
+                PyFunctionFieldBrauerWallInner::F11(inner.zero_like())
+            }
+            PyFunctionFieldBrauerWallInner::F13(inner) => {
+                PyFunctionFieldBrauerWallInner::F13(inner.zero_like())
+            }
+        };
+        PyFunctionFieldBrauerWallClass { inner }
+    }
+    fn __add__(&self, other: &PyFunctionFieldBrauerWallClass) -> PyResult<Self> {
+        let inner = match (&self.inner, &other.inner) {
+            (PyFunctionFieldBrauerWallInner::F3(a), PyFunctionFieldBrauerWallInner::F3(b)) => {
+                a.try_add(b).map(PyFunctionFieldBrauerWallInner::F3)
+            }
+            (PyFunctionFieldBrauerWallInner::F5(a), PyFunctionFieldBrauerWallInner::F5(b)) => {
+                a.try_add(b).map(PyFunctionFieldBrauerWallInner::F5)
+            }
+            (PyFunctionFieldBrauerWallInner::F7(a), PyFunctionFieldBrauerWallInner::F7(b)) => {
+                a.try_add(b).map(PyFunctionFieldBrauerWallInner::F7)
+            }
+            (PyFunctionFieldBrauerWallInner::F11(a), PyFunctionFieldBrauerWallInner::F11(b)) => {
+                a.try_add(b).map(PyFunctionFieldBrauerWallInner::F11)
+            }
+            (PyFunctionFieldBrauerWallInner::F13(a), PyFunctionFieldBrauerWallInner::F13(b)) => {
+                a.try_add(b).map(PyFunctionFieldBrauerWallInner::F13)
+            }
+            _ => {
+                return Err(PyTypeError::new_err(
+                    "function-field Brauer-Wall classes use different base fields",
+                ))
+            }
+        }
+        .ok_or_else(|| {
+            PyValueError::new_err(
+                "function-field Brauer-Wall addition left the exact classification surface",
+            )
+        })?;
+        Ok(PyFunctionFieldBrauerWallClass { inner })
+    }
+    fn __eq__(&self, other: &PyFunctionFieldBrauerWallClass) -> bool {
+        match (&self.inner, &other.inner) {
+            (PyFunctionFieldBrauerWallInner::F3(a), PyFunctionFieldBrauerWallInner::F3(b)) => {
+                a == b
+            }
+            (PyFunctionFieldBrauerWallInner::F5(a), PyFunctionFieldBrauerWallInner::F5(b)) => {
+                a == b
+            }
+            (PyFunctionFieldBrauerWallInner::F7(a), PyFunctionFieldBrauerWallInner::F7(b)) => {
+                a == b
+            }
+            (PyFunctionFieldBrauerWallInner::F11(a), PyFunctionFieldBrauerWallInner::F11(b)) => {
+                a == b
+            }
+            (PyFunctionFieldBrauerWallInner::F13(a), PyFunctionFieldBrauerWallInner::F13(b)) => {
+                a == b
+            }
+            _ => false,
+        }
+    }
+    fn display(&self) -> String {
+        ff_bw_match!(&self.inner, |inner, _Field| inner.display())
+    }
+    fn __repr__(&self) -> String {
+        self.display()
+    }
+}
+
+macro_rules! bw_function_field_alg_case {
+    ($alg:ident, $ty:ty, $variant:ident) => {
+        if let Ok(a) = $alg.cast::<$ty>() {
+            let a = a.borrow();
+            return crate::forms::bw_class_function_field(&a.inner.metric)
+                .map(|inner| PyFunctionFieldBrauerWallClass {
+                    inner: PyFunctionFieldBrauerWallInner::$variant(inner),
+                })
+                .ok_or_else(|| {
+                    PyValueError::new_err(
+                        "function-field Brauer-Wall class needs a diagonalizable metric inside the exact place-symbol surface",
+                    )
+                });
+        }
+    };
+}
+
+/// Brauer-Wall class of a fixed odd-characteristic function-field algebra.
+#[pyfunction]
+fn bw_class_function_field(alg: Bound<'_, PyAny>) -> PyResult<PyFunctionFieldBrauerWallClass> {
+    bw_function_field_alg_case!(alg, Fp3RationalFunctionAlgebra, F3);
+    bw_function_field_alg_case!(alg, Fp5RationalFunctionAlgebra, F5);
+    bw_function_field_alg_case!(alg, Fp7RationalFunctionAlgebra, F7);
+    bw_function_field_alg_case!(alg, Fp11RationalFunctionAlgebra, F11);
+    bw_function_field_alg_case!(alg, Fp13RationalFunctionAlgebra, F13);
+    Err(PyTypeError::new_err(
+        "expected an Fp{3,5,7,11,13}RationalFunctionAlgebra",
+    ))
 }
 
 fn qp_to_qq_base_for_cyclic<const P: u128, const N: usize, const K: u128>(
@@ -5853,6 +6543,415 @@ impl PyIntegralForm {
     }
 }
 
+#[pyclass(name = "FqmValueCount", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyFqmValueCount {
+    inner: crate::forms::FqmValueCount,
+}
+
+#[pymethods]
+impl PyFqmValueCount {
+    #[getter]
+    fn numer(&self) -> i128 {
+        self.inner.numer
+    }
+    #[getter]
+    fn denom(&self) -> i128 {
+        self.inner.denom
+    }
+    #[getter]
+    fn count(&self) -> u128 {
+        self.inner.count
+    }
+    fn value(&self) -> PyRational {
+        wrap_rational(Rational::new(self.inner.numer, self.inner.denom))
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "FqmValueCount(value={}/{}, count={})",
+            self.inner.numer, self.inner.denom, self.inner.count
+        )
+    }
+}
+
+#[pyclass(name = "FqmPrimaryWittClass", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyFqmPrimaryWittClass {
+    inner: crate::forms::FqmPrimaryWittClass,
+}
+
+#[pymethods]
+impl PyFqmPrimaryWittClass {
+    #[getter]
+    fn prime(&self) -> u128 {
+        self.inner.prime
+    }
+    #[getter]
+    fn order(&self) -> u128 {
+        self.inner.order
+    }
+    #[getter]
+    fn core_order(&self) -> u128 {
+        self.inner.core_order
+    }
+    #[getter]
+    fn core_group(&self) -> Vec<u128> {
+        self.inner.core_group.clone()
+    }
+    #[getter]
+    fn core_exponent(&self) -> u128 {
+        self.inner.core_exponent
+    }
+    #[getter]
+    fn phase_mod8(&self) -> i128 {
+        self.inner.phase_mod8
+    }
+    #[getter]
+    fn q_value_counts(&self) -> Vec<PyFqmValueCount> {
+        self.inner
+            .q_value_counts
+            .iter()
+            .cloned()
+            .map(|inner| PyFqmValueCount { inner })
+            .collect()
+    }
+    #[getter]
+    fn normal_form(&self) -> Vec<i128> {
+        self.inner.normal_form.clone()
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
+#[pyclass(name = "FqmWittClass", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyFqmWittClass {
+    inner: crate::forms::FqmWittClass,
+}
+
+#[pymethods]
+impl PyFqmWittClass {
+    #[getter]
+    fn order(&self) -> u128 {
+        self.inner.order
+    }
+    #[getter]
+    fn phase_mod8(&self) -> i128 {
+        self.inner.phase_mod8
+    }
+    #[getter]
+    fn primary(&self) -> Vec<PyFqmPrimaryWittClass> {
+        self.inner
+            .primary
+            .iter()
+            .cloned()
+            .map(|inner| PyFqmPrimaryWittClass { inner })
+            .collect()
+    }
+    fn is_trivial(&self) -> bool {
+        self.inner.is_trivial()
+    }
+    fn __eq__(&self, other: &PyFqmWittClass) -> bool {
+        self.inner == other.inner
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
+#[pyclass(
+    name = "NikulinPrimaryExistenceInvariants",
+    module = "ogdoad",
+    skip_from_py_object
+)]
+#[derive(Clone)]
+struct PyNikulinPrimaryExistenceInvariants {
+    inner: crate::forms::NikulinPrimaryExistenceInvariants,
+}
+
+#[pymethods]
+impl PyNikulinPrimaryExistenceInvariants {
+    #[getter]
+    fn prime(&self) -> u128 {
+        self.inner.prime
+    }
+    #[getter]
+    fn order(&self) -> u128 {
+        self.inner.order
+    }
+    #[getter]
+    fn length(&self) -> usize {
+        self.inner.length
+    }
+    #[getter]
+    fn equality_case(&self) -> bool {
+        self.inner.equality_case
+    }
+    #[getter]
+    fn even_two_primary(&self) -> bool {
+        self.inner.even_two_primary
+    }
+    #[getter]
+    fn p_adic_discriminant(&self) -> Option<PyRational> {
+        self.inner.p_adic_discriminant.clone().map(wrap_rational)
+    }
+    #[getter]
+    fn determinant_condition_holds(&self) -> Option<bool> {
+        self.inner.determinant_condition_holds
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
+#[pyclass(
+    name = "NikulinExistenceObstruction",
+    module = "ogdoad",
+    skip_from_py_object
+)]
+#[derive(Clone)]
+struct PyNikulinExistenceObstruction {
+    inner: crate::forms::NikulinExistenceObstruction,
+}
+
+#[pymethods]
+impl PyNikulinExistenceObstruction {
+    fn kind(&self) -> &'static str {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::SignatureCongruence { .. } => {
+                "signature_congruence"
+            }
+            crate::forms::NikulinExistenceObstruction::RankTooSmall { .. } => "rank_too_small",
+            crate::forms::NikulinExistenceObstruction::OddPrimeDeterminant { .. } => {
+                "odd_prime_determinant"
+            }
+            crate::forms::NikulinExistenceObstruction::TwoAdicDeterminant { .. } => {
+                "two_adic_determinant"
+            }
+        }
+    }
+    fn required_mod8(&self) -> Option<i128> {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::SignatureCongruence {
+                required_mod8,
+                ..
+            } => Some(required_mod8),
+            _ => None,
+        }
+    }
+    fn module_phase_mod8(&self) -> Option<i128> {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::SignatureCongruence {
+                module_phase_mod8,
+                ..
+            } => Some(module_phase_mod8),
+            _ => None,
+        }
+    }
+    fn prime(&self) -> Option<u128> {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::RankTooSmall { prime, .. }
+            | crate::forms::NikulinExistenceObstruction::OddPrimeDeterminant { prime, .. } => {
+                Some(prime)
+            }
+            _ => None,
+        }
+    }
+    fn rank(&self) -> Option<usize> {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::RankTooSmall { rank, .. } => Some(rank),
+            _ => None,
+        }
+    }
+    fn length(&self) -> Option<usize> {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::RankTooSmall { length, .. } => Some(length),
+            _ => None,
+        }
+    }
+    fn signed_order(&self) -> Option<i128> {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::OddPrimeDeterminant {
+                signed_order, ..
+            } => Some(signed_order),
+            _ => None,
+        }
+    }
+    fn order(&self) -> Option<u128> {
+        match self.inner {
+            crate::forms::NikulinExistenceObstruction::TwoAdicDeterminant { order, .. } => {
+                Some(order)
+            }
+            _ => None,
+        }
+    }
+    fn p_adic_discriminant(&self) -> Option<PyRational> {
+        match &self.inner {
+            crate::forms::NikulinExistenceObstruction::OddPrimeDeterminant {
+                p_adic_discriminant,
+                ..
+            }
+            | crate::forms::NikulinExistenceObstruction::TwoAdicDeterminant {
+                p_adic_discriminant,
+                ..
+            } => Some(wrap_rational(p_adic_discriminant.clone())),
+            _ => None,
+        }
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
+#[pyclass(
+    name = "NikulinExistenceInvariants",
+    module = "ogdoad",
+    skip_from_py_object
+)]
+#[derive(Clone)]
+struct PyNikulinExistenceInvariants {
+    inner: crate::forms::NikulinExistenceInvariants,
+}
+
+#[pymethods]
+impl PyNikulinExistenceInvariants {
+    #[getter]
+    fn signature(&self) -> (usize, usize) {
+        self.inner.signature
+    }
+    #[getter]
+    fn rank(&self) -> usize {
+        self.inner.rank
+    }
+    #[getter]
+    fn module_phase_mod8(&self) -> i128 {
+        self.inner.module_phase_mod8
+    }
+    #[getter]
+    fn primary(&self) -> Vec<PyNikulinPrimaryExistenceInvariants> {
+        self.inner
+            .primary
+            .iter()
+            .cloned()
+            .map(|inner| PyNikulinPrimaryExistenceInvariants { inner })
+            .collect()
+    }
+    #[getter]
+    fn obstruction(&self) -> Option<PyNikulinExistenceObstruction> {
+        self.inner
+            .obstruction
+            .clone()
+            .map(|inner| PyNikulinExistenceObstruction { inner })
+    }
+    fn exists(&self) -> bool {
+        self.inner.exists()
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
+#[pyclass(name = "FiniteQuadraticModule", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyFiniteQuadraticModule {
+    inner: crate::forms::FiniteQuadraticModule,
+}
+
+#[pymethods]
+impl PyFiniteQuadraticModule {
+    #[new]
+    fn new(cyclic_factors: Vec<u128>, q_values_mod2: Vec<Bound<'_, PyAny>>) -> PyResult<Self> {
+        let q_values_mod2 = q_values_mod2
+            .iter()
+            .map(parse_rational)
+            .collect::<PyResult<Vec<_>>>()?;
+        crate::forms::FiniteQuadraticModule::new(cyclic_factors, q_values_mod2)
+            .map(|inner| PyFiniteQuadraticModule { inner })
+            .ok_or_else(|| {
+                PyValueError::new_err("invalid, singular, or over-budget finite quadratic module")
+            })
+    }
+    #[staticmethod]
+    fn cyclic(order: u128, generator_q: &Bound<'_, PyAny>) -> PyResult<Self> {
+        crate::forms::FiniteQuadraticModule::cyclic(order, parse_rational(generator_q)?)
+            .map(|inner| PyFiniteQuadraticModule { inner })
+            .ok_or_else(|| {
+                PyValueError::new_err(
+                    "invalid, singular, or over-budget cyclic finite quadratic module",
+                )
+            })
+    }
+    fn direct_sum(&self, other: &PyFiniteQuadraticModule) -> Option<Self> {
+        self.inner
+            .direct_sum(&other.inner)
+            .map(|inner| PyFiniteQuadraticModule { inner })
+    }
+    #[getter]
+    fn order(&self) -> u128 {
+        self.inner.order()
+    }
+    #[getter]
+    fn cyclic_factors(&self) -> Vec<u128> {
+        self.inner.cyclic_factors().to_vec()
+    }
+    #[getter]
+    fn q_values_mod2(&self) -> Vec<PyRational> {
+        self.inner
+            .q_values_mod2()
+            .iter()
+            .cloned()
+            .map(wrap_rational)
+            .collect()
+    }
+    fn witt_class(&self) -> Option<PyFqmWittClass> {
+        self.inner
+            .witt_class()
+            .map(|inner| PyFqmWittClass { inner })
+    }
+    fn nikulin_existence_report(
+        &self,
+        signature: (usize, usize),
+    ) -> Option<PyNikulinExistenceInvariants> {
+        self.inner
+            .nikulin_existence_report(signature)
+            .map(|inner| PyNikulinExistenceInvariants { inner })
+    }
+    fn nikulin_even_lattice_exists(&self, signature: (usize, usize)) -> Option<bool> {
+        self.inner.nikulin_even_lattice_exists(signature)
+    }
+    fn __eq__(&self, other: &PyFiniteQuadraticModule) -> bool {
+        self.inner == other.inner
+    }
+    fn __repr__(&self) -> String {
+        let values = self
+            .inner
+            .q_values_mod2()
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>();
+        format!(
+            "FiniteQuadraticModule(cyclic_factors={:?}, q_values_mod2={values:?})",
+            self.inner.cyclic_factors()
+        )
+    }
+}
+
 #[pyclass(name = "DiscriminantForm", module = "ogdoad", from_py_object)]
 #[derive(Clone)]
 struct PyDiscriminantForm {
@@ -5920,6 +7019,25 @@ impl PyDiscriminantForm {
     }
     fn is_isomorphic_bounded(&self, other: &PyDiscriminantForm, node_budget: u128) -> Option<bool> {
         self.inner.is_isomorphic_bounded(&other.inner, node_budget)
+    }
+    fn fqm_witt_class(&self) -> Option<PyFqmWittClass> {
+        self.inner
+            .fqm_witt_class()
+            .map(|inner| PyFqmWittClass { inner })
+    }
+    fn is_fqm_witt_equivalent(&self, other: &PyDiscriminantForm) -> Option<bool> {
+        self.inner.is_fqm_witt_equivalent(&other.inner)
+    }
+    fn nikulin_existence_report(
+        &self,
+        signature: (usize, usize),
+    ) -> Option<PyNikulinExistenceInvariants> {
+        self.inner
+            .nikulin_existence_report(signature)
+            .map(|inner| PyNikulinExistenceInvariants { inner })
+    }
+    fn nikulin_even_lattice_exists(&self, signature: (usize, usize)) -> Option<bool> {
+        self.inner.nikulin_even_lattice_exists(signature)
     }
     fn weil_t(&self) -> Vec<PyComplex64> {
         self.inner
@@ -6211,6 +7329,153 @@ fn leech_aut_order() -> u128 {
     crate::forms::LEECH_AUT_ORDER
 }
 
+#[pyclass(name = "NiemeierRootComponent", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyNiemeierRootComponent {
+    inner: crate::forms::NiemeierRootComponent,
+}
+
+#[pymethods]
+impl PyNiemeierRootComponent {
+    #[getter]
+    fn kind(&self) -> String {
+        self.inner.kind.to_string()
+    }
+    #[getter]
+    fn family(&self) -> &'static str {
+        match self.inner.kind {
+            crate::forms::NiemeierComponentKind::A(_) => "A",
+            crate::forms::NiemeierComponentKind::D(_) => "D",
+            crate::forms::NiemeierComponentKind::E6
+            | crate::forms::NiemeierComponentKind::E7
+            | crate::forms::NiemeierComponentKind::E8 => "E",
+        }
+    }
+    #[getter]
+    fn rank(&self) -> usize {
+        self.inner.kind.rank()
+    }
+    #[getter]
+    fn multiplicity(&self) -> usize {
+        self.inner.multiplicity
+    }
+    fn coxeter_number(&self) -> Option<u128> {
+        self.inner.kind.coxeter_number()
+    }
+    fn root_count(&self) -> Option<u128> {
+        self.inner
+            .kind
+            .root_count()?
+            .checked_mul(self.inner.multiplicity as u128)
+    }
+    fn determinant(&self) -> Option<u128> {
+        self.inner.kind.determinant()
+    }
+    fn weyl_group_order(&self) -> Option<u128> {
+        self.inner.kind.weyl_group_order()
+    }
+    fn root_lattice(&self) -> Option<PyIntegralForm> {
+        self.inner
+            .kind
+            .root_lattice()
+            .map(|inner| PyIntegralForm { inner })
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "NiemeierRootComponent(kind={}, multiplicity={})",
+            self.inner.kind, self.inner.multiplicity
+        )
+    }
+}
+
+#[pyclass(name = "NiemeierRecord", module = "ogdoad", skip_from_py_object)]
+#[derive(Clone)]
+struct PyNiemeierRecord {
+    inner: crate::forms::NiemeierRecord,
+}
+
+#[pymethods]
+impl PyNiemeierRecord {
+    #[getter]
+    fn label(&self) -> &'static str {
+        self.inner.label()
+    }
+    #[getter]
+    fn components(&self) -> Vec<PyNiemeierRootComponent> {
+        self.inner
+            .components()
+            .iter()
+            .copied()
+            .map(|inner| PyNiemeierRootComponent { inner })
+            .collect()
+    }
+    #[getter]
+    fn coxeter_number(&self) -> u128 {
+        self.inner.coxeter_number()
+    }
+    #[getter]
+    fn glue_code_order(&self) -> Option<u128> {
+        self.inner.glue_code_order()
+    }
+    #[getter]
+    fn automorphism_quotient_order(&self) -> u128 {
+        self.inner.automorphism_quotient_order()
+    }
+    fn root_rank(&self) -> usize {
+        self.inner.root_rank()
+    }
+    fn root_count(&self) -> u128 {
+        self.inner.root_count()
+    }
+    fn root_discriminant(&self) -> Option<u128> {
+        self.inner.root_discriminant()
+    }
+    fn reflection_group_order(&self) -> Option<u128> {
+        self.inner.reflection_group_order()
+    }
+    fn automorphism_group_order(&self) -> Option<u128> {
+        self.inner.automorphism_group_order()
+    }
+    fn root_lattice(&self) -> Option<PyIntegralForm> {
+        self.inner
+            .root_lattice()
+            .map(|inner| PyIntegralForm { inner })
+    }
+    fn theta_series(&self, terms: usize) -> Vec<PyRational> {
+        self.inner
+            .theta_series(terms)
+            .into_iter()
+            .map(wrap_rational)
+            .collect()
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
+#[pyfunction]
+fn niemeier_classes() -> Vec<PyNiemeierRecord> {
+    crate::forms::niemeier_classes()
+        .iter()
+        .copied()
+        .map(|inner| PyNiemeierRecord { inner })
+        .collect()
+}
+
+#[pyfunction]
+fn niemeier_mass_sum() -> Option<PyRational> {
+    crate::forms::niemeier_mass_sum().map(wrap_rational)
+}
+
+#[pyfunction]
+fn niemeier_weighted_theta_average(terms: usize) -> Option<Vec<PyRational>> {
+    crate::forms::niemeier_weighted_theta_average(terms)
+        .map(|values| values.into_iter().map(wrap_rational).collect())
+}
+
 #[pyfunction]
 fn qexp_from_int(coeffs: Vec<i128>) -> Vec<PyRational> {
     crate::forms::qexp_from_int(&coeffs)
@@ -6230,6 +7495,14 @@ fn eisenstein_e4(terms: usize) -> Vec<PyRational> {
 #[pyfunction]
 fn eisenstein_e6(terms: usize) -> Vec<PyRational> {
     crate::forms::eisenstein_e6(terms)
+        .into_iter()
+        .map(wrap_rational)
+        .collect()
+}
+
+#[pyfunction]
+fn eisenstein_e12(terms: usize) -> Vec<PyRational> {
+    crate::forms::eisenstein_e12(terms)
         .into_iter()
         .map(wrap_rational)
         .collect()
@@ -6508,6 +7781,9 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyArfInvariants>()?;
     m.add_class::<PyBrownInvariants>()?;
     m.add_class::<PyQuadricFit>()?;
+    m.add_class::<PyExtraspecialElement>()?;
+    m.add_class::<PyExtraspecial2Group>()?;
+    m.add_class::<PyHeisenbergWeilRepresentation>()?;
     m.add_class::<PyBaseField>()?;
     m.add_class::<PyRationalPlace>()?;
     m.add_class::<PyCliffordInvariants>()?;
@@ -6539,9 +7815,12 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBrauer2Class>()?;
     m.add_class::<PyBrauerClass>()?;
     m.add_class::<PyRationalBrauerWallClass>()?;
+    m.add_class::<PyFunctionFieldBrauer2Class>()?;
+    m.add_class::<PyFunctionFieldBrauerWallClass>()?;
     m.add_class::<PyBrauerWallClass>()?;
     m.add_class::<PyRealWittDecomp>()?;
     m.add_class::<PyOddWittDecomp>()?;
+    m.add_class::<PyChar2WittDecomp>()?;
     m.add_class::<PyEnStaircase>()?;
     m.add_class::<PyAdelicIsotropy>()?;
     m.add_class::<PyComplex64>()?;
@@ -6550,6 +7829,15 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCliffordBarnesWall16Report>()?;
     m.add_class::<PyPrimeCode>()?;
     m.add_class::<PyIntegralForm>()?;
+    m.add_class::<PyFiniteQuadraticModule>()?;
+    m.add_class::<PyFqmValueCount>()?;
+    m.add_class::<PyFqmPrimaryWittClass>()?;
+    m.add_class::<PyFqmWittClass>()?;
+    m.add_class::<PyNikulinPrimaryExistenceInvariants>()?;
+    m.add_class::<PyNikulinExistenceObstruction>()?;
+    m.add_class::<PyNikulinExistenceInvariants>()?;
+    m.add_class::<PyNiemeierRootComponent>()?;
+    m.add_class::<PyNiemeierRecord>()?;
     m.add_class::<PyScaleSymbol>()?;
     m.add_class::<PyGenus>()?;
     m.add_class::<PyKneserNeighbor>()?;
@@ -6575,10 +7863,18 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         crate::forms::BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP,
     )?;
     m.add("LEECH_AUT_ORDER", crate::forms::LEECH_AUT_ORDER)?;
+    m.add(
+        "HEISENBERG_WEIL_MATRIX_RANK_CAP",
+        crate::forms::HEISENBERG_WEIL_MATRIX_RANK_CAP,
+    )?;
     m.add_function(wrap_pyfunction!(arf_nimber, m)?)?;
     m.add_function(wrap_pyfunction!(arf_ordinal_finite, m)?)?;
     m.add_function(wrap_pyfunction!(fit_f2_quadratic, m)?)?;
     m.add_function(wrap_pyfunction!(arf_f2, m)?)?;
+    m.add_function(wrap_pyfunction!(extraspecial_group_f2, m)?)?;
+    m.add_function(wrap_pyfunction!(extraspecial_group_nimber, m)?)?;
+    m.add_function(wrap_pyfunction!(heisenberg_weil_representation_f2, m)?)?;
+    m.add_function(wrap_pyfunction!(heisenberg_weil_representation_nimber, m)?)?;
     m.add_function(wrap_pyfunction!(brown_f2, m)?)?;
     m.add_function(wrap_pyfunction!(double_f2, m)?)?;
     m.add_function(wrap_pyfunction!(gold_form_arf, m)?)?;
@@ -6598,7 +7894,9 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(classify_finite_algebra, m)?)?;
     m.add_function(wrap_pyfunction!(classify_finite_algebra_unified, m)?)?;
     m.add_function(wrap_pyfunction!(witt_finite_algebra, m)?)?;
+    m.add_function(wrap_pyfunction!(witt_decompose_finite_algebra, m)?)?;
     m.add_function(wrap_pyfunction!(bw_class_finite_algebra, m)?)?;
+    m.add_function(wrap_pyfunction!(bw_class_function_field, m)?)?;
     m.add_function(wrap_pyfunction!(isometric_finite_algebra, m)?)?;
     m.add_function(wrap_pyfunction!(monic_irreducible_factors, m)?)?;
     m.add_function(wrap_pyfunction!(try_relevant_places_ff, m)?)?;
@@ -6678,6 +7976,9 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(even_unimodular_kneser_report, m)?)?;
     m.add_function(wrap_pyfunction!(weyl_versor_report, m)?)?;
     m.add_function(wrap_pyfunction!(leech_aut_order, m)?)?;
+    m.add_function(wrap_pyfunction!(niemeier_classes, m)?)?;
+    m.add_function(wrap_pyfunction!(niemeier_mass_sum, m)?)?;
+    m.add_function(wrap_pyfunction!(niemeier_weighted_theta_average, m)?)?;
     m.add_function(wrap_pyfunction!(verify_milgram, m)?)?;
     m.add_function(wrap_pyfunction!(odd_milgram_report, m)?)?;
     m.add_function(wrap_pyfunction!(verify_odd_milgram, m)?)?;
@@ -6685,6 +7986,7 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(qexp_from_int, m)?)?;
     m.add_function(wrap_pyfunction!(eisenstein_e4, m)?)?;
     m.add_function(wrap_pyfunction!(eisenstein_e6, m)?)?;
+    m.add_function(wrap_pyfunction!(eisenstein_e12, m)?)?;
     m.add_function(wrap_pyfunction!(delta, m)?)?;
     m.add_function(wrap_pyfunction!(mk_basis, m)?)?;
     m.add_function(wrap_pyfunction!(as_modular_form, m)?)?;

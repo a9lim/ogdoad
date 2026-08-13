@@ -151,7 +151,7 @@ impl NewtonPolygon {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::{Fp, Laurent, Poly, Qp, Ramified, Scalar};
+    use crate::scalar::{Fp, Fpn, Laurent, Poly, Qp, Qq, Ramified, Scalar, WittVec};
 
     fn rat(n: i128, d: i128) -> Rational {
         Rational::new(n, d)
@@ -246,6 +246,36 @@ mod tests {
         let coeffs = vec![minus_t, L::zero(), L::one()]; // x² − t
         let np = NewtonPolygon::from_coeffs(&coeffs).unwrap();
         assert_eq!(np.root_valuations(), vec![(rat(1, 2), 2)]);
+    }
+
+    /// The unramified mixed-characteristic leg works over a genuine extension
+    /// residue field, rather than only through the `Qq<P,N,1> = Qp<P,N>` case.
+    #[test]
+    fn qq_unramified_extension_leg() {
+        type Q9 = Qq<3, 4, 2>;
+        type W9 = WittVec<3, 4, 2>;
+
+        let residue_generator = Fpn::<3, 2>::generator();
+        let unit = Q9::from_witt(W9::teichmuller(residue_generator));
+        assert_eq!(unit.valuation(), Some(0));
+        assert_eq!(unit.unit_residue(), Some(residue_generator));
+
+        // x^2 - 3*unit is Eisenstein: both roots have valuation 1/2. The
+        // non-prime-field unit makes this an actual Q_9 coefficient test.
+        let constant = Q9::from_int(3).mul(&unit).neg();
+        let np = NewtonPolygon::from_coeffs(&[constant, Q9::zero(), Q9::one()]).unwrap();
+        assert_eq!(np.root_valuations(), vec![(rat(1, 2), 2)]);
+
+        // (x - 3*unit)(x - unit) has one valuation-1 root and one unit root.
+        let uniformized = Q9::from_int(3).mul(&unit);
+        let f = Poly::new(vec![uniformized.neg(), Q9::one()]);
+        let g = Poly::new(vec![unit.neg(), Q9::one()]);
+        let product = f.mul(&g);
+        let split = NewtonPolygon::from_coeffs(product.coeffs()).unwrap();
+        assert_eq!(
+            split.root_valuations(),
+            vec![(rat(1, 1), 1), (rat(0, 1), 1)]
+        );
     }
 
     /// The zero polynomial has no Newton polygon.

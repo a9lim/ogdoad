@@ -20,7 +20,7 @@
 //! B and the per-coin field q_i, never the global Q. The probe asks whether
 //! pairwise coupling plus per-coin field, played as spin flips, realizes the
 //! zero set. We use a
-//! bent Gold COMPONENT Tr(λ x^{1+2^a}) (bent for 2/3 of λ; see gold_family_survey).
+//! bent Gold COMPONENT Tr(λ x^{1+2^a}) (bent for two thirds of nonzero λ).
 
 use ogdoad::forms::fit_f2_quadratic;
 use ogdoad::games::loopy_decision_sets;

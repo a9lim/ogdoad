@@ -20,6 +20,7 @@ which consumer currently uses it. `mod.rs` re-exports the public surface.
 | `functor/` | `Surcomplex`, `Laurent`, `Ramified`, and `Gauss` extensions |
 | `global/` | exact `F_q(t)` plus finite-precision adelic cells |
 | `poly.rs` | polynomial arithmetic, exact when its coefficients are exact |
+| `poly_factor.rs` | crate-private finite-field factorization over `Poly` |
 | `newton.rs` | Newton polygons over valued coefficients |
 | `tropical.rs` | dual idempotent semirings; deliberately not `Scalar` |
 
@@ -35,9 +36,9 @@ which consumer currently uses it. `mod.rs` re-exports the public surface.
 - `Surreal` stores finite-support Hahn/CNF expressions with rational
   coefficients. Non-monomial inverses and many algebraic roots require
   infinite support and correctly return `None`.
-- `Ordinal` uses checked Kummer carries. `nim_mul` returns the explicit escape
-  boundary; its `Scalar::mul` wrapper may panic when callers ignore that
-  boundary.
+- `Ordinal` uses checked Kummer carries. `nim_mul`, `nim_pow`, `checked_inv`,
+  and `checked_sqrt` return the explicit escape boundary; its `Scalar::mul`
+  wrapper may panic when callers ignore that boundary.
 
 ## Invariants
 

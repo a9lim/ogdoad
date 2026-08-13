@@ -1,19 +1,24 @@
 \documentclass[11pt]{article}
 
+\usepackage[T1]{fontenc}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage[numbers]{natbib}
 \usepackage[hidelinks]{hyperref}
-\allowdisplaybreaks
+\usepackage{microtype}
 
-\theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
-\title{Finite Excess in Ordinal Nim Multiplication\\
-\large Exact Order Reductions and the Open \(0/1/4\) Rule}
+\title{Finite Excess in Ordinal Nim Multiplication:\\
+Selected Order Reductions}
 \author{a9lim}
 \date{}
 
@@ -21,56 +26,53 @@
 \maketitle
 
 \begin{abstract}
-The finite part of a Kummer carry in Conway's field of ordinal nimbers is
-Lenstra's excess \(m_p\), indexed by an odd prime \(p\).  Every presently
-certified value belongs to \(\{0,1,4\}\), with the value predicted by the
-component structure of \(\operatorname{ord}_p(2)\).  We give an exact
-reduction of this rule to four universal multiplicative-order assertions.
-They concern, respectively, a synchronized structural norm, a selected
-projective class on every ordinary odd Kummer spine, a Gaussian period in a
-cubic norm tower, and a corrected norm on the exceptional
-\(2\cdot 3^k\) spine.  The reduction retains the full primary valuation in
-each finite cyclic group; testing only divisibility of an order by \(p\) is
-not sufficient in general.
+Lenstra's description of ordinal nim multiplication attaches to each odd
+prime $p$ a finite excess $m_p$.  Available values suggest that $m_p$ is
+always $0$, $1$, or $4$, with the value determined by the component support
+of $f(p)=\operatorname{ord}_p(2)$.  The universal rule remains open.
 
-For each arm we record a concise selected-coordinate normal form.  The
-singleton-even part becomes a Conway--Fermat quotient-order problem and a
-zero-at-multiples Fibonacci recurrence.  The ordinary arm becomes a
-power-residue symbol of one marked cyclotomic unit.  The cubic arm becomes
-generation by one recursively selected element of a norm-one torus.  The
-exceptional arm becomes irreducibility of an explicit Capelli composition
-after a corrected quadratic norm.  In that exceptional column we also obtain
-the unconditional level-dependent bound
-\(m_\ell<16(3^k)^4\) when \(f(\ell)=2\cdot3^k\) and \(k\geq2\).
-These are reductions, not proofs of the four universal assertions.  Formal
-verification establishes the general
-group, norm, and polynomial identities and several finite arithmetic
-certificates; its universal exceptional target is a definition rather than
-a theorem.  Finite computations are reported separately and are not used as
-evidence for a universal conclusion.
+We reduce the rule to four exact multiplicative-order assertions.  The zero
+arm asks a synchronized structural norm to generate every primary component
+of a primitive-support quotient.  The ordinary singleton arm asks a marked
+cyclotomic unit to have full projective order at the unique prime over two
+selected by Conway ancestry.  The cubic arm asks a recursively selected
+Gaussian period to generate a norm-one torus.  The exceptional
+$2\cdot3^k$ arm asks an explicit corrected norm to have full primary order;
+equivalently, certain Capelli compositions are irreducible.  The reductions
+retain the full primary valuation and the selected Frobenius phase.
+
+For the cubic and exceptional arms we identify exact principal-ray and
+reduced-unit obstructions.  For the singleton-even zero arm we identify a
+deterministic Conway--Fermat packet recursion and a supersingular realization;
+both expose the selected orbit without proving its order.  We also obtain an
+unconditional level-dependent bound in the exceptional column.  Generic
+trace, norm, conductor, class-number, factor-shape, or unselected reciprocity
+data do not evaluate the marked coordinate.  Lean checks the algebraic
+reductions and named finite certificates, but defines rather than proves the
+universal exceptional target.  Source-backed rows and exact finite
+calculations are stated separately from universal theorems.
 \end{abstract}
 
 \section{Introduction}
 
-Conway's nim addition and nim multiplication make the ordinals into a proper
-class field of characteristic two.  Its finite subfields are canonically
-embedded, and its initial transfinite part is assembled by a sequence of
-Kummer extensions \cite{conway1976,lenstra1977,lenstra1978}.  Lenstra's
-description isolates, for each odd prime \(p\), a carry
+Conway's nim addition and multiplication make the ordinals a proper class
+field of characteristic two.  Its finite subfields are canonically embedded,
+and its first transfinite layers are assembled by explicit Kummer extensions
+\cite{conway1976,lenstra1977,lenstra1978}.  Lenstra's description associates
+to each odd prime $p$ an element
 \[
- \alpha_p=\kappa_{f(p)}+m_p,
- \qquad f(p)=\operatorname{ord}_p(2),
+  \alpha_p=\kappa_{f(p)}+m_p,
+  \qquad f(p)=\operatorname{ord}_p(2),
 \]
-where \(\kappa_{f(p)}\) is a structural tower element and the natural number
-\(m_p\) is the \emph{finite excess}.  The same construction is part of the
-general structural description of ordinal fields \(\mathrm{On}_p\)
-\cite{dimuro2011}.
+where $\kappa_{f(p)}$ is determined by the tower and $m_p\in\mathbb N$ is
+the \emph{finite excess}.  The same structure appears in the description of
+the ordinal fields $\mathrm{On}_p$ \cite{dimuro2011}.
 
-Let \(\mathcal Q(h)\) denote Lenstra's component set for \(\kappa_h\).
-The available data suggest the following rigid rule.
+Let $\mathcal Q(h)$ be Lenstra's component set for $\kappa_h$.  The
+available data suggest the following rule.
 
-\begin{conjecture}[the \(0/1/4\) rule]\label{conj:rule}
-For every odd prime \(p\),
+\begin{conjecture}[the $0/1/4$ rule]\label{conj:rule}
+For every odd prime $p$,
 \[
  m_p=
  \begin{cases}
@@ -81,1122 +83,806 @@ For every odd prime \(p\),
 \]
 \end{conjecture}
 
-The purpose of this article is to state the exact mathematical frontier of
-Conjecture~\ref{conj:rule}.  Theorem~\ref{thm:four-arms} shows that it is
-equivalent to four selected order assertions, denoted \(Z,O,C,D\).  None of
-them is known in full.  The word \emph{selected} is essential: each field
-contains many elements with the same degree, trace, norm, or generic
-cyclotomic shape, while the nim construction chooses one recursively marked
-Frobenius orbit.  The open content is the multiplicative order of that orbit.
+The term \emph{selected} is essential.  A finite field contains many
+elements having the same degree, trace, norm, or cyclotomic support, whereas
+the Conway construction recursively marks one Frobenius orbit.  The open
+content is the primary multiplicative order of that orbit.  Computations are
+valuable for individual rows and as countermodels to overstrong lemmas, but
+they do not prove Conjecture~\ref{conj:rule}.
 
-The main results are organized as follows.  Section~\ref{sec:prelim} gives
-the exact power and norm criteria.  Section~\ref{sec:four} states and proves
-the four-arm equivalence.  Sections~\ref{sec:z}--\ref{sec:d} give one
-lossless normal form for each arm.  Section~\ref{sec:boundedness} separates
-the stronger \(0/1/4\) rule from Lenstra's boundedness question.
-Section~\ref{sec:verification} states the formal and computational boundary.
+After finite-field preliminaries, Section~\ref{sec:arms} gives the four-arm
+equivalence.  Sections~\ref{sec:z}--\ref{sec:d} develop one lossless selected
+coordinate for each arm.  Section~\ref{sec:bounded} separates the stronger
+$0/1/4$ rule from absolute boundedness.  Section~\ref{sec:verification}
+states the formal and finite-evidence boundary.
 
-\section{Finite-field and tower preliminaries}\label{sec:prelim}
+\section{Finite-field preliminaries}\label{sec:prelim}
 
-For a finite algebraic nimber \(x\), write
+For a finite algebraic nimber $x$, write
 \[
- d(x)=[\mathbb F_2(x):\mathbb F_2].
+  d(x)=[\mathbb F_2(x):\mathbb F_2].
 \]
-The element \(\kappa_h\) and its component set \(\mathcal Q(h)\) are those
-of Lenstra's tower decomposition.  In particular, \(\kappa_h\) is the sum of
-the selected components \(\kappa_q\), \(q\in\mathcal Q(h)\), and
-\(h\mid d(\kappa_h)\).  The excess is equivalently
+The element $\kappa_h$ is the sum of the selected components
+$\kappa_q$, $q\in\mathcal Q(h)$, and $h\mid d(\kappa_h)$.  The excess has
+the equivalent form
 \[
- m_p=\min\left\{m\geq0:
- \kappa_{f(p)}+m\text{ is not a }p\text{-th power in its defining finite
- field}\right\}.
+  m_p=\min\{m\geq0:\kappa_{f(p)}+m
+      \text{ is not a $p$-th power in its defining finite field}\}.
 \]
-Finite integers in this formula are identified with their canonical finite
-nimbers.  We use standard finite-field facts, including cyclicity of the
-multiplicative group, the norm formula, and Capelli's irreducibility lemma,
-as collected in \cite{lidlniederreiter1997}.
+Finite integers are identified with their canonical finite nimbers.  We use
+standard facts about finite fields and Capelli composition
+\cite{lidlniederreiter1997}.
 
 \begin{proposition}[exact power criterion]\label{prop:power}
-Let \(p\) be a prime, let \(p\mid 2^E-1\), and let
-\(x\in\mathbb F_{2^E}^{\times}\).  Then the following are equivalent:
+Let $p$ be prime, let $p\mid2^E-1$, and let
+$x\in\mathbb F_{2^E}^{\times}$.  The following are equivalent:
 \begin{enumerate}
-\item \(x\) is a \(p\)-th power in \(\mathbb F_{2^E}^{\times}\);
-\item \(x^{(2^E-1)/p}=1\);
-\item \(\operatorname{ord}(x)\mid(2^E-1)/p\).
+\item $x$ is a $p$-th power;
+\item $x^{(2^E-1)/p}=1$;
+\item $\operatorname{ord}(x)\mid(2^E-1)/p$.
 \end{enumerate}
-Consequently, \(x\) is not a \(p\)-th power if and only if
+Consequently, $x$ is not a $p$-th power if and only if
 \[
- v_p(\operatorname{ord}(x))=v_p(2^E-1).
+  v_p(\operatorname{ord}(x))=v_p(2^E-1).
 \]
 \end{proposition}
 
 \begin{proof}
-Choose a generator \(g\) of the cyclic group of order \(2^E-1\) and write
-\(x=g^a\).  The congruence \(py\equiv a\pmod{2^E-1}\) is soluble exactly
-when \(p\mid a\), which is equivalent to
-\(x^{(2^E-1)/p}=1\).  The order formulation follows from
-\(x^n=1\) if and only if \(\operatorname{ord}(x)\mid n\).  The final
-statement retains the full \(p\)-primary valuation.
+Choose a generator $g$ of the cyclic multiplicative group and write
+$x=g^a$.  Solvability of $py\equiv a\pmod{2^E-1}$, the displayed power
+test, and the order divisibility are equivalent.  The final statement is
+their $p$-primary form.
 \end{proof}
 
-\begin{remark}[the valuation cannot be discarded]\label{rem:valuation}
-If \(h=f(p)\) and \(h\mid E\), lifting the exponent gives
+The valuation cannot be replaced by the weaker assertion
+$p\mid\operatorname{ord}(x)$.  If $h=f(p)$ and $h\mid E$, lifting the
+exponent gives
 \[
- v_p(2^E-1)=v_p(2^h-1)+v_p(E/h).
+  v_p(2^E-1)=v_p(2^h-1)+v_p(E/h).
 \]
-Thus the shortcut
-\(p\mid\operatorname{ord}(x)\) is equivalent to nonexistence of a
-\(p\)-th root only when the ambient \(p\)-part has valuation one.  Every
-statement below uses Proposition~\ref{prop:power}, not the shortcut.
-\end{remark}
+Every order assertion below retains the full right-hand valuation.
 
 \begin{proposition}[norm reduction]\label{prop:norm}
-Let \(h\mid E\), let \(p\mid2^h-1\), and let
-\(x\in\mathbb F_{2^E}^{\times}\).  Then
+Let $h\mid E$, let $p\mid2^h-1$, and let
+$x\in\mathbb F_{2^E}^{\times}$.  Then
 \[
  x^{(2^E-1)/p}
- =\operatorname{N}_{\mathbb F_{2^E}/\mathbb F_{2^h}}(x)^{(2^h-1)/p}.
+ =\operatorname N_{\mathbb F_{2^E}/\mathbb F_{2^h}}(x)^{(2^h-1)/p}.
 \]
-In particular, \(x\) is a \(p\)-th power in \(\mathbb F_{2^E}\) if and
-only if its norm is a \(p\)-th power in \(\mathbb F_{2^h}\).
+Thus $x$ is a $p$-th power in $\mathbb F_{2^E}$ if and only if its norm is
+a $p$-th power in $\mathbb F_{2^h}$.
 \end{proposition}
 
 \begin{proof}
-The norm is
-\(x^{(2^E-1)/(2^h-1)}\).  Raising it to \((2^h-1)/p\) gives the displayed
-identity.  Proposition~\ref{prop:power} gives the last assertion.
+The norm exponent is $(2^E-1)/(2^h-1)$.  Multiply it by
+$(2^h-1)/p$ and apply Proposition~\ref{prop:power}.
 \end{proof}
 
-The last equivalence is also visible on Kummer quotients: extension and norm
-multiply the class by the relative degree.  In the applications below, the
-relevant relative degrees are prime to the current prime, so no selected
-primary coordinate is lost.
+\section{The four exact arms}\label{sec:arms}
 
-\section{The four exact arms}\label{sec:four}
-
-We first define the four order assertions.  For \(h>1\), put
+For $h>1$, put
 \[
  \Pi_h=
  \prod_{\substack{\ell\text{ odd prime}\\
-                   \operatorname{ord}_{\ell}(2)=h}}
+                    \operatorname{ord}_{\ell}(2)=h}}
  \ell^{v_{\ell}(2^h-1)},
  \qquad
- T_h=\operatorname{N}_{\mathbb F_{2^{d(\kappa_h)}}/
+ T_h=\operatorname N_{\mathbb F_{2^{d(\kappa_h)}}/
                             \mathbb F_{2^h}}(\kappa_h).
 \]
-The product \(\Pi_h\) is the complete primary part of
-\(\mathbb F_{2^h}^{\times}\) supported at primes for which \(h\) is the
-first residue degree.
+Thus $\Pi_h$ is the full primary part supported at primes first occurring at
+residue degree $h$.
 
-For an odd prime \(r\), let \(b_r=d(\alpha_r)\), and for \(a\geq1\) put
+For an odd prime $r$, let $b_r=d(\alpha_r)$ and, for $a\geq1$, put
 \[
- x_{r,a}=\kappa_{r^a},\qquad
- F_{r,a}=\mathbb F_{2^{r^ab_r}},\qquad
+ x_{r,a}=\kappa_{r^a},\quad
+ F_{r,a}=\mathbb F_{2^{r^ab_r}},\quad
  y_{r,a}=x_{r,a}+1,
 \]
-with \(F_{r,0}=\mathbb F_{2^{b_r}}\).  Define the cyclic projective
-quotient
+with $F_{r,0}=\mathbb F_{2^{b_r}}$.  Define
 \[
  G_{r,a}=F_{r,a}^{\times}/F_{r,a-1}^{\times},
  \qquad
  L_{r,a}=|G_{r,a}|=\Phi_{r^a}(2^{b_r}).
 \]
 
-For \(k\geq1\), set \(h=3^k\), let
-\(\zeta_k=\kappa_{3^k}\), and define
+For $k\geq1$, set $h=3^k$, let $\zeta_k=\kappa_{3^k}$, and put
 \[
- \gamma_k=\zeta_k+\zeta_k^{-1}
- \in\mathbb F_{2^h}^{\times}.
+ \gamma_k=\zeta_k+\zeta_k^{-1}\in\mathbb F_{2^h}^{\times}.
 \]
-Finally, put \(q=2^h\), \(\omega=\zeta_k^h\in\mathbb F_4\), and
+Finally, let $q=2^h$, let $\omega=\zeta_k^h\in\mathbb F_4$, and define
 \[
  A_k=\zeta_k^2+\zeta_k+\omega,
- \qquad
- M_k=A_k^{q-1},
- \qquad
- \Psi_k=\frac{\Phi_{2\cdot3^k}(2)}{3}.
+ \qquad M_k=A_k^{q-1},
+ \qquad \Psi_k=\frac{\Phi_{2\cdot3^k}(2)}3.
 \]
 
-\begin{theorem}[four-arm reduction]\label{thm:four-arms}
+\begin{theorem}[four-arm reduction]\label{thm:arms}
 Conjecture~\ref{conj:rule} is equivalent to the conjunction of the following
 four universal assertions.
 \begin{description}
-\item[\(Z\).] For every \(h>1\) such that \(\mathcal Q(h)\) is not a
-singleton odd prime power,
-\[
- \Pi_h\mid\operatorname{ord}(T_h).
-\]
-\item[\(O\).] For every odd prime \(r\ne3\), every \(a\geq1\), and every
-prime \(p\ne r\) dividing \(L_{r,a}\),
-\[
- v_p\!\left(\operatorname{ord}
-   (y_{r,a}F_{r,a-1}^{\times})\right)=v_p(L_{r,a}).
-\]
-\item[\(C\).] The element \(\gamma_k\) is primitive in
-\(\mathbb F_{2^{3^k}}^{\times}\) for every \(k\geq1\).
-\item[\(D\).] One has
-\[
- \Psi_k\mid\operatorname{ord}(M_k)
- \qquad(k\geq1).
-\]
+\item[$Z$.] If $\mathcal Q(h)$ is not a singleton odd prime power, then
+      $\Pi_h\mid\operatorname{ord}(T_h)$.
+\item[$O$.] If $r\ne3$ is odd, $a\geq1$, and $p\ne r$ is a prime
+      divisor of $L_{r,a}$, then
+      \[
+      v_p\!\left(\operatorname{ord}
+       (y_{r,a}F_{r,a-1}^{\times})\right)=v_p(L_{r,a}).
+      \]
+\item[$C$.] The element $\gamma_k$ is primitive in
+      $\mathbb F_{2^{3^k}}^{\times}$ for every $k\geq1$.
+\item[$D$.] One has
+      $\Psi_k\mid\operatorname{ord}(M_k)$ for every $k\geq1$.
 \end{description}
 \end{theorem}
 
 \begin{proof}
-Fix an odd prime \(p\) and write \(h=f(p)\).  If
-\(\mathcal Q(h)\) is not a singleton odd prime power, the proposed value is
-zero.  Proposition~\ref{prop:z-support} below identifies the simultaneous
-zero claim at residue degree \(h\) with \(Z\).
+Fix $p$ and put $h=f(p)$.  If $\mathcal Q(h)$ is not a singleton odd prime
+power, Proposition~\ref{prop:z-support} below identifies $m_p=0$ with the
+corresponding primary factor of $Z$.
 
-Suppose next that \(\mathcal Q(h)=\{r^a\}\), where \(r\) is odd.
-Lenstra's degree and component formulas
-\cite{lenstra1977,lenstra1978} give
-\[
- h=r^as,\qquad s\mid b_r,\qquad \kappa_h=x_{r,a}.
-\]
-Proposition~\ref{prop:o-projective} shows that the row primes are exactly the
-prime divisors \(p\ne r\) of \(L_{r,a}\), and that \(m_p=1\) is equivalent
-to the full primary-order equality in \(O\).
+If $\mathcal Q(h)=\{r^a\}$ with $r$ odd, Lenstra's component formulas give
+$h=r^as$ with $s\mid b_r$.  Proposition~\ref{prop:o-projective} identifies
+the row primes with $p\ne r$ dividing $L_{r,a}$ and identifies $m_p=1$
+with assertion $O$.
 
-It remains to separate \(r=3\).  Here \(b_3=2\), so
-\(h=3^a\) or \(h=2\cdot3^a\).  Proposition~\ref{prop:c-half-angle}
-identifies the first case with primitivity of \(\gamma_a\), which is \(C\).
-Propositions~\ref{prop:d-lower} and \ref{prop:d-exact} identify the second
-case with \(D\).  The cases are disjoint and exhaustive.
+When $r=3$, one has $b_3=2$.  The cases are $h=3^a$ and
+$h=2\cdot3^a$.  Proposition~\ref{prop:c-half} identifies the former with
+$C$, while Theorem~\ref{thm:d-target} identifies the latter with $D$.
+These cases are disjoint and exhaustive.
 \end{proof}
 
-\begin{remark}[status of the theorem]
-Theorem~\ref{thm:four-arms} is an equivalence.  It does not establish any of
-the four universal assertions.  The known finite cases and the exact
-formalization boundary are stated in Section~\ref{sec:verification}.
+\begin{remark}
+Theorem~\ref{thm:arms} is an equivalence, not a proof of any of its four
+universal assertions.  None of $Z,O,C,D$ is presently known in full.
 \end{remark}
 
 \section{The zero arm}\label{sec:z}
 
-\subsection{Structural norm and synchronized phase}
+\subsection{Synchronized structural norm}
 
 \begin{proposition}[exact support criterion]\label{prop:z-support}
-Let \(h>1\), let \(E=d(\kappa_h)\), and let
-\(T_h=\operatorname{N}_{\mathbb F_{2^E}/\mathbb F_{2^h}}(\kappa_h)\).
-For an odd prime \(p\) with \(f(p)=h\),
+Let $E=d(\kappa_h)$.  For an odd prime $p$ with $f(p)=h$,
 \[
  m_p=0
  \quad\Longleftrightarrow\quad
  v_p(\operatorname{ord}(T_h))=v_p(2^h-1).
 \]
-Consequently, \(m_p=0\) for every such \(p\) if and only if
-\(\Pi_h\mid\operatorname{ord}(T_h)\).
+Consequently every such row has excess zero if and only if
+$\Pi_h\mid\operatorname{ord}(T_h)$.
 \end{proposition}
 
 \begin{proof}
-By definition, \(m_p=0\) exactly when \(\kappa_h\) is not a \(p\)-th
-power in \(\mathbb F_{2^E}\).  Proposition~\ref{prop:norm} moves the test
-to \(T_h\in\mathbb F_{2^h}\), and Proposition~\ref{prop:power} gives the
-valuation equality.  Multiplying the independent primary conditions gives
-the final assertion.
+By the defining excess formula, $m_p=0$ exactly when $\kappa_h$ is not a $p$-th
+power.  Proposition~\ref{prop:norm} moves the test to $T_h$, and
+Proposition~\ref{prop:power} gives the primary valuation.
 \end{proof}
 
-When \(\kappa_h\) has several components, the structural norm is not the
-product of separate component norms.  The missing datum is a synchronized
-Frobenius phase, made explicit by the following general construction.
+When $\kappa_h$ has several components, $T_h$ is not determined by separate
+component norms.  Their common embedding carries a synchronized Frobenius
+phase.  The following quotient removes every proper-subfield ambiguity while
+retaining that phase.
 
-\begin{proposition}[synchronized additive resultant]\label{prop:z-phase}
-Let \(K=\mathbb F_Q\), let \(p\mid Q-1\), and choose
-\(u_i\in L_i=\mathbb F_{Q^{r_i}}\) of degree \(r_i\) over \(K\).
-Put
+\begin{proposition}[cubical primitive-support coordinate]
+\label{prop:cube}
+Let $S$ be the set of prime divisors of $h$, let
+$M=\mathbb F_{2^h}$, and write $\varphi(x)=x^2$ and
+$\sigma_r=\varphi^{h/r}$.  For $A\subseteq S$, put
+$\sigma_A=\prod_{r\in A}\sigma_r$, and define
 \[
- R=\operatorname{lcm}(r_1,\ldots,r_t),
- \qquad M=\mathbb F_{Q^R},
- \qquad u=\sum_{i=1}^t u_i,
-\]
-and assume \(u\ne0\) and \(p\nmid R\).  Let
-\[
- \Omega=\left(\prod_i\mathbb Z/r_i\mathbb Z\right)
-          \big/\langle(1,\ldots,1)\rangle.
-\]
-For a phase \(\mathbf d=(d_i)\), define
-\[
- F_{\mathbf d}(Z)=
- \prod_{j=0}^{R-1}
- \left(Z+\sum_i u_i^{Q^{j+d_i}}\right).
-\]
-Then \(F_{\mathbf d}\in K[Z]\), it depends only on the class of
-\(\mathbf d\), and
-\[
- \prod_{0\leq j_i<r_i}
- \left(Z+\sum_i u_i^{Q^{j_i}}\right)
- =\prod_{\mathbf d\in\Omega}F_{\mathbf d}(Z).
-\]
-The selected common embedding is the zero phase, for which
-\[
- F_{\mathbf 0}(0)=\operatorname{N}_{M/K}(u),
+ H_h=\prod_{r\in S}\mathbb F_{2^{h/r}}^{\times},
  \qquad
- [F_{\mathbf 0}(0)]=R[u]
- \quad\text{in }M^{\times}/M^{\times p}.
+ \Delta_h(x)=
+ \frac{\prod_{|A|\text{ even}}\sigma_A(x)}
+      {\prod_{|A|\text{ odd}}\sigma_A(x)}.
 \]
-Hence \(u\) is a non-\(p\)-th-power if and only if the selected constant
-term \(F_{\mathbf 0}(0)\) is a non-\(p\)-th-power.  Separate component
-minimal polynomials determine the product over all phases, but not the
-selected phase when \(|\Omega|>1\).
+Then
+\[
+ \ker\Delta_h=H_h,
+ \qquad |\operatorname{im}\Delta_h|=\Phi_h(2),
+\]
+and $\Delta_h$ induces an isomorphism
+$M^{\times}/H_h\simeq\operatorname{im}\Delta_h$.  Arm $Z$ at degree $h$
+is equivalent to
+\[
+  \Pi_h\mid\operatorname{ord}(\Delta_h(T_h)).
+\]
 \end{proposition}
 
 \begin{proof}
-Diagonal translation has free orbits of size \(R\) on the tuples
-\((j_i)\).  Frobenius cycles the factors in each orbit, so each orbit product
-lies in \(K[Z]\), and partitioning the tuples proves the factorization.  The
-zero-phase factors are exactly the \(M/K\)-conjugates of \(u\), giving the
-norm.  On the \(p\)-Kummer quotient the norm exponent is
+The operator is the power map
 \[
- 1+Q+\cdots+Q^{R-1}\equiv R\pmod p.
+  x\longmapsto x^{\prod_{r\mid h,\ r\text{ prime}}(1-2^{h/r})}.
 \]
-Since \(p\nmid R\), multiplication by \(R\) is invertible.  Independent
-Frobenius shifts of the components preserve every separate minimal polynomial
-while translating the phase, which proves the final limitation.
+In the cyclic group of order $2^h-1$, lifting the exponent prime by prime
+shows that its kernel has order
+$\operatorname{lcm}_{r\in S}(2^{h/r}-1)$, exactly the order of $H_h$.
+The cyclotomic product formula gives quotient order $\Phi_h(2)$.  A prime
+with residue degree $h$ divides no proper-subfield order, so the quotient
+preserves its full primary valuation.  Proposition~\ref{prop:z-support}
+gives the last assertion.
 \end{proof}
 
-In the multicomponent part of \(Z\), the relative degrees supplied by
-Lenstra's component theorem satisfy the coprimality hypothesis in
-Proposition~\ref{prop:z-phase}.  Thus \(Z\) is an order assertion about one
-distinguished factor, not about the unmarked additive composed product.
+The cubical coordinate is canonical, but nonidentity is weaker than full
+primary order.  Moreover, an additive cube made from independently shifted
+components is not the synchronized norm of their selected sum.  Thus neither
+linear disjointness nor a nonzero raw cross-ratio proves $Z$.
 
-\subsection{The singleton-even Conway--Fermat problem}
+\subsection{The singleton-even Conway--Fermat chain}
 
-Put
+The zero arm also contains the singleton-even chain.  Put
 \[
- h_n=2^{n+1},\qquad c_n=\kappa_{h_n}=2^{2^n},
- \qquad E_n=\mathbb F_{2^{h_n}},
- \qquad F_n=2^{2^n}+1,
+ h_n=2^{n+1},\qquad c_n=\kappa_{h_n}=2^{2^n},\qquad
+ E_n=\mathbb F_{2^{h_n}},\qquad F_n=2^{2^n}+1,
 \]
-and take \(E_{-1}=\mathbb F_2\).  The Conway tower relation is
+and $E_{-1}=\mathbb F_2$.  The tower relation is
 \[
- c_n^2+c_n=a_{n-1},
- \qquad a_{n-1}=\prod_{j=0}^{n-1}c_j.
+ c_n^2+c_n=\prod_{j<n}c_j.
 \]
 Let
 \[
  \delta_n=\operatorname{ord}
- \bigl(c_nE_{n-1}^{\times}\bigr)
+   (c_nE_{n-1}^{\times})
  \quad\text{in }E_n^{\times}/E_{n-1}^{\times}.
 \]
 
-\begin{proposition}[Conway--Fermat form]\label{prop:z-fermat}
-One has \(1<\delta_n\mid F_n\).  The zero arm at every prime divisor of
-\(F_n\) is equivalent to
+\begin{theorem}[Conway--Fermat selected order]\label{thm:fermat}
+One has $1<\delta_n\mid F_n$, and the zero arm at every prime divisor of
+$F_n$ is equivalent to
 \[
- \delta_n=F_n.
+  \delta_n=F_n\qquad(n\geq0).
 \]
-Equivalently, \(c_0c_n\) is primitive in \(E_n\) for every \(n\) if and
-only if these equalities hold at every preceding level.  This is the
-selected-order problem studied for Conway towers by Popovych
-\cite{popovych2018}.
-\end{proposition}
+All compatible binary root choices form one absolute-Frobenius orbit, so
+they have the same order vector $(\delta_0,\ldots,\delta_n)$.  The remaining
+assertion is therefore intrinsic to the selected tower rather than to an
+extra choice of root.
+\end{theorem}
 
 \begin{proof}
 The quotient group has order
-\[
- \frac{2^{2^{n+1}}-1}{2^{2^n}-1}=F_n,
-\]
-and \(c_n\notin E_{n-1}\), so its quotient order is a nontrivial divisor.
-Every odd prime \(p\mid F_n\) has \(f(p)=2^{n+1}\), and its entire primary
-part in \(E_n^{\times}\) lies in the quotient.  Proposition~\ref{prop:power}
-therefore gives \(m_p=0\) exactly when the quotient order contains the full
-\(p\)-part.  Imposing this at every prime divisor of \(F_n\) is equivalent to
-\(\delta_n=F_n\).  The primitive-product equivalence follows because the
-successive quotient orders are supported on pairwise coprime Fermat numbers
-and \(c_0\) has order three.
+$(2^{2^{n+1}}-1)/(2^{2^n}-1)=F_n$, and $c_n\notin E_{n-1}$.  Every prime
+$p\mid F_n$ has $f(p)=2^{n+1}$, with its full primary part in this quotient.
+Proposition~\ref{prop:power} gives the displayed equality for $\delta_n$.
+
+A compatible prefix has two extensions at each level, so there are
+$2^{n+1}$ compatible tuples.  Frobenius preserves the defining equations,
+and the $2^{n+1}$ Frobenius conjugates are distinct because $c_n$ has that
+degree.  They exhaust the tuples and preserve all relative orders.
 \end{proof}
 
-The precise zero-at-multiples coordinate is especially small.  Define
-Fibonacci polynomials over \(\mathbb F_2\) by
+The recurrence has a deterministic packet form.  If
+$u_n=(c_n+1)/c_n$, then $\operatorname{ord}(u_n)=\delta_n$ and
+$a_{n-1}=\prod_{j<n}c_j=u_n/(u_n+1)^2$.  For each divisor $e>1$ of $F_n$,
+the inverse pairs of primitive $e$-th roots give a squarefree packet
+polynomial
 \[
- S_0(X)=0,\qquad S_1(X)=1,
- \qquad S_{j+2}(X)=S_{j+1}(X)+XS_j(X).
+ C_e(X)=
+ \prod_{[z]\in\mu_e^{\mathrm{prim}}/(z\sim z^{-1})}
+ \left(X-\frac{z}{(z+1)^2}\right)\in\mathbb F_2[X].
 \]
-
-\begin{proposition}[zero-at-multiples normal form]\label{prop:z-fibonacci}
-For every \(n\geq0\),
+Every irreducible factor has degree $2^n$, and
 \[
- \delta_n=\min\{j>0:S_j(a_{n-1})=0\}.
-\]
-In fact,
-\[
- S_j(a_{n-1})=0\quad\Longleftrightarrow\quad\delta_n\mid j.
-\]
-Consequently,
-\[
- \delta_n=F_n
+ \delta_n=e
  \quad\Longleftrightarrow\quad
- S_{F_n/\ell}(a_{n-1})\ne0
- \quad\text{for every prime }\ell\mid F_n.
+ \text{the selected minimal polynomial of $a_{n-1}$ divides $C_e$}.
 \]
-\end{proposition}
-
-\begin{proof}
-Put \(c=c_n\), \(a=a_{n-1}=c(c+1)\), and
-\(u=(c+1)/c\).  Induction from the recurrence gives the Binet identity
+If $P$ is such a factor, its unique irreducible child is
 \[
- S_j(a)=c^j+(c+1)^j=c^j(1+u^j).
+ \operatorname{Res}_X(P(X),Y^2+XY+X^3).
 \]
-The quotient-to-norm-one isomorphism
-\[
- E_n^{\times}/E_{n-1}^{\times}\longrightarrow
- \ker\operatorname{N}_{E_n/E_{n-1}},
- \qquad zE_{n-1}^{\times}\longmapsto z^{|E_{n-1}^{\times}|},
-\]
-sends the class of \(c\) to \(u\).  Thus
-\(\operatorname{ord}(u)=\delta_n\), and the displayed equivalences follow.
-\end{proof}
+Thus the literal chain is one deterministic orbit beginning at $X+1$.
+Full parent conductor does not imply full child conductor: exact degree-$16$
+packet examples have identical full parent order but deterministic children
+of different conductor.  Consequently any induction must use the complete
+marked orbit, not only the integer conductor.
 
-The recurrence is a lossless encoding of the unknown order, not an order
-bound.  Its least zero period is already \(\delta_n\).  In particular,
-factorizations, trace identities, or automata derived only from this word
-reconstruct the selected order rather than force it to be \(F_n\).  The
-classical iterated quadratic tower of Wiedemann has a related norm-one form
-but a different recursion, so its order results do not transfer by a
-Frobenius identification \cite{wiedemann1988}.
+There is also a supersingular realization on the fixed curve
+$Y^2+Y=X^3$.  It identifies the selected quotient value with the ramified
+function $(Y+1)/Y$ at the recursively selected point.  The point has the
+expected Fermat annihilator, but the function value is not a Weil-pairing
+value, and torsion alone does not determine its order.  Equivalently, the
+remaining statement is exclusion of every proper-conductor packet along the
+complete resultant chain.  Trace, relative norm, irreducibility, and the
+etale Jacobian hold for proper packets as well as the full packet.
 
-\begin{proposition}[two complete multicomponent levels]\label{prop:z-small}
-Assertion \(Z\) holds at \(h=12\) and \(h=24\).
-\end{proposition}
+\section{The ordinary singleton arm}\label{sec:o}
 
-\begin{proof}
-At \(h=12\), the selected element is the sum of components of degrees six
-and four; take
-\[
- (A,B,J)=(\mathbb F_{2^6},\mathbb F_{2^4},\mathbb F_{2^2}).
-\]
-At \(h=24\), the components have degrees six and eight, but the relevant
-maximal proper support fields are
-\[
- (A,B,J)=(\mathbb F_{2^{12}},\mathbb F_{2^8},\mathbb F_{2^4}).
-\]
-The degree-six component lies in \(A\setminus J\), while the degree-eight
-component lies in \(B\setminus J\).  In both cases \([A:J]=3\) and
-\([B:J]=2\), so multiplication identifies \(A\otimes_JB\) with their
-compositum.  The selected sum corresponds to
-\(x\otimes1+1\otimes y\), a tensor of rank two, whereas every element of
-\(A^{\times}B^{\times}\) has tensor rank one.  Hence the selected class is
-nontrivial in
-\[
- \mathbb F_{2^h}^{\times}/(A^{\times}B^{\times}).
-\]
-The quotient orders are, respectively,
-\[
- \frac{(2^{12}-1)(2^2-1)}{(2^6-1)(2^4-1)}
-   =\Phi_{12}(2)=13,
- \qquad
- \frac{(2^{24}-1)(2^4-1)}{(2^{12}-1)(2^8-1)}
-   =\Phi_{24}(2)=241.
-\]
-Both are prime, so a nontrivial class generates the complete primitive-support
-quotient.  Proposition~\ref{prop:z-support} gives \(Z\) at the two levels.
-\end{proof}
-
-The universal arm \(Z\) therefore remains the simultaneous generation
-problem for the distinguished synchronized norm, including the all-level
-Conway--Fermat equalities \(\delta_n=F_n\).
-
-\section{The ordinary odd Kummer arm}\label{sec:o}
-
-Fix an odd prime \(r\), let \(b=b_r=d(\alpha_r)\), and set
-\[
- x_0=\alpha_r,
- \qquad x_a=\kappa_{r^a}\ (a\geq1),
- \qquad y_a=x_a+1,
- \qquad F_a=\mathbb F_{2^{r^ab}}.
-\]
-The Kummer equations are \(x_1^r=\alpha_r\) and
-\(x_a^r=x_{a-1}\) for \(a>1\).
+Fix an odd prime $r$, write $b=b_r$, and abbreviate
+$x_a=x_{r,a}$, $y_a=x_a+1$, and $F_a=F_{r,a}$.
 
 \begin{proposition}[projective order criterion]\label{prop:o-projective}
-For every \(a\geq1\),
+For $a\geq1$,
 \[
- \operatorname{N}_{F_a/F_{a-1}}(y_a)=y_{a-1}.
+ \operatorname N_{F_a/F_{a-1}}(y_a)=y_{a-1},
+ \qquad
+ |F_a^{\times}/F_{a-1}^{\times}|=L_{r,a}.
 \]
-The cyclic quotient \(G_{r,a}=F_a^{\times}/F_{a-1}^{\times}\) has order
-\[
- L_{r,a}=\frac{2^{r^ab}-1}{2^{r^{a-1}b}-1}
-        =\Phi_{r^a}(2^b).
-\]
-If \(p\ne r\) is a prime divisor of \(L_{r,a}\), then
-\[
- \operatorname{ord}_p(2^b)=r^a,
- \qquad f(p)=r^as\text{ for some }s\mid b,
- \qquad \mathcal Q(f(p))=\{r^a\}.
-\]
-Conversely, every singleton row with component \(r^a\) arises from such a
-prime.  For each corresponding row,
+If $p\ne r$ divides $L_{r,a}$, then the corresponding singleton row has
 \[
  m_p=1
  \quad\Longleftrightarrow\quad
  v_p\!\left(\operatorname{ord}
-  (y_aF_{a-1}^{\times})\right)=v_p(L_{r,a}).
+ (y_aF_{a-1}^{\times})\right)=v_p(L_{r,a}).
 \]
+Every singleton row with component $r^a$ arises this way.
 \end{proposition}
 
 \begin{proof}
-The relative conjugates of \(x_a\) are \(\xi x_a\),
-\(\xi\in\mu_r\).  Evaluating their binomial at one gives the norm identity.
-The quotient order follows from the field degrees.  For \(p\ne r\), the
-cyclotomic divisor criterion applied to
-\(p\mid\Phi_{r^a}(2^b)\) gives
-\(\operatorname{ord}_p(2^b)=r^a\).  Writing \(h=f(p)\) then gives
-\(h=r^as\) with \(s\mid b\), and Lenstra's minimality and component theorem
-give \(\mathcal Q(h)=\{r^a\}\).  The converse is the same argument in
-reverse.
-
-The prime \(p\) does not divide \(|F_{a-1}^{\times}|\), so its full primary
-contribution lies in the quotient.  The selected element \(x_a\) has order
-prime to \(p\), hence is a \(p\)-th power; therefore \(m_p\geq1\).
-Proposition~\ref{prop:power} applied to \(y_a\) proves the final equivalence.
+The relative conjugates of $x_a$ are $\xi x_a$ for $\xi\in\mu_r$;
+evaluating their binomial at one gives the norm identity.  The quotient order
+is the quotient of the two finite-field unit orders.  The cyclotomic divisor
+criterion gives $\operatorname{ord}_p(2^b)=r^a$ for $p\ne r$ dividing
+$L_{r,a}$, and Lenstra's component theorem identifies precisely the
+singleton rows.  The lower unit group has no $p$-part, so
+Proposition~\ref{prop:power} gives the last equivalence.
 \end{proof}
 
-For a particular row \(h=r^as\), \(s\mid b\), the large ambient test may be
-reduced to the transverse field \(K=\mathbb F_{2^{r^as}}\):
-\[
- \Theta_{r,a,s}
- =\operatorname{N}_{F_a/K}(x_a+1).
-\]
-Then \(m_p=1\) exactly when the order of \(\Theta_{r,a,s}\) contains the
-full \(p\)-part of \(2^{r^as}-1\).  By contrast,
-\[
- \operatorname{N}_{F_a/F_{r,0}}(x_a+1)=1+\alpha_r
-\]
-lies in a group whose order is prime to \(p\).  The lower Kummer norm is
-therefore blind to the current primary coordinate; the transverse norm is
-not.
+Let $N_a=\operatorname{ord}(x_a)$, choose a primitive complex
+$N_a$-th root $\xi_{N_a}$, and let $\mathfrak P_a\mid2$ be the prime whose
+residue sends $\xi_{N_a}$ to $x_a$.  Put
+$\varepsilon_a=1-\xi_{N_a}$.
 
-\subsection{The marked cyclotomic unit}
-
-Let \(N_a=\operatorname{ord}(x_a)\), choose a primitive complex
-\(N_a\)-th root \(\xi_{N_a}\), and choose a prime \(\mathfrak P\) above two
-whose residue map sends \(\xi_{N_a}\) to the selected element \(x_a\).
-Put \(\varepsilon_a=1-\xi_{N_a}\).  Its reduction is \(1+x_a=y_a\).
-
-\begin{proposition}[selected residue-symbol form]\label{prop:o-symbol}
-Let \(p\ne r\) be a prime divisor of \(L_{r,a}\).  In a cyclotomic field
-containing \(\mu_{N_a}\) and \(\mu_p\), the following are equivalent:
-\begin{enumerate}
-\item the projective class of \(y_a\) has full \(p\)-primary order;
-\item \(y_a\) is not a \(p\)-th power in \(F_a\);
-\item the power-residue symbol satisfies
+\begin{theorem}[selected cyclotomic-unit form]\label{thm:o-symbol}
+For $p\ne r$ dividing $L_{r,a}$, arm $O$ at $(r,a,p)$ is equivalent to
 \[
- \left(\frac{\varepsilon_a}{\mathfrak P}\right)_p\ne1;
+  \left(\frac{\varepsilon_a}{\mathfrak P_a}\right)_p\ne1.
 \]
-\item \(\mathfrak P\) does not split in the Kummer extension obtained by
-adjoining a \(p\)-th root of \(\varepsilon_a\).
-\end{enumerate}
-\end{proposition}
+The compatible primes $\mathfrak P_a$ form a unique inert ray above two:
+$\mathfrak P_a$ is the unique prime above $\mathfrak P_{a-1}$, with
+relative residue degree $r$, and
+\[
+ \operatorname N_{\mathbb Q(\xi_{N_a})/
+                     \mathbb Q(\xi_{N_{a-1}})}(1-\xi_{N_a})
+ =1-\xi_{N_{a-1}}.
+\]
+Nevertheless, residue-field corestriction kills the new $p$-coordinate and
+does not determine the displayed residue symbol.
+\end{theorem}
 
 \begin{proof}
-The first two conditions are Proposition~\ref{prop:o-projective}.  The usual
-unramified power-residue formula is
+The reduction of $\varepsilon_a$ is $y_a$.  The unramified power-residue
+formula gives
 \[
- \left(\frac{\varepsilon_a}{\mathfrak P}\right)_p
- =\overline{\varepsilon_a}^{(|F_a|-1)/p}.
+ \left(\frac{\varepsilon_a}{\mathfrak P_a}\right)_p
+ =y_a^{(|F_a|-1)/p},
 \]
-It is nontrivial exactly when the residue is not a \(p\)-th power.  Kummer
-theory identifies this symbol with the Frobenius action on a chosen
-\(p\)-th root; see \cite{washington1997}.
+so Proposition~\ref{prop:power} and
+Proposition~\ref{prop:o-projective} give the equivalence.
+
+The Kummer steps increase the $r$-primary part of $N_a$ by one and give
+$\operatorname{ord}_{N_a}(2)=br^a$.  The relative cyclotomic degree and
+the residue-degree ratio are therefore both $r$, forcing one prime above the
+preceding selected prime.  The global norm identity is the product over the
+$r$-th roots of unity.  Finally,
+$p\mid\Phi_{r^a}(2^b)$ but $p\nmid2^{br^{a-1}}-1$, so the lower residue
+field has trivial $p$-Kummer quotient.  Its norm receives no information
+about the new selected class.
 \end{proof}
 
-This form explains the real difficulty of \(O\).  The conductor and the
-unmarked conjugate set are determined by the tower, but the conjecture asks
-for one residue symbol at the prime over two selected by Conway ancestry.
+This residue-symbol condition is a marked Artin-symbol assertion, not a
+statement about decomposition or conductor.  Its ray character splits into
+a ramified local logarithm and an unramified ideal-class character evaluated
+at $[\mathfrak P_a]$.  Stickelberger annihilation reduces the latter to an
+explicit decomposition-invariant quotient, but does not make it vanish
+uniformly.  This is a genuine boundary: at the actual Conway conductor
+$r=11$, $a=1$, $p=23$, one contributing Stickelberger scalar vanishes with
+exact $23$-adic valuation one.  The corresponding unramified degree-$23$
+class line is nontrivial, and every prime over two has nontrivial Artin symbol
+on it, although the literal row still has $m_{23}=1$.  Thus successful rows
+need not have a zero unramified term; the open assertion is noncancellation in
+the actual selected sum.
 
-\begin{proposition}[phase conservation above the birth level]
-\label{prop:o-tail}
-Fix \(a\), a prime \(p\ne r\) dividing \(L_{r,a}\), and for \(j\geq a\)
-put
-\[
- \Theta_j=(1+x_j)^{(2^{r^jb}-1)/p}\in\mu_p.
-\]
-Then
-\[
- \Theta_j=\Theta_a\qquad(j\geq a).
-\]
-Thus passage to later levels of the same Kummer spine creates no new current
-\(p\)-coordinate.
-\end{proposition}
+\section{The cubic arm}\label{sec:c}
 
-\begin{proof}
-Let
-\[
- S_j=\frac{2^{r^jb}-1}{2^{r^{j-1}b}-1}.
-\]
-The norm identity gives \((1+x_j)^{S_j}=1+x_{j-1}\), while
-\[
- \frac{2^{r^jb}-1}{p}
- =S_j\frac{2^{r^{j-1}b}-1}{p}.
-\]
-Therefore \(\Theta_j=\Theta_{j-1}\), and induction proves the claim.
-\end{proof}
+Let $h=3^k$, $\zeta_k=\kappa_{3^k}$, and
+$\gamma_k=\zeta_k+\zeta_k^{-1}$.
 
-For \(r\ne3\), assertion \(O\) is exactly the universal nontriviality of
-these marked symbols at their birth levels.  General lower bounds for orders
-in finite fields and cyclotomic constructions do not by themselves evaluate
-the selected residue symbol.
-
-\section{The cubic-power arm}\label{sec:c}
-
-Let \(h=3^k\), \(\zeta_k=\kappa_{3^k}\), and
-\(\gamma_k=\zeta_k+\zeta_k^{-1}\).
-
-\begin{proposition}[cyclotomic and half-angle structure]
-\label{prop:c-half-angle}
-The element \(\zeta_k\) is a primitive \(3^{k+1}\)-st root of unity,
+\begin{proposition}[half-angle reduction]\label{prop:c-half}
+The element $\zeta_k$ is a primitive $3^{k+1}$-st root of unity,
 \[
  \mathbb F_2(\zeta_k)=\mathbb F_{2^{2h}},
  \qquad
  \mathbb F_2(\gamma_k)=\mathbb F_{2^h}.
 \]
-If \(s\) is the inverse of two modulo \(3^{k+1}\), then
+Moreover,
+\[
+ \operatorname{ord}(\zeta_k+1)
+ =3^{k+1}\operatorname{ord}(\gamma_k),
+\]
+and the translates by $2$ and $3$ have the same order.  Hence the rows with
+$f(p)=3^k$ have excess one precisely when $\gamma_k$ has the full relevant
+primary order; over all levels this is equivalent to primitivity of every
+$\gamma_k$.
+\end{proposition}
+
+\begin{proof}
+The defining Kummer equation gives $\zeta_k^{3^k}=\kappa_2$, a primitive
+cube root.  The order of two modulo $3^{k+1}$ is $2h$, and the least exponent
+giving $\pm1$ is $h$, proving the field degrees.  If $s$ is the inverse of
+two modulo $3^{k+1}$, then
 \[
  \zeta_k+1=\zeta_k^s(\zeta_k^s+\zeta_k^{-s}),
  \qquad
- (\zeta_k^s+\zeta_k^{-s})^2=\gamma_k,
+ (\zeta_k^s+\zeta_k^{-s})^2=\gamma_k.
 \]
-and hence
-\[
- \operatorname{ord}(\zeta_k+1)
- =3^{k+1}\operatorname{ord}(\gamma_k).
-\]
-The translates \(\zeta_k+2\) and \(\zeta_k+3\) have the same order.
-Consequently, for a prime \(p\) with \(f(p)=3^k\), one has
-\[
- m_p=1
- \quad\Longleftrightarrow\quad
- v_p(\operatorname{ord}(\gamma_k))=v_p(2^h-1).
-\]
-Assuming \(\gamma_{k-1}\) is primitive, all such rows have excess one exactly
-when \(\gamma_k\) is primitive.
-\end{proposition}
-
-\begin{proof}
-The defining Kummer equation gives \(\zeta_k^{3^k}=\kappa_2\), a primitive
-cube root.  Since two has order \(2\cdot3^k\) modulo \(3^{k+1}\), the
-cyclotomic polynomial \(X^{2h}+X^h+1\) is irreducible over \(\mathbb F_2\).
-The least exponent \(j>0\) with \(2^j\equiv\pm1\pmod{3^{k+1}}\) is \(h\),
-which gives the degree of \(\gamma_k\).
-
-The half-angle identities are direct.  Their two factors lie in the coprime
-circle and real parts of \(\mathbb F_{2^{2h}}^{\times}\), of orders dividing
-\(2^h+1\) and \(2^h-1\), respectively.  Squaring preserves odd order, so
-the order formula follows.  The other two translates are Frobenius conjugate
-to the same decomposition.  Finally, a prime with \(f(p)=h\) cannot divide
-the \(3\)-power factor, so Proposition~\ref{prop:power} gives the stated
-criterion.
+The factors lie in the coprime circle and real parts of the unit group,
+giving the order identity.  Frobenius gives the other translates, and
+Proposition~\ref{prop:power} finishes the reduction.
 \end{proof}
 
-The selected Gaussian period obeys
+Put $q_k=2^{3^{k-1}}$ and
 \[
- \gamma_k^3+\gamma_k=\gamma_{k-1},
- \qquad
- \operatorname{N}_{\mathbb F_{2^{3^k}}/
-                        \mathbb F_{2^{3^{k-1}}}}(\gamma_k)=\gamma_{k-1}.
-\]
-This propagates every old primary factor.  It does not control the new
-factor \(\Phi_{3^k}(2)\).
-
-\begin{proposition}[selected norm-one generator]\label{prop:c-eta}
-Put
-\[
- q_k=2^{3^{k-1}},
- \qquad
  U_k=\ker\!\left(
- \operatorname{N}_{\mathbb F_{q_k^3}/\mathbb F_{q_k}}
+ \operatorname N_{\mathbb F_{q_k^3}/\mathbb F_{q_k}}
  \right),
  \qquad
  \eta_k=\gamma_k^{q_k-1},
+ \qquad \eta_0=0.
 \]
-and set \(\eta_0=0\).  Then
-\[
- |U_k|=q_k^2+q_k+1=\Phi_{3^k}(2),
-\]
-and \(\eta_k\) is the selected root of the irreducible cubic
+
+\begin{theorem}[selected norm-one coordinate]\label{thm:c-eta}
+One has $|U_k|=q_k^2+q_k+1=\Phi_{3^k}(2)$.  The element $\eta_k$ generates
+$\mathbb F_{2^{3^k}}$ and is the selected root of
 \[
  X^3+\eta_{k-1}X^2+(\eta_{k-1}+1)X+1.
 \]
-Equivalently,
+Furthermore,
 \[
- \operatorname{N}(\eta_k)=1,
- \qquad
- \operatorname{Tr}(\eta_k)=\eta_{k-1},
- \qquad
- e_2(\eta_k)=\eta_{k-1}+1.
+ C_k\quad\Longleftrightarrow\quad
+ C_{k-1}\text{ and }\operatorname{ord}(\eta_k)=|U_k|,
 \]
-Moreover,
+where $C_j$ denotes primitivity of $\gamma_j$.
+\end{theorem}
+
+\begin{proof}
+The definition puts $\eta_k$ in the norm-one group.  Frobenius calculation
+from $\zeta_k$ gives the displayed cubic; its coefficients are respectively
+the trace, second symmetric function, and norm.  A base-field element of
+$U_k$ has order dividing $\gcd(q_k-1,3)=1$, so the nontrivial cubic is
+irreducible.  Its quadratic coefficient recursively recovers
+$\eta_{k-1}$, proving the field degree.  Finally, the finite-field unit group
+splits into its base-field and norm-one factors, whose orders are coprime.
+The norm propagates the old part of $\gamma_k$ and $\eta_k$ detects exactly
+the new factor.
+\end{proof}
+
+The recursion selects one Frobenius orbit inside a Singer difference set.
+Indeed, for
 \[
- C_k
- \quad\Longleftrightarrow\quad
- C_{k-1}\text{ and }
- \operatorname{ord}(\eta_k)=q_k^2+q_k+1,
+ R(x)=\frac{x^3+x+1}{x^2+x},
+ \qquad
+ W(x)=\frac{x+\omega}{x+\omega^2},
 \]
-where \(C_j\) denotes primitivity of \(\gamma_j\).
+one has
+\[
+  R(\eta_k)=\eta_{k-1},
+  \qquad W(R(x))=W(x)^3,
+  \qquad W(\eta_k)=\zeta_k^2.
+\]
+Thus the complete lower ancestry, not merely degree or trace, marks the
+orbit.  The displayed conjugacy exposes its cyclotomic phase but
+does not evaluate the multiplicative order of $\eta_k$.
+
+\begin{proposition}[selected Singer sieve]\label{prop:sieve}
+Let $N=|U_k|$ and $h=3^k$.  Then
+\[
+  \operatorname{ord}(\eta_k)\geq h(h-1)+1.
+\]
+If a prime $\ell\mid N$ is missing from the selected order at its full
+valuation, then
+\[
+  \frac N\ell\geq h(h-1)+1.
+\]
+Hence every prime $\ell>N/(h(h-1)+1)$ occurs with full valuation.
 \end{proposition}
 
 \begin{proof}
-The element \(\eta_k\) has norm one by its definition.  A direct Frobenius
-calculation from \(\zeta_k^{q_k}\) gives its displayed cubic; its symmetric
-coefficients give the norm, trace, and second elementary symmetric function.
-It cannot lie in the base field, since a base-field element of \(U_k\) has
-order dividing \(\gcd(q_k-1,3)=1\).  Hence the cubic is irreducible.
-
-The cyclic group \(\mathbb F_{q_k^3}^{\times}\) splits as the product of
-\(\mathbb F_{q_k}^{\times}\) and \(U_k\), whose orders are coprime because
-\(q_k\equiv2\pmod3\).  The norm determines the old factor of \(\gamma_k\),
-while exponentiation by \(q_k-1\) detects the new \(U_k\)-factor without
-changing its order.  This proves the last equivalence.
+The selected Frobenius orbit has $h$ points in the Singer
+$(N,q_k+1,1)$ difference set.  Its $h(h-1)$ ordered off-diagonal quotients
+are distinct nonidentity elements of $\langle\eta_k\rangle$, giving the
+first bound.  If the full $\ell$-part is missing, the orbit lies in the
+subgroup of order $N/\ell$, which must contain all these quotients.
 \end{proof}
 
-For a prime \(\ell\mid |U_k|\), put
-\[
- \Omega_{k,\ell}=\eta_k^{|U_k|/\ell}.
-\]
-The exact terminal test is
-\[
- \operatorname{ord}(\eta_k)=|U_k|
- \quad\Longleftrightarrow\quad
- \Omega_{k,\ell}\ne1
- \quad\text{for every prime }\ell\mid |U_k|.
-\]
-This formulation again retains the full \(\ell\)-primary valuation.  The
-minimal polynomial of \(\gamma_k\) is also explicit.  If
-\(D_n(X,1)\) is the Dickson polynomial defined by
-\(D_n(t+t^{-1},1)=t^n+t^{-n}\), then
-\[
- P_k(X)=D_{3^k}(X,1)+1=(X^3+X)^{\circ k}+1
-\]
-is irreducible of degree \(3^k\), and \(C_k\) says precisely that it is a
-primitive polynomial.  Irreducibility is therefore already built into the
-tower; primitivity is the open statement.  General lower bounds for
-multiplicative orders of Gaussian periods, such as
-\cite{ahmadishparlinskivoloch2010}, do not give maximal order for this
-recursively selected period.
+The sieve is polynomial in $h$, while $N$ is exponential.  It proves a
+genuine selected large-factor range but not arm $C$.
 
-The recursion in Proposition~\ref{prop:c-eta} is lossless.  It reconstructs
-every finite selected truncation up to Frobenius, and Frobenius preserves
-multiplicative order.  Trace, norm, and the sparse cubic therefore identify
-the correct selected coordinate but do not evaluate \(\Omega_{k,\ell}\).
-This is the exact remaining content of arm \(C\).
+There is an exact number-field factorization of the remaining index.  Put
+$L=\mathbb Q(\zeta_{3^{k+1}})^+$ and
+$K=\mathbb Q(\zeta_{3^k})^+$, reduce global units $E_F$ and circular units
+$C_F$ modulo the inert prime over two, and write
+\[
+ R_F=(\mathcal O_F/2)^{\times}/\overline E_F,
+ \qquad T_F=\overline E_F/\overline C_F.
+\]
+Then
+\[
+ [U_k:\langle\eta_k\rangle]
+ =|\ker(\operatorname N:R_L\to R_K)|
+  \frac{[\overline E_L:\overline C_L]}
+       {[\overline E_K:\overline C_K]}.
+\]
+The first factor is a relative principal $2$-ray kernel; the second divides
+the relative real class-number quotient.  Even class number one would leave
+the principal-ray factor.  This is not a formal possibility only: analogous
+prime-conductor periods can have inert two and class number one while their
+finite circular-unit reduction has nontrivial defect
+\cite{hoechsmann1995}.  Arm $C$ is exactly the assertion that both factors
+in the displayed index formula vanish at every level.
 
 \section{The exceptional arm}\label{sec:d}
 
-Let \(h=3^k\), \(q=2^h\), \(\zeta=\zeta_k\), and
-\(\omega=\zeta^h\in\mathbb F_4\).
+Let $h=3^k$, $q=2^h$, $\zeta=\zeta_k$, and
+$\omega=\zeta^h\in\mathbb F_4$.
 
-\begin{proposition}[unconditional lower bound]\label{prop:d-lower}
-If \(p\) is a prime with \(f(p)=2\cdot3^k\), then \(m_p\geq4\).
+\begin{proposition}[first possible translate]\label{prop:d-lower}
+If $f(p)=2\cdot3^k$, then $m_p\geq4$.
 \end{proposition}
 
 \begin{proof}
-Such a prime divides \(2^h+1\) and divides neither \(3^{k+1}\) nor
-\(2^h-1\).  The element \(\zeta\) has order \(3^{k+1}\), while
-Proposition~\ref{prop:c-half-angle} gives
-\[
- \operatorname{ord}(\zeta+m)
- =3^{k+1}\operatorname{ord}(\gamma_k)
- \quad(m=1,2,3),
-\]
-with \(\operatorname{ord}(\gamma_k)\mid2^h-1\).  Hence all four translates
-\(m=0,1,2,3\) have order prime to \(p\), and each is a \(p\)-th power in its
-defining field.  The definition of the excess gives the claim.
+Such a prime divides $2^h+1$ but neither $3^{k+1}$ nor $2^h-1$.  The
+half-angle decomposition in Proposition~\ref{prop:c-half} shows that each of
+$\zeta,\zeta+1,\zeta+2,\zeta+3$ has order prime to $p$.  All four are
+$p$-th powers in their defining fields, so the excess definition gives the
+claim.
 \end{proof}
 
-The translate by four lies in the compositum with \(\mathbb F_{16}\), so
-its first useful invariant is a quadratic norm rather than an order
-calculation in \(\mathbb F_{2^{2h}}\).
+The translate by four lies in a compositum with $\mathbb F_{16}$.  The
+nontrivial relative Frobenius over $\mathbb F_4$ exchanges the nimbers $4$
+and $5$, which are the roots of $Y^2+Y+\omega$.
 
 \begin{proposition}[corrected norm]\label{prop:d-norm}
-In \(\mathbb F_{2^{4h}}/\mathbb F_{2^{2h}}\), the nontrivial relative
-Frobenius sends the finite nimber \(4\) to \(5\), and
+In $\mathbb F_{2^{4h}}/\mathbb F_{2^{2h}}$,
 \[
- \operatorname{N}_{\mathbb F_{2^{4h}}/
-                        \mathbb F_{2^{2h}}}(\zeta+4)
- =(\zeta+4)(\zeta+5)
- =\zeta^2+\zeta+\omega=A_k.
+ \operatorname N(\zeta+4)
+ = (\zeta+4)(\zeta+5)
+ = \zeta^2+\zeta+\omega=A_k.
 \]
 \end{proposition}
 
 \begin{proof}
-The intersection of \(\mathbb F_{16}\) and \(\mathbb F_{2^{2h}}\) is
-\(\mathbb F_4\), so the relative Frobenius is the nontrivial automorphism of
-\(\mathbb F_{16}/\mathbb F_4\) and exchanges \(4\) and \(5\).  These are
-the two roots of \(Y^2+Y+\omega\); hence \(4\cdot5=4^2+4=\omega\).
-Expanding the product proves the formula.
+One has $4+5=1$ and $4\cdot5=\omega$.  Expanding the product gives the
+formula.
 \end{proof}
 
 Define
 \[
  R_k(Y)=\operatorname{Res}_X
- \left(X^{2h}+X^h+1,\;Y+X^h+X^2+X\right)
- \in\mathbb F_2[Y].
+ \left(X^{2h}+X^h+1,\;Y+X^h+X^2+X\right).
 \]
 
-\begin{theorem}[exact exceptional target]\label{prop:d-exact}
-The polynomial \(R_k\) is the irreducible degree-\(2h\) minimal polynomial
-of \(A_k\).  The prime divisors of
-\[
- \Psi_k=\frac{\Phi_{2\cdot3^k}(2)}3
-\]
-are exactly the primes \(\ell\ne3\) with
-\(\operatorname{ord}_{\ell}(2)=2h\), with their full valuations in
-\(2^{2h}-1\).  The following are equivalent:
+\begin{theorem}[exact exceptional target]\label{thm:d-target}
+The polynomial $R_k$ is the irreducible degree-$2h$ minimal polynomial of
+$A_k$.  The prime divisors of
+$\Psi_k=\Phi_{2\cdot3^k}(2)/3$ are exactly the primes
+$\ell\ne3$ with $\operatorname{ord}_\ell(2)=2h$, with their full
+valuations.  The following are equivalent:
 \begin{enumerate}
-\item \(m_{\ell}=4\) for every prime \(\ell\) with
-\(f(\ell)=2\cdot3^k\);
-\item \(\Psi_k\mid\operatorname{ord}(M_k)\), where
-\(M_k=A_k^{q-1}\);
-\item \(A_k\) is not an \(\ell\)-th power in
-\(\mathbb F_{2^{2h}}\) for every prime \(\ell\mid\Psi_k\);
-\item \(R_k(X^{\ell})\) is irreducible over \(\mathbb F_2\) for every
-prime \(\ell\mid\Psi_k\).
+\item every row with $f(\ell)=2\cdot3^k$ has $m_\ell=4$;
+\item $\Psi_k\mid\operatorname{ord}(M_k)$;
+\item $A_k$ is not an $\ell$-th power in $\mathbb F_{2^{2h}}$ for every
+      prime $\ell\mid\Psi_k$;
+\item $R_k(X^\ell)$ is irreducible over $\mathbb F_2$ for every prime
+      $\ell\mid\Psi_k$.
 \end{enumerate}
 \end{theorem}
 
 \begin{proof}
-The element \(\zeta\) has minimal polynomial
-\(X^{2h}+X^h+1\).  Suppose \(A_k^{2^j}=A_k\), and reduce
-\(a=2^j\) modulo \(3h\).  The resulting relation on \(\zeta\) has support
-the symmetric difference of
-\[
- \{ah,a,2a\}\quad\text{and}\quad\{h,1,2\}.
-\]
-Every multiple of \(X^{2h}+X^h+1\) of degree below \(3h\) has support a
-disjoint union of triples \(\{r,r+h,r+2h\}\).  If
-\(a\equiv2\pmod3\), the support contains \(h,2h\) but not zero.  If
-\(a\equiv1\pmod3\), cancellation of the \(h\)-terms leaves at most two
-members in each residue class modulo \(h\).  Both are impossible for a
-nonempty union of triples.  The support is therefore empty, forcing
-\(a=1\).  Thus \(A_k\) has Frobenius orbit length \(2h\), and the displayed
-resultant is its irreducible minimal polynomial.
+The element $\zeta$ has minimal polynomial $X^{2h}+X^h+1$.  Comparing the
+support of a hypothetical Frobenius relation $A_k^{2^j}=A_k$ modulo this
+trinomial forces $2^j\equiv1\pmod{3h}$, so $A_k$ has degree $2h$ and the
+resultant is its minimal polynomial.
 
-Writing \(a_0=2^{3^{k-1}}\), one has
+The cyclotomic divisor criterion applied to
+$\Phi_{2\cdot3^k}(2)$ gives the stated prime support after removing its
+single factor of three.  Proposition~\ref{prop:d-lower} and the corrected
+norm give
 \[
- \Phi_{2\cdot3^k}(2)=a_0^2-a_0+1\equiv3\pmod9.
-\]
-After removing its single factor of three, the cyclotomic divisor criterion
-gives the asserted prime support and valuations.
-
-Fix \(\ell\mid\Psi_k\).  Proposition~\ref{prop:d-lower} gives
-\(m_{\ell}\geq4\).  Propositions~\ref{prop:norm} and
-\ref{prop:d-norm} give
-\[
- m_{\ell}=4
+ m_\ell=4
  \quad\Longleftrightarrow\quad
- A_k\notin(\mathbb F_{2^{2h}}^{\times})^{\ell}.
+ A_k\notin(\mathbb F_{2^{2h}}^{\times})^\ell.
 \]
-Raising to \(q-1\) is invertible on the current \(\ell\)-Kummer quotient,
-because \(q-1\equiv-2\pmod\ell\).  Hence this is equivalent to the full
-\(\ell\)-primary part appearing in \(\operatorname{ord}(M_k)\).  Imposing
-it for every current prime gives assertion 2.  Finally, \(\mu_{\ell}\) lies
-in \(\mathbb F_{2^{2h}}\), so Kummer theory and Capelli's lemma identify
-non-\(\ell\)-power of \(A_k\) with irreducibility of
-\(R_k(X^{\ell})\).
+Raising to $q-1$ is invertible on the current $\ell$-Kummer quotient, so
+this is equivalent to the full $\ell$-primary part occurring in
+$\operatorname{ord}(M_k)$.  Finally, $\mu_\ell$ lies in the defining field;
+Kummer theory and Capelli's lemma identify nonpower with irreducibility of
+$R_k(X^\ell)$.
 \end{proof}
 
-\begin{proposition}[effective bound on the exceptional column]
-\label{prop:d-bound}
-Let \(k\geq2\), let \(h=3^k\), and let \(\ell\mid\Psi_k\) be prime.
-Then
+\begin{proposition}[effective exceptional bound]\label{prop:d-bound}
+Let $k\geq2$, $h=3^k$, and let $\ell\mid\Psi_k$ be prime.  If $t$ is the
+least power of two satisfying
+$t\geq\lceil\log_2(h-1)\rceil$, then
 \[
- m_\ell<16h^4.
+  m_\ell\leq4^t-1<16h^4.
 \]
-More precisely, let \(t\) be the least power of two satisfying
-\[
- t\geq\left\lceil\log_2(h-1)\right\rceil.
-\]
-Then \(m_\ell\leq4^t-1\).
 \end{proposition}
 
 \begin{proof}
-Put
+Put $K=\mathbb F_{4^h}$ and extend constants to
+$L=K\mathbb F_{4^t}$.  For a character $\chi$ of exact order $\ell$, the
+sum
 \[
- K=\mathbb F_{4^h}=\mathbb F_4(\zeta),
- \qquad C_a=\mathbb F_{4^t},
- \qquad L_a=KC_a=\mathbb F_{4^{ht}},
+  S=\sum_{c\in\mathbb F_{4^t}}
+      (\chi\circ\operatorname N_{L/K})(\zeta+c)
 \]
-where \(t=2^{a-1}\).  Choose a character
-\(\chi:K^\times\to\mu_\ell\) of exact order \(\ell\), and define
+equals $4^t$ precisely when every translate is an $\ell$-th power.  The
+associated primitive even function-field character has $L$-polynomial
+$(1-T)\prod_{j=1}^{h-2}(1-\alpha_jT)$ with $|\alpha_j|=2$.  Constant-field
+extension therefore gives
 \[
- \chi_a=\chi\circ\operatorname{N}_{L_a/K},
- \qquad
- S_{a,k,\ell}=\sum_{c\in C_a}\chi_a(\zeta+c).
+  |S|\leq1+(h-2)2^t<4^t
 \]
-Because \(h\) is odd and \(t\) is a power of two, the fields \(K\) and
-\(C_a\) are linearly disjoint over \(\mathbb F_4\), and
-\([L_a:K]=t\).  This degree is prime to \(\ell\), so norm induces an
-isomorphism on \(\ell\)-Kummer quotients.  In particular, \(\chi_a\) has
-kernel \((L_a^\times)^\ell\).  No term \(\zeta+c\) vanishes, and equality
-in the complex triangle inequality gives
-\[
- \zeta+C_a\subseteq(L_a^\times)^\ell
- \quad\Longleftrightarrow\quad
- S_{a,k,\ell}=4^t.
-\]
-
-The character \(\chi\) is the primitive even Dirichlet character modulo
-\(X^h+\omega\) over \(\mathbb F_4[X]\).  Write its \(L\)-polynomial as
-\[
- L_\chi(T)=(1-T)\prod_{j=1}^{h-2}(1-\alpha_jT).
-\]
-The function-field Riemann hypothesis gives
-\(\lvert\alpha_j\rvert=2\), and constant-field extension raises each
-reciprocal root to its \(t\)-th power \cite[Chapters 4, 8, and
-9]{rosen2002}.  Comparing the degree-one coefficient after extension gives
-\[
- S_{a,k,\ell}
- =-\left(1+\sum_{j=1}^{h-2}\alpha_j^t\right),
- \qquad
- \lvert S_{a,k,\ell}\rvert\leq1+(h-2)2^t.
-\]
-If \(2^t\geq h-1\), then
-\[
- 1+(h-2)2^t<4^t.
-\]
-Thus some \(c\in C_a\) makes \(\zeta+c\) a non-\(\ell\)-th power.
-Kummer-quotient injectivity from its defining field to \(L_a\) shows that
-the same is true in the defining field.  The elements of \(C_a\) are exactly
-the finite nimbers below \(4^t\), so \(m_\ell\leq4^t-1\).
-
-Finally, the least power of two \(t\) above
-\(\lceil\log_2(h-1)\rceil\) satisfies
-\[
- t<2(\log_2h+1),
-\]
-and hence \(4^t<16h^4\).  This proves the stated bound.
+when $2^t\geq h-1$; see \cite{rosen2002}.  Some translate is a nonpower,
+and norm injectivity on the $\ell$-Kummer quotient returns the statement to
+its defining field.  The elements of $\mathbb F_{4^t}$ are the finite
+nimbers below $4^t$.  The displayed polynomial estimate follows from the
+minimal choice of $t$.
 \end{proof}
 
-The open statement \(D\) is therefore the family
-\[
- D'_k:\qquad \Psi_k\mid\operatorname{ord}(M_k).
-\]
-It is a current-level assertion, not a cumulative divisibility statement.
-The factor \(A_k\) in Proposition~\ref{prop:d-norm} is also essential:
-replacing it by a scalar product of separate translates gives the wrong norm.
+This bound is level-dependent and does not prove absolute boundedness or the
+value four.
 
-\begin{proposition}[prime current factor]\label{prop:d-prime}
-Let \(k\geq2\), put
+The exceptional coordinate also has an exact circular-ray factorization.
+In the real field generated by roots of orders $3^{k+1}$ and $5$, let
+$\mathfrak P$ be the prime selected by $\zeta\mapsto\zeta_k$ and the
+conductor-five coordinate $\mapsto\omega$.  Let $E_L$ and $C_L$ be the
+global and circular units and let a subscript $\ell$ denote the primary
+projection after reduction.  Then
 \[
- s=3^{k-1},\qquad a=2^s,\qquad
- \Lambda_k=a^2-a+1=3\Psi_k,
+ \overline C_{L,\ell}
+ =\langle A_{k,\ell}\rangle
+ =\langle M_{k,\ell}\rangle,
 \]
-and define \(P_k=M_k^{a+1}\).  Then
+and
 \[
- P_k^{\Lambda_k}=1,\qquad
- [\mathbb F_2(P_k):\mathbb F_2]=2\cdot3^k,
+ [k_{\mathfrak P,\ell}:\langle M_{k,\ell}\rangle]
+ =\left|\ker\bigl(
+   \operatorname{Cl}_L(\mathfrak P)_\ell\to
+   \operatorname{Cl}_L{}_{\ell}\bigr)\right|
+  |(\overline E_L/\overline C_L)_\ell|.
 \]
-and exponentiation by \(a+1\) preserves every primary part supported on
-\(\Psi_k\).  Consequently \(D'_k\) holds whenever \(\Psi_k\) is prime.
-In particular, \(\Psi_2=19\) and \(\Psi_3=87211\) are prime, so
-\(D'_2\) and \(D'_3\) hold.
-\end{proposition}
+The second factor is controlled by the real class number, but the first is a
+principal ray kernel.  The marked conductor-five cyclotomic unit is globally
+not an $\ell$-th power; the height theorem of Amoroso--Dvornicich gives this
+directly \cite{amorosodvornicich2000}.  Global nonpower does not determine
+its Frobenius at the selected prime.  Arm $D$ is exactly the assertion that
+both factors in the displayed ray-class index vanish.
 
-\begin{proof}
-Write \(h=3^k\) and \(q=a^3=2^h\).  Since
+The current $C$ and $D$ coordinates are orthogonal.  If
+$q_0=2^{h/3}$ and $q=q_0^3$, their norm-one tori have orders
 \[
- q+1=(a+1)(a^2-a+1),
+ q_0^2+q_0+1
+ \quad\text{and}\quad q+1,
 \]
-the norm-one relation \(M_k^{q+1}=1\) gives
-\(P_k^{\Lambda_k}=1\).  Moreover,
-\(\gcd(\Lambda_k,a+1)=3\) and \(v_3(\Lambda_k)=1\), hence
-\(\gcd(\Psi_k,a+1)=1\).  This proves the assertion about primary parts.
+which are coprime.  The exceptional cubical operator kills the cubic
+subfield, while the local norm kills the exceptional torus.  Hence the two
+principal-ray factors cannot force one another through the shared prime over
+two.  Each requires its own marked unit-image calculation.
 
-The congruences
-\[
- a\equiv h-1,\qquad a^2\equiv h+1,\qquad
- a^3\equiv-1,\qquad a^4\equiv2h+1
- \pmod{3h}
-\]
-give, by direct Frobenius expansion,
-\[
- P_k=
- \frac{\zeta^4+\zeta+\omega}
-      {\omega^2\zeta^4+\zeta^3+1}.
-\]
-Also \(P_k^q=P_k^{-1}\).  If \(P_k\in\mathbb F_q\), then \(P_k=1\);
-cross-multiplication would give
-\[
- \zeta^{h+4}+\zeta^h+\zeta^3+\zeta+1=0.
-\]
-If \(P_k\in\mathbb F_{a^2}\), its order divides
-\(\gcd(\Lambda_k,a^2-1)=3\), so \(P_k\in\{1,\omega,\omega^2\}\).
-The two remaining values similarly give
-\[
- \zeta^{h+3}+\zeta=0
-\]
-or
-\[
- \zeta^{h+4}+\zeta^{h+3}+\zeta^4+\zeta^3+\zeta+1=0.
-\]
-Each displayed polynomial is nonzero and has degree below \(2h\), contradicting
-the minimal polynomial \(X^{2h}+X^h+1\) of \(\zeta\).
-
-Every proper subfield of \(\mathbb F_{2^{2h}}\) lies in
-\(\mathbb F_q\) or \(\mathbb F_{a^2}\).  Thus \(P_k\) has degree \(2h\).
-If \(\Psi_k\) is prime, its order, a divisor of \(3\Psi_k\), cannot divide
-three and must therefore contain \(\Psi_k\).  The primary-part assertion
-transfers this divisibility to \(\operatorname{ord}(M_k)\).
-\end{proof}
-
-The cubic and exceptional current factors are coprime:
-\[
- \gcd\bigl(\Phi_{3^k}(2),\Phi_{2\cdot3^k}(2)\bigr)=1.
-\]
-Thus arm \(C\) and arm \(D\) occupy distinct primary coordinates.  Norm
-recursion in the cubic tower cannot by itself transfer the missing order from
-one arm to the other.  Their common Conway ancestry is relevant only through
-the explicitly selected additive coefficients.
-
-\section{Boundedness and the remaining theorem}\label{sec:boundedness}
+\section{Boundedness and the remaining theorem}\label{sec:bounded}
 
 Lenstra asked whether the finite excesses are absolutely bounded
 \cite{lenstra1977}.  Conjecture~\ref{conj:rule} would give the bound four,
-but boundedness itself is weaker than any maximal-order assertion above.
+but boundedness is strictly weaker than the maximal-order assertions above.
 
-For \(a\geq0\), let
-\[
- C_a=\mathbb F_{2^{2^a}}
-\]
-be the complete finite Conway subfield at that level.  For an odd prime
-\(p\), put \(x_p=\kappa_{f(p)}\) and
-\(L_{p,a}=\mathbb F_2(x_p)C_a\).
+For $a\geq0$, let $C_a=\mathbb F_{2^{2^a}}$.  For an odd prime $p$, put
+$x_p=\kappa_{f(p)}$ and $L_{p,a}=\mathbb F_2(x_p)C_a$.
 
-\begin{proposition}[finite-line criterion for absolute boundedness]
-\label{prop:bounded}
-For every \(p\) and \(a\),
+\begin{proposition}[finite-line criterion]\label{prop:bounded}
+For every $p$ and $a$,
 \[
  m_p<2^{2^a}
  \quad\Longleftrightarrow\quad
- \text{there exists }c\in C_a\text{ such that }
- x_p+c\notin L_{p,a}^{p},
+ \text{some }c\in C_a\text{ has }x_p+c\notin L_{p,a}^p.
 \]
 Consequently,
 \[
  \sup_p m_p<\infty
  \quad\Longleftrightarrow\quad
- \text{for some fixed }a,
- \text{ every }p\text{ has such a }c\in C_a.
+ \text{one fixed $a$ works for every $p$}.
 \]
 \end{proposition}
 
-Here \(L^p=\{y^p:y\in L\}\) for a field \(L\).
-
 \begin{proof}
-For \(c\in C_a\), let \(F_c=\mathbb F_2(x_p+c)\).  Since
-\(x_p=(x_p+c)+c\), one has \(F_cC_a=L_{p,a}\).  The degree
-\([L_{p,a}:F_c]\) divides \([C_a:\mathbb F_2]=2^a\), so it is prime to the
-odd prime \(p\).  Extension to \(L_{p,a}\) is therefore injective on
-\(p\)-Kummer quotients: restriction followed by norm is multiplication by
-this invertible degree.  Thus \(x_p+c\) is a \(p\)-th power in its defining
-field exactly when it is a \(p\)-th power in \(L_{p,a}\).
-
-The finite nimbers below \(2^{2^a}\) are exactly \(C_a\), which proves the
-first equivalence from the definition of \(m_p\).  A fixed \(a\) gives the
-uniform bound \(2^{2^a}-1\).  Conversely, choose \(a\) with
-\(2^{2^a}\) larger than a given uniform bound.
+For $F_c=\mathbb F_2(x_p+c)$, one has $F_cC_a=L_{p,a}$ and
+$[L_{p,a}:F_c]\mid2^a$, which is prime to $p$.  Extension is therefore
+injective on $p$-Kummer quotients.  The finite nimbers below $2^{2^a}$ are
+exactly $C_a$, proving the first equivalence from the excess definition.  A
+fixed $a$ gives a uniform bound; conversely choose $a$ above any given
+uniform bound.
 \end{proof}
 
-The proposition says that boundedness is uniform nonsaturation of one fixed
-finite affine line.  It does not require any of the particular translates
-\(0,1,4\) to have maximal primary order.  No fixed line is presently known to
-work for all primes.
-
-The universal frontier can now be stated without auxiliary machinery:
+No fixed finite affine line is known to work for every prime.  The complete
+universal frontier remains the four selected order assertions in
+Theorem~\ref{thm:arms}:
 \begin{enumerate}
-\item prove generation by the synchronized structural norm \(T_h\), including
-the Conway--Fermat equalities \(\delta_n=F_n\);
-\item prove full primary order for the marked projective unit \(y_{r,a}\) on
-every ordinary odd spine;
-\item prove that every selected Gaussian period \(\gamma_k\), equivalently
-every selected norm-one increment \(\eta_k\), is primitive;
-\item prove \(\Psi_k\mid\operatorname{ord}(M_k)\) for every exceptional
-level.
+\item full primary order for the synchronized structural norm, including
+      every Conway--Fermat equality $\delta_n=F_n$;
+\item full primary projective order for the marked ordinary cyclotomic unit;
+\item primitivity of every selected Gaussian period $\gamma_k$, equivalently
+      generation by every $\eta_k$;
+\item $\Psi_k\mid\operatorname{ord}(M_k)$ at every exceptional level.
 \end{enumerate}
-Each item is a one-dimensional selected Kummer nonvanishing problem after
-the reductions above.  Generic degree, trace, norm, or unmarked reciprocity
-data either determine a different coordinate or reconstruct the same
-selected coordinate.  They do not supply the missing nonvanishing.
+Each is now one-dimensional and ancestry-sensitive.  Degree, trace, norm,
+conductor, factor parity, or a statement about generic ambient points does
+not decide it.
 
-\section{Formal and computational verification}\label{sec:verification}
+\section{Formal verification and finite evidence}\label{sec:verification}
 
-The mathematical statements and the evidence are deliberately separated.
+The formal development uses Lean~4 \cite{demouraullrich2021} and Mathlib
+\cite{mathlib2020}.  It checks the algebraic content summarized in
+Table~\ref{tab:formal}.
 
-\subsection{Formal boundary}
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{p{0.25\textwidth}p{0.65\textwidth}}
+\hline
+Formal group & Kernel-checked content \\
+\hline
+Kummer interface & First-nonpower characterization, cyclic-group and
+finite-field power tests with full primary valuation, quotient order, and
+norm transport. \\
+Four-arm algebra & Corrected exceptional norm, toric and Dickson
+semiconjugacies, selected cubic recurrence, cubical $Z/D$ identities, and
+$C/D$ orthogonality. \\
+Singleton-even boundary & Packet substitutions and norms, child-image
+equation, ancestry derivative, Dickson--Lucas tangency factorization, and the
+distinction between Conway and Wiedemann Laurent recursions. \\
+Finite certificates & Recorded primality, factor, order, modular
+Stickelberger, and selected binary Artin-phase calculations supplied to the
+formal checker. \\
+\hline
+\end{tabular}
+\caption{Lean-checked content relevant to the excess reduction.}
+\label{tab:formal}
+\end{table}
 
-The Lean~4 and Mathlib development \cite{demouraullrich2021,mathlib2020}
-proves the abstract cyclic-group power criterion, its
-full-primary order form, quotient-order factorization, the corrected norm
-identity, the exceptional lower-bound interface, and a collection of
-polynomial and finite arithmetic lemmas used by the reductions.  It also
-checks the recorded factorizations of \(\Psi_k\) for \(2\leq k\leq6\), the
-primality of the modest factors through \(k=4\), and exact order-of-two
-screens for the recorded factors.
+The identifier \texttt{DPrimeTarget} defines the universal assertion $D$.
+It is neither assumed nor proved.  The formalization proves ingredients of
+Theorem~\ref{thm:arms}; it does not contain an end-to-end proof of
+Conjecture~\ref{conj:rule}.  Supplied finite coefficients and factorizations
+are checked as data, not derived from their external number-theoretic sources.
 
-The identifier \texttt{DPrimeTarget} defines
-\[
- \forall k\geq1,\quad \Psi_k\mid\operatorname{ord}(M_k).
-\]
-It is not assumed and is not proved.  The formal files verify ingredients of
-Theorem~\ref{thm:four-arms}; they do not contain an end-to-end proof of
-Conjecture~\ref{conj:rule}.
-
-The formal project is built with
-\begin{verbatim}
-cd formal
-lake build Ogdoad.Excess
-\end{verbatim}
-The relevant source is \texttt{formal/Ogdoad/Excess.lean}.
-
-\subsection{Finite evidence}
-
-The finite evidence has the following exact status.
+The finite evidence has the following status.
 \begin{itemize}
-\item The 126 values for odd primes \(3\leq p\leq709\) are imported from
-OEIS A380496 and checked against the complete vendored sequence
-\cite{oeisA380496}.  They are external tabulated data, not a proof of a
-universal pattern.
-\item The values \(m_{359}=1\), \(m_{719}=1\), and \(m_{727}=1\) have local
-exact finite-field certificates.  The first two use marked Hilbert and
-crossed-norm payloads; the last uses a self-contained degree-2420 polynomial
-certificate.  The next unsupported implementation row, \(p=733\), is an
-operational guardrail rather than a mathematical boundary.
-\item The cubic assertions \(C_1,C_2,C_3\) are proved by exact order
-arguments.  Levels \(C_4,C_5\) have complete finite certificates;
-\(C_6\) retains a source-assisted factorization boundary, and later checked
-factors are evidence only.
-\item The exceptional levels \(D'_2,D'_3\) follow analytically from
-Proposition~\ref{prop:d-prime}.  Levels \(D'_4,D'_5\) have complete finite
-certificates.  Level \(D'_6\) retains a source-assisted primality boundary;
-later partial factorizations do not certify a level.
+\item The $126$ values for odd primes $3\leq p\leq709$ are source-backed by
+      OEIS A380496 \cite{oeisA380496}.  They are tabulated data, not a
+      universal theorem.
+\item The rows $m_{359}=m_{719}=m_{727}=1$ have separate exact local
+      finite-field certificates.
+\item In the cubic arm, $C_1,C_2,C_3$ have exact order proofs and
+      $C_4,C_5$ have complete finite certificates.  $C_6$ retains a
+      source-assisted factorization boundary.
+\item In the exceptional arm, $D'_2,D'_3$ follow analytically and
+      $D'_4,D'_5$ have complete finite certificates.  $D'_6$ retains a
+      source-assisted primality boundary.
+\item Two-block tensor arguments prove the multicomponent zero arm at
+      $h=12,15,24,36,40$.  These are theorem-level finite cases, not a
+      universal generation result.
 \end{itemize}
 
-The maintained finite-field entry points are
-\begin{verbatim}
-python3 experiments/ordinal_excess_probe.py
-python3 experiments/cyclotomic_3k_family.py
-python3 experiments/exception_column_m4.py
-python3 experiments/ordinary_359_hilbert_certificate.py --full
-python3 experiments/ordinary_719_crossed_certificate.py --full
-python3 experiments/ordinary_727_certificate.py
-\end{verbatim}
-The full \(359\) and \(719\) certificates are intentionally expensive.  A
-successful finite run proves only its named row or level.
+Exact finite screens also provide countermodels to claims based only on
+trace, norm, factor shape, conductor, or unselected Kummer data.  Such a
+countermodel eliminates a proof route; it is not a counterexample to
+Conjecture~\ref{conj:rule} unless it lies on the literal Conway ancestry.
 
 \section{Conclusion}
 
-The finite excess problem is not presently a problem of discovering another
-candidate sequence.  Its exact candidate is Conjecture~\ref{conj:rule}, and
-Theorem~\ref{thm:four-arms} reduces it to four explicit selected-order
-assertions.  The reductions explain both the strength of the numerical
-pattern and the persistence of the proof gap: all coarse finite-field
-invariants are compatible with more than one value of the selected Kummer
-coordinate.
+The finite excess problem has a precise candidate and a precise proof
+boundary.  The $0/1/4$ rule is equivalent to four universal selected-order
+assertions.  In each arm the ambient field theory has been reduced to one
+marked Kummer coordinate, with the full primary valuation retained.
 
-The most economical remaining target is therefore direct.  One must prove
-nonvanishing of the recursively selected Euler quotient in each of the four
-arms, with full primary valuation.  Until those four statements are proved,
-the universal \(0/1/4\) rule and even absolute boundedness remain open.
+The reductions also explain why the conjecture resists coarse invariants.
+The zero arm needs the synchronized rather than componentwise phase; the
+ordinary arm needs one Artin symbol on the Conway-selected inert ray; the
+cubic and exceptional arms need the faithful finite reduction of a marked
+unit, including its principal-ray factor.  Generic structure reconstructs
+these coordinates but does not force their nonvanishing.  Until all four
+selected assertions are proved, both Conjecture~\ref{conj:rule} and absolute
+boundedness remain open.
 
 \bibliographystyle{plain}
 \bibliography{excess}

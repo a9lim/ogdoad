@@ -9,6 +9,8 @@
 //!     in [`forms::function_field`](crate::forms) — which additionally needs
 //!     division, gcd, and modular powers (the residue quadratic character is
 //!     Euler's criterion `u^{(|κ|−1)/2}` computed in `F_q[t]/(π)`).
+//!     The crate-private finite-field factorization pipeline lives beside this
+//!     arithmetic in `poly_factor` rather than under either forms client.
 //!
 //! Representation is **trimmed** (no trailing zero coefficients; the zero
 //! polynomial is the empty vector), so `PartialEq` is structural and exact. The

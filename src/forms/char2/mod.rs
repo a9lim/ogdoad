@@ -41,7 +41,8 @@ pub use field::*;
 mod coverage_gap_tests {
     // These coverage tests live here rather than at their home files:
     // `isometric_finite_char2` lives in
-    // `equivalence.rs`, and the equal-degree splitter lives in `poly_factor.rs`
+    // `equivalence.rs`, and the equal-degree splitter lives in scalar's
+    // crate-private `poly_factor.rs`
     // (`pub(crate)`, so it's reachable crate-wide without editing that file).
 
     use crate::clifford::Metric;
@@ -113,7 +114,7 @@ mod coverage_gap_tests {
         assert_ne!(g1, g2);
 
         let f = g1.mul(&g2);
-        let factors = crate::forms::poly_factor::monic_irreducible_factor_support(
+        let factors = crate::scalar::poly_factor::monic_irreducible_factor_support(
             &f,
             2,
             F4::field_order(),

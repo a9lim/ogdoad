@@ -63,6 +63,10 @@
 //! honest operational boundary. (Anything `≥ ω^(ω^ω)`, an infinite exponent place, is
 //! out of range outright.)
 
+use super::support::{
+    base_digits, checked_pow, odd_prime_place, place_prime, prime_power,
+    smallest_prime_power_factor,
+};
 use super::Ordinal;
 use crate::scalar::{is_prime_u128, nim_mul};
 use std::collections::{BTreeMap, BTreeSet};
@@ -72,23 +76,6 @@ use std::collections::{BTreeMap, BTreeSet};
 /// `χ_{p(m)^{k+1}}` (`0 ≤ digit < p(m)`). An absent place / empty vector is all-zero;
 /// the empty map is the exponent `0` (the monomial `1`).
 type GenKey = BTreeMap<u128, Vec<u128>>;
-
-/// The prime governing exponent-place `ω^m`: `p(m)` = the `(m+2)`-th prime
-/// (`p(0)=3`, `p(1)=5`, `p(2)=7`, …). Prime 2 is excluded — the prime-2 (Fermat)
-/// tower is the finite nimber field, handled by [`crate::scalar::nim_mul`].
-pub(super) fn place_prime(m: u128) -> u128 {
-    let mut count = 0u128;
-    let mut n = 2u128; // skip the prime 2
-    loop {
-        n += 1;
-        if is_prime_u128(n) {
-            count += 1;
-            if count == m + 1 {
-                return n;
-            }
-        }
-    }
-}
 
 /// The excess `α_u` (`χ_u^u = α_u`, the Kummer relation) as an ordinal, or `None` for
 /// primes beyond the verified table (`u > 727` — the staged boundary). The only
@@ -176,37 +163,6 @@ fn q_set(h: u128) -> Option<Vec<u128>> {
     Some(qs)
 }
 
-fn smallest_prime_power_factor(h: u128) -> Option<(u128, u128)> {
-    if h <= 1 {
-        return None;
-    }
-    let u = smallest_prime_factor(h)?;
-    let mut r = 1u128;
-    let mut g = h;
-    while g.is_multiple_of(u) {
-        r = r.checked_mul(u)?;
-        g /= u;
-    }
-    Some((r, g))
-}
-
-fn smallest_prime_factor(n: u128) -> Option<u128> {
-    if n < 2 {
-        return None;
-    }
-    if n.is_multiple_of(2) {
-        return Some(2);
-    }
-    let mut d = 3u128;
-    while d <= n / d {
-        if n.is_multiple_of(d) {
-            return Some(d);
-        }
-        d += 2;
-    }
-    Some(n)
-}
-
 fn chi_sum(qs: &[u128]) -> Option<Ordinal> {
     qs.iter()
         .try_fold(Ordinal::zero(), |acc, &q| Some(acc.nim_add(&chi(q)?)))
@@ -225,57 +181,6 @@ fn chi(q: u128) -> Option<Ordinal> {
     let coeff = checked_pow(p, n - 1)?;
     let exp = Ordinal::monomial(Ordinal::from_u128(place), coeff);
     Some(Ordinal::omega_pow(exp))
-}
-
-fn prime_power(q: u128) -> Option<(u128, u128)> {
-    if q < 2 {
-        return None;
-    }
-    let p = smallest_prime_factor(q)?;
-    let mut n = 0u128;
-    let mut rest = q;
-    while rest.is_multiple_of(p) {
-        n += 1;
-        rest /= p;
-    }
-    (rest == 1).then_some((p, n))
-}
-
-fn odd_prime_place(p: u128) -> Option<u128> {
-    if p == 2 || !is_prime_u128(p) {
-        return None;
-    }
-    let mut place = 0u128;
-    loop {
-        let q = place_prime(place);
-        if q == p {
-            return Some(place);
-        }
-        if q > p {
-            return None;
-        }
-        place += 1;
-    }
-}
-
-/// Shared with [`subfield`](super::subfield) (`pub(super)`, not duplicated there).
-pub(super) fn checked_pow(base: u128, exp: u128) -> Option<u128> {
-    let mut acc = 1u128;
-    for _ in 0..exp {
-        acc = acc.checked_mul(base)?;
-    }
-    Some(acc)
-}
-
-/// Base-`base` digit vector of `v` (least-significant first, no trailing zeros).
-/// Shared with [`subfield`](super::subfield) (`pub(super)`, not duplicated there).
-pub(super) fn base_digits(mut v: u128, base: u128) -> Vec<u128> {
-    let mut d = Vec::new();
-    while v > 0 {
-        d.push(v % base);
-        v /= base;
-    }
-    d
 }
 
 /// Decompose an exponent `E` into its [`GenKey`], or `None` if `E ≥ ω^ω` (some CNF

@@ -1,119 +1,94 @@
 # Open mathematical problems
 
-Exactly two research problems are open. This file states their present form
-and proof boundary; the linked papers contain definitions, proofs, citations,
-and fuller notation.
+Ogdoad has two unresolved mathematical claims. This document states only their
+current form, proved reductions, and exact missing step. The linked papers carry
+the definitions and arguments; finite experiments never substitute for either
+universal theorem.
 
-Evidence labels used here:
+## 1. Isolated-dummy FIFO linking
 
-- **proved:** a paper proof, Lean theorem, or cited standard theorem;
-- **certified:** an exact finite computation with replayable checks;
-- **source-backed:** external mathematical data used with an identified source;
-- **tested:** bounded computation consistent with the claim.
+Let a finite simple graph on real vertices be augmented by one isolated dummy.
+Each vertex is opened once and later closed; closes occur in opening order. A
+one-step ko protects the most recently changed vertex, and a forced pass clears
+ko when no ordinary move is legal. Closing the queue front toggles a bit when
+that vertex has odd degree in the untouched real graph.
 
-None of the last three labels implies a universal theorem.
+**Conjecture.** From the empty-queue, score-zero root, either designated seat
+can force terminal score zero on every such graph.
 
-## 1. Arbitrary-graph FIFO linking
+This is stronger than the FIFO theorem used by the Gold--Arf realization. A
+public Witt frame reduces that construction to matchings plus isolated
+vertices, where a both-seat zero-score strategy is proved.
 
-### Conjecture
+### Exact reduction
 
-Let `G` be a finite simple graph on real vertices, augmented by one isolated
-dummy vertex. Every vertex is opened once and later closed once. Closures occur
-in FIFO order. A one-step ko protects the most recently changed vertex, with a
-forced pass when no ordinary move is legal. Closing the queue front toggles a
-binary score exactly when that vertex has odd degree in the untouched set.
-
-**FIFO linking conjecture.** From the empty-queue, score-zero root, either
-designated seat can force terminal score zero for every such graph.
-
-This statement is stronger than the theorem used by the Gold--Arf
-construction. A public Witt frame reduces that application to a disjoint union
-of edges and isolated vertices, for which a both-seat strategy is proved.
-
-### Affine form
-
-For a complete history `h`, let `D(h)` be its universal live-star/disjointness
-vector in the `F_2` edge space on the real vertices. Pairing `D(h)` with a
-graph's adjacency vector gives the terminal score.
-
-For a fixed attacker strategy `S` and its compatible terminal histories
-`H_S`, finite-field separation gives
+For a terminal history `h`, let `D(h)` be its live-star/disjointness vector in
+the real-edge space over `F_2`. For any fixed attacker policy `S`, with terminal
+histories `H_S`, affine separation gives
 
 ```text
-S is harmless on every graph
+S is harmless for every graph
     iff
 0 lies in Aff{D(h) : h in H_S}.
 ```
 
-Thus the defender needs an odd affine response flow with zero terminal edge
-moment. When the queue front is `f`, the quotient
+`FifoPublicPolicyAffine.lean` defines this graph-free policy problem and
+`FifoPublicPolicyDuality.lean` proves that it is equivalent to
+`FifoLinkingTheorem`. The conjecture is therefore exactly the existence of an
+odd response flow with zero real-edge moment for every initial public policy.
+
+At a queue front `f`, the quotient
 
 ```text
 T_f(z)_ij = z_ij + z_fi + z_fj
 ```
 
-splits the current edge space into the cut star at `f` and the edge space after
-deleting `f`. The missing theorem is a causal contraction through successive
-front quotients while respecting the chosen strategy tree.
+separates the cut star at `f` from the smaller carrier. The formal development
+proves the local contraction identities, terminating strategy duality, matching
+case, fixed-front and close-first reductions, and the following sharp normal
+form for a hypothetical counterpolicy:
 
-### What is proved
+- choose a globally rank-minimal sheet-one occurrence with the dummy live;
+- the selected move is a real separator-unit `OPEN v` into a complete
+  sheet-zero defender fan;
+- every legal fan edge has zero separator increment;
+- the old queue is nonempty and contains a distinct separator-odd debt vertex;
+- the last earlier unit-charged close is followed by a pointwise score-neutral
+  suffix.
 
-- `formal/Ogdoad/Fifo.lean` defines the exact terminating game, strategy
-  predicates, score translation, queue/cut invariants, singleton tails,
-  edgeless play, and close-first contractions. `FifoLinkingTheorem` is the open
-  proposition, not an axiom or theorem.
-- `formal/Ogdoad/FifoMatching.lean` proves the both-seat theorem for
-  matching-plus-isolates boards. `ImpartialRealizer.lean` supplies the
-  pass-free fixed-tempo compiler used by the Gold--Arf paper.
-- `FifoNormalization.lean` proves complete pair-response fan identities and
-  excludes close-first odd play at the isolated-dummy root.
-- `FifoStrategy.lean`, `FifoAffine.lean`, and `FifoWinningRegion.lean` make the
-  selected policy, its affine response space, and the Bellman-saturated region
-  precise.
-- The `FifoCross*`, `FifoCausal`, `FifoNeutralPair`, `FifoSameOpenBraid`,
-  `FifoDummy*`, `FifoOuterFan`, `FifoProtectedFan`, `FifoRootSelector`,
-  `FifoInterlace`, `FifoSymmetry`, and `FifoMinHotCurvature` modules prove local
-  transport, fan, deletion, symmetry, and obstruction lemmas. They expose the
-  surviving ancestry term rather than cancel it.
-- Exact minimax agrees with the conjecture for every nonisomorphic board
-  through eight real vertices plus the dummy, for both seats. This is tested
-  evidence only.
+### Missing step
 
-### Remaining theorem
+The debt vertex can either survive behind the last charged front or be opened
+inside the neutral suffix. A proof must use the occurrence's actual ancestry to
+select an odd family of earlier defender siblings whose prefixes and
+continuation cosets cancel the remaining real-edge class in both cases.
 
-The local response fans contract, and descendants of a critical charged close
-can be scalar-neutral. The missing causal contraction has two coupled parts:
+Local Bellman tie-breaking, an unlabelled state-DAG cycle, score translation,
+and unrestricted pair descent are insufficient: the formal counterexamples
+show that each forgets either the selected edge label, the second correlated
+continuation, or the isolated-dummy constraint. The required new object is an
+ancestry-compatible multibranch contraction through the FIFO cut filtration.
 
-1. prove that a lexicographically minimal bad node has either the candidate
-   odd--odd charged-close ancestry or the protected-singleton/ko-wall ancestry;
-2. in that ancestry, select compatible earlier defender siblings across FIFO
-   front levels so that their prefixes and continuation cosets cancel the
-   residual real-edge class with odd augmentation.
+### Evidence and authority
 
-The paper proves the local ingredients of the proposed normal form but does
-not claim their strategy-relative composition. The second part is the
-multi-sibling factor extension.
-
-Purely graph-local parity, fixed pairings, bounded-support affine circuits,
-childwise continuation arguments, dummy deletion, and turn/score symmetry do
-not supply this selection; explicit checked states delimit each route. A proof
-must use causal information from the selected strategy tree, not only the
-underlying graph or the set of terminal histories.
-
-Authoritative paper: [`../writeups/linking_affine.tex`](../writeups/linking_affine.tex).
-Executable model: `experiments/linking_game.py`.
+- Lean defines but does not prove `FifoLinkingTheorem`.
+- Exact minimax proves every nonisomorphic board through eight real vertices
+  plus the dummy, for both seats; larger targeted searches are consistent with
+  the conjecture but are not exhaustive.
+- The maintained executable oracle is `experiments/linking_game.py`.
+- The authoritative mathematical account is
+  [`../writeups/linking_affine.tex`](../writeups/linking_affine.tex).
 
 ## 2. Finite excess in transfinite nim multiplication
 
-### Conjecture
-
-For an odd prime `p`, the supported Conway--Lenstra Kummer carry has
+For an odd prime `p`, let `f(p) = ord_p(2)` and write the supported
+Conway--Lenstra Kummer carry as
 
 ```text
-alpha_p = kappa_f(p) + m_p,       f(p) = ord_p(2),
+alpha_p = kappa_f(p) + m_p.
 ```
 
-where `m_p` is the finite excess. The conjectural universal rule is
+**Conjecture.** The finite excess is
 
 ```text
 m_p = 0   if Q(f(p)) is not a singleton odd prime power,
@@ -121,23 +96,21 @@ m_p = 4   if f(p) = 2 * 3^k with k >= 1,
 m_p = 1   otherwise.
 ```
 
-The available table and exact certificates agree with this rule. The
-universal statement is open.
+The implementation table and exact row certificates agree with this rule. No
+universal proof is known.
 
-### Four-arm reduction
+### Exact reduction
 
-The paper proves that the rule is equivalent to four selected order
-assertions. None is known universally.
+The paper reduces the rule to four recursively selected order assertions.
 
-| arm | structural case | remaining selected assertion |
+| arm | case | unresolved selected assertion |
 | --- | --- | --- |
-| `Z` | non-singleton component support, including the singleton-even Conway--Fermat chain | the structural norm generates the primitive-support quotient; equivalently the terminal iterated norm/order coordinate is nonzero |
-| `O` | singleton odd prime power with prime different from `3` | the selected projective class of `kappa_(r^a)+1` has the full required primary order |
-| `C` | the cubic `3^k` chain | the selected Gaussian period `zeta + zeta^{-1}` is primitive, equivalently the final fixed cubic-norm coordinate is nontrivial |
-| `D` | the exceptional `2*3^k` chain | the reconstructed selected Artin--Schreier/Dickson value is not a current-primary power; `DPrimeTarget` records this target |
+| `Z` | nonsingleton support, including the singleton-even Conway--Fermat chain | the structural norm has full primary order in the canonical primitive-support quotient; equivalently, the marked supersingular function has full next-Fermat order at the Conway-selected point |
+| `O` | singleton odd prime power away from `3` | a marked cyclotomic unit has full primary order at the unique prime over `2` selected by Conway ancestry |
+| `C` | the `3^k` chain | the selected Singer-trace orbit has full norm-one order, or equivalently the associated principal-ray and reduced circular-unit defects both vanish |
+| `D` | the `2 * 3^k` chain | the marked conductor-five unit has trivial selected principal-ray/reduced-unit index |
 
-If nonzero `beta` lies in `F_(2^E)` and `p` divides `2^E-1`, the exact
-obstruction is
+For nonzero `beta` in `F_(2^E)`, the load-bearing test is
 
 ```text
 beta has no p-th root
@@ -145,39 +118,40 @@ beta has no p-th root
 beta^((2^E - 1)/p) != 1.
 ```
 
-Merely proving `p | ord(beta)` is insufficient when the ambient group contains
-a higher `p`-power. The selected phase of the literal Conway tower is the
-load-bearing datum; generic trace, norm, degree, factor shape, or Kummer
-component information can lose it.
+The weaker statement `p | ord(beta)` does not control the full `p`-primary
+coordinate when the ambient group contains a higher `p`-power.
 
-### What is proved or certified
+### What is proved
 
-- The four-arm equivalence, exact power criteria, boundedness reformulation,
-  norm identities, and many phase-preserving reductions are proved in the
-  paper.
-- `formal/Ogdoad/Excess.lean` proves the first-non-power interface,
-  group-theoretic lower bound, corrected sparse norm, exact cyclic/finite-field
-  power tests, finite arithmetic screens, and algebraic lemmas used by the four
-  reductions. `DPrimeTarget` is deliberately only a definition of the open
-  universal target.
-- The exceptional column has an unconditional effective bound depending on
-  `k`; it does not prove an absolute bound on all `m_p`.
-- The ordinary rows through the implementation cutoff include source-backed
-  values and separate exact local certificates. They extend the operational
-  Kummer window but do not establish a general formula.
-- Exact finite screens and countermodels show that generic
-  trace/norm/reciprocity, factor-shape, averaging, and unselected Kummer
-  arguments cannot determine the distinguished Conway phase.
+The paper proves the four-arm equivalence, exact cyclic power criteria,
+boundedness reformulation, structural norm identities, primitive-support
+quotient, supersingular and Singer descriptions, the ordinary ray-class
+decomposition, and the principal-ray/circular-unit factorization in the cubic
+and exceptional arms. It also proves several finite tensor-rank zero cases and
+shows why generic trace, norm, conductor, factor-shape, reciprocity, and
+unselected Kummer information cannot recover the marked Conway coordinate.
 
-### Remaining theorem
+`formal/Ogdoad/Excess.lean` kernel-checks the algebraic reduction layer and
+finite certificates used by the paper. `DPrimeTarget` and the analogous
+selected-order conditions encode open targets; they are not assumptions or
+proofs of the rule.
 
-Every arm has been reduced to a one-dimensional, recursively selected
-nonvanishing/order coordinate. A complete proof must control that literal
-coordinate uniformly along Conway ancestry. A generic statement about all
-points in the ambient finite field, or about an unordered orbit of candidate
-points, is not enough.
+### Missing step
 
-Authoritative paper: [`../writeups/excess.tex`](../writeups/excess.tex).
-Implementation: `src/scalar/big/ordinal/tower.rs`.
-Exact probes and certificates: top-level `experiments/*excess*`,
-`experiments/ordinary_*`, and `experiments/fermat_selected_screen.py`.
+Every arm ends at a one-dimensional value selected recursively by the literal
+Conway tower. A complete proof must evaluate that marked coordinate uniformly
+along its ancestry. Ambient statements about all points in the field do not
+distinguish it from the formal countermodels with the same trace, norm,
+torsion, or conductor data.
+
+### Evidence and authority
+
+- Exact certificates establish the named implementation rows, not a universal
+  formula.
+- `experiments/ordinal_excess_probe.py`,
+  `experiments/fermat_selected_screen.py`, and the guarded
+  `experiments/ordinary_*_certificate.py` scripts are the maintained finite
+  evidence.
+- The implementation boundary is `src/scalar/big/ordinal/tower.rs`.
+- The authoritative mathematical account is
+  [`../writeups/excess.tex`](../writeups/excess.tex).

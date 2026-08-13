@@ -1,7 +1,8 @@
-"""The 3-power excess family: ord(kappa_{3^k} + 1) = 3^(k+1) * (2^(3^k) - 1).
+"""Exact screens for the 3-power excess-family order formula.
 
-writeups/excess.tex (the 3^k family thread) asks to prove this formula or find its
-first failure. This probe carries the June 2026 result:
+The target is
+
+    ord(kappa_{3^k} + 1) = 3^(k+1) * (2^(3^k) - 1).
 
 THE KEY RECOGNITION. The tower relations (Lenstra/DiMuro; independently encoded
 in `ordinal_excess_probe.py`) give `kappa_2^2 = kappa_2 + 1`, `kappa_3^3 =
@@ -33,7 +34,7 @@ PROVED (machine-checked here at every level, plus in the term algebra of
   `2^(3^k)+1`, hence divides neither `3^(k+1)` nor `2^(3^k)-1`, hence p never
   divides `ord(kappa_{3^k}+m)` for m in {0,1,2,3}: by the order criterion the
   Lenstra excess has `m_p >= 4`. The *full* formula is NOT needed for the
-  exception - the splitting alone forces it. (New reach example: p = 87211,
+  exception - the splitting alone forces it. (For example, p = 87211,
   f = 54, beyond the current tables, has m_p >= 4.)
 * Norm tower. `gamma_{k-1} = gamma_k^3 + gamma_k = Norm_{L_k/L_{k-1}}(gamma_k)`
   (minimal polynomial `X^3 + X + gamma_{k-1}`), so `ord(gamma_{k-1}) | ord(gamma_k)`;
@@ -49,14 +50,14 @@ PROVED (machine-checked here at every level, plus in the term algebra of
   impossible (m = 0 has a root since ord(kappa) = 3^(k+1); m = 2,3 share m = 1's
   order), so any failure of C_k jumps straight to `m_r >= 4`.
 
-VERIFIED STATUS (this script):
+CURRENT EXACT OUTPUT:
   k = 1..6  C_k holds: gamma_k is primitive, ord(kappa_{3^k}+1) = 3^(k+1)*(2^(3^k)-1).
   k = 7, 8  consistent: all KNOWN prime factors of Phi_{3^7}(2), Phi_{3^8}(2)
             divide ord(gamma_k); full certification blocked only by the
             unfactored cofactors (factordb status CF).
 Cross-validations: term algebra reproduces k = 1, 2; the recorded calculator
 rows m_2593 = 1 (k = 4) and m_487 = 1 (k = 5) are re-derived independently.
-Newly certified excess rows (order criterion, independent of the cofactors):
+Exact excess rows (order criterion, independent of the cofactors):
   f = 27:   m = 1 for 262657
   f = 81:   m = 1 for 71119, 97685839
   f = 243:  m = 1 for 16753783618801, 192971705688577, 3712990163251158343
