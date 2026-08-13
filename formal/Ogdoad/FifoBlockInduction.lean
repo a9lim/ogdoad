@@ -22,11 +22,12 @@ Four parity-aware first-block hypotheses then suffice:
 The corresponding full empty-root theorems follow by well-founded induction
 on the number of untouched vertices.  The last theorem specializes these
 abstract block hypotheses to both seats of an isolated-dummy initial board.
-No declaration below proves any of the four first-block hypotheses.  The
-parity/dummy exit disjunction is essential: the stronger arbitrary-carrier
-mover property is false on an eight-vertex graph.  The point of the module is
-the exact splicing implication, not a claim that this package settles FIFO
-linking.
+No declaration below proves any of the four first-block hypotheses.  They are
+deliberately strong sufficient interfaces, not a proposed route: even the
+even-carrier mover property is false on a six-vertex graph.  Thus a viable
+mover exit must retain the isolated dummy or carry a richer affine debt state;
+parity alone is insufficient.  The point of the module is the exact splicing
+implication, not a claim that this package settles FIFO linking.
 -/
 
 namespace Ogdoad.Fifo
