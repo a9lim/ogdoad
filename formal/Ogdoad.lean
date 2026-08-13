@@ -39,6 +39,8 @@ import Ogdoad.FifoDummyFront
 import Ogdoad.FifoDummyFrontAffine
 import Ogdoad.FifoStrategyInteraction
 import Ogdoad.FifoSelfPlay
+import Ogdoad.FifoSeparatorFlow
+import Ogdoad.FifoThreeSiblingBoundary
 import Ogdoad.FifoMatching
 import Ogdoad.ImpartialRealizer
 import Ogdoad.GoldSemantics

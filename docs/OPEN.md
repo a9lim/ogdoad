@@ -129,6 +129,14 @@ front quotients while respecting the chosen strategy tree.
   score bit, while the dynamic cross-exit comparison retains a one-front
   queue lag. Thus two-copy strategy stealing also stops at the earlier-sibling
   factor extension.
+  `FifoSeparatorFlow.lean` proves the corresponding conservation law: an odd
+  zero-prefix fan has continuation residue of separator value one, even after
+  adding any homogeneous root direction. `FifoThreeSiblingBoundary.lean`
+  gives an exact same-tree countermodel to the naive repair: complete
+  immediate OPEN ancestry need not contain a sibling whose selected move is
+  the lag-removing CLOSE. The missing object is therefore an odd incidence
+  across correlated continuation cosets, not merely an additional immediate
+  branch.
 - Exact minimax agrees with the conjecture for every nonisomorphic board
   through eight real vertices plus the dummy, for both seats. This is tested
   evidence only.
@@ -217,6 +225,18 @@ with a one-front queue lag and the corresponding real-edge curvature. Hence
 two-copy self-play reproduces the causal factor gap: a strictly earlier
 universal sibling must absorb the lag/edge defect and align the two
 continuation cosets.
+
+Even the phrase "an earlier sibling" must be interpreted as a multi-branch
+incidence, not as one favorable immediate reply. In a one-dimensional
+separator quotient the root affine space is `{1}` and its direction space is
+`{0}`. Every complete-fan and curvature identity survives, while an odd
+zero-prefix fan necessarily leaves continuation value one. A concrete
+same-tree FIFO policy on an edgeless score-one state realizes the operational
+counterpart: its CLOSE child selects an OPEN, but neither immediate OPEN
+sibling selects the CLOSE needed to remove the queue lag. Hence fan
+completeness plus homogeneous corrections cannot prove the conjecture; the
+new theorem must correlate an odd family of continuation cosets across more
+than one level of ancestry.
 
 The apparent topological shortcut is also excluded. With history occurrences
 retained, an attacker-pruned policy is a tree, so its edge-boundary map is

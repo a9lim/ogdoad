@@ -1194,6 +1194,27 @@ remove the queue/edge defect and align the branch-dependent continuation
 cosets; it is another derivation of the causal factor-extension obligation,
 not a proof of the conjecture.
 
+There is a dual conservation law behind this failure.  For an odd family of
+children at one defender node, suppose the lifted ancestry-and-move prefixes
+have zero value under the separating graph.  Then the sum of the child
+continuations has value one, even after adding an arbitrary homogeneous root
+direction.  In the one-dimensional quotient this is simply
+\[
+  A_{\mathrm{root}}=\{1\},\qquad W_{\mathrm{root}}=\{0\}.
+\]
+Thus an odd zero-prefix fan transports the affine unit into its continuation
+residue; complete-fan and curvature identities alone cannot destroy it.
+
+Nor does immediate fan completeness force a single favorable third sibling.
+There is an exact policy on an edgeless score-one state with front $0$ and
+untouched set $\{1,2\}$ in which the front-CLOSE child selects $O_1$, while
+the immediate $O_1$ child selects $O_2$ and the immediate $O_2$ child selects
+$O_1$.  All three are children of the same universal node, but neither OPEN
+sibling selects the lag-removing CLOSE.  The example is not an initial-root
+counterexample; it proves that the missing repair must be an odd incidence
+across correlated continuation cosets, rather than one more immediate
+sibling.
+
 \subsection{The exact factor interface}
 
 For a node $q$ in one fixed attacker strategy, retain the affine continuation
@@ -1281,6 +1302,10 @@ kernel-check the two-policy diagonal and the score--turn-conjugate
 contradiction target.  They also certify that neutral dummy moves lack the
 required score defect and that a one-front-offset pair cannot be conjugate;
 these are self-play boundary theorems, not an end-to-end contraction.
+\texttt{FifoSeparatorFlow} proves that an odd zero-prefix fan retains
+separator value one in its continuation residue, and
+\texttt{FifoThreeSiblingBoundary} gives the exact same-tree countermodel to
+the naive immediate third-sibling selector.
 Finally, \texttt{FifoPairState} proves that every score-zero mover failure
 with an OPEN available forces a lower minimum-hot singleton wall with two real
 charged endpoints.  Its minimum is global in rank, not yet a descendant in

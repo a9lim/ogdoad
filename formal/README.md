@@ -89,6 +89,7 @@ The companion modules isolate the exact remaining causal obstruction:
 | `FifoDummyFront` | exact neutral dummy-front commuting diamond and the necessary consumed-pair selector; opening the dummy first relocates rather than removes the real-pair obligation |
 | `FifoDummyFrontAffine` | the odd-order dummy-front legal fan is even and its projected OPEN-prefix sum is the surviving real star, which no local odd response point can equal; earlier ancestry is necessary |
 | `FifoStrategyInteraction`, `FifoSelfPlay` | complementary-seat odd policies share a compatible odd terminal, whereas same-seat policies at score-and-turn-conjugate states are impossible; dummy timing supplies only the controller phase and real-front curvature leaves a one-front/edge defect, so two-copy self-play still needs an earlier sibling |
+| `FifoSeparatorFlow`, `FifoThreeSiblingBoundary` | an odd zero-prefix fan retains separator value one in its continuation residue, and immediate fan completeness does not force any earlier OPEN sibling to select the lag-removing CLOSE; the missing repair must be an odd cross-coset incidence |
 
 Every theorem in these modules is subsidiary. None supplies either the full
 strategy-relative minimum-bad ancestry classification or the subsequent
@@ -106,6 +107,8 @@ boundary in `writeups/linking_affine.tex`.
 - finite primality/order/factor screens used by replayable certificates;
 - two-face cross-ratio and three-face parity identities for the cubical
   primitive-support coordinate in the multicomponent zero arm;
+- the two-prime coboundary identity placing the exceptional arm in that same
+  cubical primitive-support coordinate;
 - polynomial, trace, norm, Frobenius, Kummer, and recurrence identities used
   to reduce the selected `Z`, `O`, `C`, and `D` coordinates.
 
