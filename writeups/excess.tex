@@ -51,7 +51,9 @@ the Conway--Fermat arm, and factor the exceptional selected index into a
 principal ray kernel and a class-number-controlled circular-unit quotient.
 An exact full-parent/proper-child packet witness rules out conductor-only
 induction, while an actual \(r=11,p=23\) Conway conductor has a vanishing
-Stickelberger character scalar despite its successful ordinary row.
+Stickelberger character scalar of exact \(23\)-adic valuation one, hence an
+actual cyclic order-\(23\) irregular class component, despite its successful
+ordinary row.
 These structures sharpen the selected phase which remains to be evaluated;
 they do not force its nonvanishing.
 These are reductions, not proofs of the four universal assertions.  Formal
@@ -928,6 +930,138 @@ Proposition~\ref{prop:z-frobenius-gauge} transfers this compatible
 branch to the literal Conway branch, proving sufficiency.
 \end{proof}
 
+The requirement that the packet factors arise at one prime over two does not
+itself couple their phases.  The coupling begins only with the displayed
+Conway congruences.
+
+\begin{proposition}[independence of the marked primes before ancestry]
+\label{prop:z-prime-independence}
+Retain divisors \(e_i>1\) of \(F_i\) for \(0\leq i\leq n\), and write
+
+\[
+ K_i=\mathbb Q(\zeta_{e_i}+\zeta_{e_i}^{-1}),\qquad
+ G_i=\operatorname{Gal}(K_i/\mathbb Q),\qquad
+ D_i=\langle[2]\rangle\subseteq G_i.
+\]
+
+Then the \(K_i\) are linearly disjoint, \(|D_i|=2^i\), and for
+\(L=K_0\cdots K_n\) the decomposition group of two is the diagonal subgroup
+
+\[
+ D=\langle([2],\ldots,[2])\rangle\subseteq\prod_{i=0}^nG_i,
+ \qquad |D|=2^n.
+\]
+
+The restriction map on primes over two,
+
+\[
+ \left(\prod_{i=0}^nG_i\right)/D
+ \longrightarrow
+ \prod_{i=0}^nG_i/D_i,
+\]
+
+is surjective, and every fibre has cardinality
+\(2^{n(n-1)/2}\).  Thus every tuple of individually marked packet factors is
+realized by a common prime of \(L\); Proposition~\ref{prop:z-prime-chain}
+adds exactly the ancestry congruences and no hidden decomposition condition.
+\end{proposition}
+
+\begin{proof}
+The \(e_i\) divide pairwise coprime Fermat numbers.  Chinese remaindering in
+the full cyclotomic fields, followed by passage to the real subfields, gives
+linear disjointness and
+
+\[
+ \operatorname{Gal}(L/\mathbb Q)=\prod_iG_i.
+\]
+
+For \(e_i\mid F_i\), the least \(j>0\) with
+\(2^j\equiv\pm1\pmod {e_i}\) is \(2^i\), so the real decomposition group has
+order \(2^i\).  Frobenius in the product is the diagonal tuple and has order
+\(\operatorname{lcm}_i2^i=2^n\).  Any tuple of cosets \(g_iD_i\) has the
+representative \((g_i)_i\), proving surjectivity.  Its fibre is
+\((\prod_iD_i)/D\), of order
+
+\[
+ \frac{\prod_{i=0}^n2^i}{2^n}=2^{n(n-1)/2}.
+\]
+\end{proof}
+
+There is likewise no concealed multiplicity or singularity in the ancestry
+equations themselves.
+
+\begin{proposition}[the ancestry scheme is one finite-field orbit]
+\label{prop:z-ancestry-scheme}
+Over \(k=\mathbb F_2\), put
+
+\[
+ A_n=
+ k[T_0,\ldots,T_n]/
+ \bigl(T_0+1,\,
+   T_i^2+T_{i-1}T_i+T_{i-1}^3:1\leq i\leq n\bigr),
+\]
+
+and write \(t_i\) for the image of \(T_i\).  Then
+
+\[
+ A_n\simeq\mathbb F_{2^{2^n}}.
+\]
+
+More precisely, each \(A_i/A_{i-1}\) is quadratic,
+
+\[
+ \operatorname{Tr}_{A_i/A_{i-1}}(t_i)=t_{i-1},\qquad
+ \operatorname{N}_{A_i/A_{i-1}}(t_i)=t_{i-1}^3,
+ \qquad \operatorname{Tr}_{A_i/\mathbb F_2}(t_i)=1,
+\]
+
+and
+
+\[
+ t_i^{\,2^{2^{i-1}}}=t_i+t_{i-1}.
+\]
+
+The Jacobian determinant of the defining equations is
+\(\prod_{i=0}^{n-1}t_i\), hence is a unit.  Consequently the scheme is finite
+\'etale, with \(2^n\) geometric points forming one Frobenius orbit and all
+local intersection multiplicities equal to one.  If \(P_i\) is obtained by
+the successive resultants of Proposition~\ref{prop:z-packet-child}, then
+\(P_i\) is exactly the irreducible minimal polynomial of \(t_i\), with no
+extra factor or multiplicity.
+
+Finally, adjoining packet equations \(C_{e_i}(T_i)=0\) produces either the
+same field \(A_n\), when the literal orbit lies in every chosen packet, or
+the zero ring.  Thus Jacobians, discriminants, resultants, and intersection
+multiplicities cannot exclude a proper packet chain without already proving
+the conjectural divisibility \(P_i\mid C_{e_i}\).
+\end{proposition}
+
+\begin{proof}
+Assume inductively that \(A_{i-1}=\mathbb F_{2^{2^{i-1}}}\) and that
+\(\operatorname{Tr}(t_{i-1})=1\).  Since \(t_{i-1}\ne0\), division by
+\(t_{i-1}^2\) and the substitution \(c=t_i/t_{i-1}\) turn the next equation
+into
+
+\[
+ c^2+c=t_{i-1}.
+\]
+
+The absolute trace criterion makes this Artin--Schreier polynomial
+irreducible.  Its two roots differ by one, which gives the displayed relative
+Frobenius formula.  Relative trace and norm are respectively \(t_{i-1}\) and
+\(t_{i-1}^3\), while trace transitivity gives absolute trace one.  Moreover
+\(t_{i-1}=t_i+t_i^{2^{2^{i-1}}}\), so the top coordinate recovers every
+ancestor and generates the whole field.
+
+The Jacobian matrix is lower bidiagonal: its diagonal entries are
+\(1,t_0,\ldots,t_{n-1}\).  These are nonzero in the field, proving the
+\'etale
+claim.  Sequential elimination therefore gives the stated irreducible
+minimal polynomials without powers or extraneous components.  Finally,
+\(A_n\) is a field, so quotienting by the values \(C_{e_i}(t_i)\) either adds
+only zero relations or kills the ring.  This proves the last assertion.
+\end{proof}
+
 The precise zero-at-multiples coordinate is especially small.  Define
 Fibonacci polynomials over \(\mathbb F_2\) by
 \[
@@ -1607,6 +1741,15 @@ There is an even primitive character \(\theta\) of conductor
 in \(J(\theta)\) is zero modulo \(23\).  None of its omitted-conductor Euler
 factors vanishes.  Thus uniform nonvanishing of the actual-conductor
 Bernoulli--Stickelberger scalar is false.
+
+More precisely, put \(\Theta=\omega\theta^{-1}\), and let \(L\) be the cyclic
+imaginary degree-\(22\) field cut out by \(\Theta\).  Then
+\[
+ v_{23}\bigl(B_{1,\Theta^{-1}}\bigr)=1,
+\]
+and the \(\Theta\)-part of \(\operatorname{Cl}(L)\) has order exactly \(23\).
+Thus this is an actual nonzero irregular class component, not merely a
+vanishing first annihilator.
 \end{proposition}
 
 \begin{proof}
@@ -1643,13 +1786,25 @@ nonidentity bit encodings
 \]
 certify \(\operatorname{ord}(\alpha_{11})=M\); the remaining conductor
 arithmetic is immediate.
+
+For the sharper valuation, lift \(5\) to its Teichmuller representative
+\(28\pmod {23^2}\).  Direct grouping of the same half-sum modulo \(23^2\)
+gives
+\[
+ B_{1,\Theta^{-1}}\equiv414=23\cdot18\pmod {23^2}.
+\]
+Hence its \(23\)-adic valuation is one.  Solomon's class-component theorem
+\cite[Theorem~II.1]{solomon1990}, applied to the odd semisimple character
+\(\Theta\ne\omega\), identifies this valuation with the
+\(\mathbb Z_{23}[\Theta]\)-length of the \(\Theta\)-class component.  The
+value field here is \(\mathbb Q_{23}\), so that component has order \(23\).
 \end{proof}
 
 This is not an \(O\)-counterexample: the literal row has \(m_{23}=1\).
-Rather, it proves that vanishing of a projected Stickelberger scalar does
-not by itself put the Conway-selected prime class in that surviving block.
-The remaining datum is still the projection of the marked prime over two,
-or equivalently its selected Artin value.
+Rather, it proves that even a nonzero irregular component does not by itself
+determine the Conway-selected prime class in that component.  The remaining
+datum is still the projection of the marked prime over two, or equivalently
+its selected Artin value.
 
 \begin{proposition}[phase conservation above the birth level]
 \label{prop:o-tail}
@@ -2747,6 +2902,55 @@ the ancestry norm has eigenvalue \(1+r+r^2=0\) in \(C\) and
 \(1+2^h=0\) in \(D\).  The Jacobi formalism therefore identifies the
 missing scalar but does not force it to be nonzero.
 
+Differentiating the norm relation does not manufacture the missing value.
+Let \(R=\mathbb Z/\ell^v\mathbb Z\), let the current character send a relative
+generator \(\tau\) of order \(r\) to \(a\in R^\times\), and put
+\(N_r(T)=1+T+\cdots+T^{r-1}\).  At the birth level \(a\) has exact order
+\(r\), so
+
+\[
+ N_r(a)=0,
+ \qquad
+ N_r'(a)=\frac r{a(a-1)}\in R^\times.
+\]
+
+The projected circular-unit distribution relation gives only
+\(N_r(a)c=0\), because the current character is absent downstairs.  A
+first-order lift \(\tau\mapsto a(1+\varepsilon)\) instead gives
+
+\[
+ aN_r'(a)c=b,
+\]
+
+where \(b\) is the Bockstein, or equivalently the marked localization class
+at the current prime.  The derivative is a unit, but \(b\) is not determined
+by the lower-level unit.  Indeed every \(c\in R\) extends to such a
+first-order distribution system by choosing
+\(b=aN_r'(a)c\).  Higher derivatives introduce the corresponding higher
+extension classes.  Thus augmentation derivatives identify the selected
+scalar with a Selmer connecting class; they do not evaluate it.
+
+The full regulator determinant records exactly the same obstruction.  In a
+conjugate circular-unit basis the reduction matrix is circulant.  Its
+Fourier eigenvalue at the faithful character \(\sigma\mapsto2\) is the marked
+discrete-log scalar.  If \(R_{\mathrm{faithful}}\) denotes the corresponding
+principal-ray kernel and \(T_{\mathrm{faithful}}\) the reduced
+unit/circular-unit quotient, faithful localization gives
+
+\[
+ v_\ell(\lambda)=
+ \operatorname{length}(R_{\mathrm{faithful}})
+ +\operatorname{length}(T_{\mathrm{faithful}}).
+\]
+
+These are respectively the principal-ray and reduced unit/circular-unit
+factors in Propositions~\ref{prop:c-circular-ray} and
+\ref{prop:d-circular-ray}.  Their nonnegative lengths cannot cancel, but a
+real or ordinary cyclotomic regulator controls neither the finite
+discrete-log eigenvalue nor its principal-ray factor.  The determinant
+therefore packages the conjunction already required; it does not force the
+faithful eigenvalue to be a unit.
+
 \begin{proposition}[prime current factor]\label{prop:d-prime}
 Let \(k\geq2\), put
 \[
@@ -2976,8 +3180,10 @@ support the common primitive-support coordinate used in the zero and
 exceptional arms.  The common-root and faithful-character norm identities
 kernel-check the exact \(C/D\) orthogonality and the norm-blindness statement.
 The signed Dickson--Lucas factorization underlying
-Proposition~\ref{prop:z-dickson-tangency} is kernel-checked.  The modular
-half-sum and Euler-factor values in
+Proposition~\ref{prop:z-dickson-tangency} is kernel-checked, as is the
+diagonal derivative used in the \'{e}tale ancestry-scheme calculation.  The
+modular half-sum values modulo \(23\) and \(23^2\), and the Euler-factor
+values in
 Proposition~\ref{prop:o-actual-irregular} are checked from the supplied
 grouped coefficients and factors; the formalization does not derive those
 inputs, the packet bitmasks, or the character construction from first

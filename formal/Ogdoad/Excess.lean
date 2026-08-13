@@ -4801,6 +4801,28 @@ theorem ordinary23_stickelberger_halfSum_zero :
       0 * 5 ^ 20 + 11 * 5 ^ 21 = 0 := by
   native_decide
 
+/-- The same externally grouped half-sum one digit deeper.  The Teichmuller
+lift of `5 mod 23` is `28 mod 23²`, and the value is exactly `23 * 18`
+modulo `23²`; hence the generalized Bernoulli value has valuation one. -/
+theorem ordinary23_teichmuller_lift :
+    28 % 23 = 5 ∧ 28 ^ 22 % 529 = 1 := by
+  norm_num
+
+theorem ordinary23_stickelberger_halfSum_mod_sq :
+    (459 : ZMod 529) * 28 ^ 0 +
+      140 * 28 ^ 1 + 334 * 28 ^ 2 + 127 * 28 ^ 3 +
+      320 * 28 ^ 4 + 105 * 28 ^ 5 + 41 * 28 ^ 6 + 20 * 28 ^ 7 +
+      143 * 28 ^ 8 + 445 * 28 ^ 9 + 116 * 28 ^ 10 + 33 * 28 ^ 11 +
+      202 * 28 ^ 12 + 376 * 28 ^ 13 + 351 * 28 ^ 14 + 466 * 28 ^ 15 +
+      112 * 28 ^ 16 + 228 * 28 ^ 17 + 463 * 28 ^ 18 + 130 * 28 ^ 19 +
+      115 * 28 ^ 20 + 494 * 28 ^ 21 = 414 := by
+  native_decide
+
+/-- The lifted value is divisible by `23` but not by `23²`. -/
+theorem ordinary23_stickelberger_valuation_one :
+    414 = 23 * 18 ∧ 414 % (23 ^ 2) ≠ 0 := by
+  norm_num
+
 /-- The three omitted-conductor Euler factors do not account for the
 vanishing in `ordinary23_stickelberger_halfSum_zero`. -/
 theorem ordinary23_stickelberger_eulerFactor_nonzero :
@@ -7948,6 +7970,26 @@ theorem conwayResultant_pair_product (c : R) :
       ring
 
 end ConwayResultantParametrization
+
+section FermatAncestryEtaleCore
+
+open Polynomial
+
+variable {R : Type*} [CommRing R] [CharP R 2]
+
+/-- The polynomial for one edge of the singleton-even Conway ancestry
+scheme, with the parent coordinate held fixed. -/
+noncomputable def fermatAncestryEdge (x : R) : R[X] :=
+  X ^ 2 + C x * X + C (x ^ 3)
+
+/-- The diagonal Jacobian entry of one ancestry edge is exactly its parent.
+Thus a chain of nonzero parents has invertible lower-bidiagonal Jacobian. -/
+theorem fermatAncestryEdge_derivative (x : R) :
+    derivative (fermatAncestryEdge x) = C x := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  simp [fermatAncestryEdge, derivative_add, derivative_pow, htwo]
+
+end FermatAncestryEtaleCore
 
 section ConwayRationalDynamicsBoundary
 

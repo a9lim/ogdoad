@@ -118,11 +118,14 @@ frontier summarized in `docs/OPEN.md` and proved up to its exact boundary in
 - the substitution and norm identities for the deterministic child of a
   singleton-even primitive-order packet, together with its reciprocal
   child-image equation;
+- the diagonal derivative of the singleton-even ancestry edge, which is the
+  algebraic core of the paper's etale-Jacobian calculation;
 - the signed Dickson--Lucas factorization underlying the exact tangency
   obstruction for missing-prime extraction in that packet recursion;
-- the finite modular dot product of the supplied grouped half-sum
-  coefficients and the supplied nonvanishing Euler-factor product for the
-  actual-conductor `r = 11, a = 1, p = 23` Stickelberger obstruction;
+- the finite modular dot products modulo `23` and `23²` of the supplied
+  grouped half-sum coefficients, plus the supplied nonvanishing Euler-factor
+  product, for the actual-conductor `r = 11, a = 1, p = 23`
+  Stickelberger obstruction;
 - the denominator-free two-binomial power criterion underlying the selected
   cubic M\"obius resultant;
 - polynomial, trace, norm, Frobenius, Kummer, and recurrence identities used

@@ -359,9 +359,13 @@ component information can lose it.
   the irregular half-sum unresolved. This is a genuine obstruction: at the
   actual Conway conductor `r = 11, a = 1, p = 23`, one contributing
   semisimple Stickelberger scalar vanishes while every omitted-conductor
-  Euler factor is nonzero. The literal row nevertheless has `m_23 = 1`, so
-  the still-missing datum is the marked prime-class projection, not uniform
-  Bernoulli nonvanishing.
+  Euler factor is nonzero. Its generalized Bernoulli number has exact
+  `23`-adic valuation one; Solomon's class-component theorem therefore
+  gives an actual cyclic order-`23` irregular component in the associated
+  degree-`22` field. The literal row nevertheless has `m_23 = 1`, so
+  the still-missing datum is the projection of the marked prime into this
+  now-proved class line, not uniform Bernoulli nonvanishing or existence of
+  the irregular component.
 - For every residue degree `h`, an explicit cubical Frobenius coboundary has
   kernel equal to the product of all maximal proper subfield unit groups and
   image of exact order `Phi_h(2)`. It therefore gives a canonical coordinate
@@ -386,7 +390,16 @@ component information can lose it.
   weaker dimension or Bezout question. Across all levels, a
   proper-order vector is equivalent to one marked prime over `2` satisfying
   the complete bivariate Conway resultant chain. The remaining conjecture is
-  exclusion of every proper-conductor prime chain. An exact degree-16 witness
+  exclusion of every proper-conductor prime chain. Before those bivariate
+  equations are imposed, the individual marked primes are globally
+  independent: the relevant real cyclotomic fields are linearly disjoint,
+  and every tuple of packet primes over `2` is realized by a prime of their
+  compositum. The ancestry equations themselves define the single field
+  `F_(2^(2^n))`; their Jacobian is a unit, so the scheme is reduced, etale,
+  and one Frobenius orbit. Adding proper-packet equations therefore gives
+  either that same literal orbit or the empty scheme. Common-prime
+  compatibility, intersection multiplicity, and discriminant parity supply
+  no further obstruction. An exact degree-16 witness
   has full parent conductor but a deterministic degree-32 child of proper
   conductor, so conductor-only induction is false. Uniform Dickson tangency
   shows why low Hasse jets cannot repair it: the first term distinguishing a
@@ -437,6 +450,13 @@ component information can lose it.
   surjectivity behavior. Regulator, Fitting, or Stickelberger information
   must therefore compute this marked local scalar rather than only its source
   module or annihilator.
+- Differentiating the adjacent-level norm polynomial does not determine the
+  scalar: its derivative is a unit on the current character, but the resulting
+  right-hand side is the unknown Bockstein/Selmer localization class. The
+  faithful circulant regulator determinant likewise factors into the
+  principal-ray and reduced unit/circular-unit lengths. These nonnegative
+  obstructions cannot cancel, but the determinant does not make either one
+  vanish.
 - A two-block tensor-rank obstruction proves the multicomponent zero arm at
   `h = 12, 15, 24, 36, 40`. The `h = 15` proof retains the full synchronized
   norm phase, while `h = 36` checks both prime factors of `Phi_36(2)` by
