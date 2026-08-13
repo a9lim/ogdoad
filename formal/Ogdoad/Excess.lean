@@ -8070,6 +8070,65 @@ theorem conwayDriver_explicitCube
 
 end CubeFibotomicIntersection
 
+section CubicalPrimitiveQuotient
+
+/-! Algebraic faces of the cubical multiplicative coboundary used to
+identify the primitive-support quotient in the zero arm.  The general
+kernel/cardinality calculation is valuation-theoretic and remains in the
+paper; these identities kernel-check the separated two- and three-block
+nonidentity arguments. -/
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- The two-face multiplicative coboundary of an additive two-block element.
+Its difference from one factors as the product of the two edge differences. -/
+theorem additive_crossRatio_add_one
+    (u u' v v' : F)
+    (h₁ : u + v' ≠ 0) (h₂ : u' + v ≠ 0) :
+    ((u + v) * (u' + v')) / ((u + v') * (u' + v)) + 1 =
+      ((u + u') * (v + v')) / ((u + v') * (u' + v)) := by
+  field_simp
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  ring_nf
+  simp [htwo]
+
+/-- Distinct edges make the two-face coboundary nontrivial. -/
+theorem additive_crossRatio_ne_one
+    (u u' v v' : F)
+    (hu : u ≠ u') (hv : v ≠ v')
+    (h₁ : u + v' ≠ 0) (h₂ : u' + v ≠ 0) :
+    ((u + v) * (u' + v')) / ((u + v') * (u' + v)) ≠ 1 := by
+  intro h
+  have hz :
+      ((u + u') * (v + v')) / ((u + v') * (u' + v)) = 0 := by
+    rw [← additive_crossRatio_add_one u u' v v' h₁ h₂, h]
+    exact CharTwo.add_self_eq_zero 1
+  have hnum : (u + u') * (v + v') = 0 := by
+    exact (div_eq_zero_iff).mp hz |>.resolve_right (mul_ne_zero h₁ h₂)
+  rcases mul_eq_zero.mp hnum with huu | hvv
+  · exact hu (CharTwo.add_eq_zero.mp huu)
+  · exact hv (CharTwo.add_eq_zero.mp hvv)
+
+/-- The parity products on an additive `2 × 2 × 2` cube differ by the
+product of the three edge differences and their sum. -/
+theorem additive_cube_parity_difference
+    (x₀ x₁ y₀ y₁ z₀ z₁ : F) :
+    (x₀ + y₀ + z₀) * (x₀ + y₁ + z₁) *
+        (x₁ + y₀ + z₁) * (x₁ + y₁ + z₀) +
+      (x₀ + y₀ + z₁) * (x₀ + y₁ + z₀) *
+        (x₁ + y₀ + z₀) * (x₁ + y₁ + z₁) =
+      (x₀ + x₁) * (y₀ + y₁) * (z₀ + z₁) *
+        ((x₀ + x₁) + (y₀ + y₁) + (z₀ + z₁)) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  ring_nf
+  simp [htwo, hfour]
+
+end CubicalPrimitiveQuotient
+
 section Z36SymbolicLevel
 
 /-! Exact characteristic-two reductions behind the complete multicomponent
