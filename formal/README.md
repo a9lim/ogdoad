@@ -112,6 +112,11 @@ frontier summarized in `docs/OPEN.md` and proved up to its exact boundary in
   primitive-support coordinate in the multicomponent zero arm;
 - the two-prime coboundary identity placing the exceptional arm in that same
   cubical primitive-support coordinate;
+- the polynomial common-root obstruction separating the cubic and exceptional
+  current characters, and the vanishing of the norm operator on a faithful
+  cubic character;
+- the substitution and norm identities for the deterministic child of a
+  singleton-even primitive-order packet;
 - polynomial, trace, norm, Frobenius, Kummer, and recurrence identities used
   to reduce the selected `Z`, `O`, `C`, and `D` coordinates.
 

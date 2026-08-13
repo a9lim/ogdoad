@@ -614,6 +614,70 @@ degree \((m-1)/2\), and their roots are exactly \(\phi(z)\) for
 \(z^m=1\), \(z\ne1\).
 \end{proof}
 
+The packet recursion itself is deterministic and preserves all of the usual
+unramified Artin--Schreier invariants, even for a proper order packet.
+
+\begin{proposition}[unique irreducible packet child]
+\label{prop:z-packet-child}
+Put \(d=2^n\), \(q=2^d\), and let \(e>1\) divide \(F_n=q+1\).  Every
+root \(t\) of \(C_e\) has
+\[
+ \operatorname{Tr}_{\mathbb F_q/\mathbb F_2}(t)=1.
+\]
+The polynomial
+\[
+ G_t(Y)=Y^2+tY+t^3
+\]
+is irreducible over \(\mathbb F_q\).  If \(y\) is either root, then
+\[
+ y^q=y+t,\qquad
+ \operatorname{Tr}_{\mathbb F_{q^2}/\mathbb F_q}(y)=t,\qquad
+ \operatorname N_{\mathbb F_{q^2}/\mathbb F_q}(y)=t^3,\qquad
+ \operatorname{Tr}_{\mathbb F_{q^2}/\mathbb F_2}(y)=1.
+\]
+Consequently \(y\) belongs to a unique packet \(C_{e'}\), for a unique
+\(e'>1\) dividing \(F_{n+1}\).
+
+More intrinsically, if \(P\) is any irreducible factor of \(C_e\), then
+\[
+ R_P(Y)=\operatorname{Res}_X
+   \bigl(P(X),Y^2+XY+X^3\bigr)
+\]
+is irreducible of degree \(2^{n+1}\).  The map \(P\mapsto R_P\) is
+injective.  Thus the literal Conway packet is the orbit of \(X+1\) under a
+deterministic irreducible-child map; the remaining assertion is that this
+orbit always chooses the full packet \(C_{F_n}\).
+\end{proposition}
+
+\begin{proof}
+Write \(t=\phi(z)\) with \(z\) primitive of order \(e\), and put
+\(c=(z+1)^{-1}\).  Since \(z^q=z^{-1}\), direct calculation gives
+\[
+ c^2+c=t,\qquad c^q=c+1.
+\]
+Thus \(X^2+X+t\) is irreducible over \(\mathbb F_q\), which is equivalent
+to the asserted absolute trace of \(t\).  Substitution \(Y=tc\) gives
+\[
+ G_t(tc)=t^2(c^2+c+t)=0.
+\]
+Its other root is \(t(c+1)\), so the displayed conjugacy, trace, and norm
+formulas follow; transitivity of trace gives the last one.
+
+The element \(y\) has degree \(2^{n+1}\): it lies in
+\(\mathbb F_{q^2}\), is not in \(\mathbb F_q\), and
+\(t=y+y^q\in\mathbb F_2(y)\) has degree \(2^n\).  Since its absolute
+trace is one, \(X^2+X+y\) is irreducible over \(\mathbb F_{q^2}\).
+For either root \(b\), the quotient \((b+1)/b\) is a nonidentity element
+of the norm-one torus of order \(q^2+1=F_{n+1}\), and
+\(\phi((b+1)/b)=y\).  The inverse-pair fibre calculation in
+Proposition~\ref{prop:z-order-packet} gives the unique \(e'\).
+
+Finally, \(R_P\) is monic of degree \(2\deg P=2^{n+1}\), and a root \(y\)
+of it has exactly that degree by the preceding paragraph.  Hence \(R_P\)
+is the minimal polynomial of \(y\) and is irreducible.  The parent factor is
+recovered from \(t=y+y^{2^{2^n}}\), proving injectivity.
+\end{proof}
+
 The packets have a canonical integral lift.  Let
 \[
  K_e=\mathbb Q(\zeta_e+\zeta_e^{-1}),
@@ -1164,6 +1228,82 @@ local character.  A nontrivial ray character may still vanish on the fixed
 class of \(\mathfrak P_a\).  The missing theorem is therefore a
 selected-prime Artin-symbol nonvanishing statement, not a decomposition,
 norm, or conductor calculation.
+
+The separation between the ramified local calculation and the selected
+unramified ideal class can be made exact.  Put
+\[
+ F=\mathbb Q(\zeta_{N_a}),\qquad E=F(\zeta_p),\qquad
+ q_0=2^{br^{a-1}},\qquad
+ \rho=\frac{1-\zeta_{N_a}^{q_0}}{1-\zeta_{N_a}}.
+\]
+Choose a prime \(\mathfrak P_0\mid2\) with the Conway reduction and write
+\[
+ \left(\frac{\rho}{\mathfrak P_0}\right)_p
+ =\zeta_p^{\ell_{\mathfrak P_0}}.
+\]
+
+\begin{proposition}[ramified-local/unramified-class split]
+\label{prop:o-ray-split}
+The assertion \(O(r,a,p)\) is equivalent to
+\(\ell_{\mathfrak P_0}\ne0\).  For a prime \(\lambda\mid p\), let
+\(f=\operatorname{ord}_{N_a}(p)\), let \(\tau\) be the Teichm\"uller lift of
+the selected \(N_a\)-th root in the residue field, put
+\(u=\tau^{p^{f-1}}\), and define
+\[
+ \mathcal L_p(T)=\sum_{i=1}^{p-1}\frac{T^i}{i},\qquad
+ A_\lambda=
+ \frac{\mathcal L_p(u)}{(1-u)^p}
+ -\frac{\mathcal L_p(u^{q_0})}{(1-u^{q_0})^p}.
+\]
+Then \(A_\lambda=0\) exactly when
+\(\rho\in E_\lambda^{\times p}\).  The collection
+\((A_\lambda)_{\lambda\mid p}\) determines the Kummer ray character
+\(\chi_\rho\) only modulo an unramified character.  More precisely, after
+choosing any ray-character lift \(\chi_A\) of these local data,
+\[
+ \ell_{\mathfrak P_0}
+ =\ell^A_{\mathfrak P_0}+\eta([\mathfrak P_0]),
+ \qquad
+ \eta=\chi_\rho\chi_A^{-1}
+ \in\operatorname{Hom}(\operatorname{Cl}(E),\mu_p).
+\]
+The local data alone determine the selected value if and only if
+\([\mathfrak P_0]\in p\operatorname{Cl}(E)\).  In general the open target
+is noncancellation of the displayed ramified local term with the marked
+unramified class term.
+\end{proposition}
+
+\begin{proof}
+Modulo the selected prime,
+\(\overline\rho=(1+x_a)^{q_0-1}\).  Since \(q_0\) has exact order \(r\)
+modulo \(p\), its exponent is nonzero modulo \(p\); hence its Kummer class
+vanishes exactly when that of \(1+x_a\) does.  This proves the first
+assertion.  Expanding the local Kummer regulator at \(\lambda\) gives the
+displayed truncated-log coordinate, whose vanishing is the local
+\(p\)-power criterion.  Explicitly, in the maximal unramified subfield
+\(K_0\) write \(\rho=[\overline\rho]t\) with
+\(t\in1+p\mathcal O_{K_0}\).  The Teichm\"uller factor is a \(p\)-th
+power, while
+\[
+ A_\lambda=0
+ \quad\Longleftrightarrow\quad
+ t\in1+p^2\mathcal O_{K_0}
+ =(1+p\mathcal O_{K_0})^p,
+\]
+the last equality following from the \(p\)-adic logarithm.  Adjoining
+\(\mu_p\) creates no new \(p\)-th roots of elements of \(K_0\): if
+\(\rho=z^p\) after that extension, the norm of \(z\), whose relative
+degree is \(p-1\), gives a \(p\)-th root already in \(K_0\).
+
+The kernel of restriction from \(p\)-ray characters to their ramified
+local characters (in the admissible image modulo global units) is precisely
+\(\operatorname{Hom}(\operatorname{Cl}(E),\mu_p)\).  Thus any two global
+lifts of the same \(A_\lambda\)'s differ by the displayed unramified
+character, and evaluation at \(\mathfrak P_0\) gives the additive formula.
+For a finite abelian group \(H\), the intersection of the kernels of all
+maps \(H\to\mathbb Z/p\mathbb Z\) is \(pH\).  Applying this to
+\(H=\operatorname{Cl}(E)\) proves the final equivalence.
+\end{proof}
 
 \begin{proposition}[phase conservation above the birth level]
 \label{prop:o-tail}
@@ -2146,6 +2286,34 @@ even when \(V\ne0\).  Ambiguous-class, genus, and norm formulas therefore
 annihilate precisely the faithful component they would need to control.
 Fixed-prime Iwasawa stabilization does not supply a uniform substitute,
 because \(\ell\) and its faithful character are born anew at each level.
+Equivalently, after localization at this character the entire reduction map
+is multiplication by one scalar.  Even if the source circular-unit and class
+modules are both free of rank one, multiplication by a unit and multiplication
+by \(\ell\) are equally equivariant and obey the same vanishing norm
+operators, but only the first is surjective.  Thus a regulator determinant or
+Fitting ideal which does not evaluate the marked local scalar merely refactors
+the two indices in \((**)\); it cannot decide them.
+
+The same boundary is visible in the most direct Gauss-sum formula.  If
+\(K=\mathbb F_Q\) contains \(\mu_\ell\), let \(\chi\) be the order-\(\ell\)
+character with kernel \(K^{\times\ell}\), put
+\(\psi_a(x)=(-1)^{\operatorname{Tr}(ax)}\), and define
+\[
+ G_\chi(a)=\sum_{x\in K^\times}\chi(x)\psi_a(x).
+\]
+The substitution \(x\mapsto a^{-1}x\) gives the exact selected formula
+\[
+ \chi(a)=\frac{G_\chi(1)}{G_\chi(a)}.
+\]
+For arm \(C\), \(a=\eta_k\) and \(\operatorname{ord}_\ell(2)=3^k\) is
+odd, so no semiprimitive evaluation is available.  For arm \(D\), the
+untwisted numerator is semiprimitive because \(2^{3^k}\equiv-1\pmod\ell\),
+but evaluating the twisted denominator \(G_\chi(A_k)\) is exactly the
+unknown value \(\chi(A_k)\).  In the full cyclotomic Jacobi expansion the
+literal translate by four introduces conductor \(5\cdot3^{k+1}\); no power
+of two is minus one modulo this conductor, so the mixed terms are not
+semiprimitive either.  Explicit reciprocity therefore retains, rather than
+eliminates, the marked scalar.
 
 \begin{proposition}[prime current factor]\label{prop:d-prime}
 Let \(k\geq2\), put
@@ -2373,7 +2541,9 @@ proves the torus/Dickson semiconjugacy, the alternating two-step cubic
 conjugacy, and the order-four coordinate symmetry of the supersingular
 Conway curve.  The two-face, three-face, and two-prime cubical identities
 support the common primitive-support coordinate used in the zero and
-exceptional arms.  It
+exceptional arms.  The common-root and faithful-character norm identities
+kernel-check the exact \(C/D\) orthogonality and the norm-blindness statement.
+It
 checks the recorded factorizations of \(\Psi_k\) for \(2\leq k\leq6\), the
 primality of the modest factors through \(k=4\), and exact order-of-two
 screens for the recorded factors.

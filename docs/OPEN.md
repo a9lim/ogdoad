@@ -341,6 +341,11 @@ component information can lose it.
   recursion is an affine form of the same toric Dickson system, not a direct
   Drinfeld or smooth elliptic division tower; this does not identify the
   auxiliary value with the actual `D` target.
+- In the ordinary arm, the ramified finite-log coordinates at primes over the
+  current prime determine the Kummer ray character only modulo an unramified
+  class-group character. The selected Artin exponent is exactly a ramified
+  local term plus that character evaluated on the Conway-selected prime over
+  `2`; the remaining assertion is noncancellation of these two marked terms.
 - For every residue degree `h`, an explicit cubical Frobenius coboundary has
   kernel equal to the product of all maximal proper subfield unit groups and
   image of exact order `Phi_h(2)`. It therefore gives a canonical coordinate
@@ -352,10 +357,13 @@ component information can lose it.
   one absolute-Frobenius orbit, so ordinal lexicographic selection is a gauge
   rather than an extra phase. For each divisor `e` of the Fermat quotient
   order there is an exact primitive packet `C_e`; proper order is equivalent
-  to the selected Conway minimal polynomial landing in that packet. Across
-  all levels, a proper-order vector is equivalent to one marked prime over
-  `2` satisfying the complete bivariate Conway resultant chain. The remaining
-  conjecture is exclusion of every proper-conductor prime chain.
+  to the selected Conway minimal polynomial landing in that packet. Every
+  packet factor has a unique irreducible child under the Conway resultant;
+  trace one, relative trace/norm, residue degree, and unramifiedness hold for
+  proper packets just as they do for the full packet. Across all levels, a
+  proper-order vector is equivalent to one marked prime over `2` satisfying
+  the complete bivariate Conway resultant chain. The remaining conjecture is
+  exclusion of every proper-conductor prime chain.
 - In the cubic arm, the exact index of the selected subgroup in the norm-one
   torus factors as a relative principal `2`-ray kernel times a reduced
   unit/circular-unit kernel. The latter divides a relative real class-number
@@ -372,6 +380,12 @@ component information can lose it.
   conjugate first Kummer evaluations are scalar multiples of one marked
   value, so global nonpower and homogeneous orbit identities remain
   compatible with that selected value vanishing.
+- Direct Gauss-sum reciprocity isolates the same marked scalar as a ratio of
+  an untwisted and an additively twisted Gauss sum. The cubic current
+  character is not semiprimitive; in the exceptional arm only the untwisted
+  sum is semiprimitive, while evaluating the twisted sum is exactly the open
+  residue symbol. The unavoidable conductor-five mixed Jacobi terms are not
+  semiprimitive either.
 - The current cubic and exceptional residue coordinates are orthogonal: their
   norm-one tori have coprime orders, the exceptional cubical operator kills
   the cubic subfield, and the local norm kills the exceptional torus. Thus
@@ -382,6 +396,12 @@ component information can lose it.
   step this character has zero invariants and zero norm despite being
   nonzero, so ambiguous-class, genus, and ordinary norm arguments are
   structurally blind to the exact component that must vanish.
+- After faithful-character localization, reduction of the selected circular
+  unit is multiplication by one scalar. Multiplication by a unit and by the
+  current prime have identical character and norm data but opposite
+  surjectivity behavior. Regulator, Fitting, or Stickelberger information
+  must therefore compute this marked local scalar rather than only its source
+  module or annihilator.
 - A two-block tensor-rank obstruction proves the multicomponent zero arm at
   `h = 12, 15, 24, 36, 40`. The `h = 15` proof retains the full synchronized
   norm phase, while `h = 36` checks both prime factors of `Phi_36(2)` by
@@ -390,7 +410,8 @@ component information can lose it.
 - `formal/Ogdoad/Excess.lean` proves the first-non-power interface,
   group-theoretic lower bound, corrected sparse norm, exact cyclic/finite-field
   power tests, toric semiconjugacy, alternating two-step cubic conjugacy,
-  supersingular coordinate symmetry, finite arithmetic screens, and algebraic
+  supersingular coordinate symmetry, cubical `C/D` orthogonality and
+  faithful-character norm blindness, finite arithmetic screens, and algebraic
   lemmas used by the four reductions. `DPrimeTarget` is deliberately only a
   definition of the open universal target.
 - The exceptional column has an unconditional effective bound depending on

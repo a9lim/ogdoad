@@ -8092,6 +8092,55 @@ theorem twoPrime_coboundary_eq
   simp only [div_eq_mul_inv, mul_pow, inv_pow]
   group
 
+/-- The cubic and exceptional torus orders cannot share an odd residue
+character: a common root of `q^2 + q + 1` and `q^3 + 1` forces two to
+vanish.  This is the algebraic core of the `C/D` orthogonality argument in
+the paper. -/
+theorem cubic_exceptional_common_root_forces_two
+    {R : Type*} [CommRing R] (q : R)
+    (hc : q ^ 2 + q + 1 = 0)
+    (hd : q ^ 3 + 1 = 0) :
+    (2 : R) = 0 := by
+  linear_combination hd - (q - 1) * hc
+
+/-- On a faithful cubic character, the relative norm operator is zero.
+This records why norm and ambiguous-class arguments can miss a nonzero
+current character component. -/
+theorem faithful_cubic_character_norm_zero
+    {R : Type*} [CommRing R] (r v : R)
+    (hr : r ^ 2 + r + 1 = 0) :
+    v + r * v + r ^ 2 * v = 0 := by
+  linear_combination v * hr
+
+/-- The algebraic substitution behind the deterministic child of a Fermat
+order packet.  Finite-field trace one makes the Artin--Schreier equation
+irreducible; that field-theoretic step remains in the paper. -/
+theorem fermat_packet_child_root
+    (t c : F) (hc : c ^ 2 + c = t) :
+    (t * c) ^ 2 + t * (t * c) + t ^ 3 = 0 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hc2 : c ^ 2 = t + c := by
+    calc
+      c ^ 2 = t - c := (eq_sub_iff_add_eq).2 hc
+      _ = t + c := CharTwo.sub_eq_add _ _
+  rw [mul_pow, hc2]
+  ring_nf
+  simp [htwo]
+
+/-- The two explicit packet children have the required relative norm. -/
+theorem fermat_packet_child_norm
+    (t c : F) (hc : c ^ 2 + c = t) :
+    (t * c) * (t * (c + 1)) = t ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hc2 : c ^ 2 = t + c := by
+    calc
+      c ^ 2 = t - c := (eq_sub_iff_add_eq).2 hc
+      _ = t + c := CharTwo.sub_eq_add _ _
+  ring_nf
+  rw [hc2]
+  ring_nf
+  simp [htwo]
+
 /-- The two-face multiplicative coboundary of an additive two-block element.
 Its difference from one factors as the product of the two edge differences. -/
 theorem additive_crossRatio_add_one
