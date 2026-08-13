@@ -367,10 +367,10 @@ component information can lose it.
   degree-`23` extension, and every prime over `2`, including the
   Conway-selected prime, has nontrivial Artin symbol and generates this
   class line. The literal row nevertheless has `m_23 = 1`. Thus a successful
-  row can have both a nonzero ramified local term and a nonzero unramified
-  marked-class term; the unresolved universal assertion is their actual
-  selected sum, not principality of the marked prime or uniform Bernoulli
-  nonvanishing.
+  row can have a nonzero unramified marked-class term; in any fixed ray split,
+  its ramified lift does not cancel that term. The unresolved universal
+  assertion is the actual selected sum, not principality of the marked prime
+  or uniform Bernoulli nonvanishing.
 - For every residue degree `h`, an explicit cubical Frobenius coboundary has
   kernel equal to the product of all maximal proper subfield unit groups and
   image of exact order `Phi_h(2)`. It therefore gives a canonical coordinate
